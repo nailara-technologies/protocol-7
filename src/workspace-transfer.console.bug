@@ -46,19 +46,19 @@ if ( $cmd eq 'list' ) {
     my $count = 0;
     my $fixed = 0;
     while (<$fh>) {
-        if (/^- \[ \].*\[BUG-(\d+)\](.*)/) {
+        if (m|^- \[ \].*\[BUG-(\d+)\](.*)|) {
             $count++;
             my $bug_num = $1;
             my $desc    = $2;
             say "${neon_red}[BUG-${bug_num}]${reset}"
                 . " ${TRUE_blue}●$reset$desc";
-        } elsif (/^- \[x\].*\[BUG-(\d+)\](.*)/) {
+        } elsif (m|^- \[x\].*\[BUG-(\d+)\](.*)|) {
             $fixed++;
             my $bug_num = $1;
             my $desc    = $2;
             say "${blacklight}[BUG-${bug_num}]${reset}"
                 . " ${neon_green}✓$reset$desc";
-        } elsif (/^  - (Reported|Status):(.*)/) {
+        } elsif (m{^  - (Reported|Status):(.*)}) {
             say "  ${blacklight}$1:${reset}$2";
         } else {
             print;
@@ -89,7 +89,7 @@ if ( $cmd eq 'list' ) {
             <[base.exit]>->(qw| 0110 |);
         };
         while (<$fh>) {
-            if (/\[BUG-(\d+)\]/) {
+            if (m|\[BUG-(\d+)\]|) {
                 my $id = $1;
                 $next_id = $id + 1 if $id >= $next_id;
             }
@@ -134,20 +134,20 @@ if ( $cmd eq 'list' ) {
 
     my $found = 0;
     for my $i ( 0 .. $#lines ) {
-        if ( $lines[$i] =~ /^- \[ \].*\[BUG-$bug_id\]/ ) {
+        if ( $lines[$i] =~ m|^- \[ \].*\[BUG-$bug_id\]| ) {
             $lines[$i] =~ s|^- \[ \]|- [x]|;
             $found = 1;
 
             # Update status line
             for my $j ( $i + 1 .. $#lines ) {
-                if ( $lines[$j] =~ /Status: Open/ ) {
+                if ( $lines[$j] =~ m|Status: Open| ) {
                     $lines[$j] =~ s|Status: Open|Status: Fixed|;
                     $lines[$j] =~ s|\n$||;
                     $lines[$j] .= " ("
                         . POSIX::strftime( "%Y-%m-%d", localtime() ) . ")\n";
                     last;
                 }
-                last if $lines[$j] =~ /^- \[/;    # Next bug
+                last if $lines[$j] =~ m|^- \[|;    # Next bug
             }
 
             open my $out, '>', $bug_file or do {
@@ -191,8 +191,8 @@ if ( $cmd eq 'list' ) {
     say "";
 }
 
-#,,,,,,.,,,.,,..,,,..,...,,.,,...,,.,,.,,,..,,..,,...,...,...,,.,,,,,,,.,,..,,
-#K76FWRQCELIUFWSWBVQBK2MFCHKQ47CH444I2T6OE2ZKNUCGKFSOHSMELOYLVEFUJUDIAMJGKE5BA
-#\\\|E2JWYOP3O5HUIKHWUR7HZ5B5THBOO647ZV2CFTLU27NOXHQM7QE \ / AMOS7 \ YOURUM ::
-#\[7]4QRLZBHHZ6XYJRXR3HXDZKXSEZU6SNHODYPGLH3YWMOREAU5SKDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,,..,,..,.,.,,,,,..,,...,..,,..,,...,...,.,.,..,,.,.,,,.,,..,
+#ZFNV6USKBSJARJTZ3KEEW6ZZ2UVAY767KLLXMWKIJECQUA27BYZ5743K55ZYYMSU3B4UCRMJL4FV2
+#\\\|OBNRJF32SL5CX4RFRF47CJR6LCM6J6NMSI3W6APBNNY6K2P44R2 \ / AMOS7 \ YOURUM ::
+#\[7]SMDWQ55UINGKI42BQAJEZHOS7TX6FWQLSKZ3FJYYIBZ4UAPFPSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

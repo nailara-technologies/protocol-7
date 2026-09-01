@@ -6,7 +6,7 @@
 my $args = $call->{'args'} // '';
 
 ## parse command ##
-my @tokens = split( / +/, $args );
+my @tokens = split( m| +|, $args );
 my $cmd    = $tokens[0] // '';
 
 my $glow = <graphics-matrix.glow>;
@@ -25,7 +25,7 @@ if ( $cmd eq '' ) {
         my $hop    = 0;
         for my $i ( 1 .. $#tokens ) {
             my $val = $tokens[$i];
-            next if $val !~ m/^\d+$/;
+            next if $val !~ m|^\d+$|;
             $counts->{$hop} = int($val);
             $hop++;
         }
@@ -80,7 +80,7 @@ if ( $cmd eq '' ) {
         qw| mode | => qw| false |,
         qw| data | => 'base must be number between 0.0 and 1.0'
         }
-        if $val !~ m/^\d+(?:\.\d+)?$/;
+        if $val !~ m|^\d+(?:\.\d+)?$|;
 
     $val = $val + 0;    ## convert to numeric ##
 
@@ -132,8 +132,8 @@ if ( %{ $glow->{'shells'} } ) {
 
 return { qw| mode | => qw| size |, qw| data | => $out };
 
-#,,..,.,.,,,,,.,.,.,,,.,.,,,,,,,,,,.,,,,.,.,.,.,.,...,...,.,.,.,,,.,,,,,.,,,,,
-#7NE5ZRBQGTRY5NUGGWJBKO2ZEC252PYVJKV7D2JWFDZRP2VRIBXEBVYVT2B7KEZ6FZYXWYRGLNRTK
-#\\\|NNEDXTAINC3P6N6RRKVWWOMJF57FEP6MTGN7V2EPKLY376II7EN \ / AMOS7 \ YOURUM ::
-#\[7]5VGYEQI3WOS3OB5NBC4QJQ6HV5RMRXRETZTLFKEDFAX3DKXOCSCA 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,,..,.,.,,..,...,.,.,,,.,,.,,.,.,...,...,,..,,..,.,,,...,.,.,
+#N3AIJK4UWQQSJLVSR533A3OJCSSVJVIIU4SKEQSYQPBX3WGSYS2YTXZ4UIKCSBT6DV2GM5UFOUZYK
+#\\\|N3RQLRQ6D27XEUAAJA53JGYVWJJS7G7LP4OMVPVEQ7XKZFM22V6 \ / AMOS7 \ YOURUM ::
+#\[7]HT4OOCZXPBVDQ7ZQ6M3ZRKZAPFNM7PHRNMLQVVIUUPY44647AEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

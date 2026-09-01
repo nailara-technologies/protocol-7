@@ -25,13 +25,13 @@ $registry->{'stats'}{'parsed'}++;
 # Parse nested brackets first
 my @nested;
 my $remaining = $p7ref;
-while ( $remaining =~ /$regex->{'nested'}/ ) {
+while ( $remaining =~ m|$regex->{'nested'}| ) {
     push @nested, $1;
-    $remaining =~ s/\[[^\]]+\]/[NESTED]/;
+    $remaining =~ s|\[[^\]]+\]|[NESTED]|;
 }
 
 # Parse main reference
-if ( $remaining !~ /$regex->{'full'}/ ) {
+if ( $remaining !~ m|$regex->{'full'}| ) {
     return { 'mode' => 'false', 'data' => 'Invalid P7REF format' };
 }
 
@@ -39,27 +39,27 @@ my ( $type, $address ) = ( $1, $2 );
 
 # Parse segments
 my @segments;
-while ( $address =~ /$regex->{'segment'}/g ) {
+while ( $address =~ m|$regex->{'segment'}|g ) {
     push @segments, $1;
 }
-$address =~ s/\|[^|]+\|//g;
+$address =~ s{\|[^|]+\|}{}g;
 
 # Parse authority
 my $authority;
-if ( $address =~ /$regex->{'authority'}/ ) {
+if ( $address =~ m|$regex->{'authority'}| ) {
     $authority = $1;
-    $address =~ s/@[^\/]+//;
+    $address =~ s|@[^/]+||;
 }
 
 # Parse query
 my %query;
-if ( $address =~ /$regex->{'query'}/ ) {
+if ( $address =~ m|$regex->{'query'}| ) {
     my $qstr = $1;
-    for my $pair ( split /&/, $qstr ) {
-        my ( $k, $v ) = split /=/, $pair, 2;
+    for my $pair ( split m|&|, $qstr ) {
+        my ( $k, $v ) = split m|=|, $pair, 2;
         $query{$k} = $v // 1;
     }
-    $address =~ s/\?.+$//;
+    $address =~ s|\?.+$||;
 }
 
 my $parsed = {
@@ -82,8 +82,8 @@ return {
     'cached' => 0,
 };
 
-#,,.,,..,,,..,,,,,,,.,.,,,,,.,..,,.,,,,..,..,,.,.,...,...,,,,,...,,.,,,..,...,
-#Z6YJNUCZC7SADJ4QQEGCOOHUCOGCQLGXA576A3ASEZGLCS2XTG7PJY5CLZUU6KUQTOQSN3VQM4U3W
-#\\\|SIHAPH5SOO5SHWEMJGIPVX25FMVZR4AZWBX7NJLXZTSODBFKJHR \ / AMOS7 \ YOURUM ::
-#\[7]KHZMBTDZ6AKHESN55GTX6NSH3PJURLABR5RZ4XPCAQVB72STAWDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,...,,..,,,,,,.,,,,.,..,,.,.,.,.,...,...,.,.,,.,,.,,,,.,,.,,,
+#ALBY6TCBJJXPXGJL44QOTUDXADF2IMKA33OLHWUAKAKEJBVV5NKEUC2AMP3V2WW22QHRZRAIDE7NO
+#\\\|KQUGTIQO2EQKF3ESLJR2KTCNL2UTLEIO4QGF4W3TUWTJ4FBSJSC \ / AMOS7 \ YOURUM ::
+#\[7]L3TPBX7YHMCUXXNQ4AL6QM7ZFIVCKPED7BEIQJ7BLOE637ZGHMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

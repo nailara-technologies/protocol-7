@@ -91,7 +91,7 @@ foreach my $tc (@$tool_calls) {
         }
 
         ## anti-pattern 2 : trailing comma before closing } or ] ##
-        $repaired =~ s/,(\s*[}\]])/$1/g
+        $repaired =~ s|,(\s*[}\]])|$1|g
             and $did_repair //= 'removed trailing comma';
 
         ## anti-pattern 3 : illegal backslash escapes like \[ \# \< \$ ##
@@ -112,9 +112,9 @@ foreach my $tc (@$tool_calls) {
     }
 
     ## handle concatenated JSON objects [ model error ] ##
-    if ( $EVAL_ERROR && $args_str =~ m/^\s*\{.*\}\s*\{/s ) {
+    if ( $EVAL_ERROR && $args_str =~ m|^\s*\{.*\}\s*\{|s ) {
         ## multiple objects concatenated - try to extract first valid one ##
-        if ( $args_str =~ m/^\s*(\{.*?\})\s*(?:\{|\z)/s ) {
+        if ( $args_str =~ m{^\s*(\{.*?\})\s*(?:\{|\z)}s ) {
             my $first_obj = $1;
             $args = eval { JSON::PP->new->utf8(0)->decode($first_obj) };
             <[base.logs]>->(
@@ -137,7 +137,7 @@ foreach my $tc (@$tool_calls) {
         ## sanitize preview -- raw broken args in tool result crash Jinja ##
         my $args_preview = substr( $args_str, 0, 120 );
         $args_preview .= '...' if length($args_str) > 120;
-        $args_preview =~ s/[^\x20-\x7E]/?/g;
+        $args_preview =~ s|[^\x20-\x7E]|?|g;
         <[base.logs]>->(
             0, "async.tool_executor: malformed args for %s: %s [args=%s]",
             $tool_name, $parse_err, $args_preview
@@ -289,7 +289,7 @@ foreach my $tc (@$tool_calls) {
                         and ( $m->{'tool_call_id'} // '' ) eq $prior_id ) {
                         my ($prior_range)
                             = $m->{'content'}
-                            =~ m/^\.:\[ file: \Q$rf_path\E\s+lines (\S+)/;
+                            =~ m|^\.:\[ file: \Q$rf_path\E\s+lines (\S+)|;
                         $m->{'content'}
                             = sprintf( "[ superseded: lines %s of %s -- "
                                 . "replaced by a later read_file "
@@ -304,7 +304,7 @@ foreach my $tc (@$tool_calls) {
             ## tracking this path so the *next* page supersedes this one.  ##
             ## reached end of file : stop tracking, this page is the final ##
             ## one and should stay intact                                  ##
-            if ( $result_content =~ /to continue: read_file path=/ ) {
+            if ( $result_content =~ m|to continue: read_file path=| ) {
                 $paged->{$rf_path} = $call_id;
             } else {
                 delete $paged->{$rf_path};
@@ -397,8 +397,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,..,,.,,.,.,,..,,,.,.,.,,..,,..,,.,,.,,,.,,,.,.,...,...,...,..,,,,,,.,.,,..,
-#4EWHTJ7F7KHWAJWSLWQFNAFNJ3EF7DXL5ZZYSTTOWALBARUJQKGGADLBD3EYXY5XO2XFN5QIBO3VS
-#\\\|TOUKPMDZH65AIMUEJDX7OFL7XQQNE6QSOSWOW3P56NU5FZ2OBM5 \ / AMOS7 \ YOURUM ::
-#\[7]4QQTBLF5Z4OXRQ5HZP3KFD5IJ6ZLDZCQ5RJHPXVRRXLNW2YCFMAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,..,.,,,.,.,,,.,,,.,,,.,.,,,.,.,...,...,.,,,.,.,..,,,.,,..,,
+#VES4VCPUY4T4WDGWIW7F5D4I6IJB34QLCCD4FWHZO4F4UMITDXOATMNV675OFHMI5YYK2YHF5KID4
+#\\\|5ZKDLMA7IX5HGLIFB6J4NMHQFFFYOK3L2BCASKWODW6LO6YNDZ6 \ / AMOS7 \ YOURUM ::
+#\[7]5AGWVPH3NOIR6PDM5MYOOBM4PIKPJBZI5JMPOAHKET22JJITN4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

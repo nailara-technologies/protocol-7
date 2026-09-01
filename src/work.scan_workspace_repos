@@ -10,7 +10,7 @@ return \@repos unless -d $var_run_dir;
 
 opendir my $dh, $var_run_dir or return \@repos;
 while ( my $entry = readdir($dh) ) {
-    next if $entry =~ /^\./;
+    next if $entry =~ m|^\.|;
     my $path = "$var_run_dir/$entry";
     next unless -d $path && -d "$path/.git";
 
@@ -25,8 +25,8 @@ closedir $dh;
 
 return \@repos;
 
-#,,.,,,..,...,,..,.,,,.,.,,,,,,,.,,,.,,..,,..,..,,...,...,...,.,,,,,.,,..,.,.,
-#A5GJUYBY3P2PXZMZNNGVPVNNOPF3VA77URQBJV2Y3S775Z7Y42GPVXY55TL42L7LJVHMJ6C6UYLYM
-#\\\|GBNAM4J23BRCLDMRHVQP2TYBOFTUHWVSXN5OIRKWUHYHXNI74QG \ / AMOS7 \ YOURUM ::
-#\[7]LWBIHTFNL3GSIYOJOU6QW44SMVOKTAJZDOEWIOJW3BZZAWXBI2CI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,,,.,.,,,,,,,.,,,.,.,,,,,.,.,..,,...,..,,..,,,,.,..,,,,.,,,,,
+#WVOFQVKQ5J7TVLDRW2FEHTTFJEEEUFM3RQANMD2FVVETD3XA3DH377PKHWFR5CTMCZGXJ72PBCUVM
+#\\\|MQPEPTWY7YMVDDGC6VIE77YGR67CJKFISRHGNVTCRJTKJIREAGQ \ / AMOS7 \ YOURUM ::
+#\[7]F6F2RTIZVKYXMXVEGLYNIZSXSOUXTI74NNT5NCFTSBGOS5XDRKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

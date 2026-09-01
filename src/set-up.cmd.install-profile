@@ -8,7 +8,7 @@ my $profile_name = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'expected config name parameter' }
     if !length($profile_name);
 return { 'mode' => qw| false |, 'data' => 'invalid profile name!' }
-    if $profile_name !~ /^[\w\-_\.]+$/;
+    if $profile_name !~ m|^[\w-_\.]+$|;
 
 my $import_dir   = <set-up.json.import_dir>;
 my $profile_dir  = <set-up.profile_dir>;
@@ -48,8 +48,8 @@ return {
 
 return { 'mode' => qw| false |, 'data' => 'no set-up files installed!' }
 
-#,,.,,,..,,,,,,,.,,..,.,,,..,,,,,,.,,,,,,,,,,,..,,...,..,,,,.,,,,,,,.,,.,,.,,,
-#CTCP4CPUYOM3VSSH2C4M7EWSKIX3VAAG2YL3F7XQJOVZYNKBXUTHGYHP7W7CM7VAIRSZP5LQ6NNNM
-#\\\|CVM5BAFRHNG6BDW7CJPUCJKCLEO2YLCWLASLHJJ4XGHHB74JZF7 \ / AMOS7 \ YOURUM ::
-#\[7]O2ZRHKQB7PPF3NYQXTEOSUR2J5LQLKADUNJ32UWEDKMBJVJSASAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,,..,...,.,,,,..,...,.,,,...,..,,...,...,...,...,,.,,,..,.,.,
+#3E5HWUYWA776BMN364EKW3OHFOCZW7YCFVYPG74AA4YTFXZASTRFVJIYSSKVKL5ILQODM37GIR7OG
+#\\\|LADKJSHJDCLKFALN34PBUTSM2HFCN56YGRDPEV6EKSCLPUIPOBN \ / AMOS7 \ YOURUM ::
+#\[7]UAEFFDL7LKRG66ZYPFMWXS5NEQHJNIXK3M4KSJEZFWKOZMTPLSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

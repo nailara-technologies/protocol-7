@@ -339,8 +339,8 @@ $rendered =~ s{\x01}{$cursor_render}ge;
 my $bracket_color = length $colors{'reset'} ? $colors{'p7_fg_0001'} : '';
 my $content_color = length $colors{'reset'} ? $colors{'p7_fg_0004'} : '';
 
-$rendered =~ s{\x02}{$bracket_color . q{[} . $content_color}ge;
-$rendered =~ s{\x03}{$bracket_color . q{]} . $content_color}ge;
+$rendered =~ s|\x02|$bracket_color . q{[} . $content_color|eg;
+$rendered =~ s|\x03|$bracket_color . q{]} . $content_color|eg;
 
 ## title : the 'user-edit : ' part is framing, the username is payload, so
 ## only the username keeps the content colour.  substituting ANSI into the
@@ -448,8 +448,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,,,,,..,,,,,,,,,,...,...,,.,,...,,.,,.,.,..,,...,..,,,,.,,.,,...,..,,.,.,
-#TGDOJJ22Y6F3EJPONJMGR46MZ4OLKZZUYBSK3MTUMQ6XLWZHBDW6AOXAECIWI4QFDL63STMZYWIXW
-#\\\|VLH3WOVCGXZCSXUENLCAVGXLDQ7G35V4VQXAY3EU2AM6ISU4OHN \ / AMOS7 \ YOURUM ::
-#\[7]TWRQI6A4VB6E7GH3WUDGUNHS5QKBDR5HH54DYGOJMNJSSQAAP6DY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,.,,,,,,,,.,,,,,,.,.,,,,,...,..,,...,..,,...,,,.,,.,,,,,,,.,,
+#FNC2WIVTOYEAMLORRKTMXBQZIPO4BY53UDW62NNY7VG6PLO7V7RKPMMYI4FQTCMYKD7VEWKGL7S2M
+#\\\|JGSA5UYBWYWVH2YYSHMFNKA4J2AUIAPZNXJREVYNGYX3PIYCVBH \ / AMOS7 \ YOURUM ::
+#\[7]UX4L4NQTXSKWTFV2DRWWXAXQO5L6C2C4LU253ANBRN7M3PIAW2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

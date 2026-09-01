@@ -119,7 +119,7 @@ if ( !-f $output_file ) {
         my $err_str = lcfirst($OS_ERROR);
         if ( -f $error_log_file ) {
             my $log_content = <[file.slurp]>->($error_log_file);
-            my @log_lines   = split( /\n/, $$log_content );
+            my @log_lines   = split( m|\n|, $$log_content );
             if ( scalar(@log_lines) > 3 ) {
                 $err_str = $log_lines[2];
             } elsif (@log_lines) {
@@ -145,8 +145,8 @@ unlink($error_log_file) if -f $error_log_file;
 
 return { 'mode' => qw| true |, 'data' => $output_file }
 
-#,,..,..,,,..,,..,..,,..,,,..,...,.,,,...,..,,..,,...,...,.,.,,..,.,.,,,.,.,,,
-#O4ONE3RYS6XQ33NWB6WRS4DHKVU3HFUISCK6IFIHFM25OFBLWAPQSJHYDMCREIF7EZB5EVEOZKZW6
-#\\\|AT7T2TXDAXH3L4JBNBQOIWCPEMCFAATE6A43OKCFNYAOJQDK2CP \ / AMOS7 \ YOURUM ::
-#\[7]PAINK2F2WOIPOS2RJMQ7BQV52B5HNQQFVXRP7ZWRTTEXEUWO3IBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,.,,,,.,,.,.,,,,,.,.,,,.,,,.,..,,...,...,..,,..,,.,,,,..,...,
+#6PYP5UX2KX5GXSSFSVZRXE6A3KR7JRTG3LACRQBTMFVL72G2J6JXZWYGOXZ7NGAWIVXGOPCPZTLZU
+#\\\|WA5TE63Z3FUCCR6FNVMFEOCQBRYP66SEQAHEDMZEBXROJ2U2T3M \ / AMOS7 \ YOURUM ::
+#\[7]EWKOHITACCBT7DSBZJWZSOMN7WPICDQ7SKKIFURX5GPKELEBU4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

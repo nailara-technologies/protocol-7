@@ -106,7 +106,7 @@ if ( defined $choice->{'finish_reason'} ) {
 
     ## log current state before transition ##
     my $content_preview = substr( $context->{'content'} // '', 0, 50 );
-    $content_preview =~ s/\n/ /g;
+    $content_preview =~ s|\n| |g;
     <[base.logs]>->(
         2,
         "chunk_handler: task %s finish_reason=%s "
@@ -183,7 +183,7 @@ if ( defined $choice->{'finish_reason'} ) {
 
                 ## validate reason [ min 20 words, not vague ] ##
                 my $reason       = $parsed->{'reason'} // '';
-                my @words        = split /\s+/, $reason;
+                my @words        = split m|\s+|, $reason;
                 my $valid_reason = scalar(@words) >= 20
                     && $reason
                     !~ m{^(?:this\s+is\s+(?:a\s+)?complex|i\s+need\s+.+\s+because)}i;
@@ -471,8 +471,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,.,,,.,,.,.,,.,,...,,.,,..,,,,.,.,.,,.,,,..,.,.,...,...,,.,,,,.,..,,.,,,,,.,
-#ZPKD3APNPTF5LY2U652MRLRRTL6MKKX5AWDW47CRFRHLB445WDKNZL7FRSYTCAU6XWRI5RHHPUJ7S
-#\\\|LDCAADDXP3Y6FSHPPDPNTCGOSWQBLJZS4VY2UOG67C5RODNFAJA \ / AMOS7 \ YOURUM ::
-#\[7]6O7VP6IGNFSSJY64OMOFOVZ34IMPPW4QIXPIVEX4MC3LCMXFCUBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,..,,.,.,,.,,,,,,.,.,,.,,,,,,,.,,.,.,...,...,.,,,.,.,...,,,,,,..,
+#HT6YJ7ZRIXGEDWOWEOUEGK52ISA3FFPOA67224RE2RPNLOWY6SKLPPWYA4MTTD5MOV2HFKGQHTEK2
+#\\\|PVVTTE7JOCOAHSVXRALPKSS54KJLTHX7FFNEIZTF56C4PQ6D2XV \ / AMOS7 \ YOURUM ::
+#\[7]AHSWLCASPNYNHBKAVQTX7HPGNQO64YL5DAOK3LOQ6KCUT5JHI6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

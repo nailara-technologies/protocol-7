@@ -16,7 +16,7 @@ my $desc       = $task->{request}->{description} // '';
 my $complexity = 1;
 
 # Length-based complexity
-my $word_count = scalar( split( /\s+/, $desc ) );
+my $word_count = scalar( split( m|\s+|, $desc ) );
 if ( $word_count > 100 ) {
     $complexity += 2;
 } elsif ( $word_count > 50 ) {
@@ -31,7 +31,7 @@ my @complex_keywords = qw(
 );
 
 foreach my $keyword (@complex_keywords) {
-    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+    if ( lc($desc) =~ m|\Q$keyword\E|i ) {
         $complexity += 2;
     }
 }
@@ -43,7 +43,7 @@ my @medium_keywords = qw(
 );
 
 foreach my $keyword (@medium_keywords) {
-    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+    if ( lc($desc) =~ m|\Q$keyword\E|i ) {
         $complexity += 1;
     }
 }
@@ -51,13 +51,13 @@ foreach my $keyword (@medium_keywords) {
 # Task type adjustments
 my $type = $task->{type} // 'analysis';
 
-if ( $type =~ /code|generation|creation/ ) {
+if ( $type =~ m{code|generation|creation} ) {
     $complexity += 3;
-} elsif ( $type =~ /consensus|voting/ ) {
+} elsif ( $type =~ m{consensus|voting} ) {
     $complexity += 4;
-} elsif ( $type =~ /transcription|audio/ ) {
+} elsif ( $type =~ m{transcription|audio} ) {
     $complexity -= 2;
-} elsif ( $type =~ /image|creative/ ) {
+} elsif ( $type =~ m{image|creative} ) {
     $complexity += 2;
 }
 
@@ -80,8 +80,8 @@ return {
     }
 };
 
-#,,..,,.,,,,.,.,,,...,,,.,.,.,..,,.,,,.,,,,,.,..,,...,...,..,,.,.,,..,..,,...,
-#RMXBV4DQK6DN46OJHTZQPELJLOJX57F2CI67UIMJ2X4DXQHKPZ47DUQ33BYLPYQENLPOYSLUT7PJC
-#\\\|MIJ25BW2GOICL5WRFDADO3QXTT6EJ6ZTGC3VZOUBMQWRHO5FKXM \ / AMOS7 \ YOURUM ::
-#\[7]AM2TGD6E2NFAUSR2XXXMBIOLURPXVKGC4XTFBH6G5RJHHA5GIUAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,.,,,.,,..,..,,,,.,,.,,.,.,,,.,..,,...,..,,.,.,.,.,,..,...,..,,
+#4GNW6LJGT3JPAJKUXAJU32RRIHQ2TPROKPB44A4G6JGI3MAS5EAVL7QFO6JRYEXPTUHGQQODANNOM
+#\\\|PAWRKXO6DLAROTUAJ6H2ABR32F5NUFK3KLTIOCF5RNKTXZFSLTY \ / AMOS7 \ YOURUM ::
+#\[7]3EMYVBTYIJ6GGFB6WGYUFC37ZU2B2WSRJXY7GXKTU6XF27VIOYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

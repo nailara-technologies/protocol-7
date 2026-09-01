@@ -16,7 +16,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
     ( my $cpu = sprintf( '%.2f', $p->pctcpu ) ) =~ s|^ +||;
     ( my $mem = sprintf( '%.2f', $p->pctmem ) ) =~ s|^ +||;
-    $cpu = 0 if $cpu !~ /^\d+(\.\d+)?$/;
+    $cpu = 0 if $cpu !~ m|^\d+(\.\d+)?$|;
     $cpu =~ s|^(\d+\.\d+)0+$|$1|;
     $mem =~ s|^(\d+\.\d+)0+$|$1|;
 
@@ -51,14 +51,14 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     ## ]
     foreach my $lp_name ( keys <process.limits>->%* ) {
         next
-            if $p->fname !~ /\Q$lp_name\E/
+            if $p->fname !~ m|\Q$lp_name\E|
             and ( not defined $p->cmndline
-            or $p->cmndline !~ /^[^\s]*\Q$lp_name\E/ );
+            or $p->cmndline !~ m|^[^\s]*\Q$lp_name\E| );
         my $lp = <process.limits>->{$lp_name};
         ( my $rl_name = $p->fname // $p->cmndline ) =~ s| .*$||;
 
         if (    defined $lp->{'max_mem'}
-            and $lp->{'max_mem'} =~ /^\d+(\.\d+)?$/
+            and $lp->{'max_mem'} =~ m|^\d+(\.\d+)?$|
             and $lp->{'max_mem'} != 0 ) {
             $lp->{'condition_start'} //= <[base.time]>->(2)
                 if $mem >= $lp->{'max_mem'};
@@ -91,7 +91,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
 
         next
             if not defined $lp->{'max_cpu'}
-            or $lp->{'max_cpu'} !~ /^\d+(\.\d+)?$/
+            or $lp->{'max_cpu'} !~ m|^\d+(\.\d+)?$|
             or $lp->{'max_cpu'} == 0;
         delete $lp->{'condition_start'} if $cpu < $lp->{'max_cpu'};
 
@@ -169,8 +169,8 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
-#,,,.,...,,,.,..,,..,,...,,,.,.,,,..,,,.,,,.,,..,,...,...,.,.,,,.,,.,,,..,,.,,
-#MF2XPSCMJIXVPHRKHAEK7Q7LYYG2PJHCYKT6QBPWBRTMDDHV26JTS7RPCOS6WQIU3KO4CXZTNYAHG
-#\\\|W2UR7Y4LJESNWZ5NBZ6UAFMDXRDMBOXX43W54IAF3POU5HSZL4K \ / AMOS7 \ YOURUM ::
-#\[7]GRZ3V22RLB4KBCNWRZ37JHBVWFC4OB2PBVSMCBRR5IVNVWTO26DI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,,,,.,,,..,,,.,...,,,,,,..,.,,,..,,...,...,.,,,...,,.,,,,,,,,.,
+#XO6PPNQ6MW5LIZEFUDOEORTBSJT457FYZJHRWOSCXCRS7FTS7CZ4H5LSKN2HOKUMR66JIEHFIBA3E
+#\\\|66S6G5ED5KTXXNVJZRDV6AV2XZA4NE4KNASVVQDO7XFURLZCT3R \ / AMOS7 \ YOURUM ::
+#\[7]O3CFHRSMWBUV33TZFQULZ7CZ65ZB4LJ6YYZWAN7O7LOYXTQEJECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

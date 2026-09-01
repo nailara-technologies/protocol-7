@@ -12,10 +12,10 @@
 # site-yaml.cmd.import ].
 
 my $args_str = $call->{'args'} // '';
-$args_str =~ s/^\s+|\s+$//g;
+$args_str =~ s{^\s+|\s+$}{}g;
 
 ## parse key=value pairs; values are non-whitespace ##
-my %param = ( $args_str =~ m/(\w+)=([^\s]+)/g );
+my %param = ( $args_str =~ m|(\w+)=([^\s]+)|g );
 
 my $url = $param{'url'} // '';
 if ( not length $url ) {
@@ -67,8 +67,8 @@ my $summary = sprintf 'import-url queued: %s [%s]', $job_id, $url;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,.,,,.,.,.,,,.,.,,..,,..,.,,,..,,.,.,,..,.,.,...,..,,.,,,...,...,..,,...,
-#5IOTFA24MKPEIDPMZC223CLDXMJMUANWBBGAKKLFI7ZD3MZJNEUHMFWT7SFQPLNXDSIPVX3LO74TM
-#\\\|3UWWZRWKWBP62AYR3H66DOZK2OQDIZJIS4XTTRJFI7PUFQIT7P7 \ / AMOS7 \ YOURUM ::
-#\[7]E2S6B5DRNZTL2EJVTMNLCAYGEDG4MAQNBE7UGE46VOXW6POHJ2BA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,...,,,,,...,..,,,.,,.,,,...,.,.,...,...,...,,,,,,,,,,,.,,,.,
+#WJOFGNR4Q5DVJOOISRH4MSQAQG23XTKX3K66UAY2J4SU2AUIHCJMPI5VYDW5RI65TTUPX6NF3Z6YG
+#\\\|KLHXRTULBFKCKUGGJ4IOVRVTODAIICOA5FBI2T4TSBBGUYZKRNJ \ / AMOS7 \ YOURUM ::
+#\[7]D4BV6ETIUIVYMZVCX7PZKOXZZTXONO6IHNGZWYL34GJ5NHGTBACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

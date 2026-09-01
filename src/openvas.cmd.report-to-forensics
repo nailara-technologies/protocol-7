@@ -123,7 +123,7 @@ foreach my $finding (@findings) {
         'mode' => qw| false |,
         'data' => sprintf( 'invalid correlation_id [ %s ]', $cid )
         }
-        if $cid !~ m{^[\w\.\-:]{4,80}$};
+        if $cid !~ m|^[\w\.-:]{4,80}$|;
 
     my $enriched = <[openvas.enrich.finding]>->($finding);
     return {
@@ -205,8 +205,8 @@ return {
     'data' => $reply_text
 };
 
-#,,,.,,,,,,..,..,,,,.,,.,,,.,,,.,,,.,,,..,.,.,..,,...,...,..,,,.,,..,,.,,,.,.,
-#F44WGKZZ7KAFC4TSCPOGHCYYFSAYGZPY4FS4WG7B4HSUZEB2MLRKWKYDPTJXJSDFFV5S26U4AWI24
-#\\\|GNDLGLCMBQWJ352JKBSQVYGGXY6TQKEUYU5FB3HCIL6BJ76AGI3 \ / AMOS7 \ YOURUM ::
-#\[7]BQPD6Y2GMUPQYLMCW4AWWATGFSQJPO5UVJM6VAM2AZ3ZIJPYMGAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,...,.,.,,.,,.,,,..,,...,,,.,..,,...,...,..,,..,,.,.,,.,,,,,,
+#UE7WWZJ7YN3EDIMJ5LVAY6OZWGKBARRUP2JFJJ2TOBPSQ2SCKSNN4MYCHWSKBXKCRH7QVYSBEPCWS
+#\\\|OZ6YX27FIPXUNF2DQGZX4F364LSRUCZWZT6OZE3V5KYEK3RZJGR \ / AMOS7 \ YOURUM ::
+#\[7]AIKIKVPCZXVZJHHNET3BB4FOHFMYHTXY5NHGQXXJX5LKVIVWX6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

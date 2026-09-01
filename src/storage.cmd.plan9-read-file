@@ -3,7 +3,7 @@
 # descr = Read a whole file over 9P
 
 my $args = $call->{'args'} // '';
-my ( $name, $path ) = split /\s+/, $args, 2;
+my ( $name, $path ) = split m|\s+|, $args, 2;
 
 if ( not length( $name // '' ) or not length( $path // '' ) ) {
     return {
@@ -20,8 +20,8 @@ return $result if $result->{'mode'} eq 'false';
 
 return { 'mode' => 'size', 'data' => $result->{'data'} };
 
-#,,,.,,..,...,,.,,,..,.,,,.,,,.,,,.,.,,,.,,.,,..,,...,...,.,,,,..,,.,,,,,,,..,
-#B6JVU7VSQPOEO5H4G6OG7ZAYM7XVYHO4YR4EWI2QM76TW5VMBJSVLWECMKCARV3XZO7BTIJNCYTPY
-#\\\|6WKCLU5ZKUAQ2JP5JCO2JSMGYPGJSO3D7HSOJILZKKZCCJ6TRUC \ / AMOS7 \ YOURUM ::
-#\[7]M7GJECM2LXMNANZC7OW4XSYGH4TNLM4CMD2TDBJAJ7QLDMN4JECY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,..,,...,..,,.,,,,,.,.,,,,.,,..,,...,...,...,,..,...,..,,,.,,
+#4LSDV5333ZBQYGJED246IKBUSKFSR7MQJXJ2XKN5AT5Z4V775XM7IGUNGJZIRB4RMJGP5H76BLQVU
+#\\\|2XAAC2DEWUU5JI6F5L4FXBR2MWPYIM7BJADQO5L4VAOEQTLW6Y7 \ / AMOS7 \ YOURUM ::
+#\[7]PIERSF4UQODGML2BSR7F2PZE6L6X46JKVY56IGU6THFPU6UBNAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

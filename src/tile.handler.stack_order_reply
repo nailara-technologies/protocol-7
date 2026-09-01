@@ -19,7 +19,7 @@ return <[base.callback.cmd_reply]>->(
 ) if defined $reply_id and $answer->{'call_args'}->{'args'} == 0;
 
 $answer->{'data'} =~ s|\n$||;
-my @window_stack = split( /\n/, $answer->{'data'} );
+my @window_stack = split( m|\n|, $answer->{'data'} );
 
 my $missing   = 0;
 my %wid_check = map { $ARG => 1 } @window_stack;
@@ -36,7 +36,7 @@ for my $zenka_name ( keys <tile.layers>->%* ) {
         push( @wids_ok, $ARG ) if defined $ARG and exists $wid_check{$ARG};
         $missing++ if not exists $wid_check{$ARG}
         }
-        split /\D+/, $wid_str;
+        split m|\D+|, $wid_str;
     if ( !@wids_ok ) {
         <tile.window_ids>->{$zenka_name} = undef;
     } elsif ($missing) {
@@ -82,8 +82,8 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
     }
 ) if defined $reply_id;
 
-#,,,.,,..,,.,,,,,,,,.,..,,,,,,...,,,,,.,.,...,..,,...,.,,,.,.,,,,,...,,,.,.,.,
-#TBTB5PJ37FL6HAKJD3DTHGY4BOZOI6VKVHJXW3JEXCSHNSU5R4NX5LIB732JVXZNEOXFVL6BKOFPK
-#\\\|JU7BXJAW5NBTZXMBB6VPPG2UBYDE3KLEG4PY6ZJPGSOSVX4UEU6 \ / AMOS7 \ YOURUM ::
-#\[7]E7FWDFMSP47QKUFCYSPDUXIBIIJFHVDQE2FVY5FWYH43WGE422DI 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,..,,.,,,..,,,..,,,.,.,.,,,,,..,,...,...,.,,,...,,.,,,,.,.,.,
+#PZ45AU4LTSWINPS4WNKVQ5W7VLSJZAKYAMCUDS7D4ZBCC6YEMY34Q66HEG2IKGKGACXPYR22JCN5A
+#\\\|H3I7MNC6DN36BMG7J5H44YX6WSNGEZ2CD7G2S53XUVLQULRU6J2 \ / AMOS7 \ YOURUM ::
+#\[7]6PIX5ZKBV3IH7SXISLYP7HS2AIK55RKWHD2J56Y7JKOISF4ZFAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

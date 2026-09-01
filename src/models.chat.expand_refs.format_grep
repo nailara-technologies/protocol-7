@@ -12,7 +12,7 @@ my ( $path, $content, $pattern ) = @ARG;
 return $content if $content =~ m{^\[ERROR:};
 
 my @lines   = split( m{\n}, $content );
-my @matches = grep {/$pattern/} @lines;
+my @matches = grep {m|$pattern|} @lines;
 
 return sprintf(
     "\n=== GREP '%s': %s ===\n%s\n=== END (%d matches) ===\n",
@@ -22,8 +22,8 @@ return sprintf(
 
 0;
 
-#,,.,,...,.,,,,..,.,.,..,,.,,,..,,.,,,,.,,,.,,..,,...,...,.,,,,.,,..,,.,,,..,,
-#IPIY3XGFPKV7W2SB6JR7ENS2CB2UEE2I5PGHGQQ4HUXBETXCSCKZDHYVZROOKLFUJXOTOK62KHOI6
-#\\\|VJ2PHM6BKGJ2HJKKB4AREPL6LFLDRKZ2YFRPGFP5XVEZRK2QR43 \ / AMOS7 \ YOURUM ::
-#\[7]GNM2RX63AGXU7OCWEPUY2WDBVSM63C4QXZ2YNI2RXDJYCVVUKOAI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,,..,.,.,...,.,,,,.,,,,.,.,,,..,,...,..,,.,.,.,.,.,.,,.,,...,
+#JUHPZSNKAQCUMMMZWJEIJPF54MZK2YIFMDDEK76GQH4THXKQ25MSETDVSCEPWIYDEHI4BX3P4ZDAW
+#\\\|CXF2TCTRKBLBD354WTRM5BVSX2ZOOPOAKZRVIWLDYOHNXFRIZPL \ / AMOS7 \ YOURUM ::
+#\[7]WWBSXVC4ORGHSW7SZXBMFYYKRQZJPDRY43OIORTW4NTZYMGFCGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

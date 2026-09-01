@@ -30,7 +30,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
             my $data = $lc->{'buf'};
             $lc->{'buf'} = '';
 
-            for my $line ( split /\n/, $data ) {
+            for my $line ( split m|\n|, $data ) {
                 next if not length $line;
                 <[protocol-7-menu.screen-change]>->($line);
             }
@@ -45,8 +45,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
 return;
 
-#,,..,.,,,.,,,..,,,,.,,,,,.,.,,..,...,,,,,.,.,..,,...,...,...,,..,..,,.,,,,..,
-#PULVQI63KM6YSD6TQEMIXBBSDCG4YVST7KIJAIG3O543G5PSQ2NQZ62FAVAVTZ47UNZNEPFJMATIG
-#\\\|BC33JVJUJRC3GG75U2UITL6RZF3L5FZYSDBRBJQ77DTZKJSS2GD \ / AMOS7 \ YOURUM ::
-#\[7]AE5C4B5YWBDGKMHR65EFOHVWSL3DELKPTZXYKSXVA4VYRZKSH2AA 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,..,,,.,,.,,..,,,,,,,,,,.,,,..,,...,...,.,,,.,.,,,,,.,.,,,,,
+#JUY43HERHVFN3ZNP3G2BGFXACSRRAVVSLDOHP2FJ24KETUYFXHOBVCCJG6R7FM37TPIBOMLMZ3RPI
+#\\\|NQCHZLZKZVJRJ3FECOHTGMSYISXWGDQDPWMY75GA5EUQ7OW4GUU \ / AMOS7 \ YOURUM ::
+#\[7]OUGYEXUAMNCT6UPM4FQO5AF5KKH6AGMJIF23D7PT3YVW3MKHWGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # descr = Overwrite a whole file over 9P
 
 my $args = $call->{'args'} // '';
-my ( $name, $path, $content ) = split /\s+/, $args, 3;
+my ( $name, $path, $content ) = split m|\s+|, $args, 3;
 
 if ( not length( $name // '' ) or not length( $path // '' ) ) {
     return {
@@ -24,8 +24,8 @@ return {
     'data' => "wrote $result->{'data'} bytes to $path"
 };
 
-#,,,,,..,,,,,,...,,.,,,..,,,,,.,,,,..,,.,,...,..,,...,...,..,,,,,,,..,.,,,,,.,
-#K4SXPZNL7NJLUQJ6PYWWNRCCZSKD64OMBZHLGEYYTSUWDIHRM2PQX7ECHZFIZ52GZKW4ZWKH7IO52
-#\\\|M74YRSXJE4JMOIT4ANKK3DVD7FWYAFLBUFY2XUADFQR4FLQ4XY3 \ / AMOS7 \ YOURUM ::
-#\[7]K5XL675NDFSPTHQYJVI4SCAPD7ZVM37QCLQ2QDMTLLUMJBXUGMAQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,,.,,,,.,,.,,,.,,..,,..,,.,.,..,,...,..,,.,,,,..,,..,...,,.,,
+#DREA4Z6TKKOT7LR2N7JDLRMA53U5DRFCEFXZFNCCBZTK5D5I5VCO5NXOCNXPGA4WP6F3VU2UAM25O
+#\\\|CI53G4IIX2I272MT6RHYGY2LAXCE2VBDF4MRDM6RNUDGS44OAJJ \ / AMOS7 \ YOURUM ::
+#\[7]NIZBXHOCXHDELDKMAU5EEDCC6E6HJLQOBZBSMNXRQHUVNY3J5WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

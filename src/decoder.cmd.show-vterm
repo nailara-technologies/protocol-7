@@ -22,7 +22,7 @@ my $rect = Term::VTerm::Rect->new(
 my $text = $screen->get_text($rect);
 
 ## annotate with row numbers for readability ##
-my @rows = split /\n/, $text, -1;
+my @rows = split m|\n|, $text, -1;
 my @display
     = map { sprintf( "%02d| %s", $ARG, $rows[$ARG] // '' ) } ( 0 .. 24 );
 
@@ -31,8 +31,8 @@ return {
     'data' => join( "\n", @display ),
 };
 
-#,,..,..,,...,,,.,,.,,.,,,,..,.,,,,..,,,,,,.,,..,,...,..,,,,,,.,.,...,...,,.,,
-#D3WGMMFP7J2LQE6YF24WPDF7RQQQ4VJURQXO5IEDMDX73TUQD7KPG5CQJ5DBYYXVXXLLEEHRZWPZG
-#\\\|MCBFULBMC6UI7CZCT2INYD2YT7TYO7DR3SMKKNCNM4M4MQVQ6NR \ / AMOS7 \ YOURUM ::
-#\[7]6LY6TXT5UONR4XJC64Z7ZFBTTY4C5262GAYBXOBFOADCL3L64CBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,,,.,.,,,,,.,.,.,,.,,,.,,.,,,..,,...,...,..,,,.,,...,..,,..,,
+#EHJRN7YRAYHBGNJ3YEJFZRCIFMV2RMHWKEQLKLZPUDSWMXCG56HTJDNH63Z5CYEJXGAU4IY3LIC72
+#\\\|FAXWOX7ESL3QUPHQRTLNBNWWACEHS6JQUE263TRHPGIAMBLYCZP \ / AMOS7 \ YOURUM ::
+#\[7]NU6O4BFJGP57GT2DASR4TJKE76BUPQCO6CBUOJIWX5GS4SV6CSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

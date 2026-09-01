@@ -20,7 +20,7 @@ return '' unless defined $provider_data && ref($provider_data) eq qw| HASH |;
 my $yaml_output = YAML::XS::Dump($provider_data);
 
 ## Remove document marker (---)  - YAML parser will add it back if needed
-$yaml_output =~ s/^---\n//;
+$yaml_output =~ s|^---\n||;
 
 <[base.logs]>->(
     2, "format-provider-data: YAML %d bytes",
@@ -35,8 +35,8 @@ $yaml_output =~ s/^---\n//;
 
 return $yaml_output;
 
-#,,,.,...,,.,,.,.,,.,,.,.,,,,,.,.,.,,,.,.,,,.,.,.,...,...,...,,..,..,,..,,,,.,
-#AH5EBOHYULOTWVZT77FANLRK5QW436DJK2MAHGC4BMB4A2P7YKSWBLYQUAPWVYQV7SSULCRFJSE6O
-#\\\|T5LAY4RIBHOQQRNMYXIORU35S43FHDMSAAPUTWEDCGIKBWLL2ZW \ / AMOS7 \ YOURUM ::
-#\[7]Y3YS5UXRUVILNDY6ENG5YC7I526UVZRGIUVWG6PEOHKJL5D3RUDY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,,,.,.,,,,,.,.,,,,.,,...,.,.,.,.,...,...,...,...,...,..,,,..,
+#P2JB6IHKGYNZUTDJILXO2HNC4X2RTQYCAUNWJKRJM62BHRHTZB3XHUM5BFEK7VPMRFOTBKTHTL23A
+#\\\|GJZLGV5SCIBZGPCLE7YRGHJAWUKY5NX3P7P2C5QGMVGGX2A6OYY \ / AMOS7 \ YOURUM ::
+#\[7]RYPNEZCVH5YWONJJ4E6P2VVLOOYIFPAHHQCPYIJN7K6ZVC36V4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

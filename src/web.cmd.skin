@@ -17,7 +17,7 @@ if ( $subcmd eq 'resolve' ) {
     ## Parse preferences from arguments ##
     my %prefs;
     while ( my $arg = shift ) {
-        if ( $arg =~ /^(\w+)=(.*)$/ ) {
+        if ( $arg =~ m|^(\w+)=(.*)$| ) {
             $prefs{$1} = $2;
         }
     }
@@ -46,7 +46,7 @@ if ( $subcmd eq 'resolve' ) {
         return <[base.log]>->( 1, "cannot read skins directory : $!" );
     };
 
-    my @skins = grep { -d "$skins_root/$_" and $_ !~ /^\./ } readdir($dh);
+    my @skins = grep { -d "$skins_root/$_" and $_ !~ m|^\.| } readdir($dh);
     closedir($dh);
 
     say "Available skins for $vhost:";
@@ -95,8 +95,8 @@ if ( $subcmd eq 'resolve' ) {
     return TRUE;
 }
 
-#,,.,,..,,.,,,,,.,,,,,,..,,..,,,,,...,...,.,,,..,,...,...,.,.,...,,,.,,.,,...,
-#IIVL2MLZRZUNSPPR7L27DKBNXJES5GRA3PJKDK5CIPTYET2XWXQP7AYBNPWN52DVD567LBK624EGA
-#\\\|MYWUUQZMSX44OXER25GCMHNQ6XUPH6NOZRLXOKFXD5V6IIRV2DI \ / AMOS7 \ YOURUM ::
-#\[7]GBSV6P5RT35WOUMWDMW7P4NJKNSZD62IDQTZBYHHBUCKXQHREKCY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,...,.,.,.,,,...,.,,,..,,,,.,..,,...,..,,,,,,...,.,.,.,.,,..,
+#EU6COSLZ62JI67KMUAQY4ZR3DX4RSWSJZJZTXRGF3HMDCWDXZWYZKZ6P35DXH5XVBG4HJD3KQ5QV4
+#\\\|KEGYKFFHBLMLBVGQYG4KE5VXO23TGOYRVY6JTB4IKAD2CUZ56PR \ / AMOS7 \ YOURUM ::
+#\[7]I7OJBC3UZUNQPMC276SFFVOG3WF7I45NJQ62PKSA3WWFGJYA4GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -38,7 +38,7 @@ for my $i ( 0 .. $lines - 1 ) {
         # Decode base32 checksum to binary
         my $algo = $item->{'algorithm'} // 'bmw';
 
-        if ( $algo =~ /bmw-L13/i ) {
+        if ( $algo =~ m|bmw-L13|i ) {
 
             # Direct L13 checksum - perfect 56-bit
             $bin = <[base32.decode]>->( $item->{'checksum'} );
@@ -79,8 +79,8 @@ if ( $args->{'async'} ) {
     return 1;
 }
 
-#,,,.,,.,,...,..,,.,,,,.,,.,,,.,,,..,,,..,.,.,..,,...,...,.,,,,,.,...,.,.,.,.,
-#Y4JGZGGSYVYJB3PFTOJAISWYVFNA5PMSTQZZQ3J27YAIOOISIU5O53D5MDWBNSHHONS3I6HEJS66M
-#\\\|V7LLV2ZBPE6CKXBL3LWGCIFCZ4NMEVIMGVF7ZTH226BIGAFCNQA \ / AMOS7 \ YOURUM ::
-#\[7]ZOEPNQQ46SIOJQE4QWPUK347TK5XWHWZ3MQ5U75F54O2UWKMHGCA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,.,.,,,.,...,..,,,..,.,,,,,,,..,,...,...,.,,,,..,..,,,,.,.,,,
+#R24W6YLSUGC2J4G2EHFPWCC55OD6EYUFRUQYXF4COTNY5W3ZWDKMZSTL43KQFDNCAI73BHIMQ4G76
+#\\\|KF467GZ2UZP6CMXPG2OQ43CSNWJXLPFIXSGM36YD7FG7A53TO7K \ / AMOS7 \ YOURUM ::
+#\[7]4PKQCE6M5OVCDCOP4HTQ7FXXYBJUHYRLIMYMEBEGWXNLV5ECBADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

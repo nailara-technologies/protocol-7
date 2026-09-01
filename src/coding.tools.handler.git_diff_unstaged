@@ -23,7 +23,7 @@ if ( !defined $result || !$result->{'mode'} ) {
 my $output = $result->{'data'};
 
 if ( $max_lines > 0 ) {
-    my @lines = split /\n/, $output;
+    my @lines = split m|\n|, $output;
     if ( scalar @lines > $max_lines ) {
         splice @lines, $max_lines;
         push @lines, "... (truncated to $max_lines lines)";
@@ -33,8 +33,8 @@ if ( $max_lines > 0 ) {
 
 return $output;
 
-#,,..,..,,..,,,,,,,,,,,,.,,.,,,,.,,,.,...,.,,,..,,...,...,,,.,,,.,..,,...,,,.,
-#LQYQPHKLIMB2VPNMJLJZJHDJO23VWPFMHQF6FX3EUH6YOR6225S6LSTQ4JP4VQGHSLONO2TKWRTIU
-#\\\|GGSUAD6I6SMV4XUB2YU6TCKS5N6GIZCVEZCBZCJTI2KMKTJNWXA \ / AMOS7 \ YOURUM ::
-#\[7]I4EKDP3S2FUZ5GA245W4VQ4CBFDHYTNKHIDK4AB2W2B7OZRMP2BI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,..,,.,.,..,,...,,,.,.,.,,,,,..,,...,...,,,.,..,,.,.,,,,,.,,,
+#JPF33EHGYO5S3LIDITXBKS3HMOZW53SDW5GV3EGSWXN465D4Q4M6QSODROOKHXHAKM6ECQIU6MTEO
+#\\\|ITQ2ZTYX5QOIW3AQF6LXHTSV2CK2OJS7SPE35NOM4DOF6FJIG5R \ / AMOS7 \ YOURUM ::
+#\[7]BSQ6JEB75E3JDPG2ZDZMH4GBMP2ZZCPFOBUMKMXHVLVUVWJ2K6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

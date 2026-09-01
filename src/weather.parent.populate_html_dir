@@ -4,7 +4,7 @@
 
 my $station_id = shift;
 die "expected (valid) station id parameter"
-    if not defined $station_id or $station_id !~ /^\d+$/;
+    if not defined $station_id or $station_id !~ m|^\d+$|;
 my $cache_dir = <weather.cache_dir>;
 die "cache_dir not set"                           if not defined $cache_dir;
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
@@ -38,7 +38,7 @@ push( @icon_paths, "$gradient_dir/gray-tq.png" );
 
 my $copied = 0;
 foreach my $icon_file (@icon_paths) {
-    my $file_name   = $1 if $icon_file =~ /([^\/]+)$/;
+    my $file_name   = $1 if $icon_file =~ m|([^/]+)$|;
     my $target_path = "$image_dir/$file_name";
     next if -f $target_path;
     copy( $icon_file, $target_path )
@@ -54,8 +54,8 @@ foreach my $name (<[weather.parent.page_list]>) {
     <[weather.parent.write_updating_page]>->($html_file_path);
 }
 
-#,,,.,.,.,.,,,.,,,.,,,...,,,.,,,.,..,,...,,,,,..,,...,...,.,.,.,,,,,.,,.,,.,,,
-#7NV4BXZBIA2GPQO44RR7MDEAXYF66P5J4YIVTVVRCZ57N46RR3IORISCCGRBH2E32NP4ILBWHTAIE
-#\\\|BUVJM56DUPICY5DCZ5DNIH6QFZ3YQOGBSTAPZL4DHMF5VSCVIEB \ / AMOS7 \ YOURUM ::
-#\[7]MCYFJBWEJNK4YN6GJMIXGGT3ZEH2CNA6HPBI4WE3V46WA52Y4GBA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,..,,,,,...,,,,,.,.,,,.,,.,,..,,...,...,..,,..,,,.,,.,.,,.,,
+#KZ2MTEPTJTT3CIYW33E2MWGFCBJSBWLM5YA2AESXTS2C4BWVPAOA3EU5PHUMOMLDAJPS4OIIFL4AU
+#\\\|ZQPRRBJTD2PFTQI7CRDBOHNFFI3LPYMICANEOUN7IUCAPVNBREE \ / AMOS7 \ YOURUM ::
+#\[7]O3VEGAR2RSZYPW2CD4EUMQSDWGPGAV4WNST6LO4Z5LTRF23QNACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

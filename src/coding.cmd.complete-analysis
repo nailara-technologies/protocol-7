@@ -12,7 +12,7 @@ return { 'mode' => qw| false |, 'data' => 'task description required' }
     if not defined $task_description || not length $task_description;
 
 return { 'mode' => qw| false |, 'data' => 'task description is empty' }
-    if $task_description =~ /^\s*$/;
+    if $task_description =~ m|^\s*$|;
 
 # Initialize jobs store if needed
 <coding.complete_analysis_jobs> //= {};
@@ -114,8 +114,8 @@ $meta_job->{'continuation_watcher'} = <[event.add_var]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,...,..,,.,.,.,.,.,.,,,.,..,,,.,,,,,,,.,,..,,...,...,.,,,.,.,,,,,,..,,,,,
-#L3NCTF6ZVH3Y2LJVQO7WKGE5DDJENWL7QJ5KUFWFAXIHQQLBM7L4CQAXM4LE77JTCJ6RWFYUT2REE
-#\\\|OGFXQ5MB4XWX7AEL2DAQ2ZV3VSHVESBBJUEMENPKPKKEBOFY4DM \ / AMOS7 \ YOURUM ::
-#\[7]M3ZOZ7YUBBT3XHT7QWH3VMY2QT3REGKPOA5KWQLEERXZHVXLGEAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,,,,,.,.,.,,,.,,.,,,.,,,.,,.,.,..,,...,...,..,,..,,,,,,,,.,,..,
+#ETYHL6IBV7XE6EWKYJB2SQDK3A5BBRQRAZ6C63LF5BD7XYGQVPBEGGVKP7I3RD4HZRDYTNDGED3EI
+#\\\|AYNUJCZZTIIOXYU6ODP5SL6DEUXNL6HB4DTRLXZKETRRM4Z75ER \ / AMOS7 \ YOURUM ::
+#\[7]6I6EYRB5SVI3AF4EXIKSNFAULHVX47XD4DCUBISEVNFDG2EBCWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

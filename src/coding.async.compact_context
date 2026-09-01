@@ -177,7 +177,7 @@ for my $i ( $protect_start .. $mid - 1 ) {
             $m->{'tool_calls'}->@*;
         push @summary_parts, 'called: ' . join( ', ', @names );
     } elsif ( ( $m->{'role'} // '' ) eq 'assistant'
-        and ( $m->{'content'} // '' ) =~ m/\[tool_calls:/ ) {
+        and ( $m->{'content'} // '' ) =~ m|\[tool_calls:| ) {
         ## handle async format without tool_calls field ##
         push @summary_parts, $m->{'content'};
     } elsif ( ( $m->{'role'} // '' ) eq 'tool' ) {
@@ -197,7 +197,7 @@ for my $i ( $mid .. $protect_end - 1 ) {
             $m->{'tool_calls'}->@*;
         push @summary_parts, 'called: ' . join( ', ', @names );
     } elsif ( ( $m->{'role'} // '' ) eq 'assistant'
-        and ( $m->{'content'} // '' ) =~ m/\[tool_calls:/ ) {
+        and ( $m->{'content'} // '' ) =~ m|\[tool_calls:| ) {
         push @summary_parts, $m->{'content'};
     } elsif ( ( $m->{'role'} // '' ) eq 'tool' ) {
         my $content = $m->{'content'} // '';
@@ -256,8 +256,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,.,,...,,..,,..,,.,,.,.,,..,,,.,.,,,,,,,,..,.,.,...,...,...,.,.,.,,,,.,,.,.,
-#JYBRORKCGFEYNDBKUV74XGRSZBH3ZN5WZQWS7KYZXQGN3URL2DL3RJLAFQG4MXDQ77AP27M2U5XWM
-#\\\|BR3AI4TS4QUDRR5IANF3OEYM2E6KCFI4PXP6OWXHBXT7ZGKS2JX \ / AMOS7 \ YOURUM ::
-#\[7]FQH33VFSQEQI4PDSZ5RBVDF2OFH4F2CZHDYR6XQ752S6BIJFRWCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,...,.,,,..,,,..,.,,,,..,,.,,,,,,.,.,...,...,...,.,,,.,,,.,.,...,
+#XMUAAN2SH7SFANROEFS6GOKNZBVF3BJK6Y6QSNOKNPSLMELAYLDD67WRKML3CONMIY3GINPELPIMM
+#\\\|NG3R2YYE2L7P7HBV2JFFS5LBDO55ZYDB4O34KU3TVBKCESCKXJZ \ / AMOS7 \ YOURUM ::
+#\[7]2JDP5IVLLGXHAYGDN3BGVOSXMXP7MTEPNJTC7F4BC4CQW7BZPABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,10 +27,10 @@ if ( $cmd eq 'list' ) {
     my $count = 0;
     my $fixed = 0;
     while (<$fh>) {
-        if (/^- \[ \]/) {
+        if (m|^- \[ \]|) {
             $count++;
             print;
-        } elsif (/^- \[x\]/) {
+        } elsif (m|^- \[x\]|) {
             $fixed++;
         } else {
             print;
@@ -58,7 +58,7 @@ if ( $cmd eq 'list' ) {
             <[base.exit]>->(qw| 0110 |);
         };
         while (<$fh>) {
-            if (/\[BUG-(\d+)\]/) {
+            if (m|\[BUG-(\d+)\]|) {
                 my $id = $1;
                 $next_id = $id + 1 if $id >= $next_id;
             }
@@ -98,20 +98,20 @@ if ( $cmd eq 'list' ) {
 
     my $found = 0;
     for my $i ( 0 .. $#lines ) {
-        if ( $lines[$i] =~ /^- \[ \].*\[BUG-$bug_id\]/ ) {
+        if ( $lines[$i] =~ m|^- \[ \].*\[BUG-$bug_id\]| ) {
             $lines[$i] =~ s|^- \[ \]|- [x]|;
             $found = 1;
 
             # Update status line
             for my $j ( $i + 1 .. $#lines ) {
-                if ( $lines[$j] =~ /Status: Open/ ) {
+                if ( $lines[$j] =~ m|Status: Open| ) {
                     $lines[$j] =~ s|Status: Open|Status: Fixed|;
                     $lines[$j] =~ s|\n$||;
                     $lines[$j] .= " ("
                         . POSIX::strftime( "%Y-%m-%d", localtime() ) . ")\n";
                     last;
                 }
-                last if $lines[$j] =~ /^- \[/;    # Next bug
+                last if $lines[$j] =~ m|^- \[|;    # Next bug
             }
 
             open my $out, '>', $bug_file or do {
@@ -142,8 +142,8 @@ if ( $cmd eq 'list' ) {
     say "Run 'bug help' for usage";
 }
 
-#,,,,,,,,,.,.,,,.,...,.,,,.,,,,,,,,,,,,.,,.,,,..,,...,...,...,,,.,..,,...,,,.,
-#ZC4II2TPGMIHNCWFNZQ2L6RCL2GGJRNLLL6PMAYMKJC5NZPUT7TGSNXK6BURAJCEY6I4F5JQYWHLW
-#\\\|CMKEZPXPP2FIBJMRSF3OVDK3C3EGLRTWPNG3UECJSUV6JN7KZEU \ / AMOS7 \ YOURUM ::
-#\[7]SPZTKGAAILMOD4GSFMCQOY6FV6XDENRY6L4UJFSATXWEO77GMYBA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,.,.,,.,,,,,,...,.,.,.,.,...,..,,...,...,..,,,,.,..,,.,.,,,,,
+#KFPMMPLOVS2BUWTC56VVBQ7UY5IDCD5TPY6P5YVEULEISW7HGMUB4BOF7GXIQFEPG6ODZFKVWWLWY
+#\\\|RNKXSZ4PTVQ7XZH2Z65YSB6XI55NCF3M6LHQMTI4JWMHKPO5CG4 \ / AMOS7 \ YOURUM ::
+#\[7]HYKLDYJO7SMRITY6M4INGJJRQP6BF6C7UKNX5YXBJOG2RKLYDUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

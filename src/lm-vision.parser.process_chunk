@@ -15,9 +15,9 @@ my $state = <coding.vision-parser.parser_state>;
 
 # Remove only ANSI codes and vision control tokens, preserve everything else
 # The check_completion handler will do the real cleanup
-$chunk =~ s/\x1b\[[0-9;]*[mGKH]//g;    # Remove ANSI codes
+$chunk =~ s|\x1b\[[0-9;]*[mGKH]||g;    # Remove ANSI codes
 $chunk
-    =~ s/<\|(?:vision_start|vision_end|image_pad|im_start|im_end|endoftext)\|>//g;
+    =~ s{<\|(?:vision_start|vision_end|image_pad|im_start|im_end|endoftext)\|>}{}g;
 
 # Just accumulate the chunk
 if ( length($chunk) > 0 ) {
@@ -29,7 +29,7 @@ if ( length( $state->{buffer} ) > 100 ) {
     my $final = $state->{buffer};
 
  # Only collapse multiple spaces - let check_completion handle everything else
-    $final =~ s/\s+/ /g;
+    $final =~ s|\s+| |g;
 
     $ARG[0]->$* = $final;
     $state->{buffer} = '';
@@ -39,8 +39,8 @@ if ( length( $state->{buffer} ) > 100 ) {
 
 return;
 
-#,,..,,,.,.,.,.,,,,.,,...,,..,,..,...,.,.,,.,,..,,...,...,,..,.,,,.,.,.,,,...,
-#GWNIUAJSGJP4DRNHB3PREAFLIVCOR47DG2VCDCUVO6KNQD6NLLZ4TL4XCYI5NHI5JUJ5UBGXZEMSI
-#\\\|KK255UPAGMWUT4XRIV3E6Y65D73OQE6GQ7FHDLKUYW3ZONXTZ4T \ / AMOS7 \ YOURUM ::
-#\[7]2O2SJE74WT7LNV5JJBLVND7RQKZMHR6MD6LU4JW6CSFWYUMDMACY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,,,,,,,.,,,.,.,.,,.,,.,.,.,,,..,,...,..,,..,,,.,,.,.,...,,.,,
+#26ZC4MWTNU6U72UA6YTT34U4XQ3MUXO5BRFMJQIFQWJKIZDOUHOADVZHFCK3DT2PC3OFL5DQOGOHS
+#\\\|BR2R4KBOOLUG4TJPMPOX6Q6V7USKCYQTA3B27JTONV2AHWXY6RC \ / AMOS7 \ YOURUM ::
+#\[7]2RZCTTDY5DALCN2A24X7KEOQQ4HCN4WWEFTNP4BTM6SMQZC3UYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

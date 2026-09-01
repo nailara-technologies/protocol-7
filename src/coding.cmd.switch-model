@@ -19,7 +19,7 @@ unless ( length $args ) {
 
 ## Parse arguments ##
 my ( $model_checksum, $backend_opt )
-    = $args =~ m{^([A-Z2-7]{7}:[A-Z2-7]{7})(?:\s+backend=(\w+))?$}i;
+    = $args =~ m|^([A-Z2-7]{7}:[A-Z2-7]{7})(?:\s+backend=(\w+))?$|i;
 
 unless ( defined $model_checksum ) {
     return {
@@ -45,7 +45,7 @@ foreach my $key ( keys %$registry ) {
     my $entry = $registry->{$key};
     if ( ( $entry->{'amos'} // '' ) eq $model_checksum ) {
         ## Skip vision projector files ##
-        next if $key =~ /mmproj/i;
+        next if $key =~ m|mmproj|i;
         $model_name = $key;
         last;
     }
@@ -99,8 +99,8 @@ return {
         . "This may take a moment.\n"
 };
 
-#,,.,,,.,,,.,,..,,,.,,,,,,.,.,..,,,,.,,,.,,,,,.,.,...,...,...,..,,...,...,.,.,
-#V4F3D7XA6APJZZQZVYV4RJL7VWHGSMJFDBUZXPFBCW5QV2O6GAXMTBGYORNUWZF6LMXV3LZHZC2ZO
-#\\\|O5UJKISH3NEGW3AXFTJD3QP22C7IXCXKBSI57TZGKZQENDZND7G \ / AMOS7 \ YOURUM ::
-#\[7]BVNMUTEXBXF27KMRNCMPJIXAGZUGRS63LE4JLZSB56KEMUOPHECQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,...,.,.,.,,,..,,..,,.,,,,,,,.,.,...,...,,,.,,,.,...,..,,..,,
+#4BC3TGLKZN5NIRMZ6BAJIMHN3C4EVX5UKIQLCWY5NH4Z62LU3SXW6T56R3OAE4ULVSF4U5PMNVZBM
+#\\\|67WFDCDYRJWN74WRVRSVSHZU4NSJ4Q4V7IBD55QSQTA4RLNCD2M \ / AMOS7 \ YOURUM ::
+#\[7]IBFN3X3Q4D5TR4BWDBWRSCZTKBEZJF5J2XCVRK2RJMU5HLFX66CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

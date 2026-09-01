@@ -12,7 +12,7 @@ my $coding_tasks_dir = "$yaml_data_dir/coding-tasks";
 if ( -d $coding_tasks_dir ) {
     opendir my $dh, $coding_tasks_dir or return \%tasks;
     while ( my $file = readdir($dh) ) {
-        next unless $file =~ /\.yaml$/;
+        next unless $file =~ m|\.yaml$|;
         my $absolute_path = "$coding_tasks_dir/$file";
         my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
         eval {
@@ -33,7 +33,7 @@ my $deferred_dir = "$yaml_data_dir/deferred-tasks";
 if ( -d $deferred_dir ) {
     opendir my $dh, $deferred_dir or return \%tasks;
     while ( my $file = readdir($dh) ) {
-        next unless $file =~ /\.yaml$/;
+        next unless $file =~ m|\.yaml$|;
         my $absolute_path = "$deferred_dir/$file";
         my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
         eval {
@@ -54,7 +54,7 @@ my $todo_dir = "$yaml_data_dir/todo";
 if ( -d $todo_dir ) {
     opendir my $dh, $todo_dir or return \%tasks;
     while ( my $file = readdir($dh) ) {
-        next unless $file =~ /\.yaml$/;
+        next unless $file =~ m|\.yaml$|;
         my $absolute_path = "$todo_dir/$file";
         my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
         eval {
@@ -72,8 +72,8 @@ if ( -d $todo_dir ) {
 
 return \%tasks;
 
-#,,.,,,,,,,,.,,.,,,.,,.,.,.,,,,,.,,,,,.,,,,..,..,,...,...,...,,.,,,.,,.,,,...,
-#EY4XE5HWCOOEHMCM4GZKJULOSFB5D5NPYWWBEKWQVPYWFR4WH7GLF4Z27GD6L52JJYD74VFAEPLC6
-#\\\|ODDMKPVWOCR5D3VTIUCNHLWLDOYCYG6LMNMLKTLXEFGVDNHUZX5 \ / AMOS7 \ YOURUM ::
-#\[7]BEISHNR2PEEHO5GMEC4EDJAN3QGYEC455VJASFB6LG5JDRMA56CQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,,,.,,.,,...,.,.,.,.,,,.,.,.,..,,...,...,.,.,...,.,.,.,.,,,.,
+#BMZME7U5GSXFXNJFVSXBFDFRMQMGFM4VDLIVR55PP6RYJFW6IQ63L42RQJBZHY54JS33KAH4NFHAE
+#\\\|ZZSP6PA62DVNKKAY2R4HERSVAYKT5M6G7VF77B7ED2PT2BNQSAT \ / AMOS7 \ YOURUM ::
+#\[7]PNZL3ZXBDGJ3AE4DJ3I5JY3LW4MZ4ZAEAS7AM3V7TNUJNW2SV6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

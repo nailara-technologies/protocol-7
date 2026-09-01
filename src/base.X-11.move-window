@@ -11,7 +11,7 @@ my $height = shift;
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.'                   if length($cmd_path);
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
@@ -36,21 +36,21 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die "cube handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(TRUE|FALSE) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
     <[base.log]>->( 0, "move_window command failed with '$1'.." );
     return FALSE;
 } else {
     return TRUE;
 }
 
-#,,..,...,...,.,.,,,.,,.,,,.,,,.,,,,,,.,,,,,.,..,,...,...,.,,,,,.,..,,.,.,.,.,
-#HD6BWMLVWGU757DKIW5BDSLWFGZKCSSHBIZCUYHS6JHTVJ4MRK2PP6CFGGGPQXSHDQUA7HFSZNAXM
-#\\\|EI6TO7STUEAKPLCJ67RDJL7723ALDW4QPAVWUS5UAEJTSVXWQSV \ / AMOS7 \ YOURUM ::
-#\[7]NVQAAT2IHX2WM2IYHDFUKYIZJ2ZSNK7K4IJX23DLEVB5KRPPVOBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,.,,,,..,..,,...,...,...,.,.,..,,...,...,.,,,..,,,..,.,.,,.,,
+#CXBIDFABCMUTZWS52JFCW3O4HPCITBHEELZWYW4GY4VFP2E7WH72X6IDA54NUN275YSBHNOQIO57C
+#\\\|IX5FOCTRWDZAZA7ILAJJ2EYGMXMLQ4RSV6IATTVEENIYSGUQTZD \ / AMOS7 \ YOURUM ::
+#\[7]W6UGOYL2EHN77MORH73UURMEPMJUJJTAYLDNVY42ZUHHL2A3MECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

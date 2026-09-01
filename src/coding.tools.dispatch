@@ -516,7 +516,7 @@ my %dispatch = (
         $content_ref = <[file.slurp]>->($abs_path)
             unless defined $content_ref;
         return 'error: cannot read file' unless defined $content_ref;
-        my @lines = split /\n/, $content_ref->$*, -1;
+        my @lines = split m|\n|, $content_ref->$*, -1;
 
         ## validate and apply edits [reverse order to preserve line nums] ##
         my @preview;
@@ -723,8 +723,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,,..,,.,,.,.,.,,,..,,,,,,.,,,..,,.,.,,..,..,,...,..,,..,,,,,,..,,,,.,,,.,
-#EWOQ3Y5SVZ7UDZEAZ3K7ETSBBLQ2BDTVL2R52D2G3AGOROU42H3TCMJ6J4D4OGZ5MM7EZV67Y5FKA
-#\\\|5R25MTFOECTYXN4BPIY2RAE4NKUFVWSJMOKLKDU2WECUTAUC6SW \ / AMOS7 \ YOURUM ::
-#\[7]LICARJVCKTRK5TELSTRLJOPBCYN7LC3I4UC6TLNINS65EKDBKMDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,.,,,,,,,,..,,.,,...,...,...,..,,...,...,.,.,,,.,.,.,,,.,...,
+#3VBYCA3OE2IZ2LQA5FVSW7GMI2ADR7FP6LR2GF22JHLWHE6SFXPIGKNTE2AIR4QU4PN6CNFWXW5BO
+#\\\|J7QBE6XBIHJ3P2ZVF6WT2UKZYNZCK4RPVFWIRMC2GPRAHORUBJQ \ / AMOS7 \ YOURUM ::
+#\[7]QP77RPBKNXCOSZDZCDC4TYDOLWWNLSC7BR67PUON2DKI4WHEKYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

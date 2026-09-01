@@ -49,9 +49,9 @@ foreach my $s_id (
 
     my $source_object = <[zenka.get_object_id]>->($s_id);
 
-    foreach my $dep_zenka_name ( split / +/, $dependencies ) {
+    foreach my $dep_zenka_name ( split m| +|, $dependencies ) {
         my $object_id;
-        if ( $dep_zenka_name =~ /^([\w\.]+)\.(\w+)$/ ) {
+        if ( $dep_zenka_name =~ m|^([\w\.]+)\.(\w+)$| ) {
             my ( $type, $name ) = ( $1, $2 );
             foreach my $id ( keys <dependency.object>->%* ) {
                 next if <dependency.object>->{$id}->{'type'} ne $type;
@@ -100,8 +100,8 @@ foreach my $s_id (
     }
 }
 
-#,,,,,,,.,..,,.,.,.,,,...,.,,,,.,,,.,,.,.,,.,,..,,...,..,,...,,..,,..,.,.,.,.,
-#LAW3QTW4VOOX3BG3MW3MO5DAUMPAUPAYU7OAZQ2CRGD5RAQPGPERA6DUIGNIGV7OMIBDG6EFHHO5K
-#\\\|QF74BKPSV4ZFPHUZADB73HEFVEXRLIXB3CDMXBMRXU542M6GLT6 \ / AMOS7 \ YOURUM ::
-#\[7]JLKKI7HEF47AJK7ELC25NWAWHUM6T4GL27QME4AZ2ZVTGAA5BADI 7  DATA SIGNATURE ::
+#,,,.,,..,...,...,,,.,,..,.,,,.,,,.,,,,.,,,,.,..,,...,...,...,.,,,,,.,.,,,,..,
+#3MQ47MLKHAS4PMMV73XROX2KQH4I6SBJKVH2KZIBJ75RG3IRACX32UROBHE5L5QRYKWUTXI2S5HFM
+#\\\|A4TZLA7GSIX7CA5JVFHDG4MAQJRBRFUENHZVRIYAIQHUSA3XMTQ \ / AMOS7 \ YOURUM ::
+#\[7]OKS5CF6O76YA7V57Q4P77WRXC5XHCFZIRUJWY3ESCUHVOUUIQECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

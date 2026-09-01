@@ -10,10 +10,10 @@ my $action_name = '';
 
 if ( defined $call_args->{'args'} ) {
     my $args_str = $call_args->{'args'};
-    $args_str =~ s/^\s+|\s+$//g;
+    $args_str =~ s{^\s+|\s+$}{}g;
 
     ## extract session_id= suffix if present ##
-    if ( $args_str =~ s/\s+session_id=(\d{3,17})$// ) {
+    if ( $args_str =~ s|\s+session_id=(\d{3,17})$|| ) {
         $session_id = $1;
     }
 
@@ -217,8 +217,8 @@ if ( $action_name eq qw| detail | ) {
 $set_status->( sprintf( "unknown action '%s'", $action_name ) );
 return <[cred-mesh.ui.interactive.refresh]>->($call_args);
 
-#,,..,,,,,,,.,,..,..,,,,,,..,,..,,.,,,...,,,.,.,.,...,...,...,,,.,,..,,.,,.,.,
-#ABAIZ4EWL6NDLMVJJYYEW6CT2NVCHZVWIF4XUBUIZEAGYSL3D2WIHLEE4OQDIEZ2FLP4HF3AOXYVG
-#\\\|P66B2H7AZID5B6JDSA5HWYW5AOBJ3EZUPAYNK6VRBTS3HFHOXDY \ / AMOS7 \ YOURUM ::
-#\[7]YUBHR6D6PK27RZCUBCHPWB7UGG6U2UCWMILFAN2CYSIZVAT5J6CA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,,.,,.,.,.,,,...,.,,,,..,,,.,.,.,...,..,,,,.,,,,,.,,,,,.,.,.,
+#C4DOS2HEZQ34LTTAMCW422LIQ6DZSHSL7VGFIJ46PC4S2FGOXCXPWKRUZOHARSHZDZCDHJSY62MSI
+#\\\|XKFDHOJU4BHUTLW56JLLJVV6256LYIXLW6HY6NTFYS3T2JSXAUL \ / AMOS7 \ YOURUM ::
+#\[7]XXWOA6VWIKMLYQC2LWQCOSHYSZLBJMW7DCMJNQ4LD6GDKYJYSKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

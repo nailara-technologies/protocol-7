@@ -41,7 +41,7 @@ push @defects, qw| wrong_language_english |
 
 ## chinese detection: han unicode range                                 ##
 push @defects, qw| wrong_language_chinese |
-    if $text =~ m{\p{Han}};
+    if $text =~ m|\p{Han}|;
 
 ## optional assertion validation : yaml or json structured output ##
 my $looks_structured = $result =~ m{^\s*score\s*:}m
@@ -55,8 +55,8 @@ return {
     'defects'  => \@defects,
 };
 
-#,,..,,,,,...,..,,,,,,.,,,,,.,,..,,..,,.,,,,.,..,,...,...,,,.,,..,..,,,,.,,,.,
-#T3NLN4IFYSM7UG7EKLBRGCU6P227ICTWONUBRJVPB75IWSDV7KK47M77L4S2F2EOHGJLROF5EQKWW
-#\\\|C2UY6YY2MSVRJFSIEXXZWW5RDTB4ITNDRR7ZJCJKEM5KJEQNPAR \ / AMOS7 \ YOURUM ::
-#\[7]BQWSGM6F6OSSPKL2TXKTR5SJ4MUPYKQU6KUUXIDAA3BAP5CLWQDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,...,..,,,..,..,,,,.,,,,,,,,,,,,,..,,...,...,,..,...,,,,,,..,...,
+#IPT7N3LAIJKJCOKTHH6OMTGPANWFSZ2OBC3JFHGC2SOSUO3CQTNPBGRFN2ZCV7UWY7W2GSE3LKJZ6
+#\\\|N2VH2AJ24FB55T2IBOLJPNCPI4ZP7ED6BZCMA762UW3RQA6X7BW \ / AMOS7 \ YOURUM ::
+#\[7]PQ67NFY7NNYOTDC4M4MTR7IXPUWF5USC6UXDIPFUMXPMVFKEVOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

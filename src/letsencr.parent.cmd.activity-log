@@ -44,7 +44,7 @@ foreach my $line (@lines) {
 
     if ($filter) {
         ## Filter by domain, operation, or status
-        if ( $line =~ /acme activity.*:?\s+($filter|\w*$filter\w*)/i ) {
+        if ( $line =~ m{acme activity.*:?\s+($filter|\w*$filter\w*)}i ) {
             push @filtered_lines, $line;
         }
     } else {
@@ -83,7 +83,7 @@ foreach my $line (@filtered_lines) {
 
     ## Parse timestamp and message from buffer line
     if ( $line
-        =~ /^(\d{2}:\d{2}:\d{2})\s+(\d+)\s+:\s+acme\s+activity\s+:\s+(\S+)\s+:\s+(\S+)\s+:\s+(\S+)\s*(.*)?$/
+        =~ m|^(\d{2}:\d{2}:\d{2})\s+(\d+)\s+:\s+acme\s+activity\s+:\s+(\S+)\s+:\s+(\S+)\s+:\s+(\S+)\s*(.*)?$|
     ) {
         my $time    = $1;
         my $level   = $2;
@@ -116,8 +116,8 @@ return {
     'data' => $output
 };
 
-#,,.,,,,.,,.,,...,.,.,.,,,,,,,...,..,,,.,,...,..,,...,...,..,,,.,,,,.,...,,.,,
-#VOSDHE44RMLJ3MKNA7RMXP4UUDDUPOMMFKDNBFXULKZQBJNCICARQJQNSQITTCZZIH7N23J4EFKZA
-#\\\|DSKHODI7OREGTQ6XLTOYQGOXH2D6TGVRWG2IPG45MTMJTYDB4MN \ / AMOS7 \ YOURUM ::
-#\[7]XQSQYUPRSGPHK53QRCIBIX5OT2TGBEWZAVW57MDYFFEZWHBQWKDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,.,.,,.,,..,,.,.,..,,,.,,,,.,..,,...,..,,...,..,,,,,,...,.,.,
+#2O6PS43Y5DLPRUJARJTYVAJXZIRBI6DFAII47QLMVJPOXCOSONUZ4QVEM4GHP6KMW74WZSJH6R2NQ
+#\\\|I6VPG5SEIX27M2UEM2YOGSWEWDNBFGVSZRFGWQLGUDCVHBN76MH \ / AMOS7 \ YOURUM ::
+#\[7]HJLXZQDCRWBHEPYBYLZHCH4OFDOCTF6FWU7YFVOB76AUUK2LVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # descr = Connect to 9P server
 
 my $args = $call->{'args'} // '';
-my ( $host, $port, $name ) = split /\s+/, $args, 3;
+my ( $host, $port, $name ) = split m|\s+|, $args, 3;
 
 $host //= '127.0.0.1';
 $port //= <plan-9.default_port> // 15640;
@@ -25,8 +25,8 @@ if ( $result->{'mode'} eq 'true' ) {
     return $result;
 }
 
-#,,,,,...,.,,,,,.,,.,,,,.,.,,,.,,,,,,,,.,,..,,.,.,...,...,..,,,,.,,,.,...,...,
-#5ROJY7OT2IF6JTXN2NJ2VWRNDKW4XSVU2MGQANS7LAHNIVRNIWEPHQHUWNP46LUN5J3LJQLIETTT2
-#\\\|ELD62QPQ7CRJ5VM3HTR6MFUE2AC5BJFHWFANHIVSMUABTC7FFAQ \ / AMOS7 \ YOURUM ::
-#\[7]CVKENXW2Q3E5ARTV3QGTAAC4A6CN34UA3UZWVR3KT5GY6WYLEIBQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,..,,,,,..,,,.,,,,,,..,,.,.,.,.,...,...,,,,,,,,,,,,,,,.,,.,,
+#LB5NI3BN3NGAFNVEMS45PITT7MYIXRGMQIHQPO7T2ESDO3NNFQSS5EYB2MU64AENANKEQ25IYRK2E
+#\\\|YXUBZ4LNFCRPXYHASR5DTPUPSXDN33NH22K2ZL4UTMLQNYON3XT \ / AMOS7 \ YOURUM ::
+#\[7]D7XAIQFBRGRKWFUGW7XDBE27H535PGC67K3PFMUPXVWXOXZ6QWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

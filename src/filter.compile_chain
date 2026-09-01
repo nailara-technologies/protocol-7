@@ -13,7 +13,7 @@ $data{$id} = join( ".", @chain_list );
 my $closure = '}';
 
 foreach my $filter_id ( reverse(@chain_list) ) {
-    if ( $filter_id !~ /^\d+$/ ) {
+    if ( $filter_id !~ m|^\d+$| ) {
         <[base.log]>->( 0, "invalid filter '$filter_id' specified" );
         <[filter.del_chain]>->($id);
         return undef;
@@ -47,8 +47,8 @@ if ( !$EVAL_ERROR ) {
     return undef;
 }
 
-#,,,.,.,.,,..,,,.,,,,,,..,,,,,,..,..,,,..,.,.,..,,...,...,,,.,...,,..,,..,,,,,
-#TSJRMBJDXPXLIX3JFOQWP22OZYUIF4BZROZVGGHEOXQ2D3NKV2EGOKJIIXKHPO22X726H3JUSQJNO
-#\\\|564FXZ5GGE5DPWUAS4GCBPAPAXXFIMO7YG52SWUW3SJKT3AYCJV \ / AMOS7 \ YOURUM ::
-#\[7]CQLTCXFXGTEAIAR262LG2XKC73MCQD4VXQPB3PC4VUEK6RXZ2QCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,..,,,.,,..,,...,.,,,,,.,.,.,..,,...,...,...,.,.,,,.,,,.,,.,,
+#KGEUAXBFKZV25YESH27ELQN5QJ7VQJUHVRR2MQKAHDTU5GUEPMSSSA7CYWBF36CLXDGQG2GHSBZSO
+#\\\|WM4WHYFPDZCP5EEMDJTSWBKHA2FBMOZCIEISCGYOPM4WRDPQPFU \ / AMOS7 \ YOURUM ::
+#\[7]WAEKUTNYRHC5A45M2S67KPEVRL7KX3N6P6SIXMPVNFCVCDFLF6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

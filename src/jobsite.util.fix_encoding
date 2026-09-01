@@ -45,7 +45,8 @@ my %lang_bigrams = (
 ##[ REPAIR: MOJIBAKE ]########################################################
 ## utf-8 flag set, contains classic latin-1-misread utf-8 sequences ##
 
-if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
+if ( utf8::is_utf8($s) and $s =~ m{[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}} )
+{
     for my $enc ( @{$enc_list} ) {
         my $table = <[jobsite.util.fix_encoding.mojibake-table]>->($enc);
         my $fixed = $s;
@@ -54,13 +55,13 @@ if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
         ## replace longest matches first ##
         for my $bad ( sort { length($b) <=> length($a) } keys %{$table} ) {
             my $correct = $table->{$bad};
-            if ( $fixed =~ s/\Q$bad\E/$correct/g ) {
+            if ( $fixed =~ s|\Q$bad\E|$correct|g ) {
                 $did_replace++;
             }
         }
 
         ## validate: result should be valid utf-8 with no residual mojibake ##
-        if ( $did_replace and $fixed !~ /[\xC3\xC2][\x80-\xBF]/ ) {
+        if ( $did_replace and $fixed !~ m|[\xC3\xC2][\x80-\xBF]| ) {
             $s = $fixed;
             last;
         }
@@ -72,7 +73,7 @@ if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
 ## encoding; use context-scored candidate set from the target encoding's ##
 ## special chars                                                         ##
 
-if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
+if ( utf8::is_utf8($s) and $s =~ m|\x{FFFD}| ) {
     if ($is_east_asian) {
         ## east asian: try each encoding, validate decoded result ##
         my $repaired = 0;
@@ -82,11 +83,12 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
             next unless defined $decoded and not $@;
             ## validate: plausible kana/kanji/hangul ratio? ##
             my $kana = 0;
-            $kana++ while $decoded =~ /[\x{3040}-\x{309F}\x{30A0}-\x{30BF}]/g;
+            $kana++
+                while $decoded =~ m|[\x{3040}-\x{309F}\x{30A0}-\x{30BF}]|g;
             my $kanji = 0;
-            $kanji++ while $decoded =~ /[\x{4E00}-\x{9FFF}]/g;
+            $kanji++ while $decoded =~ m|[\x{4E00}-\x{9FFF}]|g;
             my $hangul = 0;
-            $hangul++ while $decoded =~ /[\x{AC00}-\x{D7AF}]/g;
+            $hangul++ while $decoded =~ m|[\x{AC00}-\x{D7AF}]|g;
             my $total_cjk = $kana + $kanji + $hangul;
             my $total_len = length($decoded);
             ## accept if > 20% of text is recognizable east asian chars ##
@@ -97,7 +99,7 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
             }
         }
         ## if no encoding validated, strip replacement chars as last resort ##
-        $s =~ s/\x{FFFD}//g unless $repaired;
+        $s =~ s|\x{FFFD}||g unless $repaired;
     } else {
         ## latin/cyrillic: context-scored bigram substitution ##
         my @candidates
@@ -106,7 +108,7 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
         my $repair  = $s;
         my $pos     = 0;
 
-        while ( $repair =~ /\x{FFFD}/g ) {
+        while ( $repair =~ m|\x{FFFD}|g ) {
             my $at   = pos($repair) - 1;
             my $prev = $at > 0 ? substr( $repair, $at - 1, 1 ) : undef;
             my $next
@@ -116,8 +118,8 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
 
             ## skip adjacent filler or non-alpha context : too ambiguous ##
             next
-                if ( defined $prev and $prev =~ /\x{FFFD}/ )
-                or ( defined $next and $next =~ /\x{FFFD}/ );
+                if ( defined $prev and $prev =~ m|\x{FFFD}| )
+                or ( defined $next and $next =~ m|\x{FFFD}| );
 
             my $best_char  = undef;
             my $best_score = 0;
@@ -139,7 +141,7 @@ if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
         }
 
         ## strip any unresolved replacement chars ##
-        $repair =~ s/\x{FFFD}//g;
+        $repair =~ s|\x{FFFD}||g;
         $s = $repair;
     }
 }
@@ -159,8 +161,8 @@ if ( not utf8::is_utf8($s) ) {
 
 return $s;
 
-#,,.,,.,,,.,,,,.,,.,.,.,.,,.,,,..,.,.,,.,,.,,,.,.,...,...,...,..,,,.,,,,,,,,.,
-#6ZYW732R3D3JP7ZPIFQ4AQC466W3P2CPHD44QCJIMDTVHZIBQROJWFH4N5IGUULQGFDDG2NPUZG76
-#\\\|ASMLIRVD2K4RN6YVEUPI24ZOCMNEYPK4VO3GGW5OH54ANGHI3SC \ / AMOS7 \ YOURUM ::
-#\[7]E5747IVT2YLEOLWIF4H6NKQC25RRT4ZBJP3MWWWVOC7KXEKAMGCA 7  DATA SIGNATURE ::
+#,,.,,...,,..,..,,,.,,,,.,..,,,,,,..,,,..,,,,,.,.,...,...,..,,..,,,,.,,,.,,.,,
+#GTWMLJ43OVHFJ5F7T3GJFTOAKOGU6S7RIM75KFT6XYGPUTOI46ORYMPCZYRRR7UWMYGSZ6B4N2SNO
+#\\\|EQDEEEQ3DFUDWUH5PENKUNAOKKITEOBVSCC5FK6IABTWEBCEHYX \ / AMOS7 \ YOURUM ::
+#\[7]GP33COV7CRUV4HXZ5T42Z7RRL6OA4PWTM4JAA53ZDAS27GO5RWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

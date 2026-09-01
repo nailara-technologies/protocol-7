@@ -13,7 +13,7 @@ if ( $uri =~ m{\?(.+)$} ) {
     for my $ARG ( split m{&}, $1 ) {
         my ( $k, $v ) = split m{=}, $ARG, 2;
         $v //= '';
-        $v =~ s{%([0-9a-fA-F]{2})}{chr(hex($1))}eg;
+        $v =~ s|%([0-9a-fA-F]{2})|chr(hex($1))|eg;
         $qparam{$k} = $v;
     }
 }
@@ -275,8 +275,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,..,,,.,,..,..,,.,,,.,.,...,.,,,,,,,,,,,,,.,..,,...,...,,.,,.,,,,.,,,..,.,.,
-#LY6PYM7O35MN7ADDV2CAGEOWFY3JG2XUS7L3QKZWBJLMHD77HMBQRS3YJMBKPR6PGAH7YCCTWHBHS
-#\\\|QINDGYLXZT2H2HKOIKBM5GVQGY3OHSB2W5UBRMZVDQQYLRO25KI \ / AMOS7 \ YOURUM ::
-#\[7]TSKBEEN6CC6JHFSFXYGZ6W7W2BWKI2EE7AI3GVJJNKZREEJ7LKCY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,.,.,,,.,..,,...,,..,,,,,...,..,,...,..,,...,,,,,.,,,..,,,,,,
+#RTHEO2KKY2TPPQUQRAI7Y3DRUHGM66AH2C3B442LL4TGEI72XXSJHW6XBSFTDUC7TDVJZ6OCTBRU4
+#\\\|4KZGSBMZTH2YDN5N2LYLZPPBQENLZCCQD443ETQUYSQ3S5373TH \ / AMOS7 \ YOURUM ::
+#\[7]KMEDSDHBJ3AR264YXEMU3SYE6A5TAX2AUMKDSUF5ZT4BNE2SNSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

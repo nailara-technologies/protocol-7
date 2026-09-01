@@ -7,7 +7,7 @@ my $window_id = shift;
 
 ## === resolve window === ##
 my $window;
-if ( $window_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
+if ( $window_id =~ m|^amos:([A-Z0-9]{10})$|i ) {
     my $amos_id = uc($1);
     $window_id = <amos-term.windows.by_amos>->{$amos_id};
     return undef unless defined $window_id;
@@ -52,8 +52,8 @@ delete <amos-term.windows.by_name>->{$client_name};
 
 return $window_id;
 
-#,,,,,,..,...,..,,.,.,.,,,,,,,...,,.,,.,,,.,.,.,.,...,...,.,.,,.,,,..,,..,.,.,
-#QV2MBWLTDXDPFSBPOA7KSADYKB6RRLTGWB4AP6FSTL4YBGKWTTHAKSIXRCZWSLCMA4R7WSTWSFGB6
-#\\\|K323S445JSGOVXGIA5WJAXZ33P6HSGF46JKODNTG74VKH2QRASL \ / AMOS7 \ YOURUM ::
-#\[7]K2QGWIWBAGLYM66HM33PRIHBBPRWQN5OTJS3BBE5QFAQYOQZT6BY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,,.,,,.,,...,,,.,,,,,.,,,.,,,.,.,...,...,..,,,..,.,,,,.,,.,,,
+#NQCZ5O324B4K233TG5CCOAIEIDV5FZBYFVLMJIV7UH5PEK3WYWWBBIHZKATU7UWXM23OZAHVMCWGG
+#\\\|RU43ITWTQGDYU3NIZEI6MFX64IPWMMQ2YNWVRDSC2B3JOBAHSGF \ / AMOS7 \ YOURUM ::
+#\[7]4VE2XTGS6QOSSCH3ANSJOINDRWZREBEQ7IQHHR2Q3TLG2CUW72AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

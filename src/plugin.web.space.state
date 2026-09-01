@@ -80,7 +80,7 @@ if ( $section eq qw| summary | ) {
 
     ## orbital data json : for live orbital visualization endpoint ##
     my $context_p7ref = $1 // '';
-    $context_p7ref =~ s/^\s+|\s+$//g;
+    $context_p7ref =~ s{^\s+|\s+$}{}g;
     return
         length($context_p7ref)
         ? <[plugin.web.space.orbital.json.context]>->($context_p7ref)
@@ -96,8 +96,8 @@ if ( $section eq qw| summary | ) {
     return sprintf '<!-- unknown space section: %s -->', $section;
 }
 
-#,,.,,.,,,,,.,.,,,,,,,,,.,,,,,,.,,,,,,,,.,..,,..,,...,..,,..,,...,,,.,..,,,..,
-#M3G3QWKFAOQ6KHLLE4C6OVDKGVIYUXOB6J6HG7TOUPFATMNXWBK6OANTUCJKWH6VGKRROQBC2J6TE
-#\\\|OQA5B36UFPYC7Z3WZNX2QWL6Y26YPJUFCED5TTQQEOOQZBXA6HZ \ / AMOS7 \ YOURUM ::
-#\[7]DANFMSJMNWS765F5KWCMVOBKYWA4GKNUVOVIHSNVP5QFGYPIRADY 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,,..,,.,,,,.,...,..,,,,.,..,,..,,...,...,.,,,.,.,.,.,,,,,.,,,
+#VZMF7CBBXFZA4E2DSPLGGEA43IZ2BNUL2VJLYWJNSPDRWMTYTQEARGDCCGPGYEAEAZDS6RVXG5ANU
+#\\\|MTMDT64PQLCNDQLDXU2LN2VTDRXCOJFG6Z53JGFSIXQIDUO2MSC \ / AMOS7 \ YOURUM ::
+#\[7]N4YDOAMPTWR7WNP7ZCIKBNBSWIJVUOJPHTNWSLUSDTIZTGNG5AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

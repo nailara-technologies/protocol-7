@@ -5,11 +5,11 @@
 # param = <SNUM> <S1> <S2> <S3> <S4>
 
 <power.cfg.devices> //= {};
-my ( $device_id, @state_param ) = split( / +/, $call->{'args'} );
+my ( $device_id, @state_param ) = split( m| +|, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'numerical device id expected' }
     if !length($device_id)
-    or $device_id !~ /\d+/;
+    or $device_id !~ m|\d+|;
 
 return {
     'mode' => qw| false |,
@@ -30,7 +30,7 @@ map {
         'data' => "invalid state \"$ARG\" requested! ( "
             . "valid states are '0', '1' or '-' [skip] )"
         }
-        if $ARG !~ /^(0|1|-)$/;
+        if $ARG !~ m{^(0|1|-)$};
     $skip_count++ if $ARG eq '-';
 } @state_param;
 
@@ -83,8 +83,8 @@ if ( $dev->{poller}->can_write(0.1) ) {
 
 return { 'mode' => qw| TRUE |, 'data' => join( ' ', @new_states ) }
 
-#,,..,,.,,...,..,,,,.,...,..,,,,,,.,.,.,.,,.,,..,,...,...,.,.,.,,,,,,,,,,,.,,,
-#ETGEPGAP25FVXQV3MBM6TZJHCY6JUVU7CXS2JYGQMXTSZAFMGOOJZF3WXIE33UG4X4PEAIMDVAKUI
-#\\\|JAC3QHEK6SGS33NDCZQBVVCOBE3UREDJDCMMFP2TNF7ERZ4TNZ6 \ / AMOS7 \ YOURUM ::
-#\[7]TEG5UZQDPZXC73HJVR7D5YPKMZ2KA2AMPHJAQF75QS4QW4PQBEAQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,,,.,,..,,,.,..,,,,,,,,,,,,,,..,,...,..,,...,..,,.,,,,,,,,..,
+#55643DYFCA2YL26AWAOBYWOEZFSUMCSTQSKO4H7M7MXQLD3GQLVZPSGHFEJLLTMLYXC6KCLMKOTZ2
+#\\\|FRPE7FRTJJKSWK5KVYTXFNY4S36PQSA7QTAXFNIPJTJ7AA2OL33 \ / AMOS7 \ YOURUM ::
+#\[7]LIJV54ZLE75N5UYV5IJ7FM3EEPMECAB2XAEUUUY6T72RARYQRYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

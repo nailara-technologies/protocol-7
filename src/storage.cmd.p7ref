@@ -5,7 +5,7 @@
 my $args = $call->{'args'} // '';
 
 # Parse: <subcommand> <p7ref> [options]
-my ( $cmd, $p7ref, @opts ) = split /\s+/, $args, 3;
+my ( $cmd, $p7ref, @opts ) = split m|\s+|, $args, 3;
 
 $cmd   //= '';
 $p7ref //= '';
@@ -70,8 +70,8 @@ if ( $cmd eq 'resolve' ) {
     for ( my $i = 0; $i < @opts; $i += 2 ) {
         my $k = $opts[$i]       // '';
         my $v = $opts[ $i + 1 ] // '';
-        $k =~ s/^://;
-        $k =~ s/:$//;
+        $k =~ s|^:||;
+        $k =~ s|:$||;
         $meta{$k} = $v;
     }
     $result = <[plugin.storage.p7ref.index]>->(
@@ -93,8 +93,8 @@ if ( $cmd eq 'resolve' ) {
     for ( my $i = 0; $i < @opts; $i += 2 ) {
         my $k = $opts[$i]       // '';
         my $v = $opts[ $i + 1 ] // '';
-        $k =~ s/^://;
-        $k =~ s/:$//;
+        $k =~ s|^:||;
+        $k =~ s|:$||;
         $by    = $v if $k eq 'by';
         $value = $v if $k eq 'value';
     }
@@ -125,8 +125,8 @@ if ( $cmd eq 'resolve' ) {
 
 return $result;
 
-#,,,.,,,.,,,.,...,,,,,,.,,,,.,,,,,,..,..,,,,.,.,.,...,...,...,.,.,,..,.,,,..,,
-#A2FPTJITB2FNHQDHFOTBEJOO3IOL4SYQKY3ZT4BLBLUHZR4LJ3IZIRCGZK7HXM6EA5HV6KGGFDCNQ
-#\\\|SEWSCADU3QNKOPH5AF7FQU7QKF5ZWY5GI5LS4VG7SOS5J3R62JN \ / AMOS7 \ YOURUM ::
-#\[7]PDP5P5R6IH6BZ3MQBNHFP756EETB6EN5FE262C3OHEY3UJIAS4DY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,..,,,,.,,,.,.,,,,.,,.,,,.,.,.,.,...,...,.,,,,..,..,,.,,,,.,,
+#WG4DKSXGCANFA55IZJRYV253FR3YRJEJPLKWWYGS4AUGYRM6ATFSBKG2RMGSIUVIBOP4UFBM63RGY
+#\\\|4YFBXL4OICRQ727IWKDFLEDLW3QTFBYZLCDIW3E3OIJJ5MLOUPD \ / AMOS7 \ YOURUM ::
+#\[7]5GBB4F6YGPG355YMN3BDBE75KOSKWRPNNPHV22K6Y6GDWSYOE4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

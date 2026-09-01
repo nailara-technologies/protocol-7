@@ -40,14 +40,14 @@ if ( $bytes <= 0 ) {
         <[base.logs]>->( 0, 'invoke.ai crashed before ready' );
 
         ## log last lines for diagnosis
-        my @lines = grep { length $ARG } split /\n/, $output;
+        my @lines = grep { length $ARG } split m|\n|, $output;
         my @tail  = @lines > 5 ? @lines[ -5 .. -1 ] : @lines;
         <[base.logs]>->( 0, ':. %s', $ARG ) for @tail;
     }
 }
 
-#,,..,,,.,,.,,,,,,,.,,,,,,,..,,,,,..,,,,,,.,.,..,,...,...,,..,,.,,,..,..,,,.,,
-#VUGXURWJ3PVLESLDMWI5TGOT2EI46MUFRT7B4UCUYWDM5LNPQ32K4UDV6IBMZVBVP5FZTQHDNZIKI
-#\\\|UWSZAEYKNZ3K7VM2QV4HBB4WZG7RCQU2H6EFNBFCL66HJLB2KVK \ / AMOS7 \ YOURUM ::
-#\[7]HLFLOW3Z2I5L2G2GLYOLRUR5QUN2KXPDLII7Z3R5CQNFBOBSFSBA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,,.,,,.,,.,,,,..,,,,,,,,,..,,..,,...,...,,..,,..,,..,,.,,,.,,
+#7SF2PU4L6UMKSBZTBBRZHOZSFSRUQ3K6GFBFH7DENMPTEHIBHWAVEL4L5MUVZ6TL62LMPVKQYGT3U
+#\\\|GIJMIMF3F76H24OURFBDYTW7DRZW3W47NCO6PHD7KBRI66XIBG7 \ / AMOS7 \ YOURUM ::
+#\[7]EMCQPI26VNA6JSMYX7A566C2ZQ6DXGS464WYGULYUVX7VK2SVCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = <w_id> <direction>
 # descr = move window to the specified screen border
 
-my ( $id, $gravity ) = split( / +/, $call->{'args'}, 2 );
+my ( $id, $gravity ) = split( m| +|, $call->{'args'}, 2 );
 
 return {
     'mode' => qw| false |,
@@ -12,13 +12,13 @@ return {
     }
     if not defined $id or not defined $gravity;
 return { 'mode' => qw| false |, 'data' => 'invalid <id> syntax' }
-    if $id !~ /^\d+$/;
+    if $id !~ m|^\d+$|;
 return {
     'mode' => qw| false |,
     'data' =>
         "invalid gravity keyword, valid are: left, right, top and bottom"
     }
-    if $gravity !~ /^(left|right|top|bottom)$/;
+    if $gravity !~ m{^(left|right|top|bottom)$};
 
 my $xtops = <X-11.WM>;
 <[X-11.update_X11_WM]>;
@@ -52,8 +52,8 @@ $window->move("${w}x${h}$nx$ny");
 
 return { 'mode' => qw| true |, 'data' => "gravity set to '$gravity'" };
 
-#,,,.,,,.,,,,,,,,,,.,,,.,,.,.,..,,,,.,,.,,...,..,,...,...,,..,.,,,...,,..,.,.,
-#RTJ5OI2NGVZCVVJ3QSK5F7QOHMV35JVYI6XVVBAGQVEW3QM3I4Y356L2KQ5D3E5FU4MXY4OPFVPLC
-#\\\|E6U6OZLSGYZ44R6DF4Q6K4EZJH4CLYSKA6GNX5HBTBCUGG7BCEF \ / AMOS7 \ YOURUM ::
-#\[7]OO2NB2JXL3CMPAGEH6PFK5MUKH4NFOT4EYKAJ3MXYK2LWII7KACI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,,,.,,,.,,,,,..,,...,.,.,,,,,..,,...,...,...,,,,,,.,,,,,,.,,,
+#RLECI57SEF7RGSXNUAETBBYU4GTN26UOX3NTWLAZNTZC2FFVVHRKUPDNXJQSG7GI66JMRIEA7ZH4S
+#\\\|A7KWNYZQMNCRVWSSCQXNDAN73XLX3SFSHKP22PRF7E6L2XHRF6Q \ / AMOS7 \ YOURUM ::
+#\[7]75K7ATHVJ5RCHEBU5KIMITJ34VKDJOPJ6UFRU6AW6UJU5TACMGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,7 +52,7 @@ return {
     'mode' => qw| false |,
     'data' => sprintf( 'invalid correlation_id [ %s ]', $correlation_id )
     }
-    if $correlation_id !~ m{^[\w\.\-:]{4,80}$};
+    if $correlation_id !~ m|^[\w\.-:]{4,80}$|;
 
 my $detail = $finding->{'finding'} // {};
 return { 'mode' => qw| false |, 'data' => 'finding detail hash expected' }
@@ -157,7 +157,7 @@ $rel_modules = [] if ref $rel_modules ne qw| ARRAY |;
 foreach my $mod_name ( @{$rel_modules} ) {
     next
         if not defined $mod_name
-        or $mod_name !~ m{^[A-Za-z0-9_][\w\-]{0,60}$};
+        or $mod_name !~ m|^[A-Za-z0-9_][\w-]{0,60}$|;
 
     my @mod_files = glob( sprintf qw| %s/src/%s.* |, $root_path, $mod_name );
     my $newest    = 0;
@@ -192,7 +192,7 @@ my $local_paths = $enrichment->{'local_paths'} // [];
 $local_paths = [] if ref $local_paths ne qw| ARRAY |;
 
 foreach my $path ( @{$local_paths} ) {
-    next if not defined $path or $path !~ m{^/[\w\.\-/]{1,200}$};
+    next if not defined $path or $path !~ m|^/[\w\.-/]{1,200}$|;
     push @path_ev,
         {
         'path'     => $path,
@@ -272,8 +272,8 @@ return {
     'evidence'    => $record->{'evidence'},
 };
 
-#,,,,,,,,,,..,,,.,,,,,,,.,,,,,,..,,,,,.,.,,.,,..,,...,...,,,.,,.,,,.,,,,.,.,.,
-#FKXVVJDKML66M5AHFFD6XFJ7I4K63VKKLX3B3JQBCYDYLNFX2X66FZJJV7GDZM6HWUIU745CF7TBA
-#\\\|6IDBXXAKDTWU6EQ7UTQYXVSL2DC2W5GLTB6VO3CM2UCB5LWMSAL \ / AMOS7 \ YOURUM ::
-#\[7]P7O7K3IO3IP6765XMQCIGO5H62GM7TG2UNRCHP535VW5PWKGVOBA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,...,,.,,,.,,...,,..,,,.,...,..,,...,...,.,.,..,,,,,,,..,,,,,
+#IVAFBW4BZ6RTAWYZMWLWWRPPIHMN7UTU27FGHCFRZZDTL43GM6MFKYN2XH2GWDTKIQQJARPPJT4IQ
+#\\\|JDI5FQWQMSB4CCOR4WCDV75RTK3VF5QGUQZWAIBOZZKP4XVJEFA \ / AMOS7 \ YOURUM ::
+#\[7]GF3BDC5O46LXLA63AWTBNW3FLV2EUTJL6PIVJLW6MTB4LEJDCGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ if ( defined $code{$list_subs} ) {
 
 ## data children
 my $data_ref = \%data;
-my @segments = split /\./, $address;
+my @segments = split m|\.|, $address;
 my $resolved = TRUE;
 
 for my $segment (@segments) {
@@ -63,7 +63,7 @@ for my $code_key ( keys %code ) {
     next if index( $code_key, $prefix ) != 0;
     my $rest = substr( $code_key, $prefix_len );
     next if index( $rest, '.' ) < 0;
-    my ($child) = split /\./, $rest, 2;
+    my ($child) = split m|\.|, $rest, 2;
     push @children, $child;
 }
 
@@ -176,8 +176,8 @@ if ( $folded > 0 and $remaining < 1 ) {
 
 return \@layout;
 
-#,,.,,,.,,,..,,,,,,.,,..,,.,.,,.,,,,,,,.,,,.,,..,,...,...,...,,.,,...,..,,,,,,
-#AK6XSZN4XWK2SD7Y5J7LAVX4TGBSVJ2QTURV2FKUNSXAZPMIB2DHCRVBQQGMMQCWNP7X244YJXZ7A
-#\\\|GRLZHESGUPER6V7MIU7N43FOGE4Q4HEQ6KIGYEKKYJIU5AYWXZ3 \ / AMOS7 \ YOURUM ::
-#\[7]PZ5OTJ7MUKLNJETTIA4MV4YHGOUHQRY46V25B2HX2ABR7JTDWGBA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,,.,,,,.,.,.,,,.,...,.,.,.,,,..,,...,...,.,,,...,,.,,.,.,,.,,
+#FXREXZSL2UERZXYTCPMXUVCD4NB7S3IZ7DGYA44PIPEWI35REVAAUONHP2RGXT4XIKCBAFGKWKTPW
+#\\\|MXXQXEPAOJAOXYEGSTESAPTBKASXJBZFF4HAW4XANIOCOEHI7XI \ / AMOS7 \ YOURUM ::
+#\[7]O7RZ7NZSZJRDAEGMTAQ54JE3QOFNYYY6EXEBWCUXK2T5GWZURCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ my $current_model_id = <inference.model.amos_id> // '';
 ## normalize: accept "checksum" or "checksum backend=..." ##
 my $model_checksum = $model_id;
 $model_checksum = $1
-    if $model_id =~ m{^([A-Z2-7]{7}:[A-Z2-7]{7})(?:\s+backend=\w+)?$}i;
+    if $model_id =~ m|^([A-Z2-7]{7}:[A-Z2-7]{7})(?:\s+backend=\w+)?$|i;
 
 ## helper to format self_test.run result for reply ##
 my $format_result = sub {
@@ -201,8 +201,8 @@ return { mode => qw| deferred | };
 #\[7]6CTAA7SKMHL6YP6ZXMBRKAK56CL4JXFWKS3OSQF 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,,,,,,,,,.,,,,.,,.,,,.,,,,,,,,.,,,.,,.,,..,,...,...,..,,,.,,.,.,,..,.,.,
-#TLNTBX22R5X7NYZPI4B5T6VMJX6TXSXMJQKCTJCMZOESXFLWHQMDP73N2XTGSPGT4N2KVWCLVDYMG
-#\\\|KZ4XR7F5KEZQBZBJTL4CUJLVSBGIHDEEBUTOFKF5FA5MGMUIC2U \ / AMOS7 \ YOURUM ::
-#\[7]GCDP4SY55QC7VFKI2NNLPQLULE3NTYOZ3IKPCYOLCR27IGBLEMDA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,,..,,,,,,.,,..,,,,.,.,,,,.,,..,,...,...,,..,...,.,.,,.,,,..,
+#MXDMIGOAYDWAMZS47DXRR5Y5O6CIDIK5X453XWNC5JMWBJNEQFLTAATZSLWDM2FJMJDHZ7XD7ZREW
+#\\\|ROINDIATVEOVHQH3T4KUOYQSGOCIRED4NBFN674NJNTFIOIHGBH \ / AMOS7 \ YOURUM ::
+#\[7]A4HYBDJAVBEKQTTH3NYVJXGC4NDBMDA3OCKTFM4TF4YOQCZ76MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

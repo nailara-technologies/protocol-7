@@ -3,9 +3,9 @@
 # descr = Mount 3D buffer via 9P protocol
 
 my $args = $call->{'args'} // '';
-my ( $buffer_id, $mount_point ) = split /\s+/, $args, 2;
+my ( $buffer_id, $mount_point ) = split m|\s+|, $args, 2;
 
-$buffer_id =~ s/^\s+|\s+$//g if defined $buffer_id;
+$buffer_id =~ s{^\s+|\s+$}{}g if defined $buffer_id;
 
 ## === Resolve buffer === ##
 my $window;
@@ -17,7 +17,7 @@ if ( not defined $buffer_id or $buffer_id eq '' ) {
     };
 }
 
-if ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
+if ( $buffer_id =~ m|^amos:([A-Z0-9]{10})$|i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
     return { 'mode' => 'false', 'data' => "buffer $amos_id not found" }
@@ -66,8 +66,8 @@ return {
     )
 };
 
-#,,,.,...,...,,,,,,,,,,.,,,..,...,...,..,,..,,.,.,...,..,,...,,.,,.,,,...,,,.,
-#MLAU6F26TCKJTZGWBXUWF6SFTX72NASOR7YHQREAD2UG4PA6YTBPBUYFCVBA36NCXPPDBONW4GGYA
-#\\\|PNWPJS7L36XQ35DLYV24N3P3PAE6B62S2SVQNS3I5FNNAN574FN \ / AMOS7 \ YOURUM ::
-#\[7]QIHZO6AAQGXQT6BERWSKLTCIIDRAJWAPXRNELBEYEXEFGTV7G4CA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,...,,..,...,,..,,.,,,,.,,..,...,.,.,...,...,...,..,,,,.,.,,,...,
+#6YHLCE3BCDNEFZLIOFSP5ANMFWMFZO54HJIOJCZ5UIULMT6D6R2MEJW7KYKSOVHPIDWOPFVNPTKBA
+#\\\|MIZJSSBK4MWDT7444SGHPHBM7HZAEUL23BYW2SJR3A7XAAL3EYS \ / AMOS7 \ YOURUM ::
+#\[7]AKPBFWMXC7Y6AYB5N37D65SXLS6XWGWVICODHYEXPK7BDULXTEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

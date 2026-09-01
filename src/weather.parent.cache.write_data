@@ -6,11 +6,11 @@ my ( $type, $station_id, $weather_data ) = @_;
 my $cache_dir = <weather.cache_dir> . '/data';
 
 die "expected valid type parameter [current|hours|days]"
-    if not defined $type or $type !~ /^(current|hours|days)$/;
+    if not defined $type or $type !~ m{^(current|hours|days)$};
 die "expected (valid) station_id parameter"
     if not defined $station_id
     or !length($station_id)
-    or $station_id !~ /^[\w\d]+$/;
+    or $station_id !~ m|^[\w\d]+$|;
 die "expected weather data string"
     if not defined $weather_data or !length($weather_data);
 die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
@@ -24,8 +24,8 @@ my $data_file_path = "$cache_dir/$station_id.$type";
 
 <[file.put]>->( $data_file_path, time . "\n$weather_data\n" );
 
-#,,,,,,..,,..,,.,,,.,,,,.,,..,...,,..,,,,,...,..,,...,...,,..,...,.,,,,..,,.,,
-#3QCQB3WQFNTNNKESKNWXCLBVVBBDPIY2LUV7F3GE4KBCFKE2I7Q2Q2JOON6TIV7KNSHTQQE7Y5GZA
-#\\\|I4LUBFTHWPKZRHHWGPLTH3UN5YVORH4L5546QKYAWZY444EPYUM \ / AMOS7 \ YOURUM ::
-#\[7]YGZZYYTPMGIB5EHKHLE2CKPDRE5HNWN34JIYCCDMBJP7KFFWLKBI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,...,,,,,,.,,.,.,..,,...,.,.,..,,...,...,,.,,.,.,...,,,.,,.,,
+#66J3PKSBO5NIQFH5RBPP7TWOECDETNYHE2OSAJMPTTNTVLYZKOONPYDUFH5GDR4OB2AD5EUR3R2ZS
+#\\\|I2IJW7G2PMPGVHLVH3IXMDRAFCBTJEPNTMU3MMDIPZTEI3EUMUB \ / AMOS7 \ YOURUM ::
+#\[7]22X4IO7YPI2TTNIUIUI5WHTGJS3AYJH24QTMJDR2YPEYV3SPUGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

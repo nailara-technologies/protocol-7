@@ -18,7 +18,7 @@ my $analyze_complexity = sub {
     my $complexity = 1;    # Start at base level
 
     # Length-based complexity
-    my $word_count = scalar( split( /\s+/, $desc ) );
+    my $word_count = scalar( split( m|\s+|, $desc ) );
     if ( $word_count > 100 ) {
         $complexity += 2;
     } elsif ( $word_count > 50 ) {
@@ -33,7 +33,7 @@ my $analyze_complexity = sub {
     );
 
     foreach my $keyword (@complex_keywords) {
-        if ( lc($desc) =~ /\Q$keyword\E/i ) {
+        if ( lc($desc) =~ m|\Q$keyword\E|i ) {
             $complexity += 2;
         }
     }
@@ -45,7 +45,7 @@ my $analyze_complexity = sub {
     );
 
     foreach my $keyword (@medium_keywords) {
-        if ( lc($desc) =~ /\Q$keyword\E/i ) {
+        if ( lc($desc) =~ m|\Q$keyword\E|i ) {
             $complexity += 1;
         }
     }
@@ -53,13 +53,13 @@ my $analyze_complexity = sub {
     # Task type adjustments
     my $type = $task->{type} // 'analysis';
 
-    if ( $type =~ /code|generation|creation/ ) {
+    if ( $type =~ m{code|generation|creation} ) {
         $complexity += 3;
-    } elsif ( $type =~ /consensus|voting/ ) {
+    } elsif ( $type =~ m{consensus|voting} ) {
         $complexity += 4;    # Consensus is most complex
-    } elsif ( $type =~ /transcription|audio/ ) {
+    } elsif ( $type =~ m{transcription|audio} ) {
         $complexity -= 2;    # Audio is simpler
-    } elsif ( $type =~ /image|creative/ ) {
+    } elsif ( $type =~ m{image|creative} ) {
         $complexity += 2;
     }
 
@@ -149,7 +149,7 @@ my $estimate_tokens = sub {
     # Consensus voting costs 3x (3 models)
     my $constraints = $task->{request}->{constraints} // [];
     foreach my $constraint (@$constraints) {
-        if ( lc($constraint) =~ /consensus|vote/ ) {
+        if ( lc($constraint) =~ m{consensus|vote} ) {
             $tokens *= 3;
         }
     }
@@ -161,7 +161,9 @@ my $estimate_tokens = sub {
             description_tokens => int( $desc_len / 4 ),
             type               => $type_key,
             requires_consensus =>
-                ( grep { lc($_) =~ /consensus|vote/ } @$constraints ) ? 1 : 0
+                ( grep { lc($_) =~ m{consensus|vote} } @$constraints )
+            ? 1
+            : 0
         }
     };
 };
@@ -250,8 +252,8 @@ if ( $cmd eq 'complexity' ) {
     };
 }
 
-#,,,,,,..,.,,,...,,..,,,.,..,,..,,.,.,..,,.,,,..,,...,...,.,.,.,,,,,,,,..,.,.,
-#7XDQXYV4D6GEEBU6QZ7X7HT4PYUVXRYJHGJYKNP4ZCCRGYD42CAOYOCKLYBWDNTOE3QJNNDXOLWDQ
-#\\\|GGH3SKFEE7535N2KUYATR4UMVTWYBUZXFK2DZZJD7SWKKCEL3LH \ / AMOS7 \ YOURUM ::
-#\[7]DD4TLTJDHDRBPSM3EWQB7SDJONOWI4SF2TSS2KKRVOFSQRJTEUCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,..,..,,.,.,,..,,,.,.,,,..,,.,.,..,,...,...,..,,...,.,.,,..,...,
+#2B7XX5GUDO4NU3PDUNO762J54AVYAZQHH7KRWPL3SPGVOYE7TN4OVTNMLRQLUYCXHN3ALQASP46PW
+#\\\|5CD7GL5BC5AOKVF546GZUSRGSJBNVEQBNA4MEM4ZIG54G25MA5B \ / AMOS7 \ YOURUM ::
+#\[7]2ULOV4M47IHBBE624BQJBHD76GAWYGQMQEYZ56UV5IGYUMVWM2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

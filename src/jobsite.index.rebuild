@@ -17,11 +17,11 @@ for my $status (qw| blocked deleted |) {
     my $dir = "$jobs_dir/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+    for my $epoch_dir ( grep { !m|^\.| && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
-        for my $file ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+        for my $file ( grep { m|\.yaml$| && !m|^\.| } readdir($edh) ) {
             my $job_id = $file;
-            $job_id =~ s/\.yaml$//;
+            $job_id =~ s|\.yaml$||;
             my $job = eval { YAML::XS::LoadFile("$dir/$epoch_dir/$file") };
             next if $@ or ref $job ne 'HASH';
             $index->{$job_id} = {
@@ -41,9 +41,9 @@ for my $status (
     my $dir = "$jobs_dir/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $file ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+    for my $file ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $job_id = $file;
-        $job_id =~ s/\.yaml$//;
+        $job_id =~ s|\.yaml$||;
         my $job = eval { YAML::XS::LoadFile("$dir/$file") };
         next if $@ or ref $job ne 'HASH';
         $index->{$job_id} = {
@@ -75,8 +75,8 @@ if ( not rename( $tmp_file, $index_file ) ) {
 
 return TRUE;
 
-#,,,,,,.,,,.,,...,...,..,,..,,.,,,,..,.,,,,,,,..,,...,...,.,.,.,.,,,.,,,,,.,.,
-#TVTRBN6AXXKKRT53IDI2UVNVCYFAW4GB5QDQ43UQF4WCH6X2DJ5ERXAH3STWCXAGZG6UJOGILYHNG
-#\\\|3AEKE22A6O3HNWRQDPIINDBSLULTBWTDJNJ5ZBOA72W62LBUWIS \ / AMOS7 \ YOURUM ::
-#\[7]WYXJTXKYOT3GKE53U7X2Q23XHHHOPTLOKWF2Z7VKGEYFHKUQMODI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,,,.,,,,..,..,,.,,,...,...,,..,..,,...,...,..,,,.,,,..,,..,,,,,
+#ERSEUFLUTC7NEN4VF2OALKDDLSUJCQIN2QMH5I23CJQXBKGODMCBXBTLYMJNTLGX3OH5PVT4AHCTW
+#\\\|RJZJELBSIFZKC7AHNU5TZG5BV3QG6ODW5CHXANYHZDCOUTQCB2P \ / AMOS7 \ YOURUM ::
+#\[7]AXBD46NLAD3CMEQLH53BJJXXMD4XQCYS3DEWIEQAAZIQ3UDXGUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
