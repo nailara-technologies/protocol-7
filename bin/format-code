@@ -302,12 +302,17 @@ while ( my $file_path = shift @files ) {
         }
 
         ## known-benign [ an English.pm variable referenced once, e.g. in a ##
-        ## short init file ] -- terse, uncolored, no [file:line] tag or box ##
-        ## : worth knowing about, not worth looking anything like a real    ##
-        ## error                                                            ##
+        ## short init file ; a circularly-'use'd .pm redefining its own     ##
+        ## subs under a bare 'perl -c' -- see real_syntax_errors ] --       ##
+        ## terse, uncolored, no [file:line] tag or box : worth knowing      ##
+        ## about, not worth looking anything like a real error              ##
         for my $line (@benign_once) {
-            next if $line !~ m{Name "([^"]+)" used only once};
-            print "${TRUE_color}:: used once : '$1'\n:$reset\n";
+            if ( $line =~ m{Name "([^"]+)" used only once} ) {
+                print "${TRUE_color}:: used once : '$1'\n:$reset\n";
+            } elsif ( $line =~ m{^Subroutine (\S+) redefined} ) {
+                print "${TRUE_color}:: redefined [ "
+                    . "circular use ] : '$1'\n:$reset\n";
+            }
         }
 
         unlink $chk_file;
@@ -2283,36 +2288,80 @@ sub real_syntax_errors {
     my $src = do { local $RS = undef; <$src_fh> };
     close $src_fh;
     my $translated = p7_syntax__translate($src);
+
+    ## neutralize a leading '#!...perl...' shebang line [ e.g. bin/nshell's ##
+    ## '#!/usr/bin/env -S perl -C31' ] in the copy being checked -- perl's  ##
+    ## magic switch-reparse of the '#!' line turns out to be keyed to       ##
+    ## whichever physical line its OWN line-number state currently calls    ##
+    ## 'line 1', not the file's true first byte : the '#line 1 "..."' reset ##
+    ## below makes the shebang become that 'line 1' again even though it is ##
+    ## no longer physically first, so it still gets re-parsed for switches  ##
+    ## and a switch like '-C31' is rejected as "too late" [ some switches   ##
+    ## are only valid when perl itself is the one exec'd against the real   ##
+    ## file, which is what actually happens outside this checker ]. blanked ##
+    ## in place -- same line count, so no offset math needed -- since the   ##
+    ## shebang is irrelevant to a syntax-only check on a scratch copy       ##
+    ## anyway                                                               ##
+    $translated =~ s{\A#!.*}{##} if $translated =~ m{\A#!};
+
     my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .p7chk.pl | );
 
-    ## the real loader (bin/Protocol-7) provides all of this globally      ##
-    ## before eval-compiling any module's own source -- a standalone       ##
-    ## per-file perl -c has none of it, causing false positives on         ##
-    ## otherwise-correct code : %code/%data/etc + TRUE/FALSE/UNKNOWN are   ##
-    ## 'our'-declared / use constant'd once at bin/Protocol-7's top level  ##
-    ## (still in scope for every module it evals, even one with its own    ##
-    ## 'use strict' -- see bin/Protocol-7:6-31), List::Util's              ##
-    ## uniq/max/min/reduce and Crypt::Misc's [en|de]code_b32r are imported ##
-    ## centrally (bin/Protocol-7:277 and :2966 respectively), Const::Fast, ##
-    ## strftime, declared_refs, and the string-bitwise operators [ |.= in  ##
-    ## AMOS7::13's entropy mixing ] are used in real modules relying on    ##
-    ## another already-loaded module or a newer feature the fixed :5.24    ##
-    ## bundle predates. kept on ONE line + a '#line' reset right after so  ##
-    ## real error line numbers still match the original file exactly, no   ##
-    ## manual offset math needed                                           ##
-    my $preamble
-        = qq{use English; use List::Util qw| min max uniq reduce |; }
-        . qq{use POSIX qw| strftime |; use Const::Fast; }
-        . qq{use constant TRUE => 5; use constant FALSE => 0; }
-        . qq{use constant UNKNOWN => 2; }
-        . qq{use feature qw| declared_refs bitwise |; }
-        . qq{no warnings qw| experimental::declared_refs }
-        . qq{experimental::bitwise |; }
-        . qq{eval { use Crypt::Misc qw| decode_b32r encode_b32r | }; }
-        . qq{our ( \%code, \%data, \%keys, \%colors, \@INDEXCUBE, }
-        . qq{\$p7_devmod_sub_tracing, \%signatures, \%p7_subroutines, }
-        . qq{\%fh_encoding );\n}
-        . qq{#line 1 "$file_path"\n};
+    ## the real loader (bin/Protocol-7) provides all of this globally       ##
+    ## before eval-compiling any module's own source -- a standalone        ##
+    ## per-file perl -c has none of it, causing false positives on          ##
+    ## otherwise-correct code : %code/%data/etc + TRUE/FALSE/UNKNOWN are    ##
+    ## 'our'-declared / use constant'd once at bin/Protocol-7's top level   ##
+    ## (still in scope for every module it evals, even one with its own     ##
+    ## 'use strict' -- see bin/Protocol-7:6-31), List::Util's               ##
+    ## uniq/max/min/reduce and Crypt::Misc's [en|de]code_b32r are imported  ##
+    ## centrally (bin/Protocol-7:277 and :2966 respectively), Const::Fast,  ##
+    ## strftime, declared_refs, and the string-bitwise operators [ |.= in   ##
+    ## AMOS7::13's entropy mixing ] are used in real modules relying on     ##
+    ## another already-loaded module or a newer feature the fixed :5.24     ##
+    ## bundle predates. kept on ONE line + a '#line' reset right after so   ##
+    ## real error line numbers still match the original file exactly, no    ##
+    ## manual offset math needed                                            ##
+    ##                                                                      ##
+    ## the %code/%data/etc imports below are only for a real P7 module [    ##
+    ## is_p7_module_text -- the '## [:< ##' header ] : bin/Protocol-7       ##
+    ## itself and AMOS7::*.pm already declare all of this natively at their ##
+    ## own top level, so injecting it there is not just redundant but       ##
+    ## actively wrong -- perl -c reports every 'our' as redeclared          ##
+    ##                                                                      ##
+    ## the $0 fix below is unconditional : bin/Protocol-7 [ and             ##
+    ## bin/protocol-7-gtk3 , same pattern ] derive their OWN @INC lib-path  ##
+    ## in a BEGIN block by walking up N directories from $0/$PROGRAM_NAME - ##
+    ## correct when run as the real file, but $file_path here is actually   ##
+    ## $chk_file [ a '.chk.NAME' sibling written next to the original, see  ##
+    ## the caller above ], and this sub then copies THAT into yet another   ##
+    ## File::Temp tempfile under system tmpdir for the actual perl -c run.  ##
+    ## left alone, $0 inside that subprocess is the tmpdir path, at the     ##
+    ## wrong directory depth entirely, so the checked file's own lib-path   ##
+    ## detection resolves to nonsense [ e.g. bare '/data/lib-path/pm' with  ##
+    ## no repo-root prefix ] and it false-reports 'local lib path not       ##
+    ## found'. $chk_file itself sits at the SAME depth as the original [    ##
+    ## same dir, just a '.chk.' prefix on the basename ], so pointing $0 at ##
+    ## its absolute path -- via a BEGIN block that runs before the checked  ##
+    ## file's own -- makes any such depth-relative self-location logic      ##
+    ## resolve exactly as it would for the real file, regardless of which   ##
+    ## script does it or how many directories it walks                      ##
+    my $abs_chk_path = abs_path($file_path) // $file_path;
+    my $preamble     = qq{BEGIN { \$0 = "$abs_chk_path" }\n};
+    if ( is_p7_module_text($src) ) {
+        $preamble
+            .= qq{use English; use List::Util qw| min max uniq reduce |; }
+            . qq{use POSIX qw| strftime |; use Const::Fast; }
+            . qq{use constant TRUE => 5; use constant FALSE => 0; }
+            . qq{use constant UNKNOWN => 2; }
+            . qq{use feature qw| declared_refs bitwise |; }
+            . qq{no warnings qw| experimental::declared_refs }
+            . qq{experimental::bitwise |; }
+            . qq{eval { use Crypt::Misc qw| decode_b32r encode_b32r | }; }
+            . qq{our ( \%code, \%data, \%keys, \%colors, \@INDEXCUBE, }
+            . qq{\$p7_devmod_sub_tracing, \%signatures, \%p7_subroutines, }
+            . qq{\%fh_encoding );\n};
+    }
+    $preamble .= qq{#line 1 "$file_path"\n};
 
     print {$tmp_fh} $preamble . $translated;
     close $tmp_fh;
@@ -2354,17 +2403,38 @@ sub real_syntax_errors {
         next if $line =~ m{syntax OK\s*$};
         next if $line =~ m{^\s*$};
 
-        ## known-benign : any main:: symbol used only once. this check only ##
-        ## ever sees ONE file at a time [ a standalone temp-file perl -c ], ##
-        ## but main:: symbols in this codebase routinely get installed from ##
-        ## ELSEWHERE at runtime [ devmod, -vvv-gated features, a            ##
-        ## glob-assigned canary like base.init_code's own *main::dump_var = ##
-        ## sub {...} ] and referenced across other files/zenki this check   ##
-        ## has no visibility into -- so "used only once" on a main:: name   ##
-        ## is structurally almost always a false positive here, not the     ##
-        ## real per-file typo risk this warning targets elsewhere --        ##
-        ## terse-format all of them rather than alarm on them               ##
-        if ( $line =~ m{Name "main::\w+" used only once: possible typo} ) {
+        ## known-benign : any fully-qualified [ Foo::Bar::name -- not just  ##
+        ## plain main:: ] symbol used only once. this check only ever sees  ##
+        ## ONE file at a time [ a standalone temp-file perl -c ], but a     ##
+        ## package-qualified symbol in this codebase routinely gets         ##
+        ## installed / referenced from ELSEWHERE at runtime or from another ##
+        ## file entirely [ main:: symbols like devmod/-vvv-gated features   ##
+        ## or base.init_code's glob-assigned *main::dump_var canary ; a     ##
+        ## cross-file escape hatch like AMOS7::13::allow_high_iterations,   ##
+        ## set only from bin/verify-link-upgrade-fixes.pl ] which this      ##
+        ## check has no visibility into -- so "used only once" on any       ##
+        ## qualified name is structurally almost always a false positive    ##
+        ## here, not the real per-file typo risk this warning targets       ##
+        ## elsewhere -- terse-format all of them rather than alarm on them  ##
+        if ( $line =~ m{Name "\w+(?:::\w+)+" used only once: possible typo} )
+        {
+            push @benign_once, $line;
+            next;
+        }
+
+        ## known-benign , .pm files only : 'Subroutine X redefined'. a bare ##
+        ## 'perl -c some/Module.pm' treats the file as the MAIN program, so ##
+        ## it never gets an %INC entry of its own -- any circular 'use'     ##
+        ## back to it [ AMOS7::Assert <-> AMOS7::Assert::Truth,             ##
+        ## AMOS7::SHM::Page <-> AMOS7::SHM::Feedback, .. ] then re-requires ##
+        ## and fully re-parses the same file a second time before the first ##
+        ## pass even finishes, defining every sub in it twice. confirmed    ##
+        ## harmless : a real 'use Module;' load of any of these [ the only  ##
+        ## way they are ever actually used ] is clean, zero warnings --     ##
+        ## %INC correctly guards re-entry once the file IS being loaded as  ##
+        ## a real module and not the main program under -c                  ##
+        if (    $file_path =~ m{\.pm$}
+            and $line =~ m{^Subroutine \S+ redefined at } ) {
             push @benign_once, $line;
             next;
         }
@@ -2470,8 +2540,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,.,,...,.,,,..,,...,,,.,,,,,...,..,,,..,..,,...,...,..,,,,.,,..,,,,,,..,
-#GTZZYSPSSSE6CENCKSW5D4NIGZMS6BKIAY6EOGO6BATDVMKLFAK6OCGT5QCXRQVT3MXA4IXBTGSF2
-#\\\|A3IJBMFGTMEVV3HKTUP5BWYZGWCNK2CTGOX7ZGK666CRUJJIT3Y \ / AMOS7 \ YOURUM ::
-#\[7]MMOMHFM2XPM2AL46LH3K7FAMR7FMCY4KTRKXDWUGHU7DDGOE7OAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,.,,,,.,,.,.,,,.,..,,.,.,..,,..,,...,..,,...,..,,,..,,,.,,,.,
+#HH6FI353EN62DWHEPW3LGHFJP75DE6QP6DIGFRIIBYBE4VKNB3EFBF3FICTUCBBRR7C3TNTRWNTCW
+#\\\|D6FZW7KFHZD3LPZO3W2T6DCZ47ZXNOYCZ3U7HOQFIWNBBNTXTP4 \ / AMOS7 \ YOURUM ::
+#\[7]IC5L4FKLD4Z6C7VCW2XTKHHLWPKY6L7CLF5R4JHASMU4ESYSAQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
