@@ -63,7 +63,7 @@ if ( exists $dispatch_table_tools->{$tool_name} ) {
             'arguments' => JSON::PP::encode_json($tool_args),
         }
     };
-    $result = $code{'coding.tools.dispatch'}->($tool_call);
+    $result = <[coding.tools.dispatch]>->($tool_call);
 } else {
     ## handler module - call directly ##
     $result = eval { $code{$handler_mod}->($tool_args) };
@@ -87,8 +87,8 @@ return {
     'data' => $output
 };
 
-#,,,.,,..,,,,,,,.,,,,,...,,,.,.,,,.,,,.,.,,,,,.,.,...,...,,.,,..,,,..,..,,,,.,
-#KBJFSUBZFAPS46EH2ES3NK5CLSAB3QUXDAVDLBH7QAIW35VJWSPYZTL2MLKKBJ5L36VA7HUWN7X5Y
-#\\\|N6H4CBB2ZV464B4CETS4BIUPNVWM7GOI62DSGWGXFCRKZINE6YK \ / AMOS7 \ YOURUM ::
-#\[7]7LRBXJMG3AM6FL73NXKYEUD4EGOMKP2TZ2O5ZZ2IVLAL34Y5VIAQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,...,,..,,,,,,.,,..,,,.,,,,,,.,.,...,...,..,,.,.,,,.,,..,...,
+#436PVQRBK6SHBH2SIXNSMKXOHKXUMJUDIPFYYJ4HLMZKFY4DQW6JEJTGYJHIMRDYHUJVV3ZSENYRE
+#\\\|7Z3BCUNBXJ6OVQFLWSH4I3M33HP5ZFLAQBFODQNSX4MR4GPE6YH \ / AMOS7 \ YOURUM ::
+#\[7]YJ5RAVZBBH6AKYELHX6LRJ45X5RHTPDCOJTJSSUMEE436JDYDSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

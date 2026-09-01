@@ -9,7 +9,7 @@ my $start_seed    = shift // 142857;    ##[ 5 : 7 ]##
 my $iterations    = shift // 57;
 my $harmonic_seed = qw| FALSE |;
 
-( my $srand_seed = $PID + $code{'base.ntime'}->(13) ) =~ s|\.||;
+( my $srand_seed = $PID + <[base.ntime]>->(13) ) =~ s|\.||;
 srand($srand_seed);
 
 while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
@@ -21,8 +21,8 @@ while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
 
 return <base.prng.fortuna> = Crypt::PRNG::Fortuna->new($harmonic_seed);
 
-#,,,.,,..,.,,,,..,,.,,,.,,,.,,,,,,.,.,,..,...,..,,...,...,,.,,..,,,,,,,..,.,.,
-#JMLBDIEJA7LWW3SJEL4OGT33F6OGVAJCLJUU4S5MNWIU53MXMLJH3OUJXJUSYV5FT7PCAHA5TNZT6
-#\\\|KRWJVHAMDAP4S2BAUB6C7FC5AFF2ZOE74636DMEHT4KD7OI3FJA \ / AMOS7 \ YOURUM ::
-#\[7]6UXRMXUS4XVUDP7UATKVHPZENOEO6GLXKBXAMY7LTYPBJQZZNQCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,.,.,,.,,.,.,,,,,,,.,.,,,.,.,..,,...,..,,.,.,.,,,,.,,.,,,,.,,
+#HB7I2U6QWSWBJBPSSKRBTNMWCZEAKKWRMYZSCNEAPRFSGLINICL2WOQYQWCAKGFAVRCYSWBAE3XMO
+#\\\|6DD6YBZM3YCV3VJ3QLIYVODIFK4EIAGNSGLVVSUXBNLPJVBGRI7 \ / AMOS7 \ YOURUM ::
+#\[7]L7IBJUZCFWGHGFSLIAFSN5UWQ6O7NZHY2TOQUXBVRJ35BZSXWIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -120,7 +120,7 @@ $session->{'link_plain_buffer'} .= $plaintext;
 my $raw_rest = $$input;
 $$input = $session->{'link_plain_buffer'};
 
-my $ret_code = $code{'base.handler.command'}->($event);
+my $ret_code = <[base.handler.command]>->($event);
 
 $ret_code = 2 if not defined $ret_code or $ret_code !~ m|^\d+$|;
 
@@ -140,8 +140,8 @@ if ( $session->{'link_frame_state'} eq qw| header | ) {
 
 return $ret_code;    ## 0 : command processed | 1 : incomplete plaintext
 
-#,,,,,,.,,.,.,,,,,,,,,..,,,..,,.,,.,.,.,,,,.,,.,.,...,...,.,,,.,.,,,,,.,.,...,
-#BIXYJYRS7CFPQMPXATUFS4KNM23NMJR2EQAZ3BD6TMEHR3URKFRO4GOJVP6OGORCDVMZN4MLXLQO2
-#\\\|MPYIW7XLPYNFQCZVP6CIFS6KFCAZJA7KR4B6ANA2XVYVK7YZYEE \ / AMOS7 \ YOURUM ::
-#\[7]H2A7FCO7537VUH4QAEEEG7OJD73CHQZXEJ3AVR4IZ3T5XFHYYSAA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,.,,..,,.,,..,,,..,.,,,.,.,,,.,.,.,...,...,...,,.,,,..,,..,...,
+#ZGBJOTKYSIELNWQRXFAWEKKSFCCXBZYNN7PXADYEBBC7VHJNJKHNSSGLCMUHWR6HOL62VJW6NYF4G
+#\\\|XCUE7GMAINJV76OEWT6DNGSIXJN77U4HJ7ATO5DKZET5DBYSOCU \ / AMOS7 \ YOURUM ::
+#\[7]OUTZKJTJJFWWTWDPYCMVLECMWCXTFBUXSIEEKMP465UGXYPQEIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
