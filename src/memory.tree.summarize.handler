@@ -15,7 +15,7 @@ my $summary_text = $reply->{'data'} // '';
 my $cleanup = sub {
     <memory.summarize_queue_depth>--
         if ( <memory.summarize_queue_depth> // 0 ) > 0;
-    delete <memory.summarize_lock> {$node_id};
+    delete <memory.summarize_lock>->{$node_id};
 };
 
 if ( not length $summary_text ) {
@@ -23,7 +23,7 @@ if ( not length $summary_text ) {
     return FALSE;
 }
 
-my $node = <memory.tree_index> {$node_id};
+my $node = <memory.tree_index>->{$node_id};
 if ( not defined $node ) {
     $cleanup->();
     return FALSE;
@@ -55,7 +55,7 @@ $node->{'children'}
 
 push @{ $node->{'children'} }, $summary_node;
 
-<memory.tree_index> { $summary_node->{'id'} } = $summary_node;
+<memory.tree_index>->{ $summary_node->{'id'} } = $summary_node;
 
 ## [ recompute subtree hashes upward ]##
 my $root = <memory.tree>;
@@ -91,8 +91,8 @@ $cleanup->();
 
 return TRUE;
 
-#,,.,,.,,,,..,,.,,...,,,,,,,.,...,,..,...,,,,,..,,...,...,,..,..,,.,,,...,,,.,
-#AVNUIA22O27QPMSTJ4NUK2EU3PKLI4CD2NPLRD5UPMXJ76N2HWCILR2ISL2TCHIYN7OIDNMPGJ43E
-#\\\|FXXSSZ2KB7H7NBKIKDON4D75H4FOTSRDZ5DOE4AIJ7PQGFMSDVI \ / AMOS7 \ YOURUM ::
-#\[7]63W7GUKU4Z3WEXTI2VMTVS7ZXNIQSUGRZINHAWSNM54ZFSYDAMDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,,,,,,..,.,,,.,.,.,.,.,,,,,.,..,,...,..,,...,,..,...,,.,,,..,
+#YPP72BJ6OLEV4LDUOK3ARBB6OWHPKV5YUUQ3GWUCZPFPUHD2YRH6MWRI4NCCSSYUAQBKWXU7ELAZ4
+#\\\|WDDVDMHHOF3SISESM3D4EXXVRMCQRHR7QVH5UEIPDHYER6B4IKV \ / AMOS7 \ YOURUM ::
+#\[7]MZ3R3XYHZP3F5UYSESSULAF4I5SW4HG6MBISMP2G7JDWUOBEU4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

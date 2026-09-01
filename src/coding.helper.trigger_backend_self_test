@@ -265,14 +265,14 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
             ## never fire [ a real past bug in                              ##
             ## user-edit.setup_stdin_watcher ]                              ##
             $guard_watchers->{$backend} = <[event.add_var]>->(
-                {   'var'  => \<coding.self_test_probe_in_flight> {$backend},
+                {   'var'  => \<coding.self_test_probe_in_flight>->{$backend},
                     'poll' => qw| w |,
                     'prio' => 0,
                     'repeat'  => 1,
                     'handler' => qw| coding.helper.self_test_guard_watcher |,
                     'data'    => [
                         $backend,
-                        \<coding.self_test_probe_in_flight> {$backend}
+                        \<coding.self_test_probe_in_flight>->{$backend}
                     ],
                     'desc' =>
                         "coding self-test in-flight guard [backend=$backend]",
@@ -398,8 +398,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,..,..,,...,.,,,,..,.,.,.,.,,,,,,,.,,,,,,.,,..,,...,...,,,,,,.,,,.,,,.,,,.,,
-#4O3NHIY5ZS3MU2TF3HZPEKAXKT64NSV3AIYAZYTPEQBCYTJX4IKPD577OIHIFDNMF7FINQYUZW52K
-#\\\|IFWJVXCSOA4BH43UWUD2OPP3LUVBDQVNFBDBTSR6N6VBCASN5NE \ / AMOS7 \ YOURUM ::
-#\[7]QPDHOE72X6Q4DLNCZLV53KL3WWH3JMJ2JWFGMKOAKMERVULVYKAA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,...,,..,..,,,.,,,.,,.,.,,.,,..,,...,...,...,...,,.,,..,,..,,
+#7Y2GZG52OSSGBRR5BDEIF6JLYOIXJQSKSNDQY5GXYJ4DPYP267NSZNGBCJWESAPSFMSUQB6LIHHY2
+#\\\|S2GETPGG7XNOX2FJHKA7VAXCBSAPW2X7YTSN7TCTGY6LZOXLD7V \ / AMOS7 \ YOURUM ::
+#\[7]L5DBWNDP4EKWBUYZ47PYB2MYQ3JK2AAQBODUHHAHJV6SMAXHFSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

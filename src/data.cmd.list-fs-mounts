@@ -15,7 +15,7 @@ if ( !<data.fuse.mounts> || !keys <data.fuse.mounts>->%* ) {
 my @lines = ( "Active FUSE mounts:", "-" x 60 );
 
 for my $mountpoint ( sort keys <data.fuse.mounts>->%* ) {
-    my $info        = <data.fuse.mounts> {$mountpoint};
+    my $info        = <data.fuse.mounts>->{$mountpoint};
     my $pid         = $info->{'pid'}         // 'unknown';
     my $hash_path   = $info->{'hash_path'}   // 'unknown';
     my $started     = $info->{'started'}     // 0;
@@ -51,8 +51,8 @@ return {
     'data' => join( "\n", @lines )
 };
 
-#,,,,,...,.,.,,,.,.,,,.,.,.,,,,,.,.,,,,.,,...,.,.,...,...,,..,,.,,,,,,,..,,.,,
-#IKFPTHVBSUFA53MIQ6TGP345PRE6AIQKCU6LPDKOLN3A32WAGYC6EQHUNR2Y5V4JQE64DGPTY5H2C
-#\\\|KBO37A5ILUDCP3OEJIQENN2VRZU5H22EAP57DNKMMLHMXNTRLPZ \ / AMOS7 \ YOURUM ::
-#\[7]VZ4PAU3DVBLC6GXLY6HSFK5KPBOG7NT3BU3GPWLFXLML2U3YE4CA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,...,,,.,,..,.,,,..,,,,.,.,,,.,.,...,...,..,,.,,,,,.,,..,.,.,
+#AEC3GMVSQE5JG26SSHFJMCQCLNTFUP2R3LF4FATL3NVA3E2UFCMIMSLYUDPIGKHBGDKDEOKQWI6T6
+#\\\|GJ2QM3N6G5J72DNY4M5RCC2YSB7IP3OGOUBVSSNY7EUSYWVOUOW \ / AMOS7 \ YOURUM ::
+#\[7]6ROJWUAZ2MHAFCKBAYBJACGRO2TPTCTRUEPPEO5G4VM6PRQWIOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
