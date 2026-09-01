@@ -57,7 +57,7 @@ open( my $log_fh, '-|', qq| git log "$branch" --format='%H%x01%s' | )
     or die "git log: $!\n";
 while (<$log_fh>) {
     chomp;
-    my ( $hash, $subj ) = split /\x01/, $_, 2;
+    my ( $hash, $subj ) = split m|\x01|, $_, 2;
     push @{ $by_subject{$subj} //= [] }, $hash;
 }
 close $log_fh;
@@ -146,8 +146,8 @@ my @refs = map {"refs/tags/$_->{tag}"} @clean;
 system( qw| git push |, $remote, '--force', @refs ) == 0
     or die "${no}:: push failed$rst\n";
 
-#,,.,,...,,,.,,,.,..,,,..,,,.,...,.,.,.,.,...,..,,...,..,,,..,.,.,.,.,..,,,.,,
-#OIZO6XZST2D54T7ZOJAESY3BWVLCOWVOLX5D2XJ2PLSDKSUNVMFZOJ24EETM7YEFLE3LGHGAOSKTG
-#\\\|UJQKIT4BZJRRN72LACXHLTDCHMSZP4YZAMZQX7FGL2AUFPF6VV3 \ / AMOS7 \ YOURUM ::
-#\[7]5MC4HRQ6EYCGGOB54HVMG5WVNOV6EEDMMLMOWD2WWZ34PR6FBQAA 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,,..,,,.,.,,,...,,..,,,,,,,,,..,,...,..,,,..,,,,,,,,,,,.,..,,
+#AK6NYLM6TO6LMD24UGZQGDDMORNNH5WBHRQLXVLQGQDXCR2OS5TUFA7YQGBF5AQA3SKODFST54YIK
+#\\\|JAAECVMXPTVFI4WDBDECZLE4NSB2PR2KVIU4FFBLWZXTQUADGLA \ / AMOS7 \ YOURUM ::
+#\[7]HNOKRPYJXZQWWYKOGQX67U2RUH5IHE7ZBPBAAT62ELMBIEPNFQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

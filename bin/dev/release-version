@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
-use Cwd qw| abs_path |;
-use vars qw| $root_path |;
-use FindBin qw| $RealBin |;
+use Cwd         qw| abs_path |;
+use vars        qw| $root_path |;
+use FindBin     qw| $RealBin |;
 use Crypt::Misc qw| decode_b32r |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
@@ -28,7 +28,7 @@ if (    $mode eq qw| set_tag |
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
@@ -57,11 +57,11 @@ my $ng  = "\e[38;2;71;195;6m";
 
 ##############################################################################
 
-my $src_vers_file = c_file( c_dir( $root_path, qw| cfg | ),
-    qw| protocol-7.src-ver | );
+my $src_vers_file
+    = c_file( c_dir( $root_path, qw| cfg | ), qw| protocol-7.src-ver | );
 
-my $rel_ve_file = c_file( c_dir( $root_path, qw| cfg | ),
-    qw| protocol-7.rel-ver | );
+my $rel_ve_file
+    = c_file( c_dir( $root_path, qw| cfg | ), qw| protocol-7.rel-ver | );
 
 {
     local $|  = 1;
@@ -85,7 +85,7 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| cfg | ),
 
         my $offset = 0;
         if ( not defined $release_version ) {    # skipping custom version #
-            while (not defined $release_version
+            while ( not defined $release_version
                 or $release_version eq $current_r_vers
                 or not is_true($release_version) ) {
                 (   $release_version = sprintf qw| AMOS7-v%.3f |,
@@ -105,8 +105,8 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| cfg | ),
 
         if ( $mode eq qw| rel_ver | ) {
 
-            print "$fg:$rst\n${fg}:: ${CT}calculated"
-                . " release version$rst$fg : $bg${CT}";
+            print "$fg:$rst\n${fg}:: ${CT}calculated "
+                . "release version$rst$fg : $bg${CT}";
             say STDERR $release_version;
             say "$rst$fg:$rst\r";
 
@@ -116,8 +116,8 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| cfg | ),
 
         } elsif ( $mode eq qw| set_tag | ) {
 
-            print "$fg:\n: setting release tag ["
-                . "$bg${CT} $release_version $rst$fg]\n$fg:\n::$rst";
+            print "$fg:\n: setting release tag [$bg${CT} "
+                . "$release_version $rst$fg]\n$fg:\n::$rst";
             system( qw| git tag |, $release_version, '-m', $tag_msg, @ARGV )
                 && die "${no}::<< ! >>:\n\n";
             print "$fg:$rst\n";
@@ -144,8 +144,8 @@ sub ntime_val {
     return $ntime_val;
 }
 
-#,,.,,,..,...,,..,..,,,,.,,,,,,,,,,.,,,,,,,..,..,,...,...,,,,,...,..,,..,,,.,,
-#RH2JZHF5RJ7OOVSBJ2PNJIU35EQZ5ZNFEBVXQ4YYKNNLFARHXMF66DUQQK4EOBABQHC5Q6LUUQFSW
-#\\\|IYHHGRKN6Y6EKACFQGRY7ODGVBJYCC3HCXRYIJE3J2VIHMSU6HJ \ / AMOS7 \ YOURUM ::
-#\[7]EG5EDIK5ACHEWE5GK3EGRZBJSUYMLHQ5ZQWSC6ZF2CPNFLVWIMDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,...,,,,,,,.,,,,,.,,,,.,,,.,,,.,,..,,...,..,,.,,,,,,,,..,...,...,
+#LHHKFYDDCGTZHM2LMMPCHHI4HH7TNGZFBI7BPL4D2LXQBSVKRJ7YIEAJRZZXRTMX67IS7Y7RDRS2U
+#\\\|WHE76QJJK2J5LJDQBYMPY26QFLFGVASZMM4EBOF3QAG6Q4ZPIDA \ / AMOS7 \ YOURUM ::
+#\[7]N4D7PW2UO7AWMJXBYP34RJTD7UPCO2MV4BEXRVKUWWFAJU47QMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,7 +55,7 @@ for my $jobs_dir (@jobs_dirs) {
     opendir my $dh, $jobs_dir
         or do { warn "cannot open $jobs_dir: $!\n"; next; };
     my @status_dirs
-        = grep { !/^\./ and -d File::Spec->catdir( $jobs_dir, $_ ) }
+        = grep { !m|^\.| and -d File::Spec->catdir( $jobs_dir, $_ ) }
         readdir($dh);
     closedir $dh;
 
@@ -64,7 +64,7 @@ for my $jobs_dir (@jobs_dirs) {
 
         my $dir_path = File::Spec->catdir( $jobs_dir, $status_dir );
         opendir my $fdh, $dir_path or next;
-        my @files = grep { /\.yaml$/ && !/^\./ } readdir($fdh);
+        my @files = grep { m|\.yaml$| && !m|^\.| } readdir($fdh);
         closedir $fdh;
 
         for my $file (@files) {
@@ -87,7 +87,7 @@ for my $jobs_dir (@jobs_dirs) {
             next if $current_status eq $expected_status;
 
             my $enc_id = $file;
-            $enc_id =~ s/\.yaml$//;
+            $enc_id =~ s|\.yaml$||;
 
             my $dst_dir  = File::Spec->catdir( $jobs_dir, $expected_status );
             my $dst_path = File::Spec->catfile( $dst_dir, $file );
@@ -106,8 +106,8 @@ for my $jobs_dir (@jobs_dirs) {
             }
 
             if ( -e $dst_path and $src_path ne $dst_path ) {
-                warn
-                    "collision: $dst_path already exists, skipping $src_path\n";
+                warn "collision: $dst_path already "
+                    . "exists, skipping $src_path\n";
                 $errors++;
                 next;
             }
@@ -115,8 +115,8 @@ for my $jobs_dir (@jobs_dirs) {
             $job->{'status'} = $expected_status;
 
             if ($dry_run) {
-                print
-                    "[dry-run] $src_path -> $dst_path (status $current_status -> $expected_status)\n";
+                print "[dry-run] $src_path -> $dst_path (status "
+                    . "$current_status -> $expected_status)\n";
                 $updated++;
                 next;
             }
@@ -130,16 +130,16 @@ for my $jobs_dir (@jobs_dirs) {
 
             if ( rename "$dst_path.tmp", $dst_path ) {
                 if ( $src_path ne $dst_path and unlink($src_path) ) {
-                    print
-                        "moved $src_path -> $dst_path ($current_status -> $expected_status)\n";
+                    print "moved $src_path -> $dst_path "
+                        . "($current_status -> $expected_status)\n";
                     $updated++;
                 } elsif ( $src_path eq $dst_path ) {
-                    print
-                        "updated status in place $src_path ($current_status -> $expected_status)\n";
+                    print "updated status in place $src_path "
+                        . "($current_status -> $expected_status)\n";
                     $updated++;
                 } else {
-                    warn
-                        "moved to $dst_path but could not unlink $src_path: $!\n";
+                    warn "moved to $dst_path but could "
+                        . "not unlink $src_path: $!\n";
                     $errors++;
                 }
             } else {
@@ -158,8 +158,8 @@ print "errors:   $errors\n";
 print "dry-run:  yes\n" if $dry_run;
 exit( $errors ? 1 : 0 );
 
-#,,,.,.,.,,.,,..,,,.,,,,.,...,..,,.,.,.,,,...,.,.,...,...,,,.,.,.,..,,.,.,,,,,
-#IE6XWULBRQEYALRUL34H4RRYVDSXYJ5WISX4T4ZYVNCP5MKANBDW2J47IOCI5KHTG4TU6UXLJDFDK
-#\\\|AN5473ARLW7OSBAYXATCZ2U35ZY3ZZP2CER376SNGMI66GHZXEM \ / AMOS7 \ YOURUM ::
-#\[7]2TMZ4VAU56WVFGOCZRRYVTRFVNVEGAYGGSYFARSVDFWULC3VM4DI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,.,,,.,..,,,,.,,,.,,..,,..,,.,,.,.,...,...,.,.,.,.,...,..,,..,,
+#XDAPVUUJXMFUVJ6NV36RQ2EQSLJ36EWL3M3YUJHCK5M4KFKWVGIGB6MY4G6UJ3FFZMTEFLPVBFGBY
+#\\\|LKJEDHJLKCK6FF5HALZYR2HL46VAUJMTUZCXWRCZMKSQ7CZJZYW \ / AMOS7 \ YOURUM ::
+#\[7]ZUGCG3FA3K5QDDWAEAJFZQ75IXSYDYVCP47TSJJQ3YPSJOY6HCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

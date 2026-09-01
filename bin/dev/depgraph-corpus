@@ -114,11 +114,11 @@ sub parse_adjacency {
 
     while ( my $line = <$fh> ) {
         chomp $line;
-        next if $line =~ m/^\s*$/;    ##  skip blank lines  ##
-        next if $line =~ m/^\s*#/;    ##  skip .asc header comments  ##
+        next if $line =~ m|^\s*$|;    ##  skip blank lines  ##
+        next if $line =~ m|^\s*#|;    ##  skip .asc header comments  ##
 
         ##  adjacency line : source : callee callee ...  ##
-        next if $line !~ m/^(\S+)\s+:\s+(\S.*)$/;
+        next if $line !~ m|^(\S+)\s+:\s+(\S.*)$|;
         my ( $source, @callees ) = ( $1, split m|\s+|, $2 );
 
         $forward{$source} //= [];
@@ -157,8 +157,8 @@ sub write_file {
     close $fh;
 }
 
-#,,.,,,,.,,,.,.,,,,..,,.,,,,.,,..,..,,..,,.,,,..,,...,...,,,,,,.,,,,,,...,.,,,
-#S2R67XAHHKZOKUSKRP2LN3AV67WWCUZQ2DQ2CZZQGZ33OFDMOMTVG4LNMO67TY3ZIK6TSC5MJMIYA
-#\\\|SL6Z5C3YLKLD5BRQYGAOEH7AQSXAHH6OYDR7GXDPO2WMQONGFIM \ / AMOS7 \ YOURUM ::
-#\[7]T5PBXTKUKKCCO3LA7THNPVILRIY42WYGWJE3JTY3KWENK4FYXMAI 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,.,,,.,,,,.,,,,,,...,..,,,.,,..,,...,...,.,,,,..,.,,,,.,,,.,,
+#7OSJEFJPFGHVELULXQVGVXV7P6EBFJQ5WNERHRDOBO2GDZRGAVOLWZ3KZGHXWHRHTUNUCO5OGRLLQ
+#\\\|CBYZHACC3YBCHTA2QUDXOS5XG4WJV23JA5HMY7OY4W25OAFJXC7 \ / AMOS7 \ YOURUM ::
+#\[7]VE63Q7WPVYAOKJ3CEQX5D2F4J4OQ4ZC2TCVKCSHKNBYMSIPASAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,16 +12,16 @@ use constant FALSE => 0;    ##  false  ##
 
 $OUTPUT_AUTOFLUSH = TRUE;
 
-my $keep            = 'theirs';
-my $dry_run         = FALSE;
-my $verbose         = FALSE;
-my $help            = FALSE;
+my $keep    = 'theirs';
+my $dry_run = FALSE;
+my $verbose = FALSE;
+my $help    = FALSE;
 
 GetOptions(
-    'keep=s'      => \$keep,
-    'dry-run'     => \$dry_run,
-    'verbose|v'   => \$verbose,
-    'help|h'      => \$help,
+    'keep=s'    => \$keep,
+    'dry-run'   => \$dry_run,
+    'verbose|v' => \$verbose,
+    'help|h'    => \$help,
 ) or die ":\n:: error in command line arguments\n:\n";
 
 if ($help) {
@@ -29,7 +29,7 @@ if ($help) {
     exit 0;
 }
 
-unless ($keep =~ /^(ours|theirs)$/) {
+unless ( $keep =~ m{^(ours|theirs)$} ) {
     die ":\n:: error: --keep must be 'ours' or 'theirs'\n:\n";
 }
 
@@ -46,22 +46,25 @@ my @conflict_files;
 my $search_dir = '.';
 
 ## Find all files with conflict markers
-find(sub {
-    return unless -f $ARG;
-    return if $File::Find::name =~ m{^\./\.git/};
+find(
+    sub {
+        return unless -f $ARG;
+        return if $File::Find::name =~ m{^\./\.git/};
 
-    open my $fh, '<', $ARG or return;
-    my $has_conflict = FALSE;
-    while (<$fh>) {
-        if (/^<<<<<<< /) {
-            $has_conflict = TRUE;
-            last;
+        open my $fh, '<', $ARG or return;
+        my $has_conflict = FALSE;
+        while (<$fh>) {
+            if (m|^<<<<<<< |) {
+                $has_conflict = TRUE;
+                last;
+            }
         }
-    }
-    close $fh;
+        close $fh;
 
-    push @conflict_files, $File::Find::name if $has_conflict;
-}, $search_dir);
+        push @conflict_files, $File::Find::name if $has_conflict;
+    },
+    $search_dir
+);
 
 unless (@conflict_files) {
     say "$blacklight:";
@@ -71,8 +74,10 @@ unless (@conflict_files) {
 }
 
 say "$blacklight:";
-say ":: found $NEON_green_yellow" . scalar(@conflict_files)
-    . "$blacklight file" . (@conflict_files > 1 ? 's' : '')
+say ":: found $NEON_green_yellow"
+    . scalar(@conflict_files)
+    . "$blacklight file"
+    . ( @conflict_files > 1 ? 's' : '' )
     . " with conflict markers:";
 
 foreach my $file (@conflict_files) {
@@ -83,12 +88,14 @@ foreach my $file (@conflict_files) {
 say ":$reset";
 
 if ($dry_run) {
-    say "${blacklight}:: ${NEON_green_yellow}DRY RUN$blacklight: would resolve by keeping '$NEON_orange$keep$blacklight' version";
+    say "${blacklight}:: ${NEON_green_yellow}DRY RUN$blacklight: would "
+        . "resolve by keeping '$NEON_orange$keep$blacklight' version";
     say ":$reset";
     exit 0;
 }
 
-say "${blacklight}:: resolving conflicts (keeping: $NEON_orange$keep$blacklight)..,";
+say "${blacklight}:: resolving conflicts "
+    . "(keeping: $NEON_orange$keep$blacklight)..,";
 say "$blacklight:$reset";
 
 my $resolved_count = 0;
@@ -100,16 +107,18 @@ foreach my $file (@conflict_files) {
 
     print "$blacklight:: $TRUE_color$display$blacklight " if $verbose;
 
-    if (resolve_conflicts($file, $keep)) {
+    if ( resolve_conflicts( $file, $keep ) ) {
         $resolved_count++;
         say "$NEON_green_yellow✓$blacklight resolved$reset" if $verbose;
         print "\r${blacklight}:: ${NEON_green_yellow}resolved${blacklight}: "
-            . "$TRUE_color$display$reset             \n" unless $verbose;
+            . "$TRUE_color$display$reset             \n"
+            unless $verbose;
     } else {
         $failed_count++;
         say "$NEON_orange✗$blacklight failed$reset" if $verbose;
         warn "${blacklight}:: ${NEON_orange}failed${blacklight}: "
-            . "$TRUE_color$display$reset\n" unless $verbose;
+            . "$TRUE_color$display$reset\n"
+            unless $verbose;
     }
 }
 
@@ -119,16 +128,17 @@ say "::   resolved: $NEON_green_yellow$resolved_count$blacklight";
 say "::   failed:   $NEON_orange$failed_count$blacklight" if $failed_count;
 say ":";
 
-if ($resolved_count > 0) {
-    say ":: ${NEON_green_yellow}remember to stage the resolved files$blacklight:";
+if ( $resolved_count > 0 ) {
+    say ":: ${NEON_green_yellow}remember to "
+        . "stage the resolved files$blacklight:";
     say "::   ${TRUE_color}git add <files>$blacklight";
     say ":$reset";
 }
 
-exit($failed_count > 0 ? 1 : 0);
+exit( $failed_count > 0 ? 1 : 0 );
 
 sub resolve_conflicts {
-    my ($file, $keep_version) = @_;
+    my ( $file, $keep_version ) = @_;
 
     open my $fh, '<', $file or do {
         warn ":: cannot read $file: $OS_ERROR\n" if $verbose;
@@ -142,18 +152,20 @@ sub resolve_conflicts {
     my $original = $content;
 
     ## Resolve conflicts based on which version to keep
-    if ($keep_version eq 'theirs') {
+    if ( $keep_version eq 'theirs' ) {
         ## Keep "Stashed changes" / incoming / theirs
-        $content =~ s/<<<<<<< Updated upstream.*?=======\n(.*?)>>>>>>> Stashed changes/$1/gs;
-        $content =~ s/<<<<<<< HEAD.*?=======\n(.*?)>>>>>>> .*?\n/$1/gs;
-    } elsif ($keep_version eq 'ours') {
+        $content
+            =~ s|<<<<<<< Updated upstream.*?=======\n(.*?)>>>>>>> Stashed changes|$1|gs;
+        $content =~ s|<<<<<<< HEAD.*?=======\n(.*?)>>>>>>> .*?\n|$1|gs;
+    } elsif ( $keep_version eq 'ours' ) {
         ## Keep "Updated upstream" / current / ours
-        $content =~ s/<<<<<<< Updated upstream\n(.*?)=======.*?>>>>>>> Stashed changes/$1/gs;
-        $content =~ s/<<<<<<< HEAD\n(.*?)=======.*?>>>>>>> .*?\n/$1/gs;
+        $content
+            =~ s|<<<<<<< Updated upstream\n(.*?)=======.*?>>>>>>> Stashed changes|$1|gs;
+        $content =~ s|<<<<<<< HEAD\n(.*?)=======.*?>>>>>>> .*?\n|$1|gs;
     }
 
     ## Check if anything changed
-    if ($content eq $original) {
+    if ( $content eq $original ) {
         warn ":: no conflicts resolved in $file\n" if $verbose;
         return FALSE;
     }
@@ -171,16 +183,20 @@ sub resolve_conflicts {
 
 sub print_help {
     say "$blacklight:";
-    say ":: ${NEON_green_yellow}resolve-merge-conflicts$blacklight - Auto-resolve git merge conflicts";
+    say ":: ${NEON_green_yellow}resolve-merge-conflicts$blacklight "
+        . "- Auto-resolve git merge conflicts";
     say ":";
     say ":: ${NEON_green_yellow}USAGE$blacklight:";
     say "::   ${TRUE_color}resolve-merge-conflicts$blacklight [OPTIONS]";
     say ":";
     say ":: ${NEON_green_yellow}OPTIONS$blacklight:";
     say "::   ${TRUE_color}--keep=VERSION$blacklight";
-    say "::       Which version to keep: ${NEON_orange}ours$blacklight or ${NEON_orange}theirs$blacklight (default: theirs)";
-    say "::       ${NEON_orange}ours$blacklight   = Keep 'Updated upstream' / current branch";
-    say "::       ${NEON_orange}theirs$blacklight = Keep 'Stashed changes' / incoming changes";
+    say "::       Which version to keep: ${NEON_orange}ours$blacklight "
+        . "or ${NEON_orange}theirs$blacklight (default: theirs)";
+    say "::       ${NEON_orange}ours$blacklight   "
+        . "= Keep 'Updated upstream' / current branch";
+    say "::       ${NEON_orange}theirs$blacklight "
+        . "= Keep 'Stashed changes' / incoming changes";
     say ":";
     say "::   ${TRUE_color}--dry-run$blacklight";
     say "::       Show what would be done without making changes";
@@ -192,7 +208,8 @@ sub print_help {
     say "::       Show this help";
     say ":";
     say ":: ${NEON_green_yellow}EXAMPLES$blacklight:";
-    say "::   ${TRUE_color}# Keep incoming changes (stashed/theirs) - default";
+    say "::   ${TRUE_color}# Keep incoming "
+        . "changes (stashed/theirs) - default";
     say "::   resolve-merge-conflicts$blacklight";
     say ":";
     say "::   ${TRUE_color}# Keep current branch changes (ours)";
@@ -203,14 +220,16 @@ sub print_help {
     say ":";
     say ":: ${NEON_green_yellow}DESCRIPTION$blacklight:";
     say "::   Finds all files with git conflict markers and automatically";
-    say "::   resolves them by keeping either the current branch version (ours)";
+    say "::   resolves them by keeping either "
+        . "the current branch version (ours)";
     say "::   or the incoming version (theirs/stashed). Particularly useful";
-    say "::   when conflicts are primarily in signatures or auto-generated content.";
+    say "::   when conflicts are primarily in "
+        . "signatures or auto-generated content.";
     say ":$reset";
 }
 
-#,,,,,,,.,,..,,,.,,,.,,,.,.,.,.,.,.,.,,.,,,..,..,,...,...,,.,,,..,,,,,,,,,,,,,
-#SQXAUZVGGPGDPADDDLJUS4QCSUOHWEKBG6B324EXUIZ4ST224WI72HJRDUJOYONZP2JGRNKZWRMY4
-#\\\|SJJDU2IU7JW4FXG5UG2YSQMZUGMGKYPLHXVJ63G6S3FJI33A2MN \ / AMOS7 \ YOURUM ::
-#\[7]4EMJD25AFVKVLUTFLNTKM7ESLTY3HUR2PXEJF636APOGLEQPTICY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,...,.,.,,,.,,,.,,,.,...,,..,..,,...,...,,.,,,..,...,.,,,,..,
+#E3W7LXJVEHPBLLDC2JLPRUJXJ5UEBAUPQHS3L5PEKGRM3UG2MBUFN732B6S2MWTTRKVD3YYEIFW5M
+#\\\|YANTPFIIHHQRSXVWIN6R3TFGMIENO6JXNVE27YEMTWWODQHL6FR \ / AMOS7 \ YOURUM ::
+#\[7]WMB7QUPJTS33YKRIU5J4ZIBEFGBSEVRCIWW5ORGV4LEEDDTUWKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

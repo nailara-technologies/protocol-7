@@ -35,7 +35,8 @@ sub is_double_encoded {
         $total++;
     }
 
-    return $lead_count / $total > 0.05;  ## lowered from 0.1 — short files with partial corruption score ~0.08
+    return $lead_count / $total > 0.05
+        ; ## lowered from 0.1 — short files with partial corruption score ~0.08
 }
 
 # Function to repair double-encoding
@@ -43,11 +44,11 @@ sub repair_double_encoding {
     my ($content) = @_;
 
     my $result = eval {
-        ## double-encoding: original UTF-8 bytes were read as latin-1   ##
-        ## then re-encoded as UTF-8. to reverse:                        ##
-        ## 1. decode as UTF-8 (undo outer encoding) → latin-1 codepoints ##
-        ## 2. encode as latin-1 → original UTF-8 bytes restored         ##
-        my $decoded   = Encode::decode( 'UTF-8',      $content );
+        ## double-encoding: original UTF-8 bytes were read as latin-1 then ##
+        ## re-encoded as UTF-8. to reverse:                                ##
+        ## 1. decode as UTF-8 (undo outer encoding) → latin-1 codepoints   ##
+        ## 2. encode as latin-1 → original UTF-8 bytes restored            ##
+        my $decoded   = Encode::decode( 'UTF-8', $content );
         my $reencoded = Encode::encode( 'ISO-8859-1', $decoded );
         $reencoded;
     };
@@ -112,8 +113,8 @@ if ( @ARGV == 1 && ( -d $ARGV[0] || $ARGV[0] eq '.' ) ) {
 
 print ":\n:. encoding repair complete. =)\n";
 
-#,,..,.,,,,,,,.,.,,,.,,,,,..,,,.,,.,.,...,.,.,..,,...,...,.,,,,.,,,.,,,,,,..,,
-#5YVROSC2LC7PGXXW3D4H3YKOPVYP2P7YHCFL2ANYV4CZ7HKRDRHQH4IEKMWYN3MHAWARNM3XZOPSE
-#\\\|GEGTYTOGQUS2OG2VDVTZYSAZATVJ6FDNWEHODJCGEQSXS4IE6MS \ / AMOS7 \ YOURUM ::
-#\[7]K5I6O5TTKXMFQXTKQSYKX3PKH3Y5U2LYXJ4GHLTFF25CY7MDOSAY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,..,,,,,,,,,,,,.,.,,,,,.,,,.,..,,...,...,.,.,,..,,,.,.,.,...,
+#FC654LRDTCKCOLADJWWP5RRCUDUJOBY4JZUBJ4ZKWOG63WD73OXQF62Y2LEYVG5K6AGMI3HRMIRUO
+#\\\|QIU25MN5EHKAH5TNG5DIHLOBDHKPEBUXTGU4O7AU6PPNIN2WLMF \ / AMOS7 \ YOURUM ::
+#\[7]SXTN5HRIOKR7KICUKFHRD366YQU2Y3HV57R4PHLDTXLTXKKOHGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

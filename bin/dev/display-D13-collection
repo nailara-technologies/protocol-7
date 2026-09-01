@@ -8,7 +8,7 @@ use warnings;
 ## display-D13-collection ##  collecting some decoded data \ display at CTRL-C
 ###                      ###
 
-use Encode qw| encode |;
+use Encode      qw| encode |;
 use Crypt::Misc qw| decode_b32r |;
 
 binmode( STDOUT, qw| :encoding(UTF-8) | );
@@ -18,7 +18,7 @@ binmode( STDOUT, qw| :encoding(UTF-8) | );
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
@@ -178,12 +178,8 @@ sub display_result {
 ## decoded states ## of 7 bit data ..,
 
 ###[ 00 00 110 ] hop count is 1 + 3 bit decimal value
-##                     directional nominator : 0 = forward : 110 <-- hop count
-##                                         1 = 90 deg angle : 10 <-- direction
-##                                                            00 : 0 : UP
-##                                                            10 : 2 : LEFT
-##                                                            01 : 1 : RIGHT
-##                                                            11 : 3 : DOWN
+## directional nominator : 0 = forward : 110 <-- hop count  1 = 90 deg angle :
+## 10 <-- direction  00 : 0 : UP  10 : 2 : LEFT  01 : 1 : RIGHT  11 : 3 : DOWN
 
 ###[ 01 <0|1> 00000 ]
 ##
@@ -191,30 +187,26 @@ sub display_result {
 ##
 ##        1[0|1] + 4 bits : numerical document cube header
 ##
-##           0 : monochrome document [ 4 + 1 set are size [compressed int] ]
-##           1 : color document [ 4 [ + 1 set ] bits declare color depth ]
+## 0 : monochrome document [ 4 + 1 set are size [compressed int] ] 1 : color
+## document [ 4 [ + 1 set ] bits declare color depth ]
 ##
-## monochrome bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 : style
+## monochrome bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 :
+## style
 ##
 ## style [ 2 bits background, 2 bits foreground ] : black=0, blue=1, white=2
 ##
-##        blue background style : #09052A : foreground blue : #0647C3
-##        when both blue styles enabled, curvature blur 42 is applied
+## blue background style : #09052A : foreground blue : #0647C3  when both blue
+## styles enabled, curvature blur 42 is applied
 ##
 ## color bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 : 8 + depth
 ##
 ## color depth : 8 + value of 4 bits [ depth range in bits : 8 .. 24 ]
 
 ###[ 1 000000 ]
-## graphical 5x7 pixel matrix payload, <0-4><oct> [pos]
-##                                       <48> 0 background color
-##                                       <49> 1 monochrome or foreground color
-##                                       <50> reset color [ to monochrome ]
-##                                       <51> reset alpha [ to opaque ]
-##                                       <52> set add color
-##                                       <53> subtract color
-##                                        54 .. 61 : color
-##                                        62 .. 63 : alpha
+## graphical 5x7 pixel matrix payload, <0-4><oct> [pos]  <48> 0 background
+## color  <49> 1 monochrome or foreground color  <50> reset color [ to
+## monochrome ]  <51> reset alpha [ to opaque ]  <52> set add color  <53>
+## subtract color  54 .. 61 : color  62 .. 63 : alpha
 
 sub decoded_bits {
 
@@ -317,8 +309,8 @@ sub decoded_bits_chars {
 
 sub entropy_body {
     return ++$entropy_started if $entropy_started < 0;
-    printf "%s: ===== : $C{0} MAIN ENTROPY"
-        . " START$C{0}  | %42s | DECODED :%s%s%s\n",
+    printf "%s: ===== : $C{0} MAIN ENTROPY "
+        . "START$C{0}  | %42s | DECODED :%s%s%s\n",
         "$C{0}$C{b}",
         scalar( '-' x 9 )
         . " .:$C{T}$C{B} MAIN ENTROPY BODY $C{0}:. "
@@ -326,8 +318,8 @@ sub entropy_body {
     return $entropy_started = 5;
 }
 
-#,,,.,...,,..,..,,,,,,...,,,,,,..,,,.,.,.,.,.,..,,...,...,..,,,,.,...,,,,,,..,
-#JCWI4DYQMJ3NNR5JNPPB3MY6BC6PKKL5R7QOSR2V557TINGHIFJRLY6HAKAVRVWHRNNBDFIBSJWT2
-#\\\|4HUKTH3EDR7P6YLC3SU5ZXEEEEAL7LCQOFBRQ6HECSG75WHASBR \ / AMOS7 \ YOURUM ::
-#\[7]NMWVVKSXDZ3Q4P2MSROCITGRXLBVCUOX5CEMJA6CM3FAKUWK7KDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,..,..,,,,.,..,,.,.,.,,,,,,,.,.,..,,...,...,,.,,,,.,...,..,,...,
+#YIPPL2VF74VXIR6QOHCNO6MUAJHRRLKB4W2JG7L36BC3GO4ZQYDXVIVBPSCNC3MFXB7PP5TJNQFEK
+#\\\|6SHGMLTHI7LM6NMKUJ2KV34HYCCZMBMGYZX7V5RARY62I4AK5WQ \ / AMOS7 \ YOURUM ::
+#\[7]CUVBKVC2OPTADIZDYE3F25LUHSLTG4YJLUQBZGRHT4KCKWEHHYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

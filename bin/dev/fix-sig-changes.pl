@@ -50,16 +50,16 @@ if (@signature_conflicts) {
 
 sub has_signature_conflict {
     my ($content) = @_;
-    my @lines     = split /\n/, $content;
+    my @lines     = split m|\n|, $content;
 
     my $in_conflict        = 0;
     my $contains_signature = 0;
 
     foreach my $line (@lines) {
-        if ( $line =~ /^<{7}/ ) {    # Conflict start
+        if ( $line =~ m|^<{7}| ) {    # Conflict start
             $in_conflict        = 1;
             $contains_signature = 0;
-        } elsif ( $line =~ /^>{7}/ ) {    # Conflict end
+        } elsif ( $line =~ m|^>{7}| ) {    # Conflict end
             if ($contains_signature) {
                 return 1;
             }
@@ -73,29 +73,29 @@ sub has_signature_conflict {
 
 sub is_signature_line {
     my ($line) = @_;
-    return 1 if $line =~ /^\s*#\s*[A-Z0-9]{60,}/;  # Long hex-like signatures
-    return 1 if $line =~ /AMOS7.*YOURUM/;          # AMOS7 markers
-    return 1 if $line =~ /DATA\s+SIGNATURE/;       # Data signature markers
-    return 1 if $line =~ /^#\s*[,.\\|]+\s*$/;      # Signature border patterns
+    return 1 if $line =~ m|^\s*#\s*[A-Z0-9]{60,}|; # Long hex-like signatures
+    return 1 if $line =~ m|AMOS7.*YOURUM|;         # AMOS7 markers
+    return 1 if $line =~ m|DATA\s+SIGNATURE|;      # Data signature markers
+    return 1 if $line =~ m{^#\s*[,.\\|]+\s*$};     # Signature border patterns
     return 0;
 }
 
 sub print_signature_conflict {
     my ($content) = @_;
-    my @lines     = split /\n/, $content;
+    my @lines     = split m|\n|, $content;
 
     my $in_conflict        = 0;
     my $contains_signature = 0;
     my $conflict_start     = 0;
 
     for my $i ( 0 .. $#lines ) {
-        if ( $lines[$i] =~ /^<{7}/ ) {
+        if ( $lines[$i] =~ m|^<{7}| ) {
             $conflict_start     = $i;
             $in_conflict        = 1;
             $contains_signature = 0;
         } elsif ( $in_conflict && is_signature_line( $lines[$i] ) ) {
             $contains_signature = 1;
-        } elsif ( $lines[$i] =~ /^>{7}/ && $in_conflict ) {
+        } elsif ( $lines[$i] =~ m|^>{7}| && $in_conflict ) {
             if ($contains_signature) {
 
                 # Print context around this conflict block
@@ -107,9 +107,9 @@ sub print_signature_conflict {
                     . ( $i + 1 ) . "):\n";
                 for my $j ( $start .. $end ) {
                     my $marker = "";
-                    $marker = " ← CONFLICT START" if $lines[$j] =~ /^<{7}/;
-                    $marker = " ← SEPARATOR"      if $lines[$j] =~ /^={7}/;
-                    $marker = " ← CONFLICT END"   if $lines[$j] =~ /^>{7}/;
+                    $marker = " ← CONFLICT START" if $lines[$j] =~ m|^<{7}|;
+                    $marker = " ← SEPARATOR"      if $lines[$j] =~ m|^={7}|;
+                    $marker = " ← CONFLICT END"   if $lines[$j] =~ m|^>{7}|;
                     $marker = " ← SIGNATURE"
                         if is_signature_line( $lines[$j] );
 
@@ -122,8 +122,8 @@ sub print_signature_conflict {
     }
 }
 
-#,,,.,...,..,,,,,,.,,,..,,.,.,..,,,..,...,,.,,..,,...,.,.,,.,,,,.,..,,,,.,,,,,
-#C7KZQ4XCVFXLZJTM7S6D6X65HBDOXJP26ZB4EMOLJWULIBI35Y35KT7PSYRAFHCBEDCIUY3P6H72Y
-#\\\|KM2SLRZPEKOUOG4VKE4J4QVXXXJPTECCFNG7WIJD4S6QXWGIMBK \ / AMOS7 \ YOURUM ::
-#\[7]GXZNQ372WMP4E6QMNYMJBUNZ6HFRU2XDFWP3EUZBIWBZS6RISGCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,,,,...,,..,,,.,..,,,..,,,,,..,,...,...,..,,.,,,.,,,.,,,,..,
+#7Y6IOYCTMZZ2SACMBFMLKGOO6G4MFOMFPWDFY4MYRWYI62JJ2SFDAEYEEU4FYKE5XYB4SABAE6UNO
+#\\\|BUNRXXJRRYAIGHPVTPZOM2JH4CFPARF75F6IKTX2IWFKL7YQ5IS \ / AMOS7 \ YOURUM ::
+#\[7]FXMUWFZHLXFWNWO5GNUCDJ25M3NA7SWO277B2P6PIYH5APT672AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

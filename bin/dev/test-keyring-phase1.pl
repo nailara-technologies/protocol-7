@@ -35,7 +35,7 @@ sub derive_child {
 sub derive_path {
     my ( $root_key, $dot_path ) = @_;
     my $current = $root_key;
-    for my $component ( split /\./, $dot_path ) {
+    for my $component ( split m|\.|, $dot_path ) {
         $current = derive_child( $current, $component );
     }
     return $current;
@@ -55,8 +55,8 @@ sub keyring_verify {
 
 sub path_distance {
     my ( $path_a, $path_b ) = @_;
-    my @a      = length($path_a) ? split( /\./, $path_a ) : ();
-    my @b      = length($path_b) ? split( /\./, $path_b ) : ();
+    my @a      = length($path_a) ? split( m|\.|, $path_a ) : ();
+    my @b      = length($path_b) ? split( m|\.|, $path_b ) : ();
     my $common = 0;
     $common++
         while $common < scalar @a
@@ -167,8 +167,8 @@ print "\n";
 printf "result: %d passed, %d failed\n", $PASS, $FAIL;
 exit( $FAIL ? 1 : 0 );
 
-#,,..,,.,,,,,,.,.,...,.,,,,.,,.,.,...,...,,.,,..,,...,...,.,,,,..,,.,,,.,,,.,,
-#WFHFPQSDHOYSLDLGUBWJG4MCT62NZIMI575X74IO7DOPIBOFXIZPHGOQ7DR6LFUB7TI2THKNAHCZ2
-#\\\|NE7WHB6XFUV5GH64F4KMSIIRCVE5BZQMMWKQG5MDHNWZRSZB7EC \ / AMOS7 \ YOURUM ::
-#\[7]ZQCWHUDTWDPCULJ5VMF7KHMIYQMBLIAVYOW4TWI2TB3KABXQJGDQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,,,,,..,,..,,.,,,,..,,,,,..,,..,,...,...,..,,,..,..,,,,,,,.,,
+#BHIQ4TBSY6DSGOKCJLR6SYXCDVG6PIWZFPYBGVNGZBI4SJMVVSI6CCIFHMEPOU5GCRWB3N3SLNWUS
+#\\\|ABWK5SHS2SWYPATUUZUMY2BOR5S7B3PZIALHHT4PBKZRSCLDUAE \ / AMOS7 \ YOURUM ::
+#\[7]GEOCR5PJ6FEH4ACU64O26WR6AG5OKQZGTF6VVMOC3EMWUWDBR2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

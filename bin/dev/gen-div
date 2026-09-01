@@ -10,9 +10,9 @@ use Scalar::Util qw| looks_like_number |;
 # #  gen-div   # #
 ###            ###
 
-## map clean division results across 1/13 cycle multiples        ##
-## usage: gen-div [operator [operator ..]]                        ##
-## default operators: 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.3           ##
+## map clean division results across 1/13 cycle multiples ##
+## usage: gen-div [operator [operator ..]]                ##
+## default operators: 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.3     ##
 
 $SIG{'INT'} = sub { say "\b\b\n\n"; exit(0) };
 
@@ -21,8 +21,8 @@ $SIG{'INT'} = sub { say "\b\b\n\n"; exit(0) };
 my $generator = 76923;     ## 1/13 repeating cycle generator  ##
 my $cycle_39  = 25641;     ## 1/39 = 1/(3x13) cycle           ##
 my $attractor = 769230;    ## gen*10 — convergence attractor   ##
-## asc-enc 769230 → L\ (corner+diagonal boundary marker) ##
-## almost every cycle pos reaches here through some op   ##
+## asc-enc 769230 → L\ (corner+diagonal boundary marker)  almost every ##
+## cycle pos reaches here through some op                              ##
 
 my @operators = @ARGV ? @ARGV : qw| 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.3 |;
 
@@ -76,7 +76,7 @@ for my $mult ( 1 .. 13 ) {
 
         ## digit reversal ##
         my $rev_str = reverse sprintf '%d', $ri;
-        $rev_str =~ s/^0+(\d)/$1/;
+        $rev_str =~ s|^0+(\d)|$1|;
         if ( looks_like_number($rev_str) ) {
             my $rev = int($rev_str);
             if    ( exists $known{$rev} ) { push @notes, "rev=$known{$rev}" }
@@ -97,7 +97,7 @@ for my $mult ( 1 .. 13 ) {
         for my $len ( 2 .. 3 ) {
             for my $off ( 0 .. length($rs) - $len ) {
                 my $seg = substr $rs, $off, $len;
-                $seg =~ s/^0+(\d)/$1/;
+                $seg =~ s|^0+(\d)|$1|;
                 push @notes, "seg=$seg"
                     if exists $sig_seg{$seg} && !$seen{$seg}++;
             }
@@ -126,8 +126,8 @@ for my $mult ( 1 .. 13 ) {
 say ' ', '-' x 68;
 say '';
 
-#,,.,,.,.,.,.,,.,,,..,,,.,.,.,.,,,...,...,..,,..,,...,...,,,.,.,,,,..,,.,,.,.,
-#YO2ZVEFED5HCSRMTCMTFN5PKLU7VL4ETIVCST2UCBYJBGYSXIULCO3NKQFCTTVVQL4LPLRXGTO3IU
-#\\\|UNZOLLZXJNIETQCEPUAINT6RVISOWIYB2RRFWBBL2U5UHBWUZU4 \ / AMOS7 \ YOURUM ::
-#\[7]JBSF7TBB3G5RBYTE3WKAONR3Z3QJUPUFBS5YGFI7FUMH5TF2WQCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,,.,,.,,,..,,,..,,,,,,.,,...,..,,...,...,,.,,,,,,.,.,.,,,,,.,
+#GZKZ3FA6LGW7XAJ3BMQNFGNC5FZSPK5776QIMHVBSZZQTRQI4Z437CNAOJ464UVJITUGKRT7O32QY
+#\\\|AOZUI3RZMRTDJBPSS66FTKGXF5HXMTA2BLQZQJK2KWYDK7UMCA4 \ / AMOS7 \ YOURUM ::
+#\[7]IKWZZVVLKDQWIVAIUCXMUBRRFBRNWBI4RIWTL4PEE6ZPHBOOAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

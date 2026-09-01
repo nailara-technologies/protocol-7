@@ -9,7 +9,7 @@ use Crypt::Misc qw| encode_b32r |;
 my $jobsite_dir   = '/var/protocol-7/jobsite';
 my $site_yaml_dir = '/var/protocol-7/site-yaml';
 
-while ( @ARGV and $ARGV[0] =~ m/^-(jobsite-dir|site-yaml-dir)$/ ) {
+while ( @ARGV and $ARGV[0] =~ m{^-(jobsite-dir|site-yaml-dir)$} ) {
     my $opt = $1;
     shift @ARGV;
     my $val = shift @ARGV // '';
@@ -92,8 +92,8 @@ rewrite_index();
 my $fetch_ok = eval { rewrite_fetch_state(); 1 };
 warn "fetch-state rewrite skipped: $@" if not $fetch_ok;
 
-#,,..,.,,,.,.,,..,.,,,,..,,..,,,,,...,.,.,.,.,.,.,...,...,...,...,.,,,,,.,,,,,
-#2PPIRC7SOVP3L72CAABF7L2UBRP3UI5WWUL66TS4YUEFGH5DHTFDVRFTJA3YARUY5BQRZRYFOQLRO
-#\\\|R5Y7ILNRCFISYDLZ7FRN4SF6IDNT777NOZ2LNUSCZEQCZT2BEWG \ / AMOS7 \ YOURUM ::
-#\[7]DYX5XMXLQEL776LP2FVRMJKIIHQM5FQMCTECJECERN2XCLOP74AY 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,.,,..,.,.,,,.,,.,,,,,,,.,,,.,,.,.,...,...,.,.,,,,,.,.,,,.,.,.,
+#U3Z6Z5N4CQ5RZQ6DPOY6DPBOLZJXXOXOPRPVR3I6LZ4IVQAIZLHCDZED6M3EQ7LOVKOMI7G2SNZZE
+#\\\|CMW3UOIE2JKB25NVIR7H7A7ACIKDIUJP53UDHHHYRIW4JEUTFRF \ / AMOS7 \ YOURUM ::
+#\[7]J6EPLCXZT3DS4IUQHRZIANW4BTVKVVM5COA27JXZ3IU3ENJFWOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

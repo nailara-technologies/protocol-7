@@ -6,32 +6,35 @@ use v5.28.0;
 use English;
 use warnings;
 
-## utf8 encoding investigation — two distinct problems found, stashed for later
+## utf8 encoding investigation — two distinct problems found, stashed for
+## later
 ##
-## ── problem 1: sprintf mixing of flagged and unflagged strings ──────────────
+## ── problem 1: sprintf mixing of flagged and unflagged strings
+## ──────────────
 ##
 ## when a module source file contains non-ascii literals without 'use utf8',
 ## those literals are raw bytes (no UTF-8 flag). if they appear in a sprintf
 ## format string alongside a UTF-8-flagged %s argument (or vice versa), perl
-## promotes the unflagged side treating bytes as latin-1 codepoints, corrupting
-## the non-ascii characters.
+## promotes the unflagged side treating bytes as latin-1 codepoints,
+## corrupting the non-ascii characters.
 ##
-## reproduced with devmod.cmd.echo:
-##   format "→ echo string : '%s'" (bytes) + $usr_str "→" (flagged) → 'â'
-##   format "→ echo string : '%s'" (bytes) + $usr_str "→" (flagged) → 'âÂÂ'
-##     (âÂÂ appears when use utf8 is active in the eval context, upgrading
-##      the format to unicode while $usr_str stays bytes — opposite corruption)
+## reproduced with devmod.cmd.echo:  format "→ echo string : '%s'" (bytes) +
+## $usr_str "→" (flagged) → 'â' format "→ echo string : '%s'" (bytes) +
+## $usr_str "→" (flagged) → 'âÂÂ' (âÂÂ appears when use utf8 is active in the
+## eval context, upgrading the format to unicode while $usr_str stays bytes —
+## opposite corruption)
 ##
-## neither clean_str nor decode_clean sanitizers help — clean_str passes
-## the garbled-but-valid UTF-8 through unchanged; decode_clean replaces
-## all non-ascii with '?' destroying the content entirely.
+## neither clean_str nor decode_clean sanitizers help — clean_str passes the
+## garbled-but-valid UTF-8 through unchanged; decode_clean replaces all
+## non-ascii with '?' destroying the content entirely.
 ##
 ## only correct solution: both format and %s args must carry the same flag
-## state. current pragmatic rule: keep module source format strings ascii-only.
-## full fix requires use utf8 in all module evals AND utf8::decode on all
-## network-sourced args at the receive boundary.
+## state. current pragmatic rule: keep module source format strings
+## ascii-only.  full fix requires use utf8 in all module evals AND
+## utf8::decode on all network-sourced args at the receive boundary.
 ##
-## ── problem 2: split utf-8 sequences at chunk read boundaries ───────────────
+## ── problem 2: split utf-8 sequences at chunk read boundaries
+## ───────────────
 ##
 ## v7.handler.zenka_output reads zenka console output in variable-sized chunks
 ## (based on avg_line_length stats). utf8::decode is called on the accumulated
@@ -39,47 +42,46 @@ use warnings;
 ## sequence, the partial sequence is decoded incorrectly and the remaining
 ## continuation bytes corrupt the next decode.
 ##
-## reproduced with devmod.cmd.echo:
-##   echo "→ → →" with format "echo string : '%s'"  → '→ → →'  (correct)
-##   echo "→ → →" with format ": echo string : '%s'" → '→ → â'  (garbled)
-##   the 2-byte prefix shift pushes the 3rd arrow's bytes across the read
-##   boundary, splitting \xE2\x86\x92 mid-sequence.
+## reproduced with devmod.cmd.echo:  echo "→ → →" with format "echo string :
+## '%s'"  → '→ → →'  (correct) echo "→ → →" with format ": echo string : '%s'"
+## → '→ → â'  (garbled) the 2-byte prefix shift pushes the 3rd arrow's bytes
+## across the read boundary, splitting \xE2\x86\x92 mid-sequence.
 ##
 ## affects: any code path that calls utf8::decode on a byte buffer that
 ## receives a stream in chunks — not buffers themselves, but premature decode
 ## before a complete utf-8 sequence has arrived.
 ##
 ## fix: before calling utf8::decode, scan the tail of the buffer for an
-## incomplete utf-8 lead byte and hold those bytes back for the next read.
-## a lead byte \xC0-\xFF followed by fewer continuation bytes than required
+## incomplete utf-8 lead byte and hold those bytes back for the next read.  a
+## lead byte \xC0-\xFF followed by fewer continuation bytes than required
 ## indicates an incomplete sequence. strip and re-prepend after next read.
 ##
-## ── test results (case 4 is the only clean outcome) ─────────────────────────
+## ── test results (case 4 is the only clean outcome)
+## ─────────────────────────
 ##
-##   case 1: bytes fmt + bytes arg   → both garbled on UTF-8 STDOUT
-##   case 2: bytes fmt + unicode arg → fmt garbled, arg correct
-##   case 3: unicode fmt + bytes arg → fmt correct, arg garbled
-##   case 4: unicode fmt + unicode arg → both correct
-##   case 5/6: decode_clean destroys all non-ascii with '?'
+## case 1: bytes fmt + bytes arg   → both garbled on UTF-8 STDOUT
+## case 2: bytes fmt + unicode arg → fmt garbled, arg correct
+## case 3: unicode fmt + bytes arg → fmt correct, arg garbled
+## case 4: unicode fmt + unicode arg → both correct  case 5/6: decode_clean
+## destroys all non-ascii with '?'
 
 use File::Spec;
 
 binmode( STDOUT, ':encoding(UTF-8)' );    ## same as Protocol-7 line 38 ##
 
-my $ARROW = "\x{e2}\x{86}\x{92}";        ## → as raw bytes, no utf8 flag ##
+my $ARROW = "\x{e2}\x{86}\x{92}";         ## → as raw bytes, no utf8 flag ##
 
 sub flag { utf8::is_utf8( $_[0] ) ? 'flagged' : 'bytes' }
 
 sub show {
     my ( $label, $str ) = @ARG;
     no warnings 'utf8';
-    printf "  %-36s [%s]  val=%s\n",
-        $label, flag($str), $str // '(undef)';
+    printf "  %-36s [%s]  val=%s\n", $label, flag($str), $str // '(undef)';
 }
 
 sub clean_str {
     my $s_ref = \$_[0];
-    return 0 unless utf8::is_utf8( $$s_ref );
+    return 0 unless utf8::is_utf8($$s_ref);
     open( my $fh, '>', File::Spec->devnull() );
     binmode( $fh, ':encoding(UTF-8)' );
     my $err;
@@ -89,9 +91,10 @@ sub clean_str {
     };
     $err = $@ if $@;
     close $fh;
-    if ( $err ) {
+    if ($err) {
         ## replace invalid chars — simplified version of base.clean_unicode ##
-        $$s_ref =~ s/[^\x{0}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]/?/g;
+        $$s_ref
+            =~ s|[^\x{0}-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]|?|g;
         return 1;
     }
     return 0;
@@ -99,22 +102,26 @@ sub clean_str {
 
 sub decode_clean {
     my $s_ref = \$_[0];
-    unless ( utf8::encode( $$s_ref ) ) {
-        $$s_ref =~ s/[^\x00-\x7f]/?/g;
+    unless ( utf8::encode($$s_ref) ) {
+        $$s_ref =~ s|[^\x00-\x7f]|?|g;
         return 1;
     }
     return 0;
 }
 
 print "\n## setup ##\n";
-my $fmt_bytes   = ": $ARROW echo string : '%s'";   ## bytes, no flag (module source without use utf8) ##
-my $fmt_unicode = do { use utf8; ": → echo string : '%s'" };  ## unicode flag set ##
-my $arg_bytes   = $ARROW;                          ## simulated network arg as raw bytes ##
-my $arg_unicode = do { use utf8; "→" };            ## simulated decoded network arg ##
+## bytes, no flag (module source without use utf8) ##
+my $fmt_bytes = ": $ARROW echo string : '%s'";
+## unicode flag set ##
+my $fmt_unicode = do { use utf8; ": → echo string : '%s'" };
+## simulated network arg as raw bytes ##
+my $arg_bytes = $ARROW;
+## simulated decoded network arg ##
+my $arg_unicode = do { use utf8; "→" };
 
-show( 'fmt_bytes',   $fmt_bytes   );
+show( 'fmt_bytes',   $fmt_bytes );
 show( 'fmt_unicode', $fmt_unicode );
-show( 'arg_bytes',   $arg_bytes   );
+show( 'arg_bytes',   $arg_bytes );
 show( 'arg_unicode', $arg_unicode );
 
 print "\n## case 1: bytes fmt + bytes arg (original) ##\n";
@@ -155,8 +162,8 @@ show( 'after  decode_clean', $r6 );
 
 print "\n";
 
-#,,,.,,,,,.,.,,.,,.,.,..,,.,.,,,.,,,.,.,.,..,,..,,...,...,.,,,.,,,...,..,,...,
-#7FBWBL7HAR4TZGQXTMRJNOYUCUXK43GF5ZRFYXJTA2PROETU32SRGFWFBTPNBTV3L3MVXWAURPU4Q
-#\\\|3USLJQ54FGSQ7SJVJ36ESMFD5O43F7FYUIPCEXV7FDSBNLKHNYG \ / AMOS7 \ YOURUM ::
-#\[7]4PP5TJCAYKXKWUNR5VGC3FFJACOSGGRU5L37IUA2OLIZEXT2IQAA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,.,,.,.,,.,,,..,,.,,,,,,.,,,..,,..,,...,...,,,.,...,.,,,,.,,,,,,
+#CPNSPXSPTW3LPAILWCWW5ZHVI6NZNK6E4PGFYV6XC4D7BWQVY4ROVVQKMYBSJ65CP6V63F77IWILM
+#\\\|FLCKJ2WMJSU2IF3CLMBPVERQ25ISITPHBBUEAMZ5HIHCMGLONPZ \ / AMOS7 \ YOURUM ::
+#\[7]BQVLZIJ7TUXAE2HD3EVP4W24WLOXRR2YZNQE6VLTHNSYYXNOFMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
