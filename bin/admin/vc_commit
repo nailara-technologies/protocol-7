@@ -5,9 +5,9 @@ use English;
 use warnings;
 use File::Spec;
 use Term::ReadLine;
-use Cwd qw| abs_path |;
-use vars qw| $root_path |;
-use FindBin qw| $RealBin |;
+use Cwd         qw| abs_path |;
+use vars        qw| $root_path |;
+use FindBin     qw| $RealBin |;
 use Time::HiRes qw| sleep |;
 use SigAction::SetCallBack;
 use Crypt::Misc qw| decode_b32r |;
@@ -23,7 +23,7 @@ our $Bin    = $RealBin;
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
@@ -54,7 +54,7 @@ use warnings 'once';
 
 my $txt_line = '';
 
-if (@ARGV > 0 ) {
+if ( @ARGV > 0 ) {
     $txt_line = join ' ', @ARGV;
 } else {
     my $selection_text = qx| xsel -o |;
@@ -100,9 +100,8 @@ while ( not length($msg_text) ) {
         clear();
         if ($line_length) {
             print blacklight_line('o')
-                . "\r :.   .:[ len :. $line_length .:"
-                . " $min_len .:. $max_len ]:."
-                . "\r :. ";
+                . "\r :.   .:[ len :. $line_length "
+                . ".: $min_len .:. $max_len ]:.\r :. ";
             sleep $msg_delay;
             clear();
         }
@@ -110,8 +109,7 @@ while ( not length($msg_text) ) {
         if ( not is_true($line) ) {
             clear();
             print blacklight_line()
-                . "\r :.   .:[ message not in harmony ]:."
-                . "\r :. ";
+                . "\r :.   .:[ message not in harmony ]:.\r :. ";
             sleep $msg_delay;
             clear();
         } else {
@@ -149,8 +147,7 @@ sub blacklight_line {
     if ( $y <= 1 ) {
         $y_pos = 1;
         my $s = $x <= 27 ? '' : ' ' x int( ( $x - 27 ) / 2 );
-        print "\r$C{'B02'}$clear_all"
-            . "$C{'0'}$s<<[ increase term-width ]>>\r"
+        print "\r$C{'B02'}$clear_all$C{'0'}$s<<[ increase term-width ]>>\r"
             and sleep 1.2
             if $x < 47;
         return join( '', $C{'0'}, $C{'B02'}, $clear_all );
@@ -186,8 +183,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,,.,,..,.,,,...,,.,,.,.,..,,,..,,,.,,,,,,..,..,,...,...,,,.,,,,,,..,...,.,,,
-#4L55NRRUUMJINGNEH2XTD6LR6PC6PEU6HRJGIGGPNRCJW25DYWAOSPWE3EHPLIOCZDP25YU6YICY2
-#\\\|35IH2ZC27UDCFLW2XBTPRTUWRHPESQNRVI4WB72Y2WO6GIARW7T \ / AMOS7 \ YOURUM ::
-#\[7]OSYQPSZ6LR3KJRBMRCEZTFQ6LDH7LFS4ZNGMD3XBJCRDL3SUX4CA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,..,,..,.,,,,,,,.,,,.,.,.,.,..,,...,...,,.,,,,.,,,.,...,,,,,
+#4Y6DY5EL6JQ7RXIR7UP46UNQVCMNEXN7LHY2SWU4BKY66YJ3ZN6ZQHF3YLKI4N7TI3UTWBWM4BPJO
+#\\\|SO3ASUILGRYRFYLM36K4PXZZ3B2TWBBDCVEUZ42RVTQTPBHYHSQ \ / AMOS7 \ YOURUM ::
+#\[7]JUMCEQO6OHC3FOAA4ACWUNTP7RLGEMEXHAIYPLGX53JTHZHUQUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

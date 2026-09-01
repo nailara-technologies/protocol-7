@@ -16,8 +16,8 @@ my $p7_root = p7_root_dir();
 
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
-print ":\n: p7-git-pull--rebase : "
-    . "checking for modified or untracked files ..,\n:\n";
+print ":\n: p7-git-pull--rebase : checking "
+    . "for modified or untracked files ..,\n:\n";
 
 ## check for modified or untracked files using vc-changed-files ##
 my $changed_files = `$p7_root/bin/admin/vc-changed-files 2>&1`;
@@ -38,8 +38,8 @@ my $rebase_exit = system(qw| git pull --rebase |);
 if ( $rebase_exit != 0 ) {
     ## check if we're in a rebase state (conflict during rebase)
     if ( -f '.git/REBASE_HEAD' ) {
-        print "\n:\n: rebase conflict detected,"
-            . " attempting to continue ..\n:\n";
+        print "\n:\n: rebase conflict detected, "
+            . "attempting to continue ..\n:\n";
         my $continue_exit = system(qw| git rebase --continue |);
         if ( $continue_exit != 0 ) {
             die ":\n:: git rebase --continue failed : $OS_ERROR\n\n";
@@ -73,8 +73,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,,,,..,..,,,.,,..,,,,.,,..,,,.,.,,,,,.,..,,..,,...,..,,..,,,,,,.,,,,,,,,..,
-#RLDGXJYN5CQBU7CV25I2OYTEIPILGIU3X4SXUZQK45NB5MHJT6FOH6QUEYEZG7TMPCLZJYKNIVQ4U
-#\\\|QJVYSMLHXQY5KKOIAVFTJ7DXFB5RZ2H4TZT27UOUJW2UX77YUZK \ / AMOS7 \ YOURUM ::
-#\[7]X3DQOAO2B2AV7DALTCVNJAUSNSBCJ5NGQV27I2ZASUY6LBIPMYDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,..,,..,,.,,,,.,,,.,,,.,,,.,,..,,...,.,.,,..,,,.,.,.,.,,,...,
+#JY3WJT5JW3PM7MPJQMDRG2W3XVIBRFEPM75IJLYFM6XT7SH3YRE2Z5ZSNF4QOP4FRARIO6ECEPNR4
+#\\\|VSIEOIQQ4T25L74LP76KV5B6RBOCJB4D5AD2B4TDQ2JDCGG6SN7 \ / AMOS7 \ YOURUM ::
+#\[7]QDO2QJTK3GBRHE2NQLB2JYQN3QE2PCV3H364QULHZYZOQK2YB6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
