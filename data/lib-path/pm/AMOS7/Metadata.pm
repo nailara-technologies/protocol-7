@@ -51,7 +51,7 @@ sub parse_inline_metadata {
     return $metadata if not defined $source_code or not length $source_code;
 
     # Find metadata blocks marked by ## [:< command-metadata ... ## ]>
-    my @lines       = split /\n/, $source_code;
+    my @lines       = split "\n", $source_code;
     my $in_metadata = FALSE;
     my @metadata_lines;
 
@@ -75,19 +75,19 @@ sub parse_inline_metadata {
     foreach my $line (@metadata_lines) {
 
         # Match: # key = value
-        if ( $line =~ m/^\s*#\s+(\w+)\s*=\s*(.*)/ ) {
+        if ( $line =~ m|^\s*#\s+(\w+)\s*=\s*(.*)| ) {
             my $key   = $1;
             my $value = $2;
 
-            $value =~ s/^\s+//;    # trim leading
-            $value =~ s/\s+$//;    # trim trailing
+            $value =~ s|^\s+||;    # trim leading
+            $value =~ s|\s+$||;    # trim trailing
 
             next if not length $value;
 
             if ( $key eq 'tag' ) {
 
                 # tags can be comma-separated
-                $metadata->{'tags'} = [ split /\s*,\s*/, $value ];
+                $metadata->{'tags'} = [ split m|\s*,\s*|, $value ];
             } elsif ( $key eq 'examples' ) {
 
                 # examples might span multiple lines, just store first
@@ -115,7 +115,7 @@ sub find_metadata_blocks {
 
     return @blocks if not defined $source_code or not length $source_code;
 
-    my @lines    = split /\n/, $source_code;
+    my @lines    = split "\n", $source_code;
     my $in_block = FALSE;
     my @block_lines;
     my $block_start = 0;
@@ -163,22 +163,22 @@ sub parse_module_command {
     # # name  = base.console.commands
     # # param = [pattern]
     # # descr = list [these] console commands and parameters
-    my @lines = split /\n/, $source_code;
+    my @lines = split "\n", $source_code;
     foreach my $line (@lines) {
-        if ( $line =~ /^\s*#\s+name\s*=\s*(.+)$/ ) {
+        if ( $line =~ m|^\s*#\s+name\s*=\s*(.+)$| ) {
             my $name = $1;
-            $name =~ s/^\s+//;
-            $name =~ s/\s+$//;
+            $name =~ s|^\s+||;
+            $name =~ s|\s+$||;
             $metadata->{'command'} = $name;
-        } elsif ( $line =~ /^\s*#\s+param\s*=\s*(.+)$/ ) {
+        } elsif ( $line =~ m|^\s*#\s+param\s*=\s*(.+)$| ) {
             my $param = $1;
-            $param =~ s/^\s+//;
-            $param =~ s/\s+$//;
+            $param =~ s|^\s+||;
+            $param =~ s|\s+$||;
             $metadata->{'param'} = $param;
-        } elsif ( $line =~ /^\s*#\s+descr\s*=\s*(.+)$/ ) {
+        } elsif ( $line =~ m|^\s*#\s+descr\s*=\s*(.+)$| ) {
             my $descr = $1;
-            $descr =~ s/^\s+//;
-            $descr =~ s/\s+$//;
+            $descr =~ s|^\s+||;
+            $descr =~ s|\s+$||;
             $metadata->{'descr'} = $descr;
         }
     }
@@ -198,7 +198,7 @@ sub build_command_registry {
     ## Scan zenka source directories for inline metadata
     opendir( my $ZENKA_DIR, $zenka_root ) or return $registry;
     my @zenka_names
-        = grep { -d "$zenka_root/$_" and !/^\./ } readdir($ZENKA_DIR);
+        = grep { -d "$zenka_root/$_" and !m|^\.| } readdir($ZENKA_DIR);
     closedir($ZENKA_DIR);
 
     foreach my $zenka_name (@zenka_names) {
@@ -207,7 +207,8 @@ sub build_command_registry {
 
         opendir( my $SRC_DIR, $source_dir ) or next;
         my @files
-            = grep { /\.(pl|pm)$/ and -f "$source_dir/$_" } readdir($SRC_DIR);
+            = grep { m{\.(pl|pm)$} and -f "$source_dir/$_" }
+            readdir($SRC_DIR);
         closedir($SRC_DIR);
 
         foreach my $file (@files) {
@@ -245,7 +246,7 @@ sub build_command_registry {
     if ( defined $root_path and -d "$root_path/src" ) {
         opendir( my $MOD_DIR, "$root_path/src" ) or return $registry;
         my @module_files
-            = grep { /\.console\./ and -f "$root_path/src/$_" }
+            = grep { m|\.console\.| and -f "$root_path/src/$_" }
             readdir($MOD_DIR);
         closedir($MOD_DIR);
 
@@ -282,19 +283,21 @@ sub search_registry {
         my $entry = $registry->{$cmd};
 
         # Search in command name
-        if ( $cmd =~ /$pattern/i ) {
+        if ( $cmd =~ m|$pattern|i ) {
             $results->{$cmd} = $entry;
             next;
         }
 
         # Search in description
-        if ( exists $entry->{'descr'} and $entry->{'descr'} =~ /$pattern/i ) {
+        if ( exists $entry->{'descr'} and $entry->{'descr'} =~ m|$pattern|i )
+        {
             $results->{$cmd} = $entry;
             next;
         }
 
         # Search in usage
-        if ( exists $entry->{'usage'} and $entry->{'usage'} =~ /$pattern/i ) {
+        if ( exists $entry->{'usage'} and $entry->{'usage'} =~ m|$pattern|i )
+        {
             $results->{$cmd} = $entry;
             next;
         }
@@ -363,15 +366,15 @@ sub registry_to_json {
 
         if ( exists $entry->{'descr'} ) {
             my $descr = $entry->{'descr'};
-            $descr =~ s/\\/\\\\/g;    # escape backslashes first
-            $descr =~ s/"/\\"/g;      # then escape quotes
+            $descr =~ s|\\|\\\\|g;    # escape backslashes first
+            $descr =~ s|"|\\"|g;      # then escape quotes
             $entry_json .= qq|    "description": "$descr",\n|;
         }
 
         if ( exists $entry->{'usage'} ) {
             my $usage = $entry->{'usage'};
-            $usage =~ s/\\/\\\\/g;    # escape backslashes first
-            $usage =~ s/"/\\"/g;      # then escape quotes
+            $usage =~ s|\\|\\\\|g;    # escape backslashes first
+            $usage =~ s|"|\\"|g;      # then escape quotes
             $entry_json .= qq|    "usage": "$usage",\n|;
         }
 
@@ -384,7 +387,7 @@ sub registry_to_json {
             $entry_json .= qq|    "zenka": "$entry->{'zenka'}"\n|;
         }
 
-        $entry_json =~ s/,\n$/\n/;    # remove trailing comma
+        $entry_json =~ s|,\n$|\n|;    # remove trailing comma
         $entry_json .= "  }";
 
         push @$json_parts, $entry_json;
@@ -440,8 +443,8 @@ sub registry_to_yaml {
 
 1;
 
-#,,,,,,.,,...,.,,,..,,,..,.,,,,.,,.,.,.,,,,.,,..,,...,...,..,,.,,,,,.,...,,..,
-#MFWTE5LCT4GEEHB4KPKBAMEGHKW2JCNHEJGIGSUCXKNVIGO4ZWRY43IN6BEYHHXOSFHM37Q5X4SPG
-#\\\|FVIJNUVGXA46YYPKM6A63HRSAQ3ZK27TQXCDMUIV5JQAVHPFDVN \ / AMOS7 \ YOURUM ::
-#\[7]JQAQGUO3RSUJVWBTPTD53LC3OXH4CLQVL2Z65ASMN7MUXNPEX2AQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,.,,,,.,...,,,.,,,,,,..,,..,...,..,,...,..,,...,,..,,,,,...,,..,
+#OOJYADC4PCW4KBZYOLUHUWCG7CVAGTKOAX2QDSOWDHET42NJVIVYALRDI3F4WE7RIX723UU7PY65K
+#\\\|AG2N6LQSXGYU4OQYDDTZT2276HDM2CI6ZTEPPRCEWNZJTCCEJN6 \ / AMOS7 \ YOURUM ::
+#\[7]5FWHNE575RNVPGPY76TFXCBLLXE5RXTBOR5ORZUSGB6GWAIYV6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -64,7 +64,7 @@ sub run {
 
         if ( $exit != 0 ) {
             ## Some steps are best-effort ##
-            if ( $name =~ /pam-auth-update|cleanup mediainfo/ ) {
+            if ( $name =~ m{pam-auth-update|cleanup mediainfo} ) {
                 $log .= ":. $name failed (non-critical)\n";
             } else {
                 $ok = 0;
@@ -82,8 +82,8 @@ sub run {
 
 1;
 
-#,,.,,..,,,,,,,,,,.,,,,,,,,,,,,,.,.,,,,..,.,,,..,,...,...,...,,..,...,,,,,...,
-#2F4XF4VH2OM442QYC2XDIZKGZUJSYCCVKN3JDP2RGYYU7ZS2TG7JT5MYRPJ7VWEF25S7S5YIT6VLO
-#\\\|EYD77LEQYIYJNMJK2BV5HBX5AMBFSR7J2VNKYHISYR7V24UJM72 \ / AMOS7 \ YOURUM ::
-#\[7]QZE6DNBGFIWYYPIP5DF3ECKOS77MXAZSEPXQZ4FBJ5JTCI57OECI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,,,,,.,.,,..,,,,,,,.,,.,,...,..,,...,...,.,,,,..,,,.,,.,,,.,,
+#7GYF5TMBKORMLRKSNGESILJNNEQVU7PCDVYY2MJUQGYDVJXSMPRUAOJH2GJPHYBFM7XDNFYDICD3I
+#\\\|OKLPPMSODZB5EEXMPGWQL4CPSWKOZE2RTPPNZRQ4IHZM6OC3V2U \ / AMOS7 \ YOURUM ::
+#\[7]HP2AS2UBGOVBMXPU3CWC4YJSZYRTY2EFVCODK54YOB7US44A4EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,7 +34,7 @@ sub probe_apt {
 
     ## fallback: dpkg-query if AptPkg unavailable ##
     my $out = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null`;
-    return ( defined $out && $out =~ /install ok installed/ ) ? 1 : 0;
+    return ( defined $out && $out =~ m|install ok installed| ) ? 1 : 0;
 }
 
 ##[ install_apt ]#############################################################
@@ -104,8 +104,8 @@ sub install_apt {
 
 1;
 
-#,,,.,,,,,,,.,,..,,.,,.,,,...,.,.,.,.,.,.,,,,,..,,...,...,..,,,,.,,,.,.,.,,,,,
-#V4WOJ4HRGT3I765FWSMF7BFIUHN3DTQJDYXHVX67XZKNUNVHBKVJSDTMMAACZK2KDDD7FUNY3QLGW
-#\\\|MJRPWCNWCNGH2GE7D5KMRBO3QXY2L2IMWBDGEJJDNTOYQKDQ7O2 \ / AMOS7 \ YOURUM ::
-#\[7]HQHLI5VVSCPNS5D4HRVOKSRUGQQMUQYIIXVUD5WAT47ZGIILMIAI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,,.,,,.,...,,,,,...,..,,.,.,..,,...,...,.,,,.,,,,,,,,,,,,,.,
+#MCANLKJ6QY5KZHHAFGCWCPVPXYKQLH45PE7MWBVPDGIKNIDK36WATX5IKKV4UKAQXUHM52F2OBEMI
+#\\\|VY4IMVBYMYKWWFG7H2JUUSI6PDZ22UIT4TPMOZVDB4ECO35AG3F \ / AMOS7 \ YOURUM ::
+#\[7]VIBELBGF3VUU2HTVPCKYUYNHCRS2FHIAQWR4HDKDWP5BTKA6Q4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
