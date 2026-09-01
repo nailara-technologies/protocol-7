@@ -348,9 +348,9 @@ REENTER_GEN_ENTROPY:
             <[base.logs]>->( 0, ': secret key format not valid : %s', $name );
             goto SKIP_SECRET_KEY_LOADING;
         }
-        ## stripping prefix [ only when the type table says this value
-        ## actually has one -- matches the 'private' handling above,
-        ## lines 254-255 ] ##
+        ## stripping prefix [ only when the type table says this value     ##
+        ## actually has one -- matches the 'private' handling above, lines ##
+        ## 254-255 ]                                                       ##
         substr( $keys{'C25519'}{$name}{'secret'}, 0, 2, '' )
             if $key_status->{'prefixed'} == TRUE;
 
@@ -392,8 +392,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,.,,.,.,,,,,..,,,,.,...,..,,.,.,,..,,,,,,..,..,,...,...,...,,..,.,.,...,,,,,
-#ZG3ZVMUI2BJIH7GUWH6GTAM3IINWJQ4FOTQVJBIS7DL3Q7PDGFZWVPDL3NEBO7GORJCV65U2ZAJOS
-#\\\|JMAWIJOJHL7OBG5Z57HB2DGP46GYAHCRIAHNAZYJTGZLM47SOVS \ / AMOS7 \ YOURUM ::
-#\[7]LCJXTGLADGOEYYZ7J2GALNN7ZH6VUWEPAV5D37NQ4MTN47ETS4AA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,..,,,.,,.,.,,,,,.,.,.,,,...,..,,...,..,,,,.,,.,,,,.,.,,,...,
+#RLOODIKAR7J2IJRD5PTQJZ5ZKDL4FHLZRCG6TWYEM3EWIDBWXU5ID2MZR47EX23P4RLMXKOUZ5PJQ
+#\\\|VGCHBUX5ZN3IAGQYDWMXTZKZJDXVDIGPEJ35H3UWTZWFG2334JR \ / AMOS7 \ YOURUM ::
+#\[7]BONTAT4XQUPF3RQA6QEF25DEBAT6SUBNWCA3DXF2A7PK2MYXX4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
