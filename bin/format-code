@@ -1822,15 +1822,18 @@ sub extract_regex_delimiter_rewrite {
 
     my $content = $tok->content;
 
-    ## PPI misidentifies P7-sugar '//=' [ defined-or assignment ] as a ##
-    ## regex token '//' followed by operator '=' -- skip it before any ##
-    ## other processing                                                ##
+    ## PPI can misidentify the defined-or operator '//' [ or '//=' ] as an ##
+    ## empty-pattern regex match '//', especially right after a P7 sugar   ##
+    ## token like <key.path> -- PPI has no idea that isn't valid Perl on   ##
+    ## its own, so it can't tell a completed "value" just went by, and     ##
+    ## guesses wrong about what the following '//' means. A genuinely      ##
+    ## intentional empty '//' match ["match $_ against nothing"] is        ##
+    ## essentially never real code, so treat ANY bare empty-pattern match  ##
+    ## as this misparse and skip it outright -- covers both '//=' and the  ##
+    ## far more common 'X // default' fallback idiom used throughout this  ##
+    ## codebase, e.g. <system.task_id> // 'unknown'                        ##
     if ( $content eq qw| // | ) {
-        my $next = $tok->snext_sibling;
-        return undef
-            if $next
-            and $next->isa('PPI::Token::Operator')
-            and $next->content eq qw| = |;
+        return undef;
     }
 
     ##  skip multi-line regexes -- too risky to rewrite mechanically  ##
@@ -2423,8 +2426,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,,.,,.,,,.,,.,,,.,.,.,.,,.,,.,.,,.,,..,,..,,...,...,,,.,..,,...,.,,,..,,
-#PXKLNVJRKRTPQ2PD6GMIKI3WYXULNBGVJER7NMDBABSGT4EW4JPNE7M2CZ7XD5ZQTBY6LGO5W2SRE
-#\\\|B4ZTU2YODX7373DVIGN5KSCYEQG2YTZSICVMCOU7XVZKF3FDBWS \ / AMOS7 \ YOURUM ::
-#\[7]6QOSBITHNRSGVGMIDSXHI6RQXLXWIEEOQ27IYZIU4VADFNFO3GDA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,.,.,,..,.,,,,,,,,.,,..,,...,..,,...,..,,.,.,.,,,,..,,,,,,,,,
+#454NABFJUQV7SESTDXZCKYYLN6UEISDGTUGRYNUG7733XIK4O27S64S6P3QH4GCNFLFD2EZFODZWK
+#\\\|6YY5U2WHVTZREJUI3573DOKYI2DXXLMZMMM775LRSE4GHBD4V3F \ / AMOS7 \ YOURUM ::
+#\[7]JHQU4LXJJMA4UCXKUM7CJNXPFNR5234CHBWQOOX6MXOSWUKX5MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
