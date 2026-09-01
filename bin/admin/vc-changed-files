@@ -14,11 +14,11 @@ if (@ARGV) {
     } elsif ( $ARGV[0] eq '-exc-len' ) {
         $filter_exc_len = 1;
     } else {
-        die "\n ::: error ::: [ unknown option '$ARGV[0]' ] :::\n\n"
-            . "  ::[ usage ]:: $0 [-sig-only|-exc-len]\n  :\n"
-            . "  :   [no args.]  :  list all changed files\n"
-            . "  :.  -sig-only   :  list signature-only changes\n"
-            . "  :.  -exc-len    :  list files with lines exceeding 78 characters\n";
+        die "\n ::: error ::: [ unknown option '$ARGV[0]' ] :::\n\n  ::[ "
+            . "usage ]:: $0 [-sig-only|-exc-len]\n  :\n  :   [no args.]  "
+            . ":  list all changed files\n  :.  -sig-only   :  list "
+            . "signature-only changes\n  :.  -exc-len    :  list files "
+            . "with lines exceeding 78 characters\n";
     }
 }
 
@@ -33,8 +33,9 @@ foreach my $line (
     reverse sort split( "\n", $stdout )
 ) {
     $line =~ s|\e\[.*?[mJH]||g;    ##[ strip ansi colors ]##
-    ##  match only git status lines (modified:, renamed:, new file:, etc.) ##
-    ##  note: deleted files are excluded to avoid issues with xargs pipelines ##
+    ## match only git status lines (modified:, renamed:, new file:, etc.) ##
+    ## note: deleted files are excluded to avoid issues with xargs        ##
+    ## pipelines                                                          ##
     next unless $line =~ m{\b(modified|renamed|new file|both):};
     $line =~ s|^.*?:\s+||;      ##  remove status label (non-greedy) ##
     $line =~ s|.*\s+->\s+||;    ##  for renames, keep only new filename ##
@@ -81,8 +82,7 @@ sub _has_only_signature_changes {
         ##  skip context lines (unchanged) ##
         next if $diff_line =~ m|^\ |;
 
-        ##  skip AMOS7 signature lines ##
-        ##  punctuation line (binary encoded) ##
+        ## skip AMOS7 signature lines  punctuation line (binary encoded) ##
         next if $diff_line =~ m|^[\+\-]#[,\.]+$|;
         next if $diff_line =~ m|^[\+\-]#[A-Z0-9]{64,}|;    ##  hash line ##
         ##  signature marker line (3 backslashes) ##
@@ -126,8 +126,8 @@ sub _has_lines_exceeding_length {
     return 0;
 }
 
-#,,..,,,,,.,.,.,,,,,,,,,,,..,,.,.,.,,,.,,,,.,,..,,...,...,.,,,.,,,.,,,.,,,.,.,
-#LRWHI4XWUPWIF7PYS4HUHNWMWHBAFXROKC5L7A76H5TG5DMTPHBNDEFVGK6226BB22YOVANNIPDLA
-#\\\|3T43OG2Y6FX5ML4Y2V4PDFYI3ENW72CQS63K6GAQ4NQVT6CUQQG \ / AMOS7 \ YOURUM ::
-#\[7]O7R6KHHMKIR4Y4HOEVQUHUT3MV27NHZG2Y7TNSTL56FEYSU7QMAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,,..,,.,,,,,,.,.,...,,,.,,.,,..,,...,...,,.,,..,,,.,,,.,,...,
+#E5QORR77K5YWR3YBRGCAEQXSTIDKQ4TKHRL27UT5F2RBP2SWHMAAIEXWWJ56KMCFU2BKIOK4G7X7W
+#\\\|MRIVMO5G2CT2L7YHSIOALBENWLSBQFVQGBXG57UWVTJ5FRZW3RA \ / AMOS7 \ YOURUM ::
+#\[7]XVYC7B3WQND5C322AE7UI7BJKHFVCD6P3JFSLFHP7D5UGRUEKODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
