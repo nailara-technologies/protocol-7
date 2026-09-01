@@ -67,10 +67,10 @@ use strict;
 use warnings;
 use feature 'say';
 
-## force XWayland so get_window->get_xid works - 'use Gtk3 -init' runs at  ##
-## compile time, so this must be a BEGIN block, not a runtime $ENV write  ##
-## [ mirrors ticker.open_window's GDK_BACKEND='x11' + WAYLAND_DISPLAY     ##
-## delete, done before its Gtk3->init call ]                              ##
+## force XWayland so get_window->get_xid works - 'use Gtk3 -init' runs at   ##
+## compile time, so this must be a BEGIN block, not a runtime $ENV write [  ##
+## mirrors ticker.open_window's GDK_BACKEND='x11' + WAYLAND_DISPLAY delete, ##
+## done before its Gtk3->init call ]                                        ##
 BEGIN {
     $ENV{'GDK_BACKEND'} = 'x11';
     delete $ENV{'WAYLAND_DISPLAY'};
@@ -81,22 +81,22 @@ use Glib qw| TRUE FALSE |;
 use Glib::Object::Introspection;
 use X11::Protocol;
 
-## get_xid is a GdkX11-specific extension method, not exposed by the      ##
-## plain Gtk3 binding without this setup [ same as gtk_get_windows in     ##
-## this directory ]                                                       ##
+## get_xid is a GdkX11-specific extension method, not exposed by the plain ##
+## Gtk3 binding without this setup [ same as gtk_get_windows in this       ##
+## directory ]                                                             ##
 Glib::Object::Introspection->setup(
     'basename' => 'GdkX11',
     'version'  => '3.0',
     'package'  => 'Gtk3::Gdk'
 );
 
-## the ONLY target that has ever succeeded across every prior run is       ##
-## exactly (1920,1368) - the live ticker's real, currently-occupied        ##
-## position. every other target [ 0, 500, the overshoot value ] has       ##
-## failed, including in fresh child processes. STUCK_Y is overridable so  ##
-## that can be tested directly: does a first-window placement succeed at  ##
-## ANY coordinate, or only at the one coordinate something is already     ##
-## sitting on? eg: STUCK_Y=700 perl bin/dev/.../gtk_window_recreate_position ##
+## the ONLY target that has ever succeeded across every prior run is        ##
+## exactly (1920,1368) - the live ticker's real, currently-occupied         ##
+## position. every other target [ 0, 500, the overshoot value ] has failed, ##
+## including in fresh child processes. STUCK_Y is overridable so that can   ##
+## be tested directly: does a first-window placement succeed at ANY         ##
+## coordinate, or only at the one coordinate something is already sitting   ##
+## on? eg: STUCK_Y=700 perl bin/dev/.../gtk_window_recreate_position        ##
 my $stuck_x  = 1920;
 my $stuck_y  = $ENV{'STUCK_Y'} // 1368;
 my $width    = 900;
@@ -148,9 +148,9 @@ my $make_window = sub {
     $window->set_keep_above(1);
     $window->set_skip_taskbar_hint(1);
 
-    ## a normal focusable toplevel is subject to the WM's smart/cascade    ##
+    ## a normal focusable toplevel is subject to the WM's smart/cascade   ##
     ## placement, which overrides move() outright - these three match     ##
-    ## ticker.open_window's attribute set, which is the confirmed-working  ##
+    ## ticker.open_window's attribute set, which is the confirmed-working ##
     ## case where move() IS honored                                       ##
     $window->set_accept_focus(0);
     $window->set_focus_on_map(0);
@@ -184,10 +184,10 @@ my $destroy_window = sub {
     select( undef, undef, undef, $settle_s );
 };
 
-## --child <x> <y> [height] : map exactly ONE window in this [ necessarily ##
-## fresh ] process/X11 connection at the given rect, print the readback,   ##
-## exit. invoked by the parent below, once per arm/probe, to test whether  ##
-## a genuinely new client connection always gets honored placement.        ##
+## --child <x> <y> [height] : map exactly ONE window in this [ necessarily  ##
+## fresh ] process/X11 connection at the given rect, print the readback,    ##
+## exit. invoked by the parent below, once per arm/probe, to test whether a ##
+## genuinely new client connection always gets honored placement.           ##
 if ($child_mode) {
     my ( undef, $cx, $cy, $ch ) = @ARGV;
     my ( $window, $xid )
@@ -203,13 +203,13 @@ if ($child_mode) {
     exit 0;
 }
 
-## --scan : grow a window's height from the BOTTOM edge of the secondary   ##
-## monitor upward [ bottom edge anchored at the monitor's bottom, y =      ##
-## bottom - height shrinks as height grows ], one fresh child process per  ##
-## step, until placement stops being honored. reports the last working    ##
-## rect and the first failing one - maps out whether there's a genuine     ##
-## "near the bottom" working zone, or only the one exact slot the live     ##
-## ticker already occupies succeeds.                                      ##
+## --scan : grow a window's height from the BOTTOM edge of the secondary    ##
+## monitor upward [ bottom edge anchored at the monitor's bottom, y =       ##
+## bottom - height shrinks as height grows ], one fresh child process per   ##
+## step, until placement stops being honored. reports the last working rect ##
+## and the first failing one - maps out whether there's a genuine "near the ##
+## bottom" working zone, or only the one exact slot the live ticker already ##
+## occupies succeeds.                                                       ##
 if ( @ARGV and $ARGV[0] eq '--scan' ) {
     my $scan_x      = $stuck_x;
     my $monitor_bot = $ENV{'SCAN_BOTTOM'}
@@ -217,8 +217,8 @@ if ( @ARGV and $ARGV[0] eq '--scan' ) {
     my $step  = $ENV{'SCAN_STEP'}       // 80;
     my $max_h = $ENV{'SCAN_MAX_HEIGHT'} // $monitor_bot;
 
-    say "scanning from the bottom edge [y+height=$monitor_bot] of x=$scan_x,"
-        . " height step=$step";
+    say "scanning from the bottom edge [y+height=$monitor_bot] "
+        . "of x=$scan_x, height step=$step";
     say '';
 
     my $last_working;
@@ -253,8 +253,8 @@ if ( @ARGV and $ARGV[0] eq '--scan' ) {
             $last_working->{'x'}, $last_working->{'y'}, $width,
             $last_working->{'height'};
     } else {
-        say
-            'no working rect found at all - even the smallest bottom-anchored window failed';
+        say 'no working rect found at all - even the '
+            . 'smallest bottom-anchored window failed';
     }
     if ($first_failing) {
         printf "first failing rect:  x=%d y=%d width=%d height=%d\n",
@@ -299,8 +299,8 @@ for my $arm_key (@run_arms) {
     say '-> destroying window1';
     $destroy_window->($window1);
 
-    printf
-        "-> window2: SAME title [%s], fresh create, pre-show_all place at (%d,%d)\n",
+    printf "-> window2: SAME title [%s], fresh "
+        . "create, pre-show_all place at (%d,%d)\n",
         $title, $arm->{'x'}, $arm->{'y'};
     my ( $window2, $xid2 )
         = $make_window->( $title, $arm->{'x'}, $arm->{'y'} );
@@ -327,17 +327,17 @@ for my $arm_key (@run_arms) {
         : 'MISMATCH - recreate did not help'
         );
 
-    ## offset-correction probe : if the WM applies a STABLE transform to our ##
-    ## request, overshooting by the measured error [ target + (target -    ##
-    ## actual) ] should land on the true target. if placement is really    ##
+    ## offset-correction probe : if the WM applies a STABLE transform to    ##
+    ## our request, overshooting by the measured error [ target + (target - ##
+    ## actual) ] should land on the true target. if placement is really     ##
     ## cascade/counter-driven rather than a function of the request, this   ##
     ## will just land somewhere else again - which is itself useful: it     ##
-    ## tells us there's no offset to correct for.                          ##
+    ## tells us there's no offset to correct for.                           ##
     if ( not $matched and defined $geo2->{'x'} and defined $geo2->{'y'} ) {
         my $corrected_x = 2 * $arm->{'x'} - $geo2->{'x'};
         my $corrected_y = 2 * $arm->{'y'} - $geo2->{'y'};
-        printf "-> overshoot-correction retry: requesting (%d,%d) "
-            . "[ = target + measured error ] on the SAME mapped window\n",
+        printf "-> overshoot-correction retry: requesting (%d,%d) [ = "
+            . "target + measured error ] on the SAME mapped window\n",
             $corrected_x, $corrected_y;
 
         $window2->move( $corrected_x, $corrected_y );
@@ -358,9 +358,8 @@ for my $arm_key (@run_arms) {
             && $geo3->{'x'} == $arm->{'x'}
             && $geo3->{'y'} == $arm->{'y'};
 
-        printf
-            "RESULT [%s, overshoot-corrected]: requested=(%d,%d) actual=(%s,%s) "
-            . "target=(%d,%d) -> %s\n",
+        printf "RESULT [%s, overshoot-corrected]: requested=(%d,%d) "
+            . "actual=(%s,%s) target=(%d,%d) -> %s\n",
             $arm_key, $corrected_x, $corrected_y,
             $geo3->{'x'} // '?', $geo3->{'y'} // '?',
             $arm->{'x'}, $arm->{'y'},
@@ -407,8 +406,8 @@ for my $arm_key (@run_arms) {
 
 say 'done.';
 
-#,,..,..,,,.,,,,.,.,.,..,,.,,,.,,,,,.,,,,,.,,,..,,...,...,,..,.,,,.,,,...,...,
-#WNFIUTR4XV25HRTDPRQNDX6EAJA4TFFCF4H5PBUV37C7WY7PMEHHSKTP2HT4XOU4CAQPKL4N4JP6K
-#\\\|2V2JZGZFQDFBCVSYVVZBSNVNA35KIIIORV2HPB7MFP6NXCG2C6S \ / AMOS7 \ YOURUM ::
-#\[7]ZSBVZTROIKBYBEZ536WZC253HAM6VZMFNEXCRHXI2QREN45QNEDY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,,,.,.,.,..,,,.,,,,,,.,,,.,,,..,,...,...,.,.,,,,,,..,,..,,.,,
+#2Y5RBFA5657BT4EVJ6TTIDILQFS4C4U3VMD3H7SCOWQWOJ45CMOK3M6NMMRUNZMFS2L2XZI3PDPWC
+#\\\|S4DJ7PYK7GDAN4WJOZET44XDKYQ2VNUXCE7W6IA4AXWDJ54MRIY \ / AMOS7 \ YOURUM ::
+#\[7]2E4DGHL4VDAPY3XI2TMPMUKKQRMVEJ5ZAJRBERI7YWU77K6MPSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

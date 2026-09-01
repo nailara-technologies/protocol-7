@@ -5,8 +5,8 @@ use English;
 use warnings;
 
 use Device::PiGlow;
-use Time::HiRes qw| sleep |;
-use Convert::Color::HSV qw| as_rgb8 |;
+use Time::HiRes         qw| sleep |;
+use Convert::Color::HSV;
 
 $0 = qw| piglow-moodlight |;
 
@@ -57,8 +57,8 @@ while ( $deg = sprintf( qw| %.5f |, $deg + $step_size ) or 1 ) {
     sleep 0.013;
 }
 
-#,,,,,,,,,,..,.,,,.,.,...,,..,..,,,.,,,..,,,.,..,,...,...,...,..,,,.,,,.,,.,,,
-#TSI22AS742FDCLZPLTFJDGTD7RU3GEU6JHKQTVJGXTDQDC3CEYEUQHCSHAWNXMRPIECW6XS6AGA62
-#\\\|NOTNKYM7F2J7ZCDJ76DYAEOS4N4F2BE4HMOOO43V4VGVYIXPZOQ \ / AMOS7 \ YOURUM ::
-#\[7]2KEP2TI6MDRFM3M2MDW2QE46MME45UM2WRSCHEVMIO7RAAPHXSBY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,..,,,,.,.,,,,,,,..,,,..,,..,..,,...,...,..,,,,.,..,,.,,,,,.,
+#5V6VLTHHEGF4XPPF3MJFOF7I6N7UQTZ4RTF5D4EDVHJBGZXN25B75KCRUN3SVPF6WCAPVJWRFUMOQ
+#\\\|EBTSFGTVWNOR4P6SCUT4WTLI5LR33VD2U5EEAQS3PFWJAWZSYIY \ / AMOS7 \ YOURUM ::
+#\[7]5LBKS6EE7OKCRYS4O7G332EAC6G3OEP5JHQF2652MP5T72V65QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

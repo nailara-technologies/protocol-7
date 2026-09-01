@@ -8,7 +8,7 @@ my $in_paste_mode    = 0;
 my $linecount        = 0;
 
 while ( my $char = ReadKey(0.1) ) {
-    if ( $char =~ /\n/ ) {
+    if ( $char =~ m|\n| ) {
         if ( $last_was_newline && is_fast_enough() ) {
 
             # Drop the duplicate newline
@@ -31,8 +31,8 @@ while ( my $char = ReadKey(0.1) ) {
     handle_char($char);
 }
 
-#,,.,,.,.,,,,,..,,,..,.,.,,..,,..,,.,,.,,,,..,..,,...,...,...,.,,,.,,,.,,,...,
-#F4IIRESEFSGQUH6A7JVMDR3CGSX4OU5SAQBPIFVFJI74LSUOIHZPPIA2XJGHRBOLK7FGHKNVFPODK
-#\\\|SRQ3MH3IU6ZKO4CNQXE74S63WWUKDXJ4VNRJWQE2FGDM445EWC5 \ / AMOS7 \ YOURUM ::
-#\[7]S3S6NSNA72MXARYPH4QZBI4OMYZG42BAAGLYSFGFISMVY3XCNIBY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,.,,,,..,,,.,...,..,,..,,..,,..,,...,...,.,,,,.,,,.,,,..,.,,,
+#GXCKIBXOPXAQNKDXYFFLWJNAMQB4KGG3UJ2TCHY5KEWIP767KHDZ5P5E2KLS3ZEMDH5JWM4HV2MCI
+#\\\|GSIDI2ZPKJVMXLE6AKZICNQUPGIGEH3QRNLQXQK3TR5QSYTUZ2T \ / AMOS7 \ YOURUM ::
+#\[7]JIXWKQKKGT4IMG4MJFP45M5K5H5BXMOTSSB74B4CNQ2TQM2IDICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
