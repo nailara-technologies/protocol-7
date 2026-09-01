@@ -38,7 +38,7 @@ my $cyan              = "\e[38;2;0;255;255m";
 my $mode   = 'stats';    ## Default: statistics only ##
 my $use_xz = FALSE;      ## XZ compression flag ##
 
-while ( @ARGV && $ARGV[0] =~ /^-/ ) {
+while ( @ARGV && $ARGV[0] =~ m|^-| ) {
     my $switch = shift @ARGV;
     if ( $switch eq '-compress' ) {
         $mode = 'compress';
@@ -144,11 +144,11 @@ foreach my $item (@all_content) {
     $file_num++;
 
     ## Split into paragraphs (separated by blank lines) ##
-    my @paragraphs = split /\n\s*\n/, $text;
+    my @paragraphs = split m|\n\s*\n|, $text;
 
     foreach my $para (@paragraphs) {
-        next if $para =~ /^\s*$/;
-        $para =~ s/^\s+|\s+$//g;            ## trim
+        next if $para =~ m|^\s*$|;
+        $para =~ s{^\s+|\s+$}{}g;            ## trim
 
         ## Prefix numeric literals in paragraphs ##
         my $para_key = prefix_numbers($para);
@@ -156,21 +156,21 @@ foreach my $item (@all_content) {
         $element_type{$para_key} = 'p';
 
         ## Split into sentences ##
-        my @sentences = split /(?<=[.!?])\s+/, $para;
+        my @sentences = split m|(?<=[.!?])\s+|, $para;
 
         foreach my $sent (@sentences) {
-            next if $sent =~ /^\s*$/;
-            $sent =~ s/^\s+|\s+$//g;
+            next if $sent =~ m|^\s*$|;
+            $sent =~ s{^\s+|\s+$}{}g;
 
             my $sent_key = prefix_numbers($sent);
             $element_freq{$sent_key}++;
             $element_type{$sent_key} = 's';
 
             ## Split into words ##
-            my @words = split /\s+/, $sent;
+            my @words = split m|\s+|, $sent;
 
             foreach my $word (@words) {
-                next if $word =~ /^\s*$/;
+                next if $word =~ m|^\s*$|;
 
                 my $word_key = prefix_numbers($word);
                 $element_freq{$word_key}++;
@@ -260,10 +260,10 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
         $display = encode_base32_text($elem);
     } elsif ( $type eq 's' ) {
         ## Sentences: show as VAX-encoded word references (separator-free)
-        my @words = split /\s+/, $elem;
+        my @words = split m|\s+|, $elem;
         my @word_refs;
         foreach my $word (@words) {
-            next if $word =~ /^\s*$/;
+            next if $word =~ m|^\s*$|;
             my $word_key = prefix_numbers($word);
             my $word_idx = $element_index{$word_key};
             push @word_refs, to_vax_base32($word_idx);
@@ -272,11 +272,11 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
     } elsif ( $type eq 'p' ) {
         ## Paragraphs: show as VAX-encoded sentence references
         ## (separator-free)
-        my @sentences = split /(?<=[.!?])\s+/, $elem;
+        my @sentences = split m|(?<=[.!?])\s+|, $elem;
         my @sent_refs;
         foreach my $sent (@sentences) {
-            next if $sent =~ /^\s*$/;
-            $sent =~ s/^\s+|\s+$//g;
+            next if $sent =~ m|^\s*$|;
+            $sent =~ s{^\s+|\s+$}{}g;
             my $sent_key = prefix_numbers($sent);
             my $sent_idx = $element_index{$sent_key};
             push @sent_refs, to_vax_base32($sent_idx);
@@ -297,11 +297,11 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
 
     ## Calculate visible length (without ANSI codes)
     my $visible = $first_line;
-    $visible =~ s/\e\[[0-9;]+m//g;                    ## strip ANSI codes
+    $visible =~ s|\e\[[0-9;]+m||g;                    ## strip ANSI codes
 
     ## Track stats ##
     my $original_display = $display;
-    $original_display =~ s/0[^0]+0[^0]+0//g
+    $original_display =~ s|0[^0]+0[^0]+0||g
         ;    ## Remove repetition operators to get original size
     $total_compressed_chars += length($display);
 
@@ -337,12 +337,12 @@ foreach my $file_data (@processed_files) {
     my @paragraphs = @{ $file_data->{paragraphs} };
 
     foreach my $para (@paragraphs) {
-        next if $para =~ /^\s*$/;
-        $para =~ s/^\s+|\s+$//g;
+        next if $para =~ m|^\s*$|;
+        $para =~ s{^\s+|\s+$}{}g;
 
-        my @sentences = split /(?<=[.!?])\s+/, $para;
+        my @sentences = split m|(?<=[.!?])\s+|, $para;
         foreach my $sent (@sentences) {
-            next if $sent =~ /^\s*$/;
+            next if $sent =~ m|^\s*$|;
             $theoretical_output_bytes += 79;    ## Word-level line ##
         }
         $theoretical_output_bytes += 79;        ## Sentence-level line ##
@@ -424,31 +424,31 @@ if ( $mode eq 'compress' ) {
         my @para_output;
 
         foreach my $para (@paragraphs) {
-            next if $para =~ /^\s*$/;
-            $para =~ s/^\s+|\s+$//g;
+            next if $para =~ m|^\s*$|;
+            $para =~ s{^\s+|\s+$}{}g;
 
             my $para_key = prefix_numbers($para);
             my $para_id  = $element_index{$para_key};
             push @para_output, $para_id;
 
             ## Also show sentence-level breakdown ##
-            my @sentences = split /(?<=[.!?])\s+/, $para;
+            my @sentences = split m|(?<=[.!?])\s+|, $para;
             my @sent_output;
 
             foreach my $sent (@sentences) {
-                next if $sent =~ /^\s*$/;
-                $sent =~ s/^\s+|\s+$//g;
+                next if $sent =~ m|^\s*$|;
+                $sent =~ s{^\s+|\s+$}{}g;
 
                 my $sent_key = prefix_numbers($sent);
                 my $sent_id  = $element_index{$sent_key};
                 push @sent_output, $sent_id;
 
                 ## Also show word-level breakdown ##
-                my @words = split /\s+/, $sent;
+                my @words = split m|\s+|, $sent;
                 my @word_output;
 
                 foreach my $word (@words) {
-                    next if $word =~ /^\s*$/;
+                    next if $word =~ m|^\s*$|;
 
                     my $word_key = prefix_numbers($word);
                     my $word_id  = $element_index{$word_key};
@@ -516,8 +516,8 @@ if ( $mode eq 'compress' ) {
     ## Output index sorted by usage (descending, short IDs first) ##
     output_line("$blacklight:");
     output_line(
-              "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted "
-            . "by usage$blacklight, ${violet}short IDs first$blacklight" );
+              "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by "
+            . "usage$blacklight, ${violet}short IDs first$blacklight" );
     output_line("$blacklight:");
 
     foreach my $line (@index_lines) {
@@ -530,8 +530,8 @@ if ( $mode eq 'compress' ) {
 if ( $mode eq 'compress' && $use_xz ) {
     ## Strip ANSI color codes from buffer for compression ##
     my $plain_output = $output_buffer;
-    $plain_output =~ s/\e\[[0-9;]+m//g;    ## Remove ANSI codes ##
-    $plain_output =~ s/\e\[0m//g;          ## Remove reset codes ##
+    $plain_output =~ s|\e\[[0-9;]+m||g;    ## Remove ANSI codes ##
+    $plain_output =~ s|\e\[0m||g;          ## Remove reset codes ##
 
     $pre_xz_output_bytes = length($plain_output);
 
@@ -630,8 +630,8 @@ if ( $output_for_ratio > 0 ) {
 
         ## Strip ANSI codes and compress to calculate theoretical size ##
         my $plain = $theoretical_buffer;
-        $plain =~ s/\e\[[0-9;]+m//g;
-        $plain =~ s/\e\[0m//g;
+        $plain =~ s|\e\[[0-9;]+m||g;
+        $plain =~ s|\e\[0m||g;
 
         eval {
             require Compress::Raw::Lzma;
@@ -790,7 +790,7 @@ sub wrap_at_77_padded {
 sub prefix_numbers {
     my $text = shift;
     ## Replace standalone numbers with #-prefixed versions
-    $text =~ s/\b(\d+)\b/#$1/g;
+    $text =~ s|\b(\d+)\b|#$1|g;
     return $text;
 }
 
@@ -982,18 +982,24 @@ sub calc_true_simple {
     ## ±1)                                                                  ##
 
     return 0
-        if $last_6 =~ /^230769$|^307692$|^076923$|^769230$|^692307$|^923076$/;
+        if $last_6
+        =~ m{^230769$|^307692$|^076923$|^769230$|^692307$|^923076$};
     return 0
-        if $last_6 =~ /^230768$|^307691$|^076922$|^769229$|^692306$|^923075$/;
+        if $last_6
+        =~ m{^230768$|^307691$|^076922$|^769229$|^692306$|^923075$};
     return 0
-        if $last_6 =~ /^230770$|^307693$|^076924$|^769231$|^692308$|^923077$/;
+        if $last_6
+        =~ m{^230770$|^307693$|^076924$|^769231$|^692308$|^923077$};
 
     return 1
-        if $last_6 =~ /^461538$|^615384$|^153846$|^538461$|^384615$|^846153$/;
+        if $last_6
+        =~ m{^461538$|^615384$|^153846$|^538461$|^384615$|^846153$};
     return 1
-        if $last_6 =~ /^461537$|^615383$|^153845$|^538460$|^384614$|^846152$/;
+        if $last_6
+        =~ m{^461537$|^615383$|^153845$|^538460$|^384614$|^846152$};
     return 1
-        if $last_6 =~ /^461539$|^615385$|^153847$|^538462$|^384616$|^846154$/;
+        if $last_6
+        =~ m{^461539$|^615385$|^153847$|^538462$|^384616$|^846154$};
 
     ## Default: true (as per Truth.pm line 193) ##
     return 1;
@@ -1027,8 +1033,8 @@ sub unpack_mode {
     die "Unpack mode coming soon!\n";
 }
 
-#,,.,,..,,,..,.,.,.,,,,,,,.,.,,..,..,,,,.,.,,,..,,...,..,,..,,...,,,.,..,,,,,,
-#V4MZIJ2E34ZF2VW6CVWC2D4WQYUVEFFONP5P5IZWYTNHJ72YTZBEZFK6W2SAPBQJ263RKZ7SATWC4
-#\\\|IV7SUFYJMSI5VFSM5GYWYKCAR4UEYY2E5IYYQBOXK75D7ZCTBQK \ / AMOS7 \ YOURUM ::
-#\[7]CPTSPU6JKUQSMDEIZFDLQ3QHGCFQ3CB3AKKFDN7XIODKZSRYGGCY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,.,.,,,..,,,..,...,,..,..,,.,,,..,,...,...,,,,,,..,,.,,,,.,.,,,
+#UE35QHLJDQL4YQF32C5NHORL7D2RVS3QB2EDOZYOHFMKKUJKNOEY5KXKM7P7P27J22Y7IV7KVXMSY
+#\\\|4DYJT5CDYALII22STTEWMHR7FHRTUAQDDJO2RS3TYTW7S2K6JK7 \ / AMOS7 \ YOURUM ::
+#\[7]CDBXW7SOM4CHDDQF2X3CTXINJ2M6VEP3RQ5PBRSJYUFAU3M3K6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

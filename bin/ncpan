@@ -41,7 +41,7 @@ elsif ( $ARGV[0] eq 'search' ) {
     &clean;
 }
 
-print " :: done\n :\n" if @ARGV and $ARGV[0] =~ /^(force-)?install$/;
+print " :: done\n :\n" if @ARGV and $ARGV[0] =~ m|^(force-)?install$|;
 print "\n";
 
 exit;
@@ -115,9 +115,9 @@ sub search {
         or die " :: [error] cannot open module list file "
         . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     foreach my $mod_line (<MOD_list>) {
-        if ( $mod_line =~ /^([^\s]+)\s+([^\s]+)\s+([^\s]+)$/ ) {
+        if ( $mod_line =~ m|^([^\s]+)\s+([^\s]+)\s+([^\s]+)$| ) {
             my ( $mod_name, $mod_version, $mod_url ) = ( $1, $2, $3 );
-            if ( $mod_name =~ /$keyword/i ) {
+            if ( $mod_name =~ m|$keyword|i ) {
                 $mod_url = "https://$CPAN_server$CPAN_module_dir$mod_url";
 
                 $mod_version_len = 5 if $mod_version_len > 5;
@@ -179,11 +179,11 @@ sub install {
     print " : parsing module list ..\n";
 
     foreach my $mod_line (<MOD_list>) {
-        if ( $mod_line =~ /^([^\s]+)\s+([^\s]+)\s+([^\s]+)$/ ) {
+        if ( $mod_line =~ m|^([^\s]+)\s+([^\s]+)\s+([^\s]+)$| ) {
             my ( $mod_name, $mod_version, $mod_url ) = ( $1, $2, $3 );
-            if ( $mod_name =~ /^$install_mod_name$/i ) {
+            if ( $mod_name =~ m|^$install_mod_name$|i ) {
                 my $mod_file_name = $mod_url;
-                $mod_file_name =~ s/^.+\/([^\/]+)$/$1/g;
+                $mod_file_name =~ s|^.+/([^/]+)$|$1|g;
                 $found = 1;
                 my $mod_uri = "$CPAN_module_dir$mod_url";
                 $mod_version_len = 5 if $mod_version_len > 5;
@@ -200,7 +200,7 @@ sub install {
                 if ($MOD_size) {
                     my $tgz_file    = "$CPAN_tmp_dir/src/$mod_file_name";
                     my $ext_mod_dir = $tgz_file;
-                    $ext_mod_dir =~ s/\.tar\.gz$//;
+                    $ext_mod_dir =~ s|\.tar\.gz$||;
 
                     print " : downloading module '$mod_name' "
                         . "[version $mod_version] ($MOD_size bytes) "
@@ -234,9 +234,9 @@ sub install {
                     ) {
                         if ( open( my $list_fh, $list_file ) ) {
                             ( my $stripped_mod_dir = $ext_mod_dir )
-                                =~ s/^(.+\/)//g;
+                                =~ s|^(.+/)||g;
                             my $mod_dir_parent = $1 || '';
-                            ( my $first_entry = <$list_fh> ) =~ s/\/\n$//;
+                            ( my $first_entry = <$list_fh> ) =~ s|/\n$||;
                             if (    length($first_entry)
                                 and $first_entry ne $ext_mod_dir
                                 and -d "./$first_entry" ) {
@@ -270,7 +270,7 @@ sub install {
                                     if ( -f $makefile ) {
                                         die " :\n :: [error] "
                                             . "'make' not found!\n\n"
-                                            if qx(make -h) !~ /Usage/;
+                                            if qx(make -h) !~ m|Usage|;
                                         print " : running 'make' ...\n.:\n\n";
                                         if ( !system('make') ) {
                                             print "..\n : running 'make "
@@ -400,11 +400,11 @@ sub show_readme {
     print " : parsing module list ..\n";
     foreach my $mod_line (<MOD_list>) {
         my ( $mod_name_len, $mod_version_len ) = ( 33, 5 );
-        if ( $mod_line =~ /^([^\s]+)\s+([^\s]+)\s+([^\s]+)$/ ) {
+        if ( $mod_line =~ m|^([^\s]+)\s+([^\s]+)\s+([^\s]+)$| ) {
             my ( $mod_name, $mod_version, $mod_url ) = ( $1, $2, $3 );
-            if ( $mod_name =~ /^$readme_mod_name$/i ) {
+            if ( $mod_name =~ m|^$readme_mod_name$|i ) {
                 my $readme_file_name = $mod_url;
-                $readme_file_name =~ s/^(.+)\.tar\.gz$/$1.readme/g;
+                $readme_file_name =~ s|^(.+)\.tar\.gz$|$1.readme|g;
                 $found = 1;
                 my $mod_uri = "$CPAN_module_dir$readme_file_name";
                 $mod_version_len = 5 if $mod_version_len > 5;
@@ -428,7 +428,7 @@ sub show_readme {
                     while ( $size and my $buffer = <$txt_handle> ) {
                         next if not defined $buffer;
                         $size -= length($buffer);
-                        $buffer =~ s/\d+$chnk_str([^\015]+)$chnk_str/$1/g;
+                        $buffer =~ s|\d+$chnk_str([^\015]+)$chnk_str|$1|g;
                         if ($pager_ok) {
                             print PAGER $buffer;
                         } else {
@@ -467,27 +467,27 @@ sub return_dependencies {
     my $found_section_prereq   = 0;
     my $found_section_requires = 0;
     while (<$make_file_handle>) {
-        s/\#.+$//g;
-        next if /^\s*$/;
-        if (s/^\s+\'?PREREQ_PM\'?\s+=>\s+\{//) { $found_section_prereq   = 1 }
-        if (/^requires\s/)                     { $found_section_requires = 1 }
+        s|#.+$||g;
+        next if m|^\s*$|;
+        if (s|^\s+'?PREREQ_PM'?\s+=>\s+\{||) { $found_section_prereq   = 1 }
+        if (m|^requires\s|)                  { $found_section_requires = 1 }
         if ($found_section_prereq) {
-            s/\s+//g;
-            s/\,?\n$//g;
-            if (/^\}$/) { $found_section_prereq = 0; last }
+            s|\s+||g;
+            s|,?\n$||g;
+            if (m|^\}$|) { $found_section_prereq = 0; last }
             else {
-                if (/^\'?([^\']+)\'?=>\'?([\d|\.]+)\'?\,?$/) {
+                if (m{^'?([^']+)'?=>'?([\d|\.]+)'?,?$}) {
                     push( @dependencies, $1 );
                 }
             }
         }
         if ($found_section_requires) {
-            s/\s+//g;
-            s/\;?\n$//g;
-            unless (/^requires/) { $found_section_requires = 0; last }
+            s|\s+||g;
+            s|;?\n$||g;
+            unless (m|^requires|) { $found_section_requires = 0; last }
             else {
-                s/^requires//g;
-                if (/^\'?([^\']+)\'?=>/) {
+                s|^requires||g;
+                if (m|^'?([^']+)'?=>|) {
                     push( @dependencies, $1 );
                 }
             }
@@ -567,11 +567,11 @@ sub open_cpan_file {
         my $header_read = 0;
         while ( !$done ) {
             my $buffer = '';
-            while ( $buffer !~ /^[^\n|^\r]*\r?\n$/ ) {
+            while ( $buffer !~ m{^[^\n|^\r]*\r?\n$} ) {
                 sysread( $sock, $buffer, 1, length($buffer) );
             }
             $header_read = 1 if $buffer eq "\r\n";
-            $buffer =~ s/\r?\n$//;
+            $buffer =~ s|\r?\n$||;
             $status_line //= $buffer;
             if ( !$ok and $buffer eq 'HTTP/1.1 200 OK' ) {
                 $ok     = 1;
@@ -584,7 +584,7 @@ sub open_cpan_file {
                 select($old_fh);
                 return ( $sock, $size );
             } elsif ( $ok and $buffer ne '' ) {
-                if ( $buffer =~ /^Content-Length: (\d+)$/ ) { $size = $1 }
+                if ( $buffer =~ m|^Content-Length: (\d+)$| ) { $size = $1 }
                 $buffer = undef;
             } else {
                 die " :: [ERR] failed to GET '$url' -- "
@@ -611,8 +611,8 @@ sub show_commands {
         . "sources ]\n :\n";
 }
 
-#,,..,,,,,.,,,,..,,..,,,.,...,.,,,,.,,,.,,,,.,..,,...,...,...,...,,..,...,...,
-#S3XOFIMAEWESFVS35CALHVAL6Z6LSKTSAYEKSWODLLFNWNKXIPRQOXNJEMVZRGKZMCK7IOQR5DSGG
-#\\\|ZCRLWWS2PPMKT7HZHBUQMQDJKF4FNMVN7OR74OJZQA4PXQP3GOV \ / AMOS7 \ YOURUM ::
-#\[7]MHQ5O23EKP4PVQSG7CQFPZO2OPP56ESIGGJCPHJF4MQOXC6B5ADY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,.,.,,..,...,...,.,.,...,,,,,..,,...,...,,.,,...,.,.,,,,,..,,
+#42HBS2CZHVDLJ57UIH5APW3WMO2LR6VVKE7JOFL6VWL5UI5FIMUJL2FCDDJGVIKICKOBR4GY33JTU
+#\\\|CUSMDI33MRLZUW5S3VVANBU6L32IZGNKGVRP4K6B7FAVR3SHTOF \ / AMOS7 \ YOURUM ::
+#\[7]HSETQCI5QPWQJADZWQNL66MYD6PJ546HPIG3S4Q6T2T5MD6T34CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

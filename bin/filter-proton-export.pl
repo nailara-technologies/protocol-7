@@ -43,7 +43,7 @@ my $exclude_re = qr/$exclude_pattern/i;
 my $json = JSON::PP->new->utf8(0);
 
 opendir( my $dh, $export_dir ) or die "cannot open $export_dir: $!\n";
-my @meta_files = grep {/\.metadata\.json$/} readdir($dh);
+my @meta_files = grep {m|\.metadata\.json$|} readdir($dh);
 closedir($dh);
 
 my ( $scanned, $kept, $excluded ) = ( 0, 0, 0 );
@@ -74,10 +74,10 @@ for my $meta_file (@meta_files) {
         next;
     }
 
-    my $to_match = grep {/$to_re/} @to_addrs, @reply_addrs;
-    next if not $to_match and $subject !~ /bewerbung/i;
+    my $to_match = grep {m|$to_re|} @to_addrs, @reply_addrs;
+    next if not $to_match and $subject !~ m|bewerbung|i;
 
-    ( my $base = $meta_file ) =~ s/\.metadata\.json$//;
+    ( my $base = $meta_file ) =~ s|\.metadata\.json$||;
     my $eml_path = "$export_dir/$base.eml";
     next if not -f $eml_path;
 
@@ -89,8 +89,8 @@ for my $meta_file (@meta_files) {
 printf STDERR "done : %d scanned, %d kept, %d excluded -> %s\n",
     $scanned, $kept, $excluded, $dest_dir;
 
-#,,,,,,..,,,,,,,.,,,.,,..,,,.,.,,,..,,,.,,,.,,..,,...,...,,..,.,.,,.,,,,,,,.,,
-#IOYUNG6Z3ZSZCJIUSDGFEWYYPZ2CA2TD4HEHJQJ5NTNFDOKQUKHIXZ7QY36DEQ6DOXP4J3G5VEX4I
-#\\\|KG67XUMQXAQGBFQ4VGO3NBNAQ3RDQAYNMHOTUMOIAFNVTZGBJYM \ / AMOS7 \ YOURUM ::
-#\[7]BJKOOTG4ZRQFSDOWS2PRWMR2B764NTIVB5GLWSDWYBULUR2MTUCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,...,,..,...,,,,,..,,,..,,,,,..,,...,..,,.,.,.,.,,,.,...,.,.,
+#D4H7PY4AZFEOHDEJUEZSMA23NXNIHZGDPTN2NC37GU4HMWYG2XXNWLS6ZNKK6J6R4WNEPEP6IPXY4
+#\\\|LGLBKTOPKHTKVH6WDSKGTNDKKOC5EZ4K6LXPYTQCE4Q7XH43PGL \ / AMOS7 \ YOURUM ::
+#\[7]IY2Z2ORGI6AVSXEKZV42ILCM6G2AUXFXSSMCOI7PV3DM27JIC6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -83,9 +83,9 @@ copy( $output, $ext_output ) if -d '/mnt/ext-xfs-data/backup/external-ai';
 
 sub detect_format {
     my ($filename) = @_;
-    return 'duckai'  if $filename =~ /duck/i;
-    return 'claude'  if $filename =~ /claude/i;
-    return 'chatgpt' if $filename =~ /chatgpt|openai/i;
+    return 'duckai'  if $filename =~ m|duck|i;
+    return 'claude'  if $filename =~ m|claude|i;
+    return 'chatgpt' if $filename =~ m{chatgpt|openai}i;
     return undef;
 }
 
@@ -110,7 +110,8 @@ sub parse_duckai {
     my $data = eval { JSON::PP::decode_json($content) };
     unless ($data) {
         ## Try to extract just the conversations part
-        if ( $content =~ /"conversations"\s*:\s*(\[.*?\])(?:,|\s*}\s*$)/s ) {
+        if ( $content =~ m{"conversations"\s*:\s*(\[.*?\])(?:,|\s*\}\s*$)}s )
+        {
             $data = { conversations => eval { JSON::PP::decode_json($1) } };
         }
     }
@@ -201,8 +202,8 @@ USAGE
     exit(0);
 }
 
-#,,..,.,,,,.,,,..,,,.,.,,,.,,,,..,..,,,..,,,.,.,.,...,..,,,..,..,,,.,,,.,,,.,,
-#GIURGIX7G4YNXSJ4TGJXB6XBABUYXKORL77GG4RY2O5YDLODWGVLEWFKATTQQWDN5CP23PCFMGSK4
-#\\\|DB34LFF5OQZC3MYKBMEICVOTM2YGD2DWLMUVOBOFZ3DHWLLNZSC \ / AMOS7 \ YOURUM ::
-#\[7]CAZ7LJTKZGATPQOHGXN2FT5SID4PZ562YPGVZXRB4D7ATA447KBY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,.,.,.,,,,.,,,,,,.,.,.,,,,,,,.,.,...,...,.,,,.,.,.,.,,,.,,.,,
+#WTX7SZORNYKUF3AKDS3KJMSLYJUO7ZVOC7S75EHLATMIZAZ5P7YEKRQ2NOO2JBLEW36O3ZX7WRDBG
+#\\\|SHQQ43ARY5Q7PBJUMXYKD67BSMJCVGDEPEMX76E6OUZSLGOM47G \ / AMOS7 \ YOURUM ::
+#\[7]OFXHWE6KOLAM5PWZJG6SNNUHTNFK7XJ6V3UNCC2NRSTOZHAORKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
