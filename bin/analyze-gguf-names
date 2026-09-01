@@ -137,8 +137,8 @@ sub categorize_name {
 
     return 'empty' if !defined $name || length($name) == 0;
     return 'garbage_path'
-        if $name =~ /:\\/ || $name =~ /^[A-Za-z]:/ || $name =~ /\\/;
-    return 'garbage_dots' if $name =~ /^[.\s]+$/;
+        if $name =~ m|:\\| || $name =~ m|^[A-Za-z]:| || $name =~ m|\\|;
+    return 'garbage_dots' if $name =~ m|^[.\s]+$|;
     return 'short'        if length($name) < 5;
     return 'good';
 }
@@ -159,11 +159,11 @@ my %stats = (
 open my $find, "find '$SCAN_DIR' -name '*.gguf' -type f 2>/dev/null |" or die;
 while ( my $file = <$find> ) {
     chomp $file;
-    next if $file =~ /mmproj/i;    # Skip vision projectors
+    next if $file =~ m|mmproj|i;    # Skip vision projectors
 
     my $filename = $file;
     $filename =~ s|.*/||;
-    $filename =~ s/\.gguf$//i;
+    $filename =~ s|\.gguf$||i;
 
     my $meta = extract_gguf_metadata($file);
 
@@ -222,7 +222,7 @@ for my $cat (qw(good garbage_path garbage_dots short)) {
 print "=== ANALYSIS: What do good names have that garbage doesn't? ===\n\n";
 
 my @good = grep { $_->{category} eq 'good' } @results;
-my @bad  = grep { $_->{category} =~ /garbage/ } @results;
+my @bad  = grep { $_->{category} =~ m|garbage| } @results;
 
 print "Good names with basename:\n";
 my $good_with_basename = grep { $_->{basename} ne '[NOT SET]' } @good;
@@ -263,14 +263,14 @@ sub compose_name {
     if (   $info->{basename} ne '[NOT SET]'
         && $info->{size_label} ne '[NOT SET]' ) {
         my $clean_base = $info->{basename};
-        $clean_base =~ s/_/ /g;
+        $clean_base =~ s|_| |g;
         return "$clean_base $info->{size_label}";
     }
 
     # Priority 3: basename only
     if ( $info->{basename} ne '[NOT SET]' ) {
         my $clean_base = $info->{basename};
-        $clean_base =~ s/_/ /g;
+        $clean_base =~ s|_| |g;
         return $clean_base;
     }
 
@@ -282,16 +282,16 @@ sub compose_name {
 
     # Fallback: cleaned filename
     my $clean = $info->{filename};
-    $clean =~ s/[-_]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$//i;
-    $clean =~ s/[-_]$//;
-    $clean =~ s/_/ /g;
+    $clean =~ s|[-_]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$||i;
+    $clean =~ s|[-_]$||;
+    $clean =~ s|_| |g;
     return $clean;
 }
 
 print "\n";
 
-#,,..,.,.,,.,,,,.,,.,,.,,,,.,,,..,.,.,..,,,..,..,,...,..,,.,.,...,...,.,.,...,
-#3OPEMIHGMTTF4T6S43YHXGYHQE7OYUI72D6QD7QJUP4UQT266GHABFZA5UJW3244CRDEI2MTDRSLS
-#\\\|AD2D3IYDT6SWLV5C72QARD3LFWXSICE6ECKLWPRNLL645XPA27O \ / AMOS7 \ YOURUM ::
-#\[7]IFVQTNEHFKIKMVGELYHJF472LUBGHNNEG7FLMHL3TOK4CIMSZIBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,,,..,,,,,,,.,,.,,,,,.,.,.,...,..,,...,..,,.,,,..,,,,.,,.,,,,.,
+#DR5SRPXCUUX7VAWMCFFGPYU43ZKR4ALPCQOI57B4TPILJ6MRHCQV5TC4HQFO5RTTTMY677Z7QSS3E
+#\\\|WYBZXMIS2SREYNHPDTKXWYQ4J46JWGA2NF5BDUCWSFDHFLGFRTV \ / AMOS7 \ YOURUM ::
+#\[7]57VED4ACTLXBTA5KFUYQZ3S7KFZLMT7HZY27HCEF4EUBEGUN3GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

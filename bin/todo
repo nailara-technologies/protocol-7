@@ -164,7 +164,7 @@ sub ntime_b32_decode {
     my $ntime_value = join '.', @nt;
     $ntime_value =~ s{(\.0)+$}{};
 
-    return undef unless $ntime_value =~ m{^\d{1,17}(\.\d{1,20})?$};
+    return undef unless $ntime_value =~ m|^\d{1,17}(\.\d{1,20})?$|;
 
     return $ntime_value / 4200 + NTIME_START;
 }
@@ -516,7 +516,7 @@ sub iso_to_epoch {
     my $ts = shift;
     return undef
         unless defined $ts
-        and $ts =~ m{^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$};
+        and $ts =~ m|^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$|;
     my ( $y, $mon, $d, $h, $min, $s ) = ( $1, $2, $3, $4, $5, $6 );
     return eval { timelocal_posix( $s, $min, $h, $d, $mon - 1, $y - 1900 ) };
 }
@@ -733,7 +733,7 @@ sub cmd_add {
         elsif ( $flag eq '-l' ) { $priority = 'low' }
         elsif ( $flag eq '-t' ) {
             die "expected tag list after -t\n" unless @args;
-            @tags = split /,/, shift @args;
+            @tags = split m|,|, shift @args;
         } else {
             die "unknown flag: $flag\n";
         }
@@ -868,7 +868,7 @@ sub editor_pad_line_to_col {
 
 sub editor_normalize_details {
     my @lines = @_;
-    s/ +$// for @lines;
+    s| +$|| for @lines;
     pop @lines while @lines and $lines[-1] eq '';
     return @lines;
 }
@@ -911,7 +911,7 @@ sub edit_details_interactive {
 
     require_readkey();
 
-    my @lines = split /\n/, $item->{details} // '', -1;
+    my @lines = split m|\n|, $item->{details} // '', -1;
     @lines = ('') if !@lines;
 
     my ( $cur_line, $cur_col ) = ( 0, 0 );
@@ -1489,8 +1489,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,,,,,,.,.,.,,..,,..,,.,,,.,,.,.,...,,..,..,,...,...,..,,.,.,..,,.,,,,,.,
-#V4OA22UCUCLUZKH5P4PQNEP2P666T2DY3GTYN657G7EUSZXPU5XGVPCIN6RX5LQVXPOB5QMTJ6G7Q
-#\\\|LDF4DNFKRZPD74BO5XIM72L4NVN7PDSHGVZDYYEU4QOVPRAUN2B \ / AMOS7 \ YOURUM ::
-#\[7]2FG4G64T2KZMIUBDAHOOP5YSGYBON2GBI5UH5JTCP2IR5AJWNABI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,.,.,.,,,..,,,,.,.,,,,,.,,..,..,,...,..,,.,,,,,,,.,.,.,.,..,,
+#GOWQ4ICJFF2RFSZNO6NO2WPJQSJNHAQ6EATCCMMBUNPUYHORVKIDU6E7NUOKC4SSKUQLYHE46CRFC
+#\\\|LRECTSL42ZTGL4YT4VJ43LYUKJOBPMZVCOVGSQGIKZES2FVKO6T \ / AMOS7 \ YOURUM ::
+#\[7]UUREX2SPQE53VFJ4P5H7BD37TEZVR33UFZLFB7KFFHZHOFRU62BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

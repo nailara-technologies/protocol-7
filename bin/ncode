@@ -639,7 +639,7 @@ sub cmd_replace {
 
 # Extract base target for validation (handles target:pattern syntax like 'src:.loves')
         my $base_target_for_validation = $target;
-        if ( $target =~ /^([^:]+):(.+)$/ ) {
+        if ( $target =~ m|^([^:]+):(.+)$| ) {
             $base_target_for_validation = $1;
         }
 
@@ -648,7 +648,7 @@ sub cmd_replace {
         my @remaining_params;
         my $found_non_option = 0;
         foreach my $param (@params) {
-            if ( !$found_non_option && $param =~ /^(rec|excl|incl):/i ) {
+            if ( !$found_non_option && $param =~ m{^(rec|excl|incl):}i ) {
                 push @file_options, $param;
             } else {
                 $found_non_option = 1;
@@ -717,14 +717,14 @@ sub cmd_replace {
             printf "Run with -confirm flag to apply:\n";
             printf "  ./bin/ncode -ai-friendly -confirm %s %s\n", $cmd_name,
                 join( ' ',
-                map { /\s/ ? "'$_'" : $_ } $target,
+                map { m|\s| ? "'$_'" : $_ } $target,
                 @file_options, @params );
         } elsif ( $AI_FRIENDLY && !$CONFIRM ) {
             printf "\n[PREVIEW SHOWN - NOT APPLIED]\n";
             printf "Add -confirm flag to auto-apply:\n";
             printf "  ./bin/ncode -ai-friendly -confirm %s %s\n", $cmd_name,
                 join( ' ',
-                map { /\s/ ? "'$_'" : $_ } $target,
+                map { m|\s| ? "'$_'" : $_ } $target,
                 @file_options, @params );
         } elsif ( user_confirmed_ai('apply these changes ?') ) {
 
@@ -805,7 +805,7 @@ sub cmd_restore_backup {
 
     opendir( my $DIR, $backup_dir ) or die " :: cannot open backup dir ::\n";
     @backups = sort { $b cmp $a }
-        grep {/\.(tar\.gz|tar\.xz)$/} readdir($DIR);
+        grep {m{\.(tar\.gz|tar\.xz)$}} readdir($DIR);
     closedir($DIR);
 
     if ( !@backups ) {
@@ -859,7 +859,7 @@ sub cmd_restore_backup {
     mkdir($temp_dir);
 
     my $extract_cmd
-        = $backup_file =~ /\.tar\.xz$/
+        = $backup_file =~ m|\.tar\.xz$|
         ? sprintf( 'cd %s && tar -xJf %s', $temp_dir, $backup_file )
         : sprintf( 'cd %s && tar -xzf %s', $temp_dir, $backup_file );
 
@@ -1042,7 +1042,7 @@ sub cmd_search {
 
 # Extract base target for validation (handles target:pattern syntax like 'src:.loves')
     my $base_target_for_validation = $target;
-    if ( $target =~ /^([^:]+):(.+)$/ ) {
+    if ( $target =~ m|^([^:]+):(.+)$| ) {
         $base_target_for_validation = $1;
     }
 
@@ -1050,7 +1050,7 @@ sub cmd_search {
     my @file_options;
     my @remaining_params;
     foreach my $param (@params) {
-        if ( $param =~ /^(rec|excl|incl):/i ) {
+        if ( $param =~ m{^(rec|excl|incl):}i ) {
             push @file_options, $param;
         } else {
             push @remaining_params, $param;
@@ -1257,13 +1257,13 @@ sub description_txt {
 
     if ( defined $cmd and $cmd eq qw| description_txt | ) {
         if ( $description_type eq 'params' ) {
-            $params_txt =~ s/(\w+)/$C{'T'}.$1.$C{'R'}/ge;
+            $params_txt =~ s|(\w+)|$C{'T'}.$1.$C{'R'}|eg;
             return $params_txt;
         } elsif ( $description_type eq 'text' ) {
-            $description_text =~ s/^\n+/\n/gms;
-            $description_text =~ s/^\s*\n+$//gms;
+            $description_text =~ s|^\n+|\n|gms;
+            $description_text =~ s|^\s*\n+$||gms;
             if ( $description_text !~ m|^\s+$| ) {
-                $description_text =~ s/^(.*)$/  :   $1/gm;
+                $description_text =~ s|^(.*)$|  :   $1|gm;
             }
             return $description_text;
         }
@@ -1447,13 +1447,13 @@ sub preview_llm_friendly {
                             next unless defined $captures[$ci];
                             my $var = '$' . ( $ci + 1 );
                             $mod_highlight_pattern
-                                =~ s/\Q$var\E/$captures[$ci]/g;
+                                =~ s|\Q$var\E|$captures[$ci]|g;
                         }
                     }
 
                     # Escape regex metacharacters for highlighting
                     $mod_highlight_pattern
-                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\\@])/\\$1/g;
+                        =~ s{([\|\(\)\[\]\{\}\^\$\*\+\?\.\\@])}{\\$1}g;
                     my $mod_highlighted = highlight(
                         $mod, $mod_highlight_pattern,
                         ansi('blink') . $C{'3'},    # phosphor green blink
@@ -1725,7 +1725,7 @@ sub load_metadata {
     my $file_name_short = $file_name;
     if ( defined $cut_path ) { $file_name_short =~ s{^$cut_path}{} }
 
-    $file_name_short =~ s{/([^/]+)$}{ '/' .$C{'T'}. $1 .$C{'R'} }e;
+    $file_name_short =~ s|/([^/]+)$| '/' .$C{'T'}. $1 .$C{'R'} |e;
 
     print "\n:: loading meta data from $file_name_short ::\n";
 
@@ -1748,7 +1748,7 @@ sub load_metadata {
         # find the actual path of the metadata file in the archive
 
         foreach my $archive_content_file (
-            sort( split( /\n/, $archive_content ) ) ) {
+            sort( split( m|\n|, $archive_content ) ) ) {
             if ( $archive_content_file =~ m|$metadata_filename$| ) {
                 $metadata_filename = $archive_content_file;
                 last;
@@ -1845,7 +1845,7 @@ sub create_checksums {
             my $relative_filename = $file;
             $relative_filename =~ s|^$root_path/?||;
 
-            $relative_filename =~ s{/([^/]+)$}{ '/' .$C{'3'}. $1 .$C{'R'} }e;
+            $relative_filename =~ s|/([^/]+)$| '/' .$C{'3'}. $1 .$C{'R'} |e;
 
             print $C{'1'} . ': '                           # blue colon
                 . $C{'1'}                                  # blue for checksum
@@ -1885,7 +1885,7 @@ sub parse_file_options {
     );
 
     # Check for target:pattern syntax (e.g., 'src:.loves' or 'bin:\.pl$')
-    if ( $target =~ /^([^:]+):(.+)$/ ) {
+    if ( $target =~ m|^([^:]+):(.+)$| ) {
         my $base_target = $1;
         my $pattern     = $2;
         $target = $base_target;
@@ -1901,50 +1901,50 @@ sub parse_file_options {
     }
 
     # Check for recursion marker in target itself
-    if ( $target =~ s/^rec://i ) {
+    if ( $target =~ s|^rec:||i ) {
         my $rec_value = $1 // '1';
-        if ( $rec_value =~ /^[1yt]/i ) {
+        if ( $rec_value =~ m|^[1yt]|i ) {
             $options{'recurse'} = 1;
-        } elsif ( $rec_value =~ /^(\d+)$/ ) {
+        } elsif ( $rec_value =~ m|^(\d+)$| ) {
             $options{'recurse'} = $1;
         } else {
 
             # It's a pattern
             $options{'recurse'} = 1;
             my $pattern = $rec_value;
-            $pattern =~ s/\./\\./g;
-            $pattern =~ s/\*/.*/g;
+            $pattern =~ s|\.|\\.|g;
+            $pattern =~ s|\*|.*|g;
             $options{'recurse_match'} = qr/$pattern/;
         }
     }
 
     foreach my $param (@params) {
-        if ( $param =~ /^rec:(.+)/i ) {
+        if ( $param =~ m|^rec:(.+)|i ) {
             my $value = $1;
-            if ( $value =~ /^[1yt]/i ) {
+            if ( $value =~ m|^[1yt]|i ) {
                 $options{'recurse'} = 1;
-            } elsif ( $value =~ /^(\d+)$/ ) {
+            } elsif ( $value =~ m|^(\d+)$| ) {
                 $options{'recurse'} = $1;
             } else {
 
                 # It's a pattern like 'rec:base.cmd.'
                 $options{'recurse'} = 1;
                 my $pattern = $value;
-                $pattern =~ s/\./\\./g;    # Escape dots
-                $pattern =~ s/\*/.*/g;     # Convert * to regex
+                $pattern =~ s|\.|\\.|g;    # Escape dots
+                $pattern =~ s|\*|.*|g;     # Convert * to regex
                 $options{'recurse_match'} = qr/$pattern/;
             }
-        } elsif ( $param =~ /^excl:(.+)/i ) {
+        } elsif ( $param =~ m|^excl:(.+)|i ) {
             my $pattern = $1;
 
             # Convert simple pattern to regex
-            $pattern =~ s/\./\\./g;    # Escape dots
-            $pattern =~ s/\*/.*/g;     # Convert * to regex
+            $pattern =~ s|\.|\\.|g;    # Escape dots
+            $pattern =~ s|\*|.*|g;     # Convert * to regex
             push @{ $options{'exclude'} }, qr/$pattern/;
-        } elsif ( $param =~ /^incl:(.+)/i ) {
+        } elsif ( $param =~ m|^incl:(.+)|i ) {
             my $pattern = $1;
-            $pattern =~ s/\./\\./g;
-            $pattern =~ s/\*/.*/g;
+            $pattern =~ s|\.|\\.|g;
+            $pattern =~ s|\*|.*|g;
             push @{ $options{'include'} }, qr/$pattern/;
         }
     }
@@ -1977,7 +1977,7 @@ sub load_source {
         my @raw_parts = split( '\+', $type, -1 );
         my $buffer    = shift(@raw_parts);
         foreach my $next_part (@raw_parts) {
-            my ($next_base) = $next_part =~ /^([^:]+)/;
+            my ($next_base) = $next_part =~ m|^([^:]+)|;
             if ( defined $next_base and exists $targets{$next_base} ) {
                 push @load_types, $buffer;
                 $buffer = $next_part;
@@ -2091,7 +2091,7 @@ sub check_path {
                     . $C{'0'} . 'created' . $C{'1'} . ' : '       # blue colon
                     . $C{'0'} . $current_path_short . ' ' . "\n";
 
-                $output_line =~ s/\/([^\/]+)$/'\/'.$C{'T'}.$1.$C{'R'}/e;
+                $output_line =~ s|/([^/]+)$|'/'.$C{'T'}.$1.$C{'R'}|e;
                 print $output_line;
             } else {
                 die ":: cannot create directory "
@@ -2110,9 +2110,9 @@ sub create_dir {
     my $new_dir;
 
     # remove trailing slash
-    $full_path =~ s/\/$//;
+    $full_path =~ s|/$||;
 
-    if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
+    if ( $full_path =~ m|^(.+)/([^/]+)$| ) {
         ( $parent_dir, $new_dir ) = ( $1, $2 );
     } else {
         die ":: create_dir() : directory argument should include full path\n";
@@ -2155,7 +2155,7 @@ sub clean_dir {
                 . $C{'0'} . 'removed' . $C{'1'} . ' : '          # blue colon
                 . $C{'0'} . $directory_path . ' ' . "\n";
 
-            $output_line =~ s/\/([^\/]+)$/'\/'.$C{'1'}.$1.$C{'R'}/e;
+            $output_line =~ s|/([^/]+)$|'/'.$C{'1'}.$1.$C{'R'}|e;
             print $output_line;
             return 1;
         } else {
@@ -2289,7 +2289,7 @@ sub add_path {
         my $new_filename = $old_filename;
 
         # exchange path
-        $new_filename =~ s/^$root_path/$_new_path/;
+        $new_filename =~ s|^$root_path|$_new_path|;
 
         # remove double slashes
         $new_filename =~ s,//,/,g;
@@ -2400,7 +2400,7 @@ sub show_perl_sub {
     my $package_name;
     my $sub_source_code;
 
-    if ( $sub_name =~ /^(.+)\:{2}([^\:]+)$/ ) {
+    if ( $sub_name =~ m|^(.+):{2}([^:]+)$| ) {
         $package_name = $1;
         $sub_name     = $2;
     }
@@ -2410,13 +2410,13 @@ sub show_perl_sub {
         my $current_sub     = '';
         my $line_num        = 0;
         if ( defined $source->{$file} ) {
-            foreach my $source_line ( split( /\n/, $source->{$file} ) ) {
+            foreach my $source_line ( split( m|\n|, $source->{$file} ) ) {
                 $line_num++;
 
                 my $package_matches = 0;
 
                 # check for package borders
-                if ( $source_line =~ /package\s+([\w\:]+)\s*\;/ ) {
+                if ( $source_line =~ m|package\s+([\w:]+)\s*;| ) {
                     $current_package = $1;
                 }
 
@@ -2431,7 +2431,7 @@ sub show_perl_sub {
 
        # LLL: buggy!! FIX! fails if brace is next line or names begin same way
 
-                if ( $source_line =~ /(sub\s+(\w+))\s+/ ) {
+                if ( $source_line =~ m|(sub\s+(\w+))\s+| ) {
 
                     my ( $sub_string, $current_sub ) = ( $1, $2, $3 );
 
@@ -2481,7 +2481,7 @@ sub show_perl_sub {
                                 $offset ) . "\n";
 
                             my $file_txt = $file;
-                            $file_txt =~ s/^$cut_path\/?//;
+                            $file_txt =~ s|^$cut_path/?||;
 
                             if ($formatted) {
                                 my $formatted_source
@@ -2577,18 +2577,18 @@ sub move_perl_subs {
         # prepare names
 
         my $destination_sub_name = $sub_name;
-        if ( $sub_destination =~ /\:\:$/ ) {
+        if ( $sub_destination =~ m|::$| ) {
             $destination_sub_name
-                =~ s/^.+\:\:([^\:]+)$/$destination_package\:\:$1/;
-        } elsif ( $sub_destination =~ /\w+$/ ) {
+                =~ s|^.+::([^:]+)$|$destination_package::$1|;
+        } elsif ( $sub_destination =~ m|\w+$| ) {
             $destination_sub_name = $sub_destination;
         }
 
         my $sub_name_txt = sprintf( '%-*s', $max_len, $sub_name );
-        $sub_name_txt =~ s/(\w+\s+)$/$C{'B'}.$1.$C{'R'}/e;
+        $sub_name_txt =~ s|(\w+\s+)$|$C{'B'}.$1.$C{'R'}|e;
 
         my $dest_sub_txt = $destination_sub_name;
-        $dest_sub_txt =~ s/(\w+)/$C{'B'}.$1.$C{'R'}/ge;
+        $dest_sub_txt =~ s|(\w+)|$C{'B'}.$1.$C{'R'}|eg;
 
         print ': ' . $sub_name_txt
 
@@ -2653,8 +2653,8 @@ sub insert_sub {
 
     my $sub_name;
     my $destination_package = $sub_destination;
-    if ( $destination_package =~ s/([^\:]+)$// ) { $sub_name = $1 }
-    $destination_package =~ s/\:\:$//;
+    if ( $destination_package =~ s|([^:]+)$|| ) { $sub_name = $1 }
+    $destination_package =~ s|::$||;
 
     foreach my $file ( keys(%$work_source) ) {
         my $current_package = '';
@@ -2663,12 +2663,13 @@ sub insert_sub {
         if ( defined $work_source->{$file} ) {
             my @modified_file;
             my $package_matches = 0;
-            foreach my $source_line ( split( /\n/, $work_source->{$file} ) ) {
+            foreach my $source_line ( split( m|\n|, $work_source->{$file} ) )
+            {
                 $line_num++;
 
                 # check for package borders
                 my $package_border = 0;
-                if ( $source_line =~ /^\s*1;|package\s+([\w\:]+)\s*\;/ ) {
+                if ( $source_line =~ m{^\s*1;|package\s+([\w:]+)\s*;} ) {
                     $current_package = $1 || '';
                     $package_border  = 1;
                 }
@@ -2710,10 +2711,10 @@ sub adjust_subroutine_calls {
     my ($modified_source) = replace_all( $work_source, \%regexp );
 
     my $source_package = $source_subname;
-    $source_package =~ s/\:\:([^\:]+)$//;
+    $source_package =~ s|::([^:]+)$||;
     my $plain_src_subname   = $1;
     my $destination_package = $destination_subname;
-    $destination_package =~ s/\:\:([^\:]+)$//;
+    $destination_package =~ s|::([^:]+)$||;
     my $plain_dest_subname = $1;
 
     foreach my $file ( keys(%$modified_source) ) {
@@ -2725,11 +2726,12 @@ sub adjust_subroutine_calls {
         if ( defined $modified_source->{$file} ) {
             my @modified_file;
             foreach
-                my $source_line ( split( /\n/, $modified_source->{$file} ) ) {
+                my $source_line ( split( m|\n|, $modified_source->{$file} ) )
+            {
                 $line_num++;
 
                 # check for package borders
-                if ( $source_line =~ /package\s+([\w\:]+)\s*\;/ ) {
+                if ( $source_line =~ m|package\s+([\w:]+)\s*;| ) {
                     $current_package = $1;
                 }
                 if ( $current_package eq $destination_package ) {
@@ -3037,7 +3039,7 @@ sub diff_less {
         my @last_captures;    # Store captures from - line for use in + line
         if ( defined $search_pattern and defined $replace_pattern ) {
             foreach my $diff_line (@diff_output) {
-                if ( $diff_line =~ s/^([<|-]{1})([^-]{1})/$2/ ) {
+                if ( $diff_line =~ s|^([<\|-]{1})([^-]{1})|$2| ) {
                     my $line_prefix = $1;    # Save prefix before search match
 
                     # Extract captures from the - line for later use
@@ -3062,7 +3064,7 @@ sub diff_less {
                         $C{'R'} . $C{'B01'} . $C{'1'},
                         0    # case-sensitive [like actual Perl regex]
                         );
-                } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
+                } elsif ( $diff_line =~ s|^([>\|+]{1})([^+]{1})|$2| ) {
                     my $line_prefix
                         = $1;    # Save prefix before any other matches
                     my $replace_highlight = $replace_pattern;
@@ -3072,18 +3074,18 @@ sub diff_less {
 
                  # Remove single backslashes not followed by another backslash
                  # (converts \\@ -> @, keeps \\ -> \)
-                    $replace_highlight =~ s/\\(?!\\)//g;
+                    $replace_highlight =~ s|\\(?!\\)||g;
 
                     # Expand $1, $2, etc. using captures from the - line
                     for ( my $i = 0; $i < @last_captures; $i++ ) {
                         next unless defined $last_captures[$i];
                         my $var = '$' . ( $i + 1 );
-                        $replace_highlight =~ s/\Q$var\E/$last_captures[$i]/g;
+                        $replace_highlight =~ s|\Q$var\E|$last_captures[$i]|g;
                     }
 
        # Escape regex metacharacters for highlighting (not for actual replace)
                     $replace_highlight
-                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\\@])/\\$1/g;
+                        =~ s{([\|\(\)\[\]\{\}\^\$\*\+\?\.\\@])}{\\$1}g;
                     $diff_txt
                         .= ansi('dark')
                         . $C{'T'}
@@ -3100,8 +3102,8 @@ sub diff_less {
                         $C{'R'} . $C{'B02'} . $C{'1'},
                         0    # case-sensitive (like actual Perl regex)
                         );    # stop blink, return to bg+blue
-                } elsif ( $diff_line =~ /^(diff |\+\+\+|\-\-\-|\@\@)/ ) {
-                    if ( $diff_line =~ /^diff / ) {
+                } elsif ( $diff_line =~ m{^(diff |\+\+\+|---|@@)} ) {
+                    if ( $diff_line =~ m|^diff | ) {
 
                         # highlight file names
                         $diff_line =~ s/\/([^\/]+)\s*$/'\/'.
@@ -3169,8 +3171,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,,,.,.,,,.,.,.,,,,,..,,,..,.,,,,.,,...,.,,,..,,...,...,.,.,,,.,...,,..,..,,
-#FVNXTHPST3J6OBR72TAUGVI5K7BN5HBA5TF5XEVZLAIYF27PKQXR6DG65UARKIJB57T7UXU7I3JUC
-#\\\|S5YPLPNSRKOUGPSCB6UNIEGQR6B2BQPHCSF7XRU2G5DNTOFCSVZ \ / AMOS7 \ YOURUM ::
-#\[7]22FOEOSAEV7436RBV6VCE6HCMIHYETQHGGHCTT5PJGRSRONZOIDY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,,.,,.,,...,..,,.,,,,..,..,,..,,...,..,,.,.,...,,,,,,.,,,,,,
+#RERBFWQQG4FBZVKDYICX7Q4K7GV4OAL4SIIVY3D4ICAGORUABMFH34EE4CK5ZRMA6ZI64FMTIJATU
+#\\\|WIUPP7CCGGBSF5BAAELWPU2AV5FZYQ2VXHNGXMTUKW63XMGG6NE \ / AMOS7 \ YOURUM ::
+#\[7]Y4JQUM7QHG73EHNMKD77HWNE2DSWCFPBBNAUHBA5UKCL4ODV3OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
