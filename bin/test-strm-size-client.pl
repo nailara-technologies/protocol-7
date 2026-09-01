@@ -148,12 +148,12 @@ $log->("greet: $greet");
 print $sock "select unix\n";
 my $select_ack = $read_line->();
 $log->("select: $select_ack");
-die "select failed: $select_ack\n" if $select_ack !~ /^TRUE\b/;
+die "select failed: $select_ack\n" if $select_ack !~ m|^TRUE\b|;
 
 print $sock "auth unix-$username\n";
 my $auth_ack = $read_line->();
 $log->("auth:   $auth_ack");
-die "auth failed: $auth_ack\n" if $auth_ack !~ /AUTH_TRUE/;
+die "auth failed: $auth_ack\n" if $auth_ack !~ m|AUTH_TRUE|;
 
 ##[ CAPABILITY NEGOTIATION ]##################################################
 
@@ -167,7 +167,7 @@ my $expect_ok_line = sub {
     my ($ctx) = @_;
     my $line = $read_line->();
     $log->("<- $line");
-    if ( $line =~ /^(?:\(\d+\)\s+)?FALSE\b/ ) {
+    if ( $line =~ m|^(?:\(\d+\)\s+)?FALSE\b| ) {
         die "$ctx failed: $line\n";
     }
     return $line;
@@ -352,8 +352,8 @@ See LICENSE file
 
 =cut
 
-#,,..,.,,,,.,,,..,.,.,,,.,.,,,..,,,..,,..,...,..,,...,...,,,,,...,,,.,.,,,.,,,
-#PHKWQCPMVXV3SAOT6S2C6DT3ZLEA2K2ZNKXIZYEOUBK6UZPWMWTQKCRL6NB76IFNC7Q4CWEWMQTCC
-#\\\|BXILJ2PKD5KTZDORPG4OOGEBYLFVNBLNZDRQ7GNQHQODQKZ3RRJ \ / AMOS7 \ YOURUM ::
-#\[7]TCLJF3BHXPBDBAWQ4G5VJKAF2DKTADHR44V2YWTFQRCXEGJ2JODI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,,.,,,,.,...,,,.,.,.,,..,,.,,..,,...,...,..,,...,,,,,,..,,,,,
+#TVBYGMAYSJHMORYOXXMU2BDTU224H6DUYZO3Y7GAGEIDOPCCYLHE3DWPS3EI3JAC77FSOJUZ4TFUA
+#\\\|VZPCMHSEVJEAM66A47VI7DG6FCI47VC6KXTRMM2RO5UGLYO533S \ / AMOS7 \ YOURUM ::
+#\[7]5H5U2B5CO3JBG44UQOO3PWYBDBOJSMON3RBZDTBGP6FOQIKM7UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

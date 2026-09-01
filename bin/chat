@@ -21,7 +21,7 @@ use Crypt::Misc          qw| encode_b32r |;
 @ARGV = map { decode_utf8($_) } @ARGV;
 
 ## normalize single-dash long options to double-dash ##
-@ARGV = map { m{^-([a-z]{2}[a-z\-]*)(.*)$} ? "--$1$2" : $_ } @ARGV;
+@ARGV = map { m|^-([a-z]{2}[a-z-]*)(.*)$| ? "--$1$2" : $_ } @ARGV;
 
 ####        ####
 ##   chat   ##
@@ -609,7 +609,8 @@ sub dispatch_model {
         write_history( $channel, $model, $reply )
             if defined $reply and length $reply;
     } elsif ( $model eq 'claude' ) {
-        ## write to inbox file — claude polls data/development/chat/inbox/claude ##
+        ## write to inbox file — claude polls ##
+        ## data/development/chat/inbox/claude ##
         my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
         make_path($inbox_dir) unless -d $inbox_dir;
         my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude' );
@@ -1162,7 +1163,7 @@ sub first_sentence {
         $s =~ s{^\s+|\s+$}{}g;
         ## if there's a sentence terminator within 120 chars, truncate ##
         ## there                                                       ##
-        if ( $s =~ m{^(.{10,120}?[\.!?])\s+} ) {
+        if ( $s =~ m|^(.{10,120}?[\.!?])\s+| ) {
             my $trunc = $1;
             $trunc =~ s{^\s+|\s+$}{}g;
             return $trunc;
@@ -1245,7 +1246,7 @@ sub show_timeline {
 sub list_options {
     chomp( my $opt_str = $option_list );
     my @lines = split "\n", $opt_str;
-    map { $ARG =~ s{(\s?\W+\s?)}{$C{B01}$C{0}$1$C{B02}$C{T}}g } @lines;
+    map { $ARG =~ s|(\s?\W+\s?)|$C{B01}$C{0}$1$C{B02}$C{T}|g } @lines;
     map { $ARG = sprintf "$C{B00}$C{0}$ARG$C{R}\n" } @lines;
     say join '', @lines;
 }
@@ -1329,8 +1330,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,,,,,,.,.,,,,.,,..,,,,.,,.,,...,..,,.,.,,.,,..,,...,..,,.,.,.,,,,,,,,.,,,..,
-#EFRV2MER22M7X7OF66CYVMSCWIRUHYCEE3ALN4KOZGPUNDVLAPZCGAJZPIV7ZLQQOH3GD7R5B3FUC
-#\\\|RHM2O6IWOAG2QSYOIHWUWASNU7Z4CX72GKTXKCFYEIEI6O5LLSD \ / AMOS7 \ YOURUM ::
-#\[7]L4Y22WZ6IXOHRBWLCKGTYZCQD2QU6HEN76RNSO5HRPG5VJBJK6BI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,.,,,,..,,,.,..,,..,,.,.,,,,,..,,...,...,.,.,,,.,.,,,...,.,.,
+#6KMNHJAMUR2JKFINU3ZU4M4TVEUZ7JEUUD2KDHGYQLUSKG7OX22LIRAHRPYJPVESCH6P2DNOWQCE6
+#\\\|NLRUEWCGPTR3TXNHX4T3OX5QOYTHOTDYFLI63JGW3KQKW5SG3YK \ / AMOS7 \ YOURUM ::
+#\[7]WHROZ6CEQTKBUOMZTM2ONJMI6YXRABS2EF4KOR2BKLMLDLQZ2SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

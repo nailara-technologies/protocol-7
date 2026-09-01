@@ -64,15 +64,15 @@ sub normalize {
     my ($s) = @_;
     return '' unless defined $s;
     $s = lc($s);
-    $s =~ s/^\s+|\s+$//g;
-    $s =~ s/\s+/ /g;
+    $s =~ s{^\s+|\s+$}{}g;
+    $s =~ s|\s+| |g;
     $s;
 }
 
 sub extract_stepstone_id {
     my ($url) = @_;
     return undef unless defined $url;
-    if ( $url =~ /--(\d+)-inline\.html$/ ) {
+    if ( $url =~ m|--(\d+)-inline\.html$| ) {
         return $1;
     }
     return undef;
@@ -80,7 +80,7 @@ sub extract_stepstone_id {
 
 sub strip_bom {
     my ($s) = @_;
-    $s =~ s/^\x{FEFF}// if defined $s;
+    $s =~ s|^\x{FEFF}|| if defined $s;
     $s;
 }
 
@@ -91,7 +91,7 @@ my ( %jobs_by_id, %jobs_by_key );
 
 my @status_dirs;
 if ( opendir my $dh, $JOBS_DIR ) {
-    @status_dirs = grep { -d "$JOBS_DIR/$_" && !/^\./ } readdir($dh);
+    @status_dirs = grep { -d "$JOBS_DIR/$_" && !m|^\.| } readdir($dh);
     closedir $dh;
 }
 
@@ -101,7 +101,7 @@ for my $dir (@status_dirs) {
     my $sdh;
     next unless opendir $sdh, $full;
     while ( my $f = readdir($sdh) ) {
-        push @all_yaml_files, "$full/$f" if $f =~ /\.yaml$/;
+        push @all_yaml_files, "$full/$f" if $f =~ m|\.yaml$|;
     }
     closedir $sdh;
 }
@@ -142,7 +142,7 @@ for my $file (@all_yaml_files) {
         id      => $id,
     };
 
-    if ( defined $id && $id =~ /^\d+$/ ) {
+    if ( defined $id && $id =~ m|^\d+$| ) {
         $jobs_by_id{$id} = $rec;
     }
 
@@ -165,14 +165,14 @@ sub parse_csv_simple {
     $header = strip_bom($header) if defined $header;
     while (<$fh>) {
         chomp;
-        next unless /\S/;
-        my @cols = split /;/, $_;
+        next unless m|\S|;
+        my @cols = split m|;|, $_;
         next if @cols < 3;
         my ( $date, $company, $title, $status ) = @cols;
         for my $c ( \$company, \$title, \$status, \$date ) {
             next unless defined $$c;
-            $$c =~ s/^"|"$//g;
-            $$c =~ s/^\s+|\s+$//g;
+            $$c =~ s{^"|"$}{}g;
+            $$c =~ s{^\s+|\s+$}{}g;
         }
         my $mapped = $STATUS_MAP{$status};
         next unless defined $mapped;
@@ -197,7 +197,7 @@ sub parse_csv_extended {
     $header = strip_bom($header) if defined $header;
     while (<$fh>) {
         chomp;
-        next unless /\S/;
+        next unless m|\S|;
         my @cols = parse_line( ';', 0, $_ );
         next if @cols < 7;
         my ($nr,    $date,   $company,  $title, $city,
@@ -206,8 +206,8 @@ sub parse_csv_extended {
         for my $c ( \$company, \$title, \$status, \$date, \$app_date, \$url )
         {
             next unless defined $$c;
-            $$c =~ s/^"|"$//g;
-            $$c =~ s/^\s+|\s+$//g;
+            $$c =~ s{^"|"$}{}g;
+            $$c =~ s{^\s+|\s+$}{}g;
         }
         my $mapped = $STATUS_MAP{$status};
         next unless defined $mapped;
@@ -235,9 +235,9 @@ for my $csv ( glob "$IMPORT_DIR/*.csv" ) {
     next unless defined $header;
     $header = strip_bom($header);
     chomp $header;
-    if (   $header =~ /\bLink\b/
-        || $header =~ /\bBewerbungsdatum\b/
-        || $header =~ /\bUnternehmen\b/ ) {
+    if (   $header =~ m|\bLink\b|
+        || $header =~ m|\bBewerbungsdatum\b|
+        || $header =~ m|\bUnternehmen\b| ) {
         parse_csv_extended($csv);
     } else {
         parse_csv_simple($csv);
@@ -315,7 +315,7 @@ my %import_by_key;
 for my $rec (@imported) {
     my $sid = extract_stepstone_id( $rec->{url} );
     $sid = $rec->{html_id}
-        if !$sid && defined $rec->{html_id} && $rec->{html_id} =~ /^\d+$/;
+        if !$sid && defined $rec->{html_id} && $rec->{html_id} =~ m|^\d+$|;
 
     my $key
         = normalize( $rec->{title} ) . '||' . normalize( $rec->{company} );
@@ -358,7 +358,7 @@ my @stale_files;
 for my $irec (@unique_imported) {
     my $sid = extract_stepstone_id( $irec->{url} );
     $sid = $irec->{html_id}
-        if !$sid && defined $irec->{html_id} && $irec->{html_id} =~ /^\d+$/;
+        if !$sid && defined $irec->{html_id} && $irec->{html_id} =~ m|^\d+$|;
 
     my $key
         = normalize( $irec->{title} ) . '||' . normalize( $irec->{company} );
@@ -500,8 +500,8 @@ if (@stale_files) {
         join( ' ', map {quotemeta} @stale_files ), ")\n";
 }
 
-#,,.,,,,,,,,,,...,,..,.,.,.,,,.,,,.,.,.,,,...,..,,...,...,.,.,,..,,,,,..,,.,,,
-#IJSM7QBMQRC44ADWOUEARLJF2PWYY7FMJO4K2B562KLFQHM7DZHPPC3PR3R7F5CCE5FZAC3QTOXP6
-#\\\|A45NTM6CJZK62EI4QESKPYT6OPK3IMAQHFBEYDDH5DZMKWBOG3E \ / AMOS7 \ YOURUM ::
-#\[7]F54L677CKTMBAOBXAMQE7BMBJJDKNS55APS7VR2WBAX4IDPVBKAI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,.,.,...,..,,..,,.,,,,.,,.,.,..,,...,...,.,.,.,.,.,,,,.,,,.,,
+#MM4BA3SOFP2U5JMICACJOEVDTWKUQ6756KZMLIMHJTQVC2F6MK37WN2CWORTPCO5M6CSCJ4WPF7YO
+#\\\|73MEOXOQ7FAHXDDLDE3J252HME7DCI7ZSP5PSPJ3XAFWOIK2HRK \ / AMOS7 \ YOURUM ::
+#\[7]QY5XJCXIT3GRLTN5B3UXXTS4RMM6G5QG4SXJIN5ZMRK3NJC43WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

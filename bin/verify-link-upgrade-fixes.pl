@@ -49,7 +49,7 @@ print "  Expected: WARNING about excessive iterations\n\n";
 my $warning_captured = 0;
 {
     local $SIG{__WARN__}
-        = sub { $warning_captured = 1 if $_[0] =~ /key_32 WARNING/ };
+        = sub { $warning_captured = 1 if $_[0] =~ m|key_32 WARNING| };
     my $key_unsafe = key_32( \$secret, 2000 );
 }
 
@@ -167,8 +167,8 @@ print "=" x 70 . "\n";
 print "Ready for protocol-7 link-upgrade testing\n";
 print "=" x 70 . "\n\n";
 
-#,,..,,,,,..,,...,...,.,.,,,.,,.,,,,.,.,.,...,..,,...,...,...,.,,,...,,,,,..,,
-#H6HTPUWCYABM4GF6646XFSEWPUO76UYDJXXJBH6DZSC5VMX45SSLTGX74ECXQIIRAKS25774LUZ72
-#\\\|32D4CVGYWEZ3DG5YKSLMVFVCIY2DMX6BD7GXCMNSRUXEH56G4DB \ / AMOS7 \ YOURUM ::
-#\[7]WZRLOWWKHOVJEP7MZMAGFXLNGG2YSYRUJPZEJJJHLOBFP2WLBOBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,...,.,,,,,.,,..,.,,,,..,,..,..,,...,...,.,.,...,...,,.,,...,
+#NRDAX7XZ7UFYV5K4UK3CCHBL56DQCT7NGBWPV6QE5I7XYKP3USW3UOJ5UX5YMRSQRC25W7C2B3NPK
+#\\\|VXREYAYJMMSIOR6BBWHZUIDYBOIHSCXH3UMUP27LSSDJ46T7AMC \ / AMOS7 \ YOURUM ::
+#\[7]HFJ4A7F42CT46VXEN3JQMDNXQEBFD7XBRQW3VXMCAROGVB5K7QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

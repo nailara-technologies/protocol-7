@@ -61,7 +61,7 @@ print $socket $auth_cmd;
 for ( 1 .. 3 ) {
     $line = <$socket>;
     print "Server: $line"          if $verbose;
-    die "Authentication failed!\n" if $line =~ /ERROR/;
+    die "Authentication failed!\n" if $line =~ m|ERROR|;
 }
 
 print "Authentication successful\n" if $verbose;
@@ -76,7 +76,7 @@ $line = <$socket>;
 print "Server: $line" if $verbose;
 
 # Check if upgrade was initiated successfully
-die "Link-upgrade failed: $line\n" unless $line =~ /TRUE/;
+die "Link-upgrade failed: $line\n" unless $line =~ m|TRUE|;
 
 print "Link-upgrade initiated successfully\n" if $verbose;
 
@@ -94,7 +94,7 @@ print "Client public (B32): $client_public_b32\n" if $verbose;
 # Wait for server's public key response (SIZE 0 response)
 $line = <$socket>;
 print "Server: $line" if $verbose;
-die "Expected SIZE 0 response: $line\n" unless $line =~ /^SIZE\s+0/;
+die "Expected SIZE 0 response: $line\n" unless $line =~ m|^SIZE\s+0|;
 
 print "Server acknowledged key exchange\n" if $verbose;
 
@@ -155,8 +155,8 @@ See LICENSE file
 
 =cut
 
-#,,.,,,..,.,.,.,,,,,,,,..,,,.,,,,,,.,,,.,,,..,..,,...,...,..,,.,.,,..,.,.,,..,
-#OJEDAKHIZYRB4WZVPMPED3FVVA4J6SVPBA653DMMAAFPJAPNBKLKTBGFVH65HCGYSYZCZQ6OAUKYE
-#\\\|FOWB4XSSDYYHQGEUP2HF72HXIANXXGGBOAHFTUDSZNQUI6Q6ISV \ / AMOS7 \ YOURUM ::
-#\[7]CGFNXN2EPEEC4LAKFFR3ATSB3QG7MASLK3TFI7ZOD7ZOI7NF4KDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,.,...,.,.,,.,,,..,.,.,,,,,,.,,..,,...,...,..,,,,.,,,.,,.,,,,,,
+#3GYESH3MHHH4V6O4QGEVKFAZKVS57W2DGZUVJB4LG43RATGJLSK572GARMTIAV4TFPVKEOGKCFN66
+#\\\|2RXR46PCZVJJALBUZE52TDOO3KC74MDMO6JV5WFIKVYI4RABZBA \ / AMOS7 \ YOURUM ::
+#\[7]PCFU2UGOSUQ6BKYBAG3R5TZDXGNCB474FO4OPXYZGPJHKYOTREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

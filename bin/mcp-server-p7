@@ -357,7 +357,7 @@ sub _ancestor_cmdlines {
             local $/ = undef;
             my $content = <$fh>;
             close $fh;
-            ($ppid) = $content =~ /^PPid:\s*(\d+)/m;
+            ($ppid) = $content =~ m|^PPid:\s*(\d+)|m;
         }
         last unless defined $ppid and $ppid > 1;
         $pid = $ppid;
@@ -365,7 +365,7 @@ sub _ancestor_cmdlines {
             local $/ = undef;
             my $cmdline = <$fh> // '';
             close $fh;
-            $cmdline =~ s/\0/ /g;
+            $cmdline =~ s|\0| |g;
             push @lines, $cmdline if length $cmdline;
         }
     }
@@ -1423,7 +1423,7 @@ sub tool_p7_chat {
     my @out = ($top);
     if ( length $output and $output !~ m{^:\s*no channels} ) {
         $output =~ s{^\.:\s*active channels\s*:\.\s*\n}{};
-        push @out, split( /\n/, $output );
+        push @out, split( m|\n|, $output );
     } else {
         push @out, '(no channels)';
     }
@@ -1459,7 +1459,7 @@ sub tool_task_create {
     }
 
     my ( $ok, $response );
-    if ( $desc =~ /\n/ or length($desc) > 200 ) {
+    if ( $desc =~ m|\n| or length($desc) > 200 ) {
         ( $ok, $response )
             = cube_command_multiline( 'task.create', {}, $desc );
     } else {
@@ -1502,7 +1502,7 @@ sub tool_task_complete {
     }
 
     my ( $ok, $response );
-    if ( $result =~ /\n/ or length($result) > 200 ) {
+    if ( $result =~ m|\n| or length($result) > 200 ) {
         ( $ok, $response )
             = cube_command_multiline( 'task.complete', { 'id' => $task_id },
             $result );
@@ -1523,7 +1523,7 @@ sub tool_task_continue {
     }
 
     my ( $ok, $response );
-    if ( $message =~ /\n/ or length($message) > 200 ) {
+    if ( $message =~ m|\n| or length($message) > 200 ) {
         ( $ok, $response )
             = cube_command_multiline( 'task.continue', { 'id' => $task_id },
             $message );
@@ -1705,7 +1705,7 @@ sub cube_command_multiline {
     }
 
     ## ensure body is newline-terminated ##
-    $body .= "\n" if length($body) and $body !~ /\n\z/;
+    $body .= "\n" if length($body) and $body !~ m|\n\z|;
 
     ## downgrade to bytes for syswrite — json decode leaves utf8 flag on ##
     utf8::encode($body)         if utf8::is_utf8($body);
@@ -1730,7 +1730,7 @@ sub cube_command_multiline {
         return ( 0, 'connection lost' );
     }
 
-    my ( $reply_type, $reply_data ) = split( /\s+/, $first_line, 2 );
+    my ( $reply_type, $reply_data ) = split( m|\s+|, $first_line, 2 );
     $reply_type //= '';
     $reply_data //= '';
 
@@ -1774,7 +1774,7 @@ sub cube_command {
     }
 
     my $log_cmd = $command;
-    $log_cmd =~ s{(:B32:)([A-Z2-7]{20})[A-Z2-7]*}{$1$2...}s;
+    $log_cmd =~ s|(:B32:)([A-Z2-7]{20})[A-Z2-7]*|$1$2...|s;
     log_msg( 'sending: %s', $log_cmd );
 
     ## send command
@@ -1796,7 +1796,7 @@ sub cube_command {
     }
 
     ## parse reply type
-    my ( $reply_type, $reply_data ) = split( /\s+/, $first_line, 2 );
+    my ( $reply_type, $reply_data ) = split( m|\s+|, $first_line, 2 );
     $reply_type //= '';
     $reply_data //= '';
 
@@ -2612,7 +2612,7 @@ sub _extract_stream_content {
     my ($text) = @ARG;
 
     ## primary: extract result field from final {"type":"result",...} line ##
-    for my $line ( split /\n/, $text ) {
+    for my $line ( split m|\n|, $text ) {
         next unless $line =~ m{^\{.*"type"\s*:\s*"result"};
         my $decoded = eval { decode_json($line) };
         next if $@;
@@ -2623,7 +2623,7 @@ sub _extract_stream_content {
     ## fallback: concatenate text from {"type":"assistant",...} message ##
     ## lines                                                            ##
     my @parts;
-    for my $line ( split /\n/, $text ) {
+    for my $line ( split m|\n|, $text ) {
         next unless $line =~ m{^\{.*"type"\s*:\s*"assistant"};
         my $decoded = eval { decode_json($line) };
         next if $@;
@@ -2882,7 +2882,7 @@ sub _list_claude_sessions {
         my $uuid  = $file;
         $uuid             =~ s{.*/}{};
         $uuid             =~ s{\.jsonl$}{};
-        next unless $uuid =~ m{^[0-9a-f\-]{36}$};
+        next unless $uuid =~ m|^[0-9a-f-]{36}$|;
 
         my $title = _extract_claude_session_title($file);
         push @sessions,
@@ -2923,7 +2923,7 @@ sub _list_kimi_sessions {
                 $mtime = int($t) if $t;
             };
             $title ||= '(no title)';
-            $title =~ s/\s+/ /g;
+            $title =~ s|\s+| |g;
             $title = substr( $title, 0, 80 )
                 . ( length($title) > 80 ? '...' : '' );
             push @sessions,
@@ -2943,7 +2943,7 @@ sub _find_session_by_id {
     my ( $session_id, $client ) = @ARG;
     return undef unless length $session_id;
 
-    my $is_full_uuid = $session_id =~ m{^[0-9a-f\-]{36}$};
+    my $is_full_uuid = $session_id =~ m|^[0-9a-f-]{36}$|;
 
     ## claude direct lookup ##
     if ( $client eq 'all' or $client eq 'claude' ) {
@@ -3002,7 +3002,7 @@ sub _find_session_by_id {
                 $mtime = int($t) if $t;
             };
             $title ||= '(no title)';
-            $title =~ s/\s+/ /g;
+            $title =~ s|\s+| |g;
             $title = substr( $title, 0, 80 )
                 . ( length($title) > 80 ? '...' : '' );
             return {
@@ -3045,7 +3045,7 @@ sub _extract_claude_session_title {
         }
         close $fh;
     }
-    $title =~ s/\s+/ /g;
+    $title =~ s|\s+| |g;
     $title = substr( $title, 0, 80 ) . ( length($title) > 80 ? '...' : '' );
     return $title || '(no title)';
 }
@@ -3122,7 +3122,7 @@ sub tool_session_catchup {
                     localtime( $entry->{'mtime'} ) );
                 push @out, sprintf "  %-5s  %s  :. %s",
                     $entry->{'client'}, $entry->{'uuid'}, $entry->{'title'};
-                $out[-1] =~ s/$/ [ $ts ]/;
+                $out[-1] =~ s|$| [ $ts ]|;
             }
             return send_tool_result( $id,
                 @out > 1 ? join( "\n", @out ) : 'no sessions found', 0 );
@@ -3200,7 +3200,7 @@ sub tool_session_catchup {
         my $cut = index( $text, "\n", length($text) - $tail_chars );
         $cut  = length($text) - $tail_chars if $cut < 0;
         $text = substr( $text, $cut );
-        $text =~ s/^\n+//;
+        $text =~ s|^\n+||;
         $truncated_note
             = sprintf "[summarized last %d chars of %d total]\n\n",
             $tail_chars, length($text) + $cut;
@@ -3209,7 +3209,7 @@ sub tool_session_catchup {
         my $cut       = index( $text, "\n", length($text) - $auto_tail );
         $cut  = length($text) - $auto_tail if $cut < 0;
         $text = substr( $text, $cut );
-        $text =~ s/^\n+//;
+        $text =~ s|^\n+||;
         $truncated_note
             = sprintf "[session was large; auto-summarized last %d chars "
             . "of %d total — use tail_chars=N to override]\n\n",
@@ -3819,7 +3819,7 @@ sub tool_external_command {
     ## claude session id extraction
     if (    not length($error)
         and $ext->{'name'} eq 'claude_dispatch'
-        and $output =~ m{"session_id"\s*:\s*"([a-f0-9\-]{36})"} ) {
+        and $output =~ m|"session_id"\s*:\s*"([a-f0-9-]{36})"| ) {
         my $session_id = $1;
         $output .= "\nTo resume this session: claude -r $session_id\n";
     }
@@ -4112,8 +4112,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,.,,..,,..,,.,.,,,,,,,.,,,,,..,,...,,,,,..,,...,...,,..,,..,..,,,..,.,,,
-#O4YOFBB2HM42FWTT7PLF3MJX6D5NGXIXKWUR55RBMXHFC5C7O3NFR3TMKOD4ESM2ZO3LYRZBDYXIO
-#\\\|HQ6HBJ6XAQ7MYO4I23UXZNYPCYZCOCPWZNW3HLG47EKBJL4ED6B \ / AMOS7 \ YOURUM ::
-#\[7]HG2FMCKUEHLJMQ3IE3KRNNORXDIAHTERN3WY3WQCEWQM45LEEWAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,,..,...,...,,..,...,,..,,..,..,,...,.,.,,,.,,,,,,.,,,,.,.,,,
+#OL3QCHPMD5TK4YL7T2MEQZMG52M73WEYFXRBDM3W4BLXOEH72MX2FAYCFYH23CQKIX4QAS5YK3BDI
+#\\\|RLVQ4O7NL5VJ4GMGEFKAKVJDZRMDOPUTHGIPKDZ4DOEMAKVTFA2 \ / AMOS7 \ YOURUM ::
+#\[7]F4NF5EU3OKIVKMPBAYLZZFNXIS75US6UAIBS5GMEDVCBT5UO2QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

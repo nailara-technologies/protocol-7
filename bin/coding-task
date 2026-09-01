@@ -3,11 +3,11 @@
 ## coding-task — submit prompt to coding zenka via p7c with base32r ##
 ## encoding                                                         ##
 ##
-## usage:  bin/coding-task "short prompt here"  bin/coding-task <
-## prompt-file.txt  echo "prompt" | bin/coding-task  bin/coding-task -file
-## task.md        ## read prompt from file bin/coding-task -wait "prompt"
-## ## wait for result (blocking) bin/coding-task                      ##
-## interactive mode with readline
+## usage:  bin/coding-task "short prompt here"  bin/coding-task <          ##
+## prompt-file.txt  echo "prompt" | bin/coding-task  bin/coding-task -file ##
+## task.md        ## read prompt from file bin/coding-task -wait "prompt"  ##
+## ## wait for result (blocking) bin/coding-task  interactive mode with    ##
+## readline                                                                ##
 
 use strict;
 use warnings;
@@ -31,11 +31,11 @@ while ( my $arg = shift @ARGV ) {
         $wait = 1;
     } elsif ( $arg eq '-template' or $arg eq '-context' ) {
         $template = shift @ARGV // die ":: -template requires a name\n";
-        $template =~ s/^:+|:+$//g;    ## strip surrounding colons if any ##
+        $template =~ s{^:+|:+$}{}g;    ## strip surrounding colons if any ##
     } elsif ( $arg eq '-model' ) {
         $model = shift @ARGV
             // die ":: -model requires an AMOS ID (e.g. WZIZD6Y:2BIZKWY)\n";
-        $model =~ s/^:+|:+$//g;
+        $model =~ s{^:+|:+$}{}g;
     } elsif ( $arg eq '-help' or $arg eq '--help' ) {
         print <<~'USAGE';
         usage: coding-task [options] [prompt]
@@ -160,8 +160,8 @@ printf ":: encoded: %d bytes → %d b32r chars\n",
 ## coding-task option only, not forwarded to p7c                           ##
 exec 'p7c', 'coding.ask-reply', "B32:$encoded";
 
-#,,,.,,,,,,.,,,.,,,,,,,.,,,,.,...,..,,,,,,,,.,.,.,...,...,..,,,,.,..,,...,,..,
-#BTWVPJQCZLZWZAF6MOPOKGMTJCAA57ISMH6H3HIS6OCZ5CUZ2UO7UOD5Z7G7YVWTVBF4CWRPEFUQE
-#\\\|AA3CN7LDFEFK3BFYNMXRDVUBN7JWJLVMABMSHCHE46XQ7GWZXXT \ / AMOS7 \ YOURUM ::
-#\[7]OVFPNKXWIK6BP7QAUTG3VMSMFT4WKWHJ62MLYHFK7N2GUC3T4IAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,...,.,,,,.,,,,,,...,.,.,.,,,.,.,...,...,..,,..,,.,.,,,.,,.,,
+#C4PA3O72EUBRN4RAGJ6N6EWOAGXPCG2NAMGMT2O7BO47XWWWUPFIB3AYH7VQSDHT527EVRKRY6UHY
+#\\\|5MPGKKOXTZ7OC7RAQ7SOATZPYNOM52X6CJDVPP6VJQKTJFISN34 \ / AMOS7 \ YOURUM ::
+#\[7]6B6UTCQ4ZB7LUUIO6OQXS4KVJZJL52X5Q22TFVG76QVHA6THYUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

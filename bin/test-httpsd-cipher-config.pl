@@ -74,7 +74,7 @@ print "  Key Types: " . join( ', ', @{ $profile->{key_types} } ) . "\n";
 my @firefox_safe
     = ( 'ECDHE-ECDSA-AES256-GCM-SHA384', 'ECDHE-RSA-AES256-GCM-SHA384' );
 my $suite       = $profile->{cipher_suite};
-my $has_firefox = grep { $suite =~ /\Q$_\E/ } @firefox_safe;
+my $has_firefox = grep { $suite =~ m|\Q$_\E| } @firefox_safe;
 if ($has_firefox) {
     print "  ✅ Contains Firefox-safe ciphers\n";
 } else {
@@ -87,8 +87,8 @@ print "Test 4: Security Analysis\n";
 foreach my $name (qw(firefox_compatible high_security)) {
     my $p         = $load_profile->($name);
     my $has_tls13 = grep { $_ eq 'TLSv1_3' } @{ $p->{tls_versions} };
-    my $has_old   = grep {/TLSv1\.0|SSLv/} @{ $p->{tls_versions} };
-    my $has_weak  = $p->{cipher_suite} =~ /RC4|DES|MD5|NULL/ ? 1 : 0;
+    my $has_old   = grep {m{TLSv1\.0|SSLv}} @{ $p->{tls_versions} };
+    my $has_weak  = $p->{cipher_suite} =~ m{RC4|DES|MD5|NULL} ? 1 : 0;
 
     printf( "  %s:\n", $name );
     print "    - TLS 1.3 support: " .  ( $has_tls13 ? '✅' : '❌' ) . "\n";
@@ -128,8 +128,8 @@ print "╔═══════════════════════�
 print "║  ✅ All tests passed - ready for deployment               ║\n";
 print "╚════════════════════════════════════════════════════════════╝\n";
 
-#,,.,,.,,,,,.,.,,,...,,..,.,,,,,,,,.,,...,.,,,..,,...,...,.,,,...,,.,,.,.,,,.,
-#H2W6MDRRHGPPPFHXIABLEHHHKGEVA4ENV3FMO4M4NQLWBZNYVEXPS4IKB4HTC5GKME2C7KEK5JUAS
-#\\\|FKDNSSUL7NHHFCI6Y5RNESBL4ESW4F5C7WWCOBEKU2SFLN5R3ZG \ / AMOS7 \ YOURUM ::
-#\[7]FEUMOLFY6TMK4YBD7UUHPAHZVGAAOEQZLX2IMVJROO3BIIK3C2AQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,,..,,.,,,..,,,.,.,.,,,,,.,.,..,,...,...,.,,,.,.,,,,,,,,,.,.,
+#5HX6U6HGHM6H4WBG6CEXACFRMSXQUSH645FEVMHNDWM7YJJXFL4KW656RSPSJDDIPTXVWQWKOEXX2
+#\\\|K5QLKZBBZ7I6R7MO55LV6W22OG6TIIBMCZUI3MY4D2MWGH2GJ5H \ / AMOS7 \ YOURUM ::
+#\[7]NGMUYYOIFKWHIVXVMVZKOG6SJQWWHNUQWDV3QRTD4PBQCDFYC6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
