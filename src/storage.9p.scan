@@ -149,9 +149,8 @@ if ( $start_fid != $conn->{root_fid} ) {
 ## cap results if caller requested a limit [ pager.source.9p batching ] ##
 splice( @results, $max_results ) if $max_results and @results > $max_results;
 
-<[base.logs]>
-    ->(   "Storage 9P scan: $stats->{scanned} scanned, $stats->{matched} "
-        . "matched, $stats->{rejected} rejected" );
+<[base.logs]>->( "Storage 9P scan: $stats->{scanned} scanned, "
+        . "$stats->{matched} matched, $stats->{rejected} rejected" );
 
 return {
     'mode'  => 'true',
@@ -159,8 +158,8 @@ return {
     'stats' => $stats,
 };
 
-#,,.,,.,,,...,.,.,,.,,,,.,,,.,...,.,.,,,,,.,.,.,.,...,...,...,...,,.,,,..,,.,,
-#W3MCTH4KHRBMPD436G3UJPLILNHZTUT2MXXEB4TTOJYSPRLPFZKKKBMC6ELBY424DERZUP6BYZCZ4
-#\\\|KVKAXGD5QONMZGNXKXHCXZG5URSOVRF7W2O62LVDGUIUWCOANAT \ / AMOS7 \ YOURUM ::
-#\[7]7L5KT264VTRNT4LMWU3NGEK6JP5GK3S6KPKEFRCERXTHM3VPB6DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,..,,,.,,,,.,..,,,..,,,.,...,.,.,...,...,,..,...,.,.,.,.,..,,
+#RHRPHMEVKEWKWHNDKR4S7GZJMUZRDQPET5RV72MJUDBVQQJ7HIZDEPC4JAUT5YPWOR3APPW3RNFH2
+#\\\|3GEH5MFMNCJDXPP3CX62TQAKQHTFUP4HBOENODONQNORXY67JEG \ / AMOS7 \ YOURUM ::
+#\[7]6F2XCS7HXWJDJK4LSAD5K2RVSXWQWEWPU7NF6APP42V5FIXUTYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

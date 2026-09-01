@@ -12,7 +12,9 @@ my $pid     = $process->{'pid'};
 <mpv.pipe.buffer> //= '';
 if ( defined $read_fh ) {
     ## needs 'safer' read method [read len] [ LLL ]
-    $bytes = <[base.s_read]>->( $read_fh, \<mpv.pipe.buffer>, 16 * 1024 )
+    $bytes
+        = <[base.s_read]>->( $read_fh, \$data{'mpv'}{'pipe'}{'buffer'},
+        16 * 1024 )
         // 0;
 }
 
@@ -117,8 +119,8 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     <[base.logs]>->( $log_level, '< mpv > %s', $output_line );
 }
 
-#,,..,,,.,...,,,,,.,,,.,,,,..,...,.,,,,,.,.,,,..,,...,...,,.,,.,,,,,.,.,,,...,
-#CZKAWU4BH6KB57DVRN5MLHL4NV6TRBN74LTIOTC6BC5ET6VELISSQWFNV274LXVY6443TNLFXU2FY
-#\\\|JMVQ3QC4Y6PRXVMJUG2QUPI3AZGJXLPW2LR7TCQRQMHYC3I4KMA \ / AMOS7 \ YOURUM ::
-#\[7]5OQQ2W2UV2KTTCTS3AWUENJ4WEALVAVSS72DSUMF3LKXCQ5ZHGDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,,,,.,,,...,..,,.,.,...,,,,,..,,...,...,.,.,...,,,,,,..,..,,
+#22BEXHIFJICWRJPEMZCDDLTRJRXF3WZFRBYZTL3I6VGURJK74DKEZUB633LENVI6BQHFAZXHZCSWE
+#\\\|UBZ3AWFXEC6HMGTWHPCX472J4ZCMJ25NM265QZSHUIJEXFCPRVF \ / AMOS7 \ YOURUM ::
+#\[7]NB4K2UG2IMG6KCOI4NTBNILYEIA6FNKIBZL5E7Q3P4H32ZVPNQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

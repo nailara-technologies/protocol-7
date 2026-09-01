@@ -137,14 +137,9 @@ if ( not defined $written ) {
 
 ## write response .meta file inside timestamp directory ##
 my $meta_content
-    = "model=$model\n"
-    . "temperature=$temp\n"
-    . "finish_reason=$finish\n"
-    . "timestamp=$now\n"
-    . "ntime=$ntime\n"
-    . "response_B32=$response_B32\n"
-    . "response_L13=$response_L13\n"
-    . "response_len="
+    = "model=$model\ntemperature=$temp\nfinish_reason=$finish\ntimestamp=$now"
+    . "\nntime=$ntime\nresponse_B32=$response_B32\nresponse_L13="
+    . "$response_L13\nresponse_len="
     . length($response) . "\n";
 $meta_content .= "tags=" . join( ',', $tags->@* ) . "\n" if $tags->@*;
 
@@ -237,8 +232,8 @@ return {
     }
 };
 
-#,,,.,,,.,.,.,,.,,,.,,.,,,,,,,.,.,,,,,.,.,,.,,.,.,...,...,,..,,,,,,,,,,.,,.,,,
-#QWXDSMEKZSCE5DDQ577YAJ7DHYIG6LAQ2PS6KQKQ2WIX6QUOCJKHSSZ64QLWN4RGCNH7UFXYNUYAI
-#\\\|RQLERZNVOVVOIZZAJH7FCIJHM2SRHJL5LU5HM6WSZXIDJOQK2PD \ / AMOS7 \ YOURUM ::
-#\[7]Y5ZCUELNZNTGSHRGDI5LZTY3XZ42TIBTRM25PQO2JZABLOYAYSAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,.,,,,,,,..,,.,,,.,.,..,,.,,,.,.,...,...,.,,,,..,.,.,,..,,..,
+#IFCQDXSMF4G2DULJWWOLLQGMZRLNK5WFXKQNJO5FUUYJFRTIRVSZV5PWFKJ2TNBLPYKHSTXYE4XCW
+#\\\|4TLWVREUMEEF3SUSI7VHR2SERJBNDKVBFG6NBECBJ6QVNDGJD6E \ / AMOS7 \ YOURUM ::
+#\[7]BLLPTBNZR25L4NC5GNXUFBLTHQQM2TN6W26QPMMEKTLSNZUDVYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -70,8 +70,10 @@ if ( exists $request->{'range'} ) {
             $end   = $ranges[$part_id]->{'end'};
             $start = $ranges[$part_id]->{'start'};
             my $part_header = $part_id++ ? "\n" : '';
-            $part_header .= "--$boundary\nContent-Type: $content_type\n"
-                . "Content-Range: bytes $start-$end/$file_size\n\n";
+            $part_header
+                .= "--$boundary\nContent-Type: "
+                . "$content_type\nContent-Range: bytes "
+                . "$start-$end/$file_size\n\n";
             $ARG->{'part_header'} = $part_header;
             $ARG->{'part_size'}   = 1 + ( $end - $start );
             $content_size += length($part_header);
@@ -152,8 +154,8 @@ $session->{'watcher'}->{'download_handler'}->now;
 
 return 0;
 
-#,,,.,...,,..,,..,.,.,.,.,,.,,,,,,,..,,,,,.,,,..,,...,...,...,,,.,...,,..,,,.,
-#LXZ376PQMN7H3HIL4TDTS7ZSGCB5A33LPUQAEDV7JPRH2PXTGTDS3GDN6KTKP6HPASLBSUTZLNUEI
-#\\\|2ODNJNVSR5ZC3Y7IHMYX55DNOPI4GXHRWRNE7STJZE2ZKNKW4UX \ / AMOS7 \ YOURUM ::
-#\[7]SHIFYF7BWP3EVYTL6VHOEXP6RFGMT6Q3D7DPEIT2SHKKQD3CLSAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,.,,,,..,,,,,,,.,..,,...,,,.,..,,...,...,..,,,.,,,.,,.,,,,,,,
+#CSYGBBF2NHILODXZQPG22YXNRLUE7UPMIDT4F7PNK7XVNHJJHGAJALYRXAYB5MTNHEK3B3KF45MYU
+#\\\|N2DMZ7ZD7ROF73R4XBPYRTCWRHQLKNE7UY24BFXSZYQAQ5SI6GW \ / AMOS7 \ YOURUM ::
+#\[7]BUM2G2GDHCJRK53AB7FWE6AFLXKXQXNS7KJ2OKY4YADYCUGYQ2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

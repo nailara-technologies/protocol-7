@@ -15,8 +15,8 @@ die 'video file not found!' if !-f $video_path;
 my $ffmpeg_cmd_line
     = <ffmpeg.path.ffprobe_bin>
     . " -v error -count_frames -select_streams v:0 -show_entries "
-    . "stream=nb_read_frames -of "
-    . "default=nokey=1:noprint_wrappers=1 $video_path 2>/dev/null";
+    . "stream=nb_read_frames -of default=nokey=1:noprint_wrappers=1 "
+    . "$video_path 2>/dev/null";
 
 chomp( my $output_str = qx($ffmpeg_cmd_line) );
 my $frame_count = $output_str =~ m|^(\d+)$|m ? $1 : undef;
@@ -31,8 +31,8 @@ if ( defined $frame_count ) {
 
 return $frame_count;
 
-#,,,.,,,,,...,.,.,.,.,,,,,,,.,...,,..,,,,,..,,..,,...,...,.,.,.,,,..,,..,,,.,,
-#BTHBCAXVQTWVSI43O7GOLS4RCJM7LS6HDXNBM4PV6S3WOTJVWJUAUHZXLSHUXWXATXH6XLM7VG7BQ
-#\\\|BK33KWMSQMQWSIIJWOEHI7T4MV3XRK53KMPGOSBBBYEJ2XVZI4S \ / AMOS7 \ YOURUM ::
-#\[7]3JUYFEH3GEB7NZCIIA6DKZWVHPTS5GXZQIZSETDMHY7O5WSGLGDY 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,.,,,.,.,..,,,.,,.,.,,,.,..,,..,,...,.,,,...,..,,..,,,,,,.,,,
+#GEGADD7UCE66MXZOWMLZRJVKUOZ4V4PUN6YNTFAM7TZ7AOI7QWXLYZRUTFKWBOKNZDZNKF2GPU466
+#\\\|QOLXBHJM3YWVLCITZ6BQ5THPLBL2WBNVCY6HFGBUKCBVNNS72AQ \ / AMOS7 \ YOURUM ::
+#\[7]V3TEVCJUFBAYZGXLTOY2R4EZ765BMBX5KDF3TZASMKLVITG3UGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
