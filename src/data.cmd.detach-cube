@@ -17,14 +17,14 @@ return {
 $mountpoint =~ s|/+$|| if length($mountpoint) > 1;
 
 ## check if mount exists in registry ##
-if ( !exists <data.fuse.mounts> {$mountpoint} ) {
+if ( !exists <data.fuse.mounts>->{$mountpoint} ) {
     return {
         'mode' => qw| false |,
         'data' => "no active mount found at '$mountpoint'"
     };
 }
 
-my $mount_info = <data.fuse.mounts> {$mountpoint};
+my $mount_info = <data.fuse.mounts>->{$mountpoint};
 my $pid        = $mount_info->{'pid'};
 
 ## try graceful unmount via fusermount ##
@@ -55,7 +55,7 @@ if ( defined $pid && kill( 0, $pid ) ) {
 }
 
 ## remove from registry ##
-delete <data.fuse.mounts> {$mountpoint};
+delete <data.fuse.mounts>->{$mountpoint};
 
 ## clean up child_pids array ##
 <data.fuse.child_pids> = [ grep { $_ != $pid } <data.fuse.child_pids>->@* ];
@@ -71,8 +71,8 @@ return {
     )
 };
 
-#,,.,,..,,..,,,,.,.,.,..,,,..,,.,,,,,,.,,,.,,,..,,...,..,,.,,,,,.,..,,.,.,,.,,
-#6X7GC6TLGHHBG7EU2OOBLTEABO2CFUHY6MZZA25YNHEBD73FNF5NVGNOLH7FZ54MEBRLZBDWOG4OW
-#\\\|3O4KIGPB6JZZIDZE3S5D5G2CIFOMZ7SQKB3IYRSKKF5QBJS2WER \ / AMOS7 \ YOURUM ::
-#\[7]WNOUGKL543HDLFZS6G57P2UY5HIGCNTRNIATCEUCD5D43PXDEYAA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,..,,.,,,,..,,,.,,.,,...,...,,,,,..,,...,...,,,,,,..,,.,,,,,,...,
+#CDUJ7XTNH6USPOREBCGRLCGR5M357TBREITM4RHPFRZBNL2OBXCEHVBIAGMYSRFVHEZWNPBW5RCVE
+#\\\|QOMLJJSCMGJKDMUUFE7BJ43QKXR2XFPSKJ3KJ6IWVYHXRBZYG3L \ / AMOS7 \ YOURUM ::
+#\[7]4QZZT5GER2GAIRYK4PROKPSRD6DDPXAW7XNSDFFUEFCIUXQSKEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

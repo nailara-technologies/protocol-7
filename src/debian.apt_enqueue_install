@@ -19,9 +19,9 @@ if ( not defined <debian.apt_child.w_fh> ) {
 ## concurrent installs and interleave commands on the child's stdin,        ##
 ## corrupting the line protocol ] - this queue is pumped manually by        ##
 ## debian.apt_pump, one install in flight at a time                         ##
-if ( not exists <jobqueue.joblist> {'apt-install'} ) {
-    <jobqueue.joblist>       {'apt-install'} = <[jobqueue.queue_template]>;
-    <jobqueue.joblist.count> {'apt-install'} = 0;
+if ( not exists <jobqueue.joblist.apt-install> ) {
+    <jobqueue.joblist.apt-install> = <[jobqueue.queue_template]>;
+    <jobqueue.joblist.count>->{'apt-install'} = 0;
 }
 
 my $job_id = <[jobqueue.add_job]>->(
@@ -49,8 +49,8 @@ my $job_id = <[jobqueue.add_job]>->(
 
 return $job_id;
 
-#,,,.,.,,,...,,..,,.,,,,,,.,.,,,.,..,,.,.,.,,,..,,...,...,...,...,,,,,,.,,,.,,
-#MUFBZCJX7QO7VPEH2WNK2IKQLZVTUIGPTGKQPXWJLSPJPHM7KM2EWHMOYBYNWXLRY2WTSCGCNCV56
-#\\\|B7XNYOS5TSESEM6A2E6L6ZTGERN3QNT5NSDXQPGLVPCZYLDOJYP \ / AMOS7 \ YOURUM ::
-#\[7]7OSBAHGZWGYMTVAZ66DUGECCNE4SZJ2Y5NIJHSNATJ3RB4LENSCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,.,.,,,,,..,,..,,.,,,..,,.,.,..,,...,...,,..,.,.,..,,,..,,,,,
+#3KGP5MHCRS7XTZWLVJEW5QRSZN6KECBCH7PKX4TNFGHVIXRJNHOU6JLRIUP55X6APYNMNT36J3QG2
+#\\\|264ISGYKXQUKAS3SEZRCFUE5PCHAIHICCEMYXD7OTEFFA5CTHTO \ / AMOS7 \ YOURUM ::
+#\[7]NF4QZUASXZESTMRCPNNOWBGYKUIIE4ZPQMU7LSOFS266N2UDXCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

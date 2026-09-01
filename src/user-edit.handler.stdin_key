@@ -150,7 +150,7 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     if ( defined $active_plugin_field ) {
 
         my $plugin_name
-            = <user-edit.plugin.registry> {'by_key'}{$active_plugin_field};
+            = <user-edit.plugin.registry.by_key>->{$active_plugin_field};
         my $handler_sub = sprintf( qw| %s.handler.key |, $plugin_name // '' );
 
         if ( $key eq "\e[D" or $key eq "\x1b[D" ) {    ## Left ##
@@ -327,11 +327,10 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
     if (    ref $focus_def eq qw| HASH |
         and defined $focus_def->{'plugin'}
-        and exists <user-edit.plugin.registry> {'by_key'}{
-            $focus_def->{'name'} // ''
-        } and ( $key eq "\e[C" or $key eq "\x1b[C" )
-        and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty )
-    ) {
+        and exists
+        <user-edit.plugin.registry.by_key>->{ $focus_def->{'name'} // '' }
+        and ( $key eq "\e[C" or $key eq "\x1b[C" )
+        and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty ) ) {
 
         <[base.logs]>->(
             2, ': entering plugin mode [ %s ]',
@@ -560,8 +559,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,,..,,,.,,.,,..,,...,,,.,.,.,..,,..,,.,.,..,,...,.,.,.,,,.,.,...,,,,,..,,
-#MIGVMEDN7F4QDWJPRQPLW73W6W3Z3BXGQ7WSKI5YTF45YXGAEI5ZA4AG3G7E7MHX3TYPG2Y6JZ2MC
-#\\\|23AT7VOZKPFDBDFQMXMOIFEETYSWMALB7ZSTPLCOEY6H2TRCA4J \ / AMOS7 \ YOURUM ::
-#\[7]ZRAB6Q2QDVRWLWRV46WVXGU5NAFPAKLSTMQZWTPNRLD35SCXGOBY 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,..,,.,.,..,,,..,.,,,.,.,,..,..,,...,..,,..,,..,,...,.,,,,..,
+#Z3OLVXA3E4JDSBVZXKEKGLSWQVVWWF2ARGEI2UFJOL2G4U2S7LJ7H7PVURUPTPJEBDDPJR3OG2F66
+#\\\|AYY5CN3B3AXVQALKXXPNEIFS6IAQXYOXC2CPKVFUA7TYLGCO6EY \ / AMOS7 \ YOURUM ::
+#\[7]EOXLKF674QOHO4SO5PH5LIL76IRLBFXFSQAT6PJTL577SHZFJGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

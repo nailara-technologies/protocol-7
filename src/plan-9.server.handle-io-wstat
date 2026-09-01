@@ -44,7 +44,7 @@ if ( length $stat->{name} ) {
     ## the rename, matching real 9P semantics                               ##
     if ( exists <plan-9.server.realpath_qids>->{ $f->{realpath} } ) {
         <plan-9.server.realpath_qids>->{$new_path}
-            = delete <plan-9.server.realpath_qids> { $f->{realpath} };
+            = delete <plan-9.server.realpath_qids>->{ $f->{realpath} };
     }
 
     $f->{realpath} = $new_path;
@@ -63,8 +63,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, ''
 );
 
-#,,,.,.,.,.,.,,,,,..,,,.,,,,.,.,.,.,,,,,.,.,.,..,,...,...,,..,,..,.,.,...,.,.,
-#CLAABIG5U22ASWLU75HXRZQG6MXSK5IJO3APOZDPKFQUXB6Z5IJ3XEZBZDJPP52ZRQXH64YTC6D44
-#\\\|73IWKATNYNCVWSC22UMCKCS2HETPL3WUF25FMD5MS4G26NYDFTB \ / AMOS7 \ YOURUM ::
-#\[7]F57PL4ODZDOAYFKUTDSMKJYZDWDM7P6UQSEI3AKZC3LYKZKAV2AI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,...,,,.,.,.,.,.,,..,,..,.,.,..,,...,...,...,.,.,.,,,.,.,..,,
+#6P5WOGA6AOG2XSDECVR7LIDM3GZHYZGBVWPRBR3L3CBWIMPADUAROQZCWM3DR32YD5SSDSX2JGMVU
+#\\\|JXCRO7OI25FWH2HMF7GENKJG7RYBBN4BR2Y5OBTFHA4IS5YXMNX \ / AMOS7 \ YOURUM ::
+#\[7]JVG7RGKBHBKYPIFU4FSXGODDRAF5777LZXLGALOSBC56M4J4FMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

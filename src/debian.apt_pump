@@ -11,7 +11,7 @@ while ( not defined <debian.apt_child.current_job> ) {
 
     return if not defined <debian.apt_child.w_fh>;
 
-    return if not exists <jobqueue.joblist> {'apt-install'};
+    return if not exists <jobqueue.joblist.apt-install>;
 
     my ( $job_id, $job_data )
         = <[jobqueue.get_next_job]>->(qw| apt-install |);
@@ -33,8 +33,8 @@ while ( not defined <debian.apt_child.current_job> ) {
 
 return;
 
-#,,,.,,..,,..,,..,.,,,..,,..,,,..,.,,,,,.,,.,,..,,...,.,,,,..,.,.,...,,,.,.,,,
-#75OWS5QLIGS6G75NVMLZ6SFSGU6GQENTLDKCIRAB3F7YSO5SDMNSNKRP7AOIOUWJWFFKZXDBCUGEG
-#\\\|RXE6PP7NGPJTPAL5D5USUU7YPT47J5HXQ35FRHNFZBXMR6SRVXD \ / AMOS7 \ YOURUM ::
-#\[7]PNPY7DE4XP2VMXIVD6H3UGRWIOGT5XJZASSK32ZI5TM7CF6RMWCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,,,,..,,..,,,,,,,,,.,.,.,.,..,,..,,...,...,.,.,.,.,,,,,.,.,.,.,
+#53M2GJWX6XN5SZXJHMOUEQZ36TXTV75V5UXXTZ77RT34VJQTWBY3ZELYAYID43VJYF4I7BVCBQUCA
+#\\\|3E5Y2P65DYXPVJ4NTOKB4OKVVFV3QG7QR37OAJ5IYZE4BTVUWZL \ / AMOS7 \ YOURUM ::
+#\[7]LNSGQASBUZW75MW4J6SODPT6PVFWMY3OQL5RAZ5PDVWAGFZE5WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
