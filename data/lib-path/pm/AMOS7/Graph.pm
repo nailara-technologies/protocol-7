@@ -74,7 +74,7 @@ sub adjacency_to_graph {
 
     my %graph;
 
-    for my $line ( split m|\n|, $text ) {
+    for my $line ( split "\n", $text ) {
         next if not length $line;
         next if $line =~ m|^#|;     ##  header comments  ##
 
@@ -104,8 +104,8 @@ sub _sort_nodes {
 
 return TRUE;    ##  truth  ##
 
-#,,,,,,.,,.,,,,,,,,.,,..,,,..,,,.,,,.,..,,...,.,.,...,...,.,,,.,,,,..,,..,..,,
-#CHZYJIQTME5Y4U7NCDNRFSGR7D5I4C2B6KVW5YJXWHYICQS44FOBZIRZRQL4NELX6EUKCCUKARPQC
-#\\\|DHBEIRN5IRNV5R6XV2FTR2SISZ7TD45NEDIP5IN4AXVTUPBUPML \ / AMOS7 \ YOURUM ::
-#\[7]P7D4OBWKWAX7KA45BMGXPA3XWPJCODCULDFEAFJCXDAHVXZ6ZKAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,,.,,..,,,..,.,,,,..,,,.,,.,,.,.,...,...,.,,,,..,.,,,,..,,.,,
+#QPNBVV56JDICEDSNEEC3PMOISZCPIVJVORP5MBSXQDQ3AZBPMUBD36NDPG5C7MJJIZ6X7E7OQKNDK
+#\\\|RQFVVO6RMIWEIRI4OGQG7OOJTXUGRNR3ANWU6XDR7KXCCRI47FF \ / AMOS7 \ YOURUM ::
+#\[7]QS2MDC764CMHUWF2ALPUNSQ3DZU6HGBX4RJXYJMAXLOUAHJKR2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

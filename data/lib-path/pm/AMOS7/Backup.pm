@@ -96,9 +96,9 @@ sub create_dir {
     my $parent_dir;
     my $new_dir;
 
-    $full_path =~ s/\/$//;
+    $full_path =~ s|/$||;
 
-    if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
+    if ( $full_path =~ m|^(.+)/([^/]+)$| ) {
         ( $parent_dir, $new_dir ) = ( $1, $2 );
     } else {
         die ":: create_dir() : directory argument "
@@ -331,7 +331,7 @@ sub load_metadata {
 
         # find the actual path of the metadata file in the archive
         foreach my $archive_content_file (
-            sort( split( /\n/, $archive_content ) ) ) {
+            sort( split( m|\n|, $archive_content ) ) ) {
             if ( $archive_content_file =~ m|$metadata_filename$| ) {
                 $metadata_filename = $archive_content_file;
                 last;
@@ -391,7 +391,7 @@ sub pack_backup {
         or die ":: cannot change back to $current_dir : \l$OS_ERROR ::\n";
 
     if ($verbose) {
-        my $line_count = split( /\n/, $pack_results );
+        my $line_count = split( m|\n|, $pack_results );
         print ":: packed $line_count items ::\n\n";
     }
 
@@ -507,7 +507,7 @@ sub restore_backup {
 
     # Determine archive type and extract
     my $extract_cmd
-        = $backup_file =~ /\.tar\.xz$/
+        = $backup_file =~ m|\.tar\.xz$|
         ? "cd $temp_dir && tar -xJf $backup_file"
         : "cd $temp_dir && tar -xzf $backup_file";
 
@@ -554,8 +554,8 @@ sub _add_path {
 
 1;
 
-#,,.,,,,,,...,...,.,.,,..,.,,,,..,,,.,,..,,,.,..,,...,...,,..,,..,...,.,,,.,,,
-#FXUEAGRMCA44V34T5OZKU2DQPIB7SXRX45CWO5OU6RFJVZZCVFT4K5LGALASI3SUAHBAYOLWBUS62
-#\\\|ATJVFESOQWILRFUY6MR22XHK4ZQKZAQ5TMZETZIU3DGDRI3HDEV \ / AMOS7 \ YOURUM ::
-#\[7]ROS4IAGOGABWUUG2WUHJUCP6HYPIWSFGMHRPF4F26LTYIK4ETECY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,.,.,.,,,...,.,,,..,,...,...,..,,...,...,.,.,,.,,,,,,...,..,,
+#E2GRS6QMY5RSE4V5KO2N6ZZ3SEOJC2TT6QABEMMA7RLV5M2A2ZFTGCQH4PDG7DULIPNS22UFJ4344
+#\\\|5T6HCEGTSZIQEMXN67KVWTJCLESCSI4LBTU4X5T2CR7UHTUPVNE \ / AMOS7 \ YOURUM ::
+#\[7]HJ3QHCJW4ZOCPEQYJ4EPRSYDC3O3Z2WA5C7JHPAE6H5SSWFIYYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
