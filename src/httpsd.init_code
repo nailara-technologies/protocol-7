@@ -88,8 +88,8 @@ if ( defined <https.handler.get> ) {
 
 # httpsd-specific TLS configuration [added to httpd config]
 <httpsd.cfg.tls_version>  //= qw| TLSv1_3:TLSv1_2 |;
-<httpsd.cfg.cipher_suite> //= 'ECDHE-RSA-AES256-GCM-SHA384:'
-    . 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305';
+<httpsd.cfg.cipher_suite> //= 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128'
+    . '-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305';
 <httpsd.cfg.certificate_path>        //= '/etc/protocol-7/certs/default.pem';
 <httpsd.cfg.key_path>                //= '/etc/protocol-7/certs/default.key';
 <httpsd.cfg.hsts_max_age>            //= 31536000;
@@ -195,8 +195,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,,.,,..,,,,,..,,,,,,,.,,,.,,,,,,,,,,.,.,.,,,..,,...,...,..,,,.,,,..,.,,,,,.,
-#GHLCUDSWGFDV75EXUXLO7NBP3SWXDGUIKRSH2II3TYZCEYPYPMJV35SJ6Y67ZVPXRMA3TAE5NMSYG
-#\\\|JPFDLW3CILETX2AG2TDJEPRP5KB76UVXN4JFUX7JFBO6U3NP45I \ / AMOS7 \ YOURUM ::
-#\[7]V5QQCRHQBVD7TZWSYWCYWOY3NHG2QEAG2T6LR6UBJBOZALKMZICI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,,,,,,,,,.,,,...,,,.,...,,..,..,,...,...,,,.,.,.,.,.,,,,,,,,,
+#DR6BIOKZUYFFQLUFLRJRV4TISJKXQWBBTAIM7J6RCT3KJV34WWAEKFHYD2EZN36PRZM5FDJH2JCOO
+#\\\|LESK5VCZK5JSHLRF2YIKPOVTV3QNHJCRCBJKKR6DGEP2LAOS2F3 \ / AMOS7 \ YOURUM ::
+#\[7]MVJFMA2UELSXOKC6NGC3IJGWZGEPJMGQNYM5GM443BARX2KTO2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

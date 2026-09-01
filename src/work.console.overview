@@ -100,10 +100,9 @@ if ( $todo_stats && ref $todo_stats eq qw| HASH | ) {
     my $completed   = $todo_stats->{completed}   // 0;
 
     if ( $total > 0 ) {
-        say "${blacklight}│$reset  Todos: ${neon_orange}$open "
-            . "open$reset, ${neon_green}$completed "
-            . "completed$reset, ${dim_blue}$in_progress in "
-            . "progress$reset";
+        say "${blacklight}│$reset  Todos: ${neon_orange}$open open$reset, "
+            . "${neon_green}$completed completed$reset, "
+            . "${dim_blue}$in_progress in progress$reset";
     } else {
         say "${blacklight}│$reset  ${dim_blue}No todos tracked$reset";
     }
@@ -131,8 +130,8 @@ if (@$essential_missing) {
     foreach my $dep (@$essential_missing) {
         my $name    = $dep->{name};
         my $install = $dep->{install} // '';
-        say "${blacklight}│$reset "
-            . " ${neon_red}✗$reset ${neon_orange}$name$reset";
+        say "${blacklight}│$reset  ${neon_red}✗$reset "
+            . "${neon_orange}$name$reset";
         if ($install) {
             say "${blacklight}│$reset    ${dim_blue}Install: $install$reset";
         }
@@ -145,8 +144,8 @@ if (@$essential_missing) {
     say "${blacklight}│$reset";
     my $total     = $dep_status->{total_tracked};
     my $installed = $dep_status->{total_installed};
-    say "${blacklight}│$reset  ${neon_green}✓$reset "
-        . "Dependencies: ${neon_green}$installed$reset / $total tracked";
+    say "${blacklight}│$reset  ${neon_green}✓$reset Dependencies: "
+        . "${neon_green}$installed$reset / $total tracked";
 }
 
 ## Section 5: Modified Files Detail ##
@@ -244,21 +243,21 @@ if (@formatted_suggestions) {
 }
 
 say '';
-say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    . "━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    . "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
 say '';
 say "  ${dim_blue}Tip: Use ${neon_orange}-nc${dim_blue} "
     . "flag for plain text output (no colors)$reset";
-say "  ${dim_blue}New session? See"
-    . " ${neon_orange}SESSION-START-HERE.md${dim_blue}"
-    . " and ${neon_orange}data/yaml/project-context/"
-    . "next-session-start.yaml$reset";
+say "  ${dim_blue}New session? See "
+    . "${neon_orange}SESSION-START-HERE.md${dim_blue} and "
+    . "${neon_orange}data/yaml/project-context/next-session-start.yaml"
+    . "$reset";
 say '';
 
 return FALSE;
 
-#,,..,...,.,.,..,,,,.,.,.,,,,,,,,,.,.,.,,,.,,,..,,...,..,,.,,,,,,,,,.,,.,,...,
-#7CTJVI6I5GU2N5EKRSZLQ4BAPP4H4WDVGGVEIPPXL5WXTWHGTNPEJOW6SHQXQOEAIOBRKXJ2HYMPG
-#\\\|DY7AWPFE7DN4UKEPLHCMKF7XJWMKABCNHL7ZWZHIY5MLJIUBV55 \ / AMOS7 \ YOURUM ::
-#\[7]MGIZLSJZ5W7M75KGOS3QW6E47XB2WGZEEFPRRMK5YXL7K7GIJKDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,,,.,.,,,.,.,.,.,..,,,,.,.,,,..,,...,..,,...,..,,,.,,..,,...,
+#GPFKFVNOO6SJEUVLSC2NHVAE6RMXFC4B4PY53WQUKEOYLXIMYMNNPHUG4PTGNHWOTBF5GA26J7PZ2
+#\\\|NPBVRPE5LA3HEYL4RYLDPNXHHUE6AYNPRJZOUKTODTZ7NDPYTII \ / AMOS7 \ YOURUM ::
+#\[7]N2P5GNITDYLYQY2S4YV4B35BDWYPNR5MZWKWTBZ3V4PORBW73UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

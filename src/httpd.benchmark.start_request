@@ -32,15 +32,15 @@ my $metrics = {
 # Log start of request if debugging enabled
 <[base.log]>->(
     3,
-    "Request $request_id started: "
-        . "$metrics->{'request_data'}->{'method'} $metrics->{'request_data'}->{'uri'} "
-        . "from $metrics->{'request_data'}->{'client_ip'}"
+    "Request $request_id started: $metrics->{'request_data'}->{'method'} "
+        . "$metrics->{'request_data'}->{'uri'} from "
+        . "$metrics->{'request_data'}->{'client_ip'}"
 ) if <httpd.benchmark.debug>;
 
 return $metrics;
 
-#,,.,,,,,,,.,,.,.,...,,..,,,,,,,.,,,.,.,.,,,,,..,,...,...,..,,,,.,...,.,.,,,,,
-#2HTHORC54GLBUECSN7FILXTFGK5LJ7SGQWQTFB6YIMTX7MYPUCYVUF27YGNJDUSUYGI446E365IMO
-#\\\|WLUQK73UM3RZYS46YHZEQRFSJ7GEQZ6GVAR4LQDPMQJSDGQNGXV \ / AMOS7 \ YOURUM ::
-#\[7]2FLFH64PWWNBXKU5UKAM4AN56NGK2XFG7225WFGF45XOKWQF6ABQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,.,.,..,,,,.,,..,..,,.,,,..,,..,,...,...,...,.,,,,..,.,.,,,,,
+#JIC5HYP4PTI7VQQ6TFKPN3VEIKBYRRSCBOKODOOPUPMR375EYAOA5C4CXIAOEZBIPP25YTWMXHFT6
+#\\\|PR2CGN3AKA4X2GMDY4M4MYVPPKF4GF55SWPRRXWN3GD5OIQESRM \ / AMOS7 \ YOURUM ::
+#\[7]5FPJSTAJU6FB7UOYXNF7HKGP3SJ56BTVJPVHMBWS2LO4G5FLBGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

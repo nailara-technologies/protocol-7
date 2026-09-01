@@ -8,7 +8,7 @@ my $fh      = $event->w->fd;
 my $buf_key = 'buf_' . ( fileno($fh) // 'x' );
 
 <powershell.pointer>->{$buf_key} //= '';
-my $buf_ref = \<powershell.pointer>->{$buf_key};
+my $buf_ref = \$data{'powershell'}{'pointer'}{$buf_key};
 
 my $bytes = <[base.s_read]>->( $fh, $buf_ref, 512 );
 
@@ -52,8 +52,8 @@ $$buf_ref =~ s|^[^\n]*\n||g;    ## discard complete non-coord lines
 
 #
 
-#,,..,,..,,..,,,,,,,,,..,,.,,,.,.,,,,,,,,,,,.,..,,...,...,,,,,,..,,,.,,,,,,,.,
-#2K2HEANRO6GJT6DGPKJR5D6Z6GVWOLLFLLER6ZK3BC4MAAYHNDNNVMHPDGNZWLYFK2R36DC5KRVIS
-#\\\|G6XKIKJAKIROKHXMJD2ZGD24V3ZHUJWJFY5FOYDET2WCEJRWJC5 \ / AMOS7 \ YOURUM ::
-#\[7]R357KQE4FBOFOWVIZF4EL4UKKCTUKRP7IRYC6QLCDWB4V6FL2MAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,,.,.,,,.,.,,,,,,..,..,,.,,,..,,...,...,.,,,,.,,..,,,..,,,.,
+#A6QTGYPI7N2ESEURZLU55KORA3MTS7GEFUISJL4QW6TF6AX2HMRWADUJA6ZAKIITGFHWTNPBZ6TCQ
+#\\\|5TYQJUO3SJ27WXUCM5U4YT25ESC37TYCX64SW2WNUIVGX6R3T6E \ / AMOS7 \ YOURUM ::
+#\[7]GXJPN6LS4NE5YFLPKWIVBZ2VYUZUQSGU4RSMN7KYCFVEJ3U6YABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

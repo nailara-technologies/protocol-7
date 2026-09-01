@@ -28,8 +28,8 @@ if ( $cmd eq 'list' ) {
         say "$blacklight .:[ ${neon_red}BUG TRACKER${blacklight} ]:.$reset";
         say "";
         say "  ${neon_green}No bugs tracked yet.$reset";
-        say "  ${blacklight}Add one "
-            . "with: ${TRUE_blue}bug add <description>$reset";
+        say "  ${blacklight}Add one with: "
+            . "${TRUE_blue}bug add <description>$reset";
         say "";
         return;
     }
@@ -50,14 +50,14 @@ if ( $cmd eq 'list' ) {
             $count++;
             my $bug_num = $1;
             my $desc    = $2;
-            say "${neon_red}[BUG-${bug_num}]${reset}"
-                . " ${TRUE_blue}●$reset$desc";
+            say "${neon_red}[BUG-${bug_num}]${reset} "
+                . "${TRUE_blue}●$reset$desc";
         } elsif (m|^- \[x\].*\[BUG-(\d+)\](.*)|) {
             $fixed++;
             my $bug_num = $1;
             my $desc    = $2;
-            say "${blacklight}[BUG-${bug_num}]${reset}"
-                . " ${neon_green}✓$reset$desc";
+            say "${blacklight}[BUG-${bug_num}]${reset} "
+                . "${neon_green}✓$reset$desc";
         } elsif (m{^  - (Reported|Status):(.*)}) {
             say "  ${blacklight}$1:${reset}$2";
         } else {
@@ -68,9 +68,9 @@ if ( $cmd eq 'list' ) {
 
     say "";
     say "$blacklight" . "=" x 60 . "$reset";
-    say sprintf "  ${TRUE_blue}Open: ${neon_red}%d${reset} "
-        . "| ${TRUE_blue}Fixed: ${neon_green}%d${reset} "
-        . "| ${TRUE_blue}Total: ${neon_orange}%d${reset}",
+    say sprintf "  ${TRUE_blue}Open: ${neon_red}%d${reset} | "
+        . "${TRUE_blue}Fixed: ${neon_green}%d${reset} | "
+        . "${TRUE_blue}Total: ${neon_orange}%d${reset}",
         $count, $fixed, ( $count + $fixed );
     say "$blacklight" . "=" x 60 . "$reset";
     say "";
@@ -108,8 +108,8 @@ if ( $cmd eq 'list' ) {
     close $fh;
 
     say "";
-    say "$neon_green✓$reset ${TRUE_blue}Bug reported:$reset"
-        . " ${neon_red}[BUG-$next_id]$reset $neon_orange$desc$reset";
+    say "$neon_green✓$reset ${TRUE_blue}Bug reported:$reset "
+        . "${neon_red}[BUG-$next_id]$reset $neon_orange$desc$reset";
     say "";
 
 } elsif ( $cmd eq 'fixed' ) {
@@ -158,9 +158,9 @@ if ( $cmd eq 'list' ) {
             close $out;
 
             say "";
-            say "$neon_green✓$reset ${TRUE_blue}Marked bug$reset"
-                . " ${neon_red}[BUG-$bug_id]$reset"
-                . " ${TRUE_blue}as fixed$reset";
+            say "$neon_green✓$reset ${TRUE_blue}Marked bug$reset "
+                . "${neon_red}[BUG-$bug_id]$reset ${TRUE_blue}as "
+                . "fixed$reset";
             say "";
             return;
         }
@@ -177,10 +177,10 @@ if ( $cmd eq 'list' ) {
     say "  ${TRUE_blue}Usage:$reset";
     say "    ${neon_green}bug list${reset}   "
         . "           - List all bugs (default)";
-    say "    ${neon_green}bug add${reset} ${neon_orange}<desc>${reset} "
-        . "       - Report a new bug";
-    say "    ${neon_green}bug fixed${reset} ${neon_orange}<id>${reset} "
-        . "      - Mark bug as fixed";
+    say "    ${neon_green}bug add${reset} "
+        . "${neon_orange}<desc>${reset}        - Report a new bug";
+    say "    ${neon_green}bug fixed${reset} "
+        . "${neon_orange}<id>${reset}       - Mark bug as fixed";
     say "    ${neon_green}bug help${reset}              - Show this help";
     say "";
 
@@ -191,8 +191,8 @@ if ( $cmd eq 'list' ) {
     say "";
 }
 
-#,,.,,.,,,,,.,..,,,..,,..,.,.,,,,,..,,...,..,,..,,...,...,.,.,..,,.,.,,,.,,..,
-#ZFNV6USKBSJARJTZ3KEEW6ZZ2UVAY767KLLXMWKIJECQUA27BYZ5743K55ZYYMSU3B4UCRMJL4FV2
-#\\\|OBNRJF32SL5CX4RFRF47CJR6LCM6J6NMSI3W6APBNNY6K2P44R2 \ / AMOS7 \ YOURUM ::
-#\[7]SMDWQ55UINGKI42BQAJEZHOS7TX6FWQLSKZ3FJYYIBZ4UAPFPSBY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,.,.,,,.,,..,.,.,,,,,,,,,,..,..,,...,..,,...,..,,.,,,,..,,..,
+#YTCRCVQXG3BDLH6DRGINFY7B5GQFLCHKRS2R3YNEPERPXZKJNDQJDX7XPZOTUBOWKV4RIWXYZI6D6
+#\\\|7EDYRW2ECXXXA7DSP7UE63T4AF7CXTWBJLVASQVDMQUDYAV4NES \ / AMOS7 \ YOURUM ::
+#\[7]D6QDMROKXCJBILF7ICF5GOSLPFVYZIZCJUIEG7XRXYKJVJSNSEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

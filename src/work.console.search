@@ -27,14 +27,14 @@ if ( !length $pattern ) {
     say "  Usage: ${neon_orange}work search <pattern>${reset}";
     say '';
     say "  Search locations:";
-    say "    ${dim_blue}•${reset} "
-        . "data/yaml/ ${dim_blue}(workflow data)${reset}";
-    say "    ${dim_blue}•${reset} "
-        . "data/asc/what-AI-thinks/ ${dim_blue}(AI notes)${reset}";
-    say "    ${dim_blue}•${reset} "
-        . "src/work.* ${dim_blue}(workflow code)${reset}";
-    say "    ${dim_blue}•${reset} "
-        . "cfg/zenki/workflow/ ${dim_blue}(workflow config)${reset}";
+    say "    ${dim_blue}•${reset} data/yaml/ "
+        . "${dim_blue}(workflow data)${reset}";
+    say "    ${dim_blue}•${reset} data/asc/what-AI-thinks/ "
+        . "${dim_blue}(AI notes)${reset}";
+    say "    ${dim_blue}•${reset} src/work.* "
+        . "${dim_blue}(workflow code)${reset}";
+    say "    ${dim_blue}•${reset} cfg/zenki/workflow/ "
+        . "${dim_blue}(workflow config)${reset}";
     say '';
     return TRUE;
 }
@@ -123,8 +123,9 @@ foreach my $location (@search_paths) {
             if ($matched) {
                 ## Show section header ##
                 if ( !$section_header_shown ) {
-                    say "${blacklight}┌─[ ${neon_green}$location->{desc}"
-                        . "${blacklight} ]$reset";
+                    say "${blacklight}┌─[ "
+                        . "${neon_green}$location->{desc}${blacklight} "
+                        . "]$reset";
                     say "${blacklight}│$reset";
                     $section_header_shown = 1;
                 }
@@ -133,8 +134,9 @@ foreach my $location (@search_paths) {
                 if ( !$file_header_shown ) {
                     my $display_path = $file;
                     $display_path =~ s|^$root_path/||;
-                    say "${blacklight}├──[ ${TRUE_blue}$display_path"
-                        . "${blacklight} ]$reset";
+                    say "${blacklight}├──[ "
+                        . "${TRUE_blue}$display_path${blacklight} "
+                        . "]$reset";
                     $file_header_shown = 1;
                 }
 
@@ -162,8 +164,8 @@ foreach my $location (@search_paths) {
 
     if ($section_header_shown) {
         say "${blacklight}│$reset";
-        say "${blacklight}│${reset}  "
-            . " ${dim_blue}Found $section_matches matches$reset";
+        say "${blacklight}│${reset}   ${dim_blue}Found "
+            . "$section_matches matches$reset";
         say "${blacklight}└$reset";
         say '';
     }
@@ -171,15 +173,15 @@ foreach my $location (@search_paths) {
 
 ## Summary ##
 if ( $total_matches > 0 ) {
-    say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        . "━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+    say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        . "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
     say '';
-    say "  ${neon_green}✓${reset} "
-        . "Found ${neon_orange}$total_matches${reset} total matches";
+    say "  ${neon_green}✓${reset} Found "
+        . "${neon_orange}$total_matches${reset} total matches";
     say '';
 } else {
-    say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        . "━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+    say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        . "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
     say '';
     say "  ${dim_blue}No matches found for "
         . "pattern: ${neon_orange}$pattern$reset";
@@ -188,8 +190,8 @@ if ( $total_matches > 0 ) {
 
 return FALSE;
 
-#,,,,,,,,,,..,,,.,,,.,,..,..,,,..,.,.,...,,..,..,,...,..,,,..,,,.,,,,,.,,,.,,,
-#4SPYC6L5HDQ7QNWEXUJJQDD2L4QGJBZWGYLMKMZMWMVTMFKGJ5SA72HELJUVS7TGO7WPUIWI3BC5O
-#\\\|2IPXHJA7APL4KAZDAAHO7IYK6VVCJW5KAGI7PT7AKTYFT3LQIJ2 \ / AMOS7 \ YOURUM ::
-#\[7]YTE2V55CIXJ7VKF2JHNYM4DC4J77ZE5SV3LWRNY5RDXHZRL266AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,,,,...,,.,,,.,,,,,,,..,..,,..,,...,...,.,,,.,.,.,,,,..,,,.,
+#6O7ELMQC3G7GJIZHU7UR3NMEAYEIFVWUR3FU6WC5D5N6DH273YSLNZQDTE7YWXN7RSIJJWL5ECM3E
+#\\\|76PJUWGXOTUYMDHN7YLUKY7NBQEAC4LCUPQWPUVDUXLTY4GXUDQ \ / AMOS7 \ YOURUM ::
+#\[7]CZGNR3OLNFXAEKMDNTOA6AAYQ4DCW7WEFSDZKNOJHUUB6IWZGMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

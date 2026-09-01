@@ -16,7 +16,8 @@ if ( !defined <invoke-web.pid>
 
 ## non-blocking read
 my $read_fh = $event->fd;
-my $bytes   = <[base.s_read]>->( $read_fh, \<invoke-web.output>, 4096 );
+my $bytes
+    = <[base.s_read]>->( $read_fh, \$data{'invoke-web'}{'output'}, 4096 );
 
 ## check for readiness indicators
 my $output = <invoke-web.output> // '';
@@ -46,8 +47,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,.,,,.,.,.,...,,.,,,.,,.,,,,..,,,,,,,,,..,,..,,...,...,,..,,..,,..,,.,,,.,,
-#7SF2PU4L6UMKSBZTBBRZHOZSFSRUQ3K6GFBFH7DENMPTEHIBHWAVEL4L5MUVZ6TL62LMPVKQYGT3U
-#\\\|GIJMIMF3F76H24OURFBDYTW7DRZW3W47NCO6PHD7KBRI66XIBG7 \ / AMOS7 \ YOURUM ::
-#\[7]EMCQPI26VNA6JSMYX7A566C2ZQ6DXGS464WYGULYUVX7VK2SVCCY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,,..,,.,,,..,.,.,,..,,,,,,.,,..,,...,...,.,,,,,,,,,.,,,,,,,,,
+#CVH7G5QLWZNXTJRBJGJRI4QJIKUD2HGRNWGDADRKQ4UTG6EHSC2QHY4NTFMZT3RFXSZ5A5DHLXLTK
+#\\\|K6FH5XPWF2HL5KYJVPAD4SPNHL3THJDXENSXQWGJRA4OCIANE3J \ / AMOS7 \ YOURUM ::
+#\[7]5VKIMDBPVY77UPJE6INBZXXW6YTA3LJJ2IGS2AJZ5JVHSONCGWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
