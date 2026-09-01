@@ -1,0 +1,115 @@
+task_id: format-code-postfix-deref-sugar
+title: format-code — new opt-in step: rewrite ${<...>}/%{<...>}/@{<...>} to postfix-deref sugar
+priority: normal
+estimated_rounds: 14
+
+context: |
+  Third sibling to the -d ($data{}{} -> <a.b>, commit d0c7e28f6) and -m
+  ($code{'x'}->() -> <[x]>->(), commit c6821f56a) opt-in format-code
+  steps. Same architecture, same is_p7_module_text() + non-.pm gate, same
+  "implement + demonstrate on a few real files, do not run repo-wide in
+  this task" scoping.
+
+  When a P7 sugar token (either <key0.key1[.keyN]> or <[module.name]>) is
+  dereferenced via the OLDER prefix-sigil-with-braces syntax because it's
+  the sole content of the braces, rewrite it to Perl's postfix-deref
+  syntax (stable since 5.24, already used freely elsewhere in this
+  codebase -- no feature pragma needed):
+
+      ${<web-browser.html_ref.loading_page>}
+        -> <web-browser.html_ref.loading_page>->$*
+
+      %{<web.assets.registry>}
+        -> <web.assets.registry>->%*
+
+      %{<[jobqueue.priorities_table]>}
+        -> <[jobqueue.priorities_table]>->%*
+
+  Also handle the array-deref case by the same pattern, even though no
+  example of it was found yet:
+
+      @{<some.key>} -> <some.key>->@*
+
+  CRITICAL scope boundary, decided in discussion before this task was
+  written: only rewrite when the braces contain EXACTLY one sugar token
+  and nothing else -- no operators, no fallback expressions, nothing.
+  Real counter-example already found in the codebase:
+
+      keys %{ <web.assets.registry> // {} }
+
+  This must NOT be rewritten. The braces contain a whole expression
+  (sugar token, //, empty-hashref fallback), not a bare single term --
+  postfix deref binds tightly to what's immediately before it, so
+  <web.assets.registry> // {}->%*  would parse wrong (the ->%* would bind
+  to {} alone, not to the // expression), and wrapping in extra parens to
+  make it "(<...> // {})->%*" is a different, riskier transformation this
+  task does not attempt. When in doubt (anything other than whitespace
+  between the opening brace and the sugar token, or between the sugar
+  token and the closing brace), skip it.
+
+issues_to_fix:
+  - id: postfix-deref-sugar-compaction
+    description: |
+      new opt-in format-code step rewriting ${<...>}, %{<...>}, @{<...>}
+      (and the same three forms wrapping a <[module.name]> call-sugar
+      token) to <...>->$* / <...>->%* / <...>->@* respectively, but only
+      when the braces contain nothing but the single sugar token (plus
+      optional surrounding whitespace).
+    files:
+      - bin/format-code (new step function + option-parsing wiring, flag
+        name -p / -postfix-deref, single-dash long form -- this project
+        categorically avoids -- , see commit c6821f56a for why)
+    precedent: |
+      step6_compact_data_sugar and step7_compact_module_call_sugar
+      (bin/format-code) are the direct structural models: PPI-based
+      token/structure walk, is_p7_module_text() + non-.pm gate, single-
+      line-only rewrites, replace from end-of-line backward so earlier
+      positions stay valid. This step is actually simpler than either --
+      no multi-key chain accumulation, no argument-list matching, just:
+      find a PPI::Token::Symbol matching the sigil ($/%/@), check its
+      immediately-following sibling is a PPI::Structure::Block (the
+      {...}), and check that block's ONLY significant child is a single
+      <...> or <[...]> -shaped construct with no other tokens around it.
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, `[ word ]` not `( word )` for annotations
+  - do not add a signature footer stub — the repo's signing system adds
+    the real one on commit
+  - the -d and -m flags are already single-dash long-form (-data-sugar,
+    -module-sugar) -- match that convention exactly for this new flag
+
+explicitly_out_of_scope: |
+  - do not run the new step across src/ in this task -- implement it,
+    demonstrate it correctly on a small number of real files found via a
+    search for the `${<`, `%{<`, `@{<` patterns (dry-run / diff review
+    only), and stop there. Applying it repo-wide is a separate,
+    deliberate step the user runs themselves later
+  - do not touch the existing -d / -m steps -- unrelated, already
+    correct, already landed
+  - do not attempt the "wrap in parens and postfix-deref anyway" case for
+    braces containing more than a bare sugar token (the // {} example
+    above) -- explicitly out of scope, skip those
+
+verification: |
+  1. Construct synthetic test fixtures (with a proper '## [:< ##' P7
+     module header) covering: ${<a.b>}, %{<a.b>}, @{<a.b>},
+     %{<[a.b]>} (call-sugar form), a braces-with-fallback-expression case
+     like %{ <a.b> // {} } (must NOT be rewritten), a braces-with-extra-
+     whitespace-only case like ${ <a.b> } (should still rewrite, pure
+     whitespace doesn't count as "more than the sugar token"), and a
+     bin/Protocol-7-style fixture (shebang only) plus a .pm-style fixture
+     to confirm both are left untouched by the new flag.
+  2. Run the new flag in dry-run mode against real files found via
+     search_code / grep for the `${<` / `%{<` patterns in src/, diff
+     review each rewrite by hand.
+  3. Confirm `bin/dev/ptd -c` reports syntax ok on every rewritten file.
+  4. Confirm running format-code WITHOUT the new flag on the same files
+     produces no postfix-deref changes at all.
+
+#,,..,..,,...,,..,..,,,,,,,..,,,,,..,,.,.,.,,,..,,...,...,,..,...,...,...,.,.,
+#KPDV343NYSKGW7MMF3BFFAD4VWTPCOQWFVYRF4ZUCMN2S6GJULOSWO5TMSTKM7S6LQDNCBI4UKCHW
+#\\\|3BORT2A7B4UE73VMYXMMDVIH6E2RBXJCUNDAT6PN6BSIOHM6YQP \ / AMOS7 \ YOURUM ::
+#\[7]JQOAW74XEG67ADOY6QETZ77JNC277QGKWGL6TBG7A67G5FITGICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
