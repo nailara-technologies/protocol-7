@@ -1,13 +1,20 @@
 ## [:< ##
 
 # name  = v7.zenka.cmd.register_child
-# param = <child-pid>
+# param = <child-pid> <parent-pid>
 # descr = associate process ID with its parent instance
 # todo  = also extract and set process start_time in process->child->PID = ..,
 
+## parent_pid comes from the caller directly [ its own pid, since it is the
+## process that did the actual spawning ] rather than being re-derived here
+## via a live /proc/<pid>/status lookup : that lookup reflects the CURRENT
+## process tree, not the tree at spawn time, so an intermediate process
+## exiting during the async round trip through cube [ eg a transient shell
+## wrapping a piped-open spawn ] reparents the child to init before this code
+## ever runs, and the real relationship is gone for good by then -- trusting
+## the spawner's own identity sidesteps the race entirely
 my $instance_id;
-my $child_pid  = $call->{'args'};
-my $parent_pid = <[v7.sub-process.get_ppid]>->($child_pid);
+my ( $child_pid, $parent_pid ) = split( m| +|, $call->{'args'}, 2 );
 
 foreach my $id (<[v7.instance_ids]>) {
     next if not defined <v7.zenka.instance>->{$id}->{'process'}{'id'};
@@ -37,8 +44,8 @@ $instance->{'process'}->{'child'}->{$child_pid} = 1;
 
 return { 'mode' => qw| true |, 'data' => 'registered' };
 
-#,,,,,,,.,..,,,,.,,,,,,,,,.,.,.,,,.,,,,,,,.,.,..,,...,...,,,.,,,,,.,,,,,,,.,,,
-#RXIY3G37QO7QVZG6SVL6GYX7DLS54ZE63Z47LFVGUKYXUSZCGOJAKE55QTYWIRENQSCV2TX6T23QO
-#\\\|OILSI7VTD7IFPWF3AONRQSOGMS3B7B3HUISMM2VKQG7FMNRMEK3 \ / AMOS7 \ YOURUM ::
-#\[7]YOXJTHV3H5AYYQUTPCPTX6URWTHTWYY2TZSFDDTKNF5JXDBPNIBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,,,,,,,,,..,,,,.,..,,,..,,,.,..,,...,..,,.,.,.,,,,..,..,,...,
+#TF2E3UMORJP54J3FBPQQP4YIBQEKXAUBBRMIPG2JMJ6WB7G6QLCQOWPODRBSFWMKM5KBMAIK6B76O
+#\\\|5P4GXXZQ6I4YRDINU7BQVY552LBGFCUMT4MLGXTY47U4VWNU74O \ / AMOS7 \ YOURUM ::
+#\[7]YEC3C6RIJUWZBD25RENK45L6JAYQZMI3Q3TZZO36ZM4RAKRML4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

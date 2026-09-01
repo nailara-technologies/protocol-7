@@ -16,8 +16,14 @@ my @pending = <system.report_children>->@*;
 map {
     <[base.logs]>->( 1, "reporting child process [PID:%d] to 'v7'", $ARG );
     <[protocol-7.command.send.local]>->(   ## [LLL] use new route-send command
-        {   'command'   => "${route_str}v7.register_child",
-            'call_args' => { 'args' => $ARG },
+        {   'command' => "${route_str}v7.register_child",
+            ## parent_pid is THIS process's own pid, given directly rather
+            ## than left for v7 to re-derive later via a live /proc lookup --
+            ## the round trip through cube is async, and if the immediate
+            ## parent [ eg a transient shell wrapping a piped-open spawn ]
+            ## exits before v7 gets to look, the child has already been
+            ## reparented to init and the real relationship is unrecoverable
+            'call_args' => { 'args' => "$ARG $PID" },  ## child_pid parent_pid
             'reply'     => {
                 'handler' => qw| base.callback.report_children_reply |,
                 'params'  => { 'pid' => $ARG }
@@ -26,8 +32,8 @@ map {
     );
 } @pending;
 
-#,,,.,...,.,,,.,.,,,.,,,.,.,,,...,,..,,,.,,..,..,,...,...,.,.,..,,,..,,.,,.,,,
-#CA72WTQCIWJQRTK2YOTWKSLXE3TK5776OJMPLE57UEDPGVLKIUBEQPCEOUCWXXD37MBKZA3Y5PU3U
-#\\\|RTDDPO5FKZKWTDOKYNIOU6Y6DXNQHMIXS4NG4GICHP7DNPVC7CO \ / AMOS7 \ YOURUM ::
-#\[7]L7T7LX2HRSUCXDJQVSQE5OJCVO7K5ULGS4QHXUH6AYH2HW3HLIBY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,.,,,,,,,,,.,,,,,,.,,,,,,..,,..,,...,...,.,,,...,.,.,.,,,.,,,
+#LUQ6KOL7BMGVRNPNJFBPJXQPT7LVXS3UE3CX4RDRSRL77SLRMGIQEK7CE5SAQNYIFI7ZLTMHUAV66
+#\\\|HYKVPV753NXB5U4ZUNFHS4GMQXRNYYOFCUMKRRBCG67VTCLRS2S \ / AMOS7 \ YOURUM ::
+#\[7]AEVXPR5QJJRFA4BLPL6SXCT7QQYN6XQ6F3O6NC25VO46EMBG2KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
