@@ -16,7 +16,7 @@ my $reply_data = $reply->{'data'}   // '';
 my %metadata;
 my $current_amos;
 
-for my $line ( split /\n/, $reply_data ) {
+for my $line ( split m|\n|, $reply_data ) {
     if ( $line =~ m|^amos:\s+(.+)$| ) {
         $current_amos = $1;
         $metadata{$current_amos}{'amos'} = $current_amos;
@@ -78,8 +78,8 @@ if ($count) {
 
 return TRUE;
 
-#,,,.,...,,,,,..,,,.,,,..,..,,,,,,...,,,,,,..,..,,...,...,,.,,..,,.,.,...,...,
-#AJV2MTSSF3GTLXMQA7QS5VYPXZWCG7Q473NG7LMYSXC53WWVKVIWULZF73KIFCQQPIDDVPAJ7NTFQ
-#\\\|6CYSVWV5BNSTVZUIFBWW7V6P2IPWWYH7GMSOP2OG3DL4FAP4EWR \ / AMOS7 \ YOURUM ::
-#\[7]XUGJJV7KGS3B5WXFWFAQRYMPA4O3E6IUV5NDFAXPYRAKPPAQHSBY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,..,,.,.,..,,,.,,,..,.,,,,..,.,.,..,,...,..,,...,,,,,,..,..,,,,.,
+#U2GOF3FNBCKI35YHN6HL2IW2ALTKC32MIIWQFQ5LXH6R5P26DLOIR3RLF5CYSBJSWUJO76FTTQXJK
+#\\\|VCX6LYTYRQBEG65QZ2SPW7MVIG6KKPXRZ3TI7HOZ7EHEWSAMVJX \ / AMOS7 \ YOURUM ::
+#\[7]Q4OIO6T7WVNIRPHDY2FY27TU67FPOXEHA5AJUZ36NRLBA37ILWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

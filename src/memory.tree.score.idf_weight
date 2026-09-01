@@ -23,7 +23,7 @@ my $text = join ' ',
 
 my %seen;
 my @idf_vals;
-for my $raw ( split /\W+/, $text ) {
+for my $raw ( split m|\W+|, $text ) {
     my $t = lc($raw);
     next if length $t < 2;
     next if exists $stop{$t};
@@ -46,8 +46,8 @@ $sum = 1.0 if $sum < 1.0;
 
 return $sum;
 
-#,,..,,,.,..,,.,.,,,,,,..,,.,,,,,,...,..,,...,..,,...,...,.,,,,.,,.,.,,,.,..,,
-#DHONJW6VZY2EX5572EOWQTNYPTRM5ERGR7FCDZGLLFWGZWPAG665AAGBN6NUVEJQHOJF2YSTQMI7Q
-#\\\|7BL4USOEPJK4BZDLATPJ5SMLMFJ3BZWV2ORZ2ILTBG2CKNRIHZD \ / AMOS7 \ YOURUM ::
-#\[7]O6BK7AEY33WYDTTEZQMSMS6PVJHYQ7SIRSQLJO5YTYRV3XSXF6BY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,,.,,,,.,...,..,,...,...,.,.,..,,...,...,...,.,.,...,.,.,...,
+#AWLY4VP4SMVJEH4FGHAGNFZ72G3J42FYAGLKXXDIT2QC6BGXQ2ND3DEHJIDLMOWYGBFNFOTCKIKXA
+#\\\|4RLDUGI5DV7XXBFHSJIVU7XDTJVEAWXESA7KHEQITJKUL6VVI4U \ / AMOS7 \ YOURUM ::
+#\[7]GPG6HKE75FAF2IG2E5C7ZNC3QS4IXTQEMXAOCMAGF6RVFFBSUAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

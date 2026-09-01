@@ -8,14 +8,14 @@ my $args_str = $call->{'args'} // '';
 ## parse args: zone=<zone> name=<name> type=<type> value=<value>
 ## or positional: <zone> <type> <name> <value>
 my %args;
-if ( $args_str =~ /=/ ) {
+if ( $args_str =~ m|=| ) {
     ## key=value format
-    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+    while ( $args_str =~ m|(\w+)=(\S+)|g ) {
         $args{$1} = $2;
     }
 } else {
     ## positional: zone type name value
-    my @parts = split /\s+/, $args_str;
+    my @parts = split m|\s+|, $args_str;
     $args{'zone'}  = $parts[0]                           if @parts;
     $args{'type'}  = $parts[1]                           if @parts > 1;
     $args{'name'}  = $parts[2]                           if @parts > 2;
@@ -72,8 +72,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,,.,.,,,,.,,,,,,,,,,.,.,,..,,..,,.,,..,,..,,..,,...,...,,.,,.,.,,,.,.,.,..,,
-#SMQ57U7X2BJ6HO2ZWNOFD5EK5FGJCSDEMVW5FDL42HCVBL25F5AYFG2F47QLHWAGO7LH3Z6ALOMW6
-#\\\|3UMEXL5Z5DSALNJ3DA7VTWYPHKP4I4PR3YN2URLAKIIOZO7XMN2 \ / AMOS7 \ YOURUM ::
-#\[7]PZPWQ2MISUNNKUUEWOK6V7YXNDKS5LLFQKWAIISM42HGJ3WV76DA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,.,,,,..,.,,,,,.,,,.,,,,,,,.,..,,...,...,.,.,,..,,..,...,,,,,
+#7IFSV3E3YHVSBQEOFAWMKDZLSXGIS6T2DJQEPKEGXACA2JF5X7AKNQRAC3GJRNH2GEMW6KWMIUH54
+#\\\|ZXN4K2OT5UJAVXQUCWMH3ZXJVDJO6V2D6KFYIKRSBLW3KE3TJFN \ / AMOS7 \ YOURUM ::
+#\[7]2MTYPNRNUJV4FLVVZODYIJM7FOTWWHZ35SOZEEDL6UJCUHUKBMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 die "expected 4 (coordinate) parameters" if @_ != 4;
 foreach my $check_string (@_) {
     die "invalid coordinate value '$check_string'"
-        if $check_string !~ /^\-?\d+$/;
+        if $check_string !~ m|^-?\d+$|;
 }
 my ( $left, $top, $right, $bottom ) = @_;
 
@@ -14,8 +14,8 @@ my $height = $bottom - $top;
 
 return "${width}x${height}+${left}+${top}";
 
-#,,,.,.,,,.,,,,,.,..,,,,.,,,.,..,,,..,,,.,.,.,..,,...,...,,.,,,,,,,..,.,.,.,,,
-#NKTCOO3EY5RZ63YHTYT2ZC2KJTS3PR5OIVL66FMUWFCCOYSVS75ZXTXT2O245ZLLRQ2S6OLYMYRGG
-#\\\|P3HWKLEZWMWKIGZTXEEZ7JHBID2ZPBSGKD5N7PHQ334IHLDOCDK \ / AMOS7 \ YOURUM ::
-#\[7]K6GC4CIRISHLJEQXUTEGKHGHU5CNJJZPDNJXN6SZBY2QACCSIMCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,..,,,,.,.,,,,,.,.,,,,,,,.,,,..,,...,...,,.,,,..,..,,,,.,,.,,
+#DUWQSOTEA2VAPCMGXW7UBSJIYJFOAEWOPU3NXKM6G5NAMGTG2QFUVMQDZSH3XANIAYPRVXXAHAGS2
+#\\\|U2M5F3M2NREO3GKKM7EF4QB2KCJ6B5PRFMO772G6NBMADXQ5KTP \ / AMOS7 \ YOURUM ::
+#\[7]LYWIMXWI6KPNOZEB5NUW5HXX6R5VRCE4GYEQR47ZUXQKDCHHN2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

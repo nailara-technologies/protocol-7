@@ -5,7 +5,7 @@
 my $target_color = shift // <X-11.bg_color>;
 
 return warn "invalid target color '$target_color'"
-    if $target_color !~ /^\#?[0-9A-F]{6}$/i;
+    if $target_color !~ m|^#?[0-9A-F]{6}$|i;
 
 <[base.log]>->( 1, "fading background to '$target_color'" );
 substr( $target_color, 0, 1, '' ) if length($target_color) == 7;
@@ -52,8 +52,8 @@ while ( $fade_val < 1 ) {
 
 <[base.log]>->( 2, ": <fading> complete" );
 
-#,,.,,..,,..,,,.,,,.,,,,,,...,.,,,.,.,,,,,...,..,,...,..,,..,,...,,..,..,,,,,,
-#AUDQUQCG4IMSNC6K3M46IKLM6TS3AIQLDY3K3SQ7N6AKGJQAWKL2K5KFO7B6D4Q2ZBKF7VGWT77JC
-#\\\|AP5QI6XS3RPVFIHUUMPQEFZKUKCAW32KGJ6DQSG5PYGGWLDEYMB \ / AMOS7 \ YOURUM ::
-#\[7]FVXXQTEFDX4SNZCQONYMNT6Y7RW2U2TQKW53UN27G5YDBEEM3EAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,..,,...,,,.,..,,.,.,.,.,,,,,,,.,..,,...,...,...,,,.,..,,,.,,,,.,
+#TWYJW33HVD6AOBUXZWZ2P5V27B3NMBUQLIB5OWXVY6BW4SJJG5KGBSVMYEFP4FUS5Z6X5ALDWKPHA
+#\\\|H5SUZQRYPXK4N4E34TPBBR4WWRCELZ3U3VC5KXHFC63EYGZ3RXL \ / AMOS7 \ YOURUM ::
+#\[7]RRR4NFUXDJXABZ2KBZIJ42F7HQZJNL243OVMJXGZ3M22CJBPDYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

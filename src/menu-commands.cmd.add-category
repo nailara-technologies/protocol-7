@@ -6,7 +6,7 @@
 my $args = defined $call->{'args'} ? $call->{'args'} : '';
 $args =~ s{^\s+|\s+$}{}g;
 
-my @parts = split( /\s+/, $args );
+my @parts = split( m|\s+|, $args );
 
 unless ( @parts >= 2 ) {
     return {
@@ -19,7 +19,7 @@ my $category_id = $parts[0];
 my $label       = $parts[1];
 
 # Validate category-id
-unless ( $category_id =~ /^[a-zA-Z0-9_-]+$/ ) {
+unless ( $category_id =~ m|^[a-zA-Z0-9_-]+$| ) {
     return {
         'mode' => qw| false |,
         'data' => 'Category ID must contain only alphanumeric '
@@ -37,7 +37,7 @@ if ( exists <menu-commands.categories>->{$category_id} ) {
 
 # Check if last part looks like an order number
 my $order = 0;
-if ( @parts > 2 && $parts[-1] =~ /^\d+$/ ) {
+if ( @parts > 2 && $parts[-1] =~ m|^\d+$| ) {
     $order = pop @parts;
     $label = join( ' ', @parts[ 1 .. $#parts ] );
 }
@@ -59,8 +59,8 @@ return {
     'data' => 'Added category: ' . $category_id
 };
 
-#,,.,,...,..,,.,.,..,,,,,,,.,,.,.,,,,,...,,,.,..,,...,..,,,.,,..,,.,,,..,,..,,
-#4TE43YA7UAGIJOIPZIBXP3TBWXVN62OAWBESUPXGXJNX7RHJBB3RTQLAQW52FH2DEHTA6CU76EYFE
-#\\\|2WLT3T46ETNGVD543ZR7WXXYDSXE66E5O4WZRWFDSDSEUJCYC5V \ / AMOS7 \ YOURUM ::
-#\[7]7ADHSOO65OCRYDKQPPM62S23SIA7TWXIONZR5XRGP4OKLIPLNWCY 7  DATA SIGNATURE ::
+#,,..,,..,...,.,.,.,.,.,.,...,...,,..,,,,,,,.,..,,...,...,..,,.,,,,,,,..,,...,
+#225V6UNWU2SGFNQW5K5VZULA3KYXBJO2X7C4CDYOHNQ7WXDLC5SLYBCSZAUMUQRDSWWFKPRJ257OK
+#\\\|ZCKIO76MPPOZHWETGQEGBF3FNWGDUW332I3TONQMF2YVUA7Q6JH \ / AMOS7 \ YOURUM ::
+#\[7]F7IDLWJ2CRW2XIHKV4U2EU5WBM5VDYZRNWA5AL6LICCVEBZFMMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

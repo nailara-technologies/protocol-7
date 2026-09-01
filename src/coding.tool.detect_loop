@@ -324,7 +324,7 @@ if ( $phase eq 'suspicion' ) {
     my $cumulative_score = 0;
     my @recent           = @$history > 8 ? @$history[ -8 .. -1 ] : @$history;
     for my $h (@recent) {
-        my @tools = split /,/, $h;
+        my @tools = split m|,|, $h;
         for my $t (@tools) {
             $cumulative_score += $tool_loop_weights{$t}
                 // $tool_loop_weights{'default'};
@@ -430,13 +430,13 @@ elsif ( $phase eq 'assertion' ) {
     my $response_upper = uc( $model_response // '' );
     my $is_looping     = 0;
 
-    if ( $response_upper =~ /\b(LOOPING|STUCK|REPEATING|INFINITE)\b/ ) {
+    if ( $response_upper =~ m{\b(LOOPING|STUCK|REPEATING|INFINITE)\b} ) {
         $is_looping = 1;
     } elsif (
-        $response_upper =~ /\b(NOT_LOOPING|POLLING|WAITING|LEGITIMATE)\b/ ) {
+        $response_upper =~ m{\b(NOT_LOOPING|POLLING|WAITING|LEGITIMATE)\b} ) {
         $is_looping = 0;
     } elsif ( $response_upper
-        =~ /\b(CONFIDENT|DEFINITE|CLEAR).{0,20}\b(LOOP|REPEAT)/i ) {
+        =~ m{\b(CONFIDENT|DEFINITE|CLEAR).{0,20}\b(LOOP|REPEAT)}i ) {
         $is_looping = 1;
     } else {
         $is_looping = 0;
@@ -451,7 +451,7 @@ elsif ( $phase eq 'assertion' ) {
         my $loop_votes = 0;
         for my $r (@results) {
             my $ru = uc( $r->{'response'} // '' );
-            $loop_votes++ if $ru =~ /\b(LOOPING|STUCK|REPEATING)\b/;
+            $loop_votes++ if $ru =~ m{\b(LOOPING|STUCK|REPEATING)\b};
         }
 
         ## Majority vote decides ##
@@ -534,8 +534,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,.,...,,.,,.,,,,..,,,,,,..,...,,,.,.,,,..,,.,.,...,...,...,.,.,.,,,.,.,,..,
-#EIQAKMWBF7U34MLAJOVV2VR7KTAEMSLJF3C6FPUHIE6KPZM5I545OWRQN4JVOPINONE7ULLQAXU4O
-#\\\|BJRU3NOMNYVDR77ZGBGHE7ZTZZGBVKCRPF3VUDIUO2ILU54OIEG \ / AMOS7 \ YOURUM ::
-#\[7]36KCFCH3SCCXKCS2Z6YUFN5LVIVHETH4LYU6TOPXQKP654EWUGAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,...,.,,,...,,,.,,..,,,,,...,.,.,...,.,.,..,,,.,,...,,..,...,
+#S5UYRCCKXV3QLKS5RW74WI7LJ7QE7Y36KRHRYK6RGAIFVDE4ECLABPBN55IRAY533KBOZ2QHGBVRK
+#\\\|7AYRIGLXOTZ7E4F6I6VDKPWFO65I7IT7ZBYX3WDTIO3HWYPBJ3M \ / AMOS7 \ YOURUM ::
+#\[7]IVADWNI2ZXTQ66NJV46IY5GEYP4G2KV4BTK4OUMUHZVWFGMKHOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

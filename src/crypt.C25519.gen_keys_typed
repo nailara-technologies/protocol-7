@@ -49,7 +49,7 @@ my $name         = $key_vars_ref->{'key_name'} // $key_name_param;
 $name //= join( qw| . |, ( $ENV{'USER'} // getpwuid($EUID) ), qw| base | );
 
 ## Include type in key name for proper tracking
-unless ( $name =~ m/:Ed25519$/ or $name =~ m/:Curve25519$/ ) {
+unless ( $name =~ m|:Ed25519$| or $name =~ m|:Curve25519$| ) {
     $name = sprintf( '%s:%s', $name, $key_type );
 }
 
@@ -149,8 +149,8 @@ return ( $keys{'C25519'}->{$name}, $name );
 
 1;
 
-#,,.,,,..,.,.,,..,,.,,...,...,,,.,,,,,,,,,,.,,..,,...,...,,.,,.,.,,,.,.,,,,..,
-#G42D33224WZ6C5V22DO72VB5FPHVWIRWLVFJZRR6U73WBOV44TSE5JI6JEG53SNHHPGEPP2CPMDHK
-#\\\|NQFO5Y4NFOTPP7BALLHAB5H4VYMHBLNDKBDCZYSJTWXEDPL3ZXM \ / AMOS7 \ YOURUM ::
-#\[7]HSQ5K5EEAZ4X7F7OGA7SNDBYYZZEBCAOTHID7PCF37TMEDVIRIDA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,,.,,,..,,..,,.,,...,.,.,..,,..,,...,..,,.,.,.,.,...,,.,,...,
+#7MTUL5BMVXSV2L5SFE7EHI2YFAYMUKPBPZYD4FOUJSRW7GLESIV5HJGK6X2CRCBTLDC75FOIMGQPG
+#\\\|BACMQADJQ5BOUMAGVBJVM3JMGLIDMHHCUIRZ3KM5SP636ON3GUT \ / AMOS7 \ YOURUM ::
+#\[7]EO7U64ZW56GGTHLL63GHVCIADP42GB6H4UBDVDDBY453VNMGZKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

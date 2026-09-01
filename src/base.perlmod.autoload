@@ -31,7 +31,7 @@ if ( not @export and <[base.perlmod.loaded]>->($module_name) ) {
 ## functions that are already loaded in bin/Protocol-7 with ':all' exports
 local $SIG{__WARN__} = sub {
     my $warning = shift;
-    return if $warning =~ /^Prototype mismatch.*\b(?:qsort|bsearch)\b/;
+    return if $warning =~ m{^Prototype mismatch.*\b(?:qsort|bsearch)\b};
     CORE::warn($warning);
 };
 
@@ -81,7 +81,7 @@ if ( not <base.perlmod.auto_install> ) {
 ## functions that are already loaded in bin/Protocol-7 with ':all' exports
 local $SIG{__WARN__} = sub {
     my $warning = shift;
-    return if $warning =~ /^Prototype mismatch.*\b(?:qsort|bsearch)\b/;
+    return if $warning =~ m{^Prototype mismatch.*\b(?:qsort|bsearch)\b};
     CORE::warn($warning);
 };
 
@@ -100,8 +100,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,,,,,,.,...,,,,,...,...,,.,,.,,,...,...,,,,,..,,...,...,.,,,.,.,.,,,...,..,,
-#A7R2EOOJUBUPKNEX4I4FBBMBETPUU7E2VK5B4TIZ77K6XNZ7TED4LGFA2TB3B4R2CKYHG7A2TSMBC
-#\\\|XU7HENZA7EYFMAOXQ7GZQVW5KHI5L3M3KQ6EBKGOAGLV2QNEDTB \ / AMOS7 \ YOURUM ::
-#\[7]YU4M7HITQAU7KEKWGPFRFJ5ZQYDWJ3CFW5IYNYNB2JLOFCA77QDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,...,.,,,,..,...,...,,,,,,,,,..,,...,..,,.,,,...,...,,,,,.,.,
+#6NW3USE35XQKLFIPK2GROA4VAHEC4JHWHP3OKZUWQGEXZHAQRKAVSNLYBVEQKNQME63EY2YIKT2IA
+#\\\|EFSPZNRE7NKXFIGMTSJQ2BJACFW5BIW2PY54HSZDHG6FENBPJDA \ / AMOS7 \ YOURUM ::
+#\[7]OTIUTYQEEMYZXHDP5RNFOUCBTKRCHEDWZJD4HXB34SKLT7CQ7UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

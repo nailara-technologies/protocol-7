@@ -4,7 +4,7 @@
 # descr = approve job for application queue
 
 my $job_id = uc( $call->{'args'} // '' );
-$job_id =~ s/^\s+|\s+$//g;
+$job_id =~ s{^\s+|\s+$}{}g;
 
 my $rec = <jobsite.tasks>->{$job_id};
 return { 'mode' => 'false', 'data' => "unknown job: $job_id" }
@@ -32,8 +32,8 @@ if ( not $remaining and <jobsite.cycle> eq 'reviewing' ) {
 
 return { 'mode' => 'true', 'data' => "approved: $job_id" };
 
-#,,,.,...,,,.,.,,,,.,,.,,,,,,,.,.,,..,,.,,..,,..,,...,..,,.,,,,,.,,..,,,.,,..,
-#7ZWSQKZPIILDWMIYAR4RGL22XDLWBFSHS3YKIKE4VHT6P6ZJMV7U33K4EVMDMT37QGL6KESVXWIOK
-#\\\|TJCABZK4XZDKKPKHWHCT6DB7TKZMZ4IFP7U4TI3VUFOMQTG4DNM \ / AMOS7 \ YOURUM ::
-#\[7]S6XDG3MKQMYJUA2LDNLZKPIHGIX57C6H4DJZMLTETOZ6VZTAGGAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,.,,,,.,,.,,,,.,,..,,.,,,..,,..,,...,..,,,..,..,,,..,.,,,.,.,
+#FGETUYJEVB6KFTAZ2CDBZQPTB73QLSVQR36U2ZLZ6QHY6VKIZ7BPRWG5WQYKDN76UXRQB4WEENWYW
+#\\\|RDMFIYHCH7D3IVOZDOILIASEZ4NJWSEYUBRWIH72BHJLGGPDOU7 \ / AMOS7 \ YOURUM ::
+#\[7]BYP5GBQ5HIQ26HGOCYCLK55CUGINSKSQ5Q3245BUF6DRSK66H2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

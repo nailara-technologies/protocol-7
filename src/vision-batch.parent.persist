@@ -74,7 +74,7 @@ if ( $cmd eq 'save' ) {
         error   => "Cannot read persist directory: $!"
         };
     while ( my $file = readdir($dh) ) {
-        next unless $file =~ /\.json$/;
+        next unless $file =~ m|\.json$|;
         push @batches, $file;
     }
     closedir($dh);
@@ -89,8 +89,8 @@ if ( $cmd eq 'save' ) {
     return { success => FALSE, error => "Unknown command: $cmd" };
 }
 
-#,,,,,..,,,,.,...,...,.,.,.,.,,.,,,,,,.,.,.,,,..,,...,..,,...,.,,,...,.,,,.,.,
-#J4PWISJ6TF2UYSUZK32BOSIGBVO3ZW6YYANMZ7RO4COYPF476J5HNJ2RAIOTXGLNDHUYF5B562TII
-#\\\|HFZOU65IZW674HUOEFARAOJFP2KAV7WVH2INBFGL4OWW6MHE4IT \ / AMOS7 \ YOURUM ::
-#\[7]XX3Y45JLWOS4N27XQZAXHCL3PA6EB7ESHT4PMAKE4TN4LEXIJ2DY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,...,,..,.,,,.,,,,,,,...,,.,,..,,...,...,.,.,...,,..,,.,,,,,,
+#JY4KH6BYMYMWR2TBZH4XZPFO5CWQSEY772XZV473N3QWAHWUMHXKI4EJ2VPJRHILMOFNBZ6WHO4EE
+#\\\|ANXSWCKIZEKD7HYVVTNZUZ3JRODQGK4I26CTNUGFBIDUUVG4JGA \ / AMOS7 \ YOURUM ::
+#\[7]CHQ6TK5GTDDDS3QVJSXE4ROHZ7B467YUFSYS3JNWXDBSSUBVW6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

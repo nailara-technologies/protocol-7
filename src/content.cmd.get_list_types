@@ -47,7 +47,7 @@ foreach my $file ( <content.file_list>->@* ) {
     }
 
     next
-        if grep {/^$b32id_str$/}
+        if grep {m|^$b32id_str$|}
         <content.hidden_b32id>->@*;               # <-- SHOW/HIDE event
 
     my @url_flags;
@@ -77,8 +77,8 @@ foreach my $file ( <content.file_list>->@* ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_string }
 
-#,,..,,,,,.,.,...,...,,.,,.,,,,,,,,..,,..,,,.,..,,...,...,.,.,..,,.,,,,,,,,.,,
-#QJJCL3VMGOXE5N2DQFWLX44IQCJG6XH3KNAGZ7H2V3G3TYITWJAHC7KVL3JISZAAOBMX4JARCCRAK
-#\\\|XA2NLW7VC2DPN67ELZRBHLF24BV6P6SOSUJQRB2L74YN3HN7ZLF \ / AMOS7 \ YOURUM ::
-#\[7]JCKXQACTRKVHLSHD4TEU3Z5AIHSC45GXG72T2KYB3WKKN4ZNXCBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,..,,,.,,.,,,.,,,,..,.,,,..,,..,,...,...,..,,,..,..,,,,.,..,,
+#DECQFK5KKAKCATH3R7UNIWDY4SKHP755CEH7LE36EKPXPOGCI3J6P6QWY2275FBVNTZHEOKVP3VJ2
+#\\\|TPGIMDUC65U2EVNC5YLJOJC6KARNWMILU6LQH57CNV7I2TE647J \ / AMOS7 \ YOURUM ::
+#\[7]H3XF4SFGJR7A26GDKCGILITN6VBVGKLAGGBFEQON6WTW3G5C7OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

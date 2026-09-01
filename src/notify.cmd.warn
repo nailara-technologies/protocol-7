@@ -23,7 +23,7 @@ my ( $title, $body );
 $txt_param =~ s|\\0||go;
 $txt_param =~ s,^\s*|\s*$,,g;
 
-if ( $txt_param =~ /('[^']+\'[^']*){1,2}/ ) {
+if ( $txt_param =~ m|('[^']+'[^']*){1,2}| ) {
     while ( $txt_param =~ s|^\s*'([^']+)'\s*|| ) {
         push( @matches, $1 );
     }
@@ -78,8 +78,8 @@ if ( defined $title or @matches ) {
     return { 'mode' => qw| false |, 'data' => 'no message text submitted' };
 }
 
-#,,.,,,,,,,,,,.,,,,..,,..,,,.,,,.,,.,,,..,..,,..,,...,..,,.,.,,,,,,,.,,.,,...,
-#4ZYS5NVW3TGDC4D5E4XVJDDT6LK6NMEIMIE6NEPMDXMM2BZJA6CKCRZOIS6LX2SCNZEE5YXIBXIA2
-#\\\|56LVOHZSE5NJ6H3UY5E2BMP4RT5WWDCLJHLZIV4ETHBWMQFOWZK \ / AMOS7 \ YOURUM ::
-#\[7]7VRF3WSABZSIWSEA3GR2WIFEDRQJBGF7IH363G7ZKMDTWNZWJWDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,,..,,..,,,,,..,,.,,,,..,,,.,..,,...,.,.,..,,,,,,.,,,.,,,,..,
+#LKNDJX7SJMBMNNNOASSJ6WHNNBSUR5Z6QQULWSY7HD54QYISZSFILNJY5P2OTVLHCBZI7UE2BNJKY
+#\\\|BCZGJTZMLJLORA7VNAHJ7ERLNYMEQTLZDBHQQ3HLZCMUWH64TWE \ / AMOS7 \ YOURUM ::
+#\[7]UD7XBRPSS5MMTAJXFTEBNXZM7V6CF3MX7XCQ7ANZJN4G62VIS4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

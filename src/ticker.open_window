@@ -129,7 +129,7 @@ $window->signal_connect(
         return FALSE if <ticker.mouse.inside>;
         return FALSE
             if defined $event
-            and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
+            and $event->detail =~ m{^(inferior|virtual|nonlinear-virtual)$};
         if ( defined <ticker.mouse.grace_until>
             and <[base.time]>->(5) < <ticker.mouse.grace_until> ) {
             return FALSE;
@@ -171,7 +171,7 @@ $window->signal_connect(
         return FALSE if not <ticker.mouse.inside>;
         return FALSE
             if defined $event
-            and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
+            and $event->detail =~ m{^(inferior|virtual|nonlinear-virtual)$};
         <ticker.mouse.inside> = FALSE;
 
         ## in swap mode fade back in immediately when the cursor leaves, ##
@@ -603,8 +603,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,,,...,,,,,,,.,..,,...,.,.,.,.,,,,,.,,,...,..,,...,...,..,,..,,...,,,.,.,.,
-#B47QVOL3VCTUUYGDUNBKO3KQ3XTEABCNK2SOCBH5PM6QZUN3I2I5COQS37HZV66MC32TPKLK4J6VG
-#\\\|3QKUIPYDM3KN6RTTSJHQEYNMN3WYGML5FSMVFQXA463XD6E4S4Y \ / AMOS7 \ YOURUM ::
-#\[7]PL7B4GLS4KNM3QPIBS3QFIVVR5GEYNI7ODSRWJMMK2NPJH2XUMBY 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,...,,.,,,,,,,,,,...,,.,,,,,,..,,...,...,,..,...,.,.,,,,,,..,
+#4PTCM25MWQQU72ZDSALKDFSGNR4RGX6Y7LWKAG7FXFKNECVL5WOSK3EILMGUIEHGRYSAXURIACXSO
+#\\\|G3BWZTFELLNUKHHRUE434Y5X4GFSVG2CFFJXHIXZQLKIAYMUTSC \ / AMOS7 \ YOURUM ::
+#\[7]UKESG6LS54CCJNPG7KMOWXDLLLSETIFRVIOCSSH5OCNICOIGCOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

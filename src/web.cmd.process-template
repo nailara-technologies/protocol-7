@@ -16,7 +16,7 @@ my %meta_vars     = ();
 
 ## Parse meta variable assignments from remaining arguments ##
 foreach my $arg (@args) {
-    if ( $arg =~ /^([\w\-_.]+)=(.*)$/ ) {
+    if ( $arg =~ m|^([\w-_.]+)=(.*)$| ) {
         my ( $var_name, $var_value ) = ( $1, $2 );
         $meta_vars{$var_name} = $var_value;
         <[base.log]>->(
@@ -121,8 +121,8 @@ if ( $result->{status} eq qw| success | ) {
     return ( 0, qq| template processing failed: | . $result->{message} );
 }
 
-#,,.,,..,,.,,,...,,..,.,,,,,.,.,,,,,.,...,...,..,,...,...,...,,.,,,..,.,,,.,,,
-#7OQ3WX5TW2YL2VQYA5XJDD4WU6Q5MIDLUYLDGVT7SBPQIJWFFLG3TQPACO3R7WOIULUEEWXZ24HLG
-#\\\|2EVEPXT67KRJM4WIXDMG3WL5UIC77KXGHEYMMCCHAIOCFQ4APJP \ / AMOS7 \ YOURUM ::
-#\[7]WN5YR3M4FETQCYUKEP6S5TN3RC24R7TLOHZXK5C4XBC4OWGUC4CQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,...,,,.,.,,,...,,,,,,,.,..,,..,,...,...,.,.,.,.,...,.,.,,..,
+#7QUBKSXUY7CBFRGLX257R52BVTV626OC5IWLOPLACJHKXI7UKK3G6B5UFEGFBNZZGEGDZ32H7BQEW
+#\\\|6E42NQ4DMKJD4R6YVZCQN7JP4IK5YMPMCWYJF65OWM2VRYUJG54 \ / AMOS7 \ YOURUM ::
+#\[7]67LDLN5PHDDBFSW2RQ5S73V22EYWJFJDLYQFRXTOOGRRY5NLXWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

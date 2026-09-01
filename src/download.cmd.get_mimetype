@@ -26,7 +26,7 @@ return { 'mode' => qw| false |, 'data' => 'url parameter expected' }
 my $method   = 'HEAD';
 my $response = $uagent->head($url);
 
-if ( $response->status_line =~ /^(4\d{2}|5\d{2})/ ) {
+if ( $response->status_line =~ m{^(4\d{2}|5\d{2})} ) {
     <[base.log]>->( 2, "HEAD failed for '$url', trying GET request.." );
     $uagent->max_size(0);
     $method   = 'GET';
@@ -43,8 +43,8 @@ if ( $response->is_success ) {
 my $mode = $content_type eq 'unknown' ? qw| false | : qw| true |;
 return { 'mode' => $mode, 'data' => $content_type };
 
-#,,.,,,,,,,.,,...,..,,,,,,...,.,.,,,.,.,,,.,.,..,,...,...,...,,.,,..,,.,.,,,.,
-#B7SGVVFNHHP6NMVEUKRWEUNNM6L556JMC6SGMEJU2KGOGGKPXXSEUUIHNQXJTCATV2YHEURQLJROU
-#\\\|PMGZURYS4ZUXZC2RWOAOYXEV7Y44V4PTQPUGDNAK2SKFL3U25JI \ / AMOS7 \ YOURUM ::
-#\[7]BCCS4EZTJX626GLJUFNLPG45LCFLOHJ4HEOHT2R5W6YBTZXZGOCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,..,,,,.,.,.,,.,,,,,,..,,,,.,..,,...,...,...,..,,.,.,.,.,,,.,
+#J2KMEPFZEDATUGM6RN3P4X2FA77Z53G42XYZVB2VCLC6O4UBV55VZBZUM7VEFQZ62UTYFNX6VXI5O
+#\\\|RB3E2AXRJYSHBGSCWUZCIXGAH3RSA6JPUL2EBINMEH77HMIR7NA \ / AMOS7 \ YOURUM ::
+#\[7]NRXIC3MFRKE7W7PT4SFJ3SWB7F6EGZRIPU45YEY56XST7RB42IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

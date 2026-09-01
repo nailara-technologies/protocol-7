@@ -91,17 +91,17 @@ if ( $action eq 'open' ) {
     return undef unless $item;
 
     # Substitute item properties in command
-    $command =~ s/\{path\}/$item->{path}/g         if $item->{path};
-    $command =~ s/\{name\}/$item->{name}/g         if $item->{name};
-    $command =~ s/\{checksum\}/$item->{checksum}/g if $item->{checksum};
+    $command =~ s|\{path\}|$item->{path}|g         if $item->{path};
+    $command =~ s|\{name\}|$item->{name}|g         if $item->{name};
+    $command =~ s|\{checksum\}|$item->{checksum}|g if $item->{checksum};
 
     return system($command);
 }
 
 return undef;
 
-#,,,.,,.,,..,,...,.,,,,.,,.,,,,..,,.,,..,,.,.,..,,...,...,...,...,.,.,.,.,,,,,
-#5VK56IR4ZZ6K37XENY23JZFZVSYQAX77XLSE5ULG6YIILBWP2ZMMLY3NZQ2GW5S2TTENHCPWFFXHA
-#\\\|3GBHIXFK6OSY7R4U737ZHEHMUWBTCOAQIU6CQ72LRXFEPL5TH62 \ / AMOS7 \ YOURUM ::
-#\[7]JIGPJGLPT3QM6GOH4XD2SGXJ5OM7IA4HOQQEQNS5GPLOBP4V4CAA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,,,,,,.,,,,,,.,.,,..,,,,,,,.,..,,...,..,,.,,,,,,,,,,,..,,,,.,
+#TMIEBMXZCKJNMHVXFF4UZHZG7PQTRAVLULXLDNFUVA6UR6VEM46TH4TZMZE3O27RBXZYL3PYSF4NA
+#\\\|P6VOUGKGBIXYAFD4WSLCHKRUUKTGMDNGS75WIDA3XDE7UUJSU6P \ / AMOS7 \ YOURUM ::
+#\[7]Y2BK2DLUBE5S44UGAYRTB623JJSOKEWMIPC2XAEQ5CU5CEY2AGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

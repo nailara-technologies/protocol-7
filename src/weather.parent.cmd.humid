@@ -11,12 +11,12 @@ return {
 
 my $stid     = <weather.station_id>;
 my $humidity = <weather.data>->{$stid}->{'current'}->{'humidity'} // 'n|a';
-$humidity .= "%" if $humidity =~ /^\d+(\.\d+)?$/;
+$humidity .= "%" if $humidity =~ m|^\d+(\.\d+)?$|;
 
 return { 'mode' => qw| true |, 'data' => $humidity }
 
-#,,.,,,,.,..,,.,,,,..,...,..,,,,.,,,,,,,.,..,,..,,...,...,,..,,,.,,,,,,.,,.,,,
-#NTCSSYS6MKNN2UHVSTSKI4J4AEXIA7EOGIDZTWXBKCIPM3EBWQ2BI3YS65P54G2JIUELC7MHEI5LQ
-#\\\|QVEUNLIPH6P4S27YZGLWXGX3LODYARI5HXSKQ2R7AVLGKNJRPDA \ / AMOS7 \ YOURUM ::
-#\[7]KPJNMBP754WJEWAVBWRTAAIIYVUYYZHABRPRRQX5XR53OM5P5UCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,..,..,,.,.,.,.,...,,.,,.,,,,,.,..,,...,...,,.,,..,,,,.,,,.,,..,
+#MQ5J236TULKCHQV2KQCGHT6RDV6YVHAXOAI5HWGS6W6RHUQ7KHKNEGXGU47LR7SQJ3NAEDDSWWZF2
+#\\\|IQOOTMQSG5ALTJQK7TXEHPQYNCLUE745VOJASKXJILELYV2RH54 \ / AMOS7 \ YOURUM ::
+#\[7]S5RWRDUKL6F5YCYYLAJQPSGW56LZQHGK2RVYNJNO4S2KZMOJECDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

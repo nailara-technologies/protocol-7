@@ -26,7 +26,7 @@ return 0 unless $real_path =~ m{^/};
 
 $symlink_policy = 'reject'
     unless defined $symlink_policy
-    and $symlink_policy =~ /^(?:reject|contained|allow)$/;
+    and $symlink_policy =~ m{^(?:reject|contained|allow)$};
 
 ## canonicalize once at export time so every containment check downstream ##
 ## compares against the same normalized root                              ##
@@ -50,8 +50,8 @@ my $writable_flag = $writable ? 1 : 0;
 
 return 1;
 
-#,,,.,,.,,.,.,...,.,.,,,,,,.,,,..,,..,,,.,,,.,..,,...,...,,,.,..,,...,,,.,...,
-#I4NBSI3I5RYVFRNBZGM4VWSAUSW2Q6XLXSOSM6NMBVLMY24OL75NMJY5IWLNVLPBWV5ZFY4GZOXPO
-#\\\|54N7J6CRW7WS3MDOV5JI2MD6JKOZCXW2XWPEXDMWG662UGNVJXZ \ / AMOS7 \ YOURUM ::
-#\[7]5AA4DW46325R6WUD45LDKJARYMO7X5GFX7XQXKEO5LX7E264C4DY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,..,,,,,,,.,,.,,,,..,.,.,.,,,..,,...,...,.,.,...,..,,,,,,...,
+#GLWKRFAAOYJDH4SAVZ2OXTKWA43ZMBSALXD5LIE3CX6EKPDIXQTDPOIIA5C5B7PFWTWU2VOUQ7QTO
+#\\\|XMHH62DGEYVASJFWDBR66W3E7JIURKNZARVTZAFLGUJZ4N6P6AS \ / AMOS7 \ YOURUM ::
+#\[7]TW2IMBDNHW75KCVDZLLQFEWEVGTQW2YTS4IZVUUDP46VMW67ZYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,20 +6,20 @@
 # return = epoch seconds, or undef if unparseable
 
 my $val = shift // '';
-$val =~ s/^\s+|\s+$//g;
+$val =~ s{^\s+|\s+$}{}g;
 return undef if not length $val;
 
 return $val + 0 if $val =~ m{^\d+$};
 
-if ( $val =~ m{^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$} ) {
+if ( $val =~ m|^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$| ) {
     my ( $y, $mo, $d, $h, $mi ) = ( $1, $2, $3, $4 // 0, $5 // 0 );
     return eval { Time::Local::timelocal( 0, $mi, $h, $d, $mo - 1, $y ) };
 }
 
 return undef;
 
-#,,..,..,,.,,,,.,,.,,,...,,,,,,..,...,,,.,.,.,..,,...,...,...,,..,,.,,.,.,,..,
-#IXW5INVNJ2KHFWPQUVXZSG7PIODDHG3SVPVCRW7X3QN5NTMEQJGPCVECTIQUNYTVB55KIRRU36LXE
-#\\\|UOMO5TPXI2EEK53YCO6D5F4HN4DA4XSR5YA43D2GPEQIZWXCPXE \ / AMOS7 \ YOURUM ::
-#\[7]5DXEEAOB5COV6BTC6CPJLJTFEUZW5YMCJYETUTOGUBH5S4UWRIBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,,,.,,.,,..,,,,.,...,...,,.,,..,,...,...,,,.,,,.,.,,,,,.,,..,
+#C5VPPKX2NZI2L4BXNODTF6V65W6UOGLIKAI224UVL3WWU2QXOJTDTLXVAQ6XHJLCPLCGDRURZWSUG
+#\\\|3YAJODFM6XDVD57VE47UAN5E44X7FSQWPYKIHZAUT6R3FJE37KO \ / AMOS7 \ YOURUM ::
+#\[7]ARYTALL653BHBA3GQL7G6QEIQISWR5VGP4I4MZFIMBCJKI42SMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

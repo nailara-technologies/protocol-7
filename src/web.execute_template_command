@@ -16,7 +16,7 @@ my $depth       = $params->{depth} // 0;
 );
 
 ## Parse command string: module.name:arg1:arg2:... ##
-my ( $module_path, @args ) = split( /:/, $command_str );
+my ( $module_path, @args ) = split( m|:|, $command_str );
 
 ## Validate module name ##
 unless ($module_path) {
@@ -31,7 +31,7 @@ unless ($module_path) {
 $module_path =~ s{^\s+|\s+$}{}g;
 
 ## Validate module name format (alphanumeric, dots, dashes, underscores) ##
-unless ( $module_path =~ /^[\w\-_.]+$/ ) {
+unless ( $module_path =~ m|^[\w-_.]+$| ) {
     <[base.log]>
         ->( 1, "[$session_id] invalid command format : $module_path" );
     return {
@@ -153,8 +153,8 @@ return {
     result  => $result,
 };
 
-#,,,,,.,.,...,,,.,,,.,.,,,,..,,,.,,,.,,,,,,..,..,,...,..,,...,,,.,,..,.,,,.,,,
-#Q6L2ZPSNKAZXCYZQH73OKXWKLXPJLBJWG3XGTOKMWUCKAZRPWNS2TL73FZBZCEQHUJ6MRW4VBJ6JA
-#\\\|K26FJIUEKAXB7O3OBID7ZPWCSTSHTQOLU5AYTYT5MXETEE4AIA5 \ / AMOS7 \ YOURUM ::
-#\[7]OUWARNQ2BPWP2OL6HKB3KR5JECFROE4CQHYJSOER4HTDIN65OCBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,,.,,,..,.,.,..,,..,,,,,,...,..,,...,...,...,,.,,.,.,..,,,,,,
+#GWTUMVYZ5RTNGF3NF2FDX66IUDP3QHPR2BYH5EZXOCEVWPHF6QKMPYQSEVT4RFW4ZERWVUQAJA3ZU
+#\\\|AMJZVOJBAN77TATTK3QY6HEQ6Z4Q7S4RRH7ARMWEXWKSJIDHFPQ \ / AMOS7 \ YOURUM ::
+#\[7]CXDNAQ6M652XLVO7QPRAT3UHS3NYU76IELIIU7V4X4ZGH4KLJCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

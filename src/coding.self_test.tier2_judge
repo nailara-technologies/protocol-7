@@ -46,8 +46,8 @@ if ( !$result || $result->{'mode'} ne qw| true | ) {
 
 my $raw     = $result->{'data'} // '';
 my $trimmed = $raw;
-$trimmed =~ s/^\s+//;
-$trimmed =~ s/\s+$//;
+$trimmed =~ s|^\s+||;
+$trimmed =~ s|\s+$||;
 
 ## YES / NO parser : tolerate leading punctuation/quotes/markdown ##
 my $verdict = 'ambiguous';
@@ -68,8 +68,8 @@ return {
     judge_by => $judge_model_id,
 };
 
-#,,..,.,.,,..,.,.,.,,,.,.,,..,,,,,...,,..,,..,..,,...,...,,,,,...,.,.,,.,,,..,
-#FHRHW4LE3M2I7BEFKRGWF72LZUGR3JHOYMXMXPQF6QXRDQ22SPR4VRVHRLDBCSJU6REXD22T3R3IC
-#\\\|RF3WQZQVI3EIDKQRCU33SN3RNZBZHOU3YNXU4WDM2F6T23GM345 \ / AMOS7 \ YOURUM ::
-#\[7]MRFCETM3N3POI34NZ7ECMAXDLYWQBQIMZMHVVM724NAONHJ2Z6DQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,.,,,,,.,...,.,.,,.,,.,.,,..,..,,...,...,...,.,.,...,..,,.,.,
+#VK4E2DVHF44HAXXZ7AEKSGAORPAZ6EJ6FJXZSRDI4TLC3EWOSRBUV4NX3PJSAN4Y7D3RDAIG3MUL2
+#\\\|W3JYASCQ5CTEPM2HXCSOQFSWLUFWQPSDINTFKXAHRRHIQA6EY6Z \ / AMOS7 \ YOURUM ::
+#\[7]XVS6FDGOVLIHA77GOBBO5WIHQ5CPLVSWWHR3PAG5BR54AS7EJIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

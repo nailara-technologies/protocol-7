@@ -3,7 +3,7 @@
 # descr = Create a file or directory over 9P
 
 my $args = $call->{'args'} // '';
-my @tok  = split /\s+/, $args;
+my @tok  = split m|\s+|, $args;
 
 my $name = shift @tok;
 my $path = shift @tok;
@@ -40,8 +40,8 @@ return {
     'data' => "created $path" . ( $is_dir ? " [directory]" : "" )
 };
 
-#,,.,,,,,,,..,,,.,,,,,,..,,.,,,.,,...,,,.,,..,.,.,...,...,.,,,,,.,,.,,,,.,,,.,
-#MRVNZMLATEMMFO6RFT7BJLQKPVK5TIECNITMSCPRCHEMZCC2UYLOXGLXQRHYUFYUPW2EUGNC6ZTL2
-#\\\|DB3VNDWOV5RCI34XL2NO6SFNFWF4S3G7ECFS3N5SHICO7VERTUH \ / AMOS7 \ YOURUM ::
-#\[7]BE5Q5Z4TRZ43AXPWNSDEX57CKPKM2T27WMWPLHMCHDAWRVQHKOBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,.,,,.,,,.,,,..,,.,,,.,,,.,.,.,.,...,...,...,,,.,,..,.,,,,,.,
+#B5UACFE7IFM7SIFOZIRDWGASUNK4ZIVSJ6Y5YT7DBGBR4EH46PXHQTV7CTJ2WT2ALFQI6VYQE5DW4
+#\\\|NNNE6US7J5Y5AGP7GI2PWK3S4JNCYYKO54PNYWU335UTZDMP3TE \ / AMOS7 \ YOURUM ::
+#\[7]BQLAPOZIXM47HPA6AJDCPCB6X4INFPBG7GLZ43UTCG2BC2RNWQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

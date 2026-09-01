@@ -7,7 +7,7 @@ my $id = shift;
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.'                   if length($cmd_path);
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 1, "iconifying window '$id'.," );
@@ -30,15 +30,15 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
     <[base.log]>->( 0, "iconify_window command failed with '$1'.," );
     return FALSE;
 } else {
     return TRUE;
 }
 
-#,,,,,,..,...,,,.,.,,,,..,,.,,...,,,,,,.,,..,,..,,...,..,,..,,..,,..,,...,...,
-#VLIA3NAO56YZPTOO2SST264ABKFRCNETZKKMKMSN6SMHHDLNDYBO2BWLSPW4GBFD6UGVSEGKI557S
-#\\\|VOZ3SWV6QSXQCTZYSVAZ3PSVCF2AEMK6APW37RQOH47GKSEQMLX \ / AMOS7 \ YOURUM ::
-#\[7]WU3THGSCMPFYLSIR2O64BGYOHI6OUYIADRGKWJNKORRT3OVESUCA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,..,,,,,,...,,.,,...,.,,,.,.,..,,...,..,,..,,..,,,,,,...,.,,,
+#AD4722O3WKBJPY43U7UY66GF7I7GKTD5NORLQYGKNPT3ASQ5F5733XQ4M64TRV36MVDFRRIFQR27I
+#\\\|M6UKZLJIAQ4K54PCXIQBUKMT7G6DME6LIAG24JLN3WMIUDKO7LD \ / AMOS7 \ YOURUM ::
+#\[7]AHJA2GHUZAKE5V2CH5IBZOUFIPCNVA5D7CSAIYBWP2JT47LANOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

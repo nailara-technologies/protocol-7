@@ -13,7 +13,7 @@ $client_params //= {};
 
 ## === resolve buffer === ##
 my $window;
-if ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
+if ( $buffer_id =~ m|^amos:([A-Z0-9]{10})$|i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
     return undef unless defined $sid;
@@ -97,8 +97,8 @@ if ( $client_params->{'notify_others'} ) {
 
 return $attachment;
 
-#,,,,,.,,,,,,,,,,,...,,,,,.,.,.,,,,..,,,,,...,.,.,...,...,.,.,,..,..,,.,,,,..,
-#BMUID46QYFVNA3JOVH75WD4NQAYR5SOWMSBV5JBDF3YGLP22XC4IUEE2CSLBB56YV7XGTMZA4HXPM
-#\\\|QU2GC4UND3556ZLVXHFD3RAUBUDDZUKQAX5QREZHXK53OOK5FEL \ / AMOS7 \ YOURUM ::
-#\[7]H2PZEW6FCGNRO44TGG32NRWXNTZEDZEZLDCO7EXFMMBH56V4B6CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,.,.,,,..,,..,,.,.,..,,..,,.,.,...,..,,,,.,,,.,,,.,...,,,,,
+#V6WM6HXVF3UTOLAVRGUA4TK3WRIWW3LG2BXNU7Q5YZ6MNGPI3Z5QBOICETK7ZWHNS5RQNVYEKAMZW
+#\\\|BLHZIL33TBNV7Y4N3J4NO6FFM5GYH5TWR6OXY5IUN3P2WBZHGQM \ / AMOS7 \ YOURUM ::
+#\[7]XEEQSE5M56N6RDGVW5LHT5Z2MX6CP4YYGEV7M72QL4Y65UGL5KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

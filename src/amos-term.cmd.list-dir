@@ -3,7 +3,7 @@
 # descr = List a directory over 9P (plan-9.client)
 
 my $args = $call->{'args'} // '';
-my ( $name, $path ) = split /\s+/, $args, 2;
+my ( $name, $path ) = split m|\s+|, $args, 2;
 
 if ( not length( $name // '' ) or not length( $path // '' ) ) {
     return {
@@ -20,8 +20,8 @@ return {
     'data' => join( "\n", @{ $result->{'data'} } ) . "\n"
 };
 
-#,,..,,,.,,..,,..,,,.,,..,,..,.,.,,.,,,..,..,,.,.,...,...,..,,,,,,.,.,..,,,.,,
-#5NSYVLDKMRI6KMQI665WZAB5DTFN66MEHXDQ35Y5BDNECT6WNF3KYVNRUZOTJE7YHKFPTYKYQ4BDE
-#\\\|BSTFJR5C36IYTVZ3PTYUUXSWXM3QCOHB6A4TH7AXU5J6JC7PSRH \ / AMOS7 \ YOURUM ::
-#\[7]J7FJIOBCA4RXYHZTREQGUSGQJZRTKWMW4KF2KDBWLFJLBLR5F6BA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,.,,,,,,,.,.,.,,,.,.,...,...,.,.,...,...,...,.,.,.,,,.,.,,,,,
+#RJTPQNT2ZPW6WDGB73E5AXB4RTPZH75K3XTHSVKLTGQBZ2FTDIANTKQDKWP53XNGDXR7P5PCCNOVM
+#\\\|5KXTIXVPXTBONKCUGWMG6JAUSPUWQGCQJIEKCTPJDHT23VI223E \ / AMOS7 \ YOURUM ::
+#\[7]J2GO3ULZLIXB3RY2P2SYXKFOYQJIF4HDFFX53V5T2QJCUXA522BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

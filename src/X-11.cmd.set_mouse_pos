@@ -5,12 +5,12 @@
 # descr = move mouse pointer to given coordinates
 
 my $log_sid = $call->{'session_id'};
-my @params  = split( / +/, $call->{'args'} );
+my @params  = split( m| +|, $call->{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
     return { 'mode' => qw| false |, 'data' => "expected $ARG parameter" }
         if not defined $coords{$ARG}
-        or $coords{$ARG} !~ /^\d+$/
+        or $coords{$ARG} !~ m|^\d+$|
 } ( 'x', 'y' );
 
 <[base.log]>->(
@@ -36,8 +36,8 @@ return {
 
 return { 'mode' => qw| true |, 'data' => "mouse position set" }
 
-#,,.,,..,,..,,..,,,,.,,,.,,,.,...,,..,,,,,,.,,..,,...,...,..,,,.,,,,.,,,.,..,,
-#HRJPYPMW7LLSGLM4H7MTIZG5S5IIQUO3HQETDBQ5BX4XFOZBGSDBTL3PZOGM55BFEGVWLBCG64P5G
-#\\\|FNUHHT4UMNUQQV74NVMJ7PL7S2FJHN3EFSYIUTRPZHLIXOGXM65 \ / AMOS7 \ YOURUM ::
-#\[7]L4OI3IEJ223V67PAKGMGBXN24NN33VBVM5KYFMULVGWOI4DCPUDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,.,,,...,..,,.,.,,,,,.,,,..,,..,,...,...,.,.,,,.,.,,,,,.,...,
+#D5JUPHRQWDQHS7GVGKZMTZV2IKDBZCRBE4KYKB6UPCXBZT5PQH7SKR454DUS5BBM7SHPN37R4T5KW
+#\\\|JHV6ELK2CKX3L5CSZPO6ONHF2HWRX6CJ4YFZZYA57PMHBWXFETS \ / AMOS7 \ YOURUM ::
+#\[7]PMVPMEKMI3TPL2UCYEQ2RFKCE44XU4JG25L2D756CTW5TLQO6SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

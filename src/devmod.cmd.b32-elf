@@ -10,7 +10,7 @@ return {
     'mode' => qw| false |,
     'data' => 'expected base32 encoded elf value'
     }
-    if $b32_str !~ /^[0-9A-Z]+$/;
+    if $b32_str !~ m|^[0-9A-Z]+$|;
 
 my $elf_bin = Crypt::Misc::decode_b32r($b32_str);
 
@@ -20,12 +20,12 @@ return { 'mode' => qw| false |, 'data' => 'expected base32 encoding' }
 my $elf_int = unpack( 'V', $elf_bin );
 
 return { 'mode' => qw| false |, 'data' => 'not an encoded number' }
-    if $elf_int !~ /^\d+$/;
+    if $elf_int !~ m|^\d+$|;
 
 return { 'mode' => qw| true |, 'data' => $elf_int }
 
-#,,..,.,,,,.,,,.,,,,.,.,,,...,.,.,,,.,.,,,,,.,..,,...,...,...,.,.,,,,,...,.,,,
-#VUTW5JXW3WY43KZKGL5A5UK27K54ZQNWWWYRD5HLWCNIXOTFWJG5A4TY55G2ZJ7SCUZJINOI7X43Y
-#\\\|GMXGSTWBHDGSXIKYGV7W7JOX4D4ND27MER2B62V54TSIK5G67NV \ / AMOS7 \ YOURUM ::
-#\[7]IEZITIXBE76HA7EPEJQKBFQ7UHIYPXMNCMM7DCD6YG4ZUZNXH6CY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,..,,...,,.,,..,,,.,,,,.,,,,,..,,...,...,..,,.,,,.,.,..,,.,,,
+#KPZDYGIXXXNNWR2H65CZ66T4TT4VVVEEEXHQTJ6BZDW4Y7QI37LPOQGSAQNK32J547LPZNCEUANUG
+#\\\|2GTIQL5G7P6AGLSKMFBT44PJIGZWZZOTN4F6UYBTGQ7PXPHK4TB \ / AMOS7 \ YOURUM ::
+#\[7]V334CQGU66WN3ABGV6GC4FR3PXMSEH7HBJO4XZOKHHZV3K7X2ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

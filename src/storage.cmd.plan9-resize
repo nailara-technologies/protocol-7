@@ -3,12 +3,12 @@
 # descr = Resize (truncate) a file over 9P
 
 my $args = $call->{'args'} // '';
-my ( $name, $path, $length ) = split /\s+/, $args, 3;
+my ( $name, $path, $length ) = split m|\s+|, $args, 3;
 
 if (   not length( $name // '' )
     or not length( $path // '' )
     or not defined $length
-    or $length !~ /^\d+$/ ) {
+    or $length !~ m|^\d+$| ) {
     return {
         'mode' => 'false',
         'data' => 'usage: plan9-resize <connection-name> <path> <length>'
@@ -26,8 +26,8 @@ return {
     'data' => "resized $path to $length bytes"
 };
 
-#,,,.,.,.,.,,,.,.,..,,.,,,,..,.,,,..,,,..,,.,,..,,...,...,.,.,,,,,,,.,,,,,...,
-#3KI3XPGQXGRLRXVXJGJ5UZEIL5AHZK6CYHL6DQ3KEVNK2BTGGQV3DJFGDVGUAU6T5OIDSRFW7L7SW
-#\\\|GGDAYWSW6SS4QC7QLQITF5CQPO3RDXRQLB2CIJVLV5SXUTS47OQ \ / AMOS7 \ YOURUM ::
-#\[7]5M62LRPG3SAJYYC3UF5F4T4QZQQDRTP74I4MPR4UQLYIOPXHYECI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,...,..,,,,,,.,.,..,,.,.,.,.,..,,...,...,...,,..,,..,,,,,,,,,
+#S2JZ74HLXPSJGSSKJ5J23AK7UDAYZGX7PXMQNBQWRM2W5L5P2CAU3FCRSHR3TKZPEH5JK64N2ICWM
+#\\\|7LZDQSWIB76LTCZRYEZCZ4EXMQWYHIZ5FILXEWLEUTLQEPJSTMY \ / AMOS7 \ YOURUM ::
+#\[7]EMG4WV7CTLCMSMFDGLK7WXVJIY4ZKJKZR63HSRHXGZ3DXLJ6LQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

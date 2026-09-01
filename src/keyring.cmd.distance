@@ -13,8 +13,8 @@ if ( not defined $path_a or not defined $path_b ) {
     };
 }
 
-my @a      = length($path_a) ? split( /\./, $path_a ) : ();
-my @b      = length($path_b) ? split( /\./, $path_b ) : ();
+my @a      = length($path_a) ? split( m|\.|, $path_a ) : ();
+my @b      = length($path_b) ? split( m|\.|, $path_b ) : ();
 my $common = 0;
 $common++
     while $common < scalar @a
@@ -30,8 +30,8 @@ my $output
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,,..,..,,..,,,,,,...,.,.,...,...,,.,,,..,..,,...,...,..,,..,,,.,,,,.,.,,,
-#3ZN4HCR3DKU5BBFL7NQ6ADZLMP3TEXYOWWIHVCRU37H6EGAEWX3GREQAGKKU2U3RIXB2TBRKGROGM
-#\\\|33C24LC44FW6VNIUD4O75CBBUAW3X6A3K5NCVQHPLZWEGAXMNAS \ / AMOS7 \ YOURUM ::
-#\[7]RGNAQIZDCFJG7JVIYNIACQMZSVIKVH6JKOMQ75Q6KOKLDTIOGCBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,,,.,,..,,,.,.,.,,,.,,,,,,,,,..,,...,...,,.,,,.,,.,.,.,.,.,,,
+#2HXO7EUHLPMWK65PPNA3TWSVQOWPNKJMQPEUWPKSFYTIHCSFGU6LBX56HHUHX3HU6OO5NQPUGLSD6
+#\\\|JKRMPC5RMQF2SCQL6ZTJRRVFWLKBWV2TYOSMERHNCIZMXLFYIOK \ / AMOS7 \ YOURUM ::
+#\[7]TM5WRENAYB7KXHIK5XGAQN2YJ3INBJPGAMVNPZOUPSRJMZBVEMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

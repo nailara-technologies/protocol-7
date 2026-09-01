@@ -41,7 +41,7 @@ if ( $reply_mode eq qw| true | ) {
 
 ## mode false with graphical not enabled: console fallback ##
 if (    $reply_mode eq qw| false |
-    and $reply_data =~ /graphical mode not enabled/ ) {
+    and $reply_data =~ m|graphical mode not enabled| ) {
     ## write pending entry to file for external tooling ##
     my $pending_yaml
         = eval { YAML::XS::Dump( <cred-mesh.auth_relay_pending>->%* ); };
@@ -86,8 +86,8 @@ if (    $reply_mode eq qw| false |
 delete <cred-mesh.auth_relay_pending>->{$req_id};
 return { 'mode' => qw| false |, 'data' => 'auth relay failed' };
 
-#,,,.,,.,,..,,.,,,..,,..,,.,,,,,,,,.,,.,,,.,.,..,,...,..,,...,,,.,..,,,..,,,,,
-#PAXMDM4JMVW7QBT6NOXE4HD36GQXSRL5TOWICK5NBB6LRKH5QRBECDPBJRDBNMQURT322CNNG6QKQ
-#\\\|SPB3SEBLVL2ATPGDTHSDUPYP55RTMOZRIMZZWPGMCHCYNQMAZK6 \ / AMOS7 \ YOURUM ::
-#\[7]HUVW4HUHVOEIKPP773OTNRDZOMHKC2FM5SFA4XHGNVMJ5STLX6DY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,...,,..,...,,..,,,.,.,,,..,,..,,...,...,.,,,...,,..,,,,,...,
+#DBC4FPNKGLD3Q6M2WNDKJF44V6QUZWJCLBJIU5KV5LTPBJPRONIGPOZKRCNF2MUTMEYESE45UEW4E
+#\\\|NCMOLS3V6GQ3NQIM72KSPIEDNT6V7XTV6O3NPITIZEWMVH5OVA7 \ / AMOS7 \ YOURUM ::
+#\[7]2URGFJWHKQMGHY7SGURLRPJR2YDKRCN3I4C5NGY2C6RWZAV6NACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

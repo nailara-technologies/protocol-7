@@ -19,9 +19,9 @@ for my $status (@active_statuses) {
     my $dir = "$cache_dir/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+    for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $enc_id = $fn;
-        $enc_id =~ s/\.yaml$//;
+        $enc_id =~ s|\.yaml$||;
         my $job_id = <[base.vax-int.decode]>->($enc_id);
         my $job    = eval { YAML::XS::LoadFile("$dir/$fn") };
         if ($EVAL_ERROR) {
@@ -43,11 +43,11 @@ for my $status (@epoch_statuses) {
     my $dir = "$cache_dir/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+    for my $epoch_dir ( grep { !m|^\.| && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
-        for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+        for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
-            $enc_id =~ s/\.yaml$//;
+            $enc_id =~ s|\.yaml$||;
             my $job_id = <[base.vax-int.decode]>->($enc_id);
             $index->{$job_id} = "$status:$epoch_dir";
         }
@@ -61,8 +61,8 @@ for my $status (@epoch_statuses) {
 
 return <plugin.web.jobs.cache>;
 
-#,,.,,...,,,,,..,,,.,,.,,,.,.,,,,,..,,.,.,,..,..,,...,...,,,,,,,.,,.,,...,.,,,
-#ASONZPJLXLJ4W6TFVUHF4G4NHSC5GQ63Q5CGR6UVOSYD6ZJJAYXKD3XWOI3QWZC5X326A4LP5NEJA
-#\\\|WCKSJA6JMKVWNE3XX3F567WJ3SO27N4FGP5WFPYOBYYUFDAK6KU \ / AMOS7 \ YOURUM ::
-#\[7]6TPBBT46RVWSITV5MDHCMDAHGKEJUU2NJNQWPNBRAUG2RJTE5MDA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,,,.,.,.,...,,..,,,,,,.,,,,.,..,,...,...,..,,,,,,,,.,,,,,.,,,
+#EWIXQ64U25TTDWBXXJWSYGOWGFXBMLUB5TFIG4LFYK46OHFPCIO4354WH6VFNQLI3UGPDZDUG3R7M
+#\\\|YUTC76AO7QHJ7N35ZSHPDIADJ5NC427AAAPTZMEIHDBINUNHFMT \ / AMOS7 \ YOURUM ::
+#\[7]DBSAZV5L2HMAWBZCT4FDRFY7MB3EQBXEUT3FEY2RGI3LOF5MOUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

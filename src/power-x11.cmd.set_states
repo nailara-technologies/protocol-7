@@ -4,7 +4,7 @@
 # param = <id> <S1> <S2> <S3> <S4>
 # descr = update power swich states
 
-my ( $dev_id, @states ) = split( / +/, shift->{'args'} );
+my ( $dev_id, @states ) = split( m| +|, shift->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected device id' }
     if not defined $dev_id or !length($dev_id);
@@ -14,7 +14,7 @@ return { 'mode' => qw| false |, 'data' => 'expected 4 socket states' }
     if @states != 4;
 map {
     return { 'mode' => qw| false |, 'data' => "state '$ARG' is not valid" }
-        if $ARG !~ /^(0|1)$/
+        if $ARG !~ m{^(0|1)$}
 } @states;
 
 my $changed = 0;
@@ -36,8 +36,8 @@ return {
     'data' => $changed . ' states changed'
     }
 
-#,,,.,.,.,.,,,.,.,.,.,,..,.,,,,.,,..,,.,.,,,,,..,,...,..,,.,.,,.,,,,.,,.,,..,,
-#SWVSDS5R7JR3AQIHWIUDQR6IKAJWOOPRKQLSO2X4TSXNLG43OSSIZ3NPHQXBNUFZBUSGVVJFKFEM4
-#\\\|5WZFXJJCNH3QNMVXVAYISCEJUEIIOKNYY63I7OVR4SZKGJ3UNV3 \ / AMOS7 \ YOURUM ::
-#\[7]J2BZYSYLZBCFBRZYMLPOOBVEOZ3IZXCAU6R6WZY4VQZDGCDTD2CI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,,,,,,..,,.,,.,.,.,,,..,,...,..,,...,...,...,.,,,...,,.,,...,
+#FQ5WXMVAYDHXZYD2XAP4PVOX6SDCOPJPI47DL7QQOB6RT7VTDBMRSQXAKDAM4ICNKNQCZPX4IMVTS
+#\\\|FCCMOXACMC6BBZ5BC6NJQZXBDOAUWYPLUVTLXHAGY3JNRL4IXVV \ / AMOS7 \ YOURUM ::
+#\[7]TRH6IT3KNMSJD7SAUVCWCM3WWCORLRUA6H3ZNF24LNHVX6TAPSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

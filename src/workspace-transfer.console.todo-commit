@@ -31,7 +31,7 @@ chomp $branch;
 
 # Check if TODO.md changed
 my $status = `git status --short TODO.md`;
-if ( $status =~ /TODO\.md/ ) {
+if ( $status =~ m|TODO\.md| ) {
     say "${TRUE_blue}📝 Committing TODO.md...$reset";
 
     system( 'git', 'add', 'TODO.md' ) == 0 or do {
@@ -67,8 +67,8 @@ if ( $status =~ /TODO\.md/ ) {
     say "";
 }
 
-#,,,,,..,,.,.,,.,,,.,,,,,,.,.,,,.,...,,,.,..,,..,,...,...,,..,,,,,..,,...,,.,,
-#IR7HM346JMOBAVQZTLAJ4BJHFPI7ORAC4WL3NK7KAZC7T3PQUZYKJEYAGNB77WPC7KO7VF52XQXWA
-#\\\|REZPLXN33E6DNFIZREYAQDA5AVVYSTX4UHU7WA6AYAVNDIXLHRZ \ / AMOS7 \ YOURUM ::
-#\[7]XZQ4L6NBIKTCVXY6SZKXF3HVWM6Z4ZEKAZXCDNJKC4KUJ3VALGCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,,,,,,,,,,.,,,.,,,.,,,..,,..,..,,...,...,..,,..,,,..,..,,,,,,
+#2OAPHUUTYTMW3GFCEPDYDKYWTENFWMEW2BVOVE7BS7K6KG4HS7GMRJNSIWYW3HT6VLZPANY2NS4CK
+#\\\|DRXW4WIAMYO5W3FZAFWTDF3YV7CFDBY2TWHN4RMLODFU4UUPTNO \ / AMOS7 \ YOURUM ::
+#\[7]VWABOD4I4R6HEYKUE22DVAIPNKYWAHHV4KDGJ7PT7Y2CHN6CTIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

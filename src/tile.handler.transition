@@ -80,7 +80,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     <tile.transition.status.waiting.i_id>--;
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
     if (    $cube_reply->{'cmd'} eq qw| TRUE |
-        and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
+        and $cube_reply->{'call_args'}->{'args'} =~ m|^\d+| ) {
         my $instance_id = $cube_reply->{'call_args'}->{'args'};
         ## notify_offline ##
         <[protocol-7.route-send]>->(
@@ -143,7 +143,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     my $instance_id = $cube_reply->{'params'}->{'instance_id'};
     my $window_ids
         = (     $cube_reply->{'cmd'} eq qw| TRUE |
-            and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
+            and $cube_reply->{'call_args'}->{'args'} =~ m|^\d+| )
         ? $cube_reply->{'call_args'}->{'args'}
         : 0;    # <-- 0 == failed, fade will be skipped!
 
@@ -205,8 +205,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
     if ( $cube_reply->{'cmd'} eq qw| FALSE | ) {
         my $reason = $cube_reply->{'call_args'}->{'args'};
-        if ( $reason =~ /concurrency/ ) {
-            $zenka =~ s|\[.+$|| if $reason !~ /subname/;
+        if ( $reason =~ m|concurrency| ) {
+            $zenka =~ s|\[.+$|| if $reason !~ m|subname|;
             <tile.transition.status.zenki.concurrency>->{$zenka} = 1;
         } else {
 
@@ -266,7 +266,7 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
         # cleaning up merged tile [see overlays]
         my $prev_tile_groups = <tile.previous_tile_groups>;
         delete <tile.setup.tile>->{$prev_tile_groups}
-            if defined $prev_tile_groups and $prev_tile_groups =~ /\+/;
+            if defined $prev_tile_groups and $prev_tile_groups =~ m|\+|;
 
         if ( defined <tile.transition_queue>
             and <tile.transition_queue>->@* ) {
@@ -290,8 +290,8 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,..,,.,,,.,,.,.,,..,..,,,..,.,.,.,.,,,.,...,..,,...,..,,...,..,,..,,..,,..,,
-#PW6FJTVSEBPUGW26XUF72XUZXMZ43HPJ5YSWNNRNDETMR5N4B2FTFAXOAPJGLNBYMCXL233LBUCFS
-#\\\|6T5W675CNNLWDQKJGBKURICMFWMET3XOKYCFH4QIHR4H5HWFVR6 \ / AMOS7 \ YOURUM ::
-#\[7]JOUIKCVDDAFZBTYR36FZVZMUZXTBSHMSEMEUMOXX7T2IVCJPKMBY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,,.,,,..,.,,,...,..,,,,,,..,,..,,...,..,,.,.,.,.,...,..,,.,.,
+#MNNSBPULBWVBFJVK4PKV47BK4NE7QNVQINIVBKXG57B3O7AXU72K7DWTQNONAG5NDOXPANQ5J6ZLY
+#\\\|BJ3OBNUJKSTTEUN3MID3VDQD3XDB6ZUQEQXSDBJEDSI6FTIPQ3V \ / AMOS7 \ YOURUM ::
+#\[7]4EDHH3FI3S52C6QRHZSJSVDF53NR5VDYIXTR5D32LRJXQB7VO6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

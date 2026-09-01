@@ -48,7 +48,7 @@ if ( @{$dq_e} ) {
     return;           # <-- no, there weren't
 }
 
-my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
+my $no_key_pressed = $qkmap =~ m|^\0+$| ? 1 : 0;
 
 my %event = @$dq_e;
 
@@ -59,7 +59,7 @@ if ( ( $event{'name'} // '' ) eq qw| RRScreenChangeNotify | ) {
     return;
 }
 
-my $event_type = $event{'name'} =~ /^Key(Press|Release)$/ ? lc($1) : undef;
+my $event_type = $event{'name'} =~ m{^Key(Press|Release)$} ? lc($1) : undef;
 
 return if not defined $event_type;
 
@@ -96,7 +96,7 @@ my $mod_str
 <X-11.hotkeys.active> //= {};
 if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
     my ( $command_str, $params_str )
-        = split( / +/, delete <X-11.hotkeys.recording>, 2 );
+        = split( m| +|, delete <X-11.hotkeys.recording>, 2 );
     my $hotkey_id = <[base.gen_id]>->(<X-11.hotkeys.active>);
 
     # LLL: filter duplicates
@@ -158,8 +158,8 @@ if ($no_key_pressed) {
     delete <X-11.hotkeys.triggered>;
 }
 
-#,,,.,,..,,.,,,,,,,,,,.,,,...,...,.,,,..,,.,.,..,,...,..,,...,...,,,.,,.,,...,
-#YCQHOTJIYMSMITUNW66V3JDU3WG3GAXMYNULH2KRCDKR4PY5EB3APPHTUFWXHJSCOPGRQCOY2D63Q
-#\\\|2L4HJXOW77IPIBFWB5LBO6DXDOA6QDSG6BHK5YS4O2426C62FJJ \ / AMOS7 \ YOURUM ::
-#\[7]TCEGGH2JYHKNTELXV3ULSH5FSK7YHG43K3BCPCYRAJSQZ3DFTGAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,,,.,.,.,,,,,,,,,..,,.,.,...,..,,...,...,...,,,.,,,.,,.,,...,
+#FYARJOFHU73RKXTMYST36BB5SIYKLKSUHNZXZ67EF35ULLJD7BJ3ZWLIRVX6WH56TXQ3DJZKI3CJU
+#\\\|A6NRWUJW6SRMKT6ZO5CXJELCWUWWISR4W3HD4ANCXQYZWJ3SKED \ / AMOS7 \ YOURUM ::
+#\[7]BKDQKOJ6LVZSHWP72EQG3GP2GTT2UF54U5P7GOMENBDIO3VCN2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

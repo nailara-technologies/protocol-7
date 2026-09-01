@@ -14,7 +14,7 @@ return $code{$hook}->( $ARG[0] ) if defined $code{$hook};
 
 ## resolve address in data space
 my $value_ref = \%data;
-my @segments  = split /\./, $address;
+my @segments  = split m|\.|, $address;
 my $resolved  = TRUE;
 
 for my $segment (@segments) {
@@ -56,8 +56,8 @@ if ( $resolved and ref $value_ref eq 'CODE' ) {
 ## [ 5 ] fallback
 return 'available';
 
-#,,,.,.,,,.,,,...,,..,.,,,,,,,,..,..,,,.,,,,,,..,,...,...,...,...,,,.,.,.,,..,
-#TIL67WXP7VIEBM7Y7CPHSCRKQSMWZOBNUSNIKKLRJ6FNZEDFOKMJPK2UVBYMEAJT3TZ6RGIRGPO6O
-#\\\|HPNV5JJ5555OS6THSK5EQV3HDIL5KG5RGNAODEQTOWFTRKXLQLP \ / AMOS7 \ YOURUM ::
-#\[7]37PO3NPWNKQX733UO6JNNP6UDO2UICWMCQCURLMHJEPUQ2HA2KBY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,,,,..,,,,,.,.,,..,,,.,,.,,..,,...,...,..,,,..,.,,,..,,,,.,
+#SL6XASREC73OMCERPONQHP5SHNSA6CTMYSZQORWLBPWWMSK7N43S7KZVLHXRW3A24D3ZL2JUPHD7G
+#\\\|UV25BRB2XO3R7DK6N7GXDGXV4OTZZMGUZMRFKH3QUO4W4EKSYUE \ / AMOS7 \ YOURUM ::
+#\[7]KCUZSYSTOL3BLZ3DRITJH2XA3KKOP4JXR5SPZWQX6XOLSUOMWQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

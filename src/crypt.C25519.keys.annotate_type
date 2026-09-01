@@ -40,11 +40,11 @@ if ( defined $keypair->{'type'} ) {
 
 ## Infer algorithm type if not provided
 unless ( defined $algorithm_type ) {
-    if ( $key_name =~ m/link-upgrade/ ) {
+    if ( $key_name =~ m|link-upgrade| ) {
         $algorithm_type = 'Curve25519';    # DH keys
-    } elsif ( $key_name =~ m/sign/ or $key_name =~ m/auth/ ) {
+    } elsif ( $key_name =~ m|sign| or $key_name =~ m|auth| ) {
         $algorithm_type = 'Ed25519';       # Signature keys
-    } elsif ( $key_name =~ m/dh|exchange/ ) {
+    } elsif ( $key_name =~ m{dh|exchange} ) {
         $algorithm_type = 'Curve25519';    # DH keys
     } else {
         ## Default based on context:  if has 'private' key material, likely
@@ -59,14 +59,14 @@ unless ( defined $algorithm_type ) {
 }
 
 ## Validate algorithm type
-unless ( $algorithm_type =~ m/^(Ed25519|Curve25519)$/ ) {
+unless ( $algorithm_type =~ m{^(Ed25519|Curve25519)$} ) {
     <[base.logs]>->( 0, "invalid algorithm type : %s", $algorithm_type );
     return FALSE;
 }
 
 ## Create new key name with type suffix
 my $new_key_name = $key_name;
-unless ( $new_key_name =~ m/:(?:Ed25519|Curve25519)$/ ) {
+unless ( $new_key_name =~ m{:(?:Ed25519|Curve25519)$} ) {
     $new_key_name = sprintf( "%s:%s", $key_name, $algorithm_type );
 }
 
@@ -92,8 +92,8 @@ return TRUE;
 
 1;
 
-#,,..,,.,,...,...,..,,,,,,,,,,,.,,,.,,.,,,.,,,..,,...,...,,,,,,.,,..,,,,.,..,,
-#GFG7LX73LH67WKMKPFF2HWY6NZYTVFSSDKKUQQ4CXLVGCEFGQV2KQQJTAH6I5BEDQV776QNZFPSZM
-#\\\|L5J2XL6BEVALHRZGUQ2ONZO54MLTYQHKANRT63QV2B37ZXEKVWC \ / AMOS7 \ YOURUM ::
-#\[7]W643XKOGIJ2SRTWKOQZSI7NWHDV5LGBVBTK6C2WL3GC4OXG2OECQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,..,,.,.,,..,..,,,,.,,,,,,..,..,,...,...,.,.,.,.,..,,.,,,,..,
+#XJPFFUQMJC3SFDQ6CTPLTIRSEY4LGXTBEXRZWUWXWFOHAKGXNXQ2YBRRPFBX2RGJWDR2UC7EW54W6
+#\\\|7KFRU6MOTMTZOFCGQYPFBRMWF3HVR2CFNNXQGDXLWAKMNBHPAO6 \ / AMOS7 \ YOURUM ::
+#\[7]25YIGKH3SYF35ZTV7XLI76T2JBJ63WMTJRSJAK5UDO6ICULMTSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

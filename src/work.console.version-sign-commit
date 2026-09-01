@@ -12,7 +12,7 @@ my $specific_remote = '';
 if ( $message eq '--no-push' ) {
     $no_push = 1;
     $message = '';
-} elsif ( $message =~ /^--remote=(.+)$/ ) {
+} elsif ( $message =~ m|^--remote=(.+)$| ) {
     $specific_remote = $1;
     $message         = '';
 }
@@ -254,7 +254,7 @@ unless ($no_push) {
             # Auto-detect available remotes with priority order
             my $remotes_output = `git remote 2>/dev/null`;
             chomp $remotes_output if defined $remotes_output;
-            my @available_remotes = split( /\n/, $remotes_output // '' );
+            my @available_remotes = split( m|\n|, $remotes_output // '' );
 
             if (@available_remotes) {
 
@@ -347,8 +347,8 @@ say '';
 
 return FALSE;
 
-#,,,,,,..,.,.,..,,,,,,...,.,.,,.,,.,.,.,,,...,..,,...,...,.,.,,.,,...,,,.,,,.,
-#H5LYFFE63N2DDC2H7RVAD6MVDONLAOSYJGKLJMSQ2PBG437EL7LB7TFNJAC7JZJKIVZYNSAGTH5EM
-#\\\|R2PSHJDYMISUDOAETCZBM573QWNIRUHMLQURWRGPK3N3IAHYJNZ \ / AMOS7 \ YOURUM ::
-#\[7]CQ36X5ZP7E7RR5IJPU3G5XOZSVWGT2FEUNAZOIVMPOALN37KZSCI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,.,.,...,,.,,..,,..,,,,.,,,.,..,,...,...,.,,,..,,..,,..,,,.,,
+#TCTXWG2JGIM6HFJMQELMEZDEZ22DZKZZNUCVSF2ZCROP3NIF3Z24KCYR7CC7SLJGNZJSJF3EYG5EW
+#\\\|VUATYOISZVLMNUZJTXGFHSYPJABWLEEUEHQH2EEVTQJQMIP4HTQ \ / AMOS7 \ YOURUM ::
+#\[7]MYGVMVNRDTN7ZQNGGSDRNQFPMEXL247NEZOFD2PCSSO766UUF2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

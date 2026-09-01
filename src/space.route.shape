@@ -8,7 +8,7 @@ my $params = shift              // {};
 my $route  = $params->{'route'} // '';
 
 ## extract straight distances between turns ##
-my @segments = split /,+/, $route;
+my @segments = split m|,+|, $route;
 my @distances;
 for my $seg (@segments) {
     next unless length $seg;
@@ -67,8 +67,8 @@ return {
     'encloses_void' => $encloses_void
 };
 
-#,,..,,,,,,..,,.,,...,.,,,,,.,..,,.,,,.,,,,.,,..,,...,..,,.,.,..,,.,.,,,.,,,.,
-#LKQ233KDPMM43ET7E5QVRXNYZJO5AL7OXSHADMEYHWQRW674PY2OEYQHNHPIVZGZKV7VAJCVC7F7M
-#\\\|QVA6IZR33QDILGPC26KDWKAFC5PSBZ2EHDN33CI2UKSVM5GYXON \ / AMOS7 \ YOURUM ::
-#\[7]FSWMPI747Y2HE4VYPHJL23UWOUZZBZKQSM357VOS4TB4MGJA6GCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,,.,,,.,,,,,,,.,,,..,,.,,.,,,..,,...,..,,.,.,,,.,.,.,..,,,,,,
+#M74EKTQTRRDC5YYTQBVB4V37EJA7RWXMZUQNC7W4UYXURQ6RPPHM64CH5EUOH7W4LRPJPVX5RHTIC
+#\\\|2TSX47BI5W4DJUSUI7NQXSB5VI5S6VTEEYHCZGN6MF5LHPNOQQR \ / AMOS7 \ YOURUM ::
+#\[7]CALUW5OB4GWOHNJTXIGP7RB3DL74XUPEIYEVKLC3DOJPK6FT5WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

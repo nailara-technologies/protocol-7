@@ -23,7 +23,7 @@ for my $mountpoint ( sort keys <data.fuse.mounts>->%* ) {
 
     my $age = $started ? sprintf( "%.0fs", time() - $started ) : 'unknown';
     my $running
-        = ( $pid && $pid =~ /^\\d+$/ && kill( 0, $pid ) )
+        = ( $pid && $pid =~ m|^\\d+$| && kill( 0, $pid ) )
         ? 'running'
         : 'exited';
 
@@ -51,8 +51,8 @@ return {
     'data' => join( "\n", @lines )
 };
 
-#,,,,,.,,,,..,,,,,,.,,,,,,,,.,,,.,,,.,...,,..,.,.,...,...,,..,.,,,..,,,,,,,..,
-#DDKCO2MI43DR3TGPKKYGL23CAKRGBTGWOLGNMSQLKGSA44L7SACGHFXSWB4Y4GHEF3OOGMWI4RADS
-#\\\|OP5KGZFQZBCXKI7TXQ2MXXXCFRBTM5NUTZ66672MNCMTYHI3J55 \ / AMOS7 \ YOURUM ::
-#\[7]2UFTSYHXMIPTUPR5EIB4NAUSKAO3HWENV5RQ63MG4X7BRQ6HAUBI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,.,,,.,.,.,,,,,.,.,,,,.,,...,.,.,...,...,,..,,.,,,,,,,..,,.,,
+#IKFPTHVBSUFA53MIQ6TGP345PRE6AIQKCU6LPDKOLN3A32WAGYC6EQHUNR2Y5V4JQE64DGPTY5H2C
+#\\\|KBO37A5ILUDCP3OEJIQENN2VRZU5H22EAP57DNKMMLHMXNTRLPZ \ / AMOS7 \ YOURUM ::
+#\[7]VZ4PAU3DVBLC6GXLY6HSFK5KPBOG7NT3BU3GPWLFXLML2U3YE4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

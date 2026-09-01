@@ -14,7 +14,7 @@ if ( $backend eq qw| gpu | ) {
     $required_mb = $model_size_mb + 512;    ## model size + 512MB overhead ##
     my $nvidia_smi
         = `nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null`;
-    if ( $? == 0 && $nvidia_smi =~ /^(\d+)/m ) {
+    if ( $? == 0 && $nvidia_smi =~ m|^(\d+)|m ) {
         $free_mb = $1;
         $fits    = $free_mb >= $required_mb;
     } else {
@@ -27,7 +27,7 @@ if ( $backend eq qw| gpu | ) {
     $free_mb     = 0;
     if ( open my $fh, '<', '/proc/meminfo' ) {
         while (<$fh>) {
-            if (/^MemAvailable:\s+(\d+)/) {
+            if (m|^MemAvailable:\s+(\d+)|) {
                 $free_mb = int( $1 / 1024 );    ## convert KB to MB ##
                 last;
             }
@@ -45,8 +45,8 @@ return {
     required_mb => $required_mb
 };
 
-#,,,,,...,..,,...,,,,,,..,,,.,.,.,...,,,.,,,.,..,,...,..,,.,,,.,.,.,,,.,.,..,,
-#6JJBR4UYH3FV7PSUXELPWHKJUHH7CSUVHTBFWVTUQRMG7QDFOOVAVO7EUZ6AGD3FPM2OJWAJZKHP2
-#\\\|YT6XJTLZXEJPB7IZ4WC6NHGFZJDAC57AHIRAWOIPC2YZXZYDQQQ \ / AMOS7 \ YOURUM ::
-#\[7]Y7E4EL5WS35JDLHJ5UUKUF3XLSPIU4LWER3UVRETBZLN2PTKY2AI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,.,,,...,...,,..,.,,,,..,,.,,..,,...,..,,,,.,.,.,..,,..,,,..,
+#IBNSVKZNXMSJCGFYGPUPIRFN7CKY7HW7AEWXDQHJG5UJRRSTO32WGSC2OYNCGOXT3EGWYB6D6YRD2
+#\\\|7X7ZOEHR3YVV3L2N2QYVUMJTZ2XKBZMSHI2WCJZMGTL37TAXTJQ \ / AMOS7 \ YOURUM ::
+#\[7]A7TSCA655K47YEKWJLG26BDOY3ZCH3V2FO77LCVSYZ62SEXGMGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

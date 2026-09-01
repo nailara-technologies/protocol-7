@@ -157,7 +157,7 @@ if ($use_test_key) {
         = `git diff --name-only; `
         . `git diff --cached --name-only; `
         . `git ls-files --others --exclude-standard`;
-    my @modified_files = split /\n/, $git_status // '';
+    my @modified_files = split m|\n|, $git_status // '';
     @modified_files = grep { length $_ && -f $_ } @modified_files;
 
     # Remove duplicates
@@ -166,7 +166,7 @@ if ($use_test_key) {
 
     # Filter to only Protocol-7 source files (src/* bin/* etc)
     @modified_files
-        = grep {m/^(modules|bin|configuration)\/.*[^~]$/} @modified_files;
+        = grep {m{^(modules|bin|configuration)/.*[^~]$}} @modified_files;
 
     if (@modified_files) {
 
@@ -320,8 +320,8 @@ say '';
 
 return FALSE;
 
-#,,,.,,.,,.,.,,.,,,.,,,..,,.,,,,.,,,.,,..,,..,..,,...,...,..,,...,.,.,...,.,,,
-#WURUHKM76ET3VUS4ILIKAMFO4WTWRQUA6BKTCQ2IUKDL5RLXUQPYVIHDPR4K4Y2HV24ZEY6Z6MLOI
-#\\\|4E3NS3FABYZMSL3T6Z7DM5GPYQTPVEN62WGCWVB5ICPZ7EK3XXE \ / AMOS7 \ YOURUM ::
-#\[7]4WBSW23A5ULRH5G2Q6DQ7XFJ66NG7O3LXHYQTOC7HSV7SWV5RYBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,.,.,.,,,.,,,..,,,,.,..,,.,.,..,,...,...,...,.,.,,,.,,,,,..,,
+#Z474SM3YCE2QHC65FZV5H2OS5BVXQQOTU6MR5E2JWVXM57TF3UF5V2SC2CVRHKME4Q6QFCTZWRSMK
+#\\\|Q75UXTX3MIFCKIXRYBCWACAUOIH25TV267XTJTBEHWOAYCORQIC \ / AMOS7 \ YOURUM ::
+#\[7]7V5QMGXDAU4M62VBN3L7KZGFODAQADMVZYO7L7BBWV72XJX75ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

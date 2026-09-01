@@ -8,7 +8,7 @@ my $args = shift // {};
 my $session = $args->{'session'} // return 'session required [ uuid ]';
 
 return 'error: invalid session uuid'
-    if $session !~ m{^[0-9a-f\-]{36}$};
+    if $session !~ m|^[0-9a-f-]{36}$|;
 
 my ($scr) = grep {-d} glob("/tmp/claude-*/*/$session/scratchpad");
 return "no scratchpad dir found for $session" if not defined $scr;
@@ -107,8 +107,8 @@ if ( open( my $fh, '>:raw', $info_file ) ) {
 
 return join( "\n", @out );
 
-#,,..,..,,...,...,,,,,,,.,..,,,..,.,.,,,,,,,.,..,,...,...,...,,,,,,..,..,,,,,,
-#EIX4E7WX7JSII7KPSX3OR2Z363SQRIL7ODDXJYNSEMT3NEG5U7QEE2SCB66LIF2VJ2PSTXEL3ZSZ6
-#\\\|FMO2S7EYRSUUMLBFDI352VINM24RDYXAGMXU3V42PUBIMUY3V7B \ / AMOS7 \ YOURUM ::
-#\[7]U5MTNTXZWZUIPEHT3QGVVAP2U4ETLLXUHES3FJFO6SNLIPQFPEAA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,..,,,..,,.,,.,.,...,.,,,,,,,..,,...,...,,.,,,.,,...,,,.,.,,,
+#33PNASGAX6POKYKJFHVEPD6MCXLUWLIPUQEDZG4RT7IMYOHKF5T3YGL5TOD6AHLMGI7NGSHOMGHSC
+#\\\|MWFOTQPPKPEGF25UR6YUVSCDAU5BJRR7NDJQ2ZSDY5IOMAWCJQG \ / AMOS7 \ YOURUM ::
+#\[7]6J26UBS2T47XRTUVS7TJPHMJCPN3BNWRXDKFKI7CJ572W64LZSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

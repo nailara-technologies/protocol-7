@@ -9,9 +9,9 @@ my $current_path = shift // '';
 my $options      = shift // {};
 
 ## Clean up paths ##
-$base_dir     =~ s/\/+$//;          ## Remove trailing slashes
-$current_path =~ s/^\/+|\/+$//g;    ## Remove leading/trailing slashes
-$current_path =~ s|\.\.+|.|g;       ## Prevent directory traversal
+$base_dir     =~ s|/+$||;          ## Remove trailing slashes
+$current_path =~ s{^/+|/+$}{}g;    ## Remove leading/trailing slashes
+$current_path =~ s|\.\.+|.|g;      ## Prevent directory traversal
 
 my $full_path = $base_dir;
 $full_path .= "/$current_path" if length($current_path);
@@ -63,7 +63,7 @@ my %seen_names;
 
 foreach my $entry ( sort @entries ) {
     ## Skip hidden files, backups, and parent directories ##
-    next if $entry =~ /^\.|~$|^DEADJOE$|^\.git/;
+    next if $entry =~ m{^\.|~$|^DEADJOE$|^\.git};
 
     my $entry_path = "$full_path/$entry";
     my $is_dir     = -d $entry_path;
@@ -81,7 +81,7 @@ foreach my $entry ( sort @entries ) {
     ## For files, check if it's a content file ##
     my $content_type = '';
     if ($is_file) {
-        if ( $entry =~ /\.(txt|md|html?)$/ ) {
+        if ( $entry =~ m{\.(txt|md|html?)$} ) {
             $content_type = $1;
             $display_name =~ s|\.$content_type$||;
         } else {
@@ -98,7 +98,7 @@ foreach my $entry ( sort @entries ) {
     my $st       = File::stat::stat($entry_path);
     my $size     = $st->size;
     my $mtime    = $st->mtime;
-    my $is_index = ( $entry =~ /^index\.(txt|md|html?)$/ );
+    my $is_index = ( $entry =~ m{^index\.(txt|md|html?)$} );
 
     ## Check for duplicate names (dir and file with same base name) ##
     my $base_name = $display_name;
@@ -151,8 +151,8 @@ return {
     count        => scalar(@items),
 };
 
-#,,..,..,,...,,.,,,..,,.,,...,,.,,.,.,..,,,.,,..,,...,...,...,..,,,..,,,,,...,
-#KQAG6JXWF5WXJXVH7QCKI3CSG7JYTLTFNOY5QU3IT4J4UOMFT4D5DCNSYUR34T4CID2T72QCYYZHO
-#\\\|CI6SY7XCCN42BCYGUE7U7U5FBIRL2H7E4OJ66L5PPNI4FSGHF4T \ / AMOS7 \ YOURUM ::
-#\[7]UFPZIC75VMBUKZQGTAXXK5ZENF5YJSMYAYEKJG5CIRWBRQIAXEDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,.,.,,.,,,,,,...,..,,..,,,.,,..,,...,...,...,..,,..,,.,,,.,,,
+#IJE47OKWBFRKZRFXKA2PFOHWLQOJW3LVSTGTP5AXIMT46VEDED72L4JS7FKMNI4FP75CEQXNAC7KS
+#\\\|WNAPOLKG4OUYJZRCAFDDWN2GJ4SLY3BB4E7IHXGCE32HWW44MLA \ / AMOS7 \ YOURUM ::
+#\[7]FDPRU3MQEHJ6Z6FKDCDRZY54AFHDYLZO25TVKUCCD4NYJQCE2MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

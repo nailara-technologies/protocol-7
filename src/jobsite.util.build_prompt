@@ -33,7 +33,7 @@ if ( not length $profile_text ) {
 
 ## extract candidate name from profile header ##
 my $candidate_name = 'the candidate';
-if ( $profile_text =~ m{^#\s*Candidate Profile\s*[-\x{2014}]\s*(.+?)$}m ) {
+if ( $profile_text =~ m|^#\s*Candidate Profile\s*[-\x{2014}]\s*(.+?)$|m ) {
     $candidate_name = $1;
     $candidate_name =~ s{^\s+|\s+$}{}g;
 }
@@ -129,8 +129,8 @@ push @prompt_parts, $branche_line, "Beginne jetzt mit: score:";
 
 return join( "\n\n", @prompt_parts );
 
-#,,,,,,,.,,,.,,,,,.,,,...,,,.,.,,,,.,,...,.,.,.,.,...,...,.,.,,..,,,.,,,,,..,,
-#YOPPXJHE3R2KLRPDWGQM5WNQ6QHPOQHM5TNHLMOGQXCL446NXDE3GQXWZZOYYP4HVESXEJQZV77RK
-#\\\|2RANPMD2D3JUHQ6ZZPA4OYQQT6DF2BYW6T4Y7NWP2BXIDBVPOI2 \ / AMOS7 \ YOURUM ::
-#\[7]NUYNQVMGWW3VFUI6RV5QSIMGCKGWYACFGATKRGGMVIEVL5XWCWDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,,,,,...,...,,.,,.,.,...,,.,,.,.,...,..,,,,,,,,.,,.,,,,.,.,.,
+#6PGWVLZFJ2SUQED43SDZO3MLS3R7M4TJB7AV6QBEFOZ3GEGP542E7N64LDLP5JHITQP5UXNKLNZU6
+#\\\|QXJTUKKMGSCZYD7KX2CAUF3PFMGM5BTY7ZSM73VNCPJTGUNMF6W \ / AMOS7 \ YOURUM ::
+#\[7]YKI5O3LJGZXKV5IAQL3AZ4X7PUM2TFEX22PSSQICPWL5HCG3BGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

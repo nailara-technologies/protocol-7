@@ -254,7 +254,7 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s|'([^']+)'|$C{0}'$C{T}$1$C{0}'$C{T}|mg;
 
     ##  filename extensions in purple  ##
-    $key_list_string =~ s{(\.(public|private|secret|sig))$}{$C{0}$1$C{T}}mg;
+    $key_list_string =~ s{(\.(public|private|secret|sig))$}{$C{0}$1$C{T}}gm;
     $key_list_string =~ s{(\.(public|private|secret|sig))(:)}
         {$C{0}$1$C{T}$2}mg;
 
@@ -263,7 +263,7 @@ if ( <system.ansi_color> or <system.force_colors> ) {
         <$C{0}$C{b}$1$C{T}  $C{o}$2$C{T}>mg;
 
     ##  user name after 'user' text  ##
-    $key_list_string =~ s{(?<=user)( \S+ )}{$C{B}$C{b}$1$C{T}}mg;
+    $key_list_string =~ s|(?<=user)( \S+ )|$C{B}$C{b}$1$C{T}|gm;
 
     ##  seed-phrase and virtual  ##
     $key_list_string =~ s{($name_regex\Q:seed-phrase\E)}
@@ -289,8 +289,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,.,,,,.,,,.,..,,.,.,...,...,.,,,,..,,.,,,,,,.,.,...,.,.,..,,,.,,,.,,,,,,.,,,
-#4FCZSZ73Y27EUVMA5B35VUY44FXMAKQIGAJMXQPJ52QAH7WGZMPWR42ENZBGTMXXFVHV2K5IMPTPS
-#\\\|MT7AATGFAUMUUWT7TIATBYGRED7P44DO72NSFPH46BC57PV7IG5 \ / AMOS7 \ YOURUM ::
-#\[7]NZH6LFIVDB6GU7W7JDWKPLL27AG7BKBYJ7ERMQOWI2DE4LDEWSCA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,,,,,.,,,,,.,,,,,,,.,...,..,,.,.,...,...,.,.,.,,,...,.,.,,,,,
+#IGRHTQMO6O3WEK3BBGNXJRFZPH5SJEKKYFZABKMUW7UUPID3CKKCYL6BKZJ32EX5P7E3EIMG3OSPA
+#\\\|ZW77EWYV6EDR4QNFABCYG3ECITZ6SJDWHJW3RYLZENH6ITNV6SH \ / AMOS7 \ YOURUM ::
+#\[7]56W6LI3FZSBCD356NBTM7PLOBPBTOZN7ZEKHAK3BCA3ONWIW2WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

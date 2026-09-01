@@ -17,7 +17,7 @@ my $threshold = <models.cfg.auto_announce_threshold> // 5;
 return ( undef, $message ) if $line_count < $threshold;
 
 ## extract description from first line or use default
-my $first_line = ( split /\n/, $message, 2 )[0];
+my $first_line = ( split m|\n|, $message, 2 )[0];
 my $description
     = length($first_line) > 50
     ? substr( $first_line, 0, 47 ) . '...'
@@ -35,8 +35,8 @@ return ( $checksum, $announce_msg );
 
 0;
 
-#,,.,,,,.,,.,,,.,,.,.,...,,.,,,,.,,.,,.,,,,..,..,,...,...,..,,.,.,,,,,,.,,.,.,
-#SIBV5TWQN5OQDUYE7OIGSJ5NMTDPKSO6YNNQ26ECHVSAS5A7FPNYYICBHWKTXYP62L4ENHUPX7HS2
-#\\\|XHI2VNUTHKNBPUNFQDOEJA6ZFBWJVJUOOHNKV6M6S4VY43IMREQ \ / AMOS7 \ YOURUM ::
-#\[7]GGEZXEGVALOCRFFL2CKL3IIAEG6VUGVDPF5Q4XFXUABG7XWQ4IAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,...,.,,,,,,,...,...,,.,,,.,,..,,...,...,.,,,,,,,,,.,,..,..,,
+#D72KTOWJ43HXUOQTRN6D4VSCFZZPTCFPOU7L3EBB3R7BVFLCCQOHPPQWOBELCTG67TSCM6VRTV336
+#\\\|CRG36SRRLBT5E2X45W466BVIMWHSO7D57REEGNUTRJ7YVC3QMWA \ / AMOS7 \ YOURUM ::
+#\[7]5GEWKDUMNL4QYD5KLUMRBITRYE5DVNE2MVC2WD4EUOI2EWTURQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

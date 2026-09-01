@@ -35,8 +35,8 @@ if ( $mode eq 'TRUE' ) {
         if ( $retry_after_str
             =~ m|(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}) UTC| ) {
             require Time::Local;
-            my ( $y, $mo, $d ) = split /-/, $1;
-            my ( $h, $mi, $s ) = split /:/, $2;
+            my ( $y, $mo, $d ) = split m|-|, $1;
+            my ( $h, $mi, $s ) = split m|:|, $2;
             my $retry_epoch
                 = Time::Local::timegm( $s, $mi, $h, $d, $mo - 1, $y - 1900 );
             $delay = $retry_epoch - time();
@@ -208,8 +208,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,.,,.,.,,,,,,.,,.,,,,.,,,..,..,,,,,,,.,,,.,,..,,...,..,,..,,.,,,,,,,,,,,,,,,
-#UVN26UNBT2CG2H4277GMEMBNMWPRBBMEIZD5EACBI36FZKC57AGOFLICW6IPJ37EEVXPQYZFPE2YW
-#\\\|M23ZV2IUL4NRPM52TJJ72WOZV3VFH74MDWIDJ72OMHIFIUYY5D6 \ / AMOS7 \ YOURUM ::
-#\[7]XJ6EZLLMZPC3KMF2JRMZTGSGNRAAWG3R5CNAI4GC4C2O63OIJOBY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,,,,,,.,,..,,,.,,,,.,,,.,,,,,..,,...,...,...,.,,,.,.,,.,,,,,,
+#IW5IGLFTBRELMXUMGAG72NJ4AFMEKXZ5CALP2X6OX6RGZU6UPDANRT3PYK7OLLVQ7HGR6FDI3H3RU
+#\\\|JNJTT2LB4M4OKEJH6OGAWJKZDTWQJ6NEHSBO6VOAVNB3ZDOTTM3 \ / AMOS7 \ YOURUM ::
+#\[7]CA5JUIGWHNRSEG2TTVYEF7GDO2ATLEVR422UNRP55N3P2SHCYQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

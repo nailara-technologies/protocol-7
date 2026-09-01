@@ -43,7 +43,7 @@ my $final_result = {
 
 ## Check HTTP status ##
 my $status = $headers->{'Status'} // 0;
-if ( $status !~ /^2/ ) {
+if ( $status !~ m|^2| ) {
     my $reason = $headers->{'Reason'} // 'unknown';
     <[base.log]>->( 0, "[handle.llm_response] HTTP error: $status $reason" );
     $final_result->{'success'}    = FALSE;
@@ -100,8 +100,8 @@ $final_result->{'tokens_used'} = <usage.total_tokens>
 
 return $final_result;
 
-#,,,,,,.,,,..,,.,,.,,,.,.,,,.,..,,..,,,.,,.,,,.,.,...,...,,,.,...,,..,.,.,,..,
-#QCAVNF55MC3ZFQGXQVI52CJFEHENNJDUZCRVTHG3OSSD7LYZBIJ7KDQRFY6EVONRDKXXKGOCJRY4I
-#\\\|SMR5YVICQNTGYLPA4DEGC2FW2HLQ777Q2C6WKOBTXM3XMP23YJU \ / AMOS7 \ YOURUM ::
-#\[7]KZQNIPAWCPQRV24P34VMR5UEAMBWAPLINIIANNDDDZKLVM6N4GAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,...,..,,,..,.,.,.,.,.,,,..,,.,.,...,..,,,.,,...,.,,,.,,,.,.,
+#23PN3PXZ6CMXORILFQFH6HJ5P3A3FUVXIBSHGQM2JLJLXTOUKSCRH67QIAQROUFMLM4H5TFLNLIPC
+#\\\|SYR7UBCMNL3KWMUJLGC2ZK5DB6KTXYOUGYXYHZQCZR6B42BG3MG \ / AMOS7 \ YOURUM ::
+#\[7]CKJFAJ2WGOLCLIMXXBOUWUZYHXEPKCXDA67NHKFPAHQNUTIOPUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

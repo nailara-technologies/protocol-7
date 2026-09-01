@@ -61,11 +61,11 @@ if ( $light_mode == 1 ) {
     @transitions = ('None');
 } else {
     my $trans_list_output = qx($tmp_bin -l 2>/dev/null);
-    foreach my $trans_line ( split( /\n/, $trans_list_output ) ) {
-        next if $trans_line =~ /^[^ \*]/;
+    foreach my $trans_line ( split( m|\n|, $trans_list_output ) ) {
+        next if $trans_line =~ m|^[^ \*]|;
         $trans_line =~ s|..([^ ]+) .+$|$1|;
         push( @transitions, $trans_line )
-            if $trans_line !~ /fade|none|cloud/i;
+            if $trans_line !~ m{fade|none|cloud}i;
     }
 }
 <[base.log]>->(
@@ -93,7 +93,7 @@ my $min_height = 40;
     if <impressive.parser.size_assert_failed>;
 
 if ( defined <x11.geometry>
-    and <x11.geometry> =~ /^(\d+)x(\d+)/i ) {    # min size
+    and <x11.geometry> =~ m|^(\d+)x(\d+)|i ) {    # min size
     ( my $width, my $height ) = ( $1, $2 );
     if ( $width < $min_width ) {
         <[base.logs]>->(
@@ -227,7 +227,7 @@ if (    <impressive.cfg.use_start-anim>
     );
 } elsif ( <impressive.cfg.use_start-anim>
     and defined <impressive.cfg.start-anim_timeout>
-    and <impressive.cfg.start-anim_timeout> =~ /^\d+(\.\d+)?$/ ) {
+    and <impressive.cfg.start-anim_timeout> =~ m|^\d+(\.\d+)?$| ) {
     <impressive.timer.stop_start-anim> = <[event.add_timer]>->(
         {   'after'   => <impressive.cfg.start-anim_timeout>,
             'handler' => 'impressive.callback.stop_start-anim'
@@ -235,8 +235,8 @@ if (    <impressive.cfg.use_start-anim>
     );
 }
 
-#,,,,,,.,,,.,,,..,,.,,.,.,...,.,.,,,,,,,,,...,..,,...,...,...,..,,,,,,..,,,..,
-#UZ3UJDBUESYHK3WHIP2DMRDYYLNTNE5HUXM2JH3MHLHCFIF2BAK7DQ4PWSR6G54MSRNX3PQDIO2NW
-#\\\|6RRQQXOHGX4SL7EIOLUJS2EXCINLIUIQYUN7HVA6SE3JCNG7OJA \ / AMOS7 \ YOURUM ::
-#\[7]DP75C7I5V455NEKR7IP5GV6LHRI46HMSNDZ4SNNXU7KP32UGZODQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,..,,.,,,..,,..,,.,,,.,,,..,,,,.,..,,...,...,,,.,,,,,.,,,,..,,,,,
+#6DWK2R66DG7TSRU73E6DLD5AXNRGYEC5ZA6NKKEHJ3UKGW342UHU26CEREYYFTF6C4CCHTHIWI3MO
+#\\\|KKEIEVAG7XRSXELTGCFOKYJWRZZCIIXQU25VSPVCCEQY2N66UW7 \ / AMOS7 \ YOURUM ::
+#\[7]UDF3D7LJ3CNMASMEVVQLP7PEMTW74ZMOWNFZK2KELBZWVJ7KN6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

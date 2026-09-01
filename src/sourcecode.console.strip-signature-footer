@@ -124,7 +124,7 @@ foreach my $source_path (@source_paths) {
 
     ## repair case only : separator was absent and restore was skipped for ##
     ## correctly signed files restore() handles endline state precisely    ##
-    if ( $footer_data->{'needs_separator_endline'} and $src_str !~ /\n$/s ) {
+    if ( $footer_data->{'needs_separator_endline'} and $src_str !~ m|\n$|s ) {
         <[base.log]>->( 1, ': : repair : adding missing last-line endline' )
             if $strip_verbosity >= 1;
         $src_str .= "\n";
@@ -191,8 +191,8 @@ if ( $files_error > 0 ) {
 
 return FALSE;
 
-#,,,.,.,,,.,.,,..,...,.,.,,,.,.,.,,.,,,.,,..,,..,,...,...,.,,,.,,,,,,,,..,...,
-#5SDDNAPLEJWYOBKFNQD57FNGTV6LO4254BYWJOGHPNSFAPGOV6YU5WEWGHVPPL4IDYBZ4KPTWCIJU
-#\\\|Z4YG7XZPEJR4F2ILCKURVLHGDDENFIFQU5ZPR74KMIVZURJB7C4 \ / AMOS7 \ YOURUM ::
-#\[7]OKJONSQBS3GXPET424YTODOO5R3LD5ZTKJ2MVWTGA3N7DGO2Z6AY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,..,..,,.,.,,,.,,..,...,...,..,,...,...,...,..,,.,.,.,,,,,,,
+#ASG6UUNNJSF7QF243PNFNN2DBYXIPWF54K5L5445ZGUS4CXQZ6QMO4RDF3AQUH2B7KEWICWZ4JR32
+#\\\|MQMZMF54IDUXF2ZR5KIT3CJAHEZ4MTMKNIPWABPETRCEOXNTLIQ \ / AMOS7 \ YOURUM ::
+#\[7]OGGGMHKLYBRIZ5BLSDOVQZEXFIV7KPXLED3EILNZ3T34YMBHNEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

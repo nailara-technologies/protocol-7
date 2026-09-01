@@ -28,7 +28,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.log]>->(
         $log_level, "cannot retrieve 'forecast' data < $err_reason >"
     );
-    $status_code = $1 if $err_reason =~ /^(\d+)/;
+    $status_code = $1 if $err_reason =~ m|^(\d+)|;
 } else {
     $data_str = $reply->{'data'};
     $data_str =~ s|\n$||;
@@ -123,8 +123,8 @@ if ( time + $update_interval > $midnight ) {
     }
 );
 
-#,,..,,,.,..,,.,.,...,...,,,,,..,,,,,,.,.,..,,..,,...,..,,.,.,,..,,,,,.,,,..,,
-#BMWVOEGVJBLHDSVCWFFWNKOIP5INK2NE4M6M4HBV5Y3BJZTS3KETITFNYAGBEEKWAVHDN7O45XSLQ
-#\\\|ES7EWD7WJPD43YGMKFM4H32RIPEDNX2MSICA6WNAVWBQ52CBQSP \ / AMOS7 \ YOURUM ::
-#\[7]PCIDXA7M5TNMJOVNTZKKSDSAH57LQQOVQO2WKYFZJAJFMTNBX6AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,,.,,.,,,.,,,,,.,.,,,,..,,,.,..,,...,..,,.,,,.,.,,,,,.,.,..,,
+#F32G2L5R7LPZZXGO4PK55PL6HL5W6IDKLTW63STQES2AZZPMIWIB5EGNHSD54AKMG475HMAWHQE4Y
+#\\\|3HXNEUD7NBA2EOHS7JYEBFXKXSARLRHAQKD5HIJUUDAWTVFFPJI \ / AMOS7 \ YOURUM ::
+#\[7]KAMC3EKFC4LUWPR72PX22WVHTWOVQCUOHXI6YSKWBNCHHY5I34BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

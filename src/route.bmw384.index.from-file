@@ -23,7 +23,7 @@ my @last_lines = @lines >= 6 ? @lines[ -6 .. -1 ] : @lines;
 
 my $b32_str;
 for my $ARG (@last_lines) {
-    if ( $ARG =~ m{^#([2-9A-Z]{70,80})$} ) {
+    if ( $ARG =~ m|^#([2-9A-Z]{70,80})$| ) {
         $b32_str = $1;
         last;
     }
@@ -78,8 +78,8 @@ return {
     qw| digest_len | => length($raw_digest),
 };
 
-#,,,.,.,,,...,,,,,,..,,,.,,.,,,.,,.,.,.,,,.,,,..,,...,...,,..,.,.,..,,..,,..,,
-#MSGB5DKLJPZ6FZE6CHZDYVXOXGXYDQ3LSNBZ6L4UFEZDTRFQKYCOAMYPKLGJL2HZWNRA3NTPN5A2K
-#\\\|UEKDTADPJYR57G2U6VZFONOUY4XFEP53GYSDTGARO6JSG7FBDG3 \ / AMOS7 \ YOURUM ::
-#\[7]3CWZGOKRIXRF3BEQPB65TMLEC73GLB5KFBUJS66GIDVMOVB2F2DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,,..,,..,.,.,.,.,.,.,,..,,,.,..,,...,...,...,.,,,.,,,,..,,.,,
+#X5O3KRF46FOEVLDNH2IQIJLMOY4GFSCDG2RZYXRVEYQYSTIVF4XUYWWEOVET7AUPBCTUUSBMBENEW
+#\\\|USHYXSCPFDJ6MUBPZEZU6E7DTJVECPAAMYIIMCNQARZOYIYBHBO \ / AMOS7 \ YOURUM ::
+#\[7]EHZVLBSVBJHYB5UCUCF26HBTHWU6AZHKB4KW3BVBKKM3V5EJSAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

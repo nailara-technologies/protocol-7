@@ -11,7 +11,7 @@ my $cache_timeout = <pdf.html.cache_timeout> * 3600 * 24;
 
 opendir( my $dir_fh, $cache_dir ) or die "$cache_dir : \l$OS_ERROR";
 foreach my $subdir ( readdir($dir_fh) ) {
-    next if $subdir =~ /^\./;
+    next if $subdir =~ m|^\.|;
     next if !-f "$cache_dir/$subdir/.last_used";
     my $timestamp
         = <[file.read_timestamp]>->("$cache_dir/$subdir/.last_used");
@@ -40,8 +40,8 @@ foreach my $subdir ( readdir($dir_fh) ) {
 my $y = $remove_count == 1 ? 'y' : 'ies';
 <[base.log]>->( 1, ": $remove_count director$y removed." );
 
-#,,,.,,,.,.,.,,..,...,,..,...,,,,,,.,,.,,,.,,,..,,...,...,.,,,.,,,.,,,,,,,,..,
-#2KJNR2E4RLT5NILFUOI5HASTK7AKEV5GI72H4A73VAL56LZU4KICFZSXRAAU5VVVCAWDUIVZGFXU4
-#\\\|7SG4E5CQO6XZN3N6DDWGKXJVMMFOVWCQO3WPK2PVVEDQLBWQ5OK \ / AMOS7 \ YOURUM ::
-#\[7]MRSBLGCW44KOUNFDHSW5I4EVX5IXHK3Z7DU5GTYW4BXFW4ETRKDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,,.,,..,...,,.,,.,.,.,,,.,.,..,,...,...,,..,.,.,,,,,,..,,,,,
+#5MQQAQSE3PPBJXTVYT25E3OLWLW5ZKDAR52XTZ4426RVB44CZH2RG2EA22YSZX7JEELOSMGZQCFDM
+#\\\|76VX6FAP436CS5RYFFNHD443TDZV3THJASK33RDQMKEGAJKXFGO \ / AMOS7 \ YOURUM ::
+#\[7]JB3NPGSGL5RKPQCZZ52FKDPBZVT3KOKZM4A3TYDJ5X2OY5QXMGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

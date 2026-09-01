@@ -49,10 +49,10 @@ my $request_uri = $session->{'http'}->{'request'}->{'uri'} // '';
 my $uri_obj     = URI->new($request_uri);
 my $query_meta  = {};
 if ( my $query = $uri_obj->query ) {
-    foreach my $pair ( split /[&;]/, $query ) {
+    foreach my $pair ( split m|[&;]|, $query ) {
         if ( $pair =~ m|^([^=]+)=(.*)$| ) {
             my ( $k, $v ) = ( $1, $2 );
-            $v =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/ge;    ## url-decode ##
+            $v =~ s|%([0-9A-Fa-f]{2})|chr(hex($1))|eg;    ## url-decode ##
             $query_meta->{$k} = $v;
         }
     }
@@ -104,8 +104,8 @@ my $template_args
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,,,,...,,.,,,..,.,,,.,,,,,.,,,.,,,,,,..,.,.,..,,...,.,.,.,,,,.,,,,,,,.,,,,,,
-#VERWLCJ6BZLKXTO2R24535FJNLQZZ65ZWCBXWPBU2B5G5GDNI6OIYUU44DIB4BAPCGWZQVPY75AGA
-#\\\|YQV2QANGE47YLY6PUN4C46IJMHJSM6M3TIMBPYI3QIBPYBDVDIZ \ / AMOS7 \ YOURUM ::
-#\[7]NEIAHKD6NRCHDJM32DFUWF4T677UA76L3MZSZL2IGJJZCY7AROCA 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,.,.,.,,,.,.,,.,,.,,,.,,,..,,..,,...,...,.,,,.,,,,,.,.,.,,..,
+#2P4PJJSAPCUGD3M5IX27XBE3HEF5LMMTOH6ULRXLCRRHAXVKKMZL7TLMH7TRICE7MIJ7KDMTOL5LE
+#\\\|VKUEAZ7EB6EG2H3I7VGU6QT5US7BDR6W6IZVOCP4ZHQLJWPS4ZN \ / AMOS7 \ YOURUM ::
+#\[7]2PLY2ZMKP3HXY6PGNIJGMHFTEWJ36PZOLGIXXDK3XROUQX6DJ6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

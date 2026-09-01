@@ -9,7 +9,7 @@ my $device_id = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'numerical device id expected' }
     if !length($device_id)
-    or $device_id !~ /\d+/;
+    or $device_id !~ m|\d+|;
 
 return {
     'mode' => qw| false |,
@@ -51,8 +51,8 @@ if ( $dev->{poller}->can_write(0.1) ) {
 
 return { 'mode' => qw| TRUE |, 'data' => join( ' ', @states ) }
 
-#,,.,,,,,,..,,,,.,.,.,..,,.,.,,..,,,,,,,.,,,,,..,,...,...,,.,,,,,,,.,,..,,.,,,
-#JYVCM67YXQKSKU3W5WHSRPHFQJB5SI6ZTX5CG3HGCSUJ65NCPXRTSNHUWNAFKPLXIBRLWZ4NGGABW
-#\\\|VBUOB74HMYPSG5MGDIHHGY3MDEKNLKS7NUMFJYYLGA45SDVDQH4 \ / AMOS7 \ YOURUM ::
-#\[7]WL5BGITFT4I3DJZBUZC2XVVLNFM6NYH7PED3FOOIUKA5QNUWP2AQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,,.,,,,.,,.,,..,,..,,..,,...,..,,...,...,,,.,..,,.,.,...,,,.,
+#4OHNZEAIF4DJVUPU7KABABDRONEFWZBVXUW275NKHGYEGM7DRELOB6KRKL22RGGI7YEJ4KQPIY22A
+#\\\|MIIHT3SVSKKYD4KKQJX45J3ADOYPVBIDLG2U2S3OUF6GLAUCHA6 \ / AMOS7 \ YOURUM ::
+#\[7]SADW6O4WPBTURTTUZKCBLFUGNFLC7ALMG6IU2XRNOSV33QN4MCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

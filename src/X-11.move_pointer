@@ -6,15 +6,15 @@ my %coords = ( 'x' => $_[0], 'y' => $_[1] );
 map {
     die "expected $ARG parameter"
         if not defined $coords{$ARG}
-        or $coords{$ARG} !~ /^\d+$/
+        or $coords{$ARG} !~ m|^\d+$|
 } ( 'x', 'y' );
 
 my $root = <X-11.obj>->root;
 <X-11.obj>
     ->WarpPointer( $root, $root, 0, 0, 0, 0, $coords{'x'}, $coords{'y'} );
 
-#,,..,,,,,...,..,,.,,,.,,,.,.,,,,,,.,,,,,,,,,,..,,...,...,,.,,,.,,.,.,,,,,.,,,
-#6PH47BRQNXW6Z3MCPOQ5FDYPB3JMCJ6FV3IVTQ24LXJIV6F6V6PIVIRCWEHG5WKVZYAUBPF7MJFAG
-#\\\|RNIUBSCY4EJUIP43VJGQJWS7BVTFAYBBG3W57Y57W6QENWNQZTS \ / AMOS7 \ YOURUM ::
-#\[7]BULZBVHZVG76RQ6ZOHZRQCNIG3DXZMRZGFPQQF3YJBOIHFWSW6DQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,,,.,...,,,,,,,.,,..,..,,.,.,..,,...,..,,,.,,,.,,,.,,,.,,,.,,
+#DAZNPOH22GEFVA2EUQ5HEV2WMNMGBADMNES6YGMON2YTVGDJMZO72FASTB5T6L7C23MMKFAGCRATI
+#\\\|M33QODSPU7WABVFBKITPG3URGRVWTFZEGL7TVN53RKDYMI2FVFP \ / AMOS7 \ YOURUM ::
+#\[7]DXPKYY6K6JS7DTFXJK7Y3ERDSNLXWLBX766L2OCWKMKSVLRNNMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

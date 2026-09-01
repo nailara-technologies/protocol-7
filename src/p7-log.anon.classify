@@ -21,15 +21,15 @@ while ( $line =~ m{(/(?:$home_root_alt)/[\w\-\.]+/[^\s'",;)]+)}g ) {
 }
 
 ## [ class : quoted ]  quoted multi-word content > 40 chars ##
-while ( $line =~ m{'([^']{40,})'}g ) {
+while ( $line =~ m|'([^']{40,})'|g ) {
     push( @spans, [ $-[1], $+[1], qw| quoted | ] );
 }
-while ( $line =~ m{"([^"]{40,})"}g ) {
+while ( $line =~ m|"([^"]{40,})"|g ) {
     push( @spans, [ $-[1], $+[1], qw| quoted | ] );
 }
 
 ## [ class : uuid ]  session \ object identifiers ##
-while ( $line =~ m{([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}g )
+while ( $line =~ m|([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})|g )
 {
     push( @spans, [ $-[1], $+[1], qw| uuid | ] );
 }
@@ -47,8 +47,8 @@ foreach my $span (@spans) {
 
 return \@result;
 
-#,,.,,...,,.,,.,,,.,.,,..,,..,,,,,,,,,..,,.,.,..,,...,...,.,,,...,,..,,,,,...,
-#XYQBOAHGDEW6F4GXVOYHB3ZLKX5SHRKOY4YZC2ACRAGMG7UMAZ2BJBHSYNEA37VIZWH662QNRBBM4
-#\\\|LCR6RFQ26ZNOIGP4W3LJ4W7L6WJDK43DQWCBR25NLLEERVUBBZ6 \ / AMOS7 \ YOURUM ::
-#\[7]RHDNI3BUE4B4XUXLM2V66MOH7CKDCRWNSKH6QJ2RT7YZKXHNZIDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,.,,,...,.,,,.,.,.,.,.,.,..,,..,,...,...,,,.,.,.,.,,,,..,.,.,
+#PIUIY7B6QRQHZ3DN4YXC4553BP4GMV566ALLJMBQZONZYC2TQYNZGHTECELAKUCZM6AYAK6LTB6RS
+#\\\|RZYE6YGWWTUQOF5B6IB3AFPTK43MCFRYTRTOFLW3NYKWY5CGA77 \ / AMOS7 \ YOURUM ::
+#\[7]UAWNI4N7EWKXWREDNB64GY574ZDZ275HWI3I6XLPFXWWBQKPI6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

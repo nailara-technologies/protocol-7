@@ -125,7 +125,7 @@ foreach my $name (@wnames) {
         # Walking in buffer directory
         my $buf = <plan-9.server.buffers>->{ $walk_result->{name} };
 
-        if ( $name =~ /^z-(\d+)$/ ) {
+        if ( $name =~ m|^z-(\d+)$| ) {
             my $z = $1;
             return <[plan-9.protocol.error]>->( $tag, "invalid layer" )
                 unless $z >= 0 && $z <= 12;
@@ -178,8 +178,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,.,,,.,,,,.,..,,.,,,...,.,,,...,...,,,,,..,,.,.,...,...,...,..,,.,,,...,,..,
-#IBUAHURIKBE3YGE7ZCLHO3QCMEGVVSE4OYMHVTE4J3TIITMTHFSLIYQXCURRHKB7IXADGTOJ7IFBA
-#\\\|6YVRFAQD5KF4SITZQEA4KLTBM6WCQZPPFQMPBQ2AZICIODG5GNI \ / AMOS7 \ YOURUM ::
-#\[7]5TJ4TIYTXWIBLIFXC7GKWMUF4CP7PVQN3G7J6NTYNIMJTK7WUEBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,.,,,,.,,,.,...,.,,,..,,,..,.,.,...,...,,,.,,,.,.,,,,,.,.,.,
+#FHJIN4Q63GAMNV7PF6HEQCZGZGSP4C733FTLCMLQUDTMYQONM3DRBEF4ZDTLYXVVFDRTVODGB25RA
+#\\\|BEE2HYCTPZAET33B3PNQUSXEIR2VXICFJWPRXJ5FLIY336NVY5I \ / AMOS7 \ YOURUM ::
+#\[7]J65CG6DVA5QTLTU4K377RPA4XSPPGMA6RFPTD6V53I4XERMVNSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

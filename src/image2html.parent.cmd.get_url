@@ -5,7 +5,7 @@
 # descr = returns file:// url to image html page
 
 my ( $image_location, $target_width, $target_height )
-    = split( / +/, $call->{'args'} );
+    = split( m| +|, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected path to image file!' }
     if not defined $image_location or !length($image_location);
@@ -17,13 +17,13 @@ return {
     }
     if $image_location =~ m|^(file://)?(/.+)$| and !-r $2;
 return { 'mode' => qw| false |, 'data' => 'invalid target width parameter!' }
-    if defined $target_width and $target_width !~ /^\d+$/
+    if defined $target_width and $target_width !~ m|^\d+$|
     or defined $target_width and !$target_width;
 return {
     'mode' => qw| false |,
     'data' => 'invalid target height parameter!'
     }
-    if defined $target_height and $target_height !~ /^\d+$/
+    if defined $target_height and $target_height !~ m|^\d+$|
     or defined $target_height and !$target_height;
 
 if ( not defined $target_width ) {
@@ -96,8 +96,8 @@ if ( !-d $html_path ) {
 
 return { 'mode' => qw| true |, 'data' => "file://$html_path/image.html" }
 
-#,,,,,,..,.,.,,,.,..,,...,...,,,,,..,,.,,,.,.,..,,...,...,...,.,.,,.,,,.,,,,,,
-#65AD5QDZUEFBFQHY7PMFT5SMQHJQJOAP5VH655K2PZQUNQPXIMSDAWBL3OAINVUMG54K3C6XJ7I2Y
-#\\\|OL7NUEWR7DQWVEYZLBXKQK5BVANEY6VGLO2MRBJJIPEEDYBDWH2 \ / AMOS7 \ YOURUM ::
-#\[7]FDCVLP6LCEONH7B3OUSF7SLUAWTELQVUMJCNCQ547KJOVC3VQ4AQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,,,...,.,,,.,,,...,..,,,,,,.,,,..,,...,...,..,,,.,,,.,,,..,,.,,
+#UG3PSEEYUFUMBGM65VAUME5EQSWXFJVIEPWHJPLE4M6HGXFBXZNIJQGCNB5OOCRMIMSMJ44WCA7UA
+#\\\|XPIOXHYO7UJAWH7JPL3PLWZRA65BGAYSNAGAJYC27NO6753QE4R \ / AMOS7 \ YOURUM ::
+#\[7]OCPAC3XRAV7NJURH3YOBD73B46WJJ3UKS5DUBYZ5DEJWUMPOCEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name = memory.cmd.digest
 # descr = search + summarize top leaves via coding zenka
 
-my @terms = split /\s+/, ( $call->{'args'} // '' );
+my @terms = split m|\s+|, ( $call->{'args'} // '' );
 @terms = grep { length $_ >= 2 } @terms;
 return {
     'mode' => 'size',
@@ -85,8 +85,8 @@ unless ($sent) {
 
 return { 'mode' => 'deferred' };
 
-#,,.,,.,.,,,,,..,,.,,,...,..,,,,,,,.,,.,.,.,.,..,,...,...,...,,..,.,.,,.,,,,,,
-#QCUYIHUQQNWS46TCBGGOICIMARCFNCVYG5Y72TGKFKOGN5NRXL4QYXCMFXLMMYUUDV7DS7RMLH2IS
-#\\\|YZ53IYZDEW2KQC7VB4H5UBSFCYHICTBRP437LC4GKKWF2E2DO6R \ / AMOS7 \ YOURUM ::
-#\[7]V65YKGDE47SN2EPWKTOBPMU74YHG5GRQITOJIUF5AVG4MPOKFIDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,..,,,,.,,,,,.,.,,,.,,,,,.,.,..,,...,.,.,.,,,.,.,,,.,...,.,.,
+#TJLLYM2H6DV7GQ3DNPH32FLWYRIWBHN25QBLWWBOZGMEXRV2CJYAQAHRNQ747PL35RBKSBGI5NKS6
+#\\\|ZZKSRUIYO3D4KMLY5JBGJYUNEHA6NEODWMX7CXGAHRVAXHEGCMP \ / AMOS7 \ YOURUM ::
+#\[7]LXBELENLYYHWRNVBV7YH543MN7CLS6IA3PRFSC4CE2WXXDF75MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

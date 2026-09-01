@@ -12,27 +12,27 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
         // $call->{'param'}->{'question'}
         // $call->{'param'}->{'description'} // '';
 
-    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
         my $decoded = decode_b32r($request_str);
         $request_str = $decoded if defined $decoded && length $decoded;
     }
 
-    $request_str =~ s/\\n/\n/g;
+    $request_str =~ s|\\n|\n|g;
 
     if ( defined $call->{'data'} && length $call->{'data'} ) {
         my $body = $call->{'data'};
-        if ( $body =~ /^[2-7A-Z]+$/ ) {
+        if ( $body =~ m|^[2-7A-Z]+$| ) {
             my $decoded = decode_b32r($body);
             $body = $decoded if defined $decoded && length $decoded;
         }
-        $body =~ s/\\n/\n/g;
+        $body =~ s|\\n|\n|g;
         $request_str .= "\nContext:\n" . $body;
     }
 } else {
     $request_str = $call->{'args'} // '';
 
     ## Also check for base32r encoding in args
-    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
         my $decoded = decode_b32r($request_str);
         $request_str = $decoded if defined $decoded && length $decoded;
     }
@@ -111,8 +111,8 @@ my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,..,,.,.,.,,,..,,..,,,.,,..,,,..,,.,,.,.,...,...,...,,,.,,.,,.,,,..,,
-#EGZ3SIKPXXHEYD4J6T2VA7UAEF6LCYH2OTR2QUXWLUBTE3KWL2QABCSHZ3UR5IH3NGT3WRIMWG7UQ
-#\\\|PYKKBM6ICOTABID6IKNLMJSUANU3YKZYCZOJWNEE47OBU4RQOZ5 \ / AMOS7 \ YOURUM ::
-#\[7]4AMKCQRUG6WUXVD23HVL7P5LT57KULXBKFD34XJMTQLCAUT3OWCA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,,..,,..,.,,,,,,,.,.,.,.,,,.,.,.,...,...,.,.,,..,.,.,.,.,...,
+#JR7U64YGHYTJMHDCZ3TVVKIMJKOQ7LDH6LPMAMVYGUIDPNF2X662VI4AKR7WGTVORVOXFCSLYPBZM
+#\\\|AEYR5DUDGXNHFPU7JSPIBZ6QEE3CO42VBSOIZDDKJPMG66H7KSM \ / AMOS7 \ YOURUM ::
+#\[7]4J5MWDUHUGWLCY3RFDNKOGY3G7LMBODCIRPOX4IF3EJSSUK73SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

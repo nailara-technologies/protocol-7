@@ -7,7 +7,7 @@
 my $seconds    = $call->{'args'};
 my $session_id = $call->{'session_id'};
 my $hi_res     = exists <system.perl_module.installed.Time::HiRes> ? 1 : 0;
-if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
+if ( not defined $seconds or $seconds !~ m|^\d+(\.\d+)?$| or !$seconds ) {
     $$reply{'data'} = 'required <seconds> parameter';
 } else {
     my $woke = '';
@@ -58,8 +58,8 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     };
 }
 
-#,,..,,,.,,,.,,,.,,,,,...,.,.,.,.,..,,.,.,.,,,..,,...,...,..,,.,,,,..,...,..,,
-#POGNVR55CIUXXW5V3GCLZKXOSCABYLFI7EVXTEWD5UALNKIMO6VYFTTDBOXL4THQKKBPABS2G2ZFC
-#\\\|YHVIWJROJGW4YPJ3DKAOEX737YE4N2LFG5S73UU4EHNIZLOC4O3 \ / AMOS7 \ YOURUM ::
-#\[7]GVDDGRGNBGXG3BMJUDWDD63THSEQQ4DVBVOLHUQCEIPNIRCTTQAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,,..,,.,,.,,,,..,.,,,,,,,,.,,..,,...,...,..,,,..,,..,,,.,,,,,
+#PQ3VDRR4AULDEWHE3XNBLDFM6XJ54DME5P3JYUTY37P4AEXSN7S4FIM5XVUFUMO6MRXXHTZZ2TSYI
+#\\\|6C5BYTHKCJGVA23ODS7IFFCWPXNALI55XCGVHRKB3EG4K3EZQ7K \ / AMOS7 \ YOURUM ::
+#\[7]DJ34QG4IOX7F4G4NFWRXR4NCXY3RSWTR367EBNJODVUZ6ITV7OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

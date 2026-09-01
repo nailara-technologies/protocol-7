@@ -9,9 +9,9 @@ my %opts;
 my @positional;
 
 for my $arg (@$args) {
-    if ( $arg =~ /^--(\w+)(?:=(.+))?$/ ) {
+    if ( $arg =~ m|^--(\w+)(?:=(.+))?$| ) {
         $opts{$1} = $2 // 1;
-    } elsif ( $arg =~ /^:(\w+):\s*(.+)$/ ) {
+    } elsif ( $arg =~ m|^:(\w+):\s*(.+)$| ) {
         $opts{$1} = $2;
     } else {
         push @positional, $arg;
@@ -130,8 +130,8 @@ Commands:
 HELP
 }
 
-#,,,,,,..,,,.,,..,...,.,.,,,,,.,.,,,,,..,,.,,,.,.,...,...,.,,,,..,,,.,...,,,.,
-#AVYE37JGVBVLD4KKPQ4MMQ7DKDISJQPQMHMTHJQDD5F5JMCCMVXTQWJU3P32D7SL5WDA64WDCEWNO
-#\\\|3PXL26NWDAPG6RDR4AIWM2QRCU4N35KN6HVHHUZMLAB47JK2N4K \ / AMOS7 \ YOURUM ::
-#\[7]JAJAAZMLYZ3YOKOVMNS3HSVMUCEYT6UCCBIJEBIR4ABZUXDVY4CY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,...,.,,,,,,,.,,,...,,,.,,..,,..,.,.,...,...,.,,,...,.,.,.,,,,..,
+#GPGBXW5M772IH2ZCFQE7CYAOARMZHYL3CTIGGRIFNXLHS4T6V5RZBABSQIGLN4AITQ2PG5HCPGATY
+#\\\|25QBHSZ5O6HT2EUWMY3MD4NQUAUZO7PGME5SIRCC3YLAIWFWPQV \ / AMOS7 \ YOURUM ::
+#\[7]EP2OR4JBUSMTSDMCT74CE7MZ7HSMFA3QTID5HOHIAZ4X3MMU7SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

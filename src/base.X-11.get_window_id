@@ -34,13 +34,13 @@ while ( !$matched_reply ) {
     die "cube handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(SIZE|FALSE) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(SIZE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)SIZE (\d+)\n$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     my $buffer_string = '';
     my $bytes_to_go   = $1;
     if ( !$bytes_to_go ) {
@@ -69,11 +69,11 @@ if ( $reply_string =~ /^\($cmd_id\)SIZE (\d+)\n$/ ) {
         $bytes_to_go -= $read_bytes if $read_bytes;
         sleep 0.1                   if $bytes_to_go and !$read_bytes;
     }
-    my $lines = $buffer_string =~ /\n/;
+    my $lines = $buffer_string =~ m|\n|;
     warn "[!] found more than one matching "
         . "window, please fix the name pattern!"
         if $lines > 1;
-    <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
+    <x11.id> = $1 if $buffer_string =~ m|^([^ ]+) |;
     <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
     return <x11.id>;
 } else {
@@ -81,8 +81,8 @@ if ( $reply_string =~ /^\($cmd_id\)SIZE (\d+)\n$/ ) {
     return undef;
 }
 
-#,,,.,...,,,.,,,.,.,,,...,.,,,,,.,,,,,,.,,,..,..,,...,...,.,.,.,.,,,,,...,.,.,
-#54EPWBZCACUCHDA7HFT26WVEZUO7FPUWVUJ372Y3CL2565SRPGFRC7UCDLVMCG6HR2WKNF6DMQIP6
-#\\\|2MLMNFZQ47AXZEAYYEXEXCLQW5MYDSGRD7XJEB5U2PHGLMAQ7M6 \ / AMOS7 \ YOURUM ::
-#\[7]ERAMUMBNJJPXX3ULDDA6JULTTMFNKUM4ZB4JATWUBOJ3T534ZGBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,,.,,,.,,,..,.,.,,..,,,.,,..,..,,...,...,...,,,,,,..,..,,,.,,
+#DZZGCKOTK6ALBZ2QCZYAFXIVESSQSBNANCDUNLPPKENE3DUAXAYHAPRSNFR65OV654ENHHQJTGZT2
+#\\\|AMIJTEFDIBWQVDBUGE3BWKMJBIKKJQGKURIKZOX2MAPGU7UAUIV \ / AMOS7 \ YOURUM ::
+#\[7]AKUY66GLEXBNTN3DFP6CCKTAGRQSMMWE5TIEQJLNZXOC3PDRBKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ my $desc       = $task->{request}->{description} // '';
 my $complexity = 1;                                      # Start at base level
 
 # Length-based complexity
-my $word_count = scalar( split( /\s+/, $desc ) );
+my $word_count = scalar( split( m|\s+|, $desc ) );
 if ( $word_count > 100 ) {
     $complexity += 2;
 } elsif ( $word_count > 50 ) {
@@ -30,7 +30,7 @@ my @complex_keywords = qw(
 );
 
 foreach my $keyword (@complex_keywords) {
-    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+    if ( lc($desc) =~ m|\Q$keyword\E|i ) {
         $complexity += 2;
     }
 }
@@ -42,7 +42,7 @@ my @medium_keywords = qw(
 );
 
 foreach my $keyword (@medium_keywords) {
-    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+    if ( lc($desc) =~ m|\Q$keyword\E|i ) {
         $complexity += 1;
     }
 }
@@ -50,13 +50,13 @@ foreach my $keyword (@medium_keywords) {
 # Task type adjustments
 my $type = $task->{type} // 'analysis';
 
-if ( $type =~ /code|generation|creation/ ) {
+if ( $type =~ m{code|generation|creation} ) {
     $complexity += 3;
-} elsif ( $type =~ /consensus|voting/ ) {
+} elsif ( $type =~ m{consensus|voting} ) {
     $complexity += 4;    # Consensus is most complex
-} elsif ( $type =~ /transcription|audio/ ) {
+} elsif ( $type =~ m{transcription|audio} ) {
     $complexity -= 2;    # Audio is simpler
-} elsif ( $type =~ /image|creative/ ) {
+} elsif ( $type =~ m{image|creative} ) {
     $complexity += 2;
 }
 
@@ -79,8 +79,8 @@ return {
     }
 };
 
-#,,,.,,..,,.,,,..,,..,...,...,...,,,,,,,.,...,..,,...,...,..,,.,.,.,.,..,,...,
-#NTMWXLMDW3YPAZ5KH2OVHZ5R3YHF6IRJZYKJENGYOF2DU2C7E56H6E3HIUJDEHRJFSOFGCISBSTVE
-#\\\|VQK7NCYWMCICEIDQGEZNO2MSZ4UEMHAGT4YYPFCMOJ5OGQBLQBG \ / AMOS7 \ YOURUM ::
-#\[7]2SMQU5R3DXSIQSOMCJ4SCPALGGHBF2SVM2QG2RJ55QUTOVUDYEBI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,,.,.,.,.,.,.,,,,.,,,..,...,..,,...,..,,.,.,,..,..,,,.,,,..,
+#2BQMA7CHRFU65THSUN6DH56DMMAN3LUKX7FEGMFMJCQ4LTFA4VBBY7E73KFT7Y6MMYETSATS5XIJG
+#\\\|HBLAUOBH6IBJZP5RAUJGELTZ4AXYLTMF73VO2FHBNNORG6VRBXB \ / AMOS7 \ YOURUM ::
+#\[7]PUNCRNFV5BYLEYOCSSZLFJMP2VNTDG4JSCGMNFXI23ZYHIZDZMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,7 +41,7 @@ foreach my $sugg (@$critical) {
 
     ## Interpolate variables in text ##
     my $text = $sugg->{text};
-    $text =~ s/\{command\}/$context->{install_command} || 'N\/A'/ge;
+    $text =~ s{\{command\}}{$context->{install_command} || 'N/A'}eg;
 
     push @all_suggestions,
         {
@@ -99,8 +99,8 @@ return \@all_suggestions;
 
 0;
 
-#,,,.,,.,,,.,,.,,,,,.,,..,...,,.,,,,.,.,.,,,.,..,,...,...,,..,.,,,.,.,.,.,,..,
-#GVTZUZSPHW7SMYU5S6UQAGLKOML2B4IZZ62NEDIJA7GWMG4SY6ZN6CJGOVEVM4JRBMP6LHWPEG4P2
-#\\\|EGBY3F6TWMUSZSNNWNWNYO2POWBG3R3ZBJDI772ESY7D6ICKPOO \ / AMOS7 \ YOURUM ::
-#\[7]KFIEUFYQ7E6RL3J3GC35FWHTABRY2EPHILZDR75OWN6XROBF5IDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,,,,,...,.,,,,,,,,,,,,,.,,..,..,,...,...,.,.,..,,.,,,.,.,.,,,
+#LSRCYSPNI3B57KG2GC3SNO4MQBMBGPDORGUYHFNFZ54UHJCAOKG4QF3RCSXYNYGIM4NZPC54XEC4E
+#\\\|KCBL3KJPT5CFHCURPQ2O2IKLRLSJOMICWZTC3QNZPPO4CLJJ7C6 \ / AMOS7 \ YOURUM ::
+#\[7]GDNV27OYAZNRIU4MXV4E622NIVHWARHIKMMN2TRPDQTXJGIFN4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

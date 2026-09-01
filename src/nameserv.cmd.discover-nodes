@@ -41,8 +41,8 @@ foreach my $rr ( $query->answer ) {
     next if index( $txt, 'v=proto7' ) != 0;
 
     my %attrs;
-    foreach my $pair ( split /\s+/, $txt ) {
-        my ( $key, $value ) = split /=/, $pair, 2;
+    foreach my $pair ( split m|\s+|, $txt ) {
+        my ( $key, $value ) = split m|=|, $pair, 2;
         next if not defined $key;
         $attrs{$key} = $value;
     }
@@ -79,8 +79,8 @@ return {
     'data' => $result_str
 };
 
-#,,,.,,.,,..,,..,,.,.,,,,,,..,,,,,...,...,.,,,..,,...,...,..,,,.,,,,.,...,..,,
-#A7MV4ITWQUV43VCS5FOAMXB232EN7DE6A4JC6ITBZC3A7BMHDJKVXHWMOWDC4XMDLO5575G5VSEVU
-#\\\|D2TJPFHP574SNBJD722WRR3J5TJWZJHWWZ7L7BU4UVOOIW462Q7 \ / AMOS7 \ YOURUM ::
-#\[7]DCBNWP345VNQNFNMA3C76SWBS3HULGDAH4AEVVGZEQMBFXYSZ4BY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,,,.,,,,,...,.,.,..,,,,.,,.,,..,,...,,..,,..,.,.,,.,,.,.,,,.,
+#GGWUNIRNXFM5TVLVRPPDR6Y2L6QASYS66ILBR7PKELNISKKALVWVLAYRTJRRS5YD4OO2RAWHRQ7HC
+#\\\|VCPE6HVYS6QHYBP2DOUTNBAO5XQ7YKZIVRYT3AD27E5PTIKT5WD \ / AMOS7 \ YOURUM ::
+#\[7]TT5YQTFRTRXUF6FUHXO5IT2UAIDTMJCUTXEOCY52GZEYKOPVSACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

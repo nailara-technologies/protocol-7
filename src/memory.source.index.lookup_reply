@@ -17,7 +17,7 @@ my $derived_boost = $params->{'derived_boost'} // 1.5;
 ## [ format: "  rank  sequence" lines after "children: N" ] ##
 my @related;
 my $in_children = 0;
-for my $line ( split /\n/, $data ) {
+for my $line ( split m|\n|, $data ) {
     if ( $line =~ m|^children:\s*\d+| ) {
         $in_children = 1;
         next;
@@ -53,8 +53,8 @@ for my $rel (@related) {
 
 return TRUE;
 
-#,,.,,..,,..,,,.,,,.,,..,,.,,,,.,,.,.,...,...,..,,...,...,..,,,..,...,,,.,,.,,
-#2HKGAXEEL65RLBLOQKAGQ5AOGY46V5ZKK6A5USZFQDLAAOF3RJRW6T34THBN5THFSJJBBOE6RL63E
-#\\\|B5J23MZJSRTONCHAZOQW4EBFF27QG3EISXHPRN3C6GQ6GIF3BKZ \ / AMOS7 \ YOURUM ::
-#\[7]XLXBWDK5UX6JOPW6PBNEJTV3IE76YFMUTS73AUCH7PPBUEUZUOCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,.,,,..,,.,,,,,.,..,,,.,,,.,,..,,...,...,.,.,...,.,,,.,,,.,.,
+#REJ7NIGHYBJN2CGEJZSCWC23AVYJFXTILXE2SD5IRENEOY3JIURBN37DOOITITLSP2Z64IWCHAEXC
+#\\\|ZIEEGMBSFVNVWFWYKMQWQB6AJRC34PJOV6VSOPKKMI23OMXITB6 \ / AMOS7 \ YOURUM ::
+#\[7]UW3C3ZQDSI5WU5J2GUN6HFXWTJKMURALICDTSML6ZH2PNN76F2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

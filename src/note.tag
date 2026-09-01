@@ -23,7 +23,7 @@ return { 'mode' => qw| false |, 'data' => "section not found: $section" }
     unless -f "$workspace_dir/$section.md";
 
 ## parse and sanitize tags ##
-my @tags = map { lc $ARG } split /\s*,\s*/, $tags_str;
+my @tags = map { lc $ARG } split m|\s*,\s*|, $tags_str;
 @tags = grep { $ARG =~ s|[^a-z0-9-]||g; length $ARG } @tags;
 
 return {
@@ -71,8 +71,8 @@ return {
     }
 };
 
-#,,,,,,,,,,.,,,,.,,,,,.,.,,,,,,..,,,,,,.,,..,,.,.,...,...,,,,,.,.,,..,.,.,,..,
-#SP4T5GKT3YJ3BK3PYOVNWIHREEJLAW7TQBLG4YX5YKDMSD2W2EHB3KW4CYKPLXDL53CMBMAVDICQY
-#\\\|EHZVT3WUKSZYHK72NXJHVRKKBMQ2R42XIV55PEUWI6ZA4MGPY66 \ / AMOS7 \ YOURUM ::
-#\[7]NGBDITU3WG3K2WBZNGMKDKDVFFYSMW4G4VHY5I64FKQQWQSKV6DQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,,,,,,,.,,,.,,..,,..,.,.,,..,.,.,...,..,,...,.,,,,,,,,,,,.,.,
+#BQ5EHYISHAWPFPM2EG4RAAMM2IHI6TADJK56KIYVHFEECQEKPP4SIPLMNTX27HXKCRJL7NDLKEEOG
+#\\\|CCBPF4Z736JMPA42FOTLX7SO6IFL732X5W2W2WYVVJP2MFIP6XZ \ / AMOS7 \ YOURUM ::
+#\[7]5NFQB7KN74JGLNLJNJEFRHHRYMEGPLLS5CWJKL4TJHSTELUXVIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

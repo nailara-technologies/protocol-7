@@ -56,7 +56,7 @@ if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
         $id, $reply->{'call_args'}{'args'} // 'no data'
     );
     my $reply_id = $inst->{'reply_id'};
-    if ( defined $reply_id and $reply_id =~ /^\d+$/ ) {
+    if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             { 'mode' => 'false', 'data' => 'window geometry unavailable' }
@@ -68,7 +68,7 @@ if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
 
 ## X-11.get_geometry returns "w h x y" ##
 my $args = $reply->{'call_args'}{'args'} // '';
-my ( $w, $h, $x, $y ) = split /\s+/, $args;
+my ( $w, $h, $x, $y ) = split m|\s+|, $args;
 
 if ( not defined $w or not defined $h ) {
     <[base.logs]>->(
@@ -113,8 +113,8 @@ my $geo = { 'x' => $x, 'y' => $y, 'width' => $w, 'height' => $h };
     }
 );
 
-#,,..,,,.,,..,,.,,,,.,,,,,,.,,...,,.,,.,,,,,.,..,,...,...,,..,..,,.,,,,..,,,,,
-#C7IW5BQKA3RI7EXYJ5GZDTOD6PDVNBZJLKLF3Q6S25AEKZNL7RFRPHI3QEDXLM4KC3JEKPM67A7OI
-#\\\|RDLBMH73OQKDT3QSXEFDZDFL7LDLUNR33DU6PH5LR6EMXGFQBXO \ / AMOS7 \ YOURUM ::
-#\[7]G56BQL5JCWE35A4RO2I5CEYSF2N7D7D3QNMJBPXI4UJY4VTH2SBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,,,,,.,,,,,,,..,,.,.,,,.,.,,,..,,...,...,...,,.,,.,,,,,.,.,.,
+#7UUKHB7MFMZB3GQUGNMJKSQ4VRJPPGYT7FH77ZLKYBR4OCERKUM2Z3FBP566KA4QFIRGEHDQ3JQAK
+#\\\|UCYTV7N3VILQFZZJJRU3ZUSNKLUI6XG5PSG2VGP3PW5QWL6WTYY \ / AMOS7 \ YOURUM ::
+#\[7]CWBK2YMPMRWWAU3DWC6SUQXAE3DC7BCRPL6TZ6ZG5BDPYGH472DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

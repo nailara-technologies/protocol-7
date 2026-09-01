@@ -67,7 +67,7 @@ if ( $backend ne qw| gpu | ) {
     my $mem_available_mb = 0;
     if ( open my $fh, '<', '/proc/meminfo' ) {
         while (<$fh>) {
-            if (/^MemAvailable:\s+(\d+)/) {
+            if (m|^MemAvailable:\s+(\d+)|) {
                 $mem_available_mb = int( $1 / 1024 );    ## kB -> MB ##
                 last;
             }
@@ -275,8 +275,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,..,..,,,.,,..,,,..,,.,,,.,,,..,.,.,.,.,,..,.,.,...,...,,..,..,,...,...,.,.,
-#SDNSYBD4PIYXL7EQTDWYGGNYCK3KVAC5AJAJEO2HXDWGRMKH52JUAGLZOX2BLFT4KCW5S75EPJ7JI
-#\\\|EG363G4ROSEEM3NYVK2VX6GWMHL6XWMH55QGHAPLO4RNCUVNYMA \ / AMOS7 \ YOURUM ::
-#\[7]HXWQN3OAUZI7EGQS5OY4GYVH5S5QRNYYGFSMEVIEUWUN6J6INQAA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,,,,.,,.,.,...,,..,,,.,.,.,,..,.,.,...,...,,,.,.,.,.,,,,..,,..,
+#3F4KI7ZMNNFBLRPDFSC6JZOT3YJSOL7MIIAU5POACBXJ7VY7ASWGSEYPH34EKQVUXKWSRNGY7OM3G
+#\\\|4PUZ77DBCC3EQC44QQ4NSMXA52BKZI3VLVPY3O5NC4XM5DELZD7 \ / AMOS7 \ YOURUM ::
+#\[7]KV43P77WYICUJQXC6F2FVIZCS57MJVCREXEBBWPCP7IGNXMHWWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

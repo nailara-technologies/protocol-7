@@ -24,7 +24,7 @@ my $list = $reply->{'data'} // '';
 return if not length $list;
 
 my @entries;
-for my $line ( split /\n/, $list ) {
+for my $line ( split m|\n|, $list ) {
     next if not length $line;
     my ( $winid, $title ) = $line =~ m{^(\d+)\s+(.*)$};
     next if not defined $winid;
@@ -102,8 +102,8 @@ for my $e (@new_entries) {
 
 #
 
-#,,,.,..,,,..,,.,,,,.,,..,..,,...,...,...,.,,,.,.,...,...,,.,,...,...,,,,,,.,,
-#ASLKJYWUH3A6XTXG4PJFFRHSKLSUQTXXILAIEQAAV4U2QN2XUXWKSP2SN7INPWVLV5ELG63B3J7E2
-#\\\|F735S4F7SRJ2VRDOKVDEX7HE3EQYPLRQ5OQPOZR4S5SSMMYVHLV \ / AMOS7 \ YOURUM ::
-#\[7]5C33ZECCLRCO4JOQFYOVL32PF767DZO54HSTXGM6CYVBWV3VGWBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,.,.,,,,..,...,,..,,..,,,.,,,,,.,.,...,..,,.,.,,,.,...,.,,,..,,
+#NRE56BUPGBEAPEVD6PUPZN47YB64272AB3EARIBFN26TE4UEIE34LTC2MEOX6Y5SMA3Q2ENPCXYB2
+#\\\|ECWGQTTWGDU5T25MXHGHPXPV6YPERBNGEE6WFEPP7B66ARV6OUC \ / AMOS7 \ YOURUM ::
+#\[7]U23AZ2MDNPSUT63226NNLLDWU4RXDKLIMWQPHKYRPVVAYRH3HIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

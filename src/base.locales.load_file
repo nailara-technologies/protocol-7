@@ -19,7 +19,7 @@ map {
     $ARG =~ s| +#[^\n]*$||mg;
     $ARG =~ s|\n\n|\n|sg;
     $ARG =~ s{^\n|\n$}{}mg;
-    if ( length($ARG) and $ARG =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
+    if ( length($ARG) and $ARG =~ m|^([^:]+?)\s*:\s*(.+?)$| ) {
         $locale_data->{$1} = $2;
         $entries++;
     } elsif ( length($ARG) ) {
@@ -31,8 +31,8 @@ my $s = $entries == 1 ? 'y' : 'ies';
 
 return $locale_data;
 
-#,,.,,..,,,,,,.,.,.,,,...,,,,,,..,,,.,,..,,..,..,,...,..,,.,.,,.,,,,.,,,.,.,.,
-#IQOSFFKP6ALTWVYFM56WXH2B4YHSFN63ULEWNYKXLXQLTQRQPOJHIXTYUZKTLCWWJDANZZCTWUP64
-#\\\|A54EYTGJF3ETLQG3I7KUV2ENHVE2ZO3IMDVTCUA7HZW3BKE7JUH \ / AMOS7 \ YOURUM ::
-#\[7]4SNXS57X42SCQ6YO7FNHGE6GD2WWNEFCJ3O6AU35Q2SZCBBAFWDQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,...,..,,,..,,,,,...,.,,,...,..,,...,..,,...,,,.,,,.,,.,,,.,,
+#QITX3LE2AOZAMYQKNFPZZMJ7HIEK4FK3WPSWYK5FLRZJACGDY6UFJQDFSCWJ5RF7Y54YXMX54VOOY
+#\\\|CRNSWQPF6SISLK5RQPJVNUZD3HTN35SPQ7K7KRDWU24LYJZT3YQ \ / AMOS7 \ YOURUM ::
+#\[7]MIIBNKTZIBM74VUWPHZYYN5SO45347TM23ZTDH7UG7QJZWDSO2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

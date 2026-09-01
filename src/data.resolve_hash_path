@@ -10,7 +10,7 @@ my $root_ref = shift // \%data;
 
 return $root_ref unless length($path_str);
 
-my @segments = split( /\./, $path_str );
+my @segments = split( m|\.|, $path_str );
 my $current  = $root_ref;
 
 for my $segment (@segments) {
@@ -21,8 +21,8 @@ for my $segment (@segments) {
 
 return $current;
 
-#,,,,,.,.,,,.,,.,,,,,,,..,,.,,,.,,..,,,..,,,.,.,.,...,...,.,.,.,.,.,.,..,,.,.,
-#D7MECYQVMF5PJ4QYI7MYL2JMPR65KGAN4DJQSGKJE7LAEVQN6U2BTNJ36HAFB5H46RGM73FGIJZOU
-#\\\|J5QW34XHN7PPWRNOEFZVZJ2FNNUBCG6RAYRYWTD5RDVF6OAQDQ4 \ / AMOS7 \ YOURUM ::
-#\[7]KKSED53APQD7FPHP3PQPDCACEBXXO22VVKV3VU3CVWQ6P3EYSUDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,..,,...,..,,,..,,.,,,.,,.,.,.,.,...,...,,,.,..,,,,,,,,.,,.,,
+#AR2MWVFSFKHO2OU3GFR4EKHGWMYWJAOTV5QQG4YGWOATABSK2G3UKGR77BK6DJDKMVMJN43Z365LK
+#\\\|U7VQHAX732NBXUZHVIELP7DULTKPVTQFMUHSHQQF4OOEEETY4FF \ / AMOS7 \ YOURUM ::
+#\[7]XFICFEKC4MS2P5XKTGWUIZ37T5CRXXE4EWFUMZPZNNNVLVYGU2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

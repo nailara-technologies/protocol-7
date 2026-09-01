@@ -86,15 +86,15 @@ $state->{'buffer'} .= $buffer;
 
 ## Debug: show raw buffer preview ##
 my $preview = substr( $state->{'buffer'}, 0, 100 );
-$preview =~ s/\n/\\n/g;
-$preview =~ s/\r/\\r/g;
+$preview =~ s|\n|\\n|g;
+$preview =~ s|\r|\\r|g;
 <[base.logs]>->( 2, "async.http_io : buffer preview [%s]", $preview );
 
 ## Parse headers if not yet done ##
 if ( !$state->{'headers_parsed'} ) {
-    if ( $state->{'buffer'} =~ s/^(.+?)\r?\n\r?\n//s ) {
+    if ( $state->{'buffer'} =~ s|^(.+?)\r?\n\r?\n||s ) {
         my $header_text = $1;
-        my @lines       = split( /\r?\n/, $header_text );
+        my @lines       = split( m|\r?\n|, $header_text );
 
         ## Parse status line ##
         my $status_line = shift @lines;
@@ -111,7 +111,7 @@ if ( !$state->{'headers_parsed'} ) {
                 ## capture response body for debugging ##
                 if ( length( $state->{'buffer'} ) > 0 ) {
                     my $body = $state->{'buffer'};
-                    $body =~ s/^\s+|\s+$//g;
+                    $body =~ s{^\s+|\s+$}{}g;
                     $body = substr( $body, 0, 200 )
                         if length($body) > 200;
                     <[base.logs]>->( 0, "http_io: error body: %s", $body );
@@ -129,7 +129,7 @@ if ( !$state->{'headers_parsed'} ) {
 
         ## Parse headers ##
         foreach my $line (@lines) {
-            if ( $line =~ /^([^:]+):\s*(.+)/ ) {
+            if ( $line =~ m|^([^:]+):\s*(.+)| ) {
                 $state->{'headers'}{ lc($1) } = $2;
             }
         }
@@ -141,23 +141,23 @@ if ( !$state->{'headers_parsed'} ) {
 ## Process body data (SSE format: data: {...}) ##
 if ( $state->{'headers_parsed'} ) {
     ## process complete lines [ terminated by \n ] ##
-    while ( $state->{'buffer'} =~ s/^([^\r\n]*)\r?\n// ) {
+    while ( $state->{'buffer'} =~ s|^([^\r\n]*)\r?\n|| ) {
         <[coding.handler.http_io_parse_line]>->( $1, $state, $callbacks );
         return if $state->{'abort_triggered'};
     }
     ## process remaining buffer if it looks like a complete SSE data line [ ##
     ## handles responses that arrive without trailing newline ]             ##
     if ( length( $state->{'buffer'} )
-        and $state->{'buffer'} =~ m/^data:\s*(\{.+)/ ) {
+        and $state->{'buffer'} =~ m|^data:\s*(\{.+)| ) {
         ## verify it's complete JSON before consuming [ avoid partial reads ##
         ## ]                                                                ##
         my $maybe_json = $1;
-        $maybe_json =~ s/\r$//;
+        $maybe_json =~ s|\r$||;
         my $test = eval { $state->{'json_decoder'}->decode($maybe_json) };
 
         if ( defined $test ) {
             my $remaining = $state->{'buffer'};
-            $remaining =~ s/\r$//;
+            $remaining =~ s|\r$||;
             $state->{'buffer'} = '';
             <[coding.handler.http_io_parse_line]>->(
                 $remaining, $state, $callbacks
@@ -177,8 +177,8 @@ if ( $state->{'headers_parsed'} ) {
 
 return;
 
-#,,..,.,,,...,,..,,,,,,,.,,,,,...,,,,,,.,,,,.,.,.,...,..,,..,,..,,.,,,...,.,,,
-#ZJFSHMWQDEHG3TELWTLQYFWDGC27UOIM2QZKTENNGKA4ETOLAXISAJRIOV4ILZD5C4MVLEFJDFSIQ
-#\\\|D7RG2HBCUQMSESSTHVQJ5HQMB2RZ77NTKJAXGWS5PKCLW55LIUZ \ / AMOS7 \ YOURUM ::
-#\[7]RJYGXFVWC3X6XS2JCBUTGBOQK76V4LW24ZA655J4S7KDYN34Q2BY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,,,,,.,,.,.,.,,,,.,,..,,,..,.,.,...,...,...,,,,,.,.,,,,,,..,
+#U7FQCSK4VV7L57TMU5FO2XY7BVR5KN5D3OESAFE3Y2RJMSQSQTDK5MLMLBFVG2BTJOI5GPMUSML5A
+#\\\|FBKOYYOMXT5Y23V5K2LH5RQQ3AVCJ4CKJMQR5ND75HQHG3JKPOQ \ / AMOS7 \ YOURUM ::
+#\[7]SQSLKWB47JG73UPLPO2JMTQT5KMTMQZ3CQIEN5YNZBHXY3VNMWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

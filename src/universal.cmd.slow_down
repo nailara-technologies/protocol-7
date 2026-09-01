@@ -8,7 +8,7 @@ my $percent = $call->{'args'};
 $percent =~ s|%$|| if defined $percent;
 return { 'mode' => qw| false |, 'data' => 'expected percent value [0..100]' }
     if length($percent)
-    and ( $percent !~ /^\d+$/ or $percent > 100 );
+    and ( $percent !~ m|^\d+$| or $percent > 100 );
 
 my $param_str = defined $percent ? " [$percent%]" : '';
 <[base.log]>->( 1, "<i> received slow_down command" . $param_str );
@@ -41,8 +41,8 @@ if ( defined $percent ) {
     };
 }
 
-#,,,,,,..,,.,,...,...,.,.,.,,,...,,,,,,,,,,..,..,,...,...,..,,,,.,...,,,.,,,.,
-#67YETVCUEUBX2RLJDQHUUMDKZXQUEIACI5YH2MN7AO34EEWFTTXYBCH3AGOT6NVNG7TVLON5UO6Q4
-#\\\|PWRD3PKKJY32OUJPY4THQAMXDE6YHYZUA364E5SZIHA2CTN536K \ / AMOS7 \ YOURUM ::
-#\[7]BCHWKZXINDPETBLTOTRJ3NDOKC2FVTUBXHCW24M2LPJGWKFN2YCA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,...,,,.,..,,.,,,.,,,,,.,.,,,..,,...,...,,,.,,,,,,,.,...,,..,
+#VDAORI44BD4EBJIZI4RDVGMN6DYO2POVGEVQQ2674SCSAUYD62D5DZGBPOE3EC5ID5WLQWY2YAOZO
+#\\\|MMLZPCFLT6T55BUK7JZETIM5U2HMV6F4EBE2RLN7VW6BUIM6NGR \ / AMOS7 \ YOURUM ::
+#\[7]4FP6LIL4XJG7QRHHVKN6UV3QGRRTO3A43KRCRWLCYDRQIVSLFIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

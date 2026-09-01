@@ -64,9 +64,9 @@ if ( exists <web.skin_cache>->{$cache_key} ) {
 my $device_type = 'desktop';    # default
 
 if ($user_agent) {
-    if ( $user_agent =~ /mobile|iphone|android|blackberry|opera mini/i ) {
+    if ( $user_agent =~ m{mobile|iphone|android|blackberry|opera mini}i ) {
         $device_type = 'mobile';
-    } elsif ( $user_agent =~ /tablet|ipad|android/i ) {
+    } elsif ( $user_agent =~ m{tablet|ipad|android}i ) {
         $device_type = 'tablet';
     }
 }
@@ -81,7 +81,7 @@ if ( defined $user_prefs->{'skin'} and length $user_prefs->{'skin'} ) {
     my $selected_skin = $user_prefs->{'skin'};
 
     # Validate skin name (alphanumeric, dash, underscore only)
-    if ( $selected_skin =~ /^[a-zA-Z0-9_-]+$/ ) {
+    if ( $selected_skin =~ m|^[a-zA-Z0-9_-]+$| ) {
         push @cascade, $selected_skin;
         <[base.log]>->(
             2, "skin_resolver: user selected skin: $selected_skin"
@@ -157,13 +157,13 @@ if ( -f $metadata_file ) {
     while ( my $line = <$fh> ) {
 
         # Simple YAML parsing for common fields
-        if ( $line =~ /^\s*name\s*:\s*(.+)/ ) {
+        if ( $line =~ m|^\s*name\s*:\s*(.+)| ) {
             $metadata->{'name'} = $1;
-        } elsif ( $line =~ /^\s*version\s*:\s*(.+)/ ) {
+        } elsif ( $line =~ m|^\s*version\s*:\s*(.+)| ) {
             $metadata->{'version'} = $1;
-        } elsif ( $line =~ /^\s*author\s*:\s*(.+)/ ) {
+        } elsif ( $line =~ m|^\s*author\s*:\s*(.+)| ) {
             $metadata->{'author'} = $1;
-        } elsif ( $line =~ /^\s*description\s*:\s*(.+)/ ) {
+        } elsif ( $line =~ m|^\s*description\s*:\s*(.+)| ) {
             $metadata->{'description'} = $1;
         }
     }
@@ -186,8 +186,8 @@ my $result = {
 
 return $result;
 
-#,,.,,.,,,.,,,,,.,...,.,,,,.,,,.,,...,...,...,..,,...,...,,,,,..,,,,,,.,.,.,,,
-#F663ODVFZDRLPRNQMYMXYSXPIRGIYFLSEY2L5HWIL4DVSYWMAOWP2NCG24CN6PDQ4WOUVQKQIF6V4
-#\\\|7HFS5QZCQW2XTB2WG73TRXVTQ7J7RCZQ7D3QDQWZSCFCF26H5QG \ / AMOS7 \ YOURUM ::
-#\[7]M7UVSYSAV2WRTRLOX6IJ4OC7F4ZBY2NTFRPK6TWI4EEFHJWKUODY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,..,,...,,.,,.,,,..,,..,,.,.,..,,...,...,.,,,,..,,..,.,,,,,.,
+#3DWQXDOQ4CT5RZ4YTPSNEBEVIPXCMHQOERQHJAV67FCYVHUIAHJHEBFEWPRBTVXTPJBX63B7LCQB2
+#\\\|TZ7UOB4BZVJRD3S4367R7WTEJGOWU23Y7TX6OASMYGQMNBYDBIK \ / AMOS7 \ YOURUM ::
+#\[7]PJVVXMBKCW3BPF7EXY7KCAXFJBFAD4RBNIIBI2NZVUYNVFIYPEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

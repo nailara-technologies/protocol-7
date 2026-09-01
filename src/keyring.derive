@@ -20,7 +20,7 @@ if ( not <keyring.root.loaded> // FALSE ) {
     return undef;
 }
 
-my @components = split /\./, $dot_path;
+my @components = split m|\.|, $dot_path;
 my $current    = <keyring.root.key>;
 my $partial    = '';
 
@@ -31,7 +31,7 @@ for my $component (@components) {
 
     ## cache each intermediate path [ avoid redundant derivation chains ] ##
     $partial = length($partial) ? $partial . '.' . $component : $component;
-    my $depth = scalar split /\./, $partial;
+    my $depth = scalar split m|\.|, $partial;
     <keyring.namespace>->{$partial}               //= {};
     <keyring.namespace>->{$partial}{'key'}        //= $current;
     <keyring.namespace>->{$partial}{'depth'}      //= $depth;
@@ -40,8 +40,8 @@ for my $component (@components) {
 
 return $current;
 
-#,,..,...,,,,,,..,,.,,,,,,,..,...,,..,.,,,.,,,..,,...,...,...,,.,,,..,.,.,..,,
-#WW3RUDHWYECHJT7REJOQA2DCH6HRTGITCDMOVVXJD4DONWWN4ZMWK3AWBQV7JJHIYNW2PHARPQAT4
-#\\\|6SWL5YZABLLTA3IIBTG26N73IQVXPIKJZFMHKF4MK6ASWLNXC32 \ / AMOS7 \ YOURUM ::
-#\[7]DG2AHAWKXN5IRRA5KWDIULOA3SGS7RJ26TKUD56II64TPO53B6BQ 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,..,,,,,,.,,,..,.,,,...,,.,,..,,...,...,...,,,.,,.,,,.,,,,,,
+#UXZKNXTTC2WS77O7XXPM2J24FS7J6FHNPLEZWOJEUCJMF6CYJ4ECOU4DOAMDIYKNO5BMO2WSVB6BO
+#\\\|LLQWLIDDCO4YQTMO3DGJ3GNPDNDFY3UBSPYUOCP25LPC7EYYXFN \ / AMOS7 \ YOURUM ::
+#\[7]GSGU24KPPNU35FXMATXB3LSDO2EV3FEDR75WRF2MVO6KBGIQDICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

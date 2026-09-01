@@ -47,11 +47,11 @@ if ( $cmd eq qw| list | ) {
     my $item_num  = 0;
     my $completed = 0;
     while (<$fh>) {
-        if (/^- \[ \]/) {
+        if (m|^- \[ \]|) {
             $item_num++;
             s|^- \[ \]|${neon_orange}[$item_num]${reset} ${TRUE_blue}☐$reset|;
             print;
-        } elsif (/^- \[x\]/) {
+        } elsif (m|^- \[x\]|) {
             $completed++;
             s|^- \[x\]|${neon_green}✓$reset|;
             print;
@@ -106,7 +106,7 @@ if ( $cmd eq qw| list | ) {
 
     my $count = 0;
     for my $i ( 0 .. $#lines ) {
-        if ( $lines[$i] =~ /^- \[ \]/ ) {
+        if ( $lines[$i] =~ m|^- \[ \]| ) {
             $count++;
             if ( $count == $item_num ) {
                 $lines[$i] =~ s|^- \[ \]|- [x]|;
@@ -156,8 +156,8 @@ if ( $cmd eq qw| list | ) {
     say "";
 }
 
-#,,,.,,.,,,..,...,,.,,.,.,.,.,..,,,,,,.,,,,,,,..,,...,..,,.,,,.,,,,..,.,,,,.,,
-#7VPUXFPKBHJWPTHKVGPJ2U3AIAY2RBGHX4L5L6AZBYI22V43ZIEVDF5SEAWGP7OSRPABODTRTI66K
-#\\\|ZMSMSEIQ57DX7FIACOSGWBMHQREFOYVN3HHE6PUNPEGUSFA5YES \ / AMOS7 \ YOURUM ::
-#\[7]EPQBH7ZE5ITE7VW4M3MAAEZHZMRERK34WYP6C5OGE3QY254MGAAA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,..,.,.,...,,,.,,..,,..,.,.,..,,...,..,,...,.,,,,.,,...,,,.,
+#X4KEK7USBA5SSMT6A4BBPTZV63R5HC5T77RSHCWHRUQIQBXDRYCHSCFANOKFM2FY7FKJIW3QZF73G
+#\\\|6QZKVIQWKGZVM7PW73K245BTSWFADAUZ4CPNII2NY2MQJJA5XW5 \ / AMOS7 \ YOURUM ::
+#\[7]NPZ5H3UKNN4MGW7YE6GGGU2LL5STGTV4Y7OS7BCR5WR76OHQIMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

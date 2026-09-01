@@ -88,7 +88,7 @@ foreach my $d_id (
     my $label_3  = Gtk3::Label->new();
     my $mac_name = uc("$1$2")
         if <power-x11.devices>->{$d_id}->{'mac'}
-        =~ /:([0-9a-f]{2}):([0-9a-f]{2})$/;
+        =~ m|:([0-9a-f]{2}):([0-9a-f]{2})$|;
     $label_1->set_markup(
         "<span size=\"large\"> <b>Device $mac_name</b> </span>");
     $label_2->set_markup(
@@ -171,8 +171,8 @@ $window->move( $pos_x, $pos_y );
 
 Gtk3->main;
 
-#,,,.,.,.,,..,.,.,,,.,,,.,...,...,...,,..,,..,..,,...,...,,..,,,.,..,,,,.,,,.,
-#D5PLPOUMVYQVWAWJXYWZW2THRKO6RCDL76RVTYD22VRYCFLFULGWPJTO6CVWUOQNLFJF5L7ZSZTAO
-#\\\|TDOWWWNY7XHSCHPU5UWME7Y7MBHBGGI27QYBP7U4LN7N6IL5EZ7 \ / AMOS7 \ YOURUM ::
-#\[7]NKINH23EQNVF65GOFJGPW63W5GRB533AF26DEAHECU73B44WXYCI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,..,,,,,,,..,..,,..,,,,.,,,,,..,,...,..,,..,,,,.,,,,,.,.,.,,,
+#MA5CKT4NP6ED342LTRYNLY464BZQRMKYCXJQKOA47T2ULN2OABZ32773FAGDAOFSABOJHC3OHHQZU
+#\\\|SVJIGS3OBRZZJQ7RSR7V6VHKLOUQKMX2FMZEOSFBTXJEHAF2IN2 \ / AMOS7 \ YOURUM ::
+#\[7]JIU6WRTOFH4QDZF3ZZPMALAYUNOEAVKRNCYWEQ25VMQLMEKTC2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

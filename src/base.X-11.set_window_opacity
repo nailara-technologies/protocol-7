@@ -7,10 +7,10 @@ my $id        = shift;
 my $opacity   = shift;
 my $target    = shift;
 my $route_str = defined $target ? "$target." : '';
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 die "expected numerical opacity from 0 to 100"
     if not defined $opacity
-    or $opacity !~ /^\d+$/
+    or $opacity !~ m|^\d+$|
     or $opacity > 100;
 
 <[base.log]>->( 2, "setting window '$id' opacity to $opacity% .." );
@@ -46,15 +46,15 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
     <[base.log]>->( 0, "set_opacity command failed with '$1'.," );
     return FALSE;
 } else {
     return TRUE;
 }
 
-#,,,.,...,.,.,...,,,,,,,.,,.,,,.,,,.,,,,,,..,,..,,...,...,.,,,,..,,,,,...,.,.,
-#EETKSW552MMZLOH2GTNND227V7J5J427JSR472OWFLJ6XXJO7GJPLEQYOZPSCQEPU3FUQB6SHIZCY
-#\\\|AFVH3G6543GHORKO26QEXBFQQYTMGDNPY3JNSCEKGZP2K5XFJYD \ / AMOS7 \ YOURUM ::
-#\[7]26OB2CE3WASNL3DGUQ3ZSZWE3ZWFA4UYL42XQUHJRJ7UCLFW54AQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,,,,,,,,,,,.,...,...,.,,,,,,,..,,...,...,...,...,.,.,,,.,..,,
+#24GQQYOBEY5F6K36JLHGE77R7VSRP3DH43MBFS2O62NKJ3NXM6QY5BYWFDCHK6IGAQVHHL3Y2Y2EA
+#\\\|YK7LZYKGLR3BVXELY6ZQXYILUXD74XGVS2P23ZOUJHY3MZF6ZQU \ / AMOS7 \ YOURUM ::
+#\[7]MFSVFFJFUO7PENNQ3TWBZOMDQA2YGUTXPXJPH6U2LUBOKY2JXABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

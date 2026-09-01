@@ -26,14 +26,14 @@ unless ( opendir( $dir_handle, $certs_dir ) ) {
 }
 
 ## Scan for .meta files (certificate metadata)
-my @meta_files = grep {/\.meta$/} readdir($dir_handle);
+my @meta_files = grep {m|\.meta$|} readdir($dir_handle);
 closedir($dir_handle);
 
 foreach my $meta_file ( sort @meta_files ) {
     my $meta_path = catfile( $certs_dir, $meta_file );
 
     ## Extract domain from filename (domain.meta)
-    my ($domain) = $meta_file =~ /^(.+)\.meta$/;
+    my ($domain) = $meta_file =~ m|^(.+)\.meta$|;
     next unless $domain;
 
     ## Read and parse metadata JSON
@@ -120,8 +120,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,,,,.,,,,,,,...,...,,..,..,,..,,,,.,,,,,..,,..,,...,...,...,,.,,,,,,.,.,,..,
-#JWZWRPXWMRIKNR6ZBF2NOLWMGHLVSASTZNZO2SFY2TWHTZNULZL6EDR46M67YLE7UVVJHHRYMQA2A
-#\\\|W7WECFZA7M2NJ5BUZCNJ2LFO5Z4FWXGW5UO4GPK6TZ2HWJTSWSG \ / AMOS7 \ YOURUM ::
-#\[7]A5TKE4NEXPFUNLC5MCP52O24CNE6NZQN4C3TV433ZVJ4GTVOKWBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,..,,,,,,..,.,,,,,,,.,,,,.,,..,,...,...,..,,,,.,...,..,,,.,,
+#YDD2QIP245F3KSQAV7D4SYJB2TABQBON7NLYEDV5UHCFF7NAQI7WRMSGJOVAIKGDM52RVUV6WQUXA
+#\\\|BJEH2IUALIHB6RAZIROXGOQIJ4CWJCMHARDCW6UBRIISSMBEQTS \ / AMOS7 \ YOURUM ::
+#\[7]SERLJUWZNGAZ4JX54PW4QVPZ3LQ4ANJ3I2NVYXQWSX4ULSSNYKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

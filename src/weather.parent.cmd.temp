@@ -14,12 +14,12 @@ return {
 my $temp = <weather.data>->{$station_id}->{'current'}->{'temp'} // 'n|a';
 
 $temp .= Encode::encode( 'UTF-8', "\N{DEGREE SIGN}C" )
-    if $temp =~ /^-?\d+(\.\d+)?$/;
+    if $temp =~ m|^-?\d+(\.\d+)?$|;
 
 return { 'mode' => qw| true |, 'data' => $temp }
 
-#,,.,,,..,.,.,.,.,,,,,,,.,,.,,...,,..,,,.,.,,,..,,...,...,,.,,..,,,,,,,.,,.,.,
-#PZ3ZJFUT5MKYLBT7YADF4BPNKFXZM4ODOOTLUQBF35T2U7YSRFXTYYYWEYDINWU4CKB4JJPY5GJLM
-#\\\|2ZD2563MJKHRKGUYTGQXFJ6S7VY7N2B5TATYFQP3LMMIHHAUF7W \ / AMOS7 \ YOURUM ::
-#\[7]655XOTNT22QGR7UJHR32HSBDFAPZLAALPTLN33Q4VM4XIQ6BFUBY 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,..,,,,,,.,,,.,,.,,,...,,,,,..,,...,...,...,.,,,,..,.,.,,,,,
+#PNARLYOBDQMRU2URFCX62C2G3CYSXBQBCIU7D7ERT66XW36C6ZGYM36SIF7VAE4RXKMGLAMUIP6A2
+#\\\|KCJKLLKWYCYP3HB3THHYV4NXG7IPBF2LPF6QZWPGJDXGZKQXRZU \ / AMOS7 \ YOURUM ::
+#\[7]DT35FNSU7LM455WXCZ6GPYUXFRIZ4URQNM3GK2JURZOZFHHMEUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

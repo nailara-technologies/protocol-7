@@ -13,10 +13,10 @@ my @layers = ('intrinsic');
 for ( my $i = 0; $i < @opts; $i += 2 ) {
     my $k = $opts[$i]       // '';
     my $v = $opts[ $i + 1 ] // '';
-    $k =~ s/^://;
-    $k =~ s/:$//;
+    $k =~ s|^:||;
+    $k =~ s|:$||;
     if ( $k eq 'layer' ) {
-        @layers = split /,/, $v;
+        @layers = split m|,|, $v;
     }
 }
 
@@ -37,8 +37,8 @@ if ( $result->{mode} eq 'true' ) {
     return $result;
 }
 
-#,,,,,..,,,,,,,.,,,.,,...,...,,.,,...,.,.,...,..,,...,...,.,.,,,,,,.,,...,.,.,
-#4W5GLOJJKPHX23BROH5JC3WS3MNLYHO2ZQIA3Y5XQ6LEOGOUMQF5XSIFNMEQVLBUH3MIQMYBYKUGO
-#\\\|LN345U77HI5KVA6PALXEKCKE57VO2N24LST3GSC6KHDSDINJQUV \ / AMOS7 \ YOURUM ::
-#\[7]JOXSXVXULUMYI74AV4E5MN6FHQIJ3KT5EHV7C5E5YRZJJFCXHADQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,,,,,.,.,.,.,,..,,,,,.,,,.,,,..,,...,...,.,.,.,,,.,.,,..,,,.,
+#T4MK6YOJVFYCURTVHMVDLVK4L476LHD7H7O5PSYYGKF43HNWLECWN3QHIZ5YNVE7BEMNYUREUION2
+#\\\|D2CNJ6E2RNAHE7BHTOAHUUQWW3QZEMCLSTQLRRBZXR2UZELYQHD \ / AMOS7 \ YOURUM ::
+#\[7]Y4SCIBQWT6EGMUGXQNNTGDSNO5SC6JTAAUYNZ3YJD6YUG4PZPGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

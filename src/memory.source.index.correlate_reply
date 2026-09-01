@@ -16,7 +16,7 @@ return if not length $from or not length $to;
 
 ## [ count shared continuations as weight proxy ] ##
 my $count = 0;
-for my $line ( split /\n/, $data ) {
+for my $line ( split m|\n|, $data ) {
     $count++ if $line =~ m|^\s*'[^']+'\s+|;
 }
 
@@ -52,8 +52,8 @@ splice @$edges, 0, scalar(@$edges) - 1000 if scalar(@$edges) > 1000;
 
 return TRUE;
 
-#,,.,,,,.,.,,,,..,..,,..,,,..,,.,,.,,,,,,,...,..,,...,...,,..,.,.,,..,,.,,,..,
-#NNK57HXZED2LPPXUQ2LWA4QMUZMNHYLQLHR5BIB4S5CH2XFGYGZ5KE6ETVFX7M3ZXOA6A52HB2I7Q
-#\\\|7FJROU57QHRCPEGYRT2KWELTI5RZMU4M4A75UUFHKJYIPIGUHMF \ / AMOS7 \ YOURUM ::
-#\[7]YDDPUZ5YR5YFQRGTLEN2QEMOCAVXQVT4DR2RNPUIYDRE6WX6W4DY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,,,,,,,,,.,.,,.,,,,.,.,,,...,..,,...,...,.,,,,.,,.,.,..,,,,.,
+#D26MF3HA5T3WDXUSBBILHE3TQLLWLDMZJF2KLZKE4P5UAW3NKBEYKDNGUOKHTID3YHA3UX4UYC4EO
+#\\\|XTBKLA6I6V77KRLJV4D7ZULZG2CP5A4GDSTPC7FQITC3UJ33LOE \ / AMOS7 \ YOURUM ::
+#\[7]5EF52Z2KHF5SJ6A3NR3WO63YMVZSCKVSKL2IKRTNK6QGVFRCXGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

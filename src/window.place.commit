@@ -67,7 +67,7 @@ if ( length $caller ) {
 
 ## when opened over a specific window, apply the committed geometry to it ##
 my $target_winid = $inst->{'target_winid'};
-if ( defined $target_winid and $target_winid =~ /^\d+$/ ) {
+if ( defined $target_winid and $target_winid =~ m|^\d+$| ) {
     <[base.logs]>->(
         1,   '[place.commit] id=%s moving winid=%s to x=%d y=%d w=%d h=%d',
         $id, $target_winid, $x, $y, $w, $h
@@ -123,8 +123,8 @@ delete $data{window}{place}{instances}{$id};
 
 return TRUE;
 
-#,,,,,,,.,..,,..,,.,,,.,.,,,.,,..,,.,,,.,,,.,,.,.,...,...,,..,..,,,.,,,,,,.,.,
-#6H7YMM325UFPOX6OW4XJOPO7IGPTRMEEREXU7JARFJU27KTGWFC2NRLPN2U6P7XTMCDM56TMLHUYA
-#\\\|64QESHQ66LUXBJUVRUHNN4LSAQ45HQ4T7OE3YCXFV5DHBXN7SUF \ / AMOS7 \ YOURUM ::
-#\[7]DEENHUYG7WSSBAXSG67LLZVRTWKYEBYWGAFBVL7T3OE2R4ZJQAAA 7  DATA SIGNATURE ::
+#,,..,...,,..,...,...,,..,.,,,,,.,.,.,,.,,,.,,.,.,...,...,,..,,,.,,.,,,..,..,,
+#M6QL6HJQ6TNE3F37C2CBBCO6XKUYA2LC2PX3546QS7T4LMICANJRHP3ERPDYKDZW6PK65TOU4PBTY
+#\\\|4Y4S4MGNNY6GCXFJHDYNWM7LYXCUU5FIYP76EM6B5ZNMBHQB6UJ \ / AMOS7 \ YOURUM ::
+#\[7]W6A4OJWPXYJE2C4NHYR7FORS6E6AD3GIDK2A6M7OELC4OSHA2YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

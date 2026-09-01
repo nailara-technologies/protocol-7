@@ -6,7 +6,7 @@
 my @restart_zenki;
 
 foreach my $zenka_name ( keys <tile.subconfig>->%* ) {
-    next if $zenka_name !~ /^impressive/;
+    next if $zenka_name !~ m|^impressive|;
     my $lm = <tile.subconfig>->{$zenka_name}->{'light_mode'} //= 0;
     next if $lm >= 2;
     $lm = ++<tile.subconfig>->{$zenka_name}->{'light_mode'};
@@ -20,8 +20,8 @@ foreach my $zenka_name ( keys <tile.subconfig>->%* ) {
     }
 ) if @restart_zenki;
 
-#,,,.,,,,,,..,,,,,.,.,...,,,.,,.,,.,.,...,,,,,..,,...,...,,.,,.,,,.,,,,..,,.,,
-#Y5DKJFQL4YIJ5BMEDJOO53RSUAQC34POLB7U7S7MYCJBNRA6OFCA3PZXW2RVIFQMBSH2U7OV6GGPK
-#\\\|J6XXIIUGYY2YUZRZSJLGQWAAG2CMORU6JEDRZPTOO44KMY6KEZB \ / AMOS7 \ YOURUM ::
-#\[7]K7JVK4GRJ2PWACJ5PO54NTYRL3NP36TIO5KZXBCBGH7CX5SDGQBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,.,,,.,,,.,.,,,.,,.,,,,.,,,,,..,,...,...,,,,,,..,...,,..,,,.,
+#Z5M3OEBZYGSE3X3DOVGNWISDW3YHTYJPLRWUCATTOKLXFKBCXTAMLXYD7ETNJHNIVYXKUBMGLGFMS
+#\\\|A3MU5WUZOG7ZZNUIZ4DKJELSMKPAHMINNHSYO6BE6DA3NYTDMS6 \ / AMOS7 \ YOURUM ::
+#\[7]FD3GHJLFP62BFOL2TTSAPU2KPR5JIHH25EWKMRASMHVPGW2IJWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

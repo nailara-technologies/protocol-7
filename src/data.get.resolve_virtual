@@ -7,7 +7,7 @@ my ( $path, $args, $classification ) = @ARG;
 my $subtype = $classification->{'subtype'};
 
 if ( $subtype eq 'coordinate' ) {
-    my @parts = split( /\./, $path );
+    my @parts = split( m|\.|, $path );
     my ( $x, $y, $z ) = @parts[ 2, 3, 4 ];
     my $property = $parts[5] // 'full';
 
@@ -47,8 +47,8 @@ return {
     'subtype' => $subtype
 };
 
-#,,.,,,,,,.,,,.,.,,,,,..,,,,,,.,,,...,,.,,...,..,,...,...,,,,,,..,,,.,..,,...,
-#O3WPKAMGAOV76A4IYYXSDV3PPTTVCYKQ6PS55IRXO5K53EYLN4MXK5ZUKD7R43BXAG4GKMPEBFKP6
-#\\\|TGXME6RH3PU7BG5HIELP3FTC6SBJVMJC7SSWSZ2O4FW3KZNVTAR \ / AMOS7 \ YOURUM ::
-#\[7]EOBGAUNVG67D5IITTYTZQNHBBVU3JGZGZU45B3ASGXZ7L5Q6FGBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,,.,,.,.,,..,,..,.,,,.,,,...,..,,...,...,...,,,.,,..,...,,..,
+#WGPROFXTKRC3WWGXNIAU75BZ63B22NKOTPZPUOSBJYGUHO5DSZDXCXMWEZBSTTVH5JLS27CPHWTD2
+#\\\|ZLL4GVJXBLN5ABRTJVIYFCPUUHCMCOZQMNNUQNT2AMQSH5JKZUT \ / AMOS7 \ YOURUM ::
+#\[7]GX4HL3GETVUBIRJDPLCAE7KYLO73NA7OKVNRNIY6TSA3L5OJ5AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

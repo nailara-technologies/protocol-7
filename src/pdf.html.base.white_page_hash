@@ -6,11 +6,11 @@ my ( $width, $height ) = @_;
 my $cache_dir = <pdf.html.cache_dir>;
 
 my $fail = 0;
-if ( not defined $width or $width !~ /^\d+$/ ) {
+if ( not defined $width or $width !~ m|^\d+$| ) {
     warn "expected valid page width";
     $fail = 1;
 }
-if ( not defined $height or $height !~ /^\d+$/ ) {
+if ( not defined $height or $height !~ m|^\d+$| ) {
     warn "expected valid page height";
     $fail = 1;
 }
@@ -29,8 +29,8 @@ if ("$err_status") {
 $image->Signature();
 return $image->Get('signature');
 
-#,,.,,,.,,.,.,.,.,,,,,,..,.,,,,,.,,,,,,.,,.,.,..,,...,...,.,,,..,,...,.,,,,.,,
-#3AXYUOOWOV4YCRPPDUN7KQ35QFZE4C6CIJK35RAQ3K57KARTYRBCV7B5ZXUCMEH3UNWLPDPMWDM6E
-#\\\|EYEANWMKBQHFBN5LT7NINPEVDLP7DU6UUN6JH4QWKEURWMPEKRZ \ / AMOS7 \ YOURUM ::
-#\[7]R5AHHVLS54VZK4F7B23MUPYZSWZ6PUQ3BXFIDHBIFUVTAVQG7YBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,,,.,.,,.,,,,,,,,.,..,,,,.,..,,..,,...,...,,,.,...,...,,,.,,,,,
+#FDVNVQAL5PKWQ7PLO56VKXFT7IDF7ZDVTPLO3WZJSPMOARUIKX5YUJ6ISMKBH5P2B5A6THOOOXF5M
+#\\\|CLYUVHPNO3VZ6S5UHSAHRRYEY7SSLOZMCL7ZYH2F4OOJLEW3PWT \ / AMOS7 \ YOURUM ::
+#\[7]4YPVX5FPRFAAPFYY3OFLICL7WBNQWPFL4EK7O6S5AH3YR4CEOSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

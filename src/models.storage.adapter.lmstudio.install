@@ -27,7 +27,7 @@ if ( -f $lmstudio_config ) {
     if ( open my $fh, '<', $lmstudio_config ) {
         my $content = do { local $/; <$fh> };
         close($fh);
-        if ( $content =~ /"hfToken"\s*:\s*"([^"]+)"/ ) {
+        if ( $content =~ m|"hfToken"\s*:\s*"([^"]+)"| ) {
             $hf_token = $1;
         }
     }
@@ -39,7 +39,7 @@ if ( !$hf_token ) {
     if ( -f $env_file ) {
         if ( open my $fh, '<', $env_file ) {
             while (<$fh>) {
-                if (/HF_TOKEN[=:](.+)/) {
+                if (m|HF_TOKEN[=:](.+)|) {
                     $hf_token = $1;
                     last;
                 }
@@ -79,7 +79,7 @@ my $get_repo_files = sub {
     my $data = eval { JSON::PP::decode_json( $response->decoded_content ) };
     return () if $@;
     return map { $_->{'rfilename'} }
-        grep { $_->{'rfilename'} =~ /\.gguf$/i }
+        grep { $_->{'rfilename'} =~ m|\.gguf$|i }
         @{ $data->{'siblings'} // [] };
 };
 
@@ -154,7 +154,7 @@ if ($filename) {
     }
 
     # prefer Q4_K_M if present
-    my ($preferred) = grep {/Q4_K_M/i} @gguf_files;
+    my ($preferred) = grep {m|Q4_K_M|i} @gguf_files;
     if ($preferred) {
         @files_to_download = ($preferred);
     } else {
@@ -229,8 +229,8 @@ if ( $ok && !$fail ) {
     };
 }
 
-#,,.,,..,,.,.,..,,,.,,...,,.,,,.,,...,...,.,.,..,,...,...,,..,.,,,,..,,.,,,.,,
-#YK4RMVXVT2V7XIFLTNWQLG7U2QMF3YGP6UYRLLQ77IGOFIRBDCPQONQCOEVGFFQY42CVKPH53N7BG
-#\\\|CMHQAIV2ZP6EJ2CKBNDRBED6QRCSZ76JSO2UKJRAVDYAGLNHN26 \ / AMOS7 \ YOURUM ::
-#\[7]VCF6GY7X7XBYFCQTRFGHLSBKG7AGOBVHKQQQ4RH4IGLX66VMQCCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,,.,,..,,.,,,..,.,,,..,,..,,..,,...,...,...,,..,.,.,...,..,,
+#OLLW52PDC4KWDRDV5GT6CG5CFKZZ7MKWT3G2IUOJWHU355GLQ4I7PPAGFLRYITHVUM7KAUADS7ZJA
+#\\\|X4UGHJJLOQSMZIPTHGFPBPNUROBRTDZVNTBAUVY34E6RE2EWGHN \ / AMOS7 \ YOURUM ::
+#\[7]QZQYUINH3CGXP7LDWCK2VD57FZXDM6PJHNI7OOX4FXOND67PUCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

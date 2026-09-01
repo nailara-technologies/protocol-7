@@ -23,7 +23,7 @@ unless ( defined $prev_job && $prev_job->{'status'} eq 'completed' ) {
 ## Check if response ends with natural markers [ complete analysis ]
 my $payload     = $prev_job->{'payload'} // '';
 my $is_complete = (
-    $payload =~ /[\.\!\?]\s*$/
+    $payload =~ m|[\.!\?]\s*$|
         ||    ## ends with period, exclamation, or question mark
         length($payload) < 80    ## only short responses without punctuation
 );
@@ -211,8 +211,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,,,,...,...,,,,,,.,,,,,,,..,,,,,,.,,...,..,,..,,...,...,,..,...,,,,,,,,,.,,,
-#EYEJCVYKGYJYG5G54J236IUHKYYABJGWYOUVDCCQVZXOTYMWGOE4PXDYHQOQ6ATAMALD5OPZA5T2E
-#\\\|CWFOIWMA57VU4X2JUFPVMW4CAUSIHW3NERKIIPXBNLPHVK7MPR3 \ / AMOS7 \ YOURUM ::
-#\[7]XCKMIM635VWU7BHDXSE5G3SKH6H4UPU3GGFPPNBM47Z7VGHFLGAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,,..,,..,...,,,.,..,,...,,..,..,,...,..,,..,,...,,..,.,.,,,,,
+#2535DWJLOGTDEQYWCHGY63VJ7CUCN36FXTDO5KZPLZ6HRMCYZHHASJ5Q3NUOI6IHYLBFNAHMM4NXO
+#\\\|KMNTSP5MNNU57EFPHYGTVKVLLJFUYTYVXHNERWYCN6RD2TE233D \ / AMOS7 \ YOURUM ::
+#\[7]ZAJG5B73PA53DBEXBCGFH6Y5XPRC4WEOKM66QK5UI7CNBTSIT6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

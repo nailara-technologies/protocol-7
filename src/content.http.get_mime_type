@@ -26,7 +26,7 @@ die "expected http[s] url!"
 my $method   = 'HEAD';
 my $response = $uagent->head($url);
 
-if ( $response->status_line =~ /^(4\d{2}|5\d{2})/ ) {
+if ( $response->status_line =~ m{^(4\d{2}|5\d{2})} ) {
     <[base.log]>->( 2, "HEAD failed for '$url', trying GET request.." );
     $uagent->max_size(0);
     $method   = 'GET';
@@ -43,8 +43,8 @@ if ( $response->is_success ) {
 }
 return $content_type;
 
-#,,..,..,,.,.,.,.,,.,,.,,,,,,,...,,,,,.,,,,.,,..,,...,...,...,,,,,.,.,..,,.,.,
-#FZ3VPNJNZSKGG6D6MCNGKORKJTWLQC7HXK5GQ6OKVIMMER2OVM45PS66G4XIYPSNDYJVW4CMNRWVW
-#\\\|DZADOPQ2MEAONLK6QWQWEYU6VIXHVJWU6IXHERELOGOGDC6JEQF \ / AMOS7 \ YOURUM ::
-#\[7]I7YYHDHZ32AIMJIRHLGBHRFNLZ6Y6SSXN2JZUBD5WRXPNTVSDWAI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,.,,,,,,..,,,.,,.,,,..,...,.,,,..,,...,...,,,.,,,,,...,,,,,,..,
+#LU6MF3TKC5JDFN5QGVB4LJXOLGRSL4LJLF7XNSVD2F2EF33UHEPVGY2AZJQ25V6YEUZMMEBGVGS22
+#\\\|HCUMTWNL6GVUVIMIWSRMYWH3HY4VIZT4TBK7YAKZIKUEJWISZI5 \ / AMOS7 \ YOURUM ::
+#\[7]7LMU2KRNMX366N7EEQJFCLFN5XA2QLQZ4Y5S2DHZ4F4T6MORJMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

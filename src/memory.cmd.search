@@ -3,7 +3,7 @@
 # name = memory.cmd.search
 # descr = focus-boost query terms, re-score tree, render top-N
 
-my @terms = split /\s+/, ( $call->{'args'} // '' );
+my @terms = split m|\s+|, ( $call->{'args'} // '' );
 @terms = grep { length $_ >= 2 } @terms;
 return FALSE if not @terms;
 
@@ -27,8 +27,8 @@ for my $term (@terms) {
 my $output = <[memory.tree.render]>->( { variant => 'compact' } );
 return { 'mode' => 'size', 'data' => $output // "[ no results ]\n" };
 
-#,,,,,.,.,,,,,,.,,,.,,,,,,...,,,,,.,,,.,,,,..,..,,...,...,..,,...,,,.,.,.,,,.,
-#NQTTE22DMEOELX4DIDGH2JXWYOGUFUIHZA57QH7LUZ2T4I7WP67P22P3SQGCYMJZQDIBCAVVQLIIM
-#\\\|B3BOKTLGVNFSD6I423L3P5IHV3N5ZAVGCLZ4JAQPUPDPRQQQXDC \ / AMOS7 \ YOURUM ::
-#\[7]QVFYEBQ2LHLAPCDLPX77TG3HSGSW3G72TUZ4EGA7IG2RSWXALMDA 7  DATA SIGNATURE ::
+#,,..,...,,,.,..,,.,,,...,.,.,,,,,,.,,,,.,,,.,..,,...,..,,..,,...,.,.,..,,,,.,
+#RXKM4DCI3JWDHP3SMMR45VXBBLDJ7B4B65KIFQ32WSSNXO25HLICY7GYSIFSN5P3G7DCPRCUSH3AA
+#\\\|SV72I4PZJG2V6NOY2TN5WOMG7CL63XQH6JVFABD5IQA4BBVD5QN \ / AMOS7 \ YOURUM ::
+#\[7]5DUVZFVYOLKYG2ACDEZFUSORUJJVHFLKDXKPH2KLODYCBQMOCGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,21 +8,21 @@ my ( $line, $state, $callbacks ) = @ARG;
 return unless length($line);
 
 ## strip trailing \r ##
-$line =~ s/\r$//;
+$line =~ s|\r$||;
 
 ## skip hex chunk size lines [ chunked encoding ] ##
-return if $line =~ /^[0-9a-fA-F]+$/;
+return if $line =~ m|^[0-9a-fA-F]+$|;
 
 ## skip SSE headers and empty lines ##
-return if $line =~ /^:$/;         # keep-alive comment
-return if $line =~ /^event:/i;    # event type header
-return if $line =~ /^id:/i;       # event ID
+return if $line =~ m|^:$|;         # keep-alive comment
+return if $line =~ m|^event:|i;    # event type header
+return if $line =~ m|^id:|i;       # event ID
 
 <[base.logs]>->( 2, "async.http_io: processing line [%s]", $line );
 
 ## extract data from SSE format ##
 my $json_str;
-if ( $line =~ /^data:\s*(.+)/ ) {
+if ( $line =~ m|^data:\s*(.+)| ) {
     $json_str = $1;
 } else {
     ## try parsing as raw JSON [ fallback ] ##
@@ -147,8 +147,8 @@ if ( exists $callbacks->{'on_chunk'} ) {
 
 return;
 
-#,,,,,,.,,,..,,..,..,,,,,,.,.,,..,...,,,.,,..,.,.,...,.,.,,..,...,.,.,...,..,,
-#WP3BKQ5A4BFFVGRB5FEBTPADGWEZB7DSLFTZXBY6T6XZI2WJHFW3PYLT76KRSXRE6TCWXFXMR7A5K
-#\\\|RTZTS7UXIDZAUU6AT7UBGTHKBQNW4O24DPD2E7TDOSQVQIH4RSC \ / AMOS7 \ YOURUM ::
-#\[7]CZKII2OCPHKWHU22AKVK4ET6MM2577S2KKZW2AFEFDDSSDN4QGDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,.,.,,,.,,,.,.,,,.,,,...,..,,.,.,...,...,..,,..,,...,,.,,...,
+#JIEKGKOX2IN44MKOUIVKAI46MGTPI3PQ4QN2GXKWDY6YDDKIFELAGMHTYT4WDWBM46AXQWQIZ3LU4
+#\\\|PFGLQBMIILY2IT2MHMXF2AMMDHLMTUF3RCJZYX6VFMN2WDVYZHB \ / AMOS7 \ YOURUM ::
+#\[7]RS43WLXPXHTYZUK3Y7O2FYNXIJT5CVCRXFX2ZXYHAA2DL33WJWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,7 +48,7 @@ my $cert_header = <$cert_fh>;
 close($cert_fh);
 chomp($cert_header);
 
-unless ( $cert_header =~ m/^-----BEGIN CERTIFICATE-----$/ ) {
+unless ( $cert_header =~ m|^-----BEGIN CERTIFICATE-----$| ) {
     <[base.logs]>->(
         2, 'certificate file has invalid format: %s', $cert_file
     );
@@ -69,7 +69,7 @@ my $key_header = <$key_fh>;
 close($key_fh);
 chomp($key_header);
 
-unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
+unless ( $key_header =~ m{^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$} ) {
     <[base.logs]>
         ->( 2, 'private key file has invalid format: %s', $key_file );
     return $result;
@@ -108,8 +108,8 @@ return $result;
 
 0;
 
-#,,,,,,..,,,.,,..,...,..,,,,,,.,,,.,.,,,,,,,,,..,,...,...,.,.,,,.,,,,,.,.,,,.,
-#UH3JMQWJZSPZRCZZSBSRCPWHG7R4P5YC6NHC2NNU4WICJ27J5225JAIRLJO466555EHIWPFKMSGLK
-#\\\|EBRSER33FEASCK645I7IL4J6BHWF7QWKDONFK3AXUIWUYJYSJ53 \ / AMOS7 \ YOURUM ::
-#\[7]JW5MSDMPRCVUVX5SYABND3NL47TSVFKVSOU6UZX2RFYNNZGFNGBY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,,.,,.,,.,,,.,.,,,.,.,.,.,,,..,,...,...,,.,,.,,,,,.,..,,..,,
+#DRSKEXQAH2H7X5QMC337U5ZF6DZYXQYVIH5HV5T4XPFNUOL6QENPA3IPYBB3TGR6GRPHBMWSBJUJE
+#\\\|VT6OR7T5JF5LAL5GYIBLQJMTXCWJHJPM5ECZZBCWVRPP6IR7SCC \ / AMOS7 \ YOURUM ::
+#\[7]D6Z74YEW6LYYQTDY6QABO5YZPZTGIVY5ZCNKCI2MM743GLKEVQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

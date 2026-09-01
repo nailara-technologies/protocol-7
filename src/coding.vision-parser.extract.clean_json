@@ -18,10 +18,10 @@ return { 'success' => FALSE, 'error' => 'No input provided' }
 my $json_text = $raw_vision_output;
 
 # If the output looks like {key:value}, try to extract just that
-if ( $json_text =~ /^{.*}$/s ) {
+if ( $json_text =~ m|^{.*}$|s ) {
 
     # Already looks like JSON
-} elsif ( $json_text =~ /({.*})/ ) {
+} elsif ( $json_text =~ m|({.*})| ) {
 
     # JSON is embedded in other text
     $json_text = $1;
@@ -35,8 +35,8 @@ if ( $json_text =~ /^{.*}$/s ) {
 # Step 2: Clean spurious spaces within words
 # Pattern: lowercase+space+lowercase (most common artifact from streaming)
 # Examples: "neb ula" -> "nebula", "vast ness" -> "vastness"
-$json_text =~ s/([a-z])\s([a-z])/$1$2/g;
-$json_text =~ s/([a-z0-9])\s([a-z])/$1$2/g;
+$json_text =~ s|([a-z])\s([a-z])|$1$2|g;
+$json_text =~ s|([a-z0-9])\s([a-z])|$1$2|g;
 
 <[base.logs]>->( 1, '[extract.clean_json] cleaned spurious spaces' );
 
@@ -73,8 +73,8 @@ return {
     'cleaned' => $json_text
 };
 
-#,,,.,,,,,,..,.,,,.,.,,,,,,..,..,,,,.,,..,,..,..,,...,...,.,.,,..,,..,,..,,.,,
-#HXJVMC2DTOEVO7XTJFC3U3CCIRIXS6U2RNC7DGOV4B2P3E3EBRLLJTYISD5NHBJMDVOYM3OE2ORWG
-#\\\|PSVYCFK6LLRSTMUFWQQW3FJDS6PZRK6GMBHWSQ5TK5P5YTJILU4 \ / AMOS7 \ YOURUM ::
-#\[7]WFWBJSMSUGPKWENZCUSFUY4FNLARC7IAZK2WDODWL2A7GXCOZQAY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,..,,..,.,,,,,,,.,.,,..,.,.,..,,...,...,.,,,..,,,.,,...,.,.,
+#2SVWM3JPYCWUJB57QUHC4IGLUXCZWEBKVCQ64AX6HQUATBNRSAUSTWRVICWFAUI3YHX6RQQ7MDXB4
+#\\\|TCRQQ6EGHRQNN2LZNOOKGHLHXB5KADDP5K4T7NCSL572RZOOFIN \ / AMOS7 \ YOURUM ::
+#\[7]FEJZNEF2PLHCTJGIP7NGMWKHBL65TTTMRNCA3YNXHCDZHN6JMSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -88,9 +88,10 @@ push @menu_items,
 ## Process directory entries ##
 foreach my $entry ( sort @dir_contents ) {
     ## Skip special directories ##
-    next if $entry =~ /^_/;    # Skip _templates, _skins, _config, etc.
-    next if $entry =~ /^\./;   # Skip . and ..
-    next if $entry =~ /^[A-Z]/ # Skip uppercase (common for files like README)
+    next if $entry =~ m|^_|;     # Skip _templates, _skins, _config, etc.
+    next if $entry =~ m|^\.|;    # Skip . and ..
+    next
+        if $entry =~ m|^[A-Z]| # Skip uppercase (common for files like README)
         and -f "$vhost_root/$entry";
 
     my $entry_path = "$vhost_root/$entry";
@@ -127,13 +128,13 @@ foreach my $entry ( sort @dir_contents ) {
         };
 
         while ( my $line = <$fh> ) {
-            if ( $line =~ /^\s*label\s*:\s*(.+)/ ) {
+            if ( $line =~ m|^\s*label\s*:\s*(.+)| ) {
                 $menu_item->{'label'} = $1;
-            } elsif ( $line =~ /^\s*icon\s*:\s*(.+)/ ) {
+            } elsif ( $line =~ m|^\s*icon\s*:\s*(.+)| ) {
                 $menu_item->{'icon'} = $1;
-            } elsif ( $line =~ /^\s*order\s*:\s*(\d+)/ ) {
+            } elsif ( $line =~ m|^\s*order\s*:\s*(\d+)| ) {
                 $menu_item->{'order'} = $1;
-            } elsif ( $line =~ /^\s*hidden\s*:\s*(true|false)/ ) {
+            } elsif ( $line =~ m{^\s*hidden\s*:\s*(true|false)} ) {
                 $menu_item->{'hidden'} = ( $1 eq qw| true | ? 1 : 0 );
             }
         }
@@ -162,8 +163,8 @@ foreach my $entry ( sort @dir_contents ) {
 
 return \@menu_items;
 
-#,,..,.,,,...,,..,.,.,..,,.,,,,..,.,.,,,,,,,.,..,,...,...,,..,.,,,.,,,.,.,,,,,
-#LZMNBBHUCKDHF4VUWECQAHK7CRFMFSWTNK6WARDVVOA465DAJHP3QF3WQEM2RGDJXBWTHSJRPLAE6
-#\\\|YNDPUQMVOXOTRFI7LHMHH3XBGQ23NAOF4VWNBP5KN7B3TH3BQFI \ / AMOS7 \ YOURUM ::
-#\[7]6TA2KFZWNB6EJYIS3TC2KT4YZCN6GLWZAF34NYVTJ4NYBVSTV4BA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,,,,,..,,,..,,.,,.,,,,,,,,.,,..,,...,...,..,,...,,.,,,,.,,,.,
+#EJDKCSVVHP7QNVH4UQRLMV7RYSE4UARZVN3JZA3YCNZHZTLDJVKEE5B7ASDELPOZHJ7XV25ZYZ55G
+#\\\|XXRNZ7IMCX7OAEOAVW3VQM76242IVGBAAVRC6MCCD4XUOVESSUD \ / AMOS7 \ YOURUM ::
+#\[7]PTSZUVPWCV74C2GEKZTT5HNRJU576VT6UQL2TVHDOTBVOEEYA4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

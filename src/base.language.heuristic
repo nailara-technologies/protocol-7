@@ -41,7 +41,7 @@ my %script_counts = ();
 for my $script ( keys %script_ranges ) {
     my $re    = $script_ranges{$script};
     my $count = 0;
-    $count++ while $text =~ /$re/g;
+    $count++ while $text =~ m|$re|g;
     $script_counts{$script} = $count if $count > 0;
 }
 
@@ -110,7 +110,7 @@ for my $lang_code (@candidates) {
     my $score = 0;
     for my $char (@special) {
         my $count = 0;
-        $count++ while $text =~ /\Q$char\E/g;
+        $count++ while $text =~ m|\Q$char\E|g;
         $score += $count;
     }
     $scores{$lang_code} = $score if $score > 0;
@@ -150,8 +150,8 @@ return {
     alternatives => [ grep { $_ ne $leader } @ranked ],
 };
 
-#,,,.,,,.,.,.,...,.,.,.,,,.,.,.,,,,,,,,.,,.,,,..,,...,...,.,.,,..,...,,..,...,
-#462FMHJPIRR3WA2CGKJ2D3PYT3OXKZD525CXDITE67P7WBMTLTGBOE5K6NYVTWIVRPF2IRS5SJ7EM
-#\\\|LHTVRA72DTS7TFVPKJAPKDKC2FBMV2IQKX5ICEN5WGXTBTLM2QE \ / AMOS7 \ YOURUM ::
-#\[7]PX3WUZTNYWUT4VBEMIPGBM45QOYGIY5VLXPKBPDQKNHSLLCGQYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,,,.,,,.,,..,,..,...,..,,,..,..,,...,...,,.,,,,.,,,,,...,.,.,
+#HZCY6GMRJN3U2ZGSB3UFS7BBPWH72T6C5IWG2GE2Z7GLUA6LXU723PXVYIA7EWTN2GRADGQYDBVXG
+#\\\|XHDPFGLX54A5VXB4XPDIPAG4EWVEIV6BQATTBMS4QKH5KASOAEN \ / AMOS7 \ YOURUM ::
+#\[7]RMDAEHI6TZITR373JX5CZS4XR2FYAJOAGC55CVRGP7LLYLXFXYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

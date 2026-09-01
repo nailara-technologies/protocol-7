@@ -56,7 +56,7 @@ my $content_ref = <[file.slurp]>->($path)
 ## split on /\n/ [ even with a -1 limit ] discards the delimiter itself and ##
 ## would squash every line together again downstream where lines are        ##
 ## concatenated without re-adding a separator                               ##
-my @lines = split /(?<=\n)/, $$content_ref;
+my @lines = split m|(?<=\n)|, $$content_ref;
 
 ## apply line range ##
 $from_line = 1              if $from_line < 1;
@@ -93,8 +93,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,,,,..,,,..,,,,,..,,...,,.,,.,.,...,.,,,.,.,.,.,...,...,..,,..,,...,.,,,...,
-#CETRNPEZVLCQPMZVDFY26X6WDJBIYVDU7G3CXT5BLJ5OHPNCWVN2KTMVF3IWZFG2SAZPDVB5H4QJQ
-#\\\|RUVXMV2D72I3DLB5EA6RL3HZR5YUBCBVSMUR7EIB7YOSQRSQZN3 \ / AMOS7 \ YOURUM ::
-#\[7]ZBTYC24XWSIMQAESCQSAHMA6QE7VNKZOCNTILEURVKBZ6XSCLACY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,.,.,.,.,...,,.,,.,.,,,,,..,,.,.,...,...,,,,,.,,,,.,,.,.,.,.,
+#YMK7KOACQFZSJ3QYC4KXLL3TY6JYB3APX4GTTYNEK7SYSXJMIBNLAF7NY3WPGNR56I2FGB3X7KLBG
+#\\\|UWVAH24BGDVEWFLXRA3FNPEVUS3ZT7YN4TEIV5RMWGMWYJ7Y4TZ \ / AMOS7 \ YOURUM ::
+#\[7]45GY6RTGWTSXKGGZXXLWOTRLEN7F4C7FQS46BW2UUCNLEQA56UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

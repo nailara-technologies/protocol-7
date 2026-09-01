@@ -21,7 +21,7 @@ my $output = `$git_cmd`;
 return [] unless length $output;
 
 ## [ parse null-delimited records ] ##
-my @fields = split /\x00/, $output;
+my @fields = split m|\x00|, $output;
 
 for ( my $i = 0; $i < @fields - 2; $i += 3 ) {
     my ( $hash, $at, $body ) = @fields[ $i, $i + 1, $i + 2 ];
@@ -31,7 +31,7 @@ for ( my $i = 0; $i < @fields - 2; $i += 3 ) {
     $body //= '';
     chomp $body;
 
-    my $subject = ( split /\n/, $body, 2 )[0] // '';
+    my $subject = ( split m|\n|, $body, 2 )[0] // '';
 
     ## [ commit date to ntime ] ##
     my $ntime_num = <[base.ntime]>->($at);
@@ -56,8 +56,8 @@ for ( my $i = 0; $i < @fields - 2; $i += 3 ) {
 
 return \@leaves;
 
-#,,,.,..,,.,.,...,,..,...,.,.,,..,,..,,,.,,.,,..,,...,...,,,.,.,,,...,..,,,,,,
-#5V7QG2AGCNNGZW2GG5PIX2GGGJSFGW2QIMHQ7ALNH4PPRSMLD5OT4VO7P6A2GN3UMLDVVAT56L7CI
-#\\\|4XJO66VP7L2ZKPQWNZZ36742BM5EVUEKVBUTLUQ4P5CZUIRSZ2S \ / AMOS7 \ YOURUM ::
-#\[7]MQSWAQJH45QEY3IAMVPNLUUPBUXUV25RM45BVUC7VPR4VJYEC4AA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,...,,,.,.,.,...,.,.,...,,,.,..,,...,..,,.,.,.,.,,,.,,,,,..,,
+#4NYEJVPTUCNQYY5RUZKUGOOCSNRE3H4DTRPJZAL64WZHF5NIMDYTHLU7Y5SP2BVXURKXFW7WGBGBA
+#\\\|THMSOBBFV5DJGH5SRZLO545MO75MKRRIR6ZJFIRARKEBG3WBFKI \ / AMOS7 \ YOURUM ::
+#\[7]SCKNTC376B72XMXPIFSUZCM23KR2QLF7DZUNLF3BZFJJT6O2XGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

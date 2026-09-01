@@ -14,10 +14,10 @@
 # not resolve to a JobPosting shows up in the site-yaml log [ gone/drop ].
 
 my $args_str = $call->{'args'} // '';
-$args_str =~ s/^\s+|\s+$//g;
+$args_str =~ s{^\s+|\s+$}{}g;
 
 ## parse key=value pairs; values are non-whitespace ##
-my %param = ( $args_str =~ m/(\w+)=([^\s]+)/g );
+my %param = ( $args_str =~ m|(\w+)=([^\s]+)|g );
 
 my $url = $param{'url'} // '';
 if ( not length $url ) {
@@ -86,8 +86,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,.,,,,.,..,,...,.,.,,,.,...,,..,,,.,,.,,,.,,..,,...,...,.,,,.,.,,.,,...,.,.,
-#SCWZ24YVQU7Q3HWYOHKYMVG2CF7WGRYKQLM76QXS2D2DQDSSQK2HHMITBKNCRV3G27QOUDUURN52Q
-#\\\|SWFNJ5TPGDL3RVPNO4N7DPUNNUNVURN2IK6PZY4MET3FAT43TL4 \ / AMOS7 \ YOURUM ::
-#\[7]EQLXBMRGY7LRJUYXK6NPM3BINGWCAXGA3BNEIGIDZDLL3NNOFKDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,,,.,,,.,..,,,,.,,..,..,,,.,,..,,...,..,,...,,,,,..,,,,,,,,,,
+#EM7CNM2EDGARKXUQOV2NQNW43Y4FKWVJXNH7TUQDP2L3WYJAXBIPMXOX23JJ3LASYM2SOTX3XX6UY
+#\\\|IWDWNST22D75EL2H7CANJG6CNIZ2YDFOWPQOYYATECTM2GU4BXO \ / AMOS7 \ YOURUM ::
+#\[7]K6PVTCAJIJQB7V3NVJARIP4C7THZVOECN3UV2MYW4O5T4UYBIGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

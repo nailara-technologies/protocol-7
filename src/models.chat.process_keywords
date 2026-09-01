@@ -37,7 +37,7 @@ if ( $message =~ m{:done:} ) {
 }
 
 ## [:memory:CHECKSUM] - expand memory items inline
-while ( $message =~ m{\[:memory:([A-Z0-9]{7})\]}g ) {
+while ( $message =~ m|\[:memory:([A-Z0-9]{7})\]|g ) {
     my $checksum = $1;
     my $content  = <[models.memory.show]>->($checksum);
 
@@ -60,8 +60,8 @@ return $message;
 
 0;
 
-#,,.,,,,,,.,.,,,.,,.,,,..,,.,,.,.,,,.,..,,,,,,..,,...,...,,..,,,.,,.,,,.,,,.,,
-#MZSGRQKD7TZPONZRJLDBVK7KW35H7OTMK2VODF3S73P32KNENYFQTCOUA2NYWLGSML2O3ECOSM4R2
-#\\\|L5SHSVPEKTOALKTIAPYV52GZDHSWPQIZWFFWNM45I73WZP4EJNS \ / AMOS7 \ YOURUM ::
-#\[7]5HGYIHOBB7C7QWTMIDZ3GO6RPTDWOTW5C43HOOWYQ43IOO2Z6KCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,,,.,...,...,,.,,.,.,,..,,..,..,,...,...,,,,,.,.,,..,,,.,,,.,
+#4WEGNPOA4WB6ESLT5VAFHJO5A44HWWIKB4SZOWRHSXVTAOERJCGCHZDVNEL6FXOT23PYSEPRPXLNE
+#\\\|HX3HY54VBHGNOMORARU6VLMBXRPYVJN2I2BFK7VEQOXDBMZ4FUG \ / AMOS7 \ YOURUM ::
+#\[7]6DEXRXO4ZWHY3JUAPLNW2CC7DVKZRYD4ZVPQBJ7HMXJGVWMXS6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ my $profile_dir = <transport.cfg.profile_dir>
 ## helper: scan profile files ##
 my @profile_files;
 if ( opendir my $dh, $profile_dir ) {
-    @profile_files = grep {/\.yaml\z/} readdir $dh;
+    @profile_files = grep {m|\.yaml\z|} readdir $dh;
     closedir $dh;
 }
 
@@ -88,8 +88,8 @@ if ( length $dest ) {
 ## 4. default profile ##
 return qw| default |;
 
-#,,,.,,,.,...,,,,,,,.,..,,,,.,,,,,..,,.,,,,,.,..,,...,...,.,.,..,,.,.,,,,,...,
-#2VL4BQZS3UCNEMKRIJL2WVZVJIRUZ2KDA4BU6HB5KXZMX5ELKTIUU55THZOJMENAMKOZSRAKQZ5X4
-#\\\|UGD3SO3OT7RSGMHH5WDUOE4OPOVGHZXG7NVRCTPJRMA4ANV3DUL \ / AMOS7 \ YOURUM ::
-#\[7]GHLRKASNHLKDOTIQMBYWGIZZY7YQ2PXBRAOC33Y4LXZ6UOVP7WBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,,,.,.,,,..,,,,,,...,,,.,.,.,..,,...,..,,...,,,.,,.,,,.,,,,.,
+#DHRY32O5EGDOP2W6BOSRRQAJJBKV5TUAEBD4KK74PS45GHPH3FYVIFUGPHN7DCA67CAHMZYXPZUJW
+#\\\|BHVUOSO27VZQ4WKMBTKVL2J5PSWAAHUBU5ZTVF3OH6Q4GKUAT22 \ / AMOS7 \ YOURUM ::
+#\[7]JB2Z7KHEFQ2XGJ5NY4KPYKDSTJOIZV36ZVKDC3A6BHPKQJFYCWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

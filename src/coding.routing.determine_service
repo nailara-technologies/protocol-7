@@ -32,7 +32,8 @@ if ( $type eq 'image-generation' ) {
 
 # Code generation → Code specialist
 if ( $type eq 'code-generation' ) {
-    my $needs_consensus = grep { lc($_) =~ /consensus|verify/ } @$constraints;
+    my $needs_consensus
+        = grep { lc($_) =~ m{consensus|verify} } @$constraints;
     if ($needs_consensus) {
         return {
             service    => 'consensus-voting',
@@ -54,7 +55,7 @@ if ( $type eq 'code-generation' ) {
 # Reasoning/analysis tasks
 if ( $type eq 'reasoning' || $type eq 'analysis' ) {
     if ( $complexity >= 7
-        || ( grep { lc($_) =~ /consensus|verify/ } @$constraints ) ) {
+        || ( grep { lc($_) =~ m{consensus|verify} } @$constraints ) ) {
         return {
             service => 'consensus-voting',
             models  => [ 'qwen', 'mathstral', 'aya' ],
@@ -102,8 +103,8 @@ return {
     priority   => 'default'
 };
 
-#,,.,,,,.,,..,,,.,,,.,.,.,,..,...,.,.,.,,,,,.,..,,...,...,,,.,..,,,.,,..,,.,.,
-#EDACQGXCUUOT7UEVGDJBZN6YJUUFYM4QXLNLV72YKFXZX65Z2QX6WF42QVDVLWQ3M6FHPTCBF6JTE
-#\\\|JKVNJ6UPEIJXCKDWWK2C3IEWYV23UX6BW4WOSEYUYNLCRVA2WQX \ / AMOS7 \ YOURUM ::
-#\[7]4RAR25RKRTDAVGFWUCLTZGXUN3ZAJZYBBWVJ2Z72N4CCOXSYJYDA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,..,,,,,..,,,,,,..,,,,.,..,,..,,...,...,,,.,,..,,..,...,.,.,
+#TSM4CYBFTRML2CSFYUXJFXM7ZAL4UKRSKEH645KR6LA2C3CKJZECTN3ZQUQOOOBFRZ3LO3PV7TQ2G
+#\\\|M2QDTLBJFKTK7RI64CNOK75NPJ6FL3JH3AFRSGI6UAG2644IUFL \ / AMOS7 \ YOURUM ::
+#\[7]CMVVZZ4CS32KV5QV7DRXKW5XSA5LUGGQUIUU4477JDJZMZ6KQEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

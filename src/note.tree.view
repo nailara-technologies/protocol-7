@@ -19,12 +19,12 @@ if ( defined $category_filter && length $category_filter ) {
     my $list_file = "$base_dir/categories/$category_filter/list";
     if ( -f $list_file ) {
         my $content = <[file.read]>->($list_file);
-        @task_ids = grep {length} split /\n/, $content;
+        @task_ids = grep {length} split m|\n|, $content;
     }
 } else {
     my @task_dirs = <[file.glob]>->("$base_dir/*")->@*;
     for my $td (@task_dirs) {
-        next if $td =~ /categories/;
+        next if $td =~ m|categories|;
         push @task_ids, <[file.basename]>->($td);
     }
 }
@@ -88,8 +88,8 @@ return {
     }
 };
 
-#,,,,,,.,,..,,...,.,.,..,,..,,,,.,.,,,,.,,,,.,.,.,...,...,.,,,...,..,,.,,,..,,
-#H7GJBVD4X23YM2TM45U5X5CETRZEBV7XIWLKARYFC7Q4RTKEUEJNAFSORS6KFNHGSFWAM3SXJKJKO
-#\\\|F2LNCEHSZ3JVVY2HXU5BZW277ICBBZ4TB5MK6WJMJQDWSBVLVSW \ / AMOS7 \ YOURUM ::
-#\[7]SR3ZIY2JYOZUJCO7V47E4USHLX2NPLPFUXMMKGPLCZFSUTPPK6AI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,,,.,,..,.,.,.,,,,.,,.,.,...,.,.,...,...,...,.,.,,,,,.,.,.,,,
+#BT3PU55YHKOJNZBFS7MUBPAHDZA7QFGHH3JTKKVKXJBPIFX5TUYJSCSJ5EMVI2M3XLMW2XPXANUJO
+#\\\|2IJFPQB2CI2BKNQ5QJIDLF2CS6HH3VV7RSR3Z77P7OHEFBOOWJC \ / AMOS7 \ YOURUM ::
+#\[7]ISS54MCR63JBQA5XRLJKUFBU2W4HUGB7Z2ELRKCR2LPG4UQJYKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

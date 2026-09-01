@@ -257,7 +257,7 @@ if ( $step eq qw| tier1_done | ) {
             };
     } else {
         $reformatted = $tier1->{'data'} // '';
-        $reformatted =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+        $reformatted =~ s|[\x00-\x08\x0b\x0c\x0e-\x1f]||g;
 
         my $recheck = <[coding.self_test.check_constraint]>->(
             {   answer     => $reformatted,
@@ -380,8 +380,8 @@ return {
     eval    => { mode => qw| false |, data => "unknown evaluate step $step" },
 };
 
-#,,,,,,..,,.,,.,,,,.,,.,,,,..,..,,,.,,..,,...,..,,...,..,,,,.,..,,,,,,.,,,...,
-#7EMF2MR4BNJ2PCOK46IYDCYICVE2JNKCNWJB4SFUNMULDZDCI57MVFWGCEVSSLQMARV5YY4472NPU
-#\\\|3JN4OYE47GWRKX7JYVYW5RR6KDHDXOCGJTYQNV7ERCN662YS4PX \ / AMOS7 \ YOURUM ::
-#\[7]HSRX55FYDHM4IDR6JDXMAR7XXF7Q3UHORJBQW6GPBXA75TFUWCCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,,,.,...,,..,...,.,.,...,...,..,,...,..,,,..,,..,...,,.,,.,,,
+#QWLYIN4C63K3TQV3I6XE6KCMWSWMMNSEX5KS6LYVZ5RP3W6GK5W7GMD5NQLBBR7TVCI2YXFPBCOX6
+#\\\|636WPRXIQKTBWORLRA5IHAKSBPBDH4PF2UH657MGLOU7CQW3MQY \ / AMOS7 \ YOURUM ::
+#\[7]Q47YLQDCGQXXOAHLIAYXXUVP43JBS3HRX565G4PNGEIJIQBBUKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

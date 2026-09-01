@@ -10,7 +10,7 @@ return {
     'mode' => qw| false |,
     'data' => 'numerical <event_id> parameter expected!'
     }
-    if $event_id !~ /^\d+$/;
+    if $event_id !~ m|^\d+$|;
 
 return { 'mode' => qw| false |, 'data' => 'no such event configured' }
     if not exists <events.timers>->{$event_id}->{'at'};
@@ -19,8 +19,8 @@ return { 'mode' => qw| false |, 'data' => 'no such event configured' }
 
 return { 'mode' => qw| true |, 'data' => 'event timer triggered' }
 
-#,,.,,,,,,...,..,,..,,,,.,...,...,,,,,.,.,..,,..,,...,.,.,.,.,,,.,.,,,,,,,.,.,
-#XAQX7NRMSCONSJWPG745NWAR2GDOHOC2WRGAV3GZYBNAK4OFNJIERGRJVRYIDHPCWMUANTYPMYNWU
-#\\\|VM43W4LEQM73575Z4TD56MH44XWQ53FICOIP4RX6552R7LU4OLP \ / AMOS7 \ YOURUM ::
-#\[7]BAE3QI7K5LVILYFIMKTPCJSPQTS7WIHVKGTJRP3KVIREHXMLY4DA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,..,...,.,.,...,,.,,,,.,.,.,..,,...,...,...,,.,,.,,,,.,,..,,
+#KR7QJDTV42LCKQGVC5RMY736GHW6ZB4ZO2OU6UCHIN3EYH3KHFYWFKLPIB5DCLDOEMX72B3PWFYCY
+#\\\|OFTGLCTZFM6RYHWHXQZWJOTBLZE7U7HDMTHK2RRARW7CC6QXQN7 \ / AMOS7 \ YOURUM ::
+#\[7]HOWWNBPAZSEHDN2ZZZBYPNTBP73ASSMGRXUEHE6SLRKWHNJXK2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

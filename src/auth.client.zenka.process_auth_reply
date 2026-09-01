@@ -21,7 +21,7 @@ if (   not defined $backend_socket
     return undef;
 }
 
-( my $plugin = <[base.caller]>->(1) ) =~ s{^.*\[([^\.]+\.[^\.]+):\d+\]}{${1}};
+( my $plugin = <[base.caller]>->(1) ) =~ s|^.*\[([^\.]+\.[^\.]+):\d+\]|${1}|;
 
 if ( my $answer = readline($backend_socket) ) {
     chomp($answer) if defined $answer;
@@ -58,8 +58,8 @@ if ( my $answer = readline($backend_socket) ) {
     <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
 }
 
-#,,.,,.,,,...,,,,,,.,,,,.,,,.,,,.,.,,,.,,,...,..,,...,...,,,,,..,,,..,.,,,,,.,
-#SVUYKJNLCXLUVCM6P5VWPW2ZH5D4LF36FZT3SSXJRAXJ2RUTTSLY323CO5Q7TEDUX6XW5CFGX33D6
-#\\\|6LKHVGRZEGHI4ZHB4V74XEO7RBDSZ4H2TEZRR77NM34D7OWJDIK \ / AMOS7 \ YOURUM ::
-#\[7]AX3YOBX6D5SOZJ4LTUPLK36QD6LJ2DHJCUCOAVFKQPCQR6LINSCA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,..,,,,.,...,...,.,.,,,,,...,..,,...,..,,,,,,,,,,.,,,,,.,.,,,
+#IT6KWJZR2KYJ46HLEFPZRA2Y7WRJBZPRLYZ2XNUSB2GE56URZZD5RRSV7F7PJ64EUGWAVBMGHFY3Q
+#\\\|YQBVAG5KIFDX4GX662EOWMDDRST7YNCCIMK6R4M26BHCXUH6XW4 \ / AMOS7 \ YOURUM ::
+#\[7]O6OKOFMB625YGUVFU6TCIQJV3ZNDAOQWAQ26MSTBPDNSJGQJ52AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

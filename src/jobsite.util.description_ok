@@ -40,7 +40,7 @@ return {
     }
     if length $desc < $MIN_LEN;
 
-my $fffd_count = () = $desc =~ /\x{FFFD}/g;
+my $fffd_count = () = $desc =~ m|\x{FFFD}|g;
 return {
     'ok'     => FALSE,
     'reason' =>
@@ -49,7 +49,7 @@ return {
     if $fffd_count > $MAX_FFFD;
 
 ## c0/c1 control ranges minus normal whitespace [ tab, lf, cr ] ##
-my $non_printable = () = $desc =~ /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g;
+my $non_printable = () = $desc =~ m|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]|g;
 my $ratio         = $non_printable / length($desc);
 return {
     'ok'     => FALSE,
@@ -63,8 +63,8 @@ return {
 
 return { 'ok' => TRUE };
 
-#,,,,,.,.,..,,..,,,,,,..,,.,,,.,.,.,.,.,.,,,.,..,,...,...,...,,,.,,.,,.,.,,,,,
-#MEKBFBTCHRBEUIIR46WPFDE3OD5CL2QHQCVUI3MKLE3V3CB6FQFPDSGKZ467KWDWSIINJHDHNMJCU
-#\\\|NUWSJOC6GHUT5LOS4S7NVMHYFI3Q2Q375HDIRDMMYDIIOGAYBKT \ / AMOS7 \ YOURUM ::
-#\[7]AUIGZAFQVMLQUJQQAMDH4V5JHVH2FXHHKZ7C3XQ5K7Y7QRIOCABI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,.,,,,,,,,.,,...,.,.,,..,,..,..,,...,...,.,.,,.,,,,.,,.,,..,,
+#3LAWQB3GCBPS4BALOSB6735UBVVMBTF3XYKGQSX6VL6I4NQENWPUAB3DW7WDZYUPU3SGJS7KWMAEO
+#\\\|CIZ6ZBEFHRXQ4ROBTKOAHOWYH4L36WIEYFSDRK46G7WAJFF7EXN \ / AMOS7 \ YOURUM ::
+#\[7]QYMX7IKRIAP45BBM7YKKAX72A4KPI24TDUTVQSH7WHQRXXVDGGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

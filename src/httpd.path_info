@@ -17,18 +17,18 @@ $url =~ s|%([0-9A-Fa-f]{2})|chr(hex($1))|eg;
 
 # Sanitize path (prevent directory traversal)
 my $path = $url;
-$path =~ s/\.\.\///g;    # Remove "../"
-$path =~ s/\/\.\.//g;    # Remove "/.."
-$path =~ s/\/\//\//g;    # Replace double slashes with single slash
-$path =~ s/^\///;        # Remove leading slash
+$path =~ s|\.\./||g;    # Remove "../"
+$path =~ s|/\.\.||g;    # Remove "/.."
+$path =~ s|//|/|g;      # Replace double slashes with single slash
+$path =~ s|^/||;        # Remove leading slash
 
 # Extract query parameters
 my $params = {};
 if ( $path =~ s|\?(.*)$|| ) {
     my $query_string = $1;
 
-    foreach my $pair ( split( /&/, $query_string ) ) {
-        my ( $key, $value ) = split( /=/, $pair, 2 );
+    foreach my $pair ( split( m|&|, $query_string ) ) {
+        my ( $key, $value ) = split( m|=|, $pair, 2 );
 
         # URL decode parameters
         $key   =~ s|%([0-9A-Fa-f]{2})|chr(hex($1))|eg;
@@ -44,8 +44,8 @@ my $full_path = "$doc_root/$path";
 
 # Handle default file if path is a directory
 if ( -d $full_path ) {
-    $full_path =~ s/\/$//;    # Remove trailing slash
-    $full_path .= '/';        # Add it back (ensures consistency)
+    $full_path =~ s|/$||;    # Remove trailing slash
+    $full_path .= '/';       # Add it back (ensures consistency)
 }
 
 # Check if path exists
@@ -65,8 +65,8 @@ $session->{'http'}->{'params'} = $params;
 
 return ( 200, $full_path, $params );        # OK
 
-#,,.,,,,,,.,.,,,.,.,.,...,..,,.,,,,,,,.,.,,..,..,,...,...,..,,,.,,,..,,..,.,,,
-#4XLY7GCSGQ2WF7WDYAKKEGOUZ72OVHOIR2DU4SXHLJT53SEU6LP4B6R3Y4H73Q6KQYWV7WWY6J4NA
-#\\\|IHDWUOCT6BQ7GFLUV7GH2MIP43FVOQ4CGXZJ52APJC65XBXIZDE \ / AMOS7 \ YOURUM ::
-#\[7]JO5MN3KYE7ZERKV5XQUKQJ7ZLHTHAVFQQHVHDFVTMB4SWOC3OYAI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,...,..,,...,,..,.,,,...,,,.,.,,,..,,...,...,,..,..,,.,.,..,,.,.,
+#R7D5HCPJIGNJMHKZDH6SM5LQZRFWLGGLIGIENKYY3D2JT45ZKQMJ4IKGBKQYEFLVN5EL4V3TOGVCW
+#\\\|TBFEO4MNJNN7CLSWRTSEG35AS467X2O4B4Q57DH6LDSUQDPUWLY \ / AMOS7 \ YOURUM ::
+#\[7]KYOODK6BDSHX3ZKNGXUBP3WPBPEBL3TF45EX5UIMK3VAVPSMN2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

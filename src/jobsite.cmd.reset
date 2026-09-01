@@ -11,7 +11,7 @@ $args_str =~ s|\s+$||;
 
 ## parse key=value tokens ##
 my %params;
-for my $token ( split /\s+/, $args_str ) {
+for my $token ( split m|\s+|, $args_str ) {
     $params{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
 }
 
@@ -50,7 +50,7 @@ if ( defined $params{'job_id'} ) {
     ## the bogus string-keyed write also lands on ]                         ##
     push @candidates, map { <[base.vax-int.decode]>->($ARG) }
         map { uc $ARG }
-        grep { length $ARG } split /[,\s]+/, $params{'job_id'};
+        grep { length $ARG } split m|[,\s]+|, $params{'job_id'};
 } else {
     my %seen = map { $ARG => 1 } keys %{$tasks};
     ## also scan job files for statuses not tracked in-memory (e.g. ##
@@ -86,7 +86,7 @@ for my $job_id (@candidates) {
     ## filters                                                           ##
     my $rec_status = defined $rec ? ( $rec->{'status'} // '' ) : do {
         my $idx = <jobsite.job.index>->{$job_id} // '';
-        $idx =~ s/^(blocked|deleted):.*/$1/;
+        $idx =~ s{^(blocked|deleted):.*}{$1};
         $idx;
     };
     my $rec_stage = defined $rec ? ( $rec->{'stage'} // '' ) : '';
@@ -125,7 +125,7 @@ for my $job_id (@candidates) {
             open my $fh, '<:raw', $job_file or next;
             my $raw = do { local $/; <$fh> };
             close $fh;
-            $broken = TRUE if $raw =~ /\xc3\x83/;
+            $broken = TRUE if $raw =~ m|\xc3\x83|;
         }
         next if $check_encoding     and not $broken;
         next if not $check_encoding and $broken;
@@ -183,8 +183,8 @@ return {
     $n_protected ? " [$n_protected protected skipped]" : ''
 };
 
-#,,,.,.,,,.,,,,.,,...,,..,,,.,,.,,,,,,,,.,.,,,..,,...,...,.,.,,,,,,..,.,.,,,,,
-#XRRSLLOPZYDXJ6PGKJYAHBJOAIRHU5EHCQRFBGOELOWDVPV5N5CQELYS4YKLI6YURJ26AI2Q7BYUO
-#\\\|L6XIUEIELKWIO4D4GON6UKBOY6N7JQ3Y6MQRPTYZ6UYJCNQNBVP \ / AMOS7 \ YOURUM ::
-#\[7]G7IN7AD5QLIRIGQFCSI4HXSITF6PVPLDVDLUDTN3SXD5OFA3NUBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,,.,,,.,,,..,,,,,,..,.,.,,,.,..,,...,...,,,.,,,,,.,.,...,,.,,
+#OCVRPL5O4BVQKW3HRTQBRUBRO4XV65I7HHPBB5GHS23CJYPBT765FRYTZPMO6V7FXEUSISAWPU4OK
+#\\\|3N5GR3TRBHO6RTT2QCSYVCTRJVQNXJIE5V7REC5FZKXSFCKVZKZ \ / AMOS7 \ YOURUM ::
+#\[7]YRDUEKJPNMJXWVT6LMZHVKWSJBZDKUC6QWO3ZMOFNIPZ6NXIEIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

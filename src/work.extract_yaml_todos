@@ -14,7 +14,7 @@ foreach my $file ( sort keys %$tasks ) {
     if ( $task->{type} eq 'bin-todo-list' ) {
         foreach my $item ( @{ $task_data->{items} // [] } ) {
             my $item_status = $item->{status} // 'open';
-            next if $item_status =~ /^done$/i;
+            next if $item_status =~ m|^done$|i;
 
             push @todos,
                 {
@@ -36,7 +36,7 @@ foreach my $file ( sort keys %$tasks ) {
         = $task_data->{status}
         || $task_data->{task_metadata}{status}
         || 'unknown';
-    next if $status =~ /completed/i;
+    next if $status =~ m|completed|i;
 
     # Extract task info
     my $title
@@ -70,7 +70,7 @@ foreach my $file ( sort keys %$tasks ) {
 
             foreach my $phase_task ( @{ $phase->{tasks} } ) {
                 my $task_status = $phase_task->{status} || 'pending';
-                next if $task_status =~ /completed/i;
+                next if $task_status =~ m|completed|i;
 
                 push @todos,
                     {
@@ -90,8 +90,8 @@ foreach my $file ( sort keys %$tasks ) {
 
 return \@todos;
 
-#,,,,,.,.,,,.,,.,,,,,,...,...,,,,,.,,,.,.,..,,..,,...,...,..,,.,.,,,,,,,,,.,.,
-#7MDPFLGJQYRRWMHORU2HOXWM6Y5FUXYAHM7PN7LCPR2ZDKEE735XWZBBXBXZM7BDMUYMZODMOVWZU
-#\\\|ZKAIOGFIGUKCIN6YXRUQ4IC3RJT43UY4GSLGVZTCPMZJ276YAOI \ / AMOS7 \ YOURUM ::
-#\[7]TC7GG5WRJDHSAQ5VRYF5TAKO6OXVYVGTFWO6I5MNNH6YYDQ63ABA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,.,,,..,,,,,,,..,.,.,.,.,,,.,..,,...,...,..,,,,,,...,.,,,,..,
+#TUCNFHML3DRL3JMZDN635P4GLWEPUVNN5SBBRGT2OWFYRG55U3OKRDMGVVOZYQBSZPQDGGJQMKZZA
+#\\\|HBGCLFPKGWRMWWXKT75MYWHD3N37PNPVS5FHROXX6WFBCN2ZPKE \ / AMOS7 \ YOURUM ::
+#\[7]VS4RVTSVU3QSDUFGAI7GUGLYFVTDKOJOFEFQPQJX7PLRSZPC56CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

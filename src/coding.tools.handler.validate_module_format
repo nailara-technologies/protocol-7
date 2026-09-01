@@ -13,7 +13,7 @@ return "error: module not found [ $module ]" unless -f $abs_path;
 my $content_ref = <[file.slurp]>->($abs_path);
 return 'error: cannot read module' unless defined $content_ref;
 my $content = $content_ref->$*;
-my @lines   = split /\n/, $content;
+my @lines   = split m|\n|, $content;
 
 my @issues;
 
@@ -69,8 +69,8 @@ if (@issues) {
 
 return sprintf "PASS [ %s ]", $module;
 
-#,,.,,...,.,.,..,,,..,...,,..,,,,,..,,,,.,,.,,.,.,...,...,..,,.,,,...,,,.,,..,
-#Q7W24FYQMXT6YEML3WVWXEU7CSRIEGJQ5JF7US4TWCQ5DYJQNWYJXDYKNPNE7W6E34ADGS7ECXDJA
-#\\\|QCCHERDYVFBZKVKXAFPVK54XEKT4NSGPZYRAQN2YNDJEJDASRKQ \ / AMOS7 \ YOURUM ::
-#\[7]7MLRWV5RF3HLZRGRH25OQOI4S6576CNOAGDJRFNXHX3IBVXKP4DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,,,,,,.,,...,.,,,,..,.,.,.,,,.,.,...,...,...,,.,,..,,..,,,,,,
+#2JF5HJELP32WHV6AXTBGSFZLDBSN7H6UZEZR6UGFAEGKT5TUCO4B4JHMQOR7FSOI45RIJGSLLRTQ2
+#\\\|H2AYV2FJ6ALN6FVTUQ5FDFFQ7P57KWM26JOHR2LZRAWNZA6OMBG \ / AMOS7 \ YOURUM ::
+#\[7]VNDANKKZN4NPLHDUOBFRONTH3X4IACGH3MOI4KZ2FKS7OFBQRUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ return {
     'mode' => qw| false |,
     'data' => 'memory ammount format not understood'
     }
-    if $amount !~ /^(\d+(\.\d+)?)([mg])?$/io;
+    if $amount !~ m|^(\d+(\.\d+)?)([mg])?$|io;
 return { 'mode' => qw| false |, 'data' => 'nothing to allocate' } if !$amount;
 
 my $value = $1;
@@ -38,8 +38,8 @@ return {
     'data' => "allocated $value bytes [ free-mem to return it ]"
     }
 
-#,,..,.,,,,,,,,.,,,,,,,,,,,..,,,.,.,.,,,,,,..,..,,...,...,..,,,.,,,.,,,.,,...,
-#7TGEATZVDTZOBEQID4JVYDKEMHZ2OZ45MMZZPNRDPZG3ZO4KNNEKKLQUYKVZY246P4GNGNRMWTI5M
-#\\\|UEMM5T2VNDHY3G3BLSERGRVXSK7Y247LRFJ7GTRNRCJ2SQANIVX \ / AMOS7 \ YOURUM ::
-#\[7]G3FINZC6RCPX37LXOIHCXRNI2ZOMK2F4UIK4Z4ROVGCDEEFWEKCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,..,,..,,...,,,,,,.,,,.,,,,,,..,,...,...,...,...,.,,,...,.,,,
+#7E5T3V4XWKQ6YCGTQWEPD5XG44RGCMJE6CGEDYP26MNUZHPHXTS5K6N7BWJ6EEUGJBJKUZW2UBL4W
+#\\\|PPV7IUKAPZJ75OD2RIKFXXBDPKQ246AOH7ZWIWCHY4N52GQAWKT \ / AMOS7 \ YOURUM ::
+#\[7]XYQKZJ5PNUISSQZ4XYQYVMB22OOU3MR46ZMSRDK347QFZTFKWCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

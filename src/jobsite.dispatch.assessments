@@ -40,7 +40,7 @@ for my $job_id ( keys %{$store} ) {
             if ( $hit =~ m{^url:([A-Z2-7]+)$} ) {
                 my $found = 0;
                 if ( opendir my $udh, "$store_root/urls" ) {
-                    for my $ep ( grep { !/^\./ } readdir($udh) ) {
+                    for my $ep ( grep { !m|^\.| } readdir($udh) ) {
                         if ( -e "$store_root/urls/$ep/$1" ) {
                             $found = 1;
                             last;
@@ -222,8 +222,8 @@ push <jobsite.assess_queue>->@*, @queue;
 
 return;
 
-#,,,,,.,.,,.,,.,.,,.,,...,.,,,,,,,,.,,,,.,..,,..,,...,...,.,,,,..,,.,,..,,,,.,
-#4VUZYYJKP67YZZYNYIDOHPZISTQ2IK7VWL7C4J2CRYYDEY2LMGLOK4FRZQSWVSLIRF5AK4Q3SL4UI
-#\\\|IIBVTF4OW4HKKBFZEOR5RPOJPAZIOXP4IYBYU5KITHSXM4WPUA7 \ / AMOS7 \ YOURUM ::
-#\[7]B5DUMAEVSJSXHDVXGBIUVEVDN5RULSROY42A7QRZAKFV7UR4Q4DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,..,,.,,,,..,..,,,,.,,.,,,,.,..,,...,...,,,,,,.,,,,,,,..,.,.,
+#UVG6CIE6NQINPB6FO3JBHQ3NYTIC2ZGGI2KZ24UGFSLYOO6ERNULL7AZGXUGWCRZDDO6TICOITDDW
+#\\\|ZQMX45ZW7MGJBGYXYPLL32OUXAK2H4CTIBVWNWEXH2TIU5YOF74 \ / AMOS7 \ YOURUM ::
+#\[7]LEWBL2E3JDBTCHADXLYMHVEC53BLCXOOPSIEJOZGOEZC6Y3U46CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

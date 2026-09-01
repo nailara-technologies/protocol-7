@@ -12,7 +12,7 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
     $agent   = $call->{'param'}->{'agent'} // '';
 } else {
     my $args = $call->{'args'} // '';
-    ( $task_id, $agent ) = split( /\s+/, $args, 2 );
+    ( $task_id, $agent ) = split( m|\s+|, $args, 2 );
 }
 
 $task_id = uc( substr( $task_id, 0, 7 ) );
@@ -56,8 +56,8 @@ $task->{'updated_at'} = $ntime_b32;
 
 return { 'mode' => 'true', 'data' => "claimed $task_id" };
 
-#,,,.,.,,,.,.,,,,,,.,,,,.,,..,.,,,,.,,.,,,.,,,..,,...,..,,,,.,.,.,,.,,,.,,.,.,
-#3KOYR3LWNGV7U2Z2WGKKGGHF4MX7DYZHMXDZX3FCBW2MXFWT7X737EW5BIRSD3IEPA57APE2YSKHW
-#\\\|NNRGFQSXDZ3AW5C7YUUJHZO2LUSL7TK3TJRIDWLDZXJXXHPGOST \ / AMOS7 \ YOURUM ::
-#\[7]QQAL5TKMIDVEQL3P3GL6WAK2F54D6S2WQTF6C7H4COIE2PNGDWBI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,,,,,..,,.,,,.,.,,,.,,,,,,,,,..,,...,..,,...,,,,,,.,,.,,,...,
+#QYZ7VZFIYQDVSU6L4N3YKLX4RLW4AJDQNCGAJIHJMLLHNO5GKLX3YD6VL26VT2Y4YAEU6OIZ2YICK
+#\\\|H3JLH32H3EROJUZYTO2NWSFUGNWOWNMOXQHI2E5P77WOB5CHUXE \ / AMOS7 \ YOURUM ::
+#\[7]TJVPIRZWI7GMI2OKMTMKDKS3JXLHNTVNBIRWTCTTHVOQV6LCDWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

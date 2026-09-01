@@ -21,11 +21,11 @@ for my $status (@epoch_statuses) {
     my $dir = "$jobs_root/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+    for my $epoch_dir ( grep { !m|^\.| && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
-        for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+        for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
-            $enc_id =~ s/\.yaml$//;
+            $enc_id =~ s|\.yaml$||;
             my $job_id = <[base.vax-int.decode]>->($enc_id);
             $index->{$job_id} = "$status:$epoch_dir";
         }
@@ -38,12 +38,12 @@ for my $status (@epoch_statuses) {
 my $trash_root = "$jobs_root/trash";
 if ( -d $trash_root ) {
     opendir my $dh, $trash_root or goto TRASH_DONE;
-    for my $epoch_dir ( grep { !/^\./ && -d "$trash_root/$_" } readdir($dh) )
+    for my $epoch_dir ( grep { !m|^\.| && -d "$trash_root/$_" } readdir($dh) )
     {
         opendir my $edh, "$trash_root/$epoch_dir" or next;
-        for my $fn ( grep { /\.yxz\.B32$/ && !/^\./ } readdir($edh) ) {
+        for my $fn ( grep { m|\.yxz\.B32$| && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
-            $enc_id =~ s/\.yxz\.B32$//;
+            $enc_id =~ s|\.yxz\.B32$||;
             my $job_id = <[base.vax-int.decode]>->($enc_id);
             $index->{$job_id} = "trash:$epoch_dir";
         }
@@ -58,12 +58,12 @@ for my $status (@active_statuses) {
     my $dir = "$jobs_root/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
+    my @files = grep { m|\.yaml$| && !m|^\.| } readdir($dh);
     closedir $dh;
 
     for my $file (@files) {
         my $enc_id = $file;
-        $enc_id =~ s/\.yaml$//;
+        $enc_id =~ s|\.yaml$||;
         my $job_id = <[base.vax-int.decode]>->($enc_id);
 
         my $job_file = catfile( $dir, $file );
@@ -146,8 +146,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,,,,.,,,.,,,,.,,..,,..,,,,.,,,,,.,,,.,.,...,..,,...,...,...,,,,,,,,,.,,,,.,,
-#GW7JUTX7J7YOQZ2UK3GC2RW3SYAXLRTK3HGEJ74PSBDPXTZSRCSIK7AQFWNX6YCWQBDVC6HIJUP74
-#\\\|CKGLMEVIET7O6MVBCLHX7HBCPRB3YMMXF3J552AE3LGPV6D7EFK \ / AMOS7 \ YOURUM ::
-#\[7]7PX35UYLBTXU5N7MOX5TIWGZFMSNBJOG6GBJ3IEKAO57Z6CP76CI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,.,.,,,..,,..,,,,,,,,,,.,.,...,..,,...,...,..,,...,,,,,.,.,.,.,
+#MT6GVZQE2M2YMBJ6CVIUMJNRADNEXSVZXCGIGA26YYYQATODNR4IO5NRBKOGPUEEI5SP6NEDYHD22
+#\\\|MSD3VLZBSVQ7ZDVF3T24LA3ELQ52BQTDAM6WLHH3FFYONPDOCOO \ / AMOS7 \ YOURUM ::
+#\[7]WQJ42RZ5E4KHTMDWA2LE7AKNE6DBPVKRDN44OY2DDUO5VJYL5AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

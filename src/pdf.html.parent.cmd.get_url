@@ -4,7 +4,7 @@
 # param = <pdf_path> [width]
 # descr = returns file:// url to html version of pdf
 
-my ( $pdf_location, $target_width ) = split( / +/, $call->{'args'} );
+my ( $pdf_location, $target_width ) = split( m| +|, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'expected path to pdf file!' }
     if not defined $pdf_location or !length($pdf_location);
@@ -24,7 +24,7 @@ if ( !<[pdf.html.base.valid_pdf]>->($pdf_location) ) {
     };
 }
 return { 'mode' => qw| false |, 'data' => 'invalid target width parameter!' }
-    if defined $target_width and $target_width !~ /^\d+$/
+    if defined $target_width and $target_width !~ m|^\d+$|
     or defined $target_width and !$target_width;
 if ( not defined $target_width ) {
     <[base.log]>->( 2, "no target width supplied, using document width!" );
@@ -84,8 +84,8 @@ if ( !-d $html_path ) {
 
 return { 'mode' => qw| true |, 'data' => "file://$html_path/pdf.html" }
 
-#,,..,,..,,,,,,..,,,.,,.,,,.,,,..,,.,,,,,,..,,..,,...,...,,,,,,,.,,..,.,.,.,,,
-#LNR2BU644TVDKZUO6HT46C4AAU7Y3WJZTEH4LAK4DD6L6ROZIZXUWHZ7N2FKX33N4ZWQXWIKIC3TU
-#\\\|UHPJGRO4PY2CDY2F7NFAWIWI42BAIRHLEYIQBA746Y3AFCS7SPB \ / AMOS7 \ YOURUM ::
-#\[7]L77GXIP77MZCMRWDLTM4WBWJ5RSEJ65EWUGDQW3WIBCCT6NX62DI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,,.,,...,..,,.,,,,,,,..,,,,,,..,,...,...,...,,..,,..,,..,,.,,
+#MIRGGF3BTSNJYOPVNC4ZLSOXHORKMAACTGLVOZHUWKZOIJB4F2UYXCD5VXCRCDA7B26O2LWRYMVUU
+#\\\|KFQNZT7F2QX4L6AXK2P35DJ4UFKK4R4BGZ7HG3YUZKKYLWSRYSQ \ / AMOS7 \ YOURUM ::
+#\[7]W3EE3AHW3FMMTRQBRBAOGHDN22KILHA2I6KP2L2EB3Q2RJQL52BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

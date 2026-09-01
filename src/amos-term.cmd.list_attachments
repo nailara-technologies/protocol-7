@@ -4,7 +4,7 @@
 # descr = List all clients attached to a buffer
 
 my $buffer_id = $call->{'args'} // 'current';
-$buffer_id =~ s/^\s+|\s+$//g;
+$buffer_id =~ s{^\s+|\s+$}{}g;
 
 ## === resolve buffer === ##
 my $window;
@@ -15,7 +15,7 @@ if ( $buffer_id eq 'current' ) {
         unless defined $nshell_amos;
     $window = <amos-term.windows.by_id>
         ->{ <amos-term.windows.by_amos>->{$nshell_amos} };
-} elsif ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
+} elsif ( $buffer_id =~ m|^amos:([A-Z0-9]{10})$|i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
     return { 'mode' => 'false', 'data' => 'buffer not found' }
@@ -55,8 +55,8 @@ foreach my $attach_id (@attachments) {
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,,,,..,,,,.,.,,,.,,,.,,,,,.,,,.,.,.,.,.,,..,.,.,...,...,...,,..,,,.,..,,.,.,
-#KZCCRIVBWTGRMV5PZ5AJ7GB42KGD7EIT3P3NWABJIEJWRY3LRU5FPFD75UZJW7EJOZEV3LA5RCBQA
-#\\\|HO3CM7UCWB55OJRFILRXIQ3BU7ZWQY2WGJYLANRWGPIW6KAB7YM \ / AMOS7 \ YOURUM ::
-#\[7]6HW3LKEC3SLXPDRB6ZLLZCERMTFAKIG4Q7EPDZABRPTXF7WO3IDY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,...,,,,,,,,,..,,,..,.,,,,..,.,,,.,.,...,...,,..,..,,...,,,.,...,
+#YO24PJTQ3I2WIQ7J6BNWNAHB7D4SPSNYHGG7ZHC4AH6ZUP3ZX7ZDOW62GUDZOBT3HPZ7KFG3L2WH2
+#\\\|EC7JCMM2R2HC5CPNJ4Y4NL6ZE7UVUHFV2P33TJDNUEF3F2OBV3B \ / AMOS7 \ YOURUM ::
+#\[7]ZPORFZYB3274NERZ66DNWCCTAZS5TTEJVEXXFOBEGEU2WNP3QKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

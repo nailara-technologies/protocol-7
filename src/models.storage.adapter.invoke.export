@@ -28,7 +28,7 @@ for my $rec (@$records) {
     my $sha256 = '';
     if ( $abs_path && -f $abs_path ) {
         my $sum_output = `sha256sum "$abs_path" 2>/dev/null`;
-        if ( $sum_output && $sum_output =~ /^([a-f0-9]{64})\s/i ) {
+        if ( $sum_output && $sum_output =~ m|^([a-f0-9]{64})\s|i ) {
             $sha256 = $1;
         }
     } elsif ( $abs_path && -d $abs_path ) {
@@ -37,7 +37,7 @@ for my $rec (@$records) {
         my $manifest = "$abs_path/model_index.json";
         if ( -f $manifest ) {
             my $sum_output = `sha256sum "$manifest" 2>/dev/null`;
-            if ( $sum_output && $sum_output =~ /^([a-f0-9]{64})\s/i ) {
+            if ( $sum_output && $sum_output =~ m|^([a-f0-9]{64})\s|i ) {
                 $sha256 = $1;
             }
         }
@@ -111,8 +111,8 @@ return {
     'missing' => $missing
 };
 
-#,,..,,,,,.,,,...,,.,,,..,,,.,,.,,.,.,,,.,,,.,..,,...,..,,,,.,,,.,...,,..,..,,
-#4LU4WRUICIOWSMEVGULJNDFZSPMTGMRSEBCLCIYSREIFKKGZDGJ4BOJTC7X3DP527NV33JDXARN4A
-#\\\|55RBLWUMBTDPYYHGAC6BSH4VX5TGW43TYB2XCY2PHHN3G6ZBHSJ \ / AMOS7 \ YOURUM ::
-#\[7]OFXQSWQP6HBKFHANQ2QLNJPLVUX6UPNEYZ4PCNENIS6AARQ7ZIAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,...,,..,..,,...,...,,..,,.,,..,,...,..,,.,.,,..,,,,,,,.,,..,
+#GFM6FHTTKPFRD54VKT24MRPNG5LPJZVBFSTVY5NKXOJA3W4SYILP6GU32LACSBR5WB2HVK6U27Z72
+#\\\|5IFAORO463SIVSGJSDE6IVAXMTCDAEHCW7HSQNH33ZS2IMFAAZ5 \ / AMOS7 \ YOURUM ::
+#\[7]SYNUIFOLOUY6YN4F53AMYY6UYWMT7F4OJOPTWIVMKZ6X76GCMGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,8 +12,8 @@ my $expected   = $params->{'expected'}   // '';
 my $type = $constraint->{'type'} // 'exact';
 
 my $trimmed = $answer;
-$trimmed =~ s/^\s+//;
-$trimmed =~ s/\s+$//;
+$trimmed =~ s|^\s+||;
+$trimmed =~ s|\s+$||;
 my $folded = lc $trimmed;
 
 ## helper : case-insensitive whole-token containment ##
@@ -27,8 +27,8 @@ my $contains_token = sub {
 
 if ( $type eq 'exact' ) {
     my $want = lc( $constraint->{'value'} // $expected );
-    $want =~ s/^\s+//;
-    $want =~ s/\s+$//;
+    $want =~ s|^\s+||;
+    $want =~ s|\s+$||;
     return { mode => qw| true |, data => $folded }
         if $folded eq $want;
     return { mode => qw| false |, data => 'exact_mismatch' };
@@ -81,8 +81,8 @@ if ( $type eq 'sprintf' ) {
 
 return { mode => qw| false |, data => "unknown_constraint_type:$type" };
 
-#,,,,,,,,,,,.,,.,,...,.,,,,..,,,,,...,.,,,,,.,..,,...,...,.,.,,.,,,,,,,,.,...,
-#IWYEFXCZVGKYUHIH4RAMZ2556JVUOWY7EFD3VOTAP53UFILPXRT7ADKSHGUQEGNZ4VF7I4KMU7OSO
-#\\\|IAMZNTLPQCQJYYLJXSSYPYHTY4SSM2SKLS3X6FQYLFTZN6OY2DX \ / AMOS7 \ YOURUM ::
-#\[7]X6OENA5ZEQBBO6W2LQCDL2OJAQ6YT4DHKYSHKI5F5FQA42DEL4AY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,,.,,,,,,..,,,..,,,.,,,,,,..,..,,...,...,...,...,.,.,,.,,,,,,
+#S3RDUUU3HEMXLOVBTUA4WPZQOCSSNQSCQPO4BPM4KWUOYUP2VGXHR2D2CDHAQVJV5GAMAYWEJSJTQ
+#\\\|5GHY2JQNBPXNA4EO6YHQMLUWMG3MCL4KA2MZCSH33EUM4552MBU \ / AMOS7 \ YOURUM ::
+#\[7]P7UBJYDQNG6Y6OOFY4FC3T3PLROCA4ZRF55IAZTWVZTLUEF72ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

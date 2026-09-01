@@ -62,7 +62,7 @@ $regex_str =~ s{^`+|`+$}{}g if defined $regex_str;    ## strip backticks ##
 my @reject_reasons;
 
 if ( not defined $name
-    or $name !~ m{^[a-z0-9][a-z0-9\-]{2,60}$} ) {
+    or $name !~ m|^[a-z0-9][a-z0-9-]{2,60}$| ) {
     push @reject_reasons, qw| invalid-or-missing-name |;
     $name = sprintf qw| fr-%s-%s |, lc($class) =~ s{[^a-z0-9]+}{-}gr,
         substr( $anomaly_key, 0, 7 );
@@ -180,8 +180,8 @@ if ( length $anomaly_key ) {
 
 return TRUE;
 
-#,,,,,,..,.,.,..,,.,.,.,.,.,.,.,,,,.,,.,,,,,.,..,,...,..,,...,,..,,,,,...,.,.,
-#3UW3GUKYRA5JWK6QWOKD62GJTA4DQRQFG7OZPTIZKTBWXPMTP4MLRAYMVQ3YOJMAQVVJJJCZ2B7IG
-#\\\|PYHRUNKUQ25WPVBFOZUTAF4HAZPBS2XOPF5JBSUS2N3AJXDH2VA \ / AMOS7 \ YOURUM ::
-#\[7]67NDT6IQBJYFCJWUWM73GSU3U474CGVYQZO6ELS55354CEPUZGCY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,..,...,.,.,,..,.,.,,.,,..,,..,,...,...,.,,,,,,,..,,,,,,,,,,
+#N575F7WPWKVIQ5YRLAH54APFPZ7WGD6AD6WK5PX5PUK6EBDB4U7OFP7QE5SOOKWVKSLJRTFGM745Y
+#\\\|UQWTCXRDWNHHJ4IY6W2W5GVXHKPCVW2TCSKMA75DDND3FVHGA37 \ / AMOS7 \ YOURUM ::
+#\[7]HLYTZSEUV2RAC6WCPBPFGN7PDHBBLNAJ3I5DBHTXXFCJKJSEMMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

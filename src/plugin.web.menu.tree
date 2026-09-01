@@ -9,7 +9,7 @@ my $base_dir     = shift // '/data/web';
 my $max_depth    = shift // 3;
 
 ## Clean up current path ##
-$current_path =~ s/^\/+|\/+$//g;
+$current_path =~ s{^/+|/+$}{}g;
 $current_path =~ s|\.\.+|.|g;
 
 <[base.log]>->(
@@ -20,7 +20,7 @@ $current_path =~ s|\.\.+|.|g;
 
 ## Determine which top-level directory to expand ##
 my $first_segment = $current_path;
-$first_segment =~ s/\/.*$//;
+$first_segment =~ s|/.*$||;
 
 ## Scan root directory ##
 my $root_scan = <[web.scan_directory]>->( $base_dir, '', {} );
@@ -94,8 +94,8 @@ my $menu_html = join( "\n", @html_lines );
 
 return $menu_html;
 
-#,,.,,,.,,.,.,,..,..,,,.,,..,,,,.,..,,.,,,.,,,..,,...,...,,,,,,,.,,,.,..,,.,.,
-#SX5WDOWEYRBYBJXN6VUY22ZXB26BKUD4FE5DCP4NTIXZDRRFHYDADD2476ABISRPSMSGU2RMGTU7Y
-#\\\|YUXMQX3T4N6NOMUK7NSSRSDIIG2HTSEB3AIABHK2HRCB37DVFAN \ / AMOS7 \ YOURUM ::
-#\[7]HOOQNKIE3PEWOO464OAAEJW3LFGCZ2W5HLIRQS5NZPZ2IA2EQYBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,..,,.,.,,,,,..,,,..,...,,.,,..,,...,...,,..,.,.,,,,,,,.,..,,
+#BYDO5DX2JERJCCOISVFGXBWKONCWDWNNKWSO3YHKCSZB7NE3TC4L3NFAQYN5CRBJJJANTCSRIJGIG
+#\\\|BS2OR35UY4CEKQAIILTEOBZJLXLZB5ZHB47IOWL5QEPAJ53KQ4F \ / AMOS7 \ YOURUM ::
+#\[7]4ZCIZE7SOVHUSK6CX2UEALSX2AXYGJ7F35LRM4DT2AKOA2DKIGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

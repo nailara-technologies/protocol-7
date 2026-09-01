@@ -8,15 +8,16 @@ my $module_name = shift;
 die "no module name supplied"
     if not defined $module_name or !length($module_name);
 die "invalid module name '$module_name'"
-    if $module_name !~ /^\w+(::\w+)*$/;
+    if $module_name !~ m|^\w+(::\w+)*$|;
 
-my $module_file = join( '.', join( '/', split( /::/, $module_name ) ), 'pm' );
+my $module_file
+    = join( '.', join( '/', split( m|::|, $module_name ) ), 'pm' );
 
 if   ( exists $INC{$module_file} ) { return 1 }
 else                               { return 0 }
 
-#,,.,,..,,,,.,..,,..,,,,.,,,.,.,.,,,.,..,,..,,..,,...,...,.,,,.,,,.,,,,,.,..,,
-#IBSY7UMHZ5ZZPUX42XIEPUOADUYDQP7Q4EN3RWJEXMXDFBPI2SUHUCZ27AK6SI6W5M3WXZBZDHJSI
-#\\\|SO5IWB3HGTF6CZ4MLUDLKEDHYKNPQLGJ4K6XHXJ5L7QXTGHE3YX \ / AMOS7 \ YOURUM ::
-#\[7]VY3A6SH22EWE5KJ2QBHIYZBSAMWCUOMXDDSXUY3U5MGL6SSBOCBI 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,.,,..,...,.,.,.,,,.,,,.,.,...,..,,...,...,..,,.,,,,,.,,,.,,,.,
+#PSMXXPPL6VHB4E5UCVW2RALBZZ3PDJRMQGBEJNKZTU5EXL3FZ4UUUF3Z634BIZJIPT6F3RQPZJVZA
+#\\\|6OEF5M24ZOTSUHM4IYWY4JNB47LTS37LKVXRRTSJWBEULGEAU6R \ / AMOS7 \ YOURUM ::
+#\[7]7SIE6KGNMRO72YDQXPJI63HOIW47TFTXXVRSWUVRFA45IYFPKCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

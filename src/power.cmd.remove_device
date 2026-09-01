@@ -9,7 +9,7 @@ my $device_id = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'numerical device id expected' }
     if !length($device_id)
-    or $device_id !~ /\d+/;
+    or $device_id !~ m|\d+|;
 
 return {
     'mode' => qw| false |,
@@ -23,8 +23,8 @@ delete <power.cfg.devices>->{$device_id};
 
 return { 'mode' => qw| true |, 'data' => "device $device_id removed" }
 
-#,,..,...,.,.,,,.,,..,,,.,,,.,.,,,..,,.,,,,,,,..,,...,...,.,,,.,,,.,.,,..,.,,,
-#ER2NNXP6KTR7TRHILBA34ZLHRTQMD233YJ5U4HEDGGOGFEPCEOLAOJRDCQ2OK4S6QKVZPCDTQJNVY
-#\\\|XVLUJZTVABGCGYCG3D7FIKDCBLE7OZKMOKYTCHWYKARRLVXJMQS \ / AMOS7 \ YOURUM ::
-#\[7]G7QSKVMCOWM6SWDR5RQMN7FWDD35DUTKW3K7YY4TJLRPNNH56SCI 7  DATA SIGNATURE ::
+#,,..,,..,...,.,.,,..,,,,,,,.,..,,...,.,.,.,.,..,,...,...,..,,,..,.,.,.,,,.,,,
+#SRYNMNB6KOFQWC7K4WL42IL5XLAZETZNSFF7OQW2PG4LPGZ6QHDAE3MEMD2HCG64KBNDLIWGJMFSC
+#\\\|Y5FPEB5OLSF2BTYYKOVGTL2K3WGSXCBNAQ4LG72G64PHSDYMJHF \ / AMOS7 \ YOURUM ::
+#\[7]USNX4WGWRXOLCCZELVSXELGTYQLNWTONLAIDAS4F6PLJ6TC2TGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

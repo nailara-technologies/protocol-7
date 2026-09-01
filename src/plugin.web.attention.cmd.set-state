@@ -4,7 +4,7 @@
 # descr = p7c command to switch attention state
 
 my $args = $call->{'args'} // '';
-my ( $name, $params_str ) = split( /\s+/, $args, 2 );
+my ( $name, $params_str ) = split( m|\s+|, $args, 2 );
 my $params
     = length($params_str)
     ? eval { JSON::XS::decode_json($params_str) } // {}
@@ -31,8 +31,8 @@ return {
         // $result->{'name'},
 };
 
-#,,,.,...,..,,.,,,.,,,.,.,,,.,,.,,,,,,.,,,,,.,..,,...,...,.,,,...,...,,.,,,,,,
-#4S3O5KCY4EWWP6GAYPFPDWLD2DZXUJGSE2ODTRI6V7DDLOBXQJIODME64ZU4UU6XYLDN7OKXEBYKE
-#\\\|4YGDL3I2SRR7WA2IXYEVHLUHOUKQRQT4TUEFXQFFZ2PIB5GUY2I \ / AMOS7 \ YOURUM ::
-#\[7]JAM4WHUJNXVYMG2AH2VSBENB4MVDK7J4U5MR6P7ZPI62ZXWRH4BA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,,,.,..,,,,.,,.,,.,,,.,.,.,.,..,,...,...,...,...,,,,,..,,.,.,
+#Q524E5G73HBCOHXXX54675M5AAJ5TB6D7DBZTYBRTCVG6JI7QMSV3IPYXEZA6PPDMCIQ632XWAATO
+#\\\|JRBSTYOCPAMDBTM7SELJZNVIQILI4GZIUX664TPEMYVMB7VOLV4 \ / AMOS7 \ YOURUM ::
+#\[7]63LDY3GN65DSELHC2SRRAEXAEAPYTP4J7IB5LSMN4AXGH57STKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

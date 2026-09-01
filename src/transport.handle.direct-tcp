@@ -11,7 +11,7 @@ my $endpoint = $entry->{'endpoint'} // $ctx->{'session'}{'destination'}
     // $ctx->{'request'}{'domain'} // '';
 return undef unless length $endpoint;
 
-my ( $host, $port ) = split /:/, $endpoint, 2;
+my ( $host, $port ) = split m|:|, $endpoint, 2;
 $port //= 80;
 
 my $sock = IO::Socket::IP->new(
@@ -50,8 +50,8 @@ my $handle = {
 
 return $handle;
 
-#,,,.,,,,,...,...,..,,,,.,,.,,.,,,,,.,,..,,..,..,,...,...,,..,,,,,,,,,.,,,,.,,
-#425KA6KHJVGAEW4Y2F7D4SZMRDTHVOWA4BQKOBYKYYFLS3XS25VSUJGOOPBRNZCDHH34K4SSJFQLS
-#\\\|6ZXDWTJXFOY4VXXZU7IQQ7ZXKAEEL4LGIY4PFOL7DAEKKOMK7WN \ / AMOS7 \ YOURUM ::
-#\[7]PGYLU2J6Z4BZQEK5XUBQUECU3RBMVTFCIAJ5WK6BWTTIDSFLWMAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,,..,...,...,.,,,,.,,,,.,,..,..,,...,...,.,,,,,.,,.,,...,...,
+#FA7GUZFERU6G6QU2SXTSSUJ7YLTR4RYZQZUJUVKPYKTOPNYXCTB7WSKXEM4L4UCWJU2KTQYLRYWY4
+#\\\|MP4ZMQNR7J476G3LJB3C5UFVI562SXCOLRE6XVJMBWHDOVXR2W5 \ / AMOS7 \ YOURUM ::
+#\[7]QNSCWADJ2GMGQ4CH7CVZZUZJ2EZRJXLRXI6QEINVORX5N5O244DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

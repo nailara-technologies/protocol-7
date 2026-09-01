@@ -4,9 +4,9 @@
 # descr = restore a job out of trash : args = "<id> [stage]"
 
 my $args = $call->{'args'} // '';
-$args =~ s/^\s+|\s+$//g;
+$args =~ s{^\s+|\s+$}{}g;
 
-my ( $id_in, $target_stage ) = split /\s+/, $args, 2;
+my ( $id_in, $target_stage ) = split m|\s+|, $args, 2;
 $target_stage //= 'review';
 
 my $result = <[jobsite.job.rescue]>->( $id_in, $target_stage );
@@ -16,8 +16,8 @@ return {
     'data' => $result->{'message'},
 };
 
-#,,,.,,,,,,.,,,,.,..,,,,,,,,.,,,.,..,,,..,.,,,..,,...,...,.,,,...,.,,,.,.,,..,
-#NCNYJ2HL2AOSKPGIKBEVQD66CVRZV37JGJHIJ5GUUTDJNGFQYW7W44COPASLAU4HCVHWV7VOOTMN4
-#\\\|422WXZHLJSGNVGTBAUNWWJMENPNOWZHYJMDYKX2EYF24MKBR3CT \ / AMOS7 \ YOURUM ::
-#\[7]PLGHKMTDO5YYVPD4I2JIKNONN4IIKAIV3QZLSYRMQHW33BRD5YCI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,,.,..,,,.,,,,.,,,.,,..,.,,,..,,...,...,,..,,..,.,,,...,.,.,
+#P4TTTQUBSE44SAHHO6IN4FLQJIIOSEUD7OMLQWCXBLTYK4WEOKYO6EQRSXQU7X7IP5KJSJ5AGCTDK
+#\\\|6FFLKXOJ536F7WLAI2U5HXZ2HDETC7JRYTPDZNRNDYO7ZZQA5C6 \ / AMOS7 \ YOURUM ::
+#\[7]PWRVO6AWRW3TVTKU67SXV6NWJZGSVPSHUZQLQB35YPTKAVRATGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

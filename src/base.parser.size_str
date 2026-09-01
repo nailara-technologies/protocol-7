@@ -2,22 +2,22 @@
 
 # name = base.parser.size_str
 
-return 'n/a' if not defined $_[0] or $_[0] !~ /^\d+$/;
+return 'n/a' if not defined $_[0] or $_[0] !~ m|^\d+$|;
 
 my $size_str = shift;
 
 $size_str =~ s|0{9}$|G|;
-$size_str =~ s|(\d\d)0{7}$|.$1G| if $size_str =~ /^\d{10,}$/;
-$size_str =~ s|0{6}$|M|          if $size_str =~ /^\d+$/;
-$size_str =~ s|(\d\d)0{4}$|.$1M| if $size_str =~ /^\d{7,}$/;
-$size_str =~ s|0{3}$|K|          if $size_str =~ /^\d+$/;
-$size_str =~ s|(\d)00$|.$1K|     if $size_str =~ /^\d{5,}$/;
+$size_str =~ s|(\d\d)0{7}$|.$1G| if $size_str =~ m|^\d{10,}$|;
+$size_str =~ s|0{6}$|M|          if $size_str =~ m|^\d+$|;
+$size_str =~ s|(\d\d)0{4}$|.$1M| if $size_str =~ m|^\d{7,}$|;
+$size_str =~ s|0{3}$|K|          if $size_str =~ m|^\d+$|;
+$size_str =~ s|(\d)00$|.$1K|     if $size_str =~ m|^\d{5,}$|;
 $size_str =~ s|\.([1-9]+)0+(\w)$|.$1$2|;
 
 return $size_str;
 
-#,,,.,..,,,..,,..,,..,...,.,.,,.,,.,,,..,,,..,..,,...,...,.,.,.,,,.,,,.,.,,,.,
-#W5DUYMYGA6FQOHXLGW3PA2E37QDPO6236E6SCNG63WFB6C7S234UG6JVYLVA5DXND67SUQZPUFQZC
-#\\\|XCGZN3Q3OAMUW6VCOXVSTFVH6EFBEXC7OJPBH34VHAG6CNF6HKI \ / AMOS7 \ YOURUM ::
-#\[7]ZR6SWEBDM3PQ4TT63NTI6FTTSILLO3WD4COF3IZYGAQYNQI5WGCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,.,.,.,,,,,,,.,...,,,,,,.,,,,,,..,,...,..,,,..,...,..,,..,,,,.,
+#EIBT3ELPETI4N7KDZUVZ5AHJDM2R3TWPTEIQV66JBHE7AR7TMQMWRDZHHBD2VOS767SA2VQQOTAGE
+#\\\|4FDJBH5KNE7HLHN6CHSKKHQUVDIV2DG5NAGJDVRHKMQE5B57XJ4 \ / AMOS7 \ YOURUM ::
+#\[7]2LO3ZRQFIJFFKTPLW2UKSXW4X6S4KHYQRFODHEPZ6UANWO72WUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

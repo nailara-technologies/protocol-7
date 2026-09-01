@@ -23,12 +23,12 @@ for my $status (@active_statuses) {
     next if not -d $dir;
 
     opendir my $dh, $dir or next;
-    my @files = grep { /\.yaml$/ and !/^\./ } readdir($dh);
+    my @files = grep { m|\.yaml$| and !m|^\.| } readdir($dh);
     closedir $dh;
 
     for my $file (@files) {
         my $job_file = "$dir/$file";
-        my $name     = $file =~ s/\.yaml$//r;
+        my $name     = $file =~ s|\.yaml$||r;
 
         my $size = -s $job_file;
         next if not defined $size;
@@ -72,8 +72,8 @@ for my $status (@active_statuses) {
 
 return \@stray;
 
-#,,,.,,.,,.,,,.,,,,,,,...,..,,,.,,,,,,,,.,..,,..,,...,...,.,.,,,,,,.,,,,,,.,,,
-#UJYOUPE2KMVDGFDV5Y4FDBYLXBGFSL74QG5K7ORPXOX6C7LRBU76ZYZAIWEVARUAWI5HMP7IZVYJK
-#\\\|NE44NB3S3J5GR22NGOD3S62OVWVY257FJEZFLXDQU75L22BWKGS \ / AMOS7 \ YOURUM ::
-#\[7]ELKLKFUHWBISMD3HCRK3XHISKAHW2GRKLAWZE5XX3J55Z7WZS6CI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,.,,,,..,,..,.,.,..,,.,,,,,.,..,,...,.,.,.,,,,..,.,.,.,,,,.,,
+#537MKSYR352MNXIYQTI6VRAQG6VSKLLWYHVST2JR4KJ7CK6TVEKX5XAYUMHZ2OSK4OURTKPZFE3HO
+#\\\|4LFCYKNZ65THYSKEYO3TEYXSBPJZS2F6R2AWT6S7YOFUGAYN6AU \ / AMOS7 \ YOURUM ::
+#\[7]YEWPANPODJ2PDOH7V3A3XBFKTFSLPMNRUZGT4WMC53GOQ7UOQIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

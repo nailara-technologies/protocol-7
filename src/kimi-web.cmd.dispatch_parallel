@@ -11,11 +11,11 @@ my $args = $call->{'args'} // {};
 if ( not ref $args ) {
     my $args_str = $args;
     $args = {};
-    for my $token ( split /\s+/, $args_str ) {
+    for my $token ( split m|\s+|, $args_str ) {
         $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
     }
     ## agent_ids= arrives comma-separated over the string-args path ##
-    $args->{'agent_ids'} = [ split /,/, $args->{'agent_ids'} ]
+    $args->{'agent_ids'} = [ split m|,|, $args->{'agent_ids'} ]
         if defined $args->{'agent_ids'};
 }
 
@@ -112,8 +112,8 @@ for my $agent_id (@ready_agents) {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,.,,..,,.,.,,,,,,,.,..,,,.,,.,,,,.,,.,.,.,.,...,...,.,.,..,,,,,,...,.,.,
-#VALCGLB2Z4TGTD4PMVSKSI4DNYAHUND5WSWYZLGY4PIPPNKD5ZWASLNN4ZHZ5DJI3CJGHG6IKM3AS
-#\\\|AMCT7EAOXYW5KSIZAR57QA7S4LDGYZMIDO2CMOXOXNSDJYSJMPA \ / AMOS7 \ YOURUM ::
-#\[7]KU5ABXR3JVOFIHG3G3PEUQVO2E5BL7DXCSR27HJWD72U5BBYWQCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,.,,.,,,.,,,...,.,,,.,.,.,.,.,.,...,...,,,,,,..,...,.,,,,,.,
+#2I4YX6J5QHWR7HYFNP572I36GBDQ7EYFLFMZ5TYM222DSYOZ46AIK2MKZCY5LZGPQBR2AIWV2M2WG
+#\\\|6JOY6M23YAGHA2E745NZTFSG4THUCCVLYVCSFTEUYZNK4YCSOEW \ / AMOS7 \ YOURUM ::
+#\[7]L2ENHOQ7JIJ3NPLGXC25EP5BVTZN2USLGZKGOOBVGXWAY3RYA4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
