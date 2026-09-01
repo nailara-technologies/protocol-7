@@ -38,8 +38,8 @@ my $status_count = `git status --short | wc -l`;
 chomp $status_count;
 
 if ( $status_count > 0 ) {
-    say "   $neon_red⚠$reset "
-        . " ${neon_orange}UNCOMMITTED:$reset $status_count files changed";
+    say "   $neon_red⚠$reset  ${neon_orange}UNCOMMITTED:$reset "
+        . "$status_count files changed";
     say "";
     my @status_lines = `git status --short | head -10`;
     foreach (@status_lines) {
@@ -59,8 +59,8 @@ if ( $status_count > 0 ) {
         . "add -A && git commit -m 'description' && git push$reset";
     $needs_action = 1;
 } else {
-    say "   $neon_green✓$reset ${neon_green}CLEAN:$reset "
-        . "No uncommitted changes";
+    say "   $neon_green✓$reset "
+        . "${neon_green}CLEAN:$reset No uncommitted changes";
 }
 
 # Check Remote Sync
@@ -77,24 +77,24 @@ my $behind = `git rev-list HEAD..origin/$branch --count 2>/dev/null`;
 chomp( $ahead, $behind );
 
 if ( $ahead > 0 ) {
-    say sprintf "   $neon_orange⚠$reset "
-        . " ${neon_orange}AHEAD:$reset %d commits not pushed",
+    say sprintf "   $neon_orange⚠$reset  "
+        . "${neon_orange}AHEAD:$reset %d commits not pushed",
         $ahead;
-    say sprintf "      ${blacklight}→ "
-        . "Action:$reset ${TRUE_blue}git push origin %s$reset",
+    say sprintf "      ${blacklight}→ Action:$reset "
+        . "${TRUE_blue}git push origin %s$reset",
         $branch;
     $needs_action = 1;
 } elsif ( $behind > 0 ) {
-    say sprintf "   $neon_orange⚠$reset "
-        . " ${neon_orange}BEHIND:$reset %d commits on remote",
+    say sprintf "   $neon_orange⚠$reset  "
+        . "${neon_orange}BEHIND:$reset %d commits on remote",
         $behind;
-    say sprintf "      ${blacklight}→ "
-        . "Action:$reset ${TRUE_blue}git pull origin %s$reset",
+    say sprintf "      ${blacklight}→ Action:$reset "
+        . "${TRUE_blue}git pull origin %s$reset",
         $branch;
     $needs_action = 1;
 } else {
-    say "   $neon_green✓$reset ${neon_green}SYNCED:$reset "
-        . "Local matches remote";
+    say "   $neon_green✓$reset "
+        . "${neon_green}SYNCED:$reset Local matches remote";
 }
 
 # Check Git Config
@@ -109,8 +109,8 @@ if ( $git_user && $git_email ) {
         "   $neon_green✓$reset ${neon_green}CONFIGURED:$reset %s <%s>",
         $git_user, $git_email;
 } else {
-    say "   $neon_red⚠$reset "
-        . " ${neon_orange}MISCONFIGURED:$reset Git identity not set";
+    say "   $neon_red⚠$reset  "
+        . "${neon_orange}MISCONFIGURED:$reset Git identity not set";
     say "      ${blacklight}→ Action:$reset ${TRUE_blue}Run "
         . "bootstrap or configure-remote-PAT$reset";
     $needs_action = 1;
@@ -143,8 +143,8 @@ if ($needs_action) {
 say "$blacklight" . "=" x 70 . "$reset";
 say "";
 
-#,,.,,...,,,.,..,,,,,,...,,,.,,,,,,,,,,.,,..,,..,,...,...,...,.,.,,..,...,.,,,
-#S6SUQOJKMGBSDBLAE5UOHVZU6DUTGV5F67PS3VPTYBEKKUPPXTJBOXI4KOOPY65T5WSAGHSFOXCNC
-#\\\|YNGG3OU4XHULMTIHKVU4HB2636OXJUVTSDR7NFVD2F46P5JMSAV \ / AMOS7 \ YOURUM ::
-#\[7]QRJT3PU6QSNK7VPNVLMABCFG556IPORUPXUUJWCB22DRJV2452AY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,.,.,,,,,,,,,...,.,,,.,.,...,..,,...,...,..,,,,.,.,,,..,,...,
+#3TJXWARZFEGIKOSP5SF2HPDBCAM74V2A6A6PFSU4OV7AH62277YBLDEP3MFILB2YDT5F6XY53JAJM
+#\\\|ZEKIGD5JDEETAI42ZT77IWDOIQFKWM3I3KGITEXWHTNCH2XXVPS \ / AMOS7 \ YOURUM ::
+#\[7]KXUEMM4RYVF4BLIW7QPVZGF5JCLH7SYUV5YCBL2RS7ACIT5OV4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

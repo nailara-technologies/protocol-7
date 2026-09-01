@@ -26,7 +26,7 @@ return FALSE if ref $editor_state ne qw| HASH |;
 ## ESCAPE meaning "leave this untranslated", so that form silently yields a
 ## reference to the literal NAME STRING instead
 <user-edit.form.input_buffer> //= '';
-my $input_buffer = \<user-edit.form.input_buffer>;
+my $input_buffer = \$data{'user-edit'}{'form'}{'input_buffer'};
 
 ## no-tty mode : keys arrive from user-edit.cmd.char-add, which appends to the
 ## same buffer and calls this module directly.  STDIN must NOT be read at all
@@ -559,8 +559,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,..,,...,.,.,..,,.,.,..,,,..,.,,,.,.,,..,..,,...,..,,..,,..,,...,.,,,,..,
-#Z3OLVXA3E4JDSBVZXKEKGLSWQVVWWF2ARGEI2UFJOL2G4U2S7LJ7H7PVURUPTPJEBDDPJR3OG2F66
-#\\\|AYY5CN3B3AXVQALKXXPNEIFS6IAQXYOXC2CPKVFUA7TYLGCO6EY \ / AMOS7 \ YOURUM ::
-#\[7]EOXLKF674QOHO4SO5PH5LIL76IRLBFXFSQAT6PJTL577SHZFJGAA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,,,,.,.,..,,.,,,...,,..,.,.,..,,...,..,,.,.,,,.,,,.,...,,..,
+#Q74SIZIQ4KZX7EAPASDYQNQTTO2CDEYRMCRPGTXQAEGA4V5MZUGA2UEXYSYN7Z7UOL2FYHO6CFPXU
+#\\\|5I6BCS2OXGPSKRTSEOCAN5JMNY3XGWZPFB77MVAC5CFJLRNA3S6 \ / AMOS7 \ YOURUM ::
+#\[7]P5TDNUEZ6RHDVUIW3QJLJ7Z5A6VBAYA7LSUOXINWY7UGUAM7W2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
