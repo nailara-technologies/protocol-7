@@ -60,15 +60,21 @@ $OUTPUT_AUTOFLUSH = TRUE;
 my $check_only = FALSE;
 my $no_ptd     = FALSE;
 my $no_utf8    = FALSE;
-my $data_sugar = FALSE;    ##  opt-in $data{'k0'}{'k1'} -> <k0.k1> rewrite  ##
+##  opt-in $data{'k0'}{'k1'} -> <k0.k1> rewrite  ##
+my $data_sugar = FALSE;
+##  opt-in $code{'a.b'}->(...) -> <[a.b]>->(...) rewrite  ##
+my $module_sugar = FALSE;
 
 while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
     my $opt = $ARGV[0];
     if    ( $opt eq qw| -c | )       { $check_only = TRUE; shift @ARGV; }
     elsif ( $opt eq qw| -n | )       { $no_ptd     = TRUE; shift @ARGV; }
     elsif ( $opt eq qw| :noutf8: | ) { $no_utf8    = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| -d | or $opt eq qw| --data-sugar | ) {
+    elsif ( $opt eq qw| -d | or $opt eq qw| -data-sugar | ) {
         $data_sugar = TRUE;
+        shift @ARGV;
+    } elsif ( $opt eq qw| -m | or $opt eq qw| -module-sugar | ) {
+        $module_sugar = TRUE;
         shift @ARGV;
     } else {
         last;
@@ -452,6 +458,11 @@ sub preprocess_source {
     ## their first real line ]                                              ##
     $result = step6_compact_data_sugar($result)
         if $data_sugar
+        and $path !~ m{\.pm$}
+        and is_p7_module_text($text);
+
+    $result = step7_compact_module_call_sugar($result)
+        if $module_sugar
         and $path !~ m{\.pm$}
         and is_p7_module_text($text);
     return $result;
@@ -1356,6 +1367,125 @@ sub step6_compact_data_sugar {
     return join( '', @lines );
 }
 
+##[ step 7 : opt-in rewrite of $code{'module.name'}->(...) to <[module.name]>->(...) ]##
+## keeps the ->(...) part verbatim ; only literal single/double-quoted ##
+## keys, and only when the key is a bareword-shaped module path [ word ##
+## chars , hyphens, dots ]                                             ##
+sub step7_compact_module_call_sugar {
+    my $text = shift;
+
+    my $doc = PPI::Document->new( \$text );
+    return $text if not defined $doc;
+
+    my @lines = split m{(?<=\n)}, $text;
+
+    my @calls;
+    my $lists = $doc->find('PPI::Structure::List');
+    if ($lists) {
+        for my $list (@$lists) {
+
+            ## require a leading '->' operator ##
+            my $arrow = $list->sprevious_sibling;
+            next
+                if not $arrow
+                or not $arrow->isa('PPI::Token::Operator')
+                or $arrow->content ne '->';
+
+            ## require a $code{...} subscript before the arrow ##
+            my $subscript = $arrow->sprevious_sibling;
+            next
+                if not $subscript
+                or not $subscript->isa('PPI::Structure::Subscript');
+
+            my $code_sym = $subscript->sprevious_sibling;
+            next
+                if not $code_sym
+                or not $code_sym->isa('PPI::Token::Symbol')
+                or $code_sym->content ne qw| $code |;
+
+            ## extract the lone key from the subscript ##
+            my $quotes = $subscript->find('PPI::Token::Quote');
+            next if not $quotes or @$quotes != 1;
+            my $key_tok = $quotes->[0];
+            next if not is_quote_token($key_tok);
+
+            my $quote_ch = substr( $key_tok->content, 0,  1 );
+            my $key      = substr( $key_tok->content, 1, -1 );
+
+            ## double-quoted key must not contain interpolation ##
+            next if $quote_ch eq q|"| and $key =~ m{[\$\@]};
+
+            ## bareword-shaped module path : dots separate components ##
+            next if $key !~ m{^(?:\w[\w\-]*)(?:\.\w[\w\-]*)*$};
+
+            push @calls,
+                {
+                start_tok => $code_sym,
+                end_tok   => $list->finish,
+                arrow     => $arrow,
+                list      => $list,
+                key       => $key,
+                };
+        }
+    }
+
+    return $text if not @calls;
+
+    ## replace from the end backward so earlier positions stay valid ##
+    @calls = sort {
+        my $la = $a->{start_tok}->location->[0];
+        my $lb = $b->{start_tok}->location->[0];
+        $la == $lb
+            ? $b->{start_tok}->location->[1]
+            <=> $a->{start_tok}->location->[1]
+            : $lb <=> $la;
+    } @calls;
+
+    my %last_start_for_line;
+
+    for my $call (@calls) {
+        my $start_loc  = $call->{start_tok}->location;
+        my $end_loc    = $call->{end_tok}->location;
+        my $start_line = $start_loc->[0];
+        my $end_line   = $end_loc->[0];
+
+        ## only handle single-line calls : multi-line rewrites risk moving ##
+        ## other content around and complicate the line-based pipeline     ##
+        next if $start_line != $end_line;
+
+        my $line_idx = $start_line - 1;
+        next if $line_idx < 0 or $line_idx > $#lines;
+
+        my $start_col = $start_loc->[1] - 1;    ## 0-based ##
+        my $end_col = $end_loc->[1] - 1 + length( $call->{end_tok}->content );
+
+        ## skip calls that would overlap a previously rewritten call on  ##
+        ## this line [ earlier in the line means processed later in this ##
+        ## loop ]                                                        ##
+        next
+            if defined $last_start_for_line{$line_idx}
+            and $end_col > $last_start_for_line{$line_idx};
+
+        my $line = $lines[$line_idx];
+        next if $start_col < 0 or $end_col > length($line);
+
+        my $replacement
+            = '<['
+            . $call->{key} . ']>'
+            . $call->{arrow}->content
+            . $call->{list}->content;
+
+        $lines[$line_idx]
+            = substr( $line, 0, $start_col )
+            . $replacement
+            . substr( $line, $end_col );
+
+        $last_start_for_line{$line_idx} = $start_col;
+    }
+
+    return join( '', @lines );
+}
+
 ##[ utilities ]##
 sub length_no_nl {
     my $s = shift;
@@ -1698,8 +1828,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,.,.,..,,..,,,,,,.,,,,,.,.,,,,,.,.,.,..,,..,,...,...,...,.,,,...,.,.,...,
-#OXM3GC5VMGPZV7JS47RVWMRKUVLWK4IPTFV6LJRPFD7QIVPMWRHMCBR43ZXZATRDHE5FELXJCPLYE
-#\\\|NJ5FT2TBFBUODXGL4AUURWTJQO6DACXGZRSXIAJMYDGQY6RYWIL \ / AMOS7 \ YOURUM ::
-#\[7]DANIU4XCX7EFQXTKHFVWZ4NR2YNLXDT2HKGMQFYJJQVFPNYWEIAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,,,,..,,.,,,.,,,,.,,..,,.,,,..,..,,...,...,.,,,..,,,,,,..,,...,
+#H5DAGDBESLFRUZ6OMWORUQLC6XAS4YEIGW4GTAN2PSVU3V6TGQPGWAVAJVABPCP34E3W5RDUKRATS
+#\\\|2IIQ67YMU2Q6YO3OCUZPUZQLIOJNOC2NECQ2RBVEOS7X2BHZBEN \ / AMOS7 \ YOURUM ::
+#\[7]AHSXHDDMZZY6AIGVDYALT7DT6RL7ROHN5W3ZSI64HERSJM6PZEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
