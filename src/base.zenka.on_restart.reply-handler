@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.zenka.on_restart.reply-handler
-# descr = v7.notify_restart reply : fire registered handlers, re-arm.
+# descr = v7-zenki.notify_restart reply : fire registered handlers, re-arm.
 
 my $reply = shift;
 
@@ -37,7 +37,7 @@ return TRUE if <base.zenka.on_restart.armed>->{$publisher};
 <base.zenka.on_restart.armed>->{$publisher} = TRUE;
 
 my $sent = <[protocol-7.route-send]>->(
-    {   'command'   => qw| v7.notify_restart |,
+    {   'command'   => qw| v7-zenki.notify_restart |,
         'call_args' => { 'args' => $publisher },
         'reply'     => {
             'handler' => qw| base.zenka.on_restart.reply-handler |,
@@ -57,8 +57,8 @@ if ( $sent <= 0 ) {
 
 return TRUE;
 
-#,,..,...,,.,,...,...,,..,...,,..,,..,.,,,,,,,..,,...,...,,..,...,,,,,..,,,,.,
-#B24X6VYO77M327RT3233GXBIYMLMGHVDKLTD7KLJOTNJHCMJ2OJ6SZBQHQSEWQHAWHYOMNVQ5S4PM
-#\\\|YMDP4KSIUJ5F3KYH4E7GZL6KHHPA2QURD5U4U36IJ2Z33R6OCJO \ / AMOS7 \ YOURUM ::
-#\[7]D4LV6P4FKTJ45EWTU7X2QTMQEYFK46TA3HYGLBHCKYXMV6L53IBA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,,..,..,,,,,,.,,,,,.,.,.,.,,,..,,...,...,..,,,,,,...,,.,,,,.,
+#FWATA263DDANVS3MTO6O4GTKW5NIZFJWOIOOBRTV3KQSCWZTYFIUMVVSXA6ID6CPTQDJXUVQUYOKI
+#\\\|EYWD6UBTFLN246L4JLDTJLMVZ3MJYQZVU3YDXKWILNCWHBXII6Z \ / AMOS7 \ YOURUM ::
+#\[7]AKMTZBNY3XPMA7KP73TPMCNOCZ5LBXIHWQ7JKCOLHLMPBEVM2ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

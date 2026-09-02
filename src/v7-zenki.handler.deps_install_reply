@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = v7-zenki.handler.deps_install_reply
+# descr = handle deferred debian.install-packages reply for check_zenka_deps
+#         [ track installed packages, re-check the zenka's remaining deps ]
+
+my $reply = shift;
+
+my $mode        = $reply->{'mode'}         // qw| unknown |;
+my $params      = $reply->{'params'}       // {};
+my $packages    = $params->{'packages'}    // [];
+my $zenka_name  = $params->{'zenka'}       // '';
+my $missing_pm  = $params->{'missing_pm'}  // [];
+my $missing_os  = $params->{'missing_os'}  // [];
+my $missing_bin = $params->{'missing_bin'} // [];
+
+## install failed [ or debian zenka unreachable ] : report the deps that ##
+## were waiting on this install as still missing, nothing to re-check    ##
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->(
+        0,
+        'check_zenka_deps: install via debian zenka failed : %s',
+        $reply->{'data'} // qw| unknown error |
+    );
+    my $msg = "still missing deps for zenka '$zenka_name': ";
+    $msg .= 'pm=' . join( ', ', @$missing_pm ) . ' ' if @$missing_pm;
+    $msg .= 'os=' . join( ', ', @$missing_os ) . ' ' if @$missing_os;
+    $msg .= 'bin=' . join( ', ', @$missing_bin ) if @$missing_bin;
+    <[base.log]>->( 0, $msg );
+    return;
+}
+
+## Track successful installs [ same tracked.yaml shape as the sync path in ##
+## v7-zenki.check_zenka_deps + sys-deps.handler.install_reply ]            ##
+if (@$packages) {
+    my $track_dir  = <system.root_path> . '/var/sys-deps';
+    my $track_file = $track_dir . '/tracked.yaml';
+    <[file.make_path]>->(
+        $track_dir, 0775, <system.amos-zenka-user>, <system.amos-zenka-user>
+    ) if !-d $track_dir;
+    my $tracked = { tracked => [] };
+    if ( -f $track_file ) {
+        eval {
+            require YAML::Tiny;
+            my $yaml = YAML::Tiny->read($track_file);
+            $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
+        };
+    }
+    for my $pkg (@$packages) {
+        push @{ $tracked->{tracked} },
+            {
+            pkg          => $pkg,
+            type         => 'debian',
+            installed_at => <[base.ntime.b32]> // '',
+            source       => 'v7-prestart',
+            zenka        => $zenka_name,
+            declared     => 0
+            };
+    }
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->new($tracked);
+        $yaml->write($track_file);
+    };
+    ## normalize ownership for sys-deps zenka \ os-pkg access ##
+    if ( -f $track_file and $UID == 0 ) {
+        my ( $track_uid, $track_gid )
+            = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
+        chown( $track_uid, $track_gid, $track_dir, $track_file )
+            if defined $track_uid;
+        chmod( 0775, $track_dir );
+        chmod( 0664, $track_file );
+    }
+}
+
+## Re-check the deps that were waiting on this install ##
+<[base.perlmod.load]>->('AMOS7::deps::module')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::module');
+<[base.perlmod.load]>->('AMOS7::deps::os_package')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
+
+my @still_pm = grep { !AMOS7::deps::module::probe_module($ARG) } @$missing_pm;
+my @still_os
+    = grep { !AMOS7::deps::os_package::probe_os_pkg( $ARG, 'debian' ) }
+    @$missing_os;
+my @still_bin
+    = grep { !AMOS7::deps::os_package::probe_binary($ARG) } @$missing_bin;
+
+if ( @still_pm or @still_os or @still_bin ) {
+    my $msg = "still missing deps for zenka '$zenka_name' after install: ";
+    $msg .= 'pm=' . join( ', ', @still_pm ) . ' ' if @still_pm;
+    $msg .= 'os=' . join( ', ', @still_os ) . ' ' if @still_os;
+    $msg .= 'bin=' . join( ', ', @still_bin ) if @still_bin;
+    <[base.log]>->( 0, $msg );
+}
+
+return;
+
+#,,.,,.,,,,.,,,.,,.,,,.,.,,.,,,.,,.,,,,.,,...,..,,...,...,...,,.,,,,.,,.,,...,
+#Z2KTXB6DHGXOGTVQUAP6OSYUFT3HWWJ3CJJEMJWEVQCK4OKPXK3LJE3R4NXWUYGNW2V6KK7T3AYDE
+#\\\|RUNBJGV73HRNHCBARBEOPCK5E62DENFKWRSBQ6HO5ZWN7LQY6NJ \ / AMOS7 \ YOURUM ::
+#\[7]FIWHGYS7URJM7H6OY7HNHENLI3FONHRCYW2GOC7CDJ4OYGJV6ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

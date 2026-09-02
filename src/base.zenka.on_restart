@@ -13,11 +13,11 @@
 # 'handler' must be a fully-qualified sub name in %code -- it is invoked
 # with no arguments each time v7 reports a fresh instance_id for the
 # publisher zenka. multiple handlers can be registered per publisher
-# [ deduplicated ] ; only one v7.notify_restart route-send is armed at a
+# [ deduplicated ] ; only one v7-zenki.notify_restart route-send is armed at a
 # time per publisher, re-armed automatically after each fire by
 # base.zenka.on_restart.reply-handler.
 #
-# the underlying v7.notify_restart primitive fires only when the
+# the underlying v7-zenki.notify_restart primitive fires only when the
 # publisher's next online-transition has an instance_id different from
 # what was recorded at registration time, so the initial registration
 # never spuriously fires against the already-running instance.
@@ -65,7 +65,7 @@ return TRUE if <base.zenka.on_restart.armed>->{$publisher};
 <base.zenka.on_restart.armed>->{$publisher} = TRUE;
 
 my $sent = <[protocol-7.route-send]>->(
-    {   'command'   => qw| v7.notify_restart |,
+    {   'command'   => qw| v7-zenki.notify_restart |,
         'call_args' => { 'args' => $publisher },
         'reply'     => {
             'handler' => qw| base.zenka.on_restart.reply-handler |,
@@ -85,8 +85,8 @@ if ( $sent <= 0 ) {
 
 return TRUE;
 
-#,,..,,,.,,.,,,.,,,..,,..,..,,.,,,.,,,.,.,.,,,..,,...,...,.,.,,..,...,...,,,.,
-#6HZWZHXHHKKJ3Y5ST2MK4ERVJ2TRRLBPAXV5PTBDMCPIZSKELYNX3POUXII77HJK7VJVYMGQMWUEU
-#\\\|JW7PFM7RPIMM3WE3F5X2PKX6CA56S6RP6JQBWRVXGNVWDGTWQQC \ / AMOS7 \ YOURUM ::
-#\[7]BVVUAAKQJR5BOLHZ23CYN453Q5B35TZXAO3G6KXYWOO5TDR6S6CY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,..,,,.,,,.,,...,.,.,,.,,.,.,..,,...,...,...,,,,,.,.,,,,,..,,
+#FDWVE53YY7LRCIBKXGZZHXJSGLLT3MF3LH5WNCNHD3RQ5JFIXQYSOGBK2GVE5KARRLFX2K7QPWB5C
+#\\\|E2VNHTBSDQ7TN467GCZELKYLOM6BR5FQNLU3RKSNQHAOA7OPWYL \ / AMOS7 \ YOURUM ::
+#\[7]EI2JKLKFOUCX3RO46CO7STN27ER3ZHGKYWS5SQFAVBA4E52XOGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

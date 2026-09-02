@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = v7-zenki.resolve.object.zenka
+# descr = cascade-start a zenka dependency that failed its
+#         readiness check, so a stuck dependency can self-heal
+#         instead of requiring a manual restart
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( $object_type ne qw| zenka | ) {
+    <[base.logs]>->(
+        0,          "object %d is of type '%s' and not 'zenka'",
+        $object_id, $object_type
+    );
+    return undef;
+}
+my $zenka_id = <dependency.object>->{$object_id}->{'zenka_id'};
+return undef if not exists <v7-zenki.zenka.setup>->{$zenka_id};
+
+my $zenka_name = <v7-zenki.zenka.setup>->{$zenka_id}->{'name'};
+return undef if not defined $zenka_name;
+
+## don't even attempt a cascade-start if an instance already exists in any ##
+## non-error state [ starting/delayed/online/etc ] -- zenka.cmd.start_once ##
+## has its own 'already running' guard via v7-zenki.start_count, but that  ##
+## check happens AFTER max_concurrency is re-validated only at REQUEST     ##
+## time, not when a 'delayed' instance is later auto-fired by              ##
+## v7-zenki.handler.zenka_status on the PREVIOUS instance coming online [  ##
+## that path never re-checks max_concurrency at all -- confirmed live      ##
+## 2026-08-26 : a resolve call racing against cube's own normal startup    ##
+## produced a genuine second 'cube' instance despite max_concurrency=1,    ##
+## because both requests saw start_count=0 before either had created an    ##
+## instance ]. checking here too, proactively, keeps this hook from ever   ##
+## being the request that exposes that gap, regardless of whether that     ##
+## deeper bug gets fixed                                                   ##
+if ( <[v7-zenki.start_count]>->($zenka_name) ) {
+    <[base.logs]>->(
+        2,
+        ': resolve : zenka dependency \'%s\' already '
+            . 'starting/running, skipping cascade-start',
+        $zenka_name
+    );
+    return { 'mode' => qw| true |, 'data' => 'already starting' };
+}
+
+<[base.log]>->(
+    1, ": resolve : cascade-starting zenka dependency '$zenka_name'"
+);
+
+## recursion => 1 forces implicit start-mode in zenka.cmd.start [ see its   ##
+## own start_mode ternary ] regardless of the ambient call context this     ##
+## hook runs under -- respects <v7-zenki.zenka.manually_stopped> and stays  ##
+## quiet in the log, matching a passive background self-heal rather than an ##
+## explicit user-requested start                                            ##
+return
+    <[zenka.cmd.start_once]>->( { 'args' => $zenka_name, 'recursion' => 1 } );
+
+#,,.,,..,,,,,,..,,,.,,.,,,...,.,.,.,,,,,,,...,..,,...,...,,..,,,.,..,,,.,,,.,,
+#CWMNXGRZXK7LENKX7SZB5DYDWVMMSHMKY22BRFNLSJQ5VOKC5JP7G2B6RAE7E66Z2YKLS57BFFUES
+#\\\|FWNCRLQFK2KGWHQ6KIXBM7A26WG3NBMTEPDI5XHIJU2Z5KTYIWU \ / AMOS7 \ YOURUM ::
+#\[7]6G52FMJUYZFSUEG6VPTFUP5GQVCIPCC4DQTK3WAPS3UWPM44IKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

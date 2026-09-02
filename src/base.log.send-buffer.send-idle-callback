@@ -36,14 +36,15 @@ my $b_ref = <log.send-buffer>->{$name};
 
 if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
-    if ( <system.zenka.name> eq qw| v7 | ) {
+    if ( <system.zenka.name> eq qw| v7-zenki | ) {
 
         ##  checking v7 registry for target zenka  ##
 
         ## check if already online ##
 
         if ( $b_ref->{'paused'} ) {
-            <v7.status-request.log-target-zenka>->{$target_zenka} = TRUE;
+            <v7-zenki.status-request.log-target-zenka>->{$target_zenka}
+                = TRUE;
         }
 
     } elsif ( <system.zenka.name> eq qw| cube | ) {
@@ -59,7 +60,7 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
             <cube.status-request.log-target-zenka>->{$target_zenka} = TRUE;
         }
 
-    } else {    ## other zenki using 'v7.notify_online' command ##
+    } else {    ## other zenki using 'v7-zenki.notify_online' command ##
 
         ## deferred via <system.init_reports> instead of a direct send -- ##
         ## this callback can fire before this zenka's own cube session is ##
@@ -72,7 +73,7 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
         push(
             <system.init_reports>->@*,
             {   'target_command' =>
-                    join( '', $route_prefix, qw| v7.notify_online | ),
+                    join( '', $route_prefix, qw| v7-zenki.notify_online | ),
                 'param'   => $target_zenka,
                 'descr'   => "waiting for log target $target_zenka..,",
                 'handler' =>
@@ -142,8 +143,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,.,,,,,,.,,,,..,,.,,,..,,,,,.,,,,..,,,,,.,,,..,,...,...,...,.,.,,.,,,.,,.,.,
-#6F3V72MFRJTV3QZWMDSYSFP25SAZ3XVPXF42IX6L65SUNZX4C7JH5HNXD3MAGE257MNTHH4XOCG4I
-#\\\|QZMFNJJAMDIC3MD75LKQ7DA6TSLT2HGWBMTWS67GL4S4TNNUJGU \ / AMOS7 \ YOURUM ::
-#\[7]JNKQ4V2PIPQP35KZD5UNU3XPGN5YKVHJQKXKQNVPONSM2YKZZECA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,,.,,,,.,..,,.,.,,..,.,.,...,..,,...,...,,,,,.,.,,,.,...,,,.,
+#5MAYWZXTTPB6B2BSEJ4757HG2G7QUJENSQYNEMTNDREHALYUPGIJZY3XWBMBZFNLLWLAQIMNXFKHG
+#\\\|L6ZYHWCWZMTOURANK5QR7JXCLTXWQ4WV2P72OMAMU6TH6Z2QI7L \ / AMOS7 \ YOURUM ::
+#\[7]ABKBGCE6M6V7EYCSDLEPFYYFQUJ7R5FBMQJWFEC22JRJU7QVNUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

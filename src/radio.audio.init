@@ -14,7 +14,7 @@ delete <radio.audio.reinit_watcher>;
 ## item would never be picked up again. direct route-send is correct here   ##
 ## in both cases.                                                           ##
 <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.notify_online',
+    {   'command'   => 'v7-zenki.notify_online',
         'call_args' => { 'args' => 'mpv[audio-0]' },
         'reply'     => {
             'handler' => 'radio.audio.handler.player_online',
@@ -24,7 +24,7 @@ delete <radio.audio.reinit_watcher>;
 );
 
 <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.notify_offline',
+    {   'command'   => 'v7-zenki.notify_offline',
         'call_args' => { 'args' => 'mpv[audio-0]' },
         'reply'     => {
             'handler' => 'radio.audio.handler.player_offline',
@@ -34,15 +34,15 @@ delete <radio.audio.reinit_watcher>;
 );
 
 <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.start_once',
+    {   'command'   => 'v7-zenki.start_once',
         'call_args' => { 'args' => 'mpv[audio-0]' },
     }
 );
 
 <[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
 
-#,,,.,.,,,,,.,,,,,,..,,,,,..,,..,,,,,,.,.,...,.,.,...,...,.,,,,..,,,,,...,,.,,
-#2VK6X5F77FVLDRI3C3RHNORCGZLKVB3TPDWRWFKHKYFSWWYWOXKKFRXHIF7MT6ABNRSMD7POZLDK2
-#\\\|7A6GIYMU6MJOQ4ZY3LHWJFG3VEBM4ZWIZG7I3C5MHU2552FWCK5 \ / AMOS7 \ YOURUM ::
-#\[7]7HJ2N55564Y4UE32TKLBVXYACUTIYORQD55I5GYWJMDLNB7LH2CI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,.,,,...,,.,,..,,,,.,,,.,...,.,.,...,...,.,,,..,,,.,,,,.,,,,,
+#M55K3BFLY3R46FAFO6A67MMAHDUZFQSL7ILQTPRCMXARH3MAZDUIXZAZHHLGGAVXYEVJK4MDULUDE
+#\\\|FV3TQYRZEASFWZ53NWLOYAAKREKOUJRRW5FGNAU2MJJQMLVKMAE \ / AMOS7 \ YOURUM ::
+#\[7]YAIMX7ME54HBJDSFYAXYYQA5DBZQKR2UPNI3ILO2BGEE2YH6OWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

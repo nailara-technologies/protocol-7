@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = v7-zenki.cancel_instance_timers
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+return undef if not defined $instance;
+
+my $instance_timers = $instance->{'timer'} // {};
+
+my $cancelled = 0;
+
+foreach my $timer_name ( keys( %{$instance_timers} ) ) {
+    if ( ref( $instance_timers->{$timer_name} ) eq 'Event::timer'
+        and $instance_timers->{$timer_name}->is_active ) {
+        $instance_timers->{$timer_name}->cancel;
+        $cancelled++;
+        <[base.log]>->(
+            2, ": stopped instance $instance_id '$timer_name' timer"
+        );
+    }
+    delete $instance_timers->{$timer_name};
+}
+undef $instance_timers;
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+return $cancelled;
+
+#,,..,,..,.,.,,,.,,.,,.,,,,,,,.,,,,,.,.,,,...,..,,...,..,,.,.,.,,,,,,,.,.,,,,,
+#EHMQFNQEQXLCNUKQZYXT63BB25WVVGSTU36E6SVCQD6RBEWB77LGRFY3ZPPWBF4MKPFE3OQQ54D26
+#\\\|YWADY7ZVJ4QELII2WHXIN53S2BNIVUNQCHOYBWLNUVT4MLIRSR2 \ / AMOS7 \ YOURUM ::
+#\[7]EYJ5CK7ITGFZUDP2Z5SSYGVC2AWHYCBWPVGLYUIN7A2SEELUPEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

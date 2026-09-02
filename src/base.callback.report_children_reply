@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.callback.report_children_reply
-# descr = surface a failed v7.register_child reply at log level 0 [ was
+# descr = surface a failed v7-zenki.register_child reply at log level 0 [ was
 #         previously fire-and-forget, no visibility on failure ]
 
 my $arg  = shift;
@@ -11,12 +11,15 @@ my $data = $arg->{'call_args'}{'args'} // '';
 return if $arg->{'cmd'} ne qw| FALSE |;
 
 <[base.logs]>->(
-    0,    "report_children_reply: v7.register_child failed [PID:%s] : %s",
-    $pid, $data
+    0,
+    "report_children_reply: "
+        . "v7-zenki.register_child failed [PID:%s] : %s",
+    $pid,
+    $data
 );
 
-#,,,.,..,,,,.,.,.,.,.,..,,,..,,.,,..,,,,.,.,,,..,,...,...,...,,.,,,,.,,,,,...,
-#BQMCVZICVDTLQE4W6RLFFHYMVEFMB5DXQMKWARH7NVBCFOEG5SFLSG3EOOOGVGDAJAT6XGBL6BZAY
-#\\\|GLIJMU6G5HDEC6VDQISIYX4KNICFT5LZGPS4QQYJMKAADO3UZOQ \ / AMOS7 \ YOURUM ::
-#\[7]FHS45ONNWK6SGTT743JNO4CVDMZCUHK7CUUESFMYCLNNONGXL4BA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,,,..,,..,,.,,,,,,,...,.,.,,,.,..,,...,...,.,,,,,,,...,.,.,,,.,
+#I2SIGC6L5IHTR6IJWNPAP2WXRG6WSA2XUC7ZNMDI2Z47GND6E6R77PCBTMNUWOE24AMEL2BL75SIG
+#\\\|NB22HAGJ4UYHGMFUE5QT3MWY7NLOZQQJO5JUHTK74WUBUUIXTU3 \ / AMOS7 \ YOURUM ::
+#\[7]OGT425YPM6ZABMJ7Q65JMKVC2CSW3ZFNNMLV2NA6BYV3ZTGRKECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

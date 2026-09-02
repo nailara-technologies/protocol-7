@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = v7-zenki.callback.cleanup_instance_cache
+# descr = called when <v7-zenki.process.instance_cache> entries created \ accessed
+
+<v7-zenki.timer.reset_instance_cache>->cancel
+    if defined <v7-zenki.timer.reset_instance_cache>
+    ##  moving timer  ##
+    and <v7-zenki.timer.reset_instance_cache>->is_active;
+
+<v7-zenki.timer.reset_instance_cache> = <[event.add_timer]>->(
+    {   'after'   => 5,
+        'repeat'  => 0,
+        'prio'    => 7,
+        'handler' =>
+            qw| v7-zenki.callback.delete_instance_cache |    ## cache reset ##
+    }
+);
+
+#,,..,...,,.,,,.,,,.,,.,,,..,,...,...,..,,,,,,..,,...,...,...,...,...,...,,.,,
+#FAQE6QOG2EZEV3CPSGKZUOQTGYPPAH3E5PFF3CWAD5FWJNARGS75UJEOJNDVUIDCE27TWQFHLLZXA
+#\\\|EKVS3LQ6CLXK4T27EA6ZBV2F7FWPR3XHG4ETHLMML3LBOBJAF2O \ / AMOS7 \ YOURUM ::
+#\[7]TV36OYIPZGLWI5F52GLQMJZJH3IH5SUC6N4O4RMFCZTNNOQK6EDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

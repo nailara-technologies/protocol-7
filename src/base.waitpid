@@ -7,16 +7,16 @@ my $wait_FLAGS = shift // WNOHANG();
 
 my $pid_result = waitpid( $wait_PID, $wait_FLAGS );
 
-if ( <system.zenka.name> eq qw| v7 | and $pid_result > 0 )
+if ( <system.zenka.name> eq qw| v7-zenki | and $pid_result > 0 )
 {    ## has terminated ##
-    my $registry_handler = qw| v7.report_collected_child_pid |;
+    my $registry_handler = qw| v7-zenki.report_collected_child_pid |;
     $code{$registry_handler}->($pid_result);    ##  register for sig_chld  ##
 }
 
 return $pid_result;
 
-#,,,.,,,,,,,.,.,,,.,.,.,.,,,.,...,,,,,.,,,,.,,..,,...,...,,.,,.,,,..,,...,,,,,
-#M5ZYDLXVBYKPPDZTKVIHLAPEZGIFZFG7MFVK6EAPT5L57CNKBRHX5PMBPWCCS5UWB75AONWM5QZHE
-#\\\|HI7PEP2H7ZU32HSOBWHKYLLD3OY6DHI7NH2FKPXAZSMKYCBTOMZ \ / AMOS7 \ YOURUM ::
-#\[7]HYPRWSDM3KRVSVHTX7Z2FFM454FNWPPIJRHUVSOUZJRTUDEQVKCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,..,,.,.,,,,,.,.,,.,,...,,,.,..,,...,...,.,.,..,,,,.,,,.,,..,
+#7O53RWVQE7UAL56LM5VCBGLSOCLL3NJNJXPRAZZRSHGBX7MUWTBLYWGQSCG433QK3OE37ZVRKHZC2
+#\\\|GF3WGN4WBQ55DP3PAEOB26U4XITNNQMM2F5HB75ENA6EEFQALSZ \ / AMOS7 \ YOURUM ::
+#\[7]N4HTL55QKVKX6WLK63BQEMDZTSRCF6OMCLEEZP6PXQSRPK4FVICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

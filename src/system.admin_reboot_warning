@@ -27,9 +27,9 @@ if ( !length($wall_bin_path) ) {
             1, ":.. sending 'wall' message [ host reboot warning ]"
         );
         my $warn_secs = $regular_reboot_delay + $reboot_delay_seconds;
-        <[base.log]>->( 2, ": asking 'v7' to broadcast warning .," );
+        <[base.log]>->( 2, ": asking 'v7-zenki' to broadcast warning .," );
         <[protocol-7.command.send.local]>->(
-            {   'command'   => qw| cube.v7.reboot-warning |,
+            {   'command'   => qw| cube.v7-zenki.reboot-warning |,
                 'call_args' => { 'args' => "$warn_secs xorg crashed" }
             }
         );
@@ -39,8 +39,8 @@ if ( !length($wall_bin_path) ) {
 ## additional reboot delay when admin is present ###
 return $regular_reboot_delay + $reboot_delay_seconds;
 
-#,,.,,,,,,..,,,..,,..,,,.,..,,.,,,,..,,,,,.,.,..,,...,...,...,..,,,..,..,,,,,,
-#OMKJCRHL5YCHSDGNGY5YB4KAOYF4QGC2RUMP6WZKB5SVFEFSANIXWDJOE6NDJR3OJBGGDSA53ONQW
-#\\\|ZSDVM5LEBTRF3YEEHI5O6JWIPOSJG72GRGT46CPNJYL6L5P3D7O \ / AMOS7 \ YOURUM ::
-#\[7]SSPHEEOUW2ITFGS4BXNLBN5W7OLUNT6QE2CD7SDKWXGI4PZEA2CA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,.,,,,.,,.,,,,,,,..,,.,,,.,,,..,,...,..,,...,,..,..,,,..,,.,,
+#VTMKZJLDU3VO4KS64NGJTD242JLTHYFA4QBWJ6MQK67OBKHJ2FIEPKH2WA2C2W4RKUSTV47IJR77M
+#\\\|JJKL3ENFHQQBVNYDQ3ZWFQFTMHXSXOKUU4SXIJ5G5GTLTV3E7WM \ / AMOS7 \ YOURUM ::
+#\[7]OPYZJS3WDIVAMR3DU3ZIEPTQUH6UJJRSG7WNMHOCCA5TO46VXIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

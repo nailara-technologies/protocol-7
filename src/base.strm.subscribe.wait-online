@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.strm.subscribe.wait-online
-# descr = register a v7.notify_online wait for the publisher zenka,
+# descr = register a v7-zenki.notify_online wait for the publisher zenka,
 #         with base.zenka.push-shaped exponential backoff [ internal ]
 
 my $key = shift // '';
@@ -38,7 +38,7 @@ my $notify_args = $state->{'publisher'};
 $notify_args = join( ' ', ':start:', $notify_args ) if $state->{'start'};
 
 my $no_sent = <[protocol-7.route-send]>->(
-    {   'command'   => qw| v7.notify_online |,
+    {   'command'   => qw| v7-zenki.notify_online |,
         'call_args' => { 'args' => $notify_args },
         'reply'     => {
             'handler' => qw| strm.subscribe.reply-handler.notify-online |,
@@ -63,8 +63,8 @@ if ( $no_sent <= 0 ) {
 
 return TRUE;
 
-#,,,.,.,.,...,.,.,,..,.,,,,,.,.,.,...,,,,,..,,..,,...,..,,,,.,,,,,..,,.,,,,,.,
-#W2J7XY2IOB35QWCHYT3Y3VGLTARO5RGTCTHKRV5A55AIFTPG2ZLNR6OIDLSJHKDF5J2LC25YHPFPY
-#\\\|KI63FSSVQUGHXIFVJZXWCYBAHSYUFB34HFTEKDXPPB7K4XDNJSO \ / AMOS7 \ YOURUM ::
-#\[7]J6CACZTA6KCNEYXVUEXUR4GFJ7SRMF4EE3PR6LK2ZBRILQ6D4ICY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,,,,,...,..,,.,,,,,,,..,,,.,,..,,...,...,...,,,.,,..,,,.,,,,,
+#QTXSXPTQHYYBIPNEGL7DAGT6VM5UZ26FY4BTNSD63PEBD2J3GEJAGV6LIVBLDMLRKHGG2JZ6674DS
+#\\\|LY435JG4VEAZV6REBPQV3WAECXLAL24JYST26JPXCWRYRGEUQOE \ / AMOS7 \ YOURUM ::
+#\[7]X2PEAJ72O6HPA6VUS62AICR5EDBWCAFJ4QGVL33UGFHNU6K2Z6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

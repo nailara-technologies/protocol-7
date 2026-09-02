@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = v7-zenki.handler.drain_timeout
+# descr = handle drain timeout - force-terminate instance
+#                                       if still draining
+
+my $watcher       = $ARG[0]->w;
+my $instance_id   = $watcher->data->{'instance_id'};
+my $drain_timeout = $watcher->data->{'drain_timeout'};
+
+$watcher->cancel if $watcher->is_active;
+
+return undef if not defined $instance_id;
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+## instance already gone - nothing to do
+return undef if not defined $instance;
+
+my $zenka_name = $instance->{'zenka_name'};
+my $status     = $instance->{'status'};
+
+## check if instance is still online|extbin [hasn't finished draining]
+if ( $status eq qw| online | or $status eq qw| extbin | ) {
+    <[base.logs]>->(
+        0,
+        "DRAIN TIMEOUT: '%s' instance %d still "
+            . "%s after %.1fs, force-terminating",
+        $zenka_name,
+        $instance_id,
+        $status,
+        $drain_timeout
+    );
+
+    ## force terminate the process
+    if ( exists $instance->{'process'}
+        and defined $instance->{'process'}->{'id'} ) {
+        my $pid = $instance->{'process'}->{'id'};
+        <[base.logs]>->( 0, 'force-terminating PID %d', $pid );
+        <[v7-zenki.terminate_process]>->($pid);
+    }
+
+    ## mark as error status to trigger normal cleanup
+    <[zenka.change_status]>->( $instance_id, qw| error | );
+
+} elsif ( $status eq qw| draining | ) {
+    ## status should have changed to offline/shutdown by now
+    <[base.logs]>->(
+        1,
+        "drain timeout for '%s' instance %d, "
+            . "but status is 'draining' [unexpected]",
+        $zenka_name,
+        $instance_id
+    );
+
+    ## force terminate anyway
+    if ( exists $instance->{'process'}
+        and defined $instance->{'process'}->{'id'} ) {
+        <[v7-zenki.terminate_process]>->( $instance->{'process'}->{'id'} );
+    }
+    <[zenka.change_status]>->( $instance_id, qw| error | );
+
+} else {
+    ## instance already offline/shutdown - normal completion
+    <[base.logs]>->(
+        2,            'drain timeout handler: instance %d already %s',
+        $instance_id, $status
+    );
+}
+
+## cleanup timer reference
+delete $instance->{'timer'}->{'drain_timeout'}
+    if exists $instance->{'timer'}->{'drain_timeout'};
+
+return TRUE;
+
+#,,,.,,.,,.,.,...,.,.,,,.,,.,,,,.,,,.,..,,,,,,.,.,...,...,,,.,,,.,..,,.,.,...,
+#VGN2I44CZE4Z5NC7UFJ7OEEIH5XQK46FJDCJC6YXBH2VWV6USXFKO6F2NQNWPWLXQSWOGN3DV5GFC
+#\\\|A6GIKNN44YULT5IMCVS4PXTQYZFDMSHJSL2NWNRFJ7YDSI6AG4E \ / AMOS7 \ YOURUM ::
+#\[7]VSIXVNV73IDEBURTZAJZ3BUFSHHVO2G3EAM525SVTSOCXIDUSEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

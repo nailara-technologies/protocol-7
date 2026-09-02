@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.handler.ondemand_idle_term_reply
-# descr = v7.idle-term reply handler [ idle on-demand zenka self-exit ]
+# descr = v7-zenki.idle-term reply handler [ idle on-demand zenka self-exit ]
 # note  = v7 only ever replies FALSE here -- on the accept path it replies
 #         'deferred' and never completes it, since it's about to terminate
 #         us anyway, so this handler only ever sees a rejection
@@ -10,14 +10,14 @@ my $reply = shift;
 
 <[base.logs]>->(
     1,
-    'v7.idle-term declined [ %s ], exiting directly ..,',
+    'v7-zenki.idle-term declined [ %s ], exiting directly ..,',
     $reply->{'call_args'}->{'args'} // qw| no reason given |
 );
 
 exit(0);
 
-#,,,.,.,.,,.,,.,,,,..,,,,,.,.,,,,,...,,.,,,,,,..,,...,.,.,.,.,,.,,,,.,,,.,,,.,
-#ONOLKJL7B4U7LRGGJI3ZJPCT2BDIPSOET3GQEABWMY57CJ2QD27ZLP3KKWZKYZ6HCNPMZGJ43PS62
-#\\\|64M2UBZURQNVJ2PQIISCE4K3J4RRFVMQG3ROOI72HUIRPBMCP5U \ / AMOS7 \ YOURUM ::
-#\[7]KNVROVOMSWMFXZMJKYG2KSTS2BOPAA7J2V63UBV3LEX42HSQZUBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,.,,..,,.,.,..,,.,,,.,,,...,...,..,,...,...,,..,,..,.,,,,,.,..,,
+#QFH6UWONQ3FCRCEFJZLNT732TXWAWT5PETH3NDCJPDEHRRSDAZBFBOFISS7ASJ6PREPP57O4VRLVO
+#\\\|YSOZU7VT2YQPUHB3I2JD6ZFWNEB4FFHISPF4MCS5PUFLNGYIJY3 \ / AMOS7 \ YOURUM ::
+#\[7]5LWG6UTHP6AMY7LR7MGVS7LRLRVSWJIAYYWVXP2BQZZQL3IVYWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

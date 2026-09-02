@@ -1,0 +1,215 @@
+## [:< ##
+
+# name = v7-zenki.check_zenka_deps
+# descr = pre-start per-zenka dependency check via AMOS7::deps::*
+
+my $zenka_name = shift;
+
+return unless defined $zenka_name;
+
+## Load AMOS7 dependency library if not already loaded ##
+<[base.perlmod.load]>->('AMOS7::deps::module')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::module');
+<[base.perlmod.load]>->('AMOS7::deps::os_package')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
+
+my $zenki_base = <system.conf_path> . '/zenki';
+my $pm_deps    = AMOS7::deps::module::scan_zenki_pm_deps($zenki_base);
+my $os_deps    = AMOS7::deps::os_package::scan_zenki_os_deps($zenki_base);
+
+my @missing_pm;
+my @missing_os;
+my @missing_bin;
+
+## Check pm deps for this zenka ##
+for my $module ( keys %$pm_deps ) {
+    next unless grep { $ARG eq $zenka_name } @{ $pm_deps->{$module} };
+    push @missing_pm, $module
+        unless AMOS7::deps::module::probe_module($module);
+}
+
+## Check os deps for this zenka ##
+for my $type ( keys %$os_deps ) {
+    if ( $type eq 'binary' ) {
+        for my $bin ( keys %{ $os_deps->{$type} } ) {
+            next
+                unless grep { $ARG eq $zenka_name }
+                @{ $os_deps->{$type}{$bin} };
+            push @missing_bin, $bin
+                unless AMOS7::deps::os_package::probe_binary($bin);
+        }
+    } else {
+        for my $pkg ( keys %{ $os_deps->{$type} } ) {
+            next
+                unless grep { $ARG eq $zenka_name }
+                @{ $os_deps->{$type}{$pkg} };
+            push @missing_os, $pkg
+                unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
+        }
+    }
+}
+
+return if !@missing_pm && !@missing_os && !@missing_bin;
+
+my $auto_install
+    = <[base.cfg_bool]>->( <v7-zenki.cfg.auto_install_deps> // FALSE );
+my $has_root = ( $UID == 0 or `which sudo 2>/dev/null` );
+
+if ( $auto_install && $has_root ) {
+    <[base.log]>->( 1, ":. installing missing deps for zenka '$zenka_name'" );
+
+    my @to_install_apt;
+    my @to_install_cpan;
+    my %pm_via_apt;
+
+    ## canonical accessor for src/base.known_dependencies data : reachable ##
+    ## from both zenka and standalone-script contexts [ unlike the         ##
+    ## <[base.known_dependencies]> invocation route ] -- 'perlmod' is the  ##
+    ## default section                                                     ##
+    my $known_pm_deps
+        = AMOS7::deps::module::load_known_deps(<system.root_path>) // {};
+
+    for my $module (@missing_pm) {
+        my $resolved
+            = AMOS7::deps::module::resolve_install( $module, $known_pm_deps );
+        if ( $resolved->{method} eq 'debian' ) {
+            push @to_install_apt, $resolved->{pkg};
+            $pm_via_apt{$module} = 1;
+        } else {
+            push @to_install_cpan, $resolved->{pkg};
+        }
+    }
+
+    push @to_install_apt, @missing_os;
+
+    ## resolve missing binaries to their providing debian packages [ the    ##
+    ## declared name is the binary, not always the package : cpanm lives in ##
+    ## cpanminus, ffprobe in ffmpeg, .. ] -- fallback is the name itself [  ##
+    ## correct for git, mpv, openbox, .. ]                                  ##
+    if (@missing_bin) {
+        my $known_bin_deps
+            = AMOS7::deps::module::load_known_deps( <system.root_path>,
+            qw| binary | ) // {};
+        push @to_install_apt,
+            map { $known_bin_deps->{$ARG} // $ARG } @missing_bin;
+    }
+
+    my %seen;
+    @to_install_apt = grep { !$seen{$ARG}++ } @to_install_apt;
+
+    ## cpan installs stay local + synchronous for now ##
+    my @installed;
+
+    if (@to_install_cpan) {
+        for my $module (@to_install_cpan) {
+            my $exit = <[base.perlmod.install_cpan_module]>->($module);
+            push @installed, $module if defined $exit and $exit == 0;
+        }
+    }
+
+    ## Log to tracking file ##
+    if (@installed) {
+        my $track_dir  = <system.root_path> . '/var/sys-deps';
+        my $track_file = $track_dir . '/tracked.yaml';
+        <[file.make_path]>->(
+            $track_dir, 0775, <system.amos-zenka-user>,
+            <system.amos-zenka-user>
+        ) if !-d $track_dir;
+        my $tracked = { tracked => [] };
+        if ( -f $track_file ) {
+            eval {
+                require YAML::Tiny;
+                my $yaml = YAML::Tiny->read($track_file);
+                $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
+            };
+        }
+        for my $pkg (@installed) {
+            push @{ $tracked->{tracked} },
+                {
+                pkg          => $pkg,
+                type         => 'debian',
+                installed_at => <[base.ntime.b32]> // '',
+                source       => 'v7-prestart',
+                zenka        => $zenka_name,
+                declared     => 0
+                };
+        }
+        eval {
+            require YAML::Tiny;
+            my $yaml = YAML::Tiny->new($tracked);
+            $yaml->write($track_file);
+        };
+        ## normalize ownership for sys-deps zenka \ os-pkg access ##
+        if ( -f $track_file and $UID == 0 ) {
+            my ( $track_uid, $track_gid )
+                = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
+            chown( $track_uid, $track_gid, $track_dir, $track_file )
+                if defined $track_uid;
+            chmod( 0775, $track_dir );
+            chmod( 0664, $track_file );
+        }
+    }
+
+    ## route apt installs through the debian zenka's jobqueue-serialized  ##
+    ## bridge [ same shape as sys-deps.cmd.install ] : one install in     ##
+    ## flight across all zenki, instead of every starting zenka calling   ##
+    ## install_apt concurrently. result, tracking + re-check arrive async ##
+    ## in v7-zenki.handler.deps_install_reply -- the only caller of this  ##
+    ## module [ v7-zenki.autostart_zenki ] discards the return value and  ##
+    ## proceeds to jobqueue.add_job unconditionally, so pure async is     ##
+    ## sufficient here                                                    ##
+    my $apt_pending = 0;
+    if (@to_install_apt) {
+        my $sent = <[protocol-7.route-send]>->(
+            {   'command'   => qw| debian.install-packages |,
+                'call_args' => { 'args' => join( ' ', @to_install_apt ) },
+                'reply'     => {
+                    'handler' => qw| v7-zenki.handler.deps_install_reply |,
+                    'params'  => {
+                        'packages'    => \@to_install_apt,
+                        'zenka'       => $zenka_name,
+                        'missing_pm'  => [ sort keys %pm_via_apt ],
+                        'missing_os'  => [@missing_os],
+                        'missing_bin' => [@missing_bin]
+                    }
+                }
+            }
+        );
+        if ( not $sent ) {
+            <[base.logs]>->(
+                0,
+                'check_zenka_deps: cannot reach '
+                    . 'debian zenka [ route-send failed ]'
+            );
+        } else {
+            $apt_pending = 1;
+        }
+    }
+
+    ## Re-check [ synchronous portion only ] : cpan-installed modules are  ##
+    ## re-probed here ; apt-routed packages [ incl. perl modules resolved  ##
+    ## to debian packages ] + binaries are re-checked by the reply handler ##
+    ## once the install actually finished                                  ##
+    @missing_pm = grep { !AMOS7::deps::module::probe_module($ARG) }
+        grep { !$pm_via_apt{$ARG} } @missing_pm;
+    if ($apt_pending) {
+        @missing_os  = ();
+        @missing_bin = ();
+    }
+}
+
+if ( @missing_pm || @missing_os || @missing_bin ) {
+    my $msg = "missing deps for zenka '$zenka_name': ";
+    $msg .= "pm=" . join( ', ', @missing_pm ) . " " if @missing_pm;
+    $msg .= "os=" . join( ', ', @missing_os ) . " " if @missing_os;
+    $msg .= "bin=" . join( ', ', @missing_bin ) if @missing_bin;
+    <[base.log]>->( 0, $msg );
+}
+
+0;
+
+#,,,.,,,.,,..,.,.,,..,,,,,,..,,..,,..,,,,,,,,,..,,...,...,...,...,.,,,.,,,.,.,
+#3VXMDJHXWN3KCOYT63RNKT5M6U7G4XILBMWZ4RLYYEHJIQNODGFACBH5K6CFH6CGSUFWJMUPRBCHW
+#\\\|ZHXTAVBYWO2YJTKBHGQDN2S3MRBR5A72REHBJPH6IKNOTG3VSBE \ / AMOS7 \ YOURUM ::
+#\[7]JPT35M5W6F42SO2VZHMONLJ5JPMMKKZL7ISWYGZGLNUX22PDQ6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

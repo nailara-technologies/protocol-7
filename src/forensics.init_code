@@ -4,11 +4,11 @@
 # descr = forensics zenka initialization : sweep dir + boot-triggered sweep
 
 ##  the 04:07 nightly slot [ cfg/zenki/events/event-setup.base ] is type    ##
-##  zenka-present : the events zenka sends cube.v7.start_once and the boot  ##
-##  itself IS the trigger. the sweep runs from a one-shot timer so it       ##
-##  executes inside zenka.loop [ after drop_privs + cube connect ], not as  ##
-##  root during init [ the sweep record dir would end up root-owned --      ##
-##  same hazard build.init_code documents ]                                 ##
+##  zenka-present : the events zenka sends cube.v7-zenki.start_once and     ##
+##  the boot itself IS the trigger. the sweep runs from a one-shot timer    ##
+##  so it executes inside zenka.loop [ after drop_privs + cube connect ],   ##
+##  not as root during init [ the sweep record dir would end up root-owned  ##
+##  -- same hazard build.init_code documents ]                              ##
 ##                                                                          ##
 ##  the sweep dir IS created here at init, with the zenka user as owner [   ##
 ##  p7-log.init_code precedent ] : file.make_path is only available during  ##
@@ -69,8 +69,8 @@ if ( not -d $reports_dir ) {
 
 return 0;
 
-#,,.,,,..,.,,,,..,.,.,..,,.,,,.,,,...,,..,...,..,,...,...,...,...,,..,.,.,,,,,
-#A67VW3JOVPDOK6YTBCUAWCRZTHPD46JRV6JJWLDEKPB4BUNT3TRC3IVG6P5TAJYZVQFITP4B5NDDS
-#\\\|XBVTIK62X3L7OGG5ZBCI6L44Q3ECFTFEG3VD43V5VABDIRKD7ND \ / AMOS7 \ YOURUM ::
-#\[7]PAERXGE6RNKX6ENS7X5ZW2BEGBFFHERIY5XJMYSF5VKAG3KJAKBY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,,,.,...,..,,,,.,.,,,,,.,.,,,..,,...,...,,.,,..,,.,.,.,,,.,.,
+#ZBRU5QRMKZRHEEXIKCGHDVUYYZ2XL7WA6KMVX5GVMHKY4C33BAHNQUS3YKZEGSBR4525VJGH7DF4A
+#\\\|WWPTZ433C547UAZKJEPVL4QEDCYH7MC2UP5NWIRA4FADD2SXPYG \ / AMOS7 \ YOURUM ::
+#\[7]XH67ACETUQ4YSETPFWSZ6N2GU7ZLB2URXN6QMIXH75SSK7R2NKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

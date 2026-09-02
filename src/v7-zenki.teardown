@@ -1,0 +1,151 @@
+## [:< ##
+
+# name  = v7-zenki.teardown
+# descr = shut down v7 zenka [with an optional error message]
+
+my $reason  = shift // '';
+my $c_level = shift;      ## modifies caller(<level>) ## [ 'none' for silent ]
+my $exit_code = length($reason) ? 1 : $CHILD_ERROR;
+my $log_level = length($reason) ? 0 : 1;
+my $t_res     = 3;        # <-- time delta float resolution
+
+my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
+my $abort_timeout = 2;
+
+my %wait_pids = map { $ARG => TRUE } keys <v7-zenki.child>->%*;
+foreach my $p_pid ( keys <v7-zenki.child>->%* ) {
+    map { $wait_pids{$ARG} = TRUE }
+        <[v7-zenki.sub-process.get_children]>->($p_pid)->@*;
+    <v7-zenki.child>->{$p_pid}->{'start_time'}
+        //= <[base.ntime]>;    # ..in case.,
+}
+
+my $child_count = keys %wait_pids;
+
+while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {    ##  WNOHANG  ##
+    $child_count-- if $pid and delete $wait_pids{$pid};
+}
+
+my $es = <[base.cnt_s]>->( $child_count == 1, 'es', '' );
+$reason = sprintf( '.. %u sub-process%s .,', $child_count, $es )
+    if not length($reason)
+    and $child_count;
+my $reason_txt = length($reason) ? sprintf( ' [ %s ]', $reason ) : '';
+
+## selecting correct caller level ##
+my $opt_caller = '';
+if ( not defined $c_level or $c_level ne qw| none | ) {
+    $c_level    = 2;    ## starting default value ##
+    $opt_caller = sprintf ' %s', scalar <[base.caller]>->($c_level);
+    $opt_caller = '' if $opt_caller =~ m{Event\.pm:\d+};
+    if ( $opt_caller =~ m{event\.add_var:\d+} ) {
+        $c_level    = 1;
+        $opt_caller = sprintf ' %s', scalar <[base.caller]>->($c_level);
+    }
+}
+
+<[base.logs]>->(
+    $log_level,  'v7 zenka shutdown%s%s',
+    $reason_txt, $opt_caller
+);
+
+<[base.logs]>->( '.:[ terminating sub-process%s ]:.', $es )
+    if $child_count and <system.zenka.verbosity.console> == 1;
+
+foreach my $pid (
+    sort {
+        <v7-zenki.child>->{$b}->{'start_time'} <=>
+            <v7-zenki.child>->{$a}->{'start_time'}
+    }
+    keys <v7-zenki.child>->%*
+) {
+    next if exists <v7-zenki.child>->{$pid}->{'zenka_child'};
+    my $inst_id    = <v7-zenki.child>->{$pid}->{'instance_id'};
+    my $zenka_name = <v7-zenki.zenka.instance>->{$inst_id}->{'zenka_name'}
+        // qw| unknown |;
+    my @children = <[v7-zenki.sub-process.get_children]>->($pid)->@*;
+    if ( kill( 15, $pid ) ) {
+        <[base.logs]>->( ': <TERM> PID %-7s  <-= %11s', $pid, $zenka_name );
+    } else {
+        delete <v7-zenki.child>->{$pid};
+    }
+    if (@children) {
+        <[base.logs]>->(
+            ': <TERM> `-- sub-process%s %s',
+            <[base.cnt_s]>->( @children == 1, ' -- :', 'es :' ),
+            join( ', ', @children )
+        );
+        map { delete <v7-zenki.child>->{$pid} if not kill( 15, $ARG ) }
+            @children;
+    }
+}
+
+map { <[base.logs]>->( ': <TERM> orphan %s', $ARG ) if kill( 15, $ARG ); }
+    <[v7-zenki.sub-process.orphan_pids]>;
+
+while ( ( my $w_pid = <[base.waitpid]>->(-1) ) > 0 ) {
+    delete <v7-zenki.child>->{$w_pid};
+}
+
+my %children_left = map { $ARG => TRUE } keys <v7-zenki.child>->%*;
+
+my $wait_start = <[base.time]>->($t_res);
+
+while ( keys %children_left ) {
+    foreach my $pid (
+        sort {
+            <v7-zenki.child>->{$b}->{'start_time'}
+                // 0 <=> <v7-zenki.child>->{$a}->{'start_time'} // 0
+        }
+        keys %children_left
+    ) {
+        my $inst_id = <v7-zenki.child>->{$pid}->{'instance_id'};
+        my $zenka_name
+            = <v7-zenki.zenka.instance>->{$inst_id}->{'zenka_name'};
+        my $time_now     = <[base.time]>->($t_res);
+        my $waiting_secs = $time_now - $wait_start;
+        if ( not kill( 15, $pid ) ) {
+            delete $children_left{$pid};    # <-- gone now .,
+        } elsif ( $waiting_secs >= ( $kill_timeout + $abort_timeout ) ) {
+            kill( 9, keys %children_left );
+            <[base.log]>->( 0, 'ABORT TIMEOUT during process shut-down ..,' );
+            exit(1);
+        }
+        if ( $waiting_secs >= $kill_timeout ) {
+            my @children = <[v7-zenki.sub-process.get_children]>->($pid)->@*;
+            if ( not exists <v7-zenki.child>->{$pid}->{'zenka_child'} ) {
+                <[base.logs]>->(
+                    ': <KILL> PID %-7s  <-= %11s',
+                    $pid, $zenka_name
+                ) if kill( 9, $pid );
+            }
+            delete $children_left{$pid};
+            if (@children) {
+                <[base.logs]>->(
+                    ': <KILL> `-- sub-process%s %s',
+                    <[base.cnt_s]>->( @children == 1, ' -- :', 'es :' ),
+                    join( ', ', @children )
+                );
+                kill( 9, @children );
+                map { delete $children_left{$pid}; } @children;
+            }
+        }
+    }
+    <[base.sleep]>->(0.042);
+}
+
+map {
+    <[base.logs]>->( ': <KILL> orphan process %s', $ARG );
+    kill( 9, $ARG )
+} <[v7-zenki.sub-process.orphan_pids]>;
+
+<[v7-zenki.tmp-paths.global.clean-up]>->(2);    ##  silent clean up  ##
+
+<[base.log]>->( 1, ':. done.' );
+exit($exit_code);
+
+#,,,.,,.,,,,,,..,,...,.,.,,.,,.,.,,.,,,,,,..,,..,,...,..,,...,,,.,,..,,..,,,.,
+#VD54WS7YOAO7Q5MO4U46FJRXY5YI6LPI4VZC7EV5JTWZI5TK5IKEY5PEA4RQVEWAT6OSBXKEEPLAQ
+#\\\|UMPDPYSEKW3GKKG25XU2MPQCJSURPL63IZ47XCYTH3BOCOI3B7X \ / AMOS7 \ YOURUM ::
+#\[7]GMWBASY33X7VS7FDMX3ZEETN54NJZ5RITZYDIKWH6OYVSNHLJGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

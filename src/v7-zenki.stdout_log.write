@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = v7-zenki.stdout_log.write
+# args  = <log_line>
+# descr = writes line to in-memory stdout log buffer
+
+my $log_line = shift                    // return FALSE;
+my $log_fh   = <v7-zenki.stdout_log.fh> // return FALSE;
+
+## use say with autoflush (syswrite doesn't work with :utf8 layer) returns ##
+## false on failure, true on success                                       ##
+my $result = say {$log_fh} $log_line;
+
+if ( not $result ) {
+    ## check for non-blocking errors ##
+    if ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} ) {
+        <[base.logs]>->( 2, ': stdout log buffer full, dropping line' );
+        return FALSE;
+    }
+    ## other error - log and disable ##
+    <[base.logs]>->( 0, ': stdout log write error: %s', <[base.str.os_err]> );
+    <v7-zenki.stdout_log.fh> = undef;
+    return FALSE;
+}
+
+return TRUE;
+
+#,,.,,,..,.,.,.,.,,.,,,.,,,,,,...,...,.,,,,.,,.,.,...,..,,,,,,.,.,,.,,,,,,...,
+#UGXJ6VDDDLVGNBPDPWEW67LHQJNJELLQOBP5COI4TMYDINZ5YC44ECX2ULV72BZUE5MVZ5YSJ47ZA
+#\\\|676RVK4IVQMJZHETVF4HHO2ES6UB7QYVDIV667XBBYRPXDYZDUZ \ / AMOS7 \ YOURUM ::
+#\[7]KSDAOU6YIQBV7KG3NZE7JXXV7XB7ZEQBQ5RLILYWTHI27Y6R5QAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

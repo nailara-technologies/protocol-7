@@ -101,7 +101,7 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
     } elsif ( my $v_id = <[base.zenki.ondemand_registered]>->($target_name) )
     {    # ondemand
-        my $target_user    = qw| v7 |;
+        my $target_user    = qw| v7-zenki |;
         my $target_command = <zenki.virtual>->{$v_id}->{'target_command'};
         if (defined $target_command    ##  use cmd regex  ##  [ LLL ]
             and $target_command =~ m|^([^\.]+)\.[^\.]+$|
@@ -113,7 +113,7 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
         if ( not defined $target_user
             or exists $data{'user'}{$target_user}{'session'} ) {
-            $target_command //= qw| v7.start_once |;
+            $target_command //= qw| v7-zenki.start_once |;
 
             my @cmd_param;
             if ( $command_mode == 1 ) {    ##  single command line mode  ##
@@ -209,7 +209,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
             (   not defined <system.zenka.mode>
                 or <system.zenka.mode> ne qw| cube |
             )
-            or $user eq qw| v7 |    # [LLL] improve check if really v7 zenka
+            or $user eq
+            qw| v7-zenki |    # [LLL] improve check if really v7 zenka
             or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
         ) {
             push @send_sids_left, $target_sid;
@@ -303,7 +304,7 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
                 or not <devmod.skip_log_msg> )
                 and ( $cmd ne qw| p7-log.append |
                 or not <devmod.skip_log_msg> )
-                and ( $user ne qw| v7 |
+                and ( $user ne qw| v7-zenki |
                 or $cmd ne qw| heart |
                 or not <devmod.skip_v7_heartbeat> );
         }
@@ -403,8 +404,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,,.,,..,,,,,,.,,,,.,.,,,.,.,.,.,.,,,,.,,,..,..,,...,..,,,.,,,,,,...,,,,,,..,
-#72HRSF6Z47F5K6Y6WROKCC2EOEAJYGQ3MA6CB5W7GAPUGRAGUAPQVAOWINIQMH2EUKVTBBSAXGKMS
-#\\\|2TR7PY7TAU25CNNGQZSB5X3UDMCEHOLXUHHB5FZRCL4O6W6TZAK \ / AMOS7 \ YOURUM ::
-#\[7]VUKWNINFHEHEI4I6SW5N5W6TWWAULTXORESETTNRUGFBUZZ6KCDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,..,...,,,.,,..,.,.,.,.,,,,,.,,,..,,...,...,,..,,,.,...,...,,..,
+#EJFLDPYGVHRLJ7OEXSFXZV6ZYMTD3BLLI3TYZUACF4FVZ2FYEUCGIYBEJLN5SUVINGRXFXFVIZZSE
+#\\\|J5AVVYKUAJ72K3ZOC3CYDYZBE3RBUKTP74PKHA2K4ZNPDAUGRKE \ / AMOS7 \ YOURUM ::
+#\[7]QJS53VJXWJFTP2KGYBUNEHULDSN57IQMUULBMHVPCJUP65QAUGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

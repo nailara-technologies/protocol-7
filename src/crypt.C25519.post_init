@@ -74,8 +74,9 @@ while ( glob sprintf '%s.{spk,sig}.*', $key_basepath ) {
     }
 }
 
-if (    <crypt.C25519.cfg.create_global_root_key>
-    and <system.zenka.name> eq qw| v7 |  ## first zenka to start creates it ##
+if (<crypt.C25519.cfg.create_global_root_key>
+    ## first zenka to start creates it ##
+    and <system.zenka.name> eq qw| v7-zenki |
     and not <[crypt.C25519.key_exists]>->(qw| global-root |)
 ) {
     if ( not exists $keys{'C25519'}->{'global-root'} ) {
@@ -101,8 +102,8 @@ if (    exists $keys{'C25519'}{$key_name}
 
 0;
 
-#,,,.,..,,.,.,.,,,.,,,.,.,..,,.,.,,,.,,.,,...,..,,...,...,,.,,..,,...,.,.,...,
-#CZL5NR52DP4LCFF67EDRVTL3UN7TPUB6UD4LEZEAZI47IQPZ3RCSWNXIXERSQRLI7QXGS2W77X3Z6
-#\\\|SX26LZOEKJYPJXAFXY4LEGM2LPPT6WOY2TQT7R4DHQTYK3ZSS2L \ / AMOS7 \ YOURUM ::
-#\[7]TWJRK4KLTK4M2LVCNDQ35RBLLSFS7JVJWOJ3V2HLS2SNUAG2FQAY 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,...,...,,..,,,,,,..,,,.,,,.,..,,...,...,..,,,..,.,,,,.,,.,.,
+#UC2ZJEMQSNQYMPGUXIPYGAQBGQ4B3H26ODHNYMTNZIYRM46ML4LAVWZXIC3W2GUTQJIFS6ZS2VHUQ
+#\\\|PYDYUC3L7SERCH2DRNUMWFKJCYG5LTZSNHVVDANJSBKRUR3BDMT \ / AMOS7 \ YOURUM ::
+#\[7]6JJUDQANSBWVTUZCKN3LVC265TARFU3O7AT2KV7YJBT6UYSUXCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

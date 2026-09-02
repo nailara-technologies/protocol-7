@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.instance.cmd.change-status
+# param = <id> <status>
+# descr = manually change instance status (devmod)
+
+my ( $instance_id, $new_status ) = split( m| +|, $call->{'args'} );
+$instance_id //= '';
+$new_status  //= '';
+$new_status =~ s| +$||;
+my $options = join '|', qw| online extbin queued depending error offline |;
+my $error_msg;
+$error_msg = 'no instance id specified' if !length($instance_id);
+
+$error_msg = 'instance id is not numerical'
+    if not defined $error_msg and $instance_id !~ <regex.base.iid>;
+
+$error_msg = 'no new status string submitted'
+    if not defined $error_msg and not length($new_status);
+
+$error_msg = sprintf( "status '%s' invalid [%s]", $new_status, $options )
+    if not defined $error_msg and $new_status !~ m|^($options)$|;
+
+$error_msg = sprintf( 'instance %d does not exist', $instance_id )
+    if not defined $error_msg
+    and not exists <v7-zenki.zenka.instance>->{$instance_id}
+    or not defined <v7-zenki.zenka.instance>->{$instance_id}->{'status'};
+
+$error_msg = sprintf( "instance %d already has status '%s'",
+    $instance_id, $new_status )
+    if <v7-zenki.zenka.instance>->{$instance_id}->{'status'} eq $new_status;
+
+return { 'mode' => qw| false |, 'data' => $error_msg } if defined $error_msg;
+
+<[v7-zenki.handler.zenka_status]>->( $instance_id, $new_status );
+
+return {
+    'mode' => qw| true |,
+    'data' => "changed status of instance $instance_id to '$new_status'"
+};
+
+#,,,,,.,.,,,.,.,,,,.,,...,...,,.,,,,.,.,,,,,.,..,,...,...,.,.,..,,,,,,..,,...,
+#NSTCX7THXZG72GIOJSQM3GGDMS4ZCHMJFJZBN7N3HXYKWI2X4O25FSO3KOJT43NN4ECK4XBE5KIVW
+#\\\|7WKWGEEZJ6C5NGUC2O3ZQLCAKC2H2X3NMH6K5DICFE4R2JH2VGA \ / AMOS7 \ YOURUM ::
+#\[7]T32TMXJF3EXKMYHRHQ3OJJHD34PDL2HMXAJBC4MZLV4D3VL5BABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+
+.:[ protocol-7 'v7-zenki' process start-up zenka ]:.
+
+system.zenka.name = v7-zenki
+
+[load_config_file:'shared-params']
+[load_config_file:'X11-vars']
+
+crypt.C25519.auto_load_keys  = 0  ## prevent base key auto-loading ..,
+
+## Load debian dependency manager for automatic dependency installation
+modules.load = v7-zenki jobqueue net protocol io.unix io.ip ui ascii format.yaml \
+                           crypt.C25519 auth.zenka auth.client   ## debian
+
+load.start_setup = base          #    <--   [ ,../zenki/v7-zenki/start-set-up.base ]
+                              ## [ additional : local-models + remote-server ]
+access.cmd.usr.cube          = *
+access.cmd.usr.system        = v7-zenki.teardown
+
+v7-zenki.host-reboot.enabled        = 1
+v7-zenki.host-reboot.term-delay     = 1.3787
+v7-zenki.system-poweroff.enabled    = 1
+v7-zenki.system-poweroff.term-delay = 1.3787
+
+v7-zenki.local_cube.connect-unix = 1   ## connect to local cube on unix path ##
+
+###  BIN/P7C AUTO-INSTALLATION (LOCAL)  ###
+v7-zenki.cfg.install_bin_p7c      =   yes
+v7-zenki.cfg.bin_p7c_static       =   yes
+v7-zenki.cfg.bin_p7c_has_symlink  =   auto # [yes|no|auto]
+#                       ## /usr/local/protocol-7 ., ##
+system.bin_p7c_src_path     =   'bin/c_src/p7c.c'   ##
+v7-zenki.cfg.p7c_bin_path         =   '/usr/local/bin/p7c'
+
+###  BIN/P-7-R AUTO-INSTALLATION (REMOTE)  ###
+v7-zenki.cfg.install_bin_p7r      =   yes
+v7-zenki.cfg.bin_p7r_static       =   yes
+v7-zenki.cfg.bin_p7r_has_symlink  =   auto # [yes|no|auto]
+#                               ## /usr/local/protocol-7 ., ##
+system.bin_p7r_src_path     =   'bin/c_src/p-7-r.c'         ##
+v7-zenki.cfg.p7r_bin_path         =   '/usr/local/bin/p-7-r'
+
+### ZENKA SYMLINKS AUTO-INSTALLATION ###
+v7-zenki.cfg.install_zenka_symlinks  =  yes     # [yes|no]
+v7-zenki.cfg.zenka_symlink_dir       =  '/usr/local/bin'
+
+## v7-zenki stdout cloning | redirection ##
+#
+v7-zenki.path.zenka_stdout.parent_dir = /var/run/.7/STDOUT
+v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
+#
+
+# create protocol-7 user if required.,
+[root.check_system_user:<system.amos-zenka-user>]
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[init-done] ## declare initialization completed ##
+
+[v7-zenki.call_cmd:<system.args>]
+
+[zenka.loop]
+
+#,,.,,...,,..,...,,..,,,.,.,,,...,,.,,,,.,,..,..,,...,...,...,,,,,,..,.,,,.,.,
+#ECMPD6L22N5TPEVXJUTIPUKAKJRLWHUDIQ44IIQCYOWPHXQTEVHOFUBVJQJC7CKDVM6VJFQF75HUS
+#\\\|K3UYRPZ7RQ6RCYUCYIH5Q5VOTWSECSWFWAMPMCWJQNOL3B7CI3L \ / AMOS7 \ YOURUM ::
+#\[7]42IARXBI43JRF36KF6AQPCELRSO23NNH2DDZD5SWTADEJ4FZ2KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
