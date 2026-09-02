@@ -67,29 +67,48 @@ sub load_known_deps {
 ##[ scan_zenki_pm_deps ]######################################################
 
 sub scan_zenki_pm_deps {
-    my ($zenki_base) = @_;
+    my ($p7_root) = @_;
 
     my %pm_deps;
-    return \%pm_deps unless -d $zenki_base;
+    return \%pm_deps unless defined $p7_root and length $p7_root;
 
-    opendir my $dh, $zenki_base or return \%pm_deps;
-    while ( my $zenka = readdir $dh ) {
-        next if $zenka =~ m|^\.|;
+    my @scan_sources = (
+        ##  runtime-owned registration location [ authoritative ]  ##
+        { base => "$p7_root/var/zenki-deps/p-mod", legacy => 0 },
 
-        my $pm_dep_dir = "$zenki_base/$zenka/deps/p-mod";
-        next unless -d $pm_dep_dir;
+        ##  legacy tracked-tree location [ transition merge ]  ##
+        { base => "$p7_root/cfg/zenki", legacy => 1 },
+    );
 
-        opendir my $pdh, $pm_dep_dir or next;
-        while ( my $file = readdir $pdh ) {
-            next if $file =~ m|^\.|;
+    for my $source (@scan_sources) {
+        my $zenki_base = $source->{'base'};
+        my $is_legacy  = $source->{'legacy'};
 
-            my $module = $file;
-            $module =~ s|__|::|g;
-            push @{ $pm_deps{$module} }, $zenka;
+        next unless -d $zenki_base;
+
+        opendir my $dh, $zenki_base or next;
+        while ( my $zenka = readdir $dh ) {
+            next if $zenka =~ m|^\.|;
+
+            my $pm_dep_dir
+                = $is_legacy
+                ? "$zenki_base/$zenka/deps/p-mod"
+                : "$zenki_base/$zenka";
+
+            next unless -d $pm_dep_dir;
+
+            opendir my $pdh, $pm_dep_dir or next;
+            while ( my $file = readdir $pdh ) {
+                next if $file =~ m|^\.|;
+
+                my $module = $file;
+                $module =~ s|__|::|g;
+                push @{ $pm_deps{$module} }, $zenka;
+            }
+            closedir $pdh;
         }
-        closedir $pdh;
+        closedir $dh;
     }
-    closedir $dh;
 
     return \%pm_deps;
 }
@@ -140,8 +159,8 @@ sub resolve_install {
 
 1;
 
-#,,,,,.,.,...,.,,,,,,,.,.,..,,,..,,..,...,..,,.,.,...,...,.,.,...,,.,,..,,,,,,
-#XC66FGJXKESNSJZDZJT4CSGOII7J7ZZXASG34ETCRFT5VE3D54ZWXGM7YP6JZSNRJY2ZAFQBVA4QS
-#\\\|FG26QA3WLK47O73STGAS5FDW4Z4ODTK6DUKRZJRNFENWOWJADMJ \ / AMOS7 \ YOURUM ::
-#\[7]HEQVM6NGMN2VA2W5OSO2XCGAN4SJ2XJJOJZ2D3FECCMXL6DH4IBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,,.,,...,,..,,,.,.,.,.,,,.,,,.,.,...,...,,..,,,.,,..,,..,...,
+#7KHAI6BXSVUDICBAZICLM5AJT2ECIGJ3Z6ITVKDM5UAPF5YIUV33VWY7YVDOEZ2AENFD6ZV244JHK
+#\\\|J6L2TYIU656GUPBMNCWYHGGJ35EPETLOWXERA3RHJQ755F6EZZA \ / AMOS7 \ YOURUM ::
+#\[7]XQVX4LA2Y3GQIYUQCLSXTMUNNJ7EJB6FNQ6AVVWJMGRPBI2UVWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

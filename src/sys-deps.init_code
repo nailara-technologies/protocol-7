@@ -15,9 +15,10 @@
 <[base.log]>->( 2, "  host OS : " . <sys-deps.host_os> );
 
 ## Scan all zenki dependencies ##
+my $p7_root    = <system.root_path>;
 my $zenki_base = <system.conf_path> . '/zenki';
 
-<sys-deps.pm_deps> = AMOS7::deps::module::scan_zenki_pm_deps($zenki_base);
+<sys-deps.pm_deps> = AMOS7::deps::module::scan_zenki_pm_deps($p7_root);
 <sys-deps.os_deps> = AMOS7::deps::os_package::scan_zenki_os_deps($zenki_base);
 
 <[base.log]>->(
@@ -58,8 +59,8 @@ if ( -f $track_file ) {
 
 0;
 
-#,,..,...,,,,,.,.,..,,,..,.,.,,.,,...,,.,,,.,,..,,...,...,..,,...,..,,..,,.,.,
-#BEMZWM2JZD7VB6DOTC4KKPFEZBHRWXL4ZSD53A2D4VP6JWZRQE5AV2EJVPD4RZYT3BYCEAWGXVZW6
-#\\\|E4CPRZDQKWTEPQDGFGGKQUFC6XRUEVO6P5SQ74GGBWAC7GPA6Y7 \ / AMOS7 \ YOURUM ::
-#\[7]YGG3SYLCQ3F326ZMOGUAZGC5VDTBUNIOVLTFXXURRSY4D2WLKYBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,.,,..,.,.,..,,.,.,,,,,,..,.,.,..,,...,...,.,,,...,,,.,,,.,,,.,
+#AYD7RGQLYJJWQJTDKZUJUXL44KYY7KRFIEFFZCW6CQDG2O226FHZVBH4R5FFJLTU5S4VF2A4Z7FLM
+#\\\|ZSJ55SPH7MYVFNRBJXKZJLFKF4ZOS4MB6M2MMRIVQWRIMTL7IYG \ / AMOS7 \ YOURUM ::
+#\[7]HXSWGQPJKRNONT7CDXPAKDT35KOPF3GOSO5C25BVOOQPG6CJZKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
