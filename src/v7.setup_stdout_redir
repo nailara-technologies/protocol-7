@@ -164,8 +164,8 @@ binmode( $log_fh, ':encoding(UTF-8)' ); ## write character strings as utf-8 ##
 ## set up periodic rotation watcher [only once] ##
 if ( not defined <v7.watchers.stdout_log_rotate> ) {
     <v7.watchers.stdout_log_rotate> = <[event.add_var]>->(
-        {   'var' => \$data{'v7'}{'stdout_log'}{'write_count'},
-            'poll'    => qw| w |,                       ## watch for writes ##
+        {   'var'     => \$data{'v7'}{'stdout_log'}{'write_count'},
+            'poll'    => qw| w |,    ## watch for writes ##
             'prio'    => 5,
             'repeat'  => TRUE,
             'handler' => qw| v7.callback.stdout_log_rotate |,
@@ -183,8 +183,8 @@ push <callbacks.end_code>->@*, qw| v7.stdout_log.close |;
 
 return TRUE;
 
-#,,..,...,,,,,..,,.,,,,,.,,,,,.,.,,.,,,..,...,..,,...,...,...,.,.,,,,,.,.,..,,
-#7OEFLJUYBPIAS4VSD24I67OFHNMSLTDEVITSOIIYFCW2DSWO6QUQT7KUC3PEEITSSHZEZZZ75RYTS
-#\\\|3XOMXKC35DYJ4WYHKZRGABNTTRL2AVDUFYR6FC5VIYP46XPINYH \ / AMOS7 \ YOURUM ::
-#\[7]2N5FTQLTESPKW2BP5X5KSYSN72LH3GRGWULDPCTR6OUEN6VVYEBA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,,.,,,.,,,..,.,,,,,,,,,,,,.,,..,,...,...,,.,,.,,,,,.,..,,,.,,
+#K5M5FWCNUB6AE25ZJY7SDCSMGM5ROFDBM52GEYWNTDH2IAPSYRJXFUJADYXMSSLZM7FYYBX2XTGSI
+#\\\|E6HUCPV2SAM4E3BOOZK5FQWW5XLAEIEI7MTAEN4ZVB4HEL447HP \ / AMOS7 \ YOURUM ::
+#\[7]L5UMMEBGHAZO5IGBQKC6HCEFOIRHVOKMEA44DV43ZIVZ6NCBRMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -98,8 +98,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         );
         if ( not defined <tile.transition.status.zenki.fade_out>->{$zenka}
             or <tile.transition.status.zenki.fade_out>->{$zenka} ne '1' ) {
-            <[protocol-7.route-send]>->(    ## stop (no fade) ##
-                {   'command'   => "v7.stop_implicit",
+            <[protocol-7.route-send]>->(    ## terminate (no fade) ##
+                {   'command'   => "v7.terminate-implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
@@ -163,8 +163,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
 } elsif ( $event_type eq 'fade_out' ) {
     my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
     my $instance_id = $cube_reply->{'params'}->{'instance_id'};
-    <[protocol-7.route-send]>->(    ## stop (fading complete) ##
-        {   'command'   => "v7.stop_implicit",
+    <[protocol-7.route-send]>->(    ## terminate (fading complete) ##
+        {   'command'   => "v7.terminate-implicit",
             'call_args' => { 'args' => $instance_id }
         }
     );
@@ -290,8 +290,8 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,,,,...,.,.,,.,,,.,,,..,.,,,...,..,,,,,,..,,..,,...,..,,.,.,.,.,...,..,,.,.,
-#MNNSBPULBWVBFJVK4PKV47BK4NE7QNVQINIVBKXG57B3O7AXU72K7DWTQNONAG5NDOXPANQ5J6ZLY
-#\\\|BJ3OBNUJKSTTEUN3MID3VDQD3XDB6ZUQEQXSDBJEDSI6FTIPQ3V \ / AMOS7 \ YOURUM ::
-#\[7]4EDHH3FI3S52C6QRHZSJSVDF53NR5VDYIXTR5D32LRJXQB7VO6CA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,,.,,..,,..,,...,,.,,,,.,.,.,..,,...,...,...,...,,..,...,,.,,
+#2W2QRNCB6ZXGPXPJRGMGOD5HLX2BDSTF6E2MZ7FQVSK7DYQHKSF2SMO5JDI6OMUXLI5IFEAWMW3RG
+#\\\|ZBSJZELDGLOSOMAQI5PC5FX3BF3V523LCNK5M5573YDL24ZWVNH \ / AMOS7 \ YOURUM ::
+#\[7]UWZSW7PNRSEALV5X3F3ZR63ZK46MOMDNDH2LNKI7ZKGXH3OPYWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
