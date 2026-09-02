@@ -13,8 +13,9 @@ return unless defined $zenka_name;
 <[base.perlmod.load]>->('AMOS7::deps::os_package')
     if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
 
+my $p7_root    = <system.root_path>;
 my $zenki_base = <system.conf_path> . '/zenki';
-my $pm_deps    = AMOS7::deps::module::scan_zenki_pm_deps($zenki_base);
+my $pm_deps    = AMOS7::deps::module::scan_zenki_pm_deps($p7_root);
 my $os_deps    = AMOS7::deps::os_package::scan_zenki_os_deps($zenki_base);
 
 my @missing_pm;
@@ -208,8 +209,8 @@ if ( @missing_pm || @missing_os || @missing_bin ) {
 
 0;
 
-#,,,.,,,.,,..,.,.,,..,,,,,,..,,..,,..,,,,,,,,,..,,...,...,...,...,.,,,.,,,.,.,
-#3VXMDJHXWN3KCOYT63RNKT5M6U7G4XILBMWZ4RLYYEHJIQNODGFACBH5K6CFH6CGSUFWJMUPRBCHW
-#\\\|ZHXTAVBYWO2YJTKBHGQDN2S3MRBR5A72REHBJPH6IKNOTG3VSBE \ / AMOS7 \ YOURUM ::
-#\[7]JPT35M5W6F42SO2VZHMONLJ5JPMMKKZL7ISWYGZGLNUX22PDQ6CA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,.,.,,,,,,,.,.,..,,..,,.,,,,.,,..,,...,...,,..,,..,,,,,,,,,.,,,
+#JPCQPAGAU54R3QPFV55BPQKBLGY727QH7LRDEXWJ3DZJAQAOUR2MLBEMW3FYEVCHGZGF2RHWBLAU2
+#\\\|DVSP5V73CEP4YFMT26UMS5IF7J53SX4XMZMDO6EX7LLEWZ6HDKT \ / AMOS7 \ YOURUM ::
+#\[7]TXNNTMVLU7O7XAJKJAHB5UK5WKR3S3EPX2VIIV2EZKD6YYACIIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

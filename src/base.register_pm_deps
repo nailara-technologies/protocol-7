@@ -2,10 +2,9 @@
 
 # name = base.register_pm_deps
 
-my %pmods          = map { $ARG => TRUE } grep { !m,^AMOS(::.+|$)$, } @ARG;
-my $zenka          = <system.zenka.name>;
-my $cfg_path       = <system.conf_path>;
-my $start_cfg_name = qw| zenka.v7 |;
+my %pmods     = map { $ARG => TRUE } grep { !m,^AMOS(::.+|$)$, } @ARG;
+my $zenka     = <system.zenka.name>;
+my $root_path = <system.root_path>;
 
 state $access_warned = FALSE;
 
@@ -18,113 +17,102 @@ if ( not <[base.perlmod.loaded]>->('Module::CoreList') ) {
 }
 #
 
-my $mod_dir = <[base.get_path.zenka_cfg]>;
+my $mod_dir = sprintf qw| %s/var/zenki-deps/p-mod/%s |, $root_path, $zenka;
 
 my @not_registered;
 
-if ( $mod_dir
-    =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/deps/p-mod| ) {
+## ensure runtime-owned directory path [ 0775, protocol-7 group writable ] ##
+my $zenka_user = <system.amos-zenka-user> // qw| protocol-7 |;
+my ( $zenka_uid, $zenka_gid ) = ( getpwnam($zenka_user) )[ 2, 3 ];
+$zenka_gid = getgrnam($zenka_user) if not defined $zenka_gid;
 
-    ## skip if dependencies already registered ##
-    #[ when root : fall through to fix any ownership or permission issues ]#
-    my $already_registered = TRUE;
-    foreach my $pm ( keys %pmods ) {
-        my $placeholder = catfile( $mod_dir, $pm );
-        $placeholder =~ s|::|__|g;    ## AMOS7::CHKSUM -> AMOS7__CHKSUM ##
-        if ( not -e $placeholder ) {
-            $already_registered = 0;
-            last;
+if ( not -d $mod_dir ) {
+    eval {
+        require File::Path;
+        File::Path::make_path($mod_dir);
+    };
+}
+
+## normalize perms/ownership for the entire var/zenki-deps path ##
+if ( -d $mod_dir ) {
+    my $deps_base = sprintf qw| %s/var/zenki-deps |,       $root_path;
+    my $pm_base   = sprintf qw| %s/var/zenki-deps/p-mod |, $root_path;
+    foreach my $dir ( $deps_base, $pm_base, $mod_dir ) {
+        next if not -d $dir;
+        chmod( 0775, $dir );
+        if ( $EUID == 0 and defined $zenka_uid and defined $zenka_gid ) {
+            chown( $zenka_uid, $zenka_gid, $dir );
         }
-    }
-    return TRUE if $already_registered and $EUID != 0;
-
-    <[base.check_dependency_dirs]> if not -d $mod_dir;
-
-    ## Get parent directory owner [taeki in dev, root in production] ##
-    my ($parent_uid) = <[base.path_owners]>->($mod_dir);
-    unless ( defined $parent_uid ) {
-        <[base.logs]>->(
-            0,
-            "<< register_pm_deps : cannot get parent dir owner for '%s' >>",
-            $mod_dir
-        );
-        return undef;
-    }
-
-    ## Get zenka group [httpd, httpsd, etc.] ##
-    my $zenka_user  = <system.amos-zenka-user> // qw| protocol-7 |;
-    my $zenka_group = $zenka_user;              ## same as user ##
-    my $gid         = getgrnam($zenka_group);
-    if ( not defined $gid ) {                   ## try auto-installing user ##
-        <[base.root.check_system_user]>->($zenka_user);
-        $gid = getgrnam($zenka_group)
-            or <[base.logs]>->(
-            0, "<< register_pm_deps : unix group '%s' not in passwd >>",
-            $zenka_group
-            ) and return undef;
-    }
-
-    my $src_stat = File::stat::stat($mod_dir);
-
-    if ( -d $mod_dir and -r $mod_dir ) {
-
-        ## skip chmod only when running standalone, not under v7 control ##
-        my $skip_chmod = !<[base.zenka.is_v7_started]>;
-
-        foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
-            ## Convert :: to __ for Windows filesystem compatibility
-            ( my $mod_name_fs = $mod_name ) =~ s|::|__|g;
-            next if Module::CoreList::is_core($mod_name);
-            if ( -w $mod_dir ) {
-                my $path_abs = catfile( $mod_dir, $mod_name_fs );
-                ( my $relpath = $path_abs ) =~ s|^.*/||;
-
-                ## create file if it doesn't exist ##
-                if ( !-e $path_abs ) {
-                    my $fh;
-                    open( $fh, qw| > |, $path_abs )
-                        and close($fh);
-                }
-
-                ## always chown to fix existing root-owned files, even in ##
-                ## standalone zerka mode ..,                              ##
-                if ( $EUID == 0 ) {
-                    chown( $parent_uid, $gid, $path_abs )
-                        or <[base.logs]>->(
-                        2,        ':. : cannot chown %s : %s .:',
-                        $relpath, <[base.str.os_err]>
-                        );
-                }
-
-                ## skip chmod only [ root + standalone ] ##
-                next if $skip_chmod;
-
-                ## chmod ##
-                chmod( $file_perm, $path_abs )
-                    or <[base.logs]>->(
-                    2,        ":. : '%s' : chmod : %s .:",
-                    $relpath, <[base.str.os_err]>
-                    );
-
-            } else {
-                push @not_registered, $mod_name;
-            }
-        }
-
-    }
-    if (    @not_registered
-        and not <system.zenka.initialized>
-        and not $access_warned++ ) {
-        my $root_path = <system.root_path>;
-        ( my $mod_dir_rel = $mod_dir ) =~ s|^$root_path/?||g;
-        <[base.logs]>->( 0, '<< no write access to %s >>', $mod_dir_rel );
-        map { <[base.logs]>->( 0, ': not registered :. %s .:', $ARG ) }
-            @not_registered;
     }
 }
 
-#,,,.,.,,,..,,,.,,.,,,.,,,,.,,,.,,..,,,.,,,.,,..,,...,..,,,,.,.,,,..,,,.,,...,
-#EDQDCXBVXTXYS3AO4HH7O4M4IQLWUDNCL7LMDN4I4OLIMQLEBPYXFFVC2FYRVWUFHWYJSYRBHEMM4
-#\\\|FOMCTDFAXUKL3EG43YKIL72YCAYEJMC5NVINQCXGGHS5OJRERCD \ / AMOS7 \ YOURUM ::
-#\[7]P7DDWARNSZRYPPT2JOIGDSWHZB6UD4Y3JJJZOFJLH5UPKQCM72BI 7  DATA SIGNATURE ::
+## skip if dependencies already registered ##
+my $already_registered = TRUE;
+foreach my $pm ( keys %pmods ) {
+    my $placeholder = catfile( $mod_dir, $pm );
+    $placeholder =~ s|::|__|g;    ## AMOS7::CHKSUM -> AMOS7__CHKSUM ##
+    if ( not -e $placeholder ) {
+        $already_registered = 0;
+        last;
+    }
+}
+return TRUE if $already_registered;
+
+if ( -d $mod_dir and -r $mod_dir and -w $mod_dir ) {
+
+    ## skip chmod only when running standalone, not under v7 control ##
+    my $skip_chmod = !<[base.zenka.is_v7_started]>;
+
+    foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
+        ## Convert :: to __ for Windows filesystem compatibility
+        ( my $mod_name_fs = $mod_name ) =~ s|::|__|g;
+        next if Module::CoreList::is_core($mod_name);
+        if ( -w $mod_dir ) {
+            my $path_abs = catfile( $mod_dir, $mod_name_fs );
+            ( my $relpath = $path_abs ) =~ s|^.*/||;
+
+            ## create file if it doesn't exist ##
+            if ( !-e $path_abs ) {
+                my $fh;
+                open( $fh, qw| > |, $path_abs )
+                    and close($fh);
+            }
+
+            ## normalize runtime state ownership when running as root ##
+            if (    $EUID == 0
+                and defined $zenka_uid
+                and defined $zenka_gid ) {
+                chown( $zenka_uid, $zenka_gid, $path_abs );
+            }
+
+            ## skip chmod only [ root + standalone ] ##
+            next if $skip_chmod;
+
+            ## chmod ##
+            chmod( $file_perm, $path_abs )
+                or <[base.logs]>->(
+                2,        ":. : '%s' : chmod : %s .:",
+                $relpath, <[base.str.os_err]>
+                );
+
+        } else {
+            push @not_registered, $mod_name;
+        }
+    }
+
+}
+if (    @not_registered
+    and not <system.zenka.initialized>
+    and not $access_warned++ ) {
+    my $root_path = <system.root_path>;
+    ( my $mod_dir_rel = $mod_dir ) =~ s|^$root_path/?||g;
+    <[base.logs]>->( 0, '<< no write access to %s >>', $mod_dir_rel );
+    map { <[base.logs]>->( 0, ': not registered :. %s .:', $ARG ) }
+        @not_registered;
+}
+
+#,,,,,,,.,,..,,,,,..,,,.,,,,,,,..,..,,,..,..,,..,,...,...,...,,,,,,..,,,.,...,
+#TJU3VGZUBGC4RJWOO3SLMWLLO3CN24YXCDL66OBO4VCJWLTAN7DSTMJF5VFJ6SM67M22O2BZ2ZYVS
+#\\\|WWBOIJNJNBLD6DTJLWTDFJWCYNM326S2VIPN3VS22FMG5YXGJCH \ / AMOS7 \ YOURUM ::
+#\[7]DTDAO6Z7BIG5W3F7AKKCREBGDPMXBAJ4YJLAGR257T4J26T7V2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

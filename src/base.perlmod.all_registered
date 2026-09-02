@@ -1,41 +1,58 @@
 ## [:< ##
 
 # name  = base.perlmod.all_registered
-# descr = return all in deps/p-mod directories registered perl module names
+# descr = return all registered perl module names from deps/p-mod
 
 my $zenka_name = shift;
 
+my $root_path = <system.root_path>;
 my $conf_path = <system.conf_path>;
 
-my $zenka_cfg_path;
 my $perlmods_found_aref = [];
 
 if ( not -d $conf_path ) {
     <[base.s_warn]>->( 'configuration path not found [ %s ]', $conf_path );
     return undef;
 } elsif ( defined $zenka_name and $zenka_name =~ <regex.base.usr> ) {
-    $zenka_cfg_path = sprintf qw| %s/zenki/%s |, $conf_path, $zenka_name;
-    if ( not -d $zenka_cfg_path ) {
-        <[base.s_warn]>->( 'no such zenka [ %s ]', $zenka_name );
-        return undef;
-    }
-    $zenka_cfg_path = sprintf qw| %s/deps/p-mod |, $zenka_cfg_path;
-    if ( not -d $zenka_cfg_path ) {
+    my @paths;
+
+    ##  runtime-owned registration location [ authoritative ]  ##
+    my $var_cfg_path = sprintf qw| %s/var/zenki-deps/p-mod/%s |, $root_path,
+        $zenka_name;
+    push @paths, $var_cfg_path if -d $var_cfg_path;
+
+    ##  legacy tracked-tree location [ transition merge ]  ##
+    my $legacy_cfg_path = sprintf qw| %s/zenki/%s/deps/p-mod |,
+        $conf_path, $zenka_name;
+    if ( not -d $legacy_cfg_path ) {
         <[base.s_warn]>->(
-            'no modules registered yet for zenka %s', $zenka_name
+            'no modules registered ' . 'yet for zenka %s', $zenka_name
         );
-        return undef;
+        return undef unless @paths;
+    } else {
+        push @paths, $legacy_cfg_path;
     }
+
     ##  specified zenka only  ##
-    $perlmods_found_aref = <[file.all_files]>->($zenka_cfg_path);
+    foreach my $path (@paths) {
+        push @$perlmods_found_aref, <[file.all_files]>->($path)->@*;
+    }
 
 } elsif ( defined $zenka_name ) {
     <[base.s_warn]>->( 'not a valid zenka name [ %s ]', $zenka_name );
     return undef;
 } else {
-    $zenka_cfg_path = sprintf qw| %s/zenki |, $conf_path;    ##  all zenki  ##
+    ##  runtime-owned registration location [ authoritative ]  ##
+    my $var_zenki_path = sprintf qw| %s/var/zenki-deps/p-mod |, $root_path;
     $perlmods_found_aref
-        = <[file.match_files]>->( $zenka_cfg_path, qw|  recursive p-mod  | );
+        = <[file.all_files]>->( $var_zenki_path, qw| recursive | )
+        if -d $var_zenki_path;
+
+    ## legacy tracked-tree location [ transition merge ]  all zenki ##
+    my $legacy_zenki_path = sprintf qw| %s/zenki |, $conf_path;
+    push @$perlmods_found_aref,
+        <[file.match_files]>
+        ->( $legacy_zenki_path, qw|  recursive p-mod  | )->@*;
 }
 
 foreach my $path_abs ( $perlmods_found_aref->@* ) {
@@ -52,8 +69,8 @@ if (wantarray) {    ##  perlmod list  ##
     return [ <[base.sort]>->($perlmods_found_aref) ];    ##  ARRAY ref  ##
 }
 
-#,,,,,.,,,,,.,,..,,,,,..,,.,.,.,.,..,,.,.,,.,,..,,...,...,...,.,.,,..,.,,,,,,,
-#A5F5RXOMTGOK2BJ4XFWOELFFCL5R6SR3K45PW2YMFMWA5QLWK2N5MN3SVBVOPDZ2CQSHUUMWASUTU
-#\\\|WK3S6OTPMBBPJYZS7MBP2XCX4YIM7K4Q4VLVEBQ4AGRLRUSZLRY \ / AMOS7 \ YOURUM ::
-#\[7]7Z4RJDOCG5BAYIHY7I24YRGZDIAWQ2UKSYXGXS4TNYUSIMGLFGAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,..,,,..,,.,,,.,,...,.,.,,..,..,,...,...,..,,..,,,.,,.,,,.,.,
+#ZPDPPQLPYDL5NLQALRKKCM3PHMNZBORWBUDUHFAEZ4J5WGM4AJJZU7EAJMV7AABTVFC6J5JSW2MS4
+#\\\|CM7EN5FHVX22DMJ2DQ7S3OUXAXBDVPLJVNM5GWFZRDNPKOAU6ZH \ / AMOS7 \ YOURUM ::
+#\[7]W3XMBFC4USLXVXQN2OR7AWRPCDSVSNQP2IGQKI3EUYMA2YAHTWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
