@@ -204,7 +204,7 @@ if ( exists $init_result_data->{'start_mode'}
             if defined $exec_bin and not defined $prog_usr;
         <[base.logs]>->( 0, '%s ., aborted.,', $reason );
         <[zenka.change_status]>->( $instance_id, qw| error | );
-        <[zenka.cmd.stop]>
+        <[zenka.cmd.terminate]>
             ->( { 'args' => $instance_id, qw| mode | => qw| implicit | } );
         return undef;
     } elsif ( $exec_bin =~ m|\s| or !-x $exec_bin ) {
@@ -451,8 +451,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,..,...,..,,,.,,..,,,,.,,.,,,,.,,,.,..,,...,..,,...,...,,.,,...,.,.,,..,,.,,
-#3QQIRTT3646JPFVNWZBOT3ZOPLABESOGRLJD6FEHW7QNJKICSS6DHORJW2KVER4NVMIAXQE7O75IG
-#\\\|GPWWM5Q3EBV6KAEEBLUPG7DXTKKSU2V6AI4DC6RHUC7GO7EN3ZO \ / AMOS7 \ YOURUM ::
-#\[7]FTKBTE4BKFOPSX5ZIM2EVMWOSTEMCGK6BPPKYRENMU2MGRT32EDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,..,,..,,,,.,.,.,,,.,...,,,.,..,,...,..,,..,,,,.,..,,,,,,,,,,
+#5GUJ2QHAG5AKPFJQVI5W3KESLVSBMHTBVLJEI6YLBN6OZSPXWNEYF75ZMUI3UJB6ZBWWSJLNZPRBK
+#\\\|BCPVDX7HVTFW4DRUVEVNABKAIQKKN7MUR5QF3PFGFESBWLMLJEA \ / AMOS7 \ YOURUM ::
+#\[7]BKO2RL2GUFD37ZYZRQDRWGM3L4ED5H5VL7U44UEFTXLZ3W2WJWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

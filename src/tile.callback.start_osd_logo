@@ -6,7 +6,9 @@
 my $display_logo = <tile.display_logo> // 0;
 
 my $command_str
-    = $display_logo ? qw| cube.v7.start_once | : qw| cube.v7.stop_implicit |;
+    = $display_logo
+    ? qw| cube.v7.start_once |
+    : qw| cube.v7.terminate-implicit |;
 
 <[protocol-7.command.send.local]>->(
     {   'command'   => $command_str,
@@ -14,8 +16,8 @@ my $command_str
     }
 );
 
-#,,,.,.,.,,,,,,.,,.,,,,,,,,..,..,,,,,,.,,,...,..,,...,...,,..,...,..,,.,,,.,.,
-#DM2HG6UOYE7NE53CXTCG6ANRRQTGKOU3HHZL7G3D4NUU655KJQWNLAHLTBKQ6MASOFLV2W3YD6BR6
-#\\\|EAUXLMJQ24TVWMWVAJGB6S4QCGMK3KH7YTQHM24PDQE2NFFPRME \ / AMOS7 \ YOURUM ::
-#\[7]M7SPLQ6GAYVHB7RGGIQDZSJQ3ZM25IPGKXGUE2Q6GODBJ46WWWDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,..,,...,..,,,,.,...,.,.,.,.,..,,...,...,...,.,.,..,,...,.,.,
+#SU5S4VY53VLLBRXAAB6ZXMM67OMIICOFOWVC3Z6XOF6XSAXCZRR2Q6S6Z7PCJWUDAILINNSH23QNC
+#\\\|ECO7T4LSMX3AFJOY5EGPVXRRSWMHUFMCMCBUSEO6ZWCLPWT6K7M \ / AMOS7 \ YOURUM ::
+#\[7]ZSMMH444LVQEBKFQ63RBGH65ICUSIROML5M6W5JEBO2IMNYB5YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
