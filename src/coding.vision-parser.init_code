@@ -3,12 +3,31 @@
 # name  = coding.vision-parser.init_code
 # descr = initialize vision-text-extraction state machine and variable watchers
 
-# Initialize state machine infrastructure
-<coding.vision-parser.state>  = 'pending';
-<coding.vision-parser.jobs>   = {};
-<coding.vision-parser.timers> = {};
+my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
 
-<[base.logs]>->( 1, '[vision-parser] state machine initialized' );
+# a reload re-runs init_code while a job may still be in-flight from     ##
+# before it -- only seed fresh state on a genuine first init, never      ##
+# stomp an already-initialized jobs/timers table                        ##
+if ( not $reinit ) {
+    <coding.vision-parser.state>  = 'pending';
+    <coding.vision-parser.jobs>   = {};
+    <coding.vision-parser.timers> = {};
+
+    <[base.logs]>->( 1, '[vision-parser] state machine initialized' );
+} else {
+    <[base.logs]>->(
+        1, '[vision-parser] reinit : keeping existing state machine'
+    );
+}
+
+# cancel a surviving prior-load watcher before registering a fresh one -- ##
+# on reinit the state='pending' seed above is skipped, but a stray later  ##
+# write would otherwise still re-trigger every watcher stacked up across  ##
+# past reloads; same precedent as coding.spawn_inference_server's watcher ##
+# cleanup before respawn                                                  ##
+my $prior_watcher = <coding.vision-parser.watcher.state>;
+$prior_watcher->cancel()
+    if defined $prior_watcher and $prior_watcher->is_active();
 
 # Register variable watcher on state variable
 # This watcher triggers state_transition handler whenever state is written to
@@ -26,8 +45,8 @@
 
 return TRUE;
 
-#,,..,,..,.,.,...,,,.,..,,.,.,.,.,.,.,,,,,,..,..,,...,...,,.,,..,,...,,.,,,..,
-#5LDUOBWTVZV2HHHQ2NOL5ZOWAWPAT3OCN55R4FHITK5HA4T7V3SXQEVLGZDTCBN5Y7QXUZGUITCPY
-#\\\|X5MSCNQUIN7LRFSENXTGPQMWSKWNKVC3TI56VESM3LPO6AMCRU6 \ / AMOS7 \ YOURUM ::
-#\[7]TTD3GPEH7B2HMJ4UNDISJ2LY7UMFK2JBL2F2S3B2VQQ74WHQ7WDA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,,..,..,,,.,,,.,,.,.,,..,,.,,..,,...,..,,..,,..,,.,,,,,.,,..,
+#CJCKRGJ7RRVOTOAXWYARZHBLYBHZJ5E6ARUNAXATHXDBIELMYX7WH3LJNND76TWR3BK4WLB7KZDJI
+#\\\|OQJ53HVBV7B5IKDERIC24WAUZNCA6PHPB4LDJDYM4J2K5VFXE3X \ / AMOS7 \ YOURUM ::
+#\[7]RWPHJ6NTYPSI3XXGKQ4IKJGJKNO464A7HYXDT7QVO3BQ7HQCZUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
