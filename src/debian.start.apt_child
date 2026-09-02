@@ -22,16 +22,20 @@ local $ENV{'PAGER'}                    = '/bin/true';
 local $ENV{'LANG'}                     = 'en_US.UTF-8';
 local $ENV{'DEBIAN_FRONTEND'}          = 'noninteractive';
 $| = 1;
+$0 = 'debian[apt-child:idle]';    ## recognizable in ps, doubles as a  ##
+                                  ## live status display while running ##
 while ( my $line = <STDIN> ) {
     chomp $line;
     last unless length $line;
     if ( $line =~ m|^install (.+)$| ) {
         my @pkgs = split /\s+/, $1;
-        my $cmd  = 'apt-get -fy install ' . join( ' ', @pkgs ) . ' 2>&1';
+        $0 = sprintf 'debian[apt-child:installing %s]', join( ' ', @pkgs );
+        my $cmd = 'apt-get -fy install ' . join( ' ', @pkgs ) . ' 2>&1';
         open( my $fh, '-|', $cmd ) or do { print "< 1\n"; next };
         while ( my $out = <$fh> ) { print "> $out" }
         close($fh);
         printf "< %d\n", $? >> 8;
+        $0 = 'debian[apt-child:idle]';
     } elsif ( $line eq 'exit' ) {
         last;
     } else {
@@ -51,8 +55,8 @@ EOT
     <debian.apt_child.pid>
 );
 
-#,,,.,.,,,,..,,,.,.,,,.,.,.,,,,.,,,,.,.,.,,,,,..,,...,...,,..,..,,,.,,,..,.,.,
-#DAPLSACRPFTJMM5ZVVBPZWKT6AKW2RT5PEP6FFFW64PJDNXYRBBCZWG2HCW2SXWUHIHIXEXEWF2O6
-#\\\|ZWFHN7EV2O5CVYG2MWM4Y663HB66BRIYXUOFYFC37OXPNIXRCYA \ / AMOS7 \ YOURUM ::
-#\[7]KIJK2UAOGC2OWQG5FIQ4JKHJFKBVROPOUNVJNTYNCOTUBGZJ5CDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,..,,,.,,.,,,,..,...,.,,,.,,,..,,...,...,,.,,,..,,,,,,..,,,,,
+#VJUUBWBJG3NX335FMMLFFBATKU65KLDTOTREGLTN4ERTLULCPOIPD2BYR6I66MXE5TUWRKMXNEZX6
+#\\\|R5IH4DI7YOCU3YCQTBJ5NV4UMGETZSVVSNMCI45I7IOO3MBHRFK \ / AMOS7 \ YOURUM ::
+#\[7]EIG2VWBXVW2ERTINUB5LYYRTQQIMB6WPQJEBUMOV3YKRB7KRRUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
