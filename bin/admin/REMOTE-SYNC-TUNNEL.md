@@ -211,10 +211,10 @@ Once remote mounts and tunnels are working:
 
 - `bin/admin/remote-sync-tunnel` - Main script
 - `bin/admin/remote-sync-tunnel.service` - Systemd integration
-- `cfg/zenki/v7/start-set-up.remote-server` - Remote deployment profile
+- `cfg/zenki/v7-zenki/start-set-up.remote-server` - Remote deployment profile
 
-#,,,,,,,.,..,,...,,..,,..,..,,..,,,,.,,.,,,,.,..,,...,...,...,...,...,...,,.,,
-#W6GUMVSSR2PNRBYAU6UTGBKGKFEYVGJHQB7GRHEGGVJKDZBCA6MNOAUDGOJRZYNWUM6LHCQ7IPO3Q
-#\\\|YVQFKTRI4TJFOS7Z6PDU6JYF7TIHSYOI7BE77IWQ6WDW5JL7ZRN \ / AMOS7 \ YOURUM ::
-#\[7]EBMDR7K3TJCFU3MFOHVHX62IMKTZBRI4YOTE4A5OH7URPYHD4SBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,,.,,...,,,,,..,,...,...,,,.,..,,...,...,..,,,,.,,,.,..,,..,,
+#POAIB3AEBNZKCWUTJOYAPKHZDSY5W2L3F25L3WE24RMJZYCOH4A7OBEYEB2OS7GW56KWMMM5AHFG6
+#\\\|ZJH35MTROWPYC2LROKUDW6ZUSIAVVKNJ6CXCY7JVT4KM6NHFXO3 \ / AMOS7 \ YOURUM ::
+#\[7]CGR2HBNJTFWNY2YUEP4MWQILXQDNGOU4QN46GSQ4KZGJ6AGHXIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

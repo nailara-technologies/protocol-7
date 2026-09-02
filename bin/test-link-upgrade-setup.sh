@@ -1,5 +1,5 @@
 #!/bin/bash
-# Link-upgrade test setup: Initialize v7 zenka and cube
+# Link-upgrade test setup: Initialize v7-zenki zenka and cube
 # Ensures proper system state before running negotiation tests
 
 set -e
@@ -26,28 +26,28 @@ if p7 whoami 2>&1 | grep -q "@"; then
     echo "     System already running! Proceeding to reload..."
     SYSTEM_RUNNING=1
 else
-    echo "     No system running, will start v7"
+    echo "     No system running, will start v7-zenki"
     SYSTEM_RUNNING=0
 fi
 echo ""
 
 if [ $SYSTEM_RUNNING -eq 0 ]; then
     # Step 1: Kill old processes (only if not running)
-    echo "[1/7] Killing old v7 and cube processes..."
-    pkill -f "runsc\.v7" 2>/dev/null || true
+    echo "[1/7] Killing old v7-zenki and cube processes..."
+    pkill -f "runsc\.v7-zenki" 2>/dev/null || true
     pkill -f "runsc\.cube" 2>/dev/null || true
     sleep 2
     echo "     Old processes cleaned up"
     echo ""
 
-    # Step 2: Start v7 in background
-    echo "[2/7] Starting v7 zenka in background..."
-    ./bin/Protocol-7 v7 -B 2>&1 | grep -E "protocol-7|backgrounding" || true
-    echo "     V7 started"
+    # Step 2: Start v7-zenki in background
+    echo "[2/7] Starting v7-zenki zenka in background..."
+    ./bin/Protocol-7 v7-zenki -B 2>&1 | grep -E "protocol-7|backgrounding" || true
+    echo "     V7-zenki started"
     echo ""
 
     # Step 3: Wait for initialization
-    echo "[3/7] Waiting 7 seconds for v7 and cube to initialize..."
+    echo "[3/7] Waiting 7 seconds for v7-zenki and cube to initialize..."
     sleep 7
     echo "     Initialization complete"
     echo ""
@@ -61,7 +61,7 @@ if [ $SYSTEM_RUNNING -eq 0 ]; then
     # Step 5: Check zenka list
     echo "[5/7] Checking loaded zenki..."
     echo "     Loaded zenki:"
-    p7 v7.list zenki 2>&1 | head -15 || echo "     (Could not list zenki)"
+    p7 v7-zenki.list zenki 2>&1 | head -15 || echo "     (Could not list zenki)"
     echo ""
 
     # Step 6: Reload code
@@ -108,8 +108,8 @@ echo "System is now ready for link-upgrade testing."
 echo "Run: ./bin/test-link-upgrade-workflow.sh"
 echo ""
 
-#,,,.,...,.,,,.,.,,,,,...,,..,.,.,,,,,...,,.,,..,,...,...,...,,..,..,,.,.,.,.,
-#L3APFYJEWD5V2Q4HUY5MBNXU7AMM3OGFEIJPJXVPM7ZU4KVPZ2HSR6ENKTBBASOSARXN7EPDGUXIK
-#\\\|37EQQQ7IADQWNWX5RRZWU3JWJEWPWBF7ZR6NSZD2EORTFX4SV2Z \ / AMOS7 \ YOURUM ::
-#\[7]T3P6J5WKFUVQ3O3KZGYZVBFO52JZPFAKDDA34EE7HX7FXQASHECI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,,,,,,,,,,.,,..,,,,.,,,.,...,..,,...,...,,.,,..,,...,.,.,,,,,
+#I6RARKVVGGXAV4623SO2UELIC4ERINYM63EU7FKFGLEE7ABQM2LBNVCKU2NER53EP2X65QK4N2P2M
+#\\\|VEBVAZ54T726FWXO2WBRERFB6WJ7S5PP2VEC2CVTNU2LO2QSD4J \ / AMOS7 \ YOURUM ::
+#\[7]J45BTLAED5WTWUPZETY37VKMFASF4TYUD4N2LZIBUHLUYH5ATMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

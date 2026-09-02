@@ -37,7 +37,7 @@ echo ""
 
 echo "[3/3] Listing active zenki..."
 echo "---"
-p7 v7.list zenki 2>&1 | head -10 || echo "ERROR: Could not list zenki"
+p7 v7-zenki.list zenki 2>&1 | head -10 || echo "ERROR: Could not list zenki"
 echo "---"
 echo ""
 
@@ -46,8 +46,8 @@ echo ""
 echo "If all tests show successful responses, system is ready for link-upgrade testing."
 echo ""
 
-#,,.,,,,.,.,.,..,,.,,,,..,,..,,..,..,,,.,,.,,,..,,...,...,..,,,,,,.,,,,,,,,,.,
-#O7PYRQR2EVYA6EU6CIVZ2EFFSNPNFTBJ56EGJSAVIGFCRCRZD6MYCCE2MNUSGPHRCD62E3PBK35DO
-#\\\|RQEROOPNBVKPJZ6GBJ67WXGIX3UGD7H56DN7CUJSKJ56KC74X46 \ / AMOS7 \ YOURUM ::
-#\[7]BT34TYGJUCABULO3E3HVHS23CIYFA5DOEM5GR7RQLVM443HFPODY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,.,.,,.,,,.,,,,,,,.,,.,,,.,,,..,,...,...,...,.,,,...,..,,,.,,
+#WFJ74OUL5USQFWO5J6E3ABIEN4JNMI47MKEJ35MNQKF7NRKBGE7TWWMWMJ22QVR4ZXGHF426OHYYE
+#\\\|L77YYLQZQO66C7LJLJUZXZRH6OCWNR6MJRDCGP7VSJYP6FDRXXD \ / AMOS7 \ YOURUM ::
+#\[7]HTR64ATOLMI3G24QQ4JMQP25PRDKNDPXVWPHZJOACDCQJSULLKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -451,7 +451,7 @@ int main( int argc, char * argv[] ) {
         fprintf( stderr, "\n < usage : %s <hostname[:port]> <command> [args] >\n", argv[0] );
         fprintf( stderr, "   examples:\n" );
         fprintf( stderr, "     %s relay.internal list sessions\n", argv[0] );
-        fprintf( stderr, "     %s compute-node.lan:47 v7.list zenki\n\n", argv[0] );
+        fprintf( stderr, "     %s compute-node.lan:47 v7-zenki.list zenki\n\n", argv[0] );
         exit(2);
     }
 

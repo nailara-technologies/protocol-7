@@ -28,7 +28,7 @@ my $ZENKI_DIR  = File::Spec->catdir( $P7_ROOT, 'cfg', 'zenki' );
 
 make_path($TRACK_DIR) unless -d $TRACK_DIR;
 
-## group-access for sys-deps zenka \ v7 [ best-effort ] ##
+## group-access for sys-deps zenka \ v7-zenki [ best-effort ] ##
 my $p7_gid = getgrnam('protocol-7');
 if ( defined $p7_gid and -d $TRACK_DIR and -o $TRACK_DIR ) {
     chown( -1, $p7_gid, $TRACK_DIR );
@@ -221,7 +221,7 @@ sub save_tracked {
         warn ":. failed to write tracking state: $EVAL_ERROR\n";
     }
 
-    ## group-access for sys-deps zenka \ v7 [ best-effort ] ##
+    ## group-access for sys-deps zenka \ v7-zenki [ best-effort ] ##
     if ( defined $p7_gid and -f $TRACK_FILE and -o $TRACK_FILE ) {
         chown( -1, $p7_gid, $TRACK_FILE );
         chmod( 0664, $TRACK_FILE );
@@ -238,8 +238,8 @@ sub iso_timestamp {
     );
 }
 
-#,,..,,,,,.,.,,,,,.,,,.,.,,..,,..,,,.,,.,,.,.,..,,...,...,,,,,,.,,,..,,,.,,,.,
-#BLLMSL46F3LWGPKYGCWFJ5SM5WHJGQLQIP75STHLVV6YGL2225JQZKR6RTC6F6HXT35ENJDEZ3U4O
-#\\\|7TFWMMAWYY6MPIEP2XI5N5F2QX7356XNVB7IJVKEYSVI2DX6M2N \ / AMOS7 \ YOURUM ::
-#\[7]UMLKFUPVIE7F755ZNREOZVW3JZ6VCOPNKELKADARCNSFAXKDL2BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,.,,,.,.,.,,,,,,,.,,,,,.,,.,,..,,...,...,..,,..,,,,,,.,,,,.,,
+#H7LG4X3MARD56P3UIDXPDI53EIYDTAF5JMVFR23EWSGWWLHXJZ3SIAYTVKCGE4PJSHGRDIGWNUDOM
+#\\\|EB2WCD2LO3XBUMSCRDDMJF4FBY74HEZBFVLGXYYEZT2YY2IMQJZ \ / AMOS7 \ YOURUM ::
+#\[7]C2QKZHMY6BI45RTX3U4C6SH2IS5Y2UK6ILT5GVS6EVHN32JVZQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

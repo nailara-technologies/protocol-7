@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3XBORO5QBQ-9320.0 :::
+::: SOURCE-CODE VERSION :: 3XBO5D4SEA-9321.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -124,7 +124,7 @@ Run this command: `bin/dependencies/install_minimal_dependencies.debian.sh`
 This script installs:
 
 - Core Perl modules and system packages for basic functionality
-- Requirements for 'v7', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
+- Requirements for 'v7-zenki', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
 - Creates necessary symlinks and systemd service
 
 ### Full Installation
@@ -144,7 +144,7 @@ Note: For browser agent functionality, see additional dependencies in the browse
 
 ### Starting the System
 
-To start Protocol-7 with the v7 zenka, run: `bin/Protocol-7 v7`
+To start Protocol-7 with the v7-zenki management zenka, run: `bin/Protocol-7 v7-zenki`
 
 Alternatively, to use systemd:
 
@@ -157,7 +157,7 @@ Three primary methods for interacting with the Protocol-7 network:
 
 1. **nshell Zenka Terminal Interface** (Recommended) ✅ Fully Refactored
    ```bash
-   v7.nshell
+   p7-nshell
    ```
    or equivalently:
    ```bash
@@ -187,7 +187,7 @@ Three primary methods for interacting with the Protocol-7 network:
    p7c <command> [args]
    ```
    - Local command execution
-   - Automatically compiled and installed during v7 zenka startup
+   - Automatically compiled and installed during v7-zenki startup
    - Connects directly to the Protocol-7 network
    - Uses current Unix user for authentication
    - Installed at: `/usr/local/bin/p7c`
@@ -197,7 +197,7 @@ Three primary methods for interacting with the Protocol-7 network:
    p-7-r <command> [args]
    ```
    - Remote command execution over network
-   - Automatically compiled and installed during v7 zenka startup
+   - Automatically compiled and installed during v7-zenki startup
    - Enables distributed command access
    - Installed at: `/usr/local/bin/p-7-r`
 
@@ -205,20 +205,21 @@ Three primary methods for interacting with the Protocol-7 network:
 
    - `p7c list sessions`: Display active network sessions
      ```
-      : usid :.  : protocol :.  : type :.  : mode :.  : uname :.    : since :.
-     --------------------------------------------------------------------------
-       4304425     protocol-7     unix      server       -----          57.93s
-       5790075     protocol-7     unix      client        v7            57.90s
+      : usid :.  : protocol :.  : type :.  : mode :.  : uname :.         : since :.
+     ------------------------------------------------------------------------------
+       2397943   protocol-7     unix      server          ---                37'56"
+       1250179   protocol-7    ip.tcp     server          ---                37'56"
+       1239197   protocol-7     unix      client        v7-zenki             37'56"
+       5479000   protocol-7     unix      client         system              37'53"
+       7174732   protocol-7     unix      client         p7-log              37'53"
        ...
      ```
 
    - `p7c commands`: List available commands for the current zenka
 
-     - Displays command categories like:
-       * Zenka management
-       * Network time functions
-       * Session handling
-       * Cryptographic utilities
+     - Returns a flat list of every command the zenka accepts, each with a
+       one-line description and its argument form — session handling, network
+       time, log buffers, routing overrides, cryptographic utilities and so on
 
    ### Command Routing Mechanism
 
@@ -229,14 +230,18 @@ Three primary methods for interacting with the Protocol-7 network:
 
    ### Zenka-Specific Command Discovery
 
-   - `p7c v7.list`: Lists specific to the v7 zenka
+   - `p7c v7-zenki.list`: Lists specific to the v7-zenki management zenka
      ```
       : list name :.  : description :.
-     -----------------------------------------------------
-       dependency    current zenka dependency status
-       available     available zenki and descriptions
-       subnames      'subnames' of registered zenki
+     --------------------------------------------------------------------
+       dependency      current zenka dependency status
+       available      available zenki \ descriptions
+       subnames      'subnames' of registered zenki [ when available ]
+       sessions      registered \ connected sessions
        children      PIDs of zenki and their children
+       buffers      [log] ring buffers in use
+        manual      zenki marked as 'manually stopped'
+         zenki      currently running \ managed zenka instances
      ```
 
    ### Routing Principles
@@ -252,6 +257,19 @@ Three primary methods for interacting with the Protocol-7 network:
    - Manage network sessions
    - Execute operations across different agents
 
+3. **Zenka Alias Symlinks**
+
+   On startup, v7-zenki installs a `p7-<zenka>` symlink to
+   [bin/Protocol-7](bin/Protocol-7) for every zenka that carries console
+   commands — `p7-keys`, `p7-nshell`, `p7-work`, `p7-sourcecode` and so on.
+   Invoking the symlink starts that zenka directly, so `p7-nshell` is
+   equivalent to `bin/Protocol-7 nshell`.
+
+   - Symlink directory: `v7-zenki.cfg.zenka_symlink_dir` [ `/usr/local/bin` ]
+   - Installation toggle: `v7-zenki.cfg.install_zenka_symlinks`
+   - The earlier `v7.<zenka>` symlink form is deprecated: `bin/Protocol-7`
+     still recognizes it, but new installations get the `p7-` prefix only
+
 ## Key Concepts
 
 - **Zenki**: Autonomous agents that perform specific functions
@@ -263,7 +281,7 @@ Three primary methods for interacting with the Protocol-7 network:
 
 The Protocol-7 system consists of interconnected zenki (agents) that communicate through a standardized message protocol:
 
-1. The [v7](cfg/zenki/v7/zenka.v7) zenka manages the lifecycle of other zenki
+1. The [v7-zenki](cfg/zenki/v7-zenki/zenka.v7) zenka manages the lifecycle of other zenki
 2. The [cube](cfg/zenki/cube/zenka.v7) zenka routes messages between other zenki
 3. Specialized zenki perform tasks ranging from system management to user interface presentation
 4. Custom zenki can be created by adding configuration files and module code
@@ -293,7 +311,7 @@ Protocol-7 is a production-active multi-agent system with working HTTPS servers,
 ### Established Infrastructure
 
 - **Interprocess Communication**: Message routing via cube zenka with Unix domain and TCP socket support
-- **Process Management**: Lifecycle management and monitoring via v7 zenka with automatic zenka startup, monitoring, and restart capabilities
+- **Process Management**: Lifecycle management and monitoring via the v7-zenki zenka with automatic zenka startup, monitoring, and restart capabilities
 - **Interactive Interfaces**:
   - nshell zenka with buffered non-blocking I/O and full UTF-8 support
   - p7c (protocol-7 command) and p-7-r (protocol-7 remote) binaries for direct command access
@@ -334,8 +352,8 @@ Contributions to Protocol-7 are always welcome:
 ### AI-Generated Insights and Research
 
 - **[AI Insights Overview](data/asc/what-AI-thinks/)**: Organized repository of AI-generated knowledge about Protocol-7 project state, structure, and research direction
-  - **[HTML Visualizations and Documentation](data/asc/what-AI-thinks/html-form/INDEX.md)**: 149 HTML files with interactive visualizations, frameworks, and tools covering cubic space topologies, harmonic systems, Protocol-7 demonstrations, and mathematical justice frameworks
-  - **[Perl Knowledge Modules](data/asc/what-AI-thinks/perl-form/INDEX.md)**: 68+ Perl modules containing symbolic implementations of consciousness emergence, harmonic mathematics, truth systems, and Claude AI insights
+  - **[HTML Visualizations and Documentation](data/asc/what-AI-thinks/html-form/INDEX.md)**: 220+ HTML files with interactive visualizations, frameworks, and tools covering cubic space topologies, harmonic systems, Protocol-7 demonstrations, and mathematical justice frameworks
+  - **[Perl Knowledge Modules](data/asc/what-AI-thinks/perl-form/INDEX.md)**: 110+ Perl modules containing symbolic implementations of consciousness emergence, harmonic mathematics, truth systems, and Claude AI insights
   - **[Markdown Documentation](data/asc/what-AI-thinks/markdown-form/)**: Additional markdown-formatted research, concepts, and Protocol-7 documentation
 
 ## Vision
@@ -364,8 +382,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,..,,,,,,,.,,.,.,,,.,,.,,,.,,.,.,,,.,,..,..,,...,...,,,.,,,,,...,.,.,.,,,
-#HAQ4XXW36A7MPD3Z6NLLVGAENV5QDLFBFA4CCDWFTYEMNO6OGP6D5M3CCGC2RO5BACHF6T2GVW3XU
-#\\\|UMTKZ5S2KQQVBWMZACLYNTU6VNHPN2GDQJRXMVM3SBZFHLITXLZ \ / AMOS7 \ YOURUM ::
-#\[7]4POGGCQZBJ5RSZPU2DDKRAG7SEWZCDBSN6SKB77MKGSKIGDLZQAY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,...,.,.,...,,..,.,.,,,,,...,.,.,..,,...,...,,,.,..,,,.,,,.,,...,
+#X2AHNF26XHEPHGLNNC3YFYFDD46SGJ7Z5744SLGG7KKJM3L54YSW443G6B2AHXETPRXA57OH7AQBA
+#\\\|CVFSWNAUY3JK4OOBO66UJUBZ6R6AMCAZXXQPYCMXUKIKUIDENFZ \ / AMOS7 \ YOURUM ::
+#\[7]O4YBKMENZPT342VFUASSVNFWP7N6HA6XXPPH2LB24P3LFG56MKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ ln -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
 cp $EXT_LIB_PATH/systemd/system/Protocol-7.service /lib/systemd/system/
 
-### dependencies for 'v7', 'cube', 'p7-log', 'system', 'httpd',
+### dependencies for 'v7-zenki', 'cube', 'p7-log', 'system', 'httpd',
 ##                   'events' and some non-X11 zenki agents + nshell
 
 apt-get -y install gcc git make cpanminus libc6-dev libmce-perl \
@@ -68,8 +68,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,..,,..,,..,,,.,,,..,,,,,.,,,.,,,.,.,.,.,..,,...,...,.,.,,.,,.,.,,,.,.,,,
-#5QENE5TH3T5BZOJ2ZW6ASTJDLV7FHLXEHXHLOEUWPCDQGXPI6TOSHP5YCKKHMQ25CM6ABNW6FWCJK
-#\\\|PQXYCWUJ4GCGIH77HUJZIHLRPJO2ZOZ6LYVA44FN3WCJTZWPXV3 \ / AMOS7 \ YOURUM ::
-#\[7]HWJF2NZS7ELPMBRODER5BWAC2U4UYMRD7RAZM3QKMSRXG2ATUQAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,.,.,..,,,,.,.,.,..,,.,.,,,.,..,,...,...,.,,,...,,,.,,,,,,,.,
+#HYBFOMCBMS2ALDLI4HXRHBXABB2N7AHRVS76SPBJDA5NBTEBVVFLRIW5LOZQXTMHLGGYFRVVCLWYS
+#\\\|FVMUG3E73FJMWKNY3WKGUUZI2QEVUP3VIAUBLFJBF5JTG7T6SWU \ / AMOS7 \ YOURUM ::
+#\[7]7736R4VGS4HZWS3VLH53CD3YAQ4ALE4MN63JLXZE6VXREX5TXODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

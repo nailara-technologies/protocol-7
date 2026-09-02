@@ -16,7 +16,7 @@ echo ""
 # Test BROKEN version
 echo -e "${RED}===[ Testing BROKEN Version ]===${NC}"
 cp modules/httpd.handler.download_transfer.test-broken modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 sleep 2
 
 # Clear log
@@ -65,7 +65,7 @@ echo ""
 # Test FIXED version
 echo -e "${GREEN}===[ Testing FIXED Version ]===${NC}"
 cp modules/httpd.handler.download_transfer.test modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 sleep 2
 
 BEFORE_COUNT=$(p7 httpd.show-buffer zenka 2>/dev/null | wc -l)
@@ -117,11 +117,11 @@ echo "The fix (->cancel + cleanup) prevents ALL these scenarios"
 echo ""
 
 cp modules/httpd.handler.download_transfer.fixed modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 echo -e "${GREEN}✓ Production version restored${NC}"
 
-#,,..,,.,,,,.,...,,.,,,,.,,.,,,,,,,,.,..,,..,,..,,...,...,...,..,,,,,,,,.,...,
-#X3JIL3ZB4FLL2SP5ELVXS7IH3KCIBYDW7CA2GQAIH2XOCWI6ILJ2DF5SUDFLDJNSQOXO7FFLNRVIG
-#\\\|TO2YE7ELAJBL7EKPHZK434EM3RDUC3HWC3KVK5CAOTDUKAJULQO \ / AMOS7 \ YOURUM ::
-#\[7]GS3MXJFB4CHTSCK65AAEGAKYUGIW5DDVX5IGT7I62ZEVSGJGRWCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,..,.,.,..,,.,.,...,,..,.,.,..,,...,...,,.,,..,,,.,,,..,,,.,
+#F6WJAZFIBE4UY2KMJYKV43JQJSGBF6KJULIXDKTCRKULO73BAJIGJ5RAIYIRHNHQ7M4C2MKM4PYBE
+#\\\|MXHXO7RMWMYMQL4H3PNRQBGNNQSWORQLDWFTVPBFHLQEYSBD7V3 \ / AMOS7 \ YOURUM ::
+#\[7]25YN7H3CQWCFCLSLHLF43YIGLGUMM4C4MHQQH5COZUA5A7W7NECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

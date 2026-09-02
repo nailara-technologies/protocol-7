@@ -21,7 +21,7 @@ sub start_if_missing {
         return 1;
     }
     print "[ info ] starting $name zenka\n";
-    my ( $out, $err, $exit ) = p7c( 'v7.start', $name );
+    my ( $out, $err, $exit ) = p7c( 'v7-zenki.start', $name );
     if ( $exit != 0 or $out !~ m{job queued|already running}i ) {
         warn "[ warn ] failed to start $name: $out $err\n";
         return 0;
@@ -44,8 +44,8 @@ exit 1;
 
 # [ end ]
 
-#,,..,.,,,...,,,.,,,.,...,..,,,,.,,..,.,.,,,.,..,,...,..,,...,.,.,,,.,,,.,,.,,
-#BBI5JKN2R2YHB4B3GUJ4XXOSGOSPUGXC4YZJNYCQ3KXJL43V24XFVZ22NCCIJIUT5MFVIFIHXVRSO
-#\\\|G4ZAAEXVUIG7X4X6YIMTUE5BLGE6IZGBQ5A4AYQO2ZVPA5EECMP \ / AMOS7 \ YOURUM ::
-#\[7]QAHJSH7OAAHEAAO6N477JUONE4NR6QL6HEGMVIXPHZQWYFWDYABQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,,.,,,,,,..,,...,,,.,,.,,..,,..,,...,...,..,,..,,,..,.,.,,..,
+#G2YQWPCWCBMGDU4J4AIR4L2E2S7PJ2PBTXZCWBWBFWARGLEBIRXJ44MCPW6X7G4J4J2GRYXXC2U24
+#\\\|4LPT3WBXM6ZVIQCCBFEUXH4SOKIAGWHRX3DBGD4QHMVGGO7L6MP \ / AMOS7 \ YOURUM ::
+#\[7]OKQQBNU3CGPI3GH2H25JCO5DDGDT32X4Y6S4UNQYG6ZKO22Y3UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
