@@ -1,50 +1,71 @@
 ## [:< ##
 
 # name = zenki.handler.v7_start_reply
-# descr = handle reply from v7 when requesting zenka start via IPC
+# descr = handle the v7-zenki reply to a relayed zenka start request
 
-my $route_id = shift;
-my $params   = shift;
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,  ##
+## params } -- 'cmd' is the wire-level mode keyword and the payload sits in ##
+## call_args->{args} [ see base.handler.command.process_reply ]             ##
 
-my $route = $data{'route'}->{$route_id};
+my ($info) = @ARG;
 
-unless ($route) {
-    <[base.log]>->( 0, "v7_start_reply : route $route_id not found" );
-    return;
-}
+my $mode       = uc( $info->{'cmd'} // '' );
+my $params     = $info->{'params'}              // {};
+my $reply_data = $info->{'call_args'}->{'args'} // '';
 
-my $zenka_name = $params->{zenka_name}  || 'unknown';
-my $mode       = $route->{'reply_mode'} || 'unknown';
-my $reply_data = $route->{'reply_data'} || '';
+my $zenka_name = $params->{'zenka_name'} // 'unknown';
+my $reply_id   = $params->{'reply_id'};
 
-<[base.log]>->( 2, "v7 start reply for '$zenka_name': mode=$mode" );
+$reply_data =~ s|^\s+||;
+$reply_data =~ s|\s+$||;
 
-if ( $mode eq qw| true | || $mode eq 'TRUE' ) {
-    <[base.log]>->( 1, "  ✓ v7 confirmed : $reply_data" );
+return TRUE if $mode eq qw| WAIT |;    ## interim reply : keep waiting ##
 
-    ## Update statistics
-    <zenki.stats.successful_starts>++
-        if exists <zenki.stats>;
+<[base.logs]>->(
+    2,           "v7-zenki start reply for '%s' : %s",
+    $zenka_name, lc($mode)
+);
 
-} elsif ( $mode eq qw| false | || $mode eq 'FALSE' ) {
-    <[base.log]>->( 0, "  ✗ v7 start failed : $reply_data" );
+my $success = ( $mode eq qw| TRUE | ) ? TRUE : FALSE;
 
-    ## Update statistics
-    <zenki.stats.failed_starts>++
-        if exists <zenki.stats>;
-
+if ($success) {
+    <[base.logs]>->( 1, '  ✓ v7-zenki confirmed : %s', $reply_data );
+    <zenki.stats.successful_starts>++ if exists <zenki.stats>;
 } else {
-    <[base.log]>->( 1, "  v7 reply ($mode): $reply_data" );
+    <[base.logs]>->( 0, '  ✗ v7-zenki start failed : %s', $reply_data );
+    <zenki.stats.failed_starts>++ if exists <zenki.stats>;
 }
 
-## Clean up route
-<[base.route.remove]>->($route_id)
-    if exists $code{'base.route.remove'};
+## result pick-up point for the console command that owns the event loop ##
+<zenki.start.reply> = {
+    'zenka'   => $zenka_name,
+    'mode'    => lc($mode),
+    'success' => $success,
+    'data'    => $reply_data
+};
+
+## deferred reply of a network 'start' call [ zenki.cmd.start returned ##
+## 'deferred' and left its reply id with us ]                          ##
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => $success ? qw| true | : qw| false |,
+        'data' => length($reply_data)
+        ? $reply_data
+        : sprintf( "no detail returned for '%s'", $zenka_name )
+    }
+) if defined $reply_id;
+
+## hand control back out of the event loop : a one-shot console call has   ##
+## nothing left to wait for once the relay completed [ the console command ##
+## resumes right after its own <[base.zenka.loop]> ]                       ##
+Event::unloop()
+    if ( <zenki.start-up.mode> // '' ) eq qw| one-shot |
+    and defined &Event::unloop;
 
 return TRUE;
 
-#,,,,,,..,,,,,,.,,..,,..,,,.,,..,,,,,,,,.,,..,..,,...,...,,.,,.,.,,.,,..,,,.,,
-#NBTZQUZ326MJFCPS4U5L4SUJDJ2WFVHB4HK3WGXFRPBFL66TISDTWNNVL5ESTODXYJOWGZMP57KWW
-#\\\|Z77Q23NXHUVJYHGR6FXWJ2LV3LVVGASZRQPWOCRGMMASXIEMY65 \ / AMOS7 \ YOURUM ::
-#\[7]CCN4XYWF262R2WRJBFCNI2II4N6RDGYHVMBNUOZL6LZ5U6XUKWBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,,,,.,,,.,,,,.,..,,..,,.,,,,..,..,,...,...,...,.,.,,.,,,.,,,,,,
+#L2SA5DRPZ7LLZ7Z2V765UZLDVQ3LMIRXKCFIK335CMBYNKJRUKDBFN5IFQ5KPD6HWI6ZHQKA7XOBO
+#\\\|FOVMQZIWY6VSCBQXANR6C4LPT4B4EOKWEDA2WMPKWK7TOGGACH6 \ / AMOS7 \ YOURUM ::
+#\[7]CNYDVYMACES3DKXUJQRYABTW5GVQLHNJJNYHOHRXSDBSKMQ3DSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = zenki.parent.select-modules
+# descr = load only the module namespaces the current invocation needs
+
+## <system.args> already holds the console command line at this point [    ##
+## flag tokens filtered out by bin/Protocol-7 before <system.args> is ever ##
+## built ] -- its first word is what decides how much of this zenka has to ##
+## exist at all.  with nothing given the zenka is a resident, 'v7-zenki'   ##
+## managed instance and loads the complete set after all                   ##
+##                                                                         ##
+## the namespace manifest itself lives in cfg/zenki/zenki/zenka.v7 -- see  ##
+## data/md/design/ZENKA-HYBRID-STARTUP-DISPATCH.md                         ##
+
+( my $command_line = <system.args> // '' ) =~ s|^\s+||;
+
+## bin/Protocol-7's own flag filter leaves a trailing option token behind  ##
+## when two of them are adjacent [ its /g substitution consumes the shared ##
+## separator space, so the next '-flag' no longer sits at a boundary the   ##
+## pattern can match ] -- a v7-zenki started zenka therefore arrives with  ##
+## <system.args> = '-v' rather than ''.  no console command ever begins    ##
+## with a dash, so leading option tokens are simply not commands here      ##
+$command_line =~ s|^(?:-\S*\s+)+||;
+$command_line =~ s|^-\S*$||;
+$command_line =~ s|\s+$||;
+
+## a 'v7-zenki' started instance is recognized POSITIVELY as well, not by  ##
+## the absence of arguments alone : bin/Protocol-7 sets this key whenever  ##
+## it was passed '-stdin', which v7-zenki does for every 'start_mode =     ##
+## stdin-zenka' zenka carrying a ': zenka-init :' block [ this one does ]. ##
+## reading a resident start as a one-shot call is the expensive direction  ##
+## -- it leaves the zenka out of the event loop and v7-zenki restart-loops ##
+## it -- so the cheap positive signal wins over the argument heuristic     ##
+$command_line = '' if <system.start-up.stdin.read-init-code>;
+
+my ($console_cmd) = split( m| +|, $command_line, 2 );
+$console_cmd //= '';
+
+<zenki.start-up.command_line> = $command_line;
+<zenki.start-up.console_cmd>  = $console_cmd;
+<zenki.start-up.mode>
+    = length($console_cmd) ? qw| one-shot | : qw| resident |;
+
+my $module_set;
+
+if ( <zenki.start-up.mode> eq qw| resident | ) {
+    $module_set = <zenki.cfg.modules.resident>;
+} else {
+    $module_set = <zenki.cfg.cmd-modules>->{$console_cmd}
+        if ref(<zenki.cfg.cmd-modules>) eq qw| HASH |;
+    $module_set //= <zenki.cfg.modules.cmd-default>;
+}
+
+$module_set //= '';
+$module_set = '' if $module_set eq qw| -none- |;    ## manifest 'no-op' ##
+
+<zenki.start-up.module_set> = $module_set;
+
+if ( not length $module_set ) {
+    <[base.logs]>->(
+        2,
+        ": '%s' needs no further modules [ light start-up ]",
+        length($console_cmd) ? $console_cmd : qw| resident |
+    );
+    return TRUE;
+}
+
+<[base.logs]>->(
+    2,                     ': %s start-up : loading [ %s ]',
+    <zenki.start-up.mode>, $module_set
+);
+
+## the subroutine whitelist stays active here : this is still start-up, so ##
+## compile timing matches a config level [load_modules:..] exactly -- only ##
+## the set of namespaces differs                                           ##
+return <[base.load_modules]>->($module_set);
+
+#,,.,,,,,,,..,,.,,.,.,..,,.,.,,,.,.,.,,,,,,,.,..,,...,...,.,,,...,...,..,,,..,
+#CMHGIKN3OJHKWCF6FWRXOVQGZTQ7CD3WMBCSYT2V6Y6ZJU6PAWUW7RAGNGFEDMWRFYZMYF2UNYITS
+#\\\|UWFCJ2UD5WSHOZ3GTXSBMRQZHEJFOQKJBLO6BLIXNDFPYKRNQ62 \ / AMOS7 \ YOURUM ::
+#\[7]DZC4PCIUSNPMCY3ZTE27L6N757DGVHGJGCRDYPODZJLJ6HZWFUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

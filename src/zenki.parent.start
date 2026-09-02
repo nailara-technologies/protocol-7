@@ -5,7 +5,7 @@
 
 my $params = shift || {};
 
-my $zenka_name = $params->{zenka} || $params->{name};
+my $zenka_name = $params->{'zenka'} || $params->{'name'};
 
 unless ($zenka_name) {
     return {
@@ -14,29 +14,34 @@ unless ($zenka_name) {
     };
 }
 
-<[base.log]>->( 2, "zenki.start: launching '$zenka_name'..." );
+<[base.logs]>->( 2, "zenki.start: launching '%s'..,", $zenka_name );
 
-## Increment statistics
+## statistics ##
 <zenki.stats.start_requests>++;
 
-## Use v7's dependency resolution system  This automatically handles:
-## - Ensuring v7 is running (if needed)
-## - Resolving all dependencies (cube, etc.)
-## - Starting zenka via proper jobqueue mechanism
-my $result = <[zenki.parent.start_via_v7]>->( { zenka_name => $zenka_name } );
+## use v7-zenki's dependency resolution system, which already handles: ##
+## - ensuring v7-zenki is running [ if needed ]                        ##
+## - resolving all dependencies [ cube, .. ]                           ##
+## - starting the zenka through the proper jobqueue mechanism          ##
+my $result = <[zenki.parent.start_via_v7]>->(
+    {   'zenka_name' => $zenka_name,
+        'reply_id'   => $params->{'reply_id'}
+    }
+);
 
-if ( $result->{success} ) {
-    <zenki.stats.successful_starts>++;
-    return $result;
+if ( $result->{'success'} ) {
+    ## a relayed request is only counted once its reply lands ##
+    <zenki.stats.successful_starts>++ if not $result->{'via_ipc'};
 } else {
     <zenki.stats.failed_starts>++;
-    return $result;
 }
+
+return $result;
 
 0;
 
-#,,,,,,.,,..,,,,.,,..,,..,.,.,,,,,.,.,,..,,,,,..,,...,..,,...,.,,,,,.,.,.,.,.,
-#GIHMPSOQ3EKQTXAR2GHQYBY4IHYWLKOTGJ6ZHAY5ODSNUO25AGD4UALROZFZCDQ2X2WCW375V3JIA
-#\\\|7ONDRANPLPMI3OYY5FNIT7KQZVY2B2QVF2RSXBT5ARHEOA2F6EY \ / AMOS7 \ YOURUM ::
-#\[7]OFSQT5GS323AQ3NJXQ6OMHASMOUW7MF5HTBIV7EJJMOJ4GAFEOBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,...,,.,,..,,,,.,.,.,.,.,,..,..,,...,...,.,,,,.,,,,,,..,,,,,,
+#UQSBB62BG3JDAUCNU4AV7TZU5TS2VZTXXAC4Z3WLM6IFDQ7YUFYEEDDGRZZQSYLTEDLINJ5BQAFBM
+#\\\|5U4DWV7TGFEQJBJYH4RMSNDUPADJ4XYON5M4CZXFVJCX5QSUTDL \ / AMOS7 \ YOURUM ::
+#\[7]A6LAN7CRQG6IDYIYG4NPN2GJZULBEHNN3U2EYW46JQ7T5LV7HKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

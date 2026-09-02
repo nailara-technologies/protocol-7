@@ -28,7 +28,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
   reasoning namespace, orbital/STRM push, credential-fabric transport, ondemand watchdog, p7-log utf8.
 
-- **[MEMORY-reference.md](MEMORY-reference.md)** (57 pointers) — durable how-to + settled rules.
+- **[MEMORY-reference.md](MEMORY-reference.md)** (58 pointers) — durable how-to + settled rules.
   open for: how a convention works or the "right way" to do something — cube auth. prefix, .cmd. reply
   contract (mode/data STRING), send.local vs base., timer undef-interval, config-reload clobber,
   file-io API, deferred-init callbacks, C25519 config paths, ntime; zenka catalog (site-yaml, git-watch,
@@ -53,8 +53,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,..,,...,.,,,,,,,..,,..,,.,.,,..,..,,,.,,..,,...,...,.,,,.,.,,,,,..,,,,.,
-#72TB3ESK2C64SYNPRH23EU7WVKJDZ3IPJMRVTXLHISQMMKATMUDJHLBV7R3DI3WU3MJQJNVUF4EZE
-#\\\|IR55BJNXXSMUOXSVUBIGQLXQC4HI2NLLLZW4R6CQWPMMCWXJTE2 \ / AMOS7 \ YOURUM ::
-#\[7]7EZ2TF2PDBQPI5ZD6O5L6SKSYF56DEJGZXLIV6NX2CGF6LBLUQBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,..,,,,,..,,,..,.,.,,..,.,,,..,,...,...,...,,.,,,,,,,,,,.,.,
+#RUAE245UVZH44DL4SVUIUO2NRQJE7O47FSXVJCATSNXFFGLGY5GXZBD4STFPHYK3GINUMWTKPYHIO
+#\\\|EPHSUYCJX77YJW4EGSXPQ2JYY3TW3ZIKC2U5TGTZGVJE6TUBESY \ / AMOS7 \ YOURUM ::
+#\[7]7XHHEOLNIGULC22NLKFRSOJ2W5KJTU6QG7PTNKKJ7NVN4ZL75WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

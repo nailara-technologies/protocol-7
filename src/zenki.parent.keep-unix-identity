@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = zenki.parent.keep-unix-identity
+# descr = record the invoking unix identity when no privilege drop happens
+
+## base.root.drop_privs records <system.zenka-user.current> in both of its ##
+## own success paths [ real drop, and 'already that user, doing nothing' ] ##
+## and downstream owner checks [ file.zenka_dir.write .. ] read that key.  ##
+## a start-up that deliberately skips the drop has to record it too, or    ##
+## those checks see an undefined owner                                     ##
+
+my $unix_user = <zenki.unix_user> // scalar getpwuid($EUID);
+
+<system.zenka-user.current> = $unix_user
+    if not defined <system.zenka-user.current>
+    or $unix_user ne <system.zenka-user.current>;
+
+<[base.logs]>->(
+    2, ": running as unix user '%s' [ no privilege drop ]", $unix_user
+);
+
+return TRUE;
+
+#,,.,,,..,,,.,...,,..,..,,,,.,.,,,,,.,,,.,...,..,,...,...,,..,.,.,,,,,.,,,.,,,
+#UUYUCXH32BC7JD6YCDSOWYQTKQJ72UJOADEZSJL4XXALI4Q2I74SSHNULUCN5CZVJB2ZA4Z7237FW
+#\\\|N4C3AXXT5HIEI7GWJ32QMI57UTN3Y6SG2H4R6PMFTUDYYFIAJHY \ / AMOS7 \ YOURUM ::
+#\[7]WK3NGISACXOXMWMMQLRPVHDQ3OWKUWFPZTU3NGERH52YEPXBQCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,31 +5,49 @@
 
 <[base.log]>->( 2, 'initializing zenki dependency resolution system..,' );
 
-## Configuration
-<zenki.cfg.v7_binary> //= '/data/projects/protocol-7/bin/Protocol-7';
-<zenki.cfg.v7_startup_timeout>    //= 10; ## Seconds to wait for v7 startup
-<zenki.cfg.cube_startup_timeout>  //= 5;  ## Seconds to wait for cube startup
-<zenki.cfg.zenka_startup_timeout> //= 8;  ## Seconds to wait for zenka startup
+## configuration ##
+<zenki.cfg.v7_binary> //= catfile( <system.root_path>, qw| bin Protocol-7 | );
+<zenki.cfg.v7_startup_timeout>    //= 10;   ## seconds to wait for v7 start ##
+<zenki.cfg.cube_startup_timeout>  //= 5;    ## seconds to wait for cube ##
+<zenki.cfg.zenka_startup_timeout> //= 8;    ## seconds to wait for a zenka ##
+<zenki.cfg.reply_timeout>         //= 24;   ## seconds to wait for a reply ##
 <zenki.cfg.auto_start_v7>
-    //= ( $UID == 0 ? 1 : 0 );            ## Auto-start v7 when root
-<zenki.cfg.cube_socket_path> //= '/var/run/.7/UNIX';  ## Cube socket directory
+    //= ( $UID == 0 ? 1 : 0 );              ## auto-start v7-zenki as root ##
+<zenki.cfg.cube_socket_path> //= '/var/run/.7/UNIX';    ## cube socket dir ##
 
-## Registries for tracking running processes
-<zenki.running.v7>    //= {};                         ## v7 process info
-<zenki.running.cube>  //= {};                         ## cube process info
-<zenki.running.zenki> //= {};                         ## Other zenki processes
+## a standalone console invocation has no cube-issued zenka key, so it    ##
+## authenticates over the unix link instead -- but under this zenka's OWN ##
+## identity [ cfg/zenki/cube/auth.zenki : ':unix:<unix-admin>' alongside  ##
+## ':zenka:', the coding \ amos-term \ mpv precedent ], not as the human  ##
+## user.  that keeps its blast radius at exactly what                     ##
+## 'access.cmd.usr.zenki' grants, instead of inheriting the admin's '**   ##
+## ..*.**' wildcard from access.users                                     ##
+##                                                                        ##
+## '<zenka>[<unix-user>]' -- the subname is a routing label only [ split  ##
+## off before any access decision by plugin.auth.unix ] and keeps a       ##
+## short-lived front-door session addressable apart from the resident,    ##
+## v7-zenki managed instance of the same name                             ##
+<zenki.unix_user> //= $ENV{'USER'} // scalar getpwuid($EUID);
+<zenki.auth_name> //= sprintf( qw| zenki[%s] |, <zenki.unix_user> );
 
-## NOTE: Dependency resolution is handled by v7's existing system (see
-## v7-zenki.zenka.cmd.start:105-141 and start.cfg files)  We integrate with it
-## rather than duplicating the logic
+## registries for tracking running processes ##
+<zenki.running.v7>    //= {};    ## v7-zenki info ##
+<zenki.running.cube>  //= {};    ## cube info ##
+<zenki.running.zenki> //= {};    ## other zenki ##
+
+## note: dependency resolution is handled by v7-zenki's existing system [ ##
+## see v7-zenki.zenka.cmd.start and the per zenka start.cfg files ] -- we ##
+## integrate with it rather than duplicating the logic                    ##
 ##
-## Two integration modes:
-## 1. Inside v7: Direct call to zenka.cmd.start
-## 2. Outside v7: IPC via cube using protocol-7.command.send.local
+## two integration modes:
+## 1. inside v7-zenki : direct call to v7-zenki.zenka.cmd.start
+## 2. outside v7-zenki : ipc via cube using protocol-7.route-send
 
-## Initialize statistics
+## initialize statistics ##
 <zenki.stats> = {
     v7_starts         => 0,
+    cube_starts       => 0,
+    zenka_starts      => 0,
     start_requests    => 0,
     successful_starts => 0,
     failed_starts     => 0
@@ -39,8 +57,8 @@
 
 0;
 
-#,,.,,...,..,,...,...,,..,,,.,...,,..,,..,,.,,..,,...,...,...,.,.,...,,.,,.,,,
-#7TE4A55RRF645H3JQU3PRX3CTSH5XEUTPWVWZ75AQFXXIBCI37RP7O4O57UUZH3KLO7TO57K5TX3U
-#\\\|XKA6GDYJFAA4DR6AHRTEDDEAVEYXAH7LKXAXGGZY3OK76D6FGQJ \ / AMOS7 \ YOURUM ::
-#\[7]A6DJ6NU6K7UQFWLOAEGME2DNKIBURTAKA6B2JK5RK6ZFASEJMEBI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,,.,,.,,,,..,...,,.,,.,.,..,,..,,...,...,.,,,,,.,.,,,...,,,.,
+#RC3GFGUK6UKV5EXIXCEFLYQHHUWOYFPRY7D5E4X6YMSDMIJSQGZ4527KTBAW3FMZTK4LD24B7JM6A
+#\\\|ACHVBGEPJJBNMNSUJNTGAOC7HNHK5QPQDYQPHSA6LVSR3ZKY2WG \ / AMOS7 \ YOURUM ::
+#\[7]VO5CJOXJLKC7SG5HISX3HYQ7XZJVLAQAVTKDCVZNHKN623G7FYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
