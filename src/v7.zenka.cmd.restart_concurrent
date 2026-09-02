@@ -64,8 +64,8 @@ my $drain_timeout = $zenka_config->{'concurrent'}->{'drain_timeout'} // 30;
 );
 
 ## track handover pair (links old and new instances)
-my $new_instance_id = <[v7.zenka.instance.track_handover]>
-    ->( $old_instance_id, $drain_timeout );
+my $new_instance_id
+    = <[zenka.instance.track_handover]>->( $old_instance_id, $drain_timeout );
 
 unless ( defined $new_instance_id ) {
     return {
@@ -84,7 +84,7 @@ my $start_reply = <[zenka.cmd.start]>->(
 
 if ( $start_reply->{'mode'} ne qw| true | ) {
     ## cleanup handover tracking on failure
-    <[v7.zenka.instance.handover_cleanup]>->($old_instance_id);
+    <[zenka.instance.handover_cleanup]>->($old_instance_id);
     return {
         'mode' => qw| false |,
         'data' => sprintf( 'failed to start replacement instance: %s',
@@ -100,8 +100,8 @@ return {
     )
 };
 
-#,,.,,,,.,...,..,,,.,,.,,,...,,..,,..,,..,..,,.,.,...,...,,.,,,..,,..,,,.,,.,,
-#HVTVSZ3P7PQ5WWKS64Z26WCO4NRMTGIMBM6MKE45MQWKXQ7JR6QMGS3VQKAQVQAK2VDSDCR2OBWNY
-#\\\|4ASHR5BMPZF53WTKB4MSTSBMDCIVBAFLYZZFQENIQCHWZXHM63S \ / AMOS7 \ YOURUM ::
-#\[7]IGGTTIF2MFEXJ3BHB56EOPX3KSY3ZCEEYWGMDED27GRNHTL45UBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,,,,,.,...,.,.,,..,..,,...,.,.,.,.,...,...,.,.,,.,,...,,,.,,,.,
+#ISAFKUFXHFS64MRZJ2VLUMYIPYPWJC53UYERQ76JY5ZRQCB2WAGQQRV5XEN5F3AIE463O3YHAHHRE
+#\\\|JPGGTJTKVYS4TCNYNJ444MFE6V6PSXMBB27YD5VALUDALRUTMOZ \ / AMOS7 \ YOURUM ::
+#\[7]V7J5KNNS2QW2TDPSBLQHIVTZ37ZS52O2XKSCSZRLDHC6V63VEWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
