@@ -1,16 +1,16 @@
 ## [:< ##
 
 # name  = v7-zenki.install_workflow_shortcuts
-# descr = install common workflow shorthand aliases for faster command access
+# descr = install p7.<shorthand> launcher link chains for console shortcuts
 #
-##        [[[ .. feature requires completion of implementation .. ]]]
-###
-####
-return warn 'called disabled routine [ requires a second level feature ]';
-####[ THIS FEATURE IS NOT FUNCTIONAL YET, REQUIRES PARAMETER PROPAGATION ]###
-### [ ,.might get merged with the incomind 'aliases' zenka implementation ]##
-##
-#
+## each shorthand becomes a 'p7.<shorthand>' -> 'p7-<zenka>' link chain [   ##
+## an ordinary chain onto the zenka's own link, deliberately NOT a          ##
+## recognized name form -- see                                              ##
+## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ].  the chain names the ##
+## zenka through its 'p7-<zenka>' hop; the alias name reaches the started   ##
+## zenka as <system.start.launcher_name> and is expanded into console       ##
+## command words by <[base.call.console_command]>.  both sides read the     ##
+## single shorthand table in <[path-template.console-shorthand]>            ##
 
 my $root_path     = <system.root_path>;
 my $protocol7_bin = sprintf( '%s/bin/Protocol-7', $root_path );
@@ -22,36 +22,36 @@ return FALSE unless $UID == 0;                             ## root only
 return FALSE unless -x $protocol7_bin;
 return FALSE unless -d $symlink_dir and -w $symlink_dir;
 
-## common workflow command shortcuts for faster access  format: shorthand =>
-## full_command_pattern
-my %workflow_shortcuts = (
-    'w'    => 'work',
-    'wc'   => 'work.console',
-    'wo'   => 'workflow overview',
-    'wt'   => 'workflow todo-list',
-    'ws'   => 'workflow commit',
-    'src'  => 'sourcecode',
-    'srcd' => 'sourcecode verify-dev-signatures',
-    'srcu' => 'sourcecode update-signatures',
-    'sc'   => 'sourcecode console',
-    'h'    => 'httpd',
-    'wth'  => 'weather',
-    'i2h'  => 'image2html',
-    'calc' => 'calc',
-    'q'    => 'query',
-);
+## shorthand => '<zenka> <console command ..>' [ single table, also read by ##
+## <[base.call.console_command]> for the expansion side ]                   ##
+my $workflow_shortcuts = <[path-template.console-shorthand]>;
 
 my $installed_count = 0;
 my $updated_count   = 0;
 
-## install shorthand aliases
-foreach my $shorthand ( sort keys %workflow_shortcuts ) {
-    my $symlink_path = "$symlink_dir/p7.$shorthand";
+## install shorthand alias link chains
+foreach my $shorthand ( sort keys %{$workflow_shortcuts} ) {
+    my ($zenka_name) = split( m| +|, $workflow_shortcuts->{$shorthand}, 2 );
+    my $zenka_link_path = sprintf( '%s/p7-%s', $symlink_dir, $zenka_name );
+    my $symlink_path    = sprintf( '%s/p7.%s', $symlink_dir, $shorthand );
+
+    ## the chain walk resolves names, but the boot-time lib-path walk      ##
+    ## follows the links themselves -- skip when the 'p7-<zenka>' middle   ##
+    ## hop is not [ yet ] installed by <[v7-zenki.install_zenka_symlinks]> ##
+    if ( not -l $zenka_link_path
+        or readlink($zenka_link_path) ne $protocol7_bin ) {
+        <[base.log]>->(
+            0,
+            ": skipping shortcut '$shorthand' [ "
+                . "no $zenka_link_path link installed ]"
+        );
+        next;
+    }
 
     ## check if symlink already exists and is current
     if ( -l $symlink_path ) {
         my $current_target = readlink($symlink_path);
-        if ( $current_target eq $protocol7_bin ) {
+        if ( $current_target eq $zenka_link_path ) {
             ## already correct, skip
             next;
         } else {
@@ -66,8 +66,8 @@ foreach my $shorthand ( sort keys %workflow_shortcuts ) {
         }
     }
 
-    ## create symlink
-    if ( symlink( $protocol7_bin, $symlink_path ) ) {
+    ## create shorthand link onto the zenka's own 'p7-<zenka>' link
+    if ( symlink( $zenka_link_path, $symlink_path ) ) {
         $installed_count++;
     } else {
         <[base.log]>->(
@@ -100,8 +100,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,,.,.,.,,,.,.,.,,,.,.,.,..,,.,.,,..,,,.,.,.,..,,...,...,,,,,..,,..,,,,,,...,
-#VP3OMKKPT6NMBSRDGJNTFFTUJQVH6AY2532S7T2YZUHV4JMNSP42ZECLMHL4BRQEUNFWPFX7HE2PU
-#\\\|VVVJS4SKJ2QQU6TDZ5K5ZTPYFTCWHPN4BCYSB6DYYWN74C6M37K \ / AMOS7 \ YOURUM ::
-#\[7]KJCJVSNO5SOWTZGCKB7OW5FDTXEOXCWBISKQKM3VMZMHD53VDYBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,,.,,,,,,,.,,.,,..,,...,...,..,,...,..,,,.,,.,,,,..,,.,,,..,
+#HHIIGD66WIWXY2A26KREA5T2U7OER37DYT7IW3O5Z3KWOQHYBUDQ3NHLJKY2PEFS6LUTGXZ6O2TYC
+#\\\|RSPYCAUY4OH5JIF3KPH2JTWATHEIEVXIMHDJKXMA6GRKZSVI56W \ / AMOS7 \ YOURUM ::
+#\[7]FJFD3RTNOCBPNN3QMJDG36IVK4TOVG46SLVYVN6LMZMF7Y4GFEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
