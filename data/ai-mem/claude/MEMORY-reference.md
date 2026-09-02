@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [zenka-callback-wrapper-prototype-pattern](reference-zenka-callback-wrapper-prototype-pattern.md) — for conditional zenka start-up logic, wire a single callback sub (zenka.v7 has no native conditionals) and prototype on a low-blast-radius sandbox zenka before transplanting into a load-bearing one; validated 2026-09-02 building the `zenki` sandbox toward eventual `v7-zenki` assimilation
 - [nested-data-key-sugar](reference-nested-data-key-sugar.md) — any `%data` nesting depth >= 2 has a `<key0.key1[.keyN]>` sugar form (reads/writes/delete, partial paths too, e.g. `<watcher.io>->{$name}`); not in CONVENTIONS.yaml; ncode/format-code cleanup planned later, not urgent
 - [akamai-alpn-h2-bot-mitigation](reference-akamai-alpn-h2-bot-mitigation.md) — a TLS ClientHello never offering `h2` in ALPN gets silently black-holed (no error, total silence) by Akamai-style bot mitigation, generic to any target behind similar WAFs, not site-specific; realistic browser headers also required past that; clients.https.request/.get now handles both correctly — use it, don't rediscover
 - [eval-code-batch-analysis-toolkit](reference-eval-code-batch-analysis-toolkit.md) — running one-off batch scripts inside a zenka via devmod `eval-code`: per-zenka access whitelist gotcha (not just web-browser's wildcard), `<[event.once]>` to yield the event loop in a long synchronous loop (avoids a route-collapse TERM-kill), devmod not surviving a crash/restart, cross-user file permissions, and exact-hash-vs-perceptual-hash duplicate discernment (byte-identical = safe, phash-only = needs visual review even at 1.0000)
@@ -71,8 +72,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,,,,,..,,..,,..,,,,,...,,..,..,,,,,,..,,,,.,..,,...,...,.,,,...,,,,,..,,.,,,
-#6WFTRE3TGKXGEYK3QTAJAUYZAWBLUWN5AFJHHMCRJSNDW32YUMFHIRTXIE6SU5PHH6FIA7NBX6USC
-#\\\|4P36ORQCRKWMFSBHUBCSJJOQJYL656X6YEONJTYUUH3PVG7INIF \ / AMOS7 \ YOURUM ::
-#\[7]35VE6B5GYGP7BC52N6JU3N4KUKSZWVYXGO247XHVNZ2J5763N6AY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,,,,,.,.,.,.,..,,,,,,,.,,,..,..,,...,...,.,.,...,,..,.,.,,..,
+#5KVQ5IHITKMOFTNLNBUA46SKWFAJNOPCSWA3DGQYZ646HOG7EZZVOUNRYRZXDJJ7BGUQ4LFESU5YQ
+#\\\|IQ4X6LVQFRB5JPM7BGG6ZA2GUPPNP4MHKETE6ZHOWVPFSGJZU22 \ / AMOS7 \ YOURUM ::
+#\[7]TY6J7QKY4APF56FYTTL73NHOYYIEDZ24T7ZMFECEFO2L2TISKIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
