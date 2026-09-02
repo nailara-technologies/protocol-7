@@ -68,14 +68,15 @@ if ( defined $override ) {
 ##[ CONFIGURED ROUTING MODE \ BARE-NAME TARGETS ONLY ]########################
 
 if ( not defined $mode and not defined $target_subname ) {
-    if ( defined <v7.start_setup.zenki.config>
-        and exists <v7.start_setup.zenki.config>->{$target_name} ) {
-        ## direct read [ resolver running inside the 'v7' zenka ] ##
+    if ( defined <v7-zenki.start_setup.zenki.config>
+        and exists <v7-zenki.start_setup.zenki.config>->{$target_name} ) {
+        ## direct read [ resolver running inside the 'v7-zenki' zenka ] ##
         $mode
-            = <v7.start_setup.zenki.config>->{$target_name}->{'routing_mode'};
+            = <v7-zenki.start_setup.zenki.config>
+            ->{$target_name}->{'routing_mode'};
     }
     if ( not defined $mode and defined <cube.zenki.routing_mode> ) {
-        ## cube-side mirror [ pushed by 'v7' on zenka start-up ] ##
+        ## cube-side mirror [ pushed by 'v7-zenki' on zenka start-up ] ##
         $mode = <cube.zenki.routing_mode>->{$target_name};
     }
 }
@@ -124,8 +125,8 @@ map { $data{'session'}{$ARG}{'last_contacted'} = <[base.ntime]> }
 
 return @resolved;
 
-#,,,,,.,.,,,,,,,,,.,.,,.,,,..,.,,,.,,,,,.,,.,,..,,...,..,,..,,,..,,,.,..,,,..,
-#T5VFPRYJMWCC2OEGRROQALFJDOAJRKNKYJK6U6I2HAMBOTMCUBDGB64MSBHFEG6ZMFYA66Q5GCULQ
-#\\\|HM6AGIOPYLJ4HQ7Z7WHL4POXUFAWCGXCZEMW5P2S37PV7ZX7TIA \ / AMOS7 \ YOURUM ::
-#\[7]POR2L2ALIUFBZTKJPIS4LWNSJPNGUNMZXLFNU7DQWTF7A67HWADQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,.,...,.,,,,,.,.,.,...,,,.,..,,..,,...,...,...,,.,,..,,...,,,,,
+#QW7T4ZKWY2FVPZFAE3RR3OVJBIQR63UGM3XKIMVF73MBULT5ABJAZNOUAVM2SVS4QL2WUMJ3ZERAO
+#\\\|SRCWMMKIH76ZD2OWXLP2TKS7XHJC43LARJO4CRX4JYMXJOS3OC6 \ / AMOS7 \ YOURUM ::
+#\[7]HXGAQUCP4H7FVQ27FCFZ2C6KJFPNNPTBI36FAT5JJRD6GTISXQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

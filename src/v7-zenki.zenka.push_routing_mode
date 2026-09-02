@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.push_routing_mode
+# descr = push declared routing_mode of a zenka to the cube-side mirror
+# param = <zenka_name>
+
+my $zenka_name = shift // return FALSE;
+
+## only possible while connected to cube ##
+return FALSE if not exists <user.cube.session>;
+
+my $mode;
+if ( defined <v7-zenki.start_setup.zenki.config>
+    and exists <v7-zenki.start_setup.zenki.config>->{$zenka_name} ) {
+    $mode = <v7-zenki.start_setup.zenki.config>
+        ->{$zenka_name}->{'routing_mode'};
+}
+
+## no declared mode : reset cube-side mirror to default ##
+my $args_str
+    = defined $mode ? sprintf( '%s %s', $zenka_name, $mode ) : $zenka_name;
+
+return <[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.set-routing-mode |,
+        'call_args' => { 'args' => $args_str }
+    }
+);
+
+#,,,,,,..,.,.,,,,,,..,.,,,.,.,..,,,.,,.,.,.,,,..,,...,...,..,,,,,,.,,,.,,,.,.,
+#FWJMQBGOKGFVR4RVWRC3PVT4W3UHYOT76VICLGCXLV7VBGSKX7YYIQ24TXPY32UOOVQFUV5KSJMCI
+#\\\|PFF4UT2WBDXGMAPVHBEAEKH7HIDG454X2MKU4WCMG5Z7MTRUTVC \ / AMOS7 \ YOURUM ::
+#\[7]YVEJN5I6GREZ7CP7UWZDR544PVE7R73VZMKJD2DJ4AJSRUIYNKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

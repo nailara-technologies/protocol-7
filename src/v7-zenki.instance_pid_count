@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = v7-zenki.instance_pid_count
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance   = <v7-zenki.zenka.instance>->{$instance_id};
+my $parent_pid = $instance->{'process'}->{'id'};
+
+return FALSE if not defined $parent_pid;
+
+my %check_pids = ( $parent_pid => 1 );
+map { $check_pids{$ARG} = 1 }
+    ( @{ <[v7-zenki.sub-process.get_children]>->($parent_pid) } );
+map { $check_pids{$ARG} = 1 } keys %{ $instance->{'restart_pids'} }
+    if exists $instance->{'restart_pids'};
+
+my $processes_left = 0;
+map { $processes_left++ if <[base.exists.sub-process]>->($ARG) }
+    reverse sort keys %check_pids;
+
+return $processes_left;
+
+#,,,,,...,..,,...,,,.,.,,,.,,,..,,...,,,.,.,,,..,,...,...,.,,,,,.,,,,,,..,,,.,
+#CSNXBGM23BBE763S5GTUZ5OAAORAMZTYJON3EVMNN2KAU3VKKPCKX3NNOTF7KXTKVVVWYJECD6KFI
+#\\\|E2Z4JFY7UINTQOEIB246GG5XBT2CW3QQXW7MJREVU75AWVKTTYC \ / AMOS7 \ YOURUM ::
+#\[7]UHLCWGC4MJI42VU53QDOY5VXSAUHUIVKHGVXCG46WZGSS6K52WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

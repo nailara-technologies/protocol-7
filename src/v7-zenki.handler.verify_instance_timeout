@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = v7-zenki.handler.verify_instance_timeout
+
+my $params      = shift->w->data;
+my $instance_id = $params->{'instance_id'};
+if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
+    <[base.logs]>->(
+        2, '<verify_instance_timeout> gone instance %d', $instance_id
+    );
+    return;
+}
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+<[base.logs]>->(
+    0,            '<< instance %d [ %s ] verification timeout >>',
+    $instance_id, $instance->{'zenka_name'}
+);
+
+<[zenka.change_status]>->( $instance_id, qw| error | );
+
+delete $instance->{'timer'}->{'verify_instance'};
+delete $instance->{'timer'} if not keys %{ $instance->{'timer'} };
+
+#,,.,,...,,.,,...,..,,.,,,,..,..,,...,,,,,...,..,,...,...,.,,,,.,,...,,..,..,,
+#M6222TCR4XSOQJWMNPBEU6576DSCRHZKBHBQLAPF3HI53FOIZHHWZFYXXMFNCZLRQPLJCLUPR5YK2
+#\\\|KRW6OZ5NC65VI2KRE6LS4PIJ34EQVTOOZJKODFSMC4BJR2XNU6O \ / AMOS7 \ YOURUM ::
+#\[7]RBEXIJRGUN7ORHS2KOAXQQR3RJ2HYGRZ4GJ33UZOFXSLJJ4JNECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

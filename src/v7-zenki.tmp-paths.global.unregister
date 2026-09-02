@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = v7-zenki.tmp-paths.global.unregister
+
+<v7-zenki.tmp_paths>         //= {};
+<v7-zenki.dirpath.tmp_paths> //= qw| /var/run/.7/v7-zenki/tmp_paths |;
+
+my $unlink_tmp_path = shift // '';    ##  link target path to unregister  ##
+
+if (@ARG) {
+    warn 'expecting no additional parameter <{C1}>';
+    return undef;
+}
+
+( my $temp_file_dir = <v7-zenki.dirpath.tmp_paths> ) =~ s|/+$||;
+
+if ( not length $unlink_tmp_path ) {
+    warn 'tmp path parameter expected <{C1}>';
+    return undef;
+}
+
+my $devmod_loglevel = 2;    ##  report log level for devmod  ##
+
+my $number_files_cleaned = 0;
+
+##  check if unlink path is still registered in memory  ##
+##
+if ( defined <v7-zenki.tmp_paths>->{$unlink_tmp_path} ) {
+    my $symlink_path_abs = <v7-zenki.tmp_paths>->{$unlink_tmp_path};
+    if ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+        delete <v7-zenki.tmp_paths>->{$unlink_tmp_path};
+        return $number_files_cleaned;    ##  symlink was not present  ##
+    } else {
+        <[base.logs]>->(
+            $devmod_loglevel,  'unregistering : %s : %s',
+            $symlink_path_abs, $unlink_tmp_path
+        );
+        if ( not unlink($symlink_path_abs) ) {
+            <[base.s_warn]>->(
+                'error removing temp-path symlink [ %s ] : %s',
+                $symlink_path_abs, <[base.str.os_err]>
+            );
+        } elsif ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+            $number_files_cleaned++;
+        }
+    }
+}
+
+foreach my $symlink_path_abs (
+    <[file.matching_path_linknames]>->( $temp_file_dir, $unlink_tmp_path ) ) {
+
+    <[base.logs]>->(
+        $devmod_loglevel,  'unregistering : %s : %s',
+        $symlink_path_abs, $unlink_tmp_path
+    );
+    if ( not unlink($symlink_path_abs) ) {
+        <[base.s_warn]>->(
+            'error removing temp-path symlink [ %s ] : %s',
+            $symlink_path_abs, <[base.str.os_err]>
+        );
+    } elsif ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+        $number_files_cleaned++;
+    }
+}
+
+if ($number_files_cleaned) { ##  success , cleaning up in-memory reference  ##
+    if (<[base.is_defined_recursive]>->(
+            sprintf qw| v7-zenki.tmp_paths.%s |,
+            $unlink_tmp_path
+        )
+    ) {
+        delete <v7-zenki.tmp_paths>->{$unlink_tmp_path};
+        delete <v7-zenki.tmp_paths> if not keys <v7-zenki.tmp_paths>->%*;
+    }
+}
+
+return $number_files_cleaned;
+
+#,,..,..,,..,,,..,...,.,,,,.,,...,...,..,,,.,,..,,...,...,,,.,.,,,.,,,...,...,
+#SHJ2Y3JQY3NATAYR2LZXQGA3HSB4WD2AWMNETKXLOGBGPYW5KJUQZIJMNC5CP54TWAYTEVURY5UW2
+#\\\|M4DVGECS2FMRC3MEJKNSIFOFJUAAYSS7U6L73X4Q7GMEOURHLSA \ / AMOS7 \ YOURUM ::
+#\[7]JPZZLHRXAJFFZ5B6RLKGA4LHTCCXPVW5BVPMF37J5AEWE3A3OYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

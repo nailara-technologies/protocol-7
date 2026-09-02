@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.instance.track_handover
+# descr = create handover pair linking old and new zenka instances
+# param = old_instance_id, drain_timeout
+# return = new_instance_id or undef on failure
+
+my $old_instance_id = shift;
+my $drain_timeout   = shift // 30;
+
+return undef if not defined $old_instance_id;
+return undef if not exists <v7-zenki.zenka.instance>->{$old_instance_id};
+
+my $old_instance = <v7-zenki.zenka.instance>->{$old_instance_id};
+my $zenka_id     = $old_instance->{'zenka_id'};
+my $zenka_name   = $old_instance->{'zenka_name'};
+
+## create new instance entry with handover expansion flag
+my $new_instance_id = <[zenka.instance.add]>->(
+    $zenka_id,
+    {   'handover_expansion' => TRUE,
+        'replaces_instance'  => $old_instance_id,
+        'drain_timeout'      => $drain_timeout
+    }
+);
+
+return undef if not defined $new_instance_id;
+
+my $new_instance = <v7-zenki.zenka.instance>->{$new_instance_id};
+
+## link old instance to new
+$old_instance->{'being_replaced_by'} = $new_instance_id;
+
+## register in global handover registry
+<v7-zenki.handover.pairs>->{$old_instance_id} = $new_instance_id;
+
+<[base.logs]>->(
+    2, 'handover pair created: old=%d new=%d zenka=%s',
+    $old_instance_id, $new_instance_id, $zenka_name
+);
+
+return $new_instance_id;
+
+#,,..,...,,.,,...,,,.,...,,.,,..,,,..,,..,.,,,.,.,...,...,.,,,...,.,.,..,,.,,,
+#JYZKKRG7EZASGWWNU6CBGNVDHYPLYRTAJVELOSW3PHE3EQS6QBDLABM6K4V6H7T3RB6I4WNFGKQ5M
+#\\\|N2MJXQD7E7ZDWOFAICHA4BIIVZNLRJO2HTXVUPGFMB27QUDBT3W \ / AMOS7 \ YOURUM ::
+#\[7]L4ZFMM35SGQYFVQ65S2HICIUURUFMN5M5DWDJL2B6ZEK2QAHCKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,12 +2,12 @@
 
 # name  = base.session.send_init_reports
 
-## backoff for the 'not initialized yet' retry below [ same *1.2 growth /  ##
-## min+max envelope shape as v7.handler.zenka_status's restart_delay ] :   ##
-## starts fast [ low latency right after start ], grows to a 5s ceiling so ##
-## a long-stuck zenka tapers off instead of washing out its own log buffer ##
-## with retry noise forever ; reset to the fast interval once reports      ##
-## actually send                                                           ##
+## backoff for the 'not initialized yet' retry below [ same *1.2 growth /   ##
+## min+max envelope shape as v7-zenki.handler.zenka_status's restart_delay  ##
+## ] : starts fast [ low latency right after start ], grows to a 5s ceiling ##
+## so a long-stuck zenka tapers off instead of washing out its own log      ##
+## buffer with retry noise forever ; reset to the fast interval once        ##
+## reports actually send                                                    ##
 state $retry_delay     = 0.777;
 state $max_retry_delay = 5;
 
@@ -100,8 +100,8 @@ foreach my $item (@pending_reports) {
 
 return $report_count;
 
-#,,.,,.,,,..,,,.,,,,,,.,,,,..,,..,.,,,,.,,.,,,..,,...,...,.,.,...,.,,,,..,,..,
-#MJEGMKHNKUIPMVVL63GQHVRKF4DKYZ6S534NN3FVF6FRQH6O3QRLLB3H5HTTRNG6JE7W2XGA4D3MW
-#\\\|BXE4HLFJ7HV44CC3BOOHWR22GTVYIA7BWGW4BSZ2V5LNTEMOLYM \ / AMOS7 \ YOURUM ::
-#\[7]RSTWNU3DGHE6C5RYA2WJXNWUPT3GNB55O5IVQQPHG7PBGI7RIUCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,,,,,,,.,.,,,.,,,,,,..,..,,..,,...,...,,,.,,,.,.,,,...,,..,
+#NAEN7UVF5CD2NDXMPFHA5TYHHR3FIYOHRY72LKNJZOELAY52VML5NP2CJYVCTCXPYJKZVRXN7DAWS
+#\\\|XEBDVKNJSUXFP7OW6O7GVCM4JLAEN5746R5W2W7EVNI46GO2QIJ \ / AMOS7 \ YOURUM ::
+#\[7]ZZ4AWXWZWQDISH5USBM56DO4TEZTN23A7GRQG3DRPE2G4WUBWGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

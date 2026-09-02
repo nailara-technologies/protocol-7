@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.system-poweroff
+# param = [nosync]
+# descr = force power off using sysrq-trigger [host]
+
+my $param = $call->{'args'} // '';
+my $poweroff_enabled = <v7-zenki.system-poweroff.enabled> //= 1;
+
+return {
+    'mode' => qw| false |,
+    'data' => "not found : '/proc/sysrq-trigger'"
+    }
+    if !-e '/proc/sysrq-trigger';
+return {
+    'mode' => qw| false |,
+    'data' => 'specifically disabled [ v7-zenki.system-poweroff.enabled = 0 ]'
+    }
+    if not $poweroff_enabled;
+
+<[base.log]>->( 0, "<< ! >> <<< initiating force-poweroff >>> << ! >>" );
+
+while ( keys %{ $data{'route'} } ) {
+    <[event.once]>->(0.1);
+}    # wait log written
+
+system('/bin/sync') if $param ne 'nosync';
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| v7-zenki.callback.system-poweroff |
+    }
+);
+
+return { 'mode' => qw| true |, 'data' => '<< powering off host system >>' }
+
+#,,,,,,,,,.,,,,..,,,.,,.,,...,,.,,.,.,.,,,.,.,..,,...,..,,...,,,.,...,.,,,,,,,
+#2GTJK6P5VOZDJDLZQTE7Q5W5QWSHEKU3Q26BSG7TPIZTJN6BLV6GQXUDDEXCO74ZZJO2CN2E5JFEW
+#\\\|EOJUVVHIKIHWDN2ZRLAZRGGC3N63VY7P4DUZXLYNOVQ5AZZBLWO \ / AMOS7 \ YOURUM ::
+#\[7]7MNNOQMVH3SF7MWXRZGGN7U4WYNPJ7HXPE3JTJPITYUGAAGXFUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

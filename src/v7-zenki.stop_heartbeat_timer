@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = v7-zenki.stop_heartbeat_timer
+
+my $instance_id = shift;
+return warn 'expected instance id <{C1}>' if not defined $instance_id;
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+return undef if not defined $instance;
+
+my $cancelled       = 0;
+my $instance_timers = $instance->{'timer'} // {};
+
+foreach my $timer_name ( keys( %{$instance_timers} ) ) {
+    next if $timer_name !~ m{^heartbeat-(status|timeout)$};
+    my $timer_type = $LAST_PAREN_MATCH;
+
+    if ( $instance_timers->{$timer_name}->is_active ) {
+        $instance_timers->{$timer_name}->cancel;
+        $cancelled++;
+
+        <[base.logs]>->(
+            2,            ': cancelled instance %d timer [ heartbeat-%s ]',
+            $instance_id, $timer_type
+        );
+    }
+    delete $instance_timers->{$timer_name};
+}
+undef $instance_timers;
+delete $instance->{'timer'} if not keys %{ $instance->{'timer'} };
+
+return $cancelled;
+
+#,,..,,..,.,.,..,,,,.,,,.,.,.,..,,,.,,,..,.,,,..,,...,...,,,.,..,,...,...,,..,
+#DNI5UI56SZNXP5TEA2G422CBWPXW3GN7JAWHK7DAMFGCDAUJBBSULQNSPG4YSJ2NOM3QIMWOVPEZY
+#\\\|LPYLT4DMKBEHDPM36VPON5EZPED4IKIHGFLWZRAIVXU2RK3LDBK \ / AMOS7 \ YOURUM ::
+#\[7]V6APIGQXYCJ4WY2RUI5QI57QFTKY4RU32WV3EL3JO7ERZR4M5OAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

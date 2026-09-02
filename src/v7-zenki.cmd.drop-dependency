@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.drop-dependency
+# param = <zenka-name>
+# descr = purge specified zenka from dependency chains
+
+return { 'mode' => qw| false |, 'data' => 'expected valid zenka name' }
+    if !length( $call->{'args'} )
+    or not my $zenka_id = <[zenka.get_id]>->( $call->{'args'} );
+
+my $zenka_name = $call->{'args'};
+
+my $del_count = 0;
+my $object_id = <[zenka.get_object_id]>->($zenka_id);
+
+foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
+    $del_count += <[dependency.del]>->( $dep_obj, $object_id );
+}
+
+# LLL: add full p7-log / restore feature?
+
+return {
+    'mode' => qw| false |,
+    'data' => "no zenka seems to depend on '$zenka_name' (already dropped?)"
+    }
+    if !$del_count;
+
+my $ies = $del_count > 1 ? 'ies' : 'y';
+
+return { 'mode' => qw| true |, 'data' => "dropped $del_count dependenc$ies" };
+
+#,,..,,..,,,,,.,,,.,.,...,.,,,.,,,...,..,,.,,,..,,...,...,,..,,,,,..,,,..,,.,,
+#TTVRVI3ZFMFOFRDJNELR6AVK5EBTRJ6TMHC2KZKKHCQ72WDMY6QES3B3KUXD6CKY7OPVGBZLWLMGY
+#\\\|LX7FOTMOWK5TWGMRIMTZI7SYCL3SR4Q3NPGEWRI77FVMVE7PDBJ \ / AMOS7 \ YOURUM ::
+#\[7]JLOEMQCBQKBE5KDJ7SZIENYYZXNLT3Z6KM5FT4XFGLL3EX2XEIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

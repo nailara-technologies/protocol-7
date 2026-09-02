@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = v7-zenki.instance_ids
+# descr = return [ sanitized ] zenka instance id list
+
+my @instances;
+
+foreach my $instance_id ( keys <v7-zenki.zenka.instance>->%* ) {
+    if (    $instance_id =~ <regex.base.iid>
+        and defined <v7-zenki.zenka.instance>->{$instance_id}->{'zenka_name'}
+        and defined <v7-zenki.zenka.instance>->{$instance_id}->{'status'} ) {
+
+        push @instances, $instance_id;    ## valid instance ##
+
+    } else {
+        delete <v7-zenki.zenka.instance>->{$instance_id};
+        if ( $instance_id !~ <regex.base.iid> ) {
+            warn sprintf
+                "removed not valid id '%s' from zenka instance list <{C1}>",
+                $ARG;
+        } else {
+            <[base.logs]>->(
+                2,
+                'instance %u had no name or status [ removed ]', $instance_id
+            );
+        }
+    }
+}
+
+return @instances;
+
+#,,,.,,..,.,.,.,.,,,.,.,.,...,,..,.,.,.,,,,,,,..,,...,...,...,..,,...,.,.,.,.,
+#5WN7L6J3DUR5UEKZ2ZRFAQMV7ZG6W2VGQGGZCHWW4Q5KNPSISW46LNHJIEYEGYBOURUQIPN3DOR5M
+#\\\|4FJPX3C5PU3F6XXKJX2LA2UFEUTQDCY4OVKU25LFXFGMDOUZN7Q \ / AMOS7 \ YOURUM ::
+#\[7]T2EPDUCMQBLAEZHTIYAISOWKOINSL7FL6ZHW47C6YEESFI3PTSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

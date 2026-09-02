@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = v7-zenki.init_zenka_output_patterns
+
+my $output_sub_code = shift // 0;    ##  devmod to stdout  ##
+
+if ( not defined <v7-zenki.pattern_config>
+    or ref(<v7-zenki.pattern_config>) ne qw| ARRAY | ) {
+    <[base.log]>
+        ->( 1, 'no zenka output patterns to initialize, skipping..,' );
+    return;
+}
+
+my $zenka_pattern_data = <v7-zenki.pattern_config>;
+
+my $re            = qw| :: |;               ## <-- regex delimiter ##
+my $name_chars    = qr|!\w\d_\-,\s\?\*|;    ## <-- zenka-name pattern
+my $pattern_chars = qr|\\<>\w\d_\|\-\+\?,\s\.\[\]\:\'\^\$\*|;    ## <-- regex.
+
+foreach my $p_ref (@$zenka_pattern_data) {
+    foreach my $pattern ( keys %$p_ref ) {
+        my $p_key = $pattern;
+        if ( $pattern
+            =~ s{^([$name_chars]+)$re([$pattern_chars]+)$re(i?)}{$2}g ) {
+            my ( $zenka_string, $pattern_string, $i ) = ( $1, $2, $3 // '' );
+            $zenka_string =~ s|[ \t]+||g;
+            foreach my $zenka_match ( split( ',', $zenka_string ) ) {
+                my $pattern_code_aref = $p_ref->{$p_key};
+                my $pattern_re
+                    = $i eq qw| i |
+                    ? qr|$pattern_string|i
+                    : qr|$pattern_string|;
+                my $sub_code = join(
+                    '', <<~'EOT'
+                    sub {
+
+                        my $instance_id = shift;
+                        my $zenka_name  = shift;
+
+                        my @matches = @ARG;
+
+                    EOT
+                    ,
+                    (   map  {"    $ARG;\n"}
+                        grep {length}
+                            <[base.parser.config]>->($pattern_code_aref)
+                    ),
+                    qw| } |,
+                    "\n"
+                );
+                $sub_code =~ s|<zenka_name>|\$zenka_name|g;
+                $sub_code =~ s|<instance_id>|\$instance_id|g;
+                $sub_code =~ s|<match_([1-9])>|\$matches[ $1 - 1 ]|g;
+
+                say $sub_code if $output_sub_code;
+
+                <v7-zenki.patterns.zenka_output>
+                    ->{$zenka_string}->{$pattern_re} = eval $sub_code;
+            }
+        } else {
+            <[base.logs]>->(
+                0, "<< output pattern ' %s ' has syntax error >>", $pattern
+            );
+        }
+    }
+}
+
+#,,,,,.,.,,.,,.,.,,,.,,,,,,,,,,,,,,..,,,,,,.,,..,,...,...,..,,,.,,.,,,..,,,,.,
+#OVBGML52PX3LP2W7IJIMR6V3DBSCTS5ZE7JC2LCY6JFFJPC6O46NRCXNNV3W5PYLIMLOGKAEBQJGE
+#\\\|RQ6QYZAFWTFONLJ3GFTWSIUUHKSD4UO3B4QOZVD3DT35DWCSH4G \ / AMOS7 \ YOURUM ::
+#\[7]K2D5V2AMYAWHWMNRTM3IXPUV2UTGF6RBF4JRMBFBXVB4NAFUPYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

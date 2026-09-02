@@ -1,0 +1,88 @@
+## [:< ##
+
+# name = v7-zenki.parent.stream_zenka_log
+# descr = stream zenka log output via unix domain socket (detach/reattach/clone)
+
+my $params = shift || {};
+
+my $instance_id = $params->{instance_id};
+my $zenka_name  = $params->{zenka};
+my $observer_id = $params->{observer};
+
+unless ( $instance_id && $zenka_name ) {
+    return {
+        success => FALSE,
+        error   => 'instance_id and zenka name required'
+    };
+}
+
+## get zenka instance
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+unless ($instance) {
+    return {
+        success => FALSE,
+        error   => "instance $instance_id not found"
+    };
+}
+
+## create unix domain socket for this zenka's log stream  path:
+## /var/run/.7/logs/<zenka_name>.<instance_id>
+my $socket_dir  = '/var/run/.7/logs';
+my $socket_path = "$socket_dir/$zenka_name.$instance_id";
+
+## ensure socket directory exists
+unless ( -d $socket_dir ) {
+    mkdir( $socket_dir, 0755 ) or do {
+        return { success => FALSE, error => "mkdir failed: $!" };
+    };
+}
+
+## TODO: Implement unix domain socket server  features needed:
+## 1. Create unix socket at $socket_path
+## 2. Accept multiple observer connections (clone)
+## 3. Stream output_buffer data to all connected observers
+## 4. Support detach (close connection, keep socket)
+## 5. Support reattach (reconnect to existing socket)
+## 6. Stop v7 console pass-through when terminal zenka with ANSI buffer
+## attached
+
+## for now, register the log stream
+<v7-zenki.log_streams> //= {};
+<v7-zenki.log_streams>->{$instance_id} //= {
+    zenka       => $zenka_name,
+    socket_path => $socket_path,
+    created     => <[base.ntime]>,
+    observers   => [],
+    passthrough => 1                 ## v7 shows logs by default
+};
+
+## add observer if specified
+if ($observer_id) {
+    push @{ <v7-zenki.log_streams>->{$instance_id}{'observers'} },
+        {
+        id       => $observer_id,
+        attached => <[base.ntime]>
+        };
+}
+
+<[base.log]>->(
+    2, "v7-zenki.stream: log stream for '$zenka_name' at $socket_path"
+);
+
+return {
+    success     => TRUE,
+    socket_path => $socket_path,
+    zenka       => $zenka_name,
+    instance_id => $instance_id,
+    observers   =>
+        scalar( @{ <v7-zenki.log_streams>->{$instance_id}{'observers'} } )
+};
+
+0;
+
+#,,..,..,,,,.,,,.,,,.,.,.,,,,,,..,,,.,...,,..,..,,...,...,,,,,...,..,,,,,,,,,,
+#GFJZAKIQFYXMYZATGGWWCF2HQR6TSJI6O3SFLMFGGD6MRJ7MLLR4CXR4G365ZWUTTNVANSFGRXIA6
+#\\\|NN7RZTQWIPEV6MRXYERJPITLGRMGRQB2EANYKDUSCOUAHCLWO62 \ / AMOS7 \ YOURUM ::
+#\[7]XP3KDI4U34JVZ2YSSBRJEVCXI3QUAHWXAKFV5VTAQJO6ZMIBC6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

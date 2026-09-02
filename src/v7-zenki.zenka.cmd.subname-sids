@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.subname-sids
+# param = <pattern>
+# descr = list cube sid[s] for given subname pattern
+
+my $subname_query = $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => 'expected zenka subname pattern' }
+    if !length($subname_query);
+
+my @reply_list;
+foreach my $instance_id (<[v7-zenki.instance_ids]>) {
+    my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+    next
+        if not exists $instance->{'subname'}
+        or not exists $instance->{'cube_sid'}
+        or $instance->{'subname'} !~ qr{$subname_query};
+    push(
+        @reply_list,
+        join( ' ',
+            $instance->{'cube_sid'},
+            "$instance->{zenka_name} \[ $instance->{subname} ]" )
+    );
+}
+
+if (@reply_list) {
+    return {
+        'mode' => qw| size |,
+        'data' => join( '', map { sprintf "%s\n", $ARG } @reply_list )
+    };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "no match for subname pattern '$subname_query'"
+    };
+}
+
+#,,..,,.,,...,...,.,.,..,,.,,,,,.,,,,,..,,,,.,..,,...,...,,.,,...,,,.,,,.,..,,
+#6PIRWITVZDW2TW222XB4DAIZCJDOYXT4IM7USLCQTWPOPQOBYNFPJGGTHJ2R6ABTXEYO7UCWEQAIA
+#\\\|DSAA632QTYSO6ODRHRVQCJQCOL66NA7YAJQ2T453N4YVT6VVKIV \ / AMOS7 \ YOURUM ::
+#\[7]4DGZWJLNAHVGN3ONADMFCDCFJYJQYCQ5HR4DYPR3YPXL73JMG6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = v7-zenki.sub-process.get_ppid
+# todo = use BSD::Process on xBSD!
+
+my $child_pid = shift // '';
+return undef if $child_pid !~ m{^\d+$} or !-d sprintf '/proc/%s', $child_pid;
+
+my $content_sref = <[file.slurp]>->("/proc/$child_pid/status");
+
+if (    defined $content_sref
+    and ref $content_sref eq qw| SCALAR |
+    and $content_sref->$* =~ m|\nPPid:\s+(\d+)\n|s ) {
+    return $LAST_PAREN_MATCH;
+} else {
+    warn "cannot extract ppid value from '/proc/$child_pid/status'";
+    return undef;
+}
+
+#,,,.,,,,,.,,,,.,,..,,...,..,,,..,,.,,,.,,,,.,..,,...,...,,,,,..,,.,.,..,,.,,,
+#SPVPJ425KA32XP4F7UE4JCUZPMGUAVHQNJ3RLCFFBWLAXJYG5WGPUQCDEF2JTICJLAE6KBX322WU6
+#\\\|7ROZ5GFEML23QAE3GXCEVEBWF5SXHFFIKEJX7DHGVNYXXJ3S3IF \ / AMOS7 \ YOURUM ::
+#\[7]7GIQGSW545YSTNVWCR7634RMTSHLSKNTDTSW5P4H2TEXX2EL76BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

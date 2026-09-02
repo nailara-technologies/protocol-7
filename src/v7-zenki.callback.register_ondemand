@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = v7-zenki.callback.register_ondemand
+
+## check previous post-init command status [ 'connect_to_cube' ] ..,
+my $post_init_status = <v7-zenki.current-init-data.status.post-init> // 0;
+return <[base.log]>->( 0, 'cube authentication was not successful .,' )
+    if $post_init_status == 0;
+
+## cube just (re)started : its virtual-zenki table is empty.,  drop our dedup
+## [ and suppress legacy-array seeding ] so all  ondemand zenki get
+## re-registered ..,
+<v7-zenki.registered_at_cube>        = {};
+<v7-zenki.registered_at_cube_seeded> = TRUE;
+
+<[v7-zenki.register_ondemand_zenki]>;
+
+#,,..,,,,,,..,.,,,..,,.,,,,..,,,,,,.,,,,.,.,.,..,,...,...,...,.,.,.,.,,..,,..,
+#27XPBF4PWDPG6LWLTLMSCE46JNHRIBARIE6CTB7UIOLOYKKFKB26BALGBDC3FKOM4SW5DSN32LCRY
+#\\\|54QWIQ6ISPPBHIMNENMJ7TZ6ID3AP7E436CRZIRFY6YF22QYWEF \ / AMOS7 \ YOURUM ::
+#\[7]JGUPBFG4CVSLL3DCT5PHGFLVNT6DSKV5XNFXD4WWLF2IAU5XEUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

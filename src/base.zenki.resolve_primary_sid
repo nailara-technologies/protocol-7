@@ -27,29 +27,30 @@ if (    exists $cache->{$user_name}->{$caller_subname}
 }
 
 ## v7 already keeps root_sid + subname + status in sync locally per managed ##
-## instance [ <v7.zenka.instance> ] -- no need to ask cube over the network ##
-## for data v7 already has, and 'list' isn't even whitelisted for v7 to     ##
-## call cross-zenka on cube.                                                ##
-if ( <[base.mod.exists]>->(qw| v7 |) ) {
+## instance [ <v7-zenki.zenka.instance> ] -- no need to ask cube over the   ##
+## network for data v7 already has, and 'list' isn't even whitelisted for   ##
+## v7 to call cross-zenka on cube.                                          ##
+if ( <[base.mod.exists]>->(qw| v7-zenki |) ) {
     my $ids_result = <[base.code.call_expected]>->(
-        <[base.mod.exists]>->(qw| v7 |),
-        qw| v7.zenka-instances.get-ids |, $user_name
+        <[base.mod.exists]>->(qw| v7-zenki |),
+        qw| v7-zenki.zenka-instances.get-ids |, $user_name
     );
     my @instance_ids
         = ref $ids_result eq qw| HASH | ? @{ $ids_result->{'ids'} } : ();
 
     ## 'root_sid' is NOT the managed zenka's own session -- it's set once   ##
-    ## by v7.callback.connect_to_cube for v7's OWN cube connection only     ##
-    ## (the 'is-cube' instance). The per-instance session id every other    ##
-    ## managed zenka actually has is 'cube_sid'. v7.handler.heartbeat_timer ##
-    ## nests it behind root_sid ("$root_sid.$cube_sid") because it calls    ##
-    ## command.send.local directly -- but every caller of this resolver     ##
-    ## goes through protocol-7.route-send, which already auto-prepends the  ##
-    ## equivalent hop via <protocol-7.network.parent_route>. Prepending     ##
-    ## root_sid here too would double the prefix, so use cube_sid alone.    ##
+    ## by v7-zenki.callback.connect_to_cube for v7's OWN cube connection    ##
+    ## only (the 'is-cube' instance). The per-instance session id every     ##
+    ## other managed zenka actually has is 'cube_sid'.                      ##
+    ## v7-zenki.handler.heartbeat_timer nests it behind root_sid            ##
+    ## ("$root_sid.$cube_sid") because it calls command.send.local directly ##
+    ## -- but every caller of this resolver goes through                    ##
+    ## protocol-7.route-send, which already auto-prepends the equivalent    ##
+    ## hop via <protocol-7.network.parent_route>. Prepending root_sid here  ##
+    ## too would double the prefix, so use cube_sid alone.                  ##
     my @rows;
     foreach my $iid (@instance_ids) {
-        my $inst = <v7.zenka.instance>->{$iid};
+        my $inst = <v7-zenki.zenka.instance>->{$iid};
         next if not defined $inst;
         next if ( $inst->{'status'} // '' ) !~ m{^(online|extbin)$};
         my $cube_sid = $inst->{'cube_sid'};
@@ -85,8 +86,8 @@ if ( <[base.mod.exists]>->(qw| v7 |) ) {
     }
 );
 
-#,,,.,.,,,,,,,,..,..,,.,,,,,.,,,,,,.,,..,,,,,,..,,...,..,,,..,,,,,,,.,...,.,,,
-#DAZJEJTT6VABQUSSEFQVSFENZCX4KHHJEOAJNLCS2AFSQMWHTEUTAMOFM5O2VEBSE5U6FQYQJMDGE
-#\\\|O52N66INR6EM3KJXIYFNRNK4F2MUGMRONI42JSDNH4EZNVMEULI \ / AMOS7 \ YOURUM ::
-#\[7]LNYUUVRM2WQHMWNN7RQEBT3IOZPNJIUJZDJRUKYTGPGDU7XIQEBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,,,,,,,,,...,...,..,,...,...,..,,...,...,,,,,,,.,,..,,..,,,,,
+#6HH5QBH4WBWC3AR7AS6J3RKBIP6JFN2T47YQZFVUAMFT7NRLTJTBHM66E4PTNFDXESD2UMI7K6PF6
+#\\\|RBIZ6QWKY3Z4NUXPVMOBL5IPHAKW7WSG3EE63HCALY4CHA2TP7B \ / AMOS7 \ YOURUM ::
+#\[7]APS6AI4CFKZD763FYOIFD5E5KMCRC4TOCV3NOJ2GYMWQNLC5LKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

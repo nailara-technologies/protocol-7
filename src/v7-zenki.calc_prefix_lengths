@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = v7-zenki.calc_prefix_lengths
+# descr = initialize zenki for automatic \ immediate startup
+
+my $apw_href = <v7-zenki.zenka.prefix_width> //= {};
+
+my @online_zenki = keys <v7-zenki.online-zenki>->%*;
+
+my $max_len = 0;
+foreach my $zenka_name ( uniq @ARG, @online_zenki, qw| v7 cube | ) {
+    my $new_len = <[base.get_start_lpw]>->($zenka_name);
+    $apw_href->{$zenka_name} //= $new_len;
+    $max_len = $new_len if $new_len > $max_len;
+}
+
+foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
+    next if $apw_href->{$zenka_name} == $max_len;
+    my @zenki_pid;
+    map {
+        push( @zenki_pid,
+            <v7-zenki.zenka.instance>->{$ARG}->{'process'}->{'id'} )
+            if $ARG =~ m|^\d+$|;
+    } <[v7-zenki.zenka-instances.get-ids]>->($zenka_name)
+        if $zenka_name ne qw| v7-zenki |;
+
+    ## distance between signals [ increase when required ] ##
+    my $timer_inc   = 0.13;
+    my $timer_delay = 0;      ## start delay ##
+
+    if ( $apw_href->{$zenka_name} < $max_len ) {
+        my $delta_len = $max_len - $apw_href->{$zenka_name};
+
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne qw| v7-zenki | ) {
+
+                ##  async dispatch  ##
+                <[event.add_timer]>->(
+                    {   'after'  => $timer_delay += $timer_inc,
+                        'repeat' => 0,
+                        'prio'   => 7,
+                        'cb'     => sub { kill 55, @zenki_pid },
+                        'desc' => 'SIGNUM55 send-timer [ increase lp-width ]'
+                    }
+                );
+
+            } else {
+                <[base.sig_NUM55]>;    ## own [ v7 zenka ] process ##
+            }
+        }
+
+    } elsif ( $apw_href->{$zenka_name} > $max_len ) {
+        my $delta_len = $apw_href->{$zenka_name} - $max_len;
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne qw| v7-zenki | ) {
+
+                ##  async dispatch  ##
+                <[event.add_timer]>->(
+                    {   'after'  => $timer_delay += $timer_inc,
+                        'repeat' => 0,
+                        'prio'   => 7,
+                        'cb'     => sub { kill 41, @zenki_pid },
+                        'desc' => 'SIGNUM41 send-timer [ decrease lp-width ]'
+
+                    }
+                );
+
+            } else {
+                <[base.sig_NUM41]>;    ## own [ v7 zenka ] process ##
+            }
+        }
+    }
+}
+
+map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
+    ( keys $apw_href->%* );
+
+#,,..,,,.,..,,,.,,,,,,,..,..,,,..,.,,,...,..,,..,,...,.,.,...,.,,,,,.,.,,,,.,,
+#O3PPEMSAHMIVDNQJAOQG3EGEPWRH4HANW63FWZXQVZ4YDFC3HVF5UX6DI7HXP4OHRVIYBTGH2Y7RY
+#\\\|O7C24VV66C2UAJAYOZLYZTNOVLQ5ICGXUWNNHBQ3LVIN5T6TTPF \ / AMOS7 \ YOURUM ::
+#\[7]JH3WMLPGQF75UCQHI67KRHFOOSVD3RGF5KH4P4LM72KGA42GE2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

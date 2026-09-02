@@ -12,12 +12,14 @@ return warn "received instance id is not numerical"
     if $response->{'cmd'} eq qw| TRUE |
     and $cmd_rep_str !~ m|^\d+$|;
 
-if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7' zenka
+if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7-zenki' zenka
     my $instance_id = $cmd_rep_str;
-    <[base.log]>->( 0, " : asking 'v7' to restart instance $instance_id" );
+    <[base.log]>->(
+        0, " : asking 'v7-zenki' to " . "restart instance $instance_id"
+    );
 
     <[protocol-7.command.send.local]>->(
-        {   'command'   => qw| cube.v7.restart |,
+        {   'command'   => qw| cube.v7-zenki.restart |,
             'call_args' => { 'args' => $instance_id }
         }
     );
@@ -30,8 +32,8 @@ if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7' zenka
     return warn "aborted autokill for pid $process_id [no v7 zenka access?]";
 }
 
-#,,.,,,,.,,,,,,,,,,..,,..,,,,,.,.,..,,,..,,.,,..,,...,.,,,.,,,,..,,,.,,.,,.,.,
-#6UHN7EQKMWD2LSQCGZS2J5NJC5WKZYEUHDQPWUTAUANHMS7DSNY2ICL2SE6CUDGMNJL4FIUBX5RLO
-#\\\|RFL6D2GECJOD5JGT7CNPIOYYDYR2VJP6TBJELEBFHJN3FYYJZK4 \ / AMOS7 \ YOURUM ::
-#\[7]KVXL5GHUSYR4IU2O6G4BSZVM6IBOPSMNFG2TVYPMKDGTXE736KAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,..,.,.,.,,,,,,,.,.,.,,,.,,,,,,,..,,...,...,,..,,.,,,,.,..,,,.,,
+#MC4UY4KM3KOKCJ63HTPRVILBSJVA2ZSDE7T7XTATZVE3XU4PNPIZ7HHJBUTN4C6TI33HSGUXKJV4W
+#\\\|Y7I57IY4NNLKRTDL7YSXUVMQC77M4MCTQNLE77YVEWLEA5O7CAN \ / AMOS7 \ YOURUM ::
+#\[7]OFDR5JBXSAP5W757LVI27FG7SPRETZ53S4Y2ZOJBFL7OAM7Y7MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

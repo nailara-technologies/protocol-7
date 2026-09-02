@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = v7-zenki.load_start_setup
+# descr = loads startup configuration for zenki into zenka setup [ single cfg ]
+
+my $config_to_load = shift;
+
+my $cfg_root_path  = <system.conf_path>;
+my $base_file_name = 'zenki/v7-zenki/start-set-up.';
+die 'load_start_setup: no start setup specified'
+    if not defined $config_to_load;
+
+my $start_setup_pattern = join ' ',
+    map { $base_file_name . $ARG } split( m|\s+|, $config_to_load );
+
+return <[base.logs]>->(
+    0, "<< zenki start config '%s' not found >>",
+    $start_setup_pattern
+) if not -f catfile( $cfg_root_path, $start_setup_pattern );
+
+<[base.logs]>->( ": loading zenki start-profile : ['%s']", $config_to_load );
+my $start_setup_data;
+{
+    local <system.conf_path> = sprintf qw| %s/zenki/v7-zenki |, $cfg_root_path;
+    $start_setup_data = <[base.load_section_code]>->($start_setup_pattern);
+}
+
+return <[base.logs]>->(
+    0, "<< zenki start config '%s' contains no entries >>",
+    $start_setup_pattern
+) if $start_setup_data->@* == 0;
+
+push <v7-zenki.cfg_data.start_setup>->@*, $start_setup_data;
+
+#,,,,,,,,,...,,,,,,,,,.,,,.,.,.,.,,,.,,..,.,,,..,,...,...,...,.,.,,..,.,.,,,,,
+#UQ4KFQDQWOJ74XW424S2X2UISKIEUWW7RGFRVHVRUKYVY3DSC4UIL4BVDHZESXU7J6S6NL5UULDKI
+#\\\|GYQAMRRXNBK43SH6T4EPBZGZDPIZYDN3VPCHIKI322EMSHOJRHX \ / AMOS7 \ YOURUM ::
+#\[7]TU2A72AAK45AUP7SD7TAXGJKKHK35RGIJEISUWWNRE5DP35OFIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = v7-zenki.bin_p7c_comp_chksum
+# descr = parses the binary to find the checksum that is reported by `p7c -dq`
+
+my $p7c_bin_path    = shift;
+my $checksum_string = shift;
+
+( warn "expected 'p7c' binary \\ executable path <{C1}>" and return 0 )
+    if not defined $p7c_bin_path;
+( warn "expected source checksum parameter <{C1}>" and return 0 )
+    if not defined $checksum_string;
+
+return 0
+    if not -e $p7c_bin_path;    ## no binary present \ checksum not found.. ##
+
+( <[base.log]>->( 0, "no read access to '$p7c_bin_path'" ) and return 0 )
+    if not -r $p7c_bin_path;
+
+my $binary_fh;
+if ( !open( $binary_fh, join( ' ', '<', ':raw' ), $p7c_bin_path ) ) {
+    <[base.log]>->( 0, "unable to open '$p7c_bin_path' ., [ \l$OS_ERROR ]" );
+    return 0;
+}
+
+my $checksum_found = 0;
+while (<$binary_fh>) {
+    if ( index( $ARG, $checksum_string ) >= 0 ) {
+        <[base.log]>->( 2, "checksum found in binary [ line $NR ]" );
+        $checksum_found = 1;
+        last;
+    }
+}
+
+close($binary_fh);
+return $checksum_found;
+
+#,,..,.,.,.,.,,,.,,,,,,,,,.,,,,,,,,..,,.,,...,..,,...,...,.,,,,..,,,.,,.,,,..,
+#DIM2AEXNHGYPEHEZ4IK3STFGSCYX4K7UZCPJCYJKLARL5DGCV5EHI5K6YAK5XUPDZCQ7GR3RHDAPO
+#\\\|RFOJS4UFZPEBDYPBX4QUYKIIAKVKRMG5IG2DOTBYW2QOC34KEJM \ / AMOS7 \ YOURUM ::
+#\[7]KBYXRIVOEMHPKA2S6PW22K2Q4JWK2VYBNII57AIGMHT2GMFJHEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

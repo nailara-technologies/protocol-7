@@ -1,0 +1,43 @@
+## [:< ##
+
+# name = v7-zenki.start_count
+
+my $zenka_subname;
+my $start_count = 0;
+my $zenka_name  = shift;
+
+$start_count += <[v7-zenki.instance_count]>->($zenka_name);
+$zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+
+## a zenka with no unmet dependencies of its own [ eg 'cube' ] goes        ##
+## straight to 'queued' [ v7-zenki.zenka.cmd.start : target_queue =        ##
+## dependency.ok ? 'queued' : 'depending' ] and never passes through       ##
+## 'depending' at all - scanning only 'depending' left a real window where ##
+## a concurrent second start request [ ordinary boot sequencing racing a   ##
+## dependency resolve hook, or any two callers ] both saw start_count=0    ##
+## while the first job sat in 'queued' waiting for the next tick, and both ##
+## proceeded : a genuine second instance of a max_concurrency=1 singleton, ##
+## confirmed live 2026-08-26 [ 'cube' ]. scan both queues                  ##
+foreach my $queue_name (qw| depending queued |) {
+    foreach my $job_id (
+        @{ <jobqueue.joblist>->{$queue_name}->{'by_timestamp'} // [] } ) {
+        my $job = <jobqueue.joblist.by_id>->{$job_id};
+        next if $job->{'name'} ne 'zenka.start';
+        my $job_zenka_subname;
+        my $job_zenka_name = $job->{'callback_params'};
+        $job_zenka_subname = $1 if $job_zenka_name =~ s|\[([^\]]+)\]$||;
+
+        $start_count++
+            if $job_zenka_name eq $zenka_name
+            and ( not defined $zenka_subname
+            or $zenka_subname eq $job_zenka_subname );
+    }
+}
+
+return $start_count;
+
+#,,.,,,..,,.,,..,,.,,,...,.,,,..,,,,,,.,,,.,,,..,,...,...,.,,,.,.,,,,,,,.,.,,,
+#2GIHPJMTPPOZGDXHXMTINCNSBIIKIDQJUZU7JEBOIT53DNW5BWV6YFI2FWPZDYQNVE6BGN7SLTUYQ
+#\\\|DMKTEOUKB7YHCYIGEOJO77XSBCSWISOQLNW4JDWJYIWBYBQNOJT \ / AMOS7 \ YOURUM ::
+#\[7]CQ4I3YNBNS2XPHYKDTPVHCTLLVAWBPQG355O3VFIDZSLKKEC46CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

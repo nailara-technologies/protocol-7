@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = v7-zenki.handler.zenka_output
+# descr = read zenka console output and trigger commands on pattern match
+
+<v7-zenki.patterns.zenka_output> //= {};
+<v7-zenki.patterns.log_matches>  //= 0;
+
+my $watcher     = shift->w;
+my $read_fh     = $watcher->fd;
+my $instance_id = $watcher->data;
+if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
+    $watcher->cancel;
+    close($read_fh);
+    <[base.logs]>
+        ->( 2, 'instance %d : output pipe was closed', $instance_id );
+    return;
+}
+my $zenka_instance = <v7-zenki.zenka.instance>->{$instance_id};
+my $zenka_id       = $zenka_instance->{'zenka_id'};
+my $zenka_name     = <v7-zenki.zenka.setup>->{$zenka_id}->{'name'};
+
+<[base.logs]>->( 2, 'instance %s : zenka name not defined.', $instance_id )
+    and return
+    if not defined $zenka_name;
+
+$zenka_instance->{'output_buffer'} //= '';
+
+##  use line length statistics for read size [ estimate ] value  ##
+
+my $stats_ref      = $zenka_instance->{'output-statistics'} //= {};
+my $total_stat_ref = <v7-zenki.statistics.zenka-output>     //= {};
+
+my $avg_line_length
+    = ( defined $stats_ref->{'average-length'}
+        and $stats_ref->{'average-length'} > 0 )
+    ? $stats_ref->{'average-length'}
+    : $total_stat_ref->{'average-length'};
+
+$avg_line_length = undef if defined $avg_line_length and !$avg_line_length;
+
+my $read_length
+    = defined $avg_line_length
+    ? sprintf( qw| %.0f |, 1 + $avg_line_length )
+    : 113;
+
+my $read_bytes = <[base.s_read]>->(    ## read STDOUT of zenka ##
+    $read_fh, \$zenka_instance->{'output_buffer'}, $read_length
+);
+
+if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
+    $watcher->cancel;
+    close($read_fh);
+
+    my $process = $zenka_instance->{'process'};
+
+    <[base.logs]>->( 2, '[PID:%d] output pipe was closed', $process->{'id'} );
+
+    return;
+}
+
+## only process complete lines : leave incomplete tail as raw bytes ##
+my $buffer  = \$zenka_instance->{'output_buffer'};
+my $last_nl = bytes::rindex( $buffer->$*, "\n" );
+
+if ( $last_nl >= 0 ) {    ## extract tail + trim buffer ##
+    my $tail_str = bytes::substr(
+        $buffer->$*,
+        $last_nl + 1,
+        bytes::length( $buffer->$* ), ''
+    );
+    utf8::decode( $buffer->$* );
+    <[v7-zenki.handler.process_output_line]>->( $watcher, $read_bytes );
+    $buffer->$* .= $tail_str;
+}
+
+#,,..,.,.,,..,...,,.,,.,.,,,,,.,,,,.,,,..,,,.,..,,...,...,,..,,..,..,,...,..,,
+#JNK65CO76EURVSJN6VLSYAGSOOHA4R7KTFFYA7ZZMYLL52GAXWCDLJUYIT7PO4THS72BNDBO4W2QC
+#\\\|5Z4SDW5CIROIJXWAQZ23553YAWNNR24AD76WZDREQVMUAFJN575 \ / AMOS7 \ YOURUM ::
+#\[7]5PUKTAO257JJYDKW6X5WCBRZL7B5YNMQ4CUO3D3HWRCZNIVEHCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

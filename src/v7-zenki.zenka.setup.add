@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.setup.add
+# descr = store a new zenka setup and return its id
+
+my $zenka_details = shift;
+die 'v7-zenki.zenka.setup.add: expected a hash reference!'
+    if ref($zenka_details) ne qw| HASH |;
+
+my $zenka_name = $zenka_details->{'name'};
+die 'v7-zenki.zenka.setup.add: [minimum] \'name\' parameter required'
+    if not defined $zenka_name or !length $zenka_name;
+
+$zenka_details->{'type'} //= 'local';
+
+my $zenka_id = <[base.gen_id]>->(<v7-zenki.zenka.setup>);
+
+<v7-zenki.zenka.setup>->{$zenka_id} = $zenka_details;
+
+return $zenka_id;
+
+#,,,.,...,.,,,,..,,..,..,,...,,..,.,.,,,,,,,.,..,,...,...,.,,,.,.,,.,,,,,,.,.,
+#4PYCX4M3X232VEATAL7I7FNYRIPOVCEGADOFAGYGEWEXPQJECKZK353O6WG3O3FBN55XSBR45BJWG
+#\\\|VXGSUOEAXH2IZODS2OVFCG6FYB67FJWXSN2CTDD2U5GKGNMKZW4 \ / AMOS7 \ YOURUM ::
+#\[7]QWELY56W4AI4D4SX5RLBKAPOVLJVZ7MJQOIBVPZRZG3XLJZZVWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

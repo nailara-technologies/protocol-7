@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = v7-zenki.handler.instance_verification
+
+my ( $instance_id, $verification_string ) = @ARG;
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+if ( $verification_string eq $instance->{'instance_verification'} ) {
+    <[base.log]>->( 1, "instance $instance_id : verified : success =)" );
+    delete $instance->{'instance_verification'};
+    <[zenka.change_status]>->( $instance_id, 'online' );
+} else {
+    <[base.log]>->( 0, "instance $instance_id could not be verified ..," );
+    delete $instance->{'instance_verification'};
+    <[zenka.change_status]>->( $instance_id, 'error' );
+}
+
+#,,,.,,.,,,..,,,,,,.,,,..,,,.,.,,,,..,.,,,,..,..,,...,...,..,,..,,,..,..,,,.,,
+#G42V7SZXOY5YDWIQREC7CKRORZUPQBIXNSTYGGTUXN3G7TSC3HXZ2JFLMLS2MVE54J66ZD425JQPG
+#\\\|NWCWTHDOD5MECUBLTEAVCI7I54LBG7OEXW6O7M5QIUPLWKEKA76 \ / AMOS7 \ YOURUM ::
+#\[7]ZZV3J5LL6DR5LJUZVFJWATGMOJU2BHNIDREFHNCFHHQDWK6GVMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

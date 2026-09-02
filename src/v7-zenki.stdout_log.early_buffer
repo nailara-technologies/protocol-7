@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = v7-zenki.stdout_log.early_buffer
+# descr = captures early startup messages before stdout log file is opened
+
+my $action = shift // qw| add |;
+
+if ( $action eq qw| add | ) {
+    ## add line to early buffer ##
+    my $line = shift // return FALSE;
+    push( <v7-zenki.stdout_log.early_messages>->@*, $line );
+
+    ## prevent unbounded growth [keep last 1000 lines if buffer gets large] ##
+    if ( <v7-zenki.stdout_log.early_messages>->@* > 1000 ) {
+        shift <v7-zenki.stdout_log.early_messages>->@*;
+    }
+    return TRUE;
+
+} elsif ( $action eq qw| flush | ) {
+    ## flush buffer to opened log file ##
+    return TRUE if not defined <v7-zenki.stdout_log.fh>;
+
+    my $fh    = <v7-zenki.stdout_log.fh>;
+    my $count = 0;
+
+    ## copy from base buffer [ all accumulated messages before shm opened ] ##
+    if ( defined <buffer.zenka.data> ) {
+        my $zenka_prefix = <[log.format_name]>;
+        my $idx          = 0;
+        foreach my $line ( <buffer.zenka.data>->@* ) {
+            my $cur = $idx++;
+            ## skip startup + version markers [ indices 1, 2 ] ##
+            next if $cur == 1 or $cur == 2;
+            ## parse : TIMESTAMP LEVEL MSG  [ plain format from ##
+            ## base.buffer.add_line ]                           ##
+            if ( $line =~ m|^\S+ (-?\d+) (.+)$|s ) {
+                say {$fh}
+                    <[base.log.format_entry]>->( $1, $2, $zenka_prefix );
+            } else {
+                say {$fh} $line;    ## fallback: plain ##
+            }
+            $count++;
+        }
+    }
+
+    <[base.logs]>->( 2, ': stdout-log : early messages : %03d', $count );
+
+    return $count;
+
+} elsif ( $action eq qw| clear | ) {
+    ## clear buffer without writing ##
+    <v7-zenki.stdout_log.early_messages> = [];
+    return TRUE;
+}
+
+return FALSE;
+
+#,,.,,.,.,,.,,.,.,,..,,,,,..,,,,.,.,,,.,.,,,.,.,.,...,.,.,...,.,.,.,.,.,.,,..,
+#3U63VS5WGZ3IYB7FAGLMCCMRS2KARWR2GBVPFE7JNDSHHIKOWOHVG77GAJHMLANUN7QM6C4VBKXQO
+#\\\|H44UTMFAAKBITCDL42IIIQI3DMUAH4PDNBKKY3BCVQV4KEFT575 \ / AMOS7 \ YOURUM ::
+#\[7]K4WIUD7OMIGHD3G5NYYFV5U57VHLAS2K52JRLZUKVNDAIX43CKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

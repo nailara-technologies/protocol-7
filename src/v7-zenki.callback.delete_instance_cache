@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = v7-zenki.callback.delete_instance_cache
+
+my $w = shift->w;
+$w->cancel if $w->is_active;
+<v7-zenki.watchers.instance_cache>->stop;    ## prevent deep recusion ##
+
+if ( not defined <v7-zenki.process.instance_cache>
+    or keys <v7-zenki.process.instance_cache>->%* ) {
+
+    ##  resetting instance cache  ##
+    <v7-zenki.process.instance_cache> = {};
+}
+
+delete <v7-zenki.timer.reset_instance_cache>;
+<[base.clean_hashref]>->(<v7-zenki.timer>);
+
+<v7-zenki.watchers.instance_cache>->start;    ##  restarting watcher  ##
+
+#,,,,,.,,,,..,.,.,..,,,..,..,,...,..,,..,,,,,,..,,...,...,,..,,.,,.,.,.,,,.,,,
+#Y2YHNI6GB5NEXBFDU63XOS5S7TXGD6QP4OHJNWNZAIL5CD4YEXIBVQUKW7L55DUUAFI4HAULLMKKG
+#\\\|LMJJZKE5TUJNWWPJM2IBF47MIPA2SHXJFLO26HXJ5Z54NFORPD2 \ / AMOS7 \ YOURUM ::
+#\[7]IGVGF6ECL3QWQECYHTCLLAK74D5G2EPTK25Y2YUN7BOGOHS5DEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

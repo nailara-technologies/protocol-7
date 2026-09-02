@@ -3048,13 +3048,13 @@ sub p7_devmod_sub {
             $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|;
         }
         ## hiding long [redundant] log messages mixed with ansi sequences ##
-        elsif ( $data{'system'}{'zenka'}{'name'} eq qw| v7 |
-            and $sub_name eq qw| v7.stdout_log.write |
+        elsif ( $data{'system'}{'zenka'}{'name'} eq qw| v7-zenki |
+            and $sub_name eq qw| v7-zenki.stdout_log.write |
             and $hide_log_write ) {
             @_p = (qw| <..log_msg..> |);
         } elsif ( $sub_name eq qw| base.code.call_expected |
             and defined $_p[1]
-            and $_p[1] eq qw| v7.stdout_log.write |
+            and $_p[1] eq qw| v7-zenki.stdout_log.write |
             and $hide_log_write ) {
             ## same call target as the branch above, just reached through  ##
             ## the call_expected wrapper -- collapse only the rendered log ##
@@ -4064,16 +4064,18 @@ sub p7_sig_warn {
 
         if ($deep_recusrsion) {    ## second warning means not mitigated ##
 
-            if ( $data{'system'}{'zenka'}{'name'} eq qw| v7 | ) {
+            if ( $data{'system'}{'zenka'}{'name'} eq qw| v7-zenki | ) {
                 foreach my $pid (
                     sort {
-                        $data{'v7'}{'child'}->{$b}->{'start_time'}
-                            <=> $data{'v7'}{'child'}->{$a}->{'start_time'}
+                        $data{'v7-zenki'}{'child'}->{$b}->{'start_time'}
+                            <=> $data{'v7-zenki'}{'child'}->{$a}
+                            ->{'start_time'}
                     }
-                    keys $data{'v7'}{'child'}->%*
+                    keys $data{'v7-zenki'}{'child'}->%*
                 ) {
                     my @children
-                        = $code{'v7.sub-process.get_children'}->($pid)->@*;
+                        = $code{ 'v7-zenki.sub-process.get_children' }
+                        ->($pid)->@*;
                     kill( 15, $pid );
                 }
             }
@@ -4240,7 +4242,7 @@ sub p7__log__base_log_complete {
     $are_present = TRUE
         if exists $code{'base.log'}
         and exists $code{'base.log.format_entry'}
-        and exists $code{'v7.stdout_log.write'};
+        and exists $code{'v7-zenki.stdout_log.write'};
     return $are_present;
 }
 
@@ -6496,8 +6498,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,.,,,.,,.,,,,,,..,,...,...,,.,,,,.,.,,,..,,...,..,,...,..,,...,,,,,..,,
-#OPI42TCBHUKSS3QKV2FA4FY7HG2APX46QDLSFKRYJEGU3EZNVBN6UJ5NG2DBYHJUZZCH7T6VHIBZO
-#\\\|YVPDUIRXO72SCRU3HOMXIVQIE5NNS25U7WURR6RJT2OAQW3WCOA \ / AMOS7 \ YOURUM ::
-#\[7]3FCR5PFVGUB45Z7BFDEKCVVWMJV77J67ZWDI7QMCDWG5ZUVCFUBY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,,.,,.,.,.,.,,,.,,..,..,,.,,,..,,...,...,...,.,,,.,,,...,,..,
+#FSUBWNDKZILWTLBIOYAJZ2CZRG3XUPCHXDQG2B4NCQPCZWSRUTD5NXO4EEDVVLDJ7AYQBTAD2QBT4
+#\\\|QUW2D7GLUXOFBFBW7OK57RGXFYTZVHKOHDYIUA25AKIVKMPJAGX \ / AMOS7 \ YOURUM ::
+#\[7]CSFXAQKDMM2MOVADLY2H64WMX32JLE4CM7KQQ4UZNG7VEIZEPWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

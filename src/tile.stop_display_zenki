@@ -6,7 +6,7 @@
 if ( defined <tile.startup.stop_zenki> ) {
     <[base.log]>->( 1, "stopping display zenki (if present)" );
     <[protocol-7.command.send.local]>->(
-        {   'command'   => "cube.v7.terminate-implicit",
+        {   'command'   => "cube.v7-zenki.terminate-implicit",
             'call_args' => { 'args' => <tile.startup.stop_zenki> }
         }
     );
@@ -14,14 +14,14 @@ if ( defined <tile.startup.stop_zenki> ) {
 if ( defined <tile.startup.restart_zenki> ) {
     <[base.log]>->( 1, "restarting display zenki (if present)" );
     <[protocol-7.command.send.local]>->(
-        {   'command'   => "cube.v7.restart",
+        {   'command'   => "cube.v7-zenki.restart",
             'call_args' => { 'args' => <tile.startup.restart_zenki> }
         }
     );
 }
 
-#,,.,,...,.,,,..,,,..,,,.,...,,.,,.,,,,,.,,,.,..,,...,...,..,,,,,,.,,,,.,,,,,,
-#HD5GBCLGNC7ARGX4PBYT6FT4NBNV4PRO52IVONKLSP42D4F23ZWJW5VD267353AQEYTHLIUKEX3BY
-#\\\|7GJNNWSR2OOFND73CVT6UXPWFVSOEWVXM7YDDNQH3KLGOYAZ2SW \ / AMOS7 \ YOURUM ::
-#\[7]O26HYWR7MMVNPM4SCMZX73J3KC3ZXZ4PBABXCM36J27PP2V6V4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,..,,,,,,...,,,.,.,,,...,.,,,..,,..,,...,...,.,,,.,,,,.,,,.,,..,,
+#COPMLIX3WFWAHCFRVVFJW7LUHQ5IOGQWOT56VTOOHB2P3AYXQLNRRXZUTBXJZK5XS45SOO2NSEJ3K
+#\\\|MN6FGAGEYE3RMUFKCWVS4RHIHSHXIDNFHVDLRPUKVEBKA4W2LBB \ / AMOS7 \ YOURUM ::
+#\[7]55DTUEWOGILXUIZ2W33PGKRNX773HK5L3JRHT222YJUBFLA4CWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

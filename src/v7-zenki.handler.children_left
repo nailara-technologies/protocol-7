@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = v7-zenki.handler.children_left
+
+my $watcher     = shift->w;
+my $params      = $watcher->data;
+my $instance_id = $params->{'instance_id'};
+my $next_status = $params->{'next_status'};
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id};
+my $curr_status = $instance->{'status'};
+$next_status = 'restart'
+    if $next_status eq 'delayed';    # <-- should not happen!
+
+my @remaining_pids;
+my $child_count = 0;
+foreach my $pid ( reverse sort keys <v7-zenki.child>->%* ) {
+    next if <v7-zenki.child>->{$pid}->{'instance_id'} != $instance_id;
+    if ( <[base.exists.sub-process]>->($pid) ) {
+        push( @remaining_pids, $pid );
+        $child_count++;
+    } else {
+        <v7-zenki.process.instance_cache>->{$pid} = $instance_id;
+        delete <v7-zenki.child>->{$pid};
+        kill( 9, $pid );    # <-- assumed gone, making sure..,
+    }
+}
+
+if ( !$child_count ) {    ## done waiting ##
+    $watcher->cancel;
+    <[zenka.change_status]>->( $instance_id, $next_status );
+    if ( $next_status eq 'offline' ) {
+        my $job_id = $instance->{'job_id'};
+        <[jobqueue.move_job]>->( $job_id, 'queued' );
+        <[zenka.change_status]>->( $instance_id, 'restart' );
+    }
+} else {    ## ..still waiting.. ##
+    <[base.log]>->(
+        2,
+        "instance : $instance_id -< children left: $child_count >- ["
+            . join( ',', @remaining_pids ) . ']'
+    );
+    <[base.log]>
+        ->( 2, ": status : $curr_status next_status: '$next_status'" );
+}
+
+#,,,,,,,,,,.,,.,.,.,.,,.,,.,.,,,,,,,,,,.,,,,.,..,,...,..,,,,.,.,,,...,...,,,,,
+#CBLY2TEJONINCGCUI7CHLQHRBXMONXYGZBVJBA3P24M5UCPKGX4EAOY6BJ3ETO4Y7HCO2WL4FXGZE
+#\\\|GY2B23DHF5QQQI3OBUEKT6OHMHIQYLRSF77ECHBP6OMERWNIKKL \ / AMOS7 \ YOURUM ::
+#\[7]RZ67RVUP6YYAJPACYU5BWCMQLTXTEKGBK2TZ4ECAOCTL7GHDT2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

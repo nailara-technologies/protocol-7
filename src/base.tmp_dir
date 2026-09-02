@@ -4,7 +4,8 @@
 
 my $target   = shift;                # optional target directory
 my $template = shift // 'X' x 13;    # temp dir name template [optional]
-my $register = FALSE;    ## [optional] register path for removal by 'v7' ##
+## [optional] register path for removal by 'v7-zenki' ##
+my $register = FALSE;
 die "target directory does not exist" if not -d $target;
 die "invalid template syntax"         if $template =~ m|\./|;
 
@@ -60,15 +61,15 @@ if ($register) {
         <system.init_reports>->@*,
         {   'param'          => $tmp_dir_path,
             'descr'          => 'registering temp dir path..,',
-            'target_command' => qw| v7.report-temp-path |,
+            'target_command' => qw| v7-zenki.report-temp-path |,
         }
     );
 }
 
 return $tmp_dir_path;
 
-#,,..,..,,,.,,..,,.,.,...,,,,,,..,...,.,.,.,,,..,,...,...,.,.,,.,,,..,.,,,..,,
-#754VN2ZPAK4XGQEQAF2HRFRJHOQB2HC5AEUVB65U4DCZRCI4QWRGRVK33T5FSB4PZCUTRLM6CXTEY
-#\\\|FVFRJLVE3EO5XPI6TGXEOZHY3UIMODO6N2N6TJGFNBIRK7EEZ6Z \ / AMOS7 \ YOURUM ::
-#\[7]C2C6623V4HHOSSX7JZ2YX45CJQD4Y6PMH4RCZKVBTVA3PVDBFCAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,.,.,.,,,...,...,.,.,,..,.,,,..,,...,...,...,,.,,.,,,,,,,,,.,
+#VX3X2GBL63QXCTNE7HX6UKYKPJFEIKEWUKEI45XOZOFFMSHPYNT4EX5L3J7HD3TVRZF4B5MK5O6IE
+#\\\|VZ6HQAUOARTPAGMXKSUZWR7FVUIPKAWL3VUEVARWKEDU5P5KIWW \ / AMOS7 \ YOURUM ::
+#\[7]NOUXT2TXHJEH6JJF3ENM3PMCXQRWIULBWD4V3V6JMZHCYM7XLQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

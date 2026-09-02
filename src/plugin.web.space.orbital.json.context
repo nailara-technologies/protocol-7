@@ -46,12 +46,12 @@ if ( ref $zenki_running eq qw| HASH | ) {
     push @zenki_names, 'cube'
         if ref $zenki_running->{'cube'} eq qw| HASH |
         and exists $zenki_running->{'cube'}{'status'};
-    push @zenki_names, 'v7'
-        if ref $zenki_running->{'v7'} eq qw| HASH |
-        and exists $zenki_running->{'v7'}{'status'};
+    push @zenki_names, 'v7-zenki'
+        if ref $zenki_running->{'v7-zenki'} eq qw| HASH |
+        and exists $zenki_running->{'v7-zenki'}{'status'};
 
     ## also try v7 zenka instance registry if available ##
-    my $v7_instances = <v7.zenka.instance> // {};
+    my $v7_instances = <v7-zenki.zenka.instance> // {};
     if ( ref $v7_instances eq qw| HASH | and keys %$v7_instances ) {
         my %seen = map { $_ => 1 } @zenki_names;
         foreach my $inst_id ( keys %$v7_instances ) {
@@ -107,8 +107,8 @@ my $payload = {
 
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
-#,,,,,...,,,,,,,.,.,.,,..,,,.,,,,,,.,,..,,.,.,..,,...,...,...,.,,,,.,,..,,.,,,
-#A5GUDYQRLDUPVKV4K4QRIB3RXPTMBOCQ5R5HUSYNC45T7Z75UDHFUXDXUYDOSWFOHZGBPE27OAYU6
-#\\\|YNC2QYSNIKTD7XYIRE6Q7ZZPAAYJC3ZZGUWUJUBIIJFHUIKWOSJ \ / AMOS7 \ YOURUM ::
-#\[7]BLEIQ27G5B6DTRTX7YWFXJJTIIW3OQTM22VXQIKJJVEHQQUYFSDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,,,,,.,,...,..,,..,,,..,.,,,..,,...,...,,..,.,.,,,,,.,.,...,
+#CEN2FPRALWFY4HXSXB3LZCMNIMXFLRNJ45VXUFK435FHZRIKM6GFFKRQF533KZXSAFO3YDJJKDDEA
+#\\\|RAVYVKCZD2GSU3RAP4VDS567WJJEOUEV7656ZY3MLXWUDPPXNCI \ / AMOS7 \ YOURUM ::
+#\[7]T2RIZQGHFX2MM35ZODKJNSTZO5A2AU357AWXFYUD5RH2YFUWAMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ if (    exists $certs->{$hostname}
 
 ## only request when httpsd is also online : no point without TLS server ##
 my $httpsd_online = <[protocol-7.route-send]>->(
-    {   'command'   => qw| v7.status |,
+    {   'command'   => qw| v7-zenki.status |,
         'call_args' => { 'args'    => qw| httpsd | },
         'reply'     => { 'handler' => qw| base.handler.null | }
     }
@@ -72,8 +72,8 @@ unless ($sent) {
 
 return qw| pending |;
 
-#,,,,,,,.,...,.,,,.,.,.,.,.,.,.,.,...,..,,.,,,..,,...,...,..,,,..,.,.,...,.,,,
-#NJF3EO5LN4VSSAWA7FUE6XHFCZR4AJMKPR7AUFRZJCHXIR3SLY4CM7WYNXQ5DVMRNG6S2QGIGCG7A
-#\\\|TO4UISYXMJXKYTQTACYYTIB4MBDBGO7BZY7IFPB4V3GOVYA5HSL \ / AMOS7 \ YOURUM ::
-#\[7]IGQGY4SCPAENSCS2OAXVNAVF6SAM33A3HSMF4XCWYUP5SXWEFQCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,,.,,,.,,,..,...,,..,,,.,.,,,..,,...,..,,...,,,,,..,,,,.,..,,
+#4J6ZUEA7KW77FDYCBXAT3HHBKIAUQ45TI2P76VNSZFXJKBWQCGP352D2SYBB355HQEX63SOIZJNKM
+#\\\|SXF4UQR44MH6MZM77DAWQ52SIWMBO62XRPREFR2OAKFNJVH3TPN \ / AMOS7 \ YOURUM ::
+#\[7]Q3HTISIAFW32WXDMJDE5UJOSLSBELZATGROCY6G2YJRNR3NRBGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

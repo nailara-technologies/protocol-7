@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.teardown
+# param = [reason]
+# descr = shut down v7 zenka and all zenka instances
+
+my $params = shift;
+my $reason = $params->{'args'};
+my $user   = $1 if $reason =~ s|^([^\s]+) *||;
+$user =~ s|^[^\.]+\.||;
+
+<[base.log]>->( 1, "<<!>> specified shutdown reason : $reason <<!>>" )
+    if length($reason);
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'repeat'  => 0,
+        'prio'    => 5,
+        'handler' => qw| v7-zenki.handler.shutdown_cmd |,
+        'data'    => "requested by '$user'"
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "shutting down " . "'v7-zenki' zenka ..,"
+};
+
+#,,.,,,,,,,.,,.,.,,..,.,,,,.,,,,.,,,.,..,,,,.,..,,...,...,...,..,,,,,,,,,,,,.,
+#DPWJO4S2GSHBJGWDDV4TEAIM3JRXMRFQDO4HKGA5G4LWV5KT44XVPHQ6Q3CO543RFGQC3UWSKINMS
+#\\\|SPSMF2FCUPEIKHRJNYZ35C6OO7RQY7JI2N2ZSISQFN5VAXOJT25 \ / AMOS7 \ YOURUM ::
+#\[7]6A64WTR7PBT35DFQPBEVXSVFBCLT7QYQ4FWFXGGKQCXZ4SYO3AAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

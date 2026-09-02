@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = v7-zenki.available_zenki
+
+my @found_zenki;
+my $skip_re  = qr'(~|\.orig)$';  ## <-- skipping 'joe' and 'meld' backup files
+my $acfg_dir = <system.acfg_path>;
+
+my $dir_fh;
+unless ( opendir( $dir_fh, $acfg_dir ) ) {
+    warn "\l$OS_ERROR : $acfg_dir";
+    return ();
+}
+
+foreach my $zenka_name ( <[base.sort]>->( readdir($dir_fh) ) ) {
+    next if $zenka_name =~ m|^\.| or $zenka_name =~ $skip_re;
+    my $zenka_cfg_file = "$acfg_dir/$zenka_name";
+    $zenka_cfg_file = "$acfg_dir/$zenka_name/zenka.v7" if -d $zenka_cfg_file;
+    next if !-f $zenka_cfg_file;
+
+    push( @found_zenki, $zenka_name );
+
+    my $zenka_desc_str = <[v7-zenki.extract_short_desc]>->($zenka_cfg_file);
+    <v7-zenki.zenki.available>->{$zenka_name}->{'short_desc'}
+        = $zenka_desc_str;
+}
+close($dir_fh);
+
+return @found_zenki;
+
+#,,,.,...,.,.,.,,,..,,..,,,.,,.,,,.,,,,..,,,,,..,,...,..,,...,.,,,.,.,,,,,..,,
+#WWUUY76GFVQFRWI5M27F4JWNQBZE5OZVPLQJQWV4VHIG7AGY5CNKXY7JKW3JNJTQXGWUEC2BDYNEM
+#\\\|6SXKZG6NLMSAN56QX6WAWRSDIKUUI4N5H5WFWTTENFXIA6WDGMJ \ / AMOS7 \ YOURUM ::
+#\[7]PRWEVBULLU5KH6H4CDJHSOW5OFPUKMV6RLHFJH4DA4G25MXMCECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
