@@ -250,7 +250,7 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
                         . "suppressing restart of old instance %d",
                     $zenka_name, $instance_id
                 );
-                <[zenka.cmd.stop]>->(
+                <[zenka.cmd.terminate]>->(
                     { 'args' => $instance_id, 'mode' => qw| implicit | } );
                 return;
             }
@@ -298,7 +298,7 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
                 );
             }
 
-            <[zenka.cmd.stop]>
+            <[zenka.cmd.terminate]>
                 ->( { 'args' => $instance_id, 'mode' => qw| implicit | } );
             return;
         }
@@ -317,7 +317,7 @@ if (   $status eq qw| offline |
     and ( $instance->{'ondemand-consecutive-failures'} // 0 )
     >= $ondemand_failure_tolerance ) {
     <[base.logs]>->( ': no auto-restart for instance %d', $instance_id );
-    <[zenka.cmd.stop]>
+    <[zenka.cmd.terminate]>
         ->( { 'args' => $instance_id, 'mode' => qw| implicit | } );
     return;
 }
@@ -604,8 +604,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,.,,.,.,,.,,.,.,.,,,.,,,.,.,,,.,,,,,,,,,,,.,..,,...,..,,..,,...,,..,,..,.,,,
-#KJYFDSRJAVVUECAZJN23IRP6IHTKHYFCWCKFV6K6FSG6OKRMRWKW66T7QDPDH4L56V4KMAHOURYI6
-#\\\|BFOKBEQNQBB7TFI4GM2GODQK5IZZXUFNQW3BDMLZDAIN7DUO6NW \ / AMOS7 \ YOURUM ::
-#\[7]2SWAUJ5PDQIP7GUXMJEW7HE2UQCWOYEPNJ76LHG66CVENX3J2EAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,.,.,,,,,,,.,,,.,..,,,,,,.,,,..,,...,...,,.,,,,.,.,.,.,.,...,
+#4MFNNU6DBPFPFA7BJR2V2WRTF7HCRXEGFDSJAQU3Y7C42FGGTZXAKRJKFS4TBWNUT7Q2SHXCOYROM
+#\\\|EOIGEEAZQ2MMTUCNC3NL4B3NPH7N2SUEVB4YFCHLTEBWXIR5KBF \ / AMOS7 \ YOURUM ::
+#\[7]BR6PHL4KOYQC4FPH3ZB2ZSZVQUMKNOMSCV547UFK3KO33J54RYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
