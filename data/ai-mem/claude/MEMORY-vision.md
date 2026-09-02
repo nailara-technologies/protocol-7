@@ -44,6 +44,7 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [punctuation-topology](topic-punctuation-topology.md), [field-coherence-synthesis](topic-field-coherence-synthesis.md), [field-capability-emergence](topic-field-capability-emergence.md) — `:`/`.` separators
 - [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — pre-loaded potential
 - [addressing-trinity](topic-addressing-trinity.md), [checksum-addressing](topic-checksum-addressing.md), [node-group-geometry](topic-node-group-geometry.md) — tree+checksums+timestamps
+- [elf-checksum-entropy-pass-through-tuning](topic-elf-checksum-entropy-pass-through-tuning.md) — ELF checksum component deliberately tuned to pass entropy through rather than diffuse it (opposite of standard crypto-hash avalanche), why short IDs sometimes correlate with input; demonstrated live via is-true's harmonic truth resolution
 - [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting
 - [harmonic-correlation-ledger](topic-harmonic-correlation-ledger.md) — tiered STRONG/REAL-BUT-WEAK/REJECTED log of 7-family/13-family numeric findings (10989 shared core, digit-complement theorem, 56/63/504=7×8×9), extend rather than re-derive
 - [cross-readout-ring-key-addressing](../../md/design/CROSS-READOUT-RING-KEY-ADDRESSING.md) — speculative BMW-L13 cross + ring-rotation key-addressing design (52=2×26=4×13 state-count), design-only, not implemented, several open items
@@ -74,8 +75,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [inline-filesystem-self-contained-protocol-7](vision-inline-filesystem-self-contained-protocol-7.md) — 2026-08-31: extend bin/Protocol-7's already-real inline-subroutine __DATA__ block technique ([[topic-amos7-p7-loader]]) to config and eventually data files too -- "a sort of inline filesystem" -- toward a fully self-contained P7 process with nothing external to load; motivated by the minimal-startup auto-install case (no Event.pm yet, see [[topic-next-steps]]) but confirmed as genuinely planned, not inferred; no design work done
 - [tree-based-module-storage-and-namespace-manifests](vision-tree-based-module-storage-and-namespace-manifests.md) — 2026-08-31, stalled/postponed: per-namespace module manifests (e.g. src/base.file for src/base.file.*) collide with a bigger idea -- optionally supporting tree-based module storage (src/base/file/init_code) alongside today's flat dot-notation, flatten/expand via a sourcecode-zenka command, flat form always load-priority for simple override. base.list.subroutines retirement is tied up in this unresolved question, not simple dead-code cleanup. Existing regen/undo-checksum-symlinks precedent (similar transform shape, parallel-versions-with-select+reverse goal) stored full per-version snapshots not diffs -> large redundant git diffs, only ever "temporary experimental" -- real requirement it surfaced: diff backward from clean current state for history, not full snapshots, complexity isolated to the history-access path only
 
-#,,..,,..,.,,,,,.,,,.,.,,,.,,,..,,,.,,,..,,,,,..,,...,...,,..,,,.,,.,,.,,,,..,
-#JR7DIBHWFBH4JJX3YDODWU56OAGIKD4EKPSLKWCHS6AWLOA4Y4S526QIY4EY52Y7YE3RGGBCFFDKC
-#\\\|EOECFZY7SWJ24AP7J4UIEXZZZ74VZ3ZSV2EVIDJVYAT6C3WDIIS \ / AMOS7 \ YOURUM ::
-#\[7]7E72GHRYGSEM5ORZX4NHWL6SG5U7F6I2QOKHUHRCEJASYQYIPMDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,.,...,..,,.,.,,.,,.,,,,..,,..,..,,...,...,...,.,,,..,,,,,,,..,
+#B7IB6UESHMRYHO6EZYVJX5KJY4JK3IZCK35IZQXQIMIMYVBRQHLIM7VX2WSQHWMYUJI63IKLPP4OA
+#\\\|N6ZTS2R5R6AVQXJUUYVM4G4NRZYRU6OJNMYIYWPAUGPT4CUVU2I \ / AMOS7 \ YOURUM ::
+#\[7]75I5BDLBM3QHFIOYPQIYFAPDE2K2RAMUQCMRTF7N2CNENGHDW6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
