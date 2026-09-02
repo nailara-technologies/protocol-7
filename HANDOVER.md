@@ -120,12 +120,14 @@ campaign, unrelated to this session. Worth a future pass.
 
 ## Open Items — Not Started / Not Finished
 
-1. **`install_workflow_shortcuts`'s disabled 4th symlink form** —
-   resolved same day: wired up as ordinary `p7.<shorthand>` ->
+1. ~~**`install_workflow_shortcuts`'s disabled 4th symlink form**~~ —
+   DONE, live-verified: wired up as ordinary `p7.<shorthand>` ->
    `p7-<zenka>` chains (not a fourth recognized form), table in
    `src/base.path-template.console-shorthand`, expansion in
    `src/base.call.console_command`; decision recorded in
-   `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`.
+   `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`. Confirmed live: `p7.wo` ->
+   `p7-work` resolves and runs correctly, all 7 shortcuts installed.
+   Commit `6089e8434`.
 2. **`p7-`-prefixed zenka names are ambiguous** (`p7-log` resolves to
    `log`) — pre-existing, not a regression, now documented in
    `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`, not fixed.
@@ -145,6 +147,30 @@ campaign, unrelated to this session. Worth a future pass.
 5. **`LYE`** (multi-cube architecture design) — vision-level, not
    started, needs a full time budget, not a squeezed-in dispatch.
 6. **`QP3`** (nshell -> cmd-term rename) — still queued, untouched.
+7. **`v7-zenki.tmp-paths.global.clean-up` logs duplicate identical
+   warnings on a no-root run** — found live testing item 1's fix
+   without root. Two independent callers (`v7-zenki`'s stdout-log
+   setup, trying to clean a stale symlink from a previous run before
+   creating a fresh one, and `v7-zenki.teardown`'s own final cleanup
+   call) both hit the same permission-denied path and log the
+   identical `no whitelist permission [ unlink : ... ]` warning twice
+   per tmp-path in one process run. Not a functional bug (shutdown
+   still completes correctly, root enforcement works as intended) —
+   just duplicate logging noise. Two fix options discussed, not yet
+   decided: (a) track "already warned this path this run" inside
+   `tmp-paths.global.clean-up` and skip re-logging an unchanged
+   failure, or (b) don't call cleanup from both places, let teardown's
+   final pass be the only one. Small, well-scoped, good next dispatch.
+8. **DONE this session, found live-testing item 7 above**:
+   `src/v7-zenki.call_cmd` had a redundant AND buggy flag-stripping
+   regex (` *-+\w+...` with zero-or-more leading spaces, so it matched
+   `-word` mid-string, not just at a real boundary) — `another-command`
+   lost its `-command` tail before ever reaching the debug echo.
+   `bin/Protocol-7` already filters `@ARGV` to non-flag tokens before
+   `<system.args>` is ever built (two separate correct mechanisms, one
+   per code path), so the extra pass in `call_cmd` was never doing
+   legitimate work — removed rather than patched. Commit `9246d7209`,
+   live-verified (`another-command` now prints intact).
 
 ## Verified Live
 
@@ -153,4 +179,11 @@ campaign, unrelated to this session. Worth a future pass.
 new identity, and a full `base.cmd.reload` on the running instance
 completed with zero errors (also exercised the new
 purge-exclusion-list state and confirmed `p-7-r` self-rebuilds on a
-stale BMW checksum). All commits pushed.
+stale BMW checksum). Workflow shortcuts confirmed live end-to-end
+(`p7.wo` -> `p7-work`, all 7 installed). `call_cmd` fix confirmed live
+(`another-command` no longer truncated). Deliberate no-root run
+confirmed `cube`'s own root-requirement enforcement is clean (no
+redundancy there, unlike the tmp-paths cleanup path noted above).
+
+Commits this session: `23a0e8d53`, `a43972791`, `3f1d6b40f`,
+`f4c295824`, `6089e8434`, `9246d7209`. All pushed.
