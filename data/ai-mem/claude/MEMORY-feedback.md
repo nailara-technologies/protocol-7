@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [dont-preempt-version-bump-before-commit](feedback-dont-preempt-version-bump-before-commit.md) — never run bin/dev/update-version manually to preempt the pre-commit hook's version-mismatch gate; producing unsigned version-bump files forces a second, redundant signing pass with the user's tool. Let the hook trigger its own bump inline
 - [stale-tool-output-rides-into-later-commits](feedback-stale-tool-output-rides-into-later-commits.md) — pre-commit's own broad auto-staging sweeps in ALL modified files, not just what you `git add`ed; stale pre-fix tool output or interrupted-process collateral damage sitting unnoticed nearby can silently ride into an unrelated commit — check `git status --short` on the whole tree before committing, not just the diff you intended
 - [kimi-dispatch-never-parallel](feedback-kimi-dispatch-never-parallel.md) — never fire two kimi_dispatch/kimi_continue calls concurrently: reproducible session-collision (only one session survives), garbled/wrong-sized results, and early process termination with budget to spare; mcp-server-p7's own 4620s timeout ruled out as cause, likely inside kimi-legacy itself; always dispatch sequentially, verify via `ps aux`/`kimi -r` picker not just the MCP result
 - [web-browser-pacing-collapse-after-timeout](bug-web-browser-pacing-collapse-after-timeout.md) — RESOLVED: after the per-page watchdog timeout fires once, slideshow pacing collapses to near-zero delay (a watchdog logged "timed out after 0.494s") because the timeout path never refreshed `<web-browser.time.fade_complete>`, which the inter-page delay math depends on; fixed by refreshing it in `handler.capture_page_timeout` too. 4th bug in the same session/feature area
@@ -112,8 +113,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 - [no-inventing-infrastructure-naming](feedback-no-inventing-infrastructure-naming.md) — never hardcode a domain/hostname/endpoint into production code without explicit agreement, even if it happens to resolve to something real owned by the user; found `nailara-technologies.v7.ax` (a prior session's invented, unauthorized email-domain construction) in `keys.console.github-pat` during the v7 identity rename
 
-#,,,,,,.,,,.,,,,.,,..,...,.,.,..,,...,,..,.,,,..,,...,...,...,...,..,,,,,,,,,,
-#VJW5SUQYVBOPLEQVW5RWPQJYEATEUWKFXGUCM5LTJAD37BCNA4GBIUIQXZKYCPINNDEJOBTKUJFPO
-#\\\|LZZ3VAOC74FCGXDN7RBPG3AKTA2JVSNNZEGQ7RNZ7JZE5FB4KNB \ / AMOS7 \ YOURUM ::
-#\[7]PQ6LHDZB5GFCURWPKJWFBGKCUXLRRVZVFO4JX5AWX2XDL6OXTYDY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,..,,,,.,,..,.,,,.,,,,.,,.,,,..,,...,...,.,,,,,,,,,,,.,,,,,.,
+#H675EXQJEC4MBMPOJ3KSFEWEOD5A7ZSAB7VIIFDJKQ4QNRD6BDF4WVNIHPYBDQKSMXMQVL4PVFGJI
+#\\\|N6OMXEFV75XWKPCFBG6WC666ZT72TY7TA73GWJNT7EQUYBK6H5V \ / AMOS7 \ YOURUM ::
+#\[7]ENVZBJAMT3KWZN3COK52OADNBIJMSH5SSUGAPBO4UROOQN2H3SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
