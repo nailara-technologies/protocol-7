@@ -63,16 +63,16 @@ my %job = (
 
 if (    ref $salary eq qw| HASH |
     and $salary->{'isPredicted'}
-    and $salary->{'min'} =~ m{^\d+$}
-    and $salary->{'max'} =~ m{^\d+$} ) {
+    and ( $salary->{'min'} // '' ) =~ m{^\d+$}
+    and ( $salary->{'max'} // '' ) =~ m{^\d+$} ) {
     $job{'salary_estimate_min'} = 0 + $salary->{'min'};
     $job{'salary_estimate_max'} = 0 + $salary->{'max'};
 }
 
 return \%job;
 
-#,,..,..,,,,,,,..,,.,,.,.,.,.,.,,,..,,...,.,,,..,,...,.,.,.,,,,..,.,.,.,.,,.,,
-#SUV5TM3US75NDASCUL2PDKVCX6RCWLSE53TGNANQTEDLGC4TIR7BLE7NDQD2Q5ATKTTJRKR2XWTIS
-#\\\|YIYZFWEABWZ5KL525EF4BCS7GEDHJNYR26LRJJBIKVSMEYUMQPX \ / AMOS7 \ YOURUM ::
-#\[7]YEILC2CJIMMEOEGOA2PUF5XTWU2WV75Q56EM2CJRL4SWZJITAGBA 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,,,.,...,..,,...,.,,,..,,...,..,,...,...,...,,..,,,.,,.,,,,,,
+#DX4NBL3WVT3FHKS3PS4KO32OL5QYCZSEIISSXMSCWRDWOYO7J543RCHGENQMMOEIKVEGELQYWH5Y6
+#\\\|NFPGSLKOMM4LBG75DCE5I3UHZLP7JF6ZE5VW53NWM7Y7JRRJK4F \ / AMOS7 \ YOURUM ::
+#\[7]GYM4UOJJB6662ULS5JIWSBIEYISLNUFSRVWCDHB4IT2X3X5G3EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
