@@ -5,40 +5,54 @@
 
 my $params = shift || {};
 
-my $zenka_name = $params->{zenka};
+my $zenka_name = $params->{'zenka'};
 
 unless ($zenka_name) {
     return { running => 0, error => 'zenka name required' };
 }
 
-## Use ps to check for running process  Look for: "Protocol-7 <zenka_name>" or
-## "perl.*<zenka_name>"
+## a running zenka does not keep 'Protocol-7 <name>' in its process title  ##
+## -- bin/Protocol-7 rewrites $PROGRAM_NAME to '<node>.<zenka>' during     ##
+## base.init [ '<node>.<zenka>[<subname>]' for multi-instance zenki ], and ##
+## to 'Protocol-7.<zenka>' in stdin-config mode before that.  matching the ##
+## pre-rename form only [ as this did ] never found anything at all        ##
 
-my $ps_output = `ps aux 2>/dev/null`;
+my $node_name = <system.node.name> // '';
 
-## Pattern: Protocol-7 zenka_name OR bin/Protocol-7 zenka_name
-my $pattern = qr/Protocol-7\s+$zenka_name(?:\s|$)/;
+my @patterns;
+
+push( @patterns, qr{^\Q$node_name.$zenka_name\E(?:\[[^\]]*\])?$} )
+    if length $node_name;
+
+push(
+    @patterns,
+    qr{^Protocol-7\.\Q$zenka_name\E(?:\[[^\]]*\])?$},    ## stdin-cfg mode ##
+    qr{(?:^|/)Protocol-7\s+\Q$zenka_name\E(?:\s|$)}      ## bare invocation ##
+);
+
+my $ps_output = `ps -eo pid=,args= 2>/dev/null`;
 
 foreach my $line ( split m|\n|, $ps_output ) {
-    if ( $line =~ $pattern ) {
-        ## Extract PID (second column in ps aux output)
-        my @fields = split m|\s+|, $line;
-        my $pid    = $fields[1];
 
-        if ( $pid && $pid =~ m|^\d+$| ) {
-            ## Verify process still exists
-            if ( kill 0, $pid ) {
-                return {
-                    running => 1,
-                    pid     => $pid,
-                    cmdline => $line
-                };
-            }
-        }
-    }
+    my ( $pid, $args ) = $line =~ m|^\s*(\d+)\s+(.+)$|;
+
+    next if not defined $pid or $pid == $PID;    ## never match ourselves ##
+
+    next if not grep { $args =~ $ARG } @patterns;
+
+    ## a root owned zenka [ 'v7-zenki' ] answers 'permission denied' and ##
+    ## not 'no such process' when probed from an unprivileged front-door ##
+    ## invocation -- it is running either way, only ESRCH means gone     ##
+    next if not kill( 0, $pid ) and not $!{'EPERM'};
+
+    return {
+        running => 1,
+        pid     => $pid,
+        cmdline => $args
+    };
 }
 
-## Not found
+## not found ##
 return {
     running => 0,
     zenka   => $zenka_name
@@ -46,8 +60,8 @@ return {
 
 0;
 
-#,,.,,.,.,,.,,.,.,..,,,.,,,.,,,.,,,,.,,,,,.,.,..,,...,...,..,,,.,,..,,,,,,,,.,
-#KTQZVK2IRNO3QA2QP2HU57X32HPIB2Y75PUPEHRZ33DIG4EO3OTGK45ZYUFPR5IFI4537XIKXR454
-#\\\|RWP5DJEKS2J3MH4J4H3LAZ2DLUVT4X45JZJ4DYI7J7YNKI5LU4O \ / AMOS7 \ YOURUM ::
-#\[7]Q52YETYV5WJCI6GBL2MHMP5RYNR5D3VBZNPEMI44XHXFNOO4R2BY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,.,,..,,,..,,.,,..,,,,.,,,,,..,,...,...,.,,,..,,,,,,,.,,.,,,
+#W67MTDJEID4DZAVNV5GYT6VUQKQYDCLIRP4O5TWKEXJJ25FJMRQO2UY257IMA3ZRE2LJQTOYEX4EM
+#\\\|Q4Y654SJD2G5OXBB2MPXZBBII5RDEJIF5GK26MTUALLLCYG3GTU \ / AMOS7 \ YOURUM ::
+#\[7]YFKK4DEC245NOYEP4AUKGYQIW55H5DS2YJVXMWXGPWYP7ZWK3KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

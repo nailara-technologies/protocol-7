@@ -6,27 +6,61 @@
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.logfile = 2
 
-## Commands available to cube users
+## commands available to cube users ##
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       start stop status stats *
 
-## Load modules for IPC communication + zenki management
-modules.load = auth.client net protocol io.unix ui zenki
+##                     .:[ hybrid start-up ]:.                              ##
+##                                                                          ##
+## only the domain module is loaded up front [ 'configure' zenka shape ] --  ##
+## every further namespace is loaded on demand by                            ##
+## [zenki.parent.select-modules], once the invoked command is known.  with   ##
+## no console command in <system.args> this is a resident, 'v7-zenki'        ##
+## managed instance and the complete set is loaded after all, so nothing     ##
+## behind [zenka.loop] changes -- see                                        ##
+## data/md/design/ZENKA-HYBRID-STARTUP-DISPATCH.md                           ##
+
+## every namespace a fully capable instance needs [ cube ipc + event loop ] ##
+zenki.cfg.modules.full        = auth.client net protocol io.unix ui
+
+## namespaces loaded when no console command was given [ resident mode ]  ##
+zenki.cfg.modules.resident    = <zenki.cfg.modules.full>
+
+## fallback for console commands not named in the manifest below ##
+zenki.cfg.modules.cmd-default = <zenki.cfg.modules.full>
+
+## per-console-command namespace manifest ['-none-' : 'zenki' is enough]  ##
+##                                                                        ##
+## 'start' relays through cube and waits for the reply in the event loop, ##
+## so it needs everything.  the purely local commands need nothing at all ##
+## beyond the domain module itself                                        ##
+zenki.cfg.cmd-modules.start       = <zenki.cfg.modules.full>
+zenki.cfg.cmd-modules.status      = -none-
+zenki.cfg.cmd-modules.attach-logs = -none-
+zenki.cfg.cmd-modules.commands    = -none-
+zenki.cfg.cmd-modules.describe    = -none-
+
+## console commands that need an authenticated cube session ##
+zenki.cfg.cmd-network.start       = yes
+
+## the one namespace that is always present ##
+modules.load = zenki
 
 [load_modules:<modules.load>]
+
+## further namespaces for this specific invocation -- loaded before  ##
+## [init_modules] so their own init hooks still run in that one pass ##
+[zenki.parent.select-modules]
+
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+## privilege handling, cube connect and either console dispatch [ one-shot ] ##
+## or [zenka.loop] [ resident ] all happen inside this one call             ##
+[zenki.parent.start-up]
 
-## Connect to cube for IPC with v7
-[base.net.connect:'unix']
-[base.get_session_id]
-
-[zenka.loop]
-
-#,,..,.,.,,,.,..,,,..,...,,,.,.,,,,..,,,.,,..,..,,...,..,,.,.,..,,,.,,,..,..,,
-#LJIYKLMY6G6URT3IRDY3KJ7LXMGTVO3TPOKNOUHLHHLDMMD2CCWGCZVMS6CNE67XPXRMBHUBORAZM
-#\\\|IFVC34RIGP46ISB44R4YFVNQRKXJX5NAVYGT6ZND2QAI766CYWW \ / AMOS7 \ YOURUM ::
-#\[7]A5UHG23O2LJCGTNFRZ7YKF3PEF5RWICKGY6OX5GHO7TTJ4VGUOAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,,,.,.,,..,,,,,,,.,.,.,,.,,,.,,..,,...,..,,.,,,,.,,.,.,,,.,..,,
+#D63KIAO6BWSPMZAT2BAFQ77LG4Q2HTASW6TEHBLIBO7O3WBLVC5XK2XJ2TTF3POQV2OURNXHTBSS4
+#\\\|OFDBMCDKSXMR37B2VR6WPMIYGWU4RSFU6CWWJ2SBJ6BZC3LKTMX \ / AMOS7 \ YOURUM ::
+#\[7]VJQKA2ERHDFNJ5F6BZPI37NNW66JDALILZOMVG7OAJZ26EGYTQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
