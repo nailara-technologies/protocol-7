@@ -23,7 +23,7 @@ my $dec = load_module('/data/projects/protocol-7/modules/base.stdio.frame.decode
 my $scope_enter = $enc->('META', 'byte-pack', '', {
     'subtype' => 'scope-enter',
     'hop_id' => 42,
-    'slot_addr' => 'v7.console',
+    'slot_addr' => 'v7-zenki.console',
     'origin' => 'weather'
 });
 
@@ -49,8 +49,8 @@ for my $i (0..$#recs) {
           " subtype=", ($recs[$i]->{'header'}->{'subtype'} // 'n/a'), "\n";
 }
 
-#,,..,,..,,.,,..,,,.,,,.,,,.,,,,,,.,.,.,.,...,..,,...,...,...,,.,,...,,,,,,.,,
-#YTM6SYGMWN2MZFDNPDS4GHKW4J7MIE5CRFA4FRAYRC4HFFXPW3OAUCFI3MWRSPXCOUAL5WWYFLD6K
-#\\\|3PHLHBO63D47BQSKPJY6QSZSC2QYFQ6KVCJRSS23GOIKGHBL5CD \ / AMOS7 \ YOURUM ::
-#\[7]5V6MGRWA627LOH2TD5HOVXTPNLN5BQOQBP67L5NWDP5M2VZ52SCI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,...,,..,,,.,,,.,.,,,,,.,,,,,..,,...,...,.,,,,.,,,.,,.,,,.,,,
+#RHS3IPTDAA6ZHV5HVXFDQ7Q2IHOOTTECFNVIMAHMY7AQWQGXSLXFHISGURRVQVFFM2LWM3B6YKQU6
+#\\\|VC45PSK6AMUKCRSO2L6N3I2HFYJNBN5TKBRJQGUH33CGDXQLAB3 \ / AMOS7 \ YOURUM ::
+#\[7]N2YL6NQJQZDRWCTZPGM7GY5KJQJXPZEMKC7U72VBBXEP2X5VU2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

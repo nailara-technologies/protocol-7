@@ -18,7 +18,7 @@ echo ""
 echo -e "${RED}===[ Testing BROKEN Version ]===${NC}"
 echo "Activating test-broken version (->stop, no cleanup)..."
 cp modules/httpd.handler.download_transfer.test-broken modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 sleep 2
 
 echo "Downloading 512MB file (will abort at 113MB)..."
@@ -61,7 +61,7 @@ echo ""
 echo -e "${GREEN}===[ Testing FIXED Version ]===${NC}"
 echo "Activating test version (->cancel, full cleanup)..."
 cp modules/httpd.handler.download_transfer.test modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 sleep 2
 
 echo "Downloading 512MB file (will abort at 113MB)..."
@@ -117,11 +117,11 @@ echo ""
 # Restore production fixed version
 echo -e "${YELLOW}Restoring production fixed version...${NC}"
 cp modules/httpd.handler.download_transfer.fixed modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 echo -e "${GREEN}✓ Production version restored${NC}"
 
-#,,.,,..,,,.,,,,,,...,,,,,..,,.,,,..,,,..,.,,,..,,...,...,..,,.,.,,..,.,.,,..,
-#V7HEOJMWGFSIYNJXHKR4FEUALQ5PCATNF7KEMPEWL4FT2RHR2RLNMT3FD66YRXTLLSKHYAZPMKLGU
-#\\\|WO5OS2UKPGLC5YBW6IQBWASOJCNQHPVSZ5H2SY44T3GDQ4IMSHY \ / AMOS7 \ YOURUM ::
-#\[7]JHNU5GK5HZUKTR7CC7PPB3QRTIBGIXUCG4CQTVVDHRNOZ75KCCDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,..,,.,.,,,.,...,,,,,,..,,.,,..,,...,...,,,,,...,...,,.,,.,,,
+#FINMZ4VM5OHXHTQ7TFTNP3766HYYQYDYZ6ZLSEUEYXLNIGGCIUGEBPXB4NEFO5WIXRFPCK4ETIGFA
+#\\\|MMQAMLL2VI6TV45KZCQFDLSBYEPPHFHVIOXV7MJIFRQT3COLFXL \ / AMOS7 \ YOURUM ::
+#\[7]XOY2HH7IVBT3IFWSJ24OS37TSUMEEMLNDOSHYRWC47SSHNSSU6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

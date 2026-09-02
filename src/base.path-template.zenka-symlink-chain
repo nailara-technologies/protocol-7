@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = base.path-template.zenka-symlink-chain
+# descr = zenka name and launcher context resolved from a symlink chain
+# param = [ link_path ]
+
+##  walks a launcher link through the filesystem symlink chain until a       ##
+##  recognized name form terminates it [ see                                 ##
+##  <[path-template.zenka-name-from-link]> ] or a real file ends it,         ##
+##  collecting every name walked on the way :                                ##
+##                                                                          ##
+##      {   zenka_name => 'radio',                                          ##
+##          chain      => [ 'radio-jazz', 'p7-radio' ],                     ##
+##          launcher   => [ 'radio-jazz' ],                                 ##
+##          target     => undef,                                            ##
+##          source     => 'symlink-chain'  }                                ##
+##                                                                          ##
+##  'chain' holds every basename walked, in order.  'launcher' holds all of  ##
+##  them but the last -- the last one either named the zenka or is the       ##
+##  interpreter binary the chain ended in, so the rest is launcher-preset    ##
+##  context for the zenka that got started.  'source' is one of              ##
+##  'program-name', 'symlink-chain' or 'argv'                                ##
+##                                                                          ##
+##  without a parameter this reports the resolution of the running process'  ##
+##  own invocation, resolved once at start-up and also available as          ##
+##  <system.start.symlink_chain> / <system.start.launcher_chain>             ##
+
+## the bootstrap implementation lives in bin/Protocol-7, because zenka-name ##
+## resolution runs before the module system is live -- this registry entry  ##
+## publishes it under the canonical 'path-template.*' name so zenka code    ##
+## never reaches for the interpreter-local one  [ see                       ##
+## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]                       ##
+
+return <[base.resolve_zenka_symlink_chain]>->(@ARG);
+
+#,,..,,,.,,.,,...,.,,,,..,,..,,.,,..,,,.,,.,,,..,,...,...,.,,,,..,,.,,,,.,..,,
+#F3Y3NIZKRCZP73LPH3RIQ6W6XTJULY4JG2ESPVVVV3QXJGVXRBVKUJZLIAOLG4HCB357MWU64Z4GC
+#\\\|GMUACH7ATFAG5KZROB3LBLBZQKFVABBTXZKTSEX4TBS7JGWPO75 \ / AMOS7 \ YOURUM ::
+#\[7]6XN3PCERFDBYYY3FU4ENWS52JMVGU5NL2XG5URSCDFXISPEI5CCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

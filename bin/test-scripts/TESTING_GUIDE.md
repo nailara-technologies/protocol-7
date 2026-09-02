@@ -102,8 +102,8 @@ Tests vision-parser + conversation integration:
 
 ### Check Protocol-7 Logs
 ```bash
-# Tail main v7 log
-tail -f /var/log/protocol-7/v7.log
+# Tail main v7-zenki log
+tail -f /var/log/protocol-7/v7-zenki.log
 
 # Check models zenka logs
 tail -f /var/log/protocol-7/models.log
@@ -114,8 +114,8 @@ tail -f /var/log/protocol-7/coding-vision-parser.log
 
 ### Query System Status
 ```bash
-# Check v7 health
-p7 v7.status
+# Check v7-zenki health
+p7 v7-zenki.status
 
 # Check models conversation count
 p7 models conversation status
@@ -129,7 +129,7 @@ p7 coding.vision-parser.cmd.status
 ### "Conversation not found" Error
 - Ensure job_id is valid
 - Check that `models.conversations` registry is initialized
-- Verify v7 zenka is running
+- Verify v7-zenki zenka is running
 
 ### Template substitution returns empty
 - Check that variables exist in hash
@@ -144,7 +144,7 @@ p7 coding.vision-parser.cmd.status
 ### Tests fail with "module not found"
 - Ensure all Phase 1-3 modules are committed
 - Run: `git log --oneline -n 5` to verify commits
-- Restart v7: `p7 v7.restart models`
+- Restart v7-zenki: `p7 v7-zenki.restart models`
 
 ## Success Criteria
 
@@ -182,11 +182,11 @@ p7 coding.vision-parser.cmd.status
 - Tests are non-destructive (create test_* entries)
 - Async operations may complete in background
 - Check logs for detailed execution trace
-- Metrics reset on v7 restart (expected behavior)
+- Metrics reset on v7-zenki restart (expected behavior)
 - Full end-to-end vision test pending extraction LLM
 
-#,,.,,,.,,.,,,.,,,,,.,,,.,,..,,.,,,,,,,.,,,.,,..,,...,...,..,,...,..,,.,.,.,,,
-#ROFR2YZCWFFSR7L2TKWD5IRESVYUVRFP3EV2KE36QDQVJTQKNKVFHRXFBPTPUVAUWDWFMI3S4CO5Y
-#\\\|LPRYFJIWLW4IYU2FASDDAHA76IGA3GF4262CGJ4TKU2E7EONVYR \ / AMOS7 \ YOURUM ::
-#\[7]TUXL6XXIC5RJQLSQSPJ24KWCAYR2ILS2NBBUJUGE5SYDGFCTBSDA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,..,,.,.,,.,,,..,..,,,..,...,..,,...,...,.,,,...,,..,..,,,,.,
+#BHEIKY7SVN3IRDPOYRMERWMXHV6NR35XF3WOELRCXTKWWIMZQWU7WBTYQQYREPSOEKFZCPE236XHY
+#\\\|NHRFVKME27BP4FFZZLP5I7PY4XSEFX2ATGBGB5EQL2EY6H3JQV2 \ / AMOS7 \ YOURUM ::
+#\[7]3OI34OURS5N6S2K6T6E2NDQM45IPYGRKAPSGY6RW3PVGJS5XGKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

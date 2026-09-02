@@ -29,7 +29,7 @@ Success Criteria:
 
 Steps:
 1. Connect again to same server:
-   - `p-7-r localhost:47 v7.available_zenki`
+   - `p-7-r localhost:47 v7-zenki.list available`
 2. Verify validation:
    - No TOFU prompt (key already pinned)
    - "remote key validated" message logged
@@ -95,13 +95,13 @@ Once Phase 6 validates locally:
 
 ## Notes
 
-- Use `p7c v7.reload` to reload modules after changes
+- Use `p7c v7-zenki.reload` to reload modules after changes
 - Check logs: `p7c system.log.tail:100`
 - Monitor: `p7c list sessions` for active connections
 - Key location: `~/.n/user-keys/remote.*.public`
 
-#,,,.,.,,,..,,.,,,,,.,..,,,.,,.,.,..,,..,,.,,,..,,...,...,...,.,.,,,.,,..,,..,
-#R2S46J5SQ3ZZIWQMAWUSOKHODPDU4243TQ6DZWIPMKDGNF5Y7LISWDRCAD5DLO5WJAWPVKII6PLOG
-#\\\|WUNRXYAFRC7R6NYEZBVIMP4E74V4LZLTB6SZ2EEQ5TIXDEY6YDW \ / AMOS7 \ YOURUM ::
-#\[7]RZODTCBD3ZSL5JRZB5WZKWBNRBRINGPVZAMMY37J3YUOGPPHNAAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,,..,,,.,.,.,,,,,..,,...,...,..,,...,...,.,.,,,,,.,.,.,.,...,
+#GCNNECYJDVFENZGNWYWTEO6LQKMQALB2Z23R2RHJ65T3ACF3GKAO6V5IEZKCZW5BGZ3UALRQTH3H4
+#\\\|4JCUMHLJUL2TZ6DIXP752HS4AOQJQI7IEBIIN7QCORBVR7QTOP7 \ / AMOS7 \ YOURUM ::
+#\[7]4IQO6OC7W3NSXQXCEXIR7D6H5ZB7U4S5R25KHJOE3VUBYUZX3YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,13 +27,13 @@ sub start_if_missing {
     if ( $name =~ m{^(?:cred-mesh|proxy|transport)$} ) {
         $start_arg = "$name :env:PROTOCOL_7_VAR=$ENV{'CREDMESH_TEST_DIR'}:";
     }
-    my ( $out, $err, $exit ) = p7c( 'v7.start', $start_arg );
+    my ( $out, $err, $exit ) = p7c( 'v7-zenki.start', $start_arg );
     if ( $exit != 0 or $out !~ m{job queued|already running}i ) {
         warn "[ warn ] failed to start $name: $out $err\n";
         return 0;
     }
 
-    ## v7.start only queues the start job -- wait for cube to actually
+    ## v7-zenki.start only queues the start job -- wait for cube to actually
     ## see it online before returning, so callers issuing commands right
     ## after this don't race a zenka that hasn't finished connecting yet
     ## ("client not present" failures) ##
@@ -60,8 +60,8 @@ exit 1;
 
 # [ end ]
 
-#,,,.,...,.,,,..,,.,,,.,,,,,,,,.,,,.,,.,.,,.,,..,,...,...,,..,,,.,,..,...,,,,,
-#TRK5TYBEPDMA5YV6OVW7TGUNN4LENJVGZ3WMVD4SMCBOZA7P4NPIWR4EH53RJE7DXVC5KS3L33APG
-#\\\|6Q6EYJ5IBSJDEAXDED36OIK2I3A3P2COA7RLSZLLLIICEMUT5NT \ / AMOS7 \ YOURUM ::
-#\[7]DJJVUXM2FBT23RATLKQBQCAY2ETOWBRK6UVVI7C7JQ4KG3E7ZICY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,,,,,...,...,..,,.,.,,,.,.,,,..,,...,...,,..,...,,.,,,.,,..,,
+#QABGIYB7UKT25PYBZG2HCU3REVOCB7CQCKRI2VFJVNSA2DBCRQFNLDO5DQ2EOPZ3NLMMGTT3VERH6
+#\\\|R567HMRO5J47PENKGX7N7ZNOW4WVPAAO2UOY7LBUDQ2FMIS5UMI \ / AMOS7 \ YOURUM ::
+#\[7]GJX6KYAZUKQCJDEVJKXM37WLNC4JS5FR7AR2V2WTT7AHLVIHY2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

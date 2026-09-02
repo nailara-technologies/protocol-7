@@ -37,7 +37,7 @@ why this is deliberately not being solved in one pass.
   rather than decrypted from an at-rest file. no new mechanism needed
   for "user key controlled by a passphrase, never on disk" — it's an
   existing loading mode.
-- storage today, per `v7.keys list`: per-Unix-user keys
+- storage today, per `p7-keys list`: per-Unix-user keys
   (`~/.n/user-keys/<user>.*`) plus a `global-root` + `protocol-7.base`
   pair under a locked-down system `protocol-7` user (`no-r.perms`) —
   the de-facto common trust anchor. no per-zenka identity concept
@@ -272,8 +272,8 @@ discovery) not started.
 - `data/ai-mem/claude/project-zenka-cryptographic-identity-survey.md`
   (ai memory) — ground-truth crypto/identity inventory this builds on.
 
-#,,.,,.,.,.,,,.,.,...,,,,,,.,,,..,.,.,,,.,..,,..,,...,...,.,,,.,.,...,...,,,.,
-#2DY6RT33IYYNBHQZ5M5SDOE23TWQQM7AXGMJNGAPVJ55WOE27HXC7NDAKSKFMT5TABKKH4XZ2WX7K
-#\\\|FXPOZYBLQXM4LGF5OB2TWFFVS4AXSS7WDIIAO6PLX3ZGHINUFQG \ / AMOS7 \ YOURUM ::
-#\[7]5IVS464EWSCBMTTFXX27EGWRAVZGXKYGY25CH5LV2B2THLSAA2AI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,..,,.,.,...,,..,,.,,...,.,.,..,,...,..,,...,,,,,..,,,,.,.,,,
+#NZC74TNDZJN2DOH7DEPLVWIAAGIUEFWAPCYHYKV6JD4CNLOU3KLLJC2K37V3WUBFLO4BXD7BBTEV6
+#\\\|KLZEBWAVZSZOVFMMGF3EHL6KV4PPCCF3QQYOWHJKBD42OQZI5QZ \ / AMOS7 \ YOURUM ::
+#\[7]QAO6B2CVQR2NCPXM4S56JLQ5TZ3B66XI57GW6B72SMN66EJBBQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@
 # - HTTP Server (this wrapper): Runs llama-server with TEXT-ONLY model
 #   * Provides HTTP API endpoints for text completions
 #   * Uses: 4b-opus100-manga, Gemma-3-Glitter-4B, or other text-only models
-#   * Stays running as v7 ext-bin zenka
+#   * Stays running as v7-zenki ext-bin zenka
 #
 # - Vision Image Analysis (separate): Uses llama-mtmd-cli-cuda subprocess
 #   * Called by: image-quality.vision.subprocess module
@@ -17,7 +17,7 @@
 #   * Direct subprocess calls (not HTTP-based)
 #
 # Build: Upstream-optimized with fused norm kernels, CUDA device improvements
-# Managed as v7 ext-bin zenka for image-quality dependencies
+# Managed as v7-zenki ext-bin zenka for image-quality dependencies
 
 set -e
 
@@ -142,7 +142,7 @@ echo ""
 # Create log directory if needed
 mkdir -p "$(dirname "$LOG_FILE")"
 
-# Start server in foreground (systemd/v7 will manage lifecycle)
+# Start server in foreground (systemd/v7-zenki will manage lifecycle)
 echo "Starting GPU-accelerated HTTP server..."
 echo "[$(date)] Starting llama-server-vision" >> "$LOG_FILE"
 
@@ -164,8 +164,8 @@ SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 99 -c 1024 -t 4"
 
 eval "$SERVER_CMD >> $LOG_FILE 2>&1"
 
-#,,..,..,,,,,,,.,,..,,,.,,.,,,.,,,.,,,.,.,,,,,..,,...,...,...,,..,,,.,.,.,,.,,
-#F5BKR3QK4WLN6CJ5OOK2KWNLKE433FEFYCDZGIZLDPXRCJXC2FF23OYUXUAF6IMWXVXLDHJADIATC
-#\\\|HB7VCHHN4DHBOUEYKXKXZ2ACHEGJTCPHTZ7KADCLMIXEAVDEBFV \ / AMOS7 \ YOURUM ::
-#\[7]ROXZOBMTAJA7G6X555NE2HY2QUVQ6QUYU4QOCOFJ3HSXCUM35OAI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,.,,,...,,.,,.,.,.,.,,,.,,..,..,,...,...,..,,,,,,,.,,,,.,,..,
+#3HEH5KMIGWOZQPIPTB2MOO4ZYYGYWK4ABNU5NA56N2ICQCBFZZQZKGKR4V5IG62WVETGTBJB7GKUY
+#\\\|5PDBDGRQCXQCXNS2GQVPA6CVTQ43TTF7J2EEH6AAYRTRUZWV6UP \ / AMOS7 \ YOURUM ::
+#\[7]V2TURRLT7RWY4SH4ADQFDLJLLTDFV3Q5M44ZFC45M66CPG3O7CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -145,7 +145,7 @@ my $commit_count = eval { $git->log } - 1;
 ## note: only stages -- never runs update-version itself. update-version
 ## rewrites these files without re-signing them, which the signature check
 ## below would then reject. bumping + signing remains a manual step (
-## update-version && v7.sourcecode update-signatures ) until a signing-service
+## update-version && v7-zenki.sourcecode update-signatures ) until a signing-service
 ## zenka exists for that. <{C1}>
 unless ( $skip_version_check or $is_amend ) {
     my $expected_count = $commit_count + 1;
@@ -328,8 +328,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,,,..,,,,.,.,,,..,,,,.,.,,,,.,,,,.,,,.,..,,..,,...,...,..,,.,.,.,,,,.,,,,,,
-#AV2E37B2GG4WIAJO4E4GVWHTBDMG2CLA2VUSPTQS2ZRDMRV6VYDY6V4NFUHCDVXBWQPSTT25YRHVM
-#\\\|FIKOCLJLQ7MU7DVZYDVRWPW4FWNVAVOLBFS3VCL5GLYR5WQHLUK \ / AMOS7 \ YOURUM ::
-#\[7]TLJOAS67JT2TNEYBWIV2ZQOV2PWJ447POBX5YC646WSEF7J4J4BA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,,..,...,.,.,,,,,,..,..,,,,,,..,,...,...,..,,...,,,,,,.,,...,
+#3IMEUSGNIEAKTTJOY3B4MOC7UJ2FMRQ6UFRKIWYH7MSXJGGWUMJUHUFCM46QK42MCVJKQ3VKUKJMY
+#\\\|H5WJXMFET5TNZJZP4PVCWHCRGISE7SUVUSYLMMVK3OPZBYSJS3M \ / AMOS7 \ YOURUM ::
+#\[7]XBERSYQ2IHO5MWS5TYWKGWNX5OG3Y2XAUT6OOIURQZLZ5LGWFMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
