@@ -96,6 +96,65 @@ rename notice, exits 311) but still referenced as a live command in
 ~17 places across `data/md/`/`read-me/` — an older, separate rename
 campaign, unrelated to this session. Worth a future pass.
 
+### zenki sandbox: root-independent front-door + start relay (todo cluster, prototype phase)
+Built on the previously-unused `zenki` zenka as a deliberate low-blast-
+radius sandbox (not `v7-zenki` itself) for a "hybrid" start-up pattern:
+same zenka runnable either `v7-zenki`-managed (resident, root-dropped)
+or directly by a plain user/LLM from the shell (root-independent,
+one-shot). Recovered the zenka's real original intent from its own
+2025-11-11 git history: a transparent front-door — `Protocol-7 zenki
+start <name>` — that bootstraps `v7-zenki` if needed and relays the
+start request over cube IPC.
+
+Fixed 5 real bugs found along the way: `zenki.parent.check_running`
+never matched `bin/Protocol-7`'s actual `$PROGRAM_NAME` rewrite form
+(so `ensure_v7` always reported "not running"); `ensure_v7` still
+invoked the pre-rename `v7` binary name; `start_via_v7`'s IPC call used
+a nonexistent sub name (`protocol-7.command.route-send` instead of
+`protocol-7.route-send`); its `inside_v7` probe checked the wrong sub
+name; `v7_start_reply`'s handler used the wrong reply-signature
+contract entirely (single hashref, not `($route_id, $params)`).
+
+Also built genuine on-demand module loading — only `zenki`'s own
+domain module loads up front; `zenki.parent.select-modules` loads the
+rest based on which console command was actually invoked, using
+*existing* `base.load_modules`/`base.init_modules` primitives (no new
+loader needed). Measured real latency wins for local-only commands
+(~2.0-2.3s -> ~1.3-1.6s); `start` itself is a wash since it needs the
+full network stack regardless — reported honestly, not oversold.
+
+Access grant is deliberately narrow: `access.cmd.usr.zenki =
+v7-zenki.start` only. Found and recorded (not fixed, pre-existing,
+shared by every other `:unix:`-hybrid zenka) that `plugin.auth.unix`
+never actually compares the connecting peer against the resolved
+allowed-user list — with a `:unix:` auth clause present, any local
+unix user can currently claim the identity. Written forward-compatibly
+so it self-corrects once that plugin bug is fixed elsewhere.
+
+**Real gap found, deliberately left open** (touches `v7-zenki`/shared
+`base.*`, out of sandbox scope): no `start.cfg` key distinguishes a
+managed (resident) zenka from a console-only one — not even for
+`zenki` itself anymore, now that its own loop moved out of the start
+file. Asking `v7-zenki` to "start" a console-only zenka (`work`,
+`session`) still triggers a pointless dump-then-restart-loop-until-
+give-up. Three candidate fixes recorded in
+`data/md/design/ZENKA-HYBRID-STARTUP-DISPATCH.md` (a declared
+`zenka.managed` key; `base.call.console_command` declining to dump the
+full listing in managed/stdin mode with no command given; converting
+the console-only zenki to the hybrid shape, the likely real end
+state).
+
+Design doc: `data/md/design/ZENKA-HYBRID-STARTUP-DISPATCH.md`. Reusable
+pattern captured separately:
+`data/ai-mem/claude/reference-zenka-callback-wrapper-prototype-pattern.md`
+— wire a single callback sub for any conditional start-up logic
+(`zenka.v7` itself has no native conditionals), prove it on a
+low-blast-radius sandbox zenka, transplant into the real target later.
+
+Live-verified: relay confirmed via `weather`/`tile`/`ncode`/`git`/
+`fetch-files`/`image2html`; resident restart clean afterward,
+`zenki.heart` beating, no loop. Commit `ad956074e`, pushed.
+
 ## Known Infra Gotchas Found This Session
 
 - **Don't preempt the pre-commit hook's version-mismatch gate by
@@ -186,4 +245,110 @@ confirmed `cube`'s own root-requirement enforcement is clean (no
 redundancy there, unlike the tmp-paths cleanup path noted above).
 
 Commits this session: `23a0e8d53`, `a43972791`, `3f1d6b40f`,
-`f4c295824`, `6089e8434`, `9246d7209`. All pushed.
+`f4c295824`, `6089e8434`, `9246d7209`, `ad956074e`. All pushed.
+
+## Next Session Lead: dependency-installation queue (sys-deps/os-pkg/debian/ext-pkg/osf-cache)
+
+Not started this session — reconnaissance only, at the user's request,
+to plan real work next. User's framing: get this zenki group
+"interacting smoothly... a true installation queue that always works,"
+given recent investment across sessions that each ended right after
+committing, so there's been no cross-session integration testing
+beyond whatever each implementing session did itself.
+
+**Current state, verified against the live tree** (not just docs):
+- **`sys-deps`** — real, on-demand, thin command layer over the
+  standalone `AMOS7::deps::*` library
+  (`data/lib-path/pm/AMOS7/deps/{module,os_package,debp,dist_upgr}.pm`).
+  Query/state front-end.
+- **`debian`** — real, on-demand, the actual install-*execution*
+  backend. Forks a root child (`debian.start.apt_child`) *before*
+  dropping privileges, then genuinely serializes installs:
+  `debian.apt_enqueue_install` -> jobqueue -> `debian.job.apt_install`
+  writes one line to the persistent child, `debian.apt_pump` only
+  starts the next queued job once none is in flight (real guard —
+  concurrent writes would corrupt the child's line protocol).
+  `sys-deps.cmd.install` relays here via `<[protocol-7.route-send]>`
+  (fire-and-forget IPC).
+- **`v7-zenki.check_zenka_deps`** — pre-start hook (wired into
+  `autostart_zenki`), scans a zenka's `deps/{p-mod,os/deb,os/bin}`
+  dirs before starting it, auto-installs via the same route-send path
+  when `v7.cfg.auto_install_deps` is on.
+- **`os-pkg`** — still a bare stub (`src/os-pkg.init_code` is `0;`,
+  no `.cmd.` files, no live zenka-to-zenka wiring at all). The real
+  `os-pkg` functionality is a standalone CLI script
+  (`bin/os-pkg`, 245 lines) that touches the same `var/sys-deps/
+  tracked.yaml` independently, not a network participant.
+- **`ext-pkg`** — real, resident, handles external/language package
+  managers (pip/npm/uv-tool), install-if-missing-only lifecycle
+  (registered tools self-update). Phase 1 DONE, live-verified
+  (`e9b437f6c`). Phase 2 ("unified coverage audit") not started —
+  referenced directly in `ext-pkg`'s own config comment.
+- **`osf-cache`** — not built yet, todo `AT5` ("create osf-cache zenka
+  design or task file", tag `new-zenki`). Per the user directly: a
+  later complement to this group, nothing currently blocked by its
+  absence.
+- **`build-zenka`** — adjacent, not named by the user but structurally
+  similar: phase 1 DONE, live-verified (`e73bf2274`); phase 2 ("patch
+  drift detection") not started.
+
+**The standout concrete task — real bug, fully traced, not yet fixed**:
+`src/base.register_pm_deps` (lines ~25-26) writes per-zenka dependency
+touch-files directly into the *tracked* `cfg/zenki/<zenka>/deps/p-mod/`
+git tree instead of a runtime `var/` location. Three confirmed live
+failure modes, all previously reproduced: silent failure on
+read-only-root installs (no fallback), a `$EUID==0` chown-fixup branch
+that can reassign ownership of files inside a dev's own git working
+tree, and behavior that depends on each zenka's own
+`init_modules`-vs-`drop_privs` ordering in its start file, which the
+user has confirmed is "mixed throughout the zenki." Fully traced with
+a fix direction already, dated addendums, in
+`data/ai-mem/claude/project-deps-tracking-var-relocation.md`
+(2026-09-01, actively maintained — read this first). This is exactly
+the race-condition/early-startup-hole class the user named, and it's
+the most concrete, bounded, ready-to-execute starting point found.
+
+**Smaller confirmed gaps**:
+- `cfg/zenki/cube/access.zenki:320-321` grants `sys-deps` access to
+  `debian.install`/`.check`/`.scan` — all three retired in a July
+  cleanup, only `debian.install-packages` still exists. Harmless
+  (grant to a nonexistent command just goes unused) but a clean
+  example of "nobody re-verified after the change."
+- `base.known_dependencies`'s *content* is static/hand-maintained with
+  no auto-update path (access to it was already consolidated to one
+  reader, `AMOS7::deps::module::load_known_deps` — that part is done;
+  the staleness of the data itself is separate and unaddressed).
+- `.deps/profiles.yaml` — already flagged "still slightly chaotic" by
+  the user (2026-09-01 note), no reorg plan yet.
+
+**Key docs, in useful reading order**: `data/tasks/completed/
+sys-deps-zenka.md` (original 3-phase build spec) ->
+`sys-deps-zenka-audit.md` (disposition table for the old `debian`
+zenka's dead code) -> `sys-deps-wiring-completion.md` / `data/ai-mem/
+claude/project-sys-deps-wiring-completion.md` (2026-07-20, the cleanup
+that executed that table — notably gated destructive deletion behind
+"verify the replacement works live first," found and fixed 5 real bugs
+doing so; reuse that verify-first discipline for the next round) ->
+`data/ai-mem/claude/project-deps-tracking-var-relocation.md`
+(2026-09-01, the live bug above) -> `data/ai-mem/claude/
+topic-sys-deps-debian.md` (apt-child fork-before-drop-privs protocol
+detail + a never-started "layered extensions" roadmap: auto-registering
+invoked binaries/modules at runtime).
+
+**Stale, do not trust**: `data/ai-mem/claude/topic-next-steps.md`
+(~2026-07-29/31) claims a `sys-deps` zenka "exists in history but is
+not an ancestor of current HEAD." That's superseded — `sys-deps`
+demonstrably exists and works on current HEAD now, per the above. The
+note predates the later wiring-completion work.
+
+**Genuinely unclear, not found either way**: whether the
+`topic-sys-deps-debian.md` "layered extensions" roadmap progressed
+beyond baseline; exact behavior when an install request arrives at
+`debian` via route-send before `debian`'s own on-demand start has
+finished initializing (reachability is covered in the var-relocation
+memory, this specific timing case isn't); whether two "closed,
+verified" items in that same memory (bootstrap-ordering,
+idle-timeout-vs-install-race) were confirmed by real live testing or
+by code-reading + the user's own correction — worth an honest look
+before treating them as settled, given this whole arc's stated concern
+is exactly the gap between "reasoned through" and "actually run."
