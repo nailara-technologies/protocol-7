@@ -1,25 +1,33 @@
 ## [:< ##
 
 # name  = sys-deps.handler.install_reply
-# descr = handle deferred debian.install-packages reply, complete caller reply
+# descr = handle deferred debian.install-packages reply
 
 my $reply = shift;
+return warn 'no reply hashref received' if not defined $reply;
 
-my $mode     = $reply->{'mode'}      // qw| unknown |;
-my $params   = $reply->{'params'}    // {};
-my $packages = $params->{'packages'} // [];
-my $zenka    = $params->{'zenka'};
-my $reply_id = $params->{'reply_id'};
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,  ##
+## params } -- 'cmd' is the wire-level mode keyword and the payload sits in ##
+## call_args->{args} [ see base.handler.command.process_reply ] -- this     ##
+## previously read $reply->{'mode'}/{'data'}, neither of which exists on    ##
+## this hashref, so every reply silently fell through to the failure branch ##
+## regardless of the real outcome                                           ##
+my $mode      = uc( $reply->{'cmd'} // '' );
+my $params    = $reply->{'params'}              // {};
+my $reply_str = $reply->{'call_args'}->{'args'} // '';
+my $packages  = $params->{'packages'}           // [];
+my $zenka     = $params->{'zenka'};
+my $reply_id  = $params->{'reply_id'};
 
 my ( @ok, @failed );
-if ( $mode eq qw| true | ) {
+if ( $mode eq qw| TRUE | ) {
     @ok = @$packages;
 } else {
     @failed = @$packages;
     <[base.logs]>->(
         0,
         'sys-deps: install via debian zenka failed : %s',
-        $reply->{'data'} // qw| unknown error |
+        length($reply_str) ? $reply_str : qw| unknown error |
     );
 }
 
@@ -73,8 +81,8 @@ if ( defined $reply_id ) {
 
 return;
 
-#,,,.,,.,,..,,,.,,..,,.,.,,,,,.,,,,,,,,..,,,.,..,,...,..,,.,,,,.,,.,,,,..,,.,,
-#J275PPE3L3JTV26TLOVHGE5NGEZUUKSKA4G6BMOZDFQ6Y6GLE22I6RLW2UTYCLRE5IDKT7PWJ72OQ
-#\\\|Z7YV5Q6X3D3SAV3WBOTI7RB5P3OFVU4A24JFNUT3ZCTTO2XB6TB \ / AMOS7 \ YOURUM ::
-#\[7]GGIQR3R7KGIUBZFTK4QOMZRAAKYTDDVRV6Z4IYROEWEO2W47AGDQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,...,.,,,,,.,.,.,,.,,,,,,...,..,,...,...,..,,.,.,..,,.,,,.,.,
+#ILKA7GOHLSJTVOJN4ULMZ5SNA7JFM3X5ZSPLHUFINQSVZ6452T63TVXJ3D7JT4Y5QSBFB76WWLQ2Q
+#\\\|ZVUA6GHQEZLDOTBTTHJ3262YBLBTQMT5UPNJQBEX2TIJO34WPNS \ / AMOS7 \ YOURUM ::
+#\[7]ETSCHWUZ32PEWN2TIFPHHMZLRAVLIRNW4JQKV62C56IIXTV7NCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
