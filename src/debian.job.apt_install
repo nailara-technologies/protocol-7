@@ -45,9 +45,16 @@ if ( not @$packages ) {
 
 my $w_fh = <debian.apt_child.w_fh>;
 my $r_fh = <debian.apt_child.r_fh>;
-my $pid  = <debian.apt_child.pid> // 0;
 
-if ( not defined $w_fh or not defined $r_fh or not kill( 0, $pid ) ) {
+## no kill(0,$pid) liveness check here : the child is forked while root, ##
+## then this process drops privileges to <system.amos-zenka-user> before ##
+## any job can arrive -- an unprivileged process can't signal-check a    ##
+## root-owned pid at all [ EPERM, indistinguishable from ESRCH by return ##
+## value alone ], so that check always failed even with a healthy child. ##
+## same reasoning as coding.tools.handler.write_with_perms's chmod-child ##
+## check, which never attempts kill(0,...) either -- trust the fh, let a ##
+## genuinely dead child surface as a write/read I/O error instead        ##
+if ( not defined $w_fh or not defined $r_fh ) {
     $fail_job->('apt child not available');
     return;
 }
@@ -87,8 +94,8 @@ $current->{'started'} = <[base.ntime]>;
 
 return TRUE;
 
-#,,.,,,,.,..,,.,.,,..,..,,,,,,...,,,.,,,,,,..,..,,...,...,...,...,,,.,.,.,,,.,
-#FQ2IF4ON2NBYX2IRY36GDWXOQ7D5PGHCUY42JJFAEIRHUJHLL4VTUD7BMTLKOAMLZRX4GMPYPOUK2
-#\\\|SMQHX4VAOSWIDG5N5DDCQ43J7TL26KPSB5BWAJYYNS4H2XULZIG \ / AMOS7 \ YOURUM ::
-#\[7]LITKTVEHRK2SJNSBN4H7TRXMGAUMU5X7Y4OCFZZUMNQDHEPB7ADQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,,,,,.,,,..,,,..,..,,..,,.,,,..,,...,...,.,,,.,.,,,.,,.,,...,
+#SGGUUKUNZ4I5IJUGZDEBBMV2EZVACTLLLDNXHP4DFZOMDKTUUJQ63WIY7FCGMAXGO64TEYYUBQW7U
+#\\\|G56MKH7LIQIDWSJELRYMZ6VLM44TOI7AZSJRVMYCKQMBO4PLVDK \ / AMOS7 \ YOURUM ::
+#\[7]WUBCV4HSU325HYTHX7FYVVEROLEY2M2SPUKIZUWIJGMAKZBZ4KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
