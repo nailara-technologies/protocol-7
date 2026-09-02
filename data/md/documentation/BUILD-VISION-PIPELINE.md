@@ -95,10 +95,10 @@ export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH
 
 ## Step 5: Start Protocol-7 Vision Pipeline
 
-Start the v7 zenka system:
+Start the v7-zenki zenka system:
 
 ```bash
-p7 v7.list zenki
+p7c v7-zenki.list zenki
 
 # Should show online:
 # - cube (message router)
@@ -114,7 +114,7 @@ Test the new auto-resume vision analysis command:
 
 ```bash
 # Single image with auto-completion
-p7 lm-vision.complete-analysis /data/projects/protocol-7/data/gfx/test-image.jpg "describe this in detail"
+p7c lm-vision.complete-analysis /data/projects/protocol-7/data/gfx/test-image.jpg "describe this in detail"
 
 # Should return complete analysis (may take multiple passes)
 # - First pass: Initial analysis, will resume if truncated
@@ -132,11 +132,11 @@ tail -f /var/log/protocol-7/lm-vision.log | grep -E "check_completion|check-comp
 For batch processing of multiple images:
 
 ```bash
-p7 image-batch.process "/data/projects/protocol-7/batches/test_vision_batch.yaml"
+p7c image-batch.process "/data/projects/protocol-7/batches/test_vision_batch.yaml"
 
 # Should return a batch_id and start processing
 # Check status:
-p7 image-batch.status "batch-<id>"
+p7c image-batch.status "batch-<id>"
 ```
 
 ## Verification Checklist
@@ -146,7 +146,7 @@ p7 image-batch.status "batch-<id>"
 - [ ] Binaries extracted and deployed
 - [ ] Vision model files present in /mnt/ext-xfs-data/models-lmstudio/Qwen/
 - [ ] Direct binary test produces image descriptions
-- [ ] v7 zenka system online
+- [ ] v7-zenki zenka system online
 - [ ] **NEW:** `lm-vision.complete-analysis` returns complete multi-line descriptions
 - [ ] **NEW:** Multi-pass resumption works for truncated responses (check logs)
 - [ ] **NEW:** No GPU out-of-memory errors on consecutive calls
@@ -172,7 +172,7 @@ p7 image-batch.status "batch-<id>"
 - Update search paths if using different location
 
 ### Batch processing not starting
-- Verify image-quality is online: `p7 v7.list zenki | grep image-quality`
+- Verify image-quality is online: `p7c v7-zenki.list zenki | grep image-quality`
 - Check image path exists in batch YAML
 - Monitor logs: `tail -f /var/log/protocol-7/llama-server-vision.log`
 
@@ -259,8 +259,8 @@ See `VISION-IMPLEMENTATION.md` for complete implementation status.
 - **data/patches/iqk-symbol-extern-c-fix.patch** - IQK symbol linking fix
 - **Upstream commits** - fc3be34ea (fused norm, device management, graph optimizations)
 
-#,,.,,.,.,,,.,,,,,.,,,,.,,.,,,,,.,,,,,.,,,.,,,..,,...,...,...,,..,,..,.,,,,,,,
-#CKZ6DPFICPSKI6TVHMQ4KD36P4JKUKVF75JPX7ZO37UR5P7JLIDDXHKYENKAWQ4OPYBD5SYDINCBM
-#\\\|NBESFOHMOZQ3F3RUVS5NSFKD37GESG7XWIXGWI4H3HZKUTYSMJ6 \ / AMOS7 \ YOURUM ::
-#\[7]H6GPLMHBY6ZJ2UYM7XWTXK54YID4JSIQ2JXQOOHOJAS4UHKEU6BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,...,,,,,...,,.,,..,,,,,,.,,,..,,...,...,..,,,,.,...,,..,...,
+#UXAVCIA2ZBW5TT5DEOYXGD5ITXML2YNNRZ2N3APO2W45LEHYF4JLKMEFHTNLMXAIK3YQRTPWHWGIK
+#\\\|F3RXI2L75S6Z4K6B5TRFTHUB4CFBS6FVMTKGYSPRNN5SS43JR57 \ / AMOS7 \ YOURUM ::
+#\[7]JBL6UDIVNGR3UQHTGGIZPKUNFP4AQFGOJGIKPVCTUX4GCE6VIUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

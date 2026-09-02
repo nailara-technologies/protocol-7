@@ -51,21 +51,21 @@ p7_load_code(qw| base |);       ## loading remaining base module routines ##
 ##  additional initializations and zenka start-up  ##
 ##                                                 ##
 
-my $zenkaname;
 $data{'system'}{'start'}{'program_name'} = $PROGRAM_NAME;
-if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
-    $zenkaname = lc $PROGRAM_NAME;
-    $zenkaname =~ s|^.*protocol-7\.||ig;
-} elsif ( $PROGRAM_NAME =~ m|^.*v7\.|i ) {    ##  deprecated 'v7.*' form  ##
-    $zenkaname = lc $PROGRAM_NAME;
-    $zenkaname =~ s|^.*v7\.||ig;
-} elsif ( $PROGRAM_NAME =~ m|^.*p7-|i ) {
-    $zenkaname = lc $PROGRAM_NAME;
-    $zenkaname =~ s|^.*p7-||ig;               ### p7-* symlink form ###
-} elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
-    $zenkaname = $LAST_PAREN_MATCH;
-    shift @ARGV;
-}
+
+## walk the invoked name through its symlink chain to a zenka name [ see ##
+## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]                    ##
+my $start_chain = p7_resolve_zenka_symlink_chain();
+my $zenkaname   = $start_chain->{'zenka_name'};
+
+## every link name walked before the one that named the zenka becomes ##
+## launcher context for that zenka [ 'radio-jazz' -> 'p7-radio' ]     ##
+$data{'system'}{'start'}{'launcher_chain'} = $start_chain->{'launcher'};
+$data{'system'}{'start'}{'launcher_name'}  = $start_chain->{'launcher'}->[0];
+
+## only the bare-argument form consumes $ARGV[0] -- the chain forms leave ##
+## the argument list untouched                                            ##
+shift @ARGV if ( $start_chain->{'source'} // '' ) eq qw| argv |;
 
 ( $zenkaname, @ARGV ) = ( split( m| +|, $zenkaname ), @ARGV )
     if defined $zenkaname and index( $zenkaname, ' ' ) != -1;
@@ -351,12 +351,25 @@ sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
         ##  verified clean  ##
         my $bin_path = $PROGRAM_NAME;
         ## checking program name link target ##
+        my $link_hops = 0;    ##  cycle guard  ##
         while ( my $link_target = readlink($bin_path) ) {
             die sprintf "\n\n<< not valid characters [ '%s' ] in "
                 . "program name link target '%s' >>\n\n\n",
                 ${^CAPTURE}[0], $link_target
                 if $link_target =~ $char_map;
             ##  verified clean  ##
+            last if ++$link_hops > 32;
+
+            ## a relative link target resolves against the link's own dir,  ##
+            ## never against the current working directory -- a user's own  ##
+            ## '~/bin/<name> -> ../<dir>/p7-<zenka>' launcher symlink lands ##
+            ## here before the lib path is derived from it                  ##
+            if ( $link_target !~ m|^/| ) {
+                ( my $link_dir = $bin_path ) =~ s|/?[^/]+$||;
+                $link_target = sprintf qw| %s/%s |,
+                    length($link_dir) ? $link_dir : qw| . |, $link_target;
+            }
+
             $bin_path = $link_target;
         }
 
@@ -376,22 +389,154 @@ sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
 
 ##############################################################################
 
+##  terminal segment recognition rule  ##
+sub p7_zenka_name_from_link_name {
+
+    ## the normative rule lives in                                          ##
+    ## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md and is published to ##
+    ## zenka code as <[path-template.zenka-name-from-link]>, which          ##
+    ## delegates straight back here -- this is the only implementation,     ##
+    ## because zenka-name resolution runs before the module system is up    ##
+
+    my $link_name = shift;
+    return undef if not defined $link_name or not length $link_name;
+
+    ## match the basename only -- a directory component must never be able ##
+    ## to name the zenka [ '/opt/v7.tools/bin/radio-jazz' is not 'tools' ] ##
+    my $base_name = [ File::Spec->splitpath($link_name) ]->[2];
+    return undef if not defined $base_name or not length $base_name;
+
+    foreach my $name_pattern (
+        qr{^protocol-7\.(.+)$}i,    ##  'Protocol-7.<zenka>' interpreter form
+        qr{^v7\.(.+)$}i,            ##  deprecated 'v7.<zenka>' symlink form
+        qr{^p7-(.+)$}i              ##  current 'p7-<zenka>' symlink form
+    ) {
+        return lc $LAST_PAREN_MATCH if $base_name =~ $name_pattern;
+    }
+
+    return undef;    ##  no recognized zenka name in this link name  ##
+}
+
+##############################################################################
+
+##  invoked name -> zenka + context  ##
+sub p7_resolve_zenka_symlink_chain {
+
+    ## follows the filesystem symlink chain from the invoked name until a   ##
+    ## recognized 'p7-<zenka>' [ or legacy ] segment names the zenka, or a  ##
+    ## real file ends the chain, collecting every name walked on the way.   ##
+    ## side-effect free : @ARGV is never modified here -- this runs twice [ ##
+    ## p7_early_whitelist_load peeks first, the main flow resolves next ]   ##
+
+    my $start_path = shift;    ##  own invocation when not given  ##
+    my $own_lookup = not defined $start_path;
+
+    return $data{'system'}{'start'}{'symlink_chain'}
+        if $own_lookup and defined $data{'system'}{'start'}{'symlink_chain'};
+
+    my $chain_href = {
+        qw| zenka_name | => undef,    ##  zenka the chain terminates in    ##
+        qw| chain      | => [],       ##  every name walked, in order      ##
+        qw| launcher   | => [],       ##  names that did not name a zenka  ##
+        qw| target     | => undef,    ##  final non-symlink path, if any   ##
+        qw| source     | => undef,    ##  how the name was arrived at      ##
+    };
+    $data{'system'}{'start'}{'symlink_chain'} = $chain_href if $own_lookup;
+
+    my $walk_path = $start_path;
+
+    if ($own_lookup) {
+        ## FindBin resolved $0 against the inherited PATH while it was      ##
+        ## still intact [ 'use FindBin' compiles before the PATH-clobbering ##
+        ## BEGIN block in p7_security_hardening ], and $Bin/$Script keeps   ##
+        ## the invoked link name unresolved -- exactly the chain head       ##
+        my $findbin_path;
+        $findbin_path = catfile( $FindBin::Bin, $FindBin::Script )
+            if length( $FindBin::Bin // '' )
+            and length( $FindBin::Script // '' );
+
+        $walk_path
+            = defined $findbin_path && -e $findbin_path
+            ? $findbin_path
+            : $PROGRAM_NAME;
+
+        undef $walk_path    ##  <stdin> mode has no invoked file to walk  ##
+            if not defined $walk_path
+            or not length $walk_path
+            or $walk_path eq qw| - |;
+    }
+
+    ##  same character whitelist the startup hardening enforces  ##
+    my $char_map = qr{[^0-9a-zA-Z\-\+\.:_\[\]/]};
+
+    my %seen_path;
+    my $walk_depth = 0;
+
+    while ( defined $walk_path and length $walk_path and $walk_depth < 32 ) {
+
+        last if $walk_path =~ $char_map;          ##  refuse unclean names  ##
+        last if exists $seen_path{$walk_path};    ##  symlink cycle guard   ##
+        $seen_path{$walk_path} = TRUE;
+        $walk_depth++;
+
+        my $base_name = [ File::Spec->splitpath($walk_path) ]->[2];
+        push $chain_href->{'chain'}->@*, $base_name;
+
+        my $zenka_name = p7_zenka_name_from_link_name($base_name);
+        if ( defined $zenka_name ) {    ##  recognized terminal segment  ##
+            $chain_href->{'zenka_name'} = $zenka_name;
+            $chain_href->{'source'}
+                = $walk_depth == 1 ? qw| program-name | : qw| symlink-chain |;
+            last;
+        }
+
+        my $link_target = readlink($walk_path);
+        if ( not defined $link_target ) {    ##  reached a real file  ##
+            $chain_href->{'target'} = $walk_path;
+            last;
+        }
+
+        ##  a relative link target resolves against the link's own dir  ##
+        if ( not file_name_is_absolute($link_target) ) {
+            my $link_dir = [ File::Spec->splitpath($walk_path) ]->[1];
+            $link_target = canonpath( catfile( $link_dir, $link_target ) );
+        }
+
+        $walk_path = $link_target;
+    }
+
+    ## every name but the last one walked is launcher context : the last is ##
+    ## either the segment that named the zenka, or the interpreter binary   ##
+    ## the chain ended in                                                   ##
+    $chain_href->{'launcher'}->@*
+        = $chain_href->{'chain'}->@[ 0 .. $chain_href->{'chain'}->$#* - 1 ]
+        if $chain_href->{'chain'}->@* > 1;
+
+    ## nothing recognized in the chain : the bare first argument names the ##
+    ## zenka, as it always has [ './bin/Protocol-7 httpd' ]                ##
+    if (    $own_lookup
+        and not defined $chain_href->{'zenka_name'}
+        and defined $ARGV[0]
+        and $ARGV[0] =~ m|^([^\-].*)| ) {
+        $chain_href->{'zenka_name'} = $LAST_PAREN_MATCH;
+        $chain_href->{'source'}     = qw| argv |;
+    }
+
+    return $chain_href;
+}
+
+##############################################################################
+
 sub p7_early_whitelist_load {    ##  load sub whitelist before base module  ##
 
     return if $data{'base'}{'loader'}{'whitelist_init_done'};
     $data{'base'}{'loader'}{'whitelist_init_done'} = TRUE;
 
-    ##  peek at zenka name non-destructively [ before @ARGV is processed ]  ##
-    my $zenkaname;
-    if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
-        ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*protocol-7\.||i;
-    } elsif ( $PROGRAM_NAME =~ m|^.*v7\.|i ) {    ##  'p7.*' was the old form
-        ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*v7\.||i;
-    } elsif ( $PROGRAM_NAME =~ m|^.*p7-|i ) {  ##  current hyphen-form symlink
-        ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*p7-||i;
-    } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
-        $zenkaname = $LAST_PAREN_MATCH;
-    }
+    ## peek at zenka name non-destructively [ before @ARGV is processed ] ##
+    ## -- the resolver never touches @ARGV, the bare-argument form is     ##
+    ## consumed at the main call site alone [ this one runs first, and    ##
+    ## twice ]                                                            ##
+    my $zenkaname = p7_resolve_zenka_symlink_chain()->{'zenka_name'};
 
     return unless defined $zenkaname and length $zenkaname;
 
@@ -3774,7 +3919,6 @@ sub p7_purge_code {
             and $ARG ne qw|  base.format_error         |
             and $ARG ne qw|  base.context.list         |
             and $ARG ne qw|  base.clean_unicode        |
-            and $ARG ne qw|  v7.stdout_log.write       |
             and $ARG ne qw|  base.utf8.clean_str       |
             and $ARG ne qw|  base.str.eval_error       |
             and $ARG ne qw|  base.clean_up_caller      |
@@ -3783,7 +3927,7 @@ sub p7_purge_code {
             and $ARG ne qw|  base.list.element.add     |
             and $ARG ne qw|  base.log.format_entry     |
             and $ARG ne qw|  base.utf8.decode_clean           |
-            and $ARG ne qw|  v7.handler.zenka_output          |
+            and $ARG ne qw|  v7-zenki.stdout_log.write        |
             and $ARG ne qw|  base.callback.delayed-log        |
             and $ARG ne qw|  base.log.send_buffer_line        |
             and $ARG ne qw|  base.is_defined_recursive        |
@@ -6498,8 +6642,8 @@ __DATA__
 :
 :.
 
-#,,..,...,.,,,,..,,.,,.,.,.,.,,,.,,..,..,,.,,,..,,...,...,...,.,,,.,,,...,,..,
-#FSUBWNDKZILWTLBIOYAJZ2CZRG3XUPCHXDQG2B4NCQPCZWSRUTD5NXO4EEDVVLDJ7AYQBTAD2QBT4
-#\\\|QUW2D7GLUXOFBFBW7OK57RGXFYTZVHKOHDYIUA25AKIVKMPJAGX \ / AMOS7 \ YOURUM ::
-#\[7]CSFXAQKDMM2MOVADLY2H64WMX32JLE4CM7KQQ4UZNG7VEIZEPWCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,.,,,..,,,,.,,.,,...,.,,,,,,,..,,...,...,.,.,..,,...,.,.,,..,
+#DUA6ODNLGSAJW7YZNIXCMWOOFGFHXITT7HNBXHWKTTK4MSAWA6TKQKHGTZ4RU2LED4PDCFIMAPCVG
+#\\\|UEEYLGLJKS2QSONIWYSAR7OAU34TM7QWHLJ5GK2FCXF4XNBWQZ5 \ / AMOS7 \ YOURUM ::
+#\[7]BVCEIIWJHXI3BPOFW6PFEQKGF2ND2ZFUEAGXAAONX7JHCK3QH2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

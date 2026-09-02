@@ -1,8 +1,12 @@
 # p7 command reference for LLM sessions
 
 flat reference of common protocol-7 management and debugging commands.
-use `p7c` for low-latency direct socket access. `p7` is a legacy alias
-that may show a rename notice on some systems.
+use `p7c` for low-latency direct socket access. `p7` is the retired name
+— it is now a stub that only prints a rename notice and exits, so always
+call `p7c`.
+
+the management zenka is named `v7-zenki` [ formerly `v7` ]. its stop
+command is `terminate` [ formerly `stop` ].
 
 ---
 
@@ -10,7 +14,6 @@ that may show a rename notice on some systems.
 
 ```
 p7c <zenka>.<command> [args]   — call any zenka command (low-latency, no shell overhead)
-p7 <command>                   — alias for p7c, same thing
 p7c <zenka>.commands           — list all commands the zenka exposes
 p7c <zenka>.heart              — check if zenka is alive (returns 'BEAT')
 ```
@@ -18,19 +21,20 @@ p7c <zenka>.heart              — check if zenka is alive (returns 'BEAT')
 ## 2. zenka lifecycle
 
 ```
-p7c v7.start <zenka>           — start a zenka
-p7c v7.stop <zenka>            — stop a running zenka
-p7c v7.restart <zenka>         — stop and restart
-p7c v7.start_once <zenka>      — start only if not already running
-p7c v7.list zenki              — list all zenki and their status
+p7c v7-zenki.start <zenka>       — start a zenka
+p7c v7-zenki.terminate <zenka>   — stop a running zenka [ marks it 'manually stopped' ]
+p7c v7-zenki.restart <zenka>     — stop and restart
+p7c v7-zenki.start_once <zenka>  — start only if not already running
+p7c v7-zenki.list zenki          — list all zenki and their status
+p7c v7-zenki.list                — show which lists are available
 ```
 
 ## 3. session and network status
 
 ```
-p7c list sessions              — all currently connected sessions with ids
-p7c list users                 — authorized user sessions
-p7c v7.list zenki              — connected zenki and their status
+p7c list sessions                — all currently connected sessions with ids
+p7c list users                   — authorized user sessions
+p7c v7-zenki.list zenki          — connected zenki and their status
 ```
 
 ## 4. live testing
@@ -76,10 +80,10 @@ p7c <zenka>[<subname>].<command>          — target zenka with specific subname
 
 ```
 ## is the zenka running?
-p7c v7.list zenki | grep <name>
+p7c v7-zenki.list zenki | grep <name>
 
 ## if offline, start it:
-p7c v7.start_once <zenka>
+p7c v7-zenki.start_once <zenka>
 
 ## call a command and see what it returns:
 p7c <zenka>.<command> '<args>'
@@ -91,7 +95,7 @@ p7c <zenka>.show-buffer <name>
 p7c <zenka>.reload
 
 ## if something is very wrong, restart:
-p7c v7.restart <zenka>
+p7c v7-zenki.restart <zenka>
 ```
 
 ## 9. notes for LLM sessions
@@ -106,14 +110,15 @@ p7c v7.restart <zenka>
 ## zenka subnames appear as <zenka>[<subname>] in session lists
 ## and are targeted as: p7c <zenka>[<subname>].<command>
 
-## when a zenka is 'starting' and looping (v7 restart loop), stop it with:
-## p7c v7.stop <zenka>  — then fix the config before restarting
+## when a zenka is 'starting' and looping (v7-zenki restart loop), stop it with:
+## p7c v7-zenki.terminate <zenka>  — then fix the config before restarting
+## clear the 'manually stopped' mark again with: p7c v7-zenki.clear-manual <zenka>
 ```
 
 ---
 
-#,,..,,,,,,.,,,.,,.,,,.,.,,.,,,.,,...,.,.,,,.,..,,...,...,...,.,,,...,,,,,,,,,
-#5UXOYRC2MTCVFGHVNINWTDM6YKSTAXT2OX7K7Y7VIZGHCODAI2NE7TG6PCBZR2QSIGKNS3Y5XDM7C
-#\\\|REX6STPXRKW347SDE2RUJMJJYQXNSILJR3IKDINWDHE7MGDOXZ4 \ / AMOS7 \ YOURUM ::
-#\[7]JKPBPFED6AMK3YITVU26BRB7NMLQHK7T7AGH76CU4I2PDKWM5SAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,.,,,...,...,.,.,...,.,,,,,,,..,,...,...,.,,,..,,,..,..,,,,,,
+#OHZFFT64QUI34ONUWR7MSBJFSPBWTSQQHL4LB6RAKRNOUCRZETWUSFW6YBX4SC24RDH7WVBC37NO2
+#\\\|R7HLYLBAVWHCU2QZJTK6JKEAPW7WU5FTRUMMT6LOVHBRALSVTJO \ / AMOS7 \ YOURUM ::
+#\[7]6W2ECCCGBGHP2EENQDK4EHS2DYRXXDLPZDGX7XQ77SVV6PCO3MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -440,7 +440,7 @@ our @tools = (
         'description' => 'send any command to the protocol-7 zenka network '
             . 'and return the response. use dot notation '
             . 'for zenka routing [ e.g. "weather.desc", '
-            . '"v7.start weather", "task.queue" ]',
+            . '"v7-zenki.start weather", "task.queue" ]',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -1962,7 +1962,7 @@ sub tool_zenka_start {
         return send_tool_result( $id, 'zenka_name is required', 1 );
     }
 
-    my ( $ok, $response ) = cube_command("v7.start $zenka_name");
+    my ( $ok, $response ) = cube_command("v7-zenki.start $zenka_name");
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -4112,8 +4112,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,.,..,,,.,,.,.,,..,,,,,,,,,.,.,..,,...,..,,...,...,..,,,,,,,,,,.,.,,,.,
-#QWVUSOLGYBRBFT2I3VCFDOQ2DR6MIXZ7EVCPLQITSTYWJWPGIWNCRGTD7OCAURGIYIRFQSLF674R4
-#\\\|NPLVCZUO5NL3B7CGWQFJ5PUJ5A3C4NV2NS23QL2ZCQB6CGNZ3LP \ / AMOS7 \ YOURUM ::
-#\[7]SS6WURQAE55TGJGJFKD4ZDQ6EIKNWO4HBVGQ3XDAM2QS4HUI56DY 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,.,.,..,,...,,,,,...,,..,..,,..,,...,...,..,,...,...,.,.,,.,,
+#ER45M5CB4GBN5CT4DORU2H7N4QJ6NZCVIOJFB5V2ST6LATKW3QIREROXS5TWLES44UNZX66CG7U2G
+#\\\|TUT2QKT6GSSLJEETB5ZJ3KG3L67PG2OE4AYGOMM2APHVCO36YRC \ / AMOS7 \ YOURUM ::
+#\[7]GW77MFZSGCAHONLVDNDN7SFPQW4IDBF52LCYZER5ULVFVMSM74BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

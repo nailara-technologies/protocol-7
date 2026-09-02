@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = base.path-template.zenka-symlink
+# descr = <symlink_dir>/p7-<zenka> console alias path for a zenka
+# param = zenka_name[, symlink_dir]
+
+## the constructing counterpart of <[path-template.zenka-name-from-link]> : ##
+## that one reads a zenka name out of a launcher link name, this one writes ##
+## the canonical link name for a zenka.  both sides of the same naming      ##
+## decision, kept in one namespace so they cannot drift apart [ see         ##
+## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]                       ##
+
+my $zenka_name = shift;
+
+return warn 'zenka name is undefined <{C1}>' if not defined $zenka_name;
+return warn 'zenka name is empty <{C1}>'     if not length $zenka_name;
+return warn "unexpected characters in zenka name '$zenka_name' <{C1}>"
+    if $zenka_name !~ m|^[0-9a-z][0-9a-z\-]*$|;
+
+##  <v7-zenki.cfg.zenka_symlink_dir> overrides this at the install site  ##
+my $symlink_dir = shift // qw| /usr/local/bin |;
+
+$symlink_dir =~ s|/+$||;    ##  no doubled separator  ##
+
+return sprintf qw| %s/p7-%s |, $symlink_dir, $zenka_name;
+
+#,,,,,...,,.,,..,,.,.,...,,.,,,..,,..,,..,,,,,..,,...,...,.,.,.,.,,,.,,..,...,
+#CS4VYIWACJAB3INDDS5OZSTADJ7P57KI4PGUFYHT7NGAA6BGVFAQ2Y25PJLXEHL46WBR5F2SGNN3U
+#\\\|PUAXYFSSDOKGWVLHGVLV2L4LBILQG634NCVBUXXFXT2DZ5TDAND \ / AMOS7 \ YOURUM ::
+#\[7]XSDYIAYG4HJVNH5D5THUZC2MUYXPKCPUDA4X3Q3JLGUHMDDHDUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

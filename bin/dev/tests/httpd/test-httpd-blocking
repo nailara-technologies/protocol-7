@@ -18,7 +18,7 @@ echo ""
 echo -e "${RED}===[ Testing BROKEN Version ]===${NC}"
 echo "Activating test-broken version..."
 cp modules/httpd.handler.download_transfer.test-broken modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 sleep 2
 
 echo "Initial heartbeat check..."
@@ -68,7 +68,7 @@ echo ""
 echo -e "${GREEN}===[ Testing FIXED Version ]===${NC}"
 echo "Activating test (fixed) version..."
 cp modules/httpd.handler.download_transfer.test modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 sleep 2
 
 echo "Initial heartbeat check..."
@@ -120,7 +120,7 @@ echo ""
 echo -e "${RED}BROKEN:${NC} If heartbeats timeout or stop responding:"
 echo "  → Watcher is spinning on closed file handle"
 echo "  → Event loop blocked, can't process heartbeat"
-echo "  → Eventually v7 detects timeout and restarts httpd"
+echo "  → Eventually v7-zenki detects timeout and restarts httpd"
 echo ""
 echo -e "${GREEN}FIXED:${NC} All heartbeats should respond normally:"
 echo "  → Watcher properly destroyed"
@@ -131,11 +131,11 @@ echo ""
 # Restore production version
 echo -e "${YELLOW}Restoring production fixed version...${NC}"
 cp modules/httpd.handler.download_transfer.fixed modules/httpd.handler.download_transfer
-p7 v7.restart httpd > /dev/null
+p7 v7-zenki.restart httpd > /dev/null
 echo -e "${GREEN}✓ Production version restored${NC}"
 
-#,,,.,,.,,,..,.,.,..,,.,.,.,,,.,.,,..,,,,,..,,..,,...,...,.,,,,,.,,..,,,.,..,,
-#K5VGKNTKPB5HEGDX6BXYIPOWOS64MHOVWLJGB3YV7TYQPZHA4UJKXT43AOHEH526PJY7RMNAWNI24
-#\\\|3VS2JVQTFYINKEM6RAZFOYHIXXQIWL4PA4E4VNOO43UIQQV6OI2 \ / AMOS7 \ YOURUM ::
-#\[7]Q6WXZLFLZGZGTFLINJJPEBY4VAQRYY4GYJO6V4TUC2H722H2I6AI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,.,,,,,,,.,,,,,,,.,,,...,,,,,..,,...,...,.,,,,,,,...,..,,..,,
+#OW756LMC5FDPN5SNU6DHPSO4TIXJNOPD3PC4MW262LLYLVKT4OE5C5NW3X4RW4VBVD4WPF4YNAFTE
+#\\\|TG5AFEI7G36FFIBMSCDHI7SDOQX3LOTMTUVDS6FJ4NF3JCAW4GG \ / AMOS7 \ YOURUM ::
+#\[7]V2ERPH25IJSVPJYYMKPCVDJGRAI4RZJ3GNCMNO7YPTAKX2OMRKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
