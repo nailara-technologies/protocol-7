@@ -14,9 +14,11 @@ my @pending = <system.report_children>->@*;
 <system.report_children>->@* = ();    ## clear before sending ##
 
 map {
-    <[base.logs]>->( 1, "reporting child process [PID:%d] to 'v7'", $ARG );
+    <[base.logs]>->(
+        1, "reporting child process " . "[PID:%d] to 'v7-zenki'", $ARG
+    );
     <[protocol-7.command.send.local]>->(   ## [LLL] use new route-send command
-        {   'command' => "${route_str}v7.register_child",
+        {   'command' => "${route_str}v7-zenki.register_child",
             ## parent_pid is THIS process's own pid, given directly rather
             ## than left for v7 to re-derive later via a live /proc lookup --
             ## the round trip through cube is async, and if the immediate
@@ -32,8 +34,8 @@ map {
     );
 } @pending;
 
-#,,.,,,.,,.,,,...,.,,,,,,,,,.,,,,,,.,,,,,,..,,..,,...,...,.,,,...,.,.,.,,,.,,,
-#LUQ6KOL7BMGVRNPNJFBPJXQPT7LVXS3UE3CX4RDRSRL77SLRMGIQEK7CE5SAQNYIFI7ZLTMHUAV66
-#\\\|HYKVPV753NXB5U4ZUNFHS4GMQXRNYYOFCUMKRRBCG67VTCLRS2S \ / AMOS7 \ YOURUM ::
-#\[7]AEVXPR5QJJRFA4BLPL6SXCT7QQYN6XQ6F3O6NC25VO46EMBG2KDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,..,,.,,,,.,,..,,.,.,,,.,..,,..,,...,...,,..,,.,,...,,,.,,.,,
+#BJ2C53UDUIROEO6JYUYIGD47JH4Y475XLPZXBTCMC6PYX3G74H4XB6QRWXIGTRJYS74GVIAAOFPLE
+#\\\|PJVIP5F4XFCXQ6S5BQVWFSRPPOUM4OM6FDFY5GHCUUTPDA6RLCY \ / AMOS7 \ YOURUM ::
+#\[7]5CSL65GBXCSFCYJ47J4TQLZRUHOI4MDX4SEUC7XPZJ5ZSJWLSWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

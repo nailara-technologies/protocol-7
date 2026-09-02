@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.reboot-warning
+# param = <delay> <reason>
+# descr = broadcast a reboot warning to all unix users
+
+( my $warn_seconds, my $reboot_reason )
+    = split( m| +|, $call->{'args'} // '', 2 );
+
+my $who_bin_path  = <[file.which]>->('who');
+my $wall_bin_path = <[file.which]>->('wall');
+
+return {
+    mode   => qw| false |,
+    'data' => "numerical 'seconds' parameter expected"
+    }
+    if !length( $warn_seconds // '' )
+    or $warn_seconds !~ m|^\d+$|;
+return { mode => qw| false |, 'data' => "'reason' parameter expected" }
+    if !length( $reboot_reason // '' );
+return {
+    mode   => qw| false |,
+    'data' => "'reason' parameter too long [ max. 32 characters ]"
+    }
+    if length( $reboot_reason // '' ) > 32;
+return {
+    mode   => qw| false |,
+    'data' => "invalid character '$1' in 'reason' parameter"
+    }
+    if $reboot_reason =~ m|([^\s\d\w\-\+\'\"\.,_])|;
+return { mode => qw| false |, 'data' => "'wall' binary not found" }
+    if !length($wall_bin_path);
+
+<[base.log]>->( 1, ":.. sending 'wall' message [ host reboot warning ]" );
+
+if (system( $wall_bin_path,
+              "\n\n  <<< REBOOTING SYSTEM IN $warn_seconds SECONDS [ "
+            . "$reboot_reason ] >>>\n\n\n\r   < [ TO ABORT REBOOT RUN "
+            . "'p7 system.abort-reboot' ] >\n\n" ) != 0
+) {
+    my $err_msg = lcfirst($OS_ERROR);
+    warn "$err_msg [ $wall_bin_path ]";
+    return {
+        mode   => qw| false |,
+        'data' => "'wall' command error : $err_msg"
+    };
+}
+return { mode => qw| true |, 'data' => 'message sent to all terminals.' };
+
+#,,..,,..,,.,,,.,,.,,,,..,,,.,,..,,,.,...,.,,,..,,...,..,,,..,,,.,,..,.,,,.,.,
+#DYBHICS3DQIXDUG2PVGGBJF24BMLHHIZIBIGOMMCOG4VYF6NAGLWYIQJJO3DKC5IY7QYFHLDKRXXM
+#\\\|BWI77BEFC4WDGPHMJXAYOSUFTJZXXVYN2MZNOQ725MGAVGGASDZ \ / AMOS7 \ YOURUM ::
+#\[7]EEK74K37T6X27LRMKCKXMOORJFX43CIN5R53PTKG27WYZXGS2SAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

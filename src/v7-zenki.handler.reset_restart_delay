@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = v7-zenki.handler.reset_restart_delay
+
+my $instance_id = shift->w->data;
+die "expected instance id" if not defined $instance_id;
+my $instance  = <v7-zenki.zenka.instance>->{$instance_id};
+my $log_level = 2;                                         ## start level 2 ##
+$log_level-- if $instance->{'restart_delay'} >= 1.47;      ## default: 0.05 ##
+
+<[base.logs]>->( $log_level, "[%s] resetting restart delay", $instance_id );
+delete $instance->{'restart_delay'};    ## delete last value to re-init.., ##
+delete $instance->{'timer'}->{'restart_delay'};    ## clean-up watcher ##
+delete $instance->{'timer'} if not keys $instance->{'timer'}->%*;  ## and href
+
+#,,..,,..,..,,,,.,,.,,.,,,,.,,,..,,,.,..,,..,,..,,...,...,.,.,.,.,..,,.,.,,,,,
+#7A3FKB5S2HAG73U3LCVYT5MSGU3SFHZYTAQWIUIVXSGTBUHKMOZNVSX334TYIGOG6XUFCIV7JBLAQ
+#\\\|53IOUTYHYQB3QDPHJT3TLETPGXHXK76KQM6LOU3LYODPM4W6TUV \ / AMOS7 \ YOURUM ::
+#\[7]6ANOWZATK43NGHLVXMIIDTRV3T2P5SV23S7TPQY5VBTBZQEZKOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

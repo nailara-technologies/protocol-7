@@ -1,0 +1,31 @@
+## [:< ##
+
+# name = v7-zenki.callback.instance.restart
+
+my $instance_id = shift->w->data;
+
+if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
+    <[base.logs]>->(
+        2, 'instance %u no longer exists, aborting restart callback.',
+        $instance_id
+    );
+    return;
+}
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+$instance->{'timer'}->{'restart'}->cancel;
+delete $instance->{'timer'}->{'restart'};
+delete $instance->{'cube_sid'};
+
+return
+    if defined <zenka.instance.shutdown>
+    and defined <zenka.instance.shutdown>->{$instance_id}
+    or not defined $instance->{'job_id'};
+
+<[jobqueue.move_job]>->( $instance->{'job_id'}, qw| queued | );
+
+#,,..,,.,,.,.,.,.,...,,,.,,.,,.,,,..,,,.,,.,,,..,,...,...,...,,..,,,,,...,,,.,
+#7WAO55QPYMCQKJHCZI6JQF53RXIJRAW2YZXNUCMBUJXHHZR3MTB4GL47J4PZHVUWIZ6VAPW42RPKK
+#\\\|EJZ77FRKUZAON6ABMTXUILRQI4CMEVHV4VEYGW45E6QSPMEKLPK \ / AMOS7 \ YOURUM ::
+#\[7]QVZY4OBJSBIY7DLBFYA7YVHLX3S7N6ZDJZXFO6B66N5SFUTB3UAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

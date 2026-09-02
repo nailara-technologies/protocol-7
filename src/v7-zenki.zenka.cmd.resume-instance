@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.resume-instance
+# param = <id>
+# descr = send CONT signal to instance processes
+
+my $instance_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'instance id must be numeric!' }
+    if $instance_id !~ m|^\d+$|;
+return { 'mode' => qw| false |, 'data' => "instance not found!" }
+    if not exists <v7-zenki.zenka.instance>->{$instance_id};
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+<[v7-zenki.enable_heartbeat_timer]>->($instance_id)
+    if delete $instance->{'paused_status_timer'};
+
+my $parent_pid = <v7-zenki.zenka.instance>->{$instance_id}->{'process'}{'id'};
+my @pids       = (
+    $parent_pid, @{ <[v7-zenki.sub-process.get_children]>->($parent_pid) }
+);
+
+my $count = kill 'CONT', @pids;
+
+my $es = $count > 1 ? 'es' : '';
+<[base.log]>->( 0, "instance $instance_id resumed [ $count process$es ]" );
+
+return {
+    'mode' => qw| true |,
+    'data' => "$count process$es paused (SIGCONT)"
+};
+
+#,,,.,...,,.,,...,,.,,,,,,,.,,.,.,,.,,.,.,,..,..,,...,...,,.,,..,,,.,,..,,...,
+#ZGYQP4ISEICPDOJRSCNYM7XTYJJQDLMWA33R4MQV3YVPNKXKSZD5AN4UE6VTDFKF4WSNESEHZKAFG
+#\\\|5NXGTVDWVOS4HUWGRJFEDHXPQPBNSTX2CFCDOVAMEA77I4XCDTA \ / AMOS7 \ YOURUM ::
+#\[7]MDICVZRYUHYRBLU7B2WF3F3CB5M6FISL7FGIIJY4K54IGOCDHQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

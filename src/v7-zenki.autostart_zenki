@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = v7-zenki.autostart_zenki
+# descr = initializing zenki for automatic\immediate start-up
+
+foreach my $zenka_name (@ARG) {
+
+    ## pre-start dependency check ##
+    <[v7-zenki.check_zenka_deps]>->($zenka_name);
+
+    my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name};
+    my $zenka_id     = <[zenka.get_id]>->($zenka_name);
+    my $obj_id       = <[zenka.get_object_id]>->($zenka_id);
+    my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+    my $instance_count = $zenka_config->{'start'}->{'instances'} || 1;
+
+    while ( <[zenka.is_enabled]>->($zenka_name) and $instance_count-- ) {
+        my $job_id = <[jobqueue.add_job]>->(
+            {   'object_id'       => $obj_id,
+                'target_queue'    => $target_queue,
+                'job_callback'    => qw| zenka.start |,
+                'callback_params' => $zenka_name
+            }
+        );
+        <v7-zenki.zenka.autostart>->{$zenka_name}->{'job'} = $job_id;
+    }
+}
+
+#,,,.,,,,,,,.,..,,..,,,,,,,.,,.,.,...,...,..,,..,,...,...,...,,.,,,,,,.,,,..,,
+#KH3AVHYUX6JZRYNISCVHLFBVV2ENHIRWWHMNDUOQOBAMWG2N5OGJ62HTVSJPAKIKEAJRTSP7MMEYS
+#\\\|TEUPZKFXILXK57F2524UKFNHCUNNFRD5BHEDSITKOSVGTIVF7VQ \ / AMOS7 \ YOURUM ::
+#\[7]EMGBMM4YEBJC2J276X3UXMWLOPYZCTSRANV4PK72THEXK23QXYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

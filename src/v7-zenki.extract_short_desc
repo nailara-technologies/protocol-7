@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = v7-zenki.extract_short_desc
+# descr = extract and return short decription texts from zenka config files
+
+my $file_path = shift // '';
+
+die "expected zenka config file path"       if !length($file_path);
+warn "zenka config '$file_path' not found!" if !-f $file_path;
+
+return $1 if <[file.content]>->($file_path) =~ m|\.:\[ +([^\n]+) +\]:\.\n|;
+return '[ no description available ]';
+
+#,,,.,,..,.,,,,,.,.,.,..,,..,,,,.,.,.,,..,,,.,..,,...,...,.,,,..,,.,,,,,.,..,,
+#OXGOHVQYKJ3SKDZPPDQSVDEY7KD3N4NXKIC4T63CSZBG5TARLXKNHEHG3UWVZMY4UNI224BSSJ3JE
+#\\\|QV3GX2WWLN443QZAFFZ42BZLGDSRVFVYYUEQRG7EUABV6TMV7RD \ / AMOS7 \ YOURUM ::
+#\[7]6TVNVOLWNNYP6DOXJ7SUJ4G2TGPJBFF3Q4KLASMZPNZWOTD2U2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

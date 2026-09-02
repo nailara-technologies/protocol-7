@@ -93,7 +93,8 @@ if ( eval { require POSIX } ) {
 ## base.sig_int / base.sig_term [ v7 teardown, cross-zenka shutdown notify, ##
 ## <system.kill_list> killing ]. end_code callbacks run on every exit path  ##
 ## via bin/Protocol-7's own END block regardless of how exit was reached,   ##
-## same precedent as v7.setup_stdout_redir -> v7.stdout_log.close           ##
+## same precedent as v7-zenki.setup_stdout_redir ->                         ##
+## v7-zenki.stdout_log.close                                                ##
 push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 
 <[base.log]>->( 2, "SHM mounting subsystem initialized" );
@@ -101,8 +102,8 @@ push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,,.,.,.,..,,,,,,.,.,,.,,.,.,,,,,.,.,,,,,...,.,.,...,..,,...,,..,,..,.,,,...,
-#6DMFDSYNADYC6LJWQJRWCQUQDWVUX4HX4U2KOFMTQAKY4X6WKJGLZ32ZCTIENRE54PLQJFB7AXPRI
-#\\\|YARJEGIPGZWBS7Q5HO2TAE3M5HLMZNAJGZASSAFSAI4XX5NPK3X \ / AMOS7 \ YOURUM ::
-#\[7]7S72DJBSSDS5JHSOTFVHMZ36D6D24BYMNUJ7D4TBA5K5U6USUGCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,...,.,,,...,..,,...,,..,,.,,.,.,...,...,,,.,,,.,,,.,.,.,...,
+#A5X6TP3WY2ADIZHVCUTT3YVP6ETC2TOBGR3OM3T223MX7KI32OSYOL6BPQWIU7XSBROCXZKGKVBY2
+#\\\|WQERMOEH3EJM2JAUDHOAV4LWJZQPZDNZHNHIULOCPEOQBOBLFGB \ / AMOS7 \ YOURUM ::
+#\[7]XGP5RZO37SNYFB6YL7EUT7RRTHID4LEHKXT2MZGJKKFBMAWUHOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

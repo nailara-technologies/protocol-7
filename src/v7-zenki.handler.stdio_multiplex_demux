@@ -1,0 +1,135 @@
+## [:< ##
+
+# name  = v7-zenki.handler.stdio_multiplex_demux
+# param = $record   [ typed-run record from base.stdio.frame.decode ]
+# descr = route a typed-run record to its target slot binding
+
+my ( $record, $socket, $zenka_name ) = @ARG;
+
+if ( not defined $record or ref $record ne qw| HASH | ) {
+    warn 'expected typed-run record <{C1}>';
+    return;
+}
+
+if ( not defined $zenka_name or not length $zenka_name ) {
+    warn 'expected zenka name for multiplex routing <{C1}>';
+    return;
+}
+
+## [ ensure multiplex data roots exist ] ##
+<v7-zenki.stdio_multiplex.scope>      //= {};
+<v7-zenki.stdio_multiplex.content>    //= {};
+<v7-zenki.stdio_multiplex.provenance> //= {};
+
+## [ current provenance from scope tree top-of-stack ] ##
+my $scope_stack = <v7-zenki.stdio_multiplex.scope>->{$socket} // [];
+my $provenance
+    = @$scope_stack
+    ? $scope_stack->[-1]
+    : { qw| origin | => $zenka_name };
+
+my $tag = $record->{'tag'} // '';
+
+## [ META records update the scope tree, no slot routing ] ##
+if ( $tag eq qw| META | ) {
+    <[v7-zenki.handler.stdio_multiplex_scope]>->( $record, $socket );
+    return;
+}
+
+if ( $tag eq qw| EOUT | ) {
+    my $fd = $record->{'header'}{'fd'} // 1;
+
+    if ( $fd == 1 ) {
+        ## [ default stdout view — routed to <zenka>.stdout slot ] ##
+        return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+            $zenka_name, qw| stdout |, $record->{'payload_sref'}, $provenance
+        );
+    } elsif ( $fd == 2 ) {
+        ## [ stderr routes via base.log severity ladder ] ##
+        my $line
+            = <[v7-zenki.handler.stdio_multiplex_demux.decode_payload_text]>
+            ->( $record->{'payload_sref'} );
+        if ( length $line ) {
+            <[base.logs]>->( 1, '[%s] %s', $zenka_name, $line );
+        }
+        return;
+    } else {
+        ## [ fd >= 3 → sub-tree slot binding ] ##
+        return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+            $zenka_name,
+            sprintf( qw| stdout.fd.%d |, $fd ),
+            $record->{'payload_sref'}, $provenance
+        );
+    }
+}
+
+if ( $tag eq qw| SIN | ) {
+    ## [ silent prompt slot — never echoed to EOUT ] ##
+    return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+        $zenka_name,
+        qw| stdio.prompt |,
+        $record->{'payload_sref'}, $provenance
+    );
+}
+
+if ( $tag eq qw| RIN | ) {
+    ## [ raw input sub-tree — default render is hex/b32 debug view ] ##
+    my $raw_hex
+        = <[v7-zenki.handler.stdio_multiplex_demux.encode_payload_hex]>
+        ->( $record->{'payload_sref'} );
+    return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+        $zenka_name, qw| stdio.raw |,
+        \$raw_hex,   $provenance
+    );
+}
+
+if ( $tag eq qw| TOUT | ) {
+    my $name = $record->{'header'}{'name'} // qw| template |;
+    return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+        $zenka_name,
+        sprintf( qw| stdout.view.%s |, $name ),
+        $record->{'payload_sref'}, $provenance
+    );
+}
+
+if ( $tag eq qw| NUM | ) {
+    my $name = $record->{'header'}{'name'} // qw| default |;
+    return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+        $zenka_name,
+        sprintf( qw| stdout.metric.%s |, $name ),
+        $record->{'payload_sref'}, $provenance
+    );
+}
+
+if ( $tag eq qw| STR | ) {
+    my $name = $record->{'header'}{'name'} // qw| default |;
+    return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+        $zenka_name,
+        sprintf( qw| stdout.value.%s |, $name ),
+        $record->{'payload_sref'}, $provenance
+    );
+}
+
+if ( $tag eq qw| ERR | ) {
+    ## [ ERR goes to slot + base.log severity 1+ ] ##
+    my $line
+        = <[v7-zenki.handler.stdio_multiplex_demux.decode_payload_text]>
+        ->( $record->{'payload_sref'} );
+    if ( length $line ) {
+        <[base.logs]>->( 1, '[%s] ERR %s', $zenka_name, $line );
+    }
+    return <[v7-zenki.handler.stdio_multiplex_demux.route_to_slot]>->(
+        $zenka_name,
+        qw| stdout.err |,
+        $record->{'payload_sref'}, $provenance
+    );
+}
+
+warn sprintf 'unknown type tag [ %s ] <{C1}>', $tag;
+return;
+
+#,,.,,...,,..,.,,,,..,...,,.,,...,,,,,.,.,,,.,..,,...,..,,,,,,,.,,..,,.,,,.,,,
+#P7MWSGG3BCENV4C6Q2JWMZ56O7ZK3GSO4I4C7OL5A2WOOLDQW54TVZ72RPXGWKUEEAT5OINYRHKBQ
+#\\\|S64B3ZVD7UHQL2D2KWFTJKHS3Y2WPZBHK3J6D2P2YYRDW6EFE23 \ / AMOS7 \ YOURUM ::
+#\[7]S742WO6UVXPYO7SCYBUBP66UYDIMMGXS6TPZO2Z3PVDEXMIXKYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.end-handler.web-browser
+# descr = record web-browser segfaults [ crash mitigation ]
+
+my $instance_id = shift;
+my $process_id  = shift;
+my $exit_sig    = shift // -1;
+
+return FALSE    ##  check conditions [ segmentation fault ]  ##
+    if not exists <v7-zenki.zenka.instance>->{$instance_id}
+    or $exit_sig != 11;
+
+my $instance      = <v7-zenki.zenka.instance>->{$instance_id};
+my $zenka_name    = $instance->{'zenka_name'};
+my $zenka_subname = $instance->{'subname'};
+
+return FALSE if $zenka_name ne qw| web-browser |;    ## wrong zenka, ignore ##
+
+my $web_browser_uname = <system.AMOS-user>;
+
+my $subname_b32
+    = ( defined $zenka_subname and length $zenka_subname )
+    ? join( '', qw| . |, encode_b32r($zenka_subname) )
+    : '';
+
+my $file_name
+    = join( '', qw| /var/run/.7/web-browser.crash_pid |, $subname_b32 );
+
+<[file.put]>->( $file_name, sprintf( "%d\n", $process_id ) )
+    or warn
+    join( qq| : |, $file_name, scalar <[base.format_error]>->($OS_ERROR) );
+
+chmod( 0644, $file_name )
+    or warn
+    join( qq| : |, $file_name, scalar <[base.format_error]>->($OS_ERROR) );
+
+my @pwn = getpwnam($web_browser_uname);
+
+chown( $pwn[2], $pwn[3], $file_name )
+    or warn
+    join( qq| : |, $file_name, scalar <[base.format_error]>->($OS_ERROR) );
+
+return TRUE;
+
+#,,,,,,..,.,,,.,,,.,.,,..,,,.,,,,,,..,.,.,.,.,..,,...,..,,,..,,,.,,.,,,.,,,.,,
+#WVHCR6WZY4R2JVBIOPCMYIX7A33NQBMRZLNSJRF4WW5VINOZOMDXESGVWQXXXCYYDCHVAGX47YAYK
+#\\\|KM3JGTXJ67XJCKLPZGXCMW5AGZVHOXAKVOJFAAUCDFBOCEPKTSH \ / AMOS7 \ YOURUM ::
+#\[7]6M3ZAI5A7G5ZIIAQUVJW72ZAD3JAVN4HDWBWXCIC5PSMQGSAMCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

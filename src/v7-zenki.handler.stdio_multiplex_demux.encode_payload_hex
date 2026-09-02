@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = v7-zenki.handler.stdio_multiplex_demux.encode_payload_hex
+# param = $payload_sref  [ scalar ref to raw bytes ]
+# descr = encode a scalar-ref payload to a lowercase hex string
+
+my ($payload_sref) = @ARG;
+
+return ''
+    if not defined $payload_sref
+    or ref $payload_sref ne qw| SCALAR |;
+
+my $bytes = $payload_sref->$*;
+return '' if not length $bytes;
+
+return unpack( qw| H* |, $bytes );
+
+#,,,,,.,.,,.,,,,,,,.,,,..,,.,,,,.,.,.,.,.,.,,,..,,...,...,..,,,,.,..,,,,.,,..,
+#CTA2ISOC34A22GSIAI5GILUPJTXQZ2ZZ2XJSYAE5UIPCLQG76XOYMJ5BPNH5PP3QVUKQUON7WAXKA
+#\\\|2E5WKBF53KU5XRYTDUGS6VZJ7RPWIVATTQN72TXNOOOGUHG3GE5 \ / AMOS7 \ YOURUM ::
+#\[7]2QQLLXQI4NIROKRZNBQFLJQNATROPA7ZKYSN3QGYXD45FOGEQSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

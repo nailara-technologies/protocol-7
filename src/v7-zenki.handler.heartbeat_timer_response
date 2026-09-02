@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = v7-zenki.handler.heartbeat_timer_response
+
+my $response    = shift;
+my $instance_id = $response->{'params'}->{'instance_id'};
+if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
+    <[base.logs]>->(
+        1, "instance %d gone, skipping response timer", $instance_id
+    );
+    return;
+}
+my $instance        = <v7-zenki.zenka.instance>->{$instance_id};
+my $is_cube_zenka   = $instance->{'is-cube'};
+my $zenka_name      = $instance->{'zenka_name'};
+my $fail_count      = $instance->{'heartbeat'}->{'errors'}++;
+my $heartbeat_retry = $fail_count ? 0 : 1;                        # retry once
+
+$instance->{'timer'}->{'heartbeat-timeout'}->cancel
+    if defined $instance->{'timer'}->{'heartbeat-timeout'}
+    and not $instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
+
+if (    $response->{'cmd'} eq qw| TRUE |
+    and $response->{'call_args'}->{'args'} eq qw| beating | )
+{    # success again
+    delete $instance->{'heartbeat'}->{'errors'};
+    <[base.logs]>->(
+        3, "instance $instance_id [success] heartbeat : =) :: %s ::",
+        $zenka_name
+    ) if not <devmod.skip_v7_heartbeat>;
+
+} elsif ( !$heartbeat_retry ) {
+
+    return if $instance->{'status'} eq qw| error |;
+
+    <[base.logs]>->(
+        0, "instance $instance_id [:error:] heartbeat : :| :. %s .:",
+        $zenka_name
+    );
+    delete <callback.session.closing_last>
+        if $is_cube_zenka;    # for safe restart
+
+    <[v7-zenki.stop_heartbeat_timer]>->($instance_id);
+    $instance->{'heartbeat'}->{'errors'} = 0;    # <-- resetting error counter
+    <[zenka.change_status]>->( $instance_id, qw| error | );
+
+} else {
+    <[base.logs]>->(
+        0, "instance %d [%s] heartbeat response ( error ) [..retrying..]",
+        $instance_id, $zenka_name
+    );
+
+    # setting shorter heartbeat timeout..,
+    $instance->{'timer'}->{'heartbeat-timeout'}->cancel
+        if defined $instance->{'timer'}->{'heartbeat-timeout'}
+        and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+    $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+        {   'after'   => $instance->{'heartbeat'}->{'retry_timeout'} // 2,
+            'handler' => qw| v7-zenki.handler.heartbeat_response_timeout |,
+            'data'    => $instance_id
+        }
+    );
+}
+
+#,,,.,.,.,..,,,..,,.,,...,...,..,,,..,,..,,..,..,,...,...,..,,,,.,,.,,,,,,,..,
+#DKXT2AZH2J6FCXJWMSEGSGPV2AE3HZTS65FMTWDK2AIHP6CS7RSE63A7TR3EIDOCOOKYWDD25YK2W
+#\\\|JSHO2GGDSHDZMNTJ226EES4KOK7CR3M4EHIE6STA4UGPTKQFOHU \ / AMOS7 \ YOURUM ::
+#\[7]RVGWEYSJDCZMHY5GPYGRFG62Y7C2RFEVSAEW52UX7WMRNEGMXACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

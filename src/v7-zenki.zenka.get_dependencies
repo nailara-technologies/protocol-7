@@ -1,0 +1,19 @@
+## [:< ##
+
+# name   = v7-zenki.zenka.get_dependencies
+# descr  = return zenka dependencies of specified zenka
+# return = <list_of_zenki> [ as space seperated string ]
+
+my $zenka_name = shift;
+
+return warn '<get_dependencies> expected zenka name {C1}'
+    if not length( $zenka_name // '' );
+return undef if not exists <v7-zenki.start_setup.zenki.config>;
+my $config = <v7-zenki.start_setup.zenki.config>->{$zenka_name} || {};
+return $config->{'dependencies'}                                || undef;
+
+#,,..,.,,,,..,,.,,.,.,,..,.,,,,.,,,.,,,..,,,,,..,,...,...,.,.,.,,,..,,,..,,,,,
+#3KHPQAKX4DLUYWAZNTIMAEJEK5LSHAL2GQEOPUTBFBTYXJ5RSI4IWNT4XN6PLWDD6LHWTPQ3UTZWG
+#\\\|AR7SBPGIH4HEG7W4MGLKLF2245L5SAPKBQFB6RTLZDTHGWIS7DM \ / AMOS7 \ YOURUM ::
+#\[7]SPQCXNRFHC3ZZX25PYBJUUEDNOC4FXHN6NTRL6PYG3ODUE3J7YBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

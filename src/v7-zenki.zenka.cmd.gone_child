@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.gone_child
+# param = <child-pid>
+# descr = notify about gone instance child subprocess
+
+my $child_pid = $call->{'args'};
+my $instance_id;
+
+my $parent_pid = <[v7-zenki.sub-process.get_ppid]>->($child_pid);
+return { 'mode' => qw| false |, 'data' => 'child still here' }
+    if defined $parent_pid and $parent_pid > 0;
+
+foreach my $iid (<[v7-zenki.instance_ids]>) {
+    my $children
+        = defined <v7-zenki.zenka.instance>->{$iid}->{'process'}{'child'}
+        ? <v7-zenki.zenka.instance>->{$iid}->{'process'}{'child'}
+        : {};
+    next
+        if not delete <v7-zenki.child>->{$child_pid}
+        and not delete $children->{$child_pid};
+
+    ## require clean-up ##
+    <v7-zenki.process.instance_cache>->{$child_pid} = $iid;
+
+    <[base.logs]>->(
+        '[instance:%d] child pid %d de-registered',
+        $iid, $child_pid
+    );
+    return { 'mode' => qw| true |, 'data' => qw| de-registered | };
+}
+
+return { 'mode' => qw| false |, 'data' => 'was not registered' }
+
+#,,,,,,.,,...,...,.,.,,,,,,,.,...,.,,,..,,.,.,..,,...,...,,,,,...,,.,,.,,,,..,
+#34AOPPVTIWPUXAV7X3KSCUJDBZ5XFISQQWL6XLMPZTCVZXVFQ2XNUHTFDKA6QQXPNPVCJNWX36FSG
+#\\\|4NQPWJ2O2AJH6M2B332PDQCWA6G2UAFPVYHVYPOYLAU5GUAH3IB \ / AMOS7 \ YOURUM ::
+#\[7]E6DEDALZTQUETDOOHLG2KDLEFTHRNH6C7QRPZI4TBL2BTHLLXABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

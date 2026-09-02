@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.instance.stop
+
+my $instance_id = shift;
+
+if ( exists <zenka.instance.shutdown>->{$instance_id} ) {
+    <[base.logs]>->(
+        'instance %d already shutting down, skipping stop command.,',
+        $instance_id
+    );
+    return;
+}
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+return <[base.s_warn]>->(
+    'instance.stop : instance id %s does not exist <{C1}>', $instance_id
+) if not defined $instance;
+
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+my $process_id;
+my $zenka_name = $instance->{'zenka_name'};
+my $job_id     = $instance->{'job_id'};
+
+$process_id = $instance->{'process'}->{'id'}
+    if <[base.is_defined_recursive]>
+    ->( sprintf( qw| v7-zenki.zenka.instance.%d.process |, $instance_id ) )
+    == 5;
+
+my $is_running = defined $process_id
+    ? <[base.exists.sub-process]>->($process_id)    ##  5 == true  ##
+    : 0;
+
+<[base.logs]>->(
+    'terminating instance %d [ %s ]..,',
+    $instance_id, $zenka_name
+) if $is_running;
+
+<zenka.instance.shutdown>->{$instance_id} = <[base.ntime]>;
+
+<[v7-zenki.cancel_instance_timers]>->($instance_id);
+
+delete <callback.session.closing_last> if $instance->{'is-cube'};
+
+if ( defined $process_id and $is_running ) {
+    <v7-zenki.process.instance_cache>->{$process_id} = $instance_id;
+    delete <v7-zenki.child>->{$process_id};
+    <[v7-zenki.terminate_process]>->($process_id);
+}
+
+<[jobqueue.remove_job]>->($job_id) if defined $job_id;
+
+#,,,,,,..,,,.,,,.,...,,,.,.,,,...,,,,,,,,,..,,..,,...,...,.,.,,..,..,,..,,..,,
+#6XI2KKUPVDDGTBZNPCAFDG4M2X6S6J5FAP4P5ISUAORK2OXAYAWM67EPRLBC5ZMFN6NODM2SMG2I6
+#\\\|6E73W3LG7GVR2KPVAN6GPKMDGGHYUD33AXIWBFWY3KZBTO2SYXV \ / AMOS7 \ YOURUM ::
+#\[7]7ISN4NAMG5ABK2KQZJ2KHFSTPGSMEG2DSBTTILUJEMXQHSS7LYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

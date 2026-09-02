@@ -5,7 +5,7 @@
 
 my $params = shift || {};
 
-my $zenka_name = $params->{zenka_name} || $params->{zenka};
+my $zenka_name = $params->{zenka_name} || $params->{'zenka'};
 
 unless ($zenka_name) {
     return {
@@ -36,7 +36,7 @@ unless ( $v7_result->{success} ) {
 ## Now v7 is running - check if we're running INSIDE v7 or outside
 my $inside_v7 = (
     exists $code{'zenka.cmd.start'} ||    # v7-specific function
-        exists <v7.zenka.setup>           # v7 data structures
+        exists <v7-zenki.zenka.setup>     # v7 data structures
 );
 
 if ($inside_v7) {
@@ -85,8 +85,8 @@ if ($inside_v7) {
     }
 
     ## Send command to v7 to start the zenka
-    my $cmd_count = <[protocol-7.command.send.local]>->(
-        {   'command'   => "v7.zenka.cmd.start",
+    my $cmd_count = <[protocol-7.command.route-send]>->(
+        {   'command'   => qw| v7-zenki.start |,
             'call_args' => { 'args' => $zenka_name },
             'reply'     => {
                 'handler' => qw| zenki.handler.v7_start_reply |,
@@ -101,7 +101,7 @@ if ($inside_v7) {
         return {
             success => TRUE,
             via_ipc => 1,
-            message => "start request queued via v7 (reply pending)"
+            message => "start request queued via v7 [reply pending]"
         };
     } else {
         return {
@@ -114,8 +114,8 @@ if ($inside_v7) {
 
 0;
 
-#,,,.,.,.,..,,,..,...,,,,,..,,,.,,,..,,,.,..,,..,,...,...,,..,...,,..,,,.,,..,
-#6LM4QNDTMDRSUAK2SEUNH2RE6UEMVMEKFEQMWE5N36XBSMHJC54MYSBV4362V4IMWNUZIN62HMXPS
-#\\\|RV5PVY7ME3D3GKQOJA23I6VNQK2HQR6F4UOLSIQ6FTHZQKQYDIW \ / AMOS7 \ YOURUM ::
-#\[7]VXSUGJSNW4ZDLGLUACCMY2ZBWOQD6DNOH2GA3GXKA2EFHIEIUCDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,..,..,,,,,,,,.,.,.,.,,,..,,..,,...,...,,,.,..,,.,.,...,...,
+#QFL3UEEFLXASQ5OUZP7E2WNPN7F2G52QNJDC5DM7ZONNO7PMRJJLXHQYQZDWV526IH6WPTIOF2TMO
+#\\\|GQ7ELMDEDWU6GJYD6NYMOZK5AULSRBGQSZH23CSYHIB6WMDB2IE \ / AMOS7 \ YOURUM ::
+#\[7]FBS7LZN6VQXLL4U6BUUKZWIAST6HRYC52T7CKBPBG5YM33YISOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

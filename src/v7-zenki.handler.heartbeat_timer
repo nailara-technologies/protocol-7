@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = v7-zenki.handler.heartbeat_timer
+
+my $watcher     = shift->w;
+my $instance_id = $watcher->data;
+
+if ( not defined <v7-zenki.zenka.instance>->{$instance_id} ) {
+    $watcher->cancel if $watcher->is_active;
+    <[base.log]>->(
+        0, "[$instance_id] instance gone - stopping status-timer .,"
+    );
+}
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+$instance->{'heartbeat'}->{'errors'}      //= 0;
+$instance->{'heartbeat'}->{'load-factor'} //= 0;
+my $globals      = <v7-zenki.start_setup.globals> // {};
+my $zenka_name   = $instance->{'zenka_name'};
+my $root_sid     = $instance->{'root_sid'};
+my $cube_sid     = $instance->{'cube_sid'};
+my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name};
+my $timeout_secs
+    = $zenka_config->{'heartbeat'}->{'timeout'}
+    || $globals->{'heartbeat'}->{'timeout'}
+    || 17;    ##  <-- internal timeout fallback  ##
+
+##  increase heartbeat response timeout when log output has high load  ##
+if ( <system.zenka.verbosity.console> > 1
+    and $instance->{'heartbeat'}->{'load-factor'} == 0 ) {
+    my $verbosity_factor = 5.447 * ( <system.zenka.verbosity.console> - 1 );
+    $instance->{'heartbeat'}->{'load-factor'} = $verbosity_factor;
+    <[base.logs]>->(
+        1, 'increased %s heartbeat response timeout to %.3f s [ verbosity ]',
+        $zenka_name, $timeout_secs
+    );
+}
+##
+$timeout_secs *= $instance->{'heartbeat'}->{'load-factor'}
+    if $instance->{'heartbeat'}->{'load-factor'} > 0;
+###
+
+$instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+    {   'after'   => $timeout_secs,
+        'handler' => qw| v7-zenki.handler.heartbeat_response_timeout |,
+        'data'    => $instance_id
+    }
+    )
+    if not defined $instance->{'timer'}->{'heartbeat-timeout'}
+    or !$instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+
+my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => "$command_route.heart",
+        'call_args' => { 'args' => 'notime' },
+        'reply'     => {
+            'handler' => qw| v7-zenki.handler.heartbeat_timer_response |,
+            'params'  => { 'instance_id' => $instance_id }
+        }
+    }
+);
+
+delete $zenka_config->{'heartbeat'}
+    if !keys %{ $zenka_config->{'heartbeat'} };
+delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
+
+#,,,,,,,.,..,,,..,..,,,,.,..,,,,.,...,,,,,,.,,..,,...,...,,..,.,,,,..,,,,,.,,,
+#RSWRL4F3VT6ALJ4IAHSOCTKC6P5GCMIYRLTATIT52FGJH5T26KTHHYBSRLWUNKO77KX22E4JOWIVA
+#\\\|5CDIDTUUCJVT5NB6UQ3KMCFTO2CPPHMMFGM5BJQYHAQJ4FAMIKZ \ / AMOS7 \ YOURUM ::
+#\[7]YYSV64APOXBIMQ52XBFGW6Z477VG4AENEVR7VWQVA5YTT4GMGUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

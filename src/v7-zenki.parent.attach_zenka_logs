@@ -1,0 +1,65 @@
+## [:< ##
+
+# name = v7-zenki.parent.attach_zenka_logs
+# descr = setup log streaming from zenki stdout/stderr via unix domain sockets
+
+my $params = shift || {};
+
+my $zenka_name = $params->{zenka};
+my $zenka_pid  = $params->{pid};
+
+unless ( $zenka_name && $zenka_pid ) {
+    return {
+        success => FALSE,
+        error   => 'zenka name and pid required'
+    };
+}
+
+<[base.log]>->(
+    2, "v7-zenki.logs: attaching to " . "'$zenka_name' (PID: $zenka_pid)"
+);
+
+## create unix domain socket for log streaming  path:
+## /var/run/.7/logs/<zenka_name>
+my $socket_dir  = '/var/run/.7/logs';
+my $socket_path = "$socket_dir/$zenka_name";
+
+## ensure socket directory exists
+unless ( -d $socket_dir ) {
+    mkdir( $socket_dir, 0755 ) or do {
+        <[base.log]>->( 0, "  Failed to create socket dir : $!" );
+        return { success => FALSE, error => "mkdir failed: $!" };
+    };
+}
+
+## TODO: Implement log streaming via unix domain socket  key features needed:
+## 1. Capture zenka stdout/stderr in v7
+## 2. Stream to unix socket for observers
+## 3. Support multiple simultaneous observers (clone)
+## 4. Support detach/reattach (like tmux)
+## 5. Stop v7 pass-through when terminal zenka takes over
+
+## for now, store socket path in registry
+<v7-zenki.zenki_logs>->{$zenka_name} = {
+    pid         => $zenka_pid,
+    socket_path => $socket_path,
+    attached    => <[base.ntime]>,
+    observers   => []
+};
+
+<[base.log]>->( 2, "  Log socket : $socket_path" );
+
+return {
+    success     => TRUE,
+    socket_path => $socket_path,
+    zenka       => $zenka_name,
+    pid         => $zenka_pid
+};
+
+0;
+
+#,,,.,.,.,.,.,.,,,.,.,...,,,,,,..,,,,,,,.,...,..,,...,...,.,.,.,,,.,.,.,,,,,.,
+#TU7PRO7X7I55RNMIG3JRB3JXYVNWXSYNKSKFPVPCAKNHTHQ7GXYLBN445UKV4AZHH7V6SRNJVXMZQ
+#\\\|5T7PGYJ4SOBYSLLJFRSW3Y25G5MCUCJPDQ3R3HM54OKD5GDDKIN \ / AMOS7 \ YOURUM ::
+#\[7]NC7ZQGEAQTWWQPJCCVBZFD3QV7FYJ6F4LVFG6CHBETGHE53CHGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

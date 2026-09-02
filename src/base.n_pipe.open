@@ -64,26 +64,26 @@ if ( -e $fifo_path ) {
     }
 }
 
-if ( not $reconnect and not <[base.mod.exists]>->(qw| v7 |) ) {
+if ( not $reconnect and not <[base.mod.exists]>->(qw| v7-zenki |) ) {
     <system.init_reports> //= [];
     push(
         <system.init_reports>->@*,
         {   'param'          => $fifo_path,
             'descr'          => 'registering fifo pipe..,',
-            'target_command' => qw| v7.report-temp-path |,
+            'target_command' => qw| v7-zenki.report-temp-path |,
         }
     );
 } elsif ( not $reconnect ) {    ## v7 zenka case ##
     <[base.code.call_expected]>->(
-        <[base.mod.exists]>->(qw| v7 |),
-        qw| v7.tmp-paths.global.register |, $fifo_path
+        <[base.mod.exists]>->(qw| v7-zenki |),
+        qw| v7-zenki.tmp-paths.global.register |, $fifo_path
     );
 }
 
 return $fifo_path;              ## passing path through in success case ##
 
-#,,,.,.,.,,.,,,,,,,,,,,,.,,,,,,,.,.,,,...,..,,..,,...,...,.,,,,..,,,,,.,.,.,,,
-#6LDG4O66ITDDZA4BIBUGERCNORFFK36EB3DNDLHTV5OTDJ27O3SZZALLVHGR2LA4DKI5TFKBSZQSY
-#\\\|ROTNKR2J53YOVDMNX4NB6BZPUG37GL6GJ3ECOQHT63RZN3Y5UAK \ / AMOS7 \ YOURUM ::
-#\[7]POB37GG2Z6FX5NVLKXI7ZOKVYNX3RK27E7ZMBC2FT373RPOJBODI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,..,,.,.,,,.,.,.,,,.,..,,,,,,..,,...,...,.,.,,.,,.,,,.,,,.,,,
+#3VQB77N3GQEHTQOKC6ZIXDG7MN3M2M5ZRWCQUURLO72DWJTZC4MRBB66F2ECYPOBQW7G54MKEJ4E4
+#\\\|V2ABE2QGVRMQV5PXRCX7GMXD5LSZLGVRBCVDQ5QNURU64E3KPPO \ / AMOS7 \ YOURUM ::
+#\[7]XD7PIAGFJWM2DO3QB3FJRXPOJYTVNIFBCQJAGOJQPCL2PPHWG6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

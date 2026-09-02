@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = v7-zenki.callback.object.zenka
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( $object_type ne qw| zenka | ) {
+    <[base.logs]>->(
+        0,          "object %d is of type '%s' and not 'zenka'",
+        $object_id, $object_type
+    );
+    return undef;
+}
+my $zenka_id = <dependency.object>->{$object_id}->{'zenka_id'};
+return undef if not exists <v7-zenki.zenka.setup>->{$zenka_id};
+
+foreach my $id (<[v7-zenki.instance_ids]>) {
+    return TRUE
+        if defined <v7-zenki.zenka.instance>->{$id}->{'zenka_id'}
+        and defined <v7-zenki.zenka.instance>->{$id}->{'status'}
+        and <v7-zenki.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id
+        and ( <v7-zenki.zenka.instance>->{$id}->{'status'} eq qw| online |
+        or <v7-zenki.zenka.instance>->{$id}->{'status'} eq qw| extbin | );
+}
+
+return FALSE;    ##  zenka is not present  ##
+
+#,,,,,,.,,,..,.,,,..,,,,.,.,.,,,,,.,,,,..,.,.,..,,...,...,..,,.,.,,..,..,,.,.,
+#SXJVIRPBBU2EIVFEE5YQLRQLZGUUXBYX5Q2JWP7GJARSQDTEW5SOHKG27PZTCMJT2SEBKY7UMJ2RS
+#\\\|ASWED3HN7P66FAF7GOJBKELOA5UP57TVGVSN4OGLK6757DQUHZH \ / AMOS7 \ YOURUM ::
+#\[7]DJ6P4IXIZVPGGRB6N2KIQKYIGUTEPPNKJH53K33T7YLCT74HEWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

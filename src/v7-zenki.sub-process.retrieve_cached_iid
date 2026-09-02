@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = v7-zenki.sub-process.retrieve_cached_iid
+
+my $pid = shift // '';
+if ( $pid !~ m|^\d+$| ) {
+    warn 'expected process id <{C1}>';
+    return undef;
+}
+
+my $cache_ref   = <v7-zenki.process.instance_cache> // {};
+my $instance_id = $cache_ref->{$pid};
+
+foreach my $pid ( keys $cache_ref->%* ) {
+    my $pid_stat = <[base.waitpid]>->($pid);    ##  WNOHANG  ##
+
+    if ( $pid_stat <=> 0 ) {
+        <[base.logs]>->(
+            2, 'removing process %d from instance id cache.,', $pid
+        );
+        delete $cache_ref->{$pid};
+    }
+}
+
+delete <v7-zenki.process.instance_cache> and undef $cache_ref
+    if not keys $cache_ref->%*;
+
+return $instance_id;
+
+#,,.,,,,,,,,.,,.,,,,.,,,.,,,,,,,,,,,,,,.,,,.,,..,,...,.,.,.,.,,..,,,,,,,.,...,
+#HJN2TR2DIEGXCDEBIY6S6SEKXLPLSEJJQ3YWKDSYBSBTKXTBQTCTXCXNZZDQN43ZE2WOQVCPWY3IU
+#\\\|OXX7J4YDIQTDHG3TUNU5LJ3RHQIJWL5LPTJFPLZBMMQJSGHS7P2 \ / AMOS7 \ YOURUM ::
+#\[7]5ZSLHF6LDZZ6TNVBV4KFWMLFEWFVSNYZGNV7LSGJL3LFWVTLR2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

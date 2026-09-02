@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = v7-zenki.bin_p7c_chksum_current
+
+my $log_level    = shift // 1;
+my $p7c_bin_path = <v7-zenki.cfg.p7c_bin_path>;
+my $bin_p7c_src_path
+    = join( '/', <system.root_path>, <system.bin_p7c_src_path> );
+return warn "[ p7c-bin ] $bin_p7c_src_path not found <<!>>"
+    if !-f $bin_p7c_src_path;
+
+my $current_result = 0;
+my $bin_checksum   = '';
+my $src_checksum   = <[chk-sum.bmw.filesum]>->( 224, $bin_p7c_src_path );
+
+if ( -e $p7c_bin_path
+    and <[v7-zenki.bin_p7c_comp_chksum]>->( $p7c_bin_path, $src_checksum ) ) {
+    <[base.log]>->( $log_level, ": 'p7c' binary installed and current =)" );
+    <[base.log]>->( 2, ":. src : $src_checksum" );
+    $current_result = 1;
+} else {
+    my $root_path = <system.root_path>;
+    ( my $bin_path_rel = $p7c_bin_path ) =~ s|^$root_path/?|./|;
+    my $result_msg
+        = -e $p7c_bin_path
+        ? "'p7c' binary needs upgrade [ bmw checksum mismatch ].,"
+        : "'p7c' binary is not installed [ $bin_path_rel ].,";
+    <[base.log]>->( --$log_level, ": $result_msg" );
+    <[base.log]>->( 2,            ":. src : $src_checksum" );
+    <[base.log]>->( 2,            ":: bin : $bin_checksum" )
+        if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
+    <v7-zenki.checksum.bin_p7c_source> = $src_checksum;
+}
+
+if ( -e $p7c_bin_path and not -x $p7c_bin_path ) {
+    ## automatic repair desired ?  [LLL] ##
+    map { <[base.log]>->( 0, $ARG ) } (
+        ':',
+        ": has no exec permission : $p7c_bin_path",
+        ": please repair manually :",    ## <-- security consideration ., ###
+        ':'
+    );
+}
+
+### check \ create symbolic link to /usr/local/bin/p7c ., ###            [LLL]
+
+return $current_result;
+
+#,,.,,,,.,,,,,..,,,..,.,.,,,,,,.,,,..,..,,,.,,..,,...,.,.,...,.,,,..,,,.,,,..,
+#MVMOEJQ7H7NYZYSF7XDW4TEV26QQC2GNONXIARUEHW4JHII5QCNFVZIFGTIFEA43TWIKAJ2LYWJZU
+#\\\|QQGGYIVHSQ2RRWUJHY2E3SBDWGHXR4M377J3666E7SA6BJUPDYH \ / AMOS7 \ YOURUM ::
+#\[7]B6HHFPVLGWZIIMYRUTVM273NX3NW4N5E4PLN3SWJBOTXGCJGMQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

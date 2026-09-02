@@ -9,7 +9,7 @@ my $params = shift || {};
 <[base.log]>->( 3, "zenki.ensure: checking v7 zenka..." );
 
 ## Check if v7 is already running
-my $v7_check = <[zenki.parent.check_running]>->( { zenka => 'v7' } );
+my $v7_check = <[zenki.parent.check_running]>->( { zenka => 'v7-zenki' } );
 
 if ( $v7_check->{running} ) {
     <[base.log]>->(
@@ -19,7 +19,7 @@ if ( $v7_check->{running} ) {
     ## Update registry
     <zenki.running.v7> = {
         pid     => $v7_check->{pid},
-        started => <zenki.running.v7.started> || <[base.ntime]>,
+        started => <zenki.running.v7-zenki.started> || <[base.ntime]>,
         status  => qw| running |
     };
 
@@ -79,7 +79,7 @@ my $start_time = time();
 while ( time() - $start_time < $timeout ) {
     sleep 1;
 
-    my $check = <[zenki.parent.check_running]>->( { zenka => 'v7' } );
+    my $check = <[zenki.parent.check_running]>->( { zenka => 'v7-zenki' } );
 
     if ( $check->{running} ) {
         <[base.log]>->( 2, "  ✓ v7 started successfully" );
@@ -110,8 +110,8 @@ return {
 
 0;
 
-#,,,,,.,.,.,,,,,,,,,.,,,,,..,,...,.,.,,..,,..,..,,...,...,..,,...,...,,..,..,,
-#F5N6QF4UEY3EID72VIYIPRQE3WBYGDOBTG5GRJNRFYVBZDXSBMUOKGKPADTEAU7UB2S6LYXNLKGXK
-#\\\|W25VLIMXCMW6FHDDFYZMGB65CCQO5LTYZKPDDHM34IZ2N3FXMKJ \ / AMOS7 \ YOURUM ::
-#\[7]7MKGN6D5JUF56RD72ZDU3VANECRJ27E2W2KAKBJ34BGTIGCPVMDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,,,,,.,.,...,.,,,,.,,.,.,,,.,..,,...,...,..,,,.,,.,.,,..,,,,,
+#T23NWLFCSA2XOSY3S4G3MPSATVQEGMY4FF5JNDGLG5G7GNCFEUA3Y54BNPHR5BX5YQHHIPVHHW4HM
+#\\\|BIMZ46CKHGTHYT33ADZC5BIKPWHT43WHQLMGLRADNUKRHD7N7W2 \ / AMOS7 \ YOURUM ::
+#\[7]YN3NSLVYBN45GZQCGPDJ5PZ5YNKR3ZENM7JRSYE6NJLKUUQQSMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

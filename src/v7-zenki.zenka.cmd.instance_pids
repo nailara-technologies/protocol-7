@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.instance_pids
+# param = [instance]
+# descr = return list of instance process IDs
+
+my $instance_id = $call->{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected a valid instance id parameter'
+    }
+    if defined $instance_id and $instance_id !~ <regex.base.iid>;
+
+if ( not defined $instance_id ) {
+    my %pids;
+    my $reply_list = '';
+    foreach my $i_id (<[v7-zenki.instance_ids]>) {
+        my $parent_pid
+            = <v7-zenki.zenka.instance>->{$i_id}->{'process'}->{'id'};
+        map { $pids{$ARG} = 1 } (
+            $parent_pid,
+            @{ <[v7-zenki.sub-process.get_children]>->($parent_pid) }
+        );
+    }
+    $reply_list .= join( ' ', sort keys(%pids) );
+    return {
+        'mode' => qw| true |,
+        'data' => $reply_list
+    };
+
+} else {
+
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'no instance with id %d found', $instance_id )
+        }
+        if not defined <v7-zenki.zenka.instance>->{$instance_id};
+
+    my $parent_pid
+        = <v7-zenki.zenka.instance>->{$instance_id}->{'process'}->{'id'};
+
+    return {
+        'mode' => qw| true |,
+        'data' => join( ' ',
+            $parent_pid,
+            @{ <[v7-zenki.sub-process.get_children]>->($parent_pid) } )
+    };
+}
+
+#,,,.,,.,,,,.,..,,.,,,..,,,..,,.,,,..,..,,..,,..,,...,...,...,,.,,,,,,,..,,,.,
+#T4H6K6ZLIIGTTFBSIR3BHDDXACTWUXGZOUTETQHUTF5L7AAQPDFPSFZRBWIMMFXTBGPQ55T4GPPK6
+#\\\|DJ7A7Z2IN3IJCDJAWLEXY44SVKEZVX2FETLXND7HHOFRQTBFJWV \ / AMOS7 \ YOURUM ::
+#\[7]2TAPWGAEMSPP6LDFTO5ALVB3RLAIJSP6XFSPWPGVSKM2IHDP4YBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.get_object_id
+# descr = return dependency object id for given zenka id
+
+my $zenka_id = shift // '';
+die "v7-zenki.zenka.get_object_id: zenka id '$zenka_id' does not exist\n"
+    if not exists <v7-zenki.zenka.setup>->{$zenka_id};
+
+foreach my $id ( keys <dependency.object>->%* ) {
+    next       if <dependency.object>->{$id}->{'type'} ne 'zenka';
+    return $id if <dependency.object>->{$id}->{'zenka_id'} == $zenka_id;
+}
+
+return undef;    # not found
+
+#,,.,,,.,,...,,.,,,.,,...,,,.,...,..,,...,..,,..,,...,...,...,.,,,.,,,...,,..,
+#7O773DB7HBO6TYM5KPNUVQ5L4JNOCIOA6BSY7XR4NOCX47QJLEHJ7BIZAR7SXUJM54MLKEQJTB3X4
+#\\\|MOESY4MYMS34VVMHJNHZFK535VWQTKNSAUQTFZWBTGS3TH6ZG66 \ / AMOS7 \ YOURUM ::
+#\[7]CJI5YDY5UL54LLUH44CK6DF5QAK7W3XLDT7OX2DPE6JOGQGS4KAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

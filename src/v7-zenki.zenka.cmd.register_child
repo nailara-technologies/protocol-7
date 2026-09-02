@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.register_child
+# param = <child-pid> <parent-pid>
+# descr = associate process ID with its parent instance
+# todo  = also extract and set process start_time in process->child->PID = ..,
+
+## parent_pid comes from the caller directly [ its own pid, since it is the
+## process that did the actual spawning ] rather than being re-derived here
+## via a live /proc/<pid>/status lookup : that lookup reflects the CURRENT
+## process tree, not the tree at spawn time, so an intermediate process
+## exiting during the async round trip through cube [ eg a transient shell
+## wrapping a piped-open spawn ] reparents the child to init before this code
+## ever runs, and the real relationship is gone for good by then -- trusting
+## the spawner's own identity sidesteps the race entirely
+my $instance_id;
+my ( $child_pid, $parent_pid ) = split( m| +|, $call->{'args'}, 2 );
+
+foreach my $id (<[v7-zenki.instance_ids]>) {
+    next if not defined <v7-zenki.zenka.instance>->{$id}->{'process'}{'id'};
+    my $pid = <v7-zenki.zenka.instance>->{$id}->{'process'}{'id'};
+    if ( defined $parent_pid and $pid == $parent_pid ) {
+        $instance_id = $id;
+        last;
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'found no matching parent' }
+    if not defined $instance_id;
+
+return { 'mode' => qw| true |, 'data' => 'was known' }
+    if exists <v7-zenki.zenka.instance>
+    ->{$instance_id}->{'process'}->{'child'}->{$child_pid};
+
+%{ <v7-zenki.child>->{$child_pid} } = %{ <v7-zenki.child>->{$parent_pid} };
+<v7-zenki.child>->{$child_pid}->{'zenka_child'} = 1;
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+$instance->{'process'}->{'child'}->{$child_pid} = 1;
+<[base.logs]>->(
+    '[instance:%d] child pid %d registered.',
+    $instance_id, $child_pid
+);
+
+return { 'mode' => qw| true |, 'data' => 'registered' };
+
+#,,,.,...,..,,...,.,.,..,,,.,,,,,,,..,.,.,.,,,..,,...,...,.,,,,,.,,,,,...,..,,
+#5YO7OE4OA6WENM5PFTOAFBFUFARD3E2QQ4DVYN3OTGYJF6FOKSJXMLL6QEDQ3KRMR4YY3E5RPE4WI
+#\\\|KSOH4ZMSIVEVHK32UJWXAT26IGPIQQP2P2YUDIGTPYYH726D2XF \ / AMOS7 \ YOURUM ::
+#\[7]BJDSBCUYPV5VDZK3LSUBWZVICGK4HIJQVCLN6HXCRKA64MVWS6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

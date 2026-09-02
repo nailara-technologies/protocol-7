@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = v7-zenki.callback.connect_to_cube
+# descr = create v7 zenka client session to local cube
+
+my $instance_id = shift;
+
+my $cube_addr = <protocol-7.network.internal.addr>;
+my $cube_port = <protocol-7.network.internal.port>;
+my $init_data = <v7-zenki.zenka.instance>->{$instance_id}->{'init_data'};
+my $cube_key  = $init_data->{'cube'}->{'key'};
+
+my $authname
+    = <system.zenka.name> eq qw| <stdin> |
+    ? qw| v7-zenki |
+    : <system.zenka.name>;
+$authname = <system.zenka.auth_name> if defined <system.zenka.auth_name>;
+
+my $c_fh;    ## cube filehandle ##
+if ( not <[base.cfg_bool]>->( <v7-zenki.local_cube.connect-unix> //= TRUE ) )
+{
+    <[base.logs]>->(
+        'connecting to local cube [%s:%d] ..,',
+        $cube_addr, $cube_port
+    );       ## tcp \ ip link type ##
+
+    $c_fh = <[base.open]>->( qw|  ip.tcp  output  |, $cube_addr, $cube_port );
+
+} else {    ## prefering unix by default ##
+    my $unix_chksum = <[base.calc_unix_path]>->( $cube_addr, $cube_port );
+    <[base.log]>->( 0, '<< unix socket name calculation not successful >>' )
+        and next
+        if not defined $unix_chksum;
+    <unix.path> = join( '', qw| /var/run/.7/UNIX/ |, $unix_chksum );
+    <[base.logs]>->( 2, ": connecting to socket path '%s'.,", <unix.path> );
+
+    $c_fh = <[base.open]>->( qw| unix output |, <unix.path> );
+}
+
+$c_fh = <[auth.client.zenka.authenticate]>->( $c_fh, $authname, $cube_key );
+
+if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
+    my $rand_len = length( $init_data->{'cube'}->{'key'} );
+    substr( $init_data->{'cube'}->{'key'},
+        0, $rand_len, <[base.prng.characters]>->($rand_len) );
+    $init_data->{'cube'}->{'key'}
+        .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
+    delete $init_data->{'cube'}->{'key'};
+    delete $init_data->{'cube'} if !keys %{ $init_data->{'cube'} };
+}
+
+#[ error \ <false> ]
+return FALSE if not defined $c_fh;
+
+<base.log.allow_buffer_send>      = TRUE;    ## enable sending to 'p7-log' ##
+<protocol-7.network.parent_route> = [qw| cube |];
+
+my $session_id
+    = <[base.session.init]>->( $c_fh, qw|  protocol-7  client  cube  | );
+
+<[base.logs]>->( 'auth. to cube successful [ session %d ]', $session_id );
+<v7-zenki.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
+<v7-zenki.zenka.instance>->{$instance_id}->{'is-cube'}  = TRUE;
+
+<callback.session.closing_last> = {
+    'name'   => qw| zenka.change_status |,
+    'params' => [ $instance_id, qw| error | ]
+};
+
+my $root_sid = <v7-zenki.zenka.instance>->{$instance_id}->{'root_sid'};
+
+<[protocol-7.command.send.local]>->(
+    {   'command' => sprintf( qw| %d.set-initialized |, $root_sid ),
+        'reply'   =>
+            { 'handler' => qw| v7-zenki.handler.set_initialized_reply | },
+        'call_args' => { 'args' => 0 }    # [ 0 == v7-zenka session [self] ]
+    }
+);
+
+## re-push all declared zenka routing modes to the [restarted] cube ##
+if ( defined <v7-zenki.start_setup.zenki.config> ) {
+    map { <[zenka.push_routing_mode]>->($ARG) }
+        keys <v7-zenki.start_setup.zenki.config>->%*;
+}
+
+#[success]
+return TRUE;
+
+#,,,.,..,,..,,..,,.,,,..,,,,,,,,.,..,,.,.,,..,..,,...,...,...,.,.,...,,,.,.,.,
+#ANKD76XCJOC6HWGB7JEUSZGH7TF5Y2WPI7UEDI4SH7H4AJP5S6DCWLFL2IERVILIIYRTMPNGC5DBE
+#\\\|UVHGEIWD6BYJCCQSB2OWOK4Q4L4WE6XWYUP2HSM4TNZ24EA7KVM \ / AMOS7 \ YOURUM ::
+#\[7]IGHPHNLHVQATT4K76BR2AOOA7SL6NOTFVV2GL6BLRH22ULKCASCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,17 +22,17 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 <[base.log]>->( 1, "starting start-anim zenka..," );
 
-# LLL: need startup timeout., [ beyond 'v7' zenka implementation ]
+# LLL: need startup timeout., [ beyond 'v7-zenki' zenka implementation ]
 
 <[protocol-7.route-send]>->(
-    {   'command'   => "v7.notify_online",
+    {   'command'   => "v7-zenki.notify_online",
         'call_args' => { 'args'    => <universal.lsp_name> },
         'reply'     => { 'handler' => 'universal.handler.start-anim_started' }
     }
 );
 
 <[protocol-7.route-send]>->(
-    {   'command'   => "v7.start_once",
+    {   'command'   => "v7-zenki.start_once",
         'call_args' => { 'args' => <universal.lsp_name> }
     }
 );
@@ -43,8 +43,8 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     <[universal.stop_start-anim]>;
 };
 
-#,,..,,,,,.,,,.,.,,.,,,..,,.,,.,,,.,,,..,,,..,..,,...,..,,.,,,...,,,,,.,.,,.,,
-#4RM4OVRU22AOZ7AG274A3LZ25ROGXBFOGJH6TKDK637MMN2OHZUOFRTKZJCHZYYA2DTLO6VZSJYFC
-#\\\|S4GSCEFJL7AGIFHDMWW46K4FYGBGZPR52QQBVMNE4XOCK6FEJBV \ / AMOS7 \ YOURUM ::
-#\[7]LGS34VAWWMKZKYRTIITOW47QFBZQQUZGSKN7JXSUASG777XSEIDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,..,,,.,,.,,,.,,,,.,,,.,,.,.,..,,...,...,..,,,.,,.,,,.,,,,,,,
+#2BKHZSYQ5Q6TNIYHNOETTZL2V6FBUGNVRR7AO5XJGRSCVGI7ZKA3SUOUD3AIU3GFLBTW44A44JXGO
+#\\\|IGM6HWXD3LL6LPFMIIKQRZPVYN2MERYKJ27PLC4NNLGHIR4MOAK \ / AMOS7 \ YOURUM ::
+#\[7]4XIBPAY6IEEFR7I5HOKDXVFH7YZJDYUO6MY4GKSNQEZYSPEYWUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = v7-zenki.callback.xorg-error-handler
+
+my $instance_id = shift;
+my $report_to   = 'system';
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id};
+
+return warn 'expected instance id parameter' if not defined $instance_id;
+return warn "instance $instance_id is gone"  if not defined $instance;
+
+my $zenka_name    = $instance->{'zenka_name'};
+my $prev_status   = $instance->{'prev-status'};
+my $prev_duration = $instance->{'prev-status-duration'};
+
+$prev_duration =~ s|(\d+)s|$1 seconds|;
+
+my $error_message = sprintf( "zenka '%s' status '%s' --> 'error' after %s .,",
+    $zenka_name, $prev_status, $prev_duration );
+
+<[base.log]>->( 0, "reporting '$zenka_name' zenka error to '$report_to'..," );
+<[base.log]>->(
+    1,
+    sprintf(
+        ": '%s' : status was '%s' for %s",
+        $zenka_name, $prev_status, $prev_duration
+    )
+);
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => "cube.$report_to.report-X-11-error",
+        'call_args' => { 'args' => $error_message }
+    }
+);
+
+#,,,,,,..,,.,,.,,,..,,.,,,..,,..,,.,.,,,,,,..,..,,...,...,.,.,...,,,.,,,.,,..,
+#HUSO436BIHMNVDSIVGHH7XLKRUKUODFL2QWDKY2L2QXZG2KEXEWCDP7WWV4AZHWMD6OLPA4M44VWY
+#\\\|X5DXWSOFTQ5S6G42Q3LVB655ZBNWYQH7SUW5WTCUYNMOQP5L7YT \ / AMOS7 \ YOURUM ::
+#\[7]ECTGALPHLIKMZB77AYUKCV3G7U37HSCQJY4UONSS47KACLQCLUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

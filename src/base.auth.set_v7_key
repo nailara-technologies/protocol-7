@@ -4,7 +4,7 @@
 # descr = prepare cube-session auth key for v7 zenka
 
 my $key_str    = shift;
-my $zenka_name = shift // qw| v7 |;
+my $zenka_name = shift // qw| v7-zenki |;
 
 warn 'need session key parameter' and return undef
     if not defined $key_str or not length $key_str;
@@ -20,11 +20,11 @@ warn 'need session key parameter' and return undef
 <[base.perlmod.load]>->( 'Crypt::Digest::BLAKE2b_384', qw|blake2b_384_b64| )
     if not defined <base.modules.initialized.base.init_code>;
 
-<[base.log]>->( 1, "setting up session key for 'v7' zenka" );
+<[base.log]>->( 1, "setting up session key for 'v7-zenki' zenka" );
 $keys{'auth'}{'zenka'}{$zenka_name} = blake2b_384_b64($key_str);
 
-#,,,,,,,,,.,,,,..,..,,..,,,,,,.,,,,,,,,..,.,,,..,,...,.,.,,..,.,,,,.,,.,,,...,
-#ONXH66YOIK2LYTKKKDVSYHRXWFHCGRQIYV3DZAUUBH5XQUSBCCY6WDAP37WJO4IRVVJ24FA6YQN62
-#\\\|HNITM6DXA2SBWXTRD3I3DB7QHC4LMSDFQSVLDFQYCGOTKA2AIDF \ / AMOS7 \ YOURUM ::
-#\[7]4VFZD7UHQUMYEYIBWJMTD4WJYDVVDZDKQW57CUCX2COCVV5SMOBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,.,.,,..,,,,,.,.,,,.,,,.,,,,,..,,...,...,.,,,,,,,,,.,.,,,.,.,
+#UKOSRP7WVLMV27ETDGMLNJ2IEZNVNCVZ5232QXHE35DGJQ7D7BBF2I4PYWJ2ZG6GGFOHAP26ZXW7U
+#\\\|L3MF2QVIXV4CSU7RQK5XDQIXEG4KGIHWNBQBVVODAAVKMLR2HIA \ / AMOS7 \ YOURUM ::
+#\[7]UH5QYVYLG5JJ4U5GKGYR25GOCDHB6YKTSG436AM66YIUNAFWOWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

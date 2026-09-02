@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.notify_offline
+# param = <zenka|instance>
+# descr = reply after specified zenka was shut down
+
+<v7-zenki.zenka.notify_offline> //= {};
+
+my $query_param = $call->{'args'};
+my $reply_id    = $call->{'reply_id'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected zenka name or instance parameter'
+    }
+    if not defined $query_param or not length $query_param;
+
+my $query_copy = $query_param;
+
+my $zenka_subname;
+my $re_sn = <regex.base.subname>;
+$zenka_subname = ${^CAPTURE}[0]
+    if $query_param !~ <regex.base.iid> and $query_param =~ s|\[($re_sn)\]$||;
+
+if (    not defined <[zenka.get_id]>->($query_param)
+    and not defined <v7-zenki.zenka.instance>->{$query_param} ) {
+    my $rep_msg
+        = $query_param =~ <regex.base.iid>
+        ? "no such zenka instance ($query_param)"
+        : "no such zenka in setup [$query_param]";
+    return {
+        'mode' => qw| false |,
+        'data' => $rep_msg
+    };
+}
+
+if ( $query_param =~ <regex.base.iid> and my $id = $query_param ) {  # inst.id
+    return {
+        'mode' => qw| true |,
+        'data' => "zenka instance '$id' already offline"
+        }
+        if not defined <v7-zenki.zenka.instance>->{$id}
+        or <v7-zenki.zenka.instance>->{$id}->{'status'} eq qw| shutdown |;
+} else {    # zenka name [+subname]
+    my $found = 0;
+    foreach my $id (<[v7-zenki.instance_ids]>) {
+        if (<v7-zenki.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
+            and (  not defined $zenka_subname
+                or not defined <v7-zenki.zenka.instance>->{$id}->{'subname'}
+                or <v7-zenki.zenka.instance>->{$id}->{'subname'} eq
+                $zenka_subname )
+        ) {
+            $found = 1;
+            last;
+        }
+    }
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf( 'zenka %s is not online.', $query_copy )
+        }
+        if not $found;
+}
+
+<[base.logs]>->(
+    2, "shutdown notification request for zenka '%s' received", $query_copy
+);
+
+push( <v7-zenki.zenka.notify_offline>->{$query_copy}->@*, $reply_id );
+
+return { 'mode' => qw| deferred | }
+
+#,,..,...,,..,,..,,,,,,.,,.,.,,,.,.,,,.,,,,..,..,,...,...,..,,.,,,...,.,,,,.,,
+#GM7SRNIQEEZUM4C7A4BNG3DTEZJ3YHWISV6Y5RR4O52UYKKUBIERSK53NBR2R2L5LHPIH66PDJ3F2
+#\\\|SYHE72KX6RJPJDVFJT32H7FJZBPZYI6OHR3LKJA6AHDOGPS7JRK \ / AMOS7 \ YOURUM ::
+#\[7]TNUN3TESHISVQFOXLJIOJX2MSYBHHXOZM3AWUQ3JYAK2SWZA3WCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

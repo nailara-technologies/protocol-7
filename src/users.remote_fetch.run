@@ -14,9 +14,9 @@
 # for users.remote-get on itself) deadlocked the whole zenka: cube routed
 # the command back to this SAME process's own pre-existing link session,
 # which could not be serviced because this process was blocked waiting
-# on its own reply, on its own single-threaded event loop. v7.restart
+# on its own reply, on its own single-threaded event loop. v7-zenki.restart
 # could not even recover it, since the stuck process couldn't process
-# ITS OWN restart/terminate command either -- required v7.terminate (TERM then
+# ITS OWN restart/terminate command either -- required v7-zenki.terminate (TERM then
 # KILL) to recover. Fixed by modeling this on how EVERY regular protocol-7
 # session already works: base.session.init + explicit promotion to
 # state 1 (base.session.init_state) hands the connection to the normal
@@ -90,8 +90,8 @@ if ( not defined $id ) {
 
 return;
 
-#,,..,,,,,,..,.,.,.,,,,,,,,.,,..,,,..,...,,..,..,,...,...,...,,,.,,,.,,,,,,.,,
-#CVNRWGIJEI42WIUKCW47JNBUC66LRR6NKFFONLU2DFXYKY2L4XW2OHQLIA4KN36GK6XYCYVKQ5MMW
-#\\\|MVL4HQG5RC6VCR4KVZZQHSOXBT2OAOCZVLZWXJTGGRAZXC44VLA \ / AMOS7 \ YOURUM ::
-#\[7]XIXOORI6GZ6WTCXMVWWKPKWU3E6WNDFVXVNBKC2NHU6R4QCBC2CI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,,,,,.,.,,.,,,.,,,..,,..,,,.,..,,...,..,,.,.,...,,..,,..,,..,
+#4AR6OXW4L25VOF7H3UNFHFQB6C2XDVBI4CROPTBUH4ASZOFSAT6PA7S5J7CDPJJN7SJ43BYIMF35I
+#\\\|2TV3ONS6CGRGO2EYIDJOZP6NPYLKJJFZL7EPXGEXXSZRPHXOVPE \ / AMOS7 \ YOURUM ::
+#\[7]NG57TWJW7O2B32BQ4ZKKIP2B2ODBTRXSEQPD7OARLQKPO6SDP2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

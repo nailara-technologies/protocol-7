@@ -9,9 +9,10 @@ my $call_args = shift;
 my $path = ( $call_args // {} )->{'args'};
 $path = '/radio/stream' if not defined $path or not length $path;
 
-## already active : re-announcing the same endpoint must NOT re-subscribe   ##
-## -- each call used to push another v7.notify_offline entry that never got ##
-## cleared until an eventual real shutdown fired ALL of them at once        ##
+## already active : re-announcing the same endpoint must NOT re-subscribe ##
+## -- each call used to push another v7-zenki.notify_offline entry that   ##
+## never got cleared until an eventual real shutdown fired ALL of them at ##
+## once                                                                   ##
 my $already_active = <plugin.httpd.radio.active>;
 
 <plugin.httpd.radio.stream.path> = $path;
@@ -27,7 +28,7 @@ $data{'route_cache'} = {}
 
 ##  subscribe to notify_offline so endpoint disables on radio crash  ##
 <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.notify_offline',
+    {   'command'   => 'v7-zenki.notify_offline',
         'call_args' => { 'args' => 'radio' },
         'reply' => { 'handler' => 'plugin.httpd.radio.handler.radio_offline' }
     }
@@ -35,8 +36,8 @@ $data{'route_cache'} = {}
 
 return { 'mode' => qw| true |, 'data' => "radio endpoint active: $path" };
 
-#,,.,,,,.,...,,..,.,.,..,,,..,,,,,...,.,.,,..,..,,...,.,.,,,,,,,,,.,,,,.,,...,
-#PJPD3RQKL7OVHE6BF3AGKQNXEOFOHAWDSI7N6NDOI5CPKA6X4RAOK5LSI5B6BQT74MX4UVTRAQ24O
-#\\\|7JXQHDMXE3SMLXGXXML27FE3AGI7HD6PHRDMPYJXZQ2DXXKT47F \ / AMOS7 \ YOURUM ::
-#\[7]KL4HRJTUUEWXSZ3FMDCHL7IF3O56RX2HOAXVEBGWQM5AIFPKO2DA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,,,,,..,,.,.,...,.,,,,..,..,,..,,...,...,,.,,.,,,,,.,..,,,,.,
+#NM342PLJYZC7PHOFPP3CDZMVYCNUP3XDL5V3OPAAJLDVZTUAFDXEOEGK5GSUQLGOX3VTTMTBHUPRQ
+#\\\|LT7CD6GODG6GXGJ3D4VHMXGG6UIXZJUPAMGRDWGL37SHVOL7O6Y \ / AMOS7 \ YOURUM ::
+#\[7]JWMXTXVSU54PUX74JX7727EKMMIWU3I4NBCMPTWC5HNMJHYOH4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

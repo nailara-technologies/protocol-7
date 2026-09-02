@@ -82,9 +82,10 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
             ## ], confirmed live: repeated un-throttled resolve calls for   ##
             ## the SAME chain object [ cube, during v7's own dependency-    ##
             ## chain setup at boot ] spawned multiple redundant cube        ##
-            ## instances before the first one's v7.zenka.instance entry     ##
-            ## existed for zenka.cmd.start_once's own idempotency check to  ##
-            ## catch -- see data/ai-mem/claude/ session notes, 2026-08-26   ##
+            ## instances before the first one's v7-zenki.zenka.instance     ##
+            ## entry existed for zenka.cmd.start_once's own idempotency     ##
+            ## check to catch -- see data/ai-mem/claude/ session notes,     ##
+            ## 2026-08-26                                                   ##
             my $elapsed_secs
                 = defined $last_resolve
                 ? <[base.ntime.delta_seconds]>->( $last_resolve, $now )
@@ -120,8 +121,8 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
 }
 return TRUE;
 
-#,,,,,.,,,.,.,,.,,,.,,..,,.,.,,,.,..,,,,.,.,.,..,,...,...,...,,..,,,,,,,,,..,,
-#3QMAUPSXTAQA7V5XS7DFT45UDQNBBH2NATTA5QB2O5NWUPOJSOHHTFNWFCEDUDT667RRP2VFIAABI
-#\\\|MUY6U423YRQSQV2ONCM5TCPSOPYKNLKGL3NGLD3YG43MXE767YW \ / AMOS7 \ YOURUM ::
-#\[7]66LU3QFTSTKWKIHSYEUNMYUQSJLNZVHZYVI47YLZZ5PGSNTJYIBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,,,,,.,,,.,,,,..,,,,,.,,,..,,..,,...,...,..,,,,,,..,,.,,,.,.,
+#S5EDUNAV5N5DAGPKKC7PKE3KLLKBA6JCUYGNOR6B7XCODROIB5G76D5ZGC6TPGSARYQQUL5SKWT2U
+#\\\|4UVCYRE7F5RTVMCMWKDSZQYLHBL26HV3DSNBX2HVBC6QI6LB4ZT \ / AMOS7 \ YOURUM ::
+#\[7]HAT5ODBJQ2S4EVGBLIDTHS3FHFZQ5EBOVAYNEYKGHY4S4EP4BWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

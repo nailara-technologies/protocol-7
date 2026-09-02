@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = v7-zenki.handler.sig_chld
+# descr = clean up after terminated child process IDs
+
+<[base.log]>->( 2, 'SIGCHLD received., collecting child PIDs ..,' );
+
+if ( @ARG and not length ref $ARG[0] ) {
+    ( my $received_pid, my $received_exit_code ) = @ARG;
+    if ( $received_pid =~ m|^\-?\d+$| ) {
+        <base.process.waitpid_collected>->{$received_pid}
+            = $received_exit_code;
+    }
+}
+
+my @waitpid_pid;    ## collected by base.waitpid ##
+my $collected_child_pids = <base.process.waitpid_collected> //= {};
+
+##[ collecting new arrivals ]#
+##
+do { } while <[base.waitpid]> > 0;
+
+@waitpid_pid = <[base.reverse-sort]>->($collected_child_pids)
+    if keys $collected_child_pids->%*;
+
+##[ checking collection validity ]##
+##
+foreach my $collected_PID ( grep { $ARG < 2 } @waitpid_pid ) {
+    <[base.s_warn]>->(
+        '< base.process.waitpid_collected > not valid PID %04d.',
+        $collected_PID
+    );
+}
+
+while ( my $end_pid = shift @waitpid_pid ) {
+
+    if ( $end_pid < 2 ) {
+        <[base.s_warn]>->(
+            'pid error [ not valid : %04d ], doing nothing ..,', $end_pid
+        );
+        delete $collected_child_pids->{$end_pid};  ##  clean-up if present  ##
+        return undef;
+    }
+
+    if (<[base.is_defined_recursive]>->(
+            sprintf qw| v7-zenki.sig_chld.ignore_child_pid.%d |, $end_pid
+        )
+    ) {
+        <[base.logs]>->(
+            2, ': sig-chld : ignoring PID %d, as registered .,', $end_pid
+        );
+        delete <v7-zenki.sig_chld.ignore_child_pid>->{$end_pid};
+        <[base.clean_hashref]>->(<v7-zenki.sig_chld>);    ## cleaning up ##
+        delete <v7-zenki.sig_chld> if not keys <v7-zenki.sig_chld>->%*;
+        ## skip pid processing for non-registered processes only registered ##
+        ## zenka children still need process_zenka_end                      ##
+        next if not exists <v7-zenki.child>->{$end_pid};
+    }
+
+    ##  unknown  ##
+    my $child_error_val = -1;
+    ##[  collected  ]##
+    $child_error_val = delete $collected_child_pids->{$end_pid}
+        if exists $collected_child_pids->{$end_pid};
+
+    my ( $instance, $zenka_name, $instance_id, $zenka_subname );
+
+    if ( my $child = <v7-zenki.child>->{$end_pid} ) {
+        $instance_id   = $child->{'instance_id'};
+        $instance      = <v7-zenki.zenka.instance>->{$instance_id};
+        $zenka_name    = $instance->{'zenka_name'};
+        $zenka_subname = $instance->{'subname'};
+    }
+
+    $instance_id //= delete <v7-zenki.process.instance_cache>->{$end_pid};
+    <[base.clean_hashref]>->(<v7-zenki.process.instance_cache>);
+
+    $instance = <v7-zenki.zenka.instance>->{$instance_id}
+        if not defined $instance
+        and defined $instance_id
+        and defined <v7-zenki.zenka.instance>->{$instance_id};
+
+    # determine exit status
+    my $log_level = 2;
+    my $exit_val
+        = $child_error_val != -1 ? $child_error_val >> 8 : $child_error_val;
+    my $exit_sig     = $child_error_val != -1 ? $child_error_val & 127 : 0;
+    my $exit_sig_str = $exit_sig ? sprintf( ', signal %s', $exit_sig ) : '';
+    $log_level = 0
+        if $exit_sig_str =~ s|(signal 11)$|$1 :: segmentation fault ::|;
+    my $had_coredump
+        = ( $child_error_val != -1 and $child_error_val & 128 ) ? 5 : 0;
+    my $e_core_dump = $had_coredump ? ' and a core dump' : '';
+    $log_level = 1 if $exit_val or $exit_sig == 9;
+    $log_level = 0 if $had_coredump;
+    my $zenka_str
+        = defined $zenka_name
+        ? sprintf( '< %s >', $zenka_name )
+        : qw| child |;
+    <[base.logs]>->(
+        $log_level, '%s [PID:%d] shut down [ with exit code %04d%s%s ]',
+        $zenka_str, $end_pid, $exit_val, $exit_sig_str, $e_core_dump
+    );
+
+    <[v7-zenki.process_zenka_end]>->(
+        $instance_id, $end_pid, $exit_sig, $exit_val
+    ) if defined $instance_id or defined $end_pid;
+}
+
+#,,,,,.,,,,,,,.,.,..,,..,,,,.,..,,,.,,.,,,.,,,..,,...,...,,,.,...,,,.,,,,,,.,,
+#KI65NZYZFSHM6NQWVU2FDAV3RUMZ6MAZ53AMZWMJWHTZ4KZFU3FKI2SUSXZ7LRNY2YFSYCVURBKKM
+#\\\|ZTWD4JVH2EZY2Z3ZKHABGUL4NLOJT5YORUILZQJVGDPTNLMHYRU \ / AMOS7 \ YOURUM ::
+#\[7]OC7S2VSC4JX7RAXQMQJPD7A43XL6MUQD6FPDQNEKEAHSVZXVOYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

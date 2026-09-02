@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.notify_restart
+# param = <zenka|instance>
+# descr = reply once when the named zenka's instance_id changes
+#         [ multi-fire persistent restart-notify : caller re-arms after
+#           each reply ]
+
+<v7-zenki.zenka.notify_restart> //= {};
+
+my $query_param = $call->{'args'};
+my $reply_id    = $call->{'reply_id'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected zenka name parameter'
+    }
+    if not defined $query_param or !length($query_param);
+
+$query_param =~ s|^\s+||;
+$query_param =~ s|\s+$||;
+
+if ( $query_param !~ m|^[A-Za-z0-9][A-Za-z0-9\-\_]*$| ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid zenka name '$query_param'"
+    };
+}
+
+if ( not defined <[zenka.get_id]>->($query_param) ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "no such zenka in setup [$query_param]"
+    };
+}
+
+## record the currently-online cube_sid [ if any ] : the next fire is only ##
+## issued when a *different* cube_sid transitions to 'online', so this     ##
+## registration never triggers on the already-running instance --          ##
+## instance_id is NOT usable here : v7-zenki.zenka.instance.restart reuses ##
+## the same instance_id in place [ confirmed live, 2026-07-21 ], only the  ##
+## cube session id changes on every restart [ both in-place                ##
+## v7-zenki.restart and full idle-shutdown -> fresh ondemand start ]       ##
+my $at_sid;
+foreach my $iid (<[v7-zenki.instance_ids]>) {
+    my $inst = <v7-zenki.zenka.instance>->{$iid};
+    next if not defined $inst;
+    next if ( $inst->{'zenka_name'} // '' ) ne $query_param;
+    my $st = $inst->{'status'} // '';
+    if ( $st eq qw| online | or $st eq qw| extbin | ) {
+        $at_sid = $inst->{'cube_sid'};
+        last;
+    }
+}
+
+push <v7-zenki.zenka.notify_restart>->{$query_param}->@*,
+    {
+    'reply_id' => $reply_id,
+    'at_sid'   => $at_sid,
+    };
+
+<[base.logs]>->(
+    2,            "restart-notify registered ['%s' at_sid=%s]",
+    $query_param, defined $at_sid ? $at_sid : 'none'
+);
+
+return { 'mode' => qw| deferred | }
+
+#,,,,,,,,,.,.,,..,..,,,,,,...,,,,,,,.,,.,,,..,..,,...,...,..,,.,.,,..,,.,,,,.,
+#XK6FHHA32QHY3XDW2OOQUACBSXNP6FURHVOA3EOAHHE5HUB5PDSMPQMFZBMNWMSMMTW2HWZIXUEFU
+#\\\|QAZV4SYLSLS2OWJTQE4XBPS4B6OLT5C6JKML6S26J6CTESLTX2K \ / AMOS7 \ YOURUM ::
+#\[7]UXUZQ4XB3LDWM77PGBEKLOK55AIYYIUDPMXI6DQLTDYHLCNOCWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
