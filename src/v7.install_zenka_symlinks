@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7.install_zenka_symlinks
-# descr = install v7.<zenka> symlinks for console-only zenki access
+# descr = install p7-<zenka> symlinks for console-only zenki access
 # todo  = use internal base.file routines .,.
 
 my $root_path     = <system.root_path>;
@@ -19,7 +19,7 @@ return FALSE unless -x $protocol7_bin;
 return FALSE
     unless -d $symlink_dir and -w $symlink_dir;    ## <- add warning ##
 
-<[base.log]>->(': checking zenki-alias symlinks [ v7.* ]');
+<[base.log]>->(': checking zenki-alias symlinks [ p7-* ]');
 
 ## list of [symlinked] zenki ##
 my %console_zenki;
@@ -70,7 +70,29 @@ my $installed_count = 0;
 my $updated_count   = 0;
 
 foreach my $zenka_name (@zenki_list) {  # implement zenka symlink skip-list[!]
-    my $symlink_path = sprintf qw| %s/v7.%s |, $symlink_dir, $zenka_name;
+    my $symlink_path = sprintf qw| %s/p7-%s |, $symlink_dir, $zenka_name;
+
+    ## one-time migration : remove the superseded 'v7.<zenka>' symlink from ##
+    ## the old naming form -- only when it's still exactly our own link, so ##
+    ## nothing but a symlink we ourselves created is ever touched           ##
+    my $legacy_symlink_path = sprintf qw| %s/v7.%s |, $symlink_dir,
+        $zenka_name;
+    if ( -l $legacy_symlink_path ) {
+        my $legacy_target = readlink($legacy_symlink_path);
+        if ( defined $legacy_target and $legacy_target eq $protocol7_bin ) {
+            if ( unlink($legacy_symlink_path) ) {
+                <[base.logs]>->(
+                    2, ": :. removed legacy symlink : %s",
+                    $legacy_symlink_path
+                );
+            } else {
+                <[base.logs]>->(
+                    0, ": cannot remove legacy symlink : %s",
+                    $legacy_symlink_path
+                );
+            }
+        }
+    }
 
     ## check if symlink already exists and is current
     ##
@@ -93,7 +115,7 @@ foreach my $zenka_name (@zenki_list) {  # implement zenka symlink skip-list[!]
         }
     }
 
-    ### creating symlink ### [ /usr/local/bin/v7.,. ]
+    ### creating symlink ### [ /usr/local/bin/p7-,. ]
     ##
     if ( symlink( $protocol7_bin, $symlink_path ) ) {
         $installed_count++;
@@ -126,8 +148,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,.,,..,,,,.,,.,,..,,,,.,.,,,,,,,.,.,...,.,.,..,,...,..,,...,,.,,...,,,.,.,,,
-#23S7NN6CYRO4DC5X3B5TLBNSOC2KWKB7PRA7L5CLHGBP3XR4EGOXQ6ZYGE4TAZG67A2AEDDB2YX5O
-#\\\|56YBMVPWN2654GSVU377PJTTPTHIVRS4JBKI3EU4KWMYLXWFNS5 \ / AMOS7 \ YOURUM ::
-#\[7]OUIMJHGCIDX4UZ5FIO7XSUYHOOWGGJCVMU2SOY4BNM6SFP6SVECQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,,,,,,..,...,.,.,...,,.,,,,.,..,,...,...,.,,,...,.,,,,..,.,,,
+#3SGFNRSMSQPTVUHEK3SYKQXMF6X23ICV53JRCBAAKEZCV24WCMSYVAH5VLQ7H3EO3SGYI2ZYFVE62
+#\\\|UZTYLUSZL4VTFT7K35FLFQC3VXWTWCEMHXV6GJWB3VVHQIRSOTE \ / AMOS7 \ YOURUM ::
+#\[7]FICVLVMLBE7D7RXXV24CGXSDPUVWB3PAYRBRPZKVXJIOLS5JCWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
