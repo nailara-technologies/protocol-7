@@ -247,14 +247,16 @@ redundancy there, unlike the tmp-paths cleanup path noted above).
 Commits this session: `23a0e8d53`, `a43972791`, `3f1d6b40f`,
 `f4c295824`, `6089e8434`, `9246d7209`, `ad956074e`. All pushed.
 
-## Next Session Lead: dependency-installation queue (sys-deps/os-pkg/debian/ext-pkg/osf-cache)
+## Dependency-installation queue (sys-deps/os-pkg/debian/ext-pkg/osf-cache)
 
-Not started this session — reconnaissance only, at the user's request,
-to plan real work next. User's framing: get this zenki group
-"interacting smoothly... a true installation queue that always works,"
-given recent investment across sessions that each ended right after
-committing, so there's been no cross-session integration testing
-beyond whatever each implementing session did itself.
+Started as reconnaissance-only, at the user's request, to plan real
+work. User's framing: get this zenki group "interacting smoothly... a
+true installation queue that always works," given recent investment
+across sessions that each ended right after committing, so there's
+been no cross-session integration testing beyond whatever each
+implementing session did itself. Turned into real, substantial
+progress the same session — see "Three real bugs found and fixed"
+below.
 
 **Current state, verified against the live tree** (not just docs):
 - **`sys-deps`** — real, on-demand, thin command layer over the
@@ -292,21 +294,82 @@ beyond whatever each implementing session did itself.
   similar: phase 1 DONE, live-verified (`e73bf2274`); phase 2 ("patch
   drift detection") not started.
 
-**The standout concrete task — real bug, fully traced, not yet fixed**:
-`src/base.register_pm_deps` (lines ~25-26) writes per-zenka dependency
-touch-files directly into the *tracked* `cfg/zenki/<zenka>/deps/p-mod/`
-git tree instead of a runtime `var/` location. Three confirmed live
-failure modes, all previously reproduced: silent failure on
-read-only-root installs (no fallback), a `$EUID==0` chown-fixup branch
-that can reassign ownership of files inside a dev's own git working
-tree, and behavior that depends on each zenka's own
-`init_modules`-vs-`drop_privs` ordering in its start file, which the
-user has confirmed is "mixed throughout the zenki." Fully traced with
-a fix direction already, dated addendums, in
-`data/ai-mem/claude/project-deps-tracking-var-relocation.md`
-(2026-09-01, actively maintained — read this first). This is exactly
-the race-condition/early-startup-hole class the user named, and it's
-the most concrete, bounded, ready-to-execute starting point found.
+**Three real bugs found and fixed this session, all live-verified:**
+
+1. ~~`base.register_pm_deps` writing into the tracked git tree~~ — DONE.
+   Relocated per-zenka Perl-module dependency touch-files from
+   `cfg/zenki/<zenka>/deps/p-mod/` (tracked) to `var/zenki-deps/p-mod/
+   <zenka>/` (runtime-owned), matching `var/sys-deps/tracked.yaml`'s
+   pattern. Fixed the writer (`base.register_pm_deps`), dir-creation
+   (`base.check_dependency_dirs`), reader (`base.perlmod.
+   all_registered`), and sys-deps' own scan (`AMOS7::deps::module::
+   scan_zenki_pm_deps`) together. K2.7 dispatch found and fixed a real
+   secondary bug along the way (`file.all_files` missing the recursive
+   flag, making new-location registrations invisible), caught via its
+   own sentinel-module test. Independently re-verified this session.
+   Full background: `data/ai-mem/claude/
+   project-deps-tracking-var-relocation.md`. Commit `4e44fb027`.
+
+2. ~~`debian`'s apt_child falsely reported "not available"~~ — DONE.
+   `debian.job.apt_install` rejected every install with "apt child not
+   available" even moments after a fresh on-demand start with a
+   confirmed-alive child. Root cause: the child is forked while
+   `debian` is still root, then `debian`'s own process drops to
+   `<system.amos-zenka-user>` before any job can arrive — but an
+   unprivileged process can't `kill(0, $pid)` a root-owned pid at all;
+   it fails `EPERM`, indistinguishable from `ESRCH` (no such process)
+   by return value alone. So the liveness check failed
+   unconditionally, healthy child or not. An initial hypothesis
+   (`open2`'s filehandle-arg aliasing not surviving a deep `%data`
+   hash-element passed directly, P7 sugar) was chased first and
+   disproven — `coding.start.chmod_child` uses the identical
+   direct-sugar-argument style and works fine, and the "fix" had zero
+   effect while the real bug was still present. Real fix: dropped the
+   `kill(0,$pid)` check entirely, matching `coding.tools.handler.
+   write_with_perms`'s precedent (checks filehandle definedness only,
+   never attempts a liveness signal on its own root-owned chmod
+   child). Commit `0cace9f25`.
+
+   Also found live while chasing this: the apt_child was never
+   registered with `v7-zenki` for lifecycle management, so it survived
+   as an orphaned root process every time `debian` restarted or
+   terminated (confirmed: a prior test run's child outlived `debian`'s
+   own shutdown entirely). Fixed by adding `<[base.zenki.
+   report_child_pid]>->(<debian.apt_child.pid>)` right after the fork,
+   matching `coding.spawn_inference_server`'s existing precedent — now
+   terminates/restarts along with the parent zenka instead of leaking.
+   `debian` had no `access.cmd.usr.debian` entry at all until now, so
+   the underlying `v7-zenki.register_child` call would have been
+   silently rejected by cube's access control without also adding that
+   grant (`cfg/zenki/cube/access.zenki`).
+   Also gave the child a recognizable `$0` (`debian[apt-child:idle]` /
+   `debian[apt-child:installing <pkgs>]`), doubling as a live status
+   display in `ps` — would have made spotting the orphan immediate
+   rather than needing it pointed out.
+
+3. ~~`sys-deps.handler.install_reply` reading fields that don't exist~~
+   — DONE. Found immediately after fixing #2 above: `sys-deps.install`
+   kept reporting "failed" for packages `debian` had genuinely just
+   installed. The handler read `$reply->{'mode'}`/`{'data'}`, but the
+   real reply-handler contract (`base.handler.command.process_reply`)
+   passes a single `{ sid, cmd, call_args, params }` hashref — no
+   `mode`/`data` keys at all. The wire-level result is in `cmd`
+   (uppercase `TRUE`/`FALSE`), payload in `call_args->{args}`. Every
+   reply silently fell through to the failure branch regardless of the
+   real outcome. Fixed using `zenki.handler.v7_start_reply` (fixed
+   earlier this session against the same contract) as the verified
+   reference shape. Commit `1934c49ff`.
+
+Methodology note worth repeating: bug #2's true root cause was found
+by directly comparing against a **proven-working sibling pattern**
+(`coding.start.chmod_child` / `write_with_perms`) rather than
+theorizing further — the user's own prompt ("did you look at the
+chmod child and similar child processes?") is what unlocked it after
+two wrong hypotheses. Same technique that cracked #3 open once #2 was
+fixed and the symptom persisted with a *different* actual server-side
+outcome (real install success) than the user-visible one (false
+failure) — a strong signal the bug had moved downstream, not that the
+fix was wrong.
 
 **Smaller confirmed gaps**:
 - `cfg/zenki/cube/access.zenki:320-321` grants `sys-deps` access to
