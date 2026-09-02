@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [debug-via-proven-sibling-pattern](reference-debug-via-proven-sibling-pattern.md) — when a hypothesis-driven fix has zero effect on a live bug, stop theorizing and diff against a structurally-similar, already-proven-working piece of code instead; cracked the debian apt_child EPERM/ESRCH bug this way after two wrong guesses (2026-09-02)
 - [zenka-callback-wrapper-prototype-pattern](reference-zenka-callback-wrapper-prototype-pattern.md) — for conditional zenka start-up logic, wire a single callback sub (zenka.v7 has no native conditionals) and prototype on a low-blast-radius sandbox zenka before transplanting into a load-bearing one; validated 2026-09-02 building the `zenki` sandbox toward eventual `v7-zenki` assimilation
 - [nested-data-key-sugar](reference-nested-data-key-sugar.md) — any `%data` nesting depth >= 2 has a `<key0.key1[.keyN]>` sugar form (reads/writes/delete, partial paths too, e.g. `<watcher.io>->{$name}`); not in CONVENTIONS.yaml; ncode/format-code cleanup planned later, not urgent
 - [akamai-alpn-h2-bot-mitigation](reference-akamai-alpn-h2-bot-mitigation.md) — a TLS ClientHello never offering `h2` in ALPN gets silently black-holed (no error, total silence) by Akamai-style bot mitigation, generic to any target behind similar WAFs, not site-specific; realistic browser headers also required past that; clients.https.request/.get now handles both correctly — use it, don't rediscover
@@ -72,8 +73,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,.,,,,.,.,.,.,,,,,,,.,.,.,.,..,,,,,,,.,,,..,..,,...,...,.,.,...,,..,.,.,,..,
-#5KVQ5IHITKMOFTNLNBUA46SKWFAJNOPCSWA3DGQYZ646HOG7EZZVOUNRYRZXDJJ7BGUQ4LFESU5YQ
-#\\\|IQ4X6LVQFRB5JPM7BGG6ZA2GUPPNP4MHKETE6ZHOWVPFSGJZU22 \ / AMOS7 \ YOURUM ::
-#\[7]TY6J7QKY4APF56FYTTL73NHOYYIEDZ24T7ZMFECEFO2L2TISKIDI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,,.,,,,,,,,.,.,,,..,,...,...,..,,...,...,.,.,..,,,..,.,,,...,
+#42T6DFESA3S5WMCZAIEICSELPDEJLJYOCYJKLMMZFQ2W7P6U3BOESWUL3CNN6RCMJJNL3U4MPPG2K
+#\\\|J4RWJUSX6H5EWXSW42WJMZKASNIMO37XL4ICTNKUHCRRG7FDQQY \ / AMOS7 \ YOURUM ::
+#\[7]I3IPF6TRR53CX5UBNRE5W4J2CEFCZ6KNVUYEQGZKNQLEE7UPXSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
