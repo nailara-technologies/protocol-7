@@ -6,38 +6,61 @@
 
 my $zenka_name = shift;
 
-unless ($zenka_name) {
-    <[base.log]>->( 0, "Error : zenka name required" );
-    return say "::\n: Usage: start <zenka_name>\n::";
+$zenka_name //= '';
+$zenka_name =~ s|^\s+||;
+$zenka_name =~ s|\s.*$||;
+
+unless ( length $zenka_name ) {
+    <[base.log]>->( 0, 'error : zenka name required' );
+    return say "::\n: usage : start <zenka_name>\n::";
 }
 
-<[base.log]>->( 1, "Starting zenka : $zenka_name (with auto-resolution)" );
+<[base.logs]>->( 1, "starting zenka : %s [ auto-resolution ]", $zenka_name );
 
-## Use smart launcher
-my $result = <[zenki.parent.start]>->(
-    {   zenka        => $zenka_name,
-        auto_resolve => 1,
-        wait_ready   => 1
-    }
+<zenki.start.reply> = undef;
+
+my $result = <[zenki.parent.start]>->( { 'zenka' => $zenka_name } );
+
+if ( not $result->{'success'} ) {
+    my $error = $result->{'error'} || 'unknown error';
+    <[base.logs]>->( 0, "✗ failed to start '%s' : %s", $zenka_name, $error );
+    return say "::\n: ✗ failed to start zenka\n: error : $error\n::";
+}
+
+## a direct [ in-v7-zenki ] start already carries its result ##
+if ( not $result->{'via_ipc'} ) {
+    my $message = $result->{'message'} // 'started';
+    return say "::\n: ✓ zenka '$zenka_name' : $message\n::";
+}
+
+## the relayed reply arrives asynchronously : this console command owns the ##
+## event loop until zenki.handler.v7_start_reply unloops, or until the      ##
+## timeout expires [ user-edit.console.show-form precedent -- the start     ##
+## file deliberately has no [zenka.loop] of its own ]                       ##
+
+<[base.init-done]>->(TRUE);    ## one-shot zenka : not v7-zenki managed ##
+
+<[base.zenka.loop]>->(<zenki.cfg.reply_timeout>);
+
+my $reply = <zenki.start.reply>;
+
+if ( not defined $reply ) {
+    my $waited = <zenki.cfg.reply_timeout>;
+    <[base.logs]>->(
+        0,           "✗ no reply from v7-zenki for '%s' [ %ds ]",
+        $zenka_name, $waited
+    );
+    return say "::\n: ✗ no reply from v7-zenki within ${waited}s\n::";
+}
+
+return say sprintf(
+    "::\n: %s zenka '%s'\n: %s\n::",
+    $reply->{'success'} ? '✓' : '✗',
+    $zenka_name, $reply->{'data'}
 );
 
-if ( $result->{success} ) {
-    my $pid    = $result->{pid} || 'unknown';
-    my $status = $result->{already_running} ? 'already running' : 'started';
-
-    <[base.log]>->( 1, "✓ Zenka '$zenka_name' $status (PID: $pid)" );
-
-    return say "::\n: ✓ Zenka '$zenka_name' is running\n: PID: $pid\n::";
-} else {
-    my $error = $result->{error} || 'unknown error';
-
-    <[base.log]>->( 0, "✗ Failed to start '$zenka_name': $error" );
-
-    return say "::\n: ✗ Failed to start zenka\n: Error: $error\n::";
-}
-
-#,,.,,..,,,..,...,,,,,,,.,,..,,,,,,,.,...,,,,,..,,...,.,.,,,.,...,.,,,.,.,..,,
-#DAUNVCZV65P2W3NSPTCDI55WFMDYXYFXN567P6FW3ZC6VO4KXOONZRF74WMFOMGK4Q4J5FPEIO3I4
-#\\\|HZ5U3T5FQHYZEUNQKHVYZOKB2OKAVTIAPF2R4ZXIXYVYB26BRKF \ / AMOS7 \ YOURUM ::
-#\[7]RY42QGDD6Y5ZUZZIBPEE7C5GB64OSEWYZFJIZPVC74EMVEVKH2DA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,...,,,.,,..,.,.,.,.,,..,..,,..,,...,...,.,.,.,,,,,.,.,,,.,.,
+#WEWUEHC4IF5YNJEIBFDXT2MJIC23RRWEW2FMTJYC3A4J4Z7RYMUHWEHTSGBNZZIFDARDGJQAMJ5VM
+#\\\|NDHMYDK45LIFDLEAJ6ZS3K2T6I6AK5YHFMUQEREG3363S4OZ3OO \ / AMOS7 \ YOURUM ::
+#\[7]GBBPYY5IPDNOQZ4KM723RTXPBAXW75FMZGJMAMBE35FI4I3GDMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

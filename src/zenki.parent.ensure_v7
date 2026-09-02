@@ -1,77 +1,80 @@
 ## [:< ##
 
 # name = zenki.parent.ensure_v7
-# descr = ensure v7 zenka is running
-#         (required for managing cube and other zenki)
+# descr = ensure the 'v7-zenki' zenka is running
+#         [ required for managing cube and other zenki ]
 
 my $params = shift || {};
 
-<[base.log]>->( 3, "zenki.ensure: checking v7 zenka..." );
+<[base.log]>->( 3, "zenki.ensure: checking 'v7-zenki' zenka..," );
 
-## Check if v7 is already running
+## check if v7-zenki is already running ##
 my $v7_check = <[zenki.parent.check_running]>->( { zenka => 'v7-zenki' } );
 
-if ( $v7_check->{running} ) {
-    <[base.log]>->(
-        3, "  ✓ v7 already running (PID: " . $v7_check->{pid} . ")"
+if ( $v7_check->{'running'} ) {
+    <[base.logs]>->(
+        3, "  ✓ v7-zenki already running [ pid %s ]",
+        $v7_check->{'pid'}
     );
 
-    ## Update registry
+    ## update registry ##
     <zenki.running.v7> = {
-        pid     => $v7_check->{pid},
-        started => <zenki.running.v7-zenki.started> || <[base.ntime]>,
+        pid     => $v7_check->{'pid'},
+        started => <zenki.running.v7.started> || <[base.ntime]>,
         status  => qw| running |
     };
 
     return {
         success         => TRUE,
         already_running => 1,
-        pid             => $v7_check->{pid}
+        pid             => $v7_check->{'pid'}
     };
 }
 
-## v7 not running - need to start it
-<[base.log]>->( 2, "  v7 not running - attempting to start..." );
+## v7-zenki not running - it has to be bootstrapped ##
+<[base.log]>->( 2, '  v7-zenki not running - attempting to start..,' );
 
-## Check if we have permission (need root for v7)
+## the whole fleet [ v7-zenki, cube and everything they drop privileges for ##
+## ] needs root : an unprivileged front-door invocation can relay a start   ##
+## request, but it cannot bring the fleet up in the first place             ##
 unless (<zenki.cfg.auto_start_v7>) {
-    <[base.log]>->(
-        0, "  Cannot auto-start v7: requires root permissions (UID=$UID)"
+    <[base.logs]>->(
+        0, '  cannot auto-start v7-zenki [ needs root, uid is %s ]', $UID
     );
 
     return {
         success => FALSE,
-        error   =>
-            'v7 requires root permissions - run as root or start v7 manually',
+        error   => 'v7-zenki is not running and starting it needs root '
+            . '[ run this as root, or start the fleet first ]',
         requires_root => 1
     };
 }
 
-## Start v7
+## start v7-zenki ##
 my $v7_binary = <zenki.cfg.v7_binary>;
 
 unless ( -x $v7_binary ) {
     return {
         success => FALSE,
-        error   => "v7 binary not found or not executable: $v7_binary"
+        error   => "v7-zenki binary not found or not executable: $v7_binary"
     };
 }
 
-<[base.log]>->( 2, "  Starting v7 : $v7_binary v7 &" );
+<[base.logs]>->( 2, '  starting : %s v7-zenki &', $v7_binary );
 
-## Start v7 in background using system() with output redirection This is the
-## bootstrap case - v7 doesn't exist yet so we can't use jobqueue
-my $result = system("$v7_binary v7 </dev/null >/dev/null 2>&1 &");
+## bootstrap case : v7-zenki does not exist yet, so its own jobqueue cannot ##
+## be used to start it -- plain system() with detached streams              ##
+my $result = system("$v7_binary v7-zenki </dev/null >/dev/null 2>&1 &");
 
 if ( $result != 0 ) {
     return {
         success => FALSE,
-        error   => "failed to start v7: system() returned $result"
+        error   => "failed to start v7-zenki: system() returned $result"
     };
 }
 
-## Wait for v7 to be ready
-<[base.log]>->( 2, "  Waiting for v7 to start..." );
+## wait for v7-zenki to be ready ##
+<[base.log]>->( 2, '  waiting for v7-zenki to start..,' );
 
 my $timeout    = <zenki.cfg.v7_startup_timeout>;
 my $start_time = time();
@@ -81,12 +84,12 @@ while ( time() - $start_time < $timeout ) {
 
     my $check = <[zenki.parent.check_running]>->( { zenka => 'v7-zenki' } );
 
-    if ( $check->{running} ) {
-        <[base.log]>->( 2, "  ✓ v7 started successfully" );
+    if ( $check->{'running'} ) {
+        <[base.log]>->( 2, '  ✓ v7-zenki started successfully' );
 
-        ## Update registry and statistics
+        ## update registry and statistics ##
         <zenki.running.v7> = {
-            pid     => $check->{pid},
+            pid     => $check->{'pid'},
             started => <[base.ntime]>,
             status  => qw| running |
         };
@@ -96,22 +99,22 @@ while ( time() - $start_time < $timeout ) {
         return {
             success => TRUE,
             started => 1,
-            pid     => $check->{pid}
+            pid     => $check->{'pid'}
         };
     }
 }
 
-<[base.log]>->( 0, "  ✗ v7 startup timeout after ${timeout}s" );
+<[base.logs]>->( 0, '  ✗ v7-zenki startup timeout after %ds', $timeout );
 
 return {
     success => FALSE,
-    error   => "v7 startup timeout after ${timeout}s"
+    error   => "v7-zenki startup timeout after ${timeout}s"
 };
 
 0;
 
-#,,,,,,..,.,,,.,,,,,,,.,.,...,.,,,,.,,.,.,,,.,..,,...,...,..,,,.,,.,.,,..,,,,,
-#T23NWLFCSA2XOSY3S4G3MPSATVQEGMY4FF5JNDGLG5G7GNCFEUA3Y54BNPHR5BX5YQHHIPVHHW4HM
-#\\\|BIMZ46CKHGTHYT33ADZC5BIKPWHT43WHQLMGLRADNUKRHD7N7W2 \ / AMOS7 \ YOURUM ::
-#\[7]YN3NSLVYBN45GZQCGPDJ5PZ5YNKR3ZENM7JRSYE6NJLKUUQQSMDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,...,,,.,...,.,.,.,,,,.,,...,..,,...,...,,,.,,..,.,,,.,.,.,.,
+#OK2PLYFB4L7XRWC7S2G6XXGLOTB4GOTZKFF7OKNHIA4NO4IVI446IFSHOVJ23V6ZIEYJGO5E6XUEC
+#\\\|QTRLXIQL2Y4K24LRTKJKWREBUGSQQMKWEMF4PNAOWMVQI6E5I7S \ / AMOS7 \ YOURUM ::
+#\[7]PCUBXUWVJZREQG5J2SP3QNGVSZXUMLU2WW2AZFU5OJK2U2ORRWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = zenki.parent.start-up
+# descr = hybrid start-up dispatch [ one-shot console command | resident loop ]
+
+my $mode        = <zenki.start-up.mode>        // qw| resident |;
+my $console_cmd = <zenki.start-up.console_cmd> // '';
+
+##                     .:[ resident instance ]:.                            ##
+##                                                                          ##
+##                     started by 'v7-zenki' in                             ##
+##                     stdin-zenka mode : drop to the                       ##
+##                     zenka user [ only reachable when                     ##
+##                     started as root, which is how                        ##
+##                     v7-zenki starts every zenka ],                       ##
+##                     authenticate with the injected                       ##
+##                     zenka key and stay in the event                      ##
+##                     loop for whatever arrives over                       ##
+##                     cube                                                 ##
+
+if ( $mode eq qw| resident | ) {
+
+    if ( $EUID == 0 ) {
+        <[base.root.drop_privs]>->(<system.amos-zenka-user>);
+    } else {
+        ## unprivileged resident run [ not v7-zenki started ] : keep the ##
+        ## identity we already have instead of aborting                  ##
+        <[zenki.parent.keep-unix-identity]>;
+    }
+
+    <[base.net.connect]>->(qw| unix |);
+    <[base.get_session_id]>;
+
+    ## process an inline command if one was supplied at start-up -- the    ##
+    ## same unconditional-but-harmless-when-empty step 'v7-zenki's own     ##
+    ## start file takes via [v7-zenki.call_cmd:<system.args>] right before ##
+    ## its own [zenka.loop]. guarded here : unlike v7-zenki.call_ cmd,     ##
+    ## base.call.console_command defaults an EMPTY command line to         ##
+    ## 'commands' [ full listing ] instead of no-op'ing -- calling it      ##
+    ## unconditionally would reproduce the console-only-zenka dump-and-    ##
+    ## restart-loop trap this same sandbox found start_via_v7 walking into ##
+    ## for 'work' \ 'session', just from the other direction               ##
+    my $inline_command = <zenki.start-up.command_line> // <system.args>;
+    <[base.call.console_command]>->($inline_command)
+        if defined $inline_command and length($inline_command);
+
+    return <[base.zenka.loop]>;
+}
+
+##                  .:[ one-shot console invocation ]:.                     ##
+##                                                                          ##
+##                  this is the front door a plain user [                   ##
+##                  or an llm with no v7 access ] calls as                  ##
+##                  'Protocol-7 zenki <cmd> ..' --                          ##
+##                  deliberately root independent, so no                    ##
+##                  privilege drop happens at all and cube                  ##
+##                  authenticates it over the unix link                     ##
+##                  instead of with a zenka key it was                      ##
+##                  never issued                                            ##
+
+<[zenki.parent.keep-unix-identity]>;
+
+my $needs_network = FALSE;
+$needs_network
+    = <[base.cfg_bool]>->( <zenki.cfg.cmd-network>->{$console_cmd} )
+    if ref(<zenki.cfg.cmd-network>) eq qw| HASH |
+    and defined <zenki.cfg.cmd-network>->{$console_cmd};
+
+if ($needs_network) {
+
+    ## 'zenki[<unix-user>]' -- built in zenki.parent.init_code, since a    ##
+    ## literal '[..]' written in the start file would be read as a command ##
+    ## invocation by the config parser                                     ##
+    <system.auth-user> = <zenki.auth_name>;
+
+    <[base.logs]>->(
+        2,                 ": connecting to cube as '%s' for '%s'",
+        <zenki.auth_name>, $console_cmd
+    );
+
+    <[base.net.connect]>->(qw| unix |);
+
+    ## no [base.get_session_id] : authentication is by unix user, not by a  ##
+    ## cube issued zenka session key [ nshell \ user-edit, same reasoning ] ##
+}
+
+## the flag-stripped command line, not <system.args> itself -- see ##
+## zenki.parent.select-modules for why the two can differ          ##
+return
+    <[base.call.console_command]>
+    ->( <zenki.start-up.command_line> // <system.args> );
+
+#,,,.,,,,,.,,,.,,,,,.,,.,,.,.,,.,,,.,,,..,.,.,..,,...,..,,...,,..,...,,,.,.,,,
+#IEVOIDIIIFCAZF5P2WCCYGLO2FOY23L4JAMM7DE3UG25L6X7DRZR2B6JK3CX3IKMK5BR4G5F2BNMA
+#\\\|3ER3LSVCHQ7HGIXRC75MPZUIRC2HNVBZC3EV6U6MBOAEEFIHMRQ \ / AMOS7 \ YOURUM ::
+#\[7]TH6FNDLRDHYNQ26E4KCGWRHGPTGFOQYEG3YZHQBFDBJ5FUXDRCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

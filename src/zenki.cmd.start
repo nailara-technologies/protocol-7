@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = zenki.cmd.start
+# param = <zenka_name>
+# descr = ask 'v7-zenki' to start the named zenka
+
+my $zenka_name = $call->{'args'} // '';
+
+$zenka_name =~ s|^\s+||;
+$zenka_name =~ s|\s.*$||;
+
+return { 'mode' => qw| false |, 'data' => 'zenka name expected' }
+    if not length $zenka_name;
+
+my $result = <[zenki.parent.start]>->(
+    {   'zenka'    => $zenka_name,
+        'reply_id' => $call->{'reply_id'}
+    }
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => $result->{'error'} // 'start request failed'
+    }
+    if not $result->{'success'};
+
+## the v7-zenki answer is relayed back by zenki.handler.v7_start_reply, ##
+## which delivers it through base.callback.cmd_reply with our reply id  ##
+return { 'mode' => qw| deferred | } if $result->{'via_ipc'};
+
+return {
+    'mode' => qw| true |,
+    'data' => $result->{'message'} // "start of '$zenka_name' requested"
+};
+
+#,,..,,.,,,,.,.,.,..,,.,,,.,.,.,.,,,.,.,.,,.,,..,,...,...,,,,,.,.,,,.,,..,,,.,
+#LAIWZN323YG6XUCTIMRV3MBC643YA4BU2TGIWBVQILXY2HVA37PHSAGFZXS5VZWMGE3UIYDGTMCQI
+#\\\|UMR7JSHZEXSO7CY6GHZZARXH3R4MDYGQVTTCXTT2HMDOEUKUSK6 \ / AMOS7 \ YOURUM ::
+#\[7]LFXAA44CST3USQIXZRJPOC3XBNVQFBN6UBVXSL3KBX2VNEQWDOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,63 +1,36 @@
 ## [:< ##
 
 # name = zenki.parent.request_v7_start
-# descr = request v7 to start a specific zenka via IPC
+# descr = request v7-zenki to start a specific zenka
 
 my $params = shift || {};
 
-my $zenka_name = $params->{zenka};
+my $zenka_name = $params->{'zenka'};
 
 unless ($zenka_name) {
     return { success => FALSE, error => 'zenka name required' };
 }
 
-<[base.log]>->( 3, "zenki.request: asking v7 to start '$zenka_name'..." );
-
-## TODO: Implement IPC call to v7  For now, use direct process start as
-## fallback
-
-my $v7_binary = <zenki.cfg.v7_binary>;
-
-unless ( -x $v7_binary ) {
-    return {
-        success => FALSE,
-        error   => "v7 binary not found: $v7_binary"
-    };
-}
-
-## Start zenka directly for now  TODO: Replace with IPC command to running v7
-<[base.log]>->(
-    2, "  Starting '$zenka_name' directly (IPC not yet implemented)"
+<[base.logs]>->(
+    3, "zenki.request: asking v7-zenki to start '%s'..,", $zenka_name
 );
 
-my $pid = fork();
+## this used to fork \ exec the zenka directly, which produced an UNMANAGED ##
+## process : no instance id, no heartbeat, no restart policy and no         ##
+## dependency resolution.  the relay does all of that properly, so this is  ##
+## now a thin alias of it -- kept as its own name because                   ##
+## zenki.parent.ensure_zenka reads as a request \ wait pair                 ##
 
-if ( !defined $pid ) {
-    return {
-        success => FALSE,
-        error   => "fork failed: $!"
-    };
-}
-
-if ( $pid == 0 ) {
-    ## Child process - exec zenka
-    exec( $v7_binary, $zenka_name );
-    exit(1);    ## Should never reach here
-}
-
-## Parent process
-<[base.log]>->( 3, "  Started '$zenka_name' with PID : $pid" );
-
-return {
-    success => TRUE,
-    method  => qw| direct_fork |,    ## TODO: Change to 'ipc' when implemented
-    pid     => $pid
-};
+return <[zenki.parent.start_via_v7]>->(
+    {   'zenka_name' => $zenka_name,
+        'reply_id'   => $params->{'reply_id'}
+    }
+);
 
 0;
 
-#,,,,,,.,,,..,..,,...,,.,,.,,,,.,,,..,.,.,,,,,..,,...,..,,,,.,,.,,,,,,,,,,.,.,
-#P4HKFKNQV4PEL6JA4WANVEAE2Z65W6T23WRATM6DUAHACK3APPKH4XT3NALUF6VTRZPERD25JSW2I
-#\\\|TTEXDBC5KXSXJZVN255L435BR6NFWP6Z6LUZEOUCLEF6N5BAIXJ \ / AMOS7 \ YOURUM ::
-#\[7]UAW7FWV5JXO4FT3ZLA3P5KZL36GO57LLUF6UPKOWC4A2IALTQUBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,..,,,.,,,.,,,.,,,,,...,.,,,,.,,..,,...,...,.,.,,,,,...,.,.,.,.,
+#R7HEV656CJ6LNGW6D4KHA2PJLYMP2544WTKLDOPFJ34JKUSF7J4SC5622RE74DAPJ4MGL5H7X6DW6
+#\\\|XPSYXZIO46AJXJSJ3UC73HKZBERBGLDTP5UBKULBOIP4ZRRZIPW \ / AMOS7 \ YOURUM ::
+#\[7]2PFWIFPRAJETJTLHCCNBVEGTIYJ4A34DTTN57SJ3ZSA6FKTAJWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
