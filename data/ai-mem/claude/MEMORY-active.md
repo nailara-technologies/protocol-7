@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [project-v7-zenki-identity-rename-complete](project-v7-zenki-identity-rename-complete.md) — v7 zenka renamed to v7-zenki (full-consistency scope) + symlink-chain resolution (MPV) + docs catchup, DONE, committed/pushed/live-verified 2026-09-02; full detail and open-items list in HANDOVER.md, read that first
 - [2026-08-30-session-wrapup-coding-backend-dead-pipeline-stalled](project-2026-08-30-session-wrapup-coding-backend-dead-pipeline-stalled.md) — RESOLVED: found+fixed real CPU-fallback bug in coding.async_spawn_inference_servers (stale local var shadowed a same-call global write), live-verified via passing self-test. GPU-orphaning root cause + v7/orphan_pids gaps still open but no longer blocking
 - [site-yaml-async-fetch-fork-memory-risk](project-site-yaml-async-fetch-fork-memory-risk.md) — RESOLVED: fork-per-request retired entirely, site-yaml now calls clients.https.get directly (no fork/exec), live-verified (74 jobs queued, 0 errors, real proxy). cmd.fetch still uses LWP, deliberately out of scope
 - [reference-akamai-alpn-h2-bot-mitigation](reference-akamai-alpn-h2-bot-mitigation.md) — generalizable: a TLS ClientHello never offering h2 in ALPN gets silently black-holed by Akamai-style bot mitigation (no error, total silence); realistic browser headers also required past that. clients.https now handles this correctly, use it for any future target hitting the same wall
@@ -129,8 +130,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [coding-cpu-spawn-day-2026-08-26](topic-coding-cpu-spawn-day-2026-08-26.md) — LANDED (4 commits): CPU inference spawning works for the first time (LD_LIBRARY_PATH gpu-only fix, RAM-aware context clamp, dead-code dependency wiring moved to init_code, GPU foreign-process-exclusion fix, self-test var-watcher wake). Two open follow-ups, read before touching this area: `coding-self-test-true-parallelization.md` (full audit done + trustworthy, exact per-backend-watcher fix needed, a broken partial edit was caught+reverted — do not reproduce it) and `coding-backend-aware-timeout-scaling.md` (GPU-tuned timeouts ~9-10x too tight for CPU, live t/s measurement is the planned fix, not a flat multiplier). See also [[feedback-event-add-var-per-key-not-per-hash]]
 - [deps-tracking-var-relocation](project-deps-tracking-var-relocation.md) — 2026-08-31, fully traced not implemented: base.register_pm_deps writes per-zenka dep touch-files into tracked cfg/zenki/<zenka>/deps/p-mod/, causing 3 real bugs at once (read-only root installs, live-reproduced on host atom; dev-repo ownership hijacking via its EUID==0 chown-fixup; init_modules/drop_privs ordering inconsistency across 124 zenki) — fix is relocating to var/ (mirrors var/sys-deps/tracked.yaml, already proven this session), NOT a new "dependencies zenka" as first floated. Also covers retiring base.known_dependencies (static/global, can't track user-written zenki) — base.list.subroutines is a separate, NOT-dead thread, see [[vision-tree-based-module-storage-and-namespace-manifests]]
 
-#,,,,,,..,.,.,.,,,,..,,,.,...,...,,,.,,,.,...,..,,...,...,..,,.,,,,..,,,,,.,.,
-#J2DXTHJ2WUH2O2KE5YMIB2XIROHFHS7IVZOP6C4K5MT2WG7TPTTBNT4PLZMDM46YFPRIBKFUX6G3G
-#\\\|MXJMVB6I6VUDKRLMHW3X4SJ6Z3VSLTP3XPDTPG77QFFBRSV5LSN \ / AMOS7 \ YOURUM ::
-#\[7]JVTOLDAOB5WSQ32QR4X56XII7EDCRFOM265QWMLNMZNHWE6QYGCI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,.,.,.,.,,,,..,.,,,,,,,...,..,,...,...,.,.,...,,,,,.,,,.,.,
+#PTVOXPY6PM4WD5Z2CMLGOEFLXMY6PN76C7JXXQB4HHSRIXDOSZCP6RVGOALUJMAMTMP3UHJNBXVFM
+#\\\|XQTSQIHXHSZOM5PE3H6WG7SG4PEH77A57B2DW3BFKWDMISLCT3R \ / AMOS7 \ YOURUM ::
+#\[7]QDSK6KANEZ3GUYD3E67UX4P33R7K5S3PHLD6YIX6MDYKNKVVK4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
