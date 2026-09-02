@@ -209,32 +209,50 @@ and is a plain implementation.
 ## the other sites that construct a launcher name
 
 a sweep of `bin/` and `src/` finds the naming decision written out in
-two further places. neither is changed here; both are recorded so the
-registry entry has a known set of consumers to absorb.
+two further places. the first is unchanged here; the second was wired
+up onto the launcher chain on 2026-09-02 [ decision recorded below ].
 
 - **`<[v7-zenki.install_zenka_symlinks]>`** builds
   `sprintf qw| %s/p7-%s |, $symlink_dir, $zenka_name` itself. moving
   it onto `<[path-template.zenka-symlink]>` is a one-line follow-up,
   deliberately left out so the installer's behaviour stays untouched
   in this change.
-- **`<[v7-zenki.install_workflow_shortcuts]>`** installs a **fourth,
-  unrecognized form** — `p7.<shorthand>`, mapping short aliases onto
-  *multi-word* command patterns [ `wo` -> `workflow overview`,
-  `srcd` -> `sourcecode verify-dev-signatures` ]. it is currently
-  disabled at its first line, marked *"requires parameter
-  propagation"*.
+- **`<[v7-zenki.install_workflow_shortcuts]>`** installs
+  **`p7.<shorthand>`** links — short aliases onto console command
+  patterns [ `wo` -> `work overview`, `srcd` -> `sourcecode
+  verify-dev-signatures` ]. **decided 2026-09-02 : shorthands are
+  ordinary chains onto an existing `p7-<zenka>` link, not a fourth
+  recognized form.** a recognized form would have to be matched
+  inside `p7_zenka_name_from_link_name`, which runs before any
+  shorthand table can exist; the chain form needs no interpreter
+  change at all — `p7.wo -> p7-work` names `work` through the
+  terminal segment rule, and the alias arrives at the started zenka
+  as `<system.start.launcher_name>`.
 
-  that second one is worth naming precisely, because the launcher
-  chain is the missing half of it. `p7.<shorthand>` matches none of
-  the three recognized forms, so such a link resolves through to the
-  interpreter and falls back to `$ARGV[0]` — the shorthand never
-  names its zenka, and its trailing words have nowhere to go. the
-  chain now carries exactly that: the alias name reaches the started
-  zenka as launcher context. whoever revives that feature should
-  decide whether `p7.<shorthand>` becomes a fourth recognized form or
-  whether shorthands are instead expressed as ordinary chains onto an
-  existing `p7-<zenka>` link, and record the answer here. the
-  shorthand tables belong in this namespace either way.
+  the shorthand table lives in this namespace as
+  `<[path-template.console-shorthand]>` [
+  `src/base.path-template.console-shorthand` ], read by both sides
+  of the feature: the installer builds the `p7.<shorthand>` ->
+  `p7-<zenka>` links from it, and `<[base.call.console_command]>`
+  expands a `p7.<shorthand>` launcher name into the pattern's
+  words, prepended to any user arguments. a pattern whose zenka
+  word does not match the started zenka [ a hand-made `p7.wo`
+  pointing at some other link ] is refused with a warning.
+
+  one practical constraint the chain form inherits: the boot-time
+  lib-path walk in `p7_security_hardening` follows the links
+  *themselves* to the real file, so the `p7-<zenka>` middle hop
+  must actually exist — the installer skips a shorthand whose
+  middle hop `<[v7-zenki.install_zenka_symlinks]>` has not
+  installed.
+
+  the pre-chain table was cleaned up on the way in: `wc` / `sc` /
+  `q` were dropped, their targets [ `work.console`, `sourcecode
+  console`, a `query` zenka ] do not exist, and the single-word
+  server-zenka aliases [ `h`, `wth`, `i2h`, `calc` ] were dropped
+  with them — a plain zenka alias is an
+  `<[v7-zenki.install_zenka_symlinks]>`-style alias list entry, not
+  a console-command expansion.
 
 no other site parses or builds a zenka launcher name.
 `bin/c_src/p7c.c` and `bin/c_src/p-7-r.c` use `argv[0]` for usage
@@ -304,8 +322,8 @@ launcher name survives to the zenka, and is absent exactly when there
 was no launcher. the same probe confirms `<system.start.launcher_chain>`
 arrives as a live array reference.
 
-#,,,,,,.,,,.,,.,.,.,.,,..,...,...,.,,,...,..,,..,,...,...,,..,...,..,,,,.,.,.,
-#SVCNCMKMDFOXOCMITY5NPCDAS625XGU7F5UIT4GSKW4IJRYBPQ6VWPN7EMQBYYOBZ6WR3CIDUO3FK
-#\\\|SMQUHBYNGCQ5BM3LPH2ICJIFVEIXMWP64HUYTBZUYA4MYOQDTP7 \ / AMOS7 \ YOURUM ::
-#\[7]34ZRE5DHUEMWFN3S53CMV757IDB7RADTR53RPT2NCZ32TS4OBWAA 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,.,.,,,,,,.,,.,,,..,,.,.,..,,..,,...,...,..,,,.,,..,,...,.,.,
+#ATRILVXH4FCG5E62WOS2Q4HEISEG3P6ASFUE5264CYC6UI3DAPHSS4EUIGCRNPQHI65ZV5BE2XSRW
+#\\\|3P4LZWTYAUDRA6CV2CGS5JVADB2M7PB75N5YVBGYBHUFFEELXPO \ / AMOS7 \ YOURUM ::
+#\[7]V7B3PAJRCICBSUR4IKT72WHM5D3M6J7KV6SKT22IKWRMUQ43DMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
