@@ -2,7 +2,7 @@
 
 # name = v7.handler.instance_verification
 
-my ( $instance_id, $verification_string ) = @_;
+my ( $instance_id, $verification_string ) = @ARG;
 my $instance = <v7.zenka.instance>->{$instance_id};
 
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
@@ -21,8 +21,8 @@ if ( $verification_string eq $instance->{'instance_verification'} ) {
     <[zenka.change_status]>->( $instance_id, 'error' );
 }
 
-#,,,,,...,,.,,,.,,..,,,..,,.,,.,,,,..,,.,,...,..,,...,...,...,.,,,...,.,.,,,,,
-#H4UW5VXPSVFKEUHN2Z3EPJ6XZDYTFPJB556SOAKCDBOH2AQSLQ3GUKOC66LQZ42WBQWZZO2XRLPE2
-#\\\|IERSUVFHN7GLK24DU3EHKDAFCJLL3A5INGGBY2TSYINWWUPTE2N \ / AMOS7 \ YOURUM ::
-#\[7]HQI4JKO2G63LQDLQOFOVLDJTT7YEDHIMYVSZJYHML2JAMLMGYOAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,.,.,...,.,.,,,,,.,.,.,,,,..,..,,...,...,.,.,,..,.,,,,..,.,,,
+#QPQVNXDX6LSUHVRFGT4GDPHK44VV5HRYRSTKABTSTNKOKFISQWG4ULTKJTICB2VVYVSFKBOPT2HRW
+#\\\|CWPNIY7QVS5Z3G4Q5V63NU7SNLINE7BAZIYHCHGZEAWPD4WQVXP \ / AMOS7 \ YOURUM ::
+#\[7]6RQ62XWOP5TVRFESPBPNCBBDP535CMLMYNFLDQ7UCJUDXTBIMSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
