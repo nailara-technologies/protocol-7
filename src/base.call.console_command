@@ -4,7 +4,31 @@
 # descr = executes specified console command or
 #         base.console.commands when no parameters are given
 
-( my $console_cmd, my $console_params ) = split( m| +|, shift, 2 );
+my $command_line = shift // '';
+
+## a 'p7.<shorthand>' launcher alias expands into its console command     ##
+## words, user arguments appended [ 'p7.<shorthand>' -> 'p7-<zenka>' link ##
+## chains installed by <[v7-zenki.install_workflow_shortcuts]>, patterns  ##
+## from <[path-template.console-shorthand]> -- see                        ##
+## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]                     ##
+if ( defined <system.start.launcher_name>
+    and <system.start.launcher_name> =~ m|^p7\.([0-9a-z-]+)$| ) {
+    my $shorthand = $LAST_PAREN_MATCH;
+    my $pattern   = <[path-template.console-shorthand]>->($shorthand);
+    if ( defined $pattern and length $pattern ) {
+        my ( $pattern_zenka, $pattern_words ) = split( m| +|, $pattern, 2 );
+        if ( $pattern_zenka ne <system.zenka.name> ) {
+            print sprintf(
+                "\n  << shortcut 'p7.%s' targets zenka '%s', not '%s' >>\n\n",
+                $shorthand, $pattern_zenka, <system.zenka.name> );
+        } elsif ( defined $pattern_words and length $pattern_words ) {
+            $command_line
+                = join( ' ', grep {length} $pattern_words, $command_line );
+        }
+    }
+}
+
+( my $console_cmd, my $console_params ) = split( m| +|, $command_line, 2 );
 
 <base.ntime-harmony> = FALSE;
 
@@ -32,8 +56,8 @@ $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
 $code{$command_handler}->($console_params);
 
-#,,.,,,..,,,,,,,.,,,,,...,,..,.,.,,,.,.,.,,,.,..,,...,..,,...,,,.,,,.,,,,,.,.,
-#CPXN4VX46OH66K7TIAW55YD66BFW7XP5F5UUQVSSIF7HFGNYMOXYNOLXTXBADNK5SLD7XEIEOSSWW
-#\\\|2Q2ISPVUTD6M7XAFZZAQVLB2B2E5KXGOWK255O3WCGDL3LD7BM5 \ / AMOS7 \ YOURUM ::
-#\[7]CCKH5B72RQCSFWM342Z7K3ZU6CGQDTQWL7HUS7VVHSM2NK7YFQDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,,..,.,,,,..,...,.,,,,.,,.,.,..,,...,...,...,,..,,..,,..,,,.,
+#HI5KMV6POUCTV577XQ2IHJNL7JLVH2JSWYR64IUOX5UD6BG6T5ZND24K2CHWIQSP6JPB7CENCVJOQ
+#\\\|NR467IFTUTNAKOKS6NJIDAFDRFVDWJ6AURNYHTGKF7KRV33YIUA \ / AMOS7 \ YOURUM ::
+#\[7]2OJJHZHPUTSZP5HL2QAK66QHENU47NYNUQFZGCWG6CVT3TMS6CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

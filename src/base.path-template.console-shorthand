@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.path-template.console-shorthand
+# descr = 'p7.<shorthand>' launcher alias -> '<zenka> <console command ..>'
+# param = [ shorthand ]  [ none : full table href ]
+
+## the single shorthand table behind the workflow shortcut links :          ##
+## <[v7-zenki.install_workflow_shortcuts]> builds a 'p7.<shorthand>' ->     ##
+## 'p7-<zenka>' link chain from each entry, and the alias name then reaches ##
+## the started zenka as <system.start.launcher_name>, where                 ##
+## <[base.call.console_command]> expands it into the pattern's words [ user ##
+## arguments follow the expanded words ].  the first word of a pattern      ##
+## names the zenka the chain resolves to -- both sides of the feature read  ##
+## this one table so they cannot drift apart  [ see                         ##
+## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]                       ##
+
+my %console_shorthand = (
+    'w'    => 'work',             ##  work zenka console command list  ##
+    'wo'   => 'work overview',
+    'wt'   => 'work todo-list',
+    'ws'   => 'work commit',
+    'src'  => 'sourcecode',
+    'srcd' => 'sourcecode verify-dev-signatures',
+    'srcu' => 'sourcecode update-signatures',
+);
+
+my $shorthand = shift;
+
+return \%console_shorthand if not defined $shorthand;
+return $console_shorthand{$shorthand};    ##  undef when not a shorthand  ##
+
+#,,,,,..,,..,,,.,,...,,,.,,,,,...,,.,,,..,,,.,..,,...,...,...,,,.,,..,.,.,,..,
+#RRTLURWOJJHI7MGDG2BHBUD5XG4FPKVSDUBRKYERLBABEVCU3OXJFUPYYGOVUM76KANYCBJILXRNY
+#\\\|2HY7WJE6L2CUJMHBY3BQQQ6D2VMXA56C5GMLF2XMCUHX74AU5CP \ / AMOS7 \ YOURUM ::
+#\[7]GEBMVODOPRH6S2RPDDO5GPJRRKD3LCH6S25OOZVV42DSEXOZ4GDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

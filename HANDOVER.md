@@ -120,12 +120,12 @@ campaign, unrelated to this session. Worth a future pass.
 
 ## Open Items — Not Started / Not Finished
 
-1. **`install_workflow_shortcuts`'s disabled 4th symlink form**
-   (`p7.<shorthand>` -> multi-word command, e.g. `wo` -> `workflow
-   overview`) — was blocked on "parameter propagation", which the new
-   launcher-chain context now provides. Needs a decision: wire it up
-   as a recognized form, or express shorthands as ordinary chains.
-   Small, well-scoped — good next dispatch.
+1. **`install_workflow_shortcuts`'s disabled 4th symlink form** —
+   resolved same day: wired up as ordinary `p7.<shorthand>` ->
+   `p7-<zenka>` chains (not a fourth recognized form), table in
+   `src/base.path-template.console-shorthand`, expansion in
+   `src/base.call.console_command`; decision recorded in
+   `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`.
 2. **`p7-`-prefixed zenka names are ambiguous** (`p7-log` resolves to
    `log`) — pre-existing, not a regression, now documented in
    `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`, not fixed.
