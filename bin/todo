@@ -345,6 +345,19 @@ sub item_has_details {
     return length( $item->{details} ) ? 1 : 0;
 }
 
+sub center_ellipse {
+    ## standalone port of bin/Protocol-7's p7_parser__ellipse_center [ same ##
+    ## shape as gen_id/chk3 above ] -- cuts chars from the center of the    ##
+    ## string and splices in '.,.', keeping total length at $len            ##
+    my ( $str, $len ) = @_;
+    return $str if length($str) <= $len;
+
+    my $start_pos = int( $len / 2 ) - 1;
+    my $chars_cut = length($str) - $len + 3;
+    substr( $str, $start_pos, $chars_cut, '.,.' );
+    return $str;
+}
+
 sub format_items {
     my ( $items, $show_done ) = @_;
 
@@ -398,6 +411,15 @@ sub format_items {
         ## keep the details-marker column width constant so tag columns ##
         ## align                                                        ##
         $tags .= item_has_details($item) ? '┋' : ' ';
+
+        if ($TTY) {
+            ## precise per-row budget : text center-ellipsizes to fit this  ##
+            ## row's own prefix+tags within the real terminal width -- when ##
+            ## piped [ $TTY false, width unknowable/irrelevant ] text stays ##
+            ## unbounded, cleanly skipping truncation entirely              ##
+            my $avail = $TERM_WIDTH - length($prefix) - length($tags);
+            $text = center_ellipse( $text, $avail ) if $avail >= 5;
+        }
 
         my $vis_len = length($prefix) + length($text) + length($tags);
         $max_width = $vis_len if $vis_len > $max_width;
@@ -701,7 +723,12 @@ sub cmd_list {
 
     my ( $lines, $content_width ) = format_items( \@items, $show_done );
     my $width = $TERM_WIDTH;
-    $width = $content_width + 4 if $content_width + 4 > $width;
+    ## content_width is already capped to $TERM_WIDTH by format_items' own  ##
+    ## per-row center-ellipsis truncation whenever $TTY -- only grow past   ##
+    ## the real terminal width for the untruncated [ piped ] case, and only ##
+    ## by however much content genuinely needs, not a flat pad that would   ##
+    ## push header/footer past the terminal and wrap them                  ##
+    $width = $content_width if $content_width > $width;
 
     say "";
     draw_header($width);
@@ -1534,8 +1561,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,,,.,.,.,..,,,.,,..,,,,,,,,,,.,,,,,.,.,,,..,,...,...,..,,.,.,...,,..,.,,,
-#LKDUXJNXWVIZREHHECCRJHXSASNJ7LHE45OKGJLR3C4PZAUPBK6P7JKYQFOBD57W7IKA7RHIT7KJ4
-#\\\|XFHLAVHMQSPFANG4IIYGPYMDSPFAQBU4JZFYA3CH7CEQXVIJ2VQ \ / AMOS7 \ YOURUM ::
-#\[7]QBVHGB7W5DNDFWBCKYPWA4NOIWJFJVIQEIZ6N62VCZLNBTXE32BY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,,,.,.,,,,,.,.,,,,.,,.,,,,.,,..,,...,...,.,,,,,.,,,,,..,,,..,
+#HK7VNF226NT6H4OG3IOPSWLKJKK22WCG2ZF3XW67MRIOHC5XUQFMBMBI6H2EEJ6H2SP2GHNGSQGCM
+#\\\|U2KX7WWDZWSCRTTM7FVCCYMBSVG4THRQA7BG7MMFZJEUKADHLPS \ / AMOS7 \ YOURUM ::
+#\[7]A4BKN65Q6U6GTUAIBFS5MEF4DNRK7FISH2FIA6TCN7J6T4MWSGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
