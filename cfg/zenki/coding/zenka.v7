@@ -248,8 +248,19 @@ coding.cfg.vision_switch_idle_timeout = 300
 ## at 52000 ]. 28000 tokens frees ~985MB of KV cache vs. 52000 [ 42KB/token *9B    ##
 ## class KV estimate ], comfortably covering the missing margin. revisit per-model ##
 ## if a future default is text-only and could again afford a much higher floor     ##
-inference.model.context_length = 37777
-## inference.model.context_length = 52000 ## [ prior value, doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
+##                                                                                  ##
+## raised 37777 -> 42500 [ 2026-09-02 ] : current default's mmproj_path is EMPTY   ##
+## on both backends [ confirmed live via coding.inference-status ], so no vision   ##
+## encoder is actually loaded right now -- the OOM risk above doesn't apply to     ##
+## this deployment as it currently stands. NOT because this model is text-only :   ##
+## lm-studio marks it a vision model, so mmproj discovery/install is broken/       ##
+## incomplete, a separate bug to fix (possibly a missing mmproj for the 27B        ##
+## variant). if that gets fixed, re-verify the vision-encoder compute-buffer       ##
+## margin at this floor before leaving it raised -- don't assume 42500 is safe     ##
+## once a real mmproj is loaded again                                             ##
+inference.model.context_length = 42500
+## inference.model.context_length = 37777 ## [ prior value : safe with a working mmproj loaded, see above ##
+## inference.model.context_length = 52000 ## [ doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
 ## inference.model.context_length = 32000 ## [ temporary override ] ##
 #inference.model.max_tokens = 32000  ## defaults to context_length if unset
 inference.model.temperature = 0.7
@@ -306,8 +317,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,..,,,,,,.,.,,..,,..,.,,,,.,,.,,,,.,,..,,.,.,...,...,...,.,.,.,.,.,,,..,,
-#NZCNMH7FV344NGHOLTX3N5TA6JOOEOXKY7IJ2IPYI4M6DD3D4ZIBCMU5PYOXOZPCIREWRY7ZVL7G4
-#\\\|4OZWYRIPSQEJG6IUNM3GTJLP3ENI2VDLHPXMM6FIEXJOVSEJMFA \ / AMOS7 \ YOURUM ::
-#\[7]LS547RZI2YPVRE7DOOUQUXY7X7UDDOOHSESM44UBN4JBA7DT4ODQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,.,..,,,.,,,,,,,,.,,,.,,..,,,.,.,.,...,...,...,.,.,,,,,,..,,.,,
+#FJX3QYQH43TUQCARL7TWD65LQVR724GXT4HDECB37L6JN375KTACX2DFRQEFZ2ICYWUSHNA5IOG6W
+#\\\|3EINQR3OWK2BOI3ARPQUXSCXBURH5GIMQCRFVIJQMW7BHSF4RJX \ / AMOS7 \ YOURUM ::
+#\[7]LMODWSUZCOT3QGI5K5KZTXBAB3ZBPUVHSG5K5NQAYE42ZYWZEECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
