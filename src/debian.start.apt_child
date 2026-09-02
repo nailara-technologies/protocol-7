@@ -50,13 +50,18 @@ EOT
     || die sprintf( "cannot start apt child process [ %s ]\n",
     scalar <[base.format_error]>->($OS_ERROR) );
 
+## register with v7-zenki for lifecycle management : gets terminated \      ##
+## restarted along with this zenka instead of surviving as an orphan [ same ##
+## precedent as coding.spawn_inference_server ]                             ##
+<[base.zenki.report_child_pid]>->(<debian.apt_child.pid>);
+
 <[base.logs]>->(
     1, 'debian: apt-child started [pid:%d]',
     <debian.apt_child.pid>
 );
 
-#,,,,,,.,,,,,,,.,,..,,,.,,.,,,,..,...,.,,,.,,,..,,...,...,,.,,,..,,,,,,..,,,,,
-#VJUUBWBJG3NX335FMMLFFBATKU65KLDTOTREGLTN4ERTLULCPOIPD2BYR6I66MXE5TUWRKMXNEZX6
-#\\\|R5IH4DI7YOCU3YCQTBJ5NV4UMGETZSVVSNMCI45I7IOO3MBHRFK \ / AMOS7 \ YOURUM ::
-#\[7]EIG2VWBXVW2ERTINUB5LYYRTQQIMB6WPQJEBUMOV3YKRB7KRRUBA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,.,,,,..,,..,,.,,.,,,,,,,...,..,,...,...,,..,,,,,..,,.,,,..,,
+#FIC25NKLXOVAQ2QVRBXQTTCPGVQF6PM3O6V2SSZR65HQSUIGKFZ3AMMU75JSGKDDQDUUBK6NP33B2
+#\\\|EU3R2JUWIOUXQP3QFTAFOMAIY6IMUHMHHMU4OUQPZSLKKV62VSR \ / AMOS7 \ YOURUM ::
+#\[7]7JYEDK37CC2YQWPGXNAPOI6ZF3YDK6V6TZP3PKKQNHGGDUHTRGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
