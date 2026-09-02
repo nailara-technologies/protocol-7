@@ -9,8 +9,8 @@ use warnings;
 ###                                                                ###
 
 ## exercises the real translated module sources [ base.dependency.setup,    ##
-## .add_object, .add, .install_callbacks, .ok, and v7.resolve.object.zenka  ##
-## ] against an in-process %data / %code stub environment -- no live v7     ##
+## .add_object, .add, .install_callbacks, .ok, and v7-zenki.resolve.object.zenka  ##
+## ] against an in-process %data / %code stub environment -- no live v7-zenki     ##
 ## required. covers:                                                        ##
 ## - install_callbacks discovers callback+resolve per type [ dotted types,  ##
 ## callback-only types unaffected -- regression guard for the 4 real        ##
@@ -20,9 +20,9 @@ use warnings;
 ## - resolve hook fires on a failed check, is debounced per chain-object id ##
 ## [ guards the duplicate-start bug a naive un-debounced hook would cause   ##
 ## -- jobqueue.check_dependencies sweeps 'depending' synchronously every    ##
-## tick, and v7.start_count can't see a job sitting in 'queued' ]           ##
+## tick, and v7-zenki.start_count can't see a job sitting in 'queued' ]           ##
 ## - a resolve hook that dies never propagates out of dependency.ok         ##
-## - v7.resolve.object.zenka resolves object_id -> zenka_id -> zenka_name   ##
+## - v7-zenki.resolve.object.zenka resolves object_id -> zenka_id -> zenka_name   ##
 ## and cascade-starts via zenka.cmd.start_once with the correct args        ##
 
 use File::Spec;
@@ -74,7 +74,7 @@ my %FAKE_START_COUNT;    ## zenka_name => count, controllable per test ##
 %code = (
     'base.log'       => sub { return TRUE },
     'base.logs'      => sub { return TRUE },
-    'v7.start_count' => sub {
+    'v7-zenki.start_count' => sub {
         my $zenka_name = shift;
         return $FAKE_START_COUNT{$zenka_name} // 0;
     },
@@ -119,7 +119,7 @@ compile_module($_) foreach qw|
     base.dependency.install_callbacks
     base.dependency.ok
     base.ntime.delta_seconds
-    v7.resolve.object.zenka
+    v7-zenki.resolve.object.zenka
     |;
 
 ## real runtime aliases base.X -> X via base.swap_subs [ base.pre_init ] : ##
@@ -210,7 +210,7 @@ ok( scalar(@thing_resolve_calls) == 1,
 );
 
 ## advance by slightly less than 1 real second [ well under the 5s min ] : ##
-## this is exactly the shape of the original live bug -- v7's own boot     ##
+## this is exactly the shape of the original live bug -- v7-zenki's own boot     ##
 ## sequence re-checking the same still-starting dependency (eg 'cube')     ##
 ## across sub-second-spaced ticks spawned multiple redundant instances     ##
 ## because the debounce compared raw ntime units against "5" directly      ##
@@ -245,14 +245,14 @@ ok( ( not $EVAL_ERROR ),
 ok( ( not $result2 ),
     'dependency.ok still returns ' . 'FALSE despite resolve dying' );
 
-##[ 4 : v7.resolve.object.zenka -- id resolution + cascade-start call ]#######
+##[ 4 : v7-zenki.resolve.object.zenka -- id resolution + cascade-start call ]#######
 
-say ': v7.resolve.object.zenka';
+say ': v7-zenki.resolve.object.zenka';
 
 $data{'dependency'}{'object'}->{99} = { 'type' => 'zenka', 'zenka_id' => 42 };
-$data{'v7'}{'zenka'}{'setup'}->{42} = { 'name' => 'models' };
+$data{'v7-zenki'}{'zenka'}{'setup'}->{42} = { 'name' => 'models' };
 
-my $reply = $code{'v7.resolve.object.zenka'}->(99);
+my $reply = $code{'v7-zenki.resolve.object.zenka'}->(99);
 ok( scalar(@start_once_calls) == 1, 'zenka.cmd.start_once called once' );
 ok( ( $start_once_calls[0]->{'args'} // '' ) eq 'models',
     'start_once called with the resolved zenka name'
@@ -265,22 +265,22 @@ ok( ( $reply->{'mode'} // '' ) eq 'true',
 
 ##  wrong object type / unknown id : safe undef, no cascade attempt  ##
 $data{'dependency'}{'object'}->{100} = { 'type' => 'not-zenka' };
-my $wrong_type = $code{'v7.resolve.object.zenka'}->(100);
+my $wrong_type = $code{'v7-zenki.resolve.object.zenka'}->(100);
 ok( ( not defined $wrong_type ), 'wrong object type returns undef' );
 ok( scalar(@start_once_calls) == 1,
     'wrong object type ' . 'does not cascade-start' );
 
-my $unknown_id = $code{'v7.resolve.object.zenka'}->(999999);
+my $unknown_id = $code{'v7-zenki.resolve.object.zenka'}->(999999);
 ok( ( not defined $unknown_id ), 'unknown object id returns undef' );
 
 ## already-starting guard : confirmed live 2026-08-26 -- a resolve call  ##
 ## racing against a zenka's own normal startup produced a genuine SECOND ##
 ## instance of a max_concurrency=1 singleton ('cube'), because           ##
-## v7.handler.zenka_status's delayed-instance auto-fire never re-checks  ##
+## v7-zenki.handler.zenka_status's delayed-instance auto-fire never re-checks  ##
 ## max_concurrency. this guard keeps the resolve hook itself from ever   ##
 ## contributing that second request in the first place.                  ##
 $FAKE_START_COUNT{'models'} = 1;    ## already starting/running ##
-my $reply_already = $code{'v7.resolve.object.zenka'}->(99);
+my $reply_already = $code{'v7-zenki.resolve.object.zenka'}->(99);
 ok( scalar(@start_once_calls) == 1,
     'already-starting zenka : start_once '
         . 'NOT called again [ still 1 total call ]'
@@ -289,38 +289,38 @@ ok( ( $reply_already->{'mode'} // '' ) eq 'true',
     'already-starting zenka : resolve still reports true [ not an error ]' );
 $FAKE_START_COUNT{'models'} = 0;    ## reset for any future test ##
 
-##[ 5 : v7.start_count -- the actual root-cause fix, tested against the ]#####
+##[ 5 : v7-zenki.start_count -- the actual root-cause fix, tested against the ]#####
 ##[     real function, not the fake stub sections 2-4 used above        ]#####
 
-say ': v7.start_count [ real function, real jobqueue/instance state ]';
+say ': v7-zenki.start_count [ real function, real jobqueue/instance state ]';
 
 ## swap in the REAL compiled function now that every earlier test that ##
 ## depended on the simple %FAKE_START_COUNT stub has already run       ##
-compile_module('v7.start_count');
-compile_module('v7.instance_count');
+compile_module('v7-zenki.start_count');
+compile_module('v7-zenki.instance_count');
 
-## v7.instance_count's own deps : v7.instance_ids [ simple key-list over ##
+## v7-zenki.instance_count's own deps : v7-zenki.instance_ids [ simple key-list over ##
 ## the same instance hash real code uses -- not worth compiling the real ##
 ## one, it has no logic of its own beyond that ] + a subname regex only  ##
 ## exercised by the optional zenka[subname] suffix form, unused here     ##
-$code{'v7.instance_ids'}
-    = sub { return keys %{ $data{'v7'}{'zenka'}{'instance'} // {} }; };
+$code{'v7-zenki.instance_ids'}
+    = sub { return keys %{ $data{'v7-zenki'}{'zenka'}{'instance'} // {} }; };
 $data{'regex'}{'base'}{'subname'} = 'UNUSED_IN_THIS_TEST';
 
 ## no instance, no queued/depending job : genuinely never started ##
-ok( $code{'v7.start_count'}->('cube') == 0,
+ok( $code{'v7-zenki.start_count'}->('cube') == 0,
     'start_count : 0 when nothing exists for this zenka at all' );
 
-## a live v7.zenka.instance entry counts, regardless of its status -- a ##
+## a live v7-zenki.zenka.instance entry counts, regardless of its status -- a ##
 ## zenka mid-'starting' must count as "already running" too             ##
-$data{'v7'}{'zenka'}{'instance'}{111}
+$data{'v7-zenki'}{'zenka'}{'instance'}{111}
     = { 'zenka_name' => 'cube', 'status' => 'starting' };
-ok( $code{'v7.start_count'}->('cube') == 1,
+ok( $code{'v7-zenki.start_count'}->('cube') == 1,
     'start_count : a starting [ not yet online ] instance counts' );
-delete $data{'v7'}{'zenka'}{'instance'}{111};
+delete $data{'v7-zenki'}{'zenka'}{'instance'}{111};
 
 ## the actual bug : a job sitting in 'queued' [ reached with zero unmet     ##
-## dependencies, eg 'cube' -- v7.zenka.cmd.start's target_queue goes        ##
+## dependencies, eg 'cube' -- v7-zenki.zenka.cmd.start's target_queue goes        ##
 ## straight to 'queued', never through 'depending' at all ] was INVISIBLE   ##
 ## to the old start_count, which only ever scanned 'depending'. confirmed   ##
 ## live 2026-08-26: this exact gap let two concurrent start requests for    ##
@@ -331,7 +331,7 @@ $data{'jobqueue'}{'joblist'}{'by_id'}{4242}            = {
     'name'            => 'zenka.start',
     'callback_params' => 'cube',
 };
-ok( $code{'v7.start_count'}->('cube') == 1,
+ok( $code{'v7-zenki.start_count'}->('cube') == 1,
     'start_count : a job sitting in QUEUED now counts [ THE root-cause '
         . 'fix -- this assertion fails against the pre-fix function ]'
 );
@@ -344,14 +344,14 @@ $data{'jobqueue'}{'joblist'}{'by_id'}{4243}               = {
     'name'            => 'zenka.start',
     'callback_params' => 'cube',
 };
-ok( $code{'v7.start_count'}->('cube') == 1,
+ok( $code{'v7-zenki.start_count'}->('cube') == 1,
     'start_count : a job sitting in DEPENDING still '
         . 'counts [ unchanged behaviour, regression guard ]'
 );
 
 ## a queued/depending job for a DIFFERENT zenka must not be counted ##
 $data{'jobqueue'}{'joblist'}{'by_id'}{4243}{'callback_params'} = 'models';
-ok( $code{'v7.start_count'}->('cube') == 0,
+ok( $code{'v7-zenki.start_count'}->('cube') == 0,
     'start_count : a job for a different zenka name is not counted' );
 
 ##[ summary ]#################################################################
@@ -364,8 +364,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,,.,,..,,..,,,.,..,,,,,,...,..,,,..,...,..,,...,...,...,,.,,,.,,.,.,,..,
-#32BDAWM67TUNZVNJHJMYKW5UW6VNI7OVVAEXWXQH24TTSLI2PNCIOXUN4EISW6S74A6MFZTNCCT3U
-#\\\|HJCISCCMHJJFXYB52FSWJIAA5UEBXJT3F3D24GVP67ANDC6DCJY \ / AMOS7 \ YOURUM ::
-#\[7]L3GHSDTBILD7PZXJJQXQYY3ZYK3A63R4HP5KGEZHKDVOBGABW2CY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,.,.,,..,,..,..,,...,,,.,.,,,..,,...,...,..,,,.,,.,,,,,,,.,,,
+#ZAO6NOIYOA4ATYWUN6GFLMWBHTZCEBXKGZR7UMRKHM4EPUJ3CG3XGDH3EDTNXVSSWUHXNUDTOMQK6
+#\\\|HVKNL6GJH7MVK7QL6FBJRYOYXVJDWTTIOF4H2YTDX4GGUD4XIUK \ / AMOS7 \ YOURUM ::
+#\[7]NAMXKMVLCZ2LM4ZNROIG3LV5GOOXNIIQZC62YE2KWTQ6DS7DO6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

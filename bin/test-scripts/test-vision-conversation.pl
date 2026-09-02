@@ -90,11 +90,11 @@ print "✓ Async architecture in place\n\n";
 print "=== Vision-Parser Integration Tests Complete ===\n";
 print "\nNotes:\n";
 print "- Async operations may complete in background\n";
-print "- Check v7 logs for completion: tail -f /var/log/protocol-7/v7.log\n";
+print "- Check v7-zenki logs for completion: tail -f /var/log/protocol-7/v7-zenki.log\n";
 print "- Job results available via callback mechanism\n\n";
 
-#,,,,,..,,.,,,...,.,.,.,.,,.,,.,.,.,,,,,.,.,.,..,,...,...,...,,..,,,.,.,,,,..,
-#KPHAHXBEYTQHZBWEZA6MNUHVYFLB6DG7F4HOKGMC74M3C7QANZRRI22RH3MKXNAVDVH5U6EPFUSOE
-#\\\|HU45J734DFZHBENF67XI7DRGAEJ2TXUC6KZUISJHPTWA42PNJDU \ / AMOS7 \ YOURUM ::
-#\[7]RKHB7ZILI2A3QAJQW4UBAH723LLBAB7JHXHNPGDR3OKQWVTQCEBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,,,,,,,.,...,.,.,,..,,..,,,.,..,,...,...,,,,,,,,,.,.,,,.,,.,,
+#VLJTMSL7MCME4AMTEIPEKICU26ZWHPGED5ZE2GCX7VA7SBQAMI2WBCDQDSMWS7ELWDOG2IWO3NCH2
+#\\\|UIINVU33MQZBXHWCGX7IE34EBT3SX4YJZP4LWCMKVHGLSTYFKPP \ / AMOS7 \ YOURUM ::
+#\[7]G42ADEG54S6BR52GGMTZDRR5KLIEUG6KRPWDJDTZWL4PKK5EOMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

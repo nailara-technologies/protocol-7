@@ -29,16 +29,16 @@ mpv.pause
 Any zenka can be started with an appended `[subname]`:
 
 ```
-v7.start mpv[top-right]
-v7.start weather[hometown]
-v7.start mpv[audio]
+v7-zenki.start mpv[top-right]
+v7-zenki.start weather[hometown]
+v7-zenki.start mpv[audio]
 ```
 
 The subname becomes part of the network address and can be used anywhere in a
 route, narrowing the target to sessions with that specific subname:
 
 ```
-v7.restart mpv[top-right]
+v7-zenki.restart mpv[top-right]
 weather[hometown].desc
 ```
 
@@ -47,7 +47,7 @@ exposed at the cube session table level — regular routing is unaffected by
 whether subnamed instances exist.
 
 To inspect subnames:
-- `v7.list subnames` — all subnamed instances across the network
+- `v7-zenki.list subnames` — all subnamed instances across the network
 - `weather.subname` — query a specific zenka's own subname
 
 **Multiple concurrent instances** of the same zenka are managed via subnames
@@ -136,10 +136,10 @@ zenka in `cfg/zenki/cube/access.zenki`.
 Development and diagnostic commands live in the `devmod` namespace, loadable
 on demand without any filesystem access or reinit phase:
 
-- **Enable**: `v7.devmod-enable <zenka>` — looks up the zenka PID and sends
+- **Enable**: `v7-zenki.devmod-enable <zenka>` — looks up the zenka PID and sends
   SIGNUM53; the signal handler loads the devmod module and its commands
 - **Disable**: `devmod.cmd.unload-devmod` — unloads the module again cleanly
-- **Access gate**: who can call `v7.devmod-enable` is controlled by the
+- **Access gate**: who can call `v7-zenki.devmod-enable` is controlled by the
   standard cube access config, not by any devmod-specific mechanism
 - **Unix permissions**: manually sending SIGNUM53 requires the same Unix
   permissions as the target process — no privilege escalation vector
@@ -161,10 +161,10 @@ All zenki connect to one cube instance. The cube routes all inter-zenka
 communication.
 
 ```
-v7 ── cube ── weather
-               ├── httpd
-               ├── mpv
-               └── p7-log
+v7-zenki ── cube ── weather
+                     ├── httpd
+                     ├── mpv
+                     └── p7-log
 ```
 
 ### Multi-Cube (isolated networks)
@@ -174,7 +174,7 @@ segment. Example: a `web-cube` for HTTP and HTML parsing zenki, isolated from
 the main cube serving core system zenki.
 
 ```
-main-cube ── v7
+main-cube ── v7-zenki
           ── system
           ── p7-log
 
@@ -194,7 +194,7 @@ commands and which zenki can communicate across the boundary. This allows:
 
 - Access policy enforcement at segment boundaries
 - Selective command forwarding with logging or transformation
-- v7 itself reachable through a relay with restricted command access
+- v7-zenki itself reachable through a relay with restricted command access
 
 ### On-Demand Zenki
 
@@ -249,15 +249,15 @@ inherits that tile's geometry automatically — no per-zenka configuration
 required.
 
 ```
-v7.start mpv[top-right]       # opens mpv sized and positioned to the top-right tile
-v7.stop  mpv[top-right]
-v7.start web-browser[top-right]  # browser opens at exactly the same position and size
+v7-zenki.start mpv[top-right]       # opens mpv sized and positioned to the top-right tile
+v7-zenki.terminate mpv[top-right]
+v7-zenki.start web-browser[top-right]  # browser opens at exactly the same position and size
 ```
 
 The tile name is simultaneously:
 - the subname for network addressing (`mpv[top-right]`)
 - the geometry lookup key in tile-groups
-- the routing address for management commands (`v7.restart mpv[top-right]`)
+- the routing address for management commands (`v7-zenki.restart mpv[top-right]`)
 
 This extends the Protocol-7 network addressing model into the display canvas —
 screen positions become first-class network addresses. No mapping table, no
@@ -266,9 +266,9 @@ per-zenka config, no coordination beyond the tile-groups configuration.
 Multiple concurrent display instances at different positions are natural:
 
 ```
-v7.start mpv[top-left]
-v7.start mpv[top-right]
-v7.start mpv[bottom-left]
+v7-zenki.start mpv[top-left]
+v7-zenki.start mpv[top-right]
+v7-zenki.start mpv[bottom-left]
 
 mpv.pause           # pauses all three
 mpv[top-right].pause  # pauses only top-right
@@ -285,8 +285,8 @@ mpv[top-right].pause  # pauses only top-right
 | Session ID      | single session  | ephemeral    | precise point-to-point targeting  |
 | Composition     | any of above    | —            | multi-hop routes, cross-segment   |
 
-#,,.,,.,,,,.,,,..,,..,...,.,.,,.,,,,.,,..,,,,,..,,...,...,.,,,.,,,.,.,.,,,...,
-#I4DELE7LDS73VQAGBBI4E7L2AA7VAQVV7BK467MR5X4U3QDHOZ4EK7FHHL237ZBHQ664KUV2EP4HS
-#\\\|K6GBKSTXRHGXO2NLZX3MABOVA7ZXXTM4XC6CQG7AFZEQJ5RKIX6 \ / AMOS7 \ YOURUM ::
-#\[7]Z2HUY3HBRXJPMY52BSLULHDJRE7MKCOKKT6WLWDVJ46IP5KFVEDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,,..,..,,.,.,,,,,.,.,,..,,,.,..,,...,..,,,..,,,,,,.,,..,,.,,,
+#GRSGDDCJHIOOZ2LYVPBJG6W2NAE363Q4GT2CLIJHFLNHRSOPNKDGMQ5I7CBSNXZOB2RLQZE36EAQO
+#\\\|OO7CGOTVSBLNNJXXE275ULQFGBS2BQGYW7BFLIHVWOUJJAWWIVQ \ / AMOS7 \ YOURUM ::
+#\[7]SR3D652HZ3F5AU7JF7CXSSJWZVJYRTMAEDPYXTCATVGDC62BWGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

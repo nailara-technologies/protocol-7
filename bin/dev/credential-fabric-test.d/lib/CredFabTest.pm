@@ -74,7 +74,7 @@ sub p7c_eval {
 
 sub zenka_running {
     my ($name) = @ARG;
-    my $out = p7c( 'v7.list', 'zenki' );
+    my $out = p7c( 'v7-zenki.list', 'zenki' );
     return 0 if not defined $out;
     return $out =~ m{\b$name\b} ? 1 : 0;
 }
@@ -243,8 +243,8 @@ sub say_summary {
 
 # [ end ]
 
-#,,..,,..,.,.,,.,,..,,,,,,,,,,,,.,,..,,..,,..,..,,...,...,,..,.,,,,,,,..,,.,.,
-#KKWZTI4SHVUZUQRP6S3PZGBKXWUHWMKBFDMZUMNIHMLZ6ZOPECJL745YFSUUXRSC2CFIQD2R75U3O
-#\\\|CH5GBREZAS4TY2XFVVR3T4632YWV4KI6CY6YMGJOGCONWS72VXE \ / AMOS7 \ YOURUM ::
-#\[7]5VPXOZQVWHKW2ZYT2OID7UGNSSKDOGFF22ZZRNZ6GUUOTEGPD2AI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,,..,,..,,..,,,.,,..,...,..,,..,,...,...,.,,,,.,,.,.,,..,..,,
+#EVRM7GM7HQPGBT5E4U33HWD3QAZFLUQ4KFZGV3KCO55K575OOTWJNMFLWXOYZ4OU6CEKCVAEZ2VVU
+#\\\|VF2MHL7BHT45VALIP6WABGWYA4S24NMQ5DDHAF57I3E4GGW3UUY \ / AMOS7 \ YOURUM ::
+#\[7]XDQHXNQIEW6LE4BTC2WGO7M34SKXNSJEDC53UVSAQC7UNW7NYMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

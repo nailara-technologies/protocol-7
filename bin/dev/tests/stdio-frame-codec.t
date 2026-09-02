@@ -139,7 +139,7 @@ my $scope_enter = $encoder->(
     '',
     {   'subtype'   => 'scope-enter',
         'hop_id'    => 42,
-        'slot_addr' => 'v7.console',
+        'slot_addr' => 'v7-zenki.console',
         'origin'    => 'weather'
     }
 );
@@ -166,7 +166,7 @@ ok( $nested_recs[0]->{'tag'} eq 'META'
 );
 
 ok( $nested_recs[0]->{'header'}->{'origin'} eq 'weather'
-        && $nested_recs[0]->{'header'}->{'slot_addr'} eq 'v7.console'
+        && $nested_recs[0]->{'header'}->{'slot_addr'} eq 'v7-zenki.console'
         && $nested_recs[0]->{'header'}->{'hop_id'} == 42,
     "scope-enter header carries full origin + slot_addr + hop_id"
 );
@@ -189,8 +189,8 @@ say "tests failed: $tests_failed";
 
 exit( $tests_failed > 0 ? 1 : 0 );
 
-#,,.,,..,,,,.,,.,,.,.,,..,.,.,.,,,..,,..,,...,..,,...,...,,..,.,,,,..,,.,,,,,,
-#Q6ZAHT2PPT26PVF4XG5O5ACFSNRJTOXZOAAAFV5FFOFZUBRUHCDQO4ACM2VOMQVEFDC77DBO7APO4
-#\\\|AJ3XDIJJDWXQJFC2NYI7L7CAKYODNAUER5XJ7T5IHTWBTS7WYBX \ / AMOS7 \ YOURUM ::
-#\[7]JHLZFIAS27RWU6K5ATKZJVXBXAGDVXBXLLMRGQMJM6X6SUBAREAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,...,.,,,,..,,..,,,.,,..,,,.,..,,...,..,,,,.,,,,,..,,,,.,,..,
+#T5BYFDHMEJWHPD3TK5SZ3OFWP5B44RBJPWOAQPA6SU6LEASKQJVBNYWFZOSZJBFLOGV7UVJLQS5GO
+#\\\|ALNH7LOAPR6IEMNO73G73ED3RX2JRCVDCOWTTPJMWSQ4BZCTUXF \ / AMOS7 \ YOURUM ::
+#\[7]SZMZPOLA7RJYZKQRNVAAQMRW7ZJZVDKTSWFJ3VB7LXEKXGGUJEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

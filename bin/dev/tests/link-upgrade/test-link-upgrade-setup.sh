@@ -1,5 +1,5 @@
 #!/bin/bash
-# Link-upgrade test setup: Initialize v7 zenka and cube
+# Link-upgrade test setup: Initialize v7-zenki zenka and cube
 
 set -e
 
@@ -40,28 +40,28 @@ if p7 whoami 2>&1 | grep -q "@"; then
     echo "     System already running! Proceeding to reload..."
     SYSTEM_RUNNING=1
 else
-    echo "     No system running, will start v7"
+    echo "     No system running, will start v7-zenki"
     SYSTEM_RUNNING=0
 fi
 echo ""
 
 if [ $SYSTEM_RUNNING -eq 0 ]; then
     # Step 1: Kill old processes (only if not running)
-    echo "[1/7] Killing old v7 and cube processes..."
-    pkill -f "runsc\.v7" 2>/dev/null || true
+    echo "[1/7] Killing old v7-zenki and cube processes..."
+    pkill -f "runsc\.v7-zenki" 2>/dev/null || true
     pkill -f "runsc\.cube" 2>/dev/null || true
     sleep 2
     echo "     Old processes cleaned up"
     echo ""
 
-    # Step 2: Start v7 in background
-    echo "[2/7] Starting v7 zenka in background..."
-    ./bin/Protocol-7 v7 -B 2>&1 | grep -E "protocol-7|backgrounding" || true
+    # Step 2: Start v7-zenki in background
+    echo "[2/7] Starting v7-zenki zenka in background..."
+    ./bin/Protocol-7 v7-zenki -B 2>&1 | grep -E "protocol-7|backgrounding" || true
     echo "     V7 started"
     echo ""
 
     # Step 3: Wait for initialization
-    echo "[3/7] Waiting 7 seconds for v7 and cube to initialize..."
+    echo "[3/7] Waiting 7 seconds for v7-zenki and cube to initialize..."
     sleep 7
     echo "     Initialization complete"
     echo ""
@@ -75,7 +75,7 @@ if [ $SYSTEM_RUNNING -eq 0 ]; then
     # Step 5: Check zenka list
     echo "[5/7] Checking loaded zenki..."
     echo "     Loaded zenki:"
-    p7 v7.list zenki 2>&1 | head -15 || echo "     (Could not list zenki)"
+    p7 v7-zenki.list zenki 2>&1 | head -15 || echo "     (Could not list zenki)"
     echo ""
 
     # Step 6: Reload code
@@ -122,8 +122,8 @@ echo "System is now ready for link-upgrade testing."
 echo "Run: ./bin/test-link-upgrade-workflow.sh"
 echo ""
 
-#,,,.,...,.,.,.,,,.,,,..,,,,,,..,,...,,,.,..,,..,,...,..,,..,,,..,,..,..,,,,.,
-#LRSAREBH6K2A4CVE5NGV4RD5OYXQXVBYEVMTJ2JNWQ72P5LVYKWP2ENMFRX7P66SXVF7JS73IDHIY
-#\\\|4FK23YTMNM5Q6FM4XPDOVPQMDC4Z2QMOPEKXTGNI6AY3Q7WX6T4 \ / AMOS7 \ YOURUM ::
-#\[7]FCOSOFKI2CQ2G4CWLK7X35QMZ7MJ4JNUVM6BBW3ORC5H552QCQAA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,,,..,,..,,..,,..,,,.,,,.,,..,,...,...,.,,,...,,,.,,.,,,..,
+#S7TPKDZY4NFQTQY7DVJOU373CZX7MP3MKETA6XY2APFHIGS4ILIUPC5RBML6P6JZZEIEXFL5CQBW4
+#\\\|YYLHU5QYFGR2PQSWWIR3FIU4IB7UO4NPXQCF6H6GYUQC6IYJPKA \ / AMOS7 \ YOURUM ::
+#\[7]LTAYQHLECTIK4MUUQ4XQUYWJBLOYWLTJK6O4GE44LMBZ7PORAUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
