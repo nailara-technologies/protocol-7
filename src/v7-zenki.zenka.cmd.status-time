@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.status-time
+# param = <zenka|instance>
+# descr = status of a zenka and its current duration
+
+<v7-zenki.zenka.notify_online> //= {};
+
+my $zenka_subname;
+my $query_param = $call->{'args'};
+my $reply_id    = $call->{'reply_id'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected zenka name or instance parameter'
+    }
+    if not defined $query_param or !length($query_param);
+
+my @instances = <[v7-zenki.instance_ids]>;
+
+if ( $query_param =~ m|^job:(\d+)$| and my $job_id = $LAST_PAREN_MATCH ) {
+    my $instance_id;
+    map {
+        $instance_id = $ARG
+            if <v7-zenki.zenka.instance>->{$ARG}->{'job_id'} == $job_id
+    } @instances;
+    if ( defined $instance_id ) {
+        $query_param = $instance_id;
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => "unknown job id '$job_id'"
+        };
+    }
+}
+
+my $query_copy = $query_param;
+$zenka_subname = $LAST_PAREN_MATCH
+    if $query_param !~ <regex.base.iid> and $query_param =~ s|\[([^\]]+)\]$||;
+
+if (    not defined <[zenka.get_id]>->($query_param)
+    and not defined <v7-zenki.zenka.instance>->{$query_param} ) {
+    my $rep_msg
+        = $query_param =~ <regex.base.iid>
+        ? "no such zenka instance [$query_param]"
+        : "no such zenka in set-up [$query_param]";
+    return {
+        'mode' => qw| false |,
+        'data' => $rep_msg
+    };
+}
+
+if ( $query_param =~ <regex.base.iid> and my $id = $query_param ) {  # inst.id
+    my $cube_sid = <v7-zenki.zenka.instance>->{$id}->{'cube_sid'};
+    my $prog_pid = <v7-zenki.zenka.instance>->{$id}->{'process'}->{'id'};
+    if ( defined <v7-zenki.zenka.instance>->{$id} ) {
+        my $zenka_status = <v7-zenki.zenka.instance>->{$id}->{'status'};
+
+        my $duration = <[base.parser.duration]>->(
+            <[base.n2u_time]>->(
+                <v7-zenki.zenka.instance>->{$id}->{'status-since'}
+            )
+        );
+
+        return {
+            'mode' => qw| true |,
+            'data' => "[ $zenka_status ] external program '$query_copy' "
+                . "[PID=$prog_pid] < since $duration >"
+            }
+            if <v7-zenki.zenka.instance>->{$id}->{'status'} eq qw| extbin |;
+
+        my $status_msg
+            = ( $zenka_status eq qw| online | and defined $cube_sid )
+            ? " [ $zenka_status ] < since $duration > [ cube-sid $cube_sid ]"
+            : " [ $zenka_status ] < since $duration >";
+
+        return { 'mode' => qw| true |, 'data' => $status_msg };
+    }
+}
+
+foreach my $id (@instances) {    # zenka name [+subname]
+    my $cube_sid = <v7-zenki.zenka.instance>->{$id}->{'cube_sid'};
+    my $prog_pid = <v7-zenki.zenka.instance>->{$id}->{'process'}->{'id'};
+    if (<v7-zenki.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
+        and (  not defined $zenka_subname
+            or not defined <v7-zenki.zenka.instance>->{$id}->{'subname'}
+            or <v7-zenki.zenka.instance>->{$id}->{'subname'} eq
+            $zenka_subname )
+    ) {
+        my $zenka_status = <v7-zenki.zenka.instance>->{$id}->{'status'};
+
+        my $duration = <[base.parser.duration]>->(
+            <[base.n2u_time]>->(
+                <v7-zenki.zenka.instance>->{$id}->{'status-since'}
+            )
+        );
+
+        return {
+            'mode' => qw| true |,
+            'data' => "[ $zenka_status ] external program  '$query_copy' "
+                . "[PID=$prog_pid] < since $duration >"
+            }
+            if <v7-zenki.zenka.instance>->{$id}->{'status'} eq qw| extbin |;
+
+        my $status_msg
+            = ( $zenka_status eq qw| online | and defined $cube_sid )
+            ? "[ $zenka_status ] < since $duration > [ cube-sid $cube_sid ]"
+            : "[ $zenka_status ] < $duration >";
+
+        return { 'mode' => qw| true |, 'data' => $status_msg };
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'not present' }
+
+#,,,,,..,,,,.,.,,,,,,,.,,,,,,,..,,..,,..,,,.,,..,,...,...,,,,,..,,,,,,.,.,,,.,
+#FNPHIV4PNYW2XGESTEYZSYFJDZBXKSBCSY4XVCNC4NWIRV5LPH5D4OOBGCF43IEI5OP4VAO7ZB2XU
+#\\\|7I7AV3YQE6HMNOQU6TKMCWAI65KGBGOI5E2E3NOHIS4DHYKPT7A \ / AMOS7 \ YOURUM ::
+#\[7]HCEX6TECZA75QSD6KA6G2GPRMVYYKIVRO3WH7DNHOCU7IXVF3QCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

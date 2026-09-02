@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = v7-zenki.bin_p7r_chksum_current
+
+my $log_level    = shift // 1;
+my $p7r_bin_path = <v7-zenki.cfg.p7r_bin_path>;
+my $bin_p7r_src_path
+    = join( '/', <system.root_path>, <system.bin_p7r_src_path> );
+return warn "[ p7r-bin ] $bin_p7r_src_path not found <<!>>"
+    if !-f $bin_p7r_src_path;
+
+my $current_result = 0;
+my $bin_checksum   = '';
+my $src_checksum   = <[chk-sum.bmw.filesum]>->( 224, $bin_p7r_src_path );
+
+if ( -e $p7r_bin_path
+    and <[v7-zenki.bin_p7r_comp_chksum]>->( $p7r_bin_path, $src_checksum ) ) {
+    <[base.log]>->( $log_level, ": 'p-7-r' binary installed and current =)" );
+    <[base.log]>->( 2, ":. src : $src_checksum" );
+    $current_result = 1;
+} else {
+    my $root_path = <system.root_path>;
+    ( my $bin_path_rel = $p7r_bin_path ) =~ s|^$root_path/?|./|;
+    my $result_msg
+        = -e $p7r_bin_path
+        ? "'p-7-r' binary needs upgrade [ bmw checksum mismatch ].,"
+        : "'p-7-r' binary is not installed [ $bin_path_rel ].,";
+    <[base.log]>->( --$log_level, ": $result_msg" );
+    <[base.log]>->( 2,            ":. src : $src_checksum" );
+    <[base.log]>->( 2,            ":: bin : $bin_checksum" )
+        if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
+    <v7-zenki.checksum.bin_p7r_source> = $src_checksum;
+}
+
+if ( -e $p7r_bin_path and not -x $p7r_bin_path ) {
+    ## automatic repair desired ?  [LLL] ##
+    map { <[base.log]>->( 0, $ARG ) } (
+        ':',
+        ": has no exec permission : $p7r_bin_path",
+        ": please repair manually :",    ## <-- security consideration ., ###
+        ':'
+    );
+}
+
+### check \ create symbolic link to /usr/local/bin/p-7-r ., ###          [LLL]
+
+return $current_result;
+
+#,,.,,...,,,.,,,,,,..,..,,.,.,...,...,,..,.,.,.,.,...,...,..,,,,,,.,.,.,,,,..,
+#QHVD6MKINAST2BNFSXC7ASJTNVT3LXU2I47BHXYVAQHJSKVHU24PTRLP2D6PDDJAI4ULNUFBFZVGK
+#\\\|GJ3M7WTAU2LSUIKGXNVFMREIWAFMUEYH5OIYH3DEAN47E3BIMTH \ / AMOS7 \ YOURUM ::
+#\[7]Q765IHFZT6GTXNXFDFZOATGJJAI7VMT66LG56QNLANTWRXUXWKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

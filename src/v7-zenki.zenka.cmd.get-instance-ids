@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.get-instance-ids
+# param = <name[s]>
+# descr = returning instance ids for matching zenki
+
+my $names = $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => 'expected zenka name[s]' }
+    if not length $names;
+
+my $results = <[v7-zenki.zenka-instances.get-ids]>->($names);
+
+my ( $instance_ids_ref, $found_set_up, $not_found, $unknown_name ) = (
+    $results->{'ids'},       $results->{'found'},
+    $results->{'not-found'}, $results->{'unknown-name'}
+);
+
+return {    ## single name with no matching zenka instance ##
+    'mode' => qw| false |,
+    'data' => sprintf( "zenka '%s' not in set-up [ see 'list zenki' ]",
+        $unknown_name )
+    }
+    if !$found_set_up and $not_found;
+
+## multiple names [ including partial results ] ##
+
+if ( scalar $instance_ids_ref->@* ) {
+    return {
+        'mode' => qw| true |,
+        'data' => join( ' ', $instance_ids_ref->@* )
+    };
+} else {
+    return { 'mode' => qw| false |, 'data' => 'no matches found' };
+}
+
+#,,,,,...,,.,,..,,,..,,.,,..,,...,,,,,,,,,,..,..,,...,...,..,,,,.,...,,.,,,.,,
+#PELNS5S6N2AFID2MGQC2YMO6C4NEJDNY5LZ23M6HIJ7CPLKPRWWZPEBMBGHZZQEGLDUDFLTZCU624
+#\\\|WRBEXXJ6DJ3BGTWKYAAT64BHLBAMSJ7NELOREYO6EIDQBLXMC66 \ / AMOS7 \ YOURUM ::
+#\[7]2XQORZM4RVLI65P4XKCXFYWJOXNROLXLGIUJUZPRRNO47TMONYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

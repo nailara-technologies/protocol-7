@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = v7-zenki.handler.set_initialized_reply
+
+my $reply      = shift;
+my $session_id = $reply->{'sid'};
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
+    $data{'session'}{$session_id}{'initialized'} = 1;
+    <[base.log]>->( 1, "bidirectional cube connection initialized. =)" );
+    <[base.log]>->( 2, ":. local cube session id is : $session_id ...:" );
+} else {
+    $data{'session'}{$session_id}{'initialized'} = 0;
+    my $err_reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "initializing cube session was not successful.," );
+    <[base.log]>->( 2, ":. ['$session_id'] cube-reply '$err_reason' .," );
+}
+
+#,,,,,..,,,..,.,,,,..,.,,,,.,,,.,,,,,,..,,,.,,..,,...,...,,.,,..,,,..,,..,...,
+#GNXIN3AG6JINGJX7W25ILOXN6G7FMLV5ESGAXQVHMXKVZ7E25Q32X7CDXMPFSN6AIANZZQOXVDINM
+#\\\|ACK5THWXIAJBYXSHMMTEUIZB4KMXK3NYB4A7MABEBTME4X736XA \ / AMOS7 \ YOURUM ::
+#\[7]USN2AESL6S3QG7WIUOGZDBC33AH57JDCLJRTH5KSDHMMIXYZDGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

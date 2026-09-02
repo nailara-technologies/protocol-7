@@ -1,0 +1,76 @@
+## [:< ##
+
+# name = v7-zenki.sub-process.get_children
+
+my $chk_pid = shift;
+
+if ( not defined $chk_pid or $chk_pid !~ m|^\d+$| ) {
+    ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
+    warn sprintf '[%s] expected parent process id <{C1}>', $caller_str;
+    return undef;
+}
+
+### old method ### [ heavy, non-portable, to be removed.. ]
+
+my $proc_table = <v7-zenki.process.pt>
+    //= new Proc::ProcessTable( qw| enable_ttys | => FALSE );
+
+my %ppids;
+my %start_times;
+foreach my $proc ( reverse $proc_table->table->@* ) {
+    next
+        if not defined $proc->{'pid'}
+        or not defined <v7-zenki.child>->{ $proc->{'pid'} }
+        or not <[base.exists.sub-process]>->( $proc->{'pid'} );
+
+    $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
+    $start_times{ $proc->{'pid'} } = $proc->{'start'};
+}
+
+my %children;
+
+my $found = 0;
+foreach my $pid ( keys %ppids ) {
+    if ( $ppids{$pid} == $chk_pid ) {
+        $children{$pid}->{'checked'} = FALSE;
+        $found++;
+    }
+}
+
+while ($found) {
+    $found = 0;
+    foreach my $child_pid ( keys %children ) {
+        next if $children{$child_pid}->{'checked'};
+        foreach my $pid ( keys %ppids ) {
+            if ( $ppids{$pid} == $child_pid ) {
+                $children{$pid}->{'checked'} = FALSE;
+                $found++;
+            }
+        }
+        $children{$child_pid}->{'checked'} = TRUE;
+    }
+}
+
+my $instance_id;
+foreach my $id (<[v7-zenki.instance_ids]>) {
+    $instance_id = $id
+        and last
+        if <[base.is_defined_recursive]>
+        ->( sprintf( qw| v7-zenki.zenka.instance.%d.process.id |, $id ) ) == 5
+        and $chk_pid == <v7-zenki.zenka.instance>->{$id}->{'process'}->{'id'};
+}
+if ( defined $instance_id ) {
+    map { $children{$ARG} = TRUE if <[base.exists.sub-process]>->($ARG) }
+        ( <[v7-zenki.instance_child_pids]>->($instance_id) );
+}
+
+return [
+    reverse sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
+        reverse sort keys %children
+];
+
+#,,..,,..,,.,,.,.,,..,,..,,..,...,...,,..,..,,..,,...,...,,,.,,..,,,.,,,,,,..,
+#7LXHE7ZWY4RPQETOOM6LHNSYESJIOOQOEMZTL4CHH3O66R6ZBVFLDUBAN7NDCBHWANQOLU4NHJNS4
+#\\\|WBOINCLNDM3FTXPKOVQZXLWVCX7PACJUIFJZQZBF6AD3CAB237I \ / AMOS7 \ YOURUM ::
+#\[7]PJM5K5L6XPMEB3DZOZ5HHYV3MU5A47NVRBXFIEAQBKMXCAKGBCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

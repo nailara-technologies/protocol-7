@@ -1,0 +1,54 @@
+## [:< ##
+
+# name = v7-zenki.load_zenka_output_patterns
+
+my $pattern_file = shift // '';
+my $pattern_data;
+my %pattern_handlers;
+my $cfg_base_path  = <system.conf_path>;
+my $base_file_name = qw| zenka-output.patterns |;    ## <-- < ! >
+my $zenka_name    ##  <--  zenka to load [log] output regex patterns for ##
+    = <system.zenka.name> eq qw| <stdin> |
+    ? qw| v7-zenki |
+    : <system.zenka.name>;
+
+my $loading_message
+    = sprintf ': loading zenka output regex patterns%s ..',
+    !length $pattern_file ? $pattern_file : sprintf " '%s'";
+
+<v7-zenki.patterns.zenka_output> //= {};    ## initializing pattern list ##
+
+( my $pattern_filename = join '.', $base_file_name, $pattern_file )
+    =~ s|\.$||;
+
+{
+    local <system.conf_path>                ## <-- < ! >
+        = catfile( $cfg_base_path, qw| zenki |, $zenka_name );
+
+    if ( !-f catfile( <system.conf_path>, $pattern_filename ) ) {
+        <[base.logs]>->(
+            0, ": missing output regex file '%s'",
+            $pattern_filename
+        );
+        return;
+
+    } else {
+        <[base.log]>->($loading_message);
+    }
+
+    #[ loading output regex trigger patterns ]#
+    $pattern_data = <[base.load_section_code]>
+        ->($pattern_filename)->[0]->{'output patterns'};
+}
+
+die "cannot load pattern data"
+    if not defined $pattern_data
+    or ref $pattern_data ne qw| ARRAY |;
+
+<v7-zenki.pattern_config> = $pattern_data;
+
+#,,,,,...,.,.,,,.,,.,,,,,,..,,..,,.,.,..,,..,,..,,...,...,,..,,,.,,..,...,..,,
+#Q2BUEMEEH4LIKKSDXGSDYOXGBOE5WSHQINAYEVYF7ON2D5CX5FUGPOZ5G2ULKKHW56CMH6PEB5SIS
+#\\\|BJT6UMP5AUBY6TYUEAQ7NZZ766UTMOIDLWB3NHUBFEBIOFB46TI \ / AMOS7 \ YOURUM ::
+#\[7]5PL6EYUB5BKZUMBNPGZIOEJRMQMT5ULIBUNM2C3YODATSVASFOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

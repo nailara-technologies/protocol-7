@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.pid-instance
+# param = <pid>
+# descr = reply matching instance id for the given pid
+
+my $proc_id = $call->{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected numerical PID parameter'
+    }
+    if not defined $proc_id or $proc_id !~ m|^\d{1,9}$|;
+
+my $match_id;
+foreach my $i_id (<[v7-zenki.instance_ids]>) {
+    my $parent_proc_id
+        = <v7-zenki.zenka.instance>->{$i_id}->{'process'}->{'id'};
+    if ( $proc_id == $parent_proc_id ) {
+        $match_id = $i_id;
+        last;
+    } else {
+        map {
+            if ( $ARG == $proc_id ) { $match_id = $i_id; last }
+        } @{ <[v7-zenki.sub-process.get_children]>->($parent_proc_id) };
+    }
+}
+
+return { 'mode' => qw| true |, 'data' => $match_id } if defined $match_id;
+
+return { 'mode' => qw| false |, 'data' => 'found no matching instance' };
+
+#,,,,,.,.,.,.,...,,..,,.,,.,,,,,.,,.,,,,,,.,,,..,,...,...,,..,,..,.,.,..,,,.,,
+#TGSJZO3CLPRGN7FHDVKFRAFUQLMRTSKJYQV7PGQFFUZBFWLTRLBP2DAYPB3JPCH54RXUCTBQW3L2K
+#\\\|WAHLABA7CGTFLMAHHWPMLOZMQO722NVETX2BPHUVEXVXP5TP6YV \ / AMOS7 \ YOURUM ::
+#\[7]HJYWQAZT5FI4B2LQMU7FSNOKVO6KHF3FVT7K6TYNPUSNXFKL5QBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = v7-zenki.register_ondemand_zenki
+# descr = register ondemand zenki at cube [ reload-safe ]
+
+##  skip when cube session is not yet established [ early v7 init ] ..,
+my $cube_connected = FALSE;
+foreach my $iid ( keys %{ <v7-zenki.zenka.instance> // {} } ) {
+    my $inst = <v7-zenki.zenka.instance>->{$iid};
+    next if ref($inst) ne qw| HASH |;
+    next if not $inst->{'is-cube'} or not $inst->{'root_sid'};
+    $cube_connected = TRUE;
+    last;
+}
+
+if ( not $cube_connected ) {
+    <[base.log]>->(
+        2, ': skipping ondemand registration [ no cube session ]'
+    );
+    return 0;
+}
+
+<v7-zenki.registered_at_cube> //= {};    ## dedup table [ per v7 process ] ##
+my $registered_ref = <v7-zenki.registered_at_cube>;
+
+## one-time seed from legacy <v7-zenki.ondemand_zenki> array [ migrate prior
+## path ] .., only when this is the first call after deploying this module ;
+## the cube (re)start path explicitly wipes the dedup before calling, so
+## seeding then is suppressed via that wipe leaving an empty hash and the
+## seed-flag unset.,
+<v7-zenki.registered_at_cube_seeded> //= FALSE;
+if ( not <v7-zenki.registered_at_cube_seeded>
+    and ref(<v7-zenki.ondemand_zenki>) eq qw| ARRAY | ) {
+    $registered_ref->{$ARG} //= TRUE foreach <v7-zenki.ondemand_zenki>->@*;
+    <v7-zenki.registered_at_cube_seeded> = TRUE;
+}
+
+##  walk parsed zenka start-up config for 'start.on-demand = 1'  ##
+my $zenka_config = <v7-zenki.start_setup.zenki.config> // {};
+my @new_names;
+foreach my $zenka_name ( sort keys %{$zenka_config} ) {
+    next if $registered_ref->{$zenka_name};
+    my $cfg = $zenka_config->{$zenka_name};
+    next if ref($cfg) ne qw| HASH |;
+    my $on_demand = $cfg->{'start'}->{'on-demand'} // FALSE;
+    next if not $on_demand;
+    push @new_names, $zenka_name;
+}
+
+if ( not @new_names ) {
+    <[base.log]>->( 1, ':. no new ondemand zenki to register ..' );
+    return 0;
+}
+
+<[base.logs]>->(
+    1,
+    'registering %d ondemand zenk%s at cube .,',
+    scalar @new_names,
+    <[base.cnt_s]>->( scalar @new_names, qw| i a | )
+);
+
+my $cube_path = qw| cube. |;
+foreach my $zenka_name (@new_names) {
+    <[base.logs]>->( 2, ':  + ondemand : %s', $zenka_name );
+    <[protocol-7.command.send.local]>->(
+        {   'command' => join( '', $cube_path, qw| ondemand-zenka | ),
+            'reply'   => {
+                'handler' => qw| base.handler.warn_nak_reply |,
+                'params'  => join(
+                    '', $cube_path, 'ondemand-zenka add ', $zenka_name
+                )
+            },
+            'call_args' => { 'args' => sprintf 'add %s', $zenka_name }
+        }
+    );
+    $registered_ref->{$zenka_name} = TRUE;    ## mark as registered ##
+}
+
+return 0;
+
+#,,.,,,,.,,.,,,,,,.,,,...,..,,...,,..,..,,,.,,..,,...,...,,,,,.,.,.,,,,,,,.,.,
+#L7A2EHXY2HBOFMTZD4IXQZQX3JXXB6DHZGNKBZ2T2QTUVGPA3BQOKLODFPS5LT2XUOJVP7O5T2KQ4
+#\\\|5KTGLY2JVMLO55ALHH5KPRSELX5YWH4OTWB2YOCQBLBJPRZ2FS4 \ / AMOS7 \ YOURUM ::
+#\[7]O465BIROLS27ZVKF5NGLRKXZGQKYLETER73MBFESGRWWWGNAO4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

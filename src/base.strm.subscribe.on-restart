@@ -40,16 +40,16 @@ if ( not defined $code{$handler_name} ) {
 }
 
 ## idempotent : the on_restart registry dedups repeated registration of the ##
-## same handler name for the same publisher, and only one v7.notify_restart ##
-## route is armed per publisher at a time                                   ##
+## same handler name for the same publisher, and only one                   ##
+## v7-zenki.notify_restart route is armed per publisher at a time           ##
 return <[base.zenka.on_restart]>->(
     {   'publisher' => $publisher,
         'handler'   => $handler_name,
     }
 );
 
-#,,,.,,..,..,,.,,,,,.,...,,.,,...,.,,,,.,,.,.,..,,...,...,..,,..,,.,.,.,.,..,,
-#IXPF6GJISJ2BR32MLJYVFY6YDE4RD5MBVMYB436SK6VORODTQWEQSHGPJHX3S64JKD4N7NBF7JFKO
-#\\\|AR6FQ2PXC2R7WK5ZPQCSBZU63TROYOPAYDS22CEYX6OFSPCLQBL \ / AMOS7 \ YOURUM ::
-#\[7]JBX7IJS7MP6JCOVNLXE6QYT7WOUM64FQQVX3XMEM544DMLXEMCDA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,,.,,.,.,,,.,,.,,,,.,,,.,,,.,..,,...,..,,...,,,,,.,.,..,,..,,
+#6CHYPLA7KJUPU6SNHW6FKVUBLHSKQPKRBXQ2N3C57SHSQGZFBNJH5KPCWVQHFWBUCIVUVLR4Q6A4K
+#\\\|6FZOWGV6GS76Z7YUW2ZJXWPTQE3BPUUKCVL57DZHDUXKETN2XD6 \ / AMOS7 \ YOURUM ::
+#\[7]XVPQW5NCV4XSPA3QPTTOU655EWRVOHY6CGQYM2OAQN2J4TX644BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

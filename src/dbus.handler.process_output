@@ -3,7 +3,7 @@
 # name  = dbus.handler.process_output
 # descr = reads output from dbus process
 
-<v7.patterns.zenka_output> //= {};
+<v7-zenki.patterns.zenka_output> //= {};
 
 my $event   = shift->w;
 my $read_fh = $event->fd;
@@ -55,7 +55,7 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
         ## io.unix.socket.input.open uses for its own socket file          ##
         push(
             <system.init_reports>->@*,
-            {   'target_command' => qw| v7.report-temp-path |,
+            {   'target_command' => qw| v7-zenki.report-temp-path |,
                 'param'          => <dbus.socket_path>,
                 'descr'          => 'registering dbus session socket file'
             }
@@ -68,8 +68,8 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,.,,,,,,,,.,,.,,,,.,,,.,..,,.,.,.,,,.,,,,..,..,,...,..,,,..,,..,..,,,,.,,,.,
-#3BWB2XQLCT62CMLNCHUVJ2ZTK2VXZRCVFLTBRA2GGKBEVYYGUMVJTF7L2TXHCAPIGVTWXFMSIKPEW
-#\\\|6SWYJ57SLEXSIENTNDEPNWC3JMR7KQNISIKM3XJJYLOULUEODL5 \ / AMOS7 \ YOURUM ::
-#\[7]2DZASWVY4MVXP4DKA2D3RV4ESCSGS6J6VXDZCDVT4YWTIAB4FEAY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,,,,.,,.,.,.,,,.,.,.,,,.,,,.,,,..,,...,...,,.,,.,.,...,...,,.,,
+#4GIZFXOZNKW7C6JL7CBBPEWNDE6ITQB4DYNPFKF6IRIEGFULWAI6SJ3D44MOQOJ3ROR5G6C6T7UDA
+#\\\|FCIJPKMG4FH2NE3XIYM2VJD4ANBILAQRSRKLUZJ62EWMXYVVOM4 \ / AMOS7 \ YOURUM ::
+#\[7]3FVZUKZ3M33YESQAD5AVIPB7SQPAYXMOEYBYW2OGCOBQIIFEGUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

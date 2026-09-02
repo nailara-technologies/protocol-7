@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = v7-zenki.handler.process_kill_list
+
+my @kill_list = @{ shift->w->data };
+
+<[base.logs]>->( 2, "processing kill list [%s]", join( ',', @kill_list ) );
+
+my @actually_ended;
+map { push( @actually_ended, $ARG ) if kill( 9, $ARG ) } @kill_list;
+
+<[base.logs]>->(
+    ": <KILL>ed %s : %s",
+    <[base.cnt_s]>->( scalar @actually_ended, qw|  child  children  | ),
+    join( ', ', @actually_ended )
+) if @actually_ended;
+
+map { delete <v7-zenki.terminating.pid>->{$ARG} } @kill_list;
+
+#,,,.,,..,,,.,.,,,,,.,,.,,,,.,,.,,..,,..,,,,,,..,,...,...,,,.,.,.,,.,,,,.,.,,,
+#DYILSID3ADPV3PWZSOCRY7OIK2I74USDRLEGX26AEU5DYY7BEYZKRGLOWMGEBO4NWU4WTDW3KW5EW
+#\\\|22EBELJL4TL3TSTU5OXZRMR55TK372XXUEEZOMT2HMHR44FXUE7 \ / AMOS7 \ YOURUM ::
+#\[7]4YWV2DUF4I343ZRLSLSAKABOCL7AZ6Q6RF76WSRRFEQLDXYBFIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

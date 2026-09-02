@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = v7-zenki.handler.output_zenka_stdout
+# descr = outputs v7-managed zenki output with optional stdout redirection
+
+my $zenka_line_sref = ref( $ARG[0] ) eq qw| SCALAR | ? $ARG[0] : \$ARG[0];
+my $line            = $zenka_line_sref->$*;
+
+## output to stdout log buffer if enabled and initialized ##
+if ( defined <v7-zenki.stdout_log.fh> and fileno <v7-zenki.stdout_log.fh> ) {
+    <[v7-zenki.stdout_log.write]>->($line);
+}
+
+## always output to console ##  v7 zenka relay path only -- base.log's own  ##
+## console output is untouched, every other zenka keeps using plain 'say'.  ##
+## loop on syswrite instead of trusting a single buffered 'say' to complete ##
+## -- a short/interrupted write here would previously drop the remainder of ##
+## a line silently. base.stdout.raw_fh gives an unlayered [ :raw ], redir-  ##
+## ectable write target -- see data/md/design/STDIO-MULTIPLEX-PROTOCOL.md   ##
+my $raw_fh = <[base.stdout.raw_fh]>;
+
+my $out_str     = $line . "\n";
+my $str_offset  = 0;
+my $out_len     = bytes::length($out_str);
+my $write_tries = 0;
+while ( defined $raw_fh and $str_offset < $out_len ) {
+    my $written = <[base.s_write]>->(
+        $raw_fh, \$out_str, $out_len - $str_offset, $str_offset
+    );
+    if ( not defined $written or $written < 0 ) {
+        <[base.logs]>->(
+            0, ': v7 stdout relay write error : %s',
+            <[base.str.os_err]>
+        );
+        last;
+    }
+    if ( $written == 0 ) {    ## EAGAIN : STDOUT is blocking, shouldn't    ##
+        ## happen -- log once if it ever does       ##
+        <[base.logs]>->( 0, ': v7 stdout relay : unexpected EAGAIN' );
+        last;
+    }
+    $str_offset += $written;
+    $write_tries++;
+    <[base.logs]>->(
+        1, ': v7 stdout relay : SHORT WRITE [ %d / %d bytes, retry %d ]',
+        $written, $out_len, $write_tries
+    ) if $write_tries > 1;
+}
+
+#,,.,,.,,,...,,..,,,.,,,.,..,,,,,,,,,,.,.,,,.,.,.,...,...,.,.,,,,,,.,,...,,..,
+#X6MEVJ6KY4HPQW6T3RHTR2HV3QWCBI2DNVN6KYJGMCCBFSK7BOMDGNIAI3D75REYPP6V64NEEYVTM
+#\\\|5OW2UWC62Y2AJNIMPHIPQB4IHNTXH52EZIKVJ37AN3QOSB5Y7EA \ / AMOS7 \ YOURUM ::
+#\[7]DKFGQFIWPAHMFYZYDQQSSWOSHY2BJUQQT6D746OHJDJ3ESWLTCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

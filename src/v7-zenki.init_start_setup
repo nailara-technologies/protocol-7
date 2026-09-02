@@ -1,0 +1,89 @@
+## [:< ##
+
+# name = v7-zenki.init_start_setup
+
+my $start_setup_data = shift // [];
+
+<[base.execute_zenka_code]>->(
+    <[base.parser.config]>->(
+        shift( @{$start_setup_data} )->{qw| globals |},
+        qw| <v7-zenki.start_setup.globals> |
+    )
+);
+
+my $zenki_init_code;
+while ( not defined $zenki_init_code ) {    ## skip other sections ##
+    $zenki_init_code = shift( @{$start_setup_data} )->{qw| zenki |};
+}
+
+<v7-zenki.start_setup.zenki.startup.init_code> //= {};
+<v7-zenki.start_setup.zenki.startup.start_order> = [];
+
+foreach my $zenka_ref ( @{$zenki_init_code} ) {
+    <[base.log]>->(
+        ': : start cfg syntax error : \'%s\' [ expected " - <zenka_name>" ]',
+        $zenka_ref
+        )
+        and next
+        if ref($zenka_ref) ne qw| HASH |;
+
+    my ( $zenka_name, $zenka_init_code ) = each(%$zenka_ref); ## single key ##
+
+    push( <v7-zenki.start_setup.zenki.startup.start_order>->@*, $zenka_name )
+        if <[zenka.is_enabled]>->($zenka_name);
+    my @config_code;
+    foreach my $config_element ( @{$zenka_init_code} ) {
+
+        if ( ref($config_element) eq qw| HASH | )
+        {    ## ': zenka-init :' section ##
+            my ( $init_keyword, $init_code ) = each %{$config_element};
+            <v7-zenki.start_setup.zenki.startup.init_code>
+                ->{$zenka_name}->{$init_keyword} = $init_code;
+        } else {
+            push( @config_code, $config_element );    # [zenka] config section
+        }
+    }
+    ## reset this zenka's whole config-file-domain subtree before          ##
+    ## rebuilding it from @config_code below -- everything under           ##
+    ## zenki.config.<name> is declared file-domain [ only ever written by  ##
+    ## this loading pass ], so a full clear immediately followed by a full ##
+    ## rebuild in the same iteration is safe : it prevents a stale value   ##
+    ## from a previously-differently-shaped directive [ e.g. a key that    ##
+    ## used to be a leaf scalar, now nested deeper ] from surviving a      ##
+    ## reload and breaking autovivification on the new, deeper assignment  ##
+    <v7-zenki.start_setup.zenki.config>->{$zenka_name} = {};
+    <[base.execute_zenka_code]>->(
+        <[base.parser.config]>->(
+            \@config_code,
+            qw| <v7-zenki.start_setup.zenki.config> | . "{'$zenka_name'}"
+        )
+    );
+
+    ## [re-]push declared routing_mode to cube mirror [ config reload ] ##
+    ## [ guarded call : loud log instead of fatal on missing sub ]      ##
+    <[base.code.call_expected]>->(
+        <[base.mod.exists]>->(qw| v7-zenki |),
+        qw| zenka.push_routing_mode |, $zenka_name
+    );
+
+    ## 'start-set-up' values [ from zenka config section ] ##
+    my $start_setup = <v7-zenki.start_setup.zenki.config>->{$zenka_name}
+        //= {};
+    if ( defined $start_setup->{'zenka-start'}
+        and ref( $start_setup->{'zenka-start'} ) eq qw| HASH | ) {
+        $start_setup = $start_setup->{'zenka-start'};
+        my $start_timeout = $start_setup->{'timeout'}
+            if defined $start_setup->{'timeout'}
+            and $start_setup->{'timeout'} =~ m|^\d+(\.\d+)?$|;
+        <v7-zenki.start_setup.zenki.start-up.timeout>->{$zenka_name}
+            = $start_timeout
+            if defined $start_timeout;
+        ##
+    }
+}
+
+#,,..,.,,,,..,.,,,,..,..,,,.,,...,..,,,,,,.,,,..,,...,...,...,,..,,,,,..,,.,.,
+#G3WT6D6WWPLLWA5HTMMZTNOAVAC2VTT3SHURF7K3GEZYHBNCOXNAVRBKDY3BNWTTLJ4CKZDU5D6LY
+#\\\|MI2CY3Q5GPAXS7EIU7WSSIXFBK2JX76YZT7TDA2LKYPT6VW6VMU \ / AMOS7 \ YOURUM ::
+#\[7]OJI2Z62ETPIZAOBHHI5MKUI7HCZYJWGGTSISTZHJOHTGN3F2IGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = v7-zenki.post_init
+# descr = starts configured zenki
+
+my $module_reinitialization = shift;
+
+###  temporary path registration  ###
+##
+my $tmp_dir_owner = <system.amos-zenka-user>;
+<v7-zenki.dirpath.tmp_paths> //= qw| /var/run/.7/v7-zenki/tmp_paths |;
+#
+<[file.make_path]>->( <v7-zenki.dirpath.tmp_paths>, 0775, $tmp_dir_owner );
+#
+<[v7-zenki.cleanup_temp_files]> if not $module_reinitialization;
+
+##  zenka stdout redirection  ##
+<[v7-zenki.setup_stdout_redir]>
+    if <[base.cfg_bool]>->(<v7-zenki.cfg.zenka_stdout_redir>);
+
+## [ open stdio multiplex listeners for opted-in zenki ] ##
+<[v7-zenki.handler.stdio_multiplex_listen]>;
+
+if ( ref <v7-zenki.start_setup.zenki.startup.start_order> ne qw| ARRAY |
+    or <v7-zenki.start_setup.zenki.startup.start_order>->@* == 0 ) {
+    <[base.log]>->( 0, ':. no zenki to start found, giving up..,' );
+    <[v7-zenki.teardown]>;    ## abort start-up ##
+}
+
+my $zenka_config = <v7-zenki.start_setup.zenki.config> // {};
+my @all_zenki    = <[base.sort]>->($zenka_config);
+my @start_zenki  = <v7-zenki.start_setup.zenki.startup.start_order>->@*;
+
+## start_order needs dependency type sort order [ currently base.sort ] ##
+
+#### say Dumper( \@start_zenki ); <[base.exit]>;
+
+my $prev_all   = <v7-zenki.init_state.all_zenki>   //= [];
+my $prev_start = <v7-zenki.init_state.start_zenki> //= [];
+
+<v7-zenki.zenki.available> = {};    # <-- ::: reset on reload :::
+
+## locate zenka config files and extract descriptions ##
+
+my @found_zenki = <[v7-zenki.available_zenki]>;
+
+(   <v7-zenki.zenki.found_types.no_start_cfg> = [],
+    <v7-zenki.zenki.found_types.no_cfg_file> = []
+) = <[base.diff_array]>->( \@all_zenki, \@found_zenki );
+
+# prepare configured zenka startup sequence
+my ( $added_start_ref, $removed_start_ref )
+    = <[base.diff_array]>->( $prev_start, \@start_zenki );
+my ( $added_all_ref, $removed_all_ref )
+    = <[base.diff_array]>->( $prev_all, \@all_zenki );
+
+<v7-zenki.init_state.all_zenki>   = \@all_zenki;
+<v7-zenki.init_state.start_zenki> = \@start_zenki;
+
+## requires time based decrease --> implement ##  [LLL?]
+# <[v7-zenki.calc_prefix_lengths]>->( qw| v7 cube |, @start_zenki );
+
+<[v7-zenki.calc_prefix_lengths]>->(qw| v7 cube |);    # <-- running, not start
+
+if ( @{$added_all_ref} ) {
+    <[v7-zenki.set_up_zenka_dependencies]>->( @{$added_all_ref} );
+}
+
+## full-state rebuild every run -- set_up_ondemand_zenki resets             ##
+## <v7-zenki.ondemand_zenki> to [] and repopulates strictly from its args,  ##
+## so feeding it only the added-since-last-run delta silently drops already ##
+## -known ondemand zenki off the list on any reload that also discovers an  ##
+## unrelated new zenka [ next clean idle-shutdown then reads as an          ##
+## unrecognized exit and triggers a restart, ignoring restart.disabled ]    ##
+<[v7-zenki.set_up_ondemand_zenki]>->(@all_zenki);
+
+map { <[base.clean_hashref]>->( $zenka_config->{$ARG} ) } @all_zenki;
+
+if (    exists <system.subs_loaded.devmod>
+    and <system.subs_loaded.devmod> > 1
+    and <system.zenka.verbosity.console> > 4 ) {
+    ( my $devmod_str = Dumper($zenka_config) ) =~ s'^.{7}|;$''mg;
+    print "\n < v7-zenki.start_setup.zenki.config >\n\n$devmod_str\n";
+}
+
+map {
+    <[v7-zenki.autostart_zenki]>->($ARG) if !<[v7-zenki.start_count]>->($ARG)
+} $added_start_ref->@*;
+
+## register ondemand zenki at cube on every pass, boot and reload alike -- the
+## sub is self-guarded [ no-ops with no cube session yet, dedups via
+## <v7-zenki.registered_at_cube> ], so this is the one path for both cases
+## instead of relying on a separate untraced first-boot registration
+<[v7-zenki.register_ondemand_zenki]>;
+
+print Dumper( $data{'jobqueue'} )
+    if exists <system.subs_loaded.devmod>
+    and <system.subs_loaded.devmod> > 1
+    and <system.zenka.verbosity.console> > 4;
+
+0;
+
+#,,..,.,.,,,,,..,,.,,,,..,,.,,,..,,,,,,,,,...,..,,...,...,,,,,.,.,..,,...,..,,
+#6HOVWDKT2DO27FWGHOBVZ27PTKU2XQLF7YGAHKDR3OWPEF3RQFZVTT36T572NCJEMLH63QH2KMLEA
+#\\\|CJFAE5VCGPZKGJEGZ5BSCDHJ3QIDDFV222W3WU7AFF5JO23GWG2 \ / AMOS7 \ YOURUM ::
+#\[7]M5DFHAHLKGFULX45FWQRCHP6HFUSFZHYIKTYM5CMGHO5WNAKWQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

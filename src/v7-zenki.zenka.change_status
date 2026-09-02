@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.change_status
+# descr = wrapper function for zenka status change handler
+
+my ( $instance_id, $new_status ) = @ARG;
+
+return warn 'no instance id specified <{C1}>'   if not defined $instance_id;
+return warn 'no status string submitted <{C1}>' if not defined $new_status;
+return warn 'no such instance defined <{C1}>'
+    if not defined <v7-zenki.zenka.instance>->{$instance_id};
+
+map {    ## validity check ##
+    if ( not defined <v7-zenki.zenka.instance>->{$instance_id}->{$ARG} ) {
+        delete <v7-zenki.zenka.instance>->{$instance_id};    ## cleaning up ##
+        return <[base.s_warn]>->(
+            "instance entry %d had undefined '%s' <{C1}>",
+            $instance_id, $ARG
+        );
+    }
+} qw| status zenka_name |;
+
+<v7-zenki.online-zenki> //= {};
+
+my $zenka_name = <v7-zenki.zenka.instance>->{$instance_id}->{'zenka_name'};
+
+my $online_count = scalar keys <v7-zenki.online-zenki>->%*;
+
+if ( $new_status eq qw| online | ) {
+    <v7-zenki.online-zenki>->{$zenka_name}++;
+} elsif ( $new_status ne qw| starting |
+    and defined <v7-zenki.online-zenki>->{$zenka_name} ) {
+    delete <v7-zenki.online-zenki>->{$zenka_name}
+        if --<v7-zenki.online-zenki>->{$zenka_name} == 0;
+}
+<[v7-zenki.calc_prefix_lengths]>->( keys <v7-zenki.online-zenki>->%* )
+    if $online_count != scalar keys <v7-zenki.online-zenki>->%*;
+
+<[v7-zenki.handler.zenka_status]>->( $instance_id, $new_status );
+
+#,,,.,,..,...,.,,,,,,,,,,,,.,,,,,,.,,,..,,,,.,..,,...,...,...,..,,,.,,,,.,..,,
+#4JOJQYEU7S4XHJQDKZY74WKCV6EUX35S2IEZI6XOUWCNQ4277LZL5K7CIS7EYJIYWLX735VVX2BIA
+#\\\|ZN4CXP5USYPPG36ZR657XLQ3THNOWCYHKBHYEHU7DH73BWSRL44 \ / AMOS7 \ YOURUM ::
+#\[7]WVDVEFQ3XZUJL7B3YAM2JJ64HYXLOJQYFXY3B7WHDSAKHLCICEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

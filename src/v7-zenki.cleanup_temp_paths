@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = v7-zenki.cleanup_temp_paths
+
+( my $process_id, my $instance_id ) = @ARG;
+return warn 'process id parameter not defined <{C1}>'
+    if not defined $process_id;
+
+$instance_id //= <[v7-zenki.sub-process.retrieve_cached_iid]>->($process_id);
+
+return warn 'instance_id not defined <{C1}>' if not defined $instance_id;
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+return if not defined $instance;    # <-- gone..,
+return <[base.logs]>->(
+    2, 'no temp-paths to clean up for instance %d ..,', $instance_id
+    )
+    if not defined $instance->{'temp-path'}
+    or not $instance->{'temp-path'}->@*;
+
+<[base.perlmod.autoload]>->( 'File::Path', qw| remove_tree | )
+    if not defined &remove_tree;
+
+<[base.logs]>->(
+    'cleaning up temp paths for instance %d [PID:%d]',
+    $instance_id, $process_id
+);
+
+my $stat_uid = delete $instance->{'stat_uid'};
+my $stat_gid = delete $instance->{'stat_gid'};
+
+while ( my $clean_path = shift $instance->{'temp-path'}->@* ) {
+    if ( length($clean_path) > 1 and -e $clean_path ) {
+        my $stat_ref = File::stat::stat($clean_path);
+        if (   $stat_ref->cando( S_IWUSR(), $stat_uid )
+            or $stat_ref->cando( S_IWGRP(), $stat_gid ) ) {
+            my $len      = 52 - length <system.node.name>;
+            my $type_str = -d $clean_path ? 'dir.' : 'path';
+            my $pth_str
+                = <[base.parser.ellipse_center]>->( $clean_path, $len );
+            <[base.logs]>->( ":. unlink %s '%s'", $type_str, $pth_str );
+            eval { remove_tree($clean_path) };
+            $EVAL_ERROR = 'still exists'
+                if not $EVAL_ERROR and -e $clean_path;
+            <[base.s_warn]>->(
+                '<remove_path> %s [ %s ]',
+                $clean_path, <[base.str.eval_error]>
+            ) if length $EVAL_ERROR;
+
+            ## unregister global [ from zenka shutdown ]
+            ##
+            <[v7-zenki.tmp-paths.global.unregister]>->($clean_path)
+                if not -e $clean_path;
+        }
+    }
+}
+
+delete $instance->{'temp-path'};
+
+#,,.,,,,,,,.,,..,,.,.,.,,,,,,,,,,,,.,,.,,,,.,,..,,...,..,,.,,,.,,,,,,,,,,,,.,,
+#JWUHX5LWC4ORDJBHWZ7G6OGBZ2YWPTTQFRBKOLBH44AHDLWN7NU4NW2ZZ75G5ZG6RNLGCV3PPOAVY
+#\\\|CSB5KUUGTIY6YQ2EQZFCK3HGUB2XPPLJTBTFWP6D2V7B2B47H7U \ / AMOS7 \ YOURUM ::
+#\[7]FS3X3SKKPEUQEM2ANLXHVEEEEYDWBWM5HXWBQGKPTG4CLQVJXABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

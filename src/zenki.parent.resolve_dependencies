@@ -17,13 +17,13 @@ unless ($zenka_name) {
 ## Determine dependency chain
 my @chain;
 
-## All zenki (except v7 and cube) depend on: cube → v7
-if ( $zenka_name eq 'v7' ) {
-    @chain = qw| v7 |;
+## All zenki (except v7-zenki and cube) depend on: cube → v7-zenki
+if ( $zenka_name eq 'v7-zenki' ) {
+    @chain = qw| v7-zenki |;
 } elsif ( $zenka_name eq 'cube' ) {
-    @chain = qw| v7 cube |;
+    @chain = qw| v7-zenki cube |;
 } else {
-    @chain = qw| v7 cube |;
+    @chain = qw| v7-zenki cube |;
 }
 
 <[base.log]>->( 3, "  Dependency chain : " . join( ' → ', @chain ) );
@@ -32,7 +32,7 @@ if ( $zenka_name eq 'v7' ) {
 foreach my $dep (@chain) {
     my $result;
 
-    if ( $dep eq 'v7' ) {
+    if ( $dep eq 'v7-zenki' ) {
         $result = <[zenki.parent.ensure_v7]>;
     } elsif ( $dep eq 'cube' ) {
         $result = <[zenki.parent.ensure_cube]>;
@@ -66,8 +66,8 @@ return {
 
 0;
 
-#,,..,,,.,...,,,.,.,.,,.,,,,,,.,.,,,.,,..,...,..,,...,...,,,.,,,.,,,,,...,..,,
-#ZFVOMRDX3TRYI77QZUV54SS6FCGIC4UEOY6XCPL3ZCTH3XR3JDIF7IQN3VN5XU3JMW7A6AGTLZJZK
-#\\\|UMUWGJJDAETJJ2W75B6VDJRBAWC6QYJOOWCVEW2CPWW62LHUIFX \ / AMOS7 \ YOURUM ::
-#\[7]A5UDLST6CQD4J2BVOWUBGJV7CA25ZASIBPRCAVZZNMTVEKQAGUBI 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,,.,,.,.,,,,,..,,,.,,,.,,.,,,..,,...,...,.,,,,..,,,.,,..,...,
+#XAA4OZT6J5G2AJGDOWN5ULJZL4KWK65E7GDW5CLBJEFCWER56KROEIPAYIYA5Z7WZJLRK53FMZHTI
+#\\\|JBP4JX6TDLHWOXEXWK2EG5AAQ5JIPVEDFR675PZUJIUWV3UZ4RF \ / AMOS7 \ YOURUM ::
+#\[7]IN6CX6V5BLCQJYIC3XW5V2RQBPIECMA2JYQ2IIQGMIZFMLW5HIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

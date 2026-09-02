@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = v7-zenki.sub-process.get_uid
+
+my $pid = shift;
+
+return -1 if not <[base.exists.sub-process]>->($pid);
+
+my $proc_table = <v7-zenki.process.pt>
+    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+
+foreach my $process ( $proc_table->table->@* ) {
+    next if not defined $process;
+
+    if ( $process->pid == $pid ) {
+
+        return ( $process->uid, $process->gid ) if wantarray;
+
+        return $process->uid;    ##  scalar context  ##
+    }
+}
+
+<[base.s_warn]>->( 'process %d not found in table', $pid );
+
+return -1;
+
+#,,..,,,.,..,,,.,,,..,,,.,.,,,..,,,.,,,,,,.,.,..,,...,..,,,.,,,,,,,.,,.,,,,..,
+#U3WZMX5LVK5ZCEI3FYL7H6ZZKUTEZ4BRGVGZRLHNV62Q4H4K233VHMLFSX4XI3T6DWQIYYIKABDUI
+#\\\|QINC6PF3FJ5DYTISYLSHEUT244M2OOPKDRAHPNHW4O23YHARXI6 \ / AMOS7 \ YOURUM ::
+#\[7]YDNP7VTIBUZGEWNBZP6Z5PIBXBYZEOW6U3SCYPCMDPQFMB6CSYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

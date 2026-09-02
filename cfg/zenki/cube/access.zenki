@@ -23,10 +23,10 @@
                                      audio.spatial-purr \
                                      X-11.subscribe-screen-change \
                                      X-11.get-stack-order \
-                                     v7.background_zenka loaded-configs \
-                                     v7.notify_online v7.notify_restart \
-                                     v7.restart_own-zenka \
-                                     v7.idle-term \
+                                     v7-zenki.background_zenka loaded-configs \
+                                     v7-zenki.notify_online v7-zenki.notify_restart \
+                                     v7-zenki.restart_own-zenka \
+                                     v7-zenki.idle-term \
                                      protocol-7-menu.menu-update-notify \
                                      cred-mesh.resolve \
                                      cred-mesh.rotate \
@@ -42,7 +42,7 @@
                                      list # <-- restrict later [param based]
 
 
-               access.cmd.usr.v7  =  heart *.heart session-key \
+          access.cmd.usr.v7-zenki  =  heart *.heart session-key \
                                      ondemand-zenka set-initialized \
                                      unset-initialized set-routing-mode \
                                      *.verify-instance *.drain \
@@ -64,7 +64,7 @@
          access.cmd.usr.external  =  nodes.add-tronk discover.list-orbital \
                                      nameserv.discover-nodes
 
-         access.cmd.usr.letsencr  =  v7.register_child httpd.vhost-list \
+         access.cmd.usr.letsencr  =  v7-zenki.register_child httpd.vhost-list \
                                      httpd.setup-acme-challenge \
                                      httpd.cleanup-acme-challenge \
                                      httpd.remove-acme-challenge \
@@ -78,8 +78,8 @@
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
                                      jobsite.get-prefs jobsite.set-prefs \
-                                     v7.notify_offline \
-                                     v7.status \
+                                     v7-zenki.notify_offline \
+                                     v7-zenki.status \
                                      letsencr.request-certificate \
                                      radio.listen \
                                      nodes.orbital-position \
@@ -94,8 +94,8 @@
                                      index-mem.cluster \
                                      coding.summarize-context
 
-           access.cmd.usr.radio  =  httpd.radio_online v7.notify_offline \
-                                     v7.start_once v7.notify_online \
+           access.cmd.usr.radio  =  httpd.radio_online v7-zenki.notify_offline \
+                                     v7-zenki.start_once v7-zenki.notify_online \
                                      mpv[audio-0].play \
                                      mpv[audio-0].set-volume \
                                      mpv[audio-0].fade \
@@ -105,17 +105,17 @@
                                      mpv[audio-1].fade
 
           access.cmd.usr.cube-13  =  heart p7-log.append list \
-                                     v7.report-temp-path \
+                                     v7-zenki.report-temp-path \
                                      decoder.receive-entropy
 
-           access.cmd.usr.system  =  v7.terminate v7.start X-11.get_driver \
-                                     v7.pid-instance v7.notify_online \
-                                     v7.restart v7.forced-mod-reload \
-                                     v7.register_child X-11.get_xorg_pid \
-                                     v7.reboot-warning v7.host-reboot
+           access.cmd.usr.system  =  v7-zenki.terminate v7-zenki.start X-11.get_driver \
+                                     v7-zenki.pid-instance v7-zenki.notify_online \
+                                     v7-zenki.restart v7-zenki.forced-mod-reload \
+                                     v7-zenki.register_child X-11.get_xorg_pid \
+                                     v7-zenki.reboot-warning v7-zenki.host-reboot
 
-             access.cmd.usr.X-11  =  v7.restart v7.start_once \
-                                     v7.register_child \
+             access.cmd.usr.X-11  =  v7-zenki.restart v7-zenki.start_once \
+                                     v7-zenki.register_child \
                                      tile.gpu_load_alert \
                                      tile.screen-change \
                                      ticker.screen-change \
@@ -128,20 +128,20 @@
                                      web-browser.screen-change \
                                      screen-setup.screen-change
 
-          access.cmd.usr.openbox  =  v7.register_child
+          access.cmd.usr.openbox  =  v7-zenki.register_child
 
-       access.cmd.usr.powershell  =  v7.register_child v7.report-temp-path
+       access.cmd.usr.powershell  =  v7-zenki.register_child v7-zenki.report-temp-path
 
-       access.cmd.usr.notify-osd  =  dbus.socket_address v7.register_child
+       access.cmd.usr.notify-osd  =  dbus.socket_address v7-zenki.register_child
 
-            access.cmd.usr.dunst  =  dbus.socket_address v7.register_child
+            access.cmd.usr.dunst  =  dbus.socket_address v7-zenki.register_child
 
            access.cmd.usr.notify  =  dbus.socket_address
 
-              access.cmd.usr.mpv  =  v7.start_once X-11.get_mode \
+              access.cmd.usr.mpv  =  v7-zenki.start_once X-11.get_mode \
                                      content.get_list reenc-msg.refresh \
-                                     reenc-msg.finished v7.notify_online \
-                                     X-11.keep_below v7.register_child \
+                                     reenc-msg.finished v7-zenki.notify_online \
+                                     X-11.keep_below v7-zenki.register_child \
                                      X-11.set_opacity \
                                      X-11.set_geometry \
                                      X-11.wait_visible \
@@ -150,13 +150,13 @@
                                      window-place.place-for-window \
                                      ffmpeg[mpv].rescale_video
 
-             access.cmd.usr.dbus  =  v7.register_child v7.report-temp-path
+             access.cmd.usr.dbus  =  v7-zenki.register_child v7-zenki.report-temp-path
 
-            access.cmd.usr.audio  =  v7.register_child
+            access.cmd.usr.audio  =  v7-zenki.register_child
 
-           access.cmd.usr.povray  =  v7.register_child
+           access.cmd.usr.povray  =  v7-zenki.register_child
 
-           access.cmd.usr.opencv  =  v7.register_child
+           access.cmd.usr.opencv  =  v7-zenki.register_child
 
              access.cmd.usr.melt  =  ffmpeg[melt].frame_count
 
@@ -172,13 +172,13 @@
 
              access.cmd.usr.udev  =  notify.message
 
-        access.cmd.usr.universal  =  v7.restart v7.start_once \
+        access.cmd.usr.universal  =  v7-zenki.restart v7-zenki.start_once \
                                      pdf2html.get_url X-11.bg_color \
                                      X-11.get_mode X-11.gpu_load \
                                      content.get_list reenc-msg.refresh \
                                      image2html.get_url melt.extract_frame \
                                      content.set_flags reenc-msg.finished \
-                                     v7.notify_online v7.terminate-implicit \
+                                     v7-zenki.notify_online v7-zenki.terminate-implicit \
                                      X-11.keep_below X-11.hide-window \
                                      X-11.set_opacity \
                                      tile.get_subconfig \
@@ -191,36 +191,36 @@
                                      content.get_list_types \
                                      ffmpeg[mpv].rescale_video \
                                      content.entries_withheld \
-                                     v7.register_child \
-                                     v7.report-temp-path
+                                     v7-zenki.register_child \
+                                     v7-zenki.report-temp-path
 
             access.cmd.usr.power  =  power-x11.set_states
 
           access.cmd.usr.set-up   =  get-config *.get-config \
                                      *.get-config-names
 
-           access.cmd.usr.events  =  content.update v7.start_once \
+           access.cmd.usr.events  =  content.update v7-zenki.start_once \
                                      tile.add_overlay \
                                      tile.remove_overlay \
                                      tile.reset-group \
                                      tile.switch-group \
-                                     v7.terminate-implicit v7.restart
+                                     v7-zenki.terminate-implicit v7-zenki.restart
 
-          access.cmd.usr.content  =  v7.restart weather.get-urls \
+          access.cmd.usr.content  =  v7-zenki.restart weather.get-urls \
                                      *.playlist-update notify.msg_reload \
                                      download.get_mimetype \
                                      events.get_playlist_hidden \
                                      events.get_playlist_exclusive
 
-      access.cmd.usr.tile  =  v7.start notify.warn v7.restart \
+      access.cmd.usr.tile  =  v7-zenki.start notify.warn v7-zenki.restart \
                                      universal.slow_down content.update \
-                                     v7.start_once X-11.bg_color \
+                                     v7-zenki.start_once X-11.bg_color \
                                      X-11.fade_out web-browser.slow_down \
-                                     content.get_list v7.notify_online \
-                                     v7.terminate-implicit v7.notify_offline \
+                                     content.get_list v7-zenki.notify_online \
+                                     v7-zenki.terminate-implicit v7-zenki.notify_offline \
                                      ticker.slow_down \
                                      X-11.lower-window \
-                                     v7.get-instance-ids \
+                                     v7-zenki.get-instance-ids \
                                      X-11.get_window_ids \
                                      X-11.get-stack-order \
                                      screenshot.return-region-color \
@@ -235,22 +235,22 @@
                                      X-11.wait_visible \
                                      content.get_list_types \
                                      content.entries_withheld \
-                                     v7.report-temp-path \
+                                     v7-zenki.report-temp-path \
                                      window-place.place-for-window \
                                      web-browser.goto-waypoint
 
     access.cmd.usr.window-place  =  X-11.get_geometry X-11.move-window
 
           access.cmd.usr.compton  =  X-11.get_mode X-11.get_driver \
-                                     X-11.bg_color v7.register_child
+                                     X-11.bg_color v7-zenki.register_child
 
-          access.cmd.usr.storage  =  v7.report-temp-path
+          access.cmd.usr.storage  =  v7-zenki.report-temp-path
 
        access.cmd.usr.remote-cam  =  content.get_list X-11.wait_visible
 
            access.cmd.usr.pcycle  =  power.on power.off
 
-         access.cmd.usr.osd-logo  =  download.get_file v7.terminate-implicit \
+         access.cmd.usr.osd-logo  =  download.get_file v7-zenki.terminate-implicit \
                                      graphics-matrix.filter X-11.get_display
 
       access.cmd.usr.storchencam  =  X-11.wait_visible \
@@ -260,7 +260,7 @@
 
         access.cmd.usr.power-x11  =  power.on power.off power.show_all
 
-        access.cmd.usr.reenc-msg  =  v7.terminate-implicit
+        access.cmd.usr.reenc-msg  =  v7-zenki.terminate-implicit
 
        access.cmd.usr.image2html  =  X-11.bg_color
 
@@ -269,10 +269,10 @@
                                      models.get_entry \
                                      models.find_alternative \
                                      models.record_invocation \
-                                     models.statistics v7.register_child \
+                                     models.statistics v7-zenki.register_child \
                                      close exit coding.inference-status \
                                      coding.vision-model \
-                                     v7.notify_online
+                                     v7-zenki.notify_online
 
            access.cmd.usr.coding  =  lm-vision.analyze_image X-11.gpu_load \
                                      models.get_model_path system.mem-used \
@@ -287,13 +287,13 @@
                                      models.conversation_add_turn \
                                      models.find_alternative \
                                      models.conversation_get_context \
-                                     v7.register_child task.queue task.show \
+                                     v7-zenki.register_child task.queue task.show \
                                      task.claim task.complete task.fail \
                                      task.reset task.summarize-done \
                                      task.summary-tree-query \
                                      task.summary-tree-notify
 
-           access.cmd.usr.models  =  v7.register_child coding.ask-reply \
+           access.cmd.usr.models  =  v7-zenki.register_child coding.ask-reply \
                                      kimi.ask-reply \
                                      task.queue task.show task.claim \
                                      task.start task.complete \
@@ -302,12 +302,12 @@
                                      context.delegate.prepare \
                                      context.delegate.dispatch
 
-             access.cmd.usr.kimi  =  v7.register_child \
+             access.cmd.usr.kimi  =  v7-zenki.register_child \
                                      task.queue task.show task.claim \
                                      task.complete task.fail task.reset \
                                      kimi-web.list_agents kimi-web.spawn_agent
 
-          access.cmd.usr.kimi-web =  v7.register_child \
+          access.cmd.usr.kimi-web =  v7-zenki.register_child \
                                      task.queue task.show task.claim \
                                      task.complete task.fail task.reset
 
@@ -324,8 +324,8 @@
                                      branch.discover.* branch.9p.* \
                                      branch.file.*
 
-             access.cmd.usr.task  =  v7.register_child v7.notify_online \
-                                     v7.restart_concurrent \
+             access.cmd.usr.task  =  v7-zenki.register_child v7-zenki.notify_online \
+                                     v7-zenki.restart_concurrent \
                                      coding.summarize-context \
                                      coding.tree-query-reply \
                                      models.task-notify \
@@ -349,7 +349,7 @@
                                      models.get_model_path models.discover \
                                      models.record_invocation \
                                      models.recommend models.statistics \
-                                     v7.register_child
+                                     v7-zenki.register_child
 
              access.cmd.usr.data  =  graphics-matrix.assert-similarity \
                                      graphics-matrix.visual.cubic-sort
@@ -357,16 +357,16 @@
      access.cmd.usr.image-quality =  whoami present timestamp ntime-dec \
                                      graphics-matrix.assert-similarity
 
-       access.cmd.usr.impressive  =  v7.start_once content.get_list \
-                                     v7.notify_online v7.terminate-implicit \
-                                     v7.register_child X-11.set_opacity \
+       access.cmd.usr.impressive  =  v7-zenki.start_once content.get_list \
+                                     v7-zenki.notify_online v7-zenki.terminate-implicit \
+                                     v7-zenki.register_child X-11.set_opacity \
                                      X-11.raise-window X-11.wait_visible \
                                      X-11.bg_color tile.get_subconfig \
                                      window-place.coords \
                                      window-place.clear-profile
 
        access.cmd.usr.start-anim  =  X-11.wait_visible X-11.bg_color \
-                                     v7.report-temp-path
+                                     v7-zenki.report-temp-path
 
               access.cmd.usr.web  =  nodes.orbital-position \
                                      discover.list-orbital \
@@ -379,23 +379,23 @@
                                      graphics-matrix.glow
 
            access.cmd.usr.invoke  =  invoke-web.start invoke-web.status \
-                                     invoke-web.health v7.register_child
+                                     invoke-web.health v7-zenki.register_child
 
-       access.cmd.usr.invoke-web  =  v7.register_child
+       access.cmd.usr.invoke-web  =  v7-zenki.register_child
 
-         access.cmd.usr.nameserv  =  v7.register_child
+         access.cmd.usr.nameserv  =  v7-zenki.register_child
 
        access.cmd.usr.rss-ticker  =  content.get_list ticker.read_file
 
            access.cmd.usr.ticker  =  tile.get-layer X-11.gpu_load \
-                                     v7.notify_online X-11.bg_color \
+                                     v7-zenki.notify_online X-11.bg_color \
                                      tile.get_subconfig \
                                      rss-ticker.resend_update \
                                      X-11.raise-window X-11.keep_above \
                                      X-11.keep_below X-11.unhide-window \
                                      X-11.move-window X-11.get_geometry
 
-   access.cmd.usr.jobsite         =  v7.notify_online \
+   access.cmd.usr.jobsite         =  v7-zenki.notify_online \
                                      site-yaml.import site-yaml.import-url \
                                      site-yaml.queue-depth \
                                      site-yaml.list-stray-jobs \
@@ -409,12 +409,12 @@
       access.cmd.usr.weather      =  cred-mesh.register \
                                      cred-mesh.resolve
 
-   access.cmd.usr.credentials     =  v7.notify_online
+   access.cmd.usr.credentials     =  v7-zenki.notify_online
 
-        access.cmd.usr.smtpd      =  v7.notify_online notify.message \
+        access.cmd.usr.smtpd      =  v7-zenki.notify_online notify.message \
                                      inject list get set_route reclassify
 
-        access.cmd.usr.site-yaml  =  v7.notify_online \
+        access.cmd.usr.site-yaml  =  v7-zenki.notify_online \
                                      jobsite.job-upsert
 
         access.cmd.usr.amos-term  =  amos-term.list_attachments \
@@ -449,8 +449,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,..,.,,,,.,,..,,,,.,...,,,.,,.,,,,,,,..,...,.,.,...,..,,...,,,.,.,,,...,,,.,
-#UGNOZF3SJIR2PKIWHDHJVT4AMDO7GNATLA6IZMFTJVVEMLLB5JCYB2CNVF2BDHWBBOR7B3TZEX6FQ
-#\\\|V7UCUPAW55WHSS3HYLJFJSFYTFPTSJWMC567CYH7IWPUB4YMDHX \ / AMOS7 \ YOURUM ::
-#\[7]ESZXQS6WM45EHWYPUNIO3XEL4MILNTXKFPBZD5NGX3YARWU6I4BA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,,..,..,,.,,,,,.,.,,,.,,,.,,,.,.,...,...,..,,.,,,,..,.,,,,.,,
+#JZKBA4TNKDI2DE5LTXIYNIVP6LKODB55ESOVSTTAXG4DH3CFL3GQHGGVXET32MZQZFYTGUGH6UHII
+#\\\|AFVL662JVYFBOXSWLS5VVL2GBA3ETWWEGXHVD23ZTY6MVYCSWSZ \ / AMOS7 \ YOURUM ::
+#\[7]6VT5OP7U55GX4UD2R3YQOWG2JFF2DR4C27GJCCJHZHSGAIEAS2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

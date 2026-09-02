@@ -41,7 +41,7 @@ if ( $@ or not defined $encoded or not length $encoded ) {
 
 ## wait for backend zenka to be online before dispatching ##
 my $sent = <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.notify_online',
+    {   'command'   => 'v7-zenki.notify_online',
         'call_args' => { 'args' => ":start: $zenka_name" },
         'reply'     => {
             'handler' => qw| models.handler.notify-online-reply |,
@@ -73,8 +73,8 @@ if ( $sent <= 0 ) {
 
 return TRUE;
 
-#,,,,,..,,,..,,.,,,,.,...,,..,,.,,,..,,..,,,,,..,,...,...,,,.,,..,,,,,,,,,..,,
-#TGDPJH7E6VSXI5WFHZXJIBORLSWV7TSWATCT42C6OSRTMQDAF7QC7SKB6BZO2FCUZBRSQ5EVEG4LC
-#\\\|PBEVEW5BKDIRCJ7JJPLOO3XNJR7UVJBINCT66XAD5JFZH6RQLJP \ / AMOS7 \ YOURUM ::
-#\[7]2TB6GP3WYCNOQOQTXYOGQOSVK6CY2TCIE3L3WS53GAL7WMVHLCCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,..,,.,.,,.,,.,.,...,..,,,,.,..,,...,...,...,.,,,...,,,.,,..,
+#ZQG2HGJQ44E3XMYQ6UHXVKZ7DSEK3FI4KBTHSU2LXS6Q4T225GNYZHE7SIQ4W6QTHMG3FQ5RBOQ24
+#\\\|OPVZXW32OF66H3ABAVKF42T6LY7GZQSY7JLTN73PBMCLQBCZLCU \ / AMOS7 \ YOURUM ::
+#\[7]PHK5TARW2TW3ZXSXLPDEDXHWGNFEWCMJH2UFKQU5Z2NKJAQGZCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

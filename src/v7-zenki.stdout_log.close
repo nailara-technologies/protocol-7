@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = v7-zenki.stdout_log.close
+# descr = closes stdout log with optional termination marker
+
+my $write_marker = shift // TRUE;
+
+return TRUE if not defined <v7-zenki.stdout_log.fh>;
+
+my $fh = <v7-zenki.stdout_log.fh>;
+
+## write termination marker for tail -f clients ##
+say {$fh} join( '', $colors{'p7_fg_0000'}, qw| ▼ |, $colors{'reset'} )
+    if $write_marker and defined fileno($fh);
+
+close($fh)
+    or <[base.s_warn]>->( 'closing stdout log : %s', <[base.str.os_err]> );
+
+<v7-zenki.stdout_log.fh> = undef;
+
+return TRUE;
+
+#,,.,,..,,.,,,..,,,,,,,,,,.,,,,.,,,.,,,..,..,,.,.,...,...,.,,,..,,,,.,,..,..,,
+#HNNM2YB5AQ4UQESQSBIPJVDAEHTDIYNHMAOL6YMR2CGIQISWT37XQPMX6DPB5RUWMPQY2D7FNLBD4
+#\\\|H4Q4CUCJYFDXOCJLGLVD7CALKVD6XMZ5XBHJB5CGKRMYCQXC7NN \ / AMOS7 \ YOURUM ::
+#\[7]RU5YAOKMEBAJL3XIX45YDK5IXQM5RVJBEMUSXKU3EO5OCSOHEODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

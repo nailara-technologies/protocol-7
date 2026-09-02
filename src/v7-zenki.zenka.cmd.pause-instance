@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.pause-instance
+# param = <id>
+# descr = send STOP signal to instance processes
+
+my $instance_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'instance id must be numeric!' }
+    if $instance_id !~ m|^\d+$|;
+return { 'mode' => qw| false |, 'data' => "instance not found." }
+    if not exists <v7-zenki.zenka.instance>->{$instance_id};
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+$instance->{'paused_status_timer'}
+    = <[v7-zenki.stop_heartbeat_timer]>->($instance_id);
+
+my $parent_pid = <v7-zenki.zenka.instance>->{$instance_id}->{'process'}{'id'};
+my @pids       = (
+    $parent_pid, @{ <[v7-zenki.sub-process.get_children]>->($parent_pid) }
+);
+
+my $count = kill 'STOP', @pids;
+
+my $es = $count > 1 ? 'es' : '';
+<[base.log]>->( 0, "instance $instance_id paused. [ $count process$es ]" );
+
+return {
+    'mode' => qw| true |,
+    'data' => "$count process$es paused (SIGSTOP)"
+};
+
+#,,,.,,..,,.,,...,,,.,,.,,.,,,.,,,...,...,..,,..,,...,...,,,,,,.,,,,.,..,,...,
+#P35A2ARTRLTPV3B4YS26NDHPQC4367C5O4OC7772BXHZHOSFVZ4E46MMIUG5JP37PHCPA3BGZFVJU
+#\\\|SNOJYQGICMKEVIV6NHC2JP4V6S25KDCHKHPFS2NDR5EDWGHHMNR \ / AMOS7 \ YOURUM ::
+#\[7]MXAUNSHNQBP5DNLSHISIQ6RPN22Z4WR6URYYV4UFELMTUFRYPYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

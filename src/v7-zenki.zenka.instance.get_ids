@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.instance.get_ids
+# descr = return instance ids for name from set-up [ ordered by creation ]
+
+my $zenka_id = shift;
+my @instance_ids;
+
+return warn 'expected zenka id <{C1}>'
+    if not defined $zenka_id or $zenka_id !~ <regex.base.iid>;
+
+foreach my $id (
+    sort {
+        <v7-zenki.zenka.instance>->{$a}->{'created'} <=>
+            <v7-zenki.zenka.instance>->{$b}->{'created'}
+    } grep { defined <v7-zenki.zenka.instance>->{$ARG}->{'created'} }
+    <[v7-zenki.instance_ids]>
+) {
+    push( @instance_ids, $id )
+        if <v7-zenki.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id;
+}
+
+return \@instance_ids;
+
+#,,..,,..,,,,,,,,,.,,,.,.,,.,,,.,,,,,,,.,,..,,..,,...,...,..,,,,.,...,..,,.,,,
+#ATZDNZNQ6SOQKHKR24O6WVQTP6RPOJ5KGJCXHB6675IKZWVEBRJI523BX6EQE7EEG6EVEZMHEEE2E
+#\\\|NWFEPSSQCHASHDHPYAPGYLTIPF2GQZFRN4XBCAORI5YTDRJM53K \ / AMOS7 \ YOURUM ::
+#\[7]54JRMGXYTT25CUU3YXXZDSEYAFR4EKXPDGKYY2AKNP3BBAEIACDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

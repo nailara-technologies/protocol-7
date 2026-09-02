@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.forced-mod-reload
+# param = <module-name>
+# descr = rmmod + modprobe of a kernel module
+# todo  = open rmmod as pipe, create output handler [make async.]
+
+my $module_name = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected valid <module> parameter'
+    }
+    if !length($module_name)
+    or length($module_name) > 42
+    or $module_name !~ m|^[\w\s_]+$|;
+
+return { 'mode' => qw| false |, 'data' => "'rmmod' binary not found" }
+    if not defined <v7-zenki.rmmod_bin>;
+my $rmmod_bin = <v7-zenki.rmmod_bin>;
+return { 'mode' => qw| false |, 'data' => "'modprobe' binary not found" }
+    if not defined <v7-zenki.modprobe_bin>;
+my $modprobe_bin = <v7-zenki.modprobe_bin>;
+
+<[base.logs]>->( 0, "<< [forced] reloading module '%s' >>", $module_name );
+
+my @restart_timers;
+map {
+    if ( defined <v7-zenki.zenka.instance>->{$ARG}->{'timeout_timer'}
+        and <v7-zenki.zenka.instance>->{$ARG}->{'timeout_timer'}->is_active )
+    {
+        push( @restart_timers,
+            <v7-zenki.zenka.instance>->{$ARG}->{'timeout_timer'} );
+        <v7-zenki.zenka.instance>->{$ARG}->{'timeout_timer'}->stop;
+    }
+} <[v7-zenki.instance_ids]>;
+
+my $reply_mode = qw| true |;
+my $reply_data = 'module reloaded';
+
+chomp( my $modprobe_output
+        = qx($modprobe_bin --first-time $module_name 2>&1) );
+if ( !length($modprobe_output) ) {
+    $reply_data = 'module loaded';
+    goto do_reply;
+} elsif ( $modprobe_output =~ m| not found | ) {
+    $reply_data = "module '$module_name' not found";
+    goto do_reply;
+}
+
+## already in kernel ##
+
+chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
+if ( length($rmmod_output) ) {
+    $reply_mode = qw| false |;
+    $rmmod_output =~ s{(^.*rmmod: (FATAL: )?(Module )?|\.$)}{}g;
+    $reply_data = "unable to unload module ['$rmmod_output']";
+    goto do_reply;
+}
+
+chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
+if ( length($modprobe_output) ) {
+    $reply_mode = qw| false |;
+    $modprobe_output =~ s{(^modprobe: FATAL: (Module )?|\.$)}{}g;
+    $reply_data = "unable to load module ['$modprobe_output']";
+    goto do_reply;
+}
+
+do_reply:
+
+map { $ARG->start } @restart_timers;
+
+return { 'mode' => $reply_mode, 'data' => $reply_data }
+
+#,,..,.,.,,.,,...,.,.,.,,,..,,,,.,...,.,.,,..,..,,...,...,..,,,..,,..,.,,,..,,
+#733FHE53LGYO3I23KZTASEJ5YRX65BN33YSOFETFMYRVAJPONJTBYPPT4ETCNF3S7ZTEGCYKGXSXA
+#\\\|J7RHEUXXTNCHVFQR2LMW7LTUKXTAMGXLJYGHTUVNH2N7WIFDNWZ \ / AMOS7 \ YOURUM ::
+#\[7]YKGFUGZP5IOUFTOOC2ZXTYIZXLSFTMMTIA723ALVK57DOAW6KSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

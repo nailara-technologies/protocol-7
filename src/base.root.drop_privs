@@ -180,7 +180,7 @@ if ( not length( $user // '' ) ) {
                 } else
                 {    # creating temporary home directory for user 'nobody':.
                     my $tdir_template
-                        = <system.zenka.name> ne qw| v7 |
+                        = <system.zenka.name> ne qw| v7-zenki |
                         ? sprintf 'temp-home.%s.%s.%d', <system.zenka.name>,
                         $user, $PID
                         : sprintf( qw| temp-home.%s.XXXXXXXXXX |, $user );
@@ -198,8 +198,9 @@ if ( not length( $user // '' ) ) {
                         );
                         push(
                             <system.init_reports>->@*,
-                            {   'target_command' => qw| v7.report-temp-path |,
-                                'param'          => $h_directory,
+                            {   'target_command' =>
+                                    qw| v7-zenki.report-temp-path |,
+                                'param' => $h_directory,
                                 'descr' => 'registering temporary directory'
                             }
                         );
@@ -270,8 +271,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,..,.,,,,..,...,.,,,,.,,...,...,.,.,.,,,..,,..,,...,...,..,,,..,.,,,.,,,.,,,
-#4VDMP7EALPC7M3I5UVVWUZZ3SSISSE2HAPTISNP66LMFP22NLNH5YN7LAI6TSK5UGO6FE6GWR5XEE
-#\\\|OPPABJH5AN4BDQK55A2CGSOBHJXE5AZDNGQQ25IW4EVZENJTPRV \ / AMOS7 \ YOURUM ::
-#\[7]6CXNMZT2T2LUT6M2TRZUGPNK6XWLCENNMSSSG2DSS43QRPGS2SCQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,.,,,.,,,,..,...,.,,,,.,,,.,,..,,...,...,.,.,,,,,,,.,.,,,...,
+#22LLP4NFVQ4IVKSHM4PALCK7FZYBAGFJSF7RJFCCTUCJG34Q54J6P7PNTSLEOKPD7UJXPJWPM5ZZO
+#\\\|KYFJR6UV5KIEXDA2FSZ65UF7G3ZMX5RC2C27YT3LML6D3ZLJJBZ \ / AMOS7 \ YOURUM ::
+#\[7]GGFDLSQJL5GK7YTTUH2Z7BZAI6RBYOOGRILCLL5ISIK7GSMQZ6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
