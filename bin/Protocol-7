@@ -56,9 +56,12 @@ $data{'system'}{'start'}{'program_name'} = $PROGRAM_NAME;
 if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
     $zenkaname = lc $PROGRAM_NAME;
     $zenkaname =~ s|^.*protocol-7\.||ig;
-} elsif ( $PROGRAM_NAME =~ m|^.*v7\.|i ) {
+} elsif ( $PROGRAM_NAME =~ m|^.*v7\.|i ) {    ##  deprecated 'v7.*' form  ##
     $zenkaname = lc $PROGRAM_NAME;
-    $zenkaname =~ s|^.*v7\.||ig;    ### v7.* symlink form ###
+    $zenkaname =~ s|^.*v7\.||ig;
+} elsif ( $PROGRAM_NAME =~ m|^.*p7-|i ) {
+    $zenkaname = lc $PROGRAM_NAME;
+    $zenkaname =~ s|^.*p7-||ig;               ### p7-* symlink form ###
 } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
     $zenkaname = $LAST_PAREN_MATCH;
     shift @ARGV;
@@ -384,6 +387,8 @@ sub p7_early_whitelist_load {    ##  load sub whitelist before base module  ##
         ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*protocol-7\.||i;
     } elsif ( $PROGRAM_NAME =~ m|^.*v7\.|i ) {    ##  'p7.*' was the old form
         ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*v7\.||i;
+    } elsif ( $PROGRAM_NAME =~ m|^.*p7-|i ) {  ##  current hyphen-form symlink
+        ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*p7-||i;
     } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
         $zenkaname = $LAST_PAREN_MATCH;
     }
@@ -6491,8 +6496,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,,,,,.,.,.,.,.,.,.,...,,,,,,..,,,.,.,.,..,,...,..,,.,,,,,.,,,.,.,.,,,,,
-#NBMZJQWRHMJGPKQODBNJXOFNX27KEXWSW4DHRWTBZW37TARNEGEJLPBTVPZSLUA5NBU7G6ZK26IOU
-#\\\|PJ6WA6VHAARKJHXXWK4EHCNLEYSLZIRECQYYUC4ZT2BI4CDVCHQ \ / AMOS7 \ YOURUM ::
-#\[7]VZBDEUA4TJ7QDKI53KLER5CN7TTPJDLTT5CXMEXY3I64O3QXQ2CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,.,,,,,,..,,...,...,,.,,,,.,.,,,..,,...,..,,...,..,,...,,,,,..,,
+#OPI42TCBHUKSS3QKV2FA4FY7HG2APX46QDLSFKRYJEGU3EZNVBN6UJ5NG2DBYHJUZZCH7T6VHIBZO
+#\\\|YVPDUIRXO72SCRU3HOMXIVQIE5NNS25U7WURR6RJT2OAQW3WCOA \ / AMOS7 \ YOURUM ::
+#\[7]3FCR5PFVGUB45Z7BFDEKCVVWMJV77J67ZWDI7QMCDWG5ZUVCFUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
