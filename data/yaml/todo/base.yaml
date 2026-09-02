@@ -590,9 +590,27 @@ items:
   tags:
   - v7-zenka
   text: rename v7 'stop' command to 'terminate' [ v7-zenki.terminate ]
+- added: 3XBNFGOVOQ
+  details: currently bin/Protocol-7 resolves the zenka name by pattern-matching $PROGRAM_NAME text (Protocol-7.<name> or v7.<name>). follow the readlink() chain to the real Protocol-7 binary instead and take the last symlink name -- same mechanism the p7c binary auto-install already uses, more robust than text pattern matching. do after the v7-->p7- prefix rename lands.
+  done_at: null
+  id: MPV
+  priority: normal
+  status: open
+  tags:
+  - v7-zenka
+  text: upgrade zenka-name resolution to follow the symlink chain [ after v7-->p7- rename ]
+- added: 3XBNFGO7FQ
+  details: not just one global/user v7 zenka -- profile- or task-parameterized zenki that can self-terminate on completion, join zenki already present, or [ later ] roam across nodes while ensuring local infrastructure. needs flexible unix-domain-socket namespace/resolution instead of the current single-cube assumption, and more advanced dependency resolution.
+  done_at: null
+  id: LYE
+  priority: normal
+  status: open
+  tags:
+  - base-system
+  text: 'design multi-cube: parameterized/one-shot zenki litters'
 
-#,,..,..,,..,,...,...,,,.,..,,,,,,,,.,.,.,,,,,..,,...,...,,.,,,..,.,,,,,,,.,.,
-#UO6TVMAGA3SWRJ3W2THUQY5CN5DEZ6VFVBIU6XXC7AGNLHHNGYDYHHA74ED4R3TDO5G52MPXJZPQU
-#\\\|DDLW7BVCKPIEV3RY2CWHK644NEZDPPDB64GMIDEXG5MWDNUUGYS \ / AMOS7 \ YOURUM ::
-#\[7]7LHJNMFYSIZFOVDUGRKUS4RG2WHXGRKHS64QCS7SNKOXY7W2MCDI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,,,.,,,.,.,,,.,,,.,,,,,,,...,..,,...,...,..,,,..,,.,,.,,,..,,
+#7RUV3L7YKFJWMID5FDKUAQ2C32J4GBNKULP2OWSF27G55P5PWCSORYRRZKJMXR73RI6XQ2ISRGXZG
+#\\\|KMKOCIPLEO2XEACHLJTDJ5PMMD25HNOKGK4XXMIFVZM7XW4U37O \ / AMOS7 \ YOURUM ::
+#\[7]XMHTYAJBHXKSJCW42P2XUFSA7E44ZAMEDVSU33VVFZGWAU7NGABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
