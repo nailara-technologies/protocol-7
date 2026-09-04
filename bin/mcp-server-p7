@@ -335,11 +335,11 @@ my @external_tools = (
 
 ##[ global state ]##
 
-my $cube_sock;               ## persistent connection to cube
+my $cube_sock;    ## persistent connection to cube
 my $json = JSON->new->utf8->canonical;
-my $model_context_tokens;    ## cached from coding.context-size on first use
-my $pending_summary_focus
-    ;    ## one-shot focus for next auto_summarize; clears on use
+## one-shot focus for next  auto_summarize; clears on use : ##
+my $pending_summary_focus;
+##
 my $mcp_client_name;    ## captured from initialize clientInfo.name
 
 ## walk up to 8 process ancestors via /proc, return their cmdlines joined with
@@ -2592,12 +2592,13 @@ sub tool_p7_memory_digest {
 }
 
 sub _model_chunk_size {
-    ## query VRAM-safe calculated context size once and cache ##
-    unless ( defined $model_context_tokens ) {
-        my ( $ok, $val ) = cube_command('coding.safe-context-size');
-        $model_context_tokens
-            = ( $ok and $val =~ m{^(\d+)$} ) ? $1 + 0 : 18267;
-    }
+    ## query VRAM-safe calculated context size fresh each call -- the    ##
+    ## active model [ and its auto-expanded context ] can change between ##
+    ## summarize calls within this long-lived process's lifetime, so a   ##
+    ## cached value silently ignores model switches                      ##
+    my ( $ok, $val ) = cube_command('coding.safe-context-size');
+    my $model_context_tokens
+        = ( $ok and $val =~ m{^(\d+)$} ) ? $1 + 0 : 18267;
     ## leave headroom for system prompt + instruction + rolling summary + ##
     ## output tokens + tokenizer variance (dense code/json can tokenize   ##
     ## more efficiently than the 3.2 chars/token heuristic)               ##
@@ -4112,8 +4113,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,...,..,,...,.,.,..,,...,,,,,...,,..,..,,..,,...,...,..,,...,...,.,.,,.,,
-#ER45M5CB4GBN5CT4DORU2H7N4QJ6NZCVIOJFB5V2ST6LATKW3QIREROXS5TWLES44UNZX66CG7U2G
-#\\\|TUT2QKT6GSSLJEETB5ZJ3KG3L67PG2OE4AYGOMM2APHVCO36YRC \ / AMOS7 \ YOURUM ::
-#\[7]GW77MFZSGCAHONLVDNDN7SFPQW4IDBF52LCYZER5ULVFVMSM74BY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,...,,..,,.,,,,.,,.,,,..,,..,..,,...,...,,.,,.,.,.,,,,,.,.,,,
+#CBVBS6CX3RRIY2QDDAWEYGHWLL4YN5QWK7KZQXF643UQA62R2SKIOCHDLO2BTZHOGQB5QN32CCHMK
+#\\\|5MVWULR7KJA54MYNQEAHK224B23YQZY4JOUNHAMDSUH7XYDQQVZ \ / AMOS7 \ YOURUM ::
+#\[7]MFWZ4IGU35BPUSCLZAUHITB4PHQP67L2CIQV3LWG7332ONNQXWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

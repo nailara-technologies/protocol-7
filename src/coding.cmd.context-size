@@ -3,13 +3,21 @@
 # name  = coding.cmd.context-size
 # descr = return currently set context size in tokens
 
+## prefer the actual n_ctx a running server was spawned with -- auto-calc  ##
+## may expand it above the configured floor [ see spawn_inference_server ] ##
+my $backend = $call->{'args'} // qw| gpu |;
+$backend = qw| gpu | unless $backend =~ m{^(gpu|cpu)$}i;
+
+my $server = ( <coding.inference_servers> // {} )->{$backend} // {};
+
 return {
     'mode' => qw| true |,
-    'data' => <inference.model.context_length> // qw| undefined |
+    'data' => $server->{'n_ctx'} // <inference.model.context_length>
+        // qw| undefined |
     }
 
-#,,,,,.,.,..,,.,.,.,.,,.,,,,.,,,,,..,,.,,,,..,..,,...,...,..,,..,,...,...,,,,,
-#WR64YB75IVEPHR55DTHNE7YRQYYAY6J4VF42WOVX45DHV3TARVBVLICRCRVPRG2DMW5FKGPHEKRUC
-#\\\|TYE7Q6LKTZPTF4UF3VNTSY3ZZMZJV7EQWYGF6AQIS3646KUIP5A \ / AMOS7 \ YOURUM ::
-#\[7]VOPG6WISVJ6BUT565RO63UDW6KCOHZG7SPLSAA4JBU3SRJ5N7KDQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,..,,,,,...,.,.,..,,.,,,..,,,.,,..,,...,...,..,,..,,...,,,.,,,,,
+#FPLTN6H642CU6N7DQDG2VK7YRVRWOHRBQSFEKYKXTBITHNTCMWRSZ5DG2G6RBHX677JP6HCGQ5FLC
+#\\\|FDQ4AMYKBERR5JMEJMYEPCF4P37GZRRRO2VJH3EE4WJ6TSCVSNJ \ / AMOS7 \ YOURUM ::
+#\[7]DK7DSEAIW5YE6WUABNUBREEJQ33G2DUXYCUT22VDGLSEWVN7AGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

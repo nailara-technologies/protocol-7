@@ -67,8 +67,16 @@ overflow, which doesn't route through this timeout path at all) — check
 whether it clears on its own before assuming a hard hang, especially if
 under ~13 minutes have elapsed.
 
-#,,..,.,.,..,,,,,,...,,,.,..,,,,.,,,,,,.,,...,..,,...,...,,..,,.,,,.,,..,,...,
-#DXYVG5CF4P4TW55PPJJMLTB733XNLWPTISWA6LZBXBLDUKNECIDLN2MREUE5HIX26UOQUOAP3PAHS
-#\\\|ZCNCSQEPZS4ETT3JELQU5OBJO6IVUOVMOQBZ7FIMT5GSM3OJUWQ \ / AMOS7 \ YOURUM ::
-#\[7]U5TDCO5CPAN36TAAGVFWP27EX23YUMQTMIRACLDJEND7INHJB4AQ 7  DATA SIGNATURE ::
+**"switching to a lighter model doesn't help" is a separate, now-fixed
+bug**, not this hang: see
+[[feedback-coding-context-size-cmd-returned-stale-floor]] — `bin/
+mcp-server-p7`'s `_do_summarize` chunk-sizing cached
+`coding.safe-context-size` once for the whole process lifetime,
+so a later model switch's larger context never took effect for
+chunking decisions. Fixed 2026-09-04.
+
+#,,,,,.,,,..,,,,,,.,.,,,,,..,,,,,,,..,,,.,,,.,..,,...,..,,...,.,,,,..,...,..,,
+#OX3LYLQJLJVNMVYE2ACOWQIVNU2YNOE3WDH2CK25PA6UBXGNQ4NV2QDQ2J4YGPRPRJPL5XJD5PF6O
+#\\\|LL4HBHA3KX4CB2VAGKCLDSUTWOGXAF2SKJBF546F6ZQDXWU3JM7 \ / AMOS7 \ YOURUM ::
+#\[7]UGUGWSRIKGJJIAXYUB6TUVC3OT2FGWBCBNXJ4GCYSL2D2YRLHKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

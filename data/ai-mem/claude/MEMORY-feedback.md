@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [coding-context-size-cmd-returned-stale-floor](feedback-coding-context-size-cmd-returned-stale-floor.md) — 2026-09-04: plain `coding.context-size` returned the static config floor not the live auto-expanded n_ctx (fixed, real but minor); the actual cause of "switching to a lighter model doesn't help" was `bin/mcp-server-p7`'s `_model_chunk_size()` caching `safe-context-size` for the whole long-lived process, ignoring later model switches (fixed too) — grep for the cache variable itself, not just the command name, when a value looks stuck across a state change
 - [upgrade-substrate-not-revert-on-tool-limits](feedback-upgrade-substrate-not-revert-on-tool-limits.md) — when a tool (format-code, a parser, codegen) hits a case it mishandles, fix/upgrade the underlying system so it's handled correctly, never revert or patch around it; confirmed by the user as the correct default for protocol-7's "error-free computing substrate" ambition, already the default approach without reminders
 - [dont-preempt-version-bump-before-commit](feedback-dont-preempt-version-bump-before-commit.md) — never run bin/dev/update-version manually to preempt the pre-commit hook's version-mismatch gate; producing unsigned version-bump files forces a second, redundant signing pass with the user's tool. Let the hook trigger its own bump inline
 - [stale-tool-output-rides-into-later-commits](feedback-stale-tool-output-rides-into-later-commits.md) — pre-commit's own broad auto-staging sweeps in ALL modified files, not just what you `git add`ed; stale pre-fix tool output or interrupted-process collateral damage sitting unnoticed nearby can silently ride into an unrelated commit — check `git status --short` on the whole tree before committing, not just the diff you intended
@@ -114,8 +115,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 - [no-inventing-infrastructure-naming](feedback-no-inventing-infrastructure-naming.md) — never hardcode a domain/hostname/endpoint into production code without explicit agreement, even if it happens to resolve to something real owned by the user; found `nailara-technologies.v7.ax` (a prior session's invented, unauthorized email-domain construction) in `keys.console.github-pat` during the v7 identity rename
 
-#,,.,,.,.,.,,,,,,,...,..,,,.,,.,.,..,,,..,.,,,..,,...,...,,.,,,.,,,.,,.,.,,,,,
-#QNE5QUPO423B47X56ORZB7NLEWIQFBH65RC57TDSXLDTADEZEWTSESBZTV4SNCOB7TNO5PZJHMZYO
-#\\\|GTCWR7AJC2ZBU237JKYTCBY3KAP72TP4IVQG5FKNJFALLJ2KWAF \ / AMOS7 \ YOURUM ::
-#\[7]6QLRGPDMBFGXMF5OFZ2K7MBOXMJRV6KLBJTAGYEFJKUB7FSY6KBA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,.,,,.,.,.,,,.,,,,..,..,,.,.,..,,...,...,..,,,.,,...,,.,,,..,
+#PSDMD2SATOWHCBF5CUIUQI22RBH3ZNFJBNXBBCJCSYEJOHUBYZPXVADNAJ72QPLD6YFKZXIBMYJ4G
+#\\\|DAQNCQR2ONFJXULRCLG2ONTBKEW4FQU5CS5UMVOMQIK3CF6GV46 \ / AMOS7 \ YOURUM ::
+#\[7]RBTUXVJDW5IEOJR4VFSPPVZBUCMVVR64CWDJDOE44PXR6QBCOSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
