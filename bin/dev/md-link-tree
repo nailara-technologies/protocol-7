@@ -62,6 +62,8 @@ my %opt = (
     qw| no-external  | => 0,              ##  skip live http(s) checks  ##
     qw| no-color     | => 0,
     qw| quiet        | => 0,              ##  summary only, no tree  ##
+    qw| list         | => 0,    ##  plain list of reachable .md paths, for  ##
+    ##  scripting -- implies no-external        ##
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
@@ -73,6 +75,7 @@ GetOptions(
     qw| no-external   | => \$opt{'no-external'},
     qw| no-color      | => \$opt{'no-color'},
     qw| quiet         | => \$opt{quiet},
+    qw| list          | => \$opt{list},
     ## '-h' is a silent alias, undocumented in usage() -- same pattern as ##
     ## some other bin/dev scripts                                         ##
     qw{ options|h } => sub { print usage(); exit(0) },
@@ -93,11 +96,10 @@ my $c_struct = $opt{'no-color'} ? '' : $C{'0'};    ## blacklight purple ##
 ## markdown file nodes that resolved -- $C{'T'} is literally AMOS7's 'true' ##
 ## color [ p7_fg_0004, "TRUE blue [text]" in AMOS7::TERM ]                  ##
 my $c_file = $opt{'no-color'} ? '' : $C{'B'} . $C{'T'};
-##  validated leaf : local file exists, or external url answered        ##
-## phosphor green ##
+## validated leaf : local file exists, or external url answered phosphor ##
+## green                                                                 ##
 my $c_ok = $opt{'no-color'} ? '' : "\e[38;2;9;170;94m";
-##  broken link -- the one thing that should visually jump out          ##
-## bold gold ##
+## broken link -- the one thing that should visually jump out bold gold ##
 my $c_broken = $opt{'no-color'} ? '' : $C{'B'} . $C{'o'};
 
 sub paint {
@@ -116,6 +118,8 @@ my $root_file
 
 die ":: root file not found : $root_file\n" if !-f $root_file;
 
+$opt{'no-external'} = 1 if $opt{list};
+
 my %visited;          ##  abs path -> 1 once its subtree has been expanded  ##
 my %external_cache;   ##  url -> [ ok, reason ]                             ##
 my %stats = (
@@ -126,23 +130,26 @@ my %stats = (
 );
 
 print paint( $c_file, "md-link-tree :: root = $opt{root}" ), "\n"
-    if !$opt{quiet};
-print paint( $c_struct, ';.,' ), "\n" if !$opt{quiet};
+    if !$opt{quiet} && !$opt{list};
+print paint( $c_struct, ';.,' ), "\n" if !$opt{quiet} && !$opt{list};
 
 walk( $root_file, '', 5, 0 );
 
-print paint( $c_struct, ';.,' ), "\n\n" if !$opt{quiet};
-printf "%s %s%s\n",
-    paint(
-    $c_struct,
-    sprintf(
-        'summary : %d file%s checked, %d link%s,',
-        $stats{files}, $stats{files} == 1 ? '' : 's',
-        $stats{links}, $stats{links} == 1 ? '' : 's'
-    )
-    ),
-    paint( $stats{broken} ? $c_broken : $c_ok, "$stats{broken} broken" ),
-    paint( $c_struct, ", $stats{external} external" );
+if ( !$opt{list} ) {
+    print paint( $c_struct, ';.,' ), "\n\n" if !$opt{quiet};
+    printf "%s %s%s\n",
+        paint(
+        $c_struct,
+        sprintf(
+            'summary : %d file%s checked, %d link%s,',
+            $stats{files}, $stats{files} == 1 ? '' : 's',
+            $stats{links}, $stats{links} == 1 ? '' : 's'
+        )
+        ),
+        paint( $stats{broken} ? $c_broken : $c_ok, "$stats{broken} broken" ),
+        paint( $c_struct, ", $stats{external} external" )
+        if !$opt{quiet};
+}
 
 exit( $stats{broken} ? 1 : 0 );
 
@@ -163,6 +170,8 @@ usage: md-link-tree [options]
   -no-external       skip live http(s) checks entirely
   -no-color          plain text output
   -quiet             summary line only, no tree
+  -list              plain list of reachable .md paths, one per line, for
+                      scripting -- implies -no-external
   -options           this text
 END_USAGE
 }
@@ -179,13 +188,17 @@ sub walk {
     if ( $visited{$abs_path} ) {
         print $indent, paint( $c_struct, "$rel  [ already listed above ]" ),
             "\n"
-            if !$opt{quiet};
+            if !$opt{quiet} && !$opt{list};
         return;
     }
     $visited{$abs_path} = 1;
     $stats{files}++;
 
-    print $indent, paint( $c_file, $rel ), "\n" if !$opt{quiet};
+    if ( $opt{list} ) {
+        print "$rel\n";
+    } else {
+        print $indent, paint( $c_file, $rel ), "\n" if !$opt{quiet};
+    }
 
     my $content = slurp($abs_path);
     my @found   = extract_links($content);
@@ -225,7 +238,7 @@ sub render_link {
             print $line_prefix,
                 paint( $c_struct, "$target  [ unchecked " . "scheme ]" ),
                 "\n"
-                if !$opt{quiet};
+                if !$opt{quiet} && !$opt{list};
             return;
         }
 
@@ -234,7 +247,7 @@ sub render_link {
         if ( $opt{'no-external'} ) {
             print $line_prefix,
                 paint( $c_struct, "$target  [ external, unchecked ]" ), "\n"
-                if !$opt{quiet};
+                if !$opt{quiet} && !$opt{list};
             return;
         }
 
@@ -242,11 +255,12 @@ sub render_link {
         if ($ok) {
             print $line_prefix, paint( $c_ok, $target ),
                 paint( $c_struct, "  [ $reason ]" ), "\n"
-                if !$opt{quiet};
+                if !$opt{quiet} && !$opt{list};
         } else {
             $stats{broken}++;
             print $line_prefix,
-                paint( $c_broken, "$target  [ BROKEN : $reason ]" ), "\n";
+                paint( $c_broken, "$target  [ BROKEN : $reason ]" ), "\n"
+                if !$opt{list};
         }
         return;
     }
@@ -263,19 +277,21 @@ sub render_link {
         $stats{broken}++;
         print $line_prefix,
             paint( $c_broken, "$target  [ BROKEN " . ": no such file ]" ),
-            "\n";
+            "\n"
+            if !$opt{list};
         return;
     }
 
     if ( $resolved !~ m{\.md$}i ) {
-        print $line_prefix, paint( $c_ok, $target ), "\n" if !$opt{quiet};
+        print $line_prefix, paint( $c_ok, $target ), "\n"
+            if !$opt{quiet} && !$opt{list};
         return;
     }
 
     if ($too_deep) {
         print $line_prefix, paint( $c_ok, $target ),
             paint( $c_struct, "  [ max-depth reached ]" ), "\n"
-            if !$opt{quiet};
+            if !$opt{quiet} && !$opt{list};
         return;
     }
 
@@ -336,8 +352,8 @@ sub slurp {
     return decode( 'UTF-8', $content // '' );
 }
 
-#,,,,,,,,,.,,,.,,,,..,,..,,..,.,,,,,,,...,..,,..,,...,...,..,,.,.,.,,,...,.,,,
-#AUSTCCXJUJJ5LIVMXYOYAZUNMLHHWI4DV5AQABO4C3AF3Z5AE27OPJNZZDU4R4VEJUW4LRZ6MTBNO
-#\\\|64R5PKZ24GIEELXOT7BCJU5KXQ2TFP6GDN63TJE42HGZYTKSN56 \ / AMOS7 \ YOURUM ::
-#\[7]MBCOPTVXMKPHZ4WHD4VFJ43FJDAU7T55NEKJQL33QK5Z2KEHU6CI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,,,,,,,.,,.,,...,,,.,,,.,.,,,..,,...,...,..,,...,,,,,,..,.,,,
+#RWBLGHQ73SQFQSKMRUANDV5C4CEN47REMVLBDI5U6GEJXJWIIG77Q5EKP2J563E4TK6KB7NB4JVRW
+#\\\|JXVL5OOLD6AMZBD4JW4NASVPJVLU6UUTQQQV7URP3CPA7RVEVSG \ / AMOS7 \ YOURUM ::
+#\[7]MFPWNU2DRGVB7UFC6Z2VJSDC7QFTQOKZK23AEYZCROSFHQPTGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

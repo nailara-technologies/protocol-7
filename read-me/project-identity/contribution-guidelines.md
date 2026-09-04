@@ -28,8 +28,10 @@ Contributions should resonate with the project's core principles:
 - Zenki (agent) development
 - Infrastructure optimization
 
-#,,.,,,.,,...,,..,..,,,,,,,,,,,,.,.,,,.,,,.,,,..,,...,...,...,.,.,..,,..,,,,.,
-#I6H4BPODYWWT22HUI5KZO5EBG72ZZORMNYRIMBAPQXHA2KYIPU5PCJ4OLSDQQ2ZSQD4KC4VGYJS7C
-#\\\|3RVXNCDASF5HYBEAEBSHDOHAWYMOWG4B2JZRIZYWTGKOC3PGS7A \ / AMOS7 \ YOURUM ::
-#\[7]4AE4ERQTTTQN7NQO34M7TFHTXOL2RTV7YW2XRQOGF5W6W5T6CIDQ 7  DATA SIGNATURE ::
+```
+
+#,,.,,..,,,,.,,,.,...,..,,..,,,,.,,,.,...,.,.,..,,...,...,..,,.,,,...,,..,,..,
+#IRMMSO5LGBLOKCPBPPY57OL7VUHMLAZM3TMVFXY6SXJLS24XDCVPLMG5XOMCT6LAI4IUUJUEN2QZ4
+#\\\|WP6WJYP3SVLVJYVX5ROZWLFZZOILZIRT3EZGQMD4TI66JVM733Z \ / AMOS7 \ YOURUM ::
+#\[7]ZGDQTTRG7YU3B5SFZ3CIONKHMVYPEKIF25QKL2FWCJGS4MFVNGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

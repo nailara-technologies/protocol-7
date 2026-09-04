@@ -39,8 +39,10 @@ Like water irrigating farmland:
 - Compensation for value creation
 - Sustainable, dynamic ecosystem of shared resources
 
-#,,.,,.,.,,..,,,,,,..,.,,,.,,,.,.,.,,,..,,..,,..,,...,...,.,,,.,,,,..,.,.,,.,,
-#AZ7T67FRFTQ75U6VJTTQPKWSSARFEGYJGMGWOOYYFACSLOEHAR5ESFX3GFH2KO4EEAUDJYXVSQRZI
-#\\\|GRF4VPISMFXFTK6LTHSY5FG7RZKN7GET3PNZC22FKUTNIIF5J7K \ / AMOS7 \ YOURUM ::
-#\[7]NDXIWGRQ2XQXOUDG6G5O5FCJKBN2MXT5TBU63H3UZTEWPVIMXMCI 7  DATA SIGNATURE ::
+```
+
+#,,..,.,,,,,,,,..,.,,,,.,,...,,,,,.,.,.,,,,..,..,,...,..,,.,.,..,,,,.,...,.,,,
+#ZSNRD3KYCRQ4XJEPCTNBJ2RVLCVJ43U5O3MIH5OJTYMIUFTW3FQ73PDV5XPPHSEYBB3KVMPBDC5G2
+#\\\|JRRAVKJIQTWO6E5GVETSKWHMAXQR55PPWSPHW6XF6U2H7L55XHF \ / AMOS7 \ YOURUM ::
+#\[7]IHTP7RLJE47GCXFPI7YP63HV7ABUHV2WJQY3XBL6MH6RZETCOGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
