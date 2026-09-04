@@ -1,0 +1,343 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+use File::Spec;
+use Encode qw| decode |;
+
+###                ###
+##  md-link-tree  ##                          #:..:..:..:..:..:..:..:..:..:
+###                ###
+
+##  walks markdown links starting from a root file [ README.md by default   ##
+##  ] and renders a validated link tree : relative links to other markdown  ##
+##  files are followed recursively, image / other local file links are      ##
+##  existence-checked as leaves, and external http(s) links are live-       ##
+##  checked with a single respectful request each [ cached per url, so a    ##
+##  link referenced from multiple files is only fetched once ]. broken      ##
+##  links are highlighted in the tree and counted in the closing summary    ##
+##                                                                          ##
+##  anchor fragments [ #section ] are stripped before existence checks,     ##
+##  not separately validated -- heading-slug matching is out of scope       ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+use AMOS7;    ##  %C -- the project's canonical terminal color palette  ##
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+## 'README.md' [ not 'read-me/md/README.md' ] on purpose : it's a symlink   ##
+## to the real file, kept at the repo root specifically so GitHub [ and     ##
+## this tool ] resolve its root-relative-looking links [ 'bin/', 'src/' ]   ##
+## against the repo root, not against read-me/md/ where the real file lives ##
+my %opt = (
+    qw| root         | => qw| README.md |,
+    qw| max-depth    | => 0,              ##  0 = unlimited  ##
+    qw| timeout      | => 6,              ##  seconds per external request  ##
+    qw| no-external  | => 0,              ##  skip live http(s) checks  ##
+    qw| no-color     | => 0,
+    qw| quiet        | => 0,              ##  summary only, no tree  ##
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| root=s        | => \$opt{root},
+    qw| max-depth=i   | => \$opt{'max-depth'},
+    qw| timeout=i     | => \$opt{timeout},
+    qw| no-external   | => \$opt{'no-external'},
+    qw| no-color      | => \$opt{'no-color'},
+    qw| quiet         | => \$opt{quiet},
+    ## '-h' is a silent alias, undocumented in usage() -- same pattern as ##
+    ## some other bin/dev scripts                                         ##
+    qw{ options|h } => sub { print usage(); exit(0) },
+) or die usage();
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COLOR PALETTE ]###########################################################
+
+## built from AMOS7's %C -- the project's canonical terminal palette, the   ##
+## same one 'ncode'/'nshell'/'ssh.hash-hostkey' draw from. every visible    ##
+## glyph gets one of these -- nothing is left in the terminal's own default ##
+## color, which is what read as "arbitrary gray" before                     ##
+my $c_reset = $opt{'no-color'} ? '' : $C{'R'};
+## tree branches / continuation bars + de-emphasized annotations [ 'already ##
+## listed above', 'unchecked' ] : same muted violet family, not an          ##
+## unrelated gray -- it's structure, not content                            ##
+my $c_struct = $opt{'no-color'} ? '' : $C{'0'};    ## blacklight purple ##
+## markdown file nodes that resolved -- $C{'T'} is literally AMOS7's 'true' ##
+## color [ p7_fg_0004, "TRUE blue [text]" in AMOS7::TERM ]                  ##
+my $c_file = $opt{'no-color'} ? '' : $C{'B'} . $C{'T'};
+##  validated leaf : local file exists, or external url answered        ##
+## phosphor green ##
+my $c_ok = $opt{'no-color'} ? '' : "\e[38;2;9;170;94m";
+##  broken link -- the one thing that should visually jump out          ##
+## bold gold ##
+my $c_broken = $opt{'no-color'} ? '' : $C{'B'} . $C{'o'};
+
+sub paint {
+    my ( $color, $text ) = @ARG;
+    return $text if $opt{'no-color'};
+    return "$color$text$c_reset";
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my $root_file
+    = File::Spec->file_name_is_absolute( $opt{root} )
+    ? $opt{root}
+    : c_dir_file( $root_path, $opt{root} );
+
+die ":: root file not found : $root_file\n" if !-f $root_file;
+
+my %visited;          ##  abs path -> 1 once its subtree has been expanded  ##
+my %external_cache;   ##  url -> [ ok, reason ]                             ##
+my %stats = (
+    qw| files    | => 0,
+    qw| links    | => 0,
+    qw| broken   | => 0,
+    qw| external | => 0,
+);
+
+print paint( $c_file, "md-link-tree :: root = $opt{root}" ), "\n"
+    if !$opt{quiet};
+print paint( $c_struct, ';.,' ), "\n" if !$opt{quiet};
+
+walk( $root_file, '', 5, 0 );
+
+print paint( $c_struct, ';.,' ), "\n\n" if !$opt{quiet};
+printf "%s %s%s\n",
+    paint(
+    $c_struct,
+    sprintf(
+        'summary : %d file%s checked, %d link%s,',
+        $stats{files}, $stats{files} == 1 ? '' : 's',
+        $stats{links}, $stats{links} == 1 ? '' : 's'
+    )
+    ),
+    paint( $stats{broken} ? $c_broken : $c_ok, "$stats{broken} broken" ),
+    paint( $c_struct, ", $stats{external} external" );
+
+exit( $stats{broken} ? 1 : 0 );
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub c_dir_file { File::Spec->catfile(@ARG) }
+
+sub usage {
+    return <<"END_USAGE";
+usage: md-link-tree [options]
+
+  -root <path>       markdown file to start from [ default : README.md,
+                      relative to the repo root ]
+  -max-depth <n>     stop recursing into linked markdown files past this
+                      depth [ default : 0, unlimited ]
+  -timeout <sec>     per-request timeout for external link checks [ default : 6 ]
+  -no-external       skip live http(s) checks entirely
+  -no-color          plain text output
+  -quiet             summary line only, no tree
+  -options           this text
+END_USAGE
+}
+
+##  recursively render one markdown file and its linked children  ##
+sub walk {
+    my ( $abs_path, $prefix, $is_last, $depth ) = @ARG;
+
+    my $rel         = File::Spec->abs2rel( $abs_path, $root_path );
+    my $branch_char = $is_last ? '└─' : '├─';
+    my $indent
+        = $depth == 0 ? '' : paint( $c_struct, "$prefix$branch_char" ) . ' ';
+
+    if ( $visited{$abs_path} ) {
+        print $indent, paint( $c_struct, "$rel  [ already listed above ]" ),
+            "\n"
+            if !$opt{quiet};
+        return;
+    }
+    $visited{$abs_path} = 1;
+    $stats{files}++;
+
+    print $indent, paint( $c_file, $rel ), "\n" if !$opt{quiet};
+
+    my $content = slurp($abs_path);
+    my @found   = extract_links($content);
+
+    my $child_prefix
+        = $depth == 0 ? '' : $prefix . ( $is_last ? '   ' : '│  ' );
+
+    my $too_deep = $opt{'max-depth'} && $depth >= $opt{'max-depth'};
+
+    for my $i ( 0 .. $#found ) {
+        my $entry      = $found[$i];
+        my $child_last = ( $i == $#found ) ? 5 : 0;
+        render_link( $entry, $abs_path, $child_prefix, $child_last, $depth,
+            $too_deep );
+    }
+}
+
+## classify + check one extracted link, printing its line and recursing ##
+## into it when it resolves to another local markdown file              ##
+sub render_link {
+    my ( $entry, $from_file, $prefix, $is_last, $depth, $too_deep ) = @ARG;
+
+    my $target      = ( split( m|#|, $entry->{target}, 2 ) )[0];
+    my $branch_char = $is_last ? '└─' : '├─';
+    my $line_prefix = paint( $c_struct, "$prefix$branch_char" ) . ' ';
+
+    if ( !length $target ) {
+        ##  pure in-page anchor -- not file-checkable, not shown as broken ##
+        return;
+    }
+
+    $stats{links}++;
+
+    if ( $target =~ m{^ (?: [a-z][a-z0-9+.-]* ) : }ix ) {
+        ##  external [ or mailto: / other scheme ] link ##
+        if ( $target !~ m{^https?://}i ) {
+            print $line_prefix,
+                paint( $c_struct, "$target  [ unchecked " . "scheme ]" ),
+                "\n"
+                if !$opt{quiet};
+            return;
+        }
+
+        $stats{external}++;
+
+        if ( $opt{'no-external'} ) {
+            print $line_prefix,
+                paint( $c_struct, "$target  [ external, unchecked ]" ), "\n"
+                if !$opt{quiet};
+            return;
+        }
+
+        my ( $ok, $reason ) = check_external($target);
+        if ($ok) {
+            print $line_prefix, paint( $c_ok, $target ),
+                paint( $c_struct, "  [ $reason ]" ), "\n"
+                if !$opt{quiet};
+        } else {
+            $stats{broken}++;
+            print $line_prefix,
+                paint( $c_broken, "$target  [ BROKEN : $reason ]" ), "\n";
+        }
+        return;
+    }
+
+    ## local filesystem path -- '/'-prefixed is repo-root-relative,   ##
+    ## matching how this project's own markdown links resolve on disk ##
+    my $resolved
+        = $target =~ m{^/}
+        ? c_dir_file( $root_path,                               $target )
+        : c_dir_file( ( File::Spec->splitpath($from_file) )[1], $target );
+    $resolved = File::Spec->rel2abs($resolved);
+
+    if ( !-e $resolved ) {
+        $stats{broken}++;
+        print $line_prefix,
+            paint( $c_broken, "$target  [ BROKEN " . ": no such file ]" ),
+            "\n";
+        return;
+    }
+
+    if ( $resolved !~ m{\.md$}i ) {
+        print $line_prefix, paint( $c_ok, $target ), "\n" if !$opt{quiet};
+        return;
+    }
+
+    if ($too_deep) {
+        print $line_prefix, paint( $c_ok, $target ),
+            paint( $c_struct, "  [ max-depth reached ]" ), "\n"
+            if !$opt{quiet};
+        return;
+    }
+
+    walk( $resolved, $prefix, $is_last, $depth + 1 );
+}
+
+## extract [text](target) links, handling ![alt](img) nested inside a link  ##
+## by stripping image constructs first so the outer href is left intact for ##
+## the second pass -- otherwise the outer link is swallowed                 ##
+sub extract_links {
+    my ($content) = @ARG;
+
+    my @out;
+    while ( $content =~ m{ !\[ [^\]]* \] \( ([^)]+) \) }gx ) {
+        push @out, { qw| type image |, target => $1 };
+    }
+    $content =~ s{ !\[ [^\]]* \] \( [^)]+ \) }{}gx;
+
+    while ( $content =~ m{ (?<! !) \[ [^\]]* \] \( ([^)]+) \) }gx ) {
+        push @out, { qw| type link |, target => $1 };
+    }
+
+    return @out;
+}
+
+## single respectful HEAD request per url [ falls back to GET when a server ##
+## rejects HEAD ], cached so repeated links cost one request                ##
+sub check_external {
+    my ($url) = @ARG;
+
+    return @{ $external_cache{$url} } if exists $external_cache{$url};
+
+    require HTTP::Tiny;
+    my $http = HTTP::Tiny->new(
+        timeout      => $opt{timeout},
+        agent        => qw| protocol-7-md-link-tree/1.0 |,
+        max_redirect => 5,
+    );
+
+    my $res = $http->head($url);
+    $res = $http->get($url) if $res->{status} =~ m{^(?:405|501)$};
+
+    my @result
+        = $res->{success}
+        ? ( 5, $res->{status} )
+        : ( 0, $res->{status} . ' ' . ( $res->{reason} // qw| unknown | ) );
+
+    $external_cache{$url} = \@result;
+    return @result;
+}
+
+sub slurp {
+    my ($path) = @ARG;
+    open my $fh, '<:raw', $path or die ":: cannot read $path : $OS_ERROR\n";
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $content = <$fh>;
+    close $fh;
+    return decode( 'UTF-8', $content // '' );
+}
+
+#,,,,,,,,,.,,,.,,,,..,,..,,..,.,,,,,,,...,..,,..,,...,...,..,,.,.,.,,,...,.,,,
+#AUSTCCXJUJJ5LIVMXYOYAZUNMLHHWI4DV5AQABO4C3AF3Z5AE27OPJNZZDU4R4VEJUW4LRZ6MTBNO
+#\\\|64R5PKZ24GIEELXOT7BCJU5KXQ2TFP6GDN63TJE42HGZYTKSN56 \ / AMOS7 \ YOURUM ::
+#\[7]MBCOPTVXMKPHZ4WHD4VFJ43FJDAU7T55NEKJQL33QK5Z2KEHU6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
