@@ -28,7 +28,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
   reasoning namespace, orbital/STRM push, credential-fabric transport, ondemand watchdog, p7-log utf8.
 
-- **[MEMORY-reference.md](MEMORY-reference.md)** (59 pointers) — durable how-to + settled rules.
+- **[MEMORY-reference.md](MEMORY-reference.md)** (62 pointers) — durable how-to + settled rules.
   open for: how a convention works or the "right way" to do something — cube auth. prefix, .cmd. reply
   contract (mode/data STRING), send.local vs base., timer undef-interval, config-reload clobber,
   file-io API, deferred-init callbacks, C25519 config paths, ntime; zenka catalog (site-yaml, git-watch,
@@ -36,7 +36,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (56 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (58 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -53,8 +53,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,..,,,,.,.,,,,,.,.,.,,.,,,..,,,.,.,.,,,,,..,,...,..,,..,,,..,.,,,,,.,,..,
-#SKUUGBWA5OZ2QP5BWLMLOJFXXWRTFUWBRT5RW7564PQBEETUMBGQR5J7UFBDXS2D7WNWR4LR3KCZO
-#\\\|KJ73EZPET5WQUZYET7D4VUQCDNJYTJZH7AOAABC5AFF7DWSOF2F \ / AMOS7 \ YOURUM ::
-#\[7]YUJPYH7ZD6MP43DNC53CLRDW5OVUNR6GWQOCI36GQK2TRBBTEODY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,,,,,,,.,...,.,.,,,,,,..,.,.,..,,...,...,..,,..,,.,,,,,.,,..,
+#OI23NOHA5XWRE6RRC5CEAG5ZHEG6YXN2MPA3TODCOWIPAKWRQ7MITGOL3HV3MAGJ4R3HLEBMUFO3O
+#\\\|U34TLCI6LNVYRX5QCNACQE7ZMGBDUZ7IW73WOU4UCWBSQOI2WYK \ / AMOS7 \ YOURUM ::
+#\[7]L7GQNCEMEAVOOG4ZI5TO7MWG5CPMWVRL4HZOUE2RA63JFWU26UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
