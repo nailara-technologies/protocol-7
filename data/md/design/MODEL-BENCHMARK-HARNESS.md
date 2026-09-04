@@ -191,8 +191,10 @@ model to prove end-to-end, same caveat as everything else in this
 project's coding-zenka work — standalone tests first, live verification
 by the user after.
 
-#,,,,,..,,..,,,,.,,,,,.,,,,.,,..,,,,,,,,.,...,..,,...,...,..,,.,,,,,.,,,.,,.,,
-#XIRANVSSOCILEX5XEZK4QCM27I6FSE4S2QSDDBE4TBKLLIDLIFBVYMKDMCAW7GFXDPLWCQAWH7UEO
-#\\\|SZC4YI3JKYV3FIAVVTLOFYYZMEVLWX2OCGKYLAW42GMHLBPGAQZ \ / AMOS7 \ YOURUM ::
-#\[7]XTNAHJFICYZB76GDWBREDHVPNMFKLLCRQ7EHHAWIACXZTLLBI2CY 7  DATA SIGNATURE ::
+```
+
+#,,..,.,.,,,.,,..,,,.,..,,,..,,,.,..,,..,,.,,,..,,...,...,.,.,,..,...,...,,,.,
+#HOYKXERNUDG7NLRVTPIDXR676FF4WAWZOYFNDTHYUMAIIGUWEEW6QJ4B3FOCMD65IMNCRZAECAUYG
+#\\\|EVFYZHJYJ2LENG4JP526WQZZANI5MDQGUNJ7VHTEWRXHIXSE5GX \ / AMOS7 \ YOURUM ::
+#\[7]3SVHZTE64VYKMED4L76I4JGCXJ72TVKY7XWZBUFHCHAMN2FPJUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
