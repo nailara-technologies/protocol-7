@@ -6,6 +6,9 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [nice-inherits-across-fork-setuid](reference-nice-inherits-across-fork-setuid.md) — to renice a late-forked unprivileged child (e.g. mpv's player process), renice the zenka itself while still root, before root.drop_privs -- base.change_prio's negative-priority guard makes reniceing the child directly after drop_privs a silent no-op
+- [readme-md-symlink-for-relative-links](reference-readme-md-symlink-for-relative-links.md) — repo-root README.md is a symlink to read-me/md/README.md so its relative links (bin/, src/) resolve against repo root like GitHub does; resolve via the symlink path, not realpath/the real file location
+- [amos7-canonical-color-palette](reference-amos7-canonical-color-palette.md) — AMOS7.pm exports %C (T/0/g/o/B/R keys) by default, AMOS7::TERM has the same values as named p7_fg_NNNN constants; reuse via `use AMOS7;` in bin/ scripts instead of hardcoding ANSI escapes
 - [debug-via-proven-sibling-pattern](reference-debug-via-proven-sibling-pattern.md) — when a hypothesis-driven fix has zero effect on a live bug, stop theorizing and diff against a structurally-similar, already-proven-working piece of code instead; cracked the debian apt_child EPERM/ESRCH bug this way after two wrong guesses (2026-09-02)
 - [zenka-callback-wrapper-prototype-pattern](reference-zenka-callback-wrapper-prototype-pattern.md) — for conditional zenka start-up logic, wire a single callback sub (zenka.v7 has no native conditionals) and prototype on a low-blast-radius sandbox zenka before transplanting into a load-bearing one; validated 2026-09-02 building the `zenki` sandbox toward eventual `v7-zenki` assimilation
 - [nested-data-key-sugar](reference-nested-data-key-sugar.md) — any `%data` nesting depth >= 2 has a `<key0.key1[.keyN]>` sugar form (reads/writes/delete, partial paths too, e.g. `<watcher.io>->{$name}`); not in CONVENTIONS.yaml; ncode/format-code cleanup planned later, not urgent
@@ -73,8 +76,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,..,.,.,.,,,,..,,.,,,,,,,,.,.,,,..,,...,...,..,,...,...,.,.,..,,,..,.,,,...,
-#42T6DFESA3S5WMCZAIEICSELPDEJLJYOCYJKLMMZFQ2W7P6U3BOESWUL3CNN6RCMJJNL3U4MPPG2K
-#\\\|J4RWJUSX6H5EWXSW42WJMZKASNIMO37XL4ICTNKUHCRRG7FDQQY \ / AMOS7 \ YOURUM ::
-#\[7]I3IPF6TRR53CX5UBNRE5W4J2CEFCZ6KNVUYEQGZKNQLEE7UPXSDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,,.,,,..,,,,,,,,,,,,,,..,,,.,..,,...,..,,..,,..,,.,,,,,.,,,,,
+#HYPKGXUZG2GEJ263ZFSWWMKXEQE2FD2R3TMVU7CWISCC7MDR3UE7NGD6XBOMO7TC5SN44AAF5ZDLS
+#\\\|MODICV4YIHQGBZ7HNJFKB2ED2KXUA27LKLN5ZMSEIW2UBWHBVKC \ / AMOS7 \ YOURUM ::
+#\[7]7LHQ7TBBV7TDNGSQZUZWOZYJAMLPKKVMZMX7RGGSKZ7J5RH4YYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
