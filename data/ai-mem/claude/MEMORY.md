@@ -36,7 +36,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (58 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (60 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -49,12 +49,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
 
-- **[MEMORY-completed.md](MEMORY-completed.md)** (5 pointers) — session archive & live status.
+- **[MEMORY-completed.md](MEMORY-completed.md)** (6 pointers) — session archive & live status.
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,.,.,,,.,,,.,,,,,,,.,...,.,.,,,,,,..,.,.,..,,...,...,..,,..,,.,,,,,.,,..,
-#OI23NOHA5XWRE6RRC5CEAG5ZHEG6YXN2MPA3TODCOWIPAKWRQ7MITGOL3HV3MAGJ4R3HLEBMUFO3O
-#\\\|U34TLCI6LNVYRX5QCNACQE7ZMGBDUZ7IW73WOU4UCWBSQOI2WYK \ / AMOS7 \ YOURUM ::
-#\[7]L7GQNCEMEAVOOG4ZI5TO7MWG5CPMWVRL4HZOUE2RA63JFWU26UCY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,,,.,,.,,...,,,.,,.,,..,,..,,..,,...,...,.,.,.,.,...,,.,,,,,,
+#XBPWHUFWAZA7FH7XUH5GEHFJ63WJ25KIXTDZFJ3BPIIOY2SF7BLCCMAPNMDM5CK2O7SSC6MMS7L7C
+#\\\|URV27DNA4FI2FWW2M52BS7J5P3EJPGBRKAUU2NFLNOSCCKUHJKA \ / AMOS7 \ YOURUM ::
+#\[7]2YCB4OE4MJ3SBOCNARZQFIQIQJC4L3AIJ3D64O4VWGX6Z2PQMOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

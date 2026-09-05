@@ -41,51 +41,49 @@ still active in `data/tasks/` got a full read this session, plus all
 (pre-2026-08) has not been swept yet — good candidate for the next
 archiving pass with the same tool + discipline.
 
-### Prioritized next-dispatch queue (drafted from what was actually read this session)
+### Prioritized dispatch queue — 3 of 4 DONE this session
 
-Ranked by how dispatch-ready the remaining work is, per
-`data/yaml/context-templates/kimi-dispatch-workflow.yaml`'s own bar
-(objective/context/steps/acceptance already legible, not something
-needing fresh design work first):
+Ranked by how dispatch-ready the remaining work was, per
+`data/yaml/context-templates/kimi-dispatch-workflow.yaml`'s own bar.
+Status after this session:
 
-1. **`cred-mesh-transport-subscription-and-base32-gap.yaml`** (NEW,
-   written this session, ready to dispatch) — extracted from the tail
-   of `data/tasks/cred-mesh-rotation-subscription-cross-zenka.md`.
-   That doc's bugs 1-4 and the leaked-timer self-permission-denial bug
-   are all FIXED and live-verified (confirmed by re-reading the file
-   in full before writing this task) — do not re-touch those. What's
-   actually still open: transport's rotation-subscription vanishes
-   somewhere between `send.local`'s successful queue and cred-mesh's
-   `.cmd.subscribe_rotation` wrapper (proxy's identical path works
-   fine), and `transport.cmd.cred-rotated`'s `base.base32.decode`
-   resolves undef in transport only. Both symptoms may share one root
-   cause (transport's `modules.load` token expansion vs proxy's,
-   untested theory) — the task file says to check that, not assume it.
-   Test harness already exists: `bin/dev/cred-mesh-test`, scenario 4.
+1. **DONE** — `cred-mesh-transport-subscription-and-base32-gap.yaml`.
+   See its own section below; archived to `data/yaml/archive/
+   completed-coding-tasks/`.
 
-2. **`research-knowledge-base-extraction.md`** — lowest-risk dispatch
-   in the backlog ("do NOT implement anything, research and extract
-   only"). Only topic 10 of ~11 roadmap topics has been extracted to
-   `data/tasks/research-findings/`; the rest already have their search
-   terms and output paths spelled out in the task file itself. Good
-   for a bulk kimi pass since a bad extraction just gets re-read, never
-   touches live code.
+2. **DONE** — `research-knowledge-base-extraction.md`. Dispatched to
+   kimi k2.7 (`kh70fwunh` — outer harness reported it as timed-out
+   after 1800s idle, but the underlying kimi process kept running to
+   completion; recovered via `kimi_check_status`, no work lost). All 5
+   listed topics (7.2 dancing-zenki-formation, 7.3 council-of-13, 9.1
+   personal-hud-grid, 10 forensics-zenka [already done], 5
+   loves-it-tree) now have findings files in `data/tasks/
+   research-findings/`. Spot-checked one citation
+   (`IMPLEMENTATION-ROADMAP.md:505-510`) directly against source —
+   exact match. Zero `src`/`cfg` files touched, confirmed via `git
+   status`. Task doc archived to `data/tasks/completed/`.
 
-3. **`ptd-extensions-and-p7-perl-translator.yaml` — the `-diff` flag
-   only**, not the whole file. The bidirectional p7<->perl translator
-   described in the same file is a much bigger, fuzzier deliverable —
-   don't dispatch that part yet. The `-diff` piece already has literal
-   implementation notes (tempfile, strip `-b`/`-bext`, `system('ccdiff',
-   $file, $tmp)`, flag name `-diff`) — one function added to
-   `bin/dev/ptd`, cleanly separable.
+3. **DONE** — the `bin/dev/ptd` `-d`/`-diff` flag (kimi k2.7-fast,
+   session `65206575-dd7f-431b-aed4-ac1755abf41f`), then **also done**
+   for `bin/format-code` via `kimi_continue` on the same session
+   (`-diff` long-form only there — `-d` was already taken by
+   `-data-sugar`, deliberately not reused). Both live-verified by hand:
+   real diff shown for a modified file, "no diff" for a clean one,
+   `-diff -c` falls through to a syntax report correctly, existing
+   flags unaffected, temp files cleaned up. The bidirectional p7<->perl
+   translator in the same task file remains untouched/deferred by
+   design — `ptd-extensions-and-p7-perl-translator.yaml` correctly
+   still `status: in_progress`, not archived.
 
-4. **`models-discover-cleanup.yaml`** — fully specified: unified
-   `models.discover` interface, 6 numbered implementation steps,
-   explicit deprecation path for the 3 commands it replaces
+4. **NOT STARTED** — `models-discover-cleanup.yaml`: fully specified,
+   unified `models.discover` interface, 6 numbered implementation
+   steps, explicit deprecation path for the 3 commands it replaces
    (`models.cmd.discover`, `.discover_files`, `.clear-registry`).
    Medium risk only because it touches 3 callers across zenki
    (`coding.*`, `lm-vision.*`, `image-quality.*`) — worth a human diff
-   review before any live test.
+   review before any live test. Kimi is at ~99% quota usage as of this
+   writing (resets in ~3h20m) — good candidate to implement directly
+   instead of dispatching, or to queue for after reset.
 
 Lower-confidence picks (only skimmed, not vetted the way 1-4 are):
 `coding-cpu-and-hybrid-offload-path.md` (the hybrid/partial-GPU-offload
@@ -164,29 +162,26 @@ re-verify freshness with `ls -la /dev/shm/.7/STDOUT/` before trusting
 it in a future session — it rotates on a v7-zenki restart). The memory
 note itself was also updated to match.
 
-**Unexplained, harmless, left alone**: two empty untracked files
-appeared during the dispatch — `cfg/zenki/cred-mesh/deps/.placeholder`,
-`cfg/zenki/transport/deps/.placeholder` (both 0 bytes, timestamped
-~03:32 same window as the dispatch). Not in kimi's own reported file
-list. Plausibly deps-directory git-tracking scaffolding created by
-some live zenka-startup path during testing, not confirmed. Still
-untracked as of this writing — decide whether to `git add` or clean up
-before they go stale.
+**Two empty untracked files that appeared during the dispatch**
+(`cfg/zenki/cred-mesh/deps/.placeholder`, `cfg/zenki/transport/deps/
+.placeholder`, origin never confirmed) were kept and committed as-is
+rather than removed — harmless either way, decided not worth chasing
+further.
 
 ## Open Items — Not Started / Not Finished
 
-1. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
+1. **`models-discover-cleanup.yaml`** (queue item 4 above) — not
+   started. Good candidate to implement directly rather than dispatch,
+   given kimi's quota is nearly exhausted.
+2. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
    not yet read this session) with `bin/dev/task-scan-candidates` +
    the same read-the-actual-diff discipline.
-2. **Next queue items 2-4** (from the prioritized list above) still
-   unstarted: `research-knowledge-base-extraction.md`,
-   `ptd-extensions-and-p7-perl-translator.yaml`'s `-diff` flag,
-   `models-discover-cleanup.yaml`.
-3. **The two `.placeholder` files** noted above — resolve (track or
-   remove) once their origin is understood.
-4. **`transport.init_code`'s missing zenka-name guard** (found this
+3. **`transport.init_code`'s missing zenka-name guard** (found this
    session, not fixed, inert today) — small, well-scoped, good next
    dispatch whenever `transport` namespace work is being done anyway.
+4. **`transport.handle.quic-hysteria:85`'s sprintf warning** (found
+   this session, not investigated) — pre-existing, cosmetic, non-
+   blocking (scenario 2 still passes with it present).
 5. Everything in the previous handover's "Open Items" section
    (`v7-zenki` rename follow-ups, `p7-`-prefix ambiguity, dead `p7`
    command references, the `v7-stdout-foldable-relay` task cluster,
@@ -198,18 +193,21 @@ before they go stale.
 
 ## Verified Live
 
-The cred-mesh/transport dispatch result WAS independently re-verified
-live this session: `bin/dev/cred-mesh-test` re-run by hand after
-kimi's fix (22/23, scenario 4 fully green, matching kimi's claim), the
-`proxy.auth.lookup:31` slot-resolution claim checked directly against
-source, and commit `a6d5de568`'s existence/content confirmed via
-`git show` rather than trusted from kimi's summary alone. Everything
-else this session (the archiving sweep itself) was pure git-history/
-file-archaeology, no live testing needed.
+Every kimi dispatch result this session was independently re-verified
+before being accepted, not just taken on the summary returned: the
+cred-mesh/transport fix (`bin/dev/cred-mesh-test` re-run by hand, 22/23
+matching kimi's claim; `proxy.auth.lookup:31` and commit `a6d5de568`
+checked directly against source), the research extraction (one
+citation spot-checked against `IMPLEMENTATION-ROADMAP.md`, file sizes
+and `git status` cross-checked), and both `-diff` flags (`ptd -c`/
+`format-code` syntax checks run, both `-diff` flags exercised live
+against real and unchanged files, temp-file cleanup confirmed, existing
+flags confirmed unaffected). The archiving-sweep portion of the session
+was pure git-history/file-archaeology, no live testing needed there.
 
-Commits this session: `4dcf3a19f`, `ba570179d`, plus the cred-mesh
-dispatch result + template/memory fixes (uncommitted as of this
-writing — pending signatures on the 4 changed files: the scenario-4
-test script, the cred-mesh task doc, `kimi-dispatch-workflow.yaml`,
-`feedback-kimi-v7-console-hint.md`). Not yet pushed (check before
-assuming pushed).
+Commits this session: `4dcf3a19f`, `ba570179d`, `ed16ad2a3`,
+`6772919f1`, `c9f66d3e6`, `14fb8025d`, `48566ad72`. Not yet pushed
+(check before assuming pushed).
+
+Kimi quota note (as of this writing): ~99% used, resets in ~3h20m —
+not available for further dispatch until then.
