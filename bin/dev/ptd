@@ -49,11 +49,15 @@ $no_utf8 = TRUE
     and shift @ARGV;
 
 my $check_only = FALSE;
-$check_only = TRUE
-    if @ARGV > 0
+my $diff_only  = FALSE;
+
+while ( @ARGV > 0
     and defined $ARGV[0]
-    and $ARGV[0] eq qw| -c |
-    and shift @ARGV;
+    and $ARGV[0] =~ m{^-(c|d|diff)$} ) {
+    my $flag = shift @ARGV;
+    $check_only = TRUE if $flag eq qw| -c |;
+    $diff_only  = TRUE if $flag eq qw| -d | or $flag eq qw| -diff |;
+}
 
 $OUTPUT_AUTOFLUSH = TRUE;    ## true ##
 
@@ -192,6 +196,31 @@ while ( my $file_path = shift @files ) {
             Time::HiRes::sleep 2.1;
         } else {
             die $colored_msg;
+        }
+        next;
+    }
+
+    if ($diff_only) {
+        if ( $tidy_out eq $source ) {
+            print color_msg( 'no diff', $file_path, $NEON_green_yellow );
+        } else {
+            my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .ptd.pl | );
+            binmode $tmp_fh, qw| :raw |;
+            print {$tmp_fh} $tidy_out;
+            close $tmp_fh;
+            system( 'ccdiff', $file_path, $tmp_path );
+            unlink $tmp_path;
+        }
+        if ($check_only) {
+            my @real_errors = real_syntax_errors($file_path);
+            if (@real_errors) {
+                warn color_msg( join_real_errors( $file_path, @real_errors ),
+                    $file_path );
+                $had_error = TRUE;    ##  true  ##
+            } else {
+                print color_msg( 'syntax ok', $file_path,
+                    $NEON_green_yellow );
+            }
         }
         next;
     }
@@ -439,8 +468,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,..,...,,,,,.,,,.,,,,..,...,,.,,,..,..,,..,,...,...,.,,,..,,...,,..,,.,,
-#HB762CTIVVXD6X2WMBAJDIP6GF7OYTYILN26YTP6DG42LIHDEVIPX6MEGKCL552TP4OD7EQMQGDFE
-#\\\|76LS3PYT6XMOWD2XXSB5JJARJNVBAXC64GRYIWKJNMXEYQV42F7 \ / AMOS7 \ YOURUM ::
-#\[7]BYITBN7XBEYTCMYWV6LOJREIFBMXU2J3FA3TLWSLS4EB2VS5SCBQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,,..,,.,,.,.,.,.,.,,,..,,.,,,..,,...,...,,,.,,,,,,,.,,,.,...,
+#HSUNAPPXFASVQIXWXYMDXEOP4MQR3P5ECLA5UGGM6ND2XJFLO6YJ2MBUHICM3SWUB7E72MWLHKRH2
+#\\\|NUTMDL36EJW2BLEOK2V7XZVJMI3Z45PDZZN7366JCIS4XOFL54A \ / AMOS7 \ YOURUM ::
+#\[7]BP3YES3O3Q2H3CKO77IIY3YLDG33BEZT5OMGDFQH65FWHP4OMWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
