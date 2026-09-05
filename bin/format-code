@@ -72,6 +72,7 @@ $OUTPUT_AUTOFLUSH = TRUE;
 
 ##[ argv parsing ]##
 my $check_only = FALSE;
+my $diff_only  = FALSE;
 my $no_ptd     = FALSE;
 my $no_utf8    = FALSE;
 ##  opt-in $data{'k0'}{'k1'} -> <k0.k1> rewrite  ##
@@ -86,6 +87,7 @@ my $regex_style = FALSE;
 while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
     my $opt = $ARGV[0];
     if    ( $opt eq qw| -c | )       { $check_only = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| -diff | )    { $diff_only  = TRUE; shift @ARGV; }
     elsif ( $opt eq qw| -n | )       { $no_ptd     = TRUE; shift @ARGV; }
     elsif ( $opt eq qw| :noutf8: | ) { $no_utf8    = TRUE; shift @ARGV; }
     elsif ( $opt eq qw| -d | or $opt eq qw| -data-sugar | ) {
@@ -230,6 +232,47 @@ while ( my $file_path = shift @files ) {
         next;
     }
 
+    if ($diff_only) {
+        my $final_text = $new_text;
+
+        if ( not $no_ptd ) {
+            my ( $tidy_out, $tidy_err, $tidy_errfile );
+            my $tidy_rc = Perl::Tidy::perltidy(
+                source      => \$new_text,
+                destination => \$tidy_out,
+                stderr      => \$tidy_err,
+                errorfile   => \$tidy_errfile,
+                argv        => [@perltidy_args],
+            );
+            if ($tidy_rc) {
+                if ($check_only) {
+                    ## fall through to -c for detailed syntax diagnosis ##
+                } else {
+                    warn color_msg( perltidy_fail_reason($tidy_rc),
+                        $file_path );
+                    next;
+                }
+            } else {
+                $final_text = $tidy_out;
+            }
+        }
+
+        if ( $final_text ne $orig_text ) {
+            my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .fmt.pl | );
+            binmode $tmp_fh, qw| :raw |;
+            print {$tmp_fh}
+                ( $no_utf8 ? $final_text : encode_utf8($final_text) );
+            close $tmp_fh;
+            system( 'ccdiff', $file_path, $tmp_path );
+            unlink $tmp_path;
+        } else {
+            print color_msg( 'no diff', $file_path, $NEON_green_yellow );
+        }
+
+        next if not $check_only;
+        ## fall through to -c block for syntax report ##
+    }
+
     if ($check_only) {
         my $final_text = $new_text;    ## best-effort fallback under -n ##
         my $tidy_rc;
@@ -294,7 +337,7 @@ while ( my $file_path = shift @files ) {
         ## differently than perltidy itself will re-indent it to right    ##
         ## afterward [ see CONT_MARGIN note near the top of this file --  ##
         ## that guess was never meant to be authoritative ]               ##
-        if ( $final_text ne $orig_text ) {
+        if ( $final_text ne $orig_text and not $diff_only ) {
             print color_msg(
                 'would reflow', $file_path,
                 $NEON_orange,   $NEON_green_yellow
@@ -2750,8 +2793,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,,.,,.,,,..,...,...,.,.,,..,...,,,,,..,,..,,...,...,...,,,.,,,.,..,,,..,
-#6UAYUWCP2ESEGZS7VPG4N3RZ2LM4NJ6VTZOCZIH7HCVO7MZKRHEACRQDXDQS2BZHNWVQIXF7ZBIZM
-#\\\|SFGDULJTYOHBXPJOXRZN2NJUKGDX5TLOUEE2I4MR5WCCYDAYGDR \ / AMOS7 \ YOURUM ::
-#\[7]6EHTXCJEO73R4JVUM57TVLIOCHQ6HN6YRHCMN2HONQW6BYSXH2DY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,,,,..,,,,,,,..,,,.,,,.,,,.,..,,...,...,..,,,.,,,.,,..,,,.,,
+#4NHIDRP73UAAACQKFBIIWL7T5ZG5GH3AUEWMFCOWXF4VRYFMK7ER25HLTYJCINDLKUBYUR7RJ4XGO
+#\\\|RVDVPEQDBIK2GCI3NWJVRJ7S5FPS6GZPKMLTU7RS34U4KXDBADH \ / AMOS7 \ YOURUM ::
+#\[7]5V7NMVQCE3JRIIYS47WJROWMZYKTKYUIQGCV2LKGE6EQYH42HCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
