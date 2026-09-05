@@ -87,10 +87,60 @@ related_work:
   - Recent fix: models.gguf.file.extract_name (parent directory name extraction)
   - Recent fix: models.gguf.file.is_garbage_name (garbage name detection)
 
+## resolution — 2026-09-05
+
+Implemented directly (not dispatched). Step 1 (audit usage) done first,
+repo-wide grep for all three command names across src/cfg/bin/data:
+
+- `models.cmd.discover` : ONLY real caller is `coding` (`coding.handler.
+  fetch_model_discovery` + `coding.init_code`'s on-demand routing target
+  `cube.models.discover`), calling with the bare-word contract
+  `call_args => { args => 'available' }` -- NOT the `:available:`
+  colon-form the proposed_solution describes. `lm-vision`, `vision-batch`,
+  and `v7-zenki` all have `models.discover` ACCESS GRANTED in
+  `cfg/zenki/cube/access.zenki` but zero actual call sites found in any
+  of their source -- likely legacy/unused grants, left untouched (out of
+  scope, access grants aren't hurting anything unused).
+- `models.cmd.discover_files` / `models.cmd.clear-registry` : ZERO
+  callers found anywhere in src/cfg (console/human-operator use only,
+  presumably). The `affected_zenki` list above (`lm-vision.*`,
+  `image-quality.*`) was stale/wrong -- `image-quality` has no relation
+  to this at all (confused with `vision-batch`, which calls
+  `image-quality.analyze` for something unrelated), and neither
+  `lm-vision` nor `vision-batch` actually call any of the 3 commands
+  despite having access.
+
+Given zero real callers for the two redundant commands, **removed them
+outright rather than deprecating** (user's direct call, given callsites
+would be trivial to update -- there were none): deleted
+`src/models.cmd.discover_files` and `src/models.cmd.clear-registry`,
+dropped their tokens from `cfg/zenki/models/zenka.v7`'s
+`access.cmd.usr.cube` grant and from `src/base.list.subroutines`,
+regenerated `cfg/zenki/models/subroutines.load-early` via
+`bin/dev/gen-sub-whitelist models` (scoped to just this zenka --
+running it with no target arg triggers a full-repo regen, caught and
+reverted the resulting unrelated churn in 4 other zenki's whitelists
+before it finished).
+
+`src/models.cmd.discover` rewritten as the unified command per
+`proposed_solution` above (`:clear:`, `:re-scan:`, `:available:`/
+`:unavailable:`), with the bare-word filter contract kept as a
+backward-compatible synonym (`coding`'s exact call still works
+unchanged) and the LIST-mode reply text format kept byte-identical
+(`coding.handler.models_discover_reply` parses it by regex). New shared
+helper `src/models.discover.scan_all_paths` factors out the
+search-path-resolution + scan loop that was duplicated verbatim between
+the two old commands (`problems` section above, now actually fixed
+rather than just described).
+
+Verified via `bin/dev/ptd -c` on every changed file; not live-tested
+against the running `models` zenka (would require a restart, not done
+as part of this pass).
+
 ## [data checksum: WHC5HFJLVA======] ##
 
-#,,.,,...,,.,,.,,,,..,...,.,.,,,,,.,.,...,.,,,..,,...,...,..,,,..,,,,,..,,,,,,
-#JOXLFX5X7WZAOGURGTZRCAPATVTX66I2LNXHRQ37KPJRHVW6DH5BOHTG6KXYYIGAVHB7ZQGJHPP4G
-#\\\|MVHJGXJK3HSSKHMVZIL23ADC35IOKLMGVMZEK7ZFMPUUL35VNZ2 \ / AMOS7 \ YOURUM ::
-#\[7]UIRHEQONYDGF64BHJTG46GZPZT7RAINTOYT6YU4KZKG2FYZKPCCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,,,,,..,.,.,.,.,...,.,.,,.,,..,,...,..,,,,.,.,.,...,,..,,,.,
+#LEGCNZ34VPJECTV67JOCPFFWEVMRX74YVCDBJZAENLILH4OSLDYLFOR6CXOC6H4YGWESREZGCSUMQ
+#\\\|HJGPNCTEO225YQBXFS657UKGACQNXBXEJMVPSAHR5XFVAOBGCMJ \ / AMOS7 \ YOURUM ::
+#\[7]G24R6QMJZCNMV3TWHJHW5OOUNPXV6S4TG6JZ53P3GE4FQXSSVGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

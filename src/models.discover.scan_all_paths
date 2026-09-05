@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = models.discover.scan_all_paths
+# descr = scan every enabled configured search path for .gguf model files
+# return = arrayref of discovered model hashrefs [ no registry mutation ]
+
+## factored out of models.cmd.discover_files / models.cmd.clear-registry,
+## which each duplicated this exact search-path-resolution + scan loop inline
+## [ data/yaml/coding-tasks/models-discover-cleanup.yaml, problem 1 ]
+
+my @discovered;
+
+## models.storage.search_paths is the canonical shape ; fall back to
+## models.scan_paths [ keyed hash ] and convert to the same list shape if
+## search_paths hasn't been populated yet
+my $search_paths = <models.storage.search_paths> // [];
+
+if ( !@$search_paths && scalar keys %{ <models.scan_paths> // {} } ) {
+    foreach my $path_id ( keys <models.scan_paths>->%* ) {
+        my $path_data = <models.scan_paths>->{$path_id};
+        push @$search_paths,
+            {
+            'path'      => $path_data->{'path'},
+            'enabled'   => $path_data->{'enabled'} // TRUE,
+            'recursive' => TRUE,
+            'tier'      => $path_data->{'tier'} // 3
+            };
+    }
+}
+
+foreach my $path_config (@$search_paths) {
+    next unless $path_config->{'enabled'};
+    next unless -d $path_config->{'path'};
+
+    my $result = <[models.storage.discover_directory]>->(
+        $path_config->{'path'},
+        $path_config->{'recursive'}
+    );
+    push @discovered, @$result if $result;
+}
+
+return \@discovered;
+
+#,,..,,,,,.,.,,,.,...,.,,,,..,,.,,.,,,.,.,,..,..,,...,...,.,,,,.,,,,.,,.,,,..,
+#FUAKB3LMYK5U2H3HMYCV3ORTCH4H7GH4MPW27ZQW6QM3FCMDICNCCX7LWVGWGVD7DEKOJK6YSJMV2
+#\\\|XWNJSFML6FV34ONJFO6LLU5L2YL2AHKCKFXUEM5QLDU32WPKJ67 \ / AMOS7 \ YOURUM ::
+#\[7]RNHQ73CT55TALHZG6J5FOR3XJFE4E2UMKUAHIPMOGY3EGW3PTOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

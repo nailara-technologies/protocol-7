@@ -1,35 +1,130 @@
 ## [:< ##
 
-# name = models.cmd.discover
-# descr = discover all available models in registry
+# name  = models.cmd.discover
+# descr = unified model discovery : list, re-scan, clear registry
+# param = [:clear:] [:re-scan:] [:available:|:unavailable:]
 
-my $filter = $call->{'args'} // 'all';
-$filter =~ s|^\s+||;
-$filter =~ s|\s+$||;
-$filter = 'all' unless length $filter;
+## consolidates models.cmd.discover_files + models.cmd.clear-registry [
+## data/yaml/coding-tasks/models-discover-cleanup.yaml ] into one command with
+## unified flags. both older commands were REMOVED outright, not deprecated --
+## repo-wide audit found zero real callers for either (console/human-operator
+## use only), see that task file's resolution section for the full audit.
+#
+# usage:
+#   models.discover                    list registry [ default : all ]
+#   models.discover :available:        list only available [ file exists ]
+#   models.discover :unavailable:      list only unavailable [ file missing ]
+#   models.discover :re-scan:          scan filesystem search paths, update registry
+#   models.discover :clear:            clear registry, no scan
+#   models.discover :clear: :re-scan:  clear then re-scan
+#
+## backward compatible : coding.handler.fetch_model_discovery calls this with
+## the pre-consolidation bare-word contract [ call_args => { args =>
+## 'available' } ], not the colon-flag form -- both are accepted, and the
+## list-mode reply TEXT FORMAT below is unchanged byte-for-byte, since
+## coding.handler.models_discover_reply parses it directly by regex.
+
+my $args = $call->{'args'} // '';
+
+my $do_clear  = $args =~ m|:clear:|   ? TRUE : FALSE;
+my $do_rescan = $args =~ m|:re-scan:| ? TRUE : FALSE;
+
+my $filter = 'all';
+$filter = 'available'
+    if $args =~ m|:available:|
+    or $args =~ m|^\s*available\s*$|;
+$filter = 'unavailable'
+    if $args =~ m|:unavailable:|
+    or $args =~ m|^\s*unavailable\s*$|;
+
+## clear [ optionally combined with re-scan below ] ##
+if ($do_clear) {
+    my $old_count = scalar keys %{ <models.registry> // {} };
+    <models.registry> = {};
+    <[base.logs]>->(
+        1, '[discover] registry cleared (%d entries removed)', $old_count
+    );
+
+    my $reply_str = "registry_cleared: $old_count entries removed\n";
+
+    if ($do_rescan) {
+        my $discovered = <[models.discover.scan_all_paths]>;
+        my $result
+            = <[models.registry.populate_from_discovery]>->($discovered);
+        <[models.storage.yaml_save]>->(<models.registry>);
+
+        $reply_str .= "re_scan: enabled\n";
+        $reply_str .= "discovered: " . scalar(@$discovered) . " models\n";
+        $reply_str
+            .= "added_to_registry: " . $result->{'added'} . " new models\n";
+        <[base.logs]>->(
+            1, '[discover] re-scan complete : discovered=%d added=%d',
+            scalar(@$discovered), $result->{'added'}
+        );
+    } else {
+        <[models.storage.yaml_save]>->(<models.registry>);
+        $reply_str .= "re_scan: disabled\n";
+        $reply_str
+            .= "note: run 'models.discover "
+            . ":clear: :re-scan:' to repopulate\n";
+    }
+
+    return { 'mode' => qw| size |, 'data' => $reply_str };
+}
+
+## re-scan only [ no clear ] ##
+if ($do_rescan) {
+    my $discovered = <[models.discover.scan_all_paths]>;
+    my $result = <[models.registry.populate_from_discovery]>->($discovered);
+    <[models.storage.yaml_save]>->(<models.registry>);
+
+    my $reply_str = '';
+    $reply_str .= "discovered: " . scalar(@$discovered) . " models\n";
+    $reply_str
+        .= "added_to_registry: " . $result->{'added'} . " new models\n";
+    $reply_str
+        .= "updated_in_registry: "
+        . $result->{'updated'}
+        . " existing models\n";
+
+    if (@$discovered) {
+        $reply_str .= "\nModels found:\n";
+        foreach my $model (@$discovered) {
+            $reply_str
+                .= "  - "
+                . $model->{'name'} . " ("
+                . $model->{'size_gb'}
+                . " GB)\n";
+        }
+    }
+
+    return { 'mode' => qw| size |, 'data' => $reply_str };
+}
+
+## list [ default mode, unchanged from pre-consolidation ##
+## models.cmd.discover ]                                 ##
 
 ## access registry directly to preserve keys (keys are the amos composite ids)
 my $registry = <models.registry> // {};
 
-## apply filter and build response data
 my @discovered;
 foreach my $amos_id ( keys %$registry ) {
     my $model = $registry->{$amos_id};
 
     ## check file availability for filtering
-    my $file_exists = -f ( $model->{file_path} // $model->{path} // '' );
+    my $file_exists = -f ( $model->{'file_path'} // $model->{'path'} // '' );
 
     next if $filter eq 'available'   && !$file_exists;
     next if $filter eq 'unavailable' && $file_exists;
 
     push @discovered, {
         'amos'              => $amos_id,    ## registry key ##
-        'name'              => $model->{name}         // 'unnamed',
-        'version'           => $model->{quantization} // 'unknown',
+        'name'              => $model->{'name'}         // 'unnamed',
+        'version'           => $model->{'quantization'} // 'unknown',
         'category'          => 'gguf',
         'available'         => $file_exists,
-        'is_vision'         => $model->{is_vision} ? TRUE : FALSE,
-        'size_gb'           => $model->{size_gb} // 0,
+        'is_vision'         => $model->{'is_vision'} ? TRUE : FALSE,
+        'size_gb'           => $model->{'size_gb'} // 0,
         'success_rate'      => 1.0,
         'total_invocations' => 0,
         'presence_tier'     => $file_exists ? 1 : 0,
@@ -37,7 +132,7 @@ foreach my $amos_id ( keys %$registry ) {
 }
 
 ## sort by size (largest first)
-@discovered = sort { $b->{size_gb} <=> $a->{size_gb} } @discovered;
+@discovered = sort { $b->{'size_gb'} <=> $a->{'size_gb'} } @discovered;
 
 my $reply_str = '';
 $reply_str .= "filter: $filter\n";
@@ -45,29 +140,30 @@ $reply_str .= "count: " . scalar(@discovered) . "\n";
 $reply_str .= "\n";
 
 foreach my $model (@discovered) {
-    $reply_str .= "amos: " . $model->{amos} . "\n";
-    $reply_str .= "  name: " . $model->{name} . "\n";
-    $reply_str .= "  version: " . ( $model->{version} // 'unknown' ) . "\n";
+    $reply_str .= "amos: " . $model->{'amos'} . "\n";
+    $reply_str .= "  name: " . $model->{'name'} . "\n";
+    $reply_str .= "  version: " . ( $model->{'version'} // 'unknown' ) . "\n";
     $reply_str
-        .= "  category: " . ( $model->{category} // 'uncategorized' ) . "\n";
+        .= "  category: "
+        . ( $model->{'category'} // 'uncategorized' ) . "\n";
     $reply_str
-        .= "  available: " . ( $model->{available} ? 'yes' : 'no' ) . "\n";
+        .= "  available: " . ( $model->{'available'} ? 'yes' : 'no' ) . "\n";
     $reply_str
-        .= "  is_vision: " . ( $model->{is_vision} ? 'yes' : 'no' ) . "\n";
-    $reply_str .= "  size_gb: " . ( $model->{size_gb} // 'unknown' ) . "\n";
+        .= "  is_vision: " . ( $model->{'is_vision'} ? 'yes' : 'no' ) . "\n";
+    $reply_str .= "  size_gb: " . ( $model->{'size_gb'} // 'unknown' ) . "\n";
     $reply_str .= "  success_rate: "
-        . sprintf( '%.2f', $model->{success_rate} // 0 ) . "\n";
+        . sprintf( '%.2f', $model->{'success_rate'} // 0 ) . "\n";
     $reply_str .= "  total_invocations: "
-        . ( $model->{total_invocations} // 0 ) . "\n";
+        . ( $model->{'total_invocations'} // 0 ) . "\n";
     $reply_str .= "  presence_tier: "
-        . ( $model->{presence_tier} // 'unknown' ) . "\n";
+        . ( $model->{'presence_tier'} // 'unknown' ) . "\n";
     $reply_str .= "\n";
 }
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,...,..,,,..,..,,.,.,.,.,,,.,,..,.,.,...,..,,...,...,..,,.,.,,,.,,,,,...,
-#QXWPAQTWC7J6HASOJ7IOQUXYUC2PDK7XU4CF2HNUWGFD6ILD32Q4SJQLC7L5ECGQ6LO36GXGDWOLS
-#\\\|QCYIU5CVFO44XBMXP2OE2BQTLIJ4QN36JF6SHATHQKQGOA47XKA \ / AMOS7 \ YOURUM ::
-#\[7]LKUQLHDRMI5FVKTQ24Y3HM6QUIS4TGFEUOQPI7IUNSCPU72DZSCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,..,,.,,,,..,,.,,,,,,,,,,...,..,,...,...,...,..,,,,,,,.,,,,.,
+#D4VFMN6LDM5G7DLENLQWFFEFQG6QK65Y2TYG3OBR3ONBWMACXG3MKOG3SH6G37DQGPDDC7RWLDQCW
+#\\\|2BKAERN5DP534AMNFZKM5LWQHZDIHRRRMSU5TZXWYHVM34JJTVW \ / AMOS7 \ YOURUM ::
+#\[7]VGFI3K6KUXSSWBJGP3C55UACLCGPLJTA4Q5HLH22XZDJ5W55SOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
