@@ -1,6 +1,6 @@
 ---
 name: project-2026-09-05-task-archiving-and-kimi-dispatch-queue
-description: "2026-09-05 session: archived 28 stale-but-landed task files across data/tasks/ and data/yaml/coding-tasks/, built bin/dev/task-scan-candidates, ran 4 kimi dispatches against the resulting prioritized queue (3 landed real fixes, 1 not yet started)"
+description: "2026-09-05 session: archived 29 stale-but-landed task files across data/tasks/ and data/yaml/coding-tasks/, built bin/dev/task-scan-candidates, cleared a 4-item prioritized dispatch queue (3 via kimi, 1 implemented directly after kimi quota ran out) -- all 4 done and live-verified"
 metadata:
   type: project
 ---
@@ -66,7 +66,22 @@ backlog). Outcome, in order:
    collision caught before dispatch: `format-code` already used `-d`
    for `-data-sugar`, so the second flag had to be long-form `-diff`
    only.
-4. `models-discover-cleanup.yaml` — not started as of this writing.
+4. `models-discover-cleanup.yaml` — kimi quota ran out (~99% used) mid-
+   session, so implemented directly instead of dispatching. Audit
+   (the task's own step 1) found its `affected_zenki` list was stale
+   (`image-quality` unrelated, confused with `vision-batch`) and that
+   the two commands being consolidated away had ZERO real callers
+   anywhere -- given that, removed them outright rather than
+   deprecating (user's direct call once the zero-callsite audit was
+   in). New `models.discover.scan_all_paths` helper factors out the
+   scan-loop duplication the task described. Live-verified via
+   on-demand start with the new code: list + filter modes exercised
+   against the real 114-model registry, old removed command confirmed
+   gone, `coding.cmd.clear-registry` (separate, correctly-untouched
+   command) still working. `:re-scan:` also confirmed live afterward
+   (by the user) via `coding.clear-registry :re-fetch:`'s downstream
+   chain -- saved 114 models back, exact match, no data loss. Plain
+   `:clear:` alone remains untested.
 
 ## kimi-dispatch-workflow.yaml gaps found and fixed at the template level
 
@@ -78,6 +93,14 @@ checked before writing the task). Both are now baked into
 `data/yaml/context-templates/kimi-dispatch-workflow.yaml` itself, so
 every future dispatch using that template gets them automatically
 instead of needing a hand-added note per task file.
+
+## one more tooling gotcha, found implementing item 4 directly
+
+`bin/dev/gen-sub-whitelist` with no target argument does a full-repo
+regen, not just the zenka you're touching -- see
+`[[feedback-gen-sub-whitelist-no-arg-full-repo-regen]]`. Caught mid-run
+and reverted the unrelated churn it left in 4 other zenki's whitelists
+before it finished.
 
 ## verification discipline used throughout
 
@@ -91,8 +114,8 @@ point, not the specific outcome — see
 place *my own* pre-dispatch verification was incomplete rather than
 kimi's.
 
-#,,,,,,..,.,,,.,,,.,.,...,..,,...,,,,,,,,,,..,..,,...,...,,..,,,.,.,,,..,,,.,,
-#KVZRCOHMADQ7J4AO3PYZFGFWIM3VOLQI7OG6SMEIRILDUBI35Q34J45QWCBAHYOXYL7NPH2AKQCYS
-#\\\|OZQWKUSKBR3TJPA7GNYL5ZEGWDJS2QZJFAKXCCQ2PQB23NQEARM \ / AMOS7 \ YOURUM ::
-#\[7]J256CDVM2SQU4RT4IHF4FSHZJBWDHWQZRTVAOYRRKHRKP6UVO6BI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,,,.,.,.,,,.,.,.,.,.,,.,,...,..,,...,.,.,.,.,.,.,..,,,..,.,.,
+#CJCO7AYQL6RK7BBEBFB2XHC2MTFLPMLD6VT2PGJ633IGOSHLG7U6WRLZLBUL5HSW4IJMC7MUVRCKK
+#\\\|VMZCRFOPTCRXPU2VRDN4B7XPR3I56PUFH2ELUDAZRCFZPVBS32A \ / AMOS7 \ YOURUM ::
+#\[7]2ULN7YVUHL4CLIIL2TR6A76DJX5TARFWLHKQMX756MQJTITDDOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
