@@ -1,0 +1,160 @@
+---
+name: cred-mesh-transport-subscription-and-base32-gap
+descr: transport's cred-mesh rotation subscription silently vanishes in flight, and transport.cmd.cred-rotated's base32.decode resolves undef -- proxy is unaffected by either
+impact: medium
+priority: normal
+affects:
+  - src/transport.cmd.cred-rotated
+  - src/transport.handler.subscribe_rotation_deferred
+  - src/base.handler.command.route_to_target
+  - src/base.protocol-7.command.send.local
+  - src/cred-mesh.cmd.subscribe_rotation
+  - cfg/zenki/transport/zenka.v7
+  - cfg/zenki/transport/subroutine.white-list
+
+## relation ##
+# full background, already-fixed bugs 1-4, and everything ruled out so
+# far: data/tasks/cred-mesh-rotation-subscription-cross-zenka.md -- READ
+# IT FIRST, in full, before starting. Do not re-investigate or re-fix
+# anything already marked FIXED there (wrong-%data subscription,
+# startup race, .handler. routing, multi-line YAML over the wire, and
+# the leaked-timer self-permission-denial bug are ALL closed and
+# live-verified -- confirmed by re-running bin/dev/cred-mesh-test
+# before writing this file). This task file covers only what's still
+# open in that doc's tail: the two remaining scenario-4 failures, and
+# the separate bug-5 base32 gap.
+
+## symptom 1 -- transport's subscription never arrives ##
+# `bin/dev/cred-mesh-test` scenario 4 : proxy's subscription flushes its
+# cache correctly on rotation ; transport's does not.
+# `base.protocol-7.command.send.local`'s route-send from transport
+# reports success (count : 1) -- the send side believes it worked.
+# cred-mesh's own log shows ZERO mentions of transport ever arriving --
+# not a permission denial (that specific bug is fixed and confirmed
+# gone), just silence. The vanishing point is somewhere between
+# send.local's successful queue and cred-mesh's cmd.subscribe_rotation
+# wrapper actually running. proxy's byte-identical call path works
+# every time. `base.handler.command.route_to_target` (the receiving-side
+# dispatch) is the next place to instrument -- not yet done by anyone.
+
+## symptom 2 -- base32.decode undef, transport only ##
+# live log during the same test run (transport PID freshly spawned):
+#   tr.,.rt : [PID] <<< undefined value as subroutine reference >>> [transport.cmd.cred-rotated:8]
+# line 8 is `<[base.base32.decode]>->( \$args_b32 )` --
+# `$code{'base.base32.decode'}` is undef in transport's own %code.
+# The byte-identical call in proxy.cmd.cred-rotated works fine in proxy.
+#
+# already ruled out for symptom 2:
+#   - not a whitelist gap: cfg/zenki/proxy/subroutine.white-list and
+#     cfg/zenki/transport/subroutine.white-list both list
+#     base.base32.decode (confirmed identical lines, both present)
+#   - not a stale process: transport was freshly spawned by the same
+#     test run that hit this
+
+## working theory -- may explain BOTH symptoms at once ##
+# transport's modules.load token set (`auth net protocol io.unix io.ip
+# ui format.yaml transport devmod`, cfg/zenki/transport/zenka.v7) may
+# not expand to the same actual %code population as proxy's token set
+# for equivalent tokens, even though the whitelist generator (bin/dev/
+# dep-graph) thinks both are covered. whitelist presence and actual
+# base.load_modules/base.load_code population are two DIFFERENT
+# mechanisms -- do not assume one implies the other. Compare proxy's
+# and transport's modules.load token expansion directly (what actually
+# lands in %code for each, not what the whitelist file says) before
+# assuming this theory is right; it is a lead, not a confirmed cause.
+# This is speculative and untested -- do not treat it as fact, verify it.
+
+## do NOT touch / do NOT re-investigate ##
+# - bugs 1-4 and the leaked-timer permission fix in
+#   data/tasks/cred-mesh-rotation-subscription-cross-zenka.md -- all
+#   FIXED and live-verified, re-confirm they're still green via
+#   bin/dev/cred-mesh-test but do not re-work them.
+# - scenario 5 (`relay pending file has entry`) -- explicitly out of
+#   scope, nothing in this bug family touches the auth-relay console
+#   path, it is tracked as its own separate task.
+# - proxy.* -- proxy's path through all of this is already correct and
+#   verified; use it as the working reference to diff against, don't
+#   modify it.
+# - do not hand-edit any subroutine.white-list file directly -- if a
+#   whitelist entry genuinely needs to change, regenerate it via
+#   `bin/dev/gen-sub-whitelist <zenka>` per the project's own house rule.
+
+## steps ##
+task: |
+  1. Read data/tasks/cred-mesh-rotation-subscription-cross-zenka.md in
+     full for context (status header + all bug sections). Confirm
+     bugs 1-4 are still fixed by running bin/dev/cred-mesh-test first
+     and noting the current pass/fail baseline before changing anything.
+
+  2. Compare transport's and proxy's actual populated %code for the
+     base32.* namespace (e.g. via
+     `p7c transport.eval-code 'return join(",", grep {/^base.base32\./} keys %code)'`
+     vs the same against proxy) to confirm or rule out the modules.load
+     token-expansion theory above for symptom 2. Fix whatever the real
+     gap turns out to be -- if it's a modules.load token difference,
+     fix cfg/zenki/transport/zenka.v7's token list to match how proxy
+     actually gets base32 loaded, do not just add a direct
+     `base.base32` token as a blind patch without confirming that's
+     really the mechanism.
+
+  3. Instrument src/base.handler.command.route_to_target (add temporary
+     diagnostic logging, same discipline as the rest of this bug
+     family -- remove or reduce to normal-verbosity before finishing)
+     to trace transport's cred-mesh.subscribe_rotation call from
+     send.local's successful queue through to wherever it stops. Find
+     the actual vanishing point. It is legitimate for this to turn out
+     to be the SAME root cause as symptom 2 (a missing sub in
+     transport's %code somewhere in the routing chain) -- do not assume
+     they're unrelated just because they were filed as two symptoms.
+
+  4. Fix the real root cause(s) found in steps 2-3. If they turn out to
+     be genuinely separate bugs, fix both.
+
+  5. Run `bin/dev/cred-mesh-test` and confirm scenario 4's `transport
+     cache flush log` and `after-rotation header value` assertions both
+     now pass, with no regression on any previously-passing assertion.
+
+  6. Confirm live: a fresh rotation no longer produces
+     `undefined value as subroutine reference` from
+     transport.cmd.cred-rotated.
+
+  7. If any other existing route-send caller in the codebase omits
+     something transport was found to be missing (from step 2 or 3),
+     note it in your final report as a finding -- do not fix unrelated
+     callers speculatively, this task is scoped to cred-mesh/transport
+     only.
+
+acceptance: |
+  - bin/dev/cred-mesh-test passes scenario 4 fully (both `transport
+    cache flush log` and `after-rotation header value`), with no
+    regression elsewhere in the suite.
+  - a live rotation against transport no longer logs "undefined value
+    as subroutine reference" anywhere.
+  - root cause is stated plainly in the final report (not just "fixed
+    it"), including whether symptom 1 and symptom 2 turned out to share
+    one root cause or were genuinely separate.
+  - bin/dev/ptd -c clean on every changed file.
+
+signatures_note: |
+  do NOT add a #,,.,,... stub signature block to any new or edited
+  file. Leave files clean -- the real signing system adds the actual
+  4-line footer separately. Do not hand-edit any subroutine.white-list
+  file; regenerate via bin/dev/gen-sub-whitelist <zenka> if a whitelist
+  change is genuinely needed.
+
+## p7 pitfalls (apply throughout) ##
+notes: |
+  No SUPER:: calls (P7 modules have no class hierarchy). Use $ARG, not
+  $_, in map/grep/for. Use bin/dev/ptd -c to check syntax, never raw
+  perl -c (it doesn't know this codebase's <var>/<[code]> macro syntax
+  and will report false errors). base.logs not base.log for multi-arg
+  sprintf-style calls. TRUE/FALSE are 5/0 in this codebase, not 1/0.
+  Never use \<var> for a live reference -- a leading backslash is this
+  codebase's macro-escape and silently watches/reads a dead
+  literal-string reference instead of the real data slot.
+
+#,,..,,..,..,,,..,.,,,,,,,,,.,,,.,,..,,,.,,,.,..,,...,.,.,,..,,,.,.,.,,..,...,
+#H5W6POOVQYDI5UOSCZEMATSTD53SFYRYB45EEZXCR3CMBAVLZEGFSLBILDYUJGU3A6INV3XLVAKVO
+#\\\|7CA2HD4EWDNSVFSWVD7DRKYHZVYJUUENONA6LQCXEHO7MJDV42Y \ / AMOS7 \ YOURUM ::
+#\[7]PGVR5HFTR7MYYZV6OFRUEAXC3BWKREGH4QBHIRMTPBQCB5JRA6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
