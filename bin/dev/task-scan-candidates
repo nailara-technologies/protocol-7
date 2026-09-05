@@ -33,6 +33,13 @@ BEGIN {
 our $root_path;
 chdir $root_path or die "chdir $root_path: $!";
 
+## default data/tasks/*.md ; pass a dir [ + optional extension ] to scan   ##
+## something else, e.g. : task-scan-candidates data/yaml/coding-tasks yaml ##
+my $scan_dir = shift(@ARGV) // 'data/tasks';
+my $scan_ext = shift(@ARGV) // 'md';
+$scan_dir =~ s{/+$}{};
+my $path_re = qr{\Q$scan_dir\E/([A-Za-z0-9_.-]+\.\Q$scan_ext\E)};
+
 my %stop = map { $_ => 1 } qw(
     task zenka zenki phase plan plans planning implement implementation
     implementations add adds added fix fixed fixes support supports
@@ -51,13 +58,13 @@ open( my $log_fh, '-|',
 local $/ = '@@@COMMIT@@@';
 my %mentions;
 while (<$log_fh>) {
-    next unless m|data/tasks/|;
+    next unless $_ =~ $path_re;
     my ( $header, @rest ) = split m|\n|, $_;
     next unless $header;
     my ( $hash, $date, $subject ) = split m{\|}, $header, 3;
     next unless $hash;
     my $body = join( "\n", @rest );
-    while ( $body =~ m{data/tasks/([A-Za-z0-9_.-]+\.md)}g ) {
+    while ( $body =~ m{$path_re}g ) {
         push @{ $mentions{$1} }, [ $hash, $date, $subject ];
     }
 }
@@ -77,17 +84,17 @@ while (<$subj_fh>) {
 }
 close $subj_fh;
 
-opendir( my $dh, "data/tasks" ) or die $!;
-my @tasks = sort grep { m|\.md$| && -f "data/tasks/$_" } readdir $dh;
+opendir( my $dh, $scan_dir ) or die $!;
+my @tasks = sort grep { m|\.\Q$scan_ext\E$| && -f "$scan_dir/$_" } readdir $dh;
 closedir $dh;
 
 for my $task (@tasks) {
-    ( my $slug = $task ) =~ s|\.md$||;
+    ( my $slug = $task ) =~ s|\.\Q$scan_ext\E$||;
 
     ## direct mention hits, excluding the task's own creation/edit commits ##
     my %own = map { $_ => 1 }
         split m|\n|,
-        `git log --follow --format=%H -- "data/tasks/$task" 2>/dev/null`;
+        `git log --follow --format=%H -- "$scan_dir/$task" 2>/dev/null`;
     my @direct = grep { !$own{ $_->[0] } } @{ $mentions{$task} // [] };
 
     if (@direct) {
@@ -121,8 +128,8 @@ for my $task (@tasks) {
         $best->[0], $best->[1], substr( $best->[2], 0, 9 ), $task, $best->[3];
 }
 
-#,,.,,.,,,,..,...,.,,,.,.,,,,,...,,.,,..,,,..,..,,...,...,.,,,...,,,,,.,.,.,.,
-#EB4MLU4QESGJPL2J3QEJDBOU4ERJ6XEPXH6ORUZYPWCDYZZKNMI7DLH6X5XLWFJ43PO33DE2QVDY2
-#\\\|WBXILZQUM3LDY3M4WKZQTRLARTZU5YRJLDNTTDTD3JDSDRGWFMZ \ / AMOS7 \ YOURUM ::
-#\[7]UHGALSVFVUZ2TKRIHCMFTRMZXIFFITZ6JOSYLL3YVGG5JSGUWCBA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,..,,.,.,.,,,...,.,.,,..,,,,,..,,...,...,,.,,,..,,..,,..,,..,
+#WEXREDEVDEHBOAMN6AZG7WURUJEUJAACU6SZZKD67LXIIXUXTMTIERNKJU7D4MOSJU5EQ6BH64GIG
+#\\\|DXEBCE33PRAIPY2XWQ5D6LBTOPZRMCD3NYFTZJZB2F3BZTR2BPK \ / AMOS7 \ YOURUM ::
+#\[7]VAAT4KTYSRYKC4FQM5DTTVHBIIRUT7BYUTHJPBFBVMJQSEJQPYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
