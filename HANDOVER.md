@@ -103,14 +103,91 @@ priority but self-described as touching three interconnected systems
 `phase-2`..`phase-6` roadmap chain (only phase-2 is even eligible,
 not read closely enough yet to vouch for it as dispatch-ready).
 
+### cred-mesh/transport dispatch — DONE, kimi k3-256k (`kd6s1cktc`)
+
+Dispatched `cred-mesh-transport-subscription-and-base32-gap.yaml`.
+Result independently re-verified afterward (ran `bin/dev/cred-mesh-test`
+myself, read the actual diffs) — not just taken on kimi's summary:
+
+**Both symptoms in the task file turned out to be stale premises, not
+live bugs.** Bug 5 (base32 decode undef in transport) had already been
+fixed the same day it was filed — commit `a6d5de568`, 2026-07-18,
+"fix redundant base. prefix on base32 calls (bug 5)" — I should have
+checked git log for base32-related commits near that date before
+writing the task; missed it despite doing exactly that check for other
+tasks this session. Symptom 1 (transport's subscription vanishing) was
+closed by the same 2026-07-18 `proxy.init_code` zenka-guard fix already
+documented as FIXED in the source doc — the doc's own tail just never
+got updated to say the retest afterward passed.
+
+**The actual remaining bug was in the test harness itself**, not
+product code: `bin/dev/cred-mesh-test.d/scenario-4-rotation-invalidation.pl`
+rotated slot `rotation-test.api-key` while the request path only ever
+resolves `session.$domain` (confirmed directly against
+`src/proxy.auth.lookup:31`) — so the rotated slot could never affect
+the injected header, regardless of the subscription bug. One-line fix
++ explanatory comment. `bin/dev/cred-mesh-test` now 22/23 (verified
+myself), scenario 4 fully green; the one remaining failure is
+scenario 5, explicitly out of scope for this task family (tracked
+separately). Zero production `src/`/`cfg/` files were touched — commit
+`5a12f1ca0` + the two July fixes already covered everything real.
+
+Resolution written back into `data/tasks/cred-mesh-rotation-
+subscription-cross-zenka.md`. New finding, not fixed (per task scope):
+`transport.init_code` still has no `<system.zenka.name>` guard around
+its init side effects — same latent landmine `proxy.init_code` had
+before its 2026-07-18 fix, inert today (nothing else loads `transport`
+yet), will misfire the day something does.
+
+**Known minor gap, not investigated**: live console showed
+`transport.handle.quic-hysteria:85 warn : argument '<checksum>' isn't
+numeric in sprintf` during scenario 2 (which still passes) — pre-
+existing, unrelated to this task, flagged by kimi's own findings and
+independently observed live. Worth a small future task if it keeps
+showing up; not urgent.
+
+### Kimi dispatch tooling gap fixed — v7-zenki naming + live console hint
+
+Had to correct kimi live twice during the dispatch: it needed to be
+told `v7` was renamed `v7-zenki`, and given the `/dev/shm/.7/STDOUT/
+<socket-id>` live-console tap path by hand. Both were already-known
+gotchas — a standing memory note
+(`data/ai-mem/claude/feedback-kimi-v7-console-hint.md`) documented the
+console-tap trick, and I hadn't checked it before writing the task
+file. Fixed at the template level so it's automatic going forward:
+`data/yaml/context-templates/kimi-dispatch-workflow.yaml` now has a
+"stale v7 naming" section (translate `v7.<cmd>` -> `v7-zenki.<cmd>` in
+any pre-rename reference doc; `zenka.v7`/`v7.ax` are unrelated,
+deliberately unchanged) and a "live console tap" section with the
+current known-live socket-id (`NIW7OAQ`, confirmed live 2026-09-05,
+re-verify freshness with `ls -la /dev/shm/.7/STDOUT/` before trusting
+it in a future session — it rotates on a v7-zenki restart). The memory
+note itself was also updated to match.
+
+**Unexplained, harmless, left alone**: two empty untracked files
+appeared during the dispatch — `cfg/zenki/cred-mesh/deps/.placeholder`,
+`cfg/zenki/transport/deps/.placeholder` (both 0 bytes, timestamped
+~03:32 same window as the dispatch). Not in kimi's own reported file
+list. Plausibly deps-directory git-tracking scaffolding created by
+some live zenka-startup path during testing, not confirmed. Still
+untracked as of this writing — decide whether to `git add` or clean up
+before they go stale.
+
 ## Open Items — Not Started / Not Finished
 
-1. **Dispatch `cred-mesh-transport-subscription-and-base32-gap.yaml`**
-   via `kimi_dispatch` — it's written and ready, just needs sending.
-2. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
+1. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
    not yet read this session) with `bin/dev/task-scan-candidates` +
    the same read-the-actual-diff discipline.
-3. Everything in the previous handover's "Open Items" section
+2. **Next queue items 2-4** (from the prioritized list above) still
+   unstarted: `research-knowledge-base-extraction.md`,
+   `ptd-extensions-and-p7-perl-translator.yaml`'s `-diff` flag,
+   `models-discover-cleanup.yaml`.
+3. **The two `.placeholder` files** noted above — resolve (track or
+   remove) once their origin is understood.
+4. **`transport.init_code`'s missing zenka-name guard** (found this
+   session, not fixed, inert today) — small, well-scoped, good next
+   dispatch whenever `transport` namespace work is being done anyway.
+5. Everything in the previous handover's "Open Items" section
    (`v7-zenki` rename follow-ups, `p7-`-prefix ambiguity, dead `p7`
    command references, the `v7-stdout-foldable-relay` task cluster,
    `LYE`/`QP3`, the duplicate tmp-paths cleanup warning) was not
@@ -121,11 +198,18 @@ not read closely enough yet to vouch for it as dispatch-ready).
 
 ## Verified Live
 
-Nothing in this session touched a running zenka — this was a pure
-git-history/file-archaeology + archiving pass, no live testing was
-needed or performed. `bin/dev/task-scan-candidates` was run and its
-output spot-checked by hand against real commit diffs, not against a
-live process.
+The cred-mesh/transport dispatch result WAS independently re-verified
+live this session: `bin/dev/cred-mesh-test` re-run by hand after
+kimi's fix (22/23, scenario 4 fully green, matching kimi's claim), the
+`proxy.auth.lookup:31` slot-resolution claim checked directly against
+source, and commit `a6d5de568`'s existence/content confirmed via
+`git show` rather than trusted from kimi's summary alone. Everything
+else this session (the archiving sweep itself) was pure git-history/
+file-archaeology, no live testing needed.
 
-Commits this session: `4dcf3a19f`, `ba570179d`. Not yet pushed (check
-before assuming pushed).
+Commits this session: `4dcf3a19f`, `ba570179d`, plus the cred-mesh
+dispatch result + template/memory fixes (uncommitted as of this
+writing — pending signatures on the 4 changed files: the scenario-4
+test script, the cred-mesh task doc, `kimi-dispatch-workflow.yaml`,
+`feedback-kimi-v7-console-hint.md`). Not yet pushed (check before
+assuming pushed).
