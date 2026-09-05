@@ -115,9 +115,11 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 - [no-inventing-infrastructure-naming](feedback-no-inventing-infrastructure-naming.md) — never hardcode a domain/hostname/endpoint into production code without explicit agreement, even if it happens to resolve to something real owned by the user; found `nailara-technologies.v7.ax` (a prior session's invented, unauthorized email-domain construction) in `keys.console.github-pat` during the v7 identity rename
+- [verify-bug-still-open-before-scoping-dispatch](feedback-verify-bug-still-open-before-scoping-dispatch.md) — before extracting a "still open" section of an older task doc into a new dispatch task, check git log for later same-day commits that may have already closed it — a bug can be fixed hours after it's filed with the doc's own wording never updated; cost real kimi quota re-deriving something `git log` would've shown for free
+- [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — broadened 2026-09-05: beyond the pager/color-loss misread, `git log --all` can also show two genuinely distinct commit hashes with byte-identical content/timestamp (overlapping-ref history); a naive hash-only exclusion filter can miss the twin and false-positive-match
 
-#,,.,,,..,,,,,.,.,...,.,.,,..,,,.,.,.,,,.,,.,,..,,...,...,..,,...,,,.,,.,,,..,
-#A3RIA63VTN5TBTDPIAWBRB7LDTOXLQZG2NBNR6NFHESOTLMP6ISFJIJQCFRTRAFAZ2EDQLHJUERQE
-#\\\|7OCP4MTL72MIJMXFYHYZAVYZYHJSSS46UXWG25ZJUGFBJMHF3PY \ / AMOS7 \ YOURUM ::
-#\[7]VXMFF63UTZIF7QVHK47YDCTWG5TMQB2SUMNJF5ZE7GNB4YDJ54AA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,,,...,...,,,.,,,,,...,,,,,.,.,..,,...,...,,..,,..,.,,,...,.,,,
+#2QA3TTBZ577H5KORZGH7M2H4TC5I6G7IYPRZKSEFVXWCKMT7IME4PUWQUQMEMNRIRVFPFHD3QNDJK
+#\\\|42K3QR6IJZSNDHNAISVX6RPWHL22V2BXNVL3OYVQ644UP63MG3N \ / AMOS7 \ YOURUM ::
+#\[7]AMHMSHG75KESK6VKBVUNLSYZ4F7P4HELZ5YLQ3MZREA27OCC3CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

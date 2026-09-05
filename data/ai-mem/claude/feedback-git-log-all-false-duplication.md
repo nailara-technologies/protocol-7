@@ -39,8 +39,25 @@ duplicate commits (always comes back empty), and if the agent was
 reading paged/piped diff output, assume color was stripped along the way
 before trusting any "duplicate line" observation from that output.
 
-#,,.,,,,.,.,,,,,.,,,.,,.,,,,,,.,,,.,,,,,,,,,.,..,,...,...,..,,...,,.,,,..,...,
-#3S7ZWIDE6JQXXMQPXDZ6UZD3JDD4FAAQLWAQGPPJIL7VOFT4RGS7MCVNF6GE3TJLMQCE5STXEW3NS
-#\\\|G366AKUFZJROED7OCC2KXEJFKLE4TSC2YHEDJKJUM46YVVETBV5 \ / AMOS7 \ YOURUM ::
-#\[7]4LBARAS2TTFIQ3X3AYSMPJXQLVJFMECEWMW6Z5UQGENGV5YKS4BA 7  DATA SIGNATURE ::
+**Second, distinct manifestation confirmed 2026-09-05**: a task-archiving
+scan matched a token-similarity hit to a commit that turned out to be a
+task file's own creation commit — but the SAME commit message/timestamp/
+diff also appeared under a genuinely DIFFERENT hash (`21cb2d67c` vs
+`6f599d8c8`, both "Add coding task specs: netfilter, infra-orchestration,
+appmgr, nameserv dynamic-dns", same second, both real commit objects via
+`git show`). This is NOT the pager/color-loss case above — these are two
+real, distinct commit objects with byte-identical content, consistent
+with this repo's ~140-overlapping-ref history (a filter-branch/rebase
+event can produce this). Same practical effect either way: a naive
+"exclude by hash" filter (e.g. excluding a task file's own creation
+commit from a completion-scan match set) can miss the duplicate-hash
+twin and produce a false-positive match. When building exclusion logic
+against this repo's commit history, prefer comparing (timestamp +
+message) over hash alone, or verify a suspicious match by hand rather
+than trusting a single-hash exclusion.
+
+#,,..,,,.,..,,,,,,.,.,,.,,.,,,..,,,.,,,.,,,..,..,,...,...,...,.,.,,..,.,,,,.,,
+#CSUBBIZYKO5SBSMQ7B6DEC4MV7L2JYGIBCVR5MVWTWMNI2AHA46QUHYCQ6IJWACGDXPGRR3M6FBZK
+#\\\|27CRRJZEX2MSRGF5ZWTO6NOOC7MWS5566MHNYXCKYZQIQ2NCYZC \ / AMOS7 \ YOURUM ::
+#\[7]NJQUCWR2WK3HB257HKNE4KTDH5L7244X2HRXVJ3H3QNXYTWXEICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
