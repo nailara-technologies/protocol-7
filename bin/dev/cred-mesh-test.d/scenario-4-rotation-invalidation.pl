@@ -22,9 +22,17 @@ my $echo_port = 33000 + ( int( rand(2000) ) );
 my $echo_log  = File::Spec->catfile( temp_dir(), 'echo-scenario-4.log' );
 my $echo_pid  = start_echo_server( $echo_port, $echo_log );
 my $domain    = "127.0.0.1:$echo_port";
-my $slot      = 'rotation-test.api-key';
+my $slot      = "session.$domain";
 my $old_value = 'old-key-aaaa';
 my $new_value = 'new-key-bbbb';
+
+## the rotated slot MUST be the slot the proxy actually resolves for this
+## domain -- proxy.auth.lookup only ever asks cred-mesh for
+## 'session.' . $domain, and proxy.handler.cred_rotated only flushes cache
+## entries whose recorded slot name matches the rotated slot. rotating an
+## unrelated slot name (e.g. 'rotation-test.api-key') can never change what
+## a subsequent request injects for this domain [ documented in
+## data/tasks/cred-mesh-rotation-subscription-cross-zenka.md ] ##
 
 # [ seed slot ]
 my $seed_code
@@ -108,8 +116,8 @@ exit 0;
 
 # [ end ]
 
-#,,,.,,..,,,.,.,.,.,,,,..,,.,,,..,.,,,...,.,.,..,,...,...,..,,,,.,.,,,,.,,.,.,
-#LLBQUGJ75AA4DFRLM3PEDAIU47JNIFBQPORBNELIA6P7TTJE2OAJXFNIKQVLGXMLKUI47I2FEVPSG
-#\\\|5XRBL4P3WDWTUBJUCPEGTJIAVKR5QN467RUMJHWFFSQESG2F4MB \ / AMOS7 \ YOURUM ::
-#\[7]VK6FGEHOIVXAWYSMWJ4MFJFMRUT3HNUHP7HJKOOTGXUVVWV2ICBA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,..,,..,,,,,,,..,...,,,.,.,,,..,,...,...,..,,,..,,.,,.,,,..,,
+#5T52KYO6Y7633JTUC23WTYVELDHZ7NLWJGTOY3UVQXV24A5COI7Y5ZQNG5Q5TYBOWRRQRFKSLFXME
+#\\\|C2ZJM6MYNG4U2BUPJBSYMMUJ5T4XLAIR5UI2O2RW76EVF4GDR6E \ / AMOS7 \ YOURUM ::
+#\[7]X3GXT6T3VRXTZT2HDSDSBGZCHKH6T55KR2RZRUY3HRY2VSNDRYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

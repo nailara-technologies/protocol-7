@@ -48,6 +48,30 @@ sections:
                           match the real access pattern. verify any cube access changes
                           against the existing file format before applying.
 
+      stale v7 naming — the v7 management zenka was renamed to v7-zenki
+                          (2026-08-31/09-02, commits 23a0e8d53/3f1d6b40f). any task
+                          context doc dated before that (check its own date/commit
+                          references) still says v7.<something> — e.g. `v7.restart` —
+                          which no longer resolves. translate before or while dispatching:
+                          `v7.restart` -> `v7-zenki.restart` (module is
+                          `v7-zenki.zenka.cmd.restart`), same pattern for
+                          `v7.start`/`v7.stop`/etc. the `zenka.v7` file-extension
+                          convention and the `v7.ax` domain name are UNRELATED and
+                          were deliberately left unchanged — do not "fix" those.
+
+      ## live console tap — give kimi this instead of ad-hoc reload/grep ##
+
+      v7-zenki aggregates every zenka's STDOUT into one combined, live-tailable
+      ring buffer: `/dev/shm/.7/STDOUT/<socket-id>` (stable symlink also at
+      `/var/run/.7/STDOUT/<socket-id>`). current known-live socket-id in this
+      deployment: `NIW7OAQ` (confirmed live, check freshness with `ls -la` before
+      trusting it in a new session — it can rotate on a v7-zenki restart). when a
+      task needs kimi to verify a `reload`/live-behavior result, mention this path
+      directly in the task file's context section so kimi tails/greps it instead of
+      re-running commands and reasoning about baselines. background:
+      data/ai-mem/claude/feedback-kimi-v7-console-hint.md,
+      data/ai-mem/claude/feedback-kimi-reload-baseline-noise.md
+
       ## structuring the kimi_dispatch prompt ##
 
       minimal overhead format (token-efficient):
@@ -94,8 +118,8 @@ sections:
     budget_pct: 100
     label: kimi dispatch workflow
 
-#,,..,,,.,,,,,,..,,..,,,,,,,,,,,,,,,,,,..,..,,..,,...,...,..,,,,.,,.,,.,,,...,
-#YQ6UESHXC52LYBE4DSLKYYI4KEPQ4SPYYKSK7PCF5PVIAJ7DENLMABPG5Y3K3UOTCBL62ILY73AL4
-#\\\|A4MUM4WCGQDBX57K24DTPAZYM3HFMRA57EG6342HX7UMDEPVXWJ \ / AMOS7 \ YOURUM ::
-#\[7]ERLRDXD4ZBMKS66CAUVWKVLDDM72VRY4C6MEVXOXKRIEEOTD6QDA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,,,,,,,,,.,.,,,.,,,,,,.,,.,,,..,,...,...,.,.,,,.,,.,,,,,,,,.,
+#HXOV64JY74SDP62ZHYJDNATOTL5UTVDHKVFUF4LYEGN45RIUETDZAVLZFDW7JO6AEU26G6ISGBZVY
+#\\\|Z3WYHAYQY7XBVGA72UDXM7G7CKRVOL6EJG5FOKWWYDEBUAEHUVH \ / AMOS7 \ YOURUM ::
+#\[7]SYDO4AGADCWRELRBQC4U6EZ7DJ2CWPSWP6FDGWCHYLN2A6VGYYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
