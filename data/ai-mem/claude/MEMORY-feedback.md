@@ -116,10 +116,11 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 - [no-inventing-infrastructure-naming](feedback-no-inventing-infrastructure-naming.md) — never hardcode a domain/hostname/endpoint into production code without explicit agreement, even if it happens to resolve to something real owned by the user; found `nailara-technologies.v7.ax` (a prior session's invented, unauthorized email-domain construction) in `keys.console.github-pat` during the v7 identity rename
 - [verify-bug-still-open-before-scoping-dispatch](feedback-verify-bug-still-open-before-scoping-dispatch.md) — before extracting a "still open" section of an older task doc into a new dispatch task, check git log for later same-day commits that may have already closed it — a bug can be fixed hours after it's filed with the doc's own wording never updated; cost real kimi quota re-deriving something `git log` would've shown for free
-- [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — broadened 2026-09-05: beyond the pager/color-loss misread, `git log --all` can also show two genuinely distinct commit hashes with byte-identical content/timestamp (overlapping-ref history); a naive hash-only exclusion filter can miss the twin and false-positive-match
+- [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — broadened 2026-09-05: beyond the pager/color-loss misread, `git log --all` can also show two genuinely distinct commit hashes with byte-identical content/timestamp (overlapping-ref history); a naive hash-only exclusion filter can miss the twin
+- [gen-sub-whitelist-no-arg-full-repo-regen](feedback-gen-sub-whitelist-no-arg-full-repo-regen.md) — `bin/dev/gen-sub-whitelist` with no target argument regenerates every zenka's whitelist, not just the one you're touching; always pass the specific zenka name, and if run bare by mistake, kill it and revert any unrelated zenki whitelists it already rewrote before continuing and false-positive-match
 
-#,,.,,...,,.,,.,,,...,...,,,.,,,,,...,,,,,.,.,..,,...,...,,..,,..,.,,,...,.,,,
-#2QA3TTBZ577H5KORZGH7M2H4TC5I6G7IYPRZKSEFVXWCKMT7IME4PUWQUQMEMNRIRVFPFHD3QNDJK
-#\\\|42K3QR6IJZSNDHNAISVX6RPWHL22V2BXNVL3OYVQ644UP63MG3N \ / AMOS7 \ YOURUM ::
-#\[7]AMHMSHG75KESK6VKBVUNLSYZ4F7P4HELZ5YLQ3MZREA27OCC3CAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,,,.,,..,...,,..,..,,.,.,..,,..,,...,...,...,.,.,.,,,.,,,.,.,
+#5PHUUOTSDYZ36BCGBUV5BHKZAKAUBGB7PK53MJY3Q5GV3M27W4ZLHGFYEUAOI5SV7CTXDMBPY4P7O
+#\\\|23ETLNOAQUGDXY2ITAYXK5G2V3ZLICEMOZB2LZVVAP7HQ5I35SG \ / AMOS7 \ YOURUM ::
+#\[7]FNIYJLZOWUVGE6Z4DVPZBVCL3UJHKULITTPPP5ARBB533WP43GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

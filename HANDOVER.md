@@ -1,5 +1,8 @@
 # Session Handover — 2026-09-05
 
+**All 4 dispatch-queue items now DONE.** See the queue section below for
+status of each.
+
 ## Completed This Session
 
 ### Task-backlog archiving sweep
@@ -41,7 +44,7 @@ still active in `data/tasks/` got a full read this session, plus all
 (pre-2026-08) has not been swept yet — good candidate for the next
 archiving pass with the same tool + discipline.
 
-### Prioritized dispatch queue — 3 of 4 DONE this session
+### Prioritized dispatch queue — 4 of 4 DONE this session
 
 Ranked by how dispatch-ready the remaining work was, per
 `data/yaml/context-templates/kimi-dispatch-workflow.yaml`'s own bar.
@@ -75,15 +78,9 @@ Status after this session:
    design — `ptd-extensions-and-p7-perl-translator.yaml` correctly
    still `status: in_progress`, not archived.
 
-4. **NOT STARTED** — `models-discover-cleanup.yaml`: fully specified,
-   unified `models.discover` interface, 6 numbered implementation
-   steps, explicit deprecation path for the 3 commands it replaces
-   (`models.cmd.discover`, `.discover_files`, `.clear-registry`).
-   Medium risk only because it touches 3 callers across zenki
-   (`coding.*`, `lm-vision.*`, `image-quality.*`) — worth a human diff
-   review before any live test. Kimi is at ~99% quota usage as of this
-   writing (resets in ~3h20m) — good candidate to implement directly
-   instead of dispatching, or to queue for after reset.
+4. **DONE** — `models-discover-cleanup.yaml`, implemented directly
+   (not dispatched, kimi quota was nearly exhausted). See its own
+   section below; archived to `data/yaml/archive/completed-coding-tasks/`.
 
 Lower-confidence picks (only skimmed, not vetted the way 1-4 are):
 `coding-cpu-and-hybrid-offload-path.md` (the hybrid/partial-GPU-offload
@@ -168,20 +165,70 @@ note itself was also updated to match.
 rather than removed — harmless either way, decided not worth chasing
 further.
 
+### models-discover-cleanup — DONE, implemented directly (not dispatched)
+
+Step 1 (audit usage) done first, repo-wide grep for all 3 command names
+across src/cfg/bin/data. Found the task's own `affected_zenki` list was
+stale: `image-quality` has no relation to this at all (confused with
+`vision-batch`, which calls `image-quality.analyze` for something
+unrelated). Only real caller of `models.cmd.discover` is `coding`
+(`coding.handler.fetch_model_discovery` + `coding.init_code`'s
+on-demand routing target), using the bare-word contract
+(`call_args => { args => 'available' }`), not the colon-flag form the
+task's `proposed_solution` describes. `discover_files` and
+`clear-registry` have **zero callers anywhere** in src/cfg —
+console/human-operator use only.
+
+Given zero real callsites for the two redundant commands, **removed
+them outright rather than deprecating** (your call, mid-session, given
+callsites would be trivial to update — there were none):
+- Deleted `src/models.cmd.discover_files`, `src/models.cmd.clear-registry`.
+- Rewrote `src/models.cmd.discover` as the unified command (`:clear:`,
+  `:re-scan:`, `:available:`/`:unavailable:`), keeping the old bare-word
+  filter contract as a backward-compatible synonym and the list-mode
+  reply text format byte-identical (`coding.handler.models_discover_reply`
+  parses it by regex).
+- New `src/models.discover.scan_all_paths` factors out the
+  search-path-resolution + scan loop that was duplicated verbatim
+  between the two old commands (the task's stated "problem 1", now
+  actually fixed rather than just described).
+- Dropped the dead command tokens from `cfg/zenki/models/zenka.v7`'s
+  access grant and `src/base.list.subroutines`; regenerated
+  `cfg/zenki/models/subroutines.load-early` via
+  `bin/dev/gen-sub-whitelist models` (scoped — the no-arg form triggers
+  a full-repo regen; caught that mid-run in the background and reverted
+  the unrelated churn it left in 4 other zenki's whitelists before
+  committing to anything).
+
+**Live-verified** via on-demand start (`models` wasn't running,
+`p7_command` triggered a clean boot with the new code): `models.discover`
+(default list, the exact call shape `coding` depends on) returned the
+correct format, 114 models; `models.discover :available:` filter
+works; the removed `models.discover_files` correctly errors
+`command not known or no permission`; `coding.cmd.clear-registry`
+(the separate, unrelated command, correctly left untouched) confirmed
+still working. `:re-scan:` also confirmed live afterward (by you,
+2026-09-05) via `coding.clear-registry :re-fetch:`'s downstream chain —
+`models.storage.yaml_save` saved 114 models back, exact match, no data
+loss. `:clear:` alone (without `:re-scan:`) remains untested — lowest
+risk of the four modes (just empties the registry, no filesystem scan
+involved) but still real state, worth a deliberate test rather than an
+incidental one before fully trusting it.
+
 ## Open Items — Not Started / Not Finished
 
-1. **`models-discover-cleanup.yaml`** (queue item 4 above) — not
-   started. Good candidate to implement directly rather than dispatch,
-   given kimi's quota is nearly exhausted.
-2. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
+1. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
    not yet read this session) with `bin/dev/task-scan-candidates` +
    the same read-the-actual-diff discipline.
-3. **`transport.init_code`'s missing zenka-name guard** (found this
+2. **`transport.init_code`'s missing zenka-name guard** (found this
    session, not fixed, inert today) — small, well-scoped, good next
    dispatch whenever `transport` namespace work is being done anyway.
-4. **`transport.handle.quic-hysteria:85`'s sprintf warning** (found
+3. **`transport.handle.quic-hysteria:85`'s sprintf warning** (found
    this session, not investigated) — pre-existing, cosmetic, non-
    blocking (scenario 2 still passes with it present).
+4. **`models.discover :clear:` alone** (no `:re-scan:`) — `:re-scan:`
+   is now live-confirmed (see above), but plain `:clear:` (empty the
+   registry, no re-scan) hasn't been deliberately exercised yet.
 5. Everything in the previous handover's "Open Items" section
    (`v7-zenki` rename follow-ups, `p7-`-prefix ambiguity, dead `p7`
    command references, the `v7-stdout-foldable-relay` task cluster,
@@ -193,21 +240,21 @@ further.
 
 ## Verified Live
 
-Every kimi dispatch result this session was independently re-verified
-before being accepted, not just taken on the summary returned: the
-cred-mesh/transport fix (`bin/dev/cred-mesh-test` re-run by hand, 22/23
-matching kimi's claim; `proxy.auth.lookup:31` and commit `a6d5de568`
-checked directly against source), the research extraction (one
-citation spot-checked against `IMPLEMENTATION-ROADMAP.md`, file sizes
-and `git status` cross-checked), and both `-diff` flags (`ptd -c`/
-`format-code` syntax checks run, both `-diff` flags exercised live
-against real and unchanged files, temp-file cleanup confirmed, existing
-flags confirmed unaffected). The archiving-sweep portion of the session
-was pure git-history/file-archaeology, no live testing needed there.
+Every dispatched/implemented result this session was independently
+re-verified before being accepted, not just taken on a returned
+summary: the cred-mesh/transport fix (`bin/dev/cred-mesh-test` re-run
+by hand, 22/23 matching kimi's claim; `proxy.auth.lookup:31` and commit
+`a6d5de568` checked directly against source), the research extraction
+(one citation spot-checked against `IMPLEMENTATION-ROADMAP.md`, file
+sizes and `git status` cross-checked), both `-diff` flags (`ptd -c`/
+`format-code` syntax checks run, both flags exercised live against real
+and unchanged files, temp-file cleanup confirmed, existing flags
+confirmed unaffected), and `models.discover` (on-demand live start with
+the new code, list + filter modes exercised against the real 114-model
+registry, old removed command confirmed gone). The archiving-sweep
+portion of the session was pure git-history/file-archaeology, no live
+testing needed there.
 
 Commits this session: `4dcf3a19f`, `ba570179d`, `ed16ad2a3`,
-`6772919f1`, `c9f66d3e6`, `14fb8025d`, `48566ad72`. Not yet pushed
-(check before assuming pushed).
-
-Kimi quota note (as of this writing): ~99% used, resets in ~3h20m —
-not available for further dispatch until then.
+`6772919f1`, `c9f66d3e6`, `14fb8025d`, `48566ad72`, `f36dbb66f`,
+`11e163aa6`. Not yet pushed (check before assuming pushed).
