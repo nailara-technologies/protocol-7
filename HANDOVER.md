@@ -1,417 +1,131 @@
-# Session Handover — 2026-09-02
+# Session Handover — 2026-09-05
 
 ## Completed This Session
 
-### v7 -> v7-zenki: full identity rename (the bulk of the session)
-Renamed the `v7` management zenka to `v7-zenki` across `src/` (158
-`git mv`d files), `cfg/` (including the `cfg/zenki/v7` ->
-`cfg/zenki/v7-zenki` directory move), and `bin/Protocol-7` itself —
-data-key sugar, code-sugar, quote-word/string identity comparisons,
-config keys, the `cfg/zenki/cube/access.zenki` auth-identity key
-(`access.cmd.usr.v7` -> `access.cmd.usr.v7-zenki`, a real gap: this is
-what cube checks against the connecting zenka's own session username,
-so leaving it as `v7` would have denied v7-zenki's own heartbeat/
-session-key traffic post-restart), and a runtime temp-path
-(`/var/run/.7/v7/tmp_paths` -> `.../v7-zenki/tmp_paths`).
+### Task-backlog archiving sweep
+`data/tasks/` had ~115 active `.md` files, many long since landed but
+never archived. Built `bin/dev/task-scan-candidates` (directory +
+extension agnostic — `task-scan-candidates [dir] [ext]`, defaults to
+`data/tasks md`) as a lightweight shortlist tool: combines direct
+`data/tasks/<file>` mentions in commit bodies (strongest signal —
+authors here often write "Implements data/tasks/x.md" directly) with
+stopword-filtered filename-token matching against the full
+commit-subject corpus as fallback. It is a shortlist tool, not a
+verdict — both signals produced confirmed false positives this session
+(a task's own creation commit paraphrasing its title; generic 2-token
+overlap with an unrelated commit), so every hit still needs the
+matched diff and the task's own status section actually read before
+moving anything.
 
-Domain name `v7.ax` (real, user-owned) and the `zenka.v7` file-
-extension convention were deliberately left untouched throughout —
-recurring false-positive class, checked every pass.
+Archived 21 tasks from `data/tasks/` -> `data/tasks/completed/`
+(commit `4dcf3a19f`) and 4 from `data/yaml/coding-tasks/` ->
+`data/yaml/archive/completed-coding-tasks/` (commit `ba570179d`), each
+cross-checked against its real landing commit's diff, not just
+title/filename matching. Full list and evidence in those two commit
+messages. Several plausible-looking token matches were deliberately
+**left in place** after reading the actual file, because they
+self-report partial/open work right next to what looked like a
+completion commit — worth remembering as a general caution before
+trusting this class of scan: `cred-mesh-rotation-subscription-cross-
+zenka.md`, `sub-bit-element-definition.md`,
+`x11-xvfb-start-async-refactor.md`,
+`coding-cpu-and-hybrid-offload-path.md`, `web-auth-plugin.md`,
+`ptd-extensions-and-p7-perl-translator.yaml`,
+`models-discover-cleanup.yaml`, `base-handler-command-
+modularization.yaml`, and the `phase-2`..`phase-6` roadmap chain
+(each explicitly gated on the previous phase).
 
-Live-restart-verified multiple times, including a full
-`base.cmd.reload` on the running instance with zero errors.
+Not exhaustive: only the most-recently-created ~20 of the 86 files
+still active in `data/tasks/` got a full read this session, plus all
+31 files in `data/yaml/coding-tasks/`. The older `data/tasks/` backlog
+(pre-2026-08) has not been swept yet — good candidate for the next
+archiving pass with the same tool + discipline.
 
-Commits: `23a0e8d53` (main rename), `3f1d6b40f` (follow-up: `bin/`
-tooling cleanup across ~35 files in `bin/dev`, `bin/admin`,
-`bin/test-scripts`, plus two things the main rename's sweep missed —
-see below). Both pushed.
+### Prioritized next-dispatch queue (drafted from what was actually read this session)
 
-### Zenka-name resolution now follows the symlink chain (todo `MPV`, done)
-`bin/Protocol-7` used to pattern-match only the single directly-
-invoked name (`$PROGRAM_NAME`). It now walks the actual filesystem
-symlink chain (`$FindBin::Bin/$FindBin::Script`, verified to compile
-before `PATH` gets clobbered by security hardening) until it hits a
-recognized terminal segment (`p7-<zenka>` / `v7.<zenka>` /
-`Protocol-7.<zenka>`, basename-only — fixes a real over-greedy bug
-where a nested path like `.../v7.tools/bin/foo` could wrongly resolve
-to `tools`). Intermediate link names collected along the way surface
-as launcher context (`<system.start.launcher_chain>` etc.) for the
-zenka the chain terminates at, instead of being discarded — this is
-the parameter-propagation primitive `install_workflow_shortcuts`'
-disabled fourth symlink form (`p7.<shorthand>`) was blocked on; not
-yet wired up, see Open Items.
+Ranked by how dispatch-ready the remaining work is, per
+`data/yaml/context-templates/kimi-dispatch-workflow.yaml`'s own bar
+(objective/context/steps/acceptance already legible, not something
+needing fresh design work first):
 
-Also fixed a real pre-existing bug found along the way: the lib-path
-`readlink` walk in `p7_security_hardening` never resolved *relative*
-symlink targets, so any relative-target chain aborted at boot before
-resolution even ran.
+1. **`cred-mesh-transport-subscription-and-base32-gap.yaml`** (NEW,
+   written this session, ready to dispatch) — extracted from the tail
+   of `data/tasks/cred-mesh-rotation-subscription-cross-zenka.md`.
+   That doc's bugs 1-4 and the leaked-timer self-permission-denial bug
+   are all FIXED and live-verified (confirmed by re-reading the file
+   in full before writing this task) — do not re-touch those. What's
+   actually still open: transport's rotation-subscription vanishes
+   somewhere between `send.local`'s successful queue and cred-mesh's
+   `.cmd.subscribe_rotation` wrapper (proxy's identical path works
+   fine), and `transport.cmd.cred-rotated`'s `base.base32.decode`
+   resolves undef in transport only. Both symptoms may share one root
+   cause (transport's `modules.load` token expansion vs proxy's,
+   untested theory) — the task file says to check that, not assume it.
+   Test harness already exists: `bin/dev/cred-mesh-test`, scenario 4.
 
-New registry modules under `path-template.*`
-(`base.path-template.zenka-name-from-link`, `.zenka-symlink-chain`,
-`.zenka-symlink`) as thin delegators — the real implementation has to
-stay inline in `bin/Protocol-7` since it runs before
-`base.path-template.pre_init`'s own boot-time namespace swap is live;
-documented as a deliberate tradeoff, not an oversight.
+2. **`research-knowledge-base-extraction.md`** — lowest-risk dispatch
+   in the backlog ("do NOT implement anything, research and extract
+   only"). Only topic 10 of ~11 roadmap topics has been extracted to
+   `data/tasks/research-findings/`; the rest already have their search
+   terms and output paths spelled out in the task file itself. Good
+   for a bulk kimi pass since a bad extraction just gets re-read, never
+   touches live code.
 
-Design doc: `data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md`.
+3. **`ptd-extensions-and-p7-perl-translator.yaml` — the `-diff` flag
+   only**, not the whole file. The bidirectional p7<->perl translator
+   described in the same file is a much bigger, fuzzier deliverable —
+   don't dispatch that part yet. The `-diff` piece already has literal
+   implementation notes (tempfile, strip `-b`/`-bext`, `system('ccdiff',
+   $file, $tmp)`, flag name `-diff`) — one function added to
+   `bin/dev/ptd`, cleanly separable.
 
-Note for later: this `path-template.*` namespace is *also* where the
-planned Unix-domain-socket directory structure for the multi-zenki
-setup is meant to live (AMOS+BMW-checksum-based nested directories,
-per the user directly, not yet designed) — future work here should
-stay coherent with that, not just this session's symlink-chain need.
+4. **`models-discover-cleanup.yaml`** — fully specified: unified
+   `models.discover` interface, 6 numbered implementation steps,
+   explicit deprecation path for the 3 commands it replaces
+   (`models.cmd.discover`, `.discover_files`, `.clear-registry`).
+   Medium risk only because it touches 3 callers across zenki
+   (`coding.*`, `lm-vision.*`, `image-quality.*`) — worth a human diff
+   review before any live test.
 
-### bin/Protocol-7 purge-exclusion-list fix
-The `p7_purge_code` reload-purge-exclusion list (protects a narrow
-window inside `base.cmd.reload` only — everything's back once reload
-completes regardless, log buffers are async and just queue through
-the gap) had two stale `qw| v7.foo.bar |` entries the earlier sweep's
-regex missed (extra internal padding broke the pattern). Investigated
-both via `git log -S` before touching:
-- `v7.handler.zenka_output` — removed entirely, confirmed dead
-  regardless of rename: the containing `if` already excludes any
-  `.handler.`/`.callback.`-matching name earlier in the same
-  condition, so this entry could never have mattered.
-- `v7-zenki.stdout_log.write` — restored after confirming via history
-  it was added in the exact commit that introduced the feature it
-  protects (2026-02-27, stdout-log-redirection). Keep until the whole
-  exclusion-list mechanism is replaced by the planned version-aware
-  code loader with parallel `%code` sub-hashes (user's own framing —
-  the list is names-only and won't grow unboundedly meanwhile; other
-  zenki simply never load these subs so the entries are inert no-ops
-  for them).
+Lower-confidence picks (only skimmed, not vetted the way 1-4 are):
+`coding-cpu-and-hybrid-offload-path.md` (the hybrid/partial-GPU-offload
+piece specifically — its stale opening framing was already flagged for
+a separate small correction pass first, do that first), and
+`x11-xvfb-start-async-refactor.md` bug 2 (diagnostic timing logs
+already placed at the two suspected stall points, but the file itself
+says not to test live without a clear plan — keep the live-
+verification step human-supervised).
 
-### README.md + targeted data/md/ docs catchup
-`read-me/md/README.md` had drifted significantly — one genuinely dead
-link, stale command examples/output tables, a wrong claim about what
-`p7c commands` outputs, drifted file-count claims, and the `p7-*`
-symlink prefix (landed a separate session ago) was undocumented
-anywhere, so `p7-nshell` would have appeared from nowhere. Fixed, plus
-5 operational `data/md/` docs (notably `P7-LLM-REFERENCE.md`, an
-LLM-facing command cheat sheet — every `v7.*` there was live-wrong
-until now).
-
-**Flagged, not fixed**: `/usr/local/bin/p7` is dead (a stub, prints a
-rename notice, exits 311) but still referenced as a live command in
-~17 places across `data/md/`/`read-me/` — an older, separate rename
-campaign, unrelated to this session. Worth a future pass.
-
-### zenki sandbox: root-independent front-door + start relay (todo cluster, prototype phase)
-Built on the previously-unused `zenki` zenka as a deliberate low-blast-
-radius sandbox (not `v7-zenki` itself) for a "hybrid" start-up pattern:
-same zenka runnable either `v7-zenki`-managed (resident, root-dropped)
-or directly by a plain user/LLM from the shell (root-independent,
-one-shot). Recovered the zenka's real original intent from its own
-2025-11-11 git history: a transparent front-door — `Protocol-7 zenki
-start <name>` — that bootstraps `v7-zenki` if needed and relays the
-start request over cube IPC.
-
-Fixed 5 real bugs found along the way: `zenki.parent.check_running`
-never matched `bin/Protocol-7`'s actual `$PROGRAM_NAME` rewrite form
-(so `ensure_v7` always reported "not running"); `ensure_v7` still
-invoked the pre-rename `v7` binary name; `start_via_v7`'s IPC call used
-a nonexistent sub name (`protocol-7.command.route-send` instead of
-`protocol-7.route-send`); its `inside_v7` probe checked the wrong sub
-name; `v7_start_reply`'s handler used the wrong reply-signature
-contract entirely (single hashref, not `($route_id, $params)`).
-
-Also built genuine on-demand module loading — only `zenki`'s own
-domain module loads up front; `zenki.parent.select-modules` loads the
-rest based on which console command was actually invoked, using
-*existing* `base.load_modules`/`base.init_modules` primitives (no new
-loader needed). Measured real latency wins for local-only commands
-(~2.0-2.3s -> ~1.3-1.6s); `start` itself is a wash since it needs the
-full network stack regardless — reported honestly, not oversold.
-
-Access grant is deliberately narrow: `access.cmd.usr.zenki =
-v7-zenki.start` only. Found and recorded (not fixed, pre-existing,
-shared by every other `:unix:`-hybrid zenka) that `plugin.auth.unix`
-never actually compares the connecting peer against the resolved
-allowed-user list — with a `:unix:` auth clause present, any local
-unix user can currently claim the identity. Written forward-compatibly
-so it self-corrects once that plugin bug is fixed elsewhere.
-
-**Real gap found, deliberately left open** (touches `v7-zenki`/shared
-`base.*`, out of sandbox scope): no `start.cfg` key distinguishes a
-managed (resident) zenka from a console-only one — not even for
-`zenki` itself anymore, now that its own loop moved out of the start
-file. Asking `v7-zenki` to "start" a console-only zenka (`work`,
-`session`) still triggers a pointless dump-then-restart-loop-until-
-give-up. Three candidate fixes recorded in
-`data/md/design/ZENKA-HYBRID-STARTUP-DISPATCH.md` (a declared
-`zenka.managed` key; `base.call.console_command` declining to dump the
-full listing in managed/stdin mode with no command given; converting
-the console-only zenki to the hybrid shape, the likely real end
-state).
-
-Design doc: `data/md/design/ZENKA-HYBRID-STARTUP-DISPATCH.md`. Reusable
-pattern captured separately:
-`data/ai-mem/claude/reference-zenka-callback-wrapper-prototype-pattern.md`
-— wire a single callback sub for any conditional start-up logic
-(`zenka.v7` itself has no native conditionals), prove it on a
-low-blast-radius sandbox zenka, transplant into the real target later.
-
-Live-verified: relay confirmed via `weather`/`tile`/`ncode`/`git`/
-`fetch-files`/`image2html`; resident restart clean afterward,
-`zenki.heart` beating, no loop. Commit `ad956074e`, pushed.
-
-## Known Infra Gotchas Found This Session
-
-- **Don't preempt the pre-commit hook's version-mismatch gate by
-  running `bin/dev/update-version` yourself** — if the version was
-  already bumped through the user's own flow, this just forces a
-  redundant second signing pass. If a commit attempt blocks on it,
-  report and wait; the hook's own retry (once the user's tooling has
-  actually bumped + signed) is what unblocks it, not you running the
-  suggested fix-it command preemptively.
-  `data/ai-mem/claude/feedback-dont-preempt-version-bump-before-commit.md`.
-- **`bin/ncode`'s `bin`/`dev`/`admin` targets have incomplete
-  coverage** — several genuine `v7`-reference hits fell outside all
-  three targets' scope this session (confirmed by repeated manual
-  sweeps with varying regex boundaries until one came back clean).
-  Don't trust a single ncode-target pass as exhaustive for `bin/`.
-- **Padded `qw| word |` literals with internal multi-space alignment
-  defeat a plain `qw\| *word *\|` regex** — `bin/Protocol-7` has many
-  hand-column-aligned `qw| v7.foo.bar       |`-style lists; a tight
-  single-word pattern misses these. `bin/format-code` does not
-  maintain this alignment — it's manual/length-based, the user
-  reformats by hand after a content edit changes a token's length.
+Explicitly **not** ready for direct dispatch without a scoping pass
+first: `queue-intelligence-and-event-loop-safety.yaml` (critical
+priority but self-described as touching three interconnected systems
+— needs decomposition into sub-tasks before it's kimi-sized), and the
+`phase-2`..`phase-6` roadmap chain (only phase-2 is even eligible,
+not read closely enough yet to vouch for it as dispatch-ready).
 
 ## Open Items — Not Started / Not Finished
 
-1. ~~**`install_workflow_shortcuts`'s disabled 4th symlink form**~~ —
-   DONE, live-verified: wired up as ordinary `p7.<shorthand>` ->
-   `p7-<zenka>` chains (not a fourth recognized form), table in
-   `src/base.path-template.console-shorthand`, expansion in
-   `src/base.call.console_command`; decision recorded in
-   `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`. Confirmed live: `p7.wo` ->
-   `p7-work` resolves and runs correctly, all 7 shortcuts installed.
-   Commit `6089e8434`.
-2. **`p7-`-prefixed zenka names are ambiguous** (`p7-log` resolves to
-   `log`) — pre-existing, not a regression, now documented in
-   `ZENKA-SYMLINK-CHAIN-RESOLUTION.md`, not fixed.
-3. **~17 dead-`p7`-command references** across `data/md/`/`read-me/`
-   docs (see above) — separate older rename campaign, not this
-   session's scope.
-4. **`v7-lpw-sync-debug.md`, `v7-stdout-foldable-relay.md`,
-   `v7-console-log-filter-overlay.md`, `v7-console-per-zenka-tree-view.md`**
-   (in `data/tasks/`) — pre-scoped, already-planned task cluster for
-   the Unix-domain-socket / detach-reattach console-relay direction
-   the user described this session. `v7-stdout-foldable-relay` is the
-   dependency root (implements `STDIO-RELAY-FOLD-APPLICATION.md`'s
-   foldable-stream primitives); the two console-view tasks depend on
-   it. All four need a naming check against the `v7-zenki` rename
-   before dispatch — written before this session, likely still say
-   `v7.*`. Good candidate for the next full-budget Opus dispatch.
-5. **`LYE`** (multi-cube architecture design) — vision-level, not
-   started, needs a full time budget, not a squeezed-in dispatch.
-6. **`QP3`** (nshell -> cmd-term rename) — still queued, untouched.
-7. **`v7-zenki.tmp-paths.global.clean-up` logs duplicate identical
-   warnings on a no-root run** — found live testing item 1's fix
-   without root. Two independent callers (`v7-zenki`'s stdout-log
-   setup, trying to clean a stale symlink from a previous run before
-   creating a fresh one, and `v7-zenki.teardown`'s own final cleanup
-   call) both hit the same permission-denied path and log the
-   identical `no whitelist permission [ unlink : ... ]` warning twice
-   per tmp-path in one process run. Not a functional bug (shutdown
-   still completes correctly, root enforcement works as intended) —
-   just duplicate logging noise. Two fix options discussed, not yet
-   decided: (a) track "already warned this path this run" inside
-   `tmp-paths.global.clean-up` and skip re-logging an unchanged
-   failure, or (b) don't call cleanup from both places, let teardown's
-   final pass be the only one. Small, well-scoped, good next dispatch.
-8. **DONE this session, found live-testing item 7 above**:
-   `src/v7-zenki.call_cmd` had a redundant AND buggy flag-stripping
-   regex (` *-+\w+...` with zero-or-more leading spaces, so it matched
-   `-word` mid-string, not just at a real boundary) — `another-command`
-   lost its `-command` tail before ever reaching the debug echo.
-   `bin/Protocol-7` already filters `@ARGV` to non-flag tokens before
-   `<system.args>` is ever built (two separate correct mechanisms, one
-   per code path), so the extra pass in `call_cmd` was never doing
-   legitimate work — removed rather than patched. Commit `9246d7209`,
-   live-verified (`another-command` now prints intact).
+1. **Dispatch `cred-mesh-transport-subscription-and-base32-gap.yaml`**
+   via `kimi_dispatch` — it's written and ready, just needs sending.
+2. **Sweep the older `data/tasks/` backlog** (pre-2026-08, ~65 files
+   not yet read this session) with `bin/dev/task-scan-candidates` +
+   the same read-the-actual-diff discipline.
+3. Everything in the previous handover's "Open Items" section
+   (`v7-zenki` rename follow-ups, `p7-`-prefix ambiguity, dead `p7`
+   command references, the `v7-stdout-foldable-relay` task cluster,
+   `LYE`/`QP3`, the duplicate tmp-paths cleanup warning) was not
+   touched this session — see git history (`988cc51f1`, `f4c295824`)
+   for that content if it's still relevant; this file no longer
+   carries it forward verbatim since it's a different work-stream than
+   this session's task-archiving focus.
 
 ## Verified Live
 
-`v7-zenki` boots clean, fleet starts correctly (`cube`, `p7-log`,
-`system`, on-demand `httpd`/`radio`), sessions authenticate under the
-new identity, and a full `base.cmd.reload` on the running instance
-completed with zero errors (also exercised the new
-purge-exclusion-list state and confirmed `p-7-r` self-rebuilds on a
-stale BMW checksum). Workflow shortcuts confirmed live end-to-end
-(`p7.wo` -> `p7-work`, all 7 installed). `call_cmd` fix confirmed live
-(`another-command` no longer truncated). Deliberate no-root run
-confirmed `cube`'s own root-requirement enforcement is clean (no
-redundancy there, unlike the tmp-paths cleanup path noted above).
+Nothing in this session touched a running zenka — this was a pure
+git-history/file-archaeology + archiving pass, no live testing was
+needed or performed. `bin/dev/task-scan-candidates` was run and its
+output spot-checked by hand against real commit diffs, not against a
+live process.
 
-Commits this session: `23a0e8d53`, `a43972791`, `3f1d6b40f`,
-`f4c295824`, `6089e8434`, `9246d7209`, `ad956074e`. All pushed.
-
-## Dependency-installation queue (sys-deps/os-pkg/debian/ext-pkg/osf-cache)
-
-Started as reconnaissance-only, at the user's request, to plan real
-work. User's framing: get this zenki group "interacting smoothly... a
-true installation queue that always works," given recent investment
-across sessions that each ended right after committing, so there's
-been no cross-session integration testing beyond whatever each
-implementing session did itself. Turned into real, substantial
-progress the same session — see "Three real bugs found and fixed"
-below.
-
-**Current state, verified against the live tree** (not just docs):
-- **`sys-deps`** — real, on-demand, thin command layer over the
-  standalone `AMOS7::deps::*` library
-  (`data/lib-path/pm/AMOS7/deps/{module,os_package,debp,dist_upgr}.pm`).
-  Query/state front-end.
-- **`debian`** — real, on-demand, the actual install-*execution*
-  backend. Forks a root child (`debian.start.apt_child`) *before*
-  dropping privileges, then genuinely serializes installs:
-  `debian.apt_enqueue_install` -> jobqueue -> `debian.job.apt_install`
-  writes one line to the persistent child, `debian.apt_pump` only
-  starts the next queued job once none is in flight (real guard —
-  concurrent writes would corrupt the child's line protocol).
-  `sys-deps.cmd.install` relays here via `<[protocol-7.route-send]>`
-  (fire-and-forget IPC).
-- **`v7-zenki.check_zenka_deps`** — pre-start hook (wired into
-  `autostart_zenki`), scans a zenka's `deps/{p-mod,os/deb,os/bin}`
-  dirs before starting it, auto-installs via the same route-send path
-  when `v7.cfg.auto_install_deps` is on.
-- **`os-pkg`** — still a bare stub (`src/os-pkg.init_code` is `0;`,
-  no `.cmd.` files, no live zenka-to-zenka wiring at all). The real
-  `os-pkg` functionality is a standalone CLI script
-  (`bin/os-pkg`, 245 lines) that touches the same `var/sys-deps/
-  tracked.yaml` independently, not a network participant.
-- **`ext-pkg`** — real, resident, handles external/language package
-  managers (pip/npm/uv-tool), install-if-missing-only lifecycle
-  (registered tools self-update). Phase 1 DONE, live-verified
-  (`e9b437f6c`). Phase 2 ("unified coverage audit") not started —
-  referenced directly in `ext-pkg`'s own config comment.
-- **`osf-cache`** — not built yet, todo `AT5` ("create osf-cache zenka
-  design or task file", tag `new-zenki`). Per the user directly: a
-  later complement to this group, nothing currently blocked by its
-  absence.
-- **`build-zenka`** — adjacent, not named by the user but structurally
-  similar: phase 1 DONE, live-verified (`e73bf2274`); phase 2 ("patch
-  drift detection") not started.
-
-**Three real bugs found and fixed this session, all live-verified:**
-
-1. ~~`base.register_pm_deps` writing into the tracked git tree~~ — DONE.
-   Relocated per-zenka Perl-module dependency touch-files from
-   `cfg/zenki/<zenka>/deps/p-mod/` (tracked) to `var/zenki-deps/p-mod/
-   <zenka>/` (runtime-owned), matching `var/sys-deps/tracked.yaml`'s
-   pattern. Fixed the writer (`base.register_pm_deps`), dir-creation
-   (`base.check_dependency_dirs`), reader (`base.perlmod.
-   all_registered`), and sys-deps' own scan (`AMOS7::deps::module::
-   scan_zenki_pm_deps`) together. K2.7 dispatch found and fixed a real
-   secondary bug along the way (`file.all_files` missing the recursive
-   flag, making new-location registrations invisible), caught via its
-   own sentinel-module test. Independently re-verified this session.
-   Full background: `data/ai-mem/claude/
-   project-deps-tracking-var-relocation.md`. Commit `4e44fb027`.
-
-2. ~~`debian`'s apt_child falsely reported "not available"~~ — DONE.
-   `debian.job.apt_install` rejected every install with "apt child not
-   available" even moments after a fresh on-demand start with a
-   confirmed-alive child. Root cause: the child is forked while
-   `debian` is still root, then `debian`'s own process drops to
-   `<system.amos-zenka-user>` before any job can arrive — but an
-   unprivileged process can't `kill(0, $pid)` a root-owned pid at all;
-   it fails `EPERM`, indistinguishable from `ESRCH` (no such process)
-   by return value alone. So the liveness check failed
-   unconditionally, healthy child or not. An initial hypothesis
-   (`open2`'s filehandle-arg aliasing not surviving a deep `%data`
-   hash-element passed directly, P7 sugar) was chased first and
-   disproven — `coding.start.chmod_child` uses the identical
-   direct-sugar-argument style and works fine, and the "fix" had zero
-   effect while the real bug was still present. Real fix: dropped the
-   `kill(0,$pid)` check entirely, matching `coding.tools.handler.
-   write_with_perms`'s precedent (checks filehandle definedness only,
-   never attempts a liveness signal on its own root-owned chmod
-   child). Commit `0cace9f25`.
-
-   Also found live while chasing this: the apt_child was never
-   registered with `v7-zenki` for lifecycle management, so it survived
-   as an orphaned root process every time `debian` restarted or
-   terminated (confirmed: a prior test run's child outlived `debian`'s
-   own shutdown entirely). Fixed by adding `<[base.zenki.
-   report_child_pid]>->(<debian.apt_child.pid>)` right after the fork,
-   matching `coding.spawn_inference_server`'s existing precedent — now
-   terminates/restarts along with the parent zenka instead of leaking.
-   `debian` had no `access.cmd.usr.debian` entry at all until now, so
-   the underlying `v7-zenki.register_child` call would have been
-   silently rejected by cube's access control without also adding that
-   grant (`cfg/zenki/cube/access.zenki`).
-   Also gave the child a recognizable `$0` (`debian[apt-child:idle]` /
-   `debian[apt-child:installing <pkgs>]`), doubling as a live status
-   display in `ps` — would have made spotting the orphan immediate
-   rather than needing it pointed out.
-
-3. ~~`sys-deps.handler.install_reply` reading fields that don't exist~~
-   — DONE. Found immediately after fixing #2 above: `sys-deps.install`
-   kept reporting "failed" for packages `debian` had genuinely just
-   installed. The handler read `$reply->{'mode'}`/`{'data'}`, but the
-   real reply-handler contract (`base.handler.command.process_reply`)
-   passes a single `{ sid, cmd, call_args, params }` hashref — no
-   `mode`/`data` keys at all. The wire-level result is in `cmd`
-   (uppercase `TRUE`/`FALSE`), payload in `call_args->{args}`. Every
-   reply silently fell through to the failure branch regardless of the
-   real outcome. Fixed using `zenki.handler.v7_start_reply` (fixed
-   earlier this session against the same contract) as the verified
-   reference shape. Commit `1934c49ff`.
-
-Methodology note worth repeating: bug #2's true root cause was found
-by directly comparing against a **proven-working sibling pattern**
-(`coding.start.chmod_child` / `write_with_perms`) rather than
-theorizing further — the user's own prompt ("did you look at the
-chmod child and similar child processes?") is what unlocked it after
-two wrong hypotheses. Same technique that cracked #3 open once #2 was
-fixed and the symptom persisted with a *different* actual server-side
-outcome (real install success) than the user-visible one (false
-failure) — a strong signal the bug had moved downstream, not that the
-fix was wrong.
-
-**Smaller confirmed gaps**:
-- `cfg/zenki/cube/access.zenki:320-321` grants `sys-deps` access to
-  `debian.install`/`.check`/`.scan` — all three retired in a July
-  cleanup, only `debian.install-packages` still exists. Harmless
-  (grant to a nonexistent command just goes unused) but a clean
-  example of "nobody re-verified after the change."
-- `base.known_dependencies`'s *content* is static/hand-maintained with
-  no auto-update path (access to it was already consolidated to one
-  reader, `AMOS7::deps::module::load_known_deps` — that part is done;
-  the staleness of the data itself is separate and unaddressed).
-- `.deps/profiles.yaml` — already flagged "still slightly chaotic" by
-  the user (2026-09-01 note), no reorg plan yet.
-
-**Key docs, in useful reading order**: `data/tasks/completed/
-sys-deps-zenka.md` (original 3-phase build spec) ->
-`sys-deps-zenka-audit.md` (disposition table for the old `debian`
-zenka's dead code) -> `sys-deps-wiring-completion.md` / `data/ai-mem/
-claude/project-sys-deps-wiring-completion.md` (2026-07-20, the cleanup
-that executed that table — notably gated destructive deletion behind
-"verify the replacement works live first," found and fixed 5 real bugs
-doing so; reuse that verify-first discipline for the next round) ->
-`data/ai-mem/claude/project-deps-tracking-var-relocation.md`
-(2026-09-01, the live bug above) -> `data/ai-mem/claude/
-topic-sys-deps-debian.md` (apt-child fork-before-drop-privs protocol
-detail + a never-started "layered extensions" roadmap: auto-registering
-invoked binaries/modules at runtime).
-
-**Stale, do not trust**: `data/ai-mem/claude/topic-next-steps.md`
-(~2026-07-29/31) claims a `sys-deps` zenka "exists in history but is
-not an ancestor of current HEAD." That's superseded — `sys-deps`
-demonstrably exists and works on current HEAD now, per the above. The
-note predates the later wiring-completion work.
-
-**Genuinely unclear, not found either way**: whether the
-`topic-sys-deps-debian.md` "layered extensions" roadmap progressed
-beyond baseline; exact behavior when an install request arrives at
-`debian` via route-send before `debian`'s own on-demand start has
-finished initializing (reachability is covered in the var-relocation
-memory, this specific timing case isn't); whether two "closed,
-verified" items in that same memory (bootstrap-ordering,
-idle-timeout-vs-install-race) were confirmed by real live testing or
-by code-reading + the user's own correction — worth an honest look
-before treating them as settled, given this whole arc's stated concern
-is exactly the gap between "reasoned through" and "actually run."
+Commits this session: `4dcf3a19f`, `ba570179d`. Not yet pushed (check
+before assuming pushed).
