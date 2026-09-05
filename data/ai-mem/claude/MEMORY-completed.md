@@ -4,6 +4,13 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
+- [task-archiving + kimi dispatch queue, 2026-09-05](project-2026-09-05-task-archiving-and-kimi-dispatch-queue.md) —
+  built `bin/dev/task-scan-candidates`, archived 25 landed-but-stale task files, ran a 4-item
+  prioritized kimi dispatch queue (3 landed real fixes: cred-mesh/transport test-harness bug,
+  4 research-extraction findings, `-diff` flag on both `ptd` and `format-code`; 4th not started).
+  Fixed 2 kimi-dispatch-workflow gaps at the template level (stale v7-zenki naming, live console
+  tap). See [[feedback-verify-bug-still-open-before-scoping-dispatch]] for the one process gap
+  found in my own pre-dispatch check.
 - [httpd route-arg parsing fix](topic-httpd-route-arg-parsing-fix.md), [jobsite stray-job recovery](topic-jobsite-stray-recovery.md) — LANDED 20bdf36ff / a52a6a4b8
 - [coding-zenka resilience + model switch](project-coding-zenka-resilience-and-model-switch-2026-07-21.md) —
   LANDED b9689d5ad..047c5d338: ask-reply timeout/backend-key bugs, default model switched to
@@ -101,8 +108,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,.,,.,.,,..,,,.,,.,,,..,.,,,.,.,...,,,.,,,.,..,,...,...,,,.,,,.,..,,..,,,,,,
-#6322OTJLD6N4R72YI2KCL5OTEJ6FYN6KWWFLR4NI43BVNVMKWVFEVRGQN6ZVWSDLLPMVWAQGCQ3PW
-#\\\|DYUTUB76QNGBYTUBBNJIALHA6DOCG5CJ325GGE2QPVCDN7Z5VNH \ / AMOS7 \ YOURUM ::
-#\[7]RPBYW4W3MDVMLAFBZJI5MDM567LQ7GYNV52WM64FE6RSXFI274BI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,,,.,.,,..,...,,,,,.,,,,,.,.,.,..,,...,..,,,.,,,..,,..,..,,.,,,
+#5IE47KFOKZCKVFR4JXBXSP7VXFFXC2PHL7DOLDT5Q54TZCCEDOF72EUFHYO2FK2QWNLEIEGGXQIR6
+#\\\|NNOQFITC4FGG6IEZ6V5PCHDSSWPCQKULSPEGZP4TZNFSF23HDXQ \ / AMOS7 \ YOURUM ::
+#\[7]54BVZ2JSEEM5RXBO2WNACH5ZIZDEB7ZQM5FTKW35TJFE6XFKKKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
