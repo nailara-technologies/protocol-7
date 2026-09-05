@@ -409,13 +409,129 @@ add this to the acceptance criteria: (5) root-cause and fix why
 confirm via a fresh live rotation that `transport.cmd.cred-rotated` no
 longer throws `undefined value as subroutine reference`.
 
+### RESOLVED 2026-09-05 — root causes of both remaining symptoms identified
+
+**symptom 1 (transport's subscription vanishing) : ALREADY FIXED before this
+pass.** Commit `5a12f1ca0` (naming `.cmd.` fix) + the `proxy.init_code`
+zenka-guard fix closed it. Verified live: `rotation_subscribers->{'*'} =
+['proxy','transport']`, and a fresh `cred-mesh.rotate` now produces BOTH
+`proxy.handler.cred_rotated: flushed ...` and
+`transport.handler.cred_rotated: flushed ...` log lines. The 2026-07-18
+`no perm. [ src 'cred-mesh' cmd|usr 'cred-mesh.subscribe_rotation' ]` log
+entry is gone (it was the leaked-timer firing proxy's deferred handler
+inside cred-mesh's process — fixed by the guard, confirmed). The task-file
+premise that this was still open was stale.
+
+**symptom 2 (base32.decode undef in transport) : FIXED by commit `a6d5de568`**
+("fix redundant base. prefix on base32 calls (bug 5)"), which landed
+2026-07-18 but was not reflected in the task premise. Root cause: `base.
+base32.pre_init` renames the whole `base.base32.*` namespace to bare
+`base32.*` at runtime via `base.swap_subs`; callers using the pre-swap
+`<[base.base32.decode]>` names then resolved undef. Both transport and
+proxy now populate `base32.encode,base32.decode,base32.pre_init` in %code
+(verified via `p7c <zenka>.eval-code`), and a live rotation produces no
+`undefined value as subroutine reference` anywhere (combined console
+grep: zero occurrences).
+
+**the ACTUAL remaining scenario-4 failure was a third, separate thing — a
+test-harness fixture bug, not a product bug.** `after-rotation header
+value` NEVER passed (15/22 -> 20/23 -> 21/23, failing in every run since
+the harness was created). The scenario rotates slot
+`rotation-test.api-key` but requests `http://127.0.0.1:<random_port>/`, and
+NO injection path ever connected that domain to that slot:
+- the proxy only injects headers from `proxy.auth.lookup`, which resolves
+  exactly `session.$domain` (never registered by the scenario — only
+  scenario 1 registers its own `session.$domain`), and
+- the transport profile path can't inject HTTP headers into the upstream
+  request either (default profile has `credential: ~`; profile credentials
+  are consumed by the transport handle itself, not written into proxied
+  HTTP headers — `proxy.template.passthrough` only merges
+  `$context->{'auth'}{'slots'}` headers).
+So the echo saw NO x-api-key before OR after rotation; the header failure
+was never actually downstream of the subscription bug as hypothesized.
+
+**fix** (scenario-4 only, one line + comment): rotate
+`"session.$domain"` instead of `'rotation-test.api-key'`, so the rotated
+slot IS the slot the proxy resolves and caches for the domain — then
+`proxy.handler.cred_rotated`'s slot-name match actually flushes the cached
+entry (verified live: `flushed 1 cache entries`) and the second request
+re-resolves to the new value. Full suite now 22/23; the only remaining
+failure is scenario 5's `relay pending file has entry`, explicitly out of
+scope for this task family.
+
+**finding (not fixed, per task scope)**: `transport.init_code` still has
+NO `<system.zenka.name>` guard around its init side effects (probe timer +
+deferred-subscribe timer) — the same latent landmine that was fixed in
+`proxy.init_code`. Not triggered today (no other zenka lists `transport`
+in its `modules.load`), but it will fire the day one does: that zenka's
+process would run `transport.probe.timer` and subscribe to cred-mesh under
+the WRONG source identity. Recommended guard pattern already exists in
+`proxy.init_code` (`$is_proxy_zenka`). Also: route-send callers that omit
+an explicit `'reply'` key default `reply.handler` to `dev.null`
+(`base.protocol-7.command.send.local:36`) — by design, and confirmed NOT
+implicated in any of these bugs.
+
+## resolution — 2026-09-05 (task cred-mesh-transport-subscription-and-base32-gap)
+
+All three previously-open items are now closed; `bin/dev/cred-mesh-test`
+is 22/23 with scenario 4 fully green (only the out-of-scope scenario-5
+`relay pending file` assertion remains, tracked separately).
+
+**symptom 2 (base32.decode undef in transport) — root cause confirmed and
+already fixed by commit `a6d5de568`.** `base.base32.pre_init` renames the
+`base.base32.*` namespace to bare `base32.*` at runtime via
+`base.swap_subs`, so the pre-swap call `<[base.base32.decode]>` resolved
+to undef in EVERY zenka post-swap; proxy only appeared immune because its
+path was not being hit the same way in earlier runs. The modules.load
+token-expansion theory was checked and RULED OUT: live `%code` in
+transport, proxy, and cred-mesh all contain `base32.encode/decode/
+pre_init` identically (`p7c <zenka>.eval-code 'return join(",", grep
+{/^base32\./ or /^base\.base32\./} keys %code)'`). No whitelist or
+token change needed. Post-fix logs show zero `undefined value as
+subroutine reference` across many fresh rotations.
+
+**symptom 1 (transport subscription vanishing) — no longer reproduces.**
+The `no perm. [ src 'cred-mesh' cmd|usr 'cred-mesh.subscribe_rotation' ]`
+self-call was the leaked proxy `event.add_timer` firing inside cred-mesh's
+process (bug root-caused above, fixed 2026-07-18 by the `$is_proxy_zenka`
+guard in `src/proxy.init_code`). Live state now: cred-mesh's
+`rotation_subscribers` = `{ '*' => [proxy, transport] }`, cred-mesh's log
+shows `received source=transport ... subscribed`, cube's buffer shows
+ZERO `no perm` entries, and transport's flush handler fires on every
+rotation. No code change was required in this pass; the remaining
+historical failure was a consequence of the pre-guard leaked timer plus
+stale cube access state (cube needed an explicit reload after
+access.zenki edits — see operational note above).
+
+**scenario 4 `after-rotation header value` — was a test-harness bug, not
+a routing bug.** The scenario rotated slot `rotation-test.api-key`, but
+the request path only ever resolves `session.<domain>`
+(`proxy.auth.lookup:31`), and `proxy.handler.cred_rotated` only flushes
+cache entries whose recorded slot matches the rotated slot. Rotating an
+unrelated slot could never change the injected header — hence `got ''`
+(no header at all, not a stale old key; the earlier 'transport kept
+serving the old key' theory was wrong — transport carries no credential
+for the default direct-tcp profile used by 127.0.0.1:<port> destinations).
+Verified the full mechanism end-to-end manually with the correct slot:
+request 1 injects old-key-aaaa, rotation flushes proxy's cache, request 2
+injects new-key-bbbb. Fixed by rotating the slot the request actually
+uses: `my $slot = "session.$domain";` in
+`bin/dev/cred-mesh-test.d/scenario-4-rotation-invalidation.pl`
+(same pattern scenario 1 already used).
+
+**finding (per task step 7):** no other route-send caller was found to
+omit anything transport was missing — the %code populations are
+equivalent, so there is nothing to propagate. `transport.init_code`
+still lacks a `<system.zenka.name>` self-guard (flagged above, still
+latent, still untouched by design).
+
 ## signatures note
 
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,,.,,,,,,.,,,.,,,,,,,..,..,,,.,,...,...,.,,,..,,...,..,,.,,,,.,,,.,,.,,,,.,,
-#EKJA4HKFVFBYUIO2UGFW7EFFIGQT4JPG2OUZ7DJC5LF3OGCG6SPHO2XKZC2L3NH6VIIB62LIRVJ34
-#\\\|4ZTQRV57TEI4S4IHOCMUUD5USASH6JHSPUUOAJ5RVXBJPXQLOCB \ / AMOS7 \ YOURUM ::
-#\[7]FTFY63MPTQVANKKABJPJRXBFVCCT4ZQL3AH3JJV5BUNGLXIAX2BI 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,.,.,.,,,,..,,..,,.,,.,.,..,,..,,...,...,.,.,,,,,,,.,,,.,.,,,
+#RF4MP2MDMN2D5JEZDZF2A7WEVOE4EFHEMEPZNHRZDP2CBBPYMVUJA4NCD2P3JYKPJJLWZ4EJO5IOK
+#\\\|KSVWMUNIP3CIWRKHIOYMS5TBA5UDEDGKE6XLT6TGWUQQGQKTGVG \ / AMOS7 \ YOURUM ::
+#\[7]M3GG75SBFDGN7BQELWNVPHUMUARU7PC2VBLKUSL4KH2DFODDQYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
