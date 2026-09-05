@@ -1,0 +1,128 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use FindBin qw| $RealBin |;
+use File::Spec;
+use Cwd qw| abs_path |;
+
+###                       ###
+##  task-scan-candidates  ##
+###                       ###
+
+## lightweight completion-likelihood scan for data/tasks/*.md -- surfaces   ##
+## commits that plausibly landed a task so a human/LLM can verify and       ##
+## archive with `git mv data/tasks/<file> data/tasks/completed/`. this is a ##
+## SHORTLIST tool, not a verdict: task filenames encode a stopword-         ##
+## stripped token set that's matched against the full commit-message        ##
+## corpus, plus an explicit search for "data/tasks/<file>" mentions in      ##
+## commit bodies [ the strongest signal -- authors often write "Implements  ##
+## data/tasks/x.md" directly ]. per the archiving convention [              ##
+## data/tasks/task-archiving-with-context-templates.md ], do NOT trust a    ##
+## match blindly: read the matched commit's diff and the task's own "##     ##
+## status" / acceptance-criteria section before moving anything -- a task   ##
+## can self-report PARTIAL/blocked/open work right next to a                ##
+## plausible-looking commit hit.                                            ##
+
+BEGIN {
+    our $root_path
+        = abs_path(
+        File::Spec->catdir( $RealBin, File::Spec->updir, File::Spec->updir )
+        );
+}
+our $root_path;
+chdir $root_path or die "chdir $root_path: $!";
+
+my %stop = map { $_ => 1 } qw(
+    task zenka zenki phase plan plans planning implement implementation
+    implementations add adds added fix fixed fixes support supports
+    feature features system systems protocol handler handlers mode modes
+    view views layer layers new the and for with based via using into
+    from data integration integrations refactor refactors refactoring
+    update updates sync design first second third final draft results
+    result improvement improvements interactive generic v1 v2 v3 v4
+);
+
+## explicit mention scan : commit bodies that name a task file directly ##
+open( my $log_fh, '-|',
+    'git', 'log', '--all', '--format=@@@COMMI' . 'T@@@%H|%ad|%s%n%b',
+    '--date=short' )
+    or die $!;
+local $/ = '@@@COMMIT@@@';
+my %mentions;
+while (<$log_fh>) {
+    next unless m|data/tasks/|;
+    my ( $header, @rest ) = split m|\n|, $_;
+    next unless $header;
+    my ( $hash, $date, $subject ) = split m{\|}, $header, 3;
+    next unless $hash;
+    my $body = join( "\n", @rest );
+    while ( $body =~ m{data/tasks/([A-Za-z0-9_.-]+\.md)}g ) {
+        push @{ $mentions{$1} }, [ $hash, $date, $subject ];
+    }
+}
+close $log_fh;
+local $/ = "\n";
+
+## token-match scan : task-slug tokens against every commit subject ##
+open( my $subj_fh, '-|',
+    'git', 'log', '--all', '--format=%H|%ad|%s', '--date=short' )
+    or die $!;
+my @commits;
+while (<$subj_fh>) {
+    chomp;
+    my ( $hash, $date, $msg ) = split m{\|}, $_, 3;
+    next unless $msg;
+    push @commits, [ $hash, $date, $msg, lc($msg) ];
+}
+close $subj_fh;
+
+opendir( my $dh, "data/tasks" ) or die $!;
+my @tasks = sort grep { m|\.md$| && -f "data/tasks/$_" } readdir $dh;
+closedir $dh;
+
+for my $task (@tasks) {
+    ( my $slug = $task ) =~ s|\.md$||;
+
+    ## direct mention hits, excluding the task's own creation/edit commits ##
+    my %own = map { $_ => 1 }
+        split m|\n|,
+        `git log --follow --format=%H -- "data/tasks/$task" 2>/dev/null`;
+    my @direct = grep { !$own{ $_->[0] } } @{ $mentions{$task} // [] };
+
+    if (@direct) {
+        for my $hit (@direct) {
+            printf "DIRECT\t%s\t%s\t%s\t%s\n",
+                $hit->[1], substr( $hit->[0], 0, 9 ), $task, $hit->[2];
+        }
+        next;
+    }
+
+    ## fall back to token match ##
+    my @tokens = grep { length($_) >= 4 && !$stop{$_} && $_ !~ m|^\d+$| }
+        split m|-|, $slug;
+    next unless @tokens >= 2;
+
+    my $best;
+    for my $c (@commits) {
+        next if $own{ $c->[0] };
+        my $hit = 0;
+        $hit++ for grep { $c->[3] =~ m|\b\Q$_\E| } @tokens;
+        my $score = $hit / scalar(@tokens);
+        next if $hit < 2 || $score < 0.6;
+        if (  !$best
+            || $score > $best->[0]
+            || ( $score == $best->[0] && $c->[1] gt $best->[1] ) ) {
+            $best = [ $score, $c->[1], $c->[0], $c->[2] ];
+        }
+    }
+    next unless $best;
+    printf "TOKEN[%.2f]\t%s\t%s\t%s\t%s\n",
+        $best->[0], $best->[1], substr( $best->[2], 0, 9 ), $task, $best->[3];
+}
+
+#,,.,,.,,,,..,...,.,,,.,.,,,,,...,,.,,..,,,..,..,,...,...,.,,,...,,,,,.,.,.,.,
+#EB4MLU4QESGJPL2J3QEJDBOU4ERJ6XEPXH6ORUZYPWCDYZZKNMI7DLH6X5XLWFJ43PO33DE2QVDY2
+#\\\|WBXILZQUM3LDY3M4WKZQTRLARTZU5YRJLDNTTDTD3JDSDRGWFMZ \ / AMOS7 \ YOURUM ::
+#\[7]UHGALSVFVUZ2TKRIHCMFTRMZXIFFITZ6JOSYLL3YVGG5JSGUWCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
