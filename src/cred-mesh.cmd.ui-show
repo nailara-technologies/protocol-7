@@ -18,7 +18,18 @@ my ( $view, @rest ) = split qr|\s+|, $args_str;
 $view //= qw| overview |;
 
 ## initialize per-session focus on first entry ##
-my $ui    = $data{'session'}{$session_id}{'cred-mesh'}{'ui'};
+##
+## '//=' is load-bearing here, not stylistic : a plain '=' COPIES the current
+## value [ undef, on first entry ] into $ui, so '$ui->{focus} = ...' below
+## then autovivifies a brand-new, DISCONNECTED hashref rather than aliasing
+## the real slot in %data -- the write silently never reaches
+## %data{session}{...}{cred-mesh}{ui} at all. found live : every interactive-*
+## call afterward correctly resolved the same session_id [ confirmed by a
+## temporary diagnostic ] and still reported "no active ui focus", because
+## nothing had actually been stored there despite this code visibly running
+## and returning a normal-looking render  [
+## data/tasks/credential-fabric-ui-interactive.md ]
+my $ui    = $data{'session'}{$session_id}{'cred-mesh'}{'ui'} //= {};
 my $focus = $ui->{'focus'};
 if ( not defined $focus or ref $focus ne qw| HASH | ) {
     $focus = {
@@ -196,8 +207,8 @@ if ( length $output
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,.,.,,.,,,,.,.,,,,,.,..,,,,.,.,,,...,,,.,.,.,...,...,,.,,,.,,.,.,...,...,
-#J3RYY5J7ZE5GTNA43N75POV6LURBMTIZ737YOYJC3AOZ4EBGLC7ZA5K23FHG2L537HMQKSDZZLZTK
-#\\\|XW5CEHKZSPZX5IBOUDXVIRHTXDA5QS6GGJJHRVLRF2FKXABCPX2 \ / AMOS7 \ YOURUM ::
-#\[7]LZDHGUYRVM4YOPDZK7662RLSXLDW3TJNBO7VKUMUME2MH5IBCEAA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,...,.,.,.,,,.,.,,.,,,,,,,.,,.,.,...,..,,,,,,...,.,.,,..,,,,,
+#3SXLJ2N2L6FTX4PI7QV6OETKDZMLM3HVLDLXVS76FNEHPGQXQYEI23AUHP5RIOXMQYSXBBIKRFRFS
+#\\\|ECBORTYQKTY4YOGTIADX3R2D2OODAAYWYT5TNIFD4YYUJUY6ZEU \ / AMOS7 \ YOURUM ::
+#\[7]6WZ2VO35SY752S6OWHRRNXF6IYNRTQGBRNTKZKZP4GAANPUVJCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

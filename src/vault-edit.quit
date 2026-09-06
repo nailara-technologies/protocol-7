@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = vault-edit.quit
+# descr = leave the interactive browser, restoring the terminal first
+
+## every exit path funnels through here so terminal restore can never be
+## skipped [ user-edit.form.quit precedent ]. base.exit also fires the
+## registered end_code callback, which calls vault-edit.term_restore again --
+## deliberate belt-and-braces for paths that never reach this module [ SIGTERM
+## ], and term_restore is idempotent [ it clears orig_termios on success ]
+
+print $colors{'clear_screen'} // '';
+STDOUT->flush();
+
+<[vault-edit.term_restore]>;
+
+<[base.exit]>;
+
+return TRUE;
+
+#,,,,,...,,,.,,..,.,,,...,.,,,.,.,,..,,.,,.,.,..,,...,...,..,,.,.,..,,,,.,,,,,
+#JPCZDVXZ5VWJJU3AIBWFUEJHJNTVIU3W4X576QJPFRS6ZHY432DWX63OGZ7IEZFERA556PXJOPHAU
+#\\\|4AEEUQMMPRYUQHAULVBQOAUIZHCYF2YXNPHOBH3DESCMIOWHCKD \ / AMOS7 \ YOURUM ::
+#\[7]RR45WMJ464FW5RCLPRSPW3SRJMVAJYU7TPU7L57YDELTWAXRTCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
