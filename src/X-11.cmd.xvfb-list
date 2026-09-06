@@ -15,15 +15,20 @@ return { 'mode' => qw| true |, 'data' => 'no xvfb instances known' }
 
 my @rows;
 foreach my $display_num (@displays) {
-    my $pid    = <X-11.servers>->{":$display_num"}->{'pid'};
+    my $entry  = <X-11.servers>->{":$display_num"};
+    my $pid    = $entry->{'pid'};
+    my $label  = $entry->{'label'};
     my $status = ( defined $pid and kill 0, $pid ) ? 'running' : 'stopped';
-    push @rows, sprintf( ":%s\t%d\t%s", $display_num, $pid // 0, $status );
+    push @rows,
+        sprintf( ":%s\t%s\t%d\t%s",
+        $display_num, $label // '-',
+        $pid // 0, $status );
 }
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @rows ) };
 
-#,,..,...,,,,,,..,,.,,.,,,..,,...,,,,,.,,,,..,..,,...,..,,.,.,,,,,.,,,,,.,,..,
-#5QPMQMZY3FX5AZVM5RMLSNXZECAHYNBQO6F3GGJRFTJYY4OLNSMD6H26F4A3FLGZRZYVNNH2WT7UY
-#\\\|URTUYXG2BQEGTVZGXPPUIZDSLLNEAPBIUBZ3J3F3PFMTV5TTAHZ \ / AMOS7 \ YOURUM ::
-#\[7]67EJROWUMKULGI5KMMOZNAUNUWZCFAHSECHGKTXCUX775TU7I2CQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,..,,,,,...,,,,,..,,,,.,...,..,,...,...,,.,,..,,...,,,.,.,,,
+#W7FPNZB4FWA4NH3JPAS5ZVKXPTSAZZA3FTTS64B4ZMXFWXF5VKNO7VMKZZ6CMYYXGVSCVL4U3UMPS
+#\\\|WK6DWQPCTBQMU3N4DYJRPVI33EV4QZSTM4GLFLCCJDMISH6OZJM \ / AMOS7 \ YOURUM ::
+#\[7]DY7232HSPXUIDLZ2DU2J4QSDVP6VKYL4Y4IKBII4ZVICBB777IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

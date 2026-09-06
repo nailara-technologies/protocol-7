@@ -1,6 +1,6 @@
 ---
 name: project-x11-xvfb-crash-loop-and-cleanup-2026-09-06
-description: "X-11 xvfb-start/status/list/stop went from crash-looping and structurally broken to a fully working, live-verified command cycle; 7 bugs fixed, task file rewritten. Same-day follow-up: X-11.disp-ctl + X-11.cmd.xvfb-display let the zenka's 39 existing window-management commands (get-windows, move-window, etc.) operate on an xvfb auxiliary display, not just the primary"
+description: "X-11 xvfb-start/status/list/stop went from crash-looping and structurally broken to a fully working, live-verified command cycle; 7 bugs fixed, task file rewritten. Same-day follow-ups: X-11.disp-ctl + X-11.cmd.xvfb-display let the zenka's 39 window-management commands target an xvfb auxiliary display, not just the primary; then xvfb-start dropped its caller-chosen display number entirely in favor of atomic auto-allocation via base.gen_id + a reversible x-<vax-int> reference label"
 metadata:
   type: project
 ---
@@ -158,6 +158,71 @@ but `sub-` added no semantic value over plain `X-11.disp-ctl`, also TRUE
 and shorter). See `data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`
 / `AMOS7::Assert::Truth` for what this check is.
 
+## same-day follow-up 2: auto-allocated display numbers + x-<id> labels
+
+User's concern: callers picking their own `xvfb-start` display number can
+collide, and any "reserve an id first, then start" two-step design would
+need a round trip plus extra async state just to avoid that. Resolution:
+`xvfb-start` no longer takes a display number at all (`<w> <h> [depth]`
+only) - it picks one atomically, synchronously, in the same call.
+
+**Mechanism**: `base.gen_id($href, $max_ids)` derives its id length as
+`length($max_ids)+2` with a guaranteed non-zero leading digit - passing a
+small `$max_ids` (99) naturally produces 4-digit numbers, which sit well
+above the low display numbers (:0-:99) a manually configured primary/
+xorg/xephyr display uses, with no separate floor arithmetic. `gen_id`
+already retries internally until the raw integer passes
+`AMOS7::Assert::Truth::is_true` (its default `$want_harmony` behavior).
+New `X-11.helper.alloc_xvfb_display` seeds `gen_id`'s collision-tracking
+href from every currently-active `<X-11.servers>` key (any mode, not
+just xvfb - an auto-picked number must never collide with the primary
+either), then wraps a second, OUTER retry loop around it: the raw
+integer passing truth doesn't mean `'x-' . base.vax-int.encode($n)` also
+does (different bytes, independent check) - same "generate -> transform
+-> check truth of the FINAL form -> retry" shape as
+`chk-sum.bmw.harmonize_L13`, mirrored rather than reused since that one's
+specific to BMW/L13 content checksums.
+
+**Why vax-int specifically** (user's own reasoning, worth keeping): it's
+reversible, unlike an AMOS checksum - `base.vax-int.decode` (or
+`bin/vax-int` standalone) gets the exact number back from the label, so
+the label can be a genuine second reference to the same display, not
+just a one-way cosmetic tag.
+
+**The full loop, so the label is actually usable, not just returned**:
+new `X-11.helper.resolve_display_id` accepts either a plain digit string
+or an `x-<BASE32>` label (decoding it) and returns the plain number or
+undef. `xvfb-status`/`xvfb-list`/`xvfb-stop`/`X-11.cmd.disp-ctl`/
+`X-11.cmd.xvfb-display` all resolve their display argument through it
+now, so a label works everywhere a raw number used to. `xvfb-status`/
+`xvfb-list`'s output rows also gained the label as a field
+(`<X-11.servers>->{$display_str}->{'label'}`, set by `xvfb-start`).
+
+**Live-verified**: `xvfb-start 800 600` twice in a row returns two
+different auto-picked 4-digit numbers with distinct labels (no manual
+number ever given); `xvfb-status`/`xvfb-display <label>`/
+`disp-ctl <label> get-windows`/`xvfb-stop <label>` all correctly resolve
+the label back to the same display and operate on it; `xvfb-stop` via
+label actually kills the right OS process; garbage input (`x-garbage!!`,
+`notanumber`) is cleanly rejected by both commands; zenka stayed on the
+same instance throughout, no crash, no orphaned processes.
+
+**Bug caught live during this**: `X-11.cmd.xvfb-status`'s
+`my $is_xvfb = defined $entry and (...) eq 'xvfb';` triggered a real
+"useless use of eq in void context" compile warning - `and` binds looser
+than `=`, so it was assigning just `defined $entry` and silently
+discarding the `eq` result. Caught via the zenka's own live compile-
+warning output on restart, NOT by `ptd -c` (known gap, see
+[[feedback-ptd-syntax-check]]) - fixed by wrapping the whole condition in
+parens. Worth remembering as a fresh instance of the general perl and/or-
+precedence pitfall this project's dispatch notes already warn about.
+
+**Explicitly not built this round**: any correlation between an xvfb
+display's `x-<id>` label and a subname-style cross-zenki addressing
+scheme (`zenka[subname]`) - user named this as the reason the id/label
+work needed to happen first, but the correlation itself is separate,
+not-yet-scoped work.
+
 ## next real step toward the user's stated goal
 
 Not attempted this session: X-11 zenka's `zenka.v7` mode is still `host`
@@ -172,8 +237,8 @@ primary instance) was noted in the original task as a deployment
 pattern worth knowing about, not evaluated against this session's
 approach.
 
-#,,..,...,,,.,,.,,.,.,...,.,,,...,.,,,..,,,.,,..,,...,...,...,,..,,,,,..,,,,.,
-#DQJ2IJVXGFM3B2PMJ2LPV5VX3GXFBL55DX76YHGWBEUYH4K446N4TVG7IEGSFLRZJLLBYSF7DFVGC
-#\\\|TS377JQZM367XS6JGY3HMFI57XUSXJNTNPRMSBYXOV4DLTC72AQ \ / AMOS7 \ YOURUM ::
-#\[7]CZDULKVSCIBXZGKZ3IMJKCWZXQYPCUGBLT5MUHALWPI5TNZF7GAQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,,.,,,,.,,,.,...,,.,,...,.,.,..,,...,...,.,.,,,,,,..,.,.,,,,,
+#FKYZEMUGY3MJ5437LXK67N6LZHSJ5NBO4KQE7KFWTTHZQHQQ2QYBE7ZIDLA6IOXYKY7DZVWT6WGEA
+#\\\|QN4ZRKDFJLBQTGCFP5W73KCYAWNMCRBYPAAFTXQCBJCTIOOT25Q \ / AMOS7 \ YOURUM ::
+#\[7]HXAGQDN3RNMPXOIQMCCSAMS6VU7ZWK7H6PECQKNTQ33EDGMNQ4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

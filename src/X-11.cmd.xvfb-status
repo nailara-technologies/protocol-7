@@ -11,9 +11,9 @@ my @args
 
 my @displays;
 if ( @args and defined $args[0] and length $args[0] ) {
-    my $display_num = $args[0];
+    my $display_num = <[X-11.helper.resolve_display_id]>->( $args[0] );
     return { 'mode' => qw| false |, 'data' => 'invalid display number' }
-        if $display_num !~ m|^\d+$|;
+        if not defined $display_num;
     push @displays, $display_num;
 } else {
     ## <X-11.servers> is shared across all display modes [xorg\xvfb\..] -- ##
@@ -30,18 +30,21 @@ return { 'mode' => qw| true |, 'data' => 'no xvfb instances known' }
 my @rows;
 foreach my $display_num (@displays) {
     my $entry = <X-11.servers>->{":$display_num"};
-    my $pid
-        = ( defined $entry and ( $entry->{'mode'} // '' ) eq qw| xvfb | )
-        ? $entry->{'pid'}
-        : undef;
+    my $is_xvfb
+        = ( defined $entry and ( $entry->{'mode'} // '' ) eq qw| xvfb | );
+    my $pid    = $is_xvfb ? $entry->{'pid'}                    : undef;
+    my $label  = $is_xvfb ? $entry->{'label'}                  : undef;
     my $status = ( defined $pid and kill 0, $pid ) ? 'running' : 'stopped';
-    push @rows, sprintf( ":%s\t%d\t%s", $display_num, $pid // 0, $status );
+    push @rows,
+        sprintf( ":%s\t%s\t%d\t%s",
+        $display_num, $label // '-',
+        $pid // 0, $status );
 }
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @rows ) };
 
-#,,,,,.,.,,.,,,,,,,..,.,,,,,.,.,.,,..,,,.,,.,,..,,...,...,...,.,.,,.,,,,.,...,
-#7ZTID7NUQXDQJOHQCYYLLX6ZV5R2VJOIPBWA4RSY5QOKITIVWI7XV7AGC32AUCJN56CXP3ZGUN2ZK
-#\\\|VROPV3ZSX7PHQA5I7RTYRB7OWHIX7VI22QEXHOWNEDAV7RP22PU \ / AMOS7 \ YOURUM ::
-#\[7]RYXIYO46AZTYCND6NXLHDMSBSHQQJAY7VZTR2IEA2HVGJTNORUAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,,.,,..,,,,,.,.,,.,,.,,,.,.,..,,...,.,,,..,,.,,,.,.,...,,,,,
+#JFIUY7KLOR54IE5K7KRNNUPGW4OKFCARCBXWKODXCYIQYPD3URX77V7XL4ZMBY5Q2QDZ5VB4OSRZA
+#\\\|UBTTK6JSQFBYITHB7OMVQOZJPKZN4SETM36T2YVUKVRDL2GJNTR \ / AMOS7 \ YOURUM ::
+#\[7]AEEFCURYQQT5ILYMBLZY6GHIWUGNWS5SXZHDA2ZP77KQHCYAYIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
