@@ -48,6 +48,13 @@ my $spawn_ms    = ( <[base.time]>->(4) - $spawn_start ) * 1000;
 binmode( $out_fh, ':raw' )
     if defined $out_fh;    ## strip :utf8 from pipe-open ##
 
+## non-blocking : prevent event loop stall on partial \ duplicate reads ##
+if ( defined $out_fh ) {
+    my $flags = fcntl( $out_fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $out_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
 if ( not defined $server_pid or length $EVAL_ERROR ) {
     my $err_reason
         = length $OS_ERROR
@@ -114,8 +121,8 @@ $server->{'poll_timer'}   = <[event.add_timer]>->(
     }
 );
 
-#,,.,,...,...,..,,.,.,,.,,.,,,...,,,.,..,,,,,,..,,...,...,...,,,.,..,,,,,,.,,,
-#FLUZ7AR4WZMF2CIWIL5WVEG22UXHXVRB5QJ23SSLYRVHYRQM6ND2GCWNUWBU7O7APQAI6CRD5OWZG
-#\\\|JBD3WZL6EUZXDHOPITZPE5IWCRX6ABDSF72OQIEQOSZGMCQSSOW \ / AMOS7 \ YOURUM ::
-#\[7]KDTOCULA3OHI553LXNJUYSXGJHN5XIF5EH2NZZATH3GLEDDXUSBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,,.,,,,,,.,.,,.,,,..,...,..,,...,...,...,,.,,,..,,.,,.,.,
+#EB32IWE4J5NEJ3BNJJI3ETBKZPVUTPMY4R4E7H6VWM2FK3PFTYEXB2LCFBBX7OHHPWQOVIZNL5XC4
+#\\\|QGWHUHA4P2Y7JHH3RZPT2RAUAJUO6YLEYITQ4T52YRXQTHLRS5H \ / AMOS7 \ YOURUM ::
+#\[7]HXM7P7YA4S5RGSZ7PIDYM37KMLAJLRNDGCKQ7NFNYYGXRAWPDCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

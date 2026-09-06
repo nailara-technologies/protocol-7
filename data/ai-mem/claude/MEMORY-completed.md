@@ -4,6 +4,14 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
+- [X-11 xvfb crash-loop + cleanup, 2026-09-06](project-x11-xvfb-crash-loop-and-cleanup-2026-09-06.md) —
+  started as a task-file triage check, ended as a full live fix: 7 bugs found and fixed
+  (duplicate job-queuing crash-loop, status/list/stop reading the wrong data structure,
+  crash-vs-requested-stop log wording, shared global buffer/first_error + misplaced "done."
+  predating multi-server support, xkbcomp log_whitelist). Full `xvfb-start`/`status`/`list`/`stop`
+  cycle, including two concurrent displays, now works end-to-end at default verbosity.
+  See [[feedback-audit-shared-state-when-multi-instance-bolted-on]] for the reusable git-archaeology
+  technique that found bug 6.
 - [task-archiving + kimi dispatch queue, 2026-09-05](project-2026-09-05-task-archiving-and-kimi-dispatch-queue.md) —
   built `bin/dev/task-scan-candidates`, archived 29 landed-but-stale task files, cleared a 4-item
   prioritized dispatch queue: cred-mesh/transport test-harness bug, 4 research-extraction findings,
@@ -110,8 +118,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,,.,,,.,,,,,,.,,,,,,,.,,..,,..,,,..,,..,,,.,..,,...,...,,..,...,,..,,,,,.,.,
-#A5HKTRPV72OFKP2PZDLSVPFMOJAEQN3QSNP4INRJN7T5BO3NYS45TEKSYNXDO4TAJWDYXZ2QAPDRI
-#\\\|VQFP4SIGTDPFO2MTABHMSV36UTZBHQRHYFVO7OFWXF2KA2QPTZG \ / AMOS7 \ YOURUM ::
-#\[7]4MSM5SBK4CAYQ73UDN7WLO5YONHWJHH6ZZEQ4E3LJX4GIC5O44CA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,..,,...,.,.,.,.,,.,,,,,,,.,,..,,...,.,.,...,.,.,,,.,.,.,,..,
+#SFZRIDKGG45AVNVESO6KMBM4GCCJUCZPNBXWP6TLHT5QZAM5KA7DY6VCU5XGU62UINPECRTMFVEAC
+#\\\|L5XYC35KFBV4MITTCKSRHKUKGWS5W7WYN5YBJU3UBVGVBYUXWIE \ / AMOS7 \ YOURUM ::
+#\[7]6BVTTMT7GGXXPMYHADFRPHGBE4G2RNICQRAAURJKD6VVQJ6ETCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
