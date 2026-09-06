@@ -1,42 +1,22 @@
 ## [:< ##
 
 # name  = X-11.cmd.xvfb-start
-# param = <disp_num> <w> <h> [depth=24]
-# descr = start an xvfb instance on the given display
+# param = <w> <h> [depth=24]
+# descr = start an xvfb instance on an auto-picked free display
 
 my @args
     = ref( $call->{'args'} ) eq qw| ARRAY |
     ? $call->{'args'}->@*
     : split( m| +|, $call->{'args'} // '' );
 
-my ( $display_num, $width, $height, $depth ) = @args;
+my ( $width, $height, $depth ) = @args;
 $depth //= 24;
 
-return { 'mode' => qw| false |, 'data' => 'display number required' }
-    if not defined $display_num;
 return { 'mode' => qw| false |, 'data' => 'width and height required' }
     if not defined $width or not defined $height;
-return { 'mode' => qw| false |, 'data' => 'invalid display number' }
-    if $display_num !~ m|^\d+$|;
 return { 'mode' => qw| false |, 'data' => 'invalid geometry values' }
     if grep { not defined $_ or $_ !~ m|^\d+$| or $_ == 0 }
     ( $width, $height, $depth );
-
-my $display_str = sprintf qw| :%s |, $display_num;
-
-if (    defined <X-11.servers>->{$display_str}
-    and defined <X-11.servers>->{$display_str}->{'pid'} ) {
-    my $stored_pid = <X-11.servers>->{$display_str}->{'pid'};
-    if ( kill 0, $stored_pid ) {
-        return {
-            'mode' => qw| false |,
-            'data' => sprintf(
-                'xvfb %s already running [ pid %d ]',
-                $display_str, $stored_pid
-            )
-        };
-    }
-}
 
 my $xvfb_bin = <X-11.bin_path>->{'Xvfb'};
 return { 'mode' => qw| false |, 'data' => 'Xvfb binary not found' }
@@ -66,9 +46,8 @@ my $resource_ok = <[dependency.ok]>->($res_dep_id);
 if ( not $resource_ok ) {
     <[base.logs]>->(
         0,
-        '[xvfb-start] resource check failed for %s: dimensions '
+        '[xvfb-start] resource check failed: dimensions '
             . '%dx%dx%d exceed limits or insufficient system memory',
-        $display_str,
         $width,
         $height,
         $depth
@@ -79,12 +58,26 @@ if ( not $resource_ok ) {
     };
 }
 
+## auto-pick a free, collision-free, harmonically-true display number and ##
+## its x-<vax-int> reference label -- atomic, no round trip: a caller can ##
+## never choose a display number itself, eliminating the collision risk   ##
+## that came with letting it .,                                           ##
+my ( $display_num, $label ) = <[X-11.helper.alloc_xvfb_display]>;
+return {
+    'mode' => qw| false |,
+    'data' => 'could not allocate a display id'
+    }
+    if not defined $display_num;
+
+my $display_str = sprintf qw| :%s |, $display_num;
+
 ## register server entry and its dependency object ##
 <X-11.servers>->{$display_str} //= {};
 my $server = <X-11.servers>->{$display_str};
 $server->{'mode'}     = qw| xvfb |;
 $server->{'display'}  = $display_str;
 $server->{'bin_name'} = qw| Xvfb |;
+$server->{'label'}    = $label;
 
 my $dep_id = <[dependency.add_object]>
     ->( { 'type' => 'x11_display_flag', 'display' => $display_str } );
@@ -120,11 +113,11 @@ my $params_str = sprintf '-screen 0 %dx%dx%d', $width, $height, $depth;
 
 return {
     'mode' => qw| true |,
-    'data' => $display_str
+    'data' => sprintf( 'display %s [ %s ]', $display_str, $label )
 };
 
-#,,,,,.,.,,,.,,,.,..,,.,,,,.,,.,,,,,.,,..,,,,,..,,...,..,,.,.,.,,,...,,.,,,.,,
-#DLHFASF5S7DBRZJK4ANHZ4Z6XWUCXXCW3ZKHUIM3U7SYZGXDEP2F3NY6FVS7ERNJMM7LJJ2PN57Y6
-#\\\|NRWDGTSEDKOOSR4PNZOJODZYTTAP3RYJEZ6D6OECING7MHL2OOP \ / AMOS7 \ YOURUM ::
-#\[7]3ZGPMOPV75D5ZWI6UZR2M2UWDEKAY7WVDOETKXY6B44YW3PC2GBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,.,,,.,.,.,.,,.,,...,,..,..,,...,...,,..,.,,,..,,..,,..,,
+#ECDU5VAXWCNY5JROUARFXTJ7KCMYTDACFI2WCQPYDXJTYICI3VU7HRU6CK54MZFJ54S2QNV3JO6MW
+#\\\|GPN4LO5QJ2GMU6UNXBO3GPPKMIW4F3QE7NTHOBRDULKD4277TQF \ / AMOS7 \ YOURUM ::
+#\[7]VGM7CEMOOPFWSWHPICBBX7YPVUT46TZ6SA5V5IPSVVOSNRRRYSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

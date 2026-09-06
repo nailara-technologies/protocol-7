@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = X-11.helper.resolve_display_id
+# descr = resolve a plain display number OR an x-<vax-int>
+#          reference label to the plain display number
+
+my $input = shift // '';
+
+return undef if not length $input;
+
+if ( $input =~ m|^x-([A-Z2-7]+)$| ) {
+    my $decoded = <[base.vax-int.decode]>->($1);
+    return undef if $decoded !~ m|^\d+$|;
+    return $decoded;
+}
+
+return $input if $input =~ m|^\d+$|;
+
+return undef;
+
+#,,.,,.,.,...,,.,,..,,,,.,.,.,.,.,,..,.,,,,,.,..,,...,...,..,,,,,,,..,..,,,.,,
+#BTT34FV2NBASGBFZHF27XGUZPORSRYCERGNSKP3C7O6GPWBDRP6RPN3Z7NBIUNDTHKUXCRZMDP2ZM
+#\\\|E3XUAFHPLK7AIYRWGEKRNMMRQCD6KEAWWHZJZMLQQ54GFO5PSGY \ / AMOS7 \ YOURUM ::
+#\[7]3UM4DM7OMWOKFAUYLYQ6UO27MDI5CGZE534IUNEX27FKFK4YVSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

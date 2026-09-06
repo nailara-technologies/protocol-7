@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = X-11.helper.alloc_xvfb_display
+# descr = atomically pick a free, harmonically-true xvfb
+#          display number and its x-<vax-int> reference label
+
+my $tracking_href = {};
+
+## seed with every currently-active display number [ any mode -- an         ##
+## auto-picked xvfb display must never collide with the primary\xorg\..     ##
+## either, not just other xvfb instances ] so gen_id never hands back one   ##
+## already in use. gen_id's own id_length = length($max_ids)+2, so a small  ##
+## $max_ids [ 99 --> 4 digits, first digit non-zero ] naturally keeps every ##
+## auto-picked number well above the low display numbers [ :0-:99 ] a       ##
+## manually configured primary\xorg\xephyr display uses -- no separate      ##
+## floor arithmetic needed .,                                               ##
+my $tracking_max_ids = 99;
+foreach my $existing_str ( keys %{ <X-11.servers> // {} } ) {
+    my ($n) = $existing_str =~ m|^:(\d+)$|;
+    $tracking_href->{$n} = TRUE if defined $n;
+}
+
+my ( $display_num, $label );
+my $label_retries = 20;
+
+## base.gen_id already retries internally until the RAW integer passes      ##
+## is_true -- that alone doesn't guarantee the ENCODED "x-<label>" string   ##
+## also does [ different bytes, independent check ], so wrap it in an outer ##
+## retry that also verifies the label, same "generate -> transform -> check ##
+## truth of the FINAL form -> retry" shape as  chk-sum.bmw.harmonize_L13 ., ##
+while ( $label_retries-- > 0 ) {
+    $display_num = <[base.gen_id]>->( $tracking_href, $tracking_max_ids );
+    return () if not defined $display_num;    ## gen_id gave up entirely ##
+
+    $label = 'x-' . <[base.vax-int.encode]>->($display_num);
+    last if AMOS7::Assert::Truth::is_true($label);
+
+    ## label didn't pass -- force gen_id to pick a genuinely different ##
+    ## number next round, even though this one was never actually used ##
+    $tracking_href->{$display_num} = TRUE;
+}
+
+return () if not AMOS7::Assert::Truth::is_true($label);
+
+return ( $display_num, $label );
+
+#,,..,,..,.,,,,,.,,,,,.,.,...,..,,,..,,..,,.,,..,,...,...,,.,,...,,,.,..,,..,,
+#BK3GMZA5TUUYPV6ZTCIJFUHWGMWIAKO5SOLMNNFIACZQR3CK77QWBLJBI7YPV6FTZFY4IOXFWT37W
+#\\\|NEMY3G6GBOC6UXXOXTIASY3BQPS2VWMALISONEAPUCS7QFKU7Q6 \ / AMOS7 \ YOURUM ::
+#\[7]L6K5X27VG5N66ESUO5R7GNKSBR542I7EQ4E2UGT4S53AE3XJ52AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

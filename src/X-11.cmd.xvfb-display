@@ -4,15 +4,17 @@
 # param = <server-id>
 # descr = return the X11 display address for a live xvfb server
 
-my $server_id = $call->{'args'};
-$server_id = $server_id->[0] if ref($server_id) eq qw| ARRAY |;
-$server_id =~ s|^\s+|| if defined $server_id;
-$server_id =~ s|\s+$|| if defined $server_id;
+my $server_arg = $call->{'args'};
+$server_arg = $server_arg->[0] if ref($server_arg) eq qw| ARRAY |;
+$server_arg =~ s|^\s+|| if defined $server_arg;
+$server_arg =~ s|\s+$|| if defined $server_arg;
 
 return { 'mode' => qw| false |, 'data' => 'server-id required' }
-    if not defined $server_id or not length $server_id;
+    if not defined $server_arg or not length $server_arg;
+
+my $server_id = <[X-11.helper.resolve_display_id]>->($server_arg);
 return { 'mode' => qw| false |, 'data' => 'invalid server-id' }
-    if $server_id !~ m|^\d+$|;
+    if not defined $server_id;
 
 my $display_str = ":$server_id";
 my $entry       = <X-11.servers>->{$display_str};
@@ -33,8 +35,8 @@ return {
 
 return { 'mode' => qw| true |, 'data' => $display_str };
 
-#,,.,,..,,.,,,,..,,,.,,..,..,,.,,,,.,,,..,,.,,..,,...,...,..,,,..,,,,,.,,,,,.,
-#5NBKDE2M3WK7ZLRFDY57L4Z7QQY27QVEAENKVMQ66C72XAB5NPI6WE5D4K2UBL4GJKMAIE23GQKKO
-#\\\|2HVAALBRNWJLIQBXIMGSPP336ZSX6TANZP6WX6WJZAXBOO2VSDO \ / AMOS7 \ YOURUM ::
-#\[7]WO7T3Z4DXT5EY5A2DMK4ICT5XIBMNMEB6GEAMMXUFNOVJ2FLCKCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,,.,,,,.,,.,,,.,,,..,,,,,,.,,..,,...,...,,,,,..,,,..,,,.,..,,
+#NUKSEVEZ4SSHVLI3CQ7OL36CTVM2QWJH2TDY5E7KT5MN626CGUGFSBY634B3RR4BBADOPPWXFLZQU
+#\\\|2E5EO2HHEV2AC6JMJXKOSQ4Q7RUOS6IR67QH7CZP2CFE7V4TNM4 \ / AMOS7 \ YOURUM ::
+#\[7]AVD3UQ3FXCTCFRJ4EO57RXTZQIKTX6LLTO7IC6AJX5NV473SJEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

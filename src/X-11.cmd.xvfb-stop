@@ -8,12 +8,14 @@ my @args
     = ref( $call->{'args'} ) eq qw| ARRAY |
     ? $call->{'args'}->@*
     : split( m| +|, $call->{'args'} // '' );
-my ($display_num) = @args;
+my ($display_arg) = @args;
 
 return { 'mode' => qw| false |, 'data' => 'display number required' }
-    if not defined $display_num;
+    if not defined $display_arg;
+
+my $display_num = <[X-11.helper.resolve_display_id]>->($display_arg);
 return { 'mode' => qw| false |, 'data' => 'invalid display number' }
-    if $display_num !~ m|^\d+$|;
+    if not defined $display_num;
 
 my $display_str = sprintf qw| :%s |, $display_num;
 my $entry       = <X-11.servers>->{$display_str};
@@ -64,8 +66,8 @@ return {
     )
 };
 
-#,,,,,.,,,.,,,...,,..,.,.,..,,,,,,,,,,...,.,.,..,,...,...,.,,,.,,,.,,,..,,,..,
-#GGQ7FDZFRQUHBYHCYPALBU3J4UDCFF3BDEEEUDQVDH6Q5U4MFGBD34QNALKA2CMQFL2LF6SXRVP5Y
-#\\\|OJNRW5RCGCUDJ46B6AFVY4KQXHQVEEBRTABSPJ4ZGBEEQNAT4ON \ / AMOS7 \ YOURUM ::
-#\[7]2HROQXSHH7JJA5VXXWYMRZBEJFMUMNSAZJRU2JMHPNOPRXGXWSBQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,.,.,,,,,,,,,,,.,..,,,,.,..,,..,,...,...,,.,,..,,.,.,,..,,,,,
+#CNRKV2K4RRLXR735PGDZN6T7FWY3TNCZPJNIGM3EMP6RDR5FFHHFZTW4OFKBEZ7LICAX4F5VQUCEU
+#\\\|R2SS4OYKKITPLJQ77A45STBEBY46FJ3M5UZQQOSIJDVCKUOBI5X \ / AMOS7 \ YOURUM ::
+#\[7]WZY64IKTEDXKFYP5RZZHGKRLTIEFRJVTYSHVXTEKACOHENQNKUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

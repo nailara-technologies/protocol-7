@@ -16,6 +16,11 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `local`-substituted globals, not just the primary — live-verified per-display isolation (aux
   correctly reports no Composite/DPMS support while the primary, queried in parallel, still
   correctly reports its own), zero changes to the 39 existing commands themselves.
+  **Same-day follow-up 2**: `xvfb-start` no longer takes a caller-chosen display number at all —
+  it auto-allocates one atomically via `base.gen_id` (harmonically-true, collision-checked against
+  every live display) plus a reversible `x-<vax-int>` reference label, and every other xvfb command
+  now accepts that label as an alternative to the raw number. Caught a live `and`/`=` precedence
+  compile warning in the process (`ptd -c` doesn't catch it, the zenka's own restart output did).
 - [task-archiving + kimi dispatch queue, 2026-09-05](project-2026-09-05-task-archiving-and-kimi-dispatch-queue.md) —
   built `bin/dev/task-scan-candidates`, archived 29 landed-but-stale task files, cleared a 4-item
   prioritized dispatch queue: cred-mesh/transport test-harness bug, 4 research-extraction findings,
@@ -122,8 +127,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,,.,,.,,..,,,,,,,..,.,.,.,,,,,,,,,,,,,.,,,,,..,,...,...,...,..,,,..,.,,,.,.,
-#HTN5TTSPZTQADV2MVHFWZXT7EMIGEQ7RYIENKXKJOEHNIMFXTA6ATAX5YPCTMZGIONRF7RVCCJJBK
-#\\\|F7PZ7IVMBKPV7XPIPUUHAWOWH4IA5TSOR7WEPHVB2VOXX5VJQRZ \ / AMOS7 \ YOURUM ::
-#\[7]7BP6AZ3EFBRDMYJMAYVLARJKAD3FWU4LJVG6ODEEGQX23DTJPMAA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,,..,...,,,.,,,,,,,,,,..,,,.,..,,...,...,...,,.,,,,.,,,,,..,,
+#5CX3N3VFMDG3JXWVK7QJD7ZNTXCROMWTRVHGRBSQHCOELBLEU4MGLBZBHKNBXHXUDDOWT4P34KNUS
+#\\\|FSCH4LFTHQ6DADDVFYXN26S2U556SEAW3SDSGXC6TNUD6E3F63S \ / AMOS7 \ YOURUM ::
+#\[7]AXAPQRJAX2BRQEVYYYYOUMQQTD3BKLVGIS4UIY3SD3IQYCNZHCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
