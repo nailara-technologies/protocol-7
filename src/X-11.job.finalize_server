@@ -66,7 +66,15 @@ return unless $is_primary;
 
 <X-11.obj> = $server->{'conn'};
 
-<X-11.WM> = X11::WM->new($display_str);
+## X11::WM::new($arg) only uses $arg as a display STRING if ref($arg) is  ##
+## false -- a plain string [ $display_str ] gets silently discarded and   ##
+## it connects to $ENV{DISPLAY} instead, opening a SECOND, separate       ##
+## connection rather than reusing <X-11.obj>. Harmless here only by       ##
+## coincidence [ this zenka's own $ENV{DISPLAY} already matches the       ##
+## primary ] -- confirmed as a real bug 2026-09-06 building the auxiliary ##
+## [ xvfb ] equivalent, where no such coincidence exists. Pass the actual ##
+## connection object .,                                                  ##
+<X-11.WM> = X11::WM->new(<X-11.obj>);
 <[X-11.WM.update]>;
 
 <X-11.obj>->{'error_handler'} = sub {
@@ -373,8 +381,8 @@ $server->{'has_randr'}     = <X-11.has_randr>;
 $server->{'has_dpms'}      = <X-11.has_dpms>;
 $server->{'is_composited'} = <X-11.is_composited>;
 
-#,,.,,,..,,.,,,,.,...,,,,,,,.,.,.,.,.,,.,,..,,..,,...,...,,,.,,.,,,,.,,,.,,..,
-#LC7JNSKHGYGCIZRMAW25VEJ2S2MCEICRSZLDWWUF2DZFUKG6SZI6NLBH3G3UJGYEUIM4CFUZ4R5FI
-#\\\|ABJQMR563UN6UNEYGQLLAW6QUHW64M6M4GRL43MPLZHQJO2QTNK \ / AMOS7 \ YOURUM ::
-#\[7]ELAPJ3UE5OFEYX3TAA52PUAF3TC5YEAGVMWPEYNDDQGEP3NQQKDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,...,.,.,.,.,,.,,,..,...,,,.,..,,...,...,..,,.,.,..,,.,.,.,,,
+#YLSWVPNHRLR43G5ZBYYVAZE44VWFJGRPRTKCRGYXY3QK7M5CQYP32PXZG3PZKJBODKR3OWQ3F4NP4
+#\\\|RWGHYM5P3KFMDEWHINEEWPWP4LV6AWCCIFOLKLXS2NRN37JVLEN \ / AMOS7 \ YOURUM ::
+#\[7]P7V3YKSQLD2C33GCRYIZKDHU2ODVF6PSEZ7JHENJRGUCN6SHN2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
