@@ -1511,8 +1511,22 @@ plugin (stashing the checksum for render_form to pick up later) is
 visible to both — same hand-data-forward pattern `user_keys_names`
 already established for the same reason.
 
-#,,,.,,..,.,.,..,,..,,,..,.,,,,,,,..,,.,,,,,,,..,,...,...,..,,.,,,,,.,,.,,.,,,
-#7BKB3DVESPTR7JSOLOHHQSEY4KIXLT7FUZBWZH2MG5ZHEJVT5677LSW7CYYG3S7KRCNEKKVFR3KYS
-#\\\|UPZULZSDADRSVQNTZVLKOXSANEBV7WSMEBLFWXTYMMP7RQDU73J \ / AMOS7 \ YOURUM ::
-#\[7]3GCRDFJE7MXSBXR2G4ZNMD7X244SMEWMTC6QFEM2PEDTDTMY62BQ 7  DATA SIGNATURE ::
+**2026-09-07 CAUTION, from an unrelated session comparing `vault-edit`
+against `user-edit` for UX quality**: `user-edit.cmd.char-add` directly
+mutates LIVE form data on every injected keystroke — a single stray test
+key (sent to compare rendering, not intending to edit anything) prepended
+a character to the real `taeki` record's `full_user_name` in memory. Not
+a bug — this is `char-add`'s whole point, driving the SAME decode path a
+real keystroke would — but it means char-add against a REAL record (not
+a disposable throwaway like earlier `p7-fieldtest*` records) can silently
+stage an unwanted edit. Caught and corrected that time with `[Backspace]`
++ `[Ctrl+c]` (submit only happens on explicit submit, confirmed after via
+`users.value-get` showing the real record untouched) — but the safer
+default going forward is a throwaway/test record, per every other
+char-add session logged above in this file, not the invoking user's own.
+
+#,,,.,,,.,.,.,,,.,.,.,.,,,,,,,,.,,.,,,..,,,,.,..,,...,..,,.,.,.,.,.,,,..,,,..,
+#5SUHJOIEOPCIZYVEU2PLPNAK4B7FUVUVWCEDERV3LEGSCY2Q6X7TAGKDDHNMGLT5RUSTCGFX4DDXM
+#\\\|66X36JW4UPRJFOKTX27X4LCC422GUDRQOCE3QCXLBLQDDKCJS3F \ / AMOS7 \ YOURUM ::
+#\[7]2PEEF7PJZ6FSJYBQHGRZDQMO7C2IZPNHGH7LAXDB7MWKHBH4IIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
