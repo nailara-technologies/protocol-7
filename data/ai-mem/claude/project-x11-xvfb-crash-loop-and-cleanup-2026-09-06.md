@@ -1,6 +1,6 @@
 ---
 name: project-x11-xvfb-crash-loop-and-cleanup-2026-09-06
-description: "X-11 xvfb-start/status/list/stop went from crash-looping and structurally broken to a fully working, live-verified command cycle in one session; 7 bugs found and fixed, task file data/tasks/x11-xvfb-start-async-refactor.md rewritten with the real root causes"
+description: "X-11 xvfb-start/status/list/stop went from crash-looping and structurally broken to a fully working, live-verified command cycle; 7 bugs fixed, task file rewritten. Same-day follow-up: X-11.disp-ctl + X-11.cmd.xvfb-display let the zenka's 39 existing window-management commands (get-windows, move-window, etc.) operate on an xvfb auxiliary display, not just the primary"
 metadata:
   type: project
 ---
@@ -86,14 +86,94 @@ fundamentally broken. It now works.
 All 7 bugs fixed and live-verified, including a two-concurrent-display
 stress test (separate Xvfb output streams stay un-interleaved, both
 stop cleanly, no crash). Task file fully rewritten to document the real
-root causes; ready to archive. Not done: nothing in this task remains
-open. Separate, not attempted this session: X-11 zenka's `zenka.v7` mode
-is still `host` by default - actually wiring headless-capture workflows
-to use xvfb (vs. just being ABLE to start/stop one) is the next real step
-toward the user's stated goal.
+root causes; ready to archive. Nothing in the original task remains open.
 
-#,,.,,,.,,,,.,,.,,...,...,,,,,,.,,,,,,...,,..,..,,...,...,..,,.,,,..,,...,...,
-#TYMSHP5J5PD3P4J5JSJSZTSOIXGR5HLRUUTBFWIUPXOQJQX5XBQQMUXP3OL253IUS6VYZW5H5642S
-#\\\|JPYPK2GFHI5JJMMZRWBWHQJS26JJMDZWB5H4XWVX5LJPSCFALII \ / AMOS7 \ YOURUM ::
-#\[7]RUWPYOTBINEILCHZBIOCN54IYFDKH6HIC5HYACNDFZTALUFTNGBY 7  DATA SIGNATURE ::
+## same-day follow-up: X-11.disp-ctl + X-11.cmd.xvfb-display
+
+The zenka has 39 existing `X-11.cmd.*` window-management commands
+(get-windows, move-window, set_geometry, the dpms-*/keep_above/hide-
+window family, etc.), every one of which reads a single global
+(`<X-11.obj>`, `<X-11.WM>`, `<X-11.kbd>`, `<X-11.has_randr>`, ...) with
+zero display parameter - so none of them could be pointed at an xvfb
+auxiliary display, only the primary. Checked: every display (primary or
+auxiliary) already gets its own raw `X11::Protocol` connection in
+`<X-11.servers>->{$display_str}->{'conn'}` (set in
+`X-11.handler.display_poll`) - the actual gap was that
+`X-11.job.finalize_server` only builds the higher-level objects (WM,
+keyboard, RANDR/DPMS/Composite flags) for the primary, in its
+`return unless $is_primary` branch.
+
+**The fix**, three new files + one small addition to `finalize_server`:
+- `X-11.helper.setup_display_wm` - builds the minimal per-display bundle
+  (WM, keyboard, extension flags) for a non-primary display, reusing
+  `X-11.WM.update`'s existing tested WM-scan/WSL-fallback logic
+  unchanged by `local`-substituting the same globals it already reads
+  for the duration of the call (confirmed `X-11.pool.query` also reads
+  `<X-11.obj>`, so this correctly flows through too).
+- `X-11.job.finalize_server` - calls that helper for auxiliary displays;
+  for the primary, added one small block at the very end (after all its
+  existing richer host-mode setup) that mirrors the now-fully-populated
+  globals onto `$server` too, so the primary carries the same
+  per-server bundle shape as an auxiliary display, zero risk to the
+  primary's existing tested logic.
+- `X-11.cmd.disp-ctl <display_num> <sub-command> [args...]` - looks up
+  the target display's bundle, `local`-substitutes it for the globals
+  (auto-restores on return, including early return/die), dispatches to
+  the existing `X-11.cmd.<sub-command>` unmodified. Explicitly refuses
+  the one command (of 39 checked) that schedules `event.add_timer` work
+  beyond its own call (`fade_out`) - `local`'s restore would have
+  already unwound by the time a deferred timer fires, silently reading
+  the primary's globals again instead of the targeted display's; an
+  explicit refusal beats a silent wrong-display bug.
+- `X-11.cmd.xvfb-display <server-id>` - simple lookup returning the
+  X11 display string (e.g. `:52`) for a live, connected xvfb-mode
+  entry, so a client script knows what to point `DISPLAY`/
+  `X11::Protocol->new()` at. Deliberately scoped down (user's choice)
+  to same-host/same-user addressing only, not a fuller host+auth
+  resolution or a named-identifier layer.
+
+None of the 39 existing commands were modified - the new capability is
+entirely additive via `disp-ctl`, existing primary-display behavior is
+unaffected.
+
+**Live-verified**: `xvfb-display 61` returns `:61` for a live display;
+`disp-ctl 61 get-windows` executes for real (empty result, correctly - a
+bare Xvfb has no windows); `disp-ctl 62 is-composited` correctly reports
+"no composite extension" while querying the primary directly in parallel
+still correctly reports "yes, is composited" (proves the per-display
+isolation actually works, not just returns the same primary state);
+`disp-ctl 62 dpms-status` correctly reports no DPMS support (accurate for
+bare Xvfb); a stopped/nonexistent display and the excluded `fade_out`
+both correctly refused with clear messages; zenka stayed on the same
+instance throughout, no orphaned processes. One real bug caught live
+during this: `disp-ctl`'s `join(' ', @args)` produced `''` instead of
+`undef` for a zero-extra-args call, which `get-windows` treated as
+"filter by empty pattern" instead of "no filter" - every native zero-arg
+call elsewhere passes `undef`, fixed to match.
+
+**Naming note**: went through several rounds of the user's own
+`bin/is-true`/harmonic-truth naming check (`X-11.get-xvfb-display` -
+FALSE, rejected; `X-11.xvfb-display` - TRUE; `X-11.sub-disp-ctl` - TRUE
+but `sub-` added no semantic value over plain `X-11.disp-ctl`, also TRUE
+and shorter). See `data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`
+/ `AMOS7::Assert::Truth` for what this check is.
+
+## next real step toward the user's stated goal
+
+Not attempted this session: X-11 zenka's `zenka.v7` mode is still `host`
+by default. `xvfb-start`/`xvfb-stop`/`disp-ctl`/`xvfb-display` being
+reliable is the prerequisite, not the finish line - actually wiring a
+headless-capture workflow to use an xvfb display end-to-end (spin one
+up, drive it via disp-ctl / a client pointed at xvfb-display's address,
+capture, tear down) is still open. Also open: the alternate
+`X-11[subname]` mechanism (a separate dedicated zenka instance
+configured for xvfb from the start, vs. an auxiliary display on the
+primary instance) was noted in the original task as a deployment
+pattern worth knowing about, not evaluated against this session's
+approach.
+
+#,,..,...,,,.,,.,,.,.,...,.,,,...,.,,,..,,,.,,..,,...,...,...,,..,,,,,..,,,,.,
+#DQJ2IJVXGFM3B2PMJ2LPV5VX3GXFBL55DX76YHGWBEUYH4K446N4TVG7IEGSFLRZJLLBYSF7DFVGC
+#\\\|TS377JQZM367XS6JGY3HMFI57XUSXJNTNPRMSBYXOV4DLTC72AQ \ / AMOS7 \ YOURUM ::
+#\[7]CZDULKVSCIBXZGKZ3IMJKCWZXQYPCUGBLT5MUHALWPI5TNZF7GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = X-11.cmd.xvfb-display
+# param = <server-id>
+# descr = return the X11 display address for a live xvfb server
+
+my $server_id = $call->{'args'};
+$server_id = $server_id->[0] if ref($server_id) eq qw| ARRAY |;
+$server_id =~ s|^\s+|| if defined $server_id;
+$server_id =~ s|\s+$|| if defined $server_id;
+
+return { 'mode' => qw| false |, 'data' => 'server-id required' }
+    if not defined $server_id or not length $server_id;
+return { 'mode' => qw| false |, 'data' => 'invalid server-id' }
+    if $server_id !~ m|^\d+$|;
+
+my $display_str = ":$server_id";
+my $entry       = <X-11.servers>->{$display_str};
+
+## only a live, X11-connected xvfb-mode entry counts -- <X-11.servers> is ##
+## shared across all display modes, and 'connected' [ set once            ##
+## X-11.handler.display_poll's connect succeeds ] is a stronger guarantee ##
+## than just the process being alive [ that's what xvfb-status checks ]-- ##
+## this command's whole purpose is handing a client an address it can     ##
+## actually connect to right now .,                                       ##
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no live xvfb server on %s', $display_str )
+    }
+    if not defined $entry
+    or ( $entry->{'mode'} // '' ) ne qw| xvfb |
+    or not $entry->{'connected'};
+
+return { 'mode' => qw| true |, 'data' => $display_str };
+
+#,,.,,..,,.,,,,..,,,.,,..,..,,.,,,,.,,,..,,.,,..,,...,...,..,,,..,,,,,.,,,,,.,
+#5NBKDE2M3WK7ZLRFDY57L4Z7QQY27QVEAENKVMQ66C72XAB5NPI6WE5D4K2UBL4GJKMAIE23GQKKO
+#\\\|2HVAALBRNWJLIQBXIMGSPP336ZSX6TANZP6WX6WJZAXBOO2VSDO \ / AMOS7 \ YOURUM ::
+#\[7]WO7T3Z4DXT5EY5A2DMK4ICT5XIBMNMEB6GEAMMXUFNOVJ2FLCKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
