@@ -11,7 +11,11 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   predating multi-server support, xkbcomp log_whitelist). Full `xvfb-start`/`status`/`list`/`stop`
   cycle, including two concurrent displays, now works end-to-end at default verbosity.
   See [[feedback-audit-shared-state-when-multi-instance-bolted-on]] for the reusable git-archaeology
-  technique that found bug 6.
+  technique that found bug 6. **Same-day follow-up**: new `X-11.disp-ctl`/`X-11.cmd.xvfb-display`
+  let the zenka's 39 existing window-management commands operate on an xvfb auxiliary display via
+  `local`-substituted globals, not just the primary — live-verified per-display isolation (aux
+  correctly reports no Composite/DPMS support while the primary, queried in parallel, still
+  correctly reports its own), zero changes to the 39 existing commands themselves.
 - [task-archiving + kimi dispatch queue, 2026-09-05](project-2026-09-05-task-archiving-and-kimi-dispatch-queue.md) —
   built `bin/dev/task-scan-candidates`, archived 29 landed-but-stale task files, cleared a 4-item
   prioritized dispatch queue: cred-mesh/transport test-harness bug, 4 research-extraction findings,
@@ -118,8 +122,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,.,,,.,,..,,.,.,..,,...,.,.,.,.,,.,,,,,,,.,,..,,...,.,.,...,.,.,,,.,.,.,,..,
-#SFZRIDKGG45AVNVESO6KMBM4GCCJUCZPNBXWP6TLHT5QZAM5KA7DY6VCU5XGU62UINPECRTMFVEAC
-#\\\|L5XYC35KFBV4MITTCKSRHKUKGWS5W7WYN5YBJU3UBVGVBYUXWIE \ / AMOS7 \ YOURUM ::
-#\[7]6BVTTMT7GGXXPMYHADFRPHGBE4G2RNICQRAAURJKD6VVQJ6ETCDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,,..,.,.,.,,,,,,,,,,,,,.,,,,,..,,...,...,...,..,,,..,.,,,.,.,
+#HTN5TTSPZTQADV2MVHFWZXT7EMIGEQ7RYIENKXKJOEHNIMFXTA6ATAX5YPCTMZGIONRF7RVCCJJBK
+#\\\|F7PZ7IVMBKPV7XPIPUUHAWOWH4IA5TSOR7WEPHVB2VOXX5VJQRZ \ / AMOS7 \ YOURUM ::
+#\[7]7BP6AZ3EFBRDMYJMAYVLARJKAD3FWU4LJVG6ODEEGQX23DTJPMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
