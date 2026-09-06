@@ -508,6 +508,50 @@ round's plumbing fixes (`ui.unfold`, `ui.cmd.ui-show`, `cred-mesh.cmd.ui-
 show`, the screen-clear fix, `char-add`) are real, independently
 verified, and worth landing regardless of the UX gap above. The UX/
 interaction-design pass is the explicit next step, not done here.
+**Committed as `62923a289`.**
+
+## `user-edit` comparison [ per the user's own suggestion, same session ]
+
+Started `user-edit` headlessly (`Protocol-7 user-edit start -no-tty`) and
+drove it via its own `char-add` for a concrete quality/feature-
+completeness bar to aim `vault-edit` at. **Caution for next time**:
+`user-edit`'s `char-add` directly mutates LIVE form data on every
+keystroke (unlike `vault-edit`'s, which only triggers safe nav/actions) —
+a stray test key edited the real `taeki` record's `full_user_name`
+in-memory. Caught immediately, corrected with `[Backspace]`, and exited
+via `[Ctrl+c]` without ever submitting — `users.cmd.value-set` is only
+ever called on explicit submit, confirmed after the fact via `users.
+value-get` showing the real record untouched. Anyone driving `user-edit`
+`char-add` again against a real record should be aware of this.
+
+what the comparison actually showed, concretely — the bar `vault-edit`
+needs to reach, and specific reusable techniques, not just a vibe:
+
+- **a persistent title bar** (`.:[ user-edit : taeki ]:.`) that `vault-
+  edit` doesn't have past its first screen (the header-vanishes bug
+  above) — owned by the CLIENT, not borrowed from a one-shot server-side
+  wrapper the way vault-edit currently (accidentally) relies on.
+- **labeled fields in a fixed layout**, never a raw dump.
+- **inline key hints placed next to what they act on** (`key actions:
+  '-> create key .:. [r]ename .:. [d]elete`), not left for the user to
+  memorize or guess.
+- **a footer status line** (`active field : X [ N of M ]`) — constant
+  orientation regardless of what else is on screen.
+- **collapsed previews** for anything multi-valued (`:..8.entries..:`)
+  instead of dumping everything or showing nothing.
+- **a one-shot discovery hint woven into the frame's own border**, not a
+  separate line: `user-edit.form.render` replaces the card's closing
+  border row with `.c.t.r.l-?.:.t.o.g.g.l.e..c.m.d..l.i.s.t` [ hand-spaced
+  to match the border's own dot-fill rhythm ] on the very first render
+  only, gated on `<user-edit.form.hint_seen>`, and reverts to a plain
+  border the instant ANY key is pressed. No extra line, no width
+  reservation — directly reusable technique for `vault-edit`'s own first
+  screen (e.g. hinting at `?`/the key table) rather than inventing
+  something new.
+
+`vault-edit` currently has none of these — it just prints cred-mesh's raw
+rendered block. This is the concrete spec for the next session's
+interaction-design pass, not a vague "make it nicer."
 
 ## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
 
@@ -826,8 +870,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,,,,...,..,,,..,,..,,,.,,.,,...,.,,,.,,,,..,..,,...,...,,,.,.,.,,..,,..,,,.,
-#E7FVQ4HGCI2PZEAG3IL33TSA7GFHKEDDL62TNY7TOUI3LLTDJ73VD37O7JRKHLRZ5M626EZWJ7OIS
-#\\\|SDY2BXG7QEX5NSRQG2ZHJGTNTZBYX5RXI5UFD2ORODXH4SROKHJ \ / AMOS7 \ YOURUM ::
-#\[7]RLTH7XNHCECHB5PM22XOBTGBKTGUM36RGIE2K7XP6VYIOWS3FMAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,..,,,,,,.,,,.,.,.,,,.,.,,,.,..,,...,...,...,,.,,,.,,,..,,.,,
+#I5LGX7F5DXWCFRMS5LCHH2OBWSWBDH7AKQMDRUXKXDDGFZWZ57JFFU7S7KVR4MSMDIR3LCOAKNURM
+#\\\|VHP2AT7UN3K7Z26PXG7XBCOEBACVZRMBG3YK5JVSYPX3F26L2VM \ / AMOS7 \ YOURUM ::
+#\[7]Q4LTJCA6PQWS3REUPOJWGFVMPYSQSPLKZV5BD6DTURONPZ3Z5YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
