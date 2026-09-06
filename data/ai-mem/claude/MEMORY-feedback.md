@@ -119,9 +119,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — broadened 2026-09-05: beyond the pager/color-loss misread, `git log --all` can also show two genuinely distinct commit hashes with byte-identical content/timestamp (overlapping-ref history); a naive hash-only exclusion filter can miss the twin
 - [gen-sub-whitelist-no-arg-full-repo-regen](feedback-gen-sub-whitelist-no-arg-full-repo-regen.md) — `bin/dev/gen-sub-whitelist` with no target argument regenerates every zenka's whitelist, not just the one you're touching; always pass the specific zenka name, and if run bare by mistake, kill it and revert any unrelated zenki whitelists it already rewrote before continuing and false-positive-match
 - [audit-shared-state-when-multi-instance-bolted-on](feedback-audit-shared-state-when-multi-instance-bolted-on.md) — when a commit adds multi-instance/auxiliary support to single-instance code, `git show` that exact commit against the file: if it only touched the control-flow line, every OTHER line (globals, alarming log wording) is suspect for the same unaudited single-path assumption — found via X-11 xvfb session, see [[project-x11-xvfb-crash-loop-and-cleanup-2026-09-06]]
+- [arrow-call-into-bare-shift-constructor](feedback-arrow-call-into-bare-shift-constructor.md) — `Class->new($arg)` silently discards `$arg` if `new()` does a single bare `shift` instead of shifting the class first; vendored `X11::WM.pm` had this bug codebase-wide for years, masked because the primary's own `$ENV{DISPLAY}` coincidentally matched what the buggy fallback connected to anyway — only became visible building a genuinely new connection target (xvfb auxiliary display)
 
-#,,.,,...,,,.,,.,,,,.,...,.,.,..,,,,.,...,,..,..,,...,.,,,.,.,...,,,,,,,.,...,
-#HL4U5P4K7KAAGGF2M777LQB7RRWE56LVI7N6MVYYAE5OPHVS6VREMYV7GZIORIYTKL76XLHH3UBKM
-#\\\|HH47UHMY2EGTXSSCOZO4P2SO3Z4YXUU3LJIVKPNH3ERWAWOAZVR \ / AMOS7 \ YOURUM ::
-#\[7]GBQKSNJOBZLQ5M262RUJ3MIHKL4LVRDC43NEGELCZMG2VJAFYMAY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,..,,,.,.,,,,,,,.,.,,,.,,,.,..,,...,...,.,.,..,,,.,,.,.,.,.,
+#6B6FDQRW2FHWHKAGLSN4WT44R4AI5ETXJX2DRXY22YVZWG4OMK4GAZOG6OTS26CGBUGT53USNIEQY
+#\\\|R2OIK4LDDO5PLC2ZXY56C44R775DIMIF7CLE5FGLI56A7FN3MGN \ / AMOS7 \ YOURUM ::
+#\[7]G5XB7VLFRLQOY26D5WKBAK5RFP7KHP5KT6VCUL4R6LO67GJPYCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

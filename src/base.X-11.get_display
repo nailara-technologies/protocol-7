@@ -4,6 +4,28 @@
 
 my $silent_warnings = shift // 0;
 
+## an x-<vax-int> subname [ eg. mpv[x-HE] ] is a reversible reference to an ##
+## auto-allocated xvfb display [ X-11.helper.alloc_xvfb_display ] -- decode ##
+## it locally, pure math, no round trip to the X-11 zenka at all [ works    ##
+## even without a primary X-11 connection present ] .,                      ##
+my $subname = <system.zenka.subname>;
+if ( defined $subname and $subname =~ m|^x-([A-Z2-7]+)$| ) {
+    my $decoded = <[base.vax-int.decode]>->($1);
+    if ( $decoded =~ m|^\d+$| ) {
+        <x11.display> = ":$decoded";
+        <[base.logs]>->(
+            2,        'display resolved from subname [%s] -> [%s]',
+            $subname, <x11.display>
+        );
+        return <x11.display>;
+    }
+    <[base.logs]>->(
+        $silent_warnings ? 2 : 0,
+        "subname '%s' looked like an x-<id> label but failed to decode",
+        $subname
+    );
+}
+
 my ($local_sid) = keys <user.cube.session>->%*;
 
 <[base.log]>->( 2, 'requesting display name from X-11 zenka.,' );
@@ -52,8 +74,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,,,,.,.,,.,,,,.,,,.,..,,,,.,,,.,.,.,.,,,,,.,..,,...,...,..,,,..,,,.,,.,,.,,,
-#5QKHJS7433W3MXQ2KD7MCLUFNR4UW5EEIRU4MZCSLMYSLSXMNRBVTF7SBL2VOGH2BNZU4NYPF3JCO
-#\\\|JIWBEJH6NHVNNVNSAXRQWV4XRXSD2A7AZQKJNCKSOHS773HWBCW \ / AMOS7 \ YOURUM ::
-#\[7]C553LW7RTKWBOFG7RQBKS2OQPDPXVLBQPGDLHTN3TGJR3Y6HNIBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,.,.,,,.,,..,.,,,...,,.,,,..,..,,...,...,,,,,,,.,,.,,,..,,,.,
+#E4ZOFAQ6UYBZXWXKRA5ZO2W5XRBU53UUEK4OXQX4LINOD2AXIGFYN25WGA45B7IE5FBFHGKXCMTVW
+#\\\|NLRGOM7FOEE6TNRISJ3JU4RF7XQAUEHIV7UUIIUZFX5DEGAW6FI \ / AMOS7 \ YOURUM ::
+#\[7]F2US5N7XI2JYLFBUPGEUAC3UUULHJR2TER4325TYSAQNLJNAPQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

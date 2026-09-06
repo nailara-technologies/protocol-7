@@ -15,6 +15,13 @@ our $VERSION = 0.1;
 my @getpropconst = ( 'AnyPropertyType', 0, -1, 0 );
 
 sub new {
+    my $class = shift; ## every caller uses arrow syntax [ Class->new($X) ] --
+    ## without this shift, the class NAME becomes $X
+    ## below, ref() on it is false, and the real
+    ## connection object passed by every caller is
+    ## silently discarded in favor of a fresh
+    ## X11::Protocol->new() [ $ENV{DISPLAY} ].
+    ## confirmed live 2026-09-06, X-11 zenka session .,
     my $X = shift;
     $X = X11::Protocol->new() unless ref $X;
     my $wm;
@@ -40,7 +47,7 @@ sub new {
         _XCHAR_CHAR
         _XCHAR_COMMAND
     );
-    bless $wm;
+    bless $wm, $class;
 }
 
 sub fetch_ids {
@@ -57,7 +64,8 @@ sub fetch_ids {
 sub update_ids {
     my $wm  = shift;
     my $ids = $wm->fetch_ids;
-    $wm->{byid}{$_} = bless { wm => $wm, id => $_ }, 'X11::WM::class' for @$ids;
+    $wm->{byid}{$_} = bless { wm => $wm, id => $_ }, 'X11::WM::class'
+        for @$ids;
     $wm;
 }
 
@@ -78,8 +86,9 @@ sub update {
     if ( $wm->{byid} ) {
         my %seen;
         for my $id (@$newids) {
-            $seen{$id}       = 1;
-            $wm->{byid}{$id} = bless { wm => $wm, id => $id }, 'X11::WM::class'
+            $seen{$id} = 1;
+            $wm->{byid}{$id} = bless { wm => $wm, id => $id },
+                'X11::WM::class'
                 unless $wm->{byid}{$id};
         }
         for my $id ( keys %{ $wm->{byid} } ) {
@@ -91,7 +100,8 @@ sub update {
         }
     } else {
         for my $id (@$newids) {
-            $wm->{byid}{$id} = bless { wm => $wm, id => $id }, 'X11::WM::class';
+            $wm->{byid}{$id} = bless { wm => $wm, id => $id },
+                'X11::WM::class';
         }
     }
     for my $wm_c ( values %{ $wm->{byid} } ) {
@@ -138,9 +148,9 @@ sub sort {
     my $max   = -1;
     if ($order) {
         for ( values %$order ) {
-            croak(    "values in order hash should be nonnegative integers,"
-                    . " not '$_'" )
-                unless /^\d+$/;
+            croak(    "values in order hash should be "
+                    . "nonnegative integers, not '$_'" )
+                unless m|^\d+$|;
             $max = $_ if $max < $_;
         }
     }
@@ -232,7 +242,7 @@ sub SouthEast () { 9; }
 sub Gravity {
     my $arg = shift;
     $arg = shift if ref $arg;
-    return undef unless $arg =~ /^\d$/;
+    return undef unless $arg =~ m|^\d$|;
     (   undef,
         qw(
             NorthWest
@@ -386,7 +396,8 @@ sub monitor_property_and_structure_change {
     my $id   = $wm_c->{id};
     $X->ChangeWindowAttributes( $id,
         event_mask =>
-            $X->pack_event_mask( 'PropertyChange', 'SubstructureNotifyMask' ) );
+            $X->pack_event_mask( 'PropertyChange', 'SubstructureNotifyMask' )
+    );
 }
 
 sub attributes {
@@ -493,7 +504,8 @@ sub wm_normal_hints {
     my %wm_normal_hints = @_;
     if (%wm_normal_hints) {
         my $value
-            = pack( 'L*', map { $wm_normal_hints{$_} || 0 } @wm_normal_hints );
+            = pack( 'L*',
+            map { $wm_normal_hints{$_} || 0 } @wm_normal_hints );
         $X->ChangeProperty(
             $wm_c->{id},         # window
             $WM_NORMAL_HINTS,    # property
@@ -519,7 +531,8 @@ sub wm_normal_hints {
 sub parse_geometry {
     my ( $wm_c, $geometry ) = @_;
     my $X = $wm_c->{wm}{X};
-    my ( $w, $h, $x, $y ) = $geometry =~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
+    my ( $w, $h, $x, $y )
+        = $geometry =~ m|^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$|;
     my $g;    # gravity
     my $screenwidth  = $X->width_in_pixels;
     my $screenheight = $X->height_in_pixels;
@@ -533,27 +546,27 @@ sub parse_geometry {
         $y                 = $wm_c{y} if $y eq '00';
     }
 
-    if ( my ($a) = $x =~ /^-\+?(-?\d+)/ ) {
-        if ( my ($b) = $y =~ /^-\+?(-?\d+)/ ) {
+    if ( my ($a) = $x =~ m|^-\+?(-?\d+)| ) {
+        if ( my ($b) = $y =~ m|^-\+?(-?\d+)| ) {
             $g = X11::WM::SouthEast;
             $x = $screenwidth - $w - $a;
             $y = $screenheight - $h - $b;
         } else {
             $g = X11::WM::NorthEast;
             $x = $screenwidth - $w - $a;
-            $y =~ s/^\+//;
+            $y =~ s|^\+||;
             $y = 0 + $y;
         }
     } else {
-        if ( my ($b) = $y =~ /^-\+?(-?\d+)/ ) {
+        if ( my ($b) = $y =~ m|^-\+?(-?\d+)| ) {
             $g = X11::WM::SouthWest;
-            $x =~ s/^\+//;
+            $x =~ s|^\+||;
             $x = 0 + $x;
             $y = $screenheight - $h - $b;
         } else {
             $g = X11::WM::NorthWest;
-            $x =~ s/^\+//;
-            $y =~ s/^\+//;
+            $x =~ s|^\+||;
+            $y =~ s|^\+||;
             $x = 0 + $x;
             $y = 0 + $y;
         }
@@ -674,8 +687,8 @@ sub expand {
 
 1;
 
-#,,.,,..,,,..,.,.,,..,..,,.,,,.,,,,,,,..,,,.,,..,,...,...,,,.,,..,.,,,...,,..,
-#BDVQ4UGMD34OPC4CPDMCAIOTK5RLJ4CL3KAHFKZWLXYTANMYTB3CC3MTENZ6RYJK3FVNG6FPOTFLY
-#\\\|U6TNWKJWIQWNP4NVTFTZZHDS7M26ZYMMOZEKZN7CI7SVH2O26P3 \ / AMOS7 \ YOURUM ::
-#\[7]PJKU6CG6LLFE4BD3CIKIJ5EO5PMP7M54W3E5U2DFBJ4ERNT2HQCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,.,,,...,.,.,...,..,,,,,,,,.,..,,...,...,,..,,,.,,..,.,.,,,,,
+#B7VOH2F6DGGCNA4YROC3FLOQYFZK64YVQISBOGGGXYDGR3B5TG65M6PU5RXKX4MOTUCCHEIFEEPNE
+#\\\|NXVGWEO5WEL6IBGQ5WLYSWNTKFBTCD7YULEFCUY2SDM6SL7UXZU \ / AMOS7 \ YOURUM ::
+#\[7]LZHMC4JPTJYW5VLQ6VP3TPV7RIO7HFLVWUYN27SR5F7Q5J77UGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
