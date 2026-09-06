@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [check-console-zenka-precedent-before-cross-zenka-keystroke-relay](feedback-check-console-zenka-precedent-before-cross-zenka-keystroke-relay.md) — 2026-09-06: built (then reverted) an nshell-side per-keystroke relay to a different zenka over cube for a modal UI — structurally broken (unfixable async race between the client's own keystroke loop and the target's async reply) plus a security regression (secrets as plain cube command args); check for a self-contained console-zenka precedent (user-edit's own-terminal + hybrid-loop-mode shape) before ever routing individual keystrokes as cross-zenka commands. also: internal module/file name is never automatically the wire command name — check `<base.cmd>`/`commands` output first
 - [qw-pipe-delimiter-collision](feedback-qw-pipe-delimiter-collision.md) — `qw| foo|bar |` is a syntax error when an element contains a literal `|` (e.g. Getopt::Long's `options|h` alias) — the embedded `|` closes the qw early; switch that one element to `qw{ }`/`qw[ ]`, keep `qw| |` elsewhere in the same list
 - [coding-context-size-cmd-returned-stale-floor](feedback-coding-context-size-cmd-returned-stale-floor.md) — 2026-09-04: plain `coding.context-size` returned the static config floor not the live auto-expanded n_ctx (fixed, real but minor); the actual cause of "switching to a lighter model doesn't help" was `bin/mcp-server-p7`'s `_model_chunk_size()` caching `safe-context-size` for the whole long-lived process, ignoring later model switches (fixed too) — grep for the cache variable itself, not just the command name, when a value looks stuck across a state change
 - [upgrade-substrate-not-revert-on-tool-limits](feedback-upgrade-substrate-not-revert-on-tool-limits.md) — when a tool (format-code, a parser, codegen) hits a case it mishandles, fix/upgrade the underlying system so it's handled correctly, never revert or patch around it; confirmed by the user as the correct default for protocol-7's "error-free computing substrate" ambition, already the default approach without reminders
@@ -121,8 +122,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [audit-shared-state-when-multi-instance-bolted-on](feedback-audit-shared-state-when-multi-instance-bolted-on.md) — when a commit adds multi-instance/auxiliary support to single-instance code, `git show` that exact commit against the file: if it only touched the control-flow line, every OTHER line (globals, alarming log wording) is suspect for the same unaudited single-path assumption — found via X-11 xvfb session, see [[project-x11-xvfb-crash-loop-and-cleanup-2026-09-06]]
 - [arrow-call-into-bare-shift-constructor](feedback-arrow-call-into-bare-shift-constructor.md) — `Class->new($arg)` silently discards `$arg` if `new()` does a single bare `shift` instead of shifting the class first; vendored `X11::WM.pm` had this bug codebase-wide for years, masked because the primary's own `$ENV{DISPLAY}` coincidentally matched what the buggy fallback connected to anyway — only became visible building a genuinely new connection target (xvfb auxiliary display)
 
-#,,,.,,.,,.,.,.,.,,..,,,.,.,,,,,,,.,.,,,.,,,.,..,,...,...,.,.,..,,,.,,.,.,.,.,
-#6B6FDQRW2FHWHKAGLSN4WT44R4AI5ETXJX2DRXY22YVZWG4OMK4GAZOG6OTS26CGBUGT53USNIEQY
-#\\\|R2OIK4LDDO5PLC2ZXY56C44R775DIMIF7CLE5FGLI56A7FN3MGN \ / AMOS7 \ YOURUM ::
-#\[7]G5XB7VLFRLQOY26D5WKBAK5RFP7KHP5KT6VCUL4R6LO67GJPYCCI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,,,,,.,,,,..,,,.,..,,,,.,...,..,,...,.,.,...,...,,.,,,,,,...,
+#JIIDMATYACI6IQ7PZTEWIC6ZIVPCHXX4R6I7BHJUQPVCKFYJ4CXX5PGPVNHSQCPOAKNIMARG4R5BW
+#\\\|IVGJYRFA2QIADOFJ7A2FPCWLNKUQDQS4CBXHFLRV6ZCT7QPJQFJ \ / AMOS7 \ YOURUM ::
+#\[7]3EMGZ265BMZ4R6B3JZZMB5Q5MDNRNXODKXA5MSQ6CISV7ZKJZCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
