@@ -1,113 +1,102 @@
-# Session Handover — 2026-09-06
+# Session Handover — 2026-09-06 (continued)
 
-**No code shipped this session — an architecture decision landed instead,
-after a wrong attempt was caught live, built out further, and cleanly
-reverted.** Working tree carries only `data/tasks/credential-fabric-ui-
-interactive.md` (uncommitted, needs signing) and the two `data/ai-mem/
-claude/*.md` files below.
+**Built the decided-on replacement for the reverted nshell-relay
+attempt: a new console zenka, `vault-edit`. Full scaffold written,
+syntax-checked against the same baseline as `user-edit`'s own working
+files — but it has NEVER BEEN EXECUTED, not once.** No live terminal
+test, no `Protocol-7 vault-edit commands` smoke test, nothing. Treat
+everything below as "should work by careful analogy," not "works."
 
-## What happened, in order
+## What's here (previous entry's summary of the revert still applies —
+see git history / `data/tasks/credential-fabric-ui-interactive.md` for
+the full account of what was tried and killed before this)
 
-1. Read `data/tasks/credential-fabric-ui-interactive.md`. Found it stale
-   (predates the `credential_fabric`→`cred-mesh` rename) and found that
-   its phase 1+2 scope (read-only views, selection state, slot actions —
-   rotate/revoke/grant/approve) was **already implemented** in
-   `src/cred-mesh.ui.interactive.*` and the render layer. Phase 3
-   (key-holder unlock dialog) is correctly blocked: the fabric-secret
-   encryption migration it assumes hasn't landed (`key_holder.child`
-   still writes the secret with the `U:` unencrypted prefix
-   unconditionally).
+New zenka `vault-edit` — a thin interactive terminal client to `cred-mesh`,
+modeled on `user-edit`↔`users`:
 
-2. What was actually missing: nshell had the `cred-mesh_ui_active`/
-   `cred-mesh_ui_pending` flags stubbed in `nshell.shell_loop` but nothing
-   ever read them — no real single-key (`j/k/r/x/g/a/?/q`) dispatch
-   existed. Built it: a new branch in `nshell.read_from_buffer` (mirroring
-   the existing `search_mode`/history-mode key interception) plus a
-   prompt-mode handoff via `nshell.handler.command_reply` matching a
-   returned ascii-frame's header text. Committed locally as `7af528e8c`.
+- `cfg/zenki/vault-edit/zenka.v7` — auth as invoking unix user (subname
+  `[vault-edit]`), no `[base.get_session_id]`,
+  `[base.call.console_command:<system.args>]`, deliberately no top-level
+  `[zenka.loop]` (same hybrid-console shape as `user-edit`).
+- `src/vault-edit.init_code` — auth_name/subname setup, per-session state
+  reset.
+- `src/vault-edit.term_init` / `.term_restore` — near-verbatim
+  `user-edit` clones (raw termios, hide cursor, `end_code` restore
+  callback).
+- `src/vault-edit.setup_stdin_watcher` — just the STDIN `event.add_io`
+  registration (no local render-on-mutation watcher needed — there is no
+  local render step, cred-mesh renders everything server-side).
+- `src/vault-edit.console.show` — entry point: resolves `$cube_sid`,
+  sends the initial `cred-mesh.ui-show [<view>]`, then
+  `[init-done:TRUE]` + `[zenka.loop]`.
+- `src/vault-edit.send_action` — builds and sends one routed
+  `cred-mesh.<verb>` call, addressed via the same self-loopback
+  `"$cube_sid.cred-mesh.<verb>"` form `user-edit.console.start` uses to
+  reach `users` (NOT a bare `cred-mesh.<verb>` target — see the module's
+  own header comment for why that distinction matters). Checks
+  `send.local`'s return value and clears the busy flag with a visible
+  error if cred-mesh is unreachable, rather than wedging silently.
+- `src/vault-edit.handler.reply` — clears `<vault-edit.busy>`, prints the
+  reply payload, arms `<vault-edit.pending>` on a prompt-frame header
+  match (`[ grant access to ]` / `[ approve relay ]`), resumes decoding
+  any keys buffered while the call was outstanding.
+- `src/vault-edit.process_input_buffer` — the actual key table: `j`/`k`
+  (also arrows) = nav, `r`/`x`/`g`/`a`/`?` = actions, `q`/Esc = quit;
+  while a grant/approve prompt is open, ordinary characters are purely
+  local text entry (no round trip) until Enter submits the whole line,
+  Esc cancels locally with no round trip either.
+- `src/vault-edit.handler.stdin_key` — drains STDIN into a buffer
+  unconditionally (even while busy, so the fd empties and the watcher
+  doesn't spin), then calls `process_input_buffer`.
+- `src/vault-edit.quit` — terminal restore + `[base.exit]`.
 
-3. **Live-tested by the user, immediately** — this is the part worth
-   internalizing: two real bugs surfaced only by actually running it
-   (`cred-mesh.ui.show` vs the registered `cred-mesh.ui-show`; then the
-   deeper one, wire command names being the hyphenated `<base.cmd>`
-   aliases in `cred-mesh.init_code`, not the dotted internal module
-   names). Both got fixed. `cred-mesh.ui-show` then rendered correctly
-   through nshell.
+**The actual race-fix, simpler than expected**: not a nested
+`[zenka.loop]` per keystroke. `user-edit` only needs that once (its
+bootstrap fetch) because its field editing afterward is entirely local.
+Every `vault-edit` action needs a real round trip (cred-mesh owns all
+state/rendering), so the fix is a plain `<vault-edit.busy>` flag —
+`process_input_buffer` won't decode further keys while a call is
+outstanding, `handler.reply` clears it and resumes. Safe specifically
+because Perl's event loop is single-threaded (callbacks always run to
+completion before the next fires), unlike nshell's cross-process flag
+coordination which had nothing serializing it.
 
-4. **The user then correctly killed the whole design direction**, not
-   just those two bugs: nshell and cred-mesh are separate OS processes
-   connected only through cube's async command/reply routing. The
-   prompt-mode handoff has a genuine, client-side-unfixable race (an
-   async reply arms a flag on its own timing while the keystroke loop
-   fires independently on STDIN), and routing grant/approve payloads as
-   plain cube command arguments exposes them to `p7-log`/
-   terminal-history — a real security regression for a credential
-   feature, not a style complaint. Full reasoning + comparison against
-   `user-edit` (which owns its own terminal and never routes keystrokes)
-   is in the task file and in
-   `data/ai-mem/claude/feedback-check-console-zenka-precedent-before-
-   cross-zenka-keystroke-relay.md`.
+**Self-review before commit found two things**: fixed the real one
+(`send_action` now checks `send.local`'s return so a dead cred-mesh
+can't wedge the client forever); left one as a documented non-issue in
+the task file (a prompt payload ending in something matching cred-mesh's
+own `session_id=NNN` suffix pattern would get mis-parsed — far-fetched,
+not worth guarding).
 
-5. Cleanly reverted — `7af528e8c` was local-only (`hub/base` never had
-   it), so `git reset --soft f6a59105a` + `git restore --source=
-   f6a59105a` fully backed out all three nshell files and the
-   version-bump churn from signing, no trace left, nothing force-pushed.
+Full detail: `data/tasks/credential-fabric-ui-interactive.md`. Memory:
+`data/ai-mem/claude/project-cred-mesh-console-ui-architecture.md`.
 
-6. Worked out the correct direction with the user, confirmed with a
-   second-opinion advisor pass: **a new, separate, thin console zenka**,
-   modeled exactly on `user-edit`↔`users` — own terminal (`term_init`/
-   `setup_stdin_watcher`/`handler.stdin_key`), auth as the invoking unix
-   user, and route data operations (`interactive-*`, `resolve`,
-   `rotate`, etc.) to the real `cred-mesh` by name over cube. Cred-mesh's
-   existing headless `zenka.v7` (privilege-drop, `get_session_id`,
-   `zenka.loop`) stays untouched — this is additive, not a rewrite of the
-   background service. The load-bearing detail: `user-edit.console.
-   start`'s HYBRID LOOP MODE (send one routed command, then block for
-   *that specific* reply before reading the next key) is what actually
-   removes the race — not "own the terminal" alone.
-
-   A same-name dual-mode option (branching inside cred-mesh's own
-   `zenka.v7`) was considered and dropped: the user pointed out outbound
-   routing already has selection modes (e.g. oldest-first) and replies
-   route back numerically by sid/cmd_id, so the console zenka needs no
-   inbound addressability under the `cred-mesh` name — removing the
-   concern that made same-name reuse look necessary.
-
-Full writeup, including exact code excerpts of the reverted attempt (for
-reference, not to resurrect) and the decided direction: `data/tasks/
-credential-fabric-ui-interactive.md`. Memory: `data/ai-mem/claude/
-project-cred-mesh-console-ui-architecture.md` (state/decision) and
-`feedback-check-console-zenka-precedent-before-cross-zenka-keystroke-
-relay.md` (the general lesson).
+Signing status as of writing: **PLACEHOLDER signature blocks on every new
+file** — not signed, not committed. Whoever holds the sourcecode signing
+passphrase needs to run the sign tool over all eleven new files
+(`cfg/zenki/vault-edit/zenka.v7` + ten `src/vault-edit.*`) before this can
+be committed.
 
 ## Open Items — Not Started
 
-1. **The new console zenka itself** — nothing built yet. Still open: its
-   name (candidates floated: `cred-mesh-console`, `cred-console`,
-   `vault-console` — user's call), its console-command entry-point shape
-   mirroring `user-edit.console.start`, and whether it needs
-   `[base.get_session_id]` at all (likely not, per `user-edit`'s own
-   precedent).
-2. **Phase 3 (key-holder unlock dialog)** — still correctly blocked on
-   the fabric-secret encryption migration, which is its own separate,
-   not-yet-scoped task. Don't build the unlock dialog before confirming
-   that migration exists.
-3. **The task file itself** is uncommitted and needs re-signing before a
-   commit — do that first thing next session if nothing else has touched
-   it.
-4. Everything in the previous handover's still-open items (older
-   `data/tasks/` backlog sweep, `transport.init_code`'s missing
-   zenka-name guard, `transport.handle.quic-hysteria:85`'s sprintf
-   warning, `models.discover :clear:` alone untested) was not touched
-   this session — see `f36dbb66f`/`48e0dee44` if still relevant.
+1. **Run it, at all.** First test, cheapest first: `Protocol-7 vault-edit
+   commands` (should print-and-exit — proves the start file's hybrid
+   shape works before a real terminal is involved; if this hangs, the
+   start file is wrong and nothing else matters). Only then `vault-edit
+   show` (or bare `vault-edit`) at a real tty.
+2. Everything from the prior entry in this same file that predates this
+   session's work (older `data/tasks/` backlog sweep,
+   `transport.init_code`'s missing zenka-name guard,
+   `transport.handle.quic-hysteria:85`'s sprintf warning,
+   `models.discover :clear:` alone untested) — still untouched, see
+   `f36dbb66f`/`48e0dee44` if still relevant.
+3. Phase 3 (cred-mesh's key-holder unlock dialog) — still correctly
+   blocked on the fabric-secret encryption migration, unrelated to this
+   session's work and not re-examined.
 
 ## Verified Live
 
-`cred-mesh.ui-show` rendering through nshell (both before and after the
-command-name fixes) — the one part of this session's exploration that
-does work and stays as-is. Everything else (the single-key dispatch, the
-prompt-mode handoff) was live-tested, found broken at the architecture
-level, and reverted rather than kept — see above.
-
-No commits this session as of writing; the reverted commit (`7af528e8c`)
-never left local `base` and no longer exists on any branch tip.
+Nothing from this session's `vault-edit` work — explicitly, deliberately,
+repeatedly not yet run. The only thing live-verified this session (in the
+earlier, reverted attempt) was `cred-mesh.ui-show` rendering through
+nshell, which stays true regardless and is unaffected by any of this.

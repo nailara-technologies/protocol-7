@@ -7,6 +7,13 @@
 my $address     = $ARG[0]->{'address'}     // '';
 my $slot_budget = $ARG[0]->{'slot_budget'} // {};
 
+## the raw args string ui.cmd.ui-show received, unparsed -- forwarded to a
+## zenka-specific override below [ "[ 2 ] specific ui-show command" ] so it
+## isn't dropped. optional : any OTHER existing caller of ui.unfold that
+## doesn't pass this gets undef here, same as before this field existed, so
+## this is purely additive
+my $raw_args = $ARG[0]->{'raw_args'};
+
 return { 'mode' => qw| false |, 'data' => 'address required' }
     if not length $address;
 
@@ -22,8 +29,15 @@ if ( defined $code{$custom} ) {
 ## [ 2 ] specific ui-show command
 my $cmd = "$address.cmd.ui-show";
 if ( defined $code{$cmd} ) {
+    ## called with the ORIGINAL raw args string, not bare -- found live :
+    ## calling this with zero arguments silently handed the override an undef
+    ## $call->{'args'} regardless of what the original caller typed, which for
+    ## cred-mesh.cmd.ui-show meant session_id/view could never resolve and
+    ## per-session UI state could never be found afterward [
+    ## data/tasks/credential-fabric-ui-interactive.md ]
     my $result
-        = eval { $code{$cmd}->() } // { 'mode' => qw| false |, 'data' => '' };
+        = eval { $code{$cmd}->($raw_args) }
+        // { 'mode' => qw| false |, 'data' => '' };
     return $result if ref $result eq 'HASH' and exists $result->{'data'};
     return { 'mode' => qw| true |, 'data' => $result };
 }
@@ -55,8 +69,8 @@ my $rendered = eval {
 
 return { 'mode' => qw| true |, 'data' => $rendered };
 
-#,,,,,.,.,.,,,,,.,...,,,,,,..,.,,,,,,,,,.,.,.,..,,...,...,,,.,,.,,...,.,,,...,
-#SSWJHKSW44WWUWT4AOLHXYX6SSB3LEDDFM52UUYQYINDRAFYDAUNY5VEDK3XCIS24CCB2G3S27MPI
-#\\\|VE2RWBCI7BUGNBHCGUM52TM3B7C5VIN2IDPFXQX3KEEZ23JLQ6G \ / AMOS7 \ YOURUM ::
-#\[7]56G3LYYBQPC3FYCWAXPIKC65I46YP6YDZEMMJVZNRMHIHMFITMCA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,..,,.,,,.,,,,.,,,,,,..,,,..,..,,...,...,.,.,...,.,.,..,,,..,
+#SQWO7HHGHCTH2DG5YVW22OWB5FDB2TDVE7O5AIYVVXLJMXHKXNJ5U45QEGECTFTTN27XBGV7JUJY2
+#\\\|6MHR5MGJLYH2UB2KNECD5HFSD6NUHMAXKEERBBKFMDNEJ3J7RNC \ / AMOS7 \ YOURUM ::
+#\[7]VQZSQ4RRRU5YMW36FPQ5MJYGBO6UUM27SAWZM5K3XLHCO4UZ3CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

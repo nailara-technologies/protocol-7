@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = vault-edit.console.show
+# descr = open the interactive cred-mesh browser
+# param = [ <view> ]
+
+## view is one of overview | slots | slot <name> | relays | holder ; blank
+## defaults to overview [ cred-mesh.cmd.ui-show's own default ] -- cred-mesh
+## has no per-target identity to require, unlike user-edit's 'start
+## <username>', so unlike that command this one needs no argument at all
+
+## '-no-tty' opens the browser without a terminal : no raw mode, no STDIN
+## watcher.  keys then arrive over the network via vault-edit.cmd.char-add,
+## which replies with the rendered view -- so this can be driven and verified
+## headlessly [ user-edit.console.start / nshell's -no-tty-debug precedent ],
+## without needing a human at a real terminal to relay every test round back
+## and forth
+my $params = shift // '';
+<vault-edit.mode.no_tty_debug> = $params =~ s|\s*-no-tty\b|| ? TRUE : FALSE;
+
+my $view = $params;
+$view =~ s{^\s+|\s+$}{}g;
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid ) {
+    print "\n  << no cube session -- cannot reach cred-mesh >>\n\n";
+    return FALSE;
+}
+
+if ( not -t STDIN and not <vault-edit.mode.no_tty_debug> ) {
+    ## NOTE : no quoted token directly after '<<' -- "<< 'show' .." parses as
+    ## a heredoc opener and breaks the module [ user-edit.console.start's own
+    ## note, same trap ]
+    print "\n  << vault-edit needs a terminal [ "
+        . "use -no-tty when piped/scripted ] >>\n\n";
+    return FALSE;
+}
+
+<vault-edit.cube_sid> = $cube_sid;
+
+if ( not <vault-edit.mode.no_tty_debug> ) {
+    <[vault-edit.term_init]>
+        or return warn 'vault-edit: failed to enter raw terminal mode <{C1}>';
+
+    <[vault-edit.setup_stdin_watcher]>
+        or return warn 'vault-edit: failed to register stdin watcher <{C1}>';
+}
+
+<[base.logs]>->(
+    2,
+    ': opening cred-mesh ' . 'browser [ view=%s ]',
+    $view || 'overview'
+);
+
+## always send an explicit view word, never a bare 'ui-show' : cred-mesh.
+## cmd.ui-show's own session_id extraction is `s|\s+session_id=(\d+)$||`,
+## which requires LEADING WHITESPACE before session_id= -- i.e. it assumes the
+## shape '<view> session_id=NNN'.  a bare call sends just  'session_id=NNN'
+## with nothing in front of it, that regex silently fails to match, and
+## cred-mesh initializes focus under the EMPTY-STRING session key instead of
+## ours -- found live : ui-show itself still "worked" [ it has no
+## missing-session_id guard, so an empty key just renders fine ], but every
+## subsequent interactive-* call [ whose own session_id regex has no such
+## whitespace requirement ] correctly used OUR real session_id and found no
+## focus there, i.e. always "no active ui focus"
+<[vault-edit.send_action]>
+    ->( sprintf( 'ui-show %s', length($view) ? $view : qw| overview | ) );
+
+<[base.init-done]>->(TRUE);    ## standalone client zenka : not v7-managed ##
+
+<[base.zenka.loop]>;
+
+return TRUE;
+
+#,,,,,,..,...,,,.,..,,.,.,,,,,,,,,,..,.,,,...,..,,...,...,..,,..,,.,,,.,,,,,.,
+#BL2OCMVNFAWH336W74ZUCK6S2WF2KJPT4MCFUWPSHCLMJ7OJI6HY452KFNUNATNHXRHD7J2UWV6EK
+#\\\|4KQWHL5U24COYIN4KL664AM5UD3FSDXWWTJQPWFQMDTJ2W47RVQ \ / AMOS7 \ YOURUM ::
+#\[7]J5TPMENMV7SI3Z2S6BRCTFXNVA3LSDLTSZBP7DGEVYYWE57NKACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

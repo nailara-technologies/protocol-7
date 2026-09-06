@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = vault-edit.init_code
+# descr = initialize vault-edit console zenka skeleton
+
+<[base.logs]>->( 2, 'vault-edit zenka initialized' );
+
+## raw terminal mode for the interactive browser [ vault-edit.term_init /
+## .term_restore ] -- linux-native, no XS build issues, API-compatible with
+## POSIX::Termios [ nshell/user-edit precedent ]
+<[base.perlmod.load]>->('Linux::Termios2');
+
+## resolve the invoking Unix user, for the start file's  system.auth-user =
+## <vault-edit.auth_name> [ nshell/user-edit precedent : authenticate as the
+## Unix user, not a zenka credential ]
+<vault-edit.unix_user> //= $ENV{'USER'} // getpwuid($EUID);
+
+## '<user>[<subname>]' routing identity : without the subname this console ##
+## is indistinguishable from any other zenka authenticating as the same    ##
+## unix user [ nshell, user-edit ], and cube cannot address either one --  ##
+## built here rather than in the start file, where '[vault-edit]' would be ##
+## parsed as a command invocation by the config parser                     ##
+<vault-edit.auth_name>
+    = sprintf( qw| %s[vault-edit] |, <vault-edit.unix_user> );
+
+## per-session client state, reset on every [re]init so a mid-session
+## base.cmd.reload cannot leave a stale prompt/busy state armed
+<vault-edit.busy>         = FALSE;
+<vault-edit.pending>      = FALSE;
+<vault-edit.esc.timer>    = undef;
+<vault-edit.input_buffer> = '';
+## set by console.show's '-no-tty' ##
+<vault-edit.mode.no_tty_debug> = FALSE;
+<vault-edit.last_render>       = undef;   ## for vault-edit.cmd.char-add    ##
+
+## array of decoded keys, not bytes -- keeps backspace correct on multi-byte
+## utf-8 input
+<vault-edit.prompt_chars> = [];
+
+return TRUE;
+
+#,,,,,,,,,,.,,.,,,,.,,,.,,,..,...,,.,,...,,,,,..,,...,...,...,,.,,...,,..,.,.,
+#RATJEC4YMUFKW7V4TT62KNWHAPDGDVGKCFBDI2KGPYKPE376KSBUPJVNIZNXY7VPQ5QOGPA645Q6W
+#\\\|GJN2SYP65PN5ID6AHBOY5KS52DJ45I3K4E3VCKETPJ2N5INPB22 \ / AMOS7 \ YOURUM ::
+#\[7]CG7OTBMOT2QTNZUETQ5O5YQZYHSTICG27RHREL6N4427Y27YEMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

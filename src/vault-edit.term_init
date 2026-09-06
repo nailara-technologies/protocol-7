@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = vault-edit.term_init
+# descr = put the terminal into raw non-blocking mode for the interactive
+#         cred-mesh browser
+
+## mirrors user-edit.term_init / nshell.term_init : Linux::Termios2 [ linux-
+## native, no XS build issues ], O_NONBLOCK on STDIN so sysread never stalls
+## the event loop, original termios saved for vault-edit.term_restore.
+
+my $tty_fd = fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## already raw : re-entering would save the RAW state as the original and make
+## restore a no-op, leaving the user's shell without echo
+return TRUE if defined <vault-edit.term.orig_termios>;
+
+## bin/Protocol-7 puts an :encoding(UTF-8) layer on STDIN/STDOUT/STDERR at
+## start-up. sysread() is FATAL on a :utf8 STDIN handle, so that layer has to
+## go regardless -- editor.input.next_key wants raw BYTES anyway, it does its
+## own utf-8 assembly.
+##
+## STDOUT/STDERR ALSO need it dropped here, which is nshell's pattern [
+## nshell.init_code : `map { binmode($ARG) } (*STDIN, *STDOUT, *STDERR)` ],
+## NOT user-edit's [ user-edit deliberately keeps STDOUT encoded, because its
+## output is always a locally-rendered, already-utf8-flagged Perl string ].
+## vault-edit is in nshell's situation, not user-edit's : `$reply->{'data'}`
+## is cred-mesh's WIRE reply, arriving as raw undecoded utf-8 bytes --
+## printing that through a still-active :encoding(UTF-8) STDOUT layer
+## double-encodes it. found live as literal "â" mojibake between rendered
+## frames [ a UTF-8 em-dash reinterpreted byte-by-byte ]
+map { binmode($ARG) } ( *STDIN, *STDOUT, *STDERR );
+
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+return FALSE if not defined $flags;
+fcntl( \*STDIN, F_SETFL, $flags | O_NONBLOCK ) or return FALSE;
+
+my $orig_termios = Linux::Termios2->new();
+$orig_termios->getattr($tty_fd) or return FALSE;
+
+<vault-edit.term.orig_termios> = $orig_termios;
+<vault-edit.term.tty_fd>       = $tty_fd;
+
+my $raw_termios = Linux::Termios2->new();
+$raw_termios->getattr($tty_fd);
+
+## ISIG off too : ctrl-c must reach the key handler as a key rather than
+## killing the process before the terminal can be restored
+$raw_termios->setlflag(
+    $orig_termios->getlflag() & ~( ISIG() | ECHO() | ICANON() ) );
+
+$raw_termios->setattr( $tty_fd, TCSAFLUSH() );
+
+## hide the terminal's own cursor : cred-mesh's rendered frame carries its own
+## inverse-video focus marker, and a visible hardware cursor elsewhere on the
+## line reads as two cursors
+print "\e[?25l";
+STDOUT->flush();
+
+## armed only now that the terminal really is raw, so exit paths that never
+## reach vault-edit.quit [ SIGTERM, an uncaught die ] still restore it.  local
+## cleanup only, no event loop needed
+push <callbacks.end_code>->@*, qw| vault-edit.term_restore |;
+
+return TRUE;
+
+#,,..,..,,.,,,,,,,...,..,,...,.,,,,,,,,,,,,,,,..,,...,...,,,,,,.,,.,.,,..,...,
+#TZDCLK7DPZ5HDFETOFEYE2KRTTWZP2U2LYYR4DSSXUJL24FZ4YRNKNXQSXBVGXNONIMUNIILGQVVQ
+#\\\|Q5DSVHQ2TALVXDUI73DS5COVNUQWUC6CXMXV46VBKOP2SIAB57O \ / AMOS7 \ YOURUM ::
+#\[7]NLLEYJ6R6NVZK2GJPKIHA4PEPQDF66WJA44JM5YSH75YZXAQVECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
