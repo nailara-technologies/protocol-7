@@ -1,5 +1,158 @@
 # task: credential fabric ui — interactive selection + actions [ phase 2 + 3 ]
 
+## status update [ 2026-09-06 triage — read this first ]
+
+this task file predates the `credential_fabric` → `cred-mesh` rename and the
+`modules/` → `src/`, `configuration/` → `cfg/` moves. paths below that say
+`src/credential_fabric.*` or `data/md/design/CRED-MESH-INTEGRATION-AND-UI.md`
+are stale — real locations are `src/cred-mesh.*` and
+`data/md/design/CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md`. `cred-mesh-ui-
+frames.md` and `cred-mesh-wiring.md` are archived as
+`data/tasks/completed/credential-fabric-ui-frames.md` and
+`credential-fabric-wiring.md` — both landed.
+
+**part 1 (selection state) and part 2 (slot actions) are already
+implemented**, closely matching this spec:
+- `src/cred-mesh.ui.interactive.{up,down,refresh,select_view,action,input}`
+  all exist. `action` implements rotate/revoke/grant/approve/detail exactly
+  as described (advisory-grant status line included). `input` completes the
+  grant/approve prompts.
+- phase-1 render modules already carry the `{ rendered, row_keys }` contract
+  and apply `focus_index` highlighting (`\e[7m...\e[27m`) — see
+  `src/cred-mesh.ui.render.registry_list` for the pattern.
+- `grant-prompt.yaml` / `approve-prompt.yaml` exist under
+  `data/yaml/ascii-frames/credential-fabric/`.
+
+**what's actually still missing from part 1+2**: the nshell-side key
+bindings. `src/nshell.shell_loop` detects `cred-mesh.ui[.-]show` and sets
+`<nshell.state>->{'cred-mesh_ui_active'}` / `'cred-mesh_ui_pending'`, but
+nothing in `src/` ever *reads* those flags — grep confirms write-only. So
+today the interactive modules only work if a user types full command lines
+(`cred-mesh.ui.interactive.down` + Enter); the `j`/`k`/`r`/`x`/`g`/`a`/`?`/
+`q` single-key UX this task specifies does not exist yet. See "part 1+2
+remaining work" below for the corrected scope and hook point — it is
+**not** the small edit the original task text implies.
+
+**phase 3 (both 3a and 3b) is blocked and should not be built yet.** the
+fabric-secret encryption migration this phase assumes has not landed:
+`src/cred-mesh.key_holder.child` still writes `fabric.secret` with the `U:`
+(*un*encrypted) prefix unconditionally, and `key_holder.parent` has none of
+the fork-without-phrase / `unlock_required` state machine. 3a's own trigger
+condition — "route to `protocol-7-menu.cmd.input-password` **when an
+unlock is needed**" — never fires while the secret is never encrypted, so
+3a is just as dead as 3b, not an independent small win. per this task's own
+"what NOT to do" section, stop here and confirm with the design-doc author
+before implementing any of part 3.
+(`protocol-7-menu.cmd.input-password` itself does already exist and is a
+real, usable dependency once the migration lands.)
+
+## part 1+2 remaining work — nshell-relay attempt tried, reverted [ was
+## briefly commit 7af528e8c on `base`, local-only, never pushed, soft-reset
+## back out before this note was written — see git reflog if the diff is
+## ever needed again ]
+
+**this approach does not work and should not be re-attempted.** what was
+built: single keys in `src/nshell.read_from_buffer` (mirroring the
+existing `search_mode`/history-mode interception pattern) synthesized full
+`cred-mesh.interactive-*` commands and returned them for `nshell.shell_loop`
+to relay into cube's routing, with `nshell.handler.command_reply` matching
+prompt-frame header text in the reply payload to arm a
+`cred-mesh_ui_pending` flag for the grant/approve free-text handoff. it
+got as far as `cred-mesh.ui-show` rendering correctly through nshell (that
+part is fine — a one-shot render over ordinary cube routing works), but
+two things kill the interactive layer built on top of it:
+
+- **race condition, not fixable from nshell's side**: `cred-mesh_ui_pending`
+  is armed by an async cube reply arriving on its own timing, while
+  `nshell.read_from_buffer` fires independently on STDIN readability. type
+  fast enough after `g`/`a` and a character lands in the wrong mode before
+  the prompt-armed flag catches up. there is no ordering guarantee between
+  those two event sources to fix this with.
+- **security model**: routing grant/approve payloads (and eventually
+  unlock phrases) as literal cube command arguments means they pass
+  through `p7-log`/`terminal-history` and any zenka with routing
+  visibility — the opposite of what a credential fabric should do. this
+  was flagged live during the attempt, not found by inspection after the
+  fact.
+
+nshell and cred-mesh are separate OS processes connected only through
+cube's routed command/reply protocol — there is no mechanism by which
+per-keystroke state can be safely coordinated across that boundary for a
+modal, low-latency UI. this is a structural mismatch, not a bug.
+
+## the correct direction: cred-mesh becomes a console zenka, like user-edit
+
+**how "ui" is actually meant to be interactive in this codebase**:
+`user-edit` (`cfg/zenki/user-edit/zenka.v7`, `src/user-edit.term_init`,
+`src/user-edit.setup_stdin_watcher`, `src/user-edit.handler.stdin_key`)
+owns its own terminal directly. every keystroke, the state it mutates, and
+the redraw all live in the same process — no routing, no reply hook, no
+cross-process flag coordination. `cred-mesh` currently cannot do this: its
+`zenka.v7` drops privileges to a service account
+(`[root.drop_privs:<system.amos-zenka-user>]`), calls
+`[base.get_session_id]`, and enters `[zenka.loop]` immediately as a
+headless background service — the opposite shape from `user-edit`'s
+auth-as-invoking-user / `[base.call.console_command:<system.args>]` /
+no-automatic-loop console pattern. this is why trying to start it
+interactively hits a permission wall today.
+
+**what needs building** (additive — the existing headless service and
+`ui-show` stay exactly as they are, for programmatic/routed callers):
+- a `cred-mesh.console.*` entry point mirroring `user-edit.console.start`
+  (auth as invoking unix user, `[base.call.console_command:<system.args>]`
+  dispatch, hybrid loop mode — `[init-done:TRUE]` + `[zenka.loop]` called
+  by the console command itself, not the start file)
+- `cred-mesh.term_init` / `cred-mesh.setup_stdin_watcher` /
+  `cred-mesh.handler.stdin_key`, same shape as `user-edit`'s
+- the existing phase-2 modules (`interactive.up/down/action/input/refresh`,
+  the `row_keys`/`focus_index` contract) are NOT wasted — they're the
+  right primitives, they just need to be called directly from the local
+  stdin handler instead of dispatched as routed commands. the
+  `%interactive_cmds` → `<base.cmd>` aliases stay useful for
+  scripted/`p7c` access, separate from the interactive console path.
+- unlike `user-edit start <username>`, which must name a target record
+  (there's inherently something to name — like `vim <file>`), cred-mesh's
+  UI is a shared-registry browser with no per-target identity: `ui-show`
+  already defaults its view to `overview` with no argument, so the
+  console entry point can plausibly need no required parameter at all.
+  [ `user-edit`'s own console-invocation ergonomics — needing to type an
+  exact subcommand word like `start` — aren't fully solved either; that's
+  a separate, minor thing to adjust once a better idea has been found, not
+  a blocker here ]
+- once interactivity lives inside cred-mesh's own process, grant/approve
+  payloads (and later, unlock phrases) never need to cross cube as command
+  arguments at all — closing the security gap found above, not just the
+  race condition.
+
+**decided [ 2026-09-06, confirmed with a second opinion ]: a separate thin
+console zenka, not a mode-branch inside cred-mesh's own `zenka.v7`.**
+naming-collision on cube was the concern that made a same-name dual-mode
+option look necessary — dropped once confirmed that outbound routing
+already has selection modes (e.g. oldest-first) and replies route back
+numerically by sid/cmd_id, so the console instance needs no inbound
+addressability under the `cred-mesh` name at all. that leaves the
+`user-edit`↔`users` shape as the strictly better option: cred-mesh's
+existing headless `zenka.v7` (privilege-drop, `get_session_id`,
+`zenka.loop`) stays completely untouched — no new conditionals on the
+zenka that holds credential material — and the new console zenka is a
+pure client, auth'd as the invoking unix user, that routes every action
+(`interactive-*`, `resolve`, `rotate`, etc.) to the real `cred-mesh` by
+name over cube, exactly as those commands already work today.
+
+the load-bearing implementation detail, carried over from `user-edit.
+console.start`: send one routed command, then `[base.init-done:TRUE]` +
+`[base.zenka.loop]` to block **for that specific reply** before reading
+the next keystroke. this is what actually eliminates the nshell-relay
+race — not "own the terminal" alone, but serializing keystroke → routed
+call → reply → repaint as one sequential turn per key, so there are never
+two independent async event sources racing over the same modal state.
+
+still open before implementation starts: the new zenka's name, its
+console-command shape/entry point (mirroring `user-edit.console.start`),
+and whether it needs `[base.get_session_id]` at all (likely not, per
+`user-edit`'s own precedent of skipping it for a personal interactive
+console).
+
 ## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
 
 the **interactive verbs** here (select / act / unlock) operate on
@@ -317,8 +470,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,..,.,,,...,...,...,...,..,,,,.,,,.,,.,,.,.,..,,...,...,,..,...,.,.,.,,,,..,
-#3AHCY75RGI75R6XTRPTDBD4IPYNQBARUZ7YMA332575GCVF4KBIY36PM6S6E3SFBMAHHE7T5KZ6YG
-#\\\|XOCQ4KNOS7LMXTPHXSK2CT6XO74ANYCIS5IIH4KAOM7VF52QHWU \ / AMOS7 \ YOURUM ::
-#\[7]KR4IRKW5LSROWPFWV3W5XBIBAASVXCLRWIYV7NJIIAFTF3OQXACA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,.,,.,.,,,,,..,,..,,,,.,..,,..,,...,...,,,.,.,.,..,,.,,,.,,,
+#45OERNBWNMPXWN34FXRG5L4V2VZTYXGO4LWQDMEM7MIUOQXDMWJIXFK3S2KCCYFSQMGWLYPHS4QXO
+#\\\|EDYU2ZFMOTC3ZWLVBAJQUXFOZPY6VYUGQJT23J3FBYWVFBFEBZ7 \ / AMOS7 \ YOURUM ::
+#\[7]GJPXIACY4TAFT7TSZUBUUBD7JN4DPHPYLFNYFBG55B7EPUQQUSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

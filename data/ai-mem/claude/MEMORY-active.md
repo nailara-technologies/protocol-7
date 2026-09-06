@@ -60,6 +60,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md), [ascii-minimap](topic-ascii-minimap.md) — planned tree-view, btop2 minimap
 - [dot-path-case-notation](topic-dot-path-case-notation.md), [deparse-code-features](topic-deparse-code-features.md) — path-case written; deparse tree later
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md), [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — menu tree planned; transport.select LANDED
+- [cred-mesh-console-ui-architecture](project-cred-mesh-console-ui-architecture.md) — 2026-09-06: nshell-relay approach for cred-mesh's interactive UI tried and reverted (race + security exposure); decided direction is a new, separate thin console zenka mirroring user-edit↔users — not yet named or built
 - [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; 5 frames pending
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs nest desktops; step 6 open
 - [bin-todo-style-refresh](topic-bin-todo-style-refresh.md) — port ascii.frame border/color logic into AMOS7::TERM for bin/todo; sized for one Opus/Kimi dispatch
@@ -130,8 +131,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [coding-cpu-spawn-day-2026-08-26](topic-coding-cpu-spawn-day-2026-08-26.md) — LANDED (4 commits): CPU inference spawning works for the first time (LD_LIBRARY_PATH gpu-only fix, RAM-aware context clamp, dead-code dependency wiring moved to init_code, GPU foreign-process-exclusion fix, self-test var-watcher wake). Two open follow-ups, read before touching this area: `coding-self-test-true-parallelization.md` (full audit done + trustworthy, exact per-backend-watcher fix needed, a broken partial edit was caught+reverted — do not reproduce it) and `coding-backend-aware-timeout-scaling.md` (GPU-tuned timeouts ~9-10x too tight for CPU, live t/s measurement is the planned fix, not a flat multiplier). See also [[feedback-event-add-var-per-key-not-per-hash]]
 - [deps-tracking-var-relocation](project-deps-tracking-var-relocation.md) — 2026-08-31, fully traced not implemented: base.register_pm_deps writes per-zenka dep touch-files into tracked cfg/zenki/<zenka>/deps/p-mod/, causing 3 real bugs at once (read-only root installs, live-reproduced on host atom; dev-repo ownership hijacking via its EUID==0 chown-fixup; init_modules/drop_privs ordering inconsistency across 124 zenki) — fix is relocating to var/ (mirrors var/sys-deps/tracked.yaml, already proven this session), NOT a new "dependencies zenka" as first floated. Also covers retiring base.known_dependencies (static/global, can't track user-written zenki) — base.list.subroutines is a separate, NOT-dead thread, see [[vision-tree-based-module-storage-and-namespace-manifests]]
 
-#,,..,,..,,,,,.,,,.,.,.,.,.,,,,..,.,,,,,,,...,..,,...,...,.,.,...,,,,,.,,,.,.,
-#PTVOXPY6PM4WD5Z2CMLGOEFLXMY6PN76C7JXXQB4HHSRIXDOSZCP6RVGOALUJMAMTMP3UHJNBXVFM
-#\\\|XQTSQIHXHSZOM5PE3H6WG7SG4PEH77A57B2DW3BFKWDMISLCT3R \ / AMOS7 \ YOURUM ::
-#\[7]QDSK6KANEZ3GUYD3E67UX4P33R7K5S3PHLD6YIX6MDYKNKVVK4AY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,.,,,,.,,,.,,...,.,.,,,,,,..,..,,...,..,,.,.,,,,,..,,.,,,,.,,
+#ONBJB4VP5O5RTNHU3DFNFVOUXJHAZI7IGHKISE4V5VI2I3HOPBU5ISYYUTCSSU4JNNQKTWX4EOOES
+#\\\|US3WJQPD343QYATFR4BIOC4TFSBJIHQF6XCV22CPEBPAVW7HFRT \ / AMOS7 \ YOURUM ::
+#\[7]I75IKLGHL2XB6JAYPXB5M6SKHMZSMNAQ3KJNPF3CJAI5AAMIAQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
