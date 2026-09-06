@@ -9,19 +9,82 @@ my ( $server, $display_str ) = @ARG;
 my $X = $server->{'conn'};
 return FALSE if not defined $X;
 
+## X11::Protocol->new() installs its OWN default_error_handler [ which      ##
+## croak()s ] on every connection -- finalize_server replaces this with a   ##
+## non-dying warn-and-continue handler for the primary specifically so a    ##
+## benign, well-formed protocol error [ BadWindow/BadAtom from a single bad ##
+## request, common during window-detection races -- exactly what            ##
+## X-11.WM.update's own retry loop is designed to tolerate ] doesn't take   ##
+## the whole call down. Confirmed live 2026-09-06: without this, a disp-ctl ##
+## get-windows call against an auxiliary display crashed with "error during ##
+## command invocation" the instant WM.update hit a stale window id.         ##
+## Adapted, not reused verbatim -- the primary's handler calls              ##
+## X-11.reconnect on a connection-lost error, which is entirely primary-    ##
+## specific [ reinitializes <X-11.obj> against the PRIMARY's own configured ##
+## display ] and must never run for an auxiliary connection .,              ##
+$X->{'error_handler'} = sub {
+    ( my $self, my $err_data ) = @ARG;
+
+    if ( !length($err_data) ) {
+        warn(
+            sprintf '[protocol-error] %s : unknown protocol '
+                . 'error [ xvfb server crashed ? ] <{C7}>',
+            $display_str
+        );
+        return;
+    }
+
+    chomp( my $err_str = $self->format_error_msg($err_data) );
+    $err_str =~ s|\s*\n+\s*| << ! >> |g;
+    warn( sprintf '[protocol-error] %s : %s <{C7}>', $display_str, $err_str );
+};
+
 ## localize the SAME globals X-11.WM.update / X-11.pool.query already read ##
 ## -- reuses their existing, tested WM-scan + WSL/no-WM fallback logic     ##
 ## unchanged for this display, instead of duplicating it .,                ##
 local $data{'X-11'}{'obj'} = $X;
 
-$server->{'wm'} = X11::WM->new($display_str);
+## X11::WM::new($arg) only uses $arg as a display STRING to connect to if
+## ref($arg) is false -- given a non-ref [ eg. this display's address string ]
+## it silently discards it and connects to $ENV{DISPLAY} instead, which is the
+## PRIMARY's display, not this one. Must pass the actual connection object so
+## it's reused directly, no second connection .,
+$server->{'wm'} = X11::WM->new($X);
 local $data{'X-11'}{'WM'} = $server->{'wm'};
 
 <[X-11.WM.update]>;
 
-## extensions ##
+## extensions -- a version-query failing here is a normal, EXPECTED        ##
+## possible outcome of probing a capability [ eg. confirmed live           ##
+## 2026-09-06: Xvfb's RANDR advertises itself via init_extension but       ##
+## rejects RRQueryVersion's exact wire format with BadLength -- a genuine  ##
+## protocol-version mismatch, not a bug, and already handled correctly [   ##
+## has_randr just ends up FALSE ] ]. the connection's normal error_handler ##
+## warn()s unconditionally though, which lands at log level 0 on every     ##
+## single xvfb-start -- NOT acceptable for regular operation just because  ##
+## the outcome is handled ["clean logs" policy applies to                  ##
+## expected-but-uncommon outcomes too, not only truly-benign chatter like  ##
+## xkbcomp's]. swap in a quiet handler for exactly the duration of each    ##
+## probe -- the loud, warn()-based handler stays in effect for every OTHER ##
+## call on this connection, where a protocol error really would be         ##
+## unexpected .,                                                           ##
+my $quiet_probe_handler = sub {
+    my ( $self, $err_data ) = @ARG;
+    return if !length($err_data);
+    chomp( my $err_str = $self->format_error_msg($err_data) );
+    $err_str =~ s|\s*\n+\s*| << ! >> |g;
+    <[base.logs]>->(
+        3,
+        '%s : extension probe returned %s '
+            . '[ expected-possible, not an error ]',
+        $display_str,
+        $err_str
+    );
+};
+
 my $has_randr = FALSE;
 if ( $X->init_extension('RANDR') ) {
+    local $X->{'error_handler'} = $quiet_probe_handler;
     eval { $X->RRQueryVersion( 1, 0 ); };
     $has_randr = TRUE if not $EVAL_ERROR;
 }
@@ -29,6 +92,7 @@ $server->{'has_randr'} = $has_randr;
 
 my $has_dpms = FALSE;
 if ( $X->init_extension('DPMS') and $X->DPMSCapable ) {
+    local $X->{'error_handler'} = $quiet_probe_handler;
     eval { $X->DPMSGetVersion(); };
     $has_dpms = TRUE if not $EVAL_ERROR;
 }
@@ -36,6 +100,7 @@ $server->{'has_dpms'} = $has_dpms;
 
 my $is_composited = FALSE;
 if ( $X->init_extension('Composite') ) {
+    local $X->{'error_handler'} = $quiet_probe_handler;
     eval { $X->CompositeQueryVersion(); };
     $is_composited = TRUE if not $EVAL_ERROR;
 }
@@ -45,8 +110,8 @@ $server->{'kbd'} = X11::Keyboard->new($X);
 
 return TRUE;
 
-#,,,.,.,,,.,.,,,.,.,,,.,,,...,,,,,...,,,,,,.,,..,,...,...,...,.,,,,..,,..,,.,,
-#ASTS4ZYJBCE7ZONLDKKJBMKN2BCJZAIH7RVAB6EJT6OMRDYA24PECZ4AGTB5YQG47HBNCZN4C7E6S
-#\\\|XBKTMXACCCK7264VSB2COXC3VLTY26AZDDWUXL3JIUC5DTGAZKA \ / AMOS7 \ YOURUM ::
-#\[7]MSXJIC5NYDIXRO6C3J6SI5GOHOCHHNLXJZAWAZWE76OVDIV7PKAI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,,.,,...,.,.,,,.,...,.,,,,,.,..,,...,...,..,,,..,.,.,...,,..,
+#MHAXJQFRABEH6KDJK245DKPFRPTGLFEY26QLSFKSG4PBDK3DLOMMLFKVBYAXLQTOVP6R67PINEYP4
+#\\\|PTIXL2RKOVMBPFDPMIOAD2EVHSBHX5H5O6AZGZWVYET66T5TQ5Z \ / AMOS7 \ YOURUM ::
+#\[7]J2XVML4TBDGMI6Q6JNF3LAM2AFKUPD7SEGFP2MJQGGA76NECZ6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
