@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = X-11.helper.setup_display_wm
+# descr = build the minimal per-server WM\keyboard\
+#          extension bundle for a non-primary display
+
+my ( $server, $display_str ) = @ARG;
+
+my $X = $server->{'conn'};
+return FALSE if not defined $X;
+
+## localize the SAME globals X-11.WM.update / X-11.pool.query already read ##
+## -- reuses their existing, tested WM-scan + WSL/no-WM fallback logic     ##
+## unchanged for this display, instead of duplicating it .,                ##
+local $data{'X-11'}{'obj'} = $X;
+
+$server->{'wm'} = X11::WM->new($display_str);
+local $data{'X-11'}{'WM'} = $server->{'wm'};
+
+<[X-11.WM.update]>;
+
+## extensions ##
+my $has_randr = FALSE;
+if ( $X->init_extension('RANDR') ) {
+    eval { $X->RRQueryVersion( 1, 0 ); };
+    $has_randr = TRUE if not $EVAL_ERROR;
+}
+$server->{'has_randr'} = $has_randr;
+
+my $has_dpms = FALSE;
+if ( $X->init_extension('DPMS') and $X->DPMSCapable ) {
+    eval { $X->DPMSGetVersion(); };
+    $has_dpms = TRUE if not $EVAL_ERROR;
+}
+$server->{'has_dpms'} = $has_dpms;
+
+my $is_composited = FALSE;
+if ( $X->init_extension('Composite') ) {
+    eval { $X->CompositeQueryVersion(); };
+    $is_composited = TRUE if not $EVAL_ERROR;
+}
+$server->{'is_composited'} = $is_composited;
+
+$server->{'kbd'} = X11::Keyboard->new($X);
+
+return TRUE;
+
+#,,,.,.,,,.,.,,,.,.,,,.,,,...,,,,,...,,,,,,.,,..,,...,...,...,.,,,,..,,..,,.,,
+#ASTS4ZYJBCE7ZONLDKKJBMKN2BCJZAIH7RVAB6EJT6OMRDYA24PECZ4AGTB5YQG47HBNCZN4C7E6S
+#\\\|XBKTMXACCCK7264VSB2COXC3VLTY26AZDDWUXL3JIUC5DTGAZKA \ / AMOS7 \ YOURUM ::
+#\[7]MSXJIC5NYDIXRO6C3J6SI5GOHOCHHNLXJZAWAZWE76OVDIV7PKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

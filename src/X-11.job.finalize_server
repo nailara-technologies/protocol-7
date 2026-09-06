@@ -46,6 +46,14 @@ if ( defined $fh and defined $pid ) {
 
 <[base.logs]>->( 1, "[%s] : .. display ready .. :", $display_str );
 
+## auxiliary [ eg. xvfb ] display: build the minimal per-server window-     ##
+## management bundle [ WM, keyboard, extension flags ] so X-11.disp-ctl can ##
+## operate on it -- NOT the richer host-mode-specific setup below [         ##
+## screen-size fitting, background image, xrandr ], which only makes sense  ##
+## for a real primary display .,                                            ##
+<[X-11.helper.setup_display_wm]>->( $server, $display_str )
+    unless $is_primary;
+
 return unless $is_primary;
 
 ## primary display: wire up the global X-11 object and finish startup ##
@@ -354,8 +362,19 @@ if (<X-11.window_enumeration>) {
     );
 }
 
-#,,..,,..,.,.,..,,,,,,.,.,.,,,..,,,,,,.,.,...,..,,...,...,...,,,,,...,,,.,..,,
-#6KVFYD4MYGI2YKX37MXAH76KN6HJQI7HJXH3OHEZLRK6E5V23232TPWMU4FU7SKVBNNRBOVUBEXE2
-#\\\|SBH7U74UK6AHUBWSOYLHHKCO7VI45UMC5FNYEAH3O2MQXYUUEIX \ / AMOS7 \ YOURUM ::
-#\[7]GDMBF7KAE3F5R4OVRIG34BRVX2AAOX2GVQKKA7QIZLZINOGR26CI 7  DATA SIGNATURE ::
+## mirror the now-fully-populated globals onto $server too [ read-only,     ##
+## after everything above has set them -- zero risk to the logic above ] so ##
+## X-11.disp-ctl finds a consistent per-server bundle here exactly the same ##
+## shape as an auxiliary display's [ built in  X-11.helper.setup_display_wm ##
+## ], whether $display_str happens to be the primary or not .,              ##
+$server->{'wm'}            = <X-11.WM>;
+$server->{'kbd'}           = <X-11.kbd>;
+$server->{'has_randr'}     = <X-11.has_randr>;
+$server->{'has_dpms'}      = <X-11.has_dpms>;
+$server->{'is_composited'} = <X-11.is_composited>;
+
+#,,.,,,..,,.,,,,.,...,,,,,,,.,.,.,.,.,,.,,..,,..,,...,...,,,.,,.,,,,.,,,.,,..,
+#LC7JNSKHGYGCIZRMAW25VEJ2S2MCEICRSZLDWWUF2DZFUKG6SZI6NLBH3G3UJGYEUIM4CFUZ4R5FI
+#\\\|ABJQMR563UN6UNEYGQLLAW6QUHW64M6M4GRL43MPLZHQJO2QTNK \ / AMOS7 \ YOURUM ::
+#\[7]ELAPJ3UE5OFEYX3TAA52PUAF3TC5YEAGVMWPEYNDDQGEP3NQQKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

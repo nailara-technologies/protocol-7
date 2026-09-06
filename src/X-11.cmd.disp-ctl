@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = X-11.cmd.disp-ctl
+# param = <display_num> <sub-command> [args...]
+# descr = run an X-11 window command against a specific
+#          display [ eg. an xvfb auxiliary display ]
+
+my @args
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'} // '' );
+
+my $display_num = shift @args;
+my $sub_command = shift @args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected: <display_num> <sub-command> [args...]'
+    }
+    if not defined $display_num or not defined $sub_command;
+return { 'mode' => qw| false |, 'data' => 'invalid display number' }
+    if $display_num !~ m|^\d+$|;
+
+## commands known to schedule work via event.add_timer beyond this call's  ##
+## own scope -- the 'local' substitution below only lasts for the duration ##
+## of THIS call, so a timer firing later would silently read the PRIMARY's ##
+## globals again instead of the targeted display's. an explicit refusal    ##
+## here beats a silent wrong-display bug; checked all 39 existing          ##
+## window-management commands 2026-09-06, this is the only one that defers ##
+## .,                                                                      ##
+my %timer_deferred_unsafe = map { $ARG => TRUE } qw| fade_out |;
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf(
+        "'%s' schedules deferred work and isn't safe via disp-ctl yet",
+        $sub_command )
+    }
+    if exists $timer_deferred_unsafe{$sub_command};
+
+my $target_cmd = "X-11.cmd.$sub_command";
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "unknown sub-command '%s'", $sub_command )
+    }
+    if not exists $code{$target_cmd};
+
+my $display_str = ":$display_num";
+my $server      = <X-11.servers>->{$display_str};
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no live display on %s', $display_str )
+    }
+    if not defined $server
+    or not $server->{'connected'};
+
+## build the per-server WM/keyboard/extension bundle on demand if it isn't  ##
+## there yet [ eg. a display that connected before disp-ctl's own support   ##
+## code was loaded, or the primary before this session's mirroring block    ##
+## ran -- shouldn't happen in normal operation, cheap enough to just fix up ##
+## here rather than fail ] .,                                               ##
+<[X-11.helper.setup_display_wm]>->( $server, $display_str )
+    if not defined $server->{'wm'};
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( '%s has no window-management object', $display_str )
+    }
+    if not defined $server->{'wm'};
+
+local $data{'X-11'}{'obj'}           = $server->{'conn'};
+local $data{'X-11'}{'WM'}            = $server->{'wm'};
+local $data{'X-11'}{'kbd'}           = $server->{'kbd'};
+local $data{'X-11'}{'has_randr'}     = $server->{'has_randr'};
+local $data{'X-11'}{'has_dpms'}      = $server->{'has_dpms'};
+local $data{'X-11'}{'is_composited'} = $server->{'is_composited'};
+
+## an empty-but-defined 'args' string is NOT the same thing as no args at  ##
+## all to some target commands [ eg. X-11.cmd.get-windows treats a defined ##
+## empty pattern as "filter by nothing found" rather than "no filter" --   ##
+## confirmed live 2026-09-06 ] -- match native zero-arg calling convention ##
+## exactly: undef, not '' .,                                               ##
+my $sub_call = { %$call, 'args' => ( @args ? join( ' ', @args ) : undef ) };
+return $code{$target_cmd}->($sub_call);
+
+#,,,.,,.,,,,.,...,,,,,,.,,,,,,,.,,.,,,.,.,..,,..,,...,...,,,,,.,,,...,..,,.,,,
+#TMODXDCCIKJAX3KMSQPA6VT7VPKQMWSUMBQRCH6CJ73HL252RAJH2HBUW5LABSVYG4MUZJS5KXF3E
+#\\\|OP34WLILHM2HPCRDOQ5UXPPZTX6GBDQGZNYLRMIWBK2JQPRGVNI \ / AMOS7 \ YOURUM ::
+#\[7]3PITJLJ6RCR37EWE4UA3JWYR4JXUM5ARBQO65OP3RIP66AF55MDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
