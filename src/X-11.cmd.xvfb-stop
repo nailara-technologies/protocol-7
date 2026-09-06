@@ -7,7 +7,7 @@
 my @args
     = ref( $call->{'args'} ) eq qw| ARRAY |
     ? $call->{'args'}->@*
-    : split( m| +|, $call->{'args'} );
+    : split( m| +|, $call->{'args'} // '' );
 my ($display_num) = @args;
 
 return { 'mode' => qw| false |, 'data' => 'display number required' }
@@ -15,7 +15,16 @@ return { 'mode' => qw| false |, 'data' => 'display number required' }
 return { 'mode' => qw| false |, 'data' => 'invalid display number' }
     if $display_num !~ m|^\d+$|;
 
-my $stored_pid = <X-11.xvfb.pid>->{$display_num};
+my $display_str = sprintf qw| :%s |, $display_num;
+my $entry       = <X-11.servers>->{$display_str};
+
+## only an xvfb-mode entry may be stopped here -- <X-11.servers> is shared ##
+## across all display modes [xorg\xvfb\..], and this must never be able to ##
+## kill the primary\host display server .,                                 ##
+my $stored_pid
+    = ( defined $entry and ( $entry->{'mode'} // '' ) eq qw| xvfb | )
+    ? $entry->{'pid'}
+    : undef;
 
 return {
     'mode' => qw| true |,
@@ -24,8 +33,16 @@ return {
     if not defined $stored_pid
     or not kill 0, $stored_pid;
 
+## mark this pid as an intentional stop before signalling it -- lets       ##
+## X-11.handler.server_output tell a requested stop apart from a genuine   ##
+## crash when it sees the pipe close [ same $pid key, since the io watcher ##
+## registered in finalize_server carries its own fresh 'data' hash, not a  ##
+## reference back into <X-11.servers> ], instead of always logging "shut   ##
+## down unexpectedly" .,                                                   ##
+<X-11.intentional_stop>->{$stored_pid} = TRUE;
+
 if ( kill 15, $stored_pid ) {
-    delete <X-11.xvfb.pid>->{$display_num};
+    delete <X-11.servers>->{$display_str};
     return {
         'mode' => qw| true |,
         'data' => sprintf(
@@ -35,6 +52,10 @@ if ( kill 15, $stored_pid ) {
     };
 }
 
+## signal delivery itself failed -- no pipe-close will ever come for this ##
+## pid, so don't leave the flag behind .,                                 ##
+delete <X-11.intentional_stop>->{$stored_pid};
+
 return {
     'mode' => qw| false |,
     'data' => sprintf(
@@ -43,8 +64,8 @@ return {
     )
 };
 
-#,,,,,.,.,...,..,,,,,,...,,,.,...,,.,,.,,,,..,..,,...,..,,,.,,..,,...,.,,,,..,
-#TS74ZUR7BKCEQNZ44NSO2CWOUSO7HZW56FRZC6EV7BWLDQL5SX4SHR5SRMEL6OCVVUI7UE5E3QNEM
-#\\\|2VJFMFZUUO6BHEBRHBT7HLADCN3RG2HX4SJXKYBCNUPSUE5QXXY \ / AMOS7 \ YOURUM ::
-#\[7]2LVKPG7N4VJ2DZ24PLXDOZ74FWSL2DJKTWPMPC4LEPPOSWTIJWCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,...,,..,.,.,..,,,,,,,,,,...,.,.,..,,...,...,.,,,.,,,.,,,..,,,..,
+#GGQ7FDZFRQUHBYHCYPALBU3J4UDCFF3BDEEEUDQVDH6Q5U4MFGBD34QNALKA2CMQFL2LF6SXRVP5Y
+#\\\|OJNRW5RCGCUDJ46B6AFVY4KQXHQVEEBRTABSPJ4ZGBEEQNAT4ON \ / AMOS7 \ YOURUM ::
+#\[7]2HROQXSHH7JJA5VXXWYMRZBEJFMUMNSAZJRU2JMHPNOPRXGXWSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@
 my @args
     = ref( $call->{'args'} ) eq qw| ARRAY |
     ? $call->{'args'}->@*
-    : split( m| +|, $call->{'args'} );
+    : split( m| +|, $call->{'args'} // '' );
 
 my ( $display_num, $width, $height, $depth ) = @args;
 $depth //= 24;
@@ -93,10 +93,17 @@ $server->{'dep_id'} = $dep_id;
 
 my $params_str = sprintf '-screen 0 %dx%dx%d', $width, $height, $depth;
 
-## start job runs unconditionally [ object_id 0 = no dependency ] -- it's  ##
-## the job that SATISFIES $dep_id by forking Xvfb and polling the socket,  ##
-## so gating it on $dep_id would deadlock : nothing could ever resolve the ##
-## dependency it's waiting on. only finalize waits on $dep_id.,            ##
+## start job runs unconditionally [ object_id 0 = no dependency ] -- it's   ##
+## the job that SATISFIES $dep_id by forking Xvfb and polling the socket,   ##
+## so gating it on $dep_id would deadlock : nothing could ever resolve the  ##
+## dependency it's waiting on. start_server queues its OWN finalize_server  ##
+## job once it actually runs [ same $dep_id ] -- do not ALSO queue one here ##
+## : two finalize_server jobs against the same $dep_id both fire on         ##
+## resolve, double-registering finalize_server's event.add_io watcher on    ##
+## the same [ blocking ] pipe fd, which stalls the whole event loop the     ##
+## next time that fd is read -- confirmed live, 2026-09-06, crash-looped    ##
+## X-11 by tripping v7's heartbeat watchdog. see x11-xvfb-start-async-      ##
+## refactor.md.,                                                            ##
 <[jobqueue.add_job]>->(
     {   'name'            => "X-11 start server $display_str",
         'job_callback'    => qw| X-11.job.start_server |,
@@ -111,24 +118,13 @@ my $params_str = sprintf '-screen 0 %dx%dx%d', $width, $height, $depth;
     }
 );
 
-<[jobqueue.add_job]>->(
-    {   'name'            => "X-11 finalize server $display_str",
-        'job_callback'    => qw| X-11.job.finalize_server |,
-        'object_id'       => $dep_id,
-        'callback_params' => {
-            'display' => $display_str,
-            'primary' => FALSE
-        }
-    }
-);
-
 return {
     'mode' => qw| true |,
     'data' => $display_str
 };
 
-#,,.,,,.,,,,.,..,,...,..,,...,,..,,,,,,,.,...,..,,...,...,,..,.,,,,,,,..,,,.,,
-#DJGNVFVRYL6AFAJ7P5QZIQ7O2Y3CHWOXULTA6JYK4DA72PXYGUZVBFRHXVJJM2C2VAOQLYBPGQ6EI
-#\\\|H6EQR6ZSKGZRA53GXCDRU6OYKZMBHEGFKKOXRDQUPR7H7J25DLD \ / AMOS7 \ YOURUM ::
-#\[7]TTN7JD5FSHE6PQWO54AFUGTFZZ4YTSPT5RAEXB2RAXGEKKTOAIAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,.,..,,.,,,,.,,.,,,,,.,,..,,,,,..,,...,..,,.,.,.,,,...,,.,,,.,,
+#DLHFASF5S7DBRZJK4ANHZ4Z6XWUCXXCW3ZKHUIM3U7SYZGXDEP2F3NY6FVS7ERNJMM7LJJ2PN57Y6
+#\\\|NRWDGTSEDKOOSR4PNZOJODZYTTAP3RYJEZ6D6OECING7MHL2OOP \ / AMOS7 \ YOURUM ::
+#\[7]3ZGPMOPV75D5ZWI6UZR2M2UWDEKAY7WVDOETKXY6B44YW3PC2GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

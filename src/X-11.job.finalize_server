@@ -25,7 +25,20 @@ if ( defined $fh and defined $pid ) {
             'data'    => {
                 qw| bin     | => $bin_name,
                 qw| pid     | => $pid,
-                qw| display | => $display_str
+                qw| display | => $display_str,
+
+                ## known-benign chatter [ same 'log_whitelist' convention  ##
+                ## as openbox.start_wm ] -- demoted to level 3 instead of  ##
+                ## the normal level 2 passthrough, so a diagnostic session ##
+                ## at verbosity 2 sees only output that isn't already      ##
+                ## known-safe .,                                           ##
+                'log_whitelist' => [
+                    qw| xkbcomp |,
+                    'Multiple symbols for level \d+/group \d+ on key',
+                    'Symbol map for key .+ redefined',
+                    'Using last definition for conflicting fields',
+                    'Using \S+, ignoring \S+',
+                ]
             }
         }
     );
@@ -341,8 +354,8 @@ if (<X-11.window_enumeration>) {
     );
 }
 
-#,,.,,,,,,,..,,..,.,,,,,,,.,.,.,.,,..,,..,...,..,,...,..,,...,.,,,.,,,,,,,,,,,
-#F6ZP3ZQNLIG5M3MSQ2PK4WHPIQXB5YNDX3Q73CILPQ5HQMHBFCXQ7HIZVPUQUIWMUS6YJYCTPTA6G
-#\\\|E5S4O7TPGGC5TDMD4WUFK5FHM4I2QZXIRSC3GNMERR7T3V34PPO \ / AMOS7 \ YOURUM ::
-#\[7]CLBIYVME22FHQV2CWU364KBCJPTPYKQKJU33Z5KU6WWOGQ5O24AA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,,,,,.,.,.,,,..,,,,,,.,.,...,..,,...,...,...,,,,,...,,,.,..,,
+#6KVFYD4MYGI2YKX37MXAH76KN6HJQI7HJXH3OHEZLRK6E5V23232TPWMU4FU7SKVBNNRBOVUBEXE2
+#\\\|SBH7U74UK6AHUBWSOYLHHKCO7VI45UMC5FNYEAH3O2MQXYUUEIX \ / AMOS7 \ YOURUM ::
+#\[7]GDMBF7KAE3F5R4OVRIG34BRVX2AAOX2GVQKKA7QIZLZINOGR26CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
