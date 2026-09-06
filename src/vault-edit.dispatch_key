@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = vault-edit.dispatch_key
+# descr = handle one already-decoded key
+# param = $key
+
+## shared by process_input_buffer's normal drain loop AND handler.esc_
+## timeout's bare-Esc resolution [ a timed-out lone "\e" is handled by calling
+## back in here with "\e", exactly as if it had decoded normally ] -- factored
+## out specifically so those two call sites can never drift apart
+##
+## returns TRUE if a routed call to cred-mesh was just sent [ the caller
+## should stop draining further keys until the reply arrives ], FALSE
+## otherwise
+
+my $key = shift // return FALSE;
+
+## emergency exit, unconditional : vault-edit.term_init turns ISIG off [ so
+## ctrl-c reaches here as a key, not a signal ], which means without this a
+## stuck session has no way out except killing the process from elsewhere.
+## checked before the pending-prompt branch so it works from any state
+if ( $key eq "\x03" ) {
+    <[vault-edit.quit]>;
+    return FALSE;    ## unreached in practice -- quit calls base.exit ##
+}
+
+if (<vault-edit.pending>) {
+
+    ## free-text prompt entry [ zenka name / relay payload ] : entirely local,
+    ## no round trip, until Enter submits the whole line
+    if ( $key eq "\r" or $key eq "\n" ) {
+        my $text = join( '', <vault-edit.prompt_chars>->@* );
+        return
+            <[vault-edit.send_action]>
+            ->( sprintf( 'interactive-input %s', $text ) ) ? TRUE : FALSE;
+    } elsif ( $key eq "\e" ) {
+        ## local cancel, no round trip needed -- cred-mesh's own
+        ## pending_action is simply overwritten on the next real
+        ## grant/approve, a stale leftover there is harmless
+        <vault-edit.pending>      = FALSE;
+        <vault-edit.prompt_chars> = [];
+        print "\r\e[2K[ cancelled ]\n";
+        STDOUT->flush();
+    } elsif ( $key eq "\x7f" or $key eq "\x08" ) {
+        pop <vault-edit.prompt_chars>->@*
+            if scalar <vault-edit.prompt_chars>->@*;
+        print "\x08 \x08";    ## erase one column ##
+        STDOUT->flush();
+    } elsif ( $key ne "\e" and ord( substr( $key, 0, 1 ) ) >= 0x20 ) {
+        push <vault-edit.prompt_chars>->@*, $key;
+        print $key;
+        STDOUT->flush();
+    }
+
+    ## any other control/escape sequence while pending is ignored ##
+    return FALSE;
+}
+
+## navigation / action mode ##
+
+## normalize SS3 arrow keys [ \eOA .. \eOD ] to their CSI form [ \e[A ..  \e[D
+## ] : some terminals send SS3 when application cursor key mode [ DECCKM ] is
+## on -- %key_verb below only ever matches CSI  [ nshell.read_from_buffer
+## precedent -- missed on the first pass here, which is exactly why plain
+## arrow keys did nothing in the first live test ]
+state %ss3_arrow_map = (
+    "\eOA" => "\e[A",
+    "\eOB" => "\e[B",
+    "\eOC" => "\e[C",
+    "\eOD" => "\e[D",
+);
+$key = $ss3_arrow_map{$key} // $key;
+
+state %key_verb = (
+    'j'    => qw| interactive-down |,
+    "\e[B" => qw| interactive-down |,
+    'k'    => qw| interactive-up |,
+    "\e[A" => qw| interactive-up |,
+    'r'    => 'interactive-action rotate',
+    'x'    => 'interactive-action revoke',
+    'g'    => 'interactive-action grant',
+    'a'    => 'interactive-action approve',
+    '?'    => 'interactive-action detail',
+);
+
+if ( $key eq 'q' or $key eq "\e" ) {
+    <[vault-edit.quit]>;
+    return FALSE;    ## unreached in practice -- quit calls base.exit ##
+}
+
+if ( defined $key_verb{$key} ) {
+    return <[vault-edit.send_action]>->( $key_verb{$key} ) ? TRUE : FALSE;
+}
+
+## unrecognised key while browsing : ignored ##
+return FALSE;
+
+#,,..,.,,,...,...,,..,,..,,,.,,,,,.,.,,,.,,..,..,,...,...,.,,,.,.,.,,,,.,,,,,,
+#PLWYGI6ICXPNX6U5D2C6UIPU4IQWIJDF3TBKPJT63SWQ5CPETNV7RFVICLM7AHGRTQEMYGXBBBMFK
+#\\\|SBFDSYHBGZRR3J73WTYQWXWJRQHYVAXFLB5GM254XATKD2LYUOL \ / AMOS7 \ YOURUM ::
+#\[7]YIYYCFTQMVD6UL4XUZSXJ6NH4HJ3S6C7JMJWHYJ57SMOCVERSKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = vault-edit.handler.stdin_key
+# descr = event.add_io handler : drain raw bytes off STDIN into the input
+#         buffer, then let vault-edit.process_input_buffer decode/dispatch
+
+## fires whenever STDIN is readable [ registered by vault-edit.setup_stdin_
+## watcher ].  never blocks : STDIN is O_NONBLOCK, one sysread per firing.
+## drains into the buffer UNCONDITIONALLY, even while busy -- the fd must be
+## emptied so the watcher does not spin re-firing on the same unread bytes ;
+## process_input_buffer is the one that defers decoding while busy, not this
+
+my $bytes_read = sysread( STDIN, my $chunk, 1024 );
+
+if ( defined $bytes_read and $bytes_read > 0 ) {
+    <vault-edit.input_buffer> .= $chunk;
+} elsif ( defined $bytes_read and $bytes_read == 0 ) {
+    ## EOF on stdin [ terminal closed / input redirected and exhausted ] ##
+    <[base.logs]>->( 2, ': stdin closed, leaving' );
+    <[vault-edit.quit]>;
+    return TRUE;
+}
+
+## any new input answers the "was that a bare Esc?" question, so the pending
+## one-shot is cancelled before the buffer is drained  [
+## user-edit.handler.stdin_key precedent ]
+if ( defined <vault-edit.esc.timer> ) {
+    <vault-edit.esc.timer>->cancel;
+    <vault-edit.esc.timer> = undef;
+}
+
+<[vault-edit.process_input_buffer]>;
+
+return TRUE;
+
+#,,,,,...,.,,,,,,,.,.,.,,,.,.,,..,.,,,,..,.,.,..,,...,...,.,.,,.,,,,,,.,,,,..,
+#T5AZH2UFTRZKOMMTWCFBNWZCTT4AOSQBMPDGVX7CA55UENK3VVNEXTSVQHR5WIBQRKBKSEZAPH4VQ
+#\\\|TJODOF46XOBE47HCVD6IJR7WSZXSXGCZAC3OKLSEANRGLRQSGXD \ / AMOS7 \ YOURUM ::
+#\[7]DTKEQHV4DK55IHSAKSTFN5XITPJDOS7SOHFEL2NI5JASVKSJS2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

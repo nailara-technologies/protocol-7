@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = vault-edit.term_restore
+# descr = restore terminal settings after an interactive browser session
+
+## mirrors user-edit.term_restore / nshell.term_restore.  MUST run on every
+## exit path -- a session left in raw/noecho mode hands the user back a shell
+## that does not echo.  registered as an end_code callback by
+## vault-edit.term_init so it fires on normal exit, ctrl-c and SIGTERM alike
+
+print( ( $colors{'reset'} // '' ) . "\r\e[K" );
+STDOUT->flush();
+
+## prefer the fd stored at init : fileno(STDIN) can be stale at exit time ##
+my $tty_fd = <vault-edit.term.tty_fd> // fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## show the terminal cursor again [ hidden by vault-edit.term_init ]
+print "\e[?25h";
+
+## restore the :encoding(UTF-8) layer bin/Protocol-7 installed and
+## vault-edit.term_init dropped
+binmode( STDIN, qw| :encoding(UTF-8) | );
+
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+fcntl( \*STDIN, F_SETFL, $flags & ~O_NONBLOCK ) if defined $flags;
+
+my $orig_termios = <vault-edit.term.orig_termios>;
+
+## TCSANOW, not TCSAFLUSH : the flush variant waits for an i/o drain that
+## never completes on a signal-exit path
+if ( defined $orig_termios ) {
+    $orig_termios->setattr( $tty_fd, TCSANOW() );
+    <vault-edit.term.orig_termios> = undef;
+    return TRUE;
+}
+
+## fallback : no saved state -- re-enable echo/canonical/signals explicitly
+## rather than leaving the calling shell raw
+my $fallback = Linux::Termios2->new();
+if ( $fallback->getattr($tty_fd) ) {
+    $fallback->setlflag( $fallback->getlflag() | ECHO() | ICANON() | ISIG() );
+    $fallback->setattr( $tty_fd, TCSANOW() );
+}
+
+return TRUE;
+
+#,,,,,,,,,.,.,,..,,.,,,,,,,..,.,.,..,,.,.,..,,..,,...,...,..,,.,.,.,.,..,,,..,
+#3JWF2QZP6Z6X6GF7WXSCSDPNZQOC5VZFO4LJ7CRMXIZEGJCH6TK5V5XBRLFKJAXHSNTX6S4NC6ZDI
+#\\\|J2HBG3DDYFWLEN6DOF5ZDU3IDCEWJG2NII5SZEUJCC7B6M3OQ53 \ / AMOS7 \ YOURUM ::
+#\[7]FT7S4LWYGGUMN2FHHHTNQJTIFWAGMIPS3PWUOYDOVAGPBL74EOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

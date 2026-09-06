@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = vault-edit.send_action
+# descr = send one routed command to cred-mesh, marking this client busy
+#         until its specific reply arrives
+# param = $verb [ e.g. 'interactive-down', 'interactive-action rotate' ]
+
+## this is the hybrid-loop half of the design [ user-edit.console.start
+## precedent, see data/tasks/credential-fabric-ui-interactive.md ]: only ONE
+## routed call is ever outstanding at a time.  vault-edit.process_input_buffer
+## refuses to decode further keys while <vault-edit.busy> is set, so there is
+## never a second call racing this one -- the event loop is single-threaded [
+## callbacks always run to completion before the next fires ], so a simple
+## busy flag is sufficient : no nested [zenka.loop] per keystroke is needed,
+## only the discipline of not dispatching a second call before the first's
+## reply lands
+
+my $verb = shift // '';
+return FALSE if not length $verb;
+
+my $sid = <vault-edit.cube_sid>;
+return FALSE if not defined $sid;
+
+<vault-edit.busy> = TRUE;
+
+## send.local's return is NOT a reply -- it is 1+ [ count of targets actually
+## written to ], 0 [ unknown target ], -1 [ empty session table ] or -2 [
+## malformed command string ].  a non-positive result means no reply will EVER
+## arrive for this call [ cred-mesh not running, or a bug in $verb's shape ]
+## -- without this check <vault-edit.busy> would stay TRUE forever and every
+## further keystroke would silently vanish into process_input_buffer's busy
+## guard, with no visible cause  the command word sent to send.local's
+## 'command' parameter must be BARE [ '%d.cred-mesh.<word>', nothing else
+## attached ] -- everything else goes through call_args.args instead, matching
+## user-edit.console.start's own proven shape exactly (it never embeds a
+## username or anything else directly into 'command', only ever into
+## call_args.args). found live : embedding extra text directly in 'command' [
+## e.g. 'ui-show overview', 'interactive-action rotate' ] makes send.local's
+## own regex accept it fine, but cube's downstream delivery to cred-mesh does
+## NOT carry it the same way -- $call->{'args'} arrived completely undef at
+## cred-mesh's end whenever this shape was used, confirmed via a temporary
+## server-side diagnostic. splitting the extra text into call_args.args
+## instead is the fix.
+my ( $bare_cmd, $extra ) = split( m|\s+|, $verb, 2 );
+
+my $args
+    = defined $extra && length $extra
+    ? sprintf( '%s session_id=%d', $extra, $sid )
+    : sprintf( 'session_id=%d', $sid );
+
+my $command = sprintf( qw| %d.cred-mesh.%s |, $sid, $bare_cmd );
+
+my $sent = <[protocol-7.command.send.local]>->(
+    {   qw| command |   => $command,
+        qw| call_args | => { qw| args |    => $args },
+        qw| reply |     => { qw| handler | => qw| vault-edit.handler.reply | }
+    }
+);
+
+if ( not $sent or $sent < 0 ) {
+    <vault-edit.busy> = FALSE;
+    print "\r\e[2K[ cred-mesh unreachable -- is it running? ]\n";
+    STDOUT->flush();
+    return FALSE;
+}
+
+return TRUE;
+
+#,,.,,,,,,,,,,..,,.,.,,,.,,,.,..,,,,,,.,,,.,.,..,,...,..,,,,.,.,,,,,.,,,,,,,.,
+#KDWVI5QLHJ5IA23I5CFUGXFJ2NYWGX6QL5CJ7PGHCWKEHJW2R6KZ5SFR66PNEJTY6DJ52T52NLGQY
+#\\\|IGRS33TKXJGQWT7YR4QCQZQIDMMMAR5MNIERTWWKXRI635XS7DU \ / AMOS7 \ YOURUM ::
+#\[7]KG57NSSTQND3LBOK3LJDJR7XP4KQFTFL7NJ6E62THGQKZMVDTWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

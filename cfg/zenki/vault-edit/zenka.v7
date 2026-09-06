@@ -1,0 +1,47 @@
+
+ .:[ protocol-7 vault-edit console zenka ]:.
+
+[load_config_file:'shared-params']
+
+## deliberately NOT nshell's trailing '*' [ which enables everything for   ##
+## devmod debugging ] : vault-edit's only reason to be reachable at all is ##
+## heart/verify-instance/char-add -- it otherwise never receives commands, ##
+## only sends them. char-add itself refuses unless the browser was opened ##
+## with 'show -no-tty' [ user-edit/zenka.v7's own char-add precedent ]    ##
+access.cmd.usr.cube  =  commands heart verify-instance char-add
+
+## thin terminal client only : no crypt.C25519, no local storage, no
+## ascii.frame rendering of its own -- cred-mesh renders, vault-edit just
+## displays the returned text and forwards keystrokes as routed commands
+## [ user-edit/zenka.v7 precedent, pared down to what a pure client needs ]
+modules.load  =  auth.client net protocol io.unix ui terminal editor \
+                                 vault-edit
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## authenticate as the invoking Unix user, not a zenka credential   ##
+## [ user-edit/nshell precedent : personal interactive console, not a ] ##
+## [ managed zenka session -- system.auth-user set by vault-edit.  ] ##
+## [ init_code during init_modules above ]                          ##
+system.auth-user = <vault-edit.auth_name>
+
+[base.net.connect:'unix']
+
+## authenticates as Unix user above, not via cube session id --  ##
+## [base.get_session_id] intentionally NOT called [ user-edit/nshell ##
+## precedent ]                                                   ##
+
+[base.call.console_command:<system.args>]
+
+## HYBRID LOOP MODE [ user-edit precedent ] : there is deliberately NO   ##
+## [zenka.loop] here.  the one console command that needs the event loop ##
+## [ vault-edit.console.show ] calls [init-done:TRUE] + [zenka.loop]     ##
+## itself as its last step -- a [zenka.loop] at this level would hang    ##
+## plain 'v7-zenki.vault-edit commands'                                  ##
+
+#,,.,,.,.,.,,,...,.,.,,.,,,,.,.,.,,,.,,,.,,..,..,,...,...,,,.,...,..,,...,,,,,
+#GENBJQ6MY6P5K7HRFF2QJJZCMNRAPY4LOQX3SCZ3NHPIALAUSMOCHETYD3XKUOKLCYFEQ7EZT7CYM
+#\\\|3XTLZJ72K6M4KZTFGVRCH6NDD55SB57TU4SRMWRXXDKVRSANJAC \ / AMOS7 \ YOURUM ::
+#\[7]HC6MVX7ECL5VLC4SX7CLOV5HRLMA3MZA2UQPOR45MXRNFGW7E6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

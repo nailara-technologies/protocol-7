@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = vault-edit.setup_stdin_watcher
+# descr = register the STDIN keystroke watcher
+
+## just the input half : unlike user-edit's form, vault-edit renders nothing
+## of its own -- every keystroke either mutates purely-local prompt-text state
+## [ echoed inline, no round trip ] or triggers exactly one routed call to
+## cred-mesh, whose reply payload is printed directly by
+## vault-edit.handler.reply.  no local "dirty" var-watcher is needed because
+## there is no local render step to trigger
+
+<vault-edit.watcher.stdin> = <[event.add_io]>->(
+    {   qw| fd |      => 0,
+        qw| poll |    => qw| r |,
+        qw| handler | => qw| vault-edit.handler.stdin_key |,
+        qw| prio |    => 2,
+        qw| repeat |  => TRUE,
+        qw| desc |    => 'vault-edit STDIN handler',
+    }
+);
+
+return FALSE if not defined <vault-edit.watcher.stdin>;
+
+<[base.logs]>->( 2, ': stdin watcher registered' );
+
+return TRUE;
+
+#,,,,,...,.,.,,,,,..,,,,,,,,,,,,.,,,.,,,.,.,.,..,,...,...,...,.,.,.,.,.,,,,,,,
+#2BNUOFN5OCWHKULATXE3GHLB4FPSMIJAKXV6L3AYHPTCRD2ZRFQQJOTF4QJTHAHT2P5VMZBQCGRAI
+#\\\|DJNFEKKIX3HM2AQQVIBMGY234TOWST74SX4V7Y45Z3LMLYUYXXW \ / AMOS7 \ YOURUM ::
+#\[7]WOXQKUTK2ZLKLSYXSB6VK7VJ3RLW7RS5MEHIPDREI42YTLDVVAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

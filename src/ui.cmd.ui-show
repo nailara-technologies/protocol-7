@@ -30,11 +30,22 @@ return { 'mode' => qw| false |, 'data' => 'address required' }
 ## derive slot budget from current tty ##
 my $slot_budget = eval {<[ui.budget.tty]>} // { 'cols' => 80, 'rows' => 24 };
 
-## render the address using the generic unfold primitive ##
+## render the address using the generic unfold primitive.  raw_args is the
+## FULL original args string [ address=/view= tokens included, since a
+## zenka-specific override is free to define its own vocabulary -- cred-
+## mesh's own override never uses address=/view= tokens at all, it takes bare
+## positional args plus a trailing session_id=NNN ] -- forwarded through
+## unparsed so ui.unfold's own delegation to a zenka-specific
+## <namespace>.cmd.ui-show override [ its own "[ 2 ] specific ui-show command"
+## branch ] has something to pass it. found live : without this, that
+## delegation called the  override with ZERO arguments, silently dropping
+## view/session_id and leaving it unable to ever resolve per-session UI state
+## [ data/tasks/credential-fabric-ui-interactive.md ]
 my $unfolded = eval {
     <[ui.unfold]>->(
         {   'address'     => $address,
-            'slot_budget' => $slot_budget
+            'slot_budget' => $slot_budget,
+            'raw_args'    => $args_str,
         }
     );
 } // { 'mode' => qw| true |, 'data' => '' };
@@ -75,8 +86,8 @@ my $output
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,,..,..,,.,,,..,,...,.,,,.,,,,,.,,..,.,.,..,,...,...,.,.,,.,,.,.,.,.,,..,
-#RCLOCNKBR3E5LU24GPZSPBBYOVFW6EABXBWRUYUQWTOP2N7WRX4732H6HQGFMBQNBMU5U7KPHIQK2
-#\\\|MAQLRGUIDJPJTRKALKLLFOO32KDA6TE7A66YIECNWPW47UB66SP \ / AMOS7 \ YOURUM ::
-#\[7]FK7AB2N6ZOJZOT6AZ2E4YV356ARYN74IHGRT6XAPVFSE2MGKR6BY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,,.,,...,,,.,,.,,...,.,.,..,,..,,...,...,,..,..,,.,.,,,,,.,,,
+#ISIKVIFUKP377IVRT56LVHA5DWQMGUZAVIXSPFYR4J4KSIG7TMACIE64RAKKVLJZ572W253XUGVJ2
+#\\\|XW22D67ZDOBDDKGQA42KCZSIUOMOQNXPYX6UPVPGCHKOSULXOAS \ / AMOS7 \ YOURUM ::
+#\[7]G6EXS2EUT7WFT2D63MM5SV3CJTZGVTTFPOT46NPZPMMP4ONGGGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

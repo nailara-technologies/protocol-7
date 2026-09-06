@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = vault-edit.handler.reply
+# descr = process a cred-mesh reply: print it, detect a prompt frame, and
+#         resume decoding any keystrokes buffered while the call was
+#         outstanding
+
+my $reply = shift // return FALSE;
+
+<vault-edit.busy> = FALSE;
+
+## a plain TRUE/FALSE reply carries its message in call_args.args, NOT in
+## 'data' -- 'data' is only populated for a SIZE-style multi-line payload [
+## nshell.handler.command_reply's own distinction, missed on the first pass
+## here : cred-mesh's short failure messages -- 'missing session_id', 'no
+## active ui focus', etc -- were arriving correctly and being silently
+## discarded because this only ever looked at 'data' ]
+my $payload = $reply->{'data'} // $reply->{'call_args'}{'args'};
+
+## captured regardless of tty mode -- this is what vault-edit.cmd.char-add
+## returns as its own reply, the network-driven equivalent of "what's on
+## screen right now"
+<vault-edit.last_render> = $payload;
+
+if ( defined $payload and length $payload ) {
+
+    ## clear the WHOLE SCREEN before each render, not just the current line --
+    ## vault-edit is a full-screen browser, not a line-oriented reply log like
+    ## nshell [ whose "\r\e[2K" precedent only ever needs to clear one
+    ## partially-typed line, since its replies are one-shot command output,
+    ## not repeated full-frame redraws ]. found live : without this every
+    ## keypress's new frame just printed below the previous one, scrolling the
+    ## terminal instead of updating in place. skipped in -no-tty mode, where
+    ## nothing is watching the terminal and vault-edit.cmd.char-add's returned
+    ## text should be plain content, not ANSI noise
+    print $colors{'clear_screen'} // ''
+        if not <vault-edit.mode.no_tty_debug>;
+    print $payload;
+    print "\n" if $payload !~ m{\n\z};
+
+    ## a grant/approve action just returned a prompt frame instead of a nav
+    ## update -- detected on the frame's own header text, same heuristic the
+    ## reverted nshell attempt used, but safe here : this only ever flips
+    ## LOCAL state read/written by this one single-threaded process, never
+    ## coordinated across two independent event sources
+    <vault-edit.pending> = (
+               $payload =~ m|\[ grant access to \]|
+            or $payload =~ m|\[ approve relay \]|
+    ) ? TRUE : FALSE;
+
+    <vault-edit.prompt_chars> = [] if <vault-edit.pending>;
+
+} else {
+    <vault-edit.pending> = FALSE;
+}
+
+STDOUT->flush();
+
+## anything the user typed while this call was outstanding is still sitting in
+## the input buffer, undecoded -- resume now that we are free again
+<[vault-edit.process_input_buffer]>;
+
+return TRUE;
+
+#,,,,,.,,,.,,,..,,,.,,,,,,,,.,...,...,,.,,,..,..,,...,...,.,.,...,,.,,,,.,..,,
+#CUNQ2BYOJ3LRHJH6TXCODAVFTZK7OT35ISNTKGQOIOMOI6EPCFB7NWUL5LMEJMFJAUGNXOMVXWRV4
+#\\\|WJRUJ2HLY4FBH4CZFEWIPXZVC32QSUCXZ4GNBX4WO5RGI6EAQVY \ / AMOS7 \ YOURUM ::
+#\[7]BXY7W4LDLAOAI2YXILDDKQCRHCLG47XOTUQ7AFYRX4LUFNUP5AAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

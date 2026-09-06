@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = vault-edit.cmd.char-add
+# param = <key-spec>
+# descr = send keys to a no-tty session, return its rendering
+
+## network-driven browser interaction, modelled on user-edit.cmd.char-add /
+## nshell.no-tty-debug.cmd.char-add. lets the interactive browser be driven
+## and VERIFIED with no terminal attached, and no human relaying screen output
+## back and forth for every test round :
+##
+## p7c vault-edit.char-add 'j'  p7c vault-edit.char-add 'jjr'  p7c
+## vault-edit.char-add 'gsome-zenka[Enter]'
+##
+## gated on <vault-edit.mode.no_tty_debug>, set by starting the browser as
+## 'show -no-tty'. without that flag this command refuses, so the
+## key-injection path cannot be driven against an ordinary interactive session
+
+my $key_spec = $call->{'args'} // '';
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'browser is not running in no-tty mode'
+    }
+    if not <vault-edit.mode.no_tty_debug>;
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'no browser session is currently open'
+    }
+    if not defined <vault-edit.cube_sid>;
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'key spec expected [ e.g. j, jjr, g[Enter] ]'
+    }
+    if not length $key_spec;
+
+my ( $bytes, $summary ) = <[editor.input.parse_key_spec]>->($key_spec);
+
+return { qw| mode | => qw| false |, qw| data | => $summary }
+    if not defined $bytes;
+
+<[base.logs]>->( 2, ': no-tty key input : %s', $summary );
+
+## same buffer vault-edit.handler.stdin_key would drain from a real keystroke
+## -- injected keys take the identical decode/dispatch path a real one would,
+## no parallel input implementation to drift out of sync
+<vault-edit.input_buffer> .= $bytes;
+
+## any prior lone-Esc timer is now stale, same as a real keystroke would
+## cancel it [ vault-edit.handler.stdin_key precedent ]
+if ( defined <vault-edit.esc.timer> ) {
+    <vault-edit.esc.timer>->cancel;
+    <vault-edit.esc.timer> = undef;
+}
+
+## drive the loop until the injected keys are fully consumed AND any routed
+## call they triggered has actually replied. process_input_buffer is normally
+## woken by fd 0 becoming readable [ never happens here ] ; the reply that
+## clears <vault-edit.busy> arrives over the real network instead, so pump the
+## event loop directly rather than calling the decode step just once [
+## user-edit.cmd.char-add's own loop precedent ]
+my $iteration = 0;
+while ( ( length( <vault-edit.input_buffer> // '' ) or <vault-edit.busy> )
+    and $iteration < 21 ) {
+    $iteration++;
+    <[vault-edit.process_input_buffer]>;
+    <[event.once]>->(0.02);
+}
+
+return {
+    qw| mode | => qw| size |,
+    qw| data | => <vault-edit.last_render> // "\n  : no render yet\n"
+};
+
+#,,..,..,,,,.,,,.,,,,,,..,.,,,..,,...,..,,..,,..,,...,...,..,,..,,..,,,,,,...,
+#SEX6F55NP4NDE7VDRYLUMM5SBFJ4SXVT6ODWC6S5HIDW6U63E7G4KGOVRU7OVW4IGGHOAOFFQ6BJ4
+#\\\|RJCJW24BZMXVROPBOKJYXFQRN5CSY3GL5BKIVT65KOUVB6DMZ24 \ / AMOS7 \ YOURUM ::
+#\[7]N4HKQLTS3E7URSAXP5RQA46M3WTAGXKJNTARVUJEB5IVUGWECMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

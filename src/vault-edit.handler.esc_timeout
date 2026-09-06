@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = vault-edit.handler.esc_timeout
+# descr = a lone Esc that stayed lone is a real Esc keypress
+#         [ user-edit.handler.esc_timeout precedent ]
+
+## editor.input.next_key deliberately emits NOTHING for a lone "\e" -- it
+## cannot yet tell a bare Esc from the first byte of an arrow key, and
+## guessing would corrupt every escape sequence that arrives split across two
+## reads. vault-edit.process_input_buffer arms this one-shot timer whenever a
+## lone "\e" is left pending, and vault-edit.handler.stdin_key cancels it as
+## soon as more input shows up.
+##
+## if it fires with that "\e" still alone, nothing followed within the timeout
+## and it really was an Esc keypress -- dispatched exactly as if it had
+## decoded normally
+
+<vault-edit.esc.timer> = undef;    ## one-shot : it has fired ##
+
+my $buffer = <vault-edit.input_buffer> // '';
+
+## more arrived, or it was consumed some other way : not a bare Esc after all
+return FALSE if $buffer ne "\e";
+
+<vault-edit.input_buffer> = '';    ## consume it ##
+
+return <[vault-edit.dispatch_key]>->("\e");
+
+#,,,,,.,,,..,,,,.,,,.,...,...,,..,,,,,,.,,,,,,..,,...,...,.,,,,,.,,,,,,,.,,..,
+#FYSIVUW4A6Q5X2DJQJOW3BYO53GU57EHU6NEVKAC7K7VW6MJMSFF6L6E4FSZ34HAU2ICJ3JPZN6HS
+#\\\|HHWM4KHQDMZSTCV6LVCEHPJVFS2UYLW2BY4TFAANTGJICWKDA44 \ / AMOS7 \ YOURUM ::
+#\[7]CWUB2UHKFQCAVR4M7FJBJQQZFZLROKXUMH57TBZJ4JIHC2RNZWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
