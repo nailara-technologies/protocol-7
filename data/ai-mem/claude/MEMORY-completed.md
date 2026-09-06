@@ -21,6 +21,13 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   every live display) plus a reversible `x-<vax-int>` reference label, and every other xvfb command
   now accepts that label as an alternative to the raw number. Caught a live `and`/`=` precedence
   compile warning in the process (`ptd -c` doesn't catch it, the zenka's own restart output did).
+  **Same-day follow-up 3**: `mpv[x-id]`/`web-browser[x-id]` subname routing — `base.X-11.get_display`
+  now decodes an `x-<label>` subname locally (pure math, no round trip) instead of always querying
+  the primary. Found and fixed a real, pre-existing, codebase-wide bug along the way:
+  `X11::WM::new()` did a bare `shift` instead of shifting the class first, so every
+  `X11::WM->new($X)` call site silently discarded its connection argument and fell back to
+  `$ENV{DISPLAY}` — masked for years because the primary's own env coincidentally matched. See
+  [[feedback-arrow-call-into-bare-shift-constructor]].
 - [task-archiving + kimi dispatch queue, 2026-09-05](project-2026-09-05-task-archiving-and-kimi-dispatch-queue.md) —
   built `bin/dev/task-scan-candidates`, archived 29 landed-but-stale task files, cleared a 4-item
   prioritized dispatch queue: cred-mesh/transport test-harness bug, 4 research-extraction findings,
@@ -127,8 +134,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,..,.,.,,.,,.,.,,..,...,,,.,,,,,,,,,,..,,,.,..,,...,...,...,,.,,,,.,,,,,..,,
-#5CX3N3VFMDG3JXWVK7QJD7ZNTXCROMWTRVHGRBSQHCOELBLEU4MGLBZBHKNBXHXUDDOWT4P34KNUS
-#\\\|FSCH4LFTHQ6DADDVFYXN26S2U556SEAW3SDSGXC6TNUD6E3F63S \ / AMOS7 \ YOURUM ::
-#\[7]AXAPQRJAX2BRQEVYYYYOUMQQTD3BKLVGIS4UIY3SD3IQYCNZHCCI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,,.,,,,,,...,..,,,,.,..,,,,,,..,,...,...,...,..,,.,.,,.,,,.,,
+#5J6RILHY4WTWXAUYZUZ4OXPZRG5KIUJ5B4J5JGTGOOCGFNEEMH7FHOP42ITRSAWRMCGAIWTRVM74O
+#\\\|UBKLVITUVEQVVGTY2WUWN456FITMYQU5A64TLKNYQRUSURV27ZZ \ / AMOS7 \ YOURUM ::
+#\[7]ZUC2MPMHN7A3HAUWNDUKTAVW77BFG6CXBHJKG7YGKOYDA6OVJGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

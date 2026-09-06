@@ -1,6 +1,6 @@
 ---
 name: project-x11-xvfb-crash-loop-and-cleanup-2026-09-06
-description: "X-11 xvfb-start/status/list/stop went from crash-looping and structurally broken to a fully working, live-verified command cycle; 7 bugs fixed, task file rewritten. Same-day follow-ups: X-11.disp-ctl + X-11.cmd.xvfb-display let the zenka's 39 window-management commands target an xvfb auxiliary display, not just the primary; then xvfb-start dropped its caller-chosen display number entirely in favor of atomic auto-allocation via base.gen_id + a reversible x-<vax-int> reference label"
+description: "X-11 xvfb-start/status/list/stop went from crash-looping and structurally broken to a fully working, live-verified command cycle; 7 bugs fixed, task file rewritten. Same-day follow-ups: X-11.disp-ctl + X-11.cmd.xvfb-display let the zenka's 39 window-management commands target an xvfb auxiliary display; xvfb-start auto-allocates its display number + a reversible x-<vax-int> label instead of a caller-chosen number; subname-based display routing (mpv[x-id]) + a real pre-existing X11::WM::new() bug found and fixed (arrow-call syntax silently discarded every caller's connection object codebase-wide)"
 metadata:
   type: project
 ---
@@ -223,6 +223,136 @@ scheme (`zenka[subname]`) - user named this as the reason the id/label
 work needed to happen first, but the correlation itself is separate,
 not-yet-scoped work.
 
+## same-day follow-up 3: subname-based display routing (mpv[x-id]/web-browser[x-id]) + a real X11::WM bug found along the way
+
+User's goal: `mpv[x-<id>]`/`web-browser[x-<id>]` should render into the
+xvfb display that `<id>` refers to, not the primary. Researched (not
+previously known this session): `v7-zenki.zenka.cmd.start` already
+parses `name[subname]` syntax and validates it against
+`regex.base.subname`'s character class (`[0-9A-Za-z\-+.:_]{1,17}`) -
+`x-HE` etc. was already a legal subname with zero changes needed there.
+`mpv.open_player`/`web-browser.open_window` both set
+`$ENV{'DISPLAY'} = <x11.display>`, populated by shared helper
+`base.X-11.get_display`, which does a network round trip asking the
+X-11 zenka for the *primary* display - no subname awareness.
+
+**The fix**: since the label is reversible pure math, no registry or
+round trip needed. `base.X-11.get_display` now checks its caller's own
+`<system.zenka.subname>` first - if it matches `x-<label>`, decode
+locally via `base.vax-int.decode` and return that display directly,
+skipping the network request entirely; otherwise fall through to
+today's unchanged primary-lookup behavior. Purely additive - every
+other caller (no subname, or a differently-shaped one) unaffected.
+Explicitly NOT this session's job: whoever starts `mpv[x-id]` still has
+to call `xvfb-start` first and wait for the display to actually connect
+before starting it - that orchestration is separate, not-yet-built work
+(user's own framing, confirmed).
+
+### a real, pre-existing, codebase-wide bug found live verifying this
+
+End-to-end test (`xvfb-start` → `web-browser[x-<label>]` → `disp-ctl
+<label> get-windows`) crashed deterministically with a BadWindow X11
+protocol error every single time, not a transient race. Root cause,
+found by tracing actual object addresses via temporary diagnostic
+logging (removed after): **`X11::WM::new()` (`data/lib-path/pm/X11/
+WM.pm`) is written as `sub new { my $X = shift; ... }` - a plain
+function, not a proper OO constructor.** Every call site in the
+codebase (`X-11.connect_X11`, `X-11.pool.promote_standby`,
+`X-11.job.finalize_server`, and this session's new
+`X-11.helper.setup_display_wm`) calls it as `X11::WM->new($X)` - arrow
+syntax, which is sugar for `X11::WM::new('X11::WM', $X)`. The class
+name becomes `@_[0]`; the single `shift` inside `new()` consumes THAT,
+never reaching the real connection object, which silently falls through
+to `ref($X) [now 'X11::WM', a plain string] ? ... : X11::Protocol->new()`
+- a **fresh, default connection to `$ENV{DISPLAY}`, discarding whatever
+was actually passed in, everywhere in the codebase.**
+
+**Why this was never caught before**: the primary's own `$ENV{DISPLAY}`
+already coincidentally matches the primary display, so `X11::WM->new()`
+"working" for the primary was never proof it was reusing the intended
+connection - it was silently opening a second, separate one to the same
+place by luck. Nothing before this session ever needed `X11::WM` to
+attach to a connection that *wasn't* also `$ENV{DISPLAY}`, so the gap
+was never exercised. User's framing, confirmed: not a regression, new
+functionality being exercised for the first time.
+
+**Symptom this produced concretely**: the WSL-fallback window-discovery
+scan in `X-11.WM.update` correctly used the auxiliary display's real
+connection (via `<X-11.obj>`, correctly `local`-substituted by
+`disp-ctl`) to find real window ids - but `X11::WM::class::title()`
+(called per-window by `X-11.cmd.get-windows`) queries via
+`$wm_c->{wm}{X}`, the WM object's OWN (wrongly-defaulted, primary-
+connected) connection. Querying a window id that only exists on the
+auxiliary server, against the primary server, is an immediate, 100%-
+reproducible BadWindow - explaining why it failed identically on every
+retry rather than intermittently.
+
+**Fix**: `X11::WM::new()` now shifts the class name first
+(`my $class = shift; my $X = shift; ...`), matching every other method
+in the same file, and blesses into `$class` instead of the bare
+implicit-package `bless $wm;`. No call site needed to change - every
+existing `X11::WM->new($X)` call across the codebase now does what it
+already looked like it was supposed to do. Also gave the auxiliary
+connection its own adapted `error_handler` in
+`X-11.helper.setup_display_wm` (installed before WM creation) - a
+non-dying warn-and-continue handler like the primary's, but WITHOUT the
+primary's `X-11.reconnect` call on a lost-connection error, since that
+helper reinitializes `<X-11.obj>` against the PRIMARY's own configured
+display and must never run for an auxiliary connection.
+
+**Live-verified, full loop, 2026-09-06**: `xvfb-start 800 600` →
+`x-DUC` → `web-browser[x-DUC]` started → its own buffer shows `display
+resolved from subname [x-DUC] -> [:1053]` (the subname-routing fix
+working) → `disp-ctl x-DUC get-windows` returns the real window
+(`4194328 amos-desktop web-browser [x-DUC]`) correctly and identically
+across 5 consecutive attempts (was: crashed identically every time
+before the `X11::WM` fix) → `is-composited`/`dpms-status` on the
+auxiliary still correctly report no support while the primary, queried
+in parallel, still correctly reports its own → zenka stayed on the same
+instance throughout, clean shutdown, no orphaned processes.
+
+### one more real fix: the RANDR extension probe's own log noise
+
+User pushback, correctly: verifying the fix above surfaced a level-0
+"protocol error : bad 16 (Length) ... Opcode (141, 0)" line on every
+single `xvfb-start` (Xvfb's RANDR advertises via `init_extension` but
+rejects `RRQueryVersion`'s exact wire format - a genuine protocol-
+version mismatch, not a bug, already handled correctly:
+`has_randr` just ends up `FALSE`). Calling this "benign" and moving on
+was wrong given the clean-logs-for-regular-operation policy this
+session already established for xkbcomp - an outcome being handled
+correctly doesn't excuse it logging as if something were actually
+broken, especially not on every single occurrence of a common
+operation, not a rare edge case like xkbcomp's one-time keymap
+warnings.
+
+**Fix**: `X-11.helper.setup_display_wm`'s three extension probes
+(RANDR/DPMS/Composite) now `local`-swap the connection's
+`error_handler` to a quiet variant for exactly the duration of each
+probe (`local $X->{'error_handler'} = $quiet_probe_handler;` inside
+each `if` block - restores automatically when that block ends), logging
+at level 3 instead of the connection's normal warn()-based level-0 path.
+The loud, warn()-based handler stays in effect for every OTHER call on
+the connection, where a protocol error would be genuinely unexpected -
+this only quiets the exact class of "capability probe legitimately
+failed" outcome the surrounding `eval` already anticipates and handles.
+
+**Live-verified**: at default verbosity (1), `xvfb-start` produces zero
+error-level output. At verbosity 3, the same event still shows, now
+worded accurately: `":1094 : extension probe returned Protocol error:
+bad 16 (Length)... [ expected-possible, not an error ]"`. Full
+start/browser/disp-ctl/stop cycle re-verified clean afterward at true
+default verbosity.
+
+**Deliberately not touched**: `X-11.job.finalize_server`'s equivalent
+RANDR probe for the PRIMARY display - no live evidence this affects it
+(host mode via Weston/XWayland presumably has full RANDR support,
+hence no complaint about it across months of this exact policy being
+refined), and applying a speculative fix to already-stable, tested
+code without evidence is its own risk. If xephyr/nxagent/xvfb-as-
+primary modes ever show the same symptom, the identical fix applies
+there too.
+
 ## next real step toward the user's stated goal
 
 Not attempted this session: X-11 zenka's `zenka.v7` mode is still `host`
@@ -237,8 +367,8 @@ primary instance) was noted in the original task as a deployment
 pattern worth knowing about, not evaluated against this session's
 approach.
 
-#,,,,,...,,..,.,,,,.,,,,.,,,.,...,,.,,...,.,.,..,,...,...,.,.,,,,,,..,.,.,,,,,
-#FKYZEMUGY3MJ5437LXK67N6LZHSJ5NBO4KQE7KFWTTHZQHQQ2QYBE7ZIDLA6IOXYKY7DZVWT6WGEA
-#\\\|QN4ZRKDFJLBQTGCFP5W73KCYAWNMCRBYPAAFTXQCBJCTIOOT25Q \ / AMOS7 \ YOURUM ::
-#\[7]HXAGQDN3RNMPXOIQMCCSAMS6VU7ZWK7H6PECQKNTQ33EDGMNQ4DQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,.,,,,.,,...,,.,,...,,..,,..,..,,...,...,...,,..,.,,,..,,.,.,
+#QWU6UZQ67M7PLO5YEPGFVTLFRWHUAUZOTURMQYKMC5ZS6YGCB3J54VYCUJYTOQKVFH2HBSAX3XQ4S
+#\\\|RG6QCZSEP6FFBPVC2HLIEXMLFE3GQEA4ZWDUF4SSCROPPPUKHFT \ / AMOS7 \ YOURUM ::
+#\[7]TUXSNJAL6VRTDNVC7HXB6MSSC7YUE25XGCOONOHPQQT6FBHL3ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
