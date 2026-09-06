@@ -185,8 +185,24 @@ treatment for the common empty-selection state. That's interaction
 design, not a bug fix, and is the explicit next session's work — ready to
 commit this round's plumbing fixes as a checkpoint regardless.
 
-#,,..,,,,,.,,,..,,.,.,..,,,.,,,.,,...,,,.,.,,,..,,...,...,.,.,.,,,,,.,...,..,,
-#TWKEI6HWNDADVBH64NYWXTQ5FOGW5RNUBR5NQSZ5DWTL5V3GF2YTDJ5MCPA5OYSERPPYKIFLMYM3A
-#\\\|ZYKYL7EBLDW5FI2J7LUS5VQV4BTHTXCKOCFHQUYZOW7F5CJVQH6 \ / AMOS7 \ YOURUM ::
-#\[7]EOFLXDTOIF5GR4WHXHYTDMMDOUI72VST6R7F3M5J5XP66JIEOWAQ 7  DATA SIGNATURE ::
+**Committed as `62923a289`.** Per the user's own suggestion, then
+compared directly against `user-edit` via its own `char-add` (see
+[[topic-user-edit-console-zenka-status]]'s 2026-09-07 caution — its
+char-add mutates LIVE data, briefly edited the real `taeki` record by
+accident, caught and corrected, never submitted). That comparison turned
+"needs a lot of work" into a concrete spec, not a vibe — persistent
+client-owned title bar, labeled fixed layout, inline key hints next to
+what they act on, a footer status line, collapsed multi-value previews,
+and a reusable technique worth copying directly: `user-edit.form.render`
+replaces its card's own closing border row with a one-shot discovery
+hint (`ctrl-? : toggle cmd list`, hand-spaced to the border's dot-fill
+rhythm) on the very first render only, gone after any keypress — no
+extra line, no width reservation. Full list in the task file's own
+"`user-edit` comparison" section — that's the next session's actual
+starting point, not "make it nicer."
+
+#,,,.,,..,,.,,,..,.,,,.,,,,.,,,.,,...,..,,,..,..,,...,...,,,,,,..,...,..,,..,,
+#BD46IXOKQ24R6GGL3CU4C64G3MXDU3JKY3KAW6PNFKCJNGMW7NLB74XL24S52HONW3IS36CKCSAWW
+#\\\|YZHY5OW6TXNEBKBP2UD6ZADO7CESULFR3UPBMWA6L7FK52H6J2T \ / AMOS7 \ YOURUM ::
+#\[7]GDT47VPAVVNSAJYZRG5VNU2SKYRYOQVQIC5MPSO6LD6RVAZWPODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
