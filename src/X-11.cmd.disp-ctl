@@ -10,16 +10,18 @@ my @args
     ? $call->{'args'}->@*
     : split( m| +|, $call->{'args'} // '' );
 
-my $display_num = shift @args;
+my $display_arg = shift @args;
 my $sub_command = shift @args;
 
 return {
     'mode' => qw| false |,
     'data' => 'expected: <display_num> <sub-command> [args...]'
     }
-    if not defined $display_num or not defined $sub_command;
+    if not defined $display_arg or not defined $sub_command;
+
+my $display_num = <[X-11.helper.resolve_display_id]>->($display_arg);
 return { 'mode' => qw| false |, 'data' => 'invalid display number' }
-    if $display_num !~ m|^\d+$|;
+    if not defined $display_num;
 
 ## commands known to schedule work via event.add_timer beyond this call's  ##
 ## own scope -- the 'local' substitution below only lasts for the duration ##
@@ -83,8 +85,8 @@ local $data{'X-11'}{'is_composited'} = $server->{'is_composited'};
 my $sub_call = { %$call, 'args' => ( @args ? join( ' ', @args ) : undef ) };
 return $code{$target_cmd}->($sub_call);
 
-#,,,.,,.,,,,.,...,,,,,,.,,,,,,,.,,.,,,.,.,..,,..,,...,...,,,,,.,,,...,..,,.,,,
-#TMODXDCCIKJAX3KMSQPA6VT7VPKQMWSUMBQRCH6CJ73HL252RAJH2HBUW5LABSVYG4MUZJS5KXF3E
-#\\\|OP34WLILHM2HPCRDOQ5UXPPZTX6GBDQGZNYLRMIWBK2JQPRGVNI \ / AMOS7 \ YOURUM ::
-#\[7]3PITJLJ6RCR37EWE4UA3JWYR4JXUM5ARBQO65OP3RIP66AF55MDA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,,.,,.,,,...,..,,.,.,...,..,,..,,...,..,,...,,,,,.,,,,,,,..,,
+#5PD2X6BY6MUJASY3A3KSQM2DSBGJMOHIQLRVWKIUXHAGT77RSJTGQOWBBBNUV7FZCZP2DQK36QRW2
+#\\\|EZWQW7WXK5NBFT7FRZJ3RCCHSR6HIUZGVIZ5IBQQPUHC4X4DSC3 \ / AMOS7 \ YOURUM ::
+#\[7]GWCHJO5RONTITGNGMOBA5N4WZUDKJ6IKNKAM4ASUPDGTFCLDLABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
