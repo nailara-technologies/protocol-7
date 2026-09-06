@@ -10,16 +10,25 @@ my $read_fh     = $event->fd;
 my $server      = $event->data;
 my $bin         = $server->{'bin'};
 my $pid         = $server->{'pid'};
-my $display_str = $server->{'display'} // '';
+my $display_str = $server->{'display'}       // '';
+my $whitelist   = $server->{'log_whitelist'} // [];
 my $is_primary
     = (     $display_str ne ''
         and defined <X-11.primary_display>
         and $display_str eq <X-11.primary_display> );
 
-<X-11.output_buffer> //= '';
+## per-server state, keyed onto $event->data [ the SAME hashref for the     ##
+## lifetime of this fd's watcher, registered once in finalize_server ] --   ##
+## NOT the shared <X-11.output_buffer>\<X-11.first_error> globals this used ##
+## before 2026-09-06 : those were fine when this handler only ever watched  ##
+## one [ primary ] server, but with concurrent auxiliary xvfb displays now  ##
+## actually reachable [ bugs 2 \ 3 fixed the same day ], a shared           ##
+## buffer\error slot would interleave different servers' output and         ##
+## misattribute error messages across displays .,                           ##
+$server->{'output_buffer'} //= '';
 
 my $read_bytes
-    = <[base.s_read]>->( $read_fh, \$data{'X-11'}{'output_buffer'}, 4096 );
+    = <[base.s_read]>->( $read_fh, \$server->{'output_buffer'}, 4096 );
 
 if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
@@ -27,29 +36,59 @@ if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     <[base.logs]>
         ->( '%s-server [ PID %d ] filehandle closed .,', $bin, $pid );
     kill( 9, $pid );        ## making sure it is gone ##
-    my $err_str
-        = defined <X-11.first_error>
-        ? ': "' . <X-11.first_error> . '"'
-        : ' unexpectedly. [ unknown reason ]';
-    <[base.logs]>->( 0, "%s-server shut down%s", $bin, $err_str );
-    <[base.log]>->( 1, "done." );
-    exit(2) if $is_primary;
-    return;                 ## auxiliary server: do not terminate zenka ##
+
+    ## a requested stop [ eg. xvfb-stop ] marks its own pid before      ##
+    ## signalling it -- tell that apart from a genuine crash instead of ##
+    ## always logging the more alarming "shut down unexpectedly" .,     ##
+    if ( delete <X-11.intentional_stop>->{$pid} ) {
+        <[base.logs]>->( 1, "%s-server stopped [ requested ]", $bin );
+    } else {
+        my $err_str
+            = defined $server->{'first_error'}
+            ? ': "' . $server->{'first_error'} . '"'
+            : ' unexpectedly. [ unknown reason ]';
+        <[base.logs]>->( 0, "%s-server shut down%s", $bin, $err_str );
+    }
+
+    ## "done." is a zenka-shutdown idiom elsewhere in this codebase [ see   ##
+    ## X-11.connect_X11's base.exit(3,'done.',1) ] -- only log it when this ##
+    ## call is actually about to exit; an auxiliary server going away is    ##
+    ## not the zenka being done. [ this was unconditional before 2026-09-06 ##
+    ## -- a leftover from before multi-server support, when this branch     ##
+    ## always exited -- see 55787d320 ]                                     ##
+    if ($is_primary) {
+        <[base.log]>->( 1, "done." );
+        exit(2);
+    }
+    return;    ## auxiliary server: do not terminate zenka ##
 }
 
-while ( <X-11.output_buffer> =~ s|^([^\n]*)\n||s ) {
+while ( $server->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    <X-11.first_error> = $1
+    $server->{'first_error'} = $1
         if $output_line =~ m|\(EE\) +(.+)$|
-        and not defined <X-11.first_error>;
+        and not defined $server->{'first_error'};
     $output_line =~ s|\r||sg;
-    <[base.logs]>->( 2, "< %s > %s", $bin, $output_line );
+
+    ## known-benign chatter [ eg. Xvfb's xkbcomp keymap-conflict warnings, ##
+    ## harmless per Xvfb's own "not fatal to the X server" wording ] drops ##
+    ## to level 3 instead of the normal level 2 -- keeps a level-2         ##
+    ## diagnostic session clean, showing only output that isn't already    ##
+    ## known-safe .,                                                       ##
+    my $log_level = 2;
+    for my $pattern ( $whitelist->@* ) {
+        if ( $output_line =~ m|$pattern|i ) {
+            $log_level = 3;
+            last;
+        }
+    }
+    <[base.logs]>->( $log_level, "< %s > %s", $bin, $output_line );
 
     # LLL: terminate server here ?
 }
 
-#,,..,,,.,.,,,,..,,.,,,,.,,,,,,,,,,..,,,.,.,,,..,,...,...,,,.,,.,,,..,,,.,.,,,
-#OH3NQQMNPIFZVKTPFOL6WLBT7GSDX2DOOYXIQBPRYGWQ7RT7O43ONTH5ZCD5YKXYGKIFNLPGG77E2
-#\\\|CYTA4XT75V55QHO6BNLHC2WRALSQIQTD4PVUFYD2XDO37JNMC4W \ / AMOS7 \ YOURUM ::
-#\[7]56HKQ3GO4BU222BU6I7CZS27C2D32CSTOZKRTNQVABO4U3FVI2DI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,...,.,.,.,,,,..,..,,..,,...,..,,...,...,,,.,,,.,...,,..,,,,,
+#YEBQJ75GE7XNAY3VGHN6UA2WHYZMIUZ5UB4HYXL2QG5MKJQIH7E623KE2HTY7NNNYM4GYMD3JYFFK
+#\\\|LPSABO4ICKMQNVOPILIOY4XX6TT2YDAKLQ6PGH4NDVD3VEC274X \ / AMOS7 \ YOURUM ::
+#\[7]GU6SOJXLDIYCXFJMMPUCLHE47LLKIMNFBOZMIQK3PSP3GAJANSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
