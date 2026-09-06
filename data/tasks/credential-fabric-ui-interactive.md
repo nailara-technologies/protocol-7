@@ -147,11 +147,367 @@ race — not "own the terminal" alone, but serializing keystroke → routed
 call → reply → repaint as one sequential turn per key, so there are never
 two independent async event sources racing over the same modal state.
 
-still open before implementation starts: the new zenka's name, its
-console-command shape/entry point (mirroring `user-edit.console.start`),
-and whether it needs `[base.get_session_id]` at all (likely not, per
-`user-edit`'s own precedent of skipping it for a personal interactive
-console).
+**named [ 2026-09-06 ]: `vault-edit`.** not considered final — per user,
+easy to rename later via `bin/rename` + `ncode replace` once a better name
+turns up, same as any other rename in this codebase.
+
+**implemented [ 2026-09-06 ] — NEVER EXECUTED, not once.** full scaffold
+written: `cfg/zenki/vault-edit/zenka.v7` (auth as invoking unix user, no
+`[base.get_session_id]`, `[base.call.console_command:<system.args>]`, no
+top-level `[zenka.loop]`) plus ten `src/vault-edit.*` modules —
+`init_code`, `term_init`/`term_restore` (near-verbatim `user-edit`
+clones), `setup_stdin_watcher` (stdin-only, no local render-on-mutation
+watcher needed since there is no local render step), `console.show` (the
+entry point: resolves `$cube_sid` from `<user.cube.session>`, sends the
+initial `cred-mesh.ui-show [<view>]`, then `[init-done:TRUE]` +
+`[zenka.loop]`), `send_action` (builds and sends one routed
+`cred-mesh.<verb>` call, self-loopback-addressed via
+`"$cube_sid.cred-mesh.<verb>"` exactly as `user-edit.console.start`
+addresses `users` — NOT a bare `cred-mesh.<verb>` target, see its own
+header comment for why), `handler.reply` (clears busy, prints the
+payload, arms `pending` on a prompt-frame header match), and
+`process_input_buffer` (the actual key→verb table: `j`/`k`=nav,
+`r/x/g/a/?`=actions, `q`/Esc=quit, free-text prompt entry entirely local
+until Enter submits).
+
+**the actual race-fix mechanism, simpler than first planned**: not a
+nested `[zenka.loop]` per keystroke (user-edit only needs that once, for
+its one bootstrap fetch, because its field editing afterward is entirely
+local). every vault-edit action needs a real round trip since cred-mesh
+owns all state/rendering, so the fix is a plain `<vault-edit.busy>` flag:
+`process_input_buffer` refuses to decode further keys while a call is
+outstanding, and `handler.reply` clears the flag and resumes decoding any
+keys that piled up in the meantime. this works only because Perl's
+event loop is single-threaded (callbacks always run to completion before
+the next fires) — the flag has nothing concurrent to race against, unlike
+nshell's cross-process flag coordination.
+
+**two caveats from a self-review, one fixed, one left as a note**:
+- fixed: `send_action` now checks `send.local`'s own return value (`1+`
+  sent, `0` unknown target, `-1` empty session table, `-2` malformed
+  command) — a non-positive result now clears `busy` and prints a
+  visible error, instead of leaving the client permanently wedged
+  (accumulating dead keystrokes with no visible cause) if cred-mesh isn't
+  running when a call goes out.
+- left as a note, not code: `interactive-input`'s wire line is `text
+  session_id=NNN`; if typed prompt text itself happened to END in
+  something matching `\s+session_id=\d{3,17}`, cred-mesh's own suffix
+  strip would eat the wrong tail. far-fetched for a zenka name or a
+  relay payload, not worth guarding against here.
+
+**first test should be the cheapest possible, in order**: (1)
+`Protocol-7 vault-edit commands` — should print and exit immediately,
+proving the no-`[zenka.loop]`-in-start-file hybrid shape works at all
+before touching a real terminal; if this hangs, the start file itself is
+wrong and nothing past it matters. (2) only then `vault-edit show` (or
+bare `vault-edit`) at a real tty. expect untracked files to appear under
+`cfg/zenki/vault-edit/deps/` after the first start — same auto-generated
+scaffolding seen when `credentials` was started manually earlier this
+session, not a bug.
+
+no `access.zenki` changes were needed: vault-edit authenticates as the
+plain invoking unix user (subname `[vault-edit]` is stripped before any
+access check, `user-edit.init_code`'s own precedent), which already falls
+under `cfg/zenki/cube/access.zenki`'s `access.cmd.usr.*` wildcard —
+exactly the same group nshell's own working `cred-mesh.*` calls already
+go through.
+
+**first live test [ 2026-09-06, same day ] — two real bugs found, both
+fixed, `vault-edit.dispatch_key` added along the way**:
+
+1. **display-width bug**: `console.show`'s `# param =` header comment was
+   multi-line; the `commands` listing generator only reads the first line
+   after `param =` and concatenates it with `descr` with no wrapping,
+   blowing out the frame width. Fixed by shortening to a one-line
+   `# param = [ <view> ]`, matching `user-edit`'s own terse style, with
+   the fuller explanation moved to a body comment.
+2. **dead keyboard, two separate causes, not one**: a diagnostic print
+   confirmed the `event.add_io` watcher itself fires fine (bytes really
+   are arriving) — the bug was entirely downstream, in key decoding:
+   - arrow keys did nothing: the terminal was sending SS3 form (`\eOA`..
+     `\eOD`, 3 bytes) rather than CSI (`\e[A`..`\e[D`) — `%key_verb` only
+     had CSI entries. Missed porting nshell's own SS3-to-CSI
+     normalization (`nshell.read_from_buffer`'s `%ss3_arrow_map`) when
+     building vault-edit fresh. Fixed, same table.
+   - Esc needed two presses: `editor.input.next_key` deliberately never
+     resolves a lone `"\e"` on its own (can't distinguish a bare Esc from
+     the first byte of a still-arriving escape sequence, by its own
+     documented contract) — needs the same one-shot timeout `user-edit`
+     already has (`.esc.timer` armed in the drain loop, cancelled on new
+     input in `handler.stdin_key`, resolved by a new
+     `vault-edit.handler.esc_timeout`) which was simply omitted from the
+     first pass. Fixed.
+
+   Fixing bug 2's Esc-timeout path required calling the exact same
+   per-key handling logic from two places (the normal drain loop AND the
+   timeout handler) — factored into a new `src/vault-edit.dispatch_key`
+   module (returns TRUE if it sent a routed call, so the caller knows to
+   stop draining) rather than duplicating the pending/nav-mode branches.
+   `process_input_buffer` is now just the decode loop + Esc-timer arming;
+   `dispatch_key` holds the actual per-key behavior.
+
+3. **safety fix, unprompted by a specific failure but real regardless**:
+   `term_init` turns `ISIG` off, so Ctrl-C reaches the key handler as a
+   byte (`\x03`), not a signal — but nothing handled that byte, leaving a
+   stuck session with no way out short of killing the process from
+   elsewhere. `dispatch_key` now checks for it unconditionally, before
+   the pending-prompt branch, so it works from any state.
+
+still not confirmed by a live test as of this note: whether `j`/`k`/
+`r`/`x`/`g`/`a`/`?` and the grant/approve free-text prompt actually work
+end to end now that the two decode bugs are fixed — only the `ui-show`
+render and the (broken, now-fixed) Esc/arrow paths have been exercised so
+far.
+
+**second live test round, same day — one more real bug found, in
+`handler.reply` this time, not in key decoding.** with the SS3/Esc fixes
+in, `j` produced no visible effect either — but two targeted diagnostics
+(printing `send.local`'s return value and confirming `handler.reply`
+actually fires) showed the reply DOES arrive every time
+(`handler.reply fired, cmd=FALSE data_len=<undef>` for `interactive-
+down`, vs `cmd=SIZE data_len=792` for the working `ui-show`). the bug:
+`handler.reply` only ever read `$reply->{'data'}` — but a plain `TRUE`/
+`FALSE` reply carries its short message in `$reply->{'call_args'}{'args'}`
+instead, `data` is only populated for a `SIZE`-style multi-line payload.
+this exact distinction is spelled out in `nshell.handler.command_reply`,
+read directly earlier in this same session, and simply didn't carry over
+into `vault-edit`'s version. fixed: `my $payload = $reply->{'data'} //
+$reply->{'call_args'}{'args'};`. both diagnostics removed once the cause
+was confirmed.
+
+this means every prior "nothing happens" report for nav/action keys was
+this one bug, not a deeper session/routing problem — `cred-mesh.ui.
+interactive.down`'s reply was arriving correctly the whole time, just
+never displayed.
+
+**third live test round, same day — the FALSE reply's real text turned
+out to be a permission error, a pre-existing gap independent of anything
+built this session.** with the display fix in, the actual message was
+finally visible: `no perm. [ src 'cube' cmd|usr 'interactive-down' ]`
+(and the same for `interactive-up`). two SEPARATE permission lists exist,
+both required, and only one of them had ever been updated:
+
+1. `cfg/zenki/cube/access.zenki`'s `access.cmd.usr.*` wildcard — governs
+   what cube will route at all. Already correctly listed every
+   `interactive-*` alias (checked earlier this session, correctly).
+2. `cfg/zenki/cred-mesh/zenka.v7`'s OWN `access.cmd.usr.cube` — governs
+   what cred-mesh accepts from cube AS THE IMMEDIATE PEER (cred-mesh sees
+   the connection as literally *from cube*, regardless of who originated
+   it further upstream — hence `src 'cube'` in the error, not `taeki` or
+   `taeki[vault-edit]`). This list only ever had `ui-show` added to it,
+   never the `interactive-*` commands — a gap in the original Phase 2
+   work that simply never surfaced before, because nothing had actually
+   routed those commands through cube until `vault-edit` this session
+   (the reverted nshell attempt never got far enough to hit it either —
+   it was killed by the architecture concern before `interactive-down`
+   was ever actually tried against a live cred-mesh).
+
+Fixed: added `interactive-up interactive-down interactive-refresh
+interactive-select-view interactive-action interactive-input` to
+`cfg/zenki/cred-mesh/zenka.v7`'s `access.cmd.usr.cube` list, alongside
+the existing `ui-show`. **Needs `cred-mesh` itself reloaded or restarted
+to take effect** — reloading `cube` (tried once already this round, had
+no effect, as expected) does nothing here since the list lives entirely
+in cred-mesh's own config. Try `cred-mesh.reload` first; if a config
+reload doesn't pick up an `access.cmd.usr.*` change, `v7-zenki.restart
+cred-mesh` will.
+
+**fourth live test round, same day — permission fix confirmed working
+(no more "no perm"), replaced by "no active ui focus" on every
+`interactive-down`/`interactive-up` press.** root cause: a session-key
+mismatch caused by two DIFFERENT session_id-extraction regexes disagreeing
+on a bare call.
+
+`cred-mesh.cmd.ui-show`'s own extraction is `s|\s+session_id=(\d{3,17})$||`
+— it requires LEADING WHITESPACE before `session_id=`, i.e. it assumes the
+wire shape is always `<view> session_id=NNN`. `vault-edit.console.show`'s
+bare call (no view given) sent just `session_id=2754747` with nothing in
+front of it — that regex silently failed to match [ no error, no warning
+], `$session_id` stayed `''` [ `cmd.ui-show` has no missing-session_id
+guard at all, unlike every interactive-* module ], and cred-mesh
+initialized focus under the EMPTY-STRING session key instead of ours.
+Meanwhile `cred-mesh.ui.interactive.down`'s own extraction
+(`m|session_id=(\d{3,17})|`, no anchor, no whitespace requirement)
+correctly found `2754747` and looked in the right bucket — which was
+simply never populated. `ui-show` itself kept "working" throughout every
+prior test because rendering doesn't require pre-existing focus to
+already exist; only the interactive.* actions do.
+
+fixed on vault-edit's side: `console.show` now always sends an explicit
+view word (`ui-show overview`, never bare `ui-show`), guaranteeing the
+`\s+session_id=` shape `cmd.ui-show`'s regex expects.
+
+**not fixed, flagged instead**: `cred-mesh.cmd.ui-show`'s own regex is
+the more fragile of the two designs here — every OTHER interactive.*
+module tolerates a bare `session_id=NNN` with no anchor/whitespace
+requirement, and has an explicit "missing session_id" guard besides.
+`cmd.ui-show` has neither. Any other future caller sending a bare
+`ui-show session_id=NNN` (no view) would hit the exact same silent
+empty-string-key bug. Worth hardening `cmd.ui-show` to match the other
+modules' pattern (`m|session_id=(\d+)|` + an explicit guard) in a
+follow-up — left alone this session per the "additive, don't touch
+already-tested Phase 2 code beyond what's needed" principle, since the
+vault-edit-side fix fully resolves the reported symptom on its own.
+
+**not yet re-tested after this fix — and before it could be, a separate,
+real infrastructure gap surfaced: two `cred-mesh` zenki instances were
+found running simultaneously**, almost certainly from the `cred-mesh.
+reload`/`v7-zenki.restart cred-mesh` cycle used to pick up the
+access.zenki fix racing against the still-shutting-down prior instance.
+`cfg/zenki/cred-mesh/start.cfg` had no `max_concurrency` setting at all —
+confirmed against `cube`/`p7-log`/`httpd`'s own `start.cfg` files, all of
+which set `max_concurrency = 1` as a bare top-level key. Added the same
+to `cred-mesh/start.cfg`.
+
+this retroactively casts doubt on how much of the "no active ui focus"
+diagnosis above was the WHOLE story versus partly an artifact of two
+independent cred-mesh processes each holding their own separate,
+inconsistent focus state, with `base.zenki.resolve_routing_sids`
+[ the same multi-instance disambiguation the user pointed out earlier
+this session handles oldest-first-style selection ] not necessarily
+picking the same instance for every call. the `cmd.ui-show` regex bug is
+real and independently confirmed by direct code reading regardless, so
+that fix stands either way — but the "no active ui focus" symptom may
+have been two overlapping causes, not one, and can only be properly
+re-tested once the duplicate is cleaned up and exactly one cred-mesh
+instance is confirmed running (`list` / `cred-mesh.subname`, then
+`v7-zenki.stop` — NOT `.restart`, an in-band command a stuck instance may
+not answer — on any strays) before the next `vault-edit show` attempt.
+
+## RESOLVED [ 2026-09-07 ] — "no active ui focus" was two real,
+## pre-existing framework bugs, both now fixed, unrelated to vault-edit
+
+Added `src/vault-edit.cmd.char-add` (mirroring `user-edit.cmd.char-add`
+exactly: gated on `<vault-edit.mode.no_tty_debug>`, set by `show -no-tty`,
+injects keys into the same buffer a real keystroke would, drives the
+event loop with `event.once` until the outstanding call replies, returns
+`<vault-edit.last_render>`) specifically so this investigation no longer
+needed a human relaying screen output for every test round. This is what
+made finding the actual root cause tractable — direct `p7c
+cred-mesh.ui-show ...` calls plus `cred-mesh.dump`/`cred-mesh.get`
+introspection (bypassing vault-edit entirely) is what isolated the bug to
+cred-mesh/framework code, not vault-edit.
+
+**Duplicate `cred-mesh` instance turned out to be a dead end** — after
+cleanup, "no active ui focus" persisted identically. Not the cause (or
+not the whole cause); `max_concurrency = 1` stays as a good defensive fix
+regardless.
+
+**Bug 1 — `src/ui.unfold`, a shared/generic module, silently dropped all
+arguments when delegating to a zenka-specific `<namespace>.cmd.ui-show`
+override.** `<base.cmd>{'ui-show'}` resolves to `ui.cmd.ui-show` (the
+*generic* base implementation, part of the `ui` module every zenka using
+`[zenka.loop]` loads) — NOT to `cred-mesh.cmd.ui-show` directly, despite
+cred-mesh's own file existing and visibly running (confirmed by an early,
+wrong theory about "last-registration-wins" being disproven via `cred-
+mesh.get base.cmd.ui-show` → `ui.cmd.ui-show`). `ui.cmd.ui-show` detects
+a zenka-specific override exists and delegates to it through
+`ui.unfold`'s own "[ 2 ] specific ui-show command" branch — which called
+`$code{$cmd}->()` with **zero arguments**. Confirmed directly: `p7c
+cred-mesh.ui-show overview` (bypassing vault-edit, cube, and self-
+loopback routing entirely) landed in `cred-mesh.cmd.ui-show` with
+`$call->{'args'}` completely `undef`, regardless of what was typed.
+Fixed: `ui.cmd.ui-show` now forwards its own unparsed `$args_str` into
+`ui.unfold` as a new `raw_args` field (additive — any other existing
+caller not passing it gets the same `undef` as before), and `ui.unfold`
+now calls the override with it: `$code{$cmd}->($raw_args)`. `cred-mesh`
+is currently the only zenka with a `.cmd.ui-show` override
+(`find src -iname '*.cmd.ui-show'` confirms just the two files), so this
+carried no other-zenka regression risk.
+
+**Bug 2 — `cred-mesh.cmd.ui-show` itself, a classic Perl auto-
+vivification trap.** Even after bug 1's fix restored real args, focus
+still never persisted. `my $ui = $data{'session'}{$session_id}
+{'cred-mesh'}{'ui'};` **copies** the current value — `undef`, on first
+entry — into `$ui`; the later `$ui->{'focus'} = $focus;` then
+autovivifies a brand-new hashref disconnected from `%data`, so the write
+silently never reaches `%data{session}{...}{cred-mesh}{ui}` at all.
+Confirmed directly via `cred-mesh.dump session.<id>` immediately after a
+real `ui-show` call: `session.<id>.cred-mesh = { }`, genuinely empty,
+matching every subsequent `interactive-down`'s correctly-resolved-but-
+never-populated session_id. Fixed: `my $ui = $data{...}{'ui'} //= {};` —
+`//=` operates on the hash element itself, so `$ui` becomes a real alias
+into `%data` whether newly created or pre-existing. Checked every sibling
+`cred-mesh.ui.interactive.*` module for the same pattern — all of them
+only ever *read* `$ui`/`$focus` after `cmd.ui-show`'s init has already
+run (and correctly guard on "not defined" before writing anything), so
+none of them share this bug.
+
+**Verified end-to-end after both fixes**, via `char-add` against a fresh
+instance: `cred-mesh.dump session.<id>` shows real, persisted
+`cred-mesh.ui.focus.{view,row_index,row_count,row_keys,pending_action}`
+after `ui-show`; pressing `r` (rotate) now returns `no slot focused` —
+the CORRECT status (overview's registry section has 0 rows, nothing to
+select) — instead of `no active ui focus`; `q` cleanly terminates the
+session.
+
+**Not yet verified**: the actual interactive TTY experience (real
+terminal, not `-no-tty`/`char-add`) — only headless testing has happened
+since these fixes landed. `j`/`k`/`g`/`a`/`?` and the grant/approve
+free-text prompt specifically still need a real-terminal pass. All
+temporary diagnostics (`cred-mesh.debug.*` %data writes, one `base.logs`
+call) have been removed from `cred-mesh.cmd.ui-show` and `cred-mesh.ui.
+interactive.down`; leftover test session-id debris in `%data` (fake ids
+like `555444`, `999888`) is harmless and untouched.
+
+Every file touched this round — `src/ui.unfold`, `src/ui.cmd.ui-show`,
+`src/cred-mesh.cmd.ui-show`, `src/vault-edit.cmd.char-add`,
+`cfg/zenki/vault-edit/zenka.v7` (added `char-add` to
+`access.cmd.usr.cube`) — needs signing before commit.
+
+**fifth live test round, first REAL terminal test since the framework
+fixes landed — core functionality confirmed working (a keypress DID
+trigger a fresh render), but the screen was never cleared between
+frames**: each new render just printed below the previous one, scrolling
+the terminal instead of updating in place. `vault-edit.handler.reply`
+only ever did `print "\r\e[2K"` [ clear the CURRENT LINE ] before
+printing, copied from `nshell.handler.command_reply`'s own precedent —
+but nshell's replies are one-shot command output, never a repeated
+full-screen redraw, so clearing one line is correct there. vault-edit is
+a full-screen browser; every action re-renders the whole frame. Fixed:
+`print $colors{'clear_screen'} // ''` before each render [ same
+convention already used in `vault-edit.quit`/`term_restore`,
+`base.cmd.clear`, `user-edit.form.quit` ], skipped in `-no-tty` mode
+where nothing is watching the terminal and `char-add`'s returned text
+should stay plain content, not ANSI noise.
+
+**sixth live test round — screen-clear fix confirmed working (core
+mechanism: keypress → routed call → real state change → re-render, now
+proven end-to-end on a real terminal). But per the user, directly: "I
+don't understand the UI at all... compared to user-edit, which behaves
+well interactively... it will need a lot of work until anything
+productive can be done with it." Taking that at face value — it's an
+honest, accurate read, not a bug to argue away.**
+
+**Concrete cause of the most disorienting symptom (the header vanishing
+after the first keypress)**: `ui.cmd.ui-show`'s generic header-wrapping
+(the `.:[ cred-mesh ]:.` line, from its `ascii-frame.load('ui-show-
+fallback-header')` + `TITLE=$address` logic) only ever runs on the
+*initial* `ui-show` call. Every subsequent action (`j`/`k`/`r`/etc.)
+calls `cred-mesh.ui.interactive.refresh` directly — a separate code path
+this session never built and that was never wrapped by that header logic
+in the first place. So the header was never actually a persistent part
+of the UI; it only appeared once, by accident of which call path
+happened to run first. **Pre-existing Phase 2 gap, not something this
+session's changes touched** — but it directly explains why the browser
+feels disorienting the moment you move past the first screen.
+
+**What this session actually delivered, stated plainly**: a correct
+plumbing layer (keypress → routed call → persisted state change →
+re-render), verified end-to-end, with the underlying framework bugs that
+blocked it fixed. What it is NOT: a *designed* interface. No persistent
+orientation (which view / whose session), no on-screen key hints [
+`user-edit` has this and vault-edit doesn't ], no distinct visual
+treatment for the common "0 rows, nothing selectable" state beyond a
+bare restriction notice. Closing that gap is real interaction-design
+work, not a bug fix, and per the user deserves its own dedicated session
+rather than more reactive patching on top of tonight's fixes.
+
+**Per the user: ready to sign and commit as a checkpoint anyway** — this
+round's plumbing fixes (`ui.unfold`, `ui.cmd.ui-show`, `cred-mesh.cmd.ui-
+show`, the screen-clear fix, `char-add`) are real, independently
+verified, and worth landing regardless of the UX gap above. The UX/
+interaction-design pass is the explicit next step, not done here.
 
 ## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
 
@@ -470,8 +826,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,,,,...,..,,,,,,,.,,.,.,,,,,..,,..,,,,.,..,,..,,...,...,,,.,.,.,..,,.,,,.,,,
-#45OERNBWNMPXWN34FXRG5L4V2VZTYXGO4LWQDMEM7MIUOQXDMWJIXFK3S2KCCYFSQMGWLYPHS4QXO
-#\\\|EDYU2ZFMOTC3ZWLVBAJQUXFOZPY6VYUGQJT23J3FBYWVFBFEBZ7 \ / AMOS7 \ YOURUM ::
-#\[7]GJPXIACY4TAFT7TSZUBUUBD7JN4DPHPYLFNYFBG55B7EPUQQUSBQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,,..,,,.,,.,,...,.,,,.,,,,..,..,,...,...,,,.,.,.,,..,,..,,,.,
+#E7FVQ4HGCI2PZEAG3IL33TSA7GFHKEDDL62TNY7TOUI3LLTDJ73VD37O7JRKHLRZ5M626EZWJ7OIS
+#\\\|SDY2BXG7QEX5NSRQG2ZHJGTNTZBYX5RXI5UFD2ORODXH4SROKHJ \ / AMOS7 \ YOURUM ::
+#\[7]RLTH7XNHCECHB5PM22XOBTGBKTGUM36RGIE2K7XP6VYIOWS3FMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

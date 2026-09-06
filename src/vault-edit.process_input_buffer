@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = vault-edit.process_input_buffer
+# descr = decode buffered keystrokes one at a time, dispatching each via
+#         vault-edit.dispatch_key, stopping as soon as a routed call to
+#         cred-mesh goes out [ resumed by vault-edit.handler.reply once
+#         that call's reply lands ]
+
+## refuses to decode further keys while a call is outstanding -- this, not a
+## nested per-keystroke [zenka.loop], is what makes the design race-free : see
+## vault-edit.send_action's own note
+return FALSE if <vault-edit.busy>;
+
+my $buf_ref = \$data{'vault-edit'}{'input_buffer'};
+
+while ( defined( my $key = <[editor.input.next_key]>->($buf_ref) ) ) {
+    last if <[vault-edit.dispatch_key]>->($key);
+}
+
+## a lone "\e" left over means editor.input.next_key could not decide between
+## a bare Esc keypress and the first byte of an escape sequence still in
+## flight [ its own documented contract -- it never guesses ].  arm a one-shot
+## : if nothing follows within the timeout, it really was Esc [
+## user-edit.handler.stdin_key / .esc_timeout precedent ]
+if ( ( $buf_ref->$* // '' ) eq "\e"
+    and not defined <vault-edit.esc.timer> ) {
+
+    <vault-edit.esc.timer> = <[event.add_timer]>->(
+        {   qw| after |   => 0.05,
+            qw| repeat |  => FALSE,
+            qw| handler | => qw| vault-edit.handler.esc_timeout |,
+            qw| desc |    => 'vault-edit bare-Esc timeout',
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,,..,,,.,,.,,...,,,,,,..,,,,,,,.,,,,,.,,,..,,...,...,...,..,,.,.,,,,,,,,,
+#BJUDACZ7NDTN3WVZQTJK5RU2AD7MDJEQE2WLRD7SBJUZKVIMQDFDFJEKYOHFDQMDUNTD4KYSGOTYG
+#\\\|APMZ7OT7F63K35DRNGNRE5FEJU3METZGEBZWPFGXS2BM3ZIDN32 \ / AMOS7 \ YOURUM ::
+#\[7]MTDULHHEXDRYWOCPGOKQ3IQFC5N5IXQXCONOJNCMPPKI6ZEQFCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
