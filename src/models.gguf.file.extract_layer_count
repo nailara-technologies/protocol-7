@@ -1,0 +1,155 @@
+## [:< ##
+
+# name = models.gguf.file.extract_layer_count
+# descr = extract total transformer layer count (block_count) from a GGUF header
+# param = $file_path
+# return = integer layer count, or undef if not found/unreadable
+
+use Fcntl qw(:seek);
+
+my $file_path = shift;
+return undef unless defined $file_path && -f $file_path;
+
+## GGUF v3 value types [ same table as models.gguf.file.extract_metadata ] ##
+use constant {
+    GGUF_TYPE_UINT8   => 0,
+    GGUF_TYPE_INT8    => 1,
+    GGUF_TYPE_UINT16  => 2,
+    GGUF_TYPE_INT16   => 3,
+    GGUF_TYPE_UINT32  => 4,
+    GGUF_TYPE_INT32   => 5,
+    GGUF_TYPE_FLOAT32 => 6,
+    GGUF_TYPE_BOOL    => 7,
+    GGUF_TYPE_STRING  => 8,
+    GGUF_TYPE_ARRAY   => 9,
+    GGUF_TYPE_UINT64  => 10,
+    GGUF_TYPE_INT64   => 11,
+    GGUF_TYPE_FLOAT64 => 12,
+};
+
+my %FIXED_SIZE = (
+    GGUF_TYPE_UINT8()   => 1,
+    GGUF_TYPE_INT8()    => 1,
+    GGUF_TYPE_BOOL()    => 1,
+    GGUF_TYPE_UINT16()  => 2,
+    GGUF_TYPE_INT16()   => 2,
+    GGUF_TYPE_UINT32()  => 4,
+    GGUF_TYPE_INT32()   => 4,
+    GGUF_TYPE_FLOAT32() => 4,
+    GGUF_TYPE_UINT64()  => 8,
+    GGUF_TYPE_INT64()   => 8,
+    GGUF_TYPE_FLOAT64() => 8,
+);
+
+open my $fh, '<:raw', $file_path or return undef;
+
+my $header;
+read( $fh, $header, 24 ) == 24 or do { close($fh); return undef; };
+
+my ( $magic, $version, $tensor_count, $kv_count )
+    = unpack( 'A4 V Q< Q<', $header );
+
+unless ( $magic eq 'GGUF' ) {
+    close($fh);
+    return undef;
+}
+
+$kv_count = 1000 if $kv_count > 1000;
+
+## block_count is stored per-architecture as `<arch>.block_count` [ eg ##
+## `llama.block_count`, `qwen35.block_count` ] -- the suffix is fixed  ##
+## across every known architecture so it can be matched without first  ##
+## knowing `general.architecture`                                      ##
+for my $i ( 0 .. $kv_count - 1 ) {
+    my $key_len_buf;
+    read( $fh, $key_len_buf, 8 ) == 8 or last;
+    my ($key_len) = unpack( 'Q<', $key_len_buf );
+    last if $key_len > 1024 || $key_len == 0;
+
+    my $key;
+    read( $fh, $key, $key_len ) == $key_len or last;
+
+    my $is_block_count = $key =~ m{\.block_count$};
+
+    unless ($is_block_count) {
+        my $type_buf;
+        read( $fh, $type_buf, 4 ) or last;
+        my ($val_type) = unpack( 'V', $type_buf );
+
+        if ( $val_type == GGUF_TYPE_STRING ) {
+            my $len_buf;
+            read( $fh, $len_buf, 8 );
+            my ($len) = unpack( 'Q<', $len_buf );
+            seek( $fh, $len, SEEK_CUR ) if $len < 65536;
+        } elsif ( exists $FIXED_SIZE{$val_type} ) {
+            seek( $fh, $FIXED_SIZE{$val_type}, SEEK_CUR );
+        } elsif ( $val_type == GGUF_TYPE_ARRAY ) {
+            my $buf;
+            read( $fh, $buf, 4 );
+            my $etype = unpack( 'V', $buf );
+            read( $fh, $buf, 8 );
+            my $count = unpack( 'Q<', $buf );
+            if ( $etype == GGUF_TYPE_STRING ) {
+                ## string array elements are variable-length : each has its ##
+                ## own 8-byte length prefix, can't be skipped with a flat   ##
+                ## count*fixed-size seek [ found live 2026-09-08 :          ##
+                ## general.tags/general.languages are string arrays and     ##
+                ## this exact gap silently corrupts every read after them   ##
+                ## -- models.gguf.file.extract_metadata and                 ##
+                ## models.parser.gguf_metadata share the same gap, only     ##
+                ## masked there by an early-exit that fires first ]         ##
+                for ( 1 .. $count ) {
+                    my $len_buf;
+                    read( $fh, $len_buf, 8 ) == 8 or last;
+                    my ($len) = unpack( 'Q<', $len_buf );
+                    last if $len > 1_048_576;    # sanity cap
+                    seek( $fh, $len, SEEK_CUR ) if $len > 0;
+                }
+            } elsif ( exists $FIXED_SIZE{$etype} ) {
+                seek( $fh, $count * $FIXED_SIZE{$etype}, SEEK_CUR );
+            }
+        }
+        next;
+    }
+
+    my $type_buf;
+    read( $fh, $type_buf, 4 ) == 4 or last;
+    my ($val_type) = unpack( 'V', $type_buf );
+
+    my $layer_count;
+    if ( $val_type == GGUF_TYPE_UINT32 || $val_type == GGUF_TYPE_INT32 ) {
+        my $buf;
+        read( $fh, $buf, 4 ) == 4 or last;
+        $layer_count
+            = unpack( $val_type == GGUF_TYPE_UINT32 ? 'V' : 'l<', $buf );
+    } elsif ( $val_type == GGUF_TYPE_UINT64 || $val_type == GGUF_TYPE_INT64 )
+    {
+        my $buf;
+        read( $fh, $buf, 8 ) == 8 or last;
+        $layer_count
+            = unpack( $val_type == GGUF_TYPE_UINT64 ? 'Q<' : 'q<', $buf );
+    } elsif ( $val_type == GGUF_TYPE_UINT16 || $val_type == GGUF_TYPE_INT16 )
+    {
+        my $buf;
+        read( $fh, $buf, 2 ) == 2 or last;
+        $layer_count
+            = unpack( $val_type == GGUF_TYPE_UINT16 ? 'v' : 's<', $buf );
+    } else {
+        ## unexpected type for block_count : bail rather than misread ##
+        last;
+    }
+
+    close($fh);
+    return ( defined $layer_count && $layer_count > 0 )
+        ? $layer_count
+        : undef;
+}
+
+close($fh);
+return undef;
+
+#,,..,,..,..,,.,,,,,.,,,.,,,,,.,,,..,,.,,,..,,..,,...,...,...,..,,,,.,.,,,.,.,
+#GSZZEYPLACFS3RYADXZVOFTMSDFY7YDHTGVFTPC66OVYL4HNVXYQ33ED5NSOJDJYQBAPBAHMX245A
+#\\\|CHFQHE43FR3GWRPSJEGA4DFSHFOPZ3YNIZ4XNC37OFD6TQZAKOI \ / AMOS7 \ YOURUM ::
+#\[7]HCUKXKXNNGM3OOYRYH2MKLSS3S3OTYYGG3FDACUNUIVLBD7D36CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

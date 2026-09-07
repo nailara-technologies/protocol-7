@@ -181,7 +181,12 @@ my $nvidia_smi_cmd = 'nvidia-smi --query-gpu=memory.total,memory.free '
     . '--format=csv,noheader,nounits 2>/dev/null';
 my $nvidia_smi = qx{ $nvidia_smi_cmd };
 
-if ( $? != 0 || !defined $nvidia_smi || $nvidia_smi !~ m|^(\d+),\s*(\d+)|m ) {
+## trailing unit text tolerated : this environment's nvidia-smi sometimes   ##
+## ignores --nounits under gpu-state churn [ confirmed live 2026-09-08, see ##
+## coding.spawn_inference_server's identical fix ]                          ##
+if (   $? != 0
+    || !defined $nvidia_smi
+    || $nvidia_smi !~ m|^(\d+)[^,\n]*,\s*(\d+)|m ) {
     <[base.logs]>->(
         1,
         '[calculate_safe_context] nvidia-smi '
@@ -275,8 +280,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,..,,.,,,.,,.,,,,.,,.,.,...,,..,,,.,.,.,,..,.,.,...,...,,,.,.,.,.,,,,..,,..,
-#3F4KI7ZMNNFBLRPDFSC6JZOT3YJSOL7MIIAU5POACBXJ7VY7ASWGSEYPH34EKQVUXKWSRNGY7OM3G
-#\\\|4PUZ77DBCC3EQC44QQ4NSMXA52BKZI3VLVPY3O5NC4XM5DELZD7 \ / AMOS7 \ YOURUM ::
-#\[7]KV43P77WYICUJQXC6F2FVIZCS57MJVCREXEBBWPCP7IGNXMHWWAA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,.,,,,,.,,..,.,,,,..,.,,,.,.,.,.,...,...,.,,,,..,,..,,..,.,.,
+#PR36QGGW3EQ3T2CS3OUD6ZBRBJBK24DYK5N7KAZHRLONCPWQKTYEAMCWWIFADCY5OPNNUCVAMZENM
+#\\\|OV3X5MZL7FFJWK7DCYO74L33YTZKT26KJCBIREEGYPJNOYKRQK7 \ / AMOS7 \ YOURUM ::
+#\[7]3ID4QHGX6SX753JAMSCW7FI2HNH65YWOOHBCWQXA7PE3F4GTF6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
