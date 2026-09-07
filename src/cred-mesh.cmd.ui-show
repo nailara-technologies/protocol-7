@@ -101,13 +101,43 @@ if ( $view eq qw| overview | ) {
     $output .= $result->{'rendered'};
     push @all_row_keys, @{ $result->{'row_keys'} };
 
-    $output .= "\n" if length $output;
+    ## a straight '.= "\n"' only starts a NEW line, not a blank one -- whether
+    ## that reads as a real gap depends on whether the PRECEDING section's own
+    ## rendered text happens to already end in a newline, which varies [ a
+    ## restricted-access message string carries its own trailing "\n", an
+    ## ascii.frame.render frame generally does not ]. found live, per the
+    ## user directly : the restricted-slots message sat flush against the
+    ## overview frame above it while still getting a real blank line before
+    ## the NEXT section below, an inconsistency traced to exactly this.
+    ## normalizing [ strip whatever trailing newlines are already there, then
+    ## add exactly one blank line's worth back ] makes every section
+    ## boundary read the same regardless of what either side's own render
+    ## happens to end with
+    if ( length $output ) {
+        $output =~ s|\n*\z||;
+        $output .= "\n\n";
+    }
 
     $result = $render_registry_list->();
     $output .= $result->{'rendered'};
     push @all_row_keys, @{ $result->{'row_keys'} };
 
-    $output .= "\n" if length $output;
+    ## a straight '.= "\n"' only starts a NEW line, not a blank one -- whether
+    ## that reads as a real gap depends on whether the PRECEDING section's own
+    ## rendered text happens to already end in a newline, which varies [ a
+    ## restricted-access message string carries its own trailing "\n", an
+    ## ascii.frame.render frame generally does not ]. found live, per the
+    ## user directly : the restricted-slots message sat flush against the
+    ## overview frame above it while still getting a real blank line before
+    ## the NEXT section below, an inconsistency traced to exactly this.
+    ## normalizing [ strip whatever trailing newlines are already there, then
+    ## add exactly one blank line's worth back ] makes every section
+    ## boundary read the same regardless of what either side's own render
+    ## happens to end with
+    if ( length $output ) {
+        $output =~ s|\n*\z||;
+        $output .= "\n\n";
+    }
 
     $result = $render_auth_relay_queue->();
     $output .= $result->{'rendered'};
@@ -129,7 +159,22 @@ if ( $view eq qw| overview | ) {
     $output .= $result->{'rendered'};
     push @all_row_keys, @{ $result->{'row_keys'} };
 
-    $output .= "\n" if length $output;
+    ## a straight '.= "\n"' only starts a NEW line, not a blank one -- whether
+    ## that reads as a real gap depends on whether the PRECEDING section's own
+    ## rendered text happens to already end in a newline, which varies [ a
+    ## restricted-access message string carries its own trailing "\n", an
+    ## ascii.frame.render frame generally does not ]. found live, per the
+    ## user directly : the restricted-slots message sat flush against the
+    ## overview frame above it while still getting a real blank line before
+    ## the NEXT section below, an inconsistency traced to exactly this.
+    ## normalizing [ strip whatever trailing newlines are already there, then
+    ## add exactly one blank line's worth back ] makes every section
+    ## boundary read the same regardless of what either side's own render
+    ## happens to end with
+    if ( length $output ) {
+        $output =~ s|\n*\z||;
+        $output .= "\n\n";
+    }
 
     $result = $render_rotation_log->();
     $output .= $result->{'rendered'};
@@ -205,10 +250,19 @@ if ( length $output
     $output =~ s|$|$C{R}|mg;
 }
 
+## trailer for vault-edit.handler.reply's own footer -- view/row/count, never
+## shown to a human directly.  \x02/\x03 wrapping keeps it distinct from real
+## content with no risk of colliding with a slot/owner name ; appended AFTER
+## colourisation so the colour regexes above never see or mangle it [ per the
+## user-edit comparison's footer-status-line item,
+## data/tasks/credential-fabric-ui-interactive.md ]
+$output .= sprintf( "\n\x02VEFOCUS view=%s row=%d count=%d\x03",
+    $view, $focus->{'row_index'}, $focus->{'row_count'} );
+
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,,,.,.,.,,,..,,...,.,.,.,,,.,.,,.,,,,,,,.,,.,.,...,..,,,,,,...,.,.,,..,,,,,
-#3SXLJ2N2L6FTX4PI7QV6OETKDZMLM3HVLDLXVS76FNEHPGQXQYEI23AUHP5RIOXMQYSXBBIKRFRFS
-#\\\|ECBORTYQKTY4YOGTIADX3R2D2OODAAYWYT5TNIFD4YYUJUY6ZEU \ / AMOS7 \ YOURUM ::
-#\[7]6WZ2VO35SY752S6OWHRRNXF6IYNRTQGBRNTKZKZP4GAANPUVJCCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,...,,,.,.,.,.,,,,,,,,.,,.,.,.,.,...,...,,,,,,.,,,,.,.,,,...,
+#OKOFAVVPGWM2GHCEVKHQJYEA3CK63WTNJMTJTCHRYECAJ5V3MLMUWE7YGQA6EI7SSLZXQUCSH22TO
+#\\\|K3ZVWTRL6YFZ725I3ZONJTVEJHCT7JAYIVU54HQUDMGQ4F5GQZS \ / AMOS7 \ YOURUM ::
+#\[7]RXDO3HGTYOAZZTWEM7LRCOC4AYWE4R4EJ6WO7YD3VJK4HXAFZ2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

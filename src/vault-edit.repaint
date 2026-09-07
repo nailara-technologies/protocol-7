@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = vault-edit.repaint
+# descr = re-render the last known body locally, no routed call
+
+## the Ctrl+? help-block toggle is purely local UI state -- cred-mesh never
+## sees <vault-edit.help_visible>, so there is nothing to re-fetch from it,
+## just the same last body [ vault-edit.handler.reply's own cache ] to
+## re-wrap through vault-edit.render_chrome with the new chrome state and
+## print again. mirrors user-edit's own local-repaint architecture [ a
+## base.event.add_var watcher on a dirty flag ] in spirit, without needing
+## the same machinery : vault-edit has exactly one thing that ever needs a
+## local-only repaint, so a plain direct call is enough
+
+my $body = <vault-edit.last_body>;
+return FALSE if not defined $body;
+
+my $screen = <[vault-edit.render_chrome]>->($body);
+
+<vault-edit.last_render> = $screen;
+
+print $colors{'clear_screen'} // ''
+    if not <vault-edit.mode.no_tty_debug>;
+print $screen;
+
+STDOUT->flush();
+
+return TRUE;
+
+#,,..,..,,...,..,,,.,,,.,,,..,.,,,,.,,...,,.,,..,,...,...,.,,,..,,.,.,,,.,,.,,
+#DBVMNQ2PXBVRCEEGCYNVI4IDJUFEI5MN3BXRX7NXINYYLNO6VL7MQD54WPCWQWEHFPDJQAQ6K3XRQ
+#\\\|RA4OEPENSPVEC3RWELERDD4P3ONVVTIDRETKVQYJAEMWJDDDEO6 \ / AMOS7 \ YOURUM ::
+#\[7]U463EKEMRO7RKYVOCF2LIA3LNQUYJLYS5IZW7FNL4BOOLLE63GBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

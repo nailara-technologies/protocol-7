@@ -24,6 +24,12 @@ if ( $key eq "\x03" ) {
     return FALSE;    ## unreached in practice -- quit calls base.exit ##
 }
 
+## the FIRST key of the session retires the one-shot 'ctrl-? : show keys'
+## discovery hint vault-edit.render_chrome shows in its place -- ANY key, not
+## just ctrl-?, same as user-edit.handler.stdin_key's own rule : the point is
+## "the user has started interacting", not "the user found the toggle"
+<vault-edit.hint_seen> = TRUE if not <vault-edit.hint_seen>;
+
 if (<vault-edit.pending>) {
 
     ## free-text prompt entry [ zenka name / relay payload ] : entirely local,
@@ -71,6 +77,18 @@ state %ss3_arrow_map = (
 );
 $key = $ss3_arrow_map{$key} // $key;
 
+## key-hints block toggle [ user-edit's own Ctrl-? convention, same byte --
+## editor.input.parse_key_spec's 'Ctrl+?'/'Ctrl+/' both decode to 0x1f ] --
+## purely LOCAL state, no round trip to cred-mesh : it has no idea this
+## block exists, so repainting it just re-wraps the last known body through
+## vault-edit.render_chrome with the flipped state
+if ( $key eq "\x1f" ) {
+    <vault-edit.help_visible>
+        = <vault-edit.help_visible> ? FALSE : TRUE;
+    <[vault-edit.repaint]>;
+    return FALSE;
+}
+
 state %key_verb = (
     'j'    => qw| interactive-down |,
     "\e[B" => qw| interactive-down |,
@@ -81,6 +99,14 @@ state %key_verb = (
     'g'    => 'interactive-action grant',
     'a'    => 'interactive-action approve',
     '?'    => 'interactive-action detail',
+
+    ## the only way OUT of a detail card [ '?' above ] once inside one --
+    ## without this, select_view has no key binding at all and a detail card
+    ## is a dead end short of quitting the whole browser [ found reviewing
+    ## the new key-hints line vault-edit.render_chrome now always shows :
+    ## advertising '?' without ever advertising a way back makes the hint
+    ## itself the trap ]
+    'o' => 'interactive-select-view overview',
 );
 
 if ( $key eq 'q' or $key eq "\e" ) {
@@ -95,8 +121,8 @@ if ( defined $key_verb{$key} ) {
 ## unrecognised key while browsing : ignored ##
 return FALSE;
 
-#,,..,.,,,...,...,,..,,..,,,.,,,,,.,.,,,.,,..,..,,...,...,.,,,.,.,.,,,,.,,,,,,
-#PLWYGI6ICXPNX6U5D2C6UIPU4IQWIJDF3TBKPJT63SWQ5CPETNV7RFVICLM7AHGRTQEMYGXBBBMFK
-#\\\|SBFDSYHBGZRR3J73WTYQWXWJRQHYVAXFLB5GM254XATKD2LYUOL \ / AMOS7 \ YOURUM ::
-#\[7]YIYYCFTQMVD6UL4XUZSXJ6NH4HJ3S6C7JMJWHYJ57SMOCVERSKBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,,..,,..,,,.,,..,,,,,,.,,,,.,..,,...,...,...,.,.,,,.,.,.,.,,,
+#JHUEUCIRSL23XCQNTRRRWHMMNLZ5NCDGC6D3N7HDTNFFCEIJNESE7TVQSYVPSPXYIYKYX7CXCMJES
+#\\\|ECVBFIC6RM2QPZZ44QZMMAWZOOPKXUEYWJH7KIFBU77LL25QVWA \ / AMOS7 \ YOURUM ::
+#\[7]X3M5N6OODW5JEWVTKD2P4BYJEWR274X527EGGPSWK6IABYNJ6KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

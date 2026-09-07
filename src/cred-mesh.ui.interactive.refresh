@@ -40,7 +40,11 @@ if ( $view eq qw| overview | ) {
     $output .= $result->{'rendered'};
     push @row_keys, @{ $result->{'row_keys'} };
 
-    $output .= "\n" if length $output;
+    ## same normalization as cred-mesh.cmd.ui-show's own -- see its comment ##
+    if ( length $output ) {
+        $output =~ s|\n*\z||;
+        $output .= "\n\n";
+    }
 
     if ( $caller_level >= 1 ) {
         $result = <[cred-mesh.ui.render.registry_list]>
@@ -51,7 +55,11 @@ if ( $view eq qw| overview | ) {
         $output .= "[ restricted — slot list requires security level 1 ]\n";
     }
 
-    $output .= "\n" if length $output;
+    ## same normalization as cred-mesh.cmd.ui-show's own -- see its comment ##
+    if ( length $output ) {
+        $output =~ s|\n*\z||;
+        $output .= "\n\n";
+    }
 
     $result = <[cred-mesh.ui.render.auth_relay_queue]>
         ->( { 'focus_index' => $row_index } );
@@ -86,7 +94,11 @@ if ( $view eq qw| overview | ) {
     $output .= $result->{'rendered'};
     push @row_keys, @{ $result->{'row_keys'} };
 
-    $output .= "\n" if length $output;
+    ## same normalization as cred-mesh.cmd.ui-show's own -- see its comment ##
+    if ( length $output ) {
+        $output =~ s|\n*\z||;
+        $output .= "\n\n";
+    }
 
     $result = <[cred-mesh.ui.render.rotation_log]>
         ->( { 'focus_index' => $row_index } );
@@ -159,10 +171,14 @@ if ( length $output
     $output =~ s|$|$C{R}|mg;
 }
 
+## same trailer as cred-mesh.cmd.ui-show's own -- see its comment for why ##
+$output .= sprintf( "\n\x02VEFOCUS view=%s row=%d count=%d\x03",
+    $view, $focus->{'row_index'}, $focus->{'row_count'} );
+
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,,,,,,,.,,..,,,,,.,.,..,,.,.,,,.,,,.,,.,,.,.,...,...,,..,.,,,.,.,,,,,,.,,
-#VA62X5G3CWMTAC4RDW47A66LVOYDLCMFWD5ZB5E2JNWHH3QCYJNAXREE3OCOHGP5DJKJNJNLXFDXU
-#\\\|TYWMJAXXT4UZ3WNC3WBG4T4GTY4G566KWS5ZRCMJJWNQP2EKULQ \ / AMOS7 \ YOURUM ::
-#\[7]KWNK2NKWUIEDDCNSRUFOADM3FMAOMSMSN3CZZ6K3SN35NCMHOECY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,..,,.,.,,..,,.,,,..,,,,,.,.,.,.,...,...,.,,,.,,,,,.,,..,...,
+#IKHN2A2ZKPUXT4LWCRSOUCVMBTK5SHAZGICXNVB3XRGVZIQ5UEWBONEE4AIALE7GR3JQGSSRIGNSI
+#\\\|QT6QXQAH7RBW5M2BADGYHSY5HLRPCSMICZCQOFXYKIR2EH5SO43 \ / AMOS7 \ YOURUM ::
+#\[7]WXBKLIGAKL6MVG5CQWEHVEE2YWJX6LIL2QQ2ZBIMR4N3NWDFZOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
