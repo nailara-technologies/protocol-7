@@ -553,6 +553,197 @@ needs to reach, and specific reusable techniques, not just a vibe:
 rendered block. This is the concrete spec for the next session's
 interaction-design pass, not a vague "make it nicer."
 
+## interaction-design pass, round one [ 2026-09-07, same-day follow-up,
+## written, syntax-checked, NOT YET LIVE-TESTED ]
+
+Addressed four of the five items above directly, adapted the fifth,
+and fixed a sixth real content-shaping gap this same comparison
+surfaced. **Could not live-test**: the zenka network isn't running in
+this environment and `cube` refuses to start as non-root — every claim
+below is `ptd -c` syntax-checked plus a standalone Perl script proving
+the string logic (header-strip / VEFOCUS parse-and-strip / footer
+composition) round-trips correctly, but nobody has actually watched
+this render on a real or `-no-tty` session yet. Treat it the way
+`HANDOVER.md` treats untested work: should be right by careful
+analysis, not proven.
+
+**Architecture decision**: vault-edit owns an outer wrapper (title bar
++ footer + key hints) around whatever cred-mesh's `data` string
+contains, rather than cred-mesh becoming frame-aware. The two zenki
+already communicate over a byte-count wire protocol where only `mode`
+and `data` survive — confirmed by reading `base.handler.command`'s SIZE-mode
+branch directly — so any extra structured info has to travel inside
+the `data` string itself, not as extra reply-hash keys.
+
+- **persistent title bar** — `vault-edit.render_chrome` (new module)
+  prints `.:[ vault-edit : cred-mesh ]:.` on every render, unconditionally.
+  `vault-edit.handler.reply` now also strips `ui.cmd.ui-show`'s own
+  one-shot `.:[ cred-mesh ]:.` header (only ever present on the very
+  first reply) before handing the body to `render_chrome` — the
+  borrowed header is gone, not just superseded.
+- **footer status line** — needs cred-mesh's own `focus.row_index` /
+  `row_count` / `view`, which the wire protocol can't carry as
+  structured fields. Fix: `cred-mesh.cmd.ui-show` and `cred-mesh.ui.
+  interactive.refresh` (the two, and only two, places that actually
+  finalize `$output` — every `up`/`down`/`action`/`input`/`select_view`
+  branch funnels through `refresh`) append a trailer AFTER their own
+  colourisation pass: `"\n\x02VEFOCUS view=%s row=%d count=%d\x03"`.
+  `vault-edit.handler.reply` regex-strips it back out and caches the
+  three fields; `render_chrome` renders `view: X  row N of M`, or
+  `view: X  [ nothing selectable ]` when `count == 0` — the exact "0
+  rows" case the prior round flagged as having no distinct treatment.
+  **Deliberately NOT reset when a reply carries no trailer** (an
+  error reply, or the grant/approve prompt frame — see below) — the
+  view genuinely hasn't changed in either case, so stale-but-correct
+  beats blanked-out.
+- **inline key hints** — a single always-visible line (`keys:  j/k
+  move  .:.  r rotate  ...`), swapped for `enter submit  .:.  esc
+  cancel` while `<vault-edit.pending>` is true.
+- **discovery-hint technique — adapted, not ported.** `user-edit.form.
+  render`'s border-splice trick solves crowding: its multi-line hint
+  block is hidden by default specifically because it would crowd a
+  small field card, so a one-shot hint stands in until first keypress.
+  vault-edit's hint is a single line with nothing to crowd, so there's
+  no discovery problem to solve — it's just always shown. Not doing the
+  splice isn't a shortfall, the problem it exists for doesn't apply
+  here.
+- **collapsed multi-value preview — the sixth item, cred-mesh's own
+  content, not vault-edit's wrapper.** Same live-reading pass found
+  `cred-mesh.ui.render.registry_detail` unconditionally `join(', ',
+  @subscribers)`s the whole list into one field — exactly the
+  "dumping everything" case item 5 warns about, concretely present in
+  real code, not hypothetical. Fixed: `<= 4` subscribers still join
+  normally, more collapse to `:..N.entries..:`, matching the spec's own
+  example syntax exactly.
+
+**Three defects found by a second-opinion pass on the above, all fixed
+before committing anything to memory as done**:
+
+1. **Prompt-mode ordering regression.** `render_chrome`'s normal branch
+   prints title → body → footer → hints, but `vault-edit.dispatch_key`'s
+   pending-prompt branch echoes typed characters [ and backspace ]
+   immediately after whatever was printed last. With the hints line
+   trailing the body, a typed zenka name would land two lines below the
+   grant-prompt frame instead of visually inside it — a regression in
+   the exact "where am I" axis this whole pass is about. Fixed: when
+   `<vault-edit.pending>` is true, `render_chrome` now prints the
+   instruction line ABOVE the body and nothing after it, so the prompt
+   frame is the last thing on screen and typed text lands directly
+   beneath it, same as before this session's changes.
+2. **The key-hints line advertised a one-way door.** `?` (detail) sets
+   `focus.view = 'slot'` via `select_view`, and nothing in `%key_verb`
+   ever calls `select_view` back to `overview`/`slots` — `Esc` is bound
+   to quit, not back. Advertising `? detail` in an always-visible hint
+   line (this session's own addition) surfaced a dead end that was
+   previously just unreachable-by-accident. Fixed: `vault-edit.
+   dispatch_key` binds `'o' => 'interactive-select-view overview'`
+   [ `interactive-select-view` already granted in `cfg/zenki/cred-mesh/
+   zenka.v7`'s `access.cmd.usr.cube`, unused until now ], advertised in
+   the hints line right after `o overview`.
+3. **Header-strip regex hardcoded the zenka name.** Generalized from a
+   literal `.:[ cred-mesh ]:.` match to the frame idiom itself
+   (`^\.:\[ [^\]]* \]:\.\n`) — matches on the `.:[ ]:.` shape
+   `ui-show-fallback-header` always produces, not on `cred-mesh`
+   specifically, so it doesn't depend on a coincidental width match
+   between `{{TITLE}}`'s placeholder length and the real zenka name's
+   length.
+
+Files touched: `src/cred-mesh.cmd.ui-show`, `src/cred-mesh.ui.
+interactive.refresh`, `src/cred-mesh.ui.render.registry_detail`,
+`src/vault-edit.handler.reply`, `src/vault-edit.dispatch_key`,
+`src/vault-edit.init_code`, new `src/vault-edit.render_chrome`,
+regenerated `cfg/zenki/vault-edit/subroutines.load-early`. Needs
+`bin/Protocol-7 sourcecode update-signatures` before commit — no
+placeholder signature stubs were added, per `AI-COLLABORATION-GUIDE.md`'s
+own instruction not to.
+
+## FIRST LIVE FEEDBACK, same day — chrome plumbing confirmed working, but
+## uncoloured [ fixed same round, still not re-tested ]
+
+User actually ran it (`Protocol-7 vault-edit show`, real terminal) before
+this round's own next steps happened. Findings:
+
+- **Title bar persistence confirmed working live** — appeared identically
+  on both a fresh `show` and after a `j`/`k` keypress. The header-
+  vanishing bug this whole pass started from is actually fixed.
+- **Footer missing on the very first screen, present after the first
+  keypress** — most likely a stale-process artifact (cred-mesh running
+  old, pre-trailer code at the moment of the first test, reloaded before
+  the second), not a logic bug ; the string-level round-trip test already
+  proves the regex mechanics work for both `ui-show` and `refresh`
+  replies. Flagged here rather than silently assumed, since it was never
+  re-confirmed live after reasoning through it.
+- **The actual live complaint, direct quote: "it still looks exactly the
+  same.. only that now grey unstyled key descriptions joined the
+  templates.."**, then: **"and when pressing down or up, then the title
+  becomes grey too.."** — `render_chrome`'s title/footer/hints lines were
+  plain uncoloured text, printed directly adjacent to cred-mesh's own
+  `%AMOS7::C`-coloured frames. Looked exactly like what it was: unstyled
+  text bolted onto a styled template, not one integrated design. Fixed
+  same round: `render_chrome` now colours its own three lines with the
+  SAME `%AMOS7::C` palette cred-mesh's own colourisation pass uses
+  (`$C{T}` teal body, `$C{0}` purple structural marks on the `.:[ ]:.`
+  idiom, bracket labels, and `.:.` separators), gated on
+  `length $colors{'reset'}` [ vault-edit's OWN colour state, `user-edit.
+  form.render`'s convention — deliberately NOT `<system.ansi_color>`,
+  which governs cred-mesh's process, a different question ].
+- **User confirmed the colour fix live: "colors are correct now."** New
+  complaint, also concrete: the key-hints line's own WIDTH was a UX
+  problem — the single `.:.`-joined line ran past 110 columns, roughly
+  twice cred-mesh's own frame width (~60 cols), and wrapped badly. Fixed:
+  `render_chrome` now lays the same 8 hints out as a 2-column, 4-row grid
+  (`  j/k  move       o    overview`, etc.) instead of one long line —
+  narrower than any of cred-mesh's own frames, no wrap. Colour applied to
+  the PADDED plain key text before wrapping in escapes, not after — an
+  escape sequence inserted before `sprintf('%-4s', ...)` would count
+  toward its own width and break column alignment, the same "field-slot
+  suffix" class of trap `topic-ascii-frame-system` already documents for
+  a different module. **Not yet re-verified live** — user's own
+  `vault-edit` session needs a restart to pick up the new code (it has no
+  `reload` command in its access list, unlike `cred-mesh`), left to the
+  user rather than restarting their live session unprompted.
+
+- **Direct side-by-side with a fresh `user-edit` instance, per the user's
+  own request** — started `Protocol-7 user-edit start -no-tty` as a
+  SEPARATE background process (`p7c 'taeki[user-edit].char-add' ...`)
+  purely for structural comparison, not to reuse the existing memory
+  notes from memory alone. Repeated the exact `char-add` mutates-live-
+  data trap from [[topic-user-edit-console-zenka-status]] immediately —
+  sent `j` as a plain nav key exactly like vault-edit's own convention,
+  landed as literal text in the REAL `taeki` record's `full_user_name`
+  field (`jTaeki Ten`). Caught and corrected the same way as before
+  (`[Backspace]`, confirmed via `users.value-get taeki full_user_name`
+  showing `Taeki Ten` untouched, never submitted). **This makes it two
+  independent incidents of the same trap in the same project** — worth
+  treating as a standing hazard, not a one-off: `user-edit.char-add`
+  against the real `taeki` record should be avoided in favor of a
+  disposable test record whenever navigation-style keys are being sent,
+  since single letters that read as "safe navigation" in vault-edit's own
+  vocabulary (`j`, `g`, `a`, `x`, `r`) are ordinary TEXT in a user-edit
+  field.
+
+- **Real discovery: `user-edit.cmd.char-add` cannot show the help-block
+  toggle at all — a gap in the test harness itself, not in the feature.**
+  Sent `[Ctrl+?]` (0x1f, confirmed correctly decoded by `editor.input.
+  next_key` and dispatched by `user-edit.handler.stdin_key`, which DOES
+  flip `<user-edit.form.help_visible>` and set `$repaint`) — the reply
+  never showed the multi-line hint block appearing. Root cause, read
+  directly in `src/user-edit.cmd.char-add`'s own code: it deliberately
+  calls `editor.ui.ascii_frame.render_form` DIRECTLY for its reply,
+  bypassing `user-edit.form.render` entirely — the ONLY module that
+  checks `help_visible` and prints the hint block (or does the viewport
+  scrolling, or the discovery-hint border splice). `char-add`'s own
+  comment explains why [ wants the current frame state regardless of
+  dirty flag ], but the practical effect is that **`char-add` can verify
+  navigation/data changes but not this whole class of presentation
+  toggle** — extends [[topic-user-edit-console-zenka-status]]'s existing
+  "headless harness cannot show colour" caution to "cannot show
+  help_visible either." Confirmed the actual toggle behaviour by reading
+  `user-edit.form.render`'s printf loop directly instead (`
+  " %s:%s  %-13s%s\x{b7}%s  %s%s\n"` — one hint per line, gutter/key
+  colour then a middle-dot then action) rather than by observing it live
+  — the source for `render_chrome`'s own 2-column layout above.
+
 ## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
 
 the **interactive verbs** here (select / act / unlock) operate on
@@ -851,6 +1042,88 @@ phase 3 (unlock):
   `cred-mesh.resolve` calls succeed.
 - the phrase never appears in any log file or in-memory data tree.
 
+## interaction-design pass, round two, same day -- user confirmed round one's
+## colour + width fixes live ("ok, much better =)"), then two more concrete
+## items
+
+**1. Missing separator before a restricted-access message, found live by
+the user.** Root cause, general, not specific to that one message: `$output
+.= "\n" if length $output;` [ used identically 3x each in `cred-mesh.cmd.
+ui-show` and `cred-mesh.ui.interactive.refresh` ] only ever adds ONE
+newline, which starts a new line but is not a blank-line separator unless
+the PRECEDING content happened to already end in its own trailing `\n`.
+`ascii.frame.render`'s own frames generally don't ; the restricted-access
+message strings do [ `"...]\n"`, baked in ] -- so the gap AFTER a
+restricted message looked right by coincidence while the gap BEFORE it did
+not. Fixed by normalizing at all 6 call sites: strip whatever trailing
+newlines are already there, then add exactly `"\n\n"` -- a real blank line
+regardless of either side's own convention, not just for this one message.
+
+**2. Added a key-hints toggle, `ctrl-?`, matching `user-edit`'s own
+convention** [ per the user's own suggestion ] -- the hint grid is now
+HIDDEN by default, with a one-shot discovery line (`( ctrl-? : show keys
+)`) shown until the first key of the session, exactly the same "any key
+retires it" rule `user-edit.handler.stdin_key` uses for its own discovery
+hint. Toggling is purely local : cred-mesh has no idea this block exists,
+so there is nothing to fetch over the network to see the new state --
+new `vault-edit.handler.reply` caches the last body it wrapped
+(`<vault-edit.last_body>`), and new `vault-edit.repaint` re-wraps that
+same cached body through `render_chrome` with the flipped
+`<vault-edit.help_visible>` and reprints locally. This is vault-edit's
+first-ever local-only repaint path -- previously EVERY screen update came
+from a cred-mesh reply. Files: `src/vault-edit.init_code` (new
+`help_visible`/`hint_seen`/`last_body` state), `src/vault-edit.dispatch_key`
+(hint-retire + `\x1f` handling), new `src/vault-edit.repaint`,
+`src/vault-edit.render_chrome` (three-state hints: grid / discovery-hint /
+nothing).
+
+**Also found, comparing `user-edit` live for this session's earlier round**:
+`user-edit.cmd.char-add` mutating the real `taeki` record a second time
+[ see [[feedback-user-edit-char-add-mutates-live-data]] ], and that
+`user-edit.cmd.char-add` cannot show the `help_visible` toggle at all --
+it calls `editor.ui.ascii_frame.render_form` directly rather than through
+`user-edit.form.render`, so that whole class of presentation state is
+invisible to headless testing. Confirmed the real hint-block format by
+reading `user-edit.form.render`'s printf loop directly instead of
+observing it live.
+
+**The restricted-message separator fix itself was verified live this
+round** -- the user reported the same missing gap persisting, which
+turned out to be `cred-mesh` simply not having picked up the source fix
+yet (unlike `vault-edit`, `cred-mesh` DOES have a `reload` command in its
+access list). Ran `p7c cred-mesh.reload` directly, then confirmed via
+`p7c cred-mesh.ui-show overview` [ bypassing vault-edit entirely ] that
+the blank line is really there now. Lesson for next time a fix "doesn't
+work" after being applied to a currently-running zenka's source: check
+whether that zenka's process has actually reloaded before re-diagnosing
+the code itself.
+
+User confirmed round two live too ("ok, looks much better..") then two
+more concrete items:
+
+**1. The discovery hint (`< ctrl-? : show keys >`) needed the same
+blank-line-separator fix as the restricted message did, plus a bracket
+swap.** Root cause was the SAME class of bug fixed above, just not yet
+applied to `render_chrome`'s own footer/hints append (`$screen .=
+"$hints\n" if length $hints;` -- one newline, not a blank line). Fixed by
+applying the identical strip-then-add-a-real-blank-line normalization,
+looped over `($footer, $hints)` so both get it uniformly regardless of
+which one is actually present. Also swapped `( )` for `< >` on both the
+discovery hint and the visible grid's `keys:  < ctrl-? hide >` header, per
+the user's own preference.
+
+**2. "the whole screen reads as stuck to the terminal border"** -- asked
+for either a full parent frame centering the child content, or at least a
+left margin and top blank line. Did the low-risk half now: new
+`vault-edit.pad_screen` left-indents every line by two spaces and adds one
+blank line above the title, applied at the very end regardless of which
+branch (`pending` vs the normal composite) built the screen. **Did NOT
+attempt the full bordered/centered parent frame** -- that needs terminal-
+width detection, sizing a border to the widest of several variable-width
+cred-mesh frames, and centering the shorter ones inside it, all things
+better tuned by looking at the actual result than guessed blind without
+live access. Worth a dedicated pass once this round is confirmed live.
+
 ## harmony checks
 ```
 harmony cred-mesh.ui.interactive.up
@@ -870,8 +1143,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,.,,.,.,,.,,..,,..,,,,,,.,,,.,.,.,,,.,.,,,.,..,,...,...,...,,.,,,.,,,..,,.,,
-#I5LGX7F5DXWCFRMS5LCHH2OBWSWBDH7AKQMDRUXKXDDGFZWZ57JFFU7S7KVR4MSMDIR3LCOAKNURM
-#\\\|VHP2AT7UN3K7Z26PXG7XBCOEBACVZRMBG3YK5JVSYPX3F26L2VM \ / AMOS7 \ YOURUM ::
-#\[7]Q4LTJCA6PQWS3REUPOJWGFVMPYSQSPLKZV5BD6DTURONPZ3Z5YCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,.,,,,.,,.,,,..,..,,...,,,,,..,,...,...,,,,,..,,.,.,.,.,.,,,
+#D262MZCWS352WQWFXNATJUFDU6M34K4YNY6JMW67ENUS32YBVJ77YB2KNKGU2NTBQ5WXUUNJK35SM
+#\\\|XVAH35LKGMI4IY46ERCNU7WXYTN3YLG5BU7IUSWENAJW6I4RIL5 \ / AMOS7 \ YOURUM ::
+#\[7]CGTPA3BL3BSNSZ6VVKCWYJ74FUQMAKX4KLX5FMG6JCIDWWQSP4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

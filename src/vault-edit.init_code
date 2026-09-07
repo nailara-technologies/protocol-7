@@ -33,14 +33,35 @@
 <vault-edit.mode.no_tty_debug> = FALSE;
 <vault-edit.last_render>       = undef;   ## for vault-edit.cmd.char-add    ##
 
+## last VEFOCUS trailer seen [ vault-edit.handler.reply / .render_chrome ] --
+## undef until the first ui-show reply lands ; left untouched (not reset) on
+## a reply that carries none [ an error, or a grant/approve prompt frame ],
+## since neither of those actually changed which view is showing
+<vault-edit.focus_view>  = undef;
+<vault-edit.focus_row>   = undef;
+<vault-edit.focus_count> = undef;
+
+## the key-hints block toggle [ user-edit's own ctrl-? precedent ] -- hidden
+## by default, a one-shot discovery hint shown in its place until the FIRST
+## key of the session, same "any key retires it" rule user-edit.handler.
+## stdin_key uses. purely local state cred-mesh never sees : toggling it
+## repaints via vault-edit.repaint, no routed call needed
+<vault-edit.help_visible> = FALSE;
+<vault-edit.hint_seen>    = FALSE;
+
+## the last body vault-edit.render_chrome wrapped [ post header/VEFOCUS-strip,
+## pre-chrome ], cached specifically so vault-edit.repaint can redraw the
+## CURRENT screen with a new help_visible state without a network round trip
+<vault-edit.last_body> = undef;
+
 ## array of decoded keys, not bytes -- keeps backspace correct on multi-byte
 ## utf-8 input
 <vault-edit.prompt_chars> = [];
 
 return TRUE;
 
-#,,,,,,,,,,.,,.,,,,.,,,.,,,..,...,,.,,...,,,,,..,,...,...,...,,.,,...,,..,.,.,
-#RATJEC4YMUFKW7V4TT62KNWHAPDGDVGKCFBDI2KGPYKPE376KSBUPJVNIZNXY7VPQ5QOGPA645Q6W
-#\\\|GJN2SYP65PN5ID6AHBOY5KS52DJ45I3K4E3VCKETPJ2N5INPB22 \ / AMOS7 \ YOURUM ::
-#\[7]CG7OTBMOT2QTNZUETQ5O5YQZYHSTICG27RHREL6N4427Y27YEMCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,..,,...,...,...,...,...,,,,,..,,...,...,,,.,,..,.,,,...,,,,,
+#LN7SMV6QPP63BAV2TP6GKP4SF4SHA2GT7BI6GRPGAJ6YTSQLBAVYDZD5YGMSUY3PJWUMP2W643OTY
+#\\\|46VPYFP2X2LB2ZFVFEZZVXVLKUXDTWS3AYER45PZJSTIK2IGVQN \ / AMOS7 \ YOURUM ::
+#\[7]ZRBD7WBWKJFMXJDBFR6VAAF7LNYEFIMUEJ4OS2WI4C3NBMJSN2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

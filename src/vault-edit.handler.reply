@@ -17,26 +17,34 @@ my $reply = shift // return FALSE;
 ## discarded because this only ever looked at 'data' ]
 my $payload = $reply->{'data'} // $reply->{'call_args'}{'args'};
 
-## captured regardless of tty mode -- this is what vault-edit.cmd.char-add
-## returns as its own reply, the network-driven equivalent of "what's on
-## screen right now"
-<vault-edit.last_render> = $payload;
+## strip the generic cmd.ui-show wrapper's own one-shot header -- it only
+## ever appears on the very first reply [ ui.cmd.ui-show's own header, from
+## the ui-show-fallback-header frame, exists once per session ] and vault-
+## edit.render_chrome below prints its OWN persistent title bar instead ; per
+## the user-edit comparison, that title bar must be CLIENT-owned, not
+## borrowed from this one-shot server-side wrapper [ data/tasks/credential-
+## fabric-ui-interactive.md ]. matched on the frame's own '.:[ ]:.' idiom, NOT
+## on the literal zenka name -- the address inside is <system.zenka.name>,
+## not a fixed string
+$payload =~ s|^\.:\[ [^\]]* \]:\.\n||
+    if defined $payload;
+
+## VEFOCUS trailer : view/row/count metadata cred-mesh.cmd.ui-show and cred-
+## mesh.ui.interactive.refresh append after their own colourisation pass, for
+## render_chrome's own footer below -- absent on error replies (mode=>false)
+## and on the grant/approve prompt frames (cred-mesh.ui.interactive.action's
+## own direct returns, which never call refresh) ; in both cases the LAST
+## known focus state is deliberately left untouched rather than reset, since
+## neither kind of reply actually changed which view is showing
+if ( defined $payload
+    and $payload
+    =~ s|\n?\x02VEFOCUS view=(\S+) row=(\d+) count=(\d+)\x03|| ) {
+    <vault-edit.focus_view>  = $1;
+    <vault-edit.focus_row>   = $2;
+    <vault-edit.focus_count> = $3;
+}
 
 if ( defined $payload and length $payload ) {
-
-    ## clear the WHOLE SCREEN before each render, not just the current line --
-    ## vault-edit is a full-screen browser, not a line-oriented reply log like
-    ## nshell [ whose "\r\e[2K" precedent only ever needs to clear one
-    ## partially-typed line, since its replies are one-shot command output,
-    ## not repeated full-frame redraws ]. found live : without this every
-    ## keypress's new frame just printed below the previous one, scrolling the
-    ## terminal instead of updating in place. skipped in -no-tty mode, where
-    ## nothing is watching the terminal and vault-edit.cmd.char-add's returned
-    ## text should be plain content, not ANSI noise
-    print $colors{'clear_screen'} // ''
-        if not <vault-edit.mode.no_tty_debug>;
-    print $payload;
-    print "\n" if $payload !~ m{\n\z};
 
     ## a grant/approve action just returned a prompt frame instead of a nav
     ## update -- detected on the frame's own header text, same heuristic the
@@ -50,8 +58,38 @@ if ( defined $payload and length $payload ) {
 
     <vault-edit.prompt_chars> = [] if <vault-edit.pending>;
 
+    ## cached specifically so vault-edit.repaint can redraw the current
+    ## screen locally [ e.g. after Ctrl+? toggles help_visible ] without a
+    ## routed call -- cred-mesh has no idea vault-edit's own key-hints block
+    ## exists, so there is nothing to re-fetch, just this same body to
+    ## re-wrap with a different chrome state
+    <vault-edit.last_body> = $payload;
+
+    my $screen = <[vault-edit.render_chrome]>->($payload);
+
+    ## captured regardless of tty mode -- this is what vault-edit.cmd.char-add
+    ## returns as its own reply, the network-driven equivalent of "what's on
+    ## screen right now" -- the FULL composed screen [ title/footer/hints
+    ## included ], not the bare cred-mesh payload, so headless testing sees
+    ## exactly what a real terminal would
+    <vault-edit.last_render> = $screen;
+
+    ## clear the WHOLE SCREEN before each render, not just the current line --
+    ## vault-edit is a full-screen browser, not a line-oriented reply log like
+    ## nshell [ whose "\r\e[2K" precedent only ever needs to clear one
+    ## partially-typed line, since its replies are one-shot command output,
+    ## not repeated full-frame redraws ]. found live : without this every
+    ## keypress's new frame just printed below the previous one, scrolling the
+    ## terminal instead of updating in place. skipped in -no-tty mode, where
+    ## nothing is watching the terminal and vault-edit.cmd.char-add's returned
+    ## text should be plain content, not ANSI noise
+    print $colors{'clear_screen'} // ''
+        if not <vault-edit.mode.no_tty_debug>;
+    print $screen;
+
 } else {
-    <vault-edit.pending> = FALSE;
+    <vault-edit.pending>     = FALSE;
+    <vault-edit.last_render> = $payload;
 }
 
 STDOUT->flush();
@@ -62,8 +100,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,,,.,,,.,,,..,,,.,,,,,,,,.,...,...,,.,,,..,..,,...,...,.,.,...,,.,,,,.,..,,
-#CUNQ2BYOJ3LRHJH6TXCODAVFTZK7OT35ISNTKGQOIOMOI6EPCFB7NWUL5LMEJMFJAUGNXOMVXWRV4
-#\\\|WJRUJ2HLY4FBH4CZFEWIPXZVC32QSUCXZ4GNBX4WO5RGI6EAQVY \ / AMOS7 \ YOURUM ::
-#\[7]BXY7W4LDLAOAI2YXILDDKQCRHCLG47XOTUQ7AFYRX4LUFNUP5AAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,..,.,.,.,.,..,,,.,,.,.,,,,,,.,,..,,...,...,,..,,,,,,,,,.,.,..,,
+#CHIGQPF7QT4ABF6A2D4YPNUGVJSMCQT4UFNRUPFWD56K6AU2SDEYFMCDDIQCKHN6WZLBRD5INNGPY
+#\\\|ZJF5Q3H7ANG6LHRB74VM6AMIZBML6JPQZ53FK5XFGESZZWUQUQ4 \ / AMOS7 \ YOURUM ::
+#\[7]3YTOUSOXVECWEZ5RZI4ZXFR6RLW33DFYWGGOOPMSD42CLWPU5SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
