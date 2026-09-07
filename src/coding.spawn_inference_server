@@ -36,11 +36,13 @@ my $binary   = $params->{'binary'} // (
     ? ( <inference.backend.gpu.binary> // "$lib_path/llama-server-cuda-fa" )
     : ( <inference.backend.cpu.binary> // "$lib_path/llama-server-cpu" )
 );
-my $threads     = $params->{'threads'}     // 8;
-my $gpu_layers  = $params->{'gpu_layers'}  // 33;
-my $model_path  = $params->{'model_path'}  // '';
-my $mmproj_path = $params->{'mmproj_path'} // '';
-my $amos_id     = $params->{'amos_id'}     // '';
+my $threads    = $params->{'threads'}    // 8;
+my $gpu_layers = $params->{'gpu_layers'} // 33;
+## pre partial-offload reduction ##
+my $configured_gpu_layers = $gpu_layers;
+my $model_path            = $params->{'model_path'}  // '';
+my $mmproj_path           = $params->{'mmproj_path'} // '';
+my $amos_id               = $params->{'amos_id'}     // '';
 
 ## cancel watchers, close fds, and kill old server before spawning new one ##
 my $old = <coding.inference_servers>->{$backend} // {};
@@ -290,25 +292,77 @@ if ( $backend eq qw| gpu | ) {
     ## vram sanity check ##
     my $nvidia_smi = qx{ nvidia-smi --query-gpu=memory.total,memory.free
                                --format=csv,noheader,nounits 2>/dev/null };
-    if ( $nvidia_smi =~ m|^(\d+),\s*(\d+)|m ) {
+    ## trailing unit text tolerated : this environment's nvidia-smi         ##
+    ## intermittently ignores --nounits under gpu-state churn [ confirmed   ##
+    ## live 2026-09-08, right after killing the prior server -- exactly the ##
+    ## moment this check matters most -- returning "12288 MiB, 10395 MiB"   ##
+    ## instead of "12288, 10395" and silently disabling this whole vram     ##
+    ## check, full-fit hard-fail AND partial-offload alike ]                ##
+    if ( $nvidia_smi =~ m|^(\d+)[^,\n]*,\s*(\d+)|m ) {
         my ( $total_mb, $free_mb ) = ( $1, $2 );
         my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
         my $safety_mb     = <coding.cfg.vram_safety_mb> // 1024;
         if ( $free_mb < $model_size_mb + $safety_mb ) {
-            <[base.logs]>->(
-                0,
-                '[spawn_inference_server] insufficient '
-                    . 'vram: free=%d MB model=%.0f MB safety=%d MB',
-                $free_mb,
-                $model_size_mb,
-                $safety_mb
-            );
-            <coding.spawning_in_progress> = FALSE;
-            return {
-                'success' => FALSE,
-                'error'   => 'insufficient vram for model load'
-            };
+            ## full offload doesn't fit -- try hybrid/partial gpu+cpu layer ##
+            ## offload before refusing the spawn outright [ llama .cpp's    ##
+            ## -ngl natively accepts any value 0..full layer count, no      ##
+            ## binary change needed ] -- config-gated, on by default per    ##
+            ## user request                                                 ##
+            my $partial_enabled = <[base.cfg_bool]>
+                ->( <coding.cfg.partial_offload_enable> // 1 );
+            my $min_layers = <coding.cfg.partial_offload_min_layers> // 4;
+            my $partial;
+            $partial = <[coding.helper.calculate_partial_gpu_layers]>->(
+                {   model_path        => $model_path,
+                    model_size_mb     => $model_size_mb,
+                    free_mb           => $free_mb,
+                    safety_mb         => $safety_mb,
+                    configured_layers => $gpu_layers,
+                }
+            ) if $partial_enabled;
+
+            if (    $partial_enabled
+                and defined $partial->{'computed_layers'}
+                and $partial->{'computed_layers'} >= $min_layers ) {
+                <[base.logs]>->(
+                    1,
+                    '[spawn_inference_server] full gpu offload '
+                        . 'does not fit -- hybrid partial offload : %s',
+                    $partial->{'explanation'}
+                );
+                $gpu_layers = $partial->{'computed_layers'};
+            } else {
+                <[base.logs]>->(
+                    0,
+                    '[spawn_inference_server] insufficient vram: '
+                        . 'free=%d MB model=%.0f MB safety=%d MB%s',
+                    $free_mb,
+                    $model_size_mb,
+                    $safety_mb,
+                    (   $partial_enabled
+                        ? sprintf(
+                            ' [ partial offload also insufficient : %s ]',
+                            $partial->{'explanation'} )
+                        : ''
+                    )
+                );
+                <coding.spawning_in_progress> = FALSE;
+                return {
+                    'success' => FALSE,
+                    'error'   => 'insufficient vram for model load'
+                };
+            }
         }
+    } else {
+        ## unparseable nvidia-smi output : the vram check [ full-fit AND ##
+        ## partial-offload alike ] silently never runs -- log it rather  ##
+        ## than let a transient driver hiccup fail open with no trace    ##
+        <[base.logs]>->(
+            1,
+            '[spawn_inference_server] nvidia-smi query '
+                . 'unparseable, skipping vram check : %s',
+            <[base.parser.ellipse_center]>->( $nvidia_smi // '', 80 )
+        );
     }
 }
 
@@ -523,12 +577,22 @@ POSIX::setpgid( $pid, $pid );
     'model' => $amos_id,
     'n_ctx' => $ctx_size,    ## actual context window passed to server ##
     'calculated_ctx' => $safe->{'calculated'}, ## VRAM-safe auto-calc value ##
-    'status'         => qw| starting |,
-    'start_time'     => <[base.ntime]>,
-    'stdout'         => $server_out,
-    'stderr'         => $server_err,
-    'mmproj_path'    => $mmproj_path,
-    'model_path'     => $model_path,
+    (   $backend eq qw| gpu |
+        ? ( 'gpu_layers'   => $gpu_layers,     ## actual -ngl value used ##
+            'offload_mode' => (
+                $gpu_layers < $configured_gpu_layers
+                ? qw| partial |
+                : qw| full |
+            ),
+            )
+        : ()
+    ),
+    'status'      => qw| starting |,
+    'start_time'  => <[base.ntime]>,
+    'stdout'      => $server_out,
+    'stderr'      => $server_err,
+    'mmproj_path' => $mmproj_path,
+    'model_path'  => $model_path,
 };
 
 ## Register I/O handlers to monitor startup
@@ -581,8 +645,8 @@ return {
     'port'    => $port
 };
 
-#,,..,..,,,,.,...,,.,,..,,.,,,.,,,,.,,,..,.,,,..,,...,...,.,,,...,,,.,,..,,,.,
-#TTSE6AXLYH5E5XYOJNKNJ7TLUTJ2HPPV6V7SAJOTOWBCXL6CVCQMIRJLNIVMDIZJ7LAVLEN22XLHS
-#\\\|O5LCKFDARDEPW26ZFL4MICWZD4ZY24JF2IORZGHYNBWUMCQK4GP \ / AMOS7 \ YOURUM ::
-#\[7]CXGSRBFT32FC7IAOO754ONYJOBC7EN7O374SXPQZDQMODYFGZYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,.,,,.,,,...,,,,,,,,,...,,,.,..,,...,...,.,,,,.,,,,.,,..,,,,,
+#OKEAYQWDVMUAVT5PBZ56MM4U6ATPSDB6SALEP5FBJ2Y3JOODHOCWN44XAJRZ32VFKX6BEVLULSPBY
+#\\\|YLJYH22GEXIGDTE5WTS4MYR76QJQL7S7JHZPH4UVDBUPGRPJGMZ \ / AMOS7 \ YOURUM ::
+#\[7]MH4XOWOXUMVO6LG4BWBSCWE6HNQEMSG2WJGOJUEASYCA27MJUQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

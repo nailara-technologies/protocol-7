@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = coding.helper.calculate_partial_gpu_layers
+# descr = pick a reduced -ngl value when a model doesn't fully fit in VRAM
+# param = { model_path, model_size_mb, free_mb, safety_mb, configured_layers }
+# return = { computed_layers => N|undef, layer_count => N|undef,
+#            per_layer_mb => N, explanation => "..." }
+
+my ($params) = @ARG;
+
+my $model_path        = $params->{'model_path'}        // '';
+my $model_size_mb     = $params->{'model_size_mb'}     // 0;
+my $free_mb           = $params->{'free_mb'}           // 0;
+my $safety_mb         = $params->{'safety_mb'}         // 0;
+my $configured_layers = $params->{'configured_layers'} // 0;
+
+## per-layer VRAM cost : total footprint / layer count is a first-order     ##
+## approximation [ ignores per-layer size variance -- eg embedding/lm- head ##
+## tensors aren't offloadable layers but are folded into the same file-size ##
+## total -- good enough to pick a conservative -ngl, not exact              ##
+my $layer_count = <[models.gguf.file.extract_layer_count]>->($model_path);
+
+unless ( $layer_count && $model_size_mb > 0 ) {
+    return {
+        computed_layers => undef,
+        layer_count     => $layer_count,
+        per_layer_mb    => 0,
+        explanation     => 'layer count or model size unavailable '
+            . ': cannot compute partial offload',
+    };
+}
+
+my $per_layer_mb = $model_size_mb / $layer_count;
+my $usable_mb    = $free_mb - $safety_mb;
+
+my $computed_layers = $usable_mb > 0 ? int( $usable_mb / $per_layer_mb ) : 0;
+
+## never suggest more than the full model, or more than what was asked ##
+$computed_layers = $layer_count if $computed_layers > $layer_count;
+$computed_layers = $configured_layers
+    if $computed_layers > $configured_layers
+    and $configured_layers > 0;
+$computed_layers = 0 if $computed_layers < 0;
+
+return {
+    computed_layers => $computed_layers,
+    layer_count     => $layer_count,
+    per_layer_mb    => $per_layer_mb,
+    explanation     => sprintf(
+        'layers=%d model=%.0fMB (~%.1fMB/layer) '
+            . 'free=%dMB safety=%dMB -> %d/%d layers fit',
+        $layer_count, $model_size_mb,   $per_layer_mb, $free_mb,
+        $safety_mb,   $computed_layers, $layer_count
+    ),
+};
+
+#,,.,,...,.,,,,.,,..,,,..,..,,..,,,.,,.,,,..,,..,,...,...,.,.,...,...,,,,,,,.,
+#DZNUZTBZ2N2JZWQEBEHK4WHBHWDKC5D3GPSIR4M75PXF7J6S4F2EVAF27KESTU6LKPEX6AYHTFEQS
+#\\\|GXEH7GIJE47NNSANCL7ESKLXD25Y6POF6EDF2YPIB3V6AEJE7OO \ / AMOS7 \ YOURUM ::
+#\[7]3QT4B2OBLXR72WQWYOI54LK67AJIUQGB2POWZXYAPODE57U4P6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
