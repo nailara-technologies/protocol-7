@@ -201,8 +201,62 @@ extra line, no width reservation. Full list in the task file's own
 "`user-edit` comparison" section — that's the next session's actual
 starting point, not "make it nicer."
 
-#,,,.,,..,,.,,,..,.,,,.,,,,.,,,.,,...,..,,,..,..,,...,...,,,,,,..,...,..,,..,,
-#BD46IXOKQ24R6GGL3CU4C64G3MXDU3JKY3KAW6PNFKCJNGMW7NLB74XL24S52HONW3IS36CKCSAWW
-#\\\|YZHY5OW6TXNEBKBP2UD6ZADO7CESULFR3UPBMWA6L7FK52H6J2T \ / AMOS7 \ YOURUM ::
-#\[7]GDT47VPAVVNSAJYZRG5VNU2SKYRYOQVQIC5MPSO6LD6RVAZWPODY 7  DATA SIGNATURE ::
+**Round one of that pass, same-day follow-up, 2026-09-07 — written and
+syntax-checked (`ptd -c`), NOT YET LIVE-TESTED** [ cube refuses to start
+non-root in this environment ]. Decided architecture: vault-edit owns an
+outer wrapper (title bar / footer / key hints) around cred-mesh's raw
+`data` string, rather than making cred-mesh frame-aware — forced by
+confirming directly in `base.handler.command`'s SIZE-mode branch that
+only `mode`+`data` survive the wire, so any structured metadata (view/
+row/count) has to travel inside `data` itself. New `\x02VEFOCUS
+view=%s row=%d count=%d\x03` trailer, appended by `cred-mesh.cmd.ui-show`
+and `cred-mesh.ui.interactive.refresh` (the only two places that
+actually finalize `$output` — every other interactive-* module funnels
+through `refresh`) after their own colourisation, parsed and stripped by
+`vault-edit.handler.reply`, rendered by new `vault-edit.render_chrome`.
+Landed 4 of 5 spec items directly (persistent title bar, footer w/ `row N
+of M` or `[ nothing selectable ]`, always-visible key hints, labeled
+layout is inherited from cred-mesh's own render), adapted the 5th
+(`user-edit`'s border-splice discovery-hint doesn't apply — nothing to
+discover, vault-edit's hint is one always-visible line with no crowding
+problem to solve), and separately fixed a 6th real gap the same
+comparison surfaced in passing: `cred-mesh.ui.render.registry_detail`
+was unconditionally joining the full subscriber list — now collapses to
+`:..N.entries..:` past 4, matching the spec's own example syntax.
+
+**A second-opinion pass caught two real defects in the interaction
+dimension itself before this got called done** — both instructive
+generally: (1) chrome ordering (title→body→footer→hints) put the new
+hints line BELOW the grant/approve prompt frame, so
+`vault-edit.dispatch_key`'s local character echo landed under the hints
+line instead of next to the prompt — fixed by special-casing pending
+mode to print title→instruction→body with nothing after, so the prompt
+frame stays the last thing on screen exactly like before this session.
+(2) the new always-visible hints line advertised `? detail`, which sets
+`focus.view='slot'` via `select_view` — and nothing bound `select_view`
+back to `overview`, `Esc` being bound to quit instead. Advertising a key
+that was previously an unreachable-by-accident dead end turned it into a
+reachable one. Fixed with one new binding, `'o' =>
+'interactive-select-view overview'` (the command name was already
+granted in `cfg/zenki/cred-mesh/zenka.v7`'s access list, just never
+bound to a key). **General lesson: a hint line makes previously-obscure
+key bindings reachable — auditing "does every advertised action have a
+way back" is now part of writing one, not optional polish.**
+
+Files this round: `src/cred-mesh.cmd.ui-show`, `src/cred-mesh.ui.
+interactive.refresh`, `src/cred-mesh.ui.render.registry_detail`, `src/
+vault-edit.handler.reply`, `src/vault-edit.dispatch_key`, `src/vault-
+edit.init_code`, new `src/vault-edit.render_chrome`, regenerated `cfg/
+zenki/vault-edit/subroutines.load-early`. No placeholder signature
+stubs added [ per `AI-COLLABORATION-GUIDE.md` ] — needs `bin/Protocol-7
+sourcecode update-signatures` over those paths, then a live pass
+(`Protocol-7 vault-edit show -no-tty` + `char-add`) before this can be
+called verified, not just reasoned-through. Full account: data/tasks/
+credential-fabric-ui-interactive.md's "interaction-design pass, round
+one" section.
+
+#,,.,,..,,..,,...,.,,,,,,,..,,...,..,,...,,.,,..,,...,...,,,.,,.,,,,.,.,,,,.,,
+#OEMJMAFC26VQQXKSFASA34CJOHED36UA42EPMF4H7UC25NI4Z6PIKBSKBQNWE4Y5UXH5ZKFCEVZY2
+#\\\|FQHTMJ3UBSOEMYDHQTUZXEMGKAZJ25IN2YK6ROXAWJ6NLPQAMCX \ / AMOS7 \ YOURUM ::
+#\[7]F6GAN5K3IYZN7J76O3TNCMLFSOQLD35W7UA5FFFS4UNV7JRY4AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

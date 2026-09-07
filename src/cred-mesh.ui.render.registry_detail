@@ -24,13 +24,20 @@ if ( exists $entry->{'descriptor'} ) {
 return { 'rendered' => '', 'row_keys' => [] }
     if not defined $descriptor;
 
-my $subscribers_str = '';
-my $subs            = $data->{'subscribers'} // [];
-if ( scalar @$subs ) {
-    $subscribers_str = join ', ', sort @$subs;
-} else {
-    $subscribers_str = qw| none |;
-}
+## collapsed preview once the list would otherwise crowd the card -- same
+## problem user-edit's user_keys field solves with a windowed count, adapted
+## here as a plain threshold since this field has no per-row navigation of
+## its own to window against [ per the user-edit comparison's collapsed-
+## preview item, data/tasks/credential-fabric-ui-interactive.md ]
+state $preview_threshold = 4;
+
+my $subs      = $data->{'subscribers'} // [];
+my $sub_count = scalar @$subs;
+
+my $subscribers_str
+    = $sub_count == 0                  ? qw| none |
+    : $sub_count <= $preview_threshold ? join( ', ', sort @$subs )
+    :                                     sprintf( ':..%d.entries..:', $sub_count );
 
 my %values = (
     SLOT_NAME        => $data->{'slot'},
@@ -55,8 +62,8 @@ return {
     'row_keys' => []
 };
 
-#,,..,,,,,..,,,..,,,,,...,..,,...,.,.,,,.,.,.,..,,...,...,.,.,.,.,,,.,,..,.,.,
-#HUZOMONJ56T67IH6H4EIROE3565DZWAEFQFMU5PZZWJ2Q2WNAT5PEIA72X53AOCFZYHRFK2AIQNVQ
-#\\\|JRARJAR2S5626WRB2WXC6Y7SE77AYFYNBHR5XIQAHORA3PAZ26P \ / AMOS7 \ YOURUM ::
-#\[7]OSBJOONSRX2WTO7H2QCMSATHAARWQBPT3I7ZVBP245MXCCTGAGCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,,.,,,.,,,,,,..,..,,,.,,.,.,..,,...,...,...,.,,,...,..,,.,,,
+#5IAJMVJN5XWFJHMO4TLDUFN3BPUQIZOCYX2GXWIEX73TGBPLIDT4IHPTEZW4TSNCU6KZV6A5GDSEW
+#\\\|NNOQPUPNV5RIXIYWDTQAINJF54AM7UCR24XAWOO6GAAHXPLHPXV \ / AMOS7 \ YOURUM ::
+#\[7]2CL43HCG5YCB56ITT7253ZKFC72NVM4T24AF27FSH6JNKMWLDCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

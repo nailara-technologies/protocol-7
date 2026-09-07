@@ -1,0 +1,166 @@
+## [:< ##
+
+# name  = vault-edit.render_chrome
+# descr = wrap cred-mesh's raw view content with vault-edit's own persistent
+#         title bar, footer status line and key-hint line
+# param = $body [ already stripped of the borrowed cred-mesh header and the
+#         VEFOCUS trailer -- see vault-edit.handler.reply ]
+
+## client-owned chrome, per the user-edit comparison [ data/tasks/credential-
+## fabric-ui-interactive.md ] : a persistent title bar, labeled orientation
+## and inline key hints that survive every action, not just the first ui-show
+## reply -- the header-vanishing bug that comparison diagnosed happened
+## precisely because vault-edit had no chrome of its own and accidentally
+## relied on a one-shot server-side wrapper instead. this module runs on
+## every reply, regardless of which cred-mesh code path produced $body
+
+my $body = shift // '';
+
+## same palette cred-mesh.cmd.ui-show / .interactive.refresh already colour
+## THEIR OWN content with [ %AMOS7::C, not vault-edit's own %colors ] -- this
+## chrome wraps cred-mesh's frames directly, so it borrows cred-mesh's own
+## visual language ( teal body, purple structural marks ) instead of
+## introducing a third, unrelated palette. found live : left uncoloured, the
+## title/footer/hints lines this session added rendered in the terminal's
+## bare default foreground right next to cred-mesh's own coloured frames --
+## exactly the "grey unstyled text joined to the templates" look reported
+## live, not merely a hypothetical
+my %C = %AMOS7::C;
+
+## gated on vault-edit's OWN colour state [ $colors{'reset'} blank under -nc
+## or a non-terminal STDOUT, user-edit.form.render's own convention ], not on
+## <system.ansi_color> -- that governs CRED-MESH's process, a separate
+## question from whether VAULT-EDIT's own terminal wants escapes
+my $use_color = length( $colors{'reset'} // '' ) ? TRUE : FALSE;
+
+## '.:[ LABEL ]:.' idiom : brackets/dots purple, the label itself teal --
+## cred-mesh.cmd.ui-show's own rules 2+4, applied by hand here since this
+## string's shape is fixed and known, not general content needing a
+## classifier
+my $frame_label = sub {
+    my $label = shift;
+    return ".:[ $label ]:." if not $use_color;
+    return $C{0} . '.:[ ' . $C{T} . $label . $C{0} . ' ]:.' . $C{R};
+};
+
+my $title = $frame_label->('vault-edit : cred-mesh');
+
+## grant/approve prompt : the instruction line goes ABOVE the body here,
+## and nothing prints after it. $body IS the prompt frame in this branch,
+## and vault-edit.dispatch_key's pending-mode key handling echoes typed
+## characters [ and backspace ] immediately after whatever this function
+## printed last -- if a footer/hints line followed the frame the way the
+## normal branch below does, typed text would land under that line instead
+## of directly beneath the prompt it belongs to
+## built by either branch below, then given the same left-margin/top-space
+## treatment at the very end regardless of which one ran
+my $screen;
+
+if (<vault-edit.pending>) {
+    my $instruction = q{[ type a value -- enter to submit, esc to cancel ]};
+    $instruction = $C{T} . $instruction . $C{R} if $use_color;
+    $screen = "$title\n\n$instruction\n\n$body";
+    $screen .= "\n" if $body !~ m{\n\z};
+    return <[vault-edit.pad_screen]>->($screen);
+}
+
+my $view  = <vault-edit.focus_view>;
+my $count = <vault-edit.focus_count>;
+
+my $footer
+    = ( not defined $view ) ? ''
+    : ( $count > 0 )        ? sprintf( 'view: %-8s  row %d of %d',
+    $view, <vault-edit.focus_row> + 1, $count )
+    :                         sprintf( 'view: %-8s  [ nothing selectable ]',
+    $view );
+
+if ( length $footer and $use_color ) {
+    ## bracket label purple, everything else teal -- same rule 4 cred-mesh
+    ## uses for '[ ... ]' spans in its own content
+    $footer = $C{T} . $footer . $C{R};
+    $footer =~ s|(\[ [^\]]+ \])|$C{0}$1$C{T}|;
+}
+
+## the full block is HIDDEN by default -- user-edit's own precedent : a
+## multi-line hint block crowds a screen that is otherwise just cred-mesh's
+## frames, so ctrl-? [ vault-edit.dispatch_key ] toggles it, and a one-shot
+## discovery hint stands in until the FIRST key of the session
+## [ <vault-edit.hint_seen>, set by dispatch_key itself, same "any key
+## retires it" rule user-edit uses ] or until the block is shown
+my $hints = '';
+
+if (<vault-edit.help_visible>) {
+
+    ## a single '.:.'-joined line here ran past 110 columns -- roughly TWICE
+    ## the width of cred-mesh's own frames [ ~60 cols ] -- and wrapped badly
+    ## on an ordinary terminal, found live per the user directly. user-edit.
+    ## form.render's OWN key-hint block never has this problem because it
+    ## never puts more than one key:action pair on a line to begin with [ see
+    ## its own printf, one hint per line ] -- adapted here as a 2-column grid
+    ## instead of user-edit's 1-column list purely to keep vault-edit's
+    ## shorter hint set from needing twice as many lines, same underlying fix
+    ## : narrow lines, not one wide one. 'o' [ interactive-select-view
+    ## overview ] is the only way back once '?' has moved into a detail card
+    ## -- advertised here for the same reason '?' itself is : a key binding
+    ## nobody knows about might as well not exist
+    my @hint_pairs = (
+        [ 'j/k', 'move' ], [ 'o', 'overview' ],
+        [ 'r',   'rotate' ], [ 'x', 'revoke' ],
+        [ 'g',   'grant' ],  [ 'a', 'approve' ],
+        [ '?',   'detail' ], [ 'q', 'quit' ],
+    );
+
+    ## pad the PLAIN key text to its column width FIRST, then wrap the padded
+    ## result in colour -- an escape sequence inserted before padding would
+    ## count toward sprintf's own width, breaking column alignment [ the
+    ## exact "field-slot suffix" trap already documented for ascii.frame --
+    ## padding math and colour codes must never mix in the same sprintf pass
+    ## ]
+    my $key_cell = sub {
+        my $padded = sprintf( '%-4s', shift );
+        return $use_color ? $C{0} . $padded . $C{T} : $padded;
+    };
+
+    my @hint_lines;
+    for ( my $i = 0; $i < @hint_pairs; $i += 2 ) {
+        my ( $lk, $la ) = @{ $hint_pairs[$i] };
+        my $line = $key_cell->($lk) . ' ' . sprintf( '%-9s', $la );
+        if ( $i + 1 < @hint_pairs ) {
+            my ( $rk, $ra ) = @{ $hint_pairs[ $i + 1 ] };
+            $line .= '  ' . $key_cell->($rk) . ' ' . $ra;
+        }
+        push @hint_lines, "  $line";
+    }
+
+    my $header = 'keys:  < ctrl-? hide >';
+    $header = $C{0} . $header . $C{T} if $use_color;
+    $hints = join( "\n", $header, @hint_lines );
+    $hints = $C{T} . $hints . $C{R} if $use_color;
+
+} elsif ( not <vault-edit.hint_seen> ) {
+    $hints = '< ctrl-? : show keys >';
+    $hints = $C{0} . $hints . $C{R} if $use_color;
+}
+
+$screen = "$title\n\n$body";
+$screen =~ s|\n*\z||;
+$screen .= "\n\n";
+
+## same normalization as cred-mesh.cmd.ui-show's own section-separator fix
+## [ strip whatever trailing newlines are already there, then add exactly
+## one blank line's worth back ] -- found live, same class of bug : footer
+## and hints were only ever getting ONE newline between them and whatever
+## came before, which starts a new line but is not a blank-line separator
+foreach my $piece ( $footer, $hints ) {
+    next if not length $piece;
+    $screen =~ s|\n*\z||;
+    $screen .= "\n\n$piece\n";
+}
+
+return <[vault-edit.pad_screen]>->($screen);
+
+#,,,,,.,.,.,.,...,,,.,,,,,,,.,.,.,..,,.,,,,,.,..,,...,...,.,.,,,.,,,,,.,,,...,
+#TU5E7Y55PK7CZ3JS6CDKBOWCAZUVGI3R7PUSZWPH7RUJDTI7EPW5OUQOHXGAYZS2UIY64TWXVBONS
+#\\\|TXEPIUV577EN4MQF7C5SJDFT5FFMHA25KX4CEWKIXE7EWP4CAFP \ / AMOS7 \ YOURUM ::
+#\[7]TOSY62ECSH3XU3OJO3JTWGSUOWY4DMSOEQZ3RIA3L7BGP5ZA74BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

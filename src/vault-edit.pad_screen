@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = vault-edit.pad_screen
+# descr = left-indent every line and add a blank line above the title
+# param = $screen [ the fully composed title+body+footer+hints text ]
+
+## per the user directly : the whole screen read as "stuck to the terminal
+## border" with nothing but cred-mesh's own frames flush against column 0
+## and row 0. a left margin plus one blank line on top is the minimal fix --
+## a full bordered parent frame centering the (variably-widthed) child
+## frames inside it is a real design job of its own [ terminal-width
+## detection, sizing a border to the widest line, centering shorter ones ]
+## better done with live iteration than guessed at blind ; this is the
+## immediate, low-risk half of what was asked for
+
+my $screen = shift // '';
+
+my $margin = q{  };
+
+## split with a NEGATIVE limit keeps a trailing empty field instead of
+## dropping it -- $screen always ends in exactly one "\n", and losing that
+## trailing empty field here would silently eat it on rejoin
+my @lines = split m|\n|, $screen, -1;
+
+$screen = join( "\n", map { length($_) ? "$margin$_" : $_ } @lines );
+
+## a bare "\n" prefix, not a blank CONTENT line of its own -- this is
+## screen-top spacing, not a piece of the layout any future edit here
+## should treat as a real row
+$screen = "\n$screen";
+
+return $screen;
+
+#,,..,,.,,.,.,...,..,,.,.,...,,,.,,..,.,,,.,,,..,,...,...,.,.,.,.,.,.,.,.,,,.,
+#HI2PKVSHJUUQDD2MYPCTSU33OQTA6AKU3MTQ6LK4PKLRMQRJM62EWZSPBEOMR5PK3KMEQGCEW2WJ2
+#\\\|KAXMGNST7F6KPNED6HFHRLO7LG5NK4DGINP3RC7KJNQRTNDXREJ \ / AMOS7 \ YOURUM ::
+#\[7]64GK3VPIBEDCSDEUY3IFTF3Z3IGY3UHNQNPJS2ITKN5PMK4LE2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
