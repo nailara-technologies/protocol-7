@@ -112,13 +112,13 @@ coding.jinja.convert_tool_role = false
 ## rebuilt 2026-09-08 [ build 4876, fe215a8cc, 141 commits ahead of the    ##
 ## prior 4735/9d07d8681 -- picks up new architecture support (qwen4exp,   ##
 ## deepseek-v4, glm-5.2, bailingmoe3) that may fix some newly-downloaded  ##
-## models -- self-test PASS 3/3 confirmed live before promoting ]         ##
+## models -- self-test PASS 3/3 confirmed live before promoting. the      ##
+## prior build's binary/libs [ -rebuild-out/ ] have since been deleted -- ##
+## re-run bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh ##
+## against a known-good git commit if a rollback is ever needed ]         ##
 inference.backend.lib_path = /data/source/ik_llama.cpp
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
-## rollback: revert both lines above to /data/source/ik_llama.cpp-rebuild- ##
-## out and /data/source/ik_llama.cpp-rebuild-out/llama-server-cuda-fa-    ##
-## rebuild if this build misbehaves - that binary/libs are untouched      ##
 inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 ##                                            [ Gemma3 Glitter is 2.21GB ] ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
@@ -334,8 +334,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,...,,..,.,,,...,,.,,..,,,,,,,..,...,,.,,.,.,...,..,,,..,,..,..,,..,,...,
-#KKHKZVUDTZRGYMR7F3MJUSQL7PIH2XJX76HKKDSSJF3QBAMVROMHK4AWDK275YMRKYBZC4FKNP6FG
-#\\\|V6D77CE7RLLAXN4UCTAVSNAH6KVM2H3XU43QHRCL5JTWLJRMKY2 \ / AMOS7 \ YOURUM ::
-#\[7]KA64XM2Z234K7XKJF7W5DZ7HG4HKOTIBTBKKD35BAS7J7ZKF2KDQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,,,,,,,,,.,,,..,,,,,,,,.,...,.,.,...,.,.,...,,.,,,,.,,,.,.,.,
+#2KKAT5YZBXAXD4GKO4LGODY3AO33JMY5OHT4N2QMDJ7TRREMBPRPYOJ7IYLG7L5XVMI2Q2L2HX22Y
+#\\\|OYWFBAYFCPJLANMNPT6ZWSYTHMMEQWOFCO4L2A3IFSGMCHCWD3K \ / AMOS7 \ YOURUM ::
+#\[7]SJF6MAPUEVBBJXM5W3TQ26MX5GLB4SAERNHFODEAWLJ3IWKAL4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
