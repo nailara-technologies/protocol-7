@@ -1,5 +1,34 @@
 # task: credential fabric ui — interactive selection + actions [ phase 2 + 3 ]
 
+## status update [ 2026-09-08 — not ready to archive as one unit ]
+
+**part 1 + 2 (selection, rotate/revoke/grant/approve, the whole vault-edit
+chrome/UX pass) are genuinely done** — landed (`62923a289`, `4aca07938`),
+live-verified across multiple rounds directly with the user, latest
+confirmed working ("ok, looks much better.."). that portion is ready to
+archive.
+
+**part 3 (key-holder unlock dialog) is still legitimately open, not
+abandoned** — blocked on the fabric-secret encryption migration per this
+file's own 2026-09-06 note below, unrelated to anything landed since. keep
+this file in place until that lands or the phase is explicitly dropped.
+
+**separately, a real gap the user flagged 2026-09-08, in scope of neither
+part 2 nor part 3 as written**: there is still no way to actually INPUT a
+real credential secret value anywhere in this stack. Confirmed by reading
+the actual code, not assumed: `cred-mesh.register` only ever writes slot
+metadata (owner/type/storage/rotate-policy/sensitivity) — no value field
+exists in its params at all. the UI's `rotate` action
+(`cred-mesh.ui.interactive.action`) is the only code path that writes real
+secret bytes via `cred-mesh.store.local`, but it always calls
+`Crypt::Misc::random_bytes(32)` — there is no prompt, and no other command,
+that lets a user type in or paste a specific value (e.g. a real API key
+issued by a third party). The only place a real value has ever entered this
+system is `bin/dev/cred-mesh-test.d/helper-seed-fabric.pl`, a dev/test
+seeding script, not a production path. Tracked separately:
+`data/tasks/cred-mesh-value-entry-edit.md` — new task, not part of this
+file's original scope.
+
 ## status update [ 2026-09-06 triage — read this first ]
 
 this task file predates the `credential_fabric` → `cred-mesh` rename and the
@@ -1143,8 +1172,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,.,,..,,.,,,,..,,.,,,,.,,.,,,..,..,,...,,,,,..,,...,...,,,,,..,,.,.,.,.,.,,,
-#D262MZCWS352WQWFXNATJUFDU6M34K4YNY6JMW67ENUS32YBVJ77YB2KNKGU2NTBQ5WXUUNJK35SM
-#\\\|XVAH35LKGMI4IY46ERCNU7WXYTN3YLG5BU7IUSWENAJW6I4RIL5 \ / AMOS7 \ YOURUM ::
-#\[7]CGTPA3BL3BSNSZ6VVKCWYJ74FUQMAKX4KLX5FMG6JCIDWWQSP4AI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,.,,..,,.,.,.,.,.,,,.,,,...,,..,..,,...,...,..,,,,,,...,,,.,,..,
+#YNT5P5IYOFM5ENSEIXYWMJ72Y4DTPB4KCYBUMXBCYK3XNJFJSDXWZZHRRBUCLZHCE4R3PGY47IBOM
+#\\\|EDTYG2PXWIN4PCLFCXST7TJEH7YC5537YRCRR5AF64ZLNDT6GZY \ / AMOS7 \ YOURUM ::
+#\[7]WWOALV3K4UZM274RQL5XAOXYFLO5AD27HOW66RTW4WW6GBPMUSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
