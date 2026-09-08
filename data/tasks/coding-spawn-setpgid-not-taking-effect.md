@@ -91,6 +91,28 @@ just re-enable the call and assume it now targets the right group.
 4. re-verify the 3-second-per-spawn waitpid timeout this causes today is
    actually gone once fixed (cheap, visible regression check).
 
+## independent live confirmation, 2026-09-08 (unplanned, real production trigger)
+
+happened on its own, unrelated to any deliberate test of this task: a
+cat-test failure triggered `[monitor_startup]`'s normal seed-restart
+respawn. The old gpu server was killed via the (working) fuser-based
+fallback path this task describes, but the very next spawn attempt's vram
+check ran before the driver had actually released its VRAM — reported
+`free=363 MB` against a 12GB card that should have had most of it free.
+`coding.spawn_inference_server`'s new hybrid-offload logic (landed the same
+day, see `data/tasks/completed/coding-cpu-and-hybrid-offload-path.md`)
+correctly computed `0/32 layers fit` and fell through to the proper
+hard-fail rather than attempting a bogus partial spawn — the new code
+handled the race correctly, this task's underlying cause is what produced
+the race in the first place. Confirming detail: the old pid's SIGCHLD
+(`exit=9`, i.e. genuinely SIGKILLed) was logged via
+`[inference_server_sigchld]` only AFTER the failed spawn attempt, not
+before — direct evidence the reap notification lagged behind the vram
+check, exactly the mechanism this task describes. The scheduled 5s retry
+succeeded once VRAM had actually settled. No user or test action triggered
+this — it is what today's normal restart path already does under
+production conditions, not a synthetic reproduction.
+
 ## validation
 
 - confirm a spawn's "kill old server" phase no longer burns the full 3s
@@ -100,8 +122,8 @@ just re-enable the call and assume it now targets the right group.
 - confirm a kill of an old server does NOT affect any other zenki's pid
   (the actual risk this task exists to avoid).
 
-#,,,.,.,,,...,,,.,,.,,,..,,..,,,.,,.,,.,,,...,..,,...,...,.,.,,..,,.,,...,.,,,
-#7ILRFM2BD5YFSRPHA2WFK5Z4E6WJWB7FJGRW63A46QDP2LFDZSYCHJ7DGQCELURAC72PD7IMDPCKS
-#\\\|K23T4OBAX7WOXAKDJR7UMXF76A7XFYGMVVNVLVKTKDW7XV2BMM3 \ / AMOS7 \ YOURUM ::
-#\[7]J4FVMH4RL5I4SRH4CHSVUDCDOWDLMMNDO3ZNQXXM5MVYC5ZIVIDQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,,,,,,..,.,.,..,,,..,,.,,,..,..,,...,...,,.,,,,.,,,.,,..,.,,,
+#D7QZQN2BW6YTXJTLUQW3TPW6UWEAZB5EDBHW3DJYBGIOAX3U4D3SYKBGF7P4FLSUJK4NBCXNYDX2E
+#\\\|MGFRHD52J4ADNGRDCRSGEQOBBESJ3WNSV4U3EKPOOLQ744HHMTI \ / AMOS7 \ YOURUM ::
+#\[7]PGGNBHZ2AARYPORFGFTD7POMG5JLA5MULI5OZILJNIQIKULZ4ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
