@@ -579,8 +579,64 @@ out = today's unchanged behavior.
 above [ existing signatures now stale ] ; new files were created without
 signature stubs, per convention.
 
-#,,,.,.,,,,,.,.,,,,.,,,.,,..,,,.,,.,.,.,.,..,,..,,...,...,.,,,.,,,...,..,,.,.,
-#GDAPSNRQZYMT7WN3QQ2SCPPQNUZ54ONUTLIM5RVZIM44BF5JMYAIQOYSGANKPAK4DZS4NIYQIWTB2
-#\\\|TDIUB7L4WZIRHIPYTHZMM4WANPIL3QN3DXTF6Z7MQENT6BFGGUH \ / AMOS7 \ YOURUM ::
-#\[7]QPKAPTIIYKSFEJCAHZAFDCKY34MHYTCU6HXUGSR2TJYITYPZGKAA 7  DATA SIGNATURE ::
+### addendum 2026-09-09 : real-baseline redo, honest structural-null result
+
+the `baseline` condition above used the training dataset's minimal stub
+system prompt [ `"You are a protocol-7 developer."` ], not the real
+production system prompt -- discovered while separately investigating
+[[feedback-mcp-server-p7-kimi-dispatch-nonblocking]]-adjacent prompt work,
+where `coding.show-prompt` surfaced two real bugs in the actual
+production template chain [ `system-base.yaml` opened with "you are a
+**code reviewer**", and `system-tools.yaml` hand-maintained a stale tool
+list referencing two non-existent tools ] plus a template-cache
+invalidation bug [ `context.template.load` never invalidated on file
+edit -- both fixed, `9634a8ad5`->`ce29896e3` ].
+
+with both bugs fixed, reran the same 9 held-out-prompt x seed generations
+[ no tools attached, matching the original conditions' text-only design ]
+against the real, now-correct `system-default` template output instead of
+the stub -- `results/real-system-prompt-v2/`. raw rubric totals looked
+dramatic [ idiom 28 vs baseline's 4 ] but an advisor review caught two
+confounds before any conclusion was drawn : (1) the rubric has no length
+normalization and the real prompt's own `## header ##` style plausibly
+gets echoed back into the `comment`/`bracket` categories, inflating raw
+counts without teaching anything ; (2) `anti` total's apparent improvement
+was ALL in `capcomment`, the same axis counted twice, not independent
+evidence.
+
+recomputed idiom-per-1000-chars [ real prompt is actually the *shortest*
+response on average, 863 vs baseline 1139, so this isn't merely a length
+artifact ] and totals with `comment`/`bracket` stripped out : the gap
+mostly collapses [ 6 vs 4, in line with `baseline-nosys`'s 9 ]. more
+importantly, the four **structural** idioms that actually make P7 code
+work -- `<[module.name]>->(` invocation, bare `<config.key>` access,
+`TRUE`/`FALSE` constants, `mode`/`data` reply shape -- are at floor
+[ 0 or 1 hit out of 9 generations ] in **every condition tested,
+including the fixed real prompt**. prompt-guidance prose alone, even
+correct and bug-free, is not teaching the model P7's structural syntax.
+
+**conclusion : the prompt bugs were real and worth fixing, but this
+closes the "is it just a broken prompt" hypothesis, not the underlying
+idiom-adherence gap.** control-vector's weak-to-negative result stands,
+now on a like-for-like real-prompt backdrop rather than a training stub
+-- the next thing worth trying is a LoRA fine-tune [ scoped separately,
+see `data/tasks/coding-lora-p7-idioms.md` ], since a mean-diff control
+vector over a 46-pair dataset was shown [ scope above ] to only capture
+the dominant *surface-register* direction, not the low-frequency
+structural patterns this needs.
+
+n=9 per condition, temp 0.7 : `B.seed42`/`B.seed7777` both scored 0 in
+the real-prompt condition, so per-generation spread is wide relative to
+the effect size -- stated as a limitation, not something to fix by
+rerunning with more seeds right now.
+
+artifacts added : `data/control-vectors/results/real-system-prompt-v2/`
+[ 9 raw json ], superseding the abandoned first attempt [ same name
+without `-v2`, built against `coding.system_prompt` directly rather than
+the real template-assembled prompt -- deleted, never committed ].
+
+#,,,.,,,,,,..,.,.,,..,.,,,,,.,,,,,,.,,,..,..,,..,,...,,..,.,,,.,.,,.,,..,,,,.,
+#Z6RPY447N5O4D3FNUU2RKNUXRLZJHEM47WIP5SRRZ5WJ6OOYMVWJFGNJZYIMHZESA6YTVKZLWXDK4
+#\\\|YJXV6PWY3BBKAXL7FJKI2HRBMTEUR2LJ4WYKSGEUZWW6F2CUNB6 \ / AMOS7 \ YOURUM ::
+#\[7]OLUXBOKCHRWRU2OVWRNBTRZTVW7KHAECIBXAUSQ7KD5KOI7SF4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
