@@ -85,24 +85,26 @@ my @external_tools = (
             . '(--afk, auto-dismisses any AskUserQuestion '
             . 'instead of hanging — no one can answer an '
             . 'interactive prompt from a background '
-            . 'dispatch) and returns combined output. use '
-            . 'for code implementation, analysis, or '
-            . 'research tasks. kimi prints a resume line at '
-            . 'the end: "To resume this session: kimi -r '
-            . '<uuid>" — pass that uuid to kimi_continue to '
-            . 'resume a long-running task. specify '
-            . 'model=k2.7 for cheap token-heavy work, '
-            . 'model=k3 (default) for complex reasoning, '
-            . 'model=k3-256k for the same reasoning quality '
-            . 'at ~1/2 the quota within a 256k ceiling (no '
-            . 'video input), model=k2.7-fast for faster '
-            . 'turnaround at mid cost. if this call is '
-            . 'reported as failed by the outer harness '
-            . 'after ~1800s of idle silence, the kimi '
-            . 'process usually keeps running — call '
-            . 'kimi_check_status(session_id) to poll '
-            . 'progress or recover the final result before '
-            . 'assuming the work was lost.',
+            . 'dispatch). use for code implementation, '
+            . 'analysis, or research tasks. NON-BLOCKING: a '
+            . 'run finishing within a few seconds returns '
+            . 'its real combined output directly; a longer '
+            . 'run returns status=dispatched_async within '
+            . '~6s — with the new session uuid, worker pid, '
+            . 'and captured-output path — while kimi keeps '
+            . 'running detached, so this call never blocks '
+            . 'the server. poll '
+            . 'kimi_check_status(session_id) for progress '
+            . 'and the final result. kimi prints a resume '
+            . 'line at the end: "To resume this session: '
+            . 'kimi -r <uuid>" — pass that uuid to '
+            . 'kimi_continue to resume a long-running task. '
+            . 'specify model=k2.7 for cheap token-heavy '
+            . 'work, model=k3 (default) for complex '
+            . 'reasoning, model=k3-256k for the same '
+            . 'reasoning quality at ~1/2 the quota within a '
+            . '256k ceiling (no video input), '
+            . 'model=k2.7-fast for faster turnaround at mid ' . 'cost.',
         'command' => 'kimi-legacy -y --afk -p %s --model %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
@@ -145,15 +147,16 @@ my @external_tools = (
             . 'when kimi_dispatch output ends with a resume line. pass '
             . 'the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new '
-            . 'prompt. specify model=k2.7 for cheap token-heavy work, '
-            . 'model=k3 (default) for complex reasoning, model=k3-256k '
-            . 'for the same reasoning quality at ~1/2 the quota within a '
-            . '256k ceiling (no video input), model=k2.7-fast for faster '
-            . 'turnaround at mid cost. if this call is reported as '
-            . 'failed by the outer harness after ~1800s of idle silence, '
-            . 'the kimi process usually keeps running — call '
-            . 'kimi_check_status(session_id) to poll progress or recover '
-            . 'the final result before assuming the work was lost.',
+            . 'prompt. NON-BLOCKING: like kimi_dispatch, a run finishing '
+            . 'within a few seconds returns its real output directly; a '
+            . 'longer run returns status=dispatched_async within ~6s '
+            . 'echoing the already-known session uuid, while kimi keeps '
+            . 'running detached — poll kimi_check_status(session_id) for '
+            . 'progress and the final result. specify model=k2.7 for '
+            . 'cheap token-heavy work, model=k3 (default) for complex '
+            . 'reasoning, model=k3-256k for the same reasoning quality '
+            . 'at ~1/2 the quota within a 256k ceiling (no video input), '
+            . 'model=k2.7-fast for faster turnaround at mid cost.',
         'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
         'params'  => [
             [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
@@ -3803,18 +3806,49 @@ sub tool_external_command {
     my $output = '';
     my $error  = '';
 
-    ## run with timeout, capture stdout+stderr
-    eval {
-        local $SIG{ALRM} = sub { die "timeout\n" };
-        alarm( $ext->{'timeout'} // 120 );
-        $output = qx($cmd 2>/dev/null);
-        alarm(0);
-    };
-    if ($@) {
-        $error
-            = $@ eq "timeout\n"
-            ? "command timed out after $ext->{'timeout'}s"
-            : "error: $@";
+    if ( $ext->{'name'} =~ m{^kimi_(?:dispatch|continue)$} ) {
+        ## kimi dispatch/continue run DETACHED [ _kimi_fork_run ] : the     ##
+        ## unconditional qx() below blocked this whole single-threaded      ##
+        ## server — one blocking STDIN read loop, no fork/threads for       ##
+        ## request handling — for the entire kimi run [ up to the 4620s     ##
+        ## alarm ], so kimi_check_status [ and every other tool call ]      ##
+        ## queued behind it and could never get a turn while a dispatch was ##
+        ## in flight [ root-caused 2026-09-08 ]. kimi is the ONLY tool      ##
+        ## family on this path with a dedicated result-recovery tool [      ##
+        ## kimi_check_status reads the session's wire.jsonl back ], which   ##
+        ## is why returning early here is safe — doing the same for         ##
+        ## claude_* would be a regression [ no claude_check_status exists   ##
+        ## to ever retrieve the result ], so claude_dispatch /              ##
+        ## claude_continue / everything else keeps the exact blocking qx()  ##
+        ## behavior in the else branch, deliberately                        ##
+        my $run = _kimi_fork_run( $cmd, $ext );
+        if ( length( $run->{'error'} // '' ) ) {
+            $error = $run->{'error'};
+        } elsif ( $run->{'finished'} ) {
+            ## near-instant completion [ in practice almost always an       ##
+            ## immediate CLI failure — real kimi runs take minutes ] : feed ##
+            ## the real output through the exact same synchronous           ##
+            ## post-processing below as a qx() result gets today            ##
+            $output = $run->{'output'};
+        } else {
+            ## still running past the bounded window : reply immediately ##
+            ## and let the caller poll kimi_check_status for the result  ##
+            return _kimi_dispatch_async_reply( $id, $args, $ext, $run );
+        }
+    } else {
+        ## run with timeout, capture stdout+stderr
+        eval {
+            local $SIG{ALRM} = sub { die "timeout\n" };
+            alarm( $ext->{'timeout'} // 120 );
+            $output = qx($cmd 2>/dev/null);
+            alarm(0);
+        };
+        if ($@) {
+            $error
+                = $@ eq "timeout\n"
+                ? "command timed out after $ext->{'timeout'}s"
+                : "error: $@";
+        }
     }
 
     ## claude session id extraction
@@ -3962,6 +3996,203 @@ sub tool_external_command {
 
     my $result = length($error) ? $error : $output;
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
+}
+
+## fork + detach a kimi-legacy dispatch WITHOUT blocking this server's      ##
+## request loop, then give it a short bounded window to fail fast           ##
+##                                                                          ##
+## shape follows the established _dispatch_followup idiom [ redirect stdio, ##
+## exec straight into kimi-legacy, never return to perl code in the worker  ##
+## ], adapted to a DOUBLE fork : the intermediate child is reaped by the    ##
+## parent at once and the real worker is orphaned to init.  that achieves   ##
+## what _dispatch_followup's local $SIG{'CHLD'}='IGNORE' does [ no zombies  ##
+## ] while still allowing liveness polling — a SIGCHLD disposition of       ##
+## IGNORE only auto-reaps if it is still in effect when the child dies, so  ##
+## a 'local'ed one would leak a zombie per dispatch once restored, and a    ##
+## permanent one would break qx()/system() exit- status handling elsewhere  ##
+## in this server. no SIGCHLD games at all here : init reaps the worker,    ##
+## the parent never has to                                                  ##
+sub _kimi_fork_run {
+    my ( $cmd, $ext ) = @ARG;
+
+    my $state_dir = "$ROOT_PATH/data/state";
+    eval { make_path($state_dir) } if not -d $state_dir;
+
+    ## per-dispatch capture file [ NOT the shared followup log ] : read    ##
+    ## back on the synchronous fast-completion path, and pointed at in the ##
+    ## async reply so the raw stream stays findable while it grows         ##
+    my $tmp_out = sprintf '%s/kimi-dispatch-%d-%.6f.out',
+        $state_dir, $PID, Time::HiRes::time();
+    my $pid_file = "$tmp_out.pid";
+
+    ## snapshot existing kimi session dirs : a FRESH kimi_dispatch makes    ##
+    ## kimi-legacy create ~/.kimi/sessions/<hash>/<uuid>/ about a second    ##
+    ## after start [ measured 2026-09-08 : dir at 1.1s vs first real stdout ##
+    ## at 16.6s ] — long before its first output line and well inside the   ##
+    ## bounded window below, so the new session's uuid is recoverable by    ##
+    ## diffing against this snapshot instead of grepping logs afterwards    ##
+    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $sess_glob
+        = "$home/.kimi/sessions/*/????????-????-????-????-????????????";
+    my %sessions_before = map { $ARG => 1 } glob($sess_glob);
+
+    my $pid = fork();
+    if ( not defined $pid ) {
+        return { 'error' => "fork failed: $OS_ERROR" };
+    }
+    if ( $pid == 0 ) {
+        my $gpid = fork();
+        POSIX::_exit(1) if not defined $gpid;
+        if ( $gpid == 0 ) {
+            ## worker : same stdio setup as _dispatch_followup, but ##
+            ## stdout+stderr go to this dispatch's OWN capture file ##
+            open( STDIN,  '<',  '/dev/null' );
+            open( STDOUT, '>',  $tmp_out ) or POSIX::_exit(1);
+            open( STDERR, '>&', \*STDOUT );
+            ## alarm() survives exec [ ITIMER_REAL is kept across exec, the ##
+            ## handler resets to SIG_DFL = terminate ] : preserves the old  ##
+            ## qx()+alarm cap so a detached runaway still dies at the       ##
+            ## tool's configured timeout instead of forever                 ##
+            alarm( $ext->{'timeout'} // 120 );
+            ## single-string exec = same shell run as qx($cmd) ; only  ##
+            ## returns on failure [ 'or' form also keeps perl -c quiet ##
+            ## about the intentional unreachable-after-success _exit ] ##
+            exec($cmd) or POSIX::_exit(127);
+        }
+        ## intermediate child : hand the worker's pid to the parent, then   ##
+        ## exit immediately [ the parent waitpid()s us below; the worker is ##
+        ## orphaned and reaped by init when it finishes ]                   ##
+        if ( open( my $pfh, '>', $pid_file ) ) {
+            print $pfh $gpid;
+            close $pfh;
+        }
+        POSIX::_exit(0);    ## _exit, not exit : never flush/run destructors
+        ## in a forked child of the protocol process
+    }
+    waitpid( $pid, 0 );     ## returns at once : intermediate child exits fast
+
+    my $gpid = '';
+    if ( open( my $pfh, '<', $pid_file ) ) {
+        $gpid = <$pfh> // '';
+        close $pfh;
+        chomp $gpid;
+    }
+    if ( $gpid !~ m{^\d+$} or $gpid < 2 ) {
+        unlink $tmp_out, $pid_file;
+        return { 'error' => 'failed to start detached kimi-legacy worker' };
+    }
+
+    ## bounded fast-fail window [ 6s ] : exists ONLY so a near-instant      ##
+    ## failure [ exec failure, immediate CLI usage error ] returns          ##
+    ## synchronously with its real output instead of falsely claiming       ##
+    ## "dispatched". it is NOT meant to catch normal completion — every     ##
+    ## real kimi run takes minutes [ even a one-word-prompt run took ~17s   ##
+    ## on 2026-09-08 ], so this cap should almost always be exceeded. 6s is ##
+    ## long enough for a fresh session's directory + uuid to appear [ ~1s,  ##
+    ## measured ] with wide margin, short enough to be irrelevant next to   ##
+    ## any real run                                                         ##
+    my $wait_cap       = 6;
+    my $wait_start     = Time::HiRes::time();
+    my $finished       = 0;
+    my $uuid           = '';
+    my $uuid_ambiguous = 0;
+    while ( Time::HiRes::time() - $wait_start < $wait_cap ) {
+        if ( not kill( 0, $gpid ) ) {
+            $finished = 1;
+            last;
+        }
+        if ( not length $uuid and not $uuid_ambiguous ) {
+            my @new_dirs
+                = grep { not $sessions_before{$ARG} } glob($sess_glob);
+            if ( @new_dirs == 1 ) {
+                ($uuid) = $new_dirs[0] =~ m{/([^/]+)$};
+            } elsif ( @new_dirs > 1 ) {
+                ## a concurrent unrelated dispatch created a session in the ##
+                ## same window — cannot attribute ours, stop trying         ##
+                $uuid_ambiguous = 1;
+            }
+        }
+        select( undef, undef, undef, 0.2 );
+    }
+
+    if ($finished) {
+        ## worker already gone [ fast-fail path ] : its capture file is ##
+        ## complete [ process exit flushed it ], read it back as the    ##
+        ## synchronous result and clean up                              ##
+        my $output = '';
+        if ( open( my $fh, '<:raw', $tmp_out ) ) {
+            local $/ = undef;
+            $output = <$fh> // '';
+            close $fh;
+        }
+        unlink $tmp_out, $pid_file;
+        return { 'finished' => 1, 'output' => $output };
+    }
+
+    return {
+        'finished' => 0,
+        'gpid'     => $gpid,
+        'tmp_out'  => $tmp_out,
+        'uuid'     => $uuid,
+    };
+}
+
+## immediate reply for a still-running detached kimi dispatch : makes the   ##
+## session's resumability + polling path discoverable right away, since the ##
+## real result only arrives later via kimi_check_status                     ##
+sub _kimi_dispatch_async_reply {
+    my ( $id, $args, $ext, $run ) = @ARG;
+
+    ## kimi_continue already knows its uuid [ a required input param ] ; a ##
+    ## fresh kimi_dispatch gets one from _kimi_fork_run's session-dir scan ##
+    ## when it became visible inside the bounded window                    ##
+    my $uuid
+        = $ext->{'name'} eq 'kimi_continue'
+        ? ( $args->{'session_id'} // '' )
+        : ( $run->{'uuid'} // '' );
+
+    my @lines = (
+        sprintf(
+            'status=dispatched_async tool=%s pid=%d',
+            $ext->{'name'}, $run->{'gpid'}
+        ),
+        'the dispatch is running DETACHED — this call did not block the '
+            . 'server waiting for it; other tool calls [ including '
+            . 'kimi_check_status ] run normally while it works.',
+        'captured output [ raw kimi-legacy '
+            . 'stdout+stderr, grows while it runs ]: '
+            . $run->{'tmp_out'},
+    );
+    if ( length $uuid ) {
+        push @lines,
+            "session uuid: $uuid",
+            "poll progress / recover the final result: "
+            . "kimi_check_status(session_id=\"$uuid\")",
+            "To resume this session: kimi -r $uuid";
+    } else {
+        ## fresh dispatch whose session dir was not attributable in time [ ##
+        ## e.g. a concurrent unrelated dispatch in the same window ]       ##
+        push @lines,
+              'session uuid: not attributable yet at reply time. it shows up '
+            . '~1s after kimi-legacy starts as the NEWEST directory '
+            . 'under ~/.kimi/sessions/*/ [ match by creation time ], or '
+            . 'in fresh lines of ~/.kimi/logs/kimi.log, and the capture '
+            . 'file above ends with "To resume this session: kimi -r '
+            . '<uuid>" once the run finishes. then poll '
+            . 'kimi_check_status(session_id=...) for the final result.';
+    }
+    push @lines,
+          'note: auto_summarize/keep/template/create_template params only '
+        . 'apply to a synchronously-finished run — there is nothing to '
+        . 'summarize yet here, and kimi_check_status recovers the raw '
+        . 'final text from the session wire.jsonl instead [ '
+        . 'summarize-on-recovery is a noted follow-up, deliberately not '
+        . 'half-implemented ].';
+
+    log_msg( '[kimi_async] %s running detached [ pid=%d uuid=%s ]',
+        $ext->{'name'}, $run->{'gpid'}, length $uuid ? $uuid : 'unknown' );
+    send_tool_result( $id, join( "\n", @lines ), 0 );
+    return;
 }
 
 ## quick poll on a kimi session — the fast recovery path when the outer  ##
@@ -4113,8 +4344,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,.,,,,,.,.,...,,..,,.,,,,.,,.,,,..,,..,..,,...,...,,.,,.,.,.,,,,,.,.,,,
-#CBVBS6CX3RRIY2QDDAWEYGHWLL4YN5QWK7KZQXF643UQA62R2SKIOCHDLO2BTZHOGQB5QN32CCHMK
-#\\\|5MVWULR7KJA54MYNQEAHK224B23YQZY4JOUNHAMDSUH7XYDQQVZ \ / AMOS7 \ YOURUM ::
-#\[7]MFWZ4IGU35BPUSCLZAUHITB4PHQP67L2CIQV3LWG7332ONNQXWCY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,..,,,,.,,,.,.,.,.,.,,,.,,..,..,,...,...,,,.,.,.,...,,..,,.,,
+#GB7RAB62YMHHYTNE7ENQXG6OZOA2FD7ZKK5A2YLKNEL5UFBD2XRW7H3PE6YUVDUHQSUROLSQ4VO3Q
+#\\\|VDTNW3NGLHVRCWQL5HXLZNDCFHHUVRP7MWQGRID2RCHP4ZMI4LI \ / AMOS7 \ YOURUM ::
+#\[7]KEY6UO2QUVIFL23OWLIU643C66LEFETFJA4YXILR6Z6B6YRDFICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
