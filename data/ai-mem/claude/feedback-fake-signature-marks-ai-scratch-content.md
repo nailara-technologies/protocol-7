@@ -126,8 +126,26 @@ hand-fixed (footer strip, or any out-of-band edit the model didn't make itself),
 that specific file's footer again — a full-file rewrite from stale context can silently
 undo out-of-band fixes, not just fail to include new ones.
 
-#,,,,,,..,,..,.,,,,,.,.,,,,,,,,,.,...,..,,..,,..,,...,..,,..,,.,.,,,.,...,,,,,
-#6NNKTDV57WNDV5EB5C5I25AHC6FLGDOHGPX4G4NDGWQYPRG54NWX6HDHHBIL7CZR7PYRRSQQJ7CIU
-#\\\|DSV33UK7TP7SNPL3I26627X6FFNNHC55DFXCQK3ZYEFL23TZ2GJ \ / AMOS7 \ YOURUM ::
-#\[7]EBO2IKL66XLNWBYP2AJI5W43OG27MPW6GH63RE6BESGAHTBXUICI 7  DATA SIGNATURE ::
+**New sub-case, 2026-09-08**: repeated the exact mistake this file already
+documents (the 2026-08-27 correction below) — drafted a plain 4-line-style
+placeholder block on THREE new files in one session (two `src/*` modules, one
+`data/tasks/*.md`) despite this memory already existing and covering it. The
+first two got signed for real without incident (user ran `update-signatures`
+directly), but the third (`cred-mesh-value-entry-edit.md`) was caught and its
+placeholder stripped before signing, per the documented practice. **Root
+cause of the repeat**: didn't check memory before writing new files in an
+unfamiliar-feeling context (mid hands-on live-debugging session, attention
+on the technical problem) — the existing entry was never consulted, not
+that its advice was wrong or had changed. **How to apply, reinforced**: for
+ANY new file authored in this repo — source module or task doc alike — the
+default is NO trailing signature block at all, full stop. Not "add a
+placeholder for the human to strip," not "add a real-looking one" — nothing.
+Let `bin/Protocol-7 sourcecode update-signatures` add the real footer
+later. Treat this as a standing rule to apply automatically, not something
+to re-derive per session.
+
+#,,,,,,.,,.,,,,,,,,,,,,.,,,,,,...,,.,,,,,,...,..,,...,...,...,..,,...,..,,,.,,
+#YJL5XG3WODEC6PMXPKJMPSZOORRKD3UZFZBBOPDV4JFLSYNAZIBRHQNK3CWCDF2EQS3K5TY4RRHS2
+#\\\|MAUZIOA5I2E6FJO6YP2323GTVN764CH24FUS3C3OCJN4EZEIONH \ / AMOS7 \ YOURUM ::
+#\[7]QYFXWMTYREY6IRJTZTEM56CZOE2E4MBAADZNEZY55PFVA45TSCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
