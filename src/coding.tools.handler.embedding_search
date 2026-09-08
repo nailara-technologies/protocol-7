@@ -1,0 +1,154 @@
+## [:< ##
+
+# name  = coding.tools.handler.embedding_search
+# descr = nearest-neighbor search over a trained project embedding domain
+# param = { domain => '...', query => '...', top => N }
+
+##      generic cosine-similarity lookup over                               ##
+##      data/embeddings/<domain>.vec [ committed output of                  ##
+##      bin/dev/train-embedding ] -- same core technique                    ##
+##      openvas.enrich.finding already uses for its own security            ##
+##      domains, but exposed here as a coding-zenka tool and                ##
+##      parameterized by domain instead of hardcoded to one use case.       ##
+##      new domains need no code change here : dropping a new               ##
+##      <name>.vec file into data/embeddings/ makes it queryable            ##
+##      immediately.                                                        ##
+##                                                                          ##
+##      today's domains : cisa/cwe/mitre [ security-intel word              ##
+##      vectors, openvas-specific vocab ] and codebase-depgraph [           ##
+##      module-name vectors trained on dependency co-occurrence via         ##
+##      bin/dev/dep-graph + bin/dev/depgraph-corpus -- similarity here      ##
+##      means "similar dependency PROFILE", not "calls/is-called-by" [      ##
+##      that's the exact- graph 'module_deps' tool's job, a different,      ##
+##      complementary query ]. documentation/sourcecode domains are         ##
+##      future work : need their own corpus-builder + a                     ##
+##      train-embedding run each, this tool needs no change to pick         ##
+##      them up once they exist.                                            ##
+##                                                                          ##
+##      query tokens are split on whitespace only, not word-boundaries      ##
+##      -- module-name vocab tokens contain dots/dashes/underscores         ##
+##      that must survive intact [ unlike openvas's natural-language        ##
+##      finding-name tokenization ]. a single dotted module name as         ##
+##      the whole query (eg "coding.spawn_inference_server") is a           ##
+##      valid, common case : "find modules with a similar dependency        ##
+##      profile to this one".                                               ##
+
+my $params = shift // {};
+
+my $domain = $params->{'domain'} // '';
+my $query  = $params->{'query'}  // '';
+my $top    = $params->{'top'}    // 10;
+$top = 25 if $top > 25;    ## sane ceiling regardless of what's asked ##
+$top = 1  if $top < 1;
+
+my $root_path = <system.root_path> // '';
+my $embed_dir = <coding.cfg.embeddings_dir>
+    // sprintf qw| %s/data/embeddings |, $root_path;
+
+my $list_available = sub {
+    my @available;
+    foreach my $path ( glob "$embed_dir/*.vec" ) {
+        my $name = $path;
+        $name =~ s{.*/}{};
+        $name =~ s{\.vec$}{};
+        push @available, $name;
+    }
+    return @available ? join( ', ', sort @available ) : 'none trained yet';
+};
+
+return { 'content' =>
+        sprintf( 'expected a domain [ available: %s ]', $list_available->() )
+    }
+    if !length $domain;
+
+return { 'content' => "invalid domain name '$domain'" }
+    if $domain !~ m{^[\w-]+$};    ## no path traversal ##
+
+my $vec_path = sprintf qw| %s/%s.vec |, $embed_dir, $domain;
+
+return {
+    'content' => sprintf(
+        "no embedding domain '%s' [ available: %s ]",
+        $domain, $list_available->()
+    )
+    }
+    if !-f $vec_path;
+
+return { 'content' => 'expected a non-empty query' } if !length $query;
+
+## load + memoize domain vectors [ token => [ vec, norm ] ], same  ##
+## invalidate-on-mtime-change convention as openvas.enrich.finding ##
+my $cache     = <coding.embedding_search.vec_cache>->{$domain};
+my $vec_mtime = ( stat $vec_path )[9] // 0;
+if ( not defined $cache or $cache->{'mtime'} != $vec_mtime ) {
+    $cache = { 'mtime' => $vec_mtime, 'token' => {} };
+    open( my $vec_fh, qw| < |, $vec_path )
+        or return { 'content' => "cannot read $vec_path: $OS_ERROR" };
+    my $header = <$vec_fh>;    ## "<vocab> <dim>" ##
+    while ( my $line = <$vec_fh> ) {
+        chomp $line;
+        my ( $token, @components ) = split ' ', $line;
+        next if not @components;
+        my $norm = 0;
+        $norm += $ARG * $ARG foreach @components;
+        $cache->{'token'}{$token} = [ \@components, sqrt($norm) ];
+    }
+    close($vec_fh);
+    <coding.embedding_search.vec_cache>->{$domain} = $cache;
+}
+
+## build query vector : mean of in-vocab query tokens ##
+my @query_tokens = grep {length} split ' ', $query;
+my %query_hit;
+my @qvec;
+foreach my $token (@query_tokens) {
+    my $entry = $cache->{'token'}{$token} // $cache->{'token'}{ lc $token }
+        // next;
+    $query_hit{$token} = TRUE;
+    my $vec = $entry->[0];
+    $qvec[$ARG] += $vec->[$ARG] foreach 0 .. $#{$vec};
+}
+
+return {
+    'content' => sprintf(
+        "no query token found in domain '%s' vocab [ tried: %s ]",
+        $domain, join( ', ', @query_tokens )
+    )
+    }
+    if not @qvec;
+
+my $qnorm = 0;
+$qnorm += $ARG * $ARG foreach @qvec;
+$qnorm = sqrt($qnorm);
+
+return { 'content' => 'query tokens resolved to a zero vector' }
+    if not $qnorm;
+
+## nearest neighbors : cosine of query vector vs every other vocab token ##
+my @scored;
+foreach my $token ( keys $cache->{'token'}->%* ) {
+    next if $query_hit{$token};
+    my ( $vec, $vnorm ) = $cache->{'token'}{$token}->@*;
+    next if not $vnorm;
+    my $dot = 0;
+    $dot += $qvec[$ARG] * $vec->[$ARG] foreach 0 .. $#{$vec};
+    push @scored, [ $token, $dot / ( $qnorm * $vnorm ) ];
+}
+@scored = sort { $b->[1] <=> $a->[1] } @scored;
+splice( @scored, $top ) if @scored > $top;
+
+return { 'content' => "no neighbors found for query in domain '$domain'" }
+    if not @scored;
+
+my $output = sprintf( ".:[ embedding_search : %s : %d neighbor%s ]:.\n",
+    $domain, scalar(@scored), ( @scored == 1 ? '' : 's' ) );
+$output .= join( "\n",
+    map { sprintf( '  %-40s %.4f', $ARG->[0], $ARG->[1] ) } @scored );
+
+return { 'content' => $output };
+
+#,,,,,...,.,.,,..,,..,..,,..,,..,,,,.,.,,,,,.,..,,...,...,,..,,.,,.,.,...,...,
+#FCULMUSVRFAOPY3JVST6NMZXBSAI64NJDGTEZF3OP6RJAMOFZBDQQUE2BWXEK75GHCOHIL5RGSX3M
+#\\\|B4TV4O2LLK7C4BKXB5FJ7HFHYNX2JMBB56BNVM2QC47PBQPEXYG \ / AMOS7 \ YOURUM ::
+#\[7]HP2P66RIUE5RLSBAMLNH6U3DIKNLSKD3ELG7Y3QS4GAD6GFFEYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
