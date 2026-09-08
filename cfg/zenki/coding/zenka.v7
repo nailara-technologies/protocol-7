@@ -133,6 +133,20 @@ coding.cfg.partial_offload_enable = yes
 ## fail outright instead [ tune down for very small/fast models ]          ##
 coding.cfg.partial_offload_min_layers = 4
 
+## control vector [ inference-time steering toward p7 idioms via           ##
+## cvector-generator, see data/tasks/coding-control-vector-p7-idioms.md ]  ##
+## path to the .gguf + scale [ may be negative : sign-flipped direction ]  ##
+## and optional 1-based layer range [ README tip : works better above      ##
+## layer 10 ]. MODEL-SPECIFIC : regenerate whenever start_model changes -- ##
+## the loader only checks n_embd, nothing guards against a stale vector    ##
+## loading against the wrong model except the model id in the filename.    ##
+## applies to BOTH backends [ unlike -ngl : a control vector is            ##
+## backend-agnostic ]. all commented out = unchanged behavior              ##
+# coding.cfg.control_vector = /data/projects/protocol-7/data/control-vectors/p7-idioms.OFSQC4I-QDBKEXY.mean.gguf  ## Qwen3.8 9B Heretic Uncensored ##
+# coding.cfg.control_vector_scale = 1.0
+# coding.cfg.control_vector_layer_start = 10
+# coding.cfg.control_vector_layer_end   = 31
+
 inference.backend.cpu.enabled = auto
 inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
 
@@ -334,8 +348,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,,,,..,,,,,,,,,,,,,,.,,,..,,,,,,,,.,...,.,.,...,.,.,...,,.,,,,.,,,.,.,.,
-#2KKAT5YZBXAXD4GKO4LGODY3AO33JMY5OHT4N2QMDJ7TRREMBPRPYOJ7IYLG7L5XVMI2Q2L2HX22Y
-#\\\|OYWFBAYFCPJLANMNPT6ZWSYTHMMEQWOFCO4L2A3IFSGMCHCWD3K \ / AMOS7 \ YOURUM ::
-#\[7]SJF6MAPUEVBBJXM5W3TQ26MX5GLB4SAERNHFODEAWLJ3IWKAL4AI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,,.,,,..,,,.,,.,,,.,,,,.,.,.,.,.,...,...,.,.,..,,,,.,.,,,,..,
+#57XFJKAJNJWP7LZOBMO7FQ5AXJBMDNBWYAQJ6SOHTEVPNB6NFBNDM5QDQJBO3DCTYEFFHW3IG654O
+#\\\|FIWHLB7576Y7LLJZ5JZY3O4IYEQ4SV5QPKMKEPTLJDLDLPOMRLW \ / AMOS7 \ YOURUM ::
+#\[7]FAIGGAR423CVH6M5FXB2HXXWKNHDK4KX55ZD4CSJ6KVU4OA36KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -101,10 +101,11 @@ RUN cmake -B build \
     -DGGML_CUDA_FA=ON \
     -DCMAKE_CUDA_ARCHITECTURES=86 \
     -DBUILD_SHARED_LIBS=ON \
-    && cmake --build build --config Release -j$(nproc) --target llama-server
+    && cmake --build build --config Release -j$(nproc) --target llama-server llama-cvector-generator
 
 # Verify binary
 RUN test -f ./build/bin/llama-server && echo "Binary verified: llama-server exists" || (echo "ERROR: llama-server not built" && exit 1)
+RUN test -f ./build/bin/llama-cvector-generator && echo "Binary verified: llama-cvector-generator exists" || (echo "ERROR: llama-cvector-generator not built" && exit 1)
 
 # Extract to runtime stage
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
@@ -113,6 +114,10 @@ RUN apt-get update && apt-get install -y --allow-change-held-packages libgomp1 l
 
 # Copy server binary and libraries
 COPY --from=0 /build/build/bin/llama-server /usr/local/bin/llama-server
+## cvector-generator : offline control-vector generation [ not a hot path, ##
+## but keep it in lockstep with the server build so vector format and      ##
+## loader never drift apart -- see data/tasks/coding-control-vector-p7-idioms.md ]
+COPY --from=0 /build/build/bin/llama-cvector-generator /usr/local/bin/llama-cvector-generator
 COPY --from=0 /build/build/ggml/src/libggml.so /usr/local/lib/libggml.so
 COPY --from=0 /build/build/src/libllama.so /usr/local/lib/libllama.so
 COPY --from=0 /build/build/examples/mtmd/libmtmd.so /usr/local/lib/libmtmd.so
@@ -153,6 +158,11 @@ extract_binary() {
             $DOCKER_CMD rm ${CONTAINER_ID}
             exit 1
         }
+
+    # Copy cvector-generator [ offline control-vector generation ]
+    $DOCKER_CMD cp ${CONTAINER_ID}:/usr/local/bin/llama-cvector-generator \
+        ${OUTPUT_DIR}/llama-cvector-generator-cuda-fa-${CUDA_VERSION} || \
+        log_warn "llama-cvector-generator not found in container"
 
     # Extract required libraries
     log_info "Extracting supporting libraries..."
@@ -227,8 +237,8 @@ main() {
 # Run main
 main "$@"
 
-#,,,.,,..,,..,.,,,.,.,,,.,,.,,.,,,,..,,.,,,.,,..,,...,...,,.,,,,.,,.,,,,,,...,
-#42TQ54VU74PR3QGJGPWXUKXLAU7KO5A4UTHHCWTS7AHX7HVGX4XQYABA4HUZ6PJWMBWNMBEOLEU64
-#\\\|K5FUBMGXAG2JQTPBVOAVMS57NR2BXMTKGYWTN5FFULKPUQJ74E6 \ / AMOS7 \ YOURUM ::
-#\[7]W2OMRGVECPLSWINTOQXBKJ343QYDZY5SNHYDXLTCE7FKKGIZQCDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,..,,.,,,...,.,,,.,,,.,,,,,,,..,,...,..,,...,,..,,,.,.,.,.,.,
+#GXV4V3RSUPDOEHTDSMOVZ4QZ4PJQURPGGCFDCOQ5NZQFYEW4VXIKJVYOUJKTLFLPOS2ZZPC64Y6RQ
+#\\\|ISQ2TMUUMDHXJCJKBPV2BGFELTDJD4W4WSFRUE7TUSZ7PK3ITOL \ / AMOS7 \ YOURUM ::
+#\[7]DJB2BP5SMOGLF5HDYYTWBW7XBIYK33ZWFFATXEOU7P7UCK5GIIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
