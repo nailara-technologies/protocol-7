@@ -67,12 +67,44 @@ own session-management code before accepting external-cause as the
 final answer, so the sequential-only rule can eventually be retired
 rather than permanently documented as required behavior.
 
+**2026-09-08 update -- a real bug WAS found and fixed in `bin/mcp-server-
+p7`, but it is probably not this one, and may make this one newly
+testable rather than resolved.** Root-caused and fixed (see
+[[mcp-server-p7-kimi-dispatch-nonblocking]]): the whole server is a
+single blocking `while (<STDIN>)` loop, and `kimi_dispatch`/`kimi_
+continue` ran their subprocess via an unconditional blocking `qx($cmd)`
+that held the entire server hostage for the full run. Fixed via a
+double-fork detach so dispatch/continue return within ~6s instead of
+blocking for the run's full duration.
+
+**why this doesn't obviously explain the 2026-09-01 collision, and may
+even make it newly reproducible**: under the OLD blocking architecture,
+two "concurrent" `kimi_dispatch` calls could never actually run their
+`kimi-legacy` processes at the same time at all -- the second request's
+own `qx()` line couldn't even be read off STDIN until the first one's
+`qx()` call returned, since the server only reads its next line once the
+current handler returns. That's pure serialization (slow, but not
+collision-shaped) -- not an obvious match for "only one session existed
+afterward" / garbled results. **After the fix, two dispatches sent close
+together can genuinely run their kimi-legacy worker processes
+concurrently for the first time ever** -- which means the open question
+this memory already flagged (something in kimi-legacy's own session-id
+generation / lock-file handling when invoked concurrently) is now
+actually testable, where before it structurally couldn't manifest this
+way. **Do not treat the sequential-only rule as retired based on today's
+fix** -- it addresses a different, real problem (one dispatch blocking
+unrelated tool calls like `kimi_check_status`), not this one. Test two
+genuinely concurrent `kimi_dispatch` calls post-fix, watching for the
+exact 2026-09-01 symptoms (session count via `kimi -r` picker, output
+size sanity), before updating this guidance again.
+
 ## related
 
 [[project-kimi-k2.7-vs-k3-tier-economics]]
+[[mcp-server-p7-kimi-dispatch-nonblocking]]
 
-#,,,.,,,.,,,.,.,.,,.,,..,,.,,,,.,,.,,,,.,,,,.,..,,...,...,.,,,..,,,..,,.,,,..,
-#OLHN2IYIPMKBX5A75K4SMQKB3HYQEXBZQUBPPFJZTJIDDW7P5XHVUXFTRNRJFM7ABYVFV626L2PXI
-#\\\|C37WDIOYXALJEXIIFUQL2QFPHG3JWDTM4QT54AN5RVV3EMFW3IY \ / AMOS7 \ YOURUM ::
-#\[7]IRK7TJKYECCBSFFSQHGQJ63L52FXOCWVGA6SGCMPNBXXYH7SOUAA 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,,,.,,,.,...,,,,,,..,.,,,,,.,..,,...,..,,...,...,,.,,.,,,,,,,
+#ZUQTDWS6QJCU7NRFYP2IAK7CE2I6SCOUBLIQCIIQS7GD7QTNSSRE2U7WXF4ZNIYL7XWLRDTNDMYAY
+#\\\|IBFYP4MCHKLTJTUUZXZ5JB65WZMQZZ7US7KIBZ6GPLBTT5RJYFL \ / AMOS7 \ YOURUM ::
+#\[7]OKVTPOUYD44AFHZJ3S34FHWZIUHZAD76ATIBHDTK7UOY3QGWSQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
