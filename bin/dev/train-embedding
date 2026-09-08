@@ -126,22 +126,24 @@ my $vec_path = "$train_to.vec";
 die ":: expected model file missing: $bin_path\n"  if !-f $bin_path;
 die ":: expected vector file missing: $vec_path\n" if !-f $vec_path;
 
+## captured before .bin is discarded below, for the final report only ##
+my $bin_size = -s $bin_path;
+
 my $corpus_lines = count_lines( $opt{corpus} );
 my ( $drift, $promoted ) = ( undef, 0 );
 
 if ( $opt{rolling} ) {
-    my $current_bin = "$basename.bin";
-    my $prior_bin   = "$basename.prior.bin";
+    ## .vec is the existence marker, not .bin : nothing in this script or   ##
+    ## its consumers ever reads .bin content again after training [ see the ##
+    ## unlink below ] -- .bin's only past role here was as a same- named    ##
+    ## stand-in for "does a current model exist"                            ##
+    my $current_vec = "$basename.vec";
 
-    if ( -f $current_bin ) {
-        $drift = estimate_drift( $current_bin, $bin_path, $opt{'nn-top'} );
+    if ( -f $current_vec ) {
+        $drift = estimate_drift( $current_vec, $vec_path, $opt{'nn-top'} );
 
         if ( $drift < $opt{'drift-threshold'} ) {
-            move( $current_bin,    $prior_bin ) if -f $current_bin;
-            move( "$basename.vec", "$basename.prior.vec" )
-                if -f "$basename.vec";
-            move( $bin_path, $current_bin );
-            move( $vec_path, "$basename.vec" );
+            move( $vec_path, $current_vec );
             $promoted = 1;
             say sprintf ':: drift %.4f < %.4f :: promoted next -> current',
                 $drift, $opt{'drift-threshold'}
@@ -156,13 +158,18 @@ if ( $opt{rolling} ) {
                 if !$opt{quiet};
         }
     } else {
-        move( $bin_path, $current_bin );
-        move( $vec_path, "$basename.vec" );
+        move( $vec_path, $current_vec );
         $promoted = 1;
         say ':: no current model; promoted next -> current'
             if !$opt{quiet};
     }
 }
+
+## .bin is never read again by this tool or any consumer -- only .vec is    ##
+## queried at runtime [ src/openvas.enrich.finding's own header comment,    ##
+## cross-validated live against the cisa .bin ] -- discard the trained .bin ##
+## unconditionally, promoted or not, rolling or not                         ##
+unlink $bin_path if -f $bin_path;
 
 write_metadata(
     "$basename.meta.json",
@@ -185,10 +192,8 @@ write_metadata(
 );
 
 if ( !$opt{quiet} ) {
-    my $active_bin = $opt{rolling} ? "$basename.bin" : $bin_path;
-    my $size       = -s $active_bin;
     say sprintf ':: %s model ready :: %d bytes :: %d corpus lines',
-        $opt{category}, $size, $corpus_lines;
+        $opt{category}, $bin_size, $corpus_lines;
 }
 
 exit 0;
@@ -309,8 +314,8 @@ sub cosine_similarity {
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,,,,.,,,,.,,..,,.,.,,.,,..,,.,,,..,,,,,,.,,,...,...,...,..,,,,,,,,.,,.,,,.,,
-#Y5LUDZFOPQVDWOJ2NPQ3HLWFDQBHPPUNA4WNTHBLAH362FDVNA2ENO7O6VNXQ32A3C5HKVJFEZMZK
-#\\\|7P4CRIYTZNHD2TJR225UNDJXEPTBSDC3TXVQZWFC3WR2RLCOLL2 \ / AMOS7 \ YOURUM ::
-#\[7]QQCFV67ZWYQI5TKYC3YXCOFW7VSBVYOQK27ZDXSPN57X5BS2C4BY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,.,,,,,,..,,...,,,.,,..,.,.,...,...,..,,..,,,,,,,.,,,,,,.,,,
+#UADZBLIIZCI7LH2PUUISWY6KZWZ3T2JQIIS6CILVR3KVMQNLM6LQEVMBDZGURL5RKK6WHJL3ZSAXE
+#\\\|7LTRGUFW7VOCEDKYI2FVZZNVWLQID3ODOAYH7IDBHFIJVMM36F2 \ / AMOS7 \ YOURUM ::
+#\[7]SAFHJJYUZMKPBM2GWR2I4B3PXNTS4NJQQLYJVATZBCY2JLG7REAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

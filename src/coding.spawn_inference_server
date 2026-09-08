@@ -537,9 +537,20 @@ for my $pipe_fh ( $server_out, $server_err ) {
         if defined $flags;
 }
 
-## make server its own process group leader so kill( -pid ) reaches all ##
-## children [ llama-server forks a worker on first request ]            ##
-POSIX::setpgid( $pid, $pid );
+## make server its own process group leader so kill( -pid ) reaches all     ##
+## children [ llama-server forks a worker on first request ] -- checked and ##
+## logged, not fired blind : confirmed live 2026-09-08 this can fail        ##
+## silently in some environments, leaving the later group-kill a no-op [    ##
+## see data/tasks/coding-spawn-setpgid-not-taking-effect.md ]               ##
+unless ( POSIX::setpgid( $pid, $pid ) ) {
+    <[base.logs]>->(
+        0,
+        '[spawn_inference_server] setpgid failed for pid=%d: %s '
+            . '-- old-server group-kill will not reach this process later',
+        $pid,
+        $ERRNO
+    );
+}
 
 <[base.logs]>->(
     1, "[spawn_inference_server] spawned: backend=%s pid=%d port=%d",
@@ -645,8 +656,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,.,,,.,.,...,.,,,.,,,...,,,,,,,,,...,,,.,..,,...,...,.,,,,.,,,,.,,..,,,,,
-#OKEAYQWDVMUAVT5PBZ56MM4U6ATPSDB6SALEP5FBJ2Y3JOODHOCWN44XAJRZ32VFKX6BEVLULSPBY
-#\\\|YLJYH22GEXIGDTE5WTS4MYR76QJQL7S7JHZPH4UVDBUPGRPJGMZ \ / AMOS7 \ YOURUM ::
-#\[7]MH4XOWOXUMVO6LG4BWBSCWE6HNQEMSG2WJGOJUEASYCA27MJUQCY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,..,,.,,,.,,,.,,,,,,.,.,.,,,,.,,..,,...,...,...,.,.,..,,,..,,,.,
+#DJ2MMQEHZO63LXOA7OUKPKHTQ6LX3RYUM57GGWI6C47QT2VOOUHCEMSYM3HHVFRL565BCNZEYAX3E
+#\\\|TESLBDRTZRBA3GGFLFR5WVYTPUBNC7EFYJ6SIY5UW5M3NBKZDDA \ / AMOS7 \ YOURUM ::
+#\[7]FQ7CO5VAQBTVZ62J6EDIMDINPHINB6B2LFB6YZZX5X7ALHIRYQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

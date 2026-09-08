@@ -44,9 +44,27 @@ just-killed process's VRAM, on an environment where a SECOND, independent
 bug (nvidia-smi's own units-format flakiness) had already been masking
 this along with everything else. the units bug is fixed; this one isn't.
 
-## why setpgid might not be taking effect -- not yet root-caused
+## ROOT-CAUSED, 2026-09-08 -- confirmed live, first candidate below was it
 
-candidates, none confirmed:
+added a return-value check + log line at the `setpgid` call site (step 1
+below, done, landed) and triggered one real respawn via `coding.switch-
+model` to exercise it. result, immediately: `[spawn_inference_server]
+setpgid failed for pid=1250874: Permission denied`. cross-checked directly
+via `ps -o pid,pgid` on that exact pid: pgid=1238623, pid=1250874 --
+confirms the failure is real, not a false negative. `EACCES` ("Permission
+denied") from `setpgid(pid, pid)` is POSIX's specific error for exactly
+one case: **the target is a child of the caller, but it has already called
+`execve()`** -- ordinary same-process-group children can't have their pgid
+changed anymore once they've exec'd. by the time this Perl code reaches
+`POSIX::setpgid($pid, $pid)` after `IPC::Open3::open3(...)`, the forked
+child has already exec'd into `llama-server` -- the call is guaranteed to
+lose this race, not occasionally but every single time, since fork+exec in
+the child completes long before the parent gets back around to the
+non-blocking-pipe setup and log line that precede the `setpgid` call.
+
+this is exactly the first candidate below, now confirmed rather than
+hypothesized:
+
 - classic `setpgid`-after-open3 race: the child may already have called
   `exec()` (or further) by the time the parent's `setpgid($pid,$pid)`
   runs, and depending on how IPC::Open3 sets things up, that can lose the
@@ -56,6 +74,9 @@ candidates, none confirmed:
   need a manual fork/exec instead of open3, or open3 with a pre-exec
   callback if the installed IPC::Open3 version supports one -- check
   before assuming it doesn't ].
+
+the other two candidates below are now moot / answered by the above --
+kept for the record, not because they're still open:
 - pts/9 being a real controlling terminal: job-control semantics can
   restrict setpgid in ways they wouldn't for a daemonized/setsid process.
   worth checking whether the whole zenki fleet sharing one controlling
@@ -122,8 +143,8 @@ production conditions, not a synthetic reproduction.
 - confirm a kill of an old server does NOT affect any other zenki's pid
   (the actual risk this task exists to avoid).
 
-#,,,.,,..,..,,,,.,,,,,,..,.,.,..,,,..,,.,,,..,..,,...,...,,.,,,,.,,,.,,..,.,,,
-#D7QZQN2BW6YTXJTLUQW3TPW6UWEAZB5EDBHW3DJYBGIOAX3U4D3SYKBGF7P4FLSUJK4NBCXNYDX2E
-#\\\|MGFRHD52J4ADNGRDCRSGEQOBBESJ3WNSV4U3EKPOOLQ744HHMTI \ / AMOS7 \ YOURUM ::
-#\[7]PGGNBHZ2AARYPORFGFTD7POMG5JLA5MULI5OZILJNIQIKULZ4ADY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,,..,.,,,..,,...,..,,,,.,,..,..,,...,...,,..,.,,,,,,,.,.,,,,,
+#6ZQZTGTPMGCMFEUGPOWBLGZWXHKKZPGJRJHW3EBZM5KAJWBARRUABDAZJFREMVKJGTHK5ONJX4MDS
+#\\\|NQQNH7UPUZFGFOX4NGKWBYT27G4ZLI6M5ZLHGZG5XYG3QLITVMQ \ / AMOS7 \ YOURUM ::
+#\[7]FWK2H66MGXY4NPIF6DA6WO4R2RZKQDNG6UFMKDN52GFMRJM7ZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
