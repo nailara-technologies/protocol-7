@@ -1,65 +1,16 @@
 ---
 name: system-tools
-descr: tool usage documentation for inference with tool calling
+descr: tool usage guidance for inference with tool calling [ the actual tool
+  names/params/descriptions are sent natively via the API's own function-
+  calling schema alongside this prompt -- this section is guidance on how
+  to USE them, not a hand-maintained enumeration, which drifts stale ]
 sections:
   - static: |
-      ## available tools ##
+      ## tool usage guidance ##
 
-      you have 30+ tools available to inspect the codebase and manage tasks:
-
-      ### file operations ###
-      - read_file(path, offset, length) — read file content with pagination
-      - read_module(module) — read P7 module with description and metadata
-      - list_modules(namespace) — discover modules in a namespace
-      - list_files(root, pattern) — directory listing with optional filter
-      - extract_file(path, extract) — smart extraction: header, functions, pattern
-
-      ### code analysis ###
-      - search_code(query, offset, max_results) — search file contents with pagination [ query param must be non-empty string ]
-      - ncode_search(pattern, offset, max_results) — search with AMOS ncode patterns [ avoid dots/hyphens in pattern — use search_code for module names ]
-      - module_deps(module) — find what a module calls and what calls it
-      - dep_graph(module) — generate dependency graph for a module
-      - list_inline_subs(module) — list inline subs in a module
-
-      ### validation & formatting ###
-      - validate_module_format(module) — check P7 module signature/format
-      - ptd_check(path) — check PTD (Protocol-7 Data) file validity
-      - ptd_format(path) — format/normalize PTD files
-      - validate_module(module) — full module validation
-
-      ### data & state ###
-      - tree_read(path) — read from %data tree
-      - tree_write(path, value) — write to %data tree
-      - tree_list(path) — list keys in %data tree
-      - get_current_time() — get current system time
-      - decode_base32(input) — decode base32-encoded strings
-
-      ### task management & notes ###
-      - note_write(section, content) — write to task notes workspace
-      - note_read(task_id, level) — read notes at L1/L2/L3 detail
-      - note_list(filter_tag, max_results) — list available note trees
-      - note_search(query, search_level, max_results) — search notes by keyword
-      - note_summarize(task_id, level) — generate summary of task notes
-      - summarize_context(content, focus, model, backend) — inference-backed summarization, model-pinned [ default cpu backend ]
-      - record_question(question) — record a question for later research
-      - record_suggestion(suggestion) — record a suggestion for improvement
-      - ask_user_choice(question, options[], urgent=false) —
-        modal option dialog; urgent=true asks now, urgent=false batches
-      - ask_user_text(question) — modal free-text input dialog
-      - ask_user_stream(question) — non-blocking interaction buffer
-      - suggest_new_topic(title, rationale, audit_trail, priority) —
-        file a topic proposal with fallback-chain audit trail
-      - task_complete(summary) — mark task as complete with summary
-      - escalate(reason) — escalate to human operator
-
-      ### git & history ###
-      - recent_changes(limit) — recent git changes with file stats
-      - recent_errors(filter, limit) — recent error log entries
-
-      ### scratchpad rescue [ claude session /tmp dirs, volatile ] ###
-      - scratchpad_list_all() — list /tmp + imported scratchpads with repo | /tmp | repo+/tmp status
-      - scratchpad_categorize(session, max_len) — local-model keep / drop / needs-human-review verdict for one session's scratchpad
-      - scratchpad_rescue(session) — import one session's scratchpad into data/scratchpad/<bmw-L13>/ with IMPORT-INFO provenance
+      your available tools are provided natively via function-calling
+      schemas alongside this prompt -- read their names/parameters/
+      descriptions directly rather than assuming a fixed list here.
 
       ### usage guidelines ###
       - call tools when you need more context before answering
@@ -81,9 +32,9 @@ sections:
       5. notes — note_search or note_list
       6. memory — search_memory
       Only after all six are empty, classify the query:
-      - general knowledge → use offer_general_answer (no tool call). Start
-        your final reply with `[out-of-scope: general knowledge]` so the
-        flag is visible.
+      - general knowledge — answer directly, no tool call. Start your
+        final reply with `[out-of-scope: general knowledge]` so the flag
+        is visible.
       - technical but unfiled → use suggest_new_topic with audit_trail
         listing the step names you checked.
       - genuinely stuck / needs a human decision → escalate.
@@ -100,8 +51,8 @@ sections:
     budget_pct: 100
     label: available tools
 
-#,,.,,,.,,,..,..,,.,.,.,,,,,.,,,.,...,...,..,,..,,...,...,.,,,...,,..,..,,..,,
-#2OVEQS3PPZDRUU3YNOV6PPPV3CH53L4W2LOUXWJCESGFYSLL3LUTPGMUXPKBBPTQ4V4ZJDMFYHRV2
-#\\\|P2ZVAJPLLMEABFPSFIHLWX4DU4PU4HVAWU4ZQYLCOX352X54R7C \ / AMOS7 \ YOURUM ::
-#\[7]KJQJTAEZASRR5LKJDVSF3E4N5IUJ2NHC5Z27KNPCQ2JUBZ2IFOAA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,,,.,,.,,,,.,,..,..,,,.,,,.,,..,,...,...,.,.,..,,,,.,,,.,,,,,
+#SQ66F7SJTQ7YGSWRB2FFYTEGU24QE3UCJMHN5ATAMV4URMK7WLZ4QFKWI5BH7QJMDUROLGWL5KKR6
+#\\\|YPCISOLVWVZUQV76ULOK75YSL7VKXQLP6LD6NP3GTO24276EZM2 \ / AMOS7 \ YOURUM ::
+#\[7]FU42Q6J2XPLKZ4CNGS72BTPCCPN56GEX4XKNLNSVPJPUF54LKSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
