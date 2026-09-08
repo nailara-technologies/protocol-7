@@ -364,6 +364,46 @@ push @tools,
     },
     };
 
+## embedding_search : nearest-neighbor lookup over a trained project        ##
+## embedding domain [ data/embeddings/<domain>.vec ] -- similarity in       ##
+## MEANING/PROFILE, not exact graph edges [ dep_graph/module_deps do that ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'embedding_search',
+        'description' =>
+            'find nearest neighbors for a query in a trained project '
+            . 'embedding domain [ eg codebase-depgraph : modules with a '
+            . 'similar dependency profile to a given module -- omit '
+            . 'domain to list what is available ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'domain' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'embedding domain name [ eg codebase-depgraph '
+                        . '-- omit to list available domains ]'
+                },
+                'query' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'query text, whitespace-separated tokens [ a single '
+                        . 'module name is a valid query : finds modules '
+                        . 'similar to it ]'
+                },
+                'top' => {
+                    'type'        => 'integer',
+                    'description' => 'max neighbors to return '
+                        . '[ default 10, max 25 ]'
+                },
+            },
+            'required' => ['domain'],
+        },
+    },
+    };
+
 ## dep_graph : bidirectional call graph for a namespace ##
 push @tools,
     {
@@ -2085,8 +2125,8 @@ if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
 
 return \@tools;
 
-#,,..,..,,...,,.,,...,...,...,..,,..,,..,,.,.,..,,...,...,...,,.,,...,,..,,,.,
-#2O73D2I5TDNEE4C5QBDP5RUGZRE663N4AADHCYYPOIXGMVTJTU6C6C2NM3YBK4YKAFXLSXBJWIGRC
-#\\\|L7FJJVAXEVCY4PJO5MAWLA7WRFWUBKDRV3MFOXXM7AB3MWT4FQM \ / AMOS7 \ YOURUM ::
-#\[7]4WPBH3YPOJ6LVZCR2YH66CU2FTKFL75YJ4PWOQ2M5KJNEOMLRMDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,..,,..,,,,,,,.,,..,,,,.,...,..,,...,...,..,,.,.,.,.,.,,,.,.,
+#MY74KEAZVYNLERCCNRNFQWM4CD5LPGEKSRIIO6WQOQPFBHK2PMWJKG4C2SM6AJ3GJOGL4D34G2Z7M
+#\\\|YOLIAO3RXLMMHKMRVKAXY5APCMSVPOW6ASF6SBDNM4PONCOJJ5X \ / AMOS7 \ YOURUM ::
+#\[7]UX5ZTLBF2AA6NW7CZDA73BJLLU5EIGZFWZSLIZNJXQU64NTHHGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
