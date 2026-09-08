@@ -5,11 +5,6 @@
 
 my $name = shift // return undef;
 
-## check cache first ##
-if ( exists <context.templates>->{$name} ) {
-    return <context.templates>->{$name};
-}
-
 ## resolve template file ##
 my $root         = <system.root_path>;
 my $template_dir = "$root/" . <context.cfg.template_dir>;
@@ -18,6 +13,24 @@ my $path         = "$template_dir/$name.yaml";
 unless ( -f $path and -r $path ) {
     <[base.logs]>->( 0, ': context template not found [ %s ]', $path );
     return undef;
+}
+
+## check cache first -- invalidated on mtime change, not just presence :    ##
+## editing a template file previously had no effect until this zenka's data ##
+## structures were cleared entirely [ found live 2026-09-09, editing        ##
+## system-base.yaml / system-tools.yaml kept rendering the old content      ##
+## through both reload config and reload source, since neither clears       ##
+## arbitrary %data cache keys like this one ] -- same mtime-keyed           ##
+## invalidation as coding.tools.handler.embedding_search's vec_cache        ##
+## bin/Protocol-7 does 'use File::stat' globally : shadows the builtin --   ##
+## use the OO form like the rest of P7 does, bare stat/list-slice always    ##
+## silently returns undef here [ found live 2026-09-09 chasing why the      ##
+## mtime check above never invalidated -- cached mtime was frozen at 0 ]    ##
+my $st     = File::stat::stat($path);
+my $mtime  = $st ? $st->mtime : 0;
+my $cached = <context.templates>->{$name};
+if ( defined $cached and ( $cached->{'mtime'} // -1 ) == $mtime ) {
+    return $cached->{'template'};
 }
 
 ## load yaml ##
@@ -45,8 +58,8 @@ unless (defined $template->{'name'}
 ## set defaults ##
 $template->{'budget'} //= <context.cfg.default_budget>;
 
-## cache for reuse ##
-<context.templates>->{$name} = $template;
+## cache for reuse, keyed with the mtime this load actually saw ##
+<context.templates>->{$name} = { 'mtime' => $mtime, 'template' => $template };
 
 <[base.logs]>->(
     2,     ': context template loaded [ %s ] [ %d sections ]',
@@ -55,8 +68,8 @@ $template->{'budget'} //= <context.cfg.default_budget>;
 
 return $template;
 
-#,,..,,.,,..,,,,.,,..,.,,,,,,,,,,,.,,,,.,,..,,..,,...,...,.,,,,,,,...,.,.,.,.,
-#CXBGDKU6HJU7TJ7HIJD6L7V5KLNGCTJGTHA3RR7WEPKPLY6EKEFEH6L236TPK2IQ7FJO3WVT76Q42
-#\\\|QECNB7S3MTH6P4IDK4ILBYT3IY5DVOQEWUZGDRZEFKC5WPU6XVV \ / AMOS7 \ YOURUM ::
-#\[7]A3DKQC6EVNRRFEKCBYY3KXSM7REVPX5PMWEF7YGTZDKP5SZC3QBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,...,..,,,.,,..,,,,.,...,,..,..,,...,...,..,,,..,...,...,,..,
+#DPCFLPNCG5B5VJ2XEY4CTXZSIWHHYQ2UL7OPLQYJIYU32QMUFIGYGSMZR2SJ6RXQPCYOAPBC3DW3U
+#\\\|RXPAMT4DS3Q3OUSYNIKRKROU5HJMSHRDICUTO5ZGK33QL6ELM36 \ / AMOS7 \ YOURUM ::
+#\[7]FTT57V5CPM564RB57ILI4XH65S4BYABTFFUEYLAMLD66ICZCWSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
