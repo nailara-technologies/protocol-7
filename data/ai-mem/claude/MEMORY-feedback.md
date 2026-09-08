@@ -65,6 +65,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md)
 - [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md)
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
+- [mcp-server-p7 kimi-dispatch nonblocking](feedback-mcp-server-p7-kimi-dispatch-nonblocking.md) — 2026-09-08: mcp-server-p7 is single-threaded (one blocking STDIN loop); kimi_dispatch/kimi_continue's blocking qx() held the WHOLE server hostage for the entire kimi run, so kimi_check_status queued behind it too — fixed via fork+detach, kimi-only (claude_dispatch has no check_status equivalent, still blocks). does NOT resolve kimi-dispatch-never-parallel — may make that older bug newly testable instead, since true concurrent kimi-legacy execution is now possible for the first time
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
 - [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed; 2026-08-31: a NEW cross-zenka command call also needs a live-tested access.zenki grant, invisible to both static verification and diff review
@@ -124,8 +125,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [audit-shared-state-when-multi-instance-bolted-on](feedback-audit-shared-state-when-multi-instance-bolted-on.md) — when a commit adds multi-instance/auxiliary support to single-instance code, `git show` that exact commit against the file: if it only touched the control-flow line, every OTHER line (globals, alarming log wording) is suspect for the same unaudited single-path assumption — found via X-11 xvfb session, see [[project-x11-xvfb-crash-loop-and-cleanup-2026-09-06]]
 - [arrow-call-into-bare-shift-constructor](feedback-arrow-call-into-bare-shift-constructor.md) — `Class->new($arg)` silently discards `$arg` if `new()` does a single bare `shift` instead of shifting the class first; vendored `X11::WM.pm` had this bug codebase-wide for years, masked because the primary's own `$ENV{DISPLAY}` coincidentally matched what the buggy fallback connected to anyway — only became visible building a genuinely new connection target (xvfb auxiliary display)
 
-#,,..,...,,,.,..,,..,,,.,,..,,.,,,,..,,,,,,.,,..,,...,..,,..,,.,.,,,.,,,,,..,,
-#47OHEMJH4E5PZ7OFUCRJ6E6HT5UES3U54Z2VMWA5YH2OWNJK6TBOPBJMPIBZYVOBCLCFQ6KW674MS
-#\\\|Q2ANK764KPW7E4ZSQBTZZZP3TF3XQUZJLLMM3CNZLGLD2OZCN3N \ / AMOS7 \ YOURUM ::
-#\[7]PFMFXZPWGYTNMO4NBCCS7BWSNQKYUZSDJIMTJVTK2AAMQ6T65WBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,.,,,,,,,,.,,,..,,,.,...,,.,,..,,...,...,,..,,..,,,,,..,,,..,
+#2L2VMV3AGB3QQXN75OJK4TCCIB7HYQTTRCHQVUEZ5XEKWTJDO4GLOPBOG4G4VM73DVVO4WW4AEK3W
+#\\\|4S3AKRX5XWLNMQC2QYJOONJEICMJHBWNXIE6GFESGYPBBYK5GXR \ / AMOS7 \ YOURUM ::
+#\[7]RZNTEC5AKOLVTG6XYARD2NUUHWUIQV3TVAYF4XR2652DVBUK5YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
