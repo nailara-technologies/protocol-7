@@ -126,6 +126,21 @@ hand-fixed (footer strip, or any out-of-band edit the model didn't make itself),
 that specific file's footer again — a full-file rewrite from stale context can silently
 undo out-of-band fixes, not just fail to include new ones.
 
+**Repeated a THIRD time, same session, 2026-09-08**: after the sub-case
+directly below was written (same day, same session), wrote a brand-new task
+file (`coding-control-vector-p7-idioms.md`) and appended a partial signature
+line at the very end anyway — despite the file's OWN "what NOT to do"
+section, written by me in that same edit, explicitly saying "do not add the
+`#,,..` signature stub to any new file." Caught only by re-reading the file
+immediately after writing it, not by consulting memory beforehand. This is
+strong evidence the rule needs to be applied as a literal pre-write checklist
+item, not trusted to be "known" going forward, even within the same session
+that already corrected it once. **How to apply, escalated**: before calling
+Write on any new file in this repo, mentally check "did I just add a trailing
+`#,,` line" as a distinct, separate step from drafting the content — the
+mistake happens at the very end of writing, on autopilot, not from a genuine
+belief the placeholder is required.
+
 **New sub-case, 2026-09-08**: repeated the exact mistake this file already
 documents (the 2026-08-27 correction below) — drafted a plain 4-line-style
 placeholder block on THREE new files in one session (two `src/*` modules, one
@@ -144,8 +159,8 @@ Let `bin/Protocol-7 sourcecode update-signatures` add the real footer
 later. Treat this as a standing rule to apply automatically, not something
 to re-derive per session.
 
-#,,,,,,.,,.,,,,,,,,,,,,.,,,,,,...,,.,,,,,,...,..,,...,...,...,..,,...,..,,,.,,
-#YJL5XG3WODEC6PMXPKJMPSZOORRKD3UZFZBBOPDV4JFLSYNAZIBRHQNK3CWCDF2EQS3K5TY4RRHS2
-#\\\|MAUZIOA5I2E6FJO6YP2323GTVN764CH24FUS3C3OCJN4EZEIONH \ / AMOS7 \ YOURUM ::
-#\[7]QYFXWMTYREY6IRJTZTEM56CZOE2E4MBAADZNEZY55PFVA45TSCAQ 7  DATA SIGNATURE ::
+#,,..,...,...,,..,..,,,,.,...,,.,,..,,.,,,,..,..,,...,...,.,,,,,,,.,,,..,,,.,,
+#FTVYOJQ6ILUJH5ADTQX7XZFDMERYQDLKZ7QG5ZAVV7ZKDZREYJRCIQYDAYPGXW2FS7LCJEKY5BEQ4
+#\\\|EVRMRHPM6MHM2EAJ37CQOQH5ZQCXK45N6A5GUXCMTH4I6MRVHE4 \ / AMOS7 \ YOURUM ::
+#\[7]ZGIIJXOV7UHV7QMMX3XQIMUZNOU4NI6UFP4FRYG26DDRFWQR6ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

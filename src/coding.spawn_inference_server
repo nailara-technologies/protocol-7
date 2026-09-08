@@ -503,6 +503,55 @@ if ($fixed_seed) {
 push @cmd, '--seed', $seed;
 <[base.logs]>->( 1, ': %s server seed : %s', $backend, $seed );
 
+## control vector [ inference-time activation steering, cvector-generator   ##
+## .gguf ] : config-gated -- absent/empty <coding.cfg.control_vector> is    ##
+## today's unchanged behavior. deliberately NOT conditioned on $backend eq  ##
+## 'gpu' : unlike -ngl a control vector is backend-agnostic and applies     ##
+## identically on the cpu and hybrid paths -- gating it behind the gpu      ##
+## check would silently disable steering on the very backend most likely to ##
+## be used for a cheap A/B run. a configured-but-missing file fails the     ##
+## spawn loudly [ same treatment as a missing model above ] : the vector is ##
+## model-specific [ regenerate per model, keep the model id in the filename ##
+## ] and the loader only checks n_embd, so silent fallback here would hide  ##
+## exactly the config rot hazard 3 warns about                              ##
+my $cvec_path = <coding.cfg.control_vector> // '';
+if ( length $cvec_path ) {
+    if ( !-f $cvec_path ) {
+        <[base.logs]>->(
+            0, '[spawn_inference_server] control vector not found : %s',
+            $cvec_path
+        );
+        <coding.spawning_in_progress> = FALSE;
+        return {
+            'success' => FALSE,
+            'error'   => "control vector not found: $cvec_path"
+        };
+    }
+    ## scale is applied at load time and may be negative [ sign-flipped  ##
+    ## direction -- the negative control in A/B validation is a one-flag ##
+    ## experiment ]                                                      ##
+    my $cvec_scale = <coding.cfg.control_vector_scale> // 1.0;
+    push @cmd, '--control-vector-scaled', $cvec_path, $cvec_scale;
+    ## layer range is optional : unset = loader defaults [ 1 .. n_layer ]  ##
+    my $cvec_layer_start = <coding.cfg.control_vector_layer_start> // 0;
+    my $cvec_layer_end   = <coding.cfg.control_vector_layer_end>   // 0;
+    if ( $cvec_layer_start > 0 and $cvec_layer_end > 0 ) {
+        push @cmd, '--control-vector-layer-range',
+            $cvec_layer_start, $cvec_layer_end;
+    }
+    <[base.logs]>->(
+        1,
+        '[spawn_inference_server] control '
+            . 'vector : %s [ scale %s, layers %s ]',
+        $cvec_path,
+        $cvec_scale,
+        (   $cvec_layer_start > 0
+            ? "$cvec_layer_start-$cvec_layer_end"
+            : qw| default |
+        )
+    );
+}
+
 # Set up environment for llama-server [ same as lm-vision does ] -- gpu-only:
 # <coding.lib_path> is the CUDA rebuild-out dir [ inference.backend.lib_path ],
 # and it carries its OWN libggml.so [ built for CUDA, same filename, different
@@ -709,8 +758,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,.,,,.,.,,..,.,,,,.,,,..,.,,,.,,,,..,,,,,..,,...,...,..,,.,,,,.,,,,,,,,.,
-#XIHFMGS455M6UBDBSD5AXOBS326CYW3MOYVBSLXTQM435ABCPNRSWPLMTRF64DDM6DFQILXJULLZM
-#\\\|ZI2TICXV7T4SBYXEHC2AH26VZCL7WZDSMHZLVJKAXI6FKSZVFCJ \ / AMOS7 \ YOURUM ::
-#\[7]IY2BHLTPCOKIQJ447RBC6QGZCWMDL3EG4QVC4F2FMEIIR5YAIYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,.,.,,,,,.,,,,..,,.,,.,.,,..,..,,...,...,...,,.,,...,.,.,,..,
+#MGV3GNHXA5U66YHDWM4KTVXQMOT433JMFRRFDXBEUZZIBBSNBFAIFPQWPBQFOYBSN6AKKD5NGHYAS
+#\\\|DZBR36JEJ5OK3C3BTCWIJOMMLWHP5JT6WL5BUIFUHPLGXVDER3M \ / AMOS7 \ YOURUM ::
+#\[7]J77YDTYPGTJFQUMERDYYMHYKA2BG3QGZD2KPBAVWE3HUDQRQLGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

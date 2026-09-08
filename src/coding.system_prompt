@@ -97,6 +97,11 @@ you have tools available. use them proactively to investigate and complete tasks
 - read_module(module) : read P7 module with description and metadata
 - list_modules(namespace) : discover modules in a namespace [ e.g. coding, context ]
 - module_deps(module) : find what a module calls and what calls it
+- embedding_search(domain, query) : find modules similar in MEANING/ROLE to a
+  query, not exact calls [ eg domain=codebase-depgraph, query=a module name --
+  finds modules with a similar dependency profile. omit domain to list what's
+  trained. useful before module_deps/search_code when you don't yet know
+  which module to look at, or when refactoring and want sibling candidates ]
 - recent_changes() : recent git changes with file stats
 - recent_errors(filter) : recent error log entries
 - list_files(root, pattern) : directory listing with optional filter
@@ -149,8 +154,8 @@ $prompt =~ s|\s+$||s;
 
 return $prompt;
 
-#,,.,,.,.,...,,.,,..,,..,,...,,,.,.,,,.,.,..,,..,,...,...,.,,,.,,,,.,,.,,,,..,
-#QQYDXXQRFUZPKDN3KGNBDEDT4LKR2UG2KYGMNM35PDY34VXHSPCKFGYHZPE7MIHLRXCQA6MBUEPXQ
-#\\\|NUFBO2DDJEFOV2OD5OJNVQXWVME5THJZAE2JMNLWD5NYC5VSLFY \ / AMOS7 \ YOURUM ::
-#\[7]U72TNUBJBQC42M57KSZNHPOJUAPO6MPBNSMAJMBT3YMLRU2PO4CI 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,,,,,...,..,,,.,,,..,.,.,,.,,..,,...,...,.,,,,,,,,,.,...,,,.,
+#UDI5HGYAXJGJ5EWNN3AWUN6GQJJO4JZYIKTYIT5LB46IWYK3OWT5G7HXTZZL2BAXE6JBAOBMZ3PY2
+#\\\|GCHQRNMG4SQ7S27KN5QJ4WTWOXREUJU6K7YJL56WT2BMQHPRRCD \ / AMOS7 \ YOURUM ::
+#\[7]VZLZUXAJU227JSQA7BW2HQRJ2SOSZ7T42I447TM6GSVQDG2PUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
