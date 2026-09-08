@@ -75,8 +75,18 @@ mcp-server-p7`'s `_do_summarize` chunk-sizing cached
 so a later model switch's larger context never took effect for
 chunking decisions. Fixed 2026-09-04.
 
-#,,,,,.,,,..,,,,,,.,.,,,,,..,,,,,,,..,,,.,,,.,..,,...,..,,...,.,,,,..,...,..,,
-#OX3LYLQJLJVNMVYE2ACOWQIVNU2YNOE3WDH2CK25PA6UBXGNQ4NV2QDQ2J4YGPRPRJPL5XJD5PF6O
-#\\\|LL4HBHA3KX4CB2VAGKCLDSUTWOGXAF2SKJBF546F6ZQDXWU3JM7 \ / AMOS7 \ YOURUM ::
-#\[7]UGUGWSRIKGJJIAXYUB6TUVC3OT2FGWBCBNXJ4GCYSL2D2YRLHKBI 7  DATA SIGNATURE ::
+**a third, distinct concurrency bug in this same file, fixed 2026-09-08**:
+see [[feedback-mcp-server-p7-kimi-dispatch-nonblocking]] — unrelated
+mechanism (the whole server blocking on `kimi_dispatch`/`kimi_continue`'s
+own `qx()` for the entire kimi run, not this file's `auto_summarize`
+step), but the same general pattern of "this single-threaded server can
+get stuck behind one slow call, wedging everything else" recurring a
+third time in the same codebase. worth remembering `bin/mcp-server-p7`
+as a whole has this class of risk at multiple call sites, not just the
+two already fixed.
+
+#,,.,,,.,,.,.,,,.,...,,,.,,.,,...,,..,.,,,,,,,..,,...,...,,..,,..,...,,,.,.,.,
+#4C54FATBA737CTLDWWMR2I5U6BXIBHID53N4D6SVFAEB5L6IWPPNOUCXC4AMQG2RLVCQ2CNTYWAMC
+#\\\|6UQJTG5A5UV7P2PZIBGWNEV5KWXRGVVH3GZKBDBBABXPNWDZG3N \ / AMOS7 \ YOURUM ::
+#\[7]GLDJPJ37IACI5GXIE7DSO5ROP3JES6DDX6EIDRW6GHMOJTCFGWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
