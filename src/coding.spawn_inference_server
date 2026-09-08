@@ -503,10 +503,6 @@ if ($fixed_seed) {
 push @cmd, '--seed', $seed;
 <[base.logs]>->( 1, ': %s server seed : %s', $backend, $seed );
 
-## Spawn llama-server with open3
-my ( $server_in, $server_out, $server_err );
-$server_err = Symbol::gensym;
-
 # Set up environment for llama-server [ same as lm-vision does ] -- gpu-only:
 # <coding.lib_path> is the CUDA rebuild-out dir [ inference.backend.lib_path ],
 # and it carries its OWN libggml.so [ built for CUDA, same filename, different
@@ -519,37 +515,94 @@ local $ENV{'LD_LIBRARY_PATH'}
     = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' )
     if $backend eq qw| gpu |;
 
-my $pid = eval { IPC::Open3::open3( undef, $server_out, $server_err, @cmd ) };
+## manual fork/exec, not IPC::Open3 : Open3 already does exactly this      ##
+## fork+exec [ confirmed by reading its own source ], but gives no hook to ##
+## run code in the child between fork and exec. setpgid MUST happen there  ##
+## -- calling it from the PARENT after open3 returns always loses the race ##
+## [ EACCES, confirmed live 2026-09-08 : the child has already exec'd by   ##
+## then -- see data/tasks/coding-spawn-setpgid-not-taking-effect.md ]. the ##
+## exec-status pipe below mirrors Open3's own exec-failure detection so a  ##
+## bad binary path still reports a real error instead of a silent bad pid  ##
+my ( $out_r, $out_w, $err_r, $err_w, $stat_r, $stat_w );
+pipe( $out_r,  $out_w )  or die "pipe (stdout) failed: $OS_ERROR";
+pipe( $err_r,  $err_w )  or die "pipe (stderr) failed: $OS_ERROR";
+pipe( $stat_r, $stat_w ) or die "pipe (exec-status) failed: $OS_ERROR";
 
-if ( !$pid || $EVAL_ERROR ) {
+## raw bytes, not this codebase's ambient :utf8 default : IPC::Open3's own ##
+## pipes were always raw [ its xpipe lives in a separately-compiled stdlib ##
+## file, unaffected by our module compiler's default layer ] -- plain      ##
+## pipe() here inherits the ambient default instead, and base.s_read's     ##
+## sysread() refuses to run on a :utf8 handle at all [ confirmed live      ##
+## 2026-09-08 : "sysread() isn't allowed on :utf8 handles" ]               ##
+binmode($_) for ( $out_r, $out_w, $err_r, $err_w, $stat_r, $stat_w );
+
+## FD_CLOEXEC on the status pipe's write end : a successful exec() closes  ##
+## it automatically, which is how the parent tells "exec worked" (EOF, no  ##
+## data) apart from "exec failed" (errno text arrives first) -- same idiom ##
+## IPC::Open3 itself uses internally                                       ##
+my $stat_flags = fcntl( $stat_w, Fcntl::F_GETFD(), 0 );
+fcntl( $stat_w, Fcntl::F_SETFD(), $stat_flags | Fcntl::FD_CLOEXEC() );
+
+my $pid = fork();
+
+if ( !defined $pid ) {
     <[base.logs]>->(
         0, "[spawn_inference_server] failed to spawn: backend=%s error=%s",
-        $backend, $EVAL_ERROR // 'unknown error'
+        $backend, "fork failed: $OS_ERROR"
     );
     <coding.spawning_in_progress> = FALSE;
-    return { 'success' => FALSE, 'error' => $EVAL_ERROR // 'spawn failed' };
+    return { 'success' => FALSE, 'error' => "fork failed: $OS_ERROR" };
 }
+
+if ( $pid == 0 ) {
+    ## CHILD : setpgid before exec is the whole point of not using open3 ##
+    POSIX::setpgid( 0, 0 );
+
+    close $out_r;
+    close $err_r;
+    close $stat_r;
+
+            open( STDIN, '<', '/dev/null' )
+        and open( STDOUT, '>&', $out_w )
+        and open( STDERR, '>&', $err_w )
+        and close($out_w)
+        and close($err_w)
+        and exec(@cmd);
+
+    ## reached only on failure [ redirect setup or exec itself ] : report ##
+    ## through the status pipe, then _exit -- never plain exit() in a     ##
+    ## forked child pre-exec [ would run global destructors a second time ##
+    ## in this process, same hazard IPC::Open3 itself avoids ]            ##
+    print $stat_w "$OS_ERROR";
+    close $stat_w;
+    POSIX::_exit(255);
+}
+
+## PARENT ##
+close $out_w;
+close $err_w;
+close $stat_w;
+
+my $exec_err = do { local $INPUT_RECORD_SEPARATOR; <$stat_r> };
+close $stat_r;
+
+if ( length $exec_err ) {
+    <[base.waitpid]>->($pid);
+    <[base.logs]>->(
+        0, "[spawn_inference_server] failed to spawn: backend=%s error=%s",
+        $backend, "exec failed: $exec_err"
+    );
+    <coding.spawning_in_progress> = FALSE;
+    return { 'success' => FALSE, 'error' => "exec failed: $exec_err" };
+}
+
+my ( $server_out, $server_err ) = ( $out_r, $err_r );
 
 ## set pipes to non-blocking : prevent event loop stall on partial reads ##
 for my $pipe_fh ( $server_out, $server_err ) {
     my $flags = fcntl( $pipe_fh, Fcntl::F_GETFL(), 0 );
     fcntl( $pipe_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
         if defined $flags;
-}
-
-## make server its own process group leader so kill( -pid ) reaches all     ##
-## children [ llama-server forks a worker on first request ] -- checked and ##
-## logged, not fired blind : confirmed live 2026-09-08 this can fail        ##
-## silently in some environments, leaving the later group-kill a no-op [    ##
-## see data/tasks/coding-spawn-setpgid-not-taking-effect.md ]               ##
-unless ( POSIX::setpgid( $pid, $pid ) ) {
-    <[base.logs]>->(
-        0,
-        '[spawn_inference_server] setpgid failed for pid=%d: %s '
-            . '-- old-server group-kill will not reach this process later',
-        $pid,
-        $ERRNO
-    );
 }
 
 <[base.logs]>->(
@@ -656,8 +709,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,,,,,...,,..,,.,,,.,,,.,,,,,,.,.,.,,,,.,,..,,...,...,...,.,.,..,,,..,,,.,
-#DJ2MMQEHZO63LXOA7OUKPKHTQ6LX3RYUM57GGWI6C47QT2VOOUHCEMSYM3HHVFRL565BCNZEYAX3E
-#\\\|TESLBDRTZRBA3GGFLFR5WVYTPUBNC7EFYJ6SIY5UW5M3NBKZDDA \ / AMOS7 \ YOURUM ::
-#\[7]FQ7CO5VAQBTVZ62J6EDIMDINPHINB6B2LFB6YZZX5X7ALHIRYQAY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,.,,,,.,,,..,.,,,.,,,,..,,,,,..,,...,...,..,,.,,,,.,,,,,,,,.,
+#XIHFMGS455M6UBDBSD5AXOBS326CYW3MOYVBSLXTQM435ABCPNRSWPLMTRF64DDM6DFQILXJULLZM
+#\\\|ZI2TICXV7T4SBYXEHC2AH26VZCL7WZDSMHZLVJKAXI6FKSZVFCJ \ / AMOS7 \ YOURUM ::
+#\[7]IY2BHLTPCOKIQJ447RBC6QGZCWMDL3EG4QVC4F2FMEIIR5YAIYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

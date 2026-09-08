@@ -1,9 +1,9 @@
 ## [:< ##
 
 # name  = task: coding.spawn_inference_server's setpgid does not take effect
-# descr = old-server group-kill is a silent no-op; real kill happens later,
-#         unprotected, via the port-based fuser scan -- causes a VRAM-read
-#         race right where spawn's own vram check runs
+# descr = FIXED 2026-09-08 -- was a silent no-op because the child had
+#         already exec'd by the time the parent called setpgid; replaced
+#         open3 with manual fork/exec so setpgid runs in the child first
 
 ## context
 
@@ -87,7 +87,62 @@ kept for the record, not because they're still open:
   `coding.spawn_inference_server` -- first step of any real fix is to
   check it and log failures, rather than fixing blind.
 
-## why this has real blast radius (per reviewer, why not fixed inline)
+## FIXED, 2026-09-08 -- manual fork/exec, setpgid runs in the child
+
+implemented exactly the scope-item-3 direction below: replaced the
+`IPC::Open3::open3(...)` call with a manual `pipe`+`fork`+`exec`, so
+`POSIX::setpgid(0, 0)` can run IN THE CHILD, between `fork` and `exec`,
+which is the one place that actually works (a process can always set its
+OWN pgid to its own pid before it execs -- that's unrestricted by POSIX;
+only the PARENT trying to do it to an already-exec'd child hits EACCES).
+preserved Open3's own exec-failure detection via an equivalent CLOEXEC
+status-pipe (a failed exec still reports a real error instead of a silent
+bad pid), and its non-blocking-pipe setup downstream is untouched.
+
+one real bug found and fixed while landing this: this codebase's `bin/
+Protocol-7` applies `use open qw| :encoding(UTF-8) |` at the top level,
+which is lexically scoped to that file and anything string-`eval`'d from
+within it -- exactly how every P7 module gets compiled. `IPC::Open3`'s own
+internal pipes live in a separately-loaded `.pm` file with its own lexical
+scope and were never affected by this; a plain `pipe()` call written
+directly in a P7 module inherits the ambient `:encoding(UTF-8)` default
+instead, and `base.s_read`'s `sysread()` refuses outright to run on a
+`:utf8`-layered handle ("sysread() isn't allowed on :utf8 handles",
+confirmed live). fixed with an explicit `binmode($_) for (...)` resetting
+all pipe fds to raw immediately after creating them, verified this
+actually strips the layer via `PerlIO::get_layers` before trusting it live.
+
+**live-verified, all three parts of what this task set out to fix**:
+1. new server's own pgid now equals its own pid (`ps -o pid,pgid` on three
+   separate respawns, e.g. pid=1252859 pgid=1252859, pid=1253376
+   pgid=1253376 -- previously always the shared session pgid, confirmed
+   different from pid every time before this fix).
+2. the group-kill itself now actually works, not just the pgid: calling
+   `coding.spawn_inference_server` directly (bypassing `coding.handler.
+   spawn_smart`, which has its own separate direct-pid kill+wait and was
+   never the broken path) produced `[spawn_inference_server] killed old
+   gpu server group [pid:1253233]` with **no** following `killed stale
+   llama-server on port 8000` fallback line -- direct, same-log-file,
+   before/after comparison against an earlier pre-fix entry
+   (`pid:1249923`) that shows both lines, proving the fallback was
+   silently doing the real work before and isn't needed anymore.
+3. self-test PASS 3/3 confirmed on the fixed spawn path with no `sysread`
+   errors, after the binmode fix landed.
+
+not separately re-verified: item 4 from the original scope ("the 3-second
+waitpid timeout is gone") -- follows directly from item 2 (the process is
+actually dead by the time the bounded reap loop runs, so it returns
+`>0` almost immediately instead of exhausting all 30 polls), not
+re-timed explicitly.
+
+only remaining gap from the original scope: the fuser-based fallback kill
+further down `coding.spawn_inference_server` still has no reap/wait of its
+own. lower priority now that the PRIMARY kill path (the one actually used
+99% of the time) is fixed and reliable -- the fallback only fires for
+truly orphaned/desynced state now, not on every ordinary respawn.
+
+## why this has real blast radius (per reviewer, why not fixed inline) --
+## historical, kept for context on why this wasn't rushed
 
 if `-$old_pid` group-kill somehow ever DID start working while the
 underlying pgid-sharing problem (whatever it turns out to be) isn't
@@ -134,17 +189,26 @@ succeeded once VRAM had actually settled. No user or test action triggered
 this — it is what today's normal restart path already does under
 production conditions, not a synthetic reproduction.
 
-## validation
+## validation -- ALL DONE, 2026-09-08
 
-- confirm a spawn's "kill old server" phase no longer burns the full 3s
-  timeout when the old process is healthy and killable.
-- confirm, live, that the new server's real pgid (via `ps -o pid,pgid`)
-  equals its own pid after the fix.
-- confirm a kill of an old server does NOT affect any other zenki's pid
-  (the actual risk this task exists to avoid).
+- DONE: `ps -o pid,pgid` on multiple fresh spawns confirms pgid == pid
+  every time now (was always the shared session pgid before).
+- DONE: a direct call to `coding.spawn_inference_server` (the actual
+  buggy path, bypassing `spawn_smart`'s separate own kill) shows the
+  group-kill succeeding on its own -- no `killed stale llama-server`
+  fallback line, unlike the same log file's pre-fix entries.
+- DONE: `ps -ef` on the rest of the zenki fleet (`cube`, `system`,
+  `p7-log`) throughout this session's repeated respawn testing shows all
+  three at their original start time, untouched -- the actual risk this
+  task existed to guard against (a wrong pgid resolution hitting them)
+  did not materialize, and can't now that the child sets its own pgid to
+  its own pid before anything else runs.
+- not separately re-timed: the 3s waitpid-timeout disappearance (follows
+  directly from the group-kill now succeeding, see the FIXED section
+  above).
 
-#,,,,,,..,,..,.,,,,..,.,,,..,,...,..,,,,.,,..,..,,...,...,,..,.,,,,,,,.,.,,,,,
-#6ZQZTGTPMGCMFEUGPOWBLGZWXHKKZPGJRJHW3EBZM5KAJWBARRUABDAZJFREMVKJGTHK5ONJX4MDS
-#\\\|NQQNH7UPUZFGFOX4NGKWBYT27G4ZLI6M5ZLHGZG5XYG3QLITVMQ \ / AMOS7 \ YOURUM ::
-#\[7]FWK2H66MGXY4NPIF6DA6WO4R2RZKQDNG6UFMKDN52GFMRJM7ZAAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,...,,,.,,,,,,..,,,.,,,,,,,,,..,,...,..,,.,.,,,,,..,,.,,,,,,,
+#TN3QKOIXVTW4T7EUCZWW3QTBK7DXZBDZMYKJGRYTQCLUZSHVDBMW6TWAPTTQDFMAPSIZEJPQCKEWK
+#\\\|BFICY3QN23U4I2HEFWYG73ZWWIVX2SIITUEDR5CUQOH3265K4XH \ / AMOS7 \ YOURUM ::
+#\[7]5U3PXDUVRY2UVSIE5V7MDEFTDLTCQP465ZEVAPONHKBM7WFTMUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
