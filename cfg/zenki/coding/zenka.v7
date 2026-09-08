@@ -109,12 +109,16 @@ coding.inference.reasoning_effort = medium
 coding.jinja.convert_tool_role = false
 
 ## GPU+CPU Dual Inference Configuration ##
-inference.backend.lib_path = /data/source/ik_llama.cpp-rebuild-out
+## rebuilt 2026-09-08 [ build 4876, fe215a8cc, 141 commits ahead of the    ##
+## prior 4735/9d07d8681 -- picks up new architecture support (qwen4exp,   ##
+## deepseek-v4, glm-5.2, bailingmoe3) that may fix some newly-downloaded  ##
+## models -- self-test PASS 3/3 confirmed live before promoting ]         ##
+inference.backend.lib_path = /data/source/ik_llama.cpp
 inference.backend.gpu.enabled = yes
-inference.backend.gpu.binary = /data/source/ik_llama.cpp-rebuild-out/llama-server-cuda-fa-rebuild
-## rollback: revert both lines above to /data/source/ik_llama.cpp and      ##
-## /data/source/ik_llama.cpp/llama-server-cuda-fa if the rebuilt binary    ##
-## misbehaves - the old binary/libs are untouched at that original path    ##
+inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
+## rollback: revert both lines above to /data/source/ik_llama.cpp-rebuild- ##
+## out and /data/source/ik_llama.cpp-rebuild-out/llama-server-cuda-fa-    ##
+## rebuild if this build misbehaves - that binary/libs are untouched      ##
 inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 ##                                            [ Gemma3 Glitter is 2.21GB ] ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
@@ -330,8 +334,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,,.,.,.,.,,,.,.,,,,,.,.,,,.,.,.,,,.,..,,.,.,...,...,,,.,,,,,,,.,,,.,,.,,
-#OBMJFLH5AOC6RAFPD7ZJ6US4VKEWOEFTHYEK776ZFYOLNI6C3RBVKG45P55MZCAFZAKSP4QP7W2VO
-#\\\|IWWBRZZM2VLDYPISSHY5BYSRYIJDWNI44HKI5D7F4B4JGREUCQK \ / AMOS7 \ YOURUM ::
-#\[7]3SECHDF6Z2VXZXLWHT7KZBT46TBRBDMUYTAAMGH7CKXLZIL37GDQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,...,,.,,..,,,,,,,..,...,,.,,.,.,...,..,,,..,,..,..,,..,,...,
+#KKHKZVUDTZRGYMR7F3MJUSQL7PIH2XJX76HKKDSSJF3QBAMVROMHK4AWDK275YMRKYBZC4FKNP6FG
+#\\\|V6D77CE7RLLAXN4UCTAVSNAH6KVM2H3XU43QHRCL5JTWLJRMKY2 \ / AMOS7 \ YOURUM ::
+#\[7]KA64XM2Z234K7XKJF7W5DZ7HG4HKOTIBTBKKD35BAS7J7ZKF2KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
