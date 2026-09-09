@@ -504,6 +504,114 @@ problem. the harvester now collects the real distribution; that is the
 comparison worth making, and it should be made against real data rather
 than a third stand-in.
 
+### progress 2026-09-09 [ third pass ] : review-prose corpus on the clean subset -- FAIL
+
+the 93 per-module reviews at `data/src-review/*.md` are a genuinely
+different condition from anything tested so far: coherent generated prose,
+not mined identifier soup. since the arm E damage came from *identifiers*,
+this deserved its own test rather than inheriting that verdict.
+
+#### method
+
+- **arm R**: arm D's corpus with the 93 reviewed modules' descr tokens
+  **replaced** by their review text -- `Purpose` + `Interface` +
+  `Role & dependencies` sections, stopword-stripped, capped at 60 tokens to
+  match arm E's density. `Observations` deliberately excluded as
+  speculative. the other 4346 lines are unchanged, so this isolates review
+  text rather than corpus composition.
+- **queries**: **only the clean commit subset** -- fresh-era commits that
+  did *not* write a descr line, per the leakage fix. 270 clean commits
+  found, of which **55 touch at least one reviewed module**. that 55 is the
+  paired evaluation set.
+- **ground truth restricted to the reviewed modules** a commit touched, so
+  the arms are compared on exactly the modules that differ between them.
+- **negatives**: the same 150 harvested `ik_llama.cpp` commit messages
+  already validated for gate B.
+
+#### gate A -- FAIL, and the difference is one commit
+
+| arm | top-10 | top-20 |
+|---|---|---|
+| D  descr only | 3/55 = **5.5%** | 4/55 = 7.3% |
+| R  review prose | 4/55 = **7.3%** | 4/55 = 7.3% |
+
+threshold 40%. **both arms fail by a factor of five, and the gap between
+them is a single commit out of 55** -- indistinguishable from noise at this
+sample size. review prose does not move retrieval.
+
+[ these are lower than the 9.4% clean-subset figure reported earlier and
+are **not** directly comparable: there, any touched module counted; here
+the target is restricted to the reviewed module specifically, which is a
+strictly harder task. ]
+
+#### gate B -- both pass, marginally
+
+| arm | relevant med | irrelevant med | J | verdict |
+|---|---|---|---|---|
+| D | 0.7322 | 0.7081 | 0.339 | PASS |
+| R | 0.7247 | 0.6990 | 0.310 | PASS |
+
+this is the most trustworthy configuration tested in the whole thread
+[ clean queries, harvested negatives, module-filtered ] and both arms clear
+0.30 -- but only just, and review prose is slightly *lower*, not higher.
+
+#### the one real sub-finding : prose does not absorb the way identifiers did
+
+share of top-10 slots taken by the 93 reviewed modules [ their baseline
+share of the module vocabulary is 2.10% ]:
+
+| arm | irrelevant queries | relevant queries |
+|---|---|---|
+| D | 0.88% | 8.00% |
+| R | **1.01%** | **12.36%** |
+
+**arm E's absorbency damage does not reproduce with real prose.** the
+reviewed modules' pickup on *irrelevant* queries barely moves [ 0.88% →
+1.01%, both well under their 2.10% baseline share ], while their share on
+*relevant* queries rises 8.00% → 12.36%. so the earlier finding should be
+narrowed: **mined identifier soup hurt discrimination; coherent prose does
+not.** that is a real correction to how arm E's result should be read.
+
+**it does not rescue anything, and must not be reported as if it did.**
+this is a secondary metric, on n=55, sitting underneath a gate A difference
+of one commit. the modules become somewhat more *reachable* without
+becoming more *correctly retrieved* -- which is interesting and is not a
+result to build on. the earlier round in this thread recorded a
+"falsification" that a better negative set later reversed; the discipline
+learned there applies directly here.
+
+#### what this can and cannot show
+
+- **cannot**: n=55, and the queries are still **commit-message-shaped**,
+  not `task_summary`-shaped. every measurement in this thread has now been
+  made against a proxy query distribution, which is the thing the harvester
+  exists to fix.
+- **can**: on the most trustworthy query set available -- leakage-free,
+  with harvested negatives -- a corpus built from real generated review
+  prose retrieves no better than one built from one-line descrs.
+
+### the thread's standing result : three honest negatives
+
+| intervention | gate A outcome |
+|---|---|
+| descr-anchored corpus [ as designed ] | fail -- 23.9%, later shown inflated by leakage |
+| source-mined density [ arm E ] | fail -- no out-of-sample gain, damaged discrimination |
+| review prose [ arm R ] | fail -- +1 commit of 55 on the clean subset |
+
+three different corpus-enrichment strategies, none of which moves retrieval
+on trustworthy data. that convergence is itself the finding: **the corpus
+is not the bottleneck.** the two things that did produce real movement were
+an implementation detail [ filtering candidates to module names ] and an
+evaluation artifact [ leakage ] -- neither of which is about corpus
+content at all.
+
+the honest conclusion for the thread is that **nothing further should be
+tested against historical commits.** the query distribution has been the
+confound at every step: contaminated when recent, mismatched in shape
+throughout. the next real measurement is the first one taken against
+harvested `task_summary` data, and until that accumulates there is nothing
+here worth another arm.
+
 ### status
 
 **nothing installed, nothing enabled.** no `.vec` in `data/embeddings/`,
@@ -511,8 +619,14 @@ than a third stand-in.
 current coding-zenka behavior is byte-identical. the harvester is inert
 until someone deliberately turns it on.
 
-#,,.,,.,,,.,.,.,.,..,,,.,,,,,,.,.,,.,,,..,..,,..,,...,...,...,...,,,,,.,.,,.,,
-#FG754FGXFMYIALHLBMALXML6THGRYR23YG4RO5DEYXLB4B6GHLCIAB2MRYC2IOHDQDPV3LT7YYT2M
-#\\\|CAWBSKFDV2ZJ3EW43BC2PS4SVFNOBMXP2VIRZJ576OK3YCBFYIU \ / AMOS7 \ YOURUM ::
-#\[7]NIKXDUZ2HKLTABTFVAQWNEPUJ2S4DCTF6YTCUCAZVGBOWRYDCSAI 7  DATA SIGNATURE ::
+arm R's corpus builder was kept in the session scratchpad rather than added
+to `bin/dev/module-catalog-corpus` as a flag: `--source-tokens` earned its
+place by producing a result worth preserving the instrument for, and a
+one-off experimental condition that returned a null does not. the method is
+fully specified above and is a dozen lines to reproduce.
+
+#,,,.,,..,...,,,.,...,...,,,.,,,,,..,,..,,,..,..,,...,..,,.,,,..,,...,.,.,,,.,
+#SQL3A55ZCL22MSPR7GW45IHEF4ESHY27YJJWRWODKA3P44OT3NLYI45MVE5UFQCRRV2PQDDEH4LMK
+#\\\|YLWMKSYM5VK2K46MNFU4TE2OJYZ3PN2AP4QO2XW25UXTIOGF5JB \ / AMOS7 \ YOURUM ::
+#\[7]PXXJVGV6M3GUBEZ53Z3GS2A7NS7MENY7I5UZMIG3VJANTKZSGUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
