@@ -91,6 +91,25 @@ if ( defined $task_rec ) {
 if ( defined $result && $result->{'success'} ) {
     my $result_text = $result->{'result'} // '';
 
+    ## idiom conformance gate [ config-gated, inert unless                 ##
+    ## coding.cfg.idiom_gate is set -- see data/tasks/coding-idiom-gate-   ##
+    ## p7-idioms.md ]. fenced_only : only the ``` code blocks are scanned, ##
+    ## since prose is not P7 code and scanning it produces noise in every  ##
+    ## rubric category.                                                    ##
+    if ( exists $code{'coding.idiom.gate'} ) {
+        my $gated = <[coding.idiom.gate]>->(
+            {   'text'        => $result_text,
+                'source'      => 'async.complete',
+                'fenced_only' => TRUE,
+            }
+        );
+        if (    ref $gated eq qw| HASH |
+            and $gated->{'mode'} eq qw| true |
+            and $gated->{'data'}{'changed'} == TRUE ) {
+            $result_text = $gated->{'data'}{'text'};
+        }
+    }
+
     ## move job to completed ##
     <[jobqueue.move_job]>->( $job_id, 'completed' )
         if defined $job_id;
@@ -671,8 +690,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,.,,,.,,...,,,,,,.,,,,.,,.,,,.,,,,,,..,,,.,,.,.,...,...,,..,,,,,..,,..,,.,.,
-#5WFTMOLEJHLDGZX2X2KUAGJKYGX5RKPGGDKBHWMPE2ZIW3MGBOCYMIHG3QG7S2CROIM4UEOALKFYA
-#\\\|X5HM6ENXNUUKJ3SDFXC7WNNUBZIMH2BMFMA72JRXFHXCTUVH5GU \ / AMOS7 \ YOURUM ::
-#\[7]5EVLCO6O4PH3KCK6A5N72QMM7NOVUFSH5ZT566CDYJCVUUT4LIBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,..,,,,,,,,,,,..,,,,,,..,,..,.,.,...,...,,,,,,,,,,..,,.,,,,.,
+#HDPU6XAKA7HNIIXNWZD67EC4HLGUHB2K65JHRN23VHSMMQTV5OX45LCCBRJBZJS3DIT2EDCPHHLFQ
+#\\\|DJ7R7B4XCPI3RFZGJZ5RC2A5QQZ35QIZ6EI4XPN5PDNIAEYIZJP \ / AMOS7 \ YOURUM ::
+#\[7]LMJDOHJG6QJON3RQWFSX6FA2SQ7R7LZPKECO2XJ54GUBS3OEAOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

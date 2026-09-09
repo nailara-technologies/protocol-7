@@ -1,0 +1,37 @@
+{
+ "choices": [
+  {
+   "finish_reason": "stop",
+   "index": 0,
+   "message": {
+    "role": "assistant",
+    "content": "```perl\n## name = config-threshold-check\n## descr = reads a threshold from config and warns on exceedance\n\n## load the config module [ it defines %config ]\nperlmod.load qw| perlmod.config |;\n\n## read threshold from config [ default to 30 if absent ]\nmy $threshold = $config{'threshold'} // 30;\n\n## check the provided value against the threshold\nmy $value = shift // 0;\n\nif ( $value > $threshold ) {\n    <[base.logs]>->(\n        1,\n        'value %d exceeds configured threshold %d',\n        $value,\n        $threshold,\n    );\n}\n\nreturn { 'mode' => qw| true |, 'data' => $value };\n```",
+    "reasoning_content": "The user wants a protocol-7 module body. Key requirements:\n1. Read a threshold from config with default of 30\n2. Log a warning if a value exceeds the threshold\n3. Must follow P7 conventions: header with ##, lowercase comments, bracket annotations, use `use English`, return { mode => qw| true |, data => $result } for success\n\nI'll create a simple module that:\n- Loads config via perlmod.load\n- Reads a threshold setting with a default fallback\n- Checks a value against the threshold\n- Logs a warning if exceeded\n"
+   }
+  }
+ ],
+ "created": 1788929404,
+ "model": "Qwen3.8-9B-heretic-uncensored.i1-Q4_K_M.gguf",
+ "object": "chat.completion",
+ "usage": {
+  "completion_tokens": 293,
+  "prompt_tokens": 1638,
+  "total_tokens": 1931,
+  "prompt_tokens_details": {
+   "cached_tokens": 1633
+  }
+ },
+ "id": "chatcmpl-N3WDL0K2TVPzeiIwYZdXUHkVwuDaA8ba",
+ "timings": {
+  "prompt_n": 5,
+  "prompt_ms": 61.036,
+  "prompt_per_token_ms": 12.2072,
+  "prompt_per_second": 81.91886755357494,
+  "predicted_n": 293,
+  "predicted_ms": 5671.401,
+  "predicted_per_token_ms": 19.356317406143344,
+  "predicted_per_second": 51.662719670148526,
+  "n_ctx": 145152,
+  "n_past": 1930
+ }
+}

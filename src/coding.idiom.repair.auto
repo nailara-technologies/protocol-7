@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = coding.idiom.repair.auto
+# descr = apply the deterministic, resolve-verified idiom repairs
+# param = { text => '...', fenced_only => FALSE }
+
+##      applies ONLY class 'auto' rules, and only where the rewrite       ##
+##      target was confirmed to exist by coding.idiom.resolve.            ##
+##                                                                        ##
+##      the auto class was not chosen by taste : every rule in it         ##
+##      scored ZERO false positives across all 5462 files of real,        ##
+##      human-written src/ [ data/idioms/offline_check.py fp ]. five      ##
+##      rules that looked obviously safe were demoted out of it by        ##
+##      that calibration -- quoting mode/data keys [ 234 hits on          ##
+##      committed code ], TRUE/FALSE for bare booleans [ 30 hits ],       ##
+##      base.log -> base.logs [ 11 hits, and base.log is a REAL           ##
+##      separate module ]. see rules.yaml.                                ##
+##                                                                        ##
+##      returns the repaired text plus the list of edits actually         ##
+##      made, so the caller can record the (before, after) pair and       ##
+##      report pre-repair and post-repair numbers separately --           ##
+##      conflating those two is the confound this whole thread has        ##
+##      been burned by.                                                   ##
+
+my $params = shift // {};
+
+my $text = $params->{'text'} // '';
+
+return { 'mode' => qw| true |, 'data' => { 'text' => $text, 'edits' => [] } }
+    if not length $text;
+
+my $scan = <[coding.idiom.scan]>->(
+    {   'text'        => $text,
+        'fenced_only' => $params->{'fenced_only'} // FALSE
+    }
+);
+
+return $scan if ref $scan ne qw| HASH | or $scan->{'mode'} ne qw| true |;
+
+my @auto = grep {
+    $ARG->{'class'} eq qw| auto | and length( $ARG->{'suggest'} // '' )
+} $scan->{'data'}{'violations'}->@*;
+
+return { 'mode' => qw| true |, 'data' => { 'text' => $text, 'edits' => [] } }
+    if not @auto;
+
+## apply right-to-left so earlier offsets stay valid as the string changes ##
+## length underneath us                                                    ##
+my @ordered = sort { $b->{'from'} <=> $a->{'from'} } @auto;
+
+my $repaired = $text;
+my @edits;
+
+foreach my $violation (@ordered) {
+
+    my $replacement = $violation->{'suggest'};
+    my $groups      = $violation->{'groups'} // [];
+
+    ## <TARGET> first : it is the normalized dotted module name, and it ##
+    ## must not be clobbered by the positional pass below               ##
+    my $target = $violation->{'target'} // '';
+    $replacement =~ s{<TARGET>}{$target}g;
+
+    ## positional groups, highest index first so $10 would not be eaten as ##
+    ## $1 followed by a literal 0                                          ##
+    foreach my $index ( reverse 1 .. scalar $groups->@* ) {
+        my $value = $groups->[ $index - 1 ] // '';
+        $replacement =~ s{\$$index}{$value}g;
+    }
+
+    substr( $repaired, $violation->{'from'},
+        $violation->{'to'} - $violation->{'from'} )
+        = $replacement;
+
+    push @edits,
+        {
+        'id'       => $violation->{'id'},
+        'category' => $violation->{'category'},
+        'line'     => $violation->{'line'},
+        'before'   => $violation->{'found'},
+        'after'    => $replacement,
+        'target'   => $target,
+        };
+}
+
+## edits were built right-to-left ; hand them back in reading order ##
+@edits = reverse @edits;
+
+<[base.logs]>->(
+    2, ': idiom.repair.auto : %d edit%s applied',
+    scalar(@edits), ( @edits == 1 ? '' : 's' )
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'text' => $repaired, 'edits' => \@edits }
+};
+
+#,,,.,,..,,..,.,.,,,.,..,,.,.,.,,,..,,,.,,.,.,..,,...,...,,,,,,..,...,.,.,.,,,
+#UDQEREM6JPG2AX55JXOZAERX5NBBPL6S5OVOOLFLWDLFYTEOCLGB7YWQL4HYM2XX4XPVWVBZEHA5M
+#\\\|5B3HYAS2DTYN5INCGZ7QS34KGKGD52GT2CBWUBKMCJA4GLEUJ6W \ / AMOS7 \ YOURUM ::
+#\[7]X5LQFETZA4QLL5CKWJ2HFJUYGBKAQKH5OXFBOLS5AX6KOECFMOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

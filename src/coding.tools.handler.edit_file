@@ -119,6 +119,24 @@ for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
 ## save if applying ##
 if ( $apply && !$errors ) {
     my $new_content = join "\n", @lines;
+
+    ## idiom conformance gate [ config-gated, inert unless                  ##
+    ## coding.cfg.idiom_gate is set ] : may auto-repair the edited body, or ##
+    ## refuse the write entirely                                            ##
+    if ( exists $code{'coding.idiom.check_write'} ) {
+        my $idiom = <[coding.idiom.check_write]>->(
+            {   'path'    => $path,
+                'content' => $new_content,
+                'tool'    => 'edit_file',
+            }
+        );
+        if ( ref $idiom eq qw| HASH | ) {
+            return $idiom->{'data'} if $idiom->{'mode'} eq qw| false |;
+            $new_content = $idiom->{'data'}{'content'}
+                if defined $idiom->{'data'}{'content'};
+        }
+    }
+
     my $result = <[file.write]>->( $abs_path, \$new_content, $norm_encoding );
     return ": error : failed to write file : $result" unless $result;
 }
@@ -134,8 +152,8 @@ return sprintf "## %s batch %d [ %d/%d edits ] %s ##\n%s",
     ( $has_more ? "\n[ more : continue=$next_continue ]" : "" ),
     join "\n", @preview;
 
-#,,.,,,.,,,,.,,.,,.,.,,,.,,.,,,.,,...,,,.,,..,.,.,...,...,,,.,,.,,..,,...,,.,,
-#JTYVWNGY5E4FRFOD6JPCLHVPZV7MDDOJGZ7VFBXOGZVTGPL43AGXJZ5UDMIZXKF2YU42CAOVIR7BS
-#\\\|73TOOWSAWBLO5VNFLR7EFK6NK34RHYMLTIU6ALKDQQRHP23GYPY \ / AMOS7 \ YOURUM ::
-#\[7]TITT7QHPFP2NTBE4ODHLCZAFUDNXUXVOYATMA5BL6K2DSW5OEKCY 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,.,.,,,.,.,,,,..,,,.,,,,,...,.,.,...,..,,.,.,,.,,,,.,.,.,,..,
+#34DJR6MD7HI5BV6YGUN34WPCWU7M7XTLAUGSONXX7X5ALXL557UQYDUFP4ZTUO3BX6VR3DOAFCGQ2
+#\\\|CHRJVE4S5HTH3OMLOCR7DYJ3AYYAJDLWQNKQMZ7JTA54OXDLE5A \ / AMOS7 \ YOURUM ::
+#\[7]EP55AHWD7X7WK3MYMJZLRR543SQO5O2KWJII5EMCP4OGLEPK2UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

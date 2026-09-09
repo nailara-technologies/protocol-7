@@ -1,0 +1,286 @@
+## rules.yaml -- idiom conformance rule table [ single source of truth ]
+##
+## the REPAIR side of the idiom work. `data/control-vectors/score.py` is
+## the frozen MEASUREMENT side and is deliberately not shared with this
+## file : keeping them independent stops the scorer becoming a mirror of
+## the rewriter.
+##
+## every rule carries :
+##   category  -- matches score.py's rubric names where one applies
+##   class     -- auto | normalize | gate | assist
+##   detect    -- perl-compatible regex, matched against generated text
+##   suggest   -- canonical corrected form [ $1..$n from detect ]
+##   resolve   -- optional : 'module' | 'config' -- rewrite is applied ONLY
+##                if coding.idiom.resolve confirms the target exists.
+##   target_group  -- which capture group names the thing to resolve
+##                    [ default 1 ]
+##   target_transform -- 'perl_package' : lowercase the whole match and
+##                    turn '::' into '.' before resolving. `<TARGET>` in
+##                    `suggest` is then replaced by the transformed name
+##   on_unresolved -- what to do when it does not resolve :
+##                'gate' [ default, block the write ] or 'drop' [ not a
+##                violation at all -- used where a non-resolving match is
+##                almost certainly legitimate non-P7 perl ]
+##   note      -- why this rule is shaped the way it is
+##
+## repair classes :
+##   auto      -- deterministic, meaning-preserving, applied silently
+##   report    -- counted and shown, NEVER rewritten and never blocking.
+##                where a rule fired on known-good human src/ during the
+##                false-positive calibration, this is where it landed
+##   gate      -- not safely rewritable. rejected at the write-tool
+##                boundary with the violation quoted back
+##   assist    -- escalated to one corrective inference turn
+##   skip      -- exclusion mask : matches suppress other rules' matches
+##
+## EVERY class assignment below that says "DEMOTED" was decided by the
+## false-positive calibration over 360 real src/coding.* files, not by
+## taste. the calibration is reproducible: data/idioms/offline_check.py fp
+##
+## categories deliberately absent : `comment` and `bracket`. the
+## control-vector task's 2026-09-09 addendum found both confounded by the
+## production prompt's own '## header ##' style. leaving them unrepaired
+## keeps any movement there interpretable as the model's own.
+
+version: 1
+
+rules:
+
+  ## ------------------------------------------------------------------ ##
+  ## invoke : <[module.name]>->( ... )                                   ##
+  ## the model's drafts are NEAR-MISSES, not absences -- confirmed in    ##
+  ## data/control-vectors/results/real-system-prompt-v2/A.* . these      ##
+  ## rules repair the near-misses and nothing else.                      ##
+  ## ------------------------------------------------------------------ ##
+
+  - id: invoke.stray_parens
+    category: invoke
+    class: auto
+    detect: '<\[([a-z][\w.]*)\]>\(\)->\('
+    suggest: '<[$1]>->('
+    resolve: module
+    note: >
+      observed verbatim as `<[base.logs]>()->( 1, $msg )`. correct sugar,
+      spurious empty parens before the arrow. purely syntactic.
+
+  - id: invoke.missing_arrow
+    category: invoke
+    class: auto
+    detect: '<\[([a-z][\w.]*)\]>\((?!\))'
+    suggest: '<[$1]>->('
+    resolve: module
+    note: >
+      `<[mod.name]>(` with no arrow. coding.validate.module already flags
+      this shape as an error [ 'use bracket-angle syntax' ]; here it is
+      repaired rather than only reported.
+
+  - id: invoke.bare_dotted_call
+    category: invoke
+    class: auto
+    detect: '(?<![\w.<\[''"])([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+)->\('
+    suggest: '<[$1]>->('
+    resolve: module
+    note: >
+      observed verbatim as `base.logs->( 0, ... )` -- correct module name,
+      brackets missing entirely. zero occurrences of this shape in real
+      src/coding.* [ measured ], so the false-positive risk is nil.
+
+  - id: invoke.bare_dotted_stmt
+    category: invoke
+    class: auto
+    detect: '(?m)^(\s*)([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+)\s+(qw[|(].*?[|)])\s*;'
+    suggest: '$1<[$2]>->( $3 );'
+    resolve: module
+    target_group: 2
+    note: >
+      observed verbatim as `perlmod.load qw| config base.logs |;` -- a
+      dotted module name used as a bareword statement.
+
+  - id: invoke.perl_package_call
+    category: invoke
+    class: auto
+    detect: '\b([A-Z]\w*(?:::\w+)+)::(\w+)\s*\('
+    resolve: module
+    on_unresolved: drop
+    target_transform: perl_package
+    suggest: '<[<TARGET>]>->('
+    note: >
+      `Foo::Bar::baz(` -- the generic-perl reflex this whole thread is
+      about. the false-positive calibration made the shape of this rule :
+      a blanket match flagged 62 legitimate CPAN/core calls in real
+      src/coding.* [ YAML::XS::Load, Perl::Tidy::perltidy, JSON::PP::
+      decode_json, File::stat::stat ], and gating those would block valid
+      generated code. so `on_unresolved: drop` -- this fires ONLY when the
+      lowercased dotted equivalent is a real module in src/, which is
+      exactly the true-positive case [ Coding::Helper::Foo -> coding.helper
+      .foo ] and never true for CPAN names.
+
+  ## ------------------------------------------------------------------ ##
+  ## cfgaccess : bare <config.key>                                       ##
+  ## the weak category. the model names keys that do not exist, so by     ##
+  ## the unresolved-reference hazard none of these can be auto-rewritten. ##
+  ## ------------------------------------------------------------------ ##
+
+  - id: cfgaccess.hashref
+    category: cfgaccess
+    class: gate
+    detect: '\$(?:config|cfg|conf|settings)\s*->\s*\{\s*[''"]?([\w.]+)[''"]?\s*\}'
+    suggest: '<$1>'
+    resolve: config
+    note: >
+      `$config->{threshold}` -- correct intent, wrong mechanism. auto only
+      when the named key actually resolves in the live config tree, which
+      in every observed case it did not : the model invents plausible key
+      names. a rubric hit that does not resolve is a regression, so this
+      stays gated by default.
+
+  - id: cfgaccess.getter
+    category: cfgaccess
+    class: gate
+    detect: '\$(?:config|cfg|conf)\s*->\s*get\s*\(\s*[''"]([\w.]+)[''"]'
+    suggest: '<$1>'
+    resolve: config
+    note: observed as `$config->get('threshold', $config_path)`.
+
+  ## ------------------------------------------------------------------ ##
+  ## truefalse : TRUE / FALSE named constants                            ##
+  ## real src/coding.* : 603 TRUE/FALSE across 165 files vs 34 bare       ##
+  ## `return 0/1` across 11. TRUE/FALSE is the dominant real convention   ##
+  ## by ~18:1, so repair here is legitimate -- but the 34 exceptions are  ##
+  ## a real shape [ handler-final `return 1;` ] and must not be touched.  ##
+  ## ------------------------------------------------------------------ ##
+
+  - id: truefalse.bool_assign
+    category: truefalse
+    class: report
+    detect: '(\$\w*(?:_ok|_flag|_found|_done|_valid)|\$(?:is|has|can|should)_\w+)(\s*=\s*)([01])\b(?!\s*[.;]?\s*\d)'
+    suggest: '$1$2<BOOL:$3>'
+    note: >
+      only variables whose NAME declares them boolean. DEMOTED from auto to
+      report-only by the false-positive calibration : 9 hits on known-good src/
+      [ `my $has_name = 0;` in validate_module_format, `$is_looping = 1` in
+      tool.detect_loop ]. the codebase does not follow the TRUE/FALSE
+      convention consistently enough for a rewriter to enforce it without
+      contradicting committed code.
+
+  - id: truefalse.guarded_return
+    category: truefalse
+    class: report
+    detect: '\breturn\s+([01])\s+(if|unless)\b'
+    suggest: 'return <BOOL:$1> $2'
+    note: >
+      `return 0 unless ref($task) eq qw| HASH |` -- a guard returning a
+      truth value. DEMOTED from auto to report-only : 21 hits on known-good src/
+      [ coding.tool.detect_loop, coding.staged.clear, and this exact
+      priority_scorer line ]. same finding as bool_assign above.
+
+  - id: truefalse.terminal_return
+    category: truefalse
+    class: skip
+    detect: '(?m)^\s*return\s+[01]\s*;\s*$'
+    note: >
+      EXCLUSION RULE, never repaired. this is the 34-hit shape in real
+      code : `return 1;` closing a *_reply handler, or a module's final
+      truth value. rewriting it to TRUE/FALSE would change working code
+      and would be a false positive against human-written P7.
+
+  ## ------------------------------------------------------------------ ##
+  ## modedata : the { mode, data } reply shape                           ##
+  ##                                                                     ##
+  ## READ THIS BEFORE TRUSTING A modedata NUMBER.                        ##
+  ## score.py tests literally `"'mode'" in text and "'data'" in text` -- ##
+  ## quoted keys only. real src/coding.* uses BOTH forms : 222 quoted,   ##
+  ## 122 bare. and the model already emits the bare form correctly       ##
+  ## [ `return { mode => qw| true |, data => $value }` in 3/3 production ##
+  ## -condition code responses ] -- which scores ZERO.                   ##
+  ##                                                                     ##
+  ## so the model is NOT failing to produce this idiom. the rubric is    ##
+  ## under-counting a form the codebase itself uses. quoting the keys is ##
+  ## cosmetic, meaning-identical in perl, and flips a rubric bit without ##
+  ## the model having changed -- hence class `normalize`, reported in a  ##
+  ## separate column, never folded into a repair count.                  ##
+  ## ------------------------------------------------------------------ ##
+
+  - id: modedata.bare_keys
+    category: modedata
+    class: report
+    detect: '(?<![\w''"])(mode|data)(\s*=>)'
+    suggest: "'$1'$2"
+    note: >
+      DEMOTED TO report-only by the false-positive calibration : this rule
+      fired 234 times on known-good human-written src/coding.* . bare
+      `mode =>` is normal committed P7, not a violation. rewriting it would
+      be pure rubric-gaming -- changing output solely to satisfy the
+      measurement instrument. counted so the modedata blind spot can be
+      reported; NEVER rewritten.
+
+  - id: modedata.success_error
+    category: modedata
+    class: gate
+    detect: '\{\s*success\s*=>\s*([01])\s*,\s*(?:error|message)\s*=>\s*([^}]+?)\s*\}'
+    suggest: "{ 'mode' => qw| <BOOL_WORD:$1> |, 'data' => $2 }"
+    note: >
+      the genuine anti-idiom : a foreign reply contract, not a formatting
+      variant. narrow pattern -- fires only on a hash literal whose key set
+      is exactly the recognised one, no guessing at partial matches.
+      DEMOTED from auto to gate by the widened calibration : 3 hits in real
+      src/ [ models.storage.adapter.lmstudio.install ], where callers may
+      depend on that contract. blocking a write is recoverable; silently
+      rewriting a reply contract is not.
+
+  ## ------------------------------------------------------------------ ##
+  ## module format -- not a score.py category, but these are what make   ##
+  ## generated code fail to load. gate-class : reject the write, quote   ##
+  ## the violation back, let the corrective turn fix it.                 ##
+  ## ------------------------------------------------------------------ ##
+
+  - id: format.package_decl
+    category: format
+    class: gate
+    detect: '(?m)^\s*package\s+[\w:.-]+\s*;'
+    note: >
+      P7 modules have no package declaration. zero occurrences in real
+      src/coding.*; 7 across the whole 5462-file src/ tree [ web-browser
+      .init_code and download.* legitimately declare helper packages ], a
+      0.13% gate rate that is acceptable because a blocked write is
+      recoverable. observed in 2 of 3 production-condition responses, once
+      as `package protocol-7::threshold-checker;` which is not even valid
+      perl.
+
+  - id: format.sub_decl
+    category: format
+    class: gate
+    detect: '(?m)^\s*sub\s+\w+\s*\{'
+    note: >
+      the filename IS the subroutine. zero occurrences in real
+      src/coding.*; observed in 3 of 3 production-condition responses.
+
+  - id: format.use_pragma
+    category: format
+    class: gate
+    detect: '(?m)^\s*use\s+(?:strict|warnings)\s*;'
+    note: >
+      loaded by the harness, not per module. 14 occurrences across the
+      whole src/ tree, all in forked-child / subprocess-wrapper modules
+      where the pragma is genuine -- 0.26%, acceptable as a gate, never as
+      an auto-delete.
+      CAUTION, shared with format.package_decl above : those 21 combined
+      hits are not random noise, they are a RECOGNIZABLE CATEGORY --
+      forked-child / subprocess-wrapper modules and Gtk-subclass
+      definitions, which legitimately need both `package` and `use strict`.
+      at `repair+turn` the zenka would be blocked from writing a correct
+      forked-child module. add a path or content exemption for that shape,
+      or demote both rules to `report`, BEFORE enabling that mode.
+
+  - id: format.log_singular
+    category: format
+    class: report
+    detect: '<\[base\.log\]>->\('
+    suggest: '<[base.logs]>->('
+    note: >
+      DEMOTED from auto to report-only by the false-positive calibration : 11 hits
+      on known-good src/, and `src/base.log` is a REAL module distinct from
+      `src/base.logs` [ plain string vs sprintf template ]. an unconditional
+      rewrite would be wrong. only a base.log call carrying %s/%d format
+      codes AND extra args is a genuine bug, and that judgement is left to
+      the corrective turn rather than a regex.

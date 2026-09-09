@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = coding.idiom.resolve
+# descr = does this module name / config key actually exist ?
+# param = { kind => 'module'|'config', name => '...' }
+
+##      the safety oracle for every idiom rewrite.                          ##
+##                                                                          ##
+##      a rewrite is applied ONLY when its target resolves. this is         ##
+##      the single most important guard in the whole gate : a model         ##
+##      that learns to emit <[plausible.sounding.module]>->() scores        ##
+##      well on the idiom rubric and produces code that dies at load        ##
+##      time. a rubric hit that does not resolve is a REGRESSION, not       ##
+##      a win.                                                              ##
+##                                                                          ##
+##      module resolution checks the live %code hash first [ what is        ##
+##      actually callable in this zenka ] and falls back to the             ##
+##      on-disk src/ listing [ modules a different zenka would load ].      ##
+##      config resolution walks the real %data tree via                     ##
+##      base.data_key_exists semantics rather than guessing.                ##
+
+my $params = shift // {};
+
+my $kind = $params->{'kind'} // qw| module |;
+my $name = $params->{'name'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'empty name' }
+    if not length $name;
+
+## no path traversal, no shell metacharacters -- these names come from ##
+## model output and are used to build filesystem paths below           ##
+return { 'mode' => qw| false |, 'data' => 'invalid name syntax' }
+    if $name !~ m{^[a-z0-9_][a-z0-9_.\-]*$}
+    or $name =~ m{\.\.};
+
+if ( $kind eq qw| module | ) {
+
+    ## live %code first : what this zenka can actually call ##
+    return { 'mode' => qw| true |, 'data' => qw| code | }
+        if exists $code{$name};
+
+    ## then on-disk src/ : real module, just not loaded here ##
+    my $code_path = <system.code_path> // '';
+    if ( length $code_path and -f sprintf( '%s/%s', $code_path, $name ) ) {
+        return { 'mode' => qw| true |, 'data' => qw| disk | };
+    }
+
+    return { 'mode' => qw| false |, 'data' => 'no such module' };
+}
+
+if ( $kind eq qw| config | ) {
+
+    ## walk the real %data tree one dot-segment at a time. a config key ##
+    ## resolves only if every segment exists -- partial matches are not ##
+    ## resolution, they are how an invented key sneaks through.         ##
+    my $node = \%data;
+    foreach my $segment ( split m{\.}, $name ) {
+        if ( ref $node ne qw| HASH | or not exists $node->{$segment} ) {
+            return { 'mode' => qw| false |, 'data' => 'no such config key' };
+        }
+        $node = $node->{$segment};
+    }
+
+    return { 'mode' => qw| true |, 'data' => qw| config | };
+}
+
+return { 'mode' => qw| false |, 'data' => "unknown resolve kind '$kind'" };
+
+#,,,.,,,,,,..,,..,,.,,,.,,,,,,,..,,,,,,,.,,..,..,,...,...,...,.,.,...,,,.,.,,,
+#IF5RTMVRDYSOLVM2LLBUZC7XFIXBHGPJ4HCNPZ7EF42QOYEFOZIZQEGKVXORBJ65PNBODEJZMTYH6
+#\\\|BAO4THOL2KCJVHY7OMMKOVAPK3G4WRNWVMRSQZPPRTVVPSP7FGT \ / AMOS7 \ YOURUM ::
+#\[7]X3ZI3BQ7JVAWGJ2DDYPOAZYX3DH5NB2YHJOYL2ZI5SXWCO2TTECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

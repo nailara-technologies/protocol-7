@@ -1,0 +1,37 @@
+{
+ "choices": [
+  {
+   "finish_reason": "stop",
+   "index": 0,
+   "message": {
+    "role": "assistant",
+    "content": "## coding.cfg.threshold_monitor ##\nsub {\n    my $value = shift;\n\n    my $threshold = <coding.cfg.threshold> // 30;\n\n    <[base.logs]>->( 1, 'threshold warning: %s exceeds %s',\n        $value, $threshold );\n\n    return TRUE if $value > $threshold;\n    return FALSE;\n}",
+    "reasoning_content": "The user wants a protocol-7 module body. This is a subroutine that:\n1. Reads a threshold from config (default 30)\n2. Logs a warning if a value exceeds it\n\nI'll structure it as a subroutinable module with proper P7 conventions: header comment, config read, threshold check, and warning log.\n"
+   }
+  }
+ ],
+ "created": 1788929407,
+ "model": "Qwen3.8-9B-heretic-uncensored.i1-Q4_K_M.gguf",
+ "object": "chat.completion",
+ "usage": {
+  "completion_tokens": 158,
+  "prompt_tokens": 1638,
+  "total_tokens": 1796,
+  "prompt_tokens_details": {
+   "cached_tokens": 1633
+  }
+ },
+ "id": "chatcmpl-5IRRyW6p6mO6J9wYrRNV9jryjBCUKEiF",
+ "timings": {
+  "prompt_n": 5,
+  "prompt_ms": 51.42,
+  "prompt_per_token_ms": 10.284,
+  "prompt_per_second": 97.2384286269934,
+  "predicted_n": 158,
+  "predicted_ms": 3043.624,
+  "predicted_per_token_ms": 19.26344303797468,
+  "predicted_per_second": 51.911799880668575,
+  "n_ctx": 145152,
+  "n_past": 1795
+ }
+}

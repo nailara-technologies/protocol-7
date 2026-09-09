@@ -100,7 +100,19 @@ def main():
         BASE, quantization_config=bnb, device_map="cuda",
         dtype=torch.bfloat16)
     model.config.use_cache = False
-    model = prepare_model_for_kbit_training(model)
+    ## manual kbit prep [ peft's prepare_model_for_kbit_training OOM'd on  ##
+    ## this 12GB card at the fp32 norm-upcast step -- same effect, done    ##
+    ## cheaply : gc first, tiny tensors only ]                             ##
+    import gc
+    gc.collect()
+    torch.cuda.empty_cache()
+    for name, param in model.named_parameters():
+        if param.ndim == 1 and param.dtype in (torch.float16,
+                                               torch.bfloat16):
+            param.data = param.data.to(torch.float32)
+    model.gradient_checkpointing_enable(
+        gradient_checkpointing_kwargs={"use_reentrant": False})
+    model.enable_input_require_grads()
 
     lcfg = LoraConfig(r=LORA_R, lora_alpha=LORA_ALPHA,
                       lora_dropout=LORA_DROPOUT, bias="none",
@@ -110,12 +122,14 @@ def main():
 
     args = TrainingArguments(
         output_dir=OUT + "-ckpt",
-        per_device_train_batch_size=2,
-        gradient_accumulation_steps=8,
+        per_device_train_batch_size=1,   ## [ was 2 : OOM at the 248320-  ##
+        gradient_accumulation_steps=16,  ## vocab logit tensor on a 12GB  ##
+        ## card. effective batch unchanged [ 16 ] -- memory-driven, not  ##
+        ## eval-driven ]                                                ##
         num_train_epochs=3,
         learning_rate=2e-4,
         lr_scheduler_type="cosine",
-        warmup_ratio=0.03,
+        warmup_steps=8,   ## [ v5 dropped warmup_ratio ; ~10% of 76 steps ]
         bf16=True,
         logging_steps=10,
         save_strategy="no",

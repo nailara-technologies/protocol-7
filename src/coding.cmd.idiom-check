@@ -1,0 +1,117 @@
+## [:< ##
+
+# name  = coding.cmd.idiom-check
+# descr = report P7 idiom violations [ read-only ]
+
+##      user-facing entry point :  p7c coding.idiom-check                 ##
+##      <file|module>                                                     ##
+##                                                                        ##
+##      read-only by design -- it never rewrites, whatever                ##
+##      coding.cfg.idiom_gate is set to. use it to see what the gate      ##
+##      WOULD do before turning the gate on.                              ##
+
+## command arguments arrive on $call, not as a positional -- same shape ##
+## coding.cmd.task-info and the other argument-taking commands use      ##
+my $args = $call->{'args'} // '';
+
+$args =~ s{^\s+|\s+$}{}g;
+
+## optional leading ':repair:' flag -- emit the auto-repaired text instead  ##
+## of a violation report. still writes nothing to disk : this is a preview, ##
+## and it is also how the validation harness produces the A1 arm, since     ##
+## auto-repair is a deterministic function of the A0 generations and needs  ##
+## no re-inference [ which makes A0 vs A1 a paired comparison with zero     ##
+## sampling noise ]                                                         ##
+my $want_repair = FALSE;
+$want_repair = TRUE if $args =~ s{^:repair:\s*}{};
+
+## optional ':correct:' flag -- emit the corrective-turn message for the ##
+## gate-class violations, without dispatching it. this is what the A2    ##
+## validation arm sends back to the model as a second turn.              ##
+my $want_correct = FALSE;
+$want_correct = TRUE if $args =~ s{^:correct:\s*}{};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : coding.idiom-check <file-path|module.name>'
+    }
+    if not length $args;
+
+my $root = <system.root_path> // '';
+my $path = $args;
+
+## bare dot-notation name resolves against src/ , same convenience the ##
+## write tools offer                                                   ##
+if ( $path !~ m{/} and $path =~ m{[.]\w} ) {
+    $path = sprintf qw| %s/%s |, <system.code_path>, $args;
+} elsif ( $path !~ m{^/} ) {
+    $path = sprintf qw| %s/%s |, $root, $args;
+}
+
+return { 'mode' => qw| false |, 'data' => "not readable : $args" }
+    if not -f $path or not -r $path;
+
+my $content = <[file.slurp]>->($path)->$*;
+
+if ( $want_repair == TRUE ) {
+    my $repair = <[coding.idiom.repair.auto]>->( { 'text' => $content } );
+    return $repair
+        if ref $repair ne qw| HASH |
+        or $repair->{'mode'} ne qw| true |;
+    return {
+        'mode' => qw| true |,
+        'data' => $repair->{'data'}{'text'}
+    };
+}
+
+my $scan = <[coding.idiom.scan]>->( { 'text' => $content } );
+
+return $scan if ref $scan ne qw| HASH | or $scan->{'mode'} ne qw| true |;
+
+my $violations = $scan->{'data'}{'violations'};
+
+if ( $want_correct == TRUE ) {
+    my @gated = grep { $ARG->{'class'} eq qw| gate | } $violations->@*;
+    return { 'mode' => qw| false |, 'data' => 'no gate-class violations' }
+        if not @gated;
+    my $request = <[coding.idiom.repair.request]>->( { 'gated' => \@gated } );
+    return $request
+        if ref $request ne qw| HASH |
+        or $request->{'mode'} ne qw| true |;
+    return { 'mode' => qw| true |, 'data' => $request->{'data'}{'message'} };
+}
+
+return { 'mode' => qw| true |, 'data' => sprintf( 'clean : %s', $args ) }
+    if not $violations->@*;
+
+my %by_class;
+$by_class{ $ARG->{'class'} }++ foreach $violations->@*;
+
+my $output = sprintf(
+    ".:[ idiom-check : %s : %d violation%s ]:.\n",
+    $args,
+    scalar( $violations->@* ),
+    ( $violations->@* == 1 ? '' : 's' )
+);
+
+$output .= sprintf( "  %s\n\n",
+    join ', ', map { sprintf '%s=%d', $ARG, $by_class{$ARG} }
+        sort keys %by_class );
+
+foreach my $violation ( $violations->@* ) {
+    $output .= sprintf( "  %-5s line %-4d %-28s %s\n",
+        $violation->{'class'}, $violation->{'line'}, $violation->{'id'},
+        substr( $violation->{'found'} // '', 0, 40 ) );
+}
+
+$output
+    .= "\n  [ class auto = would be rewritten, gate = would "
+    . "block a write,\n    report = counted only, never changed ]";
+
+return { 'mode' => qw| true |, 'data' => $output };
+
+#,,,,,,..,,..,,,.,.,,,,,,,...,.,,,,,,,,.,,,.,,..,,...,..,,.,,,,,,,,.,,..,,.,.,
+#6MJBTG3JFJPYWZXJMSGYNTON22W4IAAH7TOXZ463INEVGEUJWFAPQTIMOK5ALGTBNUCQBSM4EXLRI
+#\\\|N42XKHOLAVARPICXL5FYWVZJIV6CHXE5SVCFPIKC247AEF5ZY2J \ / AMOS7 \ YOURUM ::
+#\[7]H7CBCEKN2WCCYQ3YZ5LNDF6HUHAE5K37LIE6F5IQVPFPFDRYEMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
