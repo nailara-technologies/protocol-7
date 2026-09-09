@@ -1,0 +1,330 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Digest::SHA;
+use JSON::PP;
+
+###                 ###
+##  src-review-one  ##                       #:..:..:..:..:..:..:..:..:..:
+###                 ###
+
+##      generates one review record for a single src/ module :             ##
+##      1. deterministic grounding [ module_convention_check +             ##
+##      validate_module via the coding zenka, recorded verbatim ]          ##
+##      2. one local LLM inference call [ ik_llama.cpp llama-server ]      ##
+##      for the narrative review                                           ##
+##      3. atomic write to data/src-review/<module>.md [ tmp + rename      ##
+##      ]                                                                  ##
+##                                                                         ##
+##      the stored record is explicitly marked LLM-generated + NOT         ##
+##      hand- verified, with timestamp / model-id / source hash. exit      ##
+##      0 only when the record was fully written -- designed as            ##
+##      per-item command for bin/dev/worklist-iterate.                     ##
+
+BEGIN {
+    use English;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = Cwd::abs_path(
+        File::Spec->rel2abs( File::Spec->catdir( $Bin, $up_dir, $up_dir ) ) );
+}
+
+our $root_path;
+
+my $module = shift @ARGV
+    or die "usage: src-review-one <module.name>\n";
+
+my $src_path = File::Spec->catfile( $root_path, qw| src |, $module );
+die ":: module not found: $src_path\n" if !-f $src_path;
+
+my $out_dir  = File::Spec->catdir( $root_path, qw| data src-review | );
+my $out_path = File::Spec->catfile( $out_dir, "$module.md" );
+
+## clean stale inference-request bodies from killed prior runs [ iterator ##
+## runs items sequentially -> no race with a live pid ]                   ##
+for my $stale ( glob File::Spec->catfile( $out_dir, qw| .req.*.json | ) ) {
+    unlink $stale if -M $stale > 0.001;    ##  not our own, just-created  ##
+}
+
+##  tunables  ##
+my $ENDPOINT     = qw| http://127.0.0.1:8000/v1/chat/completions |;
+my $MODEL_AMOS   = qw| OFSQC4I:QDBKEXY |;    ## coding.cfg.start_model ##
+my $SRC_CAP      = 14000;    ##  chars of source included in prompt  ##
+my $MAX_TOKENS   = 4000;
+my $CURL_TIMEOUT = 300;
+my $PROMPT_VER   = qw| src-review-v1 |;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ INPUTS ]##################################################################
+
+my $source = read_file($src_path);
+my $sha1   = Digest::SHA::sha1_hex($source);
+my $nlines = scalar( () = $source =~ m|\n|g );
+
+my $caller_count = lookup_caller_count($module);
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ DETERMINISTIC CHECKS ]####################################################
+
+my $check_convention = p7_call_tool( qw| module_convention_check |,
+    { qw| path | => "src/$module" } );
+
+my $check_validate = p7_call_tool(
+    qw| validate_module |,
+    { qw| function | => { qw| arguments | => { qw| module | => $module } } }
+);
+
+die ":: both deterministic checks unavailable -- cannot ground review\n"
+    if !defined $check_convention && !defined $check_validate;
+
+$check_convention //= '[ unavailable : p7c call failed ]';
+$check_validate   //= '[ unavailable : p7c call failed ]';
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ INFERENCE ]###############################################################
+
+my $src_excerpt = substr( $source, 0, $SRC_CAP );
+my $truncated   = length($source) > $SRC_CAP ? 1 : 0;
+
+my $prompt = build_prompt( $module, $caller_count, $check_convention,
+    $check_validate, $src_excerpt, $truncated, $nlines );
+
+my $response = inference_call($prompt);
+
+my $content = $response->{'choices'}[0]{'message'}{'content'} // '';
+$content =~ s|^\s+||;
+$content =~ s|\s+$||;
+die ":: empty review content from model\n" if !length $content;
+
+my $model_id = $response->{'model'} // 'unknown';
+my $usage    = $response->{'usage'} // {};
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ WRITE RECORD [ atomic ] ]#################################################
+
+my $record = render_record(
+    $module,       $content,          $model_id,
+    $usage,        $sha1,             $nlines,
+    $caller_count, $check_convention, $check_validate
+);
+
+write_atomic( $out_path, $record );
+
+printf ":: reviewed %s -> %s [%d prompt / %d completion tokens]\n",
+    $module, $out_path,
+    $usage->{'prompt_tokens'} // 0, $usage->{'completion_tokens'} // 0;
+
+exit 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub lookup_caller_count {
+    my $module = shift;
+    my $counts = File::Spec->catfile( $out_dir, qw| caller-counts.asc | );
+    return undef if !-f $counts;
+    open my $fh, qw| < |, $counts or return undef;
+    while ( my $line = <$fh> ) {
+        if ( $line =~ m|^\Q$module\E : (\d+)| ) {
+            close $fh;
+            return $1;
+        }
+    }
+    close $fh;
+    return undef;
+}
+
+sub p7_call_tool {
+    ##  call a coding-zenka tool via p7c ; returns tool text or undef  ##
+    my ( $tool, $args ) = @ARG;
+
+    my $json = JSON::PP->new->canonical->encode($args);
+    $json =~ s|'|'\\''|g;
+
+    my $out = qx{p7c coding.call-tool $tool '$json' 2>&1};
+    return undef if $? != 0;
+
+    ##  strip p7c banner lines [ '.:[ tool call: ...', '.:[ args: ...' ]  ##
+    my @lines = grep { $_ !~ m|^\.:\[| } split m|\n|, $out;
+    my $text  = join "\n", @lines;
+    $text =~ s|^\s+||;
+    $text =~ s|\s+$||;
+
+    return undef
+        if $text =~ m{^(tool .* not found|command does not exist)$};
+    return $text;
+}
+
+sub inference_call {
+    my $prompt = shift;
+
+    my $body = JSON::PP->new->encode(
+        {   qw| messages | => [
+                {   qw| role |    => qw| system |,
+                    qw| content | =>
+                        'You are a careful code reviewer for the Protocol-7 '
+                        . '(AMOS7) Perl codebase. You only make claims '
+                        . 'supported by the provided source and check '
+                        . 'outputs; you say "unclear" rather than guess.'
+                },
+                { qw| role | => qw| user |, qw| content | => $prompt },
+            ],
+            qw| temperature |          => 0.2,
+            qw| max_tokens |           => $MAX_TOKENS,
+            qw| chat_template_kwargs | =>
+                { qw| reasoning_effort | => qw| low | },
+        }
+    );
+
+    my $tmp = File::Spec->catfile( $out_dir, ".req.$PROCESS_ID.json" );
+    write_atomic( $tmp, $body );
+
+    my $out
+        = qx{curl -s --noproxy '*' -m $CURL_TIMEOUT -H 'Content-Type: application/json' -d \@$tmp $ENDPOINT 2>&1};
+    my $rc = $?;
+    unlink $tmp;
+
+    die ":: inference request failed [rc $rc]: "
+        . substr( $out, 0, 200 ) . "\n"
+        if $rc != 0;
+
+    my $decoded = eval { JSON::PP->new->decode($out) };
+    die ":: invalid JSON from inference server: "
+        . substr( $out, 0, 200 ) . "\n"
+        if !$decoded || ref $decoded ne qw| HASH |;
+    die ":: inference error: "
+        . ( $decoded->{'error'}{'message'} // 'unknown' ) . "\n"
+        if $decoded->{'error'};
+
+    return $decoded;
+}
+
+sub build_prompt {
+    my ( $module, $callers, $conv, $val, $src, $truncated, $nlines ) = @ARG;
+
+    my $callers_txt = defined $callers ? $callers : 'unknown';
+    my $trunc_txt
+        = $truncated
+        ? "[ TRUNCATED at $SRC_CAP chars of $nlines lines ]"
+        : '[ complete ]';
+
+    return <<~"PROMPT";
+    Review this Protocol-7 (AMOS7) Perl module.
+
+    Module name : $module
+    Dep-graph caller count : $callers_txt  [ modules with static literal calls
+      to it ; conditional/dynamic dispatch is NOT captured by the graph ]
+    Module source : $trunc_txt
+
+    Deterministic check outputs [ verbatim, ground truth ]:
+    == module_convention_check ==
+    $conv
+
+    == validate_module ==
+    $val
+
+    Module source:
+    ```perl
+    $src
+    ```
+
+    Write a review with exactly these sections:
+    ## Purpose -- what the module does, 2-4 sentences.
+    ## Interface -- arguments/params and return value, if discernible.
+    ## Role & dependencies -- how it fits in the codebase; notable callees used.
+    ## Observations -- fragility, coupling, style, potential issues. Reference
+      the deterministic check outputs when relevant.
+    ## Confidence -- what you are genuinely unsure about.
+
+    Rules: base every claim on the source and check outputs above; say
+    "unclear" rather than guess; at most 300 words; plain markdown; do not
+    repeat the check outputs verbatim.
+    PROMPT
+}
+
+sub render_record {
+    my ($module, $content, $model_id, $usage, $sha1,
+        $nlines, $callers, $conv,     $val
+    ) = @ARG;
+
+    my $ts          = iso_time();
+    my $callers_txt = defined $callers ? $callers : 'unknown';
+
+    return <<"RECORD";
+---
+module: $module
+generated_at: $ts
+generator: llm
+status: llm-generated, NOT hand-verified -- generated draft, not documentation fact
+model: $model_id
+model_amos_id: $MODEL_AMOS
+model_endpoint: $ENDPOINT [ ik_llama.cpp llama-server, local ]
+prompt_version: $PROMPT_VER
+source_sha1: $sha1
+source_lines: $nlines
+dep_graph_callers: $callers_txt
+dep_graph_caveat: static literal calls only; conditional/dynamic dispatch invisible to the graph
+usage_prompt_tokens: $usage->{'prompt_tokens'}
+usage_completion_tokens: $usage->{'completion_tokens'}
+---
+
+# review: $module
+
+$content
+
+---
+
+## deterministic check outputs [ verbatim ground truth ]
+
+### module_convention_check
+
+```
+$conv
+```
+
+### validate_module
+
+```
+$val
+```
+RECORD
+}
+
+sub read_file {
+    my $path = shift;
+    open my $fh, qw| < |, $path or die ":: cannot read $path: $OS_ERROR\n";
+    local $/;
+    my $content = <$fh>;
+    close $fh;
+    return $content;
+}
+
+sub write_atomic {
+    my ( $path, $content ) = @ARG;
+    my $tmp = "$path.tmp.$PROCESS_ID";
+    open my $fh, qw| > |, $tmp or die ":: cannot write $tmp: $OS_ERROR\n";
+    print $fh $content;
+    close $fh;
+    rename $tmp, $path
+        or die ":: cannot rename $tmp -> $path: $OS_ERROR\n";
+    return;
+}
+
+sub iso_time {
+    my @t = localtime;
+    return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
+        $t[5] + 1900, $t[4] + 1, @t[ 3, 2, 1, 0 ];
+}
+
+#,,.,,,,.,,..,,,.,,.,,.,,,,.,,.,.,..,,.,.,,,.,.,.,...,...,..,,..,,.,.,,,.,,,.,
+#GOYRJYZZTA6B7I77S7NYVQ6OHCDCPTDLF3R66QCZA72BUMYK2Q6FSANFDECYFULJGWW3R36LGNQ3A
+#\\\|PJYFSSOHPYVKREY3EPB62RAXKDJO3KCOC56LMSQ6S2B3IL3MGD4 \ / AMOS7 \ YOURUM ::
+#\[7]ZNZB2FYPTHCK7TSAYWIWXW3NG5VAGF2A6FKL3TWM2ASJJTMU5CAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
