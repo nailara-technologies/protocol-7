@@ -1,0 +1,37 @@
+{
+ "choices": [
+  {
+   "finish_reason": "stop",
+   "index": 0,
+   "message": {
+    "role": "assistant",
+    "content": "```perl\n#!/usr/bin/env perl\nuse strict;\nuse warnings;\n\n## [: zenka.util.threshold-checker # name = threshold-checker # descr = reads threshold from config and warns if value exceeds it ]\n\n# %code hash is populated by bin/Protocol-7 via perlmod.load\n# this file is the module body \u2014 no sub {} declarations\n\nsub check_threshold {\n    my ($value, $config, $threshold_key) = @ARG;\n\n    # default threshold of 30 if not provided in config\n    my $threshold = 30;\n\n    if (defined($config) && ref($config) eq 'HASH') {\n        if (exists($config->{$threshold_key})) {\n            $threshold = $config->{$threshold_key};\n        }\n    }\n\n    # warn if value exceeds threshold\n    if ($value > $threshold) {\n        <[base.logs]>->(\n            1,  # level = default (1)\n            \"threshold exceeded: value %d exceeds threshold %d\",\n            $value,\n            $threshold,\n        );\n    }\n\n    return { mode => qw| true |, data => $threshold };\n}\n\n# --- module entry point ---\n1;\n```\n\n**Usage example:**\n\n```perl\n<[zenka.util.threshold-checker]>->(\n    $value_to_check,\n    $config_hash,\n    'max_value',\n);\n```\n\n**How it works:**\n- Reads a threshold key from the provided config hash (defaults to 30)\n- Compares the input value against the threshold\n- Logs a warning (level 1) if the value exceeds the threshold\n- Returns a success hash with the effective threshold value\n\n**Key P7 patterns used:**\n- `my ($value, $config, $threshold_key) = @ARG` \u2014 uses `use English` alias for `@_`\n- `<[base.logs]>->( $level, $format, @args )` \u2014 P7's logging interface\n- `ref($config) eq 'HASH'` \u2014 type check before hash dereference\n- Returns `{ mode => qw| true |, data => $result }` \u2014 P7 success contract",
+    "reasoning_content": "The user wants a P7 module that:\n1. Reads a threshold from config (default 30)\n2. Logs a warning if a value exceeds it\n\nI need to create a module with:\n- Header with name and description\n- Threshold retrieval with default\n- Warning logging for exceeded values\n- Proper P7 module structure (no sub {} declarations, uses perlmod.load)\n\nI'll assume the module receives a value to check and optionally a config hash. The threshold config key will be configurable via the module name.\n"
+   }
+  }
+ ],
+ "created": 1788929248,
+ "model": "Qwen3.8-9B-heretic-uncensored.i1-Q4_K_M.gguf",
+ "object": "chat.completion",
+ "usage": {
+  "completion_tokens": 590,
+  "prompt_tokens": 974,
+  "total_tokens": 1564,
+  "prompt_tokens_details": {
+   "cached_tokens": 969
+  }
+ },
+ "id": "chatcmpl-tzxgRN1s6HLskzZ6TXCNYttNsN8lVF2i",
+ "timings": {
+  "prompt_n": 5,
+  "prompt_ms": 62.665,
+  "prompt_per_token_ms": 12.533,
+  "prompt_per_second": 79.78935609989628,
+  "predicted_n": 590,
+  "predicted_ms": 11483.0,
+  "predicted_per_token_ms": 19.46271186440678,
+  "predicted_per_second": 51.38030131498738,
+  "n_ctx": 145152,
+  "n_past": 1563
+ }
+}

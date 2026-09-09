@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [v7-zenki-terminate-clean-zenka-and-child-stop](reference-v7-zenki-terminate-clean-zenka-and-child-stop.md) — `v7-zenki.terminate <name>`/`v7-zenki.start <name>` (renamed from v7.stop) cleanly stops a zenka AND its spawned child (via the zenka's own end_code on SIGTERM) in one command; prefer over a manual crash-restart-suppression flag + direct kill on the child pid
 - [nice-inherits-across-fork-setuid](reference-nice-inherits-across-fork-setuid.md) — to renice a late-forked unprivileged child (e.g. mpv's player process), renice the zenka itself while still root, before root.drop_privs -- base.change_prio's negative-priority guard makes reniceing the child directly after drop_privs a silent no-op
 - [readme-md-symlink-for-relative-links](reference-readme-md-symlink-for-relative-links.md) — repo-root README.md is a symlink to read-me/md/README.md so its relative links (bin/, src/) resolve against repo root like GitHub does; resolve via the symlink path, not realpath/the real file location
 - [amos7-canonical-color-palette](reference-amos7-canonical-color-palette.md) — AMOS7.pm exports %C (T/0/g/o/B/R keys) by default, AMOS7::TERM has the same values as named p7_fg_NNNN constants; reuse via `use AMOS7;` in bin/ scripts instead of hardcoding ANSI escapes
@@ -76,8 +77,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,,.,,..,,,.,.,.,,.,,,..,,,,,,,,,,,,,,..,,,.,..,,...,..,,..,,..,,.,,,,,.,,,,,
-#HYPKGXUZG2GEJ263ZFSWWMKXEQE2FD2R3TMVU7CWISCC7MDR3UE7NGD6XBOMO7TC5SN44AAF5ZDLS
-#\\\|MODICV4YIHQGBZ7HNJFKB2ED2KXUA27LKLN5ZMSEIW2UBWHBVKC \ / AMOS7 \ YOURUM ::
-#\[7]7LHQ7TBBV7TDNGSQZUZWOZYJAMLPKKVMZMX7RGGSKZ7J5RH4YYBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,.,.,,.,,..,,...,,,.,,,.,.,.,..,,...,...,...,.,.,,..,...,,,.,
+#RI7GMBANOQWHKRUY4ZFE5MGIYSZS5RXJHQ62OIWQPXOUFWTUCTZADYPVLMCNPTL7FL5NFVPBIJ2Z2
+#\\\|KQHCY23GV75UL464WTCTAHW4CIUPUYTSGOJSB6W35TZEFYG7GIL \ / AMOS7 \ YOURUM ::
+#\[7]DVTCDXQHZCODHOBE4VA6I5AGDFYXV2MAPTDM3XTFQ2UWZOC54QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,6 +44,23 @@ if (  !length $real_dir
 ## refuse to overwrite existing files ##
 return "error: file already exists [ $path ]" if -e $abs_path;
 
+## idiom conformance gate [ config-gated, inert unless                    ##
+## coding.cfg.idiom_gate is set -- data/tasks/coding-idiom-gate-          ##
+## p7-idioms.md ]. may auto-repair $content, or refuse the write entirely ##
+if ( exists $code{'coding.idiom.check_write'} ) {
+    my $idiom = <[coding.idiom.check_write]>->(
+        {   'path'    => $path,
+            'content' => $content,
+            'tool'    => 'write_new_file',
+        }
+    );
+    if ( ref $idiom eq qw| HASH | ) {
+        return $idiom->{'data'} if $idiom->{'mode'} eq qw| false |;
+        $content = $idiom->{'data'}{'content'}
+            if defined $idiom->{'data'}{'content'};
+    }
+}
+
 ## use chmod child to create empty file as admin user if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $cur_mode;
@@ -96,8 +113,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access "
     . "]\nstaged at : %s", $path, length($content), $stage_rel;
 
-#,,,.,,.,,,,,,,..,.,,,,.,,.,.,..,,,,,,,,.,.,,,.,.,...,...,,..,,,.,.,.,,,.,,,,,
-#2KB53BHPK4F7X43ZRY7OEJHAQ5FKCZ7CNII5MTKLQ3T4YDVAZY7JF7W4ZQUYTT5DBO2O7EXMIFIMK
-#\\\|ETR5VSH2BQICESA2NVGS2NVJOXKZRW3BKF7KUYWYQ5QZRI3XEI6 \ / AMOS7 \ YOURUM ::
-#\[7]R7LBC5OSLTPGXBNY74OP575VWLGKU7SERPVCTTH6IX26RGJUAWCA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,,,,.,,,,.,...,,,,,..,,,.,,.,.,...,...,,..,,,.,,..,,,.,.,,,
+#SWMKKQJRX23EKOVGS3DUQBKGISEAO5E7BHYRUFXA64SELKWTR6B4P4IJGCMPP7XOMAKTWOMOP5FJI
+#\\\|RUK6MMIQNKUZLJBNXB7HEZHKHDLLB2RK7MGUYTMQRESH2QRSUEF \ / AMOS7 \ YOURUM ::
+#\[7]7XZA6BXEZ3LJ5T5P2L3MLTNGDBDPMDYK3A64QFTJSOCZG2UG7AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

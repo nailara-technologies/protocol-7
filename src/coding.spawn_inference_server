@@ -552,6 +552,37 @@ if ( length $cvec_path ) {
     );
 }
 
+## lora adapter [ load-time weight adapter, gradient-trained -- see         ##
+## data/tasks/coding-lora-p7-idioms.md ] : config-gated -- absent/empty     ##
+## <coding.cfg.lora_adapter> is today's unchanged behavior. deliberately    ##
+## NOT conditioned on $backend eq 'gpu' : a load-time adapter is            ##
+## backend-agnostic, same reasoning as the control vector above. a          ##
+## configured-but-missing file fails the spawn loudly [ same treatment as a ##
+## missing model ] : the loader enforces architecture match but not the     ##
+## fine-tune, so a stale adapter would load silently against the wrong      ##
+## weights [ model id stays in the filename for that reason ]               ##
+my $lora_path = <coding.cfg.lora_adapter> // '';
+if ( length $lora_path ) {
+    if ( !-f $lora_path ) {
+        <[base.logs]>->(
+            0, '[spawn_inference_server] lora adapter not found : %s',
+            $lora_path
+        );
+        <coding.spawning_in_progress> = FALSE;
+        return {
+            'success' => FALSE,
+            'error'   => "lora adapter not found: $lora_path"
+        };
+    }
+    ## runtime effect = scale * alpha / rank [ same convention as PEFT ] ##
+    my $lora_scale = <coding.cfg.lora_adapter_scale> // 1.0;
+    push @cmd, '--lora-scaled', $lora_path, $lora_scale;
+    <[base.logs]>->(
+        1,          '[spawn_inference_server] lora adapter : %s [ scale %s ]',
+        $lora_path, $lora_scale
+    );
+}
+
 # Set up environment for llama-server [ same as lm-vision does ] -- gpu-only:
 # <coding.lib_path> is the CUDA rebuild-out dir [ inference.backend.lib_path ],
 # and it carries its OWN libggml.so [ built for CUDA, same filename, different
@@ -758,8 +789,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,.,,..,,,.,,.,.,,,,,.,,,,..,,.,,.,.,,..,..,,...,...,...,,.,,...,.,.,,..,
-#MGV3GNHXA5U66YHDWM4KTVXQMOT433JMFRRFDXBEUZZIBBSNBFAIFPQWPBQFOYBSN6AKKD5NGHYAS
-#\\\|DZBR36JEJ5OK3C3BTCWIJOMMLWHP5JT6WL5BUIFUHPLGXVDER3M \ / AMOS7 \ YOURUM ::
-#\[7]J77YDTYPGTJFQUMERDYYMHYKA2BG3QGZD2KPBAVWE3HUDQRQLGCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,,..,,.,,...,,.,,,.,,..,,,.,,..,,...,...,..,,,,,,..,,,,.,,,.,
+#MQOXPLIINS3LSEBGG3PP66PAN3NCZAOU6WZO4LTRZ67H4VIXV253GD6Z4BIEAVLCHAA5LTDT4PXR6
+#\\\|ROD4SKOODSBHT4UO47QEEHD7FLBCRZHG6C2EJQNE2ULJ36GWNLH \ / AMOS7 \ YOURUM ::
+#\[7]ZKXJIWKRXAUR27JH2RMFV7ZWZQ5U6P24HVHKXV4FDQGF4JPG24CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

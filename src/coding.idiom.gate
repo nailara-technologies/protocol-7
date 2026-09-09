@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = coding.idiom.gate
+# descr = scan / repair / block orchestrator for generated P7 code
+# param = { text => '...', source => '...', prompt => '...', mode => '...' }
+
+##      the one entry point every call site uses. behaviour is decided by ##
+##      coding.cfg.idiom_gate, NOT by the caller, so a single config key  ##
+##      turns the whole mechanism off :                                   ##
+##                                                                       ##
+##        off         -- do nothing at all [ the shipped default ]        ##
+##        scan        -- scan and record, change nothing. run in this     ##
+##                       mode first : it harvests the corpus and measures ##
+##                       the violation rate without touching output       ##
+##        repair      -- also apply the auto-class rewrites               ##
+##        repair+turn -- also report gate-class violations to the caller  ##
+##                       so it can request one corrective turn            ##
+##                                                                       ##
+##      returns { mode, data => { text, changed, edits, gated, blocked,   ##
+##      counts } }. `blocked` is TRUE only when a write-boundary caller   ##
+##      should refuse -- see coding.idiom.repair.request for the message  ##
+##      the model gets back.                                              ##
+
+my $params = shift // {};
+
+my $text   = $params->{'text'}   // '';
+my $source = $params->{'source'} // qw| unknown |;
+
+my $setting = lc( <coding.cfg.idiom_gate> // qw| off | );
+
+my $inert = {
+    'mode' => qw| true |,
+    'data' => {
+        'text'    => $text,
+        'changed' => FALSE,
+        'edits'   => [],
+        'gated'   => [],
+        'blocked' => FALSE,
+        'counts'  => {},
+    }
+};
+
+return $inert if $setting eq qw| off | or not length $text;
+
+my $scan = <[coding.idiom.scan]>->(
+    {   'text'        => $text,
+        'fenced_only' => $params->{'fenced_only'} // FALSE
+    }
+);
+
+if ( ref $scan ne qw| HASH | or $scan->{'mode'} ne qw| true | ) {
+    ## a broken rule table must never break the caller's output : log it ##
+    ## and pass the text through untouched                               ##
+    <[base.logs]>->( 0, ': idiom.gate : scan failed, passing through' );
+    return $inert;
+}
+
+my $violations = $scan->{'data'}{'violations'};
+my @gated      = grep { $ARG->{'class'} eq qw| gate | } $violations->@*;
+
+my $result  = $text;
+my $edits   = [];
+my $changed = FALSE;
+
+if ( $setting eq qw| repair | or $setting eq qw| repair+turn | ) {
+
+    my $repair = <[coding.idiom.repair.auto]>->(
+        {   'text'        => $text,
+            'fenced_only' => $params->{'fenced_only'} // FALSE
+        }
+    );
+
+    if ( ref $repair eq qw| HASH | and $repair->{'mode'} eq qw| true | ) {
+        $result  = $repair->{'data'}{'text'};
+        $edits   = $repair->{'data'}{'edits'} // [];
+        $changed = $edits->@* ? TRUE : FALSE;
+    }
+}
+
+## harvest regardless of mode -- 'scan' exists precisely so the corpus can ##
+## be grown before anything is allowed to modify output                    ##
+<[coding.idiom.corpus.record]>->(
+    {   'edits'  => $edits,
+        'gated'  => \@gated,
+        'prompt' => $params->{'prompt'},
+        'source' => $source,
+    }
+) if $edits->@* or @gated;
+
+my $blocked = FALSE;
+$blocked = TRUE
+    if $setting eq qw| repair+turn |
+    and @gated
+    and ( $params->{'mode'} // '' ) eq qw| write |;
+
+<[base.logs]>->(
+    2,
+    ': idiom.gate [ %s ] : %s : %d repaired, %d gated%s',
+    $setting,
+    $source,
+    scalar( $edits->@* ),
+    scalar(@gated),
+    ( $blocked == TRUE ? ', BLOCKED' : '' )
+) if $edits->@* or @gated;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'text'    => $result,
+        'changed' => $changed,
+        'edits'   => $edits,
+        'gated'   => \@gated,
+        'blocked' => $blocked,
+        'counts'  => $scan->{'data'}{'counts'},
+    }
+};
+
+#,,,.,,..,,.,,..,,,,,,,,.,.,,,,.,,.,,,,..,...,..,,...,...,,.,,.,.,,..,.,.,,..,
+#T6GXMIAOMATRWJ4UIBQ4YNUMHYOAT3RLEMOUHJFE7ZH75B42WCDU3SGZBFV7N3N4U3RG75VKGJQOQ
+#\\\|7H5WUWTP3D2JYOO4FVRQ35JBOC3OVKON37ZMSQAJPPPPWUB7LPH \ / AMOS7 \ YOURUM ::
+#\[7]RTISDYKXR6GDW3DV4Z43IOZXTGHWPEYFJ3ETCZJZO2WZOCVEDCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
