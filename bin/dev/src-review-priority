@@ -1,0 +1,191 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+
+###                     ###
+##  src-review-priority  ##                  #:..:..:..:..:..:..:..:..:..:
+###                     ###
+
+## builds the prioritized module worklist for data/src-review/ : ranks all ##
+## modules by caller count [ reverse-edge in-degree ] computed from the    ##
+## module dependency graph [ adjacency parse adapted from depgraph-corpus ]##
+##                                                                         ##
+## outputs :                                                               ##
+##   <out-dir>/worklist.txt        one module per line, ranked             ##
+##   <out-dir>/caller-counts.asc   module : caller_count  [ reference ]    ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+my %opt = (
+    qw| input   | => c_dir(
+        $root_path,
+        qw| data md documentation |,
+        qw| module-dependency-graph.asc |
+    ),
+    qw| out-dir | => c_dir( $root_path, qw| data src-review | ),
+    qw| quiet   | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| input=s   | => \$opt{input},
+    qw| out-dir=s | => \$opt{'out-dir'},
+    qw| quiet     | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+die ":: input adjacency file not found: $opt{input}\n"
+    if !-f $opt{input};
+
+my $src_dir = c_dir( $root_path, qw| src | );
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my ( $forward, $reverse ) = parse_adjacency( $opt{input} );
+
+##  caller count [ in-degree ] per module  ##
+my %callers;
+for my $callee ( keys %{$reverse} ) {
+    $callers{$callee} = scalar @{ $reverse->{$callee} };
+}
+
+## candidate set : graph modules that exist in src/ , then remaining src/ ##
+## files [ caller count 0 ] -- excludes nothing else ; review target      ##
+## selection beyond ranking is the iterator's --limit concern             ##
+my @graph_modules = grep { -f c_dir( $src_dir, $ARG ) } keys %callers;
+
+my %in_graph = map { $ARG => 1 } @graph_modules;
+
+opendir my $dh, $src_dir or die ":: cannot read $src_dir: $OS_ERROR\n";
+my @rest = sort grep {
+            -f c_dir( $src_dir, $ARG )
+        and !$in_graph{$ARG}
+        and $ARG !~ m{^\.}
+        and $ARG !~ m{\.(orig|bak|~|tmp|swp)$}
+} readdir $dh;
+closedir $dh;
+
+##  rank : caller count descending, name ascending as tiebreak  ##
+my @ranked
+    = sort { $callers{$b} <=> $callers{$a} || $a cmp $b } @graph_modules;
+
+push @ranked, @rest;
+
+##  write outputs  ##
+my $worklist_path = c_dir( $opt{'out-dir'}, qw| worklist.txt | );
+my $counts_path   = c_dir( $opt{'out-dir'}, qw| caller-counts.asc | );
+
+write_file( $worklist_path, join( '', map {"$ARG\n"} @ranked ) );
+
+write_file(
+    $counts_path,
+    join(
+        '', map { sprintf "%s : %d\n", $ARG, $callers{$ARG} // 0 } @ranked
+    )
+);
+
+if ( !$opt{quiet} ) {
+    say sprintf ':: worklist : %d modules [ %d with graph '
+        . 'edges, %d without ], ranked by caller count',
+        scalar @ranked, scalar @graph_modules, scalar @rest;
+    say ":: worklist     : $worklist_path";
+    say ":: caller counts: $counts_path";
+    say ':: top 10 :';
+    printf "   %4d  %s\n", $callers{$ARG}, $ARG for @ranked[ 0 .. 9 ];
+}
+
+exit 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub parse_adjacency {
+    ## parse 'source : callee ...' adjacency lines from .asc file [ adapted ##
+    ## from bin/dev/depgraph-corpus ]                                       ##
+    my $path = shift;
+
+    open my $fh, qw| < |, $path
+        or die ":: cannot read $path: $OS_ERROR\n";
+
+    my %forward;    ##  source -> [ callees ]  ##
+    my %reverse;    ##  callee -> [ callers ]  ##
+
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next if $line =~ m|^\s*$|;    ##  skip blank lines  ##
+        next if $line =~ m|^\s*#|;    ##  skip .asc header comments  ##
+
+        ##  adjacency line : source : callee callee ...  ##
+        next if $line !~ m|^(\S+)\s+:\s+(\S.*)$|;
+        my ( $source, @callees ) = ( $1, split m|\s+|, $2 );
+
+        $forward{$source} //= [];
+        push @{ $forward{$source} }, @callees;
+
+        ##  accumulate reverse edges  ##
+        for my $callee (@callees) {
+            $reverse{$callee} //= [];
+            push @{ $reverse{$callee} }, $source;
+        }
+
+        ##  seed leaf modules so they appear even without callers  ##
+        $reverse{$ARG} //= [] for @callees;
+    }
+    close $fh;
+
+    ##  deduplicate  ##
+    for my $table ( \%forward, \%reverse ) {
+        for my $key ( keys %{$table} ) {
+            my %seen;
+            $table->{$key}
+                = [ grep { !$seen{$ARG}++ } @{ $table->{$key} } ];
+        }
+    }
+
+    return ( \%forward, \%reverse );
+}
+
+sub write_file {
+    ##  write content to file [ atomic via tmp + rename ]  ##
+    my ( $path, $content ) = @ARG;
+
+    my $tmp = "$path.tmp.$PROCESS_ID";
+    open my $fh, qw| > |, $tmp
+        or die ":: cannot write to $tmp: $OS_ERROR\n";
+    print $fh $content;
+    close $fh;
+    rename $tmp, $path
+        or die ":: cannot rename $tmp -> $path: $OS_ERROR\n";
+    return;
+}
+
+#,,,.,.,.,..,,,.,,,,.,...,.,.,,..,..,,.,,,.,.,.,.,...,.,.,,,.,,,,,..,,.,.,,,.,
+#ZRYRS3MXLABE6TEHUS6DQU4GYIGOEM7ZLE5AVSHLUQJBIIE4CYVNLKLOZQXJJP3LT2VQMBHM5CMC2
+#\\\|V4ZNDPPLQMVQP75RZV6B7RWQT73ZA7ARB7UZRBXJ6TITXUU7LCQ \ / AMOS7 \ YOURUM ::
+#\[7]K6B5U42AFXU6WW5WX4RVMMOXSSAJ76RPRQAPUDSKNSJVS5J4T6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
