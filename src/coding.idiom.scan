@@ -1,0 +1,173 @@
+## [:< ##
+
+# name  = coding.idiom.scan
+# descr = find P7 idiom violations in a block of text [ pure, no side effects ]
+# param = { text => '...', fenced_only => TRUE }
+
+##        content-addressed on purpose : text in, violations out. no        ##
+##        filesystem writes, no config mutation, no inference. that         ##
+##        is what lets the same module serve the async-completion           ##
+##        path, the write-tool boundary and coding.validate.module,         ##
+##        and what lets the rule table be calibrated offline against        ##
+##        known-good src/ before any of it runs live [                      ##
+##        data/idioms/offline_check.py ].                                   ##
+##                                                                          ##
+##        returns { mode, data => { violations, counts, by_class } }        ##
+##        where each violation is  { id, category, class, line,             ##
+##        found, target, resolved }                                         ##
+##                                                                          ##
+##        classes : auto [ deterministic safe rewrite ] / gate [            ##
+##        block the write, quote it back ] / report [ counted, never        ##
+##        rewritten, never blocking ] / assist [ corrective turn ] /        ##
+##        skip [ exclusion mask -- its matches suppress other rules         ##
+##        at the same offset ]                                              ##
+
+my $params = shift // {};
+
+my $text        = $params->{'text'}        // '';
+my $fenced_only = $params->{'fenced_only'} // FALSE;
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'violations' => [], 'counts' => {}, 'by_class' => {} }
+    }
+    if not length $text;
+
+my $rules = <[coding.idiom.rules]>;
+
+return { 'mode' => qw| false |, 'data' => 'no idiom rules loaded' }
+    if ref $rules ne qw| ARRAY | or not $rules->@*;
+
+## model replies wrap code in ``` fences and surround it with prose.  prose ##
+## is not code : scanning it produces noise in every category.              ##
+##                                                                          ##
+## segments carry their BASE OFFSET into the original text, because         ##
+## coding.idiom.repair.auto splices by offset -- returning offsets into a   ##
+## concatenation of the fence bodies would corrupt every rewrite.           ##
+my @segments;
+if ($fenced_only) {
+    while ( $text =~ m{```[a-z]*\n(.*?)```}gs ) {
+        push @segments, [ $-[1], $1 ];
+    }
+}
+@segments = ( [ 0, $text ] ) if not @segments;
+
+## first pass : collect exclusion masks. a skip rule marks regions that no ##
+## other rule may flag -- eg the handler-final `return 1;` shape, which is ##
+## real committed P7 and must never be rewritten to TRUE.                  ##
+my @masked;
+foreach my $segment (@segments) {
+    my ( $base, $chunk ) = $segment->@*;
+    foreach my $rule ( $rules->@* ) {
+        next if $rule->{'class'} ne qw| skip |;
+        my $rx = $rule->{'rx'};
+        while ( $chunk =~ m{$rx}g ) {
+            push @masked, [ $base + $-[0], $base + $+[0] ];
+        }
+    }
+}
+
+my $is_masked = sub {
+    my ( $from, $to ) = @ARG;
+    foreach my $span (@masked) {
+        return TRUE if $from >= $span->[0] and $to <= $span->[1];
+    }
+    return FALSE;
+};
+
+my @violations;
+my %counts;
+my %by_class;
+
+foreach my $segment (@segments) {
+    my ( $base, $chunk ) = $segment->@*;
+
+    foreach my $rule ( $rules->@* ) {
+        next if $rule->{'class'} eq qw| skip |;
+
+        my $rx = $rule->{'rx'};
+
+        while ( $chunk =~ m{$rx}g ) {
+            my ( $from, $to ) = ( $base + $-[0], $base + $+[0] );
+            my $whole  = substr $text, $from, $to - $from;
+            my @groups = map { defined $ARG ? $ARG : '' } ( $1, $2, $3, $4 );
+
+            next if $is_masked->( $from, $to );
+
+            my $class = $rule->{'class'};
+
+            ## resolve gate : a rewrite only happens when its target        ##
+            ## exists.  on_unresolved 'drop' means a non-resolving match is ##
+            ## not a violation at all -- that is how legitimate CPAN calls  ##
+            ## like YAML::XS::Load stay unflagged while Coding::Helper::Foo ##
+            ## does not [ 62 false positives on real src/ before this was   ##
+            ## added ]                                                      ##
+            my $target;
+            my $resolved = UNKNOWN;
+
+            if ( length( $rule->{'resolve'} // '' ) ) {
+
+                $target = $groups[ ( $rule->{'target_group'} // 1 ) - 1 ];
+
+                if ( ( $rule->{'target_transform'} // '' ) eq
+                    qw| perl_package | ) {
+                    $target = lc $whole;
+                    $target =~ s{\s*\($}{};
+                    $target =~ s{::}{.}g;
+                }
+
+                my $check = <[coding.idiom.resolve]>
+                    ->( { 'kind' => $rule->{'resolve'}, 'name' => $target } );
+
+                $resolved
+                    = ( ref $check eq qw| HASH |
+                        and $check->{'mode'} eq qw| true | )
+                    ? TRUE
+                    : FALSE;
+
+                if ( $resolved != TRUE ) {
+                    next
+                        if ( $rule->{'on_unresolved'} // qw| gate | ) eq
+                        qw| drop |;
+                    $class = qw| gate |;
+                }
+            }
+
+            my $line = 1 + ( substr( $text, 0, $from ) =~ tr{\n}{} );
+
+            push @violations,
+                {
+                'id'       => $rule->{'id'},
+                'category' => $rule->{'category'},
+                'class'    => $class,
+                'line'     => $line,
+                'from'     => $from,
+                'to'       => $to,
+                'found'    => $whole,
+                'target'   => $target,
+                'resolved' => $resolved,
+                'groups'   => \@groups,
+                'suggest'  => $rule->{'suggest'},
+                };
+
+            $counts{ $rule->{'category'} }++;
+            $by_class{$class}++;
+        }
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'violations' => \@violations,
+        'counts'     => \%counts,
+        'by_class'   => \%by_class,
+        'scanned'    => length $text,
+    }
+};
+
+#,,,.,...,..,,...,,,.,..,,,,,,..,,.,.,,,,,..,,..,,...,...,.,.,,.,,.,.,,,,,.,.,
+#VEX5N5T4E6VH76OLOD3Q6UNTVR2JMBU37BJUD5WO6WX6SU26KAEJN3Q7QOYUDE4AVONJU5AQEDCIQ
+#\\\|BXPTAUUYQHWZ6GMUW65M2AAQRAS7T2ULTHTD4TDKUOPL2W2GJND \ / AMOS7 \ YOURUM ::
+#\[7]OCLFVEW5VDJJ6WJBB2WWYX72V7KBUTIWP6DB754WZKBGBRGMDODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

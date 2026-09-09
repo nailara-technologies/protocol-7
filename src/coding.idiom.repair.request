@@ -1,0 +1,137 @@
+## [:< ##
+
+# name  = coding.idiom.repair.request
+# descr = build the corrective-turn message for gate-class violations
+# param = { gated => [...], text => '...' }
+
+##      the WEAK half of the gate, and labelled as such on purpose.         ##
+##                                                                          ##
+##      a corrective turn is still an instruction, and instructions         ##
+##      are the intervention class that already failed twice in this        ##
+##      thread [ the production system prompt enumerates all four           ##
+##      idioms and is ignored anyway ]. what makes this one different       ##
+##      is only that it arrives at the moment of failure, quotes the        ##
+##      offending line verbatim, and carries the canonical form -- not      ##
+##      that it is a different mechanism. it is measured as its own         ##
+##      arm [ A2 ] and never folded into the auto-repair numbers.           ##
+##                                                                          ##
+##      returns the message text only. dispatching it is the caller's       ##
+##      job : at the write boundary it goes back as a tool error,           ##
+##      which is the stronger signal [ it blocks progress and sits          ##
+##      next to the code that caused it ] ; on the completion path it       ##
+##      becomes one follow-up turn, the pattern                             ##
+##      coding.handler.check-completion-chain already establishes.          ##
+
+my $params = shift // {};
+
+my $gated = $params->{'gated'} // [];
+
+return { 'mode' => qw| false |, 'data' => 'no violations' }
+    if not $gated->@*;
+
+## collapse to one entry per (rule, found) pair : a model that made the ##
+## same mistake nine times needs one correction, not nine               ##
+my %seen;
+my @unique;
+foreach my $violation ( $gated->@* ) {
+    my $key = sprintf qw| %s:%s |, $violation->{'id'},
+        $violation->{'found'} // '';
+    next if $seen{$key}++;
+    push @unique, $violation;
+}
+
+my $rules = <[coding.idiom.rules]>;
+my %canonical;
+if ( ref $rules eq qw| ARRAY | ) {
+    $canonical{ $ARG->{'id'} } = $ARG foreach $rules->@*;
+}
+
+my @lines = (
+    'the code you produced does not follow protocol-7 structural',
+    'conventions. these are not style preferences -- code written this',
+    'way does not load. fix each item below and return the corrected',
+    'code only, with no commentary :',
+    '',
+);
+
+my $index = 0;
+foreach my $violation (@unique) {
+
+    $index++;
+
+    my $rule    = $canonical{ $violation->{'id'} } // {};
+    my $suggest = $rule->{'suggest'}               // '';
+
+    ## a suggest string is a regex replacement template : show the model ##
+    ## the shape, not the raw $1 placeholders                            ##
+    $suggest =~ s{<TARGET>}{<module.name>}g;
+    $suggest =~ s{\$\d}{...}g;
+
+    push @lines,
+        sprintf(
+        '%d. line %d : %s',
+        $index,
+        $violation->{'line'}  // 0,
+        $violation->{'found'} // ''
+        );
+
+    push @lines, sprintf( '   use : %s', $suggest )
+        if length $suggest;
+
+    ## an unresolved target is the important case : the model named       ##
+    ## something that does not exist, so telling it the canonical FORM is ##
+    ## not enough -- it has to pick a real name                           ##
+    if ( defined $violation->{'target'}
+        and ( $violation->{'resolved'} // UNKNOWN ) == FALSE ) {
+        push @lines,
+            sprintf(
+            '   note : "%s" does not exist. use list_modules to find the '
+                . 'real name, or read the config rather than inventing a '
+                . 'key.',
+            $violation->{'target'}
+            );
+    }
+}
+
+push @lines, '';
+
+## the literal idiom forms below are DATA, not code : without the v7-syn    ##
+## switch bin/Protocol-7's parser rewrites them on the way in and the model ##
+## would be shown $code{'module.name'} instead of the sugar it is being     ##
+## asked to produce [ same guard coding.system_prompt uses ] the            ##
+## placeholder trap [ found live in the A2 validation arm, 2026-09-09 ] :   ##
+## an earlier version of this block ended with the literal examples         ##
+## `<[module.name]>->( $args )` and `<some.config.key>`, and the model      ##
+## COPIED THEM VERBATIM into its corrected code in 2 of 3 generations --    ##
+## producing `<[some.config.key]>` as a real call site.  a placeholder that ##
+## looks like valid code will be pasted as code. so the forms are now       ##
+## described in words, with no copyable specimen, and the model is pointed  ##
+## at a real module for a concrete example.                                 ##
+##[:v7-syn:off:]##
+push @lines,
+    'the four structural forms, described rather than shown [ do NOT',
+    'copy any name from this list -- use the real names from the code ] :',
+    '  invocation  : the dotted module name in angle-square brackets,',
+    '                followed by an arrow and the argument list',
+    '  config read : the dotted config key in plain angle brackets',
+    '  booleans    : the bare words TRUE and FALSE, never 1 or 0.',
+    '                note these are CONSTANTS, not reply-mode values --',
+    '                a reply mode is still the lowercase word true/false',
+    '  replies     : a hash with a mode key and a data key, where mode is',
+    '                the word true or false in a qw list', '',
+    'read any module under src/ for a real example of all four.';
+##[:v7-syn:on:]##
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'message' => join( "\n", @lines ),
+        'count'   => scalar @unique,
+    }
+};
+
+#,,..,,.,,,..,.,.,,,.,,.,,,.,,,,,,,.,,,..,.,.,..,,...,...,.,,,,.,,..,,,,.,...,
+#IOKM722MKHRA4MTNGUCGHP23QHXCEKZC7AROOIACMVJXLFI72NIOE5Y3FVIMS5IGJTA4RAXTUSQKQ
+#\\\|6ENY5IBRJECU634ADY7PW3ZSVKY5YAME3QYH7XSH4B2ENNO6I3W \ / AMOS7 \ YOURUM ::
+#\[7]36ADCNH5IEHZWL2D36ZWCORR5LL3FCHNEY5W7WIIEZKKSY6ILMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

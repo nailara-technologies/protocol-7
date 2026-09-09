@@ -1,0 +1,37 @@
+{
+ "choices": [
+  {
+   "finish_reason": "stop",
+   "index": 0,
+   "message": {
+    "role": "assistant",
+    "content": "# name = config.threshold\n# descr = read threshold from config and log warnings on overflow\n\nuse strict;\nuse warnings;\nuse perlmod.load qw| base.logs |;\n\nsub init_code {\n    my $cfg = <[base.config]>->();\n\n    my $threshold = <[base.config]>->( 'threshold', 30 );\n\n    ## load the threshold into the module namespace\n    $::{'_threshold'} = $threshold;\n\n    ## log a warning if the threshold is exceeded\n    if ( $threshold > 30 ) {\n        <[base.logs]>->( 2, '%s threshold exceeded (got %d, max %d)',\n            qw| config.threshold |, $threshold, 30 );\n    }\n\n    return { 'mode' => qw| true |, 'data' => $threshold };\n}\n\nsub run {\n    return 1;\n}",
+    "reasoning_content": "The user wants a protocol-7 module that reads a threshold from config and logs a warning if a value exceeds it. I need to follow the P7 module format: no sub {} declarations, use perlmod.load in init_code, dot notation naming, lowercase comments, and the specific logging syntax.\n"
+   }
+  }
+ ],
+ "created": 1788929398,
+ "model": "Qwen3.8-9B-heretic-uncensored.i1-Q4_K_M.gguf",
+ "object": "chat.completion",
+ "usage": {
+  "completion_tokens": 261,
+  "prompt_tokens": 1638,
+  "total_tokens": 1899,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "id": "chatcmpl-plnap8ltAqzD9lub5SPlt1CeZYQAHDiP",
+ "timings": {
+  "prompt_n": 1638,
+  "prompt_ms": 1068.747,
+  "prompt_per_token_ms": 0.6524706959706961,
+  "prompt_per_second": 1532.6358810831748,
+  "predicted_n": 261,
+  "predicted_ms": 5111.546,
+  "predicted_per_token_ms": 19.58446743295019,
+  "predicted_per_second": 51.060872777042405,
+  "n_ctx": 145152,
+  "n_past": 1898
+ }
+}

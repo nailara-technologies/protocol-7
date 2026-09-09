@@ -1,0 +1,118 @@
+## [:< ##
+
+# name  = coding.idiom.corpus.record
+# descr = append (draft -> corrected) idiom pairs to the harvest corpus
+# param = { edits => [...], gated => [...], prompt => '...', source => '...' }
+
+##      the durable artifact this whole task exists to produce.            ##
+##                                                                         ##
+##      every repair and every gated violation is appended to              ##
+##      data/idioms/corpus/YYYY-MM.jsonl as a (before, after,              ##
+##      category) triple. over ordinary daily use this accumulates         ##
+##      something neither prior attempt in this thread had :               ##
+##      model-generated negatives paired with verified-correct P7          ##
+##      forms, IN DISTRIBUTION by construction.                            ##
+##                                                                         ##
+##      the control vector was trained on 46 hand-written pairs whose      ##
+##      negatives were de-idiomatised by hand rather than actually         ##
+##      produced by the model ; the LoRA task's own hazard 3 records       ##
+##      that 46 is far too small. a harvested corpus fixes both            ##
+##      problems for free, and is why a null validation result still       ##
+##      leaves this task with something worth keeping.                     ##
+
+my $params = shift // {};
+
+my $edits  = $params->{'edits'}  // [];
+my $gated  = $params->{'gated'}  // [];
+my $source = $params->{'source'} // qw| unknown |;
+
+return { 'mode' => qw| true |, 'data' => 'nothing to record' }
+    if not $edits->@* and not $gated->@*;
+
+my $root = <system.root_path> // '';
+my $dir  = <coding.cfg.idiom_corpus_dir>
+    // sprintf qw| %s/data/idioms/corpus |, $root;
+
+if ( not -d $dir ) {
+    if ( not <[base.file.make_path]>->($dir) ) {
+        <[base.logs]>->( 0, ': idiom.corpus : cannot create %s', $dir );
+        return { 'mode' => qw| false |, 'data' => "cannot create $dir" };
+    }
+}
+
+my @stamp = localtime time;
+my $path  = sprintf qw| %s/%04d-%02d.jsonl |, $dir, $stamp[5] + 1900,
+    $stamp[4] + 1;
+
+## a prompt can be long and can contain user content -- store a short       ##
+## checksum instead of the text, so the corpus stays a code corpus and does ##
+## not quietly become a transcript archive                                  ##
+my $prompt_id = '';
+if ( length( $params->{'prompt'} // '' ) ) {
+    $prompt_id = sprintf qw| %x |,
+        <[base.chk-sum.elf]>->( $params->{'prompt'} ) // 0;
+}
+
+my @lines;
+
+foreach my $edit ( $edits->@* ) {
+    push @lines,
+        <[format.json.encode]>->(
+        {   'ts'       => time,
+            'source'   => $source,
+            'prompt'   => $prompt_id,
+            'kind'     => qw| repaired |,
+            'rule'     => $edit->{'id'},
+            'category' => $edit->{'category'},
+            'before'   => $edit->{'before'},
+            'after'    => $edit->{'after'},
+            'target'   => $edit->{'target'},
+        }
+        );
+}
+
+foreach my $violation ( $gated->@* ) {
+    push @lines,
+        <[format.json.encode]>->(
+        {   'ts'       => time,
+            'source'   => $source,
+            'prompt'   => $prompt_id,
+            'kind'     => qw| gated |,
+            'rule'     => $violation->{'id'},
+            'category' => $violation->{'category'},
+            'before'   => $violation->{'found'},
+            'after'    => undef,
+            'target'   => $violation->{'target'},
+        }
+        );
+}
+
+return { 'mode' => qw| true |, 'data' => 'nothing encodable' } if not @lines;
+
+## format.json.encode is pretty-printed [ ->pretty(1), shared with other  ##
+## callers, not ours to change ] and a multi-line record would break the  ##
+## one-object-per-line jsonl contract this file depends on. collapsing    ##
+## literal newlines is safe : JSON forbids a raw newline inside a string  ##
+## literal, so every newline here is formatting whitespace between tokens ##
+foreach my $line (@lines) {
+    $line =~ s{\s*\n\s*}{ }g;
+    $line =~ s{^\s+|\s+$}{}g;
+}
+
+## one newline-delimited record per line, appended : concurrent zenki     ##
+## appending short lines to the same file is the reason this is jsonl and ##
+## not a rewritten json array                                             ##
+<[base.file.append]>->( $path, join( "\n", @lines ) . "\n" );
+
+<[base.logs]>->(
+    2, ': idiom.corpus : recorded %d pair%s [ %s ]',
+    scalar(@lines), ( @lines == 1 ? '' : 's' ), $source
+);
+
+return { 'mode' => qw| true |, 'data' => scalar @lines };
+
+#,,,,,,,.,...,,,.,,..,...,,,,,,.,,..,,,,.,,,,,..,,...,...,...,.,.,.,,,.,.,..,,
+#J5JODYV4CGAEOXS3E3P3J24V2SUXB62BIPATQ5YCMSVK5USC6JKE7UCEVD3TQONJYUVNALUSN3TUU
+#\\\|3PW2ALHYRIRJJSECUBIUJAQJOHMHA3G3DQYFVZTGQWJV742SKPV \ / AMOS7 \ YOURUM ::
+#\[7]KQXFFJFSZ6XCRLC5ZSAGLAAOD3N7OLB4YFZZZFTE4B7KIF2JYYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

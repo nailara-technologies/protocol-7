@@ -135,8 +135,8 @@ def main():
         for k in shapes:
             weight_map[k] = new
     index = {"metadata": {"total_size": sum(
-        os.path.getsize(os.path.join(OUT_DIR, f)) for f, _ in
-        [(fn, None) for fn, _ in shards])},
+        os.path.getsize(os.path.join(OUT_DIR, f"model-{i:05d}-of-{n:05d}.safetensors"))
+        for i in range(1, n + 1))},
         "weight_map": weight_map}
     with open(os.path.join(OUT_DIR, "model.safetensors.index.json"),
               "w") as f:

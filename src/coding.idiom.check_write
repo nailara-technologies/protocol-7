@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = coding.idiom.check_write
+# descr = idiom gate for the file-write tool boundary
+# param = { path => '...', content => '...', tool => '...' }
+
+##      one helper shared by write_new_file / edit_file /                 ##
+##      replace_in_file so the gate is wired in a few lines per handler   ##
+##      instead of triplicated.                                          ##
+##                                                                       ##
+##      returns                                                          ##
+##        { mode => false, data => <error string> }  -- REFUSE the write  ##
+##        { mode => true,  data => { content => ... } } -- proceed, with  ##
+##                                  content possibly auto-repaired        ##
+##                                                                       ##
+##      the refusal string goes back to the model as a tool error, and    ##
+##      that is deliberately the strongest signal in the whole design : a ##
+##      blocking tool error arrives at the moment of action, sits in      ##
+##      context next to the code that caused it, and has to be dealt with ##
+##      before progress is possible. that is a different thing from a     ##
+##      rule in a system prompt, which is the intervention class that has ##
+##      already failed twice in this thread.                             ##
+##                                                                       ##
+##      only perl module bodies are checked. a markdown / yaml / json     ##
+##      payload has no P7 idioms to violate and scanning it would produce ##
+##      noise in every category.                                         ##
+
+my $params = shift // {};
+
+my $path    = $params->{'path'}    // '';
+my $content = $params->{'content'} // '';
+my $tool    = $params->{'tool'}    // qw| write |;
+
+my $pass = { 'mode' => qw| true |, 'data' => { 'content' => $content } };
+
+return $pass if not length $content;
+
+## only P7 module bodies : src/ files, or a bare dot-notation name       ##
+return $pass
+    if $path  !~ m{(?:^|/)src/}
+    and $path !~ m{^[a-z][\w\-]*(?:\.[\w\-]+)+$};
+
+## a data / doc payload that merely lives under src/ is not perl         ##
+return $pass if $path =~ m{\.(?:md|yaml|yml|json|txt|jsonl)$};
+
+my $gate = <[coding.idiom.gate]>->(
+    {   'text'   => $content,
+        'source' => $tool,
+        'mode'   => qw| write |,
+    }
+);
+
+return $pass
+    if ref $gate ne qw| HASH |
+    or $gate->{'mode'} ne qw| true |;
+
+## auto-repairs are carried through even when nothing is blocked : that is ##
+## the whole point of `repair` mode at the write boundary                  ##
+$pass->{'data'}{'content'} = $gate->{'data'}{'text'}
+    if $gate->{'data'}{'changed'} == TRUE;
+
+return $pass if $gate->{'data'}{'blocked'} != TRUE;
+
+my $request = <[coding.idiom.repair.request]>
+    ->( { 'gated' => $gate->{'data'}{'gated'} } );
+
+return $pass
+    if ref $request ne qw| HASH |
+    or $request->{'mode'} ne qw| true |;
+
+<[base.logs]>->(
+    1, ': idiom.check_write : blocked %s [ %d violation%s ]',
+    $path,
+    $request->{'data'}{'count'},
+    ( $request->{'data'}{'count'} == 1 ? '' : 's' )
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "error: idiom conformance [ %s ]\n\n%s",
+        $path, $request->{'data'}{'message'}
+    )
+};
+
+#,,,.,,,,,,.,,..,,,.,,,.,,.,.,,,,,.,,,,..,..,,..,,...,...,.,,,,..,,,.,.,.,,,,,
+#ASLHUQALU7MEAKYIYE2FKBALMHJRS4IRKAHP75CVELEAX5PPTOBGF3AXLVLEIGDPAMTRGRSDWNBX6
+#\\\|NRSYKIDJQZADI2FSLB5GKL6CP5DLMLB56CR6QRPQCQ5B7MZJFOK \ / AMOS7 \ YOURUM ::
+#\[7]QODUTIA3XT7B5WDWBOQ53I3LN72YU6YQYRJMP6ZKBEWIUGU456AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
