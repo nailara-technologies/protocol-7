@@ -105,8 +105,14 @@ if (   $content =~ m|\breturn\s*\{\s*['"]mode['"]\s*=>|i
     }
 }
 
-## 10. Check signature footer present ##
-if ( $content !~ m|#,,\.,.*,,| ) {
+## 10. Check signature footer present  the noise line's comma/dot pattern ##
+## is randomly regenerated on every signing pass, so matching a specific  ##
+## arrangement [ as this check used to ] only catches ~27% of             ##
+## validly-signed files [ found live 2026-09-09, cross-checking the       ##
+## src-review corpus's ground truth against the actual file : DATA        ##
+## SIGNATURE is the one literal that every footer carries regardless of   ##
+## noise-line content ]                                                   ##
+if ( $content !~ m|#\\\[7\].*DATA SIGNATURE| ) {
     push @errors, "missing signature footer";
 }
 
@@ -150,8 +156,8 @@ return {
     'data' => $result,
 };
 
-#,,,.,.,,,,,.,,.,,..,,,,,,,,.,.,,,.,,,.,.,.,,,..,,...,...,..,,.,,,,,.,..,,,,.,
-#VAABYUSE2W6OTTL2NEKHWNMHZO4GFBIIUG4CY7YLWTD35RS62MDEZ6V7TETP7MPLEOSACCRWPGS44
-#\\\|AJNU6I34Y5AXLT5XER6MAJZ5D5D6ZBWWQB3AGIHQBLXZLY73V4D \ / AMOS7 \ YOURUM ::
-#\[7]AJ4GQJKQLWK5IUJX4C7FBXSDBH2KRC5PUTUDGVQHR3SMBMB2OMBI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,...,.,.,...,,.,,...,,,.,.,,,..,,...,..,,,..,...,...,,..,,,.,
+#HO73DROBBPKOSIBG27JTQGHI2GMCS3WTTAUYNVCWGT54O6F4JQOQZ6LBCWNMDL65CWUJGE4LBHZGA
+#\\\|XWW4AXCHAFJFYYTASAMTXIQO5ZJMIY4ELFG2AWPB4BOWLXC3RIB \ / AMOS7 \ YOURUM ::
+#\[7]V226WWVPCRTUSPLRO7XT5SKWXT23IAC3RTWEMI3DJL34Z62JAGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
