@@ -1,0 +1,297 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+use Digest::SHA;
+use File::Spec;
+use Cwd qw| abs_path |;
+
+###                    ###
+##  worklist-iterate  ##                     #:..:..:..:..:..:..:..:..:..:
+###                    ###
+
+## generic prioritized-worklist walker : resumable, idempotent,            ##
+## interrupt-safe. NOT specific to src-review -- any line-based worklist   ##
+## with a per-item shell command fits.                                     ##
+##                                                                         ##
+## model :                                                                 ##
+##   worklist file   one item per line [ '#' comments, blanks skipped ]    ##
+##   per-item hash   --hash-cmd output [ first token ] ; default is the    ##
+##                   sha1 of the item string itself. the hash captures     ##
+##                   "current content version" of the item : when it       ##
+##                   changes, the item is re-processed on the next run.    ##
+##   done-set        state-dir/done/<enc(item)> containing the hash that   ##
+##                   was processed + timestamp. written only AFTER the     ##
+##                   per-item command exits 0, via tmp+rename, so a kill   ##
+##                   mid-item never marks unfinished work as done.         ##
+##   failures        state-dir/failed/<enc(item)> : exit code + output     ##
+##                   tail. failed items are retried on the next run.       ##
+##   cursor          state-dir/cursor : last completed item + counters,    ##
+##                   informational [ the done-set is the source of truth ] ##
+##                                                                         ##
+## per-item commands must write their own outputs atomically [ tmp +       ##
+## rename ] for the kill-safety property to hold end to end.               ##
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+my %opt = (
+    qw| worklist  | => '',
+    qw| state-dir | => '',
+    qw| cmd       | => '',
+    qw| hash-cmd  | => '',
+    qw| limit     | => 0,    ##  0 = no limit  ##
+    qw| quiet     | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| worklist=s  | => \$opt{worklist},
+    qw| state-dir=s | => \$opt{'state-dir'},
+    qw| cmd=s       | => \$opt{cmd},
+    qw| hash-cmd=s  | => \$opt{'hash-cmd'},
+    qw| limit=i     | => \$opt{limit},
+    qw| quiet       | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+die ":: --worklist required\n"                if !length $opt{worklist};
+die ":: --cmd required\n"                     if !length $opt{cmd};
+die ":: worklist not found: $opt{worklist}\n" if !-f $opt{worklist};
+
+$opt{'state-dir'} = "$opt{worklist}.state" if !length $opt{'state-dir'};
+
+for my $sub (qw| done failed |) {
+    my $dir = File::Spec->catdir( $opt{'state-dir'}, $sub );
+    if ( !-d $dir ) {
+        require File::Path;
+        File::Path::make_path($dir)
+            or die ":: cannot create $dir: $OS_ERROR\n";
+    }
+}
+
+my $log_path = File::Spec->catfile( $opt{'state-dir'}, qw| iterate.log | );
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my @items = read_worklist( $opt{worklist} );
+
+my %count = (qw| done 0 skipped 0 failed 0 processed 0 |);
+
+log_line(
+    sprintf ':: run start : %d items in worklist, limit %s',
+    scalar @items,
+    $opt{limit} || 'none'
+);
+
+for my $item (@items) {
+    last if $opt{limit} && $count{processed} >= $opt{limit};
+
+    my $current_hash = item_hash($item);
+    my $done_hash    = read_done_hash($item);
+
+    if (   defined $done_hash
+        && defined $current_hash
+        && $done_hash eq $current_hash ) {
+        $count{skipped}++;
+        next;
+    }
+
+    $count{processed}++;
+    my $started = time;
+
+    my ( $ok, $output ) = run_item_cmd( $opt{cmd}, $item );
+
+    if ($ok) {
+        write_done( $item, $current_hash // 'UNKNOWN' );
+        write_cursor( $item, \%count );
+        $count{done}++;
+        log_line( sprintf 'done    %-48s [%ds]', $item, time - $started );
+        say ":: done    $item [" . ( time - $started ) . 's]'
+            if !$opt{quiet};
+    } else {
+        write_failed( $item, $output );
+        $count{failed}++;
+        log_line( sprintf 'FAILED  %-48s : %s', $item, first_line($output) );
+        say ":: FAILED  $item : " . first_line($output) if !$opt{quiet};
+    }
+}
+
+my $summary
+    = sprintf ':: run end : %d processed [ %d done, %d failed '
+    . '], %d skipped [ already current ], %d total items',
+    $count{processed}, $count{done}, $count{failed},
+    $count{skipped}, scalar @items;
+
+say $summary if !$opt{quiet};
+log_line($summary);
+
+exit( $count{failed} ? 1 : 0 );
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub read_worklist {
+    my $path = shift;
+    open my $fh, qw| < |, $path or die ":: cannot read $path: $OS_ERROR\n";
+    my @items;
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        $line                          =~ s|^\s+||;
+        $line                          =~ s|\s+$||;
+        next if !length $line or $line =~ m|^#|;
+        push @items, $line;
+    }
+    close $fh;
+    return @items;
+}
+
+sub item_hash {
+    ## current content hash of an item : --hash-cmd first token, or sha1 of ##
+    ## the item string when no --hash-cmd given. undef when the hash        ##
+    ## command fails [ item will be processed and its done record marked    ##
+    ## UNKNOWN -> retried next run until hashable ].                        ##
+    my $item = shift;
+
+    if ( !length $opt{'hash-cmd'} ) {
+        return Digest::SHA::sha1_hex($item);
+    }
+
+    my $cmd = fill_cmd( $opt{'hash-cmd'}, $item );
+    my $out = qx{$cmd 2>/dev/null};
+    return undef if $? != 0;
+    my ($token) = split m|\s+|, $out // '';
+    return length($token) ? $token : undef;
+}
+
+sub read_done_hash {
+    my $item = shift;
+    my $path = done_path($item);
+    return undef if !-f $path;
+    open my $fh, qw| < |, $path or return undef;
+    my $line = <$fh>;
+    close $fh;
+    return undef if !defined $line;
+    chomp $line;
+    my ($hash) = split m|\s+|, $line;
+    return $hash;
+}
+
+sub write_done {
+    my ( $item, $hash ) = @ARG;
+    my $path = done_path($item);
+    my $tmp  = "$path.tmp.$PROCESS_ID";
+    open my $fh, qw| > |, $tmp or die ":: cannot write $tmp: $OS_ERROR\n";
+    print $fh "$hash " . iso_time() . "\n";
+    close $fh;
+    rename $tmp, $path or die ":: cannot rename $tmp: $OS_ERROR\n";
+
+    ##  a previously-failed item that now succeeds loses its failure  ##
+    my $fail = failed_path($item);
+    unlink $fail if -f $fail;
+    return;
+}
+
+sub write_failed {
+    my ( $item, $output ) = @ARG;
+    my $path = failed_path($item);
+    my $tmp  = "$path.tmp.$PROCESS_ID";
+    open my $fh, qw| > |, $tmp or die ":: cannot write $tmp: $OS_ERROR\n";
+    print $fh ':: failed ' . iso_time() . "\n";
+    print $fh substr( $output // '', -2000 );    ##  tail only  ##
+    close $fh;
+    rename $tmp, $path or die ":: cannot rename $tmp: $OS_ERROR\n";
+    return;
+}
+
+sub write_cursor {
+    my ( $item, $count ) = @ARG;
+    my $path = File::Spec->catfile( $opt{'state-dir'}, qw| cursor | );
+    my $tmp  = "$path.tmp.$PROCESS_ID";
+    open my $fh, qw| > |, $tmp or die ":: cannot write $tmp: $OS_ERROR\n";
+    print $fh 'last_completed : ' . $item . "\n";
+    print $fh 'updated        : ' . iso_time() . "\n";
+    print $fh "done_total     : $count->{done}\n";
+    print $fh "failed_total   : $count->{failed}\n";
+    print $fh "skipped_total  : $count->{skipped}\n";
+    close $fh;
+    rename $tmp, $path or die ":: cannot rename $tmp: $OS_ERROR\n";
+    return;
+}
+
+sub run_item_cmd {
+    my ( $cmd_tmpl, $item ) = @ARG;
+    my $cmd = fill_cmd( $cmd_tmpl, $item );
+    my $out = qx{$cmd 2>&1};
+    return ( $? == 0, $out );
+}
+
+sub fill_cmd {
+    ## '{}' in template is replaced by the shell-quoted item ; when no '{}' ##
+    ## present the item is appended as final argument                       ##
+    my ( $tmpl, $item ) = @ARG;
+    my $q = shell_quote($item);
+    if ( index( $tmpl, '{}' ) >= 0 ) {
+        $tmpl =~ s|\{\}|$q|g;
+        return $tmpl;
+    }
+    return "$tmpl $q";
+}
+
+sub shell_quote {
+    my $str = shift;
+    $str =~ s|'|'\\''|g;
+    return "'$str'";
+}
+
+sub encode_item {
+    ##  filesystem-safe done/failed filename for an arbitrary item  ##
+    my $item = shift;
+    $item =~ s|([^A-Za-z0-9._-])| sprintf '%%%02X', ord($1) |ge;
+    return $item;
+}
+
+sub done_path {
+    my $item = shift;
+    return File::Spec->catfile( $opt{'state-dir'}, qw| done |,
+        encode_item($item) );
+}
+
+sub failed_path {
+    my $item = shift;
+    return File::Spec->catfile( $opt{'state-dir'}, qw| failed |,
+        encode_item($item) );
+}
+
+sub log_line {
+    my $line = shift;
+    open my $fh, qw| >> |, $log_path or return;
+    print $fh iso_time() . " $line\n";
+    close $fh;
+    return;
+}
+
+sub iso_time {
+    my @t = localtime;
+    return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
+        $t[5] + 1900, $t[4] + 1, @t[ 3, 2, 1, 0 ];
+}
+
+sub first_line {
+    my $str = shift // '';
+    $str =~ s|^\s+||;
+    my ($line) = split m|\n|, $str;
+    return substr( $line // '', 0, 120 );
+}
+
+#,,.,,.,,,.,.,.,,,..,,.,,,.,,,...,,,.,.,.,.,.,.,.,...,...,.,,,,,,,.,,,,,.,,,.,
+#XRNMA2NDIF4IT53HEIDD4F6NFDAG3HIZXBRIAMG3GWFL3UA7HVYADT4PXYQCEAOEBKNAYE7HQGJCC
+#\\\|IEJMBB4XTZRKHMAT4QNZQHINRKDMX2WKLPYDT7XTERTG56L3AZS \ / AMOS7 \ YOURUM ::
+#\[7]OKWD3FBB5OI43QX7QYTX2MJBOY5C5Z3A2RQJ7RZG7QIPZR54HWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
