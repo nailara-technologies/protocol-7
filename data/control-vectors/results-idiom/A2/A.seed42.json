@@ -1,0 +1,37 @@
+{
+ "choices": [
+  {
+   "finish_reason": "stop",
+   "index": 0,
+   "message": {
+    "role": "assistant",
+    "content": "```perl\n## [: zenka.util.threshold-checker # name = threshold-checker # descr = reads threshold from config and warns if value exceeds it ]\n\nmy $value = shift;\nmy $config = shift;\nmy $threshold_key = shift;\n\nmy $threshold = 30;\n\nif (defined($config) && ref($config) eq 'HASH') {\n    if (exists($config->{$threshold_key})) {\n        $threshold = $config->{$threshold_key};\n    }\n}\n\nif ($value > $threshold) {\n    <[base.logs]>->(\n        1,\n        \"threshold exceeded: value %d exceeds threshold %d\",\n        $value,\n        $threshold,\n    );\n}\n\nreturn { mode => qw| TRUE |, data => $threshold };\n```",
+    "reasoning_content": "The user is right. P7 modules must NOT have `sub {}` declarations or `use strict/warnings`. The entire module body must be a single flat block of code without any subroutine declarations. All logic must be written as flat statements. The module is loaded and called via `<[module.name]>->( $args )` syntax.\n\nAlso, booleans must use `TRUE`/`FALSE` (from `use English`), never `true`/`false` or `1`/`0`.\n\nLet me rewrite this as a flat module body with no sub declarations.\n"
+   }
+  }
+ ],
+ "created": 1788929379,
+ "model": "Qwen3.8-9B-heretic-uncensored.i1-Q4_K_M.gguf",
+ "object": "chat.completion",
+ "usage": {
+  "completion_tokens": 301,
+  "prompt_tokens": 1606,
+  "total_tokens": 1907,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "id": "chatcmpl-iP0dsx462MUjE3TEztLztB7bcR3wufQV",
+ "timings": {
+  "prompt_n": 1606,
+  "prompt_ms": 1046.605,
+  "prompt_per_token_ms": 0.6516843088418431,
+  "prompt_per_second": 1534.4853120327152,
+  "predicted_n": 301,
+  "predicted_ms": 5862.747,
+  "predicted_per_token_ms": 19.477564784053158,
+  "predicted_per_second": 51.34112046793082,
+  "n_ctx": 145152,
+  "n_past": 1906
+ }
+}

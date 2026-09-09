@@ -37,32 +37,51 @@ if ( $content !~ m|^# descr\s+=\s+(.+)$|m ) {
     push @errors, "missing or invalid metadata field 'descr'";
 }
 
-## 4. Check for sub {} declarations [ forbidden in P7 ] ##
-if ( $content =~ m|^\s*sub\s+\{|m ) {
-    push @errors, "forbidden 'sub {' declaration found [ use inline blocks ]";
-}
+## 4-6, 8. structural idiom checks : DELEGATED to coding.idiom.scan.       ##
+##                                                                         ##
+## these were four hand-rolled regexes [ sub {} declarations, bracket      ##
+## syntax, base.log vs base.logs, 1/0 vs TRUE/FALSE ]. they now come from  ##
+## data/idioms/rules.yaml so there is ONE rule table instead of two that   ##
+## drift apart -- the same table the write-tool boundary and the async     ##
+## completion path use, and the same one calibrated against all 5462 src/  ##
+## files [ data/idioms/offline_check.py ].                                 ##
+##                                                                         ##
+## the old bracket check flagged a bare `<[module.name]>` as an error, but ##
+## that form is LEGAL -- bin/Protocol-7's parser expands it with an        ##
+## implicit ->() when no args are passed. the calibrated rule only flags   ##
+## `<[name]>(`, which really is malformed.                                 ##
+if ( exists $code{'coding.idiom.scan'} ) {
+    my $scan = <[coding.idiom.scan]>->( { 'text' => $content } );
 
-## 5. Check for incorrect bracket syntax ##
-my $bracket_errors = 0;
-while ( $content =~ m|<\[([^>]+?)(?!\]->)|g ) {
-    my $after      = pos($content);
-    my $next_chars = substr( $content, $after, 3 );
-    if ( $next_chars !~ m|^]->| ) {
-        $bracket_errors++;
+    if ( ref $scan eq qw| HASH | and $scan->{'mode'} eq qw| true | ) {
+
+        my %seen;
+        foreach my $violation ( $scan->{'data'}{'violations'}->@* ) {
+
+            ## one line per rule, with a count -- not one per occurrence ##
+            $seen{ $violation->{'id'} }{'count'}++;
+            $seen{ $violation->{'id'} }{'class'} = $violation->{'class'};
+            $seen{ $violation->{'id'} }{'line'} //= $violation->{'line'};
+        }
+
+        foreach my $id ( sort keys %seen ) {
+            my $hit = $seen{$id};
+            my $msg = sprintf(
+                '%s : %d occurrence%s [ first at line %d ]',
+                $id, $hit->{'count'}, ( $hit->{'count'} == 1 ? '' : 's' ),
+                $hit->{'line'}
+            );
+
+            ## auto and gate are real problems ; report-class rules are   ##
+            ## conventions the codebase itself does not keep consistently ##
+            ## and must not fail a validation                             ##
+            if ( $hit->{'class'} eq qw| report | ) {
+                push @warnings, $msg;
+            } else {
+                push @errors, $msg;
+            }
+        }
     }
-}
-if ($bracket_errors) {
-    push @errors,
-        "found $bracket_errors incorrect bracket "
-        . "syntax [ use bracket-angle syntax ]";
-}
-
-## 6. Check for base.log vs base.logs ##
-my $log_count = 0;
-$log_count++ while ( $content =~ m|<\[base\.log\]>->|g );
-if ($log_count) {
-    push @errors,
-        "found $log_count calls to 'base.log' [ use 'base.logs' instead ]";
 }
 
 ## 7. Check qw syntax [ should use || not () or // ] ##
@@ -71,10 +90,10 @@ if ( $content =~ m|\bqw\s*\(| || $content =~ m|\bqw\s*/| ) {
         "qw should use pipe delimiters: qw| word | not qw() or qw//";
 }
 
-## 8. Check for 1/0 instead of TRUE/FALSE ##
-if ( $content =~ m|\breturn\s+1\s*;| || $content =~ m|\breturn\s+0\s*;| ) {
-    push @warnings, "consider using TRUE/FALSE constants instead of 1/0";
-}
+## 8. [ moved into the coding.idiom.scan delegation above -- the bare      ##
+## `return 1;` / `return 0;` shape is explicitly NOT flagged there : it    ##
+## occurs 34 times in real committed src/coding.* as a handler-final truth ##
+## value, and warning on it was noise ]                                    ##
 
 ## 9. Check return format ##
 if (   $content =~ m|\breturn\s*\{\s*['"]mode['"]\s*=>|i
@@ -131,8 +150,8 @@ return {
     'data' => $result,
 };
 
-#,,..,,..,,.,,,.,,,,,,,..,,,,,.,,,,,.,,.,,..,,..,,...,...,,..,.,,,.,,,..,,.,,,
-#7NGKECUEXGUXCFKAAXFXJRRBKHAGFOE2XILQUWKZOL5VH72YPTJDLNL3HSCKCVZIEF3RNOAPEIGHA
-#\\\|WMUESONGGWFTNI5WHSTY5Q2D2PKMEJJEYRU75N4NBOYOWXHWHOH \ / AMOS7 \ YOURUM ::
-#\[7]LR3ZBXS6HZTK2XTILBWHPGBXNNNYTKYVDI6H43IEJ45Y4M5ZJKCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,..,,,,,,,,.,.,,,.,,,.,.,.,,,..,,...,...,..,,.,,,,,.,..,,,,.,
+#VAABYUSE2W6OTTL2NEKHWNMHZO4GFBIIUG4CY7YLWTD35RS62MDEZ6V7TETP7MPLEOSACCRWPGS44
+#\\\|AJNU6I34Y5AXLT5XER6MAJZ5D5D6ZBWWQB3AGIHQBLXZLY73V4D \ / AMOS7 \ YOURUM ::
+#\[7]AJ4GQJKQLWK5IUJX4C7FBXSDBH2KRC5PUTUDGVQHR3SMBMB2OMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

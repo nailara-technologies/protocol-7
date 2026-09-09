@@ -72,6 +72,7 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       bury failed resurrect self-test-status self-test-run \
                       self-test-detail model-status \
                       model-sweep model-sweep-status \
+                      idiom-check \
                       exec-sub eval-code ## <-- temporary [ development only ]
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
@@ -146,6 +147,37 @@ coding.cfg.partial_offload_min_layers = 4
 # coding.cfg.control_vector_scale = 1.0
 # coding.cfg.control_vector_layer_start = 10
 # coding.cfg.control_vector_layer_end   = 31
+
+## lora adapter [ gradient-trained steering toward p7 idioms, see         ##
+## data/tasks/coding-lora-p7-idioms.md ] : path to the adapter .gguf +     ##
+## scale [ runtime effect = scale * alpha / rank, same convention as       ##
+## PEFT ]. MODEL-SPECIFIC : retrain whenever start_model changes -- the    ##
+## loader enforces architecture match [ qwen35 ] but not the fine-tune,    ##
+## so the model id stays in the filename. applies to BOTH backends        ##
+## [ a load-time adapter is backend-agnostic ]. all commented out =       ##
+## unchanged behavior                                                     ##
+# coding.cfg.lora_adapter = /data/projects/protocol-7/data/control-vectors/lora/p7-idioms-lora.OFSQC4I-QDBKEXY.gguf  ## Qwen3.8 9B Heretic Uncensored ##
+# coding.cfg.lora_adapter_scale = 1.0
+
+## idiom conformance gate [ see data/tasks/coding-idiom-gate-p7-idioms.md ] ##
+## scan / repair / block generated code against data/idioms/rules.yaml.     ##
+## unlike the two keys above this is NOT model-specific -- it is a          ##
+## deterministic text transform, so it survives a model change.             ##
+##   off         = do nothing at all [ the default when unset ]             ##
+##   scan        = detect + harvest the corpus, change no output            ##
+##   repair      = also apply the auto-class rewrites [ resolve-verified,   ##
+##                 zero false positives across all 5462 src/ files ]        ##
+##   repair+turn = also block write-tool calls carrying gate-class          ##
+##                 violations, so a corrective turn can be requested        ##
+## start at `scan` : it grows the (draft -> corrected) corpus without       ##
+## touching a single byte of output. commented out = unchanged behavior     ##
+## note the flat naming : `coding.cfg.idiom_gate` is a scalar, so a       ##
+## sibling `coding.cfg.idiom_gate.max_turns` would be a nested-conflict   ##
+## [ a.b.c vs a.b.c.d ] -- hence idiom_gate_max_turns with an underscore  ##
+# coding.cfg.idiom_gate = scan
+# coding.cfg.idiom_gate_max_turns = 1
+# coding.cfg.idiom_rules = /data/projects/protocol-7/data/idioms/rules.yaml
+# coding.cfg.idiom_corpus_dir = /data/projects/protocol-7/data/idioms/corpus
 
 inference.backend.cpu.enabled = auto
 inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
@@ -348,8 +380,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,.,.,..,,.,,,,.,,,..,,,.,,.,,,.,,,,.,.,.,.,.,...,...,.,.,..,,,,.,.,,,,..,
-#57XFJKAJNJWP7LZOBMO7FQ5AXJBMDNBWYAQJ6SOHTEVPNB6NFBNDM5QDQJBO3DCTYEFFHW3IG654O
-#\\\|FIWHLB7576Y7LLJZ5JZY3O4IYEQ4SV5QPKMKEPTLJDLDLPOMRLW \ / AMOS7 \ YOURUM ::
-#\[7]FAIGGAR423CVH6M5FXB2HXXWKNHDK4KX55ZD4CSJ6KVU4OA36KDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,,..,..,,,,.,,,,,.,,,.,,,,..,.,.,...,...,,.,,,..,,,,,.,.,..,,
+#KDFJ6UWGNETU273RSEUPIXNAL72KBHWZRZNSLST24VNVVBRYNAERSSTOOF7UIVR2OSGWM5UZF4K56
+#\\\|RSB7YT5LP5MD7RBCNUU2GHXU6KC6YVLJ6TGM7A5XUASAGJGVDHY \ / AMOS7 \ YOURUM ::
+#\[7]SZMFTP2V7N5GCHRX7DZZXSDYLJ7FGPFDQUK5G6SIRWJXLQYCISCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

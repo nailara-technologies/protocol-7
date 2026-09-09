@@ -1,0 +1,37 @@
+{
+ "choices": [
+  {
+   "finish_reason": "stop",
+   "index": 0,
+   "message": {
+    "role": "assistant",
+    "content": "```perl\nsub check_threshold {\n    # read config and set default threshold\n    my $threshold = 30;\n    my $config = perlmod.load('config');\n    if (exists $config->{threshold}) {\n        $threshold = $config->{threshold};\n    }\n\n    # accept a value to check against the threshold\n    my $value = shift;\n\n    # if value exceeds threshold, log warning and return false\n    if ($value > $threshold) {\n        <[base.logs]>->(2, 'Value %.2f exceeds threshold %.2f',\n                         $value, $threshold);\n        return { mode => qw| false |, data => undef };\n    }\n\n    # value is within acceptable range\n    return { mode => qw| true |, data => $value };\n}\n```",
+    "reasoning_content": "The user wants a P7 module body (not header) that:\n1. Reads a threshold from config with default of 30\n2. Logs a warning if a value exceeds it\n\nI need to follow P7 conventions:\n- No sub {} declarations\n- Use perlmod.load for config\n- Use <[base.logs]>-> for logging\n- Column width <= 78 chars\n- Lowercase comments\n- Dot notation for modules\n- Return { mode => qw| true |, data => $result } on success\n- Return { mode => qw| false |, data => $error } on failure\n\nThe module should accept a value to check against the threshold.\n"
+   }
+  }
+ ],
+ "created": 1788929254,
+ "model": "Qwen3.8-9B-heretic-uncensored.i1-Q4_K_M.gguf",
+ "object": "chat.completion",
+ "usage": {
+  "completion_tokens": 326,
+  "prompt_tokens": 974,
+  "total_tokens": 1300,
+  "prompt_tokens_details": {
+   "cached_tokens": 969
+  }
+ },
+ "id": "chatcmpl-FmZTkaUcvlsRK7l2sJlRl35DSx1ypHBR",
+ "timings": {
+  "prompt_n": 5,
+  "prompt_ms": 61.536,
+  "prompt_per_token_ms": 12.3072,
+  "prompt_per_second": 81.2532501300052,
+  "predicted_n": 326,
+  "predicted_ms": 6308.318,
+  "predicted_per_token_ms": 19.350668711656443,
+  "predicted_per_second": 51.677800643531285,
+  "n_ctx": 145152,
+  "n_past": 1299
+ }
+}

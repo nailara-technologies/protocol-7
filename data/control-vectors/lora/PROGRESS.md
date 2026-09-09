@@ -39,7 +39,66 @@
 - QLoRA 4-bit NF4, lr 2e-4 cosine, 3 epochs, seq 1024, batch 2 x accum 8
 - dataset target ~350 examples, assistant-target-only loss incl. think span
 
-## todo
-- dequant GGUF -> HF bf16 checkpoint [ after server stop ]
-- dataset build + held-out exclusion check
-- train, convert, wire, validate, restore, write results
+## session 2 update [ resumed after step-limit ]
+- dequant rerun launched [ first attempt killed with CLI session ]
+- wiring DONE: zenka.v7 commented keys coding.cfg.lora_adapter/_scale,
+  spawn block in src/coding.spawn_inference_server after the cvec block
+  [ --lora-scaled verified in common/common.cpp:1707 ], perl -c passes
+- run_gens_lora.sh: second held-out set P_D/P_E/P_F x seeds 13/42/7777,
+  results-lora/<label>/
+- lora_to_gguf.py written; GGUFWriter auto-adds general.architecture from
+  arch= [ gguf_writer.py:110 ] -- no extra KV needed beyond
+  general.type/adapter.type/adapter.lora.alpha
+- dataset ALREADY BUILT in session 1: dataset/sft.jsonl, 403 examples,
+  rubric coverage invoke=220 cfgaccess=108 truefalse=187 modedata=93,
+  held-out asserts pass [ pair-41 P_A-shape dropped from seeds ]
+
+## session 2 update [ resumed after step-limit ]
+- dequant DONE + verified [ 427/427 exact names+shapes, sane values ]
+- wiring DONE [ zenka.v7 + spawn block, --lora-scaled verified ]
+- run_gens_lora.sh second held-out set [ P_D/P_E/P_F ]
+- server stopped for training window [ coding.draining TRUE -> eval-code
+  kill worked ; NOTE: plain kill fails, server runs as protocol-7 user ]
+- TRAINING ATTEMPT 1 FAILED: loss 14.49 > ln(248320)=12.4 random chance
+  -> base model broken. killed.
+- mapping bug #1 FOUND+FIXED [ fix_a_log.py ]: GGUF ssm_a is PRECOMPUTED
+  -exp(A_log) [ fork's llama-delta-net.cpp:282 uses it raw ] vs HF's
+  g=-exp(A_log)*softplus(a+dt) -> A_log=log(-ssm_a), patched 24 tensors
+- STILL GARBAGE after fix [ mean loss 15.8, multilingual salad ]
+- ruled out : tokenizer [ full 248077-vocab 1:1 match vs GGUF, special
+  tokens parse ], tensor shapes [ 427 exact ], residual explosion
+  [ hidden norms grow smoothly 0.78->537, no explosion ], embed cosines
+  sane, rope/mrope config [ probe identical with/without mrope_section ],
+  qkv layout [ C++ splits FLAT q|k|v same as HF -- line 343-362 ],
+  full-attn q-gate [ both per-head interleaved 256|256 ]
+- ground truth from prod binary [ port 8899 probe ]: next token after
+  same prompt = 'Thinking' 0.53 / 'The' 0.42 [ coherent ]
+- RUNNING: ablate_probe.py A/B/C [ zero mixers to localize : mlp-only /
+  full-attn-only / linear-attn-only ]
+
+## session 2 conclusion [ 2026-09-09, ablation result ]
+- ablate_probe.py A/B/C all finished. A [ no mixers ] garbage as expected
+  [ uninformative by design -- no attention = no context ]. B [ full-attn
+  only ] AND C [ linear-attn only ] BOTH garbage -> corruption is NOT
+  isolated to either mixer type, it's in something shared [ embed / norm
+  / mlp / lm_head / a global dequant scale ]. per the task's own hazard
+  discipline: this is the diffuse case, not the "one fix away" case.
+- DECISION: pausing the dequant+PEFT LoRA path here rather than continuing
+  to chase a diffuse bug in a from-scratch hybrid-architecture
+  dequantizer. handed to an Opus review for an alternative architecture
+  that avoids needing an HF-format checkpoint entirely [ the dequant step
+  only exists because gradient PEFT requires it -- forward-pass-only
+  techniques against the already-correct production GGUF binary don't ].
+  see `data/tasks/coding-lora-p7-idioms.md` for the follow-up.
+- server state at pause: coding zenka fully stopped [ v7-zenki.terminate,
+  not just the drained inference-server child ] -- restart with
+  `v7-zenki.start coding` when resuming any GPU-server-dependent work.
+
+## resume checklist [ if session dies again ]
+1. read ablate_{A,B,C}.log -> localize broken component
+2. fix mapping/config accordingly, re-run sanity_gen.py [ want coherent
+   gen + loss ~1.5-3.5 ]
+3. retrain [ train_lora.py ], convert [ lora_to_gguf.py ], restart server
+   via coding.eval-code spawn [ PROGRESS ops playbook ], validate, restore
+4. append results to data/tasks/coding-lora-p7-idioms.md
+- server currently STOPPED [ draining flag SET -- must del on restore ]

@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = coding.idiom.rules
+# descr = load and cache the idiom conformance rule table [ rules.yaml ]
+
+##      single source of truth for the REPAIR side of the idiom work.      ##
+##      data/control-vectors/score.py is the frozen MEASUREMENT side       ##
+##      and is deliberately NOT shared with this table : keeping them      ##
+##      independent stops the scorer becoming a mirror of the              ##
+##      rewriter.                                                          ##
+##                                                                         ##
+##      returns an array ref of rule hashes, each with a precompiled       ##
+##      'rx' qr// added. mtime-keyed cache invalidation, same              ##
+##      convention as context.template.load and embedding_search's         ##
+##      vec_cache -- editing rules.yaml takes effect without a zenka       ##
+##      restart.                                                           ##
+##                                                                         ##
+##      note the File::stat OO form : bin/Protocol-7 does a global         ##
+##      'use File::stat' which shadows the builtin, so a bare stat()       ##
+##      list-slice silently returns undef here [ same trap documented      ##
+##      in context.template.load ]                                         ##
+
+my $root = <system.root_path> // '';
+my $path = <coding.cfg.idiom_rules>
+    // sprintf qw| %s/data/idioms/rules.yaml |, $root;
+
+if ( not -f $path or not -r $path ) {
+    <[base.logs]>->( 0, ': idiom.rules : table not found [ %s ]', $path );
+    return [];
+}
+
+my $st    = File::stat::stat($path);
+my $mtime = $st ? $st->mtime : 0;
+
+my $cached = <coding.idiom.rules_cache>;
+return $cached->{'rules'}
+    if defined $cached
+    and ( $cached->{'mtime'} // -1 ) == $mtime;
+
+my ( $doc, $err ) = <[format.yaml.load_file]>->($path);
+
+if ( defined $err or not defined $doc or ref $doc ne qw| HASH | ) {
+    <[base.logs]>->(
+        0,     ': idiom.rules : parse error [ %s ] : %s',
+        $path, $err // 'empty or not a mapping'
+    );
+    return [];
+}
+
+my $raw = $doc->{'rules'};
+if ( ref $raw ne qw| ARRAY | ) {
+    <[base.logs]>->( 0, ': idiom.rules : no rules array in %s', $path );
+    return [];
+}
+
+## compile each detect pattern once. a rule with an uncompilable regex is ##
+## skipped loudly rather than taking the whole table down -- a bad rule   ##
+## must not disable conformance checking for every other rule.            ##
+my @rules;
+foreach my $rule ( $raw->@* ) {
+    next if ref $rule ne qw| HASH |;
+    my $id      = $rule->{'id'}     // '?';
+    my $pattern = $rule->{'detect'} // '';
+
+    if ( not length $pattern ) {
+        <[base.logs]>->( 0, ': idiom.rules : rule %s has no detect', $id );
+        next;
+    }
+
+    my $compiled = eval {qr{$pattern}};
+    if ( not defined $compiled ) {
+        <[base.logs]>->(
+            0, ': idiom.rules : rule %s uncompilable : %s',
+            $id, ( split m{\n}, ( $EVAL_ERROR // 'unknown' ) )[0]
+        );
+        next;
+    }
+
+    push @rules,
+        {
+        $rule->%*,
+        'rx'           => $compiled,
+        'class'        => $rule->{'class'}        // qw| report |,
+        'category'     => $rule->{'category'}     // qw| other |,
+        'target_group' => $rule->{'target_group'} // 1,
+        };
+}
+
+<coding.idiom.rules_cache> = { 'mtime' => $mtime, 'rules' => \@rules };
+
+<[base.logs]>->(
+    2,              ': idiom.rules : loaded %d rules from %s',
+    scalar(@rules), $path
+);
+
+return \@rules;
+
+#,,.,,,..,.,.,,,.,.,.,,,,,.,.,,,,,,..,,,.,,.,,..,,...,...,,,,,.,.,,.,,,,,,,.,,
+#2NDYB5RLV7KT4KHWAVY27CELUX446HOX6B4RO4Y5NGPDSSVY4HY4SDX33DAGJYETO6R6WMFPD5D5Y
+#\\\|XDFK4VFS7LZ5YAKVAW3TAVVLCDOFNLYN4QRNLGNYMSYIBILQOZA \ / AMOS7 \ YOURUM ::
+#\[7]GCOLTA5K4R2HN52XBTWKJKBPMNJKVQSFUNMDDRRC3UBRY6C5QIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
