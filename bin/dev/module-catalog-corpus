@@ -1,0 +1,371 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+
+###                        ###
+##  module-catalog-corpus  ##               #:..:..:..:..:..:..:..:..:..:
+###                        ###
+
+##  fasttext skipgram corpus assembler for the module catalog : one        ##
+##  training line per src/ module, built from the module's own '# name'    ##
+##  and '# descr' header tags -- module name repeated N times as the       ##
+##  anchor, then its dot-separated namespace segments, then the descr      ##
+##  words. same id-anchor-plus-prose shape as bin/dev/cisa-kev-corpus,     ##
+##  which is what puts identifiers and plain english into ONE vocabulary   ##
+##                                                                         ##
+##  this is the point of the domain : the identifier-only corpora [        ##
+##  bin/dev/depgraph-corpus ] can only be queried with a module name the   ##
+##  caller already has, since coding.tools.handler.embedding_search does   ##
+##  exact .vec token lookup with no subword composition. a corpus with     ##
+##  english in it can be queried with english                              ##
+##                                                                         ##
+##  stopwords are stripped HERE rather than at query time : the query      ##
+##  vector is an unnormalized sum over in-vocab tokens, so leaving 'the'   ##
+##  and 'of' in vocab lets them dominate a conversational query. keeping   ##
+##  them out of the corpus means the search tool's existing skip-unknown-  ##
+##  token behaviour drops them for free, with no change to query code      ##
+##  shared with the cisa/cwe/mitre domains                                 ##
+##                                                                         ##
+##  --with-graph adds the dep-graph adjacency lines and the cube access    ##
+##  grants as extra co-occurrence lines [ arm DG ], testing whether        ##
+##  english-to-name bridging and name-to-name clustering can share one     ##
+##  vector space. off by default : arm D is the primary measurement        ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+my %opt = (
+    qw| src-dir      | => c_dir( $root_path, qw| src | ),
+    qw| output       | =>
+        c_dir( $root_path, qw| data training |, qw| module-catalog.txt | ),
+    qw| depgraph     | =>
+        c_dir( $root_path, qw| data training |, qw| codebase-depgraph.txt | ),
+    qw| access       | =>
+        c_dir( $root_path, qw| cfg zenki cube |, qw| access.zenki | ),
+    qw| name-repeat  | => 3,     ##  module-name weight [ repetitions ]  ##
+    qw| descr-tokens | => 24,    ##  descr token budget per line  ##
+    qw| with-graph   | => 0,     ##  arm DG : add adjacency + access lines  ##
+    qw| source-tokens| => 0,     ##  arm E : N tokens mined from module body  ##
+    qw| quiet        | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| src-dir=s      | => \$opt{'src-dir'},
+    qw| output=s       | => \$opt{output},
+    qw| depgraph=s     | => \$opt{depgraph},
+    qw| access=s       | => \$opt{access},
+    qw| name-repeat=i  | => \$opt{'name-repeat'},
+    qw| descr-tokens=i | => \$opt{'descr-tokens'},
+    qw| with-graph!    | => \$opt{'with-graph'},
+    qw| source-tokens=i | => \$opt{'source-tokens'},
+    qw| quiet          | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+die ":: src dir not found: $opt{'src-dir'}\n" if !-d $opt{'src-dir'};
+
+## english stopwords + p7 descr filler that carries no discriminating ##
+## signal -- see the header note on why this happens at corpus build  ##
+my %stopword = map { $ARG => 1 } qw|
+    a an the and or of to for from in on at by with without into onto
+    is are was were be been being it its this that these those as if
+    then than so but not no nor do does did done can could should would
+    will shall may might must have has had having we you they he she
+    i me my our your their them us him her which who whom whose what
+    when where why how all any both each few more most other some such
+    only own same too very just also about over under again further
+    there here up down out off above below between through during
+    |;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my ( $entries, $no_descr, $scanned ) = scan_modules( $opt{'src-dir'} );
+
+my @lines;
+
+##  descr-anchored lines : name xN + namespace segments + descr words  ##
+for my $name ( sort keys %{$entries} ) {
+    my @tokens = (
+        ($name) x $opt{'name-repeat'},
+        namespace_segments($name),
+        @{ $entries->{$name} },
+    );
+    push @lines, join ' ', @tokens;
+}
+
+my $descr_lines = scalar @lines;
+my ( $graph_lines, $access_lines ) = ( 0, 0 );
+
+if ( $opt{'with-graph'} ) {
+
+    ## dep-graph adjacency lines, reused verbatim : already in training   ##
+    ## shape, already weighted forward x2 / reverse x1 by depgraph-corpus ##
+    if ( -f $opt{depgraph} ) {
+        my @graph = split m|\n|, read_file( $opt{depgraph} );
+        push @lines, grep {length} @graph;
+        $graph_lines = scalar grep {length} @graph;
+    } else {
+        warn ":: no dep-graph corpus at $opt{depgraph} [ skipped ]\n";
+    }
+
+    ## cube access grants : 'access.cmd.usr.<zenka> = cmd cmd ...' is a ##
+    ## bipartite zenka-to-command graph in adjacency shape already      ##
+    if ( -f $opt{access} ) {
+        my @grant = parse_access_grants( $opt{access} );
+        push @lines, @grant;
+        $access_lines = scalar @grant;
+    } else {
+        warn ":: no access file at $opt{access} [ skipped ]\n";
+    }
+}
+
+write_file( $opt{output}, join( '', map {"$ARG\n"} @lines ) );
+
+if ( !$opt{quiet} ) {
+    say sprintf ':: scanned %d files, %d with descr, %d without [ %.1f%% ]',
+        $scanned, $descr_lines, $no_descr,
+        $scanned ? 100 * $descr_lines / $scanned : 0;
+    say sprintf ':: corpus : %d descr lines, %d graph lines, %d access lines',
+        $descr_lines, $graph_lines, $access_lines;
+    say sprintf ':: %d training lines written to %s', scalar @lines,
+        $opt{output};
+}
+
+exit 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub scan_modules {
+    ##  read '# name' / '# descr' header tags from every src/ module  ##
+    my $dir = shift;
+
+    opendir( my $dh, $dir ) or die ":: cannot read $dir: $OS_ERROR\n";
+    my @files = sort grep { -f c_dir( $dir, $ARG ) } readdir($dh);
+    closedir($dh);
+
+    my %entry;
+    my $no_descr = 0;
+
+    for my $file (@files) {
+
+        my $head = read_head( c_dir( $dir, $file ), 12 );
+
+        ## the filename IS the module name -- the header '# name' tag is ##
+        ## cross-checked but the file path stays authoritative, same     ##
+        ## filesystem-as-index property the dep-graph domain relies on   ##
+        my $name = $file;
+
+        my $descr = extract_descr($head);
+
+        if ( not length $descr ) {
+            $no_descr++;
+            next;
+        }
+
+        my @tokens = grep { !$stopword{$ARG} } tokenize($descr);
+        splice( @tokens, $opt{'descr-tokens'} )
+            if @tokens > $opt{'descr-tokens'};
+
+        ##  arm E : mine additional vocabulary from the module body --    ##
+        ##  comment prose and identifier words. a zero-inference proxy    ##
+        ##  for 'richer summary text', to test whether token DENSITY      ##
+        ##  moves retrieval before paying for generated summaries         ##
+        if ( $opt{'source-tokens'} ) {
+            my %seen = map { $ARG => 1 } @tokens;
+            my @mined = grep { !$seen{$ARG}++ }
+                grep { !$stopword{$ARG} and length($ARG) > 2 }
+                mine_source( c_dir( $dir, $file ) );
+            splice( @mined, $opt{'source-tokens'} )
+                if @mined > $opt{'source-tokens'};
+            push @tokens, @mined;
+        }
+
+        ##  a descr of pure stopwords leaves nothing to anchor against    ##
+        if ( not @tokens ) {
+            $no_descr++;
+            next;
+        }
+
+        $entry{$name} = \@tokens;
+    }
+
+    return ( \%entry, $no_descr, scalar @files );
+}
+
+sub mine_source {
+    ##  vocabulary from a module body : comment prose plus the words   ##
+    ##  inside identifiers. deliberately crude -- this is a density     ##
+    ##  probe, not a documentation generator                            ##
+    my $path = shift;
+
+    open my $fh, qw| < |, $path or return ();
+    my @words;
+    my $line_no = 0;
+    while ( my $line = <$fh> ) {
+        $line_no++;
+        last if $line_no > 400;
+        next if $line =~ m|^\s*#[,.:\\]|;   ##  amos7 signature footer  ##
+        next if $line =~ m|^\s*##\s*\[|;     ##  banner rules  ##
+
+        ##  comment prose  ##
+        if ( $line =~ m|#+\s*(.+?)\s*#*\s*$| ) {
+            push @words, tokenize($1);
+        }
+
+        ##  identifier words : split on non-word and camel/underscore  ##
+        for my $ident ( $line =~ m|([A-Za-z][\w.:-]{2,})|g ) {
+            push @words, grep { length } split m|[^a-z0-9]+|, lc $ident;
+        }
+    }
+    close $fh;
+
+    return @words;
+}
+
+sub extract_descr {
+    ## pull the '# descr =' tag plus its wrapped continuation lines : a ##
+    ## continuation is a comment line that is not itself a new tag      ##
+    my $head = shift;
+
+    my $descr    = '';
+    my $in_descr = 0;
+
+    for my $line ( split m|\n|, $head ) {
+
+        if ( $line =~ m|^\#\s*descr\s*=\s*(.*)$| ) {
+            $descr    = $1;
+            $in_descr = 1;
+            next;
+        }
+
+        next if !$in_descr;
+
+        ##  a new '# tag =' line, or anything not a comment, ends it  ##
+        last if $line =~ m|^\#\s*\w[\w-]*\s*=|;
+        last if $line !~ m|^\#\s*(.*)$|;
+
+        my $continuation = $1;
+        last if $continuation !~ m|\S|;
+
+        $descr .= ' ' . $continuation;
+    }
+
+    return $descr;
+}
+
+sub namespace_segments {
+    ## dot-separated segments as their own tokens : 'base.file.slurp' -> ##
+    ## base file slurp -- gives the prefix families their own vectors    ##
+    my $name = shift;
+    my @seg  = grep { length and !$stopword{$ARG} } split m|[.]|, lc $name;
+    return @seg;
+}
+
+sub parse_access_grants {
+    ##  'access.cmd.usr.<zenka> = cmd cmd ...' -> one line per grant set  ##
+    my $path = shift;
+
+    my $text = read_file($path);
+
+    ##  join backslash continuations before matching  ##
+    $text =~ s|\\\s*\n\s*| |g;
+
+    my @lines;
+    for my $line ( split m|\n|, $text ) {
+        next if $line !~ m|access\.cmd\.usr\.(\S+)\s*=\s*(\S.*)$|;
+        my ( $zenka, $rest ) = ( $1, $2 );
+        $rest =~ s|\#.*$||;    ##  drop trailing comments  ##
+        my @cmds = grep { length and $ARG ne '*' } split m|\s+|, $rest;
+        next if !@cmds;
+        push @lines, join ' ', $zenka, @cmds;
+    }
+
+    return @lines;
+}
+
+sub tokenize {
+    ## lowercase word-ish tokens, punctuation stripped, dots and dashes ##
+    ## kept so dotted module names inside a descr survive intact        ##
+    my ($text) = @ARG;
+    my @tokens = grep {length} split m|\s+|, lc $text =~ s|[^\w\s.-]+| |gr;
+
+    ##  strip trailing/leading punctuation left on word edges  ##
+    my @clean;
+    for my $token (@tokens) {
+        $token =~ s|^[.-]+||;
+        $token =~ s|[.-]+$||;
+        push @clean, $token if length $token;
+    }
+
+    return @clean;
+}
+
+sub read_head {
+    ##  read the first N lines of a file  ##
+    my ( $path, $lines ) = @ARG;
+
+    open my $fh, qw| < |, $path or return '';
+    my $head = '';
+    while ( my $line = <$fh> ) {
+        $head .= $line;
+        last if $INPUT_LINE_NUMBER >= $lines;
+    }
+    close $fh;
+
+    return $head;
+}
+
+sub read_file {
+    ##  slurp a file  ##
+    my $path = shift;
+
+    open my $fh, qw| < |, $path
+        or die ":: cannot read $path: $OS_ERROR\n";
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $content = <$fh>;
+    close $fh;
+
+    return $content // '';
+}
+
+sub write_file {
+    ##  write content to file  ##
+    my ( $path, $content ) = @ARG;
+
+    open my $fh, qw| > |, $path
+        or die ":: cannot write to $path: $OS_ERROR\n";
+    print $fh $content;
+    close $fh;
+}
+
+#,,..,,..,.,,,,,.,,,,,..,,,.,,,.,,.,.,.,.,,,,,..,,...,..,,...,,,.,,..,,.,,,,.,
+#U52VZ36DDKIO56K7F4JWTEYRMYMTMKLPMATP62OLEEFIZ4INVSWHQDRCYVNXLXIS2O5XXLIYCUDPA
+#\\\|C4Q74FA2TW6TZE7MAZA64MHR42JKEEHO2BWXR2XCK75RAZGV67M \ / AMOS7 \ YOURUM ::
+#\[7]2LHKWSX4FA2K66ODHJXYJ7JJNC3H3KKDB6IVVWUN6GSQ73KOGQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
