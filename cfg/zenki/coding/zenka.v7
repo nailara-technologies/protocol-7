@@ -179,6 +179,19 @@ coding.cfg.partial_offload_min_layers = 4
 # coding.cfg.idiom_rules = /data/projects/protocol-7/data/idioms/rules.yaml
 # coding.cfg.idiom_corpus_dir = /data/projects/protocol-7/data/idioms/corpus
 
+## catalog-retrieval harvesting                                            ##
+## [ see data/tasks/coding-catalog-retrieval-phase2.md ]                    ##
+## records one jsonl line per completed task : the first 200 chars of the   ##
+## task text paired with the src/ modules that task actually wrote. this    ##
+## is the query distribution the retrieval work needs and cannot            ##
+## synthesise -- both gate runs so far used commit messages, and the fixed  ##
+## leakage probe showed that population is contaminated [ 43% of recent     ##
+## commits wrote the descr line they were then asked to retrieve ].         ##
+## purely additive : it records, it changes no output and gates nothing.    ##
+## commented out = unchanged behavior, same discipline as the keys above    ##
+# coding.cfg.catalog_harvest = yes
+# coding.cfg.catalog_corpus_dir = /data/projects/protocol-7/data/catalog-corpus
+
 inference.backend.cpu.enabled = auto
 inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
 
@@ -380,8 +393,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,.,,.,,,,..,,..,..,,,,.,,,,,.,,,.,,,,..,.,.,...,...,,.,,,..,,,,,.,.,..,,
-#KDFJ6UWGNETU273RSEUPIXNAL72KBHWZRZNSLST24VNVVBRYNAERSSTOOF7UIVR2OSGWM5UZF4K56
-#\\\|RSB7YT5LP5MD7RBCNUU2GHXU6KC6YVLJ6TGM7A5XUASAGJGVDHY \ / AMOS7 \ YOURUM ::
-#\[7]SZMFTP2V7N5GCHRX7DZZXSDYLJ7FGPFDQUK5G6SIRWJXLQYCISCY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,.,,,,,.,,..,,,,,.,,,.,,,,..,.,.,...,...,.,,,,..,...,,,,,,.,,
+#4BMHGQQCJYZBBWRP32PK6RKULQYDQ2NMMNV3GPWTDDBV4OUPFJ2BTBUCG6FOMFT3PV2D3AZRXQGH4
+#\\\|RYKUVFO3NOYG6RZCMV2GOLRENRDXQ5XTYGHDAPBZPR4YMWSKGTV \ / AMOS7 \ YOURUM ::
+#\[7]UK5YUNFXFAA2RIEXPTAREM4GQIE5P4DL4XH7HDHRQ3XPBXHBBKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

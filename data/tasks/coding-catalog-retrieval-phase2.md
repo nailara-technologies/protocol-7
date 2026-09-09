@@ -365,8 +365,154 @@ instrument. before any further corpus work:
    task's closing recommendation and it is now the blocking item rather
    than a nice-to-have.
 
-#,,,,,.,,,...,,..,,,.,,.,,.,,,,,,,.,,,...,,,,,..,,...,...,...,..,,...,.,.,...,
-#WRXDYJRWLHAPZ6PRXMEKEI67CTMERWHAHQ73RC4EZP3U27BEZVB6F567FGY64OXTTZNLDNCVGRUQE
-#\\\|S6B5WS6HIBJGUCHNZX5NVSUFKGZZMY2VR3VLLAPTGLWDF45OLWP \ / AMOS7 \ YOURUM ::
-#\[7]DI2762E3APN3TCNEUADAVIWXNP7WPFHUQ2DMQQ2BNZDSFDGTVCAA 7  DATA SIGNATURE ::
+### progress 2026-09-09 [ second pass ] : both next steps closed out
+
+#### 1 -- the leakage probe : instrument bug found, leakage CONFIRMED
+
+the probe returned 0/116 and 0/83, which was recorded as "a null from a
+broken instrument, not evidence". the bug:
+
+```
+$ git config --get color.ui
+always
+
+python capture of a diff line:
+  '\x1b[38;5;34m+\x1b[m\x1b[38;5;34m# descr = load and cache the idiom ...'
+```
+
+this repo sets **`color.ui = always`**, so git emits ANSI escapes even when
+stdout is a pipe. every added diff line reaches a captured buffer as
+`ESC[...m+ESC[m...`, and the probe's `^\+#\s*descr` anchor can never match
+a `+` that is not at the start of the line. a systematic zero, exactly as
+the implausibility suggested.
+
+**anyone scripting `git` on this host must pass `-c color.ui=false`.** this
+is a general trap, not specific to this probe -- and worth checking against
+any other tooling here that parses git diff output.
+
+re-run with `git -c color.ui=false`:
+
+| era | n | commits that WROTE a descr line of a module they touched | msg ↔ current-descr overlap |
+|---|---|---|---|
+| burned [ recent ] | 141 | **61 = 43%** | median 2, mean 2.87, 23% zero |
+| fresh [ older ] | 103 | 21 = 20% | median 0, mean **0.26**, **78% zero** |
+
+**leakage is real and large.** in the recent era nearly half of all commits
+authored the very descr line they are then being asked to retrieve, and
+message-to-descr lexical overlap is 11x higher by mean.
+
+controlling for era removes any doubt -- within the fresh set alone, split
+by whether the commit wrote a descr line:
+
+```
+contaminated [ commit wrote a descr line ]   10/ 44 = 22.7%
+CLEAN        [ did not ]                     10/106 =  9.4%
+```
+
+a 2.4x difference **inside the same time period**, so this is contamination
+rather than age or style drift. it also explains the 42.3% vs 11.7% gap at
+matched query length that the earlier length control could not account for.
+
+#### consequence : every prior number is inflated
+
+| figure | as reported | status |
+|---|---|---|
+| original gate A [ prior task ] | 23.9% | inflated -- burned set, 43% contaminated |
+| + candidate filter | 32.8% | inflated, same reason |
+| + source-mined density | 37.2% | inflated, same reason |
+| fresh held-out | 13.1 / 13.3% | mildly inflated -- 20% contaminated |
+| **clean subset** | **9.4%** | **the trustworthy estimate** |
+
+**the honest performance of a descr-anchored module-catalog domain on
+commit-message queries is roughly 9%, not 24% and not 37%.** the gate
+thresholds were never close to being met. this retroactively strengthens
+the original decision not to install, and it retires the burned 400-commit
+set permanently -- it should not be used again by anyone.
+
+#### 2 -- harvesting instrumentation : built, off by default
+
+the recurring conclusion across both tasks is that commit messages are the
+wrong query source. the right one -- real task text paired with what the
+task actually touched -- **exists nowhere**, and would keep not existing
+for as long as "revisit when there is real data" stayed the plan. so the
+recorder now exists and can accumulate from here.
+
+new modules:
+
+- **`coding.catalog.track_write`** -- resolves the current task by scanning
+  `<coding.task.queue>` for `in_progress` [ the same idiom
+  `coding.tools.handler.record_observation` already uses, since a tool
+  handler is not handed the task id ], and accumulates written module names
+  in memory under `<coding.catalog.touched>{$task_id}`. writes to paths
+  that are not real `src/` modules are ignored.
+- **`coding.catalog.corpus.record`** -- on completion, flushes one JSONL
+  line to `data/catalog-corpus/YYYY-MM.jsonl`:
+  `{ ts, task_id, task_summary, modules, n }`.
+
+integration, mirroring the idiom gate's own three-call-site pattern:
+
+- `coding.tools.handler.{write_new_file,edit_file,replace_in_file}` -- one
+  guarded call each, placed beside the existing `coding.idiom.check_write`
+  hook.
+- `coding.task.queue_complete` -- flush, placed before the task record can
+  be pruned.
+- `cfg/zenki/coding/zenka.v7` -- `coding.cfg.catalog_harvest` and
+  `coding.cfg.catalog_corpus_dir`, **shipped commented out**.
+- `cfg/zenki/coding/subroutines.load-early` -- regenerated with
+  `bin/dev/gen-sub-whitelist coding` [ 1258 subs ] rather than hand-edited.
+  note the generator strips the file's AMOS7 footer, as `bin/dev/dep-graph`
+  does to the `.asc`; it is restored at the next signed commit, and the
+  tool prints the signing command itself.
+
+three deliberate design decisions worth recording:
+
+1. **`task_summary` is bounded to 200 characters** -- the *same* bound
+   `coding.prompt.assemble` already applies when building its template
+   vars. that exact string is what an auto-inject provider would query
+   with, so harvesting more would measure a query shape that never occurs
+   *and* would turn a code corpus into a transcript archive.
+2. **`data/catalog-corpus/` is gitignored.** `data/idioms/corpus/` is
+   committed because it stores only a *checksum* of its prompt; this
+   corpus stores real task text, which can carry user content and does not
+   belong in a tracked file.
+3. **the corpus directory is deliberately NOT pre-created.** the idiom-gate
+   task hit exactly this: a `taeki`-owned directory that the
+   `protocol-7`-user zenka could not append to, which failed silently.
+   letting the zenka's own `base.file.make_path` create it on first use
+   gives correct ownership by construction.
+
+verification possible without running the zenka:
+
+- both modules parse -- `bin/format-code` reformatted them in place and
+  exited 0, which requires translating P7 syntax to perl first.
+- the two riskiest pure-perl paths were exercised directly: whitespace
+  collapse plus the 200-char bound, and the pretty-JSON newline collapse
+  that keeps the one-object-per-line contract [ 0 newlines remaining ].
+- **not verified live**: no task has run with `catalog_harvest` enabled, so
+  the in-progress task resolution and the append path are unproven against
+  a real queue. that is the first thing to check when it is switched on,
+  and it is the same class of integration bug the idiom gate found only by
+  running live.
+
+#### what was not done
+
+the optional third item -- inverting the 93 `data/src-review/*.md` "Purpose"
+sections into candidate queries -- was **not attempted**. with the leakage
+result in hand it would be a third proxy query distribution measured at
+n=93, when the actual finding is that proxy query distributions are the
+problem. the harvester now collects the real distribution; that is the
+comparison worth making, and it should be made against real data rather
+than a third stand-in.
+
+### status
+
+**nothing installed, nothing enabled.** no `.vec` in `data/embeddings/`,
+`embedding_search` unchanged, `coding.cfg.catalog_harvest` commented out =
+current coding-zenka behavior is byte-identical. the harvester is inert
+until someone deliberately turns it on.
+
+#,,.,,.,,,.,.,.,.,..,,,.,,,,,,.,.,,.,,,..,..,,..,,...,...,...,...,,,,,.,.,,.,,
+#FG754FGXFMYIALHLBMALXML6THGRYR23YG4RO5DEYXLB4B6GHLCIAB2MRYC2IOHDQDPV3LT7YYT2M
+#\\\|CAWBSKFDV2ZJ3EW43BC2PS4SVFNOBMXP2VIRZJ576OK3YCBFYIU \ / AMOS7 \ YOURUM ::
+#\[7]NIKXDUZ2HKLTABTFVAQWNEPUJ2S4DCTF6YTCUCAZVGBOWRYDCSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
