@@ -61,6 +61,12 @@ if ( exists $code{'coding.idiom.check_write'} ) {
     }
 }
 
+## note the write for the catalog-retrieval corpus [ inert unless ##
+## coding.cfg.catalog_harvest is enabled ]                        ##
+if ( exists $code{'coding.catalog.track_write'} ) {
+    <[coding.catalog.track_write]>->( { 'target' => $path } );
+}
+
 ## use chmod child to create empty file as admin user if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $cur_mode;
@@ -113,8 +119,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access "
     . "]\nstaged at : %s", $path, length($content), $stage_rel;
 
-#,,..,,.,,,,,,,,,,,,,,,.,,,,.,...,,,,,..,,,.,,.,.,...,...,,..,,,.,,..,,,.,.,,,
-#SWMKKQJRX23EKOVGS3DUQBKGISEAO5E7BHYRUFXA64SELKWTR6B4P4IJGCMPP7XOMAKTWOMOP5FJI
-#\\\|RUK6MMIQNKUZLJBNXB7HEZHKHDLLB2RK7MGUYTMQRESH2QRSUEF \ / AMOS7 \ YOURUM ::
-#\[7]7XZA6BXEZ3LJ5T5P2L3MLTNGDBDPMDYK3A64QFTJSOCZG2UG7AAA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,..,,.,,.,.,.,.,,,.,..,,,,.,,,,,.,.,...,..,,...,,..,,,.,.,.,..,,
+#Q3AYD6HX73HCJXR24VEYLJW6U5S5VUDHDLF7OPHESVFA43UKB3X7MDV7IEBPGEQ2PP7JSNJU2W4PY
+#\\\|D7R5B2ZED7WR3S3EM5KG6TOUHZW3RLGDAXONI4HDO4DWYVKBQLO \ / AMOS7 \ YOURUM ::
+#\[7]CW2PEIIOXOPPIZIG6TH7KRJEGL2FYIUY6MLCJFYBACX5ENUSAQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

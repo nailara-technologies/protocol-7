@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = coding.catalog.corpus.record
+# descr = append a (task text -> modules touched) record to the corpus
+# param = { task_id => '...' }
+
+##        the durable artifact of the catalog-retrieval work. one           ##
+##        JSONL line per completed task :                                   ##
+##                                                                          ##
+##        { ts, task_id, task_summary, modules, n }                         ##
+##                                                                          ##
+##        task_summary is truncated to the SAME 200 characters that         ##
+##        coding.prompt.assemble already puts into its template vars        ##
+##        [ see its $tpl_vars 'task_summary' ] -- deliberately,             ##
+##        because that exact string is what an auto-inject provider         ##
+##        would query with. harvesting anything longer would measure        ##
+##        a query shape that never actually occurs, and would turn a        ##
+##        code corpus into a transcript archive.                            ##
+##                                                                          ##
+##        contrast coding.idiom.corpus.record, which stores only a          ##
+##        CHECKSUM of its prompt : that corpus needs the prompt only        ##
+##        as an identity, this one needs the text itself, since the         ##
+##        text IS the query under test. the 200-char bound is what          ##
+##        keeps that defensible.                                            ##
+##                                                                          ##
+##        off unless <coding.cfg.catalog_harvest> is enabled.               ##
+
+my $params = shift // {};
+
+return { 'mode' => qw| true |, 'data' => 'disabled' }
+    if not <[base.cfg_bool]>->(<coding.cfg.catalog_harvest>);
+
+my $task_id = $params->{'task_id'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'expected a task_id' }
+    if not length $task_id;
+
+<coding.catalog.touched> //= {};
+my $touched = delete <coding.catalog.touched>->{$task_id};
+
+## a task that wrote no src module is not a retrieval example : there is no ##
+## ground truth to pair the query with                                      ##
+return { 'mode' => qw| true |, 'data' => 'no modules touched' }
+    if ref $touched ne qw| HASH |
+    or not keys $touched->%*;
+
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| true |, 'data' => 'task record gone' }
+    if ref $task ne qw| HASH |;
+
+my $summary = $task->{'request'}{'description'} // '';
+$summary =~ s|\s+| |g;
+$summary =~ s|^\s+||;
+$summary = substr( $summary, 0, 200 );
+
+return { 'mode' => qw| true |, 'data' => 'no task text' }
+    if not length $summary;
+
+my $root = <system.root_path> // '';
+my $dir  = <coding.cfg.catalog_corpus_dir>
+    // sprintf qw| %s/data/catalog-corpus |, $root;
+
+if ( not -d $dir ) {
+    if ( not <[base.file.make_path]>->($dir) ) {
+        <[base.logs]>->( 0, ': catalog.corpus : cannot create %s', $dir );
+        return { 'mode' => qw| false |, 'data' => "cannot create $dir" };
+    }
+}
+
+my @stamp = localtime time;
+my $path  = sprintf qw| %s/%04d-%02d.jsonl |, $dir, $stamp[5] + 1900,
+    $stamp[4] + 1;
+
+my $line = <[format.json.encode]>->(
+    {   'ts'           => time,
+        'task_id'      => $task_id,
+        'task_summary' => $summary,
+        'modules'      => [ sort keys $touched->%* ],
+        'n'            => scalar keys $touched->%*,
+    }
+);
+
+## format.json.encode is pretty-printed [ ->pretty(1), shared with other   ##
+## callers and not ours to change ] so literal newlines are collapsed to   ##
+## keep the one-object-per-line jsonl contract -- safe, since JSON forbids ##
+## a raw newline inside a string literal. same fix as                      ##
+## coding.idiom.corpus.record needed after its own live run                ##
+$line =~ s|\s*\n\s*| |g;
+
+if ( not <[base.file.append]>->( $path, $line . "\n" ) ) {
+    <[base.logs]>->( 0, ': catalog.corpus : cannot append to %s', $path );
+    return { 'mode' => qw| false |, 'data' => "cannot append to $path" };
+}
+
+<[base.logs]>->(
+    2, ':. catalog.corpus : %s [ %d module%s ]',
+    $task_id,
+    scalar keys $touched->%*,
+    ( keys $touched->%* ) == 1 ? '' : 's'
+);
+
+return { 'mode' => qw| true |, 'data' => $path };
+
+#,,..,...,,,,,..,,,..,.,,,,.,,,..,...,,,,,,.,,..,,...,...,.,.,.,.,,.,,,..,,,.,
+#57BO6WJNSARG3FDGACGHIFEBRFJWOFMJQJ6SWV4IB3EAMC3UDWWFH4G4LNTFPDP4IUXAEISJ4NCRA
+#\\\|PZV3NQIEP7XC3DX326HGXOIHEQPSAWX5DL26TYEODM6XEZTQZPL \ / AMOS7 \ YOURUM ::
+#\[7]FUNIM6MKWVXLMUETVCDLBQGWCHDA3TLEZ72YEAA3MHDUMR73LICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

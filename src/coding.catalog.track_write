@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = coding.catalog.track_write
+# descr = note which module a task wrote, for the retrieval corpus
+# param = { target => '<path or module name>' }
+
+##      half of the harvesting instrument for the catalog-retrieval         ##
+##      work [ data/tasks/coding-catalog-retrieval-phase2.md ]. every       ##
+##      write a task performs is accumulated in memory against that         ##
+##      task's id ; coding.catalog.corpus.record flushes the set to         ##
+##      disk once the task completes.                                       ##
+##                                                                          ##
+##      why this exists : both gate runs so far evaluated retrieval         ##
+##      using COMMIT MESSAGES as the query, and the fixed leakage           ##
+##      probe showed that population is contaminated -- 43% of recent       ##
+##      commits wrote the very descr line they were then asked to           ##
+##      retrieve, and clean commits score 9.4% against 22.7% for            ##
+##      contaminated ones. commit messages are the wrong query source.      ##
+##      the RIGHT one is the task text the auto-inject provider would       ##
+##      actually see, paired with what that task really touched -- and      ##
+##      that data does not exist anywhere yet. it only starts existing      ##
+##      once something records it, which is this.                           ##
+##                                                                          ##
+##      off unless <coding.cfg.catalog_harvest> is enabled : with the       ##
+##      key absent this module returns immediately and changes              ##
+##      nothing.                                                            ##
+
+my $params = shift // {};
+
+return { 'mode' => qw| true |, 'data' => 'disabled' }
+    if not <[base.cfg_bool]>->(<coding.cfg.catalog_harvest>);
+
+my $target = $params->{'target'} // '';
+
+return { 'mode' => qw| true |, 'data' => 'no target' } if not length $target;
+
+## the module name is the basename : src/base.log -> base.log, and the ##
+## filesystem-as-index property means no lookup table is needed        ##
+my $module = $target;
+$module =~ s{^.*/}{};
+
+## only track modules that actually exist under src/ -- a write to a ##
+## scratch path or a data file is not a retrieval target             ##
+my $root = <system.root_path> // '';
+return { 'mode' => qw| true |, 'data' => 'not a src module' }
+    if not length $module
+    or not -f sprintf( qw| %s/src/%s |, $root, $module );
+
+## resolve the task this write belongs to : same in-progress scan the     ##
+## record_observation handler uses, since a tool handler is not given the ##
+## task id directly                                                       ##
+my $task_id = '';
+foreach my $tid ( keys <coding.task.queue>->%* ) {
+    my $task = <coding.task.queue>->{$tid};
+    next if ref $task ne qw| HASH |;
+    next if ( $task->{'execution'}{'status'} // '' ) ne qw| in_progress |;
+    $task_id = $tid;
+    last;
+}
+
+return { 'mode' => qw| true |, 'data' => 'no active task' }
+    if not length $task_id;
+
+<coding.catalog.touched> //= {};
+<coding.catalog.touched>->{$task_id}{$module} = TRUE;
+
+<[base.logs]>->( 3, ':. catalog.track : %s <- %s', $task_id, $module );
+
+return { 'mode' => qw| true |, 'data' => $module };
+
+#,,,,,,.,,,..,,.,,,,,,.,,,.,,,,.,,,,,,,.,,...,..,,...,..,,...,...,.,.,,..,,,.,
+#CJLI3VLB7ATOIJQ5WGGDBQUKD6XV4O4VJ564ZS5PAJTGDR543GKPFNUMUN2UVXDGGEVLTZNVTTN4E
+#\\\|K5AE256OG54HYWUWZHP4DKJ5XA2UTVVIRT375P6G7HI2TRUYYRN \ / AMOS7 \ YOURUM ::
+#\[7]BMOEZAN47I5W23V6G7U3FHXJUCUFVZZOHRWDGKFLWPB65POMJSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
