@@ -30,14 +30,22 @@ push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 1, "task completed : %s", $task_id );
 
+## flush this task's (task text -> modules touched) pair to the            ##
+## catalog-retrieval corpus [ inert unless coding.cfg.catalog_harvest is   ##
+## enabled ] -- must run before the task record is pruned, which is why it ##
+## hangs off completion rather than a later sweep                          ##
+if ( exists $code{'coding.catalog.corpus.record'} ) {
+    <[coding.catalog.corpus.record]>->( { 'task_id' => $task_id } );
+}
+
 return {
     success => TRUE,
     task_id => $task_id,
     message => "Task completed: $task_id"
 };
 
-#,,,.,,.,,,.,,..,,.,.,.,.,,..,,,,,,,.,,,,,,,,,.,.,...,...,,.,,..,,,.,,...,,..,
-#HCMWVURJQB4V6Z42DX6ER7JQB3QQ2OFDB7T234234ESWJD72Y4GB3IOWGTPNUBYVXO5X7WQYTY6C2
-#\\\|7HDWGSE37DTFZ674MASOG7ZI5IFKHVOAUJXIZUJZ3P25ZMYHLSF \ / AMOS7 \ YOURUM ::
-#\[7]UTVITLCXORWI6FRAOWVXLRNEFNZAER5RGAAEXU7MQK7NX63C5EAA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,,,.,,,.,,.,,,..,,,.,...,...,.,.,...,...,...,,.,,,.,,,.,,,,.,
+#E5DFWARBH6VK4YTQFWUGLBYDARHBJWEBKYCN4EVDN6PT3KXOQY7HVY2ATYXNKUPENDR2SCHDJUZIW
+#\\\|MJZRXMAVZPWJ3YCCF3RSCUEFS4XRWJXOJMI2EO4HJYMXLNKONB2 \ / AMOS7 \ YOURUM ::
+#\[7]C2VL7BPAGBWLGRGYPRF6JUWJHEKCYZJU327JFD3XREAUC2AZRYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

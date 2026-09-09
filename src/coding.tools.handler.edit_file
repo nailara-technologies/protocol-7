@@ -137,6 +137,12 @@ if ( $apply && !$errors ) {
         }
     }
 
+    ## note the write for the catalog-retrieval corpus [ inert unless ##
+    ## coding.cfg.catalog_harvest is enabled ]                        ##
+    if ( exists $code{'coding.catalog.track_write'} ) {
+        <[coding.catalog.track_write]>->( { 'target' => $path } );
+    }
+
     my $result = <[file.write]>->( $abs_path, \$new_content, $norm_encoding );
     return ": error : failed to write file : $result" unless $result;
 }
@@ -152,8 +158,8 @@ return sprintf "## %s batch %d [ %d/%d edits ] %s ##\n%s",
     ( $has_more ? "\n[ more : continue=$next_continue ]" : "" ),
     join "\n", @preview;
 
-#,,..,...,,..,,,,,.,.,,,.,.,,,,..,,,.,,,,,...,.,.,...,..,,.,.,,.,,,,.,.,.,,..,
-#34DJR6MD7HI5BV6YGUN34WPCWU7M7XTLAUGSONXX7X5ALXL557UQYDUFP4ZTUO3BX6VR3DOAFCGQ2
-#\\\|CHRJVE4S5HTH3OMLOCR7DYJ3AYYAJDLWQNKQMZ7JTA54OXDLE5A \ / AMOS7 \ YOURUM ::
-#\[7]EP55AHWD7X7WK3MYMJZLRR543SQO5O2KWJII5EMCP4OGLEPK2UAI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,...,...,,.,,..,,,,,,,,,,...,.,.,...,...,...,.,.,,,,,,,.,...,
+#KF3A4NO3E2UD65A7VVE67MBTIKG6CGV4HLUQHSBE73CRKDA5XVSQY3OUD5NW5TKXB3LTM2VW335JA
+#\\\|EYULHSLPEONHWVPHGFOOUT5VBPFUHNWBLM4LVGTWUWEWOELMAYY \ / AMOS7 \ YOURUM ::
+#\[7]ZCJHOONSTLWR6IBZCKP6I2PCQ3CMLSBNKM5NLCOP2UHIZYKV7CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

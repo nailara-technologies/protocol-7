@@ -105,6 +105,12 @@ if ( exists $code{'coding.idiom.check_write'} ) {
     }
 }
 
+## note the write for the catalog-retrieval corpus [ inert unless ##
+## coding.cfg.catalog_harvest is enabled ]                        ##
+if ( exists $code{'coding.catalog.track_write'} ) {
+    <[coding.catalog.track_write]>->( { 'target' => $path } );
+}
+
 ## write back using chmod child if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $mode_restore;
@@ -138,8 +144,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, "
     . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,.,,...,,,,,..,,,,.,...,...,...,..,,..,,..,,..,,...,...,.,,,,,,,,,,,,,,,,.,,
-#RW5ZJMZLRSMYTI367ULZS76RMVHC6HZHP7LO5ISM5ACJJRAJ56GK6AFRUG7SE6KZIUGDFTND2ZUAG
-#\\\|X5YPUUSDWOSSXFQFCQGSSL55E2HLIN5JV2NDHG4N6W3SABNJPMZ \ / AMOS7 \ YOURUM ::
-#\[7]36JK2G5D6JJNTIF5IJP6XKK5NPB654JTWIK7DXCGVKIYANWWREDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,..,...,.,,,.,,,.,.,,..,..,,..,,...,...,..,,,,,,,,,,...,,,.,
+#KKSA2GJUNHA6OYZHSLRJD6A3O4JESSC5ZT5BUHLN4NB63EAY2PMDCPNFQC2E6WDEOHYHOZDFO72SO
+#\\\|FNXHHYLWZOCZENHBTBPUSDXZR3PUDDNIVUGU7CVFL3VSAVQSTOK \ / AMOS7 \ YOURUM ::
+#\[7]GTAZRNH3HH2RIKS5RQX3OD464NSOWU5CRNSYPSWVLOD4DPHEXAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
