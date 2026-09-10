@@ -21,6 +21,12 @@ if ( $command_params =~ s| *:repair-mode: *| |i ) {
     );
 }
 
+## :workers=N: overrides the parallel-worker count [ default : auto, based ##
+## on cpu count -- 'strict' mode only, see below. :workers=1: forces the   ##
+## plain sequential path                                                  ##
+my $workers_override;
+$workers_override = $1
+    if $command_params =~ s| *:workers=(\d+): *| |;
 $command_params =~ s,^ *| *$,,;
 
 my $signature_key_name = qw| proto-7.sourcecode |;
@@ -84,203 +90,182 @@ if (   @source_paths == 0
 
 <[base.log]>->( 1, '.:[ VERIFYING SOURCE SIGNATURES ]:.' );
 
-my $valid_count   = 0;
-my $invalid_count = 0;
-my $repair_needed_count
-    = 0;    # Count files that need repair but could still verify
-my $file_count = scalar @source_paths;
+my $valid_count         = 0;
+my $invalid_count       = 0;
+my $repair_needed_count = 0;
+my $file_count          = scalar @source_paths;
 
 <[base.logs]>->( '* verifying %s source file signatures..,', $file_count );
 
-foreach my $path_rel (@source_paths) {
-    my $path_abs = catfile( $work_tree, $path_rel );
-    <[base.log]>->( 2, qw| : | );
+## 'repair' mode writes files -- always run it as a single, sequential   ##
+## shard, unchanged behaviour. 'strict' mode never writes anything, so   ##
+## it's safe to fan it out across workers with no race-safety design     ##
+## needed at all [ unlike sourcecode.console.update-signatures, which    ##
+## does write and needed the TOCTOU-guard + result-file + kill-list      ##
+## machinery -- copied here verbatim for the orchestration shape only ]  ##
+my $workers = 1;
 
-    # Read file and extract signature data
-    my $src_str;
-    if ( not defined <[file.slurp]>->( $path_abs, \$src_str, qw| :raw | ) ) {
-        ## file.slurp already logged the specific reason [ e.g. permission ##
-        ## denied ] -- skip extraction so we don't also emit its generic   ##
-        ## "scalar ref content was undefined" fallback warning on top      ##
-        <[base.logs]>->(
-            0,
-            ':E: cannot read file, see error above :: %s',
-            <[base.parser.ellipse_center]>->( $path_rel, 44 )
-        );
-        $invalid_count++;
-        next;
-    }
-    my $footer_data = <[source.extract_sig_body]>
-        ->( \$src_str, qw| strip |, $verify_mode );
-
-    <[base.logs]>->( 2, ':::[ %s ]:.', $path_rel );
-
-    # Check if signature exists
-    if ( not $footer_data->{'was-present'} ) {
-        <[base.logs]>->(
-            0,
-            ':E: no signature present :: %s',
-            <[base.parser.ellipse_center]>->( $path_rel, 44 )
-        );
-        $invalid_count++;
-        next;
-    }
-
-    # Check signature structure
-    if ( not $footer_data->{'structure-was-valid'} ) {
-        if ( $footer_data->{'yourum-fake-signature'} ) {
-            <[base.logs]>->(
-                0,
-                ':E: fake signature detected :: %s',
-                <[base.parser.ellipse_center]>->( $path_rel, 44 )
-            );
-            $invalid_count++;
-            next;
-        }
-        my $footer_error = $footer_data->{'encountered-error'};
-        my $err_msg
-            = $footer_data->{'extraction_failed_with_markers'}
-            ? 'no extractable signature footer'
-            : ( $footer_error // 'invalid signature structure' );
-        <[base.logs]>->(
-            0, ':E: %s :: %s', $err_msg,
-            <[base.parser.ellipse_center]>->( $path_rel, 44 )
-        );
-        $invalid_count++;
-        next;
-    }
-
-    # Check if signature has missing separator endline
-    if ( $footer_data->{'needs_separator_endline'} ) {
-        <[base.log]>->( 1, ':E: missing separator endline before signature' );
-
-        if ( $verify_mode eq 'strict' ) {
-            $invalid_count++;
-            next;
-        } else {
-            <[base.log]>->( 1, ': continuing in repair mode' );
-
-            # Track files that need repair but allow verification to continue
-            $repair_needed_count++;
+if ( $verify_mode eq 'strict' ) {
+    $workers = $workers_override;
+    if ( not defined $workers ) {
+        $workers = 1;
+        my $parallel_verify_threshold   = 200;
+        my $parallel_verify_max_workers = 8;
+        if ( $file_count >= $parallel_verify_threshold ) {
+            my $cpu_count = 0;
+            my $cpuinfo;
+            if ( <[file.slurp]>->( '/proc/cpuinfo', \$cpuinfo ) ) {
+                $cpu_count++ while $cpuinfo =~ m|^processor\s*:|mg;
+            }
+            $workers = $cpu_count > 1 ? $cpu_count : 1;
+            $workers = $parallel_verify_max_workers
+                if $workers > $parallel_verify_max_workers;
         }
     }
+    $workers = 1           if $workers < 1;
+    $workers = $file_count if $workers > $file_count;
+}
 
-    # Verify signature using source.signature_valid
-    my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
-        \$src_str, $footer_data, {}, $signature_key_name,
-        $verify_mode    ##{}<--TRUTH_CHECKS.
+if ( $workers <= 1 ) {
+
+    my $result_href = <[sourcecode.verify_file_list]>->(
+        \@source_paths, $work_tree, $verify_verbosity,
+        $verify_mode,   $signature_key_name
     );
 
-    # Track if the file was repaired
-    my $was_repaired
-        = ( $report_ref && $report_ref->{'repaired'} ) ? TRUE : FALSE;
-    my $was_reconstructed
-        = ( $report_ref && $report_ref->{'reconstructed'} ) ? TRUE : FALSE;
-    my $repaired_state
-        = ( $was_repaired && $report_ref->{'repaired-with-state'} )
-        ? $report_ref->{'repaired-with-state'}
-        : 5;
+    $valid_count         = $result_href->{'valid_count'};
+    $invalid_count       = $result_href->{'invalid_count'};
+    $repair_needed_count = $result_href->{'repair_needed_count'};
 
-   # If the signature was repaired, update the file with the corrected content
-    if ( ( $was_repaired || $was_reconstructed ) && $verify_mode eq 'repair' )
-    {
-   # The content has already been modified in memory by source.signature_valid
-   # Write it back to the file
-        <[base.logs]>->(
-            2,
-            ': writing %s file: %s',
-            $was_reconstructed ? 'reconstructed' : 'repaired', $path_abs
-        );
-        <[file.put_bin]>->( $path_abs, \$src_str );
-        $footer_data->{'repaired'}
-            = TRUE;    # Mark as repaired in the footer data
-        $footer_data->{'reconstructed'} = TRUE if $was_reconstructed;
+} else {
+
+    <[base.logs]>->( 2, ': verifying with %d parallel workers..,', $workers );
+
+    my @shards   = map { [] } 1 .. $workers;
+    my $shard_ix = 0;
+    foreach my $path_rel (@source_paths) {
+        push $shards[ $shard_ix % $workers ]->@*, $path_rel;
+        $shard_ix++;
     }
 
-    if ($is_valid) {
-        $valid_count++;
+    my $run_tag = sprintf( qw| %d-%d |, $PID, time() );
+    my @worker_pid;
+    my @worker_result_file;
 
-        # If it was repaired or reconstructed, show special message
-        if ( $was_repaired || $was_reconstructed ) {
-            <[base.logs]>->(
-                1,
-                ':+: valid (%s%s) :: %s',
-                $was_reconstructed ? 'reconstructed' : 'repaired',
-                $was_repaired && !$was_reconstructed
-                ? " with state $repaired_state"
-                : '',
-                <[base.parser.ellipse_center]>->( $path_rel, 28 )
-            );
+    foreach my $w ( 0 .. $#shards ) {
 
-            # Decrement repair needed count since it's now valid
-            $repair_needed_count-- if $repair_needed_count > 0;
-        } else {
-            <[base.logs]>->(
-                1,
-                ':+: valid :: %s',
-                <[base.parser.ellipse_center]>->( $path_rel, 37 )
+        my $result_file
+            = sprintf( qw| /tmp/p7-sourcecode-verify.%s.w%d.tmp |, $run_tag,
+            $w );
+
+        my $pid = <[base.fork]>;
+
+        if ( not defined $pid ) {
+            <[base.logs]>->( 0, ':E: fork failed for worker %d <{C1}>', $w );
+            <[base.exit]>->(
+                qw| 0110 |, 'aborting signature verify, fork failed', 0
             );
         }
 
-        # Display valid signature counter in verbose mode
-        printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
-            $colors{'p7_fg_0003'},
-            $colors{'B01'}, $valid_count, $colors{'reset'}
-            if <system.zenka.verbosity.console> == 1;
-    } else {
-        <[base.log]>->( 0, qw| : | ) if $invalid_count == 0;
-        $invalid_count++;
-        <[base.logs]>->(
-            0,
-            ':E: signature validation failed :: %s',
-            <[base.parser.ellipse_center]>->( $path_rel, 44 )
-        );
+        if ( $pid == 0 ) {    ## child : verify this shard, report, exit ##
 
-        # Provide detailed error report in higher verbosity
-        if ( $verify_verbosity > 1 && defined $report_ref ) {
-            <[base.log]>->( 2, ': : signature verification details:' );
-            foreach my $type ( <[base.sort]>->($report_ref) ) {
-                if ( not length ref $report_ref->{$type} ) {
-                    <[base.logs]>->(
-                        2,     ': :. %30s : %s',
-                        $type, $report_ref->{$type} ? 'true' : 'false'
-                    );
-                } else {
-                    foreach
-                        my $mode ( <[base.sort]>->( $report_ref->{$type} ) ) {
-                        <[base.logs]>->(
-                            2,
-                            ': :. %30s [%s] : %s',
-                            $type,
-                            $mode,
-                            $report_ref->{$type}->{$mode} ? 'true' : 'false'
-                        );
-                    }
-                }
+            my $result_href = <[sourcecode.verify_file_list]>->(
+                $shards[$w], $work_tree, $verify_verbosity,
+                $verify_mode, $signature_key_name, $w
+            );
+
+            <[file.put]>->(
+                $result_file,
+                sprintf(
+                    "DONE\t%d\t%d\t%d\n",
+                    $result_href->{'valid_count'},
+                    $result_href->{'invalid_count'},
+                    $result_href->{'repair_needed_count'}
+                )
+            );
+
+            <[base.exit]>->(
+                0,
+                sprintf(
+                    'worker %d done, %d valid, %d invalid',
+                    $w, $result_href->{'valid_count'},
+                    $result_href->{'invalid_count'}
+                ),
+                2
+            );
+        }
+
+        push( <system.kill_list>->@*, $pid );
+        push @worker_pid,         $pid;
+        push @worker_result_file, $result_file;
+    }
+
+    my %pending = map { $ARG => 1 } 0 .. $#worker_pid;
+    my %crashed;
+
+    while ( keys %pending ) {
+        foreach my $w ( <[base.sort]>->( keys %pending ) ) {
+
+            my $report;
+            <[file.slurp]>->( $worker_result_file[$w], \$report )
+                if -f $worker_result_file[$w];
+
+            if ( defined $report
+                and $report =~ m|^DONE\t(\d+)\t(\d+)\t(\d+)|m ) {
+                $valid_count         += $1;
+                $invalid_count       += $2;
+                $repair_needed_count += $3;
+                delete $pending{$w};
+            } elsif ( not kill( 0, $worker_pid[$w] ) ) {
+                $crashed{$w} = TRUE;
+                delete $pending{$w};
             }
         }
+
+        if ( keys %pending ) {
+            <[event.once]>;    ## keep SIGINT responsive [ safe : parent ##
+                                ## process, not a forked child ]         ##
+            select( undef, undef, undef, 0.1 );
+        }
     }
 
-    # Allow for SIGINT
-    <[event.once]>;
+    my %spawned_pid = map { $ARG => TRUE } @worker_pid;
+    <system.kill_list>->@*
+        = grep { not $spawned_pid{$ARG} } <system.kill_list>->@*;
+    unlink grep {-f} @worker_result_file;
+
+    if (%crashed) {
+        <[base.logs]>->(
+            0,
+            ':E: worker%s %s crashed mid-verify -- treating as invalid',
+            <[base.cnt_s]>->( scalar keys %crashed ),
+            join( ', ', <[base.sort]>->( keys %crashed ) )
+        );
+        $invalid_count += scalar keys %crashed;    ## fail closed, not open ##
+    }
 }
 
 # Final summary
 <[base.log]>->( 0, qw| : | ) if $invalid_count;
 
-# Count repaired and reconstructed files - we don't need to re-read files as we already track this
+## repaired/reconstructed counts are only ever displayed below in repair ##
+## mode -- skip the extra full-corpus re-read pass entirely in strict    ##
+## mode [ it always ran before, on every commit, computing numbers that  ##
+## strict mode's own summary branch never even looks at ]                ##
 my $repaired_count      = 0;
 my $reconstructed_count = 0;
-foreach my $path_rel (@source_paths) {
-    my $path_abs = catfile( $work_tree, $path_rel );
-    next
-        if not defined
-        <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
-    my $footer_data = <[source.extract_sig_body]>
-        ->( \$src_str, qw| strip |, $verify_mode );
-    $repaired_count++
-        if $footer_data->{'repaired'} && !$footer_data->{'reconstructed'};
-    $reconstructed_count++ if $footer_data->{'reconstructed'};
+if ( $verify_mode eq 'repair' ) {
+    foreach my $path_rel (@source_paths) {
+        my $path_abs = catfile( $work_tree, $path_rel );
+        next
+            if not defined
+            <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
+        my $footer_data = <[source.extract_sig_body]>
+            ->( \$src_str, qw| strip |, $verify_mode );
+        $repaired_count++
+            if $footer_data->{'repaired'} && !$footer_data->{'reconstructed'};
+        $reconstructed_count++ if $footer_data->{'reconstructed'};
+    }
 }
 
 if ( $verify_mode eq 'repair' ) {
@@ -318,8 +303,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,.,,.,.,..,,,,.,.,,,,..,.,,,,..,,.,,,,.,,.,,..,,...,..,,..,,,,,,.,.,.,,,.,.,
-#TPHL3EHQN2Z5VEBW33VBGVTR6XRLZU6EYLY35WZRHD23TBXEVF4OVIKCQUY7NF6EV3VUSQAY6YLHE
-#\\\|UJZDAQ5LGCXXEFVI432GRLEPYTHWVSWWOQA6WSYITMRVJ32LEMB \ / AMOS7 \ YOURUM ::
-#\[7]AZNRVHEKUPV6SJYD5OVN6C5E6CMWCBNLROWEFFKYW2375JV33MAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,..,,...,.,,,,,,,..,,,,.,,,,,..,,...,...,.,,,,,,,...,..,,,,,,
+#CC6NVWVQJ4GISNJBJJBAC667JDRNQ7BWOKR6DDP6IZNP4LKB2SWA3WRFGG6ICJ3JUIMVBXY4KGREO
+#\\\|TWOWSKGZ3NB4BPVIASC7I5ELTI2D5ZOQNRESSSRA3FMLLOG2QTB \ / AMOS7 \ YOURUM ::
+#\[7]BXPUUAZAG3LERM3WHJCJVCUJQVZHAEPAC3XO5AMHDDVOS7UVZ4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
