@@ -22,6 +22,7 @@
 """
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -136,6 +137,31 @@ def commit_samples(limit):
     return samples
 
 
+def external_samples(path):
+    """(query, {touched module names}, leak_flag|None) from an external
+    JSONL file -- one query per line, e.g. LLM-synthesized queries for a
+    query-shape arm [ see data/tasks/coding-catalog-retrieval-phase2.md,
+    arm T, 2026-09-10 ] instead of live-derived commit messages. accepts
+    either 'query' or 'task_summary' as the text key, and an optional
+    'leak_flag' for a leakage-audited arm -- if present on any record,
+    main() reports the leak_flag=true/false split separately, since a
+    query-shape arm's whole point can be undone by a query that leaks the
+    answer via a literal module name/identifier."""
+    samples = []
+    with open(path, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            query = rec.get("query", rec.get("task_summary"))
+            modules = rec.get("modules")
+            if not query or not modules:
+                continue
+            samples.append((query, set(modules), rec.get("leak_flag")))
+    return samples
+
+
 def gate_a(vec, samples, clean_tok, topk=GATE_A_TOPK):
     tokens, mat, norms, index = vec
     vocab = set(tokens)
@@ -198,19 +224,30 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vec", required=True)
     ap.add_argument("--commits", type=int, default=400)
+    ap.add_argument("--queries",
+                     help="external JSONL of {query|task_summary, modules"
+                          "[, leak_flag]} records, e.g. a synthesized "
+                          "query-shape arm -- replaces live commit_samples()")
     ap.add_argument("--clean-tok", action="store_true",
                     help="strip punctuation before lookup [ ceiling probe ]")
     ap.add_argument("--label", default="")
     args = ap.parse_args()
 
     vec = load_vec(args.vec)
-    samples = commit_samples(args.commits)
+    leak_flags = None
+    if args.queries:
+        ext = external_samples(args.queries)
+        samples = [(q, m) for q, m, _ in ext]
+        leak_flags = [lf for _, _, lf in ext]
+    else:
+        samples = commit_samples(args.commits)
 
     tag = args.label or args.vec
     tok = "clean-tok" if args.clean_tok else "tool-exact"
     print(f".:[ {tag} : {tok} ]:.")
-    print(f"vocab {len(vec[0])} · dim {vec[1].shape[1]} · "
-          f"commit samples {len(samples)}")
+    src = args.queries if args.queries else f"commit samples {len(samples)}"
+    print(f"vocab {len(vec[0])} · dim {vec[1].shape[1]} · {src}"
+          + (f" ({len(samples)})" if args.queries else ""))
 
     a = gate_a(vec, samples, args.clean_tok)
     verdict = "PASS" if a["rate"] >= GATE_A_THRESHOLD else "FAIL"
@@ -220,6 +257,23 @@ def main():
     print(f"  hit-rate           {a['rate']:.1%}   -> {verdict}")
     print(f"  no in-vocab token  {a['no_query_token']}")
     print(f"  median hit rank    {a['median_rank']}")
+
+    if leak_flags and any(lf is not None for lf in leak_flags):
+        ## leak_flag was carried per-record but gate_a doesn't see it --   ##
+        ## re-run on the two subsets so a query-shape arm can't silently   ##
+        ## report a number inflated by exactly the failure mode this      ##
+        ## thread has already been burned by twice [ see phase2.md ]      ##
+        clean = [s for s, lf in zip(samples, leak_flags) if not lf]
+        leaky = [s for s, lf in zip(samples, leak_flags) if lf]
+        print(f"\n  leak_flag breakdown [ {len(leaky)}/{len(samples)} "
+              f"flagged ] :")
+        for name, subset in (("leak_flag=false", clean),
+                              ("leak_flag=true ", leaky)):
+            if not subset:
+                continue
+            sub_a = gate_a(vec, subset, args.clean_tok)
+            print(f"    {name}  {sub_a['hit']}/{sub_a['eligible']} "
+                  f"= {sub_a['rate']:.1%}")
 
     b = gate_b(vec, samples, args.clean_tok)
     verdict_b = "PASS" if b["j"] >= GATE_B_MIN_J else "FAIL"
