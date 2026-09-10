@@ -1,0 +1,80 @@
+# module  : base.handler.auth
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 40 ] ##
+
+2026-08-09 75e548fbd base/branch: convert display/sort-only timestamps to ntime
+2026-06-19 efe67d20f select-region zenka + cube alias/auth fixes from select-region rollout
+2026-03-07 c3d7da3b4 Fix non-blocking socket reads blocking event loop on partial input
+2026-02-20 fbcd3da63 Add dual-timer timeout protection for STRM-SIZE and refactor capability negotiation
+2026-01-03 5bf58655c Phase 6: Complete STRM protocol implementation with client stream-locking
+2025-11-25 3af33e4c7 Implement session-level SIZE/CHRSIZE mode negotiation for UTF-8 handling
+2021-07-07 c5ad9a995 committed automated cleaning up of scalar references [ part 0 ]
+2021-05-26 67b41d159 defined 'select-method' sprintf template in 'protocol.protocol-7.init_code'
+2021-05-11 2809f0802 updated protocol 7 authentication protocol messages
+2021-04-24 6b8c113b2 rejecting zenka auth method when not expected in 'auth.auth_select'
+2021-04-23 d94059b70 improved auth-method logging + repaired bugfix fallout in connect handlers
+2021-04-23 767c116f6 cleaned up \ documented return codes in 'base.handler.auth'
+2021-04-23 8cd7b6da2 closing session when auth methods not defined in 'base.handler.auth'
+2021-03-17 a4ff8fe94 committed minor style clean-up .,
+2021-02-25 9ceda3d76 committed reference and protocol cleanup
+2021-02-13 b040d74e4 enabled 'nodes' agent in 'nroot/start-setup.basic' + minor clean-up
+2019-12-22 9ca28d022 cleaning up 'base.handler.auth' source code [ + session data after auth. ]
+2019-12-01 562bb4d80 repaired './bin/mk.usr' authentication setup file path composition
+2019-11-06 e7ef32cd8 reworded authentication sequence log messages
+2019-11-05 47d37d3b3 [ protocol change ] reply mode 'RAW' -> 'DATA'
+2019-06-27 aa2b49711 abbreviated all instances of 'authentication' (to 'auth.')
+2018-04-03 f40ca1e1c improved context visibility in authen. sequence log messages
+2017-06-22 bf7f72a13 s/auth\.methods/auth.supported_methods/ in 'base.handler.auth' (!)
+2017-05-19 655643440 slight cleanup in 'base.handler.auth'
+2017-05-01 405abd425 cleanup in 'base.handler.auth' / 'auth.auth_select' + expanded allowed chars
+2016-06-02 696705be4 implemented initialization requirement for 'agent'-mode sessions
+2016-02-11 66034f1be added error message for 'no auth methods defined' to 'base.handler.auth'
+2015-09-26 1171fb877 added 'link' column to session list table
+2015-09-26 aa6c7dd87 fixed some variable initializations in 'base.handler.auth'
+2015-09-26 bfd56061b introducing 'unix' authentication mode (server side + nshell)
+2015-01-24 816bdaa98 allowing '-' in agent names..
+2015-01-21 1ada1c56e preventing authentication timeout when auth module is not loaded
+2015-01-17 722637e72 implemented nailara protocol authentication (input) timeout..
+2015-01-17 f70f94621 added 'select' request limit in 'base.handler.auth'..
+2014-12-28 a8833e423 perltidy 'base.handler.auth' ...
+2014-12-28 b576da290 fixed warnings for missing auth handler....
+2014-12-21 d6bce01ac keep track of [dis]connected users / agents by recording timestamps
+2012-11-01 07a19358d exchanged all remaining time() calls with calls to 'base.time'
+2012-07-25 6dc51f4a1 fixed some auth.rsa warnings
+2012-07-25 659409d09 activated 'use warnings' and fixed some
+
+## bulk/mechanical commits touching this module [ 24, flagged, excluded above ] ##
+
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-24 aae66588c [count=128] base: reflow via format-code; ai-mem: record perl-mod-reload redefined-warnings bug
+2026-07-20 5666ae225 [count=268] base: add undef-sub detection/reporting + auth.client split for cross-namespace calls
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-07-07 a42a6d446 [count=384] using qw|| on [true|false|..,] reply strings
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-05-05 92445685f [count=100] renaming protocol reply 'DATA' --> 'SIZE'
+2021-04-19 865dfeddd [count=470] protocol change : 'ACK' --> 'TRUE' + 'NAK' --> 'FALSE'
+2021-04-05 25d8cbcc5 [count=328] lowercasing first character of $OS_ERROR logging instances
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-13 5e0772c55 [count=339] renamed protocol code 'base.proto.nailara' --> 'protocol.protocol-7'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2019-01-08 68591f28b [count=297] protocol update: replaced 'NACK' replies with 'NAK' (for 3 byte consistency)
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+2015-01-01 608badbbc [count=167] syntax change [foo.bar:baz] -> <[foo.bar]>->(baz) ... (part 2)
+2012-10-28 faac42604 [count=155] parsed all '&{$code{foo}}(bar)' calls into '$code{foo}->(bar)' [readability]
+2012-06-05 fbb9a337a [count=266] importing prototype sourcecode
+
+#,,.,,...,..,,..,,,..,,,.,...,.,.,,,.,..,,,..,..,,...,...,..,,.,,,...,,,,,,,,,
+#OD7J4YHI547JXK5UT2L4HZLL34ERFQRYUGVDZNOBKL6HCPRGI3Z6KZO5B45S65SNWP36BKPOF5PIY
+#\\\|SKRVQ32WJC5UE6ANENWK3TZAL66B4IU6Q64ZVCMLGGTQDIRLWSO \ / AMOS7 \ YOURUM ::
+#\[7]Z2QVSIY2ICFUXUSBKJG36XCOKDOBOZVMBPINLGL2I3LOQDS2AUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

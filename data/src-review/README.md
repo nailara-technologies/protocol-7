@@ -9,10 +9,22 @@ module changed since review ].
 
 ## layout
 
-- `<module.name>.md` — one review record per module [ markdown, YAML-ish
-  frontmatter ]. sections: LLM narrative review [ Purpose / Interface /
-  Role & dependencies / Observations / Confidence ], then the verbatim
-  deterministic check outputs the narrative was grounded in.
+- `<module.name>/review.md` — one review record per module [ markdown,
+  YAML-ish frontmatter ], nested under a directory named for the module
+  [ changed 2026-09-10 from a flat `<module.name>.md`, to leave room for
+  future sibling artifacts per module -- disentangled history, usage
+  examples, etc. -- without renaming the review itself ]. sections: LLM
+  narrative review [ Purpose / Interface / Role & dependencies /
+  Observations / Confidence ], then the verbatim deterministic check
+  outputs the narrative was grounded in.
+- `<module.name>/history` — the first such sibling artifact, added
+  2026-09-10 by consolidating a separately-built `data/src-history/`
+  tree in here (see `data/tasks/coding-history-disentanglement.md`):
+  per-module git history with bulk/mechanical commits (signing passes,
+  renames, line-length remediation) filtered into a separate flagged
+  section rather than dropped. built by `bin/dev/git-history-
+  disentangle`, independent of the review pipeline — not every module
+  with a `history` file has a `review.md` yet, and vice versa.
 - `worklist.txt` — all `src/` modules ranked by dep-graph caller count
   [ descending ] ; rebuilt by `bin/dev/src-review-priority`.
 - `caller-counts.asc` — `module : caller_count` reference data.
@@ -47,8 +59,8 @@ module changed since review ].
   in each record ] — deliberately not over-invested; refine the prompt
   and bump the version to re-generate.
 
-#,,.,,,..,...,,,.,.,.,..,,,,.,..,,...,...,..,,..,,...,..,,...,.,.,,,,,.,.,,..,
-#QPK5WB4M6EZQBEVPCYCKS7BM5TVLZ3GA67XX7QHYD3XKC44I34TSW22I6UVU4RBFVLHEAHH6AG626
-#\\\|3KQ4GA2UF4EZNH24JGF52YKDGG6WG7SUBRBODHASUAAIGJLTVS5 \ / AMOS7 \ YOURUM ::
-#\[7]VFDVPM4CLIVNEY6S7TMVQHQWICWLYYF4BNCVVLAGPQ2WN7T2QACY 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,..,,..,,.,,,.,,,..,,..,,.,,..,,...,,..,,.,,...,..,,,..,,.,,
+#UNGRQ3VPGDFD3SHZEBCPQM5HOUDVUYORV63C5PWLMKW5Q3SLKP2QXJHJSXLM2GTVMNGZQUHGNXXIQ
+#\\\|WSBACDW7YB6HQPUJVYTCCOJX35OT2RD6A2KMDNAMQ4SV5GOOJ3E \ / AMOS7 \ YOURUM ::
+#\[7]P4SE6JRT5AVIHHI2LWTYK54QYJ2BHRHME2AB7QMN6OM4O5K6LEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,67 @@
+# module  : sourcecode.console.update-signatures
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 33 ] ##
+
+2026-08-09 02da45228 sourcecode.console.update-signatures: add :stage: switch
+2026-07-26 5d153ac5a source signing: TOCTOU guard between get-code-signed read and disk write
+2026-01-15 74e643f0b shortened some log messages and command descriptions..
+2025-11-05 51122444b sourcecode: Improve signature verification and signing modules
+2025-10-17 514720de9 Fix signature verification exit code and pre-commit hook version checking
+2025-10-17 477e77a31 Intelligent BMW checksum recovery for endline-state oscillation prevention
+2021-09-13 18b60d194 processing 'SIGN_SILENT' env var in sourcecode-zenka update-signatures cmd
+2021-08-27 32f1c3f27 reopening closed TTY_IN in AMOS7::TERM::wait_or_abort
+2021-08-20 81948297b moved routine 'sourcecode.collect_files' --> 'base.source.collect_file_list'
+2021-08-15 21c874670 moved source.load_signature_key call to update-signatures command
+2021-08-13 7a1a46413 implemented 'keys.console.encoding-upgrade' keys-zenka command
+2021-08-07 b785f8fcd valid signature counter in 'sourcecode.console.update-signatures' command
+2021-08-06 f542fb4cc improved error reporting in 'sourcecode.collect_files'
+2021-06-21 0aa922aaf implemented glob based matches and exclusion patterns in sourcecode zenka
+2021-05-20 de8b5d75a clean-up and signatures in 'bin/dev/*'
+2021-05-15 b603cf4dc implemented AMOS::INLINE and used for AMOS::BinConversion [ bit_to_num() ]
+2021-05-05 31de84259 writing ',./documentation/dev/NRT.NRD.asc'
+2021-04-18 15070a023 updated \ cleaned-up elf algorithm versions in chk-sum.elf and AMOS::CHKSUM
+2021-04-13 504209dce signing perl module code in './data/lib-path/pm/'
+2021-04-03 091f225bf improved logging in 'sourcecode' zenka 'update-signatures' command
+2021-04-01 4112b7f5a also checking file permissions in 'pre-commit' check script
+2021-04-01 673e9944c included './bin/admin/restore-p7-permissions' + created basic configuration
+2021-03-25 a9485bf7b renamed dirs 'applicance' : 'applicance-code', 'readme' : 'read-me'
+2021-03-22 259cc140d renamed './cfg/protocol-7.{source|release}-version' to 'src-ver', 'rel-ver'
+2021-03-19 7f7f5dc30 updated signature paths in 'sourcecode.console.update-signatures'
+2021-03-16 3b017d10e catched warnings in 'crypt.C25519.auto_convert' and 'update-signatures' cmd
+2021-03-07 6b127cc7a renamed 'nlr' binary to 'p7c' [ protocol-7 command ]
+2021-02-24 9d986ee31 updated project path in 'sct' + signing code in './bin/dev/scripts/'
+2021-02-17 bab625ffd implementing 'local bin path' installation for 'nlr' binary [ part 0 ]
+2021-02-10 a36019674 now also signing code in './bin/dev' and './bin/dependencies'
+2021-02-10 65527acc0 committed minor output cleanup
+2021-02-04 2acbfcb4a repaired change detection in 'update-signatures' console command
+2021-01-18 0a5c1cc06 renamed 'cli' to 'console' commands
+
+## bulk/mechanical commits touching this module [ 18, flagged, excluded above ] ##
+
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-26 90e0fed44 [count=112] verbosity: nest console/buffer/logfile under system.zenka.*
+2025-12-02 0e5302882 [count=101] refactor: Extract event handlers and fix budget state scope issues in coding zenka
+2025-11-24 a666367da [count=272] refactor: Rename letsencrypt zenka to letsencr per harmony preference
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-05-05 92445685f [count=100] renaming protocol reply 'DATA' --> 'SIZE'
+2021-04-19 865dfeddd [count=470] protocol change : 'ACK' --> 'TRUE' + 'NAK' --> 'FALSE'
+2021-04-02 72e72b187 [count=173] signing all zenki configuration files
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+
+#,,,,,,,,,,.,,...,...,.,.,.,.,.,.,..,,,..,.,,,..,,...,...,...,,.,,..,,...,.,.,
+#F6GENTGPL4225UGXXHETFSEG45RG73XQITBXNYUMUWY6CQJ77KBXMGLX52K2FFNVTQ23G4GRCNUHK
+#\\\|35BSC2RSMJMRHSXAB7V5BWFTAR72ZC2TTKLSKRNOSPEKKHYCJV2 \ / AMOS7 \ YOURUM ::
+#\[7]GGKEACCYZM3P5YMMLOHIZNHZKU7T2MX7TFIPXQHBALDCRSZNXWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

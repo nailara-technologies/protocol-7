@@ -256,8 +256,29 @@ command : `bin/dev/worklist-iterate --worklist data/src-review/worklist.txt
 - new files left unsigned by design [ no AMOS7 signature stubs ] —
   human signs separately.
 
-#,,,.,,,.,.,,,.,,,..,,,..,..,,,..,...,,..,..,,..,,...,...,.,,,,.,,,.,,,..,,,.,
-#ZLSIUG5TPVTYIJACMVF4ZCVFIJIEA4UXAKAYDDLZ7XUPMABYYUOHA5TFZMMURGH6AE5ABWGHRRTCO
-#\\\|C2CL7PBXDLMRNE72U3SRJDDRWDPEIYVHD7HJOACHORSITL7543Z \ / AMOS7 \ YOURUM ::
-#\[7]5A26YUGVOVPELNFGFOPT22BUFPMUCA6YQOEXTXZ6ZMVEGRHSEABQ 7  DATA SIGNATURE ::
+### round 2 [ 2026-09-09, same evening, kimi session ]
+
+second batch with the already-proven tooling, zero design changes :
+
+- main run `--limit 200` : 167 done, 33 failed, 69 skipped [ already
+  current ]. of the 167, ~24 were re-reviews of round-1 modules whose
+  source had changed on disk since round 1 [ active repo ] -- the
+  hash-keyed done-set caught and refreshed exactly those, as designed.
+  net new module coverage from this run : +143.
+- all 33 failures were transient inference-server errors [ bursts of
+  `rc 1792` / `rc 13312` lasting <1 min, server hiccups, not pipeline
+  bugs ; one earlier `empty review content from model` ]. none were
+  content/logic failures.
+- cleanup rerun `--limit 40` [ failed-set retries come first in
+  worklist order ] : 40 done, 0 failed -- all 33 failures recovered,
+  plus 7 next-tier modules.
+- **round 2 totals : 183 additional modules reviewed, running total
+  276 / 5470, 0 outstanding failures.** idempotent skip confirmed again
+  [ 236 skipped as already-current on the rerun ], every new record
+  grounded in both deterministic checks, no signature stubs.
+
+#,,,,,..,,,.,,.,,,.,,,.,.,,,.,...,..,,,,,,,.,,..,,...,...,...,,..,..,,...,..,,
+#7OUUO4KSD7JNEU2DOMM5GTSSFKQPHF2OZP7H6TCHMGJ3WHKXUNAEVGLBT7YLLZHE5L2JWOZYELQIO
+#\\\|JX7M2CWFP7WQEWOBEDE4E6L6LKEFW6ZVBXD3UCJTLLX6HY27UW2 \ / AMOS7 \ YOURUM ::
+#\[7]J44VT32D6IYXG6QWG7AWEMYZPZ44R2XSR3HUDCG77JBAE4RGFSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,61 @@
+# module  : httpd.http_head
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 28 ] ##
+
+2026-07-24 7771c7be3 httpd: reflow via format-code
+2026-04-17 2d853eda1 web: response content-type override + .tmpl routing + log cleanup
+2026-04-16 fea0ac941 httpd: template content-type + HEAD support for .tmpl files
+2026-02-10 e2dcb8e4b Fix vhost discovery architecture and ACME handler callback resolution
+2021-07-05 c706a63b0 improved request error reporting in 'httpd' zenka
+2021-05-25 d6e766f65 moved chk-sum.elf module code to base.chk-sum.elf namespace [ swap_subs ]
+2021-04-04 031a5c67f implemented and applied base.sort* routines
+2021-02-28 62e03b6e6 renamed subroutine 'digest.elf.b32' --> 'digest.elf.BASE32'
+2020-12-29 a048c5f83 implemented http 'OPTIONS' request method handler in 'httpd' agent
+2020-12-23 3fd9e6a5f repaired broken range request and trailing '0' errors in 'httpd' agent
+2020-07-30 0f1a6d33e completed repair of httpd agent 'etag' header parameter implementation
+2020-05-22 db8ea2ddd changed ETag algorithm in 'httpd' agent
+2020-03-02 a795e796c replaced remaining 'stat' call occurrences with 'File::stat::stat' version
+2020-02-22 e26399919 repaired inverted 'if-modified-since' condition for 304 code in httpd agent
+2018-10-23 bf9cbde91 fine tuning some log messages in httpd and root agent
+2017-12-09 c3ae8b5b5 minor bugfix in 'httpd.http_{get,head}' error handling
+2017-11-25 ff6fc7e83 resolving symlinks for correct mime type in httpd agent [temporary solution]
+2017-11-16 cbbf17c1f implemented ETag / Not Modified handling + mimetype caching in 'httpd' agent
+2016-06-17 64277f8fe fixed http error code link handling in 'httpd.http_{get,head}'
+2016-06-10 deb686483 fixed URI parsing bug in httpd agent
+2016-05-25 77542005c returning '400 Bad Request' for missing http host parameter
+2015-11-10 691bc4cd7 implemented host based status codes / actions in httpd agent
+2015-11-08 036d0f815 implemented (single part) HTTP 'Range' request handling
+2015-11-06 ec33b224b introduced 'httpd.error_page' routine in httpd agent
+2015-10-21 4458c0e9d fixed log message in 'httpd.{get,head}'
+2015-10-21 ae126df4d added 'httpd.return_raw_html' subroutine to httpd agent
+2015-10-21 eb6346618 committed Host 'default' and wildcard support in httpd agent
+2015-10-16 9ceb0e343 implemented basic GET and HEAD functionality in httpd agent
+
+## bulk/mechanical commits touching this module [ 17, flagged, excluded above ] ##
+
+2026-09-01 d12228697 [count=544] repo-wide: format-code -r pass -- normalize m//, s///, =~// regex delimiters
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-03-14 d5e3c92ce [count=126] renamed 'digest' code name-space to 'chk-sum'
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2019-01-24 4411599d1 [count=124] 's/XXX/LLL/g' in all todo comments (./src/)
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+
+#,,..,,,.,,,,,..,,,..,...,..,,.,.,,.,,...,,,.,..,,...,...,.,,,,,,,,,,,...,,..,
+#GZEYCT2QDPEO2PUQHTFKQB3SUZ6RDMVYZAM66RMLT7BHLVUBKYUUDR7P6GOOJXH3VKQYBSDDN5WKK
+#\\\|DCUA2IVWQSJPM5GQMUDONL7Y6KFJJDASBE2SN5C7SAONLAZ7C2B \ / AMOS7 \ YOURUM ::
+#\[7]CWFLSOPRDJ6M4QFFZQETLOUUW424PTXZAXTCN63ZVM3VTA4F3IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+# module  : mpv.cmd.fade
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 15 ] ##
+
+2026-08-06 1634f7ff4 mpv: request_id-tagged mpv IPC replies, deterministic fade-then-pause/resume
+2026-06-18 f6f4d449c mpv: async startup + jobqueue/dependency integration; deferred send_command
+2026-04-23 b060fd8ee base : base.curve.* generic curve system + mpv audio fade refactor
+2026-01-21 08a006206 catching undefined value warnings in mpv fade and autorescale
+2021-09-01 ffb377c9b updating property_list in mpv zenka after automatic parsing error
+2021-08-29 71d696ebb adjusted internal fade speed default to 0.24 in mpv.cmd.fade
+2020-02-29 b2dacc70f renamed command reply mode 'later' to 'deferred'
+2020-02-24 d0ee2f7fb setting new default value for 'mpv.cmd.fade' no parameter case [ 0.013 ]
+2019-12-20 189ac0202 minor log message correction in 'mpv.cmd.fade'
+2018-04-07 582c7912e implemented relative volume parameter mode [+-] in 'mpv.cmd.fade'
+2018-04-07 f2a42a508 removed internal fade stack limit in 'mpv.cmd.fade'
+2018-04-07 2714d6f21 added optional 'fade_speed' parameter to 'mpv.cmd.fade' command
+2017-04-28 ecc44a1e1 fixed warnings of unitialized value in 'mpv.cmd.fade'
+2017-04-12 4ced2c774 now considering changed volume in mpv agent's auto_fade volume [restore]
+2017-04-10 428856b66 renamed mpv 'fade_to' command to 'fade', added core-idle auto fade feature
+
+## bulk/mechanical commits touching this module [ 16, flagged, excluded above ] ##
+
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-07-07 a42a6d446 [count=384] using qw|| on [true|false|..,] reply strings
+2021-07-07 56acb2e3d [count=143] [automated] single-quoting of sprintf templates where applicable
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-04-19 865dfeddd [count=470] protocol change : 'ACK' --> 'TRUE' + 'NAK' --> 'FALSE'
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2019-01-08 68591f28b [count=297] protocol update: replaced 'NACK' replies with 'NAK' (for 3 byte consistency)
+
+#,,,.,..,,,..,.,.,,..,...,,,,,.,,,...,...,.,.,..,,...,..,,.,.,,.,,...,,,,,,.,,
+#OQSC6DOUGGEBUUCJNZUUBFFFFIJ6XOL35NHMSDUSXXSVH757NAO4NDJ33EP2Z6DAWUCBZOS64E2DE
+#\\\|UGPLXULORI6RENNMLKN6UJF5RBUQ6UG3XPVHHW4RMSHBS4WPQ4X \ / AMOS7 \ YOURUM ::
+#\[7]ZL5ETRRDWA5CD5KPFA6ALSHTFP7AXNVMSRANUXQRFDRS4UJ6N4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

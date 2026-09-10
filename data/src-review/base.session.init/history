@@ -1,0 +1,83 @@
+# module  : base.session.init
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 48 ] ##
+
+2026-08-09 34352725a time: convert display/sort-only timestamps to ntime (pilot batch)
+2026-07-25 72837013c v7.zenka.start: drop stale prio=>5 on zenka-output watcher, exposed by add_io prio fix
+2022-08-06 88f5b7a6d adding seperator newlines in 'bin/nshell' output
+2021-08-26 990c267cc using 'TRUE' and 'FALSE' constants in base.session.init
+2021-06-19 3433d2080 implemented 'burst-writes' session param in 'base.handler.write'
+2021-06-15 e52b1126e implemented 'binary'-type read-mode in io and event management
+2021-06-13 b84ae6490 removed buffers + watchers for server mode session in base.session.init
+2021-05-11 2809f0802 updated protocol 7 authentication protocol messages
+2021-04-30 2da918688 renames protocol read-mode 'lines' and 'bytes' to 'bytewise' and 'linewise'
+2021-04-28 5dedc42ca initializing session 'read-mode' in 'base.session.init'
+2021-04-27 9efb2bc53 documented code sections in 'base.session.init'
+2021-04-24 41897f879 implemented 'base.handler.session_error' for halting input watchers
+2021-02-26 236a8f655 committing protocol-7 regex clean-up [ PART 0 ]
+2021-02-25 9ceda3d76 committed reference and protocol cleanup
+2021-02-13 b040d74e4 enabled 'nodes' agent in 'nroot/start-setup.basic' + minor clean-up
+2021-01-10 d26b72084 added seperate [to server mode] initialization username [ '---' , '-----' ]
+2019-12-21 b589dbac0 adjusted length of 'server-uname' string in core 'list sessions' command
+2019-11-06 e7ef32cd8 reworded authentication sequence log messages
+2019-10-14 82647b1e5 implemented IO::AIO based sysread() and syswrite() alternatives [for UTF-8]
+2019-08-21 1b70e9a53 made installed signal handlers (source) reloadable..
+2019-06-27 aa2b49711 abbreviated all instances of 'authentication' (to 'auth.')
+2018-10-23 bf9cbde91 fine tuning some log messages in httpd and root agent
+2018-01-29 df600c1bf added generic input timeout [<net.input_timeout>] in 'base.session.init'
+2017-12-18 031b8f2d0 [namespace cleanup] s/check_last/check_remaining/ s/close_last/closing_last/
+2017-12-06 187983382 fixed a memory leak in 'base.session.init' [introduced by copy paste error]!
+2017-08-03 803c954ce made 'server'-mode "user"name configurable in base module, '-' now '----'
+2016-06-02 696705be4 implemented initialization requirement for 'agent'-mode sessions
+2015-11-08 f58119629 changed input filehandle watcher priority in 'base.session.init'
+2015-11-07 d6e05ab6a implemented 'flush_shutdown' session trigger variable
+2015-10-31 d212b5aab added 13 second timeout to http[d] connections
+2015-10-17 c1725382d improved error handling / messages for missing [unix] sockets
+2015-09-26 1171fb877 added 'link' column to session list table
+2015-04-07 bdccbe828 implementing httpd agent (part 1)
+2015-03-16 3318b8aed fixed allowed agent name pattern in base.session.init
+2015-03-09 cd64c4597 committed rss-ticker agent and updated ticker agent to display real feeds
+2015-01-17 722637e72 implemented nailara protocol authentication (input) timeout..
+2015-01-01 3bf776aab syntax change fallout fix... (read handler callback reference)
+2014-12-21 4e90b08bf some indendation fixes in 'base.session.init'..
+2014-09-19 0814e3e80 agents now exiting on last session
+2012-11-01 07a19358d exchanged all remaining time() calls with calls to 'base.time'
+2012-10-28 fd4dab3e4 swapping 'base.event' code into 'event' namespace during module 'pre_init'
+2012-10-13 9609fe7ea minor error handling fixes ( base.session_init, base.set_privs )
+2012-09-12 815a4ecf6 minor style cleanup regarding 'my' and '@_'
+2012-09-09 1ead17d08 added / improved err msgs for 'undefined filehandle' (base.session.init + auth.rsa.client)
+2012-07-25 0e771b9c0 fixed broken restart_watcher list initialization
+2012-07-25 659409d09 activated 'use warnings' and fixed some
+2012-07-24 4affda921 importing more cleanups from 'use strict' branch
+2012-07-24 8722f071d fixed some module headers
+
+## bulk/mechanical commits touching this module [ 19, flagged, excluded above ] ##
+
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-04-05 25d8cbcc5 [count=328] lowercasing first character of $OS_ERROR logging instances
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-13 5e0772c55 [count=339] renamed protocol code 'base.proto.nailara' --> 'protocol.protocol-7'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+2015-01-01 1eed67c37 [count=174] [./modules/*] perltidy -pbp -l=80 -bar -sot -ce -se -nst -b
+2015-01-01 608badbbc [count=167] syntax change [foo.bar:baz] -> <[foo.bar]>->(baz) ... (part 2)
+2012-10-28 faac42604 [count=155] parsed all '&{$code{foo}}(bar)' calls into '$code{foo}->(bar)' [readability]
+2012-06-05 fbb9a337a [count=266] importing prototype sourcecode
+
+#,,,.,,..,...,,.,,,,,,...,.,.,.,.,.,.,,..,,..,..,,...,...,,..,,..,.,.,,..,..,,
+#EPNJAH42B35EW4CRX2PCQRIOCDRBJV4PKQENCY2RMX7WSXCZYE7QVE3R2AT4VOIOABWVXRF75LEME
+#\\\|LUOVPPDFNG22BTH5JJMOLCXF6J2WD754JXUSQN6NPDLPQLD2LSY \ / AMOS7 \ YOURUM ::
+#\[7]2P2SQN33UX7A4PUDQYLMWJX234ZPI6H5MPUF5FKH4N6R357GPKAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

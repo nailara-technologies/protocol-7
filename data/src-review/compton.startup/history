@@ -1,0 +1,85 @@
+# module  : compton.startup
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 47 ] ##
+
+2022-08-28 a80ac1b6d shorter window fade-out value in 'compton.startup'
+2021-10-04 3b0022fac committing minor code clean-up
+2021-09-24 8c09b3df0 added 'osd-logo' window to 'compton' zenka shadow-exclusion list
+2021-04-05 adb5cb0c0 applied 'perltidy' on 'base-code' directory
+2021-03-21 5957ec557 implemented log prefix width change handlers for 'SIGUSR[12]'
+2021-03-14 b46c719c9 improved parameter processing in 'src/net.connect_to_cube'
+2021-03-13 9e4f0f3c0 keeping 'compton' agent running if composite manager already present
+2021-03-13 f9c867979 switching 'X-11' agent to 'host' mode
+2021-03-07 702eec152 updated shadow calculation in 'compton.startup'
+2021-03-07 9930f718c setting shadow color from X-11 background in 'compton' agent
+2021-03-07 4268e81d0 updated application opacity rules in 'compton.startup'
+2021-03-07 4bc5d5278 repaired '%ANSI' name conflict between './bin/protocol-7' and 'base.log'
+2021-03-07 22abfe016 repaired fall-out in 'compton.startup' and 'composition' agent
+2021-03-07 d3974a8bb updated compton start options in './src/compton.startup'
+2021-02-16 94e3aa62f replaced '/usr/bin/perl' with '/usr/bin/env' in './bin/protocol-7'
+2021-01-17 fb1ddfdca replaced remaining 'spawn' string occurrences with 'start'
+2020-01-20 d774b81ca implemented delayed exit in compton when xserver not composited
+2019-11-18 20fdd5eb4 introduced 'base.register_pm_deps' and 'base.register_src_deps' routines
+2018-12-08 e199380da broadened 'XIO: fatal IO error' whitelist regex patterns ( X11 shutdown )
+2017-01-27 3d6061685 increased compton fade time
+2017-01-27 699fa91a7 added openbox bug workaround to compton agent fade options
+2017-01-26 eec400257 enabled window fade-in/-out parameters to 'compton.startup'
+2016-10-11 6cc35e1e7 minor cleanup (replaced some dummy vars with undef)
+2016-07-13 605de5748 catching undefined x11.display variable in 'compton.startup'
+2016-06-01 734c12d2f adjusted renice priorities of several x11 agents
+2016-05-23 75114dc71 disabled a lot of compton options again.. [poor performance]
+2016-05-16 2835a58e7 updated x11 agent's log whitelist
+2016-05-04 b09f90d86 xephyr override fix for compton options
+2016-05-04 d58effad5 attempt to improve compton performance [to be refined!]
+2016-05-03 b225330ba added 'ticker-gtk' agent [part 1]
+2016-03-10 76f5787cb silencing additional Xorg shutdown error messages
+2016-03-08 8276e53dc silencing additional xserver shutdown errors
+2016-01-11 ec5ef3745 silencing compton errors on xserver shutdown
+2015-04-22 b43bca2fd switched default compton vsync method to opengl (xrender backend)
+2015-04-22 bc42bdc11 disabling --vsync option for nvidia drivers in compton agent
+2015-04-21 3f8309366 temporarely disabling shadow for agents other than 'ticker'
+2015-04-13 fff2a06be added 'noshadow' window title keyword in 'compton.startup'
+2015-04-10 eb6c24318 switched back to 'drm' backend and added output handler in 'compton.startup'
+2015-04-07 11747a442 switched shadow exclude parameter in compton agent
+2015-03-29 1345697cc switched to open2() for starting compton process
+2015-03-29 f6b261652 logging compton pid on startup..
+2015-03-20 4a916cf89 applying shadow to ticker agent only in 'compton.startup'
+2015-03-18 b5cc9ea73 removed old parameter in 'compton.startup'
+2015-03-03 497819bc0 aborting 'composite'-agent startup when compton not found..
+2015-03-03 ba2e9b0db adjusted compton shadow parameters..
+2015-03-03 7da76518b adjusted compton (shadow) parameters..
+2015-03-03 a3b2d172e added composite manager (compton) agent..
+
+## bulk/mechanical commits touching this module [ 22, flagged, excluded above ] ##
+
+2026-09-02 23a0e8d53 [count=703] v7 -> v7-zenki: rename the management zenka's identity across src, cfg, and core binary
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-07-07 56acb2e3d [count=143] [automated] single-quoting of sprintf templates where applicable
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-04-29 fee39d058 [count=509] renamed zenka 'nroot' --> 'v7'
+2021-04-05 25d8cbcc5 [count=328] lowercasing first character of $OS_ERROR logging instances
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-03-15 175ea6c4b [count=251] renamed agent 'browser' to [ amos desktop ] 'web-browser'
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+2021-02-13 5e0772c55 [count=339] renamed protocol code 'base.proto.nailara' --> 'protocol.protocol-7'
+2021-02-06 aa9cb54fd [count=397] renamed agent 'xserver' --> 'X-11'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2019-07-23 fc2b5bf3e [count=139] finetuning language in log messages [in ./src/*] s/failed to/unable to/...
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+
+#,,..,,.,,,.,,,,,,,,,,,,,,,.,,,,,,...,..,,.,.,..,,...,...,...,,..,...,.,,,..,,
+#M7VKDGUCGNIY3DDWMHYVW3SBQLWGQI3JCUAWSFZHZWJLX22EX6IJBMIYLJY64YJHSR7HFLNKC3MYA
+#\\\|HTFVURXDI5N6DDGVIFL3MQMKADQKYSGKZRFRTG45FJEVJ4KJY5Q \ / AMOS7 \ YOURUM ::
+#\[7]KDM4DMAXG34E4TAHTE6MIM4H75GNNUU7FJYLWK2W5J2CTSBIHMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

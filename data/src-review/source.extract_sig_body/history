@@ -1,0 +1,66 @@
+# module  : source.extract_sig_body
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 30 ] ##
+
+2026-08-02 7ec42102d fix(sourcecode): recognize over-long fake signature footers by markers, not length
+2026-07-24 a1a6c76ae source: reflow via format-code (AMOS-center-bit.desc exempted); reasoning-templates: add probability scoring for ambiguous content
+2026-07-24 86dc69fee source.extract_sig_body: detect+strip LLM-hallucinated fake footers; ticker: reflow via format-code
+2026-06-03 2e0a388b0 fix: signature endline state mismatch — prevent silent skip on re-sign
+2026-05-20 6bf520038 feat: credentials v2 + kimi-web STRM multiplexer + signature strip fix
+2026-04-03 4bbbbb920 Async HTTP streaming: state machine, callbacks, and PLACEHOLDER stub fixes
+2026-03-19 6da37945a fix(source.extract_sig_body): correct unsigned-file guard + line length cleanup
+2026-01-06 630a25e3a catching warnings with missing write permissions during signing files
+2026-01-04 7caeaed7e Implement conversation analytics, consensus voting, and task chain features.
+2026-01-01 0a6d2a91a Fix critical bugs: Queue persistence, file reference handling, and signature validation
+2025-12-31 d137f37e5 Fix signature parser resilience: strip malformed stub footers
+2025-12-31 2b2c09a7f Fix signature detection regex to handle longer footer lines
+2025-12-29 d36506782 Fix signature oscillation with deterministic endline harmonization
+2025-11-12 5c9f64ce4 fix(sourcecode): Implement signature oscillation testing infrastructure
+2025-11-10 44a391ef1 Fix signature oscillation on new/unsigned files (version 3KZNJAMXLQ-5259.0)
+2025-11-06 3e435bfeb used perltidy on recently changes routines in ./modules/ directory
+2025-11-06 5c92e8c38 Fix signature verification: resolve separator endline handling
+2025-11-05 51122444b sourcecode: Improve signature verification and signing modules
+2025-10-17 514720de9 Fix signature verification exit code and pre-commit hook version checking
+2025-10-17 5c26aa4f5 Fix pre-commit hook version checking with proper amend vs new commit detection
+2025-10-17 a6996dbba Fix signature state logging: correct levels and mode independence
+2025-10-17 f378d6753 processed files in './modules/' with './bin/ptd'
+2025-10-16 eadc0916d Fix critical signature extraction and verification system bugs
+2025-10-14 39335a170 fixed endline handling in 'sourcecode'-zenka 'update-signatures' command.
+2021-04-04 aaa1365c9 also stripping second [ reduntant ] signatures in 'source.extract_sig_body'
+2021-04-03 091f225bf improved logging in 'sourcecode' zenka 'update-signatures' command
+2021-02-04 2acbfcb4a repaired change detection in 'update-signatures' console command
+2020-05-22 8abb0efa6 committed working 'sourcecode.cli.update-signatures' cli command
+2020-05-22 4aeddaed7 committed working version of 'source.cmd.get-code-signed'
+2020-03-04 3d50dd6a0 implemented 'source.extract_sig_body' subroutine
+
+## bulk/mechanical commits touching this module [ 20, flagged, excluded above ] ##
+
+2026-09-01 d12228697 [count=544] repo-wide: format-code -r pass -- normalize m//, s///, =~// regex delimiters
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-05-25 72f0f0374 [count=325] chore: replace em dash with colon throughout codebase [ utf-8 reduction ]
+2026-03-16 c036508e2 [count=109] fix: signature endline state encoding — correct state 7/6 for 0-newline and empty bodies
+2025-12-02 92b2b7445 [count=266] style: Fix syntax errors from code style conversions
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-17 acb1b54c2 [count=258] Fix separator endline symmetry in Protocol-7 signature system with properly signed state
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-07-07 56acb2e3d [count=143] [automated] single-quoting of sprintf templates where applicable
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-05-05 92445685f [count=100] renaming protocol reply 'DATA' --> 'SIZE'
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-03-14 d5e3c92ce [count=126] renamed 'digest' code name-space to 'chk-sum'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+
+#,,,.,.,.,.,,,.,,,,..,,,.,..,,...,,,.,,,,,...,..,,...,...,,.,,.,,,.,.,..,,.,,,
+#5GCCJYJ435N4KP37XZEFDUZZFEOOO5XNPWZEKC35YCEX6R2FSYXHVZSU2IFAO6S7NIVZ57UYLZ6FY
+#\\\|HETEPHESDDIE7SKWIR25YU7Z7QCYPHLC3HQCONICF2C3QOF3U53 \ / AMOS7 \ YOURUM ::
+#\[7]OJMZHJBATPBU6WHYRBQJ6QQGQA3T6EK5FTQMT4NH2NRIHKXST6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
