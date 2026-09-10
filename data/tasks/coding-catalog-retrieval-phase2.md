@@ -625,8 +625,198 @@ place by producing a result worth preserving the instrument for, and a
 one-off experimental condition that returned a null does not. the method is
 fully specified above and is a dozen lines to reproduce.
 
-#,,,.,,..,...,,,.,...,...,,,.,,,,,..,,..,,,..,..,,...,..,,.,,,..,,...,.,.,,,.,
-#SQL3A55ZCL22MSPR7GW45IHEF4ESHY27YJJWRWODKA3P44OT3NLYI45MVE5UFQCRRV2PQDDEH4LMK
-#\\\|YLWMKSYM5VK2K46MNFU4TE2OJYZ3PN2AP4QO2XW25UXTIOGF5JB \ / AMOS7 \ YOURUM ::
-#\[7]PXXJVGV6M3GUBEZ53Z3GS2A7NS7MENY7I5UZMIG3VJANTKZSGUAA 7  DATA SIGNATURE ::
+### progress 2026-09-10 [ fourth pass, reopened ] : synthesizing task_summary-shaped queries from history
+
+this deliberately reopens a thread whose own conclusion was "the corpus is
+not the bottleneck" -- because the new arm targets the stated confound
+directly (query *shape*), not corpus content, which is a different lever
+than the three closed arms. the harvester [ landed and durably enabled
+tonight, see [[coding-catalog-harvester-live-verify]] ] fixes the shape
+problem going forward but starts from zero (`data/catalog-corpus/` has 7
+records, all from live-verification test tasks, none from real usage).
+this asks whether realistic-shaped queries can be manufactured retroactively
+from git history to bootstrap evaluation without waiting.
+
+**method**: for a clean commit [ did not also write a `# descr =` line for
+a module it touched, per the leakage fix two passes ago -- re-verified with
+a fresh mining script, 28.5% write-rate on today's 400-commit fresh window
+vs. the 20% documented on a 103-commit sample, same ballpark ], read the
+diff and write a natural task-request paraphrase of it -- same
+transformation as the backlog's "blind alternate-history translation" idea.
+**blind to that module's own `review.md`/descr** as before, but the actual
+leak vector in THIS design is different and more direct: the commit
+subjects in this repo routinely lead with the module name, so a naive
+rephrase carries the name straight into the query, and `embedding_search`'s
+exact `.vec` token lookup turns that into a free hit unrelated to query
+shape. every synthesized query must have module names/distinctive
+identifiers stripped, and the fraction that still contain a target-module
+token audited and reported alongside any gate A number -- this is the same
+failure class as the 23.9%-inflated-by-leakage result and must not be
+recreated by a different door.
+
+restricting to commits touching a *reviewed* module [ as arms D/R did, for
+a shared ground-truth definition ] barely grows the eval set despite
+review coverage nearly tripling since arm R: 93→276 reviewed modules only
+moves the paired set 55→59. reviewed-module overlap is not the constraint
+worth optimizing for here -- ground truth for this arm is just "which
+modules did this commit touch," known from git alone, so the real
+candidate pool is the full clean set (286 in the same 400-commit window,
+more available further back), not the reviewed-module intersection.
+
+before trusting any new gate A/B number from a rebuilt harness: reproduce
+the documented arm D/R clean-subset figures (3/55 = 5.5%, 4/55 = 7.3%) on
+the same inputs first. a harness that can't reproduce a known result is
+a reconstruction bug wearing the shape of a finding.
+
+**known confound, recorded before seeing a number, not after**: prior arms
+compared human-written commit messages against a partly-LLM-written descr
+corpus. this arm's queries are LLM-written on *both* sides. any lift could
+be stylistic convergence rather than semantic match -- discount a positive
+result accordingly rather than rationalizing it post hoc.
+
+status: mining script + leakage-rate cross-check done (this pass). query
+synthesis, the module-name leak audit, and the harness rebuild are not yet
+started.
+
+### progress 2026-09-10 [ same pass, continued ] : synthesis done, harness rebuilt, FAIL -- a fourth honest negative
+
+**synthesis**: all 286 clean commits paraphrased [ dispatched to k2.7 in
+3 batches, incremental writes surviving each stop point ]. `leak_flag=true`
+on 10/286 (3.5%), all independently re-audited and confirmed genuinely
+unavoidable (`weather`, `reply`, `crypt` -- see the corpus file for detail).
+spot-checked, reads naturally, describes the real diff.
+
+**harness**: `data/embeddings/gate_check.py` survived on disk from the
+first pass and reuses `embedding_search`'s exact retrieval semantics
+(`load_vec`/`neighbors`) -- reused verbatim rather than rebuilt from
+scratch. Its own `commit_samples`/IRRELEVANT list are the *first-pass*
+methodology (naive most-recent-N, authored negatives, no candidate
+filter) -- not touched; a new script
+(`gate_synth.py`, kept in the same scratchpad, not committed) layers the
+later clean/reviewed/in-vocab eligibility definition on top, taking
+external query lists instead of live `git log`, so both arms can be run
+against the *identical* eligible set.
+
+**harness validation, before trusting anything new**: arm-D corpus
+retrained exactly per the pre-registered params (`skipgram -epoch 100
+-dim 300 -minn 3 -maxn 6 -wordNgrams 2 -minCount 1 -bucket 200000`),
+vocab 11959 [ documented: 11905 -- close, corpus grew slightly from
+tonight's descr-accuracy pass ]. real commit subjects on the
+clean+reviewed+in-vocab eligible set: **2/42 = 4.8%** -- same ballpark as
+the documented 5.5%/7.3% clean-subset figures (different exact set: n=42
+not n=55, current 276-module review set not the original 93, but the
+order of magnitude matches). harness reconstruction reproduces the
+known result; trusted for what follows.
+
+**gate A, synthetic vs. real, same corpus, same 42-item eligible set**:
+
+| query source | hit rate |
+|---|---|
+| real commit subject [ validation baseline ] | 2/42 = 4.8% |
+| synthetic task_summary, full | **0/42 = 0.0%** |
+| synthetic, leak_flag=false only (n=37) | 0/37 = 0.0% |
+| synthetic, leak_flag=true only (n=5) | 0/5 = 0.0% |
+
+synthetic queries score at or below the real-commit baseline, not above
+it. the leak-flagged subset -- expected to show inflation if leakage were
+doing real work here -- also scored zero, so leakage is not masking a
+real gain in this sample.
+
+**a length control, because the two query populations are not length-
+matched**: real subjects median 7.5 words, synthetic median 20.5 words --
+2.7x longer, and this thread has already documented an unnormalized-sum
+dilution hazard where longer queries score worse [ "shorter queries score
+better... consistent with the unnormalized-sum hazard" ]. truncating the
+synthetic queries to their first 8 words [ matching subject length ]
+recovers only 1/42 = 2.4% -- still below the 4.8% baseline, and truncating
+further to 5 words drops back to 0/42. length dilution is real and
+partially explanatory, but does not close the gap; the paraphrase's
+content, not just its length, underperforms a terse real commit message
+on this domain.
+
+**n=42 is small and every count here is a handful of hits** -- these are
+not high-confidence numbers, and should be read as "no visible lift,
+possibly a small loss," not as a precise measurement.
+
+### the thread's standing result, updated : four honest negatives
+
+| intervention | gate A outcome |
+|---|---|
+| descr-anchored corpus [ as designed ] | fail -- 23.9%, later shown inflated by leakage |
+| source-mined density [ arm E ] | fail -- no out-of-sample gain, damaged discrimination |
+| review prose [ arm R ] | fail -- +1 commit of 55 on the clean subset |
+| synthetic task_summary-shaped queries [ arm T ] | fail -- 0% vs. 4.8% real-commit baseline, not explained away by length alone |
+
+four different interventions -- three on the corpus side, one on the query
+side -- and the query-side one, which targeted the thread's own stated
+confound directly, still didn't move the needle upward. this narrows the
+honest reading further: it is not merely that commit-message queries are a
+bad *proxy* for real usage; **natural-language task descriptions in
+general may not suit this domain's retrieval mechanism** [ unnormalized
+token-sum cosine over a ~12k-token skipgram space ], independent of
+whether the text is real user language or a synthesized stand-in for it.
+that is a harder problem than "wait for real data," and is worth stating
+plainly rather than assuming more/better synthetic data would fix it.
+
+**not installed. nothing changed in the shipping tool.** all artifacts
+(corpus, .vec, synthetic_corpus.jsonl, both gate scripts) live in the
+session scratchpad only, per this thread's established practice for
+one-off experimental conditions.
+
+### honest open question for whoever continues this
+
+is the retrieval mechanism itself (unnormalized token-sum, exact-lookup,
+no subword composition beyond fasttext's own n-gram hashing) the actual
+ceiling here, independent of query source? every arm tried so far changes
+what goes INTO the corpus or the query; none has changed HOW the two are
+compared. a normalized/averaged query vector, or a real subword-aware
+similarity, might be the next lever worth pulling -- untested in this
+entire thread.
+
+### progress 2026-09-10 [ same pass, continued again ] : the mechanism test -- small effect, does not close the gap
+
+tested the one untested variable directly: per-token unit-normalization
+before summing into the query vector [ every word contributes equally to
+the resultant *direction* regardless of its own vector's magnitude ],
+against the shipping tool's raw unnormalized sum. **note on what this is
+NOT**: averaging instead of summing is mathematically a no-op for cosine
+similarity [ scale-invariant -- dividing the sum by a positive constant
+doesn't change its direction ], so that variant was not run; per-token
+normalization is the only version of "normalize the query" that can
+actually change which candidates rank highest.
+
+| aggregation | real subject | synthetic task_summary |
+|---|---|---|
+| raw unnormalized sum [ shipping ] | 2/42 = 4.8% | 0/42 = 0.0% |
+| per-token unit-normalized, then sum | 2/42 = 4.8% (unchanged) | **1/42 = 2.4%** |
+
+a real, measurable effect in the predicted direction for the longer
+synthetic queries [ 0% -> 2.4% ], and none at all for the already-short
+real commit subjects -- consistent with the dilution hypothesis, since
+short queries have little room for one token's magnitude to dominate.
+**it does not close the gap**: normalized synthetic queries (2.4%) still
+underperform the raw real-commit baseline (4.8%). at n=42 this is a
+one-hit swing and not a confident measurement, but the direction is
+informative: the mechanism is a real, non-zero factor, just not a large
+enough one on its own to explain the arm-T shortfall, let alone reverse
+it.
+
+**standing conclusion, updated once more**: four honest negatives on the
+corpus/query side, plus a confirmed-but-small effect on the comparison
+mechanism. no single lever tested in this entire thread -- corpus content,
+query source, or now query aggregation -- gets this domain within sight of
+gate A's 40% threshold. the combined weight of evidence points toward the
+domain design itself [ token-sum cosine over a skipgram space trained on
+~4.5k short descr lines ] being under-powered for natural-language queries
+of any kind, rather than any single fixable input. next real lever, if
+this is revisited: a genuinely different similarity computation [ real
+sentence embeddings from a small LM, e.g. the local 9B already used
+elsewhere in this session's tooling, rather than a bag-of-words centroid
+], not another corpus or query variant -- untested, and a materially
+bigger build than anything tried in this thread so far.
+
+#,,.,,,.,,,,.,.,,,,..,.,.,,,.,,,,,...,.,.,,..,..,,...,...,,.,,,.,,..,,..,,.,,,
+#W72CXO4XVN6QOD7KQ5YMTAY7SPBTSJBEL5I67D76JFGAYERQTR6J6OHK7X4NEXW3ENMFZII5ZK34O
+#\\\|XZNEC5Z6DSAEC52REAAVGDYU3LRFZJ7432UV54XMWACQA3JBZ7R \ / AMOS7 \ YOURUM ::
+#\[7]TY2KCOT3WQGQPSOQOIU7JZAO7LJ5MTEXFQJISXZXF6SQR2KYB2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
