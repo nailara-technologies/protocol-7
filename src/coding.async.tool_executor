@@ -173,7 +173,16 @@ foreach my $tc (@$tool_calls) {
         2,          "tool_executor: dispatching %s with args: %s",
         $tool_name, join( ', ', keys %$args ) || 'no args'
     );
+    ## thread the executing task's id through the tool-executor context so  ##
+    ## coding.catalog.track_write attributes writes to THIS task exactly,   ##
+    ## instead of scanning the queue for the first in_progress task :       ##
+    ## coding.task.execute marks a task in_progress BEFORE it acquires the  ##
+    ## backend lock, so under concurrency that scan attributed this task's  ##
+    ## writes to a merely-queued one [ confirmed live 2026-09-09 ]. set and ##
+    ## cleared tightly around the synchronous dispatch                      ##
+    <coding.catalog.active_task> = $task_id;
     eval { $tool_result = <[coding.tools.dispatch]>->($tool_call); };
+    <coding.catalog.active_task> = undef;
 
     if ($@) {
         <[base.logs]>->(
@@ -397,8 +406,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,.,,,..,.,.,.,,,,..,.,,,.,.,,,.,,,.,,,.,.,,,.,.,...,...,.,,,.,.,..,,,.,,..,,
-#VES4VCPUY4T4WDGWIW7F5D4I6IJB34QLCCD4FWHZO4F4UMITDXOATMNV675OFHMI5YYK2YHF5KID4
-#\\\|5ZKDLMA7IX5HGLIFB6J4NMHQFFFYOK3L2BCASKWODW6LO6YNDZ6 \ / AMOS7 \ YOURUM ::
-#\[7]5AGWVPH3NOIR6PDM5MYOOBM4PIKPJBZI5JMPOAHKET22JJITN4CI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,...,,,,,...,,,,,.,,,,.,,,,.,.,.,...,...,...,,..,..,,...,.,.,
+#OPL4NPJBERRSW4MKITZ7DTIRF42PB5JVYM4MPXKJRE4KK2TTA4E3XTCZX6RYHOM5TTPZNMFTIIDL2
+#\\\|KNZ2M74EVNKBOZZYTWUDG5RBSX4A6RVVWU63GZHUU3PNVRU357D \ / AMOS7 \ YOURUM ::
+#\[7]FOFN6VK7NM6PWUJXXQ4YIXKADKR2ER5SEHR35T54ZMQKH3RKZCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

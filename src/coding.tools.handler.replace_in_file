@@ -105,12 +105,6 @@ if ( exists $code{'coding.idiom.check_write'} ) {
     }
 }
 
-## note the write for the catalog-retrieval corpus [ inert unless ##
-## coding.cfg.catalog_harvest is enabled ]                        ##
-if ( exists $code{'coding.catalog.track_write'} ) {
-    <[coding.catalog.track_write]>->( { 'target' => $path } );
-}
-
 ## write back using chmod child if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $mode_restore;
@@ -124,6 +118,12 @@ if ( !-w $abs_path and defined $chmod_fh ) {
 
 if ( -w $abs_path ) {
     <[file.write_encoded]>->( $norm_encoding, $abs_path, \$new_content );
+    ## note the write for the catalog-retrieval corpus [ inert unless   ##
+    ## coding.cfg.catalog_harvest is enabled ] -- after the write, so a ##
+    ## refused or failed write is never tracked                         ##
+    if ( exists $code{'coding.catalog.track_write'} ) {
+        <[coding.catalog.track_write]>->( { 'target' => $path } );
+    }
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
@@ -144,8 +144,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, "
     . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,.,,,.,,...,...,,..,...,.,,,.,,,.,.,,..,..,,..,,...,...,..,,,,,,,,,,...,,,.,
-#KKSA2GJUNHA6OYZHSLRJD6A3O4JESSC5ZT5BUHLN4NB63EAY2PMDCPNFQC2E6WDEOHYHOZDFO72SO
-#\\\|FNXHHYLWZOCZENHBTBPUSDXZR3PUDDNIVUGU7CVFL3VSAVQSTOK \ / AMOS7 \ YOURUM ::
-#\[7]GTAZRNH3HH2RIKS5RQX3OD464NSOWU5CRNSYPSWVLOD4DPHEXAAA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,..,,,.,,.,,...,,.,,.,,,,,.,,.,,..,,...,...,,.,,..,,.,,,.,,,,,.,
+#Q5DFMHIJI7RQAEJBWYKOK3KHH6O57HL4IQNCCSJKRVKCB6PNRYD7AEE7Y3XTJIFAS3I2BQL2SZUFW
+#\\\|TBEZGOKPGKUFDU55LTBO43VBM2ICSOK6ENP6S2RZLF67DKVGMSJ \ / AMOS7 \ YOURUM ::
+#\[7]4PO4VL2255LQD2CVJRTGKFMSRYB7WK4XDYKJCMJPAHR4RYRKJ2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
