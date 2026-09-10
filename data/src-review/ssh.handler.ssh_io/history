@@ -1,0 +1,53 @@
+# module  : ssh.handler.ssh_io
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 22 ] ##
+
+2026-02-23 cb215199d SSH zenka: Fix style, error handling, and logging issues
+2026-02-23 830bd1850 Recover SSH zenka from commit 561CF8E9A
+2021-09-16 561cf8e9a deleted 'ssh' zenka
+2021-08-21 1dcb0e8ef switched key chksum algorithms in ssh zenka to ELF-7 and BMW
+2021-08-21 af9bc83c4 removed and replaced 'chk-sum.sha' module [ and calls ]
+2021-06-29 dd9c080ca renamed subroutine net.authme --> base.net.client.auth_with_pwd
+2021-06-23 4d7239273 changed behaviour of 'base.s_write' to return -1 for write error
+2021-06-16 087d9237f updated AUTH_TRUE and AUTH_ERROR protocol message strings
+2021-04-20 3fa01675d auth protocol change : 'NOPE' --> 'AUTH_ERROR' + 'YEAH' --> 'AUTH_TRUE'
+2021-02-05 97f90a397 renamed variables 'nailara.net.*' --> 'protocol-7.network.*'
+2021-02-05 03dedb988 renamed 'base.open' modes '{in,out}' to 'input' and 'output'
+2021-01-17 b6f5eb956 <<< renamed './bin/nailara' to './bin/protocol-7' >>>
+2020-02-23 e7a0a5550 renamed link mode 'tcp/ip' to 'ip.tcp' [ consistency : './src/io.ip.tcp.*' ]
+2019-12-11 e60aae63a finetuning protocol error messages
+2019-11-06 e7ef32cd8 reworded authentication sequence log messages
+2019-11-05 c7bc670ea calculating nailara network ports from installation path
+2019-10-17 95b7d7183 replaced 'FAIL' with 'NOPE' in nailara authentication protocol sequence (!)
+2019-10-14 82647b1e5 implemented IO::AIO based sysread() and syswrite() alternatives [for UTF-8]
+2019-06-27 aa2b49711 abbreviated all instances of 'authentication' (to 'auth.')
+2015-07-08 92734ec0f fixed bug with wrong username in ssh-agent heartbeat function
+2015-07-06 bb43e0db6 further ssh agent improvements..
+2015-06-26 a53bab3f4 committed first version of ssh link agent
+
+## bulk/mechanical commits touching this module [ 15, flagged, excluded above ] ##
+
+2026-09-01 87b91fd5f [count=431] repo-wide: format-code -d pass -- compact $data{'a'}{'b'} chains to <a.b> sugar
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-04-19 865dfeddd [count=470] protocol change : 'ACK' --> 'TRUE' + 'NAK' --> 'FALSE'
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-03-14 30e26f011 [count=448] renamed 'core' to 'cube'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2019-12-24 4bacf5a2d [count=154] applied some cleanup and perltidy parsing of ./src/... subroutines
+2019-01-24 4411599d1 [count=124] 's/XXX/LLL/g' in all todo comments (./src/)
+2019-01-08 68591f28b [count=297] protocol update: replaced 'NACK' replies with 'NAK' (for 3 byte consistency)
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+
+#,,,.,..,,,,.,.,.,..,,,,.,,..,,,.,,,.,,..,,,,,..,,...,...,...,,,.,,..,,..,.,.,
+#DHF7HDS67UUU4UBSR6RM2O4DM57556QGJOOSTDPJL3FKPLESO233AAF6SMEDF7AYAVMUZTYZJOKKS
+#\\\|FKFYLJTGKLFXG67YSPVIC7YU3X2O4I7F3OXNF2ZNYXKEBNCGA4J \ / AMOS7 \ YOURUM ::
+#\[7]GMYB55TW3N7BG6JPXAA3ACKDBIZIR6YX52JZ5EHGLY5UQ553DMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+## git-history-disentangle -- per-file src/ history with bulk-commit filter
+##
+## implements data/tasks/coding-history-disentanglement.md :
+##   - streams `git -c color.ui=false log --name-only` for full history
+##     [ color suppression VERIFIED, plus a hard ESC-byte assert on the
+##     captured stream -- hazard 1 ]
+##   - classifies each commit BULK if :
+##       files_touched >= 100   OR   subject matches mechanical regex
+##     [ rule recorded in the task file before any results were seen ]
+##   - emits data/src-review/<module>/history per current src/ file :
+##     genuine [ KEEP ] commits first, flagged BULK commits second.
+##     [ consolidated 2026-09-10 into the src-review per-module dirs,
+##       was a separate data/src-history/<module>.history originally ]
+##
+## usage : bin/dev/git-history-disentangle [ --write ]   [ default: stats only ]
+
+import os, re, subprocess, sys
+
+ROOT = '/data/projects/protocol-7'
+## consolidated 2026-09-10 : lives alongside the src-review corpus, one
+## directory per module, rather than a separate top-level tree -- see
+## data/src-review/README.md
+OUTDIR = os.path.join(ROOT, 'data', 'src-review')
+COUNT_THRESHOLD = 100
+MECHANICAL_RES = [re.compile(p, re.I) for p in (
+    r'^\s*(docs:\s*)?version[ _-]?bump[\s\d.]*$',
+    r'^\s*re-?sign')]
+## v1 [ recorded before results ] was a broad \b(version bump|re-?sign|
+## signing|signature update|checksum update)\b anywhere in the subject.
+## spot-checking its 33 matches showed systematic false positives :
+## genuine signing-INFRASTRUCTURE development [ "Fix RS256 signing:
+## switch to CryptX", "source signing: TOCTOU guard..." ] matched on the
+## words signing/signature. v3 keeps only anchored, purely-mechanical
+## subjects. revision documented in the task file's results section.
+
+def main():
+    write = '--write' in sys.argv
+
+    proc = subprocess.Popen(
+        ['git', '-c', 'color.ui=false', 'log', '--no-renames',
+         '--format=@@@%H%x09%ci%x09%s', '--name-only'],
+        cwd=ROOT, stdout=subprocess.PIPE)
+
+    commits = []            ## ( hash, date, subject, files[] )
+    cur = None
+    esc_seen = 0
+    for raw in proc.stdout:
+        if b'\x1b' in raw:
+            esc_seen += 1
+        line = raw.rstrip(b'\n').decode('utf-8', 'replace')
+        if line.startswith('@@@'):
+            if cur is not None:
+                commits.append(cur)
+            h, date, subj = line[3:].split('\t', 2)
+            cur = [h, date, subj, []]
+        elif line and cur is not None:
+            cur[3].append(line)
+    if cur is not None:
+        commits.append(cur)
+    proc.wait()
+
+    if esc_seen:
+        sys.exit('FATAL: %d ESC bytes in git output despite '
+                 '-c color.ui=false -- refusing to parse' % esc_seen)
+
+    ## current src/ population : only files that exist now get a history ##
+    ## 2026-08-20 5255a50a3 renamed modules/ -> src/ wholesale ; git's own  ##
+    ## rename detection does NOT follow it [ signing rewrote content,       ##
+    ## similarity too low -- verified ], so alias the historical path.      ##
+    ## same story 2021-07-07 8a46ac4b3 : base-code/ -> modules/.            ##
+    src_files = set()
+    alias = {}              ## historical path -> current src/ path
+    src_dir = os.path.join(ROOT, 'src')
+    for name in os.listdir(src_dir):
+        if os.path.isfile(os.path.join(src_dir, name)):
+            src_files.add('src/' + name)
+            alias['modules/' + name] = 'src/' + name
+            alias['base-code/' + name] = 'src/' + name
+    path_of = lambda f: f if f in src_files else alias.get(f)
+
+    keep = {f: [] for f in src_files}
+    bulk = {f: [] for f in src_files}
+    n_bulk = n_keep = 0
+    bulk_reasons = {'count': 0, 'message': 0, 'both': 0}
+
+    for h, date, subj, files in commits:
+        by_count = len(files) >= COUNT_THRESHOLD
+        by_msg = any(r.search(subj) for r in MECHANICAL_RES)
+        is_bulk = by_count or by_msg
+        if is_bulk:
+            n_bulk += 1
+            bulk_reasons['both' if (by_count and by_msg)
+                         else 'count' if by_count else 'message'] += 1
+            reason = 'count=%d' % len(files) if by_count else 'message'
+            entry = '%s %s [%s] %s' % (date[:10], h[:9], reason, subj)
+        else:
+            n_keep += 1
+            entry = '%s %s %s' % (date[:10], h[:9], subj)
+        seen = set()        ## one edge per commit per file [ a rename    ##
+        for f in files:     ## commit lists both old and new path, both of ##
+            f = path_of(f)  ## which may alias to the same src/ file ]     ##
+            if f is not None and f not in seen:
+                seen.add(f)
+                (bulk if is_bulk else keep)[f].append(entry)
+
+    print('commits scanned : %d' % len(commits))
+    print('  keep          : %d' % n_keep)
+    print('  bulk          : %d  [ count-rule:%d message-rule:%d both:%d ]'
+          % (n_bulk, bulk_reasons['count'], bulk_reasons['message'],
+             bulk_reasons['both']))
+    print('src files       : %d' % len(src_files))
+    dropped = sum(len(v) for v in bulk.values())
+    kept = sum(len(v) for v in keep.values())
+    print('file-commit edges : kept %d, flagged-bulk %d [ %.1f%% noise ]'
+          % (kept, dropped, 100.0 * dropped / max(1, kept + dropped)))
+
+    if not write:
+        return
+
+    for f in sorted(src_files):
+        mod = f[len('src/'):]
+        mod_dir = os.path.join(OUTDIR, mod)
+        os.makedirs(mod_dir, exist_ok=True)
+        with open(os.path.join(mod_dir, 'history'), 'w') as out:
+            out.write('# module  : %s\n' % mod)
+            out.write('# source  : git log [ %d commits, color.ui=false'
+                      ' verified ]\n' % len(commits))
+            out.write('# filter  : files>=100 OR mechanical-subject regex'
+                      ' [ see data/tasks/coding-history-disentanglement.md'
+                      ' ]\n' % ())
+            out.write('# alias   : historical modules/<name> and'
+                      ' base-code/<name> counted as this file'
+                      ' [ 5255a50a3, 8a46ac4b3 renames ]\n')
+            out.write('\n## genuine commits [ %d ] ##\n\n' % len(keep[f]))
+            for e in keep[f]:
+                out.write(e + '\n')
+            out.write('\n## bulk/mechanical commits touching this module'
+                      ' [ %d, flagged, excluded above ] ##\n\n'
+                      % len(bulk[f]))
+            for e in bulk[f]:
+                out.write(e + '\n')
+    print('written : %s [ %d files ]' % (OUTDIR, len(src_files)))
+
+if __name__ == '__main__':
+    main()
+
+#,,,.,...,,.,,,,,,,.,,,,.,.,,,.,.,,.,,.,.,,.,,..,,...,..,,..,,.,,,,,,,.,.,,..,
+#36COS2BMXQQMNDI7VISSRZFDIDDYKQW7UFP2EU6K7R2GU5NTBGNX56XA4URZC7QVGERVYGUNLIDQA
+#\\\|FBWS2OJXS7YHVYPQJDXLWM7P3YWKQFDVRNXTOQ24K32UG47TG3T \ / AMOS7 \ YOURUM ::
+#\[7]JBZQTY3BOAAWA2DG5DWQHSQWCRQY3KUTW2V4LZQ4EBYZAZKM4SDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

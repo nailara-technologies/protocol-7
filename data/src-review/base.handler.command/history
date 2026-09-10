@@ -1,0 +1,224 @@
+# module  : base.handler.command
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 165 ] ##
+
+2026-08-19 a6b2d49ae optimized base.handler.command* [!TRM!] log message.,
+2026-08-09 32dfa7627 changed streaming complete log message level to 2 in base.handler.command
+2026-07-28 b4eb020fd jobsite: configurable assessment model pin + TERM undef-comparison fix
+2026-07-22 29a6415b1 mpv: fix radio playback (WSLg pulse bridge + idle-suspend cork bug) + !TERM! rename
+2026-07-22 7d12a1a4b v7: fix inert max_concurrency for web zenka + STRM incomplete-chunk over-read
+2026-06-19 efe67d20f select-region zenka + cube alias/auth fixes from select-region rollout
+2026-06-17 571c61361 mpv: p7-blue OSC theme, idle logo, centered title, EGL 1px fix
+2026-06-17 79e0be66a chksum: nested addressing, signal-cancel patterns, amos-chksum -nest upgrade
+2026-06-02 645ca16c8 fix: nshell (0) prefix bug — orphaned route handler generated invalid (0)!TERM!
+2026-05-30 9ab7a1640 feat: httpd web-relay STRM + jobs sync UTF-8 fix + manual-sync command
+2026-05-23 c73a7a0de fix: heartbeat silence + log cmd-offset session-prefix strip + lpw sync
+2026-05-07 b065fce90 fix: restore large-stream write resilience — EAGAIN/IO-watcher + UTF-8 byte counts
+2026-05-02 613b3d006 logging: per-command log level offset table + kimi memory + refactor plan
+2026-04-25 5ed1fd0f2 base : STRM cancel + protocol cmd_id format fixes
+2026-04-24 0e0bf54a3 radio : stream relay + STRM cancel propagation fixes
+2026-04-24 ededb6ac9 radio : phase 4 + STRM local consumer fixes [ mpv audio background ]
+2026-04-24 daac064d1 base : local STRM consumer primitive + recv-test dev tool
+2026-04-23 c57b66404 base : STRM unbounded-open protocol extension
+2026-04-23 1e7de0dc9 base : STRM relay progressive forwarding + sprint_t templates
+2026-04-20 a4f680e57 base : stream cancel session-close teardown + implicit !TERM! lookup
+2026-04-20 5ac9cacc1 base : pass 3 orphan-route sticky cancel in base.handler.command
+2026-04-20 6752a0cdf base : !TERM! stream backchannel in base.handler.command
+2026-03-24 048ece194 Kimi session management, api child, task dispatch gate, UTF-8 SIZE fix
+2026-02-26 785252bb2 fix(nshell): suppress 'unknown route id' log to prevent network misrouting on cube zenka select
+2026-02-20 fbcd3da63 Add dual-timer timeout protection for STRM-SIZE and refactor capability negotiation
+2026-02-19 a6d22ab48 Implement STRM-SIZE transparent fragmentation protocol
+2026-02-13 2556d9f67 added logging of access refusal type + style cleanup to base.handler.command
+2026-02-08 5b04673de Fix log level handling in base.handler.command and base.handler.input
+2026-02-01 a15ba309c Refactor unknown-reply-route hook calls and add single-line reply handling
+2026-02-01 47ed9d2b6 Optimize character counting in incomplete CHRSIZE reply handling
+2026-02-01 c96df1288 Refactor hook interface: extract operations, eliminate redundancy
+2026-01-15 e02ee916a Remove STRM-SIZE fragmentation from local command responses
+2026-01-14 cb3ac5f9a Implement nshell Phase 2: Complete transparent pass-through relay with output handling
+2026-01-14 b2feb2a50 Fix log formatting in base.handler.hooks - use base.logs for format strings
+2026-01-07 18ff5513c temporarely disabled STRM-SIZE fragmentation [ as was broken ]
+2026-01-03 5bf58655c Phase 6: Complete STRM protocol implementation with client stream-locking
+2026-01-03 59757ee8e Implement Phase 3: STRM-SIZE session blocking and byte validation
+2026-01-03 a68f63139 Implement Phase 2: STRM and STRM-SIZE receiver-side handlers
+2026-01-03 aeafacc65 Implement Phase 1: STRM and STRM-SIZE response sender side
+2025-11-27 f5dd49da5 Remove state transition from command handler
+2025-11-27 96faccfde Fix: Return early from command handler after link-upgrade state transition
+2025-11-27 7a30a1a74 fix: Add state 1→2 transition handler for link-upgrade command
+2025-11-25 3af33e4c7 Implement session-level SIZE/CHRSIZE mode negotiation for UTF-8 handling
+2025-11-17 50684e002 loading Compress::Raw::Lzma in base.init_code, resigning code
+2025-11-17 9e18c43a2 fix: Correct AMOS7 checksum index for OCTETS template
+2025-11-17 0b2eb3911 feat: Add OCTETS response mode for SIZE protocol (hybrid approach)
+2025-11-17 1f39c252d refactor: SIZE protocol to use character count (Perl philosophy)
+2025-11-17 b74e9c79f fix: SIZE protocol response byte count calculation
+2025-11-17 698316bf1 fix: Ensure SIZE protocol byte count matches transmitted data
+2025-11-17 b8dd4936a Fix UTF-8 SIZE response by ensuring data matches byte count
+2025-11-17 a9d6c0799 Use Encode::encode_utf8 for reliable byte count calculation
+2025-11-17 852c9db20 Fix sprintf parameter corruption by encoding data without UTF-8 flag
+2025-11-17 c3846450f Revert to only using temp copy for byte count, preserving original data
+2025-11-17 aa0a08429 Ensure UTF-8 data is properly encoded before transmission
+2025-11-17 d289c438d Add more detailed debugging to SIZE handler
+2025-11-17 7df8e6be1 Add debugging logs to SIZE handler for UTF-8 byte count
+2025-11-17 51675c0cb Fix UTF-8 encoding in SIZE response handler
+2025-11-17 621cee8ae fix: Correct UTF-8 byte length calculation in SIZE handler without data corruption
+2025-11-10 7d9c41302 committing improved error handling in 'modules/base.event.add_signal'
+2022-04-14 f9cf434f8 correcting UTF-8 length calc in local command output [base.handler.command]
+2022-04-01 1cc2263fe fine-tuned reply message for unknown commands
+2021-09-07 4c290b7c4 implemented [devmod] input traffic capture buffer in 'base.handler.command'
+2021-08-26 4ae278958 implemented 'net.read_bytewise' read-handler
+2021-08-20 b95f7039a renamed [unselect] command alias '../' to '..' [base.handler.command]
+2021-07-28 e0f7da516 switch to read-mode bytes for incomplete SIZE reply in base.handler.command
+2021-07-14 b67d6335c changed implementation of 'base.resolve_key' to always return a hash ref
+2021-07-14 f8c8ebf3f also implemented multiline command types for ondemand zenki
+2021-07-09 471a54ae9 extracted ,.get_swapped_subs_pairs from ,..subroutines.clear_from_disk
+2021-07-07 c5ad9a995 committed automated cleaning up of scalar references [ part 0 ]
+2021-06-11 2a1831852 starting of unlink child now ondemand [ automatic shutdown when not req. ]
+2021-05-21 6c3f10138 implemented 'v7.instance_ids' wrapper and some v7 zenka clean-up
+2021-05-07 d0fc44036 committed protocol message clean-up
+2021-05-07 533bcc741 implemented 'sprintf template registry and applied to protocol messages
+2021-04-28 1ee3eb310 keeping per session and protococol command line length statistics
+2021-04-10 9949343bf using 'base.format_error' for command errors in 'base.handler.command'
+2021-04-04 fb5949d15 also returning command name for 'no permissions' in 'base.handler.command'
+2021-03-12 d50dae3ef renamed agent 'history' to 'p7-log'
+2021-02-26 236a8f655 committing protocol-7 regex clean-up [ PART 0 ]
+2021-02-26 73f3bf731 documenting \ preparing splitting up of 'base.handler.command' routine
+2021-02-25 9ceda3d76 committed reference and protocol cleanup
+2021-02-15 2392d0be3 logging caller subroutine name on empty ACK-reply in 'base.handler.command'
+2021-02-14 7cd713479 improved protocol-7 network command logging [ log level 2 ]
+2021-02-13 f8bbf85ec updating 'prefix_lengths' in 'nroot.agent.change_status'
+2021-02-11 fd04f1195 extracted command access check functionality into 'base.has_access'
+2021-02-11 14eab58ab replaced occurences of '$usr' with '$user'
+2021-02-10 328f435fb implemented command filter hook reply regex set-up
+2021-01-26 329723fb6 committed minor style cleanups
+2021-01-25 7ee8d0b43 also implemented 'warn-match-handler' in 'base.handler.command'
+2021-01-18 0ee33e86a style cleanup in 'base.handler.command'
+2021-01-17 fb1ddfdca replaced remaining 'spawn' string occurrences with 'start'
+2021-01-13 848181e20 cleaning up 'verbosity' setup variables [ added 'agent_logfile' variant ]
+2021-01-10 d26b72084 added seperate [to server mode] initialization username [ '---' , '-----' ]
+2021-01-06 30e80773c fixed fallover from renamed 'history.msg' command [ infinite log msg loop ]
+2020-08-24 9eb6ffbeb changed wording order in 'base.handler.command' 'protocol mismatch' message
+2020-03-18 0e8c0053b implementing STRM packet type [ part 0 ]
+2020-02-29 b2dacc70f renamed command reply mode 'later' to 'deferred'
+2020-02-25 51dc7583f inverted now 'nolatency' keyword in 'heart' command
+2020-02-23 59fcd23c5 committed numerous log message optimizations..,
+2020-02-09 02c610bd1 seperately catching die()s in .cmd. source code within base.handler.command
+2019-12-11 e60aae63a finetuning protocol error messages
+2019-11-05 47d37d3b3 [ protocol change ] reply mode 'RAW' -> 'DATA'
+2019-11-01 bdc069b66 renamed command 'base.cmd.dump_buffer' to 'base.cmd.show-buffer'
+2019-10-25 2b43885bf optimizing log message in 'base.handler.command'
+2019-10-25 813e8e023 improved unknown command logging in 'base.handler.command'
+2019-09-08 8ae4559be added missing agent subname string for buffered ondemand agent commands
+2019-09-07 98a18a230 fixed/completed ondemand start behaviour in subname case for multiple agents
+2019-08-10 2cea5c5c4 fixed numerous || vs. // bugs (undef scalar case)
+2018-04-04 8e0fff4c4 implemented 'target[__subname__].command' addressing syntax
+2018-03-10 f3c0b46aa catching replies to gone sessions in 'base.handler.command'
+2017-08-03 803c954ce made 'server'-mode "user"name configurable in base module, '-' now '----'
+2017-07-07 07a65ef7f added hardcoded command alias '../' for 'unselect'
+2017-06-30 887ee911b renamed nailara protocol reply type keyword 'SHUTDOWN' to "TERM"
+2017-06-24 3a05782dd s/[no reply data]/UNDEFINED/ in 'base.handler.command'
+2017-04-18 ef3795cfc added '..' prefix syntax for cmd to parent in 'select' mode [nailara proto.]
+2017-04-01 1e8005e92 removed some useless /o regex modifiers in 'base.handler.command' [no vars]
+2017-01-10 0ac6f7a66 added new core agent commands 'select', 'unselect' and 'basepath'
+2016-10-25 d66eafbdf fixed occassional protocol errors caused by 1 byte long command ids [gen_id]
+2016-10-11 ac831a788 added debug log output to track down a mysterious protocol error
+2016-07-22 81c60a5d7 fixed dependency based ondemand agent concurrency issues in root agent
+2016-06-07 1104fb578 added settings in 'base.init_code' to skip some distracting lvl 2 debug msgs
+2016-06-06 9558ebcd6 fixed warnings in 'base.handler.command'
+2016-06-05 648803e74 implemented cmd (args) filter hook support in 'base.handler.command'
+2016-06-02 696705be4 implemented initialization requirement for 'agent'-mode sessions
+2016-04-01 14da112b1 added 'silent_ignore' option to 'base.handler.command'
+2016-03-30 be5a7eab2 fixed empty [N]ACK-reply log messages
+2016-02-11 8e37659c4 added 'reroute' command feature to 'base.handler.command'
+2015-11-22 5e1c34743 enabled 'SHUTDOWN' reply type in 'base.handler.command'
+2015-11-13 032881149 now dropping body data for ignored RAW replies as well
+2015-06-16 8faf29856 fixed regex bug in 'base.handler.command' (multiline command handling)
+2015-05-31 34befaa1f fixed ondemand agent startup race condition bug
+2015-05-31 c82808f39 implemented ondemand agent timeout feature..
+2015-05-30 3ba9000f2 implemented 'ondemand' agent startup (part 1)
+2015-04-10 4d5d86097 renamed local variable to in 'base.handler.command'
+2015-04-10 a254ae67b fixed RAW replys in 'base.handler.command' (for defined reply handler case)
+2015-04-07 6d2cce2b5 improved handling of protocol errors in 'base.handler.command'
+2015-03-30 7682cae65 changed loglevel from 1 to 2 on 'rejected' nailara commands
+2015-03-26 4a223841d fixed two protocol bugs in 'base.handler.command'
+2015-03-20 929b10b7a a bug fix + some cleanup in 'base.handler.command'
+2015-03-18 d5f121fa0 implemented a way to reply later (asynchronously) to local commands
+2015-03-12 dcc6301a6 improved error handling for empty replies in 'base.handler.command'
+2015-01-29 eda33c075 added SOURCE_SID alias keyword to 'base.handler.command'..
+2015-01-28 f03e1be9a added logging of command arguments to 'base.handler.command'
+2015-01-27 8d9bae315 fixed command access checks for session-id addressing mode..
+2015-01-27 c8a663ee7 variable cleanup in 'base.handler.command'..
+2015-01-24 816bdaa98 allowing '-' in agent names..
+2015-01-24 d8acdf4ad preventing $data namespace pollution when no aliases are defined
+2015-01-24 61a1caa0b fixed handling of incomplete RAW replies..
+2015-01-23 32e877cfe fixed warnings in 'base.session.check.close' and 'base.handler.command'
+2015-01-22 8a1e63625 improved handling of multiline commands with missing request body
+2015-01-18 b95a71c8b fixed some access restrictions + logging in 'base.handler.command' (cleanup)
+2015-01-18 05b38b700 fixed target sid mode command routing in 'base.handler.command'..
+2015-01-18 2c9ee45b3 fixed <target_sid>.<command> syntax + minor cleanup in base.handler.command
+2015-01-11 b19308ea5 cleaned up some useless backslashes from regular expressions..
+2014-12-28 866fffa8d fixed broken 'per user' aliases in 'base.handler.command' ...
+2014-12-26 8d363bc8c 'base.handler.command' cleanup (part 1)
+2014-12-26 de64cf30a fixed critical regexp bugs in 'base.handler.command' ( s|\s|\ |g )
+2014-12-25 5c83fd0cc pinned down memory eating subroutine base.handler.command: compiles to +=3MB
+2014-12-23 67759473f implemented per user aliases in 'base.handler.command' (+indentation ;|)
+2014-12-23 02187e1b3 supplying 'base.session.shutdown' shutdown reason in 'base.handler.command'
+2014-12-23 493c083a6 renamed 'base.cmd.close' to 'base.cmd.exit' and refined session shutdown
+2014-12-17 4018cd004 regexp fixes in 'base.handler.command'
+2014-11-22 f60719522 implemented alias command feature allowing source agent name prefixes
+2012-11-01 e1e49d372 fixed a warning in 'base.handler.command' (on multi line commands)
+2012-10-12 98fdcdac5 fixed uninitialized value in subroutine 'base.handler.command'
+2012-07-24 f0f438e22 importing bug fixes from experimental 'use strict' branch
+
+## bulk/mechanical commits touching this module [ 43, flagged, excluded above ] ##
+
+2026-09-01 87b91fd5f [count=431] repo-wide: format-code -d pass -- compact $data{'a'}{'b'} chains to <a.b> sugar
+2026-08-26 94aa460a7 [count=2202] re-sign sourcecode with corrected AMOS-13-ELF-7 checksum algorithm
+2026-08-24 3f386f6de [count=142] add v7.idle-term: let heartbeat-enabled on-demand zenki idle-timeout cleanly
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-24 aae66588c [count=128] base: reflow via format-code; ai-mem: record perl-mod-reload redefined-warnings bug
+2026-06-13 73c483c79 [count=114] feat: ui.caller.security-level resolver + base.session.user helper
+2026-06-13 2800a6ed5 [count=112] feat: split base.handler.command into reply-dispatch + routing modules
+2026-04-20 567950fbb [count=121] base : stream wrapper API + STRM receiver fix + mod-test stream test commands
+2026-04-19 319263e3b [count=111] base : STRM-SIZE stream-cancel infrastructure + cube capability-path fixes
+2026-03-02 919705f2c [count=188] base: swap protocol-7 namespace via pre_init + fix export check
+2026-02-15 e2066b607 [count=179] Remediate 78-character line length violations across codebase
+2025-12-02 92b2b7445 [count=266] style: Fix syntax errors from code style conversions
+2025-11-12 6c452fdef [count=255] committing AI fallout and coding style fixes.
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-28 5f3993991 [count=151] renamed module 'debug' to 'devmod'
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-05-05 92445685f [count=100] renaming protocol reply 'DATA' --> 'SIZE'
+2021-04-29 fee39d058 [count=509] renamed zenka 'nroot' --> 'v7'
+2021-04-19 865dfeddd [count=470] protocol change : 'ACK' --> 'TRUE' + 'NAK' --> 'FALSE'
+2021-04-05 25d8cbcc5 [count=328] lowercasing first character of $OS_ERROR logging instances
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-03-14 30e26f011 [count=448] renamed 'core' to 'cube'
+2021-03-07 f626ac256 [count=100] moved 'crypt.random' to 'base.prng.namespace', reworking id generation
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+2021-02-13 5e0772c55 [count=339] renamed protocol code 'base.proto.nailara' --> 'protocol.protocol-7'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2020-02-24 ffb5c28c9 [count=115] renamed agent 'log' to 'history' agent
+2020-02-22 8f80602df [count=106] renamed 'ping' command to 'heart' as in heartbeat [ heart -> beating ]
+2019-12-14 c3a897acb [count=322] renamed 'root' agent to 'nroot'
+2019-01-24 4411599d1 [count=124] 's/XXX/LLL/g' in all todo comments (./src/)
+2019-01-08 68591f28b [count=297] protocol update: replaced 'NACK' replies with 'NAK' (for 3 byte consistency)
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+2015-01-01 1eed67c37 [count=174] [./modules/*] perltidy -pbp -l=80 -bar -sot -ce -se -nst -b
+2015-01-01 608badbbc [count=167] syntax change [foo.bar:baz] -> <[foo.bar]>->(baz) ... (part 2)
+2012-10-28 faac42604 [count=155] parsed all '&{$code{foo}}(bar)' calls into '$code{foo}->(bar)' [readability]
+2012-06-05 fbb9a337a [count=266] importing prototype sourcecode
+
+#,,.,,,,.,,..,.,,,..,,,.,,,.,,.,,,,..,,,.,,,.,..,,...,...,...,.,.,.,,,.,.,...,
+#QLOIAH53JOCSBBAKNRPSSAI5CYX4ZPECP3DU5UZCKBLNXG65EJZHYVN4YVPHBLKKKPAO7G6O7GMNC
+#\\\|JVQBCP7RXCT4RD2I7DGJHCSK42GQJDOOCMVMGCBAUCVLMIZCVB3 \ / AMOS7 \ YOURUM ::
+#\[7]HDPLQB6JRKPURBUZP34EDSANMLWC4Z7ALFQ5DMQYZVHWNRJKHMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
