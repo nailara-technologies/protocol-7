@@ -61,12 +61,6 @@ if ( exists $code{'coding.idiom.check_write'} ) {
     }
 }
 
-## note the write for the catalog-retrieval corpus [ inert unless ##
-## coding.cfg.catalog_harvest is enabled ]                        ##
-if ( exists $code{'coding.catalog.track_write'} ) {
-    <[coding.catalog.track_write]>->( { 'target' => $path } );
-}
-
 ## use chmod child to create empty file as admin user if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $cur_mode;
@@ -92,6 +86,17 @@ return
     . '[supported are :raw,:bytes,:encoding(UTF-8)]'
     unless length( $norm_encoding // '' );
 
+## note the write for the catalog-retrieval corpus [ inert unless           ##
+## coding.cfg.catalog_harvest is enabled ]. runs AFTER a successful write,  ##
+## not before it : track_write requires the module to exist under src/, and ##
+## a brand-new file does not exist until written [ also means a failed or   ##
+## staged write is never tracked, which is correct -- nothing was written ] ##
+my $track_write = sub {
+    if ( exists $code{'coding.catalog.track_write'} ) {
+        <[coding.catalog.track_write]>->( { 'target' => $path } );
+    }
+};
+
 ## write content if file is writable ##
 if ( -f $abs_path and -w $abs_path ) {
     <[file.write]>->( $abs_path, \$content, $norm_encoding );
@@ -100,11 +105,13 @@ if ( -f $abs_path and -w $abs_path ) {
         <[coding.chmod_child.readline]>
             ;    ## consume restore reply : keep pipe in sync ##
     }
+    $track_write->();
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 } elsif ( -d ( $abs_path =~ s|/[^/]+$||r )
     and -w ( $abs_path =~ s|/[^/]+$||r ) ) {
     <[file.write]>->( $abs_path, \$content, $norm_encoding );
     chmod( 0664, $abs_path );
+    $track_write->();
     return sprintf "created %s [ %d bytes ]", $path, length($content);
 }
 
@@ -119,8 +126,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access "
     . "]\nstaged at : %s", $path, length($content), $stage_rel;
 
-#,,..,.,.,,.,,,..,,.,,.,.,.,.,,,.,..,,,,.,,,,,.,.,...,..,,...,,..,,,.,.,.,..,,
-#Q3AYD6HX73HCJXR24VEYLJW6U5S5VUDHDLF7OPHESVFA43UKB3X7MDV7IEBPGEQ2PP7JSNJU2W4PY
-#\\\|D7R5B2ZED7WR3S3EM5KG6TOUHZW3RLGDAXONI4HDO4DWYVKBQLO \ / AMOS7 \ YOURUM ::
-#\[7]CW2PEIIOXOPPIZIG6TH7KRJEGL2FYIUY6MLCJFYBACX5ENUSAQAI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,.,.,...,,..,..,,.,.,,.,,,,.,.,.,...,...,..,,,,.,,,,,,..,,,.,
+#LVCUS6Q2QO6XV6FAJWRKFACGZDBGOSKRBVD23B7EZP5K6WUDKWTPPCLKJCDQ54NWG7QWCSSWB2S6A
+#\\\|I7ZYKHIIHUWSAL3A2HQWKT7YCOHOC425JYKTKBMLLWBGBWRAHLV \ / AMOS7 \ YOURUM ::
+#\[7]TJR54GS3CMJOCIBLJSJXSJXHVQ66CIXEF777Z5QBMVSQNENKSGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

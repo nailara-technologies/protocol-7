@@ -46,16 +46,42 @@ return { 'mode' => qw| true |, 'data' => 'not a src module' }
     if not length $module
     or not -f sprintf( qw| %s/src/%s |, $root, $module );
 
-## resolve the task this write belongs to : same in-progress scan the     ##
-## record_observation handler uses, since a tool handler is not given the ##
-## task id directly                                                       ##
-my $task_id = '';
-foreach my $tid ( keys <coding.task.queue>->%* ) {
-    my $task = <coding.task.queue>->{$tid};
-    next if ref $task ne qw| HASH |;
-    next if ( $task->{'execution'}{'status'} // '' ) ne qw| in_progress |;
-    $task_id = $tid;
-    last;
+## resolve the task this write belongs to. primary : the tool-executor      ##
+## context key <coding.catalog.active_task>, set by                         ##
+## coding.async.tool_executor tightly around each synchronous tool dispatch ##
+## -- exact attribution, no guessing. fallback [ callers without executor   ##
+## context, e.g. coding.cmd.call-tool ] : the in-progress queue scan        ##
+## record_observation also uses, but a bare 'first in_progress task' scan   ##
+## is WRONG under concurrency : coding.task.execute sets the status before  ##
+## backend acquisition, so a queued-behind task already reads as            ##
+## in_progress [ cross-task misattribution confirmed live 2026-09-09 ].     ##
+## when several tasks are in_progress, only the one actually holding a      ##
+## backend lock [ coding.async.backend_acquire ] can be executing tools     ##
+my $task_id = <coding.catalog.active_task> // '';
+
+if ( not length $task_id ) {
+    my @in_progress;
+    foreach my $tid ( keys <coding.task.queue>->%* ) {
+        my $task = <coding.task.queue>->{$tid};
+        next if ref $task ne qw| HASH |;
+        next if ( $task->{'execution'}{'status'} // '' ) ne qw| in_progress |;
+        push @in_progress, $tid;
+    }
+    if ( @in_progress == 1 ) {
+        $task_id = $in_progress[0];
+    } elsif ( @in_progress > 1 ) {
+        my $backend_state = <coding.state.backend> // {};
+        foreach my $tid (@in_progress) {
+            foreach my $backend ( keys $backend_state->%* ) {
+                my $bs = $backend_state->{$backend};
+                next if ref $bs ne qw| HASH |;
+                next if ( $bs->{'lock'} // '' ) ne $tid;
+                $task_id = $tid;
+                last;
+            }
+            last if length $task_id;
+        }
+    }
 }
 
 return { 'mode' => qw| true |, 'data' => 'no active task' }
@@ -68,8 +94,8 @@ return { 'mode' => qw| true |, 'data' => 'no active task' }
 
 return { 'mode' => qw| true |, 'data' => $module };
 
-#,,,,,,.,,,..,,.,,,,,,.,,,.,,,,.,,,,,,,.,,...,..,,...,..,,...,...,.,.,,..,,,.,
-#CJLI3VLB7ATOIJQ5WGGDBQUKD6XV4O4VJ564ZS5PAJTGDR543GKPFNUMUN2UVXDGGEVLTZNVTTN4E
-#\\\|K5AE256OG54HYWUWZHP4DKJ5XA2UTVVIRT375P6G7HI2TRUYYRN \ / AMOS7 \ YOURUM ::
-#\[7]BMOEZAN47I5W23V6G7U3FHXJUCUFVZZOHRWDGKFLWPB65POMJSCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,,,,,,,,.,,,,,.,.,.,.,,,.,.,..,,...,...,..,,,..,,,,,.,,,,,,,
+#DLBJWXNJFWM3DA7BJTPGTXHTFZI2NUVOYQXVNKNXEY6RTO3PK4HEH2H7PN7OR23A3AGAKRQVEQ5T6
+#\\\|ZKZW6R3UBQPGX3YLJEIXZ46MGLXAVPYSMQBFYDHPWG6AYVIM77T \ / AMOS7 \ YOURUM ::
+#\[7]RATCZMNC2VOFC6B2GYU4HJUGMZGOOUVVZ34LGMETRQ6EHVHG7IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

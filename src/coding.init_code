@@ -123,6 +123,35 @@ if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
     TRUE, 0750, FALSE, 0700, 'observations'
 );
 
+## catalog corpus dir : same self-healing pattern as ext-pkg.init_code [ ##
+## init runs as root under v7, before drop_privs ] -- create if missing, ##
+## then chown to the zenka user so catalog.corpus writes by the          ##
+## dropped-privilege zenka succeed on a fresh deploy without any manual  ##
+## mkdir/ACL step [ the bug class fixed live 2026-09-09 with a one-time  ##
+## setfacl, which does not reapply itself ]                              ##
+my $catalog_corpus_dir = <coding.cfg.catalog_corpus_dir>
+    // sprintf qw| %s/data/catalog-corpus |, <system.root_path> // '';
+
+if ( length $catalog_corpus_dir and $EFFECTIVE_USER_ID == 0 ) {
+    if ( not -d $catalog_corpus_dir ) {
+        <[base.logs]>->(
+            0, ':. creating catalog corpus dir [ %s ]',
+            $catalog_corpus_dir
+        );
+        <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+        make_path( $catalog_corpus_dir, { 'mode' => 0750 } );
+    }
+    my $zenka_user = <system.amos-zenka-user> // '';
+    if ( length $zenka_user and -d $catalog_corpus_dir ) {
+        my ( $uid, $gid ) = ( getpwnam($zenka_user) )[ 2, 3 ];
+        ## parent [ <root>/data ] is deliberately NOT chowned : unlike the ##
+        ## /var/protocol-7/<zenka> parents in ext-pkg.init_code it is a    ##
+        ## repo dir owned by the login user -- the corpus dir alone needs  ##
+        ## zenka ownership                                                 ##
+        chown $uid, $gid, $catalog_corpus_dir if defined $uid;
+    }
+}
+
 ## fork privileged chmod child before drop_privs ##
 <[coding.start.chmod_child]>;
 
@@ -681,8 +710,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,.,,,,.,,,.,,.,,,,,,,.,.,...,,,.,,,.,,,.,.,.,...,...,,..,...,,..,...,,.,,
-#7VYX3IZUAAJVN4VZCLUFFQNLU3RLYZR5N64UWAXMVONGFGOE2I5JZSOQPK5WXKKYXFREJHMBOJKPU
-#\\\|IUYHXBGKCXK7BHWVPKU3JJQMZHDCW2XWS33DNMPKZB6ZV54YANC \ / AMOS7 \ YOURUM ::
-#\[7]F74P2FGL4N54UGWUBZ6PB46D3QN5GV73Q7IEQADTO4PWEUXQCIAI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,..,,,..,.,.,.,,,.,.,.,.,,,,,.,.,.,.,...,..,,.,.,,,.,..,,.,,,.,,,
+#P4HPCDECBDDHPVLHCUSE7AXJQUOXKSE3D5YYUE4FMCD5OEQV3PPDB3LTBYDKBTCCPIKYZI4NYDWZG
+#\\\|N4EZQJV6DTCVIDWB5XS34B2ZFBVQ4K7TR2QQBBMZ73KYJILQZQR \ / AMOS7 \ YOURUM ::
+#\[7]RV4VVJXSWKBJ6EQ75AA6WBEUH5ZII3GTIQXGXUKAAIJUBZAMPWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,7 +62,12 @@ my $dir  = <coding.cfg.catalog_corpus_dir>
     // sprintf qw| %s/data/catalog-corpus |, $root;
 
 if ( not -d $dir ) {
-    if ( not <[base.file.make_path]>->($dir) ) {
+    ## base.file.make_path is NOT guaranteed loaded on a fresh zenka start  ##
+    ## [ only 'reload source' pulls in every src module -- the load_modules ##
+    ## selection omits it ] -- use File::Path directly, same as the         ##
+    ## init-time dir setup in coding.init_code                              ##
+    <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+    if ( not eval { make_path( $dir, { 'mode' => 0750 } ); 1 } ) {
         <[base.logs]>->( 0, ': catalog.corpus : cannot create %s', $dir );
         return { 'mode' => qw| false |, 'data' => "cannot create $dir" };
     }
@@ -88,7 +93,20 @@ my $line = <[format.json.encode]>->(
 ## coding.idiom.corpus.record needed after its own live run                ##
 $line =~ s|\s*\n\s*| |g;
 
-if ( not <[base.file.append]>->( $path, $line . "\n" ) ) {
+## base.file.append likewise not guaranteed loaded on a fresh start -- ##
+## inline the equivalent [ append mode, default :encoding(UTF-8) ] --  ##
+## confirmed live 2026-09-09 : corpus.record died at this call with    ##
+## 'undefined value as subroutine reference' after a clean restart     ##
+my $append_ok = eval {
+    open( my $fh, qw| >> |, $path )
+        or die sprintf( 'open : %s', <[base.str.os_err]> );
+    binmode( $fh, qw| :encoding(UTF-8) | );
+    print {$fh} $line . "\n";
+    close($fh) or die sprintf( 'close : %s', <[base.str.os_err]> );
+    1;
+};
+
+if ( not $append_ok ) {
     <[base.logs]>->( 0, ': catalog.corpus : cannot append to %s', $path );
     return { 'mode' => qw| false |, 'data' => "cannot append to $path" };
 }
@@ -102,8 +120,8 @@ if ( not <[base.file.append]>->( $path, $line . "\n" ) ) {
 
 return { 'mode' => qw| true |, 'data' => $path };
 
-#,,..,...,,,,,..,,,..,.,,,,.,,,..,...,,,,,,.,,..,,...,...,.,.,.,.,,.,,,..,,,.,
-#57BO6WJNSARG3FDGACGHIFEBRFJWOFMJQJ6SWV4IB3EAMC3UDWWFH4G4LNTFPDP4IUXAEISJ4NCRA
-#\\\|PZV3NQIEP7XC3DX326HGXOIHEQPSAWX5DL26TYEODM6XEZTQZPL \ / AMOS7 \ YOURUM ::
-#\[7]FUNIM6MKWVXLMUETVCDLBQGWCHDA3TLEZ72YEAA3MHDUMR73LICY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,..,,...,,,,,,,.,,,.,.,,,...,..,,...,..,,..,,.,.,,,.,,,,,,,.,
+#K7VDBONA42I6F67EZMH2YNPLG2WSE2AHOD2H5YJR4FU5PORYIJIVBASBDNTF3DPDOTVTTHKZVM7WU
+#\\\|OBZUVW3SQJFDNXVRZFERBHSYJWUEHJU74ELJV5SN3IOMNOVUCMR \ / AMOS7 \ YOURUM ::
+#\[7]T4YPSC6T6PYN25HJGQH7RV77NNV5BOMO3KY2LXX7WMDFDEQ77IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

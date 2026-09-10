@@ -59,6 +59,19 @@ if ( defined $result && length $result ) {
     }
 }
 
+## flush this task's ( task text -> modules touched ) pair to the           ##
+## catalog-retrieval corpus [ inert unless coding.cfg.catalog_harvest is    ##
+## enabled ]. THIS is the live completion path : coding.async.complete ->   ##
+## coding.task.complete. the identical call in coding.task.queue_complete   ##
+## only fires via the manual `coding.task.queue complete` dispatcher, which ##
+## real tasks never take -- wiring it there alone meant the flush never ran ##
+## live and touched-entries accumulated unboundedly [ confirmed 2026-09-09  ##
+## ]. the queue_complete call stays : corpus.record deletes the touched     ##
+## entry first thing, so a second call is a harmless no-op                  ##
+if ( exists $code{'coding.catalog.corpus.record'} ) {
+    <[coding.catalog.corpus.record]>->( { 'task_id' => $task_id } );
+}
+
 # Trigger task completion event handler (checks for auto-resume)
 <[coding.event.on_task_complete]>->( $task_id, $result );
 
@@ -69,8 +82,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,,,,..,,,.,,,..,.,.,.,.,.,,,,,.,.,.,,,,,,,,,..,,...,...,...,,.,,.,.,..,,...,
-#HG2ITHNILUSOBLWIERXK6353APUIJMPD5KGOUJF67EGSIGFASCEXGW3ZHUPDBICJJQSWSYARFQ53U
-#\\\|GRQQV7MNGPKD6HAAT3VDY5EU7VBTOQVRD4P7LHWRUYHQYQLUS2Z \ / AMOS7 \ YOURUM ::
-#\[7]5WUXE2PBR5SD4HZUCI6Q3UAYHDZQGA7WW3KC32KXQCVXVHPZD4BI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,,..,,,,,.,.,,,,,,,,,..,,,..,..,,...,...,,..,,,,,...,...,,..,
+#HHURASXSH3XW66R2RO5HCMI5DNWAHZN6WXF4LCRWBYPCDHUFABS4WORJUQRCL6BMR32BO6ZANQNMQ
+#\\\|LINWEQV3JV3R35K6RIRUKTPQKUTFBKS4OBOZZFHEE6LUIJI6SLC \ / AMOS7 \ YOURUM ::
+#\[7]RN4AFFRL5SA3EJJVQJUGJLCH264LZ645GY57QZKDCDF6PJEYVGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
