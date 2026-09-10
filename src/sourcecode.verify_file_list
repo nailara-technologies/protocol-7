@@ -1,0 +1,194 @@
+## [:< ##
+
+# name  = sourcecode.verify_file_list
+# descr = verify one list of source paths -- the shared per-file loop body
+#         used by both the sequential and parallel-worker paths of
+#         sourcecode.console.verify-p7-signatures. read-only in 'strict'
+#         mode [ the only mode this gets sharded for -- 'repair' mode
+#         writes files and always runs with worker_tag undef, a single
+#         shard covering the whole list, exactly as before ]. a defined
+#         worker_tag means "running inside a forked shard-worker" :
+#         suppresses the interactive '\r' valid-file counter and the
+#         event.once SIGINT yield, same reasoning as sourcecode.sign_file_list.
+# args  = <path_list_aref>, <work_tree>, <verify_verbosity>, <verify_mode>,
+#         <signature_key_name> [, <worker_tag>]
+# return = hashref : { valid_count, invalid_count, repair_needed_count }
+
+my $path_aref           = shift;
+my $work_tree           = shift;
+my $verify_verbosity    = shift // 2;
+my $verify_mode         = shift // qw| strict |;
+my $signature_key_name  = shift;
+my $worker_tag          = shift;    ## undef : sequential/interactive caller ##
+
+my $valid_count         = 0;
+my $invalid_count       = 0;
+my $repair_needed_count = 0;
+
+foreach my $path_rel ( $path_aref->@* ) {
+    my $path_abs = catfile( $work_tree, $path_rel );
+    <[base.log]>->( 2, qw| : | );
+
+    my $src_str;
+    if ( not defined <[file.slurp]>->( $path_abs, \$src_str, qw| :raw | ) ) {
+        <[base.logs]>->(
+            0,
+            ':E: cannot read file, see error above :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
+        );
+        $invalid_count++;
+        next;
+    }
+    my $footer_data = <[source.extract_sig_body]>
+        ->( \$src_str, qw| strip |, $verify_mode );
+
+    <[base.logs]>->( 2, ':::[ %s ]:.', $path_rel );
+
+    if ( not $footer_data->{'was-present'} ) {
+        <[base.logs]>->(
+            0,
+            ':E: no signature present :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
+        );
+        $invalid_count++;
+        next;
+    }
+
+    if ( not $footer_data->{'structure-was-valid'} ) {
+        if ( $footer_data->{'yourum-fake-signature'} ) {
+            <[base.logs]>->(
+                0,
+                ':E: fake signature detected :: %s',
+                <[base.parser.ellipse_center]>->( $path_rel, 44 )
+            );
+            $invalid_count++;
+            next;
+        }
+        my $footer_error = $footer_data->{'encountered-error'};
+        my $err_msg
+            = $footer_data->{'extraction_failed_with_markers'}
+            ? 'no extractable signature footer'
+            : ( $footer_error // 'invalid signature structure' );
+        <[base.logs]>->(
+            0, ':E: %s :: %s', $err_msg,
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
+        );
+        $invalid_count++;
+        next;
+    }
+
+    if ( $footer_data->{'needs_separator_endline'} ) {
+        <[base.log]>->( 1, ':E: missing separator endline before signature' );
+
+        if ( $verify_mode eq 'strict' ) {
+            $invalid_count++;
+            next;
+        } else {
+            <[base.log]>->( 1, ': continuing in repair mode' );
+            $repair_needed_count++;
+        }
+    }
+
+    my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
+        \$src_str, $footer_data, {}, $signature_key_name,
+        $verify_mode
+    );
+
+    my $was_repaired
+        = ( $report_ref && $report_ref->{'repaired'} ) ? TRUE : FALSE;
+    my $was_reconstructed
+        = ( $report_ref && $report_ref->{'reconstructed'} ) ? TRUE : FALSE;
+    my $repaired_state
+        = ( $was_repaired && $report_ref->{'repaired-with-state'} )
+        ? $report_ref->{'repaired-with-state'}
+        : 5;
+
+    if ( ( $was_repaired || $was_reconstructed ) && $verify_mode eq 'repair' )
+    {
+        <[base.logs]>->(
+            2,
+            ': writing %s file: %s',
+            $was_reconstructed ? 'reconstructed' : 'repaired', $path_abs
+        );
+        <[file.put_bin]>->( $path_abs, \$src_str );
+        $footer_data->{'repaired'}       = TRUE;
+        $footer_data->{'reconstructed'}  = TRUE if $was_reconstructed;
+    }
+
+    if ($is_valid) {
+        $valid_count++;
+
+        if ( $was_repaired || $was_reconstructed ) {
+            <[base.logs]>->(
+                1,
+                ':+: valid (%s%s) :: %s',
+                $was_reconstructed ? 'reconstructed' : 'repaired',
+                $was_repaired && !$was_reconstructed
+                ? " with state $repaired_state"
+                : '',
+                <[base.parser.ellipse_center]>->( $path_rel, 28 )
+            );
+            $repair_needed_count-- if $repair_needed_count > 0;
+        } else {
+            <[base.logs]>->(
+                1,
+                ':+: valid :: %s',
+                <[base.parser.ellipse_center]>->( $path_rel, 37 )
+            );
+        }
+
+        ##  displaying valid signature counter in verbose mode -- only in ##
+        ##  the sequential/interactive path : workers don't own the tty  ##
+        printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
+            $colors{'p7_fg_0003'},
+            $colors{'B01'}, $valid_count, $colors{'reset'}
+            if not defined $worker_tag
+            and <system.zenka.verbosity.console> == 1;
+    } else {
+        <[base.log]>->( 0, qw| : | ) if $invalid_count == 0;
+        $invalid_count++;
+        <[base.logs]>->(
+            0,
+            ':E: signature validation failed :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
+        );
+
+        if ( $verify_verbosity > 1 && defined $report_ref ) {
+            <[base.log]>->( 2, ': : signature verification details:' );
+            foreach my $type ( <[base.sort]>->($report_ref) ) {
+                if ( not length ref $report_ref->{$type} ) {
+                    <[base.logs]>->(
+                        2,     ': :. %30s : %s',
+                        $type, $report_ref->{$type} ? 'true' : 'false'
+                    );
+                } else {
+                    foreach
+                        my $mode ( <[base.sort]>->( $report_ref->{$type} ) ) {
+                        <[base.logs]>->(
+                            2,
+                            ': :. %30s [%s] : %s',
+                            $type,
+                            $mode,
+                            $report_ref->{$type}->{$mode} ? 'true' : 'false'
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    ## allow for SIGINT -- only when running inline, never in a fork worker ##
+    <[event.once]> if not defined $worker_tag;
+}
+
+return {
+    qw| valid_count         | => $valid_count,
+    qw| invalid_count       | => $invalid_count,
+    qw| repair_needed_count | => $repair_needed_count
+};
+
+#,,,,,,.,,.,,,.,.,..,,,..,,,,,..,,,,.,,.,,...,..,,...,..,,..,,,..,..,,...,.,,,
+#G62S3BUI37S2JAZEHKLY4FZIX2I2QSE64FBYFECJWWJQOIB2PAM56Z3LD6T6GMFLQMDNTFBRY467E
+#\\\|PCBNR5424JFYK7X54MFMA7WQ5RS7UJBCPDYZXAXPND4J5UEJ36M \ / AMOS7 \ YOURUM ::
+#\[7]EAFPMJOOJPXHRXAWL5ZRGQFU73GTH2ID543TS7F3SVNDFLXUG2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
