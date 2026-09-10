@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: reference
   originSessionId: 25027270-dc9c-4fde-a219-c4e76981a4cf
-  modified: 2026-09-09T01:25:53.740Z
+  modified: 2026-09-09T21:35:02.345Z
 ---
 
 found 2026-09-09 while reviewing a Kimi dispatch that needed to free the
@@ -41,12 +41,27 @@ window; don't reach for it if you actually just want the crash-restart
 suppressed while otherwise leaving the zenka alone (that IS what
 `<zenka>.draining`-style flags, where they exist, are for).
 
+**simpler alternative for the common case (2026-09-09)**: if the actual
+goal is just "restart this zenka" (e.g. to pick up a fresh `init_code`
+run after an edit), don't manually sequence `terminate` + `start` --
+`v7-zenki.restart <zenka>` (`src/v7-zenki.zenka.cmd.restart`) is a real,
+current single command that does both together, plus a `:twin:` prefix
+for zero-downtime handover that the manual sequence can't give you.
+Found this after a Kimi dispatch got stuck hunting for a working restart
+command (its own memory still said the pre-rename `v7.restart`, a stale
+prefix, not a wrong concept) and I'd given it the two-step version
+without checking whether a direct one already existed -- check for the
+obvious single command before reaching for a manual multi-step sequence.
+The two-step `terminate`+`start` is still the right answer specifically
+when you need the manual-stop side effect (disabling auto-restart,
+e.g. for a maintenance window), not as the default way to "just restart."
+
 ## related
 
 [[feedback-mcp-server-p7-kimi-dispatch-nonblocking]]
 
-#,,,.,..,,..,,,,,,,.,,,..,,.,,,,.,,,,,,,,,,,.,..,,...,...,.,,,,.,,,.,,,.,,.,.,
-#2W2NDAKPFVZ7U2CBG3VRI4HEBECFFRWYIR325Z42KZRKEHXXPKIRJRYXT2SBDO7HMGOCOCDQ3VCR2
-#\\\|SSEYBDXEAWLW4K2THIVB355MBPFGPA266OPCSB4USKKVWYCON63 \ / AMOS7 \ YOURUM ::
-#\[7]E6EU7PPHY4HVL2ZI7RO475H2SRPK4IEK4GSU3LB77XMP6ALQCWAI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,.,.,.,,,,..,...,,,,,,,.,.,,,..,,...,...,...,,.,,...,,.,,,,.,
+#BFGVKUCHRQET4OHIWZW7JE45WSZHIE5TSGQFOHAIGCVSQVDQOSLHA3GNYF4WTBL5JK7MCIFGXHFNS
+#\\\|HJFYOHW5PIGHNIV2WV3NTVDK5AXVRSMRBP4KJNWQ2SZP3THPVKI \ / AMOS7 \ YOURUM ::
+#\[7]O44T34HWXJ7JAXF7NVK555RPKWUKSCJ2YEJCMNDWAEDWGTCGBKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

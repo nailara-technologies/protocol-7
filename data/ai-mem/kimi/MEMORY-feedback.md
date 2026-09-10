@@ -23,8 +23,18 @@ unrelated count. full writeup: data/tasks/iteration-counter-quality-results.md.
 ran `v7.stop kimi` instead of `v7.restart kimi` while iterating — with the
 zenka stopped there is NO path to send `v7.start kimi` from inside the
 session [ all p7_command/cube routing to kimi dies with it ]. needed user
-to restart by hand. NEVER use bare `v7.stop` on the zenka you are running
-inside; use `v7.restart` [ stops AND starts ] or don't touch it.
+to restart by hand. NEVER use bare stop on the zenka you are running
+inside; use a combined restart [ stops AND starts ] or don't touch it.
+
+**rename update (2026-09-09)**: `v7` zenka renamed to `v7-zenki`, and
+`v7.stop`/`v7.stop-implicit` renamed to `v7-zenki.terminate`/
+`v7-zenki.terminate-implicit` [ commits a315a0e5a, 23a0e8d53 ]. the
+LESSON above is unchanged, but the commands are now `v7-zenki.terminate
+<zenka>` [ still dangerous on your own zenka, same deadlock risk ] and
+`v7-zenki.restart <zenka>` [ `src/v7-zenki.zenka.cmd.restart`, still a
+real single command doing stop+start together -- use this one, not a
+manual terminate-then-start sequence, unless you specifically need
+`:twin:` zero-downtime handover, which only `restart` supports ].
 
 ## incident : `v7.reload init` TORE DOWN the entire network [ again ]
 
@@ -54,8 +64,8 @@ Also fixed: `src/web-browser.cmd.stop_slideshow` line 7 was doing a bare `== 0`
 comparison against `<web-browser.slideshow.running>`, throwing an undef warning
 when called on an already-stopped slideshow. Guarded with `( // 0 )`.
 
-#,,,,,,,.,..,,..,,,,,,.,,,,,.,..,,,,,,,,.,.,,,..,,...,...,,..,.,.,,,,,.,.,.,,,
-#TOVHP2HPH6UPWMSS254LQ4DSVVCGHQJR52WZNTQDLYES33T3QGMTN3STR2IYTSFZQ47QZKRS54W22
-#\\\|J3ILCA5X6AJ2IRBDJS7UNDTASVDH3KXTPGLE3NORMTTWWOCAJUQ \ / AMOS7 \ YOURUM ::
-#\[7]FIV4TYTDEA73SWQLLBW7KX4LACBLCHKBGJS7FPOWUWAE5LHKFGBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,,.,,,,.,,.,,.,.,...,.,.,,..,..,,...,..,,..,,,.,,..,,,.,,,,,,
+#FHBT6SGPJXCIWYWIDJIGZPHKZC4HAU4DD7PK4MK5YPI5K6GTNHPHDUVUNKIBHNSWO6QZDU7EM5OU4
+#\\\|CPD25MNO7OEFDGS2YI7QYB6OWNYPFGIHTLZTLCRJRWYKELEMWPV \ / AMOS7 \ YOURUM ::
+#\[7]IQXDPHBGWTLSJOBBWZHS6NVINIFZU3CNLM5M4YSYR54YZL5FWGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
