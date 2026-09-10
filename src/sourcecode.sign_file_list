@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = sourcecode.sign_file_list
+# descr = sign one list of source paths -- the shared per-file loop body
+#         used by both the sequential and parallel-worker paths of
+#         sourcecode.console.update-signatures. a defined worker_tag means
+#         "running inside a forked shard-worker" : suppresses the
+#         interactive '\r' valid-file counter [ multiple workers writing
+#         the same terminal line would clobber each other ] and the
+#         event.once SIGINT yield [ a forked child inheriting Event.pm's
+#         live watcher state must not touch it ]. undef means "running
+#         inline in the console command itself" -- reproduces the original
+#         single-process console behaviour exactly.
+# args  = <path_list_aref>, <work_tree>, <sign_verbosity> [, <worker_tag>]
+# return = hashref : { staged => aref, true_count => int, written_count => int }
+
+my $path_aref      = shift;
+my $work_tree      = shift;
+my $sign_verbosity = shift // 2;
+my $worker_tag     = shift;        ## undef : sequential/interactive caller ##
+
+my $true_count    = 0;
+my $written_count = 0;
+my @staged_paths;
+
+foreach my $path_rel ( $path_aref->@* ) {
+
+    my $path_abs = catfile( $work_tree, $path_rel );
+    <[base.log]>->( 2, qw| : | );
+
+    my $code_data_ref;
+    eval {
+        use warnings FATAL => qw| all |;    ##  catches all warnings  ##
+        $code_data_ref = <[source.cmd.get-code-signed]>->(
+            {   qw| args |       => $path_rel,
+                qw| skip-valid | => TRUE,             ## true ##
+                qw| verbosity |  => $sign_verbosity
+            }
+        );
+
+        ## displaying valid signature counter in verbose mode -- only in ##
+        ## the sequential/interactive path : workers don't own the tty   ##
+        printf "%s    <VALID>  %s%s%-5d%s     %s\r", $colors{'p7_fg_0004'},
+            $colors{'p7_fg_0003'},
+            $colors{'B01'}, ++$true_count, $colors{'reset'}, ' ' x 13
+            if not defined $worker_tag
+            and <system.zenka.verbosity.console> == 1
+            and $code_data_ref->{'mode'} eq qw| true |;
+    };
+
+    <[base.s_warn]>->( '%s <{NC}>', scalar <[base.str.eval_error]> )
+        if length $EVAL_ERROR;
+
+    <[base.log]>->( 0, $code_data_ref->{'data'} )
+        if defined $code_data_ref
+        and ref $code_data_ref eq qw| HASH |
+        and $code_data_ref->{'mode'} eq qw| false |;
+
+    <[base.exit]>->(
+        qw| 0110 |, 'aborting signature update due to error[s]', 0
+        )
+        if not defined $code_data_ref
+        or ref $code_data_ref ne qw| HASH |
+        or $code_data_ref->{'mode'} eq qw| false |;
+
+    ## allow for SIGINT -- only when running inline, never in a fork worker ##
+    <[event.once]> if not defined $worker_tag;
+
+    next
+        if $code_data_ref->{'mode'} eq qw| true |
+        and $code_data_ref->{'data'} eq 'still valid. =)';
+
+    if ( $code_data_ref->{'mode'} ne qw| size |
+        or not length $code_data_ref->{'data'} ) {
+        <[base.logs]>->(
+            0, ': not able to create signature [ %s ]', $path_rel
+        );
+        next;
+    }
+
+    <[base.logs]>->( 1, ':.%s', ' ' x 13 );
+    if ( defined $worker_tag ) {
+        <[base.logs]>->( ':%d: %s :.<+>', $worker_tag, $path_rel );
+    } else {
+        <[base.logs]>->( '::: %s :.<+>', $path_rel );
+    }
+    <[base.log]>->( 1, qw| : | );
+
+    ## TOCTOU guard : re-read the file fresh and confirm nothing changed    ##
+    ## underneath us since the read above [ event.once yields the event     ##
+    ## loop in the inline path, a real window for another writer -- in a    ##
+    ## worker, another worker's disjoint shard never touches this path, so  ##
+    ## the only remaining writer this guards against is an unrelated        ##
+    ## external edit, same as before ]. re-strip a fresh disk read the same ##
+    ## way get-code-signed did, compare length first [ catches truncation / ##
+    ## trailing garbage past the old footer, no checksum needed for that ], ##
+    ## then the body checksum itself                                        ##
+    my $disk_now;
+    <[file.slurp]>->( $path_abs, \$disk_now, qw| :raw | );
+    <[source.extract_sig_body]>->( \$disk_now, qw| strip | );
+
+    if ( length($disk_now) != $code_data_ref->{'body-length'}
+        or <[chk-sum.bmw.strsum]>->( \$disk_now ) ne
+        $code_data_ref->{'body-chksum'} ) {
+        <[base.logs]>->(
+            0, ':E: file changed on disk since read, skipping: %s', $path_rel
+        );
+        next;
+    }
+
+    # Write the updated file with signature
+    if ( not <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} ) ) {
+        <[base.logs]>->( 0, ':E: failed to write file: %s', $path_rel );
+        next;
+    }
+
+    push @staged_paths, $path_rel;
+    $written_count++;
+}
+
+return {
+    qw| staged        | => \@staged_paths,
+    qw| true_count    | => $true_count,
+    qw| written_count | => $written_count
+};
+
+#,,..,,,.,.,.,...,.,,,,,.,.,,,,,.,.,,,..,,.,,,..,,...,...,,..,,,.,,,,,.,,,.,,,
+#G2V2PKU6NDEKNTI3OGSXMFMI7TU7HSKD46MRCYQSP76X3ZFW34G7C52C4QIDNFLSYZCUUSTP3PZ26
+#\\\|NLKIQ2LYBYVKQGDDAMBUTHEKGK5N77QVMEZSUE3E55YV63N75MW \ / AMOS7 \ YOURUM ::
+#\[7]UDZ3IJFSXOZB3BPJQGHGMTIXKZQI57RTI22DF3XNFFKQ2VM6QGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
