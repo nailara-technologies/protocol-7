@@ -27,7 +27,9 @@ Prototype modules live + verified headless in amos-term zenka:
 - window client_name must match <regex.base.usr> [ alnum + - _ , NO dots ] —
   base.session.init rejects it otherwise.
 - `reload source` ignores edits to already-loaded cmd modules [ known issue:
-  data/tasks/loader-reload-stale-cmd-modules.md ] → use v7.restart <zenka>.
+  data/tasks/loader-reload-stale-cmd-modules.md ] → use `v7-zenki.restart
+  <zenka>` [ renamed from `v7.restart`, 2026-09-09, commits a315a0e5a /
+  23a0e8d53 -- same command, `v7-zenki.` prefix now ].
 - new modules UNSIGNED → `bin/Protocol-7 sourcecode update-signatures` [ needs
   interactive key password ].
 
@@ -92,8 +94,8 @@ Completed the open items from data/yaml/coding-tasks/amos-term-interaction-plugi
   future cross-zenka route-send to coding could move this to the coding data
   dir if desired.
 
-#,,.,,.,,,.,.,,,.,..,,.,.,,,.,.,.,.,,,,,,,,,,,..,,...,...,..,,...,,,.,.,,,,,.,
-#E24MHLMAES3TPMIMBY5LBWN5JLDIKYMEYEY3UGZIXYUPWAK4AT7DETQDZVCHGJFC7A44CVPXU56SI
-#\\\|GZN5I4W2G3FZ5B5IXSLG6XEDAGIJOQP4QPZLKHPBF7G5ZFAL6OR \ / AMOS7 \ YOURUM ::
-#\[7]QUW2CEEZDJRGEN34JAFJ6C6RQYOMBWE4EXYVN6TZBZAIOTMFBOAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,.,,.,,..,,...,,.,,,,,,..,,,.,,..,,...,...,..,,.,.,...,..,,,,,,
+#LXYCYH52NKCF7NDMDIO6LJHWO45GNJ3OIQKFJF2DCY4UTLVFG2K7NQRVV7UXESL7EJGOCO7FBIFUM
+#\\\|T7JEJ5ZLW52XA67BRCD6R3HHQKSY25KULVEQS3UQXJTKYD5ORUW \ / AMOS7 \ YOURUM ::
+#\[7]MOBNVUGIZ4CRRM56ANYBAWCYJ2JKY5J7REU2QSZ2AGVJP7GCZCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
