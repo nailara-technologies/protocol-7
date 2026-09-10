@@ -4159,6 +4159,14 @@ sub _kimi_dispatch_async_reply {
         'the dispatch is running DETACHED — this call did not block the '
             . 'server waiting for it; other tool calls [ including '
             . 'kimi_check_status ] run normally while it works.',
+        sprintf(
+            'for proactive completion awareness instead of polling blind: '
+                . 'bin/dev/notify-pid-gone %d & then verify with '
+                . 'kimi_check_status once it reports the pid gone — a '
+                . 'notification is a cue to check, never proof of success '
+                . 'on its own.',
+            $run->{'gpid'}
+        ),
         'captured output [ raw kimi-legacy '
             . 'stdout+stderr, grows while it runs ]: '
             . $run->{'tmp_out'},
@@ -4344,8 +4352,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,,,.,,,...,..,,,,.,,,.,.,.,.,.,,,.,,..,..,,...,...,,,.,.,.,...,,..,,.,,
-#GB7RAB62YMHHYTNE7ENQXG6OZOA2FD7ZKK5A2YLKNEL5UFBD2XRW7H3PE6YUVDUHQSUROLSQ4VO3Q
-#\\\|VDTNW3NGLHVRCWQL5HXLZNDCFHHUVRP7MWQGRID2RCHP4ZMI4LI \ / AMOS7 \ YOURUM ::
-#\[7]KEY6UO2QUVIFL23OWLIU643C66LEFETFJA4YXILR6Z6B6YRDFICQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,,..,,.,,,,.,..,,,,,,.,,,,..,..,,...,...,,,.,...,.,.,,,.,,,,,
+#SSHGMUH42VCC33GEM7VZ32UQUBM746SX77X4GGJLJ6BJP2KQZ56J7J5JHUBJVZ3FE76GCXMFEIFPM
+#\\\|IOJGXSSZHATXCPOFDDQBV5MWBYGY7GPVLQHODXAFYBFFIKDO523 \ / AMOS7 \ YOURUM ::
+#\[7]M6AHQ5XYSYVNW3HAKQWSJGBVRC66G4TOOGLQOVOALZAZKFJSRMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
