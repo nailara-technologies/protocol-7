@@ -576,6 +576,14 @@ my %dispatch = (
 
             if ( -w $abs_path ) {
                 <[file.put]>->( $abs_path, \$new_content );
+                ## note the write for the catalog-retrieval corpus [ inert  ##
+                ## unless coding.cfg.catalog_harvest is enabled ]. THIS     ##
+                ## inline handler is the live edit_file path -- the hook in ##
+                ## coding.tools.handler.edit_file never fires, dispatch     ##
+                ## prefers this table entry over the handler module         ##
+                if ( exists $code{'coding.catalog.track_write'} ) {
+                    <[coding.catalog.track_write]>->( { 'target' => $path } );
+                }
                 ## restore original permissions via chmod child ##
                 if ( defined $mode_restore and defined $chmod_fh ) {
                     print {$chmod_fh}
@@ -723,8 +731,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,..,.,.,,.,,,,.,,,.,,.,,...,,..,.,,,,,.,..,,...,...,..,,,,,,...,,..,,,.,
-#67KDHIVDZZ77TH7DUVEOB2H7NPLFR6W4FWIW3H6LESOYUQKDUUL27VPFKFZ5ICJDBUCQESGW2IVQE
-#\\\|JA67SOXVFYGEY4WHQVV2NO6CYXFOEQA56D2SM3WAUWFQNCBPR22 \ / AMOS7 \ YOURUM ::
-#\[7]K7EFSOMLBHUDUJEUHTDX26VOFNCOMVJP5S3FXGZIORILPVOVP2AI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,.,,.,,,..,,..,,,..,..,,,..,.,,,..,,...,...,,.,,..,,...,,,.,,,.,
+#P52PFDXMUQVNQJO4YJD7J24YJQNTXAANV65EL7GGOAM6255Q5UKB2H7JMLUYI5SKDIJZG6HO5SPCY
+#\\\|VQFRAOGIKVVPJPYOVZAN2HUTP5JBGGRI6HNIQU6TCRTZKYNWTZR \ / AMOS7 \ YOURUM ::
+#\[7]IMCDTALJSTJVLPMNGTFAADPENW6XYJQ7QLKVNSFPX6C7G7EJ2ADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
