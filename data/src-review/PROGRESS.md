@@ -60,8 +60,18 @@ started   : 2026-09-09
 - no signature stubs on any new file [ verified by grep ].
 - results section appended to data/tasks/coding-src-review-iteration.md.
 
-#,,,.,.,,,..,,,.,,...,,.,,...,,.,,,.,,..,,,,,,..,,...,...,,,,,..,,..,,...,,,.,
-#QAO7WINKRALB2VMK7TQSUIF4ME3SIBJYL3JJJN7UMI7I2J5CD46X32UTKGTPQOHWRHPPO4ONQFTW6
-#\\\|J6XVVAAICQOMIRZJKYFVM3ANZRVRC4XDE7BC3VQY2IKNACUDIWP \ / AMOS7 \ YOURUM ::
-#\[7]7Q2D3ZQGRQ2GXAMOA5X5YOBPE6QDLDSJCLAKUDSSLJ6UGMSIPCAI 7  DATA SIGNATURE ::
+## round 2 [ 2026-09-09 evening ] — DONE
+
+- main run --limit 200 : 167 done, 33 failed [ transient inference
+  bursts, rc 1792 / rc 13312 ], 69 skipped. ~24 of the 167 were
+  re-reviews of round-1 modules changed on disk [ hash-keyed redo ].
+- cleanup rerun --limit 40 : 40 done, 0 failed [ all 33 failures
+  recovered + 7 fresh ].
+- totals : 183 new modules this round, 276 / 5470 overall, 0 failures
+  outstanding. idempotent skip re-confirmed.
+
+#,,..,,.,,.,,,..,,,,,,.,,,...,,.,,.,,,...,,,,,..,,...,...,,,,,,.,,,..,,,.,..,,
+#62BUF6LG5RRGAHQXOUWNTDTJOT2JUV6Q6TINLR6AXARM5IDR5NY4YXVF237ZCTESYIWQZSESTWBD6
+#\\\|RQXUKIUJ4HYAVU7XH2ULZL3FMXLU756IFKHSDXVMJCO4VHPD7DX \ / AMOS7 \ YOURUM ::
+#\[7]FSNCJREVDNNQQ3STFIWG67GD6UR5U4AJ65QU5DABM43ZRYEH2ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

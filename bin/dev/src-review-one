@@ -7,6 +7,7 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
+use File::Path qw| make_path |;
 use Digest::SHA;
 use JSON::PP;
 
@@ -44,12 +45,19 @@ my $module = shift @ARGV
 my $src_path = File::Spec->catfile( $root_path, qw| src |, $module );
 die ":: module not found: $src_path\n" if !-f $src_path;
 
-my $out_dir  = File::Spec->catdir( $root_path, qw| data src-review | );
-my $out_path = File::Spec->catfile( $out_dir, "$module.md" );
+## directory-per-module layout : data/src-review/<module>/review.md -- room ##
+## for future sibling artifacts [ disentangled history, usage examples, ..  ##
+## ] next to the review, rather than one flat file each                     ##
+my $review_root = File::Spec->catdir( $root_path,   qw| data src-review | );
+my $out_dir     = File::Spec->catdir( $review_root, $module );
+my $out_path    = File::Spec->catfile( $out_dir, qw| review.md | );
+make_path($out_dir) if !-d $out_dir;
 
 ## clean stale inference-request bodies from killed prior runs [ iterator ##
-## runs items sequentially -> no race with a live pid ]                   ##
-for my $stale ( glob File::Spec->catfile( $out_dir, qw| .req.*.json | ) ) {
+## runs items sequentially -> no race with a live pid ] -- now nested one ##
+## level down, per module, since $out_dir moved from $review_root itself  ##
+for my $stale (
+    glob File::Spec->catfile( $review_root, qw| * |, qw| .req.*.json | ) ) {
     unlink $stale if -M $stale > 0.001;    ##  not our own, just-created  ##
 }
 
@@ -323,8 +331,8 @@ sub iso_time {
         $t[5] + 1900, $t[4] + 1, @t[ 3, 2, 1, 0 ];
 }
 
-#,,.,,,,.,,..,,,.,,.,,.,,,,.,,.,.,..,,.,.,,,.,.,.,...,...,..,,..,,.,.,,,.,,,.,
-#GOYRJYZZTA6B7I77S7NYVQ6OHCDCPTDLF3R66QCZA72BUMYK2Q6FSANFDECYFULJGWW3R36LGNQ3A
-#\\\|PJYFSSOHPYVKREY3EPB62RAXKDJO3KCOC56LMSQ6S2B3IL3MGD4 \ / AMOS7 \ YOURUM ::
-#\[7]ZNZB2FYPTHCK7TSAYWIWXW3NG5VAGF2A6FKL3TWM2ASJJTMU5CAI 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,,.,,...,,,,,.,,,...,.,,,...,.,.,...,...,.,,,...,,,,,.,.,,..,
+#RHNVHCMNDS2B7KMK3VR2NMMR73EJ4D7MPW534ZOP73IIBSBSZ5ITO3CYCTMGDXLGKF7IJICHF5QBM
+#\\\|WJDSZKUFTNZDXTR4I72476H5WDOBQX23IPOHWG3ARHI64YCIZ6G \ / AMOS7 \ YOURUM ::
+#\[7]SA6CQ6LSBWDKNSY2UVVNRV57QA5A5CZUYJPAMIZXLFEAVP6YQ6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+# module  : crypt.C25519.load_keypair
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 39 ] ##
+
+2026-09-01 b876ffde2 repo-wide: full format-code baseline reformat pass
+2026-08-26 0875c8668 fix inline_elf checksum divergence and keys-zenka .secret handling bugs
+2026-01-22 268ad0064 fixed key dir and read permission checks for some non-root case
+2026-01-15 74e643f0b shortened some log messages and command descriptions..
+2023-12-04 4d7c3c399 cleaned up log messages in 'crypt.C25519.*'
+2022-04-06 2af3e7c97 cleaning up more warnings from last 'reporting' change
+2022-04-03 0978c3e4d correcting warnings in 'crypt.C25519' and 'keys' modules
+2021-09-15 58e704602 comparing seed-phrase keys with .vp files in crypt.C25519.load_keypair
+2021-09-14 7621b1f19 implemented 'crypt.C25519.load_all_signatures'
+2021-09-11 bdbd3032b implemented 'split-keypair' command in 'keys' zenka
+2021-09-11 4be439a30 loading secret keys too in 'crypt.C25519.load_keypair' routine
+2021-09-11 98bf32a47 implemented 'crypt.C25519.load_keys_from_secret'
+2021-09-10 81d1c2316 implemented 'crypt.C25519.key_checksums' routine
+2021-09-09 853f17d14 updating C25519 key handling to also keep secret keys [ renamed : .private ]
+2021-09-09 d0a88beea implemented 'crypt.C25519.load_single' [ using in enc-key-chksum ]
+2021-08-30 9c47b6623 mem locking private keys in crypt.C25519 to never swap them to disk
+2021-08-15 b0c9eeb80 implemented seed-phrase key loading in 'crypt.C25519.load_keypair'
+2021-08-15 c97cd6e39 moved subroutine 'keys.key_exists' --> 'crypt.C25519.key_exists'
+2021-08-15 57af069b8 moved signature key loading to source.post_init code
+2021-08-12 9e91ac407 moved 'AMOS7::Twofish' module loading to crypt.C25519.pre_init
+2021-08-10 8fb53fc97 adding additional support functions to 'crypt.C25519' module + 'keys' zenka
+2021-08-09 20008b788 implementing 'keys.console.decrypt-archive' command
+2021-08-08 2165f5757 renamed $key_vars occurrences to $key_vars_ref
+2021-08-07 683cc5bfe introducing global TRUE \ FALSE constants in ./bin/Protocol-7
+2021-08-04 49b08e6fd implemented 'keys.console.change-passwd' command functionality
+2021-08-03 724dd1b36 implemented crypt.C25519.compare_keypair and used on key loading
+2021-08-03 95e22686a updated C25519 private key format [ marking [un]encrypted keys with prefix ]
+2021-08-03 805b808de implemented automatic decryption and password prompt for loading C25119 keys
+2021-07-08 01a1916c6 renamed global %KEYS --> %keys
+2021-06-23 977c1ba38 implemented 'autocreate-sig-key' setting for sourcecode zenka configuration
+2021-01-06 60b9814ec improved error handling for C25519 agent key loading
+2021-01-06 5db153dcc updated C25519 key filename structure in 'crypt.C25519' and 'keys' modules
+2020-10-22 1d4adb766 temporarely removed 'source' agent from 'nroot' agent autostart configation
+2020-03-25 1ce40b702 logging key dir on errors in 'crypt.C25519.load_keypair'
+2020-03-25 26d965f91 catching not loaded private keys in 'crypt.C25519.sign_data'
+2019-11-18 74d5c01ce now able to load base32 encoded files as well in 'crypt.C25519.load_keypair'
+2019-11-14 41b3db60b replaced remaining MIME::Base64 dependencies with Crypt::Misc version [b64u]
+2019-11-09 2d71fc164 log message tuning in 'base.handler.connect' and 'crypt.C25519.load_keypair'
+2019-10-12 e264d9550 introduced 'crypt.C25519.key_vars' routine + further cleanup, bugfixes...
+
+## bulk/mechanical commits touching this module [ 14, flagged, excluded above ] ##
+
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2025-11-13 8cda0d629 [count=147] removed placeholder signatures created by LLMs.,
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+
+#,,..,,,.,..,,..,,...,,,,,,,.,,..,...,..,,.,.,..,,...,...,,.,,.,.,,..,.,.,.,,,
+#SMEMNJ7HV32CIHNSSS3NA4NEIBOD76MC3SWA6XNUQZ4TV45G5WK3UPUF2NNP5ZVYVM54R65UOLZOA
+#\\\|J5FT3OLFM3AUWNNQVO5HVOKMTLHP4TGLRCR75QTWGTOJD36LQPV \ / AMOS7 \ YOURUM ::
+#\[7]WA65FAFOWMA2Q54YA6FNKLRWJY2575SCUZN2DHGP4OW6FQYHTGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

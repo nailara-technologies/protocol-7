@@ -1,0 +1,92 @@
+# module  : crypt.C25519.init_code
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 60 ] ##
+
+2026-08-23 f14c524d4 move TOFU-pinned remote host keys out of user-keys into remote-keys/known
+2026-05-22 c5732fbef feat: space.* + branch.space/clock/ntime + DATA/TREE protocol + fixes
+2026-01-02 5a5d762e8 TOFU hostkey format support with remote-host naming convention
+2025-12-29 ea5a76bfa Fix discover zenka C25519 key scope: ensure protocol-7 user keys are loaded, not root
+2025-11-28 a4c4e77c9 Revert "fix: Add missing function call operator in crypt.C25519.init_code line 32"
+2025-11-28 be403a18f fix: Add missing function call operator in crypt.C25519.init_code line 32
+2025-11-20 0290f499e signed updated version + fixes : key_dir determination and workflow-zenka
+2025-11-20 f36880e58 fix: Use smart v7 context detection for cryptographic key user assignment
+2025-11-20 d058c5a1c fix: Use current user for keys by default, require explicit setting for others
+2025-11-20 166644620 refactor: Extract v7 zenka detection to helper routine
+2025-11-20 1d463d8ad fix: Use current user for keys when not in v7 zenka context
+2025-11-19 8cf7e695d cleaned up last changes and signed new version.
+2021-09-15 e6159b6b1 improving error checks on zenka start-up [ user and permissions ]
+2021-09-14 7621b1f19 implemented 'crypt.C25519.load_all_signatures'
+2021-09-14 adb478ee5 implemented crypt.C25519.create_signature_request + renamed .sig .spk files
+2021-09-13 68ab11804 rewritten 'crypt.C25519.sign_keys', added 'sign-keys' command to keys zenka
+2021-09-09 853f17d14 updating C25519 key handling to also keep secret keys [ renamed : .private ]
+2021-09-09 db8440034 renamed C25519 key signature filename structure
+2021-08-15 4d138e670 added virtual key status return code in 'crypt.C25519.encrypted_key'
+2021-08-14 24a4c4c2e implemented 'virtual' [:seed-phrase] stub keys in crypt.C25519 module
+2021-08-13 7a1a46413 implemented 'keys.console.encoding-upgrade' keys-zenka command
+2021-08-12 9e91ac407 moved 'AMOS7::Twofish' module loading to crypt.C25519.pre_init
+2021-08-12 0690501f5 rename key file names s|C25519.B32.|| in crypt.C25519.auto_convert_names
+2021-08-12 8cec4a659 implemented 'keys.console.list-upgradable' command
+2021-08-11 49482deb4 implemented key amos7 chksum cache in 'crypt.C25519' module and keys-zenka
+2021-08-10 8fb53fc97 adding additional support functions to 'crypt.C25519' module + 'keys' zenka
+2021-08-08 57e1f0e24 namespace clean-up in crypt.C25519 and keys zenka
+2021-06-23 331014858 created 'autocreate-user-key' option for './configuration/shared-params'
+2021-06-23 977c1ba38 implemented 'autocreate-sig-key' setting for sourcecode zenka configuration
+2021-04-02 afeb2379b renamed <system.privs.user>+<x11.user>: <system.{amos-zenka-user,X-11-user}>
+2021-01-06 5db153dcc updated C25519 key filename structure in 'crypt.C25519' and 'keys' modules
+2019-11-18 74d5c01ce now able to load base32 encoded files as well in 'crypt.C25519.load_keypair'
+2019-11-14 41b3db60b replaced remaining MIME::Base64 dependencies with Crypt::Misc version [b64u]
+2019-10-12 e264d9550 introduced 'crypt.C25519.key_vars' routine + further cleanup, bugfixes...
+2019-10-12 3f4763262 extracted 'keys.chk_key_dir' subroutine from 'crypt.C25519.post_init'
+2019-07-11 b285f35db extracted key handling from crypt.C25519.init_code to post_init [privs drop]
+2019-06-27 0f63448b0 changed nailara C25519 key dir from '~/.nailara/keys' to '~/.n/user-keys'(!)
+2019-06-08 872e9f78d fixed bug with numerical parameter in 'base.get_homedir' + finetuned logging
+2019-06-06 9d843841b fixed reload behaviour in 'crypt.C25519.init_code'
+2018-11-15 fdc9fdb97 crypt.C25519 reload permission fixes [part 2]
+2018-11-15 a52457293 temporary permission error fix for 'reload' command in core agent
+2018-02-07 12b012a4d displaying key owner's homedir in log msg in 'crypt.C25519.init_code'
+2018-02-07 17ecd4863 key username default + file permissions fix in 'crypt.C25519.init_code'
+2018-02-05 398a6d775 using current UID for selecting default key user in 'crypt.C25519.init_code'
+2017-12-14 3a81ad567 implementing automatic perl module installation [part 2]
+2017-12-13 a8f7684e5 implementing automatic perl module installation [part 1]
+2017-03-15 92730c108 slight cleanup in 'crypt.C25519.init_code'
+2017-03-12 37392f2d2 renamed global '%key' hash to '%KEYS' in ./bin/nailara and ./src/* code
+2016-11-02 aa89dc6d3 discover agent [PART 2] ( adding more mcast, c25519 and debug / test code )
+2016-10-19 c08052888 catching failed loading of root key for signing in 'crypt.C25519.init_code'
+2016-10-18 e316aa558 storing public C25519 root key to disk after signing (using it's key name)
+2016-10-18 599e217d3 s/cfg/root_key_path/root_key_url/ in crypt.C25519 module
+2016-10-18 fb80bd056 automatic C25519 key signing .. [PART 1]
+2016-10-18 08cb48805 cleanup / preparations in crypt.C25519.init_code
+2016-10-13 f45577ccf swapped string position in C25519 key file name
+2016-10-13 7a10cb059 incuding key_name in C25519 key file name
+2016-10-13 de4047ccb fixed private key permissions during creation in 'crypt.C25519.init_code'
+2016-10-13 e285129a4 generating default key pair during crypt.C25519 module initialization
+2016-10-10 3431b152b implementing "discover" agent [PART 1]
+2016-10-08 6ecb5c212 renamed 'crypt.curve25519' module to 'crypt.C25519'
+
+## bulk/mechanical commits touching this module [ 16, flagged, excluded above ] ##
+
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-05-25 72f0f0374 [count=325] chore: replace em dash with colon throughout codebase [ utf-8 reduction ]
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-03-07 f626ac256 [count=100] moved 'crypt.random' to 'base.prng.namespace', reworking id generation
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2019-01-24 4411599d1 [count=124] 's/XXX/LLL/g' in all todo comments (./src/)
+
+#,,..,.,.,.,,,,,.,,,.,,,.,..,,.,,,,,,,,,,,..,,..,,...,...,.,.,.,,,..,,..,,,..,
+#IQSPMRDQWAEZV6NKNXNJRG22OGX2PNPKSS66G6FEUR6XYOF7NTKHBXE6C6OF5DY3XCESML4ZMTC5C
+#\\\|YDSXMED3KAXUBXFMY2KGHFY3GWNMDRTAW5FFXDY23W57Z7DLPXV \ / AMOS7 \ YOURUM ::
+#\[7]4KMRZBW5OVADNL773UTPM7KK7UGP6T3LCH7GXOALNP6BFJAVEACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
