@@ -15,6 +15,12 @@ $sign_verbosity = 0
 ## :stage: re-stages [ via git add ] exactly the files this run signs, and ##
 ## no others -- leaves other already-staged/unstaged batches untouched     ##
 my $stage_files = $command_params =~ s| *:stage: *| |;
+
+## :workers=N: overrides the parallel-worker count [ default : auto, based ##
+## on cpu count, see below ]. :workers=1: forces the plain sequential path ##
+my $workers_override;
+$workers_override = $1
+    if $command_params =~ s| *:workers=(\d+): *| |;
 $command_params =~ s,^ *| *$,,;
 
 my $signature_key_name = qw| proto-7.sourcecode |;
@@ -73,96 +79,169 @@ map {
         if not -w catfile( $work_tree, $ARG )
 } @source_paths;
 
-my $true_count = 0;
 my $file_count = scalar @source_paths;
 my @staged_paths;
 
+## below this many files, forking workers just adds overhead for no real ##
+## gain -- run the plain sequential path, unchanged behaviour            ##
+my $parallel_sign_threshold   = 200;
+my $parallel_sign_max_workers = 8;
+
+my $workers = $workers_override;
+
+if ( not defined $workers ) {
+    $workers = 1;
+    if ( $file_count >= $parallel_sign_threshold ) {
+        my $cpu_count = 0;
+        my $cpuinfo;
+        if ( <[file.slurp]>->( '/proc/cpuinfo', \$cpuinfo ) ) {
+            $cpu_count++ while $cpuinfo =~ m|^processor\s*:|mg;
+        }
+        $workers = $cpu_count > 1 ? $cpu_count : 1;
+        $workers = $parallel_sign_max_workers
+            if $workers > $parallel_sign_max_workers;
+    }
+}
+$workers = 1           if $workers < 1;
+$workers = $file_count if $workers > $file_count;
+
 <[base.logs]>->( '* updating %s source file signatures..,', $file_count );
-foreach my $path_rel (@source_paths) {
 
-    my $path_abs = catfile( $work_tree, $path_rel );
-    <[base.log]>->( 2, qw| : | );
+if ( $workers <= 1 ) {
 
-    my $code_data_ref;
-    eval {
-        use warnings FATAL => qw| all |;    ##  catches all warnings  ##
-        $code_data_ref = <[source.cmd.get-code-signed]>->(
-            {   qw| args |       => $path_rel,
-                qw| skip-valid | => TRUE,             ## true ##
-                qw| verbosity |  => $sign_verbosity
+    my $result_href = <[sourcecode.sign_file_list]>->(
+        \@source_paths, $work_tree, $sign_verbosity
+    );
+
+    @staged_paths = $result_href->{'staged'}->@*;
+    $file_count -= $result_href->{'written_count'};
+
+} else {
+
+    <[base.logs]>->( 2, ': signing with %d parallel workers..,', $workers );
+
+    ## round-robin sharding : disjoint shards keep the existing per-file   ##
+    ## TOCTOU guard [ in sourcecode.sign_file_list ] valid unchanged -- no ##
+    ## file is ever touched by more than one worker                        ##
+    my @shards   = map { [] } 1 .. $workers;
+    my $shard_ix = 0;
+    foreach my $path_rel (@source_paths) {
+        push $shards[ $shard_ix % $workers ]->@*, $path_rel;
+        $shard_ix++;
+    }
+
+    my $run_tag = sprintf( qw| %d-%d |, $PID, time() );
+    my @worker_pid;
+    my @worker_result_file;
+
+    foreach my $w ( 0 .. $#shards ) {
+
+        my $result_file
+            = sprintf( qw| /tmp/p7-sourcecode-sign.%s.w%d.tmp |, $run_tag,
+            $w );
+
+        my $pid = <[base.fork]>;
+
+        if ( not defined $pid ) {
+            <[base.logs]>->( 0, ':E: fork failed for worker %d <{C1}>', $w );
+            <[base.exit]>->(
+                qw| 0110 |, 'aborting signature update, fork failed', 0
+            );
+        }
+
+        if ( $pid == 0 ) {    ## child : sign this shard, report, exit ##
+
+            my $result_href = <[sourcecode.sign_file_list]>->(
+                $shards[$w], $work_tree, $sign_verbosity, $w
+            );
+
+            my @report_lines
+                = map {"STAGED\t$ARG"} $result_href->{'staged'}->@*;
+            push @report_lines,
+                sprintf( "DONE\t%d\t%d",
+                $result_href->{'true_count'},
+                $result_href->{'written_count'} );
+
+            <[file.put]>
+                ->( $result_file, join( "\n", @report_lines ) . "\n" );
+
+            <[base.exit]>->(
+                0,
+                sprintf(
+                    'worker %d done, %d staged',
+                    $w, scalar $result_href->{'staged'}->@*
+                ),
+                2
+            );
+        }
+
+        ## parent : register with the emergency kill-list [ the existing ##
+        ## base.sig_int / base.sig_term handlers already sweep this on a ##
+        ## SIGINT/SIGTERM shutdown -- same interrupt-safety the original ##
+        ## single-process loop had via event.once, no new plumbing ]     ##
+        push( <system.kill_list>->@*, $pid );
+        push @worker_pid,         $pid;
+        push @worker_result_file, $result_file;
+    }
+
+    ## poll for completion : DONE sentinel in the result file means        ##
+    ## success. a dead pid with no sentinel means the worker crashed --    ##
+    ## never trust process-exit alone [ this zenka's own base.sig_chld     ##
+    ## reaps children asynchronously via its own Event watcher, racing any ##
+    ## waitpid we'd do here, so pid-liveness + result-file content is the  ##
+    ## only race-free signal available to the parent ]                     ##
+    my %pending = map { $ARG => 1 } 0 .. $#worker_pid;
+    my %crashed;
+    my @true_counts;
+    my @written_counts;
+
+    while ( keys %pending ) {
+        foreach my $w ( <[base.sort]>->( keys %pending ) ) {
+
+            my $report;
+            <[file.slurp]>->( $worker_result_file[$w], \$report )
+                if -f $worker_result_file[$w];
+
+            if ( defined $report and $report =~ m|^DONE\t(\d+)\t(\d+)|m ) {
+                $true_counts[$w]    = $1;
+                $written_counts[$w] = $2;
+                push @staged_paths, ( $report =~ m|^STAGED\t(.+)$|mg );
+                delete $pending{$w};
+            } elsif ( not kill( 0, $worker_pid[$w] ) ) {
+                $crashed{$w} = TRUE;
+                delete $pending{$w};
             }
-        );
+        }
 
-        ##  displaying valid signature counter in verbose mode  ##
-        printf "%s    <VALID>  %s%s%-5d%s     %s\r", $colors{'p7_fg_0004'},
-            $colors{'p7_fg_0003'},
-            $colors{'B01'}, ++$true_count, $colors{'reset'}, ' ' x 13
-            if <system.zenka.verbosity.console> == 1
-            and $code_data_ref->{'mode'} eq qw| true |;
-    };
+        if ( keys %pending ) {
+            <[event.once]>;    ## keep SIGINT responsive [ safe : parent ##
+            ## process, not a forked child ]         ##
+            select( undef, undef, undef, 0.1 );
+        }
+    }
 
-    <[base.s_warn]>->( '%s <{NC}>', scalar <[base.str.eval_error]> )
-        if length $EVAL_ERROR;
+    ##  tidy the kill-list and result files now that every worker is gone ##
+    my %spawned_pid = map { $ARG => TRUE } @worker_pid;
+    <system.kill_list>->@*
+        = grep { not $spawned_pid{$ARG} } <system.kill_list>->@*;
+    unlink grep {-f} @worker_result_file;
 
-    <[base.log]>->( 0, $code_data_ref->{'data'} )
-        if defined $code_data_ref
-        and ref $code_data_ref eq qw| HASH |
-        and $code_data_ref->{'mode'} eq qw| false |;
-
-    <[base.exit]>->(
-        qw| 0110 |, 'aborting signature update due to error[s]', 0
-        )
-        if not defined $code_data_ref
-        or ref $code_data_ref ne qw| HASH |
-        or $code_data_ref->{'mode'} eq qw| false |;
-
-    ## allow for SIGINT ##
-    <[event.once]>;
-
-    next
-        if $code_data_ref->{'mode'} eq qw| true |
-        and $code_data_ref->{'data'} eq 'still valid. =)';
-
-    if ( $code_data_ref->{'mode'} ne qw| size |
-        or not length $code_data_ref->{'data'} ) {
+    if (%crashed) {
         <[base.logs]>->(
-            0, ': not able to create signature [ %s ]', $path_rel
+            0,
+            ':E: worker%s %s crashed mid-signing, '
+                . 'aborting -- nothing staged',
+            <[base.cnt_s]>->( scalar keys %crashed ),
+            join( ', ', <[base.sort]>->( keys %crashed ) )
         );
-        next;
-    }
-
-    <[base.logs]>->( 1, ':.%s', ' ' x 13 );
-    <[base.logs]>->( ':::[ %s ]:.<+>.::', $path_rel );
-    <[base.log]>->( 1, qw| : | );
-
-    ## TOCTOU guard : re-read the file fresh and confirm nothing changed    ##
-    ## underneath us since the read above [ event.once at line 116 yields   ##
-    ## the event loop, a real window for another writer ]. re-strip a fresh ##
-    ## disk read the same way get-code-signed did, compare length first [   ##
-    ## catches truncation / trailing garbage past the old footer, no        ##
-    ## checksum needed for that ], then the body checksum itself            ##
-    my $disk_now;
-    <[file.slurp]>->( $path_abs, \$disk_now, qw| :raw | );
-    <[source.extract_sig_body]>->( \$disk_now, qw| strip | );
-
-    if ( length($disk_now) != $code_data_ref->{'body-length'}
-        or <[chk-sum.bmw.strsum]>->( \$disk_now ) ne
-        $code_data_ref->{'body-chksum'} ) {
-        <[base.logs]>->(
-            0, ':E: file changed on disk since read, skipping: %s', $path_rel
+        <[base.exit]>->(
+            qw| 0110 |, 'aborting signature update due to worker crash', 0
         );
-        next;
     }
 
-    # Write the updated file with signature
-    if ( not <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} ) ) {
-        <[base.logs]>->( 0, ':E: failed to write file: %s', $path_rel );
-        next;
-    }
-
-    push @staged_paths, $path_rel;
-
-    $file_count--;
+    my $total_written = 0;
+    $total_written += $ARG // 0 foreach @written_counts;
+    $file_count    -= $total_written;
 }
 
 if ( $stage_files and @staged_paths ) {
@@ -182,8 +261,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,..,,,.,,,.,.,,,,..,.,.,,,.,.,,,.,,,,..,..,,...,..,,.,.,.,.,,..,,.,,,,,,
-#767WVRLASSQZGNMJHGGQT3WYTW2APAHA6ZOIQZTQI4UBMHBAO3POSIR6DXFUZNBBAQ6FQHZ2C7J4Y
-#\\\|OB3V5KGBGQMBEZEC5K42VIL53CHE6GU2MOVD2XHKINDRMOC2PZH \ / AMOS7 \ YOURUM ::
-#\[7]NF6JQRAZM72I4ZMF4GUXBS3YKGADFMR36MNW225HRBPD2U6LUEAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,,,,..,.,.,,,,,..,,,.,,..,,.,.,..,,...,..,,..,,..,,..,,..,,,,.,
+#7D3WPNTIGN3ZIG63KRI6X7TUSTGOZ5ZNUSBJJ6HEBI6VNKG2CMWUPVJ6FIQBWINDQSMM7CMGWH5S2
+#\\\|TX6JSR4DX67QWLYKZTVEAXEMGCXYVRNAFBXSQA2CDGUEYQ3XARY \ / AMOS7 \ YOURUM ::
+#\[7]TJ2PPG3JDU3KJQSHAMHPWQJGTJQH4M62KK6FWXJCIPAG7KS3NCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
