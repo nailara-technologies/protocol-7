@@ -1,0 +1,94 @@
+# module  : base.log
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 57 ] ##
+
+2026-02-27 0fdf5c9af feat(v7): implement stdout log redirection with early buffer replay
+2026-02-07 7085b8db4 Add default log_level [1] parameter to base.log
+2025-11-13 b4ff24c72 minor fixes to 'workflow.console.fix-versions' and resigned files
+2025-11-12 35590306b fix: Improve deep recursion detection to avoid false positives
+2025-10-17 f378d6753 processed files in './modules/' with './bin/ptd'
+2023-12-04 786d18165 renamed subroutine 'base.utf8.clean_not_valid' to 'base.utf8.clean_str'
+2022-04-03 9fa660cca addressing now raised warnings in './modules/base.*'
+2021-10-04 3b0022fac committing minor code clean-up
+2021-09-20 de520b399 implemented host status update [ requests ] in 'discover' zenka
+2021-08-29 8544897b6 rewritten log message send queue under base.log.send-buffer.* namespace
+2021-08-07 683cc5bfe introducing global TRUE \ FALSE constants in ./bin/Protocol-7
+2021-07-26 bb8f49b88 implemented base.ntime_BASE32_to_numerical, base.encode_ntime_to_B32 ..,
+2021-07-08 699daa370 renamed global hash %ANSI --> %colors
+2021-06-28 d3b3b122f implemented zenka cfg stack trace for reporting of start-up errors
+2021-06-11 2a1831852 starting of unlink child now ondemand [ automatic shutdown when not req. ]
+2021-05-26 17cba3983 implemented 'base.log-delayed' using idle events
+2021-05-07 d0fc44036 committed protocol message clean-up
+2021-05-07 533bcc741 implemented 'sprintf template registry and applied to protocol messages
+2021-04-29 4ddd442ac added 'base.balanced-average' to essential subroutines in './bin/protocol-7'
+2021-04-10 9097f277d committed stashed changes to UTF-8 cleaning solution
+2021-04-08 00305d1f9 completed UTF-8 validation \ cleansing for 'base.log' console output
+2021-04-06 5f6672116 upgrading agent name panel in console output
+2021-03-23 f70505634 corrected color mode initialization in './bin/protocol-7'
+2021-03-22 ca459f03d colorizing console log output
+2021-03-21 5957ec557 implemented log prefix width change handlers for 'SIGUSR[12]'
+2021-03-07 b5960ae2f moving log file directory '/var/log/nailara' --> '/var/log/protocol-7'
+2021-02-19 25a3d31f9 returning true values in 'warn' handler and 'base.log'
+2021-02-12 1cf9154f6 renamed keywords 'timestamp' --> 'time-stamp'
+2021-02-11 482df18ee improved logging during agent initialization
+2021-01-13 848181e20 cleaning up 'verbosity' setup variables [ added 'agent_logfile' variant ]
+2020-11-02 6ce39810b some code cleanup and introduced seperate 'base.ntime.b32' function
+2020-10-31 eb54a46fb switched internal log buffer timestamps to alphanumerical [b32] format
+2020-03-22 17ae3331f committed some cleanup in log system [ weiiird logging error repaired ]
+2020-02-13 9f286e969 committed minor log message adjustments..,
+2019-12-23 967920ce4 added '-lwp=<n>' log prefix width start option to './bin/nailara' ['nroot']
+2019-12-19 e8afc0fb0 implemented dynamic name padding in nailara log output ['set-name-width']
+2019-11-01 f8fd9dc5f renamed buffer 'system' to 'agent'
+2019-10-26 a3f08eb2b replacing print() with say() in 'base.log'
+2019-10-14 82647b1e5 implemented IO::AIO based sysread() and syswrite() alternatives [for UTF-8]
+2019-09-07 b6a236ab7 switched sending of log message timestamps values to 'ntime' in 'base.log'
+2017-11-27 e5c30bb37 improved error message readability in 'base.log' (ansi case)
+2017-10-27 bb0143af0 some cleanup in 'base.log' (added early exit on disabled verbosity)
+2017-06-12 3eb5afd52 fixed warning on closed STDIN in 'base.log'
+2017-06-07 e80a39e0a slight cleanup in 'base.log'
+2017-05-31 5fba8d9c3 slight cleanup in 'base.log'
+2016-09-26 4e3142a58 added yellow with blue background to loglevel 0 console messages -visibility
+2015-06-30 f19f44b14 fixed some warnings for running under perl 5.22.0
+2015-01-27 dec6e2059 some more cleanup in 'base.log'...
+2015-01-27 255184842 bugfix + slight cleanup in 'base.log' routine..
+2015-01-14 a5b4a23ce fixed a log message string in 'base.log'
+2014-12-25 1dd243c87 minor fixes on deep recursion change...
+2014-12-25 3e44b798d refined deep recursion handling (preventing log routine loops..)
+2014-09-19 3cce38626 fixed undefined log message warnings in 'base.log'
+2012-11-01 7f3048a76 moved Time::HiRes initialization to './bin/nailara' to have floats in logging
+2012-10-20 c50799d1a more specific error message on missing/unknown subroutines in 'base.log'
+2012-07-24 f0f438e22 importing bug fixes from experimental 'use strict' branch
+2012-07-24 33177df52 cleaned up whitespaces and added *.orig to .gitignore
+
+## bulk/mechanical commits touching this module [ 21, flagged, excluded above ] ##
+
+2026-09-02 23a0e8d53 [count=703] v7 -> v7-zenki: rename the management zenka's identity across src, cfg, and core binary
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-26 90e0fed44 [count=112] verbosity: nest console/buffer/logfile under system.zenka.*
+2026-07-24 aae66588c [count=128] base: reflow via format-code; ai-mem: record perl-mod-reload redefined-warnings bug
+2026-07-20 5666ae225 [count=268] base: add undef-sub detection/reporting + auth.client split for cross-namespace calls
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-13 5e0772c55 [count=339] renamed protocol code 'base.proto.nailara' --> 'protocol.protocol-7'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+2015-01-01 608badbbc [count=167] syntax change [foo.bar:baz] -> <[foo.bar]>->(baz) ... (part 2)
+2012-10-28 faac42604 [count=155] parsed all '&{$code{foo}}(bar)' calls into '$code{foo}->(bar)' [readability]
+2012-06-05 fbb9a337a [count=266] importing prototype sourcecode
+
+#,,,,,,,.,,..,,,,,.,,,..,,...,.,,,..,,,,,,.,,,..,,...,..,,...,,,,,,,,,.,,,,,,,
+#55W3MBE6X6B2LBQ5EWETPXVBLKYPHQFCEM7SXALLRZEZIBUVSLP4RFGJUYFG2JRCDMYAVKSEKMWHM
+#\\\|EBKVWYI2QLJT5GMSDYXLSE3AV35R3YIOMPIGPONRDMFVWTZLJLS \ / AMOS7 \ YOURUM ::
+#\[7]5R73JDLCIKCWFXKXTHPRLWEJIVTGQCYF53TAQOMIYXY3MTXWTSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

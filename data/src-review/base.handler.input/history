@@ -1,0 +1,70 @@
+# module  : base.handler.input
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 35 ] ##
+
+2026-05-07 b065fce90 fix: restore large-stream write resilience — EAGAIN/IO-watcher + UTF-8 byte counts
+2026-02-09 44e315ab0 Add handler return code validation to base.handler.input
+2026-02-08 1ee6bef85 Systematic improvements to core handlers and connection management
+2026-02-08 5b04673de Fix log level handling in base.handler.command and base.handler.input
+2025-11-23 140a32f22 updated version and code signatures
+2025-11-23 1400da578 fix: Remove excessive logging and fix watcher re-trigger method
+2025-11-23 0080af4af fix: Filter base.handler.input logging to HTTP/HTTPS only
+2025-11-23 7bae9f4a9 debug: Add logging to base.handler.input to track protocol handler invocation
+2025-11-23 1d4a0faa8 revert: Remove unnecessary busy-loop prevention logic
+2025-11-23 5cbc82561 CRITICAL FIX: Stop busy-loop when protocol handler returns incomplete
+2025-11-23 f2435bba1 debug: Filter logging to show only interesting cases
+2025-11-23 d96ba85b1 fix: Fix variable scope issue - declare $len at module level
+2025-11-23 632a31754 debug: Add comprehensive logging to track protocol handler return codes
+2025-11-10 7d9c41302 committing improved error handling in 'modules/base.event.add_signal'
+2021-08-26 4ae278958 implemented 'net.read_bytewise' read-handler
+2021-07-28 e0f7da516 switch to read-mode bytes for incomplete SIZE reply in base.handler.command
+2021-06-15 e52b1126e implemented 'binary'-type read-mode in io and event management
+2021-04-30 2da918688 renames protocol read-mode 'lines' and 'bytes' to 'bytewise' and 'linewise'
+2021-04-29 84f5cf1b2 using 'flush_shutdown' in 'base.handler.input'
+2021-04-27 47b882b27 secure erasing of buffer content on session shutdown in 'base.handler.input'
+2021-04-26 c081a07ef implemented 'protocol.amos-chksum' handler
+2021-04-24 41897f879 implemented 'base.handler.session_error' for halting input watchers
+2021-04-23 87adec935 cancelled input watcher if session is closing  [base.handler.input]
+2021-02-25 9ceda3d76 committed reference and protocol cleanup
+2021-02-15 60331c8b3 additional style clean-up in 'base.handler.input'
+2021-01-11 8ed5306c5 updated perltidy options in './bin/ptd' [ in-place ] and applied to './src'
+2017-12-10 f3b760288 fixed warning in 'base.handler.input'
+2017-03-31 f0b803a71 silently stopping watcher on deleted input buffer in 'base.handler.input'
+2015-10-12 5da9b4b24 improved error handling in 'base.handler.input'
+2015-01-22 018a92514 fixed event management on multiline commands..
+2014-12-28 b576da290 fixed warnings for missing auth handler....
+2014-06-27 52b8fd887 fixed bug with untransported input buffer data
+2012-11-15 c9e0e3106 changed defaults in 'base.event.add_var' + fix in 'base.handler.input'
+2012-07-25 6dc51f4a1 fixed some auth.rsa warnings
+2012-07-25 40f2439a1 fixed invalid reference in base.handler.input
+
+## bulk/mechanical commits touching this module [ 19, flagged, excluded above ] ##
+
+2026-09-01 87b91fd5f [count=431] repo-wide: format-code -d pass -- compact $data{'a'}{'b'} chains to <a.b> sugar
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-13 5e0772c55 [count=339] renamed protocol code 'base.proto.nailara' --> 'protocol.protocol-7'
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+2015-01-01 1eed67c37 [count=174] [./modules/*] perltidy -pbp -l=80 -bar -sot -ce -se -nst -b
+2015-01-01 608badbbc [count=167] syntax change [foo.bar:baz] -> <[foo.bar]>->(baz) ... (part 2)
+2012-10-28 faac42604 [count=155] parsed all '&{$code{foo}}(bar)' calls into '$code{foo}->(bar)' [readability]
+2012-06-05 fbb9a337a [count=266] importing prototype sourcecode
+
+#,,.,,,,.,,,.,..,,,.,,..,,.,.,,.,,..,,...,,,.,..,,...,...,.,,,.,,,.,,,,.,,,..,
+#2SMFD5AYZK53IZZAPJLVSB5EFRSKOFCVO3W5V7BMSMMMWXQ6D24SXFBZ6N6QLTLQPRAEIPJ6HPEY4
+#\\\|SNTSVQX2GPRWZKHTS3OMGAGBXAVI3YXH7MIKTLIOPR6GSHTO6PQ \ / AMOS7 \ YOURUM ::
+#\[7]6DXHJHCGMI33NG7ULYQPOTNBURG7OUROJ36OQAI6AJP54M7X36DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

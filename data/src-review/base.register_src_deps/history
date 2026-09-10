@@ -1,0 +1,46 @@
+# module  : base.register_src_deps
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 12 ] ##
+
+2026-07-26 01b8a47e9 register_src_deps: order-independent lifecycle-hook collapse; data/chat -> data/development/chat
+2026-07-25 bdabab1db loader: make swap_subs-moved namespaces reachable without whitelist regen
+2026-03-03 ce7af633c fix: dep registration ownership and permission correction on restart
+2026-03-02 fa5db59a3 kimi: add kimi-web websocket client zenka
+2026-02-23 94ed00199 fix race condition in SSH zenka auto-user-creation during startup
+2026-02-09 723ac51d3 Fix privilege checks to use effective UID instead of real UID
+2026-02-08 52ed7b046 Improve dependency file permissions and logging consistency
+2026-02-07 3ee8faffe Fix dependency marker file ownership to use parent directory owner
+2026-01-30 7b0d84830 extended 'chown-ing' dependency directories to also include v7 zenka itself
+2021-03-07 6b127cc7a renamed 'nlr' binary to 'p7c' [ protocol-7 command ]
+2019-11-22 178659f18 added 'base.required_bin_path' and 'base.register_bin_deps' routines
+2019-11-18 20fdd5eb4 introduced 'base.register_pm_deps' and 'base.register_src_deps' routines
+
+## bulk/mechanical commits touching this module [ 18, flagged, excluded above ] ##
+
+2026-08-21 c65b8cbc2 [count=9179] rename per-zenka source/pm-dep/os-dep dep-tracking dirs to deps/{src-used,p-mod,os/{deb,bin}}
+2026-08-21 7ae191258 [count=513] rename zenki 'start'/'zenka-startup.v7' files to 'zenka.v7'/'start.cfg', fix v7's start-cfg loader to match
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-24 aae66588c [count=128] base: reflow via format-code; ai-mem: record perl-mod-reload redefined-warnings bug
+2026-01-29 06e7b585e [count=112] Add ownership and permission handling to dependency registration modules
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-28 5f3993991 [count=151] renamed module 'debug' to 'devmod'
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-28 4789bfb70 [count=163] renamed configuration files zenki/<name>/config --> zenki/<name>/start
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-02-15 cb6e1c321 [count=424] applied 'use English' variable names throughout all source code
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+
+#,,.,,.,.,..,,.,.,..,,,.,,.,.,.,.,..,,.,.,,.,,..,,...,...,.,,,...,..,,,,.,,,,,
+#N4JR7ZEXCIVM6R4UY7JW2DRH55T562FYXNAMECCV3AXLWAAUTYMHFFMI5GDYRZPAB7DCFFESBTZK4
+#\\\|UNQTKEVGLAMLCIQTOL7IU7WW3YB272GVSN6SPOVMKBUI3YCQIIQ \ / AMOS7 \ YOURUM ::
+#\[7]XQNYCP2LTZPD3BFMWVTTORDLSYFUI3OXND4XWFQGMKTCNELVBMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

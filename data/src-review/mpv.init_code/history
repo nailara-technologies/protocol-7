@@ -1,0 +1,75 @@
+# module  : mpv.init_code
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 39 ] ##
+
+2026-08-10 e0b8b53d2 mpv: event-driven ipc-socket startup + batch deferred send_command
+2026-08-06 1634f7ff4 mpv: request_id-tagged mpv IPC replies, deterministic fade-then-pause/resume
+2026-07-31 2e81851a6 feat(mpv): state snapshot/restore across restart + pulse idle-suspend fix
+2026-06-25 188e2740b mpv: position save/restore + hybrid settle-poll on window move
+2026-06-18 f6f4d449c mpv: async startup + jobqueue/dependency integration; deferred send_command
+2026-01-22 c06cb0c6c implemented mpv.network.skip_proxy config key in mpv.init_code
+2021-09-01 ffb377c9b updating property_list in mpv zenka after automatic parsing error
+2021-07-07 4e78cae4e corrected automatic replacement errors in list definitions
+2021-04-05 adb5cb0c0 applied 'perltidy' on 'base-code' directory
+2021-01-28 c51cb7e67 overriding 'fade_idle_volume' setting in 'univerversal-child' mode ['0']
+2021-01-27 d3c2442e5 auto-enabling slideshow mode in 'uiversal' agent 'browser' child
+2020-02-08 053864b3e cleaned up startup and error handling in 'mpv' agent [reports option errors]
+2020-01-19 8d07240cf implemented additional xserver modes [ 'nxagent'. 'xnest', 'xvfb' ]
+2020-01-01 f7ccc182e registering 'mpv' agent binary dependencies in 'mpv.init_code'
+2019-07-30 cd1647cb5 switching default vo in mpv agent from the disappeared 'opengl' to 'sdl'
+2019-05-26 4df0401d1 slightly shortened some interval (timer) settings ..
+2018-04-02 1c5873cbd fixed comment in './src/mpv.init_code'
+2018-03-04 9945320ca fixed log message in mpv agent and made xephyr case vo backend configurable
+2018-02-27 58073670d mpv agent requesting '[audio]' playlist when started with 'audio' subname
+2018-02-19 9c813a039 introducing "setting" command to mpv-agent [still 'write only']
+2017-12-14 3a81ad567 implementing automatic perl module installation [part 2]
+2017-09-16 a02cd7278 added missing (current) volume initialization in 'mpv.init_code'
+2017-04-10 428856b66 renamed mpv 'fade_to' command to 'fade', added core-idle auto fade feature
+2017-04-08 34a72d592 implemented audio volume fading in 'mpv' agent
+2016-03-09 99e181cf7 enabled 'reenc-msg' agent while encoding video (in 'media' and 'mpv' agent)
+2016-03-08 68b40b04e improved media agent mpv child switch/resume sequence resilience
+2016-03-04 a51ff83ca now checking reencoding path as root in mpv agent startup
+2016-02-22 0972825ce implemented automatic reencoded video cleanup in mpv agent
+2016-02-18 c2239b80a added alternative video encoding target path option to mpv agent config
+2016-02-11 8f54c6839 implemented first version of 'media' agent
+2015-11-04 1fa12c0a7 replaced JSON::PP with JSON::XS + various UTF-8 related fixes
+2015-08-31 60f4caefe mpv start geometry at fade in now configurable
+2015-08-31 9402ce187 fixed some playlist [update] related bugs in mpv agent
+2015-08-23 ae0c0f9c7 implemented 'fade in' feature in 'mpv' agent (enabled by default)
+2015-07-28 b07277c2f use 'which' to determine mpv player path in 'mpv' agent
+2015-07-20 444b6c22c implemented simple automatic video rescaling in mpv agent (using ffmpeg)
+2015-04-12 cd8097072 switching mpv agent to json ipc interface (part 1)
+2015-04-10 4fff2daa8 implemented 'mpv.cmd.show_playlist' command
+2015-04-08 5fd45a825 mpv player agent (part 1)
+
+## bulk/mechanical commits touching this module [ 20, flagged, excluded above ] ##
+
+2026-08-26 94aa460a7 [count=2202] re-sign sourcecode with corrected AMOS-13-ELF-7 checksum algorithm
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-08-20 d340c79b3 [count=10647] rename configuration/ to cfg/ across the tree, fix format-code/ptd fallout
+2026-05-21 8ba114407 [count=147] fix: source header validation + task archival + mpv gpu + js fixes
+2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
+2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
+2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
+2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
+2021-06-08 3ef1279c7 [count=1777] updated signature footer structure and implemented verification
+2021-05-05 92445685f [count=100] renaming protocol reply 'DATA' --> 'SIZE'
+2021-04-05 25d8cbcc5 [count=328] lowercasing first character of $OS_ERROR logging instances
+2021-03-30 457be8679 [count=525] mixed commit : repairs, improvements, indendation changes
+2021-03-27 b4389cc64 [count=5781] rename 'agents' to zenki, './cfg' > 'configuration', './src' > ./base-code
+2021-03-26 d1b2f9137 [count=1417] changed code signatire template and re-signed all code
+2021-01-19 089844a94 [count=162] renamed agent : 'set-up' <-- 'settings'
+2021-01-11 b83457fdf [count=160] renamed agent 'media' to 'universal' [ content player agent ]
+2020-05-22 ab80f4c4a [count=1306] signed nailara sourcecode with base-32 encoded C25519 code signatures
+2016-09-12 0c20e6b1e [count=2109] renamed direcory: 'modules' -> 'src'
+
+#,,,,,,,.,.,.,,..,,,,,,..,,,,,,,,,.,.,,,.,.,,,..,,...,...,..,,...,,,,,..,,...,
+#G4SXGQKFBOF75ELMBBM5TYXRDKJICKCGSL2D4GTUI3D7CDU7JAX7T5JCM5CVHRQ36FS6UCVCZ4C2G
+#\\\|KTMQQJZ66G2ZLWK2QSCY2W6AJ7QWQ4NQ3JPT3F6GAG5WMTFY5PA \ / AMOS7 \ YOURUM ::
+#\[7]35RT3HDTHGQDZQXHLHIOIDCH3CHHHJENXNJF5X36AKVFLPEFNGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

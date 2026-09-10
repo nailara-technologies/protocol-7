@@ -1,0 +1,64 @@
+# module  : coding.tools.dispatch
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 42 ] ##
+
+2026-09-02 f3e335a55 fix: restore \$data{...} form at 31 code-region call sites broken by the P7 escape convention
+2026-09-01 f43041e5a repo-wide: format-code -m pass -- compact $code{'name'}->() to <[name]>->() module-call sugar
+2026-07-29 56cad2825 fix(hardcoded-paths): sweep zenka var-dir literals, use system.path.zenka-dirs.var_P7
+2026-07-15 2d559f72c tasks: move 11 verified-completed items, fix search_code blind spot on AMOS7 lib modules
+2026-06-02 b8bcd1c03 coding zenka: fix chmod child write permissions + compaction subtask restart recovery
+2026-05-08 4981175f4 feat: line-addressed edit tools — replace_line, delete_lines, insert_line
+2026-05-07 719a06d0c coding zenka: subtask queue drain, SIGCHLD handler, retry logic, think-block extraction, task_file_search, tool enhancements
+2026-05-06 171f847b8 fix list_files size reporting (File::stat shadowing), fix incomplete $edit_count rename in edit_file dispatch
+2026-05-06 e595cbdf6 coding zenka: configurable auto-compaction threshold (pct/abs), fix 70-pct misclassified as 70-token absolute, set default 80%
+2026-05-05 4c8f71f17 coding zenka: edit_file JSON truncation detection, auto-split threshold, POSIX::ceil fixes
+2026-05-05 3d9c1935e coding zenka: UTF-8 encoding support, line numbers in read_file, git diff tools, cleanup confused namespace routines
+2026-05-04 35b76d67f fixed write|utf8 encoding in coding.tools.handler.replace_in_file
+2026-05-02 c3a6c6770 coding: chunk_handler strip tool xml from reasoning fallback + buffer.task_write compact excludes thinking
+2026-05-02 974cfedd8 coding: fix reasoning_content double-output + wire ncode_search_context tool
+2026-04-06 d2f3186ee async task completion: remove from active list, fix list_files path, 780s timeout
+2026-04-03 e189b29c4 Add git_restore_file, strip_trailing_spaces, and write_with_perms tools
+2026-04-03 0b703491d Add chunked edit support to edit_file tool
+2026-04-02 4637ff756 update coding.tools.yaml test results - all tools working
+2026-04-02 4ed7b26f2 fix coding.tools.dispatch: add error handling for undefined handlers
+2026-04-02 0a5cc5c67 fix coding zenka: tool dispatch error handling, init return code, handler loading
+2026-04-01 851aaf23c Vision system overhaul: shared HTTP backend, OOM protection, adaptive polling, and mmproj detection fixes
+2026-03-29 73635f9f3 Add task lifecycle tools and passive observation collection for coding zenka
+2026-03-29 b6d56faef Extract context.* inline subs, harden coding zenka paths and security
+2026-03-29 e8e38954d Default edit_file to apply=true so model writes edits directly
+2026-03-29 4a6c5a481 chmod child: drop to admin user, add create command, wire edit_file/write_new_file
+2026-03-28 edbaf0077 Wire chmod g+w for edit_file/write_new_file, implement cache lookup, fix empty get-result
+2026-03-28 ca43ce812 Extract 10 tool handlers into modules, fix compaction token counting and git ownership
+2026-03-28 7088056f7 Add clear-applied command, truncate error logs, use eval_error cleanup
+2026-03-28 745109d6b Add staged-diff/apply-staged commands, fix edit accumulation
+2026-03-28 cbe8c47df Fix UTF-8 staging, git clean-tree fallback, context 32K->65K, compact at 55%
+2026-03-28 c52621be7 Fix tmpfile paths, add hardcoded-paths/extract-redundancy/native-abstractions templates
+2026-03-28 051369389 Add ptd tools, write-access staging, descr-and-logs and style-wrap templates
+2026-03-28 2535b7b67 Add PID tracking, deadlock-free stderr capture, file-io-audit template
+2026-03-28 c384c6174 Capture stderr in search_code and ncode_search tool handlers
+2026-03-28 e3a23fad5 Add edit_file/write_new_file tools, self-improve and review templates
+2026-03-28 5d6fc03ca Fix tool args parsing, add context compaction and event loop yielding
+2026-03-28 0eb1548cd Add dep_graph tool — bidirectional call graph with SCC clusters for reviews
+2026-03-28 75fe623f9 Add ncode_search tool — full codebase search via bin/ncode with line numbers
+2026-03-28 6a262537a Add search_code tool and style-fix template for codebase grep and style correction
+2026-03-28 c1d6647a1 Fix tools.dispatch crash on empty arguments — ensure $args is always hashref
+2026-03-28 1a8a20c83 Fix tool calling: --jinja flag, root path resolution, error diagnostics
+2026-03-28 c95f9accd Tool calling infrastructure for local model interaction + B32 binary table design
+
+## bulk/mechanical commits touching this module [ 6, flagged, excluded above ] ##
+
+2026-09-01 d12228697 [count=544] repo-wide: format-code -r pass -- normalize m//, s///, =~// regex delimiters
+2026-08-26 94aa460a7 [count=2202] re-sign sourcecode with corrected AMOS-13-ELF-7 checksum algorithm
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-24 0f14ea799 [count=117] coding: reflow via format-code; ai-mem: sync through base+coding batches
+2026-05-25 72f0f0374 [count=325] chore: replace em dash with colon throughout codebase [ utf-8 reduction ]
+2026-03-28 74cb038d7 [count=236] Unify cmd call style: $call->{'key'}, qw| mode |, fix JSON error feedback and jinja crash
+
+#,,..,,,,,.,,,,..,.,,,,..,,,.,,.,,.,,,,,,,...,..,,...,...,..,,..,,,,.,...,,..,
+#ABR7MDT7OEGKVMP5YIVAZAZ7XEP6Z3GMIYZW7MEXU6SIFH2CG3CCKA7K7S6VKVTH5WIQBERIOK2DU
+#\\\|6TPL5KQMKIWOMHZGA5BY7LUUYVKBL4CWDJJMNKB2NCCQTDXHO3O \ / AMOS7 \ YOURUM ::
+#\[7]OITLWY3ZAVA3QLR6MGMNA2VD5P4I64V5ODX2RZLWXTOFOFKUKODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

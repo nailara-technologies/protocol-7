@@ -1,0 +1,48 @@
+# module  : httpsd.create_ssl_socket
+# source  : git log [ 9383 commits, color.ui=false verified ]
+# filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+
+## genuine commits [ 25 ] ##
+
+2026-03-23 59bd05233 Fix SNI callback to send full certificate chain, not just leaf cert
+2026-03-23 dd6c81e52 Replace openssl subprocess calls with CryptX and Crypt::OpenSSL::X509
+2026-02-18 20c33b5d3 Fix SNI ctx lookup: 'context' key for this IO::Socket::SSL version
+2026-02-18 cc8d52f60 Temp: log SSL_ctx object keys to diagnose SNI ctx access
+2026-02-18 f77c17e3d Fix SNI ctx lookup: try 'ssl_ctx' then 'ctx' for older IO::Socket::SSL
+2026-02-18 0006475be Add SNI via Net::SSLeay CTX_set_tlsext_servername_callback
+2026-02-18 29cd39526 Fix: remove stale sni_callback reference from IPv4 fallback socket
+2026-02-18 159f4996f Remove SSL_cert_callback: causes bad certificate on older IO::Socket::SSL
+2026-02-18 b1daacf78 Fix SSL socket creation: use cert_file/key_file + SNI callback
+2026-02-18 012bcaa00 Add SNI multi-certificate support to httpsd SSL socket creation
+2026-02-18 112cc56e4 Fix SNI callback logging and join separator bug
+2026-02-18 821a32cbb Add SNI cert selection, fix httpsd cert discovery and reload
+2026-02-18 d5c371d6a Add IPv6 wildcard -> IPv4 fallback for IPv6-unavailable servers
+2026-02-18 654282bc2 Fix httpsd HTTPS dispatch and production certificate configuration
+2026-02-10 a664a35ec implement HTTPSD-Letsencr graceful startup coordination
+2025-11-23 32eb802fd Restore critical SIGPIPE handler in httpsd.create_ssl_socket
+2025-11-20 ca84d790d signed recent httpsd fixes with updated version number
+2025-11-20 c9e3b0a8f refactor: Further shorten long lines in httpsd.create_ssl_socket
+2025-11-20 66577496f refactor: Break up long lines in httpsd.create_ssl_socket for readability
+2025-11-20 a64ba4ecc refactor: Clean up httpsd modules with consistent perltidy formatting
+2025-11-20 e9f69e4ee fix: Handle colon-separated TLS versions for IO::Socket::SSL compatibility
+2025-11-20 e5b4babe0 fix: Improve httpsd SSL socket error handling and reporting
+2025-11-16 3b7c09127 fixed logging parameter issue in httpsd.request_handler + updated version and code signatures
+2025-11-16 8043a3a7c debug: Add detailed logging to SSL socket creation for diagnostics
+2025-11-10 79dc473b0 feat: Implement SSL socket creation for httpsd with Let's Encrypt certificates
+
+## bulk/mechanical commits touching this module [ 7, flagged, excluded above ] ##
+
+2026-09-01 d12228697 [count=544] repo-wide: format-code -r pass -- normalize m//, s///, =~// regex delimiters
+2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-03-17 e81b64bfa [count=114] v7 concurrent restart + ext-bin exit code + cmd descr fix
+2026-02-15 e2066b607 [count=179] Remediate 78-character line length violations across codebase
+2025-12-06 28eb25268 [count=219] docs: shorten 10 command descriptions to improve table formatting
+2025-12-02 92b2b7445 [count=266] style: Fix syntax errors from code style conversions
+2025-11-12 6c452fdef [count=255] committing AI fallout and coding style fixes.
+
+#,,.,,,,,,...,,..,.,,,..,,,..,,..,,,.,,..,,,.,..,,...,...,...,,..,,,,,,..,,,,,
+#WIIYCE76H3X5CPZDJXVNJGPDYUHCBWNWHRNQ34ZNNRNWHJ23J4Z3PU4CNPLI226QK354SOVVQXV2G
+#\\\|2X36G3S53HGRUZISBPOCPTXSWQP7AKAJE6XVHIPJKHHX3X7FOQH \ / AMOS7 \ YOURUM ::
+#\[7]6XFQDT473PYVZ3FPXGFU3BNPCA6RWXJ42P5VQ264IBNM23FVZEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
