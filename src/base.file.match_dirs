@@ -49,7 +49,14 @@ if ( not defined $regex_aref ) {
     my @file_table = map {
         my $key = $ARG // '';
         $key =~ s|\.|\\.|g;
-        $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
+        ## single '*' must exclude the path separator [ don't cross into a ##
+        ## subdirectory ], NOT the dot -- this codebase names things with  ##
+        ## dots as the primary namespace separator [ amos-term.cmd.foo ],  ##
+        ## so excluding dots silently matched only the minority of dotless ##
+        ## names. found live 2026-09-10 chasing an incomplete signing pass ##
+        ## on data/src-review/*/review.md : every dotted module name was   ##
+        ## silently excluded, not a source_path_set_up pattern problem.    ##
+        $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^/]*' : '.*' }ge;
 
         ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
 
@@ -110,8 +117,8 @@ if ( not $recursion_entered ) {
     }
 }
 
-#,,..,,..,.,,,..,,,..,..,,...,,,,,...,...,...,..,,...,.,.,,.,,.,,,,,,,,..,..,,
-#NXRRF66C47L6SYUTZFE6KORXPAVEXLA52DZAEZ6CCYDO5ZRKHLD53LEH22MVI74KTX2A3HGI57ZBQ
-#\\\|HKTVV3WJNU3K4V6VDW74HJUH4YJHH4J56VJAB4H3JPZ3VS7VIAF \ / AMOS7 \ YOURUM ::
-#\[7]OOOCFJ7FTJ2UW5INFARVQC4U2RDSJRAMXZUILQZNNOPCQSCR2EBQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,..,,,.,,,,,,,.,,..,,,.,,.,,,..,,...,...,...,..,,.,.,.,,,,,,,
+#VBVMSUQDHYYJR4R7WS3E64UQXKFCQIPIVOLKXKI4CGVTPFZKFVU2KBCXFIEB5K2AD6JFB4BLN5YI6
+#\\\|CAW4IZ4SPYD2JJA2H6TCNGAGKCQ2LKJCYADCWDUWGZKULWHUMKJ \ / AMOS7 \ YOURUM ::
+#\[7]HUIYWPVVFS6ISQYTEI5JBM5JX22SMTWYGDLEY73PI4CLIYPSAWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
