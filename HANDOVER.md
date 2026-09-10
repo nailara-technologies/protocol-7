@@ -1,102 +1,103 @@
-# Session Handover — 2026-09-06 (continued)
+# Session Handover — 2026-09-10
 
-**Built the decided-on replacement for the reverted nshell-relay
-attempt: a new console zenka, `vault-edit`. Full scaffold written,
-syntax-checked against the same baseline as `user-edit`'s own working
-files — but it has NEVER BEEN EXECUTED, not once.** No live terminal
-test, no `Protocol-7 vault-edit commands` smoke test, nothing. Treat
-everything below as "should work by careful analogy," not "works."
+**Read this before touching anything called "loadable memory," "module-catalog
+embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
+These names have been getting conflated across sessions/compactions, and it
+has repeatedly cost real momentum — see "the mistake to not repeat" below.
 
-## What's here (previous entry's summary of the revert still applies —
-see git history / `data/tasks/credential-fabric-ui-interactive.md` for
-the full account of what was tried and killed before this)
+## the actual goal, stated precisely
 
-New zenka `vault-edit` — a thin interactive terminal client to `cred-mesh`,
-modeled on `user-edit`↔`users`:
+**loadable project memory** = giving a model (any zenka's model, not just
+coding) ambient structural/behavioral intuition about this codebase that
+costs **zero extra context tokens and zero extra reasoning rounds per use** —
+loaded once (weights/adapter), not queried at inference time. Explicitly
+**not** retrieve-and-stuff RAG. Quote from the authoritative design doc:
 
-- `cfg/zenki/vault-edit/zenka.v7` — auth as invoking unix user (subname
-  `[vault-edit]`), no `[base.get_session_id]`,
-  `[base.call.console_command:<system.args>]`, deliberately no top-level
-  `[zenka.loop]` (same hybrid-console shape as `user-edit`).
-- `src/vault-edit.init_code` — auth_name/subname setup, per-session state
-  reset.
-- `src/vault-edit.term_init` / `.term_restore` — near-verbatim
-  `user-edit` clones (raw termios, hide cursor, `end_code` restore
-  callback).
-- `src/vault-edit.setup_stdin_watcher` — just the STDIN `event.add_io`
-  registration (no local render-on-mutation watcher needed — there is no
-  local render step, cred-mesh renders everything server-side).
-- `src/vault-edit.console.show` — entry point: resolves `$cube_sid`,
-  sends the initial `cred-mesh.ui-show [<view>]`, then
-  `[init-done:TRUE]` + `[zenka.loop]`.
-- `src/vault-edit.send_action` — builds and sends one routed
-  `cred-mesh.<verb>` call, addressed via the same self-loopback
-  `"$cube_sid.cred-mesh.<verb>"` form `user-edit.console.start` uses to
-  reach `users` (NOT a bare `cred-mesh.<verb>` target — see the module's
-  own header comment for why that distinction matters). Checks
-  `send.local`'s return value and clears the busy flag with a visible
-  error if cred-mesh is unreachable, rather than wedging silently.
-- `src/vault-edit.handler.reply` — clears `<vault-edit.busy>`, prints the
-  reply payload, arms `<vault-edit.pending>` on a prompt-frame header
-  match (`[ grant access to ]` / `[ approve relay ]`), resumes decoding
-  any keys buffered while the call was outstanding.
-- `src/vault-edit.process_input_buffer` — the actual key table: `j`/`k`
-  (also arrows) = nav, `r`/`x`/`g`/`a`/`?` = actions, `q`/Esc = quit;
-  while a grant/approve prompt is open, ordinary characters are purely
-  local text entry (no round trip) until Enter submits the whole line,
-  Esc cancels locally with no round trip either.
-- `src/vault-edit.handler.stdin_key` — drains STDIN into a buffer
-  unconditionally (even while busy, so the fd empties and the watcher
-  doesn't spin), then calls `process_input_buffer`.
-- `src/vault-edit.quit` — terminal restore + `[base.exit]`.
+> "Current approach: retrieve-and-stuff (RAG)... burns tokens, adds latency,
+> retrieval quality bounds answer quality. Alternative: encode the codebase
+> structure into embedding weights directly... zero retrieval overhead."
 
-**The actual race-fix, simpler than expected**: not a nested
-`[zenka.loop]` per keystroke. `user-edit` only needs that once (its
-bootstrap fetch) because its field editing afterward is entirely local.
-Every `vault-edit` action needs a real round trip (cred-mesh owns all
-state/rendering), so the fix is a plain `<vault-edit.busy>` flag —
-`process_input_buffer` won't decode further keys while a call is
-outstanding, `handler.reply` clears it and resumes. Safe specifically
-because Perl's event loop is single-threaded (callbacks always run to
-completion before the next fires), unlike nshell's cross-process flag
-coordination which had nothing serializing it.
+Authoritative design: `data/md/design/INDEX-FASTTEXT-SOURCECODE-EMBEDDINGS.md`
+(+ siblings `FASTTEXT-MEMORY-PIPELINE.md`, `FASTTEXT-LOG-AWARENESS.md`,
+`FASTTEXT-CATEGORICAL-MEMORY.md` — all in the same `data/md/design/` /
+`data/tasks/` neighborhood). This is deliberately foundational/generic — the
+long-term intent is many zenki benefiting from this, not a coding-zenka-only
+feature. **Go as slow and strategic as needed to keep it clean, generic, and
+elegant — there is no deadline pressure here, only a direction to not lose.**
 
-**Self-review before commit found two things**: fixed the real one
-(`send_action` now checks `send.local`'s return so a dead cred-mesh
-can't wedge the client forever); left one as a documented non-issue in
-the task file (a prompt payload ending in something matching cred-mesh's
-own `session_id=NNN` suffix pattern would get mis-parsed — far-fetched,
-not worth guarding).
+## the mistake to not repeat
 
-Full detail: `data/tasks/credential-fabric-ui-interactive.md`. Memory:
-`data/ai-mem/claude/project-cred-mesh-console-ui-architecture.md`.
+`data/tasks/coding-catalog-retrieval-phase2.md` (module-catalog embedding /
+`src/coding.tools.handler.embedding_search`) is a **different, narrower,
+legitimately valuable feature** — a callable search tool for the coding
+zenka, fasttext-token-sum-cosine based. It has now collected **four honest
+negative results** (descr-only corpus, source-mined density, review prose,
+synthetic query-shape) plus a BM25 comparison showing the real bottleneck is
+corpus thinness (~4.5k modules, 24-55 char descr lines), not any single
+fixable input. All of that is real, valid, worth keeping — **but it is a
+verdict on the retrieval-tool feature, not on the loadable-memory vision
+above.** Every session so far that touched "embeddings" has drifted into
+testing/re-testing this retrieval tool and then reported the vision itself
+as stalled when it failed. Don't do that again. The two threads share a
+noun ("embedding") and a training method (fasttext) and are otherwise
+unrelated projects with unrelated success criteria.
 
-Signing status as of writing: **PLACEHOLDER signature blocks on every new
-file** — not signed, not committed. Whoever holds the sourcecode signing
-passphrase needs to run the sign tool over all eleven new files
-(`cfg/zenki/vault-edit/zenka.v7` + ten `src/vault-edit.*`) before this can
-be committed.
+The 276-module review corpus (`data/src-review/*/review.md`) and the
+descr-accuracy pass are shared upstream assets feeding **both** directions —
+better source text helps whichever mechanism eventually gets built. Keep
+building/maintaining that corpus regardless of which memory-loading approach
+moves forward.
 
-## Open Items — Not Started
+## the concrete, ready-to-execute next step
 
-1. **Run it, at all.** First test, cheapest first: `Protocol-7 vault-edit
-   commands` (should print-and-exit — proves the start file's hybrid
-   shape works before a real terminal is involved; if this hangs, the
-   start file is wrong and nothing else matters). Only then `vault-edit
-   show` (or bare `vault-edit`) at a real tty.
-2. Everything from the prior entry in this same file that predates this
-   session's work (older `data/tasks/` backlog sweep,
-   `transport.init_code`'s missing zenka-name guard,
-   `transport.handle.quic-hysteria:85`'s sprintf warning,
-   `models.discover :clear:` alone untested) — still untouched, see
-   `f36dbb66f`/`48e0dee44` if still relevant.
-3. Phase 3 (cred-mesh's key-holder unlock dialog) — still correctly
-   blocked on the fabric-secret encryption migration, unrelated to this
-   session's work and not re-examined.
+`data/tasks/coding-lora-p7-idioms.md` — fully scoped, mechanism **verified
+against this checkout's actual `ik_llama.cpp` source** (not assumed from
+docs/tutorials): `--lora-scaled` load-time adapter support confirmed at
+specific line numbers, `convert_lora_to_gguf.py` vendored and present. Two
+cheaper approaches were tried first and both got real, honest null results
+on the same four structural P7 idioms (`<[module.name]>->()` invocation
+sugar, bare `<config.key>` access, `TRUE`/`FALSE` named constants, `mode`/
+`data` reply shape):
+- a system-prompt fix (real bugs found and fixed, still didn't move the four
+  idioms — `coding-control-vector-p7-idioms.md`'s 2026-09-09 addendum)
+- a mean-diff control vector (also failed on these four specifically — got
+  dominated by surface-register direction, structural tokens washed out)
 
-## Verified Live
+**This LoRA task was never actually attempted** — blocked at "no training
+stack is installed at all" (its own hazard 1), not tested-and-failed. That
+distinction matters: it is an unstarted thread with a verified mechanism,
+not an exhausted one. If picking up the loadable-memory vision again, this
+is the concrete next build: install torch/transformers/peft/bitsandbytes,
+fetch the original HF checkpoint (not a generic Qwen3 base — the exact
+"Qwen3.8 9B Heretic Uncensored" fine-tune, via `fetch.file.huggingface.*`),
+expand the idiom dataset, train, convert to GGUF, wire into
+`cfg/zenki/coding/zenka.v7` (config-gated, mirroring the control vector's
+existing wiring pattern), validate against the existing `score.py` rubric.
+Real, multi-hour work touching the live GPU/inference stack — read the full
+hazards section in the task file before starting, it documents dataset-size,
+held-out-set, and rank-choice traps already thought through.
 
-Nothing from this session's `vault-edit` work — explicitly, deliberately,
-repeatedly not yet run. The only thing live-verified this session (in the
-earlier, reverted attempt) was `cred-mesh.ui-show` rendering through
-nshell, which stays true regardless and is unaffected by any of this.
+## other open items, unrelated to the above
+
+- **`vault-edit` zenka**: the 2026-09-06 entry this replaces said "never once
+  executed" — that was already stale by 2026-09-07, when plumbing was
+  verified end-to-end (6 real bugs fixed, 2 pre-existing framework defects)
+  and a UX pass landed (title bar/footer/key-hints chrome, collapsed
+  subscriber preview, an `o`-overview escape). It exists and does something.
+  **What it still doesn't do is the actually-required functionality: adding
+  or editing credentials.** That's the real open item, not "run it for the
+  first time." See `data/ai-mem/claude/project-cred-mesh-console-ui-
+  architecture.md` and `data/tasks/credential-fabric-ui-interactive.md`.
+- parallel-signing/verify infra (`sourcecode.console.update-signatures` /
+  `verify-p7-signatures`, this session) — landed, committed, working, ~7x
+  faster real-world signing. Not related to memory work, mentioned here only
+  because it's the most recent unrelated landed thing before this handover.
+
+## verified live
+
+Nothing from the loadable-memory work — it's still 100% at the design/task-
+file stage on the weight-loading side. The retrieval-tool side
+(`embedding_search`) has real measurements (see phase2 task file) but
+nothing installed/shipped — `coding.tools.handler.embedding_search` itself
+runs against whatever `.vec` files exist in `data/embeddings/`, none of
+which is a module-catalog domain today.
