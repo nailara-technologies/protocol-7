@@ -41,6 +41,12 @@ push $aref_failed->@*, $task_id
     $task->{'execution'}->{'retry_count'}
 );
 
+## a failed task is not a retrieval example : drop any catalog-harvest  ##
+## touched-set it accumulated, so entries cannot linger unboundedly now ##
+## that the flush hook lives on the successful completion path          ##
+delete <coding.catalog.touched>->{$task_id}
+    if ref <coding.catalog.touched> eq qw| HASH |;
+
 ## resolve reasoning branch as failed ##
 <[reasoning.branch.resolve]>->(
     {   id     => $task_id,
@@ -57,8 +63,8 @@ return {
     }
 };
 
-#,,.,,.,.,..,,.,,,,,,,,,,,,.,,.,.,,.,,.,,,,..,.,.,...,...,..,,...,..,,,,,,,,,,
-#H5Q25KFVXKZBBJVKWC4AORWUQ554GELMTKMQCI3SLIOGTFOB5TOVV6U5BSGAAHGL4VUL76PUMUFUI
-#\\\|WPCNXU7AR3GY7UNZDITAY74EEHAEZNU7UBBV7NPN6IEOZMAAMZY \ / AMOS7 \ YOURUM ::
-#\[7]EBLQQES6DLLHABUIZIM4YYJEARRGH2T5ZV6D22ETELFGLIOF3QDA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,...,,..,,,,,,,.,..,,.,,,,.,,.,.,...,...,...,,..,,..,..,,,..,
+#OIOYZC2KGRA62W3CU3XJF6BYNE53UN67PFCQSGD4IDAFAZQ6XNMRKHW2XLGMA7HQTTHFF62GKT6CM
+#\\\|LVJZ35HTWLAVR3EO6VVCWQSRRR3HTMYXWTOONY4ATEF5C26JYP2 \ / AMOS7 \ YOURUM ::
+#\[7]TN6X5LRWOBFLGNMKCTI2CLAMFV5YHFHYO6EJEEZRSCDLME4KSCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
