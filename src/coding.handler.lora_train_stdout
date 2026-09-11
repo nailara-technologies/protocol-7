@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = coding.handler.lora_train_stdout
+# descr = parse train_lora.py's single-line JSON progress events on stdout
+
+## JSON::XS only -- never JSON::PP, see data/ai-mem/claude/bug-fetch-files- ##
+## huggingface-four-real-bugs-2026-09-10.md : clients.https.init_code       ##
+## already loads JSON::XS in this process, and JSON::PP's decode_json has a ##
+## different prototype -- loading both collides                             ##
+
+my $event = shift;
+
+my $fh    = $event->w->fd;
+my $buf   = '';
+my $bytes = <[base.s_read]>->( $fh, \$buf, 4096 );
+
+## same EOF-cancel fix as the download-progress handlers this session -- ##
+## don't leave a level-triggered watcher registered past the fd's EOF    ##
+if ( $bytes <= 0 ) {
+    eval { $event->w->cancel };
+    return;
+}
+
+my $dl = <coding.lora_train> // {};
+
+for my $line ( split m|\n|, $buf ) {
+    next unless length $line;
+
+    my $parsed = eval { JSON::XS::decode_json($line) };
+    if ( !defined $parsed or ref $parsed ne qw| HASH | ) {
+        ## not every stdout line is guaranteed to be our json [ a library ##
+        ## under the hood can still write a stray line ] -- log raw and   ##
+        ## move on rather than dying on a malformed line                  ##
+        <[base.logs]>->( 2, '[lora_train.stdout] %s', $line );
+        next;
+    }
+
+    my $ev = $parsed->{'event'} // '';
+
+    if ( $ev eq qw| progress | ) {
+        $dl->{'step'}        = $parsed->{'step'} // $dl->{'step'};
+        $dl->{'total_steps'} = $parsed->{'total_steps'}
+            // $dl->{'total_steps'};
+        $dl->{'loss'}  = $parsed->{'loss'}  // $dl->{'loss'};
+        $dl->{'epoch'} = $parsed->{'epoch'} // $dl->{'epoch'};
+
+        <[base.logs]>->(
+            1,
+            '[lora_train] step %s/%s epoch=%.2f loss=%.4f',
+            $dl->{'step'}        // '?',
+            $dl->{'total_steps'} // '?',
+            $dl->{'epoch'}       // 0,
+            $dl->{'loss'}        // 0,
+        );
+    } elsif ( $ev eq qw| complete | ) {
+        $dl->{'adapter_path'} = $parsed->{'adapter_path'} // '';
+        $dl->{'final_loss'}   = $parsed->{'final_loss'};
+
+        <[base.logs]>->(
+            1,
+            '[lora_train] python side reported '
+                . 'complete: adapter=%s final_loss=%s',
+            $dl->{'adapter_path'},
+            $dl->{'final_loss'} // 'unknown'
+        );
+    } elsif ( $ev eq qw| error | ) {
+        <[base.logs]>->(
+            0,
+            '[lora_train] python side reported error: %s',
+            $parsed->{'message'} // 'unknown error'
+        );
+    } else {
+        <[base.logs]>->(
+            2, '[lora_train.stdout] unrecognized event: %s', $line
+        );
+    }
+}
+
+#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
+
+#,,,.,..,,,,,,.,.,.,,,..,,,..,,..,..,,.,,,,..,..,,...,...,..,,,..,,,.,,,,,...,
+#TNFXLATONUK4DC6KEAFQKAAQ7J3V5RHPJCMY2ATI6XDXGWNKXC37MNZHQ2C3PV7Z2E5W5QFH4AW7Y
+#\\\|CSPLVGFK5H2E22ZYZX5NPXS465YRI2HHFPCOQGDIR5WKSJNMO34 \ / AMOS7 \ YOURUM ::
+#\[7]HYFDVATT2EEI3UQWXRU26U7RRHM7PAHKTMBKBGDU6DLPVW6G3OBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

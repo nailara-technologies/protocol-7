@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = coding.handler.lora_train_watch
+# descr = poll the lora training child for completion, on a repeating timer
+
+my $dl = <coding.lora_train> // {};
+return if !%$dl;
+
+my $pid = $dl->{'pid'};
+return if !$pid;
+
+## same authoritative liveness check as fetch.file.huggingface.handler.     ##
+## download_progress -- base.sig_chld [ the real global SIGCHLD handler ]   ##
+## can reap this pid before this timer's waitpid gets to it, so a bare      ##
+## `waitpid($pid,WNOHANG)==$pid` match is not reliable; kill(0,$pid) is the ##
+## only check that stays correct either way                                 ##
+my $wait_result   = waitpid( $pid, WNOHANG );
+my $still_running = ( $wait_result == 0 ) && kill( 0, $pid );
+
+if ($still_running) {
+    return;    ## nothing to do -- coding.handler.lora_train_stdout/stderr ##
+    ## already log progress as it arrives                      ##
+}
+
+my $exit_code = $wait_result == $pid ? ( $? >> 8 ) : undef;
+
+<[base.logs]>->(
+    1, '[lora_train] child exited [pid=%d] -- %s', $pid,
+    defined $exit_code
+    ? "reaped directly, exit=$exit_code"
+    : 'already reaped elsewhere [base.sig_chld] '
+        . '-- deciding from reported state'
+);
+
+my $timer = delete $dl->{'watch_timer'};
+$timer->cancel if defined $timer;
+
+<[base.zenki.resume_ondemand_timeout]>;
+<[base.logs]>->( 1, '[lora_train] resuming idle-shutdown tracking' );
+
+## train_lora.py's own final stdout "complete" event (parsed in coding.     ##
+## handler.lora_train_stdout) is the authoritative success signal, same     ##
+## file-state fallback as fetch.file.huggingface.handler.download_ progress ##
+## -- a REAL bug, caught live 2026-09-10 on this run's own first real       ##
+## completion: base.sig_chld reaped this child before waitpid got to it     ##
+## (the normal, expected race, see the liveness-check note above), so       ##
+## $exit_code came back undef -- an EARLIER version of this check required  ##
+## `defined $exit_code && $exit_code == 0` unconditionally, so a perfectly  ##
+## successful run (adapter saved, "complete" event received) got reported   ##
+## as "training failed [exit=unknown, reaped elsewhere]". defined-exit-     ##
+## code is the trustworthy path when available; the adapter_path + -d check ##
+## alone is the correct, ALREADY-sufficient fallback otherwise.             ##
+my $succeeded
+    = defined $exit_code
+    ? ( $exit_code == 0
+        && length( $dl->{'adapter_path'} // '' )
+        && -d $dl->{'adapter_path'} )
+    : ( length( $dl->{'adapter_path'} // '' ) && -d $dl->{'adapter_path'} );
+
+if ($succeeded) {
+    $dl->{'status'} = qw| complete |;
+
+    <[base.logs]>->(
+        1, '[lora_train] training complete: adapter=%s final_loss=%s',
+        $dl->{'adapter_path'}, $dl->{'final_loss'} // 'unknown'
+    );
+
+    if ( length( $dl->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->(
+            $dl->{'reply_id'},
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    'ok adapter=%s final_loss=%s',
+                    $dl->{'adapter_path'}, $dl->{'final_loss'} // 'unknown'
+                )
+            }
+        );
+    }
+} else {
+    $dl->{'status'} = qw| error |;
+
+    <[base.logs]>->(
+        0,
+        '[lora_train] training failed [exit=%s]',
+        ( $exit_code // 'unknown, reaped elsewhere' )
+    );
+
+    if ( length( $dl->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->(
+            $dl->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' => sprintf( 'training failed [exit code=%s]',
+                    ( $exit_code // 'unknown' ) )
+            }
+        );
+    }
+}
+
+<coding.lora_training_in_progress> = FALSE;
+
+#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
+
+#,,..,,,.,,,,,,,.,,..,..,,,,.,...,.,,,,.,,,,.,..,,...,...,...,,,,,,,,,,.,,.,.,
+#6GHTIRCQRYVK47RNBT7ZCUSLEJAVDR6FFHYZ45UP4ZEMBBBFS5D2TK3AFTCNTIIWNYP2KV257Z7GE
+#\\\|7TBHVOFZYQ2O2BX42YNB5ZSA44Y3WNINDQBFDQIQPDFMSQAQFPR \ / AMOS7 \ YOURUM ::
+#\[7]UVAJR4MJT4GKQKCSAP5UPOYDD5DGB4X6DCSKYV5VJQ63F5IGI2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

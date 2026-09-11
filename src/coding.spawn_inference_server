@@ -577,9 +577,25 @@ if ( length $lora_path ) {
     ## runtime effect = scale * alpha / rank [ same convention as PEFT ] ##
     my $lora_scale = <coding.cfg.lora_adapter_scale> // 1.0;
     push @cmd, '--lora-scaled', $lora_path, $lora_scale;
+
+    ## REAL bug, caught live 2026-09-10 on this adapter's first deployment  ##
+    ## test: this fork's lora application silently NO-OPS under flash       ##
+    ## attention -- `llama_lora_adapter_set: flash_attn is not compatible   ##
+    ## with LoRA` (visible only with --verbose; --log-disable above hides   ##
+    ## it entirely). the adapter still loads without error [ tensor count   ##
+    ## logged correctly ], so a byte-identical scale=0 vs scale=1 output is ##
+    ## the only symptom -- confirmed via a differential test against the    ##
+    ## same seed/prompt. `-no-fa`/`--flash-attn off` is a supported runtime ##
+    ## flag on this same binary [ no separate non-fa build needed           ##
+    ## -- confirmed live, adapter has a real, measurable effect once off ]  ##
+    push @cmd, '--flash-attn', 'off';
+
     <[base.logs]>->(
-        1,          '[spawn_inference_server] lora adapter : %s [ scale %s ]',
-        $lora_path, $lora_scale
+        1,
+        '[spawn_inference_server] lora adapter : %s [ scale %s, '
+            . 'flash-attn disabled -- incompatible with lora on this fork ]',
+        $lora_path,
+        $lora_scale
     );
 }
 
@@ -789,8 +805,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,,,,,.,,,...,,..,,.,,...,,.,,,.,,..,,,.,,..,,...,...,..,,,,,,..,,,,.,,,.,
-#MQOXPLIINS3LSEBGG3PP66PAN3NCZAOU6WZO4LTRZ67H4VIXV253GD6Z4BIEAVLCHAA5LTDT4PXR6
-#\\\|ROD4SKOODSBHT4UO47QEEHD7FLBCRZHG6C2EJQNE2ULJ36GWNLH \ / AMOS7 \ YOURUM ::
-#\[7]ZKXJIWKRXAUR27JH2RMFV7ZWZQ5U6P24HVHKXV4FDQGF4JPG24CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,.,.,..,,.,.,,.,,.,,,..,,,,.,..,,...,..,,,,.,.,.,,,,,.,,,,..,
+#55V6PWBE3LOTMWKL6QYKM4Y6KOXTZKGISW2RPLHVDW3LZIE4K32WRPMYZUJYJ5S45IM5LZX3BJX64
+#\\\|FFXQKGNWC7PVDMSRRFCTXX2HZLPRIKO557UZVRKKXRYRTSZPP2H \ / AMOS7 \ YOURUM ::
+#\[7]AZHKVTC65J566WR5KDEKUC6QSPRFABPV2ZYV2CFB46VSBAGNHACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

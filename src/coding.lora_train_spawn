@@ -1,0 +1,201 @@
+## [:< ##
+
+# name  = coding.lora_train_spawn
+# descr = spawn the p7-idiom LoRA training run as an async child process
+# param = { dataset => path, out_dir => path, epochs => n }
+
+use IPC::Open3;
+use Symbol     qw| gensym |;
+use POSIX      qw| WNOHANG |;
+use File::Path qw| make_path |;
+
+my $call = shift;
+my $args = $call->{'args'} // {};
+$args = {} if ref $args ne qw| HASH |;
+
+## same single-flag guard as coding.spawn_inference_server -- training and ##
+## inference both want the whole gpu, never let a second training spawn    ##
+## stack on top of a still-running one                                     ##
+if (<coding.lora_training_in_progress>) {
+    <[base.logs]>->(
+        2, '[lora_train] spawn already in progress, ignoring duplicate call'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'lora training already running'
+    };
+}
+<coding.lora_training_in_progress> = TRUE;
+
+## NOT <coding.lib_path> -- that resolves to the inference backend's own ##
+## lib dir (ik_llama.cpp, for llama-server binaries), confirmed live     ##
+## 2026-09-10 when a first attempt using it produced a bogus venv path.  ##
+## this project's own root has no equivalent config key exposed to the   ##
+## coding zenka today, hardcoded absolute path same as the lora_adapter  ##
+## example default already committed in cfg/zenki/coding/zenka.v7        ##
+my $repo_root = <coding.cfg.repo_root> // '/data/projects/protocol-7';
+my $venv_py   = <coding.cfg.lora_venv> // "$repo_root/.venv-lora/bin/python";
+my $train_py  = <coding.cfg.lora_train_script>
+    // "$repo_root/data/control-vectors/train_lora.py";
+my $base_ckpt = <coding.cfg.lora_base_checkpoint>
+    // '/mnt/ext-xfs-data/models-lmstudio/petruh'
+    . 'onk/Qwen3.8-9B-Distill-uncensored-heretic';
+
+my $dataset = $args->{'dataset'}
+    // "$repo_root/data/control-vectors/dataset/positive-expanded.txt";
+my $out_dir = $args->{'out_dir'}
+    // "$repo_root/data/control-vectors/lora-out/p7-idioms";
+my $epochs = $args->{'epochs'} // 3;
+
+if ( !-x $venv_py ) {
+    <coding.lora_training_in_progress> = FALSE;
+    return {
+        'mode' => qw| false |,
+        'data' => "training venv python not found or not executable: $venv_py"
+    };
+}
+if ( !-f $train_py ) {
+    <coding.lora_training_in_progress> = FALSE;
+    return {
+        'mode' => qw| false |,
+        'data' => "training script not found: $train_py"
+    };
+}
+if ( !-f $dataset ) {
+    <coding.lora_training_in_progress> = FALSE;
+    return { 'mode' => qw| false |, 'data' => "dataset not found: $dataset" };
+}
+
+if ( !-d $out_dir ) {
+    eval { make_path( $out_dir, { 'mode' => 0755 } ) };
+    if ($EVAL_ERROR) {
+        <coding.lora_training_in_progress> = FALSE;
+        return {
+            'mode' => qw| false |,
+            'data' => "cannot create output directory: $out_dir"
+        };
+    }
+}
+
+## the live inference server holds the gpu -- caller is expected to have ##
+## stopped it first (standing permission on file, see task file's hazard ##
+## 2); refuse loudly rather than silently OOM-ing mid-training           ##
+my $inference_running = 0;
+for my $backend (qw| gpu cpu |) {
+    my $srv = <coding.inference_servers>->{$backend} // {};
+    my $pid = $srv->{'pid'}                          // 0;
+    $inference_running = 1 if $pid && kill( 0, $pid );
+}
+if ($inference_running) {
+    <coding.lora_training_in_progress> = FALSE;
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            'live inference server still running -- stop it before training'
+    };
+}
+
+my @cmd = (
+    $venv_py,    $train_py, '--base-checkpoint', $base_ckpt,
+    '--dataset', $dataset,  '--out-dir',         $out_dir,
+    '--epochs',  $epochs,
+);
+
+my ( $chld_in, $chld_out, $chld_err );
+$chld_err = gensym;
+
+my $pid = eval { IPC::Open3::open3( $chld_in, $chld_out, $chld_err, @cmd ) };
+
+if ( !$pid || $EVAL_ERROR ) {
+    <coding.lora_training_in_progress> = FALSE;
+    <[base.logs]>->(
+        0,
+        "[lora_train] failed to spawn training run: %s",
+        $EVAL_ERROR // 'unknown error'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'training spawn failed: ' . ( $EVAL_ERROR // 'unknown' )
+    };
+}
+
+## same pause/register pair as fetch.file.huggingface.download -- a multi-  ##
+## hour training run easily outlives this zenka's idle-shutdown window, and ##
+## an unregistered child is orphaned across a coding zenka restart          ##
+<[base.logs]>->(
+    1, "[lora_train] pausing idle-shutdown for training run [pid=%d]", $pid
+);
+<[base.zenki.pause_ondemand_timeout]>;
+
+<[base.logs]>->(
+    1, "[lora_train] registering child pid %d with v7-zenki", $pid
+);
+<[base.zenki.report_child_pid]>->($pid);
+
+close($chld_in) if defined $chld_in;
+
+<coding.lora_train> //= {};
+<coding.lora_train> = {
+    'pid'         => $pid,
+    'dataset'     => $dataset,
+    'out_dir'     => $out_dir,
+    'epochs'      => $epochs,
+    'start_time'  => <[base.time]>->(3),
+    'status'      => qw| training |,
+    'step'        => 0,
+    'total_steps' => 0,
+    'loss'        => undef,
+    'reply_id'    => $call->{'reply_id'} // '',
+};
+
+for my $fh ( $chld_out, $chld_err ) {
+    next if !defined $fh;
+    my $flags = fcntl( $fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
+## stdout carries our own JSON progress lines (see train_lora.py's log_json ##
+## helper); stderr carries raw python/transformers/torch diagnostic text -- ##
+## tracked separately so a stray warning never gets mistaken for progress   ##
+if ( defined $chld_out ) {
+    <[event.add_io]>->(
+        {   'fd'      => $chld_out,
+            'poll'    => qw| r |,
+            'handler' => qw| coding.handler.lora_train_stdout |,
+            'data'    => {},
+        }
+    );
+}
+if ( defined $chld_err ) {
+    <[event.add_io]>->(
+        {   'fd'      => $chld_err,
+            'poll'    => qw| r |,
+            'handler' => qw| coding.handler.lora_train_stderr |,
+            'data'    => {},
+        }
+    );
+}
+
+<coding.lora_train>->{'watch_timer'} = <[event.add_timer]>->(
+    {   'interval' => 5.0,
+        'repeat'   => 1,
+        'handler'  => qw| coding.handler.lora_train_watch |,
+        'data'     => {},
+    }
+);
+
+<[base.logs]>->(
+    1, "[lora_train] started: dataset=%s out_dir=%s epochs=%d [pid=%d]",
+    $dataset, $out_dir, $epochs, $pid
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
+
+#,,,.,,.,,.,.,.,,,.,.,.,.,,..,.,.,..,,,,,,.,.,..,,...,..,,,.,,...,.,.,..,,,,.,
+#5KV2N4MNYMKQYJOL2RVLUTBT2BONRUDXCCIRSK5DBEPCOEQTYQDXLHMEAHVVPXQJ77YCMWB5CDZQO
+#\\\|J4SAAR5ID3IMWQMXOX4ZRCHEVSYOAUXXDGCOEGSN7DRKE6RFO5F \ / AMOS7 \ YOURUM ::
+#\[7]N273WMRMPGGXGA3DK22JZOGITXSJCPR3L3B75KVHFBP2LH3KIIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

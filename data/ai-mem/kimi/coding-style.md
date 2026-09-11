@@ -1075,3 +1075,40 @@ any comment above or after the full statement instead.
 #\\\|QYO2UBCNILH4ESKJ5VQDPJUXBLDULOMXLW3NZF5Q77DMNYTRNEM \ / AMOS7 \ YOURUM ::
 #\[7]QGHIJFGSBZROOIB7OEVAL47SSJMJT5PKEPPBR2Q6AKJ2ZHMFP4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+
+## LoRA training stack install [ 2026-09-10, task coding-lora-env-setup ]
+
+- dedicated venv at `.venv-lora/` (uv-created, CPython 3.13.15, NOT in any
+  repo tooling convention -- `bin/dependencies/` is perl/debian only).
+  gitignored via `.gitignore` entry documenting recreate steps.
+- exact install: `uv venv .venv-lora --python /usr/bin/python3` then
+  `uv pip install --python .venv-lora/bin/python torch --index-url
+  https://download.pytorch.org/whl/cu126` then `uv pip install --python
+  .venv-lora/bin/python transformers peft accelerate bitsandbytes` (plain
+  PyPI for the rest -- bitsandbytes wheels bundle their own CUDA kernels).
+- installed: torch 2.14.0+cu126, transformers 5.17.0 (MAJOR v5 -- later
+  training task must verify its QLoRA code against transformers-5 API,
+  not v4 tutorials), peft 0.20.0, bitsandbytes 0.50.2, accelerate 1.15.0.
+- driver 610.57.04 / CUDA UMD 13.1 runs cu126 wheels fine (backward-compat).
+  import + `torch.cuda.is_available()` + `get_device_name(0)` cost ~0 VRAM --
+  safe to verify while the live coding zenka's llama-server holds ~11.4GB.
+---
+
+## control-vector / LoRA dataset line format [ 2026-09-10 ]
+
+`data/control-vectors/dataset/positive*.txt` lines are flattened chat examples
+with JSON-style escaping baked in : real newlines inside an answer are the
+two-character sequence `\n`, and every literal backslash in the perl code is
+doubled [ `\\.` = `\.`, `\\@` = `\@`, `\\d` = `\d` ]. when appending new
+examples, match that convention exactly or the training text silently
+differs from what the template serialization produces. also : the assistant
+turn in these files carries NO `<think>` wrapper -- the training script adds
+`<think>\n\n</think>\n\n` programmatically later; do not pre-add it.
+
+#,,,,,...,...,.,.,,,,,..,,,..,,,.,,,.,.,.,.,,,..,,...,.,.,...,,,.,,.,,,..,,.,,
+#IGEFL5IDXJGSXZDFW624XCPC7KUXN4CVQVCJGFOUU3Q62M5VX7VJ3XHGU6BLBIRXOOPD3GSPSM57C
+#\\\|5Q36CHPOXSV2UXUELWCKLCSES6TJJ7BQTT6GNPYXOHTYOFWIW3J \ / AMOS7 \ YOURUM ::
+#\[7]WXJ5WVYI5EQ4GVKT57L7XFRCS6SLNBQCPH62HULEUAAPH4VTFWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
