@@ -243,6 +243,30 @@ foreach my $pattern_str ( grep {m|^\!|} $copy_sources->@* ) {
     }
 }
 
+## drop anything git itself ignores -- caught live 2026-09-12: a trained  ##
+## LoRA adapter's binary .safetensors under lora-out/ got swept into a    ##
+## directory-based sign batch, got a signature footer appended for       ##
+## nothing, then failed the final `git add` since it's gitignored. a     ##
+## file that will never be tracked should never be signed in the first   ##
+## place                                                                  ##
+if ( @source_paths and -d catfile( $work_tree, qw| .git | ) ) {
+    my $list_file = sprintf( qw| /tmp/p7-sourcecode-gitignore-check.%d.tmp |,
+        $PID );
+    <[file.put]>->( $list_file, join( "\n", @source_paths ) . "\n" );
+    my @ignored
+        = qx| git -C \Q$work_tree\E check-ignore --stdin < \Q$list_file\E |;
+    chomp @ignored;
+    unlink $list_file;
+    if (@ignored) {
+        my %ignored = map { $ARG => TRUE } @ignored;
+        <[base.logs]>->(
+            2, ': skipping %d gitignored path%s from signing',
+            scalar @ignored, <[base.cnt_s]>->( scalar @ignored )
+        );
+        @source_paths = grep { not $ignored{$ARG} } @source_paths;
+    }
+}
+
 @source_paths = uniq <[base.sort]>->(@source_paths);
 
 if ( scalar $copy_sources->@* > @source_paths ) {
@@ -269,8 +293,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,,,,,,,,,,.,,,.,...,,,.,,..,,,,,..,,,,,,,..,..,,...,.,.,..,,,,,,.,,,,,.,,,.,
-#F5UE4RMBF43RD7ZG4G6A44B3W342YVNS36OA6BLGDGUXT6BA323F67SDZB2IVUFOR6I7U4IAVM3V2
-#\\\|OGWDWV6W5PLOIMAHR5CK2B7I3BFMUBXDYFIONN2VBTSF4QFGQ4C \ / AMOS7 \ YOURUM ::
-#\[7]3MHFV7ZOR4NIL7UN67PD4T3VG5JSDOU26WFY3WW2RU3HUDN6ZIDI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,..,,,,,,,,,,,.,,,.,,,,.,...,..,,...,..,,..,,..,,,,.,..,,,,.,
+#KSSD5MCSW4Z7NDFX65VKHJTKBDRZPLFJ6EJCIGRZ5DE54IHAPSBFDPDAI4GIRYZJ7EVP6D6MIBUMI
+#\\\|57FEDF7H76HXNFHZLBHLAY5FZBVROT2TSQUC3BVWTVEU2NAUTEL \ / AMOS7 \ YOURUM ::
+#\[7]ZWMKPTCKV7ZTUT7MF5RIM26TLPJPOEYYNCYL5DCFLJPVKVFLOQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
