@@ -187,3 +187,9 @@ if __name__ == '__main__':
     else:
         print(f"unknown mode {mode}")
         sys.exit(2)
+
+#,,,,,,,,,.,.,,.,,,,,,,..,.,,,...,,,.,,.,,,,,,..,,...,...,,.,,...,...,.,.,...,
+#2OZIYI5ZCWX5AVNBNXQDBJPRENN3A7EO4YTQFEO4RP7WJD4ZJLCGNHYSVVSWPPIDBGJGTRS32QDDU
+#\\\|FOBRCDZCOG7QXJ4RMATC2EKRNPUW4LGDF7LIYPNMG57WWH5L4F3 \ / AMOS7 \ YOURUM ::
+#\[7]B7H7AOKHBEIJ5VUAULL4I4EARUX33O3VTR57NY7QMCEWVWWSAOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
