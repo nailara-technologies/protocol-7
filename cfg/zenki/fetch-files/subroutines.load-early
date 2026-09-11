@@ -49,8 +49,11 @@ base.pre_init
 base.n2u_time
 base.get_file
 base.cmd.name
+base.cmd.list
+base.cmd.exit
 base.cfg_bool
 ui.render.tree
+ui.cmd.ui-show
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -68,9 +71,11 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
+base.cmd.clear
 auth.auth_list
 plugin.auth.pwd
 net.read_binary
+devmod.pre_init
 base.zenka.push
 base.zenka.loop
 base.str.os_err
@@ -83,12 +88,14 @@ base.file.which
 base.file.slurp
 base.event.once
 base.event.loop
+base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
 jobqueue.add_job
-clients.http.get
+devmod.post_init
+devmod.init_code
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -105,6 +112,10 @@ base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
+base.cmd.rel-ver
+base.cmd.ptl-ver
+base.cmd.present
+base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
@@ -114,6 +125,7 @@ plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
 jobqueue.exec_job
+clients.https.get
 base.stream.close
 base.session.user
 base.session.init
@@ -130,11 +142,15 @@ base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
+base.cmd.term-all
+base.cmd.last-sid
+base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
+clients.https.post
 base.reload_values
 base.reload_config
 base.parser.config
@@ -147,6 +163,7 @@ base.file.pre_init
 base.file.line_map
 base.file.basename
 base.event.add_var
+base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -154,6 +171,7 @@ base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 io.ip.tcp.init_code
+devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -173,8 +191,6 @@ base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
-clients.http.request
-clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -195,6 +211,8 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.cmd.show-access
+base.cmd.amos-chksum
 base.buffer.add_line
 base.base32.pre_init
 ascii.frame.validate
@@ -203,6 +221,9 @@ jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
+clients.https.request
+clients.https.cleanup
+clients.http.pre_init
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -214,20 +235,27 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.console.describe
 base.console.commands
+base.cmd.when-present
+base.cmd.dependencies
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
 crypt.C25519.sign_data
+clients.https.pre_init
+clients.http.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
+base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
+base.cmd.cancel-stream
 base.cfg.profile.apply
 protocol.sftp.init_code
 jobqueue.queue_template
@@ -236,7 +264,7 @@ fetch-files.cmd.hf-list
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.key_exists
-clients.http.handler.io
+clients.https.init_code
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -253,6 +281,9 @@ base.dump.data_key_list
 base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
+base.cmd.set-name-width
+base.cmd.ondemand-zenka
+base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.callback.cmd_reply
 base.auth.set_zenka_key
@@ -263,6 +294,7 @@ io.unix.socket.init_code
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
+clients.https.handler.io
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -281,6 +313,7 @@ io.unix.socket.input.open
 fetch-files.cmd.hf-status
 fetch-files.cmd.hf-search
 crypt.C25519.load_keypair
+clients.https.decode_body
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -318,7 +351,9 @@ fetch.file.huggingface.list
 fetch-files.cmd.hf-download
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+clients.https.h2.handler.io
 clients.http.parse_response
+base.zenki.report_child_pid
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -338,7 +373,6 @@ protocol.amos_term.init_code
 io.unix.socket.input.connect
 fetch-files.cmd.hf-lan-check
 crypt.C25519.compare_keypair
-clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -354,6 +388,8 @@ fetch.file.huggingface.search
 crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
+clients.https.handler.timeout
+clients.https.h2.send_request
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -366,6 +402,7 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
+base.callback.report_children
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
@@ -383,6 +420,7 @@ ascii.frame.render.border_line
 fetch.file.huggingface.pre_init
 fetch.file.huggingface.download
 crypt.C25519.decrypt_secret_key
+clients.https.handler.handshake
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -401,6 +439,7 @@ base.format.inline-nested.encode
 base.file.last_existing_dir_path
 base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
+base.cfg.profile.cmd.set-profile
 ascii.frame.parse.border_segment
 protocol.amos-chksum.ext-cmd.exit
 base.zenki.pause_ondemand_timeout
@@ -435,6 +474,7 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+base.callback.report_children_reply
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 graphics-3d.calc.cursor-translucency
@@ -485,8 +525,8 @@ protocol.protocol-7.protocol-version-path-set-up
 fetch.file.huggingface.handler.download_progress
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,..,,,,,...,,.,,,..,,,,,,..,.,,,,,,,.,,,..,,...,.,.,.,,,.,.,..,,..,,,..,
-#HLHHEDZ5DSXNEC4DIMDD2B37CLTQVYNS37WDNZB4XJXZJOKAHVYUEZC77ZGNPJXSWPX7COJYKY6WO
-#\\\|KULVNB74ZRFF7645BJ3232CIRG6PMZFOO5SL7SFXR3UF6WQ2TYV \ / AMOS7 \ YOURUM ::
-#\[7]DACJN2IXNR2PQWNDSWJFS6QOFJVMQYLXYGFEUGLATFBJEWT5VODA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,,.,,.,.,,,.,,,,,.,.,,..,,,,,..,,...,...,,,.,,.,,...,..,,,,.,
+#JKPGLOJSRYLVIPIH5XKSIIDFHAUMYXSCXMQQW6V6JTPNWO2M3GPUMIIWXBXJTFUWVYCYQ6MZD4IQU
+#\\\|GD3225GS4RI2MAOXLYHFQQURYNR5SQOSHCOBMLNSNVEDXWKYY5U \ / AMOS7 \ YOURUM ::
+#\[7]XP5G2AM3WGNNQT75X2AWFX23KUFCHY7OEWPNW5H7CARPYT6XRSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

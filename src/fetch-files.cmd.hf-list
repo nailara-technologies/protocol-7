@@ -12,13 +12,13 @@ return {
     }
     if not length $args_str;
 
-my $args = eval { JSON::PP::decode_json($args_str) };
+my $args = eval { JSON::XS::decode_json($args_str) };
 return { 'mode' => qw| false |, 'data' => "invalid JSON: $@" } if $@;
 
-return <[fetch.file.huggingface.list]>->($args);
+return <[huggingface.list]>->( { 'args' => $args } );
 
-#,,.,,,,,,...,,,,,.,.,,.,,...,,..,,..,,,.,,..,..,,...,...,...,,,,,...,..,,,..,
-#UZSAPHPRNA4S5KVSQ7DJJQORUQKDAZER3AKC75PBYJRMW6OX7NVSTRKVJBHZTLC4HUTBRBH7J7CRK
-#\\\|RVMDUVHDO37IPG4RLUIEEAV5ESGENM5WXGHQX2REM3GEEGEUCTA \ / AMOS7 \ YOURUM ::
-#\[7]7T5TARFUHINV62UDJY72AEBFSPCEBZ62BLUZVWIVCEFKMFWPKCAQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,.,,,.,.,..,,,,,,,..,.,,,,.,,..,,...,...,.,,,.,.,,,.,...,...,
+#AI7L64OOFSMMEYVMBDPQOVI5UPVZVQOVH7LFEH2H4MBHOJWKGLIUVFIL5ZP5TZ662P2YDVQJBQKZO
+#\\\|WAUTLEE5P3MTNF5WYMHEI6RCTT3TTBK6EO6J7PSSC5IZFXMA5OG \ / AMOS7 \ YOURUM ::
+#\[7]A45NUJDEJWEOWFJB6OMKUY6VZNJBNFP54RNIR7LJWQVVPLFUI4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

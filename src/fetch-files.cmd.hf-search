@@ -9,13 +9,13 @@ my $args_str = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'args required: {"query":"..."}' }
     if not length $args_str;
 
-my $args = eval { JSON::PP::decode_json($args_str) };
+my $args = eval { JSON::XS::decode_json($args_str) };
 return { 'mode' => qw| false |, 'data' => "invalid JSON: $@" } if $@;
 
-return <[fetch.file.huggingface.search]>->($args);
+return <[huggingface.search]>->( { 'args' => $args } );
 
-#,,,,,,,.,.,,,,,,,.,,,...,.,,,,,.,,..,.,,,.,,,..,,...,...,.,,,.,.,,,,,.,.,,,.,
-#6HIE7HEUVUTAMLJM3MSRPKOE4VB46HYLKOUCSESP7XDNKNLTSSOQT3FVGWQFZ7IJBM75SVXXAXZY6
-#\\\|QXTTKR5WWCYYPXX6V3C44QDOEIBWEW67SJYOEPHOKICBPIOW7QZ \ / AMOS7 \ YOURUM ::
-#\[7]2WOVRGXDPDHIVQ366BN3ODBJ6DHXM6XBYXL2R2Z5AQ37YEUDIUDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,...,.,,,,,,,...,.,.,,,.,,..,,,,,..,,...,...,,..,.,.,..,,,,.,,.,,
+#YLQVG6C2HGIT2PNXCRBTG47M6QZR7RNY3JJLUIK44BF76QYYFYWHTTFHTU72YJNUI6KGSN5SLCKQU
+#\\\|K3RIC6FEFLFZ6JQXBMM62AG4R43RUV5WNGQ7MY65G5L3HVAA2M2 \ / AMOS7 \ YOURUM ::
+#\[7]FNXY5EUWLMF4KZVLH25VSKL4U6J2UKTDRY3A74LDWJI4X7HNQ2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

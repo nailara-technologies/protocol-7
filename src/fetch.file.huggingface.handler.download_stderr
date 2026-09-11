@@ -14,7 +14,21 @@ my $fh    = $event->w->fd;
 my $buf   = '';
 my $bytes = <[base.s_read]>->( $fh, \$buf, 4096 );
 
-return if $bytes <= 0;
+## EOF (0) or a real read error (negative): the child's stderr will never   ##
+## produce more data. THE ACTUAL CPU-LOOP BUG, found live 2026-09-10 via    ##
+## -vvv logging showing this handler firing every single event-loop         ##
+## iteration forever: a level-triggered io-watcher on an EOF'd fd is        ##
+## PERPETUALLY "readable" (0 bytes, over and over) -- returning here        ##
+## without cancelling the watcher itself leaves it registered, so the event ##
+## loop kept re-firing it continuously once the download's child process    ##
+## (aria2c/wget) exited, pinning CPU near 100% even though the download     ##
+## itself had already completed cleanly. matches the existing               ##
+## clients.https.handler.io / clients.https.cleanup convention: cancel the  ##
+## watcher on true EOF, don't just return from the handler.                 ##
+if ( $bytes <= 0 ) {
+    eval { $event->w->cancel };
+    return;
+}
 
 ## parse wget progress lines  example:  45% [========>      ] 1,234,567 ##
 ## 2.31MB/s  eta 45s                                                    ##
@@ -28,6 +42,15 @@ while ( $buf
     $dl->{'eta_str'}   = $eta_str;
 }
 
+## parse aria2c summary lines  example: [#a1b2c3 4.2MiB/9.4MiB(44%) CN:1 ##
+## DL:2.1MiB ETA:2s]                                                     ##
+while ( $buf =~ m|\((\d+)%\)\s+CN:\d+\s+DL:([\d.]+\w*)(?:\s+ETA:(\S+))?|g ) {
+    my ( $pct, $speed_str, $eta_str ) = ( $1, $2, $3 );
+    $dl->{'percent'}   = $pct;
+    $dl->{'speed_str'} = "$speed_str/s";
+    $dl->{'eta_str'}   = $eta_str if defined $eta_str;
+}
+
 ## parse huggingface-cli progress  example: Downloading README.md: ##
 ## 100%|████████████████| 12.3k/12.3k [00:02<00:00, 5.12kB/s]      ##
 while ( $buf =~ m|(\d+(?:\.\d+)?)\s*(\w+)/\s*(\d+(?:\.\d+)?)\s*(\w+)|g ) {
@@ -36,8 +59,8 @@ while ( $buf =~ m|(\d+(?:\.\d+)?)\s*(\w+)/\s*(\d+(?:\.\d+)?)\s*(\w+)|g ) {
     $dl->{'total_str'}      = "$total $total_unit";
 }
 
-#,,.,,,..,,,.,,,,,...,,,,,.,.,...,...,.,,,.,,,..,,...,...,,..,,,,,,,.,...,,,.,
-#EEQCUR3TSELVJEHPKDFDBHOEIHRAKV2EO7PUMI5QT4S6XHC4MI64BJYT4ZGC2QBHLGRNKB3CV3WVQ
-#\\\|ADDIWSLHPOVFAKMFYDRW7TUJ7IX6RGIJH2B5XPF3QU7D3TPUWZM \ / AMOS7 \ YOURUM ::
-#\[7]EQBVJU3TZXHRCSIJOAP73BS5K2YMQWHFJMWWSC5JNKOEGFNEWYDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,...,..,,,..,,,.,,,,,,.,,...,..,,...,...,,,.,.,,,,,,,,..,,.,,
+#E3LQV57FFOSW6TGBH5HA2QWWZ3ZJV3JL4AAMB4YTUWAGGGL26FVN2JB6U3JMYFZOGX6LEYTTR3JXA
+#\\\|KUQU23T3F276OIM2D76F7B5GPI3V47STWFDRKY3T45SDKIJL4XX \ / AMOS7 \ YOURUM ::
+#\[7]UHWDPMX2EDMTR2WRFYXCZKUD5UGX3EX25EEIO5GEPWQF5KBEWMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

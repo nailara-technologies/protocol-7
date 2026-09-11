@@ -27,7 +27,7 @@ if ( !$ok ) {
 }
 
 ## parse JSON response ##
-my $repo_info = eval { JSON::PP::decode_json($body) };
+my $repo_info = eval { JSON::XS::decode_json($body) };
 if ( $EVAL_ERROR || !ref $repo_info ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -88,8 +88,8 @@ if ( length $reply_id ) {
     <[base.logs]>->( 1, "[hf.list]\n%s", $output );
 }
 
-#,,..,,,.,,..,,..,...,,.,,,,,,,,,,,,,,.,.,,,.,..,,...,...,...,,,.,,,,,.,.,,.,,
-#TY25E7FQE5Y2W37XVLTEGRJVFE3ACWILEPLL5HPJGP54FZD46QA4CWD2DIND6N4R3CCVRYCCCLZ3U
-#\\\|TTHHU4BWXSWSKQDOG24I7RBHS7NWEOYVH6VWDJCBTCKCBGSGD7N \ / AMOS7 \ YOURUM ::
-#\[7]HVLAJPG3KDL5HEEWMSPVZNHEQGATEUU5PRJ7YFFGFVPZ6TK3XEBA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,..,,.,.,,..,..,,.,.,.,.,...,..,,...,...,.,,,..,,...,,,.,.,.,
+#IK4QJMSNQP6NCWHHB3TGQAZDKALYS2KBYQJWZQLJRWBDWLQU2PJBXXY6OTZEPBAXAOHLADBLTCPZC
+#\\\|4PTDNC37IX7H7UGHFJ3LSDBV2ZPLYUTZUMXJYSGGIOTG4D3LCQU \ / AMOS7 \ YOURUM ::
+#\[7]BYG2K6ZYSFQ6BLHRZQEW77VK67DXDLI2E2JFXGPSYU3LXTROZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
