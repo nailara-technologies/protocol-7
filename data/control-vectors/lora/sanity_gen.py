@@ -59,3 +59,9 @@ for ex in rows:
 print("=" * 70)
 print("per-example loss:", [round(l, 2) for l in losses])
 print(f"mean loss {sum(losses) / len(losses):.3f}")
+
+#,,,,,..,,,,.,,..,.,.,.,.,..,,,,,,,,.,.,,,...,..,,...,..,,...,,..,,,.,.,.,,..,
+#UK7A7FUKBHC55TXFLCKNO4SAOKSSYGD5BAY6XNN6JXZ45HP2D44D2C3SGBIBBXTQZHPZCIT7L7AQ2
+#\\\|BZZ73AZGNQJY2QY5ZK2XCSKOG2F3OSYBPVFPKBFRGI637NFPVWU \ / AMOS7 \ YOURUM ::
+#\[7]YK3FBASRSCIFW4LY7LK4ZIOHV2RKNDDIUTPEP6KOG2GDQ4ZWCCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
