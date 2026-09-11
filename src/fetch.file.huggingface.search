@@ -34,10 +34,10 @@ my $api_url
     'https://huggingface.co/api/models?search=%s&filter=gguf&limit=%d',
     $enc_query, $limit );
 
-<[clients.http.get]>->(
+<[clients.https.get]>->(
     {   'url'     => $api_url,
         'timeout' => 30,
-        'on_done' => qw| fetch.file.huggingface.handler.search_response |,
+        'on_done' => qw| huggingface.handler.search_response |,
         'params'  => { 'req_id' => $req_id },
     }
 );
@@ -46,8 +46,8 @@ my $api_url
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,.,.,,,...,.,.,...,,,.,,.,,.,,,,.,,,,,,..,,...,...,...,,.,,..,,,,.,,..,
-#3RP5VSWYKDQ7MVMPCXR7XWQ7HXC75FEIIENNJXGE37RS4VY3TR6H7AYUS6AWBZ6YIMPKFBTD7FVXS
-#\\\|K5MSGUTMRUBV3EV7ILBCB6FFW4EH7E6ZYMYXDCJJXH6NXRHPP77 \ / AMOS7 \ YOURUM ::
-#\[7]W6VDIFW6THPVOU5ZB2BM43UOP5WHUA7HKLX4WMFVORITNQO2OCBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,.,.,..,,.,.,,,.,.,,,,.,,..,,..,,...,...,,,,,..,,,,.,..,,,,,,
+#EPJI4ZHJH47EPL24UWTX4LHKSBDMNZ5EKCUR4DUTXPEVQ2AITMOOCG2ZWYSGCBNC3FFJNR7NB7V4U
+#\\\|B4QQXPK3A3DJDFZHCOPTAOMBFCFKG4GJPNRJZQTIMBR2GKUWZXA \ / AMOS7 \ YOURUM ::
+#\[7]MRQC3BBHEFMMRG5TH6B2J5SGK6MVOROGDRSRYJQEQXMXY7DSD2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

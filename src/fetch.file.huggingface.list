@@ -27,10 +27,10 @@ my $req_id = <[base.gen_id]>->(<fetch.file.hf_pending>);
 ## query HuggingFace API (no auth needed for public models) ##
 my $api_url = sprintf( 'https://huggingface.co/api/models/%s', $repo );
 
-<[clients.http.get]>->(
+<[clients.https.get]>->(
     {   'url'     => $api_url,
         'timeout' => 30,
-        'on_done' => qw| fetch.file.huggingface.handler.list_response |,
+        'on_done' => qw| huggingface.handler.list_response |,
         'params'  => { 'req_id' => $req_id },
     }
 );
@@ -39,8 +39,8 @@ my $api_url = sprintf( 'https://huggingface.co/api/models/%s', $repo );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,...,,,,,,..,.,,,...,...,..,,..,,,,.,,.,,..,,...,...,...,..,,,..,,,.,,,.,
-#QVTLRLQ6XAUOAV7XURLCB5A2PEW4M7HJSNFWYMA2SRSS2LJSRHOQXWO72Y6EFGDJEVBCV5JUE3IDI
-#\\\|THDQAKYTT53EKPXUJCMJYW7YXMLRZGTLFII4RCB7GYOFYEVIJUI \ / AMOS7 \ YOURUM ::
-#\[7]RUVHSZCUJQSECVM6EIANXGCH7NOQGYKOQMWRRQOF7PZ5RPV3F4DI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,,,.,,,,,.,.,.,.,...,,..,,,,,..,,...,...,.,,,.,.,.,.,.,.,.,,,
+#HKMLCT7JAXNV2IT4ISHD5PAKDNXDH4XUAIQ7X6ZZRAVRTWUJNGHGI7G7L4SCVYW3DU4AN2JRVEDUC
+#\\\|JHDLATNW43VF42HK6DY2JEFZ36SS5VAECJY45BGYAFGN6W7A42N \ / AMOS7 \ YOURUM ::
+#\[7]T6KG7JZJU6ZPWJKXMCOQU5IX3XUMLPLCVPDOXDTIC5GPAOWLPQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
