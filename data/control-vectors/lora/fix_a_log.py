@@ -58,3 +58,9 @@ for fname, names in sorted(by_shard.items()):
     save_file(tensors, f"{BASE}/{fname}", metadata={"format": "pt"})
     print(f"  rewrote {fname}")
 print("A_log patch complete")
+
+#,,..,,,.,..,,.,.,...,..,,.,,,...,.,,,,,.,,..,..,,...,...,.,.,,,.,.,.,,.,,,,.,
+#7HVWUVBDUC2D7YQDHSUAEI2CAXCYHAYX4OJ6K3TLK3GITREW6L5O2URHGQRN7YL27AV5DPJ5DKTBG
+#\\\|3HDCTUIZ6NQQSS47R55Y7X36US2ZQXIU4EXEVG2MTX2NRI6DTW3 \ / AMOS7 \ YOURUM ::
+#\[7]5LQVLALAURGP74S6BTZFGMQEOXVILDTXSZLNARNXLVTVCQDSGSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

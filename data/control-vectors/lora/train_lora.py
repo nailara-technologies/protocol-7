@@ -147,3 +147,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#,,,.,...,,,,,...,..,,..,,,..,...,...,,,.,,..,..,,...,...,..,,,,.,..,,,.,,,.,,
+#2NSAOKQ74ASNRINDGQA5PMKMYJP5MHBDIKXCZDY2GUF7XTMGUDHNX6PKQQA5NTYIY2ASLUDWGLJGS
+#\\\|LTN4T5NNZOTOBTIG6P7R5GSZKIC35ZYRXTTFICHT62SL6HJWH4R \ / AMOS7 \ YOURUM ::
+#\[7]NLNZLDC5C4UL4RLQ7K2ZARI27V5NGOGMSKDZMZRKFIYYKPG7Q2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
