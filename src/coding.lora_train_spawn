@@ -77,6 +77,21 @@ if ( !-d $out_dir ) {
     }
 }
 
+## out_dir can pre-exist [ hand-created by a user, or left over from a     ##
+## prior run ] with an owner/mode that blocks OUR uid specifically --      ##
+## caught live 2026-09-11: a full 3-epoch run finished, then died on the   ##
+## final adapter save with EACCES because $out_dir was taeki:taeki 755 and ##
+## this zenka runs as protocol-7. catch it here instead of losing a        ##
+## multi-hour run to a mkdir failure at the very end                       ##
+if ( !-w $out_dir ) {
+    <coding.lora_training_in_progress> = FALSE;
+    return {
+        'mode' => qw| false |,
+        'data' => "output directory not writable "
+            . "by this zenka's uid: $out_dir"
+    };
+}
+
 ## the live inference server holds the gpu -- caller is expected to have ##
 ## stopped it first (standing permission on file, see task file's hazard ##
 ## 2); refuse loudly rather than silently OOM-ing mid-training           ##
@@ -194,8 +209,8 @@ return { 'mode' => qw| deferred | };
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,.,,.,,.,.,.,,,.,.,.,.,,..,.,.,..,,,,,,.,.,..,,...,..,,,.,,...,.,.,..,,,,.,
-#5KV2N4MNYMKQYJOL2RVLUTBT2BONRUDXCCIRSK5DBEPCOEQTYQDXLHMEAHVVPXQJ77YCMWB5CDZQO
-#\\\|J4SAAR5ID3IMWQMXOX4ZRCHEVSYOAUXXDGCOEGSN7DRKE6RFO5F \ / AMOS7 \ YOURUM ::
-#\[7]N273WMRMPGGXGA3DK22JZOGITXSJCPR3L3B75KVHFBP2LH3KIIBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,..,,..,,.,,,,,.,,,,,,.,,,..,..,,...,...,.,.,,.,,,..,...,.,.,
+#C2WJTATSDZYRVGOZBKAE543QG4LPZOYSMY3GERAG4UTISMVOV4JUAZKHOJ5XSX5LQPVMEABN7IGWG
+#\\\|5BFVQJ6LXOFGJTZWU6M6YN7NPZ5R5EVQVFAM4BWTTERDNBFXG66 \ / AMOS7 \ YOURUM ::
+#\[7]P4OVZPSZJPVFVDFKM4MVIXQTT5ZDIDMGNJL3SDV7U7RBIWW7SCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

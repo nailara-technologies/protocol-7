@@ -125,9 +125,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [audit-shared-state-when-multi-instance-bolted-on](feedback-audit-shared-state-when-multi-instance-bolted-on.md) — when a commit adds multi-instance/auxiliary support to single-instance code, `git show` that exact commit against the file: if it only touched the control-flow line, every OTHER line (globals, alarming log wording) is suspect for the same unaudited single-path assumption — found via X-11 xvfb session, see [[project-x11-xvfb-crash-loop-and-cleanup-2026-09-06]]
 - [arrow-call-into-bare-shift-constructor](feedback-arrow-call-into-bare-shift-constructor.md) — `Class->new($arg)` silently discards `$arg` if `new()` does a single bare `shift` instead of shifting the class first; vendored `X11::WM.pm` had this bug codebase-wide for years, masked because the primary's own `$ENV{DISPLAY}` coincidentally matched what the buggy fallback connected to anyway — only became visible building a genuinely new connection target (xvfb auxiliary display)
 - [local-sig-warn-bypasses-central-blacklist](bug-local-sig-warn-bypasses-central-blacklist.md) — never use a local `$SIG{__WARN__}` override to suppress a specific warning pattern in this codebase; it shadows `bin/Protocol-7`'s entire central handler (deep-recursion emergency-exit safety net included) for its whole scope, not just the targeted warning. Correct mechanism is `<sig_warn_blacklist>`, currently single-slot only — see `data/tasks/sig-warn-blacklist-arrayify.md`
+- [flag-full-rerun-cost-before-redispatch](feedback-flag-full-rerun-cost-before-redispatch.md) — before redispatching a crashed multi-hour job after fixing its bug, explicitly check/state whether it resumes or restarts from zero; lora training's `train_lora.py` had no mid-run checkpointing, redispatch silently repeated the full ~3hr run and user found out by watching step counters reset instead of being told up front
 
-#,,,,,..,,,..,...,.,,,...,.,,,.,,,,..,.,.,,,.,..,,...,..,,.,.,...,,,.,,,.,,.,,
-#P6WW4JUEMR7N7IK3VIJLVMP36DY5UA5UBZTPCAQAGK5DZUJUOVQ3EEVPITUVA7JHYQT3AGKRJQQ22
-#\\\|Q6DOKCIZIOYTYVCF3DN7PBJUM6DWWXJFWPXTIKZBD3MQOA2LXUG \ / AMOS7 \ YOURUM ::
-#\[7]62KVIQXVQ5S3PQVAZDAT3UBE55MLZF4HEBITHVAB7YA5CBCB3ADI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,,,,,..,...,,..,,,,,,..,,.,,..,,...,...,,.,,,.,,,.,,..,,,,.,
+#3CJFFHTIXFOKVOKARPBQYJSCYHE5RYSCSTUZTOEO7DO3A36ICZL4AQVIELYAHKXMKDC6BNM7DQIES
+#\\\|2NUWKIKCMYEQJ2K4UWVGVZ4G6ACRF5IBLU5JIKSAPBPLVJF6OOD \ / AMOS7 \ YOURUM ::
+#\[7]EU4KGGQAGAPHIRMUJOF3CJJU5D3BHOXEVW7IRSAEECRGSBEV7OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
