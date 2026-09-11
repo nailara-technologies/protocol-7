@@ -43,7 +43,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [git-watch-zenka](topic-git-watch-zenka.md), [reasoning-design-templates](topic-reasoning-design-templates.md) — force-push detection; 7 viz designs
 - [harmonic-silence-active-cancellation](topic-harmonic-silence.md), [key-tree-ring-routing](topic-key-tree-ring-routing.md) — waveform-cancellation; namespace=key-tree, rings=keys
 - [fetch-files-zenka](topic-fetch-files-zenka.md), [tls-acme](topic-tls-acme.md), [amos7-p7-loader](topic-amos7-p7-loader.md) — huggingface.* LIVE; SNI/SSL/ACME
-- [invoke-model-management](topic-invoke-model-management.md), [invoke-model-manager](topic-invoke-model-manager.md) — uuid vs verbose; Term::Clui planned
+- [invoke-model-management](topic-invoke-model-management.md), [invoke-model-manager](topic-invoke-model-manager.md) — uuid vs verbose; Term::Clui planned; ~500GB wipe history — never delete invoke model dirs on path-diff alone, need fresh confirmation every time
 - [image-archive-system](topic-image-archive-system.md), [base-curve-system](topic-base-curve-system.md) — vision-scored storage; base.curve.* animation
 - [friction-visualization](topic-friction-visualization.md), [searchable-index-and-visualization](topic-searchable-index-and-visualization.md), [migration](topic-migration.md) — checksum-indexed dataspace; KVM/Debian migration
 
@@ -77,8 +77,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,.,,,..,...,...,,,,,,,,,.,,,.,,,,.,,...,..,,..,,...,...,.,,,.,.,,,,,.,.,..,,
-#QDUSWWEYOTSCDEGH3FHRKVYPF7JOOWIZPTJT3LCSX6NHQ2XL4WETM564GEWDB73NBEMWVYWV5VX7M
-#\\\|Z5FMINSLYJKFKC7EMHZ55O3BLYDXD7FO6PK5427TK6HDSVCQFI6 \ / AMOS7 \ YOURUM ::
-#\[7]K6DVEOMCKVQK3O4ZUOM2TLIYSRAT6AXSNVZLRNP4W2ZLF45KNGCI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,.,,,.,.,.,.,.,.,,,.,.,.,,,,,..,,...,...,...,,..,,..,..,,..,,
+#ATDTVWVSHDLCUKY6VOWRLFRB5P4TCZYQUCIUDZQQY4FQUL5AK4FIPL6D7QGOGYBAFQD7Y3FR56AWM
+#\\\|4IE5CWZNGODUWOWF7I2JHHLV5GKWWHXTDO4XS367OGADFGY4DBT \ / AMOS7 \ YOURUM ::
+#\[7]AKIL3A3QHCNITIINZYNBEHQO24RHPWD33O35YUB4LIBKQGHF6SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
