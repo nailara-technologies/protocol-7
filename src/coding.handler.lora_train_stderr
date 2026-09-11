@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = coding.handler.lora_train_stderr
+# descr = drain the lora training child's stderr [ python/torch diagnostics ]
+
+my $event = shift;
+
+my $fh    = $event->w->fd;
+my $buf   = '';
+my $bytes = <[base.s_read]>->( $fh, \$buf, 4096 );
+
+## same EOF-cancel fix as fetch.file.huggingface.handler.download_stderr -- ##
+## a level-triggered io-watcher left registered on an EOF'd fd re-fires     ##
+## forever once the child exits, pinning cpu near 100% for no reason        ##
+if ( $bytes <= 0 ) {
+    eval { $event->w->cancel };
+    return;
+}
+
+## no progress parsing here -- train_lora.py emits structured progress as   ##
+## single-line JSON on stdout (see coding.handler.lora_train_stdout), this  ##
+## fd is raw diagnostic noise only, logged at level 2 so it's still visible ##
+## under -vvv without polluting the normal log stream                       ##
+for my $line ( split m|\n|, $buf ) {
+    next unless length $line;
+    <[base.logs]>->( 2, '[lora_train.stderr] %s', $line );
+}
+
+#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
+
+#,,.,,..,,.,.,,,,,,,,,,.,,...,,..,.,,,,,.,,,,,..,,...,..,,...,...,,,.,.,,,..,,
+#XHNJKBNNNT7D3NER2LGKP5HAG66MUVJRJ3HW56HLT6S2T5DDIUYV7L7PMWW3634PIVSQNVBMJ3RHQ
+#\\\|GJ27EX4NACTXO626U23O2DW7PVAHEWIBKS7AINLME5DI2K3RS7P \ / AMOS7 \ YOURUM ::
+#\[7]AP2HFYJI3VKEGWTNA5XQKWYTBDKUOKU474676OYHNNUQJQQFKUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,19 +63,34 @@ sugar, bare `<config.key>` access, `TRUE`/`FALSE` named constants, `mode`/
 - a mean-diff control vector (also failed on these four specifically — got
   dominated by surface-register direction, structural tokens washed out)
 
-**This LoRA task was never actually attempted** — blocked at "no training
-stack is installed at all" (its own hazard 1), not tested-and-failed. That
-distinction matters: it is an unstarted thread with a verified mechanism,
-not an exhausted one. If picking up the loadable-memory vision again, this
-is the concrete next build: install torch/transformers/peft/bitsandbytes,
-fetch the original HF checkpoint (not a generic Qwen3 base — the exact
-"Qwen3.8 9B Heretic Uncensored" fine-tune, via `fetch.file.huggingface.*`),
-expand the idiom dataset, train, convert to GGUF, wire into
-`cfg/zenki/coding/zenka.v7` (config-gated, mirroring the control vector's
-existing wiring pattern), validate against the existing `score.py` rubric.
-Real, multi-hour work touching the live GPU/inference stack — read the full
-hazards section in the task file before starting, it documents dataset-size,
-held-out-set, and rank-choice traps already thought through.
+**correction, 2026-09-10: the line above was wrong.** A prior session
+(2026-09-09, commit `12271bf2c`) DID attempt this LoRA path — against a
+checkpoint produced by dequantizing the production Q4_K_M GGUF back to
+bf16 (the original HF repo was already gone even then), which hit an
+unrecoverable, diffuse corruption bug (full account in `data/control-
+vectors/lora/PROGRESS.md`) and was abandoned in favor of a different,
+non-ML solution that's live today: the idiom conformance gate
+(`coding.cfg.idiom_gate` in `cfg/zenki/coding/zenka.v7`, scan/repair/
+harvest against `data/idioms/rules.yaml`). That closure was specific to
+the dequantizer, not to LoRA/PEFT training of this architecture in
+general — a genuinely different base checkpoint (a real external
+safetensors release, not a same-session dequantization) sidesteps it,
+verified via a fresh pre-training sanity check (coherent generation,
+masked-loss ~8.9 vs. the prior attempt's 14.5-15.8 against the same
+`ln(vocab)=12.4` random floor — see `data/tasks/coding-lora-p7-idioms.md`'s
+2026-09-10 update for the full numbers). Training stack IS installed now
+(`.venv-lora`), checkpoint IS fetched, target-module list IS confirmed
+against the real checkpoint. The concrete next build, if picking up the
+loadable-memory vision again: finish the training run against
+`/mnt/ext-xfs-data/models-lmstudio/petruhonk/Qwen3.8-9B-Distill-
+uncensored-heretic/`, convert to GGUF (the prior session's `data/control-
+vectors/lora/lora_to_gguf.py` — vendored `convert_lora_to_gguf.py` has no
+`qwen35` support), wire into `cfg/zenki/coding/zenka.v7` (already
+commented-out and ready, `coding.cfg.lora_adapter`/`_scale`, mirroring the
+control vector's pattern), validate against `score.py`. Read the full
+hazards section in the task file before continuing — it documents
+dataset-size, held-out-set, rank-choice, and the dequantization dead-end,
+all already thought through.
 
 ## other open items, unrelated to the above
 

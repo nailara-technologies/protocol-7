@@ -65,17 +65,62 @@ vector cannot.
 - response parsing already separates reasoning from content: `content`
   and `reasoning_content` are distinct fields in the server's completion
   JSON (confirmed live, `data/control-vectors/results/real-system-
-  prompt-v2/A.seed13.json`). **not yet confirmed**: whether the model's
-  *raw* generated text (before the server's parsing) includes a literal
-  `<think>...</think>` span that the chat template (`data/jinja/
-  templates/qwen3.5-fixed.jinja`) expects training assistant-turns to
-  also contain. get this right before generating training data -- if the
-  raw format includes think-tags and training pairs omit them, the
-  adapter learns a token distribution that never matches the reasoning-
-  enabled runtime and either destabilizes generation or gets silently
-  ignored by the model reverting to its stronger pretrained prior.
+  prompt-v2/A.seed13.json`).
+
+  **CONFIRMED 2026-09-10, read directly from `data/jinja/templates/
+  qwen3.5-fixed.jinja`**: for the turn currently being generated
+  (`add_generation_prompt`, lines 180-186), the template always injects
+  `<|im_start|>assistant\n<think>\n` into the PROMPT before generation
+  starts (when thinking is enabled, the default) -- so the model's own
+  raw generated tokens continue from inside an already-open `<think>`
+  block and must emit a literal `</think>\n\n` closer before the answer
+  content (lines 114-129 show this is exactly how a completed assistant
+  turn gets re-serialized: `<think>\n{reasoning_content}\n</think>\n\n
+  {content}`). Earlier assistant turns in the same conversation's history
+  (`loop.index0 <= ns.last_query_index`) render with NO think tags at
+  all -- just `{content}` -- think-wrapping is specific to the turn being
+  trained/generated, not a per-turn-always thing.
+
+  **what this means for training data**: build target (assistant) turns
+  through `apply_chat_template()` against this exact jinja (or replicate
+  its logic), wrapping the target turn as `<think>\n{reasoning}\n
+  </think>\n\n{content}` -- an intentionally short/empty `reasoning` is
+  fine and template-consistent (matches the `enable_thinking=false`
+  branch's shape even when thinking is nominally on), but training on
+  bare `{content}` with no think-wrapper at all for the turn being
+  learned would create a real train/inference distribution mismatch,
+  since the runtime always opens `<think>` before the model ever
+  generates a token for that turn.
+  side-note, not yet resolved: the live coding zenka's server invocation
+  passes `--chat-template-kwargs {"reasoning_effort":"medium"}`, but
+  this jinja file has no reference to `reasoning_effort` anywhere --
+  either ik_llama.cpp consumes that kwarg outside the template (sampling/
+  verbosity control) or it's presently a no-op. irrelevant to training-
+  format correctness above, just noted as an open loose end if it
+  matters later.
 
 ## hazards that waste a run [ read before doing anything ]
+
+0. **[added 2026-09-10, do not skip] loss must be masked to the
+   post-`</think>` content span, not computed over the full assistant
+   turn.** the confirmed mechanism above means every training target
+   turn gets serialized as `<think>\n{reasoning}\n</think>\n\n{content}`.
+   this dataset's `reasoning` is going to be synthetic/empty (see scope
+   item 1 -- there is no real chain-of-thought to teach, and fabricating
+   one risks baking in more surface-register drift, the exact failure
+   mode that sank the control vector). **if the trainer computes loss
+   over the ENTIRE assistant span** (including the empty `<think>\n\n
+   </think>\n\n` prefix), the adapter learns "always immediately close
+   think with nothing in it" -- which directly fights the live server's
+   `reasoning_effort=medium` config and could suppress or destabilize
+   the model's actual reasoning behavior in production, independent of
+   whether the four structural idioms move at all. **fix: mask the loss
+   to only the tokens after `</think>\n\n`** (a standard completion-only
+   / response-template loss mask, supported by `trl`'s
+   `DataCollatorForCompletionOnlyLM` or equivalent manual masking against
+   the tokenized `</think>\n\n` boundary) -- confirm whatever training
+   script is used actually does this, don't assume a default SFT
+   trainer does it for you.
 
 1. **no training stack is installed at all.** `python3 -c "import
    torch"` / `peft` / `transformers` all fail with `ModuleNotFoundError`
@@ -123,6 +168,161 @@ vector cannot.
    the results before running, same discipline as the control vector
    task's pre-registered rubric.
 
+   **decided 2026-09-10, then partially INVALIDATED same day (see below)**:
+   rank 16, alpha 32 (2x rank, the standard PEFT default), dropout 0.05,
+   targeting `q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj,
+   down_proj` (the usual Qwen-family attention+mlp projection set) --
+   confirm these exact module names exist on the fetched checkpoint
+   (`named_modules()`) before writing the `LoraConfig`.
+
+   **correction, same day, from reading the local `config.json` (see
+   base-checkpoint blocker below)**: this is NOT a plain dense
+   transformer. `model_type: qwen3_5`, hybrid architecture --
+   `layer_types` shows only every 4th of 32 layers is `full_attention`,
+   the other 24 are `linear_attention` (has `linear_conv_kernel_dim`,
+   `linear_key_head_dim`, `mamba_ssm_dtype` -- SSM/mamba-style, not
+   standard QKV attention). **the rank/target-module list above almost
+   certainly does not apply uniformly** -- `linear_attention` layers
+   likely use different projection names entirely (in_proj/conv1d/
+   out_proj-style, not q_proj/k_proj/v_proj/o_proj), and targeting only
+   the 8 `full_attention` layers' QKVO would touch a small minority of
+   the network. **this must be re-derived from the real checkpoint's
+   `named_modules()` once/if it's obtained -- do not write a `LoraConfig`
+   against the assumption above, it was written before this architecture
+   detail was known.** also a real vision tower is present
+   (`vision_config`, `image_token_id` etc, and a CLIP mmproj GGUF exists
+   locally) -- confirm the LoRA is being applied to the text backbone
+   only, not accidentally including vision-tower modules whose naming
+   might overlap.
+
+   **RE-DECIDED 2026-09-10, checkpoint now in hand -- read directly from
+   `model.safetensors.index.json`'s weight map, not assumed**: confirms
+   the hybrid architecture exactly. Per-layer naming:
+   - **MLP** (`mlp.gate_proj`, `mlp.up_proj`, `mlp.down_proj`) -- IDENTICAL
+     naming on every one of the 32 backbone layers regardless of type,
+     plus the separate `mtp.layers.*.mlp.*` head. Safe, uniform target
+     across the whole network.
+   - **`self_attn.{q,k,v,o}_proj`** (+ `q_norm`/`k_norm`) -- only on the
+     8 `full_attention` layers (indices 3, 7, 11, 15, 19, 23, 27, 31 --
+     confirmed by grepping which layer indices have `self_attn.*` keys
+     vs `linear_attn.*` keys) and the separate `mtp.layers.*.self_attn.*`
+     head.
+   - **`linear_attn.{in_proj_qkv,in_proj_a,in_proj_b,in_proj_z,out_proj,
+     conv1d}`** (+ `A_log`, `dt_bias`, `norm`) -- the other 24 layers'
+     SSM/mamba-style projections. Genuinely no overlap with the
+     `self_attn.*` names (`out_proj` vs `o_proj` are distinct strings,
+     no collision risk in PEFT's substring-match `target_modules`).
+
+   **decision**: target ALL of `q_proj, k_proj, v_proj, o_proj` (8
+   full-attention layers), `gate_proj, up_proj, down_proj` (all 32
+   layers, both types), AND `in_proj_qkv, in_proj_a, in_proj_b,
+   in_proj_z, out_proj` (24 linear-attention layers) -- full-network
+   coverage regardless of layer type, rather than leaving 3/4 of the
+   network un-adapted by only targeting the classic QKVO names. Rank 16
+   / alpha 32 / dropout 0.05 stand from the original decision -- LoRA's
+   per-target parameter cost is small enough that adding the extra
+   target-name coverage doesn't meaningfully change the rank/alpha
+   tradeoff. Do NOT target anything under `mtp.*` or `model.visual.*`
+   (confirmed distinct prefix) -- the MTP head and vision tower are out
+   of scope for a text-idiom fix.
+
+## base-checkpoint blocker [ found 2026-09-10, needs a decision before scope item 3 can proceed ]
+
+**the exact source HF repo no longer exists.** confirmed via the live
+HF API with a valid token: `GET /api/models/rohit267/Qwen3.8-9B-heretic-
+uncensored` -> `404 {"error":"Repository not found"}` (not 403/gated --
+genuinely gone). `GET /api/models?author=rohit267` -> `[]`, the account
+has zero public models now. Cross-checked against both the mradermacher
+quant's own `cardData.base_model` and its README's "weighted/imatrix
+quants of https://huggingface.co/rohit267/Qwen3.8-9B-heretic-uncensored"
+line -- same repo path either way, genuinely unreachable now, not a
+naming/case mistake on this session's part.
+
+**no equivalent mirror found.** searched HF broadly for "heretic
+uncensored" -- found `Noobito45/Qwen3.8-9B-heretic-uncensored-NVFP4-GGUF`,
+same-sounding name, but its own `base_model` is `empero-ai/Qwen3.8-9B`
+via a DIFFERENT decensoring pipeline (the "Heretic" abliteration tool
+v1.4.0) -- a different fine-tune with plausibly different weights, not a
+re-upload of rohit267's actual model. Using it would repeat exactly the
+mistake the task already warns against ("training against a different
+weight distribution than what it will be applied to at inference").
+
+**what IS available locally**: `/mnt/ext-xfs-data/models-lmstudio/
+rohit267/Qwen3.8-9B-heretic-uncensored/` has `qwen3.8-9b-abliterated-
+Q4_K_M.gguf`, `qwen3.8-9b-abliterated-Q8_0.gguf` (both GGUF, quantized,
+not HF/safetensors), a CLIP-architecture mmproj GGUF (vision tower,
+unrelated to this task), and a real `config.json` (the architecture
+detail used above). **no safetensors, no fp16/bf16 HF-format weights
+anywhere found** -- this is presumably what LM Studio downloaded at the
+time, before the source repo disappeared.
+
+**RESOLVED 2026-09-10 -- option 1 above is a KNOWN DEAD END, do not
+retry it.** A prior session (2026-09-09, commit `12271bf2c`, "coding:
+idiom conformance gate -- scan/repair/harvest, control-vector and LoRA
+paths closed out") already took exactly this path: dequantized the
+production i1-Q4_K_M GGUF to bf16 safetensors
+(`data/control-vectors/lora/dequant_to_hf.py`) and attempted PEFT LoRA
+training against it. Full account in `data/control-vectors/lora/
+PROGRESS.md`: training loss came back at 14.49 (worse than
+`ln(vocab)=12.4`, i.e. worse than random chance), one real mapping bug
+was found and fixed (`fix_a_log.py` -- GGUF's precomputed `ssm_a` vs
+HF's `A_log` use different sign/transform conventions), loss only
+improved to 15.8 (still broken, "multilingual salad" generation). A
+three-way ablation (`ablate_probe.py`, zeroing mlp-only / full-attn-only
+/ linear-attn-only) localized the corruption to something SHARED across
+both mixer types (embed/norm/lm_head/a global dequant scale), not a
+single fixable layer -- the diffuse case per this task's own hazard-4
+discipline, not "one fix away." That session paused the ML path
+entirely and the project shipped a different, non-ML solution instead
+(the idiom conformance gate referenced in the commit title, config-
+gated via `coding.cfg.idiom_gate` in `cfg/zenki/coding/zenka.v7`,
+already live in the repo today). **Neither `HANDOVER.md` nor this task
+file reflected any of this before 2026-09-10** (`HANDOVER.md` incorrectly
+stated the LoRA path was "never actually attempted") -- corrected now
+in both places.
+
+what actually happened instead, same day: a DIFFERENT alternate HF repo
+was found and fetched -- `petruhonk/Qwen3.8-9B-Distill-uncensored-
+heretic`, a genuine multi-shard safetensors release (own tokenizer,
+processor_config, chat_template.jinja; not a same-session hand-rolled
+dequantization) -- now at `/mnt/ext-xfs-data/models-lmstudio/petruhonk/
+Qwen3.8-9B-Distill-uncensored-heretic/`. Since this sidesteps the
+specific dequantizer that produced the corruption above, it needed its
+own soundness check before spending hours training against it:
+**pre-training sanity check, 2026-09-10** (`sanity_gen.py`-style
+coherence + masked-loss probe, same methodology the prior session used
+to catch its own corruption): two generic (non-p7) prompts produced
+coherent, on-topic, English-requested-but-code-switched-CoT output (a
+known Qwen-distill trait, confined to the `<think>` span this task's
+own loss-masking excludes from training regardless) -- NOT the prior
+session's incoherent, off-topic "salad." Masked-content loss (post-
+`</think>`, matching this task's actual training-loss shape) over 8 real
+dataset examples from `positive-expanded.txt`: **[9.0, 8.76, 9.16, 7.71,
+9.56, 8.34, 8.78, 10.01], mean 8.914** -- roughly 3.5 nats BELOW the
+`ln(248320)=12.4` random-chance floor, tightly clustered (no outliers),
+vs. the prior attempt's 14.5-15.8 (ABOVE random chance). This is the
+expected zero-shot signature of an intact base model that has simply
+never seen p7 idioms before (exactly the gap this task exists to
+close), not corruption -- record this number as the pre-training
+baseline: **training that ends up at or above ~8.9 means something went
+wrong.**
+
+target-module count independently confirmed via a fast meta-device
+instantiation (no weight loading needed): exactly 248 `nn.Linear`
+leaves collected (32 q/k/v/o attn-proj across 8 full-attention layers,
+96 mlp gate/up/down across all 32 layers, 120 SSM in_proj_qkv/a/b/z +
+out_proj across the 24 linear-attention layers), zero non-Linear
+surprises, zero `mtp`/`visual` leakage -- matches the RE-DECIDED target-
+module list above exactly.
+
+remaining known gap, NOT blocking training, blocks the later conversion
+step (scope item 5): this repo's vendored `convert_lora_to_gguf.py`
+(`ik_llama.cpp`) has no `qwen35` support (`gguf-py` lacks
+`MODEL_ARCH.QWEN35`, confirmed by the prior session). `data/control-
+vectors/lora/lora_to_gguf.py` is that session's custom GGUF LoRA
+writer for exactly this gap -- read and reuse it once a real adapter
+exists, rather than re-deriving from scratch.
+
 5. **validate with the same fixed rubric (`score.py`), but apply the
    2026-09-09 addendum's lessons**: report length-normalized (idiom per
    1000 chars) numbers alongside raw counts, and call out separately
@@ -130,14 +330,211 @@ vector cannot.
    `bracket` mimicry again would repeat the exact confound found and
    caught this session, not a genuine result.
 
+## training run log [ 2026-09-10 ]
+
+- training stack: `.venv-lora` (torch 2.14.0+cu126, transformers 5.17.0,
+  peft 0.20.0, bnb 0.50.2, accelerate 1.15.0)
+- pipeline: `data/control-vectors/train_lora.py` (python, unavoidable --
+  torch/transformers/peft have no perl bindings) spawned + monitored via
+  a proper P7 zenka orchestration layer, mirroring this session's
+  `fetch.file.huggingface.download` pattern exactly: `src/coding.
+  lora_train_spawn` (IPC::Open3 spawn, `pause_ondemand_timeout`,
+  `report_child_pid`), `src/coding.handler.lora_train_stdout` (parses
+  the python side's single-line JSON progress events), `src/coding.
+  handler.lora_train_stderr` (raw diagnostic drain, EOF-cancel fixed the
+  same way this session's download-stderr CPU-loop bug was), `src/
+  coding.handler.lora_train_watch` (5s timer, `kill(0,$pid)` liveness
+  check + `resume_ondemand_timeout` pairing, same as `download_progress`).
+- config-gated lock: `<coding.lora_training_in_progress>` (mirrors
+  `coding.spawning_in_progress`), refuses to spawn if the live inference
+  server is still running (checked via `<coding.inference_servers>`,
+  not a bare pid guess) -- stopped it via `kill(-pid)` run from inside
+  the coding zenka's own `eval-code` (runs as the `protocol-7` unix user,
+  which owns the child; a direct `kill` from an interactive shell as a
+  different user is refused, confirmed live).
+- launch command: rank 16 / alpha 32 / dropout 0.05, target_modules =
+  the 248-module list decided above, batch 1 x grad_accum 8, lr 2e-4,
+  3 epochs over 378 examples (`positive-expanded.txt`) -> 144 total
+  steps.
+- **loss trajectory, steps 1-10**: 8.49, 7.24, 6.61, 6.64, 6.43, 4.57,
+  4.90, 4.68, 4.55, 4.43 -- steady descent from the pre-training baseline
+  (8.914 mean, see above), no NaN/explosion, normal step-to-step noise.
+  GPU near VRAM capacity throughout (12066/12288 MiB, single-digit MiB
+  free) but stable -- no OOM.
+- known slow path, not a bug: `causal_conv1d` / `flash-linear-attention`
+  are not installed, so the SSM linear-attention layers fall back to
+  reference PyTorch kernels (~30-40s/step observed with gradient
+  checkpointing) -- full 144-step run projects to roughly 1-1.5 hours,
+  not the worst-case "multi-hour" this task originally budgeted for.
+- **conversion (scope item 5), done**: `data/control-vectors/lora/
+  lora_to_gguf.py` only mapped the 7 classic dense-transformer projection
+  names -- crashes on this adapter's SSM tensors. Extended its `HF_TO_
+  GGUF` dict with 5 more entries for the linear-attention layers,
+  confirmed by exact tensor-SHAPE match (not name-similarity guessing)
+  against the real, already-working production GGUF: `in_proj_qkv` ->
+  `attn_qkv`, `in_proj_z` -> `attn_gate`, `in_proj_a` -> `ssm_alpha`,
+  `in_proj_b` -> `ssm_beta`, `out_proj` -> `ssm_out`. Ran clean: 248 lora
+  pairs (496 tensors) written to `data/control-vectors/lora/p7-idioms-
+  lora.OFSQC4I-QDBKEXY.gguf`, `general.architecture=qwen35` /
+  `adapter.type=lora` / `adapter.lora.alpha=32.0` confirmed via a direct
+  GGUF read.
+
+- **REAL BUG found deploying it, 2026-09-10: this fork's LoRA application
+  silently no-ops under flash attention.** `llama_lora_adapter_set:
+  flash_attn is not compatible with LoRA` (only visible with
+  `--verbose` -- the live server's `--log-disable` hides it entirely).
+  The adapter still loads without error (496 tensors logged, correct
+  buffer size), so the only symptom is a scale=0 vs scale=1.0 output
+  that is **byte-for-byte identical on the same seed/prompt** -- caught
+  via exactly that differential test before trusting any qualitative
+  read of the output. `--flash-attn off` (a supported runtime flag on
+  the same `-cuda-fa` binary, no separate build needed) fixes it --
+  confirmed via the same differential test showing a real, different
+  output once off. Fixed in `src/coding.spawn_inference_server`: now
+  appends `--flash-attn off` automatically whenever `coding.cfg.
+  lora_adapter` is configured. **Real, measurable cost**: flash
+  attention is a genuine speed optimization, not a quality-affecting
+  one -- disabling it does not itself explain or fix any coding-quality
+  issue, it was only ever gating whether the adapter's deltas get
+  applied at all. Cost observed live: one of the coding zenka's own
+  self-test prompts took 403.9s time-to-first-token with it off, vs.
+  the normal sub-30s. This is why the fix is scoped to fire only when
+  a lora adapter is actually configured, not globally.
+
+## validation result [ scope item 7, 2026-09-10 -- FOURTH HONEST NEGATIVE
+## on the `invoke` idiom specifically, same discipline as the addendum's
+## and the catalog-retrieval thread's prior honest negatives ]
+
+condition `baseline` (no lora, flash-attn on, normal startup) vs.
+`lora-on-scale1` (rank-16 adapter, scale 1.0, flash-attn off out of
+necessity) -- both held-out sets (`P_A/B/C` via `run_gens.sh`, `P_D/E/F`
+via `run_gens_lora.sh`, 3 seeds each, `score.py`'s fixed pre-registered
+rubric), length-normalized per the 2026-09-09 addendum's discipline:
+
+```
+                 chars   idiom(raw)  idiom/1k   anti(raw)  anti/1k
+baseline         22847   21          0.92       50         2.19
+lora-on-scale1   12558    9          0.72       47         3.74
+```
+
+structural-only subcategory (`invoke`+`cfgaccess`+`truefalse`+
+`modedata` -- the number this task exists to move, per hazard 5):
+baseline 4 (0.18/1k) -> lora-on 5 (0.40/1k). **This is NOT a real gain,
+say so plainly**: the absolute count moved by exactly one occurrence
+(a single `cfgaccess` hit in `F.seed7777`); the /1k figure roughly
+doubling is a denominator effect (total chars nearly halved), not
+increased idiom density. Length normalization corrects for verbosity
+confounds -- it cannot rescue n=1, and reporting the ratio alone here
+would manufacture a win out of a length collapse. Per-idiom breakdown,
+combined across both held-out sets:
+
+- **`invoke`: 0 -> 0.** The single largest weighted training category
+  (~120/378 examples), trained to a final loss of 0.336, produced ZERO
+  `<[module.name]>->(` hits in 18 novel-prompt zero-shot generations.
+  **Fourth independent null on this specific idiom** across this
+  multi-session thread: the system-prompt fix, the mean-diff control
+  vector, and now a real gradient-trained LoRA adapter all failed to
+  move it.
+- `cfgaccess`: 0 -> 1. First nonzero result for this idiom anywhere in
+  the thread's history. One occurrence -- a genuinely novel data point,
+  explicitly NOT a result; not distinguishable from noise at n=1.
+- `truefalse`: 4 -> 4. Flat.
+- `modedata`: 0 -> 0.
+
+**the direction that should worry more than the flat structural
+number**: anti-idiom density (generic-style markers expected to move
+the OTHER way) rose 2.19 -> 3.74/1k. `coloncolon` (`Foo::Bar`-style
+package refs) went 0 -> 6, `barebool` (`return 0`/`return 1`) went
+0 -> 4, both appearing ONLY in the adapter-on condition. Matches what a
+manual read of one adapter-on generation already showed directly: full,
+syntactically valid, on-topic Perl (`package coding::helper::
+enforce_quota; ... use Protocol7::Conf; ... return 0;`) -- a real
+behavior change, just toward **generic Perl module conventions**, not
+toward P7's bespoke syntax. The adapter learned "Perl-shaped" from the
+dataset's surface form (real code, real syntax) without learning the
+specific bespoke substitution the dataset's `<[...]>->()` /`<config.key>`
+/`TRUE`/`FALSE` examples were meant to teach.
+
+**second confound, root-caused via `finish_reason`+`completion_tokens`
+on every response file (not guessed)**: adapter-on responses are ~45%
+shorter in aggregate (12558 vs 22847 chars). Cause: 14/18 adapter-on
+responses hit `finish_reason=stop` (natural EOS) vs. only 8/18 under
+baseline (the rest hit the 700-token cap). **The adapter learned to
+terminate generation early** -- a direct, traceable artifact of
+training on `positive-expanded.txt`'s short, single-snippet targets
+(no elaboration, no multi-paragraph discussion in the training data),
+not a sign of the model "getting to the point" faster. Less generated
+text per response mechanically reduces the opportunity for any idiom
+(target or anti) to appear at all, independent of whether the adapter
+changed idiom PREFERENCE — this is exactly the kind of confound hazard
+5 was written to catch, and the honest-negative culture already
+established by `embedding_search`'s four negatives and this task's own
+two prior null results.
+
+**verdict**: honest negative on `invoke`, the idiom this task most
+needed to move. No scale sweep run -- hazard 4's own discipline (decide
+before training, don't tune against the eval set) applies equally to
+tuning scale after seeing results; a sweep now would be exactly that.
+If a follow-up is warranted, the more promising premise is dataset
+construction, not hyperparameters: `data/idioms/corpus/` (the shipped
+conformance gate's harvested draft->corrected pairs, `coding.cfg.
+idiom_gate = scan`) is real in-distribution training data this
+attempt's synthetic 378-example set lacked and had to approximate --
+exactly what the closure commit (`12271bf2c`) already named as the
+missing ingredient every prior ML attempt (control vector, this LoRA
+run) had to synthesize instead of harvest. Needs the gate to have run
+for a while first to accumulate a real corpus.
+
+**what stays**: the flash-attn incompatibility fix in `coding.
+spawn_inference_server` is a genuine, independent bug fix (kept); the
+extended `lora_to_gguf.py` SSM tensor mapping is genuine, reusable
+infrastructure for any future qwen3_5 LoRA (kept); the project-memory
+correction (HANDOVER.md / this file's dequantization-dead-end section)
+stands regardless of this result.
+
+## restore state [ scope item 8, 2026-09-10 ]
+
+`coding.cfg.lora_adapter`/`_scale` re-commented out in `cfg/zenki/
+coding/zenka.v7` (back to the disabled-by-default state), live gpu
+server respawned with no lora flags and flash-attn back on (normal
+startup, verified via process args + a fresh self-test pass). VRAM
+confirmed free beforehand. The trained adapter (`data/control-vectors/
+lora-out/p7-idioms/adapter/`, PEFT format) and converted GGUF (`data/
+control-vectors/lora/p7-idioms-lora.OFSQC4I-QDBKEXY.gguf`) are left in
+place, not deleted -- real artifacts from a real run, useful reference
+for the dataset-construction follow-up above even though this specific
+config isn't deployed.
+
 ## scope
 
-1. **dataset**: expand the P7-idiom contrastive/instruction set to a
-   size suited for gradient training (order of hundreds of examples),
-   covering the same categories `score.py` measures. exclude the 3
-   canonical held-out prompts; consider a second never-touched held-out
-   set. decide and record whether assistant-turn training targets
-   include a `<think>` span (see mechanism section, open question).
+1. **dataset**: expand the P7-idiom instruction set. **decided
+   2026-09-10** (recording per hazard 4's discipline, not tuned against
+   eval):
+   - ~350-400 total examples, SFT-shaped (instruction -> correct P7
+     answer) like the existing `positive.txt` 46 -- no negative/
+     contrastive side needed, that was specific to the mean-diff method,
+     not to gradient SFT.
+   - weighted toward the four **structural** categories that sat at
+     floor in every prior condition: `invoke` (~120 examples),
+     `cfgaccess` (~100), `truefalse` (~100), `modedata` (~90) -- counts
+     overlap (most real P7 snippets naturally combine 2+ idioms, same as
+     the existing 46), not additive to 410 distinct examples.
+   - include ~60-80 examples that legitimately do NOT need a structural
+     idiom (pure prose explanation, a case with no config read, no reply
+     hash) so the adapter learns contextual use, not blind injection of
+     `TRUE`/`FALSE`/`mode`/`data` into every response regardless of fit.
+   - exclude `P_A`/`P_B`/`P_C` (`run_gens.sh`) verbatim, including close
+     paraphrases. add a SECOND held-out set, `P_D`/`P_E`/`P_F`, same
+     surface shapes as `P_A`/`P_B`/`P_C` (a config-default-plus-log
+     prompt, a `p7c` command-display prompt, an explain-in-prose
+     prompt) -- written once, never touched by the dataset-generation
+     step, used only at validation time.
+   - **`<think>` span: use an empty/minimal `reasoning_content` per
+     example** (real chain-of-thought would be synthetic and risks
+     teaching more surface-register drift) -- but see hazard 0, this
+     requires masking the loss to the post-`</think>` span, not a reason
+     to skip the `<think>` wrapper itself (the runtime always renders
+     one for the target turn regardless of its content).
 
 2. **environment**: install a training stack (torch + transformers +
    peft, bitsandbytes or equivalent for 4-bit QLoRA given the VRAM
@@ -176,8 +573,8 @@ vector cannot.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,,,.,,.,,..,,,,.,,..,,..,...,,,,,.,,,,,.,..,,...,...,...,,,,,.,.,.,.,,..,
-#HQKUIFEUCGXB6NKASMRW47XBXD7IVTHM5UESPR5K7BZBID6ZQUJXMULDADGXBYJKENNA2VFKMTBSA
-#\\\|TJO6BFHCB6LJOZL64QDC4WOXSPMBAFHJDJLUUEX6VQCQOINZO7F \ / AMOS7 \ YOURUM ::
-#\[7]Q5HWP43DCGRETB7RTQPZXSRJYBEXPLMVP4PVPKGM2KDO4WESX4AY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,...,,,.,,.,,,.,,..,,,,,,,,.,..,,...,...,,.,,,,,,...,..,,,..,
+#HLBXDXYERGUUHTLRBEX2OLWJK4U5UP77G432A3ULHHDBPPZ4Y4E4VDX7UMCFVKBFGPHQ37AI4A54U
+#\\\|376SPXK7SSCLL2NTX22FCTWQYPYOHQTO6EZZOLSNHIDGC4WXDHM \ / AMOS7 \ YOURUM ::
+#\[7]GY2N47FZ5THXOLEA7CNODIUJBVKNL4IG26GDRPI4HGLBFWO3NCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
