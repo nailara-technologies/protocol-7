@@ -313,8 +313,22 @@ clean after both. `_Inline/` was NOT added to `.gitignore` this
 session — still a minor gap if a future session compiles a standalone
 test harness the way this session's `-VL7` canary comparison did.
 
-#,,,,,.,,,.,,,..,,.,,,,.,,,.,,,.,,.,,,...,..,,.,.,...,...,.,,,..,,,,,,,..,,..,
-#W6JNVF5RAX32OWWJTWTPXBK74K2IZBMZCPB3OYE5LCWSHYURVABFO73OQGKA2OBQSUTZBGT63VH3C
-#\\\|W4AJWE2MKKEEKTFF7VO5AQFNSXZBBFBPRHOON2KLU3Y3DL6F5UQ \ / AMOS7 \ YOURUM ::
-#\[7]UCNQI4BQPD3IGK57JPLCXOBWPSR7WXZFFR7YJ5XCVFJH2WZQGOCQ 7  DATA SIGNATURE ::
+**resolved 2026-09-11, don't gitignore it**: hit the exact same `_Inline/`
+pollution again (`Inline::Python` test scripts this time, not `-VL7`).
+Instead of `.gitignore`, followed `data/lib-path/pm/AMOS7/INLINE.pm`'s
+existing `gen_inline_path`/`compile_inline_source` convention — redirect
+the build cache to `~/.7/inline-code/<name>` instead. Confirmed live
+this works for `Inline::Python` too (not just the `Inline::C` it was
+built for), but needs the programmatic `Inline->bind(LANG, $source,
+directory => $dir)` form, not the declarative `use Inline (...)` pragma
+(which silently ignored a `DIRECTORY => $dir` pair and still polluted
+the cwd) — and the target directory must be `make_path()`'d first,
+since `Inline->bind` validates it exists rather than creating it. Full
+recipe in [[torch-worker-zenka-foundation]], which needs this pattern
+for its planned `torch.init_code` module.
+
+#,,,,,,,.,..,,...,...,,.,,.,,,,,,,,.,,,.,,,.,,.,.,...,..,,...,..,,,..,..,,.,,,
+#C7RCVRHNXJEX2AVUII7OE6MY5TUEBKXNZEDBNGCLCTVDODDYZOTOHDUESWHPL47JTFPGJXYWPU7OY
+#\\\|WICEEEQWBUWRBMTXDE5BJQOWR6GVEHSBGPSPS7NDHB5G4DUM3FS \ / AMOS7 \ YOURUM ::
+#\[7]6TG7P562F2YZ6IR6GVBDMOFXYS3YJCJ4ZGKO2W3Z44MSNEQOUIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

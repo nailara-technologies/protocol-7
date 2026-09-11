@@ -227,6 +227,24 @@ profiles:
     apt:
       - libanyevent-http-perl
       - libanyevent-perl
+      - python3.14-venv        # needed to create a python3.14 venv matching
+                                # libinline-python-perl's embedded interpreter
+                                # version -- confirmed missing live 2026-09-10
+                                # (`python3.14 -m venv` fails without it)
+      - libinline-python-perl  # NOTE 2026-09-10: pulls libpython3.14 as a
+                                # dependency, which does NOT match this
+                                # host's system python3 (3.13.15) or the
+                                # .venv-lora training venv (also 3.13.15) --
+                                # a torch import inside an Inline::Python
+                                # block will run against a DIFFERENT cpython
+                                # than the one torch's compiled extensions
+                                # were built for. confirm whether libpython
+                                # 3.14 has its own torch-compatible site-
+                                # packages, or whether this needs pinning to
+                                # a 3.13 build, before relying on this for
+                                # anything beyond an isolated compatibility
+                                # test -- see data/tasks/coding-lora-p7-
+                                # idioms.md's Inline::Python discussion
 
   embeddings:
     description: "fasttext CLI for on-disk semantic embedding domains [dep-graph, security-intel, etc.]"
