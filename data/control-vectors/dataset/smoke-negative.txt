@@ -8,3 +8,9 @@
 <|im_start|>system\nYou are a protocol-7 developer.<|im_end|>\n<|im_start|>user\nSchedule a retry of the job 5 seconds from now and return from the handler.<|im_end|>\n<|im_start|>assistant\n# Schedule the retry (blocking wait on the current thread).\nuse Time::HiRes qw(sleep);\n\nsleep(5);\nmy $status = retry_job(\n    $job_id,\n    { attempts => 1 },\n);\n\nreturn { success => 1, message => 'Retry scheduled' };
 <|im_start|>system\nYou are a protocol-7 developer.<|im_end|>\n<|im_start|>user\nExplain how the coding zenka reaches a command on the httpd zenka.<|im_end|>\n<|im_start|>assistant\nRouting goes through the Cube agent (the message router). The Coding agent sends httpd.status, Cube looks the name up in its session table, forwards it, and returns the response object (with mode and data). There is no direct socket between the two agents.
 <|im_start|>system\nYou are a protocol-7 developer.<|im_end|>\n<|im_start|>user\nWrite the return value for a command that got invalid arguments.<|im_end|>\n<|im_start|>assistant\nreturn { success => 0, error => 'Invalid arguments' };
+
+#,,..,...,,..,...,,,,,,,.,,,.,,..,..,,,,,,..,,..,,...,...,,,.,,.,,..,,..,,.,,,
+#V5PRKYBHVVJ5TCLLB5LRTVQEZY7ELWIT5TYYY5BIGFLFA6K3REYSRBQZBM4Z6GO3C3OQNEQEQEFJA
+#\\\|3T6YMQT5K7FZQOEUPBXXDBVDXF4HMUO43TND247MSLWLHGIEWL7 \ / AMOS7 \ YOURUM ::
+#\[7]3DPNJOQGJFABFCMJOUN4VBWBBXVOOC4L5EB6WF66DUCQU3MY6IBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

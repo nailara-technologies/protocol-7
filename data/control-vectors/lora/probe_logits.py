@@ -48,3 +48,9 @@ for a, b in pairs:
     va, vb = emb[tid(a)].float(), emb[tid(b)].float()
     c = torch.cosine_similarity(va, vb, dim=0).item()
     print(f"  cos({a},{b}) = {c:.3f}")
+
+#,,,.,,.,,...,..,,,.,,,..,..,,.,,,..,,.,,,..,,..,,...,...,..,,,,,,.,.,,,,,.,,,
+#6WQLUE74UUXFZNUAVSQHD7Y34ANSSJY34VSHHA3FXXZ7S7UJQSRB4EQY2DUBLIIRI364YIURIS7DK
+#\\\|6Q2MZMIIRUF7XU4Z6YVADMKQTJHWGEBKNU2LDVE6LHMVPN5TL2C \ / AMOS7 \ YOURUM ::
+#\[7]2INSLYOUEAKOUEJLIJYPDC2KSKVPLE3X45F2LG45R5F2PWIK5IBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

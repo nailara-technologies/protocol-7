@@ -56,3 +56,9 @@ top = probs.topk(8)
 print(f"MODE {MODE} top-8:")
 for p, i in zip(top.values, top.indices):
     print(f"  {p.item():.4f}  {repr(tok.convert_ids_to_tokens(i.item()))}")
+
+#,,..,.,.,..,,,,.,,,.,,,,,.,.,,..,,,.,,.,,,..,..,,...,...,...,.,.,.,.,,,,,...,
+#EO2XRM6NSXPXN44NSRA3Y6KR5SBYJAXDHEPME4YC5ENGUKPJY4Y4LZZ2L26W22YMKOXKWQ5H7I4EW
+#\\\|Z75A4P4VY3RVHCRMOGOM2FS5RAJCALH445IG2M7ZTPIXVO5MHI5 \ / AMOS7 \ YOURUM ::
+#\[7]XXFSX74Y6OUWPEUIDE5IO27HMISEWRV2KQLRX34KWL4X4CR3WUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

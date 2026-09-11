@@ -102,3 +102,9 @@
    via coding.eval-code spawn [ PROGRESS ops playbook ], validate, restore
 4. append results to data/tasks/coding-lora-p7-idioms.md
 - server currently STOPPED [ draining flag SET -- must del on restore ]
+
+#,,..,...,,,,,,..,,.,,,..,.,.,...,.,.,..,,.,,,..,,...,..,,,,,,..,,,,.,.,,,,.,,
+#HMLWDODKLLSCEKLYWB3BB5FIT35CM5M2UDETD4D2O3373ALNRJWNPIP4CWF5FXHXEENO5BK3RRFQY
+#\\\|23WDHLBKTHVXF7M6FPEB2BOYZIRBHVYLVPAPLOXADGUQF7Z2B5Z \ / AMOS7 \ YOURUM ::
+#\[7]IZE2DZHGSHJOEHYN7OT6L4ZKPMWL6DVMEJ5Q3Y3IBVH77KPEFODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

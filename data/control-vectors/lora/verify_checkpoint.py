@@ -51,3 +51,9 @@ for key in probes:
         print(f"  {key:50s} mean={t.mean():+.5f} std={t.std():.5f} "
               f"absmax={t.abs().max():.4f}")
 print("checkpoint verification OK")
+
+#,,,.,..,,.,,,.,.,..,,,.,,,.,,,.,,,,.,..,,,..,..,,...,...,...,.,.,,.,,,,,,,,.,
+#SC5P5L3YMT4R4A7QI6GBKUUNRXLE7G7FVNQZXDOSAWRSMPVEGGTL26PPZ4Q3DRUBVW645IBLLX6X6
+#\\\|3LTTJEM76QHAKVIAYKQ5MXGTZVLL4K7GPZ2MKLRG4JFOHUDLNE4 \ / AMOS7 \ YOURUM ::
+#\[7]CXDADZ62LRGXN5LS6N2VGSOZQCYN6AQ7TLNACEIME5W65NGLSGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
