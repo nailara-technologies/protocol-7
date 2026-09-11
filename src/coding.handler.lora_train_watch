@@ -65,6 +65,26 @@ if ($succeeded) {
         $dl->{'adapter_path'}, $dl->{'final_loss'} // 'unknown'
     );
 
+    ## saved files land owner-only [ 640/750, python's default umask ] --   ##
+    ## group-open them here so later tooling running as a DIFFERENT uid [   ##
+    ## e.g. this repo's own source-signing pass, run interactively as the   ##
+    ## human user ] doesn't hit a fresh "not writable"/EACCES surprise on   ##
+    ## every single training run -- caught live 2026-09-12, chmod'd by hand ##
+    ## via eval-code the first two times before landing here.  File::Find   ##
+    ## is autoloaded zenka-wide in coding.init_code                         ##
+    File::Find::find(
+        sub {
+            my $mode = -d $File::Find::name ? 0775 : 0664;
+            chmod( $mode, $File::Find::name )
+                or <[base.logs]>->(
+                2,                 '[lora_train] could not chmod %s: %s',
+                $File::Find::name, $!
+                );
+        },
+        $dl->{'adapter_path'}
+        )
+        if length( $dl->{'adapter_path'} // '' ) && -d $dl->{'adapter_path'};
+
     if ( length( $dl->{'reply_id'} // '' ) ) {
         <[base.callback.cmd_reply]>->(
             $dl->{'reply_id'},
@@ -100,8 +120,8 @@ if ($succeeded) {
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,..,,,.,,,,,,,.,,..,..,,,,.,...,.,,,,.,,,,.,..,,...,...,...,,,,,,,,,,.,,.,.,
-#6GHTIRCQRYVK47RNBT7ZCUSLEJAVDR6FFHYZ45UP4ZEMBBBFS5D2TK3AFTCNTIIWNYP2KV257Z7GE
-#\\\|7TBHVOFZYQ2O2BX42YNB5ZSA44Y3WNINDQBFDQIQPDFMSQAQFPR \ / AMOS7 \ YOURUM ::
-#\[7]UVAJR4MJT4GKQKCSAP5UPOYDD5DGB4X6DCSKYV5VJQ63F5IGI2BY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,,,.,,,,,,,..,,,,,,,.,,,.,,...,..,,...,...,,.,,,.,,,,,,.,.,,.,,
+#YVWPBNF74TRBLFDYZNOCBSC6KMO7MAEXMVFPR36F77BHDJANIMDIVBDKACQIQPHWBDYEC6I7OO5Q2
+#\\\|ETI3K65YC6MKIKL3BKMEOQ42BC7JUNUCH7RBFFPL2XSYZ3AWF22 \ / AMOS7 \ YOURUM ::
+#\[7]SMNXMDJUVNQIU3CZBRGJHPQJXMOQSAHEUXACXVZ2BA3TQFBCJMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
