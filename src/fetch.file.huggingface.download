@@ -5,8 +5,9 @@
 # param = { repo => 'user/repo', file => 'model-Q4_K_S.gguf', dest => undef }
 
 use IPC::Open3;
-use Symbol qw| gensym |;
-use POSIX  qw| WNOHANG |;
+use Symbol     qw| gensym |;
+use POSIX      qw| WNOHANG |;
+use File::Path qw| make_path |;
 
 my $call = shift;
 my $args = $call->{'args'} // {};
@@ -45,21 +46,16 @@ if ( !-d $dest ) {
 
 my $dest_path = "$dest/$file";
 
-## check if already exists ##
-if ( -f $dest_path ) {
-    my $size_gb = ( -s $dest_path ) / ( 1024**3 );
-    return {
-        'mode' => qw| true |,
-        'data' => sprintf(
-            "file already exists: %s (%.2f GB)",
-            $dest_path, $size_gb
-        )
-    };
-}
+## no upfront "already exists" short-circuit -- a partially-downloaded file ##
+## from an earlier interrupted attempt must be RESUMED, not reported as     ##
+## done (a real bug, hit live 2026-09-10: a truncated partial was silently  ##
+## treated as a complete success). aria2c's own --continue handles "already ##
+## complete" vs "resume the rest" correctly by checking the real remote     ##
+## size, which a bare `-f` existence check can never do.                    ##
 
 ## LAN check first (faster than WAN) ##
-my $lan_result = <[fetch.file.huggingface.lan-check]>
-    ->( { 'args' => { 'filename' => $file } } );
+my $lan_result
+    = <[huggingface.lan-check]>->( { 'args' => { 'filename' => $file } } );
 
 if ( ref $lan_result eq qw| HASH |
     and $lan_result->{'found'} ) {
@@ -92,7 +88,38 @@ if ($use_hf_cli) {
 } else {
     my $url = sprintf( 'https://huggingface.co/%s/resolve/main/%s',
         $repo, $file );
-    @cmd = ( 'wget', '--progress=dot:giga', '-O', $dest_path, $url );
+
+    ## aria2c, not wget: HF's own CDN stalls/throttles connections on       ##
+    ## occasion (observed live, 2026-09-10) -- aria2c natively resumes      ##
+    ## partial transfers (--continue) and detects a stalled [not just dead] ##
+    ## connection via --lowest-speed-limit, retrying automatically instead  ##
+    ## of silently sitting at a plateau forever. --max-tries=0 retries      ##
+    ## indefinitely; --dir/--out replace wget's combined -O path since      ##
+    ## aria2c wants them separate.                                          ##
+    @cmd = (
+        'aria2c',
+        '--dir', $dest,
+        '--out', $file,
+        '--continue=true',
+        '--allow-overwrite=false',
+        '--max-tries=0',
+        '--retry-wait=5',
+        '--timeout=60',
+        '--lowest-speed-limit=51200',    ## 50 KB/s floor before retry ##
+        '--auto-file-renaming=false',
+        '--summary-interval=2',
+        '--console-log-level=warn',
+    );
+
+    ## this codebase's outbound network otherwise relies on http_proxy/     ##
+    ## https_proxy being inherited automatically (true for wget/curl, NOT   ##
+    ## true for aria2c -- confirmed, no such env-var auto-pickup in its own ##
+    ## --help=all) -- thread it through explicitly or downloads silently go ##
+    ## direct instead of through the configured proxy                       ##
+    my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
+    push @cmd, '--all-proxy', $proxy if length $proxy;
+
+    push @cmd, $url;
 }
 
 ## spawn download process ##
@@ -112,6 +139,27 @@ if ( !$pid || $EVAL_ERROR ) {
         'data' => 'download spawn failed: ' . ( $EVAL_ERROR // 'unknown' )
     };
 }
+
+## a large file transfer can easily outlive this on-demand zenka's idle- ##
+## shutdown window -- suspend it for the duration, matching the exact    ##
+## "long-running background job" use case pause_ondemand_timeout exists  ##
+## for. resumed in huggingface.handler.download_progress once the child  ##
+## process actually exits (success or failure).                          ##
+<[base.logs]>->(
+    1,     "[hf.fetch] pausing idle-shutdown for %s [pid=%d]",
+    $file, $pid
+);
+<[base.zenki.pause_ondemand_timeout]>;
+
+## register with v7-zenki so this child is actually terminated if the zenka ##
+## itself gets restarted/killed -- without this, aria2c/wget is silently    ##
+## orphaned across a zenka restart instead of being cleaned up (observed    ##
+## live, 2026-09-10 -- needs cfg/zenki/cube/access.zenki's                  ##
+## access.cmd.usr.fetch-files grant for v7-zenki.register_child)            ##
+<[base.logs]>->(
+    1, "[hf.fetch] registering child pid %d with v7-zenki", $pid
+);
+<[base.zenki.report_child_pid]>->($pid);
 
 close($chld_in) if defined $chld_in;
 
@@ -146,7 +194,7 @@ if ( defined $chld_err ) {
     <[event.add_io]>->(
         {   'fd'      => $chld_err,
             'poll'    => qw| r |,
-            'handler' => qw| fetch.file.huggingface.handler.download_stderr |,
+            'handler' => qw| huggingface.handler.download_stderr |,
             'data'    => { 'dl_id' => $dl_id },
         }
     );
@@ -156,7 +204,7 @@ if ( defined $chld_err ) {
 <fetch.file.downloads>->{$dl_id}{'timer'} = <[event.add_timer]>->(
     {   'interval' => 2.0,
         'repeat'   => 1,
-        'handler'  => qw| fetch.file.huggingface.handler.download_progress |,
+        'handler'  => qw| huggingface.handler.download_progress |,
         'data'     => { 'dl_id' => $dl_id },
     }
 );
@@ -168,8 +216,8 @@ if ( defined $chld_err ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,,,,..,,..,,...,,.,,,,.,..,,,,,,.,,,..,,..,,...,..,,...,.,.,..,,...,,,.,
-#EJXOT6HRZRFRUKO4VAZMDPVV7GCZK4QDIGU6U2QPOYNIQSSW4HLFTSGLU4FXKH7E2XGOE4C6DI7VC
-#\\\|FTBE7M4S3AO4YZ6ZWORLRTSV5LZ2YX56UETUGTLYBWRNAOJASED \ / AMOS7 \ YOURUM ::
-#\[7]A2QCIM5TJ3WTIULEV5USSKVBG65X2SPVHTCLQ2HJ7H4RL3A7IWBY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,..,,,.,...,,..,,.,,,,.,,.,,,,,,..,,...,...,.,.,,,,,,..,,,.,...,
+#3F6KDZPMFZA3MK56NTG3VJE5NHNYFGYDUWW2FFU5U3ESZNIWNTSZOC54N2DB4NI6JUYN7HSURYANC
+#\\\|SI7EEOSEM7TJ4WZ7SOVC3CK4J6LS2LXDOWTRO2MVA3AM3R3AKVE \ / AMOS7 \ YOURUM ::
+#\[7]UCILMP6DR6AB42PIEJ6ZVFKAVVX4XP6HAPIHQ4VUZTIYZDIHYACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

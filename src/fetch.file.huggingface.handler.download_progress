@@ -3,8 +3,9 @@
 # name  = fetch.file.huggingface.handler.download_progress
 # descr = poll download progress and detect completion
 
-my $timer_data = shift;
-my $dl_id      = $timer_data->{'data'}{'dl_id'} // '';
+my $event      = shift;
+my $timer_data = eval { $event->w->data } // {};
+my $dl_id      = $timer_data->{'dl_id'}   // '';
 
 my $dl = <fetch.file.downloads>->{$dl_id};
 return if !defined $dl;
@@ -13,8 +14,22 @@ my $pid      = $dl->{'pid'};
 my $dest     = $dl->{'dest'};
 my $reply_id = $dl->{'reply_id'};
 
-## check if process has exited ##
-my $wait_result = waitpid( $pid, WNOHANG );
+## check if process has exited. NOT just `waitpid($pid, WNOHANG) == $pid`   ##
+## -- confirmed live 2026-09-10: something else in this event framework     ##
+## (`base.sig_chld`, the global handler, loops waitpid(-1,WNOHANG) on every ##
+## SIGCHLD) can already collect the exit status before this 2s-interval     ##
+## poll gets to it, so waitpid here returns -1 (ECHILD) instead of a clean  ##
+## $pid match. That matched NEITHER the "exited" nor "still running" branch ##
+## below, so the download stayed stuck at status=downloading forever with   ##
+## its own timer firing every 2s indefinitely, never finalizing --          ##
+## `fetch-files.dump` showed exactly                                        ##
+## this: downloaded == the real complete file size, status still            ##
+## 'downloading'. kill(0, $pid) is the authoritative liveness check;        ##
+## waitpid's return value only tells us whether WE reaped it (and if so,    ##
+## gives a trustworthy $? exit code -- if something else reaped it first    ##
+## there is no trustworthy exit code available at all, handled below).      ##
+my $wait_result   = waitpid( $pid, WNOHANG );
+my $still_running = ( $wait_result == 0 ) && kill( 0, $pid );
 
 ## update file size ##
 my $current_size = -f $dest ? ( -s $dest ) : 0;
@@ -31,15 +46,57 @@ if ( $current_size > 0 && $current_size > $prev_size && $speed > 0 ) {
     ## get it from HF API                                                ##
 }
 
-## process exited ##
-if ( $wait_result == $pid ) {
-    my $exit_code = $? >> 8;
+## process exited [ confirmed via kill(0,...), not just a waitpid match -- ##
+## see the note above -- covers both "we reaped it ourselves" [trustworthy ##
+## $? exit code] and "something else already reaped it" [no trustworthy    ##
+## exit code available, fall back to file state as the success signal]     ##
+if ( not $still_running ) {
+    my $exit_code = $wait_result == $pid ? ( $? >> 8 ) : undef;
+
+    <[base.logs]>->(
+        1,
+        "[hf.fetch] %s exited [pid=%d] -- %s",
+        $dl->{'file'},
+        $pid,
+        defined $exit_code
+        ? "reaped directly, exit=$exit_code"
+        : "already reaped elsewhere [base.sig_chld] "
+            . "-- deciding from file state"
+    );
 
     ## cancel timer ##
     my $timer = delete $dl->{'timer'};
     $timer->cancel if defined $timer;
 
-    if ( $exit_code == 0 && -f $dest ) {
+    ## resume idle-shutdown tracking, paired with the pause in fetch.file. ##
+    ## huggingface.download -- but only once EVERY tracked download is     ##
+    ## done, not just this one: pause/resume is a single flag, not a       ##
+    ## counter, so resuming while a sibling download is still in flight    ##
+    ## would re-expose it to the exact same premature-kill risk            ##
+    my $other_download_active = 0;
+    foreach my $other_id ( keys <fetch.file.downloads>->%* ) {
+        next if $other_id eq $dl_id;
+        my $other_status = <fetch.file.downloads>->{$other_id}{'status'}
+            // '';
+        $other_download_active = 1 if $other_status eq qw| downloading |;
+    }
+    if ($other_download_active) {
+        <[base.logs]>->(
+            1,
+            "[hf.fetch] deferring idle-shutdown "
+                . "resume -- another download still active"
+        );
+    } else {
+        <[base.zenki.resume_ondemand_timeout]>;
+        <[base.logs]>->( 1, "[hf.fetch] resuming idle-shutdown tracking" );
+    }
+
+    my $succeeded
+        = defined $exit_code
+        ? ( $exit_code == 0 && -f $dest )
+        : ( -f $dest && ( -s $dest ) > 0 );    ## no trustworthy exit code ##
+
+    if ($succeeded) {
         my $size_gb = ( -s $dest ) / ( 1024**3 );
         $dl->{'status'} = qw| complete |;
         $dl->{'total'}  = $size_gb;
@@ -66,15 +123,16 @@ if ( $wait_result == $pid ) {
         unlink($dest) if -f $dest;
 
         <[base.logs]>->(
-            0,     "[hf.fetch] download failed: %s [exit=%d]",
-            $dest, $exit_code
+            0, "[hf.fetch] download failed: %s [exit=%s]",
+            $dest, ( $exit_code // 'unknown, reaped elsewhere' )
         );
 
         if ( length $reply_id ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
                 {   'mode' => qw| false |,
-                    'data' => "download failed [exit code=$exit_code]"
+                    'data' => sprintf( "download failed [exit code=%s]",
+                        ( $exit_code // 'unknown' ) )
                 }
             );
         }
@@ -85,7 +143,7 @@ if ( $wait_result == $pid ) {
 }
 
 ## process still running ##
-if ( $wait_result == 0 ) {
+if ($still_running) {
     <[base.logs]>->(
         2,             "[hf.fetch] progress: %s -> %.1f MB (%.1f MB/s)",
         $dl->{'file'}, $current_size / ( 1024**2 ),
@@ -93,8 +151,8 @@ if ( $wait_result == 0 ) {
     );
 }
 
-#,,.,,..,,,,.,,..,,,,,,,.,,,.,,.,,,.,,,,,,,,.,..,,...,..,,,.,,...,..,,.,,,,,,,
-#EWJHSRAV6YOJKDEGUVCNL3JYFXVV7QWQ2TFESRP52T4TSW45JF3TXPWVPIVMYK4IOT3IHAXAZ4B5K
-#\\\|4OD2462VTVE5MKGV2GFVJYQRAASMTNCKM3DPCQBDYJJWKHYO3CB \ / AMOS7 \ YOURUM ::
-#\[7]T6FYIFVFCEWXODENWWGYN25A53IINQYCXFV44AD2PIPX6JSVNAAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,..,,..,,,,,,..,,,..,.,,,,,.,..,,...,.,.,..,,,,.,,,,,,,.,.,,,
+#QZVQD7HOIQN2FY4EDTNMMW2DWZWRLFI7KBBLKY7U5D65OO6TDIRSMHECHWWQCDHBABY42M23EYBTA
+#\\\|QCYLUDEVFJHCGNLZXROBVHTF6PK4KFXJM637NZRYNLELZR4RZEN \ / AMOS7 \ YOURUM ::
+#\[7]RG6IFYFS5UL4BDWAHWJAIV3XENYFL3KINVAYT5SZKB4TMM7VJYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
