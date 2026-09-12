@@ -594,6 +594,128 @@ amount of attention/MLP adaptation could move it regardless of dataset
 quality -- a different, still-untried lever, not evidence the mechanism
 itself is exhausted.
 
+## third attempt [ lm_head + embed_tokens targeting, 2026-09-12 -- SIXTH
+## HONEST NEGATIVE on `invoke` ]
+
+direct follow-on from the second attempt's verdict: the recipe so far only
+ever adapted attention/mlp/ssm projections, never the final hidden-state
+-> token-logit projection (`lm_head`) or the token -> embedding lookup
+(`embed_tokens`). hypothesis: if `invoke`'s bracket-arrow token sequence
+has a near-zero base-model output-layer prior, no amount of attention/mlp
+adaptation could move it regardless of dataset quality -- this attempt
+tests that directly by adapting the output layer itself.
+
+- training : same rank 16 / alpha 32 / dropout 0.05, same mined dataset as
+  the second attempt, target_modules extended with `lm_head` and
+  `embed_tokens` (`tie_word_embeddings` confirmed FALSE on this checkpoint,
+  so these are two independent, separately-adaptable weight matrices, no
+  tied-weight complication). 114 steps, final loss 1.29. clean run, no
+  permission error -- the `-w $out_dir`/self-stopping-server fixes from
+  this session held.
+
+- **found before conversion, worth knowing generally**: the saved
+  `adapter_model.safetensors` was 8.3GB, not the expected ~170MB. PEFT
+  saves a full fp32 copy of each target module's frozen BASE weight
+  (`*.base_layer.weight`) alongside the LoRA delta whenever that module
+  was NOT loaded in 4-bit -- `lm_head`/`embed_tokens` are the only two
+  unquantized target modules here (bitsandbytes doesn't quantize the
+  vocab-sized input/output layers by default), so their ~4GB-each base
+  copies got written into the checkpoint for no reason (ik_llama.cpp
+  already has the real weights from the production GGUF). `lora_to_gguf.py`
+  now skips any `.base_layer.` tensor.
+
+- **found before conversion, changes the scope of this lever**: read
+  this fork's `llama-build-context.cpp` directly (same discipline as the
+  flash-attn discovery) -- `build_output()` routes the lm_head/output
+  projection through `llm_build_lora_mm` (the lora-aware matmul, same path
+  every attention/mlp/ssm projection already uses), but
+  `llm_build_inp_embd()` reads the token embedding table via a bare
+  `ggml_get_rows(tok_embd, ...)`, never touching `llm_build_lora_mm`
+  anywhere. an `embed_tokens` LoRA would load without error and then
+  silently never apply -- same failure shape as the flash-attn bug this
+  task already found once, caught this time before spending a validation
+  cycle on it. `lora_to_gguf.py`'s `TOP_LEVEL_HF_TO_GGUF` map deliberately
+  excludes `embed_tokens`; only `lm_head` (`output.weight` in GGUF) was
+  actually converted and tested.
+
+- conversion : extended `lora_to_gguf.py` for top-level (non-per-layer)
+  target modules -- confirmed via a direct GGUF read: `general.
+  architecture=qwen35`, `adapter.type=lora`, `adapter.lora.alpha=32.0`,
+  249 lora pairs (498 tensors, one more pair than the second attempt's
+  248 -- exactly the added `output.weight` pair), `output.weight.lora_a`
+  shape `[4096,16]` / `lora_b` shape `[16,248320]` matching the expected
+  ggml `ne=[in,r]`/`ne=[r,out]` convention.
+
+- differential test : scale=0 vs scale=1, same seed/prompt, `max_tokens=
+  600` this time (learned from the second attempt's own methodology note
+  -- diff the right field, and use enough tokens to actually reach
+  `content`, not just `reasoning_content`). both `content` (1668 vs 813
+  chars) and `reasoning_content` differ substantially -- adapter
+  genuinely applied, not a repeat of the flash-attn no-op.
+
+- validation : same discipline, fresh baseline, `run_gens.sh` +
+  `run_gens_lora.sh`, 3 seeds each. baseline numbers are IDENTICAL to the
+  second attempt's baseline (same model, same seeds, deterministic decode
+  -- a clean cross-run consistency check, not a new run needed each time
+  in principle, though still generated fresh per this task's own
+  discipline):
+
+```
+                 chars   idiom(raw)  idiom/1k   anti(raw)  anti/1k
+baseline         22847   21          0.92       50         2.19
+lora-on-lmhead   23953   36          1.50       42         1.75
+```
+
+  structural-only subcategory: baseline 4 (0.18/1k) -> lora-on 18
+  (0.75/1k). confounds checked clean -- chars are within 5% of baseline
+  (23953 vs 22847), and `finish_reason=stop` is IDENTICAL between
+  conditions (8/18 both), so neither the second attempt's length-collapse
+  confound nor its early-EOS confound apply here.
+  - **`invoke`: 0 -> 0.** the sixth independent null on this specific
+    idiom, and the first one that directly adapted the exact layer
+    (`lm_head`) that projects hidden state to token logits -- the
+    "near-zero output-layer prior" hypothesis this attempt was built to
+    test came back negative too. adapting the projection that assigns
+    `invoke`'s literal token probability still produced zero occurrences
+    across 18 novel-prompt generations.
+  - `cfgaccess`: 0 -> 0. flat, still no second occurrence anywhere across
+    three attempts now.
+  - `truefalse`: 4 -> 18, the largest movement yet (vs. 4->12 in the
+    second attempt), still concentrated in `P_D` responses, still carries
+    the same prompt-echo caveat.
+  - `modedata`: 0 -> 0. flat.
+  - anti-idiom density actually FELL this time (2.19 -> 1.75/1k), the
+    opposite direction from both prior attempts -- worth noting, not
+    over-interpreting at n=1 condition.
+
+- restore state : `coding.cfg.lora_adapter`/`_scale` cleared (in-memory
+  only, same as the second attempt), live gpu server respawned with no
+  lora flags / flash-attn back on, verified via process args. adapter/
+  gguf left in place: `data/control-vectors/lora-out/p7-idioms-real-
+  lmhead/adapter/`, `data/control-vectors/lora/p7-idioms-real-lmhead-
+  lora.OFSQC4I-QDBKEXY.gguf`.
+
+**verdict**: third honest negative on `invoke`, and the most targeted one
+yet -- directly adapting the output projection still didn't move it. this
+narrows the remaining hypothesis space meaningfully: it is not simply
+"the output layer never learned this token sequence in isolation" (that
+lever existed this time and still failed), which argues the bottleneck is
+more likely upstream -- the hidden-state representation feeding into
+`lm_head` may never come to represent "emit invoke syntax now" at all,
+regardless of which weight matrices get adapted, OR the training signal
+for this one specific low-frequency multi-token sequence (however it's
+represented) is still too weak relative to the model's overwhelming
+prior toward conventional call syntax. **still not a reason to abandon
+load-time adapters as a mechanism** -- untried levers remain (higher rank
+specifically on `lm_head`, oversampling `invoke` examples much more
+heavily, or a complementary retrieval/few-shot injection of real corpus
+examples at generation time rather than asking any adapter to memorize
+the pattern into weights) -- but three attempts spanning dataset quality,
+target-module scope, and now the output layer itself, all landing at
+exactly zero, is a strong enough pattern that the NEXT attempt should
+change what's being learned (or add retrieval instead of more training),
+not just tune hyperparameters within the same recipe again.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -662,8 +784,8 @@ itself is exhausted.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,..,,,..,,..,,.,,,,,,.,.,,,,,,,,,,.,,,.,,..,,...,...,..,,.,,,,.,,..,,,,,,
-#KGPBB66Y7UVOHCTB7PF26FK7KUBGSFO3IM2CSLIVRMQYZ5P2F7PORHLOIYZSHI2B4UCLK4BEBLDN6
-#\\\|LWWG3ZY4YJQPKIOXGSWHQ7LBARMBGOOIXBTSMS2O26MYMMWPR5I \ / AMOS7 \ YOURUM ::
-#\[7]DX4CVF4RF4B4IWQTVGBFOJ3PU5HJXL2RKV2QITNLT5CO2DZTRGBY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,,,.,..,,.,,,,,.,,,,,..,,...,..,,...,...,,,.,,..,...,,,.,.,,,
+#NCENYWE5HUJW4JFWPWD4P7QZ32S37IRP3ELZ2QDIEFSUMB4T46IF3J3GIFHAZ247CYSQI4XHYGG24
+#\\\|BMI36E76AUFLRKJ7QORQ7YG3RSPEMLSLLJH5LXSR7EFSJU2ULYR \ / AMOS7 \ YOURUM ::
+#\[7]BCV3TOAUBOT2CBTPIUBVFQALH4VSYUSCOEZUZIRHCVRN7LKVBEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

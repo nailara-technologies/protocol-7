@@ -92,26 +92,44 @@ count is plausibly prompt-echo rather than idiom adoption — though baseline
 came back clean this time (no length-collapse, no early-EOS artifact),
 unlike attempt 1's confounded numbers.
 
-**attempt 3 (lm_head/embed_tokens targeting) is running as of this
-handover — check its result before doing anything else.** Diagnosis after
-two nulls targeting only attention/mlp/ssm projections: those layers shift
-the hidden state, but the final hidden-state→token-logit projection
-(`lm_head`) and the token→embedding lookup (`embed_tokens`) were never
-adapted. If `invoke`'s bracket-arrow token sequence has a near-zero
-base-model output-layer prior, no amount of attention/mlp reweighting could
-move it regardless of dataset quality — this is the one lever not yet
-tried. `tie_word_embeddings` is FALSE on this checkpoint (confirmed via
-`config.json`), so these are two independent, separately-LoRA-able weight
-matrices, no tied-weight complication. Same rank/alpha/dropout/dataset as
-attempt 2, output dir `data/control-vectors/lora-out/p7-idioms-real-lmhead/
-adapter/` — **if this session ended before it finished, check that path for
-a completed adapter and the coding zenka's log for `[lora_train] python
-side reported complete` or `training failed` before assuming anything about
-the outcome.** Only invest further in corpus refinement (Kimi sweeps for
-correctness-checking mined pairs at scale, coding-zenka background tasks for
-continuous mining) if a future run actually shows real movement on `invoke`
-— not assumed regardless of which lever (data vs. target-modules) turns out
-to matter.
+**attempt 3 (lm_head/embed_tokens targeting) ran to completion — sixth
+honest negative on `invoke`, and the most targeted test yet.** Full account
+in `data/tasks/coding-lora-p7-idioms.md`'s "third attempt" addendum. Added
+`lm_head`/`embed_tokens` to target_modules (`tie_word_embeddings` FALSE on
+this checkpoint, no tied-weight complication) to test whether the final
+hidden-state→token-logit projection itself was the bottleneck. Two real
+findings before validation: (1) PEFT saves a full ~4GB fp32 copy of each
+target module's frozen base weight when that module wasn't loaded in 4-bit
+— `lm_head`/`embed_tokens` are the only unquantized targets here, so the
+saved adapter was 8.3GB of which only a few MB was real signal;
+`lora_to_gguf.py` now skips `.base_layer.` tensors. (2) Read `llama-build-
+context.cpp` directly (same discipline as the flash-attn discovery):
+`lm_head`/output routes through the lora-aware `llm_build_lora_mm`, but the
+token embedding lookup (`llm_build_inp_embd`) is a bare `ggml_get_rows` with
+no lora path at all — an `embed_tokens` LoRA would silently never apply on
+this fork, so only `lm_head` was actually converted/tested. Differential
+test (scale=0 vs 1, diffing real `content` this time, not just
+`reasoning_content` — a methodology fix from a mistake earlier this
+session) confirmed the adapter genuinely applies. Validated against a fresh
+baseline (byte-identical to attempt 2's baseline — same model/seeds,
+expected): **`invoke` stayed at 0/18 even with the output projection itself
+adapted.** `truefalse` moved further than either prior attempt (4→18) with
+the same prompt-echo caveat; `cfgaccess`/`modedata` stayed flat. Confounds
+checked clean (chars within 5% of baseline, identical `finish_reason=stop`
+rate both conditions).
+
+**where this leaves the thread**: three attempts spanning dataset quality
+(synthetic vs. real-mined), target-module scope (attn/mlp/ssm vs. adding
+the output layer), all landing at exactly zero on `invoke`, is a strong
+enough pattern that a fourth attempt should change WHAT is being learned
+(oversample `invoke` far more heavily, or add retrieval/few-shot injection
+of real corpus examples at generation time instead of asking any adapter
+to memorize the pattern into weights) rather than tune hyperparameters
+within the same recipe again. Not evidence to abandon load-time adapters
+as a mechanism — `truefalse` has moved in every attempt — just evidence
+that `invoke` specifically needs a different approach than any tried so
+far. No attempt 4 is in progress as of this handover; this is a genuine
+decision point, not an in-flight task.
 
 **four real infrastructure bugs found and fixed getting attempts 2/3
 running, independent of whether either moves the needle**:
