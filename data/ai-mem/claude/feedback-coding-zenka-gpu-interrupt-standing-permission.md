@@ -32,12 +32,24 @@ existing task-file convention (see `coding-lora-p7-idioms.md` scope item
 non-GPU actions (deleting files, force-push, etc.) — those still follow
 the normal confirm-first default.
 
+**update 2026-09-12**: this permission is now largely automated rather than
+exercised by hand each time. `coding.lora_train_spawn` stops the live gpu
+inference server itself (SIGTERM, then SIGKILL after ~6s) before spawning
+training, instead of refusing and requiring a manual `kill(15,-pid)` via
+`coding.eval-code`. Doing it by hand twice in the same session raced against
+`coding.handler.inference_server_sigchld`'s crash-detector, which "healed"
+the deliberate stop with a fresh respawn that fought training for VRAM —
+fixed by adding a `<coding.lora_training_in_progress>` guard there and in
+`inference_crash_restart`, the same pattern already used for `<coding.
+draining>`. The standing permission itself still stands; there's just much
+less reason to invoke it manually now.
+
 ## related
 
 [[topic-kimi-dispatch-infra-hardening]]
 
-#,,.,,,,.,,.,,...,..,,..,,..,,,.,,,,,,,,,,.,.,..,,...,...,,.,,..,,.,.,,,.,,..,
-#KXAB7FELTX4OX4LM5TTPEZL3MEPJZVKAR4TK7Y5XW4UN73BEJ7YPGLJR53UTU3CW3BBPOPFNA65VE
-#\\\|DPIMJRUOMWKFNNCTKTICC5GVMBTRRICNKWF6QONZPUNIME7476G \ / AMOS7 \ YOURUM ::
-#\[7]5LMWKWMZOVCE7OUBBRBHCJQNHZRVQARYGGUHAWMADODVGCW56GCY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,..,,,..,..,,,..,...,,..,,,.,..,,..,,...,...,...,,,.,..,,,..,,,,,
+#YM63YS6L62BL3J2KWCNP4NBAFBZTH5ETOGQERCDISITEQ7YQL3A5DM4OM3LE2JQLUP6574HOWYUGK
+#\\\|FL7QBG7GKZ7PEARWF2OPW74OODM2P6VUSM24PC3VLJHYRLXM54O \ / AMOS7 \ YOURUM ::
+#\[7]ZGVC2CYJSBBR63FAOIB2SWQUZ7EFVEY4NMRQOXQLBPAJA4CCDKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
