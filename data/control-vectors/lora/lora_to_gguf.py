@@ -55,6 +55,21 @@ HF_TO_GGUF = {
     "linear_attn.out_proj": "ssm_out",
 }
 
+## added 2026-09-12 -- top-level target modules with no blk.N. layer prefix ##
+## at all. "lm_head" is the ONLY one of the two this session's train_lora  ##
+## added that this fork's inference path actually applies: confirmed by    ##
+## reading llama-build-context.cpp directly -- build_output() routes the   ##
+## output/lm_head projection through llm_build_lora_mm (same lora-aware    ##
+## path as every attn/mlp/ssm projection above), but llm_build_inp_embd()  ##
+## reads the token embedding table via a bare ggml_get_rows(tok_embd, ...) ##
+## with no lora_mm call anywhere near it. an embed_tokens lora would load   ##
+## without error and then silently never apply -- same failure shape as    ##
+## the flash-attn bug this task already found once -- so embed_tokens is    ##
+## deliberately NOT in this map and its tensors are skipped below           ##
+TOP_LEVEL_HF_TO_GGUF = {
+    "lm_head": "output",
+}
+
 
 def main(adapter_dir, out_path):
     cfg = json.load(open(f"{adapter_dir}/adapter_config.json"))
@@ -63,20 +78,52 @@ def main(adapter_dir, out_path):
     sd = load_file(f"{adapter_dir}/adapter_model.safetensors")
 
     pairs = {}
+    skipped_base_layer = 0
+    skipped_embedding = 0
     for key, tensor in sd.items():
         ## keys look like :
         ## base_model.model.model.layers.3.self_attn.q_proj.lora_A.weight
+        ## base_model.model.lm_head.lora_A.weight                (top-level)
+        ## base_model.model.model.embed_tokens.lora_embedding_A  (inert, skip)
+
+        if ".base_layer." in key:
+            ## a redundant full-precision copy of an unquantized target      ##
+            ## module's frozen base weight -- lm_head/embed_tokens are the   ##
+            ## only two target modules NOT loaded in 4-bit here, so PEFT     ##
+            ## saves their base tensor alongside the lora delta. ik_llama.   ##
+            ## cpp already has the real weights from the production gguf --  ##
+            ## never needed, never written                                   ##
+            skipped_base_layer += 1
+            continue
+        if ".lora_embedding_" in key:
+            skipped_embedding += 1
+            continue
+
         m = key
         assert m.startswith("base_model.model."), m
         m = m[len("base_model.model."):]
         assert m.endswith((".lora_A.weight", ".lora_B.weight")), m
         is_a = m.endswith(".lora_A.weight")
         m = m.rsplit(".lora_", 1)[0]
-        layer = m.split(".")[2]
-        mod = ".".join(m.split(".")[3:])
-        assert mod in HF_TO_GGUF, f"unmapped module {mod}"
-        ggml = f"blk.{layer}.{HF_TO_GGUF[mod]}.weight"
+
+        if m.startswith("model.layers."):
+            parts = m.split(".")
+            layer = parts[2]
+            mod = ".".join(parts[3:])
+            assert mod in HF_TO_GGUF, f"unmapped module {mod}"
+            ggml = f"blk.{layer}.{HF_TO_GGUF[mod]}.weight"
+        elif m in TOP_LEVEL_HF_TO_GGUF:
+            ggml = f"{TOP_LEVEL_HF_TO_GGUF[m]}.weight"
+        else:
+            raise AssertionError(f"unmapped top-level module {m}")
+
         pairs.setdefault(ggml, {})["A" if is_a else "B"] = tensor
+
+    print(
+        f"skipped {skipped_base_layer} redundant base_layer tensor(s), "
+        f"{skipped_embedding} inert embed_tokens lora tensor(s)",
+        file=sys.stderr,
+    )
 
     writer = gguf.GGUFWriter(out_path, arch="qwen35")
     writer.add_string("general.type", "adapter")
@@ -109,8 +156,8 @@ if __name__ == "__main__":
          sys.argv[2] if len(sys.argv) > 2 else
          "p7-idioms-lora.OFSQC4I-QDBKEXY.gguf")
 
-#,,,,,.,.,...,,..,,..,,.,,..,,..,,..,,..,,,..,..,,...,...,.,.,,,,,,,.,,.,,,.,,
-#HWUWBCWTBFAYSJCBH5BOLJO5FHW3KZLLHXY3UOOS5D45AZCGOOGZEGRZVKEBKA6NEZ2OAK5O6SA4I
-#\\\|WEKMYBCLQNI76ILEXD344WB5SLXBYKK4ZCQ5QBS3EX54Y6YOR3Z \ / AMOS7 \ YOURUM ::
-#\[7]D26SXRYZJGFBCSRHWXIIWWTHLUSTCMFVSYH4PNAHPDFKGFT6PIDI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,,.,,,.,,,..,.,.,,,.,,..,,.,,..,,...,...,,,.,.,,,,,,,,..,,.,,
+#PYBDTF6DQDJFDPN2GEDTDK3RQ5ZV6PQI6VARA65MNCMDO6OAINVTXUXNBHTVF5U6ZFUQ7YWXNPS3U
+#\\\|MRVSU45YMUJAGUHHZFEAQCXWJSKJGN23CYT4LJH3AI5THDFNIEP \ / AMOS7 \ YOURUM ::
+#\[7]CGHFO473KSGH6AGVLHD45JL3I56RTBGY26HBLVZDT5WF7SRYE6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
