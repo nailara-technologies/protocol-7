@@ -4,6 +4,11 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
+- [pre-commit signature scoping, 2026-09-13](topic-completed-precommit-signature-scoping-2026-09-13.md) —
+  ADR idea 1 done, commit `6ad8a043b`: `:inlist:` flag on verify-p7-signatures/update-signatures
+  intersects a candidate file list against the authoritative signed corpus; pre-commit now scopes
+  its verify pass to staged files instead of the whole tree. Idea 2 (background inotify-based
+  speculative signature precomputation) is still open, not started.
 - [X-11 xvfb crash-loop + cleanup, 2026-09-06](project-x11-xvfb-crash-loop-and-cleanup-2026-09-06.md) —
   started as a task-file triage check, ended as a full live fix: 7 bugs found and fixed
   (duplicate job-queuing crash-loop, status/list/stop reading the wrong data structure,
@@ -134,8 +139,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,..,.,.,..,,,,.,,.,,,,,,...,..,,,,.,..,,,,,,..,,...,...,...,..,,.,.,,.,,,.,,
-#5J6RILHY4WTWXAUYZUZ4OXPZRG5KIUJ5B4J5JGTGOOCGFNEEMH7FHOP42ITRSAWRMCGAIWTRVM74O
-#\\\|UBKLVITUVEQVVGTY2WUWN456FITMYQU5A64TLKNYQRUSURV27ZZ \ / AMOS7 \ YOURUM ::
-#\[7]ZUC2MPMHN7A3HAUWNDUKTAVW77BFG6CXBHJKG7YGKOYDA6OVJGCQ 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,,,,,.,,.,,,,.,.,.,.,.,..,,..,,...,...,.,,,,,.,.,,,,,,,,.,,
+#JQUFHQGJ7XASKJXSQGANZBNS2OBUQLYZMJTJ5Q62FKPAF3D2LOQ72AYI55N2C6B4POAHQ5OWXD5SG
+#\\\|7Z2BDRLUFOR23DQF4RLAEKUVPALMIOB5I6NQ4A3OUSRH6CLHC2T \ / AMOS7 \ YOURUM ::
+#\[7]DXWY4GBR4S7EBI6MYEJTHNVZAZDDRLTESQZE7H35VWGACZ4AVEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
