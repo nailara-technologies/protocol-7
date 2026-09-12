@@ -92,22 +92,51 @@ if ( !-w $out_dir ) {
     };
 }
 
-## the live inference server holds the gpu -- caller is expected to have ##
-## stopped it first (standing permission on file, see task file's hazard ##
-## 2); refuse loudly rather than silently OOM-ing mid-training           ##
-my $inference_running = 0;
+## the live inference server holds the gpu -- stop it ourselves rather than ##
+## refusing and making the caller do it by hand via eval-code every single  ##
+## run (standing permission on file, see task file's hazard 2).  safe now   ##
+## that <coding.lora_training_in_progress> [ set TRUE above, before this    ##
+## check runs ] gates coding.handler.inference_server_sigchld /             ##
+## inference_crash_restart from "healing" this deliberate stop back into a  ##
+## fresh respawn that would fight training for the same VRAM -- caught live ##
+## 2026-09-12, that race is exactly what happened the first few times this  ##
+## was done by hand before those guards existed                             ##
 for my $backend (qw| gpu cpu |) {
     my $srv = <coding.inference_servers>->{$backend} // {};
     my $pid = $srv->{'pid'}                          // 0;
-    $inference_running = 1 if $pid && kill( 0, $pid );
-}
-if ($inference_running) {
-    <coding.lora_training_in_progress> = FALSE;
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            'live inference server still running -- stop it before training'
-    };
+    next unless $pid && kill( 0, $pid );
+
+    <[base.logs]>->(
+        1,
+        '[lora_train] stopping live %s inference '
+            . 'server [pid=%d] to free the gpu for training',
+        $backend,
+        $pid
+    );
+    kill( 15, -$pid );
+
+    my $still_alive = 1;
+    for ( 1 .. 30 ) {
+        if ( !kill( 0, $pid ) ) {
+            $still_alive = 0;
+            last;
+        }
+        select( undef, undef, undef, 0.2 );
+    }
+    if ($still_alive) {
+        <[base.logs]>->(
+            0,
+            '[lora_train] %s server [pid=%d] still '
+                . 'alive after SIGTERM, sending SIGKILL',
+            $backend,
+            $pid
+        );
+        kill( 9, -$pid );
+        select( undef, undef, undef, 0.5 );
+    }
+
+    <[base.logs]>
+        ->( 1, '[lora_train] %s inference server stopped', $backend );
 }
 
 my @cmd = (
@@ -209,8 +238,8 @@ return { 'mode' => qw| deferred | };
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,.,,,.,,,.,,,,.,..,,..,,.,,,,,.,,,,,,.,,,..,..,,...,...,.,.,,.,,,..,...,.,.,
-#C2WJTATSDZYRVGOZBKAE543QG4LPZOYSMY3GERAG4UTISMVOV4JUAZKHOJ5XSX5LQPVMEABN7IGWG
-#\\\|5BFVQJ6LXOFGJTZWU6M6YN7NPZ5R5EVQVFAM4BWTTERDNBFXG66 \ / AMOS7 \ YOURUM ::
-#\[7]P4OVZPSZJPVFVDFKM4MVIXQTT5ZDIDMGNJL3SDV7U7RBIWW7SCCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,.,,,.,,,.,.,.,.,,,.,.,..,,,.,,..,,...,...,...,,..,,..,.,.,,,,,
+#CNIV3WA2VHGOVHZ3BVNQDBME47OKRDT26UFPZVTZECJKFGX4GX4JJETQN357LH3MB546NYC6QFL4I
+#\\\|XT3QLEGNRLCF5CR7XOBEEKUAWXYS3CNFWOWEQLD34JTPNCKE3UM \ / AMOS7 \ YOURUM ::
+#\[7]Z3F2HQZT5J7FAVDZWNEDCIM2ORM2LQQ34HP6OCJR2PEDRUEQFCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

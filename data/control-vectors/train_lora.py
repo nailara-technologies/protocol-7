@@ -129,6 +129,17 @@ def build_target_modules(model):
         "q_proj", "k_proj", "v_proj", "o_proj",
         "gate_proj", "up_proj", "down_proj",
         "in_proj_qkv", "in_proj_a", "in_proj_b", "in_proj_z", "out_proj",
+        ## added 2026-09-12 -- four prior attempts (system-prompt fix, mean- ##
+        ## diff control vector, two LoRA runs with attn/mlp/ssm-only        ##
+        ## targeting) all produced zero `invoke` (`<[module.name]>->(`)     ##
+        ## hits. hypothesis: attention/mlp shift the HIDDEN STATE fine, but ##
+        ## the final projection from hidden state -> token logits (lm_head) ##
+        ## and the token -> embedding lookup (embed_tokens) are untouched -- ##
+        ## adapting them is the one lever not yet tried. tie_word_embeddings ##
+        ## is FALSE on this checkpoint (confirmed via config.json), so these ##
+        ## are two independent, separately-adaptable weight matrices, not a ##
+        ## tied pair that would need special handling.                      ##
+        "lm_head", "embed_tokens",
     }
     excluded = {"mtp", "visual"}
     targets = []
@@ -280,8 +291,8 @@ def main():
 if __name__ == "__main__":
     main()
 
-#,,.,,,.,,,..,..,,..,,,,,,,,,,...,.,.,,..,,..,..,,...,..,,...,.,,,,,,,,,.,,.,,
-#6X3W3AWQF2ZO7AY3IIMRMZC4MOLTMGS7YBU7DKIL7C7LDV24HHT26DOGPPAPQICZJKGQTHSAYNHGS
-#\\\|DJ5JSZFJI2VI3IIDZ6FHRFTGTCJSINOLTVQNN5QCZEWQIAC7BBL \ / AMOS7 \ YOURUM ::
-#\[7]4P7GV6WBRTNVM5X6YV4Z73A2PYNZ2RXDYGA56KFF3GWBZGWAU4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,...,,.,,...,,,,,...,...,,,,,..,,...,...,..,,.,.,,,,,..,,,.,,
+#BMNEI7JHTP5T5PV5MMNYGXOVFGXAVFYSV4BADXMEQ32JMSRWZICUR3DYLTALYYY2PFUXISH3WSINA
+#\\\|UCK5PC3THDKOQENWAM63YWQULXVA3RQW2M222ST6VKJZBKCD64O \ / AMOS7 \ YOURUM ::
+#\[7]GM3QANG7I7SX6NR2ESJSVQWZLTVHJAR3YHAQIUKFIF7YY4ZDW4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

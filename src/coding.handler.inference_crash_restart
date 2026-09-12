@@ -15,6 +15,19 @@ if (<coding.draining>) {
     return;
 }
 
+## same guard as inference_server_sigchld -- belt-and-suspenders in case a ##
+## restart timer was already scheduled just before the training flag       ##
+## flipped TRUE                                                            ##
+if (<coding.lora_training_in_progress>) {
+    <[base.logs]>->(
+        1,
+        '[inference_crash_restart] lora training '
+            . 'in progress — skipping %s restart',
+        $backend
+    );
+    return;
+}
+
 <[base.logs]>->(
     1, '[inference_crash_restart] restarting %s server after crash', $backend
 );
@@ -82,8 +95,8 @@ if ($result) {
     return FALSE;
 }
 
-#,,,,,.,,,,..,.,,,...,,.,,...,.,.,,.,,,.,,...,..,,...,...,.,,,..,,,,,,.,.,,,.,
-#F3NLOGCRABPY6XEPTPGGGABQQ3SKHSKDAMZ2AZ6OTSVIQ4SHCOXUJXSZQZNDSEZPPRR5EXP65YNFA
-#\\\|YRDWFIDTC7JKEM6J5EQF5BX2SXKESSMVSLBYG6CZ57SE56SYXMC \ / AMOS7 \ YOURUM ::
-#\[7]L5MQ3GFPYXGZHSOZNEC5J4FX6CP5MNARPND4S5VU2SBTH4UPZOBY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,.,.,,,,,..,,..,,.,,,,.,,..,,..,,...,...,..,,,,.,...,,,.,..,,
+#VTKTMHIDUQP7QGQB4ZUKAOKQHOO7LHQLXWDXZLDJWPJIQY7RPHXHY36WIZXIWSCFLLEHZ5QPRF6VC
+#\\\|T4XOFUDREAL64KT4A6YPPIMCPBZ37YRK74PGN5WRK674LBQXMQI \ / AMOS7 \ YOURUM ::
+#\[7]CZYRLJZLR36V342BE47DBSVZURUZZ4Y36PJ7BZOR7H7MWMCILCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
