@@ -129,17 +129,12 @@ def build_target_modules(model):
         "q_proj", "k_proj", "v_proj", "o_proj",
         "gate_proj", "up_proj", "down_proj",
         "in_proj_qkv", "in_proj_a", "in_proj_b", "in_proj_z", "out_proj",
-        ## added 2026-09-12 -- four prior attempts (system-prompt fix, mean- ##
-        ## diff control vector, two LoRA runs with attn/mlp/ssm-only        ##
-        ## targeting) all produced zero `invoke` (`<[module.name]>->(`)     ##
-        ## hits. hypothesis: attention/mlp shift the HIDDEN STATE fine, but ##
-        ## the final projection from hidden state -> token logits (lm_head) ##
-        ## and the token -> embedding lookup (embed_tokens) are untouched -- ##
-        ## adapting them is the one lever not yet tried. tie_word_embeddings ##
-        ## is FALSE on this checkpoint (confirmed via config.json), so these ##
-        ## are two independent, separately-adaptable weight matrices, not a ##
-        ## tied pair that would need special handling.                      ##
-        "lm_head", "embed_tokens",
+        ## lm_head/embed_tokens [ added 2026-09-12, attempt 3 ] deliberately ##
+        ## reverted here for attempt 4 -- adapting the output projection    ##
+        ## itself was ALSO a null on invoke (sixth honest negative, see     ##
+        ## coding-lora-p7-idioms.md's third-attempt addendum), so attempt 4 ##
+        ## isolates dataset oversampling as the ONLY variable changing from ##
+        ## attempt 2, rather than stacking an already-tested lever on top   ##
     }
     excluded = {"mtp", "visual"}
     targets = []
@@ -291,8 +286,8 @@ def main():
 if __name__ == "__main__":
     main()
 
-#,,,.,,,,,,,,,...,...,,.,,...,,,,,...,...,,,,,..,,...,...,..,,.,.,,,,,..,,,.,,
-#BMNEI7JHTP5T5PV5MMNYGXOVFGXAVFYSV4BADXMEQ32JMSRWZICUR3DYLTALYYY2PFUXISH3WSINA
-#\\\|UCK5PC3THDKOQENWAM63YWQULXVA3RQW2M222ST6VKJZBKCD64O \ / AMOS7 \ YOURUM ::
-#\[7]GM3QANG7I7SX6NR2ESJSVQWZLTVHJAR3YHAQIUKFIF7YY4ZDW4AA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,,,,.,,,,.,,..,,,,,,..,,.,.,..,,...,...,.,.,.,.,,..,,..,,..,
+#LSALXZQF2KSU6SXRIJQG24QL3376KGMYMAHZLBQGCHDNE2V4RKDM4NY3QPJEM3E4BEYGLC4ZKCG2S
+#\\\|MIF4HCK3FFBUYMED2IY5LFI3JEPLVYVJ3I2WDF2P4PVIKAUD6O3 \ / AMOS7 \ YOURUM ::
+#\[7]G7KVA2YAS3QGXGMG3JA5S6GJACSEQHXOI5PEPIMGYPYTGN74IEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
