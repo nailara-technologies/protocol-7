@@ -505,6 +505,95 @@ place, not deleted -- real artifacts from a real run, useful reference
 for the dataset-construction follow-up above even though this specific
 config isn't deployed.
 
+## second attempt [ real git-mined data, 2026-09-12 -- FIFTH HONEST NEGATIVE
+## on `invoke` ]
+
+follow-on from the dataset-construction lead the 2026-09-10 verdict named:
+`data/idioms/corpus/` (the idiom conformance gate's harvested draft-
+>corrected pairs) had accumulated real in-distribution examples since
+that gate went live -- this attempt trained against `data/idioms/corpus/
+mined.curated.sft.txt`, real p7 code, not another synthetic set.
+
+- training : same rank 16 / alpha 32 / dropout 0.05 / full target-module
+  list as the first attempt, 3 epochs over the mined corpus -> 114 steps.
+  clean run once a real, unrelated permission bug (`out_dir` pre-existing
+  with the wrong uid, see `src/coding.lora_train_spawn`'s `-w $out_dir`
+  pre-flight check, committed separately) stopped costing a full re-run
+  on the final save. final loss 1.37.
+- conversion : `lora_to_gguf.py` ran clean against this adapter unchanged
+  -- 248 pairs / 496 tensors, same architecture as the first run confirms
+  the converter generalizes. **found + fixed in the process**: this
+  project's source-signing pass appends an AMOS7 footer to any tracked
+  file it signs, including this adapter's `adapter_config.json` /
+  `tokenizer_config.json` / `tokenizer.json` (breaks strict JSON parsing)
+  and, worse, `adapter_model.safetensors` itself (a strict length-checked
+  format -- the appended footer made it fail to load at all, "incomplete
+  metadata, file not fully covered"). fixed by reading the safetensors
+  file's own header to recompute its correct declared size and truncating
+  the appended bytes off; `base.source.collect_file_list` now filters the
+  sign-candidate list through `git check-ignore` so a gitignored artifact
+  never gets signed in the first place -- but that fix is only
+  prospective, doesn't undo a file a PRIOR run already mutated. lesson:
+  convert BEFORE signing/committing artifact files, same order the first
+  run used, not after.
+- differential test : scale=0 vs scale=1 same-seed comparison confirmed
+  the adapter is genuinely applied (`reasoning_content` diverges from the
+  first token; `content` alone looked byte-identical only because
+  `max_tokens=200` never escaped the `<think>` span in either condition
+  -- diff the right field before trusting a byte-identical verdict).
+- validation : same discipline as the first attempt, fresh baseline (not
+  reused numbers), `run_gens.sh` + `run_gens_lora.sh`, 3 seeds each:
+
+```
+                 chars   idiom(raw)  idiom/1k   anti(raw)  anti/1k
+baseline         22847   21          0.92       50         2.19
+lora-on-real     21509   23          1.07       57         2.65
+```
+
+  structural-only subcategory (`invoke`+`cfgaccess`+`truefalse`+
+  `modedata`): baseline 4 (0.18/1k) -> lora-on 12 (0.56/1k). unlike the
+  first attempt, this is NOT primarily a length-collapse or early-EOS
+  artifact -- total chars are within 6% of baseline (vs. the first
+  attempt's ~45% collapse), and `finish_reason=stop` is actually HIGHER
+  under lora-on (13/18 vs 8/18 baseline), the opposite direction from the
+  first attempt's confound. per-idiom:
+  - **`invoke`: 0 -> 0.** the fifth independent null on this specific
+    idiom (system-prompt fix, mean-diff control vector, the first
+    synthetic-dataset LoRA, and now a real-git-mined-data LoRA all
+    produced zero `<[module.name]>->(` hits in held-out generation). real
+    training data did not succeed where synthetic data failed.
+  - `cfgaccess`: 0 -> 0. flat, still no second occurrence anywhere.
+  - `truefalse`: 4 -> 12. the only real movement, entirely concentrated
+    in the `P_D` (`enforce_quota`) responses. flagged, not claimed clean:
+    `P_D`'s own prompt text says "...returning FALSE in that case", so
+    some of this is plausibly prompt-echo rather than idiom adoption --
+    but baseline received the identical prompt and only scored 4 there
+    vs. lora-on's 12, so it is not PURELY an echo artifact either.
+  - `modedata`: 0 -> 0. flat.
+  - anti-idiom density rose again (2.19 -> 2.65/1k), same direction as
+    the first attempt -- some generic-style drift persists alongside
+    whatever real signal `truefalse` represents.
+
+- restore state : `coding.cfg.lora_adapter`/`_scale` cleared (in-memory,
+  not written to `zenka.v7` -- this attempt was tested via `coding.eval-
+  code` + `coding.switch-model` respawns, never made the default-on
+  config), live gpu server respawned with no lora flags / flash-attn back
+  on, verified via process args. new adapter/gguf left in place: `data/
+  control-vectors/lora-out/p7-idioms-real/adapter/`, `data/control-
+  vectors/lora/p7-idioms-real-lora.OFSQC4I-QDBKEXY.gguf`.
+
+**verdict**: second honest negative on `invoke` specifically, real data
+this time -- confirms the 2026-09-10 verdict's premise (synthetic data
+was the missing ingredient) was at best incomplete. real in-distribution
+data moved `truefalse` some and moved nothing else. **not a reason to
+abandon load-time adapters as a mechanism** -- see the next-steps
+discussion this addendum's own follow-on conversation raised: the current
+recipe never targets `lm_head`/`embed_tokens`, so if `invoke`'s bracket-
+arrow token sequence has a near-zero base-model output-layer prior, no
+amount of attention/MLP adaptation could move it regardless of dataset
+quality -- a different, still-untried lever, not evidence the mechanism
+itself is exhausted.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -573,8 +662,8 @@ config isn't deployed.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,..,..,,,.,,.,.,...,,,.,,.,,,.,,..,,,,,,,,.,..,,...,...,,.,,,,,,...,..,,,..,
-#HLBXDXYERGUUHTLRBEX2OLWJK4U5UP77G432A3ULHHDBPPZ4Y4E4VDX7UMCFVKBFGPHQ37AI4A54U
-#\\\|376SPXK7SSCLL2NTX22FCTWQYPYOHQTO6EZZOLSNHIDGC4WXDHM \ / AMOS7 \ YOURUM ::
-#\[7]GY2N47FZ5THXOLEA7CNODIUJBVKNL4IG26GDRPI4HGLBFWO3NCBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,,.,,,,,,.,.,,,,,,,,,,.,,,.,,..,,...,...,..,,.,,,,.,,..,,,,,,
+#KGPBB66Y7UVOHCTB7PF26FK7KUBGSFO3IM2CSLIVRMQYZ5P2F7PORHLOIYZSHI2B4UCLK4BEBLDN6
+#\\\|LWWG3ZY4YJQPKIOXGSWHQ7LBARMBGOOIXBTSMS2O26MYMMWPR5I \ / AMOS7 \ YOURUM ::
+#\[7]DX4CVF4RF4B4IWQTVGBFOJ3PU5HJXL2RKV2QITNLT5CO2DZTRGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
