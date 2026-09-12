@@ -1,31 +1,32 @@
 ---
 name: feedback-dont-preempt-version-bump-before-commit
-description: never run bin/dev/update-version manually before a commit to preempt the pre-commit hook's version-mismatch gate -- it forces a second, redundant signing pass
+description: SUPERSEDED 2026-09-12 -- the hook does NOT auto-bump; running bin/dev/update-version yourself on a version-mismatch block is the correct, expected flow
 metadata:
   type: feedback
 ---
 
-Never run `./bin/dev/update-version` manually before `git commit` just because you expect the
-pre-commit hook to block on a version mismatch. Let the hook trigger the version bump itself
-during the commit attempt.
+**Superseded 2026-09-12.** This note originally said never to run `./bin/dev/update-version`
+manually and to just wait for the hook to bump the version itself during commit. That premise
+does not match this repo's actual current pre-commit behavior: on a version-mismatch block, the
+hook does NOT bump anything itself -- it prints `suggestion : run ./bin/dev/update-version to fix`
+and stops, requiring exactly that manual step before retrying the commit. Confirmed live,
+2026-09-12, twice in the same session, both times expected/unobjected-to by the user (one of
+which they explicitly told the assistant to run it: "updated, you can commit and push it too").
 
-**Why**: found during the v7 -> v7-zenki identity rename (commit `23a0e8d53`). The first
-`git commit` attempt was blocked by the hook's version-mismatch check, so the assistant ran
-`bin/dev/update-version` manually and staged the resulting files itself. This produced unsigned
-version-bump files, which then failed the hook's signature check on the *next* commit attempt,
-requiring the user to run their signing tool a second, redundant time. User: "version was already
-updated, you only force redundant re-signing that way.."
+A second, separate signing pass is unavoidable either way once `update-version` runs (whoever
+runs it) -- the version-bump files it writes are unsigned regardless, and always need the user's
+signing tool before the next commit attempt. That cost is not something running it manually
+adds; it was never avoidable by "waiting for the hook" in the first place, at least not as this
+hook currently behaves.
 
-**How to apply**: if a `git commit` attempt fails on a version-mismatch gate, just report it and
-wait -- do not run the suggested fix-it command yourself. The hook itself stages the version-bump
-files as part of its own commit-time flow when left alone; running the fix command out-of-band
-front-loads unsigned content that then needs a whole separate signing round with the user's tool.
-This is a narrower instance of the established git/signing workflow already in force this
-session: the assistant stages and verifies, the user signs with their own tool, the assistant
-runs `git commit` -- never runs fix-it/signing tooling on the user's behalf mid-flow.
+**How to apply**: on a version-mismatch pre-commit block, run `./bin/dev/update-version` directly,
+then ask the user to sign (`update-signatures`) before retrying the commit -- same flow as any
+other unsigned-file block. Do not resurrect the old "just wait" advice without first checking
+whether the hook has actually started auto-bumping again; if it starts doing so, this note's
+premise would need re-superseding once more.
 
-#,,..,...,,,.,.,.,.,.,..,,..,,,..,,.,,,.,,..,,..,,...,..,,.,,,,.,,,..,,,.,,,,,
-#JNBE676BU6NGUQY2HX5CVT3AG3KFLU6TCXOOPD4VOYKHVRYOXQRPHSB4JPB2DD4TNGON4WUB7CEXM
-#\\\|GPHTNFAD3DPK4R4SB4SZ3DHCMXFSYS6IDFRBCTQ7QDA4SC3PA4K \ / AMOS7 \ YOURUM ::
-#\[7]OSAEF2RX3X2SQ2EJDZUUDTSTDO6URNOREGTNJTILVUH24ONTLGDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,.,,,,,.,,.,,,.,,,.,,,.,,,.,,..,,...,...,.,.,,,.,.,,,.,,,,..,
+#VCDK4LEHE5EZBP5XKJRLZHOHXQKVR37RZOYOWT4ONDMI4W4CGGZD4VEGZLBDA67EON6TAPPPHLZE4
+#\\\|4ZWHOFRATGVDBZP3CICGAZYLVF4VFKUXUWWFQS4E6W4X6WSUXUH \ / AMOS7 \ YOURUM ::
+#\[7]ZPAWZ6A25MOWHGZAWSJN3U2JON65TH7XQV7HEJJRII2H3776T2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

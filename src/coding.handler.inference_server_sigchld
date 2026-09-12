@@ -23,11 +23,17 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 
         if ( $server_info->{'pid'} == $pid ) {
             $matched = 1;
+            ## exit=0 is a clean exit [ e.g. a deliberate SIGTERM/SIGKILL   ##
+            ## from coding.lora_train_spawn freeing the gpu for training ], ##
+            ## not a crash -- "crashed" on that line reads as alarming and  ##
+            ## contradicts the very next log line when the training guard   ##
+            ## below fires. wording only; $server_info->{'status'} stays    ##
+            ## 'crashed' below, other code paths key off that literal       ##
             <[base.logs]>->(
                 0,
-                '[inference_server_sigchld] %s '
-                    . 'server crashed [pid=%d exit=%d]',
+                '[inference_server_sigchld] %s server %s [pid=%d exit=%d]',
                 $backend,
+                ( $exit_status == 0 ? qw| terminated | : qw| crashed | ),
                 $pid,
                 $exit_status
             );
@@ -44,6 +50,22 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
                     1,
                     '[inference_server_sigchld] '
                         . 'draining — skipping %s crash restart',
+                    $backend
+                );
+                next;
+            }
+
+            ## same reasoning as the draining guard above -- a deliberate   ##
+            ## kill to free the gpu for a lora training run looks IDENTICAL ##
+            ## to a real crash from here (same SIGCHLD, exit=0), and would  ##
+            ## otherwise get "healed" by a fresh respawn fighting the       ##
+            ## training process for the same VRAM. caught live 2026-09-12   ##
+            ## killing the server via eval-code for exactly this purpose    ##
+            if (<coding.lora_training_in_progress>) {
+                <[base.logs]>->(
+                    1,
+                    '[inference_server_sigchld] lora training '
+                        . 'in progress — skipping %s crash restart',
                     $backend
                 );
                 next;
@@ -107,8 +129,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,..,,..,,,.,,,.,,,,,,,.,,,.,..,,,.,,,.,,,,,,..,,...,...,.,,,,..,..,,,.,,..,,
-#24OS6TP6X4I276HU3KJQ7L5VR7TTTHVD2MIZQV6432OPNEWSESSLHOBKFENL63PX3LKWLJWD3B7EO
-#\\\|D5GNQW2FDKZ427AVTTKXNAPM4EX266ZMMY56WBIN4XMFWR6B6KQ \ / AMOS7 \ YOURUM ::
-#\[7]2W2F4UU2AXGJDMYZDWLJLIEELSULS5UQTWIGBRUOTEEODBK3B6AI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,.,,,..,.,,,,,.,.,,,,,,,..,,..,,...,...,.,.,.,.,...,.,,,,,.,
+#4TSA4ZYF3VDUW633ZMAFNZQ5T2JDGX3S7SDTNHBGWX35ZYPB4IF676FGCPZ4NJ7HJT6ZR3ONWAY2U
+#\\\|AY3EB6EPFSSG6MCE7YA225CRDSTGYSCS5TNG4SDU4WBXFX7NYP7 \ / AMOS7 \ YOURUM ::
+#\[7]NNG7SENO2CDHMHZ6GOLOIZZUKET5LD2EH7NQKB7ONJALV2RXNQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
