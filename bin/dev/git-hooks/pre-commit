@@ -145,8 +145,8 @@ my $commit_count = eval { $git->log } - 1;
 ## note: only stages -- never runs update-version itself. update-version
 ## rewrites these files without re-signing them, which the signature check
 ## below would then reject. bumping + signing remains a manual step (
-## update-version && v7-zenki.sourcecode update-signatures ) until a signing-service
-## zenka exists for that. <{C1}>
+## update-version && p7-sourcecode update-signatures ) until a
+## signing-service zenka exists for that. <{C1}>
 unless ( $skip_version_check or $is_amend ) {
     my $expected_count = $commit_count + 1;
 
@@ -298,12 +298,67 @@ unless ($skip_signature_check) {
         exit 1 unless $allow_unsigned;
     }
 
-    ## pass 2: run authoritative signature verification ##
-    my $verify_cmd
-        = "cd '$root_path' && bin/Protocol-7 "
-        . "sourcecode verify-p7-signatures 2>&1";
-    my $verify_output = `$verify_cmd`;
-    my $verify_status = $? >> 8;
+    ## pass 2: run authoritative signature verification -- scoped via       ##
+    ## :inlist: to just the staged files that exist on disk [ a deletion    ##
+    ## has nothing to verify -- collect_file_list just logs a harmless "no  ##
+    ## matches" for it and moves on, but there's no reason to hand it over  ##
+    ## ]. verify-p7-signatures itself intersects this candidate set against ##
+    ## the real signed corpus, so anything staged but outside it [ excluded ##
+    ## paths, non-source files, etc ] is silently skipped rather than       ##
+    ## reported as unsigned -- see idea 1 of ADR 'scope pre-commit          ##
+    ## signature check to staged files'                                     ##
+    my @existing_staged_files
+        = grep { -f File::Spec->catfile( $root_path, $_ ) } @staged_files;
+
+    ## bin/Protocol-7 joins argv on spaces and collect_file_list re-splits  ##
+    ## on spaces -- a filename containing one can't survive that round trip ##
+    ## [ it re-splits into unrelated fragments, which collect_file_ list's  ##
+    ## loose pattern matching can then silently absorb into unrelated       ##
+    ## directories ]. same problem for a leading '!' [ read as an exclusion ##
+    ## pattern ] or a '*' [ read as a glob ]. none of this repo's tracked   ##
+    ## paths use any of those, so treat one turning up as worth a clear,    ##
+    ## separate notice rather than folding it into a confusing generic      ##
+    ## "signature verification failed" -- and fall back to verifying it via ##
+    ## the unscoped full-corpus path                                        ##
+    my @unrepresentable_files
+        = grep { m| | or m|^!| or m|\*| } @existing_staged_files;
+    @existing_staged_files
+        = grep { !( m| | or m|^!| or m|\*| ) } @existing_staged_files;
+
+    if (@unrepresentable_files) {
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: $bl${no}staged path"
+            . ( @unrepresentable_files == 1 ? '' : 's' )
+            . " can't be scoped [ space / '!' / '*' in the "
+            . "name ], falling back to full-corpus verify for "
+            . ( @unrepresentable_files == 1 ? 'it' : 'them' )
+            . "$rst\n";
+        for my $f (@unrepresentable_files) {
+            print STDERR "${fg}::   - $bl$f$rst\n";
+        }
+        print STDERR "${fg}::\n";
+    }
+
+    my $verify_output = '';
+    my $verify_status = 0;
+
+    if (@unrepresentable_files) {
+        my $verify_cmd
+            = "cd '$root_path' && bin/Protocol-7 "
+            . "sourcecode verify-p7-signatures 2>&1";
+        $verify_output .= `$verify_cmd`;
+        $verify_status ||= $? >> 8;
+    }
+
+    if (@existing_staged_files) {
+        my $file_args
+            = join( ' ', map { shell_quote($_) } @existing_staged_files );
+        my $verify_cmd
+            = "cd '$root_path' && bin/Protocol-7 sourcecode "
+            . "verify-p7-signatures :inlist: $file_args 2>&1";
+        $verify_output .= `$verify_cmd`;
+        $verify_status ||= $? >> 8;
+    }
 
     if ( $verify_status != 0 ) {
         print STDERR "${fg}::\n";
@@ -328,8 +383,14 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,..,.,,,,,.,,..,,..,...,.,.,,,,,,..,..,,,,,,..,,...,...,..,,...,,,,,,.,,...,
-#3IMEUSGNIEAKTTJOY3B4MOC7UJ2FMRQ6UFRKIWYH7MSXJGGWUMJUHUFCM46QK42MCVJKQ3VKUKJMY
-#\\\|H5WJXMFET5TNZJZP4PVCWHCRGISE7SUVUSYLMMVK3OPZBYSJS3M \ / AMOS7 \ YOURUM ::
-#\[7]XBERSYQ2IHO5MWS5TYWKGWNX5OG3Y2XAUT6OOIURQZLZ5LGWFMDQ 7  DATA SIGNATURE ::
+sub shell_quote {
+    my $str = shift;
+    $str =~ s|'|'\\''|g;
+    return "'$str'";
+}
+
+#,,.,,,..,.,,,.,,,,,,,.,,,,,,,.,.,,..,,.,,,,.,..,,...,...,,..,.,.,,,.,.,.,.,.,
+#D6XBFPYK2A3X4R4J7UXAT6NE3TOEQC5RTH44Q7TKLPAK7QWSSBBUURJ2UGAJ6ZPPJAVJOZ2NKYF5U
+#\\\|CBMUHVUR5NY6XLRZFVAFCKS4V7PNPUHE2RGMWRUZ6PMWN5RLTIY \ / AMOS7 \ YOURUM ::
+#\[7]LP72ZZE2ZYEOASZJ7Z2BASXFBJIFH6FOTV5CSIVDOPAYT3FGW2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

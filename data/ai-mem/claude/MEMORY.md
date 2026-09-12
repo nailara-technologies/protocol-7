@@ -36,25 +36,27 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (62 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (64 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
   arg calling convention, memory-management/sync timing, git-log false-duplication, webkit-vs-firefox css,
   undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming),
-  swap_subs nested-lifecycle-hook gate (base32/chk-sum.bmw crash-instead-of-defer, e90dd04ae).
+  swap_subs nested-lifecycle-hook gate (base32/chk-sum.bmw crash-instead-of-defer, e90dd04ae),
+  sourcecode corpus-membership/`:inlist:` scoping convention, bin/Protocol-7 CLI argv gotchas
+  (-vq positioning, space-joined/re-split file args).
 
 - **[MEMORY-vision.md](MEMORY-vision.md)** (52 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
 
-- **[MEMORY-completed.md](MEMORY-completed.md)** (6 pointers) — session archive & live status.
+- **[MEMORY-completed.md](MEMORY-completed.md)** (7 pointers) — session archive & live status.
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,.,,..,,.,.,,.,,.,,,,.,,,..,.,,,,,.,,,,,..,,...,..,,.,,,.,.,..,,.,.,..,,
-#4WY2GKCXC7TN4ZXXYG3UXOH2KHQZALQPCSWCXY2Q7QJGRJPKEWTUFCUZBXLP2WJ3YOOMWW5YHCEN4
-#\\\|5QZRE54W7NENM4YW46QN3GP5AACJPIFXJCMAS2CFFAVPUSFAAZ4 \ / AMOS7 \ YOURUM ::
-#\[7]RQGAFBGLGEELVXPAS7IR4IBDNJRJFEPF4AXQQTZVVLPMUMKPCCBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,...,...,...,.,,,.,,,...,,.,,..,,...,...,..,,.,,,...,...,,,.,
+#NBPWY2UWNUASMZNL7Q7OELZLUVPDGZGX3WT3QKC3K6TFNFJHGBPJBFH437TVLIGTSNMT2WSMG4B5Y
+#\\\|E5GH4F6XF5Y7ES5LYECWZQ3UHNRQ5T43YNEDSPC6CWZ2LSMKXDL \ / AMOS7 \ YOURUM ::
+#\[7]ZSIC3ETD64TXHKZJR5XLF63KJM527LPGZGVKTFWKPKLLC5TN3CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
