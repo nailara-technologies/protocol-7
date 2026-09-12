@@ -48,9 +48,9 @@ better source text helps whichever mechanism eventually gets built. Keep
 building/maintaining that corpus regardless of which memory-loading approach
 moves forward.
 
-## the LoRA thread's actual current state, 2026-09-11 — this section fully
-## replaces everything the 2026-09-10 handover said was "the concrete next
-## step"; that work happened and concluded
+## the LoRA thread's actual current state, 2026-09-12 — this section fully
+## replaces everything the 2026-09-11 handover said was open; attempt 2
+## finished (fifth negative) and attempt 3 is running as of this handover
 
 **attempt 1 (synthetic dataset) ran to completion and is a fourth honest
 negative.** Full account in `data/tasks/coding-lora-p7-idioms.md`. Trained a
@@ -72,28 +72,73 @@ via a dequantized checkpoint that hit unrecoverable corruption, before
 pivoting to the shipped idiom conformance gate (`coding.cfg.idiom_gate`) —
 the 2026-09-10 handover's "never actually attempted" was wrong, now fixed.
 
-**attempt 2 (real git-history data) is running as of this handover — check
-its result before doing anything else.** Diagnosis from attempt 1: the
-input was the problem, not the method — synthetic single-snippet examples
-taught "Perl-shaped," not "P7-shaped." `data/tasks/coding-git-history-idiom-
-mining.md` covers the full approach: `data/idioms/mine_git_history.pl`
-mines real (before→after) corrections from this repo's own commit history
-(6381 commits across three historical directory names — `src/`→
-`base-code/`→`modules/`→back to `src/` — scored with the *same* frozen
-`score.py` rubric the validation harness uses), `dedup_corpus.pl` collapses
-duplicates and caps category skew, `corpus_to_sft.pl` converts the curated
-302-row corpus into the same SFT format `train_lora.py` already parses
-(real code, only a generic instruction wrapper is synthesized). Training
-launched against `data/idioms/corpus/mined.curated.sft.txt` — **if this
-session ended before it finished, check `data/control-vectors/lora-out/
-p7-idioms-real/adapter/` for a completed adapter and the coding zenka's log
-for `[lora_train] python side reported complete` or `training failed`
-before assuming anything about the outcome.** If it finished: convert to
-GGUF (`lora_to_gguf.py`, same recipe as attempt 1), validate against the
-same harness, and only invest further in corpus refinement (Kimi sweeps for
+**attempt 2 (real git-history-mined data) ran to completion — fifth honest
+negative on `invoke`.** Full account in `data/tasks/coding-lora-p7-idioms.md`'s
+"second attempt" addendum. `data/idioms/mine_git_history.pl` mined real
+before→after corrections from this repo's own commit history (6381 commits,
+three historical directory names), `dedup_corpus.pl` + `corpus_to_sft.pl`
+curated it into `data/idioms/corpus/mined.curated.sft.txt` — real code, not
+another synthetic set. Trained cleanly (loss 1.37, same rank-16 attn/mlp/ssm
+target list as attempt 1), converted to GGUF with NO converter changes needed
+(`p7-idioms-real-lora.OFSQC4I-QDBKEXY.gguf` — confirms attempt 1's SSM
+tensor-mapping extension generalizes), validated with a FRESH baseline (not
+attempt 1's numbers) against the full held-out harness. **`invoke` stayed at
+0/18 — real, in-distribution training data did not succeed where synthetic
+data failed.** The only movement was `truefalse` (4→12 combined raw count),
+flagged not claimed clean: one of the two prompts that moved (`P_D`)
+literally contains the word "FALSE" in its own instructions, so some of the
+count is plausibly prompt-echo rather than idiom adoption — though baseline
+(same prompt) scored lower, so it isn't purely that either. Confound checks
+came back clean this time (no length-collapse, no early-EOS artifact),
+unlike attempt 1's confounded numbers.
+
+**attempt 3 (lm_head/embed_tokens targeting) is running as of this
+handover — check its result before doing anything else.** Diagnosis after
+two nulls targeting only attention/mlp/ssm projections: those layers shift
+the hidden state, but the final hidden-state→token-logit projection
+(`lm_head`) and the token→embedding lookup (`embed_tokens`) were never
+adapted. If `invoke`'s bracket-arrow token sequence has a near-zero
+base-model output-layer prior, no amount of attention/mlp reweighting could
+move it regardless of dataset quality — this is the one lever not yet
+tried. `tie_word_embeddings` is FALSE on this checkpoint (confirmed via
+`config.json`), so these are two independent, separately-LoRA-able weight
+matrices, no tied-weight complication. Same rank/alpha/dropout/dataset as
+attempt 2, output dir `data/control-vectors/lora-out/p7-idioms-real-lmhead/
+adapter/` — **if this session ended before it finished, check that path for
+a completed adapter and the coding zenka's log for `[lora_train] python
+side reported complete` or `training failed` before assuming anything about
+the outcome.** Only invest further in corpus refinement (Kimi sweeps for
 correctness-checking mined pairs at scale, coding-zenka background tasks for
-continuous mining) if this run actually shows real movement on `invoke` —
-that decision is explicitly deferred until the result is in, not assumed.
+continuous mining) if a future run actually shows real movement on `invoke`
+— not assumed regardless of which lever (data vs. target-modules) turns out
+to matter.
+
+**four real infrastructure bugs found and fixed getting attempts 2/3
+running, independent of whether either moves the needle**:
+- `coding.lora_train_spawn` now has a `-w $out_dir` pre-flight check — a
+  pre-existing-but-unwritable out_dir (e.g. hand-created before dispatch)
+  previously passed the `!-d` check silently, ran a full training to
+  completion, and only failed on the final adapter save — losing a whole
+  run to a permission error found in the last 30 seconds.
+- `coding.lora_train_spawn` now stops the live inference server itself
+  (SIGTERM then SIGKILL) instead of refusing when one is running. Needed
+  two new guards to be safe: `coding.handler.inference_server_sigchld` /
+  `inference_crash_restart` now check `<coding.lora_training_in_progress>`
+  the same way they already checked `<coding.draining>` — without this,
+  the crash-detector "heals" a deliberate stop with a fresh respawn that
+  fights training for the same VRAM (raced twice live before the guards
+  existed).
+- `base.source.collect_file_list` now filters candidate sign paths through
+  `git check-ignore` — the sourcecode signing pass was appending an AMOS7
+  footer to gitignored binary artifacts (a trained adapter's
+  `.safetensors`), a strict length-checked format that broke outright once
+  signed ("incomplete metadata, file not fully covered"). Prospective fix
+  only — an already-mutated file needs its footer manually truncated off
+  (read the safetensors header's own declared length, truncate to that).
+- `lora-out/`'s parent directory itself (not just one run's out_dir) was
+  `taeki:taeki` 755, blocking this protocol-7-owned zenka from creating
+  any brand-new out_dir under it. Fixed once, durable for any future
+  out_dir name.
 
 **a real quality hazard was found in the mining approach itself, worth
 knowing before trusting its output uncritically**: the idiom-density
