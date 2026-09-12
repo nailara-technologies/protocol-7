@@ -23,11 +23,30 @@ if ( $command_params =~ s| *:repair-mode: *| |i ) {
 
 ## :workers=N: overrides the parallel-worker count [ default : auto, based ##
 ## on cpu count -- 'strict' mode only, see below. :workers=1: forces the   ##
-## plain sequential path                                                  ##
+## plain sequential path                                                   ##
 my $workers_override;
 $workers_override = $1
     if $command_params =~ s| *:workers=(\d+): *| |;
+
+## :inlist: treats the remaining params as candidates to intersect against  ##
+## the authoritative signed corpus [ sourcecode.source_path_set_up ],       ##
+## rather than as a stand-alone file set -- exclusion patterns and corpus   ##
+## membership are honoured, so e.g. a staged file under an excluded path [  ##
+## test-fixtures, cfg/backup, ... ] is silently dropped instead of being    ##
+## reported as unsigned. lets a caller [ e.g. the pre-commit hook ] hand    ##
+## over "here's what's staged" and get back only what actually needs a real ##
+## signature check                                                          ##
+my $restrict_to_corpus = $command_params =~ s| *:inlist: *| |;
 $command_params =~ s,^ *| *$,,;
+
+## :inlist: with nothing left to intersect against means "nothing was       ##
+## given" -- falling through to the no-params branch below would verify the ##
+## entire corpus instead, the opposite of what a caller asking for scoping  ##
+## wants                                                                    ##
+if ( $restrict_to_corpus and not length $command_params ) {
+    <[base.log]>->( 1, ': :inlist: empty file list, nothing to verify' );
+    <[base.exit]>->(0);
+}
 
 my $signature_key_name = qw| proto-7.sourcecode |;
 
@@ -62,11 +81,38 @@ my $work_tree = $paths->{'work_tree'};
 my @source_paths;
 
 if ( length $command_params ) {
-    if ( not @source_paths
-        = <[base.source.collect_file_list]>->($command_params) ) {
+    my @candidates = <[base.source.collect_file_list]>->($command_params);
+    my $candidate_count = scalar @candidates;
+
+    if ( $restrict_to_corpus and @candidates ) {
+        my %corpus_ok
+            = map { $ARG => TRUE } <[sourcecode.source_path_set_up]>;
+        @candidates = grep { $corpus_ok{$ARG} } @candidates;
+        <[base.logs]>->(
+            2,
+            ': :inlist: %d of %d given file%s '
+                . 'are part of the signed corpus',
+            scalar @candidates,
+            $candidate_count,
+            <[base.cnt_s]>->($candidate_count)
+        ) if scalar @candidates != $candidate_count;
+    }
+
+    if ( not @candidates ) {
+        if ( $restrict_to_corpus and $candidate_count ) {
+            <[base.logs]>->(
+                1,
+                ': :inlist: none of %d given file%s are '
+                    . 'part of the signed corpus, nothing to verify',
+                $candidate_count,
+                <[base.cnt_s]>->($candidate_count)
+            );
+            <[base.exit]>->(0);
+        }
         <[base.logs]>->( 0, ": no files found for '%s'", $command_params );
         <[base.exit]>;
     } else {
+        @source_paths = @candidates;
         my $file_count = scalar @source_paths;
         <[base.logs]>->(
             ": %d file%s match%s '%s'",
@@ -97,12 +143,12 @@ my $file_count          = scalar @source_paths;
 
 <[base.logs]>->( '* verifying %s source file signatures..,', $file_count );
 
-## 'repair' mode writes files -- always run it as a single, sequential   ##
-## shard, unchanged behaviour. 'strict' mode never writes anything, so   ##
-## it's safe to fan it out across workers with no race-safety design     ##
-## needed at all [ unlike sourcecode.console.update-signatures, which    ##
-## does write and needed the TOCTOU-guard + result-file + kill-list      ##
-## machinery -- copied here verbatim for the orchestration shape only ]  ##
+## 'repair' mode writes files -- always run it as a single, sequential      ##
+## shard, unchanged behaviour. 'strict' mode never writes anything, so it's ##
+## safe to fan it out across workers with no race-safety design needed at   ##
+## all [ unlike sourcecode.console.update-signatures, which does write and  ##
+## needed the TOCTOU-guard + result-file + kill-list machinery -- copied    ##
+## here verbatim for the orchestration shape only ]                         ##
 my $workers = 1;
 
 if ( $verify_mode eq 'strict' ) {
@@ -154,9 +200,8 @@ if ( $workers <= 1 ) {
 
     foreach my $w ( 0 .. $#shards ) {
 
-        my $result_file
-            = sprintf( qw| /tmp/p7-sourcecode-verify.%s.w%d.tmp |, $run_tag,
-            $w );
+        my $result_file = sprintf( qw| /tmp/p7-sourcecode-verify.%s.w%d.tmp |,
+            $run_tag, $w );
 
         my $pid = <[base.fork]>;
 
@@ -170,7 +215,7 @@ if ( $workers <= 1 ) {
         if ( $pid == 0 ) {    ## child : verify this shard, report, exit ##
 
             my $result_href = <[sourcecode.verify_file_list]>->(
-                $shards[$w], $work_tree, $verify_verbosity,
+                $shards[$w],  $work_tree,          $verify_verbosity,
                 $verify_mode, $signature_key_name, $w
             );
 
@@ -188,7 +233,8 @@ if ( $workers <= 1 ) {
                 0,
                 sprintf(
                     'worker %d done, %d valid, %d invalid',
-                    $w, $result_href->{'valid_count'},
+                    $w,
+                    $result_href->{'valid_count'},
                     $result_href->{'invalid_count'}
                 ),
                 2
@@ -224,7 +270,7 @@ if ( $workers <= 1 ) {
 
         if ( keys %pending ) {
             <[event.once]>;    ## keep SIGINT responsive [ safe : parent ##
-                                ## process, not a forked child ]         ##
+            ## process, not a forked child ]         ##
             select( undef, undef, undef, 0.1 );
         }
     }
@@ -248,10 +294,10 @@ if ( $workers <= 1 ) {
 # Final summary
 <[base.log]>->( 0, qw| : | ) if $invalid_count;
 
-## repaired/reconstructed counts are only ever displayed below in repair ##
-## mode -- skip the extra full-corpus re-read pass entirely in strict    ##
-## mode [ it always ran before, on every commit, computing numbers that  ##
-## strict mode's own summary branch never even looks at ]                ##
+## repaired/reconstructed counts are only ever displayed below in repair   ##
+## mode -- skip the extra full-corpus re-read pass entirely in strict mode ##
+## [ it always ran before, on every commit, computing numbers that strict  ##
+## mode's own summary branch never even looks at ]                         ##
 my $repaired_count      = 0;
 my $reconstructed_count = 0;
 if ( $verify_mode eq 'repair' ) {
@@ -260,8 +306,9 @@ if ( $verify_mode eq 'repair' ) {
         next
             if not defined
             <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
-        my $footer_data = <[source.extract_sig_body]>
-            ->( \$src_str, qw| strip |, $verify_mode );
+        my $footer_data = <[source.extract_sig_body]>->(
+            \$src_str, qw| strip |, $verify_mode
+        );
         $repaired_count++
             if $footer_data->{'repaired'} && !$footer_data->{'reconstructed'};
         $reconstructed_count++ if $footer_data->{'reconstructed'};
@@ -303,8 +350,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,,,,,,,,..,.,.,..,,...,.,,,,,,,..,,,,.,,,,,..,,...,...,.,,,,,,,...,..,,,,,,
-#CC6NVWVQJ4GISNJBJJBAC667JDRNQ7BWOKR6DDP6IZNP4LKB2SWA3WRFGG6ICJ3JUIMVBXY4KGREO
-#\\\|TWOWSKGZ3NB4BPVIASC7I5ELTI2D5ZOQNRESSSRA3FMLLOG2QTB \ / AMOS7 \ YOURUM ::
-#\[7]BXPUUAZAG3LERM3WHJCJVCUJQVZHAEPAC3XO5AMHDDVOS7UVZ4AA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,.,,,,.,,.,,.,.,.,.,,,,,.,.,..,,...,...,,,.,,,.,..,,..,,..,,
+#ITNLDSLI7PLOIXCOI2YGHINGVJHQ3G5NNVDSE47NWPITA5KEEQ2FDCWAN3GR7HVJODS2RWOZKTVLS
+#\\\|UUVECFUXODZ4C3MMBYHKZH5UUGENKR2XRMNJKRDJY4V6TKZLUKF \ / AMOS7 \ YOURUM ::
+#\[7]6GDVGVJG3DVZUMEQYLOUDHJZWMCWKIVMAC65OEDHMO7CG64VBUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
