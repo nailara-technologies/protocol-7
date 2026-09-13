@@ -161,6 +161,25 @@ elsif ( $action eq 'transition' ) {
         $task_id, $current, $event, $new_state
     );
 
+    ## live session-viewer : round/state transition events, cheap no-op     ##
+    ## when nobody's subscribed. closes + deregisters on reaching a         ##
+    ## terminal state -- content itself already streamed via chunk_handler, ##
+    ## this is just the round-marker + done/error signal                    ##
+    my $session_listeners = <coding.session.listeners>->{$task_id};
+    if ( ref $session_listeners eq 'ARRAY' and @$session_listeners ) {
+        my $event_line = sprintf(
+            "\n[[ round %d : %s --%s--> %s ]]\n",
+            $state->{'round'} // 0,
+            $current, $event, $new_state
+        );
+        <[base.stream.push]>->( $ARG, \$event_line ) for @$session_listeners;
+
+        if ( $new_state eq STATE_COMPLETE or $new_state eq STATE_ERROR ) {
+            <[base.stream.close]>->($ARG) for @$session_listeners;
+            delete <coding.session.listeners>->{$task_id};
+        }
+    }
+
     ## regex for json tool call markup stripping ##
     my $json_tc_re = qr|
         \{"(?:name"\s*:\s*")?    ## {"name": " or bare {"
@@ -607,8 +626,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,.,,,,.,,,.,,,.,,,,,,..,,,,,..,,.,,,,..,...,.,.,...,...,.,,,.,,,...,..,,.,,,
-#HJ73Q3TUFD3JKXLJ4DUYZQCV3XDIRIBFFTOM2J3QXYE3NDOCCBGFCJCO7YFWG63IPDDMCUR2CHBK6
-#\\\|AB66M5YEQUXFJE7LM6VEZWK6TU5BKPS3K4VKOBOXHRS7LYZZE25 \ / AMOS7 \ YOURUM ::
-#\[7]E2L657DMSWITXP2WVCFEHIPBIAC2NCMHKQU4DPALXPL43HC2XIAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,.,..,,...,,,,,,.,,.,,,.,.,,.,,.,.,...,...,.,.,.,,,...,.,.,,.,,
+#MF3HAA7A3ISYRT5QZQFNG6UFBHXLHDAE5QKAQW3UJIIUEGZ4GS7U4LDBR6GXOM6ZTMJXUYO6CSXZI
+#\\\|KV3BR5H5LKMKOEHIVYR3RBFXUKRYYIK2KBNRRKVBGP72TMFKCZ3 \ / AMOS7 \ YOURUM ::
+#\[7]IC67LRPPXG6BUL2MGBNA3BTEOJP2K2HTS6434JQDFBGH2PJVZCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
