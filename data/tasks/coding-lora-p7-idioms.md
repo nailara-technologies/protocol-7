@@ -716,6 +716,98 @@ exactly zero, is a strong enough pattern that the NEXT attempt should
 change what's being learned (or add retrieval instead of more training),
 not just tune hyperparameters within the same recipe again.
 
+## fourth attempt [ 3x invoke oversampling, 2026-09-13 -- SEVENTH HONEST
+## NEGATIVE on `invoke` ]
+
+follow-on from the third attempt's own conclusion: three attempts had
+varied WHAT was adapted (synthetic vs. real-mined data, then the output
+layer itself) but never simply increased how much `invoke`-specific
+signal the model sees per training step. This attempt isolates that one
+variable.
+
+- dataset : identified the 97 lines in `mined.curated.sft.txt` whose
+  target content already matches the invoke regex (`<\[[\w.]+\]>->\(`)
+  directly -- not the jsonl's `category` tag (a looser, dominant-category
+  classification used for corpus curation; 53 rows tagged `invoke` there,
+  but 97 lines actually CONTAIN the pattern once co-occurrence with other
+  tagged categories is counted). tripled those 97 lines' representation
+  (205 other lines kept once + 97 invoke lines x3 = 496 total), pushing
+  invoke's share of training examples from ~32% to ~59%. 2 epochs (not 3)
+  to keep step count (~124) comparable to attempts 2/3 despite the larger
+  corpus.
+- target_modules : reverted to the second attempt's set (attn/mlp/ssm
+  only, dropped `lm_head`/`embed_tokens`) -- isolates oversampling as the
+  ONLY variable changing from attempt 2, rather than stacking it on top
+  of the third attempt's already-tested (and also null) lever.
+- training : rank 16 / alpha 32 / dropout 0.05, 124 steps, final loss
+  0.62. ran ~2x slower per step than attempts 2/3 (~3.5-4min/step vs
+  ~2min/step) -- GPU pegged at 100%, VRAM near capacity (12046/12288MB),
+  no external contention found; best guess is the tripled invoke examples
+  average longer than the rest of the corpus, not confirmed further.
+  clean run, no permission error, correct adapter size (173MB, matching
+  attempt 2's target-module footprint, not attempt 3's 8GB lm_head bloat).
+- conversion : `lora_to_gguf.py` ran clean, 0 skipped tensors (no
+  base_layer/embedding entries this time since lm_head/embed_tokens
+  weren't targeted) -- 248 pairs / 496 tensors, same shape as attempt 2.
+- differential test : scale=0 vs scale=1, real `content` diverges (1321
+  vs 1391 chars, different finish_reason) -- adapter genuinely applied.
+- **validation methodology failure, caught and fixed before trusting any
+  result**: the first validation attempt's self-test wait hit a fixed
+  450s cap and "proceeded anyway" right as the coding zenka's own
+  seed-retry respawn was mid-flight -- 16 of 18 lora-on generation
+  requests landed on a dead server (`http=000`, sub-20ms connection
+  failures) and only 2 real responses exist from that pass. **this is not
+  a result, it never validated anything** -- caught by inspecting the raw
+  `run_gens.sh`/`run_gens_lora.sh` http-code output, not just the
+  aggregate scores, which would have silently looked like "no idiom
+  categories moved" from too little real data rather than "the harness
+  itself broke". redone with a health-CONFIRMED wait (polls actual
+  `/health` status until genuinely idle, no fixed timeout that gives up
+  and proceeds regardless) -- full valid 18/18 dataset the second time.
+- validation (redone, valid) : fresh baseline, `run_gens.sh` +
+  `run_gens_lora.sh`, 3 seeds each:
+
+```
+                     chars   idiom(raw)  idiom/1k   anti(raw)  anti/1k
+baseline             22847   21          0.92       50         2.19
+lora-on-oversampled  18449   24          1.30       63         3.42
+```
+
+  structural-only subcategory: baseline 4 (0.18/1k) -> lora-on 14
+  (0.76/1k).
+  - **`invoke`: 0 -> 0.** the seventh independent null on this idiom.
+    tripling its training-data share (to ~59% of the corpus) did not
+    move it either -- this rules out "not enough exposure" as cleanly as
+    the third attempt ruled out "the output layer never learned it":
+    both specific, targeted fixes for two different plausible mechanisms
+    came back negative.
+  - `cfgaccess`/`modedata`: 0 -> 0, flat across all four LoRA attempts
+    now, no exception ever recorded.
+  - `truefalse`: 4 -> 14, in the same range as attempts 2/3 (12, 18) --
+    the recipe reliably moves this idiom regardless of which specific
+    variable changes; `invoke` never budges under any of them.
+  - responses are ~19% shorter overall (18449 vs 22847 chars) while
+    completing MORE naturally (`finish_reason=stop` 15/18 vs baseline's
+    8/18) -- a real conciseness shift, not a truncation confound (fewer
+    responses are being cut off, not more), but it doesn't rescue
+    `invoke`. anti-idiom density rose again (2.19 -> 3.42/1k).
+- restore state : confirmed via process args, no lora flags / flash-attn
+  back on.
+
+**verdict**: fourth honest negative in this thread's LoRA-specific
+sub-series (seventh overall counting the pre-LoRA system-prompt and
+control-vector attempts). Four attempts have now independently varied
+dataset source, target-module scope, and data density -- all landing at
+exactly zero on `invoke`, while every attempt reliably moves `truefalse`.
+This is a strong, consistent pattern: whatever `invoke` needs, it is not
+more data, not more repetition, and not adapting the output layer itself
+via the recipe used so far. The remaining untried levers (much higher
+rank specifically on `lm_head`, or abandoning weight-training for this
+one idiom in favor of retrieval/few-shot injection of real corpus
+examples at generation time) are a bigger step than another parameter
+tweak -- worth deciding deliberately rather than running a fifth
+same-shape attempt.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -784,8 +876,8 @@ not just tune hyperparameters within the same recipe again.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,,,,,.,,..,,.,.,,,.,..,,.,,,,,.,,,,,..,,...,..,,...,...,,,.,,..,...,,,.,.,,,
-#NCENYWE5HUJW4JFWPWD4P7QZ32S37IRP3ELZ2QDIEFSUMB4T46IF3J3GIFHAZ247CYSQI4XHYGG24
-#\\\|BMI36E76AUFLRKJ7QORQ7YG3RSPEMLSLLJH5LXSR7EFSJU2ULYR \ / AMOS7 \ YOURUM ::
-#\[7]BCV3TOAUBOT2CBTPIUBVFQALH4VSYUSCOEZUZIRHCVRN7LKVBEAA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,,,.,...,,,.,...,,..,..,,,,.,..,,...,...,..,,,,.,.,,,,,.,,..,
+#DSDWLM7RXZ4Y37WDVDP2I73A3RCWUDHR5D7XE5UGL5PQDLTXSLCP5BXAQN3HEQVLRKBHY5S3TD3CW
+#\\\|57EIH3UJZ6LYI423LBILNRXPH5NA3OIKZBG7XKHGPMEZCZQMFZX \ / AMOS7 \ YOURUM ::
+#\[7]XP5FLN7UBHXAZOB2XUDNGSB5WWQTU3SHSFMRD54F3LNJKZPMHQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

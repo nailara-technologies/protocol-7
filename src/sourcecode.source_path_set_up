@@ -65,8 +65,35 @@ my @copy_sources = qw [
     !.claude_readme_first
     !CLAUDE.yaml
     !data/asc
+    !data/control-vectors/lora-out
+    !data/control-vectors/results
 
 ];
+
+## data/control-vectors/lora-out exclusion added 2026-09-13 -- these are    ##
+## trained-model reference artifacts (adapter_config.json, tokenizer.       ##
+## json, etc), not source. exclusion patterns in @copy_sources apply even   ##
+## when update-signatures is handed an EXPLICIT file list [ e.g.  the       ##
+## staged set during a commit ] -- that path bypasses this file's own       ##
+## INCLUSION globs entirely and signs any named file that exists, so only   ##
+## an exclusion here actually stops it. caught live: a signed               ##
+## adapter_config.json/tokenizer.json gets an AMOS7 footer appended after   ##
+## the closing JSON, breaking any strict `json.load()` on it [ had to strip ##
+## a temp copy before every GGUF conversion this session ];                 ##
+## adapter_model.safetensors is a strict length-checked format that flatly  ##
+## refuses to load at all once a footer is appended -- the .safetensors     ##
+## half is already gitignored [ base.source.collect_file_ list filters      ##
+## staged paths through git check-ignore ], but the small json/tokenizer    ##
+## files ARE deliberately tracked in git [ real, useful reference           ##
+## artifacts, same as the first lora attempt's adapter ] and were never     ##
+## excluded from signing specifically until now                             ##
+##                                                                          ##
+## data/control-vectors/results exclusion added same session, same reason:  ##
+## the raw generation-response json files run_gens.sh/run_gens_ lora.sh     ##
+## save (results/ and results-lora/, matched by the same substring since    ##
+## "results-lora" begins with "results") were ALSO getting signed --        ##
+## score.py's own json.load() on a signed response file would break the     ##
+## same way lora_to_gguf.py's did on a signed adapter_config.json           ##
 
 if ( not chdir(<system.root_path>) ) {
     <[base.s_warn]>
@@ -77,8 +104,8 @@ if ( not chdir(<system.root_path>) ) {
     return <[base.source.collect_file_list]>->( \@copy_sources );
 }
 
-#,,,,,..,,.,,,...,,,,,...,..,,...,,,.,,,,,.,,,..,,...,...,...,.,.,,..,.,,,.,,,
-#S3C4V5TQ4GTLA7EDAY3YGILBDQWXEAA6N4FUL665UQYJVBZHZ5UOJKSAC4M7OXWCSKWE3CFYJB27E
-#\\\|7H6ZQWHPRCGTGVG2XSZZHUDVACM5YIHL2EARS2NE4A4Z2QIWXHZ \ / AMOS7 \ YOURUM ::
-#\[7]6PIDSJWNHHPY3BTKLF7CZZRJYHHPUXFZSNGVGHAT5KLWHHNQ5YCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,.,,,,,,,.,,.,.,.,.,..,,..,,..,,...,.,.,.,.,.,.,.,,,,.,,..,,
+#IB6ERGOZ77X7APXO2LOXB6EPNUX47L4U4WIR742NO75K6LF7LD5247BDUAMNR3WGRLWITAGLAILZG
+#\\\|IDVQ4IVYPWJ6WXK3QS62STBGPGC45MBJOU4VHB4IU6WKPL5NX6I \ / AMOS7 \ YOURUM ::
+#\[7]EM3TK7XPMKJ224MRJ4VGNPJEZ6JKOXK3F5RURU3ICBNWWS3RDSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
