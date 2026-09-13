@@ -489,6 +489,149 @@ command (e.g. `coding.cmd.rewind-round`) with the terminal ui as its
 first caller, so a future automated optimizer can call the same command
 headlessly.
 
+**data-shape design, 2026-09-14, before any code written -- two facts
+checked live first, both changed the shape from the first-pass sketch:**
+
+- **`coding.task.enqueue_round` owns no round-numbering logic of its
+  own** -- it only acquires the backend lock and, once acquired, calls
+  `coding.async.send_request($task_id)`, which reads `messages`/`round`/
+  `backend`/`tools` straight off `<coding.async.task_state>->{$task_id}`.
+  So rewind's whole job is: reconstruct that exact hash shape for the
+  target round and write it to `<coding.async.task_state>` before calling
+  `enqueue_round` -- same shape `coding.cmd.task-append`'s "resume from
+  completed/failed" branch and `coding.async.complete`'s new injected-
+  messages-resume block already build. No new integration surface needed
+  there, just another producer of the same shape.
+
+- **round nodes CANNOT reference indices into `$state->{messages}` --
+  confirmed via `coding.async.compact_context` lines 70-71/224.**
+  Compaction splices the live messages array by raw index
+  (`protect_start=2` .. `length-6`), replacing however many messages fall
+  in that window with one summary message, entirely independent of round
+  boundaries -- a single compaction event can destroy the real content of
+  several earlier rounds at once, at a point that has nothing to do with
+  where those rounds actually ended. An index- or shared-array-based round
+  node would become unrecoverable and unverifiable (checksum computed over
+  content that no longer exists anywhere) the moment compaction runs.
+  **Resolution**: round nodes store their own content directly (a delta:
+  the messages that round itself added -- typically one user message plus
+  whatever assistant/tool messages resulted), never a reference into the
+  live array. This decouples the concerns cleanly: the round-chain becomes
+  the true, append-only, UNCOMPACTED historical record, purely for
+  addressing/rewind/redo; `$state->{messages}` + compaction stays exactly
+  what it is today, a separate ephemeral context-window-fitting mechanism
+  applied to whatever's currently live. If a reconstructed rewind target's
+  history is later too big for context, compaction just runs again on
+  that working copy the same way it already does going forward -- no
+  coupling, no need to "version" compaction as a chain event.
+
+  **node shape** (one entry per round, kept in a `round_chain` array on
+  the task record, alongside the existing flat `execution.messages`):
+  ```
+  { round     => $n,
+    parent    => $parent_checksum,   # '' for round 0 [ genesis ]
+    checksum  => chain_L13($parent_checksum, encode(delta_messages)),
+    delta     => \@delta_messages,   # this round's own new messages only
+    timestamp => <base.ntime> }
+  ```
+  reconstructing "messages as of round N" = walk parent pointers from
+  genesis to N, concatenate deltas in order. Never touches or truncates
+  `$state->{messages}` itself.
+
+- **current/redo pointer**: task record gets `round_chain_current`
+  (checksum of the active node). Rewind moves it to an ancestor's
+  checksum and remembers the prior value in a single-slot
+  `round_chain_redo_target` (not a stack -- matches the task doc's own
+  still-open question above, resolved: redo is just "move back to
+  whichever child you left," derivable from the tree, no stack needed).
+  Submitting anything new after a rewind creates a NEW child node under
+  the rewound-to ancestor [ a real fork -- the old branch's nodes are
+  never deleted, just no longer reachable via `current` ] and clears
+  `round_chain_redo_target`, since the old "future" is now a divergent
+  sibling, not something redo should silently return to.
+
+- **correction, same day, user reframing** : compaction is not fully
+  decoupled from the chain after all -- it's the same FAMILY of concept
+  as a rewind fork [ a point where "the true full detail" and "what's
+  actually used going forward" diverge ], just not the same topology [ no
+  bifurcation -- `current` keeps moving forward through it, doesn't
+  branch backward ]. Reconstructing "effective context as of round N" by
+  blindly walking every ancestor's raw delta is WRONG whenever a
+  compaction happened before N : it would hand the model MORE context
+  than it actually had when it produced round N's real response.
+  **Resolution**: give each `round_chain` entry a `type => 'round' |
+  'compaction'` field. A compaction node's `delta` is the summary text
+  `coding.async.compact_context` actually produces, checksummed the same
+  way as any other node [ `chain_L13($parent, encode($summary))` ] -- no
+  separate bookkeeping mechanism needed, it's just a second node type in
+  the same array.
+
+  **terminology, refined same day**: a compaction node MASKS a prior
+  range, it does not replace it -- "replaces" implies the underlying
+  nodes are gone, which is backwards from what makes this whole design
+  work. Nothing is ever destroyed in the chain itself; masked round nodes
+  stay fully intact and directly rewindable-to on their own. Masking only
+  affects FORWARD reconstruction from a point at-or-after the mask --
+  it's invisible/inert to anyone addressing a masked node directly. Field
+  name accordingly: `masks_from => $round_num` [ default `0` -- "masks
+  everything before me" is the simpler/more general case for a reusable
+  primitive ]. The real `compact_context` caller sets `masks_from => 1`
+  in practice [ matching its actual `protect_start=2`, i.e. round 0 /
+  genesis stays unmasked -- system + first user message never compacted
+  ], but that's caller policy, not a hardcoded exception in the node
+  schema or the reconstruction algorithm : one uniform rule covers both
+  cases. A SECOND compaction event chains incrementally -- its
+  `masks_from` points to right after the FIRST compaction node, not back
+  to round 1 again, matching how `compact_context` actually operates live
+  [ on whatever's currently in the array, which after a first compaction
+  already has the earlier detail collapsed into one message ] ; keeps
+  reconstruction cheap, walking compaction nodes forward, each covering
+  only its own gap.
+
+  **reconstruction rule**: walking backward from a target node, stop
+  expanding raw deltas at the MOST RECENT compaction node encountered --
+  use its summary for everything from its `masks_from` up to itself,
+  don't keep walking into full detail past it. Consequence: rewinding to
+  a round BEFORE a compaction still gets that round's true full content
+  [ masking never touched the chain's own copy ] ; resuming FROM a round
+  AFTER a compaction correctly reconstructs the same masked view that
+  round actually operated on, not an inflated one. This reverses the
+  earlier "leaning excluded" call on compaction below -- it belongs in
+  the chain, distinguished by type.
+
+- **resolved, same day**: delta encoding reuses existing infrastructure
+  rather than inventing a bespoke format -- `context.util.tree.
+  canonical_json` already exists exactly for this [ "deterministic JSON
+  encoding for checksum stability [ recursive ]" ], and
+  `context.tree.summary.add-event` already combines it with
+  `chk-sum.bmw.L13-str` for its own content-addressed event checksums --
+  direct precedent, not a new pattern. Since a round's delta is uniformly
+  an array of message hashrefs [ unlike add-event's mixed scalar+nested
+  shape ], the fit is simpler than that precedent even needs :
+  `chain_L13( $parent_chksum, <[context.util.tree.canonical_json]>->(
+  \@delta ) )`. One call, sorted-key recursion handles any future message
+  field [ tool_calls, tool_call_id, etc. ] correctly without the encoding
+  needing to know about it in advance.
+
+- **resolved, same day**: `round_chain` lives as a TOP-LEVEL sibling key
+  directly on the task record [ `$task->{'round_chain'}`, alongside
+  `execution`/`metadata`/`analysis`/`request` ], not nested under
+  `execution`. `execution` is conceptually the ephemeral, mutable
+  "current live state" bag [ status, live messages, tools, completed/
+  failed flags -- already partially rebuilt in-place by task-append's
+  resume and the injected-messages-resume block ] ; `round_chain` is the
+  opposite, a permanent append-only audit record that must survive
+  regardless of what happens to `execution`. Nesting it inside would risk
+  a real foot-gun [ future code doing `$task->{execution} = {...}`
+  wholesale would silently wipe the history ] and would block cleanly
+  addressing it independently once [[topic-task-tree-design]]'s
+  distributed convergence work wants to.
+
+- **still open**: whether ordinary SUBTASK child tasks [ not compaction,
+  resolved above ] get their own chains too or stay excluded [ leaning
+  excluded -- a subtask is already a genuinely separate task record, not
+  a round of the parent's own conversation ].
+
 ## phase 4 -- shell integration (shared pty, ytalk-style)
 
 **correction, 2026-09-13 -- this is NOT greenfield, walk it back from the
@@ -713,8 +856,8 @@ precedent live in `bin/Protocol-7`:
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,,,,..,,,,,..,,,,,,..,,,..,.,,,,.,,,.,,.,,,..,,...,...,...,.,.,,.,,,..,,,.,
-#PPV36WQKLOLTYFIQ26BIQPSXX4675RYAEQSWJCZ76GVBFVADWM65GQP3RA7INFKVLAPRMNHVTOCYY
-#\\\|M7NVC4OKSNILNLZBM3GC2PGJNY4ANILMSY6WXZIEIRKSALFQKWY \ / AMOS7 \ YOURUM ::
-#\[7]YD3GDXAV5PEXLOBJ3PY6RTPGPRL6ZXEMYK4IPMHOI3HUFDINUKAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,,.,,..,,..,,.,,,...,...,,,,,..,,...,...,,..,,,.,.,,,...,.,.,
+#D5RZGYUOMBYL37KXXLI7Y6UH5N5I3TUGZXQQIWLCRJJLU4KMDFZOQNF6F3TLTLWB2PDYELHNQTFUW
+#\\\|WXRMC6VXDVUAQJJWSOHA27UVSH2L2C2FBGRSFYP5ZRVQXEEA6I5 \ / AMOS7 \ YOURUM ::
+#\[7]MC7XXENZFOHTOM3RX5JIJGF2SSOH7PVU7NSKHZEOZKQA3W6FRUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
