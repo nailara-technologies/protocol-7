@@ -32,6 +32,18 @@ $term_cols = 20 if $term_cols < 20;    ## minimum sanity
 my $state_ref   = <nshell.state>              //= {};
 my $view_offset = $state_ref->{'view_offset'} //= 0;
 
+## split-screen active : jump to the pinned input row first [ DECSC, not    ##
+## \r-relative -- the terminal's resting cursor lives inside the            ##
+## scroll-region content area between keystrokes ], restore back to it once ##
+## this render is done so streamed content keeps scrolling correctly in     ##
+## between. off by default, zero behaviour change unless toggled on via Tab ##
+## [ nshell.split.toggle ]                                                  ##
+my $split_active = $state_ref->{'split_active'};
+if ($split_active) {
+    print "\e7";    ## DECSC : save the content-area cursor position ##
+    print "\e[" . $state_ref->{'split_row'} . ';1H';
+}
+
 my $marker_color = $colors{'p7_fg_0003'};
 my $text_color   = $colors{'p7_fg_0004'};
 
@@ -59,6 +71,7 @@ if ( $buf_len < $term_cols ) {
         print "\e[K";
     }
 
+    print "\e8" if $split_active;    ## DECRC : back to the content area ##
     STDOUT->flush();
     return;
 }
@@ -143,11 +156,12 @@ print "\e[K";    ## clear any terminal remnants past rendered content
 my $back = length($after) + ( $has_right ? length($mr) : 0 );
 print "\x08" x $back if $back > 0;
 
+print "\e8" if $split_active;    ## DECRC : back to the content area ##
 STDOUT->flush();
 return;
 
-#,,,,,..,,..,,,..,,.,,,,,,,,,,,..,,,,,.,,,,,.,..,,...,...,.,.,,,.,.,.,.,,,,,.,
-#UB2XM5ZXPJBPMLLGVUZFHOQ4OVP67L5SCWGFAGKP4UIKAFPTWDNXY6DBAOVFNUWH22FIIWTYB65RI
-#\\\|3GFUIKWVLJXMCVWRT4DS754EU7BWQGBB3GTG5RWBU2BOSMF75VF \ / AMOS7 \ YOURUM ::
-#\[7]JZ5T3652KE76UUQMPA35DVNZ5TKRVB6M7K6MUKTMT2ZKYNRIIKAA 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,..,,,,,,,.,,,..,,,.,..,,.,.,..,,...,...,,..,,.,,,..,.,.,...,
+#FGYN2U77IOIJXYGUK6BPQACEDS3THQWEVOXUS67A24B76X7DNOQFEUA2OZVQHV4EDZ4MHOMO6R5L6
+#\\\|2YHTVBE6Z2RJB7VIK3HL4GES53XXCXERTOSKXAHAS4COJQGSMSU \ / AMOS7 \ YOURUM ::
+#\[7]VI6AIBOCN2LJGXUEVXQ3GPTF6GC4POTJAZAPFPJ2577ME5FZA2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,6 +35,7 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
     editor_load cursor_render cursor_clear_old cursor_set_color
     cursor_set_animation cursor_enable cursor_disable
     frame_border_line frame_rule_line frame_colorize_content frame_bar
+    scroll_region_set scroll_region_clear pinned_row_print
     ask
 ];
 
@@ -1890,10 +1891,72 @@ sub frame_bar {
     return sprintf( '%-*s', $width, $char x $fill );
 }
 
+## split-screen : reserve the bottom N rows as a fixed area [ e.g. an input ##
+## line ], confine scrolling to the rows above via DECSTBM. once set,       ##
+## ordinary print()/"\n" into the content area scroll correctly within that ##
+## region with NO per-print bookkeeping -- the only code that needs care is ##
+## whatever draws into the reserved rows [ see pinned_row_print below ],    ##
+## since the terminal's resting cursor lives inside the scroll region       ##
+## between content prints. caller MUST call scroll_region_clear before the  ##
+## process exits or detaches from the tty, or the terminal is left with a   ##
+## partial scroll region afterward.  returns the last content row [         ##
+## 1-indexed ] on success, undef if the terminal is too small for the       ##
+## requested reservation.                                                   ##
+sub scroll_region_set {
+    my $reserved_rows = shift // 1;
+
+    my ( undef, $rows ) = terminal_size();
+    $rows //= 24;
+
+    my $content_bottom = $rows - $reserved_rows;
+    return undef if $content_bottom < 1;
+
+    ## DECSTBM : confine scroll to rows 1..content_bottom [ 1-indexed ] ##
+    print "\e[1;${content_bottom}r";
+    ## DECSTBM moves the cursor to (1,1) as a side effect [ vt100 spec ] -- ##
+    ## park it at the bottom of the new region instead, ready to print      ##
+    print "\e[${content_bottom};1H";
+    STDOUT->flush();
+
+    return $content_bottom;
+}
+
+## restore full-screen scrolling [ always pair with scroll_region_set ]
+sub scroll_region_clear {
+    my ( undef, $rows ) = terminal_size();
+    $rows //= 24;
+
+    print "\e[1;${rows}r";
+    STDOUT->flush();
+
+    return;
+}
+
+## draw into one of the fixed rows reserved by scroll_region_set without   ##
+## disturbing the content area's resting cursor position : save cursor [   ##
+## DECSC, not the legacy ANSI.SYS \e[s/\e[u pair -- DECSC/DECRC also       ##
+## preserves attributes and is the xterm-safe choice ], jump to the target ##
+## row, clear it, print, restore. caller passes an ABSOLUTE 1-indexed row  ##
+## number [ e.g. scroll_region_set's return value + 1 for the first        ##
+## reserved row ], never a relative "\r"-style redraw -- the cursor is not ##
+## reliably sitting on that row when this is called.                       ##
+sub pinned_row_print {
+    my ( $row, $text ) = @_;
+    return unless defined $row and defined $text;
+
+    print "\e7";                  ## DECSC : save cursor pos + attrs
+    print "\e[${row};1H\e[2K";    ## jump to target row, clear it
+    print $text;
+    print "\e8";    ## DECRC : restore [ back inside scroll region ]
+    STDOUT->flush();
+
+    return;
+}
+
 return TRUE ##################################################################
 
-#,,..,,.,,,,,,,..,...,..,,,..,,,.,,..,.,,,,,,,..,,...,..,,..,,,.,,,..,,,.,,.,,
-#2JGGD7Q3QGWCQU2QIDRJI56AGY6B3WMYTSDIN74MREAT6Y36A7FSNXGZKCLHBY5TJ7JRLP7T2PBNU
-#\\\|WEV7CTTA6NTBEWUUXSPNR5AENYH37KQT72EVW5HT4HMY73PISZV \ / AMOS7 \ YOURUM ::
-#\[7]GSKAUU5AFMKV45QOMXRZMW2XPDTQM6AUGPNLTBL63WLICOC45YBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,..,...,,,,,...,,,,,.,.,,..,,.,,..,,...,...,.,.,...,,,,,,,,,,,,,
+#LID3XVSKUVGM6XVLAP4GBJJ7L5HDO454BRFR3NAEEYQX7POCLLYJ22H4S562JFO3JZQWBJXJKN4BK
+#\\\|VGLRAUPZQ2PPDX4WV5PLOWNK5KY44MVZI5R63RFN7SR6SKT4XVX \ / AMOS7 \ YOURUM ::
+#\[7]5KBYVURRYJBHJIM6J5FB5C6TSXS7P7DOHIKNYOBW6WXWOXF33OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

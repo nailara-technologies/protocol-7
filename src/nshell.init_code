@@ -86,7 +86,7 @@ if (<nshell.mode.no_tty_debug>) {    ## present only in no-tty-debug mode ##
     $code{'nshell.handler.debug_input'} = sub { };
 
     <nshell.watcher.buffer.debug_input> = <[event.add_var]>->(
-        {   'var' => \$data{'nshell'}{'buffer'}{'debug_input'},
+        {   'var'     => \$data{'nshell'}{'buffer'}{'debug_input'},
             'poll'    => qw| w |,
             'handler' => qw| nshell.handler.debug_input |,
             'repeat'  => TRUE,
@@ -118,6 +118,12 @@ AMOS7::TERM::cursor_enable();
 ## Set end_code callback to restore terminal mode before exit
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 2, ': restoring terminal mode ..,' );
+    ## split-screen mode leaves a partial scroll region [ DECSTBM ] on the ##
+    ## real terminal if never cleared -- must run on every exit path, not  ##
+    ## just a clean Tab-toggle-off, or the user's terminal stays broken    ##
+    ## after nshell exits [ Ctrl+C included, this hook covers both ]       ##
+    AMOS7::TERM::scroll_region_clear()
+        if ( <nshell.state> // {} )->{'split_active'};
     print "\e[?25h";    ## Show terminal cursor before exit
     <[nshell.term_restore]>;
     <[base.exit]>->( '[ terminal restored ]', 1 );
@@ -132,8 +138,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,,.,,..,,..,..,,,.,,.,,,,..,,,,,...,,,,,,..,..,,...,...,.,.,,.,,.,,,,.,,...,
-#FLV6PU6WOXWH4WS6WWVUW3D2O4K4H4FW7BPZYHC3D2H4J6PUKRLTEYAYXHOPOCI7VB72BTM7JWMZG
-#\\\|4H32WAWXEBLRTNHQDD5UVJ6AALAUULWXGTKEUEAIC342KFEQE7O \ / AMOS7 \ YOURUM ::
-#\[7]CVKSM4JBOLQSCULGAE7QU4MVCPN44Z7BP4Z22VNUQ2N76W4LDOCA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,,,.,.,,,.,,,,,.,.,.,,,,,..,,..,,...,..,,,,.,...,..,,..,,.,,,
+#7JQPZRFJLKKXR6FGLFNB6JPFBWQAB3SKSJ3HFPQK77MWWUMU7WZNL6X62D2PXIQYNV6G6MXSWHKBC
+#\\\|PDQ7IYA7JSWZICGPUVF67CHXVF6MTOJ3JRG223H2ICQ5VGAQML4 \ / AMOS7 \ YOURUM ::
+#\[7]WO3IYACZEBZ7VWZN6YL2JM5XHAITXWJT5GJLG3PI42ZPRCXDJEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
