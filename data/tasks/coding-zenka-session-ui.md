@@ -327,6 +327,46 @@ none built yet:
    improvement over the current client-side workaround, not just an
    alternative -- worth doing instead of hardening the two-step dance
    further. touches `coding.cmd.submit`, a different zenka than nshell.
+   still worth doing eventually, but see the bug below -- the two-step
+   dance was not merely racy, it was structurally 100% dead until
+   2026-09-14.
+
+**real bug found + fixed 2026-09-14 : `on_reply` never fired at all,
+for any task, ever.** live-tested Esc-abort and got the actual
+"the task just keeps going" symptom the design was meant to prevent --
+traced with `p7_command`/source-reading rather than guessing further.
+root cause: `coding.cmd.submit` replies with `mode => 'size'`, not
+`'true'`. Confirmed via `base.handler.command.process_reply`'s
+`unknown-reply-route` hook call [ nshell never sets up route
+correlation for its transparent-relay commands, so every reply lands
+here regardless of mode ] -- it passes `'data' => undef` for
+TRUE/FALSE/WAIT/GET/TERM, but a real extracted payload string for
+SIZE/STRM/CHRSIZE/STRM-SIZE. `nshell.handler.command_reply` only ever
+called the mode plugin's `on_reply` hook inside its
+`if (not defined $payload_str)` branch -- exactly the branch a
+SIZE-mode ack never takes. So `task_id` was never bound to the tab, on
+ANY submit, ever: subscribe-session was never queued [ hence "never
+actually streams, only shows the dispatch ack" -- this was NOT a
+race, the follow-up command was never sent to begin with ], and
+`on_escape` always saw an unbound mode and could only ever hit its
+"clear leftover buffer" branch, never the abort branch [ hence Esc
+looking like it "worked" once by coincidence -- it was clearing the
+buffer, not aborting anything, and the earlier "clean completion"
+observation was the task finishing on its own, untouched ].
+
+fixed in `nshell.handler.command_reply`: the plugin dispatch now runs
+once, before either branch, passing `payload_str` when defined
+[SIZE/STRM/...] else `args` [TRUE/FALSE/WAIT/...] as the reply text --
+covers both reply shapes uniformly instead of assuming TRUE-only. Also
+added a "claimed" contract: a truthy return from `on_reply` now
+suppresses the raw ack print in both branches [ was always printed
+unconditionally before ], so a bound task hides its `task:X|...` ack
+line and the live stream takes over the content area directly instead
+-- addresses the user's separate observation ("shows the task
+dispatched message instead of hiding it and starting streaming
+directly") in the same fix, since both symptoms traced to the same
+never-fires call site. NOT yet live-retested end to end at time of
+writing -- do that before considering phase 1/Esc "done".
 
 ## phase 2 -- interactive controls
 
@@ -640,8 +680,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,.,..,,,,,,,.,,,,,,,,,,,.,,,.,,,.,,,,,,.,,,..,,...,..,,,..,.,,,,,.,..,,,,.,
-#MROP4YXQQKBCIVXKHM5FMHMD4KBQ7PBP6XQCTCINWKFDT2RUY24KHJCBOL3GAIVRWBGCOY7YKKPES
-#\\\|Q56ADRUH7E3MXUW2APH2GWMG3J552AIKIJCYW5F3REPZBWCCS6A \ / AMOS7 \ YOURUM ::
-#\[7]EEGF75I4PURI5FLTVC5E2ECO5REQH5YJTHEAXOZWEBDSN4DI5ADY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,,.,,.,,,..,,.,,,...,,,,,,..,..,,...,...,...,,,.,...,,.,,...,
+#6AK57WPF3FS57VV62WYUSMPVHW7OHDVEBURLRAIFIJJJ3ATCCRCQSPBUTHGG7KH5S7ZYRJVH2CSFE
+#\\\|N3HIG4ML3O2OVE4WYZWPDSNKICUOJP26SULBXI2KYOCDPVXF4DF \ / AMOS7 \ YOURUM ::
+#\[7]MFZXLIH4GWSXLNA4YG42GT6HIS75NQ6L66OIZ7O7KD4QGG52WACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
