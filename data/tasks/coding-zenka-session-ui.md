@@ -200,6 +200,82 @@ clean close, no corruption on the follow-up call. Terminal chrome
 (ascii.frame wrapping) still not built -- phase 1 proved the data path,
 not the UI presentation layer; that's the natural next slice.
 
+**split-screen hardening round, live-verified 2026-09-14** (follow-up to
+`bcf1b4cb5`): the initial cut had three real bugs, all found live by the
+user and fixed in sequence:
+1. the styled separator (`frame_rule_line`) filled the terminal to its
+   exact width, triggering pending-wrap and bleeding the next print onto
+   the same visual row -- fixed by reserving one column, same guard
+   `nshell.render.viewport`'s own overflow path already uses.
+2. `scroll_region_clear` only reset the DECSTBM boundary, never the
+   actual screen content drawn into the reserved rows -- left visible
+   debris on Tab-cycle-back and process exit. now takes the reserved-row
+   count and clears + parks the cursor at the bottom row; the separator
+   itself is redrawn by `render.viewport` on every render (not just once
+   at Tab-press) so it self-heals after a `clear` command too.
+3. the real "two cursors" bug: `render.viewport`'s input-line jump used
+   to restore the cursor back to wherever it was before the jump --
+   correct for background content, wrong for the input line itself,
+   which should keep the cursor (matching nshell's existing single-
+   cursor convention: the drawn highlight IS the cursor). fixed by
+   removing that restore for the input case, and instead moving the
+   save/jump/restore burden onto a new shared `nshell.render.content_print`
+   used by every background-content print site (`command_reply`'s
+   single-line and SIZE/multi-line paths, `strm_reply`'s chunk and
+   status-line prints, and `read_from_buffer`'s two idle-cursor draws,
+   which were ALSO split-unaware and are now unified to just call
+   `render.viewport` instead of duplicating cursor-drawing logic).
+
+**known follow-up, deliberately not done now**: `content_print`'s
+content-area column tracking is an approximation (counts characters/
+newlines in what was printed, not a terminal-verified position) --
+correct for typical text, could drift for a genuinely wrapped line. user
+raised using `Term::VTerm` directly (NOT the untested `vterm.*` P7
+wrapper, which solves a different problem -- SHM multi-client sharing --
+nshell doesn't need) as a more robust, ANSI-safe alternative: feed
+content into a real local terminal emulator instance, blit its resolved
+cell buffer onto the real terminal, eliminating the column-approximation
+class of bug entirely. deliberately deferred -- current approach is
+live-verified working (`clear` safe, replies visible, typing responsive)
+and this would be a real rewrite, not a fix for a demonstrated problem.
+revisit if the approximation ever visibly breaks on real streamed
+content (long wrapped lines, ANSI-bearing model output).
+
+**design note for when this IS revisited, recorded 2026-09-14 (not built,
+just captured so the eventual design doesn't preclude it):** user's
+direction -- a `Term::VTerm`-backed renderer, when built, should live as
+a new shared library module (something like `AMOS7::VTerm`), not nshell-
+embedded, not folded into `AMOS7::TERM.pm` (different concern -- that's
+local line-editing/password/frame-drawing), and not the existing
+`vterm.*` P7 wrapper (different concern -- SHM multi-client sharing +
+consensus blending nshell doesn't need). reuse target: phase 4's real
+host-shell/"bash tab" mode needs actual terminal emulation for the same
+reason a coding-session content region would benefit from it -- one
+primitive, two consumers, zero rework if built shared from the start.
+Also: user wants vterm buffers to eventually be network-exportable/
+importable ("there will be headless Term::VTerm instances, I am
+certain") -- this is the SAME thread as the host-transcendent /
+P7REF-addressable-panes vision recorded earlier in this file, not a new
+idea -- a vterm buffer is exactly the "content + input-routing +
+persistent state" object that vision already assumed. Keep the buffer's
+internal representation cleanly serializable when it's eventually built,
+so export/import isn't a later retrofit -- but do not build the
+export/import mechanism itself until a real headless-instance need
+exists.
+
+**refinement, 2026-09-14: the module must be multi-buffer capable, not a
+singleton.** maps directly onto `nshell.display.cycle`'s existing
+`display_modes` list -- each mode needing real terminal emulation (a
+coding session, a future bash tab, a remote nshell connection) holds a
+KEY into a multi-buffer registry, not a shared implicit global instance.
+matters beyond just "multiple tabs exist": a backgrounded shell command
+needs to keep running and updating its terminal state while a DIFFERENT
+mode is focused, not pause just because it isn't the visible one -- only
+works if each buffer is independently addressable and persists
+regardless of focus. API shape should be keyed (create/write/read/
+destroy against a specific buffer id) from the start, not singleton-
+then-retrofitted-to-keyed later.
+
 **split-screen prerequisite DONE, live-verified 2026-09-14** (`bcf1b4cb5`):
 nshell now supports a Tab-toggled split mode -- pinned input line at the
 bottom, live-streaming content scrolls above it via a real DECSTBM
@@ -438,8 +514,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,..,,..,,,.,,,,,,,.,...,,.,,.,,,,,,,...,...,..,,...,...,,,,,...,,.,,.,.,.,.,
-#47EBMHI7EF3ZIOOIWDOJRQV7BS2G6OHYCEULOB3DRQ44Y7MENZWDSXY5QYVFPMW2B4NCN3GUHBZAO
-#\\\|ELOLZ5KC5QXFJTN34MTKV54SHQCC6SZKDBR7DUDKJACDU3LJIYC \ / AMOS7 \ YOURUM ::
-#\[7]NKHPA26U5ZRT224FGI5BMO7JFCJUYT3ZTD73G55LYVXC25665YBA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,..,,.,,,,..,,.,,,,,,.,.,.,,,..,,...,...,..,,,,.,,.,,,,,,,..,
+#OMWQ22R5LZHF4ZD5MQEXMEWW7S4CDWHPPJNNJ2JN6A7TFILKRN2X2OVOWHJI6YTSO6SBUHO3ZDQT6
+#\\\|T3D5TSXK5WRDOWFFS26KGM2ICQBZ4MZRNP5Q4G3JP52LAWYU4WB \ / AMOS7 \ YOURUM ::
+#\[7]5UP5V643DWH3WHCJG2KZTGL5FKBYW7DEIYXKPCFDFF5FZ2VJB4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

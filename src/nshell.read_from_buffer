@@ -51,8 +51,11 @@ if ($show_cursor_on_call) {
         }
         ## [ clear line and render preloaded entry ]
         ## [ \r\e[2K avoids wrap on long lines, matches arrow handler behavior
-        ## ]
-        print "\r\e[2K";
+        ## -- skipped when split mode is active : it's \r-relative [ clears
+        ## whatever row the cursor currently happens to be on, not necessarily
+        ## the input row ], and nshell.render.viewport already positions +
+        ## clears the input row correctly on its own ]
+        print "\r\e[2K" unless $state_ref->{'split_active'};
         $state_ref->{'view_offset'} = 0;
         <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
     } else {
@@ -62,9 +65,13 @@ if ($show_cursor_on_call) {
             print "\n\n";
             delete $state_ref->{'needs_newline_prefix'};
         }
-        ## Just display cursor on empty line
-        print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
-        STDOUT->flush();
+        ## show cursor on the [ usually empty ] input line -- delegate to ##
+        ## the shared renderer instead of a bespoke \r-relative print :   ##
+        ## that was split-mode-unaware and could draw a stray cursor      ##
+        ## disconnected from the real input row [ nshell.render.viewport  ##
+        ## already renders an empty buffer correctly AND handles split    ##
+        ## positioning -- confirmed by tracing its no-overflow branch ]   ##
+        <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
     }
 
     return undef;    ## Return to event loop to display cursor before input
@@ -366,8 +373,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,..,.,.,.,,,,,,,,,.,,.,,.,,,,,.,,.,,,,.,...,.,.,...,...,,..,,,.,,.,,.,.,..,,
-#W4RVV7ZSUU7MEPOXJWASNHXLD3AX3VC5QFRMDV4EJHKD7AZFUMG4CTT7YIIM3T2IYGKJW3CJW37AM
-#\\\|BVQNNNQJ4ECGST6ZDLBQHSYCDKIJFLW3LNOSU3RU4MESOJW2PX7 \ / AMOS7 \ YOURUM ::
-#\[7]G6FCCDM5AALCWJG57BV4NPWO4A7JMDFL6UA4SQPVUTHEHHODEMBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,..,,.,,,..,,..,,,..,,..,.,,,.,.,...,..,,,,.,..,,,,,,.,.,,,,,
+#O2FKIFOFFK2FV5J6XGU3ZOWNKJJC2ND6DNVMSQKSSJGZT3O3XP3P2XESDMEVO55DFSTPPKMIEKBX2
+#\\\|EUS4NJ43RF2NCA6DTDB6NMAA2PC3R5FKH27EWOAYXAGA7QAWY5S \ / AMOS7 \ YOURUM ::
+#\[7]FO7DGH57ZOZZJXHNVKCXN4DQATH6VQ6N4OZ2L5TYZEJXRLIPEMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = nshell.display.cycle
+# descr = cycle to the next display mode [ Tab key ]
+
+my $state_ref = <nshell.state> //= {};
+
+## ordered mode list -- index 0 is always plain nshell [ no scroll region,  ##
+## full screen ]. later modes are added here as they get built [ one entry  ##
+## per subscribed coding session eventually, a remote nshell connection,    ##
+## etc ] -- Tab always just advances the index, no redesign needed when the ##
+## list grows past 2                                                        ##
+my $modes = $state_ref->{'display_modes'} //= [
+    { 'name' => qw| shell | },
+    { 'name' => qw| session |, 'title' => 'coding session' },
+];
+
+my $index      = $state_ref->{'display_mode_index'} //= 0;
+my $next_index = ( $index + 1 ) % scalar( @{$modes} );
+
+## tear down whatever the CURRENT mode reserved -- clears the rows' actual  ##
+## screen content too, not just the scroll boundary, so nothing survives as ##
+## visual debris [ pass the reserved-row count the CURRENT mode used ].     ##
+## only non-shell modes hold a scroll region today, but this stays correct  ##
+## once a second non-shell mode exists too [ session -> session also tears  ##
+## down and re-sets, not a no-op ]                                          ##
+AMOS7::TERM::scroll_region_clear( $state_ref->{'split_reserved_rows'} // 0 )
+    if $state_ref->{'split_active'};
+
+my $new_mode = $modes->[$next_index];
+
+if ( $new_mode->{'name'} eq qw| shell | ) {
+
+    $state_ref->{'split_active'} = FALSE;
+    delete $state_ref->{'split_row'};
+    delete $state_ref->{'split_reserved_rows'};
+    delete $state_ref->{'split_title'};
+
+} else {
+
+    ## non-shell mode : reserve 2 rows -- one styled separator [ via the    ##
+    ## existing frame_rule_line primitive, same title-left/fill-right style ##
+    ## as `list`'s own output -- REDRAWN by nshell.render.viewport on every ##
+    ## keystroke, not just here, so it self-heals after a `clear` command   ##
+    ## or anything else that wipes the screen ], one editable input line    ##
+    my $content_bottom = AMOS7::TERM::scroll_region_set(2);
+
+    ## terminal too small : refuse the cycle rather than leave a half-set ##
+    ## scroll region, fall back to shell mode cleanly                     ##
+    if ( not defined $content_bottom ) {
+        $state_ref->{'split_active'} = FALSE;
+        delete $state_ref->{'split_row'};
+        delete $state_ref->{'split_reserved_rows'};
+        delete $state_ref->{'split_title'};
+        <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
+        return undef;
+    }
+
+    $state_ref->{'split_active'} = TRUE;
+    ## input row ##
+    $state_ref->{'split_row'}           = $content_bottom + 2;
+    $state_ref->{'split_reserved_rows'} = 2;
+    $state_ref->{'split_title'}         = $new_mode->{'title'} // '';
+
+    ## the separator itself is drawn by nshell.render.viewport, on every   ##
+    ## render, not here -- makes it self-healing against a `clear` command ##
+    ## or anything else that wipes the screen, instead of only appearing   ##
+    ## once at the moment of the Tab press                                 ##
+}
+
+$state_ref->{'display_mode_index'} = $next_index;
+
+## force an immediate render of the current input line [ + separator, if ##
+## the new mode has one ] at its new spot                                ##
+<[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
+
+return TRUE;
+
+#,,,,,.,,,,..,,.,,...,,,,,,,.,.,,,.,,,.,.,,..,..,,...,...,..,,...,.,.,,..,,..,
+#HMJPYPADP5T5NLNS33TRMRWB7OZATBS262YOLWYYY4XMFRA5TLYEZ7OS3U2L7OJA2Z7PQFBADZHRQ
+#\\\|LIGJCKAZYNUJQBGLHQKPIAIUKAIZP7AFSIBCA6C5XQQWNNLR65P \ / AMOS7 \ YOURUM ::
+#\[7]32UORUNBFRIOKHFIV66M4XPOYLIJULQTODEMBVWB2K6KI42276CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

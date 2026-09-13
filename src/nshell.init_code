@@ -118,12 +118,20 @@ AMOS7::TERM::cursor_enable();
 ## Set end_code callback to restore terminal mode before exit
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 2, ': restoring terminal mode ..,' );
-    ## split-screen mode leaves a partial scroll region [ DECSTBM ] on the ##
-    ## real terminal if never cleared -- must run on every exit path, not  ##
-    ## just a clean Tab-toggle-off, or the user's terminal stays broken    ##
-    ## after nshell exits [ Ctrl+C included, this hook covers both ]       ##
-    AMOS7::TERM::scroll_region_clear()
-        if ( <nshell.state> // {} )->{'split_active'};
+    ## split-screen mode leaves a partial scroll region [ DECSTBM ] AND the ##
+    ## separator/input rows' actual screen content on the real terminal if  ##
+    ## never cleared -- must run on every exit path, not just a clean       ##
+    ## Tab-cycle-back, or the user's terminal stays broken and/or shows     ##
+    ## leftover debris after nshell exits [ Ctrl+C included, this hook      ##
+    ## covers both ]. pass the reserved-row count so the rows' content gets ##
+    ## erased too, not just the scroll boundary reset                       ##
+    my $_nshell_state_exit = <nshell.state> // {};
+    if ( $_nshell_state_exit->{'split_active'} ) {
+        AMOS7::TERM::scroll_region_clear(
+            $_nshell_state_exit->{'split_reserved_rows'} // 0 );
+        print "\n";    ## fresh line so whatever prints after isn't glued ##
+        ## to the just-cleared bottom row                 ##
+    }
     print "\e[?25h";    ## Show terminal cursor before exit
     <[nshell.term_restore]>;
     <[base.exit]>->( '[ terminal restored ]', 1 );
@@ -138,8 +146,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,..,,,,,.,.,,..,,,.,.,,,.,,,,,.,.,.,,,,,..,,..,,...,..,,,,.,...,..,,..,,.,,,
-#7JQPZRFJLKKXR6FGLFNB6JPFBWQAB3SKSJ3HFPQK77MWWUMU7WZNL6X62D2PXIQYNV6G6MXSWHKBC
-#\\\|PDQ7IYA7JSWZICGPUVF67CHXVF6MTOJ3JRG223H2ICQ5VGAQML4 \ / AMOS7 \ YOURUM ::
-#\[7]WO3IYACZEBZ7VWZN6YL2JM5XHAITXWJT5GJLG3PI42ZPRCXDJEAY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,.,,,..,,.,,,,.,.,,,,.,,..,,..,,...,...,,.,,...,.,.,,..,,,.,
+#32LGMF2OLUX2EGDU6PZMUNOJEXLPWQ4VQM6VLYVDUOROV6NWCDT6666Y3ODWOVZKR5JIEEUYGHVRO
+#\\\|Y4IMRSL6AY2PP5DLN3SFL5NVCNVNQ7SD2MMRC6I4HXCUPKTRWZK \ / AMOS7 \ YOURUM ::
+#\[7]ZL7WOEOAW3DVRIR5MG5NX4VRAUKUNZKBH543TGHOTVI3WQWWSWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
