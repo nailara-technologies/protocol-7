@@ -6,6 +6,14 @@
 
 my ( $editor, $key, $colors ) = @ARG;
 
+## Tab toggles split-screen streaming display mode -- intercepted here, ##
+## before the editor engine, since Tab has no existing binding there [  ##
+## confirmed : editor.control.process_key has no Tab branch ]           ##
+if ( $key eq "\t" ) {
+    <[nshell.split.toggle]>;
+    return undef;
+}
+
 ## Initialize editor on first key
 $editor //= <[editor.control.create]>->(<[nshell.editor.default_schema]>);
 
@@ -149,8 +157,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,.,.,,,,..,,.,,.,.,..,,,,.,,,,,,,.,.,,,,..,.,.,...,...,.,,,.,.,,..,.,.,.,.,
-#3T2VMSQHEGV45S6BQQRO6MCDCD3XP5R6H4I6Z5KC3JXSTTVHSBRSUMDC3NXFDUTC55T7FBESVAQ4S
-#\\\|VIJVNCK2XSFLXA5CME2FUUSWDDLUN2NBP2EPWZQYKD2KKSQ2IFK \ / AMOS7 \ YOURUM ::
-#\[7]TQF6UGV4MSER45LRYOUVLU24MNEFQUDNFOTWFNF65KXJETGFD2CI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,.,.,...,.,,,.,.,..,,...,,,,,.,.,...,...,..,,,..,..,,,.,,..,,
+#IFPAB3V3KZIL4KQSG24XVDKG64QRSPNW6UWVB2VJ4BNQXBU7IV2VFWFJ6VKBPJCMLEBXPKW4IRBDM
+#\\\|G7LX3MA5QVE3ZL4XI34NCWYWD6KT5PUX4KE33N7XRZW2PI76G66 \ / AMOS7 \ YOURUM ::
+#\[7]S642O2X2GDERFTYVHAZRYARMPOLB6O7262EYDJR2TPDBRISYZMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
