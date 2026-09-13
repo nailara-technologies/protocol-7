@@ -15,6 +15,7 @@ use Encode      qw| encode |;
 use Fcntl       qw| FD_CLOEXEC F_SETFD F_GETFD |;
 use Crypt::Misc qw| encode_b32r |;
 use IO::Socket::UNIX;
+use IO::Select;
 use FindBin qw| $RealBin |;
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -66,6 +67,12 @@ my $socket_path = $ENV{'PROTOCOL_7_UNIX_PATH'} // eval {
 my $auth_user = sprintf 'unix-%s',
     ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
         // 'root' );
+
+## strm drain safety valve bounds [ used by drain_strm_stream below ; must ##
+## live before the main loop -- file-scope assignments positioned after it ##
+## never execute ]                                                         ##
+my $strm_idle_timeout = $ENV{'PROTOCOL_7_MCP_STRM_IDLE_TIMEOUT'} // 120;
+my $strm_max_bytes    = $ENV{'PROTOCOL_7_MCP_STRM_MAX_BYTES'}    // 1048576;
 
 ## extend PATH with known per-user tool install dirs not present in mcp env ##
 do {
@@ -1614,6 +1621,41 @@ sub sock_read_bytes {
     return $data;
 }
 
+## idle-bounded variants for the STRM drain loop [ select-based, no signals ##
+## ] : can_read gates every sysread, so a quiet-but-open stream trips the   ##
+## safety valve instead of blocking the whole mcp server.  returns ( $data, ##
+## undef ) on success, ( undef, 'timeout'|'eof' ) else                      ##
+
+sub sock_readline_timed {
+    my ( $sock, $idle_timeout ) = @ARG;
+    my $sel  = IO::Select->new($sock);
+    my $line = '';
+    my $byte;
+    while (1) {
+        return ( undef, 'timeout' ) if not $sel->can_read($idle_timeout);
+        my $n = sysread( $sock, $byte, 1 );
+        return ( undef, 'eof' ) if not defined $n or $n == 0;
+        $line .= $byte;
+        last if $byte eq "\n";
+    }
+    chomp $line;
+    return ( $line, undef );
+}
+
+sub sock_read_bytes_timed {
+    my ( $sock, $count, $idle_timeout ) = @ARG;
+    my $sel  = IO::Select->new($sock);
+    my $data = '';
+    while ( length($data) < $count ) {
+        return ( undef, 'timeout' ) if not $sel->can_read($idle_timeout);
+        my $chunk;
+        my $n = sysread( $sock, $chunk, $count - length($data) );
+        return ( undef, 'eof' ) if not defined $n or $n == 0;
+        $data .= $chunk;
+    }
+    return ( $data, undef );
+}
+
 sub cube_connect {
     if ( defined $cube_sock ) {
         ## verify socket is still alive [ connected() is unreliable for
@@ -1756,6 +1798,16 @@ sub cube_command_multiline {
         return ( 1, $data );
     }
 
+    ## STRM / STRM-SIZE stream reply -- drain all frames [ prefix- tolerant ##
+    ## : '(5)STRM open' and '(5) STRM open' both match ]                    ##
+    if ( $first_line =~ m{^(?:\( \d+ \)\s*)?STRM(?:-SIZE)?\s+open\b}x ) {
+        return drain_strm_stream( $sock, $first_line );
+    }
+
+    ## unknown reply type -- disconnect before returning raw : any type    ##
+    ## with trailing frames [ CHRSIZE, future types ] would leave bytes in ##
+    ## this cached socket and corrupt the next unrelated call              ##
+    cube_disconnect();
     return ( 1, $first_line );
 }
 
@@ -1764,6 +1816,167 @@ sub cube_disconnect {
         sock_write( $cube_sock, "close\n" ) if $cube_sock->connected;
         close($cube_sock);
         $cube_sock = undef;
+    }
+}
+
+##[ strm safety valve bounds ]##
+##
+## idle-primary, bytes-secondary [ task: mcp-server-p7-strm-support ] : an ##
+## idle bound distinguishes [ still producing ] from [ parked open         ##
+## indefinitely ] without truncating legitimately slow bounded streams ;   ##
+## the byte cap stops a fast runaway producer from ballooning one tool     ##
+## result without limit. both env-overridable for callers expecting a long ##
+## quiet stretch. initialized in the configuration section above the main  ##
+## loop [ file-scope assignments after it never execute ]                  ##
+
+## drain an STRM / STRM-SIZE reply stream [ frames : open / push / close  ##
+## per src/base.stream.* ]. hard invariant : every exit either reaches a  ##
+## clean close with the socket left byte-clean, or tears the socket down  ##
+## via cube_disconnect -- never a partial-return with frames left in the  ##
+## cached socket's receive buffer. never retries : server-side effects of ##
+## the command already happened once the first reply line arrived         ##
+sub drain_strm_stream {
+    my ( $sock, $first_line, $opt ) = @ARG;
+    $opt //= {};
+    my $idle_timeout = $opt->{'idle_timeout'} // $strm_idle_timeout;
+    my $max_bytes    = $opt->{'max_bytes'}    // $strm_max_bytes;
+
+    ## parse the already-read open frame [ strip (N) cmd-id prefix first, ##
+    ## both spacings : '(5)STRM open' and '(5) STRM open' ]               ##
+    ( my $open_line = $first_line ) =~ s{^\( \d+ \)\s*}{}x;
+    my ($total) = $open_line =~ m{^STRM(?:-SIZE)?\s+open\s+(\d+)\s*$};
+    ## bare 'open' carries no total : unbounded stream, close frame is its ##
+    ## only terminator [ declared totals are always > 0, so defined vs     ##
+    ## undef is a clean two-way test ]                                     ##
+
+    log_msg( 'STRM stream open [ %s ] -- draining',
+        defined $total ? "bounded, $total bytes" : 'unbounded' );
+
+    my $payload        = '';
+    my $received_bytes = 0;
+    my $last_frame_at  = Time::HiRes::time();
+
+    while (1) {
+        my ( $header, $hdr_err )
+            = sock_readline_timed( $sock, $idle_timeout );
+
+        if ( not defined $header ) {
+            cube_disconnect();    ## invariant : no partial-return
+            if ( $hdr_err eq 'timeout' ) {
+                my $idle_secs = Time::HiRes::time() - $last_frame_at;
+                log_msg( 'STRM valve trip : %.0f s idle, %d bytes collected',
+                    $idle_secs, $received_bytes );
+                return (
+                    1,
+                    $payload
+                        . sprintf(
+                        "\n[stream still open, %d bytes collected, "
+                            . '%.0f seconds idle]',
+                        $received_bytes, $idle_secs
+                        )
+                );
+            }
+            log_msg('connection lost during STRM header read');
+            return ( 0, 'connection lost during STRM read' );
+        }
+
+        $last_frame_at = Time::HiRes::time();
+        $header =~ s{^\( \d+ \)\s*}{}x;    ## (N) prefix, both spacings
+
+        ## close frame : the only exit that keeps the socket cached ##
+        if ( $header =~ m{^STRM(?:-SIZE)?\s+close\s*$} ) {
+            if ( defined $total and $received_bytes != $total ) {
+                ## bounded-total mismatch is a real failure [ p7c.c mirrors ##
+                ## this check ] ; socket state indeterminate                ##
+                log_msg( 'STRM total mismatch : %d of %d bytes received',
+                    $received_bytes, $total );
+                cube_disconnect();
+                return (
+                    0,
+                    sprintf(
+                        'incomplete STRM stream : %d of %d bytes received',
+                        $received_bytes, $total
+                    )
+                );
+            }
+            log_msg( 'STRM stream closed : %d bytes', $received_bytes );
+            return ( 1, $payload );    ## clean exit, socket stays cached
+        }
+
+        ## abnormal termination from a gated upstream relay ##
+        if ( $header =~ m{^!TRM!} ) {
+            log_msg( 'STRM !TRM! after %d bytes', $received_bytes );
+            cube_disconnect();
+            return (
+                1,
+                $payload
+                    . sprintf(
+                    "\n[stream terminated abnormally by !TRM!, "
+                        . '%d bytes collected]',
+                    $received_bytes
+                    )
+            );
+        }
+
+        ## push frame : exact chunk_len header, then exactly that many    ##
+        ## payload bytes [ framing is never guesswork, unbounded or not ] ##
+        if ( my ($chunk_len) = $header =~ m{^STRM(?:-SIZE)?\s+(\d+)\s*$} ) {
+            my ( $chunk, $chk_err ) = ( '', undef );
+            if ( $chunk_len > 0 ) {
+                ( $chunk, $chk_err )
+                    = sock_read_bytes_timed( $sock, $chunk_len,
+                    $idle_timeout );
+            }
+            if ( not defined $chunk ) {
+                cube_disconnect();    ## invariant : no partial-return
+                if ( $chk_err eq 'timeout' ) {
+                    my $idle_secs = Time::HiRes::time() - $last_frame_at;
+                    log_msg(
+                        'STRM valve trip mid-frame : '
+                            . '%.0f s idle, %d bytes collected',
+                        $idle_secs, $received_bytes
+                    );
+                    return (
+                        1,
+                        $payload
+                            . sprintf(
+                            "\n[stream still open, %d bytes collected, "
+                                . '%.0f seconds idle]',
+                            $received_bytes, $idle_secs
+                            )
+                    );
+                }
+                log_msg('connection lost during STRM payload read');
+                return ( 0, 'connection lost during STRM payload read' );
+            }
+            $payload .= $chunk;
+            $received_bytes += $chunk_len;
+            $last_frame_at = Time::HiRes::time();
+
+            ## secondary bound : byte cap against runaway producers ##
+            if ( $received_bytes > $max_bytes ) {
+                log_msg(
+                    'STRM valve trip : byte cap %d exceeded [ %d bytes ]',
+                    $max_bytes, $received_bytes );
+                cube_disconnect();
+                return (
+                    1,
+                    $payload
+                        . sprintf(
+                        "\n[stream still open, %d bytes collected, "
+                            . 'byte cap %d reached]',
+                        $received_bytes, $max_bytes
+                        )
+                );
+            }
+            next;
+        }
+
+        ## unrecognised frame header : position in the byte stream is ##
+        ## unknown, so the socket cannot stay cached                  ##
+        log_msg( 'unrecognised STRM frame : %s', $header );
+        cube_disconnect();
+        return ( 0, "unrecognised STRM frame: $header" );
     }
 }
 
@@ -1834,7 +2047,15 @@ sub cube_command {
         return ( 0, "command not acknowledged: $reply_data" );
     }
 
-    ## unknown reply type — return raw
+    ## STRM / STRM-SIZE stream reply -- drain all frames [ prefix- tolerant ##
+    ## : '(5)STRM open' and '(5) STRM open' both match ]                    ##
+    if ( $first_line =~ m{^(?:\( \d+ \)\s*)?STRM(?:-SIZE)?\s+open\b}x ) {
+        return drain_strm_stream( $sock, $first_line );
+    }
+
+    ## unknown reply type — disconnect before returning raw : unread     ##
+    ## trailing frames would corrupt the next call on this cached socket ##
+    cube_disconnect();
     return ( 1, $first_line );
 }
 
@@ -4163,8 +4384,8 @@ sub _kimi_dispatch_async_reply {
             'for proactive completion awareness instead of polling blind: '
                 . 'bin/dev/notify-pid-gone %d & then verify with '
                 . 'kimi_check_status once it reports the pid gone — a '
-                . 'notification is a cue to check, never proof of success '
-                . 'on its own.',
+                . 'notification is a cue to check, never proof of success on '
+                . 'its own.',
             $run->{'gpid'}
         ),
         'captured output [ raw kimi-legacy '
@@ -4183,10 +4404,10 @@ sub _kimi_dispatch_async_reply {
         push @lines,
               'session uuid: not attributable yet at reply time. it shows up '
             . '~1s after kimi-legacy starts as the NEWEST directory '
-            . 'under ~/.kimi/sessions/*/ [ match by creation time ], or '
-            . 'in fresh lines of ~/.kimi/logs/kimi.log, and the capture '
-            . 'file above ends with "To resume this session: kimi -r '
-            . '<uuid>" once the run finishes. then poll '
+            . 'under ~/.kimi/sessions/*/ [ match by creation time ], '
+            . 'or in fresh lines of ~/.kimi/logs/kimi.log, and the '
+            . 'capture file above ends with "To resume this session: '
+            . 'kimi -r <uuid>" once the run finishes. then poll '
             . 'kimi_check_status(session_id=...) for the final result.';
     }
     push @lines,
@@ -4194,8 +4415,8 @@ sub _kimi_dispatch_async_reply {
         . 'apply to a synchronously-finished run — there is nothing to '
         . 'summarize yet here, and kimi_check_status recovers the raw '
         . 'final text from the session wire.jsonl instead [ '
-        . 'summarize-on-recovery is a noted follow-up, deliberately not '
-        . 'half-implemented ].';
+        . 'summarize-on-recovery is a noted follow-up, deliberately '
+        . 'not half-implemented ].';
 
     log_msg( '[kimi_async] %s running detached [ pid=%d uuid=%s ]',
         $ext->{'name'}, $run->{'gpid'}, length $uuid ? $uuid : 'unknown' );
@@ -4352,8 +4573,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,.,...,,,.,,..,,.,,,,.,..,,,,,,.,,,,..,..,,...,...,,,.,...,.,.,,,.,,,,,
-#SSHGMUH42VCC33GEM7VZ32UQUBM746SX77X4GGJLJ6BJP2KQZ56J7J5JHUBJVZ3FE76GCXMFEIFPM
-#\\\|IOJGXSSZHATXCPOFDDQBV5MWBYGY7GPVLQHODXAFYBFFIKDO523 \ / AMOS7 \ YOURUM ::
-#\[7]M6AHQ5XYSYVNW3HAKQWSJGBVRC66G4TOOGLQOVOALZAZKFJSRMBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,...,,.,,...,...,.,,,...,.,.,..,,...,...,,,,,,..,...,..,,,,,,
+#ZEGTZDKAL246XCIVPTK2XCZ4QFJEDP2KLPRX7EI26IM76MIWG35DI6N2WKYWGPMGPTRGNRIFF6ZJO
+#\\\|ZR2YEC5EJSPGJ76XW63E6AMWV5GPFXCOKKL2DZ4PGPYWOPAVY5H \ / AMOS7 \ YOURUM ::
+#\[7]2UYDOI6RIYTFD7EYD4XKCHVNMSSLRIC5MF3HEFMH4PMXU7WKHCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
