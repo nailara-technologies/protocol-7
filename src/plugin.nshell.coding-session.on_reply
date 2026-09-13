@@ -2,14 +2,55 @@
 
 # name  = plugin.nshell.coding-session.on_reply
 # descr = catch a coding.submit reply's task id and bind it to this tab,
-#         then auto-subscribe to its live stream
+#         then auto-subscribe to its live stream; also swallows the raw
+#         reply of a self-injected coding.abort-inference [ see
+#         suppress_abort_reply below ]
 # param = { mode => $mode_href, text => $reply_text }
 
 my $args = shift // {};
 my $mode = $args->{'mode'};
 my $text = $args->{'text'} // '';
 
-return undef unless defined $mode and $mode->{'awaiting_task_id'};
+return undef unless defined $mode;
+
+## on_escape/on_ctrl_c inject coding.abort-inference unconditionally       ##
+## whenever a task_id is bound -- there's no reliable client-side way to   ##
+## know in advance whether anything is actually still running [ same       ##
+## cross-zenka %data isolation reason the old <coding.task.active> check   ##
+## was removed ], so it's routinely a harmless no-op [ e.g. Ctrl+C between ##
+## rounds, with nothing streaming ]. the user triggered this via a         ##
+## keybinding, not by typing a command -- they don't need to see raw wire  ##
+## text ["no active inference task" / "inference aborted for X" / ...] for ##
+## either outcome, only the visible effect [ streaming stops, or nothing   ##
+## happens ] matters. suppress unconditionally, regardless of success.     ##
+if ( delete $mode->{'suppress_abort_reply'} ) {
+    return TRUE;
+}
+
+## coding.task-append resumed a completed/failed task from saved history [  ##
+## coding.cmd.task-append's own "resumed from $status" reply shape ] -- the ##
+## listener registration from the ORIGINAL submit was already deleted when  ##
+## that round reached a terminal state [ coding.async.state_machine         ##
+## deregisters on STATE_COMPLETE/STATE_ERROR ], so without a fresh          ##
+## subscribe-session here the resumed round streams successfully server-    ##
+## side but nothing ever reaches this tab -- confirmed live 2026-09-14 :    ##
+## "task X resumed from completed [...]" logged, inference completed [1106  ##
+## chunks], nothing displayed. only fires on the RESUMED reply shape, not   ##
+## the plain "message queued" shape used for an already-active task -- that ##
+## task's listener is still alive, and subscribing again would register a   ##
+## SECOND handle, doubling every future chunk.                              ##
+if (    defined $mode->{'task_id'}
+    and length $mode->{'task_id'}
+    and $text =~ m{^task \Q$mode->{'task_id'}\E resumed from} ) {
+    my ($cube_sid) = keys <user.cube.session>->%*;
+    if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+        $data{'session'}{$cube_sid}{'buffer'}{'output'}
+            .= "coding.subscribe-session $mode->{'task_id'}\n";
+    }
+    return TRUE;    ## suppress the raw resume ack, same as the initial one
+}
+
+return undef unless $mode->{'awaiting_task_id'};
 
 ## coding.submit's own reply shape : "task:task-XXXX|type:...|..." ##
 return undef unless $text =~ m{^task:(\S+?)\|};
@@ -28,10 +69,25 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
         .= "coding.subscribe-session $task_id\n";
 }
 
+## redraw the input line [ + status bar, which reads mode->{task_id} fresh  ##
+## every render ] right now -- this is the exact moment that data changes,  ##
+## proven to execute since auto-subscribe depends on this same bind having  ##
+## happened. deliberately NOT waiting on the STRM open event to trigger     ##
+## this: open/close carry literal words ['open'/'close'] as their args,     ##
+## which never match base.handler.command.process_reply's unknown-route     ##
+## byte-count branch [ \d+ only ] -- nshell never actually observes those   ##
+## lifecycle events client-side at all. only chunks work, because a chunk's ##
+## own arg field happens to be a bare digit [ byte count ], accidentally    ##
+## matching that same numeric branch.                                       ##
+my $state_ref = <nshell.state> // {};
+if ( $state_ref->{'split_active'} ) {
+    <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
+}
+
 return TRUE;
 
-#,,,.,.,.,..,,,,.,,..,,,.,.,.,,..,,..,...,.,,,..,,...,...,,.,,,.,,...,,.,,,,,,
-#XBAUP4U6B75JLSJGTJKKBSEVO2IBG7437HP5R6SBUM4HTLZ7LZ4U54WCURXYSGKWV63GY7ZEAA5FS
-#\\\|VO24MM7EDNZLP5FS6DFD6Z2AANF6G7VKWLKVW7IFCA2OX6DIWQC \ / AMOS7 \ YOURUM ::
-#\[7]2GMJNKJEW4R7XJ24UC3WSOCLMLOVB3VKGJRPQY2S5QX6XWSZNWAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,..,,.,,,,.,,..,,.,,,,.,,,..,..,,...,...,.,,,...,,.,,,..,,..,
+#DBZRMRWAU7PTE4CISQQDCFYMJ56S2XGFU3SSS4O7WMFAYQ7EHMWOOMVSW3QRNIZR4WNGZQ2JAT2YA
+#\\\|MUUWDL5OYQMDCVYCXAKZKTE6OKHDG3HU4SLGI724HWFZMUNJIDY \ / AMOS7 \ YOURUM ::
+#\[7]L2EEJ7PJDSNG7LSSZG6QH56ZRKKMHXUFUQECIB4V6DMSVGZHUGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

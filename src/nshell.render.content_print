@@ -46,20 +46,27 @@ if ( ref $modes eq 'ARRAY' and defined $modes->[$index] ) {
 }
 
 ## track the new column : text after the last newline if any, else appended ##
-## to the old column. a wrapped line's real terminal column isn't tracked   ##
-## byte-exactly here -- clamp to 1 rather than risk jumping somewhere wrong ##
-## next time [ known limitation : worst case is an extra blank-looking      ##
-## line, never garbled overlap with the input line, which is the property   ##
-## that actually matters ]                                                  ##
+## to the old column -- accounting for the terminal's own implicit soft-    ##
+## wrap via modular arithmetic, not a blind clamp to 1. a chunk boundary    ##
+## landing mid-wrap [ e.g. a streamed token split across the row edge ]     ##
+## used to clamp to column 1 regardless of how many characters actually     ##
+## spilled onto the new line, so the NEXT chunk's explicit CUP overwrote    ##
+## that spillover instead of continuing after it -- confirmed live          ##
+## 2026-09-14 : "general-purpose" streamed across a chunk boundary at the   ##
+## row edge lost its "al", printed as "gener-purpose" once the following    ##
+## chunk overwrote it. the old comment's "worst case is an extra blank-     ##
+## looking line" was wrong -- actual content loss, not just wasted space.   ##
+my ($term_w) = AMOS7::TERM::terminal_size();
+$term_w ||= 80;
+
 if ( $text =~ m{\n([^\n]*)\z} ) {
-    $col = length($1) + 1;
+    $col = length($1) % $term_w + 1;
 } elsif ( $text !~ m{\n} ) {
-    $col += length($text);
+    my $total_from_row_start = ( $col - 1 ) + length($text);
+    $col = ( $total_from_row_start % $term_w ) + 1;
 } else {
     $col = 1;    ## ends exactly on a newline ##
 }
-my ($term_w) = AMOS7::TERM::terminal_size();
-$col = 1 if $col > $term_w;
 $state_ref->{'content_col'} = $col;
 
 print "\e8";     ## DECRC : restore [ back to the input row ] ##
@@ -67,8 +74,8 @@ STDOUT->flush();
 
 return;
 
-#,,..,,.,,.,,,,..,...,...,...,...,..,,,..,.,,,..,,...,...,,,.,,..,,.,,,,.,.,.,
-#B62RKBRA44VFZW3YIP36ZWGNJH4LBKYBXA6NI3S5GTRW5X2JE65ZMYJ7FUPIHYOEYZWTWMGESRU2Q
-#\\\|JCVUIJGRVNGWVON62F3RPK3IUPYIAQJBNMJNGZ3MU6P3RZIQNSQ \ / AMOS7 \ YOURUM ::
-#\[7]X34ILRYMK55RWAALX53LLXXHYQX2TVQLW24QGTTFYANT7LZXH2BQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,.,.,,,,,.,,,,.,,,,.,,,,,.,.,..,,...,.,.,,,.,,.,,,,.,,.,,,.,,
+#LFIUBB37YHO7JYVV342PA3Z7FB76HQFSRCUZVMKRL4TB4Z76KXIVYNXVDMPA6OZSR3C4MSURSITZW
+#\\\|WNQWETS3EWYNPWLCNHW5CD36YPKCLCMHJHHIWTL5KIO5AOBHQ42 \ / AMOS7 \ YOURUM ::
+#\[7]RBNJFX4UHX52A2JKAEY32QWZI2H3XLDMTG7WL3ETJ7T3GXW47GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

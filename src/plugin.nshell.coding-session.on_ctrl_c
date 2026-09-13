@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = plugin.nshell.coding-session.on_ctrl_c
+# descr = fully detach this tab from its bound task -- the "close this
+#         session" action, distinct from Esc [ which deliberately keeps
+#         task_id bound so the conversation stays resumable ]. aborts
+#         the task if still running, forgets task_id [ no longer
+#         resumable via task-append after this ], clears the visible
+#         transcript, and tells the caller to switch back to plain
+#         shell mode.
+# param = { mode => $mode_href }
+# return = { claimed => TRUE } | undef [ not claimed, nothing bound ]
+
+my $args = shift // {};
+my $mode = $args->{'mode'};
+
+return undef unless defined $mode;
+
+my $had_task_id = defined $mode->{'task_id'} and length $mode->{'task_id'};
+my $had_buffer  = length( $mode->{'buffer'} // '' );
+
+## nothing bound and nothing on screen : don't claim the key, let it fall ##
+## through to the normal editor engine [ real SIGINT ]                    ##
+return undef unless $had_task_id or $had_buffer;
+
+if ($had_task_id) {
+    ## same reasoning as on_escape's abort : always send it, let           ##
+    ## coding.cmd.abort-inference's own server-side check no-op harmlessly ##
+    ## if nothing was actually running                                     ##
+    my ($cube_sid) = keys <user.cube.session>->%*;
+    if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+        $data{'session'}{$cube_sid}{'buffer'}{'output'}
+            .= "coding.abort-inference $mode->{'task_id'}\n";
+    }
+
+    ## this is routinely a no-op [ e.g. Ctrl+C between rounds, nothing    ##
+    ## streaming ] -- suppress the raw wire reply either way, see         ##
+    ## plugin.nshell.coding-session.on_reply. survives the task_id/       ##
+    ## awaiting_task_id/esc_stage deletes below : it's a separate flag on ##
+    ## the same mode object                                               ##
+    $mode->{'suppress_abort_reply'} = TRUE;
+}
+
+delete $mode->{'task_id'};
+delete $mode->{'awaiting_task_id'};
+delete $mode->{'esc_stage'};
+$mode->{'buffer'} = '';
+
+return { 'claimed' => TRUE };
+
+#,,..,.,,,.,,,,.,,,,.,.,,,.,.,...,,..,...,...,.,.,...,...,.,.,,.,,,.,,.,.,,,,,
+#3B6JUB55QPWPELCIQT2UNEEFR52NHZMKBBRTFASX6FMV67R2SSYHZ6IYFDOBERHFA62SIB2HJYLLQ
+#\\\|LVI66VQLO4ODQMU5BAJFVXSTTZQU56DR3TUBFD5JVJF6KDURSWJ \ / AMOS7 \ YOURUM ::
+#\[7]5K3PPGPJKPVLFMLQPYTZHG4NW4NAKCNZ73WUDLWOY7GCH6GSNIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
