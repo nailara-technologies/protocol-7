@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = coding.cmd.redo-round
+# descr = redo : move tip forward into a fork, resume
+#         [ task must be completed or failed, not in_progress ]
+# param = <task_id> [checksum]
+# note  = no separate redo stack : "forward" is just the newest child of
+#         round_chain_current [ coding.round_chain.step_target ]. after a
+#         plain rewind-then-resubmit that's exactly the fork just made;
+#         after several redos/rewinds it's whichever fork was visited
+#         most recently. pass a checksum explicitly to jump to a specific
+#         fork instead of the newest one.
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $checksum ) = split m{ +}, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+my $task = <coding.task.queue>->{$task_id};
+
+## buffer names use T- prefix; queue keys use task- prefix : normalize [ ##
+## same normalization coding.cmd.task-append applies ]                   ##
+if ( !defined $task and $task_id =~ s|^T-|task-|i ) {
+    $task = <coding.task.queue>->{$task_id};
+}
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "cannot redo task $task_id [status: $status] "
+        . '-- stop it first if it is still in progress'
+    }
+    unless $status eq qw| completed | or $status eq qw| failed |;
+
+if ( not defined $checksum or not length $checksum ) {
+    $checksum
+        = <[coding.round_chain.step_target]>->( $task_id, qw| forward | );
+    return {
+        'mode' => qw| false |,
+        'data' => "nothing to redo for $task_id"
+        }
+        unless defined $checksum;
+}
+
+my $node = <[coding.round_chain.rewind]>->( $task_id, $checksum );
+return {
+    'mode' => qw| false |,
+    'data' => "checksum not found in round_chain for $task_id: $checksum"
+    }
+    unless defined $node;
+
+my $resolved = <[coding.round_chain.resolve_resume]>->( $task_id, $node );
+return {
+    'mode' => qw| false |,
+    'data' => "cannot resume from $checksum [ genesis final-answer round -- "
+        . 'not yet chain-tracked ]'
+    }
+    unless defined $resolved;
+
+my ( $messages, $resume_round )
+    = ( $resolved->{'messages'}, $resolved->{'round'} );
+
+my $resumed = <[coding.round_chain.resume_from_node]>->(
+    $task_id, $resume_round, $messages
+);
+return { 'mode' => qw| false |, 'data' => "failed to resume $task_id" }
+    unless $resumed;
+
+<[base.logs]>->(
+    1, "redo-round : %s redone to %s [round %d] and resumed with %d messages",
+    $task_id, $checksum, $resume_round, scalar @{$messages}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "task $task_id redone to round $node->{'round'} "
+        . "[${\scalar @{$messages}} messages] and resumed"
+};
+
+#,,.,,...,...,,,,,,,.,,.,,,,.,.,.,,..,,..,...,.,.,...,.,,,.,,,,..,.,.,...,...,
+#BRZKXNNBWA3Y2WBD76Q3LIOJBQ72AVP576GFHJ63QMBN4B6FLEE6SPD4QFEMEYY7T7533JOTZ4NYS
+#\\\|QQTXLKRQLZU3FQKAR3A5MARFGA6JSIPQPEVURB72QGUW2PQ23ZV \ / AMOS7 \ YOURUM ::
+#\[7]IMBUDN5D4YVRNNP24ZZRCO5JUMTH7XU7EPEYEYDWLCFNHU75F2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

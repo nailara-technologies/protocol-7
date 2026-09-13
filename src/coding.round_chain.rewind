@@ -36,7 +36,16 @@ if ( not defined $task ) {
 }
 
 my $chain = $task->{'round_chain'} // [];
-my ($node) = grep { $ARG->{'checksum'} eq $target_checksum } @{$chain};
+
+## last-wins lookup, NOT grep-first-match : two DIFFERENT nodes can share a ##
+## checksum when a resubmission produces byte-identical content [ same      ##
+## parent + same delta -> same chain_L13 output, confirmed live on a narrow ##
+## deterministic task ] -- must match coding.round_chain.  reconstruct's    ##
+## %by_checksum map, which is last-wins by construction, or the two         ##
+## functions can silently resolve the same checksum to different physical   ##
+## nodes                                                                    ##
+my %by_checksum = map { $ARG->{'checksum'} => $ARG } @{$chain};
+my $node        = $by_checksum{$target_checksum};
 
 if ( not defined $node ) {
     warn "checksum not found in round_chain : '$target_checksum' <{C1}>";
@@ -47,8 +56,8 @@ $task->{'round_chain_current'} = $target_checksum;
 
 return $node;
 
-#,,.,,,.,,,..,,,.,,,.,,,.,,,,,..,,,..,,.,,.,,,.,.,...,...,,,,,.,.,,,.,.,,,..,,
-#KJNYISBOEU3NCEMOFQW5NMFCFMT32R7IKY3HT2DDCPUWIOKKFLIBKT6MGX3DYFOVVYJV7UNLOYVYQ
-#\\\|KXPA2WREASSWYAF4H2SN2FRCH7UGZ7ACCG4WN2XIFGBUFHO4RIU \ / AMOS7 \ YOURUM ::
-#\[7]J7QRDBR4BJNMGS5BNHDRNNM23MDWFQKL5QU5VVWA3UTKYK2GA6BY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,,.,,.,,,.,,.,.,...,,.,,...,.,.,...,..,,...,.,.,,,.,.,.,..,,
+#LUTYHNCBKAHFJFLXHI2QN6QIOMLBYSS4QP3B6NOSAPYW3WEQYTV7AIZ6LXNMDVFGPRCY3DH2MQ45S
+#\\\|OQ7MCTHEJZHNSK5EGM7T47FR3P7XGIJOGLTMEQ3TQ4JPS2VEGBQ \ / AMOS7 \ YOURUM ::
+#\[7]6SRP2R5OEA3SLZQU2IGQ4Y2DLURFLAXUSSIOTZGTYQNHEDTNMSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
