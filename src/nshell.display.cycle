@@ -74,10 +74,21 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     $state_ref->{'split_reserved_rows'} = 2;
     $state_ref->{'split_title'}         = $new_mode->{'title'} // '';
 
+    ## wipe the content area itself before replaying -- scroll_region_set   ##
+    ## above only moves the DECSTBM boundary and parks the cursor, it never ##
+    ## erases anything, and the teardown clear a few lines up only ever     ##
+    ## wiped the 2 RESERVED rows of the mode being left, never the content  ##
+    ## rows above them. without this, re-entering a mode whose replayed     ##
+    ## buffer is shorter than the content area left whatever was already on ##
+    ## screen sitting there, making the replay look like it doubled the     ##
+    ## content instead of replacing it -- confirmed live 2026-09-14         ##
+    AMOS7::TERM::content_area_clear($content_bottom);
+
     ## replay this mode's own accumulated buffer [ e.g. what happened while ##
-    ## it was backgrounded ] into the freshly-set-up content area -- the    ##
-    ## cursor is already parked at (content_bottom, 1) by scroll_region_set ##
-    ## above, so a plain print lands in the right place with no extra jump  ##
+    ## it was backgrounded ] into the freshly-cleared content area -- the   ##
+    ## cursor is already parked at (content_bottom, 1) by content_area_     ##
+    ## clear above, so a plain print lands in the right place with no extra ##
+    ## jump                                                                 ##
     my $replay = $new_mode->{'buffer'} // '';
     if ( length $replay ) {
         print $replay;
@@ -111,8 +122,8 @@ $state_ref->{'display_mode_index'} = $next_index;
 
 return TRUE;
 
-#,,.,,,,,,.,.,.,.,..,,.,.,,,.,,,.,.,,,,,.,,,,,..,,...,...,,..,.,,,...,...,..,,
-#6F6RBUCGY6QB767GQV6P6QX4VZV7UNUB3FUTALO3SGSDD2Y4RD3A2NEAVHSC6HF4DRAFXZLKPYDSU
-#\\\|2C27G2FRWA2FQUJV3FULEJ6HC4ZQSM7BJL5WAKPOFXUO444VWA4 \ / AMOS7 \ YOURUM ::
-#\[7]J5XT4M2IYYU254YTQFHDOEYSSJ3X4XOWUH6JTJWREGBAVQRHACBY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,,,,,..,,,,,,...,..,,,..,,,,,..,,...,...,..,,,..,.,,,,,.,...,
+#M2STAVZJ4VCCFQFIVNVQZXB6F2F5XK364HKSBSO3WVCDVYI5G3M6LZ27XHUZUCLCEEF2JJYCVDN7Y
+#\\\|SH6JIE6QICIB3JOSOD4P7AO4W2IFYS6SZ5QZQWD2ZAB63IJC2GD \ / AMOS7 \ YOURUM ::
+#\[7]SPJOSS57SWCTTFHSMFXS3JQ43U6XWQLESNZZMWLBAPDWDZ4PN6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

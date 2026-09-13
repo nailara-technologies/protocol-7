@@ -35,7 +35,7 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
     editor_load cursor_render cursor_clear_old cursor_set_color
     cursor_set_animation cursor_enable cursor_disable
     frame_border_line frame_rule_line frame_colorize_content frame_bar
-    scroll_region_set scroll_region_clear pinned_row_print
+    scroll_region_set scroll_region_clear content_area_clear pinned_row_print
     ask
 ];
 
@@ -1921,6 +1921,29 @@ sub scroll_region_set {
     return $content_bottom;
 }
 
+## clear rows 1..content_bottom [ the actual streaming content area, as     ##
+## opposed to scroll_region_clear's reserved-rows-only scope ] and park the ##
+## cursor at the bottom, ready for a caller to print/replay into it.        ##
+## neither scroll_region_set nor scroll_region_clear ever erases the        ##
+## content rows themselves -- set only moves the DECSTBM boundary and parks ##
+## the cursor, clear only wipes the reserved strip below it -- so re-       ##
+## entering a mode and replaying a buffer shorter than the content area     ##
+## left whatever was already on screen sitting there, making the replay     ##
+## look like it doubled the content instead of replacing it. call this      ##
+## right after scroll_region_set, before printing/replaying.                ##
+sub content_area_clear {
+    my $content_bottom = shift;
+    return unless defined $content_bottom and $content_bottom > 0;
+
+    for my $row ( 1 .. $content_bottom ) {
+        print "\e[${row};1H\e[2K";
+    }
+    print "\e[${content_bottom};1H";
+    STDOUT->flush();
+
+    return;
+}
+
 ## restore full-screen scrolling [ always pair with scroll_region_set ].    ##
 ## pass the SAME reserved_rows given to scroll_region_set to also clear     ##
 ## whatever was drawn into those rows and park the cursor at the bottom --  ##
@@ -1971,8 +1994,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,.,,,,.,,..,,,,,,.,,...,...,,..,,.,,...,,.,,..,,...,...,..,,.,.,,..,.,.,.,,,
-#YAMUUU5ZOXQG4J7ASWOO5A67L44OWZUZH6JZHXXQZR6YSJ3U34R5R25AYWGCKHQBBMZ4NVRWETYGG
-#\\\|IROV2FOYYNM55UJD6USO4LJDV5QFFEGEPIX7QRJWQD2LXGDM5JB \ / AMOS7 \ YOURUM ::
-#\[7]OC65HEMQF67J3OOS3HQR26KLPHDDDGZUHNDOIRWZ4SOMLD4SXYBI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,,,.,.,.,.,,,...,.,.,,,,,,.,,..,,...,...,..,,.,,,..,,..,,..,,
+#FXQXCNIAFYXHRDOQVRWNEAVV52KU74GWDSDTW5OF7QX6CGXHNMEOME4CD3JN4FQV255MZEX6YPKLQ
+#\\\|VGDEZEVTCOB2B3BCY3R3FDY4BLH67GWCRIONMAUYANBDOVO3DNA \ / AMOS7 \ YOURUM ::
+#\[7]VYB5ZOQ4HDK64HK5O4WX3RNYFTWIMEGKQ45J6FCO5VF4ZF64PIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
