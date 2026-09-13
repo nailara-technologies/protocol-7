@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = coding.round_chain.step_target
+# param = <task_id> <direction>
+# descr = pure lookup : resolve "one step back" or "one step forward" from
+#         a task's round_chain_current tip, without moving anything. undo
+#         is trivial [ current node's own 'parent' field ]; redo has no
+#         separate stack to maintain -- it's just "the most recently
+#         created child of current", found by scanning round_chain for
+#         nodes whose parent equals the tip and picking the newest by
+#         timestamp. after a fresh rewind-then-resubmit, that's exactly
+#         the fork just created; after several, it's whichever fork was
+#         visited most recently -- both correct without any bookkeeping
+#         beyond what append/rewind already maintain.
+#
+#         direction is 'back' or 'forward'. returns the target checksum,
+#         or undef if there's nowhere to go [ genesis has no parent to
+#         step back to; a tip with no children has nothing to redo into ].
+
+my ( $task_id, $direction ) = @ARG;
+
+if ( not defined $task_id or not length $task_id ) {
+    warn 'expected defined task_id <{C1}>';
+    return undef;
+}
+
+if ( not defined $direction or $direction !~ m{^(?:back|forward)$} ) {
+    warn 'expected direction of "back" or "forward" <{C1}>';
+    return undef;
+}
+
+my $task = <coding.task.queue>->{$task_id};
+if ( not defined $task ) {
+    warn "task not found : '$task_id' <{C1}>";
+    return undef;
+}
+
+my $chain   = $task->{'round_chain'} // [];
+my $current = $task->{'round_chain_current'};
+
+return undef unless defined $current and length $current;
+
+if ( $direction eq qw| back | ) {
+
+    ## last-wins lookup : two different nodes can share a checksum when a  ##
+    ## resubmission produces byte-identical content -- must match          ##
+    ## coding.round_chain.rewind/reconstruct's resolution, see their notes ##
+    my %by_checksum = map { $ARG->{'checksum'} => $ARG } @{$chain};
+    my $node        = $by_checksum{$current};
+    return undef unless defined $node;
+    my $parent = $node->{'parent'};
+    return undef unless defined $parent and length $parent;
+    return $parent;
+}
+
+## forward : newest child of current ##
+my @children = grep { ( $ARG->{'parent'} // '' ) eq $current } @{$chain};
+return undef unless @children;
+
+my ($newest) = sort { $b->{'timestamp'} <=> $a->{'timestamp'} } @children;
+return $newest->{'checksum'};
+
+#,,,,,,,.,,.,,..,,,,,,.,,,...,,,.,,..,,,.,,.,,.,.,...,...,,.,,...,...,.,.,,..,
+#4YEVS7V2KHWIV5G5KD2GQV4W6O6DOT7KYUE56B4K76L2P5O4R2GP3AECB5PJJ43KGQSGQGBSLBOH4
+#\\\|H3EWLACZ2OTO4NTMPNSOS3WKHTL3CKTIJBBG4OIF5C6HOMO7E2Z \ / AMOS7 \ YOURUM ::
+#\[7]Q7JOASRGBFH73D6ITCEQU4P7IOEVOD4QVO764VT5IYMUBXBW5YBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
