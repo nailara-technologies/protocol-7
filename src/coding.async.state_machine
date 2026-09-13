@@ -278,6 +278,14 @@ elsif ( $action eq 'transition' ) {
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.tool_executor]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'tools_done' ) {
+        ## round-chain delta boundary : everything this branch pushes to    ##
+        ## state.messages below [ assistant tool_calls msg, tool results,   ##
+        ## loop-detection injection if any ] belongs to the round that just ##
+        ## finished -- captured by index rather than by duplicating the     ##
+        ## pushes, since round++ below fires BEFORE this round's own        ##
+        ## messages land [ round_chain.append call is at the bottom of this ##
+        ## branch, using round-1 to compensate ]                            ##
+        my $round_chain_pre_len = scalar @{ $state->{'messages'} };
         $state->{'round'}++;
         ## round_started NOT stamped here : this round hasn't actually been ##
         ## dispatched yet [ still needs enqueue_round -> backend_acquire ]. ##
@@ -433,6 +441,18 @@ elsif ( $action eq 'transition' ) {
             }
         }
 
+        ## round-chain node for the round that just finished [ round was   ##
+        ## already incremented above, before these messages landed, so use ##
+        ## round-1 -- see round_chain_pre_len comment at branch entry ]    ##
+        <[coding.round_chain.append]>->(
+            $task_id,
+            $state->{'round'} - 1,
+            qw| round |,
+            [   @{ $state->{'messages'} }
+                    [ $round_chain_pre_len .. $#{ $state->{'messages'} } ]
+            ],
+        ) if $round_chain_pre_len <= $#{ $state->{'messages'} };
+
         <coding.async.task_state>->{$task_id} = $state;
 
         ## round scheduling: break callback chain into discrete jobs ##
@@ -480,6 +500,12 @@ elsif ( $action eq 'transition' ) {
             'role'    => 'user',
             'content' => $data->{'user_message'},
             };
+        ## round-chain node : round already incremented above, so round-1 ##
+        ## names the round this reply belongs to, matching tools_done     ##
+        <[coding.round_chain.append]>->(
+            $task_id,    $state->{'round'} - 1,
+            qw| round |, [ $state->{'messages'}->[-1] ],
+        );
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.send_request]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'resume' ) {
@@ -513,6 +539,13 @@ elsif ( $action eq 'transition' ) {
             'content' => 'Thank you for your self-assessment. '
                 . 'Please continue with your task.',
             };
+        ## round-chain node : unlike tools_done/user_responded, round++     ##
+        ## below fires AFTER these messages land, so the CURRENT [ not -1 ] ##
+        ## round number is the one this assistant+user exchange belongs to  ##
+        <[coding.round_chain.append]>->(
+            $task_id, $state->{'round'}, qw| round |,
+            [ @{ $state->{'messages'} }[ -2, -1 ] ],
+        );
         ## stay in streaming state and enqueue next round ##
         $state->{'state'} = STATE_STREAMING;
         $state->{'round'}++;
@@ -626,8 +659,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,.,..,,,,,,,,.,..,,...,,,,,,.,,.,,,.,.,,.,,.,.,...,...,.,.,.,,,...,.,.,,.,,
-#MF3HAA7A3ISYRT5QZQFNG6UFBHXLHDAE5QKAQW3UJIIUEGZ4GS7U4LDBR6GXOM6ZTMJXUYO6CSXZI
-#\\\|KV3BR5H5LKMKOEHIVYR3RBFXUKRYYIK2KBNRRKVBGP72TMFKCZ3 \ / AMOS7 \ YOURUM ::
-#\[7]IC67LRPPXG6BUL2MGBNA3BTEOJP2K2HTS6434JQDFBGH2PJVZCDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,..,,,.,,,,,,,,.,,,,,,,.,...,.,.,...,...,..,,,.,,,.,,..,,,,.,
+#CV5OHNPZ5MPH5ZOFWHV3T5ABS4IMCY3BY5TAMVI23BOQGTEKMKPIF4KVUQFWJGGB3DUPQSRREPGHW
+#\\\|32SPFUHFBYJ45IV6QOUXAJ2XIIXXER7IVDPKLXJ4I7NMNDFQMVX \ / AMOS7 \ YOURUM ::
+#\[7]3P6XOPQS32XPTFO76UOBLS6CJ7YHN6PTMCNLZZ64JFPEPH5WLGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
