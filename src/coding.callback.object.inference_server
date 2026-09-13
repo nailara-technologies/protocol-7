@@ -28,12 +28,25 @@ return undef unless defined $server;    ## not spawned yet ##
 
 my $status = $server->{'status'} // 'starting';
 
-return FALSE if $status eq qw| crashed |;
+## 'crashed' is NOT terminal -- it's the same in-progress state as          ##
+## 'starting', bridged by real backoff/retry infra [ up to 5 attempts, see  ##
+## inference_server_sigchld / verify_inference_startup ]. hard-failing      ##
+## dependents here meant ANY dependency check landing during the brief      ##
+## window between crash-detection and restart-completion wrongly failed the ##
+## waiting job outright, even on a clean single crash+restart cycle with no ##
+## race involved -- confirmed live : a task survived its own                ##
+## crash+restart+retry and got a real response, yet coding.status still     ##
+## showed it as failed because SOMETHING checked this dependency while      ##
+## status was still 'crashed'. 'failed' is the only genuinely terminal      ##
+## state [ set once restart_count is exhausted ] -- only that should hard-  ##
+## fail a waiting job; 'crashed' waits through recovery like 'starting'     ##
+## does                                                                     ##
+return FALSE if $status eq qw| failed |;
 return TRUE  if $status eq qw| ready |;
-return undef;                           ## still starting ##
+return undef;    ## still starting / crashed / restarting ##
 
-#,,.,,,,.,...,,,,,,.,,..,,.,.,,,,,,,.,...,,,,,.,.,...,...,.,,,,.,,..,,,..,.,,,
-#WBTNXLPFGD6URYS5ZQJXJENS2BBRY6W23S3WAE7MRHITXDYU5HB3BU2GGNT3LRHUHVSTTWVGNLFKO
-#\\\|UVF6GRGLAWGI3MGUFKMOYKLTPNDLYJQZMO2TNPLPK2Y22IZBO2N \ / AMOS7 \ YOURUM ::
-#\[7]WE5FFEQZPDWGX6TTKOL2KAH2SPMD7AKTE34XLWI2L6EBX7P2S2DA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,...,.,.,,,,,.,,,...,...,,,,,.,.,...,...,.,.,,.,,..,,,,,,.,,,
+#BUWLF2GMWEQRH5RWABGGDOEHPLYBUI236IVIMUMPS25LUXRWOYBVY6NQ66YUJKTT4HS4WGNHZFHIY
+#\\\|OJ7G6EPZ6XJY7ZB67XP3CFEBB2FMBTA6SYH7IV6W2GFRDX4ID6J \ / AMOS7 \ YOURUM ::
+#\[7]CK7MSGJDUDXXUDHUHQHFLOKSDFLOJKGT2DHOEZ7ANMSOP4ZHR4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

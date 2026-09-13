@@ -16,8 +16,9 @@ my $mode = $args->{'mode'};
 
 return undef unless defined $mode;
 
-my $had_task_id = defined $mode->{'task_id'} and length $mode->{'task_id'};
-my $had_buffer  = length( $mode->{'buffer'} // '' );
+my $had_task_id
+    = defined( $mode->{'task_id'} ) && length( $mode->{'task_id'} );
+my $had_buffer = length( $mode->{'buffer'} // '' );
 
 ## nothing bound and nothing on screen : don't claim the key, let it fall ##
 ## through to the normal editor engine [ real SIGINT ]                    ##
@@ -54,8 +55,8 @@ $mode->{'buffer'} = '';
 
 return { 'claimed' => TRUE };
 
-#,,.,,,,,,...,...,,..,.,,,,.,,.,,,,,.,.,.,,,,,.,.,...,...,..,,,,,,,,,,.,,,,,,,
-#AA5EKG5UUMVEM5HNVWI3MIPJZ6U5XRESKDSEN3BMEIYSOP7476BVGIP5OMC2H4QQVL5QRJVZAZLU6
-#\\\|NX22UWL52NHPKJKOHLTHSOURP4QBD3TANZNIJTIPK546SEBUYH3 \ / AMOS7 \ YOURUM ::
-#\[7]ZOZZEIVFZTTESIMDU7MMAULRKDGY35PWMKNMJLQK5YYWAST7LMBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,.,,,.,.,.,,,...,.,,,,,,,,.,,.,.,...,...,...,...,..,,.,,,,,.,
+#2GXWL6733DUKH64UYGZC2737LJJ6NS2VE5XOQGBTQ3I2ZMMWYG3CM63TJAPTY464LWLDTTMPFUIPC
+#\\\|IBBZZLZXCNXGXX3ZTT53H5C2CVN74ZB3WYGC7K74URS6SJ3YDQ6 \ / AMOS7 \ YOURUM ::
+#\[7]2JPOIKSVGPYGJNQ7KVQ5R2FEUCN4TM3LDPCZMFHBSCIXWANXIQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

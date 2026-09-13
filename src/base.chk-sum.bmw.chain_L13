@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw.chain_L13
+# param = <parent_chksum>, <string>[, <string>..,]
+# descr = round-chain continuation of L13-str : returns a 13 character
+#         BASE32 string derived from BMW(parent_chksum . data), not from
+#         data alone. parent_chksum is ALWAYS an explicit, required first
+#         argument -- never shape-detected off @data, unlike elf_chksum's
+#         optional leading start_chksum -- L13-str already has 45+ call
+#         sites passing a single arbitrary opaque string [ hostnames, key
+#         material, tokens ], several of which could plausibly collide
+#         with "looks like a 13-char base32 value" if sniffed, so this is
+#         a parallel function rather than an extension of L13-str itself.
+#         pass '' for parent_chksum to start a fresh chain [ round 1, no
+#         parent ] -- BMW(''.data) reduces cleanly to BMW(data).
+#
+#         NOT true BMW resumability : parent_chksum is BMW's own FINALIZED
+#         [ padded ] digest output, not its pre-finalization internal
+#         state, so this does not continue the same internal compression
+#         sequence the way e.g. elf_chksum's $start_chksum does for ELF's
+#         plain running scalar [ see base.chk-sum.bmw.L13-str's sibling
+#         discussion -- ELF's output IS its state, BMW's output is only
+#         DERIVED from its state ]. this is an ordinary hash chain [ each
+#         link = hash(parent_link . own_content) ], the standard
+#         construction for addressable, parent-pointer history nodes --
+#         not an attempt at literal algorithmic continuation.
+#
+#         parent_chksum and data are joined with a "\n" delimiter, NOT bare
+#         concatenation -- naive parent_chksum.data is genuinely ambiguous,
+#         not just theoretically : a genesis round [ parent='' ] whose own
+#         content happens to START with 13 characters is byte-for-byte
+#         identical, as hashed input, to a CHAINED round that used those
+#         same 13 characters as its real parent checksum -- confirmed live,
+#         both hash to the same digest without a delimiter. safe specifically
+#         because parent_chksum is always pure BASE32 [ output of this same
+#         function, or '' ] and BASE32 never contains "\n", so the delimiter
+#         can never be mistaken for checksum content on either side of it.
+#         tradeoff, deliberate : a genesis round's chain_L13('', $x) output
+#         no longer equals plain L13-str($x) [ it hashes "\n$x", not $x ] --
+#         correctness of the chain matters more than that incidental parity.
+
+if ( not @ARG or not defined $ARG[0] ) {
+    warn 'expected defined parent_chksum param '
+        . '[ pass \'\' for a fresh chain ] <{C1}>';
+    return undef;
+}
+
+my $parent_chksum = shift @ARG;
+
+if ( not @ARG or grep { not defined } @ARG ) {
+    warn 'expected defined input param[s] <{C1}>';
+    return undef;
+}
+
+return
+    <[chk-sum.bmw.calculate_L13_sum]>
+    ->( Digest::BMW::bmw_512( $parent_chksum, "\n", @ARG ) );
+
+#,,,.,,,.,,.,.,.,,.,,,,,.,,,,,,,.,,.,.,,,.,,.,,,,.,,..,,...,...,,,,,,,,.,,.,,,
+
+#,,.,,.,,,..,,...,,.,,.,,,.,,,.,,,.,.,..,,..,,..,,...,...,,..,,.,,,.,,,,.,.,.,
+#KK34NPIN2DER4BDIVKYXXRZ2AVJJ6BRLEM43UIEZIHZQCG2542425UGYN72HMGIPHFV5ZBIJJGQLU
+#\\\|G4YZD2N4DRXBVE24VPZF7EU3SAO7W32L3GWPNXECPFYME755H5L \ / AMOS7 \ YOURUM ::
+#\[7]QLIRNVJWPQ7FXP6WK75AFBSC7V5RVSTOKZNB37LYZX6H5BYMRKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
