@@ -34,6 +34,17 @@ print "\e7";    ## DECSC : save [ = the input row ] ##
 print "\e[${content_row};${col}H";
 print $text;
 
+## accumulate into the CURRENTLY FOCUSED mode's own buffer, so switching ##
+## away and back replays what happened while it was backgrounded [       ##
+## nshell.display.cycle reads this on focus ]. generic -- not coding-    ##
+## zenka-specific, any future mode gets redraw-on-switch for free        ##
+my $modes = $state_ref->{'display_modes'};
+my $index = $state_ref->{'display_mode_index'};
+if ( ref $modes eq 'ARRAY' and defined $modes->[$index] ) {
+    $modes->[$index]{'buffer'} //= '';
+    $modes->[$index]{'buffer'} .= $text;
+}
+
 ## track the new column : text after the last newline if any, else appended ##
 ## to the old column. a wrapped line's real terminal column isn't tracked   ##
 ## byte-exactly here -- clamp to 1 rather than risk jumping somewhere wrong ##
@@ -56,8 +67,8 @@ STDOUT->flush();
 
 return;
 
-#,,.,,..,,.,,,,,,,...,..,,.,,,,..,.,.,.,,,,,,,..,,...,...,.,,,.,,,,,,,.,.,.,.,
-#3Y2736LGBNCFAN4QB437EQGECVKEDX5QD4AD3S4P7LDYPI5VY2TGQ6HYSKFTSHU6XDV3KF7433MJI
-#\\\|TH6XGKFTOQ2J5N5PQZBVSOTEGHDGVBCLD5X3J3LP6L5EZ44H2C3 \ / AMOS7 \ YOURUM ::
-#\[7]KHJXLVF4SSPAE3I4UQAINDMPXA6GUJR7CLQTZWU6JFGGOWDKQWDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,...,...,...,...,..,,,..,.,,,..,,...,...,,,.,,..,,.,,,,.,.,.,
+#B62RKBRA44VFZW3YIP36ZWGNJH4LBKYBXA6NI3S5GTRW5X2JE65ZMYJ7FUPIHYOEYZWTWMGESRU2Q
+#\\\|JCVUIJGRVNGWVON62F3RPK3IUPYIAQJBNMJNGZ3MU6P3RZIQNSQ \ / AMOS7 \ YOURUM ::
+#\[7]X34ILRYMK55RWAALX53LLXXHYQX2TVQLW24QGTTFYANT7LZXH2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

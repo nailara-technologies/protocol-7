@@ -71,6 +71,21 @@ my $cursor_mode = <nshell.cfg.cursor_after_reply> // 'all';
 ## split mode, identical to the old behaviour.                              ##
 if ( not defined $payload_str ) {
 
+    ## if the current display mode declares a plugin, let it react to this  ##
+    ## reply BEFORE it prints -- e.g. plugin.nshell.coding-session catches  ##
+    ## a coding.submit ack here, binds the task id to this tab, and queues  ##
+    ## the follow-up subscribe-session command. core stays plugin-agnostic. ##
+    my $modes = $_nshell_state->{'display_modes'};
+    my $mode
+        = ref $modes eq 'ARRAY'
+        ? $modes->[ $_nshell_state->{'display_mode_index'} // 0 ]
+        : undef;
+    my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
+    if ( length( $plugin_name // '' ) ) {
+        $code{$plugin_name}
+            ->( { 'hook' => 'on_reply', 'mode' => $mode, 'text' => $args } );
+    }
+
     ## single-line reply : colorize and print to console for immediate display
     ## TRUE replies  : standard text color [p7_fg_0004]  FALSE replies :
     ## emphasis color [p7_fg_0003]
@@ -140,8 +155,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,,,..,,..,,...,.,.,.,.,.,,,..,,..,,...,..,,.,.,...,...,.,.,,,,,..,,,.,,,..,
-#T5QD63KGTQ5IS3OJ4ZVACQVUPLOX2ZFVRXLKPLRBRX7AXIKEO2MFJRAC6275A2UGQ5WU7BN75UJQS
-#\\\|HYULMSPQ5OR4C7B7UDYXQOVH4HZO4XWZIUEXFFRGEX5M2DGNJLU \ / AMOS7 \ YOURUM ::
-#\[7]MALI3VGKLB2GKJOZ5FSU2KBZNEAMATFILQQ43VJXJ4MROCRIJYAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,..,,,,,,,.,.,.,.,,,,.,,,,.,,,.,.,.,...,...,...,..,,.,.,...,.,,,
+#DRYH7WFEH4Z54PWU56YUUPCFNKGWKW3KGP77W5ZQNRXQ7N3L2OBJAC5TCSCOTOIDBRMWYINMZQ7UW
+#\\\|D6AOL7GQA3UUN6MQXXSL4YCQLDL5XP5AMWGUGFHNQFI2ABO2SO4 \ / AMOS7 \ YOURUM ::
+#\[7]VVRZU4RONPUNJZSIFQV3SSE7AI3MTRYU6HZIKAANOC3EYMQBYYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
