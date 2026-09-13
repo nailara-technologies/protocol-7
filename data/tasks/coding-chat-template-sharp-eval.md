@@ -74,8 +74,67 @@ once the LoRA thread reaches a resting point, not mid-run.
    finding in `coding-lora-p7-idioms.md`'s "confirmed mechanism" section
    (the side-note that raised it).
 
-#,,..,,..,...,.,.,.,,,,.,,..,,,.,,.,,,...,.,,,..,,...,...,,,.,.,,,,,,,,,,,,..,
-#66J5V2IATEE27LGGIQDAZJBZM36FD5VQ2LBTTUB6IPCYSQQ7BGM5EF5Z7POIWUJNFAECTQCLO2LVQ
-#\\\|MHUFKMRVIQRFKRGMB5NKFP6JJHYM6YKITAMVBSOJK5X4FOXZLBP \ / AMOS7 \ YOURUM ::
-#\[7]BET2OJXXYM4KJ3BIBOGM7464BCI5LGXWU7N3DCA3G66S2GZ75WAY 7  DATA SIGNATURE ::
+## resolution [ 2026-09-13, same session -- ADOPTED ]
+
+read the actual raw `chat_template.jinja` directly (not the model card).
+findings:
+
+- **same lineage, not a third-party swap**: the template's own internal
+  `template_version` string is `qwen3.8-froggeric-v22.5.0` -- "froggeric"
+  is the exact author name already cited in this project's own
+  `coding.spawn_inference_server` comment for the CURRENT `qwen3.5-fixed.
+  jinja` ("froggeric qwen3.5/3.6 bug fixes"). this is an upstream update
+  from the same source this project already depends on, not an unrelated
+  alternative -- substantially de-risks adoption.
+- **`reasoning_effort` is genuinely consumed** (`_effort_raw = (reasoning_
+  effort | string | lower) if reasoning_effort is defined ...`), resolving
+  the open question this task was raised to answer: it was NOT a no-op in
+  this project's old template specifically because the old template never
+  referenced the kwarg at all -- ik_llama.cpp was presumably passing it
+  through to the template context correctly the whole time, with nothing
+  on the template side to read it. `medium` (this project's configured
+  value) maps to the template's own `_default_reasoning_effort`, so the
+  existing config value carries over with no change needed.
+- **same `<think>` mechanism, not special tokens**: `<|think_on|>`/
+  `<|think_off|>` are optional user-content control markers, not a
+  replacement for the core reasoning wrapper -- `add_generation_prompt`
+  still emits literal `<think>\n` (open) or `<think>\n\n</think>\n\n`
+  (closed) exactly like the current template, and historical-turn
+  rendering still gates on `loop.index0 > ns.last_query_index` in the
+  same spirit. no tokenizer/vocab compatibility risk, and no conflict
+  with anything in `coding-lora-p7-idioms.md`'s training-data assumptions
+  (training data was always single-turn, never touched historical-turn
+  rendering).
+- **two new default-on behaviors, both explicitly opt-out-able**:
+  terseness system-prompt addition (`{"terse": false}` to disable) and
+  thinking-retention across turns (`{"preserve_reasoning": false}` to
+  disable, called `preserve_thinking` in some branches -- confirm exact
+  kwarg name if this ever needs disabling).
+
+**live validation**: swapped `coding.jinja.template_file` live (config is
+fully data-driven, no code change needed), respawned, self-test 3/3
+passed with ttft 1.68s/1.87s/2.90s across all three prompts -- a dramatic
+improvement over the multi-second-to-multi-minute range (including
+retry-triggering reasoning spirals) seen under the old template all
+session. A real held-out idiom prompt (`P_A`, seed 13) returned a
+concise, complete, `finish_reason=stop` response (983 chars) instead of
+the long rambling/self-correcting reasoning traces observed earlier this
+session under the same prompt family.
+
+**decision**: adopted as the new default. `cfg/zenki/coding/zenka.v7`'s
+`coding.jinja.template_file` now points at `data/jinja/templates/
+qwen3.8-sharp.jinja`; `qwen3.5-fixed.jinja`/`qwen3.6-fixed.jinja` deleted
+(`git rm`) rather than kept as dead weight -- both are fully superseded
+by the unified template, and git history preserves them if ever needed
+again. No fresh baseline idiom-scoring sweep run before adopting (scope
+item 2's original caution) -- the speed/quality improvement was decisive
+enough on direct observation that a full sweep was judged not worth
+gating the switch on; if a future LoRA attempt's baseline numbers look
+meaningfully different from this session's under the old template, this
+template swap is the first thing to check.
+
+#,,.,,..,,...,...,,,,,,..,...,,,,,.,.,.,,,,..,..,,...,...,,,,,...,..,,,,,,,,,,
+#27H2TQ6X3K7ZNSZHIKSDSMDTEPBCAY5WANJWNWWKWRB4Y46KSK5AWMWODBG2O24X4ZHFMEO3U7JA2
+#\\\|VYUSB7OPGMCDFGO53A5E3Q5EL53MA5ZXVQHKX2IJXFLVJA34WN7 \ / AMOS7 \ YOURUM ::
+#\[7]X2HQLJBI5O2NIYQ4VTNSIHMYIR5QDWWVZBHTPKSZNUWEADSW2QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
