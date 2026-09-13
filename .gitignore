@@ -87,6 +87,15 @@ data/catalog-corpus-synthetic/
 ## p7-idioms.md -- real artifacts, kept locally, deliberately not tracked
 ## in git after a history-rewrite purge removed ~350MB already committed
 ## by mistake; regenerate the .gguf from the adapter via data/control-
-## vectors/lora/lora_to_gguf.py if needed again ]
-data/control-vectors/lora-out/**/*.safetensors
-data/control-vectors/lora/*.gguf
+## vectors/lora/lora_to_gguf.py if needed again. broadened 2026-09-13 to  ##
+## the whole control-vectors tree + other large model-weight formats,    ##
+## not just the two exact paths used by every attempt so far -- a future ##
+## experiment landing weights somewhere else (e.g. a regenerated         ##
+## dequantized base checkpoint under lora/base-model/) should never need ##
+## a fresh .gitignore entry to stay untracked ]                          ##
+data/control-vectors/**/*.safetensors
+data/control-vectors/**/*.gguf
+data/control-vectors/**/*.bin
+data/control-vectors/**/*.pt
+data/control-vectors/**/*.pth
+data/control-vectors/**/*.ckpt

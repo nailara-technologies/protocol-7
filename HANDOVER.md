@@ -118,18 +118,51 @@ the same prompt-echo caveat; `cfgaccess`/`modedata` stayed flat. Confounds
 checked clean (chars within 5% of baseline, identical `finish_reason=stop`
 rate both conditions).
 
-**where this leaves the thread**: three attempts spanning dataset quality
-(synthetic vs. real-mined), target-module scope (attn/mlp/ssm vs. adding
-the output layer), all landing at exactly zero on `invoke`, is a strong
-enough pattern that a fourth attempt should change WHAT is being learned
-(oversample `invoke` far more heavily, or add retrieval/few-shot injection
-of real corpus examples at generation time instead of asking any adapter
-to memorize the pattern into weights) rather than tune hyperparameters
-within the same recipe again. Not evidence to abandon load-time adapters
-as a mechanism — `truefalse` has moved in every attempt — just evidence
-that `invoke` specifically needs a different approach than any tried so
-far. No attempt 4 is in progress as of this handover; this is a genuine
-decision point, not an in-flight task.
+**attempt 4 (3x invoke oversampling) ran to completion — seventh honest
+negative on `invoke`.** Full account in `data/tasks/coding-lora-p7-idioms.
+md`'s "fourth attempt" addendum. Isolated the one variable the first three
+attempts never changed: identified the 97 real training lines whose target
+content already matches the invoke regex and tripled their representation
+(invoke's share of the corpus: ~32%→~59%), reverting target_modules back
+to attempt 2's set (attn/mlp/ssm only) so this tested oversampling alone,
+not stacked on attempt 3's already-null lm_head lever. Ran ~2x slower per
+step than attempts 2/3 (GPU pegged at 100%, no external contention found,
+best guess is the tripled examples average longer). **`invoke` stayed at
+0/18 even with 59% of training examples containing it.** `truefalse` moved
+again (4→14, same range as attempts 2/3); `cfgaccess`/`modedata` flat
+across all four attempts now, no exception ever recorded. Responses were
+~19% shorter while completing MORE naturally (not a truncation confound).
+
+**Real methodology bug caught mid-thread, now fixed as reusable
+infrastructure**: the first validation pass for this attempt fired 16 of
+18 generation requests at a dead server — the self-test wait had a fixed
+timeout that "proceeded anyway" on expiry, right as a seed-retry respawn
+was mid-flight. Caught by checking raw HTTP status codes, not just
+aggregate scores (which would have looked like an ordinary null result).
+Rewrote the wait as a genuinely open-ended health-confirmation poll (no
+timeout that gives up and fires anyway) and committed it as `data/
+control-vectors/run_validation_sweep.sh` — any future attempt should use
+this script rather than re-deriving the same wait logic from scratch.
+
+**where this leaves the thread**: four attempts now — dataset source,
+target-module scope (including the output layer), and data density — all
+landing at exactly zero on `invoke`, while every single one reliably moves
+`truefalse`. This is about as strong a pattern as this method can produce
+without changing approach entirely. The remaining levers (much higher rank
+specifically on `lm_head`, or retrieval/few-shot injection of real corpus
+examples at generation time instead of more weight-training) are a bigger
+step than another parameter tweak — worth a deliberate decision, not
+another same-shape attempt. No attempt 5 is in progress as of this
+handover.
+
+**Unrelated follow-up filed this session, not yet investigated**: user
+linked `https://huggingface.co/peculiar-ragdoll/Qwen-Sharp-Chat-Templates`,
+which claims support for the `reasoning_effort` chat_template_kwarg this
+project's own `qwen3.5-fixed.jinja` silently ignores (an open question
+this task file already flagged) plus terseness/speed improvements. Filed
+as `data/tasks/coding-chat-template-sharp-eval.md` rather than investigated
+immediately, since swapping the chat template mid-validation-sweep would
+have been a confound for every attempt's comparability.
 
 **four real infrastructure bugs found and fixed getting attempts 2/3
 running, independent of whether either moves the needle**:
