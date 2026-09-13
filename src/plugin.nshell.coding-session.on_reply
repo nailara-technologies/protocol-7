@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.nshell.coding-session.on_reply
+# descr = catch a coding.submit reply's task id and bind it to this tab,
+#         then auto-subscribe to its live stream
+# param = { mode => $mode_href, text => $reply_text }
+
+my $args = shift // {};
+my $mode = $args->{'mode'};
+my $text = $args->{'text'} // '';
+
+return undef unless defined $mode and $mode->{'awaiting_task_id'};
+
+## coding.submit's own reply shape : "task:task-XXXX|type:...|..." ##
+return undef unless $text =~ m{^task:(\S+?)\|};
+
+my $task_id = $1;
+$mode->{'task_id'} = $task_id;
+delete $mode->{'awaiting_task_id'};
+
+## send the follow-up subscribe command as if typed -- same mechanism     ##
+## nshell.no-tty-debug.cmd.char-add uses to submit a command : append to  ##
+## the session's own output buffer, picked up by the normal dispatch loop ##
+## on its next pass                                                       ##
+my ($cube_sid) = keys <user.cube.session>->%*;
+if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+    $data{'session'}{$cube_sid}{'buffer'}{'output'}
+        .= "coding.subscribe-session $task_id\n";
+}
+
+return TRUE;
+
+#,,,.,.,.,..,,,,.,,..,,,.,.,.,,..,,..,...,.,,,..,,...,...,,.,,,.,,...,,.,,,,,,
+#XBAUP4U6B75JLSJGTJKKBSEVO2IBG7437HP5R6SBUM4HTLZ7LZ4U54WCURXYSGKWV63GY7ZEAA5FS
+#\\\|VO24MM7EDNZLP5FS6DFD6Z2AANF6G7VKWLKVW7IFCA2OX6DIWQC \ / AMOS7 \ YOURUM ::
+#\[7]2GMJNKJEW4R7XJ24UC3WSOCLMLOVB3VKGJRPQY2S5QX6XWSZNWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
