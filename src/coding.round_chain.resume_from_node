@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.round_chain.resume_from_node
+# param = <task_id> <round> <messages_aref>
+# descr = shared resume-mechanics for rewind-round and redo-round : rebuild
+#         async task_state + execution.messages from a reconstructed
+#         message history, restore execution.status, fix up active/
+#         completed/failed list membership, and enqueue the next round.
+#         caller has already moved round_chain_current [ via coding.
+#         round_chain.rewind ] and resolved both the round number and the
+#         reconstructed messages [ via coding.round_chain.resolve_resume,
+#         which decides whether to include the target node's own delta or
+#         stop at its parent -- this function no longer makes that call,
+#         it only takes whatever round number the caller resolved ].
+
+my ( $task_id, $prev_round, $messages ) = @ARG;
+
+my $task = <coding.task.queue>->{$task_id};
+return undef unless defined $task;
+
+my $prev_backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
+my $prev_tools   = $task->{'execution'}->{'tools'}    // [];
+
+## if tools weren't saved (pre-fix completions), re-assemble them now [ ##
+## mirrors coding.cmd.task-append ]                                     ##
+if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+    $prev_tools = <[coding.tools.definitions]> // [];
+    <[base.logs]>->(
+        1,
+        "round_chain.resume_from_node : reassembled %d tools for %s",
+        scalar @{$prev_tools}, $task_id
+    );
+}
+
+<coding.async.task_state>->{$task_id} = {
+    'state'    => qw| streaming |,
+    'backend'  => $prev_backend,
+    'round'    => $prev_round,
+    'messages' => $messages,
+    'tools'    => $prev_tools,
+};
+
+## keep execution.messages in sync so a later task-append [ which reads it ##
+## directly, not through round_chain ] resumes from the right history      ##
+$task->{'execution'}->{'messages'} = $messages;
+$task->{'execution'}->{'status'}   = qw| in_progress |;
+delete $task->{'execution'}->{'completed'};
+delete $task->{'stop_requested'};
+## reset loop detection : avoid stale tool_history/patterns from beyond the ##
+## jump point immediately re-triggering on resume                           ##
+delete $task->{'execution'}->{'loop_detection'};
+
+my $aref_completed = <coding.task.completed> // [];
+my $aref_failed    = <coding.task.failed>    // [];
+my $aref_active    = <coding.task.active> //= [];
+$aref_completed->@* = grep { $ARG ne $task_id } $aref_completed->@*;
+$aref_failed->@*    = grep { $ARG ne $task_id } $aref_failed->@*;
+push $aref_active->@*, $task_id
+    unless grep { $ARG eq $task_id } $aref_active->@*;
+
+<[coding.task.enqueue_round]>->( $task_id, $prev_round );
+
+return TRUE;
+
+#,,.,,.,,,,.,,,.,,,,,,..,,,,,,...,.,,,,..,.,.,.,.,...,..,,,,,,.,.,..,,,.,,...,
+#CN4S4CNM3GVLQQK354YU7XFNXMUBYVHVGHHCQKCQO46UKLZMZDSZS6EEP4VHWCZ247Z2FFOG2XFAO
+#\\\|7OYEBLAFDWTMCDNWRLXDQYLCAMPPYE5MPTDP5ZXHOEGH44HM3VL \ / AMOS7 \ YOURUM ::
+#\[7]CZEX2LVWAD2FEKGVR7IVPCQ5H6BAXVPHO6PIFH7GERV65HS2U4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
