@@ -155,14 +155,33 @@ step than another parameter tweak — worth a deliberate decision, not
 another same-shape attempt. No attempt 5 is in progress as of this
 handover.
 
-**Unrelated follow-up filed this session, not yet investigated**: user
-linked `https://huggingface.co/peculiar-ragdoll/Qwen-Sharp-Chat-Templates`,
-which claims support for the `reasoning_effort` chat_template_kwarg this
-project's own `qwen3.5-fixed.jinja` silently ignores (an open question
-this task file already flagged) plus terseness/speed improvements. Filed
-as `data/tasks/coding-chat-template-sharp-eval.md` rather than investigated
-immediately, since swapping the chat template mid-validation-sweep would
-have been a confound for every attempt's comparability.
+**Unrelated follow-up filed this session, since investigated and
+adopted**: user linked `https://huggingface.co/peculiar-ragdoll/Qwen-
+Sharp-Chat-Templates`. Deliberately not investigated mid-validation-sweep
+(would have confounded attempt comparability), but once the LoRA thread
+reached its resting point, read the raw `chat_template.jinja` directly
+(not the model card): its own internal `template_version` string is
+`qwen3.8-froggeric-v22.5.0` — "froggeric" is the exact author this
+project's OLD `qwen3.5-fixed.jinja` already came from (per `coding.
+spawn_inference_server`'s own comment), so this is an upstream update to
+an already-trusted source, not a third-party swap. `reasoning_effort` is
+genuinely consumed by it, resolving that open question directly (the old
+template simply never referenced the kwarg — a real no-op). Same core
+`<think>` boundary mechanism and historical-turn rendering as before, so
+no conflict with anything the LoRA task's training-data assumptions rely
+on. Live-verified before adopting: self-test ttft dropped from the usual
+multi-second-to-multi-minute range (including retry-triggering reasoning
+spirals) to 1.7–2.9s across all 3 prompts, and a real held-out idiom
+prompt returned a concise, complete, `finish_reason=stop` response
+instead of a rambling reasoning trace. **Adopted as the new default**
+(`cfg/zenki/coding/zenka.v7`'s `coding.jinja.template_file` →
+`data/jinja/templates/qwen3.8-sharp.jinja`); the old `qwen3.5-fixed.
+jinja`/`qwen3.6-fixed.jinja` were deleted (fully superseded, git history
+preserves them if ever needed). Full account in `data/tasks/coding-chat-
+template-sharp-eval.md`. No fresh idiom-scoring baseline sweep was run
+under the new template before adopting — worth checking as the first
+suspect if a future LoRA attempt's baseline numbers look different from
+this session's.
 
 **four real infrastructure bugs found and fixed getting attempts 2/3
 running, independent of whether either moves the needle**:
