@@ -57,10 +57,26 @@ if ($split_active) {
     ## : one pinned_row_print call, tiny payload                            ##
     if ( length( $state_ref->{'split_title'} // '' ) ) {
         my ($term_w) = AMOS7::TERM::terminal_size();
+
+        ## append the bound task id when one exists -- read fresh from the ##
+        ## live mode object every render, same self-healing reasoning as   ##
+        ## redrawing the separator itself on every keystroke rather than   ##
+        ## caching it once at Tab-press time : on_reply/on_escape mutate   ##
+        ## mode->{task_id} directly and don't need to remember to keep a   ##
+        ## separate cached title in sync                                   ##
+        my $modes = $state_ref->{'display_modes'};
+        my $mode
+            = ref $modes eq 'ARRAY'
+            ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
+            : undef;
+        my $title_str = $state_ref->{'split_title'};
+        $title_str .= " [$mode->{'task_id'}]"
+            if defined $mode and length( $mode->{'task_id'} // '' );
+
         ## reserve one column [ same pending-wrap hazard this renderer's ##
         ## own overflow path already guards against below ]              ##
         my $rule = AMOS7::TERM::frame_rule_line(
-            " $state_ref->{'split_title'} ",
+            " $title_str ",
             $term_w - 1,
             {   'title' => $colors{'p7_fg_0003'},
                 'fill'  => $colors{'p7_fg_0004'},
@@ -188,8 +204,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,,,,,..,...,,,.,,.,,.,,,.,.,.,,,,..,..,,.,.,..,,...,...,...,,..,..,,..,,,..,
-#M2HFOYSQ3NWWQEEDMS7BGONDG3AMHQOICNZ4OMK3F22L7KFN4WIWCDAQEW2PVHEZ4OCAZ72BV4B4G
-#\\\|Q3LTMAZOGUHACA3PY2OGSGAPWPFHF3MR4CHYF3YLRFABRNHV7ZU \ / AMOS7 \ YOURUM ::
-#\[7]YAFWYZOU4XKOUQ666REWA7RLWQZTVT3R7GHVQPGGKBDL67GG6ACY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,.,.,,,.,.,.,,..,,,,,..,,,,,,..,,...,...,..,,.,.,,,.,.,,,.,,,
+#UF3GCVSHMOWGQR6ZN6P6AAI6NTLZEYTTBHIN4QBPI7LEG2XGW3KERJSNH4ESULL4UZKPAGZD2VFAA
+#\\\|NQWPP7PLBKQYXLWKYZJBHQB4545K5D35WL33OY6U22KZA4Z5CUP \ / AMOS7 \ YOURUM ::
+#\[7]UMWBMHKMFTIWYZQXLTM77LF76SBSU33I265O4QI54PWYM3LPESAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
