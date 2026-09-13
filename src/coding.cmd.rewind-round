@@ -1,0 +1,123 @@
+## [:< ##
+
+# name  = coding.cmd.rewind-round
+# descr = rewind a task to an earlier round-chain node, resume
+#         [ task must be completed or failed, not in_progress ]
+# param = <task_id> <checksum>
+# note  = non-destructive : round_chain is append-only, this only moves
+#         round_chain_current [ via coding.round_chain.rewind ]. the next
+#         round appended after resuming forks off the rewound-to node --
+#         everything past the old tip stays reachable by checksum, it's
+#         just no longer on the path a plain reconstruct-to-latest walks.
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $checksum ) = split m{ +}, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+return { 'mode' => qw| false |, 'data' => 'checksum required' }
+    unless defined $checksum and length $checksum;
+
+my $task = <coding.task.queue>->{$task_id};
+
+## buffer names use T- prefix; queue keys use task- prefix : normalize [ ##
+## same normalization coding.cmd.task-append applies ]                   ##
+if ( !defined $task and $task_id =~ s|^T-|task-|i ) {
+    $task = <coding.task.queue>->{$task_id};
+}
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+## only completed/failed tasks : rewinding a live in_progress task would ##
+## race the state machine mid-round. use stop-task first, same guidance  ##
+## restart-round gives for the analogous "task must not be mid-flight"   ##
+## constraint.                                                           ##
+return {
+    'mode' => qw| false |,
+    'data' => "cannot rewind task $task_id [status: $status] "
+        . '-- stop it first if it is still in progress'
+    }
+    unless $status eq qw| completed | or $status eq qw| failed |;
+
+my $node = <[coding.round_chain.rewind]>->( $task_id, $checksum );
+return {
+    'mode' => qw| false |,
+    'data' => "checksum not found in round_chain for $task_id: $checksum"
+    }
+    unless defined $node;
+
+my $messages = <[coding.round_chain.reconstruct]>->( $task_id, $checksum );
+return {
+    'mode' => qw| false |,
+    'data' => "failed to reconstruct messages for checksum $checksum"
+    }
+    unless ref $messages eq qw| ARRAY |;
+
+my $prev_backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
+my $prev_round   = ( $node->{'round'} // 0 ) + 1;
+my $prev_tools   = $task->{'execution'}->{'tools'} // [];
+
+## if tools weren't saved (pre-fix completions), re-assemble them now [ ##
+## mirrors coding.cmd.task-append ]                                     ##
+if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+    $prev_tools = <[coding.tools.definitions]> // [];
+    <[base.logs]>->(
+        1,
+        "rewind-round : reassembled %d tools for %s",
+        scalar @{$prev_tools}, $task_id
+    );
+}
+
+<coding.async.task_state>->{$task_id} = {
+    'state'    => qw| streaming |,
+    'backend'  => $prev_backend,
+    'round'    => $prev_round,
+    'messages' => $messages,
+    'tools'    => $prev_tools,
+};
+
+## keep execution.messages in sync so a later task-append [ which reads it ##
+## directly, not through round_chain ] resumes from the rewound history    ##
+## rather than the stale pre-rewind one                                    ##
+$task->{'execution'}->{'messages'} = $messages;
+$task->{'execution'}->{'status'}   = qw| in_progress |;
+delete $task->{'execution'}->{'completed'};
+delete $task->{'stop_requested'};
+## reset loop detection : avoid stale tool_history/patterns from beyond the ##
+## rewind point immediately re-triggering on resume                         ##
+delete $task->{'execution'}->{'loop_detection'};
+
+my $aref_completed = <coding.task.completed> // [];
+my $aref_failed    = <coding.task.failed>    // [];
+my $aref_active    = <coding.task.active> //= [];
+$aref_completed->@* = grep { $ARG ne $task_id } $aref_completed->@*;
+$aref_failed->@*    = grep { $ARG ne $task_id } $aref_failed->@*;
+push $aref_active->@*, $task_id
+    unless grep { $ARG eq $task_id } $aref_active->@*;
+
+<[coding.task.enqueue_round]>->( $task_id, $prev_round );
+
+<[base.logs]>->(
+    1,
+    "rewind-round : %s rewound to %s [round %d] and resumed with %d messages",
+    $task_id,
+    $checksum,
+    $node->{'round'} // 0,
+    scalar @{$messages}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "task $task_id rewound to round $node->{'round'} "
+        . "[${\scalar @{$messages}} messages] and resumed"
+};
+
+#,,,,,..,,..,,,.,,.,,,.,,,,,,,,,.,.,,,,,,,,,,,.,.,...,...,..,,...,..,,.,,,.,,,
+#Q57XSIIYTDU3NABLBQVIQYXIJN4DWNFEMLNR7AYARGIRMTAZ2LHO55XTHNO4WH42LXRM223AZPTZE
+#\\\|6PTSSMGMJ4FQNZE3THTGAQD2CEFPBBXFPY7YEY4HSQHX6DQQCAA \ / AMOS7 \ YOURUM ::
+#\[7]NV7OISZ2PZPXDOE7ZBJ7TKXQXGXJH4FGG46W7AUZZS5NEXD4HIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
