@@ -205,9 +205,3 @@ Carbon emissions can be estimated using the [Machine Learning Impact calculator]
 ### Framework versions
 
 - PEFT 0.20.0
-
-#,,,,,,,.,.,,,,,.,,.,,,.,,.,.,..,,,,.,...,,.,,...,...,...,..,,,..,,..,,..,..,,
-#F6AHZ4NLSNV7XEWKUIXNSJIDEGN3PZL4VSRM7VIVLSORUO7HMPFCCYXCXR3XOB3FWBKSR3MZ6KFPS
-#\\\|P4JGNBFOG74RMYOFQWIRZYDYAFUFYKPHKY3AS5FOLVV2E7XKG2D \ / AMOS7 \ YOURUM ::
-#\[7]JXA2DKWI3P26ODXU4RGDWPGVHAV5T7B642PQXFP44DOCA2ZDSWBI 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
