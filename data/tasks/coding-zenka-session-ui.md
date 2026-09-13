@@ -200,6 +200,26 @@ clean close, no corruption on the follow-up call. Terminal chrome
 (ascii.frame wrapping) still not built -- phase 1 proved the data path,
 not the UI presentation layer; that's the natural next slice.
 
+**split-screen prerequisite DONE, live-verified 2026-09-14** (`bcf1b4cb5`):
+nshell now supports a Tab-toggled split mode -- pinned input line at the
+bottom, live-streaming content scrolls above it via a real DECSTBM
+scroll region (`AMOS7::TERM::scroll_region_set/clear` + `pinned_row_print`),
+so watching a live `coding.subscribe-session` stream and typing a
+control command no longer corrupt each other. This is the piece phase 2
+was actually blocked on -- recalled from an old unwritten plan ("nshell
+template support, tab switches display modes"), not found in any doc,
+built fresh. `ascii.frame` was confirmed as the right template/layout
+layer for future chrome (it's a full-recompute renderer, fine for slow-
+changing borders/status, not for token-by-token content -- that's what
+the scroll region is for); `AMOS7::TERM.pm` confirmed as the right home
+for shared low-level terminal primitives (raw-mode toggling, the
+`editor_*`/`frame_*` families already lived there). Search order for
+future "does X already exist" questions in this thread: check actual
+module lists (`ls src/`) and full doc content, not just keyword grep --
+`AMOS_TERM_NSHELL_INTEGRATION.md` and the full `AMOS7::TERM.pm` sub list
+were both missed on a first keyword-only pass and only found when the
+user pointed back at them directly.
+
 ## phase 2 -- interactive controls
 
 wire stop/restart into the viewer. `coding.abort.*` (register/lookup/
@@ -418,8 +438,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,.,,...,,,.,,,,,..,,..,,,.,,,.,,...,,,,,...,..,,...,..,,.,,,.,,,,,.,...,,..,
-#PKB2GIYCK4B5CHN26IFCWBSIJKSTTIGKEKRLZEDQ6N4P5QIY2FRLS6L3S2KATKOIFKR5KDHDTTH2G
-#\\\|23IXVYPUBGVQ4DLA7SGMHRNKFT5LNNPHR27HLOILB5FVTKZBWY3 \ / AMOS7 \ YOURUM ::
-#\[7]IQ226SYKFKAVLYEOXU3OT2DMATXYAVVEKUFRPVUVD2EGTLSG7QCA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,,.,...,,.,,.,,,,,,,...,...,..,,...,...,,,,,...,,.,,.,.,.,.,
+#47EBMHI7EF3ZIOOIWDOJRQV7BS2G6OHYCEULOB3DRQ44Y7MENZWDSXY5QYVFPMW2B4NCN3GUHBZAO
+#\\\|ELOLZ5KC5QXFJTN34MTKV54SHQCC6SZKDBR7DUDKJACDU3LJIYC \ / AMOS7 \ YOURUM ::
+#\[7]NKHPA26U5ZRT224FGI5BMO7JFCJUYT3ZTD73G55LYVXC25665YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
