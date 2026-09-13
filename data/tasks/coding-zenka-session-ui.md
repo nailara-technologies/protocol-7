@@ -678,10 +678,43 @@ piece directly into the phase that actually needs it.
 - shared-pty primitive's exact shape (new `coding.shell.*` namespace vs
   reusing the existing child-zenka fork pattern) -- not designed yet
 
+**`%glyphs` / `-ascii` override mode, 2026-09-14 -- design captured,
+NOT built, deliberately deferred out of the Esc/status-bar batch.**
+grew out of nshell.render.viewport's status bar switching to unicode
+box-drawing (`─`, U+2500) for its separator line -- user asked whether
+7-bit safety was a real concern and whether an override mode could
+still exist for it later, same way `-nc` already works. traced the
+precedent live in `bin/Protocol-7`:
+- `%colors` (line ~13 `our %colors`, populated ~798-825) is ONE shared
+  global hash, populated once at startup with either real ANSI codes or
+  blank strings depending on `$data{'system'}{'ansi_color'}` [ set by
+  the existing `-nc`/`-c` flags, parsed ~730 ]. every module across
+  every zenka that interpolates `$colors{'p7_fg_0003'}` etc. gets the
+  no-color behaviour automatically -- no per-call-site checking, it's
+  baked into the shared hash itself.
+- confirmed nuance : `-nc` does NOT blank everything uniformly --
+  `clear_screen` keeps a real control sequence (`"\c[[H\c[[2J"`) in
+  BOTH branches, since it's structural [ actually needed for the
+  terminal to function ] rather than decorative. the `%glyphs` design
+  should follow the same split : purely decorative unicode [ this
+  separator's `─`, `[ ]` framing ] falls back to ASCII/plain characters
+  under `-ascii`, but anything load-bearing stays functional regardless.
+- proposed shape, mirrors `%colors` exactly : a new `our %glyphs`
+  global in `bin/Protocol-7`, populated conditionally on a new
+  `-ascii`/`-7bit` flag [ parsed the same way as `-nc`/`-c` ], then
+  `nshell.render.viewport`'s hardcoded `'─'`/`' [ '`/`' ] '`/`'──'`
+  literals become `$glyphs{'hline'}`/`$glyphs{'bracket_open'}`/etc.
+  lookups instead.
+- deliberately NOT built this session : touches `bin/Protocol-7`
+  itself [ every zenka's shared startup path, much higher blast radius
+  than the nshell-only files this whole task has touched so far ],
+  and the Esc/Ctrl+C/status-bar batch was already large and unsigned.
+  build as its own separate, focused change when actually needed.
+
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,,,...,.,.,.,.,,.,,.,,,..,,.,,,...,,,,,,..,..,,...,...,...,,,.,...,,.,,...,
-#6AK57WPF3FS57VV62WYUSMPVHW7OHDVEBURLRAIFIJJJ3ATCCRCQSPBUTHGG7KH5S7ZYRJVH2CSFE
-#\\\|N3HIG4ML3O2OVE4WYZWPDSNKICUOJP26SULBXI2KYOCDPVXF4DF \ / AMOS7 \ YOURUM ::
-#\[7]MFZXLIH4GWSXLNA4YG42GT6HIS75NQ6L66OIZ7O7KD4QGG52WACI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,,,,..,,,..,.,,,,.,,,.,,.,,,..,,...,...,...,.,.,,.,,,..,,,.,
+#PPV36WQKLOLTYFIQ26BIQPSXX4675RYAEQSWJCZ76GVBFVADWM65GQP3RA7INFKVLAPRMNHVTOCYY
+#\\\|M7NVC4OKSNILNLZBM3GC2PGJNY4ANILMSY6WXZIEIRKSALFQKWY \ / AMOS7 \ YOURUM ::
+#\[7]YD3GDXAV5PEXLOBJ3PY6RTPGPRL6ZXEMYK4IPMHOI3HUFDINUKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

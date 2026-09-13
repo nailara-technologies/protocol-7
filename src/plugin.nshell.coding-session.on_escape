@@ -1,8 +1,15 @@
 ## [:< ##
 
 # name  = plugin.nshell.coding-session.on_escape
-# descr = abort a bound task's live inference if still running, else
-#         clear a leftover transcript for a genuinely fresh tab
+# descr = abort a bound task's live inference if still running [ first
+#         press ], then clear the leftover transcript [ second press ] --
+#         task_id itself is NEVER unbound here, since coding.cmd.task-
+#         append can resume a completed OR failed task from its saved
+#         history, and the interrupted turn is preserved as a real
+#         message by abort-inference's own fix : staying bound means the
+#         next message naturally continues the same conversation instead
+#         of losing it. Ctrl+C (on_ctrl_c) is the actual "detach/close
+#         this tab" action, not Esc.
 # param = { mode => $mode_href }
 # return = { claimed => TRUE, redraw => TRUE|FALSE } | undef [ not claimed ]
 
@@ -11,43 +18,53 @@ my $mode = $args->{'mode'};
 
 return undef unless defined $mode;
 
-if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
+if (    defined $mode->{'task_id'}
+    and length $mode->{'task_id'}
+    and not $mode->{'esc_stage'} ) {
 
-    ## bound to a task : always send the abort -- this plugin runs inside   ##
-    ## the NSHELL zenka's own process, not the coding zenka's, so           ##
-    ## <coding.task.active> here would only ever read nshell's own local,   ##
-    ## never-populated copy of that key [ per-zenka %data isolation ], not  ##
-    ## the coding zenka's real active-task list -- an earlier version gated ##
-    ## on that read and it was always empty, so the abort command silently  ##
-    ## never got sent at all. coding.cmd.abort-inference already does this  ##
-    ## exact "is it still running" check correctly, server-side, with real  ##
-    ## data -- trust it rather than duplicating it here. unbind             ##
-    ## unconditionally either way, so the NEXT message starts a fresh task  ##
-    ## rather than trying [ and likely failing ] to task-append onto a now- ##
-    ## completed/failed one. the interrupted turn itself is preserved       ##
-    ## server-side by abort-inference's own partial-content-commit fix,     ##
-    ## independent of anything done here.                                   ##
+    ## first press since the last message was sent : always send the abort  ##
+    ## -- this plugin runs inside the NSHELL zenka's own process, not the   ##
+    ## coding zenka's, so <coding.task.active> here would only ever read    ##
+    ## nshell's own local, never-populated copy of that key [ per-zenka     ##
+    ## %data isolation ], not the coding zenka's real active-task list --   ##
+    ## an earlier version gated on that read and it was always empty, so    ##
+    ## the abort silently never got sent. coding.cmd.abort-inference        ##
+    ## already does this exact "is it still running" check correctly,       ##
+    ## server-side, with real data -- trust it, and let it harmlessly no-op ##
+    ## if nothing was actually running [ e.g. this press landed after       ##
+    ## natural completion ] rather than trying to guess here.               ##
     my ($cube_sid) = keys <user.cube.session>->%*;
     if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
         $data{'session'}{$cube_sid}{'buffer'}{'output'}
             .= "coding.abort-inference $mode->{'task_id'}\n";
     }
 
-    delete $mode->{'task_id'};
-    delete $mode->{'awaiting_task_id'};
+    ## this is routinely a no-op [ e.g. Esc between rounds, nothing ##
+    ## streaming ] -- suppress the raw wire reply either way, see   ##
+    ## plugin.nshell.coding-session.on_reply                        ##
+    $mode->{'suppress_abort_reply'} = TRUE;
 
-    ## keep the visible transcript -- this is the "first Esc" case, the ##
-    ## user may still want to see what was generated before redirecting ##
+    ## armed : the NEXT Esc press [ with nothing new typed meanwhile ]      ##
+    ## clears the buffer instead of re-sending an abort. on_submit clears   ##
+    ## this flag again whenever a new message actually goes out, so a fresh ##
+    ## round always gets its own "first press aborts" chance                ##
+    $mode->{'esc_stage'} = TRUE;
+
+    ## keep the visible transcript AND the task binding -- the user may    ##
+    ## still want to see what was generated, and their next message should ##
+    ## resume this same conversation via task-append, not start an         ##
+    ## unrelated new one                                                   ##
     return { 'claimed' => TRUE, 'redraw' => FALSE };
 }
 
 if ( length( $mode->{'buffer'} // '' ) ) {
 
-    ## no task bound [ already unbound by a prior Esc, or the task          ##
-    ## finished/failed on its own ] but there's still a leftover transcript ##
-    ## on screen : this is the "second Esc" case -- clear it for a          ##
-    ## genuinely fresh tab                                                  ##
+    ## already armed [ abort already sent for this round ], or no task was  ##
+    ## ever bound in the first place : either way, a leftover transcript is ##
+    ## still on screen -- clear it for a visually fresh tab. task_id [ if   ##
+    ## any ] is untouched, still resumable.                                 ##
     $mode->{'buffer'} = '';
+    delete $mode->{'esc_stage'};
     return { 'claimed' => TRUE, 'redraw' => TRUE };
 }
 
@@ -55,8 +72,8 @@ if ( length( $mode->{'buffer'} // '' ) ) {
 ## through to the normal editor engine unchanged                      ##
 return undef;
 
-#,,,,,...,,..,.,,,.,.,,..,,,,,,,.,.,.,,..,,..,..,,...,.,.,,.,,,.,,,,,,,,.,,,,,
-#ZGEMBEK3N274YTCORFCN2DJOKGALNQBSPG3ZSKAIQ53KRDF4Y2PTZXYPZUN52FNBFVPC2MKS563NE
-#\\\|KYJR2JYU3WN5OPC2FZYD7PV3IXS334B4MXIGRDBCQIJI5DUCQKC \ / AMOS7 \ YOURUM ::
-#\[7]66TWTSAGHMQTX6DIL272IZZTTS6GAWHKCXAT3KDUOVL5JOVO5ADQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,,..,,,.,,,.,.,.,,,.,,,.,..,,..,,...,...,...,,..,.,.,,.,,...,
+#WRKSRFQVN4YL6RIAXSH2CQHK5CLRP4RZQGBFHPHMABGDQDR72VDXKUZVYL2ES5ZCVDMIL2TZDAD7Q
+#\\\|72QAEKEDWC3D34VPXHKANUFG3BSSF43L6JEHTS2VGS7GAYJ2AN5 \ / AMOS7 \ YOURUM ::
+#\[7]QPYBHLUJLQN5E56OMYQZZ7ENMWR3WBJYABZJYF2Z4VJNLU6H7WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
