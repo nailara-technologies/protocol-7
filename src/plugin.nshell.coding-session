@@ -2,8 +2,8 @@
 
 # name  = plugin.nshell.coding-session
 # descr = coding-zenka chat session logic : main dispatch
-# param = { hook => 'on_submit' | 'on_reply' | 'on_escape' | 'on_ctrl_c',
-#           mode => $mode_href, ... }
+# param = { hook => 'on_submit' | 'on_reply' | 'on_escape' | 'on_ctrl_c' |
+#           'on_redo', mode => $mode_href, ... }
 
 my $args = shift           // {};
 my $hook = $args->{'hook'} // '';
@@ -16,12 +16,14 @@ if ( $hook eq qw| on_submit | ) {
     return <[plugin.nshell.coding-session.on_escape]>->($args);
 } elsif ( $hook eq qw| on_ctrl_c | ) {
     return <[plugin.nshell.coding-session.on_ctrl_c]>->($args);
+} elsif ( $hook eq qw| on_redo | ) {
+    return <[plugin.nshell.coding-session.on_redo]>->($args);
 }
 
 return undef;
 
-#,,.,,.,.,...,...,,..,.,,,.,,,,.,,,,,,..,,.,,,..,,...,...,..,,..,,,..,,..,...,
-#3TIJILYPU7PT5OV77F2OK7HCPP2ZOYTEREAOUFDSXYIW75WSHVMB7KJCOSHSJLD2ZYFSIIZ23MIUQ
-#\\\|25FTM7VVA77WISUM3BYPKORQ2TSZUZ4TQHLJ65Y654EBJ3CS2DU \ / AMOS7 \ YOURUM ::
-#\[7]LP42F2YRN4V2M7PV5KE6OIUHCRZK7PW3VMN25DE4N3YRDHB66CAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,..,,,,,,,.,,...,,,,,..,,,..,..,,...,...,.,,,,,.,,.,,,,.,,.,,
+#PQ4XBVEMNQZ3SDFC4BUAYHTJCTN5J4MUX6DV663VWAIHDBZBZJOMH5DWAYHRBXHKINPFQ7PV2KLZA
+#\\\|5LZSWG52FGX22LO3BVDJ3KTWCOZP5ZUZGATHWZ6HFB3T6RKPM32 \ / AMOS7 \ YOURUM ::
+#\[7]6BW4RC2SZRQU2LDDCIAP2JVCKCZSEZ4Z7GWGYJOZSGKQ6GMIXKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

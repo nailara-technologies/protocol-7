@@ -1,19 +1,22 @@
 ## [:< ##
 
 # name  = coding.cmd.rewind-round
-# descr = rewind a task to an earlier round-chain node, resume
-#         [ task must be completed or failed, not in_progress ]
+# descr = rewind to an earlier round-chain node
 # param = <task_id> [checksum]
-# note  = non-destructive : round_chain is append-only, this only moves
-#         round_chain_current [ via coding.round_chain.rewind ]. the next
-#         round appended after resuming forks off the rewound-to node --
-#         everything past the old tip stays reachable by checksum, it's
-#         just no longer on the path a plain reconstruct-to-latest walks.
-#         checksum is optional : omitted means "one round back from the
-#         current tip" [ coding.round_chain.step_target ], for a plain
-#         Esc-press-to-rewind UI binding that never needs to know a
-#         checksum. pass one explicitly to jump straight to a specific
-#         node instead.
+# note  = task must be completed or failed, not in_progress. non-
+#         destructive : round_chain is append-only, this only moves
+#         round_chain_current [ via coding.round_chain.rewind ] and syncs
+#         execution.messages to match [ coding.round_chain.
+#         navigate_to_node ] -- no inference is triggered, confirmed live
+#         that always resuming generation here was a real design error :
+#         the content at an existing node is already there, nothing needs
+#         regenerating just to look at it. coding.cmd.round-regen is
+#         the separate, deliberate action for actually regenerating the
+#         round at the current position via fresh inference. checksum is
+#         optional : omitted means "one round back from the current tip"
+#         [ coding.round_chain.step_target ], for a plain Esc-press-to-
+#         rewind UI binding that never needs to know a checksum. pass one
+#         explicitly to jump straight to a specific node instead.
 
 my $args_str = $call->{'args'} // '';
 my ( $task_id, $checksum ) = split m{ +}, $args_str, 2;
@@ -61,40 +64,58 @@ return {
     }
     unless defined $node;
 
-my $resolved = <[coding.round_chain.resolve_resume]>->( $task_id, $node );
+## plain inclusive reconstruct -- NOT resolve_resume's parent-exclusion   ##
+## logic, that's only needed when immediately feeding this back in for    ##
+## generation [ coding.cmd.round-regen ]. pure navigation shows exactly   ##
+## what's at this node, trailing assistant turn and all : a later         ##
+## task-append appends a real user message after it, which is a perfectly ##
+## normal conversation shape, not the "prefill" problem                   ##
+my $messages = <[coding.round_chain.reconstruct]>->( $task_id, $checksum );
 return {
     'mode' => qw| false |,
-    'data' => "cannot resume from $checksum [ genesis final-answer round -- "
-        . 'not yet chain-tracked ]'
+    'data' => "failed to reconstruct messages for checksum $checksum"
     }
-    unless defined $resolved;
+    unless ref $messages eq qw| ARRAY |;
 
-my ( $messages, $resume_round )
-    = ( $resolved->{'messages'}, $resolved->{'round'} );
+my $navigated
+    = <[coding.round_chain.navigate_to_node]>->( $task_id, $messages );
+return { 'mode' => qw| false |, 'data' => "failed to navigate $task_id" }
+    unless $navigated;
 
-my $resumed = <[coding.round_chain.resume_from_node]>->(
-    $task_id, $resume_round, $messages
-);
-return { 'mode' => qw| false |, 'data' => "failed to resume $task_id" }
-    unless $resumed;
+## replay embedded directly in THIS reply, NOT pushed via coding.round_     ##
+## chain.restream/session.listeners -- confirmed live that repeated pure    ##
+## navigation calls each adding a fresh subscribe-session listener [ that a ##
+## real round's own completion never gets a chance to clean up, since       ##
+## navigation never completes a round ] accumulated stale handles that      ##
+## broke a LATER real round's actual content streaming. the plain reply     ##
+## text already renders multi-line content cleanly through the normal       ##
+## single-command-reply path [ nshell.handler.command_reply's content_      ##
+## print branch ] -- no persistent listener state needed for this at all.   ##
+## coding.cmd.restream still exists standalone for an explicit, one-off     ##
+## "resync my view" ask -- just no longer auto-called from here.            ##
+my $replay
+    = <[coding.round_chain.format_node_for_display]>->( $task_id, $node );
 
 <[base.logs]>->(
-    1,
-    "rewind-round : %s rewound to %s [round %d] and resumed with %d messages",
-    $task_id,
-    $checksum,
-    $resume_round,
+    1,        "rewind-round : %s rewound to %s [round %d, %d messages]",
+    $task_id, $checksum,
+    $node->{'round'} // 0,
     scalar @{$messages}
 );
 
+## 'size' mode, NOT 'true' : confirmed live that a 'true'-mode reply's      ##
+## embedded real newlines don't survive to the terminal as actual line      ##
+## breaks [ that mode is a short single-line human message, same as 'false' ##
+## -- genuine multi-line content needs 'size', the same mode                ##
+## base.cmd.show-buffer/devmod.cmd.eval-code already use for exactly this   ##
 return {
-    'mode' => qw| true |,
+    'mode' => qw| size |,
     'data' => "task $task_id rewound to round $node->{'round'} "
-        . "[${\scalar @{$messages}} messages] and resumed"
+        . "[${\scalar @{$messages}} messages]\n\n$replay\n"
 };
 
-#,,,,,.,.,..,,,,.,,.,,..,,.,.,,,.,.,,,,.,,.,.,.,.,...,...,.,.,,..,.,.,.,,,...,
-#WTHOZFWQJ6X7VAYHRR46COAPFPV4EUW3I3NG6FRRN7SUBKXQN5P2OHQNSSSMRF5BTK3W7747KX35I
-#\\\|3QMK5II4GDXQJK3HCNYTKOOVVXFCKWLZWK4JLLZOKXLN5U5TWX6 \ / AMOS7 \ YOURUM ::
-#\[7]R7XFK67D7IE3PJFRPFACI4DZFIZCTQZ3ERZMKUGDQHSB6XV7KQBY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,.,.,..,,,,,,.,,,.,,,..,,,,,,.,.,...,...,...,,..,,.,,.,,,.,.,
+#HVJYUIXEMLIITRTW2JSELLQMS4F5HGGLGQLTIBPX4K6Y3DYDYAUO6TGFKR5OX65HIRYXJX5557CHI
+#\\\|QJAPFO2PEIBKWAOVE7OKQ53SZSQPKULDYJADVBMHC7X6Q66ZIOR \ / AMOS7 \ YOURUM ::
+#\[7]6AHXVF6VJBBC2RIZAFBGBLND62POXE4644KMTTYBGVHN2JJSF4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
