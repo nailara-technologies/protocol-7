@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = coding.cmd.show-backup
+# descr = decompress + show one completed-task-backup variant
+# param = <backup_dir> [compact|full|thinking|meta]
+
+my $args = $call->{'args'} // '';
+my ( $backup_name, $variant ) = split m|\s+|, $args, 2;
+$backup_name //= '';
+$variant     //= 'compact';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'backup_dir required [ see coding.list-backups ]'
+    }
+    unless length $backup_name;
+
+## backup_name flows straight into a zenka_dir-relative path below -- ##
+## reject anything that isn't a bare directory-name component         ##
+return { 'mode' => qw| false |, 'data' => 'invalid backup_dir' }
+    if $backup_name !~ m|^[\w.-]+$|
+    or index( $backup_name, qw| .. |, 0 ) != -1;
+
+return { 'mode' => qw| false |, 'data' => "invalid variant : $variant" }
+    unless $variant =~ m{^(?:compact|full|thinking|meta)$};
+
+if ( $variant eq 'meta' ) {
+    my $meta_sref
+        = <[file.zenka_dir.load]>
+        ->("completed-task-backups/$backup_name/meta.yaml");
+    return { 'mode' => qw| false |, 'data' => 'backup not found' }
+        unless defined $meta_sref;
+    return { 'mode' => qw| size |, 'data' => $meta_sref->$* };
+}
+
+my $xz_sref
+    = <[file.zenka_dir.load]>
+    ->("completed-task-backups/$backup_name/$variant.xz");
+
+return {
+    'mode' => qw| false |,
+    'data' => "no '$variant' buffer saved for this task"
+    }
+    unless defined $xz_sref;
+
+my $text;
+IO::Uncompress::UnXz::unxz( $xz_sref, \$text )
+    or return {
+    'mode' => qw| false |,
+    'data' => "xz decompress error : $IO::Uncompress::UnXz::UnXzError"
+    };
+
+utf8::decode($text) unless utf8::is_utf8($text);
+
+return { 'mode' => qw| size |, 'data' => $text };
+
+#,,.,,,.,,.,,,.,,,,..,,..,.,,,,.,,,,.,,.,,.,.,..,,...,..,,,,,,,,,,,,,,,.,,,,,,
+#XY7LFVNKHTZ2IDLA5FDWHBI2OCNX74A4MIAFDZJ3PI4H2GYZ353L6A3GDAUU3U3R7WA4SKIC5RIKM
+#\\\|Z4AX6X7AWWPM5FBXWBY4TN64VMFWHPA6X2JV7VMVBQWTJKH37MD \ / AMOS7 \ YOURUM ::
+#\[7]HBJ3P5HCJKGPTL4Z6SCBFUMV4AVIBGC2U4B4DZ5BLTYGCDFY3ACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
