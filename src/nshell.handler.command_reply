@@ -53,14 +53,22 @@ if ( defined $encoded_payload ) {
 ## print to console [STDOUT] and handle cursor display
 #
 ## [ clear current line if a history entry is displayed, so reply appears
-## clean ]
+## clean -- skipped in split mode : \r-relative, would clear whatever row the
+## cursor currently rests on [ the input row ], not a history display ]
 my $_nshell_state = <nshell.state> // {};
 print "\r\e[2K"
     if $_nshell_state->{'current_mode'} == 2
-    and length( $_nshell_state->{'display_buffer'} // '' );
+    and length( $_nshell_state->{'display_buffer'} // '' )
+    and not $_nshell_state->{'split_active'};
 
 my $cursor_mode = <nshell.cfg.cursor_after_reply> // 'all';
 
+## route all reply text through nshell.render.content_print rather than a   ##
+## bare print : in split mode the real cursor rests at the pinned input row ##
+## between renders [ nshell.render.viewport's convention -- it jumps there  ##
+## and never restores away ], so a bare print here would land on top of the ##
+## input line instead of the content area above it. plain print when not in ##
+## split mode, identical to the old behaviour.                              ##
 if ( not defined $payload_str ) {
 
     ## single-line reply : colorize and print to console for immediate display
@@ -69,19 +77,28 @@ if ( not defined $payload_str ) {
     my $reply_color
         = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0003'} : $colors{'p7_fg_0004'};
 
-    printf "\n%s%s\e[0m\n\n", $reply_color, $args;
+    <[nshell.render.content_print]>->(
+        sprintf "\n%s%s\e[0m\n\n",
+        $reply_color, $args
+    );
 
     ## re-display cursor after single-line reply output
     if ( $cursor_mode eq 'line' or $cursor_mode eq 'all' ) {
-        print "\r"
-            . $colors{'p7_fg_0003'}
-            . "_\e[K\r" . "\e[0m"
-            . $colors{'p7_fg_0004'};
+        if ( $_nshell_state->{'split_active'} ) {
+            <[nshell.render.viewport]>->(
+                $_nshell_state->{'editor'}, \%colors
+            );
+        } else {
+            print "\r"
+                . $colors{'p7_fg_0003'}
+                . "_\e[K\r" . "\e[0m"
+                . $colors{'p7_fg_0004'};
+        }
     }
 
 } else {    ## print multi-line output directly without padding to console
 
-    print $payload_str;
+    <[nshell.render.content_print]>->($payload_str);
 
     ## track whether payload had no trailing newline  next prompt will add
     ## separation if needed
@@ -93,13 +110,20 @@ if ( not defined $payload_str ) {
 
     ## redraw cursor after SIZE/payload reply if configured
     if ( $cursor_mode eq 'all' ) {
-        print "\n"
-            if $payload_str !~ m{\n\z};
-        print "\r"
-            . $colors{'p7_fg_0003'}
-            . "_\e[K\r" . "\e[0m"
-            . $colors{'p7_fg_0004'};
-        delete <nshell.state>->{'needs_newline_prefix'};
+        if ( $_nshell_state->{'split_active'} ) {
+            <[nshell.render.viewport]>->(
+                $_nshell_state->{'editor'}, \%colors
+            );
+            delete <nshell.state>->{'needs_newline_prefix'};
+        } else {
+            print "\n"
+                if $payload_str !~ m{\n\z};
+            print "\r"
+                . $colors{'p7_fg_0003'}
+                . "_\e[K\r" . "\e[0m"
+                . $colors{'p7_fg_0004'};
+            delete <nshell.state>->{'needs_newline_prefix'};
+        }
     }
 }
 
@@ -107,7 +131,7 @@ if ( not defined $payload_str ) {
 my $nshell_state = <nshell.state> // {};
 if ( $nshell_state->{'current_mode'} == 2
     and length( $nshell_state->{'display_buffer'} // '' ) ) {
-    print "\r\e[2K";
+    print "\r\e[2K" unless $nshell_state->{'split_active'};
     $nshell_state->{'view_offset'} = 0;
     <[nshell.render.viewport]>->( $nshell_state->{'editor'}, \%colors );
 }
@@ -116,8 +140,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,,..,.,,,,.,,..,,,..,,,,,..,,,,.,,.,,.,,,.,.,...,..,,.,.,..,,.,.,,,.,,,,,
-#HFRGVTTJC2LHPJDKAOTQXPPCUK5PO2JKMUY2HBYHQGCCWVT3DNJSLAGVBW5JMGWPF4QMCV2PISVDY
-#\\\|OO4BTWP6AFU4CQFIHFX32P2OK5HTD6SQPBU2EXMJOSHRRQZZW4E \ / AMOS7 \ YOURUM ::
-#\[7]VJAMQZHNZYTSIKEQ3P5YOKNCM746KOL4KBGIAKJCBKG5OXPJCYAQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,...,.,.,.,.,.,,,..,,..,,...,..,,.,.,...,...,.,.,,,,,..,,,.,,,..,
+#T5QD63KGTQ5IS3OJ4ZVACQVUPLOX2ZFVRXLKPLRBRX7AXIKEO2MFJRAC6275A2UGQ5WU7BN75UJQS
+#\\\|HYULMSPQ5OR4C7B7UDYXQOVH4HZO4XWZIUEXFFRGEX5M2DGNJLU \ / AMOS7 \ YOURUM ::
+#\[7]MALI3VGKLB2GKJOZ5FSU2KBZNEAMATFILQQ43VJXJ4MROCRIJYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

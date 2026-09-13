@@ -32,14 +32,44 @@ $term_cols = 20 if $term_cols < 20;    ## minimum sanity
 my $state_ref   = <nshell.state>              //= {};
 my $view_offset = $state_ref->{'view_offset'} //= 0;
 
-## split-screen active : jump to the pinned input row first [ DECSC, not    ##
-## \r-relative -- the terminal's resting cursor lives inside the            ##
-## scroll-region content area between keystrokes ], restore back to it once ##
-## this render is done so streamed content keeps scrolling correctly in     ##
-## between. off by default, zero behaviour change unless toggled on via Tab ##
-## [ nshell.split.toggle ]                                                  ##
+## split-screen active : jump to the pinned input row first [ absolute      ##
+## positioning, not \r-relative ]. NO restore afterward -- the real         ##
+## terminal cursor is meant to stay exactly where this render leaves it,    ##
+## same as nshell's existing single-cursor convention (the drawn highlight  ##
+## IS the cursor, the real terminal cursor tracks it). restoring here was   ##
+## the actual bug behind "two cursors" after e.g. a `clear` command: it     ##
+## yanked the real cursor back to wherever it was BEFORE this render [ e.g. ##
+## top-left, post-clear ], leaving it disconnected from the drawn input     ##
+## line. content-push code (nshell.handler.strm_reply) is what needs to     ##
+## save/jump/restore AROUND itself when printing, not this function --      ##
+## background content shouldn't steal the visible cursor away from an       ##
+## active input line, but rendering the input line itself should always own ##
+## it. off by default, zero behaviour change unless split mode is on [      ##
+## nshell.display.cycle ]                                                   ##
 my $split_active = $state_ref->{'split_active'};
+
 if ($split_active) {
+
+    ## redraw the separator on every render, not just once at Tab-press     ##
+    ## time -- makes it self-healing against a `clear` command or anything  ##
+    ## else that wipes the screen, since it comes back on the very next     ##
+    ## keystroke instead of staying missing until the next Tab cycle. cheap ##
+    ## : one pinned_row_print call, tiny payload                            ##
+    if ( length( $state_ref->{'split_title'} // '' ) ) {
+        my ($term_w) = AMOS7::TERM::terminal_size();
+        ## reserve one column [ same pending-wrap hazard this renderer's ##
+        ## own overflow path already guards against below ]              ##
+        my $rule = AMOS7::TERM::frame_rule_line(
+            " $state_ref->{'split_title'} ",
+            $term_w - 1,
+            {   'title' => $colors{'p7_fg_0003'},
+                'fill'  => $colors{'p7_fg_0004'},
+                'reset' => "\e[0m",
+            }
+        );
+        AMOS7::TERM::pinned_row_print( $state_ref->{'split_row'} - 1, $rule );
+    }
+
     print "\e7";    ## DECSC : save the content-area cursor position ##
     print "\e[" . $state_ref->{'split_row'} . ';1H';
 }
@@ -71,7 +101,6 @@ if ( $buf_len < $term_cols ) {
         print "\e[K";
     }
 
-    print "\e8" if $split_active;    ## DECRC : back to the content area ##
     STDOUT->flush();
     return;
 }
@@ -156,12 +185,11 @@ print "\e[K";    ## clear any terminal remnants past rendered content
 my $back = length($after) + ( $has_right ? length($mr) : 0 );
 print "\x08" x $back if $back > 0;
 
-print "\e8" if $split_active;    ## DECRC : back to the content area ##
 STDOUT->flush();
 return;
 
-#,,.,,,..,...,..,,..,,,,,,,.,,,..,,,.,..,,.,.,..,,...,...,,..,,.,,,..,.,.,...,
-#FGYN2U77IOIJXYGUK6BPQACEDS3THQWEVOXUS67A24B76X7DNOQFEUA2OZVQHV4EDZ4MHOMO6R5L6
-#\\\|2YHTVBE6Z2RJB7VIK3HL4GES53XXCXERTOSKXAHAS4COJQGSMSU \ / AMOS7 \ YOURUM ::
-#\[7]VI6AIBOCN2LJGXUEVXQ3GPTF6GC4POTJAZAPFPJ2577ME5FZA2BY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,,.,,.,,,.,.,.,,,,..,..,,.,.,..,,...,...,...,,..,..,,..,,,..,
+#M2HFOYSQ3NWWQEEDMS7BGONDG3AMHQOICNZ4OMK3F22L7KFN4WIWCDAQEW2PVHEZ4OCAZ72BV4B4G
+#\\\|Q3LTMAZOGUHACA3PY2OGSGAPWPFHF3MR4CHYF3YLRFABRNHV7ZU \ / AMOS7 \ YOURUM ::
+#\[7]YAFWYZOU4XKOUQ666REWA7RLWQZTVT3R7GHVQPGGKBDL67GG6ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

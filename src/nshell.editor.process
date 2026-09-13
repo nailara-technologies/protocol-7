@@ -6,11 +6,12 @@
 
 my ( $editor, $key, $colors ) = @ARG;
 
-## Tab toggles split-screen streaming display mode -- intercepted here, ##
-## before the editor engine, since Tab has no existing binding there [  ##
-## confirmed : editor.control.process_key has no Tab branch ]           ##
+## Tab cycles the display mode [ shell / coding-session / ... ] --          ##
+## intercepted here, before the editor engine, since Tab has no existing    ##
+## binding there [ confirmed : editor.control.process_key has no Tab branch ##
+## ]                                                                        ##
 if ( $key eq "\t" ) {
-    <[nshell.split.toggle]>;
+    <[nshell.display.cycle]>;
     return undef;
 }
 
@@ -157,8 +158,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,,..,,,.,,.,,.,.,...,.,,,.,.,..,,...,,,,,.,.,...,...,..,,,..,..,,,.,,..,,
-#IFPAB3V3KZIL4KQSG24XVDKG64QRSPNW6UWVB2VJ4BNQXBU7IV2VFWFJ6VKBPJCMLEBXPKW4IRBDM
-#\\\|G7LX3MA5QVE3ZL4XI34NCWYWD6KT5PUX4KE33N7XRZW2PI76G66 \ / AMOS7 \ YOURUM ::
-#\[7]S642O2X2GDERFTYVHAZRYARMPOLB6O7262EYDJR2TPDBRISYZMCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,.,,,,..,.,,,,,.,,,.,,.,,,,.,.,.,...,..,,...,...,..,,...,,,.,
+#TWEERFZCD3TRUNCKC5HDVLQDMMGD7MD44JZV74G5WLAFUHOTC6C5H5KC4UVZ3O6BFXJ6QNLLP63OQ
+#\\\|U52XFZGK63LCC724X7PKQNXZIEQJ72G7VUWKVCYKJSPJHYKYC3Y \ / AMOS7 \ YOURUM ::
+#\[7]PN4MP25QUHHQB6W3UJONCJKI7HGZCWTPKDR7RQPYCZQAXOXLDUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
