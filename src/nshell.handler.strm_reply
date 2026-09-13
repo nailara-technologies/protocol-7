@@ -29,8 +29,7 @@ if ( $args eq qw| open | ) {
 
     ## brief status line on TTY
     if ( -t STDOUT ) {
-        print "\r[ stream started ]\e[K\n";
-        STDOUT->flush();
+        <[nshell.render.content_print]>->("\r[ stream started ]\e[K\n");
     }
 
 } elsif ( $args =~ m|^open\s+(\d+)$| ) {
@@ -48,8 +47,9 @@ if ( $args eq qw| open | ) {
 
     ## brief status line on TTY
     if ( -t STDOUT ) {
-        printf "\r[ stream started :: %d bytes ]\e[K\n", $total_bytes;
-        STDOUT->flush();
+        <[nshell.render.content_print]>->(
+            sprintf "\r[ stream started :: %d bytes ]\e[K\n", $total_bytes
+        );
     }
 
 } elsif ( $args =~ m|^(\d+)$| ) {
@@ -61,8 +61,7 @@ if ( $args eq qw| open | ) {
             += bytes::length($chunk_data);
     }
 
-    print $chunk_data;
-    STDOUT->flush();
+    <[nshell.render.content_print]>->($chunk_data);
 
 } elsif ( $args eq qw| close | ) {
     ## STRM close: clean up and reprint prompt
@@ -100,8 +99,8 @@ if ( $args eq qw| open | ) {
 
 return TRUE;
 
-#,,,.,,..,.,.,,..,...,..,,.,.,,.,,.,,,...,,,,,..,,...,..,,.,.,,,.,,.,,,..,,.,,
-#KKC3F7IGWDRGWUBTENXOAM4K2BLFP77ZYE2UIQQWNUWBDHCKMHGJL6LA76XHWKPFRLZKC7OU73SAA
-#\\\|2VDPQYCYEW6GXQT2FCRDZPQ5G4MANW656I4PRSTNRAORZQGWZSC \ / AMOS7 \ YOURUM ::
-#\[7]7FG23JDFDTV7VAHW7IOKF2J2U2PE3HYCK5SR32QRTQ3JV4PPI4CA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,,,.,..,,..,,..,,..,,.,.,.,,,..,,...,...,,..,.,.,.,.,,,.,,,,,
+#6NV3N3X76UTYMHMAKOHPVQZT7PRX3EHF7AUKY75VORBM6XAPYZY52IW2BUHYZN6XRZE57KILIW3IK
+#\\\|IANF23ER4NBYJZTXWCCQ64VZV3PBZNYIEUK52SDJOO7DNPOKNUZ \ / AMOS7 \ YOURUM ::
+#\[7]3GI7HQSNBGASXYJGUTEKKHXOVD7Y4CKKGFZXQICNINMECG7LNGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

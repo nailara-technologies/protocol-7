@@ -1921,12 +1921,28 @@ sub scroll_region_set {
     return $content_bottom;
 }
 
-## restore full-screen scrolling [ always pair with scroll_region_set ]
+## restore full-screen scrolling [ always pair with scroll_region_set ].    ##
+## pass the SAME reserved_rows given to scroll_region_set to also clear     ##
+## whatever was drawn into those rows and park the cursor at the bottom --  ##
+## otherwise the old content just sits there as static screen debris, since ##
+## resetting the scroll boundary alone never erases anything.               ##
 sub scroll_region_clear {
+    my $reserved_rows = shift // 0;
+
     my ( undef, $rows ) = terminal_size();
     $rows //= 24;
 
-    print "\e[1;${rows}r";
+    print "\e[1;${rows}r";    ## DECSTBM : full-screen scroll region ##
+
+    if ( $reserved_rows > 0 ) {
+        my $first_reserved = $rows - $reserved_rows + 1;
+        $first_reserved = 1 if $first_reserved < 1;
+        for my $row ( $first_reserved .. $rows ) {
+            print "\e[${row};1H\e[2K";
+        }
+        print "\e[${rows};1H";    ## park cursor at the bottom row ##
+    }
+
     STDOUT->flush();
 
     return;
@@ -1955,8 +1971,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,.,.,,,.,,,,..,...,,,,,...,,,,,.,.,,..,,.,,..,,...,...,.,.,...,,,,,,,,,,,,,
-#LID3XVSKUVGM6XVLAP4GBJJ7L5HDO454BRFR3NAEEYQX7POCLLYJ22H4S562JFO3JZQWBJXJKN4BK
-#\\\|VGLRAUPZQ2PPDX4WV5PLOWNK5KY44MVZI5R63RFN7SR6SKT4XVX \ / AMOS7 \ YOURUM ::
-#\[7]5KBYVURRYJBHJIM6J5FB5C6TSXS7P7DOHIKNYOBW6WXWOXF33OBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,,.,,...,...,,..,,.,,...,,.,,..,,...,...,..,,.,.,,..,.,.,.,,,
+#YAMUUU5ZOXQG4J7ASWOO5A67L44OWZUZH6JZHXXQZR6YSJ3U34R5R25AYWGCKHQBBMZ4NVRWETYGG
+#\\\|IROV2FOYYNM55UJD6USO4LJDV5QFFEGEPIX7QRJWQD2LXGDM5JB \ / AMOS7 \ YOURUM ::
+#\[7]OC65HEMQF67J3OOS3HQR26KLPHDDDGZUHNDOIRWZ4SOMLD4SXYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
