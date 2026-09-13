@@ -13,8 +13,66 @@ my $new_rows = $size[1] // 24;
 <nshell.cfg.term_cols> = $new_cols;
 <nshell.cfg.term_rows> = $new_rows;
 
-## [ redraw current input line at new width (if editor is active) ]
 my $state_ref = <nshell.state> // {};
+
+## split mode active : recompute the scroll region for the NEW terminal    ##
+## size and force a full redraw. resizing while a DECSTBM boundary and     ##
+## reserved rows were set for the OLD dimensions is exactly what produced  ##
+## the "stacking separator bars at growing widths" bug -- the boundary and ##
+## separator both stayed sized for whatever the terminal was before.       ##
+if ( $state_ref->{'split_active'} ) {
+
+    my $reserved = $state_ref->{'split_reserved_rows'} // 2;
+
+    ## full clear : a physical resize can leave arbitrary reflowed content ##
+    ## behind, more than a simple 2-line clear accounts for                ##
+    print "\e[2J\e[H";
+
+    my $content_bottom = AMOS7::TERM::scroll_region_set($reserved);
+
+    if ( defined $content_bottom ) {
+        $state_ref->{'split_row'} = $content_bottom + $reserved;
+
+        ## replay this mode's accumulated buffer into the resized content ##
+        ## area, same as nshell.display.cycle does on a fresh focus       ##
+        my $modes = $state_ref->{'display_modes'};
+        my $mode
+            = ref $modes eq 'ARRAY'
+            ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
+            : undef;
+        my $replay = defined $mode ? ( $mode->{'buffer'} // '' ) : '';
+
+        if ( length $replay ) {
+            print $replay;
+            my $col = 1;
+            if ( $replay =~ m{\n([^\n]*)\z} ) {
+                $col = length($1) + 1;
+            } elsif ( $replay !~ m{\n} ) {
+                $col = length($replay) + 1;
+            }
+            $col = 1 if $col > $new_cols;
+            $state_ref->{'content_col'} = $col;
+        } else {
+            $state_ref->{'content_col'} = 1;
+        }
+    } else {
+        ## terminal shrank too far to fit the reservation : fall back to ##
+        ## shell mode cleanly rather than leave a broken half-set region ##
+        $state_ref->{'split_active'} = FALSE;
+        delete $state_ref->{'split_row'};
+        delete $state_ref->{'split_reserved_rows'};
+        delete $state_ref->{'split_title'};
+        AMOS7::TERM::scroll_region_clear();
+    }
+
+    $state_ref->{'view_offset'} = 0;
+    <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors )
+        if defined $state_ref->{'editor'};
+
+    return;
+}
+
+## [ redraw current input line at new width (if editor is active) ]
 if ( defined $state_ref->{'editor'} ) {
 
     ##[ reset view_offset so viewport recalculates from scratch at new width ]
@@ -26,8 +84,8 @@ if ( defined $state_ref->{'editor'} ) {
     <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
 }
 
-#,,..,...,,..,.,.,.,.,,,.,.,.,,,,,.,,,.,.,.,.,..,,...,...,...,,,,,..,,..,,...,
-#7A4LJHF5LOYPDKU2SWRZBXBA2MUEYG73HJFMR7TNTUNTCU6ZL3TU4CUVFZKAAZ2WD4QUCOULSZXJS
-#\\\|J64YD2GC2MK33EP7XIJF6KMQCUWOOEQ5AW2SKXO2UOPFTYSLXHX \ / AMOS7 \ YOURUM ::
-#\[7]PSN4YSAOE5EHKOV6FIJ4XZEB7OGBWDFYESQPZQC4L4BU3VVXI4DY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,,,.,,,,,,,.,..,,,,,,...,,..,..,,...,...,,,.,,,.,,,.,.,.,..,,
+#DYWTIQ6K7D27ZK6746QPRWSDCGKPFGS2W4LIZPSSXNKZW4CH53CXNFZRI2A2EMDKBTOWIEXQLMFQY
+#\\\|P243P46K5YJWOBDN46XFXFNM7AAHUIPRJFRTC4IPDULKTDVCRBS \ / AMOS7 \ YOURUM ::
+#\[7]WWJPS2HN3TI6RNQYHEXTNZKIXZZJON2WNNY26T72ZANU7PLOQ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = plugin.nshell.coding-session.on_submit
+# descr = turn typed text into the right coding-zenka command : submit a
+#         new task if this tab has none yet, else append to it
+# param = { mode => $mode_href, text => $typed_text }
+
+my $args = shift // {};
+my $mode = $args->{'mode'};
+my $text = $args->{'text'} // '';
+
+return undef unless defined $mode and length $text;
+
+if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
+    return { 'command' => "coding.task-append $mode->{'task_id'} $text" };
+}
+
+## no task yet : start one, and remember we're waiting for its id to come ##
+## back in the reply [ plugin.nshell.coding-session.on_reply catches it ] ##
+$mode->{'awaiting_task_id'} = TRUE;
+
+return { 'command' => "coding.submit $text" };
+
+#,,..,,.,,.,.,...,.,,,...,.,.,.,,,,,.,.,.,..,,..,,...,..,,.,,,,..,.,.,.,.,,..,
+#GQRNRK7SBYRJ6PHIZH5S2PKJELW5Z7637JPQX5WXJQAYV57L5TOQCNWEPBEP5D6ZI5BSKIUCJH4PY
+#\\\|XMSOJM7Y2PPGAULHLOJDLX7F2V7PRFSJBC6NON2Q4LT2MEHSP6K \ / AMOS7 \ YOURUM ::
+#\[7]TW7BIMVU2SK5GXONUUSJQCBTF7XG4VNQWKSGEUU7O46CJBAWYAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

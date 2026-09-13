@@ -9,10 +9,21 @@ my $state_ref = <nshell.state> //= {};
 ## full screen ]. later modes are added here as they get built [ one entry  ##
 ## per subscribed coding session eventually, a remote nshell connection,    ##
 ## etc ] -- Tab always just advances the index, no redesign needed when the ##
-## list grows past 2                                                        ##
+## list grows past 2. 'plugin' names a plugin.nshell.* module implementing  ##
+## the on_submit/on_reply hooks for that mode [ absent = plain raw-command  ##
+## tab, no special routing ]. 'buffer' accumulates everything printed while ##
+## this mode is active [ nshell.render.content_print appends to it ], so    ##
+## switching back to a backgrounded mode can replay what happened while it  ##
+## wasn't focused -- generic, not coding-zenka-specific : any future mode   ##
+## gets this for free                                                       ##
 my $modes = $state_ref->{'display_modes'} //= [
     { 'name' => qw| shell | },
-    { 'name' => qw| session |, 'title' => 'coding session' },
+    {   'name'    => qw| session |,
+        'title'   => 'coding session',
+        'plugin'  => qw| plugin.nshell.coding-session |,
+        'buffer'  => '',
+        'task_id' => undef,
+    },
 ];
 
 my $index      = $state_ref->{'display_mode_index'} //= 0;
@@ -35,6 +46,7 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     delete $state_ref->{'split_row'};
     delete $state_ref->{'split_reserved_rows'};
     delete $state_ref->{'split_title'};
+    delete $state_ref->{'content_col'};
 
 } else {
 
@@ -62,6 +74,29 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     $state_ref->{'split_reserved_rows'} = 2;
     $state_ref->{'split_title'}         = $new_mode->{'title'} // '';
 
+    ## replay this mode's own accumulated buffer [ e.g. what happened while ##
+    ## it was backgrounded ] into the freshly-set-up content area -- the    ##
+    ## cursor is already parked at (content_bottom, 1) by scroll_region_set ##
+    ## above, so a plain print lands in the right place with no extra jump  ##
+    my $replay = $new_mode->{'buffer'} // '';
+    if ( length $replay ) {
+        print $replay;
+        ## track column the same way nshell.render.content_print does, so ##
+        ## the NEXT background print continues from the right spot rather ##
+        ## than assuming column 1                                         ##
+        my $col = 1;
+        if ( $replay =~ m{\n([^\n]*)\z} ) {
+            $col = length($1) + 1;
+        } elsif ( $replay !~ m{\n} ) {
+            $col = length($replay) + 1;
+        }
+        my ($term_w) = AMOS7::TERM::terminal_size();
+        $col = 1 if $col > $term_w;
+        $state_ref->{'content_col'} = $col;
+    } else {
+        $state_ref->{'content_col'} = 1;
+    }
+
     ## the separator itself is drawn by nshell.render.viewport, on every   ##
     ## render, not here -- makes it self-healing against a `clear` command ##
     ## or anything else that wipes the screen, instead of only appearing   ##
@@ -76,8 +111,8 @@ $state_ref->{'display_mode_index'} = $next_index;
 
 return TRUE;
 
-#,,,,,.,,,,..,,.,,...,,,,,,,.,.,,,.,,,.,.,,..,..,,...,...,..,,...,.,.,,..,,..,
-#HMJPYPADP5T5NLNS33TRMRWB7OZATBS262YOLWYYY4XMFRA5TLYEZ7OS3U2L7OJA2Z7PQFBADZHRQ
-#\\\|LIGJCKAZYNUJQBGLHQKPIAIUKAIZP7AFSIBCA6C5XQQWNNLR65P \ / AMOS7 \ YOURUM ::
-#\[7]32UORUNBFRIOKHFIV66M4XPOYLIJULQTODEMBVWB2K6KI42276CI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,..,,.,.,,,.,,,.,.,,,,,.,,,,,..,,...,...,,..,.,,,...,...,..,,
+#6F6RBUCGY6QB767GQV6P6QX4VZV7UNUB3FUTALO3SGSDD2Y4RD3A2NEAVHSC6HF4DRAFXZLKPYDSU
+#\\\|2C27G2FRWA2FQUJV3FULEJ6HC4ZQSM7BJL5WAKPOFXUO444VWA4 \ / AMOS7 \ YOURUM ::
+#\[7]J5XT4M2IYYU254YTQFHDOEYSSJ3X4XOWUH6JTJWREGBAVQRHACBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

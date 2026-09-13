@@ -296,6 +296,38 @@ module lists (`ls src/`) and full doc content, not just keyword grep --
 were both missed on a first keyword-only pass and only found when the
 user pointed back at them directly.
 
+**session-mode chat plugin BUILT, not yet fully verified live 2026-09-14**
+(plugin.nshell.coding-session + hook call sites in nshell.editor.process/
+nshell.handler.command_reply, generic buffer/redraw-on-focus in
+nshell.display.cycle + nshell.render.content_print, resize handling
+fixed in nshell.handler.term_resize -- all syntax-clean, not yet
+committed/signed at time of writing). three real follow-ups found live,
+none built yet:
+
+1. **Esc -> coding.abort-inference**, a dedicated keybinding, intercepted
+   the same way Tab is in nshell.editor.process (before the editor
+   engine). small, do this first.
+2. **raw commands typed in session mode are ambiguous** -- typing `clear`
+   out of habit got sent as a literal coding.submit prompt ("clear") 
+   instead of the terminal command, since on_submit currently treats
+   ALL typed text as prompt text unconditionally. needs either an escape
+   convention (e.g. a leading character that means "this is a raw
+   command, not a prompt") or accept that session-mode is prompt-only
+   and control actions are keybinding-exclusive (Esc for abort per #1,
+   etc.) -- leaning toward the latter, matches the plugin's own
+   on_submit contract cleanly, but not decided.
+3. **`:stream:` parameter for `coding.submit`, coding-zenka side, NOT
+   nshell.** current auto-subscribe (plugin.nshell.coding-session.
+   on_reply parsing a `task:task-XXXX|...` ack, then queueing
+   `coding.subscribe-session` as a SEPARATE follow-up command) is a
+   two-step, timing-dependent dance. user's proposal: a flag/param on
+   `coding.submit` itself that makes it open an STRM reply immediately
+   instead of a quick ack -- task id delivered via the stream, one
+   command instead of two, no race window. real architectural
+   improvement over the current client-side workaround, not just an
+   alternative -- worth doing instead of hardening the two-step dance
+   further. touches `coding.cmd.submit`, a different zenka than nshell.
+
 ## phase 2 -- interactive controls
 
 wire stop/restart into the viewer. `coding.abort.*` (register/lookup/
@@ -303,6 +335,51 @@ list/remove/check_stream/task_bind) and `coding.async.round_soft_restart`
 / `coding.cmd.restart-round` already exist -- this phase is mostly ui
 wiring onto existing command surface, not new zenka-side logic. confirms
 the terminal typer as a real control surface, not just a viewer.
+
+**refined design, 2026-09-14 -- supersedes the "prefix aborted buffer to  
+next message" idea below, don't build that separately.** grew out of  
+designing Esc-to-abort for the session-mode plugin (phase 2 follow-up)  
+and converged directly onto this phase. confirmed live via source  
+(`coding.async.complete` line ~81): aborting mid-stream genuinely LOSES  
+the partial turn -- `complete` only copies whatever is already in  
+`$state->{'messages'}` into the archived task record, it never commits  
+the still-accumulating `$state->{'content'}` [ the text the user actually  
+watched stream to screen ] as a message first. This isn't just  
+inconvenient, it's real data loss: the interrupted assistant turn never  
+existed in the model's own conversational history at all.
+
+**unified design, role-agnostic:**
+- new coding-zenka command, `coding.cmd.restore-stream-state` [ or fold  
+  into abort-inference itself, not yet decided which ] -- commits the  
+  in-flight `$state->{'content'}` as a proper `{role: 'assistant', ...}`  
+  message onto the task's `messages` array IF NOT ALREADY PRESENT, before  
+  `coding.async.complete` archives the task. fixes the data-loss gap  
+  directly, independent of anything nshell does.
+- Esc mapping in the session-mode plugin, once this lands: **while  
+  streaming** -> abort-inference (now also triggers the restore-stream-  
+  state commit, so the interrupted turn is preserved). **while idle**  
+  [ already aborted/completed, nothing running ] -> rewind one round-  
+  history step back [ role-agnostic -- steps back through `messages`  
+  regardless of who produced the last entry, not abort-specific ].  
+  **Shift+Esc** -> redo [ step forward again ] -- makes rewinding safe to  
+  use casually rather than something to fear as destructive.
+- this makes the earlier "prefix partial output into the next flat-string  
+  prompt" idea unnecessary -- role-blending was the problem with that  
+  approach, and committing the partial turn as a REAL structured message  
+  (via restore-stream-state) sidesteps it entirely: the next `task-append`  
+  [ if rewind lands back on a resumable task ] or fresh `coding.submit`  
+  seeded from the rewound history [ needs the same structured multi-  
+  message seed capability flagged as missing from `coding.cmd.submit` a  
+  few turns earlier in this file's history ] sees a proper conversation,  
+  not concatenated text.
+- open, not decided: exact addressing scheme for "one step back" through  
+  `messages` [ probably ties directly into the round-as-addressable-node  
+  design phase 3 already wanted -- a round may span multiple message-  
+  array entries (tool calls + results), so "one step" likely means one  
+  ROUND, not one raw array index ]; whether redo needs its own stack or  
+  can be derived by re-walking forward through already-archived history;  
+  whether restore-stream-state is its own command or folded into  
+  abort-inference directly.
 
 ## phase 3 -- round rewind
 
@@ -514,8 +591,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,.,..,,,.,,,,.,..,,.,,,,..,,.,,,,,,.,.,.,,,..,,...,...,..,,,,.,,.,,,,,,,..,
-#OMWQ22R5LZHF4ZD5MQEXMEWW7S4CDWHPPJNNJ2JN6A7TFILKRN2X2OVOWHJI6YTSO6SBUHO3ZDQT6
-#\\\|T3D5TSXK5WRDOWFFS26KGM2ICQBZ4MZRNP5Q4G3JP52LAWYU4WB \ / AMOS7 \ YOURUM ::
-#\[7]5UP5V643DWH3WHCJG2KZTGL5FKBYW7DEIYXKPCFDFF5FZ2VJB4DI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,.,,,,.,..,,.,.,.,.,...,.,,,..,,...,...,,..,..,,,.,,,..,.,,,
+#5XRLZMPOKYHSCYVVNYXOMQYHZUFUFEWXSGNEFCU7YJD5JFOEPWQ35TAJJPRBFNHIGB2FERB34V4KW
+#\\\|OMEF4VQUMWROAJJAWG2JTSZ6QDFMNDXTWVKGBU573BP7CZGSTWP \ / AMOS7 \ YOURUM ::
+#\[7]NGQQPZ55TSR5HJQ3YQJBQNXJKGZDJAFPD4RION753G6X3MLOKWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

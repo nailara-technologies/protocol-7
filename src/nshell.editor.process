@@ -140,7 +140,9 @@ if ( $action eq 'submit' ) {
     my $state_ref = <nshell.state> //= {};
     $state_ref->{'view_offset'} = 0;
 
-    ## save to history if not empty
+    ## save to history if not empty [ what the user actually TYPED, not a ##
+    ## plugin-transformed command -- recall should give back their own    ##
+    ## words, not "coding.submit their own words" ]                       ##
     if ( length $result ) {
         my @lines = split "\n", $result;
         AMOS7::TERM::history_add(@lines);
@@ -152,14 +154,37 @@ if ( $action eq 'submit' ) {
         STDOUT->flush();
     }
 
-    return $result;    ## return command (or empty string)
+    ## if the current display mode declares a plugin, let it turn the typed ##
+    ## text into the actual command to send [ e.g. coding.submit vs         ##
+    ## coding.task-append -- see plugin.nshell.coding-session ]. core stays ##
+    ## plugin-agnostic : it only ever dispatches when a mode says so        ##
+    my $to_send = $result;
+    if ( length $result ) {
+        my $modes = $state_ref->{'display_modes'};
+        my $mode
+            = ref $modes eq 'ARRAY'
+            ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
+            : undef;
+        my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
+        if ( length( $plugin_name // '' ) ) {
+            my $plugin_result
+                = $code{$plugin_name}->(
+                { 'hook' => 'on_submit', 'mode' => $mode, 'text' => $result }
+                );
+            $to_send = $plugin_result->{'command'}
+                if ref $plugin_result eq 'HASH'
+                and length( $plugin_result->{'command'} // '' );
+        }
+    }
+
+    return $to_send;    ## return command [ possibly plugin-transformed ] ##
 }
 
 ## Unknown action - ignore
 return undef;
 
-#,,,,,,..,,,.,,,,,.,,,,..,.,,,,,.,,,.,,.,,,,.,.,.,...,..,,...,...,..,,...,,,.,
-#TWEERFZCD3TRUNCKC5HDVLQDMMGD7MD44JZV74G5WLAFUHOTC6C5H5KC4UVZ3O6BFXJ6QNLLP63OQ
-#\\\|U52XFZGK63LCC724X7PKQNXZIEQJ72G7VUWKVCYKJSPJHYKYC3Y \ / AMOS7 \ YOURUM ::
-#\[7]PN4MP25QUHHQB6W3UJONCJKI7HGZCWTPKDR7RQPYCZQAXOXLDUDY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,.,,..,,.,,,,.,,,.,,,.,,..,,,,,,.,.,...,..,,.,,,,,.,..,,.,,,,..,
+#2DUNXT6WZJ6A22DGR23K3GLEZU44UDGZBOYOSJ5FA5FBZFFNXY7R5CP6FFHY3OSIVVL6WR3YMJJJO
+#\\\|ZWJKOJSWKUWBEMRROGAEUAHV4AUWJ4CFYJT2TXNZ2XV6YKXPI5K \ / AMOS7 \ YOURUM ::
+#\[7]ZGHHKL2GIN2XJ3YCAYXEKDPGONBHAQMX75FMDHF6FLP232DD3ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

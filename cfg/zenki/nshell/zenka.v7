@@ -29,6 +29,15 @@ history.session_gap_minutes = 13
 # nshell.cfg.cursor_after_reply = all
 
 [load_modules:<modules.load>]
+
+## chat/session logic for coding-zenka display-mode tabs [ submit vs      ##
+## task-append routing, task-id capture, auto-subscribe -- see            ##
+## data/tasks/coding-zenka-session-ui.md ]. nshell core stays agnostic to ##
+## this : it only dispatches to a mode's declared plugin, never hardcodes ##
+## coding-zenka behaviour itself                                          ##
+plugins.load = plugin.nshell.coding-session
+[load_plugins:<plugins.load>]
+
 [init_modules]
 
 ## Set authentication user to current Unix user (not zenka name)
@@ -55,8 +64,8 @@ system.auth-user = <nshell.unix_user>
 
 [zenka.loop]
 
-#,,,.,.,.,.,,,.,,,...,..,,.,,,,,.,..,,,..,...,..,,...,...,.,.,.,.,,,,,.,.,,,.,
-#MKCEJIPPTEYDZ4Z2WLUZMZI42L4J3NWM3TOXRM2ZHIHP2ITQQKLAHUGHO5FOC6I5AEKYAWJIBVLY2
-#\\\|4LG6QERKVHUE3JMXIWZEIRUQK5FQDXG3ZTPBPXY4LEG7SZAFKDM \ / AMOS7 \ YOURUM ::
-#\[7]FP3DY73AZIQIWHX66CSX4XO4CBQWVDGZWEKJVHES6C43FOHBSMBY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,,.,,...,..,,.,.,.,.,,..,,..,..,,...,...,...,..,,..,,..,,,..,
+#A5MJUL67GRIIZK6J2HQCJYWNYHOZGCSBWBIWDKMEYK3UZH25DBAUABPJJHGKUNDX4UWGZTPV7D7NU
+#\\\|FXCB4HNOTKMQZIM4W2UPJS6LCSF2BZRIQXXZTCI67ZILF5YI6HN \ / AMOS7 \ YOURUM ::
+#\[7]PEEJX2XXLJWH77LQJGXOW5XN4K6QMJBI55ARPZIXUNVZ62P3TODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
