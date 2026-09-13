@@ -1,19 +1,15 @@
 ## [:< ##
 
-# name  = coding.cmd.rewind-round
-# descr = rewind a task to an earlier round-chain node, resume
+# name  = coding.cmd.redo-round
+# descr = redo : move tip forward into a fork, resume
 #         [ task must be completed or failed, not in_progress ]
 # param = <task_id> [checksum]
-# note  = non-destructive : round_chain is append-only, this only moves
-#         round_chain_current [ via coding.round_chain.rewind ]. the next
-#         round appended after resuming forks off the rewound-to node --
-#         everything past the old tip stays reachable by checksum, it's
-#         just no longer on the path a plain reconstruct-to-latest walks.
-#         checksum is optional : omitted means "one round back from the
-#         current tip" [ coding.round_chain.step_target ], for a plain
-#         Esc-press-to-rewind UI binding that never needs to know a
-#         checksum. pass one explicitly to jump straight to a specific
-#         node instead.
+# note  = no separate redo stack : "forward" is just the newest child of
+#         round_chain_current [ coding.round_chain.step_target ]. after a
+#         plain rewind-then-resubmit that's exactly the fork just made;
+#         after several redos/rewinds it's whichever fork was visited
+#         most recently. pass a checksum explicitly to jump to a specific
+#         fork instead of the newest one.
 
 my $args_str = $call->{'args'} // '';
 my ( $task_id, $checksum ) = split m{ +}, $args_str, 2;
@@ -34,22 +30,19 @@ return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
 
 my $status = $task->{'execution'}->{'status'} // 'unknown';
 
-## only completed/failed tasks : rewinding a live in_progress task would ##
-## race the state machine mid-round. use stop-task first, same guidance  ##
-## restart-round gives for the analogous "task must not be mid-flight"   ##
-## constraint.                                                           ##
 return {
     'mode' => qw| false |,
-    'data' => "cannot rewind task $task_id [status: $status] "
+    'data' => "cannot redo task $task_id [status: $status] "
         . '-- stop it first if it is still in progress'
     }
     unless $status eq qw| completed | or $status eq qw| failed |;
 
 if ( not defined $checksum or not length $checksum ) {
-    $checksum = <[coding.round_chain.step_target]>->( $task_id, qw| back | );
+    $checksum
+        = <[coding.round_chain.step_target]>->( $task_id, qw| forward | );
     return {
         'mode' => qw| false |,
-        'data' => "already at the earliest round for $task_id"
+        'data' => "nothing to redo for $task_id"
         }
         unless defined $checksum;
 }
@@ -79,22 +72,18 @@ return { 'mode' => qw| false |, 'data' => "failed to resume $task_id" }
     unless $resumed;
 
 <[base.logs]>->(
-    1,
-    "rewind-round : %s rewound to %s [round %d] and resumed with %d messages",
-    $task_id,
-    $checksum,
-    $resume_round,
-    scalar @{$messages}
+    1, "redo-round : %s redone to %s [round %d] and resumed with %d messages",
+    $task_id, $checksum, $resume_round, scalar @{$messages}
 );
 
 return {
     'mode' => qw| true |,
-    'data' => "task $task_id rewound to round $node->{'round'} "
+    'data' => "task $task_id redone to round $node->{'round'} "
         . "[${\scalar @{$messages}} messages] and resumed"
 };
 
-#,,,,,.,.,..,,,,.,,.,,..,,.,.,,,.,.,,,,.,,.,.,.,.,...,...,.,.,,..,.,.,.,,,...,
-#WTHOZFWQJ6X7VAYHRR46COAPFPV4EUW3I3NG6FRRN7SUBKXQN5P2OHQNSSSMRF5BTK3W7747KX35I
-#\\\|3QMK5II4GDXQJK3HCNYTKOOVVXFCKWLZWK4JLLZOKXLN5U5TWX6 \ / AMOS7 \ YOURUM ::
-#\[7]R7XFK67D7IE3PJFRPFACI4DZFIZCTQZ3ERZMKUGDQHSB6XV7KQBY 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,,,.,,.,,,,.,.,.,,..,,..,...,.,.,...,.,,,.,,,,..,.,.,...,...,
+#BRZKXNNBWA3Y2WBD76Q3LIOJBQ72AVP576GFHJ63QMBN4B6FLEE6SPD4QFEMEYY7T7533JOTZ4NYS
+#\\\|QQTXLKRQLZU3FQKAR3A5MARFGA6JSIPQPEVURB72QGUW2PQ23ZV \ / AMOS7 \ YOURUM ::
+#\[7]IMBUDN5D4YVRNNP24ZZRCO5JUMTH7XU7EPEYEYDWLCFNHU75F2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

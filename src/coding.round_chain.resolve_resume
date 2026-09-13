@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = coding.round_chain.resolve_resume
+# param = <task_id> <node>
+# descr = given a round-chain node already selected as the rewind/redo
+#         target [ round_chain_current already moved to its checksum by
+#         the caller ], resolve the actual messages array and round
+#         number the NEXT inference call should use. not a plain
+#         reconstruct($node->{checksum}) : that only ever gives a valid
+#         resume point when the node's own delta ends in a tool/user
+#         message -- a tools_done or user_responded round, where the
+#         model hasn't spoken yet and should now respond.
+#
+#         a plain final-answer round [ appended by coding.async.complete's
+#         success path, delta = [{role=>assistant,...}] ] is the opposite
+#         shape : the model ALREADY spoke, so reconstructing inclusive of
+#         it leaves history ending on an assistant turn, which a chat-
+#         completions backend can reject outright [ confirmed live :
+#         "Assistant response prefill is incompatible with
+#         enable_thinking" ]. "rewind to round N" for that kind of node
+#         can only sensibly mean "regenerate round N's answer" -- so this
+#         reconstructs the node's PARENT instead [ excluding its own
+#         delta ] and keeps the SAME round number, rather than +1.
+#
+#         returns { messages => \@arr, round => $n } or undef in the one
+#         genesine dead end : a final-answer round0 task [ no tool calls
+#         at all ] has no parent to fall back to -- genesis itself isn't
+#         its own round_chain node yet, a known gap, not silently papered
+#         over here.
+
+my ( $task_id, $node ) = @ARG;
+
+return undef unless defined $task_id and defined $node;
+
+my $delta     = $node->{'delta'} // [];
+my $last_role = @{$delta} ? $delta->[-1]->{'role'} : undef;
+my $is_answer = defined $last_role && $last_role eq qw| assistant |;
+
+if ($is_answer) {
+    my $parent = $node->{'parent'};
+    return undef unless defined $parent and length $parent;
+
+    my $messages = <[coding.round_chain.reconstruct]>->( $task_id, $parent );
+    return undef unless ref $messages eq qw| ARRAY |;
+
+    return { 'messages' => $messages, 'round' => $node->{'round'} // 0 };
+}
+
+my $messages
+    = <[coding.round_chain.reconstruct]>->( $task_id, $node->{'checksum'} );
+return undef unless ref $messages eq qw| ARRAY |;
+
+return { 'messages' => $messages, 'round' => ( $node->{'round'} // 0 ) + 1 };
+
+#,,,.,,,.,,,,,,,.,.,,,...,...,,.,,,,.,,.,,,.,,.,.,...,...,,..,...,,.,,,,.,,.,,
+#MPCVJD7A6NRMT5Z6DELJXOC72NR7T5XSJ3ZVCVAYFLHAYJDSDRS2QVSD72LSQ3X55B4V4W7ICASNO
+#\\\|ZIVHJTRUUEMAV2O7NKCYARX47Y74UEX6PBGKYRSBNK3JEYCH6GL \ / AMOS7 \ YOURUM ::
+#\[7]WYSN6FXBU5SVKCTA32FTDUUL7FQE2SGG6EGRT2ITRRIIFVEX72AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
