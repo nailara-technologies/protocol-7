@@ -90,8 +90,39 @@ wait until phase 3 (round history) and phase 4 (shared-pty sessions)
 both actually need to be resumable/addressable nodes, same discipline as
 [[topic-torch-worker-zenka-foundation]]'s primitive-vs-shape distinction.
 
-#,,..,,,,,,.,,.,,,.,,,...,,,,,..,,,..,.,.,,,,,..,,...,...,...,,.,,,.,,..,,..,,
-#3ZWXH5M5SHLQGDJP55D2W5TDBIWOS6SWAB3SVU56IQV3SMGTNGKIUDFIBBMQBJSSGKN4PKTQJZFBI
-#\\\|PVP744RVSKJH5BYROZA6IA3IKSHPFV3JNFO4OW7L3FVAYBXNX6L \ / AMOS7 \ YOURUM ::
-#\[7]YR22RSV7ZRGAT4WHQWZJMKWVE7N7KVLPXKUP52OKBJLCIPN2XCCY 7  DATA SIGNATURE ::
+**STATUS 2026-09-14, end of a very long session -- read
+`data/tasks/coding-zenka-session-ui.md` for full detail, this is just a
+pointer.** Landed and pushed, in order: phase 1 offline path
+(`list-backups`/`show-backup`), phase 1 live path
+(`coding.cmd.subscribe-session` + `chunk_handler`/`state_machine` hooks),
+`bin/mcp-server-p7` STRM-reply support (was silently corrupting the next
+unrelated call whenever any STRM command fired -- real, generalizable
+fix, not coding-zenka-specific), nshell split-screen scroll-region mode
+(`AMOS7::TERM::scroll_region_set/clear`/`pinned_row_print`, Tab-cycled
+multi-mode display, three real bugs found+fixed live: pending-wrap
+bleed, incomplete teardown leaving debris, and the actual "two cursors"
+bug from restoring the cursor away from the input line), and
+`plugin.nshell.coding-session` (submit-vs-task-append routing,
+auto-subscribe on task id). Commits in order:
+`771caa5c3 c51551b33 2a83ae551 bcf1b4cb5 c39b335df dc6188fab 4b7ab8c50`.
+
+**Next up, designed but NOT built**: Esc-to-abort with idle-Esc-to-
+rewind / Shift+Esc-to-redo, unified with phase 3's round-rewind (see the
+task file's "refined design" note) -- and a real, confirmed-live data-
+loss bug this surfaced: aborting mid-stream today never commits the
+partial turn to the task's message history before archiving
+(`coding.async.complete` only copies what's already in
+`$state->{'messages'}`). Also open: raw commands typed in session mode
+are ambiguous with prompt text (a habitual `clear` got sent to the model
+as a literal prompt) -- leaning toward session-mode being prompt-only
+with keybinding-exclusive controls, not decided.
+
+Also see [[feedback-path-typo-false-tool-glitch-attribution]] and
+[[reference-plugin-namespace-loading-convention]], both from this
+session.
+
+#,,.,,.,.,,.,,.,.,,,.,,.,,,,.,,..,,..,,,,,.,.,..,,...,...,.,,,,,,,..,,..,,,..,
+#RMN4IXHWE6W4S24SY5DVSRVFRULAUYMLLQTUJP23C37EAEKZSS4LI6FVJ7HMKG2TCJ6PI6ZN7GZPY
+#\\\|YEYDKAGDYQV5YX4OL2EMJGGUWFVLE6QK64LSOBHMMB7TIRNDU37 \ / AMOS7 \ YOURUM ::
+#\[7]3F6OSDISGKUMUA6NINZ6K3STJ3UCFL2QQMHKS3NQAE74RJIKOKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [plugin-namespace-loading-convention](reference-plugin-namespace-loading-convention.md) — `plugin.<zenka>.*` is a real, established convention (5+ zenki use it): `plugins.load = plugin.foo` + `[load_plugins:<plugins.load>]` right after `[load_modules:...]`, mirrors web's example exactly. `base.load_plugins` only loads+tracks, no hook framework comes with it — design your own dispatch on top
 - [v7-zenki-terminate-clean-zenka-and-child-stop](reference-v7-zenki-terminate-clean-zenka-and-child-stop.md) — for a plain restart use `v7-zenki.restart <name>` (one real command, renamed from v7.restart); use `v7-zenki.terminate <name>`/`v7-zenki.start <name>` (renamed from v7.stop) only when you need the manual-stop/disable side effect, e.g. a maintenance window with auto-restart suppressed — prefer either over a manual crash-restart-suppression flag + direct kill on the child pid
 - [nice-inherits-across-fork-setuid](reference-nice-inherits-across-fork-setuid.md) — to renice a late-forked unprivileged child (e.g. mpv's player process), renice the zenka itself while still root, before root.drop_privs -- base.change_prio's negative-priority guard makes reniceing the child directly after drop_privs a silent no-op
 - [readme-md-symlink-for-relative-links](reference-readme-md-symlink-for-relative-links.md) — repo-root README.md is a symlink to read-me/md/README.md so its relative links (bin/, src/) resolve against repo root like GitHub does; resolve via the symlink path, not realpath/the real file location
@@ -77,8 +78,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,..,.,,,.,,,,.,,.,,,.,.,.,.,.,.,,,.,.,.,,,,,..,,...,...,...,,..,,..,..,,..,,
-#ATDTVWVSHDLCUKY6VOWRLFRB5P4TCZYQUCIUDZQQY4FQUL5AK4FIPL6D7QGOGYBAFQD7Y3FR56AWM
-#\\\|4IE5CWZNGODUWOWF7I2JHHLV5GKWWHXTDO4XS367OGADFGY4DBT \ / AMOS7 \ YOURUM ::
-#\[7]AKIL3A3QHCNITIINZYNBEHQO24RHPWD33O35YUB4LIBKQGHF6SBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,..,,,.,,.,,,..,,.,.,.,,,,..,..,,...,...,,.,,...,.,.,...,,.,,
+#F46H6CLCG7IK3SDOYRSNYUV6GKVW4P2CGYWJ5M3OEZ3WSSBDZGUJPT4KK27SFQ2ZOS45KESZ2CLGM
+#\\\|3K45LKABAB63UCZHEWZOOKGRVWKXR6QGXQAGFGPABT5WKX34PDQ \ / AMOS7 \ YOURUM ::
+#\[7]RAHE76A4DDFADZIAOOXSCGJACR5VFK6YLAH4S3M7XCPF6WCVWQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
