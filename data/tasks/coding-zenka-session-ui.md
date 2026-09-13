@@ -159,6 +159,32 @@ fetch/decompress historical transcripts through an existing (or new)
 coding-zenka command running as the right user, same as any other
 p7-owned-data access in this codebase.
 
+**status, live-verified 2026-09-14:** `coding.cmd.list-backups` and
+`coding.cmd.show-backup` are implemented, reloaded into the running
+zenka, and tested against real data. Real bug found+fixed along the
+way: this codebase deliberately overrides `stat()` process-wide to
+`File::stat`'s object-returning form (confirmed by the user, not to be
+bypassed with `CORE::stat`) -- the classic `(stat $x)[9]` list-index
+idiom silently returns `undef` instead of erroring, see [[feedback-
+file-stat-object-override]]. Fixed with scalar-context `stat()->mtime`.
+
+**finding that changes phase 1's remaining scope, 2026-09-14:**
+`compact.xz` buffers are already pre-formatted with box-drawing chrome
+by whatever wrote them live (`┌──[ assistant | round 0 ]──...└──`) --
+verified live against a real backup. This means phase 1's "render
+through ascii.frame" goal is already substantially met at the data
+source: `list-backups` + `show-backup` together are a working offline
+session viewer right now, no additional formatting layer required for
+the basic case. Remaining for phase 1: wire the live STRM path
+(`coding.cmd.subscribe-session`, designed earlier in this file, not yet
+built) so the same view works on a running task, not just backups.
+
+(aside, out of scope: `model`/`rounds` come back empty in meta.yaml for
+a whole class of tasks -- checked 40 consecutive recent backups, all
+jobsite bulk candidate-scoring calls, all blank. Real but pre-existing
+gap in `coding.task.save_buffers`'s metadata collection for that task
+type, unrelated to this work -- not investigated further.)
+
 ## phase 2 -- interactive controls
 
 wire stop/restart into the viewer. `coding.abort.*` (register/lookup/
@@ -377,8 +403,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,.,,,.,,,.,,.,,..,,...,..,,,.,,,.,,...,,,,,..,,...,...,,,.,.,,,..,,.,,,.,.,
-#XUXGAODQCEUSQZAWVL5P44I427DWYACJWY5SYVHFCDNM6NE2DEYQDH4QBBSMTD3VB5V36A7YTPOXU
-#\\\|74EFFHZRHRVCCXWM7XBVPGB7TSNG2AZ5ZSDIWDWTL6NM5XCSOON \ / AMOS7 \ YOURUM ::
-#\[7]OOKS7TBZ7LVUYCRDUCFGHIS5HT56T5KELKQ6IVJR3MOCWX7XXCBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,,,,...,,..,,,,,,..,,..,,.,,..,,...,...,..,,..,,,,,,...,,.,,
+#G55FRLE553JTYM5FC7ADIG2HU4F3DQV2NNMFCKDL4NTFGDULZ7EVB7MVWCGYGIGIKSDBYCLNQQQJE
+#\\\|T2KYRY2V3QZJ2PQV4MHKPYIJCQL7H2XGCGDQQINQFMDRVX3WQN4 \ / AMOS7 \ YOURUM ::
+#\[7]IWXRWY2C7BFRQRJWJZ3PQJ2WOFQJZXWHP7PNUX72VZK4NZFQVMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

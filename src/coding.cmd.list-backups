@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = coding.cmd.list-backups
+# descr = list recent completed-task-backups
+# param = [count]
+
+my $count = $call->{'args'} // '';
+$count = 20 unless $count =~ m|^\d+$| and $count > 0;
+
+my $backup_dir
+    = <[file.zenka_dir.data_path]>->() . qw| /completed-task-backups |;
+
+return { 'mode' => qw| false |, 'data' => 'no completed-task-backups yet' }
+    unless -d $backup_dir;
+
+opendir my $dh,
+    $backup_dir
+    or return {
+    'mode' => qw| false |,
+    'data' => "cannot open backup dir : $ARG"
+    };
+
+## cheap first pass : just name + mtime, no yaml parsing yet -- only the ##
+## top $count entries need their meta.yaml actually read below           ##
+my @entries;
+for my $name ( readdir $dh ) {
+    next if $name =~ m|^\.|;
+    my $full = catfile( $backup_dir, $name );
+    next unless -d $full;
+    ## this zenka uses File::stat's object-returning stat() -- scalar ##
+    ## context here, ->mtime rather than a list-index, matches that   ##
+    my $st = stat($full);
+    push @entries, [ $name, ( defined $st ? $st->mtime : 0 ) ];
+}
+closedir $dh;
+
+@entries = sort { $b->[1] <=> $a->[1] } @entries;
+splice @entries, $count if @entries > $count;
+
+my @output = (
+    ":: recent coding-task backups [ newest first, of "
+        . scalar(@entries)
+        . " shown ] ::",
+    ''
+);
+
+for my $entry (@entries) {
+    my ( $name, $mtime ) = @$entry;
+    my $meta_sref
+        = <[file.zenka_dir.load]>->("completed-task-backups/$name/meta.yaml");
+    my $meta = {};
+    $meta = eval { YAML::XS::Load( $meta_sref->$* ) } // {}
+        if defined $meta_sref;
+
+    push @output,
+        sprintf(
+        "%-42s  model: %-20s  rounds: %-4s  %s",
+        $name,
+        $meta->{'model'}  // '?',
+        $meta->{'rounds'} // '?',
+        scalar localtime($mtime),
+        );
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @output ) . "\n" };
+
+#,,,.,..,,,..,,.,,,..,...,,.,,,,,,.,.,,,,,...,..,,...,...,.,,,,.,,.,,,,,.,,,.,
+#KSIHO6GTBUJXUEMGPPGEIGCGLKF2F6HVIXTQCRZS6MXOYT56DBAUWVXRIJHRMVXNF4MUTX77KVA64
+#\\\|6ITUDMSAGCOFCSFP5TDICQOXSSK5ETNW4ZP7RBZVFVPQHVVAYJ6 \ / AMOS7 \ YOURUM ::
+#\[7]VSOEREX2UWZXG3DXEXIK222DDGQHZW6A2LBFZORDZLEJB4BYF2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
