@@ -16,6 +16,27 @@ return FALSE unless $cmd =~ m|^STRM\b|;
 ## get or initialise nshell stream state
 my $nshell_streams = <nshell.streams> //= {};
 
+## right-align a structural status line [ round/state markers, stream open  ##
+## lifecycle ] so only the actual model-output payload stays left- heavy in ##
+## the content area -- visible-length-aware [ counts the plain text, not    ##
+## the ansi bytes wrapped around it ], reserves one column same as this     ##
+## renderer's other pending-wrap guards. violet [ p7_fg_0000 ], restoring   ##
+## the ambient payload blue [ p7_fg_0004 ] afterward rather than leaving a  ##
+## bare reset -- see the chunk branch below for why that matters            ##
+my $right_align_status = sub {
+    my $visible_text = shift // '';
+    my ($term_w) = AMOS7::TERM::terminal_size();
+    $term_w ||= 80;
+    my $pad = ( $term_w - 1 ) - length($visible_text);
+    $pad = 0 if $pad < 0;
+    return
+          ( ' ' x $pad )
+        . $colors{'p7_fg_0000'}
+        . $visible_text
+        . $colors{'reset'}
+        . $colors{'p7_fg_0004'};
+};
+
 ## set once a stream genuinely opens below -- triggers a viewport redraw at ##
 ## the end of this handler so the split-mode status bar picks up the bound  ##
 ## task id [ nshell.render.viewport reads it fresh from the mode object ]   ##
@@ -36,7 +57,8 @@ if ( $args eq qw| open | ) {
 
     ## brief status line on TTY
     if ( -t STDOUT ) {
-        <[nshell.render.content_print]>->("\r[ stream started ]\e[K\n");
+        <[nshell.render.content_print]>->(
+            "\r" . $right_align_status->('[ stream started ]') . "\e[K\n" );
     }
     $stream_opened = TRUE;
 
@@ -56,7 +78,11 @@ if ( $args eq qw| open | ) {
     ## brief status line on TTY
     if ( -t STDOUT ) {
         <[nshell.render.content_print]>->(
-            sprintf "\r[ stream started :: %d bytes ]\e[K\n", $total_bytes
+            "\r"
+                . $right_align_status->(
+                sprintf "[ stream started :: %d bytes ]", $total_bytes
+                )
+                . "\e[K\n"
         );
     }
     $stream_opened = TRUE;
@@ -85,9 +111,22 @@ if ( $args eq qw| open | ) {
     ## unconditionally would double-encode them into mojibake ; the marker  ##
     ## text itself is always pure-ASCII sprintf output before this          ##
     ## substitution runs, so it's safe to encode only in that one           ##
-    ## known-controlled case.                                               ##
+    ## known-controlled case. reset is followed by re-applying the ambient  ##
+    ## payload color [ p7_fg_0004 ], NOT left bare -- nshell.init_code sets ##
+    ## that color ONCE at startup and nothing re-sends it per chunk, so     ##
+    ## payload text has always relied on the terminal's persistent SGR      ##
+    ## state rather than carrying its own color code. a bare reset with     ##
+    ## nothing after it drops that state to the terminal's own undecorated  ##
+    ## default, so every chunk printed after this marker [ live AND on a    ##
+    ## later buffer replay ] loses its color -- confirmed live 2026-09-14 : ##
+    ## "the payload is suddenly unstyled gray" after a round marker fired.  ##
+    ## right-aligned via the same $right_align_status helper the stream-    ##
+    ## open lines above use -- covers tool-call transitions too [ the event ##
+    ## name in "round N : $from --$event--> $to" is e.g. 'tool_call' ], so  ##
+    ## every structural/status line pushes right while the payload itself   ##
+    ## stays left-heavy                                                     ##
     if ($chunk_data =~ s{\[\[ (round \d+ : .+?) \]\]}
-                         {$colors{'p7_fg_0000'}⟦ $1 ⟧$colors{'reset'}}
+                         {$right_align_status->("⟦ $1 ⟧")}e
     ) {
         utf8::encode($chunk_data);
     }
@@ -140,8 +179,8 @@ if ($stream_opened) {
 
 return TRUE;
 
-#,,..,...,,.,,..,,,,,,,,,,,.,,.,,,.,.,,,.,.,.,..,,...,...,.,.,,..,.,.,...,..,,
-#PX6PRWPDWNOONFKVXVVIZ6DMEQ43PNYQX7X3VOLVB5MXPAYVW2JEQYWQIQTOLPGLVSTSEPI3NMBUC
-#\\\|WYIM2YXYOTNUV4DYXES65QV24ZIVHJPWKQSOZNYQ2Z6IEPWV5SS \ / AMOS7 \ YOURUM ::
-#\[7]DXA3QYT6CFMX62FNO4Q7SC6O7AB55HMQRUSQEOJ44V2BQCQC4ACQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,..,,,,,,...,.,.,.,.,,,.,,,,,..,,...,.,.,..,,..,,..,,,.,,,.,,
+#SEVDNJO4QHVIS6Q7HROLPDBL3WFODM3K6TJOWEOPQHGLET5DINEC2F5YRZ2IQOG3SOFCP3DXGUBEG
+#\\\|J5FBZVTSLOBRSFRP4OBS7TMCK2WYEFKBDBFITPSDX4GNODQX4TY \ / AMOS7 \ YOURUM ::
+#\[7]NV4JHMQTQKPSNRHUVXEEI3UF7TO77NS7CPOKFONZE4HE4DCKDUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

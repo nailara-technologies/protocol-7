@@ -31,6 +31,29 @@ my $content_row = $state_ref->{'split_row'} - 2;      ## last content row ##
 my $col         = $state_ref->{'content_col'} // 1;
 
 print "\e7";    ## DECSC : save [ = the input row ] ##
+
+## consume a deferred wrap left by the PREVIOUS call before doing anything   ##
+## else this time. an exact-width fill leaves the real cursor pending-wrap   ##
+## at content_row's own right edge -- still logically ON that row, not yet   ##
+## advanced/scrolled, because nothing has printed past the edge to trigger   ##
+## it. this function always repositions via an absolute CUP rather than     ##
+## relying on that natural advance, and the column math below already        ##
+## resolves an exact fill to col 1 [ modulo wraps cleanly to 0, +1 ] -- so    ##
+## without this, the NEXT call's CUP lands back on column 1 of the SAME      ##
+## already-full row instead of a fresh one below it, overwriting it from     ##
+## the start. confirmed live 2026-09-14 : a chunk boundary landing exactly   ##
+## on the terminal width lost the entire line it had just finished. forcing  ##
+## the scroll here with a real \r\n [ while still sitting on content_row,    ##
+## the scroll region's own bottom row ] reproduces what the terminal would   ##
+## have done on its own had printing simply continued past the edge --      ##
+## content_row stays content_row [ that's what a scroll region does ], but   ##
+## now genuinely blank.                                                      ##
+if ( $state_ref->{'content_pending_wrap'} ) {
+    print "\e[${content_row};1H\r\n";
+    delete $state_ref->{'content_pending_wrap'};
+    $col = 1;
+}
+
 print "\e[${content_row};${col}H";
 print $text;
 
@@ -59,23 +82,36 @@ if ( ref $modes eq 'ARRAY' and defined $modes->[$index] ) {
 my ($term_w) = AMOS7::TERM::terminal_size();
 $term_w ||= 80;
 
+## an exact-width fill [ tail length a nonzero multiple of term_w ] leaves    ##
+## the real cursor pending-wrap at the row's own right edge -- not yet       ##
+## actually advanced, since nothing has printed PAST the edge to force it.   ##
+## the col formula below already resolves that case to 1 [ modulo wraps      ##
+## cleanly to 0, +1 ], indistinguishable from a genuine completed newline    ##
+## unless flagged separately -- content_pending_wrap is that flag, consumed  ##
+## by the NEXT call above before it trusts this col at face value.           ##
+my $tail_len;
+
 if ( $text =~ m{\n([^\n]*)\z} ) {
-    $col = length($1) % $term_w + 1;
+    $tail_len = length($1);
+    $col      = $tail_len % $term_w + 1;
 } elsif ( $text !~ m{\n} ) {
-    my $total_from_row_start = ( $col - 1 ) + length($text);
-    $col = ( $total_from_row_start % $term_w ) + 1;
+    $tail_len = ( $col - 1 ) + length($text);
+    $col      = ( $tail_len % $term_w ) + 1;
 } else {
-    $col = 1;    ## ends exactly on a newline ##
+    $tail_len = 0;
+    $col      = 1;    ## ends exactly on a newline ##
 }
 $state_ref->{'content_col'} = $col;
+$state_ref->{'content_pending_wrap'}
+    = ( $tail_len > 0 and $tail_len % $term_w == 0 ) ? TRUE : FALSE;
 
 print "\e8";     ## DECRC : restore [ back to the input row ] ##
 STDOUT->flush();
 
 return;
 
-#,,,.,,.,,.,.,.,.,.,.,,,,,.,,,,.,,,,.,,,,,.,.,..,,...,.,.,,,.,,.,,,,.,,.,,,.,,
-#LFIUBB37YHO7JYVV342PA3Z7FB76HQFSRCUZVMKRL4TB4Z76KXIVYNXVDMPA6OZSR3C4MSURSITZW
-#\\\|WNQWETS3EWYNPWLCNHW5CD36YPKCLCMHJHHIWTL5KIO5AOBHQ42 \ / AMOS7 \ YOURUM ::
-#\[7]RBNJFX4UHX52A2JKAEY32QWZI2H3XLDMTG7WL3ETJ7T3GXW47GCA 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,.,.,...,,,.,...,,.,,,.,,.,.,..,,...,.,.,,,,,..,,...,.,,,.,,,
+#Z6KGESGAY2PJCWRIAFIIWIKA3UK3ARK35IMC4Q7OFBTEGKLFKSLT63VGAUUSZE54V5LUJKQ7ZUTTC
+#\\\|7THJNXXUGWWK5WRB5IGFVVXR66A7JP4OY5GS2DJEDHX7SFE2AHE \ / AMOS7 \ YOURUM ::
+#\[7]OQAIAEH4ZT25XGCLXAVZJ5YQ4FNQIX4M2IHVMVB6NH2GCXD4HKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

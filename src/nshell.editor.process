@@ -56,6 +56,7 @@ if ( $key eq "\e" ) {
                     AMOS7::TERM::content_area_clear($content_bottom);
                 }
                 $state_ref->{'content_col'} = 1;
+                delete $state_ref->{'content_pending_wrap'};
             }
             $editor //= <[editor.control.create]>
                 ->(<[nshell.editor.default_schema]>);
@@ -103,6 +104,7 @@ if ( $key eq "\x03" ) {
             delete $state_ref->{'split_reserved_rows'};
             delete $state_ref->{'split_title'};
             delete $state_ref->{'content_col'};
+            delete $state_ref->{'content_pending_wrap'};
             $state_ref->{'display_mode_index'} = 0;
 
             $editor //= <[editor.control.create]>
@@ -283,8 +285,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,,,,,,,,,,,,,.,,.,,.,,,..,,.,,,.,.,...,.,.,.,.,...,..,,,,,,.,.,,,.,,.,,.,.,
-#WQ2YKBE5K4YEDSRGDVH7XUVQQTNP5M6O7EZPNM4IMDSLCJMBMQZDC7DFNJZKTM7GJHNACZZVC5MY6
-#\\\|455PIY4IJDJP5XOKOTLVMX56OOIIM5RTUGZHBZZZENCCBRCVTUP \ / AMOS7 \ YOURUM ::
-#\[7]D2MMXE2XDANNPQD33CLK5WJKVHTNSBMN4PU6Q2B42SRPAHFRB6CQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,,,.,,.,,,.,,,,.,.,,,.,.,.,,,.,.,...,...,...,.,,,,,.,.,,,,,,,
+#LIZYH2NTTEUE5FCOYTI7ZT7A2FQN4B7KQLNTN452KZPUEPYLIPXKPG4DMUXLEOHFRGH7MH77RXGV6
+#\\\|QGDCEAU5USUQIUFB33ZLC3F2Z4KLKNC57XG26VTHZZBKECWCGLG \ / AMOS7 \ YOURUM ::
+#\[7]3L3LAYACVUAEEOPZYHTEZNH6QYIKIVAVIB5CRNX5NWSSAZPQYIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

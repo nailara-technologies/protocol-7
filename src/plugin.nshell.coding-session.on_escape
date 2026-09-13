@@ -39,10 +39,14 @@ if (    defined $mode->{'task_id'}
             .= "coding.abort-inference $mode->{'task_id'}\n";
     }
 
-    ## this is routinely a no-op [ e.g. Esc between rounds, nothing ##
-    ## streaming ] -- suppress the raw wire reply either way, see   ##
-    ## plugin.nshell.coding-session.on_reply                        ##
-    $mode->{'suppress_abort_reply'} = TRUE;
+    ## this is routinely a no-op [ e.g. Esc between rounds, nothing      ##
+    ## streaming ] -- suppress the raw wire reply either way. lives on   ##
+    ## shared nshell state, not the mode object : nshell.handler.        ##
+    ## command_reply checks it directly, BEFORE looking at which mode is ##
+    ## even current -- on_ctrl_c needs this same flag to survive a       ##
+    ## synchronous mode switch back to shell before the async reply      ##
+    ## arrives, so both use the same mechanism rather than two           ##
+    <nshell.state>->{'suppress_next_wire_reply'} = TRUE;
 
     ## armed : the NEXT Esc press [ with nothing new typed meanwhile ]      ##
     ## clears the buffer instead of re-sending an abort. on_submit clears   ##
@@ -72,8 +76,8 @@ if ( length( $mode->{'buffer'} // '' ) ) {
 ## through to the normal editor engine unchanged                      ##
 return undef;
 
-#,,,.,,.,,.,.,...,,..,,,.,,,.,.,.,,,.,,,.,..,,..,,...,...,...,,..,.,.,,.,,...,
-#WRKSRFQVN4YL6RIAXSH2CQHK5CLRP4RZQGBFHPHMABGDQDR72VDXKUZVYL2ES5ZCVDMIL2TZDAD7Q
-#\\\|72QAEKEDWC3D34VPXHKANUFG3BSSF43L6JEHTS2VGS7GAYJ2AN5 \ / AMOS7 \ YOURUM ::
-#\[7]QPYBHLUJLQN5E56OMYQZZ7ENMWR3WBJYABZJYF2Z4VJNLU6H7WAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,...,..,,.,,,,,.,.,.,.,,,.,.,..,,...,...,...,,,.,,,.,...,.,,,
+#H6UWSOTVTRR27LRUWNINIZEEFWXCQ2CKMXL4KUU7TZYALN7OOZMY66GFJ7BNKYSAE47YMMYU2CEQE
+#\\\|FGVKUNAZ2G7Z4TW3GZHXW5GJJ4PZH4VYPBY5CO663R7TEGAUVQ6 \ / AMOS7 \ YOURUM ::
+#\[7]CSOGSIJ7ISZ7A6G4NMK5PUGZGO2SO62V537HWRACBAHWUZTUPACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

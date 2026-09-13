@@ -47,6 +47,7 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     delete $state_ref->{'split_reserved_rows'};
     delete $state_ref->{'split_title'};
     delete $state_ref->{'content_col'};
+    delete $state_ref->{'content_pending_wrap'};
 
 } else {
 
@@ -92,20 +93,29 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     my $replay = $new_mode->{'buffer'} // '';
     if ( length $replay ) {
         print $replay;
-        ## track column the same way nshell.render.content_print does, so ##
-        ## the NEXT background print continues from the right spot rather ##
-        ## than assuming column 1                                         ##
-        my $col = 1;
-        if ( $replay =~ m{\n([^\n]*)\z} ) {
-            $col = length($1) + 1;
-        } elsif ( $replay !~ m{\n} ) {
-            $col = length($replay) + 1;
-        }
+
+        ## same modular tail-length math as nshell.render.content_print,   ##
+        ## kept in sync deliberately -- including content_pending_wrap :   ##
+        ## an exact-width replay tail leaves the real cursor pending-wrap  ##
+        ## same as a live chunk would, and the NEXT background print       ##
+        ## [ content_print ] relies on that flag to avoid CUPing back onto ##
+        ## this just-replayed row's own start column                      ##
         my ($term_w) = AMOS7::TERM::terminal_size();
-        $col = 1 if $col > $term_w;
-        $state_ref->{'content_col'} = $col;
+        $term_w ||= 80;
+        my $tail_len;
+        if ( $replay =~ m{\n([^\n]*)\z} ) {
+            $tail_len = length($1);
+        } elsif ( $replay !~ m{\n} ) {
+            $tail_len = length($replay);
+        } else {
+            $tail_len = 0;
+        }
+        $state_ref->{'content_col'} = ( $tail_len % $term_w ) + 1;
+        $state_ref->{'content_pending_wrap'}
+            = ( $tail_len > 0 and $tail_len % $term_w == 0 ) ? TRUE : FALSE;
     } else {
         $state_ref->{'content_col'} = 1;
+        delete $state_ref->{'content_pending_wrap'};
     }
 
     ## the separator itself is drawn by nshell.render.viewport, on every   ##
@@ -122,8 +132,8 @@ $state_ref->{'display_mode_index'} = $next_index;
 
 return TRUE;
 
-#,,,.,,..,,,.,.,,,,,,,..,,,,,,...,..,,,..,,,,,..,,...,...,..,,,..,.,,,,,.,...,
-#M2STAVZJ4VCCFQFIVNVQZXB6F2F5XK364HKSBSO3WVCDVYI5G3M6LZ27XHUZUCLCEEF2JJYCVDN7Y
-#\\\|SH6JIE6QICIB3JOSOD4P7AO4W2IFYS6SZ5QZQWD2ZAB63IJC2GD \ / AMOS7 \ YOURUM ::
-#\[7]SPJOSS57SWCTTFHSMFXS3JQ43U6XWQLESNZZMWLBAPDWDZ4PN6BY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,,.,,,..,,,.,,,,,,.,,,,,,,..,..,,...,...,...,,.,,,,,,,,.,...,
+#XFCGV7TTUBXVCPBJSKJTKLCNK4IKZM2AT3U3YBAY27DMN5NIDQYBA64PJFTN2LOESCOLJC3MZBALI
+#\\\|2ZYDXZUWFHKL5IJLERFXHLI7VQIO6LLTR6QEGYRYOEOVR6PRVYK \ / AMOS7 \ YOURUM ::
+#\[7]LH7XE4OWK2NOUXCE7E3IJAQZYQ23I332CO5OPETHLE3CNW6V2YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
