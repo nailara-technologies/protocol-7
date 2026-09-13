@@ -59,6 +59,27 @@ if ( not defined $http_state ) {
     };
 }
 
+## commit the in-flight partial turn to history BEFORE tearing down --     ##
+## content accumulates in $async_state->{'content'} while streaming and is ##
+## only ever committed into 'messages' once a round finishes naturally [   ##
+## coding.async.chunk_handler clears it right after commit, so non-empty   ##
+## here always means "not yet saved", no dedup needed ].  without this,    ##
+## coding.async.complete below only copies whatever's ALREADY in           ##
+## 'messages', silently losing the interrupted turn entirely -- confirmed  ##
+## live 2026-09-14, not a hypothetical gap.                                ##
+my $partial_content = $async_state->{'content'} // '';
+if ( length $partial_content ) {
+    push @{ $async_state->{'messages'} },
+        { 'role' => 'assistant', 'content' => $partial_content };
+    $async_state->{'content'} = '';
+    <coding.async.task_state>->{$task_id} = $async_state;
+    <[base.logs]>->(
+        1,
+        "abort-inference: preserved %d bytes of interrupted turn for %s",
+        length($partial_content), $task_id
+    );
+}
+
 ## tear down the connection and fail the task cleanly ##
 <[coding.async.http_cleanup]>->($http_state);
 <[coding.async.complete]>->(
@@ -72,8 +93,8 @@ return {
     data => "inference aborted for $task_id"
 };
 
-#,,,,,,..,,..,,..,,,.,.,,,,..,,,.,...,,,.,,..,..,,...,...,...,,,.,.,.,,,.,,,.,
-#4KKEU4LX6NFX72LRICPOLXBTPCK2SLQEFLBZDJR77UT5HY6C6HLCN5ZR3OMQAYJPFXE3WJNF6VJKS
-#\\\|SHVSLBTQ4JFXO4R7OTE25772RAC2WS34ZS4FS454LHVD2JFO4TC \ / AMOS7 \ YOURUM ::
-#\[7]W4B6G7DWPPLJK7MJKMIHPO5LMCYD4A736U2HSODOFF3FXLPNX6BA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,,,,,,.,,.,,,,,.,.,.,,,.,,,,,..,,...,...,,..,,,,,,,,,.,.,,,.,
+#CIWSBF6DV7HQGENDAODKZRW3FADNRRGT7EMR5NATDOM4ENAN6HBWV6FISCZVEQYYMZV6HMTMHNLN6
+#\\\|V7TQIP3ZTHXYCDCY4QJP67OFWSMPMNFHSQDRDMDCDZDQ6YSSIZG \ / AMOS7 \ YOURUM ::
+#\[7]ENJ66CBWJ7DQIU4NL46YARHLR7AVG3OIFL5RV3ZWNCE65W3G2OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
