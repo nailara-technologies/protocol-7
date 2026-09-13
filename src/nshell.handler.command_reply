@@ -63,6 +63,40 @@ print "\r\e[2K"
 
 my $cursor_mode = <nshell.cfg.cursor_after_reply> // 'all';
 
+## if the current display mode declares a plugin, let it react to this      ##
+## reply BEFORE anything prints -- e.g. plugin.nshell.coding-session        ##
+## catches a coding.submit ack here, binds the task id to this tab, and     ##
+## queues the follow-up subscribe-session command. core stays               ##
+## plugin-agnostic.                                                         ##
+##                                                                          ##
+## MUST run regardless of which branch below fires : coding.submit's own    ##
+## ack is a SIZE-mode reply, not a TRUE-mode one [ confirmed via            ##
+## base.handler.command.process_reply's unknown-reply-route hook call -- it ##
+## only passes 'data' => undef for TRUE/FALSE/WAIT/GET/TERM, but a real     ##
+## extracted payload for SIZE/STRM/CHRSIZE/STRM-SIZE ], so it always took   ##
+## the payload_str-defined [ else ] branch below and never reached the      ##
+## plugin call that used to live only in the single-line branch -- task_id  ##
+## was never bound, so neither auto-subscribe nor Esc-abort ever fired.  a  ##
+## truthy result means the plugin fully claimed this reply's own display [  ##
+## e.g. hide the raw ack, subscribe-session's own STRM reply takes over the ##
+## content area next ] -- suppress the normal print in that case.           ##
+my $modes = $_nshell_state->{'display_modes'};
+my $mode
+    = ref $modes eq 'ARRAY'
+    ? $modes->[ $_nshell_state->{'display_mode_index'} // 0 ]
+    : undef;
+my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
+my $plugin_claimed;
+
+if ( length( $plugin_name // '' ) ) {
+    $plugin_claimed = $code{$plugin_name}->(
+        {   'hook' => 'on_reply',
+            'mode' => $mode,
+            'text' => ( defined $payload_str ? $payload_str : $args )
+        }
+    );
+}
+
 ## route all reply text through nshell.render.content_print rather than a   ##
 ## bare print : in split mode the real cursor rests at the pinned input row ##
 ## between renders [ nshell.render.viewport's convention -- it jumps there  ##
@@ -71,31 +105,19 @@ my $cursor_mode = <nshell.cfg.cursor_after_reply> // 'all';
 ## split mode, identical to the old behaviour.                              ##
 if ( not defined $payload_str ) {
 
-    ## if the current display mode declares a plugin, let it react to this  ##
-    ## reply BEFORE it prints -- e.g. plugin.nshell.coding-session catches  ##
-    ## a coding.submit ack here, binds the task id to this tab, and queues  ##
-    ## the follow-up subscribe-session command. core stays plugin-agnostic. ##
-    my $modes = $_nshell_state->{'display_modes'};
-    my $mode
-        = ref $modes eq 'ARRAY'
-        ? $modes->[ $_nshell_state->{'display_mode_index'} // 0 ]
-        : undef;
-    my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
-    if ( length( $plugin_name // '' ) ) {
-        $code{$plugin_name}
-            ->( { 'hook' => 'on_reply', 'mode' => $mode, 'text' => $args } );
-    }
-
     ## single-line reply : colorize and print to console for immediate display
     ## TRUE replies  : standard text color [p7_fg_0004]  FALSE replies :
     ## emphasis color [p7_fg_0003]
     my $reply_color
         = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0003'} : $colors{'p7_fg_0004'};
 
+    ## suppressed when the plugin fully claimed this reply -- e.g. a       ##
+    ## coding.submit ack whose only useful content [ the task id ] the     ##
+    ## plugin already consumed to bind the tab and queue subscribe-session ##
     <[nshell.render.content_print]>->(
         sprintf "\n%s%s\e[0m\n\n",
         $reply_color, $args
-    );
+    ) unless $plugin_claimed;
 
     ## re-display cursor after single-line reply output
     if ( $cursor_mode eq 'line' or $cursor_mode eq 'all' ) {
@@ -113,18 +135,29 @@ if ( not defined $payload_str ) {
 
 } else {    ## print multi-line output directly without padding to console
 
-    <[nshell.render.content_print]>->($payload_str);
+    ## suppressed when the plugin fully claimed this reply -- this is the ##
+    ## branch coding.submit's own SIZE-mode ack actually takes [ see the  ##
+    ## plugin-dispatch comment above ], so this is the case that matters  ##
+    ## most for hiding the raw ack in favour of the live stream that      ##
+    ## follows it                                                         ##
+    unless ($plugin_claimed) {
+        <[nshell.render.content_print]>->($payload_str);
 
-    ## track whether payload had no trailing newline  next prompt will add
-    ## separation if needed
-    if ( $payload_str !~ m{\n\z} ) {
-        <nshell.state>->{'needs_newline_prefix'} = TRUE;
-    } else {
-        delete <nshell.state>->{'needs_newline_prefix'};
+        ## track whether payload had no trailing newline  next prompt will add
+        ## separation if needed
+        if ( $payload_str !~ m{\n\z} ) {
+            <nshell.state>->{'needs_newline_prefix'} = TRUE;
+        } else {
+            delete <nshell.state>->{'needs_newline_prefix'};
+        }
     }
 
-    ## redraw cursor after SIZE/payload reply if configured
-    if ( $cursor_mode eq 'all' ) {
+    ## redraw cursor after SIZE/payload reply if configured -- skipped      ##
+    ## entirely when claimed : nothing was printed above to reposition      ##
+    ## past, and the subscribe-session dispatch the plugin just queued will ##
+    ## render [ and redraw the cursor itself ] as soon as its own reply     ##
+    ## arrives                                                              ##
+    if ( $cursor_mode eq 'all' and not $plugin_claimed ) {
         if ( $_nshell_state->{'split_active'} ) {
             <[nshell.render.viewport]>->(
                 $_nshell_state->{'editor'}, \%colors
@@ -155,8 +188,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,..,,.,,.,.,,..,,,,,,,.,.,.,.,,,,.,,,,.,,,.,.,.,...,...,...,..,,.,.,...,.,,,
-#DRYH7WFEH4Z54PWU56YUUPCFNKGWKW3KGP77W5ZQNRXQ7N3L2OBJAC5TCSCOTOIDBRMWYINMZQ7UW
-#\\\|D6AOL7GQA3UUN6MQXXSL4YCQLDL5XP5AMWGUGFHNQFI2ABO2SO4 \ / AMOS7 \ YOURUM ::
-#\[7]VVRZU4RONPUNJZSIFQV3SSE7AI3MTRYU6HZIKAANOC3EYMQBYYDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,,,.,,,.,,.,,...,,.,,.,.,.,,,.,.,...,...,..,,...,,,,,,..,..,,
+#BZHFDYYG6DHGDXCPTGJAA3FVOTJO2WEYIKTDQQ3UGJYXKXEO43HO7PWCWESWZ47FC4OUHAFUELLRW
+#\\\|IUYGKABX46DOOFEGTVVCFIDFRUNO2OSMMRXWSKWODE76DOVPYRY \ / AMOS7 \ YOURUM ::
+#\[7]C3PZA6D4KSVKLAEBCV6NL3J6R4BWN66F3YITAVMVBUS2NDKHWYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
