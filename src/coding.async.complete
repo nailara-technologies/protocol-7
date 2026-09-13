@@ -110,6 +110,20 @@ if ( defined $result && $result->{'success'} ) {
         }
     }
 
+    ## round-chain node for the round that just finished [ covers both      ##
+    ## fates below : a clean finalize AND an injected-messages resume are   ##
+    ## both "this round produced $result_text as its answer" -- the         ##
+    ## round-chain node is identical either way, only what happens AFTER it ##
+    ## differs. $state->{round} is still the completing round's own number  ##
+    ## here : STATE_COMPLETE never increments it, only tools_done/          ##
+    ## user_responded/loop-assertion do, and those are handled at their own ##
+    ## push sites in coding.async.state_machine, not here.                  ##
+    <[coding.round_chain.append]>->(
+        $task_id, $state->{'round'} // 0,
+        qw| round |,
+        [ { 'role' => qw| assistant |, 'content' => $result_text } ],
+    );
+
     ## a task-append arrived while this round was still streaming [ queued  ##
     ## via injected_messages, per coding.cmd.task-append's own comment --   ##
     ## "picked up in send_request" ] -- but that only happens if ANOTHER    ##
@@ -751,8 +765,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,,,.,,,...,,.,,,..,,.,,..,,,..,,,.,.,.,,,,,.,.,...,...,.,,,.,,,..,,..,,,,.,
-#BVM2O4FWWYJ25CAB6R25QKQCT7SMKJ6MXVN7DHHMDLSYVEBHVANB3VJYQ6MPTZKDWSHGLB7Q7PJZI
-#\\\|SXB5LTEOO67MS2F5IBLUFRW6HTE54JTZQF3AMJNPMZWAGJ77IZR \ / AMOS7 \ YOURUM ::
-#\[7]EHZTEDR2EA5DHFTTO7FLEW4MC7W6ACGN2R2JTNH3YBCHZJTT7SDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,.,.,.,,,,.,,.,,,...,..,,,,.,.,.,...,...,,,,,..,,.,,,...,.,.,
+#2CELVTX3XX2OLW3QFRBM5SVESTY5W5AOUB5CECY4MT3ZKDP5XBJSKK7PNDQMJHAKLFM3D63SMGR72
+#\\\|5E4GWDU75VEVT7GUGSLXS2TUCCVFJ7B247G73GZQKXJKR5ZKJMU \ / AMOS7 \ YOURUM ::
+#\[7]LMG5T53U3KT5SNJGAWGNXMXYWS7ULLRCXEHQPAXE77SJDWWDEYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

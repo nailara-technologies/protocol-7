@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = coding.round_chain.reconstruct
+# param = <task_id> <target_checksum>
+# descr = reconstruct the effective messages array as of one round-chain
+#         node, folding every compaction mask along the path from genesis
+#         to the target [ nested compactions cascade correctly -- a later
+#         compaction can re-mask a round range that includes an earlier
+#         compaction's own summary round ]. pure function -- reads the
+#         task's round_chain only, never touches live async/task state.
+#         safe to call from anywhere, including before the population
+#         hooks that actually grow round_chain exist.
+
+my ( $task_id, $target_checksum ) = @ARG;
+
+return undef unless defined $task_id and defined $target_checksum;
+
+my $task = <coding.task.queue>->{$task_id};
+return undef unless defined $task;
+
+my $chain = $task->{'round_chain'} // [];
+return undef unless @{$chain};
+
+## index by checksum for O(1) parent lookups ##
+my %by_checksum = map { $ARG->{'checksum'} => $ARG } @{$chain};
+
+my $node = $by_checksum{$target_checksum};
+return undef unless defined $node;
+
+## walk parent pointers from target back to genesis, then reverse : @path ##
+## ends up genesis-first, target-last                                     ##
+my @path;
+my $cursor = $node;
+while ( defined $cursor ) {
+    unshift @path, $cursor;
+    last unless length( $cursor->{'parent'} // '' );
+    $cursor = $by_checksum{ $cursor->{'parent'} };
+}
+
+## sequential fold, genesis to target : each compaction node masks          ##
+## everything currently held with round in [masks_from, its own round) and  ##
+## replaces it with its own summary delta, THEN later nodes keep            ##
+## accumulating on top. folding [ rather than looking only at the single    ##
+## most recent compaction node ] is what makes nested compaction correct -- ##
+## a second compaction can re-mask a round range that includes a prior      ##
+## compaction's own summary round, collapsing it in turn                    ##
+my @entries;    ## { round => N, delta => [...] } ##
+for my $n (@path) {
+    if ( ( $n->{'type'} // '' ) eq qw| compaction | ) {
+        my $masks_from = $n->{'masks_from'} // 0;
+        @entries = grep { $ARG->{'round'} < $masks_from } @entries;
+    }
+    push @entries, { round => $n->{'round'}, delta => $n->{'delta'} // [] };
+}
+
+my @messages = map { @{ $ARG->{'delta'} } } @entries;
+
+return \@messages;
+
+#,,,,,..,,.,,,,,,,,,,,.,,,...,,,.,.,.,.,,,,,.,.,.,...,...,.,,,,,.,...,,.,,,,.,
+#N4SPWKWMOIHSKYHSFI3ZLDBKBOPTEVD2WJT33U73CCOHZ2IXYNAWXO7WYFMFMYWIWCW7MQZQVPVP4
+#\\\|CICXZX3TYLB3OEWBEBCKJUCEHQX4JSKPHICVQYFIMF66NVCOXPH \ / AMOS7 \ YOURUM ::
+#\[7]PD27PT6D3NXF7DRCFNIWNTW6S2XINRUBF57626AZ6BBKYBGH5UDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
