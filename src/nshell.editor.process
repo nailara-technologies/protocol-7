@@ -66,6 +66,55 @@ if ( $key eq "\e" ) {
     ## not claimed : fall through to the normal editor engine below ##
 }
 
+## Ctrl+C : let the current mode's plugin fully detach [ abort + forget     ##
+## task_id + clear buffer + switch back to shell mode ] -- see              ##
+## plugin.nshell.coding-session.on_ctrl_c. this is the "close this session" ##
+## action, distinct from Esc [ which deliberately keeps task_id bound so    ##
+## the conversation stays resumable via task-append ]. only CLAIMED when    ##
+## there's actually something bound/on-screen to detach from -- otherwise   ##
+## falls through to the editor engine's own 'signal' action below, which    ##
+## sends a real SIGINT, so Ctrl+C keeps its normal meaning everywhere else  ##
+## [ shell mode, an empty/idle session tab, etc ]                           ##
+if ( $key eq "\x03" ) {
+    my $state_ref = <nshell.state> // {};
+    my $modes     = $state_ref->{'display_modes'};
+    my $mode
+        = ref $modes eq 'ARRAY'
+        ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
+        : undef;
+    my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
+
+    if ( length( $plugin_name // '' ) ) {
+        my $plugin_result
+            = $code{$plugin_name}
+            ->( { 'hook' => 'on_ctrl_c', 'mode' => $mode } );
+
+        if ( ref $plugin_result eq 'HASH' and $plugin_result->{'claimed'} ) {
+
+            ## switch back to plain shell mode -- same teardown         ##
+            ## nshell.display.cycle performs for its shell-mode branch, ##
+            ## index 0 is always plain nshell by that same convention   ##
+            if ( $state_ref->{'split_active'} ) {
+                AMOS7::TERM::scroll_region_clear(
+                    $state_ref->{'split_reserved_rows'} // 0 );
+            }
+            $state_ref->{'split_active'} = FALSE;
+            delete $state_ref->{'split_row'};
+            delete $state_ref->{'split_reserved_rows'};
+            delete $state_ref->{'split_title'};
+            delete $state_ref->{'content_col'};
+            $state_ref->{'display_mode_index'} = 0;
+
+            $editor //= <[editor.control.create]>
+                ->(<[nshell.editor.default_schema]>);
+            <[nshell.render.viewport]>->( $editor, $colors );
+            return undef;
+        }
+    }
+    ## not claimed : fall through to the normal editor engine below, which ##
+    ## sends a real SIGINT as usual                                        ##
+}
+
 ## Initialize editor on first key
 $editor //= <[editor.control.create]>->(<[nshell.editor.default_schema]>);
 
@@ -234,8 +283,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,..,...,.,,,,.,,,,.,,,.,,,.,...,,,,,,,.,.,.,.,.,...,...,,..,,,,,,.,,,.,,..,,
-#PIQBIRJDBGORQW4PE6IU5ZPJK6R44IMULPXZY465AZU64EG6UEPSKG2Y35AZPVW5NUCLEKVCZ4OYK
-#\\\|2BUVELHXKXJGTK4DOXC4HC5ILIY2QOMWZ2ICAYLIDPODZTAS5HK \ / AMOS7 \ YOURUM ::
-#\[7]FIFPBEA225PHM5ZSWHI3ZO2WCHOBARDQEZJ3YHC4OE2ZITFVOKBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,,.,,.,,,..,,.,,,.,.,...,.,.,.,.,...,..,,,,,,.,.,,,.,,.,,.,.,
+#WQ2YKBE5K4YEDSRGDVH7XUVQQTNP5M6O7EZPNM4IMDSLCJMBMQZDC7DFNJZKTM7GJHNACZZVC5MY6
+#\\\|455PIY4IJDJP5XOKOTLVMX56OOIIM5RTUGZHBZZZENCCBRCVTUP \ / AMOS7 \ YOURUM ::
+#\[7]D2MMXE2XDANNPQD33CLK5WJKVHTNSBMN4PU6Q2B42SRPAHFRB6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,6 +16,13 @@ return FALSE unless $cmd =~ m|^STRM\b|;
 ## get or initialise nshell stream state
 my $nshell_streams = <nshell.streams> //= {};
 
+## set once a stream genuinely opens below -- triggers a viewport redraw at ##
+## the end of this handler so the split-mode status bar picks up the bound  ##
+## task id [ nshell.render.viewport reads it fresh from the mode object ]   ##
+## the moment streaming actually starts, rather than waiting for the user's ##
+## next keystroke to redraw it incidentally                                 ##
+my $stream_opened = FALSE;
+
 if ( $args eq qw| open | ) {
     ## STRM open: unbounded
     $nshell_streams->{$cmd_id} = {
@@ -31,6 +38,7 @@ if ( $args eq qw| open | ) {
     if ( -t STDOUT ) {
         <[nshell.render.content_print]>->("\r[ stream started ]\e[K\n");
     }
+    $stream_opened = TRUE;
 
 } elsif ( $args =~ m|^open\s+(\d+)$| ) {
     ## STRM open: bounded
@@ -51,6 +59,7 @@ if ( $args eq qw| open | ) {
             sprintf "\r[ stream started :: %d bytes ]\e[K\n", $total_bytes
         );
     }
+    $stream_opened = TRUE;
 
 } elsif ( $args =~ m|^(\d+)$| ) {
     ## STRM chunk: write raw bytes directly to STDOUT
@@ -59,6 +68,28 @@ if ( $args eq qw| open | ) {
     if ( defined $nshell_streams->{$cmd_id} ) {
         $nshell_streams->{$cmd_id}{'received_bytes'}
             += bytes::length($chunk_data);
+    }
+
+    ## coding.async.state_machine's round/state-transition marker lines --  ##
+    ## restyled client-side rather than baking ansi/unicode into the        ##
+    ## backend's own stream : that stream is meant to stay typer-agnostic [ ##
+    ## same descriptor, future web/gtk3 typers per this task's own design   ##
+    ## goal ], terminal presentation belongs here in nshell, not in         ##
+    ## coding.async.state_machine. distinct violet [ p7_fg_0000 ] instead   ##
+    ## of the plain blue actual model-output payload prints in, so status   ##
+    ## markers read as structural rather than as generated content, plus    ##
+    ## unicode double-brackets instead of literal '[[ ]]'. utf8::encode     ##
+    ## ONLY when this substitution actually fires -- ordinary model-output  ##
+    ## chunks may already carry real UTF-8 bytes [ e.g. emoji ] as a plain  ##
+    ## byte string with no wide-char flag, and encoding those               ##
+    ## unconditionally would double-encode them into mojibake ; the marker  ##
+    ## text itself is always pure-ASCII sprintf output before this          ##
+    ## substitution runs, so it's safe to encode only in that one           ##
+    ## known-controlled case.                                               ##
+    if ($chunk_data =~ s{\[\[ (round \d+ : .+?) \]\]}
+                         {$colors{'p7_fg_0000'}⟦ $1 ⟧$colors{'reset'}}
+    ) {
+        utf8::encode($chunk_data);
     }
 
     <[nshell.render.content_print]>->($chunk_data);
@@ -97,10 +128,20 @@ if ( $args eq qw| open | ) {
     return FALSE;
 }
 
+## redraw the input line [ + status bar, in split mode ] now that a stream ##
+## has actually opened -- content_print above only touches the content     ##
+## area, it never redraws the pinned input row/separator itself            ##
+if ($stream_opened) {
+    my $state_ref = <nshell.state> // {};
+    if ( $state_ref->{'split_active'} ) {
+        <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
+    }
+}
+
 return TRUE;
 
-#,,..,.,,,.,,,..,,,,.,..,,..,,..,,..,,.,.,.,,,..,,...,...,,..,.,.,.,.,,,.,,,,,
-#6NV3N3X76UTYMHMAKOHPVQZT7PRX3EHF7AUKY75VORBM6XAPYZY52IW2BUHYZN6XRZE57KILIW3IK
-#\\\|IANF23ER4NBYJZTXWCCQ64VZV3PBZNYIEUK52SDJOO7DNPOKNUZ \ / AMOS7 \ YOURUM ::
-#\[7]3GI7HQSNBGASXYJGUTEKKHXOVD7Y4CKKGFZXQICNINMECG7LNGCI 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,,,,,,,,,,.,,.,,,.,.,,,.,.,.,..,,...,...,.,.,,..,.,.,...,..,,
+#PX6PRWPDWNOONFKVXVVIZ6DMEQ43PNYQX7X3VOLVB5MXPAYVW2JEQYWQIQTOLPGLVSTSEPI3NMBUC
+#\\\|WYIM2YXYOTNUV4DYXES65QV24ZIVHJPWKQSOZNYQ2Z6IEPWV5SS \ / AMOS7 \ YOURUM ::
+#\[7]DXA3QYT6CFMX62FNO4Q7SC6O7AB55HMQRUSQEOJ44V2BQCQC4ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

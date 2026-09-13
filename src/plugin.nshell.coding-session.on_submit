@@ -11,6 +11,11 @@ my $text = $args->{'text'} // '';
 
 return undef unless defined $mode and length $text;
 
+## a new round is starting either way below -- re-arm on_escape's "first    ##
+## press aborts" behaviour for it, rather than leaving it in whatever stage ##
+## a previous [ now-irrelevant ] round left it in                           ##
+delete $mode->{'esc_stage'};
+
 if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
     return { 'command' => "coding.task-append $mode->{'task_id'} $text" };
 }
@@ -21,8 +26,8 @@ $mode->{'awaiting_task_id'} = TRUE;
 
 return { 'command' => "coding.submit $text" };
 
-#,,..,,.,,.,.,...,.,,,...,.,.,.,,,,,.,.,.,..,,..,,...,..,,.,,,,..,.,.,.,.,,..,
-#GQRNRK7SBYRJ6PHIZH5S2PKJELW5Z7637JPQX5WXJQAYV57L5TOQCNWEPBEP5D6ZI5BSKIUCJH4PY
-#\\\|XMSOJM7Y2PPGAULHLOJDLX7F2V7PRFSJBC6NON2Q4LT2MEHSP6K \ / AMOS7 \ YOURUM ::
-#\[7]TW7BIMVU2SK5GXONUUSJQCBTF7XG4VNQWKSGEUU7O46CJBAWYAAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,,.,,,,.,,,,,.,.,.,,,.,,,...,..,,...,...,...,.,.,,,.,..,,.,,,
+#JD4CGN7KCOBJQT3IT6NMR5ZE2NAWUWFLBF5EOUSQSDBAZHQDNB3J3UFL524P4SOGQICG6ITVP7YFU
+#\\\|WZGXH24A3XFK6DFPTLV5XPPCT46XR6GHOTXAWSFZL5XXYNNBGFD \ / AMOS7 \ YOURUM ::
+#\[7]OIZT4BMMIDRQI4YVYPYRYM32ETZKTCQBV2P4JOMOXQSQ47EPU6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

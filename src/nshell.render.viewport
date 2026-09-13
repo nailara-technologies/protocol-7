@@ -69,20 +69,80 @@ if ($split_active) {
             = ref $modes eq 'ARRAY'
             ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
             : undef;
-        my $title_str = $state_ref->{'split_title'};
-        $title_str .= " [$mode->{'task_id'}]"
-            if defined $mode and length( $mode->{'task_id'} // '' );
+
+        ## fill-then-anchor [ instead of frame_rule_line's anchor-then-fill ##
+        ## ] so the title stays pinned to the RIGHT edge and never moves -- ##
+        ## the task id, when present, is its own anchor immediately to the  ##
+        ## title's left, growing the fill leftward instead of shifting the  ##
+        ## title's own position  leading space : purely cosmetic symmetry   ##
+        ## with the trailing cap below -- unlike the trailing reserved      ##
+        ## column, there's no wrap- hazard argument for it, column 1 is     ##
+        ## always safe to write to                                          ##
+        my @elements = (
+            {   'type'  => qw| anchor |,
+                'value' => ' ',
+                'color' => $colors{'p7_fg_0004'},
+            },
+            ## unicode box-drawing line instead of ASCII '-' -- this call   ##
+            ## goes straight to frame_border_line now rather than the       ##
+            ## shared frame_rule_line default, so only this one status bar  ##
+            ## is affected. the coding-zenka round transcript already       ##
+            ## renders box-drawing chars [ and emoji ] in this exact split  ##
+            ## view, and the project's own convention is UTF-8 by default,  ##
+            ## so there's no real 7-bit-compatibility argument to make here ##
+            {   'type'  => qw| fill |,
+                'char'  => '─',
+                'min'   => 1,
+                'color' => $colors{'p7_fg_0004'},
+            },
+        );
+        if ( defined $mode and length( $mode->{'task_id'} // '' ) ) {
+            push @elements,
+                {
+                'type'  => qw| anchor |,
+                'value' => " [ $mode->{'task_id'} ] ",
+                'color' => $colors{'p7_fg_0003'},
+                },
+                ## no spaces of its own -- the task anchor's trailing space ##
+                ## and the title anchor's leading space already bracket it  ##
+                {
+                'type'  => qw| anchor |,
+                'value' => '──',
+                'color' => $colors{'p7_fg_0004'},
+                };
+        }
+        push @elements,
+            {
+            'type'  => qw| anchor |,
+            'value' => " $state_ref->{'split_title'} ",
+            'color' => $colors{'p7_fg_0003'},
+            },
+            ## small fixed cap at the very right edge -- a second stretchy ##
+            ## fill element here would fight the left one for space via    ##
+            ## frame_border_line's min-ratio split rather than staying a   ##
+            ## constant few columns, so this is a plain anchor instead     ##
+            {
+            'type'  => qw| anchor |,
+            'value' => '──',
+            'color' => $colors{'p7_fg_0004'},
+            };
 
         ## reserve one column [ same pending-wrap hazard this renderer's ##
         ## own overflow path already guards against below ]              ##
-        my $rule = AMOS7::TERM::frame_rule_line(
-            " $title_str ",
-            $term_w - 1,
-            {   'title' => $colors{'p7_fg_0003'},
-                'fill'  => $colors{'p7_fg_0004'},
-                'reset' => "\e[0m",
+        my $rule = AMOS7::TERM::frame_border_line(
+            {   'width'    => $term_w - 1,
+                'reset'    => "\e[0m",
+                'elements' => \@elements,
             }
         );
+
+        ## byte view at the terminal boundary, same convention this file    ##
+        ## already uses for the editor buffer above -- $rule carries the    ##
+        ## unicode box-drawing char [ '─', U+2500 ] now, and STDOUT here    ##
+        ## isn't set up with a wide-character output layer, so printing the ##
+        ## wide-flagged string as-is throws "wide character in print"       ##
+        utf8::encode($rule);
+
         AMOS7::TERM::pinned_row_print( $state_ref->{'split_row'} - 1, $rule );
     }
 
@@ -204,8 +264,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,.,,,,,,.,.,...,.,.,,,.,.,.,,..,,,,,..,,,,,,..,,...,...,..,,.,.,,,.,.,,,.,,,
-#UF3GCVSHMOWGQR6ZN6P6AAI6NTLZEYTTBHIN4QBPI7LEG2XGW3KERJSNH4ESULL4UZKPAGZD2VFAA
-#\\\|NQWPP7PLBKQYXLWKYZJBHQB4545K5D35WL33OY6U22KZA4Z5CUP \ / AMOS7 \ YOURUM ::
-#\[7]UMWBMHKMFTIWYZQXLTM77LF76SBSU33I265O4QI54PWYM3LPESAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,.,.,,..,.,.,...,.,.,,..,,,.,..,,...,...,..,,,,.,,,,,,.,,,..,
+#ISKWWEDPG5NUECFQ73H3HCW6C3XYC6FZLVY26ICLVWPCSEC5GNMLTRTLS4RDMIMDFSDSPTQUGOXL4
+#\\\|TZFU52UQITC42BZGQJ7WTYFF2WYTCZOJBYXQCJIE4WFBYJ5JY6Y \ / AMOS7 \ YOURUM ::
+#\[7]UTFXDUI5ZIMD2QHQIW5O625IGUIMKGZ4EM2DIHUZA4GU2YEJ54CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
