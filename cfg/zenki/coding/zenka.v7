@@ -15,7 +15,9 @@
 
 # coding.cfg.start_model = IXNBXVI:U2XBEXQ   ## Qwimi3.5 9B Kimik2.6 Opus Distill MTP
 #
-# coding.cfg.start_model = O72PLJY:G3IRILQ ## Phi 4 Mini Uncensored 9B -- INCOMPATIBLE: ik_llama.cpp build 4547 lacks tied-embedding fallback [ check_tensor_dims: 'output.weight' not found ]
+# coding.cfg.start_model = O72PLJY:G3IRILQ ## Phi 4 Mini Uncensored 9B
+#                          ^-- INCOMPATIBLE: ik_llama.cpp build 4547 lacks tied-embedding fallback
+#                                                 [ check_tensor_dims: 'output.weight' not found ]
 #
 # # incoming test models # #
 # coding.cfg.start_model = EMQFUAA:VHX3LOI  ##  Qwen3.5 9b Deepseek Opus Distilled  ##
@@ -94,15 +96,33 @@ coding.async.round_scheduling.enabled = yes    ## set to yes when proven    ##
 
 ## jinja: disable to work around new binary crash on tool calls ##
 coding.jinja.enable = yes
-## fixed chat template file [ empty = use model's built-in template ] ##
-## qwen3.5: data/jinja/templates/qwen3.5-fixed.jinja [ froggeric bug fixes ] ##
-## qwen3.6: data/jinja/templates/qwen3.6-fixed.jinja                         ##
+## fixed chat template file [ empty = use model's built-in template ]       ##
+## qwen3.5/3.6 froggeric bug-fix templates retired 2026-09-13 -- fully      ##
+## superseded by the unified template below, deleted rather than kept as    ##
+## dead weight [ git history has them if ever needed again ]                ##
+## qwen3.8: data/jinja/templates/qwen3.8-sharp.jinja [ same froggeric       ##
+##          lineage's newer unified 3.5/3.6/3.8 template ("Sharp"),         ##
+##          adopted 2026-09-13 -- explicitly consumes reasoning_effort      ##
+##          (resolves a long-standing open question, see coding-lora-p7-    ##
+##          idioms.md's confirmed-mechanism section), adds a default-on     ##
+##          terseness system-prompt addition (disable per-request with      ##
+##          {"terse":false} via chat_template_kwargs) and default-on        ##
+##          thinking-retention across turns (disable with                   ##
+##          {"preserve_reasoning":false}). live-verified: self-test ttft    ##
+##          dropped from the usual multi-second-to-multi-minute range to    ##
+##          1.7-2.9s across all 3 self-test prompts, clean 3/3 pass, and a  ##
+##          real held-out idiom prompt returned a concise, complete,        ##
+##          finish_reason=stop response (983 chars) instead of the long     ##
+##          rambling reasoning traces seen under the old template.          ##
+##          data/tasks/coding-chat-template-sharp-eval.md has the full      ##
+##          source-level review (same <think> boundary mechanism confirmed, ##
+##          historical-turn rendering logic unchanged in spirit)            ##
 
 ## enabled : current default (ZDMAPAY:AR3OCKQ, Qwopus3.5 9B v3) has          ##
 ## general.architecture = qwen35 [ confirmed from its own GGUF metadata ] -- ##
 ## the fix is architecture-scoped, not vanilla/distill-specific, and its     ##
 ## own built-in template is still the standard ChatML+<think> structure      ##
-coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
+coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.8-sharp.jinja
 
 ## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
 ## low prevents runaway <think> spirals; use medium/high for complex tasks      ##
@@ -112,12 +132,12 @@ coding.jinja.convert_tool_role = false
 
 ## GPU+CPU Dual Inference Configuration ##
 ## rebuilt 2026-09-08 [ build 4876, fe215a8cc, 141 commits ahead of the    ##
-## prior 4735/9d07d8681 -- picks up new architecture support (qwen4exp,   ##
-## deepseek-v4, glm-5.2, bailingmoe3) that may fix some newly-downloaded  ##
-## models -- self-test PASS 3/3 confirmed live before promoting. the      ##
-## prior build's binary/libs [ -rebuild-out/ ] have since been deleted -- ##
+## prior 4735/9d07d8681 -- picks up new architecture support (qwen4exp,    ##
+## deepseek-v4, glm-5.2, bailingmoe3) that may fix some newly-downloaded   ##
+## models -- self-test PASS 3/3 confirmed live before promoting. the       ##
+## prior build's binary/libs [ -rebuild-out/ ] have since been deleted --  ##
 ## re-run bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh ##
-## against a known-good git commit if a rollback is ever needed ]         ##
+## against a known-good git commit if a rollback is ever needed ]          ##
 inference.backend.lib_path = /data/source/ik_llama.cpp
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
@@ -126,13 +146,13 @@ inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
 
 ## hybrid/partial gpu+cpu layer offload : when a model doesn't fit fully in ##
-## free vram, reduce -ngl instead of refusing the spawn outright [ llama   ##
-## .cpp natively supports any -ngl 0..full layer count -- no binary change ##
-## needed ]. enabled by default; set to 'no' to restore the old            ##
-## fail-outright behaviour                                                 ##
+## free vram, reduce -ngl instead of refusing the spawn outright [ llama    ##
+## .cpp natively supports any -ngl 0..full layer count -- no binary change  ##
+## needed ]. enabled by default; set to 'no' to restore the old             ##
+## fail-outright behaviour                                                  ##
 coding.cfg.partial_offload_enable = yes
-## below this many gpu layers, partial offload isn't worth attempting --   ##
-## fail outright instead [ tune down for very small/fast models ]          ##
+## below this many gpu layers, partial offload isn't worth attempting --    ##
+## fail outright instead [ tune down for very small/fast models ]           ##
 coding.cfg.partial_offload_min_layers = 4
 
 ## control vector [ inference-time steering toward p7 idioms via           ##
@@ -150,10 +170,10 @@ coding.cfg.partial_offload_min_layers = 4
 # coding.cfg.control_vector_layer_end   = 31
 
 ## lora adapter [ gradient-trained steering toward p7 idioms, see         ##
-## data/tasks/coding-lora-p7-idioms.md ] : path to the adapter .gguf +     ##
-## scale [ runtime effect = scale * alpha / rank, same convention as       ##
-## PEFT ]. MODEL-SPECIFIC : retrain whenever start_model changes -- the    ##
-## loader enforces architecture match [ qwen35 ] but not the fine-tune,    ##
+## data/tasks/coding-lora-p7-idioms.md ] : path to the adapter .gguf +    ##
+## scale [ runtime effect = scale * alpha / rank, same convention as      ##
+## PEFT ]. MODEL-SPECIFIC : retrain whenever start_model changes -- the   ##
+## loader enforces architecture match [ qwen35 ] but not the fine-tune,   ##
 ## so the model id stays in the filename. applies to BOTH backends        ##
 ## [ a load-time adapter is backend-agnostic ]. all commented out =       ##
 ## unchanged behavior                                                     ##
@@ -172,15 +192,15 @@ coding.cfg.partial_offload_min_layers = 4
 ##                 violations, so a corrective turn can be requested        ##
 ## start at `scan` : it grows the (draft -> corrected) corpus without       ##
 ## touching a single byte of output. commented out = unchanged behavior     ##
-## note the flat naming : `coding.cfg.idiom_gate` is a scalar, so a       ##
-## sibling `coding.cfg.idiom_gate.max_turns` would be a nested-conflict   ##
-## [ a.b.c vs a.b.c.d ] -- hence idiom_gate_max_turns with an underscore  ##
+## note the flat naming : `coding.cfg.idiom_gate` is a scalar, so a         ##
+## sibling `coding.cfg.idiom_gate.max_turns` would be a nested-conflict     ##
+## [ a.b.c vs a.b.c.d ] -- hence idiom_gate_max_turns with an underscore    ##
 # coding.cfg.idiom_gate = scan
 # coding.cfg.idiom_gate_max_turns = 1
 # coding.cfg.idiom_rules = /data/projects/protocol-7/data/idioms/rules.yaml
 # coding.cfg.idiom_corpus_dir = /data/projects/protocol-7/data/idioms/corpus
 
-## catalog-retrieval harvesting                                            ##
+## catalog-retrieval harvesting                                             ##
 ## [ see data/tasks/coding-catalog-retrieval-phase2.md ]                    ##
 ## records one jsonl line per completed task : the first 200 chars of the   ##
 ## task text paired with the src/ modules that task actually wrote. this    ##
@@ -325,7 +345,7 @@ coding.cfg.vision_switch_idle_timeout = 300
 ## at 52000 ]. 28000 tokens frees ~985MB of KV cache vs. 52000 [ 42KB/token *9B    ##
 ## class KV estimate ], comfortably covering the missing margin. revisit per-model ##
 ## if a future default is text-only and could again afford a much higher floor     ##
-##                                                                                  ##
+##                                                                                 ##
 ## raised 37777 -> 42500 [ 2026-09-02 ] : current default's mmproj_path is EMPTY   ##
 ## on both backends [ confirmed live via coding.inference-status ], so no vision   ##
 ## encoder is actually loaded right now -- the OOM risk above doesn't apply to     ##
@@ -334,7 +354,7 @@ coding.cfg.vision_switch_idle_timeout = 300
 ## incomplete, a separate bug to fix (possibly a missing mmproj for the 27B        ##
 ## variant). if that gets fixed, re-verify the vision-encoder compute-buffer       ##
 ## margin at this floor before leaving it raised -- don't assume 42500 is safe     ##
-## once a real mmproj is loaded again                                             ##
+## once a real mmproj is loaded again                                              ##
 inference.model.context_length = 42500
 ## inference.model.context_length = 37777 ## [ prior value : safe with a working mmproj loaded, see above ##
 ## inference.model.context_length = 52000 ## [ doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
@@ -394,8 +414,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,.,,.,.,,,,,,..,,..,,..,,,,,,.,,...,..,,.,.,...,...,.,.,,..,...,,,,,,.,,
-#EUXAXRUV7NT2XTQATJ66GKJVPPQ2UL4X2CZZKAOXADYWPBK726YEVLWUDZK45RJRGUXSJ4YY2PLQK
-#\\\|MN4CQZKUOFI2BCCO2UHVWJ6QRHZGWSVSEJTDTFBEY75TA7HD42K \ / AMOS7 \ YOURUM ::
-#\[7]JLCAD4Y5PMYTEV2LYM4QFXST4RTWC3UR5QLFNS3Z75ISAYH34EAY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,...,,,,,...,,.,,,,,,..,,,,,,.,.,...,...,.,.,.,.,.,,,.,.,.,,,
+#E3DEXFISAVR76GPWIQ37VNHPFKIK52E2JBY7OS3A7AZ4JSZBKAG3BCKDHWOHZ37G3JO7IELT5T4SU
+#\\\|W6CZDSQPXS32DUTJXNRTPW7NFQUGDIN4HRRN3QTUQBTHGXEFDYH \ / AMOS7 \ YOURUM ::
+#\[7]I6KNG5N4NFBZIRSZLNFG6NHBT6BQ2QFFQJZRMVFKGIP37CICYEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

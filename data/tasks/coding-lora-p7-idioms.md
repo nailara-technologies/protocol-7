@@ -91,13 +91,18 @@ vector cannot.
   learned would create a real train/inference distribution mismatch,
   since the runtime always opens `<think>` before the model ever
   generates a token for that turn.
-  side-note, not yet resolved: the live coding zenka's server invocation
-  passes `--chat-template-kwargs {"reasoning_effort":"medium"}`, but
-  this jinja file has no reference to `reasoning_effort` anywhere --
-  either ik_llama.cpp consumes that kwarg outside the template (sampling/
-  verbosity control) or it's presently a no-op. irrelevant to training-
-  format correctness above, just noted as an open loose end if it
-  matters later.
+  side-note, **RESOLVED 2026-09-13** (`data/tasks/coding-chat-template-
+  sharp-eval.md`): the live coding zenka's server invocation passes
+  `--chat-template-kwargs {"reasoning_effort":"medium"}`, but the jinja
+  file used throughout every attempt in this task (`qwen3.5-fixed.jinja`)
+  had no reference to `reasoning_effort` anywhere -- confirmed a genuine
+  no-op for that specific template, not a hidden ik_llama.cpp-side
+  consumer. `qwen3.5-fixed.jinja` has since been replaced with a newer
+  same-lineage unified template (`qwen3.8-sharp.jinja`) that DOES consume
+  the kwarg -- irrelevant to training-format correctness above (loss
+  masking only cares about the `<think>...</think>` boundary, which both
+  templates render identically), but the reasoning_effort kwarg is no
+  longer a no-op going forward.
 
 ## hazards that waste a run [ read before doing anything ]
 
@@ -876,8 +881,8 @@ same-shape attempt.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,,.,.,.,..,,,,,,,,.,...,,,.,...,,..,..,,,,.,..,,...,...,..,,,,.,.,,,,,.,,..,
-#DSDWLM7RXZ4Y37WDVDP2I73A3RCWUDHR5D7XE5UGL5PQDLTXSLCP5BXAQN3HEQVLRKBHY5S3TD3CW
-#\\\|57EIH3UJZ6LYI423LBILNRXPH5NA3OIKZBG7XKHGPMEZCZQMFZX \ / AMOS7 \ YOURUM ::
-#\[7]XP5FLN7UBHXAZOB2XUDNGSB5WWQTU3SHSFMRD54F3LNJKZPMHQCY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,.,,,...,..,,.,.,,,.,..,,,..,..,,...,...,...,..,,,.,,,..,..,,
+#5BLP57B7ELZ7HYBVKPXYF76JRQBXZRW6ZTADYDQ42SOTUXGNCWNUFGYVFJA2B3L4H6WAK6YT6TR6C
+#\\\|3UW2CT6WIW5HS677PYZDL3CRDXIKH4L7VTG4AKYR4AKZOBOTURJ \ / AMOS7 \ YOURUM ::
+#\[7]4JG2LWU4NNCMMEQU2BFWUVW5TLPR2XXQ3UBKEM6RQ3Z5FDPKYCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
