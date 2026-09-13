@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = plugin.nshell.coding-session.on_escape
+# descr = abort a bound task's live inference if still running, else
+#         clear a leftover transcript for a genuinely fresh tab
+# param = { mode => $mode_href }
+# return = { claimed => TRUE, redraw => TRUE|FALSE } | undef [ not claimed ]
+
+my $args = shift // {};
+my $mode = $args->{'mode'};
+
+return undef unless defined $mode;
+
+if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
+
+    ## bound to a task : abort it if it's actually still running [ reuse   ##
+    ## the same <coding.task.active> source coding.cmd.abort-inference     ##
+    ## itself checks -- avoids sending an abort for an already-finished    ##
+    ## task ], then unbind unconditionally so the NEXT message starts a    ##
+    ## fresh task rather than trying [ and likely failing ] to task-append ##
+    ## onto a now-completed/failed one. the interrupted turn itself is     ##
+    ## preserved server-side by abort-inference's own restore-stream-state ##
+    ## fix, independent of anything done here.                             ##
+    my $active_aref = <coding.task.active> // [];
+    my $is_active   = grep { $ARG eq $mode->{'task_id'} } @{$active_aref};
+
+    if ($is_active) {
+        my ($cube_sid) = keys <user.cube.session>->%*;
+        if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+            $data{'session'}{$cube_sid}{'buffer'}{'output'}
+                .= "coding.abort-inference $mode->{'task_id'}\n";
+        }
+    }
+
+    delete $mode->{'task_id'};
+    delete $mode->{'awaiting_task_id'};
+
+    ## keep the visible transcript -- this is the "first Esc" case, the ##
+    ## user may still want to see what was generated before redirecting ##
+    return { 'claimed' => TRUE, 'redraw' => FALSE };
+}
+
+if ( length( $mode->{'buffer'} // '' ) ) {
+
+    ## no task bound [ already unbound by a prior Esc, or the task          ##
+    ## finished/failed on its own ] but there's still a leftover transcript ##
+    ## on screen : this is the "second Esc" case -- clear it for a          ##
+    ## genuinely fresh tab                                                  ##
+    $mode->{'buffer'} = '';
+    return { 'claimed' => TRUE, 'redraw' => TRUE };
+}
+
+## nothing bound, nothing to clear : don't claim the key, let it fall ##
+## through to the normal editor engine unchanged                      ##
+return undef;
+
+#,,..,,.,,..,,,..,..,,,.,,.,,,.,,,.,,,,.,,.,,,..,,...,..,,,..,,,.,,..,,,.,,.,,
+#7ZCETGWEOKOAUJQJOOX37Y3DSTQADCSXQ47MPRYA2KOA6J6FWII5V7T4MFX2VOR6TOIF7MIFEHL7A
+#\\\|5BX4RC77NVUWC4RDMFAEMVIJOMNMXQFMLCOG57OUFDUP7EMK4MK \ / AMOS7 \ YOURUM ::
+#\[7]6JDZFGZ33CVYBPJ3FTE5CBSDSYA5ZH4UL2VOZSOHYFXRAPBIOEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

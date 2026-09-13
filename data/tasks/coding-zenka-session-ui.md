@@ -381,6 +381,55 @@ existed in the model's own conversational history at all.
   whether restore-stream-state is its own command or folded into  
   abort-inference directly.
 
+**BASIC VERSION BUILT 2026-09-14, not yet live-tested -- a genuinely  
+simpler cut than the full rewind/redo design above, deliberately, to get  
+something usable now rather than wait on phase 3's round-addressing:**
+- folded the restore-fix directly into `coding.cmd.abort-inference`
+  (not a separate `restore-stream-state` command) -- commits
+  `$async_state->{'content'}` as a `{role: 'assistant', ...}` message
+  before `coding.async.complete` archives the task, exactly the data-loss
+  fix described above, live in the actual command now.
+- `plugin.nshell.coding-session.on_escape` (new hook, third alongside
+  on_submit/on_reply) + an Esc intercept in `nshell.editor.process`,
+  placed the same way as Tab but only CLAIMED when the plugin actually
+  wants it -- unclaimed falls through to the normal editor engine
+  unchanged, so Esc's existing meanings (search-mode cancel,
+  VIEWING_HISTORY exit) still work when there's nothing coding-zenka
+  specific to do. Avoids the historical "Esc needs pressing twice" class
+  of bug from claiming a key the editor engine already handles.
+- behaviour is STATE-DEPENDENT, not the fuller round-rewind: task bound +
+  actually running (checked via `<coding.task.active>`, same source
+  abort-inference itself uses) -> abort it, unbind the task id (so the
+  next message starts fresh rather than trying to task-append onto a
+  now-dead task), keep the visible buffer. task unbound but buffer still
+  has content (a second Esc, or the task already finished on its own) ->
+  clear the buffer for a genuinely fresh tab. neither bound nor buffered
+  -> don't claim the key at all.
+- this is NOT the round-rewind/redo primitive above -- no Shift+Esc/redo
+  built, no stepping back through arbitrary history. it's the smallest
+  slice that makes Esc genuinely useful today (stop a bad generation
+  without losing it, or clear a stale tab) without waiting on phase 3's
+  addressable-round-history work. Building the fuller version on top of
+  this later should be additive, not a rewrite -- the state-dependent
+  shape here doesn't conflict with it.
+- also not built yet: the `clear`-typed-as-a-prompt ambiguity (raised
+  same session) -- planned fix is a Ctrl+L keybinding, NOT yet
+  implemented. **expanded design, 2026-09-14, interrupted mid-discussion
+  by imminent auto-compact -- capture only, not decided/built:** user's
+  refinement is a repeat-press CASCADE, not a single fixed action --
+  1st Ctrl+L -> redraw (cheapest, least destructive), 2nd (in quick
+  succession) -> clear, 3rd -> restore [ presumably un-clearing, i.e.
+  redraw the buffer that clear just wiped -- ties directly to the
+  buffer already being kept in memory even after a screen clear ].
+  ALSO: a timeout resets the cascade back to step 1 (redraw) rather than
+  continuing to escalate -- i.e. press Ctrl+L, wait past the timeout,
+  press again -> redraw again, not clear. exact timeout value and
+  cascade-position storage (presumably another `$mode` field, e.g.
+  `ctrl_l_stage` + `ctrl_l_last_press_time`) not designed yet. Revisit
+  this fully before implementing Ctrl+L -- don't build the single-action
+  version first and retrofit, the cascade shape changes the state model
+  from the start.
+
 ## phase 3 -- round rewind
 
 goes beyond `round_soft_restart` (which restarts the *current* round on
@@ -591,8 +640,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,,.,,.,,,,,,,,.,,.,,,,.,..,,.,.,.,.,...,.,,,..,,...,...,,..,..,,,.,,,..,.,,,
-#5XRLZMPOKYHSCYVVNYXOMQYHZUFUFEWXSGNEFCU7YJD5JFOEPWQ35TAJJPRBFNHIGB2FERB34V4KW
-#\\\|OMEF4VQUMWROAJJAWG2JTSZ6QDFMNDXTWVKGBU573BP7CZGSTWP \ / AMOS7 \ YOURUM ::
-#\[7]NGQQPZ55TSR5HJQ3YQJBQNXJKGZDJAFPD4RION753G6X3MLOKWBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,,,,,,,,,,.,,,.,,,.,,,,,,.,,,..,,...,..,,,..,.,,,,,.,..,,,,.,
+#MROP4YXQQKBCIVXKHM5FMHMD4KBQ7PBP6XQCTCINWKFDT2RUY24KHJCBOL3GAIVRWBGCOY7YKKPES
+#\\\|Q56ADRUH7E3MXUW2APH2GWMG3J552AIKIJCYW5F3REPZBWCCS6A \ / AMOS7 \ YOURUM ::
+#\[7]EEGF75I4PURI5FLTVC5E2ECO5REQH5YJTHEAXOZWEBDSN4DI5ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
