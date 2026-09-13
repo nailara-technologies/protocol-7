@@ -3,6 +3,11 @@
 # name = nshell.term_restore
 # descr = Restore terminal settings after nshell session
 
+## pop the keyboard-protocol negotiation from nshell.term_init, if the
+## terminal understood it -- leaving it enabled would affect whatever runs in
+## this terminal next, not just nshell
+print "\e[<1u\e[>4;0m";
+
 ## clear any stray cursor rendering before restoring terminal
 print "\e[0m\r\e[K";
 STDOUT->flush();
@@ -36,8 +41,8 @@ if ( $fallback->getattr($tty_fd) ) {
 
 return TRUE;
 
-#,,,.,,,.,.,.,.,.,,,.,...,,,,,.,.,.,,,.,,,.,,,..,,...,..,,.,.,...,..,,,..,...,
-#3VWWGIGDORB3PLHFJDOBEKJZKYIQP7DCHXWG7PMCWLCRLW5FUULUP3V6FNFKCF2MTBGPGAPATLG62
-#\\\|YA7JYNJYHGMMKSCXFC56OZ3UVAVMYZ25CHAOFVCHZGO3AOKJAU3 \ / AMOS7 \ YOURUM ::
-#\[7]IGP5NUANCLS3YHQ5EWVC6C4QEFUWMPN3OTXOIXB2TJE5KUBE2MCY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,,.,.,,,...,,,,,,,.,,..,..,,..,,...,...,.,.,.,,,,.,,...,,.,,
+#LK263P6QHG6PWOJMYOGWJCCJ23QUIO4K4BUMZT32XUCNNPLDVWLJFDJE6ESQLE7LKHSV5ZLNTIHMA
+#\\\|YMJDGL33DCNTXHEDWTTUCUHT56TVT7QZX76AAWDOKZU22ZX42WN \ / AMOS7 \ YOURUM ::
+#\[7]RMWS6RUKA7TN5B25CZ5UZ5QOWVJS6NMRFQU5CDPQTGFZOAGWSSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

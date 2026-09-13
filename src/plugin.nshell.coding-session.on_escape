@@ -2,13 +2,17 @@
 
 # name  = plugin.nshell.coding-session.on_escape
 # descr = abort a bound task's live inference if still running [ first
-#         press ], then clear the leftover transcript [ second press ] --
-#         task_id itself is NEVER unbound here, since coding.cmd.task-
-#         append can resume a completed OR failed task from its saved
-#         history, and the interrupted turn is preserved as a real
-#         message by abort-inference's own fix : staying bound means the
-#         next message naturally continues the same conversation instead
-#         of losing it. Ctrl+C (on_ctrl_c) is the actual "detach/close
+#         press ], then step the task back one round via round_chain on
+#         every press after that [ coding.cmd.rewind-round, no checksum ->
+#         "one round back from the current tip" ] -- task_id itself is
+#         NEVER unbound here, since coding.cmd.task-append can resume a
+#         completed OR failed task from its saved history, and staying
+#         bound means the next message naturally continues the same
+#         conversation instead of losing it. non-destructive : rewinding
+#         forks history rather than deleting it [ see coding.round_chain.
+#         append's round_chain_current comment ], so redo [ F1 / Shift+
+#         Esc, plugin.nshell.coding-session.on_redo ] can always step
+#         forward again. Ctrl+C (on_ctrl_c) is the actual "detach/close
 #         this tab" action, not Esc.
 # param = { mode => $mode_href }
 # return = { claimed => TRUE, redraw => TRUE|FALSE } | undef [ not claimed ]
@@ -61,12 +65,55 @@ if (    defined $mode->{'task_id'}
     return { 'claimed' => TRUE, 'redraw' => FALSE };
 }
 
+if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
+
+    ## armed [ abort already sent for this round, or a previous rewind      ##
+    ## press already landed ] : step back one more round instead of just    ##
+    ## clearing the screen. omitted checksum -> coding.round_chain.         ##
+    ## step_target resolves "one back from the current tip" server-side.    ##
+    ## esc_stage deliberately stays TRUE [ NOT cleared here ] so repeated   ##
+    ## presses keep walking further back -- on_submit clears it the instant ##
+    ## a real new message goes out, which is the only point a fresh "first  ##
+    ## press aborts" cycle should start.                                    ##
+    ##                                                                      ##
+    ## NOT re-subscribing here : an earlier version queued                  ##
+    ## coding.subscribe- session before this, so rewind-round's replay push ##
+    ## [ via coding.  round_chain.restream ] would reach a live listener -- ##
+    ## confirmed live that repeated pure-navigation presses each adding a   ##
+    ## fresh listener [ never cleaned up, since navigation never completes  ##
+    ## a round the way coding.async.state_machine's STATE_COMPLETE cleanup  ##
+    ## expects ] left stale accumulated handles that broke a LATER real     ##
+    ## round's actual content streaming. rewind-round now embeds its replay ##
+    ## directly in its own reply text instead -- no listener, no            ##
+    ## subscribe-session, nothing left lying around.                        ##
+    my ($cube_sid) = keys <user.cube.session>->%*;
+    if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+        $data{'session'}{$cube_sid}{'buffer'}{'output'}
+            .= "coding.rewind-round $mode->{'task_id'}\n";
+    }
+
+    ## NOT suppressed, unlike the abort branch above : a rewind attempt can ##
+    ## genuinely fail [ already at genesis, or the task hasn't settled from ##
+    ## a just-sent abort yet -- still in_progress ], and its own reply --   ##
+    ## either the embedded replay [ 'size' mode ] or a short rejection      ##
+    ## message [ 'false' mode ] -- IS the confirmation the user needs.      ##
+    ##                                                                      ##
+    ## NOT clearing the buffer or requesting a redraw here, unlike an       ##
+    ## earlier version : confirmed live that wiping the screen BEFORE the   ##
+    ## command's own async reply arrives means a FAILED rewind [ "already   ##
+    ## at the earliest round" etc ] leaves nothing but that one bare error  ##
+    ## line on screen, with whatever was previously shown already gone --   ##
+    ## same "clear now, hope the reply fills it back in" mistake the abort  ##
+    ## branch above already avoids [ redraw => FALSE there too ]. leave the ##
+    ## display exactly as-is and let the eventual reply -- success or       ##
+    ## failure -- print via the normal content_print path instead.          ##
+    return { 'claimed' => TRUE, 'redraw' => FALSE };
+}
+
 if ( length( $mode->{'buffer'} // '' ) ) {
 
-    ## already armed [ abort already sent for this round ], or no task was  ##
-    ## ever bound in the first place : either way, a leftover transcript is ##
-    ## still on screen -- clear it for a visually fresh tab. task_id [ if   ##
-    ## any ] is untouched, still resumable.                                 ##
+    ## no task was ever bound : just a leftover transcript to clear for a ##
+    ## visually fresh tab                                                 ##
     $mode->{'buffer'} = '';
     delete $mode->{'esc_stage'};
     return { 'claimed' => TRUE, 'redraw' => TRUE };
@@ -76,8 +123,8 @@ if ( length( $mode->{'buffer'} // '' ) ) {
 ## through to the normal editor engine unchanged                      ##
 return undef;
 
-#,,,,,,,.,,.,,.,.,...,..,,.,,,,,.,.,.,.,,,.,.,..,,...,...,...,,,.,,,.,...,.,,,
-#H6UWSOTVTRR27LRUWNINIZEEFWXCQ2CKMXL4KUU7TZYALN7OOZMY66GFJ7BNKYSAE47YMMYU2CEQE
-#\\\|FGVKUNAZ2G7Z4TW3GZHXW5GJJ4PZH4VYPBY5CO663R7TEGAUVQ6 \ / AMOS7 \ YOURUM ::
-#\[7]CSOGSIJ7ISZ7A6G4NMK5PUGZGO2SO62V537HWRACBAHWUZTUPACQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,..,,,,.,.,,,.,.,,..,,.,,.,,,..,,...,...,..,,,.,,,.,,,.,,.,,,
+#O4FKJAV76SQ65FWHN5NJREWMRXNLCWF7WCYSF7UB7IGLAOZKNI6YGG3EO66ZFVE2UHFQO5AWO5AIU
+#\\\|BEFGEJESJVGOZBZBJ3J6R2COPO4UMXDLAZ5WLB3JSENVVIBCK26 \ / AMOS7 \ YOURUM ::
+#\[7]KRPLVSZ4NT4HRJPGNBAYEYZK6IM6ZCTYWAWKNHPA2Q65SJSLGICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

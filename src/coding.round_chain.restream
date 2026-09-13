@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = coding.round_chain.restream
+# param = <task_id> [checksum] [lines]
+# descr = push a round-chain node's formatted content [ coding.round_chain.
+#         format_node_for_display ] out through the task's existing live
+#         listeners [ <coding.session.listeners>->{$task_id}, the same
+#         base.stream.push mechanism coding.async.chunk_handler uses for
+#         real-time streaming -- NOT the model_output/task_write ring
+#         buffers, which are archival only and never reach a live nshell
+#         view on their own ]. checksum defaults to round_chain_current
+#         [ "show me where I am right now" ]. lines, if given, tails the
+#         formatted output to its last N lines [ mirrors base.cmd.show-
+#         buffer's own [lines] convention ], for a round whose content is
+#         long. core logic only -- coding.cmd.restream is the thin p7c-
+#         facing wrapper; coding.cmd.rewind-round/redo-round call this
+#         directly [ no arg-string round-trip ] right after resuming, so
+#         Esc/F1 replay the round they just jumped to without a separate
+#         manual step.
+#
+# returns { listeners => N, lines => M } on success [ N may be 0 -- no one
+# is currently watching this task, which is not an error ], undef if the
+# task or checksum isn't found.
+
+my ( $task_id, $checksum, $lines ) = @ARG;
+
+return undef unless defined $task_id and length $task_id;
+
+my $task = <coding.task.queue>->{$task_id};
+return undef unless defined $task;
+
+$checksum //= $task->{'round_chain_current'};
+return undef unless defined $checksum and length $checksum;
+
+my $chain       = $task->{'round_chain'} // [];
+my %by_checksum = map { $ARG->{'checksum'} => $ARG } @{$chain};
+my $node        = $by_checksum{$checksum};
+return undef unless defined $node;
+
+my $text
+    = <[coding.round_chain.format_node_for_display]>->( $task_id, $node );
+return undef unless length $text;
+
+my @out_lines = split m|\n|, $text;
+if ( defined $lines and $lines > 0 and $lines < @out_lines ) {
+    @out_lines = @out_lines[ -$lines .. -1 ];
+}
+
+my $listeners = <coding.session.listeners>->{$task_id} // [];
+if (@$listeners) {
+    my $push_text = join( "\n", @out_lines ) . "\n";
+    <[base.stream.push]>->( $ARG, \$push_text ) for @$listeners;
+}
+
+return { 'listeners' => scalar(@$listeners), 'lines' => scalar(@out_lines) };
+
+#,,..,.,,,,..,,.,,.,,,,,.,.,,,.,,,..,,.,,,,,.,.,.,...,...,...,.,.,.,.,,.,,,.,,
+#3ZDAHGSHEY36LMOEBG7IV6ZAN754ZQLPODRHC2I432DPAUK47HHSXLVGZOWZWFCT27HR3MQNTPMDM
+#\\\|C6GE5XZCW7RKXGHPVP5KX6GBR6G3HQKTZV6P5767MOFHMVRCCKR \ / AMOS7 \ YOURUM ::
+#\[7]TIMLHXRSAFIB3H6O5TBWNKS3ZLBVVPWFNKDM36VV3VR2DTQ6T4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

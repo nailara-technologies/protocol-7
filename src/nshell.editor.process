@@ -67,6 +67,54 @@ if ( $key eq "\e" ) {
     ## not claimed : fall through to the normal editor engine below ##
 }
 
+## Redo : F1 [ \eOP / \e[11~, unambiguous on every terminal, no negotiation ##
+## needed -- the reliable primary binding ] or Shift+Escape [ best-effort,  ##
+## only reaches here if the terminal understood the keyboard-protocol       ##
+## negotiation in nshell.term_init -- \e[27;2u kitty CSI-u style, or        ##
+## \e[27;2~ as a plausible xterm modifyOtherKeys variant ]. see             ##
+## plugin.nshell.coding-session.on_redo. same claimed/not-claimed fallback  ##
+## shape as the plain Esc block above.                                      ##
+if (   $key eq "\eOP"
+    or $key eq "\e[11~"
+    or $key =~ m{^\e\[27;2[u~]$} ) {
+    my $state_ref = <nshell.state> // {};
+    my $modes     = $state_ref->{'display_modes'};
+    my $mode
+        = ref $modes eq 'ARRAY'
+        ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
+        : undef;
+    my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
+
+    if ( length( $plugin_name // '' ) ) {
+        my $plugin_result
+            = $code{$plugin_name}
+            ->( { 'hook' => 'on_redo', 'mode' => $mode } );
+
+        if ( ref $plugin_result eq 'HASH' and $plugin_result->{'claimed'} ) {
+            if ( $plugin_result->{'redraw'} and $state_ref->{'split_active'} )
+            {
+                my $reserved = $state_ref->{'split_reserved_rows'} // 2;
+                AMOS7::TERM::scroll_region_clear($reserved);
+                my $content_bottom
+                    = AMOS7::TERM::scroll_region_set($reserved);
+                if ( defined $content_bottom ) {
+                    $state_ref->{'split_row'} = $content_bottom + $reserved;
+                    AMOS7::TERM::content_area_clear($content_bottom);
+                }
+                $state_ref->{'content_col'} = 1;
+                delete $state_ref->{'content_pending_wrap'};
+            }
+            $editor //= <[editor.control.create]>
+                ->(<[nshell.editor.default_schema]>);
+            <[nshell.render.viewport]>->( $editor, $colors );
+            return undef;
+        }
+    }
+    ## not claimed : fall through [ F1/Shift+Esc have no other meaning in   ##
+    ## the editor engine below, so this just becomes a silent no-op when no ##
+    ## plugin wants it -- never disruptive either way ]                     ##
+}
+
 ## Ctrl+C : let the current mode's plugin fully detach [ abort + forget     ##
 ## task_id + clear buffer + switch back to shell mode ] -- see              ##
 ## plugin.nshell.coding-session.on_ctrl_c. this is the "close this session" ##
@@ -285,8 +333,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,..,,,,.,,.,,,,.,,.,,,.,,,,.,.,,,.,.,.,,,.,.,...,...,...,.,,,,,.,.,,,,,,,
-#LIZYH2NTTEUE5FCOYTI7ZT7A2FQN4B7KQLNTN452KZPUEPYLIPXKPG4DMUXLEOHFRGH7MH77RXGV6
-#\\\|QGDCEAU5USUQIUFB33ZLC3F2Z4KLKNC57XG26VTHZZBKECWCGLG \ / AMOS7 \ YOURUM ::
-#\[7]3L3LAYACVUAEEOPZYHTEZNH6QYIKIVAVIB5CRNX5NWSSAZPQYIBA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,,,,,,,,.,,,,.,..,,,,,,.,.,.,.,.,.,...,..,,...,,..,...,,.,,,,,,
+#EVJUQKWY4JPZJ7V5WDIMSX333LYPPSAD3S7BIHLUGFHOSKFPJ5KEJXLMXWEY75AMZQUQVJYGKONB2
+#\\\|FQPWVEG2EI6BAWD4RFQTK57U7RUOGFTGF3QSHTRFY2TSPIASZEG \ / AMOS7 \ YOURUM ::
+#\[7]BEEJIXBHZLLQ5UHZVGR25G464TFWOF2I2FXU3WDY57OHYESX7SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
