@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = coding.round_chain.format_node_for_display
+# param = <task_id> <node>
+# descr = render one round-chain node's own delta as readable transcript
+#         text, prefixed with the task's original prompt for orientation --
+#         the "replay" nshell shows after a rewind/redo, so the user sees
+#         what they actually jumped to instead of a blank buffer and a
+#         one-line confirmation. deliberately just THIS round, not the
+#         full reconstructed history back to genesis : the target node's
+#         own delta already IS "what this round said," and a full replay
+#         would keep growing with round depth ; open the transcript log
+#         if the wider history is ever needed. pure : reads only, returns
+#         a plain string.
+#
+#         no length cap on any message's content -- tried a 1500-char
+#         truncation first, confirmed live it cut content mid-word
+#         throughout and defeated the entire point of replay [ showing
+#         real context ]. reintroduce a limit later only if a genuinely
+#         pathological case [ a multi-megabyte tool dump ] demands one.
+
+my ( $task_id, $node ) = @ARG;
+
+return '' unless defined $task_id and defined $node;
+
+my $task = <coding.task.queue>->{$task_id};
+return '' unless defined $task;
+
+my @lines;
+
+my $orig_prompt = $task->{'request'}->{'description'}
+    // $task->{'metadata'}->{'raw_request'}->{'description'} // '';
+if ( length $orig_prompt ) {
+    push @lines, '[ original prompt ]', "  $orig_prompt", '';
+}
+
+push @lines, sprintf '[ round %d ]', $node->{'round'} // 0;
+
+for my $msg ( @{ $node->{'delta'} // [] } ) {
+    my $role = $msg->{'role'} // 'unknown';
+
+    if ( $role eq qw| user | ) {
+        push @lines, '  [ you ]', "  $msg->{'content'}" if $msg->{'content'};
+    } elsif ( $role eq qw| tool | ) {
+        push @lines, '  [ tool result ]', "  $msg->{'content'}"
+            if $msg->{'content'};
+    } elsif ( $role eq qw| assistant | ) {
+        push @lines, '  [ model ]', "  $msg->{'content'}"
+            if length( $msg->{'content'} // '' );
+
+        for my $tc ( @{ $msg->{'tool_calls'} // [] } ) {
+            my $name = $tc->{'function'}->{'name'}      // 'unknown';
+            my $args = $tc->{'function'}->{'arguments'} // '{}';
+            push @lines, sprintf '  → %s( %s )', $name, $args;
+        }
+    } elsif ( length( $msg->{'content'} // '' ) ) {
+        push @lines, "  [ $role ]", "  $msg->{'content'}";
+    }
+}
+
+return join( "\n", @lines );
+
+#,,..,,,,,,,,,,,,,,..,..,,,,.,,,,,..,,...,,,,,.,.,...,...,...,,,,,.,,,.,.,.,.,
+#3AZHBVM45KHFKJA6RTTMBUJVPA3I7LKUEMYBZL23X4IVHVBZIOUV4IDWWFYYUGINTIMCF5EFHRP52
+#\\\|ZFZS6L5JTRSIIH4WIXHDFLSMAHYW37UL3WX4XOMTFXRJY34FL2Q \ / AMOS7 \ YOURUM ::
+#\[7]PLYRZWPDSPMWOYBD7J4ELUZAKFPLNCRZUEMREIBRW4NSICGE3KCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

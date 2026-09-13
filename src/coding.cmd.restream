@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = coding.cmd.restream
+# descr = replay a round-chain node to a task's live listeners
+# param = <task_id> [lines] [checksum]
+# note  = checksum defaults to round_chain_current [ "show me where I am
+#         right now" ]. [lines] tails the formatted output to its last N
+#         raw lines, same convention and same non-width-aware limitation
+#         as base.cmd.show-buffer's own [lines] -- real terminal-width-
+#         aware counting would need vterm-like capabilities this doesn't
+#         have, a separate undertaking. a numeric leading token of up to
+#         5 digits is taken as [lines], mirroring show-buffer's own
+#         digit-run heuristic for telling it apart from a checksum.
+
+my $args_str = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless length $args_str;
+
+my ( $task_id, $rest ) = split( m|\s+|, $args_str, 2 );
+$rest //= '';
+
+my ( $lines, $checksum );
+if ( $rest =~ m|^(\d{1,5})(?:\s+(.*))?$|s ) {
+    $lines    = $1;
+    $checksum = $2;
+} elsif ( length $rest ) {
+    $checksum = $rest;
+}
+
+my $result = <[coding.round_chain.restream]>->( $task_id, $checksum, $lines );
+
+return {
+    'mode' => qw| false |,
+    'data' => "task or checksum not found : $task_id"
+        . ( defined $checksum ? " / $checksum" : '' )
+    }
+    unless defined $result;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'restreamed %d line%s to %d listener%s',
+        $result->{'lines'},     $result->{'lines'} == 1     ? '' : 's',
+        $result->{'listeners'}, $result->{'listeners'} == 1 ? '' : 's'
+    )
+};
+
+#,,.,,..,,..,,.,.,,.,,,.,,,,,,,,,,.,,,...,...,.,.,...,...,...,..,,,,.,.,,,,,.,
+#JXNGOFW6FPRBVKND2O5RBLOKW4I5ZFXMBCQYNXQDVFQULIOC7RLGUCJV3VLDDZ3FJC5V225TTJPD2
+#\\\|5Y5RDC777I7BCR3GKM26AGAJDUOLSW2AFYLNZ5WEAYBHM7BOR7Q \ / AMOS7 \ YOURUM ::
+#\[7]VF4UUWABUNAJEXH75LWYU7OMP7HIMILACNIKEEVVFPTC46OHB2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

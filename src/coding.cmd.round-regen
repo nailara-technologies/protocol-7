@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = coding.cmd.round-regen
+# descr = regenerate the round at the current position
+# param = <task_id> [checksum]
+# note  = task must be completed or failed, not in_progress. the ONLY
+#         round_chain command that actually triggers inference --
+#         coding.cmd.rewind-round/redo-round are pure navigation, this is
+#         the separate, deliberate "no, generate something different
+#         here" action. checksum is optional : omitted means regenerate
+#         from wherever round_chain_current already is [ the normal case,
+#         since you'd typically rewind/redo there first, then decide to
+#         regenerate ]; pass one to move there and regenerate in one step.
+#         creates a new fork [ a child of the target node's parent, or of
+#         the target node itself for a tool-result/user-message round --
+#         see coding.round_chain.resolve_resume ] the next time that round
+#         completes -- round_chain.append parents off round_chain_current,
+#         which coding.round_chain.rewind already moved to the target
+#         before this triggers the new round.
+
+my $args_str = $call->{'args'} // '';
+my ( $task_id, $checksum ) = split m{ +}, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id and length $task_id;
+
+my $task = <coding.task.queue>->{$task_id};
+
+## buffer names use T- prefix; queue keys use task- prefix : normalize [ ##
+## same normalization coding.cmd.task-append applies ]                   ##
+if ( !defined $task and $task_id =~ s|^T-|task-|i ) {
+    $task = <coding.task.queue>->{$task_id};
+}
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "cannot regenerate task $task_id [status: $status] "
+        . '-- stop it first if it is still in progress'
+    }
+    unless $status eq qw| completed | or $status eq qw| failed |;
+
+if ( not defined $checksum or not length $checksum ) {
+    $checksum = $task->{'round_chain_current'};
+    return {
+        'mode' => qw| false |,
+        'data' => "no round_chain position for $task_id"
+        }
+        unless defined $checksum and length $checksum;
+}
+
+my $node = <[coding.round_chain.rewind]>->( $task_id, $checksum );
+return {
+    'mode' => qw| false |,
+    'data' => "checksum not found in round_chain for $task_id: $checksum"
+    }
+    unless defined $node;
+
+my $resolved = <[coding.round_chain.resolve_resume]>->( $task_id, $node );
+return {
+    'mode' => qw| false |,
+    'data' => "cannot regenerate from $checksum [ genesis final-answer "
+        . 'round -- not yet chain-tracked ]'
+    }
+    unless defined $resolved;
+
+my ( $messages, $resume_round )
+    = ( $resolved->{'messages'}, $resolved->{'round'} );
+
+my $resumed = <[coding.round_chain.resume_from_node]>->(
+    $task_id, $resume_round, $messages
+);
+return { 'mode' => qw| false |, 'data' => "failed to resume $task_id" }
+    unless $resumed;
+
+<[base.logs]>->(
+    1,
+    "round-regen : %s regenerated from %s "
+        . "[round %d] and resumed with %d messages",
+    $task_id,
+    $checksum,
+    $resume_round,
+    scalar @{$messages}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "task $task_id regenerated from round $node->{'round'} "
+        . "[${\scalar @{$messages}} messages] and resumed"
+};
+
+#,,.,,,.,,,.,,,.,,,..,..,,,,,,..,,...,..,,,..,.,.,...,...,,.,,.,,,,..,,..,...,
+#YGA634GKRQMOBH6DOGECUSV3HWPZBDYHOYH5K7IIMZJZ6YLV3CSBL33N42NKLZSTGTUQLL5K2RASY
+#\\\|Q64LOLQI3ZNB636MXDAPV2GYLWLNBSAINZC254YUO6BGXRJU3J7 \ / AMOS7 \ YOURUM ::
+#\[7]II3PLTZMYY5J7HITQYPBYDJOSE6KD5XFIT7EZ2ID75WIFGJVIOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

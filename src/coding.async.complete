@@ -118,10 +118,37 @@ if ( defined $result && $result->{'success'} ) {
     ## here : STATE_COMPLETE never increments it, only tools_done/          ##
     ## user_responded/loop-assertion do, and those are handled at their own ##
     ## push sites in coding.async.state_machine, not here.                  ##
+    ##                                                                      ##
+    ## if THIS round included tool call(s) [ e.g. task_complete ], build    ##
+    ## the same assistant+tool_calls+tool_results shape coding.async.       ##
+    ## state_machine's own tools_done branch would have -- coding.async.    ##
+    ## tool_executor short-circuits straight here on a stop flag instead of ##
+    ## going through that transition, and $result_text in that case is      ##
+    ## task_complete's own short "summary" tool argument, NOT the model's   ##
+    ## real content. confirmed live : storing just that summary as the      ##
+    ## round's entire delta silently discarded a real multi-paragraph       ##
+    ## answer -- $state->{content} [ the model's actual accumulated text,   ##
+    ## untouched by the stop-flag handling ] is what belongs here instead.  ##
+    ## a genuine plain-text completion [ no tool calls this round ] still   ##
+    ## uses $result_text as before -- for that shape it correctly IS the    ##
+    ## model's real final answer.                                          ##
+    my @round_delta;
+    if ( @{ $state->{'pending_tools'} // [] } ) {
+        @round_delta = (
+            {   'role'       => qw| assistant |,
+                'content'    => $state->{'content'} // '',
+                'tool_calls' => $state->{'pending_tools'},
+            },
+            @{ $state->{'tool_results'} // [] },
+        );
+    } else {
+        @round_delta
+            = ( { 'role' => qw| assistant |, 'content' => $result_text } );
+    }
+
     <[coding.round_chain.append]>->(
-        $task_id, $state->{'round'} // 0,
-        qw| round |,
-        [ { 'role' => qw| assistant |, 'content' => $result_text } ],
+        $task_id,    $state->{'round'} // 0,
+        qw| round |, \@round_delta,
     );
 
     ## a task-append arrived while this round was still streaming [ queued  ##
@@ -765,8 +792,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,,,.,.,,.,,..,,.,.,.,,,,.,,.,,,...,..,,,,.,.,.,...,...,,,,,..,,.,,,...,.,.,
-#2CELVTX3XX2OLW3QFRBM5SVESTY5W5AOUB5CECY4MT3ZKDP5XBJSKK7PNDQMJHAKLFM3D63SMGR72
-#\\\|5E4GWDU75VEVT7GUGSLXS2TUCCVFJ7B247G73GZQKXJKR5ZKJMU \ / AMOS7 \ YOURUM ::
-#\[7]LMG5T53U3KT5SNJGAWGNXMXYWS7ULLRCXEHQPAXE77SJDWWDEYAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,...,,..,..,,...,.,,,.,,,,,.,.,.,...,...,...,,,,,,,,,,..,,..,
+#CTIRLCZPT4I2IW5OJRCV4FKRASE5QWP2TSMEFFFHAJGLPQFNYWDB6ZSSXBOD5B576YURMPTBUMZBY
+#\\\|WGFCXRBSF5NT3FMCABQHN5CEDN2E3RJDZXBDCUVWYRAQM7VWS5R \ / AMOS7 \ YOURUM ::
+#\[7]PIVDRZ4P5YJU6BYINTZN2LDZ3GPB6BNYDZBDIBREQNHOJYNQ6QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
