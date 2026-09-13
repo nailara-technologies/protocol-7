@@ -185,6 +185,21 @@ jobsite bulk candidate-scoring calls, all blank. Real but pre-existing
 gap in `coding.task.save_buffers`'s metadata collection for that task
 type, unrelated to this work -- not investigated further.)
 
+**PHASE 1 DONE, live-verified 2026-09-14** (`c51551b33`): both the
+offline path (`list-backups`/`show-backup`) and the live path
+(`coding.cmd.subscribe-session` + `chunk_handler`/`state_machine`
+hooks) are landed and tested against real tasks. Along the way, found
+and fixed `bin/mcp-server-p7`'s complete lack of STRM-reply handling
+(`cube_command`/`cube_command_multiline` only knew TRUE/FALSE/SIZE/
+NACK, silently corrupting the next unrelated call whenever a command
+opened an STRM stream) -- see `data/tasks/mcp-server-p7-strm-support.md`,
+implemented by Kimi against a task file an Opus-model agent wrote,
+20/20 tests, live-verified clean. Real end-to-end test: subscribed to
+a live task, got its streamed content plus a round-transition marker,
+clean close, no corruption on the follow-up call. Terminal chrome
+(ascii.frame wrapping) still not built -- phase 1 proved the data path,
+not the UI presentation layer; that's the natural next slice.
+
 ## phase 2 -- interactive controls
 
 wire stop/restart into the viewer. `coding.abort.*` (register/lookup/
@@ -403,8 +418,8 @@ piece directly into the phase that actually needs it.
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,..,.,,,,,.,,.,,,,,,...,,..,,,,,,..,,..,,.,,..,,...,...,..,,..,,,,,,...,,.,,
-#G55FRLE553JTYM5FC7ADIG2HU4F3DQV2NNMFCKDL4NTFGDULZ7EVB7MVWCGYGIGIKSDBYCLNQQQJE
-#\\\|T2KYRY2V3QZJ2PQV4MHKPYIJCQL7H2XGCGDQQINQFMDRVX3WQN4 \ / AMOS7 \ YOURUM ::
-#\[7]IWXRWY2C7BFRQRJWJZ3PQJ2WOFQJZXWHP7PNUX72VZK4NZFQVMAA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,..,,..,,,.,,,.,,...,,,,,...,..,,...,..,,.,,,.,,,,,.,...,,..,
+#PKB2GIYCK4B5CHN26IFCWBSIJKSTTIGKEKRLZEDQ6N4P5QIY2FRLS6L3S2KATKOIFKR5KDHDTTH2G
+#\\\|23IXVYPUBGVQ4DLA7SGMHRNKFT5LNNPHR27HLOILB5FVTKZBWY3 \ / AMOS7 \ YOURUM ::
+#\[7]IQ226SYKFKAVLYEOXU3OT2DMATXYAVVEKUFRPVUVD2EGTLSG7QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
