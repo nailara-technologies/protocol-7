@@ -70,6 +70,15 @@ if ( length($content) ) {
     $context->{'content'} .= $content;
 }
 
+## live session-viewer streaming : cheap no-op when nobody's subscribed -- ##
+## one hash lookup per chunk unless a real listener is registered          ##
+if ( length($content) ) {
+    my $listeners = <coding.session.listeners>->{$task_id};
+    if ( ref $listeners eq 'ARRAY' and @$listeners ) {
+        <[base.stream.push]>->( $ARG, \$content ) for @$listeners;
+    }
+}
+
 ## extract <think> blocks from content into reasoning [ model may emit them ##
 ## inline ] do this after accumulation to handle multi-chunk blocks         ##
 while ( $context->{'content'} =~ s|<think>(.*?)</think>||s ) {
@@ -471,8 +480,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,,,.,,,.,..,,.,.,,.,,,,,,.,.,,.,,,,,,,.,,.,.,...,...,.,,,.,.,...,,,,,,..,
-#HT6YJ7ZRIXGEDWOWEOUEGK52ISA3FFPOA67224RE2RPNLOWY6SKLPPWYA4MTTD5MOV2HFKGQHTEK2
-#\\\|PVVTTE7JOCOAHSVXRALPKSS54KJLTHX7FFNEIZTF56C4PQ6D2XV \ / AMOS7 \ YOURUM ::
-#\[7]AHSWLCASPNYNHBKAVQTX7HPGNQO64YL5DAOK3LOQ6KCUT5JHI6BY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,.,,,,,,,,,.,..,,,.,,...,.,,,.,.,...,...,.,.,...,,,.,...,,.,,
+#WNFZF6CD2IFVD77XXBGAGEX7QQC5AZYIMLLN2X4DR7J7MAK3636TESORL5C6UMGHIWF6GBJQBU6IY
+#\\\|WALMKVTMVDUCHJ7G74B2EHDNPBIBWTEIP4WVRCNTGQTVTYDUWOQ \ / AMOS7 \ YOURUM ::
+#\[7]TUQJMZHG3543QYFEGQNIWHKCL6ZFRPFUSP3ZTMB6F4GPZN7DHGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
