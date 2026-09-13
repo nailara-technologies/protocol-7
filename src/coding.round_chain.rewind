@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = coding.round_chain.rewind
+# param = <task_id> <target_checksum>
+# descr = move a task's round_chain_current tip to an earlier node. pure-ish :
+#         mutates only round_chain_current, never the round_chain array
+#         itself and never live async/task state -- callers are responsible
+#         for rebuilding <coding.async.task_state> from
+#         coding.round_chain.reconstruct's output and re-enqueuing a round
+#         [ see coding.cmd.rewind-round ]. moving the tip alone is what
+#         turns the NEXT coding.round_chain.append into a fork : that call
+#         parents off round_chain_current, not off the array's physical
+#         last entry, so history before the fork point is preserved intact
+#         and reachable by checksum, never deleted or overwritten.
+#
+#         returns the target node [ so callers get its round number, delta,
+#         timestamp, etc without a second lookup ] on success, undef if the
+#         task or checksum isn't found.
+
+my ( $task_id, $target_checksum ) = @ARG;
+
+if ( not defined $task_id or not length $task_id ) {
+    warn 'expected defined task_id <{C1}>';
+    return undef;
+}
+
+if ( not defined $target_checksum or not length $target_checksum ) {
+    warn 'expected defined target_checksum <{C1}>';
+    return undef;
+}
+
+my $task = <coding.task.queue>->{$task_id};
+if ( not defined $task ) {
+    warn "task not found : '$task_id' <{C1}>";
+    return undef;
+}
+
+my $chain = $task->{'round_chain'} // [];
+my ($node) = grep { $ARG->{'checksum'} eq $target_checksum } @{$chain};
+
+if ( not defined $node ) {
+    warn "checksum not found in round_chain : '$target_checksum' <{C1}>";
+    return undef;
+}
+
+$task->{'round_chain_current'} = $target_checksum;
+
+return $node;
+
+#,,.,,,.,,,..,,,.,,,.,,,.,,,,,..,,,..,,.,,.,,,.,.,...,...,,,,,.,.,,,.,.,,,..,,
+#KJNYISBOEU3NCEMOFQW5NMFCFMT32R7IKY3HT2DDCPUWIOKKFLIBKT6MGX3DYFOVVYJV7UNLOYVYQ
+#\\\|KXPA2WREASSWYAF4H2SN2FRCH7UGZ7ACCG4WN2XIFGBUFHO4RIU \ / AMOS7 \ YOURUM ::
+#\[7]J7QRDBR4BJNMGS5BNHDRNNM23MDWFQKL5QU5VVWA3UTKYK2GA6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
