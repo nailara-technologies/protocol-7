@@ -15,6 +15,53 @@ if ( $key eq "\t" ) {
     return undef;
 }
 
+## Esc : let the current mode's plugin react [ abort-then-keep-buffer on   ##
+## first press, clear-leftover-buffer on a second press with nothing to    ##
+## abort -- see plugin.nshell.coding-session.on_escape ]. only CLAIMED if  ##
+## the plugin actually wants it -- otherwise falls through to the normal   ##
+## editor engine below unchanged, so Esc's existing meanings [ search-mode ##
+## cancel, VIEWING_HISTORY exit ] keep working when there is nothing       ##
+## coding-zenka-specific to do. avoids the historical "Esc needs pressing  ##
+## twice" class of bug from claiming a key the editor engine already       ##
+## handles itself.                                                         ##
+if ( $key eq "\e" ) {
+    my $state_ref = <nshell.state> // {};
+    my $modes     = $state_ref->{'display_modes'};
+    my $mode
+        = ref $modes eq 'ARRAY'
+        ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
+        : undef;
+    my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
+
+    if ( length( $plugin_name // '' ) ) {
+        my $plugin_result
+            = $code{$plugin_name}
+            ->( { 'hook' => 'on_escape', 'mode' => $mode } );
+
+        if ( ref $plugin_result eq 'HASH' and $plugin_result->{'claimed'} ) {
+            if ( $plugin_result->{'redraw'} and $state_ref->{'split_active'} )
+            {
+                ## clear + re-establish the same scroll region : wipes the ##
+                ## content area's visible text for a fresh tab, same       ##
+                ## mechanics as nshell.display.cycle's mode switch         ##
+                my $reserved = $state_ref->{'split_reserved_rows'} // 2;
+                AMOS7::TERM::scroll_region_clear($reserved);
+                my $content_bottom
+                    = AMOS7::TERM::scroll_region_set($reserved);
+                if ( defined $content_bottom ) {
+                    $state_ref->{'split_row'} = $content_bottom + $reserved;
+                }
+                $state_ref->{'content_col'} = 1;
+            }
+            $editor //= <[editor.control.create]>
+                ->(<[nshell.editor.default_schema]>);
+            <[nshell.render.viewport]>->( $editor, $colors );
+            return undef;
+        }
+    }
+    ## not claimed : fall through to the normal editor engine below ##
+}
+
 ## Initialize editor on first key
 $editor //= <[editor.control.create]>->(<[nshell.editor.default_schema]>);
 
@@ -183,8 +230,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,.,...,.,.,,.,,..,,.,,,,.,,,.,,,.,,..,,,,,,.,.,...,..,,.,,,,,.,..,,.,,,,..,
-#2DUNXT6WZJ6A22DGR23K3GLEZU44UDGZBOYOSJ5FA5FBZFFNXY7R5CP6FFHY3OSIVVL6WR3YMJJJO
-#\\\|ZWJKOJSWKUWBEMRROGAEUAHV4AUWJ4CFYJT2TXNZ2XV6YKXPI5K \ / AMOS7 \ YOURUM ::
-#\[7]ZGHHKL2GIN2XJ3YCAYXEKDPGONBHAQMX75FMDHF6FLP232DD3ICA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,,.,,.,,,,,,,,..,,.,,,,,,,,.,.,.,...,..,,...,..,,..,,,,,,...,
+#EW4YTHG4SJOGTHLBHQQJIQSC46257NLE73XAYEBGUR2W6AZ2CLZIOAHEE42UGWCHV2TJIA3S5YJIU
+#\\\|SX3ZDZADLLHAOGRZ7BU7BDZBSPYY5JBSXQYIML3IOAT7N5W7DFI \ / AMOS7 \ YOURUM ::
+#\[7]A6TOPDGKTTKTEIA3NFHZND476VRQI7KEV6MANGOAXU5YFQ3U6KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
