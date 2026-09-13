@@ -13,23 +13,24 @@ return undef unless defined $mode;
 
 if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
 
-    ## bound to a task : abort it if it's actually still running [ reuse   ##
-    ## the same <coding.task.active> source coding.cmd.abort-inference     ##
-    ## itself checks -- avoids sending an abort for an already-finished    ##
-    ## task ], then unbind unconditionally so the NEXT message starts a    ##
-    ## fresh task rather than trying [ and likely failing ] to task-append ##
-    ## onto a now-completed/failed one. the interrupted turn itself is     ##
-    ## preserved server-side by abort-inference's own restore-stream-state ##
-    ## fix, independent of anything done here.                             ##
-    my $active_aref = <coding.task.active> // [];
-    my $is_active   = grep { $ARG eq $mode->{'task_id'} } @{$active_aref};
-
-    if ($is_active) {
-        my ($cube_sid) = keys <user.cube.session>->%*;
-        if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
-            $data{'session'}{$cube_sid}{'buffer'}{'output'}
-                .= "coding.abort-inference $mode->{'task_id'}\n";
-        }
+    ## bound to a task : always send the abort -- this plugin runs inside   ##
+    ## the NSHELL zenka's own process, not the coding zenka's, so           ##
+    ## <coding.task.active> here would only ever read nshell's own local,   ##
+    ## never-populated copy of that key [ per-zenka %data isolation ], not  ##
+    ## the coding zenka's real active-task list -- an earlier version gated ##
+    ## on that read and it was always empty, so the abort command silently  ##
+    ## never got sent at all. coding.cmd.abort-inference already does this  ##
+    ## exact "is it still running" check correctly, server-side, with real  ##
+    ## data -- trust it rather than duplicating it here. unbind             ##
+    ## unconditionally either way, so the NEXT message starts a fresh task  ##
+    ## rather than trying [ and likely failing ] to task-append onto a now- ##
+    ## completed/failed one. the interrupted turn itself is preserved       ##
+    ## server-side by abort-inference's own partial-content-commit fix,     ##
+    ## independent of anything done here.                                   ##
+    my ($cube_sid) = keys <user.cube.session>->%*;
+    if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+        $data{'session'}{$cube_sid}{'buffer'}{'output'}
+            .= "coding.abort-inference $mode->{'task_id'}\n";
     }
 
     delete $mode->{'task_id'};
@@ -54,8 +55,8 @@ if ( length( $mode->{'buffer'} // '' ) ) {
 ## through to the normal editor engine unchanged                      ##
 return undef;
 
-#,,..,,.,,..,,,..,..,,,.,,.,,,.,,,.,,,,.,,.,,,..,,...,..,,,..,,,.,,..,,,.,,.,,
-#7ZCETGWEOKOAUJQJOOX37Y3DSTQADCSXQ47MPRYA2KOA6J6FWII5V7T4MFX2VOR6TOIF7MIFEHL7A
-#\\\|5BX4RC77NVUWC4RDMFAEMVIJOMNMXQFMLCOG57OUFDUP7EMK4MK \ / AMOS7 \ YOURUM ::
-#\[7]6JDZFGZ33CVYBPJ3FTE5CBSDSYA5ZH4UL2VOZSOHYFXRAPBIOEAQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,.,.,,..,,,,,,,.,.,.,,..,,..,..,,...,.,.,,.,,,.,,,,,,,,.,,,,,
+#ZGEMBEK3N274YTCORFCN2DJOKGALNQBSPG3ZSKAIQ53KRDF4Y2PTZXYPZUN52FNBFVPC2MKS563NE
+#\\\|KYJR2JYU3WN5OPC2FZYD7PV3IXS334B4MXIGRDBCQIJI5DUCQKC \ / AMOS7 \ YOURUM ::
+#\[7]66TWTSAGHMQTX6DIL272IZZTTS6GAWHKCXAT3KDUOVL5JOVO5ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
