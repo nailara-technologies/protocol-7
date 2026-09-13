@@ -2,9 +2,7 @@
 
 # name  = plugin.nshell.coding-session.on_reply
 # descr = catch a coding.submit reply's task id and bind it to this tab,
-#         then auto-subscribe to its live stream; also swallows the raw
-#         reply of a self-injected coding.abort-inference [ see
-#         suppress_abort_reply below ]
+#         then auto-subscribe to its live stream
 # param = { mode => $mode_href, text => $reply_text }
 
 my $args = shift // {};
@@ -12,20 +10,6 @@ my $mode = $args->{'mode'};
 my $text = $args->{'text'} // '';
 
 return undef unless defined $mode;
-
-## on_escape/on_ctrl_c inject coding.abort-inference unconditionally       ##
-## whenever a task_id is bound -- there's no reliable client-side way to   ##
-## know in advance whether anything is actually still running [ same       ##
-## cross-zenka %data isolation reason the old <coding.task.active> check   ##
-## was removed ], so it's routinely a harmless no-op [ e.g. Ctrl+C between ##
-## rounds, with nothing streaming ]. the user triggered this via a         ##
-## keybinding, not by typing a command -- they don't need to see raw wire  ##
-## text ["no active inference task" / "inference aborted for X" / ...] for ##
-## either outcome, only the visible effect [ streaming stops, or nothing   ##
-## happens ] matters. suppress unconditionally, regardless of success.     ##
-if ( delete $mode->{'suppress_abort_reply'} ) {
-    return TRUE;
-}
 
 ## coding.task-append resumed a completed/failed task from saved history [  ##
 ## coding.cmd.task-append's own "resumed from $status" reply shape ] -- the ##
@@ -73,12 +57,16 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 ## every render ] right now -- this is the exact moment that data changes,  ##
 ## proven to execute since auto-subscribe depends on this same bind having  ##
 ## happened. deliberately NOT waiting on the STRM open event to trigger     ##
-## this: open/close carry literal words ['open'/'close'] as their args,     ##
-## which never match base.handler.command.process_reply's unknown-route     ##
-## byte-count branch [ \d+ only ] -- nshell never actually observes those   ##
-## lifecycle events client-side at all. only chunks work, because a chunk's ##
-## own arg field happens to be a bare digit [ byte count ], accidentally    ##
-## matching that same numeric branch.                                       ##
+## this: it's not that open/close go unobserved client-side -- they don't,  ##
+## nshell.handler.strm_reply handles both directly [ 'open' prints          ##
+## "[ stream started ]" and fires its own viewport redraw once              ##
+## $stream_opened is set ] -- it's that THIS hook never sees them at all.   ##
+## nshell.handler.command_reply diverts every STRM-cmd reply straight to    ##
+## strm_reply at its own top, before reaching the plugin-dispatch block     ##
+## that calls on_reply -- so open/close structurally never reach this       ##
+## function, regardless of what their args field contains. redrawing here,  ##
+## right after the bind, is what actually covers the task-id-in-status-bar  ##
+## case for THIS code path.                                                 ##
 my $state_ref = <nshell.state> // {};
 if ( $state_ref->{'split_active'} ) {
     <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
@@ -86,8 +74,8 @@ if ( $state_ref->{'split_active'} ) {
 
 return TRUE;
 
-#,,.,,,.,,,,.,...,..,,.,,,,.,,..,,.,,,,.,,,..,..,,...,...,.,,,...,,.,,,..,,..,
-#DBZRMRWAU7PTE4CISQQDCFYMJ56S2XGFU3SSS4O7WMFAYQ7EHMWOOMVSW3QRNIZR4WNGZQ2JAT2YA
-#\\\|MUUWDL5OYQMDCVYCXAKZKTE6OKHDG3HU4SLGI724HWFZMUNJIDY \ / AMOS7 \ YOURUM ::
-#\[7]L2EEJ7PJDSNG7LSSZG6QH56ZRKKMHXUFUQECIB4V6DMSVGZHUGDY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,...,.,.,,..,,..,,.,,..,,,,.,..,,...,..,,.,,,,.,,,,.,.,.,.,,,
+#HKWQY22IGQR6JMKXCB3U6YGFQ6CVX746L54GB4XMEVKURNZ2J2JU7IRO4FXZENZTNLEGJM2FBHG4C
+#\\\|3X5PQNEPVTL7R53NFTZAANYMPKVBTSISBG5B6ZOMYMHVVZG5NPH \ / AMOS7 \ YOURUM ::
+#\[7]BCB73UHCUTRNU4A4Z2XBEWTZUJJGF3IQIH3VDJ2WZYAPGGIMFOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

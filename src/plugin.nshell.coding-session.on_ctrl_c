@@ -33,12 +33,18 @@ if ($had_task_id) {
             .= "coding.abort-inference $mode->{'task_id'}\n";
     }
 
-    ## this is routinely a no-op [ e.g. Ctrl+C between rounds, nothing    ##
-    ## streaming ] -- suppress the raw wire reply either way, see         ##
-    ## plugin.nshell.coding-session.on_reply. survives the task_id/       ##
-    ## awaiting_task_id/esc_stage deletes below : it's a separate flag on ##
-    ## the same mode object                                               ##
-    $mode->{'suppress_abort_reply'} = TRUE;
+    ## this is routinely a no-op [ e.g. Ctrl+C between rounds, nothing      ##
+    ## streaming ] -- suppress the raw wire reply either way. MUST live on  ##
+    ## shared nshell state, not the mode object : this function switches    ##
+    ## display_mode_index back to shell SYNCHRONOUSLY below, but the        ##
+    ## abort-inference reply only arrives LATER [ async ] -- by then        ##
+    ## nshell.handler.command_reply would be looking at the shell mode [ no ##
+    ## plugin at all ], never at this coding-session mode object, so a flag ##
+    ## stored here would simply never get checked. confirmed live           ##
+    ## 2026-09-14 : "no active inference task" still printed on an idle     ##
+    ## Ctrl+C despite this flag existing, because it was on the wrong       ##
+    ## object.                                                              ##
+    <nshell.state>->{'suppress_next_wire_reply'} = TRUE;
 }
 
 delete $mode->{'task_id'};
@@ -48,8 +54,8 @@ $mode->{'buffer'} = '';
 
 return { 'claimed' => TRUE };
 
-#,,..,.,,,.,,,,.,,,,.,.,,,.,.,...,,..,...,...,.,.,...,...,.,.,,.,,,.,,.,.,,,,,
-#3B6JUB55QPWPELCIQT2UNEEFR52NHZMKBBRTFASX6FMV67R2SSYHZ6IYFDOBERHFA62SIB2HJYLLQ
-#\\\|LVI66VQLO4ODQMU5BAJFVXSTTZQU56DR3TUBFD5JVJF6KDURSWJ \ / AMOS7 \ YOURUM ::
-#\[7]5K3PPGPJKPVLFMLQPYTZHG4NW4NAKCNZ73WUDLWOY7GCH6GSNIDI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,..,.,,,,.,,.,,,,,.,.,.,,,,,.,.,...,...,..,,,,,,,,,,.,,,,,,,
+#AA5EKG5UUMVEM5HNVWI3MIPJZ6U5XRESKDSEN3BMEIYSOP7476BVGIP5OMC2H4QQVL5QRJVZAZLU6
+#\\\|NX22UWL52NHPKJKOHLTHSOURP4QBD3TANZNIJTIPK546SEBUYH3 \ / AMOS7 \ YOURUM ::
+#\[7]ZOZZEIVFZTTESIMDU7MMAULRKDGY35PWMKNMJLQK5YYWAST7LMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

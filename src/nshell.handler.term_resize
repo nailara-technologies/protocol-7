@@ -44,16 +44,29 @@ if ( $state_ref->{'split_active'} ) {
 
         if ( length $replay ) {
             print $replay;
-            my $col = 1;
+
+            ## same modular tail-length math as nshell.render.content_print, ##
+            ## kept in sync deliberately : this sets the SAME content_col /  ##
+            ## content_pending_wrap pair that function reads on its very     ##
+            ## next call, so an exact-width replay tail here has to leave    ##
+            ## the same pending-wrap flag behind or the next live chunk      ##
+            ## after a resize reproduces the row-edge overwrite bug fresh.   ##
+            my $tail_len;
             if ( $replay =~ m{\n([^\n]*)\z} ) {
-                $col = length($1) + 1;
+                $tail_len = length($1);
             } elsif ( $replay !~ m{\n} ) {
-                $col = length($replay) + 1;
+                $tail_len = length($replay);
+            } else {
+                $tail_len = 0;
             }
-            $col = 1 if $col > $new_cols;
-            $state_ref->{'content_col'} = $col;
+            $state_ref->{'content_col'} = ( $tail_len % $new_cols ) + 1;
+            $state_ref->{'content_pending_wrap'}
+                = ( $tail_len > 0 and $tail_len % $new_cols == 0 )
+                ? TRUE
+                : FALSE;
         } else {
             $state_ref->{'content_col'} = 1;
+            delete $state_ref->{'content_pending_wrap'};
         }
     } else {
         ## terminal shrank too far to fit the reservation : fall back to ##
@@ -84,8 +97,8 @@ if ( defined $state_ref->{'editor'} ) {
     <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
 }
 
-#,,,.,,,.,,,.,.,,,,,.,,,,,,,.,..,,,,,,...,,..,..,,...,...,,,.,,,.,,,.,.,.,..,,
-#DYWTIQ6K7D27ZK6746QPRWSDCGKPFGS2W4LIZPSSXNKZW4CH53CXNFZRI2A2EMDKBTOWIEXQLMFQY
-#\\\|P243P46K5YJWOBDN46XFXFNM7AAHUIPRJFRTC4IPDULKTDVCRBS \ / AMOS7 \ YOURUM ::
-#\[7]WWJPS2HN3TI6RNQYHEXTNZKIXZZJON2WNNY26T72ZANU7PLOQ4AY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,,,,,,,.,.,,.,,..,,...,,..,.,.,..,,...,.,,,.,.,,.,,,,,,,..,,,.,
+#OIV7ZB4ULLMU4VSNZEZPCCEZQ4ZWRB23LCUFVWTYXJ7UBEN3PMNWNZS3BE6BO7DZDAMHPYB7WGTLS
+#\\\|LYZVZWPAYUGRJANKGWGL737ZKVZGJQVSB6XVDI2LLM3GZICFJFL \ / AMOS7 \ YOURUM ::
+#\[7]WKLGGRGIYMICCE6LXRW2BNZVH4L66PD4OJUIIQ4DWWSPYW6OBQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
