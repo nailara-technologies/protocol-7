@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.cmd.subscribe-session
+# descr = live STRM subscription to a running coding task
+# param = <task_id>
+
+my $task_id = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless length $task_id;
+
+return { 'mode' => qw| false |, 'data' => "task not found : $task_id" }
+    unless exists <coding.task.queue>->{$task_id};
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $call->{'session_id'},
+        'cmd_id' => $call->{'command_id'},
+        'type'   => qw| STRM |,
+        'total'  => undef,
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'stream open refused' }
+    unless defined $h;
+
+push @{ <coding.session.listeners>->{$task_id} //= [] }, $h;
+
+<[base.logs]>->(
+    2,        'coding: session-viewer listener added [ task=%s sid=%s ]',
+    $task_id, $call->{'session_id'}
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,,,.,.,,..,.,.,...,,,.,..,,..,,.,.,,.,,..,,...,...,..,,.,,,,,.,...,,,.,
+#OWWL7RORQGQKOW3GHRCBYY6NP24TBAUFNKXQOWE3B7UIKLUHBU7RFPNUJPANXRDE2GAQ2LH4H3ZPQ
+#\\\|6IS3SY2JKKHVHUZ5NZQS5BX6QFPXSGU7A7TP5NLL5CJAJNCQJLT \ / AMOS7 \ YOURUM ::
+#\[7]AQSFDGR5PZQ55FYJ2KNYMMZJVMWK7ESVY52M3UFKSPMNSUVTVIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
