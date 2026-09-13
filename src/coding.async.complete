@@ -110,6 +110,67 @@ if ( defined $result && $result->{'success'} ) {
         }
     }
 
+    ## a task-append arrived while this round was still streaming [ queued  ##
+    ## via injected_messages, per coding.cmd.task-append's own comment --   ##
+    ## "picked up in send_request" ] -- but that only happens if ANOTHER    ##
+    ## round of send_request actually runs for this task. a round that      ##
+    ## finishes cleanly [ finish_stop, no tool calls needing continuation ] ##
+    ## never gives send_request that chance : this function had NO          ##
+    ## awareness of injected_messages at all, so the queued message was     ##
+    ## silently dropped the instant the current round completed -- this is  ##
+    ## not a rare race, it's just "user sends a follow-up while a response  ##
+    ## is still streaming," confirmed live and likely to recur often. treat ##
+    ## pending injected_messages here the same way task-append's own        ##
+    ## "resume from completed" branch does : fold them in as new user turns ##
+    ## and schedule another round instead of finalizing.                    ##
+    my $injected = defined $task_rec ? $task_rec->{'injected_messages'} : [];
+    if ( ref $injected eq qw| ARRAY | and $injected->@* ) {
+        my @resume_messages = (
+            @{ $state->{'messages'} // [] },
+            { 'role' => qw| assistant |, 'content' => $result_text }
+        );
+        push @resume_messages, map {
+            {   'role'    => $ARG->{'role'}    // qw| user |,
+                'content' => $ARG->{'content'} // ''
+            }
+        } @{$injected};
+        $task_rec->{'injected_messages'} = [];
+
+        my $prev_backend = $state->{'backend'} // qw| gpu |;
+        my $prev_round   = ( $state->{'round'} // 0 ) + 1;
+        my $prev_tools   = $state->{'tools'} // [];
+
+        <coding.async.task_state>->{$task_id} = {
+            'state'    => qw| streaming |,
+            'backend'  => $prev_backend,
+            'round'    => $prev_round,
+            'messages' => \@resume_messages,
+            'tools'    => $prev_tools,
+        };
+
+        $task_rec->{'execution'}->{'status'} = qw| in_progress |;
+        delete $task_rec->{'execution'}->{'completed'};
+
+        my $aref_completed_i = <coding.task.completed> // [];
+        my $aref_active_i    = <coding.task.active> //= [];
+        $aref_completed_i->@*
+            = grep { $ARG ne $task_id } $aref_completed_i->@*;
+        push $aref_active_i->@*, $task_id
+            unless grep { $ARG eq $task_id } $aref_active_i->@*;
+
+        <[coding.task.enqueue_round]>->( $task_id, $prev_round );
+
+        <[base.logs]>->(
+            1,
+            "async.complete: %s finished but %d message(s) were "
+                . "queued mid-round — resuming instead of completing",
+            $task_id,
+            scalar @{$injected}
+        );
+
+        return { success => TRUE, task_id => $task_id, resumed => TRUE };
+    }
+
     ## move job to completed ##
     <[jobqueue.move_job]>->( $job_id, 'completed' )
         if defined $job_id;
@@ -690,8 +751,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,,,.,,,,,.,...,..,,,,,,,,,,,..,,,,,,..,,..,.,.,...,...,,,,,,,,,,..,,.,,,,.,
-#HDPU6XAKA7HNIIXNWZD67EC4HLGUHB2K65JHRN23VHSMMQTV5OX45LCCBRJBZJS3DIT2EDCPHHLFQ
-#\\\|DJ7R7B4XCPI3RFZGJZ5RC2A5QQZ35QIZ6EI4XPN5PDNIAEYIZJP \ / AMOS7 \ YOURUM ::
-#\[7]LMJDOHJG6QJON3RQWFSX6FA2SQ7R7LZPKECO2XJ54GUBS3OEAOAA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,..,,.,,..,,,..,,,.,.,.,,,,,.,.,...,...,.,,,.,,,..,,..,,,,.,
+#BVM2O4FWWYJ25CAB6R25QKQCT7SMKJ6MXVN7DHHMDLSYVEBHVANB3VJYQ6MPTZKDWSHGLB7Q7PJZI
+#\\\|SXB5LTEOO67MS2F5IBLUFRW6HTE54JTZQF3AMJNPMZWAGJ77IZR \ / AMOS7 \ YOURUM ::
+#\[7]EHZTEDR2EA5DHFTTO7FLEW4MC7W6ACGN2R2JTNH3YBCHZJTT7SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
