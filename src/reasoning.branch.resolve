@@ -33,7 +33,20 @@ $branch->{'state'}       = qw| resolved |;
 $branch->{'output'}      = $params->{'output'} // '';
 $branch->{'resolved_at'} = <[base.ntime]>;
 
-<[base.logs]>->( 1, "reasoning.branch.resolve: %s resolved", $id );
+## forensics : coding.task.fail and coding.async.complete's failure branch ##
+## both prefix 'failed: ' onto output before resolving [ the only two call ##
+## sites that mark a branch failed instead of completed ] -- surface that  ##
+## here so an abort or error shows up distinctly from a normal completion  ##
+## instead of a bare "resolved" that looks the same either way             ##
+if ( $branch->{'output'} =~ m{^failed: }i ) {
+    <[base.logs]>->(
+        1, "reasoning.branch.resolve: %s resolved as FAILED [%s]",
+        $id,
+        <[base.parser.center_ellipse_string]>->( $branch->{'output'}, 72 )
+    );
+} else {
+    <[base.logs]>->( 1, "reasoning.branch.resolve: %s resolved", $id );
+}
 
 ## notify waiting dependents ##
 my @resumed;
@@ -76,8 +89,8 @@ return {
     'data' => { resolved => $id, resumed => \@resumed }
 };
 
-#,,.,,...,,.,,.,,,.,,,,.,,..,,.,,,,,.,,..,,,.,..,,...,...,..,,...,...,...,,..,
-#N53435MKXWI74CYKXU34QUMFRJN3U3YYFYMPKDXMDV4RN3PNUXDKRYQWDWVSV4HZZU7SEAKX2Z3FM
-#\\\|VN42OLIHYG2LZQ67VBG4OOI5RODZRAGGWLT6K2DAUPMVWCT3YLH \ / AMOS7 \ YOURUM ::
-#\[7]7LAGXPUWT5JPAVIPAZJED3NZP5DFRIN4WS6ECFSR5IBFONHWK2AQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,...,,,.,.,.,.,,,,..,,,.,.,.,..,,...,.,.,..,,.,,,...,.,.,...,
+#V3AKRKB46YURA3NPRDHLVV6MXRMG2NEQUURJJH7TENUD46LNULTWKHUWR5DQG5JK6DCPHVZ62CO64
+#\\\|O6MALWWCEU5E35FXXCX2G33Z6FT2KC6MOPW67PEMTUFIDQUPFMV \ / AMOS7 \ YOURUM ::
+#\[7]JQ3CCEYXUT7UB5NRTT4PXSZ2I5IJHBMU7TSY5MQ4TWR6ZMZN3KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
