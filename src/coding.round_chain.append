@@ -3,10 +3,11 @@
 # name  = coding.round_chain.append
 # param = <task_id> <round> <type> <delta_aref> [<masks_from>]
 # descr = append one node to a task's round_chain. pure-ish : mutates only
-#         the named task's round_chain array, never touches async/task
-#         state, never called from anywhere yet -- this is the standalone
-#         write-path the eventual state_machine/complete hooks will call,
-#         built and testable before those call sites exist.
+#         the named task's round_chain array plus round_chain_current [ the
+#         movable tip -- see below ], never touches async/task state.
+#         called from coding.async.state_machine's tools_done/user_responded/
+#         loop-assertion branches and from coding.async.complete's success
+#         path.
 #
 #         type is 'round' [ ordinary tool-call round, delta = messages that
 #         round appended ] or 'compaction' [ delta = the summary message(s)
@@ -14,8 +15,13 @@
 #         see coding.round_chain.reconstruct for how masks_from is consumed ].
 #
 #         checksum = chain_L13( parent_checksum // '', canonical_json(delta) )
-#         -- chained from the current chain tip, not resumed/continued BMW
-#         state [ see base.chk-sum.bmw.chain_L13 for why ].
+#         -- chained from round_chain_current, the movable tip [ NOT always
+#         $chain->[-1] -- coding.round_chain.rewind can move this pointer to
+#         an earlier node without touching the array, so the next append
+#         after a rewind forks off the rewound-to node instead of silently
+#         re-parenting off whatever the array's physical last entry happens
+#         to be ]. not resumed/continued BMW state [ see base.chk-sum.bmw.
+#         chain_L13 for why ].
 
 my ( $task_id, $round, $type, $delta_aref, $masks_from ) = @ARG;
 
@@ -48,11 +54,19 @@ if ( not defined $task ) {
 $task->{'round_chain'} //= [];
 my $chain = $task->{'round_chain'};
 
-## NOT qw|| -- that's an empty LIST, which collapses to undef in scalar ##
-## context, not '' ; chain_L13 requires a real empty string for genesis ##
-my $parent_checksum = @{$chain} ? $chain->[-1]->{'checksum'} : '';
+## round_chain_current is the movable tip new appends parent off of --   ##
+## NOT necessarily $chain->[-1]. after a rewind [ coding.round_chain.    ##
+## rewind moves this pointer without touching the array ], the next     ##
+## append here parents off the rewound-to node instead of the array's    ##
+## physical last entry, creating a fork rather than overwriting history. ##
+## falls back to $chain->[-1] for chains that predate this field, then   ##
+## to '' for a genuinely fresh chain. NOT qw|| for the fresh-chain case  ##
+## -- that's an empty LIST, which collapses to undef in scalar context,  ##
+## not '' ; chain_L13 requires a real empty string for genesis.          ##
+my $parent_checksum = $task->{'round_chain_current'}
+    // ( @{$chain} ? $chain->[-1]->{'checksum'} : '' );
 
-my $checksum = <[base.chk-sum.bmw.chain_L13]>->(
+my $checksum = <[chk-sum.bmw.chain_L13]>->(
     $parent_checksum, <[context.util.tree.canonical_json]>->($delta_aref),
 );
 return undef unless defined $checksum;
@@ -70,11 +84,12 @@ $node->{'masks_from'} = $masks_from
     if $type eq qw| compaction | and defined $masks_from;
 
 push @{$chain}, $node;
+$task->{'round_chain_current'} = $checksum;
 
 return $node;
 
-#,,,,,,,,,,,.,.,.,...,.,,,..,,.,,,.,.,...,,,,,.,.,...,...,,..,.,.,...,,,,,.,,,
-#3BILGK4TGFYIWXUJSZMWBEB3L4SM64TOXTWVXCVGKL2SRTCBQDCZH4W473DCOW2GWAIVIQSCKYUCY
-#\\\|2N2DQ73UIAZAQXZVP2JXESRQQOVUI7P7ACXXH6CVCX6JYXHVR4W \ / AMOS7 \ YOURUM ::
-#\[7]5ZYJ4PJFMVJXGRKMN25J7BTOP7KFYSFXS5SU7KAEFAZF3FCLVADQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,..,,,,,,,.,.,.,.,.,,,.,.,.,.,.,...,...,,.,,,.,,,,,,,.,,,,.,
+#RDPPWH3P235URNT5N2IIHTTXK4NJNG47IHLZ6M6WHZ6II2GQW3UGZ7OK2TSCFMK3RUXDAVQZDM3KM
+#\\\|BAPUB7MG2KPR7ZP6PVPYBGEHKNN3OQB4M3XZKBUK7I4RQIYROOR \ / AMOS7 \ YOURUM ::
+#\[7]VPHHJHS5ZM2R57EXJ5UKOVJ4XBEEGVJEY3SUMCIVKRVIXJE7U4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
