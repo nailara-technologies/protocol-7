@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = coding.round_chain.navigate_to_node
+# param = <task_id> <messages_aref>
+# descr = pure navigation : sync execution.messages [ + tools, if missing ]
+#         to a reconstructed message history WITHOUT triggering any
+#         inference. rewind-round and redo-round both use this, NOT
+#         coding.round_chain.resume_from_node -- confirmed live that
+#         rewind/redo unconditionally re-running inference was a real
+#         design error, not the intended behavior : moving through
+#         round_chain is a buffer/pointer operation, since the content at
+#         any existing node is, by definition, already there. task status
+#         is left exactly as it was [ completed/failed stays that way ] --
+#         a subsequent coding.cmd.task-append naturally continues from
+#         wherever this left execution.messages, and coding.cmd.
+#         round-regen is the deliberate, separate action for actually
+#         regenerating the round at the current position via fresh
+#         inference.
+
+my ( $task_id, $messages ) = @ARG;
+
+return undef unless defined $task_id and ref $messages eq qw| ARRAY |;
+
+my $task = <coding.task.queue>->{$task_id};
+return undef unless defined $task;
+
+my $prev_tools = $task->{'execution'}->{'tools'} // [];
+if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+    $prev_tools = <[coding.tools.definitions]> // [];
+}
+
+$task->{'execution'}->{'messages'} = $messages;
+$task->{'execution'}->{'tools'}    = $prev_tools;
+
+return TRUE;
+
+#,,.,,,,.,,,.,.,.,.,,,...,,.,,...,..,,,..,,.,,.,.,...,...,...,...,,,,,.,,,,..,
+#ILVAQMZO7MRSYN4TK4ILH24JMDOBWZNVUYUYQ7UUTUHVXDQXD6DJIQUEJOZBOY4ETTJB3XDBEWSZY
+#\\\|O6MQUECL3D54OW7UB3GCKCUNGVQWDUUUR5MKKFSTAPTBMGKAZ2S \ / AMOS7 \ YOURUM ::
+#\[7]ZC4VAT2IET35IQ4C4HEKFUD5MWVW3ISIAYRGMCUK4ERBG344SUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

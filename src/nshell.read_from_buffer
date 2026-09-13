@@ -136,10 +136,12 @@ while ( length $input_chars ) {
             my $next_key = substr( $input_chars, 0, 1, '' );
             $state_ref->{'escape_buffer'} .= $next_key;
 
-            ## Check if sequence is complete (arrow, page, function keys)
+            ## Check if sequence is complete (arrow, page, function keys,
+            ## CSI-u [ kitty keyboard protocol / fixterms, e.g. \e[27;2u for
+            ## Shift+Escape -- see nshell.term_init ] )
             last
                 if $state_ref->{'escape_buffer'}
-                =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
+                =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*[~u]$};
         }
         $key = $state_ref->{'escape_buffer'};
         $state_ref->{'escape_buffer'} = '';
@@ -373,8 +375,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,.,,,.,,,,..,..,,.,,,..,,..,,,..,,..,.,,,.,.,...,..,,,,.,..,,,,,,.,.,,,,,
-#O2FKIFOFFK2FV5J6XGU3ZOWNKJJC2ND6DNVMSQKSSJGZT3O3XP3P2XESDMEVO55DFSTPPKMIEKBX2
-#\\\|EUS4NJ43RF2NCA6DTDB6NMAA2PC3R5FKH27EWOAYXAGA7QAWY5S \ / AMOS7 \ YOURUM ::
-#\[7]FO7DGH57ZOZZJXHNVKCXN4DQATH6VQ6N4OZ2L5TYZEJXRLIPEMCI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,.,,,,,,.,,...,.,,,,.,,...,,,,,.,.,...,...,..,,.,.,,..,,..,..,,
+#DDMF4MYDQDAIQI45GS6G6LEAOEOVNYU5KNMGLALUBQHRGL5OMKYCUHAZW4JX5ZRQ5HN3APZABIUBW
+#\\\|FCY6ZPQMFXRIXW6PQXGTWAYA26CGPIV3BSUYPBAMDES4ICTFQAW \ / AMOS7 \ YOURUM ::
+#\[7]NLRUGZ2Z3JFYKDVXJFEP3S6GJLVKSDE4BTPSSFOC2AZEN7SXYKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

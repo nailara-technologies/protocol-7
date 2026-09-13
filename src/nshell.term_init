@@ -42,10 +42,28 @@ $modified_termios->setlflag($new_flags);
 ## sufficient for sysread ]
 $modified_termios->setattr( $tty_fd, TCSAFLUSH() );
 
+## best-effort : ask the terminal to report modified special keys [ Shift+
+## Escape for redo, see plugin.nshell.coding-session.on_redo ] unambiguously
+## instead of the plain bare-Escape byte every terminal sends by default for
+## every Escape combination, modified or not. two independent asks since we
+## can't detect terminal support in advance -- private CSI sequences an
+## unsupporting terminal doesn't recognize are simply ignored, never an error,
+## so sending both is safe:
+## - Kitty keyboard protocol [ CSI > 1 u, flag 1 = "disambiguate escape codes"
+## ] : Shift+Escape then reports as \e[27;2u. supported by
+## kitty/wezterm/foot/ghostty and recent xterm builds.
+## - xterm modifyOtherKeys mode 1 [ CSI > 4 ; 1 m ] : gentler than mode 2,
+## only affects otherwise-ambiguous combinations, leaves plain typing alone.
+## exact reported form varies by xterm version -- F1 [ \eOP / \e[11~, always
+## unambiguous ] is the reliable primary redo binding regardless of whether
+## either negotiation below actually lands.
+print "\e[>1u\e[>4;1m";
+STDOUT->flush();
+
 return TRUE;
 
-#,,.,,...,,,,,.,.,,,,,,..,,,.,.,.,.,.,.,,,.,.,..,,...,...,..,,..,,,.,,...,,,,,
-#Q6E2PVDMPKT6I5FBKPTAGVOXPCTP5VFDC54XXKF7YNDOVTNF5W7PAVJCLZ2OA3SSBXRFQG4KCIIIU
-#\\\|72QRG5FSQ4N6WXSCTZHXTRY2RMPYWBLMGSR6TEGIHB5SVTSEHLX \ / AMOS7 \ YOURUM ::
-#\[7]45HLBOQVOWZZOEH3U6JO56D2IKI4WPABCAXYOQB5DJO2YJXFGABA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,.,,..,,...,,,.,..,,,,.,,,,,..,,..,,...,.,.,,.,,,..,..,,...,,..,
+#KDUSULYON3RQUOMIEHNXXF3RXTTMIBL72VTT6ZGJUHZ4RQNAENLNQE644G7YB5ZXV2WBQDVUN2BEO
+#\\\|J6VK47L7OXF5AQV2AA7CHTGLKWVNFXDDCDPWJWHA4DQGKSJ2FOW \ / AMOS7 \ YOURUM ::
+#\[7]BPXHO2Q3AEJFPLUALLE32KJ2CNM63ROQEVAXAATKAPDBEDFTY6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

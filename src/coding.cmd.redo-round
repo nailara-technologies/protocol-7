@@ -1,15 +1,19 @@
 ## [:< ##
 
 # name  = coding.cmd.redo-round
-# descr = redo : move tip forward into a fork, resume
-#         [ task must be completed or failed, not in_progress ]
+# descr = redo : move tip into an existing fork
 # param = <task_id> [checksum]
-# note  = no separate redo stack : "forward" is just the newest child of
+# note  = task must be completed or failed, not in_progress. no separate
+#         redo stack : "forward" is just the newest child of
 #         round_chain_current [ coding.round_chain.step_target ]. after a
-#         plain rewind-then-resubmit that's exactly the fork just made;
+#         plain rewind-then-round-regen that's exactly the fork just made;
 #         after several redos/rewinds it's whichever fork was visited
 #         most recently. pass a checksum explicitly to jump to a specific
-#         fork instead of the newest one.
+#         fork instead of the newest one. no inference here : the content
+#         at the fork being redone into already exists, it was generated
+#         when that fork was first created [ by coding.cmd.round-regen
+#         ] -- confirmed live that always re-running inference on redo was
+#         a real design error, same fix as rewind-round's.
 
 my $args_str = $call->{'args'} // '';
 my ( $task_id, $checksum ) = split m{ +}, $args_str, 2;
@@ -54,36 +58,45 @@ return {
     }
     unless defined $node;
 
-my $resolved = <[coding.round_chain.resolve_resume]>->( $task_id, $node );
+## plain inclusive reconstruct -- see rewind-round's identical comment ##
+my $messages = <[coding.round_chain.reconstruct]>->( $task_id, $checksum );
 return {
     'mode' => qw| false |,
-    'data' => "cannot resume from $checksum [ genesis final-answer round -- "
-        . 'not yet chain-tracked ]'
+    'data' => "failed to reconstruct messages for checksum $checksum"
     }
-    unless defined $resolved;
+    unless ref $messages eq qw| ARRAY |;
 
-my ( $messages, $resume_round )
-    = ( $resolved->{'messages'}, $resolved->{'round'} );
+my $navigated
+    = <[coding.round_chain.navigate_to_node]>->( $task_id, $messages );
+return { 'mode' => qw| false |, 'data' => "failed to navigate $task_id" }
+    unless $navigated;
 
-my $resumed = <[coding.round_chain.resume_from_node]>->(
-    $task_id, $resume_round, $messages
-);
-return { 'mode' => qw| false |, 'data' => "failed to resume $task_id" }
-    unless $resumed;
+## replay embedded directly in THIS reply -- see rewind-round's identical, ##
+## fuller comment : coding.round_chain.restream's session.listeners push   ##
+## was confirmed live to break a LATER real round's content streaming,     ##
+## since repeated pure-navigation subscribes accumulate listeners a real   ##
+## round's own completion never cleans up.                                 ##
+my $replay
+    = <[coding.round_chain.format_node_for_display]>->( $task_id, $node );
 
 <[base.logs]>->(
-    1, "redo-round : %s redone to %s [round %d] and resumed with %d messages",
-    $task_id, $checksum, $resume_round, scalar @{$messages}
+    1,        "redo-round : %s redone to %s [round %d, %d messages]",
+    $task_id, $checksum,
+    $node->{'round'} // 0,
+    scalar @{$messages}
 );
 
+## 'size' mode, NOT 'true' -- see rewind-round's identical comment : a      ##
+## 'true'-mode reply's embedded real newlines don't survive to the terminal ##
+## as actual line breaks                                                    ##
 return {
-    'mode' => qw| true |,
+    'mode' => qw| size |,
     'data' => "task $task_id redone to round $node->{'round'} "
-        . "[${\scalar @{$messages}} messages] and resumed"
+        . "[${\scalar @{$messages}} messages]\n\n$replay\n"
 };
 
-#,,.,,...,...,,,,,,,.,,.,,,,.,.,.,,..,,..,...,.,.,...,.,,,.,,,,..,.,.,...,...,
-#BRZKXNNBWA3Y2WBD76Q3LIOJBQ72AVP576GFHJ63QMBN4B6FLEE6SPD4QFEMEYY7T7533JOTZ4NYS
-#\\\|QQTXLKRQLZU3FQKAR3A5MARFGA6JSIPQPEVURB72QGUW2PQ23ZV \ / AMOS7 \ YOURUM ::
-#\[7]IMBUDN5D4YVRNNP24ZZRCO5JUMTH7XU7EPEYEYDWLCFNHU75F2CY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,,,,,.,,,,.,,,.,,,.,,..,,,,.,.,.,...,..,,..,,.,.,,..,.,,,,,,,
+#O6B3SVODJYHEHU7MTS2LN2P23NVZMDGOTXKQEYZ6JLYQTNKUCYPCWKOICEWQH5KPZBA7LSIMSSZT4
+#\\\|VWBGZUKZ2YO5BNRV7Q7AALELYV42KYWYC54EXAFWZTNUEQEY63H \ / AMOS7 \ YOURUM ::
+#\[7]VAP3ZUKJQYSSNCRBLK2WG5YG7QVWWN4BABXMWOOGYZCHQLZPHKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

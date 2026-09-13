@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = plugin.nshell.coding-session.on_redo
+# descr = redo : step a bound task's round_chain forward into whichever
+#         fork was most recently visited [ coding.round_chain.step_target's
+#         functional "newest child of current" -- no separate redo stack ].
+#         triggered by F1 [ reliable everywhere ] and, best-effort, Shift+
+#         Escape on terminals that understood nshell.term_init's keyboard-
+#         protocol negotiation. mirrors on_escape's rewind branch : fire-
+#         and-forget command injection, trust coding.cmd.redo-round's own
+#         server-side checks [ task must be idle, there must be something
+#         to redo into ] rather than guessing client-side. the reply is
+#         NOT suppressed : "nothing to redo" and "redone to round N" look
+#         identical if both are silent, and the plain TRUE/FALSE text
+#         coding.cmd.redo-round already returns is exactly the
+#         confirmation the user needs either way.
+# param = { mode => $mode_href }
+# return = { claimed => TRUE, redraw => TRUE|FALSE } | undef [ not claimed ]
+
+my $args = shift // {};
+my $mode = $args->{'mode'};
+
+return undef unless defined $mode;
+
+## nothing bound : F1/Shift+Esc have no meaning here, don't claim the key ##
+return undef
+    unless defined $mode->{'task_id'} and length $mode->{'task_id'};
+
+## NOT re-subscribing here -- see on_escape's identical, fuller comment :  ##
+## confirmed live that repeated pure-navigation presses each queuing a     ##
+## fresh subscribe-session accumulated listener handles a real round's own ##
+## completion never cleans up, breaking a LATER round's actual content     ##
+## streaming. redo-round now embeds its replay directly in its own reply   ##
+## text instead of pushing via coding.round_chain.restream.                ##
+my ($cube_sid) = keys <user.cube.session>->%*;
+if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+    $data{'session'}{$cube_sid}{'buffer'}{'output'}
+        .= "coding.redo-round $mode->{'task_id'}\n";
+}
+
+## NOT clearing the buffer or requesting a redraw here -- see on_escape's   ##
+## identical, fuller comment : confirmed live that wiping the screen before ##
+## the command's own async reply arrives left a failed redo [ "nothing to   ##
+## redo for ..." ] as the only thing on screen, with whatever was           ##
+## previously shown already gone. let the eventual reply -- the embedded    ##
+## replay on success, or the short rejection message on failure -- print    ##
+## via the normal content_print path instead.                               ##
+return { 'claimed' => TRUE, 'redraw' => FALSE };
+
+#,,,.,,,.,.,,,,..,..,,.,.,..,,..,,...,..,,..,,.,.,...,..,,,..,,..,,,.,..,,,,,,
+#NTLYOFNRELTEPD6XXJSRUCC2MORDWJUC6ALDQMHO5FZU5QWAPNZLRSMMOWVNGTM4UKME43NQEDF4K
+#\\\|ZHDMEUQIWXE3OAPY6GWD3H7HEOKEDLB3GYRGQAKWLGMSZ6XKT4J \ / AMOS7 \ YOURUM ::
+#\[7]QZ64FQNB2AB3ZJUCEFE5NAOSLO5S4YTWPQQFF65ZLNH5BKRXVEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
