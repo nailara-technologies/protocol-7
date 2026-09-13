@@ -80,15 +80,27 @@ my $cursor_mode = <nshell.cfg.cursor_after_reply> // 'all';
 ## truthy result means the plugin fully claimed this reply's own display [  ##
 ## e.g. hide the raw ack, subscribe-session's own STRM reply takes over the ##
 ## content area next ] -- suppress the normal print in that case.           ##
+## session-wide suppress, checked BEFORE the mode-scoped plugin dispatch    ##
+## below -- on_ctrl_c switches display_mode_index back to shell             ##
+## SYNCHRONOUSLY, right after queuing its own abort-inference command, but  ##
+## that command's reply only arrives LATER [ async ] -- by then the current ##
+## mode has no plugin at all, so a suppress flag living on the              ##
+## coding-session mode object [ as on_escape's still does, safely, since    ##
+## on_escape never changes the mode ] would never get consulted. a flag on  ##
+## shared nshell state survives the mode switch instead. confirmed live     ##
+## 2026-09-14 : Ctrl+C between rounds still printed "no active inference    ##
+## task" despite on_ctrl_c setting a suppress flag -- it was on the wrong   ##
+## object.                                                                  ##
+my $plugin_claimed = delete $_nshell_state->{'suppress_next_wire_reply'};
+
 my $modes = $_nshell_state->{'display_modes'};
 my $mode
     = ref $modes eq 'ARRAY'
     ? $modes->[ $_nshell_state->{'display_mode_index'} // 0 ]
     : undef;
 my $plugin_name = defined $mode ? $mode->{'plugin'} : undef;
-my $plugin_claimed;
 
-if ( length( $plugin_name // '' ) ) {
+if ( not $plugin_claimed and length( $plugin_name // '' ) ) {
     $plugin_claimed = $code{$plugin_name}->(
         {   'hook' => 'on_reply',
             'mode' => $mode,
@@ -188,8 +200,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,,.,,,,,,,.,,,,.,,,.,,.,,...,,.,,.,.,.,,,.,.,...,...,..,,...,,,,,,..,..,,
-#BZHFDYYG6DHGDXCPTGJAA3FVOTJO2WEYIKTDQQ3UGJYXKXEO43HO7PWCWESWZ47FC4OUHAFUELLRW
-#\\\|IUYGKABX46DOOFEGTVVCFIDFRUNO2OSMMRXWSKWODE76DOVPYRY \ / AMOS7 \ YOURUM ::
-#\[7]C3PZA6D4KSVKLAEBCV6NL3J6R4BWN66F3YITAVMVBUS2NDKHWYDI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,...,.,,,..,,,,.,,.,,...,,.,,.,.,...,...,..,,,.,,,,,,,..,,,.,
+#QJQAEZWFLXWGCAY6XKFTDAGMP3QYHRIKEPHWD3OTIH4FOI6ADFKPB3A4NLJKZIEDEDA2IEWXZVRME
+#\\\|BIQ4ZQUW2T4A23LG7BL7JIOKTMD367BL5U77L4SO7LJGXZDECWZ \ / AMOS7 \ YOURUM ::
+#\[7]NS6DTC4PDZMI77IJ4UN5UH67OWENEUMEAL4ANRVLFPG7GC4PC4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
