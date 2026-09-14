@@ -51,11 +51,11 @@ if ( not length $model_path ) {
     return FALSE;
 }
 
-## pause task queue until backend is ready again ##
-<coding.task.queue_paused> = 1;
-<[base.logs]>->(
-    1, '[inference_crash_restart] task queue paused during restart'
-);
+## queue was already paused by coding.handler.inference_server_sigchld the  ##
+## moment the crash was detected -- not here, $backoff seconds later, which ##
+## used to leave a window where a dispatch could race straight into the     ##
+## not-yet-restarted server. this handler's only job now is the restart     ##
+## itself                                                                   ##
 
 ## clear crashed status ##
 $server_info->{'status'} = qw| restarting |;
@@ -95,8 +95,8 @@ if ($result) {
     return FALSE;
 }
 
-#,,..,,..,.,.,,,.,.,.,,,,,..,,..,,.,,,,.,,..,,..,,...,...,..,,,,.,...,,,.,..,,
-#VTKTMHIDUQP7QGQB4ZUKAOKQHOO7LHQLXWDXZLDJWPJIQY7RPHXHY36WIZXIWSCFLLEHZ5QPRF6VC
-#\\\|T4XOFUDREAL64KT4A6YPPIMCPBZ37YRK74PGN5WRK674LBQXMQI \ / AMOS7 \ YOURUM ::
-#\[7]CZYRLJZLR36V342BE47DBSVZURUZZ4Y36PJ7BZOR7H7MWMCILCAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,,,.,...,,.,,..,,..,,,,.,..,,..,,...,...,,..,,..,.,.,.,.,.,,,
+#ISSU4R4NBKWNP6JQYPHHD6YLE7PT37QEKAHVMT652RA444ZS3BPXPRL7JMY53X6L6DMCPALLPH5ES
+#\\\|4JOVPC6KLRDQPDSJFZJRUQBAYRUKT7ID6ZHNVATOX2CQRRGUDEY \ / AMOS7 \ YOURUM ::
+#\[7]3TOR74K7FEYIUBY6YQ547MD55KSPQMQYRZEFXDDGS4H6GDICWECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
