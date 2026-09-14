@@ -105,6 +105,23 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
                 $restart_count
             );
 
+            ## pause dispatch NOW, at crash detection -- not $backoff       ##
+            ## seconds from now when the backoff-delayed                    ##
+            ## inference_crash_restart handler finally begins. that used to ##
+            ## be the only place this got set, leaving coding.async.        ##
+            ## send_request's queue_paused gate blind for the whole backoff ##
+            ## window : confirmed live 2026-09-14, a retry fired ~100ms     ##
+            ## after this exact crash log line, saw queue_paused still      ##
+            ## false, and dispatched straight into the not-yet-restarted    ##
+            ## server [ "connection refused" ], burning its one retry and   ##
+            ## hard-failing the task outright instead of waiting for the    ##
+            ## restart already scheduled right here. same pattern           ##
+            ## coding.handler.monitor_inference_startup already uses for    ##
+            ## the self-test-in-progress case : pause at the moment the     ##
+            ## disruption is KNOWN, not when the handler that resolves it   ##
+            ## happens to start running                                     ##
+            <coding.task.queue_paused> = 1;
+
             <[event.add_timer]>->(
                 {   'after'   => $backoff,
                     'handler' => 'coding.handler.inference_crash_restart',
@@ -129,8 +146,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,.,,,,,,..,,,.,,,.,,,..,.,,,,,.,.,,,,,,,..,,..,,...,...,.,.,.,.,...,.,,,,,.,
-#4TSA4ZYF3VDUW633ZMAFNZQ5T2JDGX3S7SDTNHBGWX35ZYPB4IF676FGCPZ4NJ7HJT6ZR3ONWAY2U
-#\\\|AY3EB6EPFSSG6MCE7YA225CRDSTGYSCS5TNG4SDU4WBXFX7NYP7 \ / AMOS7 \ YOURUM ::
-#\[7]NNG7SENO2CDHMHZ6GOLOIZZUKET5LD2EH7NQKB7ONJALV2RXNQAY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,.,..,,...,,.,,,,.,..,,...,.,.,..,,...,...,.,,,..,,,,,,,.,,,.,,
+#YXVOLYF3KKDZQUVCTASAEDHNFLVH7CHEDNGAQKOHY5Z7FK57DJ6UH2V42RDLYJFUHZLU6LVJ54456
+#\\\|BYVJILYQ6KPIXLEHJJV2DOBS2MECCMFQBVFKCLQPRFGWPQ3GMID \ / AMOS7 \ YOURUM ::
+#\[7]NSWZTKXUPCBR77JTNAWNNI5O3WHE64LVEXTIQ2G4JVPQTFA4UEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
