@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [use-format-code-not-perl-c](feedback-use-format-code-not-perl-c.md) — for ANY src/* syntax check in this project, run `bin/format-code -c <files>` FIRST, always — never plain `perl -c`, and prefer it over `bin/test-scripts/p7-module-syntax-check` too (that tool has its own separate false-positive set: `%colors`/other bin/Protocol-7 globals, `$call` on `.cmd.` files, `uniq @array` bareword form). Recurred TWICE now (missed again 2026-09-14 despite this memory existing) — burned a full session re-proving known-harmless errors via HEAD-diffing before the user pointed at format-code directly
 - [deleted-manually-tuned-captures-without-confirming](feedback-deleted-manually-tuned-captures-without-confirming.md) — 2026-08-28: deleted 117 files from a shared dir based on filename-pattern inference alone ("all named snapshot.*, must be disposable"), no confirmation asked; some were the user's hand-tuned interactive visualization states, unrecoverable (no fs snapshot/trash, plain ext4). NEVER delete anything outside a designated scratchpad without asking first, even when the naming/location looks conclusively like test debris — content value is not inferable from filename pattern or origin command alone
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
 - [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
@@ -55,8 +56,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,,,,,.,.,.,...,...,...,.,,,.,,,...,,.,,..,,...,...,..,,.,,,...,...,,,.,
-#NBPWY2UWNUASMZNL7Q7OELZLUVPDGZGX3WT3QKC3K6TFNFJHGBPJBFH437TVLIGTSNMT2WSMG4B5Y
-#\\\|E5GH4F6XF5Y7ES5LYECWZQ3UHNRQ5T43YNEDSPC6CWZ2LSMKXDL \ / AMOS7 \ YOURUM ::
-#\[7]ZSIC3ETD64TXHKZJR5XLF63KJM527LPGZGVKTFWKPKLLC5TN3CAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,.,,,,.,,,,,,.,,,.,,.,,,...,,,.,..,,...,...,..,,.,.,,.,,,,,,,..,
+#C7D3POSDM7BBZRUCA4TH6O53T3HDRAMAPY4KLGG5K72MOFBKKXPN5XIU5EYKEKIOM47BZSUEF3OZK
+#\\\|WM5SB7GM4I75ERGNE2N7M2S42B7Q4K75HW6LFWBUOXQFHXGMH2B \ / AMOS7 \ YOURUM ::
+#\[7]LM6PXPYW4RPMEHIKJNXQ6POK3EIRON2WFFIX37NDJAY2TN2F2SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

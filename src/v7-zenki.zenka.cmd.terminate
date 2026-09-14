@@ -61,6 +61,18 @@ foreach my $param_str ( split m| +|, $params ) {
     }
 }
 
+## de-duplicate : a name can be given more than once in the same command [  ##
+## e.g. "terminate X-11 X-11" to target 2 distinct instances sharing one    ##
+## name -- each occurrence independently re-resolves to BOTH instances, not ##
+## just one ], or an instance could be reachable both by its own id and     ##
+## again via its name. processing the same instance id twice used to race   ##
+## its own second pass against v7-zenki.handler.zenka_status already having ##
+## deleted the instance entry right after the first stop -- the final       ##
+## change_status map below then hit a missing key on the duplicate and      ##
+## warned 'no such instance defined' for what is actually a normal,         ##
+## harmless duplicate, not a real error                                     ##
+@instance_ids = uniq(@instance_ids);
+
 ## shut down prepared zenka instances ##
 foreach my $instance_id (@instance_ids) {
     <[zenka.instance.stop]>->($instance_id);
@@ -179,8 +191,8 @@ if ($count) {
     };
 }
 
-#,,.,,,..,.,,,,,.,.,.,...,,..,.,,,,..,...,.,,,..,,...,...,...,,.,,...,,,,,,,.,
-#5HNDKWVK2U6YSAFUBVVBN2HIAJTDVY2SVWY3VKZ6SXKPIFXYRCPOLPSBO3PMUAUFRHQ6R6BHK7PFU
-#\\\|R6POLLWL6RKA5FNSBEACW3C5UDVLQBFF4GVTLSWCT7VPJIHDSG2 \ / AMOS7 \ YOURUM ::
-#\[7]NWL5Z7XE2EUBCWAOEFZZDE7VKOZWJCRVKA2GLI6X2BE22LKKBUCY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,...,..,,,.,,,,.,...,.,,,,,.,..,,...,...,,..,,,.,...,,..,.,.,
+#25NA7NF2ZRKYGVNFBDM7JSBWQ36LW3DZPDFKVUONO6WXBJMAOH3RQF2SOIFYQ7UKPMKJ3XGMW52RQ
+#\\\|T6D566C4SHPKNYXYEHB5M4TKTMTYTBMIA6CZG5WMP5INF6JO2ZP \ / AMOS7 \ YOURUM ::
+#\[7]4ZTXJP7J5JOWRBVZ7LVVHILGEYI5BTTMNLBM6YYQW4D3CNCFJADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
