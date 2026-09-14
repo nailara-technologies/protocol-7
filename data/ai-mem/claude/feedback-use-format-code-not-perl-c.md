@@ -32,8 +32,21 @@ src/* editing (this one) — it reads as "which of these two tools to keep," not
 instead of perl -c," so it didn't come to mind as the fix for repeated `perl -c` false positives.
 This entry exists to make the *when to use it* trigger more discoverable than that one alone was.
 
-#,,.,,,,,,,..,...,,,.,..,,,,.,,,,,,.,,.,.,,,.,..,,...,..,,,..,.,.,,,,,,,.,..,,
-#DVKN7SGURA7EOVYRODEQ7VHYH6CNZHLES6TAFCDIORSELZPVHDLSR6Y7PFRCLIXHZSUPGRXAOZU6K
-#\\\|SDO5HX5UN2EDMNO4NHTQ6S5PZ3UH6DGDISM67AEUFWWZ73FS6QA \ / AMOS7 \ YOURUM ::
-#\[7]DQ2WRBOK6UCZ6NPQDJNCGYZQFA3I72Q6WMMC7F5M23IBIGEVUADI 7  DATA SIGNATURE ::
+**Recurrence, 2026-09-14, SAME session this entry describes**: despite this memory already
+existing, reached for `bin/test-scripts/p7-module-syntax-check` all session instead (a DIFFERENT
+tool — see [[reference-p7-module-syntax-check-tool]] — with its own, larger set of false positives:
+`%colors`/other `our`-in-bin/Protocol-7 globals, `$call` on `.cmd.` files, and now `uniq @array`
+bareword-list form misparsed as "Array found where operator expected"). Proved each one harmless
+the slow way (HEAD-diffing) every single time, exactly what this memory says to stop doing. User
+had to point at `bin/format-code -c` directly, live, before it got used. **Two established,
+overlapping syntax-check tools in this codebase, both with their own false-positive classes, is
+itself the likely reason neither memory reliably surfaces** — `p7-module-syntax-check`'s own
+reference memory doesn't mention `format-code` as the better default, and vice versa. If both
+memories keep getting missed, consider: always run `bin/format-code -c` FIRST for any `src/*` edit
+in this project, full stop, before considering `p7-module-syntax-check` at all.
+
+#,,,.,,..,,.,,,,,,...,,,,,.,,,..,,,,.,.,.,,,,,..,,...,...,,.,,,.,,,.,,,,,,...,
+#2NTK45SEDQATMOWLW4SSICNB4TE244DKCUWGPI37FVNMHFUH2GTHTTZH6YP7EOW3VWW77AUS3WIQE
+#\\\|EXTD4OPCA7TC7UBYRRRI6T5THESW7TO5XOVWRA5DT446Z7YOSVA \ / AMOS7 \ YOURUM ::
+#\[7]2NOJ4EZZRCODO6MXF2BIPWHKVAQVO73BSKQOMUB6FHTWBHYIR2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
