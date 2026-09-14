@@ -25,13 +25,46 @@ return undef unless defined $mode;
 ## SECOND handle, doubling every future chunk.                              ##
 if (    defined $mode->{'task_id'}
     and length $mode->{'task_id'}
-    and $text =~ m{^task \Q$mode->{'task_id'}\E resumed from} ) {
+    and $text =~ m|^task \Q$mode->{'task_id'}\E resumed from| ) {
     my ($cube_sid) = keys <user.cube.session>->%*;
     if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
         $data{'session'}{$cube_sid}{'buffer'}{'output'}
             .= "coding.subscribe-session $mode->{'task_id'}\n";
     }
     return TRUE;    ## suppress the raw resume ack, same as the initial one
+}
+
+## a rewind/redo boundary-hit reply is expected UI feedback [ "you're       ##
+## already at the edge" ], not a real error worth permanently scrolling the ##
+## content area next to the actual conversation -- confirmed live           ##
+## 2026-09-14 : hitting it repeatedly pushed real transcript content out of ##
+## view and forced the user to rewind/redo again just to clear it. flash it ##
+## in the status bar instead [ nshell.render.viewport / nshell.handler.     ##
+## flash_expire ] -- split mode only, there's no separate pinned row in     ##
+## flat mode, so let those fall through to the normal content_print path    ##
+## there unchanged, same as before this existed                             ##
+if (    defined $mode->{'task_id'}
+    and length $mode->{'task_id'}
+    and (  $text eq "already at the earliest round for $mode->{'task_id'}"
+        or $text eq "nothing to redo for $mode->{'task_id'}" )
+) {
+    my $state_ref = <nshell.state> // {};
+    return undef unless $state_ref->{'split_active'};
+
+    $state_ref->{'flash'} = {
+        'text'    => $text,
+        'expires' => <[base.ntime]> + 1.5,
+    };
+    <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors )
+        if defined $state_ref->{'editor'};
+
+    <[event.add_timer]>->(
+        {   'after'   => 1.6,
+            'handler' => qw| nshell.handler.flash_expire |,
+        }
+    );
+
+    return TRUE;    ## suppress the normal scrolling print entirely ##
 }
 
 return undef unless $mode->{'awaiting_task_id'};
@@ -53,20 +86,20 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
         .= "coding.subscribe-session $task_id\n";
 }
 
-## redraw the input line [ + status bar, which reads mode->{task_id} fresh  ##
-## every render ] right now -- this is the exact moment that data changes,  ##
-## proven to execute since auto-subscribe depends on this same bind having  ##
-## happened. deliberately NOT waiting on the STRM open event to trigger     ##
-## this: it's not that open/close go unobserved client-side -- they don't,  ##
-## nshell.handler.strm_reply handles both directly [ 'open' prints          ##
-## "[ stream started ]" and fires its own viewport redraw once              ##
-## $stream_opened is set ] -- it's that THIS hook never sees them at all.   ##
-## nshell.handler.command_reply diverts every STRM-cmd reply straight to    ##
-## strm_reply at its own top, before reaching the plugin-dispatch block     ##
-## that calls on_reply -- so open/close structurally never reach this       ##
-## function, regardless of what their args field contains. redrawing here,  ##
-## right after the bind, is what actually covers the task-id-in-status-bar  ##
-## case for THIS code path.                                                 ##
+## redraw the input line [ + status bar, which reads mode->{task_id} fresh ##
+## every render ] right now -- this is the exact moment that data changes, ##
+## proven to execute since auto-subscribe depends on this same bind having ##
+## happened. deliberately NOT waiting on the STRM open event to trigger    ##
+## this: it's not that open/close go unobserved client-side -- they don't, ##
+## nshell.handler.strm_reply handles both directly [ 'open' prints "[      ##
+## stream started ]" and fires its own viewport redraw once $stream_opened ##
+## is set ] -- it's that THIS hook never sees them at all.                 ##
+## nshell.handler.command_reply diverts every STRM-cmd reply straight to   ##
+## strm_reply at its own top, before reaching the plugin-dispatch block    ##
+## that calls on_reply -- so open/close structurally never reach this      ##
+## function, regardless of what their args field contains. redrawing here, ##
+## right after the bind, is what actually covers the task-id-in-status-bar ##
+## case for THIS code path.                                                ##
 my $state_ref = <nshell.state> // {};
 if ( $state_ref->{'split_active'} ) {
     <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
@@ -74,8 +107,8 @@ if ( $state_ref->{'split_active'} ) {
 
 return TRUE;
 
-#,,,.,...,,..,,,.,...,.,.,,..,,..,,.,,..,,,,.,..,,...,..,,.,,,,.,,,,.,.,.,.,,,
-#HKWQY22IGQR6JMKXCB3U6YGFQ6CVX746L54GB4XMEVKURNZ2J2JU7IRO4FXZENZTNLEGJM2FBHG4C
-#\\\|3X5PQNEPVTL7R53NFTZAANYMPKVBTSISBG5B6ZOMYMHVVZG5NPH \ / AMOS7 \ YOURUM ::
-#\[7]BCB73UHCUTRNU4A4Z2XBEWTZUJJGF3IQIH3VDJ2WZYAPGGIMFOCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,...,..,,,,.,,..,,.,,,.,,..,,..,,..,,...,...,,,,,.,,,,,.,,.,,..,,
+#T3GW3H2H4WV4XFOC5Q4Q2FVEX7OZORPE4OLVZYFGE2ENFKIGKATIKMUYM4HSDK6XSE3NMPLHGD24A
+#\\\|2AFQTTMZF7FARBGBWI4UJPW3CTC5SNK3QLG4F2VA5FH5Z53KYM6 \ / AMOS7 \ YOURUM ::
+#\[7]NONWMLCHIABR7HFHCUYTOPGYXFZB7MIBRPNYWAUXKR5SQCQO7UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
