@@ -1,9 +1,28 @@
-# Session Handover — 2026-09-11
+# Session Handover — 2026-09-14
 
 **Read this before touching anything called "loadable memory," "module-catalog
 embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
 These names have been getting conflated across sessions/compactions, and it
 has repeatedly cost real momentum — see "the mistake to not repeat" below.
+
+## orientation, 2026-09-14 — two independent threads, both landed/resting
+
+A parallel session sharing this same checkout landed a large body of work
+unrelated to the LoRA thread below — **33 commits** (`06d08d0ae..99795a1e1`
+in `git log`), not written up here since it wasn't this session's work:
+`data/tasks/coding-zenka-session-ui.md` phases 1-3 all DONE+pushed (live
+streaming, mcp-server-p7 STRM support, nshell split-screen + coding-session
+chat plugin, Esc-abort/round-chain rewind-redo via BMW-L13-checksummed
+parent-pointer chaining, `restream`/`round-regen`), plus a separate
+STRM-SIZE reliability fix chain and an `AMOS7-v5.90.8` release cut. Full
+detail in `data/ai-mem/claude/MEMORY-active.md`'s `project-coding-zenka-
+session-ui-plan` pointer and `[[project-round-chain-rewind-redo-landed-
+2026-09-14]]` — read those, not this paragraph, for anything beyond "it
+landed."
+
+This session's own thread (LoRA `invoke` idiom + a chat-template swap) is
+covered in full below — still at the same resting/decision point as of
+this date, no attempt 5 started.
 
 ## the actual goal, stated precisely
 
