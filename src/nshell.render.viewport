@@ -70,6 +70,23 @@ if ($split_active) {
             ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
             : undef;
 
+        ## a rewind/redo boundary-hit reply [ "nothing to redo", "already  ##
+        ## at the earliest round" ] is expected UI feedback, not an error  ##
+        ## worth permanently scrolling into the content area next to the   ##
+        ## real conversation -- plugin.nshell.coding-session.on_reply      ##
+        ## claims those replies and stashes one here instead of printing   ##
+        ## them, self-expiring : this render clears it once past its own   ##
+        ## 'expires' timestamp, and nshell.handler.flash_expire's one-shot ##
+        ## timer forces this same render to run even if no further reply/  ##
+        ## keypress would otherwise trigger one, so it actually disappears ##
+        ## on its own instead of lingering until the next rewind/redo      ##
+        my $flash = $state_ref->{'flash'};
+        if ( defined $flash
+            and ( $flash->{'expires'} // 0 ) <= <[base.ntime]> ) {
+            delete $state_ref->{'flash'};
+            $flash = undef;
+        }
+
         ## fill-then-anchor [ instead of frame_rule_line's anchor-then-fill ##
         ## ] so the title stays pinned to the RIGHT edge and never moves -- ##
         ## the task id, when present, is its own anchor immediately to the  ##
@@ -96,7 +113,9 @@ if ($split_active) {
                 'color' => $colors{'p7_fg_0004'},
             },
         );
-        if ( defined $mode and length( $mode->{'task_id'} // '' ) ) {
+        if (    not defined $flash
+            and defined $mode
+            and length( $mode->{'task_id'} // '' ) ) {
             push @elements,
                 {
                 'type'  => qw| anchor |,
@@ -114,7 +133,9 @@ if ($split_active) {
         push @elements,
             {
             'type'  => qw| anchor |,
-            'value' => " $state_ref->{'split_title'} ",
+            'value' => defined $flash
+            ? " [ $flash->{'text'} ] "
+            : " $state_ref->{'split_title'} ",
             'color' => $colors{'p7_fg_0003'},
             },
             ## small fixed cap at the very right edge -- a second stretchy ##
@@ -264,8 +285,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,,.,.,.,,,,,.,.,.,.,,..,.,.,...,.,.,,..,,,.,..,,...,...,..,,,,.,,,,,,.,,,..,
-#ISKWWEDPG5NUECFQ73H3HCW6C3XYC6FZLVY26ICLVWPCSEC5GNMLTRTLS4RDMIMDFSDSPTQUGOXL4
-#\\\|TZFU52UQITC42BZGQJ7WTYFF2WYTCZOJBYXQCJIE4WFBYJ5JY6Y \ / AMOS7 \ YOURUM ::
-#\[7]UTFXDUI5ZIMD2QHQIW5O625IGUIMKGZ4EM2DIHUZA4GU2YEJ54CQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,.,,,...,,..,...,,,.,.,.,,,,,..,,...,...,,..,,,.,..,,,..,,..,
+#C3W66DM3LURSYRAEALQ7BBUDCBV36KY44FEA2ZK7YNMIC6YQ52QKIIUH3KYLBASWFEGTMXFACLZRS
+#\\\|IG5RCGTRMLUK3QBFES372UNVKR7C6B3YIZ4CAKY4ULIVJKREBPO \ / AMOS7 \ YOURUM ::
+#\[7]Y7QXTCVUVVJYAMSMIHMTSCTQTQ4N3NEAFYR64Z64FLBVQ5CUDEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
