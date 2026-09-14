@@ -939,12 +939,20 @@ claude/feedback-coding-zenka-gpu-interrupt-standing-permission.md`) and
 included one real mistake -- calling `coding.spawn_inference_server`
 directly with a bare `{backend=>"gpu"}` hash instead of going through
 `coding.switch-model`, which skipped model-path resolution and crashed
-against a placeholder path, dropping 9 real pending task buffers that
-were queued for unrelated work. Fixed by always using `coding.switch-
-model OFSQC4I:QDBKEXY backend=gpu` for every subsequent respawn in this
-pass, which correctly resolves the path from the model registry. Server
-restored to its normal unmodified startup (no lora flags) and
-`<coding.lora_training_in_progress>` cleared at the end of this pass.
+against a placeholder path. The `task_buffer_drop: dropped 9 buffers`
+log line seen right after was initially misread as fallout from that
+crash; it's actually `coding.handler.task_buffer_drop`, a routine timer
+that only ever frees buffers for tasks `coding.handler.task_buffer_save`
+already persisted earlier -- unrelated to the crash, no data lost. Fixed
+by always using `coding.switch-model OFSQC4I:QDBKEXY backend=gpu` for
+every subsequent respawn in this pass, which correctly resolves the path
+from the model registry. Server restored to its normal unmodified
+startup (no lora flags) and `<coding.lora_training_in_progress>` cleared
+at the end of this pass. **worth noting as a positive**: only the child
+inference-server process crashed -- the coding zenka itself never went
+down, and `coding.switch-model` kept working flawlessly for every
+respawn afterward (including the deliberate scale-sweep and dense-only-
+adapter respawns), no zenka restart ever needed across the whole pass.
 
 ## scope
 
@@ -1014,8 +1022,8 @@ restored to its normal unmodified startup (no lora flags) and
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,,,.,,,.,.,.,,,.,..,,,,.,,,,,.,.,...,..,,..,,...,...,,.,,,,.,...,...,..,,
-#A76BXW436RPXG67M3F7JUSRUQTQ2LXO6232YH5DE5M6NLNUW6MKB4O7ZF6TKJMNAESB62FJ5E66FA
-#\\\|NJB46TNRQQVEQQZBSYLO4JZBBSQYU3TXHMO74BEEHASYBJWMEI5 \ / AMOS7 \ YOURUM ::
-#\[7]CO4TIVUJ7RWBQSPH6DZ2SHMN27QSGZNE32SSTFJYPTSZR7ZA3CDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,,.,,.,,,..,,.,.,,.,,.,.,...,..,,...,...,..,,,..,,..,..,,.,,,
+#QZOF325SVBSXRUDLOVFOIIBDOSGZWFVUZH42MVZBXLXASUSPWHCZBXNVMAAP5SMKF7T75VAYDSH76
+#\\\|W46GRCABMPWEL6TQFLWCS7T5YFCUPVE4QNWPXNJ6KGTW7GWDTHT \ / AMOS7 \ YOURUM ::
+#\[7]NNF7K7PAMHOT6SJTD4LT2LBQFWDN3EWXSMUWOXDCB3DLDDSGI4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
