@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = nshell.declare_strm_size_support
+# descr = tell cube nshell can receive real STRM-SIZE framing, so large
+#         single-shot replies [ e.g. coding.dump ] stream in bounded chunks
+#         instead of one atomic SIZE body nshell's own size.buffer.input can
+#         never hold once the total exceeds that cap -- confirmed live
+#         2026-09-14 : coding.dump's 1.49MB SIZE reply permanently blocked
+#         the nshell session against a 242707-byte size.buffer.input. must
+#         run before [init-done:TRUE] : that's what makes this session
+#         reachable by other zenki, and the flag has to be set on cube's
+#         side before anything could possibly need it
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.set-capability |,
+        'call_args' => { 'args' => 'declare-strm-size-support true' },
+    }
+);
+
+return TRUE;
+
+#,,..,,.,,,.,,,.,,,..,...,,.,,,..,.,,,.,,,.,.,.,.,...,...,.,.,,..,,..,,,.,.,.,
+#5DTXYHIJ3UGAFGVY77H3D6ATX5TJCCHJ34SYA4RHJ4RVFILUG6ZB7LFLFEYGZVOW5AYLS4GTMD4CG
+#\\\|IWAHYUHC7WV3UBYZZUHLH6EVMKDPTYYYP5DGM6SMX22SPDNXQRM \ / AMOS7 \ YOURUM ::
+#\[7]5IAUZSOSXZJBLR4KX5AOTFY7ZA5ADK5DYID3SKMVRO5ZQW3GQ2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

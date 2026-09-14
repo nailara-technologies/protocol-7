@@ -20,6 +20,10 @@ if ( not defined $regex_compiled_result ) {
 
 <base.dump_data.reverse_sort> = TRUE;
 
+## plain SIZE reply regardless of payload size : base.stream.emit's SIZE    ##
+## branch is the general safety net for any oversized reply [ auto-         ##
+## upgrades to STRM-SIZE for clients that declared strm_size_support ], not ##
+## something individual commands need to special-case for                   ##
 $reply = {
     'mode' => qw| size |,
     'data' => <[base.dump_data]>->( undef, undef, $keyword )
@@ -29,8 +33,8 @@ $reply = {
 <base.dump_data.encode_perl_refs> = 5;    ## true ##
 <base.dump_data.reverse_sort>     = 0;
 
-#,,.,,.,,,.,,,,,,,..,,..,,..,,.,,,...,,,,,,,.,..,,...,...,...,.,,,,,.,...,..,,
-#LVGRRLODHOXX6PT6YLLLZXUMSNCOK7R5SNI37ZJ7LC3JFOJWFFHXVIOSEW7RXBKQN5ENHYRXGJRJC
-#\\\|O7PMFLOEXE3MI4SYBI4VOYO7YZNAQ4VY5LMX24NGGXRWX2YDZZX \ / AMOS7 \ YOURUM ::
-#\[7]GJEN5PUX5LEPRABEQ7VJA2VI6NSRL26VMKB6CFANUZEDE3QFOKBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,.,,,,..,...,,.,,,,.,..,,,,.,..,,...,...,.,,,..,,.,.,.,.,,..,
+#4K3QGQ33V4DTCQT3XF3WAW2HOCGGXGPUDTH5QLBLRAAXOWU3SZS3PVKWXXGFAZQIVQHQ3GMXBGHAA
+#\\\|7MKLZERQ7HG5T6P74UPHLLHIZBMXNAAT4MZO7CPJHHNP2746TOO \ / AMOS7 \ YOURUM ::
+#\[7]JLJOPIWCO7HBGQCVOJSSI4QBQSHTZGCIPRC54CECEOCH42W66UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

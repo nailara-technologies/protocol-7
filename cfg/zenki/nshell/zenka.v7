@@ -60,12 +60,18 @@ system.auth-user = <nshell.unix_user>
 
 [nshell.clear_terminal]   ## clear screen and print phosphor colored cursor ##
 
+## tell cube this session can receive real STRM-SIZE framing instead of the
+## atomic SIZE-body downgrade [ see base.handler.command.process_reply ] --
+## must run before [init-done:TRUE] : that's what makes this session
+## reachable by other zenki, so the flag has to already be set by then
+[nshell.declare_strm_size_support]
+
 [init-done:TRUE]  ## setting 'initialized' state for sending 'init-reports' ##
 
 [zenka.loop]
 
-#,,,.,..,,,.,,,..,,.,,...,..,,.,.,.,.,,..,,..,..,,...,...,...,..,,..,,..,,,..,
-#A5MJUL67GRIIZK6J2HQCJYWNYHOZGCSBWBIWDKMEYK3UZH25DBAUABPJJHGKUNDX4UWGZTPV7D7NU
-#\\\|FXCB4HNOTKMQZIM4W2UPJS6LCSF2BZRIQXXZTCI67ZILF5YI6HN \ / AMOS7 \ YOURUM ::
-#\[7]PEEJX2XXLJWH77LQJGXOW5XN4K6QMJBI55ARPZIXUNVZ62P3TODQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,.,.,.,,,.,.,..,,,,,,.,.,..,,..,,...,..,,..,,,.,,..,,...,,.,,
+#EHYSXBCMDYSFB4FF2LU7CKN2YSQ6JFLIJNRFE6JLEAOOHBK4U2GLI7ZBUNJGHU7UHMYXYAAMAU6S2
+#\\\|KFA44XAUMQZ7R7GQV6MUJO6YTPEUOXE4S6HR7DIZD7JNNE77SOR \ / AMOS7 \ YOURUM ::
+#\[7]YNMI3AB6FNETA4O25LBJHUL6IXLSKETMTNUA4W7XTENWI3NZ22CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,8 +75,29 @@ if ( fileno $session->{'handle'} ) {
 
         my $remaining_buf = bytes::length $session->{'buffer'}->{'output'};
 
+        ## exited the write loop on the write-count cap [ not EAGAIN, not   ##
+        ## drained ] : every syswrite succeeded, the client is just faster  ##
+        ## than 64 writes' worth of data -- neither of the branches below   ##
+        ## expects this case, so left alone it re-arms the watcher as       ##
+        ## active without ever having scheduled anything to continue it,    ##
+        ## which then makes the io_idle_restart check further down [ 'not   ##
+        ## $event->w->is_active' ] skip pushing it onto <watcher_list.      ##
+        ## paused>, so the remaining buffered bytes never get sent -- a     ##
+        ## silent, permanent stall with no error and no disconnect.         ##
+        ## confirmed live 2026-09-14 : coding.dump [ a ~1.5MB reply, routed ##
+        ## through this exact loop ] reliably completed only when the       ##
+        ## client was slow enough [ higher nshell verbosity ] to force a    ##
+        ## real EAGAIN before hitting 64 writes -- a fast/quiet client      ##
+        ## never got EAGAIN, always hit the cap instead, and stalled        ##
+        my $hit_write_cap
+            = $write_count >= $max_writes_per_call && $write_size > 0;
+
         if ($is_download) {
             $event->w->start;    ## immediate restart for downloads ##
+        } elsif ($hit_write_cap) {
+            ## leave inactive : falls through to io_idle_restart below, ##
+            ## which pushes it onto <watcher_list.paused> for the ->now ##
+            ## rescue in base.event.callback.io-idle-restart            ##
         } elsif ( defined $session->{'burst-writes'}
             and $session->{'burst-writes'} =~ m|^\d+$| ) {
             $session->{'burst-write-counter'} //= 0;
@@ -154,8 +175,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,..,,,.,,.,,.,.,..,,,,,,,..,...,..,,.,,,,..,..,,...,..,,..,,...,,,,,...,,..,
-#6KXZC474CXPUQ24C4D7DHU6FPZDU2VQPMR3N2GZXLQ45MXGSMTDLSVERJ4GIDIMR26S5FXWHGGULE
-#\\\|CL2XTNAZEDVXNH62A4YNXLUMCYBO5TCLXUNZDGOOJ3KEYK5VJ3Y \ / AMOS7 \ YOURUM ::
-#\[7]MBYZPTGH3SABGV3BCSL66SMPRWXBYAPL22OOTX2QLD4Y4G73GAAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,,,,,,.,,..,,,,,.,,,,.,,,..,..,,...,...,,,,,,.,,,,.,.,,,,,,,
+#DOFXIMX24DSTP72YGKCMFGSZO5CJD5T4K2ASIYHYVNJYXT46CVPTU7URVKQO4DQIBMF6PPZUPRGSS
+#\\\|IJK36S6GW7XYBVCLGXKZHVHNKJRAGB6MHZU6CXFQZLODUGZMI7G \ / AMOS7 \ YOURUM ::
+#\[7]ODAA2ABTS5XFTOFF3BLKDVYNQO5COVBQSDTPP37I6UKXCVIXY6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
