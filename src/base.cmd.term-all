@@ -47,7 +47,11 @@ if ( $call->{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
         }
         foreach my $term_sid ( <[base.sort-num]>->( $data{'session'} ) ) {
 
-            my $term_user_string = $data{'session'}{$term_sid}{'user'};
+            ## a session mid-connect/mid-auth may not have a user assigned ##
+            ## yet -- default to '' rather than warn on undef eq/ne below, ##
+            ## same practical effect [ matches neither '-----' nor a real  ##
+            ## username, so it's skipped either way ]                      ##
+            my $term_user_string = $data{'session'}{$term_sid}{'user'} // '';
             next if $term_user_string eq qw| ----- |;
 
             if ( $param =~ m|^\d+$| ) {    ##  param is a session id  ##
@@ -113,8 +117,8 @@ if ( $call->{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
     };
 }
 
-#,,.,,,,,,,,,,..,,,..,,,.,.,.,.,,,,,,,,,,,.,.,..,,...,...,,..,,.,,,..,.,,,,,.,
-#NW66U4JDJJ7S77AY7FPZQA6OLMJEYT7FXCX3DI6J6O2VUB4AAHJ3YYWUPOQWYGKUSINCYSYT4PQWO
-#\\\|7RVALMN47C6WNHFKUUSPJWQFE6NXQTJ3OKDQK4BW5DQCMQ7LD64 \ / AMOS7 \ YOURUM ::
-#\[7]CAZWWLPBMIYAMOLDH33YI77QIZAYTM244GKTEZ7DFGOXIRDFDAAI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,,.,,...,.,.,,..,,,.,,.,,.,,,..,,...,...,...,,,.,.,,,.,,,..,,
+#3YPBFPQMJCFZPW2JWQKIPLLBVJMZHJNMQXTZOMRJ7FY4E56ZMOUSZOYKWGOZAJFA4BWBNF7WK5DLU
+#\\\|A2LCHROLYTLNP5Q524OYJARTRKQ4PPOXBRMUO3VY5Q7Q5ECBZFX \ / AMOS7 \ YOURUM ::
+#\[7]5B5LVM4HDOC57AVI45V4A2ZGWXPOUSTFDYSWM45FDCEPVYDUNABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
