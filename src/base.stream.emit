@@ -34,9 +34,46 @@ if ( $mode =~ m,^(?:TRUE|FALSE|WAIT|GET|TERM)$, ) {
 
 } elsif ( $mode eq qw| SIZE | ) {
 
+    ## normalize to a byte string BEFORE measuring or chunking --          ##
+    ## utf8::encode never fails [ unlike utf8::downgrade with fail_ok,     ##
+    ## which silently leaves non-Latin1 content wide-character-flagged ],  ##
+    ## so bytes::length and what bytes::substr actually consumes can never ##
+    ## diverge. confirmed live 2026-09-14 : coding.dump silently dropped a ##
+    ## whole ~8K chunk with no error anywhere -- box-drawing characters [  ##
+    ## used throughout coding.buffer.task_write/nshell.render, well past   ##
+    ## Latin-1 ] elsewhere in the dumped namespace made downgrade fail,    ##
+    ## `length($data_str)` [ character count ] hit zero before             ##
+    ## bytes::substr had actually consumed every byte, and the loop below  ##
+    ## exited with real data still unconsumed -- never sent at all, so     ##
+    ## nothing on the receiving end had anything to log as incomplete      ##
+    utf8::encode($data_str) if utf8::is_utf8($data_str);
     my $count = bytes::length($data_str);
-    $frame = <[base.sprint_t]>
-        ->( qw| X3QVAWA |, $cmd_id_str, $count, $data_str );
+
+    ## forward as chunked STRM-SIZE to clients that declared support,       ##
+    ## instead of one atomic SIZE body a receiving session's own            ##
+    ## size.buffer.input can never hold once count exceeds that cap --      ##
+    ## confirmed live 2026-09-14 : coding.dump [ base.devmod.dump_var's     ##
+    ## Dumper output, routed through this single-frame emitter since it's a ##
+    ## LOCAL command reply, never process_reply's relay path ] permanently  ##
+    ## paused nshell's own read handler [ 'input handler paused [ buffer    ##
+    ## full ]' ] against a 242707-byte size.buffer.input.  sibling fix to   ##
+    ## process_reply's STRM-SIZE relay path, which already honors the same  ##
+    ## flag for replies forwarded from a routed target                      ##
+    if ( $session->{'strm_size_support'} and $count > <size.buffer.input> ) {
+        my $chunk_size = 8192;
+        my $frame_out  = sprintf "%sSTRM-SIZE open %d\n", $cmd_id_str, $count;
+        while ( bytes::length($data_str) ) {
+            my $this_chunk = bytes::substr( $data_str, 0, $chunk_size, '' );
+            $frame_out .= sprintf "%sSTRM-SIZE %d\n%s", $cmd_id_str,
+                bytes::length($this_chunk), $this_chunk;
+        }
+        $frame_out .= sprintf "%sSTRM-SIZE close\n", $cmd_id_str;
+        $frame = $frame_out;
+    } else {
+        $frame = <[base.sprint_t]>->(
+            qw| X3QVAWA |, $cmd_id_str, $count, $data_str
+        );
+    }
 
 } elsif ( $mode eq qw| CHRSIZE | ) {
 
@@ -63,8 +100,8 @@ $session->{'buffer'}->{'output'} .= $frame;
 
 return $written;
 
-#,,.,,..,,.,,,.,.,.,,,,,,,.,,,,,.,,,,,,..,,,,,..,,...,...,..,,,,.,,,,,,..,,..,
-#DX4D3K7X5M27VICFNGVGN3QJOFCRL35Z2L4GW7UZOB62TDXXCV4VMI4IFGQ54YTBQHXLO5JBVSOD4
-#\\\|JIHG5V6ITXWJQYCCNE6GQCZTQCJVZEQIQYTXN6WMHRJQB5FYK3O \ / AMOS7 \ YOURUM ::
-#\[7]VKOH6QQZIYBMJXMN2RTTIIQOI5MGAGNLJQACHDYFTEGFQBH7QYCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,..,,,..,,,,,,,,,,,.,.,,,.,.,..,,...,...,.,.,..,,...,,,,,,,.,
+#SXOQ7EZYWP2AZX3MYMJ7V3P52VHZ5SUIJWORTIUM6LNNEWV6ARMI7S4IP6EHU4ZMF4DLO4OHCGSWG
+#\\\|ULXDBIJXEOZQHEO3AWBMISGWUPGUMXK2VM3VNYK6Q5UF2N6ZHDR \ / AMOS7 \ YOURUM ::
+#\[7]BMEJNNU5EFABN7KSQX3VWEK6XI2UUV3KU6Z3H2YNQA4QIPWUJCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
