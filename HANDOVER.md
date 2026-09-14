@@ -318,10 +318,17 @@ write-ups: those are still correct as measurements of deployed behavior.
 
 Also: this pass required stopping/restarting the live GPU server 5 times;
 one real mistake happened along the way (a direct `coding.spawn_
-inference_server` call bypassing model-path resolution, crashed, dropped
-9 real pending task buffers) — fixed immediately by switching to `coding.
-switch-model` for every subsequent respawn. Server is restored to normal,
-guard cleared, verified via live `ps` output before ending the session.
+inference_server` call bypassing model-path resolution, crashed) — fixed
+immediately by switching to `coding.switch-model` for every subsequent
+respawn. The `task_buffer_drop: dropped 9 buffers` log line seen right
+after was initially misattributed to this crash; it's actually a routine
+timer that only frees buffers for tasks already saved earlier by
+`coding.handler.task_buffer_save` — unrelated, no data lost. Also worth
+noting: only the child inference-server process crashed — the coding
+zenka itself never went down, and `coding.switch-model` kept working
+flawlessly for every respawn afterward, no zenka restart ever needed.
+Server is restored to normal, guard cleared, verified via live `ps`
+output before ending the session.
 
 ## URGENT RESUME NOTE — appended pre-compaction, 2026-09-14, uncommitted
 
