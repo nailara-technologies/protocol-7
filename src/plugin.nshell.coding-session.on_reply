@@ -11,6 +11,30 @@ my $text = $args->{'text'} // '';
 
 return undef unless defined $mode;
 
+## the pinned task_id is gone from <coding.task.queue> [ zenka restart, or ##
+## any other reason it never made it into the resumable set to begin with  ##
+## -- task-append can't recover that ] : silently drop the stale id and    ##
+## resubmit the same text as a brand-new task instead of surfacing the raw ##
+## error. nothing nshell could do here loses data -- the coding zenka      ##
+## already decided what was worth keeping before this reply came back      ##
+if (    defined $mode->{'task_id'}
+    and length $mode->{'task_id'}
+    and defined $mode->{'pending_append_text'}
+    and $text eq "task not found: $mode->{'task_id'}" ) {
+
+    my $retry_text = delete $mode->{'pending_append_text'};
+    delete $mode->{'task_id'};
+    $mode->{'awaiting_task_id'} = TRUE;
+
+    my ($cube_sid) = keys <user.cube.session>->%*;
+    if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+        $data{'session'}{$cube_sid}{'buffer'}{'output'}
+            .= "coding.submit $retry_text\n";
+    }
+
+    return TRUE;    ## suppress the raw "task not found" error ##
+}
+
 ## coding.task-append resumed a completed/failed task from saved history [  ##
 ## coding.cmd.task-append's own "resumed from $status" reply shape ] -- the ##
 ## listener registration from the ORIGINAL submit was already deleted when  ##
@@ -107,8 +131,8 @@ if ( $state_ref->{'split_active'} ) {
 
 return TRUE;
 
-#,,,.,,,.,..,,...,..,,,,.,,..,,.,,,.,,..,,..,,..,,...,...,,,,,.,,,,,.,,.,,..,,
-#T3GW3H2H4WV4XFOC5Q4Q2FVEX7OZORPE4OLVZYFGE2ENFKIGKATIKMUYM4HSDK6XSE3NMPLHGD24A
-#\\\|2AFQTTMZF7FARBGBWI4UJPW3CTC5SNK3QLG4F2VA5FH5Z53KYM6 \ / AMOS7 \ YOURUM ::
-#\[7]NONWMLCHIABR7HFHCUYTOPGYXFZB7MIBRPNYWAUXKR5SQCQO7UDY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,,,,,.,.,,..,,.,,,..,.,.,,.,,..,,...,...,,,,,,..,..,,,..,...,
+#5BQNGH25G5FK52VNTBUZINDXNEYQ7OZX57DMKFVRK4KHLIF4WAJQ6ZRJK7LIW47O52GKKPHQLIZDG
+#\\\|VXDM5R4UGJJVIK64MBNSJHIZGQOQVKYJNXMUQTGIO7KRLTKB56O \ / AMOS7 \ YOURUM ::
+#\[7]6KDJZ6V63A3DUAV64TAB47I3ZNPPXEL5QDIM65GP3KFORVOEWWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
