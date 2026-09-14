@@ -289,3 +289,54 @@ to start accumulating a second, independently-sourced real corpus was
 proposed and never actually flipped on this session, still open. The
 retrieval-tool side (`embedding_search`) is unchanged from before — real
 measurements, nothing installed/shipped.
+
+## URGENT RESUME NOTE — appended pre-compaction, 2026-09-14, uncommitted
+
+**next agreed action, in order:**
+1. LoRA `invoke` diagnostic (cheap, no training): probe whether the model's
+   actual token-level probability for `<[module.name]>->(` moved AT ALL
+   during any of attempts 2/3/4's training, using the existing checkpoints/
+   GGUFs already on disk (`data/control-vectors/lora-out/p7-idioms-real*`,
+   `data/control-vectors/lora/*.gguf`) — forward passes only, no new
+   training. Also check how many tokens `<[module.name]>->(` splits into
+   under this model's tokenizer, and whether any are rare/fallback tokens.
+   This directly answers "not saturating the technique" vs "genuine ceiling"
+   for `data/tasks/coding-lora-p7-idioms.md` — read that file's "fourth
+   attempt" section for full context before doing anything else with LoRA.
+2. THEN: scope a proper task file for mining real Claude/Kimi session
+   transcripts to feed `data/tasks/coding-module-catalog-embedding.md`'s
+   own stated next step (harvest real task_summary-shaped queries paired
+   with actually-touched modules, re-run gate A against that distribution
+   instead of waiting a week to passively collect it). Data already exists,
+   confirmed live 2026-09-14 via reading `bin/mcp-server-p7` directly:
+   - claude: `~/.claude/projects/-data-projects-protocol-7/<uuid>.jsonl`
+     (one file per conversation), subagents at
+     `<session-dir>/<uuid>/subagents/agent-<id>.jsonl`
+   - kimi: `~/.kimi/sessions/<hash>/<uuid>/context.jsonl` (role=user/
+     assistant), subagents at `<session-dir>/subagents/<agent-id>/
+     context.jsonl`, plus a 109.5MB archive `/data/backup/kimi/kimi-
+     sessions.full_dir.0000.tar.xz`
+   - `bin/mcp-server-p7` already has a full reader/parser for both formats
+     (`_kimi_session_dir`, `_list_kimi_sessions`, the claude `.claude/
+     projects/...` path resolver, an existing "list or summarize recent
+     claude/kimi sessions" MCP tool) — reuse this, don't write a fresh
+     JSONL parser from scratch.
+
+**unresolved side-thread, NOT solved, do not assume fixed**: user found
+`task.persist.summary_tree.save` never actually lands `summary-tree.yaml`
+anywhere under `/var/protocol-7/`. My first hypothesis (wrong module name,
+missing `base.` prefix on `<[file.zenka_dir.write]>`) was WRONG and
+retracted live — user corrected: `base.file.*` modules get aliased to
+`file.*` at init time, so the call as written is actually correct
+convention, not a bug. The real root cause is still unknown. It IS called
+from two real call sites (`task.handler.cold-queue-sweep` gated on
+`if $flipped`, and `task.cmd.summary-tree-notify`), so it's not dead code
+either. Next diagnostic step not yet taken: check what `<task.summary_tree.
+entries>` actually contains at the point of the call, and whether
+`$flipped` in `cold-queue-sweep` is ever actually true in practice, before
+assuming the write call itself is the problem.
+
+**session state**: at the point this was appended, HANDOVER.md's own git
+diff (this section) is UNCOMMITTED — check `git status` on `HANDOVER.md`
+after any compaction/resume and commit it (with the user's signing pass)
+before trusting anything else in this file as "landed."
