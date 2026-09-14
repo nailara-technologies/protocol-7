@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [strm-size-write-cap-stall](reference-strm-size-write-cap-stall.md) — `base.handler.write`'s 64-syswrite-per-call cap had an unhandled third exit (cap reached, every write succeeded, no EAGAIN) that left the watcher re-armed-but-scheduled-nowhere, silently stranding remaining buffered output forever; fixed 2026-09-14 to fall through to the existing EAGAIN idle-restart rescue instead. Root cause of a verbosity-dependent nshell STRM-SIZE stall (fast/quiet client never hit real EAGAIN, always hit the cap). Also has proven Event-1.28 C-source facts: `Event::var` write-detection is reliable regardless of mutation method, `->again` on a non-timer watcher is a no-op equivalent to `->start`, and `->now`'s dispatch is priority-dependent/not guaranteed immediate — don't re-derive these from scratch next time this area comes up
 - [plugin-namespace-loading-convention](reference-plugin-namespace-loading-convention.md) — `plugin.<zenka>.*` is a real, established convention (5+ zenki use it): `plugins.load = plugin.foo` + `[load_plugins:<plugins.load>]` right after `[load_modules:...]`, mirrors web's example exactly. `base.load_plugins` only loads+tracks, no hook framework comes with it — design your own dispatch on top
 - [v7-zenki-dependency-resolve-self-heal](reference-v7-zenki-dependency-resolve-self-heal.md) — `v7-zenki.resolve.object.zenka` exists so manually/on-demand-started dependents (not in the boot auto-start list) come back automatically when a restarted base dependency (e.g. X-11) returns; mechanically it's just a `jobqueue` `'depending'` entry (the `'waiting'` status), no spawn/attempt at all until `jobqueue.check_dependencies` fires
 - [v7-zenki-terminate-clean-zenka-and-child-stop](reference-v7-zenki-terminate-clean-zenka-and-child-stop.md) — for a plain restart use `v7-zenki.restart <name>` (one real command, renamed from v7.restart); use `v7-zenki.terminate <name>`/`v7-zenki.start <name>` (renamed from v7.stop) only when you need the manual-stop/disable side effect, e.g. a maintenance window with auto-restart suppressed — prefer either over a manual crash-restart-suppression flag + direct kill on the child pid
@@ -79,8 +80,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,.,,...,,.,,...,.,,,,.,,.,,,,.,,..,,,..,,,.,..,,...,...,.,,,...,.,,,.,.,,,,,
-#6DQSN2DVK3ZO2LPT2UUT75J6PQWL6QXSUWK7C42FZCHVQBNJBRPRUPHXM6DQF4K2MFNBHJ6NNDSRK
-#\\\|ZYK7EEKTWMBP4ELK7PLLXSJCDOA6PGTUU2SB6NPDPZ6ZKMRFDOY \ / AMOS7 \ YOURUM ::
-#\[7]QTIPZQZ5STH3PXRLQE6NIJHPZCIPJK5QVUTLMNLRSNIYB3V4QCDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,,,.,.,.,,..,,,.,...,,,,,.,.,..,,...,...,,.,,,.,,,..,,..,,,.,
+#PONCL6YLOILHCNYVUEVBVJAP5BY2UO7VZHZVYREBDUBY5S76Z4EG7TRFSNM6UZNUZRLXLMHPSCUVG
+#\\\|XT5PDSUI7UOLULXJZLEPV7LSB2R7UCNDU7KVC7RSSNW2LQAHDTT \ / AMOS7 \ YOURUM ::
+#\[7]VQ5XH3NAPDXPJ5LNKS3JFRVNQZ3WBIY2D655I7SLCRZFT6EYDWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
