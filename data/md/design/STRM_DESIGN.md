@@ -181,6 +181,50 @@ Location: base.handler.command ~line 635+ (when response is routed)
 
 ---
 
+## Update, 2026-09-14: the "never STRM-SIZE for local" rule is now superseded
+
+The rule below (kept for historical context) was a workaround for a real bug in
+2026-01, not a permanent architectural constraint -- confirmed by tracing a
+fresh, unrelated-looking symptom (`coding.dump`, a *local* command with a
+~1.5MB reply, silently stalling partway through in `nshell`) all the way to
+ground:
+
+1. `base.stream.emit` (the general single-frame reply emitter, used for local
+   command responses and simple routed replies with no registered handler)
+   had **no STRM-SIZE path at all** -- it always sent one atomic `SIZE N\n<data>`
+   frame, so any local reply bigger than a receiving session's own
+   `size.buffer.input` was already structurally undeliverable. Fixed: it now
+   auto-upgrades to chunked STRM-SIZE framing for any session that declared
+   `strm_size_support`, local or routed alike -- no per-command opt-in needed.
+2. Even once that existed, the "unknown route id" fallback dispatch (the *only*
+   reception path a route-less transparent-relay client like `nshell` ever
+   uses) silently swallowed STRM-SIZE `open`/`close` control frames -- only
+   bare numeric data-chunk args matched its dispatch regex, so a client's own
+   stream-lifecycle bookkeeping (status line, received-vs-total integrity
+   check) never actually ran against real STRM-SIZE traffic, local or routed,
+   ever, until this was fixed.
+3. The actual root cause of the stall itself was unrelated to SIZE/STRM-SIZE
+   framing at all: `base.handler.write`'s write loop could silently strand
+   remaining buffered output forever if its per-call write-count cap was hit
+   without the socket ever returning real EAGAIN -- a generic output-side bug,
+   reachable by *any* sufficiently large buffered reply regardless of mode,
+   that most local SIZE replies never grew large enough to trigger before now.
+   See [[reference-strm-size-write-cap-stall]] (project memory) for the full
+   trace, including proven Event-1.28 C-source facts about `->now`/`->again`
+   semantics uncovered along the way.
+
+With all three fixed, a command author genuinely does not need to reason about
+SIZE vs STRM for a local reply's size any more -- `{ mode => 'SIZE', data =>
+$payload }` is safe at any size, which is what the "CRITICAL MILESTONE" section
+above always claimed but, for the local-command case specifically, did not yet
+actually deliver. `devmod.cmd.dump` (the concrete repro command) was
+deliberately kept on plain unconditional `mode => 'size'` rather than
+special-cased to switch to `'STRM'` above some threshold, precisely to prove
+this: the general safety net, not per-command size-awareness, is the
+intended contract. The "Design rule for command implementers" table just
+below predates this fix and should not be followed for new code -- plain
+`SIZE` is fine regardless of expected response size now.
+
 ## Local vs Routed Responses (Critical Distinction)
 
 ### Local Command Responses (Direct to Caller)
@@ -634,8 +678,8 @@ STRM-SIZE close-timeout   # timeout abort (idle too long)
 - Need timeout guarantee? → **STRM-SIZE** or STRM with timeout
 - Need indefinite stream? → **STRM** (no timeout)
 
-#,,,,,..,,,,.,,.,,...,..,,,,.,,,,,,.,,..,,.,,,..,,...,...,,..,,,.,..,,.,.,..,,
-#A4Z4XQW4PX5LLWOR57WK2PDZFTJLB4XDOUPTZSVPKK627TR26N3C7LWWWMHAWSIHBDRK2NL4MUL36
-#\\\|7XPOHKGSECA5YTYJYVZMEA6OM3PX52DQNM3M65ASGIQEJN22TIG \ / AMOS7 \ YOURUM ::
-#\[7]IMZRSIJ6V4T3UTN7JPM4TOF3PXXZXOM52VS7LATJGCFU5RP4A6AY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,..,,,.,,,,,...,.,.,,..,,..,..,,...,...,.,.,..,,,..,.,.,,,,,
+#FFKMWFF5L2YFXE7LCJ7XABZCHAZRPYP33VBP2QUOJTMHO7LWAT6SENCSBCV4CKY2GGKQKF6UFLVLQ
+#\\\|TNL2S74IFNW64FNDMJBCB5ICTLWAHLCIPDLTHWVT7KNP7C4OBYV \ / AMOS7 \ YOURUM ::
+#\[7]WDH2AFHA43MSUCBFOOOYCL64D6PSPY75EL6MUFRVWLWTOOQSHSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
