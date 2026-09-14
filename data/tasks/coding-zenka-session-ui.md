@@ -368,6 +368,51 @@ directly") in the same fix, since both symptoms traced to the same
 never-fires call site. NOT yet live-retested end to end at time of
 writing -- do that before considering phase 1/Esc "done".
 
+**dead pinned task_id recovery, built + committed 2026-09-14
+(`99795a1e1`).** a tab whose `task_id` was pinned from an earlier round
+-- most commonly after a coding zenka restart wiped its in-memory
+`<coding.task.queue>` -- surfaced a raw `"task not found: task-XXXXXXX"`
+error on the next Tab-in instead of recovering. Nothing nshell could do
+here loses data: the coding zenka already decided whether a task was
+worth keeping resumable (its own completed-task-backup save/drop timers,
+independent of anything nshell does) before this reply ever came back,
+so silently discarding the stale id and starting fresh is safe
+regardless of why the lookup failed. `on_submit` now stashes the
+outgoing text before appending it to a `task-append` command; `on_reply`,
+on an exact `"task not found: <pinned_id>"` match, drops the stale
+`task_id`, re-arms `awaiting_task_id`, and resubmits the same text as a
+fresh `coding.submit` -- reusing the existing task-id-capture path
+unchanged, so the tab just quietly gets a new task instead of erroring.
+Explicitly NOT the fuller "reload a completed task's saved history and
+resume it" feature discussed earlier in this section (a real future
+capability once the coding zenka's task-buffer save format grows enough
+metadata to actually rehydrate a conversation, not just its final-answer
+text) -- this is only the narrow "don't show a raw protocol error for a
+task that's genuinely gone" case.
+
+**STRM-SIZE reliability chain, fixed + committed 2026-09-14
+(`3ab777247`) -- not a session-ui feature itself, but directly relevant
+to anything in this file that renders a large reply through nshell
+(e.g. a big `show-backup`/history dump, or a long streamed round).**
+Large SIZE-mode replies had no reliable path to a client whose own
+`size.buffer.input` is smaller than the reply -- traced end to end from
+a concrete repro (`coding.dump`, ~1.5MB) through several layers: a
+`utf8::encode` vs `utf8::downgrade` chunk-loss bug in `base.stream.emit`,
+a gap where STRM/STRM-SIZE `open`/`close` control frames never reached
+nshell's `unknown-reply-route` hook at all (only bare data chunks did,
+so the stream lifecycle status line and byte-count integrity check
+never actually ran against real traffic), and the actual root cause --
+`base.handler.write`'s write loop could silently strand buffered output
+forever if its 64-syswrite-per-call cap was reached without ever seeing
+a real EAGAIN, a verbosity-dependent race that a fast/quiet nshell hit
+reliably and a slower one didn't. See
+[[reference-strm-size-write-cap-stall]] and
+`data/md/design/STRM_DESIGN.md`'s updated history section for the full
+chain -- relevant here because any future phase that streams or dumps
+non-trivial amounts of data through nshell now rides on this being
+fixed, and previously would have silently stalled above a few hundred
+KB with no error at all.
+
 ## phase 2 -- interactive controls
 
 wire stop/restart into the viewer. `coding.abort.*` (register/lookup/
@@ -856,8 +901,8 @@ precedent live in `bin/Protocol-7`:
 
 #,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
 
-#,,..,,,.,,,.,,,.,,.,,..,,..,,.,,,...,...,,,,,..,,...,...,,..,,,.,.,,,...,.,.,
-#D5RZGYUOMBYL37KXXLI7Y6UH5N5I3TUGZXQQIWLCRJJLU4KMDFZOQNF6F3TLTLWB2PDYELHNQTFUW
-#\\\|WXRMC6VXDVUAQJJWSOHA27UVSH2L2C2FBGRSFYP5ZRVQXEEA6I5 \ / AMOS7 \ YOURUM ::
-#\[7]MC7XXENZFOHTOM3RX5JIJGF2SSOH7PVU7NSKHZEOZKQA3W6FRUCI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,,,,..,,...,.,,,...,,,.,..,,..,,...,.,.,...,,.,,,.,,.,.,.,.,
+#GCLW7CIJXZQ5D245CWDPF3U72NX5KTUH5FAHQBN7NWKF3E4VH24EQEFPPG36MF76WQGYSEXBJTET2
+#\\\|SDUWVVEM3IPWKK73GECLUIYP5OK6O63NE43RDAHIVNDEC7G2T2E \ / AMOS7 \ YOURUM ::
+#\[7]3H3VSXIRARN57EOUOHFG5IPS6LAYBJSKZVGNRDQAALMPQBT56CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
