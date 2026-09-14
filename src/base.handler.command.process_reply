@@ -581,12 +581,33 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         $session->{'streams'}{$cmd_id}
                             ->{'route_source_cmd_id'} = $s_cmd_id;
 
-                        ## convert STRM-SIZE to SIZE for client ##
                         my $src_sid    = $route->{'source'}->{'sid'};
                         my $src_cmd_id = $s_cmd_id;
-                        $data{'session'}{$src_sid}{'buffer'}{'output'}
-                            .= sprintf "%sSIZE %d\n", $src_cmd_id,
-                            $total_bytes;
+
+                        ## forward real STRM-SIZE framing to clients that   ##
+                        ## declared support [ auth.callback.cap-neg.declare ##
+                        ## -strm-size-support ] instead of collapsing into  ##
+                        ## one atomic SIZE body a receiving session's own   ##
+                        ## size.buffer.input can never hold once total      ##
+                        ## bytes exceeds that cap -- confirmed live         ##
+                        ## 2026-09-14 : coding.dump's 1.49MB SIZE reply     ##
+                        ## permanently blocked the nshell session against a ##
+                        ## 242707-byte size.buffer.input. downgrade to      ##
+                        ## plain SIZE stays the default for clients that    ##
+                        ## never declared support                           ##
+                        if ( $data{'session'}{$src_sid}{'strm_size_support'} )
+                        {
+                            $session->{'streams'}{$cmd_id}
+                                ->{'forward_as_strm_size'} = TRUE;
+                            $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                .= sprintf "%sSTRM-SIZE open %d\n",
+                                $src_cmd_id, $total_bytes;
+                        } else {
+                            ## convert STRM-SIZE to SIZE for client ##
+                            $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                .= sprintf "%sSIZE %d\n", $src_cmd_id,
+                                $total_bytes;
+                        }
                     }
 
                     ## Block session to STRM-SIZE stream ##
@@ -645,6 +666,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 ## routing path: forward raw data to client ##
                                 my $src_sid = $session->{'streams'}{$cmd_id}
                                     ->{'route_source_sid'};
+                                my $src_cmd_id
+                                    = $session->{'streams'}{$cmd_id}
+                                    ->{'route_source_cmd_id'};
                                 utf8::downgrade(
                                     $data{'session'}{$src_sid}{'buffer'}
                                         {'output'}, 1
@@ -652,6 +676,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                     if utf8::is_utf8(
                                     $data{'session'}{$src_sid}{'buffer'}
                                         {'output'} );
+
+                                ## true STRM-SIZE clients need each chunk's ##
+                                ## own frame line -- a SIZE-downgraded      ##
+                                ## client already knows the total from the  ##
+                                ## open-time header and just wants raw      ##
+                                ## bytes                                    ##
+                                if ( $session->{'streams'}{$cmd_id}
+                                    ->{'forward_as_strm_size'} ) {
+                                    $data{'session'}{$src_sid}{'buffer'}
+                                        {'output'}
+                                        .= sprintf "%sSTRM-SIZE %d\n",
+                                        $src_cmd_id, $chunk_size;
+                                }
                                 $data{'session'}{$src_sid}{'buffer'}{'output'}
                                     .= $chunk_data;
                             }
@@ -758,6 +795,21 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                             'data'   => $accumulated_data
                                         }
                                     );
+                                }
+                            } elsif ( $stream->{'forward_as_strm_size'} ) {
+                                ## true STRM-SIZE client : send the real    ##
+                                ## close frame so its own lifecycle handler ##
+                                ## [ e.g. nshell.handler.strm_reply ]       ##
+                                ## cleans up rather than relying on         ##
+                                ## byte-count alone the way SIZE mode does  ##
+                                my $src_sid = $stream->{'route_source_sid'};
+                                my $src_cmd_id
+                                    = $stream->{'route_source_cmd_id'};
+                                if ( exists $data{'session'}{$src_sid} ) {
+                                    $data{'session'}{$src_sid}{'buffer'}
+                                        {'output'}
+                                        .= sprintf "%sSTRM-SIZE close\n",
+                                        $src_cmd_id;
                                 }
                             } else {
                                 ## routing path: SIZE already complete, no ##
@@ -868,6 +920,37 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
             return 0;                         ## command complete ###
 
+        } elsif ( ( $cmd eq qw| STRM | or $cmd eq qw| STRM-SIZE | )
+            and $call_args->{'args'}
+            =~ m{^(?:open(?:\s+\d+)?|close(?:-timeout)?)$} ) {
+
+            ## STRM/STRM-SIZE lifecycle control lines [ open, open N,      ##
+            ## close, close-timeout ] carry no byte payload of their own   ##
+            ## -- same single-line shape as TRUE/FALSE/WAIT/GET/TERM above ##
+            ## -- give a registered consumer first refusal the same way.   ##
+            ## confirmed live 2026-09-14 : these never matched the digit-  ##
+            ## only elsif below, so nshell.handler.strm_reply's open/close ##
+            ## branches [ status line, received-vs-total integrity check ] ##
+            ## never actually fired for nshell's real traffic -- only bare ##
+            ## data chunks [ which DO match \d+ ] ever reached the hook    ##
+            if (<[base.handler.hooks.has_hooks]>->(
+                    $id, qw| unknown-reply-route |
+                )
+            ) {
+                my $hook_result = <[base.handler.hooks]>->(
+                    qw| unknown-reply-route |,
+                    {   'sid'       => $id,
+                        'cmd'       => $cmd,
+                        'call_args' => $call_args,
+                        'data'      => undef
+                    }
+                );
+                goto UNKNOWN_ROUTE_HANDLED
+                    if defined $hook_result and $hook_result == TRUE;
+            }
+
+            return 0;    ## command complete ###
+
         } elsif (
             (      $cmd eq qw| SIZE |
                 or $cmd eq qw| STRM |
@@ -902,40 +985,21 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 bytes::substr( $byte_input, 0, $ignore_count, '' );
                 $input->$* = $byte_input;
 
-                <[base.logs]>->(
-                    $ignore_log_level,
-                    "[%d] : dropped next %03d byte%s., [ %s body ]",
-                    $id,
-                    $ignore_count,
-                    <[base.cnt_s]>->($ignore_count),
-                    $cmd
-                );
-
-                ## orphaned route : signal producer to stop  SIZE/CHRSIZE   ##
-                ## are atomic and already clean up their own route --       ##
-                ## there's no live producer stream to terminate, !TRM! is a ##
-                ## stream-control signal and sending it here is the wrong   ##
-                ## reply type. only STRM/STRM-SIZE genuinely have an active ##
-                ## stream a producer needs told to stop                     ##
-                if (    $cmd_id > 0
-                    and ( $cmd eq qw| STRM | or $cmd eq qw| STRM-SIZE | )
-                    and
-                    not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
-                    $data{'session'}{$id}{'buffer'}{'output'}
-                        .= sprintf "(%d)!TRM!\n", $cmd_id;
-                    <[base.logs]>->(
-                        1,
-                        '[%d] orphaned %s cmd_id=%d : !TRM! sent to producer',
-                        $id,
-                        $cmd,
-                        $cmd_id
-                    );
-                }
-                $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE
-                    if $cmd_id > 0;
-
                 ## [ HOOK POINT: unknown-reply-route - complete case ]
-                ## Hook can intercept complete replies with unknown route IDs
+                ## give a registered consumer [ e.g. nshell's hook, which  ##
+                ## is its NORMAL reception path for all of its own traffic ##
+                ## -- every reply nshell issues lands here, not just       ##
+                ## genuinely orphaned ones ] first refusal BEFORE treating ##
+                ## this as dropped/orphaned : confirmed live 2026-09-14 :  ##
+                ## the old order logged "dropped next N bytes" and fired   ##
+                ## !TRM! [ telling the PRODUCER to stop ] on literally     ##
+                ## every chunk nshell ever received this way, including    ##
+                ## ones its own hook went on to display correctly right    ##
+                ## after -- harmless for a synchronous single-shot reply [ ##
+                ## base.stream.emit's chunking has nothing left for a late ##
+                ## !TRM! to interrupt ], but a real risk of prematurely    ##
+                ## cutting off a live producer [ e.g. coding zenka         ##
+                ## inference streaming ] on its very first chunk           ##
                 if (<[base.handler.hooks.has_hooks]>->(
                         $id, qw| unknown-reply-route |
                     )
@@ -953,7 +1017,37 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         if defined $hook_result and $hook_result == TRUE;
                 }
 
-                return 0;                         ## comand complete ###
+                ## genuinely unclaimed : log it and, for STRM/STRM-SIZE,    ##
+                ## tell the producer to stop -- SIZE/CHRSIZE are atomic and ##
+                ## already clean up their own route, there's no live        ##
+                ## producer stream to terminate for those                   ##
+                <[base.logs]>->(
+                    $ignore_log_level,
+                    "[%d] : dropped next %03d byte%s., [ %s body ]",
+                    $id,
+                    $ignore_count,
+                    <[base.cnt_s]>->($ignore_count),
+                    $cmd
+                );
+
+                if (    $cmd_id > 0
+                    and ( $cmd eq qw| STRM | or $cmd eq qw| STRM-SIZE | )
+                    and
+                    not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
+                    $data{'session'}{$id}{'buffer'}{'output'}
+                        .= sprintf "(%d)!TRM!\n", $cmd_id;
+                    <[base.logs]>->(
+                        1,
+                        '[%d] orphaned %s cmd_id=%d : !TRM! sent to producer',
+                        $id,
+                        $cmd,
+                        $cmd_id
+                    );
+                }
+                $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE
+                    if $cmd_id > 0;
+
+                return 0;    ## comand complete ###
 
             } else {
                 <[base.logs]>->(
@@ -1035,8 +1129,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,.,,..,,.,,,,.,,,,,,,..,,,.,..,,,..,,.,,...,..,,...,..,,...,,.,,.,.,..,,,..,
-#QULCLHYKZX4MFXCBNV4UOGZ3ULPVCLFFSJO2E6NQO67O24K45LBASUGNJSADY2AN2LBWZ2GPMLINK
-#\\\|NHL5AXC6Y6DHFTQANV7PCJCPYDVVTW5D3LUXGRMNV2IMO7UZD2A \ / AMOS7 \ YOURUM ::
-#\[7]2HCZ434NTUOOSHOE4HVK6C663KR36LF4Y2U6JP77AAMGF267R6DY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,,.,.,.,..,,.,.,.,,,,..,.,.,..,,...,...,,.,,...,,.,,,..,..,,
+#77U7LHOVFCJ2CN6F6IRBDLZIMBHDCWU6KU5YV2E322KMXPWW525QK3E5Q2FC4QQYR76XEY4PNPO6U
+#\\\|U7CMRMPGCQA2ZQ3ATHNQRWN3GYMRX3PO3LXI2AVW35TDPSHPES5 \ / AMOS7 \ YOURUM ::
+#\[7]5FLMIKKDKJMQLJ2BBUO2TFRT5VN5CRENFPQSDW37QKPY6TMLRUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

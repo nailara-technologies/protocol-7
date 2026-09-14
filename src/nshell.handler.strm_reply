@@ -131,7 +131,19 @@ if ( $args eq qw| open | ) {
         utf8::encode($chunk_data);
     }
 
-    <[nshell.render.content_print]>->($chunk_data);
+    ## never assume ambient SGR state survives to here -- same failure      ##
+    ## shape as the round-marker fix above [ and command_reply's payload    ##
+    ## branch ] : nshell.init_code sets p7_fg_0004 once at startup and      ##
+    ## nothing guarantees it's still active by the time an arbitrary chunk  ##
+    ## prints, so carry the color explicitly instead of relying on whatever ##
+    ## happened to run before this chunk. confirmed live 2026-09-14 :       ##
+    ## coding.dump's STRM-SIZE chunks [ plain Dumper text, carrying no      ##
+    ## color of their own -- unlike model-output which had never actually   ##
+    ## exercised this path before today's STRM-SIZE fix ] printed fully     ##
+    ## uncolored                                                            ##
+    <[nshell.render.content_print]>->( $colors{'p7_fg_0004'}
+            . $chunk_data . "\e[0m"
+            . $colors{'p7_fg_0004'} );
 
 } elsif ( $args eq qw| close | ) {
     ## STRM close: clean up and reprint prompt
@@ -179,8 +191,8 @@ if ($stream_opened) {
 
 return TRUE;
 
-#,,,.,.,.,,..,,..,..,,,,,,...,.,.,.,.,,,.,,,,,..,,...,.,.,..,,..,,..,,,.,,,.,,
-#SEVDNJO4QHVIS6Q7HROLPDBL3WFODM3K6TJOWEOPQHGLET5DINEC2F5YRZ2IQOG3SOFCP3DXGUBEG
-#\\\|J5FBZVTSLOBRSFRP4OBS7TMCK2WYEFKBDBFITPSDX4GNODQX4TY \ / AMOS7 \ YOURUM ::
-#\[7]NV4JHMQTQKPSNRHUVXEEI3UF7TO77NS7CPOKFONZE4HE4DCKDUAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,.,.,.,,,,..,..,,.,,,,,,,...,..,,...,...,.,.,.,.,,,,,,,,,,,,,
+#L6OSPE67D2T5TAOYKIREHIQH6BP7M5WTKU5CRLWYS5M4ONLNMVSEVP4DJBCJO5IUK6GSUE7R7PY6M
+#\\\|QXBVMFHPJVCW52Z23QZHZGZCW2OUC7R57R3YBJZLD7QBL2D2WNN \ / AMOS7 \ YOURUM ::
+#\[7]WKSNFT7XXFSQWJZSVHF6ZB25XZURZWGIJCFIFMTT3Y3AANTDKWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
