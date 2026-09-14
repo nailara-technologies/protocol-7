@@ -17,6 +17,12 @@ return undef unless defined $mode and length $text;
 delete $mode->{'esc_stage'};
 
 if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
+
+    ## stash the text so on_reply can resubmit it fresh if the coding zenka ##
+    ## no longer has this task_id [ see on_reply's "task not found" branch  ##
+    ## ]                                                                    ##
+    $mode->{'pending_append_text'} = $text;
+
     return { 'command' => "coding.task-append $mode->{'task_id'} $text" };
 }
 
@@ -26,8 +32,8 @@ $mode->{'awaiting_task_id'} = TRUE;
 
 return { 'command' => "coding.submit $text" };
 
-#,,.,,,,.,,,.,,,,,,.,,,,.,,,,,.,.,.,,,.,,,...,..,,...,...,...,.,.,,,.,..,,.,,,
-#JD4CGN7KCOBJQT3IT6NMR5ZE2NAWUWFLBF5EOUSQSDBAZHQDNB3J3UFL524P4SOGQICG6ITVP7YFU
-#\\\|WZGXH24A3XFK6DFPTLV5XPPCT46XR6GHOTXAWSFZL5XXYNNBGFD \ / AMOS7 \ YOURUM ::
-#\[7]OIZT4BMMIDRQI4YVYPYRYM32ETZKTCQBV2P4JOMOXQSQ47EPU6BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,,,.,,..,,..,,.,,,..,,.,,,,.,..,,...,..,,,..,,..,..,,...,,,.,
+#4SXINLBXLAXXXF7XJTK2VMFACSNNJFKGMVM3P2OBVBO5WET4HI4QWKV5CELURUZDGWDYKV3Z226UW
+#\\\|RRBXTWYQUI5ELDZ2H5VQCDLW6MDZOI7BCG7QUZ7JWZ2N4HRI4RR \ / AMOS7 \ YOURUM ::
+#\[7]RZ4YOVW5HUFKUDHZCAKEMS3ZTDF3J4Z2FBF65EYAG6HVTJGJPMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
