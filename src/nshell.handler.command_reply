@@ -127,8 +127,8 @@ if ( not defined $payload_str ) {
     ## coding.submit ack whose only useful content [ the task id ] the     ##
     ## plugin already consumed to bind the tab and queue subscribe-session ##
     <[nshell.render.content_print]>->(
-        sprintf "\n%s%s\e[0m\n\n",
-        $reply_color, $args
+        sprintf "\n%s%s\e[0m%s\n\n",
+        $reply_color, $args, $colors{'p7_fg_0004'}
     ) unless $plugin_claimed;
 
     ## re-display cursor after single-line reply output
@@ -153,7 +153,28 @@ if ( not defined $payload_str ) {
     ## most for hiding the raw ack in favour of the live stream that      ##
     ## follows it                                                         ##
     unless ($plugin_claimed) {
-        <[nshell.render.content_print]>->($payload_str);
+
+        ## payload printed bare relied on ambient SGR rather than carrying  ##
+        ## its own color -- looked fine live [ ambient really was blue at   ##
+        ## print time ] but nshell.render.content_print also accumulates    ##
+        ## every string it's given into the mode's own replay buffer [      ##
+        ## $modes->[$index]{buffer} ], and THAT gets blasted out in one     ##
+        ## `print $replay` shot by nshell.handler.term_resize [ and by      ##
+        ## nshell.display.cycle on a focus switch ] -- no per-call ambient  ##
+        ## reassertion in between, so a bare colorless payload sitting      ##
+        ## after an earlier bare-reset [ same sibling fix as the            ##
+        ## 'true'/'false' branch above ] replays permanently colorless on   ##
+        ## the NEXT resize even though it looked correct up to that point.  ##
+        ## confirmed live 2026-09-14 : a redo-round replay lost its blue    ##
+        ## specifically after a terminal font-size change, restored only by ##
+        ## doing another fresh redo [ new live print, not a fix to the      ##
+        ## already-corrupted buffered copy ]. same failure shape            ##
+        ## nshell.handler.strm_reply's round-marker fix already found for   ##
+        ## STRM chunks -- never assume ambient, always carry payload color  ##
+        ## explicitly                                                       ##
+        <[nshell.render.content_print]>->( $colors{'p7_fg_0004'}
+                . $payload_str . "\e[0m"
+                . $colors{'p7_fg_0004'} );
 
         ## track whether payload had no trailing newline  next prompt will add
         ## separation if needed
@@ -200,8 +221,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,..,,..,...,,,.,...,.,,,..,,,,.,,.,,...,,.,,.,.,...,...,..,,,.,,,,,,,..,,,.,
-#QJQAEZWFLXWGCAY6XKFTDAGMP3QYHRIKEPHWD3OTIH4FOI6ADFKPB3A4NLJKZIEDEDA2IEWXZVRME
-#\\\|BIQ4ZQUW2T4A23LG7BL7JIOKTMD367BL5U77L4SO7LJGXZDECWZ \ / AMOS7 \ YOURUM ::
-#\[7]NS6DTC4PDZMI77IJ4UN5UH67OWENEUMEAL4ANRVLFPG7GC4PC4AY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,...,..,,,,,,,,.,..,,,..,,.,,.,.,...,...,,,.,.,,,,..,...,..,,
+#GQ3RXGAYLBSEEIKT4SC7YWGHYKYXPGSK236LKYNP63U3KQQDYBDH4PNYS6ITPX7ZWNWPWOXEFJA52
+#\\\|3SD3AZIPT6Z62TJOY6MOAACEVEZE3P54VPE5SOIOCEG3KIT6NKV \ / AMOS7 \ YOURUM ::
+#\[7]5FPIHA723PKC6NKSVDCMX5QS63NBBNS3VL6UYXM5O2YDZB4WDABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
