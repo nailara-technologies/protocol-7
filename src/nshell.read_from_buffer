@@ -99,6 +99,27 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
             my $bytes_read = sysread( STDIN, my $chunk, $read_size );
             if ( defined $bytes_read && $bytes_read > 0 ) {
                 $input_chars .= $chunk;
+            } elsif ( defined $bytes_read && $bytes_read == 0 ) {
+
+                ## EOF on stdin [ pty closed on the other end -- e.g. the   ##
+                ## terminal window this nshell was running in got closed ]. ##
+                ## a closed pty is reported "readable" forever, and every   ##
+                ## read attempt keeps returning 0 -- lumping this in with   ##
+                ## the plain would-block case below [ as this code used to  ##
+                ## ] never detects it, so the repeat=>TRUE stdin watcher    ##
+                ## just refires immediately, forever : a real, confirmed    ##
+                ## 100%-CPU busy loop, running 2+ days before it was        ##
+                ## noticed. same EOF-vs-would-block distinction             ##
+                ## user-edit.handler.stdin_key / vault-edit.handler.        ##
+                ## stdin_key already make for their own stdin readers --    ##
+                ## missing here specifically. nshell has no terminal left   ##
+                ## to serve once this fires, so it exits outright rather    ##
+                ## than just silencing the watcher and idling forever       ##
+                ## holding a now-pointless cube session open                ##
+                <[base.logs]>->(
+                    0, 'nshell: stdin closed [ terminal gone ], exiting'
+                );
+                exit(0);
             } else {
                 last;
             }
@@ -375,8 +396,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,..,,,,.,,,.,,,,,,.,,...,.,,,,.,,...,,,,,.,.,...,...,..,,.,.,,..,,..,..,,
-#DDMF4MYDQDAIQI45GS6G6LEAOEOVNYU5KNMGLALUBQHRGL5OMKYCUHAZW4JX5ZRQ5HN3APZABIUBW
-#\\\|FCY6ZPQMFXRIXW6PQXGTWAYA26CGPIV3BSUYPBAMDES4ICTFQAW \ / AMOS7 \ YOURUM ::
-#\[7]NLRUGZ2Z3JFYKDVXJFEP3S6GJLVKSDE4BTPSSFOC2AZEN7SXYKAA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,...,,,,,,,.,.,.,.,,,..,,.,,,...,.,.,...,..,,.,.,...,..,,,..,.,,,
+#DZQE4IG7GVWCVJMXD5RYRBLMGM6VNA3DIBRX4GGRDDG3VL2U3437JZ45HEP3EGGFUSGA2OQFCCRNY
+#\\\|DSIPINWXZW35MS4QZPWD26S6L5UVMWOTIWWQOE2YVAQSKMIT6HY \ / AMOS7 \ YOURUM ::
+#\[7]OBDF6IRJIUMUCJ3U62ZSIWIUKBUFGRNXQGYVEL4LK3UJYZK3S6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
