@@ -290,6 +290,39 @@ proposed and never actually flipped on this session, still open. The
 retrieval-tool side (`embedding_search`) is unchanged from before — real
 measurements, nothing installed/shipped.
 
+## UPDATE, 2026-09-14 later same session — the LoRA probe below was run,
+## and it found something real. Read this before the "URGENT RESUME NOTE"
+## section further down, which is now historical (its plan was executed).
+
+Built and ran the agreed token-level logprob probe (no training). Full
+numbers and methodology are in `data/tasks/coding-lora-p7-idioms.md`'s new
+"fifth diagnostic pass" section — read that, not this summary, before
+acting further. Short version: **the LoRA training itself works and
+generalizes** (huge, real confidence boost on the invoke idiom, including
+on module names never seen in training, measured directly in HF/PEFT
+space) — but **the live GGUF-deployed server does not reproduce this at
+all**, and raising the runtime lora scale makes the wrong answer more
+confident rather than less, which isn't consistent with simple
+underscaling. The prime suspect, found via one more check: the base
+HF checkpoint all four training attempts used (`petruhonk/Qwen3.8-9B-
+Distill-uncensored-heretic`) may not actually be the same fine-tune the
+live production GGUF quantizes (`mradermacher`'s quant of `rohit267`'s
+model, `rohit267` itself being 404'd back on 2026-09-10 when petruhonk
+was substituted in as a stand-in) — their true baseline (no-adapter)
+output distributions look meaningfully different on the one example
+checked. **Not yet fully confirmed** — needs either an independent
+checkpoint-identity verification or more baseline-vs-baseline samples
+before committing to "retrain against the right checkpoint" as attempt 5.
+This reframes, but does not retract, the four prior "honest negative"
+write-ups: those are still correct as measurements of deployed behavior.
+
+Also: this pass required stopping/restarting the live GPU server 5 times;
+one real mistake happened along the way (a direct `coding.spawn_
+inference_server` call bypassing model-path resolution, crashed, dropped
+9 real pending task buffers) — fixed immediately by switching to `coding.
+switch-model` for every subsequent respawn. Server is restored to normal,
+guard cleared, verified via live `ps` output before ending the session.
+
 ## URGENT RESUME NOTE — appended pre-compaction, 2026-09-14, uncommitted
 
 **next agreed action, in order:**
