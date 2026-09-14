@@ -813,6 +813,139 @@ examples at generation time) are a bigger step than another parameter
 tweak -- worth deciding deliberately rather than running a fifth
 same-shape attempt.
 
+## fifth diagnostic pass [ token-level logprob probe, 2026-09-14 -- REFRAMES
+## the four "honest negative" verdicts above: probable cause found, not yet
+## confirmed as the sole cause. addendum, not a retraction of the numbers
+## above -- those measurements of deployed behavior are still correct ]
+
+before spending a fifth attempt on more data/rank/target-module tuning
+(the "remaining untried levers" note directly above), built a cheap,
+training-free diagnostic per an explicit ask: does the trained adapter's
+actual token-level probability on the `invoke` idiom move AT ALL, measured
+directly rather than inferred from 0/18 generation counts? scripts:
+`data/control-vectors/lora_invoke_probe.py` (in-corpus + generalization) and
+the same file's sibling `lora_invoke_generalization_probe.py`. no training
+was run in this pass -- forward passes and live-server queries only.
+
+**tokenization check**: `<[module.name]>->(` splits into 6 tokens under
+this tokenizer -- `<[`, `module`, `.name`, `]>`, `->`, `(` -- and neither
+bracket token is a byte-fallback/rare token (both are ordinary learned
+vocab entries). the idiom is not fighting a character-level tokenization
+handicap.
+
+**test 1, in-corpus teacher-forced logprob** (HF + PEFT, bnb-4bit, the
+exact base checkpoint training used, `petruhonk/Qwen3.8-9B-Distill-
+uncensored-heretic`): 6 real curated-corpus examples containing an invoke
+call in the target span, teacher-forced with the exact training-time
+context assembly (`prefix + "<think>\n" + "\n</think>\n\n"`). baseline
+mean-avg-logprob/token = -9.34, top1_rate = 14.5%. **attempt2-real adapter:
+-0.84, top1_rate = 84.1%. attempt4-invoke-oversampled adapter: -0.44,
+top1_rate = 89.9%.** (attempt3-lmhead's `adapter_model.safetensors` is
+missing from disk -- only its GGUF conversion survives -- so it was
+skipped in this pass, not tested.) this is a dramatic, unambiguous
+confidence boost on the exact idiom tokens, directly contradicting
+"training never moved this at all."
+
+**test 2, generalization to never-seen-verbatim idioms** (rules out
+memorization of the 6 example lines above): mined 9094 real invoke call
+sites from current `src/*` whose exact idiom string (module name +
+`->(` ) appears nowhere in the training corpus, picked 6 with distinct
+module names, wrapped in the identical training-style instruction
+scaffold (reusing the two real training prefixes verbatim, only the
+held-out content differs). baseline mean-avg-logprob/token = -8.19,
+top1_rate = 13.1%. **attempt2-real: -0.48, top1_rate = 88.1%. attempt4:
+-0.40, top1_rate = 91.7%.** same dramatic boost on genuinely novel module
+names never seen in training -- this is real generalization of the
+syntactic pattern, not memorization.
+
+**conclusion from tests 1+2, safe to treat as established**: the LoRA
+training mechanism itself works. Gradient descent on this rank/target-
+module recipe against this real corpus does teach the model to strongly
+prefer the invoke idiom's tokens, in a way that transfers to unseen
+module names -- measured directly in HF/PEFT space. The four "honest
+negative" verdicts above are NOT evidence that the technique failed to
+learn anything.
+
+**test 3, the live deployed path** (real generation test, not inferred):
+switched the live coding-zenka GPU server (`coding.switch-model
+OFSQC4I:QDBKEXY backend=gpu`, `<coding.cfg.lora_adapter>` pointed at
+attempt4's GGUF) to reproduce the exact training-style edit prompt
+("Update this Perl fragment to match how the rest of protocol-7 writes
+this kind of code.\n\nreturn 'error: cannot write file';") via the raw
+`/completion` endpoint with the identical immediate-think-close context
+used in tests 1/2. **3 seeds, 0/3 invoke.** Queried the live server's own
+`n_probs` top-15 next-token distribution at that exact position: top1 =
+`return` at 53%, `<` does not appear anywhere in the top 15. **Scale
+sensitivity, the key discriminator**: raised `coding.cfg.lora_adapter_
+scale` from 1.0 to 5.0 and re-queried -- `return`'s probability
+*increased* to 83%, `<` still absent from top-15. An underscaled-but-
+correctly-signed delta would move TOWARD the trained direction as scale
+increases; this moved further away. Built a dense-only variant of
+attempt4's already-trained adapter (filtered to just the 7 standard
+attn/mlp projections, no SSM/lm_head tensors, no retraining -- see the
+inline script run this session, not yet saved as a standalone tool) to
+rule out the custom SSM tensor mapping specifically: **identical
+symptom** (`return` 48%, `<` absent from top-15). The live deployment
+path does not reproduce what tests 1+2 show happening in HF/PEFT space,
+and this is NOT explained by scale or by the SSM-specific tensor mapping.
+
+**the actual suspect, found via one more check, NOT yet fully closed
+out**: compared the TRUE BASELINE (no adapter at all) distribution
+between HF and the live server, at the identical position, to check
+whether the two are even measuring the same base model. Live server
+(GGUF, `mradermacher/Qwen3.8-9B-heretic-uncensored-i1-GGUF` Q4_K_M, a
+quant of **rohit267**'s fine-tune per this file's own base-checkpoint-
+blocker section above): top1 = `` ``` `` at 50.8%, clean, low-entropy,
+English-only top-15. HF baseline (`petruhonk/Qwen3.8-9B-Distill-
+uncensored-heretic`, the checkpoint ALL FOUR training attempts used):
+top1 = also `` ``` `` but at only 11.7%, with a much flatter, higher-
+entropy distribution that includes garbage entries (`根据`, `按照`, a raw
+`�` byte) in the top-15. **These two baseline distributions look
+meaningfully different**, which is consistent with -- though not yet
+airtight proof of -- the base-checkpoint blocker's original, pre-
+registered hazard: petruhonk was fetched as a stand-in for the 404'd
+rohit267 original specifically because it "sidesteps" the missing-
+checkpoint problem, but its identity as literally the SAME fine-tune the
+production GGUF quantizes was never independently verified. If it is
+in fact a different fine-tune (or a substantially different training
+run of a similarly-named one), every LoRA trained so far was trained
+against the wrong base weights relative to what actually gets served --
+which would fully explain a huge, generalizing, real effect in HF space
+and zero transfer to the live GGUF server, independent of any conversion
+bug in `lora_to_gguf.py`.
+
+**next step, not yet done**: this baseline-divergence check used one
+example at one position -- suggestive, not conclusive. Before scoping a
+fifth training attempt, confirm or rule out the checkpoint-identity
+mismatch directly: either (a) obtain/confirm a safetensors checkpoint
+verified to be the exact fine-tune `mradermacher`'s GGUF quantizes (may
+require quantizing petruhonk to GGUF independently and diffing against
+the production quant's tensors, or finding rohit267's weights via another
+mirror), or (b) run several more baseline-vs-baseline distribution
+comparisons across varied prompts to see if the divergence is systematic
+or was an unlucky single sample. **If the mismatch is confirmed real**:
+attempt 5 is "retrain (or re-serve) against a checkpoint verified
+identical to production," not "debug the GGUF conversion path" -- a
+materially different, much cheaper fix than anything scoped in the
+"remaining untried levers" note above. **If baselines turn out to agree
+on a larger sample**: the live-deployment discrepancy is a genuine
+ik_llama.cpp/GGUF LoRA-application finding affecting even standard
+attn/mlp projections on this architecture, and IS worth escalating as a
+fork-level bug report.
+
+**operational note**: this pass required stopping/restarting the live
+GPU inference server five times (standing permission, see `data/ai-mem/
+claude/feedback-coding-zenka-gpu-interrupt-standing-permission.md`) and
+included one real mistake -- calling `coding.spawn_inference_server`
+directly with a bare `{backend=>"gpu"}` hash instead of going through
+`coding.switch-model`, which skipped model-path resolution and crashed
+against a placeholder path, dropping 9 real pending task buffers that
+were queued for unrelated work. Fixed by always using `coding.switch-
+model OFSQC4I:QDBKEXY backend=gpu` for every subsequent respawn in this
+pass, which correctly resolves the path from the model registry. Server
+restored to its normal unmodified startup (no lora flags) and
+`<coding.lora_training_in_progress>` cleared at the end of this pass.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -881,8 +1014,8 @@ same-shape attempt.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,...,..,,,,,,.,,,...,..,,.,.,,,.,..,,,..,..,,...,...,...,..,,,.,,,..,..,,
-#5BLP57B7ELZ7HYBVKPXYF76JRQBXZRW6ZTADYDQ42SOTUXGNCWNUFGYVFJA2B3L4H6WAK6YT6TR6C
-#\\\|3UW2CT6WIW5HS677PYZDL3CRDXIKH4L7VTG4AKYR4AKZOBOTURJ \ / AMOS7 \ YOURUM ::
-#\[7]4JG2LWU4NNCMMEQU2BFWUVW5TLPR2XXQ3UBKEM6RQ3Z5FDPKYCCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,,,.,..,,,,.,,,,,.,.,...,..,,..,,...,...,,.,,,,.,...,...,..,,
+#A76BXW436RPXG67M3F7JUSRUQTQ2LXO6232YH5DE5M6NLNUW6MKB4O7ZF6TKJMNAESB62FJ5E66FA
+#\\\|NJB46TNRQQVEQQZBSYLO4JZBBSQYU3TXHMO74BEEHASYBJWMEI5 \ / AMOS7 \ YOURUM ::
+#\[7]CO4TIVUJ7RWBQSPH6DZ2SHMN27QSGZNE32SSTFJYPTSZR7ZA3CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
