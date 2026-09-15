@@ -456,8 +456,68 @@ and extended the debug infrastructure. All fixes are in production.
 
 ```
 
-#,,.,,,.,,,..,.,.,..,,..,,.,,,..,,,,,,,,,,.,.,..,,...,...,.,,,,..,...,,..,.,.,
-#IGKRTJV4HI3U6D7MMATZOB7C3UZDSJ5ZNABUYI2OUPQXH5TZ73MDI6HMBBDQDIQJLMOGDJDABLTMY
-#\\\|NXIQEJCFQWHM35ZJEXOOY3UHQHYOK4OOCQJPXPIY72ZD5WDD5KJ \ / AMOS7 \ YOURUM ::
-#\[7]LSJAD2ZUCOM7MTFKZZBORPDIIXSZW6ZCUET4WW2PBG7AHCIXGQDY 7  DATA SIGNATURE ::
+## Phase 9: Coding-Zenka Session Integration (September 14, 2026)
+
+nshell can now attach to a live coding-zenka task, stream its output,
+and navigate its round history directly, without leaving the shell.
+Full design/phase plan: `data/tasks/coding-zenka-session-ui.md`.
+
+### Live Session View
+- **Split-screen mode**: `Tab` toggles between the coding-session view
+  and normal Protocol-7 mode; the split region is resize-aware
+- **Auto-subscribe**: submitting to a task id auto-subscribes the
+  session, streaming live output as the coding zenka works
+- **Submit-vs-append routing**: input is routed to either start a new
+  task or append to the currently-subscribed one
+
+### Round-Based Rewind/Redo
+Each task keeps a git-commit-style `round_chain` (parent-pointer chain,
+BMW-L13 checksummed) recording every round of the conversation — rewind
+and redo are pure pointer navigation, no inference triggered:
+- **`Esc`**: aborts a running task on first press; on subsequent
+  presses, steps back one round
+- **`F1`** (always reliable) / **`Shift+Esc`** (best-effort, needs
+  Kitty/xterm keyboard-protocol negotiation): redo forward
+- **`round-regen`**: the deliberate command that DOES trigger fresh
+  inference at the current round-chain position, creating a real fork
+  rather than overwriting history
+- **`restream`**: manual "resync my view" push from a task's live
+  session listeners
+
+### Files Modified (key modules)
+- `src/plugin.nshell.coding-session` — split-screen chat plugin,
+  submit/append routing, auto-subscribe
+- `src/nshell.handler.*` (split-screen/scroll-region, Esc/F1/Shift-Esc
+  wiring) — `AMOS7::TERM::scroll_region_set`/`clear`/`pinned_row_print`
+- `src/coding.round_chain.*` — `append`/`reconstruct`
+- `src/coding.cmd.rewind-round` / `redo-round` / `round-regen` /
+  `restream`
+- `bin/mcp-server-p7` — STRM-reply support (a real, generalizable fix:
+  a STRM command firing was silently corrupting the next unrelated
+  call, not coding-session-specific)
+
+### Commits
+- `bcf1b4cb5` — split-screen scroll-region mode, toggled with Tab
+- `dc6188fab` — multi-mode split-screen display, cycled with Tab
+- `4b7ab8c50` — coding-session chat plugin, resize-aware split screen
+- `bb19e85e1` — round-chain population (`append`/`reconstruct`), wired
+  into `state_machine` + `async.complete`
+- `725833105` — `rewind-round` — non-destructive fork via
+  `round_chain_current` tip pointer
+- `f2158945e` — wire round-chain rewind/redo into Esc/F1/Shift-Esc
+- `99795a1e1` — silently resubmit when a pinned coding-session task id
+  is gone
+
+### Known, Deliberate Scope Gaps (not bugs)
+- Subtask/chunked-summary/compaction message folding and failed-task
+  completion paths are not round-chain-tracked yet
+- A bare, no-tool-call round-0 task (no parent to rewind to) is
+  explicitly refused rather than silently mishandled
+- A verbose-vs-summary toggle for tool-call output on replay (currently
+  always full detail, by design) is a separate, not-yet-built feature
+
+#,,,.,,.,,,.,,.,,,,,.,..,,..,,.,.,.,.,.,.,,,.,..,,...,..,,,,.,,..,,,.,,,.,,.,,
+#VBRBAVNSELBLM7EO2P3G6P2C6XDGJHNYNYTNBFUVSPXLJI4CEEHWKWBFJRE6HLFJ5V52BZI6VBWGY
+#\\\|WXARFWGBZNKMUWOX235W5UKFKYWMDVRY2R4UZOUFIHVPG2F6CGN \ / AMOS7 \ YOURUM ::
+#\[7]JLXQONFAE2EIVXM6ZTG2RSJYKRXU4SJZYPHZAOVP3ZOVSBZZD2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
