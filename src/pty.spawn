@@ -1,0 +1,179 @@
+## [:< ##
+
+# name  = pty.spawn
+# descr = run an external interactive [ tui ] program attached to a real pty,
+#         wait for it to settle into its startup steady-state, then ask it to
+#         exit cleanly [ ctrl-d on the pty, then sigterm, then sigkill as a
+#         last resort ] -- built for programs that never close their own
+#         stdout and have to be asked to leave, but whose own clean-shutdown
+#         \ flush path matters [ e.g. a deferred credential-file write ] so a
+#         bare sigkill can silently lose work no matter how long you wait
+#         first
+# param = { command => '/path/to/bin', args => [ .. ], timeout => 18,
+#           quiet_window => 1, graceful => TRUE }
+# return = { ok => TRUE|FALSE, pid, output, reaped_by, error }
+# note  = 'reaped_by' is 'eof' [ program closed the pty itself ], 'ctrl-d',
+#         'sigterm' or 'sigkill' -- useful for callers that want to notice a
+#         program silently stopped honoring a clean shutdown over time
+# note  = deliberately NOT built on base.exec.with_timeout -- that module
+#         gives the child a plain pipe, not a real terminal ; several
+#         interactive tui programs behave differently [ or hang waiting on a
+#         terminal capability query a pipe can never answer ] without one
+# note  = a real pty is not a safe default guess -- first built for
+#         plugin.usage.kimi.refresh_token on exactly the "might be blocking on
+#         a terminal query" theory above, and confirmed live 2026-09-15 that
+#         it made things WORSE there : kimi behaved fine on a plain pipe but
+#         consistently failed to complete its own background work once given
+#         a real pty, most likely by taking a different code path once it
+#         detects a real interactive terminal. that module was reverted to
+#         plain open3 pipes. reach for this module when a program provably
+#         needs a real terminal [ hangs \ misbehaves on a pipe ], not on
+#         suspicion alone
+
+use POSIX ();
+
+my $args = shift // {};
+
+my $command      = $args->{'command'}      // '';
+my $cmd_args     = $args->{'args'}         // [];
+my $timeout      = $args->{'timeout'}      // 18;
+my $quiet_window = $args->{'quiet_window'} // 1;
+my $graceful     = $args->{'graceful'}     // TRUE;
+
+## a freshly allocated pty starts at 0x0 unless something sizes it -- several
+## tui frameworks treat that as "unusable" and refuse to render properly, so
+## this floor is applied unconditionally, not just as a fallback for a rare
+## edge case
+my $min_rows = $args->{'min_rows'} // 24;
+my $min_cols = $args->{'min_cols'} // 80;
+
+return { 'ok' => FALSE, 'error' => 'no command given' }
+    if not length $command;
+
+my $pty;
+eval { $pty = IO::Pty->new };
+
+return { 'ok' => FALSE, 'error' => <[base.str.eval_error]> } if not $pty;
+
+my $pid = fork();
+
+return { 'ok' => FALSE, 'error' => <[base.str.os_err]> }
+    if not defined $pid;
+
+if ( $pid == 0 ) {
+    ## child : make the pty's slave side this process' real controlling  ##
+    ## terminal, then exec -- the program sees an actual terminal, not a ##
+    ## pipe                                                              ##
+    $pty->make_slave_controlling_terminal();
+    my $slave = $pty->slave;
+
+    ## inherit the real terminal's size when there is one [ e.g. this whole
+    ## thing was itself launched interactively ], then enforce the floor
+    ## regardless -- a zenka-spawned child has no terminal of its own to
+    ## inherit from, so it always falls through to the floor
+    $slave->clone_winsize_from( \*STDIN ) if -t STDIN;
+    my ( $rows, $cols ) = $slave->get_winsize();
+    $slave->set_winsize( $min_rows, $min_cols, 0, 0 )
+        if not $rows
+        or $rows < $min_rows
+        or not $cols
+        or $cols < $min_cols;
+
+    close($pty);
+    open( STDIN,  '<&', $slave->fileno ) or POSIX::_exit(1);
+    open( STDOUT, '>&', $slave->fileno ) or POSIX::_exit(1);
+    open( STDERR, '>&', $slave->fileno ) or POSIX::_exit(1);
+    close($slave);
+    { exec( $command, @$cmd_args ) };
+    POSIX::_exit(1);    ##  exec itself failed  ##
+}
+
+my $buffer   = '';
+my $deadline = time() + $timeout;
+my $fd       = $pty->fileno;
+my $eof      = FALSE;
+my $error    = FALSE;
+
+## read until either [1] the pty closes [ real exit ], [2] we time out, or [3]
+## the program goes quiet for a bit right after producing output -- that quiet
+## point is "looks initialized" : the startup screen is drawn and it has
+## settled into its idle redraw \ input-wait loop, as good a signal as we get
+## from the outside that startup has actually run
+while ( not $eof and not $error ) {
+    my $remaining = $deadline - time();
+    last if $remaining <= 0;
+
+    my $poll_for = length($buffer) ? $quiet_window : $remaining;
+    $poll_for = $remaining if $remaining < $poll_for;
+
+    my $rin = '';
+    vec( $rin, $fd, 1 ) = 1;
+    my $ready = select( my $rout = $rin, undef, undef, $poll_for );
+
+    if ( not $ready or $ready < 0 ) {
+        last if length $buffer;    ##  quiet after producing output : done  ##
+        next;                      ##  nothing at all yet : keep waiting    ##
+    }
+
+    my $bytes = <[base.s_read]>->( $pty, \$buffer, 65536 );
+    $eof   = TRUE if $bytes == 0;
+    $error = TRUE if $bytes == -1;
+}
+
+my $reaped_by = '';
+
+if ($eof) {
+    <[base.waitpid]>->( $pid, 0 );
+    $reaped_by = qw| eof |;
+} elsif ( not $graceful ) {
+    kill( 'KILL', $pid );
+    <[base.waitpid]>->( $pid, 0 );
+    $reaped_by = qw| sigkill |;
+} else {
+    ## ctrl-d on the pty first -- the same byte an interactive user's own
+    ## keypress would send, and the one most likely to reach the program's own
+    ## clean-shutdown \ flush path rather than just killing it outright.
+    ## best-effort : whether it's actually honored depends on the program's
+    ## own raw-mode key handling, hence the fallbacks below
+    syswrite( $pty, "\x04" );
+
+    my $reaped   = FALSE;
+    my $soft_end = time() + 3;
+    while ( time() < $soft_end ) {
+        last if <[base.waitpid]>->($pid) == $pid and do { $reaped = TRUE };
+        select( undef, undef, undef, 0.1 );
+    }
+    $reaped_by = qw| ctrl-d | if $reaped;
+
+    if ( not $reaped ) {
+        kill( 'TERM', $pid );
+        $soft_end = time() + 2;
+        while ( time() < $soft_end ) {
+            last
+                if <[base.waitpid]>->($pid) == $pid and do { $reaped = TRUE };
+            select( undef, undef, undef, 0.1 );
+        }
+        $reaped_by = qw| sigterm | if $reaped;
+    }
+
+    if ( not $reaped ) {
+        kill( 'KILL', $pid );
+        <[base.waitpid]>->( $pid, 0 );
+        $reaped_by = qw| sigkill |;
+    }
+}
+
+close($pty);
+
+return {
+    'ok'        => TRUE,
+    'pid'       => $pid,
+    'output'    => $buffer,
+    'reaped_by' => $reaped_by,
+};
+
+#,,,,,..,,,,,,.,.,...,,.,,,..,,.,,.,.,,.,,.,.,.,.,...,...,.,.,.,.,,,,,..,,,..,
+#KIFLBPBHTOQASP2A6WYJTIT6MUAZ3UOJYOLZMX4PPH3XLDCFOYNU4L6MRKCEEUHB5QMAKY77HNSWW
+#\\\|VGLKRODWWM27INK6FNYFTKD5VNV2YBAAVRHBQVZ57Q6VMZGJJB5 \ / AMOS7 \ YOURUM ::
+#\[7]VM3JS5DUSSN64FEJ4YE6R44NTXZZOPPJNEGWQMNPZASZ4GUBVGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

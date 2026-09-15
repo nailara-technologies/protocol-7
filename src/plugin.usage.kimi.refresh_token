@@ -1,85 +1,206 @@
 ## [:< ##
 
 # name  = plugin.usage.kimi.refresh_token
-# descr = start `kimi` with stdin explicitly at /dev/null, bounded by a
-#         timeout, then kill it -- the kimi cli refreshes its own oauth
-#         token during startup, before it ever reaches a point that would
-#         cost a real inference token. confirmed live 2026-09-15 : a run
-#         with no prompt ever sent left `usage.kimi`'s own token_expires_in
-#         at a fresh ~14 minutes afterward, with zero billing activity
-#         during the run.
-# note  = deliberately NOT built on base.exec.with_timeout -- that module
-#         passes a literal `undef` for the child's stdin slot, and
-#         whether that gives an immediate-EOF stdin [ what was proven to
-#         work here ] or a pipe that never closes [ untested, and kimi's
-#         own startup behavior may differ between the two ] was not
-#         certain enough to bet a live credential's refresh path on.
-#         explicit /dev/null below has one well-defined meaning. reuses
-#         the same underlying primitives [ base.s_read, base.waitpid ]
-#         base.exec.with_timeout itself is built on, just with stdin made
-#         explicit instead of implicit.
+# descr = start `kimi` fully detached from any controlling terminal, chdir'd
+#         into an already-trusted directory, stdin pre-loaded with a single
+#         enter keypress then eof, let it run undisturbed for the full
+#         timeout, then ask it to exit gracefully [ sigterm, sigkill only as
+#         a last resort ] -- the kimi cli refreshes its own oauth token
+#         during startup, before it ever reaches a point that would cost a
+#         real inference token.
+# note  = the actual root cause, found the hard way 2026-09-15 : kimi shows a
+#         one-time "Trust this folder?" prompt for any working directory it
+#         hasn't seen before [ tracked in ~/.kimi-code/workspaces.json ], and
+#         a plain /dev/null stdin gave it nothing to confirm that prompt with
+#         -- never reaching the oauth refresh at all. a diagnostic capture of
+#         raw stdout confirmed the prompt text directly. this zenka's own cwd
+#         was never confirmed [ /proc/<pid>/cwd reads were permission-denied
+#         from outside the process ] and evidently isn't a trusted workspace
+#         -- chdir to <system.root_path> [ falls back to $home_dir if that's
+#         ever unset ], both already trusted, is the real fix ; the enter-
+#         keypress-then-eof stdin is a belt-and-suspenders second line of
+#         defense in case a prompt shows up for some other reason anyway
+# note  = this zenka process itself also runs attached to a real pty
+#         [ confirmed live 2026-09-15 via ps -ef ], most likely because it was
+#         originally started interactive -- and neither IPC::Open3 nor a
+#         plain fork+exec detaches a child from an inherited controlling
+#         terminal on its own. setsid() below sheds it. real, independently
+#         justified hardening, but confirmed NOT sufficient by itself to fix
+#         the actual bug above
+# note  = sigkill cannot be caught -- if the refreshed credential is written
+#         on a deferred \ on-exit flush path rather than immediately after
+#         the network call, sigkill would silently discard it no matter how
+#         long the timeout was. sigterm first, sigkill only as a fallback
+# note  = a real pty [ via pty.spawn ] was also tried live 2026-09-15, on the
+#         theory kimi might be blocking on a terminal capability query a pipe
+#         can't answer. it wasn't the issue, and made things worse : giving
+#         the child an even more explicit terminal only reinforced whatever
+#         code path the inherited-tty problem above was already triggering
+# note  = manual fork [ not IPC::Open3 ] specifically so the child can call
+#         setsid() between fork and exec -- open3 gives no hook for that
 
-use IPC::Open3;
-use Fcntl qw| O_RDONLY |;
+use POSIX ();
 
-my $timeout = shift // 10;
+## the proven-working test used 15s, undisturbed for the full duration -- this
+## is not a rarely-hit ceiling, it's the actual normal run length
+my $timeout = shift // 18;
 
-my $devnull_fh;
-## sysopen + O_RDONLY, not open(FH, '<', ...) -- a bare, unmatched '<'
-## character risks colliding with this codebase's own <...>/<[...]>
-## preprocessor [ text-substituted before real perl compilation, see CLAUDE.md
-## ], confirmed live 2026-09-15 : a plain qw| < /dev/null | here produced a
-## stray "Useless use of a constant" warning at compile time -- sysopen has no
-## '<' anywhere in its call shape at all
-if ( not sysopen( $devnull_fh, qw| /dev/null |, O_RDONLY() ) ) {
+## PATH lookup first [ base.file.which -> File::Which ] -- kept as the
+## general-case-correct approach, but confirmed live 2026-09-15 that it will
+## always come up empty in THIS deployment specifically: bin/Protocol-7
+## deliberately cleans $ENV{PATH} at zenka startup, so it never carries the
+## ~/.kimi-code/bin entry an interactive shell's rc files add. the
+## home-relative fallback below is what actually locates the binary here,
+## every time -- not a rarely-needed backup for an edge case
+my $kimi_bin = <[file.which]>->(qw| kimi |);
+
+## needed regardless of how kimi_bin was found : see the chdir before exec
+## below
+my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+
+if ( not length $kimi_bin ) {
+    my $provider = <usage.provider.kimi>;
+    if ( length $home_dir and length $provider->{'cli_rel_path'} ) {
+        my $candidate = catfile( $home_dir, $provider->{'cli_rel_path'} );
+        $kimi_bin = $candidate if -x $candidate;
+    }
+}
+
+if ( not length $kimi_bin ) {
     <[base.logs]>->(
-        0, '[usage.kimi.refresh_token] ' . 'cannot open /dev/null : %s',
+        0,
+        '[usage.kimi.refresh_token] cannot locate kimi binary '
+            . '[ PATH lookup and known install path both failed ]'
+    );
+    return FALSE;
+}
+
+my ( $stdin_read, $stdin_write, $out_read, $out_write, $err_read,
+    $err_write );
+
+if (not(    pipe( $stdin_read, $stdin_write )
+        and pipe( $out_read, $out_write )
+        and pipe( $err_read, $err_write ) )
+) {
+    <[base.logs]>->(
+        0, '[usage.kimi.refresh_token] cannot create pipes : %s',
         <[base.str.os_err]>
     );
+    ## whichever pipe succeeded before the other failed is still open ##
+    foreach my $fh (
+        $stdin_read, $stdin_write, $out_read,
+        $out_write,  $err_read,    $err_write
+    ) {
+        close($fh) if defined $fh and defined fileno($fh);
+    }
     return FALSE;
 }
 
-my ( $pid, $out_fh, $err_fh );
-eval { $pid = open3( $devnull_fh, $out_fh, $err_fh, qw| kimi | ) };
+## belt-and-suspenders alongside the chdir below : pre-load a single enter
+## keypress on stdin, in case a first-run confirmation prompt [ "trust this
+## folder?" or similar ] shows up despite chdir'ing into an already-trusted
+## directory. the write end is closed right after, so the child sees this one
+## line and then eof after it -- same effective behavior /dev/null had from
+## that point on
+print $stdin_write "\n";
+close($stdin_write);
 
-if ( not $pid ) {
+my $pid = fork();
+
+if ( not defined $pid ) {
     <[base.logs]>->(
-        0, '[usage.kimi.refresh_token] failed to spawn kimi : %s',
-        <[base.str.eval_error]>
+        0, '[usage.kimi.refresh_token] fork failed : %s',
+        <[base.str.os_err]>
     );
+    foreach
+        my $fh ( $stdin_read, $out_read, $out_write, $err_read, $err_write ) {
+        close($fh) if defined $fh and defined fileno($fh);
+    }
     return FALSE;
 }
+
+if ( $pid == 0 ) {
+    ## detach from whatever controlling terminal this zenka process itself
+    ## happens to be attached to -- the actual fix, see the module note above
+    POSIX::setsid();
+
+    ## the actual root cause, found the hard way 2026-09-15 : kimi shows a
+    ## first-run "Trust this folder?" prompt for any cwd it hasn't seen before
+    ## [ tracked in ~/.kimi-code/workspaces.json ], and blocks on it forever
+    ## since stdin gives it nothing to confirm with -- never reaching the
+    ## oauth refresh at all. this zenka's own cwd was never confirmed [
+    ## /proc/<pid>/cwd reads were permission-denied from outside the process ]
+    ## and evidently isn't a trusted workspace. <system.root_path> [ this
+    ## project's own root, set once at process bootstrap in bin/Protocol-7,
+    ## identical for every zenka ] already is one -- more correct than a
+    ## hardcoded path or $home_dir, which would pollute the user's own
+    ## interactive kimi workspace list with a background ping
+    chdir( <system.root_path> // $home_dir );
+
+    close($out_read);
+    close($err_read);
+    open( STDIN,  '<&', $stdin_read ) or POSIX::_exit(1);
+    open( STDOUT, '>&', $out_write )  or POSIX::_exit(1);
+    open( STDERR, '>&', $err_write )  or POSIX::_exit(1);
+    close($stdin_read);
+    close($out_write);
+    close($err_write);
+    { exec($kimi_bin) };
+    POSIX::_exit(1);    ##  exec itself failed  ##
+}
+
+close($stdin_read);
+close($out_write);
+close($err_write);
 
 my $buffer   = '';
 my $deadline = time() + $timeout;
-my $fd       = fileno($out_fh);
+my $fd       = fileno($out_read);
 my $eof      = FALSE;
 my $error    = FALSE;
 
+## deliberately runs undisturbed for the full timeout -- no early "looks
+## quiet, must be done" cutoff. kimi's tui goes visually quiet well under a
+## second after its first render, but its own background oauth refresh keeps
+## running well after that point, confirmed live 2026-09-15
 while ( not $eof and not $error ) {
     my $remaining = $deadline - time();
-    last if $remaining <= 0;    ## timed out : kill below, this is expected ##
+    last if $remaining <= 0;
 
     my $rin = '';
     vec( $rin, $fd, 1 ) = 1;
     my $ready = select( my $rout = $rin, undef, undef, $remaining );
     last if not $ready or $ready < 0;
 
-    my $bytes = <[base.s_read]>->( $out_fh, \$buffer, 65536 );
+    my $bytes = <[base.s_read]>->( $out_read, \$buffer, 65536 );
     $eof   = TRUE if $bytes == 0;
     $error = TRUE if $bytes == -1;
 }
 
-## the TUI keeps redrawing rather than ever closing its own stdout, so  ##
-## hitting the timeout here is the NORMAL, expected outcome -- not a    ##
-## failure signal. the refresh happens during startup, well before this ##
-## deadline, confirmed live -- see the module description above         ##
-kill( 'KILL', $pid ) if not $eof;
-<[base.waitpid]>->($pid);
+## the tui keeps redrawing rather than ever closing its own stdout, so hitting
+## the timeout here is the normal, expected outcome -- not a failure signal
+if ($eof) {
+    <[base.waitpid]>->( $pid, 0 );
+} else {
+    ## sigterm first, sigkill only if it doesn't respond -- see the module
+    ## note above for why this matters
+    kill( 'TERM', $pid );
 
-close($devnull_fh);
-close($out_fh) if defined fileno($out_fh);
-close($err_fh) if defined $err_fh and defined fileno($err_fh);
+    my $reaped   = FALSE;
+    my $soft_end = time() + 3;
+    while ( time() < $soft_end ) {
+        last if <[base.waitpid]>->($pid) == $pid and do { $reaped = TRUE };
+        select( undef, undef, undef, 0.1 );
+    }
+
+    if ( not $reaped ) {
+        kill( 'KILL', $pid );
+        <[base.waitpid]>->( $pid, 0 );
+    }
+}
+
+close($out_read);
+close($err_read);
 
 <[base.logs]>->(
     2, '[usage.kimi.refresh_token] ' . 'kimi startup cycle complete'
@@ -87,8 +208,8 @@ close($err_fh) if defined $err_fh and defined fileno($err_fh);
 
 return TRUE;
 
-#,,,,,,,,,.,.,,,,,,,.,,..,,,,,,,.,,,,,.,.,...,..,,...,...,,.,,..,,.,,,.,,,,..,
-#TJHVYYGBGYO22MMQT6BWZK2ZE6V7G65WI54ELUU5KHKJZTSX3BMFP6DV5EFFS4T4HFQOIOU6QZC6G
-#\\\|R2PF5FTP5ZR54LU4VT3BT5KGNVGRUMOQBPJXOYSWUANJCE6IBTR \ / AMOS7 \ YOURUM ::
-#\[7]4S3D2MJEZ224JFEMEYQSMKEOUN2UZRTTHVWEUSOBGPRG2Z6QZAAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,,.,,,,.,..,,...,,,.,,.,,.,,,.,.,...,...,,..,...,,..,,,.,..,,
+#EF7VEXEHP4JB3QIYXYEG3UE5UEICY3VDMGZF6TNMH2ZVGZYL2GOU37V5U3QJLCJO54CUL45PPNAEG
+#\\\|COQ6SVQUJ3LMURSRL2PF7WALNHNCOTLZMKVVYFE6T4RYKV6CZS5 \ / AMOS7 \ YOURUM ::
+#\[7]TZDKPEZFQA3CH37UVAPZMZTALM5WKBEY27WB3T3AP2CNUHB5BCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
