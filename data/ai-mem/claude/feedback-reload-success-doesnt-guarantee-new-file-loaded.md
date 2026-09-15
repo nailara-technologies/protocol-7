@@ -1,9 +1,46 @@
 ---
 name: reload-success-doesnt-guarantee-new-file-loaded
-description: FIXED 2026-08-04 (bin/Protocol-7 p7_load_code whitelist-gate) — base.cmd.reload used to report "success" without recompiling an already-loaded non-whitelisted .cmd. module; the v7.restart workaround below is no longer needed
+description: the 2026-08-04 fix did NOT stay fixed -- recurred 2026-09-15/16 on the usage and coding zenki across many edit/reload cycles; default to v7-zenki.restart <zenka> for verification, don't trust reload
 metadata:
   type: feedback
 ---
+
+## RECURRED 2026-09-15/16, `usage` and `coding` zenki
+
+During a multi-round `usage.format.report` redesign session, `p7c reload
+source` (bare, no zenka prefix) AND `p7c usage.reload source` (explicitly
+prefixed) both repeatedly reported success while live output kept showing
+the pre-edit format -- across at least three separate edit rounds (the new
+`pretty` format branch, the row-separator fix, the leading-blank-line fix).
+Every single time, `p7c v7-zenki.restart usage` (or `restart coding` for
+the coding-zenka side of the same work) was what actually made the edit
+visible. Confirmed via literal before/after diffs of live command output,
+not just a "reload said success" assumption -- e.g. a row-separator line
+that provably was not there after `reload source`, then provably was
+there after `v7-zenki.restart usage`, no other variable changed.
+
+This directly contradicts the "resolved, reload can be trusted again"
+update below from three weeks earlier. Either the 2026-08-04 fix was
+incomplete/regressed, or it doesn't cover whatever load path `usage.cmd.*`
+/ `usage.format.report` / `plugin.usage.*.handler.response` /
+`coding.handler.*` / `coding.tools.handler.*` go through. Root cause not
+re-investigated this session -- the restart workaround was cheap enough
+(these are on-demand zenki, a restart just re-spawns them) that it wasn't
+worth chasing further, but note: restarting the `usage` zenka clears its
+in-flight state (e.g. `refresh_state` single-slot guards) and the
+`coding` zenka's cached `<coding.account_usage>`, so a restart-based
+verification loop will show a transient "no cached data yet" / cold-start
+result on the very next call -- expected, not a new bug.
+
+**Updated guidance**: revert to defaulting every live-fix verification to
+`v7-zenki.restart <zenka>`, not `<zenka>.reload` / `reload source` --
+across at least two zenki this session, reload's "success" was not a
+reliable signal that new code was actually running. Don't re-trust reload
+again without a fresh, deliberate re-test.
+
+---
+
+## original 2026-08-04 entry [ superseded by the recurrence above ]
 
 ## RESOLVED 2026-08-04
 
@@ -88,8 +125,8 @@ lands: **default every live-fix dispatch's verification instructions to
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
-#,,,.,..,,,,,,,,.,...,...,,,,,,..,,..,...,,.,,...,...,..,,...,..,,...,..,,,,.,
-#PU266J4METFAC5LGLPWRBGUP3N3JSSMQISASXE73O6NKQLYSMXOMU7M6WS4LN5VLB4AN2JYYINPPK
-#\\\|4GBD6Z6L2QUB7BTGLU3BWEEXIL25YA7KFLL73KU7HWL3YS7HREH \ / AMOS7 \ YOURUM ::
-#\[7]IYGDKLVJWEGZJMEGPTGS2BGTWR3OP3BKTT7CODBR4VKS3AFRBKBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,.,,,,,,,,,.,..,,..,,..,,,..,...,...,...,,..,.,,,,.,,,.,,..,,
+#E5RW3L5JNUGPWTE4JNQAHFYHR4HSIO5HVTTJHIZN47OZ5GEAEK5DM77WHZ6JHIEG3WF67ZBDWAIV4
+#\\\|JAXLRKCCKOETM6FLICDTNDP42VSYKS4Y22DHVCTXAW5RFBPMCR2 \ / AMOS7 \ YOURUM ::
+#\[7]5AOL62TVG6QPO7UUHN4NJE2HVLNMHCBHU55X4H6JCYSWEZWY7UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
