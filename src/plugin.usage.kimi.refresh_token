@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.refresh_token
+# descr = start `kimi` with stdin explicitly at /dev/null, bounded by a
+#         timeout, then kill it -- the kimi cli refreshes its own oauth
+#         token during startup, before it ever reaches a point that would
+#         cost a real inference token. confirmed live 2026-09-15 : a run
+#         with no prompt ever sent left `usage.kimi`'s own token_expires_in
+#         at a fresh ~14 minutes afterward, with zero billing activity
+#         during the run.
+# note  = deliberately NOT built on base.exec.with_timeout -- that module
+#         passes a literal `undef` for the child's stdin slot, and
+#         whether that gives an immediate-EOF stdin [ what was proven to
+#         work here ] or a pipe that never closes [ untested, and kimi's
+#         own startup behavior may differ between the two ] was not
+#         certain enough to bet a live credential's refresh path on.
+#         explicit /dev/null below has one well-defined meaning. reuses
+#         the same underlying primitives [ base.s_read, base.waitpid ]
+#         base.exec.with_timeout itself is built on, just with stdin made
+#         explicit instead of implicit.
+
+use IPC::Open3;
+use Fcntl qw| O_RDONLY |;
+
+my $timeout = shift // 10;
+
+my $devnull_fh;
+## sysopen + O_RDONLY, not open(FH, '<', ...) -- a bare, unmatched '<'
+## character risks colliding with this codebase's own <...>/<[...]>
+## preprocessor [ text-substituted before real perl compilation, see CLAUDE.md
+## ], confirmed live 2026-09-15 : a plain qw| < /dev/null | here produced a
+## stray "Useless use of a constant" warning at compile time -- sysopen has no
+## '<' anywhere in its call shape at all
+if ( not sysopen( $devnull_fh, qw| /dev/null |, O_RDONLY() ) ) {
+    <[base.logs]>->(
+        0, '[usage.kimi.refresh_token] ' . 'cannot open /dev/null : %s',
+        <[base.str.os_err]>
+    );
+    return FALSE;
+}
+
+my ( $pid, $out_fh, $err_fh );
+eval { $pid = open3( $devnull_fh, $out_fh, $err_fh, qw| kimi | ) };
+
+if ( not $pid ) {
+    <[base.logs]>->(
+        0, '[usage.kimi.refresh_token] failed to spawn kimi : %s',
+        <[base.str.eval_error]>
+    );
+    return FALSE;
+}
+
+my $buffer   = '';
+my $deadline = time() + $timeout;
+my $fd       = fileno($out_fh);
+my $eof      = FALSE;
+my $error    = FALSE;
+
+while ( not $eof and not $error ) {
+    my $remaining = $deadline - time();
+    last if $remaining <= 0;    ## timed out : kill below, this is expected ##
+
+    my $rin = '';
+    vec( $rin, $fd, 1 ) = 1;
+    my $ready = select( my $rout = $rin, undef, undef, $remaining );
+    last if not $ready or $ready < 0;
+
+    my $bytes = <[base.s_read]>->( $out_fh, \$buffer, 65536 );
+    $eof   = TRUE if $bytes == 0;
+    $error = TRUE if $bytes == -1;
+}
+
+## the TUI keeps redrawing rather than ever closing its own stdout, so  ##
+## hitting the timeout here is the NORMAL, expected outcome -- not a    ##
+## failure signal. the refresh happens during startup, well before this ##
+## deadline, confirmed live -- see the module description above         ##
+kill( 'KILL', $pid ) if not $eof;
+<[base.waitpid]>->($pid);
+
+close($devnull_fh);
+close($out_fh) if defined fileno($out_fh);
+close($err_fh) if defined $err_fh and defined fileno($err_fh);
+
+<[base.logs]>->(
+    2, '[usage.kimi.refresh_token] ' . 'kimi startup cycle complete'
+);
+
+return TRUE;
+
+#,,,,,,,,,.,.,,,,,,,.,,..,,,,,,,.,,,,,.,.,...,..,,...,...,,.,,..,,.,,,.,,,,..,
+#TJHVYYGBGYO22MMQT6BWZK2ZE6V7G65WI54ELUU5KHKJZTSX3BMFP6DV5EFFS4T4HFQOIOU6QZC6G
+#\\\|R2PF5FTP5ZR54LU4VT3BT5KGNVGRUMOQBPJXOYSWUANJCE6IBTR \ / AMOS7 \ YOURUM ::
+#\[7]4S3D2MJEZ224JFEMEYQSMKEOUN2UZRTTHVWEUSOBGPRG2Z6QZAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

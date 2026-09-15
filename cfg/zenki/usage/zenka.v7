@@ -9,7 +9,23 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
+## this zenka does no zenka-to-zenka signed messaging of its own -- provider
+## credentials arrive as plain oauth bearer tokens, not p7 keys -- so its own
+## C25519 identity key is never actually used. autocreate-user-key was
+## inherited unchanged from the powershell template and left auto_load_keys
+## at its TRUE default, which broke on reload : crypt.C25519.post_init
+## resolves the key name via the GLOBAL <system.amos-zenka-user> ('protocol-7')
+## regardless of what this zenka's own drop_privs line actually targets
+## ('taeki'), so at root-time startup it can write wherever that resolves to,
+## but the post-drop-privs reload [ now genuinely running as taeki ] can't
+## read it back -- "no read permission for key 'protocol-7.base.secret'".
+## same latent mismatch likely affects any zenka overriding its drop-privs
+## target away from the standard service user [ powershell included, just
+## never reload-tested ] -- worth its own task if/when this zenka [ or any
+## other taeki-privileged one ] ever needs a real C25519 identity, not fixed
+## here. simplest correct fix for now : don't load a key nothing uses
 crypt.C25519.autocreate-user-key = yes
+crypt.C25519.auto_load_keys      = no
 
 system.zenka.verbosity.buffer = 1
 
@@ -35,8 +51,8 @@ plugins.load = plugin.usage.claude plugin.usage.kimi
 
 [zenka.loop]
 
-#,,.,,...,...,,..,..,,,,,,.,.,...,,,,,...,,,.,..,,...,...,,,.,,..,..,,,..,,,.,
-#ANLV6JRLMCZAEO57LZNSQEYQZUAJBIYEN6HAIACL5ADXF3IHPHK7W7V36TNP45Z2JBP3TFWMFPV6I
-#\\\|AVPKBKXI6AYET3F6TLDXVWCBUKXT77EZ6Q2NCDBCAPRGB76EBP6 \ / AMOS7 \ YOURUM ::
-#\[7]DINAYR7UBGEMZWH5DFAGMLJYJCIX7TUE3MYN7PRN6N6SGG56AOBI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,..,,,,,,..,,.,.,...,,,.,.,,,..,,...,...,...,..,,,..,,,.,.,.,
+#7IHJD2WLCNLG3DY52VF2JUI54CRXFOFDNFZ4GTT4UZF36IUQW7N5WFJFGYN4PQN6HHZLP47NXG2K6
+#\\\|4WREVNBLCOU7FNYZPZZB4AZQCM6KI3FZZXSLQT2I6PLIFF35FS4 \ / AMOS7 \ YOURUM ::
+#\[7]2GBQKVZHUZ5B3SLY5RBMTZZ5EIVS2237ZLWH7T2IQEAU7RWYKUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
