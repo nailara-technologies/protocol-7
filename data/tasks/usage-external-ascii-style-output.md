@@ -50,6 +50,22 @@ convention.
   `CLAUDE.md`'s own bracket-convention rule -- currently only followed
   in the script's source comments, not its printed output. Same
   bracket swap applies to the box style's own `.:[ ]:.` shape above.
+- swap which value is primary on every `resets` line: the human
+  duration (`in 1d 6h 58m`) should lead, with the raw/absolute
+  timestamp demoted into the bracket annotation, not the reverse. Raised
+  directly by the user, with the reasoning: a bare ISO8601 timestamp
+  (`2026-09-16T21:15:23.345298Z`) is not human-friendly and just gets
+  visually skipped past -- swap which value is the headline and which is
+  reference detail, don't just re-bracket the existing order. e.g.:
+  ```
+  before:  resets       : 2026-09-16T21:15:23.345298Z ( in 1d 6h 58m )
+  after:   resets       : in 1d 6h 58m [ 2026-09-16T21:15:23.345298Z ]
+  ```
+  applies to every `resets` line in both `print_kimi_usage` (raw
+  ISO8601 via `countdown_suffix`) and `print_claude_usage` (already
+  formatted as `2026-09-15 18:30 UTC` via `epoch_to_str` -- same
+  primary/secondary swap still applies there for consistency, even
+  though that one's already somewhat readable).
 - check whether there's a shared helper for this box style already
   (rather than each script hand-rolling its own ANSI color constants
   and box-drawing) before adding a third or fourth copy of the same
@@ -63,8 +79,8 @@ convention.
 no design/implementation work done yet -- this is a capture-for-later
 task file only.
 
-#,,..,...,,.,,..,,,..,...,.,.,.,.,..,,,,,,...,..,,...,..,,,.,,,,,,,,.,...,,..,
-#NEFDNWITSOT257DLFM4RMGMJ5JOCH5YNLMJJ5MPLQLBI4HVQXEZ36TIEENIRTMDTLRQW5NZYAAKRW
-#\\\|PYL7SY77OQRWWTNDLACVNJFZ5NSM34X6TIOZWRMDUKLWPPCLXFT \ / AMOS7 \ YOURUM ::
-#\[7]MFZEIRPEVGWMDWLVJALLOC32E5FSB632JAQZUWERYPEVX2E5J2BY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,,,,,,.,,,.,...,.,,,.,,,.,.,..,,...,...,...,,,,,,,,,,,,,,.,,
+#I4M5XHNBZVDFLV2Y24WLFBQG2SVTXRPCF3CHDFSSVCMEDBLYKL7AY7K2BE54X33TJI4PUYMHWGV5Q
+#\\\|V2DVEACA2W46EWMJ4QY24DU25PRGUMTVVP5XVHEWOMBXHCIVQ5U \ / AMOS7 \ YOURUM ::
+#\[7]G6XL67LWZ46L3S6RLWM72JVIZYM2R43HSZ6H4QLNQ5ACCT356ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
