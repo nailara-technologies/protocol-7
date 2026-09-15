@@ -90,8 +90,10 @@ $exit_code = 1 if $subcommand eq qw| kimi   | and not print_kimi_usage();
 $exit_code = 1 if $subcommand eq qw| claude | and not print_claude_usage();
 
 if ( $subcommand eq qw| all | ) {
+
+    ## box_header already prints a leading blank line -- no extra separator
+    ## needed between the two boxes here
     $exit_code = 1 if not print_kimi_usage();
-    print "\n";
     $exit_code = 1 if not print_claude_usage();
 }
 
@@ -101,9 +103,9 @@ exit($exit_code);
 
 sub print_kimi_usage {
 
-    say '== Kimi plan usage ==';
+    box_header('Kimi plan usage');
 
-    my $cred = load_kimi_credentials() or return 0;
+    my $cred = load_kimi_credentials() or do { box_close(); return 0 };
 
     my $token = $cred->{'access_token'};
     error_exit('kimi credential has no access_token field') if not $token;
@@ -126,42 +128,49 @@ sub print_kimi_usage {
     if ( not $response->is_success ) {
         warn ":\n:: kimi /usages request failed : "
             . $response->status_line . "\n:\n";
+        box_close();
         return 0;
     }
 
     my $data = eval { $json_coder->decode( $response->decoded_content ) };
     if ($EVAL_ERROR) {
         warn ":\n:: cannot parse kimi /usages response : $EVAL_ERROR\n:\n";
+        box_close();
         return 0;
     }
 
+    box_sep();
+
+    my $group_sep = 0;    ## set once a row group has printed ##
+
     ##  weekly summary row  ##
     if ( my $usage = $data->{'usage'} ) {
+        box_sep() if $group_sep;
+        $group_sep = 1;
         my $used      = $usage->{'used'}  // '?';
         my $limit     = $usage->{'limit'} // '?';
         my $remaining = $usage->{'remaining'};
-        printf "  %-12s : %s / %s%s\n", 'plan usage', $used, $limit,
-            defined $remaining ? "  ( remaining $remaining )" : '';
-        printf "  %-12s : %s%s\n", 'resets', $usage->{'resetTime'} // '?',
-            countdown_suffix( $usage->{'resetTime'} );
+        printf ": %-12s : %s / %s%s\n", 'plan usage', $used, $limit,
+            defined $remaining ? "  [ remaining $remaining ]" : '';
+        print_resets_line( $usage->{'resetTime'} );
     }
 
     ##  per-window rows  ##
     foreach my $limit_row ( @{ $data->{'limits'} // [] } ) {
+        box_sep() if $group_sep;
+        $group_sep = 1;
         my $detail = $limit_row->{'detail'} // {};
         my $window = $limit_row->{'window'} // {};
         my $label  = $limit_row->{'name'}   // '';
         $label .= ' ' if length $label;
         $label .= window_label($window);
         $label = 'window' if not length $label;
-        printf "  %-12s : %s / %s%s\n", $label,
+        printf ": %-12s : %s / %s%s\n", $label,
             $detail->{'used'} // '?', $detail->{'limit'} // '?',
             defined $detail->{'remaining'}
-            ? "  ( remaining $detail->{'remaining'} )"
+            ? "  [ remaining $detail->{'remaining'} ]"
             : '';
-        printf "  %-12s : %s%s\n", 'resets',
-            $detail->{'resetTime'} // '?',
-            countdown_suffix( $detail->{'resetTime'} );
+        print_resets_line( $detail->{'resetTime'} );
     }
 
     ## alternate compact schema [ older \ newer payload variants ] -- only
@@ -175,23 +184,26 @@ sub print_kimi_usage {
         and ( my $usages = $data->{'usages'} ) ) {
         foreach my $key ( sort keys $usages->%* ) {
             my $row = $usages->{$key};
-            next if ref $row ne qw| HASH |;
-            printf "  %-12s : %.1f%% used\n", $key,
+            next      if ref $row ne qw| HASH |;
+            box_sep() if $group_sep;
+            $group_sep = 1;
+            printf ": %-12s : %.1f%% used\n", $key,
                 100 * ( $row->{'used_ratio'} // 0 );
-            printf "  %-12s : %s%s\n", 'resets',
-                $row->{'reset_time'} // '?',
-                countdown_suffix( $row->{'reset_time'} );
+            print_resets_line( $row->{'reset_time'} );
         }
     }
 
     ##  booster wallet \ extra usage  ##
     if ( my $wallet = $data->{'boosterWallet'} ) {
-        printf "  %-12s : balance %s / %s %s\n", 'extra usage',
+        box_sep() if $group_sep;
+        $group_sep = 1;
+        printf ": %-12s : balance %s / %s %s\n", 'extra usage',
             $wallet->{'balance'}            // '?',
             $wallet->{'monthlyChargeLimit'} // '?',
             $wallet->{'currency'}           // '';
     }
 
+    box_close();
     return 1;
 }
 
@@ -232,9 +244,9 @@ sub load_kimi_credentials {
 
 sub print_claude_usage {
 
-    say '== Claude rate limits ==';
+    box_header('Claude rate limits');
 
-    my $token = load_claude_token() or return 0;
+    my $token = load_claude_token() or do { box_close(); return 0 };
 
     my $ua = LWP::UserAgent->new( timeout => $claude_timeout );
 
@@ -256,6 +268,7 @@ sub print_claude_usage {
     if ( not $probe->is_success ) {
         warn ":\n:: claude count_tokens probe failed : "
             . $probe->status_line . "\n:\n";
+        box_close();
         return 0;
     }
 
@@ -323,6 +336,7 @@ sub print_claude_usage {
             if ( not $fallback->is_success ) {
                 warn ":\n:: claude fallback request failed : "
                     . $fallback->status_line . "\n:\n";
+                box_close();
                 return 0;
             }
             $headers = $fallback->headers;
@@ -330,39 +344,47 @@ sub print_claude_usage {
     }
 
     ##  unified utilization headers  ##
-    my $printed = 0;
+    box_sep();
+    my $printed   = 0;
+    my $group_sep = 0;    ## set once a row group has printed ##
     foreach my $window ( [ '5h', '5 hour' ], [ '7d', '7 day' ] ) {
         my ( $suffix, $label ) = @$window;
         my $util = $headers->header(
             "anthropic-ratelimit-uni" . "fied-$suffix-utilization" );
-        next if not defined $util;
-        printf "  %-12s : %.1f%% used\n", $label, 100 * $util;
+        next      if not defined $util;
+        box_sep() if $group_sep;
+        $group_sep = 1;
+        printf ": %-12s : %.1f%% used\n", $label, 100 * $util;
         my $reset = $headers->header(
             "anthropic-ratelimit-" . "unified-$suffix-reset" );
         if ( defined $reset and $reset =~ m|^\d+$| ) {
-            printf "  %-12s : %s ( in %s )\n", 'resets',
-                epoch_to_str($reset), seconds_to_dhms( $reset - time );
+            printf ": %-12s : in %s [ %s ]\n", 'resets',
+                seconds_to_dhms( $reset - time ), epoch_to_str($reset);
         }
         my $status = $headers->header(
             "anthropic-ratelimit-u" . "nified-$suffix-status" );
-        printf "  %-12s : %s\n", 'status', $status if defined $status;
+        printf ": %-12s : %s\n", 'status', $status if defined $status;
         $printed = 1;
     }
 
     ##  any other anthropic-ratelimit-* headers not covered above  ##
     foreach my $name ( sort $headers->header_field_names ) {
-        next if $name !~ m|^anthropic-ratelimit-|;
-        next if $name =~ m,unified-(5h|7d)-,;
-        next if $name =~ m,unified-(5h|7d)?-?(utilization|reset)$,;
-        printf "  %-12s : %s\n", substr( $name, 20, 12 ),
+        next      if $name !~ m|^anthropic-ratelimit-|;
+        next      if $name =~ m,unified-(5h|7d)-,;
+        next      if $name =~ m,unified-(5h|7d)?-?(utilization|reset)$,;
+        box_sep() if $group_sep;
+        $group_sep = 1;
+        printf ": %-12s : %s\n", substr( $name, 20, 12 ),
             $headers->header($name);
     }
 
     if ( not $printed ) {
         warn ":\n:: no anthropic-ratelimit-unified headers in response\n:\n";
+        box_close();
         return 0;
     }
 
+    box_close();
     return 1;
 }
 
@@ -411,13 +433,22 @@ sub window_label {
     return "$duration $unit";
 }
 
-sub countdown_suffix {
+sub print_resets_line {
+    ##  human duration leads [ raw timestamp as reference detail ]  ##
     my $time_str = shift;
-    return '' if not defined $time_str;
-    my $epoch = iso8601_to_epoch($time_str);
-    return '' if not defined $epoch;
-    return sprintf ' ( in %s )', seconds_to_dhms( $epoch - time );
+    if ( not defined $time_str ) {
+        printf ": %-12s : %s\n", 'resets', '?';
+    } elsif ( defined( my $epoch = iso8601_to_epoch($time_str) ) ) {
+        printf ": %-12s : %s [ %s ]\n", 'resets',
+            seconds_to_dhms( $epoch - time ), $time_str;
+    } else {
+        printf ": %-12s : %s\n", 'resets', $time_str;
+    }
 }
+
+sub box_header { print "\n"; say '.:[ ' . shift . ' ]:.' }
+sub box_sep    { say ':' }
+sub box_close  { say ':.' }
 
 sub iso8601_to_epoch {
     my $time_str = shift;
@@ -450,8 +481,8 @@ sub seconds_to_dhms {
     return "$sign$out";
 }
 
-#,,,.,.,,,,.,,,,.,.,.,,..,..,,,..,,,,,,.,,.,,,.,.,...,...,..,,,,,,...,.,.,.,.,
-#QNCP6Y3KIDN3WSAJR2RK47CSCTDEREOGZXXT55CPVT5SPJHYEUQ25JJ4TF3HRYGBFH2KXFKU7F3CQ
-#\\\|EDEUMLAX34UXV3HXPTT6OAIFDXH5G6UNQLRPQH6TZUPFJL3LC7H \ / AMOS7 \ YOURUM ::
-#\[7]J4RRTHP2LDKWPIKPJR7H66PFEVOKAEGMZN2HIEMHG53L6CUD3OBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,,..,,..,..,,...,.,,,,,.,,.,,.,.,...,..,,.,,,...,.,,,.,.,.,,,
+#KEJNFB56XM342WI6UHTJLAJK4W4SMQJNFBJXT6VXR6H6OHCHXR3PH346EIWI3HIAX6VLSLQZX4UG4
+#\\\|TVPNLFZJSLHXNABF7ZDVQDTGOEN554ZSTIUCOXYS4C4ORWUBTOF \ / AMOS7 \ YOURUM ::
+#\[7]I5V6SB6FHU4BDZ4I4UJCZMV5DECDYIE7CCSPEFSJL7SMTTU5Q6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
