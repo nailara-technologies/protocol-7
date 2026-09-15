@@ -957,8 +957,8 @@ adapter respawns), no zenka restart ever needed across the whole pass.
 ## sixth pass [ qwen35 GGUF self-conversion + three-way numerical
 ## verification, 2026-09-15 -- ROOT CAUSE FOUND, and it is NOT the base-
 ## checkpoint mismatch the fifth pass named as its prime suspect: the
-## local petruhonk checkout had a CORRUPT shard 4 [ layers 25.5..31 +
-## final norm unread-but-wrong ] sitting on disk since the 2026-09-10
+## local petruhonk checkout had a CORRUPT shard 4 [ layers 25[attn-out
+## side]..31 + final norm unread-but-wrong ] sitting on disk since the 2026-09-10
 ## fetch, BEFORE any training ran. production's base weights were right
 ## all along; the four trained adapters are the poisoned artifacts.
 ## this is a RETRACTION of the fifth pass's stated suspect [ its
@@ -1185,8 +1185,8 @@ still-open fetch.file.huggingface.* corruption-bug hunt).
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,..,,,.,.,.,,,,,.,.,..,,,,.,..,,,..,,.,,.,.,..,,...,...,...,...,..,,.,.,.,,,
-#ZQJIYCLSAERGZUZFYXBFVM7TFVR4I7MSP4UWV37VVPBBP4MF523JODH2SELQZYUIMSJHVOT7CMTOC
-#\\\|SWUUKV4BGS6EJLLZKXQLXRQBFCTHCOLAPBX7U4724UJJTKOPPTB \ / AMOS7 \ YOURUM ::
-#\[7]H4FQHILRIKTJGARYS4CD3MOKK4VEH3ALDKEFAQDM2EGFU3P4RGDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,,,..,,,,,,,..,,,,,,..,...,,,.,..,,...,..,,.,.,,,,,,,,,,,.,,..,
+#Q3EB5CZ6PU5JULTMIT2YKCVJTV6L4B6ZXN75JKMGMCEYKBIMBTJY7JKRKEYQ2UVYCUKMO5RILPJTU
+#\\\|4NWY3NC4LO6LJHPVRPBBHEXRYQXMMWNDGBIZF3OCRKANGVHBCVJ \ / AMOS7 \ YOURUM ::
+#\[7]CJSVXZAMBZSULYCC75ZKPKQHEE4BWHEHQ3HWELVHHCR4A3335CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
