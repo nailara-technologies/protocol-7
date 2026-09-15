@@ -194,8 +194,27 @@ above). Per the user, Kimi will likely drop the "Preview" suffix from
 K2.8 at some point — the `k2.8` alias name (no "-preview" suffix) was
 chosen deliberately so it won't need renaming again when that happens.
 
-#,,..,,,,,,..,..,,,,.,,..,...,.,.,,,,,.,,,,,,,..,,...,...,...,,,,,,..,..,,..,,
-#VSZ5GTD35D73KPUKYAB5DNZOEV5BVBXEDMMHZRV4NXBIZ255B4S3J5I5XP45RKPTKGCIGO7DDLZUW
-#\\\|HJ32YV76WPUOUN2LMPFQV577JQ762HUNGBAL6S5ZCY26IUBO3BJ \ / AMOS7 \ YOURUM ::
-#\[7]YKX3DX36SV4X5YMOPELHZZ7QDBVHAJK54SCIYJ5W4OPQLGM6FOAQ 7  DATA SIGNATURE ::
+**follow-up signal confirms the default, same day, later**: by the end
+of the attempt-5 LoRA dispatch (the task that produced the original 35%
+data point, continued much further via several `kimi_continue` turns
+including multiple corrective interventions from the human/Claude side),
+weekly usage had climbed to 76% and the short rate-limit window to 75%.
+Given how much genuinely heavy real work happened across that whole arc
+(training orchestration, GGUF conversion, two HF-space probes, a full
+validation sweep, position-matched checks, an extensive write-up, plus
+rework from a few real corrections), the user's assessment — checking
+the actual context log, not just the raw percentage — was that usage
+still felt like *less* than K3 would have cost for the same work, and
+critically that the tokens spent were not wasted: Kimi's application was
+focused and precise, not rambling or repetitive. So the higher absolute
+percentage reflects a large volume of real, well-directed work, not
+inefficiency — this is a second data point supporting the k2.8 default,
+not one complicating it. (Earlier draft of this note misquoted the
+user's read as "still feels like K3" in a negative sense — that was
+wrong; corrected here.)
+
+#,,,.,.,,,,,,,..,,,..,.,.,...,.,,,...,,..,...,..,,...,..,,...,,..,.,.,...,,,,,
+#BNGHHAMW5IJPCG7DCUM7F6MMUPFBCUJ4QUPDNI5RNCLN44O7WPEAAUYQXZ4Q4XSD4DFCZOCKDWTDS
+#\\\|GADGB6QGC6S3TQQ2AFAK6ZPSCAYRSG2OSWY6MVZG54KF5GTNWGN \ / AMOS7 \ YOURUM ::
+#\[7]F26PS5D23Q4DA6FAFKO3ZLXN7GY4AEORAQFT7XYV6XQYB6S66AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
