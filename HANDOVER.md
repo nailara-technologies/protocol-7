@@ -5,6 +5,23 @@ embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
 These names have been getting conflated across sessions/compactions, and it
 has repeatedly cost real momentum — see "the mistake to not repeat" below.
 
+## UPDATE, 2026-09-15 even later — eighth pass done, live-only, no
+## retrain: closed the seventh pass's flash-attn confound question (NOT
+## a confound, scale=0 control reproduces the FA-on baseline almost
+## exactly) and found the first-ever real, scale-responsive live signal
+## in this whole thread -- `' <'` goes 0% -> 0% -> 6.84% (rank 2!) as
+## `--lora-scaled` goes 0 -> 1 -> 4, then peaks and the output degrades
+## into garbage by scale 16 rather than converging toward HF's 83%. Also
+## directly ruled out (by gguf_dump + shape inspection, not just
+## reasoning) both remaining candidate mechanisms from the seventh pass:
+## alpha is present and correct (32.0), and every lora_b tensor's rank
+## dim is uniformly 16 across dense AND ssm tensor types. Read the
+## "eighth pass" section of `data/tasks/coding-lora-p7-idioms.md` before
+## touching this thread further -- next diagnostic proposed there is an
+## F16-vs-Q4_K_M scale-matched comparison via the existing Q8_0 quant
+## (NOT the 18GB F16 GGUF, unsafe to serve on this host, see below).
+## Reusable sweep tool: `data/control-vectors/run_lora_scale_sweep.sh`.
+
 ## UPDATE, 2026-09-15 — LoRA thread ROOT CAUSE FOUND: corrupt local
 ## checkpoint shard, NOT a base mismatch. Read the "sixth pass" section
 ## of `data/tasks/coding-lora-p7-idioms.md` before acting on anything

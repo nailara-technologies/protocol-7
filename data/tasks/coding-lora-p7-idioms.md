@@ -1290,6 +1290,123 @@ ik_llama.cpp's LoRA application on qwen35 not reproduce in deployment
 what PEFT demonstrably computes" -- a serving-side bug hunt, not a
 training-side one.
 
+## eighth pass [ live-only, no retrain -- isolates and closes the seventh
+## pass's flash-attn confound question, then finds and characterizes a
+## real, non-monotonic scale response on the live server for the first
+## time in this thread. still a null on transfer, but a materially
+## different kind of null than passes 1-7: the delta is now confirmed to
+## genuinely reach the live computation and move the right direction, it
+## just saturates around ~7% and degrades rather than converging further ]
+
+**motivation**: reviewing the seventh pass fresh, `coding.spawn_
+inference_server` only pushes `--flash-attn off` when `<coding.cfg.
+lora_adapter>` is non-empty (`src/coding.spawn_inference_server:565-591`)
+-- so every "baseline vs lora-on" sweep in this thread, seventh pass
+included, compares FA-on/no-adapter against FA-off/adapter, two
+variables at once, not one. Before trusting attempt 5's live numbers,
+needed a same-condition sweep: adapter path always set (so FA is off in
+every condition, including the control), varying only `--lora-scaled`.
+
+**method**: `data/control-vectors/lora_invoke_live_position_probe.py`
+(unchanged, the sixth/seventh-pass raw-token-id position-matched
+methodology) run against `LR7NW7A:XT57X3Y` (ge525's Q4_K_M, == production
+weights) with the attempt5 adapter loaded at five scales: 0.0 (true
+control -- same code path/FA state as every other condition, zero
+delta), 1.0, 4.0, 8.0, 16.0. One respawn per scale via `coding.
+switch-model`, health-confirmed before firing. Orchestration script kept
+at `data/control-vectors/run_lora_scale_sweep.sh` (adapted from `run_
+validation_sweep.sh`'s wait/respawn discipline).
+
+**operational notes, recorded so they aren't re-derived**: (a) the probe
+needs `transformers`, which is NOT on the bare system python -- use
+`.venv-lora/bin/python3`. (b) this host has `http_proxy`/`https_proxy`/
+`ALL_PROXY` set in the environment; `curl` sidesteps it with `--noproxy
+'*'` (already in every wait/health check in this thread's scripts), but
+bare `urllib.request` in the probe does NOT -- it silently routes the
+`127.0.0.1:8000` request through the proxy and gets back a live-but-
+useless `HTTP 502 Bad Gateway` that looks like a server problem, not a
+client one. Fix: `NO_PROXY='*' no_proxy='*'` in the probe's environment.
+Cost one wasted respawn+probe cycle before catching it.
+
+**results**:
+
+```
+scale   ' my' top1   ' <' prob   ' <' rank   notes
+0.0      58.99%      <0.16%      --          control -- matches FA-ON baseline (59.10%) almost exactly
+1.0      66.18%      <0.14%      --          matches seventh pass's (confounded) lora-on number exactly
+4.0      85.85%       6.84%      #2          FIRST-EVER live top-15 appearance of the target token, this whole thread
+8.0      61.70%       6.40%      #3          off-distribution tokens (' \\\\', ' ...') entering top-15 -- early degeneration
+16.0     -- ('\n' 26.81% top1)    3.45%      #4          distribution collapsed into garbage (debian, LLL, http) -- general breakdown
+```
+
+**the flash-attn question is closed, in the direction of "not a
+confound"**: scale=0.0 (58.99%) and the original FA-on baseline (59.10%)
+agree to a tenth of a percent; scale=1.0 (66.18%) reproduces the
+seventh pass's FA-off lora-on number exactly. FA state is not driving
+the previously-observed shift. The seventh pass's "side effects were
+real and positive" write-up (truefalse 0->7, modedata 0->1, anti-idiom
+density drop) stands as originally written -- no retraction needed.
+
+**the scale response is real, genuinely adapter-driven, and NOT the
+simple underscaling story the seventh pass proposed**: the seventh
+pass's own scale probe (1.0->5.0 on the POISONED attempt4 adapter,
+' my' 66.2%->65.0%, ' <' absent throughout) was read as "orthogonal to
+the HF delta, not underscaled" -- that conclusion doesn't survive
+contact with the valid adapter. Here, `' <'` genuinely climbs (absent ->
+absent -> 6.84% -> 6.40%) as scale rises from 0 to 8 -- a real, monotonic-
+enough, correctly-DIRECTED response the poisoned-adapter probe never
+showed. But it doesn't converge toward HF's 83.18% top1 the way a pure
+scale deficit would predict: it peaks around 4-8x nominal scale at ~7%,
+then scale 16 doesn't push `' <'` any higher (3.45%, actually lower) --
+instead the ENTIRE output distribution degrades into off-distribution
+noise (`debian`, `LLL`, `http`, bare newlines dominating). This is the
+signature of the delta becoming a source of general numerical damage at
+high scale, not of a correction converging on its target. Whatever gap
+remains between the live server and HF/PEFT is not closeable by simply
+turning the scale dial further.
+
+**why this doesn't point back at (1) scale-formula or (3) SSM-routing
+bugs**: both were re-checked directly against the data before running
+this sweep, not just reasoned about. `gguf_dump.py` on the attempt5
+adapter GGUF confirms `adapter.lora.alpha = 32.0` is present and
+correctly read (ruling out the `alpha ? ... : it.second` fallback path
+at `llama-build-context.cpp:983` silently dropping to a no-alpha/rank
+scale). Per-tensor shapes for `blk.0`/`blk.1` show every `lora_b`
+tensor's rank dimension is uniformly 16 -- dense (`attn_qkv`, `ffn_up/
+gate/down`) and SSM (`ssm_alpha`, `ssm_beta`, `ssm_out`) tensors alike,
+including the small `[16,32]`-shaped `ssm_alpha`/`ssm_beta` pairs --  so
+`scale = user_scale * alpha/rank` computes identically (`user_scale *
+2.0`) for every targeted tensor, no type-specific misread. Combined with
+the seventh pass's routing confirmation (every SSM projection goes
+through `llm_build_lora_mm`, no bare `ggml_mul_mat` bypass), the "silent
+bug" theory across all three original candidate mechanisms is now
+closed by direct inspection, not inference. What's left is some kind of
+precision/numerics interaction specific to the live compute path (Q4_K_M
+base quantization and/or the gated-delta-net's chunked recurrent math
+diluting or partially cancelling the low-rank correction) -- real, but
+not yet isolated to a single fixable line the way the flash-attn and
+lm_head/embed_tokens bugs earlier in this thread were.
+
+**restore state**: production respawned via `coding.switch-model
+OFSQC4I:QDBKEXY backend=gpu`, confirmed healthy, no lora/FA flags in
+process args -- verified via `ps aux` after every stage of this pass,
+not just at the end.
+
+**verdict**: `invoke` is still 0/1 at the decisive live position -- the
+ninth null on generation-level transfer. But it is a qualitatively
+different null than passes 1-7: this is the first time the live server
+has shown ANY measurable, correctly-directed, scale-responsive movement
+toward the target token. The open question narrows from "does the
+adapter do anything live" (now answered: yes) to "why does its effect
+cap around ~7% and degrade rather than converge, when the same delta
+reaches 83% cleanly in HF/PEFT space" -- most likely a quantization- or
+numerics-precision question specific to Q4_K_M + the gated-delta-net
+architecture, worth an F16-vs-Q4_K_M comparison at matched scale as the
+next diagnostic (NOT the 18GB F16 GGUF flagged elsewhere as unsafe to
+serve on this 15GB host -- the pre-existing Q8_0 quant, much higher
+precision than Q4_K_M and already confirmed to fit, is the safe next
+rung to test first).
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1358,8 +1475,8 @@ training-side one.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,.,,,,,,,.,,,.,,,..,,,,,,,,,,,.,,,..,,,.,..,,...,...,...,.,.,,,,,...,,.,,
-#PI2J34KAZS7IYGXPLA7L2CMMRX5DDCDJXN54NIKXCJXMC4OFHPFL6OBN7ML2P6KJFHJCYPG3BXSLK
-#\\\|RHDWJHCMS46VPIFOUXXLIHL3H7ZOVVV4KRQ5QPJMEYLMS5DRS64 \ / AMOS7 \ YOURUM ::
-#\[7]JMJNR5SQJC6E6ORRQ75FQRZTNR6W45SPNYFKTTGO4Z7LZIFF24BA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,..,,.,,,,,,,,.,...,.,,,,,.,..,,...,...,..,,...,..,,,.,,.,,,
+#M7JZGFCP2SMB3WEUCDSJZH5WUA6MLDFDJMOWX5SRCYVC6NYUIHRBAVK3BNJ32JEVDM4GAETR52OUI
+#\\\|7I552S2Q2IFLAXM33N65EUACSAKOEKBI5QYHGYGSSPH5TWG7EPX \ / AMOS7 \ YOURUM ::
+#\[7]COMZYMDSUY6AGM3WW6HCATZWQGEQUMOTUACKDXWB4PLVC6ID6UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
