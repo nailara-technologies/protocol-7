@@ -15,6 +15,7 @@ from peft import PeftModel
 BASE = "/mnt/ext-xfs-data/models-lmstudio/petruhonk/Qwen3.8-9B-Distill-uncensored-heretic"
 CORPUS = "/data/projects/protocol-7/data/idioms/corpus/mined.curated.sft.txt"
 ADAPTERS = {
+    "attempt5-real-fixed-ckpt": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-real-attempt5/adapter",
     "attempt2-real": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-real/adapter",
     "attempt3-lmhead": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-real-lmhead/adapter",
     "attempt4-invoke-oversampled": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-invoke-oversampled/adapter",
@@ -164,8 +165,8 @@ print("===========================================")
 print("higher (less negative) logprob / higher top1_rate = model MORE confident in the")
 print("invoke idiom tokens under that condition, teacher-forced on real in-distribution data.")
 
-#,,.,,,..,...,,..,.,.,...,,,.,...,,.,,.,.,...,..,,...,...,,.,,.,.,...,.,,,,,.,
-#5ZVEUEKVPJV2PED6J6PKBBLI2EDBNZ363ROM5JDMWV2Z3UHIT7VUUST5ERXTGUIA6HLTHIALBDIS6
-#\\\|K7YOJW5RNFDE6H3SBWAJMPVNUQBHRP3YGLSS3SPHOLB5SP3KRRN \ / AMOS7 \ YOURUM ::
-#\[7]KWCSGNI5EQP5PNAE2HVV7KOO5UFOXMBFHRN7HNNMFCGNBXFZC4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,...,,..,,,,,.,.,.,.,,,,,,.,,...,..,,...,...,..,,,,,,,,,,,.,,..,,
+#RPIH62RKTSAOZPYP3VK64HH5QCPYSKICFUXO4CE5KWZANS4LASLUMA3PAOH7QDYRXGFOV7SA6BIZS
+#\\\|RREDGFFQSG4CEU4A5ZVBJM4VRB57675YUPALAHPYSAELEIH7U6K \ / AMOS7 \ YOURUM ::
+#\[7]TH27QGL6XHY6WOI4ATBJ3LZSOKCENA6BDGZTTO7K3N2JPQVA3YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

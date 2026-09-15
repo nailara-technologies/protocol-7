@@ -16,6 +16,7 @@ from peft import PeftModel
 BASE = "/mnt/ext-xfs-data/models-lmstudio/petruhonk/Qwen3.8-9B-Distill-uncensored-heretic"
 CORPUS = "/data/projects/protocol-7/data/idioms/corpus/mined.curated.sft.txt"
 ADAPTERS = {
+    "attempt5-real-fixed-ckpt": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-real-attempt5/adapter",
     "attempt2-real": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-real/adapter",
     "attempt4-invoke-oversampled": "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-invoke-oversampled/adapter",
 }
@@ -201,8 +202,8 @@ for row in summary_rows:
     print(f"{row['label']:30s} {row['mean_avg_logprob']:18.4f} {row['top1_rate']:10.3f}")
 print("=====================================================================================")
 
-#,,.,,,..,.,,,,,.,..,,,,.,.,.,..,,.,,,.,,,,,.,..,,...,...,...,,.,,,..,..,,,..,
-#UYY3ZUDJYS5MF7YS5XG3XALGTR2RZRBG5TDSRWYIK53VA3HFJXXMXHHWGO5EID5EDVVWIRPXPLDJI
-#\\\|AP4JSLQA4ZT45HCBIIABPQWNQRJKEWOYZEBM2PV6WHV2KNHTIP7 \ / AMOS7 \ YOURUM ::
-#\[7]UNAMPFKOKBBRMXZNYBFDRE7X3BD54Y7LSCJZIC5IHK5Y5CO33QCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,,.,,..,,,,.,,.,,,,.,...,,,.,..,,...,...,,,,,,..,,,.,,.,,...,
+#WPQ4GW2GQHPL2SGPAQYZBETH4UU6KZBZJTPR7ETW6253XTFM4L5XJBDHSLVN657VX6MRTXMCQMQTA
+#\\\|QAORWBBU4EBTFIGAAIQAVMNHMUGKYZI77DSWVH7UYXS2DPF2V72 \ / AMOS7 \ YOURUM ::
+#\[7]VJVMKPWO4LIP2VBIKP7OJZU34YLCFBXJO6QCEEB57AX6KKWOESBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
