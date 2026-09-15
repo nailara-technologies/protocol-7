@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.refresh_io
+# descr = io watcher on the refreshing kimi child's stdout : drains output,
+#         detects eof [ child gone ] or read error, hands both to
+#         plugin.usage.kimi.refresh_finish. named handler, not a coderef
+#         closure -- see plugin.usage.kimi.refresh_token's module note on
+#         reload safety.
+
+my $state = <usage.provider.kimi> {'refresh_state'} // return TRUE;
+
+my $bytes = <[base.s_read]>->( $state->{'fh'}, \$state->{'buffer'}, 65536 );
+
+if ( $bytes == 0 ) {
+    <[plugin.usage.kimi.refresh_finish]>->(qw| eof |);
+} elsif ( $bytes == -1 ) {
+    <[plugin.usage.kimi.refresh_finish]>->(qw| error |);
+}
+
+return TRUE;
+
+#,,,,,...,,..,.,,,.,.,,,,,..,,,..,.,,,..,,,.,,.,.,...,...,..,,..,,..,,...,.,,,
+#A7E4MWOARSTLRQNSI7H3EGMP3PHKYT2AG3DBHFNZ7YCK3S3CN2GAG5YVXOT3OM74WRBU7UPGUIDOM
+#\\\|3NYNPO6BEB2JQUM2BZ4IEXW4O57SYHRQYLMTNREUILTHYEAKMTO \ / AMOS7 \ YOURUM ::
+#\[7]4DIISWQXBNND3HCSCTKOX4APYXZ6LKHHC6VCOQ7YVBXUQRJSBOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

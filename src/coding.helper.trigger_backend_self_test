@@ -291,82 +291,21 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
                 if defined $old_timer
                 and eval { $old_timer->is_active };
 
-            ## named lexical so the liveness re-arm below can re-use the  ##
-            ## same callback [ a closure cannot reference itself inline ] ##
-            my $safety_cb;
-            $safety_cb = sub {
-                return
-                    if not <coding.self_test_retry_pending>->{$backend};
-
-                ## liveness re-check before giving up [ item 6, see the     ##
-                ## semantics note above ] : if the probe holding THIS       ##
-                ## backend's slot is still streaming [ the shared           ##
-                ## coding.async.stream_tps/is_alive signal ] and under its  ##
-                ## own outer cap, the guard is held LEGITIMATELY - re-arm   ##
-                ## another window and keep waiting. probe state is keyed by ##
-                ## probe_id, not backend : scan for the entry whose backend ##
-                ## field matches                                            ##
-                my $probe_states = <coding.self_test_probe_state> // {};
-                for my $id ( keys %{$probe_states} ) {
-                    my $pst = $probe_states->{$id};
-                    next if ref $pst ne qw| HASH |;
-                    next if ( $pst->{'backend'} // '' ) ne $backend;
-                    my $http_state = $pst->{'http_state'};
-                    next
-                        if !$pst->{'in_flight'}
-                        or ref $http_state ne qw| HASH |;
-                    next
-                        if !<[coding.async.stream_tps]>->(
-                        qw| is_alive |, $http_state
-                        );
-                    my $outer_cap = <[coding.async.stream_tps]>->(
-                        qw| get_cap |, $http_state
-                    );
-                    next
-                        if <[base.time]>->(3) - ( $pst->{'started'} // 0 )
-                        >= $outer_cap;
-                    <[base.logs]>->(
-                        1,
-                        '[trigger_self_test] backend=%s : guard wait timeout '
-                            . 'but probe %s stream alive [chunks=%d, '
-                            . 'cap=%ds] : re-arming safety net [ %ds ]',
-                        $backend,
-                        $id,
-                        $http_state->{'chunks_received'} // 0,
-                        $outer_cap,
-                        $wait_timeout
-                    );
-                    <coding.self_test_retry_timer>->{$backend}
-                        = <[event.add_timer]>->(
-                        {   'after' => $wait_timeout,
-                            'desc'  => "self-test guard wait "
-                                . "timeout [backend=$backend]",
-                            'cb' => $safety_cb,
-                        }
-                        );
-                    return;
-                }
-
-                ## no live probe holds the slot : genuine guard hang ##
-                delete <coding.self_test_retry_pending>->{$backend};
-                delete <coding.self_test_retry_timer>->{$backend};
-                <[base.logs]>->(
-                    0,
-                    '[trigger_self_test] backend=%s : self-test guard wait '
-                        . 'timeout [ %ds ] : entering service WITHOUT '
-                        . 'self-test validation',
-                    $backend,
-                    $wait_timeout
-                );
-                <[coding.helper.resume_task_queue_for_backend]>->($backend);
-                return;
-            };
+            ## named handler + data slot, NOT a coderef closure : the timer ##
+            ## can outlive this spawn cycle and a source reload mid-wait    ##
+            ## must run current code. the liveness re-check and the self    ##
+            ## re-arm live in the handler itself -- see                     ##
+            ## coding.helper.self_test_safety_timer                         ##
             <coding.self_test_retry_timer>->{$backend}
                 = <[event.add_timer]>->(
                 {   'after' => $wait_timeout,
                     'desc'  =>
                         "self-test guard wait timeout [backend=$backend]",
-                    'cb' => $safety_cb,
+                    'handler' => qw| coding.helper.self_test_safety_timer |,
+                    'data'    => {
+                        'backend'      => $backend,
+                        'wait_timeout' => $wait_timeout,
+                    },
                 }
                 );
         }
@@ -400,8 +339,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,.,,..,.,.,,.,,..,,,,,,,,.,,,.,,..,...,..,,..,,...,...,.,,,.,,,.,,,,,.,,..,
-#6HGH6HLC5DAZPFRQE6JV4O2MJLTUIOZSZN6EFY47KHWDXB3AJWFL6TPUGIBQ3CVDO73YCQ3GRUL6O
-#\\\|M4M4QGSLWV3XCSYCCTKWDTEHDLGCMH5W3VQ2T4KPW5QMOE5NLVN \ / AMOS7 \ YOURUM ::
-#\[7]5RXNQAJGU5EZTAI3NJSPU7BHGCFQUUQZHK5ZB4M4SDLBMW473ICA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,.,,..,,.,,,,.,,..,...,,..,..,,...,..,,,..,...,,.,,,,.,...,
+#QGEI7HXQHTIZCKP3A37LVLQGIUVHEP4P5OKMVIJFXPTBIZUWJWHTWFA5FMGCWT5WGPLD7VIBQ5PDE
+#\\\|P25K7A5TNEHZES2GVYICW6MHM7QQKLSHGUNRSINPQ3FMX5RBKOO \ / AMOS7 \ YOURUM ::
+#\[7]NDGBZUNOUCBAIMRF67HG5L3U4WISLSJGEW76NFKBT4X4F4XGRABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

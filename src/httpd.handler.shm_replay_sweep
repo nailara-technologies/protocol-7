@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = httpd.handler.shm_replay_sweep
+# descr = periodic sweep of expired shm-write replay-protection ntime
+#         entries [ registered as a named event.add_timer handler so the
+#         logic stays reloadable -- the timer itself is only ever created
+#         once per httpd process lifetime, see httpd.handler.shm_write ]
+
+my $sweep_now = <[base.ntime]>->(3);
+
+for my $seen_pkey ( keys %{ $data{'shm.seen_ntimes'} } ) {
+    for my $seen_ntime ( keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} } ) {
+        delete $data{'shm.seen_ntimes'}{$seen_pkey}{$seen_ntime}
+            if $data{'shm.seen_ntimes'}{$seen_pkey}{$seen_ntime} < $sweep_now;
+    }
+    delete $data{'shm.seen_ntimes'}{$seen_pkey}
+        if not keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} };
+}
+
+return TRUE;
+
+#,,,.,.,.,,,.,,,.,..,,,.,,.,,,,.,,.,,,..,,..,,..,,...,...,.,,,,,,,.,,,,,,,...,
+#QK65KDQKNUZVCZKTMKDPX4H2XG6OEUPM5GBB2PAJQ3Q7TOBFO2MIB4FH3SAM3WREQZRGLXHMW6E3O
+#\\\|ER3VLLV4DVLGMCVKO4P5HZ26IF5REUJESQEHAIOE7WSU4OI36MW \ / AMOS7 \ YOURUM ::
+#\[7]MWYTCFLJNTSNEF7YY7ZWJHVZVC2TGQGITYFUUSQZMG22D2CY64BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
