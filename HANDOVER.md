@@ -5,27 +5,30 @@ embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
 These names have been getting conflated across sessions/compactions, and it
 has repeatedly cost real momentum — see "the mistake to not repeat" below.
 
-## UPDATE, 2026-09-15 even later still still still — eleventh pass done,
-## live-only, no retrain: reframed the tenth pass's stalled absolute-
-## activation comparison as a DELTA comparison (adapter-on minus
-## adapter-off, measured separately on each side, since HF/GGUF use
-## different base quantizations and absolute values aren't comparable --
-## see the ninth pass). One bounded pass, found a real, narrowed lead:
-## HF shows a ~20x-larger-than-everywhere-else response at SSM layer 16
-## specifically (+39.85% relative delta vs a ~0.2-2.3% band everywhere
-## else, both sides, all four sampled layers) -- GGUF's own layer 16
-## shows nothing unusual (+1.83%, same small band as its other layers).
-## A real bug caught immediately along the way, same shape as the very
-## first attempt in this whole thread: `eval-callback` (the tool used
-## for this) has no automatic flash-attn/lora guard the way the
-## production server does -- first off/on comparison came back byte-
-## identical until `--flash-attn off` was added explicitly. Caveats:
-## n=1 prompt, n=1 run, a coarse whole-tensor-sum metric -- needs a
-## second prompt + per-position breakdown before "layer 16 specifically"
-## is more than suggestive. Read the "eleventh pass" section of
-## `data/tasks/coding-lora-p7-idioms.md`. Reusable tooling: `data/
-## control-vectors/run_activation_delta_sweep.sh` (GGUF side) + `data/
-## control-vectors/hf_activation_delta_probe.py` (HF side).
+## UPDATE, 2026-09-15 even later still still still — eleventh pass done
+## AND self-corrected with a second prompt, live-only, no retrain.
+## Reframed the tenth pass's stalled absolute-activation comparison as a
+## DELTA comparison (adapter-on minus adapter-off, per side, since HF/
+## GGUF use different base quantizations -- see the ninth pass). First
+## prompt suggested a specific culprit, SSM layer 16 (+39.85% HF vs
+## +1.83% GGUF); a second, unrelated prompt immediately run as the
+## planned reproducibility check moved the biggest-mover layer to 19
+## instead (+42.16% HF vs +23.21% GGUF that time) -- "layer 16
+## specifically" does NOT survive and is corrected in the task file, not
+## left standing. What DOES survive, better-evidenced by the second data
+## point: GGUF's response to the adapter is real but attenuated, and the
+## attenuation is content-dependent and inconsistent (roughly half-
+## strength in one prompt, indistinguishable from noise in the other),
+## not a fixed broken layer or a fixed ratio. Also caught a real bug
+## along the way, same shape as the very first attempt in this whole
+## thread: `eval-callback` has no automatic flash-attn/lora guard the
+## way the production server does -- first off/on comparison came back
+## byte-identical until `--flash-attn off` was added explicitly. Read
+## the "eleventh pass" section (including its own correction addendum)
+## in `data/tasks/coding-lora-p7-idioms.md`. Reusable tooling: `data/
+## control-vectors/run_activation_delta_sweep.sh` (GGUF side, takes a
+## prompt arg) + `data/control-vectors/hf_activation_delta_probe.py`
+## (HF side, same).
 
 ## UPDATE, 2026-09-15 even later still still — tenth pass STARTED, NOT
 ## finished: an HF-vs-llama.cpp base-model activation comparison

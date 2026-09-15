@@ -1668,6 +1668,40 @@ equivalent capture on the HF side restricted to one position at a time)
 source-level read of whatever `ssm_alpha`/`ssm_beta`/`ssm_out` computation
 is architecturally distinct about layer 16 versus 0.
 
+**correction, same session -- the (a) reproducibility check above was
+run immediately after writing this, and "layer 16 specifically" does
+NOT survive it.** Same method, same four layers, second unrelated
+prompt ("Colorless green ideas sleep furiously", 7 tokens):
+
+```
+layer   type   prompt1 HF / GGUF     prompt2 HF / GGUF
+0       ssm     2.28% / -0.21%        4.17% /  0.22%
+16      ssm    39.85% /  1.83%       20.82% /  3.42%
+3       dense   0.64% /  0.15%        1.11% /  0.90%
+19      dense  -0.96% / -2.12%       42.16% / 23.21%
+```
+
+the biggest-mover layer is NOT fixed -- it's 16 in prompt 1, 19 in prompt
+2. That alone rules out "something architecturally special about layer
+16" as stated. What survives, better-evidenced by having a second data
+point rather than weakened by it: GGUF's response to the adapter is
+real but consistently smaller than HF's, and the SIZE of that gap is
+itself inconsistent -- in prompt 2, GGUF partially tracks HF's outlier
+layer (23.21% vs 42.16%, roughly 2x undershoot, same layer correctly
+identified as the biggest mover); in prompt 1, GGUF shows nothing
+distinguishable from its own noise floor at the layer HF flagged
+(1.83%, not meaningfully different from its other three layers'
+0.15-2.12% range) even though HF showed a dramatic, unambiguous spike
+there (39.85%). So: not a fixed broken layer, not a fixed underscaling
+ratio either -- a content-dependent attenuation that ranges from
+"roughly half-strength" to "essentially absent," which is a real,
+useful correction to carry forward rather than a dead end. Doesn't
+change the pass's other conclusions (the flash-attn/eval-callback bug
+find stands on its own regardless). Stopping here per the pass's own
+pre-registered discipline -- two prompts is the bounded check that was
+promised, not an open invitation to keep adding prompts until a clean
+pattern appears.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1736,8 +1770,8 @@ is architecturally distinct about layer 16 versus 0.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,,.,,.,,,..,.,,,,,,,...,.,,,...,,,.,..,,,,,,..,,...,...,..,,.,,,.,.,.,,,.,.,
-#YTPPMRXT2OXBZ7QSNGITXYJM5FTFLSPHOF4LTBK6CI5BNRGP2VAJ4FSN76L4CMJ3WWAM4TFDDBTZQ
-#\\\|WE66JPNZQALGGCVKSTDRY74XUPXKJQRHOH6LLPI3TLYF2SIFE3B \ / AMOS7 \ YOURUM ::
-#\[7]UPVGO37T7MALNOEUIROBW4WU3ZOLKQEE4HCN2GZSFSCPIJIJUECQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,,,,,...,,..,.,.,,,.,...,,..,..,,...,...,,,.,.,,,,..,.,.,,,.,
+#FY7S7CV2UUQJZVQQVAYDJAVZG4U43P2F4AV3JAW6BE2NISVRD6APOSAHSHB3K65J7V3D26MQP2U4G
+#\\\|ZE46NIH62MUJQQH7QE5O7XIQUJXILWGRSYB3NHPRAQIB74MQTPT \ / AMOS7 \ YOURUM ::
+#\[7]W33HOHA3XY2O2JQ6LYRPC6ES76VOD3C6PKTK24DETDWSS2YWRMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
