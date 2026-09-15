@@ -90,8 +90,7 @@ if ( length $command_params ) {
         @candidates = grep { $corpus_ok{$ARG} } @candidates;
         <[base.logs]>->(
             2,
-            ': :inlist: %d of %d given file%s '
-                . 'are part of the signed corpus',
+            ': :inlist: %d of %d given file%s are part of the signed corpus',
             scalar @candidates,
             $candidate_count,
             <[base.cnt_s]>->($candidate_count)
@@ -350,8 +349,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,..,.,.,,,,,,..,,.,,,,.,,.,,.,.,.,.,,,,,.,.,..,,...,...,,,.,,,.,..,,..,,..,,
-#ITNLDSLI7PLOIXCOI2YGHINGVJHQ3G5NNVDSE47NWPITA5KEEQ2FDCWAN3GR7HVJODS2RWOZKTVLS
-#\\\|UUVECFUXODZ4C3MMBYHKZH5UUGENKR2XRMNJKRDJY4V6TKZLUKF \ / AMOS7 \ YOURUM ::
-#\[7]6GDVGVJG3DVZUMEQYLOUDHJZWMCWKIVMAC65OEDHMO7CG64VBUBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,.,.,,,.,.,,,.,.,,.,,..,,,..,..,,...,...,,,,,.,,,,.,,...,,,.,
+#IM2EPM2T65MX6IMEA3NVEEBGY7AHGL6EEKMWZO4UTZ7M4CCNE6OEAULLJPV5VTAE6O7Q57GXWNPEW
+#\\\|MQ2BTBTACHFH4MAKMPJOIOVT7QQOOY5IEIDJNOZ22SFBKLR6GEK \ / AMOS7 \ YOURUM ::
+#\[7]3FWYQBPTQMHU4OOMJDHXIETO2RUO7ALZD3VB46YX3MVR42X5WKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

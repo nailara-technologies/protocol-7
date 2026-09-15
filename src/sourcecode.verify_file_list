@@ -14,12 +14,13 @@
 #         <signature_key_name> [, <worker_tag>]
 # return = hashref : { valid_count, invalid_count, repair_needed_count }
 
-my $path_aref           = shift;
-my $work_tree           = shift;
-my $verify_verbosity    = shift // 2;
-my $verify_mode         = shift // qw| strict |;
-my $signature_key_name  = shift;
-my $worker_tag          = shift;    ## undef : sequential/interactive caller ##
+my $path_aref          = shift;
+my $work_tree          = shift;
+my $verify_verbosity   = shift // 2;
+my $verify_mode        = shift // qw| strict |;
+my $signature_key_name = shift;
+## undef : sequential/interactive caller ##
+my $worker_tag = shift;
 
 my $valid_count         = 0;
 my $invalid_count       = 0;
@@ -90,8 +91,7 @@ foreach my $path_rel ( $path_aref->@* ) {
     }
 
     my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
-        \$src_str, $footer_data, {}, $signature_key_name,
-        $verify_mode
+        \$src_str, $footer_data, {}, $signature_key_name, $verify_mode
     );
 
     my $was_repaired
@@ -111,8 +111,8 @@ foreach my $path_rel ( $path_aref->@* ) {
             $was_reconstructed ? 'reconstructed' : 'repaired', $path_abs
         );
         <[file.put_bin]>->( $path_abs, \$src_str );
-        $footer_data->{'repaired'}       = TRUE;
-        $footer_data->{'reconstructed'}  = TRUE if $was_reconstructed;
+        $footer_data->{'repaired'}      = TRUE;
+        $footer_data->{'reconstructed'} = TRUE if $was_reconstructed;
     }
 
     if ($is_valid) {
@@ -137,8 +137,8 @@ foreach my $path_rel ( $path_aref->@* ) {
             );
         }
 
-        ##  displaying valid signature counter in verbose mode -- only in ##
-        ##  the sequential/interactive path : workers don't own the tty  ##
+        ## displaying valid signature counter in verbose mode -- only in ##
+        ## the sequential/interactive path : workers don't own the tty   ##
         printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
             $colors{'p7_fg_0003'},
             $colors{'B01'}, $valid_count, $colors{'reset'}
@@ -187,8 +187,8 @@ return {
     qw| repair_needed_count | => $repair_needed_count
 };
 
-#,,,,,,.,,.,,,.,.,..,,,..,,,,,..,,,,.,,.,,...,..,,...,..,,..,,,..,..,,...,.,,,
-#G62S3BUI37S2JAZEHKLY4FZIX2I2QSE64FBYFECJWWJQOIB2PAM56Z3LD6T6GMFLQMDNTFBRY467E
-#\\\|PCBNR5424JFYK7X54MFMA7WQ5RS7UJBCPDYZXAXPND4J5UEJ36M \ / AMOS7 \ YOURUM ::
-#\[7]EAFPMJOOJPXHRXAWL5ZRGQFU73GTH2ID543TS7F3SVNDFLXUG2BA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,..,,..,,,..,.,,,.,.,,..,,,,,..,,...,...,.,,,,..,.,,,.,,,,,,,
+#5F5BKNDB52M76ZALQW7ALMX2IIFIFHT534GMEOIKDLGOOHBXRQGGUDUK3FUOEUKMXYVGY3DXQ2ITS
+#\\\|XDIUIHF36IZW2XHYZSN4RRSH3GWUARKIPBE7CASENZM5RX6FJJY \ / AMOS7 \ YOURUM ::
+#\[7]BH4G2VUAKWOSMHYEKMFCOITD3ZED4BPFSHA4ADDVHFAOPGISIODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
