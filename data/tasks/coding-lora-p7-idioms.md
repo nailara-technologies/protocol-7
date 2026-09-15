@@ -1483,6 +1483,96 @@ numerical debugging, not a probe/sweep), not started.
 OFSQC4I:QDBKEXY backend=gpu`, confirmed healthy, no lora/FA flags in
 process args.
 
+## tenth pass [ started, NOT finished -- an initial HF-vs-llama.cpp
+## base-model activation comparison, the ninth pass's proposed next
+## diagnostic. Inconclusive at the sample size reached; also produced a
+## real infrastructure mistake worth recording before the actual result ]
+
+**the mistake, record first so it isn't repeated**: the initial attempt
+at the HF side of this comparison loaded the checkpoint as full fp32
+**on CPU** (`AutoModelForCausalLM.from_pretrained(..., torch_dtype=
+torch.float32, device_map="cpu")`) -- roughly 36GB for a 9B model, on a
+host with 15GB total RAM. This was a real deviation from every other HF
+probe in this thread (`lora_invoke_probe.py` and siblings all load
+4-bit on GPU: `BitsAndBytesConfig(load_in_4bit=True, ...)`, `device_map=
+{"": 0}`). The run was interrupted mid-load by a genuine host-stability
+incident (a WSL shutdown loop forcing a full host restart, which also
+pulled in pending Windows updates) -- per the user, likely memory
+pressure, compounded by Firefox's own long-session footprint, and this
+fp32-on-CPU load very plausibly tipped it over. No production data was
+lost (git state was clean and pushed through the ninth pass before this
+happened) and the coding zenka's own GPU server was untouched throughout
+(it was already offline for an unrelated reason at the time). **Lesson,
+durable**: never deviate from the established 4-bit-on-GPU loading
+pattern for this checkpoint on this host -- reuse `lora_invoke_probe.py`'s
+exact loading block, don't reinvent it. Filed a separate, more general
+follow-up in `data/tasks/powershell-host-memory-commands.md` (Windows-
+host-side memory visibility gap, unrelated to this task's own mistake
+but surfaced by the same incident).
+
+**redone correctly, real result**: `Qwen3_5ForCausalLM.from_pretrained`
+with the standard nf4 4-bit config, `device_map={"": 0}`, bf16 compute
+-- matches every other HF probe in this thread. Compared against
+`data/source/ik_llama.cpp/build-cpu/bin/llama-eval-callback` (a stock
+llama.cpp example, newly built from the existing `build-cpu` CMake
+config -- unrelated `build/` dir turned out to have a stale/incomplete
+Makefile, left alone rather than repaired since `build-cpu` already
+worked) run CPU-only against the Q8_0 GGUF with `-c 128` (explicitly
+capped context -- the default 262144 pulled in an 8GB KV cache for a
+4-token prompt on the first, uncapped run; harmless in itself but
+unnecessary memory pressure, avoid on this host). Prompt: "The quick
+brown fox" (4 tokens, ids `[760, 3841, 13477, 37550]`, confirmed
+identical tokenization both sides, confirmed no BOS prepended on either
+side -- `inp_tokens{4,1,1,1}` on the GGUF side matches the HF token
+count exactly). No adapter on either side. Captured: the raw token
+embedding for token 760, plus position-0 hidden state after layer 0 (an
+SSM/gated-delta-net layer) and after layer 3 (a dense full-attention
+layer, `full_attention_interval=4` -- confirmed via the per-layer KV-size
+table in eval-callback's own startup log, layers 3/7/11/... are the only
+ones with a real KV allocation). Position 0 only, deliberately -- causal
+masking means position 0's value is independent of later tokens on the
+attention path, minimizing alignment risk between the two
+implementations.
+
+```
+                          HF (first 3 dims)          GGUF (first 3 dims)
+input embedding (tok 760)  0.0061  -0.0150  -0.0022    0.0062  -0.0149  -0.0021   -- near-exact, Q8_0 rounding only
+layer0_out (SSM, pos 0)   -0.0562  -0.0383   0.0005   -0.0568  -0.0356  -0.0033   -- small diffs, one near-zero-value outlier
+layer3_out (dense, pos 0)  0.0037   0.1543  -0.0283    0.0200   0.1348  -0.0474   -- larger diffs, still same order of magnitude
+```
+
+**honest read**: the token embedding itself matches almost exactly (as
+expected -- a pure weight-table lookup, and consistent with the
+checkpoint-identity verification done earlier in this thread). The two
+hidden-state comparisons are NOT decisive either way at this sample
+size -- 8 of 4096 dimensions, one position, two layers. If anything, the
+dense attention layer (3) shows larger relative differences in this tiny
+sample than the SSM layer (0), which would argue against "the SSM path
+specifically is where HF and llama.cpp diverge" -- but 8 dimensions is
+nowhere near enough to draw that conclusion; it could just as easily be
+sampling noise. A real answer needs an aggregate metric (cosine
+similarity or relative L2 norm) across the FULL hidden-state vector, at
+several layers spanning both SSM and dense positions, ideally at more
+than one sequence position -- meaningfully more implementation work than
+this pass reached. **Not finished.** Parking here rather than pushing
+further this session: three decisive refutations (routing, scale-
+formula/shape, base quantization) are already banked from the eighth and
+ninth passes, this comparison's payoff is uncertain and open-ended by
+comparison, and continuing to load models on this host again the same
+session as a real stability incident warranted caution over momentum.
+
+**reusable for next time**: `data/source/ik_llama.cpp/build-cpu/bin/
+llama-eval-callback` is now built and available (CPU-only, no GPU/
+production contention) -- dumps every named tensor in the graph
+(matches the `cb()` call sites already traced in the eighth pass's
+routing check) for a given prompt. Always pass `-c <small number>` to
+avoid an oversized default-context KV allocation. The HF-side loading
+block to reuse is saved as `data/control-vectors/hf_activation_probe.py`
+-- captures embedding + layer0/layer3 position-0 hidden states for a
+fixed 4-token prompt as a working example; extend it (more layers, full-
+vector norms, more positions) rather than rewriting the loading/hook
+scaffolding from scratch.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1551,8 +1641,8 @@ process args.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,,.,.,,,.,,,,.,,,,.,,,.,,..,..,,,,.,,..,,,.,..,,...,..,,,,.,.,.,...,,,,,..,,
-#XXURTIB73IX5EZHVG3FWXLHHNBWVCSRIJLK27C4RKKZHXXY4BL4RYYZX44HO3B6NPP5XCOZCAFPHC
-#\\\|N3W2KDU7QMQJHONJF7YWTE4OFGLVTAL3VCPJM5P6IAF6ESLFIJL \ / AMOS7 \ YOURUM ::
-#\[7]CG554W52IWDU3PYNIQGM3EQPDCTGDB7XP7JB5SJKWEV3XSCGP6BY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,..,,,..,..,,..,,..,,.,,,...,..,,...,...,,,.,.,,,..,,...,..,,
+#2DI5QXF2W4BCGOPLPNHFQSLVDOIFGE7XBWLPYNBHWSZPTSDCHB7TZMB75LAZ5LLZYZEGZVSJNKNFY
+#\\\|7ZWTG4WWEIAJSQYG5V4XPMF5OC322XQZXI7HX3GIXNRTZ4T3OV3 \ / AMOS7 \ YOURUM ::
+#\[7]FVUZXN6AFUL5OU7XOJEID34AINGQ6OKPZO4JRCX4MXWZEHP7EYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
