@@ -281,20 +281,7 @@ if ( not defined <httpd.shm_sweep_timer> ) {
     <httpd.shm_sweep_timer> = <[event.add_timer]>->(
         {   'interval' => $window_secs,
             'desc'     => 'shm replay cache sweep',
-            'cb'       => sub {
-                my $sweep_now = <[base.ntime]>->(3);
-                for my $seen_pkey ( keys %{ $data{'shm.seen_ntimes'} } ) {
-                    for my $seen_ntime (
-                        keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} } ) {
-                        delete $data{'shm.seen_ntimes'}{$seen_pkey}
-                            {$seen_ntime}
-                            if $data{'shm.seen_ntimes'}{$seen_pkey}
-                            {$seen_ntime} < $sweep_now;
-                    }
-                    delete $data{'shm.seen_ntimes'}{$seen_pkey}
-                        if not keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} };
-                }
-            },
+            'handler'  => qw| httpd.handler.shm_replay_sweep |,
         }
     );
 }
@@ -380,8 +367,8 @@ $session->{'watcher'}->{'input_buffer'}->now;
 
 return 1;
 
-#,,,.,.,.,,,.,,,,,...,.,.,...,,,,,...,,..,,,.,..,,...,...,,,.,,.,,.,,,.,,,...,
-#XN5NS4CUI7ITK376BNYBL7WIA4WTGHBYNHKMKCZHZXO3EBBZDNT3FIXO2E337LAD53PKC64C7M6YW
-#\\\|RVVY4INYMTKLVABPV55ADLMEIW34MK6CVI5KOGYM5S7II6CEZVD \ / AMOS7 \ YOURUM ::
-#\[7]LWNKKI7HXNACFYN6HTHOT6CKD3XQM5ZVIN4NWZCLQ2IN2ODHHSAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,.,,..,,,.,.,.,,..,...,...,..,,...,..,,..,,,,,,..,,,.,,.,,,
+#ETL2R3NSPD2KA4WWBN5W7XMTV2ONH4C7FOT7WYHM5WSHT4KK3OR344BW552LVGK7KH654R6JR3Q4M
+#\\\|EW4DAB76MXEW36TU44PESVJ4KJCEUUVYZMWGI3L6EYXMCSL2GAC \ / AMOS7 \ YOURUM ::
+#\[7]WIT5ZC347OJCY7XDFOHVULS54YREBYX5N7ECAHYDSDIQZ7VVPGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

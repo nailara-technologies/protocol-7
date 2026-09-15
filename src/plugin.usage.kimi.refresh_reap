@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.refresh_reap
+# descr = non-blocking reap poll after sigterm during a kimi refresh : each
+#         0.1s tick tries waitpid WNOHANG; sigkill only after the 3s soft
+#         grace period, then a final blocking reap [ a SIGKILL'd process is
+#         gone immediately -- the D-state corner is not worth a third
+#         watcher tier ]. named handler, not a coderef closure -- state
+#         resolves from the single-slot <usage.provider.kimi>{'refresh_state'}.
+
+my $state = <usage.provider.kimi> {'refresh_state'} // return TRUE;
+
+if ( <[base.waitpid]>->( $state->{'pid'} ) == $state->{'pid'} ) {
+    <[plugin.usage.kimi.refresh_cleanup]>->(qw| terminated |);
+} elsif ( time() >= ( $state->{'soft_end'} // 0 ) ) {
+    kill( 'KILL', $state->{'pid'} );
+    <[base.waitpid]>->( $state->{'pid'}, 0 );
+    <[plugin.usage.kimi.refresh_cleanup]>->(qw| killed |);
+}
+
+return TRUE;
+
+#,,,,,,,,,,.,,,..,,,.,,.,,,..,,,.,..,,,,,,,,,,.,.,...,...,...,..,,,,,,..,,.,.,
+#KZSLQIHT5Q7K67L7ACWBDHFHWQNQC76TUL7AJ2UBQBSS32CTWQRYTTUFXB2RNE7KU2RHCZQPNKZCQ
+#\\\|IMASBXF5RUBCLN5HGWM7LVR4HTTDVXPKK7UF5JSMECYGELYOPDY \ / AMOS7 \ YOURUM ::
+#\[7]UCEBSIJVE3IFC22HLWKSEQIQIORLKCYCGE43XE2C6PZKMVM2FSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

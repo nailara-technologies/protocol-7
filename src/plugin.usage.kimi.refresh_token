@@ -8,7 +8,7 @@
 #         a last resort ] -- the kimi cli refreshes its own oauth token
 #         during startup, before it ever reaches a point that would cost a
 #         real inference token.
-# param = [ timeout ] [ { on_done => coderef } ]
+# param = [ timeout ] [ { on_done => { handler => <name>, params => {} } } ]
 # note  = NON-BLOCKING since 2026-09-15 : the child side and the kill
 #         discipline are unchanged, but the parent's full-timeout wait runs
 #         as Event watchers [ io on the child's stdout + deadline timer +
@@ -18,10 +18,14 @@
 #         timeout ] fired its deadline the moment the loop resumed : first
 #         combined query after a kimi token expiry always killed the claude
 #         side while kimi itself recovered via the transparent retry.
-#         the response handler now passes its retry scheduling as on_done,
-#         so the retry only starts once the refresh actually finished.
-#         single slot : a second call while a refresh is still running
-#         returns FALSE without starting another child.
+# note  = all event callbacks are NAMED HANDLERS [ plugin.usage.kimi.
+#         refresh_io / refresh_timeout / refresh_reap ], not coderef
+#         closures -- the timer/io watchers outlive any single refresh
+#         cycle and a source reload mid-cycle must not leave stale compiled
+#         closures registered ; the shared per-cycle state lives in the
+#         single-slot <usage.provider.kimi>{'refresh_state'} and every
+#         handler resolves it from there. see the reload-safety rationale
+#         in base.event.add_timer's handler branch.
 # note  = the actual root cause, found the hard way 2026-09-15 : kimi shows a
 #         one-time "Trust this folder?" prompt for any working directory it
 #         hasn't seen before [ tracked in ~/.kimi-code/workspaces.json ], and
@@ -180,118 +184,48 @@ close($stdin_read);
 close($out_write);
 close($err_write);
 
-## from here on the parent NEVER BLOCKS : the full-timeout wait that used ##
-## to be a select loop is now an io watcher on the child's stdout plus a  ##
-## deadline timer, and the sigterm grace period is a polling timer around ##
-## non-blocking waitpid -- the event loop keeps serving other providers [ ##
-## claude probes especially ] while kimi runs its startup cycle           ##
-my $state = {
+## from here on the parent NEVER BLOCKS, and no event callback is a coderef ##
+## closure : the io watcher, the deadline timer and the reap poll are all   ##
+## named handlers resolving the single-slot per-cycle state below           ##
+$provider->{'refresh_state'} = {
     'pid'      => $pid,
     'fh'       => $out_read,
     'err_fh'   => $err_read,
     'buffer'   => '',
     'deadline' => time() + $timeout,
     'on_done'  => (
-        ref $on_done eq qw| HASH | and ref $on_done->{'cb'} eq qw| CODE |
+        ref $on_done eq qw| HASH | and length( $on_done->{'handler'} // '' )
         )
-    ? $on_done->{'cb'}
+    ? { 'handler' => $on_done->{'handler'},
+        'params'  => $on_done->{'params'} // {},
+        }
     : undef,
     'io_w'       => undef,
     'timer_w'    => undef,
     'reap_timer' => undef,
 };
 
-$provider->{'refresh_state'} = $state;
-
-my $finish;
-
-my $cleanup = sub {
-    my $how = shift // qw| done |;
-    foreach my $w ( $state->{'io_w'}, $state->{'timer_w'},
-        $state->{'reap_timer'} ) {
-        $w->cancel if defined $w;
-    }
-    close( $state->{'fh'} )
-        if defined $state->{'fh'} and defined fileno $state->{'fh'};
-    close( $state->{'err_fh'} )
-        if defined $state->{'err_fh'}
-        and defined fileno $state->{'err_fh'};
-    delete $provider->{'refresh_state'};
-    <[base.logs]>->(
-        2, '[usage.kimi.refresh_token] kimi startup cycle complete [ %s ]',
-        $how
-    );
-    $state->{'on_done'}->() if defined $state->{'on_done'};
-    return;
-};
-
-## sigterm first, sigkill only if it doesn't respond -- see the module note
-## above for why this matters. reaping is itself non-blocking : a 0.1s poll
-## timer around waitpid WNOHANG, sigkill after the soft grace period
-my $start_terminate = sub {
-    kill( 'TERM', $pid );
-
-    my $soft_end = time() + 3;
-    $state->{'reap_timer'} = <[event.add_timer]>->(
-        {   'interval' => 0.1,
-            'cb'       => sub {
-                if ( <[base.waitpid]>->($pid) == $pid ) {
-                    $cleanup->(qw| terminated |);
-                } elsif ( time() >= $soft_end ) {
-                    kill( 'KILL', $pid );
-                    ## sigkill post-kill reap cannot block in practice [ a ##
-                    ## SIGKILL'd process is gone immediately ; the D-state ##
-                    ## corner is not worth a third watcher tier ]          ##
-                    <[base.waitpid]>->( $pid, 0 );
-                    $cleanup->(qw| killed |);
-                }
-            },
-        }
-    );
-};
-
-## child closed its own stdout : already gone or exiting on its own -- a plain
-## blocking reap is correct here precisely BECAUSE eof means the child is
-## already dead, waitpid returns instantly
-my $on_eof = sub {
-    <[base.waitpid]>->( $pid, 0 );
-    $cleanup->(qw| eof |);
-    return;
-};
-
-$finish = sub {
-    my $how = shift;
-    if    ( $how eq qw| eof | )   { $on_eof->() }
-    elsif ( $how eq qw| error | ) { $start_terminate->() }
-    else                          { $start_terminate->() }
-    return;
-};
-
-$state->{'io_w'} = <[event.add_io]>->(
-    {   'fd'   => fileno($out_read),
-        'poll' => qw| r |,
-        'cb'   => sub {
-            my $bytes
-                = <[base.s_read]>->( $out_read, \$state->{'buffer'}, 65536 );
-            if    ( $bytes == 0 )  { $finish->(qw| eof |) }
-            elsif ( $bytes == -1 ) { $finish->(qw| error |) }
-            return;
-        },
+$provider->{'refresh_state'}->{'io_w'} = <[event.add_io]>->(
+    {   'fd'      => fileno($out_read),
+        'poll'    => qw| r |,
+        'desc'    => 'kimi refresh stdout',
+        'handler' => qw| plugin.usage.kimi.refresh_io |,
     }
 );
 
 ## the tui keeps redrawing rather than ever closing its own stdout, so this
 ## deadline firing is the normal, expected outcome -- not a failure signal
-$state->{'timer_w'} = <[event.add_timer]>->(
-    {   'after' => $timeout,
-        'cb'    => sub { $finish->(qw| timeout |) },
+$provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'desc'    => 'kimi refresh deadline',
+        'handler' => qw| plugin.usage.kimi.refresh_timeout |,
     }
 );
 
 return TRUE;
 
-#,,,,,.,,,,,.,,..,,.,,,,.,,,,,.,.,.,.,,..,,,.,.,.,...,...,.,,,,,.,,,.,.,,,..,,
-#44VLWETP5VVEGSFY64HQOV4DRBMCPTRADL4QXDVGQ2AWXNIVBPSDQF7A57FNNSQ5GZASFTDTCKDQU
-#\\\|WATDUHCDJOBJRIMZ7S6GZXKEI4TYOZNNCTXOIAKO4COQBC4I6EM \ / AMOS7 \ YOURUM ::
-#\[7]3EDVH6FSEK6B5WHKHJ65SHCS4ICAGJAYUCU4TYAQOAQPXSWDM6AA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,...,,,.,,..,,,,,.,,,,.,,,..,.,.,...,...,..,,,.,,.,,,,,.,...,
+#6UEP3RT4PZJLZS47W4QDFP3YAX7AAWGFNZYQP5YJDWQC75N5GBNS454V7Y332AEFBDLMILVS5I364
+#\\\|BWORHBKSWA4FSPT52UTMT4Q7NEIOPOPGM5NQEXB2GFHHEJYHHC7 \ / AMOS7 \ YOURUM ::
+#\[7]OYJPYCPBMIRFKR6ZXFNMADFI25DDL3TOZ7J6WCNKFIKAGJVUXUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

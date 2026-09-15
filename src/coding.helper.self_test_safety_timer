@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = coding.helper.self_test_safety_timer
+# descr = per-backend safety-net timer for the backend self-test guard wait
+#         [ registered by coding.helper.trigger_backend_self_test as a named
+#         handler, not a coderef closure, so a source reload mid-wait still
+#         runs current code -- the timer can outlive the spawn cycle that
+#         created it ]. when it fires : liveness re-check first -- if the
+#         probe holding this backend's slot is still streaming and under
+#         its own outer cap, the guard is held legitimately and the timer
+#         re-arms itself for another window. a genuinely hung guard gives
+#         up exactly like the old exhaustion path did : clear state, log
+#         loudly, resume the queue WITHOUT self-test validation.
+# note  = state arrives via the watcher's data slot, not a lexical closure :
+#         { backend => <name>, wait_timeout => <seconds> }
+
+my $data         = shift->w->data          // {};
+my $backend      = $data->{'backend'}      // return TRUE;
+my $wait_timeout = $data->{'wait_timeout'} // 0;
+
+return TRUE if not <coding.self_test_retry_pending>->{$backend};
+
+## liveness re-check [ item 6, see the semantics note in
+## coding.helper.trigger_backend_self_test ] : if the probe holding THIS
+## backend's slot is still streaming [ the shared coding.async.stream_tps
+## is_alive signal ] and under its own outer cap, the guard is held
+## LEGITIMATELY - re-arm another window and keep waiting. probe state is keyed
+## by probe_id, not backend : scan for the entry whose backend field matches
+my $probe_states = <coding.self_test_probe_state> // {};
+for my $id ( keys %{$probe_states} ) {
+    my $pst = $probe_states->{$id};
+    next if ref $pst ne qw| HASH |;
+    next if ( $pst->{'backend'} // '' ) ne $backend;
+    my $http_state = $pst->{'http_state'};
+    next
+        if !$pst->{'in_flight'}
+        or ref $http_state ne qw| HASH |;
+    next
+        if !<[coding.async.stream_tps]>->( qw| is_alive |, $http_state );
+    my $outer_cap
+        = <[coding.async.stream_tps]>->( qw| get_cap |, $http_state );
+    next
+        if <[base.time]>->(3) - ( $pst->{'started'} // 0 ) >= $outer_cap;
+    <[base.logs]>->(
+        1,
+        '[trigger_self_test] backend=%s : guard wait timeout but probe %s '
+            . 'stream alive [chunks=%d, cap=%ds] : re-arming safety net [ '
+            . '%ds ]',
+        $backend,
+        $id,
+        $http_state->{'chunks_received'} // 0,
+        $outer_cap,
+        $wait_timeout
+    );
+    <coding.self_test_retry_timer>->{$backend} = <[event.add_timer]>->(
+        {   'after'   => $wait_timeout,
+            'desc'    => "self-test guard wait timeout [backend=$backend]",
+            'handler' => qw| coding.helper.self_test_safety_timer |,
+            'data'    => {
+                'backend'      => $backend,
+                'wait_timeout' => $wait_timeout,
+            },
+        }
+    );
+    return TRUE;
+}
+
+## no live probe holds the slot : genuine guard hang ##
+delete <coding.self_test_retry_pending>->{$backend};
+delete <coding.self_test_retry_timer>->{$backend};
+<[base.logs]>->(
+    0,
+    '[trigger_self_test] backend=%s : self-test guard wait timeout '
+        . '[ %ds ] : entering service WITHOUT self-test validation',
+    $backend,
+    $wait_timeout
+);
+<[coding.helper.resume_task_queue_for_backend]>->($backend);
+return TRUE;
+
+#,,,.,..,,..,,,..,,.,,..,,..,,,.,,,,.,,,,,,..,.,.,...,...,...,...,,.,,..,,,..,
+#EKDIZF757BEYJZA3VPUGOQCNZ6UNDJ2D4C6OP22YZ5GFLSTHOYMCWJTKPPVSFTRJWBTOLD3VYQWVO
+#\\\|3BPEWSNBPYGAGB7BSFKBXTDKWGEQCF742JTH7D46X5QQDT2FFJW \ / AMOS7 \ YOURUM ::
+#\[7]6XPYZNIF4C5JB2ZM2YZOXNXF6GG6NEQQ7DSG2FWJ47PNVVWWDWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
