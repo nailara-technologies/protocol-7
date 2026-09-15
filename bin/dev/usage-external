@@ -1,0 +1,418 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###                  ###
+##  usage-external   ##
+###                  ###
+
+## queries account usage / rate-limit state of the locally installed Claude
+## Code and Kimi CLIs, using each CLI's own already-stored OAuth credentials
+## -- the same numbers their interactive `/usage` panels show, without running
+## the interactive command.
+##
+##  subcommands :
+##
+##    bin/dev/usage-external kimi    Kimi plan usage   [ free GET /usages ]
+##    bin/dev/usage-external claude  Claude rate limits
+##    bin/dev/usage-external all     both [ default ]
+##
+## claude channel note :  The genuinely free count_tokens endpoint was
+## verified live to carry NO anthropic-ratelimit-* headers. The script
+## therefore probes count_tokens first and, when the headers are absent
+## (current server behavior), falls back to a max_tokens=1  haiku call (~ 9
+## tokens total, the cheapest call that returns the
+## anthropic-ratelimit-unified-* header set). The fallback  is announced on
+## stderr.
+##
+##  credential values are never printed.
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $subcommand = @ARGV ? lc( shift @ARGV ) : qw| all |;
+
+error_exit("unknown subcommand '$subcommand' [ kimi | claude | all ]")
+    if $subcommand ne qw| kimi |
+    and $subcommand ne qw| claude |
+    and $subcommand ne qw| all |;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path
+        = abs_path( r2_abs( c_dir( $RealBin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+use JSON::PP;
+use LWP::UserAgent;
+use Time::Local qw| timegm |;
+
+##[ CONFIGURATION ]###########################################################
+
+my $kimi_cred_dir = "$ENV{HOME}/.kimi-code/credentials";
+my $kimi_base_url = $ENV{KIMI_CODE_BASE_URL}
+    // qw| https://api.kimi.com/coding/v1 |;
+my $kimi_timeout = 8;
+
+my $claude_credfile = "$ENV{HOME}/.claude/.credentials.json";
+my $claude_api_base = $ENV{ANTHROPIC_BASE_URL}
+    // qw| https://api.anthropic.com |;
+my $claude_model = $ENV{CHECK_USAGE_CLAUDE_MODEL}
+    // qw| claude-haiku-4-5-20251001 |;
+my $claude_timeout = 15;
+
+my $json_coder = JSON::PP->new->utf8->relaxed;
+
+##  seconds under which a kimi token is considered about to expire  ##
+my $kimi_expiry_warn = 120;
+
+##[ MAIN ]####################################################################
+
+my $exit_code = 0;
+
+$exit_code = 1 if $subcommand eq qw| kimi   | and not print_kimi_usage();
+$exit_code = 1 if $subcommand eq qw| claude | and not print_claude_usage();
+
+if ( $subcommand eq qw| all | ) {
+    $exit_code = 1 if not print_kimi_usage();
+    print "\n";
+    $exit_code = 1 if not print_claude_usage();
+}
+
+exit($exit_code);
+
+##[ KIMI ]####################################################################
+
+sub print_kimi_usage {
+
+    say '== Kimi plan usage ==';
+
+    my $cred = load_kimi_credentials() or return 0;
+
+    my $token = $cred->{'access_token'};
+    error_exit('kimi credential has no access_token field') if not $token;
+
+    my $now = time;
+    if ( defined $cred->{'expires_at'}
+        and $cred->{'expires_at'} - $now < $kimi_expiry_warn ) {
+        warn ":\n:: kimi token expires in "
+            . ( $cred->{'expires_at'} - $now )
+            . "s -- run 'kimi' once to refresh it\n:\n";
+    }
+
+    my $ua       = LWP::UserAgent->new( timeout => $kimi_timeout );
+    my $response = $ua->get(
+        "$kimi_base_url/usages",
+        'Authorization' => "Bearer $token",
+        'Accept'        => qw| application/json |
+    );
+
+    if ( not $response->is_success ) {
+        warn ":\n:: kimi /usages request failed : "
+            . $response->status_line . "\n:\n";
+        return 0;
+    }
+
+    my $data = eval { $json_coder->decode( $response->decoded_content ) };
+    if ($EVAL_ERROR) {
+        warn ":\n:: cannot parse kimi /usages response : $EVAL_ERROR\n:\n";
+        return 0;
+    }
+
+    ##  weekly summary row  ##
+    if ( my $usage = $data->{'usage'} ) {
+        my $used      = $usage->{'used'}  // '?';
+        my $limit     = $usage->{'limit'} // '?';
+        my $remaining = $usage->{'remaining'};
+        printf "  %-12s : %s / %s%s\n", 'plan usage', $used, $limit,
+            defined $remaining ? "  ( remaining $remaining )" : '';
+        printf "  %-12s : %s%s\n", 'resets', $usage->{'resetTime'} // '?',
+            countdown_suffix( $usage->{'resetTime'} );
+    }
+
+    ##  per-window rows  ##
+    foreach my $limit_row ( @{ $data->{'limits'} // [] } ) {
+        my $detail = $limit_row->{'detail'} // {};
+        my $window = $limit_row->{'window'} // {};
+        my $label  = $limit_row->{'name'}   // '';
+        $label .= ' ' if length $label;
+        $label .= window_label($window);
+        $label = 'window' if not length $label;
+        printf "  %-12s : %s / %s%s\n", $label,
+            $detail->{'used'} // '?', $detail->{'limit'} // '?',
+            defined $detail->{'remaining'}
+            ? "  ( remaining $detail->{'remaining'} )"
+            : '';
+        printf "  %-12s : %s%s\n", 'resets',
+            $detail->{'resetTime'} // '?',
+            countdown_suffix( $detail->{'resetTime'} );
+    }
+
+    ##  alternate compact schema [ older \ newer payload variants ] --
+    ##  only used when the primary usage/limits fields above are BOTH
+    ##  absent. caught live 2026-09-15: the real payload carries both a
+    ##  populated `limits` array AND a `usages` object with zeroed-out
+    ##  used_ratio placeholders -- printing this unconditionally showed
+    ##  bogus "0.0% used" rows stacked under the real, correct numbers
+    if (    not defined $data->{'usage'}
+        and not @{ $data->{'limits'} // [] }
+        and ( my $usages = $data->{'usages'} ) ) {
+        foreach my $key ( sort keys $usages->%* ) {
+            my $row = $usages->{$key};
+            next if ref $row ne qw| HASH |;
+            printf "  %-12s : %.1f%% used\n", $key,
+                100 * ( $row->{'used_ratio'} // 0 );
+            printf "  %-12s : %s%s\n", 'resets',
+                $row->{'reset_time'} // '?',
+                countdown_suffix( $row->{'reset_time'} );
+        }
+    }
+
+    ##  booster wallet \ extra usage  ##
+    if ( my $wallet = $data->{'boosterWallet'} ) {
+        printf "  %-12s : balance %s / %s %s\n", 'extra usage',
+            $wallet->{'balance'}            // '?',
+            $wallet->{'monthlyChargeLimit'} // '?',
+            $wallet->{'currency'}           // '';
+    }
+
+    return 1;
+}
+
+sub load_kimi_credentials {
+
+    opendir( my $dh, $kimi_cred_dir ) or do {
+        warn ":\n:: cannot open $kimi_cred_dir : $OS_ERROR\n:\n";
+        return undef;
+    };
+    my @cred_files = sort { -M $a <=> -M $b }
+        map {"$kimi_cred_dir/$_"}
+        grep {m|^kimi-code.*\.json$|} readdir($dh);
+    closedir($dh);
+
+    if ( not @cred_files ) {
+        warn ":\n:: no kimi credential files found in $kimi_cred_dir\n:\n";
+        return undef;
+    }
+
+    foreach my $file (@cred_files) {
+        open( my $fh, '<', $file ) or next;
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $content = <$fh>;
+        close($fh);
+        my $data = eval { $json_coder->decode($content) };
+        if (    not $EVAL_ERROR
+            and ref $data eq qw| HASH |
+            and length( $data->{'access_token'} // '' ) ) {
+            return $data;
+        }
+    }
+
+    warn ":\n:: no parseable kimi credential with access_token found\n:\n";
+    return undef;
+}
+
+##[ CLAUDE ]##################################################################
+
+sub print_claude_usage {
+
+    say '== Claude rate limits ==';
+
+    my $token = load_claude_token() or return 0;
+
+    my $ua = LWP::UserAgent->new( timeout => $claude_timeout );
+
+    ##  genuinely free probe : count_tokens [ no generation ]  ##
+    my $probe = $ua->post(
+        "$claude_api_base/v1/messages/count_tokens",
+        'Authorization'     => "Bearer $token",
+        'anthropic-version' => qw| 2023-06-01 |,
+        'anthropic-beta'    => qw| oauth-2025-04-20 |,
+        'Content-Type'      => qw| application/json |,
+        Content             => $json_coder->encode(
+            {   'model'    => $claude_model,
+                'messages' =>
+                    [ { 'role' => qw| user |, 'content' => qw| hi | } ]
+            }
+        )
+    );
+
+    if ( not $probe->is_success ) {
+        warn ":\n:: claude count_tokens probe failed : "
+            . $probe->status_line . "\n:\n";
+        return 0;
+    }
+
+    my $headers = $probe->headers;
+
+    ##  server-verified : count_tokens carries no ratelimit headers  ##
+    if ( not defined $headers->header('anthropic-ratelimit-unified-status') )
+    {
+        warn ":\n:: count_tokens returned no anthropic-ratelimit headers\n:: "
+            . "falling back to a max_tokens=1 call ( costs ~ 1 output "
+            . "token ) ...\n:\n";
+
+        my $fallback = $ua->post(
+            "$claude_api_base/v1/messages",
+            'Authorization'     => "Bearer $token",
+            'anthropic-version' => qw| 2023-06-01 |,
+            'anthropic-beta'    => qw| oauth-2025-04-20 |,
+            'Content-Type'      => qw| application/json |,
+            Content             => $json_coder->encode(
+                {   'model'      => $claude_model,
+                    'max_tokens' => 1,
+                    'messages'   =>
+                        [ { 'role' => qw| user |, 'content' => qw| hi | } ]
+                }
+            )
+        );
+
+        if ( not $fallback->is_success ) {
+            warn ":\n:: claude fallback request failed : "
+                . $fallback->status_line . "\n:\n";
+            return 0;
+        }
+        $headers = $fallback->headers;
+    }
+
+    ##  unified utilization headers  ##
+    my $printed = 0;
+    foreach my $window ( [ '5h', '5 hour' ], [ '7d', '7 day' ] ) {
+        my ( $suffix, $label ) = @$window;
+        my $util = $headers->header(
+            "anthropic-ratelimit-uni" . "fied-$suffix-utilization" );
+        next if not defined $util;
+        printf "  %-12s : %.1f%% used\n", $label, 100 * $util;
+        my $reset = $headers->header(
+            "anthropic-ratelimit-" . "unified-$suffix-reset" );
+        if ( defined $reset and $reset =~ m|^\d+$| ) {
+            printf "  %-12s : %s ( in %s )\n", 'resets',
+                epoch_to_str($reset), seconds_to_dhms( $reset - time );
+        }
+        my $status = $headers->header(
+            "anthropic-ratelimit-u" . "nified-$suffix-status" );
+        printf "  %-12s : %s\n", 'status', $status if defined $status;
+        $printed = 1;
+    }
+
+    ##  any other anthropic-ratelimit-* headers not covered above  ##
+    foreach my $name ( sort $headers->header_field_names ) {
+        next if $name !~ m|^anthropic-ratelimit-|;
+        next if $name =~ m,unified-(5h|7d)-,;
+        next if $name =~ m,unified-(5h|7d)?-?(utilization|reset)$,;
+        printf "  %-12s : %s\n", substr( $name, 20, 12 ),
+            $headers->header($name);
+    }
+
+    if ( not $printed ) {
+        warn ":\n:: no anthropic-ratelimit-unified headers in response\n:\n";
+        return 0;
+    }
+
+    return 1;
+}
+
+sub load_claude_token {
+
+    open( my $fh, '<', $claude_credfile ) or do {
+        warn ":\n:: cannot open $claude_credfile : $OS_ERROR\n:\n";
+        return undef;
+    };
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $content = <$fh>;
+    close($fh);
+
+    my $data = eval { $json_coder->decode($content) };
+    if ( $EVAL_ERROR or ref $data ne qw| HASH | ) {
+        warn ":\n:: cannot parse $claude_credfile : $EVAL_ERROR\n:\n";
+        return undef;
+    }
+
+    my $token = $data->{'claudeAiOauth'}{'accessToken'};
+    if ( not length $token // '' ) {
+        warn ":\n:: no claudeAiOauth.accessToken in $claude_credfile\n:\n";
+        return undef;
+    }
+
+    return $token;
+}
+
+##[ HELPERS ]#################################################################
+
+sub error_exit {
+    warn ":\n:: ", join( ' ', @ARG ), "\n:\n";
+    exit 2;
+}
+
+sub window_label {
+    my $window = shift;
+    return '' if ref $window ne qw| HASH |;
+    my $duration = $window->{'duration'} // return '';
+    my $unit     = lc( $window->{'timeUnit'} // '' );
+    $unit =~ s|^time_unit_||;
+    if ( $unit eq qw| minute | and $duration >= 60 and $duration % 60 == 0 ) {
+        $duration /= 60;
+        $unit = qw| hour |;
+    }
+    return "$duration $unit";
+}
+
+sub countdown_suffix {
+    my $time_str = shift;
+    return '' if not defined $time_str;
+    my $epoch = iso8601_to_epoch($time_str);
+    return '' if not defined $epoch;
+    return sprintf ' ( in %s )', seconds_to_dhms( $epoch - time );
+}
+
+sub iso8601_to_epoch {
+    my $time_str = shift;
+    ##  accepts e.g. 2026-09-16T21:15:23.345Z  ##
+    if ( $time_str =~ m|^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})| ) {
+        my ( $Y, $Mo, $D, $h, $mi, $s ) = ( $1, $2, $3, $4, $5, $6 );
+        return eval { timegm( $s, $mi, $h, $D, $Mo - 1, $Y ) };
+    }
+    return undef;
+}
+
+sub epoch_to_str {
+    my $epoch = shift;
+    my ( $sec, $min, $hour, $day, $mon, $year ) = gmtime($epoch);
+    return sprintf '%04d-%02d-%02d %02d:%02d UTC',
+        $year + 1900, $mon + 1, $day, $hour, $min;
+}
+
+sub seconds_to_dhms {
+    my $seconds = shift;
+    my $sign    = '';
+    if ( $seconds < 0 ) { $sign = '-'; $seconds = -$seconds }
+    my $days  = int( $seconds / 86400 );
+    my $hours = int( ( $seconds % 86400 ) / 3600 );
+    my $mins  = int( ( $seconds % 3600 ) / 60 );
+    my $out;
+    $out .= "$days" . 'd '  if $days;
+    $out .= "$hours" . 'h ' if $hours or $days;
+    $out .= "$mins" . 'm';
+    return "$sign$out";
+}
+
+#,,,,,,.,,,.,,..,,.,,,,.,,,.,,,,.,.,.,,.,,...,.,.,...,...,,.,,,.,,.,.,.,.,,,,,
+#QJYTFMUKUXINVZTKZMD3VBKSERJZVVPBX67GZFGKWZ5CYD4YL54MEPIGBVNH4HYN6W7MVN4QXPXCS
+#\\\|Q3JQTKQPQBNKIXSTY22ZM4CQTFTW2OOJ356TBGXX3NPTKBRBTSN \ / AMOS7 \ YOURUM ::
+#\[7]NP6VEOVRNKLK3SFIUK22UBQAHJNEZR26Z63ONXSEO53HYA23BGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
