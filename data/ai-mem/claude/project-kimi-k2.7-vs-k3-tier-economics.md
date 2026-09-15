@@ -8,6 +8,23 @@ metadata:
   modified: 2026-07-19T03:36:10.161Z
 ---
 
+**STALE MODEL-IDENTITY WARNING, 2026-09-15**: everything below analyzes
+"K2.7" specifically (pricing, quality-vs-K3 comparisons, the "brute-force
+iterate-until-convergence" character read). As of a 2026-09 Kimi-side
+upgrade, the `kimi-code/kimi-for-coding` API alias (still what `model=k2.7`
+in `bin/mcp-server-p7` maps to) now runs **K2.8 Preview** under the hood,
+described by Kimi's own docs as "performance close to K3" -- a materially
+different model than what this file's pricing/quality data below was
+measured against. The `kimi-for-coding-highspeed` alias (`k2.7-fast`)
+is confirmed unchanged (still K2.7 Code HighSpeed, 3x quota for ~6x
+speed -- also corrected in the tool description itself, which previously
+undersold this as "mid cost"). Don't apply this file's specific dollar
+figures or "brute-force vs clean reasoning" character comparison to
+current `k2.7` traffic without re-verifying against K2.8 Preview
+specifically; the underlying POLICY guidance (start cheap/narrow, escalate
+to k3 only once a task proves it needs it) likely still holds but hasn't
+been re-validated against the new model.
+
 2026-07-19, user's assessment after the coding-zenka scratchpad-rescue task
 ([[topic-scratchpad-rescue-coding-zenka-task]]) landed cleanly: K3 no longer shows the "stream of
 self-corrections that is just determined enough" pattern visible when reading K2.7-or-below thinking
@@ -153,8 +170,32 @@ from the tool description alone — verify against the actual source
 before trusting a claim about a tool's default, including a claim
 written into this memory file.
 
-#,,,,,..,,,..,,,,,,,,,.,.,,,,,,,,,,,.,,,.,,,.,..,,...,...,..,,,.,,,..,...,..,,
-#VB3RLF3JN7KIPMEIN2Z4BYEJMZX7XDLTPWSDRRMDLD5TWCXHETEV2NIIYODNCK6EUIJQUWLCERYMC
-#\\\|RIGKFH3EYAQGMCQS3EYNLZLQ2W3M7SDIYK57HFYSGS4VIRJ7FS4 \ / AMOS7 \ YOURUM ::
-#\[7]3D7RTFSAFAN3UXWJKKS37QET2VTF6P62IBQKKBCUC3UC5B5KFWAI 7  DATA SIGNATURE ::
+**default changed again, 2026-09-15, superseding the above**: with
+`kimi-for-coding` now running K2.8 Preview (see the staleness warning
+at the top of this file), `bin/mcp-server-p7`'s omit-`model` default
+moved from `k3-256k` to a NEW canonical alias `k2.8` (mapped to the same
+`kimi-code/kimi-for-coding` API id the old `k2.7` alias already used —
+`k2.7` is kept as a deprecated-but-working alias for the same model, not
+removed, so nothing that already types `model=k2.7` breaks; just prefer
+`k2.8` going forward since that's what's actually running). Evidence: a
+real multi-hour dispatch this session (converting a LoRA adapter to
+GGUF, running two HF-space diagnostic probes, orchestrating a live
+validation sweep, writing up results) used only ~35% of a rate-limit
+window doing it — well under what k3/k3-256k would cost for comparable
+work — combined with Kimi's own "close to K3" framing for K2.8 Preview.
+This is one strong data point, not a validated large-sample finding; if
+a k2.8-default dispatch produces a visibly worse result on a task that
+would have warranted k3 under the old default, that's real signal to
+revisit this change, not something to explain away as an outlier.
+`model=k3` stays the explicit escalation path for higher-stakes
+correctness-critical work (permission models, concurrency, protocol
+design — same category as this file's original "how to apply" section
+above). Per the user, Kimi will likely drop the "Preview" suffix from
+K2.8 at some point — the `k2.8` alias name (no "-preview" suffix) was
+chosen deliberately so it won't need renaming again when that happens.
+
+#,,..,,,,,,..,..,,,,.,,..,...,.,.,,,,,.,,,,,,,..,,...,...,...,,,,,,..,..,,..,,
+#VSZ5GTD35D73KPUKYAB5DNZOEV5BVBXEDMMHZRV4NXBIZ255B4S3J5I5XP45RKPTKGCIGO7DDLZUW
+#\\\|HJ32YV76WPUOUN2LMPFQV577JQ762HUNGBAL6S5ZCY26IUBO3BJ \ / AMOS7 \ YOURUM ::
+#\[7]YKX3DX36SV4X5YMOPELHZZ7QDBVHAJK54SCIYJ5W4OPQLGM6FOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
