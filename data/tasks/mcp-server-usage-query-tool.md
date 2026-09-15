@@ -45,25 +45,61 @@ actually gets this data**:
   line) even if weekly/5h plan limits stay unreachable without the
   live API.
 
-## proposed scope, not started
+## update, 2026-09-15 -- investigated further, conclusion changed
 
-- an MCP tool (`mcp__protocol-7__claude_usage` / `kimi_usage`, or a
-  single combined tool) returning whatever subset of {session context
-  usage, weekly plan %, 5h rolling window %, reset countdowns} is
-  actually obtainable per the investigation above.
-- if only session-level (local, transcript-derived) usage turns out to
-  be gettable without a live API call, that's still useful -- ship a
-  partial tool rather than blocking on the harder weekly/5h numbers.
-- consider whether this belongs in `bin/mcp-server-p7` directly (most
-  of the existing Claude/Kimi session-reading infrastructure already
-  lives there) rather than a new standalone script.
+Confirmed both halves directly:
 
-no design/implementation work done yet -- this is a capture-for-later
-task file only, and the FIRST step for whoever picks it up is the data-
-source investigation above, not writing tool code.
+- **weekly/5h plan usage is a genuine live API call on BOTH platforms,
+  not local computation** -- the user's own `/usage` invocations this
+  session took ~100s ("Brewed for 1m 40s") to render, which is real
+  network latency, not a local file read. No local state file backs it
+  anywhere in `~/.claude` or `~/.kimi` (checked). Not pursuing a way to
+  call that endpoint directly -- that would mean reverse-engineering a
+  private API, which isn't something to do here; a quick pass over the
+  installed CLI binaries' strings (both are large bundled Node
+  executables, not plain source) turned up nothing application-specific
+  anyway, just V8/Node/OpenSSL internals.
 
-#,,.,,,,,,.,.,...,,..,,.,,,.,,,,.,...,..,,.,.,..,,...,..,,,,.,...,..,,..,,...,
-#5KONBTS4WKENPVBSN5R5XVITLCRAKUQPXCKYXBXWWZGJSVIJF6TN5WIKLHBGVZMGTYIPBCIL34TIE
-#\\\|P7PM2AZ4WQMFTEFTU6G7P6TSP3OLQOAV3KZ5I2DOJHOJFGCLAYH \ / AMOS7 \ YOURUM ::
-#\[7]TUBO3HKB7U34UUCEJCE645EICX27PJLLIPKYJPTJDQKDZXFHUABA 7  DATA SIGNATURE ::
+- **session/context-window token counts ARE fully readable locally, for
+  both CLIs, with no API call**: Claude's session JSONL
+  (`~/.claude/projects/<project>/<uuid>.jsonl`) has a standard Anthropic
+  API `usage` object (`input_tokens`, `cache_creation_input_tokens`,
+  `cache_read_input_tokens`, `output_tokens`) on every assistant message
+  -- summing the input-side fields on the latest message gives current
+  context size. Kimi's session JSONL
+  (`~/.kimi/sessions/<hash>/<uuid>/context.jsonl`) is even more direct:
+  periodic `{"role": "_usage", "token_count": N}` checkpoint entries
+  with the running total already computed -- just read the last one.
+
+**but this turned out to be the wrong number for the actual motivating
+use case.** The point of this task was checking whether there's enough
+quota left to keep dispatching work (`coding.lora_train_spawn`, Kimi
+dispatches, etc.) -- and context-window fill answers a completely
+different question (when will THIS conversation hit compaction) than
+the rolling session-rate-limit / weekly-plan-percentage that actually
+gates "can I keep working" (the user's own correction, mid-session: "that
+token count of the current session will say nothing about session
+limits, only about when compaction will likely occur"). Kimi's own
+`/usage` panel even labels these as three separate meters -- "Session
+usage", "Context window", and "Plan usage" are not the same thing, and
+only "Context window" is the one sitting in the local JSONL.
+
+## conclusion -- not building the originally-proposed tool
+
+The genuinely useful number (rolling session / weekly plan %) has no
+local source on either platform and isn't worth chasing via reverse-
+engineering. The number that IS cheaply available locally (context-
+window fill) answers a real but different, less critical question, and
+shipping it under an "MCP usage tool" framing would be actively
+misleading about what it tells you. **Closing this task without
+implementation** -- if a future session wants context-window-fill
+specifically (e.g. to predict compaction timing), the exact JSONL
+fields/paths above are enough to build it directly, no further research
+needed. Session-rate-limit / weekly-plan quota stays a "read `/usage`
+yourself" number, no MCP shortcut planned.
+
+#,,..,.,,,..,,.,.,.,.,,,,,,,,,...,..,,,,.,.,,,..,,...,...,,.,,,,.,..,,,.,,.,,,
+#YDCLMAAW7QAXXVJSUPO5SSBSG5YSOPM3OVMYQZADB7YEB4LL65C36WRCSNEX6YTLHGWYYBQYITGX4
+#\\\|ZND2E47UTDIL77P7PSMSZW2GA3CRWDYUS7C5EPHLMB2FS5NNCLS \ / AMOS7 \ YOURUM ::
+#\[7]WDBNIRRHSWG5W6RLWXEZZJ443O2R4DSLMOMAAGQ74JRBGZEIMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
