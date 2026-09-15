@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.refresh_finish
+# descr = shared teardown dispatcher for the refreshing kimi child : cancels
+#         the still-armed watchers, then either reaps an already-dead
+#         child [ eof ] or opens the sigterm grace period [ timeout, error ].
+#         named handler, not a coderef closure -- all state resolves from
+#         the single-slot <usage.provider.kimi>{'refresh_state'}.
+# param = <how> : eof | error | timeout
+
+my $how = shift // qw| timeout |;
+
+my $provider = <usage.provider.kimi>;
+my $state    = $provider->{'refresh_state'} // return TRUE;
+
+foreach my $w ( $state->{'io_w'}, $state->{'timer_w'} ) {
+    $w->cancel if defined $w;
+}
+
+if ( $how eq qw| eof | ) {
+    ## child closed its own stdout : already gone or exiting on its own -- a
+    ## plain blocking reap is correct here precisely BECAUSE eof means the
+    ## child is already dead, waitpid returns instantly
+    <[base.waitpid]>->( $state->{'pid'}, 0 );
+    <[plugin.usage.kimi.refresh_cleanup]>->(qw| eof |);
+} else {
+    ## sigterm first, sigkill only if it doesn't respond -- see
+    ## plugin.usage.kimi.refresh_token's module note for why the credential
+    ## flush makes the gentle path matter. reaping itself stays non-blocking :
+    ## a 0.1s poll timer around waitpid WNOHANG
+    kill( 'TERM', $state->{'pid'} );
+
+    $state->{'soft_end'}   = time() + 3;
+    $state->{'reap_timer'} = <[event.add_timer]>->(
+        {   'interval' => 0.1,
+            'desc'     => 'kimi refresh reap poll',
+            'handler'  => qw| plugin.usage.kimi.refresh_reap |,
+        }
+    );
+}
+
+return TRUE;
+
+#,,.,,.,.,...,.,.,.,,,,,.,..,,...,.,,,...,...,.,.,...,...,...,,..,...,,.,,,.,,
+#5UKP6PPG7J4FWGNVXYMQEOXZFDAVLTKG64M3FU3GTZCCAY4UPMR2YGG4AVKRHRXDRIVU5JBXIYLQA
+#\\\|HA3NL2YILLXH55CVCEYXISJXWY24EPRSLQKYVWNGBTS76WAADE6 \ / AMOS7 \ YOURUM ::
+#\[7]CU7JX2QRC7U5UYYX7NIDAE6L2MH5YATEBLPUEUJVGSKFP3SSGSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

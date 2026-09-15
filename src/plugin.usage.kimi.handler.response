@@ -41,10 +41,11 @@ my $token_expired = defined $pending->{'expires_at'}
 ## something other than expiry is wrong ] falls through to the normal error
 ## report below, unchanged. the refresh is fully non-blocking since 2026-09-15
 ## [ event watchers, not a select loop ] and the retry fetch is scheduled from
-## its on_done callback -- the deferred query reply simply stays open until
-## the retried fetch reports, same as before, but the event loop keeps serving
-## other providers [ claude probes ] for the whole refresh instead of stalling
-## them into their timeouts
+## refresh_cleanup via the named on_done handler
+## plugin.usage.kimi.refresh_retry -- the deferred query reply simply stays
+## open until the retried fetch reports, same as before, but the event loop
+## keeps serving other providers [ claude probes ] for the whole refresh
+## instead of stalling them into their timeouts
 if ( not $result->{'ok'} and $token_expired and not $pending->{'retried'} ) {
     <[base.logs]>->(
         1,
@@ -52,37 +53,28 @@ if ( not $result->{'ok'} and $token_expired and not $pending->{'retried'} ) {
             . 'via kimi cli and retrying once ..,'
     );
 
-    my $schedule_retry = sub {
-        ## deferred one event-loop tick rather than called synchronously right
-        ## here -- confirmed live 2026-09-15 : the retry's fresh https/2
-        ## connection [ clients.https creates a new one per request, nothing
-        ## pooled ] hit "sysread() isn't allowed on :utf8 handles" inside
-        ## Protocol::HTTP2::Client's feed(), immediately after refresh_token's
-        ## fork(), while the exact same https stack worked cleanly on repeated
-        ## direct calls with no fork in between. root cause not fully traced
-        ## -- since fixed at the actual crash site instead [ see base.s_read,
-        ## base.ssl.write ] -- but starting the new tls handshake outside the
-        ## fork's own call stack is a cheap, standard mitigation worth keeping
-        ## regardless
-        <[event.add_idle]>->(
-            {   'handler' => qw| plugin.usage.kimi.fetch |,
+    my $refresh_started = <[plugin.usage.kimi.refresh_token]>->(
+        undef,
+        {   'on_done' => {
+                'handler' => qw| plugin.usage.kimi.refresh_retry |,
                 'params'  => {
                     'on_result' => $on_result,
                     'params'    => $pending->{'params'},
-                    'retried'   => TRUE,
                 },
-            }
-        );
-    };
-
-    my $refresh_started = <[plugin.usage.kimi.refresh_token]>->(
-        undef, { 'cb' => $schedule_retry }
+            },
+        }
     );
 
     ## refresh already running [ single slot ] : still schedule the retry --
     ## worst case the token lands mid-retry, it 401s once more, and the real
     ## error path below reports honestly on the next round
-    $schedule_retry->() if not $refresh_started;
+    if ( not $refresh_started ) {
+        <[plugin.usage.kimi.refresh_retry]>->(
+            {   'on_result' => $on_result,
+                'params'    => $pending->{'params'},
+            }
+        );
+    }
     return;
 }
 
@@ -264,8 +256,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,.,,.,.,,,.,...,,..,..,,,.,,,,,,.,,,,..,.,,,..,,...,...,,,,,.,.,.,,,..,,...,
-#63GBIGOVYXQ2VBGTXJEMDYSIU5NSRXL2EBSYM7R3IXCNINKXFJ7T6F7A6V5TJN6UAHTCI4Q65S63S
-#\\\|GBYMKNQAEN4MRQ5P5MWOVXL6LWDYOYMI42WQYTKREACSEWPFHHG \ / AMOS7 \ YOURUM ::
-#\[7]4NK7Y2ZZOQWXRJTMURH326DW2NDNM2GQY7H3OYAORVIWLW4VSSBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,.,,,..,,,,,,.,,,,,.,,.,,.,,,..,,...,..,,...,,,.,..,,...,..,,
+#ETYPMBXRZYCZMAJU7YKOGF5VIDZXPJTZZE66TMWSXFCTRFTWSJPJVUQOIS7MWVT3C7K3S7JE6IOLK
+#\\\|NNRSIQGQHG76JB5WNHI3EG4BMW4ZNXRXZ5LMPWDBPANX4X3RAFY \ / AMOS7 \ YOURUM ::
+#\[7]HU6TRCMU5VOOMFVEZ35GE5HMXAM74MGCGYK7MA6P2DIPRP2R4UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

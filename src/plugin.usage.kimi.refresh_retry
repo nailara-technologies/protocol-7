@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.refresh_retry
+# descr = on_done target for a completed kimi token refresh : schedules the
+#         transparent single retry of the /usages fetch, deferred one
+#         event-loop tick rather than run synchronously inside the refresh
+#         teardown -- confirmed live 2026-09-15 : a fresh https/2
+#         connection [ clients.https creates a new one per request, nothing
+#         pooled ] hit "sysread() isn't allowed on :utf8 handles" inside
+#         Protocol::HTTP2::Client's feed() immediately after refresh_token's
+#         fork(), while the exact same https stack worked cleanly on
+#         repeated direct calls with no fork in between. root cause since
+#         fixed at the actual crash site [ see base.s_read, base.ssl.write ]
+#         -- starting the new tls handshake outside the fork's own call
+#         stack remains a cheap, standard mitigation. named handler + params
+#         [ not a coderef closure ] so a source reload between refresh
+#         start and completion still runs current code.
+# param = { on_result => <handler name>, params => <original query params> }
+
+my $params = shift // {};
+
+<[event.add_idle]>->(
+    {   'handler' => qw| plugin.usage.kimi.fetch |,
+        'params'  => {
+            'on_result' => $params->{'on_result'} // '',
+            'params'    => $params->{'params'}    // {},
+            'retried'   => TRUE,
+        },
+    }
+);
+
+return TRUE;
+
+#,,.,,...,,,.,,.,,,.,,.,,,,,,,.,.,..,,,,.,,,.,.,.,...,...,.,.,.,.,,,.,,,.,.,.,
+#5IPKUNYEIQKA6VPEP3XYRJPXCXHNT5G6AYRQKHWOSKTQCWRDD25HE2NPJF5SQGUGJEQEHUMDQZWVO
+#\\\|2WWYSLZ7BP4RPNEUAUUQTRCIB6STSQRUPRGGRGUS6AC4F7CJ7T3 \ / AMOS7 \ YOURUM ::
+#\[7]JITR7VUUILJAAJCC7MWSINVTYL7IOF3COS4L2G4UEFLNVZVIZSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
