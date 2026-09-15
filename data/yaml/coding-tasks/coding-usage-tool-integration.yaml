@@ -1,0 +1,153 @@
+objective: >
+  give the coding zenka's local model a tool to check Claude/Kimi account
+  usage and rate-limit numbers, by wiring the `usage` zenka's existing
+  `usage.kimi` and `usage.claude` commands into the coding zenka's tool
+  system, the same way `coding.handler.refresh_mem_stats` already wires in
+  `system.mem-used`.
+
+context: |
+  the `usage` zenka (cfg/zenki/usage/, src/plugin.usage.*, src/usage.*) is an
+  ON-DEMAND zenka -- start.on-demand = 1, a 900s idle timeout, restart and
+  heartbeat both disabled. it exists specifically to avoid constant background
+  activity: each query may make a real external https call to claude.ai or
+  kimi's api. it commands are already live and working:
+
+    usage.kimi [compact]     -- kimi account usage, parsed numbers only
+    usage.claude [compact]   -- claude account usage, parsed numbers only
+    usage.status [compact] [<provider> ..]  -- both providers in one reply
+
+  'compact' format (see src/usage.format.report, the `if ( $format eq qw|
+  compact | )` branch) returns one line per row:
+    '<provider> <key> <used_pct> <resets_in_seconds>'
+  e.g. 'kimi plan-usage 80.0 101172' / 'claude 5h 85.0 5666' -- trivial to
+  parse, no json needed. a failed provider query renders as
+  '<provider> error <message>' instead of a data line -- handle that case.
+
+  these commands NEVER return credential material, only parsed numbers and
+  labels (see src/usage.format.report's own header note) -- no sanitization
+  needed on the coding-zenka side, the usage zenka already guarantees this.
+
+  ## the exact precedent to mirror (read these, in this order) ##
+
+  1. src/coding.init_code, lines ~639-655 : how a periodic timer is
+     registered at init to refresh a cached external value --
+     event.add_timer with an initial one-shot ('after' => 2.0, 'repeat' =>
+     FALSE) then a repeating timer, calling a `coding.handler.refresh_*`
+     module.
+
+  2. src/coding.handler.refresh_mem_stats : the timer handler itself --
+     uses `<[protocol-7.route-send]>->({ 'command' => qw| system.mem-used |,
+     'reply' => { 'handler' => qw| coding.handler.system_mem_reply |,
+     'params' => {} } });` to route an async command to another zenka. for
+     this task the command names are `usage.kimi compact` / `usage.claude
+     compact` (or `usage.status compact` for both providers in one routed
+     call -- check whether protocol-7.route-send's 'command' value can carry
+     the trailing arg the way a direct p7c call can; if not, route to
+     `usage.kimi` and `usage.claude` as two separate route-send calls, each
+     with its own reply handler, rather than guessing at an unsupported
+     syntax).
+
+  3. src/coding.handler.system_mem_reply : the reply handler -- parses
+     `$reply->{'call_args'}->{'args'}`, caches parsed values into `%data`
+     under a `<coding.*>` key plus a `<coding.*_time>` timestamp
+     (`<[base.ntime]>`), logs at verbosity 3 on success.
+
+  4. src/coding.tools.dispatch, around line 648 (`my $handler_mod =
+     "coding.tools.handler.$name";`) : tool names resolve to
+     `coding.tools.handler.<name>` modules BY NAMING CONVENTION -- no
+     separate registration needed there, just create the module with the
+     right name.
+
+  5. src/coding.tools.definitions, the `module_deps` entry (~line 118-142) :
+     the exact shape for pushing a tool's openai-function-calling schema
+     onto `@tools`, gated by `if ( exists $code{'<some dependency>'} )` so
+     the tool only appears once its handler module is actually loaded.
+     mirror this shape exactly for the new tool(s).
+
+  6. src/coding.cmd.list-tools : reads `coding.tools.definitions` --
+     nothing to change here, just confirms the new tool(s) will show up in
+     `p7c coding.list-tools` automatically once definitions.pm has the entry.
+
+  ## one important design difference from the mem_stats precedent ##
+
+  system.mem-used is cheap/local and system is an always-on zenka -- polling
+  it every 62s (as coding.init_code does) is fine. the usage zenka is the
+  opposite: on-demand, with real external api calls behind some queries, and
+  an idle-timeout specifically meant to let it go quiet when nobody needs it.
+  an unconditional 62s-style forever-repeating timer here would keep the
+  usage zenka permanently alive and hit external provider apis constantly,
+  defeating its whole on-demand design.
+
+  pick ONE of these instead, whichever fits the existing tool-handler calling
+  convention better once you've read the files above:
+    (a) a much longer periodic interval (e.g. 600-900s, comparable to the
+        usage zenka's own idle timeout) instead of 62s, still using the
+        route-send + reply-handler + cache pattern, or
+    (b) a lazy, ttl-based cache : the tool handler itself checks the cached
+        value's age (`<coding.*_time>` vs `<[base.ntime]>`) when CALLED by
+        the model, and only issues a fresh route-send if the cache is older
+        than some reasonable ttl (e.g. 300s), otherwise returns the cached
+        value immediately. this respects on-demand semantics better since it
+        never queries usage unless the model actually asks, but the tool
+        handler then needs to either return stale-but-fast data or block
+        briefly for a fresh async reply -- read coding.tools.dispatch's
+        handling of `coding.tools.handler.*` return values (is a blocking
+        wait for an async reply from inside a tool handler even possible in
+        this event loop, or does every tool handler have to be synchronous
+        and return cached-or-nothing? verify before committing to this
+        design, don't assume)
+
+  state which one you picked and why in the commit-ready summary at the end.
+
+  ## tool surface : one tool or two ##
+
+  usage.kimi and usage.claude are two distinct source commands, but
+  usage.status already returns both providers' numbers in one reply. default
+  to ONE tool (something like `check_account_usage`) taking an optional
+  `provider` parameter (enum: 'claude', 'kimi', omit for both) rather than
+  two separate tools -- fewer entries for the local model to scan, and it
+  mirrors usage.status's own "one or all" design. if route-send genuinely
+  can't reach `usage.status compact` cleanly (see point 2 above) and two
+  separate cached values end up being simpler to maintain, two tools
+  (`check_kimi_usage`, `check_claude_usage`) is an acceptable fallback --
+  your call once you've read the actual route-send mechanics, just state
+  which you chose and why.
+
+steps:
+  - read all six precedent files listed above before writing anything
+  - decide caching strategy (a) or (b) above, based on what route-send /
+    tool-handler synchronicity actually allows -- verify, don't assume
+  - decide one-tool-vs-two based on whether route-send can reach
+    `usage.status compact` cleanly
+  - write the new coding.handler.* module(s) for the refresh/reply path
+  - write the new coding.tools.handler.* module(s) for the tool call itself
+  - add the timer registration to coding.init_code (only if using strategy
+    (a) -- skip if using lazy ttl strategy (b))
+  - add the tool schema entry/entries to coding.tools.definitions, gated by
+    an `if ( exists $code{...} )` check matching the module_deps pattern
+  - syntax-check every new/edited file with `bin/format-code -c <file>` --
+    NEVER plain `perl -c`, it produces false positives on this codebase's
+    module format
+  - confirm the new tool(s) appear via `p7c coding.list-tools usage` (or
+    whatever filter matches the chosen tool name(s))
+
+acceptance:
+  - all new/edited files pass `bin/format-code -c`
+  - `p7c coding.list-tools` lists the new tool(s) with a real description
+  - module file headers follow the `## [:< ##` / `# name = ...` / `# descr
+    = ...` format, comments lowercase, `[ word ]` bracket style not `( word
+    )`, `$ARG` not `$_` in any map/grep/foreach
+  - no credential-shaped data anywhere in the new code path -- only ever the
+    parsed numbers usage.kimi/usage.claude/usage.status already return
+
+signatures_note: |
+  do NOT add a `#,,.,,,...` footer stub to any new or edited file. leave
+  new files clean at the end of the real content -- the project's own
+  signing system (bin/Protocol-7 sourcecode update-signatures) adds the
+  real 4-line footer later, a human will run that, not you.
+
+#,,,.,...,.,.,.,.,.,,,,,,,,..,..,,.,.,...,,.,,..,,...,...,...,...,,.,,,.,,,.,,
+#IMRQ4ER6LN36S5LGYH7CWK6IA3D6VMQCHYAUWTKRNLAYH5JEAYV4OFY74M57LTVR5TX52Q7LVMDJK
+#\\\|UGKOMVBRMA4JEA4P6FXUVMCIG6VGQVHLMSW52ZOTUEGTRZ5Y4UI \ / AMOS7 \ YOURUM ::
+#\[7]AZORTXTTOZQI7DVPWR7JH6TA6KWN4EUDWG7D52NPP7TXUQ3PI4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

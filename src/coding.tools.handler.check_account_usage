@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = coding.tools.handler.check_account_usage
+# descr = claude/kimi account usage and rate-limit numbers [ ttl-cached ]
+
+my $args = shift // {};
+
+my $provider = lc( $args->{'provider'} // '' );
+return 'error: provider must be "claude" or "kimi" [ omit for both ]'
+    if $provider ne ''
+    and $provider ne qw| claude |
+    and $provider ne qw| kimi |;
+
+my $ttl = 300;
+
+my $cache = <coding.account_usage> // {};
+$cache = {} if ref $cache ne qw| HASH |;
+my $cached_time = <coding.account_usage_time> // 0;
+
+## unix seconds [ see account_usage_reply re ntime x4200 scale ] ##
+my $now   = <[base.time]>->(3);
+my $age   = $now - $cached_time;
+my $fresh = $age < $ttl ? TRUE : FALSE;
+
+my $requested = FALSE;
+my $pending   = <coding.account_usage_pending> // 0;
+
+if ( not $fresh and ( not $pending or $age > 90 ) ) {
+    ## stale or absent cache : the usage zenka is on-demand with real       ##
+    ## provider api calls behind it, so refresh lazily from here instead of ##
+    ## on a periodic timer -- and never stack up requests in flight         ##
+    my $sent = <[coding.handler.refresh_account_usage]>
+        ->( { 'provider' => $provider } );
+    if ($sent) {
+        <coding.account_usage_pending> = $now;
+        $requested = TRUE;
+    }
+}
+
+my @providers
+    = length($provider) ? ($provider)
+    : keys $cache->%*   ? ( sort keys $cache->%* )
+    :                     ();
+
+return
+      'no cached account usage data yet :. a refresh request has been sent '
+    . 'to the on-demand usage zenka [ real provider api calls behind '
+    . 'it, may take a few seconds ] -- call this tool again shortly'
+    if not @providers and $requested;
+
+return 'no cached account usage data and the usage zenka did not '
+    . 'accept the refresh request [ offline? ] -- try again shortly'
+    if not @providers;
+
+my @lines;
+foreach my $name (@providers) {
+    if ( ref $cache->{$name} eq qw| ARRAY | and $cache->{$name}->@* ) {
+        push @lines, $cache->{$name}->@*;
+    } else {
+        push @lines, sprintf '%s no-cached-data', $name;
+    }
+}
+
+my $state
+    = $fresh
+    ? sprintf 'age %ds', int $age
+    : sprintf 'stale, age %ds', int $age;
+$state .= ' , refresh requested' if $requested;
+$state .= ' , refresh in progress'
+    if not $requested
+    and not $fresh
+    and $pending;
+
+my $output = sprintf "## account usage [ %s ] ##\n", $state;
+$output .= "columns : <provider> <window> <used %> <resets in seconds>\n";
+$output .= join "\n", @lines;
+return $output;
+
+#,,..,,.,,,..,.,.,,..,..,,,,.,..,,...,,,.,..,,..,,...,...,..,,,,,,...,,..,,,,,
+#JWXRB2DAQEY7IXQXEVMEIMKFQRQJSXMQHTC22HXZKKWHPT4RN3JBOQWMBVSHWLCV53HMQKPRSMXGY
+#\\\|T4647YCLO47XGFQVIUVZLMUIHEIJTMASSXG7VUJPGP2WCFWKSSM \ / AMOS7 \ YOURUM ::
+#\[7]FDI2NYVNR66JIX5FK255VHCWRT6N6EE5SLFGPQZ4JVLWI55RKIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

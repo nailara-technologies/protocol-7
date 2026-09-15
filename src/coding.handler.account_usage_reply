@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = coding.handler.account_usage_reply
+# descr = handle async response from usage.cmd.status, cache usage lines
+
+my $reply = shift           // {};
+my $mode  = $reply->{'cmd'} // '';
+
+## a report with real numbers is multi-line and travels in SIZE mode [ body ##
+## in 'data' ], a query where every provider failed answers FALSE with      ##
+## '<provider> : <reason>' pairs on one line [ in 'args' ]                  ##
+my $text
+    = $mode eq qw| SIZE |
+    ? ( $reply->{'data'} // '' )
+    : ( $reply->{'call_args'}->{'args'} // '' );
+
+my %lines;
+if ( $mode eq qw| SIZE | ) {
+    foreach my $line ( split m|\n|, $text ) {
+        next unless $line =~ m|^(\w+)\s+(.+)$|;
+        my $bucket = $lines{$1} //= [];
+        push $bucket->@*, $line;
+    }
+} elsif ( length $text ) {
+    foreach my $part ( split m|;\s*|, $text ) {
+        next unless $part =~ m|^(\w+)\s*:\s*(.+)$|;
+        $lines{$1} = [ sprintf '%s error %s', $1, $2 ];
+    }
+}
+
+my $count = scalar keys %lines;
+if ($count) {
+    ## merge per-provider : a single-provider refresh replaces only that ##
+    ## provider's rows, the other providers' cache entries survive       ##
+    my $cache = <coding.account_usage> // {};
+    $cache = {} if ref $cache ne qw| HASH |;
+    foreach my $provider ( sort keys %lines ) {
+        $cache->{$provider} = $lines{$provider};
+    }
+    <coding.account_usage> = $cache;
+    ## real unix seconds, NOT <[base.ntime]> -- ntime is network time   ##
+    ## scaled x4200 [ secs-from-2002 * 4200 ], so a 300s ttl compared   ##
+    ## against ntime units is 0.07 real seconds : the cache would never ##
+    ## read as fresh and every tool call would re-fire a provider api   ##
+    ## refresh                                                          ##
+    <coding.account_usage_time> = <[base.time]>->(3);
+    <[base.logs]>->(
+        3,
+        'account usage cached :. %s',
+        join ', ',
+        map { sprintf '%s[%d]', $ARG, scalar $lines{$ARG}->@* }
+            sort keys %lines
+    );
+} else {
+    <[base.logs]>
+        ->( 1, 'unexpected account usage reply format :. %s', $text );
+}
+
+## refresh round done : allow the next lazy request ##
+<coding.account_usage_pending> = 0;
+
+return TRUE;
+
+#,,,.,,,.,..,,,,,,,.,,.,,,.,,,..,,.,,,,,,,...,..,,...,...,...,...,...,,,,,.,,,
+#6PUQDKWCFT52JNAV4OMBNSCQZJ2UEJLE3WUWVC5TTAKWMKL7V7ODB3CTX5KVBHKPRU27ZR6KFX63Q
+#\\\|AGTUEOKYOZTNH4WYS732YCWIGWYMSMVXWDLJN6O7DHVNUNT64QB \ / AMOS7 \ YOURUM ::
+#\[7]ZOXIST5M7KOBYT322WBV4AVJUODYEKZGK4AAKTAJJH6KP4MKMMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

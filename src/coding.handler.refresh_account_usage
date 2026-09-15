@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = coding.handler.refresh_account_usage
+# descr = request account usage numbers from the on-demand usage zenka
+
+my $params   = shift                 // {};
+my $provider = $params->{'provider'} // '';
+
+## only ever pass through provider names the usage zenka knows ##
+$provider = '' unless $provider =~ m{^(claude|kimi)$};
+
+my $args_str = length($provider) ? "compact $provider" : qw| compact |;
+
+my $cmd_count = <[protocol-7.route-send]>->(
+    {   'command'   => qw| usage.status |,
+        'call_args' => { 'args' => $args_str },
+        'reply'     => {
+            'handler' => qw| coding.handler.account_usage_reply |,
+            'params'  => {}
+        }
+    }
+);
+
+<[base.logs]>->( 3, 'account usage request sent to usage zenka' )
+    if $cmd_count;
+
+return $cmd_count;
+
+#,,,,,,,.,.,,,,,,,.,,,.,,,.,,,...,..,,,..,,,,,..,,...,.,,,..,,,.,,,..,,..,...,
+#2K62QMVK6RVFC5G2WBNPLGRYQHY3WBJ3LHRPZ4CZQHOXWGW47JXUZI2PAGYDAJDT642LB43PBCRWW
+#\\\|545QPSCW32M7FC4ST5XPT53NJ4VRUDPMTGMJH63WHNPV25V7CSA \ / AMOS7 \ YOURUM ::
+#\[7]IQJXSB76HAPJICWX4K5OLL3AJWGWSDQU6BHE6KFGGKA75VN25GDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
