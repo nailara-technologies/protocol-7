@@ -10,9 +10,19 @@
 
 my $provider = <usage.provider.kimi>;
 
-$provider->{'label'}     //= 'Kimi plan usage';
-$provider->{'enabled'}   //= TRUE;
-$provider->{'timeout'}   //= 8;
+$provider->{'label'}   //= 'Kimi plan usage';
+$provider->{'enabled'} //= TRUE;
+## usage.query reuses THIS SAME value both as the individual https request
+## timeout [ clients.https.get inside plugin.usage.kimi.fetch ] AND as the
+## overall allowed time for the whole query [ usage.handler.query_timeout ].
+## a plain successful request is fast [ well under 8s ], but the expired-
+## token path does a full refresh-and-retry cycle inside that same window --
+## original request + up to ~18s for plugin.usage.kimi.refresh_token to spawn
+## kimi and let it actually finish writing a fresh credential file + the
+## retried request. 8s [ or even 10s, tried and still too tight live
+## 2026-09-15 -- "provider did not report back in time" ] silently aborts the
+## outer query before the inner refresh has a chance to complete
+$provider->{'timeout'}   //= 25;
 $provider->{'pending'}   //= {};       ##  in-flight requests by req_id  ##
 $provider->{'last'}      //= undef;    ##  parsed numbers, last good query  ##
 $provider->{'last_time'} //= 0;
@@ -20,6 +30,17 @@ $provider->{'last_time'} //= 0;
 ## credential directory, relative to the home directory of the unix user ##
 ## this zenka runs as [ taeki ] -- resolved at query time, not stored    ##
 $provider->{'cred_rel_dir'} //= '.kimi-code/credentials';
+
+## kimi cli binary, same relative-to-home convention -- a bare 'kimi' open3
+## call failed live 2026-09-15 [ "exec of kimi failed : No such file or
+## directory" ]. confirmed cause : bin/Protocol-7 deliberately cleans
+## $ENV{PATH} at startup, so it never carries the ~/.kimi-code/bin entry an
+## interactive shell's .bashrc/.profile adds -- this relative path is the real
+## fix, not a fallback for an unconfirmed guess [ see
+## plugin.usage.kimi.refresh_token : it still tries file.which first, but that
+## hits the exact same cleaned-PATH wall and will always come up empty here,
+## so this is what actually does the work every time ]
+$provider->{'cli_rel_path'} //= '.kimi-code/bin/kimi';
 
 $provider->{'base_url'} //= $ENV{'KIMI_CODE_BASE_URL'}
     // 'https://api.kimi.com/coding/v1';
@@ -31,8 +52,8 @@ $provider->{'expiry_warn'} //= 120;
 
 0;
 
-#,,,,,,..,,..,...,...,.,,,.,,,..,,,,.,,..,...,..,,...,...,,.,,,,.,,,.,,.,,..,,
-#DT7EUROF3LNKR34XOR4YJEMUS46GPSOEOMD3N6WK6JZQ2OEIMFKMQDWE56ZKV3LJFO72BVYBNMZ5E
-#\\\|JTXNEBRFI6M4PLIL47IEZ5NYNSHOX6E5SRFS3FMZNHDGKIHGRJB \ / AMOS7 \ YOURUM ::
-#\[7]HI6HG6D237364XOD7OGTFQPQMJVE7C5RU4WRTXQYN5EAKZESQACQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,,,.,.,,,,,,,,..,..,,,.,,,..,..,,...,...,..,,,,,,,.,,,,,,...,
+#LYT4DOEC3ERNEVTKOKB6SQR7XG5H4YB6QX6JOLRQMZPBPM4IJGO5JVAAPOZ2OPJWX457OYFI6ZFJK
+#\\\|TUQM5Q6Z2UAH2WXJNGXNX7PISW6HERVOFYAQWBN56YAZGXP3UWP \ / AMOS7 \ YOURUM ::
+#\[7]YHW3K6DFU7AMNXOS267UTWH6GU4EHFNRYCKAO6MD24SUOFAT7QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

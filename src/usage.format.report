@@ -30,10 +30,17 @@ if ( $format eq qw| compact | ) {
             my $key = $row->{'window'} // $row->{'label'} // qw| usage |;
             $key = lc $key;
             $key =~ s{\s+}{-}g;
+            ## '?' would be technically more honest here [ the api genuinely
+            ## omitted used\limit for this row, most often right at a window's
+            ## own reset boundary ], but 0.0 reads far better for a human
+            ## scanning this line and the omission-vs-zero distinction, if it
+            ## ever matters for debugging, is still traceable from raw
+            ## responses \ logs -- this is display-only, the parsed number
+            ## itself is left genuinely undef
             push @lines, sprintf '%s %s %s %s', $name, $key,
                 defined $row->{'used_pct'}
                 ? sprintf( '%.1f', $row->{'used_pct'} )
-                : '?',
+                : qw| 0.0 |,
                 $row->{'resets_in'} // '?';
         }
     }
@@ -133,8 +140,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 
 return join "\n", @lines;
 
-#,,.,,,,.,,,,,..,,,..,,..,..,,,,,,,..,,,.,,..,..,,...,...,.,,,.,,,,.,,.,.,,,,,
-#GUBMUSF6NX7S4IFRH4JCKBRZGNGVNWCJIETMWBUCDFG5BGQC6XKDUZ7RVMXMSVUSVNON5EQ7ZDQ54
-#\\\|UJW2O244O5AS2G6H53S77ZERITPFGD3JJEKVYEEML6RRSP3A5TW \ / AMOS7 \ YOURUM ::
-#\[7]AEUR5EW5FT6F354ASYHXSFCGIRX2BV4LW7Y2KPL7QJSV3IOSJUAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,,,.,,,.,..,,,.,,...,,,,,.,.,..,,...,...,..,,..,,...,,.,,,,.,
+#IC24DBIR2C7CNBIHZXEF6TSJLYVQHEPZWO7YTYC275VTCAI6D63URWN4C3VCCXMOOR2XECHR5HBDU
+#\\\|6VYSH4F363Q5FB4BSN4535L4PMY74LN2OFLVB3KZ56LUW7TAZN3 \ / AMOS7 \ YOURUM ::
+#\[7]ZOK6TOGSEXZQJLGX45PMIGFNPLANILIG6LLF3F4PJWDCDZCYKKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

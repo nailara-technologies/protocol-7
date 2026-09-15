@@ -29,6 +29,12 @@ if ( utf8::is_utf8( $write_string_ref->$* ) ) {
     utf8::downgrade( $write_string_ref->$*, 0 );
 }
 
+## the scalar-level downgrade above doesn't help if the HANDLE itself carries
+## a :utf8 \ :encoding perlio layer -- syswrite refuses outright on those
+## regardless of the data's own utf8 flag. binmode is idempotent and cheap ;
+## see base.s_read for the read-side counterpart of this same guard
+binmode( $write_fh, ':raw' );
+
 ## Use syswrite for SSL sockets  syswrite(FILEHANDLE, SCALAR, LENGTH, OFFSET)
 ## writes LENGTH bytes from SCALAR starting at OFFSET For SSL sockets, OpenSSL
 ## handles the encryption automatically.
@@ -41,8 +47,8 @@ $size_written //= -1;
 
 return $size_written;    ## [ returns bytes written, or -1 on error ] ##
 
-#,,,.,...,.,.,,.,,...,,..,..,,,,,,,..,.,,,,,.,..,,...,...,.,.,,..,,..,,,.,.,.,
-#NLVSEI4EMTEEJL4OPWILB2IESNLYHUSVY57AMNIMUACHOW2XYPHXLHRPJWKPYUIZZ36ANVTMFRDHE
-#\\\|PN2STF6W3E6TQGC4JNTR6MXGJEZLNN7OY2BFME76HNDVAUSVRXO \ / AMOS7 \ YOURUM ::
-#\[7]OFUFWHD66LIJMV67UTUDNK7RSACFABAWRM5XTOIVMOZEYOOP6UCI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,,..,..,,,,,,.,.,,,,,.,,,...,..,,...,..,,...,.,.,.,.,,..,,..,
+#JBMWIWRLZCQXVAVFFPD2HSECYOI5ELFFGYFBHYMYUBXJXHCBDJNRYSSC3CSBHIOJQ32RFD2THP7LM
+#\\\|RBN5WQ4Y5J76DZGSVYH4XYH4VHNUSQAVUQQ4RGLFQXUPOZDLQUS \ / AMOS7 \ YOURUM ::
+#\[7]OEJC7AF6OHOFMKCGGYQLOKPSBK5MW5XDAIKHW62ZMGJDTOEVC2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
