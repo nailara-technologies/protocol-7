@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = usage.query
+# descr = ask one or more usage providers for fresh numbers and answer the
+#         waiting command once every provider has reported
+# param = \@provider_names, $reply_id, $format
+# note  = every provider reports through usage.handler.provider_result, which
+#         completes the deferred command reply when the last one arrives
+# return = the query id when the answer is on its way [ deferred ], or a
+#          ready-made { mode, data } reply the calling command returns as is
+
+my $reply_now = sub {    ##  nothing to wait for : the caller answers  ##
+    return { 'mode' => qw| false |, 'data' => shift };
+};
+
+my ( $provider_names, $reply_id, $format ) = @ARG;
+
+$provider_names = [] if ref $provider_names ne qw| ARRAY |;
+$reply_id //= '';
+$format   //= qw| box |;
+
+##  providers with no loaded plugin are reported, not silently dropped  ##
+my @known    = <[usage.provider_list]>;
+my %is_known = map { $ARG => TRUE } @known;
+
+my @requested = grep { $is_known{$ARG} } $provider_names->@*;
+my @unknown   = grep { not $is_known{$ARG} } $provider_names->@*;
+
+return $reply_now->(
+    @unknown
+    ? sprintf( 'no usage provider plugin for : %s', join ', ', @unknown )
+    : 'no usage provider plugins loaded'
+) if not @requested;
+
+my $req_id = <[base.gen_id]>->(<usage.requests>);
+
+##  slowest provider decides when waiting stops  ##
+my $slowest = 0;
+foreach my $name (@requested) {
+    my $timeout = <usage.provider>->{$name}->{'timeout'} // 30;
+    $slowest = $timeout if $timeout > $slowest;
+}
+my $grace = $slowest + ( <usage.cfg.query_grace> // 10 );
+
+<usage.requests>->{$req_id} = {
+    'reply_id' => $reply_id,
+    'format'   => $format,
+    'order'    => [ @requested, @unknown ],
+    'pending'  => scalar @requested,
+    'results'  => {},
+    'started'  => time,
+};
+
+##  unknown providers show up in the report like any other failed row  ##
+foreach my $name (@unknown) {
+    <usage.requests>->{$req_id}->{'results'}->{$name} = {
+        'ok'    => FALSE,
+        'error' => 'no provider plugin loaded',
+    };
+}
+
+##  guard : answer with whatever arrived if a provider never reports back  ##
+<usage.requests>->{$req_id}->{'guard_timer'} = <[event.add_timer]>->(
+    {   'after'   => $grace,
+        'handler' => qw| usage.handler.query_timeout |,
+        'data'    => { 'req_id' => $req_id },
+    }
+);
+
+<[base.logs]>->(
+    2,         'usage : query [ %s ] provider%s : %s',
+    $req_id,   @requested == 1 ? '' : 's',
+    join ', ', @requested
+);
+
+foreach my $name (@requested) {
+    $code{"plugin.usage.$name"}->(
+        {   'operation' => qw| fetch |,
+            'on_result' => qw| usage.handler.provider_result |,
+            'params'    => { 'req_id' => $req_id, 'provider' => $name },
+        }
+    );
+}
+
+return $req_id;
+
+#,,..,,,.,,..,..,,,,.,,,.,.,.,,,,,,,.,,,.,..,,..,,...,...,,.,,,.,,,..,,,,,.,,,
+#CN2PFLE5QWFGL5BXTXZIHYUMBF2J4P65X4IPW7LZFVI3ZIIR7PX33J76HDHQ5TNXQBKPOZNA7DLAA
+#\\\|UXVU3H3KJFDRQOQBV56DVGNQOBVEQ2ZOITPTVU2F2GQ4RGIWLVT \ / AMOS7 \ YOURUM ::
+#\[7]IPEMZASD2DHPF2ZUA76YSQW4QBFHQP63HQ22ZWODSL6J6BYYDABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

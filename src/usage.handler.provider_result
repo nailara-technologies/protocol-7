@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = usage.handler.provider_result
+# descr = collect one provider's parsed numbers, complete the waiting command
+#         reply once the last provider has reported
+
+my $result = shift // {};
+
+my $params   = $result->{'params'}   // {};
+my $req_id   = $params->{'req_id'}   // '';
+my $provider = $params->{'provider'} // $result->{'provider'} // '';
+
+my $request = <usage.requests>->{$req_id};
+
+##  gone : already completed [ e.g. a late reply after the guard timer ]  ##
+return if not defined $request;
+
+##  one provider reports once : a repeat never decrements twice  ##
+return if exists $request->{'results'}->{$provider};
+
+$request->{'results'}->{$provider} = {
+    'ok'      => $result->{'ok'} ? TRUE : FALSE,
+    'error'   => $result->{'error'},
+    'result'  => $result->{'result'},
+    'elapsed' => $result->{'elapsed'},
+};
+
+$request->{'pending'}--;
+
+<[base.logs]>->(
+    3, 'usage : query [ %s ] %s reported %s, %d pending',
+    $req_id, $provider, $result->{'ok'} ? 'ok' : 'failure',
+    $request->{'pending'}
+);
+
+return TRUE if $request->{'pending'} > 0;
+
+return <[usage.complete_query]>->($req_id);
+
+#,,,.,...,,..,,..,.,,,.,,,..,,.,.,,,,,.,.,.,.,..,,...,...,..,,..,,,.,,,..,,..,
+#HDCW52YPAGZR5TD6PH3GI3Z7XU3YKN7AJNNPXDHYOYZQRFV3TYZ37RH34VLUFCNAASIXRCDYLEZBW
+#\\\|PBW4ADY53WHENUYEPOUJOHIYEIFCN5CETDHIUABBZEM5MOP53LX \ / AMOS7 \ YOURUM ::
+#\[7]JXLMRS35HXOMJSJF3YJNVSQML5J7NT5ZEG2PGSCPK6QI2ESZIODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

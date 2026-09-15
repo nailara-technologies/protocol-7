@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = usage.complete_query
+# descr = format a finished usage query and deliver the deferred command reply
+# param = $req_id
+
+my $req_id = shift // '';
+
+my $request = delete <usage.requests>->{$req_id};
+return if not defined $request;
+
+##  guard timer has done its job [ or never needed to ]  ##
+if ( defined $request->{'guard_timer'} ) {
+    eval { $request->{'guard_timer'}->cancel };
+    delete $request->{'guard_timer'};
+}
+
+##  true when at least one provider answered with real numbers  ##
+my $any_ok = FALSE;
+my @errors;
+foreach my $name ( $request->{'order'}->@* ) {
+    my $entry = $request->{'results'}->{$name} // {};
+    if ( $entry->{'ok'} ) { $any_ok = TRUE; next }
+    push @errors, sprintf '%s : %s', $name,
+        $entry->{'error'} // 'query failed';
+}
+
+## a report with real numbers in it is multi-line, so it travels in SIZE ##
+## mode [ TRUE \ FALSE replies have their newlines escaped ] -- a query  ##
+## where every provider failed has nothing to lay out and answers FALSE  ##
+## with the reasons on one line                                          ##
+my $report
+    = $any_ok
+    ? <[usage.format.report]>->($request)
+    : join '; ', @errors;
+
+<[base.logs]>->(
+    2,       'usage : query [ %s ] complete in %ds',
+    $req_id, time - ( $request->{'started'} // time )
+);
+
+my $reply_id = $request->{'reply_id'} // '';
+
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => $any_ok ? qw| size | : qw| false |,
+            'data' => $report,
+        }
+    );
+} else {    ##  no waiting command : local invocation, log the report  ##
+    <[base.logs]>->( 1, "usage report :\n%s", $report );
+}
+
+return TRUE;
+
+#,,..,.,.,..,,.,.,..,,,.,,..,,,,,,,,.,.,.,.,.,..,,...,...,,..,...,...,.,.,,.,,
+#C2EMVRKTG6KGTLGU6S4FWWWZBRTFSAR7BJAGWLJ2AY45YURZJWORZ7EF22IJNJBED2THAHWW4IGHI
+#\\\|E6YDMNVJQDIYIGVXFPIRRPVV37AD5JCLM26XULOH7QWQT7BQTTW \ / AMOS7 \ YOURUM ::
+#\[7]FIZOWYHXQRENCQKKNDDGOYE74MVMVAFHK7R4UJUC3ZYMBJD3YGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

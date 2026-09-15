@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = usage.cmd.claude
+# descr = claude account rate-limit usage [ parsed numbers ]
+# param = [ compact ]
+
+my $args_str = $call->{'args'} // '';
+
+my $format = $args_str =~ m{\bcompact\b}i ? qw| compact | : qw| box |;
+
+my $query = <[usage.query]>->( [qw| claude |], $call->{'reply_id'}, $format );
+
+## a query that never started answers here, otherwise the reply travels ##
+## back through usage.complete_query                                    ##
+return $query if ref $query eq qw| HASH |;
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,,.,,,.,,,.,...,,..,,,.,.,.,.,.,...,..,,..,,...,...,.,.,,..,,..,,,,,..,,
+#TMF5PEQ3NQL7XURCNS4ROKKBYWOH6V3V3H3YBK5A2BT526PY7YOKALKKYLFEJ6NC26KY76IWRH7ZE
+#\\\|EXJU5FPWDJIDDLVYVR3VBWHGP2U4YBBEIR5KQMCIZ4OZ5NWKZUZ \ / AMOS7 \ YOURUM ::
+#\[7]IBBIGCOHGECDIWGN6XAEDN4UCHO6M7KFZ3E3XAOA4A6JQV7ZQWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

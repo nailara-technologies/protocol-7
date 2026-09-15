@@ -1,0 +1,140 @@
+## [:< ##
+
+# name  = usage.format.report
+# descr = render a completed usage query as reply text
+# param = $request [ the <usage.requests> entry ]
+# note  = only ever renders parsed numbers and labels -- nothing that comes
+#         near a credential value ever reaches this code
+
+my $request = shift // {};
+
+my $format  = $request->{'format'}  // qw| box |;
+my $results = $request->{'results'} // {};
+
+my @lines;
+
+if ( $format eq qw| compact | ) {
+
+    ## one row per line : '<provider> <key> <used percent> <resets in ##
+    ## secs>' a shape a consuming zenka can scan without a parser     ##
+    foreach my $name ( $request->{'order'}->@* ) {
+        my $entry = $results->{$name} // {};
+
+        if ( not $entry->{'ok'} ) {
+            push @lines, sprintf '%s error %s', $name,
+                $entry->{'error'} // 'query failed';
+            next;
+        }
+
+        foreach my $row ( @{ $entry->{'result'}->{'rows'} // [] } ) {
+            my $key = $row->{'window'} // $row->{'label'} // qw| usage |;
+            $key = lc $key;
+            $key =~ s{\s+}{-}g;
+            push @lines, sprintf '%s %s %s %s', $name, $key,
+                defined $row->{'used_pct'}
+                ? sprintf( '%.1f', $row->{'used_pct'} )
+                : '?',
+                $row->{'resets_in'} // '?';
+        }
+    }
+
+    return join "\n", @lines;
+}
+
+##  box format [ same visual shape as bin/dev/usage-external ]  ##
+
+foreach my $name ( $request->{'order'}->@* ) {
+
+    my $entry  = $results->{$name}  // {};
+    my $parsed = $entry->{'result'} // {};
+
+    push @lines, '' if @lines;    ##  one blank line between boxes  ##
+
+    push @lines, sprintf '.:[ %s ]:.',
+        $parsed->{'label'} // ucfirst("$name usage");
+
+    if ( not $entry->{'ok'} ) {
+        push @lines, ':';
+        push @lines, sprintf ': %-12s : %s', qw| error |,
+            $entry->{'error'} // 'query failed';
+        push @lines, ':.';
+        next;
+    }
+
+    push @lines, ':';
+
+    my $group_sep = FALSE;    ##  set once a row group has printed  ##
+
+    foreach my $row ( @{ $parsed->{'rows'} // [] } ) {
+
+        push @lines, ':' if $group_sep;
+        $group_sep = TRUE;
+
+        my $label = $row->{'label'} // qw| usage |;
+
+        if ( defined $row->{'used'} and defined $row->{'limit'} ) {
+            push @lines, sprintf ': %-12s : %s / %s%s', $label,
+                $row->{'used'}, $row->{'limit'},
+                defined $row->{'remaining'}
+                ? sprintf( '  [ remaining %s ]', $row->{'remaining'} )
+                : '';
+            push @lines, sprintf ': %-12s : %.1f%% used', qw| used |,
+                $row->{'used_pct'}
+                if defined $row->{'used_pct'};
+        } elsif ( defined $row->{'used_pct'} ) {
+            push @lines, sprintf ': %-12s : %.1f%% used', $label,
+                $row->{'used_pct'};
+        } else {
+            push @lines, sprintf ': %-12s : %s', $label, '?';
+        }
+
+        if ( defined $row->{'resets_in'} ) {
+            push @lines, sprintf ': %-12s : %s', qw| resets |,
+                <[usage.format.duration]>->( $row->{'resets_in'} );
+        } elsif ( defined $row->{'reset_time'} ) {
+            push @lines, sprintf ': %-12s : %s', qw| resets |,
+                $row->{'reset_time'};
+        }
+
+        push @lines, sprintf ': %-12s : %s', qw| status |, $row->{'status'}
+            if defined $row->{'status'};
+    }
+
+    ##  booster wallet \ extra usage  ##
+    if ( ref $parsed->{'wallet'} eq qw| HASH | ) {
+        push @lines, ':' if $group_sep;
+        $group_sep = TRUE;
+        push @lines, sprintf ': %-12s : balance %s / %s %s', 'extra usage',
+            $parsed->{'wallet'}->{'balance'}  // '?',
+            $parsed->{'wallet'}->{'limit'}    // '?',
+            $parsed->{'wallet'}->{'currency'} // '';
+    }
+
+    ##  remaining provider-level values [ numbers and labels only ]  ##
+    my @extra_keys = sort keys %{ $parsed->{'extra'} // {} };
+    if (@extra_keys) {
+        push @lines, ':' if $group_sep;
+        $group_sep = TRUE;
+    }
+    foreach my $key (@extra_keys) {
+        push @lines, sprintf ': %-12s : %s', $key, $parsed->{'extra'}->{$key};
+    }
+
+    ##  token freshness : a number, so an expiry never arrives as a 401  ##
+    if ( defined $parsed->{'token_expires_in'} ) {
+        push @lines, ':' if $group_sep;
+        $group_sep = TRUE;
+        push @lines, sprintf ': %-12s : %s', 'token valid',
+            <[usage.format.duration]>->( $parsed->{'token_expires_in'} );
+    }
+
+    push @lines, ':.';
+}
+
+return join "\n", @lines;
+
+#,,.,,,,.,,,,,..,,,..,,..,..,,,,,,,..,,,.,,..,..,,...,...,.,,,.,,,,.,,.,.,,,,,
+#GUBMUSF6NX7S4IFRH4JCKBRZGNGVNWCJIETMWBUCDFG5BGQC6XKDUZ7RVMXMSVUSVNON5EQ7ZDQ54
+#\\\|UJW2O244O5AS2G6H53S77ZERITPFGD3JJEKVYEEML6RRSP3A5TW \ / AMOS7 \ YOURUM ::
+#\[7]AEUR5EW5FT6F354ASYHXSFCGIRX2BV4LW7Y2KPL7QJSV3IOSJUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

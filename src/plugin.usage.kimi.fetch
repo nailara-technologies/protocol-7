@@ -1,0 +1,127 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.fetch
+# descr = read the local kimi oauth credential and start an async GET /usages
+#         query [ free, no token cost ]
+# param = { on_result => '<handler name>', params => { .. } }
+# note  = the caller's on_result handler is invoked exactly once, either
+#         synchronously on a local failure or later from the io callback
+
+my $args = shift // {};
+
+my $on_result = $args->{'on_result'} // '';
+my $params    = $args->{'params'}    // {};
+
+my $provider = <usage.provider.kimi>;
+
+## single completion path : local failures report through the same handler ##
+my $report_failure = sub {
+    my $error = shift // 'kimi usage query failed';
+    <[base.logs]>->( 1, 'usage [ kimi ] : %s', $error );
+    $code{$on_result}->(
+        {   'provider' => qw| kimi |,
+            'ok'       => FALSE,
+            'error'    => $error,
+            'params'   => $params,
+        }
+    ) if length $on_result and exists $code{$on_result};
+    return undef;
+};
+
+return $report_failure->('kimi usage provider is disabled')
+    if not $provider->{'enabled'};
+
+##  home directory of the unix user this zenka runs as [ never hardcoded ]  ##
+my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+
+return $report_failure->('cannot resolve home directory')
+    if not length $home_dir;
+
+my $cred_dir = catfile( $home_dir, $provider->{'cred_rel_dir'} );
+
+my $cred_dh;
+return $report_failure->(
+    sprintf 'cannot open credential directory [ %s ]',
+    <[base.str.os_err]>
+) if not opendir( $cred_dh, $cred_dir );
+
+##  newest credential file first [ several may accumulate over time ]  ##
+my @cred_files = sort { -M $a <=> -M $b }
+    map { catfile( $cred_dir, $ARG ) }
+    grep {m{^kimi-code.*\.json$}} readdir($cred_dh);
+closedir($cred_dh);
+
+return $report_failure->('no kimi credential file found')
+    if not @cred_files;
+
+## token only ever travels into the request header, never into a log line, ##
+## never into %data                                                        ##
+my $token      = '';
+my $expires_at = undef;
+
+foreach my $cred_file (@cred_files) {
+    my $cred_fh;
+    next if not open( $cred_fh, '<', $cred_file );
+    my $cred_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$cred_fh> };
+    close($cred_fh);
+    my $cred_data = <[format.json.decode]>->($cred_str);
+    undef $cred_str;    ##  no credential material left lying around  ##
+    next if ref $cred_data ne qw| HASH |;
+    next if not length( $cred_data->{'access_token'} // '' );
+    $token      = $cred_data->{'access_token'};
+    $expires_at = $cred_data->{'expires_at'};
+    undef $cred_data;
+    last;
+}
+
+return $report_failure->('no parseable kimi credential with access token')
+    if not length $token;
+
+##  register the in-flight request  ##
+my $req_id = <[base.gen_id]>->( $provider->{'pending'} );
+$provider->{'pending'}->{$req_id} = {
+    'on_result'  => $on_result,
+    'params'     => $params,
+    'started'    => time,
+    'expires_at' => $expires_at,
+};
+
+my $state = <[clients.https.get]>->(
+    {   'url'     => sprintf( '%s/usages', $provider->{'base_url'} ),
+        'timeout' => $provider->{'timeout'},
+        'headers' => {
+            'Authorization' => "Bearer $token",
+            'Accept'        => qw| application/json |,
+        },
+        'on_done' => qw| plugin.usage.kimi.handler.response |,
+        'params'  => { 'req_id' => $req_id },
+    }
+);
+
+undef $token;
+
+## request never started and no callback was scheduled [ malformed url or  ##
+## missing handler ] : complete it here. the response handler deletes the  ##
+## pending entry, so a late callback for a genuinely scheduled failure can ##
+## never double-report                                                     ##
+if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
+    <[event.add_idle]>->(
+        {   'handler' => qw| plugin.usage.kimi.handler.response |,
+            'params'  => {
+                'ok'     => FALSE,
+                'error'  => 'https request could not be started',
+                'params' => { 'req_id' => $req_id },
+            },
+        }
+    );
+}
+
+<[base.logs]>->( 2, 'usage [ kimi ] : /usages query sent' );
+
+return $req_id;
+
+#,,,,,,,,,,..,.,.,...,..,,.,,,,,.,.,.,,,,,,,,,..,,...,...,,.,,...,...,,.,,,,,,
+#2MW5E7QPR2AHFTP74RXELFUSPBXOCLDKTQTO7O2O3OJJQIL5JSKVZUN7BZRWXGPOVPRUHIXGDYJGW
+#\\\|446BVKVM5OGK7PODEMTOQSEVT7B44A2CFIOVLGCYNM3S3Q346OV \ / AMOS7 \ YOURUM ::
+#\[7]B7T6MGEZPXKAC7ZGDKE5HP3CMKLRRJV2O2BQE674XX5RCGVNASDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
