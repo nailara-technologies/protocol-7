@@ -1,6 +1,6 @@
 ---
 name: sourcecode-signature-corpus-scoping
-description: when scoping a sourcecode.console.* signing/verify command to a caller-given file list, intersect against the authoritative sourcecode.source_path_set_up corpus, never a regex approximation of it; and add a :keyword: flag to the existing command rather than a new console command
+description: when scoping a sourcecode.console.* signing/verify command to a caller-given file list, intersect against the authoritative sourcecode.source_path_set_up corpus, never a regex approximation of it; add a :keyword: flag to the existing command rather than a new console command; and never "fix" collect_file_list's bare-directory non-recursion without checking `/** + :inlist:` first -- that's the existing safe mechanism, not a gap
 metadata:
   type: feedback
 ---
@@ -43,8 +43,48 @@ See also [[feedback-p7-cli-argv-and-console-command-gotchas]] for the CLI
 invocation quirks hit while testing this (`-vq` positioning, space-joined
 argv can't carry filenames with spaces).
 
-#,,..,,,,,.,.,,.,,...,.,.,,,,,.,.,,,.,...,...,..,,...,...,.,.,.,,,,,.,,,.,..,,
-#MSDLSEC7UJNIZ5FP4ODHPT4JXJHBDNQDSNFBXVZ7QQVHZJ5BTHDZ6CZQLTXLGURN5DM6W4NM4EOBI
-#\\\|XYFK7MOV3CNA2TBTCHFQUJMKUSCFFONIK5DK2LOTA32MIZ5GJGP \ / AMOS7 \ YOURUM ::
-#\[7]V4ZANK2BMGGWVHHQ6MLYI4KKT2737IN6LXFIL5FD4GWN4NVRHUBI 7  DATA SIGNATURE ::
+**addendum, 2026-09-15 — a real incident from treating this module's
+own non-recursive-by-default behavior as a bug.** `bin/Protocol-7`'s
+`base.source.collect_file_list`, given a bare directory argument (e.g.
+`data`, not `data/**`), deliberately scans ONLY that directory's
+immediate files — the final loop calls `<[file.all_files]>->(
+$absolute_path, \@all_files )` without the recursive flag, which is NOT
+a bug: it's the conservative default for an unqualified directory name.
+Genuine recursion is already a first-class, existing feature — a
+trailing `/**` on the path (`data/**`) hits a completely different,
+correctly-recursive branch a few lines up (`<[file.all_files]>->(
+$base_path, qw| recursive | )`). I "fixed" the wrong branch instead of
+using the existing one: patched the bare-directory loop to always force
+recursion, which — combined with running the *unscoped* `sourcecode
+update-signatures` variant instead of `:inlist:`-scoped — caused a
+live run to attempt signing 18,984 files, including vendored dependency
+configs (`cfg/zenki/*/deps/**`) never meant to be part of the signed
+corpus, and hit a fatal `pathspec ... is beyond a symbolic link` error
+partway through. Caught live by the user, fully reverted (confirmed
+`git diff` clean against HEAD) before anything landed.
+
+**the correct, already-safe way to get "sign everything actually in the
+corpus under these directories, recursively" is a combination already
+built for exactly this**: `:inlist: cfg/** data/** read-me/**` — the
+`/**` suffix gives real recursion (the existing, correct mechanism,
+confirmed by reading the wildcard-handling branch directly, not
+assumed), and `:inlist:` intersects the result against
+`sourcecode.source_path_set_up`'s authoritative corpus, so even a
+recursive glob that happens to reach a vendored/excluded path can't get
+a signature appended for nothing. Neither half alone is enough: `/**`
+without `:inlist:` has no corpus safety net (the same over-broad-touch
+risk this incident hit); `:inlist:` without `/**` has nothing to
+recurse into and correctly reports "nothing to sign" if it's the only
+thing given. **How to apply**: before changing `collect_file_list`'s
+directory-matching behavior again, or before running a broad signing
+pass, use the `/** + :inlist:` combination above rather than a bare
+directory name — and if a shallow-vs-deep default genuinely needs
+changing, that's a considered API/behavior-change decision for the
+project owner, not a "fix" to apply confidently mid-session on a first
+read of the code.
+
+#,,.,,...,.,.,..,,..,,.,.,,.,,,,,,..,,,,.,,,.,..,,...,...,,,.,,..,...,.,,,..,,
+#CDXMEE4HZHLW333JURLP3OG7GMNVVZRIPPT5USSP3ZBD7SDHWM7IAGB53WOQB4HEQCT4NUQXI4QJG
+#\\\|KV7HIC6UPZWWXNM5TWCJ7XI3TL3XGUGP6W6IMQZ26PEWCRGR27B \ / AMOS7 \ YOURUM ::
+#\[7]2NS2TFZGWJYD4AWTAWZTEUWY5S36ELNPTJIGMLERN6DB2LDDWADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

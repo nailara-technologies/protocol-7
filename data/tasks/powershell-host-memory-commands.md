@@ -31,30 +31,65 @@ way to see actual Windows host memory pressure (where Firefox and WSL's
 overall VM allocation both live) from inside protocol-7 -- exactly the
 signal that would have given advance warning before tonight's crash.
 
-## proposed scope, not started
+## implemented 2026-09-15
 
-- a `powershell.cmd.mem-used`-shaped command (or similarly named),
-  querying actual Windows host memory via PowerShell (e.g. `Get-
-  CimInstance Win32_OperatingSystem` for total/free physical memory),
-  mirroring `system.memory.cmd.mem-used`'s simple percent-based return
-  shape for consistency between the two zenki's interfaces.
-- worth also considering a per-process top-memory-consumer listing (to
-  catch a specific runaway process like Firefox before it becomes a
-  host-wide problem), not just an aggregate percentage.
-- the user raised a STRM-based (live-updating, not one-shot-poll) reply
-  mode as worth considering for this -- STRM is an existing cube-level
-  reply-mode convention (see `cube.cmd.select-strm-mode`, `channels.
-  cmd.test-strm`), not something system zenka's existing mem-used
-  command currently uses either. Would let this feed a genuine early-
-  warning mechanism rather than only ever being checked reactively
-  after the fact. Not scoped in detail -- worth a decision on one-shot
-  vs streaming before implementing, not assumed.
+both one-shot commands built, wired in and tested live against the
+real windows host :
 
-no design/implementation work done yet -- this is a capture-for-later
-task file only.
+- `src/powershell.cmd.mem-used` -- `p7c powershell.mem-used` returns
+  `{ mode true, data <percent>% }`, mirroring
+  `system.memory.cmd.mem-used`'s shape exactly [ two-decimal percent,
+  same quoting style ]. queries `Get-CimInstance Win32_OperatingSystem`
+  [ TotalVisibleMemorySize / FreePhysicalMemory, in KB ] and computes
+  percent used. percent is formatted invariant-culture on the
+  powershell side so the decimal point stays '.' regardless of host
+  locale. live result at test time : 79.43% host-side vs the system
+  zenka's 12.06% wsl-side on the same machine -- the discrepancy that
+  motivated this task, now directly visible.
+- `src/powershell.cmd.mem-top-proc` -- `p7c powershell.mem-top-proc
+  [count]` lists the top N [ default 10, capped at 50 ] host processes
+  by working-set memory as `pid<TAB>name<TAB>ws-MB` lines [ mode size ].
+  at test time this immediately surfaced `vmmemWSL` at ~15GB WS on this
+  15GB-RAM host, followed by the firefox processes -- exactly the
+  per-process advance-warning view the incident called for.
 
-#,,,,,,,.,,,.,,,.,,..,..,,..,,,..,.,.,..,,...,..,,...,...,.,,,,,,,..,,,..,,..,
-#S2GRBS32A5PCH4D2XFMJZKIQN3H5IIT5ZNT2RWDFYXAFMRYQJDE4DYAIZETANZHCTDTPKFSA55J66
-#\\\|VGPP2EAKZ24PAGAPLPEH224VIBKWTUJ56GC5D5ULJRAUZARV7A4 \ / AMOS7 \ YOURUM ::
-#\[7]7INM6EWUOM4ETNCH7322S3OHEMTYPH27AL3U3YZID6KDL7WPY4CI 7  DATA SIGNATURE ::
+both follow the `powershell.cmd.get-event-log` disciplines
+confirmed live earlier : single-line semicolon-joined script through
+`<[powershell.exec]>->(...)` [ never multi-line -- the wsl-to-windows
+argv marshalling breaks on embedded newlines ], and try/catch with a
+`P7ERR:` sentinel parsed generically on the perl side.
+
+also touched :
+- `cfg/zenki/powershell/zenka.v7` -- added `mem-used mem-top-proc`
+  to `access.cmd.usr.*`
+- `cfg/zenki/powershell/subroutines.load-early` -- regenerated via
+  `bin/dev/gen-sub-whitelist powershell`
+
+## deliberately not built
+
+- STRM-based live-streaming reply mode [ raised as a stretch idea ] --
+  noted as a future option in a comment in
+  `src/powershell.cmd.mem-used`, not implemented ; one-shot was the
+  actual deliverable.
+
+## pending : signatures
+
+the four touched files could not be re-signed in the afk session --
+`bin/Protocol-7 sourcecode update-signatures` needs the
+'proto-7.sourcecode' key decryption password [ terminal-prompt only ].
+run, when back at a shell :
+
+    bin/Protocol-7 sourcecode update-signatures \
+        src/powershell.cmd.mem-used src/powershell.cmd.mem-top-proc \
+        cfg/zenki/powershell/zenka.v7 \
+        cfg/zenki/powershell/subroutines.load-early \
+        data/tasks/powershell-host-memory-commands.md
+
+unsigned files load and run fine [ no load-time signature
+verification ] ; signing is for commit hygiene / pre-commit.
+
+#,,.,,,,,,.,,,,.,,,,,,,.,,,.,,,.,,.,,,...,,,.,..,,...,...,.,,,,..,,,.,..,,,..,
+#CSX5B4IAUXX5RJA3HVC55SCRVLN65IE52CQK6WM2PX2JKZEN5WVJM6FPOUFBVUXHV6PXMFUOYBGOO
+#\\\|H7GKULJCLDZ4VFVYWISBCKXKP4SKULW6P5GKUJTCH3YSPRWFGWT \ / AMOS7 \ YOURUM ::
+#\[7]YWKDX4UNEOAK465Z4DYOADG5WDVGFIMVSELC3JEMMXCBT47ZOWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
