@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3XKP3DEGPI-9471.0 :::
+::: SOURCE-CODE VERSION :: 3XKP5TGQLA-9472.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -172,6 +172,12 @@ Three primary methods for interacting with the Protocol-7 network:
    - **Ctrl+O cycle**: Execute and advance through history sequence (cycling two entries)
    - Strips protocol reply strings for cleaner output (similar to p7c and p-7-r)
    - ✅ All navigation features fully tested and production-ready
+   - **Live coding-zenka session integration**: split-screen mode, `Tab` toggles between
+     the coding-session view and normal Protocol-7 mode; auto-subscribes to a task and
+     streams its output live
+   - **Round-based rewind/redo**: `Esc` (after first aborting) steps back one round,
+     `F1`/`Shift+Esc` redo forward, `round-regen` forks a fresh-inference retry from any
+     point, `restream` resyncs the view manually
 
    See: [`NSHELL_REFACTORING_COMPLETED.md`](./data/md/documentation/NSHELL_REFACTORING_COMPLETED.md) for implementation details
 
@@ -382,8 +388,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,,,.,,..,.,.,,,,,.,.,,,,,,..,.,.,..,,..,,..,,...,...,,.,,.,,,,,,,...,.,.,
-#6ABZ3NJW44SNMQEFTHXUHCFYXKKVOUKYLDT7B3CTNF2XVMTPPWLLFJEIEIEI6ULFBUSFFG4OKFVLU
-#\\\|3VKAVLZ7H6SK7DZTOR7THZP5VPNCU64PGRTFQBKXE5BD3HAYNMA \ / AMOS7 \ YOURUM ::
-#\[7]NM3YFCDN2R6KWJI5RSQS5CZJ4SV7ONYY6QH2PQSVGLJ3OTOCRGDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,,,,,,.,,,,,,,,.,...,,..,,,.,..,,...,...,,.,,.,.,.,,,...,,..,
+#K3QE5IDEZSWILIFQWID27O5A72KIU2VR275NPDFNJSZXYD37XTMCKKMZ4LHJ7JXULDUH3P3VNFFP2
+#\\\|D2HNXVWCGTGSV5KLNVYW25BFP5VKQ4X6IYFHCKB5QL7UIWEB6V7 \ / AMOS7 \ YOURUM ::
+#\[7]52XWIUBZHJ2SUSRREJLL4HENC7E74YMULTXAVF2WG7CZPQWLPAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
