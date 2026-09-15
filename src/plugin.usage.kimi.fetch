@@ -11,6 +11,7 @@ my $args = shift // {};
 
 my $on_result = $args->{'on_result'} // '';
 my $params    = $args->{'params'}    // {};
+my $retried   = $args->{'retried'}   // FALSE;
 
 my $provider = <usage.provider.kimi>;
 
@@ -84,6 +85,7 @@ $provider->{'pending'}->{$req_id} = {
     'params'     => $params,
     'started'    => time,
     'expires_at' => $expires_at,
+    'retried'    => $retried,
 };
 
 my $state = <[clients.https.get]>->(
@@ -120,8 +122,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,,,,,,,,..,.,.,...,..,,.,,,,,.,.,.,,,,,,,,,..,,...,...,,.,,...,...,,.,,,,,,
-#2MW5E7QPR2AHFTP74RXELFUSPBXOCLDKTQTO7O2O3OJJQIL5JSKVZUN7BZRWXGPOVPRUHIXGDYJGW
-#\\\|446BVKVM5OGK7PODEMTOQSEVT7B44A2CFIOVLGCYNM3S3Q346OV \ / AMOS7 \ YOURUM ::
-#\[7]B7T6MGEZPXKAC7ZGDKE5HP3CMKLRRJV2O2BQE674XX5RCGVNASDA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,,,.,,.,,..,,.,,,,,,,,.,,...,..,,...,...,,,.,..,,...,.,.,,.,,
+#ESORMBHM7FQD3JHUDPR2LSN6DZTGBTESC245NWHQW74AKZN2NZTZWBA2VHU7CXRYOGBBIX3GNTM74
+#\\\|PGKVDKDEBVCACIS5SVV3PQOVJ6QCBYERMXT7NOD6TE46I2HWOET \ / AMOS7 \ YOURUM ::
+#\[7]TPCY6PQBAGMCK5AGEZIKBR6HUMUMMDVHXGNY4S5NGXQB6SQPPSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

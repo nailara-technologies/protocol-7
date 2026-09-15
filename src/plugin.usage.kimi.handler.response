@@ -27,12 +27,43 @@ my $deliver = sub {
 
 my $now = time;
 
+## an expired token is the usual reason for a 401 here [ && , not 'and' --
+## 'and' binds lower than '=' and would silently drop the right-hand
+## comparison from this assignment ]
+my $token_expired = defined $pending->{'expires_at'}
+    && $pending->{'expires_at'} < $now;
+
+## first failure on an expired token : refresh [ free -- see
+## plugin.usage.kimi.refresh_token -- kimi's own startup cycle renews its
+## oauth token before it ever reaches a point that would cost a real inference
+## token ] and retry ONCE, transparently, before ever bothering the caller
+## with an error. a second failure after the retry [ refresh itself failed, or
+## something other than expiry is wrong ] falls through to the normal error
+## report below, unchanged
+if ( not $result->{'ok'} and $token_expired and not $pending->{'retried'} ) {
+    <[base.logs]>->(
+        1,
+        'usage [ kimi ] : token expired, refreshing '
+            . 'via kimi cli and retrying once ..,'
+    );
+    <[plugin.usage.kimi.refresh_token]>->();
+    <[plugin.usage.kimi.fetch]>->(
+        {   'on_result' => $on_result,
+            'params'    => $pending->{'params'},
+            'retried'   => TRUE,
+        }
+    );
+    return;
+}
+
 ## an expired token is the usual reason for a 401 here : say so, instead of ##
-## handing back a bare status code that reads like an api fault             ##
+## handing back a bare status code that reads like an api fault. only       ##
+## reached now if the transparent refresh-and-retry above already ran once  ##
+## and it still didn't help                                                 ##
 my $token_note = '';
-if ( defined $pending->{'expires_at'} and $pending->{'expires_at'} < $now ) {
-    $token_note = sprintf ' -- local token expired %s ago, '
-        . 'run the kimi cli once to refresh it',
+if ($token_expired) {
+    $token_note = sprintf ' -- local token expired %s ago, a refresh '
+        . 'was already attempted and did not help',
         <[usage.format.duration]>->( $now - $pending->{'expires_at'} );
 }
 
@@ -178,8 +209,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,.,,,..,.,,,,.,,..,,,,,,,,.,.,,,.,,,,..,,.,,..,,...,...,...,...,.,.,.,.,.,.,
-#FZL2WOFUOQUGQNMZVPFMCYEAN3MWCAB533PEZJJ7KC5KKMC3UCXDEXJQMVTNKCPWGZWXBYCVQGBRI
-#\\\|XO5F25E4RXGKC2NPLKKQUPL6UKYDDVXRR7ZTV7XBATVTUIJPF2A \ / AMOS7 \ YOURUM ::
-#\[7]7V4Q7SCKG5I2BEO22RRD2OT22LRNXYSVYILDXRQ4CJP7GOX7KSBA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,.,,.,,,.,,...,,,.,...,.,,,.,.,..,,...,...,...,,,,,.,.,,..,...,
+#UDSMXIQBAHUCXXYE3RGAYENQFTWD6NMWD2HSXD633ZQ7UJFDLDJW3YXGWVGHQ7QXE6E6K53SWGUBY
+#\\\|7UN5S7TIKMMCNU4OUR7N7SDEMVDFKPNJ5YTI6DRZGDUZST3TISV \ / AMOS7 \ YOURUM ::
+#\[7]PU3Q3QLFPE7CGGPSF6LVM6EN3ACNV2IGXQ7QKRASYYAXTJPC3AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
