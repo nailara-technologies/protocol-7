@@ -55,7 +55,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [filter-repo-amend](feedback-filter-repo-amend.md) — `AMEND=1` prefix required for any git history-rewrite: filter-repo AND plain `commit --amend` both, else silently blocked by pre-commit's version-mismatch check
 - [whitelist-vs-access-cmd-usr-cube](feedback-whitelist-vs-access-cmd-usr-cube.md) — subroutine.white-list renamed to subroutines.load-early 2026-07-25 (compile timing only); access.cmd.usr.cube (cube routing) is the separate mechanism, don't conflate
 - [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
-- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — FIXED 2026-08-04: p7_load_code whitelist-gate skipped already-compiled non-whitelisted .cmd. modules forever; v7.restart-by-default workaround no longer needed
+- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — RECURRED 2026-09-15/16 on usage/coding zenki despite the 2026-08-04 fix; default verification to v7-zenki.restart <zenka>, don't trust reload
 - [loader-nested-hooks-eager-compile](feedback-loader-nested-hooks-eager-compile.md) — FIXED 2026-08-04: nested base.*.pre_init/init_code hooks now eager-compile with their in-batch ancestor instead of always solo-lazy-compiling; one v7.restart needed to clear pre-fix bogus pseudo-module registry entries before reload looks clean
 - [release-versioning-workflow](feedback-release-versioning-workflow.md) — vc=git alias, not encrypted; release-version -s only AFTER commit or it tags the wrong one; rel-ver file written via `2>` redirect not stdout; push branch then push --tags separately
 - [webkit-double-click-dispatch](feedback-webkit-double-click-dispatch.md) — web-browser zenka's WebKit fires click twice for one tap on some buttons, Firefox doesn't; wrap every handler in a shared debounceClick() from the start, don't patch button-by-button
@@ -136,8 +136,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [sourcecode-signature-corpus-scoping](feedback-sourcecode-signature-corpus-scoping.md) — scoping a sourcecode.console.* signing/verify command to a file list: intersect against the authoritative `sourcecode.source_path_set_up` resolver, never a regex approximation of its exclusion patterns; add a `:keyword:` flag to the existing command rather than a new console command; and NEVER "fix" `collect_file_list`'s bare-directory non-recursion (it's deliberate) -- `/** + :inlist:` is the existing safe deep-scan mechanism, a hasty patch to force recursion everywhere caused a live incident (18984-file over-broad signing attempt, fatal symlink error, fully reverted)
 - [p7-cli-argv-and-console-command-gotchas](feedback-p7-cli-argv-and-console-command-gotchas.md) — `bin/Protocol-7 <zenka> <command>` CLI: `-v`/`-vq` flags must come after the zenka name or zenka-name resolution silently fails into stdin-config mode; argv is space-joined then re-split inside `collect_file_list`, so a filename with a space/leading-`!`/`*` can't survive the round trip regardless of shell quoting (silently absorbed by loose pattern matching, not a hard crash)
 
-#,,,,,.,,,.,.,..,,,..,...,.,,,,,,,..,,,,,,...,..,,...,...,...,,..,,..,,,.,,..,
-#RXK5VGGAB6T72BZ33TBBQMGWPRBFYBUHIRCYVOP6IDQV5WZRSK2FLGLJO6THC4TDTFEUAXYXLKIPM
-#\\\|6AB7GFWAU6WE2EAKAXC6JCSE6SBVSUKJCJBM2DDDMEKCF66CKEZ \ / AMOS7 \ YOURUM ::
-#\[7]FT4BXRVUFOOM6KWXSUVNIFU7TVB4ECXTQWEGBAS4Q6EH7ZRD64CA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,.,.,..,,.,,,,,,,,..,.,.,...,..,,...,...,.,,,.,.,.,,,,.,,...,
+#5VUSZKDS2FDL35WV2TK7AV7S7PVJ2XVN5MOKW5FF4EQKWNO2VEQ5ZVGG6QB7G5QE7YTNIAAXQTT7Y
+#\\\|42RJ36KJVQWMXTZTFAIDFM3EF3T2O6MZOG3J2CYHI37OYLQOJV4 \ / AMOS7 \ YOURUM ::
+#\[7]C6QD5SEIPXHDSF7MFLNHGZQSTQ635SIYQDU6PKEM6RTKOH6LRSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
