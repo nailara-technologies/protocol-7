@@ -20,13 +20,14 @@ use warnings;
 ##    bin/dev/usage-external claude  Claude rate limits
 ##    bin/dev/usage-external all     both [ default ]
 ##
-## claude channel note :  The genuinely free count_tokens endpoint was
-## verified live to carry NO anthropic-ratelimit-* headers. The script
-## therefore probes count_tokens first and, when the headers are absent
-## (current server behavior), falls back to a max_tokens=1  haiku call (~ 9
-## tokens total, the cheapest call that returns the
-## anthropic-ratelimit-unified-* header set). The fallback  is announced on
-## stderr.
+## claude channel note :  count_tokens was verified live to carry NO
+## anthropic-ratelimit-* headers on this API -- kept as a first probe in case
+## that ever changes, expected to miss silently. max_tokens=0 was then
+## confirmed live as the normal, reliable, genuinely free path [ 200 OK, zero
+## generation, full header set, every time ] -- this is the actual mechanism
+## used in normal operation, not a fallback. A real max_tokens=1 call only
+## happens [ loudly announced on stderr, since it's the one case that actually
+## costs anything ] if max_tokens=0 ever stops working.
 ##
 ##  credential values are never printed.
 
@@ -163,12 +164,12 @@ sub print_kimi_usage {
             countdown_suffix( $detail->{'resetTime'} );
     }
 
-    ##  alternate compact schema [ older \ newer payload variants ] --
-    ##  only used when the primary usage/limits fields above are BOTH
-    ##  absent. caught live 2026-09-15: the real payload carries both a
-    ##  populated `limits` array AND a `usages` object with zeroed-out
-    ##  used_ratio placeholders -- printing this unconditionally showed
-    ##  bogus "0.0% used" rows stacked under the real, correct numbers
+    ## alternate compact schema [ older \ newer payload variants ] -- only
+    ## used when the primary usage/limits fields above are BOTH absent. caught
+    ## live 2026-09-15: the real payload carries both a populated `limits`
+    ## array AND a `usages` object with zeroed-out used_ratio placeholders --
+    ## printing this unconditionally showed bogus "0.0% used" rows stacked
+    ## under the real, correct numbers
     if (    not defined $data->{'usage'}
         and not @{ $data->{'limits'} // [] }
         and ( my $usages = $data->{'usages'} ) ) {
@@ -260,14 +261,18 @@ sub print_claude_usage {
 
     my $headers = $probe->headers;
 
-    ##  server-verified : count_tokens carries no ratelimit headers  ##
+    ## count_tokens never carries ratelimit headers on this API [ server-
+    ## verified 2026-09-15 ] -- kept as the first probe in case that ever
+    ## changes, but expected to miss every time, silently
     if ( not defined $headers->header('anthropic-ratelimit-unified-status') )
     {
-        warn ":\n:: count_tokens returned no anthropic-ratelimit headers\n:: "
-            . "falling back to a max_tokens=1 call ( costs ~ 1 output "
-            . "token ) ...\n:\n";
-
-        my $fallback = $ua->post(
+        ## max_tokens=0 : confirmed live 2026-09-15 as the normal, reliable,
+        ## genuinely free path -- 200 OK, zero generation, full ratelimit
+        ## header set every time. request-validation apparently doesn't reject
+        ## 0, and rate-limit middleware stamps the headers on it regardless.
+        ## this is expected NORMAL operation now, not a fallback worth
+        ## narrating on stderr
+        my $zero_probe = $ua->post(
             "$claude_api_base/v1/messages",
             'Authorization'     => "Bearer $token",
             'anthropic-version' => qw| 2023-06-01 |,
@@ -275,19 +280,53 @@ sub print_claude_usage {
             'Content-Type'      => qw| application/json |,
             Content             => $json_coder->encode(
                 {   'model'      => $claude_model,
-                    'max_tokens' => 1,
+                    'max_tokens' => 0,
                     'messages'   =>
                         [ { 'role' => qw| user |, 'content' => qw| hi | } ]
                 }
             )
         );
 
-        if ( not $fallback->is_success ) {
-            warn ":\n:: claude fallback request failed : "
-                . $fallback->status_line . "\n:\n";
-            return 0;
+        if (defined $zero_probe->headers->header(
+                'anthropic-ratelimit-unified-status')
+        ) {
+            $headers = $zero_probe->headers;
+        } else {
+
+            ## genuine anomaly : the confirmed-reliable free path stopped
+            ## working -- this is the one case actually worth a loud warning,
+            ## since real tokens are about to be spent
+            warn ":\n:: max_tokens=0 unexpectedly gave no ratelimit headers "
+                . '[ status '
+                . $zero_probe->status_line
+                . " ] -- falling back to max_tokens=1 "
+                . "( costs ~ 1 output token ) ...\n:\n";
+
+            my $fallback = $ua->post(
+                "$claude_api_base/v1/messages",
+                'Authorization'     => "Bearer $token",
+                'anthropic-version' => qw| 2023-06-01 |,
+                'anthropic-beta'    => qw| oauth-2025-04-20 |,
+                'Content-Type'      => qw| application/json |,
+                Content             => $json_coder->encode(
+                    {   'model'      => $claude_model,
+                        'max_tokens' => 1,
+                        'messages'   => [
+                            {   'role'    => qw| user |,
+                                'content' => qw| hi |
+                            }
+                        ]
+                    }
+                )
+            );
+
+            if ( not $fallback->is_success ) {
+                warn ":\n:: claude fallback request failed : "
+                    . $fallback->status_line . "\n:\n";
+                return 0;
+            }
+            $headers = $fallback->headers;
         }
-        $headers = $fallback->headers;
     }
 
     ##  unified utilization headers  ##
@@ -411,8 +450,8 @@ sub seconds_to_dhms {
     return "$sign$out";
 }
 
-#,,,,,,.,,,.,,..,,.,,,,.,,,.,,,,.,.,.,,.,,...,.,.,...,...,,.,,,.,,.,.,.,.,,,,,
-#QJYTFMUKUXINVZTKZMD3VBKSERJZVVPBX67GZFGKWZ5CYD4YL54MEPIGBVNH4HYN6W7MVN4QXPXCS
-#\\\|Q3JQTKQPQBNKIXSTY22ZM4CQTFTW2OOJ356TBGXX3NPTKBRBTSN \ / AMOS7 \ YOURUM ::
-#\[7]NP6VEOVRNKLK3SFIUK22UBQAHJNEZR26Z63ONXSEO53HYA23BGBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,.,.,,..,..,,,..,,,,,,.,,.,,,.,.,...,...,..,,,,,,...,.,.,.,.,
+#QNCP6Y3KIDN3WSAJR2RK47CSCTDEREOGZXXT55CPVT5SPJHYEUQ25JJ4TF3HRYGBFH2KXFKU7F3CQ
+#\\\|EDEUMLAX34UXV3HXPTT6OAIFDXH5G6UNQLRPQH6TZUPFJL3LC7H \ / AMOS7 \ YOURUM ::
+#\[7]J4RRTHP2LDKWPIKPJR7H66PFEVOKAEGMZN2HIEMHG53L6CUD3OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
