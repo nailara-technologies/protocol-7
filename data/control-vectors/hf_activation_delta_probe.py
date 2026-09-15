@@ -22,6 +22,7 @@ loads 4-bit on GPU, same pattern as lora_invoke_probe.py -- NEVER fp32 on
 CPU on this host, see the tenth pass's postmortem in
 data/tasks/coding-lora-p7-idioms.md before touching this loading block.
 """
+import sys
 import torch
 from transformers import AutoTokenizer, AutoConfig, Qwen3_5ForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
@@ -30,9 +31,11 @@ BASE = "/mnt/ext-xfs-data/models-lmstudio/petruhonk/Qwen3.8-9B-Distill-uncensore
 ADAPTER = "/data/projects/protocol-7/data/control-vectors/lora-out/p7-idioms-real-attempt5/adapter"
 LAYERS = [0, 16, 3, 19]  # SSM, SSM, dense, dense
 
+PROMPT = sys.argv[1] if len(sys.argv) > 1 else "The quick brown fox"
+
 tok = AutoTokenizer.from_pretrained(BASE)
-ids = tok("The quick brown fox", add_special_tokens=False)["input_ids"]
-assert ids == [760, 3841, 13477, 37550]
+ids = tok(PROMPT, add_special_tokens=False)["input_ids"]
+print(f"prompt: {PROMPT!r} -> {len(ids)} tokens: {ids}")
 
 bnb = BitsAndBytesConfig(
     load_in_4bit=True,
@@ -89,8 +92,8 @@ for i in LAYERS:
     on = results[f"layer{i}_on"]
     print(f"{i:<8}{kind:<8}{off:>14.4f}{on:>14.4f}{on - off:>14.4f}")
 
-#,,,,,..,,.,.,.,,,.,.,,,.,..,,..,,,..,..,,.,.,..,,...,...,,,,,,,.,.,,,..,,,..,
-#7MI7P25NSCIUCGWLB2PH4KOD3GOJU7BVPXYOOKCVM7I3SR5ZYAAHEE4VI3QH7NOO34LVXAR3PUFH6
-#\\\|3VYZSQEH6JXF7JLEJU4I6PKLN3GVJBU2D32CTWEANSV4S3P4UNI \ / AMOS7 \ YOURUM ::
-#\[7]G4XAFCT62HQIHYXU2EYMLVGCAWOSM5PYS45JTIJY7CS4X3CRO2DQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,.,,,,.,,,.,,,,,.,,,,,,,..,,...,..,,...,...,..,,.,.,.,,,.,,,.,,,
+#VEWZ7MM7WF2BS5GBTDG34YG7KS4LVVU3X6OWSDDL47DL4XAS63DX5HB4EEUXFT3MN7WALV36MJJWE
+#\\\|UA4YSHWZ4XMQPZAUFDXFNDSGYYTIBQTCACILHAL2VT5S5BLCX2X \ / AMOS7 \ YOURUM ::
+#\[7]UFLCEB5S57AN7ZBIOSU55SWSK2QFV55N2GKNIZYCR5VBMVTBP4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
