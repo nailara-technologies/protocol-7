@@ -106,21 +106,45 @@ my @external_tools = (
             . 'line at the end: "To resume this session: '
             . 'kimi -r <uuid>" — pass that uuid to '
             . 'kimi_continue to resume a long-running task. '
-            . 'specify model=k2.7 for cheap token-heavy '
-            . 'work, model=k3 (default) for complex '
-            . 'reasoning, model=k3-256k for the same '
-            . 'reasoning quality at ~1/2 the quota within a '
-            . '256k ceiling (no video input), '
-            . 'model=k2.7-fast for faster turnaround at mid ' . 'cost.',
+            . 'model=k2.8 (default) for most work (K2.8 '
+            . 'Preview, a 2026-09 Kimi-side upgrade -- '
+            . '"performance close to K3" per Kimi\'s own '
+            . 'docs, and one real multi-hour dispatch this '
+            . 'session used only ~35% of a rate-limit '
+            . 'window doing moderately complex work, well '
+            . 'under k3/k3-256k cost for comparable tasks '
+            . '-- one strong data point, revisit if quality '
+            . 'issues surface; \'k2.7\' still works as a '
+            . 'deprecated alias for the same model, prefer '
+            . 'k2.8 in new usage), model=k3 for '
+            . 'higher-stakes correctness-critical work '
+            . '(permission models, concurrency, protocol '
+            . 'design) where K3\'s specifically stronger '
+            . 'reasoning is worth the extra cost, '
+            . 'model=k3-256k for the same K3-tier reasoning '
+            . 'at ~1/2 the quota within a 256k ceiling (no '
+            . 'video input), model=k2.7-fast ONLY when '
+            . 'wall-clock speed specifically matters more '
+            . 'than quota -- it is 3x the quota cost of '
+            . 'k2.8 for ~6x faster output, the most '
+            . 'expensive option here, not a cheap/fast '
+            . 'option.',
         'command' => 'kimi-legacy -y --afk -p %s --model %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'model',
-                'model: k3 (default, best reasoning, large context) | '
-                    . 'k3-256k (same quality, ~1/2 quota, 256k ceiling, no '
-                    . 'video) | k2.7 (cheapest, good for broad '
-                    . 'search/verification) | k2.7-fast (faster turnaround, '
-                    . 'mid cost)',
+                'model: k2.8 (default -- K2.8 Preview, a 2026-09 Kimi-side '
+                    . 'upgrade, "close to K3" per Kimi\'s own docs, and '
+                    . 'cheap in practice: one real multi-hour dispatch used '
+                    . 'only ~35% of a rate-limit window; \'k2.7\' still '
+                    . 'works as a deprecated alias for this same model) | k3 '
+                    . '(strongest reasoning, large context, for '
+                    . 'higher-stakes correctness-critical work) | k3-256k '
+                    . '(same K3-tier reasoning, ~1/2 quota, 256k ceiling, no '
+                    . 'video) | k2.7-fast (3x the quota cost of k2.8 for ~6x '
+                    . 'faster output -- the priciest option here, pick it '
+                    . 'for wall-clock speed only, never as a "cheap and '
+                    . 'fast" default)',
                 0
             ],
             [   'auto_summarize',
@@ -159,11 +183,23 @@ my @external_tools = (
             . 'longer run returns status=dispatched_async within ~6s '
             . 'echoing the already-known session uuid, while kimi keeps '
             . 'running detached — poll kimi_check_status(session_id) for '
-            . 'progress and the final result. specify model=k2.7 for '
-            . 'cheap token-heavy work, model=k3 (default) for complex '
-            . 'reasoning, model=k3-256k for the same reasoning quality '
-            . 'at ~1/2 the quota within a 256k ceiling (no video input), '
-            . 'model=k2.7-fast for faster turnaround at mid cost.',
+            . 'progress and the final result. model=k2.8 (default) for '
+            . 'most work (K2.8 Preview, a 2026-09 Kimi-side upgrade -- '
+            . '"performance close to K3" per Kimi\'s own docs, and one '
+            . 'real multi-hour dispatch this session used only ~35% of a '
+            . 'rate-limit window doing moderately complex work, well '
+            . 'under k3/k3-256k cost for comparable tasks -- one strong '
+            . 'data point, revisit if quality issues surface; \'k2.7\' '
+            . 'still works as a deprecated alias for the same model, '
+            . 'prefer k2.8 in new usage), model=k3 for higher-stakes '
+            . 'correctness-critical work (permission models, '
+            . 'concurrency, protocol design) where K3\'s specifically '
+            . 'stronger reasoning is worth the extra cost, model=k3-256k '
+            . 'for the same K3-tier reasoning at ~1/2 the quota within a '
+            . '256k ceiling (no video input), model=k2.7-fast ONLY when '
+            . 'wall-clock speed specifically matters more than quota -- '
+            . 'it is 3x the quota cost of k2.8 for ~6x faster output, '
+            . 'the most expensive option here, not a cheap/fast option.',
         'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
         'params'  => [
             [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
@@ -171,11 +207,18 @@ my @external_tools = (
                 'the next task or instruction for the resumed session', 1
             ],
             [   'model',
-                'model: k3 (default, best reasoning, large context) | '
-                    . 'k3-256k (same quality, ~1/2 quota, 256k ceiling, no '
-                    . 'video) | k2.7 (cheapest, good for broad '
-                    . 'search/verification) | k2.7-fast (faster turnaround, '
-                    . 'mid cost)',
+                'model: k2.8 (default -- K2.8 Preview, a 2026-09 Kimi-side '
+                    . 'upgrade, "close to K3" per Kimi\'s own docs, and '
+                    . 'cheap in practice: one real multi-hour dispatch used '
+                    . 'only ~35% of a rate-limit window; \'k2.7\' still '
+                    . 'works as a deprecated alias for this same model) | k3 '
+                    . '(strongest reasoning, large context, for '
+                    . 'higher-stakes correctness-critical work) | k3-256k '
+                    . '(same K3-tier reasoning, ~1/2 quota, 256k ceiling, no '
+                    . 'video) | k2.7-fast (3x the quota cost of k2.8 for ~6x '
+                    . 'faster output -- the priciest option here, pick it '
+                    . 'for wall-clock speed only, never as a "cheap and '
+                    . 'fast" default)',
                 0
             ],
             [   'auto_summarize',
@@ -2348,7 +2391,8 @@ sub _checklist_instruction {
 sub _dispatch_followup {
     my ($prompt) = @ARG;
 
-    my $model    = 'kimi-code/k3';    ## same default as kimi_dispatch
+    my $model = 'kimi-code/kimi-for-coding'
+        ;    ## same default as kimi_dispatch [ 2026-09-15 ]
     my $log_path = "$ROOT_PATH/data/state/auto-followup.log";
 
     local $SIG{'CHLD'} = 'IGNORE';    ## auto-reap the background child
@@ -3956,17 +4000,36 @@ sub tool_external_command {
 
     ## kimi-specific defaults and model alias resolution
     if ( $ext->{'name'} =~ m{^kimi_} ) {
-        ## default is k3-256k, NOT full k3 -- per user 2026-08-16, same
-        ## reasoning quality at roughly half the quota cost within a 256k
-        ## context ceiling, so any dispatch that omits 'model' [ or hits an
-        ## unresolved-model code path ] lands on the cheaper option rather
-        ## than the most expensive one.  pass model=k3 explicitly for the rare
-        ## case the full 1M context genuinely matters
-        $args->{'model'} //= 'k3-256k';
+        ## default changed 2026-09-15, per user + a real observed data point
+        ## -- superseded the 2026-08-16 k3-256k-by-default reasoning below [
+        ## kept for history, not current advice ]. 'kimi-for-coding' [ our
+        ## 'k2.7' alias ] now runs K2.8 Preview under the hood [ a 2026-09
+        ## Kimi-side upgrade, "performance close to K3" per Kimi's own docs ]
+        ## -- and a real multi-hour, moderately complex dispatch this session
+        ## [ GGUF conversion + running python probes + orchestrating a
+        ## validation sweep + write-up ] used only ~35% of the rate-limit
+        ## window doing it, well under what k3/k3-256k would have cost for
+        ## comparable work.  one strong data point, not a large sample -- if
+        ## quality problems show up on a k2.7-default dispatch, that's real
+        ## signal to revisit, not something to explain away.
+        ##
+        ## previous reasoning [ 2026-08-16, no longer the live default ]:
+        ## defaulted to k3-256k over full k3 for the same reasoning quality at
+        ## roughly half the quota cost within a 256k context ceiling.  still
+        ## pass model=k3 explicitly when the full 1M context or K3's
+        ## specifically stronger reasoning genuinely matters [ permission
+        ## models, concurrency, protocol design -- see
+        ## project-kimi-k2.7-vs-k3-tier-economics.md's "how to apply" ], and
+        ## model=k3-256k when you want K3-tier reasoning with a smaller
+        ## context footprint specifically.
+        $args->{'model'} //= 'k2.8';
 
         my %model_map = (
-            'k3'        => 'kimi-code/k3',
-            'k3-256k'   => 'kimi-code/k3-256k',
+            'k3'      => 'kimi-code/k3',
+            'k3-256k' => 'kimi-code/k3-256k',
+            ## canonical name, matches the model actually running [ K2.8 Preview, 2026-09 Kimi-side upgrade ] ##
+            'k2.8' => 'kimi-code/kimi-for-coding',
+            ## deprecated alias, kept working for anyone's existing typed 'model=k2.7' -- same target as 'k2.8', don't diverge these two ##
             'k2.7'      => 'kimi-code/kimi-for-coding',
             'k2.7-fast' => 'kimi-code/kimi-for-coding-highspeed',
         );
@@ -4573,8 +4636,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,.,.,.,,,,,...,,.,,...,...,.,,,...,.,.,..,,...,...,,,,,,..,...,..,,,,,,
-#ZEGTZDKAL246XCIVPTK2XCZ4QFJEDP2KLPRX7EI26IM76MIWG35DI6N2WKYWGPMGPTRGNRIFF6ZJO
-#\\\|ZR2YEC5EJSPGJ76XW63E6AMWV5GPFXCOKKL2DZ4PGPYWOPAVY5H \ / AMOS7 \ YOURUM ::
-#\[7]2UYDOI6RIYTFD7EYD4XKCHVNMSSLRIC5MF3HEFMH4PMXU7WKHCCI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,,,.,,.,,,,,,...,,,,,,..,..,,..,,...,...,...,...,.,.,,..,,,.,
+#BTUGJIQJZMNXM4QLMFFJCY76OU6ERJZCIU4T57UZPAGZIMUF7XHTIAALFEFHTE4MSZ3XIFRUDBLBQ
+#\\\|FT5UUSP6RHGEMIZZ43CRWLAEEE5J4YFBQAETJJHFTB7OEB23LOP \ / AMOS7 \ YOURUM ::
+#\[7]6LUQPPNK4HJSCHAVYXKZFT7HON7OZ6G3PQOFPE65JDQA5JMJVKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
