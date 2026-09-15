@@ -5,6 +5,21 @@ embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
 These names have been getting conflated across sessions/compactions, and it
 has repeatedly cost real momentum — see "the mistake to not repeat" below.
 
+## UPDATE, 2026-09-15 even later still — ninth pass done, live-only, no
+## retrain: tested the eighth pass's own proposed next diagnostic
+## (Q4_K_M quantization noise diluting the delta) by re-running the same
+## 0/1/4x scale sweep against a newly-registered, correct-checkpoint Q8_0
+## quant (`amos: P27KMTQ:X6B34JQ`, `petruhonk/...-Q8_0.gguf` -- NOT the
+## "unrelated" rohit267 Q8_0 the task file warns about elsewhere, a real
+## naming trap re-hit and caught this session). Result REFUTES the
+## quantization hypothesis: higher precision made live transfer WEAKER,
+## not stronger (`' <'` at scale 4.0: 6.84% Q4_K_M vs 1.76% Q8_0). Routing,
+## alpha, rank/shape, and now base quantization are ALL ruled out by
+## direct test or inspection. What's left needs a base-model (no adapter)
+## HF-vs-llama.cpp activation-level comparison through the gated-delta-net
+## layers -- a materially bigger diagnostic step, not started. Read the
+## "ninth pass" section of `data/tasks/coding-lora-p7-idioms.md`.
+
 ## UPDATE, 2026-09-15 even later — eighth pass done, live-only, no
 ## retrain: closed the seventh pass's flash-attn confound question (NOT
 ## a confound, scale=0 control reproduces the FA-on baseline almost
