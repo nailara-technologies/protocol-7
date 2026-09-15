@@ -1,0 +1,185 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.handler.response
+# descr = on_done handler for the kimi /usages query : turns the response
+#         payload into plain numbers
+
+my $result = shift // {};
+
+my $provider = <usage.provider.kimi>;
+my $req_id   = $result->{'params'}->{'req_id'} // '';
+
+##  gone : this request was already completed [ e.g. a late duplicate ]  ##
+my $pending = delete $provider->{'pending'}->{$req_id};
+return if not defined $pending;
+
+my $on_result = $pending->{'on_result'} // '';
+
+my $deliver = sub {
+    my $reply = shift // {};
+    $reply->{'provider'} = qw| kimi |;
+    $reply->{'params'}   = $pending->{'params'} // {};
+    $reply->{'elapsed'}  = time - ( $pending->{'started'} // time );
+    $code{$on_result}->($reply)
+        if length $on_result and exists $code{$on_result};
+    return;
+};
+
+my $now = time;
+
+## an expired token is the usual reason for a 401 here : say so, instead of ##
+## handing back a bare status code that reads like an api fault             ##
+my $token_note = '';
+if ( defined $pending->{'expires_at'} and $pending->{'expires_at'} < $now ) {
+    $token_note = sprintf ' -- local token expired %s ago, '
+        . 'run the kimi cli once to refresh it',
+        <[usage.format.duration]>->( $now - $pending->{'expires_at'} );
+}
+
+return $deliver->(
+    {   'ok'    => FALSE,
+        'error' => sprintf(
+            '/usages request failed [ http status %d%s ]%s',
+            $result->{'status'} // 0,
+            length( $result->{'error'} // '' )
+            ? ', ' . $result->{'error'}
+            : '',
+            $token_note
+        ),
+    }
+) if not $result->{'ok'};
+
+my $data = <[format.json.decode]>->( $result->{'body'} // '' );
+
+return $deliver->(
+    { 'ok' => FALSE, 'error' => 'cannot parse /usages response' } )
+    if ref $data ne qw| HASH |
+    or not keys $data->%*;
+
+##  iso8601 timestamp [ e.g. 2026-09-16T21:15:23.345Z ] to epoch seconds  ##
+my $iso_to_epoch = sub {
+    my $time_str = shift // return undef;
+    return undef
+        if $time_str !~ m|^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})|;
+    return
+        eval { Time::Local::timegm_nocheck( $6, $5, $4, $3, $2 - 1, $1 ); };
+};
+
+##  one parsed row : counts, percentage and reset timing  ##
+my $make_row = sub {
+    my ( $label, $detail ) = @ARG;
+    $detail = {} if ref $detail ne qw| HASH |;
+    my %row = ( 'label' => $label );
+    $row{'used'}      = $detail->{'used'}  if defined $detail->{'used'};
+    $row{'limit'}     = $detail->{'limit'} if defined $detail->{'limit'};
+    $row{'remaining'} = $detail->{'remaining'}
+        if defined $detail->{'remaining'};
+    $row{'used_pct'} = 100 * $row{'used'} / $row{'limit'}
+        if ( $row{'limit'} // 0 ) > 0 and defined $row{'used'};
+    if ( defined( my $reset_str = $detail->{'resetTime'} ) ) {
+        $row{'reset_time'} = $reset_str;
+        if ( defined( my $epoch = $iso_to_epoch->($reset_str) ) ) {
+            $row{'reset_epoch'} = $epoch;
+            $row{'resets_in'}   = $epoch - $now;
+        }
+    }
+    return \%row;
+};
+
+##  window descriptor to a readable label [ e.g. '7 day' ]  ##
+my $window_label = sub {
+    my $window = shift;
+    return '' if ref $window ne qw| HASH |;
+    my $duration = $window->{'duration'} // return '';
+    my $unit     = lc( $window->{'timeUnit'} // '' );
+    $unit =~ s{^time_unit_}{};
+    if ( $unit eq qw| minute | and $duration >= 60 and $duration % 60 == 0 ) {
+        $duration /= 60;
+        $unit = qw| hour |;
+    }
+    return "$duration $unit";
+};
+
+my @rows;
+
+##  weekly summary row  ##
+push @rows, $make_row->( 'plan usage', $data->{'usage'} )
+    if ref $data->{'usage'} eq qw| HASH |;
+
+##  per-window rows  ##
+foreach my $limit_row ( @{ $data->{'limits'} // [] } ) {
+    next if ref $limit_row ne qw| HASH |;
+    my $label = $limit_row->{'name'} // '';
+    $label .= ' ' if length $label;
+    $label .= $window_label->( $limit_row->{'window'} );
+    $label = qw| window | if not length $label;
+    push @rows, $make_row->( $label, $limit_row->{'detail'} );
+}
+
+## alternate compact schema [ older \ newer payload variants ] -- only used ##
+## when the primary usage/limits fields above are BOTH absent. caught live  ##
+## 2026-09-15 in bin/dev/usage-external : the real payload carries both a   ##
+## populated `limits` array AND a `usages` object with zeroed-out           ##
+## used_ratio placeholders, so reading it unconditionally reports bogus     ##
+## 0.0% rows next to the real numbers                                       ##
+if (    not defined $data->{'usage'}
+    and not @{ $data->{'limits'} // [] }
+    and ref $data->{'usages'} eq qw| HASH | ) {
+    foreach my $key ( sort keys $data->{'usages'}->%* ) {
+        my $row = $data->{'usages'}->{$key};
+        next if ref $row ne qw| HASH |;
+        my %parsed_row = (
+            'label'    => $key,
+            'used_pct' => 100 * ( $row->{'used_ratio'} // 0 ),
+        );
+        if ( defined( my $reset_str = $row->{'reset_time'} ) ) {
+            $parsed_row{'reset_time'} = $reset_str;
+            if ( defined( my $epoch = $iso_to_epoch->($reset_str) ) ) {
+                $parsed_row{'reset_epoch'} = $epoch;
+                $parsed_row{'resets_in'}   = $epoch - $now;
+            }
+        }
+        push @rows, \%parsed_row;
+    }
+}
+
+return $deliver->(
+    { 'ok' => FALSE, 'error' => 'no usage values in /usages response' } )
+    if not @rows;
+
+my $parsed = {
+    'provider' => qw| kimi |,
+    'label'    => $provider->{'label'},
+    'rows'     => \@rows,
+    'time'     => $now,
+};
+
+##  booster wallet \ extra usage  ##
+if ( ref $data->{'boosterWallet'} eq qw| HASH | ) {
+    my $wallet = $data->{'boosterWallet'};
+    $parsed->{'wallet'} = {
+        'balance'  => $wallet->{'balance'},
+        'limit'    => $wallet->{'monthlyChargeLimit'},
+        'currency' => $wallet->{'currency'},
+    };
+}
+
+##  token freshness as a status number, not an opaque 401 next time round  ##
+$parsed->{'token_expires_in'} = $pending->{'expires_at'} - $now
+    if defined $pending->{'expires_at'};
+
+$provider->{'last'}      = $parsed;
+$provider->{'last_time'} = $now;
+
+<[base.logs]>->(
+    2,            'usage [ kimi ] : %d row%s parsed',
+    scalar @rows, @rows == 1 ? '' : 's'
+);
+
+return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
+
+#,,.,,,..,.,,,,.,,..,,,,,,,,.,.,,,.,,,,..,,.,,..,,...,...,...,...,.,.,.,.,.,.,
+#FZL2WOFUOQUGQNMZVPFMCYEAN3MWCAB533PEZJJ7KC5KKMC3UCXDEXJQMVTNKCPWGZWXBYCVQGBRI
+#\\\|XO5F25E4RXGKC2NPLKKQUPL6UKYDDVXRR7ZTV7XBATVTUIJPF2A \ / AMOS7 \ YOURUM ::
+#\[7]7V4Q7SCKG5I2BEO22RRD2OT22LRNXYSVYILDXRQ4CJP7GOX7KSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

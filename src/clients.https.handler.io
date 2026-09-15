@@ -54,16 +54,21 @@ my $body = <[clients.https.decode_body]>->(
     $parsed->{'body'}, $parsed->{'headers'}, qw| clients.https |
 );
 
+## response headers travel with the result : keys are lower-cased here [    ##
+## and on the h2 path ], so callers look them up in lower case -- needed by ##
+## any api that carries its answer in headers rather than the body [ e.g.   ##
+## the anthropic-ratelimit-* set ]                                          ##
 $code{ $state->{'on_done'} }->(
-    {   'ok'     => $ok,
-        'status' => $status,
-        'body'   => $body,
-        'params' => $state->{'params'},
+    {   'ok'      => $ok,
+        'status'  => $status,
+        'body'    => $body,
+        'headers' => $parsed->{'headers'} // {},
+        'params'  => $state->{'params'},
     }
 );
 
-#,,.,,,.,,...,...,,..,.,,,.,,,.,.,,,.,..,,,..,..,,...,...,...,,.,,..,,,,.,,.,,
-#FUEDLYVUSMBW7QNO4ZZXHKAIA77VUR4QSG5V3K67GKUTITCPQVZ4BXFQMHQKSYI7ZEPNIQFQ6CP3C
-#\\\|QKFXBIHEBQLQNTZAOHHIBTLKKL6MQDKAN7ARBPKTYXSKARG3LF4 \ / AMOS7 \ YOURUM ::
-#\[7]D4WMRVPQLDOQWEGUMPODY4OHY6KZ6W5Y25H6XGA4Y5O3J3WJO6DI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,..,,.,,.,,,.,,,,,,,...,..,,...,..,,...,...,...,.,.,,.,,..,,,..,
+#EPPNYNNW2MTZUAKJCOOWNMFIYFZOOAKVPFI4X3XUIOREIXKVVCKQEB2IXVG7X3MMKWZCPQXKAG3PU
+#\\\|SR6MFKL6PZN5VV5NM23WL53K5P22SLEU455RPVDVEWK5KZRZQMH \ / AMOS7 \ YOURUM ::
+#\[7]NM5M4QKRAANKGKKK43S4YGM5WGXGZYOTRSITXC77RWMB374OZOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

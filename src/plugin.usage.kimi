@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = plugin.usage.kimi
+# descr = kimi usage provider plugin : main dispatch
+# param = { operation => 'fetch' | 'cached' | 'config', ... }
+
+my $args = shift // {};
+
+my $operation = $args->{'operation'} // qw| fetch |;
+
+my $provider = <usage.provider.kimi> // {};
+
+if ( $operation eq qw| fetch | ) {
+
+    return <[plugin.usage.kimi.fetch]>->($args);
+
+} elsif ( $operation eq qw| cached | ) {
+
+    ##  last parsed result, no network access [ numbers only ]  ##
+    return {
+        'mode' => qw| false |,
+        'data' => 'no cached kimi usage value'
+        }
+        if not defined $provider->{'last'};
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'result' => $provider->{'last'},
+            'age'    => time - ( $provider->{'last_time'} // 0 ),
+        }
+    };
+
+} elsif ( $operation eq qw| config | ) {
+
+    ##  never includes credential values : only where they are read from  ##
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'label'    => $provider->{'label'},
+            'enabled'  => $provider->{'enabled'},
+            'base_url' => $provider->{'base_url'},
+            'timeout'  => $provider->{'timeout'},
+            'pending'  => scalar keys $provider->{'pending'}->%*,
+        }
+    };
+
+} else {
+
+    return {
+        'mode' => qw| false |,
+        'data' => "unknown operation: $operation",
+    };
+}
+
+#,,.,,.,,,,,,,,,,,,,.,,..,,.,,.,.,.,,,.,.,...,..,,...,...,...,,,,,...,..,,...,
+#WYQZT7NS4FC35XWZODJAXE4UO3MRAYFWK7FHZ6Q7TVXBWKDX4RIOEA74W65HJH75KVGEODI7H4YQI
+#\\\|J4ZC3EFXPUBKIM35IMKWUGW2HHKGFFOQFP5CR4ETVM2MUAV6A4Z \ / AMOS7 \ YOURUM ::
+#\[7]FOILYIVQTN3IBBYZ2X65INNSB556IRUNNSF27AMSA2LZQCSBAUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

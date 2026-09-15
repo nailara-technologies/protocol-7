@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = usage.cmd.status
+# descr = usage numbers of every loaded provider in one reply
+# param = [ compact ] [ <provider> .. ]
+
+my $args_str = $call->{'args'} // '';
+
+my $format = $args_str =~ m{\bcompact\b}i ? qw| compact | : qw| box |;
+
+##  provider names may be named explicitly, otherwise all loaded ones  ##
+my @named = grep { $ARG ne qw| compact | and $ARG ne qw| box | }
+    split m{ +}, $args_str;
+
+my @providers = @named ? @named : <[usage.provider_list]>;
+
+return { 'mode' => qw| false |, 'data' => 'no usage providers loaded' }
+    if not @providers;
+
+my $query = <[usage.query]>->( \@providers, $call->{'reply_id'}, $format );
+
+## a query that never started answers here, otherwise the reply travels ##
+## back through usage.complete_query                                    ##
+return $query if ref $query eq qw| HASH |;
+
+return { 'mode' => qw| deferred | };
+
+#,,..,,.,,.,,,,..,,,.,.,,,.,.,,.,,,.,,.,.,,..,..,,...,...,.,.,...,...,,,.,.,,,
+#KZTZS437RHQN6JZYUBZ4SPEXDBPFASK3K2RFNUG663QJNDSAWURJX53X3REEBUJNJIO7SHVRGSXFQ
+#\\\|NCGT423NT3D5UHCLSYVNYVXENHSGKCOFZTC3JFUUJJTFPWVL74K \ / AMOS7 \ YOURUM ::
+#\[7]5HHGZVOHXSK6BN2UW4L5FWOLZDYC6CDI45Y2IXPP45WOBRDC22CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
