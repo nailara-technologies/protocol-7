@@ -1,0 +1,128 @@
+## [:< ##
+
+# name  = plugin.usage.claude.fetch
+# descr = read the local claude oauth credential and start an async rate-limit
+#         probe against the anthropic api [ no generation, headers only ]
+# param = { on_result => '<handler name>', params => { .. } }
+# note  = the caller's on_result handler is invoked exactly once, either
+#         synchronously on a local failure or later from the io callback
+
+my $args = shift // {};
+
+my $on_result = $args->{'on_result'} // '';
+my $params    = $args->{'params'}    // {};
+
+my $provider = <usage.provider.claude>;
+
+## single completion path : local failures report through the same handler ##
+my $report_failure = sub {
+    my $error = shift // 'claude usage query failed';
+    <[base.logs]>->( 1, 'usage [ claude ] : %s', $error );
+    $code{$on_result}->(
+        {   'provider' => qw| claude |,
+            'ok'       => FALSE,
+            'error'    => $error,
+            'params'   => $params,
+        }
+    ) if length $on_result and exists $code{$on_result};
+    return undef;
+};
+
+return $report_failure->('claude usage provider is disabled')
+    if not $provider->{'enabled'};
+
+##  home directory of the unix user this zenka runs as [ never hardcoded ]  ##
+my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+
+return $report_failure->('cannot resolve home directory')
+    if not length $home_dir;
+
+my $cred_file = catfile( $home_dir, $provider->{'cred_rel'} );
+
+##  plain synchronous local disk read : fast, not a blocking concern  ##
+my $cred_fh;
+return $report_failure->(
+    sprintf 'cannot read credential file [ %s ]',
+    <[base.str.os_err]>
+) if not open( $cred_fh, '<', $cred_file );
+
+my $cred_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$cred_fh> };
+close($cred_fh);
+
+my $cred_data = <[format.json.decode]>->($cred_str);
+undef $cred_str;    ##  no credential material left lying around  ##
+
+return $report_failure->('cannot parse claude credential file')
+    if ref $cred_data ne qw| HASH |;
+
+## token only ever travels into the request header, never into a log line, ##
+## never into %data                                                        ##
+my $token = $cred_data->{'claudeAiOauth'}->{'accessToken'} // '';
+undef $cred_data;
+
+return $report_failure->('no oauth access token in claude credential file')
+    if not length $token;
+
+##  register the in-flight request  ##
+my $req_id = <[base.gen_id]>->( $provider->{'pending'} );
+$provider->{'pending'}->{$req_id} = {
+    'on_result' => $on_result,
+    'params'    => $params,
+    'started'   => time,
+};
+
+## max_tokens=0 is the normal, reliable, genuinely free path here [ live-   ##
+## verified : 200 OK, zero generation, full anthropic-ratelimit-* header    ##
+## set every time ]. count_tokens carries no rate-limit headers at all on   ##
+## this api, so it is not probed first -- and unlike the standalone         ##
+## bin/dev/usage-external there is deliberately NO automatic max_tokens=1   ##
+## escalation : an unattended zenka must never spend real tokens on its own ##
+my $request_body = <[format.json.encode]>->(
+    {   'model'      => $provider->{'model'},
+        'max_tokens' => 0,
+        'messages'   => [ { 'role' => qw| user |, 'content' => qw| hi | } ],
+    }
+);
+
+my $state = <[clients.https.post]>->(
+    {   'url'     => sprintf( '%s/v1/messages', $provider->{'api_base'} ),
+        'body'    => $request_body,
+        'timeout' => $provider->{'timeout'},
+        'headers' => {
+            'Authorization'     => "Bearer $token",
+            'anthropic-version' => qw| 2023-06-01 |,
+            'anthropic-beta'    => qw| oauth-2025-04-20 |,
+            'Accept'            => qw| application/json |,
+        },
+        'on_done' => qw| plugin.usage.claude.handler.response |,
+        'params'  => { 'req_id' => $req_id },
+    }
+);
+
+undef $token;
+
+## request never started and no callback was scheduled [ malformed url or  ##
+## missing handler ] : complete it here. the response handler deletes the  ##
+## pending entry, so a late callback for a genuinely scheduled failure can ##
+## never double-report                                                     ##
+if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
+    <[event.add_idle]>->(
+        {   'handler' => qw| plugin.usage.claude.handler.response |,
+            'params'  => {
+                'ok'     => FALSE,
+                'error'  => 'https request could not be started',
+                'params' => { 'req_id' => $req_id },
+            },
+        }
+    );
+}
+
+<[base.logs]>->( 2, 'usage [ claude ] : rate-limit probe sent' );
+
+return $req_id;
+
+#,,,.,,,,,.,.,,.,,,.,,.,.,.,,,.,.,,,,,,..,.,,,..,,...,..,,.,.,.,,,,.,,,..,.,,,
+#63TK65WHQ4OFSUXR6G36H54YROCQVRCXMNVCKTA3JER6WU5FJR7DK5E7MIJVT4WRKKKNN7CW63E5C
+#\\\|UWBOPAHPAMZL3ZDJDCGHV2EKYCDHJOPFSJ2FU5VCDESH2ZPKHEJ \ / AMOS7 \ YOURUM ::
+#\[7]ZDQUYCIAQDJMN3YTU7U2SU2RQKUMARSPLRRZXWUZ5VREJYNX46AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

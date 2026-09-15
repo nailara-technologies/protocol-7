@@ -32,6 +32,7 @@ return [ qw[
         base.regex
         base.cnt_s
         base.close
+        usage.query
         smtpd.route
         note.update
         note.search
@@ -152,6 +153,7 @@ return [ qw[
         vterm.shm.path
         vterm.instance
         valued.resolve
+        usage.cmd.kimi
         ui.render.tree
         ui.cmd.ui-show
         udev.init_code
@@ -244,6 +246,7 @@ return [ qw[
         vterm.consensus
         vault-edit.quit
         users.init_code
+        usage.init_code
         udev.load_rules
         task.cmd.result
         task.cmd.create
@@ -350,6 +353,8 @@ return [ qw[
         valued.cmd.stats
         valued.cmd.query
         users.cmd.remove
+        usage.cmd.status
+        usage.cmd.claude
         ui.estimate.cost
         transport.select
         transport.demote
@@ -542,6 +547,7 @@ return [ qw[
         power.cmd.all_off
         povray.cmd.status
         povray.cmd.render
+        plugin.usage.kimi
         plugin.auth.zenka
         pager.buffer.page
         p7-log.cmd.append
@@ -898,6 +904,8 @@ return [ qw[
         user-edit.term_init
         user-edit.init_code
         user-edit.form.quit
+        usage.provider_list
+        usage.format.report
         universal.init_code
         transport.init_code
         tile.merge_multiple
@@ -935,6 +943,7 @@ return [ qw[
         proxy.selector.load
         power-x11.init_code
         povray.spawn_render
+        plugin.usage.claude
         plugin.auth.twofish
         plnx.cmd.get_ticker
         plnx.cmd.currencies
@@ -1103,6 +1112,7 @@ return [ qw[
         v7-zenki.start_count
         users.cmd.remote-get
         user-edit.draft.load
+        usage.complete_query
         tree.route.page.read
         tile.cmd.sort_layers
         tile.cmd.size_hint_y
@@ -1372,6 +1382,7 @@ return [ qw[
         user-edit.form.escape
         user-edit.draft.write
         user-edit.draft.clear
+        usage.format.duration
         universal.start_zenka
         universal.hide_except
         transport.probe.timer
@@ -1968,8 +1979,10 @@ return [ qw[
         proxy.handler.post_auth
         proxy.client.send_error
         protocol.sftp.init_code
+        powershell.cmd.mem-used
         power.cmd.remove_device
         povray.template.resolve
+        plugin.usage.kimi.fetch
         plugin.storage.checksum
         plan-9.client.read-file
         pdf.html.base.valid_pdf
@@ -2506,6 +2519,7 @@ return [ qw[
         plugin.web.jobs.init_code
         plugin.web.auth.init_code
         plugin.web.attention.json
+        plugin.usage.claude.fetch
         plan-9.server.handle_walk
         plan-9.server.client.data
         plan-9.server.buffer-stat
@@ -2976,6 +2990,7 @@ return [ qw[
         user-edit.handler.stdin_key
         user-edit.form.remove_field
         user-edit.console.show-form
+        usage.handler.query_timeout
         universal.startup_sub_zenki
         universal.cmd.show_playlist
         universal.cmd.set_window_id
@@ -3013,12 +3028,14 @@ return [ qw[
         reasoning.branch.checkpoint
         proxy.selector.zenka_assert
         powershell.notify_from_args
+        powershell.cmd.mem-top-proc
         povray.cmd.template-resolve
         plugin.web.space.index.scan
         plugin.web.space.index.load
         plugin.web.jobs.store.prune
         plugin.web.jobs.cache.write
         plugin.web.attention.states
+        plugin.usage.kimi.init_code
         plugin.storage.p7ref.search
         plan-9.server.realpath-read
         plan-9.server.handle_attach
@@ -3498,6 +3515,7 @@ return [ qw[
         user-edit.form.sync_list_mode
         user-edit.form.addable_fields
         user-edit.form.add_field_name
+        usage.handler.provider_result
         universal.handler.switch_fade
         universal.cmd.playlist-update
         universal.cmd.get_coordinates
@@ -3545,6 +3563,7 @@ return [ qw[
         plugin.web.auth.session.write
         plugin.web.auth.session.prune
         plugin.web.auth.handler.login
+        plugin.usage.claude.init_code
         plugin.storage.util.find_path
         plugin.image-resize.init_code
         plugin.external.udt.init_code
@@ -3771,6 +3790,7 @@ return [ qw[
         sys-deps.handler.install_reply
         ssh.parser.profile_connections
         ssh.handler.heartbeat_response
+        sourcecode.console.match-files
         smtpd.internal.message_id_hash
         site-yaml.cmd.export-stray-job
         select.region.update_x11_state
@@ -4571,6 +4591,7 @@ return [ qw[
         plugin.web.jobs.removed_log.append
         plugin.web.attention.cmd.set-state
         plugin.user-edit.example.init_code
+        plugin.usage.kimi.handler.response
         plugin.storage.inference.init_code
         plugin.auth.auth-keypair.init_code
         plan-9.server.buffer-read-root-dir
@@ -4862,6 +4883,7 @@ return [ qw[
         powershell.cmd.display-switch-toggle
         plugin.web.space.handler.state_reply
         plugin.user-edit.example.handler.key
+        plugin.usage.claude.handler.response
         plugin.storage.visual.proximity-calc
         plugin.storage.visual.extract-floats
         plugin.nshell.coding-session.on_redo
@@ -5513,8 +5535,8 @@ return [ qw[
     ]
 ];
 
-#,,..,...,,,,,,.,,,.,,,.,,,,.,,,.,,,.,...,,,,,.,.,...,...,.,.,.,.,,,,,..,,,..,
-#3SVOBFYP3WUASE6QRKYQ3O4CJTMUNGKNVP46QRIU76QLUQ3XG3BEI6O54WSCO4C2N2MRL22TXJGJU
-#\\\|AHSLQTUFXYJMLPARTPDKE4WMIIZIDX6CKJQGKV26CIBY5IXA23M \ / AMOS7 \ YOURUM ::
-#\[7]4GPTPSOFI3TDE3HODDTY6BG3UHKPW237D3XFBSMTMLSILRTAJGBY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,.,,,,,,,,,,,..,,,..,.,,,,..,.,.,...,...,..,,,.,,..,,.,,,,,.,
+#5LYO76VQKKHYI5AP2E566D7CNEHNFS2HVPZPGAUFV3P7CQX77Y7FCF6QRQAY6U4IZZNUGMQFZKZHS
+#\\\|OUFJ6X67YDFYITJB7R6FO5EYMBJXEJQRWES3YT6DKTNZTKNGWGA \ / AMOS7 \ YOURUM ::
+#\[7]HEEA2SSUSPID6Q2JLP5HMFD2OR3XVWTZWQKUHKGYG7D4J2IW7YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
