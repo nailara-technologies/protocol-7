@@ -32,22 +32,22 @@ my $col         = $state_ref->{'content_col'} // 1;
 
 print "\e7";    ## DECSC : save [ = the input row ] ##
 
-## consume a deferred wrap left by the PREVIOUS call before doing anything   ##
-## else this time. an exact-width fill leaves the real cursor pending-wrap   ##
-## at content_row's own right edge -- still logically ON that row, not yet   ##
-## advanced/scrolled, because nothing has printed past the edge to trigger   ##
+## consume a deferred wrap left by the PREVIOUS call before doing anything  ##
+## else this time. an exact-width fill leaves the real cursor pending-wrap  ##
+## at content_row's own right edge -- still logically ON that row, not yet  ##
+## advanced/scrolled, because nothing has printed past the edge to trigger  ##
 ## it. this function always repositions via an absolute CUP rather than     ##
-## relying on that natural advance, and the column math below already        ##
-## resolves an exact fill to col 1 [ modulo wraps cleanly to 0, +1 ] -- so    ##
-## without this, the NEXT call's CUP lands back on column 1 of the SAME      ##
-## already-full row instead of a fresh one below it, overwriting it from     ##
-## the start. confirmed live 2026-09-14 : a chunk boundary landing exactly   ##
-## on the terminal width lost the entire line it had just finished. forcing  ##
-## the scroll here with a real \r\n [ while still sitting on content_row,    ##
-## the scroll region's own bottom row ] reproduces what the terminal would   ##
+## relying on that natural advance, and the column math below already       ##
+## resolves an exact fill to col 1 [ modulo wraps cleanly to 0, +1 ] -- so  ##
+## without this, the NEXT call's CUP lands back on column 1 of the SAME     ##
+## already-full row instead of a fresh one below it, overwriting it from    ##
+## the start. confirmed live 2026-09-14 : a chunk boundary landing exactly  ##
+## on the terminal width lost the entire line it had just finished. forcing ##
+## the scroll here with a real \r\n [ while still sitting on content_row,   ##
+## the scroll region's own bottom row ] reproduces what the terminal would  ##
 ## have done on its own had printing simply continued past the edge --      ##
-## content_row stays content_row [ that's what a scroll region does ], but   ##
-## now genuinely blank.                                                      ##
+## content_row stays content_row [ that's what a scroll region does ], but  ##
+## now genuinely blank.                                                     ##
 if ( $state_ref->{'content_pending_wrap'} ) {
     print "\e[${content_row};1H\r\n";
     delete $state_ref->{'content_pending_wrap'};
@@ -82,20 +82,35 @@ if ( ref $modes eq 'ARRAY' and defined $modes->[$index] ) {
 my ($term_w) = AMOS7::TERM::terminal_size();
 $term_w ||= 80;
 
-## an exact-width fill [ tail length a nonzero multiple of term_w ] leaves    ##
-## the real cursor pending-wrap at the row's own right edge -- not yet       ##
-## actually advanced, since nothing has printed PAST the edge to force it.   ##
-## the col formula below already resolves that case to 1 [ modulo wraps      ##
-## cleanly to 0, +1 ], indistinguishable from a genuine completed newline    ##
-## unless flagged separately -- content_pending_wrap is that flag, consumed  ##
-## by the NEXT call above before it trusts this col at face value.           ##
+## column math must run on VISIBLE text only -- callers like                ##
+## nshell.handler.  strm_reply wrap every streamed chunk in color codes [   ##
+## p7_fg_0004 prefix + \e[0m + p7_fg_0004 suffix, ~24 non-printing bytes ], ##
+## and counting those as visible columns made content_col drift right by    ##
+## that overhead PER CHUNK.  with token-sized chunks the tracked column     ##
+## quickly overshot the real cursor, so each following chunk's CUP landed   ##
+## mid-row or past the right edge, printing on top of earlier output --     ##
+## live 2026-09-15 : streaming in coding-session mode garbled into          ##
+## overprinted fragments while rewind/redo replay [ one plain print, no     ##
+## per-chunk CUP ] stayed clean. strip_ansi mutates in place, so work on a  ##
+## copy. note : only CSI sequences are stripped -- the texts measured here  ##
+## [ payload + SGR colors ] carry nothing else non-printing                 ##
+my $visible_text = $text;
+<[base.strip_ansi]>->( \$visible_text );
+
+## an exact-width fill [ tail length a nonzero multiple of term_w ] leaves  ##
+## the real cursor pending-wrap at the row's own right edge -- not yet      ##
+## actually advanced, since nothing has printed PAST the edge to force it.  ##
+## the col formula below already resolves that case to 1 [ modulo wraps     ##
+## cleanly to 0, +1 ], indistinguishable from a genuine completed newline   ##
+## unless flagged separately -- content_pending_wrap is that flag, consumed ##
+## by the NEXT call above before it trusts this col at face value.          ##
 my $tail_len;
 
-if ( $text =~ m{\n([^\n]*)\z} ) {
+if ( $visible_text =~ m{\n([^\n]*)\z} ) {
     $tail_len = length($1);
     $col      = $tail_len % $term_w + 1;
-} elsif ( $text !~ m{\n} ) {
-    $tail_len = ( $col - 1 ) + length($text);
+} elsif ( $visible_text !~ m{\n} ) {
+    $tail_len = ( $col - 1 ) + length($visible_text);
     $col      = ( $tail_len % $term_w ) + 1;
 } else {
     $tail_len = 0;
@@ -105,13 +120,13 @@ $state_ref->{'content_col'} = $col;
 $state_ref->{'content_pending_wrap'}
     = ( $tail_len > 0 and $tail_len % $term_w == 0 ) ? TRUE : FALSE;
 
-print "\e8";     ## DECRC : restore [ back to the input row ] ##
+print "\e8";          ## DECRC : restore [ back to the input row ] ##
 STDOUT->flush();
 
 return;
 
-#,,..,,..,,..,,,.,.,.,...,,,.,...,,.,,,.,,.,.,..,,...,.,.,,,,,..,,...,.,,,.,,,
-#Z6KGESGAY2PJCWRIAFIIWIKA3UK3ARK35IMC4Q7OFBTEGKLFKSLT63VGAUUSZE54V5LUJKQ7ZUTTC
-#\\\|7THJNXXUGWWK5WRB5IGFVVXR66A7JP4OY5GS2DJEDHX7SFE2AHE \ / AMOS7 \ YOURUM ::
-#\[7]OQAIAEH4ZT25XGCLXAVZJ5YQ4FNQIX4M2IHVMVB6NH2GCXD4HKDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,...,.,.,,.,,,.,,.,.,,,.,...,..,,...,..,,...,..,,,..,...,,,,,
+#LVFBAXAZB3MT35NA7ZV2F5CESZ6W3I7VGF7W7OF5R3V3VPVHW4XTFOM632GP5WLQDHGABE5EVSCMA
+#\\\|66PCYCIEUKW2PICM4K4IRXWCOU6OL66UPNEM2674LLWKW6AR6MC \ / AMOS7 \ YOURUM ::
+#\[7]PG7PXG3A3K2RSXBGICIPF536U7X5EPN27LLG53E2CHX3NOSBZKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

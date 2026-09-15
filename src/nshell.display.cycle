@@ -94,19 +94,24 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     if ( length $replay ) {
         print $replay;
 
-        ## same modular tail-length math as nshell.render.content_print,   ##
-        ## kept in sync deliberately -- including content_pending_wrap :   ##
-        ## an exact-width replay tail leaves the real cursor pending-wrap  ##
-        ## same as a live chunk would, and the NEXT background print       ##
-        ## [ content_print ] relies on that flag to avoid CUPing back onto ##
-        ## this just-replayed row's own start column                      ##
+        ## same modular tail-length math as nshell.render.content_print,    ##
+        ## kept in sync deliberately -- including content_pending_wrap : an ##
+        ## exact-width replay tail leaves the real cursor pending-wrap same ##
+        ## as a live chunk would, and the NEXT background print [           ##
+        ## content_print ] relies on that flag to avoid CUPing back onto    ##
+        ## this just-replayed row's own start column. the buffer holds      ##
+        ## ansi-wrapped chunks [ strm_reply color codes ], so the tail must ##
+        ## be measured on stripped text -- same ansi-drift fix as           ##
+        ## content_print, applied here too                                  ##
         my ($term_w) = AMOS7::TERM::terminal_size();
         $term_w ||= 80;
+        my $visible_replay = $replay;
+        <[base.strip_ansi]>->( \$visible_replay );
         my $tail_len;
-        if ( $replay =~ m{\n([^\n]*)\z} ) {
+        if ( $visible_replay =~ m{\n([^\n]*)\z} ) {
             $tail_len = length($1);
-        } elsif ( $replay !~ m{\n} ) {
-            $tail_len = length($replay);
+        } elsif ( $visible_replay !~ m{\n} ) {
+            $tail_len = length($visible_replay);
         } else {
             $tail_len = 0;
         }
@@ -132,8 +137,8 @@ $state_ref->{'display_mode_index'} = $next_index;
 
 return TRUE;
 
-#,,.,,,..,.,,,,..,,.,,,..,,,.,,,,,,.,,,,,,,..,..,,...,...,...,,.,,,,,,,,.,...,
-#XFCGV7TTUBXVCPBJSKJTKLCNK4IKZM2AT3U3YBAY27DMN5NIDQYBA64PJFTN2LOESCOLJC3MZBALI
-#\\\|2ZYDXZUWFHKL5IJLERFXHLI7VQIO6LLTR6QEGYRYOEOVR6PRVYK \ / AMOS7 \ YOURUM ::
-#\[7]LH7XE4OWK2NOUXCE7E3IJAQZYQ23I332CO5OPETHLE3CNW6V2YDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,..,,,,.,,.,,.,,,,.,,,.,,,,.,..,,...,...,.,.,.,,,...,...,.,.,
+#2R3BGSNUVNPVJWJSI2QGPSGH5RETB5IVWDAXD4DE4OCP4CVAHRYAG7MADNFVJEQDUM5YYIJLJ2ZBW
+#\\\|LWFB6LN4DMHJAWYH6GGW4W2HEQK5PB5I6OW5MGYX4GAM3VH7KA7 \ / AMOS7 \ YOURUM ::
+#\[7]ZRPJWNBRZA7OOYSXVKMBFGOURDRGDVZRVKZCIOVWJO35OILXTSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

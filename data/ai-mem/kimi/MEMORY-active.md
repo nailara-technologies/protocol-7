@@ -101,6 +101,15 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## nshell split-mode streaming garble (Sept 2026, FIXED + live-verified)
+
+coding-session streaming prints chunks at garbled positions: content_print's
+column tracking counts ANSI bytes as columns; c313be443's per-chunk color
+wrapper (~24 non-printing bytes/chunk) makes content_col drift ~24/token chunk.
+replay/rewind/redo fine (single plain print, no per-chunk CUP). fix: strip CSI
+before length() in content_print + display.cycle tail math.
+see [bug-nshell-stream-garble-content-col-ansi-drift.md](bug-nshell-stream-garble-content-col-ansi-drift.md)
+
 ## MCP session_catchup + Self-Test Verification (June 2026)
 
 MCP timeout bumped, `session_catchup` now does direct UUID/prefix lookup and supports `tail_chars` for large sessions. Coding self-test tier-0/1/2 verified live; tier-1 retry confirmed on DVEAZIA:GPAKBLA.
@@ -257,8 +266,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,.,.,,.,,,,.,,,.,,..,..,,,,,,,..,,.,,..,,..,,...,...,..,,.,.,.,,,,.,,,,.,
-#KWDYCNUTZ45QTTD4GJZJLHJ2BJ3UJRTE4B6LKQKIELHC3OAD6A67VDQ5PC256ASBS5V4XX6JUWKWM
-#\\\|2RQ3CJWQKH67VMWPQZGYZ3SFZD66HQB75ZZCYYVQIJEFVXCMQ64 \ / AMOS7 \ YOURUM ::
-#\[7]7YJ7ST7BGWDUMKWUKGGVADXQN4WINPVGJIFZQDJEI4XVKDBDQ6BY 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,,.,...,...,.,.,...,,..,,..,..,,...,...,,..,..,,..,,.,,,,..,
+#B64JEDBPCTMOKSOMRMEXFFPP2ME7VTFIL5MVBTP2IREESUJ7GGKIQOEJFPRBNSYZOR52WNDJOMEQI
+#\\\|3MR4YUVFBEKEX7VV57ZPCRMKFILB2WOUO3ODEWYM3HWKUMNW675 \ / AMOS7 \ YOURUM ::
+#\[7]IPLYP7U3HBZOEGSGMJUNPR2VESJNM2P4VKE7KSSFEDYTDRODNMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
