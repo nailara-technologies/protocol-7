@@ -1134,6 +1134,162 @@ task author) before the actual bug was found by directly reading the
 module's own argument-unpacking code rather than guessing from the
 error text.
 
+## seventh pass [ REAL attempt 5, 2026-09-15 -- retrain against the
+## hash-verified INTACT checkpoint, the first genuinely valid test this
+## thread has produced. result: invoke learning is real and strong in
+## HF/PEFT space -- and STILL does not transfer to live GGUF serving.
+## the checkpoint is now eliminated as an explanation entirely; the
+## discrepancy localizes to the GGUF/ik_llama.cpp LoRA-application path
+## itself -- the fifth pass's pre-registered branch (b) ]
+
+**what was run**: attempt 2's exact configuration, unchanged -- real
+git-mined data (`data/idioms/corpus/mined.curated.sft.txt`, 308 lines),
+rank 16 / alpha 32 / dropout 0.05, the standard 248-module attn/mlp/ssm
+target list, no oversampling, no lm_head targeting, 3 epochs = 114
+steps. the ONE difference from attempt 2: the base checkpoint
+`/mnt/ext-xfs-data/models-lmstudio/petruhonk/Qwen3.8-9B-Distill-
+uncensored-heretic/` is now intact (shard 4 sha256 d5e4084c... == the
+published HF LFS hash, re-verified at kickoff before spawning). loss
+descended cleanly 2.61 -> 0.3678, no NaN/divergence, ~3.5h wall time
+(slower per-step than the corrupt-shard runs -- reference kernels plus
+host load; not concerning). adapter at `data/control-vectors/lora-out/
+p7-idioms-real-attempt5/adapter/` (173MB safetensors + configs).
+
+**kickoff infra notes, recorded so they aren't re-derived**: (a)
+`coding.lora_train_spawn` -- and likely every `coding.*` module called
+directly via eval-code -- expects its parameters wrapped,
+`->({'args' => {dataset=>..., out_dir=>..., epochs=>...}})`; a bare
+hash is accepted SILENTLY, resolves to empty args, and falls through to
+the default out_dir, surfacing as a misleading "output directory not
+writable" error. (b) pre-creating out_dir group-writable
+(taeki:protocol-7 2775) was needed -- the spawn's own make_path error
+check reads `$EVAL_ERROR` without `use English`, so a mkdir failure is
+invisible to it (cosmetic, not worth a fix now). (c) after training,
+`<coding.lora_training_in_progress>` was found stuck truthy (value 5,
+status=complete, pid long dead), which correctly-but-surprisingly
+SUPPRESSED the inference crash-restart guard when a later respawn
+crashed -- check and clear that flag as part of any post-training
+restore.
+
+**conversion**: the existing, unchanged `data/control-vectors/lora/
+lora_to_gguf.py` ran clean -- 248 lora pairs, rank 16, alpha 32.0, same
+shape as attempts 1/2, written to `data/control-vectors/lora/
+p7-idioms-real-attempt5-lora.LR7NW7A-XT57X3Y.gguf` (named for the
+serving base it was validated against).
+
+**HF/PEFT probes** (unchanged scripts, one-line ADAPTERS entry added
+to each; base = the intact checkpoint, 4-bit bnb, same teacher-forced
+methodology as the fifth pass):
+- in-corpus (`lora_invoke_probe.py`, 8 invoke matches): baseline
+  mean-avg-logprob/token -4.298, top1 50.7%. **attempt5: -0.2466,
+  top1 95.7%.** large, real confidence boost on the invoke idiom.
+- generalization (`lora_invoke_generalization_probe.py`, 9 never-seen-
+  verbatim module names): baseline -0.0618 / top1 98.8%, attempt5
+  -0.0551 / top1 97.6% -- **no measurable difference, because the
+  INTACT base is already at ceiling** on these held-out real src/*
+  lines (teacher-forced continuation of a line already containing the
+  idiom in strong p7-code context). contrast with the fifth pass's
+  "huge generalizing boost" (baseline -8.19/13.1% -> adapter ~88-92%):
+  that baseline was the corrupt franken-model -- the fifth pass's
+  generalization finding was largely an artifact of a broken baseline.
+  honest read now: the adapter's in-corpus boost is real; the
+  ceiling-limited held-out probe can neither confirm nor deny transfer
+  of the pattern to novel module names.
+
+**live validation sweep** (`run_validation_sweep.sh attempt5 <gguf>`,
+`MODEL_ID=LR7NW7A:XT57X3Y` -- ge525's Q4_K_M, already durably present
+in the models registry under that checksum [ display name "Raw Model"
+], path verified via `models.get_path_by_amos`; no eval-code path hacks
+needed. adapter confirmed genuinely loaded: `--lora-scaled ... --flash-
+attn off` in process args, and the measured distributions shift):
+
+```
+                 chars   idiom(raw)  idiom/1k   anti(raw)  anti/1k
+baseline         16309   7           0.43       23         1.41
+lora-on          11498   14          1.22       7          0.61
+```
+
+  structural-only subcategory (invoke+cfgaccess+truefalse+modedata):
+  baseline 0 (0.00/1k) -> lora-on 8 (0.70/1k). finish_reason=stop
+  18/18 baseline vs 17/18 lora-on -- no truncation confound; lora-on
+  responses ~30% shorter. per-idiom:
+  - **`invoke`: 0 -> 0.** the EIGHTH independent null on this idiom in
+    held-out generation -- now including a run where the training
+    checkpoint is hash-verified intact and the serving base is verified
+    bit-exact-equivalent to production weights.
+  - `cfgaccess`: 0 -> 0. still no second occurrence anywhere, ever.
+  - `truefalse`: 0 -> 7 (concentrated in P_D as before). the recipe
+    reliably moves this idiom -- poisoned checkpoint or not.
+  - `modedata`: 0 -> 1. first non-zero anywhere in the thread.
+  - anti-idiom density DROPPED (1.41 -> 0.61/1k) -- the first attempt
+    where it didn't rise. the correct-checkpoint adapter produces less
+    generic-style drift, not more.
+
+**the decisive position-matched teacher-forced check** (exact sixth-
+pass methodology: 105-token RAW TOKEN-ID prefix -- never a string
+prompt, the two retokenization mistakes are not repeated -- cut at the
+token boundary right before the invoke idiom's leading ` <` [ id 361 ];
+same corpus example whose first invoke call is `<[file.zenka_dir.
+write]>->(`. HF half and live half both run by the task author in
+parallel with this session, artifacts preserved at /tmp/attempt5_
+posmatch_*; the previously-inline methodology is now committed as two
+standalone tools: `data/control-vectors/lora_invoke_posmatch.py` [ HF
+half ] and `data/control-vectors/lora_invoke_live_position_probe.py` [
+live half ] ):
+
+```
+                         top1              ' <' probability
+HF baseline (intact)     ' my' 60.06%      not in top-15 (<0.30%)
+HF + attempt5 adapter    ' <' 83.18%  <--  83.18%, top1 FLIPS
+live ge525 baseline      ' my' 59.10%      not in top-15 (<0.14%)
+live ge525 + attempt5    ' my' 66.18%      not in top-15 (<0.14%)
+live ge525 + attempt5    ' my' 64.99%      not in top-15 (<0.14%)
+  @ adapter_scale=4.0
+```
+
+**interpretation, stated plainly**: the two baselines agree almost
+exactly across HF and GGUF serving (' my' 60.06% vs 59.10%) -- the
+base weights are right on BOTH sides, finally beyond doubt. the adapter
+is genuinely applied on both sides (HF flips top1 to the trained token;
+the live distribution measurably shifts AND the sweep shows real
+behavioral change). and yet the DELTA's effect diverges: in HF space
+the same adapter boosts ` <` to 83.18% top1; live, it slightly
+ENTRENCHES ` my` (59.1% -> 66.2%) and ` <` stays below 0.14%. with
+checkpoint identity (sixth pass), conversion tensor shape/orientation
+(sixth pass, llama.cpp:7828-7841), flash-attn gating (first attempt),
+scale (fifth pass's 1.0->5.0 sweep on the POISONED adapter, now
+re-confirmed on the valid one: quadrupling the applied delta moves ' my'
+66.2% -> 65.0% and ' <' stays absent -- the live-applied delta is
+orthogonal to the HF delta, not underscaled), and now training-
+checkpoint integrity ALL independently eliminated, the discrepancy localizes to
+the GGUF LoRA-application semantics on this architecture itself -- the
+fifth pass's pre-registered branch (b): a genuine ik_llama.cpp/qwen35
+finding, worth escalating as a fork-level bug report rather than
+another training-recipe change. candidate mechanisms to check first,
+in rough order of cost: (1) whether the runtime actually applies
+user_scale*alpha/rank inside llm_build_lora_mm for the SSM projections
+[ a --verbose-level assertion, cheap ]; (2) application-order /
+precision differences for lora deltas on the gated-delta SSM tensors
+[ attn_qkv / attn_gate / ssm_alpha / ssm_beta / ssm_out ] vs the dense
+projections -- possibly via a dense-only adapter variant like the fifth
+pass built inline; (3) whether all 248 pairs are actually wired into
+the built graph, or a subset silently attaches to unused tensors.
+
+**restore state**: production model respawned via `coding.switch-model
+OFSQC4I:QDBKEXY backend=gpu`, confirmed healthy by open-ended poll,
+process args verified -- no lora flags, flash-attn back on, VRAM free.
+`<coding.cfg.lora_adapter>` cleared, stale training flag cleared.
+
+**verdict**: the invoke idiom CAN be taught by this recipe -- attempt 5
+proves it in weight space, against a verified-correct base, with a
+measured 83% top1 at the exact decision position. it STILL never
+survives the trip to live GGUF serving (0 -> 0 in generation, eighth
+null; no top-15 presence at the matched position). the thread's
+question is no longer "does the training work" but "why does
+ik_llama.cpp's LoRA application on qwen35 not reproduce in deployment
+what PEFT demonstrably computes" -- a serving-side bug hunt, not a
+training-side one.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1202,8 +1358,8 @@ error text.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,..,,,.,,,.,,,.,..,,,,,,..,,,..,,.,,,,.,,.,,..,,...,...,,..,,,.,,..,...,...,
-#IKL2QGCWGSDI4WX2Q5OD32Z5ETC3UNBA3TEKHHMMI35UKCUH53VTBE5I2ILFX66EPOCEBEZJBGGAA
-#\\\|3I3DNODAHTI3JHEMRK5BZD2G7TYVPOG3Z6YPOUW7JVHTBTIHJ7O \ / AMOS7 \ YOURUM ::
-#\[7]OYYDSZHJOB5UD5AUKLLV3Y7JJPRIWB46RHGLFBDWFFXSKY6FEEBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,,,.,,,..,,,,,,,,,,,.,,,..,,,.,..,,...,...,...,.,.,,,,,...,,.,,
+#PI2J34KAZS7IYGXPLA7L2CMMRX5DDCDJXN54NIKXCJXMC4OFHPFL6OBN7ML2P6KJFHJCYPG3BXSLK
+#\\\|RHDWJHCMS46VPIFOUXXLIHL3H7ZOVVV4KRQ5QPJMEYLMS5DRS64 \ / AMOS7 \ YOURUM ::
+#\[7]JMJNR5SQJC6E6ORRQ75FQRZTNR6W45SPNYFKTTGO4Z7LZIFF24BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

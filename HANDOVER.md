@@ -76,21 +76,26 @@ deliberately as the only physical evidence for the still-open
 fetch.file.huggingface.* corruption-bug hunt. Fully wrapped up and
 committed as of `7543bb958` — working tree clean.
 
-**not yet started, deliberately, 2026-09-15**: the real attempt 5
-(retrain against the now-intact checkpoint) has NOT been kicked off.
-Both this session's own budget (78% of the weekly Claude limit used,
-resets Wednesday 8PM, on pace to run out before then) and Kimi's (89%
-of its short rate-limit window, resets in ~1h40min as of this note)
-were tight at the same time this became ready to start, so it was
-deliberately deferred rather than rushed — training is exactly the
-kind of long, resumable, well-specified task worth having full budget
-for rather than starting it right before either side's limit bites.
-Whoever picks this up next: the checkpoint is intact, the converter/
-validation tooling all exists and is committed, and the spec is simply
-"rerun `train_lora.py` unchanged against the now-fixed local petruhonk
-checkpoint" (no code changes needed) — check current budget on both
-sides first, then just run it.
-fetch.file.huggingface.* corruption-bug hunt).
+**DONE, 2026-09-15 — real attempt 5 ran and is fully written up in
+`data/tasks/coding-lora-p7-idioms.md`'s "seventh pass" section (read
+that, not this summary). Short version: retrain against the
+hash-verified intact checkpoint (attempt 2's exact config) produces
+REAL, strong invoke-idiom learning in HF/PEFT space (in-corpus top1
+50.7%→95.7%; position-matched `' <'` 83.2% top1, flipping baseline's
+`' my'` 60.1%) — and it STILL does not transfer to live GGUF serving
+(`invoke` 0→0 in the held-out sweep, eighth independent null; at the
+position-matched live check `' my'` 59.1%→66.2% lora-on, `' <'` below
+0.14% either way, while the HF/GGUF baselines agree almost exactly).
+The checkpoint is now eliminated as an explanation; the discrepancy
+localizes to ik_llama.cpp's LoRA-application semantics on qwen35 — a
+serving-side bug hunt (candidate mechanisms listed in the write-up),
+not a training-recipe one. Side effects live were real and positive:
+truefalse 0→7, modedata 0→1, anti-idiom density dropped for the first
+time (1.41→0.61/1k). Production server restored (OFSQC4I:QDBKEXY, no
+lora flags, confirmed healthy). Operational notes for the next run:
+`coding.lora_train_spawn` needs `->({'args' => {...}})` not a bare
+hash; ge525's GGUF is durably in the models registry as checksum
+LR7NW7A:XT57X3Y.
 
 ## orientation, 2026-09-14 — two independent threads, both landed/resting
 
