@@ -15,6 +15,15 @@ warn 'buffer ref not present <{C1}>' and return undef
 
 ## no more dataoffset parameter because of UTF-8 decoding ##
 
+## sysread refuses outright [ "isn't allowed on :utf8 handles" ] on any handle
+## carrying a :utf8 \ :encoding perlio layer, regardless of the SCALAR-level
+## utf8 flag handled below -- confirmed live 2026-09-15 via a clients.https.h2
+## socket that hit exactly this after an unrelated fork() elsewhere in the
+## same process. binmode is idempotent and cheap, so this guards every caller
+## unconditionally rather than chasing where a stray layer came from case by
+## case
+binmode( $read_fh, ':raw' );
+
 my $r_buff;
 my $b_read = sysread( $read_fh, $r_buff, $read_len );
 
@@ -37,8 +46,8 @@ if ( $b_read > 0 ) {
 
 return $b_read;                          ## [ returns -1 on error ] ##
 
-#,,.,,..,,..,,,.,,,..,..,,,,,,,.,,.,,,..,,,..,.,.,...,...,,..,...,.,,,.,,,,,.,
-#2GV64ATESDOBBBLVHVPK7EOWKOMVOJ4RR5XCCDYIEWUI7LZ3QTDAMGI5TP3RR6CJRY2UN3UIAOPKG
-#\\\|YF5YN6YHERHRALS6CIWBTRMJENP6LZV6VDYX64ONXJ7JENZSSSI \ / AMOS7 \ YOURUM ::
-#\[7]D7U47IAZZBTW4FYXA7J2BO7KYDX5SSBPFPVHF323BMKT5H7ZK2CA 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,..,,,.,..,,..,,...,.,.,.,,,.,.,...,...,.,.,..,,,.,,,,,,..,,
+#F4KOE4UCGLBQTPUW2WBP5C3G452O2TEJGSJV7C4DDTDDZDKS4ZRIOJXW3C7KSLX7N6YBSKC72W25Y
+#\\\|4UAXRUXJN2NHUAFF3PMH4TWR5ZGCG4LVG4INHEHX3BGDYOAVPSM \ / AMOS7 \ YOURUM ::
+#\[7]XRPZN7HJEIO35AHZK2EUUZIPRIQV62ALK6PJV2RDLNXSH4SAIMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
