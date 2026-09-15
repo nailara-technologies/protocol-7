@@ -1573,6 +1573,101 @@ fixed 4-token prompt as a working example; extend it (more layers, full-
 vector norms, more positions) rather than rewriting the loading/hook
 scaffolding from scratch.
 
+## eleventh pass [ live-only, no retrain -- reframes the tenth pass's
+## stalled absolute-activation comparison as a DELTA comparison instead,
+## since the tenth pass's own two sides use different base-weight
+## quantizations (HF nf4, GGUF Q8_0) and the ninth pass already proved
+## quantization alone shifts activations -- absolute values are
+## uninterpretable there regardless of sample size. one bounded pass,
+## pre-registered stop. Found a real, narrowed lead. ]
+
+**reframe**: instead of comparing HF's and GGUF's absolute hidden-state
+values (confounded by quantization, per above), compare each side's own
+adapter-ON minus adapter-OFF delta. Quantization noise is largely
+common-mode within a side's own pair of runs and cancels in the
+difference, so this measures what actually matters -- does the adapter's
+effect propagate similarly through the two implementations -- without
+needing an unquantized HF reference (not obtainable on this host anyway:
+bf16 9B is ~18GB, over both the 15GB RAM and 12GB VRAM ceilings).
+
+**method**: whole-tensor `sum` of the `l_out` tensor (llama.cpp's own
+built-in per-tensor reduction, printed by `eval-callback` with zero
+patching -- avoids needing a print-format patch for full 4096-dim
+vectors) at two SSM layers (0, 16) and two dense/full-attention layers
+(3, 19 -- `full_attention_interval=4`, dense = index % 4 == 3, confirmed
+against the per-layer KV-size table in eval-callback's own startup log
+before picking indices). Same "The quick brown fox" prompt, position-
+agnostic (whole-tensor sum spans all 4 token positions, a coarse
+first-pass signal by design, not a replication of the real invoke-idiom
+decision point). HF side: `data/control-vectors/hf_activation_delta_
+probe.py` (new -- reuses `lora_invoke_probe.py`'s 4-bit-on-GPU loading
+block, adds a `model.disable_adapter()` context for the off condition
+and forward hooks summing each target layer's output). GGUF side:
+`data/source/ik_llama.cpp/build-cpu/bin/llama-eval-callback`, off/on via
+`--lora-scaled ... 1.0`, `-c 128` (avoid the default-context KV blowup
+from the tenth pass), grep the `sum = ` line following each `l_out-N`.
+
+**a real bug caught immediately, same shape as the very first attempt
+in this whole thread**: the first on/off comparison came back byte-
+identical (to 6 decimal places) at all four layers -- the adapter was
+loading (`llama_lora_adapter_init_internal: loaded 496 tensors`) but
+having literally zero effect. `eval-callback`'s own stderr explained it:
+`llama_lora_adapter_set: flash_attn is not compatible with LoRA` -- the
+exact same fork-specific incompatibility the eighth pass's production
+fix (`coding.spawn_inference_server:565-591`) already guards against for
+the live server, but `eval-callback` is a bare upstream example with no
+such guard. Fixed by passing `--flash-attn off` explicitly on both
+conditions; re-running produced real, non-identical numbers.
+
+**results**:
+
+```
+layer   type    HF delta (rel.)   GGUF delta (rel.)
+0       ssm         +2.28%            -0.21%
+16      ssm        +39.85%            +1.83%
+3       dense       +0.64%            +0.15%
+19      dense       -0.96%            -2.12%
+```
+(relative = (sum_on - sum_off) / |sum_off|, same layer's own two runs;
+raw sums themselves are NOT compared across HF/GGUF, only within a side)
+
+**read**: three of four layers sit in a tight, unremarkable ~0.2-2.3%
+band on BOTH sides -- HF layer 0, HF layer 3, HF layer 19, and all four
+GGUF layers. HF layer 16 is a sharp outlier: ~20x larger than every
+other measurement in the table, HF or GGUF. GGUF's own layer 16 shows
+nothing unusual -- it sits at 1.83%, squarely inside the same small band
+as its other three layers. This is a real, narrowed lead, not a diffuse
+"everything's a bit off" finding: something about how PEFT computes the
+adapter's effect through THIS SPECIFIC SSM layer produces a dramatically
+outsized response that does not carry over to llama.cpp's computation of
+the same layer. Consistent with (and sharper than) the ninth pass's
+closing hypothesis -- "some kind of precision/numerics interaction
+specific to the live compute path" -- now with an actual layer number to
+chase instead of "somewhere in the SSM/gated-delta math."
+
+**caveats, honestly**: n=1 prompt (4 tokens), n=1 run per condition, a
+coarse whole-tensor-sum metric (could be dominated by one or two
+outlier dimensions or one of the four token positions, not necessarily
+a broad per-dimension effect) -- this is exactly the kind of result that
+needs a second, independent prompt and ideally a per-position (not
+whole-tensor) breakdown before treating "layer 16 specifically" as
+confirmed rather than suggestive. Per the pre-registered stop for this
+pass, not pursued further this session.
+
+**restore state**: n/a -- this pass never touched the live production
+GPU server (CPU-only `eval-callback` + a separate HF probe process on
+the otherwise-idle GPU while the coding zenka was down for an unrelated
+reason). No respawn needed.
+
+**next step, if picked up**: repeat the delta measurement at layer 16
+specifically with (a) a second, unrelated prompt, to rule out a prompt-
+specific fluke, and (b) a per-position breakdown instead of a whole-
+tensor sum (needs a small print-format patch to `eval-callback`, or an
+equivalent capture on the HF side restricted to one position at a time)
+-- if the spike survives both, that's a strong, specific claim worth a
+source-level read of whatever `ssm_alpha`/`ssm_beta`/`ssm_out` computation
+is architecturally distinct about layer 16 versus 0.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1641,8 +1736,8 @@ scaffolding from scratch.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,,.,.,.,..,,,,,,..,,,..,..,,..,,..,,.,,,...,..,,...,...,,,.,.,,,..,,...,..,,
-#2DI5QXF2W4BCGOPLPNHFQSLVDOIFGE7XBWLPYNBHWSZPTSDCHB7TZMB75LAZ5LLZYZEGZVSJNKNFY
-#\\\|7ZWTG4WWEIAJSQYG5V4XPMF5OC322XQZXI7HX3GIXNRTZ4T3OV3 \ / AMOS7 \ YOURUM ::
-#\[7]FVUZXN6AFUL5OU7XOJEID34AINGQ6OKPZO4JRCX4MXWZEHP7EYDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,,,,,...,.,,,...,,,.,..,,,,,,..,,...,...,..,,.,,,.,.,.,,,.,.,
+#YTPPMRXT2OXBZ7QSNGITXYJM5FTFLSPHOF4LTBK6CI5BNRGP2VAJ4FSN76L4CMJ3WWAM4TFDDBTZQ
+#\\\|WE66JPNZQALGGCVKSTDRY74XUPXKJQRHOH6LLPI3TLYF2SIFE3B \ / AMOS7 \ YOURUM ::
+#\[7]UPVGO37T7MALNOEUIROBW4WU3ZOLKQEE4HCN2GZSFSCPIJIJUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
