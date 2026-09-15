@@ -101,6 +101,18 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## usage zenka async kimi refresh (Sept 2026, live-verified)
+
+plugin.usage.kimi.refresh_token rewritten non-blocking (Event io watcher +
+deadline timer + WNOHANG reap-poll, child side unchanged: setsid/chdir-trusted/
+enter-eof stdin). Caller passes its retry scheduling as on_done cb; query reply
+stays deferred until the retried fetch reports. Single-slot guard returns FALSE
+if a refresh is already running. Root cause of the old symptom: blocking select
+loop stalled the usage zenka loop ~18s, claude probe's 15s timeout fired on loop
+resume → first combined query after kimi token expiry always showed claude
+timeout. Verified live: expiry → refresh → claude data intact + kimi
+"token valid 13m".
+
 ## base.ntime x4200 + cube cross-zenka access (Sept 2026)
 
 ntime = (unix-1023228000)*4200 — never use for real-second TTL math, use
@@ -274,8 +286,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,.,...,...,,.,,,..,,..,,,.,,.,,...,..,,..,,..,,...,...,...,,..,.,,,,,,,,..,
-#TYWAI7E3NQO5DU3H3KEZTP6HVWEA7CSDOXXJFCHUUR6LUUYWA5AK6BZQQVSMQ6TP2JW2MDGRPK6ES
-#\\\|ZKKKMLUYDE7A5CHK3K3CUMLXWVABCZTTJZIL2CJMJ7NYFUP4IV2 \ / AMOS7 \ YOURUM ::
-#\[7]2BC2C5W2VABHSX6YJ3DLEJH2Y32UWWUHUGLJPA6S4Q3ETFBV4IAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,,,,,.,.,,,,,,,,,,..,,,.,,,.,..,,...,...,...,..,,,..,..,,.,.,
+#X4KL26EAUMBXR3FYSOSXNCBLFDLE25FSLGEBX3M5APUCFLYTEWGS3TSG3UFXBBKVMACGA3MQQ2OYG
+#\\\|Z6I4ZX4O4PG3UFBP2ZYVQWU72RJFSYIMJWMAYH5TEY72ZK4PWT4 \ / AMOS7 \ YOURUM ::
+#\[7]X25XZZDD5F3M6SZ5ZRGSDZG7DF2QPAILKHQINVWDJIV3NAIE2SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

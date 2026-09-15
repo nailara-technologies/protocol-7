@@ -56,7 +56,7 @@ if (    not defined $headers->{ $prefix . 'unified-status' }
 my @rows;
 my $now = time;
 
-foreach my $window ( [ qw| 5h |, '5 hour' ], [ qw| 7d |, '7 day' ] ) {
+foreach my $window ( [ qw| 7d |, '7 day' ], [ qw| 5h |, '5 hour' ] ) {
     my ( $suffix, $label ) = $window->@*;
 
     my $utilization = $headers->{ $prefix . "unified-$suffix-utilization" };
@@ -113,8 +113,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,,.,,.,,,.,,..,,..,,...,,..,,,,,.,.,,..,..,,..,,...,...,...,,,,,,..,,.,,..,,
-#AMWBYQUD2SAWU3PYPGEUBWKB2NWSO333S5INAAO7CXKCO5T27JNUYZL2SYHSY3OEU5CZNMMOMAHHE
-#\\\|QMRP27RLZJQTZLCJB6WHSMBYA3ED63NSLRH4YWDRCM7L4CTWHME \ / AMOS7 \ YOURUM ::
-#\[7]ZF677EEFZFQ3WASJH275HE3XKY6DZ4MEV5BGDDHVHNPR36ZNNABY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,,.,,.,.,...,.,.,,..,,..,,,.,..,,...,..,,...,...,...,,,,,.,,,
+#4HRL4DJYHT6J55642NHWLRJCLVB4O4P2ABRMZKLVSZ2FCQSP4PTTATGAHLNLJL6JMMF276MT75GI6
+#\\\|I3ZXSGK3GMPRMWJDYH55EOUH6LMPEEB7JJ2EAZTD76J2VWPJ7BF \ / AMOS7 \ YOURUM ::
+#\[7]P6WOXTSWH2FCAJTCSH5DRKPWM6ACHI4CLVKCEIDSYMEMDQXM4YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
