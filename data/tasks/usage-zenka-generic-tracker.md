@@ -138,6 +138,17 @@ pattern exactly.**
   STRM once there's a real second consumer needing live push rather
   than poll-and-cache. Don't design this prematurely; phase 1/2 alone
   already deliver the actual near-term need.
+- possible relevant precedent, flagged by the user: the `events` zenka
+  (`cfg/zenki/events/`, `src/events.*`) is a real, existing scheduled/
+  condition-triggered dispatch system (date/weekday callbacks, timer-
+  based triggers -- used e.g. for Let's Encrypt renewal scheduling,
+  `events.set_up_timers`/`events.handler.event_triggered`/`events.cmd.
+  trigger_event`). Drops privileges to the standard `<system.amos-
+  zenka-user>` (not taeki), so it's not a privilege-model precedent --
+  but its trigger/dispatch shape may be directly reusable or adaptable
+  for "fire something when usage crosses X%" once this phase is
+  actually designed. Worth reading before inventing a new trigger
+  mechanism from scratch.
 
 **phase 4 -- dependency types that assert against a usage value (later,
 not designed yet).**
@@ -171,8 +182,8 @@ not designed yet).**
 no design/implementation work done yet -- this is a capture-for-later
 task file only.
 
-#,,,,,,,,,...,,..,,,.,,,.,.,.,...,..,,,,.,.,.,..,,...,...,..,,..,,,,.,...,,,,,
-#CRBYZVG63DNU64KINY44QSDFXWBFSJZJASAVMNIRULQCLVPQPKOM6ORQA4BMQFJLDDNSD3XXU37BE
-#\\\|QZ2TQULTISC7QIFBRHYZ64M2WN7OW7V53JNTYX4RXLMQWXRG3KJ \ / AMOS7 \ YOURUM ::
-#\[7]AREOOOBNFJID2PO73GPSUD5AYC5R63I3DEHGTXFPWAEHJPXFSEDI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,.,,.,,.,,,,,,,..,,.,,,,.,,..,,..,,...,...,...,.,,,.,.,,..,...,
+#K7VZBHPRBX37PWPJAZMJ3YQW5F5SPG5ZRQQMEIVOWHAEELAP7ZNYLHH2NGX6C64GGXYFKLHJIKGWM
+#\\\|IH3GWRXXJK7BI6ZUFTIKXQZHW6QRO6J7MXXVB3H524HUVPTQDHD \ / AMOS7 \ YOURUM ::
+#\[7]MQ2GFJWVSSZFPO47TA5O7T7IZZZQDGOAM5G46WKUNDBESV7VF2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
