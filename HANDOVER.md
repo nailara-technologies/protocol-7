@@ -73,6 +73,23 @@ confirmed == production weights), the pre-existing Q8_0 quant (predates
 this whole thread, unrelated to the corruption, left alone per the
 user's explicit call), and the quarantined corrupt shard 4 (kept
 deliberately as the only physical evidence for the still-open
+fetch.file.huggingface.* corruption-bug hunt. Fully wrapped up and
+committed as of `7543bb958` — working tree clean.
+
+**not yet started, deliberately, 2026-09-15**: the real attempt 5
+(retrain against the now-intact checkpoint) has NOT been kicked off.
+Both this session's own budget (78% of the weekly Claude limit used,
+resets Wednesday 8PM, on pace to run out before then) and Kimi's (89%
+of its short rate-limit window, resets in ~1h40min as of this note)
+were tight at the same time this became ready to start, so it was
+deliberately deferred rather than rushed — training is exactly the
+kind of long, resumable, well-specified task worth having full budget
+for rather than starting it right before either side's limit bites.
+Whoever picks this up next: the checkpoint is intact, the converter/
+validation tooling all exists and is committed, and the spec is simply
+"rerun `train_lora.py` unchanged against the now-fixed local petruhonk
+checkpoint" (no code changes needed) — check current budget on both
+sides first, then just run it.
 fetch.file.huggingface.* corruption-bug hunt).
 
 ## orientation, 2026-09-14 — two independent threads, both landed/resting
