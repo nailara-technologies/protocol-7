@@ -5,6 +5,76 @@ embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
 These names have been getting conflated across sessions/compactions, and it
 has repeatedly cost real momentum — see "the mistake to not repeat" below.
 
+## UPDATE, 2026-09-15 — LoRA thread ROOT CAUSE FOUND: corrupt local
+## checkpoint shard, NOT a base mismatch. Read the "sixth pass" section
+## of `data/tasks/coding-lora-p7-idioms.md` before acting on anything
+## LoRA-related below; every earlier section's framing is superseded.
+
+Numerical verification work for `data/tasks/coding-lora-p7-idioms-
+checkpoint-quantize.md` found that the local petruhonk checkout (used
+for ALL four LoRA training runs and the fifth-pass probes) had a
+**corrupt shard 4** on disk since its 2026-09-10 fetch — right size,
+right safetensors header, wrong data section (sha256 mismatch vs the
+published HF LFS hash; suspected chunked-download stitching/resume bug
+in the fetcher, not yet root-caused — hunt it before the next big
+download). Layers 25[attn-out side]–31 + final norm were garbage in every training
+run. Meanwhile petruhonk's PUBLISHED weights turn out to be identical
+to rohit267's (ge525's independent GGUF conversion of petruhonk
+reproduces the production mradermacher GGUF bit-exactly on every F32
+anchor across all 32 layers) — **production was never mismatched; the
+four adapters are the poisoned artifacts**, which fully explains the
+fifth pass's real-in-HF/zero-transfer-live findings. The intact shard
+4 was re-fetched (hash-verified) and installed 2026-09-15; the corrupt
+file is quarantined (`...CORRUPT-20260910-do-not-use`). The task
+author is running the serve+revalidate step separately with ge525's
+pre-made GGUF (== production weights) — a negative there measures the
+poisoned adapters, not the technique. **Real attempt 5 = retrain
+against the now-intact checkpoint.** Also: the 18.4GB F16 GGUF at
+`/mnt/ext-xfs-data/models-lmstudio/petruhonk/Qwen3.8-9B-Distill-
+uncensored-heretic-GGUF/` is quantize-input ONLY — never serve it on
+this 15GB host (that acceptance criterion caused an overnight VM OOM
+crash and was withdrawn by the task author). A working, verified
+qwen35 HF→GGUF converter now exists at `data/control-vectors/lora/
+qwen35_hf_to_gguf.py` (+ read-only verifier `verify_qwen35_gguf.py`).
+
+**addendum, same day**: ran the serve+revalidate step against ge525's
+GGUF as planned, at a properly position-matched prompt (teacher-forced
+prefix up to the token right before the invoke idiom, verified via raw
+token-ID prompts to rule out any string-retokenization artifact) —
+`invoke` did not transfer (HF/PEFT gave `' <'` 60% top1 on the poisoned
+adapter; the live ge525-served server gave `' my'` ~59-60% both with
+and without the adapter loaded, i.e. no measurable adapter effect at
+all). This is exactly the pre-registered outcome for testing a poisoned
+adapter against correct weights — not a new negative on the technique,
+not further evidence of any base mismatch (there is none). Also
+confirmed via the actual C++ loader validation logic
+(`llama.cpp:7828-7841`) that the LoRA tensor shapes/orientation are
+correct, ruling out a conversion-side bug as an alternative explanation.
+One dead-end worth recording so a future session doesn't repeat it: a
+naive `Qwen3_5ForCausalLM` + meta-device state-dict key comparison
+looked like it showed 426/427 tensors failing to load at all (a
+totally different, more severe "wrong model class" theory) — this was
+wrong; `output_loading_info=True` on the real `from_pretrained()` call
+shows zero missing/unexpected/mismatched keys, because transformers'
+internal checkpoint-conversion mapping correctly strips the
+`language_model.` prefix. The meta-device comparison doesn't go through
+that mapping, so it gives a false positive. Trust `output_loading_info`
+over a raw key-set diff for this kind of check.
+
+**file cleanup, same day**: deleted the four poisoned adapter
+directories (`data/control-vectors/lora-out/{p7-idioms,p7-idioms-real,
+p7-idioms-real-lmhead,p7-idioms-invoke-oversampled}/adapter/`, git-
+tracked config/tokenizer files removed via `git rm`-equivalent, gitignored
+safetensors just deleted) and their three GGUF conversions in
+`data/control-vectors/lora/`, plus two franken-tail F16 GGUFs (~18GB
+each) superseded by the fresh rebuild. Kept: the fresh F16 rebuild
+(valid, matches the intact checkpoint), ge525's Q4_K_M (valid,
+confirmed == production weights), the pre-existing Q8_0 quant (predates
+this whole thread, unrelated to the corruption, left alone per the
+user's explicit call), and the quarantined corrupt shard 4 (kept
+deliberately as the only physical evidence for the still-open
+fetch.file.huggingface.* corruption-bug hunt).
+
 ## orientation, 2026-09-14 — two independent threads, both landed/resting
 
 A parallel session sharing this same checkout landed a large body of work

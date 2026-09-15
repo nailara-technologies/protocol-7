@@ -25,7 +25,10 @@ LORA_GGUF=${2:-}
 
 CV=/data/projects/protocol-7/data/control-vectors
 LOG=/var/log/protocol-7/DESKTOP-FP4OP26.coding.zenka.log
-MODEL_ID="OFSQC4I:QDBKEXY"
+## env-overridable so the same unmodified harness can validate a candidate  ##
+## base model [ e.g. the petruhonk self-quantized GGUF from the checkpoint- ##
+## quantize task ] without forking the script. default = production model.  ##
+MODEL_ID=${MODEL_ID:-OFSQC4I:QDBKEXY}
 
 ts() { date '+%H:%M:%S'; }
 
@@ -143,8 +146,8 @@ fi
 
 echo "$(ts) === DONE ==="
 
-#,,.,,,..,.,,,..,,..,,..,,.,,,,..,,.,,,,,,,.,,..,,...,...,,.,,,.,,...,.,,,..,,
-#4E7TUX2IZYH2BBHBOACMCDI5HFROQI3GZ3NONY2273SLGHKLEJLPQTENBWTTQKPE2WBDGQNHWJKYO
-#\\\|LONPWPZ2UXW5BI6F45CPMVBZW5ZZYJK4XEXLPV4VGXJQSKID2UN \ / AMOS7 \ YOURUM ::
-#\[7]FI6PORRU3CM4TRDVJXXJO2DL2CPBVYV7RBKBOJZ2SKFRXZ3TJSBA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,,,,,.,,...,...,,,.,,,,,.,.,..,,...,...,...,...,,,,,.,,,,,.,
+#PNLJQIPCTMJEZLXPMOUR2WTKOPXYIAPCWWPSGVSYWV35TF3643WOJLNXEIIJCOE7HQEBFLRXYB3X2
+#\\\|4LGDJTDD334POXKR6YR2HX7P2KVYMVOFRDPBKFFWTSOYUQCELNT \ / AMOS7 \ YOURUM ::
+#\[7]TQ7FJ7Z5ABL2SJTI5FCSPGJYTVMQ5DBCNATEZTSDNR6ZHTCXQYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
