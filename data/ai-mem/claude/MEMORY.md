@@ -6,7 +6,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## CRITICAL
 - [use-format-code-not-perl-c](feedback-use-format-code-not-perl-c.md) — for ANY src/* syntax check in this project, run `bin/format-code -c <files>` FIRST, always — never plain `perl -c`, and prefer it over `bin/test-scripts/p7-module-syntax-check` too (that tool has its own separate false-positive set: `%colors`/other bin/Protocol-7 globals, `$call` on `.cmd.` files, `uniq @array` bareword form). Recurred TWICE now (missed again 2026-09-14 despite this memory existing) — burned a full session re-proving known-harmless errors via HEAD-diffing before the user pointed at format-code directly
-- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — `<zenka>.reload source` / bare `reload source` reporting "success" is NOT proof the edit is live; recurred across 4+ zenki now (jobsite, kimi, usage, coding), most recently 2026-09-15/16. Default every live-fix verification to `p7c v7-zenki.restart <zenka>` instead, and confirm with a literal before/after diff of real output, not just the reload message
+- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — CORRECTED 2026-09-16: `reload source` deliberately excludes `plugin.*` modules by design (base.cmd.reload) — use `<zenka>.reload plugins`/`reload all`, always zenka-prefixed, for those; don't default to full restart anymore, that was an overcorrection. The narrower 2026-08-04 `.cmd.`-whitelist-gate bug (below in the file) is a separate, real historical issue
 - [deleted-manually-tuned-captures-without-confirming](feedback-deleted-manually-tuned-captures-without-confirming.md) — 2026-08-28: deleted 117 files from a shared dir based on filename-pattern inference alone ("all named snapshot.*, must be disposable"), no confirmation asked; some were the user's hand-tuned interactive visualization states, unrecoverable (no fs snapshot/trash, plain ext4). NEVER delete anything outside a designated scratchpad without asking first, even when the naming/location looks conclusively like test debris — content value is not inferable from filename pattern or origin command alone
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
 - [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
@@ -57,8 +57,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,,,.,.,,,,,.,.,...,,..,.,.,.,.,.,.,...,..,,...,...,.,.,,,.,,..,,..,,..,
-#HAL2UP6Y3HYIKUFQANSG2YF5KLX7QMYUJYRGCFVC4FB25YXYQYNXRBX4BE2SKJBADBGLFC4AALKFS
-#\\\|2UOEOVWSXK2KBVNMWVXIVGLU3OFFPFHUECJZFIJRTBM5MBIJ4SJ \ / AMOS7 \ YOURUM ::
-#\[7]AQ62IF65YUP3CLSVX2HK3ONVX6LBAD5W3FI5MH3RRTSVPIZBJ6CY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,...,,..,,..,...,,,.,...,,..,..,,...,..,,..,,..,,,..,,.,,.,,,
+#IWFHTRKRUNRDAOOJYWEEVB36YLLORO2TUFDBEGKFFPQWFE5QGKT3U44BYIXEWQAYDFICEPQF4E2XU
+#\\\|GIKSZBEAGROM2HKNY3Y25OOBFWOSN23AZCB6PD5B7YFWWZI2KS3 \ / AMOS7 \ YOURUM ::
+#\[7]FIEEBSGJOHSJRI5VN2ADYEBRIEIHBV72625Y3FI5JFDZVOZ3F2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

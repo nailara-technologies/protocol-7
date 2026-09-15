@@ -71,19 +71,19 @@ multi-day-plus-hours durations: `1 day 01h 37'51"` → post-regex →
 a shared function reused here, not introduced by this work — leave as-is
 unless asked to fix `base.parser.duration` itself.
 
-## reload gotcha reconfirmed here too
+## reload: use the right keyword, not a restart
 
-Every one of these edits needed `p7c v7-zenki.restart usage` (or
-`restart coding`) to actually take effect — `reload source` reported
-success but the live output stayed stale, repeatedly, across this whole
-session. See [[feedback-reload-success-doesnt-guarantee-new-file-loaded]]
-(now promoted to CRITICAL in MEMORY.md) — don't trust reload for this
-zenka family, always restart-and-diff to verify.
+`plugin.usage.kimi.handler.response` / `plugin.usage.claude.handler.response`
+are `plugin.*` namespaced -- `reload source` structurally never recompiles
+those (see `src/base.cmd.reload`, explicit `$ARG !~ m{^plugin\.}` filter).
+`<zenka>.reload plugins` or `<zenka>.reload all` picks them up correctly.
+Full detail + the corrected general guidance:
+[[feedback-reload-success-doesnt-guarantee-new-file-loaded]].
 
 #,,,.,.,,,...,,.,,...,,.,,.,.,,..,...,,..,.,.,..,,...,...,...,...,..,,...,..,,
 
-#,,,,,.,.,.,.,,.,,.,,,,,.,,,,,,.,,,.,,..,,,.,,..,,...,...,...,,,,,,,,,,,.,,..,
-#F5OARPAQSISXQVEF26YTQOQJH5XKTKJ3AAN4ZWEWFU7XJKQDJDAPBHVX3DUJNMCAP3P345XYSQHMA
-#\\\|UIA4ZHND5N7JORK7EQQ5UBFRT4TDYVCIRCMZRV7X5G7VUOTFNEI \ / AMOS7 \ YOURUM ::
-#\[7]332OGMX2ZJVDSJZHYN4RJDB55CWFMFRJHY3DCTJYLCCLPHZRIUDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,,.,,..,,.,.,,..,,,,,,.,,..,,..,,...,..,,.,.,,.,,.,.,.,.,,.,,
+#RQE46SV7JFY2GBDGRH7FOEMFPPDABJDFSR4PTL62XJOJMDDUOENKTM6XCRJ7LMNVDOSDWIIRDANVG
+#\\\|3GQRCBKIA6FAKBHTJVUH3LAUGSMJSGIDZBZVQRHP6IBAEL5OOSK \ / AMOS7 \ YOURUM ::
+#\[7]USSBZ2GR6IPB7ZBLVBKGW4YOQSN2BPQEKK5FTW3DT65N5Y4JQ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
