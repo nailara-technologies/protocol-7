@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = powershell.cmd.mem-used
+# descr = percent of windows host physical memory in use
+
+## mirrors system.memory.cmd.mem-used's interface [ the same
+## { mode true, data <percent>% } return shape ] but reports the actual
+## windows host instead of the wsl/linux side -- see
+## data/tasks/powershell-host-memory-commands.md for motivation [ the
+## linux-side figure cannot show host pressure from firefox or the wsl vm
+## itself, which is what forced a full host restart once already ]
+
+## future option, deliberately not implemented : a STRM-based live-updating
+## reply mode [ cube-level reply-mode convention, see cube.cmd.select-strm-mode
+## ] would turn this into a genuine early-warning feed instead of a
+## one-shot poll -- one-shot is the actual deliverable for now
+
+## single-line, semicolon-joined script -- NOT a multi-line heredoc with real
+## newlines [ confirmed live in powershell.cmd.get-event-log : the
+## wsl-to-windows interop layer marshalling argv into a win32 command line
+## does not survive embedded newlines ]. try/catch + 'P7ERR:' sentinel, also
+## per get-event-log : cmdlets throw liberally and
+## $ErrorActionPreference='SilentlyContinue' does not reliably suppress it.
+## percent is formatted invariant-culture on the powershell side so the
+## decimal point stays '.' regardless of host locale
+my $ps_script = <<'PS1';
+$ErrorActionPreference = 'Stop'; try { $os = Get-CimInstance Win32_OperatingSystem; $total = [double]$os.TotalVisibleMemorySize; $free = [double]$os.FreePhysicalMemory; $pct = [math]::Round((($total - $free) / $total) * 100, 2); Write-Output ('MEMUSED=' + $pct.ToString('0.00', [Globalization.CultureInfo]::InvariantCulture)) } catch { Write-Output ('P7ERR:' + $_.Exception.Message) }
+PS1
+
+$ps_script =~ s|\n\z||;    ## heredoc adds a trailing newline -- strip it, ##
+## keep the script content itself single-line   ##
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $raw_out;
+
+return { 'mode' => qw| false |, 'data' => $1 }
+    if $raw_out =~ m|^P7ERR:(.+)|;
+
+return { 'mode' => qw| false |, 'data' => 'unexpected powershell output' }
+    if $raw_out !~ m|^MEMUSED=([\d.]+)|m;
+
+return { 'mode' => qw| true |, 'data' => $1 . '%' };
+
+#,,..,,,,,,,,,,..,.,.,,,,,,.,,.,.,,,.,.,.,,,,,..,,...,.,,,.,,,,.,,,..,..,,.,.,
+#TMPILDSF656VJP4H6GJFJGNQTSY36LF7YCYNFV6IQ3LRFM7YSR6FUYC7UZSSCBADDKNFNJYKJH7WA
+#\\\|5ZLRGOO4AQWRTMWFVFWY2ONMCVENUIPLDKNGT23T5F7NFKKH5AP \ / AMOS7 \ YOURUM ::
+#\[7]DG2YWEHIXZPGIHZFQYVV4KXCPDFALYXWTVYOOUD6FLO3NDXYLIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

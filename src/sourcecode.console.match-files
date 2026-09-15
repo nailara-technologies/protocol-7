@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = sourcecode.console.match-files
+# descr = dry-run file-matching preview for update-signatures /
+#         verify-p7-signatures -- same parameters, same matching logic,
+#         zero side effects [ no key loading, no signing, no verification,
+#         no git operations, no writes of any kind ]
+
+## exists so match-logic changes [ e.g. collect_file_list's directory-
+## recursion behavior ] can be developed and checked fully dry before ever
+## running the real signing/verify tools against them. filed after a real
+## incident, 2026-09-15: a hasty, untested change to collect_file_list's
+## recursion handling, combined with running the *unscoped* variant of
+## update-signatures, attempted to sign 18984 files -- including vendored
+## dependency configs never meant to be part of the corpus -- and hit a fatal
+## symlink error partway through. fully reverted before landing; see
+## data/ai-mem/claude/feedback-sourcecode-signature-corpus-scoping.md for the
+## full account. this command is the safety net for not repeating that.
+
+## usage:
+##   sourcecode.console.match-files <params>              [ raw collect_file_list params ]
+##   sourcecode.console.match-files :inlist: <params>      [ intersect against the signed corpus, same as update-signatures/verify-p7-signatures ]
+##   sourcecode.console.match-files                        [ no params : the full corpus, same as the other two tools' no-args branch ]
+##
+## deliberately does NOT call base.exit on an empty match -- unlike the real
+## tools [ which have real work to abandon ], this one's whole job is to
+## report what would happen, including "nothing", without ending the console
+## session
+
+my $command_params = shift // '';
+
+my $restrict_to_corpus = $command_params =~ s| *:inlist: *| |;
+$command_params =~ s,^ *| *$,,;
+
+if ( $restrict_to_corpus and not length $command_params ) {
+    <[base.log]>->( 1, ': :inlist: empty file list, nothing to match' );
+    return;
+}
+
+my @source_paths;
+my $candidate_count = 0;
+
+if ( length $command_params ) {
+
+    my @candidates = <[base.source.collect_file_list]>->($command_params);
+    $candidate_count = scalar @candidates;
+
+    if ( $restrict_to_corpus and @candidates ) {
+        my %corpus_ok
+            = map { $ARG => TRUE } <[sourcecode.source_path_set_up]>;
+        @candidates = grep { $corpus_ok{$ARG} } @candidates;
+    }
+
+    @source_paths = @candidates;
+
+} else {
+    @source_paths = <[sourcecode.source_path_set_up]>;
+}
+
+my $file_count = scalar @source_paths;
+
+if ($restrict_to_corpus) {
+    <[base.logs]>->(
+        1, ': :inlist: %d of %d given file%s are part of the signed corpus',
+        $file_count, $candidate_count, <[base.cnt_s]>->($candidate_count)
+    );
+} elsif ( length $command_params ) {
+    <[base.logs]>->(
+        1,
+        ": %d file%s match%s '%s'",
+        $file_count,
+        <[base.cnt_s]>->($file_count),
+        <[base.cnt_s]>->( $file_count, '', 'es' ),
+        <[base.parser.ellipse_center]>->( $command_params, 40 )
+    );
+} else {
+    <[base.logs]>->(
+        1,           ': %d file%s in the full signed corpus',
+        $file_count, <[base.cnt_s]>->($file_count)
+    );
+}
+
+print "\n";
+print "$ARG\n" foreach <[base.sort]>->(@source_paths);
+print "\n";
+
+#,,.,,.,.,..,,.,.,,.,,.,,,.,,,,..,...,,..,,.,,..,,...,...,...,..,,...,.,,,,..,
+#IV4OQV75FBGYE67MHXMIMFAPSEHXYVCSDMLU4YPRQ4IHA6JF33THMNOURDHNCXLTFXRKQLWI2CQ6W
+#\\\|BW64CB6FRUGM7EALAZJJNYZ6VRLSTJTA437PXMDPQCLWQLX7WD3 \ / AMOS7 \ YOURUM ::
+#\[7]KV3NTQZJV3YFDKDX2A63INAYONXFHQAEAG5CHMU5FURKLEZ2G4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

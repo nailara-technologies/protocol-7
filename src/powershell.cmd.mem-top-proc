@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = powershell.cmd.mem-top-proc
+# descr = top n windows host processes by working-set memory
+# param = [count]
+
+## lists the top memory consumers on the actual windows host [ pid, name,
+## working-set in MB ] -- the per-process view that would have given advance
+## warning about a growing firefox [ or the wsl vm's vmmemWSL allocation ]
+## before it became host-wide pressure. pairs with
+## powershell.cmd.mem-used, same motivation : see
+## data/tasks/powershell-host-memory-commands.md
+
+my $args = $call->{'args'} // '';
+$args =~ s,^\s+|\s+$,,g;
+
+my $top_count = length $args ? $args : 10;
+
+return { 'mode' => qw| false |, 'data' => 'invalid count [ 1-50 ]' }
+    if $top_count !~ m|^\d+$| or $top_count < 1 or $top_count > 50;
+
+## same single-line / try-catch / P7ERR discipline as
+## powershell.cmd.get-event-log -- see there for the confirmed-live reasons [
+## multi-line scripts break in the wsl-to-windows argv marshalling; the
+## sentinel is parsed generically, not matched against specific error text ]
+my $ps_script = <<'PS1';
+$ErrorActionPreference = 'Stop'; try { Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First __TOPN__ | ForEach-Object { "{0}`t{1}`t{2}" -f $_.Id, $_.ProcessName, [math]::Round($_.WorkingSet64 / 1MB) } } catch { Write-Output ('P7ERR:' + $_.Exception.Message) }
+PS1
+
+$ps_script =~ s|__TOPN__|$top_count|;
+$ps_script =~ s|\n\z||;    ## heredoc adds a trailing newline -- strip it, ##
+## keep the script content itself single-line   ##
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $raw_out;
+
+return { 'mode' => qw| false |, 'data' => $1 }
+    if $raw_out =~ m|^P7ERR:(.+)|;
+
+my @out_lines = split( m|\n|, $raw_out );
+@out_lines = grep { length $ARG } @out_lines;
+
+return { 'mode' => qw| false |, 'data' => 'no process data' }
+    if not @out_lines;
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @out_lines ) . "\n" };
+
+#,,,,,,.,,,..,,,.,..,,..,,.,,,,,.,,,,,,,.,,,,,..,,...,...,,..,,..,.,.,...,..,,
+#5HU36C7JPTISRUKOWIHADOYHQ3W2XREE2XZFL2HTL7ZZHIYNNGS45GOLUCIZ7HQYNTYQKGNX4GE6C
+#\\\|FRX4Y6XPRY6ZZIGTUUHXNYSRC6ZSLTUUVO5RU3LJQDTZHVWHM26 \ / AMOS7 \ YOURUM ::
+#\[7]LZM7NLLX557P2GLRWRV2FR2I3STSAYYU4VIU2KSKSM5GE5K5VOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
