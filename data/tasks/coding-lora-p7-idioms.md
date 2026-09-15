@@ -1407,6 +1407,82 @@ serve on this 15GB host -- the pre-existing Q8_0 quant, much higher
 precision than Q4_K_M and already confirmed to fit, is the safe next
 rung to test first).
 
+**correction, same session**: "the pre-existing Q8_0 quant" above turned
+out to be ambiguous and the wrong one on first read -- the Q8_0 file this
+task file elsewhere calls "unrelated" (`rohit267/Qwen3.8-9B-heretic-
+uncensored/qwen3.8-9b-abliterated-Q8_0.gguf`) is a DIFFERENT decensoring
+pipeline than the checkpoint the adapter was trained against, exactly
+the mistake this thread already burned time ruling out once. The correct
+Q8_0 -- same source repo as the hash-verified F16 rebuild and ge525's
+Q4_K_M -- is `petruhonk/Qwen3.8-9B-Distill-uncensored-heretic-GGUF/
+Qwen3.8-9B-Distill-Heretic-Uncensored-Q8_0.gguf` (9.1GB, safely under
+the 15GB host limit), previously untouched/unverified in this thread.
+See "ninth pass" immediately below for what testing against it found.
+
+## ninth pass [ live-only, no retrain -- tests whether Q4_K_M
+## quantization noise is diluting the delta, by re-running the eighth
+## pass's exact 0/1/4x scale points against the correct-checkpoint Q8_0
+## quant instead. result: REFUTES the quantization-dilution hypothesis
+## -- higher precision made live transfer WEAKER, not stronger ]
+
+**setup**: registered the Q8_0 file into the models registry (`p7c
+"models.discover :re-scan:"`, previously undiscovered/unregistered in
+this thread) -- resolved to `amos: P27KMTQ:X6B34JQ`, path-verified via
+`models.get_path_by_amos`. Metadata sanity-checked before serving:
+`general.architecture = qwen35`, `qwen35.block_count = 33`, `qwen35.
+embedding_length = 4096`, `general.file_type = 7` (Q8_0) -- consistent
+with the expected checkpoint family. Re-ran the exact same three scale
+points (0.0 control, 1.0, 4.0) from the eighth pass's sweep, same
+adapter (`p7-idioms-real-attempt5-lora.LR7NW7A-XT57X3Y.gguf`), same
+position-matched probe, FA off throughout (adapter path always set),
+via `data/control-vectors/run_lora_scale_sweep.sh` pointed at the new
+`MODEL_ID`.
+
+**results, directly comparable to the eighth pass's Q4_K_M numbers**:
+
+```
+scale   Q4_K_M ' my'   Q4_K_M ' <'   Q8_0 ' my'   Q8_0 ' <'
+0.0      58.99%         <0.16%        64.60%       <0.18%
+1.0      66.18%         <0.14%        76.80%       <0.24%
+4.0      85.85%          6.84%        94.70%        1.76%
+```
+
+**interpretation**: if Q4_K_M's aggressive 4-bit quantization were
+diluting or partially cancelling the low-rank delta, the much
+higher-precision Q8_0 quant should show a STRONGER target-token response
+at matched scale. It shows a WEAKER one instead -- `' <'` at scale 4.0
+drops from 6.84% (Q4_K_M) to 1.76% (Q8_0), while `' my'` climbs higher
+at every scale (64.6%/76.8%/94.7% vs 58.99%/66.18%/85.85%). This is a
+clean, well-controlled refutation, not just a deprioritization: base
+quantization precision is not the mechanism, and if anything the
+correlation runs backward from the hypothesis (though n=1 quant-pair,
+worth remembering before treating "backward" as itself a real trend).
+One real side-effect worth recording independent of the LoRA question:
+the zero-adapter baseline itself shifts measurably with quantization
+(58.99% -> 64.60% `' my'` top1) -- Q4_K_M and Q8_0 are not
+behaviorally identical even before any adapter is involved, which is
+useful context for any future cross-quant comparison in this thread.
+
+**what this leaves**: routing, alpha, rank/shape, and now base-weight
+quantization precision are ALL ruled out by direct inspection or
+controlled live test, not reasoning alone. The remaining candidate
+space narrows to something in how ik_llama.cpp computes the qwen35/
+gated-delta-net forward pass itself -- independent of quantization --
+differently enough from HF/PEFT's computation that a correctly-shaped,
+correctly-scaled, correctly-routed delta of a given magnitude produces a
+much smaller effect live than in HF space, with reduced headroom before
+general degeneration (scale 8/16 in the eighth pass). Confirming this
+would need a base-model (NO adapter) activation-level comparison between
+HF and llama.cpp at the same decision point -- do the two implementations
+actually agree on hidden-state values through the SSM/gated-delta layers
+before any LoRA is applied -- which is a materially bigger diagnostic
+step than anything run so far in this thread (cross-implementation
+numerical debugging, not a probe/sweep), not started.
+
+**restore state**: production respawned via `coding.switch-model
+OFSQC4I:QDBKEXY backend=gpu`, confirmed healthy, no lora/FA flags in
+process args.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1475,8 +1551,8 @@ rung to test first).
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,,.,...,,,.,..,,,..,,.,,,,,,,,.,...,.,,,,,.,..,,...,...,..,,...,..,,,.,,.,,,
-#M7JZGFCP2SMB3WEUCDSJZH5WUA6MLDFDJMOWX5SRCYVC6NYUIHRBAVK3BNJ32JEVDM4GAETR52OUI
-#\\\|7I552S2Q2IFLAXM33N65EUACSAKOEKBI5QYHGYGSSPH5TWG7EPX \ / AMOS7 \ YOURUM ::
-#\[7]COMZYMDSUY6AGM3WW6HCATZWQGEQUMOTUACKDXWB4PLVC6ID6UAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,,,.,,,.,,..,..,,,,.,,..,,,.,..,,...,..,,,,.,.,.,...,,,,,..,,
+#XXURTIB73IX5EZHVG3FWXLHHNBWVCSRIJLK27C4RKKZHXXY4BL4RYYZX44HO3B6NPP5XCOZCAFPHC
+#\\\|N3W2KDU7QMQJHONJF7YWTE4OFGLVTAL3VCPJM5P6IAF6ESLFIJL \ / AMOS7 \ YOURUM ::
+#\[7]CG554W52IWDU3PYNIQGM3EQPDCTGDB7XP7JB5SJKWEV3XSCGP6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
