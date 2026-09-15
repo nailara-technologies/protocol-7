@@ -1117,6 +1117,23 @@ F16 rebuild, ge525's Q4_K_M, the pre-existing unrelated Q8_0 quant, and
 the quarantined corrupt shard 4 (kept deliberately as evidence for the
 still-open fetch.file.huggingface.* corruption-bug hunt).
 
+**a second calling-convention trap, found kicking off attempt 5, same
+shape as the fifth pass's `spawn_inference_server` bare-hash mistake**:
+`coding.lora_train_spawn` (like every `.cmd.`-style module in this
+codebase) does `my $call = shift; my $args = $call->{'args'} // {};` --
+calling it as `<[coding.lora_train_spawn]>->({dataset=>..., out_dir=>...,
+epochs=>...})` (a bare hash of the actual params) silently resolves
+`$args` to `{}` and every param falls through to its default, including
+`out_dir` defaulting to the stale, permission-blocked `lora-out/
+p7-idioms` from attempt 1 -- with NO error about the missing `args`
+wrapper, just a confusing-looking "output directory not writable"
+failure pointing at a directory nobody asked for. **Correct form:
+`<[coding.lora_train_spawn]>->({'args' => {dataset=>..., out_dir=>...,
+epochs=>...}})`.** Cost several silent retries (both by Kimi and by the
+task author) before the actual bug was found by directly reading the
+module's own argument-unpacking code rather than guessing from the
+error text.
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1185,8 +1202,8 @@ still-open fetch.file.huggingface.* corruption-bug hunt).
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,.,,,,..,.,,,..,,,,,,,..,,,,,,..,...,,,.,..,,...,..,,.,.,,,,,,,,,,,.,,..,
-#Q3EB5CZ6PU5JULTMIT2YKCVJTV6L4B6ZXN75JKMGMCEYKBIMBTJY7JKRKEYQ2UVYCUKMO5RILPJTU
-#\\\|4NWY3NC4LO6LJHPVRPBBHEXRYQXMMWNDGBIZF3OCRKANGVHBCVJ \ / AMOS7 \ YOURUM ::
-#\[7]CJSVXZAMBZSULYCC75ZKPKQHEE4BWHEHQ3HWELVHHCR4A3335CAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,..,,,,,,..,,,..,,.,,,,.,,.,,..,,...,...,,..,,,.,,..,...,...,
+#IKL2QGCWGSDI4WX2Q5OD32Z5ETC3UNBA3TEKHHMMI35UKCUH53VTBE5I2ILFX66EPOCEBEZJBGGAA
+#\\\|3I3DNODAHTI3JHEMRK5BZD2G7TYVPOG3Z6YPOUW7JVHTBTIHJ7O \ / AMOS7 \ YOURUM ::
+#\[7]OYYDSZHJOB5UD5AUKLLV3Y7JJPRIWB46RHGLFBDWFFXSKY6FEEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
