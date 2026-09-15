@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = usage.format.duration
+# descr = seconds as a compact human duration [ e.g. '2d 4h 13m' ]
+# note  = matches the output shape of bin/dev/usage-external, deliberately --
+#         the same numbers should read the same way in both places
+
+my $seconds = shift // return '?';
+
+my $sign = '';
+if ( $seconds < 0 ) { $sign = '-'; $seconds = -$seconds }
+
+my $days  = int( $seconds / 86400 );
+my $hours = int( ( $seconds % 86400 ) / 3600 );
+my $mins  = int( ( $seconds % 3600 ) / 60 );
+
+my $out = '';
+$out .= sprintf( '%dd ', $days )  if $days;
+$out .= sprintf( '%dh ', $hours ) if $hours or $days;
+$out .= sprintf( '%dm',  $mins );
+
+$out =~ s{\s+$}{};
+
+return "$sign$out";
+
+#,,..,,.,,,,,,.,,,,,.,,.,,.,,,,,,,.,.,.,,,.,,,..,,...,...,,..,,,.,,.,,,,.,.,.,
+#5G7KVH2JRDP6UEYTGOYSZ756X62RF4ACIOHQ4XIQDZ7E46MXGZWJX6C74VLBJXPKHT22T7U2VOAWW
+#\\\|3I2QZDF3YBIBJ5PEPT54MTN7QNBFAXPHRNGHKBRPVH4ILHNCOHH \ / AMOS7 \ YOURUM ::
+#\[7]4RPAWV5HBBT7KJ4LAQBM6FEYV7YLWMKYICRHUWSWE6IFMKMAGOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

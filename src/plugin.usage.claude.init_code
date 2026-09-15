@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = plugin.usage.claude.init_code
+# descr = claude usage provider plugin : configuration and result cache set-up
+
+## provider configuration [ never holds credential values -- only where to ##
+## read them from at query time ]                                          ##
+
+<usage.provider.claude> //= {};
+
+my $provider = <usage.provider.claude>;
+
+$provider->{'label'}     //= 'Claude rate limits';
+$provider->{'enabled'}   //= TRUE;
+$provider->{'timeout'}   //= 15;
+$provider->{'pending'}   //= {};       ##  in-flight requests by req_id  ##
+$provider->{'last'}      //= undef;    ##  parsed numbers, last good query  ##
+$provider->{'last_time'} //= 0;
+
+## credential file, relative to the home directory of the unix user this ##
+## zenka runs as [ taeki ] -- resolved at query time, not stored here    ##
+$provider->{'cred_rel'} //= '.claude/.credentials.json';
+
+$provider->{'api_base'} //= $ENV{'ANTHROPIC_BASE_URL'}
+    // 'https://api.anthropic.com';
+
+##  cheapest model : the response is discarded, only the headers matter  ##
+$provider->{'model'} //= $ENV{'CHECK_USAGE_CLAUDE_MODEL'}
+    // 'claude-haiku-4-5-20251001';
+
+<[base.log]>->( 1, ': usage provider [ claude ] initialized' );
+
+0;
+
+#,,,,,,,,,..,,.,,,.,,,,..,,.,,,,.,..,,,..,,,.,..,,...,...,,..,,,,,.,.,,.,,,..,
+#3DZADSDUUKHCIH3EZ2RLRJY64YMNSOFL6MDLXXXHBNGZXLJQUSQ3TDDLJJCNROPIOOGMPEJNQMB7M
+#\\\|IZ7Q33IMGCJME7HT3QXDXI2IP5ZRURAWEJN6CWWAVDZXRF6PVFD \ / AMOS7 \ YOURUM ::
+#\[7]KNNQIF4E3HGODVYR25RFSPZL7KLM47PB7X56DVY2OKRH3YW4E6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

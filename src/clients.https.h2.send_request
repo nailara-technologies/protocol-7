@@ -46,11 +46,14 @@ my $on_response = sub {
     );
 
     <[clients.https.cleanup]>->($state);
+    ## header names are already lower-cased above : same contract as the ##
+    ## http/1.1 path in clients.https.handler.io                         ##
     $code{ $state->{'on_done'} }->(
-        {   'ok'     => $ok,
-            'status' => $status,
-            'body'   => $body,
-            'params' => $state->{'params'},
+        {   'ok'      => $ok,
+            'status'  => $status,
+            'body'    => $body,
+            'headers' => \%resp_headers,
+            'params'  => $state->{'params'},
         }
     );
     return;
@@ -171,8 +174,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,.,,.,,,.,.,,..,...,...,...,.,,,..,,.,,,.,,,..,,...,...,.,,,.,.,...,,..,,,.,
-#E7S2AX2IDPAFHEBI4NXZCYOD4BXHDFVC62RUYLHX3E5AZQLVEEYBZK53R6DDX6SZXEERYMHDPALBW
-#\\\|4HCUQIVS5Y4FBQQHOMQKCNT6JH5ZGJ35TETMKWGDDVXETWC776M \ / AMOS7 \ YOURUM ::
-#\[7]C7MJD4YE7UC4VQSH2A6MUAHBVFUPA4ZKEPR3IJ6FSYHZQYQQXODY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,,.,,...,,..,.,,,,..,,.,,,,,,..,,...,...,.,.,,,,,...,..,,.,.,
+#FM3G26I2VIM7Z4BWMRKVEOAK4AF33ZAXY4ISWLC2WBRFJ4H24LGCQGFXQ2EQEA7KTBGSN2EZ2W2HC
+#\\\|J5HPEJBSMW5GZGQLPQ7UMI4W2XUK67MTW3H3SWZMQVJNJZFEVP3 \ / AMOS7 \ YOURUM ::
+#\[7]SWLEB2Q5POK7OXRWLCEHKKTR6G266GM4YU2YA4E77DBEXA3GQKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

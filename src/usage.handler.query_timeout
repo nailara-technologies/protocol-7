@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = usage.handler.query_timeout
+# descr = guard timer : answer a usage query with whatever arrived when a
+#         provider never reports back at all
+
+my $req_id = shift->w->data->{'req_id'} // '';
+
+my $request = <usage.requests>->{$req_id};
+return if not defined $request;    ##  completed normally  ##
+
+##  providers still missing are recorded as timed out  ##
+foreach my $name ( $request->{'order'}->@* ) {
+    next if exists $request->{'results'}->{$name};
+    $request->{'results'}->{$name} = {
+        'ok'    => FALSE,
+        'error' => 'provider did not report back in time',
+    };
+}
+
+<[base.logs]>->( 1, 'usage : query [ %s ] guard timer fired', $req_id );
+
+return <[usage.complete_query]>->($req_id);
+
+#,,.,,...,,,,,,.,,.,,,.,,,,,.,...,...,,,.,,..,..,,...,...,.,.,.,,,..,,,.,,,.,,
+#RZ73QN55S4IELYW2RLTFRSHF6OWQKMF7LNWZE2B66INCY3WE4LPWUZXSZJM5ZXUXN5BMUWZKDTHIM
+#\\\|X67MXBQBE4IYDSQCO4ZPRKGAQZQPW7NOTW4YVCYUTU7OC5BNSND \ / AMOS7 \ YOURUM ::
+#\[7]NRL4OUTTLLZOLBBYTXVYUFWEMSKIT2JVDQWCAML6ZXPGUXQDAODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

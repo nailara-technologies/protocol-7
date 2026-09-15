@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = usage.cmd.kimi
+# descr = current kimi plan usage [ parsed numbers only ]
+# param = [ compact ]
+
+my $args_str = $call->{'args'} // '';
+
+my $format = $args_str =~ m{\bcompact\b}i ? qw| compact | : qw| box |;
+
+my $query = <[usage.query]>->( [qw| kimi |], $call->{'reply_id'}, $format );
+
+## a query that never started answers here, otherwise the reply travels ##
+## back through usage.complete_query                                    ##
+return $query if ref $query eq qw| HASH |;
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,.,,.,,,,.,,,..,..,,,.,,,.,,...,,,,,,,,,..,,...,...,,..,..,,.,,,,.,,...,
+#6KVGZXB45SYHGQPCWAL3QLHFYM34IK6BT3C3IUSGZYQLKAFJQ37AEKOGDEQI7OFGYMRPJ2UZU62OI
+#\\\|7Y4JQUAKMANFTFVCQACDDCN3Q6KD2CIEQQRQ765EN7UVZ7YBG3D \ / AMOS7 \ YOURUM ::
+#\[7]YEW343NB7XFUIWP2KKRUV3NAYKLZHHNSC3CGUOG735RHOEPN6KBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

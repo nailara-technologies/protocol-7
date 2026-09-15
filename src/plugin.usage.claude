@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = plugin.usage.claude
+# descr = claude usage provider plugin : main dispatch
+# param = { operation => 'fetch' | 'cached' | 'config', ... }
+
+my $args = shift // {};
+
+my $operation = $args->{'operation'} // qw| fetch |;
+
+my $provider = <usage.provider.claude> // {};
+
+if ( $operation eq qw| fetch | ) {
+
+    return <[plugin.usage.claude.fetch]>->($args);
+
+} elsif ( $operation eq qw| cached | ) {
+
+    ##  last parsed result, no network access [ numbers only ]  ##
+    return {
+        'mode' => qw| false |,
+        'data' => 'no cached claude usage value'
+        }
+        if not defined $provider->{'last'};
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'result' => $provider->{'last'},
+            'age'    => time - ( $provider->{'last_time'} // 0 ),
+        }
+    };
+
+} elsif ( $operation eq qw| config | ) {
+
+    ##  never includes credential values : only where they are read from  ##
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'label'    => $provider->{'label'},
+            'enabled'  => $provider->{'enabled'},
+            'api_base' => $provider->{'api_base'},
+            'model'    => $provider->{'model'},
+            'timeout'  => $provider->{'timeout'},
+            'pending'  => scalar keys $provider->{'pending'}->%*,
+        }
+    };
+
+} else {
+
+    return {
+        'mode' => qw| false |,
+        'data' => "unknown operation: $operation",
+    };
+}
+
+#,,.,,...,...,,.,,,,.,.,.,,..,..,,...,.,,,..,,..,,...,..,,,,,,.,.,.,.,..,,...,
+#2IGZJKSKHGT5T6WHHNA3QFSBL3QK2JTFIRVFIDQHXAXYIOGZQONT3UDZFCDAVDXZIPICGAGDIWJOY
+#\\\|MT3REKIFUHMKW43CCZF76FQTZLL57GEHG3P56ORBZBLFMVUHKYR \ / AMOS7 \ YOURUM ::
+#\[7]AMIWFLSYTALZEIEE6YLWLUXFLBT4ZLB3CKBJCEMCZN4EYUQW22CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

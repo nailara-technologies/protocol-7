@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.init_code
+# descr = kimi usage provider plugin : configuration and result cache set-up
+
+## provider configuration [ never holds credential values -- only where to ##
+## read them from at query time ]                                          ##
+
+<usage.provider.kimi> //= {};
+
+my $provider = <usage.provider.kimi>;
+
+$provider->{'label'}     //= 'Kimi plan usage';
+$provider->{'enabled'}   //= TRUE;
+$provider->{'timeout'}   //= 8;
+$provider->{'pending'}   //= {};       ##  in-flight requests by req_id  ##
+$provider->{'last'}      //= undef;    ##  parsed numbers, last good query  ##
+$provider->{'last_time'} //= 0;
+
+## credential directory, relative to the home directory of the unix user ##
+## this zenka runs as [ taeki ] -- resolved at query time, not stored    ##
+$provider->{'cred_rel_dir'} //= '.kimi-code/credentials';
+
+$provider->{'base_url'} //= $ENV{'KIMI_CODE_BASE_URL'}
+    // 'https://api.kimi.com/coding/v1';
+
+##  seconds under which a token counts as about to expire  ##
+$provider->{'expiry_warn'} //= 120;
+
+<[base.log]>->( 1, ': usage provider [ kimi ] initialized' );
+
+0;
+
+#,,,,,,..,,..,...,...,.,,,.,,,..,,,,.,,..,...,..,,...,...,,.,,,,.,,,.,,.,,..,,
+#DT7EUROF3LNKR34XOR4YJEMUS46GPSOEOMD3N6WK6JZQ2OEIMFKMQDWE56ZKV3LJFO72BVYBNMZ5E
+#\\\|JTXNEBRFI6M4PLIL47IEZ5NYNSHOX6E5SRFS3FMZNHDGKIHGRJB \ / AMOS7 \ YOURUM ::
+#\[7]HI6HG6D237364XOD7OGTFQPQMJVE7C5RU4WRTXQYN5EAKZESQACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

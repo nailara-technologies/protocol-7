@@ -1,0 +1,42 @@
+
+.:[ usage tracking zenka : account quota and rate-limit values ]:.
+
+## runs as the admin unix user [ same privilege model as the 'powershell' ##
+## zenka ] because the provider credentials it reads at query time live in ##
+## that user's home directory : the parsed numbers are what other zenki    ##
+## get to see, never anything credential-shaped                            ##
+
+[load_config_file:'shared-params']
+[load_config_file:'X11-vars']
+
+crypt.C25519.autocreate-user-key = yes
+
+system.zenka.verbosity.buffer = 1
+
+access.cmd.usr.cube = commands heart name subname verify-instance reload \
+                      src-age src-ver list show-buffer \
+                      buffer-erase buffer-erase-level \
+                      claude kimi status
+
+modules.load = auth.client net protocol.protocol-7 io.unix ui crypt.C25519 \
+               format.json clients.https usage
+[load_modules:<modules.load>]
+
+plugins.load = plugin.usage.claude plugin.usage.kimi
+[load_plugins:<plugins.load>]
+
+[init_modules]
+
+[root.drop_privs:<system.AMOS-user>.':'.<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,.,,...,...,,..,..,,,,,,.,.,...,,,,,...,,,.,..,,...,...,,,.,,..,..,,,..,,,.,
+#ANLV6JRLMCZAEO57LZNSQEYQZUAJBIYEN6HAIACL5ADXF3IHPHK7W7V36TNP45Z2JBP3TFWMFPV6I
+#\\\|AVPKBKXI6AYET3F6TLDXVWCBUKXT77EZ6Q2NCDBCAPRGB76EBP6 \ / AMOS7 \ YOURUM ::
+#\[7]DINAYR7UBGEMZWH5DFAGMLJYJCIX7TUE3MYN7PRN6N6SGG56AOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

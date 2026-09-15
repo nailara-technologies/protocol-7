@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = plugin.usage.claude.handler.response
+# descr = on_done handler for the claude rate-limit probe : turns the
+#         anthropic-ratelimit-* response headers into plain numbers
+# note  = the answer lives entirely in the headers, the body is discarded
+
+my $result = shift // {};
+
+my $provider = <usage.provider.claude>;
+my $req_id   = $result->{'params'}->{'req_id'} // '';
+
+##  gone : this request was already completed [ e.g. a late duplicate ]  ##
+my $pending = delete $provider->{'pending'}->{$req_id};
+return if not defined $pending;
+
+my $on_result = $pending->{'on_result'} // '';
+
+my $deliver = sub {
+    my $reply = shift // {};
+    $reply->{'provider'} = qw| claude |;
+    $reply->{'params'}   = $pending->{'params'} // {};
+    $reply->{'elapsed'}  = time - ( $pending->{'started'} // time );
+    $code{$on_result}->($reply)
+        if length $on_result and exists $code{$on_result};
+    return;
+};
+
+##  headers arrive lower-cased from both the http/1.1 and the http/2 path  ##
+my $headers = $result->{'headers'} // {};
+my $status  = $result->{'status'}  // 0;
+
+my $prefix = 'anthropic-ratelimit-';
+
+if (    not defined $headers->{ $prefix . 'unified-status' }
+    and not defined $headers->{ $prefix . 'unified-5h-utilization' } ) {
+
+    ## the confirmed-reliable free path stopped carrying the headers -- the ##
+    ## standalone script escalates to a max_tokens=1 call here, a zenka     ##
+    ## deliberately does not : report the anomaly instead of spending       ##
+    ## tokens unattended                                                    ##
+    return $deliver->(
+        {   'ok'    => FALSE,
+            'error' => sprintf(
+                'no rate-limit headers in response [ http status '
+                    . '%d%s ] -- max_tokens=0 may have stopped working',
+                $status,
+                length( $result->{'error'} // '' )
+                ? ', ' . $result->{'error'}
+                : ''
+            ),
+        }
+    );
+}
+
+my @rows;
+my $now = time;
+
+foreach my $window ( [ qw| 5h |, '5 hour' ], [ qw| 7d |, '7 day' ] ) {
+    my ( $suffix, $label ) = $window->@*;
+
+    my $utilization = $headers->{ $prefix . "unified-$suffix-utilization" };
+    next if not defined $utilization;
+
+    my %row = (
+        'window'   => $suffix,
+        'label'    => $label,
+        'used_pct' => 100 * $utilization,
+    );
+
+    my $reset = $headers->{ $prefix . "unified-$suffix-reset" };
+    if ( defined $reset and $reset =~ m|^\d+$| ) {
+        $row{'reset_epoch'} = 0 + $reset;
+        $row{'resets_in'}   = $reset - $now;
+    }
+
+    my $window_status = $headers->{ $prefix . "unified-$suffix-status" };
+    $row{'status'} = $window_status if defined $window_status;
+
+    push @rows, \%row;
+}
+
+return $deliver->(
+    {   'ok'    => FALSE,
+        'error' => 'rate-limit headers present but no utilization values',
+    }
+) if not @rows;
+
+## remaining rate-limit headers [ metadata only, never credential-shaped ] ##
+my %extra;
+foreach my $name ( sort keys $headers->%* ) {
+    next if $name !~ m{^\Q$prefix\E};
+    next if $name =~ m{unified-(5h|7d)-};
+    ( my $short = $name ) =~ s{^\Q$prefix\E}{};
+    $extra{$short} = $headers->{$name};
+}
+
+my $parsed = {
+    'provider' => qw| claude |,
+    'label'    => $provider->{'label'},
+    'rows'     => \@rows,
+    'extra'    => \%extra,
+    'time'     => $now,
+};
+
+$provider->{'last'}      = $parsed;
+$provider->{'last_time'} = $now;
+
+<[base.logs]>->(
+    2,            'usage [ claude ] : %d window%s parsed',
+    scalar @rows, @rows == 1 ? '' : 's'
+);
+
+return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
+
+#,,,.,,.,,,.,,..,,..,,...,,..,,,,,.,.,,..,..,,..,,...,...,...,,,,,,..,,.,,..,,
+#AMWBYQUD2SAWU3PYPGEUBWKB2NWSO333S5INAAO7CXKCO5T27JNUYZL2SYHSY3OEU5CZNMMOMAHHE
+#\\\|QMRP27RLZJQTZLCJB6WHSMBYA3ED63NSLRH4YWDRCM7L4CTWHME \ / AMOS7 \ YOURUM ::
+#\[7]ZF677EEFZFQ3WASJH275HE3XKY6DZ4MEV5BGDDHVHNPR36ZNNABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
