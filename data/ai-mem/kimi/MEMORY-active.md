@@ -101,6 +101,17 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## event-callback reload-safety takeover (Sept 2026, committed d89cb1f46)
+
+finished the claude session's survey after it hit weekly limit: named-handler
+conversions landed for httpd.handler.shm_write (new httpd.handler.shm_replay_sweep,
+registered — session had missed all 3 lists), coding.helper trigger_backend_self_test
+($safety_cb → coding.helper.self_test_safety_timer, data slot), and
+plugin.usage.kimi.refresh_token (6 named handlers, single-slot refresh_state).
+Verified live: usage zenka queries + radio stream over httpd shm relay.
+Rule: 'cb' coderefs passed to base.event.add_* capture stale code — use named
+'handler' + data slot; add new modules to cfg load-early AND base.list.subroutines.
+
 ## usage zenka async kimi refresh (Sept 2026, live-verified)
 
 plugin.usage.kimi.refresh_token rewritten non-blocking (Event io watcher +
@@ -286,8 +297,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,,,.,,,.,,,..,,,,,,.,.,,,,,,,,,,..,,,.,,,.,..,,...,...,...,..,,,..,..,,.,.,
-#X4KL26EAUMBXR3FYSOSXNCBLFDLE25FSLGEBX3M5APUCFLYTEWGS3TSG3UFXBBKVMACGA3MQQ2OYG
-#\\\|Z6I4ZX4O4PG3UFBP2ZYVQWU72RJFSYIMJWMAYH5TEY72ZK4PWT4 \ / AMOS7 \ YOURUM ::
-#\[7]X25XZZDD5F3M6SZ5ZRGSDZG7DF2QPAILKHQINVWDJIV3NAIE2SAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,.,,,.,,,,.,,..,,,.,,..,...,..,,...,...,..,,.,,,,..,,.,,...,
+#FBHCCRKPZYMI6O3OHW6EKPLLH5UT5PX2IMTVXMFPHJ4WJIM375IHKAWQA2SDJKFZXNBKMUNDKESMA
+#\\\|O5RTWP6W3JBRNCFZWOAOBTJPU7FSBX6XKVHNI32WAUE3Y5H2GDN \ / AMOS7 \ YOURUM ::
+#\[7]WV2G527GB7DLON6BBH5RJCSZBAADXPNKBG6R37THDFXZE2UUFYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
