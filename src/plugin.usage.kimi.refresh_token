@@ -8,6 +8,20 @@
 #         a last resort ] -- the kimi cli refreshes its own oauth token
 #         during startup, before it ever reaches a point that would cost a
 #         real inference token.
+# param = [ timeout ] [ { on_done => coderef } ]
+# note  = NON-BLOCKING since 2026-09-15 : the child side and the kill
+#         discipline are unchanged, but the parent's full-timeout wait runs
+#         as Event watchers [ io on the child's stdout + deadline timer +
+#         reap polling ] instead of the original blocking select loop --
+#         that loop stalled the whole usage zenka event loop for up to
+#         ~21 seconds, and a concurrent claude rate-limit probe [ 15s
+#         timeout ] fired its deadline the moment the loop resumed : first
+#         combined query after a kimi token expiry always killed the claude
+#         side while kimi itself recovered via the transparent retry.
+#         the response handler now passes its retry scheduling as on_done,
+#         so the retry only starts once the refresh actually finished.
+#         single slot : a second call while a refresh is still running
+#         returns FALSE without starting another child.
 # note  = the actual root cause, found the hard way 2026-09-15 : kimi shows a
 #         one-time "Trust this folder?" prompt for any working directory it
 #         hasn't seen before [ tracked in ~/.kimi-code/workspaces.json ], and
@@ -44,6 +58,20 @@ use POSIX ();
 ## the proven-working test used 15s, undisturbed for the full duration -- this
 ## is not a rarely-hit ceiling, it's the actual normal run length
 my $timeout = shift // 18;
+my $on_done = shift // {};
+
+my $provider = <usage.provider.kimi>;
+
+## single slot : never stack two refresh children on top of each other ##
+if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
+    <[base.logs]>->(
+        1,
+        '[usage.kimi.refresh_token] refresh already '
+            . 'in progress [ pid %d ] : not starting another',
+        $provider->{'refresh_state'}->{'pid'} // 0
+    );
+    return FALSE;
+}
 
 ## PATH lookup first [ base.file.which -> File::Which ] -- kept as the
 ## general-case-correct approach, but confirmed live 2026-09-15 that it will
@@ -59,7 +87,6 @@ my $kimi_bin = <[file.which]>->(qw| kimi |);
 my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 
 if ( not length $kimi_bin ) {
-    my $provider = <usage.provider.kimi>;
     if ( length $home_dir and length $provider->{'cli_rel_path'} ) {
         my $candidate = catfile( $home_dir, $provider->{'cli_rel_path'} );
         $kimi_bin = $candidate if -x $candidate;
@@ -153,63 +180,118 @@ close($stdin_read);
 close($out_write);
 close($err_write);
 
-my $buffer   = '';
-my $deadline = time() + $timeout;
-my $fd       = fileno($out_read);
-my $eof      = FALSE;
-my $error    = FALSE;
+## from here on the parent NEVER BLOCKS : the full-timeout wait that used ##
+## to be a select loop is now an io watcher on the child's stdout plus a  ##
+## deadline timer, and the sigterm grace period is a polling timer around ##
+## non-blocking waitpid -- the event loop keeps serving other providers [ ##
+## claude probes especially ] while kimi runs its startup cycle           ##
+my $state = {
+    'pid'      => $pid,
+    'fh'       => $out_read,
+    'err_fh'   => $err_read,
+    'buffer'   => '',
+    'deadline' => time() + $timeout,
+    'on_done'  => (
+        ref $on_done eq qw| HASH | and ref $on_done->{'cb'} eq qw| CODE |
+        )
+    ? $on_done->{'cb'}
+    : undef,
+    'io_w'       => undef,
+    'timer_w'    => undef,
+    'reap_timer' => undef,
+};
 
-## deliberately runs undisturbed for the full timeout -- no early "looks
-## quiet, must be done" cutoff. kimi's tui goes visually quiet well under a
-## second after its first render, but its own background oauth refresh keeps
-## running well after that point, confirmed live 2026-09-15
-while ( not $eof and not $error ) {
-    my $remaining = $deadline - time();
-    last if $remaining <= 0;
+$provider->{'refresh_state'} = $state;
 
-    my $rin = '';
-    vec( $rin, $fd, 1 ) = 1;
-    my $ready = select( my $rout = $rin, undef, undef, $remaining );
-    last if not $ready or $ready < 0;
+my $finish;
 
-    my $bytes = <[base.s_read]>->( $out_read, \$buffer, 65536 );
-    $eof   = TRUE if $bytes == 0;
-    $error = TRUE if $bytes == -1;
-}
+my $cleanup = sub {
+    my $how = shift // qw| done |;
+    foreach my $w ( $state->{'io_w'}, $state->{'timer_w'},
+        $state->{'reap_timer'} ) {
+        $w->cancel if defined $w;
+    }
+    close( $state->{'fh'} )
+        if defined $state->{'fh'} and defined fileno $state->{'fh'};
+    close( $state->{'err_fh'} )
+        if defined $state->{'err_fh'}
+        and defined fileno $state->{'err_fh'};
+    delete $provider->{'refresh_state'};
+    <[base.logs]>->(
+        2, '[usage.kimi.refresh_token] kimi startup cycle complete [ %s ]',
+        $how
+    );
+    $state->{'on_done'}->() if defined $state->{'on_done'};
+    return;
+};
 
-## the tui keeps redrawing rather than ever closing its own stdout, so hitting
-## the timeout here is the normal, expected outcome -- not a failure signal
-if ($eof) {
-    <[base.waitpid]>->( $pid, 0 );
-} else {
-    ## sigterm first, sigkill only if it doesn't respond -- see the module
-    ## note above for why this matters
+## sigterm first, sigkill only if it doesn't respond -- see the module note
+## above for why this matters. reaping is itself non-blocking : a 0.1s poll
+## timer around waitpid WNOHANG, sigkill after the soft grace period
+my $start_terminate = sub {
     kill( 'TERM', $pid );
 
-    my $reaped   = FALSE;
     my $soft_end = time() + 3;
-    while ( time() < $soft_end ) {
-        last if <[base.waitpid]>->($pid) == $pid and do { $reaped = TRUE };
-        select( undef, undef, undef, 0.1 );
+    $state->{'reap_timer'} = <[event.add_timer]>->(
+        {   'interval' => 0.1,
+            'cb'       => sub {
+                if ( <[base.waitpid]>->($pid) == $pid ) {
+                    $cleanup->(qw| terminated |);
+                } elsif ( time() >= $soft_end ) {
+                    kill( 'KILL', $pid );
+                    ## sigkill post-kill reap cannot block in practice [ a ##
+                    ## SIGKILL'd process is gone immediately ; the D-state ##
+                    ## corner is not worth a third watcher tier ]          ##
+                    <[base.waitpid]>->( $pid, 0 );
+                    $cleanup->(qw| killed |);
+                }
+            },
+        }
+    );
+};
+
+## child closed its own stdout : already gone or exiting on its own -- a plain
+## blocking reap is correct here precisely BECAUSE eof means the child is
+## already dead, waitpid returns instantly
+my $on_eof = sub {
+    <[base.waitpid]>->( $pid, 0 );
+    $cleanup->(qw| eof |);
+    return;
+};
+
+$finish = sub {
+    my $how = shift;
+    if    ( $how eq qw| eof | )   { $on_eof->() }
+    elsif ( $how eq qw| error | ) { $start_terminate->() }
+    else                          { $start_terminate->() }
+    return;
+};
+
+$state->{'io_w'} = <[event.add_io]>->(
+    {   'fd'   => fileno($out_read),
+        'poll' => qw| r |,
+        'cb'   => sub {
+            my $bytes
+                = <[base.s_read]>->( $out_read, \$state->{'buffer'}, 65536 );
+            if    ( $bytes == 0 )  { $finish->(qw| eof |) }
+            elsif ( $bytes == -1 ) { $finish->(qw| error |) }
+            return;
+        },
     }
+);
 
-    if ( not $reaped ) {
-        kill( 'KILL', $pid );
-        <[base.waitpid]>->( $pid, 0 );
+## the tui keeps redrawing rather than ever closing its own stdout, so this
+## deadline firing is the normal, expected outcome -- not a failure signal
+$state->{'timer_w'} = <[event.add_timer]>->(
+    {   'after' => $timeout,
+        'cb'    => sub { $finish->(qw| timeout |) },
     }
-}
-
-close($out_read);
-close($err_read);
-
-<[base.logs]>->(
-    2, '[usage.kimi.refresh_token] ' . 'kimi startup cycle complete'
 );
 
 return TRUE;
 
-#,,.,,..,,,.,,...,,.,,,,.,..,,...,,,.,,.,,.,,,.,.,...,...,,..,...,,..,,,.,..,,
-#EF7VEXEHP4JB3QIYXYEG3UE5UEICY3VDMGZF6TNMH2ZVGZYL2GOU37V5U3QJLCJO54CUL45PPNAEG
-#\\\|COQ6SVQUJ3LMURSRL2PF7WALNHNCOTLZMKVVYFE6T4RYKV6CZS5 \ / AMOS7 \ YOURUM ::
-#\[7]TZDKPEZFQA3CH37UVAPZMZTALM5WKBEY27WB3T3AP2CNUHB5BCDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,.,,,,.,,,,,.,.,.,.,,..,,,.,.,.,...,...,.,,,,,.,,,.,.,,,..,,
+#44VLWETP5VVEGSFY64HQOV4DRBMCPTRADL4QXDVGQ2AWXNIVBPSDQF7A57FNNSQ5GZASFTDTCKDQU
+#\\\|WATDUHCDJOBJRIMZ7S6GZXKEI4TYOZNNCTXOIAKO4COQBC4I6EM \ / AMOS7 \ YOURUM ::
+#\[7]3EDVH6FSEK6B5WHKHJ65SHCS4ICAGJAYUCU4TYAQOAQPXSWDM6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

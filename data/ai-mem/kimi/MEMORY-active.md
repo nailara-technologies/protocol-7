@@ -101,6 +101,14 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## base.ntime x4200 + cube cross-zenka access (Sept 2026)
+
+ntime = (unix-1023228000)*4200 — never use for real-second TTL math, use
+`base.time`. Cross-zenka commands need `usage.status`-style grants in
+cfg/zenki/cube/access.zenki per requester user; `p7c reload config` applies
+live without restarting root-owned net.
+see [reference-ntime-x4200-and-cube-cross-zenka-access.md](reference-ntime-x4200-and-cube-cross-zenka-access.md)
+
 ## nshell split-mode streaming garble (Sept 2026, FIXED + live-verified)
 
 coding-session streaming prints chunks at garbled positions: content_print's
@@ -266,8 +274,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,..,,...,.,,,,,.,...,...,.,.,...,,..,,..,..,,...,...,,..,..,,..,,.,,,,..,
-#B64JEDBPCTMOKSOMRMEXFFPP2ME7VTFIL5MVBTP2IREESUJ7GGKIQOEJFPRBNSYZOR52WNDJOMEQI
-#\\\|3MR4YUVFBEKEX7VV57ZPCRMKFILB2WOUO3ODEWYM3HWKUMNW675 \ / AMOS7 \ YOURUM ::
-#\[7]IPLYP7U3HBZOEGSGMJUNPR2VESJNM2P4VKE7KSSFEDYTDRODNMCI 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,..,,..,,,.,,.,,...,..,,..,,..,,...,...,...,,..,.,,,,,,,,..,
+#TYWAI7E3NQO5DU3H3KEZTP6HVWEA7CSDOXXJFCHUUR6LUUYWA5AK6BZQQVSMQ6TP2JW2MDGRPK6ES
+#\\\|ZKKKMLUYDE7A5CHK3K3CUMLXWVABCZTTJZIL2CJMJ7NYFUP4IV2 \ / AMOS7 \ YOURUM ::
+#\[7]2BC2C5W2VABHSX6YJ3DLEJH2Y32UWWUHUGLJPA6S4Q3ETFBV4IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
