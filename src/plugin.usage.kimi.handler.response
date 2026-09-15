@@ -161,11 +161,33 @@ my $window_label = sub {
     return "$duration $unit";
 };
 
+## window descriptor to a short code [ e.g. '5h' '7d' ], same style as    ##
+## claude's own window keys -- lets compact\pretty output stay consistent ##
+## across providers for the same real time range                          ##
+my $window_code = sub {
+    my $window = shift;
+    return undef if ref $window ne qw| HASH |;
+    my $duration = $window->{'duration'} // return undef;
+    my $unit     = lc( $window->{'timeUnit'} // '' );
+    $unit =~ s{^time_unit_}{};
+    if ( $unit eq qw| minute | and $duration >= 60 and $duration % 60 == 0 ) {
+        $duration /= 60;
+        $unit = qw| hour |;
+    }
+    my %suffix = (qw| minute m hour h day d week w month mo year y |);
+    return $duration . ( $suffix{$unit} // substr( $unit, 0, 1 ) );
+};
+
 my @rows;
 
-##  weekly summary row  ##
-push @rows, $make_row->( 'plan usage', $data->{'usage'} )
-    if ref $data->{'usage'} eq qw| HASH |;
+## weekly summary row : the api gives no window metadata for this aggregate ##
+## field, but it is kimi's known 7-day plan cycle -- the same real time     ##
+## range as claude's '7d' window                                            ##
+if ( ref $data->{'usage'} eq qw| HASH | ) {
+    my $row = $make_row->( 'plan usage', $data->{'usage'} );
+    $row->{'window'} = qw| 7d |;
+    push @rows, $row;
+}
 
 ##  per-window rows  ##
 foreach my $limit_row ( @{ $data->{'limits'} // [] } ) {
@@ -174,7 +196,10 @@ foreach my $limit_row ( @{ $data->{'limits'} // [] } ) {
     $label .= ' ' if length $label;
     $label .= $window_label->( $limit_row->{'window'} );
     $label = qw| window | if not length $label;
-    push @rows, $make_row->( $label, $limit_row->{'detail'} );
+    my $row  = $make_row->( $label, $limit_row->{'detail'} );
+    my $code = $window_code->( $limit_row->{'window'} );
+    $row->{'window'} = $code if defined $code;
+    push @rows, $row;
 }
 
 ## alternate compact schema [ older \ newer payload variants ] -- only used ##
@@ -239,8 +264,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,.,,.,.,,,.,,,,,.,,,,,,,,..,.,,,,,.,,.,,...,..,,...,...,.,.,...,,.,,.,,,,,,,
-#PEIPCMJOG4N3F2MRGVFHIXWKKHPZ5AA3MLXEWFZNFB5ZD7TJUI7MAAPHCALWSWBNKH7MRZ4YMLYUQ
-#\\\|VEIAHOU6MUSB4LPS7ITDFE6ETAUXW3OT2RPW7W77YMQITOCBDFX \ / AMOS7 \ YOURUM ::
-#\[7]XTMXYXQNAC3DVEWGHSJRARRUG7CV5SXHDOFLMNXAZJ4DTWF45KBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,,..,..,,,.,,,,,,.,,,,..,.,,,..,,...,...,,,,,.,.,.,,,..,,...,
+#63GBIGOVYXQ2VBGTXJEMDYSIU5NSRXL2EBSYM7R3IXCNINKXFJ7T6F7A6V5TJN6UAHTCI4Q65S63S
+#\\\|GBYMKNQAEN4MRQ5P5MWOVXL6LWDYOYMI42WQYTKREACSEWPFHHG \ / AMOS7 \ YOURUM ::
+#\[7]4NK7Y2ZZOQWXRJTMURH326DW2NDNM2GQY7H3OYAORVIWLW4VSSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

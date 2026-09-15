@@ -2,14 +2,19 @@
 
 # name  = usage.cmd.status
 # descr = usage numbers of every loaded provider in one reply
-# param = [ compact ] [ <provider> .. ]
+# param = [ compact | details ] [ <provider> .. ]
 
 my $args_str = $call->{'args'} // '';
 
-my $format = $args_str =~ m{\bcompact\b}i ? qw| compact | : qw| box |;
+my $format
+    = $args_str =~ m{\bcompact\b}i ? qw| compact |
+    : $args_str =~ m{\bdetails\b}i ? qw| box |
+    :                                qw| pretty |;
 
 ##  provider names may be named explicitly, otherwise all loaded ones  ##
-my @named = grep { $ARG ne qw| compact | and $ARG ne qw| box | }
+my @named = grep {
+    $ARG ne qw| compact | and $ARG ne qw| box | and $ARG ne qw| details |
+    }
     split m{ +}, $args_str;
 
 my @providers = @named ? @named : <[usage.provider_list]>;
@@ -25,8 +30,8 @@ return $query if ref $query eq qw| HASH |;
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,.,,.,,,,..,,,.,.,,,.,.,,.,,,.,,.,.,,..,..,,...,...,.,.,...,...,,,.,.,,,
-#KZTZS437RHQN6JZYUBZ4SPEXDBPFASK3K2RFNUG663QJNDSAWURJX53X3REEBUJNJIO7SHVRGSXFQ
-#\\\|NCGT423NT3D5UHCLSYVNYVXENHSGKCOFZTC3JFUUJJTFPWVL74K \ / AMOS7 \ YOURUM ::
-#\[7]5HHGZVOHXSK6BN2UW4L5FWOLZDYC6CDI45Y2IXPP45WOBRDC22CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,,,,,.,,,..,,,..,,..,..,,..,,..,,...,...,...,.,,,.,,,,.,,,..,
+#DVINFU3ZEKYTJ62KHCO647WD6PPKURBQK5OLQJ4ZSGODW6HDKS6IBCI3FCSHIDMLCU4O6AGIZ5VFO
+#\\\|OKEALTVVZSNQMMHR7FJ4YKGMJYN2REJARVKRJB6U4YCMJTCGCTO \ / AMOS7 \ YOURUM ::
+#\[7]KFHYVF6PCEBUTJBJ3FH65UGZJXE7SN3RPLJJ4YFXCDSAWUGVJOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
