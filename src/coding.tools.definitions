@@ -171,6 +171,31 @@ if ( exists $code{'context.git.recent_changes'} ) {
         };
 }
 
+## check_account_usage : account quota and rate-limit numbers ##
+if ( exists $code{'coding.tools.handler.check_account_usage'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'check_account_usage',
+            'description' => 'check claude/kimi account usage and rate-limit '
+                . 'numbers [ cached, refreshes on demand '
+                . 'from the usage zenka ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'provider' => {
+                        'type'        => 'string',
+                        'description' => 'provider to check',
+                        'enum'        => [ 'claude', 'kimi' ]
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
 ## git_diff_staged : show staged changes ##
 push @tools,
     {
@@ -2125,8 +2150,8 @@ if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
 
 return \@tools;
 
-#,,,,,,.,,.,,,,,.,..,,..,,,,,,,.,,..,,,,.,...,..,,...,...,..,,.,.,.,.,.,,,.,.,
-#MY74KEAZVYNLERCCNRNFQWM4CD5LPGEKSRIIO6WQOQPFBHK2PMWJKG4C2SM6AJ3GJOGL4D34G2Z7M
-#\\\|YOLIAO3RXLMMHKMRVKAXY5APCMSVPOW6ASF6SBDNM4PONCOJJ5X \ / AMOS7 \ YOURUM ::
-#\[7]UX5ZTLBF2AA6NW7CZDA73BJLLU5EIGZFWZSLIZNJXQU64NTHHGAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,..,,.,,,,,,,.,,,,,,,.,.,,,,,..,,...,...,.,,,.,.,,,.,..,,..,,
+#F2QGRJTWY6MDO6HZ677GHHIYXNMPZHBBVHWE342EXXENPYTLSDPXOSKN4WIMPL5SXYXHYZIX4V6CQ
+#\\\|Z74AP4BC4WHDCJ35EMJCRDIPIL4VGBXTRWWCKIGWNUNYWGHNH37 \ / AMOS7 \ YOURUM ::
+#\[7]AIWEEYP2QIKKOWSECBKT6ZHXATWMPYXAKSAYEDJVAEQ424AWECCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
