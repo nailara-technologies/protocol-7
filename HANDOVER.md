@@ -5,6 +5,27 @@ embedding," "fasttext," "LoRA," or "control vector" for the coding zenka.**
 These names have been getting conflated across sessions/compactions, and it
 has repeatedly cost real momentum — see "the mistake to not repeat" below.
 
+## UPDATE, 2026-09-15 even later still still — tenth pass STARTED, NOT
+## finished: an HF-vs-llama.cpp base-model activation comparison
+## (embedding + layer0/layer3 hidden states, position 0, "The quick
+## brown fox"). Inconclusive at the sample size reached (8 of 4096 dims,
+## one position, two layers) -- needs full-vector norm/cosine comparison
+## across more layers to be decisive, not done. REAL MISTAKE along the
+## way, now fixed and documented: the first attempt loaded the HF side
+## as fp32 on CPU (~36GB) on this 15GB-RAM host, and was interrupted
+## mid-load by a genuine WSL shutdown loop that forced a full host
+## restart -- likely memory pressure per the user, compounded by
+## Firefox. No data lost (git was clean/pushed through the ninth pass
+## already). Fixed to match every other HF probe in this thread (4-bit
+## on GPU). A separate follow-up task was filed from the same incident:
+## `data/tasks/powershell-host-memory-commands.md` (Windows-host-side
+## memory visibility gap -- system zenka's mem-used is WSL/Linux-side
+## only). Read the "tenth pass" section of `data/tasks/coding-lora-
+## p7-idioms.md` before resuming this specific comparison -- and ALWAYS
+## use the 4-bit-on-GPU HF loading pattern (`data/control-vectors/
+## hf_activation_probe.py` or `lora_invoke_probe.py`) on this host,
+## never fp32/CPU for a model this size.
+
 ## UPDATE, 2026-09-15 even later still — ninth pass done, live-only, no
 ## retrain: tested the eighth pass's own proposed next diagnostic
 ## (Q4_K_M quantization noise diluting the delta) by re-running the same
