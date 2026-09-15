@@ -2,11 +2,14 @@
 
 # name  = usage.cmd.kimi
 # descr = current kimi plan usage [ parsed numbers only ]
-# param = [ compact ]
+# param = [ compact | details ]
 
 my $args_str = $call->{'args'} // '';
 
-my $format = $args_str =~ m{\bcompact\b}i ? qw| compact | : qw| box |;
+my $format
+    = $args_str =~ m{\bcompact\b}i ? qw| compact |
+    : $args_str =~ m{\bdetails\b}i ? qw| box |
+    :                                qw| pretty |;
 
 my $query = <[usage.query]>->( [qw| kimi |], $call->{'reply_id'}, $format );
 
@@ -16,8 +19,8 @@ return $query if ref $query eq qw| HASH |;
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,.,,.,,,,.,,,..,..,,,.,,,.,,...,,,,,,,,,..,,...,...,,..,..,,.,,,,.,,...,
-#6KVGZXB45SYHGQPCWAL3QLHFYM34IK6BT3C3IUSGZYQLKAFJQ37AEKOGDEQI7OFGYMRPJ2UZU62OI
-#\\\|7Y4JQUAKMANFTFVCQACDDCN3Q6KD2CIEQQRQ765EN7UVZ7YBG3D \ / AMOS7 \ YOURUM ::
-#\[7]YEW343NB7XFUIWP2KKRUV3NAYKLZHHNSC3CGUOG735RHOEPN6KBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,,,,,...,,.,,,,.,,..,,,.,,..,..,,...,...,,,.,,..,,,,,..,,...,
+#VXGJYK2RRVFCA7KPPPFGRUPKI2MNNOOB6NJMOIUHLR3D6HAMCE44RPSO4YMORGOM5LABI377UIZ3E
+#\\\|X2RUOCQLDBPAEGNRZ5LK55SVYG7HYIJ3ISK3EI25PUIEYXUTVX6 \ / AMOS7 \ YOURUM ::
+#\[7]VS33TCAS7JYD4ORLSLO6NBBFR3NWQE55E24E4YCOEKGK3PTLVGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

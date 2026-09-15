@@ -2,11 +2,14 @@
 
 # name  = usage.cmd.claude
 # descr = claude account rate-limit usage [ parsed numbers ]
-# param = [ compact ]
+# param = [ compact | details ]
 
 my $args_str = $call->{'args'} // '';
 
-my $format = $args_str =~ m{\bcompact\b}i ? qw| compact | : qw| box |;
+my $format
+    = $args_str =~ m{\bcompact\b}i ? qw| compact |
+    : $args_str =~ m{\bdetails\b}i ? qw| box |
+    :                                qw| pretty |;
 
 my $query = <[usage.query]>->( [qw| claude |], $call->{'reply_id'}, $format );
 
@@ -16,8 +19,8 @@ return $query if ref $query eq qw| HASH |;
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,.,,,.,,,.,...,,..,,,.,.,.,.,.,...,..,,..,,...,...,.,.,,..,,..,,,,,..,,
-#TMF5PEQ3NQL7XURCNS4ROKKBYWOH6V3V3H3YBK5A2BT526PY7YOKALKKYLFEJ6NC26KY76IWRH7ZE
-#\\\|EXJU5FPWDJIDDLVYVR3VBWHGP2U4YBBEIR5KQMCIZ4OZ5NWKZUZ \ / AMOS7 \ YOURUM ::
-#\[7]IBBIGCOHGECDIWGN6XAEDN4UCHO6M7KFZ3E3XAOA4A6JQV7ZQWDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,.,.,,.,,,..,.,,,,.,,,.,,,..,..,,...,...,,,.,,.,,...,,,.,,..,
+#HUY5XQLOCYFOOM5OSYBIB6X4AAOU42MW5ZDWQO2EKALXBOUU3XHTGJLKBXFEDFJ3UXYLD7Z4PWRD4
+#\\\|4ZRVPFPKVYL2DQQGZFDRTNNASENHDE5WJF4RFJZK75IUF4FOYML \ / AMOS7 \ YOURUM ::
+#\[7]2J5NWJWDFHKOJBWQJSF5WD6654T3B3NSTH4MPHIBMNK7N52DRSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

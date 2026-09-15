@@ -9,7 +9,9 @@ my $provider = $params->{'provider'} // '';
 ## only ever pass through provider names the usage zenka knows ##
 $provider = '' unless $provider =~ m{^(claude|kimi)$};
 
-my $args_str = length($provider) ? "compact $provider" : qw| compact |;
+## no format keyword -- the default 'pretty' format is the one meant for ##
+## the local model to read, same as a human would see via usage.claude   ##
+my $args_str = length($provider) ? $provider : '';
 
 my $cmd_count = <[protocol-7.route-send]>->(
     {   'command'   => qw| usage.status |,
@@ -26,8 +28,8 @@ my $cmd_count = <[protocol-7.route-send]>->(
 
 return $cmd_count;
 
-#,,,,,,,.,.,,,,,,,.,,,.,,,.,,,...,..,,,..,,,,,..,,...,.,,,..,,,.,,,..,,..,...,
-#2K62QMVK6RVFC5G2WBNPLGRYQHY3WBJ3LHRPZ4CZQHOXWGW47JXUZI2PAGYDAJDT642LB43PBCRWW
-#\\\|545QPSCW32M7FC4ST5XPT53NJ4VRUDPMTGMJH63WHNPV25V7CSA \ / AMOS7 \ YOURUM ::
-#\[7]IQJXSB76HAPJICWX4K5OLL3AJWGWSDQU6BHE6KFGGKA75VN25GDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,,,,,.,.,.,.,,,,,.,.,,,,,..,,..,,...,..,,,..,..,,,,.,,,.,.,.,
+#IPG5YVQZHMOBG2OTWDB5U5X4JNAPHJVXT4XRDH2YOY76OKNWAHTPQ6YI5Y3YI5JEY722VWIE73F4G
+#\\\|5QU3TTOCQ4RM6GTOVAHZ3PTVMR4KRD6KSSH3O75L76H3ODAF6AZ \ / AMOS7 \ YOURUM ::
+#\[7]K3BWEOSMLGKQ7MAL3NK4ABK4X5TOAEYOZSSZG2G333AP3VUR4KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

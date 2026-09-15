@@ -48,6 +48,66 @@ if ( $format eq qw| compact | ) {
     return join "\n", @lines;
 }
 
+if ( $format eq qw| pretty | ) {
+
+    ## human-facing default : one small block per provider, real row labels ##
+    ## as the api already gave them [ 'plan usage', '5 hour', ..  '5h',     ##
+    ## '7d' ] rather than a fixed/guessed set of names -- kimi's windows in ##
+    ## particular are not a fixed pair, so nothing here assumes which ones  ##
+    ## will show up or in what order                                        ##
+    ##  clean leading newline, matches the other formats ##
+    push @lines, '';
+    my $block_sep = FALSE;    ##  set once a provider block has printed  ##
+    foreach my $name ( $request->{'order'}->@* ) {
+
+        my $entry  = $results->{$name}  // {};
+        my $parsed = $entry->{'result'} // {};
+
+        ##  one blank line between blocks  ##
+        push @lines, '' if $block_sep;
+        $block_sep = TRUE;
+
+        push @lines, sprintf ' .: %s :.', $name;
+
+        if ( not $entry->{'ok'} ) {
+            push @lines, ' :';
+            push @lines, sprintf ' : %s', $entry->{'error'} // 'query failed';
+            push @lines, ' :.';
+            next;
+        }
+
+        push @lines, ' :';
+
+        my $row_sep = FALSE;    ##  set once a row has printed  ##
+
+        foreach my $row ( @{ $parsed->{'rows'} // [] } ) {
+
+            push @lines, ' :' if $row_sep;
+            $row_sep = TRUE;
+
+            my $key = $row->{'window'} // $row->{'label'} // qw| usage |;
+
+            my $duration
+                = defined $row->{'resets_in'}
+                ? <[base.parser.duration]>->(
+                <[base.time]>->() - $row->{'resets_in'}, 2
+                )
+                : ( $row->{'reset_time'} // '?' );
+
+            push @lines, sprintf ' : %s : %5s : %s', $key,
+                defined $row->{'used_pct'}
+                ? sprintf( '%.1f', $row->{'used_pct'} )
+                : '?',
+                $duration;
+        }
+
+        push @lines, ' :';
+        push @lines, ' :.';
+    }
+
+    return join "\n", @lines;
+}
+
 ##  box format [ same visual shape as bin/dev/usage-external ]  ##
 
 foreach my $name ( $request->{'order'}->@* ) {
@@ -140,8 +200,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 
 return join "\n", @lines;
 
-#,,..,,..,.,.,,.,,,,.,,,.,..,,,.,,...,,,,,.,.,..,,...,...,..,,..,,...,,.,,,,.,
-#IC24DBIR2C7CNBIHZXEF6TSJLYVQHEPZWO7YTYC275VTCAI6D63URWN4C3VCCXMOOR2XECHR5HBDU
-#\\\|6VYSH4F363Q5FB4BSN4535L4PMY74LN2OFLVB3KZ56LUW7TAZN3 \ / AMOS7 \ YOURUM ::
-#\[7]ZOK6TOGSEXZQJLGX45PMIGFNPLANILIG6LLF3F4PJWDCDZCYKKDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,...,,.,,.,.,,..,...,,..,.,.,..,,...,...,...,...,..,,...,..,,
+#OKYOA5ELJYW6QZFVRH3JUX3E4YLYGV7UXS4Z7VGJWHN5QPDOM3TDPR7KV3F6NTKNWPLWV5NIMNXEA
+#\\\|YRT3R5I3UBQ43IDNK2PTSODM4M3OLAHXEAV36APOFU7GGA5FQLW \ / AMOS7 \ YOURUM ::
+#\[7]JAQBFY4PKZO7KASE3DMGL4CTHYTAJCIELLOHZJ27R4OTI25RAYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

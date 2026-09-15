@@ -16,10 +16,23 @@ my $text
 
 my %lines;
 if ( $mode eq qw| SIZE | ) {
+    ## the pretty format's own block header ' .: <name> :.' is the only ##
+    ## machine-readable anchor here -- if usage.format.report's pretty  ##
+    ## header shape ever changes, this bucketing breaks silently        ##
+    my $current;
     foreach my $line ( split m|\n|, $text ) {
-        next unless $line =~ m|^(\w+)\s+(.+)$|;
-        my $bucket = $lines{$1} //= [];
-        push $bucket->@*, $line;
+        if ( $line =~ m{^\s*\.:\s*(\S+)\s*:\.\s*$} ) {
+            $current = lc $1;
+            $lines{$current} = [$line];
+            next;
+        }
+        next unless defined $current;
+        push $lines{$current}->@*, $line;
+    }
+    ## drop a trailing inter-block blank line picked up before the next ##
+    ## header was seen                                                  ##
+    foreach my $bucket ( values %lines ) {
+        pop $bucket->@* while $bucket->@* and $bucket->[-1] eq '';
     }
 } elsif ( length $text ) {
     foreach my $part ( split m|;\s*|, $text ) {
@@ -61,8 +74,8 @@ if ($count) {
 
 return TRUE;
 
-#,,,.,,,.,..,,,,,,,.,,.,,,.,,,..,,.,,,,,,,...,..,,...,...,...,...,...,,,,,.,,,
-#6PUQDKWCFT52JNAV4OMBNSCQZJ2UEJLE3WUWVC5TTAKWMKL7V7ODB3CTX5KVBHKPRU27ZR6KFX63Q
-#\\\|AGTUEOKYOZTNH4WYS732YCWIGWYMSMVXWDLJN6O7DHVNUNT64QB \ / AMOS7 \ YOURUM ::
-#\[7]ZOXIST5M7KOBYT322WBV4AVJUODYEKZGK4AAKTAJJH6KP4MKMMCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,,,,..,,...,,.,,,,.,.,,,,,,,..,,...,...,...,.,,,..,,,,,,.,.,
+#J2WWGVWNDMFPB7WFIDQMVQWHWEWIGUN5GBUH3RXWWXXGHGLX6UCALBQMMP7CNBRTBL73EJRMXBCEU
+#\\\|PGMTLBXEJHPDXF6O62BHD5EQZK7CJIRY45C3PB26REYKAIS5FQM \ / AMOS7 \ YOURUM ::
+#\[7]BRHNEXS562ZZFRLJW26DEHW4PY6XXHB4AULQPXX7H5Q3SDCD2IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

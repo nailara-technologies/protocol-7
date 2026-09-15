@@ -52,12 +52,13 @@ return 'no cached account usage data and the usage zenka did not '
     . 'accept the refresh request [ offline? ] -- try again shortly'
     if not @providers;
 
-my @lines;
+my @blocks;
 foreach my $name (@providers) {
     if ( ref $cache->{$name} eq qw| ARRAY | and $cache->{$name}->@* ) {
-        push @lines, $cache->{$name}->@*;
+        push @blocks, join "\n", $cache->{$name}->@*;
     } else {
-        push @lines, sprintf '%s no-cached-data', $name;
+        push @blocks, sprintf " .: %s :.\n :\n : no cached data yet\n :.",
+            $name;
     }
 }
 
@@ -72,12 +73,11 @@ $state .= ' , refresh in progress'
     and $pending;
 
 my $output = sprintf "## account usage [ %s ] ##\n", $state;
-$output .= "columns : <provider> <window> <used %> <resets in seconds>\n";
-$output .= join "\n", @lines;
+$output .= join "\n\n", @blocks;
 return $output;
 
-#,,..,,.,,,..,.,.,,..,..,,,,.,..,,...,,,.,..,,..,,...,...,..,,,,,,...,,..,,,,,
-#JWXRB2DAQEY7IXQXEVMEIMKFQRQJSXMQHTC22HXZKKWHPT4RN3JBOQWMBVSHWLCV53HMQKPRSMXGY
-#\\\|T4647YCLO47XGFQVIUVZLMUIHEIJTMASSXG7VUJPGP2WCFWKSSM \ / AMOS7 \ YOURUM ::
-#\[7]FDI2NYVNR66JIX5FK255VHCWRT6N6EE5SLFGPQZ4JVLWI55RKIBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,,,.,,,.,.,.,,,...,.,.,,,,,,,.,..,,...,...,,..,,..,,,.,.,,,,.,,
+#HO4S2L7LDUKMYQX6HFRX44LYNO3GZN5EV63XIOAOI3TL2RSG7AHZFDO5B53MQBQXW6FO5QXOQY7JY
+#\\\|PBGAJXCVIVXOAWDP6MQXLQL25NLN4SQF7PLUK56IFWXN453U6BD \ / AMOS7 \ YOURUM ::
+#\[7]D5Z5SPFIUQXJYMU2KU3CUU3RWGGZM55JOWIXSNRS3FCSJDBB4EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
