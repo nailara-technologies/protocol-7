@@ -1,46 +1,64 @@
 ---
 name: reload-success-doesnt-guarantee-new-file-loaded
-description: the 2026-08-04 fix did NOT stay fixed -- recurred 2026-09-15/16 on the usage and coding zenki across many edit/reload cycles; default to v7-zenki.restart <zenka> for verification, don't trust reload
+description: mostly a non-issue -- 'reload source' explicitly excludes plugin.* modules by design (base.cmd.reload, grep $ARG !~ m{^plugin\.}); use 'reload plugins' or 'reload all'/bare 'reload' for those, always zenka-prefixed. The 2026-08-04 .cmd.-whitelist-gate bug below is a separate, narrower historical issue.
 metadata:
   type: feedback
 ---
 
-## RECURRED 2026-09-15/16, `usage` and `coding` zenki
+## CORRECTED 2026-09-16: the 2026-09-15/16 "recurrence" was not a bug
 
-During a multi-round `usage.format.report` redesign session, `p7c reload
-source` (bare, no zenka prefix) AND `p7c usage.reload source` (explicitly
-prefixed) both repeatedly reported success while live output kept showing
-the pre-edit format -- across at least three separate edit rounds (the new
-`pretty` format branch, the row-separator fix, the leading-blank-line fix).
-Every single time, `p7c v7-zenki.restart usage` (or `restart coding` for
-the coding-zenka side of the same work) was what actually made the edit
-visible. Confirmed via literal before/after diffs of live command output,
-not just a "reload said success" assumption -- e.g. a row-separator line
-that provably was not there after `reload source`, then provably was
-there after `v7-zenki.restart usage`, no other variable changed.
+Root cause found in `src/base.cmd.reload` itself (confirmed by reading the
+source, not just symptom-testing): the `source` keyword's reload set is
+built with an explicit namespace exclusion --
 
-This directly contradicts the "resolved, reload can be trusted again"
-update below from three weeks earlier. Either the 2026-08-04 fix was
-incomplete/regressed, or it doesn't cover whatever load path `usage.cmd.*`
-/ `usage.format.report` / `plugin.usage.*.handler.response` /
-`coding.handler.*` / `coding.tools.handler.*` go through. Root cause not
-re-investigated this session -- the restart workaround was cheap enough
-(these are on-demand zenki, a restart just re-spawns them) that it wasn't
-worth chasing further, but note: restarting the `usage` zenka clears its
-in-flight state (e.g. `refresh_state` single-slot guards) and the
-`coding` zenka's cached `<coding.account_usage>`, so a restart-based
-verification loop will show a transient "no cached data yet" / cold-start
-result on the very next call -- expected, not a new bug.
+```perl
+my @previously_loaded
+    = grep { $ARG !~ m{^plugin\.} } <[base.clear_p7_mods]>;
+my @configured_modules = grep { length and $ARG !~ m{^plugin\.} }
+    split( m| +|, <modules.load> // '' );
+```
 
-**Updated guidance**: revert to defaulting every live-fix verification to
-`v7-zenki.restart <zenka>`, not `<zenka>.reload` / `reload source` --
-across at least two zenki this session, reload's "success" was not a
-reliable signal that new code was actually running. Don't re-trust reload
-again without a fresh, deliberate re-test.
+`reload source` (and therefore the `source` half of bare `reload`/`reload
+all`... no wait, `all` DOES also run the separate `plugins` branch, see
+below) never touches anything under the `plugin.` namespace, by design.
+There is a dedicated `plugins` keyword (`base.cmd.reload`, ~line 138) that
+calls `base.reload_plugins` for exactly that set. `reload all` and bare
+`reload` (no keyword, defaults to `all`) run BOTH the `source` and
+`plugins` branches, so either of those picks up a `plugin.*` edit too --
+only the specific `source` keyword alone excludes it.
+
+**During the 2026-09-15/16 usage-zenka session**, the files that seemed to
+need a restart were `plugin.usage.kimi.handler.response` and
+`plugin.usage.claude.handler.response` -- both genuinely `plugin.*`
+namespaced, so `reload source` structurally could never have picked them
+up, restart or no restart wasn't really the deciding factor there. The
+`usage.cmd.*` / `usage.format.report` files are NOT `plugin.*` namespaced
+and should reload fine via a correctly zenka-prefixed `reload source` --
+one of the failures on those was very likely a bare, unprefixed `p7c
+reload source` not even targeting the `usage` zenka in the first place
+(never isolated which zenka a bare unprefixed reload actually hits --
+treat as a separate open question, not resolved either way).
+
+**Corrected guidance**: don't default to `v7-zenki.restart <zenka>` as a
+blanket "reload can't be trusted" fallback -- that was an overcorrection
+from incomplete diagnosis (found a workaround, didn't find the cause).
+Instead:
+- always prefix reload commands with the target zenka (`<zenka>.reload
+  <keyword>`), never a bare `reload`/`p7c reload ...` when a specific
+  zenka is intended
+- for anything under the `plugin.*` namespace, use `<zenka>.reload
+  plugins` or `<zenka>.reload all` -- `<zenka>.reload source` will never
+  pick it up, that's not a bug to work around, it's how the keyword is
+  defined
+- a full `v7-zenki.restart` is still the right move for the genuine,
+  narrower 2026-08-04 `.cmd.`-whitelist-gate class of bug below, or for
+  anything registered as a raw `Event->io`/`Event->var` watcher callback
+  (see [[event-watcher-callback-reload-needs-restart]]) -- but reach for
+  the matching reload keyword first, restart is not the default anymore
 
 ---
 
-## original 2026-08-04 entry [ superseded by the recurrence above ]
+## original 2026-08-04 entry [ separate, narrower issue -- .cmd. modules only ]
 
 ## RESOLVED 2026-08-04
 
@@ -125,8 +143,8 @@ lands: **default every live-fix dispatch's verification instructions to
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
-#,,,,,,,,,,.,,,.,,.,,,,,,,,,.,..,,..,,..,,,..,...,...,...,,..,.,,,,.,,,.,,..,,
-#E5RW3L5JNUGPWTE4JNQAHFYHR4HSIO5HVTTJHIZN47OZ5GEAEK5DM77WHZ6JHIEG3WF67ZBDWAIV4
-#\\\|JAXLRKCCKOETM6FLICDTNDP42VSYKS4Y22DHVCTXAW5RFBPMCR2 \ / AMOS7 \ YOURUM ::
-#\[7]5AOL62TVG6QPO7UUHN4NJE2HVLNMHCBHU55X4H6JCYSWEZWY7UAI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,,,.,,.,,.,,,,..,,..,.,.,,.,,...,...,...,..,,,..,..,,.,.,...,
+#VMZYZFEIWJODJSINYMO4CJVM5Z54R7AMXVYDAXI3G3F7K4W2QMVTHHWLX3QURCDIQRNF36RCWETG2
+#\\\|E5Z67VT3HXMBAQUWCSSTSZLDAHTQ7IPM5F7QLOO4U25QCXOV5OQ \ / AMOS7 \ YOURUM ::
+#\[7]MBYIAMQB2PWLX7WHNTNU4S5XJFUHWVW2AJCOOUF6WELQL4UX4ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
