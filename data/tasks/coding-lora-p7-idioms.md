@@ -954,6 +954,169 @@ down, and `coding.switch-model` kept working flawlessly for every
 respawn afterward (including the deliberate scale-sweep and dense-only-
 adapter respawns), no zenka restart ever needed across the whole pass.
 
+## sixth pass [ qwen35 GGUF self-conversion + three-way numerical
+## verification, 2026-09-15 -- ROOT CAUSE FOUND, and it is NOT the base-
+## checkpoint mismatch the fifth pass named as its prime suspect: the
+## local petruhonk checkout had a CORRUPT shard 4 [ layers 25.5..31 +
+## final norm unread-but-wrong ] sitting on disk since the 2026-09-10
+## fetch, BEFORE any training ran. production's base weights were right
+## all along; the four trained adapters are the poisoned artifacts.
+## this is a RETRACTION of the fifth pass's stated suspect [ its
+## measured symptoms were and remain correct observations ]. not an
+## invoke attempt -- no invoke numbers in this pass ]
+
+task `data/tasks/coding-lora-p7-idioms-checkpoint-quantize.md` scoped:
+self-quantize the petruhonk checkpoint into a working qwen35 GGUF [ the
+fork's gguf-py has no qwen35 registration, so the vendored converter
+refuses it ], serve it, re-validate the existing adapters -- on the
+theory [ fifth pass's prime suspect ] that petruhonk is a different
+fine-tune than the rohit267 weights production serves. the conversion
++ verification work ran; the serve-and-revalidate step was then taken
+over by the task author directly [ see crash note below ]. what the
+numerical work found changed the entire diagnosis.
+
+**the converter [ works, verified exact ]**: `data/control-vectors/
+lora/qwen35_hf_to_gguf.py` -- streaming, memory-bounded full-model HF->
+GGUF writer for this architecture. every transform was established
+NUMERICALLY against ge525's pre-existing Q4_K_M of the same checkpoint
+and against the fork's graph source, not guessed: zero-centered
+RMSNorms stored as (1+w) F32 [ ssm_norm stays raw -- it is ones-
+centered ], ssm_a = -exp(A_log), a v-head permutation [0,2,..,30,
+1,3,..,31] applied to every 32-v-head-indexed dimension [ ssm_a,
+ssm_dt, in_proj_a/b rows, in_proj_z rows, v-rows of in_proj_qkv,
+conv1d v-channels, out_proj columns ], full-attn q_proj copied directly
+[ HF already stores the output gate per-head-interleaved exactly as the
+fork's gated view expects ], conv1d squeezed [8192,1,4]->[8192,4],
+vision tower and MTP tensors skipped [ loader treats both as absent /
+optional ]. tokenizer KV copied verbatim from the production GGUF
+after all 33 added/special tokens checked id+content-identical to
+petruhonk's tokenizer.json. verification (a): the written F16 GGUF
+matches its HF source EXACTLY on all 427 tensors [ f32 bit-exact, f16
+lossless-from-bf16 ] -- see `data/control-vectors/lora/
+verify_qwen35_gguf.py`, which is strictly read-only and memory-bounded.
+
+**host crash during this task [ postmortem by the task author ]**: the
+host OOM-crashed overnight [ whole VM, not just the zenka; rebooted
+since ]. root cause per the task author: the quantize task's own
+acceptance criterion #1 asked for the 18.4GB F16 file to be served and
+self-tested ON THIS 15GB-RAM HOST -- a criterion now withdrawn as the
+author's mistake. DO NOT ever serve the F16 here; it exists only as an
+llama-quantize input [ quantize streams file-to-file ]. related hazard,
+recorded for honesty: the first version of the verification script
+used float64 full-tensor cosine on the two 248320x4096 tensors [ ~16GB
+transient ]; the repo version was rewritten strictly bounded [ chunked,
+float32, no full dequant of the giants ] before any further run.
+
+**the verification surprise that inverted the diagnosis**: cross-
+checking the fresh F16 against ge525's GGUF showed layers 0..25
+matching exactly, then TOTAL disagreement from blk.25.ssm_out onward
+[ 2D row-cosine 0.00, F32 norms off by ~1 ]. initially read as a
+defect in ge525's file. hash checks flipped it: ge525's local file
+sha256 == its published HF LFS hash [ intact ]. the local petruhonk
+shards 1-3 + mtp-extra == their published hashes [ intact ]. the local
+shard 4 sha256 = fac711b4... vs published d5e4084c... -- MISMATCH, same
+byte size, byte-identical safetensors header [ 49160 bytes, 421
+entries ], wrong data section. petruhonk's repo has exactly one
+revision [ all uploads 2026-08-20, HF commit API ], so the published
+shard 4 never changed: **the local shard 4 was corrupted at fetch time
+2026-09-10 [ mtime sits inside that fetch window ] -- right size, right
+header, wrong data, the classic shape of a chunked-download stitching
+or bad-resume bug in whatever fetched it [ fetch.file.huggingface.*
+suspect; not yet root-caused, needs a bug hunt before the next big
+download ]**.
+
+**the re-fetch and the full inversion**: re-downloaded shard 4 from HF
+[ sha256 == published d5e4084c..., verified ], quarantined the corrupt
+file as `model-00004-of-00004.safetensors.CORRUPT-20260910-do-not-use`,
+installed the intact one. the intact shard's tensors match ge525 AND
+the production mradermacher GGUF EXACTLY on every F32 anchor tested
+across all layer quartiles [ max|diff| 0.000000 ] and at quant-error
+cosine on 2D [ 0.9948+ ]. since ge525 converted petruhonk's published
+checkpoint and reproduces production's rohit267-derived weights bit-
+for-bit on those anchors, **petruhonk's published language-model
+weights ARE rohit267's fine-tune** [ the fifth pass's "different
+lineage" read of the VLM packaging/tags was wrong -- the LM weights
+are the same ]. production was NEVER serving a different base than
+what petruhonk's repo contains.
+
+**what actually happened to the four attempts, then**: the corrupt
+local shard 4 [ layers 25-attn-out..31 + final norm garbage ] was on
+disk BEFORE attempt 1 and was loaded by `train_lora.py` for ALL FOUR
+training runs AND by the fifth pass's HF/PEFT probes. the adapters'
+layer 25[attn-out side]..31 deltas [ and everything downstream of them, including the
+final-norm/logit path ] were fit against garbage weights. the fifth
+pass's measured effect -- huge, generalizing invoke-idiom confidence
+boost in HF space -- was real INSIDE that franken-model [ probe and
+training shared the same corrupt base, so they agreed with each other
+]; the zero transfer to the intact production server, the scale-
+entrenchment of wrong answers, the divergent no-adapter baselines, and
+even petruhonk's noisy/garbage raw-baseline top-k entries [ 根据, 按照,
+raw replacement byte ] all follow from the corruption alone. **the
+four adapters are poisoned artifacts.**
+
+**consequences, stated plainly**:
+- ge525's Q4_K_M == production weights [ plain quant vs mradermacher's
+  imatrix quant of the same source ]. serving ge525 is equivalent to
+  serving current production for base-identity purposes -- it CANNOT
+  fix anything by itself.
+- re-validating the EXISTING adapters against ge525 [ the task
+  author's current plan, run separately ] most likely reproduces an
+  honest negative -- but pre-registering the interpretation: a zero
+  there is a measurement of POISONED adapters against correct weights,
+  NOT a fifth negative on the LoRA technique itself, and NOT evidence
+  the base is still wrong.
+- the real attempt 5 is a RETRAIN against the now-intact local
+  checkpoint [ intact shard 4 in place since 2026-09-15 ] -- nothing
+  trained before that date can be trusted, and no serve-side change
+  substitutes for it.
+- cheap optional probe first: re-run the fifth pass's HF logprob
+  probes against the intact checkpoint with the existing adapters to
+  see how much of the measured boost was early-layer real vs franken
+  artifact [ layers 0..25 were intact during training ].
+- the franken-tail F16 GGUF was renamed `...-f16.FRANKEN-TAIL-do-not-
+  use.gguf`; a fresh F16 was rebuilt from the intact checkpoint [ same
+  streaming converter, re-verified exact ] as the quantize-only
+  intermediate. the converter itself needed no changes -- it was
+  correct; its INPUT was corrupt.
+
+**serve + re-validate, run separately by the task author, same day**:
+against ge525's GGUF, at a properly position-matched prompt [ teacher-
+forced prefix cut exactly at the token before the invoke idiom, cross-
+checked with a raw token-ID prompt to rule out any string-retokenization
+artifact -- two earlier attempts at this comparison were themselves
+methodologically flawed and corrected before this one, see the
+transcript if the detail matters ]: **`invoke` did not transfer.**
+HF/PEFT gives `' <'` 60.4% top1 on the poisoned attempt4 adapter at this
+position; the live ge525-served model gives `' my'` ~59-60% top1 both
+WITH and WITHOUT the adapter loaded -- i.e. no measurable adapter effect
+at all once the base is correct. Exactly the pre-registered outcome
+above: a measurement of the poisoned adapter, not a new negative on the
+technique. Also directly confirmed, reading the actual loader validation
+in `src/llama.cpp:7828-7841` (`model_tensor->ne[0]==w.a->ne[0]`,
+`model_tensor->ne[1]==w.b->ne[1]`, `w.a->ne[1]==w.b->ne[0]`), that the
+LoRA tensor shapes and orientation in the existing GGUF conversion are
+correct -- rules out a conversion-side bug as an alternative explanation
+for the zero-transfer result.
+
+**a dead end worth recording so it isn't repeated**: before the shard
+corruption was found, a naive `Qwen3_5ForCausalLM` + meta-device
+state-dict key-set comparison appeared to show 426/427 tensors failing
+to load entirely (a different, more severe "wrong model class" theory,
+briefly believed). This was wrong -- `output_loading_info=True` on the
+real `from_pretrained()` call shows zero missing/unexpected/mismatched
+keys, because transformers' internal checkpoint-conversion mapping
+correctly strips the checkpoint's `language_model.` prefix; the naive
+meta-device comparison doesn't go through that mapping and gives a
+false positive. Trust `output_loading_info` over a raw key-set diff for
+this kind of check.
+
+**file cleanup, same day**: deleted the four now-confirmed-poisoned
+adapter directories and their three GGUF conversions, plus the two
+franken-tail F16 GGUFs superseded by the fresh rebuild. Kept: the fresh
+F16 rebuild, ge525's Q4_K_M, the pre-existing unrelated Q8_0 quant, and
+the quarantined corrupt shard 4 (kept deliberately as evidence for the
+still-open fetch.file.huggingface.* corruption-bug hunt).
+
 ## scope
 
 1. **dataset**: expand the P7-idiom instruction set. **decided
@@ -1022,8 +1185,8 @@ adapter respawns), no zenka restart ever needed across the whole pass.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,,,.,,..,..,,,.,,.,,,..,,.,.,,.,,.,.,...,..,,...,...,..,,,..,,..,..,,.,,,
-#QZOF325SVBSXRUDLOVFOIIBDOSGZWFVUZH42MVZBXLXASUSPWHCZBXNVMAAP5SMKF7T75VAYDSH76
-#\\\|W46GRCABMPWEL6TQFLWCS7T5YFCUPVE4QNWPXNJ6KGTW7GWDTHT \ / AMOS7 \ YOURUM ::
-#\[7]NNF7K7PAMHOT6SJTD4LT2LBQFWDN3EWXSMUWOXDCB3DLDDSGI4AY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,.,.,..,,,,.,..,,,..,,.,,.,.,..,,...,...,...,...,..,,.,.,.,,,
+#ZQJIYCLSAERGZUZFYXBFVM7TFVR4I7MSP4UWV37VVPBBP4MF523JODH2SELQZYUIMSJHVOT7CMTOC
+#\\\|SWUUKV4BGS6EJLLZKXQLXRQBFCTHCOLAPBX7U4724UJJTKOPPTB \ / AMOS7 \ YOURUM ::
+#\[7]H4FQHILRIKTJGARYS4CD3MOKK4VEH3ALDKEFAQDM2EGFU3P4RGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
