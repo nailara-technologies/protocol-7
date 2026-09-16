@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = base.u2n_time
+# descr = converts unix time-stamps to [ numerical ] nailara network time
+#         [ the missing inverse of base.n2u_time -- same formula, solved
+#         the other way : ntime = ( unix - ustart ) * 4200 ]
+
+my $unix_time = shift;
+my $precision = shift;
+
+<base.ntime_ustart> //= 1023228000;
+
+if ( not defined $unix_time
+    or $unix_time !~ m|^\d+(\.\d+)?| ) {
+    warn 'expected valid unix time-stamp <{C1}>';
+    return undef;
+}
+
+$precision = 13 if defined $precision and $precision > 13;
+
+my $ntime_float
+    = sprintf( qw| %.14f |, ( $unix_time - <base.ntime_ustart> ) * 4200 );
+
+##  samitizing precision  ##
+$ntime_float =~ s|\.0+$||;
+
+if ( not defined $precision and $ntime_float =~ m|\.(\d+)0*$| ) {
+    ##  inheriting precision from input when not specified  ##
+    $precision = length $LAST_PAREN_MATCH;
+    $precision = 17 if $precision > 17;
+}
+$precision //= 0;
+$ntime_float = int $ntime_float if $precision == 0;
+
+my $ntime_reply = <[base.round_truncate]>->( $ntime_float, $precision );
+
+##  samitizing precision  ##
+if ( index( $ntime_reply, qw| . |, 0 ) >= 0 ) {
+    $ntime_reply =~ s|\.?0{3,}$||;
+    $ntime_reply =~ s|0{3,}\d$||;
+}
+
+return $ntime_reply;    ##  return [precision] cleaned network time value  ##
+
+#,,,,,,.,,,,,,..,,.,.,,..,.,,,.,,,...,...,,,,,.,.,...,...,,,.,,..,,,,,,.,,.,.,
+#EVROTDFM6TVGSVVRDIH6OEMZM5OUCUZ27D3MPO3QUBVYQGDPJCPZIPYIVGYNTZBVBDYKJFLZU63M2
+#\\\|WZMGUJTUONECO3BRX4YF7GVBCVFHJMUDUMJZTZQOXCCJHRGIAYJ \ / AMOS7 \ YOURUM ::
+#\[7]2P3WEMQAYPGWRSUVHKTTMOSG4Y6NKH35UALWUJHHMJNOBMFXSYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

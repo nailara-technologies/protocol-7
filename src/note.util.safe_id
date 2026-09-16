@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = note.util.safe_id
+# descr = sanitize a task_id [ or section ] value for safe use as a single
+#         filesystem path component -- a bare character-class filter alone
+#         is not enough: a value of just '.' or '..' contains nothing
+#         outside the allowed [a-zA-Z0-9._-] class, so it survives such a
+#         filter unchanged while still resolving to "here"/"parent dir"
+#         when used as a real path segment [ e.g. task_id, which unlike
+#         section is never suffixed with a fixed extension, so a bare '..'
+#         there is a live traversal, not just an odd filename ]
+
+my $id = shift // '';
+
+$id =~ s|[^a-zA-Z0-9._-]|_|g;
+
+## collapse a pure run of dots [ '.', '..', '...' etc ] to a safe literal ##
+$id = 'unknown' if $id eq '' or $id =~ m|^\.+$|;
+
+return $id;
+
+#,,,,,...,,..,..,,..,,.,.,,,,,,,,,..,,.,.,..,,.,.,...,...,..,,..,,.,.,..,,.,,,
+#OOTNVMQBPVRUGL2UTC4OBWG7Y6TWTC2JU7CMWQAR6A7KNZ3XOENWLMZF67WSRPI6SXQDEFODZD5LU
+#\\\|C6REWMWJNERF72UCO2ILC6RSN4OLM7RVJNIAEKX542UU7PXHL2X \ / AMOS7 \ YOURUM ::
+#\[7]OUM5E67D3E5GI3435GSO2LSZQDXDBOKONPBRBGVCN3BFCVZO44BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

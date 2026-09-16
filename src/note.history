@@ -10,7 +10,7 @@ return { 'mode' => qw| false |, 'data' => 'section required' }
 
 $count //= 5;
 
-$task_id //= <system.task_id> // 'unknown';
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
 my $workspace_dir
     = <[file.zenka_dir.data_path]> . "/notes/$task_id/workspace";
 
@@ -95,8 +95,8 @@ return {
     'data' => length $result_str ? $result_str : 'no history entries found',
 };
 
-#,,..,.,,,.,.,,,.,,.,,..,,...,,..,.,.,.,,,,..,.,.,...,...,..,,.,,,.,.,.,,,,.,,
-#C5MOZYC75JF6CJOSZEVAUASD7SW7Q3OD7WZCFPSA2IV752VUKD33MLWIFS75MXIKJOWTCJSISDCYY
-#\\\|FRYUNI5HCOXSTXYXGYJX5TQETFT5XCABE3P3DLHTRLP7IOBTJX7 \ / AMOS7 \ YOURUM ::
-#\[7]JUL2SLVLVEPBQXNMCAA3CI645H5XA4OSVKTEQDAHZBB5SM3QGEDI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,.,,,,,.,..,,.,.,...,...,.,.,.,.,...,...,...,..,,.,.,...,,,,,
+#G5NRIB42YSFU5QAS3PDJKFIJFGHDA5QIOHMLETKMWZAWG5NUPBVSYDKCFF5FZAG2SM7ZC3SCYOBGS
+#\\\|7AQW3SS327ZQFNERF5F2O5Q7FXVOLQ57773SHUJAH5436H6AGWK \ / AMOS7 \ YOURUM ::
+#\[7]ZCNCPZRGIIJS7HHQULCTBJX2CS74DIN5YUGIMINZJZRCP3XJ5GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

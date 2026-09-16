@@ -2,16 +2,50 @@
 
 # name  = base.parser.duration
 # descr = return duration since given unix time [ days hours mins + seconds ]
+# param = <start_time> [precision] [scale: 'unix'|'ntime']
 # note  = this subroutine version is ignoring 'leap years' entirely
 
 my @result;
 my $start_time = shift;
 my $precision  = shift;    ## optional [ overrides input param precision ] ##
+my $scale      = shift;    ## optional : 'unix'|'ntime' -- see below       ##
 
 return qw|n/a| if not defined $start_time or $start_time !~ m|^\d+(\.\d+)?$|;
+
+## capture precision from the ORIGINAL input's decimal length before the ##
+## network-time conversion below runs its own regexes and clobbers       ##
+## $LAST_PAREN_MATCH [ it is $1, call-stack independent ]                ##
 $precision //= defined $LAST_PAREN_MATCH ? length $LAST_PAREN_MATCH : 2;
-my $secs = Time::Seconds->new( sprintf qw| %.*f |,
-    $precision, <[base.time]>->($precision) - $start_time );
+
+## a raw ntime value is a different scale entirely from unix time [ 4200   ##
+## ntime units per real second, see base.ntime.delta_seconds ] --          ##
+## subtracting one from unix time unconverted produces a multi-trillion-   ##
+## second bogus duration [ this was live-caught via note_list's 'created'  ##
+## field, always ntime-sourced ]                                           ##
+##                                                                         ##
+## without an explicit $scale this falls back to guessing from magnitude [ ##
+## matches base.parser.timestamp's own network-time detection ], which is  ##
+## ambiguous near the low end : a small value could be an early ntime tick ##
+## or a genuine near-1970 unix time, indistinguishable by digit count      ##
+## alone. pass $scale explicitly whenever the caller already knows which   ##
+## one it has -- e.g. a note's `created` field is always ntime, regardless ##
+## of how many digits it happens to have today                             ##
+my $is_ntime
+    = defined $scale
+    ? ( $scale eq qw| ntime | )
+    : ( length( int($start_time) ) >= 13 );    ##  <-- network time ?  ##
+
+my $secs;
+if ($is_ntime) {
+
+    ## base.ntime.delta_seconds already does ( now - start ) / 4200 -- the  ##
+    ## same primitive coding.cmd.list-tasks was fixed to use for this exact ##
+    ## class of bug on 2026-08-19 [ commit dd162183b ]                      ##
+    $secs = Time::Seconds->new( <[base.ntime.delta_seconds]>->($start_time) );
+} else {
+    $secs = Time::Seconds->new( sprintf qw| %.*f |,
+        $precision, <[base.time]>->($precision) - $start_time );
+}
 
 my %result = (
     qw| days    | => 0,
@@ -86,8 +120,8 @@ $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 
 return $result_str;
 
-#,,,.,,,.,,,,,..,,...,,..,,.,,,,.,.,,,,,.,.,.,..,,...,...,.,,,.,,,.,,,.,,,...,
-#GBAYXCL25MEYPCT6LLFK2K6SYFPBOVTF3ARF6KSO2U2ONMVZOHS6JEFEBQ22RJF4EOFVMFRBIKBSO
-#\\\|LAU4357Q5GC2GHL2FDMSSQ56ZFQESKAYGSQHYSL65SOU4W6KX6W \ / AMOS7 \ YOURUM ::
-#\[7]BQC6AMXY2PDMTM2VNH4Z45BOLXGKWUTWZBAKYPOXFSBBMOCFBCBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,..,,..,...,.,,,,,,,.,.,...,..,,...,...,,..,...,.,,,,..,...,
+#T547SYJ4TCRZ5BQVCMA7666KD2EUHUSQ3JNPZOCIZKC52RH37CVALZR2SEVOV4P2SWV3RH732ZKZY
+#\\\|L5VYICCWSP3KEAEAABEKFELQCBIUC2Q7YATOWG4ZVOKH7CDAPDH \ / AMOS7 \ YOURUM ::
+#\[7]XURLTG3BTUHBCV6HQADEL5OJAKUXVKXOZYSSJOUFLPCFUOAQM2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

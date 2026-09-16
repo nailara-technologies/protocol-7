@@ -11,7 +11,7 @@ return { 'mode' => qw| false |, 'data' => 'section required' }
 return { 'mode' => qw| false |, 'data' => 'content required' }
     unless defined $content && length $content;
 
-$task_id //= <system.task_id> // 'unknown';
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
 my $workspace_dir
     = <[file.zenka_dir.data_path]> . "/notes/$task_id/workspace";
 
@@ -21,6 +21,12 @@ my $workspace_dir
 ## sanitize section name ##
 $section =~ s|[^a-zA-Z0-9._-]|_|g;
 my $note_file = "$workspace_dir/$section.md";
+
+## this call fully replaces the section [ by design, per this tool's own   ##
+## description ] -- stash the prior content first so a bad replacement [   ##
+## e.g. wrong/garbled content written over real notes ] is recoverable via ##
+## note.trash.rescue instead of gone the instant this call returns         ##
+<[note.trash.stash]>->( $task_id, $section ) if -f $note_file;
 
 ## replace entire section with timestamp header ##
 my $timestamp = <[base.ntime]>;
@@ -33,7 +39,7 @@ my $meta_file = <[file.zenka_dir.data_path]> . "/notes/$task_id/.meta";
 if ( -f $meta_file ) {
     my $meta = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
     if ( ref $meta eq qw| HASH | ) {
-        $meta->{'last_update'} = <[base.time]>->(3);
+        $meta->{'last_update'} = <[base.ntime]>;
         <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
     }
 }
@@ -48,8 +54,8 @@ return {
     'data' => { 'section' => $section, 'bytes' => length $entry }
 };
 
-#,,.,,,.,,..,,,.,,.,,,..,,.,,,.,,,,..,.,,,,,.,.,.,...,...,,,,,.,,,..,,.,.,.,,,
-#OR3FJ6HGOTVUC7VQTZYMYCC3B5AHY7CHKXMW3LFDL6IGXV4TV3GVWGFV7JASBACE6IQULRQOXJP7M
-#\\\|FEXRRWNZ5Y6BESGMZPUAYFRO5A73T4KQI4DUIMY5LOQ7PJ5W3YB \ / AMOS7 \ YOURUM ::
-#\[7]MDEPNBMMSCPWUXFFZMEAFBULOGTGH5Q4XHPXQNC3UCTBK6DTC4DI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,..,,.,,,...,,.,,...,,,,,,.,,.,.,...,...,.,,,,,,,..,,.,,,.,,,
+#LEO3XJQZ2E5MIRN4FVMCBC4WHAEO54S7GMOKOUFWALMFYZRUH2YJ27S5X7RBA2WZI6C6BNSN225G6
+#\\\|T5SRUCSJGQTDVRORY6GX6UUEMETSKTXWTQ65O3ESQPJCI53SZNC \ / AMOS7 \ YOURUM ::
+#\[7]N6727H76B3RP5DR2P3FI3KEQR247MBHLSYNTZN252EEIIRMXJGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

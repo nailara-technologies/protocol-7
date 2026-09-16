@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = note.trash.list
+# descr = list trashed note sections for a task, or 'all' tasks
+
+my $task_id = shift // <system.task_id> // 'unknown';
+
+my $notes_root = <[file.zenka_dir.data_path]> . '/notes';
+
+## 'all' is a real keyword, not a path component -- sanitize everything ##
+## else, checked first so a legitimate 'all' is never mangled           ##
+$task_id = <[note.util.safe_id]>->($task_id) unless $task_id eq qw| all |;
+
+my @task_dirs;
+if ( $task_id eq qw| all | ) {
+    @task_dirs = grep { -d $ARG } <[file.glob]>->("$notes_root/*")->@*;
+} else {
+    @task_dirs = ("$notes_root/$task_id");
+}
+
+my @entries;
+for my $task_dir (@task_dirs) {
+    my $trash_dir = "$task_dir/trash";
+    next unless -d $trash_dir;
+    my ($this_task) = $task_dir =~ m|([^/]+)$|;
+
+    for my $fn ( <[file.glob]>->("$trash_dir/*.mxz.B32")->@* ) {
+        my ($base) = $fn =~ m|([^/]+)\.mxz\.B32$|;
+        next unless defined $base;
+        my ( $section_name, $ntime ) = $base =~ m|^(.+)\.(\d+(?:\.\d+)?)$|;
+        next unless defined $section_name;
+
+        my $fstat = File::stat::stat($fn);
+        push @entries,
+            {
+            'task_id'    => $this_task,
+            'section'    => $section_name,
+            'ntime'      => $ntime,
+            'trashed_at' => $fstat ? $fstat->mtime : undef,
+            'path'       => $fn,
+            };
+    }
+}
+
+@entries
+    = sort { ( $b->{'trashed_at'} // 0 ) <=> ( $a->{'trashed_at'} // 0 ) }
+    @entries;
+
+return { 'mode' => qw| true |, 'data' => \@entries };
+
+#,,..,.,.,,.,,.,,,.,.,,..,,.,,,,.,,,,,.,,,..,,.,.,...,...,.,.,.,,,,..,.,,,..,,
+#G2UGRAYLPL7A4YYR2E3SQOSQIMLYFFKLVTYTMADZQ5RUJIJHDPEQOTOAYPZD3G33KWP7OXQKFCUBY
+#\\\|NNG25IAYFLQ2PHAAUJDSX7OFVBY7DAD5VZUVCVKWVF66T5WWNPZ \ / AMOS7 \ YOURUM ::
+#\[7]EEK5R3WCINOG5RC7PPALB2I6CG7SPQFBDN2JLFSB535GMJHCBEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my ( $tag, $task_id ) = @ARG;
 return { 'mode' => qw| false |, 'data' => 'tag required' }
     unless defined $tag && length $tag;
 
-$task_id //= <system.task_id> // 'unknown';
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
 
 ## sanitize tag ##
 $tag =~ s|[^a-zA-Z0-9_-]|_|g;
@@ -64,8 +64,8 @@ return {
     }
 };
 
-#,,..,,..,,,.,,,,,,.,,,,.,,..,..,,,,.,..,,,.,,.,.,...,...,,,.,.,,,,,.,,,,,.,.,
-#SJTUVEM3XLLQITXBZQESGJZO7VWIWXWOYPR2DB4R5BIGHUUOTSAKQAQ67EZCSBGDBMYDR34HUNBJ6
-#\\\|N5NPHDW65T53CXQIWUBMY5A57JY444RXXND5PVBQAUUOSCFADS6 \ / AMOS7 \ YOURUM ::
-#\[7]QY3UNCK3C6WVFLOYTUGPWIY3DGG2F2HQSSVQHQZAXW2SLO4NOODI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,..,,...,,,,,,.,,.,,,.,.,.,,,.,.,...,...,...,,.,,.,.,,..,.,,,
+#CAJ7JEPZPQ37T4LX6E7ST6NIFJNGNC6XPFCKC25TBTIIQG7FMVNNVZHJFGDTD7DSVRPI7YEOQI6WG
+#\\\|B6RXASG3TPYO4SSDBCFSPLQCWJ65DR6ZXFPDXLACV3UP2AFJX6L \ / AMOS7 \ YOURUM ::
+#\[7]YJ32PQV2KHJHJOU6VZLH7OLGKL35ELQ2GJNOHWVDPI635MQ5HUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

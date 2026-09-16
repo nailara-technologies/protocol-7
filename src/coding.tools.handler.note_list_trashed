@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_list_trashed
+# descr = list trashed note sections for a task [ or 'all' tasks ]
+
+my $args = shift // {};
+
+my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
+
+my $result = <[note.trash.list]>->($task_id);
+
+my $output;
+if ( $result->{'mode'} eq qw| true | ) {
+    my $entries = $result->{'data'} // [];
+
+    if (@$entries) {
+        $output = "Trashed note sections:\n\n";
+        for my $e (@$entries) {
+            my $age
+                = defined $e->{'trashed_at'}
+                ? <[base.parser.duration]>->( $e->{'trashed_at'} ) . ' ago'
+                : '?';
+            $output .= sprintf( "- %s / %s [ trashed %s, ntime %s ]\n",
+                $e->{'task_id'}, $e->{'section'}, $age, $e->{'ntime'} );
+        }
+    } else {
+        $output = "No trashed sections found for '$task_id'";
+    }
+} else {
+    $output = "Error: " . ( $result->{'data'} // 'unknown' );
+}
+
+return { 'content' => $output };
+
+#,,.,,.,,,,..,.,,,..,,,.,,,,.,,,.,,,,,,,,,.,,,.,.,...,..,,..,,..,,,..,,.,,,,.,
+#7SBDA6TPRIE2IGA5AI6P43WH3X46NJH2IDVV45BM5QFDWZ57Y5EY6S5ADXCDEKJIAC5ZIBO6LLOB6
+#\\\|667H7FRCGQ7VWMENU74CQY44G7O7ZC43W2Q3V7YHAJWWBG2OJVC \ / AMOS7 \ YOURUM ::
+#\[7]XUL4OELRDEC5MWXHUID6365ZQ3QJJM46GMGJOACAXMP2HYHQOSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
