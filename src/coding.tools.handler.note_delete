@@ -1,15 +1,16 @@
 ## [:< ##
 
 # name  = coding.tools.handler.note_delete
-# descr = delete note section or entire task notes
+# descr = move note section [ or all task notes, with confirm_all ] to trash
 
 my $args = shift // {};
 
-my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
-my $section = $args->{'section'} // '';
+my $task_id     = $args->{'task_id'} // <system.task_id> // 'unknown';
+my $section     = $args->{'section'} // '';
+my $confirm_all = $args->{'confirm_all'} ? TRUE : FALSE;
 
 ## call backend ##
-my $result = <[note.delete]>->( $task_id, $section );
+my $result = <[note.delete]>->( $task_id, $section, $confirm_all );
 
 return {
     'content' => $result->{'mode'} eq qw| true |
@@ -17,8 +18,8 @@ return {
     : "Failed: " . ( $result->{'data'} // 'unknown' ),
 };
 
-#,,.,,.,,,.,.,..,,.,,,,..,.,,,,,.,...,.,.,,..,.,.,...,..,,...,,,.,...,,,.,...,
-#2FCMBQLMX34DWSBRC7VSMA4QPHENCAPWFCFUVE6RD5JBRFVHSAJVSYYW35NHPRAV3RNPSDD6X7W5W
-#\\\|LKABSCH6C4WVF47X7RXITS7TWEVSPUXTLDTEWSXV2JWKE3NRFUO \ / AMOS7 \ YOURUM ::
-#\[7]RSXWHQQ7IZGNPT53ZLD6SXOU2BUWKSXIQVPBXULX2QX25WXHO4DI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,..,...,.,,,,..,...,,,,,,.,,.,.,...,...,..,,,,,,.,,,.,.,,,,,
+#KBLXM5XCIPTFYWXXNZZIUAKKVFIZWXP7RPVR7NGPBQWCYRFOX6UHS6MZWXJ2GFTHYHIETDJJGS4VA
+#\\\|N3J4U5EZFVI5Q5RE2VNX6WSTGVEVZTTHZCQGLTHKZ3HBFOP2WD5 \ / AMOS7 \ YOURUM ::
+#\[7]5KNUQVNHYR4NCCMSFK7VXADHO2S2ZNH7355R44UUVLIAQTNO5GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

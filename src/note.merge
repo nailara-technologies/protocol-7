@@ -11,21 +11,35 @@ return { 'mode' => qw| false |, 'data' => 'source_specs required' }
 return { 'mode' => qw| false |, 'data' => 'target_section required' }
     unless defined $target_section && length $target_section;
 
-$target_task_id //= <system.task_id> // 'unknown';
+$target_task_id
+    = <[note.util.safe_id]>->( $target_task_id // <system.task_id> );
 
 ## sanitize target section ##
 $target_section =~ s|[^a-zA-Z0-9._-]|_|g;
 
 my $notes_base = <[file.zenka_dir.data_path]> . '/notes';
 
-## parse source specs: comma-separated "section" or "task_id:section" ##
+## parse source specs: comma-separated "section" or "task_id:section" --  ##
+## the task_id half is free-form input from the same string, so it needs  ##
+## the same treatment as any other externally-supplied task_id, or a spec ##
+## like "../../somewhere:x" could read a note section belonging to an     ##
+## arbitrary task_id-shaped path outside what the caller should reach     ##
 my @sources;
 for my $spec ( split m|\s*,\s*|, $source_specs ) {
     next unless length $spec;
     if ( $spec =~ m|^([^:]+):(.+)$| ) {
-        push @sources, { 'task_id' => $1, 'section' => $2 };
+        my ( $src_task, $src_section ) = ( $1, $2 );
+        $src_section =~ s|[^a-zA-Z0-9._-]|_|g;
+        push @sources,
+            {
+            'task_id' => <[note.util.safe_id]>->($src_task),
+            'section' => $src_section
+            };
     } else {
-        push @sources, { 'task_id' => $target_task_id, 'section' => $spec };
+        my $src_section = $spec;
+        $src_section =~ s|[^a-zA-Z0-9._-]|_|g;
+        push @sources,
+            { 'task_id' => $target_task_id, 'section' => $src_section };
     }
 }
 
@@ -71,8 +85,20 @@ my $merged_str = join( '', @merged );
 my $target_ws = "$notes_base/$target_task_id/workspace";
 <[file.path.make_dir]>->($target_ws) unless -d $target_ws;
 
-## write merged file ##
+## write merged file : stash a pre-existing target first, or a name        ##
+## collision with a source section [ or any other prior content ] would be ##
+## silently clobbered with no way back                                     ##
 my $target_file = "$target_ws/$target_section.md";
+if ( -f $target_file ) {
+    my $stashed = <[note.trash.stash]>->( $target_task_id, $target_section );
+    return {
+        'mode' => qw| false |,
+        'data' => "target section '$target_section' already exists for "
+            . "$target_task_id and could not be backed up -- merge "
+            . "aborted to avoid overwriting it unrecoverably"
+        }
+        unless defined $stashed;
+}
 <[file.write]>->( $target_file, $merged_str );
 
 ## update meta ##
@@ -82,7 +108,7 @@ if ( -f $meta_file ) {
     $meta = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
     $meta = {} unless ref $meta eq qw| HASH |;
 }
-$meta->{'last_update'} = <[base.time]>->(3);
+$meta->{'last_update'} = <[base.ntime]>;
 <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
 
 my @source_names
@@ -108,8 +134,8 @@ return {
     ),
 };
 
-#,,..,...,.,.,,,,,,..,,.,,..,,,,,,.,.,.,.,.,.,.,.,...,...,..,,,,,,.,.,,,.,.,,,
-#GW4PBPEH2YFJBQH6AHUJZGEO7SCATMRFFPW7TQQC2RYWFHQ5M2GLQEMZXWQLNIJBKF4YWHCG3MQIA
-#\\\|LMIY2RVDFO2S7A7CLGM4LCHIVYTDLD7I7NPWAXKPKQ24O2D5DQ3 \ / AMOS7 \ YOURUM ::
-#\[7]POZHFQN3BYZSLOLF2WXLVEHAYMLFNHZNL7H2RT3MH6ZJ63SW2UBA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,,,,..,,,,.,,,,,,.,,,..,..,,.,.,...,...,,,.,...,,,,,...,,..,
+#ITOZ4DRI6CTW2T3MBJEJKFHXAQCVCQLWZJ5DVKQKT6FPCIG6XPLBYXEKX7UW5OSS66GCMW7N3RHII
+#\\\|PDWHOWP5PUBJR5P2NKGEA4J4S2VPWVRWYSFRLYXTHNQQXCA5DMI \ / AMOS7 \ YOURUM ::
+#\[7]4ODNIXBMCYDPMZOEAJXQ4L2FQBX6Q4SHLTFTLCUMHM4EZFWTNUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

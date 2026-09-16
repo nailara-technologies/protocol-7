@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_rescue
+# descr = restore a trashed note section back into the live workspace
+
+my $args = shift // {};
+
+my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
+my $section = $args->{'section'} // '';
+my $ntime   = $args->{'ntime'}   // '';
+
+my $result = <[note.trash.rescue]>->( $task_id, $section, $ntime );
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+    ? $result->{'data'}{'message'}
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,..,.,.,,,,,,,,,.,.,,,,,.,.,,,,,,,,,.,,,,.,,.,.,...,...,.,,,.,,,..,,,,.,.,,,
+#M2JRVV7FLNA7K5MOHHJKP7QOB2ORW5IE7PYPZRVEYYJJBWOTQ7Z3ZDPAONUVELKKPM6ZIJRE5YWHK
+#\\\|7CCFUSMR3UQBZMPSP7QTRYPZIOOF3WTGLQWTOZTZGHNIXTZVR62 \ / AMOS7 \ YOURUM ::
+#\[7]GHA46VOTZ3VXEYO6W7RFBEXL2ZYOYOLWYYM2SUJREV33SLDIAADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

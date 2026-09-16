@@ -19,7 +19,8 @@ if ( $result->{'mode'} eq qw| true | ) {
         for my $t (@$tasks) {
             my $age
                 = defined $t->{'created'}
-                ? <[base.parser.duration]>->( $t->{'created'} ) . ' ago'
+                ? <[base.parser.duration]>
+                ->( $t->{'created'}, undef, 'ntime' ) . ' ago'
                 : '?';
             $output .= sprintf(
                 "- %s [%s, %s] rounds:%d L1:%s L2:%s\n",
@@ -43,8 +44,8 @@ if ( $result->{'mode'} eq qw| true | ) {
 
 return { 'content' => $output };
 
-#,,..,,,.,,,.,.,,,.,,,,.,,.,,,,.,,.,.,,..,...,.,.,...,...,...,,,,,,,.,.,.,,,,,
-#POYELM3OOTRPG7NIMRMHDCZ2G3YUMK7NW7G6CCIWBXZMY6CTY2ZEFR2I2ZY2VEHOFP33EY6YVGCRY
-#\\\|5D2QK7BJHCKNQWMFFYJTDCWPXKWFIGS53BQ6E7ZB3IL6M3CMOKC \ / AMOS7 \ YOURUM ::
-#\[7]RFRMQTHBR4C5RTYVHKCQ6H4KO34GQAZZQLQALHKG5K63R3XWLMDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,.,,,,,.,.,,,,,.,,,.,...,,,,,.,.,...,...,...,,,.,,,,,,,,,,,.,
+#WHBX4MNZ2QFORRLF4YWGWTQM4TUKCW3ES7AABKLV35CZOHWJRHQQGB3EQEEHRBKVCQCI4D4H2C7EK
+#\\\|KM3ZUEJCYLJZK4WBRW6KES6NVK5ZRWM2GZTNMBK3NELPJWWOMIO \ / AMOS7 \ YOURUM ::
+#\[7]V3ZMCGCR26NEMCO2R225NC53VIN7NGRHP52MOKLV3LJ4MLXZUCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

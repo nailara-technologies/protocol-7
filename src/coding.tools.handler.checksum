@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = coding.tools.handler.checksum
+# descr = compute a checksum of input text using one of p7's algorithms
+
+my $args = shift // {};
+
+my $algorithm   = lc( $args->{'algorithm'} // 'amos' );
+my $input       = $args->{'input'};
+my $mode        = $args->{'mode'} // '';
+my $nest_parent = $args->{'nest_parent'};
+
+## nested AMOS checksum : [ parent-chksum child-name ] -> derived child   ##
+## checksum -- a first-class AMOS feature ( bin/amos-chksum's -nest flag, ##
+## AMOS7::CHKSUM::Nested ), not the separate bmw384 geometric-coordinate  ##
+## system. requires 'input' to carry the child name and nest_parent the   ##
+## parent checksum ; only meaningful for algorithm=amos                   ##
+if ( defined $nest_parent && length $nest_parent ) {
+    return { 'content' => 'nest_parent is only valid with algorithm=amos' }
+        unless $algorithm eq qw| amos |;
+    return { 'content' => 'input required [ as the child name ]' }
+        unless defined $input && length $input;
+
+    ## AMOS7::CHKSUM::Nested is only `use`d by amos.chksum.init_code, a    ##
+    ## namespace the coding zenka does not load -- autoload it here [ live ##
+    ## tested : direct call failed with "Undefined subroutine" without it  ##
+    <[base.perlmod.autoload]>->('AMOS7::CHKSUM::Nested');
+
+    my $child_chksum
+        = AMOS7::CHKSUM::Nested::child_chksum( $nest_parent, $input );
+    return { 'content' => 'failed to compute nested checksum' }
+        unless defined $child_chksum;
+
+    return {
+        'content' => sprintf(
+            'amos/nested: %s',
+            AMOS7::CHKSUM::Nested::format_nested(
+                $child_chksum, $nest_parent
+            )
+        )
+    };
+}
+
+return { 'content' => 'input required' }
+    unless defined $input && length $input;
+
+my $result;
+my $label = $algorithm;
+
+if ( $algorithm eq qw| amos | ) {
+    $result = scalar <[chk-sum.amos]>->( \$input );
+
+} elsif ( $algorithm eq qw| bmw | ) {
+
+    ## L13 [ 13-char BASE32, XORed segments ] is the only mode exposed here ##
+    ## -- matches the existing cube.chksum.bmw.cmd.bmw-L13 command and the  ##
+    ## project's established scratchpad/session-key convention.             ##
+    ## bmw384/filesum/512_32/etc are separate, more specialized shapes [    ##
+    ## bmw384 in particular is a geometric coordinate mapper for the iris   ##
+    ## visualization, not a general-purpose hash ]                          ##
+    $result = <[chk-sum.bmw.L13-str]>->($input);
+
+} elsif ( $algorithm eq qw| elf | ) {
+    $result = <[chk-sum.elf]>->($input);
+
+} elsif ( $algorithm eq qw| jha | ) {
+    $mode ||= qw| b32 |;
+    $label = "jha/$mode";
+
+    if ( $mode eq qw| hex | ) {
+        $result = <[chk-sum.jha.hex]>->($input);
+    } elsif ( $mode eq qw| b32 | ) {
+        $result = <[chk-sum.jha.b32]>->($input);
+    } elsif ( $mode eq qw| b64u | ) {
+        $result = <[chk-sum.jha.b64u]>->($input);
+    } elsif ( $mode eq qw| harmonized | ) {
+        $result = <[chk-sum.jha.b32.harmonized]>->($input);
+    } else {
+        return {  'content' => "unknown jha mode: $mode "
+                . '[ expected hex|b32|b64u|harmonized ]' };
+    }
+
+} else {
+    return {  'content' => "unknown algorithm: $algorithm "
+            . '[ expected amos|bmw|elf|jha ]' };
+}
+
+return { 'content' => "checksum computation failed [ $label ]" }
+    unless defined $result and length $result;
+
+return { 'content' => "$label: $result" };
+
+#,,,.,,,,,.,,,,,.,.,.,..,,.,,,.,.,..,,,..,,,,,.,.,...,...,...,..,,,..,.,.,,..,
+#4IHJWJSTQUXU5ESXCNJD5AQ4UMQBJI3PCZR3CVSMWNTGI5UQVIUU35SI6ON5AA2QSNQ3NL2MGS5OK
+#\\\|G4XQR7NHA4OJRLM7CDLLXIGGQMA4BJMTPW7SYAXRKOST5XTWUYD \ / AMOS7 \ YOURUM ::
+#\[7]AQKYP3IIPZM77SUDZH4EKRKK4LSGDKOKR64YNLUVYR3Q7HO3QQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
