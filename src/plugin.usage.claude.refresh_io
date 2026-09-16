@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.usage.claude.refresh_io
+# descr = io watcher on the refreshing claude child's pty : drains output,
+#         detects eof [ child gone ] or read error, hands both to
+#         plugin.usage.claude.refresh_finish. named handler, not a coderef
+#         closure -- see plugin.usage.claude.refresh_token's module note on
+#         reload safety.
+
+my $state = <usage.provider.claude> {'refresh_state'} // return TRUE;
+
+my $bytes = <[base.s_read]>->( $state->{'fh'}, \$state->{'buffer'}, 65536 );
+
+if ( $bytes == 0 ) {
+    <[plugin.usage.claude.refresh_finish]>->(qw| eof |);
+} elsif ( $bytes == -1 ) {
+    <[plugin.usage.claude.refresh_finish]>->(qw| error |);
+}
+
+return TRUE;
+
+#,,,.,,..,,..,,,,,.,.,..,,.,.,...,,,,,,.,,...,..,,...,...,..,,...,,,,,,,,,..,,
+#7LN6Y6WIPQMVOQYRZHHWAQEQ4UAOIDSXW5AJ4RXIHSTQM6JD2DEQASYL3AK6GGEGYH7NMPRNK7YX2
+#\\\|WS4QMM7NQBVCL6T6RTODEBZSPS2XVUZWAQZKRRKIM2HOSK3IZQM \ / AMOS7 \ YOURUM ::
+#\[7]GJXLIDGHCYRGIBSIGALFI6PVHR6UZU6SOI3QNN7L64BXMY5KDUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

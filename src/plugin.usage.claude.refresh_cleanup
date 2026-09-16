@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = plugin.usage.claude.refresh_cleanup
+# descr = final teardown of a claude refresh cycle : cancel any watcher still
+#         armed, close the pty, clear the single-slot state, log, then invoke
+#         the cycle's on_done [ named handler + params, same reload-safety
+#         contract as the event callbacks themselves ].
+# param = <how> : eof | ctrl_d | sigterm | killed
+
+my $how = shift // qw| done |;
+
+my $provider = <usage.provider.claude>;
+my $state    = delete $provider->{'refresh_state'} // return TRUE;
+
+foreach
+    my $w ( $state->{'io_w'}, $state->{'timer_w'}, $state->{'reap_timer'} ) {
+    $w->cancel if defined $w;
+}
+
+close( $state->{'fh'} )
+    if defined $state->{'fh'} and defined fileno $state->{'fh'};
+
+<[base.logs]>->(
+    2, '[usage.claude.refresh_token] claude startup cycle complete [ %s ]',
+    $how
+);
+
+if ( defined $state->{'on_done'} ) {
+    my $done = $state->{'on_done'};
+    $code{ $done->{'handler'} }->( $done->{'params'} // {} )
+        if length $done->{'handler'}
+        and exists $code{ $done->{'handler'} };
+}
+
+return TRUE;
+
+#,,,,,...,,,.,..,,...,...,,..,,,.,,,,,.,.,,,,,..,,...,...,..,,..,,.,.,.,.,,,,,
+#UUFQDZ4TRWJZQD32AZUT5CAVRYMT7RTHNTS24HO7K4HBHQWIGAHCCCI5VNI3W3DW2PWYKTYS7I7RM
+#\\\|UXGHV634Q2SA4WQHC4EWJXCSJSVH6HNL7ZWXXAQDFPUSMM7QYJO \ / AMOS7 \ YOURUM ::
+#\[7]VKVIE6MS453TOTXLWGS742JGB22GTY7NNCKT6SQDURVA54N4S6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

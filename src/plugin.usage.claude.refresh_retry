@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.usage.claude.refresh_retry
+# descr = on_done target for a completed claude token refresh : schedules the
+#         transparent single retry of the rate-limit probe, deferred one
+#         event-loop tick rather than run synchronously inside the refresh
+#         teardown -- same rationale as plugin.usage.kimi.refresh_retry :
+#         starting a fresh https connection outside the fork's own call
+#         stack is a cheap, standard mitigation for the utf8-handle crash
+#         that module's note documents.
+# note  = the deferral uses event.add_idle, NOT a plain timer : only the
+#         add_idle handler branch forwards 'params' to the callback -- see
+#         plugin.usage.kimi.refresh_retry's note for the live 2026-09-16
+#         confirmation. named handler + params [ not a coderef closure ] so a
+#         source reload between refresh start and completion still runs
+#         current code.
+# param = { on_result => <handler name>, params => <original query params> }
+
+my $params = shift // {};
+
+<[event.add_idle]>->(
+    {   'handler' => qw| plugin.usage.claude.fetch |,
+        'params'  => {
+            'on_result' => $params->{'on_result'} // '',
+            'params'    => $params->{'params'}    // {},
+            'retried'   => TRUE,
+        },
+    }
+);
+
+return TRUE;
+
+#,,,,,,,.,,,.,,,,,,,,,,.,,.,.,...,.,,,...,..,,..,,...,...,.,,,,..,,.,,,,,,.,.,
+#E24UNQQOWB5XTRDLOXZCZYRFUJ5ER7PONH77GTIZE6PGVVDLGUG62MQWY2AKHDLNJ53MZQKLLTOUE
+#\\\|VC2NRHPUCIE56ZEY7KKERM2IGFZMB3T3G323VUNUAYKZS7KLZ6B \ / AMOS7 \ YOURUM ::
+#\[7]KM6UVU3P3766AO3SGDAIM3EQ5AAIRN55QRIBV4XFN3UA2NVXTGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
