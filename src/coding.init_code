@@ -96,6 +96,16 @@ if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
     $ENV{'GIT_CONFIG_COUNT'}   = 1;
     $ENV{'GIT_CONFIG_KEY_0'}   = 'safe.directory';
     $ENV{'GIT_CONFIG_VALUE_0'} = <system.root_path>;
+
+    ## libgit2 [ Git::Native ] ignores GIT_CONFIG_COUNT but honors         ##
+    ## GIT_CONFIG_GLOBAL -- without it, libgit2 >= 1.7 hard-refuses the    ##
+    ## foreign-owned repo [ GIT_EOWNER 'repository path is not owned by    ##
+    ## current user' ], breaking every native git path in this zenka.  the ##
+    ## git binary reads GIT_CONFIG_GLOBAL too, so the same file satisfies  ##
+    ## both mechanisms                                                     ##
+    my $safe_cfg = sprintf '%s/cfg/git/safe-directory.config',
+        <system.root_path>;
+    $ENV{'GIT_CONFIG_GLOBAL'} = $safe_cfg if -f $safe_cfg;
 }
 
 ## set up zenka paths as root [ correct ownership ] ##
@@ -712,8 +722,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,,,,...,.,.,,,,,.,.,.,.,.,.,,.,,,..,,..,.,.,...,...,...,,.,,...,,,,,...,
-#QZBBJLU3ZLGMLJNM2LURZ6KL2ZBASDATTXV5KTABIXIBUSEMYLAWE4FJCDF2CBGPATBG3LFLOQZG4
-#\\\|BU4CCE4JGC74MZWQWVYVHC4TBE6Q2PBKUF3S4ZCDDFBU2BU3FAF \ / AMOS7 \ YOURUM ::
-#\[7]IQNU64O7IDQDJP37ICC6I6LHOQZJCYVCBLUADTYSQQ3CBP5FHODA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,..,,,,,,...,.,,,,,.,,.,,.,,,.,.,...,...,,.,,,.,,,..,.,,,.,.,
+#UGJJVTJTEEE3DFYP4BOFA6A6RS2AOPRBBADISUBUCCUXIA4UUNE2JEJTWHCPG7OHAIDMR63SI5ZYA
+#\\\|SZ6CPT4OQRCE4ZG2RSIUWTDKGK7WXB5HHH7KQNSQ3AVVQ7RFBHP \ / AMOS7 \ YOURUM ::
+#\[7]DOD62J5P6L7VLOW35KQDRXTM3VTP4SMZKTJUUHOZOXIQ44UHEQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
