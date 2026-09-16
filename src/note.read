@@ -5,8 +5,8 @@
 
 my ( $task_id, $level ) = @ARG;
 
-$task_id //= <system.task_id> // 'unknown';
-$level   //= 'L3';                            ## default to full workspace ##
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
+$level //= 'L3';    ## default to full workspace ##
 
 my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
 my $task_dir = "$base_dir/$task_id";
@@ -71,8 +71,8 @@ return {
     }
 };
 
-#,,..,...,,,,,,,,,,,,,,,,,,,.,,.,,,,.,,..,.,,,.,.,...,...,.,.,,.,,,,.,,.,,.,.,
-#SLTQHW525BDWPYV4T2GWLBQM3XDJCCN4RR6JSSJSWMNRWIF5Y4OE2227FSGIA7L6E3KKLN3FZO7RU
-#\\\|JN4AQGQ3IU5OZWI5AALBDFBYCC4HQ7JJC7NNWVMR65EHWFLQHDO \ / AMOS7 \ YOURUM ::
-#\[7]KSEQ32HSMNVOKIVEZKWHSCKHJ6CZVKNRLOA35ZJMV4M3OVOY6ODQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,.,.,..,,...,..,,,.,,.,,,,,.,.,.,...,.,,,,..,.,.,.,,,,,,,,,,,
+#JDIDOGKRJ3IVLF2LLKN2KY26U6GVMFQ4SBQVUP4UXGQ53GECIKGSUOR4C6VSAZIPPWPOST3S2V644
+#\\\|VTDCP5RMSVRIELC2LZOQNAUBF33OCTTMIVXAO5RLA4MT2TLITIE \ / AMOS7 \ YOURUM ::
+#\[7]XEUGRRK26RPLGBSUMHJ2Z2SXPFJQX456ONA3BRI33MIQMZ7PVEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

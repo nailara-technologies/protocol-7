@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = coding.tools.handler.vax_int_convert
+# descr = convert between a plain integer and its p7 vax-int encoding
+
+my $args = shift // {};
+
+my $value = $args->{'value'};
+
+return { 'content' => 'value required' }
+    unless defined $value && length $value;
+
+if ( $value =~ m|^\d+$| ) {
+    return {  'content' => "value $value is out of vax-int range "
+            . '[ 0..4294967295 ]' }
+        if $value > 4294967295;
+
+    my $encoded = <[base.vax-int.encode]>->($value);
+    return { 'content' => "numeric=$value  vax-int=$encoded" };
+}
+
+my $decoded = <[base.vax-int.decode]>->($value);
+return { 'content' => "not a recognized vax-int or plain integer: $value" }
+    if not defined $decoded or $decoded eq $value;
+
+return { 'content' => "vax-int=$value  numeric=$decoded" };
+
+#,,,,,..,,..,,...,.,.,..,,..,,,..,,.,,,,.,.,.,.,.,...,...,..,,.,,,,,,,,.,,...,
+#LN7YQPOTZCR44Z5HWTWNINGFLCCCSEAIWZRYEUYG7JNFMDJF5TH6R5YQ6QDQGIPL24EJCB24PLPD2
+#\\\|GSWCXQQP7G75G6WRGPPE6XLA4VMGHRYMTMFW53E5CLG2HXXJU4U \ / AMOS7 \ YOURUM ::
+#\[7]3GCHGSCWDBEHO2BKJWYYJFGEJPZTDPMYYKSGZPX677RZZ24IQICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

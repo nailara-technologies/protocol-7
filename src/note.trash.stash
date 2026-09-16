@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = note.trash.stash
+# descr = xz+base32 a note section's current content into trash, if it
+#         exists -- shared backup primitive used by note.delete, note.merge
+#         and note.update so any operation that removes or overwrites a
+#         section leaves a recoverable copy behind [ see note.trash.rescue ]
+
+my ( $task_id, $section ) = @ARG;
+
+return undef unless defined $task_id && length $task_id;
+return undef unless defined $section && length $section;
+
+$task_id = <[note.util.safe_id]>->($task_id);
+$section =~ s|[^a-zA-Z0-9._-]|_|g;
+
+my $base_dir = <[file.zenka_dir.data_path]> . "/notes/$task_id";
+my $md_path  = "$base_dir/workspace/$section.md";
+return undef unless -f $md_path;
+
+<[base.perlmod.autoload]>->('IO::Compress::Xz');
+
+my $trash_dir = "$base_dir/trash";
+<[file.path.make_dir]>->($trash_dir) unless -d $trash_dir;
+
+my $content = <[file.read]>->($md_path) // '';
+utf8::encode($content) if utf8::is_utf8($content);
+
+## base32 wrapping keeps the payload safe for file.write's UTF-8 text mode ##
+## [ same reason jobsite.job.write base32-wraps its xz trash ]             ##
+my $compressed;
+IO::Compress::Xz::xz( \$content, \$compressed )
+    or return undef;
+my $b32 = <[base32.encode]>->($compressed);
+
+my $ntime    = <[base.ntime]>;
+my $trash_fn = "$trash_dir/$section.$ntime.mxz.B32";
+<[file.write]>->( $trash_fn, $b32 )
+    or return undef;
+
+return $trash_fn;
+
+#,,..,,..,,,,,,.,,,,,,..,,..,,...,...,,,.,.,,,.,.,...,...,,..,.,.,,..,,..,..,,
+#AWEF7L7FYBH3SFH2VWA2YTVDYYE5Y5OWCHGGFQRQG3SWIM3ZFECBQYKXCDCV2YPDMS53J5MDCT46Q
+#\\\|QRGLONCUS2GJ622WAY6GFPIADESXIENEOUEC6DQAI6SCUK6E3Y2 \ / AMOS7 \ YOURUM ::
+#\[7]UPUNGBMPOK74CEF2SU3IHYD2YFDTCOMLXVJJHCENNRH5LHRB4MDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

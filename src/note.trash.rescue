@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = note.trash.rescue
+# descr = restore a trashed note section back into the live workspace
+
+my ( $task_id, $section, $ntime ) = @ARG;
+
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
+
+return { 'mode' => qw| false |, 'data' => 'section required' }
+    unless defined $section && length $section;
+
+my $base_dir  = <[file.zenka_dir.data_path]> . "/notes/$task_id";
+my $trash_dir = "$base_dir/trash";
+
+return { 'mode' => qw| false |, 'data' => "no trash for task: $task_id" }
+    unless -d $trash_dir;
+
+my $clean_section = $section;
+$clean_section =~ s|[^a-zA-Z0-9._-]|_|g;
+
+## find candidate trash files for this section ##
+my @candidates = <[file.glob]>->("$trash_dir/$clean_section.*.mxz.B32")->@*;
+return {
+    'mode' => qw| false |,
+    'data' => "nothing trashed for section: $section"
+    }
+    unless @candidates;
+
+my $pick;
+if ( defined $ntime && length $ntime ) {
+    ($pick) = grep { $ARG =~ m|\Q$ntime\E\.mxz\.B32$| } @candidates;
+    return {
+        'mode' => qw| false |,
+        'data' => "no trash entry at ntime $ntime"
+        }
+        unless defined $pick;
+} else {
+    ## most recently trashed copy, by mtime ##
+    my @with_stat = map {
+        {   'path'  => $ARG,
+            'mtime' => ( File::stat::stat($ARG) // {} )->mtime // 0
+        }
+    } @candidates;
+    @with_stat = sort { $b->{'mtime'} <=> $a->{'mtime'} } @with_stat;
+    $pick      = $with_stat[0]->{'path'};
+}
+
+<[base.perlmod.autoload]>->('IO::Uncompress::UnXz');
+
+my $b32 = <[file.read]>->($pick);
+return { 'mode' => qw| false |, 'data' => 'failed to read trash entry' }
+    unless defined $b32;
+
+my $compressed = <[base32.decode]>->($b32);
+return { 'mode' => qw| false |, 'data' => 'base32 decode failed' }
+    unless defined $compressed;
+
+my $content;
+IO::Uncompress::UnXz::unxz( \$compressed, \$content )
+    or return {
+    'mode' => qw| false |,
+    'data' => "xz decompress failed: $IO::Uncompress::UnXz::UnXzError"
+    };
+
+my $workspace_dir = "$base_dir/workspace";
+<[file.path.make_dir]>->($workspace_dir) unless -d $workspace_dir;
+my $target = "$workspace_dir/$clean_section.md";
+
+if ( -f $target ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "'$clean_section' already exists live for $task_id "
+            . "-- rescue would overwrite it, not attempted"
+    };
+}
+
+<[file.write]>->( $target, $content )
+    or return {
+    'mode' => qw| false |,
+    'data' => 'failed to write restored section'
+    };
+
+unlink $pick;
+
+<[base.logs]>->(
+    1,              "note.trash.rescue: restored section '%s' for %s",
+    $clean_section, $task_id
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'task_id' => $task_id,
+        'section' => $clean_section,
+        'message' => "restored section '$clean_section' for $task_id",
+    }
+};
+
+#,,.,,.,.,,,,,,,.,,,.,...,.,.,.,.,.,,,,,,,..,,.,.,...,.,.,.,,,...,,,,,,,.,,.,,
+#VQ2QIT45PCVBFJQFKPKQWMREUF5JDRETRGRFX4TXXCZ5EJZU6TSVCFD5PN5HLTCJMJ7RHQSOM2FDU
+#\\\|GFQITK47RC4IX4DCB5567WEF2PPEFWGO5ZHGEQV6WHK4JY34PVT \ / AMOS7 \ YOURUM ::
+#\[7]G7FJ3ODHBOU5FERIJAGJOFFUVLDJVJDP6MYUUSQZK27C57D7BGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

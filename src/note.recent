@@ -67,7 +67,8 @@ my @lines;
 for my $entry (@entries) {
     my $age
         = defined $entry->{'last_update'}
-        ? <[base.parser.duration]>->( $entry->{'last_update'} ) . ' ago'
+        ? <[base.parser.duration]>
+        ->( $entry->{'last_update'}, undef, 'ntime' ) . ' ago'
         : '?';
     push @lines,
         sprintf( "%s/%s [%s] %s",
@@ -83,8 +84,8 @@ return {
     'data' => length $result_str ? $result_str : 'no recent notes found',
 };
 
-#,,.,,...,,,,,...,,,.,,..,...,.,,,,,.,..,,,..,.,.,...,...,.,.,...,.,,,,,,,..,,
-#WEQBBNJATS4JTSDKTOOYD6DB4LFBTQDKEPJB5LGNNREYKWC2UGH64TSGOWCXZTE6AZCKTCXWHKG3A
-#\\\|4H56PMHNOHAX7WJPUERYLM4GGYVWXRX7UH6FLSKZ4MBGKJ3EJRX \ / AMOS7 \ YOURUM ::
-#\[7]UBZCIQZXEHPZTPYN73KMZ5DHTKLETVCXFMSUYK2W63TBRK56VMDI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,,,.,.,,,,,.,.,,,,..,,,,,,..,.,.,...,..,,.,.,,,,,,..,,..,.,,,
+#2YTOS2ZPBJTDOID4RSDMMNVIOQJ2PISEKHPXUUXTLQFUM2QFSM5VS6LEK4DX6VSLVTTBVC4TZO46I
+#\\\|SPT4ZBDZBLOFG642ZRBAAVKIN56MJSPGP2BOZ5MU7OL4FXHCOOE \ / AMOS7 \ YOURUM ::
+#\[7]TXUM53PKWBFBWT4FRKZQOPMNLEYLU4KHEJBQUUP2ITLBDFGKZEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

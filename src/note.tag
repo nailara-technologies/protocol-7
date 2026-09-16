@@ -11,7 +11,7 @@ return { 'mode' => qw| false |, 'data' => 'section required' }
 return { 'mode' => qw| false |, 'data' => 'tags required' }
     unless defined $tags_str && length $tags_str;
 
-$task_id //= <system.task_id> // 'unknown';
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
 
 ## sanitize section name ##
 $section =~ s|[^a-zA-Z0-9._-]|_|g;
@@ -53,7 +53,7 @@ for my $tag (@tags) {
     }
 }
 
-$meta->{'last_update'} = <[base.time]>->(3);
+$meta->{'last_update'} = <[base.ntime]>;
 <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
 
 <[base.logs]>->(
@@ -71,8 +71,8 @@ return {
     }
 };
 
-#,,.,,..,,.,.,.,,,,,,,,,.,,,.,,..,,..,.,.,,..,.,.,...,..,,...,.,,,,,,,,,,,.,.,
-#BQ5EHYISHAWPFPM2EG4RAAMM2IHI6TADJK56KIYVHFEECQEKPP4SIPLMNTX27HXKCRJL7NDLKEEOG
-#\\\|CCBPF4Z736JMPA42FOTLX7SO6IFL732X5W2W2WYVVJP2MFIP6XZ \ / AMOS7 \ YOURUM ::
-#\[7]5NFQB7KN74JGLNLJNJEFRHHRYMEGPLLS5CWJKL4TJHSTELUXVIDA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,..,,,..,,..,.,,,.,.,,,,,...,.,.,...,...,.,.,...,,,,,.,.,.,,,
+#5PPY7GAKDCXPVKBS5EXD55BBC5NDQLA5FUHMAYBEOTOLI2W3TR5OAVPTKIZSNHV4JGUUGTX4T6KY4
+#\\\|VIH6CC7F6FX7PAANF7BBR4T66XRCULNALC67F435NLAHNGZ7D7V \ / AMOS7 \ YOURUM ::
+#\[7]O3EXUPUSR6YDZLFSAQWFTCMENFDP334ETYHYVIMU5EKSCFQIYYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
