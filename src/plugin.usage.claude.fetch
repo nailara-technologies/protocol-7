@@ -11,6 +11,7 @@ my $args = shift // {};
 
 my $on_result = $args->{'on_result'} // '';
 my $params    = $args->{'params'}    // {};
+my $retried   = $args->{'retried'}   // FALSE;
 
 my $provider = <usage.provider.claude>;
 
@@ -69,6 +70,7 @@ $provider->{'pending'}->{$req_id} = {
     'on_result' => $on_result,
     'params'    => $params,
     'started'   => time,
+    'retried'   => $retried,
 };
 
 ## max_tokens=0 is the normal, reliable, genuinely free path here [ live-   ##
@@ -121,8 +123,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,.,,,,,.,.,,.,,,.,,.,.,.,,,.,.,,,,,,..,.,,,..,,...,..,,.,.,.,,,,.,,,..,.,,,
-#63TK65WHQ4OFSUXR6G36H54YROCQVRCXMNVCKTA3JER6WU5FJR7DK5E7MIJVT4WRKKKNN7CW63E5C
-#\\\|UWBOPAHPAMZL3ZDJDCGHV2EKYCDHJOPFSJ2FU5VCDESH2ZPKHEJ \ / AMOS7 \ YOURUM ::
-#\[7]ZDQUYCIAQDJMN3YTU7U2SU2RQKUMARSPLRRZXWUZ5VREJYNX46AI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,...,,.,,.,,,..,,,,,,,,,,.,.,..,,...,...,..,,,.,,,.,,...,,..,
+#TLFOC463GWZJ73OLJNOHWV3RAVVRG7XL6GAY3A3BUHTPHJJTAVLMZYNMSAZAMCIBYQTJO2WTWMXGA
+#\\\|4POTGMQJ7ZC2OM7R4HBEFMQRAWNXBIXF2DD7REP4PZZ5DU25CV3 \ / AMOS7 \ YOURUM ::
+#\[7]QH2IIKUFDWFVSJFA3HKHC4X4YMF7DFWVKKDOXTL246OB4YTTT4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

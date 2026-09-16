@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = plugin.usage.claude.refresh_finish
+# descr = shared teardown dispatcher for the refreshing claude child : cancels
+#         the still-armed watchers, then either reaps an already-dead child
+#         [ eof ] or opens the graceful-exit escalation [ ctrl-d, then
+#         sigterm, then sigkill -- see plugin.usage.claude.refresh_token's
+#         module note ]. named handler, not a coderef closure -- all state
+#         resolves from the single-slot
+#         <usage.provider.claude>{'refresh_state'}.
+# param = <how> : eof | error | timeout
+
+my $how = shift // qw| timeout |;
+
+my $provider = <usage.provider.claude>;
+my $state    = $provider->{'refresh_state'} // return TRUE;
+
+foreach my $w ( $state->{'io_w'}, $state->{'timer_w'} ) {
+    $w->cancel if defined $w;
+}
+
+if ( $how eq qw| eof | ) {
+    ## pty closed : already gone or exiting on its own -- a plain blocking ##
+    ## reap is correct here precisely BECAUSE eof means the child is       ##
+    ## already dead, waitpid returns instantly                             ##
+    <[base.waitpid]>->( $state->{'pid'}, 0 );
+    <[plugin.usage.claude.refresh_cleanup]>->(qw| eof |);
+} else {
+    ## the same byte an interactive user's own ctrl-d keypress would send --
+    ## the one most likely to reach claude code's own clean-shutdown \ flush
+    ## path rather than just killing it outright [ same discipline as
+    ## pty.spawn, made non-blocking here -- see refresh_reap ]
+    syswrite( $state->{'fh'}, "\x04" );
+
+    $state->{'stage'}      = qw| ctrl_d |;
+    $state->{'soft_end'}   = time() + 3;
+    $state->{'reap_timer'} = <[event.add_timer]>->(
+        {   'interval' => 0.1,
+            'desc'     => 'claude refresh reap poll',
+            'handler'  => qw| plugin.usage.claude.refresh_reap |,
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,.,,,,.,,,,,,,,,,.,.,,,.,.,.,,.,,.,.,.,,,..,,...,...,.,,,,.,,,.,,,.,,.,.,
+#HMNK2XTQUQB6HGWQ5ABPUTSOOBF7SNQYXMDAXJWG5BAFT2ODWOSQLF5WEISUKB4T6QNM5U3K2FDW4
+#\\\|Q4IVPY4DYKSEFU4NRSQ45MG3T7SMOPK5RJOSCVZN7CB5AIB3DDQ \ / AMOS7 \ YOURUM ::
+#\[7]RFX7XIKGHGIWZLUK734FTWYXTN57LOE4DRCVG36OLNYLLKOHIOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

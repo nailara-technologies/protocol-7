@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = plugin.usage.claude.refresh_reap
+# descr = non-blocking reap poll during a claude refresh shutdown : each 0.1s
+#         tick tries waitpid WNOHANG. escalates through three stages -- ctrl-d
+#         [ 3s grace ], sigterm [ 2s grace ], sigkill [ immediate reap, a
+#         sigkill'd process is gone right away -- the d-state corner is not
+#         worth a fourth watcher tier ] -- same discipline as pty.spawn, made
+#         async. named handler, not a coderef closure -- state resolves from
+#         the single-slot <usage.provider.claude>{'refresh_state'}.
+
+my $state = <usage.provider.claude> {'refresh_state'} // return TRUE;
+
+if ( <[base.waitpid]>->( $state->{'pid'} ) == $state->{'pid'} ) {
+    <[plugin.usage.claude.refresh_cleanup]>
+        ->( $state->{'stage'} // qw| terminated | );
+    return TRUE;
+}
+
+return TRUE if time() < ( $state->{'soft_end'} // 0 );
+
+if ( $state->{'stage'} eq qw| ctrl_d | ) {
+    kill( 'TERM', $state->{'pid'} );
+    $state->{'stage'}    = qw| sigterm |;
+    $state->{'soft_end'} = time() + 2;
+    return TRUE;
+}
+
+kill( 'KILL', $state->{'pid'} );
+<[base.waitpid]>->( $state->{'pid'}, 0 );
+<[plugin.usage.claude.refresh_cleanup]>->(qw| killed |);
+
+return TRUE;
+
+#,,.,,.,,,..,,..,,..,,,,,,...,...,..,,,.,,,,,,..,,...,...,.,.,...,.,,,,..,,,,,
+#2WKBSG3ZDF5RUQC722HCSRMYYKBDIY344ILZ7J45Z62I3DRZ3LVFI7ZC5OGQEJ5E5UWNI6LPF2UEW
+#\\\|P2S3DHRWVIVHTPQF3ZM67RWYNUJY67JIAZGER4KPLQIPP4XYD3C \ / AMOS7 \ YOURUM ::
+#\[7]LABNJBAJGVCGSU2KZK4BOBRUMBP5FA7YTH5LEPNKIGEL3FSGGOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

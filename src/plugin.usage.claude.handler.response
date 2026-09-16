@@ -30,6 +30,48 @@ my $deliver = sub {
 my $headers = $result->{'headers'} // {};
 my $status  = $result->{'status'}  // 0;
 
+## a rejected local oauth token surfaces as a plain 401, never as a         ##
+## documented field in the body or headers -- confirmed live 2026-09-16 :   ##
+## the local credential file's own expiresAt claimed ~97 minutes of         ##
+## validity left while the api answered 401 regardless, so unlike           ##
+## plugin.usage.kimi.handler.response [ which checks a locally computed     ##
+## expiry ] this checks the actual http status. first failure on a 401 :    ##
+## refresh [ free -- see plugin.usage.claude.refresh_token -- claude code's ##
+## own startup cycle renews its oauth token before any prompt is ever       ##
+## submitted ] and retry ONCE, transparently, before bothering the caller   ##
+## with an error -- same pattern as plugin.usage.kimi.handler.response      ##
+if ( $status == 401 and not $pending->{'retried'} ) {
+    <[base.logs]>->(
+        1,
+        'usage [ claude ] : token rejected [ 401 ], '
+            . 'refreshing via claude cli and retrying once ..,'
+    );
+
+    my $refresh_started = <[plugin.usage.claude.refresh_token]>->(
+        undef,
+        {   'on_done' => {
+                'handler' => qw| plugin.usage.claude.refresh_retry |,
+                'params'  => {
+                    'on_result' => $on_result,
+                    'params'    => $pending->{'params'},
+                },
+            },
+        }
+    );
+
+    ## refresh already running [ single slot ] : still schedule the retry  ##
+    ## -- worst case the token lands mid-retry, it 401s once more, and the ##
+    ## real error path below reports honestly on the next round            ##
+    if ( not $refresh_started ) {
+        <[plugin.usage.claude.refresh_retry]>->(
+            {   'on_result' => $on_result,
+                'params'    => $pending->{'params'},
+            }
+        );
+    }
+    return;
+}
+
 my $prefix = 'anthropic-ratelimit-';
 
 if (    not defined $headers->{ $prefix . 'unified-status' }
@@ -42,12 +84,14 @@ if (    not defined $headers->{ $prefix . 'unified-status' }
     return $deliver->(
         {   'ok'    => FALSE,
             'error' => sprintf(
-                'no rate-limit headers in response [ http status '
-                    . '%d%s ] -- max_tokens=0 may have stopped working',
+                'no rate-limit headers in response [ http status %d%s ]%s',
                 $status,
-                length( $result->{'error'} // '' )
-                ? ', ' . $result->{'error'}
-                : ''
+                length( $result->{'error'} // '' ) ? ', ' . $result->{'error'}
+                : '',
+                ( $status == 401 and $pending->{'retried'} )
+                ? ' -- local token was rejected, a refresh '
+                    . 'was already attempted and did not help'
+                : ' -- max_tokens=0 may have stopped working'
             ),
         }
     );
@@ -113,8 +157,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,,,,...,.,,,,..,,.,,.,.,...,.,.,,..,,..,,,.,..,,...,..,,...,...,...,,,,,.,,,
-#4HRL4DJYHT6J55642NHWLRJCLVB4O4P2ABRMZKLVSZ2FCQSP4PTTATGAHLNLJL6JMMF276MT75GI6
-#\\\|I3ZXSGK3GMPRMWJDYH55EOUH6LMPEEB7JJ2EAZTD76J2VWPJ7BF \ / AMOS7 \ YOURUM ::
-#\[7]P6WOXTSWH2FCAJTCSH5DRKPWM6ACHI4CLVKCEIDSYMEMDQXM4YCA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,...,,.,,,..,,,.,,..,..,,.,,,..,,...,...,.,.,,.,,,.,,,.,,,..,
+#IOSKY4DNYMMSHOZUAUW6NRK7HKBBCJRHM5NUAZNOJNQPW5BKOGSI3YLHEQCKF6WV74CE5XLR4UKOI
+#\\\|CHW4SO7PKGQEJOTGZ4WDMYITE2LV7QFMRMXEYRN2FMKMIDOUR5L \ / AMOS7 \ YOURUM ::
+#\[7]PWTRGEVPD2DJZCAIEYKBCURW7EQ2DVHEHWLIDQFLZ4WFGR66Z6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
