@@ -1,10 +1,30 @@
 ## [:< ##
 
 # name  = coding.tools.handler.git_diff_output
-# descr = git diff output [ staged or unstaged ] via Git::Native FFI
+# descr = git diff output [ staged or unstaged ]
+#
+## routed through the git binary [ Git::Wrapper ] rather than
+## Git::Native::Diff : the native diff entry points corrupt process-global FFI
+## state after the FIRST call in any long-running process [ second call dies
+## 'invalid version <garbage> on git_diff_options' -- reproducible in a
+## one-shot perl, owner-independent ] and the root cause is untraced. the
+## binary path honors the safe.directory env vars coding.init_code sets, so
+## the service-user [ protocol-7 ] ownership case is covered. Git::Wrapper
+## passes diff args through RAW [ no Smart parser on diff ].
 
-my $git_args   = shift // '';            ## kept for signature compat; unused
-my $stage_type = shift // 'unstaged';    ## 'staged' or 'unstaged' ##
+my $first = shift // {};
+
+## two calling shapes : the sibling handlers pass  ( $git_args,
+## 'staged'|'unstaged' ) positionally, while a direct call-tool invocation
+## delivers one args hashref instead
+my ( $git_args, $stage_type );
+if ( ref $first eq qw| HASH | ) {
+    $git_args   = $first->{'git_args'} // '';
+    $stage_type = ( $first->{'staged'} // 0 ) ? qw| staged | : qw| unstaged |;
+} else {
+    $git_args   = $first;
+    $stage_type = shift // qw| unstaged |;
+}
 
 my $root = <system.root_path>;
 
@@ -16,16 +36,12 @@ unless ( -d "$root/.git" ) {
     };
 }
 
+my @diff_args = $stage_type eq 'staged' ? ('--cached') : ();
 my $diff_text = '';
 my $error     = '';
 eval {
-    require Git::Native;
-    require Git::Native::Diff;
-    my $repo = Git::Native->open($root);
-    $diff_text
-        = $stage_type eq 'staged'
-        ? Git::Native::Diff->staged_patch($repo)
-        : Git::Native::Diff->workdir_patch($repo);
+    my $git = Git::Wrapper->new($root);
+    $diff_text = join "\n", $git->diff(@diff_args);
     1;
 };
 if ($EVAL_ERROR) {
@@ -42,8 +58,8 @@ return {
     'data' => $diff_text
 };
 
-#,,.,,..,,.,.,.,.,...,.,.,..,,.,.,..,,...,,,,,..,,...,...,,..,...,...,..,,,,.,
-#A5Q5GOR5TWJVRXURFFQ3KFEHDLRXJFIDMFN653OALNN5ZVQKRAVXMWNAE6YWPV2QB4MQNWYNXYMKQ
-#\\\|5UEDR2RIIGSX6X7LFF3GLRJA4LY3UH32AHGDUI2NRB5XRE25HLU \ / AMOS7 \ YOURUM ::
-#\[7]UOEPZTUSZI235RBWVEGRXQH45U3VPJGVASXL4E7M2GX35TNQ64BI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,...,...,...,,..,,,,,..,,,..,.,.,...,...,..,,,,.,.,.,,,.,..,,
+#DNQK2SOHJVV6CPWS4AWJFSTQQFOBN3TH23GDWF6FO73XB4YU6KTOFXTVACDKDY7CRXZ2QU7LOUNKE
+#\\\|4JGB4KDQ2FZVX3EEYNCFAQVQTE42XHB4QJOQ4VCJF75GVEPWTZK \ / AMOS7 \ YOURUM ::
+#\[7]KFFILRXTXEXVJZUI4O7UW7B3ODNLY6ML4P652LS327457KL6BQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

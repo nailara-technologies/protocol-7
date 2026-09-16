@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = git.native.open
+# descr = open a repository through Git::Native with
+#         GIT_REPOSITORY_OPEN_FROM_ENV so libgit2's ownership validation
+#         actually consults the environment [ GIT_CONFIG_GLOBAL /
+#         GIT_CONFIG_SYSTEM ] -- plain Git::Native->open maps to
+#         git_repository_open, which passes only GIT_REPOSITORY_OPEN_NO_SEARCH
+#         and never sets the repo's use_env flag, so the safe.directory entry
+#         in cfg/git/safe-directory.config stays invisible to service-user
+#         zenki [ coding runs as protocol-7, the repo is taeki's ] and every
+#         native open dies with GIT_EOWNER 'repository path is not owned by
+#         current user'. verified against the libgit2 1.9.7 source :
+#         validate_ownership -> validate_ownership_config ->
+#         load_global_config(config, use_env) -> config_path_global only
+#         reads GIT_CONFIG_GLOBAL when use_env [ FROM_ENV flag ] is set.
+# param = [ path ]  [ default <system.root_path> ]
+
+my $path = shift // <system.root_path>;
+
+require Git::Native;
+
+## NO_SEARCH keeps Git::Native->open's exact discovery semantics [ it also
+## passes NO_SEARCH ] ; FROM_ENV [ 1 << 4 ] turns on use_env. the binding does
+## not export the constants -- values from libgit2's
+## include/git2/repository.h v1.9.7
+my $open_flags = ( 1 << 0 ) | ( 1 << 4 );
+
+return Git::Native->open_ext( $path, 'flags' => $open_flags );
+
+#,,,.,,,,,,,.,,,.,.,,,,..,.,,,,,.,,,.,,..,,,,,.,.,...,...,,.,,..,,,,.,,,.,.,.,
+#V4MH5BX5ZZZR24ZJY52Z7HWXNSKKXQ6YDVR6ZZFO7JTDIUI7RPJY6EQ3L2ID3SSW6ZWRMIAIF6C4E
+#\\\|6XFY3OXTZJVBPBPTJZ3RQFL264HITJHZZPWZ2KJDESAWZRDZEF7 \ / AMOS7 \ YOURUM ::
+#\[7]4DHBTAUDYKDZBPEZJNZB3OTYWYFPLFOQZQHSUVCHES4T4XAGG2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
