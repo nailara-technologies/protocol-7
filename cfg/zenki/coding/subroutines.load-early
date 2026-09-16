@@ -53,6 +53,7 @@ ui.layout.fit
 ui.budget.tty
 net.init_code
 net.calc_port
+base.u2n_time
 base.timezone
 base.sprint_t
 base.sort-num
@@ -99,6 +100,7 @@ storage.9p.open
 plugin.auth.pwd
 pager.source.9p
 pager.init-code
+note.trash.list
 note.categorize
 net.read_binary
 ncode.init_code
@@ -131,6 +133,8 @@ storage.9p.mount
 storage.9p.clunk
 plugin.auth.unix
 pager.sort.chain
+note.trash.stash
+note.trash.prune
 ncode.regex.save
 ncode.regex.load
 models.init_code
@@ -168,6 +172,8 @@ storage.9p.create
 storage.9p.attach
 plugin.auth.zenka
 pager.buffer.page
+note.util.safe_id
+note.trash.rescue
 net.read_bytewise
 ncode.regex.apply
 jobqueue.pre_init
@@ -272,6 +278,8 @@ coding.cmd.restream
 coding.cmd.progress
 coding.abort.remove
 coding.abort.lookup
+base.vax-int.encode
+base.vax-int.decode
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -343,6 +351,8 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.chk-sum.jha.hex
+base.chk-sum.jha.b32
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
@@ -401,6 +411,7 @@ base.event.add_signal
 base.dependency.setup
 base.console.commands
 base.cmd.buffer-erase
+base.chk-sum.jha.b64u
 base.cfg.profile.list
 base.balanced-average
 ascii.frame.slot.bind
@@ -690,6 +701,7 @@ base.handler.session_error
 base.file.read_timestamped
 base.event.io_idle_restart
 base.dependency.add_object
+base.chk-sum.jha.init_code
 base.chk-sum.bmw.chain_L13
 base.check_dependency_dirs
 storage.visual.util.extract
@@ -805,6 +817,7 @@ context.pattern.generate_name
 coding.tools.handler.perltidy
 coding.tools.handler.note_tag
 coding.tools.handler.escalate
+coding.tools.handler.checksum
 coding.spawn_inference_server
 coding.routing.select_backend
 coding.routing.decide_service
@@ -821,6 +834,7 @@ coding.callback.retry_request
 coding.callback.http_complete
 base.validate.data_key_syntax
 base.source.collect_file_list
+base.ntime.b32_is_shape_valid
 base.handler.ondemand_timeout
 base.handler.ondemand_startup
 base.handler.deferred_compile
@@ -932,6 +946,7 @@ base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
+base.chk-sum.jha.b32.harmonized
 storage.unix.handler.amos-chksum
 plugin.storage.checksum.map-file
 pager.util.filter.item_to_number
@@ -952,6 +967,7 @@ coding.tools.handler.remove_file
 coding.tools.handler.read_module
 coding.tools.handler.note_update
 coding.tools.handler.note_search
+coding.tools.handler.note_rescue
 coding.tools.handler.note_recent
 coding.tools.handler.note_filter
 coding.tools.handler.note_delete
@@ -1041,6 +1057,7 @@ coding.tools.handler.task_complete
 coding.tools.handler.subtask_spawn
 coding.tools.handler.search_memory
 coding.tools.handler.recent_errors
+coding.tools.handler.ntime_convert
 coding.tools.handler.decode_base32
 coding.tools.handler.ask_user_text
 coding.self_test.cmd.self-test-run
@@ -1096,6 +1113,7 @@ context.util.tree.generate_narrative
 context.pattern.generate_description
 context.pattern.calculate_confidence
 coding.util.multiplier.percentile_95
+coding.tools.handler.vax_int_convert
 coding.tools.handler.validate_module
 coding.tools.handler.replace_in_file
 coding.tools.handler.note_categorize
@@ -1147,6 +1165,7 @@ context.util.tree.calculate_relevance
 context.util.template.substitute_vars
 coding.tools.handler.write_with_perms
 coding.tools.handler.task_file_search
+coding.tools.handler.note_prune_trash
 coding.tools.handler.list_inline_subs
 coding.tools.handler.git_restore_file
 coding.tools.handler.embedding_search
@@ -1187,6 +1206,7 @@ coding.tools.handler.summarize_enqueue
 coding.tools.handler.summarize_context
 coding.tools.handler.suggest_new_topic
 coding.tools.handler.scratchpad_rescue
+coding.tools.handler.note_list_trashed
 coding.tools.handler.git_diff_unstaged
 coding.handler.inference_crash_restart
 coding.handler.http_data_start_timeout
@@ -1286,8 +1306,8 @@ llm.service.consensus_vote.encode_harmonic_certainty
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,,.,.,,,,,,,..,,...,,,,,,,,,.,,,,..,,..,,.,,..,,...,...,...,.,,,,.,,,,,,.,.,
-#6LDWRFF4XQ4KC72ERIUZB5X7KFDICFIKRAGMIT6GGKC76OTVWT6DIFI5M6MEOGXGSIIW4RPRX2EPA
-#\\\|7QJZNGB4MZUDYWH7SASTRR7LXP4GRMYKCMWCLGSFMJCKM5TFORG \ / AMOS7 \ YOURUM ::
-#\[7]3VNAXUJUYF2VSP3XHVTKCUEXO5JUACNTQ5ILRFMXAAI6NM6MGIDA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,.,.,...,.,.,.,.,.,.,.,.,,,.,..,,...,...,..,,.,,,..,,.,,,.,,,
+#IZGQYQXAMV4ZR5DX2CWVTLPWM52ZEJLFCVPGWMLCJ4QQ32UFXGB4ANSGZRU6YKJ5RU3K3BWNU2J5E
+#\\\|NARREBMVHAVCQZ3E6UN3OMPFPIQEJI43M55S4B4SNG5DSSQTGA5 \ / AMOS7 \ YOURUM ::
+#\[7]NCKKWW3DM5OQJL7AOVLPNWNFF7V3TEZQEQDFQCMBVTPU2PCCKQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

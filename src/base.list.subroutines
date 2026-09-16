@@ -126,6 +126,7 @@ return [ qw[
         cube.cmd.time
         branch.detach
         branch.attach
+        base.u2n_time
         base.timezone
         base.term.ask
         base.sprint_t
@@ -277,6 +278,7 @@ return [ qw[
         p7-log.add_line
         notify.cmd.warn
         notify.cmd.info
+        note.trash.list
         note.categorize
         nodes.init_code
         net.read_binary
@@ -394,6 +396,8 @@ return [ qw[
         nshell.init_code
         notify.init_code
         notify.cmd.loves
+        note.trash.stash
+        note.trash.prune
         nessus.init_code
         ncode.regex.save
         ncode.regex.load
@@ -560,6 +564,8 @@ return [ qw[
         nshell.state_init
         nshell.state.init
         nshell.shell_loop
+        note.util.safe_id
+        note.trash.rescue
         net.read_bytewise
         ncode.regex.apply
         ncode.cmd.suggest
@@ -3677,6 +3683,7 @@ return [ qw[
         coding.tools.handler.perltidy
         coding.tools.handler.note_tag
         coding.tools.handler.escalate
+        coding.tools.handler.checksum
         coding.spawn_inference_server
         coding.routing.select_backend
         coding.routing.decide_service
@@ -4328,6 +4335,7 @@ return [ qw[
         coding.tools.handler.read_module
         coding.tools.handler.note_update
         coding.tools.handler.note_search
+        coding.tools.handler.note_rescue
         coding.tools.handler.note_recent
         coding.tools.handler.note_filter
         coding.tools.handler.note_delete
@@ -4679,6 +4687,7 @@ return [ qw[
         coding.tools.handler.subtask_spawn
         coding.tools.handler.search_memory
         coding.tools.handler.recent_errors
+        coding.tools.handler.ntime_convert
         coding.tools.handler.decode_base32
         coding.tools.handler.ask_user_text
         coding.self_test.cmd.self-test-run
@@ -4955,6 +4964,7 @@ return [ qw[
         context.pattern.generate_description
         context.pattern.calculate_confidence
         coding.util.multiplier.percentile_95
+        coding.tools.handler.vax_int_convert
         coding.tools.handler.validate_module
         coding.tools.handler.replace_in_file
         coding.tools.handler.note_categorize
@@ -5067,6 +5077,7 @@ return [ qw[
         context.util.template.substitute_vars
         coding.tools.handler.write_with_perms
         coding.tools.handler.task_file_search
+        coding.tools.handler.note_prune_trash
         coding.tools.handler.list_inline_subs
         coding.tools.handler.git_restore_file
         coding.tools.handler.embedding_search
@@ -5173,6 +5184,7 @@ return [ qw[
         coding.tools.handler.summarize_context
         coding.tools.handler.suggest_new_topic
         coding.tools.handler.scratchpad_rescue
+        coding.tools.handler.note_list_trashed
         coding.tools.handler.git_diff_unstaged
         coding.handler.inference_crash_restart
         coding.handler.http_data_start_timeout
@@ -5559,8 +5571,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,,,..,,...,.,.,..,,,.,,,.,,.,.,..,,,.,,.,.,...,...,..,,,,.,.,.,,,,,,,,,
-#5NW3QSECKW3KAKNFCYVTLSWTIKL734ZSBCTGGTLSO2NQ65ABXCKBFMMJY2WGKPTRQ47HI2S76WMB6
-#\\\|Z6RH3GGT3ENMHXKKUXUWUNWR334SELG7AKNKGNJP4NQN6ZE3ORR \ / AMOS7 \ YOURUM ::
-#\[7]IBQS343JVHEKBPTERPK3526YWLIYLISUFIRH6TMAMSH4NHULEQAQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,...,,,.,,,.,...,,,.,,.,,,.,,.,.,...,...,,,.,,.,,,..,...,,,.,
+#JWOWRG43IMKAF5S6XD4YGKPYN3A27NVGNRLJCYAUJZQMPYMHYRHUGPYAINCQ5WKSCUGRE4S2WHCBI
+#\\\|AHQLYYSYKDI6KUXAFHASLYK3MSESAOTHPOWMHICFHDVJF5JJUUP \ / AMOS7 \ YOURUM ::
+#\[7]SQX62MSLBLPUICTFU3KWMOXKTLJRG62YLYMILQBIPJKSIS56HQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
