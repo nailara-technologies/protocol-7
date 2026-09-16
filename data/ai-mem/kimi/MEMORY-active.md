@@ -150,6 +150,11 @@ resume → first combined query after kimi token expiry always showed claude
 timeout. Verified live: expiry → refresh → claude data intact + kimi
 "token valid 13m".
 
+CORRECTION 2026-09-16: the retry above was actually never scheduled — see
+[bug-usage-kimi-refresh-retry-never-scheduled.md](bug-usage-kimi-refresh-retry-never-scheduled.md)
+(on_done interface mismatch, always-undef, first-request guard timeout; fixed
++ live-verified, complete in 22s).
+
 ## base.ntime x4200 + cube cross-zenka access (Sept 2026)
 
 ntime = (unix-1023228000)*4200 — never use for real-second TTL math, use
@@ -323,8 +328,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,..,..,,,,,,.,.,,,.,,,.,,.,,,.,,.,,,,,.,.,,,..,,...,...,,,,,,.,,,.,,,..,.,,,
-#SAXAITZHV6RL45CRAT2KRB54SE7OZV4IH7D3XIPLOZ3NNSTTBWGHKDXW2I7KS5XSMI4WXV2APHN3O
-#\\\|OJZVHUFB5A75J4NTU5334DOOLR6NGES5MSHPCAZV3XCGALZMMUN \ / AMOS7 \ YOURUM ::
-#\[7]NWNGF7GIXYBHTZIFKUEEBLT2UHPYV2LJNR3HPZNCJMPMVATCQEDI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,...,,..,,,.,..,,..,,,.,,.,,,..,,...,...,,,,,...,...,.,,,,.,,
+#HVTJ4WRWTM2GTDPUHWDC6JXNIYIDNZUHGKXTCM3CLLHS6GIRDQCHVCKWLNABE5HHJQR5WABQELUZ4
+#\\\|CGYS443OAGIBMUW5NKK5SX63KIKG5IEGNPRQKVZFXMO7FS5I4UV \ / AMOS7 \ YOURUM ::
+#\[7]A3CXLBEF3GA5FAHMBSYC26DMI7JTW5D37B2YHX37UHMY7CW5RSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
