@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.hash_retry
+# descr = retry timer trampoline for the expected-hash fetch
+
+my $event = shift;
+my $data  = eval { $event->w->data } // {};
+
+<[huggingface.hash.fetch]>->(
+    $data->{'dl_id'}   // '',
+    $data->{'attempt'} // 1
+);
+
+return 0;
+
+#,,,,,,..,,,.,,..,.,,,,,,,...,,,.,.,.,,.,,..,,..,,...,..,,..,,.,,,...,,..,.,.,
+#AMR4KGW2KSW6D5LOG4YTX5IQ5TJSDSNSRB27RUS7JEGGUPWMUKTRFHPSCHZY3UWIZNEUTYCWJVMZU
+#\\\|7X56OIHHMT5HHMXL3V3G24DVLDKBKOXQOY5Q6GXGZZR7PVLBTCH \ / AMOS7 \ YOURUM ::
+#\[7]4SYZGTCYKPNZJKCI5HO7JTDYD5SIIKJM5EGTTHJSYCALNAZ2GCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

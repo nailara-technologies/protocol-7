@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.verify.reject
+# descr = quarantine a corrupt download, mark status=corrupt, fail loud
+
+use POSIX qw| strftime |;
+
+my $dl_id  = shift // '';
+my $reason = shift // 'sha256-mismatch';
+my $detail = shift // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $dest     = $dl->{'dest'};
+my $reply_id = $dl->{'reply_id'} // '';
+
+## quarantine : NEVER leave a corrupt file at its final path -- a later ##
+## fetch attempt must not mistake it for a good file, and nothing       ##
+## downstream must be able to accidentally load it. naming follows the  ##
+## manual convention from the 2026-09-10 shard-4 incident  [            ##
+## $dest.CORRUPT-<timestamp> ]                                          ##
+my $timestamp  = POSIX::strftime( '%Y%m%d-%H%M%S', gmtime );
+my $quarantine = "$dest.CORRUPT-$timestamp";
+my $suffix     = 0;
+$quarantine = "$dest.CORRUPT-$timestamp-" . ( ++$suffix )
+    while -e $quarantine;
+
+my $renamed = rename( $dest, $quarantine );
+if ( !$renamed ) {
+    <[base.logs]>->(
+        0,     "[hf.fetch] CRITICAL: cannot quarantine %s: %s",
+        $dest, $OS_ERROR
+    );
+}
+
+$dl->{'status'} = qw| corrupt |;
+
+<[base.logs]>->(
+    0, "[hf.fetch] CORRUPT: %s [%s] %s -- quarantined to %s",
+    $dest, $reason, $detail, ( $renamed ? $quarantine : 'QUARANTINE FAILED' )
+);
+
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => sprintf(
+                "download CORRUPT [%s] %s -- file quarantined to %s",
+                $reason, $detail, ( $renamed ? $quarantine : $dest )
+            )
+        }
+    );
+}
+
+<[huggingface.resume_idle]>->();
+
+return 0;
+
+#,,..,,,,,,.,,,.,,.,.,,,,,,,.,,.,,...,,.,,,.,,..,,...,...,...,.,.,...,..,,,.,,
+#HR57TAHSP3HYFNNX3B2IWWSRYXZ7O6VI27I6BRYWY3JVH2XZQQNMSEI5HZHNJQVO4RX5EV47V2UZO
+#\\\|XSN5TKPVGHG2XH6TZJ36622CTGRGWN2F2MJY4UO2TS7BCLOEJP2 \ / AMOS7 \ YOURUM ::
+#\[7]MYSTPG3JU3NK7ZQL3LDV4O4UQ2SJRDTU525JR4RQMDDSOVLXRUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

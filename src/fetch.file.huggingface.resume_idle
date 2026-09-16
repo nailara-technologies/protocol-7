@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.resume_idle
+# descr = resume zenka idle-shutdown once no download/verify work remains
+
+## counterpart to the pause in fetch.file.huggingface.download and          ##
+## fetch.file.huggingface.verify.start : pause/resume is a single flag, not ##
+## a counter, so only resume when EVERY tracked flow is terminal [ complete ##
+## / error / corrupt / unverified ]. callers must set their own entry's     ##
+## terminal status BEFORE calling this.                                     ##
+
+my $activity = 0;
+foreach my $check_id ( keys <fetch.file.downloads>->%* ) {
+    my $check_status = <fetch.file.downloads>->{$check_id}{'status'} // '';
+    $activity = 1
+        if $check_status eq qw| downloading |
+        or $check_status eq qw| awaiting-hash |
+        or $check_status eq qw| verifying |;
+}
+
+if ($activity) {
+    <[base.logs]>->(
+        1,
+        "[hf.fetch] deferring idle-shutdown resume "
+            . "-- download/verify activity still active"
+    );
+} else {
+    <[base.zenki.resume_ondemand_timeout]>;
+    <[base.logs]>->( 1, "[hf.fetch] resuming idle-shutdown tracking" );
+}
+
+return 0;
+
+#,,,.,,,,,,,.,.,.,,,.,.,,,..,,..,,,,.,...,.,,,..,,...,...,.,.,...,...,..,,..,,
+#G5MOJV4QCDI6GTSACZL5ISWWTRZSTBHUQ5E6BN5NMJIHCEGCOZVF65UILIRSMCWI2KTI7KL2G3PJO
+#\\\|W4GS4HJX6EEAJVVFVYACZ2EGKPKZKSYYLHGSWTUCDGCR5TV6C26 \ / AMOS7 \ YOURUM ::
+#\[7]YEKACXAMYZM5ZRZLOBHE3636IGVRUOG6ZQFCCHEQAE2DW4Y5TWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

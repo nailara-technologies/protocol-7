@@ -56,3 +56,49 @@ back to the old unverified-success path.
 #\\\|2EZCB5ITTIGWUHS2DUGGBNYQ573L6BF66OPF27UELQTWXGCJKVM \ / AMOS7 \ YOURUM ::
 #\[7]YRJZHKT7DDJZGHLLJD4PKFWVCY4CD4AQTSJA3EIHOUACEJQQTMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+**Status: IMPLEMENTED + LIVE-TESTED [ 2026-09-17, uncommitted ]** — task
+`data/tasks/coding-fetch-huggingface-checksum-verify.md` scope items 1-6
+done. New modules (all whitelisted in cfg/zenki/fetch-files/
+subroutines.load-early, all pass bin/format-code -c):
+`fetch.file.huggingface.hash.fetch` (clients.https.get to
+/api/models/<repo>?blobs=true, proxy threaded from env explicitly,
+bounded retry 3 attempts backoff 3s/6s via handler.hash_retry),
+`handler.blob_hash_response` (resolves hash_state pending -> ok|failed|
+non-lfs), `verify.start` (cheap lfs.size pre-check then forks sha256sum
+via IPC::Open3 + 2s timer-poll, mirrors download child's
+pause_ondemand_timeout + report_child_pid lifecycle), `verify.reject`
+(quarantine to $dest.CORRUPT-<ts>, status=corrupt), `resume_idle`.
+`download` module: decision recorded IN CODE — option (b), aria2c stays
+primary, sha256 layer is sole integrity layer independent of fetch tool;
+starts hash.fetch in parallel with download. `handler.download_progress`:
+success now branches to verifying / awaiting-hash / unverified / non-lfs
+complete; complete ONLY reachable via verified match. Three terminal
+states: complete (verified), corrupt (quarantined), unverified (hash
+unobtainable — NEVER falls through to exit-code-only success).
+
+Live tests 2026-09-17 all passed: (1) quarantined shard-4 sha256 =
+fac711b499a5... != published d5e4084c81ccc203... (published hash
+re-fetched live from API, confirmed); (2) negative e2e: pre-seeded
+size-correct garbage tokenizer.json (19,989,325 B, lfs-exact) ->
+aria2c exit 0 -> mismatch detected -> status=corrupt -> quarantined to
+tokenizer.json.CORRUPT-20260916-224232, not left at final path; (3)
+positive e2e: real 19MB tokenizer.json download -> sha256 verified
+06b9509352d2af50... -> status=complete, no regression; (4) non-LFS
+config.json -> complete with explicit sha-skipped note. TEST GOTCHA: zenka
+runs as user protocol-7 — pre-seeded files must live in a dir protocol-7
+can write AND rename in (sticky /tmp bit blocks rename of another user's
+file; use non-sticky 0777 for test dirs). p7c deferred-reply commands
+print 'command route collapsed' client-side but DO execute — verify via
+/dev/shm/.7/STDOUT/NIW7OAQ tail, not the client output.
+
+**Deliberately left open (stated honestly):** the ORIGINAL corruption
+root cause — aria2c --continue stitching bug vs proxy/disk vs stalled
+connection — was NOT investigated further and NOT fixed. Only the
+silent-acceptance hole was closed. Next real occurrence will now be
+caught immediately with both hashes logged for diagnosis.
+
+#,,,,,.,.,.,.,,.,,.,,,..,,,..,,,,,,.,,,.,,..,,...,...,...,...,..,,,.,,,,.,,.,,
+#HXDEZPHDEWLGPHVQC6UJBX4VWRSIJ2HPDDEXBYGHADOHWK4RMACJP5KVOJRDXAK42Q3TRTRDYIC3S
+#\\\|KU6FX2JABBGG3LKN7RQJDYMJLE65F7M73A7EIAVMRY7Q2EZZDHN \ / AMOS7 \ YOURUM ::
+#\[7]HISBEVRSOO64XRCVKA6HKDOWIAJLYPMG7IR46KYHMK5H4QV6ZODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
