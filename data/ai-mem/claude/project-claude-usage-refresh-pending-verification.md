@@ -92,6 +92,12 @@ actually returns parsed rate-limit rows instead of falling through to the
 `plugin.usage.claude.handler.response`. that's the one remaining unconfirmed
 link in an otherwise now-proven chain.
 
+`bin/dev/usage-external claude` is an independent ground-truth check for this
+-- it goes through none of the zenka's refresh machinery, so run it before
+[ confirms a real 401, not a zenka-side false alarm ] and after [ confirms
+the zenka's retry actually fixed the live credential file, not just its own
+in-memory state ] the zenka's own cycle.
+
 **kimi's own refresh confirmed live in production the same day** [ 2026-09-16,
 independent of the manual-trigger testing above -- a real token expiry :
 "usage [ kimi ] : token expired, refreshing via kimi cli and retrying once"
@@ -110,8 +116,8 @@ works reliably, this is extra latency + one extra mcp-server process per
 refresh cycle [ at most every ~5h/7d ], not a correctness problem worth the
 risk of moving the user's real global kimi config file aside mid-spawn.
 
-#,,,.,,..,,..,...,,,.,,,,,..,,.,,,.,.,.,.,...,..,,...,...,,,,,.,.,,..,,..,,,,,
-#64OKCQ3I3OFFBOG4K7MZGJEWQ5VTM5AELHB6TFQCLAGFKW6DPHDBITA5GVDUMKG656DGGZZOZPT5E
-#\\\|FGWORNN5VLS7NGLPPPN7SIPWS6EJ5LFECQU64L5P7P346D53HHA \ / AMOS7 \ YOURUM ::
-#\[7]FUCSXROJ3TMCBSX2T3WGLXVPYYWO555F2CXBRCZY2H6X6RLUCQDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,,,.,.,,,,,.,.,.,.,,,.,.,,..,..,,...,...,..,,...,,,.,,..,..,,
+#TF74S3LBJXF6CAY3WYDD5KXSFEUYH2E2BV5DMQIKDT2YGIRBMTYCMBFWRBQVYOKMINRUNSSPTMD6M
+#\\\|BETM42VALJQBCBYOKC4CYN5GQKHNAHEO4UC4T33ZILK3CWEFMAJ \ / AMOS7 \ YOURUM ::
+#\[7]FZ7KHEQHQQE4S57FBQZNDFJMGOGFWPH6LCHGLT4VDZCCSM6AG2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
