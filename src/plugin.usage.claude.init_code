@@ -10,9 +10,17 @@
 
 my $provider = <usage.provider.claude>;
 
-$provider->{'label'}     //= 'Claude rate limits';
-$provider->{'enabled'}   //= TRUE;
-$provider->{'timeout'}   //= 15;
+$provider->{'label'}   //= 'Claude rate limits';
+$provider->{'enabled'} //= TRUE;
+## same reasoning as plugin.usage.kimi.init_code's identical bump : a plain
+## successful probe is fast, but the token-rejected path now does a full
+## refresh-and-retry cycle inside this same window -- original request + up to
+## ~18s for plugin.usage.claude.refresh_token to spawn claude on a real pty
+## and let it actually finish refreshing its oauth token + the retried probe.
+## usage.query's own guard timer takes the SLOWEST requested provider's
+## timeout [ plus a shared grace ], so this only ever widens the overall wait
+## when a claude refresh is actually in flight
+$provider->{'timeout'}   //= 25;
 $provider->{'pending'}   //= {};       ##  in-flight requests by req_id  ##
 $provider->{'last'}      //= undef;    ##  parsed numbers, last good query  ##
 $provider->{'last_time'} //= 0;
@@ -20,6 +28,12 @@ $provider->{'last_time'} //= 0;
 ## credential file, relative to the home directory of the unix user this ##
 ## zenka runs as [ taeki ] -- resolved at query time, not stored here    ##
 $provider->{'cred_rel'} //= '.claude/.credentials.json';
+
+## claude cli binary, same relative-to-home convention as
+## plugin.usage.kimi.init_code's cli_rel_path -- bin/Protocol-7 cleans
+## $ENV{PATH} at zenka startup, so a bare file.which lookup hits the same
+## cleaned-PATH wall kimi's does and comes up empty here too
+$provider->{'cli_rel_path'} //= '.local/bin/claude';
 
 $provider->{'api_base'} //= $ENV{'ANTHROPIC_BASE_URL'}
     // 'https://api.anthropic.com';
@@ -32,8 +46,8 @@ $provider->{'model'} //= $ENV{'CHECK_USAGE_CLAUDE_MODEL'}
 
 0;
 
-#,,,,,,,,,..,,.,,,.,,,,..,,.,,,,.,..,,,..,,,.,..,,...,...,,..,,,,,.,.,,.,,,..,
-#3DZADSDUUKHCIH3EZ2RLRJY64YMNSOFL6MDLXXXHBNGZXLJQUSQ3TDDLJJCNROPIOOGMPEJNQMB7M
-#\\\|IZ7Q33IMGCJME7HT3QXDXI2IP5ZRURAWEJN6CWWAVDZXRF6PVFD \ / AMOS7 \ YOURUM ::
-#\[7]KNNQIF4E3HGODVYR25RFSPZL7KLM47PB7X56DVY2OKRH3YW4E6BI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,,,,..,,..,,...,.,.,,,,,.,,,..,,...,...,..,,.,,,..,,.,.,...,
+#KJMFEDG4YCPJFB5LEYZ3CBGOPN25NPDSIKQEM57Q5IWTGW3HKFC7DVXSS2ZITXHHKYWOVTRVKX77Q
+#\\\|AY3CXMXUJA4CPOZQFCVVBCLQDJH4XECOXMIHZR4PMWSMDFFLDLP \ / AMOS7 \ YOURUM ::
+#\[7]HMHQTED6ZCTTTHC4KUNFIOV7QTDLSJ5CJHFIO5CSB6ZEPVROP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
