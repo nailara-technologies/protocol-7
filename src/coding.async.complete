@@ -37,10 +37,8 @@ if ( not defined $state ) {
                 $task_id,
                 $parent_id
             );
-            <[event.add_timer]>->(
-                {   after   => 0.1,
-                    handler => qw| coding.handler.process-queued-task |,
-                }
+            <[coding.task.enqueue_round]>->(
+                $parent_id, $pstate->{'round'} // 0
             );
         }
     } elsif ( $meta->{'is_chunked_summary'} and defined $parent_id ) {
@@ -58,10 +56,8 @@ if ( not defined $state ) {
                 $task_id,
                 $parent_id
             );
-            <[event.add_timer]>->(
-                {   after   => 0.1,
-                    handler => qw| coding.handler.process-queued-task |,
-                }
+            <[coding.task.enqueue_round]>->(
+                $parent_id, $pstate->{'round'} // 0
             );
         }
     }
@@ -792,8 +788,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,.,,,,.,,.,,.,,,...,,..,..,,...,.,,,.,,,,,.,.,.,...,...,...,,,,,,,,,,..,,..,
-#CTIRLCZPT4I2IW5OJRCV4FKRASE5QWP2TSMEFFFHAJGLPQFNYWDB6ZSSXBOD5B576YURMPTBUMZBY
-#\\\|WGFCXRBSF5NT3FMCABQHN5CEDN2E3RJDZXBDCUVWYRAQM7VWS5R \ / AMOS7 \ YOURUM ::
-#\[7]PIVDRZ4P5YJU6BYINTZN2LDZ3GPB6BNYDZBDIBREQNHOJYNQ6QAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,,.,,..,...,.,,,,..,.,.,,..,.,.,...,..,,,.,,,,.,..,,,..,,..,
+#54QWSMOSIOYNADTLRTQNKYJ5QDGIFZ4QD77S3YYZC7SSJF7DR3OHTDX46KZGC2JMHLLLS43VBNAIG
+#\\\|L62ZEXUF7AA7CUHMAA2SYEA7RVKVHPQWM33SEAGAWRYCT2HOOLL \ / AMOS7 \ YOURUM ::
+#\[7]OA2L5H4GH3PCT2AFCYJ27EWYBD3QYLOC5VHPZLH3ZAVOHM6IF4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
