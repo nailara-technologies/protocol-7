@@ -31,8 +31,21 @@ and are easy to conflate when typing many similar absolute paths in a
 row). Retrying without checking wastes calls and can mask a real typo
 for an entire session.
 
-#,,,,,,,,,.,,,,,.,...,.,.,.,.,.,,,,..,.,.,..,,..,,...,..,,.,.,,,.,...,...,,,,,
-#BYL23LLSE63BFH3MEXQV73JDSBYM2KOOIL5QSDIZZCW4PVFJDC2X24UIY4QK6CQPOPHOYCVPA4LMG
-#\\\|WLHHBFYCAMHKNNJ6L5V4J5F7HVQCKTF4L4ZPEOSAUHNTMJXMZYG \ / AMOS7 \ YOURUM ::
-#\[7]BUAPTG3EBZUN6AU6XHHOZ2KB4WUFVCMZPNRO2FZQUWCXJOND6QDA 7  DATA SIGNATURE ::
+**RECURRED 2026-09-16**, same session as
+[[feedback-tool-probe-empty-args-destructive-default]] and
+[[project-note-trash-ntime-tools-landed-2026-09-16]]: hit the identical
+`/data/protocol-7/...` (missing "projects") typo on `Write` calls ~4
+separate times while creating new `note.trash.*`/`coding.tools.handler.*`
+files, each one caught immediately by the same `EACCES: permission
+denied, mkdir '/data/protocol-7'` error this memory already documents —
+so the memory correctly explained each occurrence on sight, but didn't
+prevent the typo itself. Two recurrences now despite the memory existing;
+if it keeps happening, the fix is mechanical (e.g. always copy the
+previous successful call's path prefix rather than retyping it) rather
+than another memory note.
+
+#,,.,,,.,,,,.,.,.,,..,...,,,.,.,,,...,,..,.,.,..,,...,...,..,,,,,,.,,,,,.,,,.,
+#7E5TCFFWZUQRMICQAXWALKD3TFQZYD36WL4MNUX2AEWDABTWVDXVYXJC5FETLNT4TTMPRDVATN6SO
+#\\\|3AFNQEQQWWMCJAZXY54K4H2QLEL76OU5GPFRHIH6PKDTTJPBBWF \ / AMOS7 \ YOURUM ::
+#\[7]JFYSA7SANXQBBAQO332HBHR72DX4EXXAAXFBWFVPPA4JSHU3XWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
