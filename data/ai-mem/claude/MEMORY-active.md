@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [project-note-trash-ntime-tools-landed-2026-09-16](project-note-trash-ntime-tools-landed-2026-09-16.md) — LANDED `3a7d592d7`/`e095f27da`/`4092ea9a4`: note.* trash-based safety net (note_delete confirm_all guard + xz-trash on delete/merge/update, note_rescue/note_list_trashed/note_prune_trash), note.util.safe_id path-escape sanitizer for task_id (previously unsanitized project-wide), base.parser.duration ntime/unix fix (base.ntime.delta_seconds), note.* last_update switched unix→ntime, three new local-model tools (ntime_convert, checksum, vax_int_convert) + new base.u2n_time primitive
 - [project-usage-report-format-redesign-2026-09](project-usage-report-format-redesign-2026-09.md) — usage.format.report's 3 formats (pretty default/details/compact), kimi↔claude window-key unification (5h/7d), coding-zenka tool now consumes pretty blocks not compact lines; landed+pushed `5f9593daa`
 - [project-fetch-huggingface-checksum-verify](project-fetch-huggingface-checksum-verify.md) — task file `data/tasks/coding-fetch-huggingface-checksum-verify.md`, not started: add real sha256 verification to HF downloads, directly motivated by the shard-corruption incident (see [[coding-lora-p7-idioms]]) that poisoned four LoRA training runs undetected for five days
 - [project-coding-zenka-session-ui-plan](project-coding-zenka-session-ui-plan.md) — task file `data/tasks/coding-zenka-session-ui.md`, phases 1-3 (offline+live streaming, STRM support, split-screen chat routing, Esc-abort/rewind/redo/round-regen) all DONE+pushed as of 2026-09-14 — see [[project-round-chain-rewind-redo-landed-2026-09-14]] for the phase-3 feature itself, this file for the fuller commit trail
@@ -140,8 +141,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - [claude-usage-refresh-pending-verification](project-claude-usage-refresh-pending-verification.md) — `plugin.usage.claude.refresh_token` [ pty-spawned claude, mirrors kimi's oauth refresh-on-401 ] built, 3 real live-found bugs fixed [ reap-detection race vs base.sig_chld, untimed trust-dialog keypress -> chdir to system.root_path instead, stale /usr/local/bin/claude npm install winning file.which over the current native install ], 4th manual run confirmed full clean startup [ correct v2.1.273, no dialog, no mcp recursion, gone reap ] -- only a real-expired-token pass remains open
 
-#,,,.,.,.,,,,,,,.,,,.,,..,..,,,.,,,,.,,,.,,..,..,,...,...,..,,.,,,...,,..,..,,
-#D6NSPC723OEC572JHL6IE2HJYHMV2G6XKEJ5P4D67YTSMV7JPB6HQGUGVUHFMY7LH7WCD54VHHVNA
-#\\\|NPA6UKLR5M4SDU2R3JLI5DZVCMCWBBHCWGSN3UPRHWR5Q3AD3O5 \ / AMOS7 \ YOURUM ::
-#\[7]SHYMPBYTQZUJYKJN24PZY6UCJRKETEDAVNNEIC6JM5HBW4OOLGCI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,...,..,,,.,,...,.,,,...,.,,,..,,...,...,.,,,.,.,,.,,,..,,,.,
+#MODSEAFTCIPIRTG6OSLQXZ46VISYFQW43DHL4IK5BGBN2UUKE5JZ4G2QJVUXGVSCJX3RBL4V4RCTQ
+#\\\|XGRFU4XWR4A4AJ7OQJDZS2GWQZKQ56HD2XO7AONMBODIL56RCUS \ / AMOS7 \ YOURUM ::
+#\[7]YI7JTIYFUXHWXXBQUKZ76NQDOILMWKJJUN6PGZFBMQXFNEMVHOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
