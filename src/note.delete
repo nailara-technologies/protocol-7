@@ -1,31 +1,42 @@
 ## [:< ##
 
 # name  = note.delete
-# descr = delete note section or entire task notes
+# descr = move a note section [ or all sections for a task ] to xz-trash ;
+#         recoverable via note.trash.rescue, see note.trash.list -- a
+#         whole-task wipe requires an explicit confirm flag, an omitted
+#         or empty section no longer implies "delete everything"
 
-my ( $task_id, $section ) = @ARG;
+my ( $task_id, $section, $confirm_all ) = @ARG;
 
-$task_id //= <system.task_id> // 'unknown';
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
 
 my $base_dir = <[file.zenka_dir.data_path]> . "/notes/$task_id";
 
 return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
     unless -d $base_dir;
 
+## stash the live .md into trash via the shared primitive, then remove it ##
+my $trash_one = sub {
+    my $section_name = shift;
+    my $md_path      = "$base_dir/workspace/$section_name.md";
+    my $trash_fn     = <[note.trash.stash]>->( $task_id, $section_name );
+    return undef unless defined $trash_fn;
+
+    unlink $md_path;
+    return $trash_fn;
+};
+
 ## delete single section if specified ##
 if ( defined $section && length $section ) {
     $section =~ s|[^a-zA-Z0-9._-]|_|g;
-    my $workspace_dir = "$base_dir/workspace";
-    my $note_file     = "$workspace_dir/$section.md";
+    my $note_file = "$base_dir/workspace/$section.md";
 
     return { 'mode' => qw| false |, 'data' => "section not found: $section" }
         unless -f $note_file;
 
-    unlink $note_file
-        or return {
-        'mode' => qw| false |,
-        'data' => "failed to delete: $section"
-        };
+    my $trashed = $trash_one->($section);
+    return { 'mode' => qw| false |, 'data' => "failed to trash: $section" }
+        unless defined $trashed;
 
     ## remove tags for this section from meta ##
     my $meta_file = "$base_dir/.meta";
@@ -34,13 +45,13 @@ if ( defined $section && length $section ) {
             = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
         if ( ref $meta eq qw| HASH | && ref $meta->{'tags'} eq qw| HASH | ) {
             delete $meta->{'tags'}{$section};
-            $meta->{'last_update'} = <[base.time]>->(3);
+            $meta->{'last_update'} = <[base.ntime]>;
             <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
         }
     }
 
     <[base.logs]>->(
-        1,        "note.delete: section '%s' from %s",
+        1,        "note.delete: section '%s' from %s -> trash",
         $section, $task_id
     );
 
@@ -49,31 +60,42 @@ if ( defined $section && length $section ) {
         'data' => {
             'section' => $section,
             'task_id' => $task_id,
-            'message' => "deleted section '$section' from $task_id",
+            'message' => "moved section '$section' from $task_id to "
+                . "trash [ recoverable via note.trash.rescue ]",
         }
     };
 }
 
-## delete entire task notes ##
-my @files = <[file.glob]>->("$base_dir/workspace/*.md")->@*;
-my $count = scalar @files;
+## whole-task wipe requires an explicit, unambiguous opt-in -- an omitted ##
+## or empty section used to mean "delete everything" here, which is how a ##
+## single empty-args tool-probe call [ coding session task-VUJZCRY,       ##
+## 2026-09-16 ] silently wiped 38 unrelated note sections in one shot     ##
+return {
+    'mode' => qw| false |,
+    'data' => "section required to delete one note [ pass confirm_all => "
+        . "true to delete ALL sections for '$task_id' -- this now "
+        . "moves them to trash, not permanent ]"
+    }
+    unless $confirm_all;
 
-## remove workspace files ##
+my @files = <[file.glob]>->("$base_dir/workspace/*.md")->@*;
+my $count = 0;
 for my $file (@files) {
-    unlink $file;
+    my ($section_name) = $file =~ m|([^/]+)\.md$|;
+    next unless defined $section_name;
+    $count++ if defined $trash_one->($section_name);
 }
 
-## remove meta and summaries ##
+## remove meta and summaries : these are derived indexes, not source    ##
+## content -- trashing the .md files above is what protects the content ##
 for my $f (qw| .meta summary.short summary.long |) {
     unlink "$base_dir/$f" if -f "$base_dir/$f";
 }
 
-## remove workspace dir and task dir if empty ##
 rmdir "$base_dir/workspace" if -d "$base_dir/workspace";
-rmdir $base_dir;
 
 <[base.logs]>->(
-    1,        "note.delete: all notes for %s [ %d sections ]",
+    1,        "note.delete: all notes for %s [ %d sections ] -> trash",
     $task_id, $count
 );
 
@@ -82,12 +104,13 @@ return {
     'data' => {
         'task_id' => $task_id,
         'deleted' => $count,
-        'message' => "deleted all notes for $task_id ($count sections)",
+        'message' => "moved $count section(s) for $task_id to "
+            . "trash [ recoverable via note.trash.rescue ]",
     }
 };
 
-#,,.,,..,,..,,,,,,,,.,,,.,..,,.,.,..,,..,,,..,.,.,...,...,,,,,.,.,.,,,,,.,,..,
-#ULC4WEZRJOGRIRBU6WCAUFHGMWQJIHZDMI5DWVOHPOJ7ULWOI2LZV7FYXHIANEFKNSSSAN2MSR3CQ
-#\\\|RX64OOHPZJ5SLTVK3PXBIPYQ5IVXVBVNNHPHMFZU26MZRHBRYJU \ / AMOS7 \ YOURUM ::
-#\[7]CCAYKXFUHRLE5IRWGOLQXVSHNPNS6NJQXLPQVPDWZUF5MGXZBYDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,..,,,,,.,.,...,.,.,,.,,,,,,.,.,...,...,,..,,.,,,,.,,..,,.,,
+#INV3DNIQHFIVVQFVUSXZXTTPDNHBOL6PH2XYT4MKYRKBI66RWX6OOAUCS6JENH5SHYGHPR4SJ52HW
+#\\\|AS2DCK4P3IAZ2R5M26UVSNZSRRVMHFWJ2PIDFQ5ULIDZILT4KM5 \ / AMOS7 \ YOURUM ::
+#\[7]ETFRQEHNDXSMV4TKFK5XVB3INJU2NQTGIQIYGMIMKQVGKAPYM6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

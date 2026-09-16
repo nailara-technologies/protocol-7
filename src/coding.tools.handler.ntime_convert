@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = coding.tools.handler.ntime_convert
+# descr = convert between p7 network time (ntime) and unix time, or get now
+
+my $args = shift // {};
+
+my $ntime_in       = $args->{'ntime'};
+my $unix_in        = $args->{'unix'};
+my $ago_seconds_in = $args->{'ago_seconds'};
+
+my $ntime;
+
+if ( defined $ntime_in && length $ntime_in ) {
+    if ( $ntime_in =~ m|^\d+(\.\d+)?$| ) {
+        $ntime = $ntime_in;
+    } elsif ( <[base.ntime.b32_is_shape_valid]>->($ntime_in) ) {
+
+        ## same shape-check-before-decode pattern as cube.cmd.b32-ntime :   ##
+        ## rejects malformed input before it reaches the numerical decoder, ##
+        ## which assumes well-formed input and warns loudly instead of      ##
+        ## failing quietly on garbage                                       ##
+        $ntime = <[base.ntime_BASE32_to_numerical]>->($ntime_in);
+        return { 'content' => "could not decode base32 ntime: $ntime_in" }
+            unless defined $ntime;
+    } else {
+        return { 'content' => "not a recognized ntime value: $ntime_in" };
+    }
+} elsif ( defined $unix_in && length $unix_in ) {
+    return { 'content' => 'unix must be numeric' }
+        unless $unix_in =~ m|^\d+(\.\d+)?$|;
+    $ntime = <[base.u2n_time]>->($unix_in);
+} elsif ( defined $ago_seconds_in && length $ago_seconds_in ) {
+    return { 'content' => 'ago_seconds must be numeric' }
+        unless $ago_seconds_in =~ m|^\d+(\.\d+)?$|;
+    $ntime = <[base.ntime]> - ( $ago_seconds_in * 4200 );
+} else {
+    $ntime = <[base.ntime]>;
+}
+
+my $unix = <[base.n2u_time]>->($ntime);
+return { 'content' => "ntime->unix conversion failed for: $ntime" }
+    unless defined $unix;
+
+my $human = <[base.parser.timestamp]>->( 'time-stamp', $unix );
+
+return { 'content' =>
+        sprintf( "ntime=%s  unix=%s  human=%s", $ntime, $unix, $human ) };
+
+#,,.,,,,.,.,.,...,,,.,,..,.,.,..,,.,.,,.,,,.,,.,.,...,.,.,.,,,.,.,,.,,...,...,
+#UNOHHDQULYK32X55KMNTODKCPTZURAQUQCEPIQSPP73EWX4M27HT5HWV7QMM7NAUOJF5TMM7J3VKM
+#\\\|XR6CKWKG5L75ZHFSXAOSQHQXMBNBCQEWUPRXDTQEU3WDEZJJGTS \ / AMOS7 \ YOURUM ::
+#\[7]WOXIRMW6YU7JEHKWN66OLCRKCXGFFQQ26MLLIIMJBA6YIMST5EAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

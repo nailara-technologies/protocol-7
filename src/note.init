@@ -3,7 +3,7 @@
 # name  = note.init
 # descr = initialize notes workspace for current task
 
-my $task_id = shift // <system.task_id> // 'unknown';
+my $task_id = <[note.util.safe_id]>->( shift // <system.task_id> );
 
 ## ensure base directory exists ##
 my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
@@ -47,8 +47,8 @@ return {
     }
 };
 
-#,,.,,,,.,.,.,,,.,.,.,,,,,,.,,...,,.,,.,.,.,.,.,.,...,...,.,,,,.,,.,.,...,,..,
-#GOE4U3QWEP6ZRQD7JEBI5YBCSIIMSMALSKJK4APNGATYATNPAJPFHZEVAP73RZZYBB4MIW3CMGSEU
-#\\\|ZPFARLECLJUTOUBW6Y427ZFZAEQY7M76DR7ZKP64EYNUEJZGUWO \ / AMOS7 \ YOURUM ::
-#\[7]YGF66GCTCB3GHCTEB7I2DLQBZOVMW4YODD2XMYVNLCIGCUEBTSBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,...,,.,,,,.,..,,..,,...,..,,,..,.,.,...,..,,,,.,..,,,..,..,,,..,
+#JJD4FDGVGDTDHADUH7RJU3YCWRBCDOD6ZS7JNIDQKWFVICF5M4BSLOI3QFQAFYYFFVLFHYCX7ZOCW
+#\\\|4V75HPMP5FBTTOOD4DNPSKB4M3MLFP3SBB67GLKZ6KQEQN2I3RG \ / AMOS7 \ YOURUM ::
+#\[7]FQAPXW5WSYH5U6JAL5NNOC2FTMVHAV5J5GUA5NBHIND6JM7V56BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

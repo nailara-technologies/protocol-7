@@ -5,7 +5,7 @@
 
 my ( $task_id, $short_text, $long_text ) = @ARG;
 
-$task_id //= <system.task_id> // 'unknown';
+$task_id = <[note.util.safe_id]>->( $task_id // <system.task_id> );
 
 my $base_dir = <[file.zenka_dir.data_path]> . '/notes';
 my $task_dir = "$base_dir/$task_id";
@@ -46,8 +46,8 @@ return {
     }
 };
 
-#,,.,,,,,,,,.,.,.,,,.,,.,,.,,,,.,,.,.,,.,,...,.,.,...,...,,.,,.,,,.,,,,,,,.,.,
-#GLTELNS22STKZKARLYKCIHGEJ2OV7BZJ7UC3MEAPHCVIY4L245QXWJCRNZ46EW4PZGASZWKEH7VQG
-#\\\|JDPGUDFAXDBJMFOBU5TDOJSDOL5IGVQSTKMCFWLK3XBXUY5NGYI \ / AMOS7 \ YOURUM ::
-#\[7]TK7Q3OCNOL6CI7ISNI3GJ6SFGM4DCY5G3UMNQJ5SRRSATXMLBQDI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,...,,.,,.,,,.,.,,..,,..,,.,,.,.,...,...,,..,...,,,,,,,.,.,.,
+#U5ALL2KZ65E6VTJ2ON466M7RXOIPT6TSF4V2QWRPYZWFGRKMZCM5RBEOCB5PGWTO53M42SP2KZDVI
+#\\\|F3BEQMWDJSGUEWM5BHBW3HHXYOTIJMGAPKSXMYDTLZ4YA7D23EC \ / AMOS7 \ YOURUM ::
+#\[7]SK5IU2QDXLT5L3VFW6DZPBJAC4UQ424TZW34Z5FZMBEQ4DGDUQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

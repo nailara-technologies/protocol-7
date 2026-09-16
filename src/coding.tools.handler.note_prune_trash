@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = coding.tools.handler.note_prune_trash
+# descr = permanently remove trashed note sections past the recovery window
+
+my $args = shift // {};
+
+my $keep_days = $args->{'keep_days'} // undef;
+
+my $result = <[note.trash.prune]>->($keep_days);
+
+my $data = $result->{'data'} // {};
+
+return {
+    'content' => $result->{'mode'} eq qw| true |
+    ? sprintf(
+        "pruned %d trash entries older than %d days",
+        $data->{'pruned'}    // 0,
+        $data->{'keep_days'} // 0
+        )
+    : "Failed: " . ( $result->{'data'} // 'unknown' ),
+};
+
+#,,..,.,,,.,,,,,.,...,...,...,,.,,.,,,,,.,.,,,.,.,...,...,...,,.,,.,,,,.,,,..,
+#UKALGPIA5F2K6FZIWVTHJP2SU63UZYLS4GO5FP3AXJZJUOHUWQWONR6QYGF5ADLLKEBCLCWJCW5FI
+#\\\|CL3ASAZGUMD75OGSRSO2WV5OHE4KAD64DXAUKC7AD2GPQTIF3G5 \ / AMOS7 \ YOURUM ::
+#\[7]EKKMUMT7LH2EIN5SQQZZUQSRVWIBY3OP2MYWGY6P3ZEBHOR3XOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

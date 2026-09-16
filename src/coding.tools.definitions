@@ -196,6 +196,139 @@ if ( exists $code{'coding.tools.handler.check_account_usage'} ) {
         };
 }
 
+## ntime_convert : convert between p7 network time and unix time ##
+if ( exists $code{'coding.tools.handler.ntime_convert'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'ntime_convert',
+            'description' => 'convert between p7 network time (ntime) and '
+                . 'unix time, or get the current time in '
+                . 'both -- notes and other p7-internal '
+                . 'metadata store ntime, not unix, so use '
+                . 'this instead of assuming standard '
+                . 'unix-epoch arithmetic [ ntime runs at '
+                . '4200 units per real second from a '
+                . '2002-06-05 start ]. give at most one of '
+                . 'ntime/unix/ago_seconds; omit all three '
+                . 'for the current time',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'ntime' => {
+                        'type'        => 'string',
+                        'description' => 'an ntime value to convert to '
+                            . 'unix+human -- numerical or '
+                            . 'base32r-encoded [ e.g. from '
+                            . 'a note_list_trashed entry ]'
+                    },
+                    'unix' => {
+                        'type'        => 'number',
+                        'description' =>
+                            'a unix timestamp to convert to ntime'
+                    },
+                    'ago_seconds' => {
+                        'type'        => 'number',
+                        'description' => 'return the ntime value this many '
+                            . 'seconds before now [ e.g. to build an '
+                            . "note_filter 'after' cutoff for \"3 days ago\" "
+                            . '-- pass 259200 ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## checksum : compute a p7 checksum, or a nested amos child checksum ##
+if ( exists $code{'coding.tools.handler.checksum'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'checksum',
+            'description' => 'compute a checksum of text using one of p7\'s '
+                . 'algorithms [ amos|bmw|elf|jha ] -- used '
+                . 'everywhere in this codebase for module '
+                . 'signatures, scratchpad/session keys, '
+                . 'content-addressed lookups. also computes '
+                . 'nested AMOS child checksums via '
+                . 'nest_parent',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'algorithm' => {
+                        'type'        => 'string',
+                        'description' => 'checksum algorithm [ default amos '
+                            . ']. bmw here means the L13 '
+                            . 'short form [ matches '
+                            . 'scratchpad/session-key '
+                            . 'convention ], not bmw384 [ '
+                            . 'that is a separate '
+                            . 'geometric-coordinate mapper '
+                            . 'for the iris visualization, '
+                            . 'unrelated to hashing text ]',
+                        'enum' => [ 'amos', 'bmw', 'elf', 'jha' ]
+                    },
+                    'input' => {
+                        'type'        => 'string',
+                        'description' => 'text to checksum [ or, with '
+                            . 'nest_parent set, the child '
+                            . 'name ]'
+                    },
+                    'mode' => {
+                        'type'        => 'string',
+                        'description' => 'output encoding, jha '
+                            . 'only [ default b32 ]',
+                        'enum' => [ 'hex', 'b32', 'b64u', 'harmonized' ]
+                    },
+                    'nest_parent' => {
+                        'type'        => 'string',
+                        'description' => 'parent AMOS checksum -- when set, '
+                            . 'computes the nested child '
+                            . 'checksum of "input" under '
+                            . 'this parent instead of a '
+                            . 'plain checksum [ algorithm '
+                            . 'must be amos ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## vax_int_convert : p7's compact base32 integer encoding [ job/note ids ] ##
+if ( exists $code{'coding.tools.handler.vax_int_convert'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'vax_int_convert',
+            'description' => 'convert between a plain non-negative integer '
+                . '(0..4294967295) and its p7 vax-int '
+                . 'encoding [ a short base32 string ] -- '
+                . 'used for compact ids, e.g. jobsite job '
+                . 'ids. auto-detects direction from the '
+                . 'input shape',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'value' => {
+                        'type'        => 'string',
+                        'description' => 'either a plain integer to encode, '
+                            . 'or a vax-int encoded string '
+                            . 'to decode'
+                    },
+                },
+                'required' => ['value'],
+            },
+        },
+        };
+}
+
 ## git_diff_staged : show staged changes ##
 push @tools,
     {
@@ -1497,27 +1630,126 @@ if ( exists $code{'coding.tools.handler.note_update'} ) {
         };
 }
 
-## note_delete : remove note section or entire task notes ##
+## note_delete : move a note section [ or all task notes ] to trash ##
 if ( exists $code{'coding.tools.handler.note_delete'} ) {
     push @tools,
         {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_delete',
-            'description' => 'delete a note section or all notes for a task '
-                . '[ clean up old or irrelevant notes ]',
+            'description' => 'move a note section to trash [ clean up old or '
+                . 'irrelevant notes ] -- recoverable via '
+                . 'note_rescue. to delete ALL sections for '
+                . 'a task, pass confirm_all: true '
+                . 'explicitly; omitting section without '
+                . 'confirm_all deletes nothing and returns '
+                . 'an error',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
                     'section' => {
                         'type'        => 'string',
-                        'description' => 'section name to delete [ omit '
-                            . 'to delete all task notes ]'
+                        'description' => 'section name to delete [ omit only '
+                            . 'together with confirm_all: '
+                            . 'true, to trash every section '
+                            . 'for the task ]'
+                    },
+                    'confirm_all' => {
+                        'type'        => 'boolean',
+                        'description' => 'required true to delete ALL '
+                            . 'sections for a task when '
+                            . 'section is omitted -- has no '
+                            . 'effect when section is given'
                     },
                     'task_id' => {
                         'type'        => 'string',
                         'description' =>
                             'task id [ defaults to current task ]'
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## note_rescue : restore a trashed note section ##
+if ( exists $code{'coding.tools.handler.note_rescue'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_rescue',
+            'description' => 'restore a trashed note section back into the '
+                . 'live workspace [ undoes note_delete ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'section' => {
+                        'type'        => 'string',
+                        'description' => 'section name to restore'
+                    },
+                    'ntime' => {
+                        'type'        => 'string',
+                        'description' => 'specific trashed-at ntime [ from '
+                            . 'note_list_trashed ] -- omit '
+                            . 'for the most recently '
+                            . 'trashed copy of this section'
+                    },
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'task id [ defaults to current task ]'
+                    },
+                },
+                'required' => ['section'],
+            },
+        },
+        };
+}
+
+## note_list_trashed : list trashed note sections ##
+if ( exists $code{'coding.tools.handler.note_list_trashed'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_list_trashed',
+            'description' => 'list trashed note sections for a task, or '
+                . "'all' tasks",
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'task_id' => {
+                        'type'        => 'string',
+                        'description' => 'task id [ defaults to current '
+                            . "task; pass 'all' to list across every task ]"
+                    },
+                },
+                'required' => [],
+            },
+        },
+        };
+}
+
+## note_prune_trash : permanently remove expired trash entries ##
+if ( exists $code{'coding.tools.handler.note_prune_trash'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'note_prune_trash',
+            'description' => 'permanently remove trashed note sections past '
+                . 'the recovery window [ frees space once '
+                . 'entries have been in trash long enough '
+                . 'that rescue is no longer needed ]',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'keep_days' => {
+                        'type'        => 'integer',
+                        'description' =>
+                            'recovery window in days [ default 30 ]'
                     },
                 },
                 'required' => [],
@@ -1612,7 +1844,10 @@ if ( exists $code{'coding.tools.handler.note_filter'} ) {
                     'after' => {
                         'type'        => 'string',
                         'description' =>
-                            'only notes updated after this timestamp'
+                            'only notes updated after this ntime value [ raw '
+                            . 'p7 network-time, matches the same scale '
+                            . 'note last_update is stored in -- not unix '
+                            . 'time ]'
                     },
                     'task_id' => {
                         'type'        => 'string',
@@ -2150,8 +2385,8 @@ if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
 
 return \@tools;
 
-#,,.,,,.,,,.,,,,,,..,,.,,,,,,,.,,,,,,,.,.,,,,,..,,...,...,.,,,.,.,,,.,..,,..,,
-#F2QGRJTWY6MDO6HZ677GHHIYXNMPZHBBVHWE342EXXENPYTLSDPXOSKN4WIMPL5SXYXHYZIX4V6CQ
-#\\\|Z74AP4BC4WHDCJ35EMJCRDIPIL4VGBXTRWWCKIGWNUNYWGHNH37 \ / AMOS7 \ YOURUM ::
-#\[7]AIWEEYP2QIKKOWSECBKT6ZHXATWMPYXAKSAYEDJVAEQ424AWECCA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,...,...,,.,,.,,,,.,,,..,..,,..,,...,...,,..,...,,,,,...,,,.,
+#OLFLZ2P6F4BU3ZOTSTVJQW6TNSUAEU7Z3RFHK5CHSNEY5K7FC2V7HSAJIANUFYOBVEO77B2A2NRA4
+#\\\|7RJFZSTZJFZEWY72O3E66C3EGNNV37T6TGSSK32EIWEPUIBALFR \ / AMOS7 \ YOURUM ::
+#\[7]KLOT4VDYGH5N3PGPRYKDL2ITDUGPYSCBB4BZ3TAVPL7TXIE55YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = note.trash.prune
+# descr = permanently remove trashed note sections older than the keep
+#         window -- note.delete/merge/update stash instead of destroying;
+#         this is what actually reclaims space once the recovery window
+#         has passed [ mirrors jobsite.store.prune's role for job trash ]
+
+my $keep_days = shift // <note.cfg.trash_keep_days> // 30;
+my $keep_secs = $keep_days * 86400;
+
+my $notes_root = <[file.zenka_dir.data_path]> . '/notes';
+my $now        = time();
+
+my $pruned = 0;
+for my $task_dir ( <[file.glob]>->("$notes_root/*")->@* ) {
+    next unless -d $task_dir;
+    my $trash_dir = "$task_dir/trash";
+    next unless -d $trash_dir;
+
+    for my $fn ( <[file.glob]>->("$trash_dir/*.mxz.B32")->@* ) {
+        my $fstat = File::stat::stat($fn);
+        next unless $fstat;
+        next unless ( $now - $fstat->mtime ) > $keep_secs;
+        $pruned++ if unlink $fn;
+    }
+
+    rmdir $trash_dir;    ## no-op [ fails silently ] if not empty ##
+}
+
+<[base.logs]>->(
+    1,       'note.trash.prune: removed %d expired entries [ keep %d days ]',
+    $pruned, $keep_days
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'pruned' => $pruned, 'keep_days' => $keep_days }
+};
+
+#,,.,,...,,..,...,,,.,.,.,..,,.,,,,.,,...,.,.,.,.,...,...,...,,,,,.,.,.,,,,,.,
+#BC3D23PMVVM2AEQSLNJPZXZ6ZUTSMXSBKUX5VPDOZSFX2HP6Y4YKYMOWCP6357RQQ3OEUD3XUM2SG
+#\\\|BFZ2ULJRPLES24JHBZVON77EZPI7JHHOJAT5IF3MHVIWOIM3QEY \ / AMOS7 \ YOURUM ::
+#\[7]CVHRSMB2Y5XUDKAXLOGJD6OSB4KDROAKKSJGVA67I4B75EUT2OAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
