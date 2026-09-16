@@ -1,16 +1,16 @@
 ## [:< ##
 
 # name  = plugin.usage.claude.refresh_token
-# descr = start `claude` attached to a real pty, chdir'd into a neutral,
-#         non-project directory, send a single belt-and-suspenders enter
-#         keypress for any first-run trust dialog, let it run undisturbed for
-#         the full timeout, then ask it to exit [ ctrl-d, sigterm, sigkill as
-#         successive fallbacks ] -- claude code refreshes its own oauth token
-#         during startup, before any prompt is ever submitted, mirroring
-#         plugin.usage.kimi.refresh_token's proven mechanism [ confirmed live
-#         2026-09-16 : starting the interactive claude cli by hand made both
-#         the zenka's own probe and the standalone bin/dev/usage-external
-#         script succeed again after a 401 ]
+# descr = start `claude` attached to a real pty, chdir'd into the already-
+#         trusted project root with mcp server loading suppressed, let it run
+#         undisturbed for the full timeout, then ask it to exit [ ctrl-d,
+#         sigterm, sigkill as successive fallbacks ] -- claude code refreshes
+#         its own oauth token during startup, before any prompt is ever
+#         submitted, mirroring plugin.usage.kimi.refresh_token's proven
+#         mechanism [ confirmed live 2026-09-16 : starting the interactive
+#         claude cli by hand made both the zenka's own probe and the
+#         standalone bin/dev/usage-external script succeed again after a
+#         401 ]
 # param = [ timeout ] [ { on_done => { handler => <name>, params => {} } } ]
 # note  = a REAL PTY, not a plain pipe -- confirmed live 2026-09-16 : with
 #         stdout not a tty, claude auto-switches into --print mode and
@@ -20,12 +20,21 @@
 #         module must never do. pty.spawn's own module note warns against
 #         reaching for a real pty on suspicion alone ; this is the provable
 #         case it asks for -- see that module's note
-# note  = chdir target is $home_dir, NOT <system.root_path> [ unlike kimi's
-#         refresh_token ] : this project's own directory carries a .mcp.json
-#         that would start the protocol-7 mcp server [ and everything
-#         downstream of that ] as a side effect of every single background
-#         token refresh -- a directory outside the project avoids that
-#         recursion entirely
+# note  = chdir target is <system.root_path>, matching kimi's refresh_token --
+#         reversed live 2026-09-16 from an earlier $home_dir choice : a
+#         never-before-seen directory hits claude code's own first-run "do you
+#         trust this folder" dialog, and a single early keypress [ see the
+#         history below ] could not reliably clear it -- the project root is
+#         already trusted [ this very session runs interactively from it ],
+#         so the dialog never appears at all. the recursion concern that
+#         originally motivated $home_dir [ this project's own .mcp.json
+#         starting the protocol-7 mcp server as a side effect of every
+#         background refresh ] is handled separately below, via
+#         --strict-mcp-config
+# note  = `--strict-mcp-config` is passed with no `--mcp-config` value, which
+#         loads zero mcp servers [ confirmed live 2026-09-16 ] -- this is what
+#         actually avoids the .mcp.json recursion now that chdir targets the
+#         project root instead of avoiding the directory outright
 # note  = single-slot -- see plugin.usage.kimi.refresh_token's module note :
 #         same reload-safety contract [ named handlers only, no coderef
 #         closures ], same reasoning for sigterm-before-sigkill [ a refreshed
@@ -36,19 +45,35 @@
 #         claude code's own clean-shutdown path [ mirrors pty.spawn's own
 #         discipline, made non-blocking -- see plugin.usage.claude.
 #         refresh_finish and refresh_reap ]
-# note  = untested end-to-end against a genuinely expired token as of
-#         2026-09-16 -- building the safe test fixture [ backdated expiresAt
-#         + corrupted refreshToken in a scratch copy under CLAUDE_CONFIG_DIR,
-#         same trick used to verify plugin.usage.kimi.refresh_token ] was
-#         blocked by this session's own permission classifier as "credential
-#         leakage", even though it never touched the live credential file or
-#         printed any token value ; delegating the same test to the coding
-#         zenka didn't work either [ it has no shell-execution tool, only
-#         read \ search \ edit tools, and answered a different question
-#         instead ]. the first-run trust-dialog handling below in particular
-#         is unverified best-effort, same spirit as kimi's own belt-and-
-#         suspenders note -- needs a live pass with a real expired token
-#         before this is trusted the way the kimi path now is
+# note  = manual-trigger history [ usage.cmd.claude-refresh-test, a live
+#         verification aid, not the 401 path itself ] : 1st run raced
+#         plugin.usage.claude.refresh_reap's own waitpid($pid) poll against
+#         base.sig_chld's catch-all waitpid(-1) and mislabeled a real,
+#         sigterm-honored exit as 'killed' -- fixed via a kill(0,$pid)
+#         existence check, see refresh_reap's module note. 2nd run [ fix
+#         verified, but still $home_dir at the time ] exposed the real
+#         problem : claude sat the entire run [ 45s tested ] on its own
+#         first-run "do you trust this folder" dialog, unconfirmed -- the
+#         pty output preview [ see refresh_cleanup ] caught the dialog text
+#         directly. root cause : the single "\r" keypress below is written
+#         to the pty immediately after fork(), before claude's own raw-mode
+#         stdin reader ever attaches, and was silently lost. fixed by
+#         switching chdir to <system.root_path> [ already trusted, no dialog
+#         to clear at all -- see the module note above ]. 3rd run [ trust
+#         dialog gone, confirmed ] exposed a different problem : the pty
+#         output preview showed "Claude Code v2.0.13" stuck in a failing
+#         auto-update loop for the entire run, never reaching anything
+#         oauth-related -- `file.which(qw|claude|)` was finding
+#         /usr/local/bin/claude, a stale Oct-2025 global npm install
+#         [ /usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js ]
+#         that happens to sit on a baseline system PATH entry bin/Protocol-7's
+#         cleaning doesn't strip, BEFORE this code ever reached the
+#         known-good home-relative fallback below. fixed by trying the
+#         home-relative path first -- see the binary-resolution block below.
+#         still untested end-to-end against a genuinely expired token as of
+#         this note -- the fixture-based verification approach remains
+#         blocked, see data/ai-mem/claude/
+#         project-claude-usage-refresh-pending-verification.md
 
 use POSIX ();
 
@@ -74,16 +99,20 @@ if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
     return FALSE;
 }
 
-my $claude_bin = <[file.which]>->(qw| claude |);
-
 my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 
-if ( not length $claude_bin ) {
-    if ( length $home_dir and length $provider->{'cli_rel_path'} ) {
-        my $candidate = catfile( $home_dir, $provider->{'cli_rel_path'} );
-        $claude_bin = $candidate if -x $candidate;
-    }
+## the home-relative known-good install is tried FIRST here -- reversed order
+## from plugin.usage.kimi.refresh_token's identical-looking resolution on
+## purpose, see the module note above : a bare file.which(qw|claude|) found a
+## stale, unrelated global npm install squatting on a baseline system PATH
+## entry before it ever reached this fallback
+my $claude_bin;
+if ( length $home_dir and length $provider->{'cli_rel_path'} ) {
+    my $candidate = catfile( $home_dir, $provider->{'cli_rel_path'} );
+    $claude_bin = $candidate if -x $candidate;
 }
+
+$claude_bin ||= <[file.which]>->(qw| claude |);
 
 if ( not length $claude_bin ) {
     <[base.logs]>->(
@@ -141,16 +170,23 @@ if ( $pid == 0 ) {
     open( STDERR, '>&', $slave->fileno ) or POSIX::_exit(1);
     close($slave);
 
-    ## see the module note above : deliberately NOT <system.root_path> ##
-    chdir($home_dir) if length $home_dir;
+    ## already trusted -- see the module note above on why this replaced ##
+    ## $home_dir                                                         ##
+    chdir( <system.root_path> // $home_dir );
 
-    { exec($claude_bin) };
+    ## --strict-mcp-config with no --mcp-config value loads zero mcp servers
+    ## -- see the module note above : this is what keeps the project root's
+    ## own .mcp.json from starting the protocol-7 mcp server as a side effect
+    ## of every background refresh
+    { exec( $claude_bin, qw| --strict-mcp-config | ) };
     POSIX::_exit(1);    ##  exec itself failed  ##
 }
 
-## belt-and-suspenders : a single enter keypress in case a first-run "do you
-## trust this folder" dialog shows up for $home_dir -- see module note above
-## on why this is unverified best-effort, same spirit as kimi's own note
+## belt-and-suspenders : a single enter keypress in case some other first-run
+## prompt shows up despite chdir'ing into an already-trusted directory -- same
+## spirit as kimi's own note. the trust dialog itself no longer needs this :
+## see the module note above on why the timing here can't be trusted to clear
+## it reliably
 syswrite( $pty, "\r" );
 
 ## from here on the parent NEVER BLOCKS, and no event callback is a coderef ##
@@ -192,8 +228,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,,.,,.,,..,,..,,..,,,..,.,,,,..,,,.,.,.,.,.,..,,...,...,,,,,.,.,...,,,,,,..,
-#2D75GRXJN2V6N7KJFM2SG56FNHV6NB4NBII74YQAYU7V3ZOYPVTEZR377PO5JU4O7TRVZ3ZKB7XPE
-#\\\|Z57LZJPJNJZPOPZKOWOPOUZWJLSVBJGUNDHRWJX25KUS6WB6FBJ \ / AMOS7 \ YOURUM ::
-#\[7]IGQVE5FIVAQPRP7BUJ3NERJENWBQ6LT6AAKDFW5MUQQNXQZGJMBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,..,.,,,.,.,,,,,.,.,...,...,..,,...,...,.,.,,.,,.,,,,,.,.,,,
+#6RY62OTCBSYUYZEQFJZK5UKIMMTEU2QWTY2MUTD4HLSULPD67HZZJN25OG3NDCNV3SKZHNM77LV42
+#\\\|KQZ72XLPBSF7WSDBLA5SON36UN5QOWV5HTLN4TNU22NYKQDITN6 \ / AMOS7 \ YOURUM ::
+#\[7]PDQSUELZOP6DP2C2B53TBI6H7HOCNG3HYAFTEWFVG5IDTQHYSQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,10 +2,17 @@
 
 # name  = plugin.usage.claude.refresh_cleanup
 # descr = final teardown of a claude refresh cycle : cancel any watcher still
-#         armed, close the pty, clear the single-slot state, log, then invoke
-#         the cycle's on_done [ named handler + params, same reload-safety
-#         contract as the event callbacks themselves ].
-# param = <how> : eof | ctrl_d | sigterm | killed
+#         armed, close the pty, clear the single-slot state, log [ including a
+#         preview of the child's captured pty output, the only way to tell
+#         from outside whether claude actually reached its normal startup
+#         screen and refreshed its token, or got stuck on something first --
+#         this preview is what caught both the unconfirmed trust-dialog bug
+#         and the stale-binary bug fixed in refresh_token's history notes ],
+#         then invoke the cycle's on_done [ named handler + params, same
+#         reload-safety contract as the event callbacks themselves ].
+# param = <how> : eof | ctrl_d | sigterm | killed | gone
+
+use Encode ();
 
 my $how = shift // qw| done |;
 
@@ -25,6 +32,24 @@ close( $state->{'fh'} )
     $how
 );
 
+if ( length $state->{'buffer'} // '' ) {
+    ## decode + strip before logging, not just truncate -- base.s_read
+    ## deliberately downgrades the utf8 flag for binary safety, so a pty's own
+    ## multi-byte utf8 output [ box-drawing lines, colored glyphs ] would
+    ## otherwise come out as mojibake ; found live 2026-09-16 diagnosing this
+    ## exact refresh path, kept permanently since it's a real readability fix,
+    ## not a diagnostic-only aid
+    my $decoded
+        = Encode::decode( qw| UTF-8 |, $state->{'buffer'},
+        Encode::FB_DEFAULT );
+    ##  strip ansi csi sequences  ##
+    $decoded =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+    ( my $preview = substr( $decoded, 0, 300 ) ) =~ s{[\r\n]+}{ }g;
+    <[base.logs]>->(
+        2, '[usage.claude.refresh_token] pty output preview : %s', $preview
+    );
+}
+
 if ( defined $state->{'on_done'} ) {
     my $done = $state->{'on_done'};
     $code{ $done->{'handler'} }->( $done->{'params'} // {} )
@@ -34,8 +59,8 @@ if ( defined $state->{'on_done'} ) {
 
 return TRUE;
 
-#,,,,,...,,,.,..,,...,...,,..,,,.,,,,,.,.,,,,,..,,...,...,..,,..,,.,.,.,.,,,,,
-#UUFQDZ4TRWJZQD32AZUT5CAVRYMT7RTHNTS24HO7K4HBHQWIGAHCCCI5VNI3W3DW2PWYKTYS7I7RM
-#\\\|UXGHV634Q2SA4WQHC4EWJXCSJSVH6HNL7ZWXXAQDFPUSMM7QYJO \ / AMOS7 \ YOURUM ::
-#\[7]VKVIE6MS453TOTXLWGS742JGB22GTY7NNCKT6SQDURVA54N4S6DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,,,..,,.,.,,,,,,..,,,,,,,,,...,..,,...,...,.,,,,..,..,,,,,,.,.,
+#R7B5PGURZMQEVFRH5PGBLB6EYMIRYXWHRQLT3MOHZVTJF65I6ORBRFCIQXBF5ISZWNTO74HFVR2BM
+#\\\|LBWW4SZWAMXDMCGIDCFYFJTMTNLGWDIPOM5JRHVE3LFM5JVRA6C \ / AMOS7 \ YOURUM ::
+#\[7]BNIELCME3W3QYTWNI7V5UYHXQMU3ZGSXCTJWHZFBDMERZZWJEUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

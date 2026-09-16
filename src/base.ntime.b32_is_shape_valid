@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = base.ntime.b32_is_shape_valid
+# descr = check whether a base32 string decodes to a well-formed ntime value
+#         [ 1 or 2 compressed-integer components -- arbitrary-precision
+#         network time, optionally split into two parts, see
+#         base.ntime.B32_2_unix ], WITHOUT ever warning -- lets a caller
+#         reject a wrong-shaped input before it reaches a deep decoder that
+#         assumes well-formed input and warns loudly on anything else
+# param = $b32_string
+# note  = confirmed live 2026-09-16 : a full log-entry id [ ntime + a
+#         uniqueness suffix, concatenated before base32 encoding -- same
+#         charset, plausible length, passes a naive base32 regex check ]
+#         decoded to 3 compressed-integer components instead of the expected
+#         1-2, producing a malformed multi-dot value and tripping
+#         base.ntime.B32_2_unix's "protocol 7 network-time decoding was not
+#         successful" warn via cube.cmd.b32-ntime -- a path meant to be
+#         unreachable for anything but a genuine ntime encoding
+
+my $b32_string = shift;
+
+return FALSE if not defined $b32_string or not length $b32_string;
+
+my $decoded_bytes = eval { Crypt::Misc::decode_b32r($b32_string) };
+
+return FALSE if not defined $decoded_bytes or length $EVAL_ERROR;
+return FALSE if not <[base.comp-int.is_valid]>->($decoded_bytes);
+
+my @nt_val = unpack( qw| w* |, $decoded_bytes );
+
+return ( @nt_val == 1 or @nt_val == 2 ) ? TRUE : FALSE;
+
+#,,,,,...,.,.,,..,,,,,,,.,.,.,..,,...,,..,,.,,..,,...,...,,,.,.,,,.,,,.,.,.,,,
+#XWDNRK4IENSCEPQV4FVMVT2232BWQONKED4PZ7B7B6AH24H7HAGFBMF5EO3F52YEQI7IKDYOYPKIA
+#\\\|AOYKUHHPE4K64XCUHSA56F6BABOEJQQECEZ3FHRB7XGR4STOQUK \ / AMOS7 \ YOURUM ::
+#\[7]T7N2NLZB25KEYH7ZZWAS5WUC3POE437ZXUIXIPXGUYWJUN77GMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

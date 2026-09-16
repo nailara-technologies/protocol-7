@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = usage.cmd.claude-refresh-test
+# descr = manual trigger for the claude oauth refresh cycle
+# note  = independent of the 401 trigger path -- exercises the pty spawn /
+#         trust-dialog / graceful-shutdown escalation mechanics directly, for
+#         live verification without waiting on a real token expiry. added
+#         2026-09-16 alongside the 401-triggered refresh-and-retry flow
+#         itself, kept permanently -- matches this codebase's own
+#         `console.test-*` convention [ e.g.
+#         sourcecode.console.test-sign-and-verify ]. four live runs through
+#         this command found and fixed three real bugs in
+#         plugin.usage.claude.refresh_token before the mechanism reached a
+#         clean, verified startup -- see that module's history notes
+
+my $started = <[plugin.usage.claude.refresh_token]>;
+
+return {
+    'mode' => qw| false |,
+    'data' => $started
+    ? 'refresh started -- watch the zenka log buffer [ verbosity 2 ] for '
+        . '"[usage.claude.refresh_token] claude startup cycle complete [ '
+        . '<how> ]"'
+    : 'refresh did not start [ already in progress, '
+        . 'or a local error -- check the log buffer ]',
+};
+
+#,,..,,,.,,,,,..,,.,.,...,,.,,..,,,,,,,,.,,.,,..,,...,..,,...,,..,,,,,,..,,,.,
+#CEWESN5JH6BYFHXMYMIV7V6BPCXOYVATOV3YWRXJOYVZBVN7B437DR63JD5XNXJSM7I4KBMWJGXP4
+#\\\|N624P7TPUR4RJUHDTDENL5KHSH6QD4VFJXZSTPQZ3WG5SZRO6W6 \ / AMOS7 \ YOURUM ::
+#\[7]IIMAUEK5RAL7RLTMQKEXYHEG4BZE5NKMBMYDW6BHLZGEKVUGOABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
