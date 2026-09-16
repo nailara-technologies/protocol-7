@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.hash.fetch
+# descr = fetch published LFS sha256 for a download via clients.https.get
+
+my $dl_id   = shift // '';
+my $attempt = shift // 1;
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $repo = $dl->{'repo'} // '';
+my $file = $dl->{'file'} // '';
+return if !length($repo) or !length($file);
+
+$dl->{'hash_attempts'} = $attempt;
+
+## one API call covers the whole repo : every LFS-tracked file's published  ##
+## sha256 comes back in a single ?blobs=true response, so the expected hash ##
+## for this download is extracted from the siblings list by                 ##
+## fetch.file.huggingface.handler.blob_hash_response. the result is cached  ##
+## in the <fetch.file.downloads> entry [ hash_state / expected_sha256 /     ##
+## expected_size ] -- aria2c handles its own retries internally, so this    ##
+## fires once per download attempt, not per aria2c retry.                   ##
+my $api_url
+    = sprintf( 'https://huggingface.co/api/models/%s?blobs=true', $repo );
+
+## thread the proxy explicitly, exactly like aria2c's --all-proxy threading ##
+## in fetch.file.huggingface.download : clients.https does NOT auto-pickup  ##
+## http(s)_proxy env vars, and this host's outbound traffic goes through    ##
+## the hysteria proxy for reliability                                       ##
+my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
+
+<[clients.https.get]>->(
+    {   'url'     => $api_url,
+        'timeout' => 30,
+        'proxy'   => $proxy,
+        'on_done' => qw| huggingface.handler.blob_hash_response |,
+        'params'  => { 'dl_id' => $dl_id, 'attempt' => $attempt },
+    }
+);
+
+<[base.logs]>->(
+    2, "[hf.fetch] fetching expected sha256: %s/%s [attempt %d]",
+    $repo, $file, $attempt
+);
+
+return 0;
+
+#,,,,,...,,,,,,.,,,.,,,,,,..,,,,,,,,.,.,,,.,.,..,,...,...,...,,..,,.,,,..,,..,
+#IWZYGEXJQEGVXUX6WSH7O2TRCDUXXF352RJUVWHC7FEIBEZFMEXOSPF7GGNBPFGIJAXYJUZCX72KK
+#\\\|5GBPJU56HD6GGBJQEPOSOWD7DXIXFOXGMM7J526Z2XD743WSD24 \ / AMOS7 \ YOURUM ::
+#\[7]6NMIZAEYWPDUGKOFJ6Y3OHZHPF7R7D3LVRBKDJXKKHZKAOIV2CCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,146 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.verify_progress
+# descr = poll sha256sum child, compare hash, finalize verified state
+
+use POSIX qw| WNOHANG |;
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data } // {};
+my $dl_id      = $timer_data->{'dl_id'}   // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $pid  = $dl->{'verify_pid'} // 0;
+my $dest = $dl->{'dest'};
+
+## drain child stdout [ non-blocking, accumulated across polls ] ##
+my $verify_fh = $dl->{'verify_fh'};
+if ( defined $verify_fh ) {
+    my $chunk = '';
+    my $bytes = <[base.s_read]>->( $verify_fh, \$chunk, 4096 );
+    $dl->{'verify_buf'} .= $chunk if $bytes > 0;
+}
+
+## same reaping caveats as huggingface.handler.download_progress :        ##
+## base.sig_chld may already have collected the exit status, so waitpid's ##
+## return value only tells us whether WE reaped it -- kill(0) is the      ##
+## authoritative liveness check                                           ##
+my $wait_result   = waitpid( $pid, WNOHANG );
+my $still_running = ( $wait_result == 0 ) && kill( 0, $pid );
+
+if ($still_running) {
+    ## stall guard : hashing a large file is slow, but not THIS slow ##
+    my $elapsed
+        = <[base.time]>->(3) - ( $dl->{'verify_start_time'} // 0 );
+    if ( $elapsed > 3600 ) {
+        kill qw| TERM |, $pid;
+        my $timer = delete $dl->{'verify_timer'};
+        $timer->cancel if defined $timer;
+        $dl->{'status'} = qw| unverified |;
+        <[base.logs]>->(
+            0,
+            "[hf.fetch] UNVERIFIED: %s -- sha256sum "
+                . "child [pid=%d] stalled >%d sec, killed",
+            $dest,
+            $pid,
+            int($elapsed)
+        );
+        if ( length( $dl->{'reply_id'} // '' ) ) {
+            <[base.callback.cmd_reply]>->(
+                $dl->{'reply_id'},
+                {   'mode' => qw| false |,
+                    'data' =>
+                        "download UNVERIFIED: hash process stalled/aborted"
+                }
+            );
+        }
+        <[huggingface.resume_idle]>->();
+        return;
+    }
+    return;
+}
+
+## child exited -> finalize ##
+my $timer = delete $dl->{'verify_timer'};
+$timer->cancel    if defined $timer;
+close($verify_fh) if defined $verify_fh;
+
+my $hash = '';
+if ( $dl->{'verify_buf'} =~ m|^([0-9a-fA-F]{64})\s| ) {
+    $hash = lc $1;
+}
+
+if ( !length $hash ) {
+    ## sha256sum exited without parseable output : cannot verify, and ##
+    ## "cannot verify" must never silently become "complete"          ##
+    $dl->{'status'} = qw| unverified |;
+    <[base.logs]>->(
+        0,
+        "[hf.fetch] UNVERIFIED: %s -- sha256sum "
+            . "produced no parseable output [buf=%s]",
+        $dest,
+        $dl->{'verify_buf'} // ''
+    );
+    if ( length( $dl->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->(
+            $dl->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' => "download UNVERIFIED: sha256sum produced no output"
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+    return;
+}
+
+my $expected = lc( $dl->{'expected_sha256'} // '' );
+
+if ( length $expected and $hash eq $expected ) {
+    my $size_gb = -f $dest ? ( -s $dest ) / ( 1024**3 ) : 0;
+    my $elapsed
+        = <[base.time]>->(3) - ( $dl->{'start_time'} // <[base.time]>->(3) );
+
+    $dl->{'status'} = qw| complete |;
+    $dl->{'total'}  = $size_gb;
+    $dl->{'sha256'} = $hash;
+
+    <[base.logs]>->(
+        1, "[hf.fetch] download VERIFIED: %s (%.2f GB, %d sec, sha256=%s)",
+        $dest, $size_gb, int($elapsed), $hash
+    );
+
+    if ( length( $dl->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->(
+            $dl->{'reply_id'},
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    "ok path=%s size_gb=%.2f duration=%d sha256=verified",
+                    $dest, $size_gb, int($elapsed)
+                )
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+} else {
+    ## hash mismatch : verified CORRUPT -- quarantine, never leave the bad ##
+    ## bytes at the final path [ the silent-acceptance hole that poisoned  ##
+    ## four LoRA training runs in the 2026-09-10 incident ]                ##
+    <[huggingface.verify.reject]>->(
+        $dl_id,
+        'sha256-mismatch',
+        sprintf(
+            'got=%s expected=%s',
+            $hash, ( length $expected ? $expected : 'unknown' )
+        )
+    );
+}
+
+return 0;
+
+#,,,,,,.,,,..,.,.,..,,..,,.,,,.,,,.,,,...,.,.,..,,...,...,...,.,,,...,,,,,.,.,
+#7IFKWTFCZZ56HFKAUVT5LBZEEQF4REBDYQPQNVKNCSIJ77W724GPK6JDPET6DNM6NXEH3C5EBVLFG
+#\\\|4HG2Q5GV7O4JIMTTVU7ROYGLBTW7ECTJD62HXCS2SIZ26ZHE2LL \ / AMOS7 \ YOURUM ::
+#\[7]YD62KD4GLTL65C5I5RCICOEPAGKP4JCLGRIBT4TKETMGF4GX4KDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,175 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.blob_hash_response
+# descr = parse ?blobs=true response, resolve expected sha256 or retry
+
+my $data    = shift;
+my $params  = $data->{'params'}    // {};
+my $dl_id   = $params->{'dl_id'}   // '';
+my $attempt = $params->{'attempt'} // 1;
+my $body    = $data->{'body'}      // '';
+my $ok      = $data->{'ok'};
+my $status  = $data->{'status'} // 0;
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+## already resolved [ success, or a previous attempt raced us ] ##
+return if ( $dl->{'hash_state'} // qw| pending | ) ne qw| pending |;
+
+my $repo = $dl->{'repo'} // '';
+my $file = $dl->{'file'} // '';
+
+my $fail_reason = '';
+
+if ( !$ok ) {
+    $fail_reason
+        = sprintf( 'https error: %s', $data->{'error'} // 'unknown' );
+} elsif ( $status != 200 ) {
+    $fail_reason = sprintf( 'http status %d', $status );
+} else {
+    my $repo_info = eval { JSON::XS::decode_json($body) };
+    if ( $EVAL_ERROR or ref $repo_info ne qw| HASH | ) {
+        $fail_reason = 'unparseable JSON response';
+    } else {
+        my $siblings = $repo_info->{'siblings'} // [];
+        my $entry;
+        foreach my $sib ( @{$siblings} ) {
+            next if ref $sib ne qw| HASH |;
+            if ( ( $sib->{'rfilename'} // '' ) eq $file ) {
+                $entry = $sib;
+                last;
+            }
+        }
+        if ( !defined $entry ) {
+            $fail_reason = 'file not listed in repo siblings';
+        } elsif ( ref( $entry->{'lfs'} ) ne qw| HASH |
+            or !length( $entry->{'lfs'}{'sha256'} // '' ) ) {
+
+            ## genuinely non-LFS file [ tiny config, index.json ] : no      ##
+            ## published sha256 exists -- the git blob SHA1 scheme is a     ##
+            ## different verification method and deliberately out of scope. ##
+            ## resolved as its own state so the flow never treats "no hash  ##
+            ## available" as silently equivalent to "verified"              ##
+            $dl->{'hash_state'} = qw| non-lfs |;
+            <[base.logs]>->(
+                1,
+                "[hf.fetch] %s/%s is not LFS-tracked -- no published sha256 "
+                    . "exists, sha verification skipped [git blob SHA1 out "
+                    . "of scope]",
+                $repo,
+                $file
+            );
+        } else {
+            $dl->{'expected_sha256'} = lc $entry->{'lfs'}{'sha256'};
+            $dl->{'expected_size'}   = $entry->{'lfs'}{'size'}
+                // $entry->{'size'} // 0;
+            $dl->{'hash_state'} = qw| ok |;
+            <[base.logs]>->(
+                1, "[hf.fetch] expected sha256 for %s: %s [size=%d]",
+                $file,
+                $dl->{'expected_sha256'},
+                $dl->{'expected_size'}
+            );
+        }
+    }
+}
+
+if ( length $fail_reason ) {
+    my $max_attempts = 3;
+    if ( $attempt < $max_attempts ) {
+        ## bounded retry with backoff : this host's uplink can be flaky  ##
+        ## even through the proxy, but a metadata call this small has no ##
+        ## business hanging forever or dying on the first transient blip ##
+        <[base.logs]>->(
+            1,
+            "[hf.fetch] hash fetch attempt %d "
+                . "failed for %s/%s [%s] -- retrying",
+            $attempt,
+            $repo,
+            $file,
+            $fail_reason
+        );
+        <[event.add_timer]>->(
+            {   'after'   => 3 * $attempt,    ## 3s, then 6s ##
+                'handler' => qw| huggingface.handler.hash_retry |,
+                'data'    => { 'dl_id' => $dl_id, 'attempt' => $attempt + 1 },
+            }
+        );
+    } else {
+        ## exhausted retries : this is NOT "no verification needed".      ##
+        ## resolving to a distinct failed state so the download can never ##
+        ## fall through to the old exit-code-only success path            ##
+        $dl->{'hash_state'} = qw| failed |;
+        <[base.logs]>->(
+            0,
+            "[hf.fetch] hash fetch FAILED for %s/%s after "
+                . "%d attempts [%s] -- download cannot be verified",
+            $repo,
+            $file,
+            $attempt,
+            $fail_reason
+        );
+    }
+}
+
+my $dl_status = $dl->{'status'} // '';
+
+if ( $dl_status eq qw| awaiting-hash | ) {
+    ## download finished first and parked itself waiting for us ##
+    if ( $dl->{'hash_state'} eq qw| ok | ) {
+        $dl->{'status'} = qw| verifying |;
+        <[huggingface.verify.start]>->($dl_id);
+    } elsif ( $dl->{'hash_state'} eq qw| non-lfs | ) {
+        my $size_gb
+            = -f $dl->{'dest'} ? ( -s $dl->{'dest'} ) / ( 1024**3 ) : 0;
+        $dl->{'status'} = qw| complete |;
+        $dl->{'total'}  = $size_gb;
+        <[base.logs]>->(
+            1,
+            "[hf.fetch] download complete "
+                . "[non-LFS, sha skipped]: %s (%.2f GB)",
+            $dl->{'dest'},
+            $size_gb
+        );
+        if ( length( $dl->{'reply_id'} // '' ) ) {
+            <[base.callback.cmd_reply]>->(
+                $dl->{'reply_id'},
+                {   'mode' => qw| true |,
+                    'data' => sprintf(
+                        "ok path=%s size_gb=%.2f note=non-lfs sha256-skipped",
+                        $dl->{'dest'}, $size_gb
+                    )
+                }
+            );
+        }
+        <[huggingface.resume_idle]>->();
+    } elsif ( $dl->{'hash_state'} eq qw| failed | ) {
+        $dl->{'status'} = qw| unverified |;
+        <[base.logs]>->(
+            0,
+            "[hf.fetch] UNVERIFIED: %s -- expected sha256 "
+                . "could not be fetched; NOT marking complete",
+            $dl->{'dest'}
+        );
+        if ( length( $dl->{'reply_id'} // '' ) ) {
+            <[base.callback.cmd_reply]>->(
+                $dl->{'reply_id'},
+                {   'mode' => qw| false |,
+                    'data' =>
+                        "download UNVERIFIED: expected sha256 unavailable "
+                        . "after retries -- not marked complete"
+                }
+            );
+        }
+        <[huggingface.resume_idle]>->();
+    }
+}
+
+return 0;
+
+#,,,.,,,,,..,,,..,,,.,.,.,,,,,,.,,...,...,...,..,,...,...,,,.,,,,,.,.,,..,.,.,
+#2DBDCIFGF5MRHISJS3MAFSUWYPMC5RKTGCPMOCDLETUS2TVL2YB5AZ7HWNRCWZX2QT2LR2P7IYWRY
+#\\\|5PJRL7WKTZEC2WLPPFAXD7ZSZE4MZCNXUIEQFS6QJL2YXDFXON5 \ / AMOS7 \ YOURUM ::
+#\[7]NHYFDRA6F72MFSLD5OLG7QLGOB6YVPXRFFL62IFDJNHCFLYGH2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
