@@ -12,9 +12,14 @@
 #         repeated direct calls with no fork in between. root cause since
 #         fixed at the actual crash site [ see base.s_read, base.ssl.write ]
 #         -- starting the new tls handshake outside the fork's own call
-#         stack remains a cheap, standard mitigation. named handler + params
-#         [ not a coderef closure ] so a source reload between refresh
-#         start and completion still runs current code.
+#         stack remains a cheap, standard mitigation.
+# note  = the deferral uses event.add_idle, NOT a plain timer : only the
+#         add_idle handler branch forwards 'params' to the callback [
+#         base.event.add_timer's handler branch passes the event object
+#         itself -- confirmed live 2026-09-16 when a timer-based variant
+#         reached plugin.usage.kimi.fetch with a non-hash argument ]. named
+#         handler + params [ not a coderef closure ] so a source reload
+#         between refresh start and completion still runs current code.
 # param = { on_result => <handler name>, params => <original query params> }
 
 my $params = shift // {};
@@ -31,8 +36,8 @@ my $params = shift // {};
 
 return TRUE;
 
-#,,.,,...,,,.,,.,,,.,,.,,,,,,,.,.,..,,,,.,,,.,.,.,...,...,.,.,.,.,,,.,,,.,.,.,
-#5IPKUNYEIQKA6VPEP3XYRJPXCXHNT5G6AYRQKHWOSKTQCWRDD25HE2NPJF5SQGUGJEQEHUMDQZWVO
-#\\\|2WWYSLZ7BP4RPNEUAUUQTRCIB6STSQRUPRGGRGUS6AC4F7CJ7T3 \ / AMOS7 \ YOURUM ::
-#\[7]JITR7VUUILJAAJCC7MWSINVTYL7IOF3COS4L2G4UEFLNVZVIZSCY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,,,,,..,.,,,,,,,,..,,.,,,,.,.,.,...,...,...,...,..,,..,,.,,,
+#VGAG7V6OHO3GOOUO35VFP3WAUQMDD6E72A64ZM2WOKMFQYUWIAKDPQKM4KIAGWYX4GXUF5Y3GD7G6
+#\\\|GP4FKK4PABJRNIWL7X6IZ2JMUU4B35OPK5FBYU5CEVU3HCRXIYN \ / AMOS7 \ YOURUM ::
+#\[7]M37K7734WDNMFE63CAQ3ASJWVKT26YFIUL6VPW6APHOA7NLIZ2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
