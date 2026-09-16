@@ -15,6 +15,9 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   its perspectives.
 - **signature updates require user passphrase** — ask the user to run the signing command; never
   skip hooks.
+- **session-end ritual** — user signs + stages; I commit (running `./bin/dev/update-version` first if
+  the hook flags a version mismatch); the user then rebuilds the bundle (`gbc` alias) and pushes
+  `hub base`. pushing to the `ext-bundle` remote fails by design — it is the bundle FILE, read-only.
 - **memory tool limits** — `p7_memory_update` enforces per-agent line limits on `MEMORY.md`
   (claude ~180/200, kimi ~300/400); use `target` for external topic files and `UPDATE FILE:`
   directives for category files.
@@ -39,8 +42,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,,.,,,.,.,.,,,,,,,.,.,,,,,,,.,.,,,,,,.,,.,.,.,.,...,.,.,.,,,,,,,,..,,,,,.,.,
-#3EAUE7VJLUZJHNA43RO6VROHEFBIGMO4K4VNU3IDALP5G46PETLZVHAB4RXDORIIZIHNOIT2GRZOM
-#\\\|J45AB6NG3Y246ZUSIRDRWX7T4ASFI44VPZIVGF7JFGHAI3ZKQYU \ / AMOS7 \ YOURUM ::
-#\[7]OPWLVUWM7EXSA43BF2QC4L5GR5WDQB2LCKHT5JEBTGPLFBARHACQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,,,,,,..,,.,,...,.,.,..,,,,.,.,.,...,..,,..,,,,,,,,,,,,,,,.,,
+#6XB3G56SJ3DAL4YVOUAJWAGN6HPVVGCZ7O4BOLQSRZP5YYWD67R3OX7MUIQJUMAS3N43WA65BHYSY
+#\\\|QTSFV7443T3LFMELXZRXYOAFYKSWRG3A2GCMB6IFVROSAUQEC6K \ / AMOS7 \ YOURUM ::
+#\[7]M2FLA7I4YSN7HJF4DICVO6BSFDTII7VPIDXXXI24LEGGYERSK2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

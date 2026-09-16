@@ -101,6 +101,18 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## coding git tools repair (Sept 2026, committed b5fd7886d)
+
+four stacked bugs had the history tools returning 'no recent changes'
+since March: Git::Wrapper --oneline parser death behind a silent eval;
+libgit2 ownership (needs FROM_ENV open -- git.native.open -- plus
+cfg/git/safe-directory.config + GIT_CONFIG_GLOBAL; binary uses
+GIT_CONFIG_COUNT); 'git' namespace missing from coding modules.load
+(reload doesn't pick up new modules -- restart); native diff landmined
+(see below). config lesson: a ## comment under a continuation backslash
+is parsed as VALUE -- comments inline only.
+see [reference-git-tools-ownership-and-loader-lessons.md](reference-git-tools-ownership-and-loader-lessons.md)
+
 ## Git::Native::Diff repeat-call corruption (Sept 2026, landmined)
 
 data/lib-path/pm/Git/Native/Diff.pm : after the FIRST successful diff call
@@ -311,8 +323,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,,,...,,,,,...,,,,,,,,,,..,,..,.,,,,,.,,.,,..,,...,..,,..,,,,,,..,,.,.,..,,
-#AOI2JF7PPDIVFWTKIJTNSXH5GZME6M3OEAG55RT5LVGES57H25F6KLCEKEGWPBUBAKLSTQ3PIITRA
-#\\\|N3BRDOBR45Z6C2MGXYPBKI7CN4J4TBQZCSU6FHUQLAIXW6HZF4L \ / AMOS7 \ YOURUM ::
-#\[7]PV727VQM2WICYXJJYOCHBHEQ6BYJEY46J7OGFAKQ4FGKOQA4BGCI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,,.,,,.,,.,,,.,,.,,,,,.,.,,,..,,...,...,,,,,,.,,,.,,,..,.,,,
+#SAXAITZHV6RL45CRAT2KRB54SE7OZV4IH7D3XIPLOZ3NNSTTBWGHKDXW2I7KS5XSMI4WXV2APHN3O
+#\\\|OJZVHUFB5A75J4NTU5334DOOLR6NGES5MSHPCAZV3XCGALZMMUN \ / AMOS7 \ YOURUM ::
+#\[7]NWNGF7GIXYBHTZIFKUEEBLT2UHPYV2LJNR3HPZNCJMPMVATCQEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
