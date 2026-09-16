@@ -7,8 +7,7 @@
 my $count = $call->{'args'} // '';
 $count = 20 unless $count =~ m|^\d+$| and $count > 0;
 
-my $backup_dir
-    = <[file.zenka_dir.data_path]>->() . qw| /completed-task-backups |;
+my $backup_dir = <[file.zenka_dir.data_path]> . qw| /completed-task-backups |;
 
 return { 'mode' => qw| false |, 'data' => 'no completed-task-backups yet' }
     unless -d $backup_dir;
@@ -64,8 +63,8 @@ for my $entry (@entries) {
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @output ) . "\n" };
 
-#,,,.,..,,,..,,.,,,..,...,,.,,,,,,.,.,,,,,...,..,,...,...,.,,,,.,,.,,,,,.,,,.,
-#KSIHO6GTBUJXUEMGPPGEIGCGLKF2F6HVIXTQCRZS6MXOYT56DBAUWVXRIJHRMVXNF4MUTX77KVA64
-#\\\|6ITUDMSAGCOFCSFP5TDICQOXSSK5ETNW4ZP7RBZVFVPQHVVAYJ6 \ / AMOS7 \ YOURUM ::
-#\[7]VSOEREX2UWZXG3DXEXIK222DDGQHZW6A2LBFZORDZLEJB4BYF2BQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,..,,,.,..,,,,,,,,,,,.,,..,,..,,...,...,.,.,.,.,..,,,,,,,..,
+#CA3AXMIAHA6QQTFMOFZ32TZ52HQZI7C5AUZB7BP6A5AWK64GC4XIUHDF2T625AP2KX2LX5LQH4QH4
+#\\\|OJZKXLVZL3O4ZKXHLNZBSRVTVMHGR3PY6PGI25OYHDGWF3MFGKY \ / AMOS7 \ YOURUM ::
+#\[7]NRNHGAVFLE5DZFOFAHOB4LZHRQZNH3CJ4JVJXDQK57GRZOVFYSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

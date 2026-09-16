@@ -8,12 +8,42 @@
 #         worth a fourth watcher tier ] -- same discipline as pty.spawn, made
 #         async. named handler, not a coderef closure -- state resolves from
 #         the single-slot <usage.provider.claude>{'refresh_state'}.
+# note  = base.sig_chld runs a process-wide catch-all `waitpid(-1, WNOHANG)`
+#         on every SIGCHLD, and can win the race against this poll's own
+#         `waitpid($pid)` call above -- confirmed live 2026-09-16 : the child
+#         exited cleanly on sigterm [ decoded exit code 143, i.e. it caught
+#         the signal and called its own exit -- ctrl-d got no response in its
+#         3s window ], base.sig_chld reaped it within ~1s, and this poll's own
+#         waitpid($pid) kept returning -1 [ already reaped by someone else ],
+#         so it never matched $state->{'pid'}, ran out the rest of the
+#         sigterm grace window, and reported the misleading 'killed' after
+#         sending a redundant sigkill to a pid that -- in the worst case --
+#         the kernel may since have recycled for something unrelated.
+#         kill(0, $pid) distinguishes "gone [ reaped by anyone ]" from "still
+#         running" without trying to reap it a second time -- a zombie still
+#         answers kill(0,..) successfully, so this only trips once the pid is
+#         truly gone, and it gates every escalation step below, not just the
+#         success check, since the same reused-pid hazard applies to sigterm
+#         and sigkill equally. plugin.usage.kimi.refresh_reap has the
+#         identical `waitpid($pid)`-poll detection race, left as is here :
+#         no ctrl-d tier to blur its timing the way this run did, and a
+#         mislabeled 'killed' vs 'terminated' log line doesn't change its
+#         on_done behavior either way -- worth the same fix as a follow-up,
+#         not bundled into this commit
 
 my $state = <usage.provider.claude> {'refresh_state'} // return TRUE;
 
 if ( <[base.waitpid]>->( $state->{'pid'} ) == $state->{'pid'} ) {
     <[plugin.usage.claude.refresh_cleanup]>
         ->( $state->{'stage'} // qw| terminated | );
+    return TRUE;
+}
+
+## see module note above : someone else [ almost always base.sig_chld ]     ##
+## already reaped it -- treat as done, and never escalate further against a ##
+## pid that may no longer be ours                                           ##
+if ( not kill( 0, $state->{'pid'} ) ) {
+    <[plugin.usage.claude.refresh_cleanup]>->(qw| gone |);
     return TRUE;
 }
 
@@ -32,8 +62,8 @@ kill( 'KILL', $state->{'pid'} );
 
 return TRUE;
 
-#,,.,,.,,,..,,..,,..,,,,,,...,...,..,,,.,,,,,,..,,...,...,.,.,...,.,,,,..,,,,,
-#2WKBSG3ZDF5RUQC722HCSRMYYKBDIY344ILZ7J45Z62I3DRZ3LVFI7ZC5OGQEJ5E5UWNI6LPF2UEW
-#\\\|P2S3DHRWVIVHTPQF3ZM67RWYNUJY67JIAZGER4KPLQIPP4XYD3C \ / AMOS7 \ YOURUM ::
-#\[7]LABNJBAJGVCGSU2KZK4BOBRUMBP5FA7YTH5LEPNKIGEL3FSGGOBI 7  DATA SIGNATURE ::
+#,,,,,...,...,..,,...,,,.,,.,,,..,,,.,,..,,.,,..,,...,...,,..,..,,,.,,..,,...,
+#CGFPEXLPNSPZJ2HD4HSE5IBHOYNJ4PUE6L4B4TMF3TZ5UVZH4NP53FZKDCGOGWJH3UR4ORXEEPRQO
+#\\\|GQROFXMETLZRYTDDH3OHMECFVI4OWRBDOZWAK3GO6CQQJEEWUB6 \ / AMOS7 \ YOURUM ::
+#\[7]ETANLST2GBYF3W4LHASBWNCUIJT6X7MMUQC4S73KTVOBPCXWQGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

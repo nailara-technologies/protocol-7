@@ -51,6 +51,17 @@ foreach my $line (
 
     ##  filter for lines exceeding length if --exc-len flag is set ##
     if ($filter_exc_len) {
+        ##  memory files use long single-line bullet entries by established ##
+        ##  convention -- not a style violation worth flagging here         ##
+        next if $line =~ m{^data/ai-mem/};
+
+        ##  auto-generated adjacency list : one line per source module,     ##
+        ##  "source : callee callee .." -- a module with many callees is    ##
+        ##  always going to be a long line, that's the format, not a bug    ##
+        next
+            if $line eq
+            qw| data/md/documentation/module-dependency-graph.asc |;
+
         ##  check if file has lines exceeding 78 characters ##
         my $has_exc_len_lines = _has_lines_exceeding_length( $line, 78 );
         next unless $has_exc_len_lines;
@@ -126,8 +137,8 @@ sub _has_lines_exceeding_length {
     return 0;
 }
 
-#,,.,,,..,,,,,..,,,..,,.,,,,,,.,.,...,,,.,,.,,..,,...,...,,.,,..,,,.,,,.,,...,
-#E5QORR77K5YWR3YBRGCAEQXSTIDKQ4TKHRL27UT5F2RBP2SWHMAAIEXWWJ56KMCFU2BKIOK4G7X7W
-#\\\|MRIVMO5G2CT2L7YHSIOALBENWLSBQFVQGBXG57UWVTJ5FRZW3RA \ / AMOS7 \ YOURUM ::
-#\[7]XVYC7B3WQND5C322AE7UI7BJKHFVCD6P3JFSLFHP7D5UGRUEKODA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,,,,,.,.,,,,,.,,,,,.,.,,,,,.,..,,...,...,,.,,,.,,.,.,...,..,,
+#OV4KTE5KJDIXRB4P4JVJK2425NDIXYU5OPJS543HGZHHRGHQIMBJBAX63SAR37BZZAOCGN3HDAMBW
+#\\\|R2TC5YHCF2OT2CSRA7UATMF5ZTGYQGOOLXM6LAHWS25Q5LMUD2V \ / AMOS7 \ YOURUM ::
+#\[7]VCSJM6QUKTX2PDHQPVDGR2CAH6N6FLAD7LTXVVHH77PULVLMMODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
