@@ -4218,8 +4218,8 @@ sub p7_sig_warn {
                     keys $data{'v7-zenki'}{'child'}->%*
                 ) {
                     my @children
-                        = $code{ 'v7-zenki.sub-process.get_children' }
-                        ->($pid)->@*;
+                        = $code{'v7-zenki.sub-process.get_children'}->($pid)
+                        ->@*;
                     kill( 15, $pid );
                 }
             }
@@ -4231,13 +4231,15 @@ sub p7_sig_warn {
 
         $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
 
-        if ( defined $data{'sig_warn_blacklist'} ) {    # <-- use array [LLL]
-            return
-                if defined $data{'sig_warn_blacklist'}{'package'}
-                and $package eq $data{'sig_warn_blacklist'}{'package'}
-                or defined $data{'sig_warn_blacklist'}{'pattern'}
-                and join( ' ', @err )
-                =~ $data{'sig_warn_blacklist'}{'pattern'};
+        if ( ref $data{'sig_warn_blacklist'} eq 'ARRAY' ) {
+            ## every entry is independent : suppress on first match ##
+            foreach my $blacklist_entry ( $data{'sig_warn_blacklist'}->@* ) {
+                return
+                    if defined $blacklist_entry->{'package'}
+                    and $package eq $blacklist_entry->{'package'}
+                    or defined $blacklist_entry->{'pattern'}
+                    and join( ' ', @err ) =~ $blacklist_entry->{'pattern'};
+            }
         }    ## human readable way to stacktrace [eval] callers ? [LLL]
         map {
             $ARG =~ s| at $filename line $line[\.,].*$||;
@@ -6642,8 +6644,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,.,.,,,.,.,,,..,,,,.,,.,,...,.,,,,,,,..,,...,...,.,.,..,,...,.,.,,..,
-#DUA6ODNLGSAJW7YZNIXCMWOOFGFHXITT7HNBXHWKTTK4MSAWA6TKQKHGTZ4RU2LED4PDCFIMAPCVG
-#\\\|UEEYLGLJKS2QSONIWYSAR7OAU34TM7QWHLJ5GK2FCXF4XNBWQZ5 \ / AMOS7 \ YOURUM ::
-#\[7]BVCEIIWJHXI3BPOFW6PFEQKGF2ND2ZFUEAGXAAONX7JHCK3QH2DA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,,,,,,..,...,..,,,.,,.,.,,..,..,,...,...,.,,,...,...,...,,..,
+#XH3F3QIQGOJITTRSXBXY4GYMKMAQUL4ASAK2XT3TALTKUCL2PCBLEXJNAVDBXKXRUXPG52H6DG5QI
+#\\\|7246RIEWVZ2JE5DIR2DR5YJXAYXQZ6WFRX754E5PC3ZXBUM3PTW \ / AMOS7 \ YOURUM ::
+#\[7]XTO4XZZRCTG2CQMXAMHAHFAU4EGTA2NNLPIJSNPELHC5UTVSX4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
