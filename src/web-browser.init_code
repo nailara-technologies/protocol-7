@@ -103,10 +103,15 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
     = <[file.slurp]>->(<web-browser.loading_page>);
 
 # [ workaround to suppress weird\untraceable Event.pm warnings on load timeout ]
-<sig_warn_blacklist.package> = qw| Carp |;
-<sig_warn_blacklist.pattern>
-    = qr{Source ID \d+ was not found when attempting to remove it
-        |GLib-LOG \*\*: posix_start avoided}x;
+## a stale pre-array-ification hashref may still be sitting in %data from ##
+## before this shape existed [ reload doesn't reset %data ] -- normalize  ##
+$data{'sig_warn_blacklist'} = []
+    unless ref $data{'sig_warn_blacklist'} eq 'ARRAY';
+push $data{'sig_warn_blacklist'}->@*, {
+    'package' => qw| Carp |,
+    'pattern' => qr{Source ID \d+ was not found when attempting to remove it
+        |GLib-LOG \*\*: posix_start avoided}x
+};
 
 <web-browser.open_gtk_inspector> //= 0;
 if (<web-browser.open_gtk_inspector>) {
@@ -195,8 +200,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,.,,...,.,,,..,,...,,,.,,.,,,..,..,,,..,.,,,..,,...,...,,,,,..,,,.,,,,.,.,,,
-#RNHEYHNH34JGRTYSAOZAVXUSDKL2HB7REQZ6JXURJYVWGSCTI2MJLSKFY5TSFIIMTKN7CNV6EJW6K
-#\\\|OV6PN5J3XDZUIIATTZ2765PWYSGIVATJBJPLCS5Z3MXYJBAWHME \ / AMOS7 \ YOURUM ::
-#\[7]46HROMPAPJL5BWSZ3INR6VIQPS7R4WIKEAPWYOFP63GJZZS3KUBI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,.,,,...,,,.,,,.,..,,,,,,,,.,..,,...,...,...,..,,.,,,.,,,,.,,
+#2PSAOCJPGZ3TSHBYT2Q7E2NDKMTTKVNPQMPLFNY5SXVROXYWFTBZYBQ2BOO7OJCIEEW7VO3XWBH3I
+#\\\|VZSW52JO3UGVXRLR7SGY7L3KOT3L2YRDGPC4L3B4D4P2CIHWZWK \ / AMOS7 \ YOURUM ::
+#\[7]V52RD3S5SJIEDTMECHFWSIW24EOLG6KB2QC2GAVDSH6QS7Z5NGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

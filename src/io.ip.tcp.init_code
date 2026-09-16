@@ -2,12 +2,16 @@
 
 # name = io.ip.tcp.init_code
 
-my $restore_pattern = <sig_warn_blacklist.pattern>;
-<sig_warn_blacklist.pattern> = qr{^(Constant s|S)ubroutine \S+ redefined };
+## a stale pre-array-ification hashref may still be sitting in %data from ##
+## before this shape existed [ reload doesn't reset %data ] -- normalize  ##
+$data{'sig_warn_blacklist'} = []
+    unless ref $data{'sig_warn_blacklist'} eq 'ARRAY';
+push $data{'sig_warn_blacklist'}->@*,
+    { 'pattern' => qr{^(Constant s|S)ubroutine \S+ redefined } };
 
 <[base.perlmod.load]>->( 'IO::Socket::IP', qw| -register | );
 
-<sig_warn_blacklist.pattern> = $restore_pattern;
+pop $data{'sig_warn_blacklist'}->@*;    ## remove temporary entry again ##
 
 <io.type>->{'ip.tcp'} = {
 
@@ -34,8 +38,8 @@ my $restore_pattern = <sig_warn_blacklist.pattern>;
 
 return FALSE;
 
-#,,.,,,..,.,,,,.,,,,,,,..,...,...,,.,,,,,,..,,..,,...,.,.,..,,,,.,..,,,,,,,,.,
-#ORAWMACY36GSPXR3Z4LBPAVY37W3EFH7HZYUMZO45G3YV35OPOUHPKG5QKWHWMUFWIGTFNDD6VNEG
-#\\\|GE5Q2JQHL7DHIWR53EEJRLLC7V7H6XZTOG7XBIEM575NF5WOQ4J \ / AMOS7 \ YOURUM ::
-#\[7]327FKQK6GJBVBUOOK3NOWCVXGMW27VC3JIWKQDYXD5AC2K2RIMAY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,..,,,..,...,..,,.,,,...,..,,..,,...,...,..,,,..,..,,,,,,.,.,
+#W7PXLDA5P43MCGW4XNJATW4YSRU57YP7LU5UIU65VZMWL6ORESIFWCWJXB6MZSYSERF22GB32TAK2
+#\\\|6CD3G25NPGEKYMH256JZP6BD4X5EODQEHB2RL62QXTEHWJHSTT7 \ / AMOS7 \ YOURUM ::
+#\[7]VA26PXADH3C4KTTZURQFLDPP2RWECAKIPZXL6QXOXP7KQCETLICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

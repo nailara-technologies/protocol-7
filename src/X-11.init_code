@@ -115,8 +115,13 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 ## silence bad-drawable protocol errors : dead window XIDs queried after a  ##
 ## zenka shuts down return false via eval [ X-11.cmd.get_geometry ], this   ##
 ## blacklist suppresses the warn log before it reaches process-x11- error [ ##
-## the $SIG{__WARN__} handler in bin/Protocol-7 checks this ]               ##
-<sig_warn_blacklist.pattern> = qr{bad \d+ \(Drawable\)}i;
+## the $SIG{__WARN__} handler in bin/Protocol-7 checks this ] a stale       ##
+## pre-array-ification hashref may still be sitting in %data from before    ##
+## this shape existed [ reload doesn't reset %data ] -- normalize           ##
+$data{'sig_warn_blacklist'} = []
+    unless ref $data{'sig_warn_blacklist'} eq 'ARRAY';
+push $data{'sig_warn_blacklist'}->@*,
+    { 'pattern' => qr{bad \d+ \(Drawable\)}i };
 
 <[X-11.maximize_intel_gpu_frequency]>
     if <[base.cfg_bool]>->(<X-11.max_intel_gpu_freq>)
@@ -125,8 +130,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,,.,,,.,..,,..,,,,,,...,.,,,,.,,,..,,,.,.,,,..,,...,..,,,..,..,,...,,,,,.,.,
-#KOGLZHSYXWULFEPBKXGVHMJFB4KG5EDHUQZLCCZUN4K4Q4W66NSWV3UD7ZSOSBJ4SL66EVBMGWI5Q
-#\\\|APIJIIQ73ERBXGCWAXE3HJALNV4X7EB732KPBXTAVQATG2CF7LI \ / AMOS7 \ YOURUM ::
-#\[7]3FBGJRQA4LYLT5MEKTKCKQWB5FCJW2ON5IVZ3UEJXWADYJA7MCDI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,.,,.,,,..,.,,,.,.,.,.,,,.,,.,,..,,...,...,,.,,,,.,,,.,...,...,
+#BJSWZ7PYWIPUK5LT6DY2INTZZ5UCSIQVCXSW3FTBPYNLTQ5HGWLRXJBLUPJXZ6VSWSMEYEBXT6OGY
+#\\\|PRO7TFETBC6H2QQG23KSX5TLW6NVYLEQXXYH7G52VB7YBWBOKQQ \ / AMOS7 \ YOURUM ::
+#\[7]LED33XS6GBYZZNFHTB6RDAAYGHQ3SNERHLJ76SIMU2XVLE7HTSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
