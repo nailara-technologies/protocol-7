@@ -34,8 +34,11 @@ access.cmd.usr.cube = commands heart name subname verify-instance reload \
                       buffer-erase buffer-erase-level \
                       claude kimi status
 
+## pty : plugin.usage.claude.refresh_token needs a real terminal [ IO::Pty ]
+## to refresh claude code's own oauth token -- see that module's note on why
+## a plain pipe doesn't work for it the way it does for kimi's refresh
 modules.load = auth.client net protocol.protocol-7 io.unix ui crypt.C25519 \
-               format.json clients.https usage
+               format.json clients.https usage pty
 [load_modules:<modules.load>]
 
 plugins.load = plugin.usage.claude plugin.usage.kimi
@@ -51,8 +54,8 @@ plugins.load = plugin.usage.claude plugin.usage.kimi
 
 [zenka.loop]
 
-#,,,,,...,.,,,.,.,..,,,,,,..,,.,.,...,,,.,.,,,..,,...,...,...,..,,,..,,,.,.,.,
-#7IHJD2WLCNLG3DY52VF2JUI54CRXFOFDNFZ4GTT4UZF36IUQW7N5WFJFGYN4PQN6HHZLP47NXG2K6
-#\\\|4WREVNBLCOU7FNYZPZZB4AZQCM6KI3FZZXSLQT2I6PLIFF35FS4 \ / AMOS7 \ YOURUM ::
-#\[7]2GBQKVZHUZ5B3SLY5RBMTZZ5EIVS2237ZLWH7T2IQEAU7RWYKUDQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,,..,,..,,,.,,,,,,..,.,.,,,.,..,,...,...,.,.,,,.,,..,,..,...,
+#AODZWPWVJMYWKM6SU4UXXAANBRBL2FKGDWWD5FRCY4RWESLH6AF46VMJNNP34E7YDTYNJDZPGZOB2
+#\\\|DJHUGVZW7OGRMPF6LSYCDC7T7KZUG3OAWPAG2NK75D5QQDZHI2M \ / AMOS7 \ YOURUM ::
+#\[7]4EGPLMX2EDB6AR63Y4MPJVMWXZO2UWHXYTE4VRHRV2QVSBYIK6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
