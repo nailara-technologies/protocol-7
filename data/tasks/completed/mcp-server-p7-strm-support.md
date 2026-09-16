@@ -349,10 +349,8 @@ on trip: return what was collected plus the marker from step 3, and
   distinctly. only worth it if a caller is actually going to branch on
   it; a text marker is sufficient for a model reader.
 
-#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
-
-#,,.,,,,,,,,,,.,,,.,.,..,,.,.,.,.,,.,,,..,,.,,..,,...,...,.,.,...,,.,,,..,..,,
-#RMWK4LSZZAAEULZXO6OQJ4JH4UQATVRVGCNIDCK3SP3WGD7P23X65Q3IV2D5R3EFAJOOAIPW56CSK
-#\\\|2L2WBTJ5T4FWGYLMNIUHF7CWC7VI6GA6CRPG5RRMJV3E227PL2I \ / AMOS7 \ YOURUM ::
-#\[7]34ETMRG7GDQSTZHFY7JXFYGDI75YF74SLP4YLS24ZBNNJK2H5SCQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,.,.,.,.,,,,,..,,...,,..,,..,..,,...,...,,..,,,,,,,,,,,.,,,,,
+#IBMZKXH2DGMT62KXMJ7WF7IF2SGAAG72VT552DOJVI2V7ZHI2DMIN33UVQDMIKHBUZCERCDYEO5DG
+#\\\|2VENJIAWGKZLKHWSSFNBNOUVUU7Q6OXPPXIH5FXBIGSUEQDP4BP \ / AMOS7 \ YOURUM ::
+#\[7]YE2M4XY64BFB6HRW2BKLSMZPSAMNSTIRVONFSLQHFLT2YPZDLMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
