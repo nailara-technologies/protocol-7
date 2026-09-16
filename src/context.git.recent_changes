@@ -25,28 +25,60 @@ unless ( -d "$root/.git" ) {
     return "<!-- not a git repository -->";
 }
 
-## git diff --stat for uncommitted changes [ native libgit2 ] ##
+## git diff --stat for uncommitted changes, via the git binary ##
+##
+## Git::Native::Diff is deliberately NOT used here : its diff entry points
+## corrupt process-global FFI state after the FIRST call in any long- running
+## process [ second call dies 'invalid version <garbage> on git_diff_options'
+## -- reproducible one-shot, owner-independent ] and the root cause is
+## untraced. the binary path needs no libgit2 and honors the safe.directory
+## env vars coding.init_code sets [ GIT_CONFIG_COUNT ; the binary never had
+## the ownership problem ]. Git::Wrapper passes diff args through RAW [ no
+## Smart parser on diff ] so '--stat' output comes back verbatim.
+my $git = Git::Wrapper->new($root);
+
 my $stat_output = '';
+my $diff_error  = '';
+my @diff_args   = ('--stat');
+push @diff_args, $since_commit if length $since_commit;
 eval {
-    require Git::Native;
-    require Git::Native::Diff;
-    my $repo = Git::Native->open($root);
-    $stat_output
-        = length $since_commit
-        ? Git::Native::Diff->tree_to_workdir_stat( $repo, $since_commit )
-        : Git::Native::Diff->workdir_stat($repo);
+    $stat_output = join "\n", $git->diff(@diff_args);
     1;
-};
-## on error $stat_output stays '' and the log fallback below fires, ##
-## matching previous Git::Wrapper failure behavior [ silent eval ]  ##
+} or $diff_error = $EVAL_ERROR;
+<[base.logs]>->(
+    1,
+    'recent_changes : git diff failed :. %s',
+    ( $diff_error =~ s|\s+at\s+\S+.*||sgr )
+) if length $diff_error;
 
 ## if no uncommitted changes, show recent commits instead ##
 unless ( length $stat_output ) {
-    my $git = Git::Wrapper->new($root);    ## log stays on Git::Wrapper
+    ## the log stays on Git::Wrapper -- Git::Native has no log API [ only
+    ## Diff, currently landmined, see above ]. Git::Wrapper's log() FORCES its
+    ## own --pretty=medium and parses for '^commit <sha>' lines : passing
+    ## '--oneline' overrides the format on the command line and the parser
+    ## dies 'unhandled: <line>' on the first output row -- broken since the
+    ## March 2026 rewrite, masked by a fully silent eval. use the structured
+    ## objects and build the oneline shape here instead.
+    my @logs      = ();
+    my $log_error = '';
     eval {
-        $stat_output = join "\n", $git->log( '--oneline', "-$max_files" );
-    };
-    return "<!-- no recent changes -->" unless length $stat_output;
+        @logs = $git->log("-$max_files");
+        1;
+    } or $log_error = $EVAL_ERROR;
+    ## a genuinely quiet repo and a failed git call used to collapse into the
+    ## same '<!-- no recent changes -->' -- log the real error so the two stop
+    ## being indistinguishable
+    <[base.logs]>->(
+        1,
+        'recent_changes : git log failed :. %s',
+        length $log_error ? $log_error : '( no output, no error )'
+    ) if length $log_error or not @logs;
+    return "<!-- no recent changes -->" unless @logs;
+    $stat_output = join "\n", map {
+        my ($subject) = split m{\n}, $_->message // '';
+        substr( $_->id, 0, 7 ) . ' ' . $subject
+    } @logs;
 }
 
 ## parse and truncate to budget ##
@@ -85,8 +117,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,..,...,,.,,,,.,,,.,.,,,,,,,...,...,...,,,,,..,,...,...,...,...,...,,..,,..,
-#IQQM6R5VHQ55EVWL3NSTCECHDLZ3N6TLHLPJZICVKG2HUACPYQ7J2ENKLDCOTVZ3B6QPABS4X73K6
-#\\\|425XM57NIH2QISODNX2OSUCV7CYJIIQA5T3MSXMNBX46OMHIOBK \ / AMOS7 \ YOURUM ::
-#\[7]MEDDDSPHVBP4AZX2RHRSNQDBVM6OVM2KJCBXV6VY4WT5NMMUJOCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,.,,,,..,.,,,,,,,,.,,.,,,.,,,..,,...,...,..,,,,,,..,,,.,,,.,,
+#Q6RPQOYSM7FGDBDVQZRYSCPHNSTSL7QNIIKERWC7H36V4FHMLIFXNRJXCTHZOADXCV2XKRSVGUMEY
+#\\\|GP73DID6R5TKUOQW4WSQETIYHMLVUHIA6QO5C4CDMGQZMHLFEHK \ / AMOS7 \ YOURUM ::
+#\[7]J5KA7BDHAHMWVCEI675W3VJDB7H2B4HGY25BHTYQZ3ZFXWKOVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

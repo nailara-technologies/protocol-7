@@ -2,22 +2,33 @@ package Git::Native::Diff;
 
 ## native libgit2 diff-text bindings for Protocol-7 [ in-tree extension ]
 ##
-## attaches the diff output functions Git::Libgit2::FFI 0.006 left
-## unbound [ git_diff_to_buf, git_diff_get_stats, git_diff_stats_to_buf,
+## attaches the diff output functions Git::Libgit2::FFI 0.006 left unbound [
+## git_diff_to_buf, git_diff_get_stats, git_diff_stats_to_buf,
 ## git_diff_stats_free, git_buf_dispose ] against the same singleton
-## FFI::Platypus instance, and exposes four class methods returning plain
-## diff text [ patch or --stat ] for a Git::Native::Repository.
+## FFI::Platypus instance, and exposes four class methods returning plain diff
+## text [ patch or --stat ] for a Git::Native::Repository.
 ##
 ## note: reaches through the soft-private Moo accessor ->_handle on
-## Git::Native::{Repository,Index,Tree,Reference} at the FFI boundary,
-## same pointer shape those wrappers themselves hand to libgit2.
+## Git::Native::{Repository,Index,Tree,Reference} at the FFI boundary, same
+## pointer shape those wrappers themselves hand to libgit2.
+##
+## LANDMINED 2026-09-15 -- DO NOT USE FOR REPEATED CALLS IN ONE PROCESS :
+## after the FIRST successful diff call, every subsequent diff entry point in
+## the SAME process dies with 'invalid version <stable-garbage> on
+## git_diff_options' from libgit2's diff_prepare_iterator_opts [ the opts
+## pointer arrives corrupted ; the caller-side struct itself is intact ].
+## Reproducible in a one-shot perl, repo-owner independent, stat-only
+## sequences included. Root cause untraced [ FFI/Platypus state vs libgit2
+## 1.9.7 ]. context.git.recent_changes and coding.tools.handler.
+## git_diff_output were rerouted to the git binary via Git::Wrapper raw diff
+## calls because of this. Revisit only with a traced fix.
 
 use strict;
 use warnings;
 use 5.034;
 
 use Git::Native::Error qw( check_rc );
-use Git::Libgit2 qw( GIT_OBJECT_TREE );
+use Git::Libgit2       qw( GIT_OBJECT_TREE );
 use Git::Libgit2::FFI;
 use FFI::Platypus::Buffer qw( scalar_to_buffer );
 use Try::Tiny;
@@ -25,7 +36,7 @@ use Try::Tiny;
 use constant {
     GIT_DIFF_OPTIONS_VERSION     => 1,
     GIT_DIFF_OPTIONS_STRUCT_SIZE => 512,    ## over-alloc; CLONE_OPTIONS_SIZE
-                                            ## tactic, Git/Native.pm:25
+    ## tactic, Git/Native.pm:25
     GIT_DIFF_FORMAT_PATCH          => 1,
     GIT_DIFF_FORMAT_PATCH_HEADER   => 2,
     GIT_DIFF_FORMAT_RAW            => 3,
@@ -65,17 +76,16 @@ sub _to_string_and_dispose {
     return $out;
 }
 
-## shared prologue: attached symbols, ffi singleton, init'd options struct
-## [ caller must keep the returned $opts scalar in scope -- $opts_p
-##   points into its PV and dangles once $opts is freed ]
+## shared prologue: attached symbols, ffi singleton, init'd options struct [
+## caller must keep the returned $opts scalar in scope -- $opts_p points into
+## its PV and dangles once $opts is freed ]
 sub _ffi_and_opts {
     Git::Native::Diff::FFI::_ensure_attached();
-    my $ffi  = Git::Libgit2::FFI::ffi();
-    my $opts = "\0" x GIT_DIFF_OPTIONS_STRUCT_SIZE;
+    my $ffi      = Git::Libgit2::FFI::ffi();
+    my $opts     = "\0" x GIT_DIFF_OPTIONS_STRUCT_SIZE;
     my ($opts_p) = scalar_to_buffer($opts);
-    check_rc Git::Libgit2::FFI::git_diff_options_init(
-        $opts_p, GIT_DIFF_OPTIONS_VERSION,
-    );
+    check_rc Git::Libgit2::FFI::git_diff_options_init( $opts_p,
+        GIT_DIFF_OPTIONS_VERSION, );
     return ( $ffi, $opts, $opts_p );
 }
 
@@ -87,16 +97,15 @@ sub _stats_filler {
         my $stats_ptr;
         check_rc Git::Libgit2::FFI::git_diff_get_stats( \$stats_ptr,
             $diff_ptr );
-        my $rc = Git::Libgit2::FFI::git_diff_stats_to_buf(
-            $buf_p, $stats_ptr, GIT_DIFF_STATS_FULL, 80,
-        );
+        my $rc = Git::Libgit2::FFI::git_diff_stats_to_buf( $buf_p, $stats_ptr,
+            GIT_DIFF_STATS_FULL, 80, );
         Git::Libgit2::FFI::git_diff_stats_free($stats_ptr);
         check_rc $rc;
     };
 }
 
-## `git diff --cached` -- HEAD tree vs index, full unified patch text.
-## unborn HEAD: undef old_tree, libgit2 diffs empty-tree vs index.
+## `git diff --cached` -- HEAD tree vs index, full unified patch text.  unborn
+## HEAD: undef old_tree, libgit2 diffs empty-tree vs index.
 sub staged_patch {
     my ( $class, $repo ) = @_;
     my ( $ffi, $opts, $opts_p ) = _ffi_and_opts();
@@ -104,17 +113,16 @@ sub staged_patch {
     my $head_ref = $repo->head;
     my $head_tree_ptr;
     if ( defined $head_ref ) {
-        check_rc Git::Libgit2::FFI::git_reference_peel(
-            \$head_tree_ptr, $head_ref->_handle, GIT_OBJECT_TREE,
-        );
+        check_rc Git::Libgit2::FFI::git_reference_peel( \$head_tree_ptr,
+            $head_ref->_handle, GIT_OBJECT_TREE, );
     }
 
     my $index = $repo->index;
 
     my $diff_ptr;
     my $rc = Git::Libgit2::FFI::git_diff_tree_to_index(
-        \$diff_ptr, $repo->_handle, $head_tree_ptr, $index->_handle,
-        $opts_p,
+        \$diff_ptr,      $repo->_handle, $head_tree_ptr,
+        $index->_handle, $opts_p,
     );
     if ( $rc < 0 ) {
         Git::Libgit2::FFI::git_tree_free($head_tree_ptr) if $head_tree_ptr;
@@ -123,12 +131,14 @@ sub staged_patch {
 
     my $text;
     try {
-        $text = _to_string_and_dispose( $ffi, sub {
-            my ($buf_p) = @_;
-            check_rc Git::Libgit2::FFI::git_diff_to_buf(
-                $buf_p, $diff_ptr, GIT_DIFF_FORMAT_PATCH,
-            );
-        });
+        $text = _to_string_and_dispose(
+            $ffi,
+            sub {
+                my ($buf_p) = @_;
+                check_rc Git::Libgit2::FFI::git_diff_to_buf( $buf_p,
+                    $diff_ptr, GIT_DIFF_FORMAT_PATCH, );
+            }
+        );
     } finally {
         Git::Libgit2::FFI::git_diff_free($diff_ptr);
         Git::Libgit2::FFI::git_tree_free($head_tree_ptr) if $head_tree_ptr;
@@ -144,18 +154,19 @@ sub workdir_patch {
     my $index = $repo->index;
 
     my $diff_ptr;
-    check_rc Git::Libgit2::FFI::git_diff_index_to_workdir(
-        \$diff_ptr, $repo->_handle, $index->_handle, $opts_p,
-    );
+    check_rc Git::Libgit2::FFI::git_diff_index_to_workdir( \$diff_ptr,
+        $repo->_handle, $index->_handle, $opts_p, );
 
     my $text;
     try {
-        $text = _to_string_and_dispose( $ffi, sub {
-            my ($buf_p) = @_;
-            check_rc Git::Libgit2::FFI::git_diff_to_buf(
-                $buf_p, $diff_ptr, GIT_DIFF_FORMAT_PATCH,
-            );
-        });
+        $text = _to_string_and_dispose(
+            $ffi,
+            sub {
+                my ($buf_p) = @_;
+                check_rc Git::Libgit2::FFI::git_diff_to_buf( $buf_p,
+                    $diff_ptr, GIT_DIFF_FORMAT_PATCH, );
+            }
+        );
     } finally {
         Git::Libgit2::FFI::git_diff_free($diff_ptr);
     };
@@ -170,9 +181,8 @@ sub workdir_stat {
     my $index = $repo->index;
 
     my $diff_ptr;
-    check_rc Git::Libgit2::FFI::git_diff_index_to_workdir(
-        \$diff_ptr, $repo->_handle, $index->_handle, $opts_p,
-    );
+    check_rc Git::Libgit2::FFI::git_diff_index_to_workdir( \$diff_ptr,
+        $repo->_handle, $index->_handle, $opts_p, );
 
     my $text;
     try {
@@ -185,8 +195,8 @@ sub workdir_stat {
 
 ## `git diff --stat <rev>` -- <rev>'s tree vs workdir, --stat summary.
 sub tree_to_workdir_stat {
-    my ( $class, $repo, $rev ) = @_;
-    my ( $ffi, $opts, $opts_p ) = _ffi_and_opts();
+    my ( $class, $repo, $rev )    = @_;
+    my ( $ffi,   $opts, $opts_p ) = _ffi_and_opts();
 
     my $obj_ptr;
     check_rc Git::Libgit2::FFI::git_revparse_single( \$obj_ptr,
@@ -200,9 +210,8 @@ sub tree_to_workdir_stat {
     }
 
     my $diff_ptr;
-    $rc = Git::Libgit2::FFI::git_diff_tree_to_workdir(
-        \$diff_ptr, $repo->_handle, $tree_ptr, $opts_p,
-    );
+    $rc = Git::Libgit2::FFI::git_diff_tree_to_workdir( \$diff_ptr,
+        $repo->_handle, $tree_ptr, $opts_p, );
     if ( $rc < 0 ) {
         Git::Libgit2::FFI::git_object_free($tree_ptr);
         check_rc $rc;    ## throws
@@ -220,9 +229,9 @@ sub tree_to_workdir_stat {
 
 package Git::Native::Diff::FFI;
 
-## attaches the diff output symbols missing from Git::Libgit2::FFI 0.006
-## [ plus git_object_peel, needed to resolve revspecs to trees ] on the
-## same singleton FFI::Platypus instance. attached once, lazily.
+## attaches the diff output symbols missing from Git::Libgit2::FFI 0.006 [
+## plus git_object_peel, needed to resolve revspecs to trees ] on the same
+## singleton FFI::Platypus instance. attached once, lazily.
 my $attached = 0;
 
 sub _ensure_attached {
@@ -231,25 +240,23 @@ sub _ensure_attached {
 
     $ffi->type( 'opaque' => 'git_diff_stats' );
 
-    ## attach into the upstream Git::Libgit2::FFI package so the new
-    ## symbols are reachable as Git::Libgit2::FFI::git_diff_* alongside
-    ## the ones _attach_all already bound there
+    ## attach into the upstream Git::Libgit2::FFI package so the new symbols
+    ## are reachable as Git::Libgit2::FFI::git_diff_* alongside the ones
+    ## _attach_all already bound there
     {
+
         package Git::Libgit2::FFI;
 
         $ffi->attach(
             git_diff_to_buf => [ 'opaque', 'git_diff', 'int' ] => 'int' );
         $ffi->attach(
             git_diff_get_stats => [ 'opaque*', 'git_diff' ] => 'int' );
+        $ffi->attach( git_diff_stats_to_buf =>
+                [ 'opaque', 'git_diff_stats', 'int', 'size_t' ] => 'int' );
+        $ffi->attach( git_diff_stats_free => ['git_diff_stats'] => 'void' );
+        $ffi->attach( git_buf_dispose     => ['opaque']         => 'void' );
         $ffi->attach(
-            git_diff_stats_to_buf => [ 'opaque', 'git_diff_stats', 'int',
-                'size_t' ] => 'int' );
-        $ffi->attach(
-            git_diff_stats_free => [ 'git_diff_stats' ] => 'void' );
-        $ffi->attach( git_buf_dispose => [ 'opaque' ] => 'void' );
-        $ffi->attach(
-            git_object_peel => [ 'opaque*', 'git_object', 'int' ] => 'int'
-        );
+            git_object_peel => [ 'opaque*', 'git_object', 'int' ] => 'int' );
     }
 
     $attached = 1;
@@ -258,8 +265,8 @@ sub _ensure_attached {
 
 1;
 
-#,,.,,,,,,,..,,..,,..,...,.,.,,..,..,,...,..,,..,,...,...,.,,,,,,,,..,.,,,...,
-#GPFB2YLY6EWMTEBJWZV2O66PAR4PELK5CMFJ2DWSBCBUZTX2MTNPFL2ZZQRTF6V3GJUS6W3OG33RU
-#\\\|QAXIITUCDEEE4H3TGSNWFP5SLHQF7WUJJWPRS4CK53XYEZZ2FUX \ / AMOS7 \ YOURUM ::
-#\[7]AMRCBFCXRZFCOSKOJA2JP2KXDSLV6L2RPFZN5GP6IVIVT4MLXOCA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,.,,,.,,,,,,,...,.,.,,,.,..,,..,,...,...,.,.,,..,.,,,.,,,.,,,
+#EFYZXKCTC7IDOGKV2TFBHRIYY2RH3LRFVF5N5MKYJAL6NBIJWFNLKP4WPJWFTAFZJJ23QLKYYSMQU
+#\\\|BSIT75W5RA4UGYY4IIP34BEJGCCC2Q4Q7C7C2GW2OZXS2BPYWDZ \ / AMOS7 \ YOURUM ::
+#\[7]TY724CDP6DMA6SXPPKUUHBNAOV6SYIJJXIQS4VN5VLBL52CBYWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

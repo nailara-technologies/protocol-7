@@ -101,6 +101,20 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## Git::Native::Diff repeat-call corruption (Sept 2026, landmined)
+
+data/lib-path/pm/Git/Native/Diff.pm : after the FIRST successful diff call
+in a process, EVERY subsequent diff entry point dies 'invalid version
+<stable-garbage> on git_diff_options' (diff_prepare_iterator_opts, libgit2
+1.9.7). Reproducible one-shot as any user, owner-independent, stat-only
+sequences too — the opts pointer arrives corrupted while the caller-side
+struct is intact. Root cause untraced (FFI/Platypus state vs libgit2).
+context.git.recent_changes + coding.tools.handler.git_diff_output rerouted
+to the git binary via Git::Wrapper RAW diff calls (no Smart parser on diff;
+log() has one — NEVER pass --oneline to Git::Wrapper::log, it forces
+--pretty=medium and dies 'unhandled:'). Do NOT reintroduce native diff
+calls per-request until traced.
+
 ## event-callback reload-safety takeover (Sept 2026, committed d89cb1f46)
 
 finished the claude session's survey after it hit weekly limit: named-handler
@@ -297,8 +311,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,.,.,.,,..,..,,,.,,,.,,,,.,,..,,,.,,..,...,..,,...,...,..,,.,,,,..,,.,,...,
-#FBHCCRKPZYMI6O3OHW6EKPLLH5UT5PX2IMTVXMFPHJ4WJIM375IHKAWQA2SDJKFZXNBKMUNDKESMA
-#\\\|O5RTWP6W3JBRNCFZWOAOBTJPU7FSBX6XKVHNI32WAUE3Y5H2GDN \ / AMOS7 \ YOURUM ::
-#\[7]WV2G527GB7DLON6BBH5RJCSZBAADXPNKBG6R37THDFXZE2UUFYAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,,,,,,,,,,..,,..,.,,,,,.,,.,,..,,...,..,,..,,,,,,..,,.,.,..,,
+#AOI2JF7PPDIVFWTKIJTNSXH5GZME6M3OEAG55RT5LVGES57H25F6KLCEKEGWPBUBAKLSTQ3PIITRA
+#\\\|N3BRDOBR45Z6C2MGXYPBKI7CN4J4TBQZCSU6FHUQLAIXW6HZF4L \ / AMOS7 \ YOURUM ::
+#\[7]PV727VQM2WICYXJJYOCHBHEQ6BYJEY46J7OGFAKQ4FGKOQA4BGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
