@@ -92,8 +92,26 @@ actually returns parsed rate-limit rows instead of falling through to the
 `plugin.usage.claude.handler.response`. that's the one remaining unconfirmed
 link in an otherwise now-proven chain.
 
-#,,.,,.,.,..,,...,,.,,,..,,..,,,,,.,.,.,,,...,..,,...,...,..,,.,,,,.,,.,.,.,,,
-#MPR434M5IKMGZUOEFRDV4GXV52DSIYKUPV4VMOEI5FQKJ4JPLOIHFUAKAU5LCUCANTA75OSHTQ7PG
-#\\\|HBTGABZDXPW4CLZM6W5Y2OJ6WNHDZNLURNDD5SBMQRKBGBLYKWK \ / AMOS7 \ YOURUM ::
-#\[7]BFKTTRXVWVKC2KRHFCPU5YUJBR7OBYWRMYQD3R5CKIR2DAG3LGCY 7  DATA SIGNATURE ::
+**kimi's own refresh confirmed live in production the same day** [ 2026-09-16,
+independent of the manual-trigger testing above -- a real token expiry :
+"usage [ kimi ] : token expired, refreshing via kimi cli and retrying once"
+followed by a normal successful retry ].
+
+**related finding, deliberately left alone** : `plugin.usage.kimi.refresh_token`
+has the same class of mcp-server-recursion side effect the claude fix above
+addresses with `--strict-mcp-config` -- but kimi's `~/.kimi-code/mcp.json` is a
+GLOBAL config [ unlike claude's per-project `.mcp.json` ], registering the
+same `protocol-7` mcp server for every kimi invocation regardless of working
+directory, confirmed live by a `session authorized [taeki] as 'unix-taeki'`
+cube log line landing at the same moment as a real kimi refresh cycle. `kimi
+--help` has no `--strict-mcp-config`-equivalent flag and no discoverable
+config-dir override env var. decision : leave it -- kimi's refresh already
+works reliably, this is extra latency + one extra mcp-server process per
+refresh cycle [ at most every ~5h/7d ], not a correctness problem worth the
+risk of moving the user's real global kimi config file aside mid-spawn.
+
+#,,,.,,..,,..,...,,,.,,,,,..,,.,,,.,.,.,.,...,..,,...,...,,,,,.,.,,..,,..,,,,,
+#64OKCQ3I3OFFBOG4K7MZGJEWQ5VTM5AELHB6TFQCLAGFKW6DPHDBITA5GVDUMKG656DGGZZOZPT5E
+#\\\|FGWORNN5VLS7NGLPPPN7SIPWS6EJ5LFECQU64L5P7P346D53HHA \ / AMOS7 \ YOURUM ::
+#\[7]FUCSXROJ3TMCBSX2T3WGLXVPYYWO555F2CXBRCZY2H6X6RLUCQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
