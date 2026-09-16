@@ -62,7 +62,22 @@ use POSIX ();
 ## the proven-working test used 15s, undisturbed for the full duration -- this
 ## is not a rarely-hit ceiling, it's the actual normal run length
 my $timeout = shift // 18;
-my $on_done = shift // {};
+my $args    = shift // {};
+
+##  caller passes { on_done => { handler => <name>, params => {} } }  [ this
+##  module's own documented interface ] -- unwrap ; a bare { handler, params }
+##  hash is also accepted so both call shapes keep working. found live
+##  2026-09-16 : reading $args->{'handler'} directly, on the outer hash, made
+##  the on_done test fail on EVERY call [ the key lives one level down ] --
+##  refresh_state->{'on_done'} silently stayed undef, the transparent retry
+##  after a token refresh was never scheduled, and every first request with an
+##  expired token fell into the query guard timeout [ 'provider did not
+##  report back in time' ] while the still-running kimi child refreshed the
+##  credential on disk -- which is exactly why the SECOND query always worked
+my $on_done = $args;
+$on_done = $args->{'on_done'}
+    if ref $args eq qw| HASH |
+    and ref $args->{'on_done'} eq qw| HASH |;
 
 my $provider = <usage.provider.kimi>;
 
@@ -224,8 +239,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,..,,,.,,,,,..,,...,,,.,,..,,,,,.,,,,.,,,..,.,.,...,...,..,,,.,,.,,,,,.,...,
-#6UEP3RT4PZJLZS47W4QDFP3YAX7AAWGFNZYQP5YJDWQC75N5GBNS454V7Y332AEFBDLMILVS5I364
-#\\\|BWORHBKSWA4FSPT52UTMT4Q7NEIOPOPGM5NQEXB2GFHHEJYHHC7 \ / AMOS7 \ YOURUM ::
-#\[7]OYJPYCPBMIRFKR6ZXFNMADFI25DDL3TOZ7J6WCNKFIKAGJVUXUDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,.,.,..,,,,,,.,.,,.,,,,,,.,.,.,.,...,...,.,,,..,,,..,...,,..,
+#4BT4RG5AZ5YPIBZHWXIGCQPHGX3OPIQG4AAKYRV72A7ULJ2WVLITKE7RMGAIX3SEESUQPQHJVLTBE
+#\\\|EJQTWDPXZ7ICG6QY3SUPKUQWRUSMNMISQDHY3JPKEXZHWFFS2G4 \ / AMOS7 \ YOURUM ::
+#\[7]O5DALQFMZA35RVCUTNRU6QNV5FPIW7Z6JSBZYVTJXVYJNJJEA6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
