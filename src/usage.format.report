@@ -54,8 +54,8 @@ if ( $format eq qw| pretty | ) {
     ## as the api already gave them [ 'plan usage', '5 hour', ..  '5h',     ##
     ## '7d' ] rather than a fixed/guessed set of names -- kimi's windows in ##
     ## particular are not a fixed pair, so nothing here assumes which ones  ##
-    ## will show up or in what order                                        ##
-    ##  clean leading newline, matches the other formats ##
+    ## will show up or in what order  clean leading newline, matches the    ##
+    ## other formats                                                        ##
     push @lines, '';
     my $block_sep = FALSE;    ##  set once a provider block has printed  ##
     foreach my $name ( $request->{'order'}->@* ) {
@@ -90,14 +90,19 @@ if ( $format eq qw| pretty | ) {
             my $duration
                 = defined $row->{'resets_in'}
                 ? <[base.parser.duration]>->(
-                <[base.time]>->() - $row->{'resets_in'}, 2
+                <[base.time]> - $row->{'resets_in'}, 2
                 )
                 : ( $row->{'reset_time'} // '?' );
 
+            ## same 0.0-over-'?' call as the compact format above, and for ##
+            ## the same reason : reads better for a human scanning this    ##
+            ## block, the omission-vs-zero distinction stays traceable via ##
+            ## raw responses \ logs if it ever matters, and the parsed     ##
+            ## number itself is left genuinely undef                       ##
             push @lines, sprintf ' : %s : %5s : %s', $key,
                 defined $row->{'used_pct'}
                 ? sprintf( '%.1f', $row->{'used_pct'} )
-                : '?',
+                : qw| 0.0 |,
                 $duration;
         }
 
@@ -200,8 +205,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 
 return join "\n", @lines;
 
-#,,,.,.,,,...,,.,,...,,.,,.,.,,..,...,,..,.,.,..,,...,...,...,...,..,,...,..,,
-#OKYOA5ELJYW6QZFVRH3JUX3E4YLYGV7UXS4Z7VGJWHN5QPDOM3TDPR7KV3F6NTKNWPLWV5NIMNXEA
-#\\\|YRT3R5I3UBQ43IDNK2PTSODM4M3OLAHXEAV36APOFU7GGA5FQLW \ / AMOS7 \ YOURUM ::
-#\[7]JAQBFY4PKZO7KASE3DMGL4CTHYTAJCIELLOHZJ27R4OTI25RAYCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,.,,,,.,,...,..,,..,,,.,,.,.,..,,...,...,,,,,,,.,,,,,.,.,...,
+#FMOFVAC5UBB5LJMQ4LHB2GDDFPCPXBGXQIMYQMJIIG5PODN7V6ZDCXMULNKHHD7FLE6U4WQRXHK6K
+#\\\|DM2XHNOZYP4WJITX2EL2CIUYAW7MTPSEJCRMHPAYMUXJHSJYOED \ / AMOS7 \ YOURUM ::
+#\[7]5O546KEF3ZIPQA37I67USXWS2OZF5GF4Q6AK3D4E7IM3DMIHYYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
