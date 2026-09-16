@@ -68,56 +68,88 @@ if ( not $still_running ) {
     my $timer = delete $dl->{'timer'};
     $timer->cancel if defined $timer;
 
-    ## resume idle-shutdown tracking, paired with the pause in fetch.file. ##
-    ## huggingface.download -- but only once EVERY tracked download is     ##
-    ## done, not just this one: pause/resume is a single flag, not a       ##
-    ## counter, so resuming while a sibling download is still in flight    ##
-    ## would re-expose it to the exact same premature-kill risk            ##
-    my $other_download_active = 0;
-    foreach my $other_id ( keys <fetch.file.downloads>->%* ) {
-        next if $other_id eq $dl_id;
-        my $other_status = <fetch.file.downloads>->{$other_id}{'status'}
-            // '';
-        $other_download_active = 1 if $other_status eq qw| downloading |;
-    }
-    if ($other_download_active) {
-        <[base.logs]>->(
-            1,
-            "[hf.fetch] deferring idle-shutdown "
-                . "resume -- another download still active"
-        );
-    } else {
-        <[base.zenki.resume_ondemand_timeout]>;
-        <[base.logs]>->( 1, "[hf.fetch] resuming idle-shutdown tracking" );
-    }
-
     my $succeeded
         = defined $exit_code
         ? ( $exit_code == 0 && -f $dest )
         : ( -f $dest && ( -s $dest ) > 0 );    ## no trustworthy exit code ##
 
-    if ($succeeded) {
+    my $hash_state = $dl->{'hash_state'} // qw| pending |;
+
+    if ( $succeeded and $hash_state eq qw| ok | ) {
+        ## expected sha256 already in hand -> fork the verify child.  reply ##
+        ## is sent by huggingface.handler.verify_progress once the hash     ##
+        ## comparison lands. idle-shutdown stays paused for the verify      ##
+        ## child, resumed by the verify path.                               ##
+        $dl->{'status'} = qw| verifying |;
+        <[huggingface.verify.start]>->($dl_id);
+        return;
+    } elsif ( $succeeded and $hash_state eq qw| failed | ) {
+        ## the expected hash genuinely could not be obtained -- this is NOT ##
+        ## "no verification needed". NEVER fall through to the old          ##
+        ## exit-code-only success path : that is the exact silent-          ##
+        ## acceptance hole this verification layer exists to close          ##
+        $dl->{'status'} = qw| unverified |;
+        <[base.logs]>->(
+            0,
+            "[hf.fetch] UNVERIFIED: %s -- expected sha256 could not "
+                . "be fetched after %d attempt(s); NOT marking complete",
+            $dest,
+            $dl->{'hash_attempts'} // 0
+        );
+        if ( length $reply_id ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' =>
+                        "download UNVERIFIED: expected sha256 unavailable "
+                        . "after retries -- not marked complete"
+                }
+            );
+        }
+        <[huggingface.resume_idle]>->();
+        return;
+    } elsif ( $succeeded and $hash_state eq qw| non-lfs | ) {
+        ## small non-LFS file : no published sha256 exists [ git blob SHA1  ##
+        ## scheme deliberately out of scope ] -> complete, with the skipped ##
+        ## verification explicitly noted in the log                         ##
         my $size_gb = ( -s $dest ) / ( 1024**3 );
         $dl->{'status'} = qw| complete |;
         $dl->{'total'}  = $size_gb;
-
         <[base.logs]>->(
-            1, "[hf.fetch] download complete: %s (%.2f GB, %d sec)",
-            $dest, $size_gb, int($elapsed)
+            1,
+            "[hf.fetch] download complete [non-LFS, "
+                . "sha skipped]: %s (%.2f GB, %d sec)",
+            $dest,
+            $size_gb,
+            int($elapsed)
         );
-
-        ## send deferred reply ##
         if ( length $reply_id ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
                 {   'mode' => qw| true |,
                     'data' => sprintf(
-                        "ok path=%s size_gb=%.2f duration=%d",
+                        "ok path=%s size_gb=%.2f duration=%d "
+                            . "note=non-lfs sha256-skipped",
                         $dest, $size_gb, int($elapsed)
                     )
                 }
             );
         }
+        <[huggingface.resume_idle]>->();
+        return;
+    } elsif ($succeeded) {
+        ## hash fetch still in flight -> park in awaiting-hash;        ##
+        ## huggingface.handler.blob_hash_response continues the flow [ ##
+        ## verify.start / unverified / non-lfs complete ] when the API ##
+        ## response lands. idle-shutdown stays paused meanwhile.       ##
+        $dl->{'status'} = qw| awaiting-hash |;
+        <[base.logs]>->(
+            1,
+            "[hf.fetch] %s downloaded -- awaiting "
+                . "expected sha256 before verification",
+            $dl->{'file'}
+        );
+        return;
     } else {
         $dl->{'status'} = qw| error |;
         unlink($dest) if -f $dest;
@@ -136,10 +168,13 @@ if ( not $still_running ) {
                 }
             );
         }
-    }
 
-    ## clean up file handles if still open ##
-    return;
+        ## resume idle-shutdown tracking, paired with the pause in         ##
+        ## fetch.file.huggingface.download -- only once EVERY tracked flow ##
+        ## is terminal [ see fetch.file.huggingface.resume_idle ]          ##
+        <[huggingface.resume_idle]>->();
+        return;
+    }
 }
 
 ## process still running ##
@@ -151,8 +186,8 @@ if ($still_running) {
     );
 }
 
-#,,,,,,.,,.,,,,,,,..,,..,,,,,,..,,,..,.,,,,,.,..,,...,.,.,..,,,,.,,,,,,,.,.,,,
-#QZVQD7HOIQN2FY4EDTNMMW2DWZWRLFI7KBBLKY7U5D65OO6TDIRSMHECHWWQCDHBABY42M23EYBTA
-#\\\|QCYLUDEVFJHCGNLZXROBVHTF6PK4KFXJM637NZRYNLELZR4RZEN \ / AMOS7 \ YOURUM ::
-#\[7]RG6IFYFS5UL4BDWAHWJAIV3XENYFL3KINVAYT5SZKB4TMM7VJYDI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,..,,,,.,.,.,..,,..,,...,,.,,..,,...,...,,.,,,,,,.,.,,.,,,,,,
+#2U5QGKKG77KJZGD4QRC4F2CEXBZ66BSVMAXUQCSZ7DHM7WKQJLZUWOVJIBO7S5AF73RLRFUMFEP3G
+#\\\|JIJOKTYRJVWATK64J3B7GO2GHIMGCPDHL3DQU2ODFH23IT4625V \ / AMOS7 \ YOURUM ::
+#\[7]NIXDMOGZFCU7ZXDEJPMBXTGXLMDU3N5DZLL6ZX76RTQNBFTNEYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

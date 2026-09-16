@@ -78,6 +78,17 @@ if ( open( my $null, '-|', 'which', 'huggingface-cli' ) ) {
     close($null);
 }
 
+## DECISION [ 2026-09-17, task: verify checksums on HuggingFace downloads ] ##
+## : keep aria2c as the primary fetcher and treat the sha256 verification   ##
+## layer [ huggingface.hash.fetch + huggingface.*.  verify.* ] as the SOLE  ##
+## integrity layer, independent of which tool fetched the bytes. Option (a) ##
+## -- putting .venv-lora's huggingface-cli on this zenka's PATH so the      ##
+## official self-verifying client becomes the normal path -- was rejected   ##
+## deliberately : the venv path is project-specific and could regress       ##
+## silently, while verification tied to the published LFS sha256 holds      ##
+## regardless of fetch mechanism.  Recorded explicitly per the task's       ##
+## requirement not to pick silently.                                        ##
+
 my $hf_token = <fetch.file.hf_token> // <external.hf.token> // '';
 
 if ($use_hf_cli) {
@@ -179,6 +190,14 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
     'speed'      => 0,
     'eta'        => 0,
     'reply_id'   => $call->{'reply_id'} // '',
+    ## LFS checksum verification state [ see huggingface.handler.           ##
+    ## blob_hash_response + huggingface.verify.* ] : hash_state is pending  ##
+    ## -> ok | failed | non-lfs ; a download may only reach status=complete ##
+    ## through the verified path                                            ##
+    'hash_state'      => qw| pending |,
+    'expected_sha256' => undef,
+    'expected_size'   => 0,
+    'hash_attempts'   => 0,
 };
 
 ## set up non-blocking read on stderr for progress output ##
@@ -214,10 +233,18 @@ if ( defined $chld_err ) {
     $repo, $file, $dest_path, $pid
 );
 
+## fetch the published LFS sha256 for this file up-front, in parallel with ##
+## the download itself [ async via clients.https.get, proxy- threaded      ##
+## explicitly ]. the result is cached in this tracking entry and consumed  ##
+## by huggingface.handler.download_progress /  huggingface.verify.* once   ##
+## the bytes are on disk -- closing the exit-code-only acceptance hole     ##
+## behind the 2026-09-10 corrupted-shard incident.                         ##
+<[huggingface.hash.fetch]>->( $dl_id, 1 );
+
 return { 'mode' => qw| deferred | };
 
-#,,.,,...,.,,,,..,,,.,...,,..,,.,,,,.,,.,,,,,,..,,...,...,.,.,,,,,,..,,,.,...,
-#3F6KDZPMFZA3MK56NTG3VJE5NHNYFGYDUWW2FFU5U3ESZNIWNTSZOC54N2DB4NI6JUYN7HSURYANC
-#\\\|SI7EEOSEM7TJ4WZ7SOVC3CK4J6LS2LXDOWTRO2MVA3AM3R3AKVE \ / AMOS7 \ YOURUM ::
-#\[7]UCILMP6DR6AB42PIEJ6ZVFKAVVX4XP6HAPIHQ4VUZTIYZDIHYACI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,..,,,.,,,,,,,,,,..,,.,.,,,.,..,,...,...,,,.,...,.,,,,,,,...,
+#AEHZKI6UZPW5IDK6N4NRE4LZCCV6MPW7GSDO4FRFFQ5O3VSIMMTPQWFF7L3WDFK47CMCQWCDSDU2Y
+#\\\|DSQDFUXISDPE23L23ZQNW7Y3JJSFYLSZA56HRUVJ7SBVE5AFTRC \ / AMOS7 \ YOURUM ::
+#\[7]TN4SSWNUSQOKLMFEEJZZWHJJZJFFLIYT7NYKD7LUWAURH26CNUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,125 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.verify.start
+# descr = fork sha256sum child for a completed download, register poll timer
+
+use IPC::Open3;
+use Symbol qw| gensym |;
+
+my $dl_id = shift // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $dest = $dl->{'dest'};
+
+## cheap size pre-check against published lfs.size before paying for a full ##
+## hash pass over a multi-GB file [ the 2026-09-10 incident file was        ##
+## size-correct with garbage bytes, so this alone can never substitute for  ##
+## the hash -- it only catches the cheaper failure class ]                  ##
+my $expected_size = $dl->{'expected_size'} // 0;
+if ( $expected_size > 0 ) {
+    my $actual_size = -f $dest ? ( -s $dest ) : 0;
+    if ( $actual_size != $expected_size ) {
+        <[huggingface.verify.reject]>->(
+            $dl_id, 'size-mismatch',
+            sprintf( 'got=%d expected=%d', $actual_size, $expected_size )
+        );
+        return;
+    }
+}
+
+my $expected_sha = $dl->{'expected_sha256'} // '';
+if ( !length $expected_sha ) {
+    ## callers gate on hash_state, so this should never happen -- but ##
+    ## "cannot verify" must NEVER silently become "complete"          ##
+    $dl->{'status'} = qw| unverified |;
+    <[base.logs]>->(
+        0,
+        "[hf.fetch] UNVERIFIED: %s -- verify.start "
+            . "without expected sha256 [internal gate failure]",
+        $dest
+    );
+    if ( length( $dl->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->(
+            $dl->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' => 'download UNVERIFIED: internal hash gate failure'
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+    return;
+}
+
+## hashing an 18GB file takes real, non-trivial time. this codebase is      ##
+## event-driven throughout [ base.event.*, non-blocking I/O everywhere ] -- ##
+## a blocking Digest::SHA call right here would stall the entire            ##
+## fetch-files zenka's event loop for the whole duration. so sha256sum runs ##
+## as a child process, polled by a timer, exactly mirroring the IPC::Open3  ##
+## / non-blocking-I/O / timer-poll pattern the download itself already      ##
+## uses.                                                                    ##
+my ( $chld_in, $chld_out, $chld_err );
+$chld_err = gensym;
+
+my $pid = eval {
+    IPC::Open3::open3( $chld_in, $chld_out, $chld_err,
+        qw| sha256sum |, $dest );
+};
+
+if ( !$pid || $EVAL_ERROR ) {
+    $dl->{'status'} = qw| unverified |;
+    <[base.logs]>->(
+        0,     "[hf.fetch] failed to spawn sha256sum for %s: %s",
+        $dest, $EVAL_ERROR // 'unknown error'
+    );
+    if ( length( $dl->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->(
+            $dl->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' => 'download UNVERIFIED: sha256sum spawn failed'
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+    return;
+}
+
+close($chld_in) if defined $chld_in;
+
+## non-blocking reads polled by huggingface.handler.verify_progress ##
+my $flags = fcntl( $chld_out, Fcntl::F_GETFL(), 0 );
+fcntl( $chld_out, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+    if defined $flags;
+
+$dl->{'verify_pid'}        = $pid;
+$dl->{'verify_fh'}         = $chld_out;
+$dl->{'verify_buf'}        = '';
+$dl->{'verify_start_time'} = <[base.time]>->(3);
+
+## same lifecycle care as the download child : pause idle-shutdown for the ##
+## duration and register with v7-zenki so the child is terminated rather   ##
+## than orphaned across a zenka restart                                    ##
+<[base.zenki.pause_ondemand_timeout]>;
+<[base.zenki.report_child_pid]>->($pid);
+
+$dl->{'verify_timer'} = <[event.add_timer]>->(
+    {   'interval' => 2.0,
+        'repeat'   => 1,
+        'handler'  => qw| huggingface.handler.verify_progress |,
+        'data'     => { 'dl_id' => $dl_id },
+    }
+);
+
+<[base.logs]>->(
+    1, "[hf.fetch] verifying sha256: %s [pid=%d, expected=%s]",
+    $dest, $pid, $expected_sha
+);
+
+return 0;
+
+#,,,.,...,,,.,.,.,,,,,...,..,,.,.,...,,..,.,.,..,,...,...,,,.,,..,,,,,,.,,..,,
+#UUB5MAVSZ5XNRFDBHBP46BZBWUVE7I3DRLQMFA7PQ5UHMC2YU7WWEULCLACRIUVLFAK7BDHAL6MYK
+#\\\|FRPFY525PC4MNPIXCCWONI2QWSQHMUJU7EDIZQIL6TZMVMKJVSD \ / AMOS7 \ YOURUM ::
+#\[7]ROHINU75GJQHMM5XGJREK3KUGFLA5TNKAXZMG4X4QZDVRT3RC6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
