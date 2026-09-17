@@ -85,6 +85,12 @@ if (
         $server->{'status'}       = qw| ready |;
         $server->{'ready_logged'} = TRUE;
 
+        ## genuine readiness clears the crash-restart count [ see          ##
+        ## coding.spawn_inference_server's carry-forward comment ] -- a    ##
+        ## server that's been stable for hours shouldn't have an old crash ##
+        ## streak from days ago count towards today's 5-attempt cutoff     ##
+        $server->{'restart_count'} = 0;
+
         ## await_resources exists ONLY for the one-time :twin: handover     ##
         ## scenario at boot - once THIS instance's own server has become    ##
         ## ready even once, that purpose is permanently fulfilled. without  ##
@@ -244,8 +250,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,,..,,,.,.,,,...,..,,,.,,.,,,,.,,,,,,,,,,..,,...,...,..,,,,,,,,,,...,.,.,
-#EPB6FMFJLRFKMGTUUAYGM6AUULTUT6T7LODXW73GTQIQDYJ5OJHCETDDPP2PPRN3M77WKNBTWKYZC
-#\\\|DQBICJIAAE7OZAFLZDRPX5JWQWZKMQYUKO3BPV5VYENMKFZKMR3 \ / AMOS7 \ YOURUM ::
-#\[7]KSRCEFQPZBPFK7QNN6MYHAARMKFHTC7M3M23ILCB7RLEHXQRRGAY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,.,.,,.,,,..,.,.,,,.,..,,..,,..,,...,.,,,.,.,,,.,...,,,.,,.,,
+#CLSN4U6ZSBRK2KGDIW43BDS6RWTC6K26YRM2PYGCMRMI7R53VTWG7TBRJG45IKN7KRLWRQ4IPICNY
+#\\\|M3CXVHGV45ZQIMAWBCGAEWHYM4FGP7B3HXNAWFMS2FF5HKRHEQE \ / AMOS7 \ YOURUM ::
+#\[7]TYJWJSESSWSX762U2WN2OM3C4OI3VMETCIPY7JIH5HU64EWKN2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
