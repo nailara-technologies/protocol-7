@@ -87,6 +87,11 @@ black-box curve-fitting from crash reports, or add a true runtime RSS
 watchdog (kill + backoff on threshold) as defense-in-depth beyond static
 pre-flight estimation -- neither attempted this session.
 
+**User-confirmed post-fix**: sweep run past idx=3 through idx=5+/90 with
+no crash/OOM, only expected cat-riddle self-test content failures (a
+separate, pre-existing quality signal, not a crash) -- both fixes holding
+under real sustained use, not just the one-shot live verification above.
+
 **Process note on the incident response itself**: my own safety-monitor
 `kill -9` silently failed against the child (owned by the `protocol-7`
 unix user, not `taeki`) during the retest -- `sudo` also failed
@@ -96,8 +101,8 @@ was the zenka's OWN privileged path, triggered indirectly via
 new one). A future safety script for this class of process needs to use
 that path, or run as the right user, not a bare external `kill`.
 
-#,,.,,.,.,,..,.,.,,..,,..,,,,,,,.,,,.,.,.,..,,.,.,...,...,,..,...,.,.,,.,,.,.,
-#5WXHSY3XAZ37P7PFRQ4GY6YKX4XOU7GWDETRN63LNQAVJENGB7QTEBFSOKUQ24XT7XCBNX4IP5DJA
-#\\\|II3BQ22VMAORY5WOMNUVJ2XUMTZ6EEAFBK24ICPODF5JNQL5SRR \ / AMOS7 \ YOURUM ::
-#\[7]VYYVO4N6D5XARJL6O6BZTZSZWPTFOSHT4DUKUAHFN3VEURC4I4DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,...,..,,.,.,,,,,.,.,,,.,,,.,.,.,...,..,,..,,...,,..,...,,,,,
+#75PVVWEMSTRUXIEICZMBQI7T42YW4VQLXEHJYQTGAPHD3I3HTB2DX3CTZXZLIO6UME5NLJ2QG6W5Q
+#\\\|BB4EYVZHDYVK3FADWTJL2ZHMTJY5CLH3VMSRNUJ4VHOFDXC4BMP \ / AMOS7 \ YOURUM ::
+#\[7]4HE2MSLSZEA6LHEVZP7QNS44NXS4AXUDTVDVIWD3VE7EXOLAYIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
