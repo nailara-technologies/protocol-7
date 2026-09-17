@@ -63,17 +63,53 @@ for my $backend (@backends) {
         next;
     }
 
-    ## refuse if a resumable cursor exists on disk ##
+    ## resume if a resumable cursor exists on disk for the SAME filter --  ##
+    ## the in-memory sweep state is gone [ zenka restart ] but the on-disk ##
+    ## cursor survived, so pick up exactly where it left off instead of    ##
+    ## silently dropping the progress or forcing a fresh rebuild           ##
     my $existing = $cursor_data->{$backend} // {};
     if ( ref $existing eq qw| HASH |
         && ( $existing->{'idx'} // 0 )
         < scalar( @{ $existing->{'candidates'} // [] } ) ) {
-        push @lines,
-            sprintf '%s : resumable cursor exists [ idx=%d/%d ], '
-            . 'use model-sweep-status to inspect or clear first',
-            $backend,
-            $existing->{'idx'} // 0,
-            scalar( @{ $existing->{'candidates'} // [] } );
+        if ( ( $existing->{'filter'} // '' ) eq $filter_str ) {
+            <coding.model_sweep_state>->{$backend} = {
+                backend    => $backend,
+                candidates => $existing->{'candidates'},
+                idx        => $existing->{'idx'} // 0,
+                filter     => $filter_str,
+                started    => $existing->{'started'} // <[base.ntime]>,
+                switch_id  => '',
+                phase      => qw| idle |,
+            };
+            <[event.add_timer]>->(
+                {   'interval' => 1,
+                    'repeat'   => TRUE,
+                    'handler'  => qw| coding.model_sweep.handler.poll_sweep |,
+                    'data'     => { backend => $backend },
+                    'desc'     => "model-sweep $backend"
+                }
+            );
+            push @lines,
+                sprintf '%s : resumed [ idx=%d/%d, filter=%s ]',
+                $backend,
+                $existing->{'idx'} // 0,
+                scalar( @{ $existing->{'candidates'} // [] } ),
+                $filter_str;
+        } else {
+            ## different filter requested : starting fresh would silently ##
+            ## discard the other filter's progress -- refuse instead      ##
+            push @lines,
+                  sprintf '%s : resumable cursor exists for filter=%s [ '
+                . 'idx=%d/%d ] -- re-run with that filter to '
+                . 'resume it, or delete '
+                . 'state/model_sweep_cursor.yaml by hand to '
+                . 'discard it and start filter=%s fresh',
+                $backend,
+                $existing->{'filter'} // 'default',
+                $existing->{'idx'}    // 0,
+                scalar( @{ $existing->{'candidates'} // [] } ),
+                $filter_str;
+        }
         next;
     }
 
@@ -171,8 +207,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,,.,...,.,.,,,,,,.,,,..,...,,.,,..,,,,,,..,,...,..,,,..,..,,,..,.,.,,,.,
-#3KYL56AXLUY6IO3AAKDY3JNOUCLMTJSMAUGI3EE5CG4KP5WR5XK2V326GM2E67NJUPAPS52LSQ2GI
-#\\\|AVKZKX2HSTRQWBGXEX6NYRIPWWWEMW5LCO3Q3ZM5CCQFYAXZIP7 \ / AMOS7 \ YOURUM ::
-#\[7]7LMBRBKFHIOE2PMVP7DGXX4IKMMBXLWIOZVSJGJTJZIOVZFDOOBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,...,.,.,,.,,,,,,,..,...,..,,..,,...,...,..,,.,,,...,,,,,,,,,
+#N4FFBYR76QLLMPMN5SUXDLP3ZFF4PLBALTVZP2O6WMRPMTTONZGXB7JOYAOHTAKN22C35EIESQJXC
+#\\\|RWC7JJVY7IGHJBUAXOOFE7WV2MYU2FERFZDZIY34IW2GSPQUS46 \ / AMOS7 \ YOURUM ::
+#\[7]KBOBJQRLSZLZ6HLMPC6AVDLZJUAU2EOZ4GOCIPTQ6Y55XBYP3SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
