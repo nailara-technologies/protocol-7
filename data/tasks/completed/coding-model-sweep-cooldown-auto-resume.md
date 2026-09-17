@@ -137,8 +137,19 @@ observable), confirm the new watcher correctly auto-resumes once below
 threshold. `bin/format-code -c` on every touched/new file. leave the
 tree uncommitted, report back with what changed and how it was verified.
 
-#,,..,.,.,..,,,,.,,,.,,,.,,,,,,..,.,,,.,,,,,.,.,.,...,...,,,,,,,,,..,,,,,,...,
-#4QATCBGJD2KC3S6YBCJPOW6SYJ6UOWVXBW4K5TDTMEX2F2WFLZOVK4BSWQA5CLHKYLK7FCT46OG2K
-#\\\|GQ7GFTHZWWOQELS6ILR3PTFU5VUULSDNY4NHX3K4CRB7YIXMAH6 \ / AMOS7 \ YOURUM ::
-#\[7]YFXYY7G4H3FXTJZKU5RXUTY6JIXKOP6PT4N2RKLSMOIVLXLIWQAQ 7  DATA SIGNATURE ::
+## status [ 2026-09-17 ] — DONE, live-verified, committed `2961a0212`
+
+kimi (k2.8) landed cleanly on first pass: new
+`coding.model_sweep.handler.cooldown_resume` watcher + timer in
+`coding.init_code`. Threshold measured, not guessed (idle floor
+0.11-0.18, sweep load ~8, default set to 2.0). Live-verified both the
+negative gate (high loadavg, paused sweep -> correctly does nothing)
+and the positive path (low loadavg -> auto-resumes, advances on its
+own, manually-paused backend left untouched). Existing
+`task.handler.cold-queue-sweep` (task zenka) confirmed untouched.
+
+#,,,.,..,,,,.,...,,,.,.,,,...,,,,,..,,...,,,,,.,.,...,..,,...,,,.,...,,,.,,..,
+#QTDSYGBI2DS74T7TIOPEU32CDMSYGI24DXBEJFLPXSZN6TLM25JJRRCQPGOCU2P7GM6RGBSR4B4VM
+#\\\|BBENPMYASWYTARODIDJ3TVIUEHVC7DBZDNL26UFHQYIAACZMJUC \ / AMOS7 \ YOURUM ::
+#\[7]ZGJ4HRZJXACNOVZYPLQCVGDZKADHJ6SYFJD5LTKCPPFFR7KKV4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
