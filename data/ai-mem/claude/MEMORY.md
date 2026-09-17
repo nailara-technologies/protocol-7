@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [init-code-runs-before-drop-privs](feedback-init-code-runs-before-drop-privs.md) — `init_code` executes during `[init_modules]`, BEFORE `[root.drop_privs]` — synchronous code there that touches `$ENV{HOME}`/`getpwuid($UID)` resolves under the pre-drop launching user, not the zenka's real target user, even though a timer merely *armed* there fires correctly post-drop (the event loop provably can't start before `[zenka.loop]`). Fix pattern: an explicit post-drop `.v7` callback (`[usage.startup]`, mirrors `[universal.startup]`), `init_code` only re-arms `if ($reinit)` — the real signal `base.init_modules` passes as `init_code`'s first arg, not an inferred flag.
 - [kimi-dispatch-model-verify-before-send](feedback-kimi-dispatch-model-verify-before-send.md) — before `kimi_dispatch`, check task file-count/size against 256k, separately from whether the task needs k3-tier reasoning ("needs k3 reasoning" and "needs >256k context" are independent questions — recurred 2026-09-17 by conflating them, picked plain `k3` for a ~7-file task on reasoning grounds alone). If caught after send: `kimi_continue` to switch tiers is FREE as long as context still fits the target ceiling (kimi only auto-compacts on an actual size mismatch) — never TaskStop+restart.
 - [use-format-code-not-perl-c](feedback-use-format-code-not-perl-c.md) — for ANY src/* syntax check in this project, run `bin/format-code -c <files>` FIRST, always — never plain `perl -c`, and prefer it over `bin/test-scripts/p7-module-syntax-check` too (that tool has its own separate false-positive set: `%colors`/other bin/Protocol-7 globals, `$call` on `.cmd.` files, `uniq @array` bareword form). Recurred TWICE now (missed again 2026-09-14 despite this memory existing) — burned a full session re-proving known-harmless errors via HEAD-diffing before the user pointed at format-code directly
 - [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — CORRECTED 2026-09-16: `reload source` deliberately excludes `plugin.*` modules by design (base.cmd.reload) — use `<zenka>.reload plugins`/`reload all`, always zenka-prefixed, for those; don't default to full restart anymore, that was an overcorrection. The narrower 2026-08-04 `.cmd.`-whitelist-gate bug (below in the file) is a separate, real historical issue
@@ -60,8 +61,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,..,,.,,,.,,,,,,.,.,,.,,..,,,.,,...,,,.,..,,...,...,,.,,..,,,..,,.,,,..,
-#BBGGYGVNFHAHNDBWLSEJK3XSLF4QHKVDZCTFENPLQO36PJWKH2BKTXOECF6CXOIJVQ5CGWY465DT2
-#\\\|MCUFHOPYILF4MMQ3XQGANN65Y6CC4LDWRR6MQ5KCVGU3UWYLSPH \ / AMOS7 \ YOURUM ::
-#\[7]HSSDDMMIV6BRXTHAGZNMAXTEHSYWFKRPHTU4F3VWOI3B2EZQSUDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,.,.,.,,,.,.,..,,,.,,..,,,,,,..,,...,...,...,...,..,,,,.,,..,
+#H5YTQMSPTF6DDCBWILR3IPQZZ2JQ2O7Q3SS36IDH6LHRIRAFIEMWLONPWSJBDNEWJGJSGHGAHBG6C
+#\\\|DAU2R2R6COQ45FOYSG7Y4KPOKEKSAOPAPO5QX63TBNI3E2JKTED \ / AMOS7 \ YOURUM ::
+#\[7]F75QHFJVIU3UP6VS5QW5MSJWYVJHJOKVDRCXT36WDOZTYDH3UKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
