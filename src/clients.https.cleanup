@@ -15,13 +15,19 @@ for my $key (qw| timeout_watcher io_watcher |) {
 ## break state <-> http/2 codec reference cycle, if any ##
 delete $state->{'h2'} if defined $state->{'h2'};
 
+## close streaming destination handle, if any ##
+if ( defined $state->{'stream_fh'} ) {
+    eval { close $state->{'stream_fh'} };
+    delete $state->{'stream_fh'};
+}
+
 if ( defined $state->{'sock'} ) {
     eval { $state->{'sock'}->close( SSL_no_shutdown => 1 ) };
     delete $state->{'sock'};
 }
 
-#,,..,,,,,,,.,,.,,,.,,,.,,,,,,,..,,..,..,,,..,..,,...,..,,..,,,.,,,,,,,,,,...,
-#INPAKVLKTP4W2MOFZKEAGOM5BL7P7VX4IAQOHG2W2NXIFWBOJGJWZHZP7VPNX3JLUAHA2PZOH5ZQC
-#\\\|XIQG7FCIEP4EQXLUQRUAH76NMMG6GFACQHFGQIRE7KU7J3XB3DZ \ / AMOS7 \ YOURUM ::
-#\[7]4Y5JUMPSTSEZVCZ7LEWVLQUM7SPFY2PK7FAEGDXR4IE5B23CI6AA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,,,.,.,.,,,,,,.,,.,,,,,,,...,..,,...,...,..,,..,,..,,,,,,,,.,
+#JVOPK3ISMOPAPSSYTNMJIJ76UK3FIR6F3OBTMGUGVCT3D743MXIVXTZJDEKZLPRBOESQM6EXNKSRA
+#\\\|AM3YBWJWD5XV2LMAOLYYSVASURJIQCH476B54QR4MXAXNMIDBOD \ / AMOS7 \ YOURUM ::
+#\[7]NSNXYA27ZK4CPLRA6XWSOHVQZD42HCIDSBZY7LBXAOE3N7IKP4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

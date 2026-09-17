@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = clients.https.stream.finish
+# descr = finalize a stream_to_file response : close destination,
+#         clean up watchers/socket, fire on_done with status +
+#         headers + byte count instead of a body buffer
+
+my $state = shift;
+return undef if ref $state ne qw| HASH |;
+
+my $status  = $state->{'stream_status'}  // 0;
+my $written = $state->{'stream_written'} // 0;
+my $headers = $state->{'stream_headers'};
+my $ok      = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
+
+my $error = '';
+if ( not defined $headers ) {
+    ## eof before the header block completed : nothing trustworthy ##
+    $error = 'connection closed before response headers complete';
+    $ok    = FALSE;
+}
+
+my $on_done = $state->{'on_done'} // '';
+my $params  = $state->{'params'};
+
+<[clients.https.cleanup]>->($state);
+
+if ( length $on_done and exists $code{$on_done} ) {
+    $code{$on_done}->(
+        {   'ok'      => $ok,
+            'status'  => $status,
+            'headers' => $headers // {},
+            'size'    => $written,
+            'body'    => '',
+            ( length $error ? ( 'error' => $error ) : () ),
+            'params' => $params,
+        }
+    );
+}
+
+return 0;
+
+#,,.,,,,,,,,.,,.,,...,.,,,...,,.,,.,.,.,,,.,.,..,,...,...,.,.,,,,,.,,,.,,,...,
+#M5QC7L2DBPSPWYGVXFKBNM7XED4M2CSMWCQRLA6SKB2LFXTZBKCKYPS4KNNQSPYLJXKESPENJFROQ
+#\\\|XKBL5NECCEI54UO4UNYHVGBWCSCGX3DMF6OU4JPK7FH3NSSBSSW \ / AMOS7 \ YOURUM ::
+#\[7]MT4SLOGG6S6Z3RDWJTWWHOL34PZRUY4FQ7RFEP63DL72I3RHZ2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

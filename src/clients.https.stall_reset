@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = clients.https.stall_reset
+# descr = re-arm the timeout watcher of an in-flight clients.https request
+# note  = only meaningful in stream_to_file mode, where 'timeout' doubles
+#         as a stall detector : any received payload chunk proves the
+#         transfer is alive and earns a fresh window [ replacing the
+#         aria2c --lowest-speed-limit behavior the hf download path
+#         used to rely on ]
+
+my $state = shift;
+return undef if ref $state ne qw| HASH |;
+
+return undef
+    if not defined $state->{'timeout_watcher'}
+    or not defined $state->{'sock'}
+    or not defined $state->{'timeout'};
+
+eval { $state->{'timeout_watcher'}->cancel };
+$state->{'timeout_watcher'} = <[event.add_timer]>->(
+    {   'after'   => $state->{'timeout'},
+        'handler' => qw| clients.https.handler.timeout |,
+        'data'    => $state,
+    }
+);
+
+return 0;
+
+#,,,.,,.,,.,.,..,,..,,...,,..,,.,,,,,,,,.,,,.,..,,...,...,..,,,,.,.,.,,,.,,.,,
+#6VOKIH3SCLYW3PZJQJ5H773T4FKSYYUZ6DYVJIHPQCAHKCEJDOGWJZK6IDJ5U7AJXYWWDHOCNFIKE
+#\\\|IRUK3PUPDCPET5TDHQSPBQ7G4Z7U7VBC5MMQKSYV4PQH5H323PO \ / AMOS7 \ YOURUM ::
+#\[7]ZURBLCWCECGTHCSWB5ZYZ6YBI2BPIO6NHYZYATXVZCANEXBQDYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
