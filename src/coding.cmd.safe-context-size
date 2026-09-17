@@ -17,11 +17,17 @@ if ( defined $server->{'calculated_ctx'} and $server->{'calculated_ctx'} > 0 )
     };
 }
 
-## fallback: recalculate from current model info ##
+## fallback: recalculate from current model info  gpu_layers/layer_count  ##
+## threaded from the spawn-time record so a partially-offloaded gpu model ##
+## gets the partial-aware ram-side budget here too [ absent on records    ##
+## predating that field -> 0 -> the helper falls back to its full-offload ##
+## path, exactly the pre-fix behavior ]                                   ##
 my $safe = <[coding.helper.calculate_safe_context]>->(
     {   model_path  => $server->{'model_path'}  // '',
         mmproj_path => $server->{'mmproj_path'} // '',
         backend     => $backend,
+        gpu_layers  => $server->{'gpu_layers'}  // 0,
+        layer_count => $server->{'layer_count'} // 0,
     }
 );
 
@@ -30,8 +36,8 @@ return {
     'data' => $safe->{'calculated'} // $safe->{'context_length'} // 18267
 };
 
-#,,.,,.,,,...,.,,,...,.,,,.,.,,.,,..,,.,.,,,.,..,,...,...,.,,,.,,,,,.,,.,,,,.,
-#JH4JDS43XPT7AQBJZNJ6GPTTPJPKBZ6IA3OIXXZKI4PW5UWHMTXGLKKMMUPZW24D43VZVPJC32PDU
-#\\\|7XAJVWBY6JLLVMM6KWIHPJ7SAWY65JR6YNESNBA44GJPV6AMX5E \ / AMOS7 \ YOURUM ::
-#\[7]X7TWMZEW6WFOK6NHI4OW2QZRLAU7N432JFU7YJ4K7RNUEAI7PIDI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,.,.,,,..,,,..,,..,.,.,..,,..,,..,,...,...,...,,..,,,,,.,,,..,,
+#AZ4DSYCPAFFEP7K7WA47IHPJEZ45NIPLQMTDXJ3HWPXPWG2FL7MJJQDIR2E6PPTXTU2O5BWTNDNG2
+#\\\|TF5MV6OBWMYH573QE67XSZOU656RREBXSPWLEN2VP6E63PHATSM \ / AMOS7 \ YOURUM ::
+#\[7]ZGSBHUQZFI5RVV5MA3EMR2JGVDACZJC2Q5DDVII3PSTEHFQHLKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
