@@ -749,18 +749,34 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'stderr'      => $server_err,
     'mmproj_path' => $mmproj_path,
     'model_path'  => $model_path,
-    ## carry forward across the crash-restart respawn cycle : this whole   ##
-    ## hash is replaced wholesale on every spawn [ including               ##
-    ## crash-triggered ones ], which previously silently dropped           ##
-    ## restart_count back to undef every time --                           ##
-    ## coding.handler.inference_server_sigchld's own restart_count++ then  ##
-    ## always read 0, so it always logged "attempt 1/5" and its "max 5     ##
-    ## restarts exceeded -> mark failed" cutoff could never fire, looping  ##
-    ## forever on a model that crashes on every spawn.  confirmed live     ##
-    ## 2026-09-17 : Qwythos-9B on cpu, dozens of consecutive "attempt 1/5" ##
-    ## cycles with no termination. reset to 0 on genuine readiness instead ##
-    ## -- see coding.handler.monitor_inference_startup                     ##
-    'restart_count' => $old->{'restart_count'} // 0,
+    ## carry forward across the crash-restart respawn cycle : this whole    ##
+    ## hash is replaced wholesale on every spawn [ including                ##
+    ## crash-triggered ones ], which previously silently dropped            ##
+    ## restart_count back to undef every time --                            ##
+    ## coding.handler.inference_server_sigchld's own restart_count++ then   ##
+    ## always read 0, so it always logged "attempt 1/5" and its "max 5      ##
+    ## restarts exceeded -> mark failed" cutoff could never fire, looping   ##
+    ## forever on a model that crashes on every spawn.  confirmed live      ##
+    ## 2026-09-17 : Qwythos-9B on cpu, dozens of consecutive "attempt 1/5"  ##
+    ## cycles with no termination. reset to 0 on genuine readiness instead  ##
+    ## -- see coding.handler.monitor_inference_startup                      ##
+    ##                                                                      ##
+    ## BUT only carry it forward for a same-model crash-respawn -- a switch ##
+    ## to a genuinely DIFFERENT checksum [ model-sweep advancing to its     ##
+    ## next candidate, or any other switch-model call ] must start its own  ##
+    ## count at 0, not inherit whatever the PREVIOUS occupant of this slot  ##
+    ## had accumulated. confirmed live 2026-09-17 : a model-sweep run       ##
+    ## against known-bad candidates left restart_count at 8 [ past the "5"  ##
+    ## ceiling entirely ] on the zenka's OWN configured default model,      ##
+    ## which had never actually been attempted 8 times itself -- each       ##
+    ## subsequent sweep candidate was silently inheriting the prior         ##
+    ## candidate's exhausted count instead of getting its own fair attempt  ##
+    'restart_count' => (
+        length $amos_id
+            and ( $old->{'model'} // '' ) eq $amos_id
+        ? $old->{'restart_count'} // 0
+        : 0
+    ),
 };
 
 ## Register I/O handlers to monitor startup
@@ -813,8 +829,8 @@ return {
     'port'    => $port
 };
 
-#,,..,..,,,,,,,,,,...,..,,,.,,...,,,.,,.,,,,,,..,,...,...,.,,,,..,,,,,.,.,..,,
-#A44YO4CJ6XEFYQ37NYOGEBCE5XPHBNZIYSFJ3CFO4FWUXWM37FHCTH2G7Y4ZAWTEOXNOMLMMJLE4Y
-#\\\|LXPQR3ZEZR6KCLFJXW3ECNK5O2RCAWZS37SXAMIS44BMV7BBDHH \ / AMOS7 \ YOURUM ::
-#\[7]U4L7B44O4XMRWGM3TTY6HT6DA3WOOZYYQJVKBGSZF6YA6GGOGABI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,,..,..,,.,,,...,...,..,,..,,..,,...,...,...,,..,,..,.,.,,.,,
+#WXAVKAPMOGRMZWQQ6FACNX4HJHWLWMHWXY2UTHZJK742TD6Z2J4H76K273IHNDFSSRSSKKE2RAQFG
+#\\\|WSBQ5TAAOKNG3ZAJXKCWC7PUTXCCTQWHH5KBI6HHWW7M4CUVKPS \ / AMOS7 \ YOURUM ::
+#\[7]AUB75RM5C4VPLEEYFSYPFCXPYQ2KAQOY37MK2PXX4XXNFI6MQGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
