@@ -13,6 +13,16 @@ my $reaped  = 0;
 local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
     $reaped++;
+
+    ## notify v7-zenki so <v7-zenki.child> and instance process.child   ##
+    ## hashes drop the reaped pid [ gone_child re-verifies liveness via ##
+    ## v7-zenki.sub-process.get_ppid and no-ops if still alive ]        ##
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.v7-zenki.gone_child |,
+            'call_args' => { 'args' => $pid },
+        }
+    );
+
     my $exit_status = $CHILD_ERROR;
 
     ## check if this was an inference server process ##
@@ -162,8 +172,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,.,,...,,.,,,,,,.,,,,..,,,,,..,,...,..,,,.,,..,,...,...,.,.,.,,,..,,.,,,...,
-#7EBF7TGKF6NJSJ24HSQHGYF2SGTRKJKE5E4PH64T5ETBRIIHQLWNGBIBIUO4ZSGLOGF6UXWBLNRJ4
-#\\\|JJJ3INRHEDWFSR2PNCF5TD3DYNAKCR5PWKBPVCFRDBQZV4NMER3 \ / AMOS7 \ YOURUM ::
-#\[7]YVOQ233G3RMDBFQR2MNWK2WPFJFYONGN72FJL4N6G2SECJ7BJGBI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,,,.,,,,,,,.,..,,..,,,,.,,,.,..,,...,...,..,,,.,,.,.,,,,,,,.,
+#T43ZT35P2C7OSL3YVTM3HLHJ3UXGM3COYFAGGZNU4IM2XPVYFRDKV2OWBFIFMMWQGWGYQKDOAVDIK
+#\\\|GGLUQ4LE2YLIFQTZDCFQ6XADQLUYFFEK5B4A2NOU4K5C6BXQBBT \ / AMOS7 \ YOURUM ::
+#\[7]QT3TTKLNVX4WPUW424XSGXOSIHE2YWIFEDVOG5KKKRPEWYQ3UADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

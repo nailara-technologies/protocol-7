@@ -1,9 +1,11 @@
 ---
 name: bug-v7-zenki-get-children-registry-gap-2026-09-17
-description: v7-zenki.sub-process.get_children fails to find a coding-zenka llama-server child even though it is genuinely registered via base.zenki.report_child_pid at every spawn -- undermines the restart-instead-of-kill escalation feature's flagship use case, root cause not yet found, stopped investigating deliberately to respect token-budget pacing
+description: FIXED -- v7-zenki.sub-process.get_children's waitpid-based liveness check could only ever see v7-zenki's own direct children, never a grandchild like a coding-zenka llama-server; fixed with a scoped pid_alive helper for just that one loop, leaving the security-relevant waitpid check and its 18+ other callers untouched, plus a real ppid-ancestry-walk distinction that mattered for a self-report-spoofing concern the user caught before the first fix attempt shipped
 metadata:
   type: project
 ---
+
+**STATUS: FIXED + live-verified, same session.**
 
 Found live-verifying [[project-system-oom-watchdog-dynamic-poll-and-restart-escalation]]'s
 kimi-dispatched implementation: `v7-zenki.zenka.cmd.pid-lookup` (the new
@@ -33,25 +35,75 @@ requires `defined <v7-zenki.child>->{$proc->{'pid'}}` to even consider a
 live `Proc::ProcessTable` pid as a candidate, and 7766 fails that check
 live.
 
-**Root cause NOT found.** Candidate directions, none confirmed: the
-registration reply legitimately racing/failing for a specific spawn; some
-cleanup-on-respawn path clearing `<v7-zenki.child>`/the instance's
-`process.child` sub-hash without the next spawn's registration actually
-landing after it; or a `<v7-zenki.instance_ids>`/timing edge specific to
-this session (the coding zenka's cpu backend was killed and respawned via
-`coding.switch-model` many times during tonight's OOM incident response --
-worth checking whether a FRESH single spawn, never previously respawned
-this session, resolves correctly, which would point at something respawn-
-specific rather than the registration path itself).
+**ROOT CAUSE FOUND + FIXED, same session, after the user picked this back
+up via live debugging (manual `v7-zenki.register_child` call returned "was
+known" -- proving the registration data was genuinely already correct, not
+racing/missing at all -- which pointed straight at the retrieval side).**
 
-**Deliberately stopped investigating here** rather than chasing this
-further, per [[feedback-token-budget-pacing-early-week]] -- this is
-exactly the shape of rabbit hole that ate the entire step budget of the
-kimi_dispatch session that surfaced it (session `87bd49f9-8324-4f97-8e3b-
-47033bd03286` hit its 100-step ceiling chasing an UNRELATED command,
-`system.cmd.pid_autokill`, apparently while trying and failing to
-understand why ITS OWN new pid-lookup command couldn't find a live pid --
-never correctly diagnosed the real gap documented here).
+`base.exists.sub-process` (`src/base.exists.sub-process:16-22`) checks
+liveness via `waitpid($pid, WNOHANG)` -- a real POSIX syscall that, by
+kernel design, can ONLY succeed for a process's own DIRECT children.
+`get_children` runs inside v7-zenki's own process, and a coding-zenka
+spawned `llama-server-cpu` is v7-zenki's GRANDCHILD (child of coding, not
+of v7-zenki) -- so this check could never succeed for it, full stop,
+regardless of whether the registration was honest or stale. Not a race,
+not a config issue: a structural mismatch between the liveness primitive
+used and what the caller actually needed to check.
+
+**User confirmed this specific limitation was known/intentional at
+design time** (not an oversight) -- the waitpid-based check was a real,
+deliberate security property for its actual purpose, just never extended
+to cover the grandchild case, which was a known, accepted gap until now.
+
+**The real security nuance, caught by the user before I shipped a naive
+fix**: `v7-zenki.zenka.cmd.register_child` trusts a reporting zenka's own
+claim of `$parent_pid` with NO independent OS-level check (by design, to
+sidestep a real race -- see its own module comment). So a compromised or
+buggy zenka could `report_child_pid()` an arbitrary FOREIGN pid that isn't
+really its child at all, and the registry would just believe it. My first
+proposed fix (swap the liveness check for `kill(0,$pid)` everywhere
+`base.exists.sub-process` gates `get_children`) would have let a spoofed
+foreign pid sail through on the "new method" path
+(`v7-zenki.instance_child_pids`-based), which has ZERO independent
+ancestry verification of its own -- it just trusts the self-report + a
+liveness check. That would have been a real security regression.
+
+**Actual fix, scoped precisely once the two paths' real properties were
+understood**:
+- The "old method" (`Proc::ProcessTable` walk, `get_children:13-42`)
+  ALREADY has the real security boundary : `$ppids{$pid} == $chk_pid`,
+  built from `Proc::ProcessTable`'s genuine kernel `ppid` field, which a
+  reporting zenka cannot fake. The self-reported `<v7-zenki.child>` hash
+  only gates which pids are even CONSIDERED (a candidate list), never
+  proves ancestry by itself -- the ppid walk does that. Its ONLY bug was
+  the liveness pre-filter excluding real grandchildren before they ever
+  reached that already-correct walk. Fixed by adding a new, narrowly-
+  scoped helper, `v7-zenki.sub-process.pid_alive` (`-d "/proc/$pid"`,
+  same pattern this file's own sibling `get_ppid` already uses), used
+  ONLY inside this loop -- `base.exists.sub-process` itself, and its
+  other 18+ callers (several security-relevant, `sessions.*`/
+  `cred-mesh.*`), are completely untouched.
+- The "new method" (`instance_child_pids`-based, `get_children:68-94`)
+  has NO independent ancestry check at all -- for `$chk_pid`'s OWN direct
+  children (what it's actually for), `waitpid`'s kernel-enforced "really
+  my own child" property WAS the real protection, not incidental.
+  Deliberately left untouched, still `base.exists.sub-process`-gated --
+  it still can't resolve grandchildren (same waitpid limit as before),
+  and that's fine: the old method now handles that case correctly with
+  its real ppid-walk intact. Activating this path for grandchildren
+  would have reopened exactly the self-report-spoofing gap above.
+
+**Live-verified, both positive and negative cases**: `v7-zenki.pid-lookup`
+AND the original, untouched `v7-zenki.pid-instance` both now correctly
+resolve a real, live `llama-server-cpu` grandchild pid (confirmed via
+`/proc/<pid>/status` PPid) to the coding instance;
+`v7-zenki.instance_pids <coding-instance>` now correctly lists all three
+real children (the zenka's own pid + both gpu/cpu llama-server pids).
+Negative case: an unrelated, genuinely-alive-but-never-registered pid
+(this session's own `claude` process) still correctly returns "found no
+matching instance" -- the registration gate alone excludes it before
+liveness/ancestry are even considered, confirming the fix didn't make
+`get_children` promiscuous.
 
 **Impact**: this directly undermines
 [[project-system-oom-watchdog-dynamic-poll-and-restart-escalation]]'s
@@ -67,8 +119,8 @@ The new code kimi wrote is not at fault: it faithfully mirrors
 valid, live-loads cleanly, config keys landed with sensible defaults --
 this is a separate, deeper, pre-existing defect in `get_children` itself.
 
-#,,,.,..,,.,,,,,,,,.,,..,,..,,,.,,,,.,.,.,..,,.,.,...,...,,..,.,,,,,.,,,.,...,
-#6J7YBTDNRD572Y6F6LGRMJ4PRS7LCV2B7RDBGXQ6YWWGQ7YJFYESTFCZY6LJX4WYI2C4UVPHVOXRW
-#\\\|QNGZXCL5PMBPZO5KNQZGTXGRJAJ4X3DH2VJLYUOG7QGNPVTT4RZ \ / AMOS7 \ YOURUM ::
-#\[7]TUXUWAZWIYEUDDBNJRMGPSIRMHB2UIJ4WAAV63YYEXEE6FZLPUAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,..,,,..,...,.,.,,.,,,,,,,..,.,.,...,..,,,,.,,..,,,,,,..,...,
+#5C5CK33M2EMBRESPD4X4OG3FRQHYVVVLCQPCDU5BD7PUX3Y7Y5U3WC5HUIVR57VCUPUAOV4ZDW72K
+#\\\|ES6IE2VMSWX2EV3Q7NLCOH5L23MLXLBTQ6J444XNP2FPSRVNTGD \ / AMOS7 \ YOURUM ::
+#\[7]DG22RASWNJMESVU2UU6YA33BAG4KZ5E2C3V3EEN7NL4E5GTM3CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
