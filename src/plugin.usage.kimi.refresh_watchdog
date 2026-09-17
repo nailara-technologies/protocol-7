@@ -23,13 +23,22 @@ if ( length $cred->{'token'} and defined $cred->{'expires_at'} ) {
     my $remaining = $cred->{'expires_at'} - $now;
 
     if ( $remaining <= $margin ) {
-        <[base.logs]>->(
-            1,
-            '[usage.kimi.refresh_watchdog] proactive '
-                . 'refresh : expires in %ds, within %ds margin',
-            $remaining,
-            $margin
-        );
+        if ( $remaining < 0 ) {
+            <[base.logs]>->(
+                1,
+                '[usage.kimi.refresh_watchdog] proactive '
+                    . 'refresh : already expired %ds ago',
+                -$remaining
+            );
+        } else {
+            <[base.logs]>->(
+                1,
+                '[usage.kimi.refresh_watchdog] proactive '
+                    . 'refresh : expires in %ds, within %ds margin',
+                $remaining,
+                $margin
+            );
+        }
         <[plugin.usage.kimi.refresh_token]>->(
             undef,
             {   'on_done' => {
@@ -52,15 +61,15 @@ if ( length $cred->{'token'} and defined $cred->{'expires_at'} ) {
     return TRUE;
 }
 
-## credential unreadable right now -- retry soon rather than giving up     ##
-## permanently. short delay, not a long backoff : the expected real case   ##
-## is this timer's own FIRST fire, from init_code, which runs before       ##
-## [root.drop_privs] -- $ENV{HOME}/$UID still resolve to the pre-drop      ##
-## launching user at that point [ confirmed live 2026-09-17 ], not taeki,  ##
-## so the credential directory genuinely doesn't exist under that home yet ##
-## -- self-heals the moment drop_privs completes, a few seconds later. a   ##
-## genuinely missing/corrupt credential past that point is rare and cheap  ##
-## to keep re-checking quickly rather than worth a long backoff            ##
+## credential unreadable right now -- retry soon rather than giving up      ##
+## permanently. short delay, not a long backoff : the expected real case is ##
+## this timer's own FIRST fire, from init_code, which runs before           ##
+## [root.drop_privs] -- $ENV{HOME}/$UID still resolve to the pre-drop       ##
+## launching user at that point [ confirmed live 2026-09-17 ], not taeki,   ##
+## so the credential directory genuinely doesn't exist under that home yet  ##
+## -- self-heals the moment drop_privs completes, a few seconds later. a    ##
+## genuinely missing/corrupt credential past that point is rare and cheap   ##
+## to keep re-checking quickly rather than worth a long backoff             ##
 <[base.logs]>->(
     2,
     '[usage.kimi.refresh_watchdog] credential '
@@ -77,8 +86,8 @@ return TRUE;
 
 #,,,,,.,.,,,,,,,,,,..,,.,,,,.,,.,,...,.,,,...,..,,...,..,,,..,,.,,,,,,,.,,...,
 
-#,,,.,,..,,,.,.,,,,,,,,,.,.,.,.,.,,..,.,,,..,,..,,...,...,.,.,,,,,,..,.,.,.,,,
-#E4BLXE5UQQZ5VJC7BBAJOBN55U666OMPRX5JLJUMPLSO42ALQ57ZQ5AU2LR5Z3BJDWTNWBL6DIDEW
-#\\\|EGCPNFMHSZOORCORFNGBJBAM4TAVGWORZFI4KICWC5RYLXLP4IH \ / AMOS7 \ YOURUM ::
-#\[7]GHFTHGU7QSIRY3K3YMQPG2FYVQNDTDI6AOUQNXL4GZOQJRUYKGDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,..,,.,,,.,.,,.,,...,,..,..,,..,,...,..,,...,,..,...,.,.,,.,,
+#EU45AMAUD5S6ABY52YVLEJYVO2S3EUTQBJ46VVTJSSM5W2DLIFVOMF6OW7DZX7LIMGKW27YW7YN6E
+#\\\|7CEFLEPRVP6K4PI3MBTXI3DOMFXS6Q2DEVQR6X4LOQOHMD4MI6Q \ / AMOS7 \ YOURUM ::
+#\[7]Q6RJOQ44NMAJM6XDAF6OHUH7GQQ4VIMN7AOL4KBW4DHB46QH34CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
