@@ -564,15 +564,50 @@ if ( $state->{'phase'} eq qw| done | ) {
         data => $summary,
     };
 
+    ## per-prompt failure_class [ already computed above, per prompt :      ##
+    ## resource_suspected / transport / empty_answer / content_mismatch /   ##
+    ## other ] was previously discarded here -- collapsing a timeout-       ##
+    ## driven transport failure and a genuinely-wrong content_mismatch into ##
+    ## the identical bare "2/3 passed" detail string made it impossible to  ##
+    ## tell "this model is basically fine, just slow" from "this model      ##
+    ## gives wrong answers" without re-reading raw logs.  fold the          ##
+    ## breakdown into detail so a later fix-vs-delete decision has it       ##
+    ## without that -- confirmed live 2026-09-17, per the user              ##
+    ##                                                                      ##
+    ## empty_answer sub-classification, same session, live example :        ##
+    ## finish_reason=length with substantial reasoning content (10135       ##
+    ## chars) cut off before an answer emerged is a verbose-reasoner        ##
+    ## running out of token budget, not a broken model -- distinct from     ##
+    ## finish_reason=stop with zero reasoning AND zero answer, which is     ##
+    ## genuinely an empty return with no benefit of the doubt available     ##
+    my %failure_counts;
+    for my $result ( @{ $state->{'results'} // [] } ) {
+        next if $result->{'passed'};
+        my $fc = $result->{'failure_class'} || 'other';
+        if ( $fc eq qw| empty_answer | ) {
+            my $has_reasoning = length( $result->{'reasoning'} // '' ) > 0;
+            $fc
+                = ( ( $result->{'finish_reason'} // '' ) eq qw| length |
+                    and $has_reasoning )
+                ? qw| empty_answer_length_cutoff |
+                : qw| empty_answer_genuine |;
+        }
+        $failure_counts{$fc}++;
+    }
+    my $failure_summary = join( ', ',
+        map { sprintf( '%dx %s', $failure_counts{$ARG}, $ARG ) }
+        sort keys %failure_counts );
+
     <[coding.model_status.record]>->(
         {   checksum => $model_id,
             backend  => $backend,
             status   => $state->{'all_passed'}
             ? 'functional'
             : 'inference-failures',
-            detail => sprintf( '%d/%d passed',
+            detail => sprintf( '%d/%d passed%s',
                 $state->{'pass_count'},
-                $state->{'test_count'} ),
+                $state->{'test_count'},
+                length($failure_summary) ? " [$failure_summary]" : '' ),
         }
     );
 
@@ -603,8 +638,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,,,,.,,,..,...,,,,,,,,,,.,,.,,,,,.,,,,,,..,..,,...,..,,.,.,,,.,,,,,...,..,,
-#OGW4UTJGVZMP5PTOU2YWO6G6WBV5NQGI656TUO6LFIC2UX7V4GHOFX5AENFV34KWJNSNAGRQC3JQA
-#\\\|RRFB55BT4OYUEEQBKKD6EJQPACVS7QUWC3LILYRJZBY6V5A5JCK \ / AMOS7 \ YOURUM ::
-#\[7]VRQDCICO5PLD47HCWSMLN7T4WJIHN6XBVMT47XMGZRZLI35YCAAA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,..,,,,.,...,,,,,.,,,.,.,,,,,..,,...,...,.,.,.,,,.,.,,,,,,..,
+#GEFIOAVZETLBECGQDMHSXFRGTCT754G7EDHSZBCLK66GT6SDB6V4YOSJXKI7XKNV3AH3FOEZF4MRC
+#\\\|LB5ZLQ24Q3IJIZTKQD7F5YG2FDCRQPUAV5OPZ4FFBAUBOYFTBJ3 \ / AMOS7 \ YOURUM ::
+#\[7]5YM6DWQIFGNWCW6C7ZGBM4PRN35ZMZWLLFT2NUCF7ZXDZIBAOOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
