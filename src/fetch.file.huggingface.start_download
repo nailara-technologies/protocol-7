@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.start_download
+# descr = issue the streaming clients.https request for a tracked
+#         download entry [ used for the initial request and for
+#         every redirect hop -- each fresh request truncates the
+#         destination via its own stream_to_file open ]
+
+my $dl_id = shift // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $url  = $dl->{'url'}  // '';
+my $dest = $dl->{'dest'} // '';
+return if !length($url) or !length($dest);
+
+## authorization only when a token is configured [ gated repos ] ##
+my $headers  = {};
+my $hf_token = <fetch.file.hf_token> // <external.hf.token> // '';
+$headers->{'authorization'} = "Bearer $hf_token" if length($hf_token);
+
+## thread the proxy explicitly, exactly like the previous aria2c            ##
+## --all-proxy threading : clients.https does NOT auto-pickup http(s)_proxy ##
+## env vars, and this host's outbound traffic goes through the configured   ##
+## proxy for reliability                                                    ##
+my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
+
+<[clients.https.request]>->(
+    {   'method'  => qw| GET |,
+        'url'     => $url,
+        'headers' => $headers,
+        'proxy'   => $proxy,
+
+        ## stall window, re-armed per received chunk [ clients.https.    ##
+        ## stall_reset ] -- a transfer making progress never ages out, a ##
+        ## stalled one dies after this long and restarts from scratch    ##
+        'timeout' => 120,
+
+        'stream_to_file' => $dest,
+        'on_done'        => qw| huggingface.handler.download_response |,
+        'params'         => { 'dl_id' => $dl_id },
+    }
+);
+
+return 0;
+
+#,,..,,,,,...,.,.,,.,,,,.,,,.,.,.,,..,..,,.,.,..,,...,...,...,,,.,.,.,...,,.,,
+#TIXMMFJPNTBT3RNC543LJC4GPPAVRQLPLYY6DQH4J3CUHOILZSJGAWN5KYQW356AOT33DTYNEUUDU
+#\\\|RN4UR7C6P5LUQZSAPV2FYE4DLIHBNWRTPDV2BAODKXWB5JCFWHB \ / AMOS7 \ YOURUM ::
+#\[7]F3IZIGMJG4MECESNLYNSOS2AQIOZ3UQDAZCFLLQEEQYC7V66FAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
