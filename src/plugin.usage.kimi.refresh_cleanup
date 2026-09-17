@@ -3,8 +3,11 @@
 # name  = plugin.usage.kimi.refresh_cleanup
 # descr = final teardown of a kimi refresh cycle : cancel any watcher still
 #         armed, close the child's pipes, clear the single-slot state, log,
-#         then invoke the cycle's on_done [ named handler + params, same
-#         reload-safety contract as the event callbacks themselves ].
+#         then invoke every queued on_done [ named handler + params, same
+#         reload-safety contract as the event callbacks themselves -- one
+#         entry per caller that arrived while this cycle was already
+#         running, see plugin.usage.kimi.refresh_token's single-slot-busy
+#         branch ].
 # param = <how> : eof | terminated | killed
 
 my $how = shift // qw| done |;
@@ -26,17 +29,17 @@ close( $state->{'err_fh'} )
     2, '[usage.kimi.refresh_token] kimi startup cycle complete [ %s ]', $how
 );
 
-if ( defined $state->{'on_done'} ) {
-    my $done = $state->{'on_done'};
+foreach my $done ( @{ $state->{'on_done_list'} // [] } ) {
+    next if ref $done ne qw| HASH |;
     $code{ $done->{'handler'} }->( $done->{'params'} // {} )
-        if length $done->{'handler'}
+        if length( $done->{'handler'} // '' )
         and exists $code{ $done->{'handler'} };
 }
 
 return TRUE;
 
-#,,,,,..,,,,,,,,,,...,.,,,...,,.,,,,.,,,.,,.,,.,.,...,...,..,,,,,,,..,,.,,,.,,
-#4HF2CRFYEXLYMOGRLUGR6KAQ27OQOZBBNRZBXJAWJZXGTGHVCMCMWW36MJKPJAXR3IMU72NUDB7S4
-#\\\|74XF5DJGRDJCHMDLMVQ42O4ZXH2YVJQ4FWN5NIIO3KG4NZMPVCU \ / AMOS7 \ YOURUM ::
-#\[7]BPKRKZQGHJUXXWRNC5CF5RYP7XAOUJAVWQKW7KEMPEIZ37KMZIBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,,..,...,..,,,.,,.,,,,.,,..,,.,.,...,...,..,,,,,,,.,,...,,..,
+#GVP3JHM6CFNUM2N3JWQV2PGVUVJNNKXIXFPI6HRH7UV3E7ZGAVGMH5CELNYNPU5USFCCPEE5KOO4K
+#\\\|RQBLCR2SLNOBT5IEXTVRA5XFCGZZRJLSZ4ZGI6BTPNKIHBTKEIV \ / AMOS7 \ YOURUM ::
+#\[7]PXSOI4X6INWEEJWB6GUJ2XAVT6S4ERTWPYRDPJYR6D7SQJHWISAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

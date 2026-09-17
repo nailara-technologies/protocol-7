@@ -26,8 +26,26 @@ is offset by not having to carry the unresolved gap as tracked state
 (a memory note to remember, a workaround to repeat, a landmine to step
 around) in every future session that touches the area.
 
-#,,..,.,.,.,,,,,.,..,,,,,,,.,,..,,...,,..,...,..,,...,..,,.,,,.,,,..,,...,,,,,
-#IXKQLZR26UXYVGURNRTSW7LR7YZWT3SRBQQCLBM7FPB2PZ32PNFLFVPB47EAON4O2YAIQJFKRCLI6
-#\\\|YBKVF7CBOMVUE5VG74J4W2U6L62Q4VCJPR46WBEDLNWFDEBMUN4 \ / AMOS7 \ YOURUM ::
-#\[7]3BDF47UQKH3UEA4SOFLZGMVT6WDB74M3FBRANJZQLETAR5K2HUCY 7  DATA SIGNATURE ::
+**Confirmed + extended 2026-09-17**, after the CPU OOM incident response
+raised [[feedback-token-budget-pacing-early-week]] as a potential tension
+(is fixing everything found, same session, actually affordable on a tight
+token week?): user explicitly does NOT regret the practice under budget
+pressure — would rather run short on tokens for a day or two with a
+genuinely resilient system than ship a half-fixed one, or one stuck with
+a half-working setup and no clean way to iterate further. Stated a second,
+economic reason beyond the cognitive-load one above: doing the fix right
+is ALSO more token-efficient mid-term, because an unaddressed real issue
+either escalates later (usually costing more to resolve once it does) or,
+left unaddressed, sits as a standing tax on every future workflow that
+touches it. **This means [[feedback-token-budget-pacing-early-week]]'s
+"weigh fixing vs. deferring" framing is about trimming redundant
+procedural overhead (repeated live-monitoring loops, more investigation
+than a question needs) — NOT about leaving a found, real defect half
+fixed to save tokens. Don't read that memory as license to defer real
+fixes; it isn't one.**
+
+#,,,,,..,,,..,,..,,,,,,.,,...,,,,,..,,..,,...,..,,...,...,,.,,,.,,,.,,,..,...,
+#U3COUORLFATPGOL6YNIBX7R7WQCZEB4UHHWTLT6RIGYPBIF4YDUOMEWIBUTZ7MXUWBYOVUYIPQ42G
+#\\\|JT5622EEP5W3KY75Y6EU6RIRHAV5XVSHJ5JNDBSZQX3TWAW2XA7 \ / AMOS7 \ YOURUM ::
+#\[7]T4WXGAABUYJ2XE4AGX7ADWULEHVRR6WHNHWEEMI23GJBJDC3UEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
