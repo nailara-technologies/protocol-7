@@ -139,8 +139,16 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,,.,...,...,,.,,,,,,,,.,,.,,,,.,.,.,.,.,..,,..,,...,...,.,,,,,.,.,,,,,,,,.,,
-#JQUFHQGJ7XASKJXSQGANZBNS2OBUQLYZMJTJ5Q62FKPAF3D2LOQ72AYI55N2C6B4POAHQ5OWXD5SG
-#\\\|7Z2BDRLUFOR23DQF4RLAEKUVPALMIOB5I6NQ4A3OUSRH6CLHC2T \ / AMOS7 \ YOURUM ::
-#\[7]DXWY4GBR4S7EBI6MYEJTHNVZAZDDRLTESQZE7H35VWGACZ4AVEDQ 7  DATA SIGNATURE ::
+- [project-2026-09-17-model-sweep-session](project-2026-09-17-model-sweep-session.md) — session summary: model-sweep
+  state machine + task-priority coordination + crash-restart fixes all landed and pushed; the
+  actual cpu inference binary (llama-server-cpu) segfault root cause is still OPEN (2 discriminating
+  tests identified, not run); 19 gpu-crash candidates (real, not cpu-binary noise) saved to
+  `/data/backup/session-state/gpu-crash-candidates-2026-09-17.txt` for deletion-candidate review;
+  sweep cursor paused mid-run (`cpu : paused [ circuit-breaker ] : idx=3/90`), resumable once the
+  binary issue is fixed.
+
+#,,,.,.,.,,.,,,,,,..,,,,.,,,.,,..,,,.,..,,,,,,..,,...,...,.,.,..,,,..,,.,,...,
+#SAXI5LRMXRX5F63DNCUYDVV2EPW552ZQDBSKJ7ZIN53VK65NNVYYX7FTGAHCD2X7RM7NTIGYC6SEY
+#\\\|KBTNRZBZJ2GKWCOEK6NTO45J5AYI4TTP5WYWOSQV5NL7FHLMYCD \ / AMOS7 \ YOURUM ::
+#\[7]HWTJOJO2FZGTQ4MEVKV3FVRRW2JNN5GCVJGO4KXOHSTLTPNYX4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
