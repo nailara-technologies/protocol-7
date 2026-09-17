@@ -165,10 +165,8 @@ its own. needs its own venv (`diffusers` + torch, python3.14) -- not
   scope note above -- needs its own verification before the invoke
   zenka is actually built on top of this.
 
-#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
-
-#,,..,,..,,,.,.,.,.,,,,..,,.,,.,,,,,,,,.,,...,..,,...,...,...,.,.,,.,,,,.,..,,
-#HOGAFEVKMKP3LORDL7JRZ7CUSLEGMMMJCJDJGUYAZBSYJRXG2VWZDFJXR7AENNP2OUQJ6UQENXDV2
-#\\\|PPF46DVGMLGHN64CZ4LA7GVCHDZIFDVBIKJMYUYHG26M43JWDXR \ / AMOS7 \ YOURUM ::
-#\[7]ADGDYEMXHIDO2F5NNKBVKYOAUWNVOY64AFQU73BRXSUIH3ODNCBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,.,,,..,,,..,,.,,...,,..,...,..,,...,...,...,.,.,,,,,..,,...,
+#LVVV2APGPOSRMH2CLXX5T3BCTCCIT6ELMAAUFA43LM6LBYSGDBTFF4KIVOD754R6LW6VAOQ5ISF2A
+#\\\|AZUD7YZP2X3EABGA7BNMWEIPFYTYCVS3RPKH7SBZG6MT7TBFL7I \ / AMOS7 \ YOURUM ::
+#\[7]VQBBSZBHBEYTCXHONA6TA5EX7RBBDGDJDEN27DDDJDOCWT2XFWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -899,10 +899,8 @@ precedent live in `bin/Protocol-7`:
   and the Esc/Ctrl+C/status-bar batch was already large and unsigned.
   build as its own separate, focused change when actually needed.
 
-#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
-
-#,,.,,,..,,..,,.,,,,,,..,,...,.,,,...,,,.,..,,..,,...,.,.,...,,.,,,.,,.,.,.,.,
-#GCLW7CIJXZQ5D245CWDPF3U72NX5KTUH5FAHQBN7NWKF3E4VH24EQEFPPG36MF76WQGYSEXBJTET2
-#\\\|SDUWVVEM3IPWKK73GECLUIYP5OK6O63NE43RDAHIVNDEC7G2T2E \ / AMOS7 \ YOURUM ::
-#\[7]3H3VSXIRARN57EOUOHFG5IPS6LAYBJSKZVGNRDQAALMPQBT56CAY 7  DATA SIGNATURE ::
+#,,.,,...,...,,,.,..,,.,,,,,,,.,,,,.,,,..,,.,,..,,...,...,.,.,,.,,,,,,.,,,..,,
+#AOWSBLFHFPIJNO5W7FLTBF3AP7CZ2G5DF2MDUFSIN6CG2OTYQM3XQ47XXJH2UR55V2OTKTE7CDOGW
+#\\\|HPQBVG7F2A3ZROJXGKKAGSZ5TMEOKZNZGZKWHTNVOEZD3TB2YLR \ / AMOS7 \ YOURUM ::
+#\[7]TJW7YNY7E4MMYPW4H3Z2WBXQZTUYK66BFZAFR7Y54ALT57U5WICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
