@@ -140,9 +140,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - coding-lora-p7-idioms: FULL ACCOUNT NOW IN `HANDOVER.md` and `data/tasks/coding-lora-p7-idioms.md`'s "sixth pass" + "seventh pass" sections, read those first, not this line. **2026-09-15 final update**: the corrupt local shard-4 root cause was fixed; real attempt 5 (retrain against the intact checkpoint) produced REAL invoke-idiom learning in HF/PEFT space (in-corpus top1 50.7%->95.7%; position-matched `' <'` 83.2% top1) but STILL zero transfer to live GGUF serving (`invoke` 0->0 in held-out generation; live position-matched `' <'` remains below 0.14%). The checkpoint is ruled out as an explanation; the remaining question is why ik_llama.cpp's qwen35 LoRA application does not reproduce PEFT's deltas. Durable artifacts: adapter at `data/control-vectors/lora-out/p7-idioms-real-attempt5/adapter/`, GGUF at `data/control-vectors/lora/p7-idioms-real-attempt5-lora.LR7NW7A-XT57X3Y.gguf`, two committed diagnostic tools (`lora_invoke_posmatch.py`, `lora_invoke_live_position_probe.py`). ge525's Q4_K_M is in the models registry as `LR7NW7A:XT57X3Y`.
 
 - [claude-usage-refresh-pending-verification](project-claude-usage-refresh-pending-verification.md) — `plugin.usage.claude.refresh_token` [ pty-spawned claude, mirrors kimi's oauth refresh-on-401 ] built, 3 real live-found bugs fixed [ reap-detection race vs base.sig_chld, untimed trust-dialog keypress -> chdir to system.root_path instead, stale /usr/local/bin/claude npm install winning file.which over the current native install ], 4th manual run confirmed full clean startup [ correct v2.1.273, no dialog, no mcp recursion, gone reap ] -- only a real-expired-token pass remains open
+- [wsl2-shared-ram-constrains-concurrent-inference](project-wsl2-shared-ram-constrains-concurrent-inference.md) — 2026-09-17: this host's ~16GB /proc/meminfo total is WSL2's own carved-out share, not full host RAM; running gpu+cpu model-sweeps concurrently caused a real segfault crash storm (exit=11, no OOM signals) across otherwise-fine models -- sequence heavy concurrent inference workloads instead of parallelizing until a planned full-Linux migration removes the ceiling
 
-#,,,,,,,,,...,...,...,..,,,.,,...,.,,,...,.,,,..,,...,...,.,,,.,.,,.,,,..,,,.,
-#MODSEAFTCIPIRTG6OSLQXZ46VISYFQW43DHL4IK5BGBN2UUKE5JZ4G2QJVUXGVSCJX3RBL4V4RCTQ
-#\\\|XGRFU4XWR4A4AJ7OQJDZS2GWQZKQ56HD2XO7AONMBODIL56RCUS \ / AMOS7 \ YOURUM ::
-#\[7]YI7JTIYFUXHWXXBQUKZ76NQDOILMWKJJUN6PGZFBMQXFNEMVHOCY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,.,.,,..,,..,,.,,,..,.,,,,,,,..,,...,..,,.,,,...,.,.,,.,,,..,
+#Y6QZMRZTARWS47MLCM3OI3SLMAAAJATYEO7CNHJAF7OTO7MF7RNUF6RIZHZCIJ2RVNULS6EWIRTM4
+#\\\|X2WHR46WSEBECMZN6GXZW2RZLQMJWTJZVBUVB4QFTEM2TGFHJLF \ / AMOS7 \ YOURUM ::
+#\[7]U7BTFQBL2MFRNDBWVVIATGMGRMIOZ53V4ZXS6FG4HLYVXLYZ26AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
