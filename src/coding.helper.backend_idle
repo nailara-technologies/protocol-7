@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.helper.backend_idle
+# descr = shared global idle predicate, extracted verbatim from
+#         coding.handler.vision_switch_poll [ itself mirrored from
+#         coding.handler.drain_check ] : zero active [ non-completed,
+#         non-failed ] tasks in <coding.task.queue> AND no backend lock
+#         held anywhere in <coding.state.backend>. deliberately GLOBAL,
+#         not per-backend -- loops both gpu and cpu and counts the whole
+#         task queue unfiltered. returns a hashref so callers can both
+#         branch on 'idle' and log the 'active' / 'in_flight' counts.
+
+my $active = 0;
+if ( exists <coding.task.queue> ) {
+    for my $task ( values <coding.task.queue>->%* ) {
+        my $st = $task->{'execution'}{'status'} // '';
+        $active++ unless $st eq 'completed' or $st eq 'failed';
+    }
+}
+
+## the lock AND matters : the lock can release after the final completion ##
+## event, so a zero-active queue alone is not proof of idle               ##
+my $backend_ref = <coding.state.backend> // {};
+my $in_flight   = 0;
+for my $backend (qw| gpu cpu |) {
+    $in_flight++ if defined $backend_ref->{$backend}{'lock'};
+}
+
+return {
+    'idle'      => ( $active == 0 && $in_flight == 0 ? TRUE : FALSE ),
+    'active'    => $active,
+    'in_flight' => $in_flight,
+};
+
+#,,..,..,,.,.,,,,,.,,,.,,,,,.,.,.,,,.,,.,,,..,..,,...,...,,,,,.,,,,,,,.,.,,..,
+#5FVNZ7OZHOXQUANF243VK2ILYRN2AGYSNDZGUKMMA5UT3VJRPM5HENV2CPFRBFHWQLQ5EG3K3PI2U
+#\\\|K4VQLN2DYLZ5MEXSXAQC5ZRYTUYTSFFXOKEAHCVY43UOSYON2OJ \ / AMOS7 \ YOURUM ::
+#\[7]6IK2PP6P4YISJHIV7XCH2SMUSJXRRMOK53EFZJYC4Y22BC47LYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
