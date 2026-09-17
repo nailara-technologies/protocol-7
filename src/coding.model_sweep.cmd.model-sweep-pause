@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = coding.model_sweep.cmd.model-sweep-pause
+# descr = request a per-backend model sweep pause
+# param = [backend]
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $backend_arg = length $args ? $args : qw| both |;
+
+unless ( $backend_arg =~ m{^(gpu|cpu|both)$} ) {
+    return {
+        mode => qw| size |,
+        data => "Error: backend must be gpu, cpu, or both\n"
+    };
+}
+
+my @backends = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
+
+my @lines;
+
+for my $backend (@backends) {
+    my $state = <coding.model_sweep_state>->{$backend};
+
+    if ( !defined $state or ref $state ne qw| HASH | ) {
+        push @lines, sprintf '%s : no sweep running', $backend;
+        next;
+    }
+
+    my $st = $state->{'state'} // qw| running |;
+    if ( $st eq qw| paused | ) {
+        push @lines, sprintf '%s : already paused', $backend;
+        next;
+    }
+
+    ## does NOT stop anything immediately : the current candidate's switch  ##
+    ## cycle may still be in flight, so report "pause requested", never     ##
+    ## "paused" [ reporting a state that hasn't actually happened is        ##
+    ## exactly the misleading-status failure this fixes ]. poll_sweep       ##
+    ## honors the flag at the top of its idle branch -- the one point where ##
+    ## "no more calls will be issued" is actually true -- and its timer     ##
+    ## keeps running unmodified until then                                  ##
+    $state->{'pause_requested'} = TRUE;
+    $state->{'state'}           = qw| pause-requested |;
+    push @lines,
+        sprintf '%s : pause requested -- will halt after current candidate',
+        $backend;
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,.,,,.,,,,,.,,,...,,,,,,,,,.,.,,,.,.,,,.,,,.,.,...,...,,,,,,,.,,,,,...,,.,,
+#4RODLOVMNSM352KT7FTPY7LQ5Z6YITGGTAOKLKGX6GPBWJSRJIUFD2FCHLD7JA7OMOTPVFEMOM3OE
+#\\\|NTPHWZXE5HER2QYZRT72S2ZR7PWIAIJCOBBXX3XXTX3675C57VI \ / AMOS7 \ YOURUM ::
+#\[7]BXJS3CX2OSXN2UIMMDR7EX3OILOJ5DO3R5NNTURZCK42VXPTXGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

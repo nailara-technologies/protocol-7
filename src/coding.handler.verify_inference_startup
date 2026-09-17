@@ -195,11 +195,17 @@ if ( $restart_count >= 5 ) {
     );
     my $checksum = $server_info->{'model'} // '';
     if ( length $checksum ) {
+        ## crash-class tag [ task : test-iteration state machine ] :       ##
+        ## unconditionally crash_before_ready -- the exhaustion path never ##
+        ## saw a ready transition across any of the 5 restart attempts     ##
         <[coding.model_status.record]>->(
             {   checksum => $checksum,
                 backend  => $backend,
                 status   => 'startup-failure',
-                detail   => 'restart_count exhausted',
+                detail   =>
+                    sprintf(
+                    'restart_count exhausted [crash_before_ready exit=%d]',
+                    $server_info->{'exit_status'} // 0 ),
             }
         );
     }
@@ -239,8 +245,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,,.,.,.,,.,,,..,.,.,.,.,...,.,.,..,,.,.,,,.,..,,...,...,.,,,.,,,,.,,..,,.,,,
-#AWC6IXNFEH2SR7XBFFNW7RR3C3YBY2ENU4AQIWMBRPEJUPUTJLQP66MF66C7RECFM2NMAZM5UYJFG
-#\\\|4RMVVBEWN3GAGQXCMRAPTFZENRHG62Q66KNQ42DBNHYGL7X52WR \ / AMOS7 \ YOURUM ::
-#\[7]KGGB2E7EQF6MTWYHAO6P3FPKRMFLQXAMRZXPXIRYEUHGDVOI2IAA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,.,.,..,,..,,.,.,...,,.,,..,,..,,...,...,..,,...,.,.,...,,..,
+#CKCEULLWRUCD72FHA6JEGRLQX6ZSEI5PTI5E6SNYNG5SGXPHI67PFROZQ4BMWYZHSMPOQADCJKLTY
+#\\\|SFPL5DALWUTFVEL2BLAGEVRNUJL25TRZ4NZTGGJ5T2ANEMVA2UE \ / AMOS7 \ YOURUM ::
+#\[7]3XVJB5BPOBAB3DIKQY4U4IHBYWGZG2LAAF5MB4TFYMGZK3DZJ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
