@@ -89,8 +89,39 @@ do not add any trailing signature/checksum footer to this file or any
 new file for this task -- the real signing pipeline (`bin/Protocol-7
 sourcecode update-signatures`) adds that later.
 
-#,,,,,,,,,,,,,..,,...,,,.,,.,,,,.,.,,,.,.,..,,..,,...,...,.,.,,.,,.,,,.,,,.,.,
-#3JPWDASJOVOV2MATEQQCA2LJMIU4XTGU7526XHMCDIZDKVCAALIPNAX7LXWRIW3D4F7VHCSP6RNTI
-#\\\|AJLRPVTUVQ76U4RPXK42S3UATUVVHHC4N26QH7EM5FIJBQRLV4Q \ / AMOS7 \ YOURUM ::
-#\[7]BGRANDMULDRM7O6IBYUF33FWOBS2S5KZSK56IVK4TAN7NPTNJGAQ 7  DATA SIGNATURE ::
+## done, 2026-09-17 -- kimi_dispatch(model=k2.8)
+
+**Array shape**: `$data{'sig_warn_blacklist'}` is now an arrayref of
+`{package, pattern}` hashrefs (either key optional, OR'ed within one
+entry -- exact old single-hash semantics), reader iterates all entries,
+suppresses on first match. `io.ip.tcp.init_code`'s save/restore became
+`push`/`pop` (also fixes the old stomp-any-existing-entry bug); `X-11`/
+`web-browser.init_code` do a one-time permanent `push`. No TTL/scope
+machinery added -- the array itself is the scoping mechanism, matching
+what step 2's grep of the 3 real call sites showed they actually needed.
+
+**Two real bugs found post-dispatch via live `v7-zenki.reload`, not
+caught by `bin/format-code -c` or diff review**:
+1. `<sig_warn_blacklist>` (no dot) doesn't match this project's own P7
+   sugar keychain regex (`qr{<([\w\-:]+\.[\w\-\.:]+)>}`, requires a dot
+   to disambiguate from Perl's native `<FILEHANDLE>` diamond read) --
+   fell through as literal Perl, parsed as `readline()` on a bareword
+   filehandle. Fixed all 3 sites to plain `$data{'sig_warn_blacklist'}`.
+2. A long-running zenka's live `%data` still held the pre-array-ification
+   single-hashref shape (reload re-executes code but never resets
+   `%data`) -- `push` against it threw "not an ARRAY reference". Added a
+   normalize-if-not-array guard before every push site, and tightened
+   the reader from `defined` to `ref eq 'ARRAY'` so the warn handler
+   itself can't die on stale state either.
+
+Live-verified via `v7-zenki.reload` (clean) and an `X-11` zenka restart
+(clean, `openbox` restarted with it, no regression). Committed
+`66729f1a7`. The `qsort`/`bsearch` List::MoreUtils warning candidate was
+deliberately NOT added to the blacklist -- root-causing it remains
+preferred and stays open, per this task's own out-of-scope note.
+
+#,,,.,,,.,...,,..,,,,,.,,,,,,,.,.,.,,,.,.,,.,,..,,...,...,.,.,,,,,,..,..,,,.,,
+#WJ2AH6PMVI2JBWPYN6OZMSLEGUJXWPXNR6AGK5AJOUSIN7I2ML5VXB6WU3DUY4K73RD5CMARR23VY
+#\\\|KL7WKLJONU2DXTQQHUTR7KXI2CRVE66K6F6FJY2SCQM4UWKZEIE \ / AMOS7 \ YOURUM ::
+#\[7]DEZQ7M3M3MM7VAYN2CSQR7MUGVA3DGQ62QI47MO27ZMXPCVMSKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
