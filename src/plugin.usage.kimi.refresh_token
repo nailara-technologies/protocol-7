@@ -123,15 +123,36 @@ if (    length $cred->{'token'}
     return TRUE;
 }
 
-## single slot : never stack two refresh children on top of each other ##
+## single slot : never stack two refresh children on top of each other -- but
+## a caller arriving while one is already in flight still needs to know when
+## THAT cycle finishes, not fire its own uncoordinated fallback. found live
+## 2026-09-17 : plugin.usage.kimi.handler.response used to treat this branch's
+## old FALSE return as "nothing will ever call me back" and fired an immediate
+## retry fetch of its own -- which almost always raced the already-running
+## refresh child (a real kimi startup cycle takes the full ~15-18s this
+## module's own timeout accounts for) and reported a false "refresh already
+## attempted and did not help" error moments before the SAME in-flight refresh
+## would have succeeded on its own. queuing onto the existing cycle's on_done
+## list instead means every waiter [ the original starter, a
+## proactive-watchdog trigger, any number of reactive 401s that land while
+## it's running ] gets notified exactly once, when the one real refresh
+## actually completes -- TRUE now means "on_done WILL fire, now or later", not
+## "I personally started a child"
 if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
     <[base.logs]>->(
         1,
-        '[usage.kimi.refresh_token] refresh already '
-            . 'in progress [ pid %d ] : not starting another',
+        '[usage.kimi.refresh_token] refresh already in progress '
+            . '[ pid %d ] : queuing onto it instead of starting another',
         $provider->{'refresh_state'}->{'pid'} // 0
     );
-    return FALSE;
+    push @{ $provider->{'refresh_state'}->{'on_done_list'} //= [] },
+        {
+        'handler' => $on_done->{'handler'},
+        'params'  => $on_done->{'params'} // {}
+        }
+        if ref $on_done eq qw| HASH |
+        and length( $on_done->{'handler'} // '' );
+    return TRUE;
 }
 
 ## PATH lookup first [ base.file.which -> File::Which ] -- kept as the
@@ -244,19 +265,24 @@ close($err_write);
 ## from here on the parent NEVER BLOCKS, and no event callback is a coderef ##
 ## closure : the io watcher, the deadline timer and the reap poll are all   ##
 ## named handlers resolving the single-slot per-cycle state below           ##
+## on_done_list, not a single on_done : any number of callers can queue     ##
+## onto this one real cycle via the single-slot-busy branch above, this     ##
+## call's own on_done [ if any ] is simply the list's first entry           ##
 $provider->{'refresh_state'} = {
-    'pid'      => $pid,
-    'fh'       => $out_read,
-    'err_fh'   => $err_read,
-    'buffer'   => '',
-    'deadline' => time() + $timeout,
-    'on_done'  => (
+    'pid'          => $pid,
+    'fh'           => $out_read,
+    'err_fh'       => $err_read,
+    'buffer'       => '',
+    'deadline'     => <[base.time]> + $timeout,
+    'on_done_list' => (
         ref $on_done eq qw| HASH | and length( $on_done->{'handler'} // '' )
         )
-    ? { 'handler' => $on_done->{'handler'},
-        'params'  => $on_done->{'params'} // {},
+    ? [
+        {   'handler' => $on_done->{'handler'},
+            'params'  => $on_done->{'params'} // {},
         }
-    : undef,
+        ]
+    : [],
     'io_w'       => undef,
     'timer_w'    => undef,
     'reap_timer' => undef,
@@ -281,8 +307,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,.,,,.,,..,,.,.,,.,,,,,,,.,,.,.,..,,,,.,,,,,.,.,...,...,,,,,...,,.,,,.,,,,,,
-#I72ZCQG4SYVSG4JNBNEX52PNJ4DNKUGDVRD6AVM6OX4VQ7IRU2FK2JES6YN464ALNSCJUA73PXJXI
-#\\\|I6RQAEBEC7NQOCCZ6REU7FB72W7KBAXCKH5GJ4X6BBIUAME64B2 \ / AMOS7 \ YOURUM ::
-#\[7]LHBWKCA7CECMVXEHYEMITSYCELEV26LSFHKOWIR6YZMNT76S5KDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,..,,.,.,,..,.,.,..,,.,.,,,,,.,.,...,...,.,,,...,,..,,,.,,.,,
+#O5UZUC6KSCC4642H6OL72RWZFBL5FKVGKQRLUGCETI45H42P7ZLBBH5J563CSXCORSOJI6FAT4AY6
+#\\\|E44NKF5UBB3P736XOL3YHPFURCAGYY3YLHDOYQNOWCURVYZ4XKM \ / AMOS7 \ YOURUM ::
+#\[7]IS2YZF4KXAIZ7QHFPN5Z7Q656FVY35MNWTBJ6VVQNGSRORO3YQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

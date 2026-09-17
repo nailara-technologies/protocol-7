@@ -169,8 +169,48 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
-#,,.,,.,,,...,,,,,,.,,,..,,,.,...,,,,,,..,.,,,..,,...,...,.,,,...,,.,,,,,,,,.,
-#XO6PPNQ6MW5LIZEFUDOEORTBSJT457FYZJHRWOSCXCRS7FTS7CZ4H5LSKN2HOKUMR66JIEHFIBA3E
-#\\\|66S6G5ED5KTXXNVJZRDV6AV2XZA4NE4KNASVVQDO7XFURLZCT3R \ / AMOS7 \ YOURUM ::
-#\[7]O3CFHRSMWBUV33TZFQULZ7CZ65ZB4LJ6YYZWAN7O7LOYXTQEJECA 7  DATA SIGNATURE ::
+## dynamic poll acceleration [ re-arm status timer under rising pressure ] ##
+
+my $accel_threshold = <mem.accel_threshold>    // 0;
+my $interval_min    = <mem.accel_min_interval> // 1;
+my $target_interval = <process.poll.interval>;
+
+if ( $accel_threshold and $mem_used_pct >= $accel_threshold ) {
+    ## linear curve : flat interval at accel_threshold down to floor at  ##
+    ## mem.max_used [ monotonic , clamped , not derived from live data ] ##
+    my $pressure_range = ( <mem.max_used> - $accel_threshold ) || 1;
+    my $pressure       = $mem_used_pct - $accel_threshold;
+    $pressure        = $pressure_range if $pressure > $pressure_range;
+    $target_interval = sprintf '%.2f',
+        <process.poll.interval>
+        - ( <process.poll.interval> - $interval_min )
+        * ( $pressure / $pressure_range );
+    $target_interval = $interval_min if $target_interval < $interval_min;
+}
+
+<system.process.poll.current_interval> //= <process.poll.interval>;
+
+if (sprintf( '%.2f', <system.process.poll.current_interval> ) ne
+    sprintf( '%.2f', $target_interval ) )
+{    ## re-arm only when the interval actually changes ##
+    <system.process.status_timer>->cancel
+        if defined <system.process.status_timer>;
+    <system.process.status_timer> = <[event.add_timer]>->(
+        {   'after'    => $target_interval,
+            'interval' => $target_interval,
+            'handler'  => qw| system.process.handler.collect_table |,
+            'repeat'   => 1
+        }
+    );
+    <system.process.poll.current_interval> = $target_interval;
+    <[base.log]>->(
+        1, sprintf ' : process poll interval re-armed [ %.2fs <- mem %s%% ]',
+        $target_interval, $mem_used_pct
+    );
+}
+
+#,,..,,.,,.,.,,..,,.,,,.,,.,.,...,,,,,,,.,,.,,..,,...,...,..,,...,,.,,,,,,,,,,
+#FWVI4LRMV3XIT7QYM3OE632KHDW5TLNS7DI4LT3KI6YBHABUNIW3A7LHAW6LQURJXKPONPG7JQIEA
+#\\\|5WUZRQTNVDKWJUTECUFNPQYKXIAK7PGGTVNLINCUKPG2CDG3ZJE \ / AMOS7 \ YOURUM ::
+#\[7]K6ACMX7QCXONUWC67FALGYO5TQGF7RQ5S5EYBRLZFGJIGHUNV4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

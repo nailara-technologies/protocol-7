@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.pid-lookup
+# param = <pid>
+# descr = reverse pid lookup : instance id, zenka id, name
+#         [ same resolution as v7-zenki.zenka.cmd.pid-instance ]
+
+my $proc_id = $call->{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected numerical PID parameter'
+    }
+    if not defined $proc_id or $proc_id !~ m|^\d{1,9}$|;
+
+my $match_id;
+foreach my $i_id (<[v7-zenki.instance_ids]>) {
+    my $parent_proc_id
+        = <v7-zenki.zenka.instance>->{$i_id}->{'process'}->{'id'};
+    if ( $proc_id == $parent_proc_id ) {
+        $match_id = $i_id;
+        last;
+    } else {
+        map {
+            if ( $ARG == $proc_id ) { $match_id = $i_id; last }
+        } @{ <[v7-zenki.sub-process.get_children]>->($parent_proc_id) };
+    }
+}
+
+if ( defined $match_id ) {
+    my $instance = <v7-zenki.zenka.instance>->{$match_id};
+    return {
+        'mode' => qw| true |,
+        'data' => join( ' ',
+            sprintf( '%s=%s', qw| instance_id |, $match_id ),
+            map { sprintf '%s=%s', $ARG, $instance->{$ARG} // qw| ? | }
+                qw| zenka_id zenka_name | )
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'found no matching instance' };
+
+#,,,.,...,.,.,.,,,.,.,...,,,.,...,,..,,.,,,,,,..,,...,...,..,,,..,,,.,,,,,..,,
+#JEIP2LFU4NWOLM32T6JHY3RAS3SY7ZDETD2FSMONPRKLS6HYEMBKS6IICW4NXSKGPUHUOGWV5INXS
+#\\\|57MHWUYPUXMFHB7DWIVDHZ5WW4U4WT4SFEZRU4F3XGB54PCXSFR \ / AMOS7 \ YOURUM ::
+#\[7]WORJUGRC7KNYXNLQ7552UYOHJSWTO5QQ3RP32TQZEMHX5IQPCUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

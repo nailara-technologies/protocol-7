@@ -23,6 +23,16 @@ mem.max_used = 97 # %
 mem.autokill = 1 # whether to kill process w most used memory on max_used limit
 mem.kill_min = 11 # %[memory usage before mem-alert based auto-kill is allowed]
 
+mem.accel_threshold = 80 # %[ poll acceleration starts : poll interval tightens
+                         #   linearly down to mem.accel_min_interval at
+                         #   mem.max_used , flat process.poll.interval below ]
+mem.accel_min_interval = 1 # [sec.] fastest allowed poll interval under pressure
+
+mem.oom_restart_window = 60 # [sec.] oom re-match within this window after a
+                            #   restart request escalates to hard terminate
+mem.oom_restart_reset  = 600 # [sec.] quiet period clearing restart-escalation
+                             #   memory [ instance-id timestamps ]
+
 ## custom process rules example [ also matches zenki named <servername>.httpd ]
 #process.limits.httpd.max_mem = 4.7 # [%]
 #process.limits.httpd.seconds = 37  # [s] duration of condition
@@ -48,8 +58,8 @@ modules.load = auth.client net protocol io.unix ui system
 
 [zenka.loop]
 
-#,,.,,,,,,,,.,,.,,,..,,,.,...,,.,,,..,...,,.,,..,,...,..,,.,.,,..,...,,.,,.,.,
-#WF7SCTYRXEJJROS6E6H5MVTUT4J5VLV2WGZRCNSCMS27F6F7IXOLJAG3XU66JUKQWHH2IU3RF6WZU
-#\\\|BVQW2BBV3Z7HKYGPPBO2JJ6E5OUU54VBYHXKO6PZPRQNP5VFASH \ / AMOS7 \ YOURUM ::
-#\[7]CVR7YYUVAEKYAX2LEICAH27KMGIPV6NGPVFJCS5G5GTDEEA75GCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,.,,,.,,...,,..,,.,,,.,,.,.,..,,...,..,,,,,,...,,,.,,.,,..,,
+#AYPCO3NZNTKMM6V2I77USYTKQA2A422MW5VEBTVSVTHBSFV2W3TZRSECPABXVPQFM5RFP5AX6WWE2
+#\\\|RGBR2L3NL3BM4C2CD7C66I7IQITNMAV3IUO46BMNTL2EJYYRVSD \ / AMOS7 \ YOURUM ::
+#\[7]HLA4CTHTBPHLIKV57LCD7VJZD4MTYTHHY57BGUADSID5I3NGGIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

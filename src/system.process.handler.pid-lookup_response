@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = system.process.handler.pid-lookup_response
+
+## reply handler for cube.v7-zenki.pid-lookup calls [ currently used to ##
+## name the zenka in restart-escalation log records , see               ##
+## system.process.handler.pid-instance_response ]                       ##
+
+my $response    = shift;
+my $process_id  = $response->{'params'}->{'process_id'};
+my $instance_id = $response->{'params'}->{'instance_id'};
+
+if ( $response->{'cmd'} eq qw| TRUE | ) {
+    my %lookup = map { split m|=|, $ARG, 2 }
+        split m| +|, $response->{'call_args'}->{'args'} // '';
+    <[base.log]>->(
+        0,
+        sprintf ':. ESCALATION :. target resolved : instance '
+            . '%s , zenka \'%s\' [ id %s ] [PID:%d]',
+        $lookup{'instance_id'} // $instance_id,
+        $lookup{'zenka_name'}  // qw| unknown |,
+        $lookup{'zenka_id'}    // qw| ? |,
+        $process_id
+    );
+} elsif ( ( $response->{'call_args'}->{'args'} // '' ) eq
+    'found no matching instance' ) {
+    <[base.log]>->(
+        1,
+        "[PID:$process_id] escalation lookup : process not managed "
+            . 'by v7 zenka'
+    );
+} else {    # unclear --> warn [ no v7 zenka access ? ]
+    return
+        warn "pid-lookup reply unclear for pid "
+        . "$process_id [no v7 zenka access?]";
+}
+
+#,,,.,,,,,,,.,..,,,,.,...,,,.,..,,,,,,,,.,,,.,..,,...,...,...,,,,,..,,,..,.,.,
+#MP3WGSDX4JEXIYLMK7CVCRNICTZPVH3GSNPUXOXOUNKLVFWU73CS5H4EZDWYBKPV3D4ULO3AX2LHK
+#\\\|KZ6WIB4HPA5UPHETRZMKOJDI3L6Q4XGOK6C7Y3GK3EGJKFAD6UD \ / AMOS7 \ YOURUM ::
+#\[7]R2AN5BUACM24ZSQKAWT5QFWVYOWYYE7D643OZ74W3OUVQEEREACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
