@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [feedback-qw-multiword-list-flattening-in-list-context](feedback-qw-multiword-list-flattening-in-list-context.md) — `qw| word1 word2 |` is a LIST not a scalar; in a ternary sitting in list context (a function argument) it silently flattens and shifts every subsequent argument out of alignment. Recurred in a kimi-dispatched fix, caught live via a real "argument isn't numeric" warning. Use `qq|word1 word2|` (no space padding) for a multi-word scalar instead
 - [bug-v7-zenki-get-children-registry-gap-2026-09-17](bug-v7-zenki-get-children-registry-gap-2026-09-17.md) — FIXED+live-verified: get_children's waitpid-based liveness check could never see a grandchild pid (kernel-level limit, not a bug in the registration data, which was genuinely correct); fixed with a new v7-zenki.sub-process.pid_alive helper scoped to just that one loop, base.exists.sub-process and its 18+ other callers untouched. User caught a real security regression in my first proposed fix (would've let a spoofed self-reported pid through the "new method" path, which has no independent ppid-ancestry check) before it shipped — see [[feedback-security-fix-verify-both-code-paths-not-just-symptom]]
 - [reference-model-sweep-yield-300s-cap-not-stream-aware](reference-model-sweep-yield-300s-cap-not-stream-aware.md) — model-sweep's yield-to-task-activity uses a flat 300s wall-clock cap, not stream-aware like the self-test/transport-layer chunk-alive extensions it's waiting on; a genuinely healthy long task can trip it into `paused [yield-timeout]` -- safe, no data loss, just needs `:force:` resume; confirmed live 2026-09-17
 - [project-system-oom-watchdog-dynamic-poll-and-restart-escalation](project-system-oom-watchdog-dynamic-poll-and-restart-escalation.md) — DONE, committed `f138268e4`: system zenka's OOM poll now accelerates under memory pressure + remembers restarts so a crash-looping child escalates to terminate; task file archived to data/tasks/completed/
@@ -147,8 +148,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [claude-usage-refresh-pending-verification](project-claude-usage-refresh-pending-verification.md) — `plugin.usage.claude.refresh_token` [ pty-spawned claude, mirrors kimi's oauth refresh-on-401 ] built, 3 real live-found bugs fixed [ reap-detection race vs base.sig_chld, untimed trust-dialog keypress -> chdir to system.root_path instead, stale /usr/local/bin/claude npm install winning file.which over the current native install ], 4th manual run confirmed full clean startup [ correct v2.1.273, no dialog, no mcp recursion, gone reap ] -- only a real-expired-token pass remains open
 - [wsl2-shared-ram-constrains-concurrent-inference](project-wsl2-shared-ram-constrains-concurrent-inference.md) — 2026-09-17: this host's ~16GB /proc/meminfo total is WSL2's own carved-out share, not full host RAM; running gpu+cpu model-sweeps concurrently caused a real segfault crash storm (exit=11, no OOM signals) across otherwise-fine models -- sequence heavy concurrent inference workloads instead of parallelizing until a planned full-Linux migration removes the ceiling
 
-#,,,.,,.,,,,,,,,.,.,.,...,.,,,,,.,.,.,.,,,.,.,..,,...,...,,,.,..,,,,,,,,,,.,.,
-#IX4PMQU4DXG2UKV7MBQRJMSAH33Y3ISLGBGQWICXIOFS2TPJBRZ6MZREOSDF46WMSYQGJZF6SY3RG
-#\\\|LDETWPEDTLTME3SPRXZSFDO4NXDYQXPVNY5RH6NU6B56532NO7K \ / AMOS7 \ YOURUM ::
-#\[7]BG33NDGBA3U4YQAT7R5VHDZOKJPDAK5L33HE47XSZXJ3KUSKQUBQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,,.,..,,,.,,,,,,,,,,,..,,,,,...,..,,...,...,...,..,,,,.,..,,,..,
+#UHWP7P7P342AY3BMNJ5O4E55GXUHJNKUNCIPBAQTVF7BNPEWXKW3XNTHXTNX5ZTRNQG45WCW5KHX2
+#\\\|2VHPMIEXXKGAEG64EFMWICMZTAADJG7VLLE7PPXSCE3HWH4ITGE \ / AMOS7 \ YOURUM ::
+#\[7]NGT3OTK42ZIQFJC4YSJU72JXPPQVPO2QRP6DCMM2CQJ7TSV6FGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
