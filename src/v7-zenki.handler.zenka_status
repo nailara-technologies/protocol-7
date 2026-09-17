@@ -150,6 +150,13 @@ if (    $status ne qw| starting |
 }
 
 if ( $old_status ne qw| error | and $status eq qw| error | ) {
+    ## tells v7-zenki.instance_count this instance still occupies its     ##
+    ## concurrency slot while it's in 'error' -- see that file's own      ##
+    ## comment for the race this closes. left TRUE on a genuine give-up [ ##
+    ## startup retries exhausted, below in this same call ] is harmless:  ##
+    ## that path transitions straight to 'offline' before returning, so   ##
+    ## nothing ever observes 'error' + stale restart_pending together     ##
+    $instance->{'restart_pending'} = TRUE;
     $instance->{'ondemand-consecutive-failures'}++;
     $instance->{'restart_delay'}
         = sprintf( '%.2f', $instance->{'restart_delay'} * 1.2 );
@@ -612,8 +619,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,.,.,.,..,,.,,,,.,,..,,...,,.,,..,,...,.,,,..,,...,..,,,..,.,.,,.,,.,.,.,,,
-#2JDEIF4U4DADKHGN6PF57ADPBEDOD3D2ENIV5TEGBGXHVOZUXVVJBXTHOKRCCT3IMHZZNUELGXM7M
-#\\\|3BDC5VM46NU5M7WPUTETCCVGU3KU43I6M5JIWTXIJAA5RFYO3M3 \ / AMOS7 \ YOURUM ::
-#\[7]HHYICJXU6K2ZLORPX6YHMBQTI66QLSRWS7BBH523XWNDFXVLFQAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,..,,...,,..,.,,,,..,.,,,..,,..,,...,...,,..,.,,,...,.,.,,,,,
+#NLGRID5FGGQK3LPYJMA7OU5L32SIMST57LEAZVZPPSOBZ5ANJW3MU2YDVRZ7YXWTKJGBFCKX4VHNK
+#\\\|2ZPDLX7JDSKHBXIDF2N4JX4RBEBIDQBREUHZOIDBHUYWYZWZAXE \ / AMOS7 \ YOURUM ::
+#\[7]XBH7P5Y2ZDX5OC27YYQ73SAFRFZSCAU7EJ4M5DREVTS4B2M5FOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
