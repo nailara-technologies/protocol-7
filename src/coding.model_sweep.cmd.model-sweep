@@ -225,9 +225,24 @@ for my $backend (@backends) {
 
         next if !$include;
 
-        ## pre-filter by resource fit [ do not record status here ] ##
+        ## pre-filter by resource fit [ do not record status here ]. found ##
+        ## live 2026-09-17 : this call never passed pre_filter => TRUE,    ##
+        ## even though check_resource_fit's own docs are explicit that     ##
+        ## building a sweep candidate LIST before any switch happens is    ##
+        ## exactly what that flag is for -- whatever's currently loaded on ##
+        ## this backend will be unloaded before a candidate actually       ##
+        ## spawns, so its footprint isn't a real constraint here. without  ##
+        ## it, this compared every candidate against live-free VRAM/RAM    ##
+        ## instead of total capacity -- with a real model already resident ##
+        ## on gpu, that meant EVERY candidate silently failed to "fit",    ##
+        ## reporting a false "no candidates match" instead of building a   ##
+        ## real list                                                       ##
         my $fit = <[coding.helper.check_resource_fit]>->(
-            { backend => $backend, size_gb => $entry->{'size_gb'} // 0 } );
+            {   backend    => $backend,
+                size_gb    => $entry->{'size_gb'} // 0,
+                pre_filter => TRUE,
+            }
+        );
         next if !$fit->{'fits'};
 
         push @candidates, $checksum;
@@ -290,8 +305,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,,,.,...,...,,.,,,..,.,,,.,,,...,,..,,,.,..,,...,...,,,,,,,.,..,,,,,,,.,,
-#G765ALIUA4MON2K3HH4X5IHCM4NJFGUFDLGD5I7KITL2XAIBCAQTJE4BYFHST3P7QY5SBVJI76TWY
-#\\\|Y7EANLBOWDN4OJQGADULWXNQISAULESUPBJAVXTX57XE5NXBB2Z \ / AMOS7 \ YOURUM ::
-#\[7]OHQM4K5V677XP25K5LX25O3BTBHYI67RQSPU4E643S6X25FFVYAQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,,,,,.,.,,,.,.,,,.,,,,..,,.,,..,,...,..,,.,,,.,.,,..,,.,,,,,,
+#UQA5OYZQ5G2ETERZD3FZHTJKJQCFEEIZ7FJL62O3D2KWI73BFAYTCLKDGE62HN5GQRP5EXVJNJ2SK
+#\\\|2XTJBJ6V6MCDPHAJHSDFWSSPQQKEQ25HFT3AW2LZ6T5UGL4FNBY \ / AMOS7 \ YOURUM ::
+#\[7]YTLYG7X3JDJCEM5H5K6PEZGS5RDVXVGCB5KTQD2MC3MVFWTAA2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
