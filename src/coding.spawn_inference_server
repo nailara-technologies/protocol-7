@@ -749,6 +749,18 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'stderr'      => $server_err,
     'mmproj_path' => $mmproj_path,
     'model_path'  => $model_path,
+    ## carry forward across the crash-restart respawn cycle : this whole   ##
+    ## hash is replaced wholesale on every spawn [ including               ##
+    ## crash-triggered ones ], which previously silently dropped           ##
+    ## restart_count back to undef every time --                           ##
+    ## coding.handler.inference_server_sigchld's own restart_count++ then  ##
+    ## always read 0, so it always logged "attempt 1/5" and its "max 5     ##
+    ## restarts exceeded -> mark failed" cutoff could never fire, looping  ##
+    ## forever on a model that crashes on every spawn.  confirmed live     ##
+    ## 2026-09-17 : Qwythos-9B on cpu, dozens of consecutive "attempt 1/5" ##
+    ## cycles with no termination. reset to 0 on genuine readiness instead ##
+    ## -- see coding.handler.monitor_inference_startup                     ##
+    'restart_count' => $old->{'restart_count'} // 0,
 };
 
 ## Register I/O handlers to monitor startup
@@ -801,8 +813,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,.,,..,,,,,.,.,.,.,,,,,.,,,,.,,,..,...,..,,...,...,.,.,.,,,,.,,,.,,,,.,
-#TFQUD4LETA55QL7GIQ5RPER43ROEXH65J7Z7UVVRBVV3ICFOULL4MKDCC7VKDKRD2RYVEKZPVS2WK
-#\\\|DUWEGE5OWDIY34FX7AJQN2CSR7NWK3J5NWPOBVTPR4LWSPV2FWR \ / AMOS7 \ YOURUM ::
-#\[7]QL57NUKRGXZSESO3UXH77NJIUSW4EFZWYMHU3OUOPJA3C7NNMYBA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,...,..,,,.,,...,,,.,,.,,,,,,..,,...,...,.,,,,..,,,,,.,.,..,,
+#A44YO4CJ6XEFYQ37NYOGEBCE5XPHBNZIYSFJ3CFO4FWUXWM37FHCTH2G7Y4ZAWTEOXNOMLMMJLE4Y
+#\\\|LXPQR3ZEZR6KCLFJXW3ECNK5O2RCAWZS37SXAMIS44BMV7BBDHH \ / AMOS7 \ YOURUM ::
+#\[7]U4L7B44O4XMRWGM3TTY6HT6DA3WOOZYYQJVKBGSZF6YA6GGOGABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
