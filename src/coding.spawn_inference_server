@@ -40,9 +40,15 @@ my $threads    = $params->{'threads'}    // 8;
 my $gpu_layers = $params->{'gpu_layers'} // 33;
 ## pre partial-offload reduction ##
 my $configured_gpu_layers = $gpu_layers;
-my $model_path            = $params->{'model_path'}  // '';
-my $mmproj_path           = $params->{'mmproj_path'} // '';
-my $amos_id               = $params->{'amos_id'}     // '';
+## model's TRUE total layer count [ gguf block_count ] : the default -ngl ##
+## 33 is a generic constant, so gpu_layers == configured does NOT imply   ##
+## full offload for models with more than 33 layers -- the offload-       ##
+## fraction check further down compares against this, not the configured  ##
+## value                                                                  ##
+my $model_layer_count = 0;
+my $model_path        = $params->{'model_path'}  // '';
+my $mmproj_path       = $params->{'mmproj_path'} // '';
+my $amos_id           = $params->{'amos_id'}     // '';
 
 ## cancel watchers, close fds, and kill old server before spawning new one ##
 my $old = <coding.inference_servers>->{$backend} // {};
@@ -324,7 +330,8 @@ if ( $backend eq qw| gpu | ) {
                         . 'does not fit -- hybrid partial offload : %s',
                     $partial->{'explanation'}
                 );
-                $gpu_layers = $partial->{'computed_layers'};
+                $gpu_layers        = $partial->{'computed_layers'};
+                $model_layer_count = $partial->{'layer_count'} // 0;
             } else {
                 <[base.logs]>->(
                     0,
@@ -362,6 +369,19 @@ if ( $backend eq qw| gpu | ) {
     }
 }
 
+## extract the true total layer count fresh when the partial-offload     ##
+## reduction branch above never ran [ model fit vram at the configured   ##
+## -ngl, or nvidia-smi was unparseable ] -- a >33-layer model is still a ##
+## genuine partial offload at -ngl 33 even on that 'happy' path, and     ##
+## calculate_safe_context needs the real ratio to budget the ram side    ##
+if (    $backend eq qw| gpu |
+    and not $model_layer_count
+    and length($model_path)
+    and -f $model_path ) {
+    $model_layer_count
+        = <[models.gguf.file.extract_layer_count]>->($model_path) // 0;
+}
+
 ## Build llama-server command
 my @cmd = ( $binary, '--port', $port, qw|  --host  127.0.0.1  | );
 
@@ -389,10 +409,25 @@ my $safe = <[coding.helper.calculate_safe_context]>->(
     {   model_path  => $model_path,
         mmproj_path => $mmproj_path,
         backend     => $backend,
+        gpu_layers  => $gpu_layers,           ## actual -ngl value used ##
+        layer_count => $model_layer_count,    ## true total [ gguf ] ##
     }
 );
 my $auto_ctx = $safe->{'context_length'};
 my $ctx_size;
+
+## gpu with partial offload [ some layers on cpu/ram ] : the ram-safety    ##
+## ceiling must win over the configured floor exactly like the cpu branch  ##
+## below -- the floor is gpu-tuned assuming full vram residency, and       ##
+## letting it override the partial-aware auto-calc upward would defeat the ##
+## very fix that keeps a partially-offloaded model's ram footprint under   ##
+## the host ceiling [ same hole class as the 2026-09-17 cpu incident's     ##
+## floor-override bug, gpu partial-offload side ]                          ##
+my $partial_gpu_offload
+    = $backend eq qw| gpu |
+    && $model_layer_count > 0
+    && $gpu_layers < $model_layer_count;
+
 if ( defined <inference.model.context_length> ) {
     my $configured = <inference.model.context_length>;
     if ( $auto_ctx > $configured ) {
@@ -407,22 +442,31 @@ if ( defined <inference.model.context_length> ) {
             $configured,
             $safe->{'explanation'}
         );
-    } elsif ( $backend eq qw| cpu | ) {
-        ## CPU only : the configured floor is a GPU-tuned value shared      ##
-        ## across backends [ cfg/zenki/coding/zenka.v7 ] -- on GPU that's   ##
-        ## fine, VRAM headroom is predictable, but on CPU it means "use the ##
-        ## floor even when the RAM-safety calc says that's unsafe" reduces  ##
-        ## to "ignore the RAM-safety calc," which is exactly the path that  ##
-        ## OOM-killed the host twice on 2026-09-17 [ see                    ##
-        ## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md ] --  ##
-        ## calculate_safe_context's own hard ram-fraction backstop already  ##
-        ## makes $auto_ctx the real safe ceiling for this host/model, so    ##
-        ## CPU respects it as a genuine ceiling instead of a floor          ##
+    } elsif ( $backend eq qw| cpu | or $partial_gpu_offload ) {
+        ## CPU, and partial-offload GPU alike : the configured floor is a   ##
+        ## GPU-tuned value shared across backends [ cfg/zenki/coding/       ##
+        ## zenka.v7 ] -- on fully-vram-resident GPU that's fine, VRAM       ##
+        ## headroom is predictable, but whenever part of the footprint      ##
+        ## lives in system RAM [ cpu backend, or gpu with partial offload ] ##
+        ## it means "use the floor even when the RAM-safety calc says       ##
+        ## that's unsafe" reduces to "ignore the RAM-safety calc," which is ##
+        ## exactly the path that OOM-killed the host on 2026-09-17 [ twice  ##
+        ## cpu-side, see                                                    ##
+        ## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md, and  ##
+        ## gpu-side via the partial-offload gap this branch now also covers ##
+        ## ] -- calculate_safe_context's own hard ram-fraction backstop     ##
+        ## already makes $auto_ctx the real safe ceiling for this           ##
+        ## host/model, so RAM-resident configurations respect it as a       ##
+        ## genuine ceiling instead of a floor                               ##
         $ctx_size = $auto_ctx;
         <[base.logs]>->(
             1,
-            '[spawn_inference_server] cpu backend: RAM-safety '
+            '[spawn_inference_server] %s : RAM-safety '
                 . 'ceiling %d wins over configured floor %d [%s]',
+            (   $backend eq qw| cpu |
+                ? qw| cpu backend |
+                : qw| partial gpu offload |
+            ),
             $ctx_size,
             $configured,
             $safe->{'explanation'}
@@ -754,9 +798,15 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'n_ctx' => $ctx_size,    ## actual context window passed to server ##
     'calculated_ctx' => $safe->{'calculated'}, ## VRAM-safe auto-calc value ##
     (   $backend eq qw| gpu |
-        ? ( 'gpu_layers'   => $gpu_layers,     ## actual -ngl value used ##
-            'offload_mode' => (
-                $gpu_layers < $configured_gpu_layers
+        ? ( 'gpu_layers'   => $gpu_layers,        ## actual -ngl value used ##
+            'layer_count'  => $model_layer_count, ## true total [ gguf ] ##
+            'offload_mode' => (                   ## real offload ratio : ##
+                ## the configured-default comparison alone misses a >33-   ##
+                ## layer model at -ngl 33 [ reduction branch never fires ] ##
+                (           $model_layer_count > 0
+                        and $gpu_layers < $model_layer_count
+                )
+                    or $gpu_layers < $configured_gpu_layers
                 ? qw| partial |
                 : qw| full |
             ),
@@ -849,8 +899,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,...,,.,,..,,,.,,.,.,,,.,...,,,,,,,,,,,.,..,,...,.,.,,.,,...,,..,..,,...,
-#PRQ6SAEP5LFZPIBXNGXGRLJMUQKHRZ5AV6KVFFVVPVIDYHYASZIA5CBOFQX3CRXWDAU6UTGMSNQ2A
-#\\\|25Q5VFKUGLAZEV4TRQWTGS4ECVUG4BQOX3TM2W5724XJ6LJHPQM \ / AMOS7 \ YOURUM ::
-#\[7]QB3XH3MODKBLLNBX2VRL3CECHPTJB6XFA4A6NTQN2QH65LJ4IWAA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,,.,.,.,,,,,.,.,.,.,.,,,,..,..,,...,...,..,,,,,,,..,..,,,,,,
+#L7ZP37N24DF4TNO4QF7TFPW5CAZLIGQHS72EVVSTP6JXYQSD5FTKYC4ADUKR6M26QK6VYLH63FCGE
+#\\\|PYQBIHVHWYHOZ3SDX4WIHPDFD7IS7ZW2MHCZ2VV7GLQ2E3Z4VWM \ / AMOS7 \ YOURUM ::
+#\[7]FQICS4WSUNZVSXW3DCOEAIODHNGJT3M4MP5LG37LFQGCSVIOFAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
