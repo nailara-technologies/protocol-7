@@ -39,8 +39,31 @@ model is discovered after dispatch, at any point, use
 `kimi_continue` with the corrected model -- do not `TaskStop` and
 re-dispatch.
 
-#,,,,,.,.,,,,,,,,,,..,,.,,,,.,,.,,...,.,,,...,..,,...,..,,,..,,.,,,,,,,.,,...,
-#O4GOGQ65ZBM7UKLC4HZ4VJX6OFIVMQ6LZSFXR74RCZF6ZIVVBYM5TRAGCZ2B6SNQG5YDUU5S7LBV2
-#\\\|3RY772EGL4FZD2M3AQI3J3QVUO5SERP643H4KVGFCLFELVIYLSN \ / AMOS7 \ YOURUM ::
-#\[7]QTY6DOMWMRAPL4BHUQCBQDELSIXTCAZPQNBPCTKQEFGGZ56DIEAY 7  DATA SIGNATURE ::
+**RECURRED 2026-09-17**: dispatched a ~7-file, task-doc-driven
+implementation (a coding-zenka state-machine extension) on plain `k3`,
+reasoning correctly that the task was concurrency/correctness-critical
+(worth k3-tier reasoning) but never checking whether the *context*
+actually needed the full 1M ceiling -- it didn't, the whole file set
+was a handful of Perl modules + one task doc, nowhere near 256k. Same
+underlying miss as [[kimi-dispatch-pattern]]'s 2026-08-15 note ("k3
+reasoning tier" and "needs >256k context" are two independent
+questions; picking k3 only answers the first). User caught it same
+turn by asking "would k3-256k also have worked?"
+
+**refined mechanism, per user citing kimi's own API docs**: switching
+between k3 variants via `kimi_continue` has **no disadvantage** as long
+as the session's context still fits the target variant's ceiling at
+switch time -- kimi only auto-compacts first on an actual context-size
+mismatch (e.g. session grew past 256k, then continuing on `k3-256k`).
+So a wrong-tier-for-context dispatch is *not* just recoverable, it's
+recoverable at zero cost in the common case: don't hesitate to
+`kimi_continue` a running `k3` session down to `k3-256k` (or the
+reverse) purely because the model differs from the last call --
+only worry about it if context has actually grown past the smaller
+ceiling.
+
+#,,.,,.,.,,.,,,,,,,.,,,..,.,.,,,,,,,.,,.,,,..,..,,...,...,,..,.,,,,..,,,.,,,.,
+#QVXJ3BMT7GCJVPVXLLNAPEJRZRHGNKDND3IKKHE4YVOMHRILFRZK4R6JYKV3MO7CEMQJZ5QCE6SDS
+#\\\|PAVLC4SZZ3CLVUIRGUNAEU2WW3TT2N4OODVF4BBV2NTYE65KUVR \ / AMOS7 \ YOURUM ::
+#\[7]OJ35YPPG23ZL52RKNC5F476DIAYMH25QZWPQ53E5D46WWODKG4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

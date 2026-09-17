@@ -32,51 +32,13 @@ my $report_failure = sub {
 return $report_failure->('kimi usage provider is disabled')
     if not $provider->{'enabled'};
 
-##  home directory of the unix user this zenka runs as [ never hardcoded ]  ##
-my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+## shared with plugin.usage.kimi.refresh_token's own fresh-on-disk check -- ##
+## both agree on exactly what "the current credential" means                ##
+my $cred = <[plugin.usage.kimi.read_credential]>;
+return $report_failure->( $cred->{'error'} ) if not length $cred->{'token'};
 
-return $report_failure->('cannot resolve home directory')
-    if not length $home_dir;
-
-my $cred_dir = catfile( $home_dir, $provider->{'cred_rel_dir'} );
-
-my $cred_dh;
-return $report_failure->(
-    sprintf 'cannot open credential directory [ %s ]',
-    <[base.str.os_err]>
-) if not opendir( $cred_dh, $cred_dir );
-
-##  newest credential file first [ several may accumulate over time ]  ##
-my @cred_files = sort { -M $a <=> -M $b }
-    map { catfile( $cred_dir, $ARG ) }
-    grep {m{^kimi-code.*\.json$}} readdir($cred_dh);
-closedir($cred_dh);
-
-return $report_failure->('no kimi credential file found')
-    if not @cred_files;
-
-## token only ever travels into the request header, never into a log line, ##
-## never into %data                                                        ##
-my $token      = '';
-my $expires_at = undef;
-
-foreach my $cred_file (@cred_files) {
-    my $cred_fh;
-    next if not open( $cred_fh, '<', $cred_file );
-    my $cred_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$cred_fh> };
-    close($cred_fh);
-    my $cred_data = <[format.json.decode]>->($cred_str);
-    undef $cred_str;    ##  no credential material left lying around  ##
-    next if ref $cred_data ne qw| HASH |;
-    next if not length( $cred_data->{'access_token'} // '' );
-    $token      = $cred_data->{'access_token'};
-    $expires_at = $cred_data->{'expires_at'};
-    undef $cred_data;
-    last;
-}
-
-return $report_failure->('no parseable kimi credential with access token')
-    if not length $token;
+my $token      = $cred->{'token'};
+my $expires_at = $cred->{'expires_at'};
 
 ##  register the in-flight request  ##
 my $req_id = <[base.gen_id]>->( $provider->{'pending'} );
@@ -122,8 +84,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,.,...,,.,,.,,,,,.,,.,,..,,.,,,,,,,,.,,...,..,,...,...,,,.,..,,...,.,.,,.,,
-#ESORMBHM7FQD3JHUDPR2LSN6DZTGBTESC245NWHQW74AKZN2NZTZWBA2VHU7CXRYOGBBIX3GNTM74
-#\\\|PGKVDKDEBVCACIS5SVV3PQOVJ6QCBYERMXT7NOD6TE46I2HWOET \ / AMOS7 \ YOURUM ::
-#\[7]TPCY6PQBAGMCK5AGEZIKBR6HUMUMMDVHXGNY4S5NGXQB6SQPPSCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,..,,.,,,.,,,.,,.,,,...,...,,.,,..,,...,...,.,.,,.,,.,.,.,,,,.,,
+#GT5PYHQOO2LNAQ7DIPEUZU4D5UWZQEUNQRBVE5745G4LUPVU3KII5BKVGUDOUFCH3MJQIAPJ34RCG
+#\\\|CCXNP62HOUB5TTI4BTWMN4IADHQIKK6BMHF75WOI75GAKEVRG4I \ / AMOS7 \ YOURUM ::
+#\[7]QL2CQWI3XCAISHYUJ3U4WE34QO3HHOL2EM3POWWAEWVBXRJAIIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

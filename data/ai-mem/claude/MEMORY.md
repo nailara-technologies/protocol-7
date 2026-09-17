@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [kimi-dispatch-model-verify-before-send](feedback-kimi-dispatch-model-verify-before-send.md) — before `kimi_dispatch`, check task file-count/size against 256k, separately from whether the task needs k3-tier reasoning ("needs k3 reasoning" and "needs >256k context" are independent questions — recurred 2026-09-17 by conflating them, picked plain `k3` for a ~7-file task on reasoning grounds alone). If caught after send: `kimi_continue` to switch tiers is FREE as long as context still fits the target ceiling (kimi only auto-compacts on an actual size mismatch) — never TaskStop+restart.
 - [use-format-code-not-perl-c](feedback-use-format-code-not-perl-c.md) — for ANY src/* syntax check in this project, run `bin/format-code -c <files>` FIRST, always — never plain `perl -c`, and prefer it over `bin/test-scripts/p7-module-syntax-check` too (that tool has its own separate false-positive set: `%colors`/other bin/Protocol-7 globals, `$call` on `.cmd.` files, `uniq @array` bareword form). Recurred TWICE now (missed again 2026-09-14 despite this memory existing) — burned a full session re-proving known-harmless errors via HEAD-diffing before the user pointed at format-code directly
 - [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — CORRECTED 2026-09-16: `reload source` deliberately excludes `plugin.*` modules by design (base.cmd.reload) — use `<zenka>.reload plugins`/`reload all`, always zenka-prefixed, for those; don't default to full restart anymore, that was an overcorrection. The narrower 2026-08-04 `.cmd.`-whitelist-gate bug (below in the file) is a separate, real historical issue
 - [deleted-manually-tuned-captures-without-confirming](feedback-deleted-manually-tuned-captures-without-confirming.md) — 2026-08-28: deleted 117 files from a shared dir based on filename-pattern inference alone ("all named snapshot.*, must be disposable"), no confirmation asked; some were the user's hand-tuned interactive visualization states, unrecoverable (no fs snapshot/trash, plain ext4). NEVER delete anything outside a designated scratchpad without asking first, even when the naming/location looks conclusively like test debris — content value is not inferable from filename pattern or origin command alone
@@ -59,8 +60,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,..,,,,.,.,,,,..,.,,,,.,,,.,,,,,,.,,,.,.,..,,...,...,.,,,,,.,.,.,.,,,.,.,
-#6SAY7VDPHGIBTZ2K2YVACP6YRFPPJ2BSEFI43UFOVJJZL224GRT5X4UJ52QFB6XVBIICMVPOR4YAS
-#\\\|GMOIP4LXPZUADNVURTQPQN47ZSZQHRAN24V35YYVZCNUYBER2OD \ / AMOS7 \ YOURUM ::
-#\[7]HDEPZB6ZH5FBQRGY7DOP624GL435SFTU3U7JEHQ24HHGY3Y5VQDA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,,,,,.,.,,.,,..,,,.,,...,,,.,..,,...,...,,.,,..,,,..,,.,,,..,
+#BBGGYGVNFHAHNDBWLSEJK3XSLF4QHKVDZCTFENPLQO36PJWKH2BKTXOECF6CXOIJVQ5CGWY465DT2
+#\\\|MCUFHOPYILF4MMQ3XQGANN65Y6CC4LDWRR6MQ5KCVGU3UWYLSPH \ / AMOS7 \ YOURUM ::
+#\[7]HSSDDMMIV6BRXTHAGZNMAXTEHSYWFKRPHTU4F3VWOI3B2EZQSUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
