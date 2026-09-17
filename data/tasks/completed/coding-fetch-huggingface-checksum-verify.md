@@ -206,8 +206,38 @@ everything actually worth corrupting silently.
   audit of historical downloads (though if that seems cheap once this
   lands, it's a reasonable separate follow-up to suggest).
 
-#,,,.,.,.,.,,,..,,.,,,.,,,,,.,,,.,,,.,...,.,.,..,,...,..,,.,.,..,,.,,,..,,...,
-#L5GW5KU46E4RVTTC2MQEO7DSMNIEFKYWRYQEQZBIAF4MYJZHDMT7LHP3MXPMUFIX23YRKYVOVYMZ2
-#\\\|GLFVJTZVDM7TQPFEBH3AUDFERLMWTP3U3ZGG4ER5UN7MMG5LT5O \ / AMOS7 \ YOURUM ::
-#\[7]IKDOHRCW3ZZJ2BCAW37JH6ARAOBE2PF4C6DGNWO2OOGPGLCD3GAY 7  DATA SIGNATURE ::
+## done, 2026-09-17 -- kimi_dispatch(model=k2.8)
+
+Implemented exactly per scope. Expected sha256 fetched via
+`clients.https.get` (`?blobs=true`, proxy threaded explicitly), cached
+on the download entry, bounded 3-attempt retry with backoff. Hashing
+forked via `IPC::Open3` + non-blocking I/O + timer-poll, mirroring the
+download child's own pattern -- no blocking `Digest::SHA` in the event
+loop. Three distinct terminal states wired through consistently:
+`complete` (verified match), `corrupt` (mismatch, quarantined to
+`$dest.CORRUPT-<timestamp>`, never left at the final path), `unverified`
+/ hash-fetch-failed (never silently treated as "no verification
+needed"). Item 4 decided in code: aria2c (later replaced, see the
+native-async-transport task) stays primary; the sha256 layer is the
+sole integrity layer, independent of fetch mechanism.
+
+**Live-verified, all real, not simulated**: the actual 2026-09-10
+quarantined shard's sha256 confirmed mismatched against the published
+hash (fetched live, not assumed); a seeded exact-size garbage file
+caught and quarantined end-to-end; a real small file downloaded and
+verified with no regression to the normal path; a non-LFS file
+completing with sha explicitly noted as skipped rather than silently
+"verified". Committed `5ac9b18f7`.
+
+**Item 5 (root cause) deliberately left open**, per this task's own
+instruction: whether the original corruption was aria2c's `--continue`
+stitching, a stalled connection, or something else was NOT investigated
+further -- only the silent-acceptance hole is closed. The next real
+occurrence will now be caught immediately with a fresh, cleanly-
+reproducible case.
+
+#,,.,,,,.,...,..,,.,,,,,,,,,,,,.,,,,.,.,,,,,,,..,,...,...,..,,..,,,..,.,.,,,.,
+#FXJNXZ34L6SDZF2UJIUID6ZINK24IWZKTAMZ7XYHGSWTQOTC23SPCHE7YVGXDFIYVR4CRLTBJ6MBC
+#\\\|CGC5BLSENW5FFBVSESCJSOGLA5RHZITLTSZN3RDOYGPHOCWXXHC \ / AMOS7 \ YOURUM ::
+#\[7]LCNX5ALDHJAVZWIGW3CD36FUF5MFUHLXC2GEV74OMU2NOO2ERYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
