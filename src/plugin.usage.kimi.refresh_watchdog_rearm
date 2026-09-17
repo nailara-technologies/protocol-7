@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.usage.kimi.refresh_watchdog_rearm
+# descr = on_done handler : re-arm the next proactive watchdog fire
+# note  = after=>0, not a real delay -- refresh_cleanup only fires once the
+#         refresh cycle has genuinely finished, so there's nothing to wait
+#         for. still routed through event.add_timer rather than a direct
+#         nested call, to stay on the same event-driven footing as every
+#         other timer handler here
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| plugin.usage.kimi.refresh_watchdog |,
+        'data'    => {},
+    }
+);
+
+return TRUE;
+
+#,,,,,,,.,,,,,,,,,,.,.,,,.,,,,.,..,,,,.,..,,,,,,..,,...,...,,.,,...,,,,,,,.,,.
+
+#,,.,,,.,,,,.,...,.,.,..,,,,.,.,.,,..,.,,,,..,..,,...,.,.,...,...,...,,.,,.,.,
+#CCFNATB3GUNU64POXZPSGX6VMY6TM3HSVI3CGEAKL32CUDT7QUUJJASPVFN6SZL2JAEC2TVTBC57M
+#\\\|IS5PIHAES4JLGM5Q24H5F24T3FH4T2HGAHZOMV74XOMGNX7M7LF \ / AMOS7 \ YOURUM ::
+#\[7]JY37IB4EWP6BUBSIV33Y5AK573HZTG4YEPDQIPWATSUEDVQ2T4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = plugin.usage.claude.refresh_watchdog
+# descr = proactively refresh the claude credential shortly before its
+#         locally-claimed expiry -- best-effort only, see note
+# note  = claude's expiresAt is NOT fully trustworthy -- confirmed live
+#         2026-09-16 [ plugin.usage.claude.handler.response's own note ] :
+#         the credential file claimed ~97 minutes of validity left while
+#         the api answered 401 regardless. this timer reduces how often
+#         the reactive 401 path [ handler.response, still the authoritative
+#         check, unconditionally still runs regardless of this timer ] has
+#         to pay the synchronous refresh latency -- it does not replace
+#         that path or guarantee zero reactive refreshes. contrast
+#         plugin.usage.kimi.refresh_watchdog, whose equivalent field IS
+#         confirmed reliable
+# note  = expiresAt is epoch MILLISECONDS, unlike kimi's epoch seconds --
+#         converted below, do not compare the two units directly
+
+my $provider = <usage.provider.claude>;
+my $margin   = $provider->{'proactive_refresh_margin'} // 60;
+
+## short retry, not a long backoff -- same reasoning as plugin.usage.kimi.  ##
+## refresh_watchdog's identical note : this timer's own FIRST fire runs    ##
+## from init_code, before [root.drop_privs], so $ENV{HOME}/$UID still      ##
+## resolve to the pre-drop launching user and the credential file          ##
+## genuinely doesn't exist under that home yet -- self-heals within        ##
+## seconds of drop_privs completing                                        ##
+my $rearm_fallback = sub {
+    <[event.add_timer]>->(
+        {   'after'   => 3,
+            'handler' => qw| plugin.usage.claude.refresh_watchdog |,
+            'data'    => {},
+        }
+    );
+    return TRUE;
+};
+
+my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+return $rearm_fallback->() if not length $home_dir;
+
+my $cred_file = catfile( $home_dir, $provider->{'cred_rel'} );
+my $cred_fh;
+return $rearm_fallback->() if not open( $cred_fh, '<', $cred_file );
+
+my $cred_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$cred_fh> };
+close($cred_fh);
+
+my $cred_data = <[format.json.decode]>->($cred_str);
+undef $cred_str;    ##  no credential material left lying around  ##
+
+my $expires_at_ms
+    = ref $cred_data eq qw| HASH |
+    ? $cred_data->{'claudeAiOauth'}->{'expiresAt'}
+    : undef;
+undef $cred_data;
+
+return $rearm_fallback->() if not defined $expires_at_ms;
+
+my $now_ms    = time * 1000;
+my $remaining = ( $expires_at_ms - $now_ms ) / 1000;
+
+if ( $remaining <= $margin ) {
+    <[base.logs]>->(
+        1,
+        '[usage.claude.refresh_watchdog] proactive refresh : locally-claimed '
+            . 'expiry in %ds [ best-effort, see module note ], within %ds '
+            . 'margin',
+        $remaining,
+        $margin
+    );
+    <[plugin.usage.claude.refresh_token]>->(
+        undef,
+        {   'on_done' => {
+                'handler' => qw| plugin.usage.claude.refresh_watchdog_rearm |,
+                'params'  => {},
+            },
+        }
+    );
+    return TRUE;
+}
+
+<[event.add_timer]>->(
+    {   'after'   => $remaining - $margin,
+        'handler' => qw| plugin.usage.claude.refresh_watchdog |,
+        'data'    => {},
+    }
+);
+return TRUE;
+
+#,,,.,,,,,,,,,,,,,.,,,,,,,.,.,,.,..,,,,,,,..,,.,,.,,,,,.,..,,...,...,,,,,,,.,,
+
+#,,.,,,.,,...,,,.,,.,,,,,,...,,,.,,.,,,..,...,..,,...,.,.,..,,,.,,...,..,,,.,,
+#PWLBO6QLYF3ES53UKEPGTPWHPT4GXGLYMB2UUNT3G4KCULQP3N576XQWF5K26P6HF4625LKGB5VQO
+#\\\|X4J7AQFHEB4UDHAFAH4HDGWYIQYADOGMXL3SMC7RDVH3H5MA6PL \ / AMOS7 \ YOURUM ::
+#\[7]BSLQ7SH6UMCPCLJCWSVMIWFM5YEB7BIGN3QIWOCZEFJ6NGS5BODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

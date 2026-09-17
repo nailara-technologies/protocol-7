@@ -52,10 +52,19 @@ plugins.load = plugin.usage.claude plugin.usage.kimi
 
 [base.get_session_id]
 
+## explicit post-drop callback, same pattern the 'universal' zenka uses    ##
+## for its own after-drop setup [ [universal.startup], called after        ##
+## base.net.connect there too ] -- arms both providers' proactive refresh  ##
+## watchdogs here, genuinely after drop_privs, rather than from inside     ##
+## plugin.usage.kimi/claude.init_code [ which runs during init_modules,    ##
+## before the drop, and whose own timer-arm read the wrong credential      ##
+## directory on a fresh boot as a result -- see usage.startup's own note ] ##
+[usage.startup]
+
 [zenka.loop]
 
-#,,..,.,,,.,.,,.,,,..,,..,,.,,..,,.,,,,.,,,..,..,,...,..,,,,.,...,.,.,,,.,,,.,
-#NP2BU32U3JWNLUBMKYSZAGLRNCUAU2JI7HMRBRCW3UM4CHW6ADXL5VUVNSPUWFTY4JH6Q4YVTHQFM
-#\\\|JPEUWPHQKIV5HESRXHB7TKJFNXQ6T6GEMG6YVWPOKERVYBV53PL \ / AMOS7 \ YOURUM ::
-#\[7]W2LOHUN2P6ACZTRZHD5ES5WCNVQPDKI265TGXZO3YINU3HDFAADQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,,,.,...,,..,..,,..,,.,.,...,..,,...,..,,...,,,,,.,,,,.,,,,,,
+#YBOMZSA24UKQRGARKMSXBAZV3F2DVNZEDU45XTYMDCAOHINHY57SYVPBAN4TDEKTLHYFZE2KQN56U
+#\\\|MBGENOIFU2UOAHHDRCNPV5C4MWS3DGQGJI4VEUSP562TESQHJS2 \ / AMOS7 \ YOURUM ::
+#\[7]XAWVEO47QLESUCLXMDWY2AQ6J4544LDLGQNQ7KCWWWHLTGNGW2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
