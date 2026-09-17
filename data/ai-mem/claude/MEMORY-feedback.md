@@ -136,9 +136,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [sourcecode-signature-corpus-scoping](feedback-sourcecode-signature-corpus-scoping.md) — scoping a sourcecode.console.* signing/verify command to a file list: intersect against the authoritative `sourcecode.source_path_set_up` resolver, never a regex approximation of its exclusion patterns; add a `:keyword:` flag to the existing command rather than a new console command; and NEVER "fix" `collect_file_list`'s bare-directory non-recursion (it's deliberate) -- `/** + :inlist:` is the existing safe deep-scan mechanism, a hasty patch to force recursion everywhere caused a live incident (18984-file over-broad signing attempt, fatal symlink error, fully reverted)
 - [p7-cli-argv-and-console-command-gotchas](feedback-p7-cli-argv-and-console-command-gotchas.md) — `bin/Protocol-7 <zenka> <command>` CLI: `-v`/`-vq` flags must come after the zenka name or zenka-name resolution silently fails into stdin-config mode; argv is space-joined then re-split inside `collect_file_list`, so a filename with a space/leading-`!`/`*` can't survive the round trip regardless of shell quoting (silently absorbed by loose pattern matching, not a hard crash)
 - [parallel-redundancy-during-migration-is-deliberate](feedback-parallel-redundancy-during-migration-is-deliberate.md) — general philosophy: standalone-script-to-zenka (and similar) migrations deliberately run parallel/redundant code paths for a while -- functional stability + independent upgrade safety + eventual convergence onto whichever proves better; don't default to flagging this as a gap or rushing to unify, only raise it if the paths silently diverge in behavior or the redundancy has clearly outlived its purpose
+- [verify-staged-content-before-commit](feedback-verify-staged-content-before-commit.md) — 2026-09-17: landed an incomplete commit by only re-`git add`ing untracked (`??`) files before committing; 4 already-tracked files were ALSO still unstaged (leading-space `M`) and got silently left out, shipping stale content (a `$reinit` guard missing entirely). Always read full `git status --short` / diff `--cached --stat` vs plain `--stat` before every commit, not just scan for `??`
 
-#,,,,,..,,.,.,..,,.,.,.,,,,,.,,,.,,,.,,.,,...,..,,...,...,.,.,,,.,,.,,,..,.,.,
-#YSH7XVJXROSMEQKQQY5TVSKJR5JXVEDIPJQDG2OA7XK3ULIWS63PI4IP46O25N6VYTLKKXHMMC7J4
-#\\\|W4TCNRGAWD2ZHDJJV77OR6ACFVBTRHIKZMWUZYQSV2JXHAO4M7I \ / AMOS7 \ YOURUM ::
-#\[7]WG43S2HJDEXFEUQUQBXS2RBTLIO6DDHOJWGWXLJEQBBPXNGS4EDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,,,.,..,,.,.,.,,,,..,..,,...,..,,...,...,..,,,,,,,..,..,,.,,,
+#5Q7EYZRLHZFKLA3FIZUDBZLJOY5QGLTP246IBXSRBWOE7RSUY2BKWEWDG4HU6NFUGR4KE3JOA6J36
+#\\\|MPWSSP3L36TEWJDPDEOBY3LA5XG647UJM7SGYG47222GCW3AAL6 \ / AMOS7 \ YOURUM ::
+#\[7]4TIBJCC6Y67CDLLXPK23SPTKIQBEAPOLHRC3FTLFDWQHK3KH2SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
