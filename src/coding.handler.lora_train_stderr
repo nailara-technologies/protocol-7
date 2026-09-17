@@ -9,9 +9,10 @@ my $fh    = $event->w->fd;
 my $buf   = '';
 my $bytes = <[base.s_read]>->( $fh, \$buf, 4096 );
 
-## same EOF-cancel fix as fetch.file.huggingface.handler.download_stderr -- ##
-## a level-triggered io-watcher left registered on an EOF'd fd re-fires     ##
-## forever once the child exits, pinning cpu near 100% for no reason        ##
+## EOF-cancel fix : a level-triggered io-watcher left registered on an     ##
+## EOF'd fd re-fires forever once the child exits, pinning cpu near 100%   ##
+## for no reason -- same fix previously applied to the (since removed)     ##
+## wget-child stderr drain in fetch.file.huggingface.*                     ##
 if ( $bytes <= 0 ) {
     eval { $event->w->cancel };
     return;
@@ -26,10 +27,8 @@ for my $line ( split m|\n|, $buf ) {
     <[base.logs]>->( 2, '[lora_train.stderr] %s', $line );
 }
 
-#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
-
-#,,.,,..,,.,.,,,,,,,,,,.,,...,,..,.,,,,,.,,,,,..,,...,..,,...,...,,,.,.,,,..,,
-#XHNJKBNNNT7D3NER2LGKP5HAG66MUVJRJ3HW56HLT6S2T5DDIUYV7L7PMWW3634PIVSQNVBMJ3RHQ
-#\\\|GJ27EX4NACTXO626U23O2DW7PVAHEWIBKS7AINLME5DI2K3RS7P \ / AMOS7 \ YOURUM ::
-#\[7]AP2HFYJI3VKEGWTNA5XQKWYTBDKUOKU474676OYHNNUQJQQFKUDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,...,,,,,,.,,,,,,,,,,..,,.,,,..,,...,...,,,.,,,.,.,.,.,.,.,,,
+#CDPMCXYCACGHYQMB6F6PPQMZB5SBCM63KZOIHHL2ZJGJX3KSFT5ZIU6FJDGRALAUEIWTS4LB4CGDU
+#\\\|IJF5LNC37Y56CUQ7GRESSJ2J54WEIFW2WDFWQTZNYSPJ7I7ZCOZ \ / AMOS7 \ YOURUM ::
+#\[7]3UZI7MKAWJRDTPXZQDHIUOMJZNE6XVKZAAQSY4RCLT5YOXL2NYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

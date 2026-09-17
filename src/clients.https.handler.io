@@ -24,9 +24,34 @@ if ( ( $bytes // -1 ) == -1 ) {
     return;
 }
 
-## data : accumulate ##
+## data : accumulate [ or stream to disk when a destination fh is open ] ##
 if ( $bytes > 0 ) {
-    $state->{'buffer'} .= $chunk;
+    if ( defined $state->{'stream_fh'} ) {
+        my $stream_result
+            = <[clients.https.stream.chunk]>->( $state, \$chunk );
+
+        if ( $stream_result eq qw| error | ) {
+            <[clients.https.cleanup]>->($state);
+            $code{ $state->{'on_done'} }->(
+                {   'ok'     => FALSE,
+                    'error'  => "stream write error: $OS_ERROR",
+                    'params' => $state->{'params'},
+                }
+            );
+            return;
+        } elsif ( $stream_result eq qw| done | ) {
+            ## chunked terminal block consumed : response complete before ##
+            ## socket eof -- finalize without waiting for the connection  ##
+            <[clients.https.stream.finish]>->($state);
+            return;
+        }
+
+        ## per-chunk stall-reset : a transfer making progress must never   ##
+        ## age out of its timeout window [ see clients.https.stall_reset ] ##
+        <[clients.https.stall_reset]>->($state);
+    } else {
+        $state->{'buffer'} .= $chunk;
+    }
     return;
 }
 
@@ -37,6 +62,12 @@ if ( $bytes > 0 ) {
 if (   $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_READ()
     or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_WRITE() ) {
     return;    ## ssl consumed internal frame : wait for next io event ##
+}
+
+## true eof : streaming mode finalizes from what reached the disk ##
+if ( defined $state->{'stream_fh'} ) {
+    <[clients.https.stream.finish]>->($state);
+    return;
 }
 
 ## true eof : parse and fire callback ##
@@ -67,8 +98,8 @@ $code{ $state->{'on_done'} }->(
     }
 );
 
-#,,,,,,,,,,,,,,..,,.,,.,,,.,,,,,,,...,..,,...,..,,...,...,...,.,.,,.,,..,,,..,
-#EPPNYNNW2MTZUAKJCOOWNMFIYFZOOAKVPFI4X3XUIOREIXKVVCKQEB2IXVG7X3MMKWZCPQXKAG3PU
-#\\\|SR6MFKL6PZN5VV5NM23WL53K5P22SLEU455RPVDVEWK5KZRZQMH \ / AMOS7 \ YOURUM ::
-#\[7]NM5M4QKRAANKGKKK43S4YGM5WGXGZYOTRSITXC77RWMB374OZOBQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,,.,,,,.,.,.,...,,,.,,,.,,.,,..,,...,...,.,.,...,..,,,,.,.,,,
+#A53CIGVODDAYY2ZEPNZJ3DMGWSB2A34CWKZPPIJN6FRJMCJ3U4EFU4B4GXFYRG2S6BTDYTSJ4N5GE
+#\\\|IQYGPZPZSJY6LTTLGOBZCCHJAHEGZ22ZW53JACKHYGII43CMEC3 \ / AMOS7 \ YOURUM ::
+#\[7]4QDFBC47A537XLDUHBPCYLL4E7NZWRIXD5TZYBZISNVIXY5PEGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
