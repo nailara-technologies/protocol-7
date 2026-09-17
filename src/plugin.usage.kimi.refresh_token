@@ -81,6 +81,37 @@ $on_done = $args->{'on_done'}
 
 my $provider = <usage.provider.kimi>;
 
+## reload from disk before spawning anything : another process [ a running  ##
+## kimi_dispatch, a prior refresh cycle from this same zenka, or anything   ##
+## else that touches the same credential file ] may have already refreshed  ##
+## it between the failed request that got us here and this call --          ##
+## confirmed live 2026-09-17 : a running kimi_dispatch overlapped exactly   ##
+## this path, and there is no locking between this zenka's own refresh      ##
+## spawn and any other process writing the same file [ see                  ##
+## plugin.usage.kimi.read_credential's module note ]. spawning a whole      ##
+## extra `kimi` process costs a real ~15-21s [ see this module's own header ##
+## note ] for nothing if the file is already fresh -- skip the fork         ##
+## entirely and go straight to on_done, same completion contract the real   ##
+## fork path uses via plugin.usage.kimi.refresh_cleanup                     ##
+my $now  = time;
+my $cred = <[plugin.usage.kimi.read_credential]>;
+
+if (    length $cred->{'token'}
+    and defined $cred->{'expires_at'}
+    and $cred->{'expires_at'} > $now + $provider->{'expiry_warn'} ) {
+    <[base.logs]>->(
+        1,
+        '[usage.kimi.refresh_token] on-disk credential already '
+            . 'fresh [ expires in %ds ] : skipping refresh spawn',
+        $cred->{'expires_at'} - $now
+    );
+    $code{ $on_done->{'handler'} }->( $on_done->{'params'} // {} )
+        if ref $on_done eq qw| HASH |
+        and length( $on_done->{'handler'} // '' )
+        and exists $code{ $on_done->{'handler'} };
+    return TRUE;
+}
+
 ## single slot : never stack two refresh children on top of each other ##
 if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
     <[base.logs]>->(
@@ -239,8 +270,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,,.,..,,,..,...,.,.,..,,,,,,.,.,,.,,,,,,.,.,.,.,...,...,.,,,..,,,..,...,,..,
-#4BT4RG5AZ5YPIBZHWXIGCQPHGX3OPIQG4AAKYRV72A7ULJ2WVLITKE7RMGAIX3SEESUQPQHJVLTBE
-#\\\|EJQTWDPXZ7ICG6QY3SUPKUQWRUSMNMISQDHY3JPKEXZHWFFS2G4 \ / AMOS7 \ YOURUM ::
-#\[7]O5DALQFMZA35RVCUTNRU6QNV5FPIW7Z6JSBZYVTJXVYJNJJEA6BI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,,.,,,,.,,,,,..,,.,.,...,,.,,.,.,...,...,...,,.,,,..,,..,...,
+#JTA4NTR4IUPTG3NHMBD35O7YJAWT5DUMPIDSJYDHSFUPNE4AH7IAM3QAY6NLZ5IOWBOUPVTOZEDSU
+#\\\|DNFG5XIZ3NMHUYL2PTIKSHZAPF75C3QIC7CPWZYB422HHRKNSKI \ / AMOS7 \ YOURUM ::
+#\[7]3G2AQZ2QRWRHXU65W536MNWPSSPOR3BW3IKTHA422GTIETFP3OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
