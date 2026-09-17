@@ -65,12 +65,15 @@ if ( $est_params_gb < 3 ) {
 ## allocation failure]                                                      ##
 if ( $backend ne qw| gpu | ) {
     my $mem_available_mb = 0;
+    my $mem_total_mb     = 0;
     if ( open my $fh, '<', '/proc/meminfo' ) {
         while (<$fh>) {
             if (m|^MemAvailable:\s+(\d+)|) {
                 $mem_available_mb = int( $1 / 1024 );    ## kB -> MB ##
-                last;
+            } elsif (m|^MemTotal:\s+(\d+)|) {
+                $mem_total_mb = int( $1 / 1024 );        ## kB -> MB ##
             }
+            last if $mem_available_mb && $mem_total_mb;
         }
         close $fh;
     }
@@ -124,37 +127,101 @@ if ( $backend ne qw| gpu | ) {
         };
     }
 
-    ## adaptive safety margin: 30% of remaining space for generation        ##
-    ## buffers [ compute buffers, temporary allocations, headroom for token ##
-    ## generation ]                                                         ##
+    ## adaptive safety margin: 30% of remaining space for generation       ##
+    ## buffers [ temporary allocations, headroom for token generation ] -- ##
+    ## deliberately NOT covering the compute-graph buffer any more, that's ##
+    ## now its own context-scaling term below : a flat capped margin (was  ##
+    ## max 4096MB) cannot track a cost that grows with context itself      ##
     my $safety_min_mb = <coding.cfg.cpu_ram_safety_min_mb> // 512;
     my $safety_max_mb = <coding.cfg.cpu_ram_safety_max_mb> // 4096;
     my $safety_mb     = int( $remaining_mb * 0.30 );
     $safety_mb = $safety_min_mb if $safety_mb < $safety_min_mb;
     $safety_mb = $safety_max_mb if $safety_mb > $safety_max_mb;
 
+    ## compute-graph buffer [ prompt-processing attention/intermediate      ##
+    ## buffers, NOT the KV cache -- grows with context, unlike the flat     ##
+    ## safety margin above. added after a live incident 2026-09-17: a 7B-   ##
+    ## class model at ctx=144993 predicted ~7.9GB total (model+KV) by the   ##
+    ## KV-only formula but actually used ~14.9GB RSS, OOM-killing the whole ##
+    ## host. a same-day retest with the multiplier below at 2x STILL        ##
+    ## undershot a *different* 7B model badly enough to need a manual kill  ##
+    ## before it repeated the OOM -- the true ratio isn't a stable          ##
+    ## per-architecture-class constant like kv_bytes_per_token is (2 real   ##
+    ## points so far: ~1.8x and ~4x+, second one still climbing when        ##
+    ## killed, true peak unknown). raised to 6x as a wide-margin stopgap    ##
+    ## over both, NOT a fitted constant -- see                              ##
+    ## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md. the      ##
+    ## $mem_total_mb hard ceiling right below is the real backstop while    ##
+    ## this per-token model stays this uncertain                            ##
+    my $compute_buffer_multiplier
+        = <coding.cfg.cpu_compute_buffer_multiplier> // 6;
+    my $combined_bytes_per_token
+        = $kv_bytes_per_token * ( 1 + $compute_buffer_multiplier );
+
     my $available_for_kv_mb = $remaining_mb - $safety_mb;
 
-    my $calculated_context
-        = int( ( $available_for_kv_mb * 1024 * 1024 ) / $kv_bytes_per_token );
+    my $calculated_context = int(
+        ( $available_for_kv_mb * 1024 * 1024 ) / $combined_bytes_per_token );
 
     my $final_context = $calculated_context;
     $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
     $final_context = $MAX_CONTEXT
         if $MAX_CONTEXT && $final_context > $MAX_CONTEXT;
 
+    ## hard backstop, independent of the per-token model above [ which two  ##
+    ## real incidents 2026-09-17 proved unreliable on its own ] : never let ##
+    ## the inference process's OWN predicted footprint exceed a flat        ##
+    ## fraction of TOTAL system ram, regardless of what MemAvailable said   ##
+    ## was free -- protects against the compute-buffer estimate being wrong ##
+    ## in EITHER direction, not just against transient available-ram noise  ##
+    ## the safety_mb margin above already covers                            ##
+    ##                                                                      ##
+    ## deliberately uses its OWN much more pessimistic multiplier, not      ##
+    ## $combined_bytes_per_token above : converting this budget through the ##
+    ## SAME soft rate just rescales that rate's own error straight through  ##
+    ## unchanged [ verified by hand: a soft rate that's 2x too optimistic   ##
+    ## still lands ~74% of total ram via that path, 3x too optimistic lands ##
+    ## ~99% -- back in OOM territory ]. this multiplier only has to be      ##
+    ## right ONCE, independent of the soft model's own accuracy             ##
+    my $hard_backstop_multiplier
+        = <coding.cfg.cpu_compute_buffer_hard_multiplier> // 15;
+    my $hard_bytes_per_token
+        = $kv_bytes_per_token * ( 1 + $hard_backstop_multiplier );
+
+    my $hard_ram_limited = FALSE;
+    if ($mem_total_mb) {
+        my $hard_fraction = <coding.cfg.cpu_ram_hard_fraction> // 0.5;
+        my $hard_budget_mb
+            = $mem_total_mb * $hard_fraction
+            - $model_size_mb
+            - $mmproj_size_mb;
+        my $hard_context
+            = $hard_budget_mb > 0
+            ? int( ( $hard_budget_mb * 1024 * 1024 ) / $hard_bytes_per_token )
+            : 0;
+        if ( $hard_context < $final_context ) {
+            $final_context    = $hard_context;
+            $hard_ram_limited = TRUE;
+        }
+        $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
+    }
+
     my $limited_by
-        = $final_context == $calculated_context ? qw| none |
+        = $hard_ram_limited                     ? qw| hard_ram_fraction |
+        : $final_context == $calculated_context ? qw| none |
         : $final_context == $MIN_CONTEXT        ? qw| minimum |
         :                                         qw| maximum |;
 
     <[base.logs]>->(
         1,
-        ': RAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token %.1f KB ]',
+        ': RAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token '
+            . '%.1f KB ] compute [ token %.1f KB : %dx multiplier ]',
         $mem_available_mb,
         $model_size_mb,
         $mmproj_size_mb,
         $kv_bytes_per_token / 1024,
+        ( $combined_bytes_per_token - $kv_bytes_per_token ) / 1024,
+        $compute_buffer_multiplier,
     );
     <[base.logs]>->(
         1, ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
@@ -166,10 +233,15 @@ if ( $backend ne qw| gpu | ) {
         calculated     => $calculated_context,
         explanation    => sprintf(
             'RAM=%dMB model=%.0fMB mmproj=%.0fMB KV/token=%.1fKB '
-                . 'safety=%dMB -> calc : %d clamped : %d',
-            $mem_available_mb, $model_size_mb,
-            $mmproj_size_mb,   $kv_bytes_per_token / 1024,
-            $safety_mb,        $calculated_context,
+                . 'compute/token=%.1fKB safety=%dMB -> calc : %d clamped : '
+                . '%d',
+            $mem_available_mb,
+            $model_size_mb,
+            $mmproj_size_mb,
+            $kv_bytes_per_token / 1024,
+            ( $combined_bytes_per_token - $kv_bytes_per_token ) / 1024,
+            $safety_mb,
+            $calculated_context,
             $final_context
         ),
         limited_by => $limited_by,
@@ -272,8 +344,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,,.,,,,,...,,,,,,,,,,..,.,,,...,,,.,...,,,.,.,.,...,..,,.,.,.,.,.,.,.,,,..,,
-#5U6MCPCG5NZRILDG7PKNQSTKFPI7HFFUJPBENBMOB6MRD5NZ33CQTSHAIO6BEGCMXDKQHZVOXAOIA
-#\\\|3T4XII637AUXT473BEOITYHHBEPTPBKJWQCZH65EM2ARYIE3L5Q \ / AMOS7 \ YOURUM ::
-#\[7]UOHS3PRKIV7NXVEKTENENTX327TCCZ6W2AKZAZ4IAJRS2YO3A6BA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,,,,,.,.,.,.,,,.,...,,,,,,,,,.,.,...,...,.,.,,..,,,,,...,...,
+#HSQ3EQ7JERTDAJM2BAWILEEY4JVXHXODEQPRYFA4X6YFDIXCDVEJJQHZ2NCM4JRNDM5OETI7YHGJQ
+#\\\|VYFRPMNUK3NRWW6P46EJBDA3MTWP2U3ABHOJRP3BG6FAST2SAQO \ / AMOS7 \ YOURUM ::
+#\[7]K4VMSMH4LF64H3IIFPFYR7JBNES4YLDVDIYJSV3SB3VUO5523ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

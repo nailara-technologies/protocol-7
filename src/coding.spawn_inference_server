@@ -407,6 +407,26 @@ if ( defined <inference.model.context_length> ) {
             $configured,
             $safe->{'explanation'}
         );
+    } elsif ( $backend eq qw| cpu | ) {
+        ## CPU only : the configured floor is a GPU-tuned value shared      ##
+        ## across backends [ cfg/zenki/coding/zenka.v7 ] -- on GPU that's   ##
+        ## fine, VRAM headroom is predictable, but on CPU it means "use the ##
+        ## floor even when the RAM-safety calc says that's unsafe" reduces  ##
+        ## to "ignore the RAM-safety calc," which is exactly the path that  ##
+        ## OOM-killed the host twice on 2026-09-17 [ see                    ##
+        ## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md ] --  ##
+        ## calculate_safe_context's own hard ram-fraction backstop already  ##
+        ## makes $auto_ctx the real safe ceiling for this host/model, so    ##
+        ## CPU respects it as a genuine ceiling instead of a floor          ##
+        $ctx_size = $auto_ctx;
+        <[base.logs]>->(
+            1,
+            '[spawn_inference_server] cpu backend: RAM-safety '
+                . 'ceiling %d wins over configured floor %d [%s]',
+            $ctx_size,
+            $configured,
+            $safe->{'explanation'}
+        );
     } else {
         ## large model : use configured floor  even if above safe auto-calc ##
         $ctx_size = $configured;
@@ -829,8 +849,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,.,,,,,,.,.,,..,..,,.,,,...,...,..,,..,,..,,...,...,...,,..,,..,.,.,,.,,
-#WXAVKAPMOGRMZWQQ6FACNX4HJHWLWMHWXY2UTHZJK742TD6Z2J4H76K273IHNDFSSRSSKKE2RAQFG
-#\\\|WSBQ5TAAOKNG3ZAJXKCWC7PUTXCCTQWHH5KBI6HHWW7M4CUVKPS \ / AMOS7 \ YOURUM ::
-#\[7]AUB75RM5C4VPLEEYFSYPFCXPYQ2KAQOY37MK2PXX4XXNFI6MQGCA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,,.,,.,.,,,.,...,,,,,,,,,,,.,..,,...,.,.,,.,,...,,..,..,,...,
+#PRQ6SAEP5LFZPIBXNGXGRLJMUQKHRZ5AV6KVFFVVPVIDYHYASZIA5CBOFQX3CRXWDAU6UTGMSNQ2A
+#\\\|25Q5VFKUGLAZEV4TRQWTGS4ECVUG4BQOX3TM2W5724XJ6LJHPQM \ / AMOS7 \ YOURUM ::
+#\[7]QB3XH3MODKBLLNBX2VRL3CECHPTJB6XFA4A6NTQN2QH65LJ4IWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

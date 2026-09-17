@@ -19,7 +19,18 @@ task-priority coordination (`ensure_model_pinned` defers, sweep
 See `git log` for exact order/hashes, this list is for topic recall
 not a substitute for it.
 
-**Open, not fixed this session**: the actual CPU inference binary
+**UPDATE 2026-09-17 (later session): root cause FOUND**, see
+[[bug-coding-cpu-binary-abi-skew-root-cause-2026-09-17]] — not a model
+file or thread-config issue at all. `llama-server-cpu` is a
+609-commit-stale executable (built 2026-03-09) dynamically linked
+against `libllama.so`/`libggml.so` that got rebuilt 2026-09-08 for the
+GPU target only — an ABI skew, segfaulting on essentially every model.
+The `-tb 8` / `n_threads_batch=-1` theory below was tested and
+falsified (healthy servers log the same value). Fix is a clean
+`build-cpu` rebuild + relink, not yet done. Original open note kept
+below for the discriminating-test record:
+
+the actual CPU inference binary
 (`llama-server-cpu`, `ik_llama.cpp`) segfaults on spawn for the large
 majority of models tested — confirmed via running the binary directly,
 bypassing the zenka entirely, same result. Root cause still unknown.
@@ -64,8 +75,8 @@ implemented and committed, not open work.
 
 #,,,,,,..,...,.,.,,,,,.,,..,.,,,,.,,.,,,.,.,.,,,,,..,,...,...,.,,,,,.,.,.,.,,,
 
-#,,..,.,,,,,.,,,,,.,,,...,,,.,.,.,..,,...,,..,..,,...,...,..,,.,.,.,.,,,.,,,.,
-#VD7ALIAFQWZPKJSDJH5SP2PTGWXMEYRUJLXYZ7D2ILW7OKVXVSRXE2NGYVIWFOVOWPPSZLGPHZ2WA
-#\\\|G37FOGWSJYZ456XTL225Q2NWLWQZELGFVBGEAHH3VLI745DREAB \ / AMOS7 \ YOURUM ::
-#\[7]2NPSZP5GWGCAHUXSFOT326XV5O3G6USAZB4WEUWQNNHHKLTSUMAQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,..,.,.,,,,,,.,,,.,,,.,,,.,,,.,,..,,...,..,,...,,.,,..,,,,.,,.,,
+#5D2JNXQLPC2XY55C77QQCA6ZURRILTAJ622DKF3XC5RRF54H444RCVXRQ26PK44QOB24NN67SJVSI
+#\\\|LQ7BOUMQLL2LNYCMJFES3GGKGHOHF5GU2H7W3DC5O2NL54HHY5Z \ / AMOS7 \ YOURUM ::
+#\[7]HGUYHPGEK4THGTPF4ABQCAAEXJREXKYUJO5FS6DKECCHI56BAADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
