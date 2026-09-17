@@ -1,11 +1,11 @@
 ---
 name: reference-kimi-k3-256k-model
-description: kimi-code/k3-256k -- confirmed ~2x cheaper quota-wise than full K3 within the 256k ceiling (forum-sourced, not just a feeling), no video_in, image_in still works
+description: kimi-code/k3-256k -- ~2x cheaper quota-wise than full K3 within the 256k ceiling, no video_in, image_in still works. Since 2026-09-17, bare 'k3' IS this model (renamed); the old bare-k3 1M-context target is now 'k3-1m'
 metadata:
   node_type: memory
   type: reference
   originSessionId: 8a65c64f-bcd4-43e6-9d47-e37ee5dc8750
-  modified: 2026-08-06
+  modified: 2026-09-17
 ---
 
 `~/.kimi-code/config.toml` has a `[models."kimi-code/k3-256k"]` entry
@@ -88,8 +88,29 @@ turned down. Practical implication unchanged either way — default to
 `k3-256k` unless a task concretely needs video input or is expected to
 approach the 256k ceiling.
 
-#,,,.,..,,.,.,.,.,,,.,...,,,,,...,,..,,.,,,.,,.,.,...,...,...,.,,,,.,,.,.,..,,
-#GTV3JLHUJ4QV35V355W2HFJGAQ3U6JCLONAUCPGCMOES2SO5A2SG6G5MDICUHOYS7DLGZI2AEB5V2
-#\\\|HO5IUDYYPOETHBILGMCNCGR5FNYHGUKNK33HQ3IBZEFKLXHZI2M \ / AMOS7 \ YOURUM ::
-#\[7]5QS5PR4DNP2JRASWDVKYOQL2QHIF6EDBRGEYUTO3WWXXCYFDXYCI 7  DATA SIGNATURE ::
+**Alias rename landed, 2026-09-17** — the short-alias suggestion above
+finally landed, and further: bare `k3` was **repointed** at
+`kimi-code/k3-256k` (not just given a new sibling alias). The old
+bare-`k3` target (`kimi-code/k3`, full 1M context) now needs the
+explicit name `k3-1m`. Rationale (per user): almost every real dispatch
+typing `model=k3` meant "I want k3-tier reasoning," not "I specifically
+need the full 1M context" — so the short, easy-to-type name should be
+the usually-correct cheap pick, and the expensive 1M variant should
+carry its own cost/size warning right in the name you have to type to
+reach it. `k3-256k` still works too, unchanged, as an explicit alias
+for the same target as plain `k3`. Updated in `bin/mcp-server-p7`'s
+`%model_map` (kimi-specific block, `tool_external_command`) and both
+`kimi_dispatch`/`kimi_continue` tool description strings.
+
+**Practical effect on all the "reserve full k3 for..." guidance above**:
+read every past "`k3`" in this file's pre-2026-09-17 sections as now
+meaning `k3-1m` if it was talking about the full-1M-context variant —
+the guidance itself (default to the 256k-tier model, reserve the 1M one
+for genuine wide-context/video needs) is unchanged, only the string you
+type to get each one has swapped.
+
+#,,..,..,,,,.,..,,...,,..,.,,,,.,,.,,,.,.,.,.,.,.,...,...,..,,.,,,,..,,,.,,,.,
+#6EBO6TPBBCNAEDEVDVJOXSASWEOZWHB5D7FTZNF3NPYFDJ7VM5L2IXZPMPJFOLOCJY5WXSJBOS6UW
+#\\\|SMQA2MI74RPVBYQMG5QIFHJNJB3GZRP6Z7ZMA6Q4767GRO3XCSW \ / AMOS7 \ YOURUM ::
+#\[7]M5JFXQZ2RZUWUQ6JRU3PVUF4AKHCBK2DTMKVZ3OL52BF5WP3AYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
