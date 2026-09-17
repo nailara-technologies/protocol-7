@@ -2,7 +2,8 @@
 
 # name  = coding.helper.calculate_safe_context
 # descr = calculate safe context length from available VRAM/RAM
-# param = { model_path => ..., mmproj_path => ..., backend => ... }
+# param = { model_path => ..., mmproj_path => ..., backend => ...,
+#           gpu_layers => N, layer_count => N }   [ gpu offload fraction ]
 # return = { context_length => N, calculated => N, explanation => "...",
 #            limited_by => "..." }
 
@@ -11,6 +12,13 @@ my ($params) = @ARG;
 my $model_path  = $params->{'model_path'}  // '';
 my $mmproj_path = $params->{'mmproj_path'} // '';
 my $backend     = $params->{'backend'}     // qw| gpu |;
+
+## gpu offload fraction [ gpu branch only ] : actual -ngl value used and    ##
+## the model's true total layer count [ gguf block_count ] -- both 0/absent ##
+## means full vram residency is assumed [ exactly the pre-2026-09-17        ##
+## behavior, kept identical for the full-offload case ]                     ##
+my $gpu_layers  = $params->{'gpu_layers'}  // 0;
+my $layer_count = $params->{'layer_count'} // 0;
 
 ## safe operating range ##
 my $MIN_CONTEXT = 7777;    ## below this, system prompt + tools may not fit ##
@@ -271,9 +279,38 @@ my ( $total_mb, $free_mb ) = ( $vram->{'total_mb'}, $vram->{'free_mb'} );
 ## WSL2 + CUDA + FlashAttention ]                                        ##
 my $cuda_overhead_mb = 1256;
 
-## memory left after loading model weights and CUDA context ##
+## partial gpu offload awareness [ added 2026-09-17, gpu-side sibling of    ##
+## the cpu-branch incident fixed above : llama-server-cu kernel-oom-killed  ##
+## at 14.98GB anon RSS on a ~15GB WSL2 host -- journalctl -b -1 confirmed ] ##
+## : a model with MORE layers than the actual -ngl value is partially       ##
+## resident in system RAM, and this holds even when spawn_inference_server  ##
+## 's calculate_partial_gpu_layers reduction branch never fired -- the      ##
+## default -ngl 33 is a generic constant, not a model-derived value, so     ##
+## e.g. a 48-layer model that fits vram at the file-size check still        ##
+## silently keeps 15 layers [ + their share of weights ] on cpu/ram. the    ##
+## old math below assumed full vram residency, subtracting the FULL model   ##
+## size from vram only and never budgeting the ram side at all -- a         ##
+## partially-offloaded model was handed a vram-scale context whose kv-cache ##
+## + context-scaling compute buffers then landed in system ram on top of    ##
+## the cpu-resident weight fraction : the incident mechanism                ##
+##                                                                          ##
+## gpu-resident weight share uses the SAME first-order per-layer            ##
+## approximation as coding.helper.calculate_partial_gpu_layers [            ##
+## model_size_mb / layer_count ] -- deliberately not a different one        ##
+my $partial_offload = FALSE;
+my $gpu_model_mb    = $model_size_mb;    ## full vram residency [ default ] ##
+my $cpu_model_mb    = 0;
+if (    $layer_count > 0
+    and $gpu_layers > 0
+    and $gpu_layers < $layer_count ) {
+    $partial_offload = TRUE;
+    $gpu_model_mb    = $model_size_mb * ( $gpu_layers / $layer_count );
+    $cpu_model_mb    = $model_size_mb - $gpu_model_mb;
+}
+
+## memory left after loading [ gpu-resident ] model weights + CUDA context ##
 my $remaining_mb
-    = $total_mb - $model_size_mb - $mmproj_size_mb - $cuda_overhead_mb;
+    = $total_mb - $gpu_model_mb - $mmproj_size_mb - $cuda_overhead_mb;
 
 ## cannot fit model at all ##
 if ( $remaining_mb <= 0 ) {
@@ -321,6 +358,159 @@ my $limited_by
     : $final_context == $MIN_CONTEXT        ? qw| minimum |
     :                                         qw| maximum |;
 
+## ram-side budget for the cpu-resident fraction [ partial offload only ]   ##
+##                                                                          ##
+## the KV cache is a SINGLE allocation regardless of offload split [        ##
+## llama.cpp/ik_llama.cpp keep it together ] and its actual placement [     ##
+## vram vs ram ] depends on build flags and offload split -- neither pool   ##
+## can be relied upon to hold it here. so the context is constrained by the ##
+## TIGHTER of two budgets : the vram-side one above [ existing math,        ##
+## unchanged ] and this ram-side one, which mirrors the cpu branch's own    ##
+## already-incident-tested pattern [ os overhead reserve, 30%-clamped       ##
+## safety margin, context-scaling compute term at the same                  ##
+## cpu_compute_buffer_multiplier, and the decoupled hard total-ram-         ##
+## fraction backstop with its own much more pessimistic multiplier -- the   ##
+## real safety net while the per-token compute cost stays this uncertain,   ##
+## see bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17 ]. two real  ##
+## incidents 2026-09-17 proved the kv-only estimate lands several GB under  ##
+## actual rss at large context -- that error lands in system ram for a      ##
+## partially-offloaded model, which is precisely the 14.98GB oom-kill this  ##
+## block exists to prevent                                                  ##
+if ($partial_offload) {
+    my $mem_available_mb = 0;
+    my $mem_total_mb     = 0;
+    if ( open my $fh, '<', '/proc/meminfo' ) {
+        while (<$fh>) {
+            if (m|^MemAvailable:\s+(\d+)|) {
+                $mem_available_mb = int( $1 / 1024 );    ## kB -> MB ##
+            } elsif (m|^MemTotal:\s+(\d+)|) {
+                $mem_total_mb = int( $1 / 1024 );        ## kB -> MB ##
+            }
+            last if $mem_available_mb && $mem_total_mb;
+        }
+        close $fh;
+    }
+
+    ## ram unreadable : fail safe, exactly like the cpu branch ##
+    if ( not $mem_available_mb ) {
+        <[base.logs]>->(
+            1,
+            '[calculate_safe_context] partial offload but '
+                . '/proc/meminfo unavailable, falling back to minimum=%d',
+            $MIN_CONTEXT
+        );
+        return {
+            context_length => $MIN_CONTEXT,
+            calculated     => $MIN_CONTEXT,
+            explanation    => 'partial offload, RAM query '
+                . 'failed: using safe minimum',
+            limited_by => qw| ram_query_failed |,
+        };
+    }
+
+    ## same fixed os/runtime reserve as the cpu branch ##
+    my $os_overhead_mb = <coding.cfg.cpu_ram_overhead_mb> // 2048;
+
+    my $ram_remaining_mb
+        = $mem_available_mb - $cpu_model_mb - $os_overhead_mb;
+
+    ## cpu-resident weight fraction alone does not fit available ram ##
+    if ( $ram_remaining_mb <= 0 ) {
+        <[base.logs]>->(
+            0,
+            '[calculate_safe_context] partial offload : cpu-resident weights '
+                . 'do not fit RAM: available=%dMB cpu_model=%.0fMB [ %d/%d '
+                . 'layers on gpu ]',
+            $mem_available_mb,
+            $cpu_model_mb,
+            $gpu_layers,
+            $layer_count
+        );
+        return {
+            context_length => $MIN_CONTEXT,
+            calculated     => 0,
+            explanation    => sprintf(
+                'partial offload: cpu-resident weights too large for '
+                    . 'RAM: available=%dMB cpu_model=%.0fMB [ %d/%d layers ]',
+                $mem_available_mb, $cpu_model_mb,
+                $gpu_layers,       $layer_count
+            ),
+            limited_by => qw| partial_model_size |,
+        };
+    }
+
+    ## same adaptive safety margin as the cpu branch [ 30% clamped ] ##
+    my $ram_safety_min_mb = <coding.cfg.cpu_ram_safety_min_mb> // 512;
+    my $ram_safety_max_mb = <coding.cfg.cpu_ram_safety_max_mb> // 4096;
+    my $ram_safety_mb     = int( $ram_remaining_mb * 0.30 );
+    $ram_safety_mb = $ram_safety_min_mb
+        if $ram_safety_mb < $ram_safety_min_mb;
+    $ram_safety_mb = $ram_safety_max_mb
+        if $ram_safety_mb > $ram_safety_max_mb;
+
+    ## same context-scaling compute-buffer term as the cpu branch : the ##
+    ## compute graph of the cpu-resident layers [ prompt-processing     ##
+    ## attention/intermediate buffers ] grows with context and lands in ##
+    ## system ram                                                       ##
+    my $compute_buffer_multiplier
+        = <coding.cfg.cpu_compute_buffer_multiplier> // 6;
+    my $combined_bytes_per_token
+        = $kv_bytes_per_token * ( 1 + $compute_buffer_multiplier );
+
+    my $ram_calculated
+        = int( ( ( $ram_remaining_mb - $ram_safety_mb ) * 1024 * 1024 )
+        / $combined_bytes_per_token );
+
+    ## same decoupled hard total-ram-fraction backstop as the cpu branch, ##
+    ## budgeted against the cpu-resident weight fraction only [ the gpu-  ##
+    ## resident fraction lives in vram ] : never let this process's own   ##
+    ## predicted ram footprint exceed a flat fraction of TOTAL system ram ##
+    my $hard_backstop_multiplier
+        = <coding.cfg.cpu_compute_buffer_hard_multiplier> // 15;
+    my $hard_bytes_per_token
+        = $kv_bytes_per_token * ( 1 + $hard_backstop_multiplier );
+
+    my $hard_ram_limited = FALSE;
+    if ($mem_total_mb) {
+        my $hard_fraction  = <coding.cfg.cpu_ram_hard_fraction> // 0.5;
+        my $hard_budget_mb = $mem_total_mb * $hard_fraction - $cpu_model_mb;
+        my $hard_context
+            = $hard_budget_mb > 0
+            ? int( ( $hard_budget_mb * 1024 * 1024 ) / $hard_bytes_per_token )
+            : 0;
+        if ( $hard_context < $ram_calculated ) {
+            $ram_calculated   = $hard_context;
+            $hard_ram_limited = TRUE;
+        }
+    }
+
+    ## tighter pool wins [ see block header comment for why both apply ] ##
+    if ( $ram_calculated < $final_context ) {
+        $final_context = $ram_calculated;
+        $limited_by
+            = $hard_ram_limited
+            ? qw| partial_hard_ram_fraction |
+            : qw| partial_ram |;
+        ## keep the reported raw calculated value consistent for callers ##
+        $calculated_context = $ram_calculated
+            if $ram_calculated < $calculated_context;
+    }
+    $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
+
+    <[base.logs]>->(
+        1,
+        ': partial offload [ %d/%d layers on gpu ] : cpu-resident '
+            . '%.0f MB : RAM=%d MB : safety=%d MB : ram-calc %d [ %s ]',
+        $gpu_layers,
+        $layer_count,
+        $cpu_model_mb,
+        $mem_available_mb,
+        $ram_safety_mb,
+        $ram_calculated,
+        $hard_ram_limited ? qw| hard | : qw| soft |
+    );
+}
+
 <[base.logs]>->(
     1, ': VRAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token %.1f KB ]',
     $total_mb, $model_size_mb, $mmproj_size_mb, $kv_bytes_per_token / 1024,
@@ -344,8 +534,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,,.,.,.,.,.,..,,,,,,.,.,.,.,,,.,...,,,,,,,,,.,.,...,...,.,.,,..,,,,,...,...,
-#HSQ3EQ7JERTDAJM2BAWILEEY4JVXHXODEQPRYFA4X6YFDIXCDVEJJQHZ2NCM4JRNDM5OETI7YHGJQ
-#\\\|VYFRPMNUK3NRWW6P46EJBDA3MTWP2U3ABHOJRP3BG6FAST2SAQO \ / AMOS7 \ YOURUM ::
-#\[7]K4VMSMH4LF64H3IIFPFYR7JBNES4YLDVDIYJSV3SB3VUO5523ABA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,.,,,,.,...,,.,,,.,,..,,,,.,...,.,.,...,...,..,,..,,..,,.,,,,..,
+#HMR7UBGXPAAPYV5DRFDPH6N7E4TAMKR6HWTFW2W5FRW4FGGQ33ZYQTAPOWSDGR4XF22HCKRZZYKDQ
+#\\\|6D2J2SK5QFLXBTKR6BKS6DTESVCRW6R3OMXUQUC2JTT5XLQRJZS \ / AMOS7 \ YOURUM ::
+#\[7]L62KL7OYHKNY7T5LDTODXMLFJBDPGEXB4UFKNOKNZ45ECP7QW2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
