@@ -97,17 +97,35 @@ without checking which one is still true when that work starts.
   constraint is satisfiable, not a blocker -- just a hard pin to respect
   when building the actual worker.
 
+**CORRECTION, 2026-09-17, later same day**: `MODEL-STATUS-TRACKING.md`
+is NOT an open next step -- it was fully built the same day it was
+designed (`2ef45a999` + `8c765db92`, both 2026-08-27), just never marked
+done in the doc itself, which is why it read as still-open three weeks
+later. Confirmed live: `p7c coding.model-status` / `coding.model-sweep-
+status` are real, working, already-populated commands. **The actual gap
+is usage, not code**: only 6 of ~90 registry entries have ever been
+tested, the cpu sweep stalled at `idx=0/28`, gpu sweep never started.
+Before recommending ANY future doc in this area as "still open," check
+live command availability first (`p7c coding.commands`, grep `src/` for
+the module names the doc's own "existing foundation"/"write sites"
+sections name) -- don't trust a design doc's own apparent completeness
+state without that check, even one that looks detailed and unfinished.
+`MODEL-BENCHMARK-HARNESS.md` (multi-parameter scoring) WAS checked the
+same way and is confirmed still genuinely unbuilt (`grep -rl "models.
+benchmark" src/` — zero hits) -- that's the real next design-doc target
+if a coding dispatch is wanted, though it needs real design decisions
+settled first (canonical workload yaml schema, `base.curve.*` weighting)
+rather than being narrow-dispatch-ready as-is.
+
 **How to apply**: when picking up model-management work, start from
 `AUTONOMOUS-MODEL-MANAGEMENT.md`'s six-topic decomposition (section
 "subsystem decomposition", in dependency order) and `MODELS-PATH-
-ADAPTERS.md`'s adapter split, rather than re-deriving scope.
-`MODEL-STATUS-TRACKING.md` is the smallest, most independently useful
-next step given the untested-default-model gap above -- and note it
-only needs to cover the `lmstudio`-hosted population the coding zenka
-actually uses, not InvokeAI's separate model store.
+ADAPTERS.md`'s adapter split -- but verify each topic's real
+implementation state live before treating the doc's own checklist as
+current, per the correction above.
 
-#,,,.,,..,.,,,,,,,,..,..,,.,,,,,,,,,.,,,.,,.,,..,,...,..,,.,.,...,.,.,,,,,.,,,
-#2SV5EJH2XD7SCGACPHNUFKIBOKO2BIWJAQ7R4B4LGOXGHZYUVEG4SY24VGQV6VRUMAJWINUSJF3C4
-#\\\|2W2EX7C5Y2I6LYPZNDPFEYXCOONDZM2L44KQGZDGAZ2IZCGSQN4 \ / AMOS7 \ YOURUM ::
-#\[7]Q4X3W2USX7MXHCIMU3VKC2YVLNYJ66CPCR3U5TMWVUBPKVW2IUDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,..,,..,,..,,.,.,.,,,,,,,.,.,..,,...,...,.,,,,,,,...,,.,,,,,,
+#ZXKXSCT2DTLYGE6ITD2RGJBZ5K4FY5PASKAQMYDSBS7QMSUK4BNQXGEE43FYHP3LZ37P3S5ETQ6VU
+#\\\|KSXSPAZLVPQJUGPDIEMLNE7V4PBI7XNCWBOGWWKJBRQK7WH32FB \ / AMOS7 \ YOURUM ::
+#\[7]KSRPK5OM6VMVASRGJDNZIVAWM6OVUL3ZSNIGIG6YTRIFORMZPCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
