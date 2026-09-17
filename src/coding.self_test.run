@@ -83,7 +83,7 @@ my $ntime = <[base.ntime]>;
 
 ## calibration prompt sequence  each prompt carries a result_constraint - ##
 ## the structural-check rule coding.self_test.check_constraint enforces   ##
-## deterministically (no inference call) before any tier-1 reformat or    ##
+## deterministically [no inference call] before any tier-1 reformat or    ##
 ## tier-2 semantic judgment                                               ##
 my @prompts = (
     {   id                => 1,
@@ -102,11 +102,11 @@ my @prompts = (
         ## the original design [ data/tasks/completed/                      ##
         ## coding-model-self-test-cycle.md : "the cat is the remaining      ##
         ## animal" instead of "cat" - both substantively CORRECT ]          ##
-        expected          => 'cat',
+        expected          => qw| cat |,
         result_constraint => {
-            type         => 'word_count',
+            type         => qw| word_count |,
             max_words    => 2,
-            must_contain => 'cat',
+            must_contain => qw| cat |,
             ## tier1 reformat nudge : common failure mode is naming the     ##
             ## eaten animal because it's still physically "there" [ a body  ##
             ## / remains ] - only surfaced as a follow-up challenge on a    ##
@@ -116,15 +116,29 @@ my @prompts = (
             ## animal eats the other..." version was confirmed live to do   ##
             ## nothing - the model just reformatted its wrong answer to fit ##
             ## the word limit instead of reconsidering it                   ##
+            ##                                                              ##
+            ## second sentence added 2026-09-17, per the user, after a live ##
+            ## sweep failure [ 6VMKRJA:LCBQUPA ] rambled through escape-    ##
+            ## route and mortality-timeframe caveats instead of answering - ##
+            ## reframes "be concise" as a reasoning instruction [ collapse  ##
+            ## to the statistically dominant outcome, discard the low-      ##
+            ## probability edge cases as outliers ] rather than a bare      ##
+            ## format constraint, on the same theory that made the first    ##
+            ## sentence work : models that ramble past a word limit anyway  ##
+            ## are often not failing to be short, they're failing to decide ##
+            ## which branch of their own reasoning is the actual answer     ##
             mismatch_hint =>
                 q{Are you certain? "Remaining" can only be one, by }
-                . 'definition.',
+                . 'definition. Treat edge cases [escape routes, indefinite '
+                . 'waiting] as low-probability outliers to discard, '
+                . 'not the substantive answer -- give the single, '
+                . 'statistically dominant outcome.',
         },
     },
     {   id   => 3,
         text => 'put a cat and a mouse in a room, close the door and wait.., '
             . 'who is the remaining animal? Reply with only the '
-            . 'animal name (at most 2 words).',
+            . 'animal name [at most 2 words].',
         ## primed sibling of prompt 2 : same riddle, but the word-limit is  ##
         ## stated UP FRONT instead of only surfacing via tier1's reformat   ##
         ## step. prompt 2 deliberately withholds it [ see its own comment - ##
@@ -145,11 +159,11 @@ my @prompts = (
         ## specifically, and coding.self_test.archive keys its per-prompt   ##
         ## store by prompt_id, so a collision would either wrongly trigger  ##
         ## that restart loop or silently overwrite prompt 2's own record    ##
-        expected          => 'cat',
+        expected          => qw| cat |,
         result_constraint => {
-            type         => 'word_count',
+            type         => qw| word_count |,
             max_words    => 2,
-            must_contain => 'cat',
+            must_contain => qw| cat |,
         },
     },
 );
@@ -188,8 +202,8 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 return { mode => qw| deferred | };
 
-#,,,.,,..,.,,,,,,,,.,,,.,,,,.,..,,,,.,..,,,,,,..,,...,...,,.,,...,,,,,,,.,,.,,
-#4S4MCMVJGIQYIUAIKRKV6KPZ3NQPKYPZ42DNUPACOTGP2Q4OHOX4DSAGPPTB3UC6WVX4IAAMVOC56
-#\\\|MA4SP4OST6ULX3GEUKEYGUEBZRKPLNXHTNI7KHCJ5MWNGWQOTSI \ / AMOS7 \ YOURUM ::
-#\[7]YTYTIKJQBUTUHNPSFZ6QT7ZJ2RBU5FCV25SQJUQHW2253DAFHWDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,.,.,,..,.,,,,,,,,,,,,,,,...,..,,...,..,,,..,.,,,...,.,,,.,,,
+#LVPXZ4OKQFMJUHMRKNB63MSAUDZ443ITKSIXBUII6GDKFNV7I7EFGYNWQQCQJLEGEOPLX4T442RW2
+#\\\|2C4AAF4NJZ56Y5MO6CM7YUWWNI3Y4HDV4SZBJ7D5CZ2QLPNOOAG \ / AMOS7 \ YOURUM ::
+#\[7]WFBZB7AEZ7CXM3TDEU5WUGGVWWHZQR55XD3ZGC2T5BSPBJDEL2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
