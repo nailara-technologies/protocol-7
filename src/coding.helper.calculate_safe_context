@@ -176,17 +176,9 @@ if ( $backend ne qw| gpu | ) {
     };
 }
 
-## query GPU memory ##
-my $nvidia_smi_cmd = 'nvidia-smi --query-gpu=memory.total,memory.free '
-    . '--format=csv,noheader,nounits 2>/dev/null';
-my $nvidia_smi = qx{ $nvidia_smi_cmd };
-
-## trailing unit text tolerated : this environment's nvidia-smi sometimes   ##
-## ignores --nounits under gpu-state churn [ confirmed live 2026-09-08, see ##
-## coding.spawn_inference_server's identical fix ]                          ##
-if (   $? != 0
-    || !defined $nvidia_smi
-    || $nvidia_smi !~ m|^(\d+)[^,\n]*,\s*(\d+)|m ) {
+## query GPU memory [ single shared helper, see its own file for why ] ##
+my $vram = <[coding.helper.query_gpu_memory]>;
+if ( !$vram->{'ok'} ) {
     <[base.logs]>->(
         1,
         '[calculate_safe_context] nvidia-smi '
@@ -201,7 +193,7 @@ if (   $? != 0
     };
 }
 
-my ( $total_mb, $free_mb ) = ( $1, $2 );
+my ( $total_mb, $free_mb ) = ( $vram->{'total_mb'}, $vram->{'free_mb'} );
 
 ## fixed CUDA context overhead  [ empirical: actual overhead ~1256MB for ##
 ## WSL2 + CUDA + FlashAttention ]                                        ##
@@ -280,8 +272,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,..,...,,,.,,..,.,,,,,.,,..,.,,,,..,.,,,.,.,.,.,...,...,.,,,,..,,..,,..,.,.,
-#PR36QGGW3EQ3T2CS3OUD6ZBRBJBK24DYK5N7KAZHRLONCPWQKTYEAMCWWIFADCY5OPNNUCVAMZENM
-#\\\|OV3X5MZL7FFJWK7DCYO74L33YTZKT26KJCBIREEGYPJNOYKRQK7 \ / AMOS7 \ YOURUM ::
-#\[7]3ID4QHGX6SX753JAMSCW7FI2HNH65YWOOHBCWQXA7PE3F4GTF6DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,,,,,,,,..,.,,,...,,,.,...,,,.,.,.,...,..,,.,.,.,.,.,.,.,,,..,,
+#5U6MCPCG5NZRILDG7PKNQSTKFPI7HFFUJPBENBMOB6MRD5NZ33CQTSHAIO6BEGCMXDKQHZVOXAOIA
+#\\\|3T4XII637AUXT473BEOITYHHBEPTPBKJWQCZH65EM2ARYIE3L5Q \ / AMOS7 \ YOURUM ::
+#\[7]UOHS3PRKIV7NXVEKTENENTX327TCCZ6W2AKZAZ4IAJRS2YO3A6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

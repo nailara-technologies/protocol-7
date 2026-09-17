@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.helper.query_gpu_memory
+# descr = single source of truth for nvidia-smi VRAM total\free queries
+# return = { ok => TRUE|FALSE, total_mb => N, free_mb => N,
+#            raw_output => "..." }
+
+## previously duplicated near-identically in coding.helper.check_resource_ ##
+## fit, coding.helper.calculate_safe_context, and coding.spawn_inference_  ##
+## server -- consolidated 2026-09-17 so the nvidia-smi invocation and its  ##
+## one real known quirk only need fixing in one place, and so every caller ##
+## reads the exact same numbers off the exact same query rather than three ##
+## independently-shelled-out snapshots that can legitimately disagree [    ##
+## VRAM state can change between three separate nvidia-smi calls a few     ##
+## milliseconds apart during gpu-state churn -- one shared query per       ##
+## decision point removes that skew too, not just the code duplication ]   ##
+
+my $nvidia_smi_cmd = 'nvidia-smi --query-gpu=memory.total,memory.free '
+    . '--format=csv,noheader,nounits 2>/dev/null';
+my $nvidia_smi = qx{ $nvidia_smi_cmd };
+
+## trailing unit text tolerated : this environment's nvidia-smi            ##
+## intermittently ignores --nounits under gpu-state churn [ confirmed live ##
+## 2026-09-08, right after killing a prior server -- exactly the moment    ##
+## this check matters most -- returning "12288 MiB, 10395 MiB" instead of  ##
+## "12288, 10395" and would silently disable every caller's vram check if  ##
+## the regex required a bare integer ]                                     ##
+if (   $? != 0
+    || !defined $nvidia_smi
+    || $nvidia_smi !~ m|^(\d+)[^,\n]*,\s*(\d+)|m ) {
+    return {
+        ok         => FALSE,
+        total_mb   => 0,
+        free_mb    => 0,
+        raw_output => $nvidia_smi // '',
+    };
+}
+
+my ( $total_mb, $free_mb ) = ( $1, $2 );
+
+return {
+    ok         => TRUE,
+    total_mb   => $total_mb,
+    free_mb    => $free_mb,
+    raw_output => $nvidia_smi,
+};
+
+#,,,.,,,.,.,.,...,..,,,..,..,,...,..,,...,,,,,..,,...,...,.,.,..,,...,,..,,,,,
+#K27YNORMMD52PBXWT4TGZKMEXBLU6DUAYWK2QXXKON4EIN6CJXPWC7TFNP3VH46S3TRKSA6N2TL5U
+#\\\|3F6X3K55W4HPBKTRFWX4IVSGDXHLPCSGALDYOT2ETSJWMSMZYM6 \ / AMOS7 \ YOURUM ::
+#\[7]L37BGS64SHPOCDCEQQ6UHT42CWSOY3Z5ZYTUY6TJKG23RHT3MKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

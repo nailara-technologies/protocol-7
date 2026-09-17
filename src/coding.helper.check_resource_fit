@@ -6,16 +6,41 @@
 my $params  = shift                // {};
 my $backend = $params->{'backend'} // '';
 my $size_gb = $params->{'size_gb'} // 0;
+## pre_filter : basis is TOTAL capacity, not live-free -- for building a   ##
+## sweep candidate LIST before any switch happens, where whatever model is ##
+## currently loaded on this backend will be unloaded before a candidate is ##
+## spawned, so its footprint is not a real constraint on whether the       ##
+## candidate could fit. the live spawn-time check (this flag unset, e.g.   ##
+## coding.handler.spawn_smart) correctly uses free-right-now instead -- an ##
+## unrelated process holding memory at THAT moment is a real constraint.   ##
+my $pre_filter = $params->{'pre_filter'} // FALSE;
 
 my $model_size_mb = $size_gb * 1024;
 my ( $free_mb, $required_mb, $fits );
 
 if ( $backend eq qw| gpu | ) {
+    ## REVERTED 2026-09-17 : a same-day live incident (gpu model-sweep      ##
+    ## triggered a real host-level OOM cascade -- system memory hit 97%+,   ##
+    ## forcing v7-zenki to self-terminate 289 sub-processes, and even that  ##
+    ## needed a full `wsl --shutdown` to actually recover) traced back to   ##
+    ## this branch briefly gating "fits" on system RAM instead of VRAM, on  ##
+    ## the reasoning that partial GPU offload means a model doesn't need to ##
+    ## fully fit VRAM. That reasoning was correct in isolation but unsafe   ##
+    ## in practice : coding.helper.calculate_safe_context's own gpu branch  ##
+    ## has NO partial-offload awareness -- it sizes the KV-cache/ context   ##
+    ## window from total_VRAM minus the FULL model size, assuming full-VRAM ##
+    ## residency, regardless of whether the model actually got partially    ##
+    ## offloaded to cpu/ram. A partially-offloaded model can therefore be   ##
+    ## handed a VRAM-scale context allocation that actually lands on system ##
+    ## RAM, on top of whatever else is loaded -- exactly the gap this       ##
+    ## incident exposed, confirmed absent before partial offload existed.   ##
+    ## Back to gating on VRAM until calculate_safe_context is made          ##
+    ## partial-offload-aware too -- see [[project-wsl2-shared-ram-          ##
+    ## constrains-concurrent-inference]] for the incident writeup.          ##
     $required_mb = $model_size_mb + 512;    ## model size + 512MB overhead ##
-    my $nvidia_smi
-        = `nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null`;
-    if ( $? == 0 && $nvidia_smi =~ m|^(\d+)|m ) {
-        $free_mb = $1;
+    my $vram = <[coding.helper.query_gpu_memory]>;
+    if ( $vram->{'ok'} ) {
+        $free_mb = $pre_filter ? $vram->{'total_mb'} : $vram->{'free_mb'};
         $fits    = $free_mb >= $required_mb;
     } else {
         ## cannot determine vram : do not block the attempt ##
@@ -25,9 +50,10 @@ if ( $backend eq qw| gpu | ) {
 } elsif ( $backend eq qw| cpu | ) {
     $required_mb = $model_size_mb + 1024;    ## model size + 1GB overhead ##
     $free_mb     = 0;
+    my $meminfo_key = $pre_filter ? qw| MemTotal | : qw| MemAvailable |;
     if ( open my $fh, '<', '/proc/meminfo' ) {
         while (<$fh>) {
-            if (m|^MemAvailable:\s+(\d+)|) {
+            if (m|^\Q$meminfo_key\E:\s+(\d+)|) {
                 $free_mb = int( $1 / 1024 );    ## convert KB to MB ##
                 last;
             }
@@ -45,8 +71,8 @@ return {
     required_mb => $required_mb
 };
 
-#,,.,,,,.,,,,,...,.,,,...,...,,..,.,,,,..,,.,,..,,...,..,,,,.,.,.,..,,..,,,..,
-#IBNSVKZNXMSJCGFYGPUPIRFN7CKY7HW7AEWXDQHJG5UJRRSTO32WGSC2OYNCGOXT3EGWYB6D6YRD2
-#\\\|7X7ZOEHR3YVV3L2N2QYVUMJTZ2XKBZMSHI2WCJZMGTL37TAXTJQ \ / AMOS7 \ YOURUM ::
-#\[7]A7TSCA655K47YEKWJLG26BDOY3ZCH3V2FO77LCVSYZ62SEXGMGBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,..,,.,,,,,.,.,.,.,,,,..,,..,..,,...,...,..,,,.,,,..,,.,,,..,
+#XQ56UNXO2BH6GMNIOPZLSIRT66S3ZZDLX6YKMEDP75WCNDYRIRP2O3ME4Y3WXJUXBWUJ3W7SARDGA
+#\\\|RDAVZEOHE3S2IC2MGCDHHCQPWMUAWXDDIMA4D5RIQBMDX5OWY2J \ / AMOS7 \ YOURUM ::
+#\[7]7K467NZPLHDBEX2A3GHWUGK7NKI6OKGIYSKT5SDBJOHJ6NRSQEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

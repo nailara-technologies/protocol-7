@@ -289,17 +289,11 @@ if ( $backend eq qw| gpu | ) {
         };
     }
 
-    ## vram sanity check ##
-    my $nvidia_smi = qx{ nvidia-smi --query-gpu=memory.total,memory.free
-                               --format=csv,noheader,nounits 2>/dev/null };
-    ## trailing unit text tolerated : this environment's nvidia-smi         ##
-    ## intermittently ignores --nounits under gpu-state churn [ confirmed   ##
-    ## live 2026-09-08, right after killing the prior server -- exactly the ##
-    ## moment this check matters most -- returning "12288 MiB, 10395 MiB"   ##
-    ## instead of "12288, 10395" and silently disabling this whole vram     ##
-    ## check, full-fit hard-fail AND partial-offload alike ]                ##
-    if ( $nvidia_smi =~ m|^(\d+)[^,\n]*,\s*(\d+)|m ) {
-        my ( $total_mb, $free_mb ) = ( $1, $2 );
+    ## vram sanity check [ single shared helper, see its own file for why ] ##
+    my $vram = <[coding.helper.query_gpu_memory]>;
+    if ( $vram->{'ok'} ) {
+        my ( $total_mb, $free_mb )
+            = ( $vram->{'total_mb'}, $vram->{'free_mb'} );
         my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
         my $safety_mb     = <coding.cfg.vram_safety_mb> // 1024;
         if ( $free_mb < $model_size_mb + $safety_mb ) {
@@ -361,7 +355,9 @@ if ( $backend eq qw| gpu | ) {
             1,
             '[spawn_inference_server] nvidia-smi query '
                 . 'unparseable, skipping vram check : %s',
-            <[base.parser.ellipse_center]>->( $nvidia_smi // '', 80 )
+            <[base.parser.ellipse_center]>->(
+                $vram->{'raw_output'} // '', 80
+            )
         );
     }
 }
@@ -805,8 +801,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,.,,..,,...,.,.,..,,.,.,,.,,.,,,..,,,,.,..,,...,..,,,,.,.,.,,,,,.,,,,..,
-#55V6PWBE3LOTMWKL6QYKM4Y6KOXTZKGISW2RPLHVDW3LZIE4K32WRPMYZUJYJ5S45IM5LZX3BJX64
-#\\\|FFXQKGNWC7PVDMSRRFCTXX2HZLPRIKO557UZVRKKXRYRTSZPP2H \ / AMOS7 \ YOURUM ::
-#\[7]AZHKVTC65J566WR5KDEKUC6QSPRFABPV2ZYV2CFB46VSBAGNHACI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,.,.,.,.,,,,,.,,,,.,,,..,...,..,,...,...,.,.,.,,,,.,,,.,,,,.,
+#TFQUD4LETA55QL7GIQ5RPER43ROEXH65J7Z7UVVRBVV3ICFOULL4MKDCC7VKDKRD2RYVEKZPVS2WK
+#\\\|DUWEGE5OWDIY34FX7AJQN2CSR7NWK3J5NWPOBVTPR4LWSPV2FWR \ / AMOS7 \ YOURUM ::
+#\[7]QL57NUKRGXZSESO3UXH77NJIUSW4EFZWYMHU3OUOPJA3C7NNMYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
