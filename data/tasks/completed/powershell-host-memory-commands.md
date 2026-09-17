@@ -88,8 +88,21 @@ run, when back at a shell :
 unsigned files load and run fine [ no load-time signature
 verification ] ; signing is for commit hygiene / pre-commit.
 
-#,,.,,,,,,.,,,,.,,,,,,,.,,,.,,,.,,.,,,...,,,.,..,,...,...,.,,,,..,,,.,..,,,..,
-#CSX5B4IAUXX5RJA3HVC55SCRVLN65IE52CQK6WM2PX2JKZEN5WVJM6FPOUFBVUXHV6PXMFUOYBGOO
-#\\\|H7GKULJCLDZ4VFVYWISBCKXKP4SKULW6P5GKUJTCH3YSPRWFGWT \ / AMOS7 \ YOURUM ::
-#\[7]YWKDX4UNEOAK465Z4DYOADG5WDVGFIMVSELC3JEMMXCBT47ZOWAY 7  DATA SIGNATURE ::
+## confirmed landed, committed, and genuinely useful, 2026-09-17
+
+signed and committed as `b215e000d`. Put to real use the same day it
+was needed again: while diagnosing a cpu/gpu model-sweep segfault storm
+(`[[project-wsl2-shared-ram-constrains-concurrent-inference]]`), `p7c
+powershell.mem-used` and `p7c powershell.mem-top-proc` gave the exact
+signal this task was built for -- host at 50.29% memory used, `vmmemWSL`
+consuming only ~7.5GB of it, confirming the crash storm's real
+constraint was WSL2's own configured memory ceiling, not host-wide
+exhaustion. Exactly the "advance warning that would have helped before
+tonight's crash" framing from the original incident, now validated on a
+second, unrelated incident.
+
+#,,,,,,,,,...,,,,,,,.,,.,,,.,,,,.,.,.,,,.,.,.,..,,...,...,.,,,.,,,,,.,,..,,..,
+#IFLCARYABVPW4VOXGGLIUYGQENBWLBMOGB3QPUY3FFJ2JGHO4FDTSB7QWRWDYODG5X3QNFUOCZOEC
+#\\\|H2B2RGNDCAACTEBPQXVO65TZYNI6HIENQD3KN7PWOI44OWQKB7Y \ / AMOS7 \ YOURUM ::
+#\[7]NCMM2CCTKJTQIB5PODJY2ZCDTHFHYI77EHOEWGIGBIY5HVLELGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
