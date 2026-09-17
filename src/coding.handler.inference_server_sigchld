@@ -81,6 +81,31 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
                 next;
             }
 
+            ## deliberate model-switch kill [ spawn_smart force=1 ] : the   ##
+            ## old server was SIGKILLed on purpose and its replacement      ##
+            ## spawn is stashed in <coding.pending_switch> -- complete it   ##
+            ## now that the pid is confirmed reaped, instead of             ##
+            ## crash-restarting. same "looks identical to a crash from      ##
+            ## here" reasoning as the draining/lora guards above, but       ##
+            ## unlike those this one fires a CONTINUATION instead of just   ##
+            ## skipping. the completion helper consumes and clears          ##
+            ## <coding.switching_backend> together with the pending entry,  ##
+            ## on both this path and the fallback-timer path -- a real      ##
+            ## crash [ flag unset ] takes the restart path below completely ##
+            ## unchanged, restart_count / backoff / max_attempts included   ##
+            if ( <coding.switching_backend>->{$backend} ) {
+                <[base.logs]>->(
+                    1,
+                    '[inference_server_sigchld] %s server killed for '
+                        . 'deliberate model switch — completing pending '
+                        . 'spawn',
+                    $backend
+                );
+                <[coding.helper.complete_pending_switch]>
+                    ->( { 'backend' => $backend } );
+                next;
+            }
+
             ## schedule restart with backoff ##
             my $restart_count = $server_info->{'restart_count'} // 0;
             $restart_count++;
@@ -172,8 +197,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,,.,.,,,..,,,..,,,.,,,,,,,.,..,,..,,,,.,,,.,..,,...,...,..,,,.,,.,.,,,,,,,.,
-#T43ZT35P2C7OSL3YVTM3HLHJ3UXGM3COYFAGGZNU4IM2XPVYFRDKV2OWBFIFMMWQGWGYQKDOAVDIK
-#\\\|GGLUQ4LE2YLIFQTZDCFQ6XADQLUYFFEK5B4A2NOU4K5C6BXQBBT \ / AMOS7 \ YOURUM ::
-#\[7]QT3TTKLNVX4WPUW424XSGXOSIHE2YWIFEDVOG5KKKRPEWYQ3UADQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,.,,,...,,,,,.,,,..,,,,.,..,,..,,...,...,...,,..,.,.,,.,,.,.,
+#I7TKYMLY4CZXJ57GUUQZBGZABT5RNMRP6KCPNNLLGZF2LF7Q76OK5IU3NAFKN5TLTT4C7GS7MHYGE
+#\\\|B7V7AWUR3UJVBB3YXGKRJUGRC6WKSNW2V4IWG65VLI7IOZX3JZO \ / AMOS7 \ YOURUM ::
+#\[7]A3PLXB7PKBLQVJALINVEAMMWH456BSCJJSGPW56ZLUJZHWHEJOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
