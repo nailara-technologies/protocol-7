@@ -3,9 +3,10 @@
 # name  = coding.helper.check_resource_fit
 # descr = check whether a model fits in gpu vram or cpu ram
 
-my $params  = shift                // {};
-my $backend = $params->{'backend'} // '';
-my $size_gb = $params->{'size_gb'} // 0;
+my $params      = shift                    // {};
+my $backend     = $params->{'backend'}     // '';
+my $size_gb     = $params->{'size_gb'}     // 0;
+my $mmproj_path = $params->{'mmproj_path'} // '';
 ## pre_filter : basis is TOTAL capacity, not live-free -- for building a   ##
 ## sweep candidate LIST before any switch happens, where whatever model is ##
 ## currently loaded on this backend will be unloaded before a candidate is ##
@@ -15,7 +16,18 @@ my $size_gb = $params->{'size_gb'} // 0;
 ## unrelated process holding memory at THAT moment is a real constraint.   ##
 my $pre_filter = $params->{'pre_filter'} // FALSE;
 
-my $model_size_mb = $size_gb * 1024;
+## vision-capable candidates load an additional multimodal projector file  ##
+## alongside the main model -- confirmed live 2026-09-17: a sweep          ##
+## candidate's mmproj was never counted here at all, undercounting real    ##
+## footprint for every vision model, a real contributor to a same-session  ##
+## host OOM incident (see [[project-wsl2-shared-ram-constrains-concurrent- ##
+## inference]])                                                            ##
+my $mmproj_size_mb = 0;
+if ( length($mmproj_path) && -f $mmproj_path ) {
+    $mmproj_size_mb = ( -s $mmproj_path ) / ( 1024 * 1024 );
+}
+
+my $model_size_mb = $size_gb * 1024 + $mmproj_size_mb;
 my ( $free_mb, $required_mb, $fits );
 
 if ( $backend eq qw| gpu | ) {
@@ -71,8 +83,8 @@ return {
     required_mb => $required_mb
 };
 
-#,,.,,,,.,..,,,..,..,,.,,,,,.,.,.,.,,,,..,,..,..,,...,...,..,,,.,,,..,,.,,,..,
-#XQ56UNXO2BH6GMNIOPZLSIRT66S3ZZDLX6YKMEDP75WCNDYRIRP2O3ME4Y3WXJUXBWUJ3W7SARDGA
-#\\\|RDAVZEOHE3S2IC2MGCDHHCQPWMUAWXDDIMA4D5RIQBMDX5OWY2J \ / AMOS7 \ YOURUM ::
-#\[7]7K467NZPLHDBEX2A3GHWUGK7NKI6OKGIYSKT5SDBJOHJ6NRSQEDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,.,.,,.,,...,..,,..,,,,.,,.,,..,,...,...,,.,,,..,...,...,,.,,
+#X3CLWK7T2MLVWI77NWF5FRX7LI7VXQJKNVXPJCVS2LQUXMD3YM7ELDEOL6EXBGKH3PQFDCLWVYWO2
+#\\\|KAPXH5UBAOEKAGU7GRPPOQMWGJVZ4CQA67DERSXIXXSRAD6WJ5V \ / AMOS7 \ YOURUM ::
+#\[7]W4MJ5YJ2H4ACLNK56JZPIJDFENL572IHVOPEAUD2HF5O6LIW5OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
