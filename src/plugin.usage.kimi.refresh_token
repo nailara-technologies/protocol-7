@@ -96,6 +96,17 @@ my $provider = <usage.provider.kimi>;
 my $now  = time;
 my $cred = <[plugin.usage.kimi.read_credential]>;
 
+<[base.logs]>->(
+    2,
+    '[usage.kimi.refresh_token] on-disk credential check : '
+        . 'token=%s expires_at=%s [ %ds from now ] margin=%ds error=%s',
+    length $cred->{'token'} ? 'present' : 'MISSING',
+    $cred->{'expires_at'} // 'undef',
+    defined $cred->{'expires_at'} ? $cred->{'expires_at'} - $now : -1,
+    $provider->{'expiry_warn'} // 0,
+    length $cred->{'error'} ? $cred->{'error'} : 'none'
+);
+
 if (    length $cred->{'token'}
     and defined $cred->{'expires_at'}
     and $cred->{'expires_at'} > $now + $provider->{'expiry_warn'} ) {
@@ -270,8 +281,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,.,,,,,,,..,.,.,,.,,,,.,,,,,..,,.,.,...,,.,,.,.,...,...,...,,.,,,..,,..,...,
-#JTA4NTR4IUPTG3NHMBD35O7YJAWT5DUMPIDSJYDHSFUPNE4AH7IAM3QAY6NLZ5IOWBOUPVTOZEDSU
-#\\\|DNFG5XIZ3NMHUYL2PTIKSHZAPF75C3QIC7CPWZYB422HHRKNSKI \ / AMOS7 \ YOURUM ::
-#\[7]3G2AQZ2QRWRHXU65W536MNWPSSPOR3BW3IKTHA422GTIETFP3OBY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,,.,,,,,,,.,,.,.,..,,,,.,,,,,.,.,...,...,,,,,...,,.,,,.,,,,,,
+#I72ZCQG4SYVSG4JNBNEX52PNJ4DNKUGDVRD6AVM6OX4VQ7IRU2FK2JES6YN464ALNSCJUA73PXJXI
+#\\\|I6RQAEBEC7NQOCCZ6REU7FB72W7KBAXCKH5GJ4X6BBIUAME64B2 \ / AMOS7 \ YOURUM ::
+#\[7]LHBWKCA7CECMVXEHYEMITSYCELEV26LSFHKOWIR6YZMNT76S5KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
