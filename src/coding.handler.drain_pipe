@@ -55,8 +55,15 @@ if ( defined $fileno ) {
         my $srv = $servers->{$backend};
         my $out = $srv->{'io_stdout'};
         my $err = $srv->{'io_stderr'};
-        if (   ( defined $out && eval { fileno($out) } == $fileno )
-            || ( defined $err && eval { fileno($err) } == $fileno ) ) {
+
+        ## fileno() on an already-closed handle [ e.g. a backend torn down ##
+        ## mid crash-restart while another backend's drain_pipe fires ]    ##
+        ## returns undef rather than dying -- check definedness before the ##
+        ## numeric compare, don't let 'undef == $fileno' warn              ##
+        my $out_fn = defined $out ? eval { fileno($out) } : undef;
+        my $err_fn = defined $err ? eval { fileno($err) } : undef;
+        if (   ( defined $out_fn && $out_fn == $fileno )
+            || ( defined $err_fn && $err_fn == $fileno ) ) {
             my $tail_cap = 4096;
             $srv->{'tail_output'}
                 = substr( ( $srv->{'tail_output'} // '' ) . $buf,
@@ -71,8 +78,8 @@ if ( defined $fileno ) {
 
 return;
 
-#,,,.,.,.,,.,,...,.,,,,,,,.,,,,,.,,,.,,.,,,.,,..,,...,...,..,,,..,...,,,.,.,,,
-#67MCINPPQELYJG43VBZB73NDF3VBR24JWJHTVQZE3T3RB3K5NHEHYQWQMNZFG2HT7H6ZPWA637B4W
-#\\\|2MZGFATWW5TZ5SDSHB7BUU2G4UZISO2TEZRZS4EEV7WNZSQHIUD \ / AMOS7 \ YOURUM ::
-#\[7]SS3W5ICD6JUE4DX4UTD5UDZY32N6KZODY3AXM3HYROJUXQFGUUAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,,..,.,.,.,,,,,.,.,.,.,.,,..,..,,...,...,..,,.,,,,..,.,,,.,.,
+#2P4PIMPVJDQBIQT4TACU6G52KFV2UG23BE7DJDLVQESKQXOHJUCHWKZEGZOGYCMVS6YAU6CXSCVUC
+#\\\|FCWHYEBPPWIQAP67B5KYGCBPKFCHUBZEDAQ4XPS3UAS7BQ633LT \ / AMOS7 \ YOURUM ::
+#\[7]LXIKU6B7PU7OSAGLPQ5EYILRNIWXX3YVFU5QYY6QC7NANJGV7KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

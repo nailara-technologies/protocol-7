@@ -1,5 +1,22 @@
 # model functional status tracking + sweep iterator — design
 
+**LANDED same day as this doc, 2026-08-27** (`2ef45a999` — per-
+`(checksum,backend)` status tracking + `coding.model_status.cmd.model-
+status`; `8c765db92` — the async model-sweep iterator +
+`coding.model_sweep.cmd.model-sweep`). Confirmed live 2026-09-17:
+`p7c coding.model-status` returns real persisted entries
+(`state/model_status.yaml` under the coding zenka's dir), `p7c
+coding.model-sweep-status` shows real per-backend cursor state. **Design
+below kept for reference (states, keying, write sites all match the
+shipped code)** — this doc was never updated to say "done," a real gap
+that let it read as an open proposal for three weeks. **What's actually
+still open is USAGE, not code**: of ~90 registry entries, only 6
+`(checksum,backend)` pairs have ever been tested; the cpu sweep stalled
+at `idx=0/28` (never resumed), the gpu sweep has never been started at
+all (`gpu : idle`). Running `p7c coding.model-sweep gpu` and resuming
+`p7c coding.model-sweep cpu` is the actual next action here, not a code
+change — see [[vision-automated-model-testing-and-selection-pipeline]].
+
 closely related to `MODEL-BENCHMARK-HARNESS.md` (topic 1 of
 `AUTONOMOUS-MODEL-MANAGEMENT.md`'s decomposition) but smaller and more
 tractable — this doesn't need the multi-parameter scoring system to
@@ -179,8 +196,8 @@ double-claim from.
 
 ```
 
-#,,.,,,,.,,.,,,..,,,.,..,,,.,,.,,,,.,,.,.,,,,,..,,...,..,,...,..,,...,.,.,.,,,
-#QF33OY256ME5ABC6A42LLXFN6UTDQZL6NJZ64TPQIGMOIKKB2P7T65CJ25KEPGO2XNHRD4JJEYKYS
-#\\\|4HNIKOXCTWDDE65I7JAAR5CV7XYMLS6VICPGMK3I6EZG4O7ENXB \ / AMOS7 \ YOURUM ::
-#\[7]LHM5LRMVLXN2QR357TCMPTL4O2IIBCDONFYHNEJI2LULRWYQGCBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,,,.,,..,,,.,,.,,...,...,.,.,..,,...,...,,..,.,,,,,.,...,,.,,
+#CFCQHPSXIBDMKGDUOO5SDXHGVDQSSTA2DSFSQGSSJHLZOEEVKJHET5QT4QNOFLRF7LFVFW74RN4TE
+#\\\|J5MWPZITBS7IG3LR7HOR6SGWBUTZOSEKB26BJXE4WVU473B7MA6 \ / AMOS7 \ YOURUM ::
+#\[7]LS4X46PACDRUQKBL6LSGBSEEEUNNQI5432GJ7HB45IR6MU7C36CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
