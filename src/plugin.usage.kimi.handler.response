@@ -73,9 +73,15 @@ if ( not $result->{'ok'} and $token_expired and not $pending->{'retried'} ) {
         }
     );
 
-    ## refresh already running [ single slot ] : still schedule the retry --
-    ## worst case the token lands mid-retry, it 401s once more, and the real
-    ## error path below reports honestly on the next round
+    ## fixed 2026-09-17 : refresh_token now queues onto an ALREADY-running
+    ## cycle instead of returning FALSE for it [ see its own single-slot-busy
+    ## branch ] -- TRUE covers that case too now, not just "I personally
+    ## started a child". FALSE here means a refresh genuinely could not be
+    ## attempted at all [ kimi binary not found, fork/pipe failure ] and our
+    ## on_done above will never fire on its own -- retry once anyway so this
+    ## cleanly falls through to the honest error report below on its second
+    ## 401, instead of the deferred query hanging on a callback that's never
+    ## coming
     if ( not $refresh_started ) {
         <[plugin.usage.kimi.refresh_retry]>->(
             {   'on_result' => $on_result,
@@ -264,8 +270,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,.,,,.,,,.,,,..,,.,,,..,,,.,,.,,,..,..,,..,,..,,...,..,,,..,,,.,,..,,.,,...,
-#VDDGEBFOXPIZUG274LEAGEMQCSYTFIZ4RKXV6B2Y5MAV5UOUW4UFBWH6OTIJRAKWXRZXLAZMRTW2S
-#\\\|CSWX4IS35OOPUQGGF2JPPSE4XK44CRLITFPWVDNYDFL6Y3CFCDE \ / AMOS7 \ YOURUM ::
-#\[7]JBT2HD5XZXTZI3G6IM3ERQV7BHPMO2HSHTKAG2RFWCJ6ELEUBMAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,.,,,...,,,.,,..,..,,,,.,.,.,..,,...,...,...,,..,.,.,.,.,...,
+#YPBA7VXNSVFOKTXOBFGKWG26NBZ7LBHNHQZOV5WZIP2LYV4DFIDNQOPXPKPFTR5C3YHPBCJFOQON6
+#\\\|EDMHGURSQICVLYYSGRNDGTVUGSZ3TD2TRNSNBE54VABWC35VOUU \ / AMOS7 \ YOURUM ::
+#\[7]AZUQTRX34ANVCWUNNJR3WYEDNS7TRLIHC6HWI7UMCTE6EPEDFKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
