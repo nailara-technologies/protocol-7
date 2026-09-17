@@ -76,6 +76,20 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             $restart_count++;
             $server_info->{'restart_count'} = $restart_count;
 
+            ## sweep-driven candidates are ALMOST EXPECTED to hit a         ##
+            ## model-pinned crash -- retrying through the full regular-     ##
+            ## operation ladder [5 attempts, up to 125s backoff] wastes     ##
+            ## real sweep wall-clock time on a failure that's very likely   ##
+            ## deterministic, not transient. per backend, not per candidate ##
+            ## -- <coding.model_sweep_state>->{$backend} is defined exactly ##
+            ## while a sweep is actively driving [ or paused mid- ] this    ##
+            ## backend, so this needs no new state, just reuses that        ##
+            ## existing signal                                              ##
+            my $max_attempts
+                = defined <coding.model_sweep_state>->{$backend}
+                ? ( <coding.cfg.sweep_crash_restart_max_attempts> // 1 )
+                : ( <coding.cfg.crash_restart_max_attempts> // 5 );
+
             ## exponential backoff: 5s, 10s, 20s, 30s, max 60s ##
             my $backoff
                 = $restart_count <= 1 ? 5
@@ -84,8 +98,9 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
                 : $restart_count == 4 ? 30
                 :                       60;
 
-            ## max 5 restart attempts ##
-            if ( $restart_count > 5 ) {
+            ## max restart attempts [ regular operation : 5, sweep-driven : ##
+            ## lower -- see coding.cfg.sweep_crash_restart_max_attempts ]   ##
+            if ( $restart_count > $max_attempts ) {
                 <[base.logs]>->(
                     0,
                     '[inference_server_sigchld] max '
@@ -99,10 +114,11 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             <[base.logs]>->(
                 1,
                 '[inference_server_sigchld] scheduling '
-                    . '%s restart in %ds (attempt %d/5)',
+                    . '%s restart in %ds (attempt %d/%d)',
                 $backend,
                 $backoff,
-                $restart_count
+                $restart_count,
+                $max_attempts
             );
 
             ## pause dispatch NOW, at crash detection -- not $backoff       ##
@@ -146,8 +162,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,,,,.,.,.,,,,,.,..,,...,,.,,,,.,..,,...,.,.,..,,...,...,.,,,..,,,,,,,.,,,.,,
-#YXVOLYF3KKDZQUVCTASAEDHNFLVH7CHEDNGAQKOHY5Z7FK57DJ6UH2V42RDLYJFUHZLU6LVJ54456
-#\\\|BYVJILYQ6KPIXLEHJJV2DOBS2MECCMFQBVFKCLQPRFGWPQ3GMID \ / AMOS7 \ YOURUM ::
-#\[7]NSWZTKXUPCBR77JTNAWNNI5O3WHE64LVEXTIQ2G4JVPQTFA4UEBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,.,,,,..,,,,,..,,...,..,,,.,,..,,...,...,.,.,.,,,..,,.,,,...,
+#7EBF7TGKF6NJSJ24HSQHGYF2SGTRKJKE5E4PH64T5ETBRIIHQLWNGBIBIUO4ZSGLOGF6UXWBLNRJ4
+#\\\|JJJ3INRHEDWFSR2PNCF5TD3DYNAKCR5PWKBPVCFRDBQZV4NMER3 \ / AMOS7 \ YOURUM ::
+#\[7]YVOQ233G3RMDBFQR2MNWK2WPFJFYONGN72FJL4N6G2SECJ7BJGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

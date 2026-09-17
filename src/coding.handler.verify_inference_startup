@@ -186,7 +186,15 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
 ## server not ready - may still be starting or failed ##
 my $restart_count = $server_info->{'restart_count'} // 0;
 
-if ( $restart_count >= 5 ) {
+## same sweep-aware ceiling as coding.handler.inference_server_sigchld -- a ##
+## sweep-driven candidate is ALMOST EXPECTED to hit a model-pinned crash,   ##
+## so don't burn the full regular-operation retry budget on it              ##
+my $max_attempts
+    = defined <coding.model_sweep_state>->{$backend}
+    ? ( <coding.cfg.sweep_crash_restart_max_attempts> // 1 )
+    : ( <coding.cfg.crash_restart_max_attempts> // 5 );
+
+if ( $restart_count >= $max_attempts ) {
     <[base.logs]>->(
         0,
         '[verify_inference_startup] %s server '
@@ -195,9 +203,10 @@ if ( $restart_count >= 5 ) {
     );
     my $checksum = $server_info->{'model'} // '';
     if ( length $checksum ) {
-        ## crash-class tag [ task : test-iteration state machine ] :       ##
-        ## unconditionally crash_before_ready -- the exhaustion path never ##
-        ## saw a ready transition across any of the 5 restart attempts     ##
+        ## crash-class tag [ task : test-iteration state machine ] :        ##
+        ## unconditionally crash_before_ready -- the exhaustion path never  ##
+        ## saw a ready transition across any restart attempt [ max_attempts ##
+        ## above, 5 for regular operation, lower for a sweep-driven run ]   ##
         <[coding.model_status.record]>->(
             {   checksum => $checksum,
                 backend  => $backend,
@@ -245,8 +254,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,..,,,.,,.,,,.,,.,.,..,,..,,.,.,...,,.,,..,,..,,...,...,..,,...,.,.,...,,..,
-#CKCEULLWRUCD72FHA6JEGRLQX6ZSEI5PTI5E6SNYNG5SGXPHI67PFROZQ4BMWYZHSMPOQADCJKLTY
-#\\\|SFPL5DALWUTFVEL2BLAGEVRNUJL25TRZ4NZTGGJ5T2ANEMVA2UE \ / AMOS7 \ YOURUM ::
-#\[7]3XVJB5BPOBAB3DIKQY4U4IHBYWGZG2LAAF5MB4TFYMGZK3DZJ2AI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,,.,,,,.,..,,,..,.,,,.,,,,.,,..,,...,.,.,,.,,..,,,.,,...,.,,,
+#3TOWWXA3RMJ4RE5Z65MV2DIITKT7G6Q5Q7RJOBZZFVVYQ32CI4PISVR4VOP6PTP2MBKHCQ6I6CLBG
+#\\\|LUWR7P6DWWBLCCZVARECNWRG2GYS22WI2WFHB3GLSDYZQP7SS4E \ / AMOS7 \ YOURUM ::
+#\[7]KCRM4VVHQEO72GKEB2NGIAO44XLKFAKGFAJAVDHJ5MWPPTCMK2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
