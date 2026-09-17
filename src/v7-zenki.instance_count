@@ -12,12 +12,25 @@ my $zenka_subname;
 my $re_sn = <regex.base.subname>;
 $zenka_subname = ${^CAPTURE}[0] if $zenka_name =~ s|\[($re_sn)\]$||;
 
+## an 'error' instance still occupies its concurrency slot while a restart ##
+## is actually coming for it [ 'restart_pending', set the instant          ##
+## handler.zenka_status transitions anything into 'error' -- see its own   ##
+## comment ] -- excluding 'error' unconditionally left a real window [     ##
+## online --> error, TERM sent, still waiting on process_zenka_end to      ##
+## confirm the children are dead before init_restart_timer ever runs ]     ##
+## where start_count/max_concurrency saw 0 live instances and let a second ##
+## one start : confirmed live 2026-09-17, duplicate 'coding' instances     ##
+## fighting over the same gpu/cpu ports. a genuinely abandoned 'error'     ##
+## instance [ startup retries exhausted ] transitions synchronously to     ##
+## 'offline' in the same call that set 'error', so it never lingers here   ##
+## with a stale restart_pending flag                                       ##
 my $num_instances = 0;
 map {
     my $inst = <v7-zenki.zenka.instance>->{$ARG};
     $num_instances++
         if $inst->{'zenka_name'} eq $zenka_name
-        and ( $inst->{'status'} // '' ) ne 'error'
+        and ( ( $inst->{'status'} // '' ) ne qw| error |
+        or $inst->{'restart_pending'} )
         and ( not defined $zenka_subname
         or defined $zenka_subname
         and defined $inst->{'subname'}
@@ -26,8 +39,8 @@ map {
 
 return $num_instances;
 
-#,,.,,..,,.,.,,,.,..,,.,,,..,,..,,,,,,,,,,...,..,,...,...,..,,..,,...,.,,,..,,
-#FMS73PKLXSM2CX2JEBA2LSG26AMUR3BWH5NJGJVY4MGHK3ONIIZEZ4ISRVQHK3TD45ZYKH53H7P2O
-#\\\|HVLLFVVEHNIZCVZRSDPLOTTFMTVT3UYFC7SB3TBSLETCTVFIQN4 \ / AMOS7 \ YOURUM ::
-#\[7]36QYEMPWV62AC3XYFD5KCBXXERKQ6IC5673SZZNRPL32JQZ74GAY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,..,,,..,,..,..,,,.,,.,.,...,..,,...,.,.,..,,.,.,,,.,,,,,..,,
+#5ZJZCPLZRXKNHNSU5OCJ6JUMVELJ2CJXXF3EMFD4VP3YIVPPEHBKL5MDJRKSES6UB57Z3G7HFPF5Y
+#\\\|4IROZSHQWMPUZHCYTXCN4MZHH4SDXNEH3DQFAHMCTMGGGEDYRZQ \ / AMOS7 \ YOURUM ::
+#\[7]3SDJV5FCT4H4MFNRLHXRPBFQ26M2DT5JJRXIIRI5TLQMUBOMPQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
