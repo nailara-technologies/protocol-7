@@ -100,8 +100,22 @@ to also need a live-tested `access.zenki` grant on the calling zenka's
 as necessary, not sufficient, for that specific class of change, and budget
 one live-test pass for it before considering the work done.
 
-#,,..,,.,,..,,,..,,..,..,,,.,,.,,,,,,,,..,...,..,,...,..,,.,.,,.,,..,,..,,..,,
-#HX5PYBH33SAUY7MEUASEBIXMRXBLHVFVHTBIGJSMZLP74XB5WGN3LUFR6DZBTE4KTHYYSTNWC6WDY
-#\\\|7QE7KBHWLF2CF6F23QKHHTM3NOEP2QI4ESYXIF6AEB5GOFQTZFV \ / AMOS7 \ YOURUM ::
-#\[7]IYQIBJIQZJJM2HTY4J63V6B6LPIMXL7SQAEISGNACTAX5G23AGDY 7  DATA SIGNATURE ::
+**Speed data point, 2026-09-17**: a k2.8 dispatch built with this exact
+shape (`v7-zenki-gone-child-wire-up.md`: one exact code snippet, one named
+hook point/line, explicit out-of-scope list naming a specific *other*
+command not to investigate) had the actual `StrReplaceFile` edit land in
+its own session log **34 seconds after session creation** -- confirmed via
+`kimi_check_status`'s timestamped tool-call log, not just impression. The
+rest of a several-minute run was live-verification `Shell` calls (the
+task file's own verification section), not further code iteration. When
+the task hands over an exact snippet and exact hook point, the actual
+authoring step can be near-instant; don't assume a dispatch "must have
+barely started" just because a human's own signing/staging happened
+quickly after dispatch -- check the session log's tool-call timestamps
+before assuming a fast-looking result must be someone else's work.
+
+#,,.,,,,.,,..,.,,,.,.,,,,,.,,,,,.,,..,,.,,..,,..,,...,...,.,.,..,,...,,,,,,..,
+#7NFUGM2TTRQ5NHTE43YGFAYAS4TJ4YN2QNICCVSZJDVYED2KOR6M65YTNJRR76YHQ6BDXFXHV2CMI
+#\\\|RHLOLOIQHMMJNQJ2BVL6P5GV3JZGZHLKUOLPCXA43WAOSBORDSA \ / AMOS7 \ YOURUM ::
+#\[7]HA4GZVCOPK76KPIX4PYMR5UMY3WGMCJYKTU5OWPAXF62ZASLFYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
