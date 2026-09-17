@@ -12,6 +12,20 @@ if ( not defined $chk_pid or $chk_pid !~ m|^\d+$| ) {
 
 ### old method ### [ heavy, non-portable, to be removed.. ]
 
+## liveness check here is deliberately v7-zenki.sub-process.pid_alive, NOT
+## base.exists.sub-process : the latter is waitpid-based and can only ever
+## succeed for v7-zenki's own DIRECT children -- correct for its other 18+
+## callers, but it silently excluded every real grandchild [ e.g. a coding
+## zenka's own spawned llama-server ] from ever reaching the real security
+## check below, not just stale ones. found+fixed 2026-09-17, see
+## bug-v7-zenki-get-children-registry-gap-2026-09-17.md. this loop's real
+## trust boundary was ALWAYS the $ppids{$pid} == $chk_pid walk below --
+## genuine kernel ppid data from Proc::ProcessTable, unfakeable by a reporting
+## zenka -- the liveness check here only ever needed to filter a dead/reused
+## pid, never to establish ancestry. <v7-zenki.child> gates entry into
+## consideration at all [ a zenka must have explicitly self- reported the pid
+## first ], but that self-report is a candidate list, not proof -- the ppid
+## walk below is what actually verifies it
 my $proc_table = <v7-zenki.process.pt>
     //= new Proc::ProcessTable( qw| enable_ttys | => FALSE );
 
@@ -21,7 +35,7 @@ foreach my $proc ( reverse $proc_table->table->@* ) {
     next
         if not defined $proc->{'pid'}
         or not defined <v7-zenki.child>->{ $proc->{'pid'} }
-        or not <[base.exists.sub-process]>->( $proc->{'pid'} );
+        or not <[v7-zenki.sub-process.pid_alive]>->( $proc->{'pid'} );
 
     $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
     $start_times{ $proc->{'pid'} } = $proc->{'start'};
@@ -51,6 +65,21 @@ while ($found) {
     }
 }
 
+## "new method" : $chk_pid must be a zenka's OWN instance pid [ not a
+## grandchild -- checked against <v7-zenki.zenka.instance>...process.id
+## directly ]. deliberately LEFT on base.exists.sub-process here, not switched
+## to pid_alive like the old method above : this block has no independent
+## ppid-ancestry check at all, it just trusts  v7-zenki.instance_child_pids'
+## self-reported list outright -- for $chk_pid's own direct children [ what
+## this block is actually for ], waitpid's kernel-enforced "really my own
+## child" property is real protection against a spoofed self-report, not
+## incidental. swapping it for a same-UID-only liveness check here, with no
+## ppid-walk backing it the way the old method has, would let a zenka
+## self-report an arbitrary foreign pid and have it accepted outright once
+## alive -- see  bug-v7-zenki-get-children-registry-gap-2026-09-17.md's
+## security discussion. this block still can't resolve grandchildren [ same
+## waitpid limit ], and that's fine : the old method above already handles
+## that case correctly now, with its real ppid-walk intact
 my $instance_id;
 foreach my $id (<[v7-zenki.instance_ids]>) {
     $instance_id = $id
@@ -69,8 +98,8 @@ return [
         reverse sort keys %children
 ];
 
-#,,..,,..,,.,,.,.,,..,,..,,..,...,...,,..,..,,..,,...,...,,,.,,..,,,.,,,,,,..,
-#7LXHE7ZWY4RPQETOOM6LHNSYESJIOOQOEMZTL4CHH3O66R6ZBVFLDUBAN7NDCBHWANQOLU4NHJNS4
-#\\\|WBOINCLNDM3FTXPKOVQZXLWVCX7PACJUIFJZQZBF6AD3CAB237I \ / AMOS7 \ YOURUM ::
-#\[7]PJM5K5L6XPMEB3DZOZ5HHYV3MU5A47NVRBXFIEAQBKMXCAKGBCCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,.,,,,,,,,,,,...,,,.,.,,,,.,,..,,...,...,,,,,...,.,.,.,,,,..,
+#VFCOJA5DWARAAM3RQL2R6VWZNDK5WWYUXFLE34ERVYCQXIDR6Y3HF65PI43MHJUKJ6BCSGJROUWXS
+#\\\|EKERAHNFYYMTQBKYXTY4ZCUAHDUVETIY5LMGRRUODZGIXHQXYE7 \ / AMOS7 \ YOURUM ::
+#\[7]ILMGIU5KHASCJV7XKKOR5ZNRVXCC243SL7XIRZILXAN4URXAVGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
