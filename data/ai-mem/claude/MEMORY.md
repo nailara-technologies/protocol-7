@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [security-fix-verify-both-code-paths-not-just-symptom](feedback-security-fix-verify-both-code-paths-not-just-symptom.md) — before broadening/replacing a shared gating check (liveness/existence/permission), enumerate ALL its callers and ask what each relies on it FOR, not just whether the visibly-broken one works — a check can be load-bearing security elsewhere with nothing else backing it up. Caught 2026-09-17 by the user before I shipped a fix that would've let a spoofed self-reported pid through unverified on a second code path.
 - [request-signed-version-before-each-batch-commit](feedback-request-signed-version-before-each-batch-commit.md) — for batch/multiple commits in a session, explicitly request a fresh signed version number from the user before EACH commit, not just once — stated 2026-09-17, don't chain commits on one earlier sign-off.
 - [token-budget-pacing-early-week](feedback-token-budget-pacing-early-week.md) — pace Claude token use from the START of each 7-day usage window, not reactively once tight — flagged 2026-09-17 after ~50%/7d on day 1. Favor one targeted check over repeated live Monitor-polling loops, delegate implementation-heavy/low-risk work to kimi_dispatch/subagents. NOT license to leave a real defect half-fixed to save tokens (user explicitly confirmed this, see [[feedback-fix-immediately-reduces-cognitive-load]]) — trim redundant procedural overhead only, never real fixes/verification.
 - [init-code-runs-before-drop-privs](feedback-init-code-runs-before-drop-privs.md) — `init_code` executes during `[init_modules]`, BEFORE `[root.drop_privs]` — synchronous code there that touches `$ENV{HOME}`/`getpwuid($UID)` resolves under the pre-drop launching user, not the zenka's real target user, even though a timer merely *armed* there fires correctly post-drop (the event loop provably can't start before `[zenka.loop]`). Fix pattern: an explicit post-drop `.v7` callback (`[usage.startup]`, mirrors `[universal.startup]`), `init_code` only re-arms `if ($reinit)` — the real signal `base.init_modules` passes as `init_code`'s first arg, not an inferred flag.
@@ -63,8 +64,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,.,,,,.,.,.,,,.,...,.,.,,,.,,.,,...,..,,..,,...,...,..,,.,,,...,,..,,,,,
-#HRFEEF3ZCT2QG7P5FB4X7CJU2XTJVFSYFIQAVHTF63G74CRNIDF3NXYQ23DWOFLENFQP4UT2LIZIO
-#\\\|ECPQ6UQWL5QQMO57WT72LMKWDFHP7SHO7EBNBZ767DHH4LRQE5T \ / AMOS7 \ YOURUM ::
-#\[7]NUDAQ6UCZ7KAKG2ZVNKUW7U2CMYGECUQ7RLVQOAGZ2JFNXSPAIDI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,,,,,,.,,..,,.,,,...,,..,.,,,..,,...,...,,,.,,.,,,,.,..,,.,,,
+#PT6LKSPZOA5Z7XHLKMZXM7U3L7VSXDHD6QB6NNQ3R45H2GWBUZV4RUKRUMMTE3DUYLAJZJWUANKGC
+#\\\|PAR4KE2EK4IHG5A3IA5NOCDJUPEU3GJ55GGMDQPPNF6VIXLIQDN \ / AMOS7 \ YOURUM ::
+#\[7]35EYTP4ED2EZQNWM5UUILODITUOXNKGSBSZE7U6B3JJDAWF3UWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
