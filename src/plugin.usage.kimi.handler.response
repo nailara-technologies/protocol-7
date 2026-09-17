@@ -52,6 +52,14 @@ if ( not $result->{'ok'} and $token_expired and not $pending->{'retried'} ) {
         'usage [ kimi ] : token expired, refreshing '
             . 'via kimi cli and retrying once ..,'
     );
+    <[base.logs]>->(
+        2,
+        'usage [ kimi ] : trigger detail : local '
+            . 'expires_at=%s [ %ds ago ], http status=%s',
+        $pending->{'expires_at'} // 'undef',
+        $now - ( $pending->{'expires_at'} // $now ),
+        $result->{'status'} // 'undef'
+    );
 
     my $refresh_started = <[plugin.usage.kimi.refresh_token]>->(
         undef,
@@ -256,8 +264,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,,,,,.,,,,,,,,,,.,,,..,,,,,,.,,,,,.,,.,,.,,,..,,...,..,,...,,,.,..,,...,..,,
-#ETYPMBXRZYCZMAJU7YKOGF5VIDZXPJTZZE66TMWSXFCTRFTWSJPJVUQOIS7MWVT3C7K3S7JE6IOLK
-#\\\|NNRSIQGQHG76JB5WNHI3EG4BMW4ZNXRXZ5LMPWDBPANX4X3RAFY \ / AMOS7 \ YOURUM ::
-#\[7]HU6TRCMU5VOOMFVEZ35GE5HMXAM74MGCGYK7MA6P2DIPRP2R4UCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,,.,,,..,,,.,,.,,,..,..,,..,,..,,...,..,,,..,,,.,,..,,.,,...,
+#VDDGEBFOXPIZUG274LEAGEMQCSYTFIZ4RKXV6B2Y5MAV5UOUW4UFBWH6OTIJRAKWXRZXLAZMRTW2S
+#\\\|CSWX4IS35OOPUQGGF2JPPSE4XK44CRLITFPWVDNYDFL6Y3CFCDE \ / AMOS7 \ YOURUM ::
+#\[7]JBT2HD5XZXTZI3G6IM3ERQV7BHPMO2HSHTKAG2RFWCJ6ELEUBMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
