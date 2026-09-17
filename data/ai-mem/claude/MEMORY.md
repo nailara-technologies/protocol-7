@@ -40,7 +40,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (64 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (65 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -50,7 +50,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   sourcecode corpus-membership/`:inlist:` scoping convention, bin/Protocol-7 CLI argv gotchas
   (-vq positioning, space-joined/re-split file args).
 
-- **[MEMORY-vision.md](MEMORY-vision.md)** (52 pointers) — long-horizon architecture, mostly design-only.
+- **[MEMORY-vision.md](MEMORY-vision.md)** (53 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
@@ -59,8 +59,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,,,,,.,,,,.,..,,.,,,,,,,,..,.,.,,.,,,,.,..,,...,...,.,,,..,,,,,,,.,,,.,,
-#QP76DVOYBUQQTNYL6MUW335JM7PMGEXIL6WIVXR76OZ6GSCUG7KG6MKAQE2W4FEK25OBFQMYVEORW
-#\\\|Q3ITIVMOP7X53HD6VPWHSSWBJ3U5ROEVWZFVGBEK7XHPZUKFMY3 \ / AMOS7 \ YOURUM ::
-#\[7]C3Y34PVHCVP37HLJYGECT5E4WUG4ZBREOTXV44N7JBWQERULKMCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,,,.,,.,,..,,,,,,,,.,...,,..,..,,...,...,,,,,.,,,..,,.,.,...,
+#GZY2KKN4QFAFNUAOX5WDCTW46R7ZNKGPG6ZUKPASPY7KIAVXX57YEI4HXLCNHTKDSF77TDWGWTOS2
+#\\\|UZ4CEVRIPMGQRMXCCMN22MEKHKKURJIDAZKT644PTMW27PGP347 \ / AMOS7 \ YOURUM ::
+#\[7]6AURU7OMQMELPYDWIGRLMSMSCQAI35EVS7PTY5I4EQ2FUA3DDSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
