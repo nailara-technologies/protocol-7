@@ -26,7 +26,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## Category files — open the one that matches the topic in play
 
-- **[MEMORY-active.md](MEMORY-active.md)** (60 pointers) — in-flight / recently-landed work.
+- **[MEMORY-active.md](MEMORY-active.md)** (61 pointers) — in-flight / recently-landed work.
   open for: x11 (hardening, resolution-profiles, multi-server, bare-name routing), window placement,
   mpv startup/persistence, ascii-frame & ascii-desktop-domains UI, coding & kimi zenka state machines,
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
@@ -59,8 +59,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,.,,,.,,...,,,.,,.,,..,,,,,,,,.,...,,..,..,,...,...,,,,,.,,,..,,.,.,...,
-#GZY2KKN4QFAFNUAOX5WDCTW46R7ZNKGPG6ZUKPASPY7KIAVXX57YEI4HXLCNHTKDSF77TDWGWTOS2
-#\\\|UZ4CEVRIPMGQRMXCCMN22MEKHKKURJIDAZKT644PTMW27PGP347 \ / AMOS7 \ YOURUM ::
-#\[7]6AURU7OMQMELPYDWIGRLMSMSCQAI35EVS7PTY5I4EQ2FUA3DDSCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,,,,..,.,,,,.,,,.,,,,,,.,,,.,.,..,,...,...,.,,,,,.,.,.,.,,,.,.,
+#6SAY7VDPHGIBTZ2K2YVACP6YRFPPJ2BSEFI43UFOVJJZL224GRT5X4UJ52QFB6XVBIICMVPOR4YAS
+#\\\|GMOIP4LXPZUADNVURTQPQN47ZSZQHRAN24V35YYVZCNUYBER2OD \ / AMOS7 \ YOURUM ::
+#\[7]HDEPZB6ZH5FBQRGY7DOP624GL435SFTU3U7JEHQ24HHGY3Y5VQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
