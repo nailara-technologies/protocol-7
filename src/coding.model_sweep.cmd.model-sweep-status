@@ -26,44 +26,79 @@ for my $backend (@backends) {
     my $active = <coding.model_sweep_state>->{$backend};
     my $cursor = $cursor_data->{$backend} // {};
 
+    ## sweep axis [ persisted cursor + live in-memory state ] : idle /     ##
+    ## running / pause-requested / paused -- a completed sweep clears both ##
+    ## and reads as plain idle by design                                   ##
+    my $sweep_part;
     if ( defined $active && ref $active eq qw| HASH | ) {
         my $candidates = $active->{'candidates'} // [];
         my $idx        = $active->{'idx'}        // 0;
         my $total      = scalar @$candidates;
-        my $current    = $idx < $total ? $candidates->[$idx] // '' : '';
-        push @lines,
-            sprintf '%s : in-progress : idx=%d/%d current=%s filter=%s',
-            $backend,
-            $idx,
-            $total,
-            $current,
-            $active->{'filter'} // qw| default |;
+        my $st         = $active->{'state'} // qw| running |;
+        if ( $st eq qw| paused | ) {
+            my $why = $active->{'paused_reason'} // '';
+            $sweep_part = sprintf 'paused%s : idx=%d/%d filter=%s',
+                ( length $why ? " [ $why ]" : '' ),
+                $idx, $total, $active->{'filter'} // qw| default |;
+        } else {
+            my $current = $idx < $total ? $candidates->[$idx] // '' : '';
+            $sweep_part = sprintf '%s : idx=%d/%d current=%s filter=%s',
+                $st, $idx, $total, $current,
+                $active->{'filter'} // qw| default |;
+        }
     } elsif ( ref $cursor eq qw| HASH |
         && @{ $cursor->{'candidates'} // [] } ) {
         my $idx   = $cursor->{'idx'} // 0;
         my $total = scalar( @{ $cursor->{'candidates'} // [] } );
         if ( $idx < $total ) {
-            my $current = $cursor->{'candidates'}[$idx] // '';
-            push @lines,
-                sprintf '%s : resumable [ not running ] '
-                . ': idx=%d/%d current=%s filter=%s',
-                $backend,
-                $idx,
-                $total,
-                $current,
-                $cursor->{'filter'} // qw| default |;
+            if ( ( $cursor->{'state'} // '' ) eq qw| paused | ) {
+                ## paused survives a zenka restart via the cursor file ##
+                my $why = $cursor->{'paused_reason'} // '';
+                $sweep_part = sprintf 'paused%s : idx=%d/%d filter=%s',
+                    ( length $why ? " [ $why ]" : '' ),
+                    $idx, $total, $cursor->{'filter'} // qw| default |;
+            } else {
+                my $current = $cursor->{'candidates'}[$idx] // '';
+                $sweep_part = sprintf 'resumable [ not running ] : '
+                    . 'idx=%d/%d current=%s filter=%s',
+                    $idx,
+                    $total,
+                    $current,
+                    $cursor->{'filter'} // qw| default |;
+            }
         } else {
-            push @lines, sprintf '%s : idle', $backend;
+            $sweep_part = qw| idle |;
         }
     } else {
-        push @lines, sprintf '%s : idle', $backend;
+        $sweep_part = qw| idle |;
     }
+
+    ## backend axis : DERIVED at read time from the live in-memory          ##
+    ## <coding.inference_servers> hash, never persisted [ a persisted copy  ##
+    ## is stale the instant the zenka restarts, and a crash-looping backend ##
+    ## with no sweep running at all must still surface here ] : crashed +   ##
+    ## restart_count 1..5 = actively crash-looping ; failed = restart       ##
+    ## attempts already exhausted [ terminal, not crash-looping ]           ##
+    my $srv        = ( <coding.inference_servers> // {} )->{$backend} // {};
+    my $srv_status = $srv->{'status'}                                 // '';
+    my $restarts   = $srv->{'restart_count'}                          // 0;
+    my $server_part;
+    if ( $srv_status eq qw| crashed | && $restarts >= 1 && $restarts <= 5 ) {
+        $server_part = sprintf 'server=crash-looping [ attempt %d/5 ]',
+            $restarts;
+    } elsif ( $srv_status eq qw| failed | ) {
+        $server_part = 'server=failed [ restart attempts exhausted ]';
+    } else {
+        $server_part = qw| server=ok |;
+    }
+
+    push @lines, sprintf '%s : %s : %s', $backend, $sweep_part, $server_part;
 }
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,.,...,...,,..,,.,,,,.,.,,,...,,,.,,,.,,,.,..,,...,...,.,.,...,,,.,...,,..,
-#7FILYRJJJL55EHCGLXNUQAWT36F5MK362YTELTSRMH2RK5O4D3NA2SUUOFKH4CVNTV6JNCCASRXI2
-#\\\|TPJ7F5VGX5TPWISHK4IJ6OE7NLEF5AKC34MFBIMXK6GIHAUYS4L \ / AMOS7 \ YOURUM ::
-#\[7]HHDRGPVP5LBRD7TLA4EY4IXJ53YKW63YD3ESULEVT5TPNC5JNCBI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,,,,,,.,,,,.,,,,,,,,,,,.,...,..,,...,...,...,,,,,,..,,,,,,.,,
+#BNQ776ECDANPVS27C3RLGKWR4I666OPSYGMANPBGHBFH4R4SFT5GEAERWUGVEFNCRHS3XZSELKPRO
+#\\\|MNYTZHX7JWKC7AZ5Z6CS3OFPSW3KKQVOO3CZCQ7MJBPPL2E4D4Q \ / AMOS7 \ YOURUM ::
+#\[7]FDYLJWIPU6JBXD3VFHWSVCPPJMNSNRPRIKKAYUY7ERVG6EAJOGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

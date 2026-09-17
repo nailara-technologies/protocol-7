@@ -261,13 +261,30 @@ if ( $phase eq qw| switching | ) {
         ## failure a model-sweep run needs recorded ] previously vanished  ##
         ## with no trace in coding.model_status, confirmed live 2026-09-17 ##
         if ( length $target_model ) {
+            my $detail = sprintf 'switch failed: %s', $reason;
+            if ($is_crashed) {
+                ## crash-class tag [ task : test-iteration state machine ] ##
+                ## derived from the existing ready_logged flag [           ##
+                ## monitor_inference_startup:85 ] + sigchld's exit_status  ##
+                ## -- zero new instrumentation. crash_before_ready : never ##
+                ## reached the ready transition ; crash_after_ready : was  ##
+                ## serving, died mid-request                               ##
+                my $srv = ( <coding.inference_servers> // {} )->{$backend}
+                    // {};
+                my $crash_class
+                    = $srv->{'ready_logged'}
+                    ? qw| crash_after_ready |
+                    : qw| crash_before_ready |;
+                $detail .= sprintf ' [%s exit=%d]',
+                    $crash_class, $srv->{'exit_status'} // 0;
+            }
             <[coding.model_status.record]>->(
                 {   checksum => $target_model,
                     backend  => $backend,
                     status   => $is_crashed
                     ? qw| inference-failures |
                     : qw| startup-failure |,
-                    detail => sprintf( 'switch failed: %s', $reason ),
+                    detail => $detail,
                 }
             );
         }
@@ -449,8 +466,8 @@ return $finish->(
     }
 );
 
-#,,..,.,,,...,,,.,.,.,,..,,,.,.,,,,..,,.,,,..,..,,...,.,.,...,,,.,,..,.,.,..,,
-#2FZW64G32SBQEFY4TCHWL7GTULDSLE75DQHTLA6U5TTCY4L36V34SN5YEUME75FCNJNIZWM646NMU
-#\\\|RCVWWH3ZXVTQRM2OEWYG5K7FBNDXS2P6ZEN2GJHW74MIKSDQYXO \ / AMOS7 \ YOURUM ::
-#\[7]7UBU6DPJYWXGHUDFU227MR2RVVM6Q5CGKXJQY6DIY5CLTV5YNCAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,.,,.,.,..,,.,,,.,,,...,,,,,..,,...,...,,.,,,.,,,.,,.,.,...,
+#6ORIMV53JXRK2GDYVHKUAHEA7K627PUTHI532DYZS7BZPUN43M4DODDARZKPS46KHPDD2RV3LNYD6
+#\\\|S5PKIRQCTOS3GOGLZD3KHLJWUI66N6YQURHDORIJQED2YU5EOWP \ / AMOS7 \ YOURUM ::
+#\[7]CBPA43KCAZ4EA5AAWK4VYPB4SLNEQPGVNWDDR337DQFR6I5YVYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

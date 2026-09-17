@@ -57,9 +57,28 @@ my $cursor_data
 my @lines;
 
 for my $backend (@backends) {
-    ## refuse if a sweep is already active for this backend ##
+    ## refuse if a sweep is already active for this backend -- a PAUSED     ##
+    ## sweep deliberately keeps its in-memory state defined, so distinguish ##
+    ## : paused points at model-sweep-resume instead of the bare refusal [  ##
+    ## reporting a resumable pause as "already in progress" is the          ##
+    ## misleading-status class this distinction fixes ]                     ##
     if ( defined <coding.model_sweep_state>->{$backend} ) {
-        push @lines, sprintf '%s : already in progress', $backend;
+        my $active = <coding.model_sweep_state>->{$backend};
+        my $active_state
+            = ref $active eq qw| HASH |
+            ? ( $active->{'state'} // qw| running | )
+            : qw| running |;
+        if ( $active_state eq qw| paused | ) {
+            my $why = $active->{'paused_reason'} // '';
+            push @lines,
+                sprintf '%s : paused%s -- use model-sweep-resume %s to '
+                . 'continue, or model-sweep-cancel %s to discard',
+                $backend,
+                ( length $why ? " [ $why ]" : '' ),
+                $backend, $backend;
+        } else {
+            push @lines, sprintf '%s : already in progress', $backend;
+        }
         next;
     }
 
@@ -71,7 +90,28 @@ for my $backend (@backends) {
     if ( ref $existing eq qw| HASH |
         && ( $existing->{'idx'} // 0 )
         < scalar( @{ $existing->{'candidates'} // [] } ) ) {
+        ## a paused cursor is NEVER auto-resumed by a plain model-sweep     ##
+        ## call : resume goes through model-sweep-resume, which gates       ##
+        ## circuit-breaker pauses on :force: -- silently bypassing that     ##
+        ## gate here is how the remaining candidates get burned on the same ##
+        ## bad data a second time                                           ##
+        if ( ( $existing->{'state'} // '' ) eq qw| paused | ) {
+            my $why = $existing->{'paused_reason'} // '';
+            push @lines,
+                sprintf '%s : sweep is paused [ idx=%d/%d, filter=%s ]%s '
+                . '-- use model-sweep-resume %s%s to continue',
+                $backend,
+                $existing->{'idx'} // 0,
+                scalar( @{ $existing->{'candidates'} // [] } ),
+                $existing->{'filter'} // qw| default |,
+                ( length $why ? " [ $why ]" : '' ),
+                $backend,
+                ( length $why ? ' :force:' : '' );
+            next;
+        }
         if ( ( $existing->{'filter'} // '' ) eq $filter_str ) {
+            ## a resumed sweep starts with a clean breaker streak ##
+            delete <coding.model_sweep_breaker>->{$backend};
             <coding.model_sweep_state>->{$backend} = {
                 backend    => $backend,
                 candidates => $existing->{'candidates'},
@@ -80,6 +120,7 @@ for my $backend (@backends) {
                 started    => $existing->{'started'} // <[base.ntime]>,
                 switch_id  => '',
                 phase      => qw| idle |,
+                state      => qw| running |,
             };
             <[event.add_timer]>->(
                 {   'interval' => 1,
@@ -170,6 +211,7 @@ for my $backend (@backends) {
         candidates => \@candidates,
         idx        => 0,
         started    => <[base.ntime]>,
+        state      => qw| running |,
     };
     my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
     if ( length $yaml_str ) {
@@ -180,7 +222,9 @@ for my $backend (@backends) {
             );
     }
 
-    ## initialize in-memory state and start the sweep timer ##
+    ## initialize in-memory state and start the sweep timer -- a fresh ##
+    ## sweep starts with a clean circuit-breaker streak                ##
+    delete <coding.model_sweep_breaker>->{$backend};
     <coding.model_sweep_state>->{$backend} = {
         backend    => $backend,
         candidates => \@candidates,
@@ -189,6 +233,7 @@ for my $backend (@backends) {
         started    => <[base.ntime]>,
         switch_id  => '',
         phase      => qw| idle |,
+        state      => qw| running |,
     };
 
     <[event.add_timer]>->(
@@ -207,8 +252,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,.,.,.,,..,,,,,...,.,.,,.,,,,,,,..,...,..,,..,,...,...,..,,.,,,...,,,,,,,,,
-#N4FFBYR76QLLMPMN5SUXDLP3ZFF4PLBALTVZP2O6WMRPMTTONZGXB7JOYAOHTAKN22C35EIESQJXC
-#\\\|RWC7JJVY7IGHJBUAXOOFE7WV2MYU2FERFZDZIY34IW2GSPQUS46 \ / AMOS7 \ YOURUM ::
-#\[7]KBOBJQRLSZLZ6HLMPC6AVDLZJUAU2EOZ4GOCIPTQ6Y55XBYP3SBI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,,,.,,..,,.,,,,,,,..,,,.,,..,..,,...,..,,,,.,.,,,..,,..,,,,.,
+#WJM6N5R7B2B55LGJGU53LU6PHWDJEEKINEIVDCRVSR4P7PY7QTKWXEI6AQ7RQIVMDWZ7GZSHTWHWG
+#\\\|OC6DLAUAPNZI72SF3HD3AJBACULF4RYG4POCIEI2L3XK2TK6XAX \ / AMOS7 \ YOURUM ::
+#\[7]6WDJOTGGWCBTNZCQHVJP3FDA6DAWD3BVZUU42US5HHYVNZHIU6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
