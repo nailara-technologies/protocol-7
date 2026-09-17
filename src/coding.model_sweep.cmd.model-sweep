@@ -2,16 +2,26 @@
 
 # name  = coding.model_sweep.cmd.model-sweep
 # descr = start a per-backend model sweep
-# param = [backend] [filter tokens] [:no_yield:]
+# param = [backend] [filter tokens] [:no_yield:] [:restart:]
 
 my $params = shift             // {};
 my $args   = $params->{'args'} // '';
 
-## extract filter + yield-opt-out tokens using substitutive extraction, ##
-## order-independent                                                    ##
+## extract filter + yield-opt-out + restart tokens using substitutive       ##
+## extraction, order-independent. :restart: is the explicit, auditable      ##
+## opt-in for the DESTRUCTIVE path [ discard an existing paused/orphaned    ##
+## cursor and start completely fresh ] -- the safe path [ resume a          ##
+## matching-filter, non-paused cursor automatically ] stays implicit, as it ##
+## already did before this flag existed. previously the only way to discard ##
+## a stale cursor was deleting state/model_sweep_cursor.yaml by hand        ##
+## outside the zenka's own command interface. deliberately does NOT         ##
+## override an ACTIVELY RUNNING in-memory sweep [ that still requires       ##
+## model-sweep-cancel first -- :restart: is scoped to disk-cursor cleanup,  ##
+## not live-timer teardown, per explicit user direction ]                   ##
 my $re_test_failed  = ( $args =~ s| *:re-test-failed: *| | );
 my $re_test_success = ( $args =~ s| *:re-test-success: *| | );
 my $no_yield        = ( $args =~ s| *:no_yield: *| | );
+my $restart         = ( $args =~ s| *:restart: *| | );
 
 $args =~ s|^\s+||;
 $args =~ s|\s+$||;
@@ -89,7 +99,8 @@ for my $backend (@backends) {
     ## cursor survived, so pick up exactly where it left off instead of    ##
     ## silently dropping the progress or forcing a fresh rebuild           ##
     my $existing = $cursor_data->{$backend} // {};
-    if ( ref $existing eq qw| HASH |
+    if (   !$restart
+        && ref $existing eq qw| HASH |
         && ( $existing->{'idx'} // 0 )
         < scalar( @{ $existing->{'candidates'} // [] } ) ) {
         ## a paused cursor is NEVER auto-resumed by a plain model-sweep     ##
@@ -160,6 +171,23 @@ for my $backend (@backends) {
                 $filter_str;
         }
         next;
+    }
+
+    ## :restart: discarded a real existing cursor : say so explicitly --   ##
+    ## the whole point of the flag over the old hand-delete-the-yaml       ##
+    ## workaround is that this is now visible in the command's own output, ##
+    ## not a silent loss                                                   ##
+    if (    $restart
+        and ref $existing eq qw| HASH |
+        and ( $existing->{'idx'} // 0 )
+        < scalar( @{ $existing->{'candidates'} // [] } ) ) {
+        push @lines,
+            sprintf '%s : :restart: discarded existing '
+            . 'cursor [ idx=%d/%d, filter=%s ]',
+            $backend,
+            $existing->{'idx'} // 0,
+            scalar( @{ $existing->{'candidates'} // [] } ),
+            $existing->{'filter'} // qw| default |;
     }
 
     ## build candidate list for this backend ##
@@ -262,8 +290,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,,,.,...,,.,,,,,,,,,,.,,,,.,,,.,,..,,.,,,..,,...,...,...,,,.,,.,,,.,,..,,
-#BT7QRUYZINN5UU3HWV6F66VQTX6WI3VZ73GS4ATGFS4DLJFOW25FB62KGXZJFCDZHHPF7QWICNTDO
-#\\\|KHSURGXSTL7H3FU4WRKZOFGEOTQIBGANVHCK2ZCXADXFQOA4PHE \ / AMOS7 \ YOURUM ::
-#\[7]JXDOO4QQM4WS4ECGHD6EAXVMRYUSUR4SVYIKW6BUUITVOGLHQ4AQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,,.,,,..,.,,,.,,,...,,..,,,.,..,,...,...,,,,,,,.,..,,,,,,,.,,
+#G765ALIUA4MON2K3HH4X5IHCM4NJFGUFDLGD5I7KITL2XAIBCAQTJE4BYFHST3P7QY5SBVJI76TWY
+#\\\|Y7EANLBOWDN4OJQGADULWXNQISAULESUPBJAVXTX57XE5NXBB2Z \ / AMOS7 \ YOURUM ::
+#\[7]OHQM4K5V677XP25K5LX25O3BTBHYI67RQSPU4E643S6X25FFVYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
