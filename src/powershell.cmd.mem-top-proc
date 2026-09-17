@@ -7,9 +7,8 @@
 ## lists the top memory consumers on the actual windows host [ pid, name,
 ## working-set in MB ] -- the per-process view that would have given advance
 ## warning about a growing firefox [ or the wsl vm's vmmemWSL allocation ]
-## before it became host-wide pressure. pairs with
-## powershell.cmd.mem-used, same motivation : see
-## data/tasks/powershell-host-memory-commands.md
+## before it became host-wide pressure. pairs with  powershell.cmd.mem-used,
+## same motivation : see  data/tasks/powershell-host-memory-commands.md
 
 my $args = $call->{'args'} // '';
 $args =~ s,^\s+|\s+$,,g;
@@ -17,7 +16,9 @@ $args =~ s,^\s+|\s+$,,g;
 my $top_count = length $args ? $args : 10;
 
 return { 'mode' => qw| false |, 'data' => 'invalid count [ 1-50 ]' }
-    if $top_count !~ m|^\d+$| or $top_count < 1 or $top_count > 50;
+    if $top_count !~ m|^\d+$|
+    or $top_count < 1
+    or $top_count > 50;
 
 ## same single-line / try-catch / P7ERR discipline as
 ## powershell.cmd.get-event-log -- see there for the confirmed-live reasons [
@@ -45,10 +46,62 @@ my @out_lines = split( m|\n|, $raw_out );
 return { 'mode' => qw| false |, 'data' => 'no process data' }
     if not @out_lines;
 
-return { 'mode' => qw| size |, 'data' => join( "\n", @out_lines ) . "\n" };
+## parse before formatting rather than passing PowerShell's raw tab-joined  ##
+## text straight through -- a fixed-width table with an explicit rank makes ##
+## the [ already-descending ] sort order visible at a glance, which bare    ##
+## tabs of varying process-name length do not                               ##
+my @rows;
+for my $line (@out_lines) {
+    my ( $pid, $name, $ws_mb ) = split( m|\t|, $line );
+    push @rows,
+        {
+        pid   => $pid   // '',
+        name  => $name  // '',
+        ws_mb => $ws_mb // 0,
+        };
+}
 
-#,,,,,,.,,,..,,,.,..,,..,,.,,,,,.,,,,,,,.,,,,,..,,...,...,,..,,..,.,.,...,..,,
-#5HU36C7JPTISRUKOWIHADOYHQ3W2XREE2XZFL2HTL7ZZHIYNNGS45GOLUCIZ7HQYNTYQKGNX4GE6C
-#\\\|FRX4Y6XPRY6ZZIGTUUHXNYSRC6ZSLTUUVO5RU3LJQDTZHVWHM26 \ / AMOS7 \ YOURUM ::
-#\[7]LZM7NLLX557P2GLRWRV2FR2I3STSAYYU4VIU2KSKSM5GE5K5VOCY 7  DATA SIGNATURE ::
+## column widths sized off real content, not a guessed fixed width -- a     ##
+## Windows pid or a large working-set MB figure can legitimately run past a ##
+## hardcoded width [ confirmed live : a 5-digit pid did exactly that ],     ##
+## throwing every row after it out of alignment with the header             ##
+my $pid_width   = length(qw| pid |);
+my $name_width  = length(qw| name |);
+my $ws_mb_width = length(qw| ws-MB |);
+for my $row (@rows) {
+    $pid_width = length( $row->{'pid'} )
+        if length( $row->{'pid'} ) > $pid_width;
+    $name_width = length( $row->{'name'} )
+        if length( $row->{'name'} ) > $name_width;
+    $ws_mb_width = length( $row->{'ws_mb'} )
+        if length( $row->{'ws_mb'} ) > $ws_mb_width;
+}
+
+my @table;
+push @table,
+    sprintf(
+    '%3s  %*s  %-*s  %*s',
+    '#',        $pid_width,   qw| pid |, $name_width,
+    qw| name |, $ws_mb_width, qw| ws-MB |
+    );
+push @table,
+    '-' x ( 3 + 2 + $pid_width + 2 + $name_width + 2 + $ws_mb_width );
+
+my $rank = 0;
+for my $row (@rows) {
+    $rank++;
+    push @table,
+        sprintf(
+        '%3d  %*s  %-*s  %*s',
+        $rank,          $pid_width,   $row->{'pid'}, $name_width,
+        $row->{'name'}, $ws_mb_width, $row->{'ws_mb'}
+        );
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @table ) . "\n" };
+
+#,,,,,.,.,,.,,...,...,,..,,,.,...,,,.,,.,,,..,..,,...,...,..,,,.,,,.,,,,,,,,,,
+#HSHLJYI5XI45G4L5BJQDEUOUBK267BMXOFIULW6L4RQSKWPQBKG44QYLJ2MN374JIQC6XUPXLJXDQ
+#\\\|DYNQ5LUGGBBXZIUTULL77ATO3ZQWSWNFTNZD5WIAJDOJAI7AHON \ / AMOS7 \ YOURUM ::
+#\[7]PQSN27JOGMZ6CJWP7OCLWUXOMPAGQBGPBBZWDRFU2YYYQ3O3SWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
