@@ -41,15 +41,23 @@ my $load_cursor = sub {
 
 ## helper : persist cursor for a given idx ##
 my $persist_cursor = sub {
-    my ($cursor_idx) = @_;
+    my ( $cursor_idx, $cursor_state, $paused_reason ) = @_;
+    $cursor_state //= qw| running |;
     my $cursor_data = $load_cursor->();
 
-    $cursor_data->{$backend} = {
+    ## extension point : an optional 'template' field is reserved to sit ##
+    ## alongside filter/candidates here [ templated test workflows ] --  ##
+    ## unused until that work starts, do not write it yet                ##
+    my $entry = {
         filter     => $state->{'filter'} // qw| default |,
         candidates => $candidates,
         idx        => $cursor_idx,
         started    => $state->{'started'} // <[base.ntime]>,
+        state      => $cursor_state,
     };
+    $entry->{'paused_reason'} = $paused_reason
+        if defined $paused_reason and length $paused_reason;
+    $cursor_data->{$backend} = $entry;
 
     my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
     if ( length $yaml_str ) {
@@ -113,6 +121,54 @@ if ( $idx >= $total ) {
     $finish_sweep->();
     return;
 }
+
+## helper : circuit breaker -- classify the just-finished candidate's       ##
+## verdict via the crash-class tag now carried in its model_status detail [ ##
+## poll_switch / verify_inference_startup write sites ] and count           ##
+## CONSECUTIVE identical [ crash_class, exit_status ] signatures.           ##
+## in-memory, per-backend, never persisted -- reset on model-sweep-resume [ ##
+## a stale pre-fix count would re-trip instantly ] and on any non-matching  ##
+## outcome. trips ONLY on crash_before_ready :  crash_after_ready is        ##
+## plausibly N genuinely distinct bad models [ auto- halting on it is a     ##
+## false positive in the wrong direction ], and resource-insufficient       ##
+## returns before any spawn at all, so transient contention never produces  ##
+## a crash class to false-positive here                                     ##
+my $check_breaker = sub {
+    my ($checksum) = @_;
+    return '' if !length $checksum;
+
+    <coding.model_sweep_breaker> //= {};
+    my $bk = <coding.model_sweep_breaker>->{$backend}
+        //= { signature => '', count => 0 };
+
+    my $match       = '';
+    my $status_data = <coding.model_status> // {};
+    my $entry       = $status_data->{$checksum}{$backend};
+    if ( ref $entry eq qw| HASH |
+        and ( $entry->{'detail'} // '' )
+        =~ m{ \[ (crash_before_ready|crash_after_ready) \s+ exit=(\d+) \] }x )
+    {
+        $match = sprintf '%s exit=%d', $1, $2;
+    }
+
+    if ( length $match and $match =~ m{^crash_before_ready} ) {
+        if ( $bk->{'signature'} eq $match ) {
+            $bk->{'count'}++;
+        } else {
+            $bk->{'signature'} = $match;
+            $bk->{'count'}     = 1;
+        }
+        if ( $bk->{'count'} >= 3 ) {
+            return sprintf 'circuit-breaker : %dx %s', $bk->{'count'}, $match;
+        }
+    } else {
+        ## any non-matching outcome [ success, timeout, crash_after_ready, ##
+        ## or a different signature ] breaks the streak                    ##
+        $bk->{'signature'} = '';
+        $bk->{'count'}     = 0;
+    }
+    return '';
+};
 
 ## helper : initiate switch-test-restore for the current candidate ##
 my $start_candidate = sub {
@@ -200,6 +256,29 @@ my $start_candidate = sub {
 my $phase = $state->{'phase'} // qw| idle |;
 
 if ( $phase eq qw| idle | ) {
+    ## honor a pending pause request BEFORE issuing the next switch-model  ##
+    ## call -- this is the one point in time where "no more calls will be  ##
+    ## issued" is actually true [ the previous candidate's cycle already   ##
+    ## reached its terminal transition ]. persist at CURRENT idx [ not N+1 ##
+    ## : the next candidate never started, resume picks it up here ]       ##
+    if ( $state->{'pause_requested'} ) {
+        $state->{'pause_requested'} = FALSE;
+        $state->{'state'}           = qw| paused |;
+        $persist_cursor->( $idx, qw| paused |, $state->{'paused_reason'} );
+        <[base.logs]>->(
+            1,
+            '[model_sweep] %s : pause honored at idx=%d/%d : '
+                . 'cursor persisted [ state=paused ], timer cancelled',
+            $backend,
+            $idx,
+            $total
+        );
+        ## in-memory state deliberately stays DEFINED : cmd.model-sweep's ##
+        ## refusal and model-sweep-status distinguish paused from running ##
+        ## via it [ model-sweep-resume re-arms the timer ]                ##
+        $event->w->cancel if defined $event->w and $event->w->is_active;
+        return TRUE;
+    }
     $start_candidate->();
     $persist_cursor->($idx);
     return TRUE;
@@ -222,6 +301,33 @@ if ( $phase eq qw| waiting | ) {
         $state->{'idx'}       = $idx;
         $state->{'phase'}     = qw| idle |;
         $state->{'switch_id'} = '';
+
+        ## circuit breaker : read the verdict of the candidate that just    ##
+        ## finished [ the ONLY place per-candidate outcomes are observed in ##
+        ## this loop ]. auto-PAUSE on a trip, never cancel -- cancel clears ##
+        ## the cursor and destroys the frozen candidate list, which is      ##
+        ## exactly what the operator needs intact to resume after fixing    ##
+        ## the actual cause                                                 ##
+        if ( my $trip_reason
+            = $check_breaker->( $candidates->[ $idx - 1 ] // '' ) ) {
+            $state->{'state'}         = qw| paused |;
+            $state->{'paused_reason'} = $trip_reason;
+            $persist_cursor->( $idx, qw| paused |, $trip_reason );
+            <[base.logs]>->(
+                0,
+                '[model_sweep] %s : circuit breaker tripped at idx=%d/%d : '
+                    . '%s -- sweep auto-paused, resume with '
+                    . 'model-sweep-resume %s :force: after fixing the cause',
+                $backend,
+                $idx,
+                $total,
+                $trip_reason,
+                $backend
+            );
+            $event->w->cancel if defined $event->w and $event->w->is_active;
+            return TRUE;
+        }
+
         $persist_cursor->($idx);
         ## next tick will either start the next candidate or finish ##
         return TRUE;
@@ -244,8 +350,8 @@ if ( $phase eq qw| waiting | ) {
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,..,,,.,.,,,.,,,.,.,..,,.,,,,,,,..,,,.,,.,.,..,,...,...,..,,.,,,,..,..,,.,,,
-#OWCTSSU7WTMZOAU4IIWQWYR3R4GUOG6ZOC77IGCZ62J4Y3SNH4RF544XRYRPCH567UJ3BJQC6XDRY
-#\\\|HJMCFU6E3BQ47IXYMBBWWSOF4CF5IOE5GLZZHBLILIA34HRSJWG \ / AMOS7 \ YOURUM ::
-#\[7]ZSKS7GHK52PN3AKWDWXUT77X5KYNF4X6AENOMN4BYTOPCWVETWAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,,,,,..,,.,.,..,,,.,,,.,,,,.,..,,...,...,,.,,.,,,.,.,...,,,,,
+#BVWYVWKHFN64TIXGNAVVPHKZOUUOLS3JMZNAD4CYB6UVGWF4CN2IATXZXUIXIGFWCEKTGUTUC6RGY
+#\\\|QECW63MNPGE4ZFAV3UVSVVIOANDMNS4ZXC7MUCFBVRAPMW2SY3I \ / AMOS7 \ YOURUM ::
+#\[7]UKZJTPSBJLDRIQJVZ5MZWYX3PIVMNZBHXLT3LPCNWVPRCFO2SACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

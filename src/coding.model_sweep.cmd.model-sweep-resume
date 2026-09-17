@@ -1,0 +1,161 @@
+## [:< ##
+
+# name  = coding.model_sweep.cmd.model-sweep-resume
+# descr = resume a paused per-backend model sweep from its cursor
+# param = [backend] [filter tokens] [:force:]
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+## extract filter + force tokens using substitutive extraction, ##
+## order-independent [ same style as cmd.model-sweep ]          ##
+my $re_test_failed  = ( $args =~ s| *:re-test-failed: *| | );
+my $re_test_success = ( $args =~ s| *:re-test-success: *| | );
+my $force           = ( $args =~ s| *:force: *| | );
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $backend_arg = length $args ? $args : qw| both |;
+
+unless ( $backend_arg =~ m{^(gpu|cpu|both)$} ) {
+    return {
+        mode => qw| size |,
+        data => "Error: backend must be gpu, cpu, or both\n"
+    };
+}
+
+my @backends = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
+
+## filter label [ same derivation as cmd.model-sweep ] -- only enforced ##
+## when the operator actually named one : with no token given, resume   ##
+## continues the cursor's own filter as-is                              ##
+my $filter_given = ( $re_test_failed || $re_test_success ) ? TRUE : FALSE;
+my $filter_str;
+if ( $re_test_failed && $re_test_success ) {
+    $filter_str = qw| full |;
+} elsif ($re_test_failed) {
+    $filter_str = qw| re-test-failed |;
+} elsif ($re_test_success) {
+    $filter_str = qw| re-test-success |;
+} else {
+    $filter_str = qw| default |;
+}
+
+## load the persisted cursor once ##
+my $cursor_file   = 'state/model_sweep_cursor.yaml';
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my @lines;
+
+for my $backend (@backends) {
+    ## an actively running [ not paused ] sweep is not "resumed" ##
+    my $active = <coding.model_sweep_state>->{$backend};
+    if ( defined $active and ref $active eq qw| HASH | ) {
+        my $st = $active->{'state'} // qw| running |;
+        if ( $st ne qw| paused | ) {
+            push @lines,
+                sprintf '%s : already running [ nothing to resume ]',
+                $backend;
+            next;
+        }
+    }
+
+    my $existing = $cursor_data->{$backend} // {};
+    my $total    = scalar( @{ $existing->{'candidates'} // [] } );
+    if (   ref $existing ne qw| HASH |
+        or !$total
+        or ( $existing->{'idx'} // 0 ) >= $total ) {
+        push @lines, sprintf '%s : no resumable cursor', $backend;
+        next;
+    }
+
+    ## same filter-matching rule as cmd.model-sweep's restart-resume : ##
+    ## refuse on a mismatch                                            ##
+    if ( $filter_given
+        and ( $existing->{'filter'} // qw| default | ) ne $filter_str ) {
+        push @lines,
+              sprintf '%s : cursor filter=%s does not match requested '
+            . 'filter=%s -- re-run without a filter token to '
+            . 'resume as-is',
+            $backend, $existing->{'filter'} // qw| default |, $filter_str;
+        next;
+    }
+    my $resume_filter = $existing->{'filter'} // qw| default |;
+
+    ## a circuit-breaker pause [ paused_reason recorded ] requires explicit ##
+    ## acknowledgement via :force: -- resuming blind is exactly how the     ##
+    ## remaining candidates get burned on the same bad data a second time   ##
+    my $why = $existing->{'paused_reason'} // '';
+    if (    ( $existing->{'state'} // '' ) eq qw| paused |
+        and length $why
+        and !$force ) {
+        push @lines,
+            sprintf '%s : paused by %s -- refusing to resume without :force: '
+            . '[ fix the cause first, then : model-sweep-resume '
+            . '%s :force: ]',
+            $backend, $why, $backend;
+        next;
+    }
+
+    ## reset the in-memory breaker streak : a stale pre-fix count would ##
+    ## re-trip instantly on the first post-resume verdict               ##
+    delete <coding.model_sweep_breaker>->{$backend};
+
+    ## re-arm in-memory state from the persisted cursor ##
+    <coding.model_sweep_state>->{$backend} = {
+        backend    => $backend,
+        candidates => $existing->{'candidates'},
+        idx        => $existing->{'idx'} // 0,
+        filter     => $resume_filter,
+        started    => $existing->{'started'} // <[base.ntime]>,
+        switch_id  => '',
+        phase      => qw| idle |,
+        state      => qw| running |,
+    };
+
+    ## persist the state transition [ drops paused_reason ] ##
+    $cursor_data->{$backend} = {
+        filter     => $resume_filter,
+        candidates => $existing->{'candidates'},
+        idx        => $existing->{'idx'}     // 0,
+        started    => $existing->{'started'} // <[base.ntime]>,
+        state      => qw| running |,
+    };
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_sweep] failed to persist cursor file [ %s ]',
+            $cursor_file
+            );
+    }
+
+    <[event.add_timer]>->(
+        {   'interval' => 1,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.model_sweep.handler.poll_sweep |,
+            'data'     => { backend => $backend },
+            'desc'     => "model-sweep $backend"
+        }
+    );
+
+    push @lines,
+        sprintf '%s : resumed [ idx=%d/%d, filter=%s ]%s',
+        $backend,
+        $existing->{'idx'} // 0,
+        $total,
+        $resume_filter,
+        ( $force && length $why ? ' [ forced past breaker pause ]' : '' );
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,,.,,...,,,.,..,,..,,..,,.,.,.,,,..,,.,.,.,.,...,...,..,,,,,,...,,.,,.,,,
+#VPA2MNNXDDJNM7RTA3CDIPINHXXR4MSHS7L6ZS5XSRDTCMHEVCRFOJXROWB7GILMKY43THC3COWMM
+#\\\|GZ2GDVKA6I7BYH6NPI5K4VCQ7NVLBWYJAA3FL775WXKZSMJU3NK \ / AMOS7 \ YOURUM ::
+#\[7]7XCYWE3FARXXOWMFCYQCKEBBY6ZDDUAJZTKI6S6SMR5LV6VVCQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
