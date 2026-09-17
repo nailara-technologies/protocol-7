@@ -1,10 +1,9 @@
 ## [:< ##
 
-# name  = task: model-sweep cool-down auto-resume -- gpu (mirror existing) + cpu (new, best-effort)
+# name  = task: model-sweep cool-down auto-resume -- /proc/loadavg, uniform for both backends
 # descr = auto-resume a sweep paused with paused_reason=yield-timeout once
-#         the backend has genuinely physically cooled back toward idle
-#         baseline, instead of requiring a human to notice and issue
-#         model-sweep-resume <backend> :force:
+#         the SYSTEM has genuinely gone quiet, instead of requiring a
+#         human to notice and issue model-sweep-resume <backend> :force:
 
 ## why now
 
@@ -13,95 +12,99 @@ gate (see [[reference-model-sweep-yield-300s-cap-not-stream-aware]]) uses
 a flat 300s wall-clock cap with zero awareness of whether the real task
 activity it's waiting on is actually healthy -- a legitimately long but
 actively-streaming task (confirmed live: self-test/switch probe chunks
-climbing 996->2402->2867->3330, genuinely alive) tripped the cap anyway
-and paused the gpu sweep, needing a manual `:force:` resume mid-session.
+climbing steadily into the thousands, genuinely alive, extending its own
+timeout correctly) tripped the cap anyway and paused the sweep, needing a
+manual `:force:` resume mid-session. happened twice in one session.
 
-the fix direction, proposed by the user and grounded in an EXISTING,
-already-shipped, already-live-tested precedent:
-`data/tasks/completed/task-zenka-cold-queue-gpu-cooldown-trigger.md`
-(task zenka, 2026-07-21/22) built exactly this shape already for a
-different purpose (deferring summary-of-summary background work) --
-GPU temperature cooling back to a measured idle baseline is a
-physically-grounded, self-smoothing idle signal that a queue-depth
-check structurally cannot be (thermal mass integrates recent activity;
-a queue can go from busy to empty in zero time with no such smoothing).
-that task's own writeup makes the case in detail, read it first.
+## design history -- read before "improving" this, don't re-litigate
 
-## scope -- two halves, different confidence levels
+first explored GPU temperature (already-shipped precedent:
+`data/tasks/completed/task-zenka-cold-queue-gpu-cooldown-trigger.md`,
+task zenka, 2026-07-21/22 -- landed, live-tested, a real, physically-
+grounded idle signal for a different purpose) and a CPU-temperature
+equivalent. **CPU temperature was investigated extensively and ruled
+out for this host, don't re-attempt it:**
+- WSL2 (this host, Linux guest side): confirmed zero cpu temp sensors --
+  `sensors` reports "No sensors found!", no `/sys/class/thermal/
+  thermal_zone*`, empty `/sys/class/hwmon/*`.
+- Windows host side, via the `powershell` zenka
+  (`powershell.exec` + a new STRM feed mirroring
+  `powershell.cmd.pointer-stream`'s already-proven shape was a real,
+  buildable option architecturally): native WMI
+  (`root/wmi` `MSAcpi_ThermalZoneTemperature`) returns "Access denied"
+  -- confirmed the querying process is not elevated
+  (`IsInRole(Administrator) = False`). `FanControl` IS running on this
+  host and DOES have real sensor data (embeds `LibreHardwareMonitorLib.dll`
+  directly, confirmed on disk at `/mnt/c/Program Files (x86)/FanControl/`)
+  but exposes it only via an internal, undocumented GUI<->Service IPC
+  (`FanControl.IPC.dll`, gRPC-over-named-pipes) -- not a public API, not
+  worth reverse-engineering. Neither standalone LibreHardwareMonitor nor
+  OpenHardwareMonitor's WMI namespaces exist on this host at all.
+  **Root cause of the whole dead end: temperature sensor access on
+  Windows generically needs elevated/driver-level privileges** -- exactly
+  why FanControl itself ships a separate `FanControl.Service.exe` rather
+  than running its own GUI elevated. Getting real CPU temp here would
+  need either an elevated scheduled task or installing+running
+  standalone LibreHardwareMonitor as its own service -- both real host-
+  config changes, explicitly deferred, not blocking this task.
 
-### half 1: gpu cool-down auto-resume -- mirror existing infra, no new subscription
+**user's own pivot, this task's actual scope**: for THIS new sweep-
+auto-resume mechanism specifically, defer temperature entirely -- INCLUDING
+the GPU-temp-based trigger design floated earlier in this same
+discussion for this same new feature (coding already has the temp
+buffer, would have been easy to build) -- in favor of `/proc/loadavg`,
+uniformly for both backends, explicit decision. **This does NOT touch,
+replace, or deprecate the existing, separately-shipped
+`task.handler.cold-queue-sweep` feature** (task zenka, landed
+2026-07-21/22, gates that zenka's own summary-of-summary background
+work) -- that is a different zenka, a different config namespace, a
+different feed subscription, and a different purpose; it is not
+mentioned anywhere else in this task file and stays completely as-is.
 
-the coding zenka ALREADY subscribes to the same feed the cold-queue
-task used (`X-11.gpu_metric`) for its own timeout-stretch feedback
-loop -- `coding.handler.gpu_temp_update` maintains
-`<coding.stats.gpu.temp.load_1s>` / `<coding.stats.gpu.temp.load_5s>`
-already, live, right now. this half needs NO new subscription, unlike
-the original task-zenka version which had to build one from scratch --
-just a new consumer of data that already exists in this same zenka.
+The kernel's own 1/5/15-
+min exponential decay gives the exact same "free smoothing from physical
+accumulation" property that made GPU temp attractive in the first place
+(a queue-depth check structurally can't have it -- it can go from busy to
+empty in zero time with no smoothing) -- loadavg already IS the smoothed
+signal, no `base.balanced-average` layering needed on top of it (that
+helper is for smoothing genuinely noisy per-sample deltas like
+`system.cpu-load`'s percent-busy figure, which loadavg's kernel-side
+decay already makes unnecessary here). Also simpler to implement than
+either temperature path: `/proc/loadavg` is a plain file read, same
+technique `v7-zenki.sub-process.get_ppid` already uses for
+`/proc/<pid>/status` -- no new access.zenki grant, no cross-zenka round
+trip, no dependency on X-11/GPU-specific infrastructure at all.
+
+## scope
 
 add a small watcher (timer, ~15-30s interval, mirroring
-`task.handler.cold-queue-sweep`'s own sweep-timer shape) that:
+`task.handler.cold-queue-sweep`'s own sweep-timer shape) in the coding
+zenka that:
+
 1. only runs at all when at least one backend's model-sweep state is
    `paused` with `paused_reason eq 'yield-timeout'`
-   (`<coding.model_sweep_state>->{$backend}`)
-2. for the gpu case: checks `<coding.stats.gpu.temp.load_5s>` against
-   a new `<coding.cfg.gpu_cold_temp_c> //= 57` (reuse the exact,
-   already-empirically-tuned value from the landed task -- same
-   hardware, same host, no reason to re-derive it)
-3. once cool [ sustained, not a single sample -- mirror the existing
-   task's own "not a single noisy sample" requirement, use the same
-   5s-average field it already does ], call
-   `<[coding.model_sweep.cmd.model-sweep-resume]>` (or route through
-   `cube.coding.model-sweep-resume` the same way other internal
-   callers do, check which is correct for an in-zenka call) with
-   `:force:` for that backend, logging clearly that this was an
-   automatic cool-down resume, not a manual one -- so it's
-   distinguishable in logs from a human-issued `:force:`
-
-this half is directly testable live on this host (WSL2, confirmed the
-`X-11.gpu_metric` feed is real and already flowing).
-
-### half 2: cpu cool-down auto-resume -- new infrastructure, best-effort, UNTESTABLE on this host
-
-**confirmed 2026-09-17: this exact host (WSL2) has ZERO cpu temperature
-sensors exposed** -- `sensors` reports "No sensors found!",
-`/sys/class/thermal/thermal_zone*` doesn't exist,
-`/sys/class/hwmon/*` is empty. This is expected: WSL2's VM layer
-doesn't pass real hardware thermal sensors through to the guest. **the
-cpu half of this task cannot be live-verified on this deployment at
-all** -- only the "gracefully absent, falls back correctly" path can
-be tested here. the "actually triggers on real cool-down" path needs a
-bare-metal or better-virtualized host to confirm, whenever one is
-available.
-
-build it anyway, defensively, exactly as generically as the gpu half:
-1. a one-time (or cached, re-probed occasionally) availability check:
-   try `/sys/class/thermal/thermal_zone*/type` for a zone whose type
-   looks like a real cpu package sensor (commonly `x86_pkg_temp` or
-   `coretemp`, varies by kernel/hardware -- don't hardcode one exact
-   string, check a few known patterns), reading the paired `.../temp`
-   file (millidegrees C, divide by 1000). if nothing matches, cpu temp
-   is simply unavailable -- record that once, don't re-probe every
-   tick.
-2. if unavailable: the cpu backend's yield-timeout pause gets NO
-   automatic cool-down resume -- stays exactly as it is today, manual
-   `:force:` required. this must be silent/expected, not a warning
-   spammed on every sweep tick -- log the unavailability ONCE, not
-   repeatedly.
-3. if available: same shape as the gpu half -- a new
-   `<coding.cfg.cpu_cold_temp_c>` config value (no existing tuned
-   number to reuse here, needs a real default AND a note that it will
-   likely need live retuning on whatever host actually has cpu temp,
-   the same way the gpu number needed retuning from an initial guess
-   of 45 to a measured 57), sustained-not-single-sample check, same
-   auto-`:force:`-resume call.
-
-**hard requirement**: half 2's absence-detection path must be exercised
-live on THIS host as part of verification (confirm it correctly detects
-"no cpu temp available" and does nothing destructive/noisy), even
-though the presence path cannot be. don't claim half 2 is "done and
-verified" without being explicit that only the absence path was
-actually exercised.
+   (`<coding.model_sweep_state>->{$backend}`) -- for EITHER backend, gpu
+   or cpu, the same check either way, no backend-specific branching
+   needed since the signal (system loadavg) isn't backend-specific
+2. reads `/proc/loadavg` directly (first field, the 1-minute average --
+   confirmed live this session: real host values seen both ~8.x under
+   heavy concurrent gpu+cpu sweep load and would be near 0 genuinely
+   idle; pick the actual threshold from a real idle-floor measurement
+   the same way the gpu-temp precedent did [ that task's initial guess
+   of 45C was wrong, measured idle floor was 59-61C -- don't just guess
+   a number here either, measure this host's genuine idle loadavg first ]
+3. new config value `<coding.cfg.cold_loadavg_threshold> //= <measured>`
+   -- do the live measurement before picking a default, exactly like the
+   gpu-temp precedent's own retuning note
+4. once below threshold [ a single `/proc/loadavg` read already reflects
+   the kernel's own decayed average, so a single fresh read genuinely is
+   "sustained low", not a noisy instant sample the way a raw queue-depth
+   check would be -- confirm this reasoning holds before skipping any
+   additional debounce, don't assume without checking ], call
+   `model-sweep-resume <backend> :force:` for every backend currently
+   paused on `yield-timeout`, logging clearly that this was an automatic
+   cool-down resume, not a manual one -- distinguishable in logs from a
+   human-issued `:force:`
 
 ## explicitly out of scope
 
@@ -112,36 +115,30 @@ actually exercised.
   entered.
 - `coding.helper.backend_idle` (the queue-depth/lock-based idle check
   used for the initial yield decision, before the 300s cap) -- untouched,
-  out of scope. this task is specifically about auto-resuming a PAUSED
-  sweep, not changing the yield gate itself.
-- the task zenka's own `task.handler.cold-queue-sweep` -- a separate
-  zenka, separate config namespace, separate feed subscription. this
-  task builds coding's own independent consumer of data coding already
-  has (gpu) or new data coding doesn't yet read at all (cpu); it does
-  not touch or coordinate with the task zenka's existing feature.
-- reworking `check_resource_fit`, `calculate_safe_context`,
-  `get_children`, `pid_alive`, `gone_child`, or anything else touched
-  earlier the same session -- all separately committed and working,
-  don't re-investigate.
+  out of scope.
+- ANY temperature-based approach, gpu or cpu -- see design history above,
+  deliberately deferred for uniformity, don't reintroduce without a fresh
+  explicit decision.
+- the task zenka's own `task.handler.cold-queue-sweep` -- separate zenka,
+  separate config namespace, not touched or coordinated with.
+- `check_resource_fit`, `calculate_safe_context`, `get_children`,
+  `pid_alive`, `gone_child`, the `access.zenki` grant fix, or anything
+  else touched earlier the same session -- all separately committed and
+  working, don't re-investigate.
 
 ## verification
 
-- gpu half: live-testable. trigger a real yield-timeout pause (or wait
-  for one to occur naturally during a long real task), confirm the new
-  watcher correctly auto-resumes once gpu temp genuinely drops below
-  threshold, sustained -- not on a single noisy low sample.
-- cpu half: only the absence-detection path is testable here. confirm
-  it correctly identifies no cpu temp is available, logs that once (not
-  per-tick), and the cpu sweep's yield-timeout pause continues to
-  require manual `:force:` exactly as it does today -- no regression to
-  the existing, working manual-resume path.
-- `bin/format-code -c` on every touched/new file. leave the tree
-  uncommitted, report back with what changed and how each half was
-  actually verified (be explicit about the half-2 testing limitation
-  in the report, don't imply more was confirmed than was).
+fully live-testable on this host, no elevation/hardware-dependency
+caveat this time: trigger a real yield-timeout pause (or wait for one
+during a long real task -- happened twice already this session without
+any deliberate triggering), confirm loadavg genuinely drops post-pause
+(the paused sweep itself stops generating load, so this should be
+observable), confirm the new watcher correctly auto-resumes once below
+threshold. `bin/format-code -c` on every touched/new file. leave the
+tree uncommitted, report back with what changed and how it was verified.
 
-#,,..,.,,,,.,,,..,..,,,.,,.,.,.,.,,,.,...,.,,,.,.,...,...,.,,,..,,.,,,...,..,,
-#ITOUSXAUDRVV5NPGIJWOGFDFZNXTSOEQS26KIZKKOTKNAVXJRUN5MN2VRMU3VE5ZATT37BGLMMMMM
-#\\\|ZPXHW2CHCMP7OVQXXTE5EKUTSJY4JWIVHLRD6KTVHYOBD2WTS7B \ / AMOS7 \ YOURUM ::
-#\[7]DA7IIWMH5XS5WMRQNXFHZZK46NE7MG2N6E3EOUFD3SEQ7RG4VIBI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,,,.,,,.,,,,,,..,.,,,.,,,,,.,.,.,...,...,,,,,,,,,..,,,,,,...,
+#4QATCBGJD2KC3S6YBCJPOW6SYJ6UOWVXBW4K5TDTMEX2F2WFLZOVK4BSWQA5CLHKYLK7FCT46OG2K
+#\\\|GQ7GFTHZWWOQELS6ILR3PTFU5VUULSDNY4NHX3K4CRB7YIXMAH6 \ / AMOS7 \ YOURUM ::
+#\[7]YFXYY7G4H3FXTJZKU5RXUTY6JIXKOP6PT4N2RKLSMOIVLXLIWQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
