@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = coding.model_sweep.handler.cooldown_resume
+# descr = timer-driven auto-resume : when a backend's model sweep is paused
+#         with paused_reason=yield-timeout, resume it [ :force: past the
+#         yield-timeout gate ] once /proc/loadavg's 1-min average drops
+#         below the cold threshold -- no human needs to notice and issue
+#         model-sweep-resume <backend> :force: manually
+
+## only runs at all while at least one backend sits paused on yield-timeout ##
+my @backends = grep {
+    my $state = <coding.model_sweep_state>->{$ARG} // {};
+    ref $state eq qw| HASH |
+        and ( $state->{'state'}         // '' ) eq qw| paused |
+        and ( $state->{'paused_reason'} // '' ) eq qw| yield-timeout |;
+} qw| gpu cpu |;
+
+return TRUE if not @backends;
+
+## single fresh read of the kernel's own 1-min decayed average -- the       ##
+## exponential decay means one read already IS "sustained low", not a noisy ##
+## instant sample the way a raw queue-depth check would be, so no extra     ##
+## debounce layer is needed on top [ the same free-smoothing property that  ##
+## made the task zenka's gpu-temp buffer attractive, delivered by the       ##
+## kernel itself ]. same plain /proc read technique as                      ##
+## v7-zenki.sub-process.get_ppid, no new access grant needed                ##
+my $loadavg_sref = <[file.slurp]>->(qw| /proc/loadavg |);
+
+my $load_line
+    = ( defined $loadavg_sref and ref $loadavg_sref eq qw| SCALAR | )
+    ? $$loadavg_sref
+    : '';
+
+my ($load_1min) = split m| +|, $load_line;
+
+if ( !defined $load_1min or $load_1min !~ m{^\d+(?:\.\d+)?$} ) {
+    <[base.logs]>->(
+        0,
+        '[model_sweep] cooldown auto-resume : '
+            . 'unparsable /proc/loadavg [ %s ] -- skipping tick',
+        $load_line
+    );
+    return TRUE;
+}
+
+## default 2.0 picked from a genuine idle-floor measurement on this host : ##
+## 0.11-0.18 with both sweeps paused and no tasks running [ 2026-09-17 ]   ##
+## versus ~8 under dual gpu+cpu sweep load [ same measure-before-          ##
+## defaulting discipline as the task zenka's gpu-temp precedent -- its     ##
+## initial 45C guess was wrong, floor was 59-61C ] -- override with a      ##
+## coding.cfg.cold_loadavg_threshold config line if the host's idle floor  ##
+## changes                                                                 ##
+my $threshold = <coding.cfg.cold_loadavg_threshold> //= 2.0;
+
+return TRUE if $load_1min >= $threshold;
+
+<[base.logs]>->(
+    1,
+    '[model_sweep] cooldown auto-resume : loadavg %s below cold threshold %s '
+        . '-- automatic cool-down resume of %d yield-timeout paused sweep(s) '
+        . '[ not a human-issued :force: ]',
+    $load_1min,
+    $threshold,
+    scalar @backends
+);
+
+for my $backend (@backends) {
+    my $result = eval {
+        <[coding.model_sweep.cmd.model-sweep-resume]>
+            ->( { args => "$backend :force:" } );
+        1;
+    };
+    if ( !$result ) {
+        my $err = $@ || 'unknown error';
+        <[base.logs]>->(
+            0,
+            '[model_sweep] cooldown auto-resume '
+                . ': %s : resume call failed : %s',
+            $backend,
+            $err
+        );
+    } else {
+        <[base.logs]>->(
+            1, '[model_sweep] cooldown auto-resume : %s : auto-resumed',
+            $backend
+        );
+    }
+}
+
+return TRUE;
+
+#,,..,,,.,..,,,.,,,,,,.,,,,,,,,,.,,,,,...,,..,..,,...,...,,..,.,.,..,,,,.,,,.,
+#2DNVWFBNORIGVWF63VSYB4C7ET7QSDWUDVU4UDNITXY2YT7H4WFT5GXXMFE7EDZDH3UKMQAW4TQLW
+#\\\|VENXFXUWLTRBVKUFJX62SBETIYASSZOSWHFMSWSEIZFBO5YCO7X \ / AMOS7 \ YOURUM ::
+#\[7]DRNN3JD6Q2PIM2ICJYLWOW4EUWAGRB25H6BEI3URCZCB54SGY4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -682,6 +682,20 @@ if ( not $already_initialized ) {
         }
     );
 
+    ## model-sweep cooldown auto-resume : watch for yield-timeout pauses   ##
+    ## and resume them once /proc/loadavg drops below the cold threshold [ ##
+    ## mirrors task.handler.cold-queue-sweep's own sweep-timer shape -- a  ##
+    ## coding-side mechanism for the coding-side pause, the task zenka's   ##
+    ## cold-queue sweep stays completely as-is ]                           ##
+    <[event.add_timer]>->(
+        {   'after'    => 20,
+            'interval' => 20,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.model_sweep.handler.cooldown_resume |,
+            'desc'     => 'model-sweep cooldown auto-resume'
+        }
+    );
+
     ## subscribe to X-11 GPU stats stream if available -- deferred via      ##
     ## <system.callbacks.initialized>: resolve_primary_sid's own internal   ##
     ## route-send (for non-v7 zenki) fires before this zenka's own cube     ##
@@ -722,8 +736,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,.,.,,,.,.,,,..,,,,,,...,.,,,,,.,,.,,.,,,.,.,...,...,,.,,,.,,,..,.,,,.,.,
-#UGJJVTJTEEE3DFYP4BOFA6A6RS2AOPRBBADISUBUCCUXIA4UUNE2JEJTWHCPG7OHAIDMR63SI5ZYA
-#\\\|SZ6CPT4OQRCE4ZG2RSIUWTDKGK7WXB5HHH7KQNSQ3AVVQ7RFBHP \ / AMOS7 \ YOURUM ::
-#\[7]DOD62J5P6L7VLOW35KQDRXTM3VTP4SMZKTJUUHOZOXIQ44UHEQBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,.,,,,.,,,,.,,,,,.,,,,..,,,,,.,.,...,...,.,.,.,.,,,.,,.,,.,.,
+#BOSI3JERX63K2G3JUU2RGWOBRW7QAFK2NMYU4DGFBZP36JMJR2XJZPFZK2MYKXJIS45ZWUEIPNCCM
+#\\\|A72LLUBWI6HIC4ZMC27J4FHQDDONS3HNHUHAYMUYK6XB4LQTCZN \ / AMOS7 \ YOURUM ::
+#\[7]35ZTLGAEJPDHOLBB2C7BIMOLTZXPA6B5SVTZHVK37D5ZMTZ2JWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
