@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = coding.model_sweep.cmd.model-sweep-cancel
+# descr = permanently stop a per-backend model sweep
+# param = [backend]
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $backend_arg = length $args ? $args : qw| both |;
+
+unless ( $backend_arg =~ m{^(gpu|cpu|both)$} ) {
+    return {
+        mode => qw| size |,
+        data => "Error: backend must be gpu, cpu, or both\n"
+    };
+}
+
+my @backends = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
+
+## load the persisted cursor once ##
+my $cursor_file   = 'state/model_sweep_cursor.yaml';
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my @lines;
+my $changed = FALSE;
+
+for my $backend (@backends) {
+    my $state  = <coding.model_sweep_state>->{$backend};
+    my $cursor = $cursor_data->{$backend} // {};
+
+    my $had_state  = ( defined $state and ref $state eq qw| HASH | );
+    my $had_cursor = ( ref $cursor eq qw| HASH |
+            and @{ $cursor->{'candidates'} // [] } );
+
+    if ( !$had_state and !$had_cursor ) {
+        push @lines, sprintf '%s : no sweep to cancel', $backend;
+        next;
+    }
+
+    my $report = $had_state ? $state : $cursor;
+    my $idx    = $report->{'idx'} // 0;
+    my $total  = scalar( @{ $report->{'candidates'} // [] } );
+
+    ## dropping the in-memory state is sufficient : poll_sweep's next tick  ##
+    ## sees the missing state and cancels its own timer [ existing          ##
+    ## self-stop path ]. the IN-FLIGHT candidate, if any, is deliberately   ##
+    ## NOT aborted : poll_switch has its own independent timer and its own  ##
+    ## model_status.record call, so that candidate's verdict can still land ##
+    ## after cancel returns -- cancel means "no further candidates", not    ##
+    ## "nothing more will be written". for the same reason                  ##
+    ## <coding.self_test_switch_in_progress> is NOT cleared here : the      ##
+    ## in-flight cycle clears it itself when it resolves [ clearing early   ##
+    ## would wrongly un-suppress monitor_inference_startup's auto-          ##
+    ## self-test mid-cycle ]                                                ##
+    delete <coding.model_sweep_state>->{$backend};
+    delete $cursor_data->{$backend};
+    $changed = TRUE;
+
+    ## a cancelled sweep's breaker streak is meaningless ##
+    delete <coding.model_sweep_breaker>->{$backend};
+
+    push @lines,
+        sprintf '%s : cancelled [ was idx=%d/%d ] -- '
+        . 'cursor cleared, recorded results kept',
+        $backend, $idx, $total;
+}
+
+## persist the cleared cursor file once ##
+if ($changed) {
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_sweep] failed to persist cursor file [ %s ]',
+            $cursor_file
+            );
+    }
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,,,.,.,...,...,.,.,,..,.,,,,..,,,,,,,.,.,,,.,.,...,...,..,,,..,..,,,..,...,
+#IXFZEB72O4KKAGMZG2E63CEAV2Z3WSXV5X35LKRYYNZUFBRY553FXUAHY3KF5IRHSMN4MODQIZ32M
+#\\\|S4KYSTQGPVN7WHY2UGAYV6UHS2OQLLCNREJQ2LQLC25I6NO66M3 \ / AMOS7 \ YOURUM ::
+#\[7]AMZHFPC372YO44L7HDDHYFGWCAKS3MKTNGRFK6M6MT33OYIYLGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
