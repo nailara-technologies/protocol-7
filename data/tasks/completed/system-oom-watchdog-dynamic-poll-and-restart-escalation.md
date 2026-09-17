@@ -144,8 +144,21 @@ lookup's reply shape.
 - Re-implementing or auditing the existing v7-zenki pid-instance
   lookup -- see the "already built" note above.
 
-#,,..,.,.,..,,.,,,,,,,,,,,,,.,,,.,,..,,,.,.,,,.,.,...,...,,.,,,.,,.,,,.,,,.,.,
-#S72FDJ3NWIPTVQI4AXLWGXONN6INHA7W3HESNVUGE4DY7JGY2DMEZHIXFAJPKQZR5HSVOMPINKHTC
-#\\\|LRRZLQVUUCYO4RKEL4CLVNXYFR6Y2HC46GJB26MXIW7I5M4KN4Z \ / AMOS7 \ YOURUM ::
-#\[7]KQSLLISBQJSPL7LADBZTPXZH3CIYLCDRQ5XPEUWVFFKNEELF7EBQ 7  DATA SIGNATURE ::
+## status [ 2026-09-17 ] — DONE, live-verified, committed `f138268e4`
+
+all three scope items landed via kimi (k2.8) dispatch, same session:
+dynamic poll acceleration (`collect_table`), restart-then-terminate
+escalation memory (`pid-instance_response`), and the new
+`v7-zenki.zenka.cmd.pid-lookup` reverse pid->{instance_id,zenka_id,
+zenka_name} command. Live-verified against real pids. See
+[[bug-v7-zenki-get-children-registry-gap-2026-09-17]] for a separate,
+deeper bug found while live-verifying this (the underlying
+`get_children` resolution mechanism itself, fixed same session) and
+the access-control gap (`v7-zenki.gone_child` missing from
+`access.cmd.usr.coding`) found + fixed one task later.
+
+#,,,.,...,,,.,,,,,,.,,,,,,.,.,.,,,,,,,...,,.,,.,.,...,..,,.,,,..,,,,,,,.,,...,
+#OHGCAIZM7ILI6PQI3R3N2BAG7TVVYFS2OM64BTUGFLCJKYAMRYMTLFT7BU57YNX4XIYGDQ3G67QY4
+#\\\|B26BEOKFZTYAGNMNK3IJQZYDT367DS3IUMVIQX6IY6QLPXY26UM \ / AMOS7 \ YOURUM ::
+#\[7]YO474XMPZVQTFU2HTH75HOOGCUFIDOEPIWXIZF7IUJ6TJFSTUKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
