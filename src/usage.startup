@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = usage.startup
+# descr = post-drop-privs startup : arms both providers' proactive refresh
+#         watchdog timers for the first time
+# note  = called from cfg/zenki/usage/zenka.v7 directly, after
+#         [root.drop_privs] and [base.net.connect] -- same pattern
+#         'universal' zenka uses for its own [universal.startup]. exists
+#         because plugin.usage.kimi.init_code / plugin.usage.claude.
+#         init_code run during [init_modules], BEFORE the privilege drop --
+#         arming the watchdog timer there meant its first real fire read
+#         the credential directory under the wrong [ pre-drop ] home,
+#         confirmed live 2026-09-17 [ ENOENT, a path problem, not a
+#         permission one ]. each init_code still re-arms its own watchdog
+#         on a RELOAD [ guarded on <system.zenka.initialized>, already TRUE
+#         by the time a reload's init_code re-runs, still FALSE the first
+#         time init_code runs during the real boot this file's own call
+#         handles instead ] -- cancelling and reinstalling the timer rather
+#         than leaving a stale one running alongside a fresh duplicate
+
+## stored on the provider hash so a later RELOAD's init_code [ which does ##
+## re-run, unlike this file ] can find and cancel this exact timer before ##
+## installing its own fresh one, rather than leaving two running          ##
+<usage.provider.kimi>->{'watchdog_timer'} = <[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| plugin.usage.kimi.refresh_watchdog |,
+        'data'    => {},
+    }
+);
+
+<usage.provider.claude>->{'watchdog_timer'} = <[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| plugin.usage.claude.refresh_watchdog |,
+        'data'    => {},
+    }
+);
+
+<[base.log]>->( 1, ': usage.startup : proactive refresh watchdogs armed' );
+
+0;
+
+#,,,,.,.,,,,,,,,,,.,.,,,.,,,,.,..,,,,.,..,,,,,,..,,...,...,,.,,...,,,,,,,.,,.
+
+#,,,,,,..,,,.,,..,...,.,.,,.,,...,,,.,..,,.,.,..,,...,...,,,.,,.,,.,,,...,.,,,
+#FWQAFNPXMEWEBSZRJJZT2ZZ53ERO7MDJ3QQX4LFOG5VDWP3226XQFFIHXLEJ4OYGEKTDYIC3SF7XW
+#\\\|F5N3MJHQC2WLP4MLUABWEODQMOCGFL2ES5IQS26R2ZYYLQOG3DX \ / AMOS7 \ YOURUM ::
+#\[7]O5R5COWAIDO2HFWOTFWEZY2U6ZCSCIG275D6HJVRMBIYB77D3SCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
