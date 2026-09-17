@@ -94,8 +94,44 @@ context safely across the vram/ram split). **Do not re-enable "gate on
 system RAM only" for gpu without fixing calculate_safe_context's gpu
 branch first** -- the two must move together, not independently.
 
-#,,..,,,,,.,,,...,,,.,..,,,..,,.,,,,.,.,,,,,.,..,,...,...,...,..,,.,.,.,,,,.,,
-#UBDPQSOOBNJ62X52MQOWFIPHKUJHCNGPI7UFVKCABPLCE2DJJLMA3AMJ33JLVPMUNNGMGBI73ENEA
-#\\\|UTID653CHPKRMT6ZK3MVYTZUX64RFAA2L4HMFSJHOTZECIGOKG6 \ / AMOS7 \ YOURUM ::
-#\[7]DM2OPGRBZHHXBBJTBTSISCBSWIH4D3Q5O5I3DW6NXGNMETLLS2BQ 7  DATA SIGNATURE ::
+## third incident, same session, AFTER the VRAM-gate revert above
+
+Resumed the gpu sweep with the revert live -- still hit a real host
+OOM (98.76%), this time caught by `system` zenka's own memory-watchdog
+(killed the single highest-memory process, `llama-server-cu` at
+94.47%, no cascade this time). The candidate mid-load at the time,
+`67CDCIQ:PQEWXVI`, is a **vision-capable model with an mmproj file**
+(`huihui-ai/Huihui-Qwythos-9B-.../mmproj-model-bf16.gguf`).
+
+**Root cause, distinct from the partial-offload gap above**: every
+caller of `coding.helper.check_resource_fit` passed only the main
+model's `size_gb` -- the associated mmproj file's size was never
+included in the fit calculation anywhere, in either the gate
+(`check_resource_fit`) or its callers (`coding.model_sweep.cmd.
+model-sweep`'s candidate-list pre_filter, `coding.handler.spawn_smart`'s
+real per-spawn gate). For a vision model with a multi-GB mmproj, this
+systematically undercounts real footprint.
+
+**Fix applied**: `check_resource_fit` now takes an optional
+`mmproj_path` param and folds its file size into the model-size
+calculation; `spawn_smart` (the real per-spawn-attempt gate) now
+resolves and passes `mmproj_path` *before* calling `check_resource_fit`
+rather than after. `coding.model_sweep.cmd.model-sweep`'s coarser
+pre_filter candidate-list build was deliberately left mmproj-unaware
+for now -- it's a self-correcting optimism (a doomed vision candidate
+gets added to the list, then correctly rejected/marked
+`resource-insufficient` at the real spawn_smart gate instead of
+crashing), not a live safety gap like the one just fixed.
+
+**Known follow-up, deliberately deferred (per the user)**: LoRA
+adapters and embeddings are the same class of gap -- additional files
+loaded alongside a base model that `check_resource_fit` doesn't account
+for at all. Not an active risk right now (the sweep's self-test doesn't
+load either), but the next thing to fix if either ever gets loaded
+during an automated resource-fit-gated flow.
+
+#,,..,.,,,,..,,,,,,.,,,.,,,,.,...,.,.,.,.,,.,,..,,...,...,.,.,...,,,.,,,,,.,,,
+#UHZ2H3VR5MLI3VYJ6CXQXDWI2BCXRDP52GICV6D322FIAIW75STWSA7LIMM26E7EPA7J6DGMNOBRW
+#\\\|VVXMPAUYAUMAI5ZK3EZWAXBZKIBKCFK5B2H5ZOXOF4HXBRLSC2Y \ / AMOS7 \ YOURUM ::
+#\[7]P5AXYW75JGA2LY6VASL6UMKXZZLERUCOUWOJQSJVG74FTKCWSWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
