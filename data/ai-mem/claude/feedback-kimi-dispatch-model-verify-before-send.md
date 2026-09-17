@@ -30,14 +30,42 @@ actually necessary for a wrong-model catch.
 
 **How to apply:** before calling `kimi_dispatch`, check
 [[reference-kimi-k3-256k-model]] (or equivalent current model reference)
-for the right model string for the task's scope -- `kimi-code/k3-256k`
-for single/few-file well-scoped bug fixes and small features,
-`kimi-code/k3` (short alias `k3`) only for wide-context tasks (large
-multi-file sweeps, long log/session analysis, video input). If a wrong
-model is discovered after dispatch, at any point, use
-`session_catchup(client: "kimi")` to find the session UUID and
-`kimi_continue` with the corrected model -- do not `TaskStop` and
-re-dispatch.
+for the right model string for the task's scope. **STALE as of the
+2026-09-17 alias rename below -- don't follow the old `k3-256k`-vs-bare-`k3`
+split literally, read the rename note first.** If a wrong model is
+discovered after dispatch, at any point, use `session_catchup(client:
+"kimi")` to find the session UUID and `kimi_continue` with the corrected
+model -- do not `TaskStop` and re-dispatch.
+
+**ROOT-CAUSE FIXED 2026-09-17, same session, commit `e9f78a211`**: the bare
+`k3` alias now means the 256k-ceiling variant; the expensive full-context
+one is now explicitly named `k3-1m`. This wasn't just a config tweak --
+per the user, it fixes the actual mechanism behind every recurrence below.
+The recurring mistake was never really "forgot to check context size
+separately from reasoning quality" (a discipline/memory framing) -- it's
+that reaching for "k3" is a *reasoning-quality* thought ("this needs
+k3-tier correctness"), and the old naming silently smuggled a *context-size*
+commitment into that same word, with nothing about the name itself
+signaling that coupling. **General principle, stated directly by the
+user: align a mnemonic to the natural thought flow that reaches for it,
+don't design safety to depend on remembering an unstated fact.** The
+fix is naming, not a checklist: the option someone reaches for by default
+(bare `k3`, thinking "quality") is now the cheap one, and the expensive
+outlier has to be named explicitly enough (`k3-1m`) that picking it is a
+deliberate act, not an accident of the natural mnemonic. Also worth
+noting: fixing this doesn't recover the tokens already lost to past
+recurrences -- but it's not merely "worth it going forward" in the
+abstract either. Every session between when this was first noticed and
+when the rename actually landed paid the same tax again; the savings
+compound with how early the real fix lands, not just whether it
+eventually does. See [[feedback-fix-immediately-reduces-cognitive-load]]
+for the same point made more generally.
+
+Current, correct guidance post-rename: bare `k3` (or `k3-256k`, still a
+working explicit alias) for anything correctness-critical regardless of
+file count -- it's the default, cheap-by-design option now. `k3-1m` only
+when context genuinely exceeds 256k or video input is needed -- deliberately
+the unambiguous, harder-to-reach-for name for the expensive path.
 
 **RECURRED 2026-09-17**: dispatched a ~7-file, task-doc-driven
 implementation (a coding-zenka state-machine extension) on plain `k3`,
@@ -62,8 +90,8 @@ reverse) purely because the model differs from the last call --
 only worry about it if context has actually grown past the smaller
 ceiling.
 
-#,,.,,.,.,,.,,,,,,,.,,,..,.,.,,,,,,,.,,.,,,..,..,,...,...,,..,.,,,,..,,,.,,,.,
-#QVXJ3BMT7GCJVPVXLLNAPEJRZRHGNKDND3IKKHE4YVOMHRILFRZK4R6JYKV3MO7CEMQJZ5QCE6SDS
-#\\\|PAVLC4SZZ3CLVUIRGUNAEU2WW3TT2N4OODVF4BBV2NTYE65KUVR \ / AMOS7 \ YOURUM ::
-#\[7]OJ35YPPG23ZL52RKNC5F476DIAYMH25QZWPQ53E5D46WWODKG4DI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,..,,,,.,,..,.,.,..,,...,,..,..,,...,...,...,,.,,,.,,,,.,.,,,
+#AIHX4HHAB4V2Q7PI5JYHRH26O6QQ6CFVZQ3XOLD57PY25SADYMGW62UFJBKMC5RS6EQ77IVGJIZK4
+#\\\|63E2FPRQ7WM637GXX44ZLDN4KJTOC53CT7OLQS65GJK572N2QGY \ / AMOS7 \ YOURUM ::
+#\[7]CPATCC3ILVFHZGKA4QWOHLGVGTK3P5X6IAIWHH6YCT3SIO5RACBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
