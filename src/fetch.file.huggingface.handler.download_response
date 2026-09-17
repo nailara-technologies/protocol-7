@@ -1,0 +1,207 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.download_response
+# descr = streaming download completion callback : follow redirects,
+#         then feed the existing hash_state / status state machine
+#         [ drop-in replacement for the old wget-child waitpid role ]
+
+my $data   = shift;
+my $params = $data->{'params'}  // {};
+my $dl_id  = $params->{'dl_id'} // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $status   = $data->{'status'}  // 0;
+my $headers  = $data->{'headers'} // {};
+my $ok       = $data->{'ok'};
+my $reply_id = $dl->{'reply_id'} // '';
+my $dest     = $dl->{'dest'};
+
+## redirect handling : huggingface.co /<repo>/resolve/... answers 302 to    ##
+## the CDN carrying the real bytes -- the wget/aria2c children followed     ##
+## these transparently, so the native transport must too. same tracking     ##
+## entry, fresh request : the new stream_to_file open truncates the partial ##
+## file, so every hop effectively restarts from scratch [ v1 scope ]        ##
+if (    $status >= 300
+    and $status < 400
+    and length( $headers->{'location'} // '' ) ) {
+    my $max_redirects = 5;
+    if ( ( $dl->{'redirects'} // 0 ) < $max_redirects ) {
+        my $location = $headers->{'location'};
+
+        ## scheme-relative location ##
+        $location = "https:$location" if $location =~ m{\A //}x;
+
+        ## path-relative location : resolve against the previous url ##
+        if ( $location !~ m{\A https?:// }x ) {
+            my $base = $dl->{'url'} // '';
+            $location = ( $base =~ m{\A (https?://[^/]+) }x )[0] . $location;
+        }
+
+        $dl->{'url'} = $location;
+        $dl->{'redirects'}++;
+
+        <[base.logs]>->(
+            1,                  "[hf.fetch] following redirect #%d -> %s",
+            $dl->{'redirects'}, $location
+        );
+
+        ## note : progress timer stays running across hops [ status remains ##
+        ## 'downloading' ], only the final response below cancels it        ##
+        <[huggingface.start_download]>->($dl_id);
+        return;
+    }
+
+    <[base.logs]>->(
+        0,
+        "[hf.fetch] too many redirects [%d] for %s",
+        $dl->{'redirects'} // 0,
+        $dl->{'url'}       // ''
+    );
+}
+
+## cancel the progress log timer -- final response reached ##
+my $timer = delete $dl->{'timer'};
+$timer->cancel if defined $timer;
+
+if ( not $ok ) {
+    $dl->{'status'} = qw| error |;
+    unlink($dest) if -f $dest;
+
+    <[base.logs]>->(
+        0, "[hf.fetch] download failed: %s [%s]",
+        $dest, ( $data->{'error'} // "http status $status" )
+    );
+
+    if ( length $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| false |,
+                'data' => sprintf( 'download failed: %s',
+                    ( $data->{'error'} // "http status $status" ) )
+            }
+        );
+    }
+
+    ## resume idle-shutdown tracking, paired with the pause in            ##
+    ## fetch.file.huggingface.download -- only once EVERY tracked flow is ##
+    ## terminal [ see fetch.file.huggingface.resume_idle ]                ##
+    <[huggingface.resume_idle]>->();
+    return;
+}
+
+## success : bytes are on disk -- now feed the SAME verification state    ##
+## machine the wget-child path used [ hash_state pending -> ok | failed | ##
+## non-lfs ], so download_progress's hash_state branching consumers [     ##
+## huggingface.verify.* ] keep working unchanged                          ##
+my $size = $data->{'size'} // ( -f $dest ? ( -s $dest ) : 0 );
+$dl->{'downloaded'} = $size;
+
+my $now     = <[base.time]>->(3);
+my $elapsed = $now - ( $dl->{'start_time'} // $now );
+$dl->{'speed'} = sprintf( '%.2f',
+    ( $elapsed > 0 ? ( $size / $elapsed ) : 0 ) / ( 1024**2 ) );
+
+my $succeeded = -f $dest;
+
+my $hash_state = $dl->{'hash_state'} // qw| pending |;
+
+if ( $succeeded and $hash_state eq qw| ok | ) {
+    ## expected sha256 already in hand -> fork the verify child.  reply is  ##
+    ## sent by huggingface.handler.verify_progress once the hash comparison ##
+    ## lands. idle-shutdown stays paused for the verify child, resumed by   ##
+    ## the verify path.                                                     ##
+    $dl->{'status'} = qw| verifying |;
+    <[huggingface.verify.start]>->($dl_id);
+    return;
+} elsif ( $succeeded and $hash_state eq qw| failed | ) {
+    ## the expected hash genuinely could not be obtained -- this is NOT "no ##
+    ## verification needed". NEVER fall through to a bare transfer-ok       ##
+    ## success path : that is the exact silent-acceptance hole the          ##
+    ## verification layer exists to close                                   ##
+    $dl->{'status'} = qw| unverified |;
+    <[base.logs]>->(
+        0,
+        "[hf.fetch] UNVERIFIED: %s -- expected sha256 could not "
+            . "be fetched after %d attempt(s); NOT marking complete",
+        $dest,
+        $dl->{'hash_attempts'} // 0
+    );
+    if ( length $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| false |,
+                'data' => "download UNVERIFIED: expected sha256 unavailable "
+                    . "after retries -- not marked complete"
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+    return;
+} elsif ( $succeeded and $hash_state eq qw| non-lfs | ) {
+    ## small non-LFS file : no published sha256 exists [ git blob SHA1  ##
+    ## scheme deliberately out of scope ] -> complete, with the skipped ##
+    ## verification explicitly noted in the log                         ##
+    my $size_gb = ( -s $dest ) / ( 1024**3 );
+    $dl->{'status'} = qw| complete |;
+    $dl->{'total'}  = $size_gb;
+    <[base.logs]>->(
+        1,
+        "[hf.fetch] download complete [non-LFS, "
+            . "sha skipped]: %s (%.2f GB, %d sec)",
+        $dest,
+        $size_gb,
+        int($elapsed)
+    );
+    if ( length $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    "ok path=%s size_gb=%.2f duration=%d "
+                        . "note=non-lfs sha256-skipped",
+                    $dest, $size_gb, int($elapsed)
+                )
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+    return;
+} elsif ($succeeded) {
+    ## hash fetch still in flight -> park in awaiting-hash;                 ##
+    ## huggingface.handler.blob_hash_response continues the flow [          ##
+    ## verify.start / unverified / non-lfs complete ] when the API response ##
+    ## lands. idle-shutdown stays paused meanwhile.                         ##
+    $dl->{'status'} = qw| awaiting-hash |;
+    <[base.logs]>->(
+        1,
+        "[hf.fetch] %s downloaded -- awaiting "
+            . "expected sha256 before verification",
+        $dl->{'file'}
+    );
+    return;
+} else {
+    ## transfer succeeded at http level but no file on disk : treat as ##
+    ## failure, same cleanup as the error path above                   ##
+    $dl->{'status'} = qw| error |;
+    <[base.logs]>->(
+        0, "[hf.fetch] download failed: %s [no file after transfer]", $dest
+    );
+    if ( length $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| false |,
+                'data' => 'download failed: no file after transfer'
+            }
+        );
+    }
+    <[huggingface.resume_idle]>->();
+    return;
+}
+
+#,,,,,,,.,,,.,.,.,,,,,,..,,,,,.,.,..,,,,.,..,,..,,...,...,...,...,...,..,,,..,
+#NLX2Y5W3XEHCHCSA2QAELHSORY6BCADKZHTA7BFMH7LYBPWUVJKPCADV65XLCY2XQRB2NFSRBLN7G
+#\\\|54W3AF6HTOX4JQQKJ4BARRDNWC6LBEEXDLHM7WIGYHDSC2VPGTI \ / AMOS7 \ YOURUM ::
+#\[7]HQ45TGMWRZ6JEPIIZYZF2SNYQFVXIRMT7QK72BLZCEQFJRJWY2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

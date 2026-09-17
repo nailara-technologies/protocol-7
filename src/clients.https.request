@@ -7,13 +7,14 @@
 my $p = shift // {};
 
 my $method        = uc( $p->{'method'} // qw| GET | );
-my $url           = $p->{'url'}        // '';
-my $body          = $p->{'body'}       // '';
-my $timeout       = $p->{'timeout'}    // 30;
-my $on_done       = $p->{'on_done'}    // '';
-my $params        = $p->{'params'}     // {};
-my $extra_headers = $p->{'headers'}    // {};
-my $ssl_verify    = $p->{'ssl_verify'} // TRUE;
+my $url           = $p->{'url'}            // '';
+my $body          = $p->{'body'}           // '';
+my $timeout       = $p->{'timeout'}        // 30;
+my $on_done       = $p->{'on_done'}        // '';
+my $params        = $p->{'params'}         // {};
+my $extra_headers = $p->{'headers'}        // {};
+my $ssl_verify    = $p->{'ssl_verify'}     // TRUE;
+my $stream_path   = $p->{'stream_to_file'} // '';
 
 if ( not length $url or not length $on_done ) {
     <[base.logs]>->( 0, 'clients.https.request: url and on_done required' );
@@ -36,6 +37,32 @@ if ( not defined $host ) {
 }
 $port //= 443;
 $path = '/' unless defined $path and length $path;
+
+## streaming mode [ optional 'stream_to_file' => $path ] : each incoming    ##
+## body chunk is written straight to an open filehandle instead of          ##
+## accumulating in $state->{'buffer'} -- a multi-GB binary payload must     ##
+## never sit whole in RAM before hitting disk. the completion callback then ##
+## receives status + headers + byte count rather than the full body.        ##
+## clients.https.decode_body is skipped entirely on this path [ raw wire    ##
+## bytes to disk, no content-encoding \/ charset decoding ]. in this mode   ##
+## 'timeout' doubles as a stall detector : clients.https.stall_reset        ##
+## re-arms the watcher per received chunk [ replacing the aria2c            ##
+## --lowest-speed-limit behavior the hf download path used to rely on ]     ##
+my $stream_fh = undef;
+if ( length $stream_path ) {
+    if ( not open( $stream_fh, '>', $stream_path ) ) {
+        my $err = sprintf 'stream_to_file open failed: %s', $OS_ERROR;
+        <[base.logs]>->( 0, 'clients.https.request: %s', $err );
+        <[event.add_idle]>->(
+            {   'handler' => $on_done,
+                'params'  =>
+                    { 'ok' => FALSE, 'error' => $err, 'params' => $params },
+            }
+        );
+        return undef;
+    }
+    binmode( $stream_fh, ':raw' );
+}
 
 ## proxy setup [ optional caller-supplied http connect proxy ] ##
 my $proxy = $p->{'proxy'} // '';
@@ -185,6 +212,15 @@ my $state = {
     'path'    => $path,
     'body'    => $body,
     'headers' => $extra_headers,
+    ## streaming state [ stream_fh undef unless stream_to_file was given ] ##
+    'stream_fh'      => $stream_fh,
+    'stream_path'    => $stream_path,
+    'stream_written' => 0,
+    'stream_buffer'  => '',
+    'stream_status'  => 0,
+    'stream_headers' => undef,
+    'stream_discard' => FALSE,
+    'timeout'        => $timeout,
 };
 
 ## poll='rw' : ssl handshake may need either direction ##
@@ -196,12 +232,17 @@ my $io_watcher = <[event.add_io]>->(
     }
 );
 
-my $timeout_watcher = <[event.add_timer]>->(
-    {   'after'   => $timeout,
-        'handler' => 'clients.https.handler.timeout',
-        'data'    => $state,
-    }
-);
+## timeout <= 0 disables the watcher entirely [ streaming callers that  ] ##
+## manage their own liveness policy can opt out this way                ] ##
+my $timeout_watcher = undef;
+if ( $timeout > 0 ) {
+    $timeout_watcher = <[event.add_timer]>->(
+        {   'after'   => $timeout,
+            'handler' => 'clients.https.handler.timeout',
+            'data'    => $state,
+        }
+    );
+}
 
 $state->{'io_watcher'}      = $io_watcher;
 $state->{'timeout_watcher'} = $timeout_watcher;
@@ -213,8 +254,8 @@ $state->{'timeout_watcher'} = $timeout_watcher;
 
 return $state;
 
-#,,,,,...,.,.,.,,,..,,,,.,,..,,..,,..,.,,,.,.,..,,...,..,,,,.,.,.,,..,.,.,,,.,
-#7OTRGEAKOZJOCLZRX72XXM6U3OFPUPZGDJE33657GQBHYBCCYI2ZWNYJLBCFRYKBLZZ7YAM45EEGI
-#\\\|SY2J2BKQLLRSH7JV75RMIF77336VV6XDN36GBED6SGHU43KDJY5 \ / AMOS7 \ YOURUM ::
-#\[7]BURJOM6DA73GQ3HGAT43UO4DWEKMN3QJMRIV6O74JHXMSYO2JQCA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,..,,,..,,.,,,,.,,,.,..,,.,,,..,,...,...,..,,,,.,..,,,..,.,.,
+#CA3XYHFM3EGXWHOMRX5EXXRZAGVKO4TXE7N4MQDTGGKKWDXYQ24GUIDLTQWHD3TPGZU7YOGQMBRNM
+#\\\|D4OGQTHOYWPVVFOUE4YY65EFE73GNP7KHBRXLYDSLLZHN3UQOOR \ / AMOS7 \ YOURUM ::
+#\[7]MD7OQFQXLKILA5RHZWKR4SVW7INGEQDNEBVTEPXE7R4VTXGFYUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,126 @@
+## [:< ##
+
+# name  = clients.https.stream.chunk
+# descr = process one incoming body chunk for stream_to_file mode :
+#         completes response headers incrementally, de-chunks
+#         transfer-encoded bodies, writes payload bytes to the
+#         destination filehandle
+# note  = returns qw| continue | [ more data expected ], qw| done |
+#         [ chunked terminal block consumed -- response complete
+#         before socket eof ], or qw| error | [ write failure --
+#         caller cleans up and errors out ]
+
+my $state     = shift;
+my $chunk_ref = shift;
+
+return qw| error |
+    if ref $state ne qw| HASH |
+    or ref $chunk_ref ne qw| SCALAR |
+    or not defined $state->{'stream_fh'};
+
+my $write_body = sub {
+    my $data_ref = shift;
+    return TRUE if not length $$data_ref;
+
+    my $fh      = $state->{'stream_fh'};
+    my $total   = length $$data_ref;
+    my $written = 0;
+    while ( $written < $total ) {
+        my $n = syswrite( $fh, $$data_ref, $total - $written, $written );
+        if ( not defined $n ) {
+            next if $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK};
+            <[base.logs]>->(
+                0, 'clients.https.stream.chunk: write error: %s', $OS_ERROR
+            );
+            return FALSE;
+        }
+        $written += $n;
+    }
+    $state->{'stream_written'} += $total;
+    return TRUE;
+};
+
+my $handle_body = sub {
+    my $data_ref = shift;
+
+    ## non-2xx responses : connection drained but destination kept empty ##
+    return qw| continue |
+        if $state->{'stream_discard'} or not length $$data_ref;
+
+    ## identity framing [ content-length / connection-close ] : as-is ##
+    return $write_body->($data_ref) ? qw| continue | : qw| error |
+        if not $state->{'stream_chunked'};
+
+    ## chunked transfer-encoding : incremental de-framing  [ size line -> ##
+    ## payload -> crlf ] -- writing the raw framing bytes to disk would   ##
+    ## corrupt the payload                                                ##
+    $state->{'stream_debuf'} .= $$data_ref;
+    my $debuf = \$state->{'stream_debuf'};
+
+    while (1) {
+        if ( not defined $state->{'stream_chunk_size'} ) {
+            if ( $$debuf =~ s{\A ([0-9a-fA-F]+) [^\r\n]* \r?\n}{}x ) {
+                my $size = hex($1);
+                return qw| done | if $size == 0;    ## terminal block ##
+                $state->{'stream_chunk_size'} = $size;
+            } else {
+                return qw| continue |;    ## size line still partial ##
+            }
+        }
+
+        my $need = $state->{'stream_chunk_size'} + 2;    ## payload+crlf ##
+        return qw| continue | if length($$debuf) < $need;
+
+        my $piece = substr( $$debuf, 0, $state->{'stream_chunk_size'} );
+        $$debuf = substr( $$debuf, $state->{'stream_chunk_size'} );
+        $$debuf =~ s{\A \r?\n}{}x;
+        delete $state->{'stream_chunk_size'};
+
+        return qw| error | if not $write_body->( \$piece );
+    }
+};
+
+## phase 1 : response headers not complete yet -- accumulate until the ##
+## header\body separator is buffered, then parse status + headers and  ##
+## remember them for clients.https.stream.finish                       ##
+if ( not defined $state->{'stream_headers'} ) {
+    $state->{'stream_buffer'} .= $$chunk_ref;
+
+    my $sep_idx = index( $state->{'stream_buffer'}, "\r\n\r\n" );
+    my $sep_len = 4;
+    if ( $sep_idx < 0 ) {
+        ( $sep_idx, $sep_len )
+            = ( index( $state->{'stream_buffer'}, "\n\n" ), 2 );
+    }
+    return qw| continue | if $sep_idx < 0;    ## header block still partial ##
+
+    my $head = substr( $state->{'stream_buffer'}, 0, $sep_idx + $sep_len );
+    my $rest = substr( $state->{'stream_buffer'}, $sep_idx + $sep_len );
+    $state->{'stream_buffer'} = '';
+
+    my $parsed = <[clients.http.parse_response]>->($head);
+    $state->{'stream_status'}  = $parsed->{'status'}  // 0;
+    $state->{'stream_headers'} = $parsed->{'headers'} // {};
+
+    ## non-2xx [ redirect, error ] : keep draining the connection but leave ##
+    ## the destination file empty -- the caller decides from status +       ##
+    ## headers [ e.g. huggingface.handler.download_response ]               ##
+    $state->{'stream_discard'}
+        = (     $state->{'stream_status'} >= 200
+            and $state->{'stream_status'} < 300 ) ? FALSE : TRUE;
+
+    my $te = lc( $state->{'stream_headers'}{'transfer-encoding'} // '' );
+    $state->{'stream_chunked'}
+        = ( index( $te, qw| chunked | ) >= 0 ) ? TRUE : FALSE;
+
+    return $handle_body->( \$rest );
+}
+
+## phase 2 : headers known -- pure body bytes ##
+return $handle_body->($chunk_ref);
+
+#,,.,,.,.,...,..,,,,,,,,,,,,.,...,.,.,,..,.,.,..,,...,...,...,.,,,.,,,,,,,..,,
+#IADBI3BFODPF5UKBOQE7K33L4YNALTXBZ5A4HTPMG3CFTJQQ7HMWLEN5MZEGRRUMXKTJ7MXH2B5BK
+#\\\|LZORSVNZWU3HAFKMXZGS6YUAJI43YEKS3P6FWDUDOLEW7N2HKK2 \ / AMOS7 \ YOURUM ::
+#\[7]HRC6EWDCYAMY3RHPHCGSAR55IGIMYXJSST5HHNTRZYTZ4EL32ADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

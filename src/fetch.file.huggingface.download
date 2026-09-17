@@ -1,12 +1,10 @@
 ## [:< ##
 
 # name  = fetch.file.huggingface.download
-# descr = download GGUF model from HuggingFace Hub
+# descr = download GGUF model from HuggingFace Hub via native async
+#         clients.https streaming [ no external wget/aria2c child ]
 # param = { repo => 'user/repo', file => 'model-Q4_K_S.gguf', dest => undef }
 
-use IPC::Open3;
-use Symbol     qw| gensym |;
-use POSIX      qw| WNOHANG |;
 use File::Path qw| make_path |;
 
 my $call = shift;
@@ -46,13 +44,6 @@ if ( !-d $dest ) {
 
 my $dest_path = "$dest/$file";
 
-## no upfront "already exists" short-circuit -- a partially-downloaded file ##
-## from an earlier interrupted attempt must be RESUMED, not reported as     ##
-## done (a real bug, hit live 2026-09-10: a truncated partial was silently  ##
-## treated as a complete success). aria2c's own --continue handles "already ##
-## complete" vs "resume the rest" correctly by checking the real remote     ##
-## size, which a bare `-f` existence check can never do.                    ##
-
 ## LAN check first (faster than WAN) ##
 my $lan_result
     = <[huggingface.lan-check]>->( { 'args' => { 'filename' => $file } } );
@@ -69,120 +60,18 @@ if ( ref $lan_result eq qw| HASH |
     );
 }
 
-## determine download tool ##
-my @cmd;
-my $use_hf_cli = 0;
-
-if ( open( my $null, '-|', 'which', 'huggingface-cli' ) ) {
-    while (<$null>) { $use_hf_cli = 1 }
-    close($null);
-}
-
-## DECISION [ 2026-09-17, task: verify checksums on HuggingFace downloads ] ##
-## : keep aria2c as the primary fetcher and treat the sha256 verification   ##
-## layer [ huggingface.hash.fetch + huggingface.*.  verify.* ] as the SOLE  ##
-## integrity layer, independent of which tool fetched the bytes. Option (a) ##
-## -- putting .venv-lora's huggingface-cli on this zenka's PATH so the      ##
-## official self-verifying client becomes the normal path -- was rejected   ##
-## deliberately : the venv path is project-specific and could regress       ##
-## silently, while verification tied to the published LFS sha256 holds      ##
-## regardless of fetch mechanism.  Recorded explicitly per the task's       ##
-## requirement not to pick silently.                                        ##
-
-my $hf_token = <fetch.file.hf_token> // <external.hf.token> // '';
-
-if ($use_hf_cli) {
-    @cmd = (
-        'huggingface-cli', 'download', $repo, $file, '--local-dir', $dest
-    );
-    push @cmd, '--token', $hf_token if length($hf_token);
-} else {
-    my $url = sprintf( 'https://huggingface.co/%s/resolve/main/%s',
-        $repo, $file );
-
-    ## aria2c, not wget: HF's own CDN stalls/throttles connections on       ##
-    ## occasion (observed live, 2026-09-10) -- aria2c natively resumes      ##
-    ## partial transfers (--continue) and detects a stalled [not just dead] ##
-    ## connection via --lowest-speed-limit, retrying automatically instead  ##
-    ## of silently sitting at a plateau forever. --max-tries=0 retries      ##
-    ## indefinitely; --dir/--out replace wget's combined -O path since      ##
-    ## aria2c wants them separate.                                          ##
-    @cmd = (
-        'aria2c',
-        '--dir', $dest,
-        '--out', $file,
-        '--continue=true',
-        '--allow-overwrite=false',
-        '--max-tries=0',
-        '--retry-wait=5',
-        '--timeout=60',
-        '--lowest-speed-limit=51200',    ## 50 KB/s floor before retry ##
-        '--auto-file-renaming=false',
-        '--summary-interval=2',
-        '--console-log-level=warn',
-    );
-
-    ## this codebase's outbound network otherwise relies on http_proxy/     ##
-    ## https_proxy being inherited automatically (true for wget/curl, NOT   ##
-    ## true for aria2c -- confirmed, no such env-var auto-pickup in its own ##
-    ## --help=all) -- thread it through explicitly or downloads silently go ##
-    ## direct instead of through the configured proxy                       ##
-    my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
-    push @cmd, '--all-proxy', $proxy if length $proxy;
-
-    push @cmd, $url;
-}
-
-## spawn download process ##
-my ( $chld_in, $chld_out, $chld_err );
-$chld_err = gensym;
-
-my $pid = eval { IPC::Open3::open3( $chld_in, $chld_out, $chld_err, @cmd ) };
-
-if ( !$pid || $EVAL_ERROR ) {
-    <[base.logs]>->(
-        0,
-        "[hf.fetch] failed to spawn download: %s",
-        $EVAL_ERROR // 'unknown error'
-    );
-    return {
-        'mode' => qw| false |,
-        'data' => 'download spawn failed: ' . ( $EVAL_ERROR // 'unknown' )
-    };
-}
-
-## a large file transfer can easily outlive this on-demand zenka's idle- ##
-## shutdown window -- suspend it for the duration, matching the exact    ##
-## "long-running background job" use case pause_ondemand_timeout exists  ##
-## for. resumed in huggingface.handler.download_progress once the child  ##
-## process actually exits (success or failure).                          ##
-<[base.logs]>->(
-    1,     "[hf.fetch] pausing idle-shutdown for %s [pid=%d]",
-    $file, $pid
-);
-<[base.zenki.pause_ondemand_timeout]>;
-
-## register with v7-zenki so this child is actually terminated if the zenka ##
-## itself gets restarted/killed -- without this, aria2c/wget is silently    ##
-## orphaned across a zenka restart instead of being cleaned up (observed    ##
-## live, 2026-09-10 -- needs cfg/zenki/cube/access.zenki's                  ##
-## access.cmd.usr.fetch-files grant for v7-zenki.register_child)            ##
-<[base.logs]>->(
-    1, "[hf.fetch] registering child pid %d with v7-zenki", $pid
-);
-<[base.zenki.report_child_pid]>->($pid);
-
-close($chld_in) if defined $chld_in;
-
-## register progress tracking ##
+## register download tracking ##
 <fetch.file.downloads> //= {};
 
 my $dl_id = sprintf( '%s:%s', $repo, $file );
+
 <fetch.file.downloads>->{$dl_id} = {
-    'repo'       => $repo,
-    'file'       => $file,
-    'dest'       => $dest_path,
-    'pid'        => $pid,
+    'repo' => $repo,
+    'file' => $file,
+    'dest' => $dest_path,
+    'url'  =>
+        sprintf( 'https://huggingface.co/%s/resolve/main/%s', $repo, $file ),
+    'redirects'  => 0,
     'start_time' => <[base.time]>->(3),
     'downloaded' => 0,
     'total'      => 0,
@@ -200,26 +89,25 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
     'hash_attempts'   => 0,
 };
 
-## set up non-blocking read on stderr for progress output ##
-for my $fh ( $chld_out, $chld_err ) {
-    next if !defined $fh;
-    my $flags = fcntl( $fh, Fcntl::F_GETFL(), 0 );
-    fcntl( $fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
-        if defined $flags;
-}
+## a large file transfer can easily outlive this on-demand zenka's idle-  ##
+## shutdown window -- suspend it for the duration, matching the exact     ##
+## "long-running background job" use case pause_ondemand_timeout exists   ##
+## for. the resume ALWAYS comes from huggingface.resume_idle once every   ##
+## tracked flow [ download / await-hash / verify ] is terminal -- never a ##
+## bespoke resume [ see fetch.file.huggingface.resume_idle ]              ##
+<[base.logs]>->( 1, "[hf.fetch] pausing idle-shutdown for %s", $file );
+<[base.zenki.pause_ondemand_timeout]>;
 
-## register file handle watchers for stderr progress parsing ##
-if ( defined $chld_err ) {
-    <[event.add_io]>->(
-        {   'fd'      => $chld_err,
-            'poll'    => qw| r |,
-            'handler' => qw| huggingface.handler.download_stderr |,
-            'data'    => { 'dl_id' => $dl_id },
-        }
-    );
-}
+## start the native streaming transfer : redirect-following lives in        ##
+## huggingface.handler.download_response [ huggingface.co answers 302 to    ##
+## the CDN ] -- the same entry is re-requested, the partial file is         ##
+## truncated by the fresh stream_to_file open, so a restart-from-scratch on ##
+## failure is the v1 behavior by construction [ no resumable partials ]     ##
+<[huggingface.start_download]>->($dl_id);
 
-## register repeating timer for progress polling and completion check ##
+## lightweight repeating progress logger [ size/speed for hf-status and the ##
+## log stream ] -- completion itself arrives through the streaming client's ##
+## own on_done callback, not through this timer                             ##
 <fetch.file.downloads>->{$dl_id}{'timer'} = <[event.add_timer]>->(
     {   'interval' => 2.0,
         'repeat'   => 1,
@@ -229,22 +117,22 @@ if ( defined $chld_err ) {
 );
 
 <[base.logs]>->(
-    1, "[hf.fetch] started download: %s/%s -> %s [pid=%d]",
-    $repo, $file, $dest_path, $pid
+    1, "[hf.fetch] started download: %s/%s -> %s",
+    $repo, $file, $dest_path
 );
 
-## fetch the published LFS sha256 for this file up-front, in parallel with ##
-## the download itself [ async via clients.https.get, proxy- threaded      ##
-## explicitly ]. the result is cached in this tracking entry and consumed  ##
-## by huggingface.handler.download_progress /  huggingface.verify.* once   ##
-## the bytes are on disk -- closing the exit-code-only acceptance hole     ##
-## behind the 2026-09-10 corrupted-shard incident.                         ##
+## fetch the published LFS sha256 for this file up-front, in parallel with  ##
+## the download itself [ async via clients.https.get, proxy- threaded       ##
+## explicitly ]. the result is cached in this tracking entry and consumed   ##
+## by huggingface.handler.download_response / huggingface.verify.* once the ##
+## bytes are on disk -- closing the exit-code-only acceptance hole behind   ##
+## the 2026-09-10 corrupted-shard incident.                                 ##
 <[huggingface.hash.fetch]>->( $dl_id, 1 );
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,..,,,,,,.,,,..,,,.,,,,,,,,,,..,,.,.,,,.,..,,...,...,,,.,...,.,,,,,,,...,
-#AEHZKI6UZPW5IDK6N4NRE4LZCCV6MPW7GSDO4FRFFQ5O3VSIMMTPQWFF7L3WDFK47CMCQWCDSDU2Y
-#\\\|DSQDFUXISDPE23L23ZQNW7Y3JJSFYLSZA56HRUVJ7SBVE5AFTRC \ / AMOS7 \ YOURUM ::
-#\[7]TN4SSWNUSQOKLMFEEJZZWHJJZJFFLIYT7NYKD7LUWAURH26CNUDA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,..,,..,,.,,.,,,,.,,...,.,,,..,,...,...,..,,,..,...,..,,..,,
+#OS3ZRFF55BRKV6DX3YCGRQZDUX3NQ5D6YYMCBWF3VDB3SVL2XZFNJGPTWVLJDVHGYDKAUD6SLBXTC
+#\\\|7YPE2AHQ3IKBIYYGKMISPFG27MZY3RKTZ6ZGQC2QK7I5ZXHZUTK \ / AMOS7 \ YOURUM ::
+#\[7]SU23VZW7EAFNJO37XPAHA3UVWZ4JQCRDZTAJVIZR46MRCOVUWQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

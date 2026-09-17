@@ -41,9 +41,12 @@ my $on_response = sub {
 
     my $body = $data // '';
 
+    ## streaming mode : body bytes already went to disk via on_data --   ##
+    ## nothing accumulated to decode, and raw wire bytes must never pass ##
+    ## through clients.https.decode_body anyway                          ##
     $body = <[clients.https.decode_body]>->(
         $body, \%resp_headers, qw| clients.https.h2 |
-    );
+    ) if not defined $state->{'stream_fh'};
 
     <[clients.https.cleanup]>->($state);
     ## header names are already lower-cased above : same contract as the ##
@@ -58,6 +61,52 @@ my $on_response = sub {
     );
     return;
 };
+
+## streaming mode [ http/2 ] : on_data must be registered explicitly --     ##
+## without it the codec accumulates the ENTIRE body in stream memory before ##
+## on_done fires, defeating the point of streaming for multi-GB payloads.   ##
+## on_headers captures :status so non-2xx bodies are drained without        ##
+## touching the destination file                                            ##
+my %stream_cbs;
+if ( defined $state->{'stream_fh'} ) {
+    $stream_cbs{'on_headers'} = sub {
+        my $h_headers = shift // [];
+        my @flat      = @{ $h_headers // [] };
+        while ( my ( $k, $v ) = splice( @flat, 0, 2 ) ) {
+            next if lc($k) ne ':status';
+            $state->{'stream_status'} = ( $v // 0 ) + 0;
+            last;
+        }
+        $state->{'stream_discard'}
+            = (     $state->{'stream_status'} >= 200
+                and $state->{'stream_status'} < 300 ) ? FALSE : TRUE;
+        return 1;
+    };
+    $stream_cbs{'on_data'} = sub {
+        my $data = shift // '';
+        return 1 if not length $data;
+
+        <[clients.https.stall_reset]>->($state);
+        return 1 if $state->{'stream_discard'};    ## non-2xx : drain only ##
+
+        my $fh      = $state->{'stream_fh'};
+        my $total   = length $data;
+        my $written = 0;
+        while ( $written < $total ) {
+            my $n = syswrite( $fh, $data, $total - $written, $written );
+            if ( not defined $n ) {
+                next
+                    if $OS_ERROR{EAGAIN}
+                    or $OS_ERROR{EWOULDBLOCK};
+                $fail->("stream write failed: $OS_ERROR");
+                return 0;
+            }
+            $written += $n;
+        }
+        $state->{'stream_written'} += $total;
+        return 1;
+    };
+}
 
 my $h2 = eval {
     Protocol::HTTP2::Client->new(
@@ -122,6 +171,7 @@ eval {
                 $code // -1
             );
         },
+        (%stream_cbs),
     );
 };
 
@@ -174,8 +224,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,,.,.,,,.,.,...,,.,,...,,..,.,,,,..,,.,,,,,,..,,...,...,.,.,,,,,...,..,,.,.,
-#FM3G26I2VIM7Z4BWMRKVEOAK4AF33ZAXY4ISWLC2WBRFJ4H24LGCQGFXQ2EQEA7KTBGSN2EZ2W2HC
-#\\\|J5HPEJBSMW5GZGQLPQ7UMI4W2XUK67MTW3H3SWZMQVJNJZFEVP3 \ / AMOS7 \ YOURUM ::
-#\[7]SWLEB2Q5POK7OXRWLCEHKKTR6G266GM4YU2YA4E77DBEXA3GQKDA 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,.,,...,.,.,,,.,..,,..,,...,..,,...,...,.,.,,,.,,.,,,,.,,,.,
+#6FLZRJYZTROLNQ3H6VIAVMQWE5GEQZRYZZV3WJSGZSLGORPXFJ76CEPGBSTPLRGFAAV67NZX4Q6R6
+#\\\|EZT4GUVPYGTX62NVTGZGIK74RJILT5A2NRCSE2D7BK3CBQNXLIO \ / AMOS7 \ YOURUM ::
+#\[7]UIMR62RT36WEG2ETSPDIETZAOTKX3A5Y72FZF2P3JYHZ4N3QGMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
