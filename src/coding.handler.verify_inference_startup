@@ -236,6 +236,21 @@ if ( $restart_count >= $max_attempts ) {
     }
 
     $server_info->{'status'} = qw| failed |;
+
+    ## inference_server_sigchld set <coding.task.queue_paused> = 1 when   ##
+    ## this crash happened, gating ALL task dispatch globally. until now  ##
+    ## only the ready-confirmation path above ever cleared it, so a crash ##
+    ## that exhausts its retry budget [ routine for a sweep candidate :   ##
+    ## sweep_crash_restart_max_attempts defaults to 1 ] left real task    ##
+    ## dispatch blocked with no automatic recovery until some LATER spawn ##
+    ## happened to verify ready. clear it here too.                       ##
+    <coding.task.queue_paused> = 0;
+    <[base.logs]>->(
+        1,
+        '[verify_inference_startup] task queue resumed '
+            . '[ startup failed, restart budget exhausted ]'
+    );
+
     return FALSE;
 }
 
@@ -254,8 +269,8 @@ if ( $restart_count >= $max_attempts ) {
 
 return FALSE;
 
-#,,..,.,,,,..,.,,,,.,,,,.,..,,,..,.,,,.,,,,.,,..,,...,.,.,,.,,..,,,.,,...,.,,,
-#3TOWWXA3RMJ4RE5Z65MV2DIITKT7G6Q5Q7RJOBZZFVVYQ32CI4PISVR4VOP6PTP2MBKHCQ6I6CLBG
-#\\\|LUWR7P6DWWBLCCZVARECNWRG2GYS22WI2WFHB3GLSDYZQP7SS4E \ / AMOS7 \ YOURUM ::
-#\[7]KCRM4VVHQEO72GKEB2NGIAO44XLKFAKGFAJAVDHJ5MWPPTCMK2BQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,,,,,..,,...,,,,,.,.,...,.,,,..,,...,...,..,,.,,,,.,,.,.,,,.,
+#FSRHXXLJSWONDIKQAMXP5Y4G5MBV532WIFPCRNTQJSCYMANG2R7JXDAXCRLUL2ZHRLGFQBDPSKVHS
+#\\\|BUZSS2Z3JEKTKLBZLWBG2QOH45WFLP5BEST7CXOT52QB6LVGHT4 \ / AMOS7 \ YOURUM ::
+#\[7]JDY2YTGFYY24MKS4VRJQGKXEMWGQVBNPIPK2VSWLMID6LTBIBKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

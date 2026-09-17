@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = coding.helper.drain_model_pin_deferrals
+# descr = fire the deferred switch-model call for each pinned-model
+#         deferral recorded against a backend by
+#         coding.task.ensure_model_pinned [ <coding.model_pin_deferred>
+#         ->{$backend}{$checksum} ], clearing each entry once fired.
+#         called from poll_sweep's yield branch [ the same tick the
+#         sweep starts yielding, and every tick it keeps yielding ],
+#         finish_sweep, and model-sweep-cancel -- nothing else in the
+#         tree ever re-fires a pinned-model switch, so without this a
+#         deferred task would park in 'depending' permanently.
+# param = backend [ gpu | cpu ]
+
+my $backend = shift // qw| gpu |;
+
+my $deferred = <coding.model_pin_deferred>->{$backend} // {};
+return TRUE if ref $deferred ne qw| HASH | or !%$deferred;
+
+## never fire while a request holds a backend lock : switch-model kills the ##
+## running server process, which is exactly the in-flight collision this    ##
+## whole mechanism exists to prevent. note the raw 'idle' flag can never be ##
+## the fire condition here -- the parked 'depending' task that owns the     ##
+## deferral itself counts as an active [ non-completed ] task, so 'idle' is ##
+## false by construction whenever there is anything to drain. 'in_flight' [ ##
+## no lock held ] is the safe-to-switch condition.                          ##
+my $idle = <[coding.helper.backend_idle]>;
+if ( $idle->{'in_flight'} ) {
+    <[base.logs]>->(
+        2,
+        '[model_pin] %s : %d deferred pin(s) '
+            . 'waiting for %d in-flight request(s) to drain',
+        $backend,
+        scalar( keys %$deferred ),
+        $idle->{'in_flight'}
+    );
+    return TRUE;
+}
+
+for my $checksum ( sort keys %$deferred ) {
+
+    ## already loaded and ready : nothing to switch [ mirrors the early ##
+    ## return in coding.task.ensure_model_pinned ]                      ##
+    my $server = ( <coding.inference_servers> // {} )->{$backend} // {};
+    if (    ( $server->{'status'} // '' ) eq qw| ready |
+        and ( $server->{'model'} // '' ) eq $checksum ) {
+        delete <coding.model_pin_deferred>->{$backend}{$checksum};
+        delete <coding.model_switch_in_flight>->{$checksum};    ## hygiene ##
+        next;
+    }
+
+    delete <coding.model_pin_deferred>->{$backend}{$checksum};
+
+    ## a switch already in flight for this checksum serves the deferred pin ##
+    ## just as well -- do not fire a redundant respawn                      ##
+    next if <coding.model_switch_in_flight>->{$checksum};
+
+    ## same fire path as coding.task.ensure_model_pinned : set the        ##
+    ## in-flight guard HERE [ never on the deferred path -- it would      ##
+    ## suppress this very fire ], clear it again if the call itself fails ##
+    <coding.model_switch_in_flight>->{$checksum} = TRUE;
+    <[base.logs]>->(
+        1,         '[model_pin] draining deferred switch to %s on %s',
+        $checksum, $backend
+    );
+    eval {
+        <[coding.cmd.switch-model]>
+            ->( { 'args' => "$checksum backend=$backend" } );
+        1;
+    } or do {
+        my $err = $@ || 'unknown error';
+        <[base.logs]>->(
+            0, '[model_pin] deferred switch-model call failed : %s', $err
+        );
+        delete <coding.model_switch_in_flight>->{$checksum};
+    };
+}
+
+## drop the per-backend hash once it has no entries left ##
+delete <coding.model_pin_deferred>->{$backend}
+    if !%{ <coding.model_pin_deferred>->{$backend} // {} };
+
+return TRUE;
+
+#,,.,,,,,,,,,,...,,,.,.,.,,,.,.,,,,,,,,,.,,,.,..,,...,...,...,...,,..,.,,,,.,,
+#R4YAI7XEBFUGEE5WSISS3Z2HMYG2Y2PA2ZRRP6BADCC2AW7CVDDA5U6LDLB6UF5HRHI3YO6EY3NGY
+#\\\|Y46JWWPQSXUCMUR5XKG6WY6NLK2W62JAR763KXJG2TVGXG55XSK \ / AMOS7 \ YOURUM ::
+#\[7]H3YWMQAFOZEUBMVK2W5L32ETEU3NB3YR6A3G6WBEFIQOVMWZ7ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
