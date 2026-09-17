@@ -3,6 +3,8 @@
 # name  = plugin.usage.kimi.init_code
 # descr = kimi usage provider plugin : configuration and result cache set-up
 
+my $reinit = shift;
+
 ## provider configuration [ never holds credential values -- only where to ##
 ## read them from at query time ]                                          ##
 
@@ -48,12 +50,35 @@ $provider->{'base_url'} //= $ENV{'KIMI_CODE_BASE_URL'}
 ##  seconds under which a token counts as about to expire  ##
 $provider->{'expiry_warn'} //= 120;
 
+## proactive refresh watchdog : avoid paying the reactive refresh's ~15-21s ##
+## spawn latency on the first real query to hit an expired token -- see     ##
+## plugin.usage.kimi.refresh_watchdog. the FIRST arm happens in             ##
+## usage.startup instead [ called post-drop-privs from zenka.v7 -- this     ##
+## init_code runs during init_modules, before the drop, and arming the      ##
+## timer here on first boot read the wrong [ pre-drop ] credential          ##
+## directory, confirmed live 2026-09-17 ]. on a RELOAD, $reinit is TRUE [   ##
+## base.init_modules passes it explicitly, no state-flag inference needed ] ##
+## -- cancel whatever timer is already running and install a fresh one,     ##
+## rather than leaving a stale one ticking alongside a duplicate            ##
+$provider->{'proactive_refresh_margin'} //= 60;
+
+if ($reinit) {
+    my $old_timer = $provider->{'watchdog_timer'};
+    $old_timer->cancel if defined $old_timer and $old_timer->is_active;
+    $provider->{'watchdog_timer'} = <[event.add_timer]>->(
+        {   'after'   => 0,
+            'handler' => qw| plugin.usage.kimi.refresh_watchdog |,
+            'data'    => {},
+        }
+    );
+}
+
 <[base.log]>->( 1, ': usage provider [ kimi ] initialized' );
 
 0;
 
-#,,,,,.,.,..,,.,.,,,.,.,,,,,,,,..,..,,,.,,,..,..,,...,...,..,,,,,,,.,,,,,,...,
-#LYT4DOEC3ERNEVTKOKB6SQR7XG5H4YB6QX6JOLRQMZPBPM4IJGO5JVAAPOZ2OPJWX457OYFI6ZFJK
-#\\\|TUQM5Q6Z2UAH2WXJNGXNX7PISW6HERVOFYAQWBN56YAZGXP3UWP \ / AMOS7 \ YOURUM ::
-#\[7]YHW3K6DFU7AMNXOS267UTWH6GU4EHFNRYCKAO6MD24SUOFAT7QAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,..,,,,,,,,,,,.,,,..,.,.,,..,..,,...,...,,,.,...,,,,,,,.,,..,
+#UML4BUKICRTHKZRJ6MWO2BOF7OGTLOND5O6H4TZM6LQKMY2ANLI5ATQDPXUATOYNNFGQ2BR3B6JWK
+#\\\|UBFUQO44VMS5UIYISQZACHLENH624OVLMXQMOKN3HE6T4BFVDTT \ / AMOS7 \ YOURUM ::
+#\[7]GLWAQ7TLQTTHVTFUN7LVXGIJKRR6EEVEP5QAWWGWNTO5KAJVCEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,6 +3,8 @@
 # name  = plugin.usage.claude.init_code
 # descr = claude usage provider plugin : configuration and result cache set-up
 
+my $reinit = shift;
+
 ## provider configuration [ never holds credential values -- only where to ##
 ## read them from at query time ]                                          ##
 
@@ -42,12 +44,33 @@ $provider->{'api_base'} //= $ENV{'ANTHROPIC_BASE_URL'}
 $provider->{'model'} //= $ENV{'CHECK_USAGE_CLAUDE_MODEL'}
     // 'claude-haiku-4-5-20251001';
 
+## proactive refresh watchdog : best-effort, see plugin.usage.claude.       ##
+## refresh_watchdog's note on why claude's expiresAt isn't fully            ##
+## trustworthy the way kimi's is -- the reactive 401 path stays the real    ##
+## safety net regardless, this just reduces how often it has to fire.  the  ##
+## FIRST arm happens in usage.startup instead -- same reasoning as          ##
+## plugin.usage.kimi.init_code's identical guard, see its note. on a RELOAD ##
+## [ $reinit TRUE, passed directly by base.init_modules ], cancel whatever  ##
+## timer is already running and install a fresh one                         ##
+$provider->{'proactive_refresh_margin'} //= 60;
+
+if ($reinit) {
+    my $old_timer = $provider->{'watchdog_timer'};
+    $old_timer->cancel if defined $old_timer and $old_timer->is_active;
+    $provider->{'watchdog_timer'} = <[event.add_timer]>->(
+        {   'after'   => 0,
+            'handler' => qw| plugin.usage.claude.refresh_watchdog |,
+            'data'    => {},
+        }
+    );
+}
+
 <[base.log]>->( 1, ': usage provider [ claude ] initialized' );
 
 0;
 
-#,,.,,.,,,...,,.,,,,,,..,,..,,...,.,.,,,,,.,,,..,,...,...,..,,.,,,..,,.,.,...,
-#KJMFEDG4YCPJFB5LEYZ3CBGOPN25NPDSIKQEM57Q5IWTGW3HKFC7DVXSS2ZITXHHKYWOVTRVKX77Q
-#\\\|AY3CXMXUJA4CPOZQFCVVBCLQDJH4XECOXMIHZR4PMWSMDFFLDLP \ / AMOS7 \ YOURUM ::
-#\[7]HMHQTED6ZCTTTHC4KUNFIOV7QTDLSJ5CJHFIO5CSB6ZEPVROP2AA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,,.,,,.,,,.,..,,,,,,..,,..,,..,,...,..,,,.,,,..,,,.,.,.,,.,,
+#AAUFHQTSRUOQR7YSPUY73QRSOCUMAFGAZ37CN526XC77N26RNXFJWV2R6N7JY2RR7CCP6K5JNBQ7K
+#\\\|QGJRJC7IQTEC2SAUFQ2AWSUNX5WZ2743BWNIB72EXA3YRJQBMIT \ / AMOS7 \ YOURUM ::
+#\[7]EYO5GLBPWCHDMP66RYSRMEMZFHXC463LQAKHPZHKNLLKI5KZ6IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
