@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = coding.handler.pending_switch_timeout
+# descr = bounded fallback for the async force=1 model-switch completion :
+#         armed by coding.handler.spawn_smart [ after => 3s, mirroring the
+#         old ~2.3s blocking kill-wait budget ] when a pending switch is
+#         stashed, fires coding.helper.complete_pending_switch if the old
+#         server's SIGCHLD has not already driven completion -- covers the
+#         theoretical missed/coalesced SIGCHLD so a caller's on_done can
+#         never hang forever. normally a no-op : the sigchld handler
+#         consumes the pending entry first and this finds nothing.
+
+my $handler_data = shift->w->data;
+my $backend      = $handler_data->{'backend'} // 'gpu';
+
+if ( ref <coding.pending_switch>->{$backend} eq qw| HASH | ) {
+    <[base.logs]>->(
+        0,
+        '[pending_switch_timeout] %s : completing '
+            . 'switch via fallback timer [ missed SIGCHLD ? ]',
+        $backend
+    );
+    <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
+}
+
+return TRUE;
+
+#,,,.,,..,.,,,..,,.,.,..,,.,,,,,,,,,,,,.,,.,.,..,,...,...,,.,,.,,,,.,,..,,..,,
+#VYKYEAKCQMU43FCSSUUH3M266CPFYRE2SDVXG7RDHWJ76A4L65ZMIWD2WQSYUAPSMFDDVE2DCFARU
+#\\\|F6OLC4Z6IQTVKBZCEWLY6JC7YBVXFX555UUCR33SI6WGYGZ5BW6 \ / AMOS7 \ YOURUM ::
+#\[7]JTXYCL4D6XFA2XSMJY3PNJIZS6YWUZQ3OARDJBM6MLFDO2HH34AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

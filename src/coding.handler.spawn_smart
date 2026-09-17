@@ -1,11 +1,54 @@
 ## [:< ##
 
 # name  = coding.handler.spawn_smart
-# descr = Intelligently spawn inference servers based on memory and existing state
+# descr = Intelligently spawn inference servers based on memory and existing
+#         state
+# note  = fully async since 2026-09-18 : the forced-respawn kill-wait [
+#         while(kill(0,$pid)){ select(...) } up to 2.3s plus an
+#         unconditional 0.3s gpu sleep ] blocked the ENTIRE single-threaded
+#         event loop on every force=1 model switch -- confirmed live as the
+#         mechanism behind repeated v7-zenki heartbeat-timeout kills of the
+#         coding zenka during model sweeps. the wait is gone : the kill is
+#         fired, everything needed to finish the spawn is stashed in
+#         <coding.pending_switch>, and the actual memory-check + spawn runs
+#         in coding.helper.complete_pending_switch once the old pid is
+#         confirmed reaped by the zenka's own non-blocking SIGCHLD handler
+#         [ coding.handler.inference_server_sigchld, via the
+#         <coding.switching_backend> guard -- same shape as
+#         <coding.draining> / <coding.lora_training_in_progress> ], or via a
+#         bounded 3s fallback timer covering a missed/coalesced SIGCHLD. a
+#         backend with no live old process completes immediately [ no
+#         regression for the cold-start case ].
+# note  = on_done convention mirrors plugin.usage.kimi.refresh_token :
+#         { 'on_done' => { 'handler' => <name>, 'params' => {...} } } -- a
+#         NAMED handler, never a coderef, so it survives source reloads.
+#         it is dispatched via $code{handler}->(params) exactly once per
+#         spawn attempt, with the real TRUE/FALSE outcome added as
+#         $call_params{'spawn_result'} [ and 'backend' ]. for the
+#         amos-path-async branch it fires in
+#         coding.handler.spawn_smart_path_reply instead.
 
 my $params  = shift;
 my $backend = $params->{'backend'} // 'gpu';
 my $force   = $params->{'force'}   // 0;
+
+my $on_done = $params->{'on_done'};
+$on_done = undef unless ref $on_done eq qw| HASH |;
+
+## dispatch helper : fires the caller's on_done with the terminal result [ ##
+## mirrors plugin.usage.kimi.refresh_token's dispatch shape ]              ##
+my $dispatch_on_done = sub {
+    my $result = shift;
+    if (    ref $on_done eq qw| HASH |
+        and length( $on_done->{'handler'} // '' )
+        and exists $code{ $on_done->{'handler'} } ) {
+        my $call_params = { %{ $on_done->{'params'} // {} } };
+        $call_params->{'spawn_result'} = $result;
+        $call_params->{'backend'}      = $backend;
+        $code{ $on_done->{'handler'} }->($call_params);
+    }
+    return $result;
+};
 
 <[base.logs]>->(
     1, '[spawn_smart] evaluating spawn for backend=%s', $backend
@@ -25,6 +68,7 @@ unless ($force) {
         <[base.logs]>->(
             2, '[spawn_smart] %s server already ready, skipping', $backend
         );
+        $dispatch_on_done->(TRUE);
         return TRUE;
     }
 }
@@ -38,6 +82,7 @@ my $model_name
 unless ( length $model_name ) {
     <[base.logs]>
         ->( 0, '[spawn_smart] no model configured for %s', $backend );
+    $dispatch_on_done->(FALSE);
     return FALSE;
 }
 
@@ -48,12 +93,32 @@ my $matched_entry = $resolve->{'matched_entry'};
 
 unless ( defined $matched_entry ) {
     <[base.logs]>->( 0, '[spawn_smart] model not found: %s', $model_name );
+    $dispatch_on_done->(FALSE);
     return FALSE;
 }
+
+my $had_live_pid = FALSE;
+my $killed_pid   = 0;
 
 ## kill existing server before memory check when force=1  ensures freed ##
 ## VRAM / RAM is reflected in the check below                           ##
 if ($force) {
+
+    ## a second forced switch on the same backend while one is still      ##
+    ## waiting for its old pid would clobber the stashed pending entry [  ##
+    ## losing the first switch's on_done + leaving <coding.switch_model_  ##
+    ## active> set forever ] -- finish the stale one first : converges on ##
+    ## the newest request while still honouring both completions          ##
+    if ( ref <coding.pending_switch>->{$backend} eq qw| HASH | ) {
+        <[base.logs]>->(
+            0,
+            '[spawn_smart] %s : completing stale '
+                . 'pending switch before new forced respawn',
+            $backend
+        );
+        <[coding.helper.complete_pending_switch]>
+            ->( { 'backend' => $backend } );
+    }
 
     ## cancel any in-flight self-test on THIS backend before killing its    ##
     ## server [ task JEG : coding-switch-model-self-test-cancel ] :         ##
@@ -125,150 +190,88 @@ if ($force) {
         if ( my $old_pid = $old->{'pid'} ) {
             if ( kill( 0, $old_pid ) ) {
                 kill( 'KILL', $old_pid );
-                <[base.waitpid]>->($old_pid);    ## reap zombie ##
                 <[base.logs]>->(
                     1,
-                    '[spawn_smart] killed old %s '
-                        . 'server [pid:%d] before memory check',
+                    '[spawn_smart] killed old %s server [pid:%d] '
+                        . 'before memory check, completing asynchronously',
                     $backend,
                     $old_pid
                 );
-                ## Wait for process to exit and reap zombie (max 2 seconds) ##
-                my $wait_count = 0;
-                while ( kill( 0, $old_pid ) && $wait_count < 20 ) {
-                    select( undef, undef, undef, 0.1 );
-                    <[base.waitpid]>->($old_pid)
-                        ;    ## Reap if zombie [WNOHANG] ##
-                    $wait_count++;
-                }
-                ## brief additional wait for gpu driver to release vram ##
-                select( undef, undef, undef, 0.3 ) if $backend eq 'gpu';
+                $had_live_pid = TRUE;
+                $killed_pid   = $old_pid;
             }
         }
-        delete <coding.inference_servers>->{$backend};
+
+        ## when a live old pid was killed the entry must STAY registered    ##
+        ## until the SIGCHLD handler matches the reaped pid to this backend ##
+        ## -- the completion helper deletes it. when nothing live was       ##
+        ## killed there is no SIGCHLD to expect, so drop it now [ same      ##
+        ## timing as the old blocking code ]                                ##
+        delete <coding.inference_servers>->{$backend} unless $had_live_pid;
     }
 }
 
-## Check memory before spawning ##
-my $model_size_gb = $matched_entry->{'size_gb'} // 0;
-my $mmproj_path   = $params->{'mmproj_path'}    // '';
+## stash everything the completion helper needs once the old pid is    ##
+## confirmed reaped [ or right away, when there was nothing to kill -- ##
+## forced or not ]                                                     ##
+<coding.pending_switch>->{$backend} = {
+    'model_size_gb'     => $matched_entry->{'size_gb'} // 0,
+    'mmproj_path'       => $params->{'mmproj_path'}    // '',
+    'model_path'        => $params->{'model_path'}     // '',
+    'amos_id'           => $matched_entry->{'amos'}    // '',
+    'matched_file_path' => (
+        exists $matched_entry->{'file_path'}
+        ? ( $matched_entry->{'file_path'} // '' )
+        : ''
+    ),
+    'port'         => $port,
+    'on_done'      => $on_done,
+    'had_live_pid' => $had_live_pid,
+    'timer_w'      => undef,
+};
 
-my $fit = <[coding.helper.check_resource_fit]>->(
-    {   backend     => $backend,
-        size_gb     => $model_size_gb,
-        mmproj_path => $mmproj_path,
-    }
-);
+if ($had_live_pid) {
 
-if ( !$fit->{'fits'} ) {
-    if ( $backend eq qw| gpu | ) {
-        <[base.logs]>->(
-            1,
-            '[spawn_smart] insufficient GPU memory: %d MB free, need %d MB',
-            $fit->{'free_mb'}, $fit->{'required_mb'}
-        );
-    } else {
-        <[base.logs]>->(
-            1,
-            '[spawn_smart] insufficient system '
-                . 'memory: %d MB free, need %d MB',
-            $fit->{'free_mb'},
-            $fit->{'required_mb'}
-        );
-    }
-    my $checksum = $matched_entry->{'amos'} // '';
-    if ( length $checksum ) {
-        <[coding.model_status.record]>->(
-            {   checksum => $checksum,
-                backend  => $backend,
-                status   => 'resource-insufficient',
-                detail   => sprintf(
-                    '%d MB free, need %d MB',
-                    $fit->{'free_mb'}, $fit->{'required_mb'}
-                ),
-            }
-        );
-    }
-    return FALSE;
-}
+    ## deliberate-switch guard : tells inference_server_sigchld this kill ##
+    ## is NOT a crash [ same shape as <coding.draining> /                 ##
+    ## <coding.lora_training_in_progress> ] -- the helper clears it       ##
+    ## together with the pending entry, on BOTH the sigchld and the       ##
+    ## fallback-timer path                                                ##
+    <coding.switching_backend>->{$backend} = TRUE;
 
-if ( $backend eq qw| gpu | ) {
-    <[base.logs]>->(
-        2, '[spawn_smart] GPU memory OK: %d MB free for %d MB model',
-        $fit->{'free_mb'}, $model_size_gb * 1024
-    );
-} else {
-    <[base.logs]>->(
-        2, '[spawn_smart] system memory OK: %d MB free for %d MB model',
-        $fit->{'free_mb'}, $model_size_gb * 1024
-    );
-}
-
-## Get the actual model path [ mmproj_path already resolved above, for the ##
-## resource-fit check that needs it before this point ]                    ##
-my $amos_id    = $matched_entry->{'amos'} // '';
-my $model_path = $params->{'model_path'}  // '';
-
-## use provided path directly if available [ e.g. from switch_model_reply ] ##
-if ( length $model_path && -f $model_path ) {
-    <[base.logs]>->( 2, '[spawn_smart] using provided model path directly' );
-    return <[coding.spawn_inference_server]>->(
-        {   backend     => $backend,
-            model_path  => $model_path,
-            mmproj_path => $mmproj_path,
-            port        => $port,
-            amos_id     => $amos_id,
-        }
-    );
-}
-
-## check if path cached in metadata entry ##
-if ( exists $matched_entry->{'file_path'}
-    && -f $matched_entry->{'file_path'} ) {
-    $model_path = $matched_entry->{'file_path'};
-} elsif ( length $amos_id ) {
-    ## need to request path asynchronously ##
-    <[base.logs]>->(
-        2, '[spawn_smart] requesting path for amos=%s', $amos_id
-    );
-
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => 'cube.models.get_path_by_amos',
-            'call_args' => { 'args' => $amos_id },
-            'reply'     => {
-                'params' => {
-                    'amos_id'     => $amos_id,
-                    'backend'     => $backend,
-                    'port'        => $port,
-                    'smart_spawn' => 1
-                },
-                'handler' => 'coding.handler.spawn_smart_path_reply'
-            }
+    ## bounded fallback : covers a missed/coalesced SIGCHLD. the old     ##
+    ## blocking code budgeted ~2.3s for the old process to die -- the    ##
+    ## one-shot completion gets the same magnitude [ 3s ] so callers can ##
+    ## never hang forever                                                ##
+    <coding.pending_switch>->{$backend}->{'timer_w'} = <[event.add_timer]>->(
+        {   'after'   => 3,
+            'desc'    => "pending switch fallback : $backend",
+            'handler' => qw| coding.handler.pending_switch_timeout |,
+            'data'    => { 'backend' => $backend },
         }
     );
 
-    return TRUE;    ## async : actual spawn happens in reply handler ##
-} else {
-    <[base.logs]>->( 0, '[spawn_smart] no amos_id for matched model' );
-    return FALSE;
+    ## non-blocking reap attempt : if the old process was ALREADY a zombie ##
+    ## [ e.g. it crashed earlier and was never reaped ] no SIGCHLD will    ##
+    ## follow the SIGKILL -- complete immediately instead of waiting the   ##
+    ## full fallback-timer budget                                          ##
+    my $reaped = <[base.waitpid]>->($killed_pid);
+    if ( $reaped == $killed_pid ) {
+        <[coding.helper.complete_pending_switch]>
+            ->( { 'backend' => $backend } );
+    }
+
+    return TRUE;    ## async : completion via sigchld handler / timer     ##
 }
 
-## spawn directly with resolved path ##
-if ( defined $model_path && -f $model_path ) {
-    return <[coding.spawn_inference_server]>->(
-        {   backend     => $backend,
-            model_path  => $model_path,
-            mmproj_path => $mmproj_path,
-            port        => $port,
-            amos_id     => $amos_id,
-        }
-    );
-}
+## no live old process : complete immediately [ cold start, or the old    ##
+## server was already gone ] -- on_done fires synchronously, exactly like ##
+## the pre-async code path for this case                                  ##
+return
+    <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
 
-return FALSE;
-
-#,,.,,,,,,..,,.,,,..,,.,.,...,,..,.,,,..,,,,,,.,.,...,..,,.,,,..,,,.,,..,,,..,
-#RDR2MWMLC6RK5MPURVXMBS7ZVLDWZMN4DEPWBY33GNFK27THKJWOF5QZPFBLU62EHJTKBOP67U73Q
-#\\\|2IQDXQENXOHRN4BB2FK74LIZ2WB3IMO3BS4VLQM55ANHJYJKCNZ \ / AMOS7 \ YOURUM ::
-#\[7]UEIL2OVWGJJTWSFMG65S4ECURINK7XZH762I52C2F5NPETXWK4CI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,.,,,.,,..,.,,,.,.,,,.,.,,,,..,.,.,...,...,,,.,,.,,,,.,.,,,..,,
+#LWFQH35AVS7W4S4GV5F4IFWJINXF7J46QIOXR35QXXNU7YAZNDWPPHQVYLO5EWTKT265K3D3OQAJM
+#\\\|HL6E6NEPR6JFQEZAAQ3BJVZMNIACBDHYASZAKLZCE5QY5RUO7FK \ / AMOS7 \ YOURUM ::
+#\[7]PN2JS4XBSVVNOQQN2WJJ7YX6VJILEVWYDTP5MYKKSE5XN2FNNWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = coding.handler.switch_model_spawn_done
+# descr = terminal on_done callback for switch-model spawns that have no
+#         further chained work [ single-backend / 'both' spawns, and the
+#         cpu fallback spawn from
+#         coding.handler.switch_model_auto_gpu_done ] : clears
+#         <coding.switch_model_active>, the in-flight marker that used to
+#         be deleted at the end of coding.handler.switch_model_reply but
+#         now has to cover the async kill-wait-plus-respawn window.
+
+my $params = shift;
+
+delete <coding.switch_model_active>;
+
+<[base.logs]>->(
+    2,
+    '[switch_model_spawn_done] %s spawn finished [ result=%s ]',
+    $params->{'backend'} // '?',
+    ( $params->{'spawn_result'} // FALSE ) ? qw| TRUE | : qw| FALSE |
+);
+
+return TRUE;
+
+#,,,.,..,,,..,...,,..,...,..,,..,,.,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,.,.,
+#4GTVBAJKDJH3DXSKGNB52MUWB2L4W6K2ZLSEFRB7QVYKIGWGRIOCLRXYQB2PHQ2KNXMVHOMFGESQA
+#\\\|23KWMPJS3DPL2NT53ZGQJPDNSBVK74APUYPFVD2VPQ2EPASMJMP \ / AMOS7 \ YOURUM ::
+#\[7]DNIXWNHYJI56ZIYVB6D5VAWVVLZUG4GQGSGLMLSVLN4A26TURSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

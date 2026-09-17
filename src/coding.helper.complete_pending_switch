@@ -1,0 +1,218 @@
+## [:< ##
+
+# name  = coding.helper.complete_pending_switch
+# descr = second half of coding.handler.spawn_smart, split out when the
+#         forced-respawn kill-wait went async 2026-09-18 : runs the
+#         resource-fit check and the actual coding.spawn_inference_server
+#         call for a stashed <coding.pending_switch> entry, then dispatches
+#         the caller's stashed on_done with the real TRUE/FALSE result.
+#         reached either from coding.handler.inference_server_sigchld [ old
+#         pid confirmed reaped after a deliberate force=1 kill ], from the
+#         3s fallback timer coding.handler.pending_switch_timeout [ missed /
+#         coalesced SIGCHLD ], or synchronously from spawn_smart itself [
+#         cold start / nothing to kill / non-forced path ].
+
+my $params  = shift;
+my $backend = $params->{'backend'} // 'gpu';
+
+my $pending = delete <coding.pending_switch>->{$backend};
+
+## double-run guard : the sigchld handler and the fallback timer can race  ##
+## -- whichever consumer gets here first deletes the entry, the other must ##
+## no-op. without this the fit-check + spawn + on_done would run twice for ##
+## the same switch                                                         ##
+return FALSE if ref $pending ne qw| HASH |;
+
+## clear the deliberate-switch guard TOGETHER with consuming the pending ##
+## entry -- critically also on the fallback-timer path, where no SIGCHLD ##
+## ever arrived to clear it : leaving                                    ##
+## <coding.switching_backend>->{$backend} set would make the NEXT real   ##
+## crash on this backend look like a deliberate switch and silently skip ##
+## crash-restart                                                         ##
+delete <coding.switching_backend>->{$backend};
+
+## cancel the fallback timer when the sigchld path got here first          ##
+my $timer_w = $pending->{'timer_w'};
+$timer_w->cancel() if defined $timer_w and $timer_w->is_active();
+
+## drop the killed old server's registry entry now that its pid is          ##
+## confirmed reaped [ entry was kept so the sigchld handler could match the ##
+## pid to this backend ]                                                    ##
+delete <coding.inference_servers>->{$backend} if $pending->{'had_live_pid'};
+
+my $on_done = $pending->{'on_done'};
+
+## dispatch helper : fires the caller's stashed on_done exactly once with  ##
+## the terminal result [ mirrors plugin.usage.kimi.refresh_token's shape ] ##
+my $finish = sub {
+    my $result = shift;
+    if (    ref $on_done eq qw| HASH |
+        and length( $on_done->{'handler'} // '' )
+        and exists $code{ $on_done->{'handler'} } ) {
+        my $call_params = { %{ $on_done->{'params'} // {} } };
+        $call_params->{'spawn_result'} = $result;
+        $call_params->{'backend'}      = $backend;
+        $code{ $on_done->{'handler'} }->($call_params);
+    }
+    return $result;
+};
+
+<[base.logs]>->(
+    1, '[complete_pending_switch] completing %s spawn [ pid-wait async ]',
+    $backend
+);
+
+## Check memory before spawning ##
+my $model_size_gb = $pending->{'model_size_gb'} // 0;
+my $mmproj_path   = $pending->{'mmproj_path'}   // '';
+
+my $fit = <[coding.helper.check_resource_fit]>->(
+    {   backend     => $backend,
+        size_gb     => $model_size_gb,
+        mmproj_path => $mmproj_path,
+    }
+);
+
+if ( !$fit->{'fits'} ) {
+    if ( $backend eq qw| gpu | ) {
+        <[base.logs]>->(
+            1,
+            '[complete_pending_switch] insufficient '
+                . 'GPU memory: %d MB free, need %d MB',
+            $fit->{'free_mb'},
+            $fit->{'required_mb'}
+        );
+    } else {
+        <[base.logs]>->(
+            1,
+            '[complete_pending_switch] insufficient '
+                . 'system memory: %d MB free, need %d MB',
+            $fit->{'free_mb'},
+            $fit->{'required_mb'}
+        );
+    }
+    my $checksum = $pending->{'amos_id'} // '';
+    if ( length $checksum ) {
+        <[coding.model_status.record]>->(
+            {   checksum => $checksum,
+                backend  => $backend,
+                status   => 'resource-insufficient',
+                detail   => sprintf(
+                    '%d MB free, need %d MB',
+                    $fit->{'free_mb'}, $fit->{'required_mb'}
+                ),
+            }
+        );
+    }
+    return $finish->(FALSE);
+}
+
+if ( $backend eq qw| gpu | ) {
+    <[base.logs]>->(
+        2,
+        '[complete_pending_switch] GPU memory OK: %d MB free for %d MB model',
+        $fit->{'free_mb'},
+        $model_size_gb * 1024
+    );
+} else {
+    <[base.logs]>->(
+        2,
+        '[complete_pending_switch] system '
+            . 'memory OK: %d MB free for %d MB model',
+        $fit->{'free_mb'},
+        $model_size_gb * 1024
+    );
+}
+
+## resolve the actual model path [ mmproj_path resolved above, for the ##
+## resource-fit check that needs it before this point ]                ##
+my $amos_id    = $pending->{'amos_id'}    // '';
+my $model_path = $pending->{'model_path'} // '';
+
+my $spawn_result;
+
+## use provided path directly if available [ e.g. from switch_model_reply ] ##
+if ( length $model_path && -f $model_path ) {
+    <[base.logs]>->(
+        2, '[complete_pending_switch] using provided model path directly'
+    );
+    $spawn_result = <[coding.spawn_inference_server]>->(
+        {   backend     => $backend,
+            model_path  => $model_path,
+            mmproj_path => $mmproj_path,
+            port        => $pending->{'port'},
+            amos_id     => $amos_id,
+        }
+    );
+    return $finish->(
+        ( ref $spawn_result eq qw| HASH | and $spawn_result->{'success'} )
+        ? TRUE
+        : FALSE
+    );
+}
+
+## check if path cached in metadata entry ##
+my $matched_file_path = $pending->{'matched_file_path'} // '';
+if ( length $matched_file_path && -f $matched_file_path ) {
+    $model_path = $matched_file_path;
+    <[base.logs]>->(
+        2, '[complete_pending_switch] using metadata-cached model path'
+    );
+    $spawn_result = <[coding.spawn_inference_server]>->(
+        {   backend     => $backend,
+            model_path  => $model_path,
+            mmproj_path => $mmproj_path,
+            port        => $pending->{'port'},
+            amos_id     => $amos_id,
+        }
+    );
+    return $finish->(
+        ( ref $spawn_result eq qw| HASH | and $spawn_result->{'success'} )
+        ? TRUE
+        : FALSE
+    );
+}
+
+if ( length $amos_id ) {
+    ## need to request path asynchronously ##
+    <[base.logs]>->(
+        2, '[complete_pending_switch] requesting path for amos=%s', $amos_id
+    );
+
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.models.get_path_by_amos',
+            'call_args' => { 'args' => $amos_id },
+            'reply'     => {
+                'params' => {
+                    'amos_id'     => $amos_id,
+                    'backend'     => $backend,
+                    'port'        => $pending->{'port'},
+                    'smart_spawn' => 1,
+
+                    ## thread the caller's on_done through to the reply  ##
+                    ## handler -- the spawn ( and the on_done dispatch ) ##
+                    ## finishes there instead of being a dead end        ##
+                    (   ref $on_done eq qw| HASH |
+                        ? ( 'on_done' => $on_done )
+                        : ()
+                    ),
+                },
+                'handler' => 'coding.handler.spawn_smart_path_reply'
+            }
+        }
+    );
+
+    ## async : on_done fires in spawn_smart_path_reply ##
+    return TRUE;
+}
+
+<[base.logs]>->(
+    0, '[complete_pending_switch] ' . 'no amos_id for matched model'
+);
+return $finish->(FALSE);
+
+#,,,.,.,,,...,,.,,,..,..,,..,,,,.,,..,,.,,,.,,..,,...,..,,,.,,..,,..,,.,,,,,.,
+#NKKQVJB4SHHBLTTDGJ4ECACADJRBL4CYL2EV6NTJBKJYGIAOWTI3OKZ7MQOY7UABSJYBZT2FTBMCE
+#\\\|3QHL6VCFI6GE5625NZVBLOQBW6RHUXGGGEGBFXHERGMILI5IXCA \ / AMOS7 \ YOURUM ::
+#\[7]CN2ABLVTTMX3DJZ42AKIEGSZX5FXE4LBAUPVOJCEE6C25KYYO6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
