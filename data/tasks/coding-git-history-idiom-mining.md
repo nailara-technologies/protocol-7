@@ -297,10 +297,8 @@ total, before the rating/dedup pass.
    `--flash-attn off` fix in `coding.spawn_inference_server`) --
    none of that was dataset-specific and all of it is still correct.
 
-#,,.,,,,.,,,,,,,,,.,.,,..,,,,,.,,.,,,,,,,,..,,,.,,.,,,,.,,,..,..,,,,,,,..,,,,,,
-
-#,,,,,,,,,..,,,.,,.,,,,.,,,,.,..,,.,.,..,,...,..,,...,...,...,...,,,,,..,,..,,
-#V2GDYFP3VOGLZ3IM65DHPNK5D6EJNMTQPMPESDR642JZQTTI3S5VZPV3XCHGKD3TLYEYWTSWST3Q6
-#\\\|E3UY35HKPY5BXA2XYYMUK2FZGJL53KGOXHPGBW673YOV4RKPHM4 \ / AMOS7 \ YOURUM ::
-#\[7]WLVMBDQ77LS5RZOWDIEWJGA7FWEERWFWNIMMQB4BV7DZPUM5S2CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,.,,,.,.,..,,.,,,.,,,,..,,.,,..,,...,..,,..,,,,.,.,.,...,,,,,
+#XDGX2PMSIZ3POTORHMYBGVWJ4F4GTWUFFBLGVYUFMOO3LOV62V6J53TNGX2U66VH5CV4BPNRFN5Q4
+#\\\|B3I5P7D6IPTYN6WQWINBPFCZVOMMUX467CKP7F5EUIZZLZRVCRI \ / AMOS7 \ YOURUM ::
+#\[7]MM53YZGLEPCXAD5AJJN4M5VEAUFPJPK7CNHL6PT77PXVGSBY4EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
