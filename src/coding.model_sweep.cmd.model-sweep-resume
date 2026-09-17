@@ -2,16 +2,17 @@
 
 # name  = coding.model_sweep.cmd.model-sweep-resume
 # descr = resume a paused per-backend model sweep from its cursor
-# param = [backend] [filter tokens] [:force:]
+# param = [backend] [filter tokens] [:force:] [:no_yield:]
 
 my $params = shift             // {};
 my $args   = $params->{'args'} // '';
 
-## extract filter + force tokens using substitutive extraction, ##
-## order-independent [ same style as cmd.model-sweep ]          ##
+## extract filter + force + yield-opt-out tokens using substitutive ##
+## extraction, order-independent [ same style as cmd.model-sweep ]  ##
 my $re_test_failed  = ( $args =~ s| *:re-test-failed: *| | );
 my $re_test_success = ( $args =~ s| *:re-test-success: *| | );
 my $force           = ( $args =~ s| *:force: *| | );
+my $no_yield        = ( $args =~ s| *:no_yield: *| | );
 
 $args =~ s|^\s+||;
 $args =~ s|\s+$||;
@@ -115,6 +116,12 @@ for my $backend (@backends) {
         switch_id  => '',
         phase      => qw| idle |,
         state      => qw| running |,
+        ## :no_yield: must be repeated on every resume to stay in effect : ##
+        ## resuming without the token deliberately drops back to the       ##
+        ## default yield-aware behavior [ a DIFFERENT rule than the filter ##
+        ## carry-as-is convention -- silently re-arming an uninterruptible ##
+        ## run on a plain resume is the worse failure mode ]               ##
+        no_yield => $no_yield ? TRUE : FALSE,
     };
 
     ## persist the state transition [ drops paused_reason ] ##
@@ -125,6 +132,7 @@ for my $backend (@backends) {
         started    => $existing->{'started'} // <[base.ntime]>,
         state      => qw| running |,
     };
+    $cursor_data->{$backend}{'no_yield'} = TRUE if $no_yield;
     my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
     if ( length $yaml_str ) {
         <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
@@ -154,8 +162,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,.,,...,,,.,..,,..,,..,,.,.,.,,,..,,.,.,.,.,...,...,..,,,,,,...,,.,,.,,,
-#VPA2MNNXDDJNM7RTA3CDIPINHXXR4MSHS7L6ZS5XSRDTCMHEVCRFOJXROWB7GILMKY43THC3COWMM
-#\\\|GZ2GDVKA6I7BYH6NPI5K4VCQ7NVLBWYJAA3FL775WXKZSMJU3NK \ / AMOS7 \ YOURUM ::
-#\[7]7XCYWE3FARXXOWMFCYQCKEBBY6ZDDUAJZTKI6S6SMR5LV6VVCQAQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,,..,,.,,.,,,..,,,,.,,,.,,,,,.,.,...,..,,,,.,...,.,.,,..,,.,,
+#GRSQWRW6AMUC4OZNUFYMXHANP4XVA3Y3VG4JZBF5NVM4CG4GF7D4ZKIZQAXNLZ362OJKDL5XCU63A
+#\\\|WLE77NOFSMFMRFP7I7I7TUZB3TRIRWC2SJVMNGDWOIHI2WBTZDB \ / AMOS7 \ YOURUM ::
+#\[7]KL2SI3QIWJRD2JHAKHIFN5CCGYW4GLYFRHNM3QLZGLPKJFIXNGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

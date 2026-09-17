@@ -42,6 +42,44 @@ unless ( defined $dep_id ) {
 ## avoids redundant respawns when multiple tasks pin the same not-yet- ##
 ## loaded model concurrently                                           ##
 unless ( <coding.model_switch_in_flight>->{$checksum} ) {
+
+    ## a running [ or already yielding ] sweep on this backend wins the     ##
+    ## switch : firing here would kill the sweep's candidate mid-cycle [ or ##
+    ## vice versa ]. defer instead -- the parked task already counts as     ##
+    ## active in the idle predicate, so a yield-aware sweep discovers the   ##
+    ## collision and yields on its own next tick, and its drain [           ##
+    ## coding.helper.drain_model_pin_deferrals ] re-fires this exact        ##
+    ## switch. deferral applies to :no_yield: runs just the same -- there   ##
+    ## the sweep never yields by definition [ that is the token's whole     ##
+    ## point ], so the pin stays deferred for the sweep's full duration and ##
+    ## drains at finish_sweep / model-sweep-cancel.  a paused sweep does    ##
+    ## not block : no candidates fire while paused, and any later resume    ##
+    ## re-arms the yield path as usual.                                     ##
+    my $sweep = <coding.model_sweep_state>->{$backend};
+    my $sweep_blocks
+        = defined $sweep
+        && ref $sweep eq qw| HASH |
+        && ( $sweep->{'state'} // qw| running | ) =~ m{^(running|yielding)$};
+
+    if ($sweep_blocks) {
+        ## record the deferral, do NOT fire, and do NOT set              ##
+        ## <coding.model_switch_in_flight>->{$checksum} on this path --  ##
+        ## that flag suppresses every future attempt for this checksum,  ##
+        ## including the drain's eventual real one, which would park the ##
+        ## task permanently                                              ##
+        <coding.model_pin_deferred> //= {};
+        <coding.model_pin_deferred>->{$backend} //= {};
+        <coding.model_pin_deferred>->{$backend}{$checksum} = TRUE;
+        <[base.logs]>->(
+            1,
+            '[model_pin] deferring switch to %s on %s : model sweep active '
+                . '[ task parks in depending, sweep will yield and drain ]',
+            $checksum,
+            $backend
+        );
+        return $dep_id;
+    }
+
     <coding.model_switch_in_flight>->{$checksum} = TRUE;
     <[base.logs]>->(
         1,         '[model_pin] switching to %s on %s for pinned task',
@@ -62,8 +100,8 @@ unless ( <coding.model_switch_in_flight>->{$checksum} ) {
 
 return $dep_id;
 
-#,,..,,..,.,.,...,,,,,,..,,..,,,.,,..,,.,,.,,,..,,...,...,.,.,...,..,,.,,,,..,
-#6OTQ5C3GSBYATFLJSLJLX5ZLKQPINV2P6YD77IC6OV4FSFLIT7MW66TTBU6Y67GIJQU3KIQHQNSOO
-#\\\|SUFP5TINQD3OPVK4UJT4ABOOCVOEHSGWHJLNNKXQA364MJRNRGF \ / AMOS7 \ YOURUM ::
-#\[7]W7CUJU42FUXCQREITGUGPZQ7NBP4TQG4IABOOLELQGVP42ZNSKAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,.,,.,,,..,,..,.,.,..,,.,,,.,,,..,,...,...,...,.,.,,,.,,,.,.,.,
+#P4WLDLEGHXKYCXPFY5ARPIXGHMOP4AAJWGUETVT5E2GGYQX6T342XMYBMNEFYXMLY3M2ZNTXJNRVA
+#\\\|ZYQQTRZLOCPYHLO3ODFGBRB7NUGHBGQM2IWA7ZWNWPYOSAJ7NTY \ / AMOS7 \ YOURUM ::
+#\[7]IF4R2B36XXP6ZOVWJKXIFAGNPBARXLI7RKZG345FUBZJRECNQ6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,14 +2,16 @@
 
 # name  = coding.model_sweep.cmd.model-sweep
 # descr = start a per-backend model sweep
-# param = [backend] [:re-test-failed:] [:re-test-success:]
+# param = [backend] [filter tokens] [:no_yield:]
 
 my $params = shift             // {};
 my $args   = $params->{'args'} // '';
 
-## extract filter tokens using substitutive extraction, order-independent ##
+## extract filter + yield-opt-out tokens using substitutive extraction, ##
+## order-independent                                                    ##
 my $re_test_failed  = ( $args =~ s| *:re-test-failed: *| | );
 my $re_test_success = ( $args =~ s| *:re-test-success: *| | );
+my $no_yield        = ( $args =~ s| *:no_yield: *| | );
 
 $args =~ s|^\s+||;
 $args =~ s|\s+$||;
@@ -121,6 +123,12 @@ for my $backend (@backends) {
                 switch_id  => '',
                 phase      => qw| idle |,
                 state      => qw| running |,
+                ## an explicit :no_yield: re-arms the opt-out ; without the ##
+                ## token the cursor's own flag carries through [ it is      ##
+                ## meant to survive a zenka restart ]                       ##
+                no_yield => $no_yield
+                ? TRUE
+                : ( $existing->{'no_yield'} // FALSE ),
             };
             <[event.add_timer]>->(
                 {   'interval' => 1,
@@ -213,6 +221,7 @@ for my $backend (@backends) {
         started    => <[base.ntime]>,
         state      => qw| running |,
     };
+    $cursor_data->{$backend}{'no_yield'} = TRUE if $no_yield;
     my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
     if ( length $yaml_str ) {
         <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
@@ -234,6 +243,7 @@ for my $backend (@backends) {
         switch_id  => '',
         phase      => qw| idle |,
         state      => qw| running |,
+        no_yield   => $no_yield ? TRUE : FALSE,
     };
 
     <[event.add_timer]>->(
@@ -252,8 +262,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,.,,,...,.,,,,,.,,..,,.,,,,,,,..,,,.,,..,..,,...,..,,,,.,.,,,..,,..,,,,.,
-#WJM6N5R7B2B55LGJGU53LU6PHWDJEEKINEIVDCRVSR4P7PY7QTKWXEI6AQ7RQIVMDWZ7GZSHTWHWG
-#\\\|OC6DLAUAPNZI72SF3HD3AJBACULF4RYG4POCIEI2L3XK2TK6XAX \ / AMOS7 \ YOURUM ::
-#\[7]6WDJOTGGWCBTNZCQHVJP3FDA6DAWD3BVZUU42US5HHYVNZHIU6CA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,,,,,,,,,.,,,,.,,,.,,..,,.,,,..,,...,...,...,,,.,,.,,,.,,..,,
+#BT7QRUYZINN5UU3HWV6F66VQTX6WI3VZ73GS4ATGFS4DLJFOW25FB62KGXZJFCDZHHPF7QWICNTDO
+#\\\|KHSURGXSTL7H3FU4WRKZOFGEOTQIBGANVHCK2ZCXADXFQOA4PHE \ / AMOS7 \ YOURUM ::
+#\[7]JXDOO4QQM4WS4ECGHD6EAXVMRYUSUR4SVYIKW6BUUITVOGLHQ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

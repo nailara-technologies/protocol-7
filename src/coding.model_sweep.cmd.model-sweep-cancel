@@ -66,6 +66,11 @@ for my $backend (@backends) {
     ## a cancelled sweep's breaker streak is meaningless ##
     delete <coding.model_sweep_breaker>->{$backend};
 
+    ## drain deferred pinned-model switches : an abandoned run is the same ##
+    ## dead-end for a deferred pin as a finished one [ drain site : cancel ##
+    ## ]                                                                   ##
+    <[coding.helper.drain_model_pin_deferrals]>->($backend);
+
     push @lines,
         sprintf '%s : cancelled [ was idx=%d/%d ] -- '
         . 'cursor cleared, recorded results kept',
@@ -86,8 +91,8 @@ if ($changed) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,,,.,.,...,...,.,.,,..,.,,,,..,,,,,,,.,.,,,.,.,...,...,..,,,..,..,,,..,...,
-#IXFZEB72O4KKAGMZG2E63CEAV2Z3WSXV5X35LKRYYNZUFBRY553FXUAHY3KF5IRHSMN4MODQIZ32M
-#\\\|S4KYSTQGPVN7WHY2UGAYV6UHS2OQLLCNREJQ2LQLC25I6NO66M3 \ / AMOS7 \ YOURUM ::
-#\[7]AMZHFPC372YO44L7HDDHYFGWCAKS3MKTNGRFK6M6MT33OYIYLGAY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,..,,.,.,,..,...,,,.,,.,,.,.,.,.,...,...,,.,,.,.,,,,,,..,..,,
+#YY4DAE7JQTWTWHWZOYQUMFDZYUF32L2S4WLL4JE7EFU6MEYIJXVRFBIVE4VE62HXWNX7DBF26VVLE
+#\\\|I327BZBAJMLK7ZYY2H6Q64TMDZ7VCDYNMNSA63BB3L7FA46PNZ2 \ / AMOS7 \ YOURUM ::
+#\[7]DEXTNJIKUCC6BKVLJTO67KD6P65CDQC66HPWVC4QL4ELYYRTP6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

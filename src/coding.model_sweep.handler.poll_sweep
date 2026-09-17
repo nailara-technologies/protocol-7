@@ -57,6 +57,9 @@ my $persist_cursor = sub {
     };
     $entry->{'paused_reason'} = $paused_reason
         if defined $paused_reason and length $paused_reason;
+    ## :no_yield: is operator intent, not derived state : it rides the  ##
+    ## persisted cursor so it survives pause/resume and a zenka restart ##
+    $entry->{'no_yield'} = TRUE if $state->{'no_yield'};
     $cursor_data->{$backend} = $entry;
 
     my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
@@ -112,6 +115,12 @@ my $finish_sweep = sub {
         $summary .= sprintf ' : %s=%d', $status, $counts{$status};
     }
     <[base.logs]>->( 1, $summary );
+
+    ## drain deferred pinned-model switches : a :no_yield: sweep never   ##
+    ## yields by definition, so a pin deferred during this run only gets ##
+    ## its switch once the sweep is actually done [ drain site : natural ##
+    ## completion ]                                                      ##
+    <[coding.helper.drain_model_pin_deferrals]>->($backend);
 
     delete <coding.model_sweep_state>->{$backend};
     $event->w->cancel if defined $event->w and $event->w->is_active;
@@ -263,7 +272,9 @@ if ( $phase eq qw| idle | ) {
     ## : the next candidate never started, resume picks it up here ]       ##
     if ( $state->{'pause_requested'} ) {
         $state->{'pause_requested'} = FALSE;
-        $state->{'state'}           = qw| paused |;
+        $state->{'yielding'}        = FALSE;    ## pause wins over yield ##
+        delete $state->{'yield_since'};
+        $state->{'state'} = qw| paused |;
         $persist_cursor->( $idx, qw| paused |, $state->{'paused_reason'} );
         <[base.logs]>->(
             1,
@@ -279,6 +290,100 @@ if ( $phase eq qw| idle | ) {
         $event->w->cancel if defined $event->w and $event->w->is_active;
         return TRUE;
     }
+
+    ## yield gate : real task activity wins over the sweep. a queued or     ##
+    ## running task [ or a held backend lock ] means starting the next      ##
+    ## candidate would kill its inference server out from under it -- wait  ##
+    ## instead. in-memory only : the persisted cursor is NOT rewritten per  ##
+    ## yield tick [ it already ticks at 1s intervals, and a long yield must ##
+    ## not rewrite the YAML once a second for nothing ]. skipped entirely   ##
+    ## for a :no_yield: run. runs AFTER the pause- request check above :    ##
+    ## pause always wins over yield                                         ##
+    if ( !$state->{'no_yield'} ) {
+        my $idle = <[coding.helper.backend_idle]>;
+        if ( !$idle->{'idle'} ) {
+            my $now = <[base.time]>->(3);
+            if ( !$state->{'yielding'} ) {
+                $state->{'yielding'}    = TRUE;
+                $state->{'yield_since'} = $now;
+                ## yielding must never overwrite the state axis when it is ##
+                ## already paused or pause-requested                       ##
+                $state->{'state'} = qw| yielding |
+                    if ( $state->{'state'} // qw| running | )
+                    !~ m{^(paused|pause-requested)$};
+                <[base.logs]>->(
+                    1,
+                    '[model_sweep] %s : yielding to task activity '
+                        . 'at idx=%d/%d [ %d active task(s), %d in flight ]',
+                    $backend,
+                    $idx,
+                    $total,
+                    $idle->{'active'},
+                    $idle->{'in_flight'}
+                );
+            }
+
+            ## the whole point of yielding is to let a parked pinned task ##
+            ## through : drain its deferred switch-model right here, the  ##
+            ## same tick the yield is detected [ and every tick it keeps  ##
+            ## yielding ], rather than waiting for a separate signal      ##
+            <[coding.helper.drain_model_pin_deferrals]>->($backend);
+
+            ## bounded, matching vision_switch_poll's own 300s bound : past ##
+            ## that this is no longer "let real work finish", it is "the    ##
+            ## queue never goes idle" -- escalate to a REAL, persisted      ##
+            ## pause through the same mechanics a circuit- breaker pause    ##
+            ## uses [ resume then requires :force: under the existing,      ##
+            ## deliberately unnarrowed resume gate ]                        ##
+            if ( $now - ( $state->{'yield_since'} // $now ) > 300 ) {
+                $state->{'yielding'} = FALSE;
+                delete $state->{'yield_since'};
+                $state->{'state'}         = qw| paused |;
+                $state->{'paused_reason'} = qw| yield-timeout |;
+                $persist_cursor->( $idx, qw| paused |, qw| yield-timeout | );
+                <[base.logs]>->(
+                    0,
+                    '[model_sweep] %s : yield exceeded 300s at idx=%d/%d -- '
+                        . 'sweep paused [ yield-timeout ], resume with '
+                        . 'model-sweep-resume %s :force:',
+                    $backend,
+                    $idx,
+                    $total,
+                    $backend
+                );
+                $event->w->cancel
+                    if defined $event->w and $event->w->is_active;
+                return TRUE;
+            }
+
+            ## still yielding : timer continues, low-verbosity progress log ##
+            ## [ same style vision_switch_poll uses for its own ]           ##
+            <[base.logs]>->(
+                2,
+                '[model_sweep] %s : waiting for idle '
+                    . ': %d active task(s), %d in flight',
+                $backend,
+                $idle->{'active'},
+                $idle->{'in_flight'}
+            ) if int($now) % 5 == 0;
+
+            return TRUE;    ## skip $persist_cursor : nothing changed ##
+        }
+    }
+
+    if ( $state->{'yielding'} ) {
+        ## idle again : yielding is self-clearing by construction, no ##
+        ## operator action, no resume command                         ##
+        $state->{'yielding'} = FALSE;
+        delete $state->{'yield_since'};
+        $state->{'state'} = qw| running |
+            if ( $state->{'state'} // '' ) eq qw| yielding |;
+        <[base.logs]>->(
+            1, '[model_sweep] %s : queue idle again, resuming at idx=%d/%d',
+            $backend, $idx, $total
+        );
+    }
+
     $start_candidate->();
     $persist_cursor->($idx);
     return TRUE;
@@ -350,8 +455,8 @@ if ( $phase eq qw| waiting | ) {
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,,.,,.,,,.,,,..,,,,,..,,.,.,..,,,.,,,.,,,,.,..,,...,...,,.,,.,,,.,.,...,,,,,
-#BVWYVWKHFN64TIXGNAVVPHKZOUUOLS3JMZNAD4CYB6UVGWF4CN2IATXZXUIXIGFWCEKTGUTUC6RGY
-#\\\|QECW63MNPGE4ZFAV3UVSVVIOANDMNS4ZXC7MUCFBVRAPMW2SY3I \ / AMOS7 \ YOURUM ::
-#\[7]UKZJTPSBJLDRIQJVZ5MZWYX3PIVMNZBHXLT3LPCNWVPRCFO2SACI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,.,,,...,...,..,,..,,.,,,.,,,..,,...,...,...,.,,,,.,,...,,.,,
+#S4HWI54GQYN3IY44D2ZVGKTPL54DQUXFMJJ2RR5MT6RGEEVONW2MBNNYGV22ISIPKZ5FMPQHUILB4
+#\\\|3QDB7AYDL2C5PZ57KFG3FBPM7PLAXO54TZGQ4NIX5MJFRISE2TO \ / AMOS7 \ YOURUM ::
+#\[7]EIQBH54KRIBSZVXTHV3LFHXJFGNV3YPOM6CLR3PZ3F37K6IRPMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
