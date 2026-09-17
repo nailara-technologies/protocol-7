@@ -135,9 +135,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [flag-full-rerun-cost-before-redispatch](feedback-flag-full-rerun-cost-before-redispatch.md) — before redispatching a crashed multi-hour job after fixing its bug, explicitly check/state whether it resumes or restarts from zero; lora training's `train_lora.py` had no mid-run checkpointing, redispatch silently repeated the full ~3hr run and user found out by watching step counters reset instead of being told up front
 - [sourcecode-signature-corpus-scoping](feedback-sourcecode-signature-corpus-scoping.md) — scoping a sourcecode.console.* signing/verify command to a file list: intersect against the authoritative `sourcecode.source_path_set_up` resolver, never a regex approximation of its exclusion patterns; add a `:keyword:` flag to the existing command rather than a new console command; and NEVER "fix" `collect_file_list`'s bare-directory non-recursion (it's deliberate) -- `/** + :inlist:` is the existing safe deep-scan mechanism, a hasty patch to force recursion everywhere caused a live incident (18984-file over-broad signing attempt, fatal symlink error, fully reverted)
 - [p7-cli-argv-and-console-command-gotchas](feedback-p7-cli-argv-and-console-command-gotchas.md) — `bin/Protocol-7 <zenka> <command>` CLI: `-v`/`-vq` flags must come after the zenka name or zenka-name resolution silently fails into stdin-config mode; argv is space-joined then re-split inside `collect_file_list`, so a filename with a space/leading-`!`/`*` can't survive the round trip regardless of shell quoting (silently absorbed by loose pattern matching, not a hard crash)
+- [parallel-redundancy-during-migration-is-deliberate](feedback-parallel-redundancy-during-migration-is-deliberate.md) — general philosophy: standalone-script-to-zenka (and similar) migrations deliberately run parallel/redundant code paths for a while -- functional stability + independent upgrade safety + eventual convergence onto whichever proves better; don't default to flagging this as a gap or rushing to unify, only raise it if the paths silently diverge in behavior or the redundancy has clearly outlived its purpose
 
-#,,.,,,.,,.,,,,,,,.,.,..,,.,,,,,,,,..,.,.,...,..,,...,...,.,,,.,.,.,,,,.,,...,
-#5VUSZKDS2FDL35WV2TK7AV7S7PVJ2XVN5MOKW5FF4EQKWNO2VEQ5ZVGG6QB7G5QE7YTNIAAXQTT7Y
-#\\\|42RJ36KJVQWMXTZTFAIDFM3EF3T2O6MZOG3J2CYHI37OYLQOJV4 \ / AMOS7 \ YOURUM ::
-#\[7]C6QD5SEIPXHDSF7MFLNHGZQSTQ635SIYQDU6PKEM6RTKOH6LRSCA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,.,.,.,,,,,.,,,.,,,.,,.,,...,..,,...,...,.,.,,,.,,.,,,..,.,.,
+#YSH7XVJXROSMEQKQQY5TVSKJR5JXVEDIPJQDG2OA7XK3ULIWS63PI4IP46O25N6VYTLKKXHMMC7J4
+#\\\|W4TCNRGAWD2ZHDJJV77OR6ACFVBTRHIKZMWUZYQSV2JXHAO4M7I \ / AMOS7 \ YOURUM ::
+#\[7]WG43S2HJDEXFEUQUQBXS2RBTLIO6DDHOJWGWXLJEQBBPXNGS4EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
