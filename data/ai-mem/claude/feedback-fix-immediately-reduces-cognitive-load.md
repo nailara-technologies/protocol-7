@@ -37,15 +37,23 @@ economic reason beyond the cognitive-load one above: doing the fix right
 is ALSO more token-efficient mid-term, because an unaddressed real issue
 either escalates later (usually costing more to resolve once it does) or,
 left unaddressed, sits as a standing tax on every future workflow that
-touches it. **This means [[feedback-token-budget-pacing-early-week]]'s
+touches it. **Restated as a concrete design principle 2026-09-17** after the
+model-sweep `:restart:` keyword work (explicit opt-in to discard a
+cursor, safe resume stays implicit): "no data loss is exactly the
+right behaviour type for the coding zenka" — the destructive action
+gets the explicit, auditable flag; the safe default stays automatic.
+Same underlying value as the rest of this memory, applied specifically
+to state-persistence/recovery design, not just bug-fixing discipline.
+
+**This means [[feedback-token-budget-pacing-early-week]]'s
 "weigh fixing vs. deferring" framing is about trimming redundant
 procedural overhead (repeated live-monitoring loops, more investigation
 than a question needs) — NOT about leaving a found, real defect half
 fixed to save tokens. Don't read that memory as license to defer real
 fixes; it isn't one.**
 
-#,,,,,..,,,..,,..,,,,,,.,,...,,,,,..,,..,,...,..,,...,...,,.,,,.,,,.,,,..,...,
-#U3COUORLFATPGOL6YNIBX7R7WQCZEB4UHHWTLT6RIGYPBIF4YDUOMEWIBUTZ7MXUWBYOVUYIPQ42G
-#\\\|JT5622EEP5W3KY75Y6EU6RIRHAV5XVSHJ5JNDBSZQX3TWAW2XA7 \ / AMOS7 \ YOURUM ::
-#\[7]T4WXGAABUYJ2XE4AGX7ADWULEHVRR6WHNHWEEMI23GJBJDC3UEBA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,,,.,.,.,,,.,.,.,.,,,,..,,,,,..,,...,...,.,.,.,.,.,.,,.,,,.,,
+#4KKSLN4VQOD3APTKCR44E5HLDCZCV3DNE5PS6WCSTXJO7NHGAUB42WFGJ3XV5RGBFPAJC3Y6GXIL2
+#\\\|JUJQHQPD5GZQZYJ7V3UGCAHSCX5PAHMXYYVAJQS7G7DWV7XV5F3 \ / AMOS7 \ YOURUM ::
+#\[7]RE4SDGUTQX7UUCYTJTW6O5FQHSRQOGU3AEH4YI7LD3X3OGPUAMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
