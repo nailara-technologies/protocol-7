@@ -330,6 +330,17 @@ coding.cfg.cold_start_data_start_timeout = 150
 ## tiering ]                                                               ##
 coding.cfg.switch_model_max_wait = 300
 
+## crash-restart attempt ceiling : regular operation vs sweep-driven ##
+## [ coding.handler.inference_server_sigchld /                       ##
+## coding.handler.verify_inference_startup ]. a sweep candidate is    ##
+## ALMOST EXPECTED to hit a model-pinned crash -- the full 5-attempt  ##
+## ladder [ up to 125s backoff ] wastes real sweep wall-clock time on ##
+## a failure that's very likely deterministic, not transient. applies ##
+## automatically whenever <coding.model_sweep_state>->{$backend} is   ##
+## defined -- no per-call flag needed                                 ##
+coding.cfg.crash_restart_max_attempts       = 5
+coding.cfg.sweep_crash_restart_max_attempts = 1
+
 ## vision-model :switch: idle-wait bound : caller timeout defaults to   ##
 ## this when omitted - bounds ONLY the wait-for-idle phase, the switch  ##
 ## itself is governed by switch_model_max_wait above                    ##
@@ -416,8 +427,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,,,.,.,,,...,,,,,.,.,,,,,.,.,.,,,.,.,..,,.,.,...,...,,..,.,,,...,.,,,.,,,
-#34BZ5KVMDQ2IKV3FNFCZPVYVSXX35NA5R6J6ZRCSTTLT7OV3RZ3PYK2Y6Q4W7PKUEM2UARJL4EJXM
-#\\\|NE43WE4VU37OH6IYENV7PL7QK5NN5JGAPFBBA4723PRXAIL77T4 \ / AMOS7 \ YOURUM ::
-#\[7]67RZOYKT2NGVKMCJKY6I6GXWNFLGNXXINOIIREPSWXDKD3E24IBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,.,.,...,,,,,,,,,,..,..,,,.,,.,.,...,...,...,,,,,,,.,,,.,,,.,
+#B7IABT2MZQSWWRU3OYXKFQUAOBRVIMC724X4VV6S6QGDXWT3RVT4WN5XOPUFUW35HF5Q4GINYRXAC
+#\\\|JPYAULFSI4Q2D7IDTNNWFIHGQ7KOFHQRSFLHQFL2VZPXDUMHPGO \ / AMOS7 \ YOURUM ::
+#\[7]OGQ2OWWNXSH4F37PKXDE2APQZZ3W3I3PTFAYP6NQQ62JQOEFICDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
