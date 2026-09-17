@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = coding.handler.switch_model_auto_gpu_done
+# descr = on_done callback for the gpu half of an 'auto' backend
+#         switch-model : fired by coding.helper.complete_pending_switch [
+#         or coding.handler.spawn_smart_path_reply ] with the real
+#         spawn_result once the async gpu spawn attempt terminates. on
+#         failure [ e.g. gpu resource-insufficient ] it performs the cpu
+#         fallback the pre-async switch_model_reply used to do
+#         synchronously via $gpu_ok. terminal point of the auto switch :
+#         clears <coding.switch_model_active>, the in-flight marker that
+#         used to be deleted at the end of coding.handler.switch_model_reply
+#         but now has to cover the async kill-wait-plus-respawn window.
+
+my $params = shift;
+
+my $spawn_result = $params->{'spawn_result'} // FALSE;
+
+## same position the synchronous code cleared this marker : only now it    ##
+## also covers the async completion window [ see coding.cmd.switch-model ] ##
+delete <coding.switch_model_active>;
+
+return TRUE if $spawn_result;
+
+<[base.logs]>->(
+    1, '[switch_model_auto_gpu_done] gpu unavailable, trying cpu'
+);
+
+## same config updates $mark_backend_updated->('cpu') performs in    ##
+## coding.handler.switch_model_reply -- kept inline rather than as a ##
+## cross-module closure ; keep the two in sync                       ##
+my $checksum    = $params->{'checksum'}    // '';
+my $model_path  = $params->{'model_path'}  // '';
+my $mmproj_path = $params->{'mmproj_path'} // '';
+
+<inference.backend.cpu.model_id> = $checksum;
+<[base.logs]>->(
+    2, '[switch_model_auto_gpu_done] updated CPU model to %s', $checksum
+);
+
+## generic "current model" label - keep <inference.model.*> in sync, see ##
+## the longer rationale in coding.handler.switch_model_reply             ##
+<inference.model.path>        = $model_path;
+<inference.model.amos_id>     = $checksum;
+<inference.model.mmproj_path> = $mmproj_path;
+
+<[coding.handler.spawn_smart]>->(
+    {   'backend'     => qw| cpu |,
+        'model_path'  => $model_path,
+        'mmproj_path' => $mmproj_path,
+        'force'       => 1,
+        'on_done'     => {
+            'handler' => qw| coding.handler.switch_model_spawn_done |,
+            'params'  => { 'backend' => qw| cpu | },
+        },
+    }
+);
+
+return TRUE;
+
+#,,..,,,,,.,.,.,,,...,...,.,.,...,.,.,,.,,,..,..,,...,...,...,.,.,,..,,,,,.,,,
+#4SHHN7T7PJYF6RWQLZTSJQGZD7BQDUFDQNQ7TOVPQ4PFYZHRPEDHQWDHXFFNIYGRPAXISLZWGHSWK
+#\\\|QFPYRKPNJXOVJFBVP2J647CZ42OWWB7UBIZJ4K7KF72KJ3HKH2J \ / AMOS7 \ YOURUM ::
+#\[7]SRJXNHSSIB25JJ3D25UQYCZOTZELJVLEZRZOEAR4M4CIRBCQGKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

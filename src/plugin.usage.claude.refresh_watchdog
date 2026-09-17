@@ -20,11 +20,11 @@ my $provider = <usage.provider.claude>;
 my $margin   = $provider->{'proactive_refresh_margin'} // 60;
 
 ## short retry, not a long backoff -- same reasoning as plugin.usage.kimi.  ##
-## refresh_watchdog's identical note : this timer's own FIRST fire runs    ##
-## from init_code, before [root.drop_privs], so $ENV{HOME}/$UID still      ##
-## resolve to the pre-drop launching user and the credential file          ##
-## genuinely doesn't exist under that home yet -- self-heals within        ##
-## seconds of drop_privs completing                                        ##
+## refresh_watchdog's identical note : this timer's own FIRST fire runs     ##
+## from init_code, before [root.drop_privs], so $ENV{HOME}/$UID still       ##
+## resolve to the pre-drop launching user and the credential file genuinely ##
+## doesn't exist under that home yet -- self-heals within seconds of        ##
+## drop_privs completing                                                    ##
 my $rearm_fallback = sub {
     <[event.add_timer]>->(
         {   'after'   => 3,
@@ -87,10 +87,8 @@ if ( $remaining <= $margin ) {
 );
 return TRUE;
 
-#,,,.,,,,,,,,,,,,,.,,,,,,,.,.,,.,..,,,,,,,..,,.,,.,,,,,.,..,,...,...,,,,,,,.,,
-
-#,,.,,,.,,...,,,.,,.,,,,,,...,,,.,,.,,,..,...,..,,...,.,.,..,,,.,,...,..,,,.,,
-#PWLBO6QLYF3ES53UKEPGTPWHPT4GXGLYMB2UUNT3G4KCULQP3N576XQWF5K26P6HF4625LKGB5VQO
-#\\\|X4J7AQFHEB4UDHAFAH4HDGWYIQYADOGMXL3SMC7RDVH3H5MA6PL \ / AMOS7 \ YOURUM ::
-#\[7]BSLQ7SH6UMCPCLJCWSVMIWFM5YEB7BIGN3QIWOCZEFJ6NGS5BODA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,,,,,,,..,,.,.,.,,,.,,,.,.,,.,,..,,...,...,,.,,..,,,,.,,.,,..,,
+#EVQ4URUYZ6FSWSLQDU3AUU6WAVW5AUSVLD7ZFOVCJWQSOGHNQZCKUL7WZBOFT5G3R57VYY32X7XFY
+#\\\|CXZCFDCI5QTRNGSY4556LQSARKJGH3SHUSNL2JMDUZ36QBO7YTO \ / AMOS7 \ YOURUM ::
+#\[7]U6OL3SB2YLLGVWIGCO6UZLXMDJLMXZM3M53WVZ5DXLPM3JUJ26DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
