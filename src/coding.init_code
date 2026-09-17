@@ -225,6 +225,14 @@ if ( defined $saved_status_ref && length $saved_status_ref->$* ) {
 # Initialize inference servers storage
 <coding.inference_servers> //= {};
 
+## async model-switch state [ spawn_smart fully async since 2026-09-18 ] :
+## per-backend guard telling inference_server_sigchld a kill was deliberate [
+## same shape as <coding.draining> / <coding.lora_training_in_progress> ] and
+## the stashed spawn-completion state consumed by
+## coding.helper.complete_pending_switch
+<coding.switching_backend> //= {};
+<coding.pending_switch>    //= {};
+
 # Initialize task queue
 <coding.task.queue>     //= {};
 <coding.task.pending>   //= [];
@@ -736,8 +744,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,.,.,,,,..,,,.,.,,,,.,,,,.,,,,,.,,,,..,,,,,.,.,...,...,.,.,.,.,,,.,,.,,.,.,
-#BOSI3JERX63K2G3JUU2RGWOBRW7QAFK2NMYU4DGFBZP36JMJR2XJZPFZK2MYKXJIS45ZWUEIPNCCM
-#\\\|A72LLUBWI6HIC4ZMC27J4FHQDDONS3HNHUHAYMUYK6XB4LQTCZN \ / AMOS7 \ YOURUM ::
-#\[7]35ZTLGAEJPDHOLBB2C7BIMOLTZXPA6B5SVTZHVK37D5ZMTZ2JWDA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,..,,,..,,,,,,..,...,,..,,,,,.,.,...,...,...,.,,,..,,,..,...,
+#CWUE3PMNRP5R3422PC2AO42VSVI6D5AFCAMKGTOXGMX7QTIU47QQK4PN2Z4SCNJ5TJI5LEB37LCCK
+#\\\|GII6QO4L25PVUQF3G4ATTBNUV4YQOKD7RUUUFAPEPWHM5LNNGEF \ / AMOS7 \ YOURUM ::
+#\[7]SP5L7V22ZFE5R4HOK62EXDLVNV4QPUQW4H75Z2IABDTOPQIPGKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

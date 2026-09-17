@@ -10,6 +10,26 @@ my $amos_id = $params->{'amos_id'} // '';
 my $backend = $params->{'backend'} // 'gpu';
 my $port    = $params->{'port'}    // ( $backend eq 'gpu' ? 8000 : 8001 );
 
+## on_done threaded through from the original spawn_smart call [ same    ##
+## {handler,params} shape as plugin.usage.kimi.refresh_token ] -- this   ##
+## reply handler is the terminal point of the amos-path-async branch, so ##
+## the caller's callback fires HERE instead of being a dead end          ##
+my $on_done = $params->{'on_done'};
+$on_done = undef unless ref $on_done eq qw| HASH |;
+
+my $dispatch_on_done = sub {
+    my $result = shift;
+    if (    ref $on_done eq qw| HASH |
+        and length( $on_done->{'handler'} // '' )
+        and exists $code{ $on_done->{'handler'} } ) {
+        my $call_params = { %{ $on_done->{'params'} // {} } };
+        $call_params->{'spawn_result'} = $result;
+        $call_params->{'backend'}      = $backend;
+        $code{ $on_done->{'handler'} }->($call_params);
+    }
+    return $result;
+};
+
 <[base.logs]>->(
     2, '[spawn_smart_path_reply] received path for amos=%s', $amos_id
 );
@@ -21,6 +41,7 @@ if ( $@ || !ref $entry ) {
     <[base.logs]>->(
         0, '[spawn_smart_path_reply] failed to parse reply: %s', $@
     );
+    $dispatch_on_done->(FALSE);
     return FALSE;
 }
 
@@ -31,6 +52,7 @@ unless ( length $model_path && -f $model_path ) {
     <[base.logs]>->(
         0, '[spawn_smart_path_reply] invalid path: %s', $model_path
     );
+    $dispatch_on_done->(FALSE);
     return FALSE;
 }
 
@@ -60,10 +82,12 @@ if ( $result && $result->{'success'} ) {
     );
 }
 
+$dispatch_on_done->( ( $result && $result->{'success'} ) ? TRUE : FALSE );
+
 return $result;
 
-#,,,,,.,,,,,.,,,.,.,.,...,.,,,...,,..,,,,,,,,,.,.,...,...,.,,,.,,,,..,..,,.,.,
-#ZEYBY6P4QR2DD4STBK26H4XV45SJROKN4BQC33JM3EQY4A4GUAD6NCDTYDWFP5C5G2XXCT2CJ6KKE
-#\\\|KD4YU3DE7LL4Y5H3RBPQUJMIWSFFLSOU5K4XFGHQX5D7BP5GCCQ \ / AMOS7 \ YOURUM ::
-#\[7]B4VZK4MYGFGCGR5KKW7TYS7CILG7MEQ4T2BV67SKGH6AMCCFXADQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,.,,,,.,,,,.,.,,,...,,,,,..,,.,.,...,...,..,,,,.,,,.,,,,,,..,
+#FRUPDGN2R24RQKGJ7KJBF3GFNW3MHBM7R46G3KKYBQKQK7567EQMIXJTWNQABAFF7HSCSTPFWYZYA
+#\\\|A2HWEUOF7MMI4LIR5OZQ7IR4W7T65EOWYBS536HT5V2LMA42BDF \ / AMOS7 \ YOURUM ::
+#\[7]X2BACY5KWHHKBW47UUZZNKDYPOI5BPKXJWH57LHPZX4J35PNK6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
