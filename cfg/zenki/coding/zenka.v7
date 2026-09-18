@@ -376,6 +376,30 @@ inference.model.context_length = 42500
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
+## anti-repetition sampling : NONE of this was previously sent anywhere --    ##
+## neither the per-request json body [ coding.async.send_request,             ##
+## coding.self_test.async_probe, coding.tools.http_inference_client ] nor     ##
+## the server spawn command line [ coding.spawn_inference_server ] ever set   ##
+## repeat_penalty/repeat_last_n/dry_* at all, so whatever anti-repetition     ##
+## behavior existed was purely whatever this ik_llama.cpp fork's own build-   ##
+## in default happens to be -- confirmed live 2026-09-18 : a degenerate       ##
+## paragraph-level repetition loop [ 677NSHI:3YLW3KI, self-test prompt 2 ]    ##
+## repeated the same several sentences verbatim, over and over, never         ##
+## terminating naturally. flat repeat_penalty mostly discourages immediate    ##
+## token-level repeats and needs a large repeat_last_n window to catch a      ##
+## whole-paragraph repeat ; DRY sampling [ merged into llama.cpp 2024 ] is    ##
+## specifically designed for exactly this shape [ detects a repeated multi-   ##
+## token sequence and penalizes continuing it ] -- both enabled together,     ##
+## conservative values chosen to avoid degrading normal generation quality    ##
+inference.model.repeat_penalty = 1.1
+inference.model.repeat_last_n  = 256
+## dry_multiplier = 0 disables DRY entirely ; 0.8 is llama.cpp's own commonly ##
+## recommended starting point, not an aggressive value                        ##
+inference.model.dry_multiplier      = 0.8
+inference.model.dry_base            = 1.75
+inference.model.dry_allowed_length  = 2
+inference.model.dry_penalty_last_n  = -1  ## -1 = full context window ##
+
 ## VRAM safety margin for context auto-calculation [calculate_safe_context]    ##
 ## safety = 30% of remaining VRAM, clamped to [min, max]                       ##
 coding.cfg.vram_safety_min_mb = 300   ## lower to allow larger context windows ##
@@ -402,8 +426,9 @@ inference.model.amos_id = <coding.cfg.start_model>
 ## path ] every time 'reload config'/'reload all' re-parses this file       ##
 
 modules.load = auth.client net protocol io.unix io.ip ui jobqueue crypt.C25519 \
-               coding models.conversation models.gguf.file storage context ascii \
-               note pager format.yaml format.json ncode devmod reasoning llm git ## <-- during development
+               coding models.conversation models.gguf.file storage context \
+               ascii note pager format.yaml format.json ncode \
+               reasoning llm git devmod ## <-- during coding zenka development
 
 ## storage plugins [ loaded separately via load_plugins ] ##
 ## todo: consider generic auto-load mechanism for all zenki ##
@@ -427,8 +452,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,,,,,.,,,,,,.,.,...,,,,,,,,,,..,..,,,.,,.,.,...,...,...,,,,,,,.,,,.,,,.,
-#B7IABT2MZQSWWRU3OYXKFQUAOBRVIMC724X4VV6S6QGDXWT3RVT4WN5XOPUFUW35HF5Q4GINYRXAC
-#\\\|JPYAULFSI4Q2D7IDTNNWFIHGQ7KOFHQRSFLHQFL2VZPXDUMHPGO \ / AMOS7 \ YOURUM ::
-#\[7]OGQ2OWWNXSH4F37PKXDE2APQZZ3W3I3PTFAYP6NQQ62JQOEFICDA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,,,.,,.,,,..,.,.,...,..,,...,.,.,...,...,,,,,,,.,.,,,,,.,...,
+#HIBZYPRFPLACART6RBM2Q4SGJFTFA2EKOANLR72BJL24TM2BPTMFLKN4VV5FKLK7DJDR5I7TI75ZS
+#\\\|FJXUYLGLOJZ3UVYVEN6MACXUZQE7GKEBP5CHS4S5CEG2H6CUXV7 \ / AMOS7 \ YOURUM ::
+#\[7]PR7HBFUUPCBDYE3YPF7VYHXYU3XYOMQR4C3IQMNZTEBHWB423UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
