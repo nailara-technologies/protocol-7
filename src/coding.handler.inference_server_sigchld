@@ -37,13 +37,25 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             ## from coding.lora_train_spawn freeing the gpu for training ], ##
             ## not a crash -- "crashed" on that line reads as alarming and  ##
             ## contradicts the very next log line when the training guard   ##
-            ## below fires. wording only; $server_info->{'status'} stays    ##
+            ## below fires. same reasoning extends to exit=9 [ raw wait-    ##
+            ## status low byte = SIGKILL ] : spawn_smart's force=1 path     ##
+            ## kill('KILL',$old_pid)s the previous server BEFORE setting    ##
+            ## <coding.switching_backend>, so that guard is already TRUE by ##
+            ## the time this SIGCHLD is reaped for a deliberate switch-kill ##
+            ## -- confirmed live 2026-09-18 : every model-switch logged an  ##
+            ## alarming "crashed [pid=X exit=9]" even on a totally routine  ##
+            ## switch. wording only; $server_info->{'status'} stays         ##
             ## 'crashed' below, other code paths key off that literal       ##
+            my $is_deliberate
+                = $exit_status == 0
+                || <coding.switching_backend>->{$backend}
+                || <coding.draining>
+                || <coding.lora_training_in_progress>;
             <[base.logs]>->(
                 0,
                 '[inference_server_sigchld] %s server %s [pid=%d exit=%d]',
                 $backend,
-                ( $exit_status == 0 ? qw| terminated | : qw| crashed | ),
+                ( $is_deliberate ? qw| terminated | : qw| crashed | ),
                 $pid,
                 $exit_status
             );
@@ -197,8 +209,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,..,..,,.,.,,,,,.,,,...,,,,,.,,,..,,,,.,..,,..,,...,...,...,,..,.,.,,.,,.,.,
-#I7TKYMLY4CZXJ57GUUQZBGZABT5RNMRP6KCPNNLLGZF2LF7Q76OK5IU3NAFKN5TLTT4C7GS7MHYGE
-#\\\|B7V7AWUR3UJVBB3YXGKRJUGRC6WKSNW2V4IWG65VLI7IOZX3JZO \ / AMOS7 \ YOURUM ::
-#\[7]A3PLXB7PKBLQVJALINVEAMMWH456BSCJJSGPW56ZLUJZHWHEJOCY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,.,,,.,.,,..,,,.,.,.,,,.,,.,,..,,...,...,..,,,.,,..,,...,.,.,
+#XVBMHJEDFJM5TDL45LXWY6VB46HOO7EDEUQJQVD6F4GBJBN4K6KWNNKCM3ELPRG7X5JALEIB7DBV6
+#\\\|FF5P5UN37MIJ7FFTQDDN4US246YJ6PHGUOZG5GXCSCD5N56A276 \ / AMOS7 \ YOURUM ::
+#\[7]RFP2HX6C6YNQX6Z6TQKXBVP2CY4ABDEXVZLC4SW5IX5HNPJ3VMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
