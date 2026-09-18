@@ -89,6 +89,16 @@ my $clear_cursor = sub {
 
 ## helper : finish the sweep and log a per-status summary ##
 my $finish_sweep = sub {
+    ## defensive : normally unreachable with a candidate in flight [ the ##
+    ## finished-advancing block releases first ], but if state was ever  ##
+    ## corrupted into idx>=total mid-candidate the lock would otherwise  ##
+    ## outlive the sweep and wedge the backend [ guarded no-op via       ##
+    ## backend_release's holder check when nothing is held ]             ##
+    my $held_switch_id = $state->{'switch_id'} // '';
+    <[coding.async.backend_release]>->(
+        sprintf( qw| sweep:%s |, $held_switch_id ), $backend
+    ) if length $held_switch_id;
+
     $clear_cursor->();
 
     ## read counts back from coding.model_status [ source of truth ] ##
@@ -207,12 +217,45 @@ my $start_candidate = sub {
         return;
     }
 
-    ## suppress monitor_inference_startup auto-self-test for this switch ##
-    <coding.self_test_switch_in_progress> = TRUE;
-
     ## create poll_switch state, backend-aware ##
     <coding.self_test_switch_state> //= {};
     my $switch_id = <[base.gen_id]>->(<coding.self_test_switch_state>);
+
+    ## hold the backend lock for the ENTIRE candidate cycle [ switch +      ##
+    ## self-test + restore ] : the deliberately-global                      ##
+    ## coding.helper.backend_idle check loops BOTH backends' locks, so this ##
+    ## makes a sweep's own activity visible to it -- the OTHER backend's    ##
+    ## sweep then yields instead of racing in parallel, the same mutual     ##
+    ## exclusion a real submitted task gets via  coding.async.request. the  ##
+    ## placeholder id is built from the switch_id so release can            ##
+    ## reconstruct it from $state->{'switch_id'}                            ##
+    my $lock_id = sprintf qw| sweep:%s |, $switch_id;
+    my $acquire = <[coding.async.backend_acquire]>->( $lock_id, $backend );
+    if ( !$acquire->{'acquired'} ) {
+        ## a real task raced in between the idle-gate above and this        ##
+        ## acquire. undo the queue push OURSELF : backend_release only ever ##
+        ## drains the queue via coding.async.send_request, which expects a  ##
+        ## REAL task_id -- a sweep placeholder must NEVER sit in that queue ##
+        ## waiting for that dispatch [ its holder guard makes a             ##
+        ## release-what-you-don't-hold call a safe no-op, it does NOT       ##
+        ## remove a queued id ]                                             ##
+        my $bs    = ( <coding.state.backend> // {} )->{$backend} // {};
+        my $queue = $bs->{'queue'}                               // [];
+        @{$queue} = grep { $ARG ne $lock_id } @{$queue};
+        <[base.logs]>->(
+            0,
+            '[model_sweep] %s : backend lock taken between idle-check and '
+                . 'acquire [held by %s] -- candidate %s NOT started, '
+                . 'un-queued, retrying next tick',
+            $backend,
+            $bs->{'lock'} // 'unknown',
+            $checksum
+        );
+        return;    ## stay idle, try again on the next tick ##
+    }
+
+    ## suppress monitor_inference_startup auto-self-test for this switch ##
+    <coding.self_test_switch_in_progress> = TRUE;
 
     my $prior_pid = ( <coding.inference_servers> // {} )->{$backend}{'pid'}
         // 0;
@@ -352,6 +395,28 @@ if ( $phase eq qw| idle | ) {
                 }
             }
 
+            ## sweep-held lock on EITHER backend : another sweep is        ##
+            ## mid-candidate, which is real heavyweight activity -- the    ##
+            ## same no-ceiling stance as a live task stream or tools phase ##
+            ## [ a candidate's switch+test+restore can legitimately exceed ##
+            ## 300s, and the sweep releases the moment its candidate       ##
+            ## finishes ]. without this, sweep-vs-sweep waits would trip   ##
+            ## the flat 300s yield-timeout below -- the exact false-pause  ##
+            ## class the stream-aware gate above exists to fix             ##
+            if ( !$yield_hold ) {
+                my $backend_ref = <coding.state.backend> // {};
+                for my $locked_backend (qw| gpu cpu |) {
+                    my $lock_val = $backend_ref->{$locked_backend}{'lock'}
+                        // '';
+                    if ( length $lock_val and $lock_val =~ m{^sweep:} ) {
+                        $yield_hold = TRUE;
+                        $yield_why  = sprintf 'sweep candidate on %s',
+                            $locked_backend;
+                        last;
+                    }
+                }
+            }
+
             if ( !$state->{'yielding'} ) {
                 $state->{'yielding'}    = TRUE;
                 $state->{'yield_since'} = $now;
@@ -458,7 +523,19 @@ if ( $phase eq qw| waiting | ) {
         : undef;
 
     if ( !defined $switch_state ) {
-        ## terminal phase reached : advance cursor ##
+        ## terminal phase reached : release THIS candidate's backend lock  ##
+        ## FIRST -- every terminal transition of the switch cycle [        ##
+        ## success, failure, restore ] funnels through this one block, and ##
+        ## so does the circuit-breaker trip below : holding the lock past  ##
+        ## here would wedge this backend for every sweep and real task     ##
+        ## behind it. $switch_id is read from state here, BEFORE it is     ##
+        ## reset to '' a few lines down [ guarded no-op via                ##
+        ## backend_release's holder check when somehow nothing is held ]   ##
+        <[coding.async.backend_release]>->(
+            sprintf( qw| sweep:%s |, $switch_id ), $backend
+        ) if length $switch_id;
+
+        ## advance cursor ##
         <[base.logs]>->(
             1, '[model_sweep] %s : candidate %d/%d finished, advancing',
             $backend, $idx + 1, $total
@@ -508,7 +585,14 @@ if ( $phase eq qw| waiting | ) {
     return TRUE;
 }
 
-## unknown phase : defensive cleanup ##
+## unknown phase : defensive cleanup  if a candidate cycle was in flight    ##
+## when the phase got corrupted, its backend lock is still held and nothing ##
+## else will EVER release it -- drop it here [ guarded no-op via            ##
+## backend_release's holder check ]                                         ##
+my $orphan_switch_id = $state->{'switch_id'} // '';
+<[coding.async.backend_release]>->(
+    sprintf( qw| sweep:%s |, $orphan_switch_id ), $backend
+) if length $orphan_switch_id;
 <[base.logs]>->(
     0,        '[model_sweep] %s : unknown phase %s, aborting sweep',
     $backend, $phase
@@ -516,8 +600,8 @@ if ( $phase eq qw| waiting | ) {
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,.,,...,,..,..,,.,.,,,,,...,,.,,.,.,,..,.,.,..,,...,..,,.,.,.,.,,.,,,..,,.,,
-#2Z4YF47CB34L2B47CAEDX2E4ZOSZ3DHD7UMCRCRUCL2GLOKUEQ2736HZ5Z4QLZ4TBWZMMOOBOEDAA
-#\\\|D2D7SPECN7XQAQQHNYYQDP7YBIBV65VSMRQGWVUC2OU45F4SKXA \ / AMOS7 \ YOURUM ::
-#\[7]HJWF5E5NHQTEBEW5V5MYFZYNJVQZEZNM5ZRCWNFL5XEGDJITOSBA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,...,,.,,,..,.,.,..,,,,.,,..,..,,...,..,,,.,,,.,,,,.,,..,...,
+#PYW22QM7QCXVDCMBRPVCFIAPL55W2AV7XZO76MBAQ7NNABRP7DPG2D23F6DC3NTIVKSVOF3IDRRNG
+#\\\|FYHBG32UUTD5HIH2UGV4KONT3SRYXYUZRTRZQXJ5T3IZTBKQYRF \ / AMOS7 \ YOURUM ::
+#\[7]J2JHNMHXQOAK26JHZHEIIT7XVGTFV466TN2SUTQR4EELLQ363KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
