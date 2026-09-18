@@ -11,323 +11,296 @@
 my @tools;
 
 ## read_file : budget-aware file content ##
-if ( exists $code{'context.file'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'read_file',
-            'description' =>
-                'read file content with line range and token budget',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'file path relative to project root'
-                    },
-                    'from_line' => {
-                        'type'        => 'integer',
-                        'description' => 'start line number [ default 1 ]'
-                    },
-                    'to_line' => {
-                        'type'        => 'integer',
-                        'description' => 'end line number [ 0 = to end ]'
-                    },
-                    'budget' => {
-                        'type'        => 'integer',
-                        'description' => 'token budget [ default 2000 ]'
-                    },
-                    'offset' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'character offset to start reading [ default 0 ]'
-                    },
-                    'length' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'max characters to read [ default 8000 ]'
-                    },
-                    'show_line_numbers' => {
-                        'type'        => 'boolean',
-                        'description' =>
-                            'prepend line numbers [ default true ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'read_file',
+        'description' => 'read file content with line range and token budget',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
                 },
-                'required' => ['path'],
+                'from_line' => {
+                    'type'        => 'integer',
+                    'description' => 'start line number [ default 1 ]'
+                },
+                'to_line' => {
+                    'type'        => 'integer',
+                    'description' => 'end line number [ 0 = to end ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 2000 ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'character offset to start reading [ default 0 ]'
+                },
+                'length' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'max characters to read [ default 8000 ]'
+                },
+                'show_line_numbers' => {
+                    'type'        => 'boolean',
+                    'description' => 'prepend line numbers [ default true ]'
+                },
             },
+            'required' => ['path'],
         },
-        };
-}
+    },
+    };
 
 ## read_module : P7 module content with metadata ##
-if ( exists $code{'coding.context.read_module'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'read_module',
-            'description' =>
-                'read P7 module file with description and metadata',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'module' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'module name [ e.g. coding.system_prompt ]'
-                    },
-                    'max_chars' => {
-                        'type'        => 'integer',
-                        'description' => 'character budget [ default 8000 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'read_module',
+        'description' => 'read P7 module file with description and metadata',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. coding.system_prompt ]'
                 },
-                'required' => ['module'],
+                'max_chars' => {
+                    'type'        => 'integer',
+                    'description' => 'character budget [ default 8000 ]'
+                },
             },
+            'required' => ['module'],
         },
-        };
-}
+    },
+    };
 
 ## list_modules : discover modules by namespace ##
-if ( exists $code{'context.modules.list'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'list_modules',
-            'description' => 'list available modules in a namespace',
-            'parameters'  => {
-                'type'       => 'object',
-                'properties' => {
-                    'namespace' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'module namespace [ e.g. coding, context, httpd ]'
-                    },
-                    'budget' => {
-                        'type'        => 'integer',
-                        'description' => 'token budget [ default 800 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'list_modules',
+        'description' => 'list available modules in a namespace',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'namespace' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module namespace [ e.g. coding, context, httpd ]'
                 },
-                'required' => ['namespace'],
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 800 ]'
+                },
             },
+            'required' => ['namespace'],
         },
-        };
-}
+    },
+    };
 
 ## module_deps : dependency call graph ##
-if ( exists $code{'context.module.dependencies'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'module_deps',
-            'description' => 'find what a module calls and what calls it',
-            'parameters'  => {
-                'type'       => 'object',
-                'properties' => {
-                    'module' => {
-                        'type'        => 'string',
-                        'description' => 'module name to analyze'
-                    },
-                    'budget' => {
-                        'type'        => 'integer',
-                        'description' => 'token budget [ default 800 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'module_deps',
+        'description' => 'find what a module calls and what calls it',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' => 'module name to analyze'
                 },
-                'required' => ['module'],
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 800 ]'
+                },
             },
+            'required' => ['module'],
         },
-        };
-}
+    },
+    };
 
 ## recent_changes : git diff stats ##
-if ( exists $code{'context.git.recent_changes'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'recent_changes',
-            'description' => 'recent git changes with file stats',
-            'parameters'  => {
-                'type'       => 'object',
-                'properties' => {
-                    'max_files' => {
-                        'type'        => 'integer',
-                        'description' => 'max files to list [ default 10 ]'
-                    },
-                    'since_commit' => {
-                        'type'        => 'string',
-                        'description' => 'specific commit to diff from'
-                    },
-                    'budget' => {
-                        'type'        => 'integer',
-                        'description' => 'token budget [ default 1500 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'recent_changes',
+        'description' => 'recent git changes with file stats',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'max_files' => {
+                    'type'        => 'integer',
+                    'description' => 'max files to list [ default 10 ]'
                 },
-                'required' => [],
+                'since_commit' => {
+                    'type'        => 'string',
+                    'description' => 'specific commit to diff from'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 1500 ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## check_account_usage : account quota and rate-limit numbers ##
-if ( exists $code{'coding.tools.handler.check_account_usage'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'check_account_usage',
-            'description' => 'check claude/kimi account usage and rate-limit '
-                . 'numbers [ cached, refreshes on demand '
-                . 'from the usage zenka ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'provider' => {
-                        'type'        => 'string',
-                        'description' => 'provider to check',
-                        'enum'        => [ 'claude', 'kimi' ]
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'check_account_usage',
+        'description' => 'check claude/kimi account usage and rate-limit '
+            . 'numbers [ cached, refreshes on demand from '
+            . 'the usage zenka ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'provider' => {
+                    'type'        => 'string',
+                    'description' => 'provider to check',
+                    'enum'        => [ 'claude', 'kimi' ]
                 },
-                'required' => [],
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## ntime_convert : convert between p7 network time and unix time ##
-if ( exists $code{'coding.tools.handler.ntime_convert'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'ntime_convert',
-            'description' => 'convert between p7 network time (ntime) and '
-                . 'unix time, or get the current time in '
-                . 'both -- notes and other p7-internal '
-                . 'metadata store ntime, not unix, so use '
-                . 'this instead of assuming standard '
-                . 'unix-epoch arithmetic [ ntime runs at '
-                . '4200 units per real second from a '
-                . '2002-06-05 start ]. give at most one of '
-                . 'ntime/unix/ago_seconds; omit all three '
-                . 'for the current time',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'ntime' => {
-                        'type'        => 'string',
-                        'description' => 'an ntime value to convert to '
-                            . 'unix+human -- numerical or '
-                            . 'base32r-encoded [ e.g. from '
-                            . 'a note_list_trashed entry ]'
-                    },
-                    'unix' => {
-                        'type'        => 'number',
-                        'description' =>
-                            'a unix timestamp to convert to ntime'
-                    },
-                    'ago_seconds' => {
-                        'type'        => 'number',
-                        'description' => 'return the ntime value this many '
-                            . 'seconds before now [ e.g. to build an '
-                            . "note_filter 'after' cutoff for \"3 days ago\" "
-                            . '-- pass 259200 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ntime_convert',
+        'description' => 'convert between p7 network time (ntime) and unix '
+            . 'time, or get the current time in both -- '
+            . 'notes and other p7-internal metadata store '
+            . 'ntime, not unix, so use this instead of '
+            . 'assuming standard unix-epoch arithmetic [ '
+            . 'ntime runs at 4200 units per real second '
+            . 'from a 2002-06-05 start ]. give at most one '
+            . 'of ntime/unix/ago_seconds; omit all three '
+            . 'for the current time',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'ntime' => {
+                    'type'        => 'string',
+                    'description' => 'an ntime value to convert to '
+                        . 'unix+human -- numerical or '
+                        . 'base32r-encoded [ e.g. from a '
+                        . 'note_list_trashed entry ]'
                 },
-                'required' => [],
+                'unix' => {
+                    'type'        => 'number',
+                    'description' => 'a unix timestamp to convert to ntime'
+                },
+                'ago_seconds' => {
+                    'type'        => 'number',
+                    'description' => 'return the ntime value this many '
+                        . 'seconds before now [ e.g. to build an '
+                        . "note_filter 'after' cutoff for \"3 days ago\" "
+                        . '-- pass 259200 ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## checksum : compute a p7 checksum, or a nested amos child checksum ##
-if ( exists $code{'coding.tools.handler.checksum'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'checksum',
-            'description' => 'compute a checksum of text using one of p7\'s '
-                . 'algorithms [ amos|bmw|elf|jha ] -- used '
-                . 'everywhere in this codebase for module '
-                . 'signatures, scratchpad/session keys, '
-                . 'content-addressed lookups. also computes '
-                . 'nested AMOS child checksums via '
-                . 'nest_parent',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'algorithm' => {
-                        'type'        => 'string',
-                        'description' => 'checksum algorithm [ default amos '
-                            . ']. bmw here means the L13 '
-                            . 'short form [ matches '
-                            . 'scratchpad/session-key '
-                            . 'convention ], not bmw384 [ '
-                            . 'that is a separate '
-                            . 'geometric-coordinate mapper '
-                            . 'for the iris visualization, '
-                            . 'unrelated to hashing text ]',
-                        'enum' => [ 'amos', 'bmw', 'elf', 'jha' ]
-                    },
-                    'input' => {
-                        'type'        => 'string',
-                        'description' => 'text to checksum [ or, with '
-                            . 'nest_parent set, the child '
-                            . 'name ]'
-                    },
-                    'mode' => {
-                        'type'        => 'string',
-                        'description' => 'output encoding, jha '
-                            . 'only [ default b32 ]',
-                        'enum' => [ 'hex', 'b32', 'b64u', 'harmonized' ]
-                    },
-                    'nest_parent' => {
-                        'type'        => 'string',
-                        'description' => 'parent AMOS checksum -- when set, '
-                            . 'computes the nested child '
-                            . 'checksum of "input" under '
-                            . 'this parent instead of a '
-                            . 'plain checksum [ algorithm '
-                            . 'must be amos ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'checksum',
+        'description' => 'compute a checksum of text using one of p7\'s '
+            . 'algorithms [ amos|bmw|elf|jha ] -- used '
+            . 'everywhere in this codebase for module '
+            . 'signatures, scratchpad/session keys, '
+            . 'content-addressed lookups. also computes '
+            . 'nested AMOS child checksums via nest_parent',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'algorithm' => {
+                    'type'        => 'string',
+                    'description' => 'checksum algorithm [ default amos ]. '
+                        . 'bmw here means the L13 short '
+                        . 'form [ matches '
+                        . 'scratchpad/session-key '
+                        . 'convention ], not bmw384 [ that '
+                        . 'is a separate '
+                        . 'geometric-coordinate mapper for '
+                        . 'the iris visualization, '
+                        . 'unrelated to hashing text ]',
+                    'enum' => [ 'amos', 'bmw', 'elf', 'jha' ]
                 },
-                'required' => [],
+                'input' => {
+                    'type'        => 'string',
+                    'description' => 'text to checksum [ or, with '
+                        . 'nest_parent set, the child name ]'
+                },
+                'mode' => {
+                    'type'        => 'string',
+                    'description' => 'output encoding, jha '
+                        . 'only [ default b32 ]',
+                    'enum' => [ 'hex', 'b32', 'b64u', 'harmonized' ]
+                },
+                'nest_parent' => {
+                    'type'        => 'string',
+                    'description' => 'parent AMOS checksum -- when set, '
+                        . 'computes the nested child '
+                        . 'checksum of "input" under this '
+                        . 'parent instead of a plain '
+                        . 'checksum [ algorithm must be '
+                        . 'amos ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## vax_int_convert : p7's compact base32 integer encoding [ job/note ids ] ##
-if ( exists $code{'coding.tools.handler.vax_int_convert'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'vax_int_convert',
-            'description' => 'convert between a plain non-negative integer '
-                . '(0..4294967295) and its p7 vax-int '
-                . 'encoding [ a short base32 string ] -- '
-                . 'used for compact ids, e.g. jobsite job '
-                . 'ids. auto-detects direction from the '
-                . 'input shape',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'value' => {
-                        'type'        => 'string',
-                        'description' => 'either a plain integer to encode, '
-                            . 'or a vax-int encoded string '
-                            . 'to decode'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'vax_int_convert',
+        'description' => 'convert between a plain non-negative integer '
+            . '(0..4294967295) and its p7 vax-int encoding '
+            . '[ a short base32 string ] -- used for '
+            . 'compact ids, e.g. jobsite job ids. '
+            . 'auto-detects direction from the input shape',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'value' => {
+                    'type'        => 'string',
+                    'description' => 'either a plain integer to encode, or a '
+                        . 'vax-int encoded string to decode'
                 },
-                'required' => ['value'],
             },
+            'required' => ['value'],
         },
-        };
-}
+    },
+    };
 
 ## git_diff_staged : show staged changes ##
 push @tools,
@@ -378,113 +351,105 @@ push @tools,
     };
 
 ## recent_errors : error log with filter ##
-if ( exists $code{'context.error.recent'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'recent_errors',
-            'description' => 'recent error log entries with optional filter',
-            'parameters'  => {
-                'type'       => 'object',
-                'properties' => {
-                    'filter' => {
-                        'type'        => 'string',
-                        'description' => 'error filter pattern'
-                    },
-                    'lines' => {
-                        'type'        => 'integer',
-                        'description' => 'max error lines [ default 50 ]'
-                    },
-                    'budget' => {
-                        'type'        => 'integer',
-                        'description' => 'token budget [ default 500 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'recent_errors',
+        'description' => 'recent error log entries with optional filter',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'filter' => {
+                    'type'        => 'string',
+                    'description' => 'error filter pattern'
                 },
-                'required' => [],
+                'lines' => {
+                    'type'        => 'integer',
+                    'description' => 'max error lines [ default 50 ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 500 ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## list_files : directory listing ##
-if ( exists $code{'pager.source.file-list'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'list_files',
-            'description' =>
-                'list files in a directory with optional pattern',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'root' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'directory path [ default project root ]'
-                    },
-                    'pattern' => {
-                        'type'        => 'string',
-                        'description' => 'file pattern filter'
-                    },
-                    'recursive' => {
-                        'type'        => 'boolean',
-                        'description' =>
-                            'recurse subdirectories [ default true ]'
-                    },
-                    'sort' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'sort by name | size | mtime [ default unsorted ]'
-                    },
-                    'order' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'sort order asc | desc [ default desc ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'list_files',
+        'description' => 'list files in a directory with optional pattern',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'root' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'directory path [ default project root ]'
                 },
-                'required' => [],
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'file pattern filter'
+                },
+                'recursive' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'recurse subdirectories [ default true ]'
+                },
+                'sort' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'sort by name | size | mtime [ default unsorted ]'
+                },
+                'order' => {
+                    'type'        => 'string',
+                    'description' => 'sort order asc | desc [ default desc ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## extract_file : smart partial file read ##
-if ( exists $code{'context.file.extract'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'extract_file',
-            'description' =>
-                'smart file extraction: header, functions, or pattern match',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'file path relative to project root'
-                    },
-                    'extract' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'extraction mode: header, functions, or pattern'
-                    },
-                    'pattern' => {
-                        'type'        => 'string',
-                        'description' => 'regex for pattern extraction mode'
-                    },
-                    'budget' => {
-                        'type'        => 'integer',
-                        'description' => 'token budget [ default 1000 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'extract_file',
+        'description' =>
+            'smart file extraction: header, functions, or pattern match',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
                 },
-                'required' => ['path'],
+                'extract' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'extraction mode: header, functions, or pattern'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'regex for pattern extraction mode'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 1000 ]'
+                },
             },
+            'required' => ['path'],
         },
-        };
-}
+    },
+    };
 
 ## search_code : grep across codebase ##
 push @tools,
@@ -1058,130 +1023,121 @@ push @tools,
     };
 
 ## ask_user_choice : modal option-selection dialog ##
-if ( exists $code{'coding.tools.handler.ask_user_choice'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'ask_user_choice',
-            'description' =>
-                'ask the user to choose one option from a pre-generated '
-                . 'list. urgent=true pops the dialog immediately; '
-                . 'urgent=false (default) queues the question and asks '
-                . 'it at the next checkpoint flush.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'question' => {
-                        'type'        => 'string',
-                        'description' => 'short question text'
-                    },
-                    'options' => {
-                        'type'        => 'array',
-                        'description' => 'list of option strings',
-                        'items'       => { 'type' => 'string' }
-                    },
-                    'urgent' => {
-                        'type'        => 'boolean',
-                        'description' =>
-                            'ask now instead of batching [ default false ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ask_user_choice',
+        'description' =>
+            'ask the user to choose one option from a pre-generated list. '
+            . 'urgent=true pops the dialog immediately; urgent=false '
+            . '(default) queues the question and asks it at the next '
+            . 'checkpoint flush.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'short question text'
                 },
-                'required' => [ 'question', 'options' ],
+                'options' => {
+                    'type'        => 'array',
+                    'description' => 'list of option strings',
+                    'items'       => { 'type' => 'string' }
+                },
+                'urgent' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'ask now instead of batching [ default false ]'
+                },
             },
+            'required' => [ 'question', 'options' ],
         },
-        };
-}
+    },
+    };
 
 ## ask_user_text : blocking free-text input dialog ##
-if ( exists $code{'coding.tools.handler.ask_user_text'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'ask_user_text',
-            'description' => 'ask the user a short free-text question via a '
-                . 'modal dialog. the answer is written back '
-                . 'to notes.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'question' => {
-                        'type'        => 'string',
-                        'description' => 'short question text'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ask_user_text',
+        'description' => 'ask the user a short free-text question via a '
+            . 'modal dialog. the answer is written back to '
+            . 'notes.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'short question text'
                 },
-                'required' => ['question'],
             },
+            'required' => ['question'],
         },
-        };
-}
+    },
+    };
 
 ## ask_user_stream : non-blocking conversational interaction buffer ##
-if ( exists $code{'coding.tools.handler.ask_user_stream'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'ask_user_stream',
-            'description' =>
-                'ask the user an open-ended question in the amos-term '
-                . 'interaction buffer. replies arrive asynchronously and '
-                . 'are written back to notes.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'question' => {
-                        'type'        => 'string',
-                        'description' => 'question or prompt text'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ask_user_stream',
+        'description' =>
+            'ask the user an open-ended question in the amos-term '
+            . 'interaction buffer. replies arrive asynchronously and are '
+            . 'written back to notes.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'question or prompt text'
                 },
-                'required' => ['question'],
             },
+            'required' => ['question'],
         },
-        };
-}
+    },
+    };
 
 ## suggest_new_topic : file a topic proposal with audit trail ##
-if ( exists $code{'coding.tools.handler.suggest_new_topic'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'suggest_new_topic',
-            'description' =>
-                'record a technical topic that belongs in the project but is '
-                . 'not yet filed. carries an audit trail of which '
-                . 'fallback-chain steps were checked.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'title' => {
-                        'type'        => 'string',
-                        'description' => 'short topic title'
-                    },
-                    'rationale' => {
-                        'type'        => 'string',
-                        'description' => 'why this topic should be tracked'
-                    },
-                    'audit_trail' => {
-                        'type'        => 'array',
-                        'description' => 'list of fallback-chain step names '
-                            . 'that were checked before '
-                            . 'filing',
-                        'items' => { 'type' => 'string' }
-                    },
-                    'priority' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'low, normal, or high [ default normal ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'suggest_new_topic',
+        'description' =>
+            'record a technical topic that belongs in the project but is not '
+            . 'yet filed. carries an audit trail of which fallback-chain '
+            . 'steps were checked.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'title' => {
+                    'type'        => 'string',
+                    'description' => 'short topic title'
                 },
-                'required' => ['title'],
+                'rationale' => {
+                    'type'        => 'string',
+                    'description' => 'why this topic should be tracked'
+                },
+                'audit_trail' => {
+                    'type'        => 'array',
+                    'description' => 'list of fallback-chain step names '
+                        . 'that were checked before filing',
+                    'items' => { 'type' => 'string' }
+                },
+                'priority' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'low, normal, or high [ default normal ]'
+                },
             },
+            'required' => ['title'],
         },
-        };
-}
+    },
+    };
 
 ## tree_read : read value at a dot-separated path in %data ##
 push @tools,
@@ -1317,62 +1273,57 @@ push @tools,
     };
 
 ## file_rename : rename or move a file within the project ##
-if ( exists $code{'coding.tools.handler.file_rename'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'file_rename',
-            'description' => 'rename or move a file within the project [ '
-                . 'both paths must stay inside project root ' . ']',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'source' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'current file path relative to project root'
-                    },
-                    'target' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'new file path relative to project root'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'file_rename',
+        'description' => 'rename or move a file within the project [ '
+            . 'both paths must stay inside project root ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'source' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'current file path relative to project root'
                 },
-                'required' => [ 'source', 'target' ],
+                'target' => {
+                    'type'        => 'string',
+                    'description' => 'new file path relative to project root'
+                },
             },
+            'required' => [ 'source', 'target' ],
         },
-        };
-}
+    },
+    };
 
 ## remove_file : move file to trash [ recoverable delete ] ##
-if ( exists $code{'coding.tools.handler.remove_file'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'remove_file',
-            'description' =>
-                'delete a file by moving it to trash [ recoverable '
-                . '] [ use for cleanup of obsolete or generated files ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'file path relative to project root'
-                    },
-                    'reason' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'reason for deletion [ logged for audit ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'remove_file',
+        'description' => 'delete a file by moving it to trash [ recoverable '
+            . '] [ use for cleanup of obsolete or generated '
+            . 'files ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
                 },
-                'required' => ['path'],
+                'reason' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'reason for deletion [ logged for audit ]'
+                },
             },
+            'required' => ['path'],
         },
-        };
-}
+    },
+    };
 
 ## write_new_file : create a new file [ refuses to overwrite ] ##
 push @tools,
@@ -1437,848 +1388,773 @@ push @tools,
 );
 
 ## note_write : save finding/thought to task notes ##
-if ( exists $code{'coding.tools.handler.note_write'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_write',
-            'description' =>
-                'write a finding or thought to task notes workspace '
-                . '[ persists across rounds, accessible to later tasks ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'section' => {
-                        'type'        => 'string',
-                        'description' => 'note section name [ e.g. '
-                            . 'finding, analysis, todo ]'
-                    },
-                    'content' => {
-                        'type'        => 'string',
-                        'description' => 'content to save'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_write',
+        'description' =>
+            'write a finding or thought to task notes workspace '
+            . '[ persists across rounds, accessible to later tasks ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'note section name [ e.g. '
+                        . 'finding, analysis, todo ]'
                 },
-                'required' => [ 'section', 'content' ],
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'content to save'
+                },
             },
+            'required' => [ 'section', 'content' ],
         },
-        };
-}
+    },
+    };
 
 ## note_read : access notes from current or previous task ##
-if ( exists $code{'coding.tools.handler.note_read'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_read',
-            'description' => 'read notes from current or previous task [ '
-                . 'L1=short summary, L2=detailed, L3=full '
-                . 'workspace ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'task ID to read [ default: current task ]'
-                    },
-                    'level' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'detail level: L1, L2, or L3 [ default L3 ]',
-                        'enum' => [ 'L1', 'L2', 'L3' ]
-                    },
-                    'max_results' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'max sections to return [ default 20, L3 only ]'
-                    },
-                    'offset' => {
-                        'type'        => 'integer',
-                        'description' => 'skip first N results for '
-                            . 'pagination [ default 0 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_read',
+        'description' => 'read notes from current or previous task [ '
+            . 'L1=short summary, L2=detailed, L3=full '
+            . 'workspace ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'task ID to read [ default: current task ]'
                 },
-                'required' => [],
+                'level' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'detail level: L1, L2, or L3 [ default L3 ]',
+                    'enum' => [ 'L1', 'L2', 'L3' ]
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'max sections to return [ default 20, L3 only ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' => 'skip first N results for '
+                        . 'pagination [ default 0 ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_list : browse available note trees ##
-if ( exists $code{'coding.tools.handler.note_list'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_list',
-            'description' => 'list available note trees with '
-                . 'previews [ find related prior work ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'tag' => {
-                        'type'        => 'string',
-                        'description' => 'filter by category tag [ optional ]'
-                    },
-                    'max' => {
-                        'type'        => 'integer',
-                        'description' => 'max results [ default 10 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_list',
+        'description' => 'list available note trees with '
+            . 'previews [ find related prior work ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'tag' => {
+                    'type'        => 'string',
+                    'description' => 'filter by category tag [ optional ]'
                 },
-                'required' => [],
+                'max' => {
+                    'type'        => 'integer',
+                    'description' => 'max results [ default 10 ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_summarize : create L1/L2 summaries ##
-if ( exists $code{'coding.tools.handler.note_summarize'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_summarize',
-            'description' =>
-                'generate token-efficient summaries from workspace '
-                . '[ L1 for quick scan, L2 for detailed context ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'short' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'L1 short summary [ 1-2 paragraphs ]'
-                    },
-                    'long' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'L2 detailed summary [ key findings, approach ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_summarize',
+        'description' => 'generate token-efficient summaries from workspace '
+            . '[ L1 for quick scan, L2 for detailed context ' . ']',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'short' => {
+                    'type'        => 'string',
+                    'description' => 'L1 short summary [ 1-2 paragraphs ]'
                 },
-                'required' => [],
+                'long' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'L2 detailed summary [ key findings, approach ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_search : find notes by keyword or content ##
-if ( exists $code{'coding.tools.handler.note_search'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_search',
-            'description' => 'search previous notes by keyword, tag, '
-                . 'or content [ find relevant prior work ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'query' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'search string [ matches task_id, tags, content ]'
-                    },
-                    'search_level' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'where to search: all, L1, L2, L3, or meta',
-                        'enum' => [ 'all', 'L1', 'L2', 'L3', 'meta' ]
-                    },
-                    'max_results' => {
-                        'type'        => 'integer',
-                        'description' => 'max notes to return [ default 10 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_search',
+        'description' => 'search previous notes by keyword, tag, '
+            . 'or content [ find relevant prior work ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'query' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search string [ matches task_id, tags, content ]'
                 },
-                'required' => ['query'],
+                'search_level' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'where to search: all, L1, L2, L3, or meta',
+                    'enum' => [ 'all', 'L1', 'L2', 'L3', 'meta' ]
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max notes to return [ default 10 ]'
+                },
             },
+            'required' => ['query'],
         },
-        };
-}
+    },
+    };
 
 ## note_update : replace content in an existing note section ##
-if ( exists $code{'coding.tools.handler.note_update'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_update',
-            'description' => 'replace content in an existing note section [ '
-                . 'does not append, replaces entire section ' . ']',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'section' => {
-                        'type'        => 'string',
-                        'description' => 'section name to update'
-                    },
-                    'content' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'new content (replaces entire section) '
-                            . '[ timestamp header added automatically ]'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' => 'task ID [ default: current task ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_update',
+        'description' => 'replace content in an existing note section '
+            . '[ does not append, replaces entire section ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to update'
                 },
-                'required' => [ 'section', 'content' ],
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'new content (replaces entire section) '
+                        . '[ timestamp header added '
+                        . 'automatically ]'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task ID [ default: current task ]'
+                },
             },
+            'required' => [ 'section', 'content' ],
         },
-        };
-}
+    },
+    };
 
 ## note_delete : move a note section [ or all task notes ] to trash ##
-if ( exists $code{'coding.tools.handler.note_delete'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_delete',
-            'description' => 'move a note section to trash [ clean up old or '
-                . 'irrelevant notes ] -- recoverable via '
-                . 'note_rescue. to delete ALL sections for '
-                . 'a task, pass confirm_all: true '
-                . 'explicitly; omitting section without '
-                . 'confirm_all deletes nothing and returns '
-                . 'an error',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'section' => {
-                        'type'        => 'string',
-                        'description' => 'section name to delete [ omit only '
-                            . 'together with confirm_all: '
-                            . 'true, to trash every section '
-                            . 'for the task ]'
-                    },
-                    'confirm_all' => {
-                        'type'        => 'boolean',
-                        'description' => 'required true to delete ALL '
-                            . 'sections for a task when '
-                            . 'section is omitted -- has no '
-                            . 'effect when section is given'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'task id [ defaults to current task ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_delete',
+        'description' => 'move a note section to trash [ clean up old or '
+            . 'irrelevant notes ] -- recoverable via '
+            . 'note_rescue. to delete ALL sections for a '
+            . 'task, pass confirm_all: true explicitly; '
+            . 'omitting section without confirm_all deletes '
+            . 'nothing and returns an error',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to delete [ omit only '
+                        . 'together with confirm_all: true, '
+                        . 'to trash every section for the '
+                        . 'task ]'
                 },
-                'required' => [],
+                'confirm_all' => {
+                    'type'        => 'boolean',
+                    'description' => 'required true to delete ALL sections '
+                        . 'for a task when section is '
+                        . 'omitted -- has no effect when '
+                        . 'section is given'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_rescue : restore a trashed note section ##
-if ( exists $code{'coding.tools.handler.note_rescue'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_rescue',
-            'description' => 'restore a trashed note section back into the '
-                . 'live workspace [ undoes note_delete ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'section' => {
-                        'type'        => 'string',
-                        'description' => 'section name to restore'
-                    },
-                    'ntime' => {
-                        'type'        => 'string',
-                        'description' => 'specific trashed-at ntime [ from '
-                            . 'note_list_trashed ] -- omit '
-                            . 'for the most recently '
-                            . 'trashed copy of this section'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'task id [ defaults to current task ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_rescue',
+        'description' => 'restore a trashed note section back into '
+            . 'the live workspace [ undoes note_delete ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to restore'
                 },
-                'required' => ['section'],
+                'ntime' => {
+                    'type'        => 'string',
+                    'description' => 'specific trashed-at ntime [ from '
+                        . 'note_list_trashed ] -- omit for '
+                        . 'the most recently trashed copy '
+                        . 'of this section'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
             },
+            'required' => ['section'],
         },
-        };
-}
+    },
+    };
 
 ## note_list_trashed : list trashed note sections ##
-if ( exists $code{'coding.tools.handler.note_list_trashed'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_list_trashed',
-            'description' => 'list trashed note sections for a task, or '
-                . "'all' tasks",
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' => 'task id [ defaults to current '
-                            . "task; pass 'all' to list across every task ]"
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_list_trashed',
+        'description' => 'list trashed note sections for a task, or '
+            . "'all' tasks",
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current '
+                        . "task; pass 'all' to list across every task ]"
                 },
-                'required' => [],
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_prune_trash : permanently remove expired trash entries ##
-if ( exists $code{'coding.tools.handler.note_prune_trash'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_prune_trash',
-            'description' => 'permanently remove trashed note sections past '
-                . 'the recovery window [ frees space once '
-                . 'entries have been in trash long enough '
-                . 'that rescue is no longer needed ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'keep_days' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'recovery window in days [ default 30 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_prune_trash',
+        'description' => 'permanently remove trashed note sections past the '
+            . 'recovery window [ frees space once entries '
+            . 'have been in trash long enough that rescue '
+            . 'is no longer needed ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'keep_days' => {
+                    'type'        => 'integer',
+                    'description' => 'recovery window in days [ default 30 ]'
                 },
-                'required' => [],
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_tag : add tags to a note section ##
-if ( exists $code{'coding.tools.handler.note_tag'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_tag',
-            'description' => 'add tags to a note section [ '
-                . 'organize notes with keyword tags ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'section' => {
-                        'type'        => 'string',
-                        'description' => 'section name to tag'
-                    },
-                    'tags' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'comma-separated tags [ e.g. bug,urgent,auth ]'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'task id [ defaults to current task ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_tag',
+        'description' => 'add tags to a note section [ '
+            . 'organize notes with keyword tags ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to tag'
                 },
-                'required' => [ 'section', 'tags' ],
+                'tags' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'comma-separated tags [ e.g. bug,urgent,auth ]'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
             },
+            'required' => [ 'section', 'tags' ],
         },
-        };
-}
+    },
+    };
 
 ## note_recent : list recent notes across all tasks ##
-if ( exists $code{'coding.tools.handler.note_recent'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_recent',
-            'description' => 'list recent notes across all tasks [ '
-                . 'sorted by last update, shows preview ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'count' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'max entries to return [ default 10 ]'
-                    },
-                    'section' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'filter to specific section name [ optional ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_recent',
+        'description' => 'list recent notes across all tasks [ '
+            . 'sorted by last update, shows preview ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'count' => {
+                    'type'        => 'integer',
+                    'description' => 'max entries to return [ default 10 ]'
                 },
-                'required' => [],
+                'section' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'filter to specific section name [ optional ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_filter : multi-criteria filtering across notes ##
-if ( exists $code{'coding.tools.handler.note_filter'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_filter',
-            'description' => 'filter notes by tag, section, date, or task '
-                . '[ combine criteria for targeted search ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'tag' => {
-                        'type'        => 'string',
-                        'description' => 'filter by tag name'
-                    },
-                    'section' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'filter by section name pattern [ regex ]'
-                    },
-                    'after' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'only notes updated after this ntime value [ raw '
-                            . 'p7 network-time, matches the same scale '
-                            . 'note last_update is stored in -- not unix '
-                            . 'time ]'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'filter to specific task [ optional ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_filter',
+        'description' => 'filter notes by tag, section, date, or task '
+            . '[ combine criteria for targeted search ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'tag' => {
+                    'type'        => 'string',
+                    'description' => 'filter by tag name'
                 },
-                'required' => [],
+                'section' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'filter by section name pattern [ regex ]'
+                },
+                'after' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'only notes updated after this ntime value [ raw p7 '
+                        . 'network-time, matches the same scale note '
+                        . 'last_update is stored in -- not unix time ]'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'filter to specific task [ optional ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## note_history : show modification history for a section ##
-if ( exists $code{'coding.tools.handler.note_history'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_history',
-            'description' => 'show modification history for a note section [ '
-                . 'timestamps and previews of past entries ' . ']',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'section' => {
-                        'type'        => 'string',
-                        'description' => 'section name to check history'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'task id [ defaults to current task ]'
-                    },
-                    'count' => {
-                        'type'        => 'integer',
-                        'description' => 'max history entries [ default 5 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_history',
+        'description' => 'show modification history for a note section '
+            . '[ timestamps and previews of past entries ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to check history'
                 },
-                'required' => ['section'],
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
+                'count' => {
+                    'type'        => 'integer',
+                    'description' => 'max history entries [ default 5 ]'
+                },
             },
+            'required' => ['section'],
         },
-        };
-}
+    },
+    };
 
 ## note_merge : combine notes from multiple sections or tasks ##
-if ( exists $code{'coding.tools.handler.note_merge'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'note_merge',
-            'description' => 'merge notes from multiple sections into one [ '
-                . 'combine findings across tasks or '
-                . 'sections ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'sources' => {
-                        'type'        => 'string',
-                        'description' => 'comma-separated source specs [ '
-                            . '"section" or '
-                            . '"task_id:section" ]'
-                    },
-                    'target_section' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'target section name for merged content'
-                    },
-                    'task_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'target task id [ defaults to current task ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_merge',
+        'description' => 'merge notes from multiple sections into one [ '
+            . 'combine findings across tasks or sections ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'sources' => {
+                    'type'        => 'string',
+                    'description' => 'comma-separated source specs [ '
+                        . '"section" or "task_id:section" ]'
                 },
-                'required' => [ 'sources', 'target_section' ],
+                'target_section' => {
+                    'type'        => 'string',
+                    'description' => 'target section name for merged content'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'target task id [ defaults to current task ]'
+                },
             },
+            'required' => [ 'sources', 'target_section' ],
         },
-        };
-}
+    },
+    };
 
 ## validate_module : check module for errors before commit ##
-if ( exists $code{'coding.tools.handler.validate_module'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'validate_module',
-            'description' =>
-                'validate P7 module for common errors and format '
-                . 'issues [ run before declaring task complete ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'module' => {
-                        'type'        => 'string',
-                        'description' => 'module name to validate'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'validate_module',
+        'description' => 'validate P7 module for common errors and format '
+            . 'issues [ run before declaring task complete ' . ']',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' => 'module name to validate'
                 },
-                'required' => ['module'],
             },
+            'required' => ['module'],
         },
-        };
-}
+    },
+    };
 
 ## decode_base32 : decode base32/base32r encoded strings ##
-if ( exists $code{'coding.tools.handler.decode_base32'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'decode_base32',
-            'description' => 'decode base32 or base32r encoded strings [ '
-                . 'useful for encoded identifiers, '
-                . 'checksums ]',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'encoded' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'base32 encoded string [ e.g. NFWXA4T... ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'decode_base32',
+        'description' => 'decode base32 or base32r encoded strings [ '
+            . 'useful for encoded identifiers, checksums ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'encoded' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'base32 encoded string [ e.g. NFWXA4T... ]'
                 },
-                'required' => ['encoded'],
             },
+            'required' => ['encoded'],
         },
-        };
-}
+    },
+    };
 
 ## ncode_search_context : regexp search across files with context lines ##
-if ( exists $code{'ncode.cmd.search'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'ncode_search_context',
-            'description' =>
-                'regexp search across files with optional context lines',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'target' => {
-                        'type'        => 'string',
-                        'description' => 'target path or directory to search'
-                    },
-                    'pattern' => {
-                        'type'        => 'string',
-                        'description' => 'perl regex pattern to match'
-                    },
-                    'context' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'context lines around matches [ default 0 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ncode_search_context',
+        'description' =>
+            'regexp search across files with optional context lines',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'target' => {
+                    'type'        => 'string',
+                    'description' => 'target path or directory to search'
                 },
-                'required' => [ 'target', 'pattern' ],
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'perl regex pattern to match'
+                },
+                'context' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'context lines around matches [ default 0 ]'
+                },
             },
+            'required' => [ 'target', 'pattern' ],
         },
-        };
-}
+    },
+    };
 
 ## regex_replace_preview : preview regex replacement without writing ##
-if ( exists $code{'coding.tools.handler.regex_replace_preview'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'regex_replace_preview',
-            'description' =>
-                'preview regex replacement in a file [read-only]. returns '
-                . 'diff, match count, and preview_id. always call this '
-                . 'before regex_replace_apply.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'file path relative to project root'
-                    },
-                    'pattern' => {
-                        'type'        => 'string',
-                        'description' => 'perl regex search pattern'
-                    },
-                    'replacement' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'replacement string [supports $1, $2]'
-                    },
-                    'flags' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'regex flags [default g]. g=global, '
-                            . 'i=case-insensitive, m=multiline, s=dotall'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'regex_replace_preview',
+        'description' =>
+            'preview regex replacement in a file [read-only]. returns diff, '
+            . 'match count, and preview_id. always call this before '
+            . 'regex_replace_apply.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
                 },
-                'required' => [ 'path', 'pattern', 'replacement' ],
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'perl regex search pattern'
+                },
+                'replacement' => {
+                    'type'        => 'string',
+                    'description' => 'replacement string [supports $1, $2]'
+                },
+                'flags' => {
+                    'type'        => 'string',
+                    'description' => 'regex flags [default g]. g=global, '
+                        . 'i=case-insensitive, m=multiline, '
+                        . 's=dotall'
+                },
             },
+            'required' => [ 'path', 'pattern', 'replacement' ],
         },
-        };
-}
+    },
+    };
 
 ## regex_replace_apply : apply a previewed regex replacement ##
-if ( exists $code{'coding.tools.handler.regex_replace_apply'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'regex_replace_apply',
-            'description' => 'apply a previewed regex replacement to file. '
-                . 'requires preview_id from '
-                . 'regex_replace_preview. aborts if file '
-                . 'changed since preview.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'preview_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'preview id from regex_replace_preview'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'regex_replace_apply',
+        'description' => 'apply a previewed regex replacement to file. '
+            . 'requires preview_id from '
+            . 'regex_replace_preview. aborts if file '
+            . 'changed since preview.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'preview_id' => {
+                    'type'        => 'string',
+                    'description' => 'preview id from regex_replace_preview'
                 },
-                'required' => ['preview_id'],
             },
+            'required' => ['preview_id'],
         },
-        };
-}
+    },
+    };
 
 ## regex_replace_undo : undo last regex replacement ##
-if ( exists $code{'coding.tools.handler.regex_replace_undo'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'regex_replace_undo',
-            'description' => 'undo the last regex_replace_apply for a file. '
-                . 'restores original content from backup.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'file path relative to project root'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'regex_replace_undo',
+        'description' => 'undo the last regex_replace_apply for a '
+            . 'file. restores original content from backup.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
                 },
-                'required' => ['path'],
             },
+            'required' => ['path'],
         },
-        };
-}
+    },
+    };
 
 ## perltidy : format a file with project perltidy settings ##
-if ( exists $code{'coding.tools.handler.perltidy'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'perltidy',
-            'description' =>
-                'format a perl file with perltidy using project settings. '
-                . 'runs in-place by default. use check_only=true to '
-                . 'preview issues without modifying.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'file path relative to project root'
-                    },
-                    'check_only' => {
-                        'type'        => 'boolean',
-                        'description' => 'if true, only report issues '
-                            . 'without modifying [ default '
-                            . 'false ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'perltidy',
+        'description' =>
+            'format a perl file with perltidy using project settings. runs '
+            . 'in-place by default. use check_only=true to preview '
+            . 'issues without modifying.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
                 },
-                'required' => ['path'],
+                'check_only' => {
+                    'type'        => 'boolean',
+                    'description' => 'if true, only report issues without '
+                        . 'modifying [ default false ]'
+                },
             },
+            'required' => ['path'],
         },
-        };
-}
+    },
+    };
 
 ## module_convention_check : audit module headers for convention violations ##
-if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'module_convention_check',
-            'description' =>
-                'audit module files for header convention violations. '
-                . 'reports lines exceeding max length and descr lines '
-                . 'over limit in cmd/console modules. sorted by longest '
-                . 'lines first, shorter filenames first.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'path' => {
-                        'type'        => 'string',
-                        'description' => 'directory to scan '
-                            . '[ default modules ]'
-                    },
-                    'max_line' => {
-                        'type'        => 'integer',
-                        'description' => 'max line length [ default 78 ]'
-                    },
-                    'max_descr' => {
-                        'type'        => 'integer',
-                        'description' => 'max descr length for '
-                            . 'cmd/console [ default 55 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'module_convention_check',
+        'description' =>
+            'audit module files for header convention violations. reports '
+            . 'lines exceeding max length and descr lines over limit in '
+            . 'cmd/console modules. sorted by longest lines first, '
+            . 'shorter filenames first.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'directory to scan [ default modules ]'
                 },
-                'required' => [],
+                'max_line' => {
+                    'type'        => 'integer',
+                    'description' => 'max line length [ default 78 ]'
+                },
+                'max_descr' => {
+                    'type'        => 'integer',
+                    'description' => 'max descr length for '
+                        . 'cmd/console [ default 55 ]'
+                },
             },
+            'required' => [],
         },
-        };
-}
+    },
+    };
 
 ## consensus_query : multi-perspective analysis via perspective injection ##
-if ( exists $code{'coding.tools.handler.consensus_query'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'consensus_query',
-            'description' =>
-                'query the inference model from multiple independent '
-                . 'perspectives and return labeled responses for '
-                . 'synthesis. use when you need to catch blind spots, '
-                . 'verify correctness, or get a multi-angle view of '
-                . 'code, a design decision, or a finding. each '
-                . 'perspective uses a different system role (critic, '
-                . 'advocate, auditor, alternative). responses are '
-                . 'independent : the calling model synthesizes them.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'prompt' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'the question, code snippet, or finding to '
-                            . 'evaluate [ keep focused: one concern per '
-                            . 'call ]'
-                    },
-                    'mode' => {
-                        'type'        => 'string',
-                        'description' => 'preset perspective combination: '
-                            . 'review (critic+advocate, '
-                            . 'default), verify '
-                            . '(critic+auditor), explore '
-                            . '(advocate+alternative), '
-                            . 'thorough (all three: '
-                            . 'critic+advocate+auditor)'
-                    },
-                    'perspectives' => {
-                        'type'        => 'array',
-                        'description' =>
-                            'explicit list of perspectives to use : '
-                            . 'overrides mode. built-in: critic, '
-                            . 'advocate, auditor, alternative. any other '
-                            . 'string is used as a literal system '
-                            . 'prompt.',
-                        'items' => { 'type' => 'string' },
-                    },
-                    'max_tokens' => {
-                        'type'        => 'integer',
-                        'description' => 'max tokens per perspective '
-                            . 'response [ default 512 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'consensus_query',
+        'description' =>
+            'query the inference model from multiple independent '
+            . 'perspectives and return labeled responses for synthesis. '
+            . 'use when you need to catch blind spots, verify '
+            . 'correctness, or get a multi-angle view of code, a design '
+            . 'decision, or a finding. each perspective uses a different '
+            . 'system role (critic, advocate, auditor, alternative). '
+            . 'responses are independent : the calling model synthesizes '
+            . 'them.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'prompt' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'the question, code snippet, or finding to evaluate '
+                        . '[ keep focused: one concern per call ]'
                 },
-                'required' => ['prompt'],
+                'mode' => {
+                    'type'        => 'string',
+                    'description' => 'preset perspective combination: review '
+                        . '(critic+advocate, default), '
+                        . 'verify (critic+auditor), explore '
+                        . '(advocate+alternative), thorough '
+                        . '(all three: '
+                        . 'critic+advocate+auditor)'
+                },
+                'perspectives' => {
+                    'type'        => 'array',
+                    'description' =>
+                        'explicit list of perspectives to use : overrides '
+                        . 'mode. built-in: critic, advocate, auditor, '
+                        . 'alternative. any other string is used as a '
+                        . 'literal system prompt.',
+                    'items' => { 'type' => 'string' },
+                },
+                'max_tokens' => {
+                    'type'        => 'integer',
+                    'description' => 'max tokens per perspective '
+                        . 'response [ default 512 ]'
+                },
             },
+            'required' => ['prompt'],
         },
-        };
-}
+    },
+    };
 
 ## summarize_context : model-pinned inference summarization ##
-if ( exists $code{'coding.tools.handler.summarize_context'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'summarize_context',
-            'description' =>
-                'summarize content using a dedicated inference call. '
-                . 'supports model pinning : specify a large-context '
-                . 'model for compression, small fast model receives the '
-                . 'dense result. routes to cpu backend by default to '
-                . 'avoid interrupting active tasks.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'content' => {
-                        'type'        => 'string',
-                        'description' => 'text to summarize'
-                    },
-                    'focus' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'summarization focus directive [ optional ]'
-                    },
-                    'model' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'AMOS model ID to use [ empty = loaded model ]'
-                    },
-                    'backend' => {
-                        'type'        => 'string',
-                        'description' => 'cpu|gpu|auto [ default cpu ]'
-                    },
-                    'max_len' => {
-                        'type'        => 'integer',
-                        'description' =>
-                            'target summary tokens [ default 800 ]'
-                    },
-                    'store' => {
-                        'type'        => 'boolean',
-                        'description' =>
-                            'store result in valued tree [ default false ]'
-                    },
-                    'node_id' => {
-                        'type'        => 'string',
-                        'description' =>
-                            'valued tree node to attach summary to'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'summarize_context',
+        'description' =>
+            'summarize content using a dedicated inference call. supports '
+            . 'model pinning : specify a large-context model for '
+            . 'compression, small fast model receives the dense result. '
+            . 'routes to cpu backend by default to avoid interrupting '
+            . 'active tasks.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'text to summarize'
                 },
-                'required' => ['content'],
+                'focus' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'summarization focus directive [ optional ]'
+                },
+                'model' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'AMOS model ID to use [ empty = loaded model ]'
+                },
+                'backend' => {
+                    'type'        => 'string',
+                    'description' => 'cpu|gpu|auto [ default cpu ]'
+                },
+                'max_len' => {
+                    'type'        => 'integer',
+                    'description' => 'target summary tokens [ default 800 ]'
+                },
+                'store' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'store result in valued tree [ default false ]'
+                },
+                'node_id' => {
+                    'type'        => 'string',
+                    'description' => 'valued tree node to attach summary to'
+                },
             },
+            'required' => ['content'],
         },
-        };
-}
+    },
+    };
 
 ## search_memory : focus-scored memory tree lookup ##
 push @tools,
@@ -2307,86 +2183,80 @@ push @tools,
     };
 
 ## scratchpad_list_all : enumerate session scratchpads [ /tmp + repo ] ##
-if ( exists $code{'coding.tools.handler.scratchpad_list_all'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'scratchpad_list_all',
-            'description' =>
-                'list claude session scratchpads system-wide : volatile /tmp '
-                . 'dirs [ import candidates, wiped on reboot ] and '
-                . 'imported ones in data/scratchpad/, merged by bmw-L13 '
-                . 'id with repo | /tmp | repo+/tmp status.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {},
-            },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'scratchpad_list_all',
+        'description' =>
+            'list claude session scratchpads system-wide : volatile /tmp '
+            . 'dirs [ import candidates, wiped on reboot ] and imported '
+            . 'ones in data/scratchpad/, merged by bmw-L13 id with repo '
+            . '| /tmp | repo+/tmp status.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {},
         },
-        };
-}
+    },
+    };
 
 ## scratchpad_categorize : local-model keep/drop/review verdict ##
-if ( exists $code{'coding.tools.handler.scratchpad_categorize'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'scratchpad_categorize',
-            'description' =>
-                'triage one claude session scratchpad via a dedicated '
-                . 'inference call : reads the /tmp scratchpad files and '
-                . 'returns a keep | drop | needs-human-review verdict '
-                . 'with reasoning. use before scratchpad_rescue.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'session' => {
-                        'type'        => 'string',
-                        'description' => 'claude session uuid'
-                    },
-                    'max_len' => {
-                        'type'        => 'integer',
-                        'description' => 'max reply tokens [ default 400 ]'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'scratchpad_categorize',
+        'description' =>
+            'triage one claude session scratchpad via a dedicated inference '
+            . 'call : reads the /tmp scratchpad files and returns a keep '
+            . '| drop | needs-human-review verdict with reasoning. use '
+            . 'before scratchpad_rescue.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'session' => {
+                    'type'        => 'string',
+                    'description' => 'claude session uuid'
                 },
-                'required' => ['session'],
+                'max_len' => {
+                    'type'        => 'integer',
+                    'description' => 'max reply tokens [ default 400 ]'
+                },
             },
+            'required' => ['session'],
         },
-        };
-}
+    },
+    };
 
 ## scratchpad_rescue : import one scratchpad into data/scratchpad/ ##
-if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
-    push @tools,
-        {
-        'type'     => 'function',
-        'function' => {
-            'name'        => 'scratchpad_rescue',
-            'description' =>
-                'import one claude session scratchpad from /tmp into '
-                . 'data/scratchpad/<bmw-L13 of session tmp path>/ with '
-                . 'an IMPORT-INFO provenance record [ original path, '
-                . 'uuid, per-file mtimes ]. use after a keep verdict '
-                . 'from scratchpad_categorize.',
-            'parameters' => {
-                'type'       => 'object',
-                'properties' => {
-                    'session' => {
-                        'type'        => 'string',
-                        'description' => 'claude session uuid'
-                    },
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'scratchpad_rescue',
+        'description' =>
+            'import one claude session scratchpad from /tmp into '
+            . 'data/scratchpad/<bmw-L13 of session tmp path>/ with an '
+            . 'IMPORT-INFO provenance record [ original path, uuid, '
+            . 'per-file mtimes ]. use after a keep verdict from '
+            . 'scratchpad_categorize.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'session' => {
+                    'type'        => 'string',
+                    'description' => 'claude session uuid'
                 },
-                'required' => ['session'],
             },
+            'required' => ['session'],
         },
-        };
-}
+    },
+    };
 
 return \@tools;
 
-#,,..,,,.,,,.,.,,,...,...,,.,,.,,,,.,,,..,..,,..,,...,...,,..,...,,,,,...,,,.,
-#OLFLZ2P6F4BU3ZOTSTVJQW6TNSUAEU7Z3RFHK5CHSNEY5K7FC2V7HSAJIANUFYOBVEO77B2A2NRA4
-#\\\|7RJFZSTZJFZEWY72O3E66C3EGNNV37T6TGSSK32EIWEPUIBALFR \ / AMOS7 \ YOURUM ::
-#\[7]KLOT4VDYGH5N3PGPRYKDL2ITDUGPYSCBB4BZ3TAVPL7TXIE55YDY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,,,,,,,.,...,,,,,,.,,.,.,...,..,,...,...,.,.,...,.,.,...,.,,,
+#KP4ZXUDSBLB3RFD2W7FSPEVVPIJCHLRTU3XXZ7UHRVXQT5HOIVXWW4VT25N43MH5TMFLWGFX6G3FS
+#\\\|SD2BINUJQJOQPA6UES4L57SBXMH63FBHNTGDYX3GMGV3YVR7T3Y \ / AMOS7 \ YOURUM ::
+#\[7]FDKXYNGHFOJFWNJRZ4WZYSFZYPDADMFT65LHN6KSUJEHRDEFMADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -88,8 +88,7 @@ if ( $backend eq 'gpu' and $gpu_pid ) {
     $needs_respawn = 1 if length($new_mmproj) && !length($old_mmproj);
 }
 
-if ( ( not $backend_pid or $needs_respawn )
-    and exists $code{'coding.async_spawn_inference_servers'} ) {
+if ( not $backend_pid or $needs_respawn ) {
     <[base.logs]>->(
         1,        '[model_path_reply] %s path resolved, triggering %sspawn',
         $backend, $needs_respawn ? 're-' : 'deferred '
@@ -161,8 +160,8 @@ if ( ( not $backend_pid or $needs_respawn )
 
 return TRUE;
 
-#,,..,.,,,,.,,.,,,..,,,.,,.,.,,..,..,,,.,,,,,,..,,...,...,..,,...,.,,,,.,,.,.,
-#6YSW5X3RPVYCN7UPVTJKMB5CPF2EXIMYWOXNSC4UYUZVV6ZRMGJPLHQOWFJAZWZLN5Z52F6L6NE3O
-#\\\|ZFN3TD6NLZ7JTAR4LS43JHJ6SSMZY6PDNMT33UV5LLEQMYKVDDT \ / AMOS7 \ YOURUM ::
-#\[7]T4ETT3E76ZKDIKC7D7UW5KY7UHUF2YCQADMBZZYHHJ7L3BZJVIDA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,...,,,.,,..,,..,,,.,,,,,...,..,,...,..,,,,,,,,,,,,.,..,,,,,,
+#HH67CUFIJBCZZO6OOB2CNPS72MFSMHXTQXUF7ZUE2VCBVWPW7D5PJQEVUXVTW5OTOU4MGWJMYF6DG
+#\\\|UPQHEGHYQDGBLDZM26IUQ2JOLPID2XEIIKCFPYYP2FOPUGCGEIZ \ / AMOS7 \ YOURUM ::
+#\[7]VDLSUISP7Z4ROIFYAOCBNAERKLA3M7OZZK4FUHG2ODKEAH6RH4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

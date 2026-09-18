@@ -34,9 +34,7 @@ push $aref_completed->@*, $task_id;
 ## catalog-retrieval corpus [ inert unless coding.cfg.catalog_harvest is   ##
 ## enabled ] -- must run before the task record is pruned, which is why it ##
 ## hangs off completion rather than a later sweep                          ##
-if ( exists $code{'coding.catalog.corpus.record'} ) {
-    <[coding.catalog.corpus.record]>->( { 'task_id' => $task_id } );
-}
+<[coding.catalog.corpus.record]>->( { 'task_id' => $task_id } );
 
 return {
     success => TRUE,
@@ -44,8 +42,8 @@ return {
     message => "Task completed: $task_id"
 };
 
-#,,,.,.,.,.,,,.,.,,,.,,,.,,.,,,..,,,.,...,...,.,.,...,...,...,,.,,,.,,,.,,,,.,
-#E5DFWARBH6VK4YTQFWUGLBYDARHBJWEBKYCN4EVDN6PT3KXOQY7HVY2ATYXNKUPENDR2SCHDJUZIW
-#\\\|MJZRXMAVZPWJ3YCCF3RSCUEFS4XRWJXOJMI2EO4HJYMXLNKONB2 \ / AMOS7 \ YOURUM ::
-#\[7]C2VL7BPAGBWLGRGYPRF6JUWJHEKCYZJU327JFD3XREAUC2AZRYCY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,,.,,,,.,,,,,.,.,..,,,..,.,,,.,.,...,...,..,,..,,...,...,.,.,
+#UTMY5C65LNW4YF6WMATJMRNVKTTWXDZVZFAP3JINYXNJHCTPKBUUS3MZ5GHBTFVHQFNDG3D6OFXQK
+#\\\|NWZL26SIJ23IVY7JJMYRDSXDBFHBC6NDNZLHYIPV3EYU6535ZV4 \ / AMOS7 \ YOURUM ::
+#\[7]HKUIWOGJRI2TTNDCFPAGX5IIM3BAJSFPGYHTIS6LU4LQXP2FA4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

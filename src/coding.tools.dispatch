@@ -63,7 +63,6 @@ my %dispatch = (
     ## coding.tools.handler.* modules                                       ##
 
     'list_files' => sub {
-        return unless exists $code{'pager.source.file-list'};
         ## resolve relative root against project root ##
         my $req_root = $args->{'root'} // '';
         my $abs_root
@@ -204,7 +203,6 @@ my %dispatch = (
     },
 
     'dep_graph' => sub {
-        return unless exists $code{'context.module.dep_graph'};
         my $namespace = $args->{'namespace'} // '';
         my $module    = $args->{'module'}    // '';
 
@@ -328,8 +326,6 @@ my %dispatch = (
     },
 
     'ncode_search_context' => sub {
-        return 'ncode.cmd.search module not loaded'
-            unless exists $code{'ncode.cmd.search'};
         my $target  = $args->{'target'}  // return 'target required';
         my $pattern = $args->{'pattern'} // return 'pattern required';
         my $context = $args->{'context'} // 0;
@@ -581,9 +577,7 @@ my %dispatch = (
                 ## inline handler is the live edit_file path -- the hook in ##
                 ## coding.tools.handler.edit_file never fires, dispatch     ##
                 ## prefers this table entry over the handler module         ##
-                if ( exists $code{'coding.catalog.track_write'} ) {
-                    <[coding.catalog.track_write]>->( { 'target' => $path } );
-                }
+                <[coding.catalog.track_write]>->( { 'target' => $path } );
                 ## restore original permissions via chmod child ##
                 if ( defined $mode_restore and defined $chmod_fh ) {
                     print {$chmod_fh}
@@ -620,25 +614,20 @@ my %dispatch = (
 
     ## record_question / record_suggestion → shared observation handler ##
     'record_question' => sub {
-        return unless exists $code{'coding.tools.handler.record_observation'};
         $args->{'type'} = 'question';
         return <[coding.tools.handler.record_observation]>->($args);
     },
 
     'record_suggestion' => sub {
-        return unless exists $code{'coding.tools.handler.record_observation'};
         $args->{'type'} = 'suggestion';
         return <[coding.tools.handler.record_observation]>->($args);
     },
 
     'git_restore_file' => sub {
-        return unless exists $code{'coding.tools.handler.git_restore_file'};
         return <[coding.tools.handler.git_restore_file]>->($args);
     },
 
     'strip_trailing_spaces' => sub {
-        return
-            unless exists $code{'coding.tools.handler.strip_trailing_spaces'};
         return <[coding.tools.handler.strip_trailing_spaces]>->($args);
     },
 
@@ -731,8 +720,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,...,,..,,.,,.,,,..,,..,,,..,..,,,..,.,,,..,,...,...,,.,,..,,...,,,.,,,.,
-#P52PFDXMUQVNQJO4YJD7J24YJQNTXAANV65EL7GGOAM6255Q5UKB2H7JMLUYI5SKDIJZG6HO5SPCY
-#\\\|VQFRAOGIKVVPJPYOVZAN2HUTP5JBGGRI6HNIQU6TCRTZKYNWTZR \ / AMOS7 \ YOURUM ::
-#\[7]IMCDTALJSTJVLPMNGTFAADPENW6XYJQ7QLKVNSFPX6C7G7EJ2ADA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,.,...,..,,,,.,,,.,,,,,,.,,,,,,..,,...,...,...,,..,...,...,,.,,
+#HC3XAMUFD6CYFXCORQVY6BRQLGRYA4KIHFX53ECLPRS5V5E3VZEF6UKF654TNLNRSJ6X6ORTDSANA
+#\\\|ORDTU5QZXVOK5NZB2VSHEUK3GQGWENXDY4S6NVK765KAJXCMCOB \ / AMOS7 \ YOURUM ::
+#\[7]TOSADSJXJSZJSH4FZ3NTB7PBZVL4P2UTGUCWK63QG5DNJAOJWSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -86,7 +86,7 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     my $prev_tools = $task->{'execution'}->{'tools'} // [];
 
     ## if tools weren't saved (pre-fix completions), re-assemble them now ##
-    if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+    if ( !@{$prev_tools} ) {
         $prev_tools = <[coding.tools.definitions]> // [];
         <[base.logs]>->(
             1,
@@ -138,8 +138,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,,,,.,.,,,,,...,,,,,,.,,,,,,,,,,.,,,,,,,,.,,..,,...,...,,..,.,.,,,,,,..,..,,
-#YYM6SZ2TPT42O6ZFZDUB6NRD3MU6KSR4JNJCRH4GEGBG44BY4DLQBHTN7PNFSSDXRK2KPKBGDIWHM
-#\\\|KCGZCUL36MUU7DY6BLGP7WH34Q6SGRBOZEHL5RCFBSIYYDORD66 \ / AMOS7 \ YOURUM ::
-#\[7]34G62HGJHVQTZNXCHOORFRZDKH7WUTXWARQLRGFAG6R6MFP2TICQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,.,,,,.,,,.,,..,,,.,,...,,,.,..,,...,...,.,.,,,,,,,,,.,,,,..,
+#CA2GUFYNDYFVYEODZUOFWQPWBT52NK5YWTLQD4PJDISYIT52TFPTUZ24EU3VLHDHYL6BBQWCWIGQ2
+#\\\|7SGRFJZA4MPURXHNQSO34RAS4AZ7C2HQ5Z5GHDLXYDZ7Y3GLFQQ \ / AMOS7 \ YOURUM ::
+#\[7]APR6MBA5QNZDY3DIDFTONXJAFMNEOXVO7NGC3D3SLGAHII7SEIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

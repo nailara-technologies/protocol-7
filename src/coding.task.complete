@@ -68,9 +68,7 @@ if ( defined $result && length $result ) {
 ## live and touched-entries accumulated unboundedly [ confirmed 2026-09-09  ##
 ## ]. the queue_complete call stays : corpus.record deletes the touched     ##
 ## entry first thing, so a second call is a harmless no-op                  ##
-if ( exists $code{'coding.catalog.corpus.record'} ) {
-    <[coding.catalog.corpus.record]>->( { 'task_id' => $task_id } );
-}
+<[coding.catalog.corpus.record]>->( { 'task_id' => $task_id } );
 
 # Trigger task completion event handler (checks for auto-resume)
 <[coding.event.on_task_complete]>->( $task_id, $result );
@@ -82,8 +80,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,..,,..,.,.,.,.,,..,,,,,.,.,,,,,,,,,..,,,..,..,,...,...,,..,,,,,...,...,,..,
-#HHURASXSH3XW66R2RO5HCMI5DNWAHZN6WXF4LCRWBYPCDHUFABS4WORJUQRCL6BMR32BO6ZANQNMQ
-#\\\|LINWEQV3JV3R35K6RIRUKTPQKUTFBKS4OBOZZFHEE6LUIJI6SLC \ / AMOS7 \ YOURUM ::
-#\[7]RN4AFFRL5SA3EJJVQJUGJLCH264LZ645GY57QZKDCDF6PJEYVGCI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,,,.,..,,..,,...,,.,,..,,,,.,..,,...,...,...,,,,,,,,,,,,,,.,,
+#7WN5KGMWUOVYBT2A5TD6H4JEY3CCRHK2KAMFUQE2NDEWIFLZUQPQQGETALHXHMXJRL3P5FCIVE7UE
+#\\\|IGFK2C5XIN6PC7Z2RUTAE2OCLB6ZKZGRSE4CMQEVLGGQQB3LDPB \ / AMOS7 \ YOURUM ::
+#\[7]2SRDYNT7XXFXNG3VB2F5A4ZH4ZPXBGEM5CJO2IJD4PF2FFRX4CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
