@@ -47,18 +47,16 @@ return "error: file already exists [ $path ]" if -e $abs_path;
 ## idiom conformance gate [ config-gated, inert unless                    ##
 ## coding.cfg.idiom_gate is set -- data/tasks/coding-idiom-gate-          ##
 ## p7-idioms.md ]. may auto-repair $content, or refuse the write entirely ##
-if ( exists $code{'coding.idiom.check_write'} ) {
-    my $idiom = <[coding.idiom.check_write]>->(
-        {   'path'    => $path,
-            'content' => $content,
-            'tool'    => 'write_new_file',
-        }
-    );
-    if ( ref $idiom eq qw| HASH | ) {
-        return $idiom->{'data'} if $idiom->{'mode'} eq qw| false |;
-        $content = $idiom->{'data'}{'content'}
-            if defined $idiom->{'data'}{'content'};
+my $idiom = <[coding.idiom.check_write]>->(
+    {   'path'    => $path,
+        'content' => $content,
+        'tool'    => 'write_new_file',
     }
+);
+if ( ref $idiom eq qw| HASH | ) {
+    return $idiom->{'data'} if $idiom->{'mode'} eq qw| false |;
+    $content = $idiom->{'data'}{'content'}
+        if defined $idiom->{'data'}{'content'};
 }
 
 ## use chmod child to create empty file as admin user if needed ##
@@ -92,9 +90,7 @@ return
 ## a brand-new file does not exist until written [ also means a failed or   ##
 ## staged write is never tracked, which is correct -- nothing was written ] ##
 my $track_write = sub {
-    if ( exists $code{'coding.catalog.track_write'} ) {
-        <[coding.catalog.track_write]>->( { 'target' => $path } );
-    }
+    <[coding.catalog.track_write]>->( { 'target' => $path } );
 };
 
 ## write content if file is writable ##
@@ -126,8 +122,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access "
     . "]\nstaged at : %s", $path, length($content), $stage_rel;
 
-#,,..,,..,..,,,..,.,.,...,,..,..,,.,.,,.,,,,.,.,.,...,...,..,,,,.,,,,,,..,,,.,
-#LVCUS6Q2QO6XV6FAJWRKFACGZDBGOSKRBVD23B7EZP5K6WUDKWTPPCLKJCDQ54NWG7QWCSSWB2S6A
-#\\\|I7ZYKHIIHUWSAL3A2HQWKT7YCOHOC425JYKTKBMLLWBGBWRAHLV \ / AMOS7 \ YOURUM ::
-#\[7]TJR54GS3CMJOCIBLJSJXSJXHVQ66CIXEF777Z5QBMVSQNENKSGDA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,.,,,..,,.,,,.,,,.,.,.,,,.,.,.,.,...,...,.,.,,..,,..,,,.,...,
+#DVUWW5CZDTD3MH6WXEDPUOORAXPBNTPIYR4GBMXHRPMKVTBUIW6YKGOBMTAMDNBLGA65L6RSVQIMO
+#\\\|42TUPHQF6XF7BYURSVQJS2ZZC3WNCO2Z3OHN6GGAIAYAGRU2UFM \ / AMOS7 \ YOURUM ::
+#\[7]AJEEGS75BYWLAJZ6JBTWFK6IKLYSWY5AZEJ66VQIQDJT6E56VODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
