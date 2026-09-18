@@ -303,6 +303,55 @@ if ( $phase eq qw| idle | ) {
         my $idle = <[coding.helper.backend_idle]>;
         if ( !$idle->{'idle'} ) {
             my $now = <[base.time]>->(3);
+
+            ## stream-aware yield gate : the flat 300s cap below must never ##
+            ## fire while the task actually holding THIS backend's lock is  ##
+            ## genuinely working -- that is real task activity, exactly     ##
+            ## what yielding exists to let through. mirror                  ##
+            ## coding.cmd.round-progress's lock -> state -> liveness        ##
+            ## lookup, scoped to this one backend [ no cross-backend scan   ##
+            ## needed : poll_sweep already knows its own $backend ] :       ##
+            my $yield_hold = FALSE;   ## TRUE => real activity, no 300s cap ##
+            my $yield_why  = 'no lock held on this backend';
+            my $lock_task
+                = ( <coding.state.backend> // {} )->{$backend}{'lock'};
+            if ( defined $lock_task and length $lock_task ) {
+                my $task_state = <[coding.async.state_machine]>
+                    ->( qw| get |, $lock_task );
+                my $http_state = $task_state->{'http_state'};
+                if ( defined $task_state->{'round_tools_started'} ) {
+                    ## tools-execution phase : NO ceiling anywhere else in  ##
+                    ## this codebase for it either [ round-progress :       ##
+                    ## "tools: %ds (no ceiling)" ; self_test_guard_ watcher ##
+                    ## bounds only self-test probe guard slots, not real    ##
+                    ## task tool execution -- no task-level tools watchdog  ##
+                    ## exists ]. deliberately inherit the same stance here  ##
+                    ## : never escalate on the flat 300s timer while the    ##
+                    ## locked task is in its tools phase                    ##
+                    $yield_hold = TRUE;
+                    $yield_why  = 'task in tools phase [ no ceiling ]';
+                } elsif ( ref $http_state eq qw| HASH | ) {
+                    ## http/streaming phase : the SAME liveness signal    ##
+                    ## async.http_timeout already extends its own ceiling ##
+                    ## in place for [ stream_tps is_alive, shared so the  ##
+                    ## definitions cannot drift apart ]                   ##
+                    my $alive = <[coding.async.stream_tps]>->(
+                        qw| is_alive |, $http_state
+                    );
+                    if ($alive) {
+                        $yield_hold = TRUE;
+                        $yield_why  = 'task stream alive';
+                    } else {
+                        $yield_why = 'task stream STALLED';
+                    }
+                } else {
+                    ## lock held but no http_state yet [ between rounds,   ##
+                    ## brief dispatch window ] : nothing to check liveness ##
+                    ## against -- fall through to the flat 300s cap        ##
+                    $yield_why = 'task pre-stream [ no http_state ]';
+                }
+            }
+
             if ( !$state->{'yielding'} ) {
                 $state->{'yielding'}    = TRUE;
                 $state->{'yield_since'} = $now;
@@ -313,13 +362,16 @@ if ( $phase eq qw| idle | ) {
                     !~ m{^(paused|pause-requested)$};
                 <[base.logs]>->(
                     1,
-                    '[model_sweep] %s : yielding to task activity '
-                        . 'at idx=%d/%d [ %d active task(s), %d in flight ]',
+                    '[model_sweep] %s : yielding to task activity at '
+                        . 'idx=%d/%d [ %d active task%s, %d in flight ] [ '
+                        . 'yield : %s ]',
                     $backend,
                     $idx,
                     $total,
                     $idle->{'active'},
-                    $idle->{'in_flight'}
+                    <[base.cnt_s]>->( $idle->{'active'} ),
+                    $idle->{'in_flight'},
+                    $yield_why
                 );
             }
 
@@ -334,8 +386,15 @@ if ( $phase eq qw| idle | ) {
             ## queue never goes idle" -- escalate to a REAL, persisted      ##
             ## pause through the same mechanics a circuit- breaker pause    ##
             ## uses [ resume then requires :force: under the existing,      ##
-            ## deliberately unnarrowed resume gate ]                        ##
-            if ( $now - ( $state->{'yield_since'} // $now ) > 300 ) {
+            ## deliberately unnarrowed resume gate ]. while $yield_hold is  ##
+            ## TRUE [ live stream or tools-phase task on this backend ]     ##
+            ## wall-clock must NOT accumulate : real task activity wins, no ##
+            ## matter how long -- reset the accumulation point every tick,  ##
+            ## exactly like async.http_timeout extending its ceiling in     ##
+            ## place for the SAME stream                                    ##
+            if ($yield_hold) {
+                $state->{'yield_since'} = $now;
+            } elsif ( $now - ( $state->{'yield_since'} // $now ) > 300 ) {
                 $state->{'yielding'} = FALSE;
                 delete $state->{'yield_since'};
                 $state->{'state'}         = qw| paused |;
@@ -360,11 +419,13 @@ if ( $phase eq qw| idle | ) {
             ## [ same style vision_switch_poll uses for its own ]           ##
             <[base.logs]>->(
                 2,
-                '[model_sweep] %s : waiting for idle '
-                    . ': %d active task(s), %d in flight',
+                '[model_sweep] %s : waiting for idle : %d '
+                    . 'active task%s, %d in flight [ yield : %s ]',
                 $backend,
                 $idle->{'active'},
-                $idle->{'in_flight'}
+                <[base.cnt_s]>->( $idle->{'active'} ),
+                $idle->{'in_flight'},
+                $yield_why
             ) if int($now) % 5 == 0;
 
             return TRUE;    ## skip $persist_cursor : nothing changed ##
@@ -455,8 +516,8 @@ if ( $phase eq qw| waiting | ) {
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,.,,,.,,.,,,,,,,.,,,...,...,..,,..,,.,,,.,,,..,,...,...,...,.,,,,.,,...,,.,,
-#S4HWI54GQYN3IY44D2ZVGKTPL54DQUXFMJJ2RR5MT6RGEEVONW2MBNNYGV22ISIPKZ5FMPQHUILB4
-#\\\|3QDB7AYDL2C5PZ57KFG3FBPM7PLAXO54TZGQ4NIX5MJFRISE2TO \ / AMOS7 \ YOURUM ::
-#\[7]EIQBH54KRIBSZVXTHV3LFHXJFGNV3YPOM6CLR3PZ3F37K6IRPMCI 7  DATA SIGNATURE ::
+#,,.,,...,,..,..,,.,.,,,,,...,,.,,.,.,,..,.,.,..,,...,..,,.,.,.,.,,.,,,..,,.,,
+#2Z4YF47CB34L2B47CAEDX2E4ZOSZ3DHD7UMCRCRUCL2GLOKUEQ2736HZ5Z4QLZ4TBWZMMOOBOEDAA
+#\\\|D2D7SPECN7XQAQQHNYYQDP7YBIBV65VSMRQGWVUC2OU45F4SKXA \ / AMOS7 \ YOURUM ::
+#\[7]HJWF5E5NHQTEBEW5V5MYFZYNJVQZEZNM5ZRCWNFL5XEGDJITOSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
