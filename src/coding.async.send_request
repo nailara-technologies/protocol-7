@@ -283,6 +283,14 @@ my $request_body = {
     'stream'      => JSON::PP::true(),
     'max_tokens'  => $max_tokens,
     'temperature' => $temperature,
+    ## anti-repetition sampling : see cfg/zenki/coding/zenka.v7's own  ##
+    ## comment on <inference.model.repeat_penalty> for why this exists ##
+    'repeat_penalty'     => <inference.model.repeat_penalty>     // 1.1,
+    'repeat_last_n'      => <inference.model.repeat_last_n>      // 256,
+    'dry_multiplier'     => <inference.model.dry_multiplier>     // 0.8,
+    'dry_base'           => <inference.model.dry_base>           // 1.75,
+    'dry_allowed_length' => <inference.model.dry_allowed_length> // 2,
+    'dry_penalty_last_n' => <inference.model.dry_penalty_last_n> // -1,
 };
 
 ## add tools if available [ matches task.execute logic ] ##
@@ -348,8 +356,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,.,,,.,,,.,.,,,,,..,,,..,.,.,.,.,,.,,..,,..,,...,...,,.,,...,,,,,...,,..,
-#6SYC4DQN7PWC7KIJP7XBQILPDO3D63K6XU4KSAEDTRJB4VETHSBRK4JUYW2F2IXIH25KSPKOVPPB6
-#\\\|5XASAKNCGDDD2D6ES63YA4YH7YEO4VBOMNXC6BWMEOPYD7NHTZ6 \ / AMOS7 \ YOURUM ::
-#\[7]GMAJYQRVCYI4VM3TBPTYVVU5FMTVWHAS6B2N6CDK6NZWLW446SCY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,,.,,.,,,..,,...,.,,,.,,,...,..,,...,...,.,.,,,,,.,.,,,.,,,.,
+#NOWO3BIURQMO5CDMGVX4OEPW2BYRHPAH3SXZ3DC6EZZWXLVBGC6IWSUYRF6O27YZ2T6LXRIXGCDBS
+#\\\|7R7V5M7YDAG6D2JEO5OFKK3ICZ5WLJMEJG4HON6LDDVHT3FX2YO \ / AMOS7 \ YOURUM ::
+#\[7]P4YDBKB26U3KPZK6WI3RHXMJZWONDZSDDHHPIDSRD6RLQQBPBMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

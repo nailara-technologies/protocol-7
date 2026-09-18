@@ -34,12 +34,20 @@ if ( $completion_url !~ m{/v1/chat/completions$} ) {
 ## flowing so a silence-based cutoff [ the leading http_500 hypothesis :    ##
 ## stream=false is one long silent read ] can't trip. SSE deltas are        ##
 ## accumulated below exactly like coding.async.chunk_handler does           ##
+## anti-repetition sampling : see cfg/zenki/coding/zenka.v7's own comment   ##
+## on <inference.model.repeat_penalty> for why this exists                  ##
 my $request_body = {
-    model       => $model_id,
-    messages    => [ { role => 'user', content => $prompt } ],
-    max_tokens  => $max_tokens,
-    temperature => 0.3,
-    stream      => JSON::PP::true(),
+    model              => $model_id,
+    messages           => [ { role => 'user', content => $prompt } ],
+    max_tokens         => $max_tokens,
+    temperature        => 0.3,
+    stream             => JSON::PP::true(),
+    repeat_penalty     => <inference.model.repeat_penalty>     // 1.1,
+    repeat_last_n      => <inference.model.repeat_last_n>      // 256,
+    dry_multiplier     => <inference.model.dry_multiplier>     // 0.8,
+    dry_base           => <inference.model.dry_base>           // 1.75,
+    dry_allowed_length => <inference.model.dry_allowed_length> // 2,
+    dry_penalty_last_n => <inference.model.dry_penalty_last_n> // -1,
 };
 
 my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
@@ -159,8 +167,8 @@ if ($@) {
 
 return $reply;
 
-#,,,,,,.,,...,,.,,..,,,..,.,.,.,.,,.,,,..,,..,..,,...,...,...,..,,,..,,,.,.,.,
-#IRKMYX3HWHZKKP4Y2H6MX7JKNBHASIZ74HK7QPS4XTWKKGT2JQCEAWCX5L7UA556S24MMBYBQHNHK
-#\\\|7MK4434P5V6ZJ2SFVCWCKIM7OCRKBPKX7BFV5L2ZO6TR6PXYF4H \ / AMOS7 \ YOURUM ::
-#\[7]J2LI6AWZWBVO44QPLJ5OPLLVVITDU534YULWNVJ2N3QVVHYMNMAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,.,.,..,,...,..,,.,,,,.,,,,,,..,,...,..,,...,,..,.,.,...,.,,,
+#53FJY7YYF2AH4TYPNNBNTUVA56LDAU6XQKMQ3N7QGDNZQ522IRLPURDP4R7JZ2CEKEEYUMPXDFIBC
+#\\\|C54WGJ6SFG6QXO3T65DLVDJFMDN7PSN7MTGD4GRKTZAPWZM2SYP \ / AMOS7 \ YOURUM ::
+#\[7]LROQ6TY2LOFCQIX2OJB26TZY7YYYHLPE65KPBGTVIEWNBRBESUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,13 +43,21 @@ if ( $completion_url !~ m{/v1/chat/completions$} ) {
     $completion_url .= '/v1/chat/completions';
 }
 
-## same body shape as coding.tools.http_inference_client, but streaming ##
+## same body shape as coding.tools.http_inference_client, but streaming   ##
+## anti-repetition sampling : see cfg/zenki/coding/zenka.v7's own comment ##
+## on <inference.model.repeat_penalty> for why this exists                ##
 my $body = {
-    model       => $model_id,
-    messages    => [ { role => 'user', content => $prompt } ],
-    max_tokens  => $params->{'max_tokens'} // 4096,
-    temperature => 0.3,
-    stream      => JSON::PP::true(),
+    model              => $model_id,
+    messages           => [ { role => 'user', content => $prompt } ],
+    max_tokens         => $params->{'max_tokens'} // 4096,
+    temperature        => 0.3,
+    stream             => JSON::PP::true(),
+    repeat_penalty     => <inference.model.repeat_penalty>     // 1.1,
+    repeat_last_n      => <inference.model.repeat_last_n>      // 256,
+    dry_multiplier     => <inference.model.dry_multiplier>     // 0.8,
+    dry_base           => <inference.model.dry_base>           // 1.75,
+    dry_allowed_length => <inference.model.dry_allowed_length> // 2,
+    dry_penalty_last_n => <inference.model.dry_penalty_last_n> // -1,
 };
 
 my $acc     = { content => '', reasoning => '', finish_reason => '' };
@@ -149,8 +157,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,.,,,,.,,,.,,.,,..,,..,,,.,,,.,,,,.,..,,...,..,,...,...,.,,,...,,,.,,,,,.,,,
-#AJSL6VPGQQ73EFZWO7DGOGK6V2ZWBNEXIYBAABDS4TBPQNQ6Q2OW2MVLBDOQLN5ON6MCTVN56DLTY
-#\\\|FVMSUU7FOUBWJHYCG4CQLGTWSXRB2X5CFARDUH6JLEQAT3AMSCA \ / AMOS7 \ YOURUM ::
-#\[7]KTQTZGFIZMBCVTERMEHB2JB27BPMA656H66M24QK6UKEOC4LKSAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,,.,,.,,,...,,..,,,,,...,,.,,..,,...,...,..,,..,,,.,,,..,.,,,
+#QU4RASJH5RNM7ZMWH6VVYKBUTAWRBUO7FU5KMFCLPQ3SGHGRXAPRN5CITQ7Q34ODKITWW6PFIBRJA
+#\\\|TPZ245WASX75IMT4DWRVMOQHV7MYNQT4Z4KGI7SQ6RKC3UNZJP3 \ / AMOS7 \ YOURUM ::
+#\[7]2GGM4OOHCCNN25GKKKXEID7JWRZFHZ2NU7VQ6R2P7IGGBABKR2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
