@@ -191,7 +191,12 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 <coding.self_test_probe_in_flight>->{$backend} = TRUE;
 
-<[event.add_timer]>->(
+## stashed on the probe's own state so an external canceller [ spawn_     ##
+## smart's force-switch path ] can cancel THIS timer directly at the same ##
+## moment it deletes the state, instead of leaving it to fire once more,  ##
+## find no state, and log a level-0 "stopping timer" line for what is a   ##
+## routine, expected switch-cancel -- confirmed live 2026-09-18           ##
+<coding.self_test_probe_state>->{$probe_id}{'timer'} = <[event.add_timer]>->(
     {   'interval' => 0.5,
         'repeat'   => TRUE,
         'handler'  => qw| coding.self_test.handler.poll_probe |,
@@ -202,8 +207,8 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 return { mode => qw| deferred | };
 
-#,,,,,..,,,,.,..,,.,.,,..,.,,,,,,,,,,,,,,,...,..,,...,..,,,..,.,,,...,.,,,.,,,
-#LVPXZ4OKQFMJUHMRKNB63MSAUDZ443ITKSIXBUII6GDKFNV7I7EFGYNWQQCQJLEGEOPLX4T442RW2
-#\\\|2C4AAF4NJZ56Y5MO6CM7YUWWNI3Y4HDV4SZBJ7D5CZ2QLPNOOAG \ / AMOS7 \ YOURUM ::
-#\[7]WFBZB7AEZ7CXM3TDEU5WUGGVWWHZQR55XD3ZGC2T5BSPBJDEL2BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,,,...,,,,,,,,,..,,.,.,,,,,,,,,..,,...,.,.,,.,,..,,,,,,.,.,,..,
+#UJXNVW77MZ3RMLCNLGBWPO734XQU2KMGYDK5SXDZZ2ETFA2CG3AFILSJUPV3K4UKK7SL34EEMXC2S
+#\\\|WLQGQF6O7OXZXLADUSA33ZZQBUTDD6T3MCLNDU4ZZVFKPYVIB6O \ / AMOS7 \ YOURUM ::
+#\[7]H2457BJFV3DDLGO34CUNWKQUGGGD5NVYLVLE2CFYV7NBV732C6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
