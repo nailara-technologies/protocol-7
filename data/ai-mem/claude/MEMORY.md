@@ -45,7 +45,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (66 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (67 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -64,8 +64,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,...,.,.,,,,,,,,,.,.,,..,..,,.,.,,..,,,.,..,,...,...,,,,,..,,..,,...,,.,,
-#OILYR4I73MBDOICN4YO63S7BEGJHOIOMNEZMEIBJYMTTIXB2TBDPY3EJBASGR6Y4NQ5ON3HQOTSMC
-#\\\|A3ZURM543NNIAG742O4HREMUKANNWCWPDFIJX2N6TF63HTZEME7 \ / AMOS7 \ YOURUM ::
-#\[7]3NE5YSZTUGOXQI2HPDNIYUT4M6FYXSYIIQIGHOXC3XJEJL4SQOBY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,.,,,,,.,,,,..,,,.,...,,.,,,.,,..,,...,..,,,.,,...,,.,,,..,,.,,
+#JCGZDLOPM6SIB5NYWCYYOIGT7J34VEKQRRK4CS2XC2ZSNH3SO7LEGR44W6D6MQPX663D5OUDUBQE2
+#\\\|DLDWUMBO2OX7TOOTGY4EPBCU5FHJQBTIDAFRETCJQUVY5IQYQHJ \ / AMOS7 \ YOURUM ::
+#\[7]TA4PBFSBZ5WY6RNFB73VEUTIPWWDOHFSAANPJUBMGV66NMQQYWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

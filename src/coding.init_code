@@ -371,43 +371,32 @@ if ($gpu_busy) {
 <[dependency.install_callbacks]>->('coding');
 
 ## register memory callback types ##
-if ( exists $code{'coding.callback.object_memory_system'} ) {
-    <[dependency.setup]>->(
-        'memory_system',
-        { 'callback' => $code{'coding.callback.object_memory_system'} }
-    );
-    <[base.logs]>->( 2, '[init] registered memory_system callback' );
-}
-if ( exists $code{'coding.callback.object_memory_gpu'} ) {
-    <[dependency.setup]>->(
-        'memory_gpu',
-        { 'callback' => $code{'coding.callback.object_memory_gpu'} }
-    );
-    <[base.logs]>->( 2, '[init] registered memory_gpu callback' );
-}
+<[dependency.setup]>->(
+    'memory_system',
+    { 'callback' => $code{'coding.callback.object_memory_system'} }
+);
+<[base.logs]>->( 2, '[init] registered memory_system callback' );
+<[dependency.setup]>->(
+    'memory_gpu', { 'callback' => $code{'coding.callback.object_memory_gpu'} }
+);
+<[base.logs]>->( 2, '[init] registered memory_gpu callback' );
 
 ## register self-test pending callback [ blocks backends during model ##
 ## switch ]                                                           ##
-if ( exists $code{'coding.callback.object_self_test_pending'} ) {
-    <[dependency.setup]>->(
-        'self_test_pending',
-        { 'callback' => $code{'coding.callback.object_self_test_pending'} }
-    );
-    <[base.logs]>->( 2, '[init] registered self_test_pending callback' );
-}
+<[dependency.setup]>->(
+    'self_test_pending',
+    { 'callback' => $code{'coding.callback.object_self_test_pending'} }
+);
+<[base.logs]>->( 2, '[init] registered self_test_pending callback' );
 
 ## model_checksum_loaded objects are created lazily, per checksum, by ##
 ## coding.task.ensure_model_pinned - only the callback type needs     ##
 ## registering here, once                                             ##
-if ( exists $code{'coding.callback.object_model_checksum_loaded'} ) {
-    <[dependency.setup]>->(
-        'model_checksum_loaded',
-        {   'callback' =>
-                $code{'coding.callback.object_model_checksum_loaded'}
-        }
-    );
-    <[base.logs]>->( 2, '[init] registered model_checksum_loaded callback' );
-}
+<[dependency.setup]>->(
+    'model_checksum_loaded',
+    { 'callback' => $code{'coding.callback.object_model_checksum_loaded'} }
+);
+<[base.logs]>->( 2, '[init] registered model_checksum_loaded callback' );
 
 ## create dependency objects [ only on first init to avoid leaks ] ##
 if ( not $already_initialized ) {
@@ -502,23 +491,21 @@ if ( not $already_initialized ) {
     ## lived in the never-invoked coding.init_dependencies, so these ids    ##
     ## were always undef and every dependency.ok call on them silently      ##
     ## failed open -- confirmed live 2026-08-26                             ##
-    if ( exists $code{'coding.callback.object.model_path'} ) {
-        <coding.dep.model_path_gpu> = <[dependency.add_object]>
-            ->( { 'type' => 'model_path', 'backend' => 'gpu' } );
-        <coding.dep.spawn_ready_gpu> = <[dependency.add_object]>
-            ->( { 'type' => 'spawn_precondition', 'backend' => 'gpu' } );
-        <[dependency.add]>->(
-            <coding.dep.spawn_ready_gpu>, <coding.dep.model_path_gpu>
-        );
+    <coding.dep.model_path_gpu> = <[dependency.add_object]>
+        ->( { 'type' => 'model_path', 'backend' => 'gpu' } );
+    <coding.dep.spawn_ready_gpu> = <[dependency.add_object]>
+        ->( { 'type' => 'spawn_precondition', 'backend' => 'gpu' } );
+    <[dependency.add]>->(
+        <coding.dep.spawn_ready_gpu>, <coding.dep.model_path_gpu>
+    );
 
-        <coding.dep.model_path_cpu> = <[dependency.add_object]>
-            ->( { 'type' => 'model_path', 'backend' => 'cpu' } );
-        <coding.dep.spawn_ready_cpu> = <[dependency.add_object]>
-            ->( { 'type' => 'spawn_precondition', 'backend' => 'cpu' } );
-        <[dependency.add]>->(
-            <coding.dep.spawn_ready_cpu>, <coding.dep.model_path_cpu>
-        );
-    }
+    <coding.dep.model_path_cpu> = <[dependency.add_object]>
+        ->( { 'type' => 'model_path', 'backend' => 'cpu' } );
+    <coding.dep.spawn_ready_cpu> = <[dependency.add_object]>
+        ->( { 'type' => 'spawn_precondition', 'backend' => 'cpu' } );
+    <[dependency.add]>->(
+        <coding.dep.spawn_ready_cpu>, <coding.dep.model_path_cpu>
+    );
 }
 
 <[base.logs]>->(
@@ -588,57 +575,55 @@ if ( not ref $ptd_opts eq qw| ARRAY | or not @$ptd_opts ) {
 <coding.state.initialized> = TRUE;
 
 ## validate tool dispatch table at init time [ catch errors early ]
-if ( exists $code{'coding.tools.definitions'} ) {
-    my @missing_dispatch;
-    my @undefined_dispatch;
+my @missing_dispatch;
+my @undefined_dispatch;
 
-    ## tools handled directly in coding.tools.dispatch  [ not via handler ##
-    ## modules ]                                                          ##
-    my %dispatch_table_tools = map { $_ => 1 } qw(
-        list_files search_code dep_graph ncode_search ncode_search_context
-        edit_file record_question record_suggestion
-    );
+## tools handled directly in coding.tools.dispatch  [ not via handler ##
+## modules ]                                                          ##
+my %dispatch_table_tools = map { $_ => 1 } qw(
+    list_files search_code dep_graph ncode_search ncode_search_context
+    edit_file record_question record_suggestion
+);
 
-    ## get list of defined tools ##
-    my $tools_ref = <[coding.tools.definitions]>;
-    if ( ref $tools_ref eq qw| ARRAY | ) {
-        for my $tool (@$tools_ref) {
-            my $name = $tool->{'function'}->{'name'} // next;
+## get list of defined tools ##
+my $tools_ref = <[coding.tools.definitions]>;
+if ( ref $tools_ref eq qw| ARRAY | ) {
+    for my $tool (@$tools_ref) {
+        my $name = $tool->{'function'}->{'name'} // next;
 
-            ## skip tools handled directly in dispatch table ##
-            next if exists $dispatch_table_tools{$name};
+        ## skip tools handled directly in dispatch table ##
+        next if exists $dispatch_table_tools{$name};
 
-            ## check if handler exists in code registry ##
-            my $handler_mod = "coding.tools.handler.$name";
-            if ( not exists $code{$handler_mod} ) {
-                push @missing_dispatch, $name;
-            } elsif ( not defined $code{$handler_mod} ) {
-                push @undefined_dispatch, $name;
-            }
+        ## check if handler exists in code registry ##
+        my $handler_mod = "coding.tools.handler.$name";
+        if ( not exists $code{$handler_mod} ) {
+            push @missing_dispatch, $name;
+        } elsif ( not defined $code{$handler_mod} ) {
+            push @undefined_dispatch, $name;
         }
     }
+}
 
-    if (@missing_dispatch) {
-        <[base.logs]>->(
-            0,
-            '[init] tools without handlers: %s',
-            join( ', ', sort @missing_dispatch )
-        );
-    }
-    if (@undefined_dispatch) {
-        <[base.logs]>->(
-            0,
-            '[init] tools with undefined dispatch: %s',
-            join( ', ', sort @undefined_dispatch )
-        );
-    }
-    if ( not @missing_dispatch and not @undefined_dispatch ) {
-        <[base.logs]>->(
-            2,
-            '[init] all %d tools have valid handlers',
-            scalar @$tools_ref
-        );
-    }
+if (@missing_dispatch) {
+    <[base.logs]>->(
+        0,
+        '[init] tools without handlers: %s',
+        join( ', ', sort @missing_dispatch )
+    );
+}
+if (@undefined_dispatch) {
+    <[base.logs]>->(
+        0,
+        '[init] tools with undefined dispatch: %s',
+        join( ', ', sort @undefined_dispatch )
+    );
+}
+if ( not @missing_dispatch and not @undefined_dispatch ) {
+    <[base.logs]>->(
+        2,
+        '[init] all %d tools have valid handlers',
+        scalar @$tools_ref
+    );
 }
 
 ## fetch fresh model discovery from models zenka  [ init_reports fires when
@@ -744,8 +729,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,..,,,,,,.,,,..,,,..,,,,,,..,...,,..,,,,,.,.,...,...,...,.,,,..,,,..,...,
-#CWUE3PMNRP5R3422PC2AO42VSVI6D5AFCAMKGTOXGMX7QTIU47QQK4PN2Z4SCNJ5TJI5LEB37LCCK
-#\\\|GII6QO4L25PVUQF3G4ATTBNUV4YQOKD7RUUUFAPEPWHM5LNNGEF \ / AMOS7 \ YOURUM ::
-#\[7]SP5L7V22ZFE5R4HOK62EXDLVNV4QPUQW4H75Z2IABDTOPQIPGKDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,,,,,,,.,,..,,,.,,.,,,,,,...,.,.,...,...,,.,,..,,.,.,,,,,.,.,
+#ORMOSJO7DSWE6CHTBXOXNI6TGM2ELQAIXI7HAIGTROQP7XDSHEX4OV2ZZNTQ4E6YCVZ62OJYCL3WC
+#\\\|DBSK2WB54FMIVQQLIVR67HBFDA6IPY7DN3S4DDP3E7VM52DOZ5D \ / AMOS7 \ YOURUM ::
+#\[7]NAYKUTLSX7DKLFHLV44EXX2ZAFFXSMJWPMKBAR3FRIWX4657WACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

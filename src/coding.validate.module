@@ -50,36 +50,34 @@ if ( $content !~ m|^# descr\s+=\s+(.+)$|m ) {
 ## that form is LEGAL -- bin/Protocol-7's parser expands it with an        ##
 ## implicit ->() when no args are passed. the calibrated rule only flags   ##
 ## `<[name]>(`, which really is malformed.                                 ##
-if ( exists $code{'coding.idiom.scan'} ) {
-    my $scan = <[coding.idiom.scan]>->( { 'text' => $content } );
+my $scan = <[coding.idiom.scan]>->( { 'text' => $content } );
 
-    if ( ref $scan eq qw| HASH | and $scan->{'mode'} eq qw| true | ) {
+if ( ref $scan eq qw| HASH | and $scan->{'mode'} eq qw| true | ) {
 
-        my %seen;
-        foreach my $violation ( $scan->{'data'}{'violations'}->@* ) {
+    my %seen;
+    foreach my $violation ( $scan->{'data'}{'violations'}->@* ) {
 
-            ## one line per rule, with a count -- not one per occurrence ##
-            $seen{ $violation->{'id'} }{'count'}++;
-            $seen{ $violation->{'id'} }{'class'} = $violation->{'class'};
-            $seen{ $violation->{'id'} }{'line'} //= $violation->{'line'};
-        }
+        ## one line per rule, with a count -- not one per occurrence ##
+        $seen{ $violation->{'id'} }{'count'}++;
+        $seen{ $violation->{'id'} }{'class'} = $violation->{'class'};
+        $seen{ $violation->{'id'} }{'line'} //= $violation->{'line'};
+    }
 
-        foreach my $id ( sort keys %seen ) {
-            my $hit = $seen{$id};
-            my $msg = sprintf(
-                '%s : %d occurrence%s [ first at line %d ]',
-                $id, $hit->{'count'}, ( $hit->{'count'} == 1 ? '' : 's' ),
-                $hit->{'line'}
-            );
+    foreach my $id ( sort keys %seen ) {
+        my $hit = $seen{$id};
+        my $msg = sprintf(
+            '%s : %d occurrence%s [ first at line %d ]',
+            $id, $hit->{'count'}, ( $hit->{'count'} == 1 ? '' : 's' ),
+            $hit->{'line'}
+        );
 
-            ## auto and gate are real problems ; report-class rules are   ##
-            ## conventions the codebase itself does not keep consistently ##
-            ## and must not fail a validation                             ##
-            if ( $hit->{'class'} eq qw| report | ) {
-                push @warnings, $msg;
-            } else {
-                push @errors, $msg;
-            }
+        ## auto and gate are real problems ; report-class rules are       ##
+        ## conventions the codebase itself does not keep consistently and ##
+        ## must not fail a validation                                     ##
+        if ( $hit->{'class'} eq qw| report | ) {
+            push @warnings, $msg;
+        } else {
+            push @errors, $msg;
         }
     }
 }
@@ -156,8 +154,8 @@ return {
     'data' => $result,
 };
 
-#,,..,,..,,.,,,,.,...,.,.,...,,.,,...,,,.,.,,,..,,...,..,,,..,...,...,,..,,,.,
-#HO73DROBBPKOSIBG27JTQGHI2GMCS3WTTAUYNVCWGT54O6F4JQOQZ6LBCWNMDL65CWUJGE4LBHZGA
-#\\\|XWW4AXCHAFJFYYTASAMTXIQO5ZJMIY4ELFG2AWPB4BOWLXC3RIB \ / AMOS7 \ YOURUM ::
-#\[7]V226WWVPCRTUSPLRO7XT5SKWXT23IAC3RTWEMI3DJL34Z62JAGDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,..,.,,,.,,,,..,.,.,,.,,,.,,.,.,..,,...,..,,..,,,,.,...,..,,,,,,
+#XFELBD2EC5LGX2WEVT5N7IZT3TDNBPCWRP7TWKIVV2MPR42SJ7NIMPRR2E4CCJELN3RKGY7ZUPUVC
+#\\\|SLHKJFYO3QMD4HD5JD74ESOZ6BQHU4LHCCMQM2HDSE7UZYZWCAH \ / AMOS7 \ YOURUM ::
+#\[7]5K3JG3SYWKCUY73XWWQGROCGLCUZAO7M3COCJS3NVVC5TMXZWYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

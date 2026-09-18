@@ -62,6 +62,19 @@ every zenka gets `file.*` for free without needing `file` added to its own `modu
 almost certainly what `v7.zenka.*`→`zenka.*` actually is too (an instance of this shortening
 pattern within one zenka's own namespace), not cross-zenka module reuse.
 
+**This specific incident, verified, corrected 2026-09-18** — checked directly: both
+`base.event.add_signal` and `base.event.add_timer` already wrap every by-name `'handler' =>
+qw|...|` registration as `sub { $code{$name}->(@ARG) }` ("wrapped for reloading source code" /
+"wrapper making sure the callback survives source code reload", their own comments) — a fresh
+`%code` lookup on every fire. `coding.handler.inference_server_sigchld`'s SIGCHLD binding and
+`self_test.run`'s probe timer were BOTH already reload-safe this way from the start; the earlier
+guess in this note that the sigchld handler was "`$code{...}`-bound, not `sub{}`-wrapped" was
+wrong. `coding.reload source` alone was genuinely sufficient for this specific fix (matching what
+was actually observed live, before `reload init` ran as extra caution) — neither of this note's two
+gotcha classes actually applied here, since `coding.handler.inference_server_sigchld` is also a
+plain, non-swap_subs-moved native module. No registration-mechanism change is needed for either of
+these two handlers.
+
 **Default guidance, per the user directly, 2026-09-18** — none of the above is an argument for
 reflexively reaching for `reload init` out of caution. `reload init` reruns the zenka's entire init
 phase, which blocks/disrupts the zenka for that procedure's duration; `reload source` alone is
@@ -85,8 +98,8 @@ further in the interim mechanism ahead of that. See
 [[feedback-init-phase-idempotency-is-a-hard-invariant]] for why relying on `reload init` in the
 meantime is safe by design, not a workaround.
 
-#,,,,,...,,,.,..,,,,.,,,.,.,,,..,,,,.,...,.,.,..,,...,...,..,,...,.,,,,..,...,
-#UGNIQPXRP6HGZX4QKLFPB7VAFMXBRF7JCSBNXG5CBJRECRIIM3WLNTZ7VFVM2SK5ATECYMOJWKG6K
-#\\\|A2OZPD2BNQSQOQABUT2OY6IXMZBYQ5LQ7KBERKB4XIG7ZSC2BLW \ / AMOS7 \ YOURUM ::
-#\[7]V2QXU2YIUT3BSNERPPBFXZNQCISLY5OWZKKGBGN5A3HMSLTLTUCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,,,,,,,,,.,,,.,,.,.,,,,,,..,..,,...,..,,..,,,.,,..,,,,,,...,
+#5RHBIMPXURCKI27ULEK2WXMS35RV3ANILGC6H5SHGM5KF6VUJRJCVAXXMLZPYR72HXAX4E3FFSWLI
+#\\\|NKWRFTNRSHQJTX3GTOHPMXNPXCQ2VFUSA6UIBKY73Y4PEQOJFJ7 \ / AMOS7 \ YOURUM ::
+#\[7]ZK7Y5SSKO2IKYM5URIKHFR5MZNPMW2DIPRH3IBDXTY4K5USIIKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

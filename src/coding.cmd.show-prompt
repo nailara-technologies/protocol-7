@@ -103,27 +103,25 @@ for my $i ( 0 .. $#messages ) {
 }
 
 ## cache check [ informational ] ##
-if ( exists $code{'plugin.storage.inference.lookup'} ) {
-    my $cache_result = $code{'plugin.storage.inference.lookup'}->(
-        {   'question'    => $prompt,
-            'max_results' => 1,
-            'prefer'      => qw| recent |
-        }
-    );
-    if (    ref $cache_result eq qw| HASH |
-        and $cache_result->{'mode'} eq qw| true |
-        and $cache_result->{'data'}{'results'}
-        and $cache_result->{'data'}{'results'}->@* ) {
-        my $cached = $cache_result->{'data'}{'results'}[0];
-        $output .= sprintf
-            ".:[ cache: HIT branch=%s hits=%d model=%s len=%d ]:.\n",
-            $cache_result->{'data'}{'branch'},
-            $cache_result->{'data'}{'hit_count'} // 0,
-            $cached->{'model'}                   // '?',
-            $cached->{'response_len'}            // 0;
-    } else {
-        $output .= ".:[ cache: MISS ]:.\n";
+my $cache_result = $code{'plugin.storage.inference.lookup'}->(
+    {   'question'    => $prompt,
+        'max_results' => 1,
+        'prefer'      => qw| recent |
     }
+);
+if (    ref $cache_result eq qw| HASH |
+    and $cache_result->{'mode'} eq qw| true |
+    and $cache_result->{'data'}{'results'}
+    and $cache_result->{'data'}{'results'}->@* ) {
+    my $cached = $cache_result->{'data'}{'results'}[0];
+    $output .= sprintf
+        ".:[ cache: HIT branch=%s hits=%d model=%s len=%d ]:.\n",
+        $cache_result->{'data'}{'branch'},
+        $cache_result->{'data'}{'hit_count'} // 0,
+        $cached->{'model'}                   // '?',
+        $cached->{'response_len'}            // 0;
+} else {
+    $output .= ".:[ cache: MISS ]:.\n";
 }
 
 $output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
@@ -138,8 +136,8 @@ $output .= sprintf ".:[ total prompt size: %d chars ]:.\n",
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,..,,.,,,.,.,,,.,,,.,,,.,,,,,..,,...,,,,,..,,...,...,.,,,,,.,,,,,.,.,.,,,
-#ENBU2XAVXF7G7RCNIB42H65PJIC3WFYMOJLWE7ZME6VGMH6A2JKBWGQSPQP2LOQ4MVHWKA5VFOJKK
-#\\\|R6PJZ75VMGRAQ3UYXFTEVPCHI454TK5BBIKTTV722JNI6VPPRPN \ / AMOS7 \ YOURUM ::
-#\[7]ZBELRHEHPM5FE4QZ3B6QP6BZQSRLLFRBQUKP6DCT563L2GEBA6BY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,,,,,...,,.,,,,,,,.,,,,,,,.,,..,,...,...,.,,,,,.,,..,,..,.,,,
+#N5ZI5557ZAOS2HLJA7NOESQ3HFXKWT44RQBJLZLWPDYE65AK6Q5DDNEVY6TLMCBFWFZQ4W4A2O73E
+#\\\|PDBMGJAMJRGHMILGMHNLWURGA3EW5L35HP5JM4SL2YTWZ7SQ3N2 \ / AMOS7 \ YOURUM ::
+#\[7]FOMGQQUFDRVMEAFRFJNKAFPKQPBDZURYLT765EU6AQN62Y7K4GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
