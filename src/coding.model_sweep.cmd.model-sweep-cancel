@@ -58,7 +58,21 @@ for my $backend (@backends) {
     ## <coding.self_test_switch_in_progress> is NOT cleared here : the      ##
     ## in-flight cycle clears it itself when it resolves [ clearing early   ##
     ## would wrongly un-suppress monitor_inference_startup's auto-          ##
-    ## self-test mid-cycle ]                                                ##
+    ## self-test mid-cycle ]  the in-flight candidate's backend lock must   ##
+    ## be released HERE : the switch cycle itself is deliberately left      ##
+    ## running to land its verdict [ see below ], but with the sweep state  ##
+    ## gone no poll_sweep tick will ever reach its finished-advancing       ##
+    ## release -- a lock left held would wedge this backend for every sweep ##
+    ## and real task behind it [ guarded no-op via backend_release's holder ##
+    ## check when idle, and never touches a real task's lock : the id is    ##
+    ## sweep-specific ]                                                     ##
+    if ($had_state) {
+        my $held_switch_id = $state->{'switch_id'} // '';
+        <[coding.async.backend_release]>->(
+            sprintf( qw| sweep:%s |, $held_switch_id ), $backend
+        ) if length $held_switch_id;
+    }
+
     delete <coding.model_sweep_state>->{$backend};
     delete $cursor_data->{$backend};
     $changed = TRUE;
@@ -91,8 +105,8 @@ if ($changed) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,..,,.,,,...,..,,.,.,,..,...,,,.,,.,,.,.,.,.,...,...,,.,,.,.,,,,,,..,..,,
-#YY4DAE7JQTWTWHWZOYQUMFDZYUF32L2S4WLL4JE7EFU6MEYIJXVRFBIVE4VE62HXWNX7DBF26VVLE
-#\\\|I327BZBAJMLK7ZYY2H6Q64TMDZ7VCDYNMNSA63BB3L7FA46PNZ2 \ / AMOS7 \ YOURUM ::
-#\[7]DEXTNJIKUCC6BKVLJTO67KD6P65CDQC66HPWVC4QL4ELYYRTP6BQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,.,..,,,..,,,,,.,,,,.,,...,,.,,.,.,...,...,.,.,.,.,...,.,.,.,,,
+#I4JHXYWCMM65WGJXQ3UFANUMJYNJAHG5UDXCEEOFP6RWBBVHILJMYV3RVP5AGO4FYJ2K5REQHL4UM
+#\\\|Y666MFTMHIMRWT6V7AJZMGPL3ORKQSIKTH5WYLECZFWJLHYMPHR \ / AMOS7 \ YOURUM ::
+#\[7]7V2GTN26XRUKBSIDREA2RRO7BKJS4L6S77BYVUH3HOOFIAOEPUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
