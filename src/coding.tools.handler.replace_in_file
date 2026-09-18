@@ -91,18 +91,16 @@ if ( $replace_all and $count > 1 ) {
 ## idiom conformance gate [ config-gated, inert unless                    ##
 ## coding.cfg.idiom_gate is set ] : may auto-repair the replaced body, or ##
 ## refuse the write entirely                                              ##
-if ( exists $code{'coding.idiom.check_write'} ) {
-    my $idiom = <[coding.idiom.check_write]>->(
-        {   'path'    => $path,
-            'content' => $new_content,
-            'tool'    => 'replace_in_file',
-        }
-    );
-    if ( ref $idiom eq qw| HASH | ) {
-        return $idiom->{'data'} if $idiom->{'mode'} eq qw| false |;
-        $new_content = $idiom->{'data'}{'content'}
-            if defined $idiom->{'data'}{'content'};
+my $idiom = <[coding.idiom.check_write]>->(
+    {   'path'    => $path,
+        'content' => $new_content,
+        'tool'    => 'replace_in_file',
     }
+);
+if ( ref $idiom eq qw| HASH | ) {
+    return $idiom->{'data'} if $idiom->{'mode'} eq qw| false |;
+    $new_content = $idiom->{'data'}{'content'}
+        if defined $idiom->{'data'}{'content'};
 }
 
 ## write back using chmod child if needed ##
@@ -121,9 +119,7 @@ if ( -w $abs_path ) {
     ## note the write for the catalog-retrieval corpus [ inert unless   ##
     ## coding.cfg.catalog_harvest is enabled ] -- after the write, so a ##
     ## refused or failed write is never tracked                         ##
-    if ( exists $code{'coding.catalog.track_write'} ) {
-        <[coding.catalog.track_write]>->( { 'target' => $path } );
-    }
+    <[coding.catalog.track_write]>->( { 'target' => $path } );
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
@@ -144,8 +140,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, "
     . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,,,,..,,,..,,..,,,.,,.,,...,,.,,.,,,,,.,,.,,..,,...,...,,.,,..,,.,,,.,,,,,.,
-#Q5DFMHIJI7RQAEJBWYKOK3KHH6O57HL4IQNCCSJKRVKCB6PNRYD7AEE7Y3XTJIFAS3I2BQL2SZUFW
-#\\\|TBEZGOKPGKUFDU55LTBO43VBM2ICSOK6ENP6S2RZLF67DKVGMSJ \ / AMOS7 \ YOURUM ::
-#\[7]4PO4VL2255LQD2CVJRTGKFMSRYB7WK4XDYKJCMJPAHR4RYRKJ2CQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,,,,,.,,,..,,..,,,.,,.,.,,,,,..,,...,..,,...,...,,,.,..,,,,,,
+#GUIVHHKY3H5SAODDP3PUT4U6QM3WPFEQUNDXXH6KUWL7YN4DDUWFB5Y352RZKR7ZTZJCA26WD24O6
+#\\\|JAP4EBJFQGUYUZLDH3HPXXJILMUIMW3B5BG2P4WSEMIDC5R4VRO \ / AMOS7 \ YOURUM ::
+#\[7]VSISEKJBLFN26K5SG55PWELRYTEEKCTFNF5CMHRDHU6ILRCNW2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

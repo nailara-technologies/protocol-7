@@ -40,47 +40,45 @@ my $prompt    = $task->{'request'}->{'description'}            // '';
 my $selected_template = 'system-default';
 my $match_source      = 'default';
 
-if ( exists $code{'context.template.load'} ) {
-    my $root         = <system.root_path>;
-    my $template_dir = "$root/"
-        . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
+my $root         = <system.root_path>;
+my $template_dir = "$root/"
+    . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
 
-    ## check 1: task_type as template ##
-    if ( $task_type =~ m{^[\w-]+$} ) {
-        my $type_template_path = "$template_dir/$task_type.yaml";
-        if ( -f $type_template_path && $task_type !~ m{^system-} ) {
-            $selected_template = $task_type;
-            $match_source      = 'task_type';
+## check 1: task_type as template ##
+if ( $task_type =~ m{^[\w-]+$} ) {
+    my $type_template_path = "$template_dir/$task_type.yaml";
+    if ( -f $type_template_path && $task_type !~ m{^system-} ) {
+        $selected_template = $task_type;
+        $match_source      = 'task_type';
+    }
+}
+
+## check 2: words from prompt (if no task_type match) ##
+if ( $selected_template eq 'system-default' ) {
+    my @words = $prompt =~ m{([\w][\w-]*[\w])}g;
+
+    for my $candidate ( sort { length($b) <=> length($a) } @words ) {
+        next if $candidate =~ m{^system-};
+        my $tpl_path = "$template_dir/$candidate.yaml";
+        if ( -f $tpl_path ) {
+            $selected_template = $candidate;
+            $match_source      = 'prompt_word';
+            last;
         }
     }
 
-    ## check 2: words from prompt (if no task_type match) ##
+    ## check 3: hyphenated versions ##
     if ( $selected_template eq 'system-default' ) {
-        my @words = $prompt =~ m{([\w][\w-]*[\w])}g;
-
-        for my $candidate ( sort { length($b) <=> length($a) } @words ) {
-            next if $candidate =~ m{^system-};
-            my $tpl_path = "$template_dir/$candidate.yaml";
+        for my $candidate (@words) {
+            my $hyph = $candidate;
+            $hyph =~ s|\.|-|g;
+            next if $hyph eq $candidate;
+            next if $hyph =~ m{^system-};
+            my $tpl_path = "$template_dir/$hyph.yaml";
             if ( -f $tpl_path ) {
-                $selected_template = $candidate;
-                $match_source      = 'prompt_word';
+                $selected_template = $hyph;
+                $match_source      = 'dot_to_hyphen';
                 last;
-            }
-        }
-
-        ## check 3: hyphenated versions ##
-        if ( $selected_template eq 'system-default' ) {
-            for my $candidate (@words) {
-                my $hyph = $candidate;
-                $hyph =~ s|\.|-|g;
-                next if $hyph eq $candidate;
-                next if $hyph =~ m{^system-};
-                my $tpl_path = "$template_dir/$hyph.yaml";
-                if ( -f $tpl_path ) {
-                    $selected_template = $hyph;
-                    $match_source      = 'dot_to_hyphen';
-                    last;
-                }
             }
         }
     }
@@ -106,8 +104,8 @@ return {
     'data' => $output,
 };
 
-#,,..,,,.,.,.,.,,,.,.,..,,.,,,,,.,..,,.,,,.,,,..,,...,...,...,.,,,,,,,.,,,...,
-#UKKUZA6FTZN6U7LOF7FS4HZ3J6VTETO46RZA2Z23WYVH7T7NOHQJNGYDYCX2IASX6BWKBE7FAEP2S
-#\\\|3FIVRPWK42WNJYEET2BTKTUYZJ2OAJSU35SZPMWEM63MYBSZAGY \ / AMOS7 \ YOURUM ::
-#\[7]GVNVUVK6D7WWJ5N574VSKTXUE62ZBXGFYA7YOX2GQ6UAEMBBFMCY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,..,,,,.,.,,,,.,,,,,,.,.,,,,,..,,...,...,...,,,.,,,,,,,.,.,.,
+#A7H2FPFSTHABLQORVO42LFPYTDLY4K2W3X5W56PKDO3LAAF4BCDWCCD3DB3EQKMU2FX7NJCJ5X6S2
+#\\\|VLCM63RJSKCG55KTHRZWX5FNC23LKJKAPRP77KCZOJARDSOXXJE \ / AMOS7 \ YOURUM ::
+#\[7]3ZU3QP6QTCQYI2WXVZWVJQMENHVKVJFZ6P46KW2QQHCFRQOPSQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

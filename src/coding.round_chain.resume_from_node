@@ -23,7 +23,7 @@ my $prev_tools   = $task->{'execution'}->{'tools'}    // [];
 
 ## if tools weren't saved (pre-fix completions), re-assemble them now [ ##
 ## mirrors coding.cmd.task-append ]                                     ##
-if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+if ( !@{$prev_tools} ) {
     $prev_tools = <[coding.tools.definitions]> // [];
     <[base.logs]>->(
         1,
@@ -62,8 +62,8 @@ push $aref_active->@*, $task_id
 
 return TRUE;
 
-#,,.,,.,,,,.,,,.,,,,,,..,,,,,,...,.,,,,..,.,.,.,.,...,..,,,,,,.,.,..,,,.,,...,
-#CN4S4CNM3GVLQQK354YU7XFNXMUBYVHVGHHCQKCQO46UKLZMZDSZS6EEP4VHWCZ247Z2FFOG2XFAO
-#\\\|7OYEBLAFDWTMCDNWRLXDQYLCAMPPYE5MPTDP5ZXHOEGH44HM3VL \ / AMOS7 \ YOURUM ::
-#\[7]CZEX2LVWAD2FEKGVR7IVPCQ5H6BAXVPHO6PIFH7GERV65HS2U4DI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,.,,..,,..,...,..,,,..,,..,,,.,.,.,...,...,..,,,.,,.,.,,,,,.,,,
+#GR63VDIWA3VDG2ZSPVTRVJVPJV7GZGJ367SMW2A37S65ZPGH2WLD3K2UXTT2XYCVJY2CJB37ZCCFU
+#\\\|2EEETITEUXUTL2PQKZI7T7RZ23UU42YZJ76UIU7RS3YJZVUCFF2 \ / AMOS7 \ YOURUM ::
+#\[7]CRPFZNWAVTRGNM2FVMYMED4FHBBFRAC2QSL56VBJGX7PBRDNZCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,7 +25,7 @@ my $task = <coding.task.queue>->{$task_id};
 return undef unless defined $task;
 
 my $prev_tools = $task->{'execution'}->{'tools'} // [];
-if ( !@{$prev_tools} && exists $code{'coding.tools.definitions'} ) {
+if ( !@{$prev_tools} ) {
     $prev_tools = <[coding.tools.definitions]> // [];
 }
 
@@ -34,8 +34,8 @@ $task->{'execution'}->{'tools'}    = $prev_tools;
 
 return TRUE;
 
-#,,.,,,,.,,,.,.,.,.,,,...,,.,,...,..,,,..,,.,,.,.,...,...,...,...,,,,,.,,,,..,
-#ILVAQMZO7MRSYN4TK4ILH24JMDOBWZNVUYUYQ7UUTUHVXDQXD6DJIQUEJOZBOY4ETTJB3XDBEWSZY
-#\\\|O6MQUECL3D54OW7UB3GCKCUNGVQWDUUUR5MKKFSTAPTBMGKAZ2S \ / AMOS7 \ YOURUM ::
-#\[7]ZC4VAT2IET35IQ4C4HEKFUD5MWVW3ISIAYRGMCUK4ERBG344SUBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,.,,.,.,,..,...,.,,,,.,,,,.,.,.,...,..,,.,,,..,,,..,.,,,...,
+#55ALEEMGBYRR5M24G34XM637LTLGONC742JM2XSRI4R2CRV4COT5T6CYYPHCLOW4HJPNXSU5YQARI
+#\\\|VMC4UPNQLXUEFOIZAPAS6AA2T2FNLHCIEMHZCEX6EU43ZUYAHI4 \ / AMOS7 \ YOURUM ::
+#\[7]DZLPOPB4PPWW57M4EJ2S5VGIFIUZ75ES3BVEVRHUF3TNBOTGKEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
