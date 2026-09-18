@@ -151,6 +151,17 @@ if ($force) {
                     if ref $cb->{'on_error'} eq qw| CODE |;
                 <[coding.async.http_cleanup]>->($http_state);
             }
+
+            ## cancel the probe's own poll timer HERE, not just its state : ##
+            ## without this the timer fires once more on its normal 0.5s    ##
+            ## tick, finds its state already gone, and logs a level-0 "no   ##
+            ## state ... stopping timer" line -- accurate, but alarming     ##
+            ## noise for what is a routine, expected switch-cancel, not a   ##
+            ## real anomaly. confirmed live 2026-09-18                      ##
+            my $probe_timer = $pst->{'timer'};
+            $probe_timer->cancel()
+                if defined $probe_timer && $probe_timer->is_active();
+
             delete $probe_states->{$id};
             <[coding.async.backend_release]>->( $id, $backend );
             $cancelled = TRUE;
@@ -270,8 +281,8 @@ if ($had_live_pid) {
 return
     <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
 
-#,,,.,...,,.,,,,.,,,.,,..,.,,,.,.,,,.,.,,,,..,.,.,...,...,,,.,,.,,,,.,.,,,..,,
-#LWFQH35AVS7W4S4GV5F4IFWJINXF7J46QIOXR35QXXNU7YAZNDWPPHQVYLO5EWTKT265K3D3OQAJM
-#\\\|HL6E6NEPR6JFQEZAAQ3BJVZMNIACBDHYASZAKLZCE5QY5RUO7FK \ / AMOS7 \ YOURUM ::
-#\[7]PN2JS4XBSVVNOQQN2WJJ7YX6VJILEVWYDTP5MYKKSE5XN2FNNWBA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,.,.,.,,,.,.,,.,,,,.,.,,,..,,.,.,...,.,.,.,.,,.,,...,..,,.,,,
+#2UTOGUHPAICQFCXUKQBP3FPOP4EGSYQP2SFP2A22QO47N7NVN67EMAZ2B6JNNBABZDVKHLXMIUR4S
+#\\\|EO4CEPVRDHUG572AEUBNLYICKYU6Y3BMIROMWCRJZ2WAWLJEJ5R \ / AMOS7 \ YOURUM ::
+#\[7]HZ5EQO3CQPIZZN6UNZK5TNXEDHMCWXCMHV2MZZO2Z5N7JAEHG6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
