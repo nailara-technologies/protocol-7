@@ -86,6 +86,11 @@ profiles:
       - libgtk3-webkit2-perl
       - libx11-keyboard-perl
       - libx11-protocol-perl
+      - libsdl-perl    # satisfies the SDL::* cpan deps below directly; without
+                       # it cpanm falls through to Alien::SDL's from-source
+                       # build, which fetches long-dead upstream tarball URLs
+                       # and fails on a stale checksum (confirmed 2026-09-19
+                       # on a host with fewer apt packages preinstalled)
       - lua5.3
       - liblua5.3-dev
       - xserver-xorg-core
