@@ -28,13 +28,18 @@ unless ( defined $checksum ) {
 ## interactively-issued switch-model failing this way is still worth level  ##
 ## 0                                                                        ##
 if ( $reply_data =~ m{^error:\s*(.+?)\s*$} ) {
+    ## capture BEFORE the model_sweep_state lookup below : $1 is fragile    ##
+    ## and the intervening <...> tag access clobbered it here, confirmed    ##
+    ## live 2026-09-19 [ "undef value" warning from base.logs, real message ##
+    ## silently dropped ]                                                   ##
+    my $reason = $1;
     <[base.logs]>->(
         (   defined <coding.model_sweep_state>->{
                 $reply_params->{'backend'} // ''
             } ? 1 : 0
         ),
         "[switch_model_reply] %s",
-        $1
+        $reason
     );
     delete <coding.switch_model_active>;
     return FALSE;
@@ -165,8 +170,8 @@ if ( $backend eq qw| auto | ) {
 
 return TRUE;
 
-#,,,.,.,,,..,,,..,..,,,..,,,.,,..,.,.,.,.,,,.,.,.,...,...,.,.,..,,..,,.,,,.,,,
-#D5CI5T3UG2AGA4GLN6R5RMGFYZJ3AQOKEITNKYOU4CCOHGTLI4DH4UUTDI4DK2UC5TVOKHMTFSPLA
-#\\\|PV5WSPKEC3HJMCBVXQJS2M5IHGHIIOFZ4TXY3MEGMS4G4QIRW3W \ / AMOS7 \ YOURUM ::
-#\[7]4YLJURZDZZRLL7PRCEDS2YZBGA2PWXKHZ3WSFSN2DYTSARG25YBA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,.,.,.,.,.,.,,,,,..,,..,,...,.,.,...,...,..,,..,,...,,..,.,.,
+#O6KRIXR7D2FI7WYZS7C5B4KNRXSRNQ5WRR2MHIYF2QU2GDXHC444P2Y5JRTAZ3BZCVVD7WDKP6JU4
+#\\\|DVCG5LOCN4L4MYD6JQJOZ7QKJEY3EQDQABHYXPWBWT3SNVW2VZ6 \ / AMOS7 \ YOURUM ::
+#\[7]GBBE5UD7QILTY2L4TW4OPNINSFF7IPJVOIWMH5UD3KQMZYXWZ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
