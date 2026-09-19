@@ -52,7 +52,7 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
                 || <coding.draining>
                 || <coding.lora_training_in_progress>;
             <[base.logs]>->(
-                0,
+                ( $is_deliberate ? 1 : 0 ),
                 '[inference_server_sigchld] %s server %s [pid=%d exit=%d]',
                 $backend,
                 ( $is_deliberate ? qw| terminated | : qw| crashed | ),
@@ -209,8 +209,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,,.,.,,,...,,.,,.,,,.,.,,..,,,.,.,.,,,.,,.,,..,,...,...,..,,,.,,..,,...,.,.,
-#XVBMHJEDFJM5TDL45LXWY6VB46HOO7EDEUQJQVD6F4GBJBN4K6KWNNKCM3ELPRG7X5JALEIB7DBV6
-#\\\|FF5P5UN37MIJ7FFTQDDN4US246YJ6PHGUOZG5GXCSCD5N56A276 \ / AMOS7 \ YOURUM ::
-#\[7]RFP2HX6C6YNQX6Z6TQKXBVP2CY4ABDEXVZLC4SW5IX5HNPJ3VMDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,.,,,,.,...,...,,.,,,..,,.,,..,,...,..,,...,..,,.,,,,..,,,,,
+#ZSXRHZRR64LZHRAHPZYLTB7HB77FE2ERIPTBSAV4NZP7G2EK6RG2XFHB5XNLEY6S7RLKRHA6DD2OS
+#\\\|WKBT6UBS3XPFG5RNVZSA75WOWCBHETAZMDCYBZIIPQNARI6GPVU \ / AMOS7 \ YOURUM ::
+#\[7]KZNFJU7V2OX3PP6INR356IDM2MZOFI5XFGYFD3R6WDCDYJKKTMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
