@@ -17,6 +17,29 @@ unless ( defined $checksum ) {
     return FALSE;
 }
 
+## models zenka error replies are plain "error: ..." strings, not YAML -- a ##
+## lookup failure's own text [ "error: model not found: X:Y" ] embeds a     ##
+## second ": ", which YAML::XS genuinely rejects [ "mapping values are not  ##
+## allowed in this context" ] -- catch this BEFORE attempting the parse so  ##
+## the real reason [ not found / file missing ] surfaces instead of a       ##
+## cryptic YAML parser exception. sweep-driven candidates hit this          ##
+## routinely for stale/deleted checksums [ same reduced-severity signal as  ##
+## inference_server_sigchld's sweep-aware restart ceiling ] -- a real,      ##
+## interactively-issued switch-model failing this way is still worth level  ##
+## 0                                                                        ##
+if ( $reply_data =~ m{^error:\s*(.+?)\s*$} ) {
+    <[base.logs]>->(
+        (   defined <coding.model_sweep_state>->{
+                $reply_params->{'backend'} // ''
+            } ? 1 : 0
+        ),
+        "[switch_model_reply] %s",
+        $1
+    );
+    delete <coding.switch_model_active>;
+    return FALSE;
+}
+
 ## Parse YAML reply from models zenka ##
 my $entry = eval { YAML::XS::Load($reply_data) };
 if ( $@ || !ref $entry ) {
@@ -142,8 +165,8 @@ if ( $backend eq qw| auto | ) {
 
 return TRUE;
 
-#,,,,,.,,,,,.,.,,,,,.,,,,,,,,,,.,,...,.,.,,,.,.,.,...,...,.,.,..,,,,.,..,,,,,,
-#423K5BK6X2AMFS5ZEJPSQMOW4KK2YWCIXJISJYZ56EZN2QVP3LFS643T2AOAUCSIQOBF2L2ZGTP6Y
-#\\\|V2RHY5RVFQZY6VTICYVKFMTCYVD7C3TIHN7OIXUBDAWKVFO6XPQ \ / AMOS7 \ YOURUM ::
-#\[7]JIVLTD7GLOHL236MKINNTBFTFQLPTYMVFRS3DAN5ZPUWUF33MECQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,..,,,..,,,.,,..,.,.,.,.,,,.,.,.,...,...,.,.,..,,..,,.,,,.,,,
+#D5CI5T3UG2AGA4GLN6R5RMGFYZJ3AQOKEITNKYOU4CCOHGTLI4DH4UUTDI4DK2UC5TVOKHMTFSPLA
+#\\\|PV5WSPKEC3HJMCBVXQJS2M5IHGHIIOFZ4TXY3MEGMS4G4QIRW3W \ / AMOS7 \ YOURUM ::
+#\[7]4YLJURZDZZRLL7PRCEDS2YZBGA2PWXKHZ3WSFSN2DYTSARG25YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
