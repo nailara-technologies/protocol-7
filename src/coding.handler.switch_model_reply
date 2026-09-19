@@ -17,6 +17,26 @@ unless ( defined $checksum ) {
     return FALSE;
 }
 
+## coding.self_test.handler.poll_switch has no direct signal from this      ##
+## handler -- it only detects failure by polling                            ##
+## <coding.inference_servers>->{$backend}{'status'} for 'crashed' [ or its  ##
+## own max_wait timeout, default 300s ]. every early bail-out below used to ##
+## leave that status untouched, so a switch that can never succeed [ model  ##
+## file missing, unparseable reply ] still sat out the FULL timeout before  ##
+## poll_switch gave up -- confirmed live 2026-09-19 against a sweep         ##
+## candidate whose file had already been deleted. reuses the exact same     ##
+## signal coding.handler.monitor_inference_startup already sets for         ##
+## "spawned, then died before ready" -- same generic "this backend's switch ##
+## attempt is dead" meaning to poll_switch, even though nothing here ever   ##
+## actually spawned a process. only fires for a concrete gpu/cpu backend -- ##
+## an 'auto'/'both' interactive switch-model call still falls through to    ##
+## poll_switch's own timeout, unchanged                                     ##
+my $mark_switch_dead = sub {
+    my $b = $reply_params->{'backend'} // '';
+    return unless $b eq qw| gpu | or $b eq qw| cpu |;
+    <coding.inference_servers>->{$b}{'status'} = qw| crashed |;
+};
+
 ## models zenka error replies are plain "error: ..." strings, not YAML -- a ##
 ## lookup failure's own text [ "error: model not found: X:Y" ] embeds a     ##
 ## second ": ", which YAML::XS genuinely rejects [ "mapping values are not  ##
@@ -41,6 +61,7 @@ if ( $reply_data =~ m{^error:\s*(.+?)\s*$} ) {
         "[switch_model_reply] %s",
         $reason
     );
+    $mark_switch_dead->();
     delete <coding.switch_model_active>;
     return FALSE;
 }
@@ -50,6 +71,7 @@ my $entry = eval { YAML::XS::Load($reply_data) };
 if ( $@ || !ref $entry ) {
     <[base.logs]>
         ->( 0, "[switch_model_reply] failed to parse reply: %s", $@ );
+    $mark_switch_dead->();
     delete <coding.switch_model_active>;
     return FALSE;
 }
@@ -62,6 +84,7 @@ unless ( length $model_path && -f $model_path ) {
         0, "[switch_model_reply] model file not found or invalid: '%s'",
         $model_path
     );
+    $mark_switch_dead->();
     delete <coding.switch_model_active>;
     return FALSE;
 }
@@ -170,8 +193,8 @@ if ( $backend eq qw| auto | ) {
 
 return TRUE;
 
-#,,.,,...,,..,,.,,.,.,.,.,.,.,,,,,..,,..,,...,.,.,...,...,..,,..,,...,,..,.,.,
-#O6KRIXR7D2FI7WYZS7C5B4KNRXSRNQ5WRR2MHIYF2QU2GDXHC444P2Y5JRTAZ3BZCVVD7WDKP6JU4
-#\\\|DVCG5LOCN4L4MYD6JQJOZ7QKJEY3EQDQABHYXPWBWT3SNVW2VZ6 \ / AMOS7 \ YOURUM ::
-#\[7]GBBE5UD7QILTY2L4TW4OPNINSFF7IPJVOIWMH5UD3KQMZYXWZ2AI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,.,,,...,,.,,.,.,,,,,...,..,,.,.,...,...,..,,,..,,..,...,,..,
+#4H6HYDZAIVMFV5EB32BY2UAVGMAIZLWXIKEEPBUGUWDKI2PKUNRZA5UWUQMJZMYR42RET5IEYLHIC
+#\\\|UE4NVXUW5VI3XJEJ2KKECROGW3DYGBSRKVEM7F3CXO4NDQF2SDA \ / AMOS7 \ YOURUM ::
+#\[7]LUETUPS4CH3AOF7GXXUEYTHH2STIPMSGYFMZMTYL5TLHUSHXPSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
