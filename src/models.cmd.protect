@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = models.cmd.protect
+# param = <checksum>
+# descr = opt-in delete-protection for a checksum
+# note  = delete-model refuses outright while a checksum
+#         is on this list, even from an automated cleanup
+#         sweep
+
+my $checksum = $call->{'args'} // '';
+$checksum =~ s|^\s+||;
+$checksum =~ s|\s+$||;
+
+unless ( length $checksum ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "Usage: protect <checksum>\n"
+    };
+}
+
+<models.protected_checksums> //= <[models.trash.load_protected]>;
+
+my $entry = <[models.resolve.entry]>->($checksum);
+<models.protected_checksums>->{$checksum} = {
+    'name'         => ( defined $entry ? ( $entry->{'name'} // '' ) : '' ),
+    'protected_at' => <[base.ntime]>,
+};
+
+unless (<[models.trash.save_protected]>) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: failed to persist protect-list\n"
+    };
+}
+
+<[base.logs]>->( 1, '[protect] %s is now delete-protected', $checksum );
+
+return {
+    'mode' => qw| size |,
+    'data' => "protected: $checksum\n"
+};
+
+#,,.,,,,.,...,..,,.,.,,,,,.,.,..,,.,.,,,,,,..,..,,...,...,.,.,,,.,,,.,.,,,.,.,
+#TIP6YBAAI634KCQLFX6JSOQLQ2YTSVKOHQ3GHWINI3M5MWXFPJD77I3AMZW7MVK6R3FNSKUNYUNA4
+#\\\|7QW4YNRAI3WWROFGG367HGMUCHVKZBLWHCEX3X2JAPZXWYAVX6F \ / AMOS7 \ YOURUM ::
+#\[7]R3S432ZLALISZCMJ2QETHGQK3DX4PTVUCY4B7HY22ZXLOVI2DIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

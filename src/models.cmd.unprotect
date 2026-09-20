@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = models.cmd.unprotect
+# param = <checksum>
+# descr = remove a checksum from the delete-protection list
+# note  = see models.cmd.protect
+
+my $checksum = $call->{'args'} // '';
+$checksum =~ s|^\s+||;
+$checksum =~ s|\s+$||;
+
+unless ( length $checksum ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "Usage: unprotect <checksum>\n"
+    };
+}
+
+<models.protected_checksums> //= <[models.trash.load_protected]>;
+
+unless ( delete <models.protected_checksums>->{$checksum} ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "$checksum was not protected\n"
+    };
+}
+
+unless (<[models.trash.save_protected]>) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: failed to persist protect-list\n"
+    };
+}
+
+<[base.logs]>->(
+    1, '[unprotect] %s is no ' . 'longer delete-protected', $checksum
+);
+
+return {
+    'mode' => qw| size |,
+    'data' => "unprotected: $checksum\n"
+};
+
+#,,..,,,.,,,.,.,,,,,,,..,,...,..,,,,,,,..,,.,,..,,...,...,,,.,,,,,...,..,,,.,,
+#PQRJNZPQZS42NQOUUSBHV6R26JCBTCKL7KZAPUUC6KIGMYJ56TN5LHJGZQ2SPGONUXTBS2HF5R2C4
+#\\\|TTZTOY7VJETHQDIV26PKTH7AEE664XUCPMD3KK4OMVFNPDVXUY6 \ / AMOS7 \ YOURUM ::
+#\[7]6ABL4GOZXTQDEVM2FLEVU76ZCESHUNDOMARZVG4IKA2YWO67WMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

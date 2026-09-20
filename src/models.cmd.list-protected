@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = models.cmd.list-protected
+# descr = list checksums on the delete-protection list
+# note  = see models.cmd.protect / models.cmd.unprotect
+
+<models.protected_checksums> //= <[models.trash.load_protected]>;
+
+my $protected = <models.protected_checksums> // {};
+
+unless ( keys %$protected ) {
+    return { 'mode' => qw| size |, 'data' => "no protected checksums\n" };
+}
+
+my $out = '';
+for my $checksum ( sort keys %$protected ) {
+    my $info = $protected->{$checksum} // {};
+    $out .= sprintf "%-16s %s\n", $checksum, $info->{'name'} // '';
+}
+
+return { 'mode' => qw| size |, 'data' => $out };
+
+#,,,,,,,.,,..,.,.,,,.,..,,,,.,..,,.,,,.,,,..,,..,,...,..,,.,.,.,,,..,,,.,,,..,
+#JTZJL6N3Y7FDA3WAWH4DDRA4F66JBNUXQVFG3W3HZKAX7FG2TXMLIMNOBT5ZV6RCJKK5VOHF5727Q
+#\\\|4B2SFXIELWWJXRWC75BFKLFZIW32FUZF26WMWQUSLN2KB5PVT2M \ / AMOS7 \ YOURUM ::
+#\[7]M3SS2ZF2MFFTUHSBY5J54U6B3IV5YTMRRBKOM4IZ6Q7MNZR54UDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
