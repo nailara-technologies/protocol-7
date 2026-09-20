@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20: `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below. Not yet committed.
 - [security-fix-verify-both-code-paths-not-just-symptom](feedback-security-fix-verify-both-code-paths-not-just-symptom.md) — before broadening/replacing a shared gating check (liveness/existence/permission), enumerate ALL its callers and ask what each relies on it FOR, not just whether the visibly-broken one works — a check can be load-bearing security elsewhere with nothing else backing it up. Caught 2026-09-17 by the user before I shipped a fix that would've let a spoofed self-reported pid through unverified on a second code path.
 - [request-signed-version-before-each-batch-commit](feedback-request-signed-version-before-each-batch-commit.md) — for batch/multiple commits in a session, explicitly request a fresh signed version number from the user before EACH commit, not just once — stated 2026-09-17, don't chain commits on one earlier sign-off.
 - [token-budget-pacing-early-week](feedback-token-budget-pacing-early-week.md) — pace Claude token use from the START of each 7-day usage window, not reactively once tight — flagged 2026-09-17 after ~50%/7d on day 1. Favor one targeted check over repeated live Monitor-polling loops, delegate implementation-heavy/low-risk work to kimi_dispatch/subagents. NOT license to leave a real defect half-fixed to save tokens (user explicitly confirmed this, see [[feedback-fix-immediately-reduces-cognitive-load]]) — trim redundant procedural overhead only, never real fixes/verification.
@@ -31,7 +32,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## Category files — open the one that matches the topic in play
 
-- **[MEMORY-active.md](MEMORY-active.md)** (61 pointers) — in-flight / recently-landed work.
+- **[MEMORY-active.md](MEMORY-active.md)** (62 pointers) — in-flight / recently-landed work.
   open for: x11 (hardening, resolution-profiles, multi-server, bare-name routing), window placement,
   mpv startup/persistence, ascii-frame & ascii-desktop-domains UI, coding & kimi zenka state machines,
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
@@ -45,7 +46,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (67 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (68 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -55,7 +56,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   sourcecode corpus-membership/`:inlist:` scoping convention, bin/Protocol-7 CLI argv gotchas
   (-vq positioning, space-joined/re-split file args).
 
-- **[MEMORY-vision.md](MEMORY-vision.md)** (53 pointers) — long-horizon architecture, mostly design-only.
+- **[MEMORY-vision.md](MEMORY-vision.md)** (54 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
@@ -64,8 +65,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,,..,,,.,,,.,,,,,.,,,,..,,,.,...,,.,,,.,,..,,...,..,,,.,,...,,.,,,..,,.,,
-#JCGZDLOPM6SIB5NYWCYYOIGT7J34VEKQRRK4CS2XC2ZSNH3SO7LEGR44W6D6MQPX663D5OUDUBQE2
-#\\\|DLDWUMBO2OX7TOOTGY4EPBCU5FHJQBTIDAFRETCJQUVY5IQYQHJ \ / AMOS7 \ YOURUM ::
-#\[7]TA4PBFSBZ5WY6RNFB73VEUTIPWWDOHFSAANPJUBMGV66NMQQYWBY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,,,,,.,.,.,,,,..,,.,,,.,,,..,..,,...,...,..,,,,.,,,.,...,...,
+#E5NWU4OMBHICY4ISO5YGO7QFV4PWSERRNO6AOM7CLS5D2GA3COFVW6T4LZM6IPIBBOAQ5EIZWTHLU
+#\\\|WJJGHNBSP4SWL5RV2UFWUMRKYF6R3LGG4OBPFTJSKH3ZQIUHWZV \ / AMOS7 \ YOURUM ::
+#\[7]2SREDLXRP2PVRJSFW5Y6V6WTHWJL5CCML7MESZZCBRBTES2VA4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

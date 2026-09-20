@@ -40,6 +40,8 @@ for my $line ( split m|\n|, $reply_data ) {
                 = $1 eq 'yes' ? TRUE : FALSE;
         } elsif ( $line =~ m|^\s+size_gb:\s+(.+)$| ) {
             $metadata{$current_amos}{'size_gb'} = $1 + 0;
+        } elsif ( $line =~ m|^\s+architecture:\s+(.+)$| ) {
+            $metadata{$current_amos}{'architecture'} = $1;
         } elsif ( $line =~ m|^\s+success_rate:\s+(.+)$| ) {
             $metadata{$current_amos}{'success_rate'} = $1 + 0;
         } elsif ( $line =~ m|^\s+presence_tier:\s+(.+)$| ) {
@@ -78,8 +80,8 @@ if ($count) {
 
 return TRUE;
 
-#,,,.,,..,,..,..,,.,.,..,,,.,,,..,.,,,,..,.,.,..,,...,..,,...,,,,,,..,..,,,,.,
-#U2GOF3FNBCKI35YHN6HL2IW2ALTKC32MIIWQFQ5LXH6R5P26DLOIR3RLF5CYSBJSWUJO76FTTQXJK
-#\\\|VCX6LYTYRQBEG65QZ2SPW7MVIG6KKPXRZ3TI7HOZ7EHEWSAMVJX \ / AMOS7 \ YOURUM ::
-#\[7]Q4OIO6T7WVNIRPHDY2FY27TU67FPOXEHA5AJUZ36NRLBA37ILWBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,...,,..,,.,,,,.,,..,,.,,.,.,..,,...,...,...,,..,..,,..,,.,,,
+#YJX6CY6ZBCUB4NWH2W6QR3ZCLI5V42CO6EHXK4FMUM27DVSC3LNRSP2EXMRX2M3IXVW5RHJVMXC5M
+#\\\|JT2GI7VYNZABBSRYO56D73OEKDVEZAXSGKFJBN7LJE7WKNSHEWE \ / AMOS7 \ YOURUM ::
+#\[7]TBASNNFJAFEJZ4CL4HKK4TRZIBAR3U3RSST6NHGMMEWQUUT3SABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

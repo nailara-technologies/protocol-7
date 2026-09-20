@@ -84,6 +84,13 @@ while ( my $entry = readdir($dh) ) {
         $quantization = $file_type_quant
             if $quantization eq 'unknown' && $file_type_quant;
 
+        ## separate metadata read for architecture -- extract_name doesn't
+        ## surface it through its return value, and changing that signature
+        ## would ripple through every wantarray caller. cheap: only the header
+        ## + kv pairs are read, not the multi-GB tensor data
+        my $arch_meta = <[models.gguf.file.extract_metadata]>->($full_path);
+        my $architecture = $arch_meta->{'general.architecture'} // 'unknown';
+
         push @models,
             {
             path         => $full_path,
@@ -92,7 +99,8 @@ while ( my $entry = readdir($dh) ) {
             quantization => $quantization,
             source       => qw| discovered |,
             is_vision    => $is_vision,
-            mmproj_path  => $mmproj_path
+            mmproj_path  => $mmproj_path,
+            architecture => $architecture
             };
     } elsif ( -d $full_path && $do_recurse ) {
 
@@ -109,8 +117,8 @@ closedir($dh);
 
 return \@models;
 
-#,,.,,,..,..,,,.,,,,.,.,.,...,,,.,,.,,,,.,,..,..,,...,...,...,.,,,.,.,..,,,,.,
-#MEAVWA27ALRBDODTBDNYXEYJZE4BRLRPS7ICLJPL37FL52NUGJEK4CXM5ZALLDY7GUCBVI3XG2XX2
-#\\\|6HQ2K4L67O2LIXCWBD6ATDTUQGEY4C2MHLJ376RNH3CBBEGW2KG \ / AMOS7 \ YOURUM ::
-#\[7]RKJT3NGRTOLS5J4KZABSTCJRBWUCZI6AZYY45DC2O7P5N6SVD4BY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,..,,,.,,,,,,,..,.,.,.,.,..,,..,,...,...,,.,,...,..,,.,.,,.,,
+#7PKKV56EO7CALPHXGPRQXHU7IBXTIBFYHNQCWTXLBSL6I4IWQDZWCSLYAYHBPNW4QS5CDE33X5H3G
+#\\\|NWS5YWAOK6GAOBZ5DKWHT52S7C6ENSAG65OS4KSAYEYQH2NBXWQ \ / AMOS7 \ YOURUM ::
+#\[7]VGGRWLLJXXWCNMDCVMTCO7KQD6Q3OJU7UJ73QRZXHULPHE7BRKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

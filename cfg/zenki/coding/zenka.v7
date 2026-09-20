@@ -127,6 +127,18 @@ coding.jinja.enable = yes
 ## own built-in template is still the standard ChatML+<think> structure      ##
 coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.8-sharp.jinja
 
+## architecture gate for the override above [ added 2026-09-20 ] : until now
+## template_file was applied unconditionally to EVERY spawned model
+## regardless of architecture, contradicting the "architecture-scoped" intent
+## documented just above -- harmless while every switched-to model happened
+## to share qwen35, but silently wrong for anything else (confirmed live
+## against Bonsai-27B / BZPO73Q, a genuinely qwen35 model where it turned out
+## to be correct after all, but the gate was still missing). empty pattern =
+## old unconditional behavior; a set pattern skips the override (falls back
+## to the model's own built-in template) when general.architecture doesn't
+## match, logged clearly either way
+coding.jinja.arch_pattern = qwen35
+
 ## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
 ## low prevents runaway <think> spirals; use medium/high for complex tasks      ##
 coding.inference.reasoning_effort = medium
@@ -453,8 +465,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,.,,,.,,,,.,.,.,..,,..,,,,.,,,.,...,..,,.,.,...,...,..,,...,...,,.,,,..,
-#YCUJJHZDHVG5CJ5VQS44CJC4ZH7NKK6ONJOVVH2GXN7TZVY4XSVR46NWO5NE56Q2FPQIBUOU5TRHE
-#\\\|GUT7LJLJUFPCNDQVBEQKT64B6OTMBUYEUYEOOJR3O6I7JILXGBP \ / AMOS7 \ YOURUM ::
-#\[7]3EIYI57NVBVK4OPNMCQ3VYPCTEYZUH7GGEBJU6BO3V5INUIZ7ACA 7  DATA SIGNATURE ::
+#,,,.,...,...,...,.,.,,.,,..,,,,,,,..,..,,.,.,.,.,...,...,.,.,.,.,,..,,.,,,,.,
+#2HZUY4F3O3HJPHTF4LVLCT7VOC4QGYL6PHTM7XNZ3ET32FXQFN7ZLEBRS7JYW5HGSLL6TCS5XOAOA
+#\\\|TGKDC5YJGBVQ3J3B5BBJ3IUYPGQXVPAVFUQ66PTLIFLKHLDIILI \ / AMOS7 \ YOURUM ::
+#\[7]BIZV3H4XTQ7HJCMEPAAKTZ7SGSIVVLGDTWRKXOIFKT423LXZFWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
