@@ -1,0 +1,147 @@
+## [:< ##
+
+# name  = coding.model_sweep.cmd.model-sweep-test
+# descr = one-off switch+self-test+restore for a single checksum
+# param = <checksum> [backend]
+# note  = seeds a single-candidate <coding.model_sweep_state> entry and
+#         arms the exact same coding.model_sweep.handler.poll_sweep
+#         timer a real filtered sweep uses [ filter='single' ] --
+#         no logic duplicated, same cross-backend lock / yield-to-
+#         real-task / model_status.record / pause-resume machinery.
+#         built so a specific checksum (or a short list, one call per
+#         checksum) can be retested without re-running the whole
+#         :re-test-failed: filter over every historically-failed
+#         model, which was the actual annoyance motivating this --
+#         confirmed live 2026-09-20 : a full re-run re-tested 25
+#         already-deleted checksums just to reach the handful that
+#         actually needed it
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+my ( $checksum, $backend_arg ) = split m| +|, $args, 2;
+$backend_arg = defined $backend_arg ? lc($backend_arg) : qw| both |;
+$backend_arg =~ s|^\s+||;
+$backend_arg =~ s|\s+$||;
+$backend_arg = qw| both | unless length $backend_arg;
+
+unless ( defined $checksum
+    and $checksum =~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|i ) {
+    return {
+        mode => qw| size |,
+        data => "Usage: model-sweep-test <checksum> [backend]\nExample: "
+            . "model-sweep-test IR65EUQ:ZGJ3K5Y\nExample: "
+            . "model-sweep-test IR65EUQ:ZGJ3K5Y backend=cpu\nDefault "
+            . "backend: both\n"
+    };
+}
+$backend_arg =~ s|^backend=||;
+
+unless ( $backend_arg =~ m{^(gpu|cpu|both)$} ) {
+    return {
+        mode => qw| size |,
+        data => "Error: backend must be gpu, cpu, or both\n"
+    };
+}
+
+my @backends = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
+
+## validate against the same registry switch-model itself checks -- fail ##
+## clearly now rather than arming a poll_switch timer that will just sit ##
+## out its own 300s max_wait waiting on a switch-model call that was     ##
+## already rejected synchronously                                        ##
+my $metadata = <coding.model_metadata> // {};
+my $known    = 0;
+for my $entry ( values %$metadata ) {
+    next unless ref $entry eq qw| HASH |;
+    if ( ( $entry->{'amos'} // '' ) eq $checksum ) {
+        $known = 1;
+        last;
+    }
+}
+unless ($known) {
+    return {
+        mode => qw| size |,
+        data => "Error: $checksum not found in model registry\n"
+    };
+}
+
+my $cursor_file   = 'state/model_sweep_cursor.yaml';
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my @lines;
+
+for my $backend (@backends) {
+    ## same refusal shape as coding.model_sweep.cmd.model-sweep : never ##
+    ## silently clobber an active or paused sweep on this backend       ##
+    if ( defined <coding.model_sweep_state>->{$backend} ) {
+        my $active = <coding.model_sweep_state>->{$backend};
+        my $active_state
+            = ref $active eq qw| HASH |
+            ? ( $active->{'state'} // qw| running | )
+            : qw| running |;
+        if ( $active_state eq qw| paused | ) {
+            push @lines,
+                sprintf '%s : paused -- use model-sweep-resume '
+                . '%s or model-sweep-cancel %s first',
+                $backend, $backend, $backend;
+        } else {
+            push @lines, sprintf '%s : already in progress', $backend;
+        }
+        next;
+    }
+
+    my @candidates = ($checksum);
+
+    $cursor_data->{$backend} = {
+        filter     => qw| single |,
+        candidates => \@candidates,
+        idx        => 0,
+        started    => <[base.ntime]>,
+        state      => qw| running |,
+    };
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_sweep] failed to persist cursor file [ %s ]',
+            $cursor_file
+            );
+    }
+
+    delete <coding.model_sweep_breaker>->{$backend};
+    <coding.model_sweep_state>->{$backend} = {
+        backend    => $backend,
+        candidates => \@candidates,
+        idx        => 0,
+        filter     => qw| single |,
+        started    => <[base.ntime]>,
+        switch_id  => '',
+        phase      => qw| idle |,
+        state      => qw| running |,
+        no_yield   => FALSE,
+    };
+
+    <[event.add_timer]>->(
+        {   'interval' => 1,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.model_sweep.handler.poll_sweep |,
+            'data'     => { backend => $backend },
+            'desc'     => "model-sweep-test $backend $checksum"
+        }
+    );
+
+    push @lines, sprintf '%s : testing %s', $backend, $checksum;
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,.,.,.,.,,,.,.,,,,,,.,,,,.,.,,,,.,,,,.,..,,..,,...,...,,..,,,.,.,.,,,,,,,,,
+#ERXMOE4J7IHHDBX5I22UAC3QLNLZUPTCNY3LLBKNKA72SRPTMJH3AWYQV4UBQPCUPGQZ32EG5BC3I
+#\\\|Q7EJFVW5XJKC3RF2ZATC22CSJAIRKWNFGI6UG3HQDTVKGX6X5UJ \ / AMOS7 \ YOURUM ::
+#\[7]3DLBNU3R63PS5NOHQMAYXMRR6FRCMQWK6MUEQ7LQOK4DNYXZO2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

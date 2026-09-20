@@ -188,11 +188,19 @@ syntax check:
    empty dir, cleaned up by hand at the time), and the sidecar write's
    return value is now checked, with a clear "recoverable by hand
    only, original path was X" message on failure instead of silence.
-   **Both `access.cmd.usr.cube` (new command names) and `modules.load`
-   (format.yaml) changes needed a full `v7-zenki.restart models`, not
-   just `models.reload source`** — both are `zenka.v7` script lines
-   executed once at boot before `[zenka.loop]`, not part of the
-   reloadable module set the way `src/*` files are.
+   **`v7-zenki.restart models`/`coding` was used for the `access.cmd.
+   usr.cube` and `modules.load` (format.yaml) zenka.v7 changes this
+   session -- unnecessary, and a pre-existing memory already said so.**
+   [[reference-ntime-x4200-and-cube-cross-zenka-access]] (kimi, 09-15)
+   already documents that `<zenka>.reload config` applies an
+   `access.cmd.usr` change live, no restart -- should have been
+   checked before reaching for a restart twice. `reload source` alone
+   genuinely never touches config/access (that part was always
+   correct); the fix is a separate `reload config` call (+ `reload
+   source` to compile in a newly-listed module namespace like
+   `format.yaml`). Checking this also surfaced and fixed a real small
+   bug in `base.cmd.reload` itself -- see that reference file's
+   2026-09-20 update for the detail, not duplicated here.
 
 **Fully live-verified, including the security-relevant path**: a
 round-trip delete→trash-list→rescue on a real 3.86GB model
@@ -214,8 +222,8 @@ switch→self-test→restore state machine `poll_sweep`'s `start_candidate`
 already drives is reusable in principle, just not yet extracted into
 something a standalone command can call directly.
 
-#,,,.,,.,,.,,,,..,..,,.,,,..,,,.,,...,.,.,,..,.,.,...,...,,.,,,,.,,..,,.,,,..,
-#I4VOYV4JB7RIVOFZQH6ZB2RNX4ZT5TRRYFX7K6EWDWOII7ADKS34ELCL4HRVH4QDH2NPGZOREEERO
-#\\\|OKPEXGJY6SB3RVBRBBZPD35QQ44ME2GIXAR6SIZPCAVJMJUV7EJ \ / AMOS7 \ YOURUM ::
-#\[7]O4A7JXXGEAHMHV2RXPTVL34B2V4FSUDDQNAC5SWW2IVAVG3FN4AI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,.,.,...,,..,,..,,,.,.,,,,,,,.,.,...,..,,..,,,.,,,.,,,,,,.,.,
+#236N4M5UBNBJYYVRAKKJF7ES3SYRSLQYI2LBNW5DUMTLWZFLNGCK6BXKGI62ILLJUYPZ62NNXGBJU
+#\\\|TFMYEWDRNVDOEMGQTLBVBNKW6ALTAG5S2MU4HVKUBKGO7FGGJW6 \ / AMOS7 \ YOURUM ::
+#\[7]M6XRHB3E2PNXBM7QHHVKRM4DRZEQ2AWT6TOTWUF3GTCX7DTPCWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.self_test.abort_probe
+# param = <probe_id>
+# descr = force-abort an in-flight self-test probe
+# note  = synthesizes an error through the probe's own on_error
+#         callback + http_cleanup, then marks phase=done so the
+#         probe's own next timer tick (poll_probe, every 0.5s)
+#         runs its normal completion path [ model_status.record,
+#         backend-guard release, on_done continuation -- which
+#         for a model-sweep candidate is poll_switch's own
+#         start_restore ] -- identical to poll_probe's own
+#         watchdog-abort path (coding.self_test.handler.
+#         poll_probe), just externally triggered instead of
+#         firing on the 1200s max_total budget. extracted here so
+#         both call sites share one implementation. confirmed
+#         live 2026-09-20 : a self-test stream can legitimately
+#         run past 300s AND toward poll_probe's own outer cap
+#         while still reporting "alive" [ coding.async.stream_tps
+#         sees ongoing chunks ], with no operator-facing way to
+#         force it down before then -- coding.cmd.abort-inference
+#         only ever covered the real task-queue path, not this one
+
+my $probe_id = shift // '';
+return FALSE unless length $probe_id;
+
+my $state = <coding.self_test_probe_state>->{$probe_id};
+return FALSE unless defined $state;
+
+if ( $state->{'in_flight'} and defined $state->{'http_state'} ) {
+    my $cb = $state->{'http_state'}{'callbacks'} // {};
+    $cb->{'on_error'}->('externally aborted')
+        if ref $cb->{'on_error'} eq qw| CODE |;
+    <[coding.async.http_cleanup]>->( $state->{'http_state'} );
+}
+$state->{'all_passed'}     = FALSE;
+$state->{'watchdog_abort'} = TRUE;
+$state->{'phase'}          = qw| done |;
+
+return TRUE;
+
+#,,.,,...,..,,,,,,,.,,,,.,,,.,,..,,,.,,.,,,,.,..,,...,...,,,.,.,.,.,.,,..,,..,
+#MCBVD5NVJILEDPL6KIIXVNFNDISBJQUE5IANFUACW2T2RM4XAZEPZDNC74YVB6JZOLHMSZJDYYRQQ
+#\\\|YFVGOSRTKN4VKHJS7LWFFJKORF56UT5SVDFZFDLPCGIVDI3JEML \ / AMOS7 \ YOURUM ::
+#\[7]KRAKU6CRN6V4YFYKKAZAONE66OAQACXTSOYUI7ZHROAGO2IWBSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -78,18 +78,8 @@ if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
             0, '[poll_probe] probe %s exceeded %ds total budget : aborting',
             $probe_id, $max_total
         );
-        if ( $state->{'in_flight'} and defined $state->{'http_state'} ) {
-            ## synthesize an error through the probe's own pipeline :  ##
-            ## releases the backend lock via async_probe's $finish and ##
-            ## settles once                                            ##
-            my $cb = $state->{'http_state'}{'callbacks'} // {};
-            $cb->{'on_error'}->('probe watchdog abort')
-                if ref $cb->{'on_error'} eq qw| CODE |;
-            <[coding.async.http_cleanup]>->( $state->{'http_state'} );
-        }
-        $state->{'all_passed'}     = FALSE;
-        $state->{'watchdog_abort'} = TRUE;
-        $state->{'phase'}          = qw| done |;
+        ## shared with coding.self_test.cmd.self-test-stop's external abort ##
+        <[coding.self_test.abort_probe]>->($probe_id);
     }    ## !skip_abort ##
 }
 
@@ -655,8 +645,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,.,,,,.,,,,,,,.,,..,,,.,,,.,,..,,,,,.,.,,,,,..,,...,...,..,,.,,,.,.,,.,,...,
-#2NYO5H3BS4NNJ5SMJBM2C54ZN6NAHILOC6GIGRB345GG6QKPQKSBBM2QWZFJDUEFRGRTNT4QKKGJK
-#\\\|Y6XKCWUMOF4OPVKZIGRSAH67LX57BMHJ6SZXU3MYGGWEOWYNTCO \ / AMOS7 \ YOURUM ::
-#\[7]WIVU6GV25OIA7AYZIINXJAFEGF3C7FWAEXUJREKETAUOM2RRZWCA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,.,,.,,.,.,.,.,...,..,,.,,,...,..,,...,...,..,,,.,,,.,,,..,..,,
+#2RNQGITREVYEQF3Z25JXHH4PB5WFLNE5RATW37ASYXDFGDDG5UG244PDPK5534KNCD3AAFERVBS5I
+#\\\|CT73WQNDY43OBWGRKE6XXHGUNBTFSKHY6UNFWESMYI6SJPDYBSZ \ / AMOS7 \ YOURUM ::
+#\[7]CJOEJ7EMP2JUEINY2XEU3XRBJZQLZXW3CCIPJHQX2KANOIFGAMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
