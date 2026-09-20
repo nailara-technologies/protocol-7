@@ -1,0 +1,127 @@
+## [:< ##
+
+# name  = models.cmd.trash-rescue
+# param = <checksum>
+# descr = restore a trashed model to its original path
+# note  = mirrors note.trash.rescue, including its
+#         overwrite guard
+
+use File::Basename qw| basename dirname |;
+
+my $checksum = $call->{'args'} // '';
+$checksum =~ s|^\s+||;
+$checksum =~ s|\s+$||;
+
+unless ( length $checksum ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "Usage: trash-rescue <checksum>\n"
+    };
+}
+
+my $root      = <[models.trash.root_path]>;
+my $trash_dir = "$root/.trash";
+
+( my $safe_checksum = $checksum ) =~ s|[^A-Za-z0-9]|_|g;
+
+## most recently trashed entry for this checksum, if trashed more than once ##
+## [ matches note.trash.rescue's "most recent by mtime" precedent ]         ##
+my @candidates = @{ <[file.glob]>->("$trash_dir/*__${safe_checksum}") };
+unless (@candidates) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: nothing trashed for checksum: $checksum\n"
+    };
+}
+## ntime-prefixed : sorts chronologically ##
+@candidates = sort { $b cmp $a } @candidates;
+my $item_dir = $candidates[0];
+
+my $meta = <[format.yaml.load_file]>->("$item_dir/meta.yaml");
+unless ( ref $meta eq qw| HASH | ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: trash entry for $checksum has "
+            . "no readable meta.yaml ($item_dir)\n"
+    };
+}
+
+my $orig_path   = $meta->{'original_path'}        // '';
+my $orig_mmproj = $meta->{'original_mmproj_path'} // '';
+
+unless ( length $orig_path ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: trash entry has no recorded original path\n"
+    };
+}
+
+if ( -e $orig_path ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: '$orig_path' already exists live -- "
+            . "rescue would overwrite it, not attempted\n"
+    };
+}
+
+my $trashed_file = "$item_dir/" . basename($orig_path);
+unless ( -f $trashed_file ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: trashed file missing from $item_dir\n"
+    };
+}
+
+<[file.path.make_dir]>->( dirname($orig_path) )
+    unless -d dirname($orig_path);
+
+unless ( rename( $trashed_file, $orig_path ) ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: failed to restore file: $OS_ERROR\n"
+    };
+}
+
+my $mmproj_restored = FALSE;
+if ( length $orig_mmproj ) {
+    my $trashed_mmproj = "$item_dir/" . basename($orig_mmproj);
+    if ( -f $trashed_mmproj and not -e $orig_mmproj ) {
+        <[file.path.make_dir]>->( dirname($orig_mmproj) )
+            unless -d dirname($orig_mmproj);
+        $mmproj_restored
+            = rename( $trashed_mmproj, $orig_mmproj )
+            ? TRUE
+            : FALSE;
+    }
+}
+
+## only remove the trash item dir once everything it recorded is back out ##
+my @leftover = grep { !m|/meta\.yaml$| } @{ <[file.glob]>->("$item_dir/*") };
+unless (@leftover) {
+    unlink "$item_dir/meta.yaml";
+    rmdir $item_dir;
+}
+
+<[base.logs]>->(
+    1,         '[trash-rescue] restored %s -> %s',
+    $checksum, $orig_path
+);
+
+return {
+    'mode' => qw| size |,
+    'data' => "restored $checksum -> $orig_path\n"
+        . (
+        length $orig_mmproj
+        ? ( $mmproj_restored
+            ? "mmproj also restored -> $orig_mmproj\n"
+            : "mmproj NOT restored [ check $item_dir ]\n"
+            )
+        : ''
+        )
+};
+
+#,,,.,.,,,,,.,.,.,..,,..,,...,,,.,..,,.,.,.,.,..,,...,...,...,.,.,.,,,.,,,,..,
+#4H6YMAUZE7QNNDCNEXBBJHRTONYUYWXR2SB7CSHRALQ2RFQEDMV2NHTVMCL6LPFYT56NQYLGEJSUS
+#\\\|VFWMOW7RJUTVRQ5XYJJPL2KO7GQO55DVYQHD46X23QBTOH5M7A6 \ / AMOS7 \ YOURUM ::
+#\[7]4VXGQFZ5U4GIADS5QLYMNUARTSX4EI3K636XXOQWW5V6LIS74OCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
