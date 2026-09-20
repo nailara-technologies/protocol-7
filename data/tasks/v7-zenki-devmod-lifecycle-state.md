@@ -1,7 +1,8 @@
 # v7-zenki-owned devmod enablement state, explicitly clearable
 
-not started, idea capture only [ 2026-09-20, owner design conversation,
-follow-up to [[devcmd-namespace-wildcard-permissions]] ]. that doc scopes
+implemented 2026-09-20 [ same day, see "decided / implemented"
+below ]; original design conversation captured in git history.
+follow-up to [[devcmd-namespace-wildcard-permissions]]. that doc scopes
 WHO can reach devmod commands once loaded [ the `access.devcmd.usr.*`
 mask axis ]; this doc is about WHETHER devmod gets loaded by default at
 all — a separate, standing-attack-surface question.
@@ -65,21 +66,116 @@ doc's concern ]. tightening this doc's default-off posture reduces the
 standing attack surface independent of the permission-mask question —
 worth doing even if a zenka's devcmd masks are already tight.
 
+## decided / implemented
+
+implemented 2026-09-20, same day as the design conversation. records
+the decisions as decided, with the concrete mechanics traced from code.
+
+### 1. per-instance state storage [ settled ]
+
+`<v7-zenki.zenka.instance>->{$instance_id}->{'devmod_enabled'} = TRUE`
+— in v7-zenki's own in-memory instance hash, no new store. verified:
+`v7-zenki.zenka.instance.restart` never recreates the instance, the
+same hash [ and instance_id ] is reused across a restart, and
+`v7-zenki.zenka.start` records the new child pid into that same hash.
+deliberately NOT persisted: a security-relevant flag must not survive
+v7-zenki's own restart, only a managed zenka's restart.
+
+### 2. self-correlation mechanism [ settled ]
+
+exactly the `restart_own-zenka` pattern, no reinvention:
+`v7-zenki.devmod-clear` was added to `setup.aliases.source_zenka_sid`
+in `cfg/zenki/cube/command_aliases`. cube then injects
+`<source_zenka> <source_sid>` as the first two args [ prepended
+before any user args, `src/base.handler.command` alias handling ],
+and the no-param form resolves the caller's own instance by scanning
+`<v7-zenki.zenka.instance>` for a matching `cube_sid`.
+
+### 3. write side — devmod-enable [ settled ]
+
+`src/v7-zenki.zenka.cmd.devmod-enable` now sets
+`$instance->{'devmod_enabled'} = TRUE` for every instance it
+successfully signaled [ kill returned a count ]. this is the single
+write both the clear command and the restart hook depend on.
+
+### 4. auto re-enable on restart [ settled — hook point corrected ]
+
+the doc's guess of `v7-zenki.handler.restart-timeout` was wrong: that
+handler is the restart FAILURE path only [ watchdog → status `error` ].
+the actual "respawned and confirmed alive" point is
+`src/v7-zenki.handler.instance_verification` — the console verification
+handshake that is the one place an instance transitions to `online`,
+with the new pid already recorded. the hook lives there: if
+`devmod_enabled` is set on the instance, SIGNUM53 is sent to the new
+`process.id` right after the `online` transition. fresh starts are
+naturally excluded [ a fresh instance gets a brand-new hash with no
+flag ], so no restart-detection heuristic is needed. extbin instances
+never pass verification and cannot load the perl devmod module anyway
+— out of scope by construction.
+
+### 5. v7-zenki.devmod-clear [ settled ]
+
+new `src/v7-zenki.zenka.cmd.devmod-clear`. the first two args are
+the injected source zenka + sid [ validated as numeric, same as
+restart_own-zenka ]; the remainder, if any, is resolved EXACTLY like
+devmod-enable's param loop [ numeric instance id → direct hash lookup,
+else `<[v7-zenki.zenka-instances.get-ids]>->($param_str)` after the
+same `usr` regex gate ]. no remainder → self-target via the injected
+cube sid. clearing is `delete $instance->{'devmod_enabled'}` — clear
+is NOT unload: the module stays loaded in the running process until
+it is restarted or explicitly unloaded; the flag only governs whether
+a FUTURE restart re-enables it.
+
+### 6. unload-devmod self-clear [ settled — grant landed ]
+
+`src/devmod.cmd.unload-devmod`'s success branch [ after the purge is
+confirmed and masks are recompiled ] now sends
+`cube.v7-zenki.devmod-clear` via `<[protocol-7.command.send.local]>`,
+the established cross-zenka idiom [ same shape as
+`httpsd.self_restart` ]. `v7-zenki.devmod-clear` was added to
+`access.cmd.usr.*` [ the catch-all mask, `cfg/zenki/cube/access.zenki`
+line 28, right next to `v7-zenki.restart_own-zenka` which already
+lives there ] once point 7's in-command admin gate landed — safe for
+every zenka to reach, since the gate means self-clear is all any
+non-admin caller can ever do with it, regardless of what params it's
+given.
+
+### 7. access control on devmod-clear [ revised — in-command gate added ]
+
+original decision [ no in-command gate, mask-layer-only ] turned out to
+be fragile: it silently relied on "only admin-wildcard users can reach
+this command at all" staying true forever. but point 6's own follow-up
+[ granting `coding` a self-clear `access.cmd.usr.*` entry ] would hand
+that same grant to the FREE-FORM `[zenka|instance]` parameter too,
+since the command didn't distinguish self-target calls from explicit-
+target calls once you can reach it — a grant meant only to let `coding`
+clear its own state would incidentally let it clear anyone's.
+
+fixed in-command: the explicit [ cross-instance ] targeting branch now
+checks the caller's identity against `<system.admin-user>` [ both the
+plain and `unix-` prefixed forms, matching `base.access.special-user-
+map`'s own `<admin-user>`/`<unix-admin>` handling ] BEFORE resolving
+any target params, and refuses otherwise. critically this is checked
+against `$source_zenka` — the identity cube itself injected via the
+`source_zenka_sid` alias set-up, never anything caller-supplied — same
+trust boundary as the unix-auth identity-bypass fix earlier this
+session: verify the kernel/cube-verified value, not a self-reported
+one. self-target [ no params ] is unaffected and stays available to any
+zenka that can reach the command at all. this makes the point 6 follow-
+up grant safe to add later: `coding` gains the ability to clear its OWN
+devmod state, never anyone else's, regardless of what params it passes.
+
 ## open, not yet investigated
 
-- exact per-instance state storage: `v7-zenki`'s own instance-tracking
-  data structures [ `<v7-zenki.zenka.instance>` per `src/v7-zenki.zenka.
-  cmd.devmod-enable` ] seem like the natural place, but not confirmed.
-- exact `command_aliases` self-correlation mechanism `v7-zenki.
-  restart_own-zenka` uses — read that command before implementing, don't
-  re-invent the pattern.
-- access control on `v7-zenki.devmod-clear` itself, especially the
-  cross-zenka `[zenka]` parameter form — who's allowed to force-clear
-  someone else's state is itself an access.cmd.usr decision.
-- whether removing `devmod` from `modules.load` on zenki like `coding`
-  is a separate follow-up commit/decision from building this mechanism,
-  or bundled — probably separate, since the mechanism needs to exist and
-  be trusted before any default-load config gets pulled.
+- removing `devmod` from `modules.load` on zenki like `coding` stays
+  explicitly out of scope / a separate follow-up decision — the
+  mechanism now exists and is trusted [ point 6's grant landed ], but
+  pulling a default-load config entry is its own review, not bundled
+  here.
+- a zenka `stop` command clearing the flag [ proposal bullet ] was
+  not built this pass — flagged as worth revisiting once the
+  stop/offline → later-start instance-hash reuse semantics are
+  traced.
 
 ## related
 
@@ -87,8 +183,8 @@ worth doing even if a zenka's devcmd masks are already tight.
   namespace-wildcard-permissions.md`, the permission-mask side of this
   same devmod-hardening effort, implemented 2026-09-20.
 
-#,,,.,,.,,..,,.,.,,.,,,..,.,.,,,.,.,,,,,.,,.,,..,,...,...,..,,.,,,...,,,,,,,.,
-#VOQQBYOZDN6Z65LH6M657SWQT653UZNI2HUHDIGXXI33H4TAUIWFWGPZR5ESLSZFZE6SLUMXZN3ZW
-#\\\|EJJWHEWOVPQRESLS4WPNAITTXRORP6PVHTWEFR6TPYEYS5UHEZP \ / AMOS7 \ YOURUM ::
-#\[7]PWMTF7FVLSK7PRLZ55JEQ6YJC5L6GBDKSEMAGAXSRX6X3TWOAGAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,...,.,.,.,,,,,,,,.,,,,,,.,,,.,,,..,,...,..,,...,,.,,...,,..,..,,
+#MMZM3WAQI7N2VW4MUOHFKZBZOA7HDCIJ7DFPYVCWUV2Q6BEMPUESFXT7XVEE4QB4ZBEOFEI27L2BG
+#\\\|JLLY642TRJHF742H2KWXPWCBXOBO247DS5WTK2TC4DP74S5THTK \ / AMOS7 \ YOURUM ::
+#\[7]KPYZCKYKZBSM3UN6QKGLF6DNY6CH4X4SSMXAEJEN56QWJIRI7IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

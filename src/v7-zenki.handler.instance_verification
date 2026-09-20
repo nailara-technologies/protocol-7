@@ -15,14 +15,24 @@ if ( $verification_string eq $instance->{'instance_verification'} ) {
     <[base.log]>->( 1, "instance $instance_id : verified : success =)" );
     delete $instance->{'instance_verification'};
     <[zenka.change_status]>->( $instance_id, 'online' );
+
+    ##  re-enable devmod after restart  [ remembered per-instance state ]  ##
+    if ( $instance->{'devmod_enabled'}
+        and defined $instance->{'process'}{'id'} ) {
+        kill 53, $instance->{'process'}{'id'};
+        <[base.log]>->(
+            1,
+            "instance $instance_id : devmod re-enable signaled [ SIGNUM53 ]"
+        );
+    }
 } else {
     <[base.log]>->( 0, "instance $instance_id could not be verified ..," );
     delete $instance->{'instance_verification'};
     <[zenka.change_status]>->( $instance_id, 'error' );
 }
 
-#,,,.,,.,,,..,,,,,,.,,,..,,,.,.,,,,..,.,,,,..,..,,...,...,..,,..,,,..,..,,,.,,
-#G42V7SZXOY5YDWIQREC7CKRORZUPQBIXNSTYGGTUXN3G7TSC3HXZ2JFLMLS2MVE54J66ZD425JQPG
-#\\\|NWCWTHDOD5MECUBLTEAVCI7I54LBG7OEXW6O7M5QIUPLWKEKA76 \ / AMOS7 \ YOURUM ::
-#\[7]ZZV3J5LL6DR5LJUZVFJWATGMOJU2BHNIDREFHNCFHHQDWK6GVMCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,..,,...,.,,,,,.,.,.,.,,,,,,,..,,...,..,,...,,..,,.,,...,..,,
+#5A4DRQW5KNJPGH3DEEQKB6AULV2L3HAHV3PDZ24CSAACLJPLFWADY3DHYLCWNC5YDM6QPSSOH67WW
+#\\\|3XEVFT2NCAJPVRLY5NIVRKYBZGYZ7VR3RO2XX4CHV2JGUSN3YGL \ / AMOS7 \ YOURUM ::
+#\[7]35SZ5HB2WZ6PHH5RLCMVSCYPMKZFXS3LKXYE3CMA3AARRWVTUWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
