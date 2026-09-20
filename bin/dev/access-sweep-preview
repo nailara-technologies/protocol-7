@@ -1,0 +1,555 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use FindBin qw| $RealBin |;
+use File::Spec;
+use Cwd qw| abs_path |;
+
+###                        ###
+##  access-sweep-preview   ###
+###                        ###
+
+## standalone validator/visualizer for the devmod access-sweep migrations   ##
+## [ data/tasks/devmod-zenki-sweep-classification.md ]. before/after a      ##
+## proposed edit to access.cmd.usr.<user> / access.devcmd.usr.<user>, this  ##
+## shows the EXACT resolved set of network-reachable bare command names     ##
+## for a zenka, instead of trusting the access regex by eye.                ##
+##                                                                          ##
+## two modes :                                                              ##
+##                                                                          ##
+##  before/after : pass OLD and NEW pattern lists, see the resolved sets   ##
+##  and the diff [ LOST / GAINED / unchanged ] :                            ##
+##                                                                          ##
+##    bin/dev/access-sweep-preview --zenka jobsite \                        ##
+##        --old-cmd "heart reload .. get set dump del exec-sub eval-code" \ ##
+##        --new-cmd "heart reload .." --new-devcmd "devmod:*"               ##
+##                                                                          ##
+##  --check : read the zenka's CURRENT access.cmd.usr.<user> /              ##
+##  access.devcmd.usr.<user> straight out of cfg/zenki/<zenka>/zenka.v7    ##
+##  and audit what that identity can reach right now [ no before/after ] :  ##
+##                                                                          ##
+##    bin/dev/access-sweep-preview --zenka jobsite --check                  ##
+##                                                                          ##
+## the regex-compilation chain below is a FAITHFUL port of                  ##
+## src/base.parser.access_conf [ commit 5c401f87f bugfix included ] : the   ##
+## escaping substitution order, the wildcard chain, the anchored match,    ##
+## the wildcard-toggle stripping and the devmod:* live-alternation          ##
+## expansion all mirror the real parser token-for-token. the ONE           ##
+## deliberate divergence : 'devmod:*' expands against the FULL set of      ##
+## src/devmod.cmd.* names [ the would-resolve-if-loaded set ], not a       ##
+## runtime %code scan -- this tool validates WOULD-BE masks, not runtime   ##
+## state.                                                                   ##
+##                                                                          ##
+## the command universe comes from 'p7-sourcecode subroutine-list <zenka>' ##
+## [ modules.load-aware static analysis ], filtered to '.cmd.' entries     ##
+## and stripped to the bare dispatched name [ part after the LAST          ##
+## '.cmd.' segment ] -- exactly the string base.has_access matches against. ##
+##                                                                          ##
+## --runtime [ on|off, default off ] subtracts the command set that        ##
+## base.init_code disables on every non-cube zenka [ 'remove some commands  ##
+## for non-cube type zenki' block + whoami + present ] from the universe -- ##
+## the live `zenka.commands` reply iterates the runtime dispatch table     ##
+## <base.cmd>, which never contains those, so use --runtime on to reconcile ##
+## against observed `commands` output line counts.                          ##
+
+BEGIN {
+    our $root_path
+        = abs_path(
+        File::Spec->catdir( $RealBin, File::Spec->updir, File::Spec->updir )
+        );
+}
+our $root_path;
+chdir $root_path or die "chdir $root_path: $!";
+
+##  argument parsing  ##
+
+my %opt = (
+    zenka => undef,
+    user  => 'cube',    ## access.cmd.usr.<user> axis ##
+    ## default : on for simulation, from file for --check ##
+    wildcards => undef,
+    ## default : loaded for simulation, modules.load --check ##
+    devmod     => undef,
+    check      => 0,
+    runtime    => undef,
+    old_cmd    => [],
+    new_cmd    => [],
+    old_devcmd => [],
+    new_devcmd => [],
+);
+
+my %opt_for = (
+    '--zenka'      => \$opt{zenka},
+    '--user'       => \$opt{user},
+    '--wildcards'  => \$opt{wildcards},
+    '--devmod'     => \$opt{devmod},
+    '--runtime'    => \$opt{runtime},
+    '--old-cmd'    => $opt{old_cmd},
+    '--new-cmd'    => $opt{new_cmd},
+    '--old-devcmd' => $opt{old_devcmd},
+    '--new-devcmd' => $opt{new_devcmd},
+);
+
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if ( $arg eq '--check' )   { $opt{check}   = 1;    next }
+    if ( $arg eq '--runtime' ) { $opt{runtime} = 'on'; next }
+    my ( $flag, $value ) = ( $arg =~ m|^(--[a-z-]+)(?:=(.*))?$| );
+    usage_die("unknown argument '$arg'") unless defined $flag;
+    usage_die("unknown flag '$flag'")    unless exists $opt_for{$flag};
+    $value //= shift @ARGV;
+    usage_die("$flag requires a value") unless defined $value;
+    my $slot = $opt_for{$flag};
+    if ( ref $slot eq 'ARRAY' ) { push $slot->@*, $value }
+    else                        { $$slot = $value }
+}
+
+sub normalize_toggle {
+    my ( $value, $key ) = @_;
+    my %map = (
+        wildcards =>
+            { on => 1, off => 0, yes => 1, no => 0, '1' => 1, '0' => 0 },
+        devmod => {
+            loaded   => 1,
+            unloaded => 0,
+            on       => 1,
+            off      => 0,
+            yes      => 1,
+            no       => 0,
+            '1'      => 1,
+            '0'      => 0
+        },
+        runtime =>
+            { on => 1, off => 0, yes => 1, no => 0, '1' => 1, '0' => 0 },
+    );
+    my $norm = $map{$key}->{ lc $value };
+    usage_die("invalid --$key value '$value'") unless defined $norm;
+    return $norm;
+}
+
+foreach my $toggle_key (qw| wildcards devmod runtime |) {
+    $opt{$toggle_key} = normalize_toggle( $opt{$toggle_key}, $toggle_key )
+        if defined $opt{$toggle_key};
+}
+
+sub usage_die {
+    my $reason = shift;
+    die "$reason\nusage:\n  before/after : access-sweep-preview --zenka "
+        . "<name> \\\n      --old-cmd '<patterns>' --new-cmd "
+        . "'<patterns>' \\\n      [ --old-devcmd '<patterns>' ] [ "
+        . "--new-devcmd '<patterns>' ] \\\n      [ --user <name> ] [ "
+        . "--wildcards on|off ] [ --devmod loaded|unloaded ]\n  audit    "
+        . "    : access-sweep-preview --zenka <name> --check \\\n      [ "
+        . "--user <name> ]\n  both modes   : [ --runtime on|off ] "
+        . "subtract base.init_code's \\\n      non-cube disabled-command "
+        . "set [ reconcile vs live output ]\n";
+}
+
+usage_die('a zenka name is required [ --zenka <name> ]') unless $opt{zenka};
+
+my $zenka = $opt{zenka};
+die "not a zenka config dir : cfg/zenki/$zenka\n"
+    unless -d "cfg/zenki/$zenka";
+
+##  command universe : p7-sourcecode subroutine-list, .cmd. filtered  ##
+
+sub command_universe {
+    my $name  = shift;
+    my $cache = "var/access-sweep-preview-$name.cache";
+    my @raw;
+    if (    -r $cache
+        and -r "cfg/zenki/$name/zenka.v7"
+        and ( stat $cache )[9] > ( stat "cfg/zenki/$name/zenka.v7" )[9] ) {
+        open( my $cfh, '<', $cache ) or die "$cache : $!";
+        chomp( @raw = <$cfh> );
+        close $cfh;
+    } else {
+        open( my $fh, '-|', 'p7-sourcecode', 'subroutine-list', $name )
+            or die "p7-sourcecode subroutine-list $name : $!";
+        @raw = <$fh>;
+        close $fh;
+        die "p7-sourcecode subroutine-list $name failed [ $? ]\n" if $?;
+        open( my $cfh, '>', $cache ) or die "$cache : $!";
+        say {$cfh} $_ for @raw;
+        close $cfh;
+    }
+    my %bare;
+    foreach my $line (@raw) {
+        $line =~ s|\x1b\[[0-9;]*m||g;    ## strip ANSI color ##
+        $line =~ s|^\s*:\s*||;           ## strip ': ' output prefix ##
+        next unless $line =~ m|\.cmd\.|;
+        my $entry = $line;
+        $entry =~ s|\s+$||;
+        next unless length $entry;
+        my $bare = substr( $entry, rindex( $entry, '.cmd.' ) + 5 );
+        $bare{$bare} = $entry;           ## bare name -> full source key ##
+    }
+    return \%bare;
+}
+
+##  full devmod command set [ would-resolve-if-loaded ground truth ]  ##
+
+my @devmod_cmd_names
+    = sort map { my $f = $_; $f =~ s|^.*/devmod\.cmd\.||; $f }
+    glob 'src/devmod.cmd.*';
+
+die "no src/devmod.cmd.* files " . "found -- wrong cwd ?\n"
+    unless @devmod_cmd_names;
+
+## faithful port of src/base.parser.access_conf token compilation [         ##
+## escaping chain, wildcard toggle stripping, devmod:* alternation,         ##
+## wildcard substitution chain, anchored match -- same order, same patterns ##
+## as the real file ]                                                       ##
+
+my $CMDP_RE = qr|[0-9a-zA-Z\-_\[\]\.]{1,}|;    ## == <regex.base.cmdrp> ##
+
+sub compile_token {
+    my $token         = shift;
+    my $from_devcmd   = shift;    ## pattern came from access.devcmd.usr.* ##
+    my $wildcards_on  = shift;
+    my $devmod_loaded = shift;
+
+    my $unchanged = $token;
+    my $cmd       = $token;
+
+    ## invalid character check [ literal port of m|$cmdp_re^\*]| ] ##
+    return ( undef, 'invalid-character' )
+        if $cmd =~ m|$CMDP_RE^\*]|;
+
+    $cmd =~ s|[\[\]]|\\$&|g;
+    $cmd =~ s|\.|\\\.|g;
+    $cmd =~ s|\^|\\^|g;
+
+    if ( not $wildcards_on ) {
+        ## disallowed pattern syntax -- token stripped, like the parser ##
+        my $disallowed = qr{(^\.\*\*|\*\*|\*|\%)};
+        return ( undef, 'stripped-by-wildcard-toggle' )
+            if $cmd =~ $disallowed;
+    } elsif ( $from_devcmd and $unchanged eq 'devmod:*' ) {
+        ## live alternation of devmod commands, NOT a namespace-prefix ##
+        ## regex -- here : full would-resolve set, see header note     ##
+        $cmd
+            = @devmod_cmd_names
+            ? sprintf( '(?:%s)', join '|', map {quotemeta} @devmod_cmd_names )
+            : qw| (?!) |;
+    } else {
+        ## namespace wildcard : '<ns>:*' -> '<ns>\..+' ##
+        $cmd =~ s|:\*|\\..+|g;
+        $cmd =~ s|^\.\*\*,[^\.\\^]|%|;
+        $cmd =~ s|\*\*|.+|g;
+        $cmd =~ s|^\.\*|[^\\\.\\^][^\\.]%|;
+        $cmd =~ s|\*|[^\\.]+|g;
+        $cmd =~ s|\%|*|g;
+    }
+    return ( undef, 'empty-after-processing' ) unless length $cmd;
+    my $completed_re = sprintf '^%s$', $cmd;
+    my $compiled     = eval {qr{$completed_re}};
+    return ( undef, "regex-compile-error " . "[$completed_re] : $@" )
+        unless $compiled;
+    return ( $compiled, undef );
+}
+
+sub resolve_mask {
+    my %arg           = @_;
+    my $universe      = $arg{universe};
+    my $wildcards_on  = $arg{wildcards_on};
+    my $devmod_loaded = $arg{devmod_loaded};
+
+    my ( @compiled, @notes );
+    my @axes = ( [ 'access.cmd', $arg{cmd_patterns}, 0 ] );
+    ## devcmd axis only folds in while devmod is loaded [ sentinel        ##
+    ## base.code.exists devmod.dump == modules.load token for this tool ] ##
+    push @axes, [ 'access.devcmd', $arg{devcmd_patterns}, 1 ]
+        if $devmod_loaded;
+
+    foreach my $axis (@axes) {
+        my ( $axis_name, $patterns, $is_devcmd ) = $axis->@*;
+        next unless defined $patterns;
+        my @split_mask = split m|[ \t]+|, $patterns;
+        @split_mask = grep {length} @split_mask;
+        next unless @split_mask;
+        my %seen;
+        foreach my $token (@split_mask) {
+            next if $seen{$token}++;
+            my ( $re, $error )
+                = compile_token( $token, $is_devcmd,
+                $wildcards_on, $devmod_loaded );
+            if ( defined $re ) {
+                push @compiled, $re;
+            } else {
+                push @notes,
+                    sprintf( "  [!] %-28s <- %s.%s : %s",
+                    $token, $axis_name, $opt{user}, $error );
+            }
+        }
+    }
+
+    my %reachable;
+    foreach my $bare ( sort keys $universe->%* ) {
+        foreach my $re (@compiled) {
+            if ( $bare =~ $re ) { $reachable{$bare} = 1; last }
+        }
+    }
+    return ( \%reachable, \@notes );
+}
+
+sub print_report {
+    my %arg      = @_;
+    my $label    = $arg{label};
+    my $patterns = $arg{patterns};
+    my $result   = $arg{result};
+    my $notes    = $arg{notes};
+    my $universe = $arg{universe};
+
+    say '';
+    say "== $label ==";
+    say "  patterns : $patterns" if defined $patterns and length $patterns;
+    say "  resolved : ", scalar keys $result->%*, ' of ',
+        scalar keys $universe->%*,
+        ' universe commands';
+    say '  ', join ' ', sort keys $result->%*;
+    say $_ for $notes->@*;
+}
+
+sub show_universe {
+    my $universe = shift;
+    say "== universe : $zenka [ modules.load-aware via p7-sourcecode ] ==";
+    say '  ', scalar keys $universe->%*,
+        ' network commands [ ' . 'bare name <- source key ]';
+    foreach my $bare ( sort keys $universe->%* ) {
+        say sprintf( '  %-24s <- %s', $bare, $universe->{$bare} );
+    }
+    say '';
+    say '== devmod runtime-registerable set '
+        . '[ via v7-zenki.devmod-enable ] ==';
+    say '  ', scalar @devmod_cmd_names, ' names : ', join ' ',
+        @devmod_cmd_names;
+}
+
+## commands base.init_code disables on every non-cube zenka [ the 'remove   ##
+## some commands for non-cube type zenki' block + whoami + present [        ##
+## present survives only on weather ] -- absent from the runtime <base.cmd> ##
+## dispatch table, so absent from live `commands` output ]                  ##
+my %RUNTIME_DISABLED = map { $_ => 1 } qw(
+    time exit ntime clear bmw-L13 term-all last-sid epoch_v7 timestamp
+    ntime-dec localtime epoch-num session-key amos-chksum when-present
+    set-client-key ondemand-zenka get-public-key get-session-sig
+    get-session-key clear-zenka-key whoami present
+);
+
+## resolution universe : base universe plus the devmod-registerable names   ##
+## when devmod is assumed live [ they dispatch under the same bare names ], ##
+## minus the runtime-disabled set when --runtime on [ mirrors <base.cmd> ]  ##
+sub resolution_universe {
+    my ( $universe, $devmod_loaded, $runtime ) = @_;
+    my %combined = $universe->%*;
+    if ($runtime) {
+        delete $combined{$_}
+            for grep { $RUNTIME_DISABLED{$_} }
+            keys %combined;
+    }
+    if ($devmod_loaded) {
+        $combined{$_} = 'devmod.cmd.' . $_ for @devmod_cmd_names;
+    }
+    return \%combined;
+}
+
+##  zenka.v7 reader for --check mode  ##
+
+sub read_zenka_conf {
+    my $name = shift;
+    open( my $fh, '<', "cfg/zenki/$name/zenka.v7" )
+        or die "cfg/zenki/$name/zenka.v7 : $!";
+    my @logical;
+    my $pending = '';
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        ## strip trailing comment BEFORE continuation handling so that '... ##
+        ## \ ## comment' continues [ real files use this shape, e.g.        ##
+        ## letsencr ] ; '#' mid-token [ '#000013' ] is not a comment        ##
+        $line         =~ s|\s+#.*$||;
+        $line         =~ s|\s+$||;
+        next if $line =~ m|^#|;
+        next unless length $line;
+        if ( $line =~ s|\\$|| ) {
+            $pending .= $line . ' ';
+            next;
+        }
+        $line    = $pending . $line;
+        $pending = '';
+        next unless $line =~ m|^(\S+)\s*=\s*(.*)$|;
+        my ( $key, $value ) = ( $1, $2 );
+        $value =~ s|\s*#.*$||;    ## trailing comment strip ##
+        $value =~ s|\s+$||;
+        push @logical, [ $key, $value ];
+    }
+    close $fh;
+
+    my %cfg;
+    foreach my $pair (@logical) {
+        my ( $key, $value ) = $pair->@*;
+        $value =~ s|\s+| |g;      ## continuation joins leave wide gaps ##
+        $cfg{$key} = exists $cfg{$key} ? "$cfg{$key} $value" : $value;
+    }
+
+    ## expand <template.vars> against same-file keys [ e.g. p7-log's ##
+    ## <devmod.subs> ], a few passes for nesting                     ##
+    foreach my $key ( keys %cfg ) {
+        for ( 1 .. 4 ) {
+            last unless $cfg{$key} =~ s|<([^<>\s]+)>| $cfg{$1} // "<$1>" |ge;
+        }
+    }
+    return \%cfg;
+}
+
+##  modules.load devmod-token check, comment-stripped  ##
+
+sub zenka_loads_devmod {
+    my $cfg = shift;
+    return 0 unless defined $cfg->{'modules.load'};
+    my $load = $cfg->{'modules.load'};
+    return scalar grep { $_ eq 'devmod' } split m|[ \t]+|, $load;
+}
+
+sub wildcard_toggle {
+    my $cfg = shift;
+    return 1 unless defined $cfg->{'system.access.wildcards.allow'};
+    my $val = $cfg->{'system.access.wildcards.allow'};
+    return $val =~ m|^0| ? 0 : 1;
+}
+
+##  run  ##
+
+my $universe = command_universe($zenka);
+show_universe($universe);
+
+if ( $opt{check} ) {
+    my $cfg          = read_zenka_conf($zenka);
+    my $devmod_loads = zenka_loads_devmod($cfg);
+    my $wild_on      = $opt{wildcards} // ( wildcard_toggle($cfg) ? 1 : 0 );
+    my $devmod_live  = $opt{devmod}    // ( $devmod_loads         ? 1 : 0 );
+
+    my $cmd_p    = $cfg->{"access.cmd.usr.$opt{user}"}    // '';
+    my $devcmd_p = $cfg->{"access.devcmd.usr.$opt{user}"} // '';
+    my $runtime  = $opt{runtime}                          // 0;
+    my $resolved_universe
+        = resolution_universe( $universe, $devmod_live, $runtime );
+
+    say '';
+    say "== check : $zenka [ user $opt{user} ] ==";
+    say "  modules.load devmod token ....... : ",
+        $devmod_loads ? 'yes' : 'no';
+    say "  devcmd axis folds into mask ..... : ",
+        $devmod_live ? 'yes' : 'no [ devmod not loaded ]';
+    say "  system.access.wildcards.allow ... : ",
+        $wild_on ? 'on' : 'OFF [ wildcard patterns stripped ]';
+    say "  runtime-disabled subtracted ....... : ",
+        $runtime ? 'yes [ base.init_code non-cube list ]' : 'no';
+    say "  access.cmd.usr.$opt{user} ......... : ", $cmd_p    || '[ none ]';
+    say "  access.devcmd.usr.$opt{user} ..... : ",  $devcmd_p || '[ none ]';
+
+    my ( $reachable, $notes ) = resolve_mask(
+        universe        => $resolved_universe,
+        cmd_patterns    => $cmd_p,
+        devcmd_patterns => $devcmd_p,
+        wildcards_on    => $wild_on,
+        devmod_loaded   => $devmod_live,
+    );
+
+    print_report(
+        label    => 'CURRENT resolved reachable set',
+        patterns => undef,
+        result   => $reachable,
+        notes    => $notes,
+        universe => $resolved_universe,
+    );
+
+    my @blocked = grep { not $reachable->{$_} }
+        sort keys $resolved_universe->%*;
+    say '';
+    say '== CURRENT blocked [ in universe, not reachable ] ==';
+    say '  ', scalar @blocked, ' commands';
+    say '  ', join ' ',        @blocked;
+} else {
+    usage_die('before/after mode needs --old-cmd and --new-cmd')
+        unless $opt{old_cmd}->@* and $opt{new_cmd}->@*;
+
+    my $wild_on     = $opt{wildcards} // 1;
+    my $devmod_live = $opt{devmod}    // 1;
+    my $runtime     = $opt{runtime}   // 0;
+
+    my $old_cmd_p    = join ' ', $opt{old_cmd}->@*;
+    my $new_cmd_p    = join ' ', $opt{new_cmd}->@*;
+    my $old_devcmd_p = join ' ', $opt{old_devcmd}->@*;
+    my $new_devcmd_p = join ' ', $opt{new_devcmd}->@*;
+
+    say '';
+    say "== simulation : $zenka [ user $opt{user} ] ==";
+    say "  wildcards allowed  : ", $wild_on     ? 'on'     : 'OFF';
+    say "  devmod assumed     : ", $devmod_live ? 'loaded' : 'NOT loaded';
+    say "  runtime-disabled subtracted : ",
+        $runtime ? 'yes [ base.init_code non-cube list ]' : 'no';
+    say "  devmod:* expands to : ", scalar @devmod_cmd_names,
+        ' full-set devmod names';
+
+    my $resolved_universe
+        = resolution_universe( $universe, $devmod_live, $runtime );
+    my ( $old_r, $old_n ) = resolve_mask(
+        universe        => $resolved_universe,
+        cmd_patterns    => $old_cmd_p,
+        devcmd_patterns => $old_devcmd_p,
+        wildcards_on    => $wild_on,
+        devmod_loaded   => $devmod_live,
+    );
+    my ( $new_r, $new_n ) = resolve_mask(
+        universe        => $resolved_universe,
+        cmd_patterns    => $new_cmd_p,
+        devcmd_patterns => $new_devcmd_p,
+        wildcards_on    => $wild_on,
+        devmod_loaded   => $devmod_live,
+    );
+
+    print_report(
+        label    => 'OLD mask resolved',
+        patterns => "$old_cmd_p"
+            . ( length $old_devcmd_p ? "  ++devcmd: $old_devcmd_p" : '' ),
+        result   => $old_r,
+        notes    => $old_n,
+        universe => $resolved_universe,
+    );
+    print_report(
+        label    => 'NEW mask resolved',
+        patterns => "$new_cmd_p"
+            . ( length $new_devcmd_p ? "  ++devcmd: $new_devcmd_p" : '' ),
+        result   => $new_r,
+        notes    => $new_n,
+        universe => $resolved_universe,
+    );
+
+    my ( @lost, @gained, @unchanged );
+    foreach my $bare ( sort keys $resolved_universe->%* ) {
+        my $o = $old_r->{$bare} // 0;
+        my $n = $new_r->{$bare} // 0;
+        if    ( $o and not $n ) { push @lost,      $bare }
+        elsif ( $n and not $o ) { push @gained,    $bare }
+        elsif ( $o and $n )     { push @unchanged, $bare }
+    }
+
+    say '';
+    say '== DIFF [ universe commands ] ==';
+    say '  LOST      : ', scalar @lost;
+    say '   ',            join ' ', @lost if @lost;
+    say '  GAINED    : ', scalar @gained;
+    say '   ',            join ' ', @gained if @gained;
+    say '  unchanged : ', scalar @unchanged;
+    say '   ',            join ' ', @unchanged if @unchanged;
+}
+
+exit 0;
+
+#,,,.,...,,,.,,,.,...,,.,,.,,,..,,,.,,.,,,...,..,,...,...,.,.,..,,.,.,,.,,,,.,
+#GNP5NHEEFWNJ4R3QIWTLZHYDLUAT6E6M4IVBWBPILY64SUSXUUYGYWIMLDJNWYU2MCJE5SHVYYVIM
+#\\\|ZGFARPSGKAMPQZLXSW666LBTNAGNCXQJ2DBBPBUETN7GX6W75BN \ / AMOS7 \ YOURUM ::
+#\[7]BD5F63SNDJFMNNJOGX2KVP2W6AGUDJINY3XH6T7HKMYZYUR7D4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

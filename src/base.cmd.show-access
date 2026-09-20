@@ -94,6 +94,28 @@ if ( defined $user ) {
             ];
     }
 
+    ## devcmd axis [ access.devcmd.usr.* -- only folds into the compiled   ##
+    ## mask while devmod is loaded on THIS zenka, see base.parser.         ##
+    ## access_conf. no special-user template mapping here [ unlike the cmd ##
+    ## axis above ] -- not needed by anything using this axis yet.         ##
+    if ( exists <access.devcmd.usr> and defined <access.devcmd.usr>->{$user} )
+    {
+        my $devmod_loaded = <[base.code.exists]>->(qw| devmod.dump |);
+        push @pairs,
+            [
+            sprintf( '%s [devcmd]', $user ),
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.devcmd.usr>->{$user}
+                ),
+                $devmod_loaded
+                ? '[  folds into mask : devmod loaded  ]'
+                : '[  inert here : devmod NOT loaded  ]'
+            )
+            ];
+    }
+
     return {
         'mode' => qw| size |,
         'data' => <[format.inline-nested.encode]>->(
@@ -114,6 +136,24 @@ if ( defined $user ) {
         ]
     } <[base.reverse-sort]>->(<access.cmd.usr>);
 
+    ##  devcmd axis, same simplification as above [ no template mapping ] ##
+    if ( exists <access.devcmd.usr> and keys <access.devcmd.usr>->%* ) {
+        my $devmod_loaded = <[base.code.exists]>->(qw| devmod.dump |);
+        push @pairs, map {
+            [   sprintf( '%s [devcmd]', $ARG ),
+                join(
+                    ' ',
+                    <[base.sort]>->(
+                        split( m|\s+|, <access.devcmd.usr>->{$ARG} )
+                    ),
+                    $devmod_loaded
+                    ? '[  folds into mask : devmod loaded  ]'
+                    : '[  inert here : devmod NOT loaded  ]'
+                )
+            ]
+        } <[base.reverse-sort]>->(<access.devcmd.usr>);
+    }
+
     return {
         'mode' => qw| size |,
         'data' => <[format.inline-nested.encode]>->(
@@ -133,8 +173,8 @@ if ( defined $user ) {
     };
 }
 
-#,,..,,,.,..,,,..,.,,,,..,,..,.,.,,.,,..,,.,.,..,,...,...,,,.,.,.,.,.,.,,,...,
-#52KWFH2NBTTDY2BGYBJPFNMXNNN6HPAZUNH2LKPDHENZMRNLGMWQKROCUNIHEIWS4AJQUZY7HD5TA
-#\\\|PODVRDA2WFIYWCK73UFG5RJ5CXHZSAYNFBNZMIE46Z7YHUVE2YD \ / AMOS7 \ YOURUM ::
-#\[7]V3AXDV7GU2CS7FEIMNHWLCEVGH75HHBI4F3QMH6EV2GSJ6LMOSAI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,.,.,.,.,,..,.,.,.,,,,..,..,,..,,...,...,...,...,...,..,,,..,
+#TTXOUS5FR6ULTTWGIGAQ3HAIAPKMGSDW7GTPDMIWVWILP24RLLKZLDUMSN4WEB7UPF4HXSHMEYAAC
+#\\\|TPIBPGQSSN3PN7YDUXAEX7OUMVLKH3CQGTMSYXN4KJWBW37C2UT \ / AMOS7 \ YOURUM ::
+#\[7]OGVKQ6OAXFDMSZSIPDYO6R5CIRLT654TLPQSSVPZFUIGOPKJDUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

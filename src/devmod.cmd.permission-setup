@@ -60,6 +60,54 @@ foreach my $user (
     $reply_str .= $next_usr;
 }
 
+## devcmd axis [ access.devcmd.usr.* -- same formatted-snippet shape, own ##
+## section so the two axes stay visually distinct in the output ]         ##
+if ( exists <access.devcmd.usr> and keys <access.devcmd.usr>->%* ) {
+
+    my $devcmd_usr_len = 0;
+    map {
+        $devcmd_usr_len = length($ARG)
+            if length($ARG) > $devcmd_usr_len
+            and
+            ( $ARG =~ $param_re or <access.devcmd.usr>->{$ARG} =~ $param_re )
+        }
+        keys <access.devcmd.usr>->%*;
+    $devcmd_usr_len += 18;    ## length of 'access.devcmd.usr.' ##
+
+    my $devcmd_reply_str   = '';
+    my $devcmd_match_count = 0;
+    foreach
+        my $user ( <[base.reverse-sort]>->( keys <access.devcmd.usr>->%* ) ) {
+        next
+            if $user !~ $param_re
+            and <access.devcmd.usr>->{$user} !~ $param_re;
+        $devcmd_match_count++;
+
+        my $next_usr = sprintf( "\n  %${devcmd_usr_len}s  =  ",
+            "access.devcmd.usr.$user" );
+
+        my $left = length($next_usr) - 1;
+
+        <[base.conf-wrap]>->(
+            $left, $max_width, " \\\n", \$next_usr, split m| +|,
+            <access.devcmd.usr>->{$user}
+        );
+
+        $devcmd_reply_str .= $next_usr;
+    }
+
+    if ($devcmd_match_count) {
+        $reply_str
+            .= "\n#\n# "
+            . ( ' ' x 7 )
+            . ".: devcmd axis [ folds in only "
+            . "while devmod is loaded ] :.\n#\n"
+            if not length($param_str);
+        $reply_str .= $devcmd_reply_str;
+        $match_count += $devcmd_match_count;
+    }
+}
+
 return {
     'mode' => qw| false |,
     'data' => "no match for '$param_str' pattern"
@@ -68,8 +116,8 @@ return {
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,,,.,,,,..,.,.,,..,,,,,,.,,,..,...,,,.,,..,..,,...,...,.,,,,,,,,..,,..,,.,,
-#UIERM4AHJFZIC23HU2FKHZY5QITX6DQQAKLZTZ6KDWRLFO7WIDJ7OGBHNOM6JMPKM7W3RGPVZ4IPM
-#\\\|ZYFVWEHEXHFBOJHWFFCJGLNW2WRGQ626XTRI72TKOCHAMNY3X6A \ / AMOS7 \ YOURUM ::
-#\[7]2G7EMJ6XKHXB6E7GISRRLUX35R7ETP6T4ZXOM7SRCYKD7727W6CY 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,,.,,.,.,.,,,,.,,,,.,...,.,.,..,,...,...,...,...,...,.,,,,,,,
+#WACBZKAG25HF2Y2B37HND3645CL7BOATCIBR2KIYQ4VUXJC5LK26PQZCFSMJ3Y74BGYQ5PJB332WA
+#\\\|5Y626XE6QC34PQSXBFYUKBLC6ECMMTJC457EGGZ7OCHCSRCOXZR \ / AMOS7 \ YOURUM ::
+#\[7]C45XCN7HGHH52XAJV5VNQIZH6RGTYJYAIKQE3JGASHLHTG3EKABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
