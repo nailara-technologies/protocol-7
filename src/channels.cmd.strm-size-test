@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = channels.cmd.test-strm-size
+# name  = channels.cmd.strm-size-test
 # descr = STRM-SIZE protocol test [fragmentation >64KB]
 # param = [size_kb]
 # return = { mode => 'SIZE', data => 'large_payload' }
@@ -20,7 +20,7 @@ $test_data = substr $test_data, 0, $size_kb * 1024;
 
 <[base.logs]>->(
     1,
-    "channels.test-strm-size: returning %d bytes in SIZE mode",
+    "channels.strm-size-test: returning %d bytes in SIZE mode",
     bytes::length($test_data)
 );
 
@@ -32,8 +32,8 @@ return {
 
 1;
 
-#,,,.,.,.,,,,,,,.,,,.,...,.,.,..,,.,,,,.,,.,.,..,,...,...,.,,,,,,,,..,...,..,,
-#WEHLXPFIFGNJFGOXLIIV6ICC2DXO6M6JS2UZ6VK4PUA6JVZ5BXFCSQMHYGNJSNA5PFO6MWCPRXBBW
-#\\\|MYDDMNQHUVYQL77VIWYQSWYD37MPAMNJMPJWS24UN4TXAMRSLWL \ / AMOS7 \ YOURUM ::
-#\[7]4DXTPDUFW5NVKDCIXAACCPJLJGWK7DRJN3MXXQ6K6RDSUOISHIDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,.,,.,.,,,.,...,,,.,,.,,.,,,,.,,..,,...,...,...,,..,,,,,..,,...,
+#KUEOOUJIOZSQENT56E3URGL3ZMPCYJSXH7EEY37F32C6GZE7Q4XR7CVFB7QNGDSIGYXJ7SXGMMVCY
+#\\\|PNGG43P7VYQ67VJKIAAGBR4VLIKJXCKVIYWAJCSV7GBJEKMUCI6 \ / AMOS7 \ YOURUM ::
+#\[7]5DVBXPDIEWLL3U3AQJU5LL2FKXNUUI3FSFDWJPRMI5QKKTXC76BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,17 +12,23 @@ access.cmd.usr.cube = commands heart verify-instance name reload src-age \
                       status renew force-renew list-domains child.commands \
                       list-certificates activity-log show-access src-ver \
                       request-certificate revoke-certificate query-algos \
-                      child.* \ ## <-- routes cube to child
-                      dump echo      ## <-- devmod commands
+                      child.* ## <-- routes cube to child
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+access.devcmd.usr.cube = devmod:*
 
 ## parent to child commands ##
 access.cmd.usr.parent =  status renew force-renew inst-self-signed \
                          list heart commands cur-pid cpu-time src-ver \
                          src-age show-access show-buffer buffer-erase \
                          buffer-erase-level verbosity request-certificate \
-                         renew-certificate repair-chain \ ## reload
+                         renew-certificate repair-chain ## reload
 ##                       reload command is currently disabled : drops commands!
-                         dump get        ## <-- 'devmod' module debug commands
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+access.devcmd.usr.parent = devmod:*
 
 access.cmd.usr.child = cube.httpd.setup-acme-challenge \ ## <-- child to cube
                        cube.httpd.cleanup-acme-challenge \
@@ -74,8 +80,8 @@ modules.load = auth.client net protocol io.unix io.ip ui letsencr.base    ## dev
 
 [zenka.loop]
 
-#,,.,,...,.,.,..,,...,,,.,,.,,,..,,.,,.,.,,,,,..,,...,...,,.,,.,.,,,,,..,,.,,,
-#QWJSZ22NORHI6SZYKOY53AI57SOFEVQFHBNZF2ZTDYBN6ZDFWRFCUZ6KJJAL2SI3BDV3PCBJSZ7QK
-#\\\|Z4MSE4X7CIZMMSVPISFIZGSJGBZBQLSBFZW7K4QOMIKQEX7MMK5 \ / AMOS7 \ YOURUM ::
-#\[7]MADSI2TBFDO5KTQVJ73NLRGSX3X36L3FL5FAY2Z5WWIURU6THIAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,,,,...,,,,,..,,..,,,,,,...,..,,...,...,,..,,,,,,..,..,,,.,,
+#LV4H7YQSSPMGARFOWCBBD2KM5DF2F7JF6QNIVHWO3VTKAHJMPX7X4APYX73Y7TGT3VD7NPKJCXVIM
+#\\\|6UVZKXEDCXKTKZNMLA43CFOUFPAETN5WHXMQZ5TLB4EZHJLGVYB \ / AMOS7 \ YOURUM ::
+#\[7]PULQ6KGXQSDDRVS2SHCZS5Q4C6VPI5DUKTJOXYMSPOJLZCK7BWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
