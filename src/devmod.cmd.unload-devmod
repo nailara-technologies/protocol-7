@@ -25,15 +25,18 @@ if ( delete $mod{'devmod'} ) {
 
 <[base.purge_code]>->('devmod') and delete <base.p7_mod.loaded.devmod>;
 
-return { 'mode' => qw| true |, 'data' => 'devmod commands removed =)' }
-    if ref( $code{'devmod.dump'} ) ne 'CODE';
+if ( ref( $code{'devmod.dump'} ) ne 'CODE' ) {
+    ##  recompile masks [ devcmd fold-out ]  ##
+    <[base.parser.access_conf]>;
+    return { 'mode' => qw| true |, 'data' => 'devmod commands removed =)' };
+}
 
 <[base.log]>->( 0, '<< removing devmod module not successful >>' );
 
 return { 'mode' => qw| false |, 'data' => 'cannot remove devmod module `:|' }
 
-#,,,,,.,.,.,.,..,,,,,,,,.,,..,.,,,,..,,,.,,,.,..,,...,...,..,,,..,.,.,.,.,,,,,
-#ESQB673XD5V46RA7II3PLKQLLMR7M63YCSXSMWZ7HXIOZSGDLDWEXANDIQRGRC7FQSIBFJHLG3KTI
-#\\\|5UNY6IGCTRVAQXVAMLPGUOUXBMB2RRCKQZU7BQVEFBECQDFGXHK \ / AMOS7 \ YOURUM ::
-#\[7]CNXGZY26F4AJ6JNC7QHB2YKTSX3EWSG3SDKMXRYRZS7B7YYH2ODA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,.,.,,..,,.,,,,.,,..,.,.,,.,,..,,...,...,,,.,,..,.,,,.,,,,.,,
+#QICZAY2WPO3R5XPK2IICKSHNKON3FWYLE4V3XZEV77QPV66MT7IRN6BTNAC46JOGMVIHPDPXT4OVU
+#\\\|5YXEAPNUD5XEWN7XYOGSMCSD7UVJ3MSIBDYOZN6X23WMZXGWJ3O \ / AMOS7 \ YOURUM ::
+#\[7]U7PACGIKIG2LCPNI4V3NTEPBB4NZGZRXSU3WSGM4OWYNXTGOHWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
