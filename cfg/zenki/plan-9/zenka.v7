@@ -12,10 +12,13 @@ modules.load  =  auth.client net protocol io.unix io.ip ui \
 access.cmd.usr.cube-13 = whoami name heart commands src-ver rel-ver src-age
 
 access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
-                         list list-deps src-ver rel-ver src-age \
+                         list src-ver rel-ver src-age \
                          show-buffer buffer-erase buffer-erase-level \
-                         name subname \
-                         * ## <-- devmod [ restrict later ]
+                         name subname export-directory
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+access.devcmd.usr.cube = devmod:*
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -32,8 +35,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
 
 [zenka.loop]
 
-#,,,.,...,,,.,,..,.,,,.,.,.,.,,.,,,.,,..,,,,.,.,.,...,...,.,.,,.,,.,.,,..,,.,,
-#UPE7UPEHLFN2Z6FOB5KM3AGHQUHNAPJSXUCSSFB3UGVIAKTGOC52JOZOHKHDNL53S7M6K6WBORRGO
-#\\\|7ETPUEOUJMASHZDGRQHYOONZHVZ7NMIJXO4GKTPKA24UNBUEXDJ \ / AMOS7 \ YOURUM ::
-#\[7]OTQ6OMF6TSIBGJ5J4BRJWL5BDHDQBWLPAWLYOD7DNKK3WRP6LYDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,.,,,,.,,,..,,.,,.,.,.,.,.,.,.,.,...,...,.,.,,,.,,..,,,.,,,,,
+#ROGQB6KJS5RES2L3ZJTY3WE2Y5IWFIGQOZVS3TZIK4EZ2LFG72IP3JKEPYZN3A4DPR2KYNVQRYRDK
+#\\\|SQRTABLEDLDOJCQRFEIPEOHRFQR3VY3CPK37C4NXSZGQKGFCYC6 \ / AMOS7 \ YOURUM ::
+#\[7]EX5UEZRTECSPXEMGAN432E4UMDIZFQQ3CJX5KDZPOPCOTGHTPMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

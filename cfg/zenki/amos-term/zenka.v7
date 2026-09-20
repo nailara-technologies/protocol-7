@@ -9,11 +9,19 @@ modules.load          = net protocol io.unix ui auth data data.mount.shm \
 
 access.cmd.usr.cube   = verify-instance commands heart reload subname \
                         list show-buffer buffer-erase buffer-erase-level \
-                        cur-pid src-ver rel-ver src-age list-deps \
+                        cur-pid src-ver rel-ver src-age \
                         list_attachments attach_buffer mount-9p \
                         mount-9p-client list-dir read-file \
                         window-create window-open window-close \
-                        window-destroy list-windows  * ## <-- devmod
+                        window-destroy list-windows \
+                        attach-fs-mount detach-cube export-directory \
+                        import-fs interaction-ask interaction-reply \
+                        interaction-status list-fs-mounts mount-cube \
+                        mount-hash mount-visual shm-reap
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+access.devcmd.usr.cube = devmod:* shm-self-test
 
 amos-term.term-user             =  <system.AMOS-user>
 
@@ -30,8 +38,8 @@ amos-term.term-param.face-size  = 24
 
 [zenka.loop]
 
-#,,,.,.,.,.,,,,,,,,,,,.,,,..,,,,,,..,,,..,.,.,..,,...,...,.,,,..,,.,.,..,,,,,,
-#HIQ7LZLSYTMDSGFRV6QMX6I7GJMWWBKMZK6AHHHUIZXR4C5FZISDWYXC7KKNCNW4CCR5BBJ56FFIA
-#\\\|IUFE5KYAIGTS4EJ4AEILF3G72UTA3TVDXC65A23Y5IVVZN36PBX \ / AMOS7 \ YOURUM ::
-#\[7]ESX2M7BXLK7T3L5IDRTN5TCYEGT5FUP7UO7JL6JJ52UKS4ZDTUDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,,..,.,,,.,.,...,.,.,,.,,,..,..,,...,.,,,...,,.,,,.,,,,,,,,.,
+#YSHQ7JAAPRSK3FGGI2N3SHB2LLHU45W6CXFIAIK5V7F4BBFUXWBDSDYEPID77HASHR4PFEVIHHV32
+#\\\|LVTHO3MWGJ22DXM3TRQ4WUYFVN6RFRCU44JP5UD4KNN7JF72K7Y \ / AMOS7 \ YOURUM ::
+#\[7]WY743CQUTDH5JGLZUQ5STHH3CZSG5FVR6J4LQY6L3VLDFNYOBMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

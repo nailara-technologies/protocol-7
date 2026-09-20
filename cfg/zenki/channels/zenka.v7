@@ -15,8 +15,17 @@ modules.load = auth.client net protocol io.unix ui channels devmod ## <-- develo
 
 access.cmd.usr.cube = commands heart reload verify-instance *-version \
                       show-buffer buffer-erase buffer-erase-level list \
-                      src-age cur-pid get set del dump keep-devmod-loaded \
-                      * # <-- development only
+                      src-age cur-pid \
+                      ai-review-approve ai-review-feedback ai-review-status \
+                      ai-review-submit channels-since last-data-timestamp \
+                      next-data-timestamp subscribe unsubscribe update
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## strm-test/strm-size-test are channels' own dev/test commands, same    ##
+## gate as devmod's since they're equally dev-only [ renamed from a      ##
+## bare-name collision with devmod's own test-strm/test-strm-size ]      ##
+access.devcmd.usr.cube = devmod:* strm-test strm-size-test
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -28,8 +37,8 @@ access.cmd.usr.cube = commands heart reload verify-instance *-version \
 
 [zenka.loop]
 
-#,,,,,.,,,..,,.,.,,,,,,,.,..,,,,,,,,,,.,.,,.,,..,,...,.,,,,..,.,,,.,.,.,,,,,.,
-#Z3CTVVUBLEWW2QFCX2YYSUVCIRN42JQWMSI6TDXUXXMBIOG6SADQWOTEDNEPSJR6ZTMEERVO3WIOY
-#\\\|257RWKZNENWRHIO3JMY3TLIV55CUMLETR3JRNBQHIOBFFD3GOD4 \ / AMOS7 \ YOURUM ::
-#\[7]QICG3R47TDKTGSWB54DXJUEY47BDTDU3O2IJURSSRYHNOTG3QKDY 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,,,,,.,.,..,,.,,,...,,,,,..,,..,,...,...,,,.,,,.,,..,..,,,,,,
+#5WW7YAC4DTVHQCVUS2E5XA5L2DIRECEBD676V6IPAGCUDV5OH3QQJXNRM4V6ZRUS64B3I2LWY4BDW
+#\\\|SM6KVELTLVV2NE6KAZQJ3O6XSSR3W3MGBEARLKKYRJEI3AUXNU3 \ / AMOS7 \ YOURUM ::
+#\[7]TDHV3GQ2DKQ2N2ZFU4DSRLGJOM4V2PZNSDLQWNPB5OH4AY2LAMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
