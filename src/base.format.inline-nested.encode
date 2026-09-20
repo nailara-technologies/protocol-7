@@ -53,7 +53,15 @@ foreach my $pair (@pairs) {
     my ( $key, $value ) = @{$pair};
     $key   //= '';
     $value //= '';
-    next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
+    ## bug fix 2026-09-20: the wildcard user key '*' (a legitimate,
+    ## intentional key -- e.g. access.cmd.usr.*) didn't match this charset, so
+    ## any [key, value] pair keyed exactly '*' was silently dropped before
+    ## rendering. confirmed via `show-access *` returning an empty body
+    ## despite the underlying data (access.cmd.usr.*) being fully present and
+    ## correctly compiled -- this encoder is display-only, the real
+    ## authorization path (base.parser.access_conf) already special- cases '*'
+    ## correctly and was never affected
+    next unless $key =~ m|^[\w\-\.\*]+$|;    ## strict key charset
 
     ## lone dot line opens the entry [ survives blank stripping ]; a     ##
     ## trailing bare ':' closes it, symmetric with the opening dot. A    ##
@@ -132,8 +140,8 @@ if ( not $use_inline ) {
 ## embedded/file-written blocks don't accumulate display-only cruft ]    ##
 return $opts->{pad_lines} ? "\n" . $result . "\n" : $result;
 
-#,,,.,,.,,.,.,,.,,,.,,,..,,,,,,,.,,.,,.,.,,,.,..,,...,...,.,,,,.,,,..,,..,..,,
-#XGQRZ7IBRZJDRCCH7Y4DUWSZPQLWABDI2JYQCQ4TX5F3I6SDTWBL55EITDPND6OYQK243I7P5M2XE
-#\\\|CF4PRUC4JWBZJNXVBEIV26K2ARIKSEJDMO5JKXDNS6ZTWZH6JCL \ / AMOS7 \ YOURUM ::
-#\[7]PIFMETUJDGYB3JJDEJOPPXMIZSXD5BYHB7M6SZO755W2MNB7P2BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,,,.,,,.,.,,,,..,,..,.,.,.,.,..,,...,...,..,,,..,..,,,..,,,,,
+#YJ622DX2IINVIQ6VG4JCXE2ROKL77ZEXGSTKKYTNM55M2G3DIGFJW7Z6YVT7AL4AMDWGXKSJQ2DTS
+#\\\|4RSOXU7JPWS42EAFYYYZVOISNIQHE3U6UYMG4CMT5Y3N4PWRQZF \ / AMOS7 \ YOURUM ::
+#\[7]KRQWMKLXBS3QP5ZCQODZNGCOUSX4XIN7NZYCIHEKX64ITG5HFUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
