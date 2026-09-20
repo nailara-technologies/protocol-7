@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = models.gguf.file.name_diverges
+# descr = check whether a slug-derived name shares little with an embedded name
+# param = $embedded_name, $slug_name
+# return = 1 if the names diverge [ slug's own distinctive words mostly
+#          absent from the embedded name ], 0 if they overlap enough to
+#          trust the embedded name as-is
+
+my ( $embedded_name, $slug_name ) = @ARG;
+
+return 0 unless defined $slug_name && length $slug_name;
+
+my @slug_words = grep {m|[a-z]{3,}|i} split m|\s+|, $slug_name;
+
+return 0 unless @slug_words;    ## nothing distinctive to compare against ##
+
+my $lc_embedded = lc( $embedded_name // '' );
+
+my $matched = 0;
+for my $word (@slug_words) {
+    $matched++ if index( $lc_embedded, lc($word) ) >= 0;
+}
+
+## diverges when less than half of the slug's distinctive words show up
+## anywhere in the embedded name -- catches a finetune/lora/merge whose
+## general.name was left at the base model's name by the conversion template [
+## e.g. slug "qwen openthoughts science claude" vs embedded "Qwen2.5 7B
+## Instruct" ], without flagging a merge that just layers one extra ingredient
+## onto an otherwise-matching base name
+return ( $matched / scalar(@slug_words) ) < 0.5 ? 1 : 0;
+
+#,,,.,.,,,...,..,,,,,,,.,,...,...,,.,,,..,,,,,.,.,...,...,.,,,...,,,,,,.,,.,.,
+#Y6O56M6CLRFYQQKPX2ZMCYIKL7A63WJDBJIFD3H2JG5X2FHNK2O4LK2X5SYMVOTPNTW5CE3LU6BXK
+#\\\|K2I265233HC2323IIQJGJHCFWDMFQWAA2HKC3D7NBRNIYGMDHPN \ / AMOS7 \ YOURUM ::
+#\[7]UQCVIPYDVXUAACRJJ2ED3VFHQGU66VTEO5GGHECNI6INQP3Q2MBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

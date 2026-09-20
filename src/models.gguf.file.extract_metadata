@@ -3,7 +3,8 @@
 # name = models.gguf.file.extract_metadata
 # descr = Extract key metadata fields from GGUF file header
 # param = $file_path
-# return = hashref with metadata fields (name, basename, size_label, architecture, file_type)
+# return = hashref with metadata fields (name, basename, size_label,
+#          architecture, file_type, source.url, url)
 
 use Fcntl qw(:seek);
 
@@ -70,9 +71,12 @@ for my $i ( 0 .. $kv_count - 1 ) {
     my $key;
     read( $fh, $key, $key_len ) == $key_len or last;
 
-    ## Only extract fields we need for naming
+    ## Only extract fields we need for naming [ source.url / url included so
+    ## the naming logic can cross-check a finetune's real repo identity
+    ## against general.name, which conversion tooling often leaves at the base
+    ## model's name -- see models.gguf.file.extract_name ]
     unless ( $key
-        =~ m{^general\.(name|basename|size_label|architecture|type|file_type)$}
+        =~ m{^general\.(name|basename|size_label|architecture|type|file_type|source\.url|url)$}
     ) {
         ## Skip this value
         my $type_buf;
@@ -92,9 +96,25 @@ for my $i ( 0 .. $kv_count - 1 ) {
             my $etype = unpack( 'V', $buf );
             read( $fh, $buf, 8 );
             my $count = unpack( 'Q<', $buf );
-            if ( exists $FIXED_SIZE{$etype} ) {
+            if ( $etype == GGUF_TYPE_STRING ) {
+
+                ## an array of strings [ e.g. general.tags ] has no fixed
+                ## element size -- each element is itself length-prefixed, so
+                ## it must be skipped element-by-element or every byte offset
+                ## after it desyncs, silently corrupting every field read for
+                ## the rest of this file
+                for ( 1 .. $count ) {
+                    my $len_buf;
+                    read( $fh, $len_buf, 8 ) == 8 or last;
+                    my ($len) = unpack( 'Q<', $len_buf );
+                    seek( $fh, $len, SEEK_CUR ) if $len < 65536;
+                }
+            } elsif ( exists $FIXED_SIZE{$etype} ) {
                 seek( $fh, $count * $FIXED_SIZE{$etype}, SEEK_CUR );
             }
+
+            ## nested array-of-array not handled [ not seen in practice ] --
+            ## same desync risk as above if it ever occurs
         }
         next;
     }
@@ -131,19 +151,18 @@ for my $i ( 0 .. $kv_count - 1 ) {
 
     $metadata{$key} = $val if defined $val;
 
-    ## Early exit once we have all we need
-    last
-        if exists $metadata{'general.name'}
-        && exists $metadata{'general.basename'}
-        && exists $metadata{'general.size_label'}
-        && exists $metadata{'general.file_type'};
+    ## no early exit here -- general.source.url/general.url can appear
+    ## anywhere relative to name/basename/size_label/file_type depending on
+    ## the writer, and naming needs all of them together [ kv_count is already
+    ## capped above, and skipped values are seek()'d past, not read, so
+    ## scanning the rest of a typical ~20-40 key header is cheap ]
 }
 
 close($fh);
 return \%metadata;
 
-#,,,,,..,,,..,.,,,.,,,...,,,.,...,,..,.,,,.,.,..,,...,...,...,.,.,...,,,.,,,.,
-#H7OTL75OG3GUAGWFFPSCYDSUPFWEQQXYGXYYSDZHQ5O4Y6E5N7SCLXZY4H3REDWOKIJCYMWNIO4AY
-#\\\|ULKD4YBNWAKCLUW6HTLIL6TK4JQFRCZU4474YJVZHRPDT3OTF5L \ / AMOS7 \ YOURUM ::
-#\[7]CSARDJZAKPLXILDFX7SY32V23V4II4KYZN42CRL755UGZ42LBIAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,,,.,,.,,..,,...,.,,,..,,,,.,..,,...,.,.,.,,,,..,,.,,,,,,,,.,
+#RKNNK5DA5QSZT3NGNIDYUXEAT2XIJCHYJ56XXWCWGAOJLY4YQIES5LAQWUURFWMZN2KUSHOCMZHPI
+#\\\|QX5I3JQBX6B4N5LVL5X2IHWRBUWFQED54S3XKETC5MT6PA46NBE \ / AMOS7 \ YOURUM ::
+#\[7]PS4AKJIK7PVCAZYR76IHJIJ7TDSBDTYTXQMTJLHL3QIRKO3BP2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

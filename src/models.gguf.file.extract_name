@@ -50,6 +50,47 @@ if ( $meta && $meta->{'general.name'} ) {
 
     ## Check if name is valid (not garbage)
     unless ( <[models.gguf.file.is_garbage_name]>->($name) ) {
+
+        ## community gguf conversions -- especially finetunes, loras, and
+        ## merges -- routinely leave general.name at the BASE model's name,
+        ## carried over unchanged from the conversion template [ confirmed on
+        ## real files 2026-09-20 : general.name = "Qwen2.5 7B Instruct" for a
+        ## file whose actual identity, per its own  general.source.url, is
+        ## "qwen_openthoughts_science_claude" ] -- the source/gguf-repo url is
+        ## the one field that's mechanically accurate, so prefer a name
+        ## derived from it when it diverges meaningfully from general.name
+        my $url = $meta->{'general.source.url'} || $meta->{'general.url'};
+        if ($url) {
+            my ($slug)
+                = $url =~ m{^https?://huggingface\.co/[^/]+/([^/]+?)/?$}i;
+            if ( defined $slug ) {
+
+                ## only the gguf-repackaging repo [ general.url ] carries a
+                ## quantizer suffix -- the original source repo never does
+                $slug =~ s|-i?\d*-GGUF$||i;
+                $slug =~ s|-GGUF$||i;
+                $slug =~ s|-GGML$||i;
+
+                my $slug_name = $slug;
+                $slug_name =~ s|[-_]| |g;
+                $slug_name =~ s|\s+| |g;
+                $slug_name =~ s{^\s+|\s+$}{}g;
+
+                ## repo slugs are typically all-lowercase [ unlike
+                ## general.name, which usually already arrives title-cased
+                ## from the writer ] -- match that display convention
+                $slug_name = join ' ', map { ucfirst( lc($_) ) }
+                    split m|\s+|, $slug_name;
+
+                if ( not <[models.gguf.file.is_garbage_name]>->($slug_name)
+                    and
+                    <[models.gguf.file.name_diverges]>->( $name, $slug_name )
+                ) {
+                    return $slug_name;
+                }
+            }
+        }
+
         return $name;
     }
 }
@@ -115,8 +156,8 @@ if ( $file_path =~ m|/([^/]+)-GGUF/[^/]+\.gguf$|i ) {
 ## Strategy 6: Fallback to cleaned filename only
 return $clean_filename;
 
-#,,.,,,,,,,,.,.,.,.,.,,..,,,.,...,.,,,..,,.,.,..,,...,...,...,.,,,,.,,,.,,,.,,
-#BRVTRABHULSW4IWGDCPCQKVF2X5TTP3BSPVKEDZYHJNW454RRW6ZA7R4DANJESNM2T5EJQFOVGPE6
-#\\\|YYBQTWODFFRDHAE5QGKRVN3WYCU23SXXBSDJGJU4QQAC5OWI7NF \ / AMOS7 \ YOURUM ::
-#\[7]PCZ5O732HFN7QNNOTV7TDMA2ITODCICJ4S2CSQJKOZDW45QRTCDI 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,..,,.,.,.,.,,,,,.,,,..,,,,.,..,,...,...,.,,,..,,,.,,,,,,,..,
+#2U746APS5F7OLXEBCKXPBK7TBEM7SDQOH4V7E6XIKLQ4QLZIKEZCYJJV4AFGUCPY4E5NINYFYM2VM
+#\\\|U5B767C2BE3FJUILLBDNNDGRCHZGMWLAA5I3U3SMRI2PI5VODMX \ / AMOS7 \ YOURUM ::
+#\[7]BQOO2GQMFBSZ6STGYSRLYN6BA3PAKRLHRQCUHFOQ2ZQ7DYO42QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
