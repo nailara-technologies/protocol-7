@@ -167,11 +167,11 @@ devmod state, never anyone else's, regardless of what params it passes.
 
 ## open, not yet investigated
 
-- removing `devmod` from `modules.load` on zenki like `coding` stays
-  explicitly out of scope / a separate follow-up decision — the
-  mechanism now exists and is trusted [ point 6's grant landed ], but
-  pulling a default-load config entry is its own review, not bundled
-  here.
+- ~~removing `devmod` from `modules.load` on zenki like `coding`~~ —
+  done 2026-09-20, `cfg/zenki/coding/zenka.v7`, commit `13eb78690`.
+  live-tested end to end by the owner: enable -> restart -> still
+  enabled; devmod-clear -> restart -> stays disabled. both directions
+  confirmed working against the real running zenka, not just read.
 - a zenka `stop` command clearing the flag [ proposal bullet ] was
   not built this pass — flagged as worth revisiting once the
   stop/offline → later-start instance-hash reuse semantics are
@@ -183,8 +183,8 @@ devmod state, never anyone else's, regardless of what params it passes.
   namespace-wildcard-permissions.md`, the permission-mask side of this
   same devmod-hardening effort, implemented 2026-09-20.
 
-#,,..,.,.,.,,,...,.,.,.,,,,,,,,.,,,,,,.,,,.,,,..,,...,..,,...,,.,,...,,..,..,,
-#MMZM3WAQI7N2VW4MUOHFKZBZOA7HDCIJ7DFPYVCWUV2Q6BEMPUESFXT7XVEE4QB4ZBEOFEI27L2BG
-#\\\|JLLY642TRJHF742H2KWXPWCBXOBO247DS5WTK2TC4DP74S5THTK \ / AMOS7 \ YOURUM ::
-#\[7]KPYZCKYKZBSM3UN6QKGLF6DNY6CH4X4SSMXAEJEN56QWJIRI7IAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,,.,,,.,,...,..,,.,.,,..,,.,,..,,...,...,..,,,.,,,,.,.,.,,.,,
+#2EKL3BSOJI72FKUHWQ6D5ECWDRO6LJVCF3H4LZD4ZEB75OH6P4QPRUFGODB2UKEIM2J4BQJKLOMIG
+#\\\|22GD53REYXKMCL6P6676477U2EHPEMPAMZ4YCUFAETUHQ6WP4SN \ / AMOS7 \ YOURUM ::
+#\[7]EKKAQYHGJKRBFSYP54MUCDXPYRP4VH3QYIRYI4GB54UWVGXG76DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
