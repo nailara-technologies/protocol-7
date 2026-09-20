@@ -29,6 +29,17 @@ my $wildcard_permissions_allowed          #                            :::
 ##  devmod command mask source availability [ same sentinel as SIG NUM53 ]  ##
 my $devmod_present = <[base.code.exists]>->(qw| devmod.dump |);
 
+## devmod commands dispatch under bare, stripped names [ same convention  ##
+## base.cmd.commands uses to classify them for display ] -- they carry no ##
+## 'devmod.' prefix in the string base.has_access ever checks, so         ##
+## 'devmod:*' cannot be a namespace-PREFIX regex ; it expands below to a  ##
+## live alternation of whatever devmod commands are actually loaded       ##
+my @devmod_cmd_names;
+if ($devmod_present) {
+    @devmod_cmd_names = map { ( my $n = $ARG ) =~ s|^devmod\.cmd\.||; $n }
+        grep {m|^devmod.*\.cmd\.|} keys %code;
+}
+
 ## [ LLL ] create command registry in module initialization code ..,
 
 my $wildcards_used   = 0;
@@ -109,6 +120,18 @@ foreach my $user ( <[base.reverse-sort]>->( \%mask_user ) ) {
                         $patterns_removed++;
                         $errors++;
                     }
+                } elsif ( $devcmd_pattern{$unchanged_pattern}
+                    and $unchanged_pattern eq qw| devmod:* | ) {
+
+                    ## live alternation of loaded devmod commands, NOT a ##
+                    ## namespace-prefix regex [ see note above ]         ##
+                    $wildcards_used++;
+                    $cmd
+                        = @devmod_cmd_names
+                        ? sprintf( '(?:%s)',
+                        join( '|', map {quotemeta} @devmod_cmd_names ) )
+                        : qw| (?!) |;    ## nothing loaded : match nothing ##
+
                 } else {
                     $wildcards_used++ if $cmd =~ m{^\.\*\*|\*\*|\*|\%};
                     ## namespace wildcard : '<ns>:*' -> '<ns>\..+' ##
@@ -269,8 +292,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,.,,,.,,..,,..,,.,,,,,.,,..,,,,,,..,...,,,,,..,,...,..,,,.,,..,,,.,,,,,,,,,,
-#7AGEHRWZUJWQWASWTE7BQRONNW5KUKFFVDVDQHWXOSK3ZJYLZBTHIVCZ2KHD54VASUOQA2IAPVRVI
-#\\\|233S7YNNOZU3FIZ2LGHNNOSK3ZDGY4TVPUYZ6R64Z7IDVWFAQFZ \ / AMOS7 \ YOURUM ::
-#\[7]7DOJ6IWXQ34LLCJ3XMHGJT6JZJC6R7KNVYNHHFG7C3JJXGCMW4CY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,,,,..,,..,,,,,,,,.,,,,,..,,..,,...,...,.,.,,,.,,..,,..,,,,,
+#Y3BT672XAP7SVBCP3O3MJXCPKPU6KCIG6IPDGIIBTSODKQUT4XCXCSX4D6K2WAQH6SNPM7MCW6TS4
+#\\\|U55D6RAR3EYPSHE5KAEJ4QY6274ZMCBQH6F74BCRSKZL2PS5DRQ \ / AMOS7 \ YOURUM ::
+#\[7]H7QRWX6G4VUIJZXPLH3VOIKMUASJQEOPR4MHRUHEWPVITBJRTQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

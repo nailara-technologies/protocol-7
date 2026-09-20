@@ -50,6 +50,27 @@ available to the network" — a namespace wildcard has exactly that
 property (any new file dropped into the namespace becomes reachable),
 so it must be governed by the same switch. no special exemption.
 
+**correction, found live-testing 2026-09-20 (see point 2b below):** the
+"`coding:*` compiles to `^coding\..+$`" framing above is only true at
+CUBE'S ROUTING layer (`cfg/zenki/cube/access.zenki`, where the string
+being matched really is `<zenka-name>.<command>`, e.g.
+`models.get_model_path`, because cube hasn't stripped the target
+zenka's name yet). it is NOT true once a command lands on its target
+zenka and `base.has_access`/this file's OWN compiled regex checks it —
+there, `base.handler.command`'s `$cmd_usr_str` (line ~523) is already
+the bare, zenka-name-stripped command (confirmed: `src/base.cmd.
+commands` strips `^devmod\.cmd\.` off `%code` keys purely to classify
+already-bare `<base.cmd>` entries for display — the bare form is what
+actually gets dispatched and checked). `<ns>:*` therefore still works
+correctly as designed for `access.cmd.usr.*` entries in cube's own
+routing config, but is a no-op / never-matches for a target zenka's
+own `access.cmd.usr.*`/`access.devcmd.usr.*` — which is exactly where
+this doc's whole feature lives. `devmod:*` specifically is fixed in
+point 2b; a general namespace-wildcard fix for other same-zenka cases
+(`base:*` etc, as speculated in point 2 below) is NOT built and would
+need the same live-`%code`-based treatment, not a regex tweak — flagged
+in the sweep follow-up, not solved here.
+
 ### 2. new config axis `access.devcmd.usr.<user>`
 
 same pattern grammar as `access.cmd.usr`, including the new
@@ -73,14 +94,44 @@ semantics (settled):
   (byte-for-byte unchanged) — it keeps reading
   `<access.cmd.regex.usr>->{$user}` exactly as today and picks up the
   union with zero changes on its end.
-- a devcmd mask may legitimately be broader than `devmod:*` (e.g.
-  also `base:*` for introspection) — expected and fine.
-- wildcard-toggle stripping applies to devcmd patterns identically;
+- ~~a devcmd mask may legitimately be broader than `devmod:*` (e.g.
+  also `base:*` for introspection) — expected and fine~~ — corrected
+  2026-09-20, see point 2b: `base:*` would be exactly as broken as
+  `devmod:*` was, and is NOT fixed by 2b's targeted patch. for now a
+  devcmd mask should use `devmod:*` or exact bare devmod command names
+  only; broader namespace grants are not functional yet (sweep
+  follow-up).
+- ~~wildcard-toggle stripping applies to devcmd patterns identically;
   removed devcmd patterns are reported in the disallowed-pattern
-  report with a `devcmd:` prefix on the pattern name so the two axes
-  are distinguishable in the log.
+  report with a `devcmd:` prefix~~ — this was never true, no such
+  prefix exists anywhere in the codebase (`grep -rn "devcmd:"
+  src/`, no hits). corrected 2026-09-20: disallowed-pattern removal is
+  logged per-user only, with no axis distinction, same as it always
+  was for the cmd axis.
 - the devcmd config hash itself is never rewritten in place (unlike
   the cmd axis, whose cleaned form feeds `show-access`).
+
+### 2b. `devmod:*` fix — live alternation, not a prefix regex [ 2026-09-20 ]
+
+found live-testing against the real `coding` zenka: `devmod:*` as
+implemented in point 1 NEVER matched anything, because devmod commands
+dispatch under bare, stripped names (`exec-sub`, `eval-code`, ... —
+same convention `src/base.cmd.commands` uses: it strips `^devmod\.cmd\.`
+off matching `%code` keys purely to classify already-bare `<base.cmd>`
+entries). `devmod:*` compiled to `^devmod\..+$`, which no real
+dispatched command string ever satisfies. the axis was inert from
+`4c1ae7a3d` until this fix.
+
+fix: `src/base.parser.access_conf` now computes `@devmod_cmd_names` up
+front — the exact same `%code`-scanning + prefix-stripping `grep`/`map`
+`base.cmd.commands` uses — and when a devcmd-mask token is literally
+`devmod:*`, compiles it to a live alternation `(?:name1|name2|...)` of
+those actual loaded command names instead of running the generic
+namespace-wildcard substitution. empty case [ devmod present but
+somehow zero `.cmd.` subs found ] compiles to `(?!)` [ matches nothing
+], never falls open. exact bare-name devcmd patterns [ e.g.
+`access.devcmd.usr.coding = exec-sub eval-code` ] were never affected
+by this bug — only the `devmod:*` wildcard form was broken.
 
 ### 3. recompile hooks on devmod state changes
 
@@ -138,8 +189,8 @@ gain; the bare call is the established convention).
   confirmed devmod unload.
 - `src/base.has_access` — UNCHANGED (hard constraint).
 
-#,,,,,..,,,.,,.,,,,..,,..,...,...,.,,,.,.,,,,,.,.,...,...,.,.,,..,,,.,.,.,.,,,
-#B5ROLZM5HI3BCB3ERZSEM4D56KABPWBKJB4N34F2T57AXCC4D2ZQEUAT6E5PZWAEK36VZOEDWBHC2
-#\\\|J6ZEM5OFYESJW63WD2VCTS723IUXB4FD7PEVWT4YGGLNI7M24CJ \ / AMOS7 \ YOURUM ::
-#\[7]KBZNY62NKXJMUUJZ6XU4RVVZCSPZP6ZDZ32NMHQCKV6OA33BRWCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,,.,,,,,,,.,,.,.,.,,,...,..,,.,.,...,...,...,..,,...,.,.,...,
+#CT6WFIK647SKNKERY2L5SNQFFNRFG5G5NQ4FR26WYKGQHYVU5TPDJYOK4A5UIGF4SOHDJLRSOBSZM
+#\\\|C55QHJHVYBUHI4OCJSCAB237FYYFPRMDYUYZL4TQLOCO26FUBLT \ / AMOS7 \ YOURUM ::
+#\[7]NQD7PY2UOXYLGHZT3CU6ITZ6MLTZNUQIHXVSBNIJW7WZ725JL4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
