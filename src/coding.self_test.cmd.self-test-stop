@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = coding.self_test.cmd.self-test-stop
+# param = [backend]
+# descr = force-stop an in-flight self-test probe
+# note  = coding.cmd.abort-inference only ever covered the real
+#         task-queue path -- a self-test probe (model-sweep
+#         candidate or a bare self-test-run) is a separate
+#         mechanism entirely, with no stop command at all until
+#         now. finds any in-flight <coding.self_test_probe_state>
+#         entry (optionally filtered to one backend) and aborts it
+#         via coding.self_test.abort_probe, the same technique
+#         poll_probe's own 1200s watchdog uses. the probe's own
+#         next timer tick (every 0.5s) then runs its normal
+#         completion path -- model_status.record, backend-guard
+#         release, and for a model-sweep candidate, poll_switch's
+#         own restore-to-original-model -- so nothing here talks
+#         to poll_switch or the sweep state directly
+
+my $params      = shift // {};
+my $backend_arg = lc( $params->{'args'} // '' );
+$backend_arg =~ s|^\s+||;
+$backend_arg =~ s|\s+$||;
+
+if ( length $backend_arg and $backend_arg !~ m{^(gpu|cpu)$} ) {
+    return {
+        mode => qw| size |,
+        data => "Error: backend must be gpu or cpu (or omit for all)\n"
+    };
+}
+
+my $probes = <coding.self_test_probe_state> // {};
+my @lines;
+
+for my $probe_id ( sort keys %$probes ) {
+    my $state   = $probes->{$probe_id};
+    my $backend = $state->{'backend'} // 'gpu';
+    next if length $backend_arg and $backend ne $backend_arg;
+
+    my $model_id = $state->{'model_id'} // 'unknown';
+    if ( <[coding.self_test.abort_probe]>->($probe_id) ) {
+        push @lines,
+            sprintf '%s : stopped probe %s [ model=%s ]', $backend,
+            $probe_id, $model_id;
+    } else {
+        push @lines, sprintf '%s : probe %s was not in flight', $backend,
+            $probe_id;
+    }
+}
+
+unless (@lines) {
+    return {
+        mode => qw| size |,
+        data => length $backend_arg
+        ? "no self-test probe in flight on $backend_arg\n"
+        : "no self-test probe in flight\n"
+    };
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,.,...,.,,,,.,,,..,...,,,,,..,,.,.,.,.,,.,,..,,...,...,...,.,,,.,.,.,,,,..,
+#2SXEUWBKXRPWOHA5ORWFQH3HTQ3T2YQE5RQRS527MA2BEB5FI45OPJXY4FBXUGZZCHZYYTNKHYYSA
+#\\\|SURZQAT2XQLLCGGDQZHTULK6MITHGAW5ISEZ3RQBD6K5BDJCCZM \ / AMOS7 \ YOURUM ::
+#\[7]T46PXKSYJ2WE6RTUTWK3OLW77H656R64UV5FYQLOWM6IPFZNNUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

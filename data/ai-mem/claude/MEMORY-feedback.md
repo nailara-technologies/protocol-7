@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [search-memory-before-reaching-for-restart](feedback-search-memory-before-reaching-for-restart.md) — before `v7-zenki.restart <zenka>` to apply a zenka.v7 config/access.cmd.usr change, try `<zenka>.reload config` first (live, no restart, no dropped in-flight state) -- this exact fact was already documented from a 2026-09-15 session, re-derived the hard way 2026-09-20. Grep memory for "reload config"/"access.cmd.usr" before restarting
 - [dead-defensive-code-is-a-bad-example-not-just-clutter](feedback-dead-defensive-code-is-a-bad-example-not-just-clutter.md) — the user's *why* for treating a provably-always-true guard (e.g. `if (exists $code{'literal'})` where that namespace is always loaded first) as worth cleaning up, not just harmless: it looks meaningful while being a no-op, so it gets cargo-culted into new code (by a person or an LLM) that copies the pattern nearby — actively propagating a false signal forward, not just sitting inert.
 - [init-phase-idempotency-is-a-hard-invariant](feedback-init-phase-idempotency-is-a-hard-invariant.md) — `init_code`'s `$reinit` first-arg guarding is a firm, full-coverage design guarantee in this codebase, not best-effort: a live reinit breaking something is a bug in that init_code to fix at the root (precedent: the v7 swap_subs reinit crash, fixed in the loader, not avoided), never a reason to caution against reinit. Confirmed 2026-09-18: `coding.reload init` cleanly rebound a `$code{...}`-bound SIGCHLD handler with all live server/sweep state surviving intact.
 - [multi-commit-needs-version-bump-per-commit](feedback-multi-commit-needs-version-bump-per-commit.md) — this repo's pre-commit hook rejects a 2nd/3rd batched commit in one session with "version mismatch detected" unless `./bin/dev/update-version` is re-run immediately before EACH commit (not once per session); occasionally also needs an explicit re-sign pass on the touched version/doc files first if the hook's own auto-signing doesn't catch it
@@ -140,8 +141,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [parallel-redundancy-during-migration-is-deliberate](feedback-parallel-redundancy-during-migration-is-deliberate.md) — general philosophy: standalone-script-to-zenka (and similar) migrations deliberately run parallel/redundant code paths for a while -- functional stability + independent upgrade safety + eventual convergence onto whichever proves better; don't default to flagging this as a gap or rushing to unify, only raise it if the paths silently diverge in behavior or the redundancy has clearly outlived its purpose
 - [verify-staged-content-before-commit](feedback-verify-staged-content-before-commit.md) — 2026-09-17: landed an incomplete commit by only re-`git add`ing untracked (`??`) files before committing; 4 already-tracked files were ALSO still unstaged (leading-space `M`) and got silently left out, shipping stale content (a `$reinit` guard missing entirely). Always read full `git status --short` / diff `--cached --stat` vs plain `--stat` before every commit, not just scan for `??`
 
-#,,..,,,,,,.,,,..,..,,.,.,.,,,...,..,,,,.,.,,,..,,...,...,...,.,.,.,,,.,,,,,,,
-#AHCNW2QRW25YRVFMIH6YRSGCTVX4FVGIFYKS3DBC4WZDLH6OERH5NVYHO3G4Y6DTKKTZZAKQMUTAC
-#\\\|R6TFO2UUH4Z4SGDAINEQDFLTETNR53STP2MN7U4T3UQK5JWGKJ6 \ / AMOS7 \ YOURUM ::
-#\[7]HN6Q7PTREBEXNK2UASJZHEA6JPBUXT4XWUIXW6T6CLA3EIAWSADA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,.,,,.,,,,,,,,,,,,,,,,..,.,,,..,,...,...,...,,..,.,.,,,.,.,,,
+#I273NSEFKJP3VPVOOWPW5OEGRQQ7QLZTV4LBS2GKFBRKE23EXAWFVRTRY6RFSQ6EFXZSJPI57UJ4A
+#\\\|YIZGZ6B54PIFAXZ2WV7VGGHFRNGOCQ7MILJC5AHAVAJQIDSGPZ7 \ / AMOS7 \ YOURUM ::
+#\[7]4G42G3I3F2JRYOK74Z7M3JOX2NV6LPSE4AZAJB3EKBPK2CEMNMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

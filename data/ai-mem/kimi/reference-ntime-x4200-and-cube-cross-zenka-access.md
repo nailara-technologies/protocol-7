@@ -37,8 +37,28 @@ claude/kimi numbers, TTL-fresh for 300s, on-demand usage zenka starts on first r
 Note: reload preserves runtime %data — a change of time SCALE in a stored timestamp
 survives `reload source` and can read as nonsense; `v7-zenki.restart <zenka>` clears it.
 
-#,,.,,,..,...,,,,,,.,,,.,,,,,,..,,,,,,,,,,,..,..,,...,..,,,..,,,.,,,,,,.,,.,,,
-#7JUCRXE6XHT3AXTPWWSPEVYMV3MTSMQGGHXWXO4PNQJEZQD563PU5T7VUG4CUX6G3DKJT4N2TFHRS
-#\\\|P7BPMB4B2U46ONUFAYEY6EY2CFABPA6WL63ZCXII4J3FRKUKCOG \ / AMOS7 \ YOURUM ::
-#\[7]XQQW6EKFKCNNLBHI7UDDWQ6MDWOZFBT5CYNYUETZN2SJKKYS7YCQ 7  DATA SIGNATURE ::
+## UPDATE 2026-09-20: this fact got rediscovered the hard way, plus a real bug found
+
+A later session reached for `v7-zenki.restart <zenka>` (twice, models then coding) after
+a new `access.cmd.usr.cube` command grant + a `modules.load` addition didn't take effect via
+`<zenka>.reload source` — not knowing this file already had the answer. `<zenka>.reload
+config` (a *separate* call from `reload source`) would have applied both without any
+restart. Check memory before reaching for a heavier fix than necessary.
+
+While verifying this, found `base.cmd.reload` (`src/base.cmd.reload`) ran
+`base.reload_config` (repopulates `access.cmd.usr`) for both `config` and `all`, but
+gated the actual `base.parser.access_conf` recompile (the step that turns `access.cmd.usr`
+into the regex masks cube checks) on `$arg eq qw| config |` specifically — `reload all`,
+and a bare `<zenka>.reload` with no keyword (defaults to `all`), skipped it. Mostly
+self-healed in practice: `base.init_code` (run by `all`'s own later `init` block) calls
+`access_conf` unconditionally, so `all` wasn't left permanently stale — but it was quietly
+depending on that later step to cover an earlier one's skip, inconsistent with the rest of
+the block treating `config`/`all` identically. Fixed: the `access_conf` call now also
+fires for `all`. See [[project-2026-09-20-model-sweep-crash-bucket-resolved]] for the
+session this landed in.
+
+#,,,.,,,.,...,,..,,,,,,.,,.,.,,.,,.,.,,.,,,,,,..,,...,...,.,.,..,,,,.,.,,,.,,,
+#O3EV4G5V7K2BNBBUBAYPBJ4UHEYD3B35M2P7UGEZGML4VSDCW4TNKSD7I3ZY7EIHI37I2DS7ERXXO
+#\\\|KQSAIRILEOPJSBCDV7PJD6BMDSWDVY6SB6EHBAWUSAAAJKQXYXD \ / AMOS7 \ YOURUM ::
+#\[7]R7XXFN3KK65P5NL7IIPQVCTF4AZSVM7Z46GCUTZHFAM6VYCDTCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
