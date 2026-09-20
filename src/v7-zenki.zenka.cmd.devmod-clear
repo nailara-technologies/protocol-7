@@ -1,0 +1,146 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.devmod-clear
+# param = [instance|name]
+# descr = clear remembered devmod state for zenka [instance]
+#         so the next restart does not auto re-enable devmod
+# note  = without parameters the calling zenka's own instance is
+#         cleared [ cube injects source zenka name + sid via the
+#         source_zenka_sid alias set-up ]
+
+my $params = $call->{'args'} // '';
+
+##  first two arguments are injected by cube  [ source zenka + sid ]  ##
+my ( $source_zenka, $source_sid, $target_params ) = split( m| |, $params, 3 );
+
+unless ( defined $source_sid and $source_sid =~ m|^\d+$| ) {
+    <[base.logs]>->(
+        1, 'devmod-clear: no source sid injected [ cube misconfigured? ]'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'source zenka sid not available'
+    };
+}
+
+my @instance_ids;
+
+if ( defined $target_params and $target_params =~ m{\d+|\w+} ) {
+
+    ## explicit [ cross-instance ] targeting is admin-only  [ checked      ##
+    ## against cube's OWN injected identity, never a caller-supplied value ##
+    ## -- same trust boundary as the unix-auth identity fix ]              ##
+    my $admin_user = <system.admin-user>;
+    my $is_admin
+        = defined $admin_user
+        && ( $source_zenka eq $admin_user
+        || $source_zenka eq sprintf( qw| unix-%s |, $admin_user ) );
+
+    return {
+        'mode' => qw| false |,
+        'data' => 'only <admin-user> may clear devmod state on another zenka'
+        }
+        if not $is_admin;
+
+    ##  explicit target[s]  [ same resolution as devmod-enable ]  ##
+
+    my $user_re        = <regex.base>->{'usr'};
+    my $user_substr_re = <regex.base>->{'usr_subn'};
+
+    foreach my $param_str ( split( m| +|, $target_params ) ) {
+        if ( $param_str =~ m|^\d+$| ) {
+            return {
+                'mode' => qw| false |,
+                'data' => sprintf(
+                    "instance %s not found [ use "
+                        . "'v7-zenki.list' to see IDs ]",
+                    $param_str
+                )
+                }
+                if not exists <v7-zenki.zenka.instance>->{$param_str};
+            push( @instance_ids, $param_str );    ## numerical instance id ##
+        } else {
+            return {
+                'mode' => qw| false |,
+                'data' => sprintf(
+                    "zenka name '%s' " . "not valid [syntax]",
+                    $param_str
+                )
+                }
+                if $param_str !~ $user_re and $param_str !~ $user_substr_re;
+            my @results = <[v7-zenki.zenka-instances.get-ids]>->($param_str);
+            return {
+                'mode' => qw| false |,
+                'data' => sprintf(
+                    "no instance matches " . "for zenka '%s'",
+                    $param_str
+                )
+                }
+                if not @results;
+
+            ## matching [resolved] zenka name ##
+            push( @instance_ids, @results );
+        }
+    }
+} else {
+
+    ##  self-target  [ resolve own instance by injected cube sid ]  ##
+
+    foreach my $id (<[v7-zenki.instance_ids]>) {
+        my $instance = <v7-zenki.zenka.instance>->{$id};
+        push( @instance_ids, $id )
+            and last
+            if exists $instance->{'cube_sid'}
+            and defined $instance->{'cube_sid'}
+            and $instance->{'cube_sid'} == $source_sid;
+    }
+
+    unless (@instance_ids) {
+        <[base.logs]>->(
+            2,           'devmod-clear: sid %s not managed by v7 [ %s ]',
+            $source_sid, $source_zenka
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => 'caller zenka not managed by v7'
+        };
+    }
+}
+
+my $clear_count = 0;
+foreach my $instance_id (@instance_ids) {
+    my $instance      = <v7-zenki.zenka.instance>->{$instance_id};
+    my $name_of_zenka = $instance->{'zenka_name'};
+
+    if ( delete $instance->{'devmod_enabled'} ) {
+        $clear_count++;
+        <[base.logs]>->(
+            0,            "< devmod-clear > forgetting instance %d [ '%s' ]",
+            $instance_id, $name_of_zenka
+        );
+    } else {
+        <[base.logs]>->(
+            2,
+            "< devmod-clear > instance %d [ '%s' "
+                . "] has no remembered devmod state",
+            $instance_id,
+            $name_of_zenka
+        );
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'cleared remembered devmod state on %d of %d instance%s',
+        $clear_count,
+        scalar @instance_ids,
+        <[base.cnt_s]>->( scalar @instance_ids, qw| s | )
+    )
+};
+
+#,,,,,...,.,.,..,,.,,,,.,,,.,,...,...,,,,,.,,,..,,...,...,.,,,.,.,,,.,..,,,,.,
+#ACA7K3DGBKOQJEW2D4TW4JE7UM5CBDKSVG7PJTOSX2BNTWUWULO7T6AWOTBIUPKAYHRDDOIGMNZHC
+#\\\|WMIAA5CG7LK7ZNCXH75ZT4DCIYKJY4AWGCNL55LJELM3X62UM4D \ / AMOS7 \ YOURUM ::
+#\[7]ID7FBG5QMCCM2J2ZSGTMQJ7NVGO2UJO2OYOSYOEMA53Z5QOVBGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
