@@ -4,8 +4,18 @@
 # descr = timer handler: request model discovery from models zenka at startup
 
 ## send async request to models zenka - guaranteed online via dependency
-my $cmd_count = <[protocol-7.command.send.local]>->(
-    {   'command'   => 'models.cmd.discover',
+##
+## route-send, not a raw command.send.local -- models is a peer zenka
+## connected through cube, not a direct local session of coding, so a bare
+## send.local here always failed with 'unknown target : models' [ silently
+## mislogged as "models zenka offline" ] regardless of the command string.
+## route-send prepends parent_route [ here: ['cube'] ] so the command actually
+## resolves as cube.models.discover. also fixed: the command name itself was
+## 'models.cmd.discover', the internal src/ file-naming form -- the real
+## routable command is 'models.discover' [ matches the working call in
+## coding.cmd.clear-registry ]
+my $cmd_count = <[protocol-7.route-send]>->(
+    {   'command'   => 'models.discover',
         'call_args' => { 'args' => 'available' },
         'reply'     => {
             'handler' => 'coding.handler.models_discover_reply',
@@ -20,8 +30,8 @@ if ($cmd_count) {
     <[base.logs]>->( 1, 'models zenka offline during discovery request' );
 }
 
-#,,,.,...,,..,,..,.,.,,,.,,..,,.,,...,..,,,,,,..,,...,...,...,.,,,,.,,.,.,.,,,
-#BGCZZY5LUVK244NVS23RASEPAPL6EZ6FX2RUV7F77ZMECDLSVPNGRWIRVDC3FJVL4WMFUC7U4CF4C
-#\\\|HHJ2G3DWOWDJYDNIOGC7QBMKM6HO33UDBBTHBFCFL4YPI5FAVYE \ / AMOS7 \ YOURUM ::
-#\[7]IRA5KOGBYL7NVB7FWUD3N7LPJUR5MABQFDR53WKEUSXGRNOL4GDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,...,,.,,...,,.,,.,,,.,.,,,,,..,,...,...,.,,,.,,,...,..,,,.,,
+#GGLHRVLCT4YQKCME4PBJ4FAYAUPYUX5BOLEX6VS3LHTJAA546G6UZXYRLVJKUG733R27MI2FUA2Z2
+#\\\|BXLWJOWOVQV3AOJ6X37YWQJO5DMII3BVLF4KLDNDMJNPOUBBEJA \ / AMOS7 \ YOURUM ::
+#\[7]4FQ3OKOHXI4RX7SXLDZFUGD5F5MQMSOJKIJFUOLRRJF36WUOKOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

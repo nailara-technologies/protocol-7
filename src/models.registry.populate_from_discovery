@@ -39,7 +39,8 @@ foreach my $model ( $discovered->@* ) {
             'quantization' => $model->{'quantization'} // 'unknown',
             'size_gb'      => $model->{'size_gb'}      // 0,
             'is_vision'    => $model->{'is_vision'}    // FALSE,
-            'mmproj_path'  => $model->{'mmproj_path'}  // ''
+            'mmproj_path'  => $model->{'mmproj_path'}  // '',
+            'architecture' => $model->{'architecture'} // 'unknown'
         );
 
         my $changed = FALSE;
@@ -59,6 +60,7 @@ foreach my $model ( $discovered->@* ) {
             $existing_entry->{'size_gb'}      = $fresh{'size_gb'};
             $existing_entry->{'is_vision'}    = $fresh{'is_vision'};
             $existing_entry->{'mmproj_path'}  = $fresh{'mmproj_path'};
+            $existing_entry->{'architecture'} = $fresh{'architecture'};
             $existing_entry->{'updated_at'}   = <[base.ntime]>;
             $updated_count++;
         }
@@ -97,8 +99,9 @@ foreach my $model ( $discovered->@* ) {
         size_gb       => $model->{'size_gb'}      // 0,
         quantization  => $model->{'quantization'} // 'unknown',
         tier          => $model->{'tier'},
-        is_vision     => $model->{'is_vision'}   // FALSE,
-        mmproj_path   => $model->{'mmproj_path'} // '',
+        is_vision     => $model->{'is_vision'}    // FALSE,
+        mmproj_path   => $model->{'mmproj_path'}  // '',
+        architecture  => $model->{'architecture'} // 'unknown',
         source        => qw| discovered |,
         registered_at => <[base.ntime]>
     };
@@ -114,8 +117,8 @@ return {
     'updated' => $updated_count
 };
 
-#,,..,.,.,..,,..,,.,,,,,,,,..,,.,,.,,,..,,..,,..,,...,...,,..,.,,,.,,,,.,,.,,,
-#2FCWUBBQC7PJ2WZE2SPVJ244FDFQOLTKIDUKVUJNIH53KHKW7JP4GX4DIQL6VWXEN7MVSVIEK2BIS
-#\\\|PPPJNNG4PK22WJLG5E7GKOBFT6FTRARNVSRSZKXUV4JXN6HEJ5F \ / AMOS7 \ YOURUM ::
-#\[7]N2YMBSFJJ2AZ4GTJRHRLFRYAFQ46EDDW7ULRND5SZGWILMLVECCA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,,,,,.,,,.,.,...,..,,,.,,.,,,..,,...,...,,,.,..,,,..,.,,,...,
+#NDXLDBHUUJ2FGDCDNW5SSWKBCVRPDOGG3XKHUMXLWIDLGQH5PWRFEAAL7CRPTOQIRZ4GJ5VRV6J3Y
+#\\\|JKTC6Y6QE24TE2L3EOGGEXOXOWKED32IQQ64OC7Z24QTNYQBDJB \ / AMOS7 \ YOURUM ::
+#\[7]SHG5KE5MP6UTXGS5IXGNG3VU7HOWNFNQJDEJTYD2QJFGWNWVDGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
