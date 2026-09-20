@@ -21,13 +21,19 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       pid next pause playlist-update prev quit version \
                       reload-playlist resume seek show-playlist stop zoom \
                       append setting shuffle-playlist list change-subname \
-                      get-config-names get-config current-file is-idle dump \
+                      get-config-names get-config current-file is-idle \
                       get-speed set-speed get-volume set-volume show-buffer \
                       start-autoskip stop-autoskip autoskip-interval loop pos \
                       current-hwdec current-vo current-ao drop-buffers fade \
                       buffer-erase buffer-erase-level cur-pid \
                       clear-profile reposition snapshot-save snapshot-restore \
-                      src-ver src-age  * ## <-- disable again [devmod]
+                      src-ver src-age
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## command/pipe-cmd-raw are mpv's own raw control-pipe passthrough --    ##
+## same risk class as devmod's eval-code, same gate                      ##
+access.devcmd.usr.cube = devmod:* command pipe-cmd-raw
 
 modules.load = auth.client net protocol io.unix io.ip ui set-up.json chk-sum mpv \
               jobqueue window.profile window.profile.color window.geometry
@@ -198,8 +204,8 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [zenka.loop]
 
-#,,.,,.,.,.,,,..,,...,..,,,,,,,,.,,.,,...,.,.,..,,...,...,.,.,,..,.,,,,,,,,,,,
-#WB4BCEHZRSD5FSOYN2GBFBWVDDLHHHDBOUQHP3NMGAB2OXSCQ4WONMYKXXSYF6UZ3TKDHNEC7UKVY
-#\\\|LTPY3JJMYPISRWN2FX72NO3OKTPKVMIPNJP2DUGBCPR4UY3FNPB \ / AMOS7 \ YOURUM ::
-#\[7]XC6KYSVSW2DFFIQQOJVUP4YLJMYNCHUZQGWSEK3GLDVM3EDT6UDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,...,,.,,,,.,,,,,,.,,..,,,,,,,..,..,,...,...,..,,,..,.,,,...,.,.,
+#VYHICR3UA4ISNCZYKYAOFDLMRL43SQSGQS7RBDEWAD7BSYGU7M3S5VOUSSJ7AFE46YJTNZR4G43AU
+#\\\|B7NHEX3V6R7MTSAC6D7ZOKPNCEEM6QQBWXQMJMZXAFNZOGL35GM \ / AMOS7 \ YOURUM ::
+#\[7]SE4P7UTNJVTNNA733RHVTE65GIYMGMFTTOW6EUVQUOLUR3S626DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
