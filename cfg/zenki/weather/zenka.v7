@@ -9,9 +9,15 @@ system.access.wildcards.allow = 0
 access.cmd.usr.parent = commands reload show-buffer show-access verbosity \
                         list cpu-time cur-pid src-ver src-age name heart \
                         loaded-configs update_current update_forecast \
-                        get-station-id request-data \
-                        get dump echo ##  <-- devmod
+                        get-station-id request-data
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## exact names only : system.access.wildcards.allow = 0 strips 'devmod:*' ##
+access.devcmd.usr.parent = get dump echo
+
 acc_str.prefixed = [base.parser.prefix_str:'child.',<access.cmd.usr.parent>]
+acc_str.devcmd_prefixed = [base.parser.prefix_str:'child.',<access.devcmd.usr.parent>]
 
 # commands accessed from cube zenka [ parent or routed by it to child ]
 access.cmd.usr.cube = commands heart verify-instance reload name \
@@ -19,8 +25,13 @@ access.cmd.usr.cube = commands heart verify-instance reload name \
                       get-urls station-id clean-cache clear-location \
                       loaded-configs cpu-time src-ver src-age show-access \
                       location temp desc clouds humid wind present \
-                      <acc_str.prefixed> \ ## <-- include cube to child list
-                                  get dump  # <-- require loaded devmod module
+                      <acc_str.prefixed> ## <-- include cube to child list
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## exact names only : system.access.wildcards.allow = 0 strips 'devmod:*' ##
+access.devcmd.usr.cube = get dump <acc_str.devcmd_prefixed>
+
                       # reload command currently disabled
                       # [ as it is dropping parent cmds ]
 [base.del_key:'acc_str'] ## clean-up
@@ -104,8 +115,8 @@ modules.load = auth.client net protocol io.unix io.ip ui weather.base
 
 [zenka.loop]  ## processing \ serving network commands
 
-#,,..,,,,,,,.,.,,,..,,.,,,.,,,,,.,...,,..,,,.,..,,...,..,,..,,...,.,,,.,.,,.,,
-#S5QW7HKABR65EQI2VGFXRNHEJLDHJBE43SI54AX2Z5KAUEJVDXHKIXCEAEWQ7NXA7D6LPMGE2DNWS
-#\\\|VGZE2UPTUU4PI7UWT2AVW7VX3TFAS6TWJNP3GY7QXLDE5Q3L2NP \ / AMOS7 \ YOURUM ::
-#\[7]CLT26MUNUPXP3SUCXPFHPAJYHBZQGMHU5IY6CHKLEM3FA53MHUCA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,.,.,...,,,,,,.,,,,,,,.,,..,,..,,...,...,,,.,.,,,.,,,,.,,,.,,
+#GLMVKOOXIIV2WKGYZT6FVL7QPZZ26O4MHMPHY2ACVPVGXUBTX5KPGJUMGGHDT2OCHM34MKK4AP57S
+#\\\|6XQSVEZWRLEKDY5JNZTVCFB4LKK5GNOBD3TIDWR42V7JAZZQHLO \ / AMOS7 \ YOURUM ::
+#\[7]KGKGOMVMXDDC74UZFCJ6TE4RZY7RE2LU3DXEXA7YZYA4IUD66EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
