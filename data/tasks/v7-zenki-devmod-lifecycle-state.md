@@ -177,14 +177,44 @@ devmod state, never anyone else's, regardless of what params it passes.
   stop/offline → later-start instance-hash reuse semantics are
   traced.
 
+## security property : v7-zenki itself is not a valid devmod-enable target
+
+confirmed 2026-09-20, not something this pass built -- an existing
+structural fact worth documenting rather than leaving as tribal
+knowledge. `devmod` does not appear in `cfg/zenki/v7-zenki/zenka.v7`'s
+own `modules.load`, and v7-zenki never adds itself to
+`<v7-zenki.zenka.instance>` -- that table only ever holds the CHILD
+zenki it manages. `v7-zenki.zenka.cmd.devmod-enable`'s target
+resolution [ numeric instance id, or a name resolved via
+`<[v7-zenki.zenka-instances.get-ids]>` ] is looked up in that same
+table, so there is no instance id that ever resolves to v7-zenki's own
+process. over the network -- even as `<admin-user>` -- there is no
+command path that loads devmod, and therefore `exec-sub`/`eval-code`,
+into whatever elevated-privilege process v7-zenki is [ it manages
+`[root.drop_privs:<user>]` for the zenki it spawns, plausibly retaining
+root itself ].
+
+**scope of this property, precisely:** this holds ONLY against someone
+who has network/command-level access alone. `pkill -53 v7-zenki` [ or
+`kill -53 <pid>` ] delivers SIGNUM53 directly via the kernel and is
+handled by `src/base.sig_NUM53` identically to a network-originated
+signal -- it never passes through `base.has_access` or any
+access.*.usr mask, because it isn't a Protocol-7 command at all. local
+root, or the same unix user v7-zenki runs as, can always bypass every
+layer built this session this way. this is not a gap in the feature --
+no userspace access-control system can defend against the OS-level
+privilege its own process runs under -- but it means "cannot escalate
+to root over the network alone" is the precise claim, not "cannot
+escalate to root."
+
 ## related
 
 - [[devcmd-namespace-wildcard-permissions]] — `data/tasks/devcmd-
   namespace-wildcard-permissions.md`, the permission-mask side of this
   same devmod-hardening effort, implemented 2026-09-20.
 
-#,,,,,..,,.,.,.,.,,.,,,.,,...,..,,.,.,,..,,.,,..,,...,...,..,,,.,,,,.,.,.,,.,,
-#2EKL3BSOJI72FKUHWQ6D5ECWDRO6LJVCF3H4LZD4ZEB75OH6P4QPRUFGODB2UKEIM2J4BQJKLOMIG
-#\\\|22GD53REYXKMCL6P6676477U2EHPEMPAMZ4YCUFAETUHQ6WP4SN \ / AMOS7 \ YOURUM ::
-#\[7]EKKAQYHGJKRBFSYP54MUCDXPYRP4VH3QYIRYI4GB54UWVGXG76DI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,,.,,...,..,,.,,,.,,,,..,..,,..,,...,...,.,,,,,.,.,,,,.,,,,,,
+#5VO7JT6VIX7KR2UOSHIDYSIKFAICP4A33EZOLPCB4WHOYKO7GO43IOYR37KSSBECXCCQNYGL35LZM
+#\\\|VL2QJZ52XE5BSWOLPCDIC427CAHQ2BRT7AYFSNT6DI4JU6FLABV \ / AMOS7 \ YOURUM ::
+#\[7]D2SVTWRSMCMHOOBUPNBOI4RINMSDDKKXIUSMAHFF7XWSTEJCYGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
