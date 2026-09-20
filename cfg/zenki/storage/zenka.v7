@@ -22,14 +22,17 @@ modules.load  =  auth.client net protocol io.unix ui storage plan-9 \
 access.cmd.usr.cube-13 = whoami name heart commands src-ver rel-ver src-age
 
 access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
-                         list list-deps src-ver rel-ver src-age \
+                         list src-ver rel-ver src-age \
                          show-buffer buffer-erase buffer-erase-level \
                          name subname plan9-connect plan9-scan \
                          plan9-read-file plan9-write-file \
                          plan9-create plan9-remove plan9-rename \
                          plan9-resize map-file \
-                         lookup-checksum p7ref \
-                         * ## <-- devmod [ restrict later ]
+                         lookup-checksum p7ref visual
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+access.devcmd.usr.cube = devmod:*
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -41,8 +44,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
 
 [zenka.loop]
 
-#,,.,,.,,,,..,,.,,,,,,..,,...,.,,,...,..,,,..,..,,...,...,...,.,.,,.,,...,,.,,
-#KE7IXP7KG3NIOYBOX2Y5A2AIZTSKS55LA75ODQZC5GKQAQCSP4NZO34AOYVW6DMWWP3EODI3TPP2E
-#\\\|VHSUEXC5PKSKEU46AC2G2KT6RDQWMFMYCMJIYZKD6DRDIEMLEEC \ / AMOS7 \ YOURUM ::
-#\[7]WE6252JGR5TAB4XTRY3Z7B3YUSTIK73PPQBLQN4SSHJCID5454DA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,.,.,,..,.,,,,,.,,,.,...,,..,..,,...,..,,,,.,..,,..,,,,.,,,.,
+#2SK6VD4Q2QY6JWPBG67QUWDBS74Q3KFFF4KD6IEBF5RW5AFIUJKOUHD737VWA5HSDPEWVBWPSDPTA
+#\\\|3AEGEQT2LGSKQBPNEZ4ER5NEDOC5ERORLP26SFTVAZFVAGLRXSS \ / AMOS7 \ YOURUM ::
+#\[7]5PH5EF75VTTC4E35SMJVPSRN3T3O7H2XO5CT6YANOYZH554WK4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
