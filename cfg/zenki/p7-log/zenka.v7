@@ -13,15 +13,15 @@ p7-log.anon.token_len  =  13
 
 modules.load        =  auth.client net protocol io.unix io.ip ui p7-log
 
-devmod.subs          =  get since dump dump-env echo exec-sub list-subs \
-                       set del sleep keep-devmod-loaded unload-devmod
-
 access.cmd.usr.cube =  append commands heart reload cur-pid verify-instance \
-                       list-logs change-log-verbosity \
+                       list-logs \
                        list show-buffer buffer-erase buffer-erase-level \
                        set-name-width file-sizes verbosity \
-                       resolve anon.resolve resolve-line anon.resolve-line \
-                       <devmod.subs>
+                       resolve anon.resolve resolve-line anon.resolve-line
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+access.devcmd.usr.cube = devmod:*
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -33,8 +33,8 @@ access.cmd.usr.cube =  append commands heart reload cur-pid verify-instance \
 
 [zenka.loop]
 
-#,,.,,,,.,.,.,.,.,.,.,..,,.,.,.,,,,,.,.,.,...,..,,...,...,..,,,..,...,,,,,.,,,
-#MM4INAE7WFMIONCPTYITOHZ7ZPTKPCOJZR57J4KIAFUUBEEA6PBHHLBTW5HF5DBEZBGVWYGUJRDWY
-#\\\|KXEDQO7XQHCLXRYCWMGZQ3VOCCGDOVCEOCRVZA3BSDER4IU65OD \ / AMOS7 \ YOURUM ::
-#\[7]4AKEB4NLVNY5TTSVLJKLCYH35F7TRAZRJKFOPJSOVZTYMBRXUKBY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,.,.,.,.,.,.,,,,..,,.,,,,.,..,,..,,...,...,...,,,.,..,,.,.,,,.,
+#ROXH7F7P7WWK6HUM45SD7FRHIT6W6EMRX4KH7OYS2RAZWCMQYBOB7YGS6UVGYEFV7QIBZLUNZXU4I
+#\\\|NU7T3G5EONPDEWW2IXBWTLDG2CNFFMGEXNK5GYA6I7BIJRVB32W \ / AMOS7 \ YOURUM ::
+#\[7]QM27V4AUO4Y6W3YBSNIC3OKKSUEFKJCP2VQOUOPQBGII7VAEASCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,8 +8,12 @@ transport.cfg.probe_interval = 30
 
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
-                      status cred-rotated \
-                      eval-code ## <-- dev only, harness scenarios 2/3 (F2/F8)
+                      status cred-rotated
+
+## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## harness scenarios 2/3 (F2/F8) now need devmod-enable before eval-code ##
+access.devcmd.usr.cube = devmod:*
 
 env_override_allowed = PROTOCOL_7_VAR
 
@@ -28,8 +32,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml transport d
 
 [zenka.loop]
 
-#,,.,,,.,,,,.,.,.,..,,,,,,.,.,,,.,.,.,.,,,,.,,..,,...,...,...,..,,,..,..,,.,,,
-#G24GOWLZS7TPRJT4B3H7VDSW77SBTN6WUUXD65ZCDQX2YTPVXHU2JR4KNXXLRNJ5WD7XQQC5I6G7O
-#\\\|WHRDTFCRSDQ3UUASN4IVEEXQYVPJO5IA6F7AXIQHXDPJOFRY7VO \ / AMOS7 \ YOURUM ::
-#\[7]JP36EE33RKR4P4BIL5AM5UGLKPAILAGPVL5WH7YB3356AUPFZIDY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,.,,,..,,,..,.,.,,..,...,...,..,,...,...,.,.,,.,,,..,,..,,..,
+#ZZ7GVJEOJFNQBZTCTOXKSZUEIY67UAMUAGVO25US2QAMUWFF7QEY6JHI66WYUWLBUW65FYL4DF5NE
+#\\\|HAYK5R5FOD5FUQRF46PUX3A3RIJHUH34N5MYAKK5FA6N6VQZE6H \ / AMOS7 \ YOURUM ::
+#\[7]O55XL44MU2O446CB6IGQSILBORAC3OT32A3X5YRIE5OI7TXZVCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
