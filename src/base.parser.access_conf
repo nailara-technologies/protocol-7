@@ -26,6 +26,9 @@ my $wildcard_permissions_allowed          #                            :::
     = <[base.cfg_bool]>->(<system.access.wildcards.allow>);    #       :::
 ## :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+##  devmod command mask source availability [ same sentinel as SIG NUM53 ]  ##
+my $devmod_present = <[base.code.exists]>->(qw| devmod.dump |);
+
 ## [ LLL ] create command registry in module initialization code ..,
 
 my $wildcards_used   = 0;
@@ -34,8 +37,13 @@ my $disallowed_match = {};
 my $disallowed_count = 0;
 
 my $user_processed = {};
-foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
-    my $access_cfg_mask = <access.cmd.usr>->{$user};
+my %mask_user      = map { $ARG => 1 } keys <access.cmd.usr>->%*;
+if ($devmod_present) {
+    map { $mask_user{$ARG} = 1 } keys <access.devcmd.usr>->%*;
+}
+
+foreach my $user ( <[base.reverse-sort]>->( \%mask_user ) ) {
+    my $access_cfg_mask = <access.cmd.usr>->{$user} // '';
     my @regex_mask;
     my $pos = 0;
 
@@ -59,6 +67,19 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
 
         my @split_mask = <[base.reverse-sort]>
             ->( uniq split( m|[ \t]+|, $access_cfg_mask ) );
+
+        ## fold in devmod command mask patterns when devmod is loaded [ ##
+        ## presence of the entry is the per-user devcmd whitelist ]     ##
+        my %devcmd_pattern = ();
+        if ( $devmod_present and defined <access.devcmd.usr>->{$config_user} )
+        {
+            my @devcmd_split = split m|[ \t]+|,
+                <access.devcmd.usr>->{$config_user};
+            map { $devcmd_pattern{$ARG} = TRUE } @devcmd_split;
+            push( @split_mask,
+                <[base.reverse-sort]>->( uniq @devcmd_split ) );
+        }
+        ##
 
         my @patterns_kept;
         foreach my $cmd (@split_mask) {
@@ -90,14 +111,18 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
                     }
                 } else {
                     $wildcards_used++ if $cmd =~ m{^\.\*\*|\*\*|\*|\%};
-                    $cmd                      =~ s|^\.\*\*,[^\.\\^]|%|;
-                    $cmd                      =~ s|\*\*|.+|g;
-                    $cmd                      =~ s|^\.\*|[^\\\.\\^][^\\.]%|;
-                    $cmd                      =~ s|\*|[^\\.]+|g;
-                    $cmd                      =~ s|\%|*|g;
+                    ## namespace wildcard : '<ns>:*' -> '<ns>\..+' ##
+                    $cmd =~ s|:\*|\\..+|g;
+                    $cmd =~ s|^\.\*\*,[^\.\\^]|%|;
+                    $cmd =~ s|\*\*|.+|g;
+                    $cmd =~ s|^\.\*|[^\\\.\\^][^\\.]%|;
+                    $cmd =~ s|\*|[^\\.]+|g;
+                    $cmd =~ s|\%|*|g;
                 }
                 next if not length($cmd);
-                push( @patterns_kept, $unchanged_pattern );
+                ## devcmd patterns never rewrite <access.cmd.usr> ##
+                push( @patterns_kept, $unchanged_pattern )
+                    unless $devcmd_pattern{$unchanged_pattern};
 
                 ## strict match from here ##
                 my $completed_re = sprintf( '^%s$', $cmd );
@@ -130,7 +155,9 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         }
         ##
 
-        goto SKIP_COMPILATION if not exists <access.cmd.usr>->{$config_user};
+        goto SKIP_COMPILATION
+            if not exists <access.cmd.usr>->{$config_user}
+            and not keys %devcmd_pattern;
 
         my $regex_mask_str = join( '|', @regex_mask ) // '';
 
@@ -242,8 +269,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,.,,..,,...,,,,,,,.,,,.,,,.,,.,,,.,,..,,,.,,..,,...,.,.,.,.,...,,,,,.,,,,.,,
-#LROTNK776KA4XRGDE44ENXT57OJHW6JHS4Y5IYCQ7XOJA7WIU5HAZRYFK7XXV3CGFODEGORE6ZG5E
-#\\\|TQRA4NGYQZ4FEQNLKDCQREO3VWR4WIVZVO6FBP7BESBT3VTB3XA \ / AMOS7 \ YOURUM ::
-#\[7]V43QOYTI3IQ4H7DP25BI4AAV7TVFU6QGHNL737E4OJZAHR7NGKCY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,.,,,,,.,,..,,,,,,..,...,,,,,..,,...,..,,,.,,..,,,.,,,,,,,,,,
+#7AGEHRWZUJWQWASWTE7BQRONNW5KUKFFVDVDQHWXOSK3ZJYLZBTHIVCZ2KHD54VASUOQA2IAPVRVI
+#\\\|233S7YNNOZU3FIZ2LGHNNOSK3ZDGY4TVPUYZ6R64Z7IDVWFAQFZ \ / AMOS7 \ YOURUM ::
+#\[7]7DOJ6IWXQ34LLCJ3XMHGJT6JZJC6R7KNVYNHHFG7C3JJXGCMW4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
