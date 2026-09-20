@@ -14,7 +14,8 @@ system.zenka.verbosity.buffer   =  1   ##  set to 2 or 3 for debugging  ##
 system.zenka.verbosity.logfile  =  0
 system.zenka.verbosity.console  =  1
 #
-modules.load = auth.client net protocol io.unix ui jobqueue models devmod ## <-- dev.
+modules.load = auth.client net protocol io.unix ui jobqueue \
+               models format.yaml                    devmod ## <-- dev.
 
 ## Access Control - Commands This Zenka Exposes
 #
@@ -36,6 +37,8 @@ access.cmd.usr.cube = heart verify-instance commands reload show-access \
                       list-subs permission-setup since unload-unsafe \
                       unload-devmod get_inference_endpoint scan-path-add \
                       scan-path-del task-notify \
+                      delete-model trash-list trash-rescue trash-prune \
+                      protect unprotect list-protected \
                       adapter-discover adapter-resolve adapter-repair \
                       adapter-lmstudio-discover adapter-lmstudio-resolve \
                       adapter-lmstudio-repair adapter-export adapter-import \
@@ -50,7 +53,7 @@ access.cmd.usr.cube = heart verify-instance commands reload show-access \
 #
 [root.drop_privs:<system.amos-zenka-user>]
 
-## default model for task dispatch (override kimi fallback)
+## default model for task dispatch [override kimi fallback]
 models.task.default_model = local
 
 ## Connect to Network
@@ -66,8 +69,8 @@ models.task.default_model = local
 #
 [zenka.loop]
 
-#,,.,,,.,,,..,,,.,.,.,,,,,,.,,,.,,,,.,...,,,,,..,,...,...,..,,.,.,,,,,...,,,,,
-#CHX3ZW2CMPQ7WYA6IC6XMLPJACWTLLYA3BAJKXGX2BQSV5LVEVRL5MBXGIJWLAFUZ6DYEKRJPXYMG
-#\\\|II7LZ63O7SRBAO2KD5SVPI6SLRVMUU6LE75LH672WIEFTOBWDTO \ / AMOS7 \ YOURUM ::
-#\[7]QSEAZWZYVGV4GRBTQEBJEVFEDJXKXJPAHZ6X3PKNHTFN6RS7PEDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,,.,,.,.,,,.,,..,,..,,,,,,,.,..,,...,...,.,,,,..,,..,,,,,,..,
+#IFYWZSJ6DQWRSJ4LXBNVTCQDWZHRZRDW5K3NLPQJWP7YDIGGQQ7LTRE6FY27IVYECF7AUSGU7TOBK
+#\\\|UALIP4SCLZWGYVVT6QX5KGMIFC5CCROBEVOJKAFHK6I7RJRFKPN \ / AMOS7 \ YOURUM ::
+#\[7]VAFLDXGOXQK3JD6WKGXDEKKONECMHFMOVUEWJUJRFDZYIQP3D4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

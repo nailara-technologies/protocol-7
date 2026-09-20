@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = models.trash.save_protected
+# descr = persist the in-memory <models.protected_checksums> hash to disk --
+#         called by protect/unprotect after mutating it
+
+my $path = <[file.zenka_dir.data_path]> . '/protected_checksums.yaml';
+my $dir  = $path;
+$dir =~ s|/[^/]+$||;
+<[file.path.make_dir]>->($dir) unless -d $dir;
+
+return
+    <[format.yaml.write_file]>->( $path, <models.protected_checksums> // {} );
+
+#,,.,,,.,,...,.,,,,,,,...,,,,,,.,,..,,...,...,..,,...,.,.,..,,..,,.,,,.,,,.,,,
+#BZBFK3TGT4OLJEK5P3RKMXH67SUX7NFZBUCIQ77XOOHHFGPFLXTCMGPPJTGX4MF2RTIH25OG4ZC7Y
+#\\\|JQWWARHQM6BKQSO7NULS5AUJOW4ZS7GLWHCZ57SQJ4PZPZTZ6YF \ / AMOS7 \ YOURUM ::
+#\[7]III3VYE64UCCI6LSCTW2TPMPJY5YW3GQAHFUFMTLAC6QK4DIKGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
