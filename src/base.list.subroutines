@@ -762,6 +762,7 @@ return [ qw[
         models.memory.show
         models.memory.name
         models.cmd.request
+        models.cmd.protect
         models.chat.append
         models.attach_file
         mod-test.post_init
@@ -1214,6 +1215,7 @@ return [ qw[
         models.memory.append
         models.escape.encode
         models.config.loader
+        models.cmd.unprotect
         models.cmd.recommend
         models.cmd.get_model
         models.chat.announce
@@ -1456,6 +1458,7 @@ return [ qw[
         models.registry.empty
         models.parser.size_gb
         models.local_discover
+        models.cmd.trash-list
         models.cmd.task_chain
         models.cmd.statistics
         models.cmd.app-models
@@ -1732,7 +1735,9 @@ return [ qw[
         mpv.cmd.change-subname
         mpv.check_rescale_path
         mpv.callback.play_next
+        models.trash.root_path
         models.registry.lookup
+        models.cmd.trash-prune
         models.cmd.task-notify
         models.cmd.maintenance
         models.cmd.find_models
@@ -2023,8 +2028,10 @@ return [ qw[
         models.storage.discover
         models.list_attachments
         models.escape.interpret
+        models.cmd.trash-rescue
         models.cmd.local_server
         models.cmd.extract_file
+        models.cmd.delete-model
         models.chat.expand_refs
         models.backend.kimi_web
         mod-test.cmd.strm-start
@@ -2556,6 +2563,7 @@ return [ qw[
         models.decision.cost_base
         models.cmd.test_api_limit
         models.cmd.local_discover
+        models.cmd.list-protected
         models.cmd.get_model_path
         models.cmd.consensus_vote
         models.cmd.adapter-repair
@@ -3070,6 +3078,8 @@ return [ qw[
         mpv.startup.job.fork_player
         mpv.handler.window_id_reply
         mpv.callback.reenc_finished
+        models.trash.save_protected
+        models.trash.load_protected
         models.task.fallback-direct
         models.task.delegate_bridge
         models.parser.str.is_vision
@@ -5602,8 +5612,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,.,,,,,...,,,,,...,.,,,.,.,.,,,,.,,,,,,.,.,...,...,.,,,..,,,,,,,,.,.,,,
-#BLZQKIXATFAYMG6VUGESYLJ7DJM5OJOCMB6PQLOKDWCI54VIC6OWJDEU2DFY6XNYHVVPLKMFODFME
-#\\\|QSXBBUOGN5XXR2CKGQLZ7JQMM7JXME66SHGV5F3V5624W4WKJT5 \ / AMOS7 \ YOURUM ::
-#\[7]VB4IBI57ZWQECCNBSSLL5O4VLBKEK7C4DJ3ANTE2YHQPLGZ4ZCDI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,..,,...,...,,.,,,.,,,,,,.,,,.,.,...,...,,,.,...,,,,,,,.,,.,,
+#F2NLRVP5ISBLINBU5PZE2ADDLDGCSKOPHGU24AXFNTRNCXYM6ZDMBN7XUYYXWQVITFHQLNM63TBQY
+#\\\|74FKRSLMNT2TKJUH7IWMHG5CUQYMVVIEDFKFU6XJTVV3A7MEN36 \ / AMOS7 \ YOURUM ::
+#\[7]I5KL3RJNU5SY5YLFGIEGFUJEC3UYGTYCY7RKGTT2MOCWBRA7DCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

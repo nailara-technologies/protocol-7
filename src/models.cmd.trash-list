@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = models.cmd.trash-list
+# descr = list trashed models with size/age
+# note  = mirrors note.trash.list / jobsite.cmd.list-trashed
+
+my $root      = <[models.trash.root_path]>;
+my $trash_dir = "$root/.trash";
+
+my @entries;
+
+for my $meta_path ( @{ <[file.glob]>->("$trash_dir/*/meta.yaml") } ) {
+    my $meta = <[format.yaml.load_file]>->($meta_path);
+    next unless ref $meta eq qw| HASH |;
+
+    ( my $item_dir = $meta_path ) =~ s|/meta\.yaml$||;
+
+    my $size_bytes = 0;
+    for my $f ( @{ <[file.glob]>->("$item_dir/*") } ) {
+        next if $f =~ m|/meta\.yaml$|;
+        $size_bytes += ( -s $f ) // 0;
+    }
+
+    push @entries,
+        {
+        'checksum'   => $meta->{'checksum'}   // '',
+        'name'       => $meta->{'name'}       // '',
+        'trashed_at' => $meta->{'trashed_at'} // 0,
+        'size_gb'    => sprintf( '%.2f', $size_bytes / 1073741824 ),
+        'path'       => $item_dir,
+        };
+}
+
+@entries = sort { $b->{'trashed_at'} <=> $a->{'trashed_at'} } @entries;
+
+unless (@entries) {
+    return { 'mode' => qw| size |, 'data' => "trash is empty\n" };
+}
+
+my $out = '';
+for my $e (@entries) {
+    $out .= sprintf "%-16s %-40s %8s GB  %s\n",
+        $e->{'checksum'}, substr( $e->{'name'}, 0, 40 ), $e->{'size_gb'},
+        $e->{'path'};
+}
+
+return { 'mode' => qw| size |, 'data' => $out };
+
+#,,,,,,..,,..,.,,,..,,...,,,,,,,,,.,.,.,.,.,,,..,,...,...,,,.,,,,,.,.,,.,,...,
+#IUG7NF4V5ARB6BVPMBZAPPZEITMBVMBPRANOKQM6B4AGM6UATO7NSIELQFNC4MY4PH2HHZNLBXQPY
+#\\\|HPUYNJKVL4DUJRZ6RFIPSRIGPBOYOREKGZA6DJLPUPUJO6BCXO6 \ / AMOS7 \ YOURUM ::
+#\[7]CJ5WLVODN6VWWJ5IXLFM5YUNI27XDKOF5K4CR2EJMDV7CULN7SAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

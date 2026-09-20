@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = models.trash.load_protected
+# descr = load the opt-in delete-protection checksum list from disk --
+#         called once, lazily, via <models.protected_checksums> //= in
+#         every command that touches it, so a restart-less zenka never
+#         re-reads the file on every single call
+
+my $path = <[file.zenka_dir.data_path]> . '/protected_checksums.yaml';
+
+return {} unless -f $path;
+
+my $loaded = <[format.yaml.load_file]>->($path);
+
+return ( ref $loaded eq qw| HASH | ) ? $loaded : {};
+
+#,,,.,..,,,,,,.,.,.,.,,,,,,..,...,.,.,,,,,.,,,..,,...,...,...,.,,,,,.,...,,,,,
+#AM3HMY44HGRW7PO5AIWZXJI646VNXZU3HG56AVNMZUTVFGXPTNXZOYKFTIHRSPQD477EQS6RREFDG
+#\\\|EVXKVV5PYDOI3RXJGEEGZJMGLPNXYWPVJKXEUL6EJRYEHU7AQSV \ / AMOS7 \ YOURUM ::
+#\[7]SEC23ZFBNQUTFQFUGBWMQJLUOSTIPJOZSJ7FKOQAVF4EJ3MHDYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,220 @@
+## [:< ##
+
+# name  = models.cmd.delete-model
+# param = <checksum>
+# descr = move a model's file(s) to trash [ recoverable ]
+# note  = never permanently deletes -- see trash-prune for
+#         that. refuses a protected checksum outright, and
+#         refuses anything whose resolved path does not
+#         canonicalize to under the configured lmstudio
+#         root [ path-escape protection -- a hand-edited
+#         'definitions' entry is not bounded to the
+#         discovered-registry adapters' root the way a
+#         scanned model is ]
+
+use File::Basename qw| basename dirname |;
+use Cwd            qw| abs_path |;
+
+my $checksum = $call->{'args'} // '';
+$checksum =~ s|^\s+||;
+$checksum =~ s|\s+$||;
+
+unless ( length $checksum ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "Usage: delete-model <checksum>\n"
+    };
+}
+
+<models.protected_checksums> //= <[models.trash.load_protected]>;
+
+if ( <models.protected_checksums>->{$checksum} ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: $checksum is protected -- unprotect first "
+            . "(models.unprotect $checksum) if you really want to "
+            . "delete it\n"
+    };
+}
+
+my $entry = <[models.resolve.entry]>->($checksum);
+unless ( defined $entry ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model not found: $checksum\n"
+    };
+}
+
+my $file_path   = $entry->{'file_path'}   // '';
+my $mmproj_path = $entry->{'mmproj_path'} // '';
+
+unless ( length $file_path && -f $file_path ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model file not found on disk: '$file_path'\n"
+    };
+}
+
+## path-escape protection : canonicalize [ resolves any .. / symlink ] and ##
+## require the result to sit under the configured lmstudio root, no matter ##
+## which lookup path (alias / definitions / discovered registry) produced  ##
+## the entry                                                               ##
+my $root      = <[models.trash.root_path]>;
+my $real_root = abs_path($root)      // $root;
+my $real_file = abs_path($file_path) // $file_path;
+
+unless ( length $real_file and index( $real_file, "$real_root/" ) == 0 ) {
+    <[base.logs]>->(
+        0,
+        '[delete-model] refusing %s : resolved path escapes '
+            . 'the configured models root [ path=%s root=%s ]',
+        $checksum,
+        $real_file,
+        $real_root
+    );
+    return {
+        'mode' => qw| size |,
+        'data' => "error: refusing to delete -- resolved path '$real_file' "
+            . "is outside the configured models root '$real_root'\n"
+    };
+}
+
+my $real_mmproj;
+if ( length $mmproj_path and -f $mmproj_path ) {
+    my $candidate = abs_path($mmproj_path) // $mmproj_path;
+    if ( index( $candidate, "$real_root/" ) == 0 ) {
+        $real_mmproj = $candidate;
+    } else {
+        <[base.logs]>->(
+            0,
+            '[delete-model] refusing %s : mmproj path escapes '
+                . 'the configured models root [ path=%s root=%s ]',
+            $checksum,
+            $candidate,
+            $real_root
+        );
+        return {
+            'mode' => qw| size |,
+            'data' => "error: refusing to delete -- mmproj path '$candidate' "
+                . "is outside the configured models root\n"
+        };
+    }
+}
+
+## same-filesystem move : instant regardless of model size, content never ##
+## touches memory [ unlike note.trash.stash's xz+base32 approach, correct ##
+## for small text but would be catastrophic for a multi-GB gguf file ]    ##
+my $ntime = <[base.ntime]>;
+( my $safe_checksum = $checksum ) =~ s|[^A-Za-z0-9]|_|g;
+my $trash_item_dir = "$real_root/.trash/${ntime}__${safe_checksum}";
+
+unless ( <[file.path.make_dir]>->($trash_item_dir) ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: failed to create trash directory: $trash_item_dir\n"
+    };
+}
+
+my $new_file_path = "$trash_item_dir/" . basename($real_file);
+unless ( rename( $real_file, $new_file_path ) ) {
+    my $err = $OS_ERROR;
+    rmdir $trash_item_dir;    ## nothing moved yet : don't leave debris ##
+    return {
+        'mode' => qw| size |,
+        'data' => "error: failed to move file to trash [ check ownership "
+            . 'of \''
+            . dirname($real_file)
+            . "' ] : $err\n"
+    };
+}
+
+## write the sidecar IMMEDIATELY once the file has actually moved -- ANY  ##
+## failure past this point [ mmproj rename, the sidecar write itself, a   ##
+## crash from an undefined sub, whatever ] must never leave a moved file  ##
+## with no recorded original path : trash-list/trash-rescue both key off  ##
+## this file existing, and a file sitting in trash with nothing pointing  ##
+## back to where it came from is effectively lost. confirmed live         ##
+## 2026-09-20 : an undefined-sub crash [ format.yaml not loaded in this   ##
+## zenka yet ] hit the OLD code's post-rename, pre-sidecar gap exactly -- ##
+## recovered by hand, but should never have been possible                 ##
+my $meta = {
+    'checksum'             => $checksum,
+    'name'                 => $entry->{'name'} // '',
+    'original_path'        => $real_file,
+    'original_mmproj_path' => ( defined $real_mmproj ? $real_mmproj : '' ),
+    'trashed_at'           => $ntime,
+};
+<[base.logs]>->(
+    2,         '[delete-model] %s moved to %s, writing sidecar',
+    $checksum, $trash_item_dir
+);
+unless ( <[format.yaml.write_file]>->( "$trash_item_dir/meta.yaml", $meta ) )
+{
+    <[base.logs]>->(
+        0,
+        '[delete-model] %s : file moved to %s but sidecar write FAILED -- '
+            . 'recoverable by hand [ original_path=%s ], but trash-rescue '
+            . 'cannot find it without a meta.yaml',
+        $checksum,
+        $trash_item_dir,
+        $real_file
+    );
+    return {
+        'mode' => qw| size |,
+        'data' => "warning: $checksum moved to $trash_item_dir but its "
+            . "sidecar failed to write -- recoverable by hand "
+            . "only, original path was: $real_file\n"
+    };
+}
+
+my $new_mmproj_path = '';
+if ( defined $real_mmproj ) {
+    $new_mmproj_path = "$trash_item_dir/" . basename($real_mmproj);
+    unless ( rename( $real_mmproj, $new_mmproj_path ) ) {
+        <[base.logs]>->(
+            0,
+            '[delete-model] moved model file but FAILED to move mmproj %s '
+                . ': %s -- left in place, sidecar records it as un-trashed',
+            $real_mmproj,
+            $OS_ERROR
+        );
+        $new_mmproj_path = '';    ## record honestly : not actually trashed ##
+
+        ## sidecar already claimed the mmproj was trashed too : correct it ##
+        $meta->{'original_mmproj_path'} = '';
+        <[format.yaml.write_file]>->( "$trash_item_dir/meta.yaml", $meta );
+    }
+}
+
+## keep the in-memory registry in sync so a lookup in THIS process stops ##
+## pointing at the now-moved file immediately -- a future discovery scan ##
+## would self-heal this anyway, but no reason to wait for that           ##
+delete <models.registry>->{$checksum}
+    if exists <models.registry> and exists <models.registry>->{$checksum};
+
+<[base.logs]>->(
+    1, '[delete-model] trashed %s [%s] -> %s',
+    $checksum, ( $entry->{'name'} // '' ),
+    $trash_item_dir
+);
+
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| models-action |,
+    join( ' ',
+        $time_stamp, 1, 'system', 'delete-model',
+        $checksum,   $trash_item_dir, 'completed' ),
+    1
+);
+
+return {
+    'mode' => qw| size |,
+    'data' => "trashed $checksum -> $trash_item_dir\nrestore "
+        . "with: models.trash-rescue $checksum\n"
+};
+
+#,,,.,,,,,..,,..,,..,,,.,,,,.,.,.,..,,,,,,,,,,..,,...,.,.,...,,,.,..,,...,.,,,
+#OBOES37PSRSIQJVYFXCSPCWSFJ7SSIWIDPDZ6VRCWKZTQHKU4GHLMYMOSHT33CTFYV4UDTUZIJ2YQ
+#\\\|IT3545KTTYIBUFF6GVOUFGSYDKMGJ2QTVTYGMFJ6NIVDWM2XSFY \ / AMOS7 \ YOURUM ::
+#\[7]IQAO4GZ6F3E3UPBKZG7UN5MOENH7LGUI6V4TRBG5VXSEUYCIR6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

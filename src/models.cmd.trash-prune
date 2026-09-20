@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = models.cmd.trash-prune
+# param = [keep_days]
+# descr = permanently remove trash older than keep_days
+# note  = delete-model stashes instead of destroying; this
+#         is what actually reclaims disk space once the
+#         recovery window has passed. mirrors
+#         note.trash.prune / jobsite.store.prune
+
+my $keep_days = $call->{'args'} // <models.cfg.trash_keep_days> // 30;
+$keep_days =~ s|\D||g if defined $keep_days;
+$keep_days = 30 unless length( $keep_days // '' );
+
+my $keep_secs = $keep_days * 86400;
+my $root      = <[models.trash.root_path]>;
+my $trash_dir = "$root/.trash";
+my $now       = time();
+
+my $pruned_items = 0;
+my $pruned_bytes = 0;
+
+for my $meta_path ( @{ <[file.glob]>->("$trash_dir/*/meta.yaml") } ) {
+    ( my $item_dir = $meta_path ) =~ s|/meta\.yaml$||;
+
+    my $fstat = File::stat::stat($meta_path);
+    next unless $fstat;
+    next unless ( $now - $fstat->mtime ) > $keep_secs;
+
+    for my $f ( @{ <[file.glob]>->("$item_dir/*") } ) {
+        $pruned_bytes += ( -s $f ) // 0;
+        unlink $f;
+    }
+    $pruned_items++ if rmdir $item_dir;
+}
+
+<[base.logs]>->(
+    1,
+    '[trash-prune] removed %d expired trash '
+        . 'item(s) [ keep %d days, %.2f GB reclaimed ]',
+    $pruned_items,
+    $keep_days,
+    $pruned_bytes / 1073741824
+);
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf(
+        "pruned %d trash item(s) older than %d days, %.2f GB reclaimed\n",
+        $pruned_items, $keep_days, $pruned_bytes / 1073741824
+    )
+};
+
+#,,,,,.,,,..,,.,,,,.,,,..,,,.,..,,,,,,,,,,..,,..,,...,..,,.,.,.,,,,,,,,..,..,,
+#A7EKLHE4IDPVQDMJYIYLUI3ZFPBATCWGXBYDS77NKHFOW5P5M34DP2WKQGETAA5X4LNQR77ZFFMAS
+#\\\|6YUOHTCZWZRJ65PORULK6IMVP7INSH35SMW7YWXIWUZO6EH4EG6 \ / AMOS7 \ YOURUM ::
+#\[7]WMBW27OAK4ZUKUZCWFI5WRQTX5PJEXFR3EMKBO2LHQBK5WKUUAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
