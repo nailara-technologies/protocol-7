@@ -381,6 +381,218 @@ one checksum without a full sweep.
   cross-backend lock (`coding-sweep-cross-backend-lock` precedent) enough
   to make concurrent same-tree batches safe? (lean: sequential.)
 
+## resolved spec (kimi decision-narrowing pass, 2026-09-20)
+
+this section supersedes the open-questions section above for everything it
+resolves; that section stays as the historical record. three groups:
+the firmed concern verdicts first, then the open-question resolutions,
+then a closing note. one scoping rule applied throughout: anything
+whose blast radius touches the OWNER's live working tree destructively
+or semi-destructively is written as a flagged recommendation with a
+recommended default and tradeoffs — the owner signs off on those. the
+rest are decided unilaterally and an implementation pass can start
+from them without further design questions.
+
+### concern 1 — DECIDED (unilateral): hard gate with escape hatch, always stamp
+
+exact mechanics:
+
+1. the gate runs `git status --porcelain` and splits the output into
+two classes: tracked modifications (`M`/`A`/`D`/`R`/`T`) and untracked
+(`??`).
+2. any tracked modification → refuse to start, print the file list,
+suggest commit or stash. the keyword `:force:` in the batch command
+(house single-colon override convention) downgrades to flag-only mode
+for that run.
+3. untracked files NEVER block the gate. instead, at gate time the
+harness records each untracked path + sha256 fingerprint and copies
+the content into `state/model_batch/<batch_id>/gate-snapshot/`. this
+snapshot is what makes operator-placed input files recoverable later
+(see concern 2 and the untracked-input resolution below).
+4. every per-run record is stamped with baseline HEAD sha, the
+porcelain fingerprint, and the dirty-file list — in both clean and
+`:force:` runs. attribution is a property of the record, not of
+reviewer discipline.
+5. the gate re-runs between models. additionally, before any revert
+(concern 2), the harness compares the tree against the expected
+post-task fingerprint; owner-made changes detected mid-batch → the
+cursor freezes exactly like the sweep's circuit breaker, and the
+batch refuses to revert over them. the operator resolves and resumes.
+6. in clean-gate mode the baseline IS `HEAD` — the harness never
+creates a commit. option C's harness-managed baseline commit is dead:
+it was only ever a way to make revert addressable, and `HEAD` is
+already addressable on a clean tree.
+
+### concern 2 — NEEDS OWNER SIGN-OFF (reverts the live tree); recommended default: option B
+
+this is the one decision in the doc whose blast radius is the owner's
+actual working tree, trash net or no trash net. it is therefore a
+recommendation, not a unilateral decision.
+
+#### recommended default: option B (git + worktree-trash), exactly as follows
+
+per (model, task), in strict order:
+
+1. **capture BEFORE anything destructive.** full `git diff`, porcelain
+file list, task spec reference, verdict + failure_class, timing —
+into the state-dir record (concern 3's store). in `:force:` runs the
+capture additionally includes the full pre-existing dirty diff, so
+even revert over a dirty tree is recoverable by re-applying the
+captured patch.
+2. **tracked restore:** `git reset --hard <baseline HEAD>`. safe by
+construction in clean mode (tracked files were at HEAD; nothing of
+the owner's is lost). dangerous in `:force:` mode, which is exactly
+why `:force:` capture (step 1) includes the pre-existing diff.
+3. **untracked handling:** every untracked path NOT in the gate
+fingerprint is task-created → moved (never deleted) into the batch
+trash dir, indexed by (batch_id, model, relpath). an untracked path
+IN the gate fingerprint whose content changed (task overwrote
+operator input) → the modified version is moved to trash AND the
+original is restored from the gate snapshot.
+4. **re-verify:** `git status --porcelain` must show the tree in the
+expected post-revert state before the next model starts. a failed
+reverify is a hard stop — cursor frozen, trash index + gate snapshot
++ captured diff are the recovery surface, never "continue anyway".
+
+#### why this is flagged, and the tradeoffs
+
+- blast radius: `git reset --hard` and `mv` against the owner's live
+tree. the nets are the trash dir, the gate snapshot, and the
+capture-everything-first ordering — but nets are recovery, not
+prevention. an owner hand-editing a file mid-revert, an fd held open
+on a moved path, a permission edge case: all land on the owner to
+rescue from.
+- what prevents the worst case: the harness never auto-commits,
+never reverts over owner changes (step 5 of concern 1 freezes
+instead), and never deletes anything.
+- for: reuses an existing proven safety pattern (`note.trash.stash`'s
+contract at tree scope), keeps the main tree as the single execution
+environment (no `<system.root_path>` path-resolution surprises —
+`coding.tools.handler.git_restore_file` builds exactly that), and
+composes directly with the concern-1 gate.
+- against: it is still the harness running destructive git commands
+in the owner's repo, and `:force:` mode makes that substantially
+more dangerous (mitigated by the forced full-diff capture, but the
+mitigation only exists if step 1 is implemented before step 2 — the
+ordering must be treated as inviolable in code review).
+
+#### fallback if the owner declines: option C (per-model worktrees)
+
+zero destructive ops on the owner's tree: `git worktree add` per
+candidate, run, capture, delete. costs: tasks/tools that resolve via
+`<system.root_path>` write to the wrong tree, model switching is
+global anyway so parallelism gain is partial, 6k-file checkout churn
+per candidate. if the owner declines B and C both, the batch harness
+does not run against the main tree, full stop — there is no third
+option that keeps attributability.
+
+### concern 3 — DECIDED (unilateral): C, state-dir store + console reader
+
+- **store (the decided shape):** `state/model_batch/<batch_id>/<model_checksum>.yaml`,
+  written via `file.zenka_dir.load/write` (atomic, 0640) — same
+  durability contract as `self_test-stats.yaml`. per-task entries
+  carry exactly the field list already given above (batch_spec_version,
+  model checksum + backend, task id, baseline + fingerprint,
+  files_touched, full diff, verdict + failure_class, timing,
+  finish_reason).
+- **verdict vocabulary:** model_status-compatible 5-state plus
+  failure_class drawn from {error, timeout, crash, model-swapped-mid-batch,
+  budget-exceeded, partial} — the batch runner's own classes, so
+  `model_status` readers don't misread them.
+- **scoring:** raw capture always; a batch task may carry an optional
+  `criteria:` list, in which case the record also gets a 0.0-1.0 score
+  via `iteration.score_result` mechanics. no criteria → no score, the
+  reviewer reads the diff. no per-task executable checkers in v1 —
+  strongest signal but too much authoring cost to gate the first
+  harness on.
+- **review surface:** a console command in the `coding.model_status.cmd`
+  shape (`model-batch-status`): models × tasks grid, cells verdict +
+  wall/tps, drill-down per cell to the captured diff via
+  `base.format.inline-nested.encode`. pure reader over the store. the
+  file-based "report" is a generated view from the same store, not a
+  second persisted artifact — nothing outside the state dir.
+
+### open-question resolutions
+
+- **record store location — DECIDED: zenka state dir.** layout as in
+  concern 3. a store inside the repo would dirty the very tree the
+  gate protects and would need its own exemption logic; the state
+  dir already has the atomic-write, 0640, survives-restart precedent.
+  diffability/archivability of a repo copy is a generated-view problem,
+  not a storage-location problem.
+- **task source — DECIDED: hand-authored batch spec files only in v1.**
+  one yaml per batch (versionable, deterministic, lives under
+  `cfg/model-batches/`), `batch_spec_version` is an explicit field in
+  the spec. mined replay of completed queue tasks is deferred: the
+  replay-guarantee problem (task whose answer is already in the tree
+  is not the same task) is unsolved and v1 should not gate on it.
+  the spec field already anticipates a second source type later.
+- **runner entry point — DECIDED: through the normal `coding.submit` /
+  queue machinery.** inherits yield-to-real-task gating, priority
+  coordination, the circuit breaker, and the stream-aware liveness
+  ceiling for free; the runner additionally holds the sweep-style
+  per-backend lock for the whole candidate cycle and sets
+  `coding.self_test_switch_in_progress` for the batch's duration, so
+  interleaving is controlled by the same mechanisms the sweep already
+  uses. direct `coding.async.request` calls fork execution semantics
+  and bypass machinery that exists precisely to sequence load —
+  rejected.
+- **model-swap handling depth — DECIDED: detect-and-abort-candidate in v1.**
+  before/after every task, compare the backend's actually-loaded model
+  id against the candidate; mismatch → record
+  `model-swapped-mid-batch`, freeze the cursor, operator resumes. the
+  same-model-respawn cfg flag is deferred: it modifies the
+  `timeout_restart` recovery path every other task type also uses,
+  and "default model stays default when no batch runs" is a subtle
+  invariant not worth risking in v1. detection is sufficient because
+  attribution is preserved either way.
+- **per-model budget policy — DECIDED: tps-relative, mirroring
+  backend-aware-timeout-scaling.** per-task budget = the task spec's
+  `budget_hint` (seconds, authored at ~20 t/s reference speed) scaled
+  by `reference_tps / max(observed_tps, 1)`, clamped to [1×, 30×] the
+  hint; `stream_tps is_alive` extends the budget for live streams
+  exactly like poll_probe's liveness-aware extension. per-model cap =
+  Σ per-task budgets × 1.5 headroom; exceeded → abort the candidate's
+  remaining tasks, record `budget-exceeded`, keep captured partials.
+  a flat cap either starves a 2.5 t/s model or burns hours on a hung
+  one — the codebase already settled this philosophy for timeouts.
+- **partial-capture policy — DECIDED: always capture, verdict `partial`.**
+  capture precedes revert on every path anyway, so capturing a
+  half-diff costs nothing extra, and the half-state is routinely the
+  most diagnostic artifact (where the model was when it died).
+- **trash retention/prune cadence — DECIDED: mirror `models.trash.prune`
+  directly, separate root.** a `model_batch.trash.root_path` alongside
+  the models trash root, same retention knobs, same rescue/prune
+  command shape mirroring `models.cmd.trash-rescue` / `trash-prune`.
+  batch trash is many small files rather than multi-GB model weights,
+  but that changes disk math, not retention policy — one policy in the
+  codebase beats two.
+- **untracked input files — DECIDED: gate distinguishes `??` from
+  `M`/`A`/`D`; snapshot, don't refuse.** `??` never blocks (a stray
+  log is not uncommitted source), but every `??` path is fingerprinted
+  and content-copied into the gate snapshot at batch start. a task run
+  that creates untracked files → those paths land in trash (not in the
+  gate list). a task run that overwrites an operator-placed untracked
+  file → original restored from the snapshot, overwritten copy kept in
+  trash. git cannot attribute authorship of an untracked file, so the
+  policy replaces attribution with recovery.
+- **multi-backend batches — DECIDED: sequential-only in v1.** one
+  backend's cursor active at a time; the other backend's batch waits.
+  the hazard with concurrent same-tree batches is two models writing
+  one tree, and the cross-backend lock only serializes switching, not
+  writes. cross-backend concurrency is deferred to land together with
+  concern-2 option C (per-model worktrees), which is the thing that
+  would actually make it safe.
+
+### what an implementation pass starts from
+
+unilateral and ready: concern 1 gate mechanics, concern 3 store +
+reader, all nine open-question resolutions above. blocked on the
+owner: concern 2's revert-on-live-tree (recommended default: option B
+with the capture-first ordering inviolable; fallback: option C
+worktrees; no third option). nothing else in this doc requires a
+design decision before code.
+
 ## related
 
 - [[AUTONOMOUS-MODEL-MANAGEMENT]] — the 4-layer vision; this doc is the
@@ -406,8 +618,8 @@ one checksum without a full sweep.
 - `data/tasks/completed/coding-self-test-true-parallelization.md` —
   per-backend guard-slot precedent.
 
-#,,,,,.,,,,,.,,,,,...,..,,,..,,.,,...,..,,.,,,..,,...,.,,,,,.,.,.,,,.,..,,,..,
-#EB2PYRBDMDZGBBF7I5DLE52UACY7PFIYB5FNHHWRAGOIGYMJ75KD6GUJXX5TLVC2ZF6DDGKCX4MFE
-#\\\|H67Y44FYPZF3OL2EBIOPPLHODMCDJ3I3PA5HPIYGXV2LHSUL6EC \ / AMOS7 \ YOURUM ::
-#\[7]72XXVK43RZGKYRPPIUUGF23RNWHV65LRMVEJNIMMPMH5BMAFDOBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,..,,..,,..,,...,.,,,,.,,..,,..,,...,...,,,,,,,,,.,.,..,,,..,
+#65X6ETLBERNAPQEPM6Q22HBT3UBJ5NWX3CZ6Y6FP5WTQUOTFE3HFEMRNCUZNC23W2PDA67GIHPU4I
+#\\\|7W6OYY5BZMD7PT3WHDDRLINYJUVOJTU32IG2WFW64OEVOF5IS6P \ / AMOS7 \ YOURUM ::
+#\[7]AFXUWU3SVLEAUOR2K7CP4DB3EPOAMYB6KDSY54QBBKGKJ5YVB6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
