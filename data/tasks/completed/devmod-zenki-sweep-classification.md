@@ -1,3 +1,17 @@
+## archive: DONE ✓ — 2026-09-20
+## commits: 8c7660cc8 (this doc + access-sweep-preview) — c58efd6a5 (category
+## 3a) — d677dfd7e (category 3b + weather child.* fix + transport eval-code +
+## zenka-own dev-command devcmd gating + channels test-strm/devmod bare-name
+## collision fix+rename) — 8e1db3717 (category 5 wildcard narrowing, 10
+## zenki) — plus cube-13's static devmod preload removed in the same pass
+## that archived this doc [ subroutines.load-early no longer pre-compiles
+## devmod.* into cube-13 at startup; devmod stays available there via the
+## same universal SIGNUM53 dynamic-load path every other zenka uses ]
+## notes: every category closed, including the owner-blocked ones. all nine
+## category-3a zenki, all ten category-3b+3a candidates, all ten category-5
+## wildcards, plus cube-13, transport, and weather's special findings.
+## nothing from the original plan remains open.
+
 # devmod zenki sweep — classification + migration plan
 
 investigation-only pass, 2026-09-20. follow-up to
@@ -483,8 +497,8 @@ the zenka's own `zenka.v7`, matching how coding landed.
   line via its three-hit comment block ]. every distinct file
   appears in exactly one category above.
 
-#,,..,.,,,.,.,,..,...,..,,.,.,,..,,.,,,.,,,,.,..,,...,.,.,.,.,,,.,.,.,.,,,..,,
-#HAWHK6WJCVM7QMULIE7JU26BX4RYMSRB43A2H5HJYLK5CECFMM5XKJOS4WXNAOGLSV4H2JXDHDXRS
-#\\\|JORWJP7XXEC4NIZNA2L3D3YHLONWDO2XNECK667ECA4CE7JE4JX \ / AMOS7 \ YOURUM ::
-#\[7]EHZFRVMDP27IF7HUL434PBICX4SEZBTDD6ZANCG5VRKWDHXGRUAA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,.,,,.,,,,,,,.,,..,,...,.,.,,,,,..,,...,...,.,,,,.,,,,.,,..,,.,,
+#BBYTML54Y7VQXSL6IVQYG67PT4GDYITT475EGC3XWRM66JGLVUOUIJZ5P4IVRBU3XGGLHNYZ7XIHU
+#\\\|SZUJQHMPLJXDN3CND3QACEFN6WWQKID6GFINXRKSWBRK5YGR6PA \ / AMOS7 \ YOURUM ::
+#\[7]LDRV5XLIOKO5ODIP4JZCLLQBML7I3AEGGOMQQLGQZ7JIDDIBLSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
