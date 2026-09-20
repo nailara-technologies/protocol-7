@@ -149,9 +149,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - [claude-usage-refresh-pending-verification](project-claude-usage-refresh-pending-verification.md) — `plugin.usage.claude.refresh_token` [ pty-spawned claude, mirrors kimi's oauth refresh-on-401 ] built, 3 real live-found bugs fixed [ reap-detection race vs base.sig_chld, untimed trust-dialog keypress -> chdir to system.root_path instead, stale /usr/local/bin/claude npm install winning file.which over the current native install ], 4th manual run confirmed full clean startup [ correct v2.1.273, no dialog, no mcp recursion, gone reap ] -- only a real-expired-token pass remains open
 - [wsl2-shared-ram-constrains-concurrent-inference](project-wsl2-shared-ram-constrains-concurrent-inference.md) — 2026-09-17: this host's ~16GB /proc/meminfo total is WSL2's own carved-out share, not full host RAM; running gpu+cpu model-sweeps concurrently caused a real segfault crash storm (exit=11, no OOM signals) across otherwise-fine models -- sequence heavy concurrent inference workloads instead of parallelizing until a planned full-Linux migration removes the ceiling
+- [jinja-template-arch-gate-2026-09-20](project-2026-09-20-jinja-template-arch-gate.md) — `coding.jinja.template_file` was applied unconditionally to every spawned model regardless of architecture; fixed with a new `coding.jinja.arch_pattern` gate (architecture now flows models discovery -> registry -> coding.model_metadata). Explicit user decision: do NOT retroactively retest/rescue any model deleted in an earlier session on the theory the mismatched template caused its failure verdict
 
-#,,,,,.,.,...,,,.,,,,,..,,,,.,,.,,...,,,.,,,,,..,,...,...,.,,,,.,,..,,..,,,.,,
-#S4TDFMDFPQ66XMNO76YPPRAQQZDE36XIISMWDDWNAFWTFMRIY4AYH3S4NSPDFA4TL5EKRSAM6LGD2
-#\\\|UNQZ6QPTW3VPYLVRFMFDFMSGGIBHKWWE5NPGPK35RNXUCKPTRDB \ / AMOS7 \ YOURUM ::
-#\[7]KEUTAXQQOANPMZIJZ33U7QKWQYOCRG7XRY5HAXXHSNV4OETLKYCQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,.,,.,.,,.,,,,,,.,.,..,,.,.,,,,,..,,...,...,...,,..,..,,.,.,,.,,
+#JTZXUGGJGVK4FQ5V6IKSM4CLZ262OUDDPPQGMCGWUQXRLQLYZOOGQ3P25KGVMW7GEMRBX6WAKHFF6
+#\\\|KQAY3SP3WTLINENUZ7WRWTUPMEWKQ4YPX33NTSWPTD2J7QVHKXA \ / AMOS7 \ YOURUM ::
+#\[7]XHAZ4S4A5ZTQFNIRB3O3QFDCLGPUW4SWIADAE64OQPFJK3VX2IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

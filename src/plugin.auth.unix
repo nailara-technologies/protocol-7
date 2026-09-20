@@ -84,13 +84,23 @@ if ( $input->$* =~ s,^auth ($re->{usr_str}|$re->{usr_subn_str})\n,, ) {
                 my $prefixed_user  ## acquire the special user variable map ##
                     = <[base.access.special-user-map]>->($allowed_user);
 
-                next               ## no match for access ##
+                ## bug fix 2026-09-20 : this loop is meant to check the
+                ## resolved allowed-user entry against the real connecting
+                ## user ($client_uname, from getpwuid($client_uid) above), but
+                ## compared it back against itself ($allowed_user) instead --
+                ## trivially true for any plain entry regardless of who
+                ## connected. now compares against $client_uname;
+                ## special-user-map's template resolution and the 'unix-'
+                ## prefix stripping are unchanged, so <admin-user>/
+                ## <unix-admin>/etc still authorize the real configured
+                ## account exactly as before
+                next    ## no match for access ##
                     if not defined $prefixed_user
                     or $prefixed_user !~ s|^unix-||
-                    and $prefixed_user ne $allowed_user;
+                    and $prefixed_user ne $client_uname;
 
                 ## unix user match ##
-                if ( $prefixed_user eq $allowed_user ) {
+                if ( $prefixed_user eq $client_uname ) {
                     ###                                       ###
                     ## authorized using special user template ##
                     #                                         #
@@ -146,8 +156,8 @@ if ( $input->$* =~ s,^auth ($re->{usr_str}|$re->{usr_subn_str})\n,, ) {
 
 return 2;
 
-#,,,,,,..,..,,,.,,,..,,,,,,.,,.,,,.,,,,,,,,..,..,,...,...,..,,...,,..,,,,,.,.,
-#P5N77QL3I52MIP3BSZCRWQ4LJGR7I6EVSSPCAWGFN22SSSD2QSKL3ZLRZE2ESZDXFOPMBTX2RQGUU
-#\\\|OFTCQ25EPNXCAFE76ZDGZ7TEHH75YSXPX3FCS2NP4EAU5R347CT \ / AMOS7 \ YOURUM ::
-#\[7]7P3PD5QIWJYF6DBVD7TUKJ3QD3J3NK6PW7THTDM46WJHGM5QIGBQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,...,.,,,..,,..,,,,.,,.,,,.,,..,,...,..,,..,,,.,,,,,,..,,,..,
+#KWQOA5QMJROETQ2LJE2CMKBKJOQQI5O4MG6QCBKHZ2V3EOKKX2EEHU4RD4D6WFQ4WHEYZXXIGFUOM
+#\\\|VQBO5MCO7YLSTGQEDGHMOJKFX4MSPG45VYROYC6GMWNMDYZGOIW \ / AMOS7 \ YOURUM ::
+#\[7]BS4UOPWMPSZD35U6PBVB7O6KLV5H2OCQUYT6DNZDSCSYEG2UIKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

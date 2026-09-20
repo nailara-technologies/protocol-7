@@ -140,9 +140,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [p7-cli-argv-and-console-command-gotchas](feedback-p7-cli-argv-and-console-command-gotchas.md) — `bin/Protocol-7 <zenka> <command>` CLI: `-v`/`-vq` flags must come after the zenka name or zenka-name resolution silently fails into stdin-config mode; argv is space-joined then re-split inside `collect_file_list`, so a filename with a space/leading-`!`/`*` can't survive the round trip regardless of shell quoting (silently absorbed by loose pattern matching, not a hard crash)
 - [parallel-redundancy-during-migration-is-deliberate](feedback-parallel-redundancy-during-migration-is-deliberate.md) — general philosophy: standalone-script-to-zenka (and similar) migrations deliberately run parallel/redundant code paths for a while -- functional stability + independent upgrade safety + eventual convergence onto whichever proves better; don't default to flagging this as a gap or rushing to unify, only raise it if the paths silently diverge in behavior or the redundancy has clearly outlived its purpose
 - [verify-staged-content-before-commit](feedback-verify-staged-content-before-commit.md) — 2026-09-17: landed an incomplete commit by only re-`git add`ing untracked (`??`) files before committing; 4 already-tracked files were ALSO still unstaged (leading-space `M`) and got silently left out, shipping stale content (a `$reinit` guard missing entirely). Always read full `git status --short` / diff `--cached --stat` vs plain `--stat` before every commit, not just scan for `??`
+- [verify-live-not-just-static-read](feedback-verify-live-not-just-static-read.md) — for auth/permission/security claims, a static code trace is a hypothesis not a verdict, especially when a plausible benign explanation is already on the table that would let investigation stop early; confirmed 2026-09-20 when only a real cross-account `USER=X p7c whoami` test (not either side's static reading) settled [[project-2026-09-20-unix-auth-identity-bypass-fixed]]
 
-#,,..,,..,.,.,,..,.,,,.,,,,,,,,,,,,,,,,..,.,,,..,,...,...,...,,..,.,.,,,.,.,,,
-#I273NSEFKJP3VPVOOWPW5OEGRQQ7QLZTV4LBS2GKFBRKE23EXAWFVRTRY6RFSQ6EFXZSJPI57UJ4A
-#\\\|YIZGZ6B54PIFAXZ2WV7VGGHFRNGOCQ7MILJC5AHAVAJQIDSGPZ7 \ / AMOS7 \ YOURUM ::
-#\[7]4G42G3I3F2JRYOK74Z7M3JOX2NV6LPSE4AZAJB3EKBPK2CEMNMAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,,..,.,,,...,..,,,,,,.,,,..,,..,,...,...,..,,,..,,..,..,,,.,,
+#QIWPU3BUTJJESUWKHFFBDY3FSW3QJG3UYLYV5VWKCNT4Q3ZH46GCLILXF5WHJGYFU4BCSZNGXG5SQ
+#\\\|P4FMASD3PENPTI5YWOUKRLZS7L664FJHDNT4ZDAXUPH3F57EVZJ \ / AMOS7 \ YOURUM ::
+#\[7]Y6YL37XP37IYRJEIXXKJISA3T7MPP4IQOGWWZPE4UDU3BLTTJGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

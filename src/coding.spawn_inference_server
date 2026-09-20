@@ -525,10 +525,41 @@ if ( <[base.cfg_bool]>->( <coding.jinja.enable> // 1 ) ) {
     ## ]                                                                   ##
     my $tmpl_file = <coding.jinja.template_file> // '';
     if ( length $tmpl_file and -r $tmpl_file ) {
-        push @cmd, '--chat-template-file', $tmpl_file;
-        <[base.logs]>->(
-            2, '[spawn_inference_server] chat template: %s', $tmpl_file
-        );
+
+        ## architecture-scoped gate [ added 2026-09-20 ] : the template was
+        ## always applied unconditionally to every spawned model regardless of
+        ## architecture, even though it's documented (cfg/zenki/coding/
+        ## zenka.v7) as fixing a specific architecture family's template bugs,
+        ## not a universal override. harmless while every switched-to model
+        ## happened to share that architecture, but silently wrong the first
+        ## time a genuinely different architecture gets spawned. an empty
+        ## pattern preserves the old unconditional behavior
+        my $arch_pattern = <coding.jinja.arch_pattern> // '';
+        my $apply_tmpl   = TRUE;
+        my $model_arch   = <coding.model_metadata>->{$amos_id}{'architecture'}
+            // '';
+        if ( length $arch_pattern ) {
+            $apply_tmpl = length($model_arch)
+                && $model_arch =~ m{$arch_pattern};
+            <[base.logs]>->(
+                1,
+                '[spawn_inference_server] chat template override skipped : '
+                    . 'model architecture [%s] does not match pattern [%s], '
+                    . 'using model built-in template instead',
+                ( length $model_arch ? $model_arch : 'unknown' ),
+                $arch_pattern
+            ) unless $apply_tmpl;
+        }
+
+        if ($apply_tmpl) {
+            push @cmd, '--chat-template-file', $tmpl_file;
+            <[base.logs]>->(
+                2,
+                '[spawn_inference_server] chat template: %s [arch=%s]',
+                $tmpl_file,
+                ( length $model_arch ? $model_arch : 'unknown' )
+            );
+        }
     }
 }
 
@@ -899,8 +930,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,..,,..,,..,,,,,.,.,,,.,..,,,,.,.,.,.,,,..,,...,...,..,,,.,,,..,,..,,,,,
-#2BDYIMJN6EX5HKTDCSKEZMW5UVJSGJFA7KFWIPZM7GK25O7Y73SQ67EEJQCKCC4ZHJD4SX42XYOTE
-#\\\|WJF7B7VTONDLAHYKL5QOZ335OG2FHLZEIWNVAC4C2L5SRD5XSFE \ / AMOS7 \ YOURUM ::
-#\[7]3GM4ODKVXDPNC3ZWJAUXC665MJ3Y7R4NP4JETBFMVFYIAGPMPKDA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,.,,,,,,,,,.,.,,..,,.,,.,,,..,,...,...,.,.,,..,,,,,.,,,.,.,
+#QSOKJ2FOS46DCBR6IWX4PJXSWCHUUZJ7PF5FIHTNNPL2DFDYVCCVRXDUF4WYZVDFYNUZOUCG5KBGO
+#\\\|INHGOWI5O4YCMRCZ5RD2WRFN2IQHDQ2GIETMYYLVLVLEH524FFJ \ / AMOS7 \ YOURUM ::
+#\[7]D3LW3EBIFXSZEV6SHQDPDRGXFBTBRD7FGWUIFKMHNVU2MTDCRGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

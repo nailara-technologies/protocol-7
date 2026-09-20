@@ -124,7 +124,8 @@ foreach my $amos_id ( keys %$registry ) {
         'category'          => 'gguf',
         'available'         => $file_exists,
         'is_vision'         => $model->{'is_vision'} ? TRUE : FALSE,
-        'size_gb'           => $model->{'size_gb'} // 0,
+        'size_gb'           => $model->{'size_gb'}      // 0,
+        'architecture'      => $model->{'architecture'} // 'unknown',
         'success_rate'      => 1.0,
         'total_invocations' => 0,
         'presence_tier'     => $file_exists ? 1 : 0,
@@ -151,6 +152,9 @@ foreach my $model (@discovered) {
     $reply_str
         .= "  is_vision: " . ( $model->{'is_vision'} ? 'yes' : 'no' ) . "\n";
     $reply_str .= "  size_gb: " . ( $model->{'size_gb'} // 'unknown' ) . "\n";
+    $reply_str
+        .= "  architecture: "
+        . ( $model->{'architecture'} // 'unknown' ) . "\n";
     $reply_str .= "  success_rate: "
         . sprintf( '%.2f', $model->{'success_rate'} // 0 ) . "\n";
     $reply_str .= "  total_invocations: "
@@ -162,8 +166,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,.,,,,,,,.,,..,,.,,,,..,,.,,,,,,,,,,...,..,,...,...,...,..,,,,,,,.,,,,.,
-#D4VFMN6LDM5G7DLENLQWFFEFQG6QK65Y2TYG3OBR3ONBWMACXG3MKOG3SH6G37DQGPDDC7RWLDQCW
-#\\\|2BKAERN5DP534AMNFZKM5LWQHZDIHRRRMSU5TZXWYHVM34JJTVW \ / AMOS7 \ YOURUM ::
-#\[7]VGFI3K6KUXSSWBJGP3C55UACLCGPLJTA4Q5HLH22XZDJ5W55SOAI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,..,,.,,.,,,.,,,,..,...,,,.,..,,...,...,.,.,.,,,,,,,.,.,..,,
+#ZAKY53Y6J7DS5FT3P3JJVWMB75KEANDFFZWSGYIMHLSYTHFOIE6NW2KDTL4A222CL3JER7NQOYUWW
+#\\\|5O3HO3P5CWUBEVSR224GHF6EYQV3KG4G25OG6LRS74ARRLYE6L5 \ / AMOS7 \ YOURUM ::
+#\[7]XSKMJZ4UZ2H2VCI7W64DI4IAWU3Y6XAHU7JSWCMF5KVBL2CGPQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
