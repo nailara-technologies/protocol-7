@@ -23,11 +23,10 @@ foreach my $param_str ( split( m| +|, $params ) ) {
     if ( $param_str =~ m|^\d+$| ) {
         return {
             'mode' => qw| false |,
-            'data' => sprintf(
-                "instance %s not found [ use "
-                    . "'v7-zenki.list' to see IDs ]",
-                $param_str
-            )
+            'data' =>
+                sprintf(
+                "instance %s not found [ use 'v7-zenki.list' to see IDs ]",
+                $param_str )
             }
             if not exists <v7-zenki.zenka.instance>->{$param_str};
         push( @instance_ids, $param_str );    ## numerical instance id ##
@@ -60,6 +59,9 @@ foreach my $instance_id (@instance_ids) {
 
     $total_count += my $count = kill $devmod_signal, $zenka_pid;
 
+    ##  remember on the instance  [ auto re-enable after restart ]  ##
+    $instance->{'devmod_enabled'} = TRUE if $count;
+
     push( @pids, $zenka_pid ) if $count;
     <[base.logs]>->(
         0,            "< devmod-enable > notifying instance %d [ '%s' ]",
@@ -85,8 +87,8 @@ return {
     'data' => 'no success sending a signal to any process'
 };
 
-#,,.,,,,,,,..,,.,,..,,...,,,.,,..,..,,,.,,.,,,..,,...,...,..,,,..,.,.,,..,,..,
-#7GCBZKS4H3OEZSQZWPCX6X3ZZIJO4RVOHKFQ67KK2EZWNY6XDEOJ7VCPRBQPK5K5EYUXVB64DC7PQ
-#\\\|JNRXGLECNEAW3TPYW34XKREC7VNAP2UMPMVRG66NG6EXPDZUIPK \ / AMOS7 \ YOURUM ::
-#\[7]SKSOPIDH5QFF3HY4NA2OCIOH7BKSGKTUIVNEVYE4LUYGDGMI2CCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,.,,,...,.,.,..,,,,.,.,,,,,.,..,,...,...,,..,.,,,,..,.,.,,,,,
+#RMXOILFSO6M7TIG4RN4GVWOPBNEXGZCCTXIGTCTE4T5QTM5GC4HO6JWNFTP2DMEQQPJML6A5UFK3U
+#\\\|ZFSXOZPH7ML6ZGK7IAEWUVTFUXVHEDOT37COPHOWA2LYAFI26QV \ / AMOS7 \ YOURUM ::
+#\[7]E2DGFM367K6GZM43D4VPNMQQPIXHJZCUGSSO2M4FX5UXOFGDGKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

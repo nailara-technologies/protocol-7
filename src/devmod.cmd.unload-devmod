@@ -28,6 +28,15 @@ if ( delete $mod{'devmod'} ) {
 if ( ref( $code{'devmod.dump'} ) ne 'CODE' ) {
     ##  recompile masks [ devcmd fold-out ]  ##
     <[base.parser.access_conf]>;
+
+    ## clear remembered devmod state [ own instance ]  [ so the next ##
+    ## restart does not silently re-enable ]                         ##
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.v7-zenki.devmod-clear |,
+            'call_args' => {}
+        }
+    );
+
     return { 'mode' => qw| true |, 'data' => 'devmod commands removed =)' };
 }
 
@@ -35,8 +44,8 @@ if ( ref( $code{'devmod.dump'} ) ne 'CODE' ) {
 
 return { 'mode' => qw| false |, 'data' => 'cannot remove devmod module `:|' }
 
-#,,..,,,.,..,,.,,,.,.,,..,,.,,,,.,,..,.,.,,.,,..,,...,...,,,.,,..,.,,,.,,,,.,,
-#QICZAY2WPO3R5XPK2IICKSHNKON3FWYLE4V3XZEV77QPV66MT7IRN6BTNAC46JOGMVIHPDPXT4OVU
-#\\\|5YXEAPNUD5XEWN7XYOGSMCSD7UVJ3MSIBDYOZN6X23WMZXGWJ3O \ / AMOS7 \ YOURUM ::
-#\[7]U7PACGIKIG2LCPNI4V3NTEPBB4NZGZRXSU3WSGM4OWYNXTGOHWBY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,..,,,.,..,,,,,,,.,,.,,,,,.,..,,...,...,...,,,,,,,,,.,.,,.,,
+#JL7EN5EEOF7FGEOGRIIEY5VV6TZJ6TNKB3DVCIIMME5K3A7TPSF2FWKMVVN3XHWB5OGNIPRK66WFS
+#\\\|NF522YLJLNUIO4ROXIGQIY3RIAEUUQL3USPKKBE3IGKGESC3HRD \ / AMOS7 \ YOURUM ::
+#\[7]Q7GGNYH6YV7MF5NHXFDMIDFKDTFIH5LBQS4RKBW3SCZIMOXU2YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
