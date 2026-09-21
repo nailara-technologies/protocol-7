@@ -13,13 +13,13 @@ my $canonical = join "\n",
     map { sprintf '%s %s', $ARG, $manifest_href->{$ARG} }
     sort keys $manifest_href->%*;
 
-my $checksum = <[base.chk-sum.bmw.strsum]>->( $canonical, 384 );
+my $checksum = <[chk-sum.bmw.strsum]>->( $canonical, 384 );
 return undef unless defined $checksum and length $checksum;
 
 return $checksum;
 
-#,,.,,,,.,.,,,,.,,..,,,..,,,.,,.,,,,,,,,.,..,,..,,...,...,...,,,.,,,,,,,.,..,,
-#5DUXBSWNVZYAYHCDLRNUHWICRVDYJZ6GQEOA6BKMEOAGHGXJCPAVLIPZ3FWMQ45BGHDW7A5WGGA6U
-#\\\|CMJNLCO24BG6EVI7KD4NWIVZLMMDP6CIMEJUDBWJW667G2TQPGS \ / AMOS7 \ YOURUM ::
-#\[7]CQUNTV3N2GNGCBDKUR7LYWIT4LGU67OOWD6A77YCXEN53XAXJOAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,,..,,,,,,.,,,.,,.,,,..,,...,..,,...,...,,..,...,..,,,.,,.,.,
+#5ZCO2QMXD6QLZJAGGOMLWHMQOZD4WN7E3VI3SJMIPEQZTLAWTZXXBCMK7ER2L463V54JQNXDPMGHE
+#\\\|LAO3REBOZUXJUN4VMBDMTJGKSDUBJ5VHWD2MFNDXNQQIT2XDMEC \ / AMOS7 \ YOURUM ::
+#\[7]YYPIRH7N45OPASUBFFAWTBSZNEIE36EN4LQNSRVW3PTXO7CQUCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

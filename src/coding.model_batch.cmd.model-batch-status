@@ -142,7 +142,7 @@ if ( length $task_filter ) {
         if defined $entry->{'score'};
 
     push @lines,
-        <[base.format.inline-nested.encode]>->(
+        <[format.inline-nested.encode]>->(
         \@pairs,
         {   inline_path =>
                 sprintf( qw| %s.%s |, $short_id{$model_cs}, $task_filter )
@@ -162,7 +162,7 @@ if ( length $task_filter ) {
         );
         next unless defined $diff_str;
         push @lines,
-            <[base.format.inline-nested.encode]>->(
+            <[format.inline-nested.encode]>->(
             [ [ qw| diff |, $diff_str ] ],
             {   inline_path => sprintf( qw| %s |, $rel_path ),
                 nest_level  => 1
@@ -197,8 +197,8 @@ for my $task_id (@task_rows) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,.,.,,,.,.,..,,.,.,.,,,..,,.,,,,..,..,,...,..,,...,...,...,.,,,.,,,..,,,..,
-#TOYDZS4CKTOFFIR2HGWHS7D42PIE6NWNIU2RRGG2PJJ34AYOBGZ7I7ZHCKZ256GOSBJ6ICVNOJDWE
-#\\\|QINZE55MELTMAGHUAJHTKGWHHJLSV535SS4BQBS74TOJ354AV7O \ / AMOS7 \ YOURUM ::
-#\[7]UJJVRPXT5UBBIIZK7U6DC23BEREDVZBVUSNYQMYOWWNBL4AZWCCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,.,,,,..,..,,.,,,..,,,,.,.,,,..,,...,...,.,.,,..,,,.,.,,,,,.,
+#UBCA7T47UGGYTPLRGSD7YDEO7RZ33Y4H6R7PWZTHEIM4CDA3EDLLM2N6AFUCIFLFZTVAXFG3GQ37O
+#\\\|62777SHWGQXBAMJCX5CTVKXVKXKBRL5HN2U7WU3LDESFQP4XWJZ \ / AMOS7 \ YOURUM ::
+#\[7]NXGQ46P3VVG2VWFESW3E7SM6KMY5TA45355ZAO2OD4HXTKPU2EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
