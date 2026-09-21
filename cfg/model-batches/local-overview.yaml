@@ -1,0 +1,55 @@
+# local model overview -- 2026-09-21
+# every registry model that can plausibly fit the 12GB GPU ( <= 9.2GB,
+# mmproj-free weight ), one small real task each. purpose : a first
+# broad tps/verdict survey of what is worth deeper experimentation.
+# the runner's own machinery handles non-fitting candidates : they fail
+# to spawn, get a startup verdict, and the circuit breaker pauses on
+# repeated identical crash signatures [ resume with :force: ].
+
+batch_spec_version: 1
+backend: gpu
+
+models:
+  - KPQUUPA:V7VTIZQ   # 0.8GB
+  - PYVB6CA:YRWAJMI   # 3.9GB
+  - JLHTPVA:FRQPBRI   # 3.9GB
+  - YYZYSXQ:ZSNYLYY   # 4.0GB
+  - P5IDYUA:G54LI3A   # 4.2GB
+  - SJCPFAQ:AGKY7YQ   # 4.2GB
+  - O6A7F7Q:CQGT4CA   # 4.4GB
+  - OFSQC4I:QDBKEXY   # 5.2GB  default
+  - KACDQZI:Z2RF6GI   # 5.4GB
+  - LR7NW7A:XT57X3Y   # 5.4GB
+  - NU7QZ4Q:XT57X3Y   # 5.4GB
+  - OP2DASA:SAOVO5Y   # 5.4GB
+  - XQBLBNQ:SIZ4UDI   # 6.5GB
+  - SYSXR5Y:ACW4G7Y   # 6.6GB
+  - L7NRHPY:K7DCVXY   # 6.9GB
+  - M6H2OBY:4JUAT6I   # 6.9GB
+  - MBZAAII:BJTRX3I   # 6.9GB
+  - RXAMKTI:VXLGNMA   # 6.9GB
+  - MA52KFA:Q2RS6BQ   # 7.0GB
+  - WKYNRUY:CNUCDGY   # 8.1GB
+  - XFX2XIQ:734SX4I   # 8.4GB
+  - V4LYLRY:DAJJCEA   # 8.9GB
+  - WZIZD6Y:2BIZKWY   # 8.9GB vision
+  - YHIIJ5I:I7MZ3UI   # 8.9GB vision
+  - ZDMAPAY:AR3OCKQ   # 8.9GB vision
+  - IXNBXVI:U2XBEXQ   # 9.1GB
+  - P27KMTQ:X6B34JQ   # 9.1GB
+
+reference_tps: 20
+
+tasks:
+  - id: overview-doc
+    budget_hint: 300
+    prompt: |
+      work submit "read src/note.trash.stash, then create
+      read-me/md/docs/note-trash-stash-format.md : a concise summary
+      [ maximum 25 lines ] of what the module does and which other
+      modules may call it. write the file, then reply with a single
+      line."
+    criteria:
+      - xz
+      - base32
+      - trash
