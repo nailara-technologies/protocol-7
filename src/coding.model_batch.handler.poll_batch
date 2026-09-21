@@ -230,6 +230,38 @@ my $settle_task = sub {
         return FALSE;
     }
     my $verify_href = <[model_batch.verify.clean]>->($batch_id);
+    if (    ref $verify_href eq qw| HASH |
+        and !$verify_href->{'clean'}
+        and !$verify_href->{'diff'}{'changed'}->@*
+        and !$verify_href->{'diff'}{'removed'}->@* ) {
+        ## straggler side effects : models can leave scripted artifacts    ##
+        ## that land AFTER the capture [ found live 2026-09-21 : a model   ##
+        ## wrote data/tmp/create-*.pl and executed it, outputs arriving    ##
+        ## between capture and reverify ]. an added-paths-only residual    ##
+        ## cannot clobber owner work [ every added path's content is       ##
+        ## already blob-stored by the capture that just ran ] -- absorb it ##
+        ## with ONE bounded re-capture + revert pass before freezing       ##
+        <[base.logs]>->(
+            1,
+            '[model_batch] %s : reverify found %d added path%s after task %s '
+                . '[ likely straggler side effects ] : running one absorb '
+                . 'pass',
+            $batch_id,
+            scalar $verify_href->{'diff'}{'added'}->@*,
+            <[base.cnt_s]>->( scalar $verify_href->{'diff'}{'added'}->@* ),
+            $task_href->{'id'} // ''
+        );
+        my $absorb_capture = <[model_batch.capture.task]>
+            ->( { qw| baseline | => $state->{'baseline'} } );
+        my $absorb_ok = <[model_batch.revert.to_baseline]>->(
+            {   qw| baseline | => $state->{'baseline'},
+                qw| capture |  => $absorb_capture,
+            }
+        );
+        if ($absorb_ok) {
+            $verify_href = <[model_batch.verify.clean]>->($batch_id);
+        }
+    }
     if ( ref $verify_href ne qw| HASH |
         or !$verify_href->{'clean'} ) {
         <[base.logs]>->(
@@ -943,8 +975,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,,,..,,,.,,,.,,,,.,...,.,.,...,,,,,.,.,..,,..,,...,.,.,,.,,.,.,...,,,,,..,,
-#KZZ57N24ILE4KROQQHT4QOTERQEMABMH555CWUMZ7TAMWAQVRBB4ODIP3PGXVXHIRPL2P445YF3GE
-#\\\|X5BU4PU4KRG4VFPHCV4I4M4X3Y6J2D7TRN76442BP6AB6BK2B6A \ / AMOS7 \ YOURUM ::
-#\[7]6GMLYY5V5BN5HY2NMIALH237JQ2CQV5FIVVAFDJLSWVNECHBOOAI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,.,,,...,,.,,,.,,...,,..,.,,,..,,...,...,.,.,,..,...,..,,.,.,
+#NHHOQ3GH3JEAK6JYBCPACWMQGYHOZ2NOSP5DFY7NDCD2KA45AZ6BBKO57RMRBT6LCRGBJNUDSBCLA
+#\\\|SKOBWP7FCDWBDTT2OUY2J6CYKEJVPGYQJJOSHACUTE67X3GCSQK \ / AMOS7 \ YOURUM ::
+#\[7]5KE23UWWXNS7GZ3A2UQCCNZUM57NZQ7S4TOSSKFOGYVOQ23NSMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
