@@ -3,6 +3,20 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## model batch harness + self-test restart protocol (2026-09-21)
+
+Landed (`0a6762348`, `8540de968`, `de8ef5afb`): the checksum-native, zero-git
+model-batch harness (`model_batch.*` + `coding.model_batch.*`, 21 modules,
+49-check stub suite), honest context-exhausted vs overflow reporting, and the
+self-test seed-restart gate extended to prompt 3 with a matching
+`mismatch_hint`. Full findings in
+`topic-model-batch-harness-and-self-test-findings.md`.
+
+OPEN: batch `live-test-1` resumable-paused — blocked on zenka tree write
+permissions and pre-baseline `README.md` drift (see topic file for the reset
+recipe). Close this entry when the first real batch completes end-to-end.
+
+
 ## web-browser fast scroll-position commands (2026-08-29)
 
 Added `web-browser.cmd.set-pos-y`, `web-browser.cmd.set-fg-pos`, and
@@ -328,8 +342,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,..,,,,,.,,,,..,...,,..,,,.,..,,..,,,.,,.,,,..,,...,...,,,,,...,...,.,,,,.,,
-#HVTJ4WRWTM2GTDPUHWDC6JXNIYIDNZUHGKXTCM3CLLHS6GIRDQCHVCKWLNABE5HHJQR5WABQELUZ4
-#\\\|CGYS443OAGIBMUW5NKK5SX63KIKG5IEGNPRQKVZFXMO7FS5I4UV \ / AMOS7 \ YOURUM ::
-#\[7]A3CXLBEF3GA5FAHMBSYC26DMI7JTW5D37B2YHX37UHMY7CW5RSAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,...,,,,,.,,,,,.,..,,,.,,,,,,..,,...,...,...,,..,,,.,..,,,,,,
+#XVVFRFEKR2TPFLGULNNTZYEKRFP7WJC3J57L7VNLTJ6NNUHBTK5HQGLI5WIPNMJCX4FUAR4CJJ7LC
+#\\\|CNN7LCXDATP3FO2BCQMJG47IJYOKURAOESFCBQNTIOJKSDJDWJZ \ / AMOS7 \ YOURUM ::
+#\[7]2AQ5MV62Q3ISN6D3EAWICCTCUD7Q76YLY6F6MUAVYZKVH64IGEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
