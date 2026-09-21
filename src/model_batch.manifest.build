@@ -40,7 +40,7 @@ for my $abs_path ( $files_aref->@* ) {
     ## file                                                                 ##
     next unless -r $abs_path;
 
-    my $checksum = <[base.chk-sum.bmw.filesum]>->( 384, $abs_path );
+    my $checksum = <[chk-sum.bmw.filesum]>->( 384, $abs_path );
     next unless defined $checksum and length $checksum;
 
     $manifest{$rel_path} = $checksum;
@@ -48,8 +48,8 @@ for my $abs_path ( $files_aref->@* ) {
 
 return \%manifest;
 
-#,,,,,...,...,...,...,,,.,.,.,,..,.,,,..,,.,,,..,,...,...,...,.,,,,,.,,,,,,..,
-#A4QZCJN3QWXOHCCMSL2FBL6POQ73A6DL333PYWODFDPY4ELQAZO5ZIM6QYHRJYMTPRAUZHCB32KBQ
-#\\\|2CWXIRDFCLFPES63QS5LMI73RPUBUXIWVMWAJLS5FLVEYMIPHDB \ / AMOS7 \ YOURUM ::
-#\[7]XVUZ3736SEBCLEHJU2BO6Z74ECLH7XJRT6UWAZK7YIZURRM4A6DQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,,,.,.,,,.,.,.,.,.,,,.,,,...,..,,...,...,.,,,,.,,.,.,.,,,,,.,
+#5XHLXR6AWTX5HMRSJVK5AJJPNXA5LLKSUX5CYHEYOODDBD3PC4M4652HKY2A3R3XA7OOAKTVOMRUU
+#\\\|753U7NSFJJGOZ66ZZE27KL3OLBSVYJUTIFYJKW37W5PO4K5LV4B \ / AMOS7 \ YOURUM ::
+#\[7]POLKCJWRMMHHEAME6F2GRFO4PJAS7SGO4ZOSKS33LBDQRSDOPEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
