@@ -6,16 +6,26 @@
 # param = <bit-size> <file-path>
 
 my $bit_size = shift;
-return warn 'expected bit-size parameter <{C1}>'
-    if not defined $bit_size or $bit_size !~ m,^(224|256|384|512)$,;
-return warn 'expected file name parameter <{C1}>' if not my $fname = shift;
-return warn sprintf( "file '%s' not found <{C1}>", $fname ) if not -f $fname;
+if ( not defined $bit_size or $bit_size !~ m,^(224|256|384|512)$, ) {
+    warn 'expected bit-size parameter <{C1}>';
+    return undef;
+}
+my $fname = shift;
+if ( not $fname ) {
+    warn 'expected file name parameter <{C1}>';
+    return undef;
+}
+if ( not -f $fname ) {
+    warn sprintf( "file '%s' not found <{C1}>", $fname );
+    return undef;
+}
 
 my $bmw = <[chk-sum.bmw.ctx]>->($bit_size);
 
-open( my $SUM_FD, qw| <:raw |, $fname )
-    or return warn sprintf '<< %s : %s >>', $fname,
-    <[base.format_error]>->($OS_ERROR);
+open( my $SUM_FD, qw| <:raw |, $fname ) or do {
+    warn sprintf '<< %s : %s >>', $fname, <[base.str.os_err]>;
+    return undef;
+};
 
 $bmw->addfile($SUM_FD);
 
@@ -23,8 +33,8 @@ close($SUM_FD);
 
 return encode_b32r( $bmw->digest );
 
-#,,.,,,..,,,,,,,,,,..,,,.,,,,,,.,,,.,,,,,,..,,..,,...,...,,.,,,,.,.,.,..,,...,
-#I3Z56FAX75X5DTH2T63UIBJBFUSG7RSWWWAZYURQHASPZ56KSVDGOISOAMHG4W677QVIQ7CFYEEAO
-#\\\|RV7Z2XLBKQJD2SEQU3RUHYOQ5UCQMW3EA7RHZ6CB54IQDIHHIF3 \ / AMOS7 \ YOURUM ::
-#\[7]4C56LNFYZIWYDGM37QJU2IHDBONSXEDL63PDS65SFXU5IU4DQCCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,...,,.,,,..,,,.,,,,,,..,.,,,..,,...,..,,...,.,,,,..,...,.,.,
+#H2RNMVL3MDGKXVWT55FSPUZ3FTSOQ3S4F2QMPUZ4CTIDLBD3MV7LBI3JY64HLPXV2D2FQHVJMVIUM
+#\\\|UP43EI353RPWVQFBPAOPRZQUF5AODWSITGHJEN46QGV7VEYABM7 \ / AMOS7 \ YOURUM ::
+#\[7]KZN4RFU2X57CVNBTWOLCUDPUHPQLXPOKRNXSJ2HETQRMF2LYCSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
