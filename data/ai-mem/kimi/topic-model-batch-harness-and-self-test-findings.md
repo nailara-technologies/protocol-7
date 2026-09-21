@@ -132,3 +132,21 @@ checks) covers the full cycle.
 #\\\|EVGCIFRLSVJBKQA3KHK4OEVXZ5Y5OE2YNRW3SPZDIZPKQFYKDBR \ / AMOS7 \ YOURUM ::
 #\[7]C5CZ3XLNCG4KX454WYIOYSMYMRYURO6V6WZZGP3K5KHHNBIQVACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- chmod-child write delegation [ owner, 2026-09-21 ] : the coding zenka
+  writes taeki-owned tree files via a taeki-side helper process
+  [ coding-<taeki>-chmod-child, e.g. pid 436418 ] -- the house write path
+  delegates privileged ops. the model_batch harness calls base.file.write
+  DIRECTLY as protocol-7, which fails wherever ACL grants were normalized
+  away [ cfg/protocol-7.src-ver class ]. NEXT-SESSION FIX : route
+  blob.restore / capture writes through the chmod-child-aware house path.
+  zenka-created files are protocol-7:protocol-7 664 -- taeki tooling cannot
+  write them [ signing got permission denied on a task output file ].
+- partial overview results live in state/model_batch/local-overview/ :
+  KPQUUPA 124.7 t/s, OFSQC4I 44.7, P5IDYUA 29.7(budget-exceeded),
+  OP2DASA 24.6, YYZYSXQ 21.4, P27KMTQ 18.1, JLHTPVA 16.9, PYVB6CA 6.2.
+
+#,,,,,,,,,,..,,,.,.,.,,,,,...,,,,,,.,,,..,,,.,..,,...,...,,..,...,...,,.,,,,,,
+#RVD6VVADNFF6BJX3BGITXVRIRDZMPYSEYXHPUKCUY353HMRXY4JMUM3XDUN5W3RYU2EYW4AWP64HG
+#\\\|QJGPN3YU6BXZ4BD5RPM64MK2H6WRQVK3R26HOP5C3P2BERXU6J2 \ / AMOS7 \ YOURUM ::
+#\[7]A7K3YK3S4E5F23XWJC4S4QH6ZK4S3EAH47OINQ7ELPSVBR65YUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
