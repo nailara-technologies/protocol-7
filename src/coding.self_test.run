@@ -154,9 +154,9 @@ my @prompts = (
         ## normally-passing check like prompt 1, not a probe engineered to  ##
         ## flip pass/fail - that distinction is what keeps this additive    ##
         ## rather than a new way to spuriously reject a model switch. does  ##
-        ## NOT reuse prompt_id 2 : coding.handler.monitor_inference_startup ##
-        ## 's seed-restart-on-failure loop is hardcoded to prompt_id == 2   ##
-        ## specifically, and coding.self_test.archive keys its per-prompt   ##
+        ## NOT reuse prompt_id 2 : coding.helper.trigger_backend_self_      ##
+        ## test's seed-restart-on-failure gate covers prompt_ids 2 AND 3 [  ##
+        ## 2026-09-21 ], and coding.self_test.archive keys its per-prompt   ##
         ## store by prompt_id, so a collision would either wrongly trigger  ##
         ## that restart loop or silently overwrite prompt 2's own record    ##
         expected          => qw| cat |,
@@ -164,6 +164,19 @@ my @prompts = (
             type         => qw| word_count |,
             max_words    => 2,
             must_contain => qw| cat |,
+            ## same Socratic mismatch_hint prompt 2 carries [ 2026-09-21 ] :
+            ## without it this variant's tier1 strict round only had generic
+            ## format nudges, so a wrong 'mouse' answer came back unchanged [
+            ## 25x content_mismatch in the durable stats ] and the miss had no
+            ## in-conversation recovery at all. fires only AFTER a wrong first
+            ## answer, so the primed-answer measurement itself stays intact --
+            ## same layering as prompt 2
+            mismatch_hint =>
+                q{Are you certain? "Remaining" can only be one, by }
+                . 'definition. Treat edge cases [escape routes, indefinite '
+                . 'waiting] as low-probability outliers to discard, '
+                . 'not the substantive answer -- give the single, '
+                . 'statistically dominant outcome.',
         },
     },
 );
@@ -207,8 +220,8 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 return { mode => qw| deferred | };
 
-#,,,.,.,.,,,,,,,,,...,,,,,,,,,..,,.,.,,,,,,,,,..,,...,.,.,,.,,..,,,,,,.,.,,..,
-#UJXNVW77MZ3RMLCNLGBWPO734XQU2KMGYDK5SXDZZ2ETFA2CG3AFILSJUPV3K4UKK7SL34EEMXC2S
-#\\\|WLQGQF6O7OXZXLADUSA33ZZQBUTDD6T3MCLNDU4ZZVFKPYVIB6O \ / AMOS7 \ YOURUM ::
-#\[7]H2457BJFV3DDLGO34CUNWKQUGGGD5NVYLVLE2CFYV7NBV732C6DY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,.,.,.,.,...,,,.,,..,,..,..,,..,,...,...,...,..,,...,.,.,...,
+#7PGZKV65OAH5WJUBZK7VETCYWNXTFAQMZIA4RIRTFIKWAHD2H5SU2T7KXMWIM36CP3UF3LZGQ6Y52
+#\\\|6CZV4YLYP37JE57PPNXWWFP7GU3TYPLNINPJGM7GFM3SMP4NR7S \ / AMOS7 \ YOURUM ::
+#\[7]RWEXWPZJZJT63T62OCIHGL4PSHNSVUKKHBISKXJIWBROD4IF2AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
