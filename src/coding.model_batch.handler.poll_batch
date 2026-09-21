@@ -1,0 +1,869 @@
+## [:< ##
+
+# name  = coding.model_batch.handler.poll_batch
+# descr = timer-driven real-task batch runner cursor [ one batch at a time ]
+# note  = same cursor/lock/yield/circuit-breaker shape as
+#         coding.model_sweep.handler.poll_sweep : sweep-style per-backend
+#         lock held for the WHOLE candidate cycle, coding.
+#         self_test_switch_in_progress set for the batch's duration,
+#         switch -> tasks -> restore semantics, frozen cursor + operator
+#         resume on every pause class. sequential-only across backends v1.
+
+my $event = shift;
+
+my $state = <coding.model_batch_state>;
+if ( ref $state ne qw| HASH | ) {
+    <[base.logs]>->( 0, '[model_batch] no batch state, stopping timer' );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $cursor_file = qw| state/model_batch_cursor.yaml |;
+
+my $batch_id   = $state->{'batch_id'}   // '';
+my $backend    = $state->{'backend'}    // '';
+my $candidates = $state->{'candidates'} // [];
+my $idx        = $state->{'idx'}        // 0;
+my $total      = scalar @$candidates;
+
+my $pause_batch = sub {
+    my ($reason) = @_;
+    $state->{'state'}           = qw| paused |;
+    $state->{'paused_reason'}   = $reason;
+    $state->{'phase'}           = qw| gate |;
+    $state->{'task_idx'}        = 0;
+    $state->{'current_task_id'} = '';
+
+    ## release the candidate-cycle backend lock before freezing : the       ##
+    ## operator may need this backend while resolving the cause, and resume ##
+    ## re-acquires it when the candidate restarts [ guarded no-op via       ##
+    ## backend_release's holder check when nothing held ]                   ##
+    my $held_id = $state->{'switch_id'} // '';
+    <[coding.async.backend_release]>->(
+        sprintf( qw| batch:%s |, $held_id ), $backend
+    ) if length $held_id;
+    $state->{'switch_id'} = '';
+
+    ## best-effort restore of the original model : leaves the backend as    ##
+    ## the owner left it while the batch is frozen [ resume re- switches to ##
+    ## the candidate anyway ]                                               ##
+    my $original = $state->{'original_model'} // '';
+    if ( length $original ) {
+        eval {
+            <[coding.cmd.switch-model]>->(
+                {   args => sprintf '%s backend=%s',
+                    $original, $backend
+                }
+            );
+            1;
+        } or do {
+            <[base.logs]>->(
+                0,
+                '[model_batch] pause-time restore switch failed : %s',
+                $@ || 'unknown error'
+            );
+        };
+    }
+    <coding.self_test_switch_in_progress> = FALSE;
+
+    ## persist the frozen cursor ##
+    my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+    my $cursor_data
+        = ( defined $existing_yaml and length $$existing_yaml )
+        ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+        : {};
+    $cursor_data->{'batch'} = { map { $ARG => $state->{$ARG} }
+            qw| batch_id backend candidates idx started force no_yield | };
+    $cursor_data->{'batch'}{'state'}         = qw| paused |;
+    $cursor_data->{'batch'}{'paused_reason'} = $reason;
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 );
+    }
+
+    <[base.logs]>->(
+        0,
+        '[model_batch] %s : PAUSED [ %s ] at candidate '
+            . '%d/%d -- resolve, then model-batch-resume %s%s',
+        $batch_id,
+        $reason,
+        $idx + 1,
+        $total,
+        $batch_id,
+        ( $reason =~ m{^(gate-dirty|reverify-failed)$} ? ' :force:' : '' )
+    );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return TRUE;
+};
+
+my $finish_batch = sub {
+    ## defensive lock release [ guarded no-op when nothing held ] ##
+    my $held_id = $state->{'switch_id'} // '';
+    <[coding.async.backend_release]>->(
+        sprintf( qw| batch:%s |, $held_id ), $backend
+    ) if length $held_id;
+
+    my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+    my $cursor_data
+        = ( defined $existing_yaml and length $$existing_yaml )
+        ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+        : {};
+    delete $cursor_data->{'batch'};
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 );
+    }
+
+    <coding.self_test_switch_in_progress> = FALSE;
+    <[base.logs]>->(
+        1, '[model_batch] %s : batch complete : %d candidate%s',
+        $batch_id, $total, <[base.cnt_s]>->($total)
+    );
+    <coding.model_batch_state> = undef;
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return TRUE;
+};
+
+## helper : the backend's actually-loaded model id -- the truth source for ##
+## model-swap detection [ <inference.backend.*.model_id> is written at     ##
+## switch START, well before kill+respawn completes, so the server hash's  ##
+## 'model' field is the load-bearing read, same caveat family              ##
+## coding.self_test.handler.poll_switch documents ]                        ##
+my $loaded_model_id = sub {
+    my $srv_model = ( <coding.inference_servers> // {} )->{$backend}{'model'}
+        // '';
+    return $srv_model if length $srv_model;
+    return $backend eq qw| gpu |
+        ? ( <inference.backend.gpu.model_id> // '' )
+        : ( <inference.backend.cpu.model_id> // '' );
+};
+
+## helper : record one per-task entry and run the capture -> revert ->      ##
+## reverify sequence around it. returns TRUE when the tree is verified back ##
+## to baseline, FALSE when the reverify hard-stopped the batch [ cursor     ##
+## frozen by the caller via $pause_batch ]                                  ##
+my $settle_task = sub {
+    my ( $task_href, $verdict, $failure_class, $detail, $result_text ) = @_;
+
+    my $capture_href = <[model_batch.capture.task]>
+        ->( { qw| baseline | => $state->{'baseline'} } );
+
+    my $entry = {
+        qw| batch_spec_version | => $state->{'spec'}{'batch_spec_version'}
+            // '',
+        qw| model |         => $candidates->[$idx] // '',
+        qw| backend |       => $backend,
+        qw| task_id |       => $task_href->{'id'} // '',
+        qw| verdict |       => $verdict,
+        qw| failure_class | => $failure_class          // '',
+        qw| detail |        => $detail                 // '',
+        qw| baseline |      => $state->{'baseline_cs'} // '',
+        qw| fingerprint |   => ref $capture_href eq qw| HASH |
+        ? ( $capture_href->{'manifest_cs'} // '' )
+        : '',
+        qw| files_touched | => ref $capture_href eq qw| HASH |
+        ? $capture_href->{'files_touched'}
+        : [],
+        qw| paths | => ref $capture_href eq qw| HASH |
+        ? $capture_href->{'paths'}
+        : {},
+    };
+
+    ## timing ##
+    my $now        = <[base.time]>->(3);
+    my $task_start = $state->{'task_started'} // $now;
+    $entry->{'timing'} = {
+        qw| started |  => $task_start,
+        qw| finished | => $now,
+        qw| wall |     => sprintf( qw| %.1f |, $now - $task_start ),
+        qw| tps |      =>
+            sprintf( qw| %.2f |, $state->{'last_observed_tps'} // 0 ),
+    };
+    $entry->{'finish_reason'} = $state->{'task_finish_reason'} // '';
+
+    ## optional criteria scoring [ iteration.score_result mechanics ] ##
+    my $criteria = $task_href->{'criteria'};
+    if ( ref $criteria eq qw| ARRAY | and $criteria->@* ) {
+        my $score_href = <[iteration.score_result]>->(
+            {   qw| result |   => $result_text // '',
+                qw| criteria | => $criteria,
+            }
+        );
+        if ( ref $score_href eq qw| HASH | ) {
+            $entry->{'score'}         = $score_href->{'score'};
+            $entry->{'score_verdict'} = $score_href->{'verdict'};
+        }
+    }
+
+    <[coding.model_batch.record]>->(
+        {   qw| batch_id | => $batch_id,
+            qw| model |    => $candidates->[$idx] // '',
+            qw| entry |    => $entry,
+        }
+    );
+
+    ## revert + reverify [ steps 2-4 : hard stop on mismatch ] ##
+    my $revert_ok = <[model_batch.revert.to_baseline]>->(
+        {   qw| baseline | => $state->{'baseline'},
+            qw| capture |  => $capture_href,
+        }
+    );
+    if ( !$revert_ok ) {
+        $pause_batch->('revert-failed');
+        return FALSE;
+    }
+    my $verify_href = <[model_batch.verify.clean]>->($batch_id);
+    if ( ref $verify_href ne qw| HASH |
+        or !$verify_href->{'clean'} ) {
+        <[base.logs]>->(
+            0, '[model_batch] %s : REVERT REVERIFY FAILED after task %s',
+            $batch_id, $task_href->{'id'} // ''
+        );
+        $pause_batch->('reverify-failed');
+        return FALSE;
+    }
+    return TRUE;
+};
+
+my $phase = $state->{'phase'} // qw| gate |;
+
+## ........................................................................ ##
+## phase gate : between-model boundary -- yield to real tasks, re-run the   ##
+## clean-tree gate, pack the baseline once                                  ##
+## ........................................................................ ##
+if ( $phase eq qw| gate | ) {
+    if ( $idx >= $total ) {
+        $finish_batch->();
+        return;
+    }
+
+    ## yield-to-real-task gate [ skipped for :no_yield: ] : the queue      ##
+    ## machinery sequences our own task submissions; this gate only defers ##
+    ## the next model SWITCH when real traffic is in flight                ##
+    if ( !$state->{'no_yield'} ) {
+        my $idle = <[coding.helper.backend_idle]>;
+        if ( !$idle->{'idle'} ) {
+            my $now = <[base.time]>->(3);
+
+            ## stream-aware hold : a live stream on this backend's lock is ##
+            ## real work -- never accumulate the flat cap                  ##
+            my $hold = FALSE;
+            my $lock_task
+                = ( <coding.state.backend> // {} )->{$backend}{'lock'};
+            if ( defined $lock_task and length $lock_task ) {
+                my $task_state = <[coding.async.state_machine]>
+                    ->( qw| get |, $lock_task );
+                my $http_state = $task_state->{'http_state'};
+                if ( defined $task_state->{'round_tools_started'} ) {
+                    $hold = TRUE;    ## tools phase : no ceiling ##
+                } elsif (
+                    ref $http_state eq qw| HASH |
+                    and <[coding.async.stream_tps]>->(
+                        qw| is_alive |, $http_state
+                    )
+                ) {
+                    $hold = TRUE;    ## live stream ##
+                }
+            }
+
+            if ( !$state->{'yielding'} ) {
+                $state->{'yielding'}    = TRUE;
+                $state->{'yield_since'} = $now;
+                $state->{'state'}       = qw| yielding |;
+                <[base.logs]>->(
+                    1,
+                    '[model_batch] %s : yielding to '
+                        . 'task activity at candidate %d/%d',
+                    $batch_id,
+                    $idx + 1,
+                    $total
+                );
+            }
+            $state->{'yield_since'} = $now if $hold;
+            if (   !$hold
+                and $now - ( $state->{'yield_since'} // $now ) > 300 ) {
+                $state->{'yielding'} = FALSE;
+                delete $state->{'yield_since'};
+                $state->{'state'} = qw| running |;
+                $pause_batch->('yield-timeout');
+                return TRUE;
+            }
+            return TRUE;    ## keep yielding ##
+        }
+        if ( $state->{'yielding'} ) {
+            $state->{'yielding'} = FALSE;
+            delete $state->{'yield_since'};
+            $state->{'state'} = qw| running |;
+        }
+    }
+
+    ## clean-tree gate [ manifest-diff mechanism, concern 1 decisions : ##
+    ## hard gate + :force: escape hatch + always stamp ]                ##
+    my $gate_href = <[model_batch.gate.check]>->(
+        {   qw| batch_id | => $batch_id,
+            qw| force |    => $state->{'force'} // FALSE,
+        }
+    );
+    if ( ref $gate_href ne qw| HASH | or !$gate_href->{'clean'} ) {
+        <[base.logs]>->(
+            0,
+            '[model_batch] %s : gate DIRTY at candidate %d/%d : %s',
+            $batch_id,
+            $idx + 1,
+            $total,
+            join ',',
+            map {$ARG} $gate_href->{'diff'}{'changed'}->@*
+        ) if ref $gate_href eq qw| HASH |;
+        $pause_batch->('gate-dirty');
+        return TRUE;
+    }
+    $state->{'baseline'}    = $gate_href->{'baseline'};
+    $state->{'baseline_cs'} = $gate_href->{'baseline_cs'};
+
+    ## first gate of a batch : pack the whole baseline into the blob store  ##
+    ## so the per-task capture's "baseline always already stored" invariant ##
+    ## holds [ CAS : repeat gates are near-free ]                           ##
+    if ( $gate_href->{'baseline_new'} ) {
+        my $pack_href = <[model_batch.baseline.pack]>->($batch_id);
+        <[base.logs]>->(
+            1,
+            '[model_batch] %s : baseline packed '
+                . ': %d stored, %d already present',
+            $batch_id,
+            $pack_href->{'stored'}  // 0,
+            $pack_href->{'present'} // 0
+        ) if ref $pack_href eq qw| HASH |;
+    }
+
+    $state->{'phase'} = qw| switch |;
+    return TRUE;
+}
+
+## ........................................................................ ##
+## phase switch : lock the backend for the whole candidate cycle, suppress  ##
+## the monitor's auto-self-test, switch to the candidate model              ##
+## ........................................................................ ##
+if ( $phase eq qw| switch | ) {
+    my $candidate = $candidates->[$idx] // '';
+    if ( !length $candidate ) {
+        $state->{'idx'} = $total;    ## force done on next gate tick ##
+        return TRUE;
+    }
+
+    ## capture the model to restore to after the candidate ##
+    my $original_model
+        = $backend eq qw| gpu |
+        ? ( <inference.backend.gpu.model_id> // '' )
+        : ( <inference.backend.cpu.model_id> // '' );
+    $original_model = <inference.model.amos_id> // ''
+        if !length $original_model;
+
+    if ( !length $original_model ) {
+        <[base.logs]>->(
+            0, '[model_batch] %s : no current model to restore to', $batch_id
+        );
+        $pause_batch->('no-original-model');
+        return TRUE;
+    }
+
+    my $switch_id = <[base.gen_id]>->(<coding.model_batch_state>);
+    my $lock_id   = sprintf qw| batch:%s |, $switch_id;
+    my $acquire   = <[coding.async.backend_acquire]>->( $lock_id, $backend );
+    if ( !$acquire->{'acquired'} ) {
+        ## a real task raced in : un-queue our placeholder, retry next tick ##
+        ## [ sweep's own undo-our-queue-push rationale ]                    ##
+        my $bs    = ( <coding.state.backend> // {} )->{$backend} // {};
+        my $queue = $bs->{'queue'}                               // [];
+        @{$queue} = grep { $ARG ne $lock_id } @{$queue};
+        <[base.logs]>->(
+            2,
+            '[model_batch] %s : backend lock taken between '
+                . 'gate and acquire [held by %s] -- retrying next tick',
+            $batch_id,
+            $bs->{'lock'} // 'unknown'
+        );
+        return TRUE;
+    }
+
+    <coding.self_test_switch_in_progress> = TRUE;
+
+    $state->{'original_model'} = $original_model;
+    $state->{'switch_id'}      = $switch_id;
+    $state->{'prior_pid'}
+        = ( <coding.inference_servers> // {} )->{$backend}{'pid'} // 0;
+    $state->{'task_idx'}          = 0;
+    $state->{'model_budget_used'} = 0;
+    $state->{'candidate_started'} = <[base.time]>->(3);
+
+    ## per-model budget cap : sum of task hints x current tps scale x 1.5 ##
+    ## headroom [ tps-relative policy, backend-aware-timeout- scaling     ##
+    ## philosophy ]                                                       ##
+    my $scale    = $state->{'tps_scale'} // 1;
+    my $hint_sum = 0;
+    $hint_sum += $ARG->{'budget_hint'} // 300
+        for $state->{'spec'}{'tasks'}->@*;
+    $state->{'model_budget_cap'} = $hint_sum * $scale * 1.5;
+
+    eval {
+        <[coding.cmd.switch-model]>->(
+            {   args => sprintf '%s backend=%s',
+                $candidate, $backend
+            }
+        );
+        1;
+    } or do {
+        <[base.logs]>->(
+            0,         '[model_batch] %s : switch-model call failed : %s',
+            $batch_id, $@ || 'unknown error'
+        );
+    };
+
+    $state->{'phase'}   = qw| waiting_ready |;
+    $state->{'started'} = <[base.time]>->(3);
+    <[base.logs]>->(
+        1, '[model_batch] %s : candidate %d/%d : %s',
+        $batch_id, $idx + 1, $total, $candidate
+    );
+    return TRUE;
+}
+
+## ........................................................................ ##
+## phase waiting_ready : the switch landed when a DIFFERENT pid reports     ##
+## ready [ same load-bearing check as poll_switch ]                         ##
+## ........................................................................ ##
+if ( $phase eq qw| waiting_ready | ) {
+    my $max_wait  = <coding.cfg.switch_model_max_wait> // 300;
+    my $elapsed   = <[base.time]>->(3) - ( $state->{'started'} // 0 );
+    my $timed_out = $elapsed > $max_wait;
+
+    my $reply  = <[coding.cmd.inference-status]>;
+    my $yaml   = $reply->{'data'}               // '';
+    my $status = eval { YAML::XS::Load($yaml) } // {};
+
+    my $backend_status = $status->{$backend}{'status'} // 'unknown';
+    my $backend_pid    = $status->{$backend}{'pid'}    // 0;
+    my $prior_pid      = $state->{'prior_pid'}         // 0;
+
+    if ( $backend_status eq qw| crashed | ) {
+        $pause_batch->('switch-crash');
+        return TRUE;
+    }
+    if ($timed_out) {
+        $pause_batch->('switch-timeout');
+        return TRUE;
+    }
+    if (    $backend_status eq qw| ready |
+        and $backend_pid
+        and $backend_pid != $prior_pid ) {
+        $state->{'phase'} = qw| task_start |;
+    }
+    return TRUE;
+}
+
+## ........................................................................ ##
+## phase task_start : swap-check, then submit the task through the normal   ##
+## coding.cmd.submit queue machinery                                        ##
+## ........................................................................ ##
+if ( $phase eq qw| task_start | ) {
+    my $tasks = $state->{'spec'}{'tasks'} // [];
+    if ( $state->{'task_idx'} >= scalar @$tasks ) {
+        $state->{'phase'} = qw| restore |;
+        return TRUE;
+    }
+
+    my $candidate = $candidates->[$idx] // '';
+    my $loaded    = $loaded_model_id->();
+    if ( length $loaded and $loaded ne $candidate ) {
+        ## model-swapped-mid-batch : record, settle, freeze. the           ##
+        ## timeout_restart respawn path can fire from INSIDE our own tasks ##
+        ## -- detection, not just locking                                  ##
+        <[base.logs]>->(
+            0,
+            '[model_batch] %s : MODEL SWAPPED mid-batch : '
+                . 'expected %s, backend serves %s -- freezing cursor',
+            $batch_id,
+            $candidate,
+            $loaded
+        );
+        my $task_href = $tasks->[ $state->{'task_idx'} ];
+        $settle_task->(
+            $task_href, qw| crash |,
+            qw| model-swapped-mid-batch |,
+            sprintf 'expected %s, backend serves %s',
+            $candidate, $loaded
+        );
+        ## settle_task may already have frozen the batch [ revert / reverify
+        ## hard stop ] : only pause when it has not
+        $pause_batch->('model-swapped-mid-batch')
+            if ( $state->{'state'} // '' ) ne qw| paused |;
+        return TRUE;
+    }
+
+    my $task_href = $tasks->[ $state->{'task_idx'} ];
+    my $prompt    = $task_href->{'prompt'} // '';
+    if ( !length $prompt and length( $task_href->{'prompt_file'} // '' ) ) {
+        my $prompt_path = catfile(
+            <system.conf_path>,
+            qw| model-batches |,
+            $task_href->{'prompt_file'}
+        );
+        $prompt = <[file.read]>->($prompt_path) // '';
+    }
+
+    my $submit_reply = eval {
+        <[coding.cmd.submit]>
+            ->( { qw| param | => { qw| request | => $prompt } } );
+    } // { mode => qw| false |, data => 'submit call died' };
+
+    my $reply_data = $submit_reply->{'data'} // '';
+
+    my ($task_id) = $reply_data =~ m{task:([^\s|]+)};
+    my ($routed)  = $reply_data =~ m{routed:(\w+)};
+
+    if ( $submit_reply->{'mode'} eq qw| false |
+        or !length( $task_id // '' ) ) {
+        $settle_task->(
+            $task_href, qw| error |, qw| error |,
+            "submit failed : $reply_data"
+        );
+        ## settle_task may have paused the batch on reverify failure ##
+        return TRUE if ( $state->{'phase'} // '' ) eq qw| gate |;
+        $state->{'task_idx'}++;
+        $state->{'phase'}
+            = ( $state->{'task_idx'} >= scalar @$tasks )
+            ? qw| restore |
+            : qw| task_start |;
+        return TRUE;
+    }
+
+    if ( length( $routed // '' ) and $routed ne $backend ) {
+        ## routing is analysis-based with no per-submit backend override :  ##
+        ## the task runs on the other backend against the wrong model, so   ##
+        ## its verdict is meaningless. recorded as an error and skipped [   ##
+        ## task itself stays queued as normal traffic; its tree side        ##
+        ## effects still get reverted by this task's capture/revert cycle ] ##
+        $settle_task->(
+            $task_href, qw| error |, qw| error |,
+            "task routed to '$routed', batch backend is '$backend'"
+        );
+        return TRUE if ( $state->{'phase'} // '' ) eq qw| gate |;
+        $state->{'task_idx'}++;
+        $state->{'phase'}
+            = ( $state->{'task_idx'} >= scalar @$tasks )
+            ? qw| restore |
+            : qw| task_start |;
+        return TRUE;
+    }
+
+    ## per-task budget : hint [ authored at ~20 t/s reference ] scaled by ##
+    ## reference_tps / max(observed_tps,1), clamped [1x,30x]              ##
+    my $observed = $state->{'last_observed_tps'} // 0;
+    my $scale    = 1;
+    if ( $observed > 0 ) {
+        my $reference = $state->{'spec'}{'reference_tps'} // 20;
+        $scale = $reference / $observed;
+        $scale = 1  if $scale < 1;
+        $scale = 30 if $scale > 30;
+    }
+    $state->{'tps_scale'} = $scale;
+
+    $state->{'current_task_id'} = $task_id;
+    $state->{'task_started'}    = <[base.time]>->(3);
+    $state->{'task_budget'}
+        = ( $task_href->{'budget_hint'} // 300 ) * $scale;
+    $state->{'task_finish_reason'} = '';
+    $state->{'phase'}              = qw| task_wait |;
+    <[base.logs]>->(
+        2, '[model_batch] %s : task %s submitted [task_id=%s]',
+        $batch_id, $task_href->{'id'}, $task_id
+    );
+    return TRUE;
+}
+
+## ........................................................................ ##
+## phase task_wait : poll task completion, enforce budgets, watch for       ##
+## swaps, then capture -> record -> revert -> reverify                      ##
+## ........................................................................ ##
+if ( $phase eq qw| task_wait | ) {
+    my $tasks     = $state->{'spec'}{'tasks'}        // [];
+    my $task_href = $tasks->[ $state->{'task_idx'} ] // {};
+    my $task_id   = $state->{'current_task_id'}      // '';
+    my $now       = <[base.time]>->(3);
+
+    ## tps observation from the live http state ##
+    my $task_state = <[coding.async.state_machine]>->( qw| get |, $task_id );
+    my $http_state = $task_state->{'http_state'};
+    if ( ref $http_state eq qw| HASH | ) {
+        my $tps = <[coding.async.stream_tps]>->( qw| get_tps |, $http_state );
+        $state->{'last_observed_tps'} = $tps
+            if defined $tps and $tps > 0;
+        $state->{'task_finish_reason'} = $http_state->{'finish_reason'} // ''
+            if ref $http_state eq qw| HASH |;
+    }
+
+    ## swap check before AND after every task ##
+    my $candidate = $candidates->[$idx] // '';
+    my $loaded    = $loaded_model_id->();
+    if ( length $loaded and $loaded ne $candidate ) {
+        <[base.logs]>->(
+            0,
+            '[model_batch] %s : MODEL SWAPPED mid-task [task %s] '
+                . ': expected %s, backend serves %s -- freezing cursor',
+            $batch_id,
+            $task_href->{'id'},
+            $candidate,
+            $loaded
+        );
+        $settle_task->(
+            $task_href, qw| partial |,
+            qw| model-swapped-mid-batch |,
+            sprintf 'expected %s, backend serves %s',
+            $candidate, $loaded
+        );
+        ## settle_task may already have frozen the batch : only pause when it
+        ## has not [ same guard as the task_start path ]
+        $pause_batch->('model-swapped-mid-batch')
+            if ( $state->{'state'} // '' ) ne qw| paused |;
+        return TRUE;
+    }
+
+    my $task = <coding.task.queue>->{$task_id};
+    my $exec_href
+        = ref $task eq qw| HASH |
+        ? ( $task->{'execution'} // {} )
+        : {};
+    my $status = $exec_href->{'status'} // 'unknown';
+
+    my $elapsed = $now - ( $state->{'task_started'} // $now );
+
+    if (   $status ne qw| completed |
+        && $status ne qw| failed |
+        && $status ne qw| error | ) {
+        ## still running : budget enforcement. is_alive extends the budget ##
+        ## for live streams exactly like poll_probe's liveness-aware       ##
+        ## extension                                                       ##
+        my $alive = ref $http_state eq qw| HASH |
+            && <[coding.async.stream_tps]>->( qw| is_alive |, $http_state );
+        if ( $elapsed > ( $state->{'task_budget'} // 300 )
+            && !$alive ) {
+            <[base.logs]>->(
+                0,
+                '[model_batch] %s : task %s exceeded budget '
+                    . '[%.1fs > %.1fs] -- aborting inference',
+                $batch_id,
+                $task_href->{'id'},
+                $elapsed,
+                $state->{'task_budget'} // 300
+            );
+            <[coding.cmd.abort-inference]>->( { args => $task_id } );
+            $settle_task->(
+                $task_href, qw| timeout |,
+                qw| budget-exceeded |,
+                sprintf 'task budget exceeded [ %.1fs ]', $elapsed
+            );
+            return TRUE if ( $state->{'phase'} // '' ) eq qw| gate |;
+            $state->{'task_idx'}++;
+            $state->{'current_task_id'} = '';
+            $state->{'phase'}
+                = ( $state->{'task_idx'} >= scalar @$tasks )
+                ? qw| restore |
+                : qw| task_start |;
+        }
+        return TRUE;    ## keep waiting ##
+    }
+
+    ## terminal state ##
+    my $verdict
+        = $status eq qw| completed |
+        ? qw| completed |
+        : qw| error |;
+    my $failure_class = $verdict eq qw| completed | ? '' : qw| error |;
+    my $result_text   = $exec_href->{'result'} // '';
+    my $detail        = '';
+
+    if ( $verdict ne qw| completed | ) {
+        $detail = $exec_href->{'error'} // 'unknown error';
+        ## crashed server under a failed task reads as the crash class ##
+        my $srv_status
+            = ( <coding.inference_servers> // {} )->{$backend}{'status'}
+            // '';
+        if (   $srv_status eq qw| crashed |
+            or $detail =~ m{crash|segfault|signal}i ) {
+            $failure_class = qw| crash |;
+        }
+    }
+
+    $settle_task->(
+        $task_href, $verdict, $failure_class, $detail, $result_text
+    );
+    return TRUE if ( $state->{'phase'} // '' ) eq qw| gate |;
+
+    $state->{'model_budget_used'} += $elapsed;
+    $state->{'task_idx'}++;
+    $state->{'current_task_id'} = '';
+
+    ## per-model cap : abort the candidate's REMAINING tasks, keep captured ##
+    ## partials. unrecorded tasks read as '-' in the grid                   ##
+    if ( $state->{'model_budget_used'}
+        > ( $state->{'model_budget_cap'} // 0 ) ) {
+        <[base.logs]>->(
+            0,
+            '[model_batch] %s : per-model budget cap exceeded [%.1fs '
+                . '> %.1fs] -- skipping remaining %d task%s of candidate %s',
+            $batch_id,
+            $state->{'model_budget_used'},
+            $state->{'model_budget_cap'} // 0,
+            scalar(@$tasks) - $state->{'task_idx'},
+            <[base.cnt_s]>->( scalar(@$tasks) - $state->{'task_idx'} ),
+            $candidate
+        );
+        $state->{'phase'} = qw| restore |;
+        return TRUE;
+    }
+
+    $state->{'phase'}
+        = ( $state->{'task_idx'} >= scalar @$tasks )
+        ? qw| restore |
+        : qw| task_start |;
+    return TRUE;
+}
+
+## ........................................................................ ##
+## phases restore / restoring : switch back to the original model, then     ##
+## release the candidate cycle                                              ##
+## ........................................................................ ##
+if ( $phase eq qw| restore | ) {
+    my $original = $state->{'original_model'} // '';
+    $state->{'prior_pid'}
+        = ( <coding.inference_servers> // {} )->{$backend}{'pid'} // 0;
+    eval {
+        <[coding.cmd.switch-model]>->(
+            {   args => sprintf '%s backend=%s',
+                $original, $backend
+            }
+        );
+        1;
+    } or do {
+        <[base.logs]>->(
+            0,         '[model_batch] %s : restore switch-model failed : %s',
+            $batch_id, $@ || 'unknown error'
+        );
+    };
+    $state->{'phase'}   = qw| restoring |;
+    $state->{'started'} = <[base.time]>->(3);
+    return TRUE;
+}
+
+if ( $phase eq qw| restoring | ) {
+    my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
+    my $elapsed  = <[base.time]>->(3) - ( $state->{'started'} // 0 );
+    my $reply    = <[coding.cmd.inference-status]>;
+    my $yaml     = $reply->{'data'}               // '';
+    my $status   = eval { YAML::XS::Load($yaml) } // {};
+
+    my $backend_status = $status->{$backend}{'status'} // 'unknown';
+    my $backend_pid    = $status->{$backend}{'pid'}    // 0;
+    my $prior_pid      = $state->{'prior_pid'}         // 0;
+
+    if ( $backend_status eq qw| crashed | ) {
+        $pause_batch->('restore-crash');
+        return TRUE;
+    }
+    if ( $elapsed > $max_wait ) {
+        $pause_batch->('restore-timeout');
+        return TRUE;
+    }
+    return TRUE
+        unless $backend_status eq qw| ready |
+        and $backend_pid
+        and $backend_pid != $prior_pid;
+
+    ## restore confirmed : release the candidate cycle FIRST [ sweep ##
+    ## terminal-transition rationale : never hold the lock past the  ##
+    ## terminal transition of the candidate cycle ]                  ##
+    my $switch_id = $state->{'switch_id'} // '';
+    <[coding.async.backend_release]>->(
+        sprintf( qw| batch:%s |, $switch_id ), $backend
+    ) if length $switch_id;
+    $state->{'switch_id'} = '';
+    <coding.self_test_switch_in_progress> = FALSE;
+
+    $idx++;
+    $state->{'idx'} = $idx;
+
+    ## circuit breaker : 3 consecutive identical crash signatures     ##
+    ## auto-pause, never cancel [ frozen cursor is the resume point ] ##
+    my $crash_sig = '';
+    {
+        my $record_file
+            = sprintf qw| state/model_batch/%s/%s.yaml |,
+            $batch_id, $candidates->[ $idx - 1 ] // '';
+        my $yaml_sref = <[file.zenka_dir.load]>->($record_file);
+        if ( defined $yaml_sref and length $$yaml_sref ) {
+            my $record_href = <[format.yaml.load_str]>->($$yaml_sref) // {};
+            for my $task_id ( sort keys $record_href->%* ) {
+                my $entry = $record_href->{$task_id};
+                next unless ref $entry eq qw| HASH |;
+                if ( ( $entry->{'failure_class'} // '' ) eq qw| crash | ) {
+                    $crash_sig
+                        = sprintf '%s %s',
+                        $task_id,
+                        $entry->{'detail'} // '';
+                    last;
+                }
+            }
+        }
+    }
+    if ( length $crash_sig ) {
+        my $bk = $state->{'breaker'} //= { signature => '', count => 0 };
+        if ( $bk->{'signature'} eq $crash_sig ) {
+            $bk->{'count'}++;
+        } else {
+            $bk->{'signature'} = $crash_sig;
+            $bk->{'count'}     = 1;
+        }
+        if ( $bk->{'count'} >= 3 ) {
+            $pause_batch->(
+                sprintf 'circuit-breaker : %dx %s',
+                $bk->{'count'}, $crash_sig
+            );
+            return TRUE;
+        }
+    } else {
+        $state->{'breaker'} = { signature => '', count => 0 };
+    }
+
+    ## persist progress between models ##
+    my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+    my $cursor_data
+        = ( defined $existing_yaml and length $$existing_yaml )
+        ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+        : {};
+    $cursor_data->{'batch'} = { map { $ARG => $state->{$ARG} }
+            qw| batch_id backend candidates idx started force no_yield | };
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 );
+    }
+
+    $state->{'phase'} = qw| gate |;
+    <[base.logs]>->(
+        1, '[model_batch] %s : candidate %d/%d done, advancing',
+        $batch_id, $idx, $total
+    );
+    return TRUE;
+}
+
+## unknown phase : defensive abort ##
+<[base.logs]>->(
+    0,         '[model_batch] %s : unknown phase %s, aborting batch',
+    $batch_id, $phase
+);
+$pause_batch->('unknown-phase');
+return TRUE;
+
+#,,,,,,,,,,.,,,.,,...,.,,,..,,,,,,,,.,.,,,.,,,..,,...,...,..,,,.,,...,,.,,..,,
+#2XYAL56OGMVC4EXTOI6TSXEOY73VS2MD5M3VNSXZSLU6WT55PZF4XZ425HIM7TCB536LD27HUMGJO
+#\\\|UFEY6Z7QRATELJWS5AITV3CCTOKDX6ZNRYYSNNGLULFVU2DTUZ2 \ / AMOS7 \ YOURUM ::
+#\[7]Q4H2IQDXEZ7S6YQTSWBNERA4PPDWYPF2UUVAK7RYYJD2X3BS7UDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

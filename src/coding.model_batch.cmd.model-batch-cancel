@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = coding.model_batch.cmd.model-batch-cancel
+# descr = permanently stop the active or paused model batch
+# note  = cancel means "no further candidates" : already-recorded
+#         results stay in the state store, and the blob store keeps
+#         every captured version recoverable by checksum
+
+my @lines;
+
+my $state     = <coding.model_batch_state>;
+my $had_state = ( ref $state eq qw| HASH | );
+
+my $cursor_file   = qw| state/model_batch_cursor.yaml |;
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my $cursor = $cursor_data->{'batch'} // {};
+my $had_cursor
+    = ( ref $cursor eq qw| HASH | and length( $cursor->{'batch_id'} // '' ) );
+
+if ( !$had_state and !$had_cursor ) {
+    push @lines, 'no batch to cancel';
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+my $report    = $had_state ? $state : $cursor;
+my $batch_id  = $report->{'batch_id'} // '';
+my $backend   = $report->{'backend'}  // qw| gpu |;
+my $idx       = $report->{'idx'}      // 0;
+my $total     = scalar( @{ $report->{'candidates'} // [] } );
+my $switch_id = $report->{'switch_id'} // '';
+
+## release the candidate-cycle lock HERE : with the runner state gone no  ##
+## poll_batch tick will ever reach the terminal-transition release, and a ##
+## lock left held would wedge this backend [ guarded no-op via            ##
+## backend_release's holder check ; the id is batch-specific ]            ##
+if ( length $switch_id ) {
+    <[coding.async.backend_release]>->(
+        sprintf( qw| batch:%s |, $switch_id ), $backend
+    );
+}
+
+<coding.model_batch_state> = undef;
+delete $cursor_data->{'batch'};
+
+my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+if ( length $yaml_str ) {
+    <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+        or <[base.logs]>->(
+        1, '[model_batch] failed to persist cursor file [ %s ]', $cursor_file
+        );
+}
+
+## no independent switch cycle can outlive the runner here [ the batch ##
+## runner owns its own switch phases, unlike the sweep's poll_switch ] ##
+<coding.self_test_switch_in_progress> = FALSE;
+
+push @lines,
+    sprintf '%s : cancelled [ was candidate %d/%d ] -- cursor '
+    . 'cleared, recorded results and blob store kept',
+    $batch_id, $idx + 1, $total;
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,..,.,,,,..,,..,..,,,,.,,..,,,.,,,,,.,.,,,.,..,,...,...,,,,,.,.,,,,,,,.,.,.,
+#5RMIKMQG5ZQEANAXGRE4GZTAA3RHEFHRWVUS3OMADLNMERVA6TDKSLIISUSRECPKLCNR6ZXFNQH36
+#\\\|XEUD6QEUDLWHZVQQ5ZNRQTHPZ75AHC3OSKSFWEN35D26YR4CL6J \ / AMOS7 \ YOURUM ::
+#\[7]YEKS4235VABZGA5WFERFT7NEZPCW7RT55H6TIWT37KONELUQN2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

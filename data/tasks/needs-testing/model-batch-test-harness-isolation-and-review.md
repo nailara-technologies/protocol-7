@@ -486,6 +486,119 @@ per candidate. if the owner declines B and C both, the batch harness
 does not run against the main tree, full stop — there is no third
 option that keeps attributability.
 
+#### SUPERSEDED 2026-09-21 — concern 2 DECIDED (owner): option D, checksum-packed store, no git at all
+
+owner's call, given directly rather than picking B/C: implementable
+entirely without git operations, using a checksum-based packed state
+store for both capture and revert. this is real house convention, not
+a new invention — `note.trash.stash`'s xz+base32-per-item pack format
+(`src/note.trash.stash`) is reused verbatim, just keyed by content
+checksum instead of `base.ntime`, and per-file checksums use the same
+BMW filesum family already addressing models in the registry
+(`base.chk-sum.bmw.filesum`) — one addressing scheme across the whole
+system, not a second one invented for this doc. more implementation
+work than B (own tree-walk, own diff, no free ride on git's index) —
+owner explicitly flagged the tradeoff going in.
+
+**why this fully replaces B, not just its revert step:** git's role in
+B was never really "version control" — it was the free
+dirty/clean check (`git status --porcelain`) and the free destructive
+primitive (`git reset --hard`). a checksum manifest is a superset
+dirty/clean check (it also catches *content* drift a `git status`
+line-count can't distinguish from a touch) and the blob store is a
+strictly safer destructive primitive (every overwrite is content-
+addressed and recoverable by construction, not just moved to a trash
+directory as a side effect). concern 1's git-porcelain gate is
+therefore superseded too — see the note at the end of this subsection.
+
+**blob store [ new primitive, `model_batch.blob.*` ]:**
+
+- `model_batch.blob.store(path) -> checksum` — read the file,
+  `base.chk-sum.bmw.filesum` it, and if
+  `state/model_batch/blobs/<checksum>.mxz.B32` does not already exist,
+  xz + base32 the content into it exactly as `note.trash.stash` does
+  [ same `IO::Compress::Xz` + `base32.encode` calls, different key ].
+  content-addressing means identical content across models/tasks/gates
+  is packed exactly once — the store is a natural CAS, not a growing
+  per-run log.
+- `model_batch.blob.restore(checksum, dest_path)` — reverse of the
+  above [ `base32.decode` + `IO::Uncompress::UnXz` ], writes `dest_path`
+  atomically via `file.write`.
+
+**manifest [ replaces git's index + HEAD for this purpose ]:**
+
+- `model_batch.manifest.build($root)` walks the tree [ same file-walk
+  the codebase already has for corpus scanning, e.g. the
+  `sourcecode.*`/`ncode` family — reuse, do not reinvent a walker ],
+  excluding `.git/` and the `state/` dir itself, and returns
+  `{ relpath => checksum }` via the blob-store checksum function
+  [ checksum only, no packing yet — packing happens lazily, only for
+  paths a diff actually needs to preserve ].
+- the **baseline manifest** is stored once per batch at
+  `state/model_batch/<batch_id>/baseline-manifest.yaml` [ same
+  `file.zenka_dir.load/write` durability contract as the rest of
+  concern 3 ] — this is the D-equivalent of B's "baseline HEAD sha".
+- the **gate** [ batch start, and between every model ] rebuilds the
+  current manifest and diffs it against the baseline: any path with a
+  different checksum, a missing path, or a new path not already
+  blob-stored at gate time is "dirty". clean → proceed, baseline
+  unchanged. dirty and no `:force:` → refuse, print the diff list
+  [ mirrors B's refusal shape exactly, just sourced from the manifest
+  diff instead of `git status --porcelain` ]. dirty with `:force:` →
+  proceed, and every dirty path at gate time is blob-stored immediately
+  [ this is D's equivalent of B's gate-snapshot step — "capture before
+  anything destructive" applies to the pre-existing dirty state too ].
+
+**capture + revert per (model, task), in strict order [ mirrors B's
+four steps one-for-one ]:**
+
+1. **capture before anything destructive.** diff the current manifest
+   against the baseline; for every changed or removed path, blob-store
+   its baseline-checksum content if not already stored [ it always
+   already is, from the last gate or the batch start — this is a
+   no-op in the common case, a genuine capture only in `:force:`
+   drift ]; for every changed or new path, blob-store its CURRENT
+   content. the full-diff record for review (concern 3) is computed
+   lazily at read time from the two checksums' blobs [ decompress
+   both, run a text diff — no diff is computed or stored at capture
+   time, only the two checksums are, which is cheaper per-task and
+   defers diffing entirely to whoever actually looks at a result ].
+2. **restore:** for every path whose current checksum differs from
+   baseline, `model_batch.blob.restore(baseline_checksum, path)`. for
+   every path present now but absent from baseline, delete it [ safe —
+   step 1 already blob-stored its content under its own checksum, so
+   the delete is recoverable by construction, unlike B's `git clean
+   -fd` which this design has no equivalent of and does not need ].
+3. **untracked-vs-tracked distinction does not exist in D** — there is
+   no git index, so every path is just "in the baseline manifest" or
+   not. this is strictly simpler than B's tracked/untracked split, and
+   the gate-time force-capture (above) already covers B's "operator-
+   placed untracked file" case identically: it's in the baseline
+   manifest from the moment the gate saw it, force-captured or not.
+4. **re-verify:** rebuild the manifest, diff against baseline — must be
+   empty before the next model starts. a failed reverify is a hard
+   stop exactly as in B [ cursor frozen, blob store is the recovery
+   surface — every version of every touched path is sitting in it by
+   checksum, nothing was ever deleted without being stored first ].
+
+**what this makes true that B could only approximate:** the harness
+never invokes `git` at all — works identically on a dirty git tree,
+a clean one, mid-rebase, or no git repo whatsoever, because the
+manifest IS the baseline, not a reference to one. concern 1's gate
+mechanic in the section above [ `git status --porcelain` /
+`:force:` / gate-snapshot ] is superseded by the manifest-diff gate
+described here; its DECISIONS [ hard-gate-with-escape-hatch,
+`:force:` keyword, always stamp, re-run between models, freeze-not-
+revert on owner-drift ] all still hold — only the mechanism producing
+"is it dirty" changed. concern 3's store shape is unaffected: `full
+diff` in its field list is now a lazily-computed field [ two checksums
++ a compute-on-read diff ] rather than a captured-at-write-time git
+diff string, everything else in that section stands as written.
+
+**for the model-swap-detection / respawn-recovery concerns further
+down [ these never touched git in the first place ]: unaffected by
+this change, still as decided.**
+
 ### concern 3 — DECIDED (unilateral): C, state-dir store + console reader
 
 - **store (the decided shape):** `state/model_batch/<batch_id>/<model_checksum>.yaml`,
@@ -618,8 +731,8 @@ design decision before code.
 - `data/tasks/completed/coding-self-test-true-parallelization.md` —
   per-backend guard-slot precedent.
 
-#,,.,,,.,,.,.,,,.,..,,..,,..,,...,.,,,,.,,..,,..,,...,...,,,,,,,,,.,.,..,,,..,
-#65X6ETLBERNAPQEPM6Q22HBT3UBJ5NWX3CZ6Y6FP5WTQUOTFE3HFEMRNCUZNC23W2PDA67GIHPU4I
-#\\\|7W6OYY5BZMD7PT3WHDDRLINYJUVOJTU32IG2WFW64OEVOF5IS6P \ / AMOS7 \ YOURUM ::
-#\[7]AFXUWU3SVLEAUOR2K7CP4DB3EPOAMYB6KDSY54QBBKGKJ5YVB6DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,,..,,,,,,,.,.,,,..,,..,,,,.,..,,...,...,.,.,.,,,,..,,,.,...,
+#JOO2QB2CQS35D4OBBWQ5QPIZGF3KFMXZAJ5RW3GB54D6K7P7YVR3PQ4ZYPHCAAW2DVAPYPMNKS6OO
+#\\\|6EHI6IWXVHMEQUL72WSH47DI3PDBE4BGXDG4EBLYPV6DQ3BH46L \ / AMOS7 \ YOURUM ::
+#\[7]FEXOCIFO6LP63FAPPEHP2TUNSIJC53MXD4FF74KJ4BTFKCD556BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

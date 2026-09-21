@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = model_batch.spec.load
+# descr = load a hand-authored batch spec from cfg/model-batches/
+# param = <batch-id> -> <spec-href> | undef
+
+my $batch_id = shift // '';
+$batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
+
+return warn 'expected batch id parameter <{C1}>' unless length $batch_id;
+
+my $spec_path
+    = catfile( <system.conf_path>, qw| model-batches |, "$batch_id.yaml" );
+
+return warn sprintf( "batch spec '%s' not found <{C1}>", $spec_path )
+    unless -f $spec_path;
+
+my $spec_href = <[format.yaml.load_file]>->($spec_path);
+return warn sprintf( "batch spec '%s' failed to parse <{C1}>", $spec_path )
+    unless ref $spec_href eq qw| HASH | and %$spec_href;
+
+## required fields ##
+for my $field (qw| batch_spec_version backend tasks |) {
+    return warn sprintf( "batch spec missing '%s' field <{C1}>", $field )
+        unless defined $spec_href->{$field};
+}
+
+return warn sprintf( "batch spec backend '%s' invalid <{C1}>",
+    $spec_href->{'backend'} )
+    unless $spec_href->{'backend'} =~ m{^(gpu|cpu)$};
+
+return warn 'batch spec tasks list is empty <{C1}>'
+    unless ref $spec_href->{'tasks'} eq qw| ARRAY |
+    and $spec_href->{'tasks'}->@*;
+
+## per-task sanity + defaults ##
+my %seen_id;
+for my $task_href ( $spec_href->{'tasks'}->@* ) {
+    return warn 'batch spec task entry is not a map <{C1}>'
+        unless ref $task_href eq qw| HASH |;
+    my $task_id = $task_href->{'id'} // '';
+    return warn 'batch spec task missing id <{C1}>' unless length $task_id;
+    return warn sprintf( "duplicate task id '%s' <{C1}>", $task_id )
+        if $seen_id{$task_id}++;
+    return
+        warn
+        sprintf( "task '%s' needs prompt or prompt_file <{C1}>", $task_id )
+        unless length( $task_href->{'prompt'}  // '' )
+        or length( $task_href->{'prompt_file'} // '' );
+    $task_href->{'budget_hint'} //= 300;
+    $task_href->{'budget_hint'} = 300
+        unless $task_href->{'budget_hint'} =~ m{^\d+$}
+        and $task_href->{'budget_hint'} > 0;
+}
+
+## v1 : an explicit candidate shortlist is required -- this is the deep,
+## expensive evaluation of a sweep-produced shortlist, not a registry-wide
+## pass [ the sweep itself owns that shape ]
+return warn 'batch spec needs an explicit models list in v1 <{C1}>'
+    unless ref $spec_href->{'models'} eq qw| ARRAY |
+    and $spec_href->{'models'}->@*;
+
+## reference tps the budget_hints were authored at [ ~20 t/s ] ##
+$spec_href->{'reference_tps'} //= 20;
+
+return $spec_href;
+
+#,,,,,...,,,.,.,.,,..,...,,,.,,,.,,.,,...,,,,,..,,...,...,..,,,,.,,,.,,..,,.,,
+#ED26DL643QH4O5KACEHA5DRGN7TVFDSY6LBF7MKXRTZVCC6KP3P35G6XKR6GRVG5Q4WTFOOA5KBFS
+#\\\|JM7P5DZBW3GKTMRGIRRVDF4OJX4NAPMZGCRERAYQXPE6GYP4PNJ \ / AMOS7 \ YOURUM ::
+#\[7]LCVHPO632DHSP6SM4WVKYMTILSEXGVSGVEUEMEDKENDBKATNHADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

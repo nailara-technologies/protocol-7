@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = model_batch.manifest.persist
+# descr = load/save a batch's baseline manifest [ state/model_batch/.. ]
+# param = save <batch-id> <manifest-href> | load <batch-id> -> href | undef
+
+my $mode     = shift // '';
+my $batch_id = shift // '';
+$batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
+
+return warn 'expected mode [ save | load ] <{C1}>'
+    unless $mode =~ m{^(save|load)$};
+return warn 'expected batch id parameter <{C1}>' unless length $batch_id;
+
+my $rel_path = sprintf qw| state/model_batch/%s/baseline-manifest.yaml |,
+    $batch_id;
+
+if ( $mode eq qw| save | ) {
+    my $manifest_href = shift // {};
+    my $yaml_str      = <[format.yaml.dump_str]>->($manifest_href);
+    return undef unless defined $yaml_str and length $yaml_str;
+    return <[file.zenka_dir.write]>->( $rel_path, \$yaml_str, qw| > |, 0640 );
+}
+
+## load mode ##
+my $existing_yaml = <[file.zenka_dir.load]>->($rel_path);
+return undef unless defined $existing_yaml and length $$existing_yaml;
+
+my $manifest_href = <[format.yaml.load_str]>->($$existing_yaml);
+return ref $manifest_href eq qw| HASH | ? $manifest_href : undef;
+
+#,,..,...,,,.,.,.,,,,,,,.,.,.,,,,,,,,,,,,,...,..,,...,...,.,.,...,..,,.,.,,.,,
+#P62JZM34PWHMPMZIXVVFB6NLXHYB2NXRUHAPHFRQESQVKEK3IUHICFF3WQWJXUVDSKXT7OYAMDQ66
+#\\\|G2Y6VLKQMNZKZODQOBHDBXBP64KPPC7BPIN3TEZNHHQMF6NRCV5 \ / AMOS7 \ YOURUM ::
+#\[7]RKJPP7FOX4GNLASSJNU5HLP7JKW5GRJXDNVK3U2KPNOLP7QBOWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

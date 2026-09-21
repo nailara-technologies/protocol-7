@@ -123,6 +123,7 @@ base.file.which
 base.file.slurp
 base.event.once
 base.event.loop
+base.diff_array
 base.cmd.reload
 base.calc_gauss
 ascii.frame.bar
@@ -368,6 +369,10 @@ pager.editor.get_line
 pager.buffer.prefetch
 pager.buffer.page.get
 models.parser.size_gb
+model_batch.spec.load
+model_batch.diff.text
+model_batch.blob.read
+model_batch.blob.path
 jobqueue.get_next_job
 jobqueue.get_job_data
 io.ip.tcp.output.open
@@ -425,6 +430,9 @@ pager.source.file-list
 pager.decode.direction
 pager.command-dispatch
 ncode.util.scope_match
+model_batch.gate.check
+model_batch.blob.store
+iteration.score_result
 io.ip.tcp.output.close
 format.yaml.write_file
 crypt.C25519.sign_keys
@@ -519,6 +527,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.chk-sum.bmw.512_32
 base.callback.cmd_reply
 base.auth.set_zenka_key
@@ -539,6 +548,9 @@ pager.buffer.page.resize
 models.storage.yaml_load
 models.conversation.save
 models.conversation.load
+model_batch.verify.clean
+model_batch.capture.task
+model_batch.blob.restore
 io.unix.socket.init_code
 crypt.C25519.verify_sign
 crypt.C25519.single_file
@@ -598,6 +610,8 @@ pager.view.true-int-color
 models.invoke_participant
 models.checksum.from_path
 models.backend.api.invoke
+model_batch.manifest.diff
+model_batch.baseline.pack
 jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
@@ -612,6 +626,7 @@ coding.self_test.evaluate
 coding.round_chain.rewind
 coding.round_chain.append
 coding.resolve_model_path
+coding.model_batch.record
 coding.init_output_buffer
 coding.handler.drain_pipe
 coding.event.on_task_fail
@@ -649,6 +664,7 @@ ncode.chmod_child.readline
 models.parser.ellipse_name
 models.conversation.create
 models.callback.send_reply
+model_batch.manifest.build
 llm.service.consensus_vote
 io.unix.socket.output.open
 io.unix.socket.input.close
@@ -769,6 +785,7 @@ pager.filter.harmonic-random
 pager.buffer.page.invalidate
 ncode.util.file_to_namespace
 models.conversation.add_turn
+model_batch.manifest.persist
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
@@ -807,6 +824,7 @@ pager.util.editor.format_line
 models.gguf.file.extract_name
 models.conversation.analytics
 models.checksum.from_metadata
+model_batch.manifest.checksum
 format.yaml.load_keyword_path
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
@@ -863,6 +881,7 @@ plugin.storage.checksum.lookup
 models.gguf.file.name_diverges
 models.conversation.task_chain
 models.conversation.list_saved
+model_batch.revert.to_baseline
 llm.service.subprocess_wrapper
 jobqueue.handler.queue_counter
 crypt.C25519.keys.version_info
@@ -1067,6 +1086,7 @@ coding.tools.handler.ask_user_text
 coding.self_test.cmd.self-test-run
 coding.routing.can_use_local_rules
 coding.model_sweep.cmd.model-sweep
+coding.model_batch.cmd.model-batch
 coding.intake.parse_command_string
 coding.handler.enqueue_round_timer
 coding.handler.account_usage_reply
@@ -1178,6 +1198,7 @@ coding.self_test.cmd.self-test-status
 coding.self_test.cmd.self-test-detail
 coding.routing.determine_service_impl
 coding.model_sweep.handler.poll_sweep
+coding.model_batch.handler.poll_batch
 coding.helper.self_test_guard_watcher
 coding.helper.get_transaction_history
 coding.helper.complete_pending_switch
@@ -1267,6 +1288,9 @@ coding.vision-parser.handler.vision_reply
 coding.model_sweep.cmd.model-sweep-status
 coding.model_sweep.cmd.model-sweep-resume
 coding.model_sweep.cmd.model-sweep-cancel
+coding.model_batch.cmd.model-batch-status
+coding.model_batch.cmd.model-batch-resume
+coding.model_batch.cmd.model-batch-cancel
 coding.handler.switch_model_auto_gpu_done
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
@@ -1321,8 +1345,8 @@ llm.service.consensus_vote.encode_harmonic_certainty
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,..,,..,,,,,...,..,,..,,,..,.,,,.,.,.,,,,.,,..,,...,...,..,,.,.,,,.,,,,,...,
-#GLXUPQ2TPWTH6KC2FY4EONEPKFM4NLCEZVGOD3W2ADJO5KHUYYJH3L5QFHR26CLAIJ72QNMTJD7P2
-#\\\|RVYYUZSVG4QRV6YRG27EAKA6GVTRNWNLEFLUQMFOMKBZ44BLSBU \ / AMOS7 \ YOURUM ::
-#\[7]LEX7MT7NKEDRKHKN5KWRBSH6WTIDHEUKFVEGLGHL45WF6HXLKGBI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,,,,.,,...,,..,...,,.,,.,,,,,,,..,,...,...,.,,,..,,,..,,,,,,,,,
+#MGUEHK4N5TMDXSXWVYYKWXZDROUTNWA2KBF3JIHRCQMBYTXZ35XCMALRKSCOMA5NGDZ447XFPYXOS
+#\\\|4BBJ535EBSO57RCWR3E3WT7M4SMLHSOTP2BU6FASRORWW6DADY3 \ / AMOS7 \ YOURUM ::
+#\[7]EVUXJCIJF47XC7422PQAUJUCE6LJU756LMYVCGYFXL3I3RYH3OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
