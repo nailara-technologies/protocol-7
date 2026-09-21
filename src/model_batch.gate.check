@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = model_batch.gate.check
+# descr = manifest-diff clean-tree gate [ batch start + between models ]
+# note  = the option-D replacement for concern 1's git-porcelain gate :
+#         same decisions [ hard gate + :force: escape hatch + always
+#         stamp + freeze-not-revert on owner drift ], manifest-diff
+#         mechanism. no git anywhere.
+# param = { batch_id =>, force => 0|1 } ->
+#         { clean => 1, baseline => href }                        [ clean ]
+#       | { clean => 0, diff => href }                            [ refuse ]
+#       | { clean => 1, forced => 1, diff => href, ... }          [ forced ]
+
+my $params   = shift                 // {};
+my $batch_id = $params->{'batch_id'} // '';
+my $force    = $params->{'force'}    // FALSE;
+
+$batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
+
+return warn 'expected batch_id parameter <{C1}>' unless length $batch_id;
+
+## first gate for a batch : the current tree BECOMES the baseline ##
+my $baseline_href
+    = <[model_batch.manifest.persist]>->( qw| load |, $batch_id );
+
+my $baseline_is_new = FALSE;
+
+if ( ref $baseline_href ne qw| HASH | or !%$baseline_href ) {
+    $baseline_href = <[model_batch.manifest.build]>->();
+    <[model_batch.manifest.persist]>->(
+        qw| save |, $batch_id, $baseline_href
+    );
+    $baseline_is_new = TRUE;
+}
+
+my $current_href = <[model_batch.manifest.build]>->();
+
+my $diff_href
+    = <[model_batch.manifest.diff]>->( $baseline_href, $current_href );
+
+my @dirty_paths = (
+    $diff_href->{'changed'}->@*,
+    $diff_href->{'added'}->@*,
+    $diff_href->{'removed'}->@*
+);
+
+my $clean = @dirty_paths ? FALSE : TRUE;
+
+if ( !$clean and !$force ) {
+    return {
+        qw| clean    | => FALSE,
+        qw| diff     | => $diff_href,
+        qw| baseline | => $baseline_href,
+    };
+}
+
+## :force: path -- capture before anything destructive applies to         ##
+## pre-existing drift too : every dirty path still on disk is blob-stored ##
+## immediately. [ a drift-removed path has no content left to capture --  ##
+## same unrecoverable-pre-existing-drift class git-B had ; nothing the    ##
+## harness can do post-hoc ]                                              ##
+if ( !$clean and $force ) {
+    my $root_path = canonpath(<system.root_path>);
+    for my $rel_path ( $diff_href->{'changed'}->@*,
+        $diff_href->{'added'}->@* ) {
+        my $abs_path = catfile( $root_path, split m|/|, $rel_path );
+        <[model_batch.blob.store]>->($abs_path) if -f $abs_path;
+    }
+}
+
+return {
+    qw| clean         | => TRUE,
+    qw| forced        | => ( $clean ? FALSE : TRUE ),
+    qw| baseline_new  | => $baseline_is_new,
+    qw| diff          | => $diff_href,
+    qw| baseline      | => $baseline_href,
+    qw| baseline_cs   | =>
+        <[model_batch.manifest.checksum]>->($baseline_href),
+    qw| current_cs    | => <[model_batch.manifest.checksum]>->($current_href),
+};
+
+#,,.,,,..,..,,,,.,.,.,...,,,,,,,,,.,,,.,.,.,.,..,,...,...,..,,,..,...,,..,,..,
+#CLBLLPZXHWCPBRSHWU5IGTDBPUWYNBMFGP7CHHEPU4VHYZ6RPEUCX4NYHH5XWEXDF6SXJTAL5EXVO
+#\\\|U4MPPSOP2T6YU3TCXC3NGXXLUYF5DAVJWXOIPRBTOI6PGGTC3YC \ / AMOS7 \ YOURUM ::
+#\[7]XY77PGLNJCZS6JESPHUTTZ43KOJW234VSS6WDSJXGQLMRREAHWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

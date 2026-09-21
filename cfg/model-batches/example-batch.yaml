@@ -1,0 +1,34 @@
+# example real-task model batch spec
+#
+# consumed by model_batch.spec.load via the `model-batch <batch-id>`
+# console command. hand-authored, versionable, deterministic --
+# batch_spec_version distinguishes revisions of the same task set.
+
+batch_spec_version: 1
+backend: gpu
+
+# explicit candidate shortlist [ required in v1 : a batch is the deep,
+# expensive evaluation of a sweep-produced shortlist, not a registry-wide
+# pass -- model-sweep owns that shape ]. entries are model registry
+# checksums [ AMOS ids, same keys the sweep iterates ].
+models:
+  - AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+# tps the per-task budget_hints below were authored at [ ~20 t/s ].
+# per-task budget = budget_hint * reference_tps / observed_tps,
+# clamped to [1x, 30x] the hint ; stream_tps is_alive extends live
+# streams. per-model cap = sum(hints) * scale * 1.5.
+reference_tps: 20
+
+tasks:
+  - id: example-task-1
+    budget_hint: 300        # seconds, at reference_tps speed
+    prompt: |
+      work submit "read src/note.trash.stash and summarize in one
+      paragraph which module formats it shares with model_batch.blob.store"
+
+    # optional criteria [ iteration.score_result mechanics ] : when
+    # present, the record also carries a 0.0-1.0 score + verdict.
+    criteria:
+      - xz
+      - base32
