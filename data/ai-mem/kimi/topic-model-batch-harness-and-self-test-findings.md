@@ -23,6 +23,12 @@ verify timer `params`→`data`, prompt 3 mismatch_hint).
   reschedule passing `'params'` produces a watcher whose `w->data` is undef;
   the next fire dies (see above). timing-dependent: masked whenever the
   server became ready within the first 10s window.
+- **the loader registers `base.*` modules under FLAT names** — invoke
+  `<[chk-sum.bmw.filesum]>`, `<[format.inline-nested.encode]>` (house style),
+  never `<[base.chk-sum...]>`. `reload source` masks the mistake by
+  registering full-name keys for changed files; only a fresh restart exposes
+  it (found live 2026-09-21). verify spellings against a booted instance,
+  never a reloaded one.
 - **cmd modules read the ambient global `$call`, not their argument** —
   calling `coding.cmd.submit` from a timer submits whatever the last command
   dispatch left in `$call` (live: eval-code probe strings became work
@@ -72,8 +78,8 @@ committing tree state. blob store, records, and gate machinery all verified
 working; stub suite `bin/test-scripts/test-model-batch-harness.pl` (49
 checks) covers the full cycle.
 
-#,,,,,.,,,..,,,,,,,,.,,,,,...,..,,..,,.,,,,.,,..,,...,...,..,,..,,,,,,.,,,,..,
-#OQXENNQAHZAA7KPXZUF7C2T3HMRV66RRC6D53YOY4SEH7MY6ZTWY3A6GKQNUMZIB2RSZFP5ZYJRM6
-#\\\|2BUAB6EH6DEGICSP7MTUTQBFMQET7MHKDCLTSKSQLM3NYPCM6OW \ / AMOS7 \ YOURUM ::
-#\[7]63WWNXO4YWIGZZRRCSVMM5XZYG4ZIDUIUT42V6RNH6MXOYM224BA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,.,.,.,..,,..,,,.,,,..,..,,..,,...,..,,...,,,,,.,.,,..,.,.,
+#6NMX65XUYRVR7QD2CCNWM3QFYDQ7EA7XONEFNDMLBIGCUIKDYKJMDYVUZFFBL4L5CNCFEDTIH5ROE
+#\\\|5GWV6QQFHFKXADBKIPYABHCNJSOU36AEB3LA5C3REQFOI67YWG6 \ / AMOS7 \ YOURUM ::
+#\[7]HBGFBR6SLK6PJMXMIWELVVGVNFNI34AHWJ5STT2VD3PR5Q3M7QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
