@@ -55,22 +55,30 @@ my $run_started = <[coding.self_test.run]>->(
                 return;
             }
 
-            ## cat-test (prompt_id 2) tier1 structural failure : restart    ##
-            ## the server rather than just recording the fail. seed=0 [ the ##
-            ## configured default ] derives a fresh harmonic seed from      ##
-            ## ntime+fortuna on every spawn, so a plain restart already     ##
-            ## gives a different seed -- no separate seed-forcing needed.   ##
-            ## guarded against looping forever on a genuinely broken model: ##
-            ## caps at coding.cfg.self_test_seed_retry_max attempts per     ##
-            ## model_id, reset on any clean self-test pass                  ##
+            ## cat-test (prompt_id 2, and its primed sibling prompt_id 3 -- ##
+            ## the SAME riddle with the word-limit stated up front) tier1   ##
+            ## structural failure : restart the server rather than just     ##
+            ## recording the fail. seed=0 [ the configured default ]        ##
+            ## derives a fresh harmonic seed from ntime+fortuna on every    ##
+            ## spawn, so a plain restart already gives a different seed --  ##
+            ## no separate seed-forcing needed. guarded against looping     ##
+            ## forever on a genuinely broken model: caps at                 ##
+            ## coding.cfg.self_test_seed_retry_max attempts per model_id,   ##
+            ## reset on any clean self-test pass. prompt 3 was added        ##
+            ## 2026-08-08 [ b73e33876 ] but this gate was never extended -- ##
+            ## a riddle miss landing on prompt 3 only silently completed    ##
+            ## 2/3 with no restart [ found live 2026-09-21 : this model     ##
+            ## misses the primed variant alone ~18% of runs, 25x            ##
+            ## content_mismatch ]                                           ##
             my $cat_failed = FALSE;
             if ( ref $st_result eq qw| HASH |
                 and $st_result->{'data'} ) {
                 my $data = $st_result->{'data'};
                 if ( not $data->{'all_passed'} ) {
                     for my $r ( @{ $data->{'results'} // [] } ) {
+                        my $prompt_id = $r->{'prompt_id'} // 0;
                         $cat_failed = TRUE
-                            if ( $r->{'prompt_id'} // 0 ) == 2
+                            if ( $prompt_id == 2 or $prompt_id == 3 )
                             and not $r->{'passed'};
                     }
                 }
@@ -339,8 +347,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,.,,,,,,.,,,.,,,,.,,..,,.,,,,.,,..,...,,..,..,,...,..,,,..,...,,.,,,,.,...,
-#QGEI7HXQHTIZCKP3A37LVLQGIUVHEP4P5OKMVIJFXPTBIZUWJWHTWFA5FMGCWT5WGPLD7VIBQ5PDE
-#\\\|P25K7A5TNEHZES2GVYICW6MHM7QQKLSHGUNRSINPQ3FMX5RBKOO \ / AMOS7 \ YOURUM ::
-#\[7]NDGBZUNOUCBAIMRF67HG5L3U4WISLSJGEW76NFKBT4X4F4XGRABQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,.,.,.,,,...,..,,,,,,.,,,.,.,..,,...,...,.,.,,,.,.,.,..,,...,
+#4SDLLP5XVRZRUBMLSN2EKHPTQDOYD6F7OWZUD53IC7R24BQNMWOZCPSUSYHLAK4VGTOLXDWOC3EM6
+#\\\|U3SZB24CZFRS2O7IKDBCIBAW6BDHQIEUFWGLBG2I7GMDEGAM5LG \ / AMOS7 \ YOURUM ::
+#\[7]WM2JY4EZ36WRA4RGCQ7UZ5MS7XRXYVEVSYZLG7GD2TWZI4HXK2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
