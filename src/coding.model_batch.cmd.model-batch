@@ -1,0 +1,203 @@
+## [:< ##
+
+# name  = coding.model_batch.cmd.model-batch
+# descr = start a real-task model batch from a batch spec
+# param = <batch-id> [:force:] [:no_yield:] [:restart:]
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+## substitutive extraction, order-independent [ house convention ] ##
+my $force    = ( $args =~ s| *:force: *| | );
+my $no_yield = ( $args =~ s| *:no_yield: *| | );
+my $restart  = ( $args =~ s| *:restart: *| | );
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $batch_id = $args;
+
+return { mode => qw| size |, data => "Error: batch id required\n" }
+    unless length $batch_id;
+
+my @lines;
+
+## one batch at a time [ sequential-only across backends, v1 ] ##
+if ( ref <coding.model_batch_state> eq qw| HASH | ) {
+    my $active = <coding.model_batch_state>;
+    my $st     = $active->{'state'} // qw| running |;
+    if ( $st eq qw| paused | ) {
+        push @lines,
+            sprintf
+            '%s : a batch is paused [ %s ] -- use model-batch-resume '
+            . '[ :force: ] or model-batch-cancel first',
+            $batch_id, $active->{'paused_reason'} // '';
+    } else {
+        push @lines, sprintf '%s : a batch is already running', $batch_id;
+    }
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+## load the batch spec ##
+my $spec_href = eval { <[model_batch.spec.load]>->($batch_id) };
+if ( ref $spec_href ne qw| HASH | ) {
+    my $err = $@ || 'spec load failed';
+    return {
+        mode => qw| size |,
+        data => sprintf "Error: cannot load batch spec '%s' : %s\n",
+        $batch_id, $err
+    };
+}
+
+my $backend    = $spec_href->{'backend'};
+my @candidates = map { my $cs = $ARG // ''; $cs =~ s|[^A-Za-z0-9]|_|g; $cs }
+    $spec_href->{'models'}->@*;
+my $total = scalar @candidates;
+
+if ( !$total ) {
+    return {
+        mode => qw| size |,
+        data => sprintf "Error: batch '%s' has no candidates\n",
+        $batch_id
+    };
+}
+
+my $cursor_file   = qw| state/model_batch_cursor.yaml |;
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my $existing = $cursor_data->{'batch'} // {};
+
+if (   !$restart
+    && ref $existing eq qw| HASH |
+    && ( $existing->{'idx'} // 0 )
+    < scalar( @{ $existing->{'candidates'} // [] } ) ) {
+    if ( ( $existing->{'state'} // '' ) eq qw| paused | ) {
+        push @lines,
+              sprintf '%s : batch is paused [ idx=%d/%d, %s ] -- use '
+            . 'model-batch-resume :force: to continue, or '
+            . 'model-batch-cancel to discard',
+            $batch_id,
+            $existing->{'idx'} // 0,
+            scalar( @{ $existing->{'candidates'} // [] } ),
+            $existing->{'paused_reason'} // '';
+    } else {
+        push @lines,
+            sprintf '%s : resumable cursor exists [ idx=%d/%d ] -- '
+            . 'use model-batch-resume, or :restart: to discard',
+            $batch_id,
+            $existing->{'idx'} // 0,
+            scalar( @{ $existing->{'candidates'} // [] } );
+    }
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+if (    $restart
+    and ref $existing eq qw| HASH |
+    and ( $existing->{'idx'} // 0 )
+    < scalar( @{ $existing->{'candidates'} // [] } ) ) {
+    push @lines,
+        sprintf '%s : :restart: discarded existing cursor [ idx=%d/%d ]',
+        $batch_id,
+        $existing->{'idx'} // 0,
+        scalar( @{ $existing->{'candidates'} // [] } );
+}
+
+## initial clean-tree gate [ refuse BEFORE anything is packed or switched : ##
+## dirty + no :force: means the batch simply does not start, with the diff  ##
+## list as the refusal body ]                                               ##
+my $gate_href = <[model_batch.gate.check]>->(
+    {   qw| batch_id | => $batch_id,
+        qw| force |    => $force,
+    }
+);
+
+if ( ref $gate_href ne qw| HASH | or !$gate_href->{'clean'} ) {
+    my $diff_href
+        = ref $gate_href eq qw| HASH |
+        ? ( $gate_href->{'diff'} // {} )
+        : {};
+    push @lines,
+        sprintf '%s : gate REFUSED -- tree differs from baseline '
+        . '[ use :force: to proceed with force-capture ]',
+        $batch_id;
+    for my $class (qw| changed added removed |) {
+        push @lines,
+            sprintf '  %s : %s', $class, join ',', $diff_href->{$class}->@*
+            if ref $diff_href->{$class} eq qw| ARRAY |
+            and $diff_href->{$class}->@*;
+    }
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+push @lines,
+    sprintf
+    '%s : gate clean [ baseline=%s%s ] : %d candidate%s on %s, %d task%s',
+    $batch_id,
+    substr( $gate_href->{'baseline_cs'} // '', 0, 12 ),
+    ( $gate_href->{'forced'} ? ', forced' : '' ),
+    $total, <[base.cnt_s]>->($total),
+    $backend,
+    scalar( $spec_href->{'tasks'}->@* ),
+    <[base.cnt_s]>->( scalar $spec_href->{'tasks'}->@* );
+
+## persist initial cursor ##
+$cursor_data->{'batch'} = {
+    qw| batch_id |   => $batch_id,
+    qw| backend |    => $backend,
+    qw| candidates | => \@candidates,
+    qw| idx |        => 0,
+    qw| started |    => <[base.ntime]>,
+    qw| state |      => qw| running |,
+    qw| force |      => $force    ? TRUE : FALSE,
+    qw| no_yield |   => $no_yield ? TRUE : FALSE,
+};
+my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+if ( length $yaml_str ) {
+    <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+        or <[base.logs]>->(
+        1, '[model_batch] failed to persist cursor file [ %s ]', $cursor_file
+        );
+}
+
+## in-memory runner state ##
+<coding.model_batch_state> = {
+    qw| batch_id |          => $batch_id,
+    qw| backend |           => $backend,
+    qw| spec |              => $spec_href,
+    qw| candidates |        => \@candidates,
+    qw| idx |               => 0,
+    qw| task_idx |          => 0,
+    qw| phase |             => qw| gate |,
+    qw| state |             => qw| running |,
+    qw| force |             => $force    ? TRUE : FALSE,
+    qw| no_yield |          => $no_yield ? TRUE : FALSE,
+    qw| started |           => <[base.ntime]>,
+    qw| switch_id |         => '',
+    qw| baseline |          => $gate_href->{'baseline'},
+    qw| baseline_cs |       => $gate_href->{'baseline_cs'},
+    qw| last_observed_tps | => 0,
+    qw| tps_scale |         => 1,
+    qw| breaker |           => { qw| signature | => '', qw| count | => 0 },
+};
+
+<[event.add_timer]>->(
+    {   qw| interval | => 1,
+        qw| repeat |   => TRUE,
+        qw| handler |  => qw| coding.model_batch.handler.poll_batch |,
+        qw| data |     => {},
+        qw| desc |     => sprintf( 'model-batch %s', $batch_id ),
+    }
+);
+
+push @lines, sprintf '%s : batch started', $batch_id;
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,...,,,.,,.,,,.,,.,,,,..,.,,,...,.,.,,,,,..,,...,...,...,.,.,...,..,,,.,,
+#BI3NSIXBDKTCK7OX5C7BWL7LPIT45FXG6JL7PGOZ3W7EG2H7M5EOJWWUATSX4OMQJZ7QYGNNE7LU4
+#\\\|WQQHEKUAKFR45XICU2JCND7WZC5X3RERHHHJB77Z7JXDL2ITFSZ \ / AMOS7 \ YOURUM ::
+#\[7]NWNA7U4T37HV55FRIDOCLTDYWLHPROC7AHR3SQXHQY7FFBHJVEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

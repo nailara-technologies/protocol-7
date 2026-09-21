@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = model_batch.blob.read
+# descr = fetch unpacked content of one checksum-addressed batch blob
+# param = <checksum> -> <content> | undef
+
+my $checksum = shift // '';
+
+return warn 'expected checksum parameter <{C1}>'
+    unless length $checksum;
+return warn sprintf( "invalid checksum '%s' <{C1}>", $checksum )
+    unless $checksum =~ m{^[A-Z2-7]{20,128}$};
+
+my $blob_path = join qw| / |, <[model_batch.blob.path]>, "$checksum.mxz.B32";
+
+return warn sprintf( "blob '%s' not in store <{C1}>", $checksum )
+    unless -f $blob_path;
+
+my $b32 = <[file.read]>->($blob_path);
+return undef unless defined $b32;
+
+my $compressed = <[base32.decode]>->($b32);
+return undef unless defined $compressed;
+
+<[base.perlmod.autoload]>->('IO::Uncompress::UnXz');
+
+my $content;
+IO::Uncompress::UnXz::unxz( \$compressed, \$content )
+    or return undef;
+
+## content comes back as bytes : decode to characters when it is valid UTF-8
+## so file.write's :encoding(UTF-8) layer re-encodes to the same bytes [ same
+## text-content contract as note.trash.stash / .rescue ]
+utf8::decode($content)
+    if !utf8::is_utf8($content)
+    and utf8::valid($content);
+
+return $content;
+
+#,,,,,...,...,,,.,...,,.,,,..,,,.,,,.,.,,,,,.,..,,...,..,,,..,..,,...,,,.,,..,
+#OHWMBM3MQRQPYNR6OY7ZWBQQ4YUDVIXROKEYJRA5IP6TJLANJLHYNKJB47TSKZWEXRR5W4WA4UAHI
+#\\\|CYL2TE6HI7REPEZ4OBWCGVEN2TG3QWYUK4KLHSI2NL6D5CAUA36 \ / AMOS7 \ YOURUM ::
+#\[7]TXCABX64E6DEYIWDTWGITYOD6DBY2OABALM3NUCC2IXMEKCBQQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

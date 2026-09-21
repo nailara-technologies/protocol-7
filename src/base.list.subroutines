@@ -1462,6 +1462,10 @@ return [ qw[
         models.cmd.task_chain
         models.cmd.statistics
         models.cmd.app-models
+        model_batch.spec.load
+        model_batch.diff.text
+        model_batch.blob.read
+        model_batch.blob.path
         menu-commands.cmd.add
         memory.tree.wordcount
         memory.source.session
@@ -1743,6 +1747,8 @@ return [ qw[
         models.cmd.find_models
         models.cmd.attach_file
         models.chat.get_recent
+        model_batch.gate.check
+        model_batch.blob.store
         mod-test.cmd.strm-stop
         mod-test.cmd.strm-open
         memory.tree.dedup.wave
@@ -2311,6 +2317,9 @@ return [ qw[
         models.cmd.cost_analysis
         models.chat.invoke_model
         models.backend.interface
+        model_batch.verify.clean
+        model_batch.capture.task
+        model_batch.blob.restore
         mod-test.cmd.list-loaded
         menu-commands.save-state
         menu-commands.load-state
@@ -2573,6 +2582,8 @@ return [ qw[
         models.chat.format_buffer
         models.chat.auto_announce
         models.backend.api.invoke
+        model_batch.manifest.diff
+        model_batch.baseline.pack
         menu-commands.update-menu
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
@@ -2645,6 +2656,7 @@ return [ qw[
         coding.round_chain.rewind
         coding.round_chain.append
         coding.resolve_model_path
+        coding.model_batch.record
         coding.init_output_buffer
         coding.handler.drain_pipe
         coding.event.on_task_fail
@@ -2822,6 +2834,7 @@ return [ qw[
         models.cmd.add_participant
         models.cmd.adapter-resolve
         models.callback.send_reply
+        model_batch.manifest.build
         mod-test.handler.strm-tick
         memory.tree.summarize.wave
         memory.tree.summarize.node
@@ -3383,6 +3396,7 @@ return [ qw[
         models.cmd.load_conversation
         models.chat.process_keywords
         models.backend.coding.invoke
+        model_batch.manifest.persist
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
         memory.tree.score.idf_weight
@@ -3621,6 +3635,7 @@ return [ qw[
         models.cmd.invoke_participant
         models.checksum.from_metadata
         models.checksum.calculate_all
+        model_batch.manifest.checksum
         mod-test.cmd.list-blacklisted
         memory.tree.summarize.handler
         memory.tree.score.rebuild_idf
@@ -3887,6 +3902,7 @@ return [ qw[
         models.cmd.conversation_create
         models.checksum.calculate_amos
         models.chat.messages_to_prompt
+        model_batch.revert.to_baseline
         mod-test.update_blacklist_aref
         menu-commands.cmd.add-category
         memory.tree.score.rank_falloff
@@ -4718,6 +4734,7 @@ return [ qw[
         coding.self_test.cmd.self-test-run
         coding.routing.can_use_local_rules
         coding.model_sweep.cmd.model-sweep
+        coding.model_batch.cmd.model-batch
         coding.intake.parse_command_string
         coding.handler.enqueue_round_timer
         coding.handler.account_usage_reply
@@ -5115,6 +5132,7 @@ return [ qw[
         coding.self_test.cmd.self-test-detail
         coding.routing.determine_service_impl
         coding.model_sweep.handler.poll_sweep
+        coding.model_batch.handler.poll_batch
         coding.helper.self_test_guard_watcher
         coding.helper.get_transaction_history
         coding.helper.complete_pending_switch
@@ -5394,6 +5412,9 @@ return [ qw[
         coding.model_sweep.cmd.model-sweep-status
         coding.model_sweep.cmd.model-sweep-resume
         coding.model_sweep.cmd.model-sweep-cancel
+        coding.model_batch.cmd.model-batch-status
+        coding.model_batch.cmd.model-batch-resume
+        coding.model_batch.cmd.model-batch-cancel
         coding.handler.switch_model_auto_gpu_done
         base.zenki.ondemand.handler.startup_reply
         base.language.util.encoding_special_chars
@@ -5617,8 +5638,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,..,,,,,,,,.,,,,,.,,,.,.,..,,.,,,.,.,,.,,.,.,...,...,,,.,,,.,.,.,,.,,,,.,
-#PAL3RCX2Y77OL6WJKEPN74JVRC363BKBHQAWSUEFOKYDOIFPR5ZUC6VEZYCYRGZLDOABHWLFPAFZE
-#\\\|UD3LCJ43PHWSC4QJY7D47ONO26ERP4J3TRTP5NCNBFTI6LKLIB7 \ / AMOS7 \ YOURUM ::
-#\[7]5QFV7MTDS7SYVNC3MZ43DLEOJIZDO2Y2Z6NUQ7H7PXQ4OX6ZDMCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,.,,,.,.,.,.,,.,,..,,,,.,.,,,.,.,...,..,,.,.,..,,...,,,.,,,,,
+#TGU2YKQITXL6XGZMUVG2PYFI7K3BZPJUPGAB5ZLCF4TXMCVBGB4RPHU3PNUBNON3EID4LUJEWLONA
+#\\\|ENQ4ZLL4QQW3WAFVMELUBFLZSEF23Z6XNAMXC2WSYRXVBO7IWER \ / AMOS7 \ YOURUM ::
+#\[7]2ACQAORBUTWM75CW7HX4FUFD6U3R3JHE54NJZ4BFWRKBX2W4ZUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

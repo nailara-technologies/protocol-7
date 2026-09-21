@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = model_batch.blob.restore
+# descr = restore one blob checksum to a destination path, atomically
+# param = <checksum> <dest-path> -> TRUE | undef
+
+my $checksum  = shift // '';
+my $dest_path = shift // '';
+
+return warn 'expected checksum parameter <{C1}>'  unless length $checksum;
+return warn 'expected dest path parameter <{C1}>' unless length $dest_path;
+
+my $content = <[model_batch.blob.read]>->($checksum);
+return undef unless defined $content;
+
+## ensure the destination's parent directory exists [ baseline paths ##
+## normally still exist, deleted-and-recreated ones may not ]        ##
+my $parent_dir = $dest_path;
+$parent_dir =~ s|/[^/]+$||;
+<[file.path.make_dir]>->($parent_dir)
+    if length $parent_dir and not -d $parent_dir;
+
+<[file.write]>->( $dest_path, $content )
+    or return undef;
+
+return TRUE;
+
+#,,..,,.,,...,.,.,..,,,,,,,..,,..,,,.,,,.,...,..,,...,...,.,.,,..,...,...,,..,
+#AOOVVMMKT4HNKP4FFFLOFIMLDRHGDHTHMZMVB7UTU36EZKBMZYOLOHYHB3VK65AA7SP7SFYZJCV2Y
+#\\\|QBOXCPDITI3WJUBTIUC532HZALYUVL64YOL3JO4C3PG7HSJBW47 \ / AMOS7 \ YOURUM ::
+#\[7]UDOFTFNTIW3PX6KZSMEFDSKNHY2VN3MPIQCMMA4HYOJBD46L4YCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

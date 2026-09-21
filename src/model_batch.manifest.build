@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = model_batch.manifest.build
+# descr = checksum manifest of the repo tree : { relpath => checksum }
+# note  = checksum only, no packing -- packing happens lazily via
+#         model_batch.blob.store for paths a capture actually needs
+
+my $root_path = shift // <system.root_path>;
+
+$root_path = canonpath($root_path);
+
+## walk primitive reused from the sourcecode/ncode corpus family :
+## base.file.all_files is the same recursive opendir/readdir walk
+## base.source.collect_file_list delegates its directory recursion to.
+## collect_file_list's own git check-ignore stage is deliberately NOT reused
+## -- this harness never invokes git [ option D, 2026-09-21 ].
+my $files_aref = <[file.all_files]>->( $root_path, qw| recursive | ) // [];
+
+my %manifest;
+
+for my $abs_path ( $files_aref->@* ) {
+    my $rel_path = $abs_path;
+    $rel_path =~ s|^\Q$root_path\E/||;
+
+    ## exclude .git/ [ and every other dot-dir or dotted file, matching the ##
+    ## corpus walker's own filter ] and backup-editor tails                 ##
+    next if $rel_path =~ m{(?:^|/)\.[^/]*} or $rel_path =~ m{~$};
+
+    ## exclude the state/ dir itself : batch state never belongs to the ##
+    ## tree it describes                                                ##
+    next if $rel_path =~ m{^state/};
+
+    my $checksum = <[base.chk-sum.bmw.filesum]>->( 384, $abs_path );
+    next unless defined $checksum and length $checksum;
+
+    $manifest{$rel_path} = $checksum;
+}
+
+return \%manifest;
+
+#,,..,,,,,..,,,.,,.,.,,,,,..,,.,.,...,..,,..,,..,,...,...,...,,.,,..,,...,..,,
+#MNGPPHEGISQEP6VXOEWOLYDPOSVZAU2LRIHF22VWFL77MAH2RU65TSLYLT35KSD5XM252NECG2SHG
+#\\\|42ACNANM43QNHSA4I2K7KLBPUYSVB2O6KDMROWTBBAFOPAE5KL2 \ / AMOS7 \ YOURUM ::
+#\[7]2YVWWYI3IOLMQRZKG5CWM6BTSL44VHIQYM5DDOI57VHDO3HLMCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

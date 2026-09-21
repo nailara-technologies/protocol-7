@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = model_batch.manifest.checksum
+# descr = content checksum of a manifest itself [ canonical form ]
+# note  = record stamping uses two of these -- the baseline manifest
+#         checksum and the post-task fingerprint -- so a per-run diff
+#         is recomputable at review time from two checksums' blobs
+# param = <manifest-href> -> <checksum> | undef
+
+my $manifest_href = shift // {};
+
+my $canonical = join "\n",
+    map { sprintf '%s %s', $ARG, $manifest_href->{$ARG} }
+    sort keys $manifest_href->%*;
+
+my $checksum = <[base.chk-sum.bmw.strsum]>->( $canonical, 384 );
+return undef unless defined $checksum and length $checksum;
+
+return $checksum;
+
+#,,.,,,,.,.,,,,.,,..,,,..,,,.,,.,,,,,,,,.,..,,..,,...,...,...,,,.,,,,,,,.,..,,
+#5DUXBSWNVZYAYHCDLRNUHWICRVDYJZ6GQEOA6BKMEOAGHGXJCPAVLIPZ3FWMQ45BGHDW7A5WGGA6U
+#\\\|CMJNLCO24BG6EVI7KD4NWIVZLMMDP6CIMEJUDBWJW667G2TQPGS \ / AMOS7 \ YOURUM ::
+#\[7]CQUNTV3N2GNGCBDKUR7LYWIT4LGU67OOWD6A77YCXEN53XAXJOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

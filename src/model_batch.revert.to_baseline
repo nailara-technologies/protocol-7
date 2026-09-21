@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = model_batch.revert.to_baseline
+# descr = revert steps 2+3 : restore changed, delete baseline-absent paths
+# note  = safe by construction : capture step 1 already blob-stored
+#         the content of every path this module overwrites or deletes
+# param = { baseline => href, capture => href } -> TRUE | undef
+
+my $params        = shift                 // {};
+my $baseline_href = $params->{'baseline'} // {};
+my $capture_href  = $params->{'capture'}  // {};
+
+return warn 'expected baseline manifest parameter <{C1}>'
+    unless ref $baseline_href eq qw| HASH | and %$baseline_href;
+return warn 'expected capture result parameter <{C1}>'
+    unless ref $capture_href eq qw| HASH |;
+
+my $root_path  = canonpath(<system.root_path>);
+my $paths_href = $capture_href->{'paths'} // {};
+
+for my $rel_path ( sort keys $paths_href->%* ) {
+    my $pair_href = $paths_href->{$rel_path} // {};
+    my $abs_path  = catfile( $root_path, split m|/|, $rel_path );
+
+    if (   exists $pair_href->{'before'}
+        && exists $pair_href->{'after'}
+        && defined $pair_href->{'before'} ) {
+        ## changed path : restore baseline content from its blob ##
+        return
+            warn
+            sprintf( 'revert failed [ %s : baseline blob missing ] <{C1}>',
+            $rel_path )
+            unless <[model_batch.blob.restore]>->(
+            $pair_href->{'before'}, $abs_path
+            );
+    } elsif ( exists $pair_href->{'after'} ) {
+        ## baseline-absent path : delete -- recoverable, its content is ##
+        ## already packed under its own checksum                        ##
+        unlink $abs_path if -f $abs_path;
+    }
+}
+
+return TRUE;
+
+#,,..,,..,,,,,.,.,,,,,,,.,,,,,.,,,...,.,.,.,.,..,,...,...,...,,..,,,,,...,,.,,
+#UPIF547XJGTLO7QDHUCBNDWT2MO3P54FSASM6MUADONEHMD7WWQ5MJVU5DUZLP74GBXYSARMVNYGW
+#\\\|NY2ZIRJ4PW7ZFPGCOB62673LYABEATUZKYI547NRCXHCHME2N6L \ / AMOS7 \ YOURUM ::
+#\[7]DZVE4YZ72GEHBTLDKPNJX4O2WOQQ3IDMSKNT347ZK7LJZETZGQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

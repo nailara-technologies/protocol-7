@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = model_batch.diff.text
+# descr = lazy line diff between two blob checksums, for review drill-down
+# note  = compute-on-read : no diff is ever stored at capture time.
+#         line sets via base.diff_array [ added/removed, not positional ]
+# param = <before-checksum> <after-checksum> -> <diff-string> | undef
+
+my $before_cs = shift // '';
+my $after_cs  = shift // '';
+
+return warn 'expected two checksum parameters <{C1}>'
+    unless length $before_cs and length $after_cs;
+
+my $before_content = <[model_batch.blob.read]>->($before_cs);
+my $after_content  = <[model_batch.blob.read]>->($after_cs);
+
+return warn 'blob content unavailable for diff <{C1}>'
+    unless defined $before_content and defined $after_content;
+
+my @before_lines = split m{\n}, $before_content, -1;
+my @after_lines  = split m{\n}, $after_content,  -1;
+
+my ( $added_aref, $removed_aref )
+    = <[base.diff_array]>->( \@before_lines, \@after_lines );
+
+my @out = (
+    "--- $before_cs",
+    "+++ $after_cs",
+    sprintf( '@@ -%d +%d @@', scalar @before_lines, scalar @after_lines )
+);
+
+push @out, map {"-$ARG"} $removed_aref->@*;
+push @out, map {"+$ARG"} $added_aref->@*;
+
+return join "\n", @out;
+
+#,,,,,...,.,,,,,,,,..,...,.,,,,.,,..,,,.,,,,.,..,,...,..,,,..,.,,,,,.,.,.,...,
+#2QCJGGFF6ONG7TBS6ESHCBQXKGV75R7U7GYIQGKHGKLOCNAW62JV3TYG52HW7CCQT5RTG53F3ZKT6
+#\\\|5YFH5UVCQMX2OWB5Q2S32UL5Z3BNVXZMOIJOFUO3NFXBDLJYVFB \ / AMOS7 \ YOURUM ::
+#\[7]XHRRHJSNCLZ7IA7VRBVQQDXNXI6JSQZRAETVZCNE6ORXU4OMFOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

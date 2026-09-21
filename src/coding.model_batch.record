@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = coding.model_batch.record
+# descr = persist one per-(batch,model) task record to the zenka state dir
+# note  = same durability contract as self_test-stats.yaml : atomic
+#         write, 0640, outside the git tree. pure reader for it is
+#         coding.model_batch.cmd.model-batch-status
+# param = { batch_id =>, model =>, entry => href } -> reply hash
+
+my $params   = shift                 // {};
+my $batch_id = $params->{'batch_id'} // '';
+my $model_cs = $params->{'model'}    // '';
+my $entry    = $params->{'entry'}    // {};
+
+$batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
+$model_cs =~ s|[^A-Za-z0-9]|_|g;
+
+return { mode => qw| false |, data => 'batch_id required' }
+    unless length $batch_id;
+return { mode => qw| false |, data => 'model checksum required' }
+    unless length $model_cs;
+return { mode => qw| false |, data => 'empty entry' } unless %$entry;
+
+my $task_id = $entry->{'task_id'} // '';
+return { mode => qw| false |, data => 'task_id required' }
+    unless length $task_id;
+
+my $record_file = sprintf qw| state/model_batch/%s/%s.yaml |,
+    $batch_id, $model_cs;
+
+my $existing_yaml = <[file.zenka_dir.load]>->($record_file);
+my $record_href
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+$record_href->{$task_id} = $entry;
+
+my $yaml_str = <[format.yaml.dump_str]>->($record_href);
+return { mode => qw| false |, data => 'yaml serialization failed' }
+    unless defined $yaml_str and length $yaml_str;
+
+<[file.zenka_dir.write]>->( $record_file, \$yaml_str, qw| > |, 0640 )
+    or return {
+    mode => qw| false |,
+    data => sprintf( 'failed to persist %s', $record_file )
+    };
+
+return { mode => qw| true |, data => 'recorded' };
+
+#,,..,.,,,,,,,..,,.,,,..,,.,,,,..,,..,,.,,,,.,..,,...,...,,,,,,,,,...,,,.,,..,
+#K443ONBPU7Z6NLFBO7B2WRIJSBJUMWU3QQIGB2L36RZ3X3UOO7VEDN3T3V3YKUBH46A35DIO2DMA2
+#\\\|KUT5FJQW4TDRE2Z3INLOS3JQYWQYIJCPSVSUSFWMRLZ25JD4IEE \ / AMOS7 \ YOURUM ::
+#\[7]NGNWS6HX34TIXPA2XZOJLGK73OUOXXGXC67W4ZUD6VFBDD77BKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
