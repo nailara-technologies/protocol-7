@@ -39,11 +39,16 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: fork-child gotchas, iteration-counter quality rejection, `v7.stop` deadlock,
   `v7.reload init` live-network teardown.
 
+- **[topic-model-batch-harness-and-self-test-findings.md](topic-model-batch-harness-and-self-test-findings.md)**
+  — 2026-09-21: Event.pm silent watcher suspension, `event.add_timer` `data` vs `params`,
+  ambient `$call` hazard, self-test seed-restart gate coverage (prompts 2+3), prompt 3
+  `mismatch_hint`, honest context-exhausted reporting, batch harness env blockers (open).
+
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,,,,,..,,..,..,,,,,,,..,,.,,...,.,.,..,,,,.,.,.,...,..,,..,,,,,,,,,,,,,,,.,,
-#6XB3G56SJ3DAL4YVOUAJWAGN6HPVVGCZ7O4BOLQSRZP5YYWD67R3OX7MUIQJUMAS3N43WA65BHYSY
-#\\\|QTSFV7443T3LFMELXZRXYOAFYKSWRG3A2GCMB6IFVROSAUQEC6K \ / AMOS7 \ YOURUM ::
-#\[7]M2FLA7I4YSN7HJF4DICVO6BSFDTII7VPIDXXXI24LEGGYERSK2CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,..,,..,,...,,,.,,.,,..,,,,.,.,.,...,...,.,.,..,,.,.,...,.,.,
+#LFLNEUV7TVXRMBPVFZWFBL6W3KIER7G2J3DLY2V3GISQMPM4VEUHTLGTZHE57FD44OVR4OALIZHEK
+#\\\|KXS66XE7QGIFOY2FAO6F7DKLE6U65RVH7MGE7XJ4VWZLLI2HP6D \ / AMOS7 \ YOURUM ::
+#\[7]PBWN6NBOXLHWVTVRJM33UVXXAU25PUCR4Q7KU4Q426BMG3R4S6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
