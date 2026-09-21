@@ -137,11 +137,22 @@ if ($async_mode) {
             );
         }
         my $overflow = $est_tokens - $n_ctx;
+
+        ## same two-class honesty as coding.async.send_request : the <= 0   ##
+        ## gate can trip with est still under n_ctx [ up to the 500- token  ##
+        ## reserve below it ] -- report that as headroom exhaustion, not an ##
+        ## overflow by 0                                                    ##
         my $err
-            = sprintf(
+            = $overflow > 0
+            ? sprintf(
             'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d '
                 . 'by %d : reduce task description or tool output size',
-            $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
+            $est_tokens, $n_ctx, $overflow )
+            : sprintf(
+            'initial prompt leaves no generation headroom: estimated %d of '
+                . 'n_ctx=%d tokens in use [ 500-token reserve ] : reduce '
+                . 'task description or tool output size',
+            $est_tokens, $n_ctx );
         <[base.logs]>->( 0, "coding.task.execute: %s [%s]", $err, $task_id );
         ## route through coding.async.fail_task [ -> coding.async.complete ##
         ## ] rather than calling coding.task.fail directly : that is the   ##
@@ -238,8 +249,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,.,,,.,,,,,,,,,.,.,...,,.,,,,,,,.,,,,.,.,.,.,.,...,...,.,.,,,,,,,,,...,,..,
-#OUNFVOQKWRVF2TSTMMMNPBPRXL2MJZG5QOVQW4DAWDPYAX4FYNBO577NCLWGC7UTAGPK3CQDU425E
-#\\\|2AIXJ5ZABFZO23FDAT4WFQ36CZUT52YRANE5UGJQNI7UN275ZGH \ / AMOS7 \ YOURUM ::
-#\[7]QNE4UAHKBTA2ZHTYCXC4T7PO7YZNMPPU4FZI2STQDQ5NBVFYLUAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,,,,,,..,...,...,,.,,.,,,,,,,.,.,...,...,...,,,,,,,,,,,.,,..,
+#MOUPWO7LXWHK4TATKBEUTLPNVJ56IG2NRYST4DUTN3YO6TYP54NPKMTBC3BOSGRSQJI5VHHJGSOXW
+#\\\|Q5WXSYUI3JLGZ77EQIC2EYTMRJABBDQM5WSC4JVQWCDHLSHQOLJ \ / AMOS7 \ YOURUM ::
+#\[7]VTDQFFEGXPHM4VWWZT3WIQLM3YQ3DTINKSHZ5Q6PATVQBEHYM4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

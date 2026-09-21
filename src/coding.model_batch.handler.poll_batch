@@ -181,9 +181,19 @@ my $settle_task = sub {
     };
     $entry->{'finish_reason'} = $state->{'task_finish_reason'} // '';
 
-    ## optional criteria scoring [ iteration.score_result mechanics ] ##
+    ## optional criteria scoring [ iteration.score_result mechanics ] the   ##
+    ## iteration namespace is NOT loaded in the coding zenka [ its          ##
+    ## deps/src-used set has no iteration entry -- the load-early line is a ##
+    ## filter, not a search path ], so the scorer is an OPTIONAL enrichment ##
+    ## here : when it is unavailable the record simply carries no score,    ##
+    ## same as a task without criteria [ found live 2026-09-21 : an         ##
+    ## unguarded call here died inside settle_task, which suspended the     ##
+    ## Event repeat watcher on the uncaught exception and froze the batch   ##
+    ## mid-phase with no visible error ]                                    ##
     my $criteria = $task_href->{'criteria'};
-    if ( ref $criteria eq qw| ARRAY | and $criteria->@* ) {
+    if (    ref $criteria eq qw| ARRAY |
+        and $criteria->@*
+        and defined $code{'iteration.score_result'} ) {
         my $score_href = <[iteration.score_result]>->(
             {   qw| result |   => $result_text // '',
                 qw| criteria | => $criteria,
@@ -193,6 +203,13 @@ my $settle_task = sub {
             $entry->{'score'}         = $score_href->{'score'};
             $entry->{'score_verdict'} = $score_href->{'verdict'};
         }
+    } elsif ( ref $criteria eq qw| ARRAY | and $criteria->@* ) {
+        <[base.logs]>->(
+            2,
+            '[model_batch] %s : criteria present but iteration.score_result '
+                . 'not loaded in this zenka -- recording without score',
+            $batch_id
+        );
     }
 
     <[coding.model_batch.record]>->(
@@ -510,21 +527,69 @@ if ( $phase eq qw| task_start | ) {
         $prompt = <[file.read]>->($prompt_path) // '';
     }
 
-    my $submit_reply = eval {
-        <[coding.cmd.submit]>
-            ->( { qw| param | => { qw| request | => $prompt } } );
-    } // { mode => qw| false |, data => 'submit call died' };
+    ## submit through the normal queue machinery : the SAME pipeline       ##
+    ## coding.cmd.submit runs [ intake -> analyze -> decide_service ->     ##
+    ## enqueue ], but called as modules -- cmd.submit reads the ambient    ##
+    ## global $call, which in a TIMER context is whatever the last command ##
+    ## dispatch left behind [ found live 2026-09-21 : submits from         ##
+    ## poll_batch carried a stale eval-code string as the work request ].  ##
+    ## driving the pipeline modules directly is equivalent and             ##
+    ## context-independent                                                 ##
+    my ( $task_id, $routed, $submit_err ) = ( '', '', '' );
+    if (<coding.draining>) {
+        $submit_err = 'coding zenka is draining';
+    } else {
+        eval {
+            my $intake_result = <[coding.task.intake]>->($prompt);
+            if ( ref $intake_result ne qw| HASH |
+                or not $intake_result->{'success'} ) {
+                $submit_err = 'intake : '
+                    . ( $intake_result->{'error'} // 'unknown error' );
+            } else {
+                my $analysis = <[coding.task.analyze]>->(
+                    qw| full |, $intake_result->{'task'}
+                );
+                if ( ref $analysis ne qw| HASH |
+                    or not $analysis->{'success'} ) {
+                    $submit_err = 'analyze : '
+                        . ( $analysis->{'error'} // 'unknown error' );
+                } else {
+                    my $routing = <[coding.routing.decide_service]>->(
+                        qw| route |, $analysis->{'task'}
+                    );
+                    if ( ref $routing ne qw| HASH |
+                        or not $routing->{'success'} ) {
+                        $submit_err = 'routing : '
+                            . ( $routing->{'error'} // 'unknown error' );
+                    } else {
+                        my $routed_task = $routing->{'task'};
+                        my $queue_result
+                            = <[coding.task.enqueue]>->($routed_task);
+                        if ( ref $queue_result ne qw| HASH |
+                            or not $queue_result->{'success'} ) {
+                            $submit_err
+                                = 'enqueue : '
+                                . ( $queue_result->{'error'}
+                                    // 'unknown error' );
+                        } else {
+                            $task_id = $routed_task->{'id'} // '';
+                            $routed  = $routed_task->{'analysis'}{'routed_to'}
+                                // '';
+                        }
+                    }
+                }
+            }
+            1;
+        } or do {
+            $submit_err
+                //= 'submit pipeline died : ' . ( $@ || 'unknown error' );
+        };
+    }
 
-    my $reply_data = $submit_reply->{'data'} // '';
-
-    my ($task_id) = $reply_data =~ m{task:([^\s|]+)};
-    my ($routed)  = $reply_data =~ m{routed:(\w+)};
-
-    if ( $submit_reply->{'mode'} eq qw| false |
-        or !length( $task_id // '' ) ) {
+    if ( length $submit_err or !length $task_id ) {
         $settle_task->(
             $task_href, qw| error |, qw| error |,
-            "submit failed : $reply_data"
+            "submit failed : $submit_err"
         );
         ## settle_task may have paused the batch on reverify failure ##
         return TRUE if ( $state->{'phase'} // '' ) eq qw| gate |;
@@ -862,8 +927,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,,,,,,,,.,,,.,,...,.,,,..,,,,,,,,.,.,,,.,,,..,,...,...,..,,,.,,...,,.,,..,,
-#2XYAL56OGMVC4EXTOI6TSXEOY73VS2MD5M3VNSXZSLU6WT55PZF4XZ425HIM7TCB536LD27HUMGJO
-#\\\|UFEY6Z7QRATELJWS5AITV3CCTOKDX6ZNRYYSNNGLULFVU2DTUZ2 \ / AMOS7 \ YOURUM ::
-#\[7]Q4H2IQDXEZ7S6YQTSWBNERA4PPDWYPF2UUVAK7RYYJD2X3BS7UDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,,.,,,,,,,..,,.,,,,,,,,,,,,.,..,,...,...,...,,.,,,..,..,,,,.,
+#RPUPOGI2E2P5TZCMRQR37UM6JSBNZN2SUQYSWK7G6TDWK2WWM74IWIIWX4Y2CDB3LDKMRTROLWKEY
+#\\\|BSJVGWHYMRYELQ7BJI7PKT54S5DYUQV6WXUM5R4S7S6F5IXV76I \ / AMOS7 \ YOURUM ::
+#\[7]TZ2RD66V3VDSZYUBGM2AGAJIXHGXWJVWQKPP2MO54OJNHJMYXQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
