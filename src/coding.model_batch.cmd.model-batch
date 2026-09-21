@@ -48,10 +48,19 @@ if ( ref $spec_href ne qw| HASH | ) {
     };
 }
 
-my $backend    = $spec_href->{'backend'};
-my @candidates = map { my $cs = $ARG // ''; $cs =~ s|[^A-Za-z0-9]|_|g; $cs }
-    $spec_href->{'models'}->@*;
-my $total = scalar @candidates;
+my $backend = $spec_href->{'backend'};
+
+## raw checksums, unsanitized [ found live 2026-09-21 : a prior version     ##
+## mangled the ':' separator into '_' here, which fed switch-model calls an ##
+## invalid checksum format [ coding.cmd.switch-model's regex requires the   ##
+## literal ':' ] and broke poll_batch's loaded-vs-candidate swap- detection ##
+## comparison identically -- every switch silently failed and every         ##
+## candidate looked "swapped" even when correctly loaded. filenames built   ##
+## from a checksum [ coding.model_batch.record ] do their OWN independent,  ##
+## already-consistent sanitize/match pair with  model-batch-status's        ##
+## directory scan -- unaffected by this fix                                 ##
+my @candidates = grep {length} map { $ARG // '' } $spec_href->{'models'}->@*;
+my $total      = scalar @candidates;
 
 if ( !$total ) {
     return {
@@ -196,8 +205,8 @@ push @lines, sprintf '%s : batch started', $batch_id;
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,...,,,.,,.,,,.,,.,,,,..,.,,,...,.,.,,,,,..,,...,...,...,.,.,...,..,,,.,,
-#BI3NSIXBDKTCK7OX5C7BWL7LPIT45FXG6JL7PGOZ3W7EG2H7M5EOJWWUATSX4OMQJZ7QYGNNE7LU4
-#\\\|WQQHEKUAKFR45XICU2JCND7WZC5X3RERHHHJB77Z7JXDL2ITFSZ \ / AMOS7 \ YOURUM ::
-#\[7]NWNA7U4T37HV55FRIDOCLTDYWLHPROC7AHR3SQXHQY7FFBHJVEBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,.,,,.,,.,.,..,,,..,,..,.,,,..,,...,...,..,,,.,,,.,,...,,..,
+#ZLRUNBPIASOJ5KKEKRWCWIGQBSUFKRB2AZ6VOV65ZM57AFFCFAF23NWQDSMBCW5VZ4UO3GLUSVFDA
+#\\\|3XRTBLUQ2KBWRREXTJWH4TYZ3FFR77FN57UTSQUG323AM3TTDDV \ / AMOS7 \ YOURUM ::
+#\[7]FW4I6ERIAKNLNIJC3JTKHXTK2K6BWRM6EB3NK5OPYYA6FRQ3BGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

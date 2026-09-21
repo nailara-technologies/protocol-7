@@ -1,0 +1,20 @@
+# first live exercise of the model-batch harness -- 2026-09-21
+# one real, fast, known-functional model; one small real task.
+
+batch_spec_version: 1
+backend: gpu
+
+models:
+  - 632IKGI:NK4ZUPQ
+
+reference_tps: 20
+
+tasks:
+  - id: live-test-1-task
+    budget_hint: 300
+    prompt: |
+      read src/note.trash.stash and summarize in one paragraph which
+      module formats it shares with model_batch.blob.store
+    criteria:
+      - xz
+      - base32

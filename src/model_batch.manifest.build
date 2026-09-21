@@ -30,6 +30,16 @@ for my $abs_path ( $files_aref->@* ) {
     ## tree it describes                                                ##
     next if $rel_path =~ m{^state/};
 
+    ## unreadable paths are out of scope, same as .git/state above --       ##
+    ## cleanly caught here [ house policy: every warning is a bug to fix or ##
+    ## a condition to catch, never routine noise ] so filesum is never      ##
+    ## called on a path it would have to warn about. a permanently-         ##
+    ## unreadable file [ wrong owner/mode ] would otherwise warn on EVERY   ##
+    ## gate/manifest walk -- batch start and every candidate boundary --    ##
+    ## found live 2026-09-21 against a stray owner-private editor-crash     ##
+    ## file                                                                 ##
+    next unless -r $abs_path;
+
     my $checksum = <[base.chk-sum.bmw.filesum]>->( 384, $abs_path );
     next unless defined $checksum and length $checksum;
 
@@ -38,8 +48,8 @@ for my $abs_path ( $files_aref->@* ) {
 
 return \%manifest;
 
-#,,..,,,,,..,,,.,,.,.,,,,,..,,.,.,...,..,,..,,..,,...,...,...,,.,,..,,...,..,,
-#MNGPPHEGISQEP6VXOEWOLYDPOSVZAU2LRIHF22VWFL77MAH2RU65TSLYLT35KSD5XM252NECG2SHG
-#\\\|42ACNANM43QNHSA4I2K7KLBPUYSVB2O6KDMROWTBBAFOPAE5KL2 \ / AMOS7 \ YOURUM ::
-#\[7]2YVWWYI3IOLMQRZKG5CWM6BTSL44VHIQYM5DDOI57VHDO3HLMCDY 7  DATA SIGNATURE ::
+#,,,,,...,...,...,...,,,.,.,.,,..,.,,,..,,.,,,..,,...,...,...,.,,,,,.,,,,,,..,
+#A4QZCJN3QWXOHCCMSL2FBL6POQ73A6DL333PYWODFDPY4ELQAZO5ZIM6QYHRJYMTPRAUZHCB32KBQ
+#\\\|2CWXIRDFCLFPES63QS5LMI73RPUBUXIWVMWAJLS5FLVEYMIPHDB \ / AMOS7 \ YOURUM ::
+#\[7]XVUZ3736SEBCLEHJU2BO6Z74ECLH7XJRT6UWAZK7YIZURRM4A6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
