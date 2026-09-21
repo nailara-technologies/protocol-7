@@ -121,3 +121,14 @@ checks) covers the full cycle.
 #\\\|YDM3J2CR7V62T734M3MOZVAQCORTHJXUNQXJ7LCZOXDE2JIXZXH \ / AMOS7 \ YOURUM ::
 #\[7]7PXDQPZNGDWKDJH5DRTDZPABVBTYPK3XTRKIANWY6APBHSEE24BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- TOCTOU insight [ owner, 2026-09-21 ] : the manifest/blob pipeline reads
+  files non-atomically while actors write -- the 1-byte-blob-under-intact-
+  checksum pattern smells like torn reads between filesum and pack [ compare
+  sourcecode.console.update-signatures' checksum-based TOCTOU guard ]. audit
+  item : re-verify checksum immediately before pack, skip+warn on mismatch.
+
+#,,,,,,..,,,.,..,,,,.,,..,,,,,.,.,,..,,,,,.,,,..,,...,...,.,,,.,,,,,.,...,...,
+#HMLUEFPJ25FGPBKEIYI2PEQFRRZ3PUSZJCRS7JVNVI6T4OI4RB2IBPWQYXFMHBQXO2O7WNNCBJ63K
+#\\\|EVGCIFRLSVJBKQA3KHK4OEVXZ5Y5OE2YNRW3SPZDIZPKQFYKDBR \ / AMOS7 \ YOURUM ::
+#\[7]C5CZ3XLNCG4KX454WYIOYSMYMRYURO6V6WZZGP3K5KHHNBIQVACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
