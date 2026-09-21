@@ -228,7 +228,7 @@ my @timers;
     },
 
     ## checksum family [ deterministic stub, BASE32-shaped ] ##
-    'base.chk-sum.bmw.filesum' => sub {
+    'chk-sum.bmw.filesum' => sub {
         my ( $bits, $path ) = @ARG;
         return undef unless -f $path;
         open( my $fh, '<:raw', $path ) or return undef;
@@ -236,7 +236,7 @@ my @timers;
         close($fh);
         return stub_checksum($c);
     },
-    'base.chk-sum.bmw.strsum' => sub {
+    'chk-sum.bmw.strsum' => sub {
         my ( $input, $bits ) = @ARG;
         return stub_checksum(
             ref $input eq qw| SCALAR | ? $input->$* : $input );
@@ -738,8 +738,8 @@ package FakeTimer {
     sub data      { shift->{'params'}{'data'} }
 }
 
-#,,..,,..,,,.,,.,,..,,,,.,..,,,.,,.,.,.,.,,,.,..,,...,..,,.,.,,.,,.,.,.,.,,..,
-#JN3AP7ZNGJK4FN4ETHUJOAIM4NEIBRCGKMOD7CCWY6LT5VQK43TAIJGEW2ZZZNREJZUOTM75FFBR6
-#\\\|HNCV42KZDUOUV3PF2M33JMOVFBTOYTCDBCBN3BGPG55LBWANC2K \ / AMOS7 \ YOURUM ::
-#\[7]ZLWHOU6RQD5FT4L4VZXLXT5D2WXN7QWB5VS3FKSCM4VGHO4XMUDA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,..,,,.,,.,,.,.,..,,...,,..,..,,...,...,...,.,.,,.,,...,..,,
+#4L65IWJ45GODBRN746HBNAFFTAP3IGSV45HK6HTQ6SAVAWS5YDARR6A3BVKX7M5JTGXB3GRHUGAWO
+#\\\|7OS4TSGQMKKOTD5GWHASURTAHDHB3O73P44Y4M6JJ2HRCAULW3O \ / AMOS7 \ YOURUM ::
+#\[7]KE35WBYAAIAOPNAIRYIEQKWMERZPYKTJOIL2D5KF5LFABNHS3EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

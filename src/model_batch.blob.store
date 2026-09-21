@@ -16,7 +16,7 @@ return warn sprintf( "file '%s' not found <{C1}>", $file_path )
 
 ## one addressing scheme across the whole system : the same BMW-384 BASE32
 ## family that addresses models in the <coding.model_metadata> registry
-my $checksum = <[base.chk-sum.bmw.filesum]>->( 384, $file_path );
+my $checksum = <[chk-sum.bmw.filesum]>->( 384, $file_path );
 return undef unless defined $checksum and length $checksum;
 
 my $blob_dir = <[model_batch.blob.path]>;
@@ -44,8 +44,8 @@ my $b32 = <[base32.encode]>->($compressed);
 
 return $checksum;
 
-#,,,.,,.,,,.,,..,,..,,,,,,.,,,.,,,...,,,.,..,,..,,...,...,...,.,,,,,.,...,,.,,
-#TQG6MNXTN37NHUQAAE6W32PCUROGD6MBRA7KKZ3VCBEJHREN5ZSJESVHCVA57QVD5GYDPIWM3QNGY
-#\\\|5WR5POHRJPZZE7KHVMHBBGVARLRTF2N7QP363FMSUVNVIKCYIT6 \ / AMOS7 \ YOURUM ::
-#\[7]BSN2LQ4FQULN6N7SY7GOTL6DGNGBC7JFFOI3FFJATPO4ICCNQCBY 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,,..,,.,,...,.,,,.,,,,,,,...,..,,...,...,,.,,,.,,...,,,.,..,,
+#2UXCHHMDE7NM6QK2Z77C65FI5WYTX74RDAOLY4T36ZUGR22J5RODMGXGCTUU5U7ZWMSDEPRIBQAD2
+#\\\|N65GMB2PSA76DMIHDS5JRNZDBIAO5T3BRX2TPPB66Z4IWJURUKR \ / AMOS7 \ YOURUM ::
+#\[7]5X6DBYRGYAK72SUYK5FLKYTYTDEMX75Z37W5NDPPR67DC2UIZUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
