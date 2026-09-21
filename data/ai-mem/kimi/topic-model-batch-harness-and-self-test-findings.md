@@ -83,3 +83,28 @@ checks) covers the full cycle.
 #\\\|5GWV6QQFHFKXADBKIPYABHCNJSOU36AEB3LA5C3REQFOI67YWG6 \ / AMOS7 \ YOURUM ::
 #\[7]HBGFBR6SLK6PJMXMIWELVVGVNFNI34AHWJ5STT2VD3PR5Q3M7QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## addendum 2026-09-21 (late) — queue discipline + first real batch
+
+- **orphaned enqueued tasks poison lock releases** : a task enqueued then
+  abandoned (routing mismatch) sits in the backend queue; the next release
+  dispatches it into whatever window is open (e.g. a respawn dead socket).
+  any settle path that abandons a submitted task MUST dequeue it first.
+- **routing names live in service-name space** : this deployment routes gpu
+  inference as 'single-llm'; send_request maps it to the gpu server key.
+  compare in physical-backend key space (`cpu` : everything-else-is-gpu),
+  never raw routed_to.
+- **batch start drain gate** : refuse while the backend queue non-empty or
+  lock held [ committed ca807c1b7 ].
+- **owner commits mid-batch drift the tree** -> harness freezes (by design);
+  reset = cancel + delete baseline-manifest.yaml + fresh start. do not
+  resume a batch whose baseline predates tree commits.
+- first real 3-candidate x 2-task batch completed cleanly : verdicts
+  completed / error(loop detector) / timeout(budget-exceeded) with wall+tps
+  per cell, tree byte-clean, model restored. commits 535b4a584 etc.
+
+#,,..,..,,,..,...,...,.,,,,,.,,,.,,.,,...,,,.,..,,...,...,..,,...,,.,,,.,,,..,
+#5BMAASPPILIIV2NYKTOKC36XARP6GHWRGM47FYBDMW23VBMPALLURQQBQZA4QNOUY4G4WT2DI3HCI
+#\\\|7ULGTZNGUUHDS3YWHRBM77TXWBGFVPG4OGJOMVHWYEDTZKGZKFN \ / AMOS7 \ YOURUM ::
+#\[7]LYTLZFPWXOK3FYGAA75KKKCBLJWMMGH73KNRDIWV3FQ6TRRPRSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
