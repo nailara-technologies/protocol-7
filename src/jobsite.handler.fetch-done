@@ -10,13 +10,15 @@ my $raw      = $call->{'data'} // '';
 my $data_str = ref $raw ? $raw->$* : $raw;
 my $category = $call->{'params'}{'category'} // '';
 
+chomp($data_str);    ## strip trailing \n ##
+
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
-        0,         ': fetch-done [%s]: import failed: %s',
+        0,         ':. %s ::: import ' . 'failed : %s',
         $category, $data_str
     );
 } else {
-    <[base.logs]>->( 1, ': fetch-done [%s]: %s', $category, $data_str );
+    <[base.logs]>->( 1, ':. %s .: %s', $data_str, $category );
 }
 
 ## accumulate total items queued in site-yaml across all category replies ##
@@ -42,7 +44,7 @@ if ( $total_queued > 0 ) {
 
     ## site-yaml is still async-fetching job details : poll until drained ##
     <[base.logs]>->(
-        1, 'fetch: %d items queued in site-yaml, polling for drain',
+        1, ':. %d items queued in site-yaml, polling for drain .,',
         $total_queued
     );
 
@@ -62,7 +64,7 @@ if ( $total_queued > 0 ) {
 }
 
 ## nothing queued : check for any pre-existing strays and assess ##
-<[base.logs]>->( 1, 'fetch: nothing new queued, checking strays' );
+<[base.logs]>->( 1, ':. nothing new queued, checking strays .,' );
 <[jobsite.stray.check]>;
 
 ## reset sync watermark so the next push sends the full jobsite state ; ##
@@ -81,8 +83,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,.,,,,,,,..,,..,...,...,..,,..,,.,.,.,.,.,.,..,,...,...,,,.,...,...,.,,,,..,
-#57E4NGM5CO2QXFMXYI5TEEYS2BEVEPJUJLA4X2GWJGENXSAMVNSRP2V3QGWMZSOZMAYPOJBR65UMO
-#\\\|RZWVHPBYRDSPRA56UH6X7MZENMHXMZY6UTDXBYAPPAKO4KBYU5X \ / AMOS7 \ YOURUM ::
-#\[7]5MF4GUG4H3B4QXYHLB4CR5GJDKKJLP5KENBA3DTEBVIT2MBOKOBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,.,.,.,.,,,,,..,,...,,,.,.,,,..,,...,...,,..,..,,..,,,..,,.,,
+#RNLUIBEG6UCLA5MEO7SAU56YL5NYEFB4ALNOQ4TGUJM6T7YGNU7QV6QK5LO4X5KSGSIDFI5KHMKOK
+#\\\|FTIQ4MHQIJCPNZV4ITBLPOMYGOSRBQL3XEI3MTSGU7VAG2YDLQS \ / AMOS7 \ YOURUM ::
+#\[7]H7G3DAHLJVSPC3XBHRDHHWADHXZ3MAYBFB326P7QXRCETTKJ6EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
