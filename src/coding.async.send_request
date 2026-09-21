@@ -228,11 +228,25 @@ my $max_tokens_safe = $n_ctx - $est_tokens_pre - $headroom;
 ## than silently producing a 200-token stub completion                     ##
 if ( $max_tokens_safe < 1000 ) {
     my $overflow = $est_tokens_pre - $n_ctx;
+
+    ## two distinct failure classes share this gate : a genuine overflow [ ##
+    ## the estimate exceeds n_ctx itself ] and a squeezed-context class [  ##
+    ## the estimate fits but leaves under the 1000-token generation floor  ##
+    ## ]. each must be reported as what it actually is -- the earlier      ##
+    ## single message claimed "exceeds n_ctx by 0" for the squeezed class, ##
+    ## found live 2026-09-21 : est 12713 < n_ctx 13214 logged as an        ##
+    ## overflow by 0 tokens                                                ##
     my $err
-        = sprintf(
+        = $overflow > 0
+        ? sprintf(
         'context overflow: estimated %d tokens exceeds n_ctx=%d by '
             . '%d : reduce tool output size or use a larger context window',
-        $est_tokens_pre, $n_ctx, $overflow > 0 ? $overflow : 0 );
+        $est_tokens_pre, $n_ctx, $overflow )
+        : sprintf(
+        'context exhausted: estimated %d of n_ctx=%d tokens in use, leaving '
+            . '%d for generation [ below 1000-token floor ] : reduce tool '
+            . 'output size or use a larger context window',
+        $est_tokens_pre, $n_ctx, $max_tokens_safe );
     <[base.logs]>->( 0, "send_request: %s for %s", $err, $task_id );
     <[coding.async.fail_task]>->( $task_id, $err );
     return { success => FALSE, error => $err };
@@ -356,8 +370,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,.,,,.,,,.,.,,.,,.,,,..,,...,.,,,.,,,...,..,,...,...,.,.,,,,,.,.,,,.,,,.,
-#NOWO3BIURQMO5CDMGVX4OEPW2BYRHPAH3SXZ3DC6EZZWXLVBGC6IWSUYRF6O27YZ2T6LXRIXGCDBS
-#\\\|7R7V5M7YDAG6D2JEO5OFKK3ICZ5WLJMEJG4HON6LDDVHT3FX2YO \ / AMOS7 \ YOURUM ::
-#\[7]P4YDBKB26U3KPZK6WI3RHXMJZWONDZSDDHHPIDSRD6RLQQBPBMCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,,,,,.,.,...,.,.,,.,,...,.,.,..,,...,.,.,,.,,,,.,,,,,..,,,.,,
+#PPO4GXQ5SEDGV2N2J6MGCYFUVPVIFVWIEOJVGFIJ3OTFUFJJV3SSX7KMBQRZMH3OKMKTNCD2247II
+#\\\|Y33CCJC4KIXONPCN35JF57BYZEKMACBCSBYSE2WPO4ZGTDUDGX2 \ / AMOS7 \ YOURUM ::
+#\[7]W4Z7WDHFMIBC6EUUM6K3PBGARHB6GTD7PJIMH52NZSCKBRLPTCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
