@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20: `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below. Not yet committed.
+- [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 (`38e604b29`, v5.99.1): `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below.
 - [security-fix-verify-both-code-paths-not-just-symptom](feedback-security-fix-verify-both-code-paths-not-just-symptom.md) — before broadening/replacing a shared gating check (liveness/existence/permission), enumerate ALL its callers and ask what each relies on it FOR, not just whether the visibly-broken one works — a check can be load-bearing security elsewhere with nothing else backing it up. Caught 2026-09-17 by the user before I shipped a fix that would've let a spoofed self-reported pid through unverified on a second code path.
 - [request-signed-version-before-each-batch-commit](feedback-request-signed-version-before-each-batch-commit.md) — for batch/multiple commits in a session, explicitly request a fresh signed version number from the user before EACH commit, not just once — stated 2026-09-17, don't chain commits on one earlier sign-off.
 - [token-budget-pacing-early-week](feedback-token-budget-pacing-early-week.md) — pace Claude token use from the START of each 7-day usage window, not reactively once tight — flagged 2026-09-17 after ~50%/7d on day 1. Favor one targeted check over repeated live Monitor-polling loops, delegate implementation-heavy/low-risk work to kimi_dispatch/subagents. NOT license to leave a real defect half-fixed to save tokens (user explicitly confirmed this, see [[feedback-fix-immediately-reduces-cognitive-load]]) — trim redundant procedural overhead only, never real fixes/verification.
@@ -65,8 +65,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,...,,,.,.,.,,.,,.,,,.,.,,..,,,.,.,,,,,.,..,,...,.,.,.,.,.,.,.,,,,..,.,,,
-#7AXL6ECZHMSS3TCRGLVTDFUKR2HA5KOW4QPKFWKISKSV2HELCKSHD7YRH4AGK24ONXBCUNRZJXHV2
-#\\\|MAB72UU7ZZD5VADWY7VODFEMFF7MBD7XUT5LYBS3J2R3W32NJ74 \ / AMOS7 \ YOURUM ::
-#\[7]ZWT6ZZJOHHJPFW343OSCBMWHTFQ6GUJYYKJ34W3TN5WDMPEFYWBA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,,.,,,..,,,,,...,..,,,..,,.,,..,,...,...,...,...,..,,,,.,.,.,
+#HW4LDMG2NBFPYD4EIMV2LUPAVOOW2WSL56X6SQEVIVOG3R53G4FYFZO3QCQFK7ITBHQTFRPBAG6F4
+#\\\|7ZZBYC2SV4DSSCHFW7IENR27C5ZBCXDLP6JIRU474WQ6XBYXTOC \ / AMOS7 \ YOURUM ::
+#\[7]7PAUMNR6SBLB5RZPQKPPPGQZFLDHIAZDDBBWJNFB5MJP3QHMHCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
