@@ -3,18 +3,23 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
-## model batch harness + self-test restart protocol (2026-09-21)
+## model batch harness — first full cycle complete (2026-09-21)
 
-Landed (`0a6762348`, `8540de968`, `de8ef5afb`): the checksum-native, zero-git
-model-batch harness (`model_batch.*` + `coding.model_batch.*`, 21 modules,
-49-check stub suite), honest context-exhausted vs overflow reporting, and the
-self-test seed-restart gate extended to prompt 3 with a matching
-`mismatch_hint`. Full findings in
+The checksum-native, zero-git batch harness (`model_batch.*` +
+`coding.model_batch.*`) ran end-to-end live: clean gate with fresh baseline,
+candidate switch, real task via queue machinery, honest context-exhausted
+verdict, capture+record, revert (POSIX ACLs grant protocol-7 write on the
+taeki-owned tree), reverify, restore, clean finish. Landed commits:
+`0a6762348`, `8540de968`, `de8ef5afb`, `c5bcda45d` (memory),
+`75a36de8e` (flat spellings). Full findings in
 `topic-model-batch-harness-and-self-test-findings.md`.
 
-OPEN: batch `live-test-1` resumable-paused — blocked on zenka tree write
-permissions and pre-baseline `README.md` drift (see topic file for the reset
-recipe). Close this entry when the first real batch completes end-to-end.
+Lesson added there: `reload source` registers changed files under their full
+`base.*` filename keys, so `<[base.foo]>` invocations keep working after a
+reload and only break on a FRESH RESTART — the loader registers `base.*`
+modules under FLAT names (`<[chk-sum.bmw.filesum]>`, `<[format.inline-nested.encode]>`).
+Verify module-name spellings against a booted instance, never a reloaded one.
+Next: a multi-candidate batch against a model with usable context.
 
 
 ## web-browser fast scroll-position commands (2026-08-29)
@@ -342,8 +347,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,,,,,,..,.,,,...,,,,,.,,,,,.,..,,,.,,,,,,..,,...,...,...,,..,,,.,..,,,,,,
-#XVVFRFEKR2TPFLGULNNTZYEKRFP7WJC3J57L7VNLTJ6NNUHBTK5HQGLI5WIPNMJCX4FUAR4CJJ7LC
-#\\\|CNN7LCXDATP3FO2BCQMJG47IJYOKURAOESFCBQNTIOJKSDJDWJZ \ / AMOS7 \ YOURUM ::
-#\[7]2AQ5MV62Q3ISN6D3EAWICCTCUD7Q76YLY6F6MUAVYZKVH64IGEAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,,,.,..,,,,,,,,,,,,,,.,.,...,..,,...,...,,,.,..,,,,.,...,...,
+#47Q3T4UI5YH34CYKRL3GUQQGEZ6S3NHVNKYTAYHO77PWXT2SYWTDKEC6N2YPY7FRLCZYX7EQROAJC
+#\\\|S5FAPSWFHNN275N5XGTWMV4OLVF7IZ6HADXQKMSIU32LET5X74F \ / AMOS7 \ YOURUM ::
+#\[7]BYMG4KLUWKGZNN2ZM3TGTUDVYC4XZYGBFVM54PRG45V2Q3EJEMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
