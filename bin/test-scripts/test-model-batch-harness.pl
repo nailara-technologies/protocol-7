@@ -91,7 +91,7 @@ sub b32_encode {
     my $bytes = shift;
     my $bits  = unpack qw| B* |, $bytes;
     $bits .= '0' x ( ( 5 - length($bits) % 5 ) % 5 );
-    return join '', map { $B32[ oct "0b$ARG" ] } $bits =~ m{(.{5})}g;
+    return join '', map { $B32[ oct "0b$ARG" ] } $bits =~ m|(.{5})|g;
 }
 
 sub stub_checksum {
@@ -318,18 +318,31 @@ my @timers;
         $data{'inference'}{'model'}{'amos_id'} = $model;
         return { qw| mode | => qw| true | };
     },
-    'coding.cmd.submit' => sub {
-        my $params = shift                         // {};
-        my $prompt = $params->{'param'}{'request'} // '';
-        state $seq = 0;
-        $seq++;
-        my $task_id = sprintf qw| task-%04d |, $seq;
+    'coding.task.intake' => sub {
+        return { success => TRUE, task => { 'prompt' => $_[0] } };
+    },
+    'coding.task.analyze' => sub {
+        return { success => TRUE, task => $_[1] };
+    },
+    'coding.routing.decide_service' => sub {
+        my $task = $_[1];
+        $task->{'id'} = $task->{'id'} // do {
+            state $seq = 0;
+            $seq++;
+            sprintf qw| task-%04d |, $seq;
+        };
+        $task->{'analysis'}{'routed_to'} = qw| gpu |;
+        return { success => TRUE, task => $task };
+    },
+    'coding.task.enqueue' => sub {
+        my $task    = shift;
+        my $task_id = $task->{'id'} // 'task-unknown';
 
         ## simulate the model's work : edit one file, create one file ##
         open( my $fh, '>>:encoding(UTF-8)',
             catfile( $tree_dir, qw| lib module.pm | ) )
             or die $OS_ERROR;
-        print {$fh} "# task $task_id was here\n";
+        print {$fh} "# $task_id was here\n";
         close($fh);
         $code{'file.write'}->( catfile( $tree_dir, qw| scratch | ),
             "created by $task_id\n" );
@@ -337,14 +350,10 @@ my @timers;
         $data{'coding'}{'task'}{'queue'}{$task_id} = {
             'execution' => {
                 'status' => qw| completed |,
-                'result' => "done : $prompt",
+                'result' => "done : " . ( $task->{'prompt'} // '' ),
             }
         };
-        return {
-            qw| mode | => qw| size |,
-            qw| data | => sprintf 'task:%s|type:code|routed:gpu',
-            $task_id
-        };
+        return { success => TRUE };
     },
     'coding.cmd.abort-inference' => sub {
         return { qw| mode | => qw| false | };
@@ -401,7 +410,7 @@ $code{'file.write'}->( $blob_src, "hello blob store \x{263A}\n" );
 
 my $cs_one = call_m( 'model_batch.blob.store', $blob_src );
 ok( defined $cs_one,                  'blob.store returns a checksum' );
-ok( $cs_one =~ m{^[A-Z2-7]{20,128}$}, 'checksum is BASE32-shaped' );
+ok( $cs_one =~ m|^[A-Z2-7]{20,128}$|, 'checksum is BASE32-shaped' );
 
 my $blob_dir = call_m('model_batch.blob.path');
 ok( -f catfile( $blob_dir, "$cs_one.mxz.B32" ),
@@ -410,7 +419,7 @@ ok( -f catfile( $blob_dir, "$cs_one.mxz.B32" ),
 
 my $cs_two = call_m( 'model_batch.blob.store', $blob_src );
 ok( $cs_one eq $cs_two, 'identical content -> identical checksum [ CAS ]' );
-my @blob_files = grep { !/^\./ } do {
+my @blob_files = grep { !m|^\.| } do {
     opendir( my $dh, $blob_dir );
     my @e = readdir($dh);
     closedir($dh);
@@ -729,8 +738,8 @@ package FakeTimer {
     sub data      { shift->{'params'}{'data'} }
 }
 
-#,,.,,,,.,,.,,..,,.,.,,.,,...,.,,,..,,,,.,,,,,..,,...,...,...,...,,.,,,..,,,,,
-#7R2JXP5U7FCYJ3HLZEZU5P2CR5BYH2JHWXWB77VW3YUKMYTNIUNPISUQKRDT5XJ2NWHF7GTM5X4VU
-#\\\|Q25JOOCU5BCBIDKHEFUFFB7AEBRC5CFQDS72M2XY7HIFMIT2IPE \ / AMOS7 \ YOURUM ::
-#\[7]SRXOU7UIX5QQUO5GQXLR4DV7PISSQQS6EESD3HEQ7IEEIYU5TIDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,..,,,,.,..,,,.,,.,.,.,.,,,.,..,,...,..,,.,.,,.,,.,.,.,.,,..,
+#JN3AP7ZNGJK4FN4ETHUJOAIM4NEIBRCGKMOD7CCWY6LT5VQK43TAIJGEW2ZZZNREJZUOTM75FFBR6
+#\\\|HNCV42KZDUOUV3PF2M33JMOVFBTOYTCDBCBN3BGPG55LBWANC2K \ / AMOS7 \ YOURUM ::
+#\[7]ZLWHOU6RQD5FT4L4VZXLXT5D2WXN7QWB5VS3FKSCM4VGHO4XMUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
