@@ -108,3 +108,16 @@ checks) covers the full cycle.
 #\\\|7ULGTZNGUUHDS3YWHRBM77TXWBGFVPG4OGJOMVHWYEDTZKGZKFN \ / AMOS7 \ YOURUM ::
 #\[7]LYTLZFPWXOK3FYGAA75KKKCBLJWMMGH73KNRDIWV3FQ6TRRPRSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- tool-layer context for the '1'-byte wipe (2026-09-21): the coding zenka
+  tools had a bugfix sweep on 2026-09-16 [ B5FD7886 -- history/diff tools:
+  ownership chain, wrapper parser bug, FFI landmine ] after regressions;
+  residual tool bugs are a live hypothesis for write anomalies (a model tool
+  call writing bare '1' into src/coding.helper.trigger_backend_self_test).
+  NOTE: write path ref-handling is guarded [ base.file.write_encoded has an
+  explicit SCALAR-ref branch ]; audit the tool handlers themselves first.
+
+#,,,.,..,,..,,,..,,,.,...,.,.,..,,..,,..,,,.,,..,,...,...,.,.,,.,,,.,,,..,,,,,
+#YSAV5TRFBJ3Q4NTXEIZQ3HX3D73DFSAFWLWGKQ2DFEV4EDXEJR4YWEASS4GEJL3SCRGQNFZX2ZCCU
+#\\\|YDM3J2CR7V62T734M3MOZVAQCORTHJXUNQXJ7LCZOXDE2JIXZXH \ / AMOS7 \ YOURUM ::
+#\[7]7PXDQPZNGDWKDJH5DRTDZPABVBTYPK3XTRKIANWY6APBHSEE24BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
