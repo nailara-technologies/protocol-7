@@ -149,7 +149,17 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
             <[event.add_timer]>->(
                 {   'after'   => 2.0,
                     'handler' => 'coding.handler.verify_inference_startup',
-                    'params'  => { 'backend' => $backend }
+                    ## 'data', NOT 'params' : event.add_timer only forwards ##
+                    ## 'data' to Event->timer [ found live 2026-09-21 : the ##
+                    ## mis-keyed 'params' left w->data undef, the           ##
+                    ## reschedule fire died on undef deref, and Event       ##
+                    ## suspended the watcher -- the verify chain went       ##
+                    ## silently dead the first time the server was not      ##
+                    ## ready within the first 10s window, which is why      ##
+                    ## 'task queue resumed' stopped appearing after         ##
+                    ## restarts where the model took >10s to load --        ##
+                    ## timing-dependent, not a commit regression ]          ##
+                    'data' => { 'backend' => $backend }
                 }
             );
             return FALSE;
@@ -263,14 +273,18 @@ if ( $restart_count >= $max_attempts ) {
 <[event.add_timer]>->(
     {   'after'   => 5.0,
         'handler' => 'coding.handler.verify_inference_startup',
-        'params'  => { 'backend' => $backend }
+        ## 'data', NOT 'params' [ same mis-keyed reschedule bug as the     ##
+        ## defer branch above -- this is the 'server still starting'       ##
+        ## recheck path, exercised on every spawn whose model is not ready ##
+        ## within the first 10s verify window ]                            ##
+        'data' => { 'backend' => $backend }
     }
 );
 
 return FALSE;
 
-#,,.,,,,.,..,,,.,,,,,,..,,...,,,,,.,.,...,.,,,..,,...,...,..,,.,,,,.,,.,.,,,.,
-#FSRHXXLJSWONDIKQAMXP5Y4G5MBV532WIFPCRNTQJSCYMANG2R7JXDAXCRLUL2ZHRLGFQBDPSKVHS
-#\\\|BUZSS2Z3JEKTKLBZLWBG2QOH45WFLP5BEST7CXOT52QB6LVGHT4 \ / AMOS7 \ YOURUM ::
-#\[7]JDY2YTGFYY24MKS4VRJQGKXEMWGQVBNPIPK2VSWLMID6LTBIBKBA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,,,,,.,.,.,,,..,,..,,..,,..,,..,,...,...,..,,.,.,,.,,..,,.,,,
+#27YNSUCMVVSVGGOARQNCJZFYYSAGWTSYZE7CIDMW2WWGZDUU4B2FP5ZTU32N6WBUI4SYCJYM2QGRC
+#\\\|UUMXTRX37B6W5UC3KWNBF5YPQ7ZDNIQYSYHDB2KASYQZ2TFYLE7 \ / AMOS7 \ YOURUM ::
+#\[7]XJI3LNNPEZN56PUCEXQIA5GNB44LQ3XS5M2BOQ7ZQXML35R3VWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
