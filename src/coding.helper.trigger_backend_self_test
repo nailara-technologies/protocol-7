@@ -94,6 +94,24 @@ my $run_started = <[coding.self_test.run]>->(
             ## in numeric gt (>)" ]. use a separate, non-colliding         ##
             ## top-level key instead                                       ##
             <coding.self_test_seed_retry_count> //= {};
+            ## batch-awareness : while a model batch owns the backend for  ##
+            ## its candidate cycles, a seed-retry respawn kills the server ##
+            ## under the batch's RUNNING task [ found live 2026-09-21 :    ##
+            ## connection refused mid-round, then the respawn's own auto   ##
+            ## self-test held the backend lock with the batch's acquires   ##
+            ## queuing behind it ]. the batch's per-task verdicts already  ##
+            ## capture model quality, so the restart buys nothing it does  ##
+            ## not destroy -- record the fail, skip the restart            ##
+            if ( $cat_failed and defined <coding.model_batch_state> ) {
+                <[base.logs]>->(
+                    1,
+                    '[monitor_startup] cat-test failed for %s during an '
+                        . 'active model batch : skipping seed-retry respawn '
+                        . '[ batch owns the backend ]',
+                    $test_model_id
+                );
+                $cat_failed = FALSE;
+            }
             if ($cat_failed) {
                 my $retry_max = <coding.cfg.self_test_seed_retry_max> // 2;
                 my $retries
@@ -347,8 +365,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,.,,,,,,.,,,..,.,.,.,,,...,..,,,,,,.,,,.,.,..,,...,...,.,.,,,.,.,.,..,,...,
-#4SDLLP5XVRZRUBMLSN2EKHPTQDOYD6F7OWZUD53IC7R24BQNMWOZCPSUSYHLAK4VGTOLXDWOC3EM6
-#\\\|U3SZB24CZFRS2O7IKDBCIBAW6BDHQIEUFWGLBG2I7GMDEGAM5LG \ / AMOS7 \ YOURUM ::
-#\[7]WM2JY4EZ36WRA4RGCQ7UZ5MS7XRXYVEVSYZLG7GD2TWZI4HXK2DY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,,,,,.,,,,,.,,.,,.,.,,..,...,..,,...,...,..,,,,.,,,.,,,.,..,,
+#L77YKTVPDC7QC6BTVMS63L7WWNTY67W5UQ7HQ5FUAEIWPNM5ZFNH5LA7DYP3PL3AGDHV5OYYJNMYW
+#\\\|3AHR3TMTIOWBUCDPPWBZNZ44M3CJF6EPIZVBAG5IN5X5ZEWCFTB \ / AMOS7 \ YOURUM ::
+#\[7]DOX4JYJXPDUK35EHECQDFPJVJSJORERUJGFDAFEPPA7ZPCIFGGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
