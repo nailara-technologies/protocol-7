@@ -1,0 +1,40 @@
+# qwen3.8 family comparison -- first REAL multi-candidate batch
+# 2026-09-21 : three VRAM-feasible Qwen3.8 9B variants, two small real
+# doc-writing tasks. each candidate runs both tasks against the identical
+# baseline; capture/revert between tasks keeps the tree pristine.
+
+batch_spec_version: 1
+backend: gpu
+
+models:
+  - OFSQC4I:QDBKEXY    # Qwen3.8 9B Heretic Uncensored i1 Q4_K_M [default]
+  - OP2DASA:SAOVO5Y    # Qwen3.8 9B plain distill Q4_K_M
+  - P27KMTQ:X6B34JQ    # Qwen3.8 9B Distill Uncensored Heretic Q8
+
+reference_tps: 20
+
+tasks:
+  - id: blob-format-doc
+    budget_hint: 600
+    prompt: |
+      work submit "read src/note.trash.stash and src/model_batch.blob.store,
+      then create src/doc/model-batch-blob-format.md : a concise summary
+      [ maximum 40 lines ] of the pack format the two modules share and the
+      one way the batch version differs in how it keys the packed output.
+      write the file, then reply with a single-line confirmation."
+    criteria:
+      - xz
+      - base32
+      - checksum
+
+  - id: sweep-cursor-doc
+    budget_hint: 600
+    prompt: |
+      work submit "read src/coding.model_sweep.handler.poll_sweep, then
+      create src/doc/model-sweep-cursor.md : explain in maximum 30 lines
+      how the sweep cursor survives a zenka restart and under what exact
+      condition the circuit breaker pauses the sweep. write the file, then
+      reply with a single-line confirmation."
+    criteria:
+      - cursor
+      - restart
