@@ -114,6 +114,33 @@ if (    $restart
         scalar( @{ $existing->{'candidates'} // [] } );
 }
 
+## drain gate [ refuse while foreign tasks are still queued on the batch  ##
+## backend -- found live 2026-09-21 : stale branch-retry tasks from a     ##
+## previous run held the backend lock through a candidate respawn window, ##
+## and each lock release dispatched the batch's fresh task into the       ##
+## dead-socket gap [ connection closed with no data -> connection refused ##
+## -> 6/6 tasks error/error ]. the yield gate only yields to tasks        ##
+## backend_idle counts as active; drained-but-retrying stragglers slip    ##
+## through it, so this is an explicit emptiness check at batch start ]    ##
+{
+    my $bs    = ( <coding.state.backend> // {} )->{$backend} // {};
+    my $queue = $bs->{'queue'}                               // [];
+    if ( @{ $queue // [] } or length( $bs->{'lock'} // '' ) ) {
+        return {
+            mode => qw| size |,
+            data => sprintf
+                "%s : backend %s is not drained [ lock=%s, %d task%s queued "
+                . "] -- stale tasks from a previous run must finish "
+                . "first\n",
+            $batch_id,
+            $backend,
+            ( length( $bs->{'lock'} // '' ) ? $bs->{'lock'} : qw| free | ),
+            scalar @$queue,
+            <[base.cnt_s]>->( scalar @$queue ),
+        };
+    }
+}
+
 ## initial clean-tree gate [ refuse BEFORE anything is packed or switched : ##
 ## dirty + no :force: means the batch simply does not start, with the diff  ##
 ## list as the refusal body ]                                               ##
@@ -205,8 +232,8 @@ push @lines, sprintf '%s : batch started', $batch_id;
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,,.,.,.,,,,,,.,,,.,,.,.,..,,,..,,..,.,,,..,,...,...,..,,,.,,,.,,...,,..,
-#ZLRUNBPIASOJ5KKEKRWCWIGQBSUFKRB2AZ6VOV65ZM57AFFCFAF23NWQDSMBCW5VZ4UO3GLUSVFDA
-#\\\|3XRTBLUQ2KBWRREXTJWH4TYZ3FFR77FN57UTSQUG323AM3TTDDV \ / AMOS7 \ YOURUM ::
-#\[7]FW4I6ERIAKNLNIJC3JTKHXTK2K6BWRM6EB3NK5OPYYA6FRQ3BGCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,...,,.,,.,.,..,,...,,,,,,,,,..,,...,...,.,.,,..,,.,,,..,,,.,
+#AZEII2XI7AYOHRCLPFWJGWXRMSSMECXVRPTIQY6UARM2Z5CAATHOYWZKUXHO7DZXF3GUVPS3DPUZ4
+#\\\|TN4MDZMUYQRK47B6C3SBIREKD5DTKFS5RGG6K3MFECUO6AGLQE2 \ / AMOS7 \ YOURUM ::
+#\[7]MTOOXJFCD7MDVPC656SIB5OOYRQWSOCLCSEDD4YNSLMGHJA66OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
