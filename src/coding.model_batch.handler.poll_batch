@@ -601,12 +601,28 @@ if ( $phase eq qw| task_start | ) {
         return TRUE;
     }
 
-    if ( length( $routed // '' ) and $routed ne $backend ) {
-        ## routing is analysis-based with no per-submit backend override :  ##
-        ## the task runs on the other backend against the wrong model, so   ##
-        ## its verdict is meaningless. recorded as an error and skipped [   ##
-        ## task itself stays queued as normal traffic; its tree side        ##
-        ## effects still get reverted by this task's capture/revert cycle ] ##
+    ## normalize the routing name to a physical backend key : this          ##
+    ## deployment routes gpu inference under the service name 'single-llm'  ##
+    ## [ visible in every backend_acquire log ], which send_request already ##
+    ## maps to the gpu server -- the batch compares in the same key space,  ##
+    ## not the service-name space [ found live 2026-09-21 : tasks routed    ##
+    ## 'single-llm' were refused as mismatches against backend 'gpu' ]      ##
+    my $routed_backend
+        = ( $routed // '' ) eq qw| cpu | ? qw| cpu | : qw| gpu |;
+
+    if ( length( $routed // '' ) and $routed_backend ne $backend ) {
+        ## routing is analysis-based with no per-submit backend override : ##
+        ## the task runs on the other backend against the wrong model, so  ##
+        ## its verdict is meaningless. DEQUEUE the orphaned task before    ##
+        ## settling : a task left sitting in the backend queue poisons     ##
+        ## every later lock release -- found live 2026-09-21 : two         ##
+        ## mismatch-settled tasks stayed queued, one dispatched into a     ##
+        ## candidate's respawn window [ connection refused ], its release  ##
+        ## catapulted the next candidate's task into the same dead socket, ##
+        ## and all six records came back error/error ]                     ##
+        my $bs    = ( <coding.state.backend> // {} )->{$backend} // {};
+        my $queue = $bs->{'queue'}                               // [];
+        @{$queue} = grep { $ARG ne $task_id } @{$queue};
         $settle_task->(
             $task_href, qw| error |, qw| error |,
             "task routed to '$routed', batch backend is '$backend'"
@@ -927,8 +943,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,..,,..,.,,,,.,,,.,,,,,,,..,,.,,,,,,,,,,,,.,..,,...,...,...,,.,,,..,..,,,,.,
-#RPUPOGI2E2P5TZCMRQR37UM6JSBNZN2SUQYSWK7G6TDWK2WWM74IWIIWX4Y2CDB3LDKMRTROLWKEY
-#\\\|BSJVGWHYMRYELQ7BJI7PKT54S5DYUQV6WXUM5R4S7S6F5IXV76I \ / AMOS7 \ YOURUM ::
-#\[7]TZ2RD66V3VDSZYUBGM2AGAJIXHGXWJVWQKPP2MO54OJNHJMYXQDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,.,,,,.,...,.,.,...,,,,,.,.,..,,..,,...,.,.,,.,,.,.,...,,,,,..,,
+#KZZ57N24ILE4KROQQHT4QOTERQEMABMH555CWUMZ7TAMWAQVRBB4ODIP3PGXVXHIRPL2P445YF3GE
+#\\\|X5BU4PU4KRG4VFPHCV4I4M4X3Y6J2D7TRN76442BP6AB6BK2B6A \ / AMOS7 \ YOURUM ::
+#\[7]6GMLYY5V5BN5HY2NMIALH237JQ2CQV5FIVVAFDJLSWVNECHBOOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
