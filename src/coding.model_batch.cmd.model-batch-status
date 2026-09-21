@@ -1,0 +1,204 @@
+## [:< ##
+
+# name  = coding.model_batch.cmd.model-batch-status
+# descr = models x tasks grid + drill-down over the batch store
+# param = [batch-id] [:task=<id>:] [:model=<prefix>:] [:full:]
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+my $full = ( $args =~ s| *:full: *| | );
+
+my ( $task_filter, $model_filter );
+$task_filter  = $1 if $args =~ s| *:task=([a-zA-Z0-9._-]+): *| |;
+$model_filter = $1 if $args =~ s| *:model=([A-Za-z0-9]+): *| |;
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $batch_id = $args;
+
+my $state_base = <[file.zenka_dir.data_path]> . qw| /state/model_batch |;
+
+## batch selection : explicit id, else the most recently touched one ##
+if ( !length $batch_id ) {
+    opendir( my $dh, $state_base )
+        or return {
+        mode => qw| size |,
+        data => "no model_batch state found\n"
+        };
+    my %candidates;
+    while ( my $entry = readdir($dh) ) {
+        next if $entry =~ m|^\.{1,2}$| or $entry eq qw| blobs |;
+        next unless -d "$state_base/$entry";
+        my $mtime = ( File::stat::stat("$state_base/$entry") // {} )->mtime
+            // 0;
+        $candidates{$entry} = $mtime;
+    }
+    closedir($dh);
+    return { mode => qw| size |, data => "no batches recorded yet\n" }
+        unless %candidates;
+    ($batch_id) = sort { $candidates{$b} <=> $candidates{$a} }
+        keys %candidates;
+}
+
+my $batch_dir = "$state_base/$batch_id";
+return {
+    mode => qw| size |,
+    data => sprintf "batch '%s' not found in state store\n",
+    $batch_id
+    }
+    unless -d $batch_dir;
+
+## load every per-model record file ##
+my %model_records;
+opendir( my $batch_dh, $batch_dir )
+    or return {
+    mode => qw| size |,
+    data => sprintf "cannot read batch dir '%s'\n",
+    $batch_dir
+    };
+while ( my $entry = readdir($batch_dh) ) {
+    next unless $entry =~ m{^([A-Za-z0-9._-]+)\.yaml$};
+    next if $entry eq qw| baseline-manifest.yaml |;
+    my $model_cs  = $1;
+    my $rel       = sprintf qw| state/model_batch/%s/%s |, $batch_id, $entry;
+    my $yaml_sref = <[file.zenka_dir.load]>->($rel);
+    next unless defined $yaml_sref and length $$yaml_sref;
+    my $record_href = <[format.yaml.load_str]>->($$yaml_sref) // {};
+    $model_records{$model_cs} = $record_href;
+}
+closedir($batch_dh);
+
+return {
+    mode => qw| size |,
+    data => sprintf "batch '%s' has no model records yet\n",
+    $batch_id
+    }
+    unless %model_records;
+
+## model column selection + short-id legend ##
+my @models = sort keys %model_records;
+if ( length $model_filter ) {
+    @models = grep { index( $ARG, $model_filter, 0 ) == 0 } @models;
+    return { mode => qw| size |, data => "no model matches prefix\n" }
+        unless @models;
+}
+my %short_id = map { $ARG => substr( $ARG, 0, 12 ) } @models;
+
+## task row order : spec order when the spec is loadable, else sorted ##
+my @task_rows;
+my $spec_href = eval { <[model_batch.spec.load]>->($batch_id) } // {};
+if ( ref $spec_href eq qw| HASH | and $spec_href->{'tasks'} ) {
+    @task_rows = map { $ARG->{'id'} } $spec_href->{'tasks'}->@*;
+} else {
+    my %seen;
+    for my $model_cs (@models) {
+        for my $task_id ( sort keys $model_records{$model_cs}->%* ) {
+            $seen{$task_id} = 1;
+        }
+    }
+    @task_rows = sort keys %seen;
+}
+
+my @lines;
+
+## legend ##
+push @lines, sprintf 'batch : %s', $batch_id;
+for my $model_cs (@models) {
+    push @lines, sprintf '  %s = %s', $short_id{$model_cs}, $model_cs;
+}
+
+## drill-down mode ##
+if ( length $task_filter ) {
+    my $model_cs = $models[0];
+    return {
+        mode => qw| size |,
+        data => sprintf "task '%s' not found\n",
+        $task_filter
+        }
+        unless exists $model_records{$model_cs}->{$task_filter};
+
+    my $entry = $model_records{$model_cs}->{$task_filter};
+
+    my @pairs = (
+        [ qw| batch_spec_version |, $entry->{'batch_spec_version'} // '' ],
+        [ qw| model |,              $entry->{'model'}              // '' ],
+        [ qw| backend |,            $entry->{'backend'}            // '' ],
+        [ qw| task_id |,            $entry->{'task_id'}            // '' ],
+        [ qw| verdict |,            $entry->{'verdict'}            // '' ],
+        [ qw| failure_class |,      $entry->{'failure_class'}      // '' ],
+        [ qw| detail |,             $entry->{'detail'}             // '' ],
+        [ qw| baseline |,           $entry->{'baseline'}           // '' ],
+        [ qw| fingerprint |,        $entry->{'fingerprint'}        // '' ],
+        [ qw| files_touched |, join( ',', $entry->{'files_touched'}->@* ) ],
+        [   qw| timing |,
+            join( ',',
+                map { sprintf '%s=%s', $ARG, $entry->{'timing'}{$ARG} // '' }
+                sort keys %{ $entry->{'timing'} // {} } )
+        ],
+        [ qw| finish_reason |, $entry->{'finish_reason'} // '' ],
+    );
+    push @pairs, [ qw| score |, $entry->{'score'} ]
+        if defined $entry->{'score'};
+
+    push @lines,
+        <[base.format.inline-nested.encode]>->(
+        \@pairs,
+        {   inline_path =>
+                sprintf( qw| %s.%s |, $short_id{$model_cs}, $task_filter )
+        }
+        );
+
+    ## lazy per-path diffs : computed here, at read time, never stored ##
+    my $paths_href = $entry->{'paths'} // {};
+    for my $rel_path ( sort keys $paths_href->%* ) {
+        my $pair_href = $paths_href->{$rel_path} // {};
+        next
+            unless defined $pair_href->{'before'}
+            and defined $pair_href->{'after'};
+        my $diff_str = <[model_batch.diff.text]>->(
+            $pair_href->{'before'},
+            $pair_href->{'after'}
+        );
+        next unless defined $diff_str;
+        push @lines,
+            <[base.format.inline-nested.encode]>->(
+            [ [ qw| diff |, $diff_str ] ],
+            {   inline_path => sprintf( qw| %s |, $rel_path ),
+                nest_level  => 1
+            }
+            );
+    }
+
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+## grid mode : rows tasks, columns model short ids ##
+push @lines, sprintf 'task : %s', join ',', map { $short_id{$ARG} } @models;
+
+for my $task_id (@task_rows) {
+    my @cells;
+    for my $model_cs (@models) {
+        my $entry = $model_records{$model_cs}->{$task_id};
+        if ( ref $entry ne qw| HASH | ) {
+            push @cells, qw| - |;
+            next;
+        }
+        my $timing = $entry->{'timing'}  // {};
+        my $cell   = $entry->{'verdict'} // 'unknown';
+        $cell .= sprintf '/%s', $entry->{'failure_class'}
+            if length( $entry->{'failure_class'} // '' );
+        $cell .= sprintf ' %ss',     $timing->{'wall'} // 0;
+        $cell .= sprintf ' %.1ft/s', $timing->{'tps'}  // 0;
+        push @cells, $cell;
+    }
+    push @lines, sprintf '%s : %s', $task_id, join ';', @cells;
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,.,.,,,.,.,..,,.,.,.,,,..,,.,,,,..,..,,...,..,,...,...,...,.,,,.,,,..,,,..,
+#TOYDZS4CKTOFFIR2HGWHS7D42PIE6NWNIU2RRGG2PJJ34AYOBGZ7I7ZHCKZ256GOSBJ6ICVNOJDWE
+#\\\|QINZE55MELTMAGHUAJHTKGWHHJLSV535SS4BQBS74TOJ354AV7O \ / AMOS7 \ YOURUM ::
+#\[7]UJJVRPXT5UBBIIZK7U6DC23BEREDVZBVUSNYQMYOWWNBL4AZWCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

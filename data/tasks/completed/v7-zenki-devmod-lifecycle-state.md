@@ -209,12 +209,12 @@ escalate to root."
 
 ## related
 
-- [[devcmd-namespace-wildcard-permissions]] — `data/tasks/devcmd-
+- [[devcmd-namespace-wildcard-permissions]] — `data/tasks/completed/devcmd-
   namespace-wildcard-permissions.md`, the permission-mask side of this
   same devmod-hardening effort, implemented 2026-09-20.
 
-#,,,,,.,,,..,,..,,,.,,...,..,,.,,,.,,,,..,..,,..,,...,...,.,,,,,.,.,,,,.,,,,,,
-#5VO7JT6VIX7KR2UOSHIDYSIKFAICP4A33EZOLPCB4WHOYKO7GO43IOYR37KSSBECXCCQNYGL35LZM
-#\\\|VL2QJZ52XE5BSWOLPCDIC427CAHQ2BRT7AYFSNT6DI4JU6FLABV \ / AMOS7 \ YOURUM ::
-#\[7]D2SVTWRSMCMHOOBUPNBOI4RINMSDDKKXIUSMAHFF7XWSTEJCYGDI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,.,.,,.,,.,.,.,.,.,.,.,.,.,,,..,,...,..,,.,,,.,.,,,.,,,,,.,,,
+#Q7LQFX6POQIVQ6SX3HOKIZTOH3Z3ILAUNZ7EYTAPE7X5Y2TOBJXIKDMIEZ5E3QQ3THIMMWNJPZUAW
+#\\\|D7HPWDIRAX24GTFGIBU2VYQM6ACQK4GD7JZPPO3WOGYA47XCR3T \ / AMOS7 \ YOURUM ::
+#\[7]N63HP7EX2KIBCDZQNPKFWVF5GR66MQ5EL2JSH5RSDUWVQHO4TIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

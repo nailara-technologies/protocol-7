@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = model_batch.blob.store
+# descr = content-addressed xz+base32 pack of a file into the batch blob store
+# note  = same pack format as note.trash.stash [ IO::Compress::Xz +
+#         base32.encode, .mxz.B32 suffix ], keyed by BMW-384 content
+#         checksum instead of base.ntime -- identical content is packed
+#         exactly once across models, tasks and gates [ natural CAS ]
+# param = <file-path> -> <checksum> | undef
+
+my $file_path = shift // '';
+
+return warn 'expected file path parameter <{C1}>' unless length $file_path;
+return warn sprintf( "file '%s' not found <{C1}>", $file_path )
+    unless -f $file_path;
+
+## one addressing scheme across the whole system : the same BMW-384 BASE32
+## family that addresses models in the <coding.model_metadata> registry
+my $checksum = <[base.chk-sum.bmw.filesum]>->( 384, $file_path );
+return undef unless defined $checksum and length $checksum;
+
+my $blob_dir = <[model_batch.blob.path]>;
+<[file.path.make_dir]>->($blob_dir) unless -d $blob_dir;
+
+my $blob_path = join qw| / |, $blob_dir, "$checksum.mxz.B32";
+
+## content addressing : already-packed identical content is a no-op ##
+return $checksum if -f $blob_path;
+
+my $content = <[file.read]>->($file_path) // '';
+utf8::encode($content) if utf8::is_utf8($content);
+
+## base32 wrapping keeps the payload safe for file.write's UTF-8 text mode ##
+## [ same reason note.trash.stash base32-wraps its xz trash ]              ##
+<[base.perlmod.autoload]>->('IO::Compress::Xz');
+
+my $compressed;
+IO::Compress::Xz::xz( \$content, \$compressed )
+    or return undef;
+my $b32 = <[base32.encode]>->($compressed);
+
+<[file.write]>->( $blob_path, $b32 )
+    or return undef;
+
+return $checksum;
+
+#,,,.,,.,,,.,,..,,..,,,,,,.,,,.,,,...,,,.,..,,..,,...,...,...,.,,,,,.,...,,.,,
+#TQG6MNXTN37NHUQAAE6W32PCUROGD6MBRA7KKZ3VCBEJHREN5ZSJESVHCVA57QVD5GYDPIWM3QNGY
+#\\\|5WR5POHRJPZZE7KHVMHBBGVARLRTF2N7QP363FMSUVNVIKCYIT6 \ / AMOS7 \ YOURUM ::
+#\[7]BSN2LQ4FQULN6N7SY7GOTL6DGNGBC7JFFOI3FFJATPO4ICCNQCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

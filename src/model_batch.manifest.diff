@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = model_batch.manifest.diff
+# descr = diff two manifests : changed / added / removed path lists
+# param = <baseline-href> <current-href> -> <diff-href>
+
+my $baseline_href = shift // {};
+my $current_href  = shift // {};
+
+my ( @changed, @added, @removed );
+
+for my $path ( sort keys $baseline_href->%* ) {
+    my $base_sum = $baseline_href->{$path} // '';
+    if ( !exists $current_href->{$path} ) {
+        push @removed, $path;
+    } elsif ( ( $current_href->{$path} // '' ) ne $base_sum ) {
+        push @changed, $path;
+    }
+}
+
+for my $path ( sort keys $current_href->%* ) {
+    push @added, $path unless exists $baseline_href->{$path};
+}
+
+return {
+    qw| changed | => \@changed,
+    qw| added   | => \@added,
+    qw| removed | => \@removed,
+};
+
+#,,,.,,.,,,..,..,,..,,,..,,.,,.,.,..,,..,,,..,..,,...,...,..,,,..,,..,,.,,,..,
+#SP2KENOZWBUDOC6LCNCMMCZM5RZC57IEGYLYHDEL4LL7QOP3PLEP7UCIGEY2K4STTM2WCNXPTI3OS
+#\\\|Z5GNTVWARSJIQDWU46CSPD7XA2XNPPULEAMOMRGEBFFKFHL3K77 \ / AMOS7 \ YOURUM ::
+#\[7]IJP62MZTW3HGTJL7M66RD3MXIOMWMERNVSERNLGKZQT7SMWGOSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

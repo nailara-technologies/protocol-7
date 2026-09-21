@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = model_batch.baseline.pack
+# descr = pack every baseline-manifest path into the blob store
+# note  = establishes the capture invariant the per-task step relies on :
+#         baseline content of any path is ALWAYS already blob-stored
+#         before a task can touch it. the store is a CAS, so re-packing
+#         across batches/gates only pays for genuinely new content
+# param = <batch-id> -> { stored => n, present => n } | undef
+
+my $batch_id = shift // '';
+$batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
+
+return warn 'expected batch id parameter <{C1}>' unless length $batch_id;
+
+my $baseline_href
+    = <[model_batch.manifest.persist]>->( qw| load |, $batch_id );
+return warn sprintf( 'no baseline manifest for batch %s <{C1}>', $batch_id )
+    unless ref $baseline_href eq qw| HASH | and %$baseline_href;
+
+my $root_path = canonpath(<system.root_path>);
+
+my %count = ( stored => 0, present => 0 );
+
+for my $rel_path ( sort keys $baseline_href->%* ) {
+    my $abs_path = catfile( $root_path, split m|/|, $rel_path );
+    next unless -f $abs_path;
+    my $checksum = <[model_batch.blob.store]>->($abs_path);
+    if ( defined $checksum ) {
+        $checksum eq $baseline_href->{$rel_path}
+            ? $count{'present'}++
+            : $count{'stored'}++;
+    }
+}
+
+return \%count;
+
+#,,,,,,..,...,,,,,.,.,..,,,,,,..,,,,,,...,,,.,..,,...,...,..,,.,,,,,.,.,.,.,.,
+#OQXENSLLH5ZFOCIBIEWEH2SHJZ54XOC464NL4E5NEUFRCVCV4AYSNG7UEQVHCA6HXUMQGEFV63WNE
+#\\\|QP25OJQ3GFXXFDS6VVTJMO43FC636FPZR5GX3CGDWIEBB76MOOI \ / AMOS7 \ YOURUM ::
+#\[7]UGKR6YKMZQRSTRKSV5JG56BCSPFHGEXH7OYB5L7IUHYNLJG4SEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

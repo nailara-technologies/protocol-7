@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = coding.model_batch.cmd.model-batch-resume
+# descr = resume a paused model batch from its frozen cursor
+# param = [:force:] [:no_yield:]
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+my $force    = ( $args =~ s| *:force: *| | );
+my $no_yield = ( $args =~ s| *:no_yield: *| | );
+
+my @lines;
+
+my $state = <coding.model_batch_state>;
+if ( ref $state eq qw| HASH |
+    and ( $state->{'state'} // '' ) ne qw| paused | ) {
+    push @lines,
+        sprintf '%s : batch already running [ nothing to resume ]',
+        $state->{'batch_id'} // '';
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+## rebuild from the persisted cursor [ survives zenka restart ] ##
+my $cursor_file   = qw| state/model_batch_cursor.yaml |;
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my $cursor = $cursor_data->{'batch'} // {};
+
+if (   ref $cursor ne qw| HASH |
+    or !length( $cursor->{'batch_id'} // '' )
+    or ( $cursor->{'idx'} // 0 )
+    >= scalar( @{ $cursor->{'candidates'} // [] } ) ) {
+    push @lines, 'no resumable batch cursor';
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+my $batch_id = $cursor->{'batch_id'};
+
+## owner-drift pause classes require explicit :force: acknowledgement : ##
+## resuming blind would revert over changes the operator made while the ##
+## batch was frozen [ freeze-not-revert decision, concern 1 ]           ##
+my $why = $cursor->{'paused_reason'} // '';
+if (    length $why
+    and $why =~ m{^(gate-dirty|reverify-failed|revert-failed)$}
+    and !$force ) {
+    push @lines,
+        sprintf
+        '%s : paused by %s -- refusing to resume without :force: [ resolve '
+        . 'the tree state first, then : model-batch-resume :force: ]',
+        $batch_id, $why;
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+my $spec_href = eval { <[model_batch.spec.load]>->($batch_id) };
+if ( ref $spec_href ne qw| HASH | ) {
+    push @lines,
+        sprintf '%s : cannot reload batch spec : %s',
+        $batch_id, $@ || 'spec load failed';
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+<coding.model_batch_state> = {
+    qw| batch_id |   => $batch_id,
+    qw| backend |    => $cursor->{'backend'} // qw| gpu |,
+    qw| spec |       => $spec_href,
+    qw| candidates | => $cursor->{'candidates'},
+    qw| idx |        => $cursor->{'idx'} // 0,
+    qw| task_idx |   => 0,
+    qw| phase |      => qw| gate |,
+    qw| state |      => qw| running |,
+    ## :no_yield: must be repeated on every resume to stay in effect ##
+    qw| force |    => $force    ? TRUE : ( $cursor->{'force'} // FALSE ),
+    qw| no_yield | => $no_yield ? TRUE : FALSE,
+    qw| started |           => $cursor->{'started'} // <[base.ntime]>,
+    qw| switch_id |         => '',
+    qw| baseline |          => {},
+    qw| baseline_cs |       => '',
+    qw| last_observed_tps | => 0,
+    qw| tps_scale |         => 1,
+    qw| breaker |           => { qw| signature | => '', qw| count | => 0 },
+};
+
+$cursor_data->{'batch'}{'state'} = qw| running |;
+delete $cursor_data->{'batch'}{'paused_reason'};
+my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+if ( length $yaml_str ) {
+    <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+        or <[base.logs]>->(
+        1, '[model_batch] failed to persist cursor file [ %s ]', $cursor_file
+        );
+}
+
+<[event.add_timer]>->(
+    {   qw| interval | => 1,
+        qw| repeat |   => TRUE,
+        qw| handler |  => qw| coding.model_batch.handler.poll_batch |,
+        qw| data |     => {},
+        qw| desc |     => sprintf( 'model-batch %s', $batch_id ),
+    }
+);
+
+push @lines,
+    sprintf '%s : resumed [ candidate %d/%d ]%s',
+    $batch_id,
+    ( $cursor->{'idx'} // 0 ) + 1,
+    scalar( @{ $cursor->{'candidates'} // [] } ),
+    ( $force && length $why ? " [ forced past : $why ]" : '' );
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,.,.,,,,,.,.,.,..,,,.,,.,.,..,,.,.,.,.,,,,,..,,...,...,,.,,,..,..,,,..,.,.,
+#3EBK4PN7MNCUSF4RRCPF6NETBQBMWGFHJZI4AZL3FAVZXTZ4KA4UCH7UHPVN3AN3BZD6YOYJOI26O
+#\\\|HKHV3CKNT7E5X5WMTVLRIOXCRHIJWJOMBTLLU2VCVVQTZZSQMON \ / AMOS7 \ YOURUM ::
+#\[7]DW4EUC7BCIX4X7OVALZDVLZOEGKARCJPXUBQAWVOALSLEPPGPEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

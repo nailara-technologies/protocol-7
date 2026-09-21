@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = model_batch.capture.task
+# descr = capture step 1 : pack task-side effects, before any revert
+# note  = runs BEFORE anything destructive, per (model,task). no diff
+#         is computed or stored here -- only checksums; the review-time
+#         diff is lazy, from the two checksums' blobs
+# param = { baseline => href } -> <capture-href> | undef
+
+my $params        = shift                 // {};
+my $baseline_href = $params->{'baseline'} // {};
+
+return warn 'expected baseline manifest parameter <{C1}>'
+    unless ref $baseline_href eq qw| HASH | and %$baseline_href;
+
+my $current_href = <[model_batch.manifest.build]>->();
+my $diff_href
+    = <[model_batch.manifest.diff]>->( $baseline_href, $current_href );
+
+my $root_path = canonpath(<system.root_path>);
+
+## per-path checksum pairs : what the lazy review-time diff needs ##
+my %paths;
+for my $rel_path ( $diff_href->{'changed'}->@* ) {
+    $paths{$rel_path} = {
+        qw| before | => $baseline_href->{$rel_path},
+        qw| after  | => $current_href->{$rel_path},
+    };
+}
+for my $rel_path ( $diff_href->{'added'}->@* ) {
+    $paths{$rel_path} = { qw| after | => $current_href->{$rel_path} };
+}
+for my $rel_path ( $diff_href->{'removed'}->@* ) {
+    $paths{$rel_path} = { qw| before | => $baseline_href->{$rel_path} };
+}
+
+## capture CURRENT content of every changed/new path [ baseline content is ##
+## already stored by model_batch.baseline.pack -- the                      ##
+## no-op-in-the-common-case half of step 1 ]                               ##
+for my $rel_path ( $diff_href->{'changed'}->@*, $diff_href->{'added'}->@* ) {
+    my $abs_path = catfile( $root_path, split m|/|, $rel_path );
+    <[model_batch.blob.store]>->($abs_path) if -f $abs_path;
+}
+
+my @files_touched = sort keys %paths;
+
+return {
+    qw| manifest     |  => $current_href,
+    qw| manifest_cs  |  => <[model_batch.manifest.checksum]>->($current_href),
+    qw| files_touched | => \@files_touched,
+    qw| paths        |  => \%paths,
+    qw| diff_counts  |  => {
+        qw| changed | => scalar $diff_href->{'changed'}->@*,
+        qw| added   | => scalar $diff_href->{'added'}->@*,
+        qw| removed | => scalar $diff_href->{'removed'}->@*,
+    },
+};
+
+#,,..,,,,,.,.,.,.,...,.,.,,,.,.,,,.,.,..,,..,,..,,...,..,,..,,,,.,..,,,.,,..,,
+#6X3L6BRID74VLIFFNCHZOHWINQFQOBDJFKWTOLZEBQMEMXLC7FMVGAPMHTEFHEIS3U4IV5B5GV3NO
+#\\\|WIPMLP454Y5UBIJH3ZJ67A4LQZWFH3E5FYPAUWBKMI2VXL4NA5L \ / AMOS7 \ YOURUM ::
+#\[7]KNHLZUDBZZ5LC3TJXPYEKNDWQRIRQVTEGP5WAGM2XFXVMNBCFYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

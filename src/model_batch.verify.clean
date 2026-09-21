@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = model_batch.verify.clean
+# descr = revert step 4 : re-verify tree matches baseline exactly
+# note  = a mismatch is a HARD STOP for the caller : cursor frozen,
+#         blob store is the recovery surface -- never continue anyway
+# param = <batch-id> -> { clean => 1 } | { clean => 0, diff => href }
+
+my $batch_id = shift // '';
+$batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
+
+return warn 'expected batch id parameter <{C1}>' unless length $batch_id;
+
+my $baseline_href
+    = <[model_batch.manifest.persist]>->( qw| load |, $batch_id );
+return warn sprintf( 'no baseline manifest for batch %s <{C1}>', $batch_id )
+    unless ref $baseline_href eq qw| HASH | and %$baseline_href;
+
+my $current_href = <[model_batch.manifest.build]>->();
+my $diff_href
+    = <[model_batch.manifest.diff]>->( $baseline_href, $current_href );
+
+my @dirty_paths = (
+    $diff_href->{'changed'}->@*,
+    $diff_href->{'added'}->@*,
+    $diff_href->{'removed'}->@*
+);
+
+return { qw| clean | => TRUE } unless @dirty_paths;
+
+return {
+    qw| clean | => FALSE,
+    qw| diff  | => $diff_href,
+};
+
+#,,,.,,,.,..,,.,.,..,,,..,,.,,.,,,,..,,.,,,,,,..,,...,..,,.,,,.,,,,,.,.,,,.,,,
+#46DTCAF6I6HN5MT7PYYK4AZYSXRQZCWE2CYNYH3H4T36KQSI3M7TASO3OAMGWPM4RNOPDCUL3MKMQ
+#\\\|CAM5BZ46LTI5ECTYAJJHP73ZPBI3PWW37AX3SSCE755OJ2MZ3KU \ / AMOS7 \ YOURUM ::
+#\[7]DSUTYJG2O75CXEFISABW4EIRHAZDXJU35DLARDJANM7XXHFCBCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
