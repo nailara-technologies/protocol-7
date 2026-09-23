@@ -38,8 +38,18 @@ delete $bs->{'lock_seq'};
     $task_id, $backend
 );
 
-## dequeue next waiting task and resume it ##
-my $next = shift @{ $bs->{'queue'} // [] };
+## dequeue next waiting task and resume it : skip entries whose task has    ##
+## already finished [ task_state deleted by async.complete -- eg aborted or ##
+## failed while queued ]. handing the lock to one of those leaked it        ##
+## permanently : send_request bails with "no state" and never releases      ##
+my $next;
+while ( defined( $next = shift @{ $bs->{'queue'} // [] } ) ) {
+    last if exists <coding.async.task_state>->{$next};
+    <[base.logs]>->(
+        1,     'backend_release: dropping finished task %s from %s queue',
+        $next, $backend
+    );
+}
 if ( defined $next ) {
     <[base.logs]>->(
         1,     'backend_release: dispatching next queued task %s [%s]',
@@ -52,8 +62,8 @@ if ( defined $next ) {
 
 return TRUE;
 
-#,,,.,...,,..,,,.,...,,..,..,,,..,.,,,,,.,.,,,..,,...,...,,,.,,,.,.,.,.,.,,.,,
-#37HGI4OSG576Z2NTQMK2UFS7PAXOYU2YDUJ5UA2FXKXOS5T6CMFTOPQEFUFKY76E3O5V34HYATG42
-#\\\|DFHFWEUHGUY5UXEC43TN7A3SMUEU5HE4HWGRSJN6BN3UG56Z2J6 \ / AMOS7 \ YOURUM ::
-#\[7]WW4CST542JUGDE43VYO3EHZGTUBYS2KSRXR7CFF4W3KJOEPPMCCA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,,,,,,,.,.,,,,..,...,,..,.,.,..,,...,...,..,,,.,,,..,,..,.,,,
+#NXRRKOGYLWXINOHAXTKPLNP2FB4Z5NMBCBL4LBPV7BY3ZE7FOA3LUW6NGA2D4OCYTWXRJ32WXVQVQ
+#\\\|G772D53DCJOG4HKQVSO4N6YWBSX6TZHPTCY2L23SEFWDGIPHFGP \ / AMOS7 \ YOURUM ::
+#\[7]RQCP7VGYZFPVVTBXDRADIHARSLQRWKCT6ZIERN7AMKOZ6HSNY6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

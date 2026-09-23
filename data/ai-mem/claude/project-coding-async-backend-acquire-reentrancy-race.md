@@ -68,7 +68,7 @@ correctness improvement even under the plain check — was previously
 relying entirely on the reentrancy shortcut with no explicit release at
 all, matching state_machine's own pattern), and `coding.cmd.abort-inference`
 was found to be able to leak a backend lock permanently when combined
-with a stale self-queued entry — not yet root-caused, a lock could
+with a stale self-queued entry — ROOT-CAUSED + FIXED 2026-09-24 [ backend_release handed the lock to a queued task already finished, send_request bailed "no state" without releasing ; now skips entries without task_state ]. Before the fix a lock could
 still get stuck if a task is aborted while queued behind its own lock;
 watch for `coding.state.backend.<name>.lock` pointing at an already-
 `failed`/`completed` task_id as the symptom, `p7c v7-zenki.restart coding`
@@ -146,8 +146,8 @@ and `coding.session.listeners` dedup FIRST, before assuming an encoding
 problem — this exact symptom shape (duplication, not corruption-in-place)
 already fooled one full session into the wrong subsystem once.
 
-#,,,.,,.,,,,,,,,.,.,,,,,,,,.,,.,,,.,.,...,,.,,.,.,...,...,..,,...,,,.,..,,...,
-#VYLNMRRVX345DOPCXQRY6AW5XY3BYJTDMMYI6YBVXUPNJVCOK2V7QEQN5B7QLAFB2KDSU6JTPZCFQ
-#\\\|HKMU2XMMNQUCFDVLUO3VP47TOKFB3GE6CJ4XNVYKBTU35EGEYTF \ / AMOS7 \ YOURUM ::
-#\[7]Y6LORP4XXFYIAY6IL4ELPWLTCPNIRQEA2HEY7O3DOOHEWV7JVYAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,.,.,,.,,,..,...,..,,,.,,,,,,.,.,...,..,,.,.,,..,,..,..,,,.,,
+#25XEUZ4WIJQP6OFB2FWTXDYJYZPLGN5LO4VGMZS4N32DOBREBD6PD3HDNU7Q5ZNUDXER6OUGZSEXM
+#\\\|5FTL4AA7WGKW5U4VEIIRFLBYLPMP4GYJKWT2PJPHDHFZVRB7AUK \ / AMOS7 \ YOURUM ::
+#\[7]YTVNYW2YWK5CTRLS26OKEA3F4YSZJXZ5TUBA2LV7ATZOJVBAMEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
