@@ -43,6 +43,26 @@ my $task_state
     ? <[coding.async.state_manager]>->( qw| get |, $task_id )
     : undef;
 
+## stale connection : an older request of this task [ left streaming while  ##
+## the next round was sent ] hit its own ceiling. restarting or failing     ##
+## from here would act on the NEWER round's state -- skip ; the old         ##
+## connection self-cleans on EOF [ closing it mid-stream here could corrupt ##
+## the server's inference slot, see coding.async.request ]                  ##
+my $conn_seq = $callbacks->{'req_seq'};
+if (    defined $task_state
+    and defined $conn_seq
+    and $conn_seq != ( $task_state->{'request_seq'} // 0 ) ) {
+    <[base.logs]>->(
+        1,
+        "async.http_timeout: stale connection "
+            . "for %s [ seq %d != %d ], skipping",
+        $task_id,
+        $conn_seq,
+        $task_state->{'request_seq'} // 0
+    );
+    return;
+}
+
 ## soft-ceiling trip : only worth escalating [ instead of hard-failing ]    ##
 ## when the stream is actually still alive - confirmed live 2026-08-07 :    ##
 ## this used to gate purely on `defined $task_state`, which says nothing    ##
@@ -148,8 +168,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,,,,.,,,..,,,,,..,,.,,,.,.,.,,,.,.,...,,,.,.,.,...,...,.,.,,..,,.,,,..,.,,,
-#MTF57NDCWDHR5HTS6LG4L3DLL6QVY32EN7NYDQZLFVDIST3O3XXK3U3CUY7WCZOB4XHZUIUW7FX64
-#\\\|CFAB4LUQXJWOY7I5H44J4SEP6VWOGSZPRLOJSWYFOJSISSLUT6G \ / AMOS7 \ YOURUM ::
-#\[7]333EFPP3KVFNBQ2KCBZRVDCB6VP323DXWBQFN7ETALI32G64HIAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,,,.,,..,,..,.,,,,.,,.,.,,..,.,.,...,...,,,.,...,...,.,,,,..,
+#Z6QZSJU2FYNWQBYITFEB4JOCWJCWPP2AKGCUT4IG5IPL3PEUP4QQTPZ4AICJX2SVEVBQ4AY3476QI
+#\\\|EMFWJXMNM2LUR3IBNTPM4MMJCOJWW5FKYPHZBFT4E3KTY6ZNMPR \ / AMOS7 \ YOURUM ::
+#\[7]CYGI27W34DFLFC4R4T7VW5NJ4KADPJYQPJS5GINKP74BKFSVOMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

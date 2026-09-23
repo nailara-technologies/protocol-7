@@ -73,7 +73,7 @@ if ( $state->{'model_selection_applied'} ) {
 my $release_backend_lock = sub {
     my $backend = $state->{'backend'} // '';
     return unless length $backend;
-    <[coding.async.backend_release]>->( $task_id, $backend );
+    <[coding.async.backend_release]>->( $task_id, $backend, $req_seq );
 };
 
 if ( $sm_state eq 'tool_exec' ) {
@@ -172,14 +172,12 @@ if ( $sm_state eq 'streaming' ) {
             $state->{'round'}++;
             <coding.async.task_state>->{$task_id} = $state;
             ## release before re-enqueueing : this task's own lock is still ##
-            ## held from the request that just closed -- enqueue_round's    ##
-            ## backend_acquire correctly refuses reentrant reacquisition    ##
-            ## now [ checks for an in-flight task_state entry ], so calling ##
-            ## it before releasing here queues this task behind its own     ##
-            ## still-held lock instead of dispatching, confirmed live       ##
-            ## 2026-09-24                                                   ##
+            ## held from the request that just closed. backend_acquire's    ##
+            ## same-task_id shortcut would also let it through, but an      ##
+            ## explicit release keeps the handoff honest and lets a waiting ##
+            ## task go first                                                ##
             <[coding.async.backend_release]>->(
-                $task_id, $state->{'backend'} // ''
+                $task_id, $state->{'backend'} // '', $req_seq
             );
             <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
             ## return now : the shared release below would otherwise fire   ##
@@ -267,7 +265,7 @@ if ( $sm_state eq 'streaming' ) {
                 ## release before re-enqueueing -- see the identical note ##
                 ## on the no-tool_calls branch above                      ##
                 <[coding.async.backend_release]>->(
-                    $task_id, $state->{'backend'} // ''
+                    $task_id, $state->{'backend'} // '', $req_seq
                 );
                 <[coding.task.enqueue_round]>
                     ->( $task_id, $state->{'round'} );
@@ -301,26 +299,26 @@ if ( $sm_state eq 'streaming' ) {
             );
             ## route through http_error for retry support ##
             <[coding.callback.http_error]>->(
-                $task_id, 'connection closed with no data'
+                $task_id, 'connection closed with no data', $req_seq
             );
         }
     }
     ## release backend lock if we own it ##
     my $backend = $state->{'backend'} // '';
-    <[coding.async.backend_release]>->( $task_id, $backend )
+    <[coding.async.backend_release]>->( $task_id, $backend, $req_seq )
         if length $backend;
     return;
 }
 
 ## release backend lock on early return paths ##
 my $backend_early = $state->{'backend'} // '';
-<[coding.async.backend_release]>->( $task_id, $backend_early )
+<[coding.async.backend_release]>->( $task_id, $backend_early, $req_seq )
     if length $backend_early;
 
 return;
 
-#,,,.,,,.,,,.,,..,..,,,.,,,,,,...,.,,,,.,,.,,,..,,...,...,...,,..,,.,,,.,,,.,,
-#Q3JUNKW2ZX2IKPOUEDQHAR7THFF5QMJPPWTACFPGAXUQ5YNVVOK462PLN7UMCEG4K7A6MWK2VDESM
-#\\\|CSXYT35HECG7CIHKZGWAAHDD3YKX5LGREMTJQZRFZQR6MVGJGHK \ / AMOS7 \ YOURUM ::
-#\[7]3F47CQUT5MTOPPUWZDIB35JOINUFBCBC67LTOUVF4H7QPAB5OWCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,.,,.,,,.,,,.,,,.,,,..,,,,,,,..,..,,...,..,,...,,,.,...,,..,.,.,
+#CV7GD4SOLV5URGIYLAN4Y4XKY5WIOGK57IQ353NE6XSXCILZUA5FJK6GXEV2UKPAZB43FHEMLJSD6
+#\\\|AGVZSWHI45E6B22ZNUJIGOYDPMNESUOYEEEGB2WO33NGVSQUQCO \ / AMOS7 \ YOURUM ::
+#\[7]CLCYFRF7HOIYYQR4ZVL7HGWXUORSAIWNK4SP63A524L3ZN3KNIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
