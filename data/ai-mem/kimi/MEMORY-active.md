@@ -105,20 +105,24 @@ new MCP tool resolved todo `E3A`.
 ## routing_mode implementation (July 2026)
 
 bare-name routing modes + `-next` override family + strm dup-slot guard landed.
-CRITICAL lessons: live console `/dev/shm/.7/STDOUT/NIW7OAQ` [ root-owned when
-net runs as root — use `p7c <z>.show-buffer zenka` ]; `sprintf(qw|multi-word|)`
-collapses to last element [ scalar ctx ]; send.local args via call_args, never
-in command string; `v7.zenka.*` swapped to `zenka.*` at runtime and
-`v7.reload source` does NOT re-apply swaps [ use reload all ]; undef-sub in
-v7.init_start_setup is network-fatal [ guard with base.code.call_expected ];
-network runs as root only [ taeki cannot restart it ].
-see [topic-routing-mode-implementation.md](topic-routing-mode-implementation.md)
+CRITICAL lessons : live console `/dev/shm/.7/STDOUT/NIW7OAQ` [ was owned by
+root, and thus inaccessible, meanwhile owned by `<admin-user>` for
+enabling access ( or `<system.amos-zenka-user>` if the admin group is
+undefined — `p7c <z>.show-buffer zenka` can be used as an alternative ) ];
+`sprintf(qw|multi-word|)` collapses to last element [ scalar ctx ];
+send.local args via call_args, never in command string; `v7.zenka.*`
+swapped to `zenka.*` at runtime and `v7.reload source` does NOT re-apply
+swaps [ use reload all ]; undef-sub in v7.init_start_setup is network-fatal
+[ guard with base.code.call_expected ]; network runs as root only [ taeki
+cannot restart it ].  see
+[topic-routing-mode-implementation.md](topic-routing-mode-implementation.md)
 
 ## base.strm.subscribe — generic STRM subscribe wrapper (July 2026)
 
 offline-safe/restart-clean subscription wrapper, six modules swapped to
-`strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
-gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
+`strm.subscribe`; verified live vs cred-mesh.  usage,
+`<a.b.c>`-splits-on-every-dot gotcha, runtime-load marker side effect,
+adoption steps : see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
 ## coding git tools repair (Sept 2026, committed b5fd7886d)
 
@@ -347,8 +351,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,.,,,.,,..,,,.,,,.,..,,,,,,,,,,,,,,.,.,...,..,,...,...,,,.,..,,,,.,...,...,
-#47Q3T4UI5YH34CYKRL3GUQQGEZ6S3NHVNKYTAYHO77PWXT2SYWTDKEC6N2YPY7FRLCZYX7EQROAJC
-#\\\|S5FAPSWFHNN275N5XGTWMV4OLVF7IZ6HADXQKMSIU32LET5X74F \ / AMOS7 \ YOURUM ::
-#\[7]BYMG4KLUWKGZNN2ZM3TGTUDVYC4XZYGBFVM54PRG45V2Q3EJEMBQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,.,,,,.,.,,,.,,,,.,,.,,,,,.,.,,,..,,...,...,...,.,,,,,.,,,,,...,
+#ELH4ERNYL2WXNLXGR2Z6I4NDCK3DYQZBBV6J2Y24XGHIHQ7YPJWGCOQ6K5RIDPUHV7KNK5K6LTZWO
+#\\\|6ORWE6BFP6N5KTASWPMU3W3K3VARL7OQIFEBHPKOCDNX75222Z5 \ / AMOS7 \ YOURUM ::
+#\[7]KFKCUFHRGITXJSNIR657OPVIQKBZI6PKXGGDK653NO33WQZRM6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
