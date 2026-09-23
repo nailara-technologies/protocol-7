@@ -79,6 +79,12 @@ while ( my \$line = <STDIN> ) {
         } else {
             print "err\n";
         }
+    } elsif ( \$line =~ m|^remove (.+)\$| ) {
+        ## remove plain file [ cleanup for abandoned empty creates ] ##
+        my \$path = \$1;
+        do { print "skip\n"; next } if not -f \$path;
+        unlink \$path;
+        print "ok\n";
     } elsif ( \$line =~ m|^mkdir (.+)\$| ) {
         ## create directory (and parents) as admin user ##
         my \$path = \$1;
@@ -124,8 +130,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,.,.,.,.,,,..,,,,,,..,,,.,,,,,,,,.,..,,...,.,.,...,...,,..,..,,,..,,,.,.,.,
-#W7VQ6M7QVJPWFJBAHSF4W3K6AXWGBXWWQ5G3KUELUZGFXXTKLPI5KXKKAIN34MBRPOVFISQKB5QOC
-#\\\|7BYVH7EEVNSUHEEZSANN7BBPKVTP6TGIM55PKH4JF4ZP43VELCC \ / AMOS7 \ YOURUM ::
-#\[7]N4OL4R7OM5W3OOOTWPMWHYL7WGXA53KF64KQLDWGUZMVVAS7CGBI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,,..,,..,,,.,,.,,...,,..,..,,.,.,...,...,..,,,.,,...,,,,,,,.,
+#YLIZRVLCDJ6HMQE6SACXWWXVSUE54QSQJNHZTOBUZGIOJWSD3DNEB5R5PCCDNVGHGZE7HEAMVDLGA
+#\\\|JHV6L6HHWPT2J5YFVJ4UUAEYQZSP6JPU5OLOUHFKMORS774OUVO \ / AMOS7 \ YOURUM ::
+#\[7]VBP64ZAJN2CJR37TH3X2B6LASHDPGTELET3DLI5D4H6I3BPA2QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
