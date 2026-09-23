@@ -28,9 +28,26 @@ strangers to them.
 `ncode.cmd.apply` (2026-07-24) after an extended false trail through
 Landlock/LSM theories that a direct A/B test against `coding`'s own working
 write path (identical uid/gid/groups) disproved — see
-[[project-ncode-write-path-2026-07-24]]. `write_with_perms` itself has not
-been fixed and should be treated as a broken reference for this specific
-detail, not copied from, until it is.
+[[project-ncode-write-path-2026-07-24]].
+
+**CORRECTION 2026-09-23**: `write_with_perms` WAS fixed, same day
+(2026-07-24, commit `fix write_with_perms group-write bug`) — this file's
+earlier claim that it "has not been fixed" and is "a broken reference...
+until it is" was stale and wrong by the time of writing. Verified live via
+`git log -p` before trusting it again: `printf {$chmod_fh} "restore %04o
+%s\n", ( $cur_mode | 0020 ), $file_path;` — correct bit, already in place.
+Lesson: a memory asserting "X is still broken" is a claim about a point in
+time, not a standing fact — check `git log`/current file content before
+propagating it into a new session's plan, same as
+[[feedback-verify-symptom-shape-before-hypothesis]] already argues for
+symptoms.
+
+`write_with_perms` did have a *different*, real, separate bug found the
+same 2026-09-23 session as this correction: no cause-and-effect tracking on
+the grant, so a successful `restore | 0020` that still left the file
+unwritable (or a later write failure) never got reverted — see
+[[feedback-chmod-child-revert-on-failed-grant]] for that fix and its sweep
+across ~12 other chmod-child callers in both `coding` and `ncode`.
 
 **This is a repeat finding, not a first discovery.** The exact same bug was
 already found and fixed once, in `coding.tools.handler.write_append`, on
@@ -41,8 +58,8 @@ it took a second multi-hour live debugging session to rediscover). Treat
 `write_with_perms` as a confirmed, unfixed, real bug — not just a "don't
 copy this" note — see the roadmap item in [[topic-next-steps]].
 
-#,,,,,.,,,.,.,.,,,.,.,...,..,,.,,,,,,,,,.,,..,..,,...,...,.,,,.,.,,,.,..,,.,,,
-#D2OZECIORDANITQ4CKU6SM22ESHLALQODBUWCA33V5AZKP5NR34KXXWHZYIMBQGRICMW3NLLC4SZM
-#\\\|HXMML4DAYWS65YK5J4SYAAY7QWYS6Q3TVJC2JON36ARBFMECZHV \ / AMOS7 \ YOURUM ::
-#\[7]WUI2UUY3WQETP56S5OUOV6PHB473RJ6Z3EI6KVJBO4J5XPA3X4BA 7  DATA SIGNATURE ::
+#,,..,,,,,...,...,..,,..,,,..,.,.,,.,,..,,...,..,,...,...,...,..,,,,,,,,,,.,,,
+#K4FLBPFF5CAPTN2Y3ERGTWTJFXOKHLM2MG24BCWE6KBA5LQRZOG7IZU6IFGZHCDU44EUBJUIIS7KI
+#\\\|ESWTZ6TMWGCES6ORZNKEFFGL7TO4SOOD5RIAHJNSMV2CZEGCY47 \ / AMOS7 \ YOURUM ::
+#\[7]FP2NW4YFWKHHWPSWONXYTA6OABMGC77DLJDGDZFXCLCHTLNC7WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
