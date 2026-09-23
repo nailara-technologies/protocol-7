@@ -9,11 +9,22 @@ my $log_message = shift;
 
 <[base.log]>->( 0, $log_message );
 
-<process.TERM_chld.w_fh>->say($process_id);
+## TERM first, KILL only after a grace period -- matches v7-zenki.          ##
+## terminate_process's own pattern : no explicit liveness check before the  ##
+## follow-up KILL, kill() is a harmless no-op against an already-dead pid [ ##
+## same assumption v7-zenki.handler.process_kill_list already makes ]       ##
+<process.TERM_chld.w_fh>->say("TERM $process_id");
 delete <process.table.top>->{$process_id};
 
-#,,,,,,,,,.,,,,,,,..,,,,.,.,.,,,,,,.,,.,,,,,,,..,,...,...,...,.,.,,.,,...,,.,,
-#IWRRREIGM522WVLFX73DXXPMVZRSFMQPDIGIOXY62BWG6VB3SJGLO5W6R3P4M6W63KHYHK6DJ2GZ4
-#\\\|7F6S6EAVAUGT4QFVFCFQJUN2YW5XCLE4O6KX4HF742C3ULEPETH \ / AMOS7 \ YOURUM ::
-#\[7]WOVPF6LCHH63CCPUSSESJULTK4VLEKS5NLVNEDQEFLCHA66J5MDA 7  DATA SIGNATURE ::
+<[event.add_timer]>->(
+    {   'after'   => <mem.oom_kill_grace> // 5,
+        'handler' => qw| system.process.handler.kill_grace_expired |,
+        'data'    => $process_id
+    }
+);
+
+#,,.,,...,..,,.,.,...,...,..,,,,.,...,,..,,,.,..,,...,...,,..,...,,,.,,.,,..,,
+#GKSQO2FIU7YTPTPJFNFQW3BREZO34W7TAVAVQR5JKJON4PMBMKHHUSN4PLANN74NDR4QWBYGILVTW
+#\\\|TAU4RTMMKR2ZLG3ZEEFK5BAH6NLBCN5QJ3DV4MHUOEFJPTHO22K \ / AMOS7 \ YOURUM ::
+#\[7]7I5BND77XZPJ643MGESVFVRZXEQMLU4I2WGCPRYQF3RVHC3ZCSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
