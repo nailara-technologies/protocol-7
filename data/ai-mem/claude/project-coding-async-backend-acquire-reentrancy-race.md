@@ -5,7 +5,27 @@ metadata:
   type: project
 ---
 
-**CORRECTION 2026-09-24, READ THIS FIRST**: the fix described below
+**UPDATE 2026-09-24 [ later same day ], READ FIRST**: re-analysis found the
+"live socket" signal suggested below would ALSO fail -- coding.async.request
+deliberately leaves the previous connection streaming while the next round
+is sent. The log had no clean repro of the original race [ every duplicate
+send_request found was a legit timeout/no-data retry ]. The real gap found:
+`request_seq` stale-filtering covered on_chunk/on_complete/on_abort but NOT
+`on_error` [ incl. http_complete's no-data forward ] or
+`coding.handler.http_timeout` -- an old connection's error/timeout could retry
+a round already in flight, free a newer request's lock [ backend_release
+only compared task_id ], or fail the task mid-flight [ making the next
+task-append take the resume branch ]. Also: http_complete's trailing release
+after a state_machine-driven reentrant continuation freed the NEW round's
+lock, letting a queued task run concurrently on single-llm. Fixed by
+threading req_seq into http_error/http_timeout [ stale -> ignore ] and an
+optional seq guard in backend_release [ `lock_seq`, stamped by
+async.request ; callers without a seq release unconditionally ].
+backend_acquire deliberately untouched. Verified live: multi-round task
+[ 3 rounds ] + follow-up task both clean. Still unverified: that this was
+the ORIGINAL incident's mechanism.
+
+**CORRECTION 2026-09-24**: the fix described below
 (checking `not exists <coding.async.task_state>->{$task_id}` before
 allowing reentrant reacquisition) was REVERTED the next day. It conflated
 two different things: `task_state` exists for a task's ENTIRE lifecycle
@@ -111,8 +131,8 @@ and `coding.session.listeners` dedup FIRST, before assuming an encoding
 problem — this exact symptom shape (duplication, not corruption-in-place)
 already fooled one full session into the wrong subsystem once.
 
-#,,..,...,.,.,.,.,,.,,,,.,,.,,...,.,,,,..,,..,.,.,...,...,..,,,,,,,,.,,,,,.,.,
-#WNRPUX7T55GYB77HTE3O742K4K6FHQKW6SXRXTVWKYH56C7MRLPDCEQBOWCMBQTSAE2OPMNSPL6NO
-#\\\|6JLJ57UDDKXRVOUJW7VQ7NBHSUVYTANXWUIAD6WN3JQ6OKDHB6P \ / AMOS7 \ YOURUM ::
-#\[7]OM4TQ3BUR44ZPIFONTVXARWS6C6UJWYNPQRJKFNOGM6DLZ6Q5GDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,,..,.,.,.,,,..,,,,,,.,,,...,.,.,...,...,...,,.,,..,,..,,,,,,
+#AK5IW7U7MFOTME2CYPIIC6V4NAH3VD2IABVZ7V23NPOI4G7PD6O7RBNMB26SOFRY74TY7Y6OHLE74
+#\\\|AB2QJ56WU74I2WUSIC5DABG26VYZ3ZODRSAIPLBOD7HC2UXVCWD \ / AMOS7 \ YOURUM ::
+#\[7]3AM2T4XT6DHN4DBN6AI7IIECY6ENRNWDW6QUW46MRFMTMPNPCMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

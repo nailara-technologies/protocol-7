@@ -1,10 +1,10 @@
 ## [:< ##
 
 # name  = coding.async.backend_release
-# param = task_id, backend
+# param = task_id, backend, [ req_seq ]
 # descr = release backend lock and dispatch next queued task if any
 
-my ( $task_id, $backend ) = @ARG;
+my ( $task_id, $backend, $req_seq ) = @ARG;
 $backend //= qw| gpu |;
 
 my $bs = <coding.state.backend>->{$backend} // {};
@@ -18,7 +18,21 @@ if ( ( $bs->{'lock'} // '' ) ne $task_id ) {
     return FALSE;
 }
 
+## optional seq guard : per-connection callbacks pass their request seq ; a ##
+## stale connection of this same task must not free the lock a newer        ##
+## request holds [ callers without a seq release unconditionally ]          ##
+if (    defined $req_seq
+    and defined $bs->{'lock_seq'}
+    and $req_seq != $bs->{'lock_seq'} ) {
+    <[base.logs]>->(
+        1, 'backend_release: %s stale seq %d != %d [%s], skipping',
+        $task_id, $req_seq, $bs->{'lock_seq'}, $backend
+    );
+    return FALSE;
+}
+
 $bs->{'lock'} = undef;
+delete $bs->{'lock_seq'};
 <[base.logs]>->(
     2,        'backend_release: %s released %s lock',
     $task_id, $backend
@@ -38,8 +52,8 @@ if ( defined $next ) {
 
 return TRUE;
 
-#,,..,,.,,,.,,.,,,,.,,..,,,,.,,,.,.,.,,.,,..,,..,,...,...,.,,,...,,,,,.,,,.,,,
-#EZ5FIRYYUVBBEW2EGITPTPSYFXAJPVPCFX4IIHR4PDNGXJGHX6NPNQEYS5BLN3TMZUAHH4H2RZXQO
-#\\\|BIUWLLAAK5EUSUO5QZ4U2KGNBXJ4H27BXGXWOS53L4MRDG3BS44 \ / AMOS7 \ YOURUM ::
-#\[7]DGDWJH53UXRVFPBF3EUFL3O3C2EFI7FEC6RQZ53JXAB6222ASIDQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,...,,..,..,,,..,.,,,,,.,.,,,..,,...,...,,,.,,,.,.,.,.,.,,.,,
+#37HGI4OSG576Z2NTQMK2UFS7PAXOYU2YDUJ5UA2FXKXOS5T6CMFTOPQEFUFKY76E3O5V34HYATG42
+#\\\|DFHFWEUHGUY5UXEC43TN7A3SMUEU5HE4HWGRSJN6BN3UG56Z2J6 \ / AMOS7 \ YOURUM ::
+#\[7]WW4CST542JUGDE43VYO3EHZGTUBYS2KSRXR7CFF4W3KJOEPPMCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
