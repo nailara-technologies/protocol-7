@@ -110,8 +110,16 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     my $cur_mode = ( stat $abs_path )[2] // 0644;
     $cur_mode &= 07777;
     print {$chmod_fh} "gw $abs_path\n";
-    select undef, undef, undef, 0.01;    ## yield for child ##
-    $mode_restore = $cur_mode if -w $abs_path;
+    my $gw_reply = <[coding.chmod_child.readline]>;    ## wait for gw ##
+    if ( -w $abs_path ) {
+        $mode_restore = $cur_mode;
+    } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
+        ## gw changed the mode but we still cannot write [ e.g. coding  ##
+        ## zenka lacks admin group ] : revert so no permission drift is ##
+        ## left behind when content falls through to staging            ##
+        printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
+    }
 }
 
 if ( -w $abs_path ) {
@@ -123,6 +131,7 @@ if ( -w $abs_path ) {
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
     return sprintf "replaced %d occurrence%s in %s [ -%d +%d chars ]",
         $count, ( $count > 1 ? 's' : '' ),
@@ -140,8 +149,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, "
     . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,,,,,,.,.,.,,,.,,,,,.,,,..,,..,,,.,,.,.,,,,,..,,...,..,,...,...,,,.,..,,,,,,
-#GUIVHHKY3H5SAODDP3PUT4U6QM3WPFEQUNDXXH6KUWL7YN4DDUWFB5Y352RZKR7ZTZJCA26WD24O6
-#\\\|JAP4EBJFQGUYUZLDH3HPXXJILMUIMW3B5BG2P4WSEMIDC5R4VRO \ / AMOS7 \ YOURUM ::
-#\[7]VSISEKJBLFN26K5SG55PWELRYTEEKCTFNF5CMHRDHU6ILRCNW2BQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,..,,,.,,.,.,,.,,,,,,,..,,..,..,,...,...,.,,,.,.,...,.,.,,..,
+#FJZAJIFO3UYKUBT2BVXFPGNW5IYZ5GO26ESKBCYDLS3GC6OE25STOLIAAFBV77B54C7MZDMHEULNO
+#\\\|QKANNNG74IBBOWJZ3TSM67NY3PIDVG5QPQAA7H626Z6W2RYIKG5 \ / AMOS7 \ YOURUM ::
+#\[7]2IRJQEWUKYRIX7LE4WGINUHJI5PCKMGIJWL3SMX2SP576NL5JAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
