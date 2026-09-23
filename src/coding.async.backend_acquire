@@ -12,8 +12,19 @@ $backend //= qw| gpu |;
 
 my $bs = <coding.state.backend>->{$backend};
 
-## already holds the lock : re-entrancy guard ##
-if ( defined $bs->{'lock'} and $bs->{'lock'} eq $task_id ) {
+## already holds the lock : re-entrancy guard, but only when nothing is     ##
+## actually in flight for this task. an active round leaves an entry in     ##
+## <coding.async.task_state> until it completes/errors [ deleted by         ##
+## coding.async.state_machine / state_manager ] -- without this check, a    ##
+## second, independent caller [ e.g. task-append's resume branch racing     ##
+## coding.async.complete's own injected-messages recovery ] that still sees ##
+## this task_id as lock-holder gets waved through instead of queued,        ##
+## producing two concurrent send_request calls for one task : confirmed     ##
+## live via duplicate enqueue_round log lines for one round number,         ##
+## immediately after a burst of task-append resume lines ]                  ##
+if (    defined $bs->{'lock'}
+    and $bs->{'lock'} eq $task_id
+    and not exists <coding.async.task_state>->{$task_id} ) {
     return { acquired => TRUE, queued => FALSE };
 }
 
@@ -39,8 +50,8 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,.,,,,.,.,.,...,,..,,.,,,,.,,.,,.,.,,,.,.,.,..,,...,...,...,...,,.,,...,.,.,
-#6SQLMCLBUYERYTBXFHZXJ6DUJR36MHK5P5CZN4LIRWQVFERR45I4VLZKPDRIAX4OKRZ2WQUPCGTQA
-#\\\|IFDHM6JVEWZIFK4YGUSBS2HBYJ5HPT4NVPGA33OQNVS5PV2DJN5 \ / AMOS7 \ YOURUM ::
-#\[7]V4LHJU5V7BMP6QVZYA635JCU7AQQROZUEYBBXN2R3S5JEIKFS6AA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,,,,,,,.,,,.,,,.,...,,..,,..,..,,...,..,,.,.,..,,,.,,.,,,..,,
+#F3QISMZA6H4RWSZ4EPHA5QY7N5JCIU5GYDJQRSXCR62ZPQ5VERXNSZICCFNDUHKCSGMC4YJXFBHZM
+#\\\|5HQSRR27M4HOOXYQNOJ2K77E5LCVCKEK5342EPECJAFCO4CX2RB \ / AMOS7 \ YOURUM ::
+#\[7]4NDW6XDJK5EH7WJC5BPR6IGR3HKVU5CQEPNCSOO2CQV5PQHPD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,6 +12,27 @@ return { 'mode' => qw| false |, 'data' => 'task_id required' }
 return { 'mode' => qw| false |, 'data' => "task not found : $task_id" }
     unless exists <coding.task.queue>->{$task_id};
 
+## dedupe : this session may already hold a listener for this task [ e.g.   ##
+## task-append's resume branch re-subscribing while a message sent right as ##
+## the previous round finished raced the state machine's own STATE_COMPLETE ##
+## listener cleanup -- leaving both handles in place would double-deliver   ##
+## every future chunk, including tool-call frames, to this session. close + ##
+## drop any prior handle for this sid rather than skip the resubscribe      ##
+## outright : escape/ctrl-c never clear this array on their own, so a dead  ##
+## entry from an earlier cancelled stream must not be able to block a fresh ##
+## subscribe forever ]                                                      ##
+my $existing = <coding.session.listeners>->{$task_id} //= [];
+if ( my @stale = grep { $ARG->{'sid'} eq $call->{'session_id'} } @$existing )
+{
+    <[base.stream.close]>->($ARG) for @stale;
+    @$existing = grep { $ARG->{'sid'} ne $call->{'session_id'} } @$existing;
+    <[base.logs]>->(
+        2,
+        'coding: replaced stale session-viewer listener [ task=%s sid=%s ]',
+        $task_id, $call->{'session_id'}
+    );
+}
+
 my $h = <[base.stream.open]>->(
     {   'sid'    => $call->{'session_id'},
         'cmd_id' => $call->{'command_id'},
@@ -32,8 +53,8 @@ push @{ <coding.session.listeners>->{$task_id} //= [] }, $h;
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,.,.,,..,.,.,...,,,.,..,,..,,.,.,,.,,..,,...,...,..,,.,,,,,.,...,,,.,
-#OWWL7RORQGQKOW3GHRCBYY6NP24TBAUFNKXQOWE3B7UIKLUHBU7RFPNUJPANXRDE2GAQ2LH4H3ZPQ
-#\\\|6IS3SY2JKKHVHUZ5NZQS5BX6QFPXSGU7A7TP5NLL5CJAJNCQJLT \ / AMOS7 \ YOURUM ::
-#\[7]AQSFDGR5PZQ55FYJ2KNYMMZJVMWK7ESVY52M3UFKSPMNSUVTVIAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,,,..,,.,,,,,.,.,.,,,.,,..,..,,..,,...,...,...,.,,,.,.,...,,,,,
+#P3MKOGMOUAPYVLVGM4X6TIR3R7CWAYT7S2Q7Y75JLBTHQSY3I42CKBHBKZHFSS5DB2WZYEO7E64ZQ
+#\\\|F2ETVZLZRZ6RAVBAWUEH3BJCIH76JYJBP3C72Z66SJTWJ4T3VKA \ / AMOS7 \ YOURUM ::
+#\[7]FRFQML6VU3LAXVZAPHT633FQKITQMP4SKVCIWTJ6INHJT2W6R6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
