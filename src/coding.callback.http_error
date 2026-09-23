@@ -3,12 +3,27 @@
 # name  = coding.callback.http_error
 # descr = HTTP streaming error callback
 
-my ( $task_id, $error ) = @ARG;
+my ( $task_id, $error, $req_seq ) = @ARG;
+
+my $state = <[coding.async.state_manager]>->( 'get', $task_id );
+
+## stale callback from an older connection of this task [ left streaming ##
+## while the next round was sent ] : ignore, same as http_complete --    ##
+## otherwise it would retry a round already in flight, free the newer    ##
+## request's lock, or fail the task mid-flight                           ##
+my $current_seq = ( $state // {} )->{'request_seq'} // 0;
+if ( defined $req_seq && $req_seq != $current_seq ) {
+    <[base.logs]>->(
+        1,
+        "http_error: stale callback for %s [ seq %d != %d ], ignoring : %s",
+        $task_id, $req_seq, $current_seq, $error
+    );
+    return;
+}
 
 <[base.logs]>->( 0, "async.request: error for %s: %s", $task_id, $error );
 
 ## check for retryable errors (HTTP 500, timeouts) ##
-my $state       = <[coding.async.state_manager]>->( 'get', $task_id );
 my $retry_count = $state->{'retry_count'} // 0;
 my $max_retries = 1;
 
@@ -22,7 +37,7 @@ if ( $state->{'retry_pending'} ) {
     );
     ## release lock if we own it [ safety net ] ##
     my $backend_dup = $state->{'backend'} // '';
-    <[coding.async.backend_release]>->( $task_id, $backend_dup )
+    <[coding.async.backend_release]>->( $task_id, $backend_dup, $req_seq )
         if length $backend_dup;
     return;
 }
@@ -104,14 +119,14 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     );
     ## release backend lock before scheduling retry ##
     my $backend_retry = $state->{'backend'} // '';
-    <[coding.async.backend_release]>->( $task_id, $backend_retry )
+    <[coding.async.backend_release]>->( $task_id, $backend_retry, $req_seq )
         if length $backend_retry;
     return;
 }
 
 ## release backend lock before failing task ##
 my $backend_fail = $state->{'backend'} // '';
-<[coding.async.backend_release]>->( $task_id, $backend_fail )
+<[coding.async.backend_release]>->( $task_id, $backend_fail, $req_seq )
     if length $backend_fail;
 
 ## fail the task ##
@@ -280,8 +295,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,.,,,.,,.,,,,,.,,.,,.,,,...,.,.,...,,,.,,..,..,,...,...,,..,.,.,,,,,,..,..,,
-#JYJXRWVTFTZONLNMY6V5EZLQXV5YGIZMJKZ35Y7MWNLQQIPVOCY3KYLNKXNYIPZA2DOZOJZ7SO54M
-#\\\|KMWQO5H4KM7XEB6MGY4BBGAPGB4JL5LHDDIAJE2SJLKBAIOSZCD \ / AMOS7 \ YOURUM ::
-#\[7]CGJLLG4CUZGJMWDFAVLW4ZFNJ4S3CZK3F3PJRO4SPETFP4V3TWBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,,,,,.,.,,.,,..,,,.,,...,,..,..,,...,...,..,,...,.,.,...,..,,
+#YUHQHBNGTTT4ISS5T4HDNZDW2EEBMP2AIRSRECINR6EJ766VKBQAV4523SU7OQ6TOG4KZMY5CQBYE
+#\\\|OCUPBCLXCOAD5DGNZYXFJT5A3IKAK3A3BKGEYYUEDVF3QFA5VWA \ / AMOS7 \ YOURUM ::
+#\[7]Q3TJ7XN6B2TYSFMCD5KNFBJIBUOA4WUZOJBOQYDOSLOEAGV3IKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
