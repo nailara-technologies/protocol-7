@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = coding.tools.definitions.task_lifecycle
+# descr = task completion/delegation tool schemas for coding.tools.definitions
+
+my @tools;
+
+## task_complete : signal task completion and stop the loop ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'task_complete',
+        'description' => 'signal that the task is done and stop working '
+            . '[ call this when all work is finished ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'summary' => {
+                    'type'        => 'string',
+                    'description' => 'brief summary of what was accomplished'
+                },
+            },
+            'required' => ['summary'],
+        },
+    },
+    };
+
+## subtask_spawn : delegate work to a child task ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'subtask_spawn',
+        'description' => 'spawn a focused child task to investigate or solve '
+            . 'a sub-problem. the parent task pauses until '
+            . 'the child completes and the result is '
+            . 'injected back into parent context. use for '
+            . 'parallelizable work or deep dives that '
+            . 'should not block the main flow.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'description' => {
+                    'type'        => 'string',
+                    'description' => 'clear description of what '
+                        . 'the child task should do'
+                },
+                'template' => {
+                    'type'        => 'string',
+                    'description' => 'optional context template '
+                        . 'name to guide the child task'
+                },
+                'guiding_message' => {
+                    'type'        => 'string',
+                    'description' => 'optional guidance for the child task [ '
+                        . 'constraints, priorities, hints ]'
+                },
+            },
+            'required' => ['description'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,.,,...,...,,,.,,,.,,..,,.,,,,,,...,,..,.,,,..,,...,...,,,.,.,.,..,,,.,,,,.,
+#H4T2SBZ3O5J7BVNDOHEQJYDNHR56MQWTG3N3G5T2CBAC5N45UQ2H35QMB5KCLUFHVQ5PV2RBSF7GA
+#\\\|V7FT7MV5Z5WJP2NQEIA6H2J67LASRIQ2NMKZMZF6DYHEA63USKP \ / AMOS7 \ YOURUM ::
+#\[7]HJTHRZQP6A5U7JCYC2OLOOTGFDLL6UW4VRQCOPUWXZLOYZN7DGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

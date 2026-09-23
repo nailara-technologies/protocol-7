@@ -1,0 +1,433 @@
+## [:< ##
+
+# name  = coding.tools.definitions.file_io
+# descr = file read/write/edit tool schemas for coding.tools.definitions
+
+my @tools;
+
+## read_file : budget-aware file content ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'read_file',
+        'description' => 'read file content with line range and token budget',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'from_line' => {
+                    'type'        => 'integer',
+                    'description' => 'start line number [ default 1 ]'
+                },
+                'to_line' => {
+                    'type'        => 'integer',
+                    'description' => 'end line number [ 0 = to end ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 2000 ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'character offset to start reading [ default 0 ]'
+                },
+                'length' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'max characters to read [ default 8000 ]'
+                },
+                'show_line_numbers' => {
+                    'type'        => 'boolean',
+                    'description' => 'prepend line numbers [ default true ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+## list_files : directory listing ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'list_files',
+        'description' => 'list files in a directory with optional pattern',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'root' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'directory path [ default project root ]'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'file pattern filter'
+                },
+                'recursive' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'recurse subdirectories [ default true ]'
+                },
+                'sort' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'sort by name | size | mtime [ default unsorted ]'
+                },
+                'order' => {
+                    'type'        => 'string',
+                    'description' => 'sort order asc | desc [ default desc ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## extract_file : smart partial file read ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'extract_file',
+        'description' =>
+            'smart file extraction: header, functions, or pattern match',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'extract' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'extraction mode: header, functions, or pattern'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'regex for pattern extraction mode'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 1000 ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+## edit_file : line-based file editing with preview ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'edit_file',
+        'description' => 'replace specific lines in a file '
+            . '[ applies changes by default ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'edits' => {
+                    'description' => 'edit instructions as array of objects:'
+                        . ' [{"line":N,"old":"text","new":"text"}, ...]'
+                        . ' [can be array or JSON string]',
+                    'anyOf' => [
+                        {   'type'  => 'array',
+                            'items' => { 'type' => 'object' }
+                        },
+                        { 'type' => 'string' }
+                    ]
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'true=write changes [ default ], false=preview only'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'edits' ],
+        },
+    },
+    };
+
+## replace_in_file : content-based find and replace [ no line numbers ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'replace_in_file',
+        'description' => 'find and replace text in a file by content match [ '
+            . 'no line numbers needed, old_string must be '
+            . 'unique ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'old_string' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'exact text to find [ must match uniquely ]'
+                },
+                'new_string' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'replacement text [ use empty string to delete ]'
+                },
+                'replace_all' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'replace all occurrences [ default false ]'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'old_string', 'new_string' ],
+        },
+    },
+    };
+
+## replace_line : replace single line by line number ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'replace_line',
+        'description' => 'replace a single line in a file by line number',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'line' => {
+                    'type'        => 'integer',
+                    'description' => 'line number to replace (1-based)'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'replacement line content'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' => 'apply change [ default true ]'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'line', 'content' ],
+        },
+    },
+    };
+
+## delete_lines : delete a range of lines by line numbers ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'delete_lines',
+        'description' => 'delete a range of lines from a file',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'from' => {
+                    'type'        => 'integer',
+                    'description' => 'first line to delete (1-based)'
+                },
+                'to' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'last line to delete (inclusive, defaults to from)'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' => 'apply change [ default true ]'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'from' ],
+        },
+    },
+    };
+
+## insert_line : insert a line before given line number ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'insert_line',
+        'description' => 'insert a line before a given line number',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'line' => {
+                    'type'        => 'integer',
+                    'description' => 'insert before this line (1-based)'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'line content to insert'
+                },
+                'apply' => {
+                    'type'        => 'boolean',
+                    'description' => 'apply change [ default true ]'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'line', 'content' ],
+        },
+    },
+    };
+
+## file_rename : rename or move a file within the project ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'file_rename',
+        'description' => 'rename or move a file within the project [ '
+            . 'both paths must stay inside project root ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'source' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'current file path relative to project root'
+                },
+                'target' => {
+                    'type'        => 'string',
+                    'description' => 'new file path relative to project root'
+                },
+            },
+            'required' => [ 'source', 'target' ],
+        },
+    },
+    };
+
+## remove_file : move file to trash [ recoverable delete ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'remove_file',
+        'description' => 'delete a file by moving it to trash [ recoverable '
+            . '] [ use for cleanup of obsolete or generated '
+            . 'files ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'reason' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'reason for deletion [ logged for audit ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+## write_new_file : create a new file [ refuses to overwrite ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'write_new_file',
+        'description' => 'create a new file [ fails if file already exists ]',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'file content to write'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'content' ],
+        },
+    },
+    };
+
+## write_append : append to existing file ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'write_append',
+        'description' => 'append content to an existing file',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'content to append'
+                },
+                'encoding' => {
+                    'type'        => 'string',
+                    'description' => 'character encoding [ default UTF-8 ]'
+                },
+            },
+            'required' => [ 'path', 'content' ],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,..,,..,,,.,..,,,,,,,,.,.,.,,,,,,,.,..,,,..,..,,...,...,...,,.,,,,.,..,,.,,,
+#D23HKZX2K7SPNZCWQX7S4XS65EQRI4JYTYZSTWY6KLXFRVFNO4PUYC224MHXBO447QZWMLZJG6KWM
+#\\\|5WYQISHVBZ4KTWSEELFIFHHUEL62VJO35NSLA2HF54GP75AHYHC \ / AMOS7 \ YOURUM ::
+#\[7]UF5MQPMHEXY4FKQC4STKLVEUKMEYLBB5JUBGKJB6RSWG6XC2GIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

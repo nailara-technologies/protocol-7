@@ -1,0 +1,226 @@
+## [:< ##
+
+# name  = coding.tools.definitions.user_interaction
+# descr = user-facing / escalation tool schemas for coding.tools.definitions
+
+my @tools;
+
+## escalate : signal need for human attention ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'escalate',
+        'description' => 'stop and ask a human for help [ use when '
+            . 'blocked, confused, or need a decision ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'what you need help with'
+                },
+                'context' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'additional context [ what you tried, why stuck ]'
+                },
+                'severity' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'question, warning, or blocker [ default question ]'
+                },
+            },
+            'required' => ['question'],
+        },
+    },
+    };
+
+## record_question : note uncertainty without stopping ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'record_question',
+        'description' => 'record a question or uncertainty for later '
+            . 'human review [ does NOT stop the task ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'the question or uncertainty to record'
+                },
+                'category' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'topic area [ e.g. architecture, naming, '
+                        . 'requirements, style ] [ default general ]'
+                },
+                'priority' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'low, normal, or high [ default normal ]'
+                },
+            },
+            'required' => ['content'],
+        },
+    },
+    };
+
+## record_suggestion : note an improvement idea without stopping ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'record_suggestion',
+        'description' => 'record an improvement suggestion for '
+            . 'later analysis [ does NOT stop the task ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'the suggestion or improvement idea'
+                },
+                'category' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'topic area [ e.g. tools, templates, workflow, '
+                        . 'extraction, code-quality ] [ default general ]'
+                },
+                'priority' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'low, normal, or high [ default normal ]'
+                },
+            },
+            'required' => ['content'],
+        },
+    },
+    };
+
+## ask_user_choice : modal option-selection dialog ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ask_user_choice',
+        'description' =>
+            'ask the user to choose one option from a pre-generated list. '
+            . 'urgent=true pops the dialog immediately; urgent=false '
+            . '(default) queues the question and asks it at the next '
+            . 'checkpoint flush.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'short question text'
+                },
+                'options' => {
+                    'type'        => 'array',
+                    'description' => 'list of option strings',
+                    'items'       => { 'type' => 'string' }
+                },
+                'urgent' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'ask now instead of batching [ default false ]'
+                },
+            },
+            'required' => [ 'question', 'options' ],
+        },
+    },
+    };
+
+## ask_user_text : blocking free-text input dialog ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ask_user_text',
+        'description' => 'ask the user a short free-text question via a '
+            . 'modal dialog. the answer is written back to '
+            . 'notes.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'short question text'
+                },
+            },
+            'required' => ['question'],
+        },
+    },
+    };
+
+## ask_user_stream : non-blocking conversational interaction buffer ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ask_user_stream',
+        'description' =>
+            'ask the user an open-ended question in the amos-term '
+            . 'interaction buffer. replies arrive asynchronously and are '
+            . 'written back to notes.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'question' => {
+                    'type'        => 'string',
+                    'description' => 'question or prompt text'
+                },
+            },
+            'required' => ['question'],
+        },
+    },
+    };
+
+## suggest_new_topic : file a topic proposal with audit trail ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'suggest_new_topic',
+        'description' =>
+            'record a technical topic that belongs in the project but is not '
+            . 'yet filed. carries an audit trail of which fallback-chain '
+            . 'steps were checked.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'title' => {
+                    'type'        => 'string',
+                    'description' => 'short topic title'
+                },
+                'rationale' => {
+                    'type'        => 'string',
+                    'description' => 'why this topic should be tracked'
+                },
+                'audit_trail' => {
+                    'type'        => 'array',
+                    'description' => 'list of fallback-chain step names '
+                        . 'that were checked before filing',
+                    'items' => { 'type' => 'string' }
+                },
+                'priority' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'low, normal, or high [ default normal ]'
+                },
+            },
+            'required' => ['title'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,,,,,,.,,,.,..,,,,,,..,,,,,,,..,,,.,.,.,.,,,..,,...,.,.,,..,.,.,...,,..,,..,
+#GZOISZEGFCDDDOPMVVH4KNZFQ67PV7X6KF2SQWOVLRUWWZ627C6MK6DJIPU7U6QSIUGKKPN52FEUM
+#\\\|PXO4WOIJQ5BUZQTJ3BKUNACYGXICXKT2YF2ZMJ7GJBNSDMO4UEV \ / AMOS7 \ YOURUM ::
+#\[7]3MNFN3KCAA5N243546W2THXZ4652EFKG3TDSLEYTCNBVHPRLPWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

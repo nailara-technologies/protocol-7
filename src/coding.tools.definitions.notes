@@ -1,0 +1,463 @@
+## [:< ##
+
+# name  = coding.tools.definitions.notes
+# descr = task-notes tool schemas for coding.tools.definitions
+
+my @tools;
+
+## note_write : save finding/thought to task notes ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_write',
+        'description' =>
+            'write a finding or thought to task notes workspace '
+            . '[ persists across rounds, accessible to later tasks ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'note section name [ e.g. '
+                        . 'finding, analysis, todo ]'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'content to save'
+                },
+            },
+            'required' => [ 'section', 'content' ],
+        },
+    },
+    };
+
+## note_read : access notes from current or previous task ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_read',
+        'description' => 'read notes from current or previous task [ '
+            . 'L1=short summary, L2=detailed, L3=full '
+            . 'workspace ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'task ID to read [ default: current task ]'
+                },
+                'level' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'detail level: L1, L2, or L3 [ default L3 ]',
+                    'enum' => [ 'L1', 'L2', 'L3' ]
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'max sections to return [ default 20, L3 only ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' => 'skip first N results for '
+                        . 'pagination [ default 0 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_list : browse available note trees ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_list',
+        'description' => 'list available note trees with '
+            . 'previews [ find related prior work ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'tag' => {
+                    'type'        => 'string',
+                    'description' => 'filter by category tag [ optional ]'
+                },
+                'max' => {
+                    'type'        => 'integer',
+                    'description' => 'max results [ default 10 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_summarize : create L1/L2 summaries ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_summarize',
+        'description' => 'generate token-efficient summaries from workspace '
+            . '[ L1 for quick scan, L2 for detailed context ' . ']',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'short' => {
+                    'type'        => 'string',
+                    'description' => 'L1 short summary [ 1-2 paragraphs ]'
+                },
+                'long' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'L2 detailed summary [ key findings, approach ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_search : find notes by keyword or content ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_search',
+        'description' => 'search previous notes by keyword, tag, '
+            . 'or content [ find relevant prior work ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'query' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search string [ matches task_id, tags, content ]'
+                },
+                'search_level' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'where to search: all, L1, L2, L3, or meta',
+                    'enum' => [ 'all', 'L1', 'L2', 'L3', 'meta' ]
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max notes to return [ default 10 ]'
+                },
+            },
+            'required' => ['query'],
+        },
+    },
+    };
+
+## note_update : replace content in an existing note section ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_update',
+        'description' => 'replace content in an existing note section '
+            . '[ does not append, replaces entire section ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to update'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'new content (replaces entire section) '
+                        . '[ timestamp header added '
+                        . 'automatically ]'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task ID [ default: current task ]'
+                },
+            },
+            'required' => [ 'section', 'content' ],
+        },
+    },
+    };
+
+## note_delete : move a note section [ or all task notes ] to trash ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_delete',
+        'description' => 'move a note section to trash [ clean up old or '
+            . 'irrelevant notes ] -- recoverable via '
+            . 'note_rescue. to delete ALL sections for a '
+            . 'task, pass confirm_all: true explicitly; '
+            . 'omitting section without confirm_all deletes '
+            . 'nothing and returns an error',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to delete [ omit only '
+                        . 'together with confirm_all: true, '
+                        . 'to trash every section for the '
+                        . 'task ]'
+                },
+                'confirm_all' => {
+                    'type'        => 'boolean',
+                    'description' => 'required true to delete ALL sections '
+                        . 'for a task when section is '
+                        . 'omitted -- has no effect when '
+                        . 'section is given'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_rescue : restore a trashed note section ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_rescue',
+        'description' => 'restore a trashed note section back into '
+            . 'the live workspace [ undoes note_delete ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to restore'
+                },
+                'ntime' => {
+                    'type'        => 'string',
+                    'description' => 'specific trashed-at ntime [ from '
+                        . 'note_list_trashed ] -- omit for '
+                        . 'the most recently trashed copy '
+                        . 'of this section'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
+            },
+            'required' => ['section'],
+        },
+    },
+    };
+
+## note_list_trashed : list trashed note sections ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_list_trashed',
+        'description' => 'list trashed note sections for a task, or '
+            . "'all' tasks",
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current '
+                        . "task; pass 'all' to list across every task ]"
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_prune_trash : permanently remove expired trash entries ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_prune_trash',
+        'description' => 'permanently remove trashed note sections past the '
+            . 'recovery window [ frees space once entries '
+            . 'have been in trash long enough that rescue '
+            . 'is no longer needed ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'keep_days' => {
+                    'type'        => 'integer',
+                    'description' => 'recovery window in days [ default 30 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_tag : add tags to a note section ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_tag',
+        'description' => 'add tags to a note section [ '
+            . 'organize notes with keyword tags ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to tag'
+                },
+                'tags' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'comma-separated tags [ e.g. bug,urgent,auth ]'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
+            },
+            'required' => [ 'section', 'tags' ],
+        },
+    },
+    };
+
+## note_recent : list recent notes across all tasks ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_recent',
+        'description' => 'list recent notes across all tasks [ '
+            . 'sorted by last update, shows preview ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'count' => {
+                    'type'        => 'integer',
+                    'description' => 'max entries to return [ default 10 ]'
+                },
+                'section' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'filter to specific section name [ optional ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_filter : multi-criteria filtering across notes ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_filter',
+        'description' => 'filter notes by tag, section, date, or task '
+            . '[ combine criteria for targeted search ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'tag' => {
+                    'type'        => 'string',
+                    'description' => 'filter by tag name'
+                },
+                'section' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'filter by section name pattern [ regex ]'
+                },
+                'after' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'only notes updated after this ntime value [ raw p7 '
+                        . 'network-time, matches the same scale note '
+                        . 'last_update is stored in -- not unix time ]'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'filter to specific task [ optional ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## note_history : show modification history for a section ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_history',
+        'description' => 'show modification history for a note section '
+            . '[ timestamps and previews of past entries ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'section' => {
+                    'type'        => 'string',
+                    'description' => 'section name to check history'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => 'task id [ defaults to current task ]'
+                },
+                'count' => {
+                    'type'        => 'integer',
+                    'description' => 'max history entries [ default 5 ]'
+                },
+            },
+            'required' => ['section'],
+        },
+    },
+    };
+
+## note_merge : combine notes from multiple sections or tasks ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'note_merge',
+        'description' => 'merge notes from multiple sections into one [ '
+            . 'combine findings across tasks or sections ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'sources' => {
+                    'type'        => 'string',
+                    'description' => 'comma-separated source specs [ '
+                        . '"section" or "task_id:section" ]'
+                },
+                'target_section' => {
+                    'type'        => 'string',
+                    'description' => 'target section name for merged content'
+                },
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'target task id [ defaults to current task ]'
+                },
+            },
+            'required' => [ 'sources', 'target_section' ],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,,,,..,,..,,,,.,,,.,.,,,,.,,,.,,..,,...,,.,,..,,...,..,,.,.,.,.,.,.,,,.,,..,
+#7GZIKZ6ZZ7C7U73GMUDKG4DXCJK7Q6GB2DDBWASHFXEQ6G35VW3XAQOZVLWSGEQM46ONCXZUUCTE6
+#\\\|HMSUHWGHNNLILV3YCWNMY3A4TJTZL2QW4Y7E75KQBODOJ7VEPSZ \ / AMOS7 \ YOURUM ::
+#\[7]OOVHF36V77Q4DE37DSPEB47GQO6JVFDTWP4SSTPYZATCIVI5UWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

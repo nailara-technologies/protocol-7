@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = coding.tools.definitions.scratchpad
+# descr = claude-session-scratchpad tool schemas for coding.tools.definitions
+
+my @tools;
+
+## scratchpad_list_all : enumerate session scratchpads [ /tmp + repo ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'scratchpad_list_all',
+        'description' =>
+            'list claude session scratchpads system-wide : volatile /tmp '
+            . 'dirs [ import candidates, wiped on reboot ] and imported '
+            . 'ones in data/scratchpad/, merged by bmw-L13 id with repo '
+            . '| /tmp | repo+/tmp status.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {},
+        },
+    },
+    };
+
+## scratchpad_categorize : local-model keep/drop/review verdict ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'scratchpad_categorize',
+        'description' =>
+            'triage one claude session scratchpad via a dedicated inference '
+            . 'call : reads the /tmp scratchpad files and returns a keep '
+            . '| drop | needs-human-review verdict with reasoning. use '
+            . 'before scratchpad_rescue.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'session' => {
+                    'type'        => 'string',
+                    'description' => 'claude session uuid'
+                },
+                'max_len' => {
+                    'type'        => 'integer',
+                    'description' => 'max reply tokens [ default 400 ]'
+                },
+            },
+            'required' => ['session'],
+        },
+    },
+    };
+
+## scratchpad_rescue : import one scratchpad into data/scratchpad/ ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'scratchpad_rescue',
+        'description' =>
+            'import one claude session scratchpad from /tmp into '
+            . 'data/scratchpad/<bmw-L13 of session tmp path>/ with an '
+            . 'IMPORT-INFO provenance record [ original path, uuid, '
+            . 'per-file mtimes ]. use after a keep verdict from '
+            . 'scratchpad_categorize.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'session' => {
+                    'type'        => 'string',
+                    'description' => 'claude session uuid'
+                },
+            },
+            'required' => ['session'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,..,,..,,,.,,,,,.,,,.,.,,.,,.,.,,,,,,.,,,..,..,,...,..,,..,,.,,,..,,..,,,,,,
+#SCVRY364MXQNVVARLTM4UMTC23S5V7JDNWOXVI7KMQ7GXDDKOFM227JRBDAHHKFI5JRMJ7XEDTBYU
+#\\\|PLBWZZYYJNT7FIU4LO25EHEYJ36OIDDARN2SHOPFOBHNQZYXO65 \ / AMOS7 \ YOURUM ::
+#\[7]VNNYZGBELGZVVY4GW3525CJHH664A3D7B5MIMMGWMVW6CLGQIKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
