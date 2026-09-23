@@ -59,13 +59,25 @@ if ( ref $idiom eq qw| HASH | ) {
         if defined $idiom->{'data'}{'content'};
 }
 
+## normalize encoding parameter  [ before any chmod-child create : an early ##
+## return past that point would leave an abandoned empty file on disk [     ##
+## retry then blocked by the file-exists guard above ] ]                    ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding'
+    . $encoding
+    . '[supported are :raw,:bytes,:encoding(UTF-8)]'
+    unless length( $norm_encoding // '' );
+
 ## use chmod child to create empty file as admin user if needed ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $cur_mode;
+my $created_via_child = 0;
 if ( !-w ( $abs_path =~ s|/[^/]+$||r ) and defined $chmod_fh ) {
     ## parent dir not writable : create file via chmod child then open it ##
     print {$chmod_fh} "create $abs_path\n";
     my $reply = <[coding.chmod_child.readline]>;
+    $created_via_child = 1 if defined $reply and $reply eq qw| ok |;
     if ( -f $abs_path ) {
         ## grant other-write so coding zenka can write regardless of group ##
         my $raw_mode = ( stat $abs_path )[2];
@@ -75,14 +87,6 @@ if ( !-w ( $abs_path =~ s|/[^/]+$||r ) and defined $chmod_fh ) {
         <[coding.chmod_child.readline]>;    ## wait for restore to complete ##
     }
 }
-
-## normalize encoding parameter ##
-my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
-return
-      ': error : unsupported encoding'
-    . $encoding
-    . '[supported are :raw,:bytes,:encoding(UTF-8)]'
-    unless length( $norm_encoding // '' );
 
 ## note the write for the catalog-retrieval corpus [ inert unless           ##
 ## coding.cfg.catalog_harvest is enabled ]. runs AFTER a successful write,  ##
@@ -112,6 +116,13 @@ if ( -f $abs_path and -w $abs_path ) {
 }
 
 ## stage to zenka dir when no write access ##
+if ( $created_via_child and -f $abs_path and not -s $abs_path ) {
+    ## remove the empty file we created above : content lands in staged/   ##
+    ## instead and the abandoned empty file would block retries as well as ##
+    ## shadow the staged content                                           ##
+    print {$chmod_fh} "remove $abs_path\n";
+    <[coding.chmod_child.readline]>;    ## consume remove reply ##
+}
 <[file.zenka_dir.write]>->(
     $stage_rel, \$content, qw| > |, 0664, $norm_encoding
 );
@@ -122,8 +133,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access "
     . "]\nstaged at : %s", $path, length($content), $stage_rel;
 
-#,,,,,...,..,,.,.,.,,,..,,.,,,.,,,.,.,.,,,.,.,.,.,...,...,.,.,,..,,..,,,.,...,
-#DVUWW5CZDTD3MH6WXEDPUOORAXPBNTPIYR4GBMXHRPMKVTBUIW6YKGOBMTAMDNBLGA65L6RSVQIMO
-#\\\|42TUPHQF6XF7BYURSVQJS2ZZC3WNCO2Z3OHN6GGAIAYAGRU2UFM \ / AMOS7 \ YOURUM ::
-#\[7]AJEEGS75BYWLAJZ6JBTWFK6IKLYSWY5AZEJ66VQIQDJT6E56VODA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,.,.,...,.,,,,..,,..,..,,.,,,.,.,...,...,..,,,,.,,,,,,,.,.,.,
+#XPEOQ3NI7BDE7TXP7HGQVTKNNOOCBQHRLTAMDNZIYTEFLL6HXMCEX3W6LQSVDTJW6YOCTZGLAWH5E
+#\\\|EAPU7JYYFOOIAHRDLEURKSHZACHY2MOMGC3MIFXRUSKVPVEHFWR \ / AMOS7 \ YOURUM ::
+#\[7]PZIDUNHOVDL653AFRVD77Y5NYTLX3QCCXGUIUNWRZZ5LQL6GPGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

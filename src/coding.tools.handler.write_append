@@ -44,8 +44,16 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     my $cur_mode = ( stat $abs_path )[2] // 0644;
     $cur_mode &= 07777;
     print {$chmod_fh} "gw $abs_path\n";
-    <[coding.chmod_child.readline]>;    ## wait for gw to complete ##
-    $mode_restore = $cur_mode if -w $abs_path;
+    my $gw_reply = <[coding.chmod_child.readline]>;    ## wait for gw ##
+    if ( -w $abs_path ) {
+        $mode_restore = $cur_mode;
+    } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
+        ## gw changed the mode but we still cannot write [ e.g. coding  ##
+        ## zenka lacks admin group ] : revert so no permission drift is ##
+        ## left behind when content falls through to staging            ##
+        printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
+    }
 }
 
 if ( -w $abs_path ) {
@@ -74,8 +82,8 @@ return sprintf "staged append to %s [ %d bytes, "
     . "no write access ]\nstaged at: %s",
     $path, length($content), $stage_rel;
 
-#,,.,,...,,,,,,.,,,..,..,,...,,..,,,.,,..,...,.,.,...,..,,..,,,..,,,,,.,,,..,,
-#BKEEN5KXH6DLDYA3YMN75NXZHZQ7TGYCSEZNOBB5KZ2L24M3JESMBORGE3YE4FKSUZMVSAGTDME5S
-#\\\|ZWRIEPIQTFS7X7I76CN6TP7A63FQ56A2FQZR5HDJILGWYGHQ55D \ / AMOS7 \ YOURUM ::
-#\[7]VCMQAXFRYMIXRSPFVTLGWLDLFNSNEW5NRM4ASP3ZUWLPBC27HUDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,...,,.,,,.,,.,.,...,,,.,,.,,.,.,...,..,,,.,,..,,,.,,.,.,,,,,
+#GCBV2DCJXGLPYXB5AVKN63MW3R3HOCFQGAM4T5QLOI6UWKXDY22CYWAQ6KBUNP722SX6PXSYDJC3E
+#\\\|FONS5AT7T7Y53F3NRJFNS7YEYUPRT3SX3G2FCTPRKUILARECLG3 \ / AMOS7 \ YOURUM ::
+#\[7]NYJ5ZPBASV72SNOOODPU4GATHDBIZSLGMSC4EV6BJSMOCQBKHCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
