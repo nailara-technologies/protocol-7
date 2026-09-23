@@ -8,8 +8,11 @@
 #         screen and refreshed its token, or got stuck on something first --
 #         this preview is what caught both the unconfirmed trust-dialog bug
 #         and the stale-binary bug fixed in refresh_token's history notes ],
-#         then invoke the cycle's on_done [ named handler + params, same
-#         reload-safety contract as the event callbacks themselves ].
+#         then invoke every queued on_done [ named handler + params, same
+#         reload-safety contract as the event callbacks themselves -- one
+#         entry per caller that arrived while this cycle was already
+#         running, see plugin.usage.claude.refresh_token's single-slot-busy
+#         branch ].
 # param = <how> : eof | ctrl_d | sigterm | killed | gone
 
 use Encode ();
@@ -50,10 +53,10 @@ if ( length $state->{'buffer'} // '' ) {
     );
 }
 
-if ( defined $state->{'on_done'} ) {
-    my $done = $state->{'on_done'};
+foreach my $done ( @{ $state->{'on_done_list'} // [] } ) {
+    next if ref $done ne qw| HASH |;
     $code{ $done->{'handler'} }->( $done->{'params'} // {} )
-        if length $done->{'handler'}
+        if length( $done->{'handler'} // '' )
         and exists $code{ $done->{'handler'} };
 }
 

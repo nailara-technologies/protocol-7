@@ -88,15 +88,38 @@ $on_done = $args->{'on_done'}
 
 my $provider = <usage.provider.claude>;
 
-## single slot : never stack two refresh children on top of each other ##
+## single slot : never stack two refresh children on top of each other -- but
+## a caller arriving while one is already in flight still needs to know when
+## THAT cycle finishes, not fire its own uncoordinated fallback. ported from
+## plugin.usage.kimi.refresh_token's identical fix [ found live 2026-09-17 on
+## the kimi side ] : plugin.usage.claude.handler.response used to treat this
+## branch's FALSE return as "nothing will ever call me back" and fired an
+## immediate retry fetch of its own -- which almost always raced the
+## already-running refresh child [ a real claude startup cycle takes the full
+## ~15-18s this module's own timeout accounts for ] and reported a false
+## "refresh already attempted and did not help" error moments before the SAME
+## in-flight refresh would have succeeded on its own [ confirmed live
+## 2026-09-23 as usage.status's 401-then-immediate-success symptom ]. queuing
+## onto the existing cycle's on_done list instead means every waiter [ the
+## original starter, a proactive-watchdog trigger, any number of reactive 401s
+## that land while it's running ] gets notified exactly once, when the one
+## real refresh actually completes -- TRUE now means "on_done WILL fire, now
+## or later", not "I personally started a child"
 if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
     <[base.logs]>->(
         1,
-        '[usage.claude.refresh_token] refresh already '
-            . 'in progress [ pid %d ] : not starting another',
+        '[usage.claude.refresh_token] refresh already in progress '
+            . '[ pid %d ] : queuing onto it instead of starting another',
         $provider->{'refresh_state'}->{'pid'} // 0
     );
-    return FALSE;
+    push @{ $provider->{'refresh_state'}->{'on_done_list'} //= [] },
+        {
+        'handler' => $on_done->{'handler'},
+        'params'  => $on_done->{'params'} // {}
+        }
+        if ref $on_done eq qw| HASH |
+        and length( $on_done->{'handler'} // '' );
+    return TRUE;
 }
 
 my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
@@ -192,18 +215,23 @@ syswrite( $pty, "\r" );
 ## from here on the parent NEVER BLOCKS, and no event callback is a coderef ##
 ## closure : the io watcher, the deadline timer and the reap poll are all   ##
 ## named handlers resolving the single-slot per-cycle state below           ##
+## on_done_list, not a single on_done : any number of callers can queue     ##
+## onto this one real cycle via the single-slot-busy branch above, this     ##
+## call's own on_done [ if any ] is simply the list's first entry           ##
 $provider->{'refresh_state'} = {
-    'pid'      => $pid,
-    'fh'       => $pty,
-    'buffer'   => '',
-    'deadline' => time() + $timeout,
-    'on_done'  => (
+    'pid'          => $pid,
+    'fh'           => $pty,
+    'buffer'       => '',
+    'deadline'     => time() + $timeout,
+    'on_done_list' => (
         ref $on_done eq qw| HASH | and length( $on_done->{'handler'} // '' )
         )
-    ? { 'handler' => $on_done->{'handler'},
-        'params'  => $on_done->{'params'} // {},
+    ? [
+        {   'handler' => $on_done->{'handler'},
+            'params'  => $on_done->{'params'} // {},
         }
-    : undef,
+        ]
+    : [],
     'io_w'       => undef,
     'timer_w'    => undef,
     'reap_timer' => undef,
@@ -228,8 +256,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,,.,.,.,,..,.,,,,..,.,,,.,.,,,,,.,.,...,...,..,,...,...,.,.,,.,,.,,,,,.,.,,,
-#6RY62OTCBSYUYZEQFJZK5UKIMMTEU2QWTY2MUTD4HLSULPD67HZZJN25OG3NDCNV3SKZHNM77LV42
-#\\\|KQZ72XLPBSF7WSDBLA5SON36UN5QOWV5HTLN4TNU22NYKQDITN6 \ / AMOS7 \ YOURUM ::
-#\[7]PDQSUELZOP6DP2C2B53TBI6H7HOCNG3HYAFTEWFVG5IDTQHYSQAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,,,,,...,..,,..,,.,.,,.,,.,,,..,,...,...,,..,,,.,,.,,,.,,,,.,
+#N67I4GTEX7NDLDNIT2JBXUGVGM7NTWKE3AHCWPJUELFTVVAMTIYUDWOJG2BS3DU4NLHJIG74KCRLO
+#\\\|GCMEBMGJVR52HSIVURIWNTEFFCA7JFQKY7AXNYCXVDUHIN253CC \ / AMOS7 \ YOURUM ::
+#\[7]TQ34IPXMPWDEVXNMP24NT7BAJZP6Z33R7DIBCJEFCHKYKBWGUUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
