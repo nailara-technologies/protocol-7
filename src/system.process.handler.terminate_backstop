@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = system.process.handler.terminate_backstop
+# descr = last-resort raw kill if v7-zenki.terminate didn't clear an
+#         escalated OOM pid within its own grace window
+
+my $data       = shift->w->data;
+my $process_id = $data->{'process_id'};
+
+## already gone : v7-zenki.terminate worked, nothing left to do ##
+return if not kill( 0, $process_id );
+
+<[base.log]>->(
+    0,
+    sprintf ':. ESCALATION :. terminate backstop [PID:%d] : still alive '
+        . 'after v7-zenki.terminate -- falling back to raw kill',
+    $process_id
+);
+
+<[system.process.callback.send_kill]>
+    ->( $process_id, $data->{'log_message'} );
+
+0;
+
+#,,.,,,,,,,,.,,..,...,.,,,,..,.,,,,,,,.,.,...,.,.,...,...,...,,..,,,.,...,.,,,
+#QWZ5PHENSEGZUDJDGJBXIX7R52C4S4I52CZF4KAV6EB6ZLUA3I54P74VTFR3ZVFOLSNKSLV5J3TMQ
+#\\\|JI4ZWRQQ4T3VJX6ZAR54677QNAPW2O72RL2R7N54MXUOSUKPHMU \ / AMOS7 \ YOURUM ::
+#\[7]YQLPFYP4EPBY3CGQPJ3YCKO6KYUYNFDUQCV6Y6FSG6GEQSZ2SKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

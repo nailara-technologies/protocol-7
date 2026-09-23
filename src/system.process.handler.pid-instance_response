@@ -33,15 +33,46 @@ if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7-zenki' zenka
     {    ## escalation : re-matched within window after restart request ##
         <[base.log]>->(
             0,
-            sprintf ':. ESCALATION :. hard terminate [PID:%d] : instance %d '
+            sprintf ':. ESCALATION :. terminate instance %d [PID:%d] : '
                 . 're-matched oom threshold within %ds of restart '
                 . 'request',
-            $process_id,
             $instance_id,
+            $process_id,
             $escalate_window
         );
 
-        <[system.process.callback.send_kill]>->( $process_id, $log_msg_str );
+        ## try the other hardened clean path before ever touching a raw    ##
+        ## signal -- a plain restart already failed to clear this instance ##
+        ## once, terminate is the harder clean stop [ zenka.instance.stop  ##
+        ## -> the same v7-zenki.terminate_process TERM-then-delayed-KILL   ##
+        ## restart already runs underneath ]. uses the numeric instance_id ##
+        ## already resolved above, not a name -- safest identifier in a    ##
+        ## concurrent-zenki [ shared-name ] case                           ##
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => qw| cube.v7-zenki.terminate |,
+                'call_args' => { 'args' => $instance_id }
+            }
+        );
+
+        ## backstop : if v7-zenki itself is unresponsive/hung and never     ##
+        ## clears this pid, fall through to the raw TERM_chld channel as a  ##
+        ## genuine last resort -- fires after terminate's own internal      ##
+        ## grace window [ v7-zenki.timeout.kill_list, 2s default ] has had  ##
+        ## time to complete, and only if the pid is confirmed still alive [ ##
+        ## unlike v7-zenki.handler.process_kill_list's own unconditional    ##
+        ## follow-up KILL, this decides whether to escalate to a raw signal ##
+        ## AT ALL, so it's worth the extra liveness check rather than       ##
+        ## firing -- and logging an alarming "still alive" --               ##
+        ## unconditionally ]                                                ##
+        <[event.add_timer]>->(
+            {   'after'   => <mem.oom_terminate_backstop> // 8,
+                'handler' => qw| system.process.handler.terminate_backstop |,
+                'data'    => {
+                    'process_id'  => $process_id,
+                    'log_message' => $log_msg_str
+                }
+            }
+        );
 
         ## resolve zenka name for the escalation record [ async lookup ] ##
         <[protocol-7.command.send.local]>->(
@@ -79,8 +110,8 @@ if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7-zenki' zenka
     return warn "aborted autokill for pid $process_id [no v7 zenka access?]";
 }
 
-#,,,.,.,,,...,...,,,,,...,.,,,,..,,,.,.,,,,..,..,,...,...,,,,,,,.,.,.,.,.,,.,,
-#7WDCB6CG3YIO4TID5VAMYKJUZYNBXTAA2657JGNDHOB7YA64EOKPUKNIQ4S4GHYUA6XVZCUWF5RXM
-#\\\|AWNFNSMVEYIDYNJPWVF553QD4FOWXOQEGQBZCC2REWRXWEKZEBL \ / AMOS7 \ YOURUM ::
-#\[7]SACNGA6UMZ6CV6JGOQEKTTJLPGU5V5LNGSK2FFDEHRUEMIHSCEDA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,...,...,.,.,,,,,,,.,.,.,..,,..,,...,...,,..,..,,,.,,..,,,,,,
+#LV6XTYDVAWGLCTPZUPSO4S75BDSY6EKZLBMWXSQOUJRSX6XXHWWIJPIKLB4AHY2QSSH3UE5OXRTDG
+#\\\|HUB7UDJMB75F4CD6YHNP7J5IS3YJP34RMCKJB7TBXCXA7JI6SGP \ / AMOS7 \ YOURUM ::
+#\[7]UZ73G37LFEBTVSESCPWGHAIENDOSBKVBQTO7GN5ZOPIFMLG4G6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

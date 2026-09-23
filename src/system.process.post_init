@@ -13,7 +13,11 @@ if ( not defined <process.TERM_chld.w_fh> ) {
     use strict; use warnings; use English;
     map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
     \$PROGRAM_NAME = q|$zenka_name-<root>-'term'-child|;
-    while( <STDIN> ){ kill( 9, \$1 ) if m|^(\\d+)\$| }
+    while( <STDIN> ){
+        chomp;
+        if    ( m|^TERM (\\d+)\$| ) { kill( 15, \$1 ) }
+        elsif ( m|^KILL (\\d+)\$| ) { kill(  9, \$1 ) }
+    }
     EOT
 
     <process.TERM_chld.pid>
@@ -39,8 +43,8 @@ if ( not defined <process.TERM_chld.w_fh> ) {
 
 0;
 
-#,,.,,...,.,,,,,,,.,.,,.,,...,.,,,,,,,.,.,.,.,..,,...,...,...,,,,,,..,,,,,,..,
-#H6MV272WF6ZOVETQUMRRZGJB26RS4VBVL2X4D54G26ZI5EBVUNS4YDQFASNAVIEFUS3IWAYJVDKCU
-#\\\|HP6UAKOYZARW7JM52YUIRC25J5TBCLJFC3NQAMLMFP3CYYJQHBV \ / AMOS7 \ YOURUM ::
-#\[7]LAXPLIBZP3WYJSDFYVKBUNUXTMYXB4YQZ3FZJYC5YEHORAKT36BQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,.,..,,...,,,.,..,,.,,,.,.,...,..,,...,.,.,...,.,,,.,,,..,,.,,,
+#SL7DGBL7URL2U7DHFH7RDBX6EMZSMLTXWDPG72472ETCUFVINYOHRZWT3AR7IFPAPGKZXTQKU2UJS
+#\\\|YWAEMIZFYUPFKECH7WYEJ3KOLEZIJXSNRRHTGEQPRLVALGOTVGJ \ / AMOS7 \ YOURUM ::
+#\[7]KGXUZWHOILFC6KJ4YEHWLM5QKZUR62UJWWUJG4LYGTDDY6G67ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
