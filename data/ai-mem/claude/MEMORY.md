@@ -29,6 +29,9 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [hour-of-day-hedging-not-genuine](feedback-hour-of-day-hedging-not-genuine.md) — citing "the hour"/lateness as a reason to suggest stopping is a disengagement tic, not real signal (I don't know the user's actual local time); if a hard problem isn't converging, name the real uncertainty directly instead
 - [cpanm-force-install-blast-radius](feedback-cpanm-force-install-blast-radius.md) — `sudo cpanm --force <module>` for one narrow CPAN need can silently pull in an apt dependency chain that upgrades shared system crypto libs AND shift the effective default perl version — check `dpkg.log`/`apt list --upgradable` before *and* after any force-install on this host, flag explicitly even when the target module has nothing to do with crypto
 - [cpanm-triggered-inline-elf-utf8-boundary-bug](feedback-cpanm-triggered-inline-elf-utf8-boundary-bug.md) — FULLY CLOSED 2026-08-26, committed `0875c8668`+`94aa460a7`: three independent 2021-era bugs found and fixed — two in `AMOS7::CHKSUM::ELF::inline_elf` (stale-len underflow + u8_len=1 misalignment) and a third in `crypt.C25519.load_keypair` (wrong file read + unconditional prefix-strip) that only surfaced once new `keys.backup.*` infrastructure (also this session, fixes `.secret`-bearing keys in change-passwd/dec-key/enc-key) enabled a real end-to-end test. All verified against a real key, all committed and signed, working tree clean. Read before touching `crypt.C25519.*`, `AMOS7::CHKSUM::ELF`, `keys.console.*`, or a bulk re-sign — the full bug-hunt methodology (safe size-only diagnostics, never touching real key material) is worth reusing
+- [git-color-forced-verification-pitfall](feedback-git-color-forced-verification-pitfall.md) — this shell's `git diff`/`status` are color-forced even when piped; a naive `grep -v '^\[38'`-style filter never matches the real leading ESC byte and silently passes everything through, making "diff is empty" checks lie. Always `git -c color.ui=false diff/status`, never hand-filter ANSI. Cost a 2026-09-23 session a false "actively corrupting itself" scare
+- [git-restore-worktree-needs-source-head](feedback-git-restore-worktree-needs-source-head.md) — `git restore --worktree` with no `--source` restores from the INDEX, not HEAD; only safe in the instant right after `--staged` on the same paths, unsafe later if anything (e.g. a concurrent signing/commit tool) re-stages them first. Use `git restore --source=HEAD --staged --worktree -- <paths>` together, always. Same 2026-09-23 session, same false-corruption scare as the entry above
+- [backend-acquire-reentrancy-fix-reverted](project-coding-async-backend-acquire-reentrancy-race.md) — REVERTED 2026-09-24: a same-day fix gating `coding.async.backend_acquire`'s reentrancy shortcut on `not exists <coding.async.task_state>->{$task_id}` looked correct and was committed, but `task_state` exists for a task's ENTIRE lifecycle (every round), not just while a request is in flight — the check silently broke EVERY normal multi-round coding task (stuck queued behind its own lock at round 2), not just the narrow race it targeted. Read the file's top correction before touching `backend_acquire` again: task_state existence cannot distinguish "this task's own synchronous continuation" from "a second concurrent caller." The original narrow race is REOPENED, unfixed as of 2026-09-24
 
 ## Category files — open the one that matches the topic in play
 
@@ -46,7 +49,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unicode-encoding repair, core patterns/templates, nshell SS3-arrow/DECCKM terminal gotcha + live
   debug-status/char-add session probing.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (68 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (70 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -61,12 +64,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
 
-- **[MEMORY-completed.md](MEMORY-completed.md)** (7 pointers) — session archive & live status.
+- **[MEMORY-completed.md](MEMORY-completed.md)** (8 pointers) — session archive & live status.
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,.,,,,,,,,.,,.,,,..,,,,,...,..,,,..,,.,,..,,...,...,...,...,..,,,,.,.,.,
-#HW4LDMG2NBFPYD4EIMV2LUPAVOOW2WSL56X6SQEVIVOG3R53G4FYFZO3QCQFK7ITBHQTFRPBAG6F4
-#\\\|7ZZBYC2SV4DSSCHFW7IENR27C5ZBCXDLP6JIRU474WQ6XBYXTOC \ / AMOS7 \ YOURUM ::
-#\[7]7PAUMNR6SBLB5RZPQKPPPGQZFLDHIAZDDBBWJNFB5MJP3QHMHCCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,,,,,.,,,.,,,,,,,.,,,...,,..,..,,...,...,.,.,,.,,,..,.,,,.,.,
+#JLDQQGQXQNZMEH5HYSTG6RAMKYHKMRZLK4X7VRZPI7G6OPQA6Q2MBCUEFX7ARGE3QV6FE4YEJZMYM
+#\\\|IWUODJXYX3SVU3ADD2LIPNPQISZ3IQ5K4LH25JVOLE55LHS2DXO \ / AMOS7 \ YOURUM ::
+#\[7]DKZJREV7LDCEDL74S22AQT53TIOHOL3UW2YVGIXH4NGCK7EB7QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

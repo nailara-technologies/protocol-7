@@ -171,7 +171,21 @@ if ( $sm_state eq 'streaming' ) {
             );
             $state->{'round'}++;
             <coding.async.task_state>->{$task_id} = $state;
+            ## release before re-enqueueing : this task's own lock is still ##
+            ## held from the request that just closed -- enqueue_round's    ##
+            ## backend_acquire correctly refuses reentrant reacquisition    ##
+            ## now [ checks for an in-flight task_state entry ], so calling ##
+            ## it before releasing here queues this task behind its own     ##
+            ## still-held lock instead of dispatching, confirmed live       ##
+            ## 2026-09-24                                                   ##
+            <[coding.async.backend_release]>->(
+                $task_id, $state->{'backend'} // ''
+            );
             <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
+            ## return now : the shared release below would otherwise fire   ##
+            ## again and incorrectly free the NEW round's lock, acquired by ##
+            ## the enqueue_round call just above                            ##
+            return;
         } else {
             <[coding.async.state_machine]>->(
                 'transition', $task_id,
@@ -250,8 +264,17 @@ if ( $sm_state eq 'streaming' ) {
                     };
                 $state->{'round'}++;
                 <coding.async.task_state>->{$task_id} = $state;
+                ## release before re-enqueueing -- see the identical note ##
+                ## on the no-tool_calls branch above                      ##
+                <[coding.async.backend_release]>->(
+                    $task_id, $state->{'backend'} // ''
+                );
                 <[coding.task.enqueue_round]>
                     ->( $task_id, $state->{'round'} );
+                ## return now : see the identical note on the no-tool_calls ##
+                ## branch above -- the shared release below must not fire   ##
+                ## again on the NEW round's freshly-acquired lock           ##
+                return;
             } else {
                 <[base.logs]>->(
                     0,
@@ -296,8 +319,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,,,,..,,,,.,..,,,,.,,,,,,.,,.,,,,,,,,..,,,,,..,,...,...,.,.,...,...,.,.,.,,,
-#WT5XFZG2KSEE2AFLKEZHJF2VSCGSWVUXKQDXH72STZMD2G2DM5WF2D3ALHJMDM2WXDWVLDZKLN4WG
-#\\\|2YPMELMLWKFHVF6V5652YMMZDIKLDEQQPDLAKQE3ZITID7ED7VE \ / AMOS7 \ YOURUM ::
-#\[7]3KN73CY3VFPEHXG4O5QG7UNJIVFQLWYOA57AF7MJQ4ETWSH74SBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,..,,,.,,,,,,...,.,,,,.,,.,,,..,,...,...,...,,..,,.,,,.,,,.,,
+#Q3JUNKW2ZX2IKPOUEDQHAR7THFF5QMJPPWTACFPGAXUQ5YNVVOK462PLN7UMCEG4K7A6MWK2VDESM
+#\\\|CSXYT35HECG7CIHKZGWAAHDD3YKX5LGREMTJQZRFZQR6MVGJGHK \ / AMOS7 \ YOURUM ::
+#\[7]3F47CQUT5MTOPPUWZDIB35JOINUFBCBC67LTOUVF4H7QPAB5OWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

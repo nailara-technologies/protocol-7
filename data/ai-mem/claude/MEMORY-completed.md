@@ -139,6 +139,26 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
+- [coding zenka resilience session, 2026-09-23](project-coding-async-backend-acquire-reentrancy-race.md) —
+  LANDED across 6 commits (`743db564a`, `d3c07acee`, `c8b7f57bd`, `ce8749a24`, `f73806def`,
+  `e71e5a099`, `4f27f332e`): reverted a prior session's UTF-8-misdiagnosed encoding-default changes
+  (would have corrupted `cred-mesh` credential blobs on next write, caught before any real write
+  occurred); found and fixed the ACTUAL root cause — `coding.async.backend_acquire`'s reentrancy
+  guard letting two independent callers race a task's in-flight round, see the linked file for
+  full detail; `coding.cmd.subscribe-session` listener dedup (same race, viewer-side symptom);
+  `coding.cmd.stop-task` can now finalize a stalled pending/subtask task with no live round instead
+  of refusing it; OOM-killer redesigned to use hardened `v7-zenki.restart`/`.terminate` before ever
+  touching a raw signal, raw channel itself fixed to TERM-then-delayed-KILL instead of bare
+  `kill(9,...)`; full chmod-child abandoned-side-effect sweep across 12 coding-zenka files + the
+  separate `ncode.cmd.apply` system, see [[feedback-chmod-child-revert-on-failed-grant]]; claude
+  usage-refresh queue race fixed (kimi's `on_done_list` pattern ported), see
+  [[project-claude-usage-refresh-pending-verification]]. Two kimi dispatches did the mechanical
+  sweeps (k2.8 single-file, k3 the ~14-file audit), every finding independently verified before
+  commit. Process/tooling lessons from the same session:
+  [[feedback-git-color-forced-verification-pitfall]],
+  [[feedback-git-restore-worktree-needs-source-head]],
+  [[feedback-kimi-dispatch-quota-cutoff-reports-completed]].
+
 - [project-2026-09-17-model-sweep-session](project-2026-09-17-model-sweep-session.md) — session summary: model-sweep
   state machine + task-priority coordination + crash-restart fixes all landed and pushed; the
   actual cpu inference binary (llama-server-cpu) segfault root cause is still OPEN (2 discriminating
@@ -147,8 +167,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   sweep cursor paused mid-run (`cpu : paused [ circuit-breaker ] : idx=3/90`), resumable once the
   binary issue is fixed.
 
-#,,,.,.,.,,.,,,,,,..,,,,.,,,.,,..,,,.,..,,,,,,..,,...,...,.,.,..,,,..,,.,,...,
-#SAXI5LRMXRX5F63DNCUYDVV2EPW552ZQDBSKJ7ZIN53VK65NNVYYX7FTGAHCD2X7RM7NTIGYC6SEY
-#\\\|KBTNRZBZJ2GKWCOEK6NTO45J5AYI4TTP5WYWOSQV5NL7FHLMYCD \ / AMOS7 \ YOURUM ::
-#\[7]HWTJOJO2FZGTQ4MEVKV3FVRRW2JNN5GCVJGO4KXOHSTLTPNYX4CI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,,..,,,.,,,,,,.,,,.,,.,,,..,,..,,...,...,,..,,..,,,,,,,,,...,
+#VIERTBC5HCGQEGRJVDMQ7LLMQ4PS3D5KWLT765MGMM5ZT2LRN62QVTSYI37WNZHBZLWJLX7GQCCDQ
+#\\\|P2JTBR46HYIO4AY6RO4GNNNJFVZR4OLK7EUIK5Q7E5K57Q6EKAE \ / AMOS7 \ YOURUM ::
+#\[7]INFEVUQMMKYRJACX2XDZN4O36KBSC7X52IKG42D7CRABREIX4OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

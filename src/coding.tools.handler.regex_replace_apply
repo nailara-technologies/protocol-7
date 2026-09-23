@@ -8,7 +8,13 @@ my $args = shift // {};
 
 my $preview_id = $args->{'preview_id'} // return 'error: preview_id required';
 
-## lookup preview state ##
+my $encoding      = $args->{'encoding'} // qw| :encoding(UTF-8) |;
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . '[supported are :raw,:bytes,:encoding(UTF-8)]'
+    unless length( $norm_encoding // '' );
 my $previews = <coding.regex_replace.previews> // {};
 my $preview  = $previews->{$preview_id};
 return 'error: preview not found [run regex_replace_preview first]'
@@ -34,8 +40,7 @@ if ( $current_bmw ne $stored_bmw ) {
 }
 
 ## read current content ##
-my $content_ref
-    = <[file.slurp]>->( $abs_path, undef, qw| :encoding(UTF-8) | );
+my $content_ref = <[file.slurp]>->( $abs_path, undef, $norm_encoding );
 return 'error: cannot read file' unless defined $content_ref;
 my $content = $content_ref->$*;
 
@@ -93,10 +98,7 @@ if ( !-w $abs_path and defined $chmod_fh ) {
 }
 
 if ( -w $abs_path ) {
-    <[file.write_encoded]>->(
-        qw| :encoding(UTF-8) |,
-        $abs_path, \$new_content
-    );
+    <[file.write_encoded]>->( $norm_encoding, $abs_path, \$new_content );
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
@@ -112,8 +114,8 @@ if ( -w $abs_path ) {
 
 return 'error: no write access to file';
 
-#,,,,,.,,,,.,,,.,,...,,..,..,,.,,,,,,,,,,,..,,..,,...,...,...,..,,...,.,.,,,.,
-#BRVKDLZNMLIMDKH3YA6FGEPLKX62NOHEMYSUMXQDZQTTB2L6HRVWNLJYERDO3SMTGDUUUMVBXTYVG
-#\\\|YJZCUBX23AS5JTHKGJJPU4FHUOU6MFEHJQXCTVL2KN2LYSBJ3M5 \ / AMOS7 \ YOURUM ::
-#\[7]TXLZ7OA34FCMC4LPSZLP2LRLE4Q5I5QBE6BJOXUC5K6FLQL4QGAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,,,,,.,.,,,.,,..,.,.,.,,,,,.,..,,...,...,..,,,,.,,,.,,,.,...,
+#O5U3Z5WBPD577VVOO5423MXUJSBM5TUC6QHXTJN45K2M5L26CUMUP76TYPWBPZKCAIP57OIUYHDKK
+#\\\|477GSSMLZHSX4H6LB376BJMO5G555HB4YBYAH3EJKW5BB5KSUY7 \ / AMOS7 \ YOURUM ::
+#\[7]Z4FNV3Y7ZGBLOJKKL32ZZ5WVPNTQ3PDGR5I6V3TUYVEXC3DM4ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
