@@ -57,17 +57,22 @@ for my $file (@files) {
     my $mtime = File::stat::stat($file)->mtime // 0;
     my $df    = "$dest/$name";
 
-    ## create as admin user [ 0664 ] so content write works via group bit ##
-    if ( not -e $df and defined $chmod_fh ) {
-        print {$chmod_fh} "create $df\n";
-        <[coding.chmod_child.readline]>;
-    }
+    ## read source FIRST [ before any chmod-child create : a 'next' on an ##
+    ## unreadable source past that point would abandon an empty dest file ##
     my $content = do {
         open( my $in, '<:raw', $file ) or next;
         local $/;
         <$in>;
         }
         // '';
+
+    ## create as admin user [ 0664 ] so content write works via group bit ##
+    my $created_via_child = 0;
+    if ( not -e $df and defined $chmod_fh ) {
+        print {$chmod_fh} "create $df\n";
+        my $reply = <[coding.chmod_child.readline]>;
+        $created_via_child = 1 if defined $reply and $reply eq qw| ok |;
+    }
     if ( open( my $out_fh, '>:raw', $df ) ) {
         print {$out_fh} $content;
         close($out_fh);
@@ -75,6 +80,12 @@ for my $file (@files) {
         push( @mtimes, sprintf '%s %d',     $name, $mtime );
         push( @out,    sprintf '  %8d  %s', $size, $name );
     } else {
+        ## remove the empty file we created above : the copy failed and an ##
+        ## abandoned empty file would shadow the failed import             ##
+        if ($created_via_child) {
+            print {$chmod_fh} "remove $df\n";
+            <[coding.chmod_child.readline]>;    ## consume remove reply ##
+        }
         push( @out, "  FAILED   $name : $OS_ERROR" );
     }
 }
@@ -92,23 +103,31 @@ my $info = join '',
     "files         : $copied\n",
     map {"mtime         : $_\n"} @mtimes;
 
-my $info_file = "$dest/IMPORT-INFO";
+my $info_file              = "$dest/IMPORT-INFO";
+my $info_created_via_child = 0;
 if ( not -e $info_file and defined $chmod_fh ) {
     print {$chmod_fh} "create $info_file\n";
-    <[coding.chmod_child.readline]>;
+    my $reply = <[coding.chmod_child.readline]>;
+    $info_created_via_child = 1 if defined $reply and $reply eq qw| ok |;
 }
 if ( open( my $fh, '>:raw', $info_file ) ) {
     print {$fh} $info;
     close($fh);
     push( @out, '  IMPORT-INFO written [ source path + mtimes recorded ]' );
 } else {
+    ## remove the empty IMPORT-INFO we created above : write failed, and an ##
+    ## empty file would misrepresent the import's provenance record         ##
+    if ($info_created_via_child) {
+        print {$chmod_fh} "remove $info_file\n";
+        <[coding.chmod_child.readline]>;    ## consume remove reply ##
+    }
     push( @out, "  IMPORT-INFO FAILED : $OS_ERROR" );
 }
 
 return join( "\n", @out );
 
-#,,,,,,..,..,,,..,..,,,..,,.,,.,.,...,.,,,,,,,..,,...,...,,.,,,.,,...,,,.,.,,,
-#33PNASGAX6POKYKJFHVEPD6MCXLUWLIPUQEDZG4RT7IMYOHKF5T3YGL5TOD6AHLMGI7NGSHOMGHSC
-#\\\|MWFOTQPPKPEGF25UR6YUVSCDAU5BJRR7NDJQ2ZSDY5IOMAWCJQG \ / AMOS7 \ YOURUM ::
-#\[7]6J26UBS2T47XRTUVS7TJPHMJCPN3BNWRXDKFKI7CJ572W64LZSDY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,..,,...,,.,,.,,,..,,.,,,.,,,..,,...,...,.,.,,..,,.,,,,,,.,,,
+#BLCCP25N62FGUBP7G7SGZVTHTWD42XKWO64CTNPOK55RVVTNZKUFI4OSD5JVVDZKTWEM3PUP5LOIE
+#\\\|2QPLSGFARXZPTW4KUU4IR2PI4654VFSCYWGO4LDYQHPL6NJMGTV \ / AMOS7 \ YOURUM ::
+#\[7]GABNFQW3RN6MAQOPK6H24UQKZ7MDSLLQNKVW2ZXIGPVHOV7JW4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

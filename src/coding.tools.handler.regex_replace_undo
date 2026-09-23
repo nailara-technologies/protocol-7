@@ -39,8 +39,16 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     my $cur_mode = ( File::stat::stat($abs_path) )[2] // 0644;
     $cur_mode &= 07777;
     print {$chmod_fh} "gw $abs_path\n";
-    select undef, undef, undef, 0.01;
-    $mode_restore = $cur_mode if -w $abs_path;
+    my $gw_reply = <[coding.chmod_child.readline]>;    ## wait for gw ##
+    if ( -w $abs_path ) {
+        $mode_restore = $cur_mode;
+    } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
+        ## gw changed the mode but we still cannot write [ e.g. coding  ##
+        ## zenka lacks admin group ] : revert so no permission drift is ##
+        ## left behind when the undo fails with 'no write access'       ##
+        printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
+    }
 }
 
 if ( -w $abs_path ) {
@@ -48,6 +56,7 @@ if ( -w $abs_path ) {
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
 
     ## clear backup after successful undo ##
@@ -59,8 +68,8 @@ if ( -w $abs_path ) {
 
 return 'error: no write access to file';
 
-#,,..,...,,,,,,,.,,,,,..,,...,...,.,,,...,,,.,..,,...,...,..,,..,,...,,..,,.,,
-#3D7AUT2IKXLLPE5UODJGM7CYCGZ3U45FM3OQAKKL5Z5VYAZPA4YN6Z6GVJSJEWKDTTJOXTVRNGBGQ
-#\\\|CSANR2OHRHIAHSUTY4ZNZ4JGESKCFLF22TKKJY5TNPAKQVREMXK \ / AMOS7 \ YOURUM ::
-#\[7]EXT6M542QACSTY56FOLDFSA7DLOF6PEE2BPTAFMIIZZLGUWU5IDA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,,.,...,,.,,,.,,.,.,,,.,,,.,..,,...,...,..,,..,,,.,,,,.,,,,,
+#7IQTEX5GY5GBNIGR63JLSMCG6G3XQC3DZXPWYSHEVR72VQ6JRC5WDF76MUSGWL5LDDJI2LVSX3FHC
+#\\\|V3VECNPGLAP6Z4F53PMLUJQBCKSJQE7NDJ2NPGX44URATPLNF4G \ / AMOS7 \ YOURUM ::
+#\[7]YUPIFYPFWWMX7ZTUM6I43JIERFW4VMO7ESUAZGLCW6J3RN6234AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

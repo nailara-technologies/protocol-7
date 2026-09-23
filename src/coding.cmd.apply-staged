@@ -61,7 +61,7 @@ for my $staged_name (@files) {
     if ( !-d $src_dir ) {
         if ( defined $chmod_fh ) {
             print {$chmod_fh} "mkdir $src_dir\n";
-            select undef, undef, undef, 0.05;    ## yield for child ##
+            <[coding.chmod_child.readline]>;    ## wait for mkdir reply ##
         } else {
             <[file.make_path]>->($src_dir);
         }
@@ -75,10 +75,15 @@ for my $staged_name (@files) {
         my $fstat    = File::stat::stat($src_path);
         my $cur_mode = $fstat->mode & 07777;
         print {$chmod_fh} "gw $src_path\n";
-        ## brief yield for child to process chmod ##
-        select undef, undef, undef, 0.01;
+        my $gw_reply = <[coding.chmod_child.readline]>;    ## wait for gw ##
         if ( -w $src_path ) {
             $mode_restore = $cur_mode;
+        } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
+            ## gw changed the mode but we still cannot write : revert so no ##
+            ## permission drift is left behind when the apply falls through ##
+            ## to the shell-command fallback below                          ##
+            printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $src_path;
+            <[coding.chmod_child.readline]>;    ## consume restore reply ##
         }
     }
 
@@ -89,6 +94,7 @@ for my $staged_name (@files) {
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n",
             $mode_restore, $src_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
 
     if ($written) {
@@ -116,8 +122,8 @@ $output .= sprintf "\n## %d applied, %d skipped ##\n", $applied, $skipped;
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,..,,,,,,.,.,,,.,,,,,..,,,,.,.,,,..,,,..,..,,...,...,..,,..,,...,.,,,...,
-#SYGDAY6YWSWT6TLT33UOXWNQZ5657GOY7LTANUVUEQTNXQEQR5FCSF563CIIAC2H4YPRH2I6TITZW
-#\\\|AOG7M2FTXYVCFABVIAGXD6AOX3MXZWZT4YTRVSRMVKPXR6Q53LQ \ / AMOS7 \ YOURUM ::
-#\[7]BGHI5GEAXSCDGD3KV3LZIITGU6FECOV4TBPGCXUV2IQ5JDNN5IAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,.,,,...,.,,,,,.,.,.,..,,.,.,..,,...,..,,,,.,,,.,,..,.,.,.,.,
+#GSUDF6M7ILNXBYSU52NZTLWSZZ2CTYLASCPFZBCI7S2M4MWABIJ5TLZZA7Z7G3PXS7XZLP2MAYO7K
+#\\\|APVC6GYQUTALOZM4OMGGK4XXL3FABH6RDOJYLVLDIHRH5ZUB3II \ / AMOS7 \ YOURUM ::
+#\[7]ASBPI7URITYOPWACFS4NFIC6PPIBXA7RV7RTIDKQSBSUM5O4AWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

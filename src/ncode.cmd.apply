@@ -243,8 +243,17 @@ foreach my $fix_id (@fix_ids) {
             $cur_mode &= 07777;
             printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ),
                 $file;
-            <[ncode.chmod_child.readline]>; ## wait for restore to complete ##
-            $mode_restore = $cur_mode if -w $file;
+            my $grant_reply
+                = <[ncode.chmod_child.readline]>;    ## wait for grant ##
+            if ( -w $file ) {
+                $mode_restore = $cur_mode;
+            } elsif ( defined $grant_reply and $grant_reply eq qw| ok | ) {
+                ## grant changed the mode but we still cannot write :    ##
+                ## revert so no permission drift is left behind when the ##
+                ## fix falls through to the failure path below           ##
+                printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $file;
+                <[ncode.chmod_child.readline]>;    ## consume restore reply ##
+            }
         }
 
         my $write_ok = 0;
@@ -300,8 +309,18 @@ foreach my $fix_id (@fix_ids) {
                 $cur_mode &= 07777;
                 printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ),
                     $file;
-                <[ncode.chmod_child.readline]>;
-                $mode_restore = $cur_mode if -w $file;
+                my $grant_reply = <[ncode.chmod_child.readline]>;
+                if ( -w $file ) {
+                    $mode_restore = $cur_mode;
+                } elsif ( defined $grant_reply and $grant_reply eq qw| ok | )
+                {
+                    ## grant changed the mode but we still cannot write : ##
+                    ## revert so no permission drift is left behind when  ##
+                    ## the revert itself cannot proceed                   ##
+                    printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $file;
+                    ## consume restore reply ##
+                    <[ncode.chmod_child.readline]>;
+                }
             }
 
             if ( -w $file ) {
@@ -352,8 +371,8 @@ $summary .= ", $out_of_scope_count out of scope" if $out_of_scope_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,,.,,.,,,,..,,,.,.,.,...,,,.,..,,..,,...,.,.,...,...,,..,.,,,,..,,,.,,.,,
-#YLAJYVYGRMHQ2FXEM64SAYWOVD333VLNK4V4QHQYOSNDNOW3ZSBFP5HOH22YVX7HKDXSN6VRJJUI6
-#\\\|VCQUVSQ3S4OTQHQXSAPFDN6WC43AA3FGSNKZUEDEJZ2JSHHCQV4 \ / AMOS7 \ YOURUM ::
-#\[7]4UJ3PXKEK6P4QIXUP3RZTA735RZERG52EJ7KGVIZQPLEMBTVVODA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,,,.,...,,..,.,,,,,.,,,,,...,.,.,...,...,..,,..,,.,.,..,,.,.,
+#K3HJFCCW474AMLMOQZGR6VI4PNVEWDAC2K3P7SHQLS3WOROVTG5BFWR6Q5AHR3PRGYEJACX2IJOZ6
+#\\\|UNWD765VCKA4BVICF7225NWADZBCG3BAQ34UMXQADMCJIPZHK7Y \ / AMOS7 \ YOURUM ::
+#\[7]FWROHNVLVVMSHHFHQW2ZLQLVO3YSC4XVKID3RPXHUG4IX5KFPYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

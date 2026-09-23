@@ -19,8 +19,16 @@ if ( -f $file_path and !-w $file_path and defined $chmod_fh ) {
     my $cur_mode = ( stat $file_path )[2] // 0644;
     $cur_mode &= 07777;
     printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ), $file_path;
-    <[coding.chmod_child.readline]>;    ## wait for restore to complete ##
-    $mode_restore = $cur_mode if -w $file_path;
+    my $grant_reply = <[coding.chmod_child.readline]>;    ## wait for grant ##
+    if ( -w $file_path ) {
+        $mode_restore = $cur_mode;
+    } elsif ( defined $grant_reply and $grant_reply eq qw| ok | ) {
+        ## grant changed the mode but we still cannot write [ e.g. zenka  ##
+        ## lacks admin group ] : revert so no permission drift is left    ##
+        ## behind when the caller falls through to a failure/staging path ##
+        printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $file_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
+    }
 }
 
 if ( -w $file_path ) {
@@ -32,6 +40,8 @@ if ( -w $file_path ) {
         print {$chmod_fh}
             sprintf "restore %04o %s\n",
             $mode_restore, $file_path;
+        ## consume restore reply : keep pipe in sync ##
+        <[coding.chmod_child.readline]>;
     }
 
     return $result ? ( 1, undef ) : ( 0, 'write failed' );
@@ -39,8 +49,8 @@ if ( -w $file_path ) {
 
 return ( 0, 'permission denied: cannot make file writable' );
 
-#,,..,,,.,,.,,,,,,,..,,.,,.,,,,.,,.,,,,..,.,,,.,.,...,...,,..,..,,..,,,,.,...,
-#2CNGB6JBKCRB5S2OOREIK6SHBJVB6DOGCCMHAKDUTTFQYL3ZBYE4DCE3D564SCUISV264OMDXGFZ6
-#\\\|BZX76M3K6OXCFM6TZHF6CQN3LHLAECF25YAA7QJSBVNDIC7HBOX \ / AMOS7 \ YOURUM ::
-#\[7]JFBK5LDKUC54QBIYOCGW2V6L22HTNJYY6KBV5YWGP5HHKIWH4CAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,.,,,,,.,,.,,...,..,,...,...,.,.,...,...,...,,.,,,.,,.,,,.,,,
+#57G5JRTZ7JEBMGU5HJWZ6HKTX52SB4JK7SKHRFUZU6USWR7TH4UYXV4WCM7LCCRQZ5DNVS4O5PPWY
+#\\\|OA4JUDVHQXBQPDBXD6TTHQDFSBSXGYJMJYLSZ77SIDDPWZUWGCP \ / AMOS7 \ YOURUM ::
+#\[7]QR7USWVKOTQAUBXU57QCOYW7CYY7ONIOHIOEGND4Z2BNPLKSZYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
