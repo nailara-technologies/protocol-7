@@ -1,0 +1,216 @@
+## [:< ##
+
+# name  = coding.tools.definitions.search
+# descr = codebase/memory search tool schemas for coding.tools.definitions
+
+my @tools;
+
+## search_code : grep across codebase ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'search_code',
+        'description' => 'search modules and files for a pattern [ grep ]',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'search pattern [ perl regex ]'
+                },
+                'scope' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search scope: modules, config, lib [ AMOS7 perl '
+                        . 'modules under data/lib-path/pm ], or all [ '
+                        . 'default modules ]'
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max matching lines [ default 30 ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'skip first N results for pagination [ default 0 ]'
+                },
+            },
+            'required' => ['pattern'],
+        },
+    },
+    };
+
+## ncode_search : full codebase search via ncode binary ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ncode_search',
+        'description' => 'search entire P7 codebase with ncode [ '
+            . 'all files, line numbers, grouped by file ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'query' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search string [ case insensitive regex ]'
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max output lines [ default 50 ]'
+                },
+                'offset' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'skip first N results for pagination [ default 0 ]'
+                },
+            },
+            'required' => ['query'],
+        },
+    },
+    };
+
+## ncode_search_context : regexp search across files with context lines ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ncode_search_context',
+        'description' =>
+            'regexp search across files with optional context lines',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'target' => {
+                    'type'        => 'string',
+                    'description' => 'target path or directory to search'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'perl regex pattern to match'
+                },
+                'context' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'context lines around matches [ default 0 ]'
+                },
+            },
+            'required' => [ 'target', 'pattern' ],
+        },
+    },
+    };
+
+## embedding_search : nearest-neighbor lookup over a trained project        ##
+## embedding domain [ data/embeddings/<domain>.vec ] -- similarity in       ##
+## MEANING/PROFILE, not exact graph edges [ dep_graph/module_deps do that ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'embedding_search',
+        'description' =>
+            'find nearest neighbors for a query in a trained project '
+            . 'embedding domain [ eg codebase-depgraph : modules with a '
+            . 'similar dependency profile to a given module -- omit '
+            . 'domain to list what is available ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'domain' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'embedding domain name [ eg codebase-depgraph '
+                        . '-- omit to list available domains ]'
+                },
+                'query' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'query text, whitespace-separated tokens [ a single '
+                        . 'module name is a valid query : finds modules '
+                        . 'similar to it ]'
+                },
+                'top' => {
+                    'type'        => 'integer',
+                    'description' => 'max neighbors to return '
+                        . '[ default 10, max 25 ]'
+                },
+            },
+            'required' => ['domain'],
+        },
+    },
+    };
+
+## search_memory : focus-scored memory tree lookup ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'search_memory',
+        'description' =>
+            'search the focus-scored memory tree for relevant context. '
+            . 'boosts query terms in the memory zenka focus vector, '
+            . 're-scores the tree by recency × focus × IDF, and returns '
+            . 'the top-ranked branches as compact ASCII. use to retrieve '
+            . 'relevant project memory mid-task.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'terms' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'one or more space-separated search terms'
+                },
+            },
+            'required' => ['terms'],
+        },
+    },
+    };
+
+## task_file_search : find task files across active and archived locations ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'task_file_search',
+        'description' =>
+            'search task files across active and archived locations. first '
+            . 'searches filenames, then optionally file contents. knows '
+            . 'about data/yaml/coding-tasks, data/md/coding-tasks, and '
+            . 'archive subdirectories.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'search pattern [ regex or glob, required ]'
+                },
+                'status' => {
+                    'type'        => 'string',
+                    'description' => 'filter by status: active | '
+                        . 'archived | all [ default all ]'
+                },
+                'depth' => {
+                    'type'        => 'integer',
+                    'description' => 'search depth: 1 = filenames '
+                        . 'only, 2 = +content [ default 1 ]'
+                },
+                'max_results' => {
+                    'type'        => 'integer',
+                    'description' => 'max files to return [ default 50 ]'
+                },
+            },
+            'required' => ['pattern'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,.,,,,.,,,,,...,,.,,,,,,,..,,,.,,,,,,.,,,,,,..,,...,...,,..,.,,,,,,,..,,.,,,
+#7DAVPVKM36IDO5TU3PZ7D5MDBDI4TW3HOWMJF2ODEF3MGY3CRIYLJSNJOTXNW5PFYPUGSA5MLJC62
+#\\\|SANMK3SVYUFJXSDZIB5POHEXVRHASCIPPL6IBRKXL3CKXSLPHAA \ / AMOS7 \ YOURUM ::
+#\[7]DZPVC3H4JTKUDIGEXEIOOWYRT52RRQJ7LQT2V74QBIECOQP2Z2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

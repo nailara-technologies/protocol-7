@@ -1,0 +1,219 @@
+## [:< ##
+
+# name  = coding.tools.definitions.module_introspection
+# descr = module/dep-graph introspection tool schemas for coding.tools.definitions
+
+my @tools;
+
+## read_module : P7 module content with metadata ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'read_module',
+        'description' => 'read P7 module file with description and metadata',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. coding.system_prompt ]'
+                },
+                'max_chars' => {
+                    'type'        => 'integer',
+                    'description' => 'character budget [ default 8000 ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## list_modules : discover modules by namespace ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'list_modules',
+        'description' => 'list available modules in a namespace',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'namespace' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module namespace [ e.g. coding, context, httpd ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 800 ]'
+                },
+            },
+            'required' => ['namespace'],
+        },
+    },
+    };
+
+## module_deps : dependency call graph ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'module_deps',
+        'description' => 'find what a module calls and what calls it',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' => 'module name to analyze'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 800 ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## dep_graph : bidirectional call graph for a namespace ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'dep_graph',
+        'description' => 'build call graph for a module namespace '
+            . '[ shows who calls what, clusters ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'namespace' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module namespace [ e.g. coding, context.template ]'
+                },
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'single module to graph [ alternative to namespace ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## list_inline_subs : scan module for sub declarations ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'list_inline_subs',
+        'description' => 'scan a P7 module for inline sub declarations '
+            . '[ returns names, line numbers, line counts ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' => 'module name '
+                        . '[ e.g. plugin.storage.visual.extract-floats ]'
+                },
+                'min_lines' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'minimum sub body lines to include [ default 0 ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## validate_module_format : check P7 module against format rules ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'validate_module_format',
+        'description' => 'check a P7 module for format issues: header, '
+            . 'metadata, forbidden patterns, inline sub '
+            . 'declarations',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' => 'module name [ e.g. '
+                        . 'context.util.tree.canonical_json ' . ']'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## validate_module : check module for errors before commit ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'validate_module',
+        'description' => 'validate P7 module for common errors and format '
+            . 'issues [ run before declaring task complete ' . ']',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' => 'module name to validate'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## module_convention_check : audit module headers for convention violations ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'module_convention_check',
+        'description' =>
+            'audit module files for header convention violations. reports '
+            . 'lines exceeding max length and descr lines over limit in '
+            . 'cmd/console modules. sorted by longest lines first, '
+            . 'shorter filenames first.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'directory to scan [ default modules ]'
+                },
+                'max_line' => {
+                    'type'        => 'integer',
+                    'description' => 'max line length [ default 78 ]'
+                },
+                'max_descr' => {
+                    'type'        => 'integer',
+                    'description' => 'max descr length for '
+                        . 'cmd/console [ default 55 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,.,,,,,,..,,...,...,,,.,,,,,,,,,,.,,,..,,..,..,,...,.,.,,,,,..,,.,,,,,.,.,.,
+#HLCDMZEYRXHGX2RNTOBOGCZXUJ2EAFWPC2D7V7VIROZV25IMDSHMK2A3MR5O3MJ2JY6LG43VF5ECK
+#\\\|LMX67FNIZ6NIAOHUDHOIHCV7FCC25HEYCNEQ6HX52LNALGCTT6S \ / AMOS7 \ YOURUM ::
+#\[7]4VKFFFC3ULVGDIVU5JYRCF44GKYHVZCDRAENJENRY2TFW3EP4SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

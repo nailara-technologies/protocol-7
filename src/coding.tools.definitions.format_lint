@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = coding.tools.definitions.format_lint
+# descr = syntax-check/format tool schemas for coding.tools.definitions
+
+my @tools;
+
+## ptd_check : syntax check a P7 module ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ptd_check',
+        'description' => 'syntax check a P7 module with '
+            . 'ptd -c [ reports compile errors ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. coding.tools.dispatch ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## ptd_format : format a P7 module with ptd ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ptd_format',
+        'description' => 'format a P7 module with ptd [ '
+            . 'auto-indents and reports changes ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'module' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'module name [ e.g. coding.tools.dispatch ]'
+                },
+            },
+            'required' => ['module'],
+        },
+    },
+    };
+
+## perltidy : format a file with project perltidy settings ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'perltidy',
+        'description' =>
+            'format a perl file with perltidy using project settings. runs '
+            . 'in-place by default. use check_only=true to preview '
+            . 'issues without modifying.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'check_only' => {
+                    'type'        => 'boolean',
+                    'description' => 'if true, only report issues without '
+                        . 'modifying [ default false ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,.,,.,,,...,...,,,,,..,,,,,,,,.,.,.,,,.,.,,,..,,...,...,..,,.,.,,,.,,,,,.,,,
+#ZRUY5PJOPDJTBMUB2A5QPWSJIMTLR44HT6MQWXZ5ZI4XPKGJIBZSYRHRYO2UEOY2NXNCR25CAOGQ2
+#\\\|N577FE7HMW6GBEYLP5CHTQTVY3EVAA7MOGAVMG3DFRY5IETPUAZ \ / AMOS7 \ YOURUM ::
+#\[7]SCNOIX44TSLAJM5E2HMZUV6PRF2ZGKQGQVBVDDGVKF6M45PKOAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
