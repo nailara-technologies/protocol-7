@@ -5,7 +5,8 @@
 # usage = <[context.file]>->( { path => 'src/base.handler.command',
 #                       budget => 2000, from_line => 1, to_line => 100 } )
 
-my $params = shift // {};
+my $params   = shift // {};
+my $encoding = $params->{'encoding'};
 
 my $path              = $params->{'path'}              // '';
 my $budget            = $params->{'budget'}            // 2000;
@@ -46,9 +47,20 @@ unless ( -f $abs_path and -r $abs_path ) {
 }
 $path = $abs_path;
 
-## read file ##
-my $content_ref = <[file.slurp]>->($path)
-    or return "<!-- cannot read: $path -->";
+## read file [ encoding param is additive : no encoding given preserves the ##
+## exact old single-arg call, unaffected for context.compose.for_           ##
+## delegation and context.review.page, neither of which passes one ]        ##
+my $content_ref;
+if ( defined $encoding and length $encoding ) {
+    my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+    return "<!-- unsupported encoding: $encoding -->"
+        unless length( $norm_encoding // '' );
+    $content_ref = <[file.slurp]>->( $path, undef, $norm_encoding )
+        or return "<!-- cannot read: $path -->";
+} else {
+    $content_ref = <[file.slurp]>->($path)
+        or return "<!-- cannot read: $path -->";
+}
 
 ## split AFTER each newline [ lookbehind ] so it stays attached to its      ##
 ## line, matching <$fh> list-context behavior exactly -- including a final  ##
@@ -93,8 +105,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,,.,..,,,..,.,.,.,.,.,.,...,,.,,.,.,,,,,..,,.,.,...,...,,,,,.,,,,.,,.,.,.,.,
-#YMK7KOACQFZSJ3QYC4KXLL3TY6JYB3APX4GTTYNEK7SYSXJMIBNLAF7NY3WPGNR56I2FGB3X7KLBG
-#\\\|UWVAH24BGDVEWFLXRA3FNPEVUS3ZT7YN4TEIV5RMWGMWYJ7Y4TZ \ / AMOS7 \ YOURUM ::
-#\[7]45GY6RTGWTSXKGGZXXLWOTRLEN7F4C7FQS46BW2UUCNLEQA56UAA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,.,,,,.,,,..,.,,,,,,,,..,,,.,.,.,...,...,.,.,...,,.,,..,,,.,,
+#RAPATLXJTLYLZFBJITIF7J3XPACQKTTTA2SVPBZNMAAQTVNIOSND6BCNK4LW3DQATAGNAO37VFSUY
+#\\\|MU6RGGKSSGTALMKFAWMGXJU7YOEM3YEPG6VETQ5VD5BVI4TIRF3 \ / AMOS7 \ YOURUM ::
+#\[7]L6EGZIBGYATE5TSAHSO7LSXBI4X3M4TDNS4H7USZMO6S2R4SPGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

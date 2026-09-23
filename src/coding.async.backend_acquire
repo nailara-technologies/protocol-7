@@ -12,19 +12,26 @@ $backend //= qw| gpu |;
 
 my $bs = <coding.state.backend>->{$backend};
 
-## already holds the lock : re-entrancy guard, but only when nothing is     ##
-## actually in flight for this task. an active round leaves an entry in     ##
-## <coding.async.task_state> until it completes/errors [ deleted by         ##
-## coding.async.state_machine / state_manager ] -- without this check, a    ##
-## second, independent caller [ e.g. task-append's resume branch racing     ##
-## coding.async.complete's own injected-messages recovery ] that still sees ##
-## this task_id as lock-holder gets waved through instead of queued,        ##
-## producing two concurrent send_request calls for one task : confirmed     ##
-## live via duplicate enqueue_round log lines for one round number,         ##
-## immediately after a burst of task-append resume lines ]                  ##
-if (    defined $bs->{'lock'}
-    and $bs->{'lock'} eq $task_id
-    and not exists <coding.async.task_state>->{$task_id} ) {
+## already holds the lock : re-entrancy guard. REVERTED 2026-09-24 to the   ##
+## plain task_id-only check -- a same-task_id reacquire is the NORMAL,      ##
+## expected shape of an ordinary round-to-round continuation [              ##
+## state_machine / chunk_handler never call backend_release between a       ##
+## task's own rounds, by design -- <coding.async.task_state> exists for a   ##
+## task's ENTIRE lifecycle, not just while a request is actively in flight, ##
+## so gating this on "does task_state exist" [ tried 2026-09-23, commit     ##
+## d3c07acee ] refuses the shortcut for EVERY normal round transition, not  ##
+## just a genuine race -- confirmed live 2026-09-24 : every multi-round     ##
+## coding task got stuck queued behind its own lock at round 2, the very    ##
+## first internal round-to-round transition after a tool call. this reopens ##
+## the narrower original race [ two INDEPENDENT external triggers -- task-  ##
+## append's resume branch vs coding.async.complete's own injected-messages  ##
+## recovery -- both deciding a terminal-looking task needs a fresh round at ##
+## the same moment ] rather than leaving basic multi-round functionality    ##
+## broken ; that race needs a signal that actually distinguishes "one       ##
+## caller's own synchronous continuation" from "a second, concurrent        ##
+## caller", not task_state's mere existence -- revisit with more care       ##
+## before re-adding, don't re-copy this exact check                         ##
+if ( defined $bs->{'lock'} and $bs->{'lock'} eq $task_id ) {
     return { acquired => TRUE, queued => FALSE };
 }
 
@@ -50,8 +57,8 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,,,,.,,,,,.,...,,,,,,,.,,,.,,,.,...,,..,,..,..,,...,..,,.,.,..,,,.,,.,,,..,,
-#F3QISMZA6H4RWSZ4EPHA5QY7N5JCIU5GYDJQRSXCR62ZPQ5VERXNSZICCFNDUHKCSGMC4YJXFBHZM
-#\\\|5HQSRR27M4HOOXYQNOJ2K77E5LCVCKEK5342EPECJAFCO4CX2RB \ / AMOS7 \ YOURUM ::
-#\[7]4NDW6XDJK5EH7WJC5BPR6IGR3HKVU5CQEPNCSOO2CQV5PQHPD6CI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,,.,,,.,,...,..,,...,,..,,..,..,,...,...,,,.,,..,..,,,,,,,.,,
+#TJCZPFGJPNVTIOQ2YIJIGRWXQABCCUE5VY27VJWWMOGAKADNP2F3AE7QG5DE33EOJM7RYP7JUGYPM
+#\\\|MWEZWJOQDSGAZQUM3VX4ZKDJGIRMLLSP6YJ6DTV4SAWPEQFUZWQ \ / AMOS7 \ YOURUM ::
+#\[7]BRXGAPXKF3NIKZC7WFQGX7IIFUYEMPF3LL6ATEYTB4ERLYNLPKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

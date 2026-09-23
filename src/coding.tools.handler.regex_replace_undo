@@ -8,6 +8,14 @@ my $args = shift // {};
 
 my $path = $args->{'path'} // return 'error: path required';
 
+my $encoding      = $args->{'encoding'} // qw| :encoding(UTF-8) |;
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . '[supported are :raw,:bytes,:encoding(UTF-8)]'
+    unless length( $norm_encoding // '' );
+
 ## resolve path ##
 my $root     = <system.root_path>;
 my $abs_path = "$root/$path";
@@ -52,7 +60,7 @@ if ( !-w $abs_path and defined $chmod_fh ) {
 }
 
 if ( -w $abs_path ) {
-    <[file.write_encoded]>->( qw| :encoding(UTF-8) |, $abs_path, \$original );
+    <[file.write_encoded]>->( $norm_encoding, $abs_path, \$original );
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
@@ -68,8 +76,8 @@ if ( -w $abs_path ) {
 
 return 'error: no write access to file';
 
-#,,,,,..,,...,.,.,,,.,...,,.,,,.,,.,.,,,.,,,.,..,,...,...,..,,..,,,.,,,,.,,,,,
-#7IQTEX5GY5GBNIGR63JLSMCG6G3XQC3DZXPWYSHEVR72VQ6JRC5WDF76MUSGWL5LDDJI2LVSX3FHC
-#\\\|V3VECNPGLAP6Z4F53PMLUJQBCKSJQE7NDJ2NPGX44URATPLNF4G \ / AMOS7 \ YOURUM ::
-#\[7]YUPIFYPFWWMX7ZTUM6I43JIERFW4VMO7ESUAZGLCW6J3RN6234AI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,,.,,..,,,..,.,.,,.,,..,,,..,..,,...,...,...,,,,,.,.,,,.,,,.,
+#DILSOHXACWYTP6BCDALDEO5ZSYEOHUBWNW6QLOTLEU6PR5VJ6BYWJRWBY3PAJQJTCKSNBQSECCPQA
+#\\\|EERBB3CXMKZDBJ4V2CRTXWFXE3SQDX7MD7ARWWZHXUCNWQHXET4 \ / AMOS7 \ YOURUM ::
+#\[7]JBYBR7IHNQXU6ADFFDPYVPJWDKIAEFAFK66GL7BKQ2RFMVB5EQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

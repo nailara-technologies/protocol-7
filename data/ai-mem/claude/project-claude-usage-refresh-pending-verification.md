@@ -1,9 +1,33 @@
 ---
 name: project-claude-usage-refresh-pending-verification
-description: claude oauth refresh-on-401 -- proven live, expiry pass open
+description: claude oauth refresh-on-401 -- proven live through the spawn/trust/mcp chain; the retry-after-refresh race found and fixed 2026-09-23 (f73806def)
 metadata:
   type: project
 ---
+
+**UPDATE 2026-09-23**: the "one remaining unconfirmed link" this file
+originally flagged — whether the second probe after a real 401 actually
+returns parsed rows instead of falling through to "already attempted and
+did not help" — had a real, confirmed bug behind it, found live via the
+exact symptom this file predicted watching for. `usage.status`'s claude
+probe failed with that exact error, and the very next unrelated
+`usage.claude` call succeeded immediately after — the signature of a raced
+refresh, not a genuinely failed one. Root cause:
+`plugin.usage.claude.refresh_token`'s single-slot-busy branch returned
+`FALSE` with no queuing (the pre-2026-09-17 kimi-side bug, never ported to
+claude's side — see [[feedback-chmod-child-revert-on-failed-grant]] for an
+unrelated but structurally similar "an old fixed-elsewhere bug class was
+never ported to the sibling implementation" pattern found the same
+session). `plugin.usage.claude.handler.response` treated that FALSE as
+"nothing will call me back" and fired its own immediate retry, racing the
+already-running refresh child. Fixed by porting kimi's `on_done_list`
+queue shape verbatim: the busy branch now queues the caller and returns
+TRUE, `refresh_cleanup` notifies every queued waiter instead of a single
+scalar slot. Dispatched to kimi (k2.8), verified independently before
+commit. The retry-after-refresh path is now provably identical in shape to
+kimi's already-proven one, closing the specific gap this file existed to
+track — the spawn/trust/mcp/binary-resolution chain documented below
+remains a separate, already-proven concern.
 
 committed `7154ccbd4` (2026-09-16) : `plugin.usage.claude.refresh_token` +
 refresh_retry/finish/reap/cleanup/io/timeout chain, mirroring
@@ -116,8 +140,8 @@ works reliably, this is extra latency + one extra mcp-server process per
 refresh cycle [ at most every ~5h/7d ], not a correctness problem worth the
 risk of moving the user's real global kimi config file aside mid-spawn.
 
-#,,,,,,..,,,.,...,,,.,.,,,,,.,.,.,.,,,.,.,,..,..,,...,...,..,,...,,,.,,..,..,,
-#TF74S3LBJXF6CAY3WYDD5KXSFEUYH2E2BV5DMQIKDT2YGIRBMTYCMBFWRBQVYOKMINRUNSSPTMD6M
-#\\\|BETM42VALJQBCBYOKC4CYN5GQKHNAHEO4UC4T33ZILK3CWEFMAJ \ / AMOS7 \ YOURUM ::
-#\[7]FZ7KHEQHQQE4S57FBQZNDFJMGOGFWPH6LCHGLT4VDZCCSM6AG2DY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,..,,..,,,,.,..,,,,,,...,,,.,..,,...,...,.,.,...,...,,,,,,..,
+#5QX7CZA7WY6PGNW4RTWXZKXXAFEIYCEO27K4NMLK4BS74346SGLKY53YNNHZ6OG7ZRXG2WAOPUQGC
+#\\\|TKX4F3OL2OZIQIJ26PHWH5ZEU7MUL3BMBSWFGY46DUF7ZETDQNO \ / AMOS7 \ YOURUM ::
+#\[7]EBI5ES4RONHVDSS26YQSZ37WR76GGR2VX4ULCZGKYUUU3CJ6BCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
