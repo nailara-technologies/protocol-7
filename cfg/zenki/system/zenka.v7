@@ -26,15 +26,25 @@ mem.max_used = 97 # %
 mem.autokill = 1 # whether to kill process w most used memory on max_used limit
 mem.kill_min = 11 # %[memory usage before mem-alert based auto-kill is allowed]
 
-mem.accel_threshold = 80 # %[ poll acceleration starts : poll interval tightens
+mem.accel_threshold = 77 # %[ poll acceleration starts : poll interval tightens
                          #   linearly down to mem.accel_min_interval at
                          #   mem.max_used , flat process.poll.interval below ]
 mem.accel_min_interval = 1 # [sec.] fastest allowed poll interval under pressure
 
-mem.oom_restart_window = 60 # [sec.] oom re-match within this window after a
+mem.oom_restart_window = 77 # [sec.] oom re-match within this window after a
                             #   restart request escalates to hard terminate
 mem.oom_restart_reset  = 600 # [sec.] quiet period clearing restart-escalation
                              #   memory [ instance-id timestamps ]
+
+mem.oom_kill_grace = 5 # [sec.] grace period between TERM and the follow-up
+                       #   KILL sent to the raw privileged kill channel
+                       #   [ system.process.callback.send_kill ]
+mem.oom_terminate_backstop = 8 # [sec.] escalation only : how long to wait
+                               #   after asking v7-zenki.terminate to clean
+                               #   up an instance before falling back to the
+                               #   raw kill channel as a last resort -- must
+                               #   exceed v7-zenki.timeout.kill_list [ 2s
+                               #   default ], terminate's own internal grace
 
 ## custom process rules example [ also matches zenki named <servername>.httpd ]
 #process.limits.httpd.max_mem = 4.7 # [%]
@@ -61,8 +71,8 @@ modules.load = auth.client net protocol io.unix ui system
 
 [zenka.loop]
 
-#,,.,,,..,,..,,.,,,.,,.,,,..,,,,,,,,.,,,,,..,,..,,...,...,,,,,...,...,...,.,,,
-#BCYAQMKIWWSV6ZEU36DQAPIER2CJS5DWFJYIZORCJKYOG4VUGCD4KF6WJDFPHOOPQXK7YBMPIWRPS
-#\\\|UNMEA7VK7CUDO7WS3H2OVJY7F6FXIGQVUPR3ZIHWQXVYHA3EGYT \ / AMOS7 \ YOURUM ::
-#\[7]H5Q7HL3ZWZ5SPOONMX5JZRI6CTB5RB2XPSCENPWJNXQBY3OVMSAQ 7  DATA SIGNATURE ::
+#,,,,,...,...,...,...,...,.,.,.,.,...,,,,,.,.,..,,...,...,...,.,,,,,,,,,,,.,,,
+#7D3AMBSYN4EARQXE6JBPOC42P4AGE5VBZIUXPBRS6RBBFQJMHUGJ2PR2U6ZNIA3EOHFD2YPQOFMEA
+#\\\|TXXAOLPZKFPRQ4OVZADXOONABNRSXKEZCD34KSQHKGR2MQ7KJOA \ / AMOS7 \ YOURUM ::
+#\[7]62JRQQJSUV325ZKZEH3N2X7R2BMHQNOHNLI3MHJOVFBCZG5M6ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
