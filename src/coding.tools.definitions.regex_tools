@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = coding.tools.definitions.regex_tools
+# descr = regex preview/apply/undo tool schemas for coding.tools.definitions
+
+my @tools;
+
+## regex_replace_preview : preview regex replacement without writing ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'regex_replace_preview',
+        'description' =>
+            'preview regex replacement in a file [read-only]. returns diff, '
+            . 'match count, and preview_id. always call this before '
+            . 'regex_replace_apply.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' => 'perl regex search pattern'
+                },
+                'replacement' => {
+                    'type'        => 'string',
+                    'description' => 'replacement string [supports $1, $2]'
+                },
+                'flags' => {
+                    'type'        => 'string',
+                    'description' => 'regex flags [default g]. g=global, '
+                        . 'i=case-insensitive, m=multiline, '
+                        . 's=dotall'
+                },
+            },
+            'required' => [ 'path', 'pattern', 'replacement' ],
+        },
+    },
+    };
+
+## regex_replace_apply : apply a previewed regex replacement ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'regex_replace_apply',
+        'description' => 'apply a previewed regex replacement to file. '
+            . 'requires preview_id from '
+            . 'regex_replace_preview. aborts if file '
+            . 'changed since preview.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'preview_id' => {
+                    'type'        => 'string',
+                    'description' => 'preview id from regex_replace_preview'
+                },
+            },
+            'required' => ['preview_id'],
+        },
+    },
+    };
+
+## regex_replace_undo : undo last regex replacement ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'regex_replace_undo',
+        'description' => 'undo the last regex_replace_apply for a '
+            . 'file. restores original content from backup.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'file path relative to project root'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,,,,..,,..,,.,,,...,,..,,,.,,..,,..,.,.,...,..,,...,...,...,,,.,..,,,..,,,.,
+#ZG7MHJGYEQJAYUJ6DFLEASRRPGDKDTZXWJBBSOSSXCOIMUDLJZQU4DQVYXJBPRV6UDL6AKHGOVRIK
+#\\\|QDLO2CJTRTAZVUYCF522BRLIME4E6J5MGNW5IGOOYCDRDCLDWLZ \ / AMOS7 \ YOURUM ::
+#\[7]HD44W6NZGSKS7ZCPGX35XLFPKG6RO4P5BBY3HB7DV5FYB4IB3SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

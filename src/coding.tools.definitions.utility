@@ -1,0 +1,285 @@
+## [:< ##
+
+# name  = coding.tools.definitions.utility
+# descr = misc/inference-utility tool schemas for coding.tools.definitions
+
+my @tools;
+
+## check_account_usage : account quota and rate-limit numbers ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'check_account_usage',
+        'description' => 'check claude/kimi account usage and rate-limit '
+            . 'numbers [ cached, refreshes on demand from '
+            . 'the usage zenka ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'provider' => {
+                    'type'        => 'string',
+                    'description' => 'provider to check',
+                    'enum'        => [ 'claude', 'kimi' ]
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## ntime_convert : convert between p7 network time and unix time ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'ntime_convert',
+        'description' => 'convert between p7 network time (ntime) and unix '
+            . 'time, or get the current time in both -- '
+            . 'notes and other p7-internal metadata store '
+            . 'ntime, not unix, so use this instead of '
+            . 'assuming standard unix-epoch arithmetic [ '
+            . 'ntime runs at 4200 units per real second '
+            . 'from a 2002-06-05 start ]. give at most one '
+            . 'of ntime/unix/ago_seconds; omit all three '
+            . 'for the current time',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'ntime' => {
+                    'type'        => 'string',
+                    'description' => 'an ntime value to convert to '
+                        . 'unix+human -- numerical or '
+                        . 'base32r-encoded [ e.g. from a '
+                        . 'note_list_trashed entry ]'
+                },
+                'unix' => {
+                    'type'        => 'number',
+                    'description' => 'a unix timestamp to convert to ntime'
+                },
+                'ago_seconds' => {
+                    'type'        => 'number',
+                    'description' => 'return the ntime value this many '
+                        . 'seconds before now [ e.g. to build an '
+                        . "note_filter 'after' cutoff for \"3 days ago\" "
+                        . '-- pass 259200 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## checksum : compute a p7 checksum, or a nested amos child checksum ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'checksum',
+        'description' => 'compute a checksum of text using one of p7\'s '
+            . 'algorithms [ amos|bmw|elf|jha ] -- used '
+            . 'everywhere in this codebase for module '
+            . 'signatures, scratchpad/session keys, '
+            . 'content-addressed lookups. also computes '
+            . 'nested AMOS child checksums via nest_parent',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'algorithm' => {
+                    'type'        => 'string',
+                    'description' => 'checksum algorithm [ default amos ]. '
+                        . 'bmw here means the L13 short '
+                        . 'form [ matches '
+                        . 'scratchpad/session-key '
+                        . 'convention ], not bmw384 [ that '
+                        . 'is a separate '
+                        . 'geometric-coordinate mapper for '
+                        . 'the iris visualization, '
+                        . 'unrelated to hashing text ]',
+                    'enum' => [ 'amos', 'bmw', 'elf', 'jha' ]
+                },
+                'input' => {
+                    'type'        => 'string',
+                    'description' => 'text to checksum [ or, with '
+                        . 'nest_parent set, the child name ]'
+                },
+                'mode' => {
+                    'type'        => 'string',
+                    'description' => 'output encoding, jha '
+                        . 'only [ default b32 ]',
+                    'enum' => [ 'hex', 'b32', 'b64u', 'harmonized' ]
+                },
+                'nest_parent' => {
+                    'type'        => 'string',
+                    'description' => 'parent AMOS checksum -- when set, '
+                        . 'computes the nested child '
+                        . 'checksum of "input" under this '
+                        . 'parent instead of a plain '
+                        . 'checksum [ algorithm must be '
+                        . 'amos ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## vax_int_convert : p7's compact base32 integer encoding [ job/note ids ] ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'vax_int_convert',
+        'description' => 'convert between a plain non-negative integer '
+            . '(0..4294967295) and its p7 vax-int encoding '
+            . '[ a short base32 string ] -- used for '
+            . 'compact ids, e.g. jobsite job ids. '
+            . 'auto-detects direction from the input shape',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'value' => {
+                    'type'        => 'string',
+                    'description' => 'either a plain integer to encode, or a '
+                        . 'vax-int encoded string to decode'
+                },
+            },
+            'required' => ['value'],
+        },
+    },
+    };
+
+## decode_base32 : decode base32/base32r encoded strings ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'decode_base32',
+        'description' => 'decode base32 or base32r encoded strings [ '
+            . 'useful for encoded identifiers, checksums ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'encoded' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'base32 encoded string [ e.g. NFWXA4T... ]'
+                },
+            },
+            'required' => ['encoded'],
+        },
+    },
+    };
+
+## consensus_query : multi-perspective analysis via perspective injection ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'consensus_query',
+        'description' =>
+            'query the inference model from multiple independent '
+            . 'perspectives and return labeled responses for synthesis. '
+            . 'use when you need to catch blind spots, verify '
+            . 'correctness, or get a multi-angle view of code, a design '
+            . 'decision, or a finding. each perspective uses a different '
+            . 'system role (critic, advocate, auditor, alternative). '
+            . 'responses are independent : the calling model synthesizes '
+            . 'them.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'prompt' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'the question, code snippet, or finding to evaluate '
+                        . '[ keep focused: one concern per call ]'
+                },
+                'mode' => {
+                    'type'        => 'string',
+                    'description' => 'preset perspective combination: review '
+                        . '(critic+advocate, default), '
+                        . 'verify (critic+auditor), explore '
+                        . '(advocate+alternative), thorough '
+                        . '(all three: '
+                        . 'critic+advocate+auditor)'
+                },
+                'perspectives' => {
+                    'type'        => 'array',
+                    'description' =>
+                        'explicit list of perspectives to use : overrides '
+                        . 'mode. built-in: critic, advocate, auditor, '
+                        . 'alternative. any other string is used as a '
+                        . 'literal system prompt.',
+                    'items' => { 'type' => 'string' },
+                },
+                'max_tokens' => {
+                    'type'        => 'integer',
+                    'description' => 'max tokens per perspective '
+                        . 'response [ default 512 ]'
+                },
+            },
+            'required' => ['prompt'],
+        },
+    },
+    };
+
+## summarize_context : model-pinned inference summarization ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'summarize_context',
+        'description' =>
+            'summarize content using a dedicated inference call. supports '
+            . 'model pinning : specify a large-context model for '
+            . 'compression, small fast model receives the dense result. '
+            . 'routes to cpu backend by default to avoid interrupting '
+            . 'active tasks.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'content' => {
+                    'type'        => 'string',
+                    'description' => 'text to summarize'
+                },
+                'focus' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'summarization focus directive [ optional ]'
+                },
+                'model' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'AMOS model ID to use [ empty = loaded model ]'
+                },
+                'backend' => {
+                    'type'        => 'string',
+                    'description' => 'cpu|gpu|auto [ default cpu ]'
+                },
+                'max_len' => {
+                    'type'        => 'integer',
+                    'description' => 'target summary tokens [ default 800 ]'
+                },
+                'store' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'store result in valued tree [ default false ]'
+                },
+                'node_id' => {
+                    'type'        => 'string',
+                    'description' => 'valued tree node to attach summary to'
+                },
+            },
+            'required' => ['content'],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,,,,...,..,,.,.,.,.,..,,.,,,,,.,,,,,,.,,...,..,,...,...,,.,,...,,,,,,,,,,.,,
+#BVXNT4FTEZJPJHL65J3CIRISMMCU5WJR3R3LKZVFT247A554NAQCDQSN6IJFPSILPUWPBPU26UJFE
+#\\\|NRS7TK4VVI6OANHBIB6T4IZLB3FVC7IQ2V4TPR3ASSKP6DXS7BB \ / AMOS7 \ YOURUM ::
+#\[7]B2TCHUOLQVRDX7IUXAX4S5DEMRNWRHKUQG66OWYYAR3VR2UF4IDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
