@@ -20,8 +20,9 @@ my $enc_name    ## other encodings with validity check ##
     : $encoding;
 
 ## encoding valid as PerlIO layer, returning it.. ##
+my $found = Encode::find_encoding($enc_name);
 return sprintf( qw| :encoding(%s) |, $enc_name )
-    if Encode::find_encoding($enc_name)->perlio_ok;
+    if defined $found and $found->perlio_ok;
 
 ## not found or not supported by PerlIO layer ##
 <[base.logs]>->(
@@ -33,8 +34,8 @@ return sprintf( qw| :encoding(%s) |, $enc_name )
 
 return undef; ###[ error case : encoding not found or supported by PerlIO ]###
 
-#,,..,.,,,,,.,.,,,...,...,.,.,,,.,,,.,,,,,,.,,.,.,...,...,.,.,..,,...,,.,,...,
-#FNHUFABLZAVHR4XK24U3F2E3PNX2ZBV6RSGQOMFQTDLIGH6UL4HCU4ZEA5LCMGIPP33H62DP6HWRM
-#\\\|YSIEW3VLTGTIEMQPEHWSBQ4ZZBW5IRPP6Z5OJ2BJNWRJAA3YFQK \ / AMOS7 \ YOURUM ::
-#\[7]RLYCZOT3AR3D5DFUCFLGKGCADFPCKDR7PS4Y5FCVLZTO5BWH76AI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,..,,,,,,..,,,,.,,,,,,.,,,,,,.,.,...,...,,..,.,.,..,,,..,,.,,
+#ARWEYNR5P3YTJ42QSJTJQ5KQGU2ZVTUZL7QOVLK6U2YF457K53APPSVBA6LU5BA4L7JUZ7JTZ6APQ
+#\\\|FHAS5IZSD2MWGHETNSINBY4LA4GT76Q773TAI7X26VHCDUAZICL \ / AMOS7 \ YOURUM ::
+#\[7]XWEBQBWHTEICAC54VRVWB2Z4OJIJSACDBFNOCECANDAYJKYGQWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
