@@ -5,7 +5,22 @@ metadata:
   type: project
 ---
 
-**UPDATE 2026-09-24 [ later same day ], READ FIRST**: re-analysis found the
+**ORIGINAL INCIDENT LOCATED 2026-09-24 -- there was NO duplicate-dispatch
+race in it**: task-5JXMWYY, Sep 23 03:48:12 resumed by task-append [ round
+63 ], 03:48:27 aborted by `degenerate repetition [âââ]` -- a FALSE POSITIVE
+[ per the user : the model was legitimately demonstrating something with
+drawn lines, which showed as mojibake while the utf8 bugs were still in
+place ; coding.detect_stream_repetition only exempted SINGLE-char units, so
+a multi-char structural unit was killed after ~45 chars ]. Every round in
+the window dispatched exactly once. The "confirmed live duplicate
+enqueue_round" root cause below was never real; the misdiagnosis session
+[ task-PYYJCJY, 04:08-05:07 ] followed. Detector widened same day : units
+with no letters/digits or <= 3 distinct chars count as structural and get
+the long [ 200 char ] threshold [ also covers the 68 blank-line-run aborts
+in the log ]. The seq fix [ e8bb6b5b7 ] stands on its own -- real
+stale-callback holes, just not this incident.
+
+**UPDATE 2026-09-24 [ later same day ]**: re-analysis found the
 "live socket" signal suggested below would ALSO fail -- coding.async.request
 deliberately leaves the previous connection streaming while the next round
 is sent. The log had no clean repro of the original race [ every duplicate
@@ -131,8 +146,8 @@ and `coding.session.listeners` dedup FIRST, before assuming an encoding
 problem — this exact symptom shape (duplication, not corruption-in-place)
 already fooled one full session into the wrong subsystem once.
 
-#,,..,,,.,.,,,..,,,..,.,.,.,,,..,,,,,,.,,,...,.,.,...,...,...,,.,,..,,..,,,,,,
-#AK5IW7U7MFOTME2CYPIIC6V4NAH3VD2IABVZ7V23NPOI4G7PD6O7RBNMB26SOFRY74TY7Y6OHLE74
-#\\\|AB2QJ56WU74I2WUSIC5DABG26VYZ3ZODRSAIPLBOD7HC2UXVCWD \ / AMOS7 \ YOURUM ::
-#\[7]3AM2T4XT6DHN4DBN6AI7IIECY6ENRNWDW6QUW46MRFMTMPNPCMAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,.,,,,,,,,.,,.,,,.,.,...,,.,,.,.,...,...,..,,...,,,.,..,,...,
+#VYLNMRRVX345DOPCXQRY6AW5XY3BYJTDMMYI6YBVXUPNJVCOK2V7QEQN5B7QLAFB2KDSU6JTPZCFQ
+#\\\|HKMU2XMMNQUCFDVLUO3VP47TOKFB3GE6CJ4XNVYKBTU35EGEYTF \ / AMOS7 \ YOURUM ::
+#\[7]Y6LORP4XXFYIAY6IL4ELPWLTCPNIRQEA2HEY7O3DOOHEWV7JVYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

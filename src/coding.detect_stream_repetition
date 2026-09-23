@@ -31,6 +31,10 @@ return undef unless $tail =~ $re;
 
 my $matched_unit = $1;
 
+## capture now : the structural checks below run their own regexes, which
+## would overwrite @- / @+
+my $full_match_len = $+[0] - $-[0];
+
 ## a unit made of a single repeated character [ ':....:' -style ascii.frame
 ## border fills, AMOS7 signature terminators, '====' / '----' dividers ] is
 ## common LEGITIMATE content in this codebase, not the degenerate-loop failure
@@ -38,15 +42,25 @@ my $matched_unit = $1;
 ## PHRASE ]. require a much longer run before flagging those specifically,
 ## using the actual matched span length rather than $& [ avoids the global
 ## perf penalty of touching that special var ]
-if ( $matched_unit =~ m|^(.)\1*$|s ) {
-    my $full_match_len = $+[0] - $-[0];
+##
+## widened 2026-09-24 : a single-char test missed every OTHER structural shape
+## -- blank-line runs [ '  \n    \n', 68 false aborts in the log ], box-
+## drawing borders [ '──┼──' ], '-=-=' rules, and a line drawing that arrived
+## as mojibake [ 'âââ', task-5JXMWYY 2026-09-23 03:48, aborted mid-demo ].
+## structural = no letters/digits at all, OR at most 3 distinct chars ; a
+## genuine phrase loop has neither property. such runs still get caught, just
+## at the long threshold
+my %distinct   = map { $ARG => 1 } split m||, $matched_unit;
+my $structural = ( $matched_unit !~ m|[\p{L}\p{N}]| or keys(%distinct) <= 3 );
+
+if ($structural) {
     return undef if $full_match_len < $homogeneous_min_len;
 }
 
 return { matched => $matched_unit, unit_len => length($matched_unit) };
 
-#,,,,,,,.,,.,,,.,,...,.,.,,,.,.,.,,..,.,,,.,,,.,.,...,..,,,..,,,.,,.,,.,,,.,.,
-#TOHZXCLR3Y4CANYRSNYRE5EQX4C33Q5ASCNOE7QAF6OYT3U64EH2OLAZ2QWTV46WQWMCKUBGTNJCM
-#\\\|6HHWCGRZQIBKI34GIXHGYK5WGONLES2P7Y7SS6VLNTHV4CLYGPA \ / AMOS7 \ YOURUM ::
-#\[7]TLPNMVNVIJJWJGAO4FEKOZZ2K7746VGCY76D2SLR5APIHFW4RSAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,.,,,,..,,.,,...,,,.,.,.,,,.,.,.,...,...,,,.,,,.,...,,,,,.,,,
+#BC2JZXPQZTNI434SFXM36XDJAH26Y6SBQLTRIY7IZRAQLSE4OQ256CXTVICD6JOOR2WOMRPF3CBD2
+#\\\|RIYWL3CCCCC434W5SN2SIQ34XIHGWKIMERJ6GUT3RBSNCIJQEAU \ / AMOS7 \ YOURUM ::
+#\[7]UBKYJKPXZEPEMWTOPTNTUXYO7PS3SEDUSJ4HCGXGTR7PNTOBN6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
