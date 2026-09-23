@@ -1,0 +1,118 @@
+## [:< ##
+
+# name  = coding.tools.definitions.git
+# descr = git/change-history tool schemas for coding.tools.definitions
+
+my @tools;
+
+## git_diff_staged : show staged changes ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'git_diff_staged',
+        'description' => 'show staged git changes (git diff --cached)',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'git_args' => {
+                    'type'        => 'string',
+                    'description' => 'additional git diff arguments'
+                },
+                'max_lines' => {
+                    'type'        => 'integer',
+                    'description' => 'max lines to return [ default 50 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## git_diff_unstaged : show unstaged changes ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'git_diff_unstaged',
+        'description' => 'show unstaged git changes (git diff)',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'git_args' => {
+                    'type'        => 'string',
+                    'description' => 'additional git diff arguments'
+                },
+                'max_lines' => {
+                    'type'        => 'integer',
+                    'description' => 'max lines to return [ default 50 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## recent_changes : git diff stats ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'recent_changes',
+        'description' => 'recent git changes with file stats',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'max_files' => {
+                    'type'        => 'integer',
+                    'description' => 'max files to list [ default 10 ]'
+                },
+                'since_commit' => {
+                    'type'        => 'string',
+                    'description' => 'specific commit to diff from'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 1500 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+## recent_errors : error log with filter ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'recent_errors',
+        'description' => 'recent error log entries with optional filter',
+        'parameters'  => {
+            'type'       => 'object',
+            'properties' => {
+                'filter' => {
+                    'type'        => 'string',
+                    'description' => 'error filter pattern'
+                },
+                'lines' => {
+                    'type'        => 'integer',
+                    'description' => 'max error lines [ default 50 ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 500 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,,,,,,.,.,,,,.,,...,,..,,..,,.,,.,.,..,,,.,,..,,...,...,.,,,,,,,,,,,,,.,.,,,
+#GNLXKBHFINFZVXWAL7OJW5WQMWOCPK7HFXZ5GCJ7EEX4MMVKXG2LBEGAYNKNMSKOXR6ZMNJCGUZAI
+#\\\|CS2LEWKORNPEJH65KOMEETZXR3P5ZZCN6WFGNSSCA3K5EXA3TX3 \ / AMOS7 \ YOURUM ::
+#\[7]5XPC55W52ZPNWFYB6EW2HECXFSYGPP6FQLHHMII4SJ3F4MGHLGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

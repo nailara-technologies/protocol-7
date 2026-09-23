@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = coding.tools.definitions.tree
+# descr = %data tree inspection tool schemas for coding.tools.definitions
+
+my @tools;
+
+## tree_read : read value at a dot-separated path in %data ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'tree_read',
+        'description' => 'read a value or branch from the %data tree [ '
+            . 'dot-separated path, shows type and contents ' . ']',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'dot-separated data path [ e.g. coding.task.queue ]'
+                },
+                'depth' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'recursion depth for branch display [ default 1 ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 2000 ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
+## tree_write : set scalar value at a dot-separated path ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'tree_write',
+        'description' => 'set a scalar value in the %data tree [ restricted '
+            . 'to coding, context, observations, task ]',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'dot-separated data path [ e.g. coding.notes.topic ]'
+                },
+                'value' => {
+                    'type'        => 'string',
+                    'description' => 'scalar value to set'
+                },
+            },
+            'required' => [ 'path', 'value' ],
+        },
+    },
+    };
+
+## tree_list : list children of a branch with type info ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'tree_list',
+        'description' =>
+            'inspect in-memory zenka state hash (%data) : NOT the '
+            . 'filesystem. use list_files to browse disk. shows keys, '
+            . 'types (scalar/hash/array/code), and sizes.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'dot-separated path [ empty = top-level ]'
+                },
+                'pattern' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'regex filter for key names [ optional ]'
+                },
+                'depth' => {
+                    'type'        => 'integer',
+                    'description' => 'recursion depth [ default 1, max 3 ]'
+                },
+                'budget' => {
+                    'type'        => 'integer',
+                    'description' => 'token budget [ default 1500 ]'
+                },
+            },
+            'required' => [],
+        },
+    },
+    };
+
+return \@tools;
+
+#,,.,,,.,,...,,..,,,.,..,,..,,.,.,...,,.,,.,.,..,,...,..,,...,..,,,,,,..,,.,.,
+#HKQAHBV3OAWWTEJL2MB5OGYZVRDO5JS2PH22CLBDHDHFEYSRIYA5ROG3QKAZHMYFJFGQSEWJM3Q3W
+#\\\|Z4T3W7ECJUIUEHNAM7Z5TRA2NMHNEWP6NW3EPQ6ZJ74OT7ZHGMQ \ / AMOS7 \ YOURUM ::
+#\[7]RYUKC2D5AIGINXM57OVPEFTAY7B4KL47CM22MRP3WYOSGNLHW6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
