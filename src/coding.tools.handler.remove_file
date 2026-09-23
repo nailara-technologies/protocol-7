@@ -64,6 +64,13 @@ my $content = <[file.read]>->($real_path);
 <[file.put]>->( $trash_path, \$content );
 
 if ( !-f $trash_path ) {
+    ## restore directory permissions before bailing out : gwd above may ##
+    ## have left the parent dir group-writable                          ##
+    if ( defined $restore_mode && defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $restore_mode,
+            $file_dir;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
+    }
     return { 'content' => 'error: failed to create backup in trash' };
 }
 
@@ -95,8 +102,8 @@ if ($ok) {
 return { 'content' =>
         "error: delete failed: $err [ backup exists at trash/$trash_name ]" };
 
-#,,..,.,,,.,.,...,,..,,,.,.,,,..,,.,,,,,.,.,.,.,.,...,..,,.,,,.,,,.,,,..,,,,,,
-#EUOIS34JLZBTZTSIJXQBFQVW47WHA4TRVTAP3GJKXG52CQBC72WROF5HTHTKAE37PNOZQHK5G3ZEU
-#\\\|EXIYXDPEMIOE7C6673EWCQCDMITJRUOGNMCXDAPFVGDUQKMHJKC \ / AMOS7 \ YOURUM ::
-#\[7]3AMICTQZJLJ5C33ZIHYZGYGNSQP4ZOICFIWQBCXWTG75QRHFEOCY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,.,.,,,..,,,..,..,,.,,,.,.,,.,,.,.,...,...,,,.,...,.,,,.,.,..,,
+#PWTBNZZ6QIQLLU3GNQI4Y5PQJ46CPNTHDPB7CS5BYC3B4BWPOWUBSCDZZM3IFAIFBCKHESD6R5ZZS
+#\\\|U3L34OV5554ZR4DIXGNC2HU23JS62FKUA3WQG3SRNVFXRYUBIVR \ / AMOS7 \ YOURUM ::
+#\[7]ECO6KBOEZBFJG6YW6DUPR5MPGVOC5PGJTU4AIVBB3KKNRZBBYIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
