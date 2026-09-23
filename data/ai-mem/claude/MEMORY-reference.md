@@ -80,9 +80,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 - [cube-type eager devmod precompile](reference-cube-type-eager-devmod-precompile.md) — `system.zenka.type = cube` zenki (cube, cube-13) deliberately keep `devmod.*` in `subroutines.load-early`, regenerated that way by `gen-sub-whitelist`/`dep-graph` even after manual removal; appliance filesystem-crash resilience (only already-compiled code survives a vanished filesystem), not cruft — don't hand-prune it like regular client zenki's load-early lists
+- [log ntime timestamp conversion](reference-log-ntime-timestamp-conversion.md) — `p7c localtime <stamp>` / `p7c delta-time <stamp>` convert zenka-log base32 stamps; `::` = p7c
 
-#,,,,,..,,,,,,.,,,,,.,...,.,,,,,,,,,,,,,,,,..,..,,...,..,,..,,.,.,,.,,.,.,.,.,
-#ZXTR7OJCONIPQIFM63P5RJ22WL7BTIZOFRZ7MBQQCQ5QMIPJ6QNHDRMKYBC6ETGSM7BP534PSG2QM
-#\\\|YUZM6SVBQI7K4HYXK3XMNXJWLUVDPJNBM5DYQHHOPJLU3USW7LR \ / AMOS7 \ YOURUM ::
-#\[7]BLDJJPTTDCVANGPZ7VCMAZELWH3UIJ2VKUIIM4ITAW2Z5UMXXWCQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,,.,,,,,,,,,,..,,,,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,,..,
+#IDHQBYU4ZPC26MOBGHIZOXCZW46F4C72HTIW4WGXHFEDKBH4WZOLEIWGJE56VFO6LANL2YY3BLOAY
+#\\\|QOWCT43CGK3WKOTGMHIVLW3C2LHSUFDZIF6G2IIBCJA2TLKQAHE \ / AMOS7 \ YOURUM ::
+#\[7]GOL5GHQNWZTHLINHIWKID4VF4A6RLMRE52EXGYH5RFV2ZWCTMKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
