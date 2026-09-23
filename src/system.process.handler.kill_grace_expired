@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = system.process.handler.kill_grace_expired
+# descr = follow-up KILL after send_kill's TERM grace period, sent via the
+#         raw privileged kill channel
+# note  = fires unconditionally, no liveness check -- kill() is a harmless
+#         no-op against an already-dead pid, same assumption v7-zenki.
+#         handler.process_kill_list already makes for its own TERM/KILL pair
+
+my $process_id = shift->w->data;
+
+<process.TERM_chld.w_fh>->say("KILL $process_id");
+
+0;
+
+#,,,.,.,.,,..,.,.,,..,,.,,,,,,,.,,...,,,,,..,,.,.,...,.,.,...,.,,,,,.,,,,,.,.,
+#TGT5CCTIOPRMON2OBYLHRH2LW6RZGLUZ4F4ONXQRMDOQDN2OOPSQSBA54ZCNVSUQJN3UYKI6SDLZO
+#\\\|JZT3DBH5SPJCO7BMZKA622CQ5JL4WXIMJBMBEY3NGBMGUCZWFDI \ / AMOS7 \ YOURUM ::
+#\[7]CAND4IAPJOCKCQLAE3SJISZIFXX2ND2UMDWKHBQ2DISNHV5QGOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
