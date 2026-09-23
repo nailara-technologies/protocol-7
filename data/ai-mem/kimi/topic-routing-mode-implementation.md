@@ -6,11 +6,13 @@ routing modes + `-next` admin override family + strm duplicate-slot guard.
 ## live combined console
 
 - combined zenka console: `/dev/shm/.7/STDOUT/NIW7OAQ` (symlink:
-  `/var/run/.7/STDOUT/NIW7OAQ`). when network runs as root it is
-  `-rw------- root` — NOT readable as taeki. fallback: read the per-zenka
-  ring buffer instead: `p7c <zenka>.list buffers` /
-  `p7c <zenka>.show-buffer zenka | grep ...` (works for cube too:
-  `p7c show-buffer zenka`).
+  `/var/run/.7/STDOUT/NIW7OAQ`). when the v7-zenki process runs as root
+  it is `-rw-r-xr-x <system.amos-zenka-user>:<admin-group>`
+  [ or `-rw------- <system.amos-zenka-user>` if no admin group defined ].
+  fallback: read the per-zenka ring buffer instead :
+  `p7c <zenka>.list buffers` /
+  `p7c <zenka>.show-buffer zenka | grep ...` (works for cube too :
+  `p7c show-buffer zenka`), or the log files in /var/log/protocol-7/.
 
 ## sprintf( qw| multi-word |, ... ) bug class [ critical, recurring ]
 
@@ -71,8 +73,8 @@ pattern ].
   gained base.zenki.resolve_routing_sids; runtime ignores signatures,
   human re-signs before commit.
 
-#,,,.,.,,,.,.,..,,,.,,...,,.,,...,.,.,,.,,...,..,,...,..,,,,,,.,,,,.,,,,.,,.,,
-#MXAJWU5XBX42YIWGQ7O4YZU4IYAI7WGDDYJWXQGGZC3AYCXBCFOI6QWSYNSQY35TOCG5OI2I2FNG4
-#\\\|O6JLPHUGQXHJ3CGH4X533T65W5NID5LNRRSG4MX2VH4L3YOYUCI \ / AMOS7 \ YOURUM ::
-#\[7]RA6E36EVQIIZKPZAYE6DMNUG33RAPJFYN75OJTZSUGQJ6SK56KCI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,,,,,.,,,,.,,,..,.,,,.,.,,,,,..,,...,..,,.,.,...,,.,,,.,,...,
+#4OMRVMF4OMGMVVQRZK5RBSNRSP6GY2LI365FKJN3UUV5NXIBSUUYPMZCUPWYCEGSVIVLGQRCTC5YE
+#\\\|YJ4T3V5BP5CCRHXUABFQILTVF2DWIOKIHXYFRFJY2X2CPMQDRBP \ / AMOS7 \ YOURUM ::
+#\[7]YRKTWV24RQSDI2PQQMVFEP7HC6JNMZ5D6MMHTZMWCQSTOK7OVYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
