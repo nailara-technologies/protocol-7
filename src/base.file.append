@@ -23,12 +23,11 @@ if ( not length $write_file_path ) {
         "cannot open '%s' for appending [ %s ] <{C1}>",
         $write_file_path, <[base.str.os_err]>
     );
-    binmode( $fh, $encoding ) or <[base.s_warn]>->(
-        ': binmode :
-    %s', <[base.str.os_err]>
-    );
     return undef;
 }
+
+binmode( $fh, $encoding )
+    or <[base.s_warn]>->( ': binmode : %s <{C1}>', <[base.str.os_err]> );
 
 if ( @file_content > 1 ) {
     print {$fh} @file_content;
@@ -51,8 +50,8 @@ if ( not close($fh) ) {
 }
 return TRUE;    ## true ##
 
-#,,,.,...,...,..,,.,,,.,.,...,,,,,.,.,.,,,,,.,.,.,...,...,..,,,,,,,.,,,,.,.,,,
-#SZOLPC2J7TK6WDSZ2INKAU6Y2OSVC7OVFXCJSRJ3QZQZOATYA6KJYYSKPDRCO7HH4UEK7F5LROZQO
-#\\\|CK43GRKSKL3VWMENE7D7CY2ICYKAXKXUOL4KIVJ5IGXLGMHQCZ7 \ / AMOS7 \ YOURUM ::
-#\[7]RMU4UAAS47EFWUBPPW57SIAX2Y6ZMJVJBFSYUACKYTVAK6ZULIDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,,.,,.,.,..,,,,.,.,,,...,.,,,.,.,...,...,...,,..,..,,..,,,..,
+#ZARGRI3PEFPND2LHA6XOYZHBMV6DBWHMKZN27YVLHYJZX67RBISE4L4RO5DIAZAJK5FB2WQZBOXNK
+#\\\|RQZGACEF2RWDHFC3QRHTF2TC2CIHP3VADQFGFPVV5DXLZHVNRRF \ / AMOS7 \ YOURUM ::
+#\[7]XSBH7KMPDPV5HO523SCPMZGFVLNAKKRNN44ACI2CKAMYI7333QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

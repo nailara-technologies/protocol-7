@@ -26,11 +26,39 @@ return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
 ## check task is actually running ##
 my $status = $task->{'execution'}->{'status'} // 'unknown';
 
+## a pending/subtask task with no live round can't be stopped the normal   ##
+## way : stop_requested is only ever consumed by send_request [ see        ##
+## coding.async.send_request's stop-check ], which never runs again for a  ##
+## task nothing is trying to schedule. this happens for a task that was    ##
+## never dispatched, or -- as with task-PYYJCJY, a scar from the           ##
+## backend_acquire double-acquire bug fixed 2026-09-23 -- one that already ##
+## finished [ execution.success/result populated ] but never transitioned  ##
+## out of 'pending' because a second, concurrent round raced its finalize. ##
+## finalize it directly instead of setting a flag nothing will ever read   ##
+if ( ( $status eq qw| pending | or $status eq qw| subtask | )
+    and not exists <coding.async.task_state>->{$task_id} ) {
+    $task->{'execution'}->{'status'}
+        = $task->{'execution'}->{'success'} ? qw| completed | : qw| failed |;
+    <coding.task.pending>
+        = [ grep { $ARG ne $task_id } @{ <coding.task.pending> // [] } ];
+    <[base.logs]>->(
+        1, "stop-task: finalized stalled %s task %s as %s",
+        $status, $task_id, $task->{'execution'}->{'status'}
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => "task $task_id had no live round -- finalized as "
+            . $task->{'execution'}->{'status'}
+    };
+}
+
 return {
     'mode' => qw| false |,
     'data' => "task not running (status: $status)"
     }
-    unless $status eq qw| in_progress |;
+    unless $status eq qw| in_progress |
+    or $status eq qw| pending |
+    or $status eq qw| subtask |;
 
 ## set stop flag ##
 $task->{'stop_requested'} = 1;
@@ -75,8 +103,8 @@ return {
     'data' => "stop requested for task $task_id"
 };
 
-#,,.,,...,.,,,,,.,,,.,...,.,,,.,.,...,,..,.,.,.,.,...,...,,.,,...,,,.,...,,,.,
-#MKBVCSGAVCJWZXW2VTT5GC4QDUUX4UTCRNEKJT3ZNWH7TPOA77ED3F2WPWVV7GFIMIY4BQ5KQET5E
-#\\\|YFU7VAQ33FVNYR7B2G7ILUW5WV6TST5T5WMIASGOI4QHCZNTJHL \ / AMOS7 \ YOURUM ::
-#\[7]XUZZ5RTMFLXKLNOQKTQ3CV3LAJCWXENGRRXWXUDVFJAXXKKJW2BY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,.,,,...,,..,.,.,,,.,.,,,.,.,.,.,...,...,...,,..,,,.,,,.,,.,,
+#FE4DHUXY5A52EUS6XZ6Q77YZHH5ONYGXGOCRAZC5BXHJHUO3AOAQHZSVS62HKRMJ4DIORWTJW7EY2
+#\\\|J2XWKDRMQGCSYKZNOXA75HKNRH3H4APQRGLXPQPJDG7VBDJXOON \ / AMOS7 \ YOURUM ::
+#\[7]L2BCYKFLCNQ3YXYDZP7BC7GSLMKQYCGP25EKLMLK5RB7K7CUYAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
