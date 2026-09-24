@@ -36,8 +36,14 @@ if (    $response->{'cmd'} eq qw| TRUE |
         );
     }
     if ( defined $latency ) {
-        my $stats = <v7-zenki.stats.heartbeat>->{$zenka_name} //= {};
-        $stats->{'zenka_name'} //= $zenka_name;    ##  list sort key  ##
+        my $stats_tree = <v7-zenki.stats.heartbeat>  //= {};
+        my $stats      = $stats_tree->{$instance_id} //= {};
+        $stats->{'zenka_name'} = $zenka_name;    ##  list sort key  ##
+
+        ##  clean-up for instances no longer present  ##
+        map { delete $stats_tree->{$ARG} }
+            grep { not exists <v7-zenki.zenka.instance>->{$ARG} }
+            keys $stats_tree->%*;
         if (    defined $stats->{'average'}
             and $stats->{'average'} > 0
             and $latency > 10 * $stats->{'average'} ) {
@@ -105,8 +111,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,,,,..,,..,.,.,.,.,,,.,,,,,.,,,,..,.,,,.,.,..,,...,...,.,.,..,,,.,,,,.,,,,,
-#Z6FLIY7BAMVJML6CQHPJRZQHAND62VLCQDRQGBFDCSUSXSVBNHROB3NHDRC5527W6GRX7LHBB6I26
-#\\\|776JMR7UFPDFKY4QDO4IKYGYRM7IM4BBY5TLZEQQASBBSVKIEWG \ / AMOS7 \ YOURUM ::
-#\[7]KYKN6URF253LUIHLIW4WHL4R33X6WVVGR3VY3ERTAOZQEC7DE4CI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,..,,...,.,,,..,,,.,,..,,...,...,..,,...,...,,,.,.,,,,,.,..,,.,,,
+#EGOPYLMLSRYGVN4FLBW2BYTR4UYDAOPY6IACKQNV7DWRRYOBAAEPRWVPQGSHDN7Y2OVRWP6BH5CEU
+#\\\|NWFMU6DWKFDA7MYBBJSBRP5PZSQ2DPKK4SRGWQ3KTF74PIOUYGL \ / AMOS7 \ YOURUM ::
+#\[7]CBX5F5JF64KNV25WB6MVYYYYNU635CO7TKS7VDMHBGA7HDDGYCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
