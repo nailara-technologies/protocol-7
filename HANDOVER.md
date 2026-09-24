@@ -10,7 +10,7 @@ has repeatedly cost real momentum — see "the mistake to not repeat" below.
 Came out of the backend-lock session [ e8bb6b5b7, c12fe7d54, 484ea4bb9,
 1f6d5aadd ]. Agreed in principle ; priority : 1, then 6.
 
-1. **token-based backend lock** [ brief : data/tasks/coding-backend-lock-tokens.md ] — `backend_acquire` returns a token [ request
+1. **token-based backend lock** [ DONE 2026-09-24 : 45995da5b, see data/tasks/coding-backend-lock-tokens.md ] — `backend_acquire` returns a token [ request
    seq ], `backend_release` only accepts the matching token, explicit `force`
    for unconditional callers [ stop-task, sweeps ]. Replaces the `lock_seq`
    patch ; reentrancy becomes "same token", the question the reverted
