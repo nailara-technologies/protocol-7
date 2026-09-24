@@ -63,8 +63,19 @@ style ] and `data/ai-mem/claude/reference-per-target-log-levels.md` first.
   [ v7-zenki + cube ; base.* changes affect every zenka on its reload ]
 - don't commit without the user's signed version
 
-#,,.,,.,,,.,,,,.,,.,.,,.,,,,.,,.,,...,,.,,.,.,..,,...,...,,.,,,.,,.,,,,.,,.,,,
-#JWVTX6XLBJRRCKCHIZOJOK67EAPBOTCMFZWG3C7OBUROCQW4YPG3YT7GLU2XXGGRSLJCZAP5AQHXY
-#\\\|I3ATVPBJ2GW7CBPWVKE6DTO7X2FI42ATZ7XBPY7UHD6QKU5ZGHT \ / AMOS7 \ YOURUM ::
-#\[7]WRJM5I66KLOXSPXP3CVVABDG6SS7KWIKPLZZDLVY7ETRZZDTVIBY 7  DATA SIGNATURE ::
+## status [ 2026-09-24, same day ]
+
+- steps 1-4 + 6 done [ c9ffcacca .. 5d73bc312 ] : stats per instance,
+  `v7-zenki.list heartbeat`, outliers logged '3:1' + counted
+- step 5 was ALREADY in place : `cfg/logging-configuration`
+  `log.level.cmd-offset.heart = +1` moves heartbeat routing lines to
+  level 3. the devmod flag `skip_v7_heartbeat` was never set anywhere
+  [ since 2021 ] -> removed as dead code
+- idea : a devmod command showing heartbeat traffic TEMPORARILY [ offset
+  to 0 for n seconds, then restored ], like `discover.cmd.show-temp-echo`
+
+#,,..,..,,...,,,.,,.,,.,,,..,,...,,,.,.,.,,,,,..,,...,..,,.,,,,..,.,,,...,.,,,
+#AHJL2FOCEWXU5YDVAAY72KLJPIUOXX3ATJRY23TOHPPKUKDHFYZCSZMKJTBKGVL5D3QWJVBU26V6K
+#\\\|ILNUCWCIXEIDMHZGNSA7J6MNWIMI2QL5CEDXGNXEZ33AKE3EXLQ \ / AMOS7 \ YOURUM ::
+#\[7]TQJWYR347Y75DQHCCIC6NCBKFDRG655MGFJ6ARY22Z2O6MB7CUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
