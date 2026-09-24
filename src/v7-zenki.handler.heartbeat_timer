@@ -32,7 +32,7 @@ if ( <system.zenka.verbosity.console> > 1
     $instance->{'heartbeat'}->{'load-factor'} = $verbosity_factor;
     <[base.logs]>->(
         1, 'increased %s heartbeat response timeout to %.3f s [ verbosity ]',
-        $zenka_name, $timeout_secs
+        $zenka_name, $timeout_secs * $verbosity_factor
     );
 }
 ##
@@ -67,8 +67,8 @@ delete $zenka_config->{'heartbeat'}
     if !keys %{ $zenka_config->{'heartbeat'} };
 delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
 
-#,,,,,,,.,.,.,..,,,,,,.,,,.,,,..,,..,,,,,,...,..,,...,...,.,.,,,.,..,,,,.,,.,,
-#GQFLYAULHYLP4OM76B3VD6NUZQQUKJ3VVKRM7KNQRMNZSFYKVNXRWHPQIGHZJ47AXK3KFWOFQKVM6
-#\\\|DIXQ3Q3Y3SZLTQFL6XY4JGR4WQM3CZLTCV36FGQ3G7QVEOKP6YS \ / AMOS7 \ YOURUM ::
-#\[7]EAZKLFXURHC55EMEUIAJLYAVVIP46W22IJDRG5RICIMIQDVW6ODI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,,..,.,.,,,,,..,,,,.,.,,,,..,..,,...,...,...,,,.,...,..,,,..,
+#4EBFPLDF64TK5WY6BIKPQVTSLDQMV2HEOEVBU7KEWZEVX6WGHXMDFAII3LBW6UQW6TNPSE2O4C4NW
+#\\\|E6J46VLK3PYCZFBSRO3LWHRJ7QKTOLBBMUY63MPEIE5UHM4ECSW \ / AMOS7 \ YOURUM ::
+#\[7]LJ4LED5MOUWM5ZQG3TIDS2JN6GRJ2SGJLUCHOBL7AIY3PQ5TXCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

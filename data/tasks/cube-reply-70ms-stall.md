@@ -69,8 +69,20 @@ p7c itself does blocking 1-byte `recv`, no waits [ `bin/c_src/p7c.c` ].
 - syntax check : `bin/format-code -c`
 - don't commit without the user's signed version
 
-#,,,.,.,.,..,,..,,.,.,.,.,,,,,,.,,.,,,,.,,.,.,..,,...,...,,.,,,.,,,,.,,.,,..,,
-#LPJWIY52VIWRCTVOZ3NPBM5X7TH6M4X2O5FMBLZCD6AW2QHPAJ4MSSGURCKDYXVJ7UMDIAXBFQPIW
-#\\\|JKDJ5Q3OQ6L4PLE3I4KPAMCRFXY42RWTBNKJNLFWE4SYBXHFGXW \ / AMOS7 \ YOURUM ::
-#\[7]D242BVP35O6YP4HBHKT6CAJXVJ5ALYZ2EKFY6RKC7XGP7A6DLSDQ 7  DATA SIGNATURE ::
+## more observations [ 2026-09-24, later ]
+
+- a second, smaller step of ~13-14ms also shows up
+- startup is worse : 4 of 8 cube heartbeats stalled after one restart
+- correlation seen in a `-vv` capture : cube 71ms stalls while p7-log
+  reported a high write rate [ `legacy_gap_sweep: write rate 62.90/tick
+  still above threshold` ], a p7-log 301ms outlier right after `starting
+  sweep` -> supports hypothesis 2a [ busy slices ]
+- outliers are now logged to the v7-zenki logfile with timestamps
+  [ `heartbeat latency ... [ average ... ]` ] + counted in
+  `v7-zenki.list heartbeat` -> usable to correlate with other zenka logs
+
+#,,.,,.,.,,..,,,.,.,,,.,.,...,.,.,.,.,,..,.,.,..,,...,...,.,.,,.,,..,,,,,,,,,,
+#NPOS5W6PPRZHYJXOLDJYTOEHXMNGN6DDR3VQN6XU6AHNGFWVF5FK53PLB26MZHMH5UREZB4P3CM5I
+#\\\|5LV6H3BH3KU44MCIAX2VGBZ26RDG3VLGB3ZOA6QWCLGQ3NTD2UP \ / AMOS7 \ YOURUM ::
+#\[7]YYH7PJUAOB56GTNPLHOG67P4DPSXG2YQLDOSGRXWW7U22V5WN4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

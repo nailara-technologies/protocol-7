@@ -55,7 +55,7 @@ if (    $response->{'cmd'} eq qw| TRUE |
             and $latency > 10 * $ref_value ) {
             $stats->{'outliers'}++;
             <[base.logs]>->(
-                '2:1', '%s heartbeat latency %.5f s [ %s %.5f s, %s ]',
+                '3:1', '%s heartbeat latency %.5f s [ %s %.5f s, %s ]',
                 $zenka_name, $latency, $ref_name, $ref_value, $source
             );
         }
@@ -84,7 +84,7 @@ if (    $response->{'cmd'} eq qw| TRUE |
     <[base.logs]>->(
         3, "instance $instance_id [success] heartbeat : =) :: %s ::",
         $zenka_name
-    ) if not <devmod.skip_v7_heartbeat>;
+    );
 
 } elsif ( !$heartbeat_retry ) {
 
@@ -119,8 +119,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,.,,...,.,.,,,,,,.,,,,,,.,.,..,,.,.,.,.,,,.,..,,...,...,.,.,..,,.,,,.,.,..,,
-#72AQK2T6OHRXFEXMYIMFFUB7MR7RU2ZHNHHJXTWCN32SBW4GBQSBTD2BQ7I4OEP7KQQKF6JV75F2G
-#\\\|QPSRCPOYTLYB5XB4BRI645F2MWBIKHPOIE4A4KXY3PA3B3SHHAY \ / AMOS7 \ YOURUM ::
-#\[7]54YBFN2KMYF6KVASAK56MDTTZBENNJSMI636KPHTNYH6PEOPTYBA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,,.,,...,,,.,,,,,.,,,.,,,,..,..,,...,...,,.,,,..,.,.,..,,.,.,
+#7IR3USEXQSKH5P5LAZOIVNWMUHUZCCUATMJN6D5QGVZJDZN3RAVVFQKPDP4HGSFMXLGHDP2ARUEUI
+#\\\|VGLRAERVM6UOODP2H6WUZ6WLJ6V5NCGOQDQCCUP6O6TOE2ZLKOV \ / AMOS7 \ YOURUM ::
+#\[7]NB2FNGYSWHA326BMYJZTLPXTLGO63BZ3BFRS5Q55KUNEJC6XSGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
