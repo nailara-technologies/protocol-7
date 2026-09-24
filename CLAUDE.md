@@ -73,7 +73,7 @@ Protocol-7 is a **multi-agent system** where each agent is called a **zenka** (s
 
 #### Key Zenki:
 - **`cube`** - Message router between zenki (started first)
-- **`v7`** - Zenka manager that starts and manages other zenki
+- **`v7-zenki`** - Zenka manager that starts and manages other zenki
 - **`httpd`** - HTTP server agent
 
 ### Module System
@@ -260,9 +260,9 @@ Async HTTP server components implemented on `base`:
 - **Source**: `bin/c_src/p7c.c` - C implementation for low-latency network access
 - **Auto-installation**: Compiled and installed to system path when v7 zenka starts
 - **Configuration**:
-  - `v7.cfg.install_bin_p7 = yes` - Enable auto-installation
-  - `v7.cfg.p7_bin_path = '/usr/local/bin/p7c'` - Installation path
-  - `v7.cfg.bin_p7_static = yes` - Static binary compilation
+  - `v7-zenki.cfg.install_bin_p7 = yes` - Enable auto-installation
+  - `v7-zenki.cfg.p7_bin_path = '/usr/local/bin/p7c'` - Installation path
+  - `v7-zenki.cfg.bin_p7_static = yes` - Static binary compilation
 - **Purpose**: Provides system-wide access to Protocol-7 network commands without requiring network code in calling scripts
 - **Usage**: `p7c <command> [args]` - Routes commands through Unix socket to cube zenka
 - **Environment**: Uses `PROTOCOL_7_UNIX_PATH` and `PROTOCOL_7_BIN_P7_USER` environment variables
