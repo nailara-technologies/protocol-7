@@ -260,36 +260,33 @@ delete <list.users>;
     qw| descr |    => 'heartbeat latency per instance '
         . '[ cube : v7 round trip ]',
     qw| mask | => join( ' ',
-        '<key>:instance zenka_name:zenka count average:avg_[ms] min max',
-        'max_at:max-age last timeouts:t/o source last_at:age' ),
+        '<key>:instance zenka_name:zenka count average:avg_[ms] min last',
+        'outliers timeouts:t/o source last_at:age' ),
     qw| align | => {
         qw| instance |   => qw| left+1 |,
         qw| zenka_name | => qw| center |,
         qw| count |      => qw| center |,
         qw| average |    => qw| center |,
         qw| min |        => qw| right-2 |,
-        qw| max |        => qw| right-1 |,
-        qw| max_at |     => qw| center+1 |,
+        qw| outliers |   => qw| center |,
         qw| last |       => qw| right-3 |,
         qw| timeouts |   => qw| center |,
         qw| source |     => qw| center |,
         qw| last_at |    => qw| center |
     },
-    qw| defaults | => { qw| timeouts | => 0 },
+    qw| defaults | => { qw| timeouts | => 0, qw| outliers | => 0 },
     qw| filters |  => {
         qw| average | => qw| v7-zenki.parser.latency_ms |,
         qw| min |     => qw| v7-zenki.parser.latency_ms |,
-        qw| max |     => qw| v7-zenki.parser.latency_ms |,
         qw| last |    => qw| v7-zenki.parser.latency_ms |,
-        qw| max_at |  => qw| base.parser.duration |,
         qw| last_at | => qw| base.parser.duration |
     }
 };
 
 return 0;    ## successful init ##
 
-#,,.,,,,.,,,.,,,.,,,,,,,,,,,,,,..,,,.,,..,.,,,..,,...,...,,.,,.,,,,,,,..,,,.,,
-#LNIGUSPWLQFZLARYKFIRO2XXKVE5JLNROIHOYRD4BR75ULTB2HUITOMLB33Z5BIP3WZFCSHNIGKCU
-#\\\|6LAIAVWDNDYJ6QSYM6JWT252TCJH6MVBLVLNBBSZ6FI7AU65LKI \ / AMOS7 \ YOURUM ::
-#\[7]O4MQCY2BW7IXIV75OVXE7I3PSDRASYN5GLFCTQ64IK52UJN2TGAQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,.,...,.,,,,,,,...,...,,.,,..,,...,...,...,.,.,.,,,.,.,...,
+#LZYXFXNFZYTLKTI5TZ6I4INNOX4FENZND5JRG3PS7H3AOU36H5WCSBX534BEJ46KW74FA5HKO5CEQ
+#\\\|MH6NQYECWYY7O4NHUHWM2CHMQ6VGEKE46P475EDVCGPCFFLCRGS \ / AMOS7 \ YOURUM ::
+#\[7]HFRLRDRQOF253QVKTK5ZDPZ7CCAPZ4QKJDBUKIQLVH2IZZRME4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
