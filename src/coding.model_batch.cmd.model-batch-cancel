@@ -40,7 +40,8 @@ my $switch_id = $report->{'switch_id'} // '';
 ## backend_release's holder check ; the id is batch-specific ]            ##
 if ( length $switch_id ) {
     <[coding.async.backend_release]>->(
-        sprintf( qw| batch:%s |, $switch_id ), $backend
+        sprintf( qw| batch:%s |, $switch_id ),
+        $backend, qw| force |
     );
 }
 
@@ -66,8 +67,8 @@ push @lines,
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,.,,,,..,,..,..,,,,.,,..,,,.,,,,,.,.,,,.,..,,...,...,,,,,.,.,,,,,,,.,.,.,
-#5RMIKMQG5ZQEANAXGRE4GZTAA3RHEFHRWVUS3OMADLNMERVA6TDKSLIISUSRECPKLCNR6ZXFNQH36
-#\\\|XEUD6QEUDLWHZVQQ5ZNRQTHPZ75AHC3OSKSFWEN35D26YR4CL6J \ / AMOS7 \ YOURUM ::
-#\[7]YEKS4235VABZGA5WFERFT7NEZPCW7RT55H6TIWT37KONELUQN2AA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,,,.,,,,,.,.,,..,.,.,,,.,,..,..,,...,...,,,.,,,,,,,.,.,.,,,,,
+#VS53FOUASGUSATTPOQYI3EW7YOZEGZ777Y2AVVU6G5IZLMVAXII3BEA2YRF7Y4ADFEZAV4QFWWAQK
+#\\\|6JT5PHB5KR7TPCDKPDMYX52AWBB25CN67Y4TBVLTKZD5QI2JUMQ \ / AMOS7 \ YOURUM ::
+#\[7]MOFDKVGHXDDDXVA43ECDR4UEOTRD6MGA3V5BMCCZQZUYW7P4OOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

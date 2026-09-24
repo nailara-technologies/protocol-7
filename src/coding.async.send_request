@@ -16,6 +16,15 @@ if (<coding.task.queue_paused>) {
     my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
     my $round = $state->{'round'} // 0;
 
+    ## free the lock this caller holds [ if any ] : the timer below comes ##
+    ## back through enqueue_round as a fresh acquire, which would queue   ##
+    ## behind this task's own lock forever [ no request will release it ] ##
+    my $backend_qp = ( $state // {} )->{'backend'} // '';
+    <[coding.async.backend_release]>->(
+        $task_id, $backend_qp,
+        <[coding.async.lock_token]>->( $task_id, $backend_qp )
+    ) if length $backend_qp;
+
     ## coding.task.enqueue_round is direct-call shaped, not an event-timer  ##
     ## handler - route through the thin adapter rather than arming it as    ##
     ## 'handler' here directly [ see coding.handler.enqueue_round_timer : a ##
@@ -107,10 +116,14 @@ if ( defined $task && $task->{'pause_requested'} ) {
     ## it must not make unrelated tasks wait on this one [ real ordering   ##
     ## between tasks is expressed through deps / subtasks, not the lock ]. ##
     ## no request is in flight here, and resume goes back through          ##
-    ## async.request, which re-acquires or queues                          ##
-    my $state_p = <coding.async.task_state>->{$task_id} // {};
-    <[coding.async.backend_release]>->( $task_id, $state_p->{'backend'} )
-        if length( $state_p->{'backend'} // '' );
+    ## async.request, which re-acquires or queues. token : the one this    ##
+    ## call chain presents [ callback / enqueue_round / handoff context ]  ##
+    my $state_p   = <coding.async.task_state>->{$task_id} // {};
+    my $backend_p = $state_p->{'backend'}                 // '';
+    <[coding.async.backend_release]>->(
+        $task_id, $backend_p,
+        <[coding.async.lock_token]>->( $task_id, $backend_p )
+    ) if length $backend_p;
     return { success => TRUE, paused => TRUE };
 }
 
@@ -378,8 +391,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,...,.,,,...,.,.,,,.,,..,.,,,.,,,,.,,,..,..,,...,..,,.,.,,.,,,..,,..,.,,,
-#EHNHCAFCCDA6UAIXFBMGC2UVHPNYW2FVW6Z2CZMA4ATKF4KBL2YFGOJIACXSNH7AEVNHNQFWWLWRY
-#\\\|O5OPVI4XINXT4GRH4VUGM7O6MIG4LLXEJOM772NZ3EAC75363W3 \ / AMOS7 \ YOURUM ::
-#\[7]EKLF4L7WFV3ZBCLLTATQTFTTZWKGYF4FCDLHTX5CCI2URGKARMDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,,.,...,..,,...,.,.,.,.,.,.,..,,...,...,.,.,,,.,..,,..,,,,.,
+#PXMXB5IPAPCCTHACBJ3KZ6QFRUXCOCIXWMFMVR6IUCZECL2O47CEKV6CZC5YLNZMRV7WAYLRSGJLY
+#\\\|AO7DVMI5ECPG5OJUQYOZAGXGUPDRHIS5OU4KQKMQWETAFUVDJPV \ / AMOS7 \ YOURUM ::
+#\[7]G4YVDNSPUUBO7TYYTLF6NF2ZSRF372S2RKWZRKPXJZZLPPMHBECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

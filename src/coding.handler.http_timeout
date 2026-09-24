@@ -110,7 +110,9 @@ if ( $stream_alive and defined $task_state and $ceiling_used < $hard_ceiling )
         $hard_ceiling
     );
     <[coding.async.http_cleanup]>->($state);
-    <[coding.async.round_soft_restart]>->( $task_id, $hard_ceiling );
+    <[coding.async.round_soft_restart]>->(
+        $task_id, $hard_ceiling, $callbacks->{'lock_token'}
+    );
     return;
 }
 
@@ -168,8 +170,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,.,.,,,,.,,,.,,,,.,,..,,..,.,,,,.,,.,.,,..,.,.,...,...,,,.,...,...,.,,,,..,
-#Z6QZSJU2FYNWQBYITFEB4JOCWJCWPP2AKGCUT4IG5IPL3PEUP4QQTPZ4AICJX2SVEVBQ4AY3476QI
-#\\\|EMFWJXMNM2LUR3IBNTPM4MMJCOJWW5FKYPHZBFT4E3KTY6ZNMPR \ / AMOS7 \ YOURUM ::
-#\[7]CYGI27W34DFLFC4R4T7VW5NJ4KADPJYQPJS5GINKP74BKFSVOMDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,..,,,.,,..,,,.,,.,.,.,,,.,,,.,.,...,...,..,,.,,,..,,.,.,...,
+#B7AJ3U6YYB4LA3DEH3PGCSICOPQ2L5V5ZM5GD3ZYMD2U3LMQOXWQZYQTLD2SSJCFMOLJAILKTAANG
+#\\\|3QFSLD5BFBUWA6NF5CBGPHXJADMZ6V4WUYKPK7IOTL4RUSQFYHY \ / AMOS7 \ YOURUM ::
+#\[7]RZOPFXLBVSOV2YQZIKZS6ZH3WUB4IE3HJZBO3QYBLCIEULJWSKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

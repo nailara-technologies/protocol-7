@@ -1,10 +1,28 @@
 ## [:< ##
 
 # name  = coding.async.backend_acquire
-# param = task_id, backend
-# descr = acquire backend lock or queue task if busy
+# param = task_id, backend, [ token ]
+# descr = acquire backend lock [ returns a token ] or queue task if busy
 
-my ( $task_id, $backend ) = @ARG;
+## token-based lock [ 2026-09-24 ] : the lock identity is a per-backend     ##
+## token, not the task_id. one task makes many sequential requests and old  ##
+## connections keep streaming / closing after the next round was sent, so   ##
+## "same task_id" can not tell the holder from a stale or concurrent caller ##
+
+## a fresh grant and a re-entry both rotate to a NEW token : whoever held  ##
+## the previous one [ an older connection's callbacks ] can no longer      ##
+## release. re-entry needs the CURRENT token, presented explicitly or      ##
+## through <coding.async.lock_ctx> [ set by async.request's callbacks,     ##
+## enqueue_round and the release handoff around their own synchronous call ##
+## chain -- see coding.async.lock_token ]. a caller of the holder task     ##
+## WITHOUT the token [ task-append, timers, complete's recovery paths ] is ##
+## a second, independent caller : it queues like any other task instead of ##
+## riding the running request                                              ##
+
+## do NOT go back to a task_id / task_state based re-entry check -- see    ##
+## data/ai-mem/claude/project-coding-async-backend-acquire-reentrancy-race ##
+
+my ( $task_id, $backend, $token ) = @ARG;
 $backend //= qw| gpu |;
 
 <coding.state.backend> //= {};
@@ -12,49 +30,42 @@ $backend //= qw| gpu |;
 
 my $bs = <coding.state.backend>->{$backend};
 
-## already holds the lock : re-entrancy guard. REVERTED 2026-09-24 to the   ##
-## plain task_id-only check -- a same-task_id reacquire is the NORMAL,      ##
-## expected shape of an ordinary round-to-round continuation [              ##
-## state_machine / chunk_handler never call backend_release between a       ##
-## task's own rounds, by design -- <coding.async.task_state> exists for a   ##
-## task's ENTIRE lifecycle, not just while a request is actively in flight, ##
-## so gating this on "does task_state exist" [ tried 2026-09-23, commit     ##
-## d3c07acee ] refuses the shortcut for EVERY normal round transition, not  ##
-## just a genuine race -- confirmed live 2026-09-24 : every multi-round     ##
-## coding task got stuck queued behind its own lock at round 2, the very    ##
-## first internal round-to-round transition after a tool call. this reopens ##
-## the narrower original race [ two INDEPENDENT external triggers -- task-  ##
-## append's resume branch vs coding.async.complete's own injected-messages  ##
-## recovery -- both deciding a terminal-looking task needs a fresh round at ##
-## the same moment ] rather than leaving basic multi-round functionality    ##
-## broken ; that race needs a signal that actually distinguishes "one       ##
-## caller's own synchronous continuation" from "a second, concurrent        ##
-## caller", not task_state's mere existence -- revisit with more care       ##
-## before re-adding, don't re-copy this exact check                         ##
-if ( defined $bs->{'lock'} and $bs->{'lock'} eq $task_id ) {
+## implicit presentation : the synchronous call chain of the holder ##
+$token //= <[coding.async.lock_token]>->( $task_id, $backend );
+
+## holder presents the current token : re-entry, rotate the token ##
+if (    defined $bs->{'lock'}
+    and $bs->{'lock'} eq $task_id
+    and defined $token
+    and defined $bs->{'lock_token'}
+    and $token == $bs->{'lock_token'} ) {
+    my $new_token = ++$bs->{'token_counter'};
+    $bs->{'lock_token'} = $new_token;
     <[base.logs]>->(
-        1, 'lock %s: %s#%s -> %s#%s [reenter]',
-        $backend, $task_id, $bs->{'lock_seq'} // '-',
-        $task_id, $bs->{'lock_seq'} // '-'
+        1, 'lock %s: %s#%d -> %s#%d [reenter]',
+        $backend, $task_id, $token, $task_id, $new_token
     );
-    return { acquired => TRUE, queued => FALSE };
+    return { acquired => TRUE, queued => FALSE, token => $new_token };
 }
 
 ## lock is free : acquire ##
 if ( not defined $bs->{'lock'} ) {
-    $bs->{'lock'} = $task_id;
+    my $new_token = ++$bs->{'token_counter'};
+    $bs->{'lock'}       = $task_id;
+    $bs->{'lock_token'} = $new_token;
     <[base.logs]>->(
         2,        'backend_acquire: %s acquired %s lock',
         $task_id, $backend
     );
     <[base.logs]>->(
-        1,        'lock %s: free -> %s#- [acquire]',
-        $backend, $task_id
+        1, 'lock %s: free -> %s#%d [acquire]',
+        $backend, $task_id, $new_token
     );
-    return { acquired => TRUE, queued => FALSE };
+    return { acquired => TRUE, queued => FALSE, token => $new_token };
 }
 
-## lock is held by another task : queue this task ##
+## lock is held [ by another task, or by this task without its token ] : ##
+## queue this task                                                       ##
 my $queue = $bs->{'queue'};
 unless ( grep { $ARG eq $task_id } @{$queue} ) {
     push @{$queue}, $task_id;
@@ -64,21 +75,25 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
     );
     <[base.logs]>->(
         1,
-        'lock %s: %s#%s -> %s#%s [queue %s, %d waiting]',
+        'lock %s: %s#%s -> %s#%s [queue %s%s, %d waiting]',
         $backend,
         $bs->{'lock'},
-        $bs->{'lock_seq'} // '-',
+        $bs->{'lock_token'} // '-',
         $bs->{'lock'},
-        $bs->{'lock_seq'} // '-',
+        $bs->{'lock_token'} // '-',
         $task_id,
+        (   $bs->{'lock'} eq $task_id
+            ? ' : holder without token#' . ( $token // '-' )
+            : ''
+        ),
         scalar @{$queue}
     );
 }
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,,.,,,.,,,,,,..,.,,,.,.,...,,,.,,.,,,..,,,.,..,,...,..,,,,.,,,,,..,,,,,,,..,
-#M55QP34CNT4XWCNFHYA62Z6BLDJVOZY56772RNPDDE44IOFGU24SQ3EIU7476WJGCMWZ5ABU3ZEFI
-#\\\|Y4SYNIL6VPNB6FX7UQ2D5BKMOT5CPAEKHHKCRBWG2WRGKRV3SGO \ / AMOS7 \ YOURUM ::
-#\[7]7ULSA3KGHGABBRXVZR2VEKOLP7Q3CIFUGEOBVEAEBMGQFC46RSCY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,..,,,,.,,,.,,,,,,,.,,.,,.,.,..,,...,...,..,,.,.,..,,,.,,.,.,
+#QVEIG5LZA2P3N5FFIB7YFRBJKSTYXL4GSMLG3YOZC6UQKWNS4LPOFJNQIBHT4F2W4XN2U5ZP5YSB4
+#\\\|63OT2AD2YVLJPGFSDZJJKB3JZMXEZ3UG6IOJKUK24TUKDYWGEUO \ / AMOS7 \ YOURUM ::
+#\[7]45ZI7E44WT6JBWP7LWJYHE5VH37OUPW5FDO7FCRFQPF7CFIZU4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,6 +23,7 @@ my $backend  = $params->{'backend'}  // 'gpu';
 ## reasoning ]                                                              ##
 my $timeout = $params->{'timeout'} // 127;
 my $on_done = $params->{'on_done'};        ## coderef : ( $result_hashref ) ##
+my $lock_token = $params->{'lock_token'};    ## from poll_probe's acquire ##
 
 ## LOAD-BEARING : the SAME id poll_probe used to acquire the backend lock.  ##
 ## ownership split : poll_probe acquires [ only when free, never queued ],  ##
@@ -69,7 +70,7 @@ my $finish = sub {
     my ($result) = @ARG;
     return if $settled;
     $settled = TRUE;
-    <[coding.async.backend_release]>->( $probe_id, $backend )
+    <[coding.async.backend_release]>->( $probe_id, $backend, $lock_token )
         if length $probe_id;
     $on_done->($result) if ref $on_done eq qw| CODE |;
     return;
@@ -157,8 +158,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,,.,...,,,.,...,,.,,.,,,...,,..,,,,,...,,.,,..,,...,...,..,,..,,,.,,,..,.,,,
-#QU4RASJH5RNM7ZMWH6VVYKBUTAWRBUO7FU5KMFCLPQ3SGHGRXAPRN5CITQ7Q34ODKITWW6PFIBRJA
-#\\\|TPZ245WASX75IMT4DWRVMOQHV7MYNQT4Z4KGI7SQ6RKC3UNZJP3 \ / AMOS7 \ YOURUM ::
-#\[7]2GGM4OOHCCNN25GKKKXEID7JWRZFHZ2NU7VQ6R2P7IGGBABKR2AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,..,,..,,,,,,,.,...,,,,,,..,..,,...,..,,.,,,,..,,,.,..,,.,.,
+#D476DMXQ43HIDKSYPKGTCW4EUAXBK233T45NINXLXPKHFJMMX4JPV4ZWFVBLIGBN5GN7MMCMBED5E
+#\\\|Q2FAM6PNTHXKLHYORFBGCXXK6SCOEZEXWVKAS4PSANAQWQWWDLW \ / AMOS7 \ YOURUM ::
+#\[7]KNRTAS3JKMZROH6PPLN27IFIOURI6GQQY7BVGGD7X2U5B3E4DIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,10 +2,11 @@
 
 # name  = coding.async.round_soft_restart
 # descr = escalate the round ceiling and re-dispatch in place
-# param = <task_id> [hard_ceiling]
+# param = <task_id> [hard_ceiling] [lock_token|force]
 
 my $task_id      = shift;
 my $hard_ceiling = shift // <coding.http-timeouts.request-completed> // 780;
+my $lock_token   = shift;    ## the restarted request's token, or 'force' ##
 
 return undef unless defined $task_id;
 
@@ -14,11 +15,13 @@ return undef unless defined $task_state;
 
 $task_state->{'timeout_ceiling'} = $hard_ceiling;
 
-## the connection this round held is already torn down by the caller [   ##
-## http_cleanup ], but the backend serialization lock is separate — must ##
-## free it before send_request re-acquires it for the redispatch         ##
+## the connection this round held is already torn down by the caller [      ##
+## http_cleanup ], but the backend serialization lock is separate — must    ##
+## free it before send_request re-acquires it for the redispatch [ with the ##
+## restarted request's token : a restart for an older connection must not   ##
+## free the lock a newer request holds ]                                    ##
 my $backend = $task_state->{'backend'} // '';
-<[coding.async.backend_release]>->( $task_id, $backend )
+<[coding.async.backend_release]>->( $task_id, $backend, $lock_token )
     if length $backend;
 
 ## re-dispatch shortly : reuses the existing retry handler [ same one     ##
@@ -34,8 +37,8 @@ my $backend = $task_state->{'backend'} // '';
 
 return TRUE;
 
-#,,,,,,..,.,,,.,,,...,,,,,,,,,,,,,,..,.,.,...,..,,...,..,,.,,,,..,,..,,,,,,,.,
-#ARSK366FUGBKFNRS6KYMXCQOF77PDLN5EC33BWIRUTPWOL3CNU5YAAHQIAXOPR4NRL36EU3BJSYYO
-#\\\|XDAVOFYFLLLBLQQFVXDMBRKCVYXXERFUOLS7XFFZEZ4ENYJ2DLK \ / AMOS7 \ YOURUM ::
-#\[7]CPWXM3WWHPHNZEJSYAW4UO3S3STZGTSFPIYVTZLMXGYZQADOWAAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,.,.,,,,,...,..,,,,,,..,,,,.,..,,...,...,.,.,,.,,,.,,.,,,,,.,
+#BGWP3LINYS3PJJMCXATRJ43N6625KM2O6B2PRXXMOUYGBATKMCSOLAIE4RWMPBN7HRVBUJABKQBEO
+#\\\|EAZ6CPCSH6YOJTRYNTVSHAC6F4FDXKSYCCKBSKRBV5NK6BFTYOQ \ / AMOS7 \ YOURUM ::
+#\[7]7MGORBDSE6QYON3QQDPOGHLCZVWNGCNUJEJZACM3PDJS7NZI4KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

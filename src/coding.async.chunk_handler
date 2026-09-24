@@ -259,7 +259,10 @@ if ( defined $choice->{'finish_reason'} ) {
             ## release old backend lock if backend changed ##
             if ( length $old_backend
                 and $old_backend ne $new_backend ) {
-                <[coding.async.backend_release]>->( $task_id, $old_backend );
+                <[coding.async.backend_release]>->(
+                    $task_id, $old_backend,
+                    <[coding.async.lock_token]>->( $task_id, $old_backend )
+                );
             }
 
             <coding.async.task_state>->{$task_id} = $state_ch;
@@ -480,8 +483,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,..,,,,.,.,,,.,,,,,,,,,.,..,,,.,,...,.,,,.,.,...,...,.,.,...,,,.,...,,.,,
-#WNFZF6CD2IFVD77XXBGAGEX7QQC5AZYIMLLN2X4DR7J7MAK3636TESORL5C6UMGHIWF6GBJQBU6IY
-#\\\|WALMKVTMVDUCHJ7G74B2EHDNPBIBWTEIP4WVRCNTGQTVTYDUWOQ \ / AMOS7 \ YOURUM ::
-#\[7]TUQJMZHG3543QYFEGQNIWHKCL6ZFRPFUSP3ZTMB6F4GPZN7DHGBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,.,.,.,.,,,,,,.,,.,.,,..,,,.,.,.,...,...,...,.,,,.,,,,,,,,..,
+#DJBT455GXMFI7NJGLLWB6SSEGPY7JEZH4AXMQL2KLXRFM4WUGSMZ6SPHHQNFV7GWK6KSLY5GAM5TA
+#\\\|47BEIFLDHX3LFJ5JIOVCRX6WJRLEYYMBFQQ4A5OTU6LPK7ZJNNS \ / AMOS7 \ YOURUM ::
+#\[7]J3OWHZKFJIM3TXKR4PX57CTE5KMDJMV5P6XT6JDHF4WXZHCMZWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
