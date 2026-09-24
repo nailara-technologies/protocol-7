@@ -143,8 +143,17 @@ lands: **default every live-fix dispatch's verification instructions to
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
-#,,..,..,,,.,,..,,,,.,,.,,.,,,,..,,..,.,.,,.,,...,...,...,..,,,..,..,,.,.,...,
-#VMZYZFEIWJODJSINYMO4CJVM5Z54R7AMXVYDAXI3G3F7K4W2QMVTHHWLX3QURCDIQRNF36RCWETG2
-#\\\|E5Z67VT3HXMBAQUWCSSTSZLDAHTQ7IPM5F7QLOO4U25QCXOV5OQ \ / AMOS7 \ YOURUM ::
-#\[7]MBYIAMQB2PWLX7WHNTNU4S5XJFUHWVW2AJCOOUF6WELQL4UX4ABY 7  DATA SIGNATURE ::
+
+**New commands [ 2026-09-24, per user ]**: adding a name to `access.cmd.usr.cube` in `zenka.v7` needs `<zenka>.reload config` -- it re-runs the access regex parser [ `base.parser.access_conf` ]. a new command usually also brings a new `<zenka>.cmd.<name>` module, which needs `reload source` too : do both [ source, then config ]. `reload source` alone leaves "command not known or no permission".
+
+**Moved namespaces [ 2026-09-24, per user ]**: code in a namespace that is mapped elsewhere via `swap_subs` [ e.g. `base.file.*` moved to `file.*` ] also needs `<zenka>.reload init` -- the swap_subs calls are only processed in the pre_init / init_code / post_init files, so `reload source` alone leaves the old mapping pointing at the previous code.
+
+**Default [ 2026-09-24, per user ]**: plain `<zenka>.reload` [ all phases ] is the safe default rather than picking the narrowest stage -- init phases are required to be reload-safe at any time, so if a full reload raises something that is a regression to fix, not a reason to reload less. see [[feedback-init-phase-idempotency-is-a-hard-invariant]]. narrowing to one stage is fine when obvious ; the full reload just leaves less to think about or double-check.
+
+**Restart-only changes are defects [ 2026-09-24, per user ]**: the only remaining reason a zenka needs a restart for a code or config change is a handler that is neither registered reload-safe nor reinstalled in an init phase. when such an instance is found, fix it [ make it reload-safe or reinstall it at init ] rather than accepting the restart -- the goal is that no zenka ever needs a restart just for code or config changes.
+
+#,,,.,,.,,,.,,.,,,.,,,..,,,,,,..,,...,.,.,.,,,...,...,...,..,,..,,...,..,,,..,
+#CQVPVHRVPYMZPEY7BUAJGKONZUQKJUNHBQQNA7TF6DD4AM2GVNPLKJA7Z64VMXFVX6U6TQF6KMTHM
+#\\\|XE2IB6ZG57DVLHMI3IXHFXUVCMA2K5FV4AK4LKXUZBNCYMYBG5H \ / AMOS7 \ YOURUM ::
+#\[7]HTM7EQQIRJVVRDT74PJXEDZC6HY7F6LEYWFN7W5VQLHNXQ3IFCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

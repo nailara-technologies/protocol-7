@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = coding.cmd.lock-status
+# descr = backend lock holders, tokens, queues [ drop-stale ]
+# param = [ drop-stale ]
+
+## read-only by default. 'drop-stale' removes queued entries whose task has ##
+## finished [ no task_state ] and force-releases a lock whose holder is     ##
+## dead, so the next live queued task gets it through the normal handoff -- ##
+## the on-demand version of what backend_release does while dequeuing,      ##
+## instead of restarting the zenka                                          ##
+
+my $args_str = $call->{'args'} // '';
+my $drop     = $args_str =~ m|^\s*drop-stale\s*$| ? TRUE : FALSE;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected : [ drop-stale ]'
+    }
+    if length $args_str =~ s|\s+||gr and not $drop;
+
+my $backends   = <coding.state.backend>    // {};
+my $task_state = <coding.async.task_state> // {};
+my $queue_ref  = <coding.task.queue>       // {};
+
+## one task's liveness : still has async state, or its execution status ##
+my $describe = sub {
+    my $task_id = shift;
+    my $status  = ( $queue_ref->{$task_id} // {} )->{'execution'}->{'status'}
+        // 'unknown';
+    my $live = exists $task_state->{$task_id} ? TRUE : FALSE;
+    return ( $live, sprintf '%s [ %s%s ]',
+        $task_id, $status, $live ? '' : ', no task_state' );
+};
+
+my @out;
+my $dropped = 0;
+
+for my $backend ( sort keys %{$backends} ) {
+    my $bs     = $backends->{$backend} // {};
+    my $holder = $bs->{'lock'};
+
+    if ( defined $holder ) {
+        my ( $live, $desc ) = $describe->($holder);
+        push @out, sprintf ':. %s : held by %s token #%s%s', $backend, $desc,
+            $bs->{'lock_token'} // '-', $live ? '' : ' <-- STALE HOLDER';
+
+        ## dead holder : force-release, handoff goes to the next live entry ##
+        if ( $drop and not $live ) {
+            <[base.logs]>->(
+                1, 'lock-status: force-releasing %s lock of dead holder %s',
+                $backend, $holder
+            );
+            <[coding.async.backend_release]>->( $holder, $backend, 'force' );
+            push @out, sprintf ':. %s : released dead holder %s',
+                $backend, $holder;
+            $dropped++;
+        }
+    } else {
+        push @out, sprintf ':. %s : free [ last token #%s ]', $backend,
+            $bs->{'token_counter'} // 0;
+    }
+
+    my $queue = $bs->{'queue'} // [];
+    if ( $drop and @{$queue} ) {
+        my @keep;
+        for my $queued ( @{$queue} ) {
+            if ( exists $task_state->{$queued} ) {
+                push @keep, $queued;
+                next;
+            }
+            <[base.logs]>->(
+                1,       'lock-status: dropping finished %s from %s queue',
+                $queued, $backend
+            );
+            $dropped++;
+        }
+        @{$queue} = @keep;
+    }
+
+    my $n = 0;
+    for my $queued ( @{$queue} ) {
+        my ( $live, $desc ) = $describe->($queued);
+        push @out, sprintf ':.   %d. %s%s', ++$n, $desc,
+            $live ? '' : ' <-- STALE';
+    }
+}
+
+push @out, ':. no backends initialized' unless @out;
+push @out, sprintf ':. dropped / released : %d', $dropped if $drop;
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @out ) . "\n" };
+
+#,,,.,.,,,,.,,,..,,,,,,,,,,..,,,,,,,.,.,.,,..,..,,...,...,.,.,.,.,..,,,..,,.,,
+#J5QOH44O4TWTETQZ2CGHHHPDVDEIJUXLCRGDGMV32TBGCE4YTDAZE7P3NK2QUE7BKQRGC2NWXNKRW
+#\\\|V423RWWZSKFMFA5YMGEOEPRMZ4WXCCM4S7QNP2675E4AQ2TCWOT \ / AMOS7 \ YOURUM ::
+#\[7]COJWIQLQDYTH7QCOOIVE27PIQYMILEWAPTV6DWMK5UI5GZYDMCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
