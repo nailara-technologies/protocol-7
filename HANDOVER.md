@@ -31,7 +31,7 @@ Came out of the backend-lock session [ e8bb6b5b7, c12fe7d54, 484ea4bb9,
    lines, tables, mojibake, phrase loops ] under `bin/test-scripts/`, run
    against the module source with `<coding.cfg.*>` stubbed ; the ad-hoc
    version caught an `@-`/`@+` clobber bug immediately.
-6. **`coding.lock-status` command** — read-only view of each backend's
+6. **`coding.lock-status` command** [ DONE 2026-09-24 : 51ffadb23 ] — read-only view of each backend's
    holder, seq, queue, and each queued task's status ; optional
    `--drop-stale` doing the 484ea4bb9 cleanup on demand. Today a stuck lock is
    only inferable from the log, recovery is a zenka restart.

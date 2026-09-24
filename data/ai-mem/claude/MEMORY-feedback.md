@@ -149,3 +149,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
 #\[7]TTJZJRLA7HV6DSGNEKIU42KE7BOXC4Y2LFHKFTD6GYMJ5O2I2GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [opus-low-effort-efficiency](feedback-opus-low-effort-efficiency.md) — Opus 5.5 low effort > Sonnet medium/high overall per user; keep it, rely on briefs + fast live feedback, fresh session+handover as context grows
+
+#,,,.,,,.,...,,.,,,,.,.,.,.,.,..,,,,.,..,,.,.,..,,...,...,.,,,,.,,,,,,,,.,.,,,
+#RPVFAJCAJFMQF5DUBBJ3UFDBJ4KXUHO6NXCB24AVPDCXVOQBH64EDZEZ2HWRCLPBDFO7FSFATR2US
+#\\\|GE4RQ3F2FJ5L5VXGTLICMV722KCA62ZG5MGUL66U7NUVKY5NGW3 \ / AMOS7 \ YOURUM ::
+#\[7]T4CMB6UPYX2J6UZOU5OCM7QKMESMOSYTIQU5XRUS5BPAYAAFUADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
