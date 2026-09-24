@@ -257,20 +257,22 @@ delete <list.users>;
     qw| var |      => qw| data |,
     qw| key |      => qw| v7-zenki.stats.heartbeat |,
     qw| sort_key | => 'alpha-len:zenka_name',
-    qw| descr |    => 'heartbeat latency per zenka [ cube : v7 round trip ]',
-    qw| mask |     => join( ' ',
-        '<key>:zenka count average min max last',
+    qw| descr |    => 'heartbeat latency per instance '
+        . '[ cube : v7 round trip ]',
+    qw| mask | => join( ' ',
+        '<key>:instance zenka_name:zenka count average min max last',
         'timeouts:t/o source last_at:age' ),
     qw| align | => {
-        qw| zenka |    => qw| left+1 |,
-        qw| count |    => qw| center |,
-        qw| average |  => qw| right-3 |,
-        qw| min |      => qw| right-1 |,
-        qw| max |      => qw| right-1 |,
-        qw| last |     => qw| right-1 |,
-        qw| timeouts | => qw| center |,
-        qw| source |   => qw| center |,
-        qw| last_at |  => qw| center |
+        qw| instance |   => qw| left+1 |,
+        qw| zenka_name | => qw| center |,
+        qw| count |      => qw| center+1 |,
+        qw| average |    => qw| right-3 |,
+        qw| min |        => qw| right-1 |,
+        qw| max |        => qw| right-1 |,
+        qw| last |       => qw| right-1 |,
+        qw| timeouts |   => qw| center |,
+        qw| source |     => qw| center |,
+        qw| last_at |    => qw| center |
     },
     qw| defaults | => { qw| timeouts | => 0 },
     qw| filters |  => {
@@ -284,8 +286,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,,.,...,,,.,.,.,.,.,.,.,,,.,,,.,.,,,.,,,..,,..,,...,...,,,.,..,,...,...,,,,,
-#VS63MGEJW77QPAK22OZTSLYWRU4AWFSLGHY4NDVMUXURLUGLOGZLTKZ5MLGXKNQRWYGSOGACXKVAG
-#\\\|HEVR7CVQRKEUJPXTWC2DMJZYZDFFCFCZ6NVU42IMEKMCB4Z27QJ \ / AMOS7 \ YOURUM ::
-#\[7]57M3YHSMCQNPA2PFFSMTCLCKCBJOLECRU5BQ4HOQCGT45FYN2OAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,.,.,,.,,.,,,.,,,...,,..,..,,..,,...,...,.,.,,,.,,,,,,.,,,,,,
+#SD73GYDIVLI724EWQJFBKXQ34X47J2J25J52ZTFETJTU3KSGS4YZHEKVI73YIAYLURDUTLTXSPF3A
+#\\\|T2FVZYALPZFERQ5I6YMJPHOAQHXOXCIRVFKYCPXTEEPJZN5VH2B \ / AMOS7 \ YOURUM ::
+#\[7]TEGWJX2T5PR65C7S5U2EJBKOZ5CI5MA4YEIYU22F3SL2VKPSY4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
