@@ -104,7 +104,7 @@ if ( defined $next ) {
     $bs->{'lock'}       = $next;
     $bs->{'lock_token'} = $handoff_token;
     <[base.logs]>->(
-        1, 'lock %s: %s#%s -> %s#%d [handoff, %s]',
+        '2:1',    'lock %s: %s#%s -> %s#%d [handoff, %s]',
         $backend, $rel_holder, $rel_token, $next, $handoff_token, $rel_reason
     );
     my $sent = do {
@@ -130,15 +130,15 @@ if ( defined $next ) {
     }
 } else {
     <[base.logs]>->(
-        1, 'lock %s: %s#%s -> free [%s]',
+        '2:1',    'lock %s: %s#%s -> free [%s]',
         $backend, $rel_holder, $rel_token, $rel_reason
     );
 }
 
 return TRUE;
 
-#,,,,,,,,,.,,,,.,,,..,,..,,..,,,,,...,,,.,,,,,..,,...,...,,..,,,.,,.,,,,.,..,,
-#6WMISJJVB7ZUJ6B4G2JNPR4W3DV2TBCNZGKPDON7MWMM6SCNMPUBIGWFBIJDCBSK3CTLWSPXTZOPW
-#\\\|YWV7GHRMAM2Y6FY43RTRGEGVIC7APX32SNYKVARRYAW3I2PVOCG \ / AMOS7 \ YOURUM ::
-#\[7]ZX4TNKZPICLSPRJLAPC3AGA6YFSR3MKB26A3WWMS4CBYVTSVZWBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,.,.,,.,,,..,.,,,.,,,,,,,.,.,..,,...,...,..,,.,.,,,.,.,,,,,.,
+#PNHYIIJPQ3SFN4ODD7R3L6ZTJCFCFXCZBSDKOZKVGQ2EPVUSPHYHOO5USY4D7T3B54GJPP3FT4RXS
+#\\\|A2Z5HXCBJDPAIRSJ5J6UXUFK2MVGJXIYUPMXKUYF3K2LQ6WJ56W \ / AMOS7 \ YOURUM ::
+#\[7]CF5TIHDXY5PTAXGFG4IPHRONR6FVCH7DRTZCBJ5KAGMF6Y4E7GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
