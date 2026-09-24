@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = devmod.cmd.show-temp-heartbeat
+# param = [seconds]
+# descr = log heartbeat routing lines at level 2 [ temporary ]
+
+my $args = $call->{'args'};
+
+my $duration = 44;    ## default seconds ##
+
+if ( defined $args and length $args ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expected numeric <seconds> parameter'
+        }
+        if $args !~ m|^\d+$|;
+    $duration = 0 + $args;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'heartbeat display already enabled'
+    }
+    if exists <devmod.temp_heartbeat>;
+
+<log.level.cmd-offset> //= {};
+
+my $key_existed = exists <log.level.cmd-offset>->{'heart'} ? TRUE : FALSE;
+my $saved_value = <log.level.cmd-offset>->{'heart'};
+
+<log.level.cmd-offset>->{'heart'} = 0;    ## show heartbeat lines ##
+
+<[base.log]>->(
+    1, sprintf 'heartbeat routing log display enabled [ %d secs ]', $duration
+);
+
+<devmod.temp_heartbeat> = {
+    'existed' => $key_existed,
+    'value'   => $saved_value,
+    'timer'   => <[event.add_timer]>->(
+        {   'after' => $duration,
+            'cb'    => sub {
+                if ( <devmod.temp_heartbeat>->{'existed'} ) {
+                    <log.level.cmd-offset>->{'heart'}
+                        = <devmod.temp_heartbeat>->{'value'};
+                } else {
+                    delete <log.level.cmd-offset>->{'heart'};
+                }
+                delete <devmod.temp_heartbeat>;
+                <[base.log]>->( 1, 'heartbeat routing log display restored' );
+            }
+        }
+    )
+};
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'heartbeat display enabled [ %d secs ]',
+    $duration
+};
+
+#,,.,,.,.,,,.,,.,,,,,,..,,,.,,,,.,...,,,,,,,.,..,,...,..,,.,,,,.,,..,,..,,,,.,
+#2FTGM255JWCXXD5ITJPO7DMN3PUBZAGRGMQV7YMDNK3F4A544CIONETNW3O7A4RBZTJP6L57IHNDA
+#\\\|7VYJ54RE6IQPW35FU3TNJHPXYC55EIJRHW253VN43RVXOJNPWUV \ / AMOS7 \ YOURUM ::
+#\[7]VQUP6KYOOFHLKOJYXTP7CMQYNLPBOR5ZCLP2LFICCLQLHIA33ODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
