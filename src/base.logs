@@ -35,7 +35,9 @@ map {
 } @ARG;
 
 my $log_level    ## log level 1 when parameter omitted ##
-    = ( scalar @ARG > 1 and $ARG[0] =~ m|^\d$| )
+    ## a single digit, or per target '<console>:<buffer+logfile>' or ##
+    ## '<console>:<buffer>:<logfile>' [ see base.log ]               ##
+    = ( scalar @ARG > 1 and $ARG[0] =~ m|^\d(?::\d){0,2}$| )
     ? shift @ARG
     : 1;
 
@@ -52,8 +54,8 @@ if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
 
 <[base.log]>->( $log_level, $log_str );
 
-#,,,,,,,,,...,,.,,..,,,,.,.,.,.,.,.,,,,,,,,,,,..,,...,...,,..,.,,,.,,,,,,,.,,,
-#JZOXPVVIHJ3JXHIWIUS543ZFHRVSATPEVU565ZLQX77CJYLE2SYHZDDZY362D2IVIFUVTMIUBIRAY
-#\\\|NA4BL3AV54E6P3LLU6VXD5VHBADHJHUONS3DIITY325ESCVT3PN \ / AMOS7 \ YOURUM ::
-#\[7]PI54JKR2MWC54G5RUXHL6HAVRLNSLQDG3F3EJFZZEZTKNQ5LRGCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,.,,,.,,,,.,,...,,..,,.,,,.,,..,,...,...,,,.,,,,,...,,..,...,
+#ZPJFFALWAM4RU2455OH6Q26MBU2YBK7YZ4CDWNS2Q3FHUMSBDL5O4FDY7QJSANAREPVS4PJOKSC6A
+#\\\|32UZXMKJIMSBBRGD34ZNKSFZAPBYED43QM4YNC7SOTTLYVZFMEB \ / AMOS7 \ YOURUM ::
+#\[7]CXFIF2L3TCGO2DH5NXWAYG4GPQQF6UK7SLUN33UYDHUYLT4FUYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
