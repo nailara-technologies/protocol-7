@@ -28,12 +28,12 @@ my $retry_timeout = $heartbeat_ref->{'retry_count'} //= 2.1;
 ( my $dots = qw| . | x ( $error_count % 3 ) ) =~ s|\.{3}$|..,|;
 my $retry_str = $retry_count ? " , retrying $dots," : ' `:|';
 
-my $hb_stats = <v7-zenki.stats.heartbeat>->{$zenka_name} //= {};
-$hb_stats->{'zenka_name'} //= $zenka_name;    ##  list sort key  ##
+my $hb_stats = <v7-zenki.stats.heartbeat>->{$instance_id} //= {};
+$hb_stats->{'zenka_name'} = $zenka_name;    ##  list sort key  ##
 $hb_stats->{'timeouts'}++;
 
 <[base.logs]>->(
-    $error_count == 1 ? '2:1' : 0,    ##  <-- log level  ##
+    $error_count == 1 ? '2:1' : 0,          ##  <-- log level  ##
     'instance %d [ %s ] response timeout%s',
     $instance_id, $zenka_name, $retry_str
 );
@@ -79,8 +79,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         ;    ##  retrying now [0]
 }
 
-#,,,,,.,,,,,.,,,.,.,.,,,,,,..,..,,.,.,.,,,.,.,..,,...,..,,.,,,,,,,...,..,,.,.,
-#HP6G7IQ4OZA4EGFPZRQA37LOSS5VWFO6Y4UHDHUVVYJD7VYZTOTT4J5ZFXMORDYZZTVTBAPWEZR5U
-#\\\|TEMFS2DIKREBLZ7ZD6GRAWJMWYKLI35TGX7F6NUYK43I6SGEWHI \ / AMOS7 \ YOURUM ::
-#\[7]Z7TJIFHTFLKMAKDQTRZZXJ2RERLZX5ULZ6WB2CPGKLESWANLBWAA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,..,,.,,,..,,.,,,..,,,.,,..,..,,...,...,.,,,.,,,..,,..,,.,,,
+#DNZ4T6VRJ4T5TBHHLO7IYNQRUVEXFECPNW6KYK2QW4KWM3QKRUV7QEQU3RXFOG3EESVXLNNYUIRHK
+#\\\|JP5OIXG572SL4IV2X2WUBWS34F43OLUAFQT2D7OOO46UH42MSLX \ / AMOS7 \ YOURUM ::
+#\[7]2APKVG7VXHIYH2ILQFJOS2V5TOTTD7GZ3SGWMJNCHUAZ7GDPI4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
