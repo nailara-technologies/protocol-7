@@ -25,10 +25,13 @@ my $size_left     = <size.buffer.input> - $buffer_length;
 ##
 my $LF_match_start_offset = $buffer_length;
 
+##  averages below 1 [ mostly empty lines ] fall back to protocol average  ##
 my $avg_command_length = sprintf qw| %.0f |,    ##  tracked minus endline  ##
-    defined $session->{'command'}->{'average-length'}
+    ( $session->{'command'}->{'average-length'} // 0 ) >= 1
     ? $session->{'command'}->{'average-length'}
-    : $protocol_stats->{'average-command-line-length'} // 63;
+    : ( $protocol_stats->{'average-command-line-length'} // 0 ) >= 1
+    ? $protocol_stats->{'average-command-line-length'}
+    : 63;
 
 my $read_length ##  read length adjusts to statistical average line length  ##
     = $size_left < $avg_command_length ? $size_left : ++$avg_command_length;
@@ -88,8 +91,8 @@ if ( $linefeed_match_position == -1 ) {    ##  read not complete  ##
     return FALSE;    ##  request completed  ##
 }
 
-#,,..,.,.,,.,,,.,,.,,,.,,,..,,...,.,.,,,.,,,.,..,,...,...,.,.,,..,,..,...,,.,,
-#G2XKIY4SQGH52ADAQHO6M4CO6TMHYX4EOTAWPXOMW3HFBK5A4UQDLME7XN3F2FQYYHBDFZ6GKE7TW
-#\\\|JXOVWIXCACK4K6J273EZK3IBNLVQVBMR7YK7BKYE3FS2T4YJBDA \ / AMOS7 \ YOURUM ::
-#\[7]LRIAKSUNNDPVLAM5ZLPBKPIS4JEILMMBTRVKY5TKHK43ESHCY4AI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,,..,,,.,...,.,,,,,.,,.,,..,,..,,...,...,,..,..,,..,,,,.,.,.,
+#MHO2FPU7ZG6MJXY73GHBEICN67KWVI5NNIU7EJE34AH4RZUFHLF7OKBSX2CMYTGNX4STFQ5QKJF56
+#\\\|NJSRKM7BMFWYDRFNFLCMROC5FRWJOJGLXGTJNSYABXL6RGAESY4 \ / AMOS7 \ YOURUM ::
+#\[7]Y6EMFEELUCUTMYVCQQDLCQSG2RZNC427WL7DNOVGIP24TRTLOSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

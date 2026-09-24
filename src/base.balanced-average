@@ -17,47 +17,34 @@ my $outlier_rel = 0.07; ##  proportion when result outlier to stored value  ##
 
 return warn 'expected <value_ref> [ scalar ref ] parameter <{C1}>'
     if ref $value_ref ne qw| SCALAR | and ref $value_ref ne qw| REF |;
-warn 'expected at least one numerical parameter <{C1}>' if @values == 0;
+return warn 'expected at least one numerical parameter <{C1}>'
+    if @values == 0;
 <[base.s_warn]>->(
     "<value_ref>s content is not numerical ['%s'] <{C1}>",
     $value_ref->$*
 ) if defined $value_ref->$* and $value_ref->$* !~ m|^-?\d+(\.\d+)?$|;
 
-my $total_average;
 my $base_value_average;
 
 if ( @values == 1 ) {    ##  single input value  ##
 
     ($base_value_average) = @values;
 
-} else {    ##  multiple values : filtered for outliers to their average  ##
+} else {    ##  multiple values : filtered for outliers to their median  ##
 
-    ##  determine potential  ##
-    my ( $low_value, $high_val ) = <[base.minmax]>->(@values);
-    my $middle_value = sprintf qw| %.*f |,
+    ##  median of input values [ not shifted by single outliers ]  ##
+    my @sorted = sort { $a <=> $b } @values;
+    my $median
+        = @sorted % 2
+        ? $sorted[ $#sorted / 2 ]
+        : ( $sorted[ @sorted / 2 - 1 ] + $sorted[ @sorted / 2 ] ) / 2;
+
+    ##  keeping values within base mass relative to the median  ##
+    my $tolerance = sprintf qw| %.*f |,
         $internal_precision,
-        $low_value + ( ( $high_val - $low_value ) / 2 );
+        abs($median) * $base_mass;
 
-    ##  unfiltered total average  ##
-    eval {
-        $total_average = sprintf qw| %.*f |,
-            $internal_precision,
-            ( reduce { $a + $b } 0, @values ) / scalar @values;
-    };
-
-    return <[base.s_warn]>->(
-        'balanced-average : %s <{C1}>',
-        <[base.str.eval_error]>
-    ) if length $EVAL_ERROR or not defined $total_average;
-
-    ##  calculating distance with removed value potential  ##
-    my $average_floored = $total_average - $low_value;
-    my $floored_07      = sprintf qw| %.*f |,
-        $internal_precision,
-        $average_floored * $base_mass;
-
-    my @base_values    ##  filter outliers to base mass  ##
-        = grep { abs( $total_average - $ARG ) <= $floored_07 } @values;
+    my @base_values = grep { abs( $median - $ARG ) <= $tolerance } @values;
 
     @base_values = @values if not @base_values;    ##  take all  ##
 
@@ -100,8 +87,8 @@ $value_ref->$* =~ s,(\.0+|(*nlb:\.)0+)$,,g;      ##  sanitizing zulum  ##
 
 return $base_value_average;   ##  returning filtered average of input data  ##
 
-#,,,.,...,...,,.,,.,.,...,,.,,,,.,.,.,.,,,.,.,..,,...,...,...,,,.,.,,,,,,,...,
-#VNNRW5SLNBWV5KPEJAPXUMBNTN2UQMZUKPK56ILQU7HQBS7AXT6RVGFQ5SNEYDXGHS2JB7H5WXUZ6
-#\\\|UDQHDMUQ6F3Z657S4SGYZPNUPO3SBLJLIWYZSAI3FZ7HZCFRVHL \ / AMOS7 \ YOURUM ::
-#\[7]5TYA3FDP7QXQ42K3LTY27E7CF3C2S7DURVYWWQ656K2AHVEFWGBI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,..,.,,,.,.,.,,,...,,..,,.,,..,,...,...,..,,...,,,.,.,.,..,,
+#A4LT54F3VXDACN32SH4PLKVTGTCT3HW4HXZOW3ZWLC7VJBCZAK7U6M2DR2YBJA6MZMXIYQFW6XYQQ
+#\\\|6KTOEHZNI56PYLVA3TJIG2Q32DQUER2CA4IIVI5FQXCK2MCVIZW \ / AMOS7 \ YOURUM ::
+#\[7]QWVDJKE3A3XYUS5D33OI43LIFIAMA7BOH5PHL6VIHO54FR5T3SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
