@@ -76,8 +76,36 @@ p7c itself does blocking 1-byte `recv`, no waits [ `bin/c_src/p7c.c` ].
   [ `heartbeat latency ... [ average ... ]` ] + counted in
   `v7-zenki.list heartbeat` -> usable to correlate with other zenka logs
 
-#,,,.,.,.,,,.,,..,.,.,,.,,,,,,.,.,.,.,,..,,,,,..,,...,...,,.,,...,,,,,,.,,..,,
-#JXNHTXXNMORBS7SX4GA3CS4HXWXCH27UGDGNQRJWTXUXITFFTPLKV5AI5TG6TWNNH73ZY46MA7VFE
-#\\\|V2NN3XH2HAPAZLWSUQWAWNEXOCXPGDTIN7LJUQQ6HGCNJJIFUGZ \ / AMOS7 \ YOURUM ::
-#\[7]WFEO6HEZWYAG5QRS4U636OEQEAIG7K4FUYBENEJETOJGQCD672CQ 7  DATA SIGNATURE ::
+## instrumentation result [ 2026-09-24, reverted ]
+
+temporary DBG-STALL logs in cube : reply append time in `base.stream.emit`,
+append -> write delay in `base.handler.write` [ logged when > 20ms ], and
+every `io-idle-restart` callback. 40x `p7c heart` probe, 14 slow replies
+[ 73..149ms ] :
+
+- NO slow append -> write for the p7c sessions : once emitted, replies are
+  written within 20ms
+- ZERO idle restarts fired -> the idle watcher is not involved [ hypothesis
+  2b as written is out ]
+- => the ~70ms is spent BEFORE the reply is emitted : between the command
+  bytes arriving on cube's socket and the command being processed [ read
+  watcher \ `net.read_linewise_estimated` \ event loop poll ]
+- side note : long-lived session 4990247 [ v7 ] logged multi-second
+  'delays' -- most likely a measurement artefact [ first append stamp kept
+  across later appends ], not investigated
+
+- with p7-log TERMINATED : unchanged, 14/40 slow [ 76..219ms, same
+  ~70ms steps ] -> log traffic to p7-log is NOT the cause [ cube logged
+  'unknown target : p7-log' meanwhile ; the earlier sweep correlation was
+  coincidence or a second, separate effect ]
+
+next step : stamp socket readable -> input handler -> command dispatch in
+cube [ `base.handler.input`, the read watcher callback, net.read_* ] the
+same way ; check whether the read watcher is active when bytes arrive, and
+whether Event's poll wakes late [ ~70ms quantum = some timer interval ? ].
+
+#,,.,,.,,,..,,.,,,,.,,..,,..,,.,,,,,,,,.,,..,,.,.,...,...,.,,,,,,,,.,,..,,,..,
+#HKVSATJU7A77SNQIF63ZCM7U3SVP5SZ7LNX4HPLNGQSKS7Q4DGP2UQXLXGSQKLS3DBMO5NCCHG7SQ
+#\\\|P2XJ27GEOQEGKKZDPQY5GHLWPT6FOXOVX76A2D357BDMGLLEFUE \ / AMOS7 \ YOURUM ::
+#\[7]GVMEOFQWM4HOIHUWN4CLNSXN6NVBH6CRYM3VK7U6Z4AAYGYMSYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
