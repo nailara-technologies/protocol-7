@@ -82,7 +82,13 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     ## lock namespace [ async.request:22 acquires under it ]              ##
     ## execution.backend is only the hardware key [ task.execute:111 ]    ##
     my $prev_backend = $task->{'analysis'}->{'routed_to'} // 'gpu';
-    my $prev_round = scalar( @{$saved_messages} );  ## rough round estimate ##
+    ## next round after the real last one [ saved by async.complete ] ; ##
+    ## message count only as fallback for records saved before that     ##
+    my $saved_round = $task->{'execution'}->{'round'};
+    my $prev_round
+        = defined $saved_round
+        ? $saved_round + 1
+        : scalar( @{$saved_messages} );
     my $prev_tools = $task->{'execution'}->{'tools'} // [];
 
     ## if tools weren't saved (pre-fix completions), re-assemble them now ##
@@ -96,11 +102,12 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     }
 
     <coding.async.task_state>->{$task_id} = {
-        'state'    => qw| streaming |,
-        'backend'  => $prev_backend,
-        'round'    => $prev_round,
-        'messages' => \@resume_messages,
-        'tools'    => $prev_tools,
+        'state'       => qw| streaming |,
+        'backend'     => $prev_backend,
+        'round'       => $prev_round,
+        'request_seq' => $task->{'execution'}->{'request_seq'} // 0,
+        'messages'    => \@resume_messages,
+        'tools'       => $prev_tools,
     };
 
     ## restore task to active state ##
@@ -138,8 +145,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,,,,...,..,,,,,,.,,,,.,,,.,,..,,,.,,...,,,.,..,,...,...,.,.,,,,,,,,,.,,,,..,
-#CA2GUFYNDYFVYEODZUOFWQPWBT52NK5YWTLQD4PJDISYIT52TFPTUZ24EU3VLHDHYL6BBQWCWIGQ2
-#\\\|7SGRFJZA4MPURXHNQSO34RAS4AZ7C2HQ5Z5GHDLXYDZ7Y3GLFQQ \ / AMOS7 \ YOURUM ::
-#\[7]APR6MBA5QNZDY3DIDFTONXJAFMNEOXVO7NGC3D3SLGAHII7SEIDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,,.,,,,.,.,.,,,,,.,.,,.,,.,.,..,,...,...,.,.,.,,,..,,...,,,.,
+#MOYBUOF6ITQWUZOY3EKLRO5CDYQ4TNK22C3C62QEHQ7XILROEISLKHTANLUPT2J2IOQZ3RQLZ7AZW
+#\\\|WRART47RQ5AOCYURN5XGXNLPW3UHX6TVE3K6LSR2YRYPE26HHQL \ / AMOS7 \ YOURUM ::
+#\[7]XQNWTNGZB65YYTMPNXU2S5NBNKEEW4I6LVKXJ4USXMOTTNMRXUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

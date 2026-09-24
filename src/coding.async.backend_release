@@ -15,6 +15,17 @@ if ( ( $bs->{'lock'} // '' ) ne $task_id ) {
         2, 'backend_release: %s does not hold %s lock [held by %s], skipping',
         $task_id, $backend, $bs->{'lock'} // 'none'
     );
+    <[base.logs]>->(
+        2,
+        'lock %s: %s#%s -> %s#%s [skip release by %s#%s : not holder]',
+        $backend,
+        $bs->{'lock'}     // 'free',
+        $bs->{'lock_seq'} // '-',
+        $bs->{'lock'}     // 'free',
+        $bs->{'lock_seq'} // '-',
+        $task_id,
+        $req_seq // '-'
+    );
     return FALSE;
 }
 
@@ -28,8 +39,25 @@ if (    defined $req_seq
         1, 'backend_release: %s stale seq %d != %d [%s], skipping',
         $task_id, $req_seq, $bs->{'lock_seq'}, $backend
     );
+    <[base.logs]>->(
+        1,
+        'lock %s: %s#%s -> %s#%s [skip '
+            . 'release by %s#%s : stale seq %d != %d]',
+        $backend,
+        $bs->{'lock'},
+        $bs->{'lock_seq'},
+        $bs->{'lock'},
+        $bs->{'lock_seq'},
+        $task_id,
+        $req_seq,
+        $req_seq,
+        $bs->{'lock_seq'}
+    );
     return FALSE;
 }
+
+my $rel_holder = $bs->{'lock'};
+my $rel_seq    = $bs->{'lock_seq'} // '-';
 
 $bs->{'lock'} = undef;
 delete $bs->{'lock_seq'};
@@ -49,6 +77,10 @@ while ( defined( $next = shift @{ $bs->{'queue'} // [] } ) ) {
         1,     'backend_release: dropping finished task %s from %s queue',
         $next, $backend
     );
+    <[base.logs]>->(
+        1, 'lock %s: %s#%s -> free [drop %s finished]',
+        $backend, $rel_holder, $rel_seq, $next
+    );
 }
 if ( defined $next ) {
     <[base.logs]>->(
@@ -57,13 +89,22 @@ if ( defined $next ) {
     );
     ## acquire for next task then resume its request ##
     $bs->{'lock'} = $next;
+    <[base.logs]>->(
+        1, 'lock %s: %s#%s -> %s#- [handoff]',
+        $backend, $rel_holder, $rel_seq, $next
+    );
     <[coding.async.send_request]>->($next);
+} else {
+    <[base.logs]>->(
+        1, 'lock %s: %s#%s -> free [release]',
+        $backend, $rel_holder, $rel_seq
+    );
 }
 
 return TRUE;
 
-#,,,.,.,,,...,,..,,,,,,,.,.,,,,..,...,,..,.,.,..,,...,...,..,,,.,,,..,,..,.,,,
-#NXRRKOGYLWXINOHAXTKPLNP2FB4Z5NMBCBL4LBPV7BY3ZE7FOA3LUW6NGA2D4OCYTWXRJ32WXVQVQ
-#\\\|G772D53DCJOG4HKQVSO4N6YWBSX6TZHPTCY2L23SEFWDGIPHFGP \ / AMOS7 \ YOURUM ::
-#\[7]RQCP7VGYZFPVVTBXDRADIHARSLQRWKCT6ZIERN7AMKOZ6HSNY6AY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,,..,,..,.,,,,,,,,,,,...,.,.,..,,...,..,,.,,,,.,,.,.,.,,,,.,,
+#5OTGIWVZPKC7ELCZPHRCX27A6R73HO22RCLSWVSMMEEN2XTBQOQS5RNYJX4ENB7LIATGDL2M5Z2VA
+#\\\|MKIL4YS3KP5KGZR3ZML2QOLTH7UGQEFA5GLQK4CF3FKIASBI5HK \ / AMOS7 \ YOURUM ::
+#\[7]A6SYT4PNFTASL4KNSENU6QZQ6NGFJUW4T55KII3A6TLJQGQHVECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

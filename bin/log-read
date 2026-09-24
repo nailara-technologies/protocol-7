@@ -1,0 +1,225 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###           ###
+##  log-read  ##
+###           ###
+
+#,,.,,,.,.,,,,,,,,.,.,,,.,,,.,,,.,.,,..,,.,,,,,,,,.,,,.,,.,,,,,,,.,.,.,.,,,,,,,,
+# name  = log-read
+# descr = reader for raw zenka logs [ ntime stamps to localtime ]
+#,,.,,,,,.,,.,,.,.,,.,,..,,,.,.,,,.,,.,,,,.,.,,.,,,,.,,.,,,.,.,..,.,,,.,,,..,,,,
+
+use Crypt::Misc qw| decode_b32r |;
+use Time::Local qw| timelocal_modern |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $raw_stamp  = FALSE;
+my $no_resolve = FALSE;
+my $no_chunks  = FALSE;
+my $grep_re    = undef;
+my $max_level  = undef;
+my $since_unix = undef;
+my $until_unix = undef;
+
+my @file_args;
+
+##[ PARAMETER PARSING ]#######################################################
+
+while (@ARGV) {
+    my $param = shift @ARGV;
+    if ( $param eq qw| --raw-stamp | ) {
+        $raw_stamp = TRUE;
+    } elsif ( $param eq qw| --no-resolve | ) {
+        $no_resolve = TRUE;
+    } elsif ( $param eq qw| --no-chunks | ) {
+        $no_chunks = TRUE;
+    } elsif ( $param eq qw| --grep | and @ARGV ) {
+        my $pattern = shift @ARGV;
+        $grep_re = eval {qr/$pattern/};
+        die ":\n:: --grep pattern not valid [ $pattern ]\n:\n"
+            if not defined $grep_re or length $EVAL_ERROR;
+    } elsif ( $param eq qw| --level | and @ARGV ) {
+        my $level_param = shift @ARGV;
+        die ":\n:: --level expects numeric value [ $level_param ]\n:\n"
+            if $level_param !~ m|^\d+$|;
+        $max_level = $level_param;
+    } elsif ( $param eq qw| --since | and @ARGV ) {
+        $since_unix = param_to_unix( shift @ARGV );
+    } elsif ( $param eq qw| --until | and @ARGV ) {
+        $until_unix = param_to_unix( shift @ARGV );
+    } elsif ( $param =~ m|^--| ) {
+        die ":\n:: unknown parameter [ $param ]\n:\n";
+    } else {
+        push( @file_args, $param );
+    }
+}
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ INPUT SOURCE SETUP ]######################################################
+
+my $input_fh;
+if (@file_args) {
+    my $file_path = shift @file_args;
+    open( $input_fh, qw| < |, $file_path )
+        or die ":\n:: cannot open log file [ $file_path ] : $OS_ERROR\n:\n";
+} else {
+    $input_fh = *STDIN;
+}
+
+my %resolve_cache;    ##  anon token to plaintext path cache  ##
+
+##[ MAIN LINE LOOP ]##########################################################
+
+LINE:
+while ( my $line = <$input_fh> ) {
+    chomp $line;
+
+    ##  match [ <stamp> <pid> <level> <message> ]  ##
+    next LINE
+        if $line !~ m|^(\S{15})\s+(\d+)\s+(\d+)\s+(.*)$|;
+
+    my $stamp   = $1;
+    my $pid     = $2;
+    my $level   = $3;
+    my $message = $4;
+
+    ##  optional filters  ##
+    next LINE if defined $max_level and $level > $max_level;
+    next LINE if $no_chunks         and index( $line, qw| chunk |, 0 ) >= 0;
+    next LINE if defined $grep_re   and $message !~ $grep_re;
+
+    ##  ntime stamp to unix conversion  ##
+    my $unix_time = ntime_b32_to_unix($stamp);
+
+    ##  time range filters need decoded stamp  ##
+    next LINE
+        if defined $since_unix
+        and ( not defined $unix_time or $unix_time < $since_unix );
+    next LINE
+        if defined $until_unix
+        and ( not defined $unix_time or $unix_time > $until_unix );
+
+    ##  replace stamp with local time string  ##
+    my $output;
+    if ( defined $unix_time ) {
+        my @lt       = localtime($unix_time);
+        my $time_str = sprintf(
+            '%04d-%02d-%02d %02d:%02d:%02d',
+            $lt[5] + 1900,
+            $lt[4] + 1,
+            @lt[ 3, 2, 1, 0 ]
+        );
+        $output
+            = $raw_stamp
+            ? "$time_str $stamp $pid $level $message"
+            : "$time_str $pid $level $message";
+    } else {
+        ##  undecodable stamp [ kept as-is ]  ##
+        $output = "$stamp $pid $level $message";
+    }
+
+    ##  resolve anonymised path tokens  ##
+    $output = resolve_tokens($output) if not $no_resolve;
+
+    say $output;
+}
+
+close($input_fh);
+
+##[ SUBROUTINES ]#############################################################
+
+sub resolve_tokens {
+    my $text = shift;
+    $text =~ s{\[L:([A-Z2-7]+)\]}{resolve_token($1)}ge;
+    return $text;
+}
+
+sub resolve_token {
+    my $token = shift;
+    return $resolve_cache{$token} if exists $resolve_cache{$token};
+
+    ##  one p7c call per unique token  ##
+    my $resolved  = qx|p7c p7-log.anon.resolve '[L:$token]' 2>/dev/null|;
+    my $exit_code = $CHILD_ERROR >> 8;
+    chomp $resolved if defined $resolved;
+
+    if ( $exit_code != 0 or not defined $resolved or not length $resolved ) {
+        $resolve_cache{$token} = "[L:$token]";    ##  leave as-is  ##
+    } else {
+        $resolve_cache{$token} = $resolved;
+    }
+    return $resolve_cache{$token};
+}
+
+sub ntime_b32_to_unix {
+    my $stamp = shift;
+
+    return undef if $stamp !~ m|^[2-7A-Z]{15}$|;
+
+    my $decoded = eval { decode_b32r($stamp) };
+    return undef if not defined $decoded or length $EVAL_ERROR;
+
+    ##  BER compressed integers [ same as base.ntime.B32_2_unix ]  ##
+    my @nt_val = unpack( qw| w* |, $decoded );
+    return undef unless @nt_val;
+
+    $nt_val[1] =~ s|^7|| if @nt_val == 2;    ##  saves 0 prefixes  ##
+    my $ntime_value = join( qw| . |, @nt_val );
+    $ntime_value =~ s|(\.0)+$||;             ##  strip trailing zero comp.  ##
+
+    return undef
+        if $ntime_value !~ m|^\d{1,17}(\.\d{1,20})?$|;
+
+    ##  same formula as base.n2u_time  ##
+    return $ntime_value / 4200 + 1023228000;
+}
+
+sub param_to_unix {
+    my $param = shift;
+
+    if ( $param
+        =~ m|^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$| ) {
+        return timelocal_modern( $6 // 0, $5, $4, $3, $2 - 1, $1 );
+    } elsif ( $param =~ m|^[2-7A-Z]{15}$| ) {
+        my $unix = ntime_b32_to_unix($param);
+        die ":\n:: --time stamp not decodable [ $param ]\n:\n"
+            if not defined $unix;
+        return $unix;
+    } else {
+        die ":\n:: time parameter not recognized [ $param ]\n:\n:: "
+            . "expected [ YYYY-MM-DD HH:MM ] or ntime stamp\n:\n";
+    }
+}
+
+#,,.,,..,,,.,,...,.,,,,.,,...,.,,,..,,..,,.,.,.,.,...,...,.,,,.,.,,,.,,,,,,..,
+#KRLSNDQD67DQHPN6JRGQESMVJPC6GY553BPQGRQRI3D2PJFFVUVXPDLDM47WLNNWIQ4U5RJB4CRPU
+#\\\|JUZJLZUKOHAPMPPIFQW7OBCRMMM4DOVHT2ZMLQC46LTKKHIQ3JM \ / AMOS7 \ YOURUM ::
+#\[7]LAVVMPHKJMDRBVGNLLZRNENN6FW45Q5O5M2PS7RRV3WMJYR7Q2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
