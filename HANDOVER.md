@@ -10,24 +10,24 @@ has repeatedly cost real momentum — see "the mistake to not repeat" below.
 Came out of the backend-lock session [ e8bb6b5b7, c12fe7d54, 484ea4bb9,
 1f6d5aadd ]. Agreed in principle ; priority : 1, then 6.
 
-1. **token-based backend lock** — `backend_acquire` returns a token [ request
+1. **token-based backend lock** [ brief : data/tasks/coding-backend-lock-tokens.md ] — `backend_acquire` returns a token [ request
    seq ], `backend_release` only accepts the matching token, explicit `force`
    for unconditional callers [ stop-task, sweeps ]. Replaces the `lock_seq`
    patch ; reentrancy becomes "same token", the question the reverted
    task_state check was really asking. Three of four fixes that session were
    this one bug class [ task_id-only identity ].
-2. **exact resume round in task-append** — `round = scalar @messages` is a
+2. **exact resume round in task-append** [ DONE 2026-09-24 ] — `round = scalar @messages` is a
    rough estimate [ 40 -> 63 jump in the task-5JXMWYY incident ] ; take the
    real last round from round_chain / task_state. Also removes false
    "duplicate round" hits in log scans.
-3. **one structured log line per lock handoff** —
+3. **one structured log line per lock handoff** [ DONE 2026-09-24 ] —
    `lock <backend>: task-X#seq -> task-Y#seq [reason]` for acquire / release /
    queue / drop, so one grep reconstructs backend ownership over time.
 4. **count automatic aborts by reason / matched-unit class** — a
    `coding.stats` counter [ whitespace / structural / phrase ] would have
    surfaced the 68 blank-line false positives in the repetition detector
    long before.
-5. **offline fixture harness for stream detectors** — keep real inputs [ box
+5. **offline fixture harness for stream detectors** [ DONE : bin/test-scripts/test-stream-repetition ] — keep real inputs [ box
    lines, tables, mojibake, phrase loops ] under `bin/test-scripts/`, run
    against the module source with `<coding.cfg.*>` stubbed ; the ad-hoc
    version caught an `@-`/`@+` clobber bug immediately.
@@ -35,7 +35,7 @@ Came out of the backend-lock session [ e8bb6b5b7, c12fe7d54, 484ea4bb9,
    holder, seq, queue, and each queued task's status ; optional
    `--drop-stale` doing the 484ea4bb9 cleanup on demand. Today a stuck lock is
    only inferable from the log, recovery is a zenka restart.
-7. **log reading wrapper** — resolve `[L:…]` tokens [ `p7-log.anon.resolve` ]
+7. **log reading wrapper** [ DONE : bin/log-read ] — resolve `[L:…]` tokens [ `p7-log.anon.resolve` ]
    and add local time [ `p7c localtime` ] in-line, so raw zenka logs read in
    one pass ; also useful for local models pointed at logs.
 
