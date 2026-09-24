@@ -51,10 +51,12 @@ $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
 
 my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
 
+##  routed replies carry their latency, for cube v7 measures send -> reply  ##
+$instance->{'heartbeat'}->{'sent_at'} = <[base.time]>->(4);
+
 <[protocol-7.command.send.local]>->(
-    {   'command'   => "$command_route.heart",
-        'call_args' => { 'args' => 'notime' },
-        'reply'     => {
+    {   'command' => "$command_route.heart",
+        'reply'   => {
             'handler' => qw| v7-zenki.handler.heartbeat_timer_response |,
             'params'  => { 'instance_id' => $instance_id }
         }
@@ -65,8 +67,8 @@ delete $zenka_config->{'heartbeat'}
     if !keys %{ $zenka_config->{'heartbeat'} };
 delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
 
-#,,,,,,,.,..,,,..,..,,,,.,..,,,,.,...,,,,,,.,,..,,...,...,,..,.,,,,..,,,,,.,,,
-#RSWRL4F3VT6ALJ4IAHSOCTKC6P5GCMIYRLTATIT52FGJH5T26KTHHYBSRLWUNKO77KX22E4JOWIVA
-#\\\|5CDIDTUUCJVT5NB6UQ3KMCFTO2CPPHMMFGM5BJQYHAQJ4FAMIKZ \ / AMOS7 \ YOURUM ::
-#\[7]YYSV64APOXBIMQ52XBFGW6Z477VG4AENEVR7VWQVA5YTT4GMGUDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,..,,,,,,.,,,.,,,..,,..,,,,,,...,..,,...,...,.,.,,,.,..,,,,.,,.,,
+#GQFLYAULHYLP4OM76B3VD6NUZQQUKJ3VVKRM7KNQRMNZSFYKVNXRWHPQIGHZJ47AXK3KFWOFQKVM6
+#\\\|DIXQ3Q3Y3SZLTQFL6XY4JGR4WQM3CZLTCV36FGQ3G7QVEOKP6YS \ / AMOS7 \ YOURUM ::
+#\[7]EAZKLFXURHC55EMEUIAJLYAVVIP46W22IJDRG5RICIMIQDVW6ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

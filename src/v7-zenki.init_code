@@ -253,10 +253,39 @@ delete <list.users>;
     }
 };
 
+<list.heartbeat> = {
+    qw| var |      => qw| data |,
+    qw| key |      => qw| v7-zenki.stats.heartbeat |,
+    qw| sort_key | => 'alpha-len:zenka_name',
+    qw| descr |    => 'heartbeat latency per zenka [ cube : v7 round trip ]',
+    qw| mask |     => join( ' ',
+        '<key>:zenka count average min max last',
+        'timeouts:t/o source last_at:age' ),
+    qw| align | => {
+        qw| zenka |    => qw| left+1 |,
+        qw| count |    => qw| center |,
+        qw| average |  => qw| right-3 |,
+        qw| min |      => qw| right-1 |,
+        qw| max |      => qw| right-1 |,
+        qw| last |     => qw| right-1 |,
+        qw| timeouts | => qw| center |,
+        qw| source |   => qw| center |,
+        qw| last_at |  => qw| center |
+    },
+    qw| defaults | => { qw| timeouts | => 0 },
+    qw| filters |  => {
+        qw| average | => qw| v7-zenki.parser.latency_ms |,
+        qw| min |     => qw| v7-zenki.parser.latency_ms |,
+        qw| max |     => qw| v7-zenki.parser.latency_ms |,
+        qw| last |    => qw| v7-zenki.parser.latency_ms |,
+        qw| last_at | => qw| v7-zenki.parser.ntime_age |
+    }
+};
+
 return 0;    ## successful init ##
 
-#,,.,,..,,,.,,,..,...,.,.,.,,,,.,,.,,,,,,,,..,..,,...,...,...,.,.,.,.,,..,...,
-#D33YJEKM3RRTKLKGFIN36ZCUP7OFGENIPXOTMQPVWUDY5KDZYWKZJUWRIC4YKM447P72GOGDR354O
-#\\\|G4NRDKP24TWFGRA5M42NRANY3MUTGIVSOLSDATLHCZJHIEY522E \ / AMOS7 \ YOURUM ::
-#\[7]WFUN6MH6EBLHHQYDNIB2NSVVA525D4LYNPJEVPDYYOLKWTJBS6AQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,.,.,.,.,,,.,,,.,.,,,.,,,..,,..,,...,...,,,.,..,,...,...,,,,,
+#VS63MGEJW77QPAK22OZTSLYWRU4AWFSLGHY4NDVMUXURLUGLOGZLTKZ5MLGXKNQRWYGSOGACXKVAG
+#\\\|HEVR7CVQRKEUJPXTWC2DMJZYZDFFCFCZ6NVU42IMEKMCB4Z27QJ \ / AMOS7 \ YOURUM ::
+#\[7]57M3YHSMCQNPA2PFFSMTCLCKCBJOLECRU5BQ4HOQCGT45FYN2OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
