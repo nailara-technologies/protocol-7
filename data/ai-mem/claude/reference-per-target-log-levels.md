@@ -23,12 +23,14 @@ quiet the console silently loses it from the files too.
 **How to apply:** for routine-but-worth-keeping lines [ lock handoffs,
 connection record ] use `'2:1'` ; plain `2` only for real debug detail.
 In use : coding lock lines, cube `session authorized` / `disconnected`.
-Old alternative still in the code : devmod skip flags for heartbeat /
-network lines [ `devmod.skip_v7_heartbeat`, `devmod.skip_log_msg` in
-base.protocol-7.command.send.local ] -- candidates to convert.
+Per command level offsets : `log.level.cmd-offset.<cmd>` in
+`cfg/logging-configuration` [ `heart = +1` moves heartbeat routing lines
+to level 3 ]. `devmod.skip_v7_heartbeat` was dead [ never set ] and got
+removed 2026-09-24 ; `devmod.skip_log_msg` [ p7-log append lines ] is
+still in use.
 
-#,,,.,,..,..,,,,,,,,.,.,,,,,.,..,,,,.,,,.,.,,,..,,...,...,...,,.,,.,.,,,,,..,,
-#C4GSOPVH7AIARWOM6BBF23IOKNJAKWF7RKEVF6WVGMJBGQZDF3X5D3JYU6EU7J7YER5BK4AIQEUQ6
-#\\\|U43BVWUHLLLIJUU4HIBO23FA3PADQGZ3VPJMLTZM2YG7J3NCITP \ / AMOS7 \ YOURUM ::
-#\[7]FIRGJGL7JDRC2MACZWRJCWJK5HWMQ3FDR2MT6MS2CZZWMJ6PKYBY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,.,,,,.,,,,.,,..,.,.,,..,,..,..,,...,...,.,.,,,,,,..,.,.,,..,
+#7YLTQHWTDJFIXDHSG2ZP6S2TLDYVY2JJRUPPXKX2TGH6FDQIG6WF5XEBHSAWXWOTSK54FCZLKHPBU
+#\\\|4QREHPXRKVZZH656Q6UBYNVAIKSB7IJPWTO7V3N5FS5G6EQDNGF \ / AMOS7 \ YOURUM ::
+#\[7]2YJYM7II42PGQ37HAPXCCAWWO5PIT4RR7T3QNPY3H4YS6ZLLPOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
