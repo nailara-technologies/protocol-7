@@ -16,17 +16,16 @@ the shared write path [ `base.handler.write` is used by every zenka ].
 
 ## what strace showed [ `strace -f -tt -e trace=write,recvfrom p7c heart` ]
 
-cube sends the FIRST BYTE of a reply immediately, the rest follows ~70ms
-[ or ~135ms ] later :
+the WHOLE reply arrives ~70ms [ or ~135ms ] late :
 
     write "select unix\nauth unix-taeki\n"
-    recv  "\\"                                   <- immediately
-    --- 135ms ---
-    recv  "\\PROTOCOL-7-VERSION\\...AUTH_TRUE =)\n"
-    write "select-strm-mode locked\n"
-    recv  "T"                                    <- immediately
-    --- 69ms ---
-    recv  "RUE strm-mode [locking]\n"
+    recv  "\\"                                   <- blocks ~135ms
+    recv  "\\PROTOCOL-7-VERSION\\...AUTH_TRUE =)\n"   <- rest at once
+
+CORRECTION [ same day ] : `strace -tt` stamps a syscall at its START, so the
+gap belongs to the FIRST recv [ waiting for the first byte ], not to a
+split write. `base.stream.emit` appends a reply frame in one `.=`. there is
+no one-byte-first split -- the question is only why a complete reply waits.
 
 p7c itself does blocking 1-byte `recv`, no waits [ `bin/c_src/p7c.c` ].
 
@@ -39,16 +38,12 @@ p7c itself does blocking 1-byte `recv`, no waits [ `bin/c_src/p7c.c` ].
   `<watcher.io.transfer>` [ `Event->idle`, no min/max,
   `base.event.init_code` ] via `base.event.callback.io-idle-restart`
   [ which calls `->now` for output buffer watchers ]
-- so : a first write sees only 1 byte in the buffer, the remainder waits for
-  the idle restart
+- candidate : a reply that lands while the output watcher is inactive
+  waits for the idle restart [ unverified ]
 
 ## open questions
 
-1. WHY does the first write see only one byte ? `base.s_write` writes the
-   whole buffer, so the reply must be appended in two steps [ first char,
-   then the rest ] with the var watcher firing in between. find where
-   [ append sites : `grep -rnE "\{'buffer'\}(->)?\{'output'\}\s*\.=" src ]
-   -- maybe a tied / var-watcher firing on the first modification
+1. [ dropped : based on a misread strace, see correction above ]
 2. WHY ~70ms steps ? the idle watcher fires when the loop has nothing else
    to do [ per the user : busy phases like logging bursts delay it ]. two
    hypotheses :
@@ -81,8 +76,8 @@ p7c itself does blocking 1-byte `recv`, no waits [ `bin/c_src/p7c.c` ].
   [ `heartbeat latency ... [ average ... ]` ] + counted in
   `v7-zenki.list heartbeat` -> usable to correlate with other zenka logs
 
-#,,.,,.,.,,..,,,.,.,,,.,.,...,.,.,.,.,,..,.,.,..,,...,...,.,.,,.,,..,,,,,,,,,,
-#NPOS5W6PPRZHYJXOLDJYTOEHXMNGN6DDR3VQN6XU6AHNGFWVF5FK53PLB26MZHMH5UREZB4P3CM5I
-#\\\|5LV6H3BH3KU44MCIAX2VGBZ26RDG3VLGB3ZOA6QWCLGQ3NTD2UP \ / AMOS7 \ YOURUM ::
-#\[7]YYH7PJUAOB56GTNPLHOG67P4DPSXG2YQLDOSGRXWW7U22V5WN4CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,.,.,,.,,,,,,.,.,.,.,,..,,,,,..,,...,...,,.,,...,,,,,,.,,..,,
+#JXNHTXXNMORBS7SX4GA3CS4HXWXCH27UGDGNQRJWTXUXITFFTPLKV5AI5TG6TWNNH73ZY46MA7VFE
+#\\\|V2NN3XH2HAPAZLWSUQWAWNEXOCXPGDTIN7LJUQQ6HGCNJJIFUGZ \ / AMOS7 \ YOURUM ::
+#\[7]WFEO6HEZWYAG5QRS4U636OEQEAIG7K4FUYBENEJETOJGQCD672CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
