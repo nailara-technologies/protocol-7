@@ -44,12 +44,18 @@ if (    $response->{'cmd'} eq qw| TRUE |
         map { delete $stats_tree->{$ARG} }
             grep { not exists <v7-zenki.zenka.instance>->{$ARG} }
             keys $stats_tree->%*;
-        if (    defined $stats->{'average'}
-            and $stats->{'average'} > 0
-            and $latency > 10 * $stats->{'average'} ) {
+
+        ##  outliers : to average, before first average to minimum  ##
+        my ( $ref_value, $ref_name )
+            = defined $stats->{'average'}
+            ? ( $stats->{'average'}, qw| average | )
+            : ( $stats->{'min'}, qw| min | );
+        if (    defined $ref_value
+            and $ref_value > 0
+            and $latency > 10 * $ref_value ) {
             <[base.logs]>->(
-                '2:1', '%s heartbeat latency %.5f s [ average %.5f s, %s ]',
-                $zenka_name, $latency, $stats->{'average'}, $source
+                '2:1', '%s heartbeat latency %.5f s [ %s %.5f s, %s ]',
+                $zenka_name, $latency, $ref_name, $ref_value, $source
             );
         }
         $stats->{'count'}++;
@@ -57,9 +63,10 @@ if (    $response->{'cmd'} eq qw| TRUE |
         $stats->{'min'}  = $latency
             if !defined $stats->{'min'}
             or $latency < $stats->{'min'};
-        $stats->{'max'} = $latency
-            if !defined $stats->{'max'}
-            or $latency > $stats->{'max'};
+        if ( !defined $stats->{'max'} or $latency > $stats->{'max'} ) {
+            $stats->{'max'}    = $latency;
+            $stats->{'max_at'} = <[base.time]>->(0);
+        }
 
         ##  outlier filtered average [ reload stalls etc. ] in batches  ##
         push $stats->{'recent'}->@*, $latency;
@@ -70,7 +77,7 @@ if (    $response->{'cmd'} eq qw| TRUE |
             );
             $stats->{'recent'} = [];
         }
-        $stats->{'last_at'} = <[base.ntime]>;
+        $stats->{'last_at'} = <[base.time]>->(0);
         $stats->{'source'}  = $source;
     }
     <[base.logs]>->(
@@ -111,8 +118,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,,,,,.,,,.,..,,...,.,,,..,,,.,,..,,...,...,..,,...,...,,,.,.,,,,,.,..,,.,,,
-#EGOPYLMLSRYGVN4FLBW2BYTR4UYDAOPY6IACKQNV7DWRRYOBAAEPRWVPQGSHDN7Y2OVRWP6BH5CEU
-#\\\|NWFMU6DWKFDA7MYBBJSBRP5PZSQ2DPKK4SRGWQ3KTF74PIOUYGL \ / AMOS7 \ YOURUM ::
-#\[7]CBX5F5JF64KNV25WB6MVYYYYNU635CO7TKS7VDMHBGA7HDDGYCAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,,,,,.,.,.,,,.,.,,,,,...,,,.,..,,...,...,.,,,,..,,..,.,,,,.,,
+#OGHW3XC3DM5FJCOB5O2R2RRAPBS343ORW54AU4HBNNVWBGU6C2AURL6MEQY4RH2YCFJ6HMQSU2SY6
+#\\\|KCTBVL4C7FHRWC6V3W52YNRZWYCBWCCSS6U2AQUUE5JSLHMLFIS \ / AMOS7 \ YOURUM ::
+#\[7]UXYMGCJFVYICSVFXZ24AVB44XCSYJAIZ7OY74WXL3AVBT3CZZMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
