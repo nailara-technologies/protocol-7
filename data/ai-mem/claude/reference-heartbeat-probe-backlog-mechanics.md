@@ -28,9 +28,9 @@ heartbeat.timeout.** If a zenka's command handler blocks the whole
 event loop for its own legitimate reasons (e.g. a synchronous
 `waitpid($pid, 0)` or `system()` call with no forked-off async I/O), it
 cannot read its inbound socket at all during that window — so every
-~5.7s probe queues up unanswered, each logged at level 2
-(`:network: v7 ..:. <zenka> ..:. heart`, unless
-`<devmod.skip_v7_heartbeat>` is set). A 780s block → ~135 queued
+~5.7s probe queues up unanswered, each logged as a network line
+(`:network: v7 ..:. <zenka> ..:. heart`, level 3 via
+`log.level.cmd-offset.heart = +1` in `cfg/logging-configuration`). A 780s block → ~135 queued
 probes; a 300s block → ~53. When the zenka finally frees up it drains
 and answers the whole backlog in one burst, competing with whatever
 real work was actually queued. **A bigger `heartbeat.timeout` does not
@@ -74,8 +74,8 @@ refactored to real async, don't just pick a bigger number. See
 [[topic-ondemand-heartbeat-upgrade]] for the 2026-08-24 zenka-by-zenka
 rollout this came out of, and which zenki landed on which side.
 
-#,,..,,,.,...,,.,,,,,,,,.,,,.,.,,,.,.,.,.,,..,..,,...,..,,...,,,.,.,.,,,,,...,
-#3NFEAENB4PYSS5BCZGH7CPC3GJ62HND73SMXQ2VODQ7V3FB3RZGYPRIIVHZ5JX6ZZLYGGITSGI6CM
-#\\\|ZEC6MMPGYCH6HY7BUFPX53DHDQYYQTH4WTS5XSL3ZBXYBKP5643 \ / AMOS7 \ YOURUM ::
-#\[7]6O2TGFJ4LOO53ZFJGXS7GLBYSQR5W27WGOVACUEWXRF6PGPNE2BY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,..,..,,,,,,,.,,,,,,...,,,.,..,,...,...,.,,,.,,,,.,,.,,,...,
+#KTVBS4HYVLWV4G7IBME2NSN3OPFPVLULVELCS3DUBQ6YBJ3H2STFZJ6KRNGZDGIIR4SCZVICNCFD4
+#\\\|IIRX5JBVCEDU7QM7WEQ6D5HJYCLQDJGOWFFB7GU3LMLWHOWVDZE \ / AMOS7 \ YOURUM ::
+#\[7]PRBQAVKC75CWAGV5X33Y7SVYX4EX74G2UIF7AE5LOKOMSFL67UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
