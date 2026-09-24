@@ -42,7 +42,7 @@ if (    defined $bs->{'lock'}
     my $new_token = ++$bs->{'token_counter'};
     $bs->{'lock_token'} = $new_token;
     <[base.logs]>->(
-        1, 'lock %s: %s#%d -> %s#%d [reenter]',
+        '2:1',    'lock %s: %s#%d -> %s#%d [reenter]',
         $backend, $task_id, $token, $task_id, $new_token
     );
     return { acquired => TRUE, queued => FALSE, token => $new_token };
@@ -58,7 +58,7 @@ if ( not defined $bs->{'lock'} ) {
         $task_id, $backend
     );
     <[base.logs]>->(
-        1, 'lock %s: free -> %s#%d [acquire]',
+        '2:1',    'lock %s: free -> %s#%d [acquire]',
         $backend, $task_id, $new_token
     );
     return { acquired => TRUE, queued => FALSE, token => $new_token };
@@ -74,7 +74,8 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
         $task_id, $bs->{'lock'}, $backend, scalar @{$queue}
     );
     <[base.logs]>->(
-        1,
+        ## level 1 only when queued behind itself [ lost token context ] ##
+        ( $bs->{'lock'} eq $task_id ? 1 : '2:1' ),
         'lock %s: %s#%s -> %s#%s [queue %s%s, %d waiting]',
         $backend,
         $bs->{'lock'},
@@ -92,8 +93,8 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,.,,..,,.,.,,..,..,,,,.,,,.,,,,,,,.,,.,,.,.,..,,...,...,..,,.,.,..,,,.,,.,.,
-#QVEIG5LZA2P3N5FFIB7YFRBJKSTYXL4GSMLG3YOZC6UQKWNS4LPOFJNQIBHT4F2W4XN2U5ZP5YSB4
-#\\\|63OT2AD2YVLJPGFSDZJJKB3JZMXEZ3UG6IOJKUK24TUKDYWGEUO \ / AMOS7 \ YOURUM ::
-#\[7]45ZI7E44WT6JBWP7LWJYHE5VH37OUPW5FDO7FCRFQPF7CFIZU4BY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,..,,,,,,...,.,,,,,,,.,.,.,.,..,,...,...,,,.,..,,..,,,..,.,.,
+#AXVFTW3HVSOZLGXJ5B6HWRICV3OBM7NW3657LZPCFDM2ERABUV6CUFLQWAL5I676XTQN3KMGUTCXG
+#\\\|QNG5EWZGL7TVJNW3HIQWAN5AGER5TBXSG6JVXODJ4Q3NXMPWNY4 \ / AMOS7 \ YOURUM ::
+#\[7]EB7J6LYYMHXJWAJLR7YWYTP5VTKEAOEF44FDACC5KHKK35HDS2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

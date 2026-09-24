@@ -9,8 +9,9 @@ my ( $log_level, $log_msg, $log_buffer, $time_stamp );
 
 ## support optional log_level parameter with default to 1 [matching base.logs]
 ## if first arg is single digit, treat as log_level; otherwise default to 1
-if ( @ARG > 0 and defined $ARG[0] and $ARG[0] =~ m|^\d$| ) {
-    ## first arg is single digit log level
+if ( @ARG > 0 and defined $ARG[0] and $ARG[0] =~ m|^\d(?::\d){0,2}$| ) {
+    ## first arg is a log level : a single digit, or a per target spec ##
+    ## <console>:<buffer+logfile> or <console>:<buffer>:<logfile>      ##
     $log_level  = shift @ARG;
     $log_msg    = shift @ARG // '';
     $log_buffer = shift @ARG // '';
@@ -23,7 +24,7 @@ if ( @ARG > 0 and defined $ARG[0] and $ARG[0] =~ m|^\d$| ) {
     $time_stamp = shift @ARG;
 }
 
-if ( $log_level !~ m|^\d+$| ) {
+if ( $log_level !~ m|^\d+(?::\d+){0,2}$| ) {
     ## log_level is not numerical
     $log_level = 0;
     $log_msg   = sprintf 'LOG-LEVEL not numerical %s', scalar <[base.caller]>;
@@ -32,10 +33,19 @@ if ( $log_level !~ m|^\d+$| ) {
 <system.zenka.verbosity.buffer>  //= 1;
 <system.zenka.verbosity.logfile> //= 0;
 
-return TRUE    ## true ##
-    if $log_level > <system.zenka.verbosity.console>
-    and $log_level > <system.zenka.verbosity.buffer>
-    and $log_level > <system.zenka.verbosity.logfile>;
+## per target levels : a line can be console level 2 while stored at level ##
+## 1, so the logfile keeps it without raising the logfile verbosity [ and  ##
+## collecting every other level 2 line with it ]                           ##
+my ( $lvl_console, $lvl_buffer, $lvl_logfile ) = split m|:|, $log_level;
+$lvl_buffer  //= $lvl_console;
+$lvl_logfile //= $lvl_buffer;
+$log_level = $lvl_console;    ## console formatting uses the console level ##
+my $lvl_store = $lvl_buffer < $lvl_logfile ? $lvl_buffer : $lvl_logfile;
+
+return TRUE                   ## true ##
+    if $lvl_console > <system.zenka.verbosity.console>
+    and $lvl_buffer > <system.zenka.verbosity.buffer>
+    and $lvl_logfile > <system.zenka.verbosity.logfile>;
 
 $log_buffer = qw| zenka | if not length $log_buffer;
 
@@ -47,10 +57,10 @@ if ( not length $log_msg ) {
 ## reducing calculation load., ##
 ##
 my $h_override   = <base.ntime-harmony> // TRUE;
-my $want_harmony = $log_level < 3 ? $h_override : FALSE;
+my $want_harmony = $lvl_store < 3 ? $h_override : FALSE;
 ##
 $want_harmony = FALSE    ## skipping harmonizing when not to disk ##
-    if $log_level > 1 or <system.zenka.verbosity.logfile> > 1;
+    if $lvl_store > 1 or <system.zenka.verbosity.logfile> > 1;
 
 $log_msg =~ s|\r|\\r|g;
 $log_msg =~ s|\n|\\n|g;
@@ -88,25 +98,25 @@ if ( defined $code{'base.buffer.add_line'} ) {
 
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
     <[base.buffer.add_line]>->(
-        $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ),
-        $log_level
+        $log_buffer, join( ' ', $time_stamp, $lvl_buffer, $log_msg ),
+        $lvl_logfile
         )
-        if $log_level <= <system.zenka.verbosity.buffer>
-        or $log_level <= <system.zenka.verbosity.logfile>;
+        if $lvl_buffer <= <system.zenka.verbosity.buffer>
+        or $lvl_logfile <= <system.zenka.verbosity.logfile>;
 
 } elsif ( not defined $code{'base.buffer.add_line'}
-    and $log_level <= <system.zenka.verbosity.buffer> ) {
+    and $lvl_buffer <= <system.zenka.verbosity.buffer> ) {
 
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
 
     push <system.start.zenka-buffer>->@*,
-        join( ' ', $time_stamp, $log_level, $log_msg );
+        join( ' ', $time_stamp, $lvl_buffer, $log_msg );
 }
 
 ## console output ##
 ##
 if ( length fileno(STDOUT)
-    and $log_level <= <system.zenka.verbosity.console> ) {
+    and $lvl_console <= <system.zenka.verbosity.console> ) {
     if ( utf8::is_utf8($log_str)
         and defined $code{'base.utf8.clean_str'} ) {
         <[base.utf8.clean_str]>->( \$log_str, 2, 2 );    ## warn level 2 ##
@@ -126,8 +136,8 @@ if ( length fileno(STDOUT)
 
 return TRUE;
 
-#,,.,,,..,,,,,.,,,.,,,,.,,.,.,,.,,,,,,,.,,..,,..,,...,...,...,.,.,,,,,..,,.,,,
-#D574YSS3P3NGQNTV6QDTOFAQGZDMTLL4HJOF577HIFGXWZVTSOVD4YMNVW2QIOX7HKE4W7XCT22SC
-#\\\|GMZICUTBOROWZVXV2IQT2DHL6XIAO6R527GOISBSXASOERFNG7O \ / AMOS7 \ YOURUM ::
-#\[7]LEBQWFMVCSOD26PI4KBO4HUKVHZFOJ7HTIKD33LWH2MN26YQISDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,,,,,..,,..,,,.,,,,.,...,,..,..,,...,...,...,.,,,,..,,,.,.,,,
+#UHG56HZMAKVF6CJZSLN4D6QRLSHHGZYCGKWNQY37UUJSDCCZWE7YAALNYZEUFONMR74RCLAEIZXIK
+#\\\|OD4BFHIBPGDVRBCQF5MZMUVUKCV7QHVDY2IQHZ2P7UHBURX5LIZ \ / AMOS7 \ YOURUM ::
+#\[7]JH6GWGP3ABWKZSPQHHWIEXSHYA2TG62UDDLMSNEFOP2PA47X46AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

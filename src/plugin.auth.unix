@@ -7,8 +7,9 @@ my $event = shift;
 my $id    = $event->w->data;
 my $re    = <regex.base>;
 
-## session authorized log level [ use 2 for silencing ] ##
-my $log_level = 1;
+## session authorized log level : console 2 : stored 1 [ kept in buffer and ##
+## logfile, hidden on the console ]                                         ##
+my $log_level = '2:1';
 
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
@@ -156,8 +157,8 @@ if ( $input->$* =~ s,^auth ($re->{usr_str}|$re->{usr_subn_str})\n,, ) {
 
 return 2;
 
-#,,.,,..,,...,..,,...,.,,,..,,..,,,,.,,.,,,.,,..,,...,..,,..,,,.,,,,,,..,,,..,
-#KWQOA5QMJROETQ2LJE2CMKBKJOQQI5O4MG6QCBKHZ2V3EOKKX2EEHU4RD4D6WFQ4WHEYZXXIGFUOM
-#\\\|VQBO5MCO7YLSTGQEDGHMOJKFX4MSPG45VYROYC6GMWNMDYZGOIW \ / AMOS7 \ YOURUM ::
-#\[7]BS4UOPWMPSZD35U6PBVB7O6KLV5H2OCQUYT6DNZDSCSYEG2UIKAY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,.,,,.,,,..,...,.,,,..,,.,,,..,,...,..,,...,,.,,,.,,...,,..,
+#MSW3SWHNC45ULBWOFFF7YHWFTC4IP6N67EFWOV5UB7N54PGUPESCDP764WYIV5VYL7YMBIZIO47KU
+#\\\|PBEYPOWAJTDU437P7Z3YLMNTWF5MWT5JOAUJXVRQKX7IVQ723M2 \ / AMOS7 \ YOURUM ::
+#\[7]FDE6Q6XGTBG5IWK6J5C7GYK3QECAK4KBFQ6XERRNONQDRW23CIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
