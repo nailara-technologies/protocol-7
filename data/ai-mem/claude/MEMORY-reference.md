@@ -87,3 +87,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|QOWCT43CGK3WKOTGMHIVLW3C2LHSUFDZIF6G2IIBCJA2TLKQAHE \ / AMOS7 \ YOURUM ::
 #\[7]GOL5GHQNWZTHLINHIWKID4VF4A6RLMRE52EXGYH5RFV2ZWCTMKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [per-target log levels](reference-per-target-log-levels.md) — `'2:1'` = console 2 / stored 1 in base.logs [ `<console>[:<buffer>][:<logfile>]` ] ; use instead of plain 2 to quiet console without losing the logfile line
+
+#,,.,,.,.,...,...,,.,,.,.,,..,..,,,,.,,..,,..,..,,...,...,..,,,..,,,.,...,..,,
+#EGCCSZC5YHTERZ2HVEV2WUWKKUEJ546XX2PMEJGD7JBBUJAM6R6VEGXMTNZKYTFLZITLUGOKO5GNS
+#\\\|HRLB727R65XMVN3CUAYY57CZ57NPOZTKRY6EQFFUUVZJJKJHPMV \ / AMOS7 \ YOURUM ::
+#\[7]XTVSFC74NFRE35GTXPJY5EVVKTDEPMYNUUBVCGMYTSTGUOAO4OCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
