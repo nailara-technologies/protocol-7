@@ -1,0 +1,173 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use English;
+use feature qw| say |;    ## no use VERSION here -- the eval'd wrapper   ##
+## carries the v5.36 preamble per the harness ##
+## spec, and a nested use VERSION would warn  ##
+
+###                                                                  ###
+## coding.detect_stream_repetition : offline fixture regression test   ##
+###                                                                  ###
+
+## the module is a p7 body [ no sub wrapper ] reading <coding.cfg.*> tree  ##
+## macros. this harness extracts the body straight out of the CURRENT src  ##
+## file at runtime [ never a hand-copied duplicate that could silently     ##
+## drift out of sync ], replaces every <coding.cfg.*> macro with undef so  ##
+## the // fallback defaults apply, wraps the body in a plain sub and runs  ##
+## every fixture from  fixtures/stream-repetition.fix through it           ##
+##                                                                         ##
+## extraction is marker-based, not line-number-based : the body is         ##
+## everything from the first non-comment line after the module header      ##
+## through the line before the trailing AMOS7 signature block [ first line ##
+## starting with '#,,' ] -- a module restructure makes this die loudly     ##
+## instead of silently testing stale or partial logic                      ##
+##                                                                         ##
+## run: perl bin/test-scripts/test-stream-repetition                       ##
+
+use File::Spec;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+BEGIN {
+    my $up_dir    = File::Spec->updir;
+    my $root_path = abs_path(
+        File::Spec->rel2abs(
+            File::Spec->catdir( $RealBin, $up_dir, $up_dir )
+        )
+    );
+    $main::root_path = $root_path;
+}
+
+use constant TRUE  => 5;
+use constant FALSE => 0;
+
+## ---- extract the module body from the real source ---- ##
+
+my $module_path = File::Spec->catfile( $main::root_path,
+    qw| src coding.detect_stream_repetition | );
+
+open( my $src_fh, '<:encoding(UTF-8)', $module_path )
+    or die "cannot read $module_path : $!";
+my @src_lines = <$src_fh>;
+close($src_fh);
+
+my $start_idx;
+for my $i ( 0 .. $#src_lines ) {
+    my $line = $src_lines[$i];
+    next if $line =~ m{^\s*$};    ## blank                       ##
+    next if $line =~ m{^\s*#};    ## header comment              ##
+    $start_idx = $i;
+    last;
+}
+die "cannot find module body start in $module_path\n" . "\n"
+    if not defined $start_idx;
+
+my $end_idx = $start_idx;
+for my $i ( $start_idx .. $#src_lines ) {
+    last if $src_lines[$i] =~ m{^#,,};    ## AMOS7 signature block ##
+    $end_idx = $i;
+}
+
+my $body = join '', @src_lines[ $start_idx .. $end_idx ];
+
+## sanity anchors -- extraction must yield the actual detector          ##
+die "extracted body has no repetition regex -- source restructured?\n"
+    unless $body =~ m{qr/};
+die "extracted body has no result hash return -- source restructured?\n"
+    unless $body =~ m{return \s+ \{}x;
+
+## <coding.cfg.*> tree macros become undef so the // defaults apply     ##
+my $macro_count = ( $body =~ s{<coding\.cfg\.[a-z_]+>}{undef}g );
+die "no <coding.cfg.*> macros replaced -- source restructured?\n"
+    unless $macro_count;
+
+## ---- compile the extracted body wrapped in a plain sub ---- ##
+
+my $det = eval join( "\n",
+    'use v5.36;', 'use utf8;', 'use English;',
+    'use constant TRUE => 5;',
+    'binmode STDOUT, ":utf8";',
+    'sub det {', $body, '}', '\\&det' );
+die "cannot compile extracted module body : $EVAL_ERROR"
+    if $EVAL_ERROR
+    or ref $det ne 'CODE';
+
+## ---- load fixtures ---- ##
+
+my $fixture_path
+    = File::Spec->catfile( $RealBin, qw| fixtures stream-repetition.fix | );
+
+open( my $fix_fh, '<:encoding(UTF-8)', $fixture_path )
+    or die "cannot read $fixture_path : $!";
+my @fixtures;
+my $current;
+while ( my $line = <$fix_fh> ) {
+    chomp $line;
+    next if $line =~ m{^\s*(?:#|$)};
+    if ( $line =~ m{^name:\s*(.+)$} ) {
+        $current = { name => $1, expect => undef, build => undef };
+        push @fixtures, $current;
+    } elsif ( $line =~ m{^expect:\s*(\w+)$} and $current ) {
+        $current->{expect} = $1;
+    } elsif ( $line =~ m{^build:\s*(.+)$} and $current ) {
+        $current->{build} = $1;
+    } else {
+        die "unparsable fixture line $. in $fixture_path : $line\n";
+    }
+}
+close($fix_fh);
+
+die "no fixtures loaded from $fixture_path\n" unless @fixtures;
+for my $fx (@fixtures) {
+    die "fixture '$fx->{name}' is missing expect or build\n"
+        if not defined $fx->{expect}
+        or not defined $fx->{build};
+    die "fixture '$fx->{name}' has invalid expect '$fx->{expect}'\n"
+        if $fx->{expect} ne 'PASS' and $fx->{expect} ne 'FLAG';
+}
+
+## ---- run fixtures ---- ##
+
+my $fail_count = 0;
+
+for my $fx (@fixtures) {
+    my $text = eval $fx->{build};    ## build expr is fixture-supplied ##
+    die "fixture '$fx->{name}' build expression failed : $EVAL_ERROR"
+        if $EVAL_ERROR;
+
+    my $result = $det->($text);
+
+    my $got
+        = defined $result
+        ? 'FLAG unit=' . $result->{unit_len}
+        : 'PASS';
+
+    my $passed
+        = $fx->{expect} eq 'FLAG'
+        ? defined $result
+        : not defined $result;
+
+    if ($passed) {
+        say sprintf 'ok    %s  [ expected %s, got %s ]',
+            $fx->{name}, $fx->{expect}, $got;
+    } else {
+        $fail_count++;
+        say sprintf 'FAIL  %s  [ expected %s, got %s ]',
+            $fx->{name}, $fx->{expect}, $got;
+    }
+}
+
+say '';
+if ($fail_count) {
+    say "FAILED : $fail_count of " . scalar(@fixtures) . ' fixture[s]';
+    exit 1;
+}
+say 'all ' . scalar(@fixtures) . ' fixtures passed';
+exit 0;
+
+#,,,,,.,,,,,,,,.,,..,,,,.,,..,,.,,..,,,.,,,..,..,,...,...,,,.,.,.,..,,,,.,...,
+#2DLMZZXNALOAME7OC6DRVLBXDWFZOPU7K2EXCAHTSXD26XZH2FZFMGHLPJGCUOIF2WMZZ2RRUNDHA
+#\\\|NH4O6NS23OIHAXTRIP2BSOUGXEV7H4CE7OHUGPXP2FGIKPB7H4S \ / AMOS7 \ YOURUM ::
+#\[7]VHKWAILHXS7DYLHEWBGPMYKPYGOUIIOLI6LGHKGLQALRKAN7XEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

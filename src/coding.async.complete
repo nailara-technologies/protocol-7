@@ -78,6 +78,16 @@ if ( defined $task_rec ) {
         if defined $state->{'messages'};
     $task_rec->{'execution'}->{'tools'} = $state->{'tools'}
         if defined $state->{'tools'};
+    ## real last round : task-append resumes at round + 1 instead of ##
+    ## estimating from the message count                             ##
+    $task_rec->{'execution'}->{'round'} = $state->{'round'}
+        if defined $state->{'round'};
+    ## keep the request seq monotonic across a resume : a fresh task_state ##
+    ## restarting at 1 would let a late callback from a pre-completion     ##
+    ## connection match a new request's seq [ see coding.callback.* stale  ##
+    ## checks ]                                                            ##
+    $task_rec->{'execution'}->{'request_seq'} = $state->{'request_seq'}
+        if defined $state->{'request_seq'};
 }
 
 ## clean up async state ##
@@ -176,11 +186,12 @@ if ( defined $result && $result->{'success'} ) {
         my $prev_tools   = $state->{'tools'} // [];
 
         <coding.async.task_state>->{$task_id} = {
-            'state'    => qw| streaming |,
-            'backend'  => $prev_backend,
-            'round'    => $prev_round,
-            'messages' => \@resume_messages,
-            'tools'    => $prev_tools,
+            'state'       => qw| streaming |,
+            'backend'     => $prev_backend,
+            'round'       => $prev_round,
+            'request_seq' => $state->{'request_seq'} // 0,
+            'messages'    => \@resume_messages,
+            'tools'       => $prev_tools,
         };
 
         $task_rec->{'execution'}->{'status'} = qw| in_progress |;
@@ -786,8 +797,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,.,.,.,.,,,.,..,,,,,,...,,,.,.,,,,,,,,..,.,.,...,...,...,,..,...,,,,,,.,,
-#I5SLC37TDMFYOSWPNJOTXCHSO4BCG2UWLKTH2B4FJKVA6H5OQLITOCN3MZ4F44GMBUKWJUBGNGEI2
-#\\\|P2EJ6GRBVTUYU5BWC37UYDUZILPY2OE7T6BDYW643GDSIFRTGEW \ / AMOS7 \ YOURUM ::
-#\[7]X3IFH4O5NL5TOVFZ3CESWHOGAQ4AIXSSQS6UU4I3OFI42RP2POCA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,...,,..,.,.,,..,.,,,.,.,...,.,.,...,...,,.,,,,,,.,.,...,.,,,
+#BKH3WC6GR2TUAQ4OIH3QI25B3C5J6NF2SS7IJUGVP4DHPQCVABFJO7ERURMG2LUG6WMGTBIN2A4FQ
+#\\\|HZIP6LDKK3OMDOFCLZURUXJU5233DSRMF6XQUQRW2AZ7SILSGXC \ / AMOS7 \ YOURUM ::
+#\[7]IBEAL3R7AEJKWZVEO6TEO4DU5TDMWSIJPL74J6MO7L5NHHVIIUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
