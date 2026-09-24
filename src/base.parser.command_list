@@ -12,6 +12,18 @@ my $reply_str = '';
 my @commands;
 my %param;
 
+##  aliases [ added by init code ] share the entry of their target sub  ##
+my %entry_by_sub;
+foreach my $name ( keys <base.commands>->{$section}->%* ) {
+    my $sub_name = $data{'base'}{$section}{$name} // next;
+    $entry_by_sub{$sub_name} //= <base.commands>->{$section}{$name};
+}
+foreach my $name ( $cmd_aref->@* ) {
+    my $sub_name = $data{'base'}{$section}{$name} // next;
+    <base.commands>->{$section}{$name} //= $entry_by_sub{$sub_name}
+        if defined $entry_by_sub{$sub_name};
+}
+
 map {
     if ( not exists $data{'base'}{$section}{$ARG} ) {
         my $cli = " $section";
@@ -50,8 +62,8 @@ foreach my $cmd (@commands) {
 
 return ( \$reply_str, $max_len );
 
-#,,.,,..,,...,,,,,,.,,..,,.,,,.,,,.,,,.,,,,,,,..,,...,...,..,,,,,,,.,,.,,,..,,
-#V5YYFKYIMNPJFSF5IKRI7AXGLVRN6KG2LD25UQQQPSDWT7NUQUQL47W3QB3OPRAWS73ZQJCQC2U4U
-#\\\|OC6OJLAK76FF32WVPSGFYVQ5ULBKNSODXTPTF46XYI5UWAWN7NG \ / AMOS7 \ YOURUM ::
-#\[7]H5CSLIV4I2YRQ4MY3ESOBORCQOYQRQXJUHGWJOITWCB5NZLQD2DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,.,.,.,,,.,,,.,,,.,,,,,,,,,.,..,,...,...,..,,,,,,...,,..,,.,,
+#SIYFQ6UEI2BVHEDCNRUEWIWSDHISDPSM6GQ4AZS6BWSS7B7FXXRA5KFWSWJYCDQEEWMIE7ACT5UQI
+#\\\|PJOTAKQFE63V4U5V2T3HXJNKGRD2IAU5UWY45KFPPGLLKZZGYKS \ / AMOS7 \ YOURUM ::
+#\[7]A53QA4LFTLXJVTZLISLGXBWWSUAX4AY4ZEIX66S3WKMNK2SIWECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
