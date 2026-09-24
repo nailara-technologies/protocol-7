@@ -103,6 +103,14 @@ if ( defined $task && $task->{'pause_requested'} ) {
         'pause', $task_id,
         { 'reason' => 'user request', 'resume_event' => 'resume' }
     );
+    ## free the backend while paused : the lock only serializes requests,  ##
+    ## it must not make unrelated tasks wait on this one [ real ordering   ##
+    ## between tasks is expressed through deps / subtasks, not the lock ]. ##
+    ## no request is in flight here, and resume goes back through          ##
+    ## async.request, which re-acquires or queues                          ##
+    my $state_p = <coding.async.task_state>->{$task_id} // {};
+    <[coding.async.backend_release]>->( $task_id, $state_p->{'backend'} )
+        if length( $state_p->{'backend'} // '' );
     return { success => TRUE, paused => TRUE };
 }
 
@@ -370,8 +378,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,.,,.,,,...,,,,,.,.,...,.,.,,.,,...,.,.,..,,...,.,.,,.,,,,.,,,,,..,,,.,,
-#PPO4GXQ5SEDGV2N2J6MGCYFUVPVIFVWIEOJVGFIJ3OTFUFJJV3SSX7KMBQRZMH3OKMKTNCD2247II
-#\\\|Y33CCJC4KIXONPCN35JF57BYZEKMACBCSBYSE2WPO4ZGTDUDGX2 \ / AMOS7 \ YOURUM ::
-#\[7]W4Z7WDHFMIBC6EUUM6K3PBGARHB6GTD7PJIMH52NZSCKBRLPTCAA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,.,.,,,.,,..,.,,,.,,,,.,,,..,..,,...,..,,.,.,,.,,,..,,..,.,,,
+#EHNHCAFCCDA6UAIXFBMGC2UVHPNYW2FVW6Z2CZMA4ATKF4KBL2YFGOJIACXSNH7AEVNHNQFWWLWRY
+#\\\|O5OPVI4XINXT4GRH4VUGM7O6MIG4LLXEJOM772NZ3EAC75363W3 \ / AMOS7 \ YOURUM ::
+#\[7]EKLF4L7WFV3ZBCLLTATQTFTTZWKGYF4FCDLHTX5CCI2URGKARMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
