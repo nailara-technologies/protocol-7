@@ -1,13 +1,22 @@
 ## [:< ##
 
 # name  = coding.async.backend_release
-# param = task_id, backend, [ req_seq ]
+# param = task_id, backend, token | 'force'
 # descr = release backend lock and dispatch next queued task if any
 
-my ( $task_id, $backend, $req_seq ) = @ARG;
+## only the holder's CURRENT token frees the lock [ see the header of      ##
+## coding.async.backend_acquire ]. a stale connection of this same task    ##
+## presents an older token and is skipped. callers that must release       ##
+## unconditionally [ task end, user stop / cancel, sweeps / batches ] pass ##
+## 'force' -- force skips the token check only, never the holder check : a ##
+## release never frees a lock another task holds                           ##
+
+my ( $task_id, $backend, $token ) = @ARG;
 $backend //= qw| gpu |;
 
 my $bs = <coding.state.backend>->{$backend} // {};
+
+my $force = ( defined $token and $token eq qw| force | ) ? TRUE : FALSE;
 
 ## guard: only release if this task holds the lock ##
 if ( ( $bs->{'lock'} // '' ) ne $task_id ) {
@@ -19,48 +28,49 @@ if ( ( $bs->{'lock'} // '' ) ne $task_id ) {
         2,
         'lock %s: %s#%s -> %s#%s [skip release by %s#%s : not holder]',
         $backend,
-        $bs->{'lock'}     // 'free',
-        $bs->{'lock_seq'} // '-',
-        $bs->{'lock'}     // 'free',
-        $bs->{'lock_seq'} // '-',
+        $bs->{'lock'}       // 'free',
+        $bs->{'lock_token'} // '-',
+        $bs->{'lock'}       // 'free',
+        $bs->{'lock_token'} // '-',
         $task_id,
-        $req_seq // '-'
+        $token // '-'
     );
     return FALSE;
 }
 
-## optional seq guard : per-connection callbacks pass their request seq ; a ##
-## stale connection of this same task must not free the lock a newer        ##
-## request holds [ callers without a seq release unconditionally ]          ##
-if (    defined $req_seq
-    and defined $bs->{'lock_seq'}
-    and $req_seq != $bs->{'lock_seq'} ) {
+## token guard : a stale caller [ older connection, or no token at all ] ##
+## must not free the lock the holder's current request now holds         ##
+if (not $force
+    and (  not defined $token
+        or not defined $bs->{'lock_token'}
+        or $token ne $bs->{'lock_token'} )
+) {
     <[base.logs]>->(
-        1, 'backend_release: %s stale seq %d != %d [%s], skipping',
-        $task_id, $req_seq, $bs->{'lock_seq'}, $backend
+        1, 'backend_release: %s token %s != %s [%s], skipping',
+        $task_id,
+        $token // 'none',
+        $bs->{'lock_token'} // '-', $backend
     );
     <[base.logs]>->(
         1,
-        'lock %s: %s#%s -> %s#%s [skip '
-            . 'release by %s#%s : stale seq %d != %d]',
+        'lock %s: %s#%s -> %s#%s [skip release by %s#%s : stale token]',
         $backend,
         $bs->{'lock'},
-        $bs->{'lock_seq'},
+        $bs->{'lock_token'} // '-',
         $bs->{'lock'},
-        $bs->{'lock_seq'},
+        $bs->{'lock_token'} // '-',
         $task_id,
-        $req_seq,
-        $req_seq,
-        $bs->{'lock_seq'}
+        $token // '-'
     );
     return FALSE;
 }
 
 my $rel_holder = $bs->{'lock'};
-my $rel_seq    = $bs->{'lock_seq'} // '-';
+my $rel_token  = $bs->{'lock_token'} // '-';
+my $rel_reason = $force ? q|release force| : q|release|;
 
 $bs->{'lock'} = undef;
-delete $bs->{'lock_seq'};
+delete $bs->{'lock_token'};
 <[base.logs]>->(
     2,        'backend_release: %s released %s lock',
     $task_id, $backend
@@ -79,7 +89,7 @@ while ( defined( $next = shift @{ $bs->{'queue'} // [] } ) ) {
     );
     <[base.logs]>->(
         1, 'lock %s: %s#%s -> free [drop %s finished]',
-        $backend, $rel_holder, $rel_seq, $next
+        $backend, $rel_holder, $rel_token, $next
     );
 }
 if ( defined $next ) {
@@ -87,24 +97,48 @@ if ( defined $next ) {
         1,     'backend_release: dispatching next queued task %s [%s]',
         $next, $backend
     );
-    ## acquire for next task then resume its request ##
-    $bs->{'lock'} = $next;
+    ## acquire for next task with a fresh token, then resume its request ##
+    ## inside a lock context presenting that token [ async.request's     ##
+    ## acquire re-enters and rotates it ]                                ##
+    my $handoff_token = ++$bs->{'token_counter'};
+    $bs->{'lock'}       = $next;
+    $bs->{'lock_token'} = $handoff_token;
     <[base.logs]>->(
-        1, 'lock %s: %s#%s -> %s#- [handoff]',
-        $backend, $rel_holder, $rel_seq, $next
+        1, 'lock %s: %s#%s -> %s#%d [handoff, %s]',
+        $backend, $rel_holder, $rel_token, $next, $handoff_token, $rel_reason
     );
-    <[coding.async.send_request]>->($next);
+    my $sent = do {
+        local <coding.async.lock_ctx> = {
+            'task_id' => $next,
+            'backend' => $backend,
+            'token'   => $handoff_token
+        };
+        <[coding.async.send_request]>->($next);
+    };
+
+    ## send_request bailed before any request took the lock over [ its ##
+    ## token is still the handoff token ] : don't leak it              ##
+    if (    ref $sent eq qw| HASH |
+        and not $sent->{'success'}
+        and ( $bs->{'lock'}       // '' ) eq $next
+        and ( $bs->{'lock_token'} // 0 ) == $handoff_token ) {
+        <[base.logs]>->(
+            1,     'backend_release: handoff to %s not taken [%s], releasing',
+            $next, $sent->{'error'} // 'unknown'
+        );
+        <[coding.async.backend_release]>->( $next, $backend, $handoff_token );
+    }
 } else {
     <[base.logs]>->(
-        1, 'lock %s: %s#%s -> free [release]',
-        $backend, $rel_holder, $rel_seq
+        1, 'lock %s: %s#%s -> free [%s]',
+        $backend, $rel_holder, $rel_token, $rel_reason
     );
 }
 
 return TRUE;
 
-#,,,,,.,,,,,.,..,,,..,,..,.,,,,,,,,,,,...,.,.,..,,...,..,,.,,,,.,,.,.,.,,,,.,,
-#5OTGIWVZPKC7ELCZPHRCX27A6R73HO22RCLSWVSMMEEN2XTBQOQS5RNYJX4ENB7LIATGDL2M5Z2VA
-#\\\|MKIL4YS3KP5KGZR3ZML2QOLTH7UGQEFA5GLQK4CF3FKIASBI5HK \ / AMOS7 \ YOURUM ::
-#\[7]A6SYT4PNFTASL4KNSENU6QZQ6NGFJUW4T55KII3A6TLJQGQHVECQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,.,,,..,,..,,..,,,,,...,,,.,,,,,..,,...,...,,..,,,.,,.,,,,.,..,,
+#6WMISJJVB7ZUJ6B4G2JNPR4W3DV2TBCNZGKPDON7MWMM6SCNMPUBIGWFBIJDCBSK3CTLWSPXTZOPW
+#\\\|YWV7GHRMAM2Y6FY43RTRGEGVIC7APX32SNYKVARRYAW3I2PVOCG \ / AMOS7 \ YOURUM ::
+#\[7]ZX4TNKZPICLSPRJLAPC3AGA6YFSR3MKB26A3WWMS4CBYVTSVZWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

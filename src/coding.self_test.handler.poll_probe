@@ -115,22 +115,29 @@ my $fire_request = sub {
     ## REAL task ids [ the exact hazard poll_probe's own never- queued      ##
     ## discipline exists to avoid ]. skip the acquire entirely : the        ##
     ## probe's own $finish release degrades to a guarded no-op, and the     ##
-    ## sweep lock keeps covering the whole candidate cycle                  ##
-    <[coding.async.backend_acquire]>->( $probe_id, $backend )
-        if !defined $bs->{'lock'};
+    ## sweep lock keeps covering the whole candidate cycle. the granted     ##
+    ## token is kept for async_probe's $finish release [ undef under a      ##
+    ## sweep lock : that release is then a guarded no-op ]                  ##
+    my $probe_token;
+    if ( !defined $bs->{'lock'} ) {
+        my $probe_acq
+            = <[coding.async.backend_acquire]>->( $probe_id, $backend );
+        $probe_token = $probe_acq->{'token'};
+    }
 
     $state->{'in_flight'}    = TRUE;
     $state->{'request_kind'} = $kind;
     $state->{'probe_result'} = undef;
 
     my $http = <[coding.self_test.async_probe]>->(
-        {   url      => $state->{'url'},
-            model_id => $model_id,
-            prompt   => $prompt_text,
-            backend  => $backend,
-            timeout  => $state->{'timeout'},
-            probe_id => $probe_id,
-            kind     => $kind,    ## surfaced in the connect log below ##
+        {   url        => $state->{'url'},
+            model_id   => $model_id,
+            prompt     => $prompt_text,
+            backend    => $backend,
+            timeout    => $state->{'timeout'},
+            probe_id   => $probe_id,
+            lock_token => $probe_token,
+            kind       => $kind,    ## surfaced in the connect log below ##
             ## max_tokens : 4096 for the initial probe call [ settled ],  ##
             ## the client default 1024 for tier1 reformat - same split as ##
             ## the old blocking path                                      ##
@@ -645,8 +652,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,.,,,,,.,,,,,.,,.,,.,.,.,.,...,..,,.,,,...,..,,...,...,..,,,.,,,.,,,..,..,,
-#2RNQGITREVYEQF3Z25JXHH4PB5WFLNE5RATW37ASYXDFGDDG5UG244PDPK5534KNCD3AAFERVBS5I
-#\\\|CT73WQNDY43OBWGRKE6XXHGUNBTFSKHY6UNFWESMYI6SJPDYBSZ \ / AMOS7 \ YOURUM ::
-#\[7]CJOEJ7EMP2JUEINY2XEU3XRBJZQLZXW3CCIPJHQX2KANOIFGAMAY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,,..,.,,,,..,.,,,..,,.,.,,.,,..,,...,...,.,.,,,,,..,,,.,,..,,
+#GN5ZKYAH7RUQWNBYTPTQIMFPL3IJ2NLJLSPJOK4EO3S33MBMJJBRAWEXXTYET344CO6N2MYOTO2AI
+#\\\|6LOIA4BXBTCS45GKQ4OGCXBBONKQDAK3ZE7UCCLHOLHED53MLYL \ / AMOS7 \ YOURUM ::
+#\[7]VWEWXDQY5FL3OYIDRIZLCOJYAGLQDNN7DKJ2F6KQ7ZOPJW72GICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,8 +37,10 @@ if ( $state->{'retry_pending'} ) {
     );
     ## release lock if we own it [ safety net ] ##
     my $backend_dup = $state->{'backend'} // '';
-    <[coding.async.backend_release]>->( $task_id, $backend_dup, $req_seq )
-        if length $backend_dup;
+    <[coding.async.backend_release]>->(
+        $task_id, $backend_dup,
+        <[coding.async.lock_token]>->( $task_id, $backend_dup )
+    ) if length $backend_dup;
     return;
 }
 
@@ -119,15 +121,19 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
     );
     ## release backend lock before scheduling retry ##
     my $backend_retry = $state->{'backend'} // '';
-    <[coding.async.backend_release]>->( $task_id, $backend_retry, $req_seq )
-        if length $backend_retry;
+    <[coding.async.backend_release]>->(
+        $task_id, $backend_retry,
+        <[coding.async.lock_token]>->( $task_id, $backend_retry )
+    ) if length $backend_retry;
     return;
 }
 
 ## release backend lock before failing task ##
 my $backend_fail = $state->{'backend'} // '';
-<[coding.async.backend_release]>->( $task_id, $backend_fail, $req_seq )
-    if length $backend_fail;
+<[coding.async.backend_release]>->(
+    $task_id, $backend_fail,
+    <[coding.async.lock_token]>->( $task_id, $backend_fail )
+) if length $backend_fail;
 
 ## fail the task ##
 my $result = {
@@ -295,8 +301,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,,,,...,.,.,.,.,,,,,.,.,,.,,..,,,.,,...,,..,..,,...,...,..,,...,.,.,...,..,,
-#YUHQHBNGTTT4ISS5T4HDNZDW2EEBMP2AIRSRECINR6EJ766VKBQAV4523SU7OQ6TOG4KZMY5CQBYE
-#\\\|OCUPBCLXCOAD5DGNZYXFJT5A3IKAK3A3BKGEYYUEDVF3QFA5VWA \ / AMOS7 \ YOURUM ::
-#\[7]Q3TJ7XN6B2TYSFMCD5KNFBJIBUOA4WUZOJBOQYDOSLOEAGV3IKBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,.,.,..,,.,,,.,.,.,,,,.,,,.,,..,,...,..,,.,.,,.,,.,,,,.,,..,,
+#IQOUOZTU67JTKV7GEZSF76FHJPO44A25AFPHD2ZDMPI7A77SIVKWRKVSUKRID7FIZ6MY65RG5UKJM
+#\\\|QKHSSQ5NXE6IMOHYVJNLEE4P3HQUYNG22SWD7OSDC4QHQ6DWYMG \ / AMOS7 \ YOURUM ::
+#\[7]3G256DY4TE3D6TCJQM3XBLPD36EAO2SOVEPH7V5XR46Z4FJSY6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

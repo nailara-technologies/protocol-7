@@ -185,9 +185,13 @@ if ( defined $parent_state && !$has_pending ) {
 
     ## release parent's backend lock : parent is now waiting, not using ##
     ## inference child will acquire the lock when it runs via           ##
-    ## coding.async.request                                             ##
+    ## coding.async.request. runs as a tool inside the parent's own     ##
+    ## callback chain : release with the token that chain presents      ##
     my $parent_backend = $parent_state->{'backend'} // 'gpu';
-    <[coding.async.backend_release]>->( $parent_task_id, $parent_backend );
+    <[coding.async.backend_release]>->(
+        $parent_task_id, $parent_backend,
+        <[coding.async.lock_token]>->( $parent_task_id, $parent_backend )
+    );
 } else {
     <[base.logs]>->(
         1,
@@ -208,8 +212,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,,,,..,,,,,,.,,,..,,,.,,,,,,..,,,.,,,,,,.,.,..,,...,...,.,,,.,,,,,.,,..,,.,,
-#XTGMHXIO6XGCDMQLLL374YB44ZDRQEROMM5ALNUW7ZFYCOQCHU6VNUKEVAM7SFVYA4OIK67QG2GOQ
-#\\\|YDCH6DBPISVDTAYUJNEAV5XZBJAEBFMJZ6AFJYX5UQPVA7526UI \ / AMOS7 \ YOURUM ::
-#\[7]7SN5W52CWMTSPLZY4GTRJMAHWRGSJDCDHJRXMT2G2QNCOUBRTECY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,,..,,,.,,,.,,.,,..,,,..,,..,..,,...,..,,...,.,.,,,,,,,,,..,,
+#BGLDPN2LDC2NCDCM4536CJPWEDETCQVHBHE4OCL2W3ZRWCXGOY3BQUYA3PQWN5PQQB527RUGMZ4TU
+#\\\|ALV4YH4KHPIUTGEZ7KFFVFNAQ23XSFCLSHC7NRYBRSF5R6XL74H \ / AMOS7 \ YOURUM ::
+#\[7]Y4526UDIGZZILTN4Z63QIA3HCIZTMYRKNKQUSUVDCVEBAIYSMGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

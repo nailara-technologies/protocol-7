@@ -64,6 +64,11 @@ if ( not $lock_result->{'acquired'} ) {
     return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
 }
 
+## this request's lock token : captured by every callback below so a late ##
+## callback of THIS connection can only release while this request still  ##
+## holds the lock [ the next round's acquire rotates the token ]          ##
+my $lock_token = $lock_result->{'token'};
+
 ## stamp phase-1 (http-wait) start here, not just on round increment : this ##
 ## fires on every actual dispatch attempt, first try and every timeout      ##
 ## retry alike. phase-1 ends when the response is fully received;           ##
@@ -105,40 +110,48 @@ my $state_ref = <coding.async.task_state>->{$task_id} // {};
 my $req_seq   = ( $state_ref->{'request_seq'} // 0 ) + 1;
 $state_ref->{'request_seq'} = $req_seq;
 
-## stamp the lock with this request's seq : a stale callback from an older ##
-## connection of this same task [ still self-cleaning after the next round ##
-## was sent, see above ] must not free the lock this request now holds --  ##
-## backend_release skips when given a seq that doesn't match               ##
-my $bs_seq = ( <coding.state.backend> // {} )->{$backend} // {};
-if ( ( $bs_seq->{'lock'} // '' ) eq $task_id ) {
-    my $prev_seq = $bs_seq->{'lock_seq'} // '-';
-    $bs_seq->{'lock_seq'} = $req_seq;
-    <[base.logs]>->(
-        1, 'lock %s: %s#%s -> %s#%d [stamp]',
-        $backend, $task_id, $prev_seq, $task_id, $req_seq
-    );
-}
+## lock context for this request's callbacks : whatever they run    ##
+## synchronously [ tool execution, the next round's enqueue_round / ##
+## send_request, releases ] presents this request's token -- see    ##
+## coding.async.lock_token                                          ##
+my $lock_ctx = {
+    'task_id' => $task_id,
+    'backend' => $backend,
+    'token'   => $lock_token
+};
 
 ## setup callbacks : extracted to coding.callback.* modules ##
 my $callbacks = {
     task_id   => $task_id,
-    on_header => sub { <[coding.callback.http_header]>->( $task_id, @ARG ) },
-    on_chunk  =>
-        sub { <[coding.callback.http_chunk]>->( $task_id, $req_seq, @ARG ) },
+    on_header => sub {
+        local <coding.async.lock_ctx> = $lock_ctx;
+        <[coding.callback.http_header]>->( $task_id, @ARG );
+    },
+    on_chunk => sub {
+        local <coding.async.lock_ctx> = $lock_ctx;
+        <[coding.callback.http_chunk]>->( $task_id, $req_seq, @ARG );
+    },
     on_complete => sub {
+        local <coding.async.lock_ctx> = $lock_ctx;
         <[coding.callback.http_complete]>->( $task_id, @ARG, $req_seq );
     },
     on_error => sub {
+        local <coding.async.lock_ctx> = $lock_ctx;
         <[coding.callback.http_error]>->( $task_id, @ARG, $req_seq );
     },
-    req_seq  => $req_seq,    ## stale-connection check in http_timeout ##
-    on_abort => sub {
+    req_seq    => $req_seq,       ## stale-connection check in http_timeout ##
+    lock_token => $lock_token,    ## soft-restart release in http_timeout ##
+    on_abort   => sub {
         my ($http_state) = @ARG;
+        local <coding.async.lock_ctx> = $lock_ctx;
         <[coding.callback.http_abort]>->( $task_id, $http_state, $req_seq );
     },
-    check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
-    timeout    => $existing->{'timeout_ceiling'}    ## adaptive : soft ##
-        // $http_timeout_request_total,             ## fallback : hard ##
+    check_stop => sub {
+        local <coding.async.lock_ctx> = $lock_ctx;
+        <[coding.callback.http_check_stop]>->($task_id);
+    },
+    timeout => $existing->{'timeout_ceiling'}    ## adaptive : soft ##
+        // $http_timeout_request_total,          ## fallback : hard ##
     backend => $backend,    ## used for cold-start data-start grace ##
 };
 
@@ -156,7 +169,7 @@ if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
 
 if ( !$http_result->{'success'} ) {
     ## immediate error : release backend lock before failing ##
-    <[coding.async.backend_release]>->( $task_id, $backend );
+    <[coding.async.backend_release]>->( $task_id, $backend, $lock_token );
     <[base.logs]>->(
         0,        "async.request : immediate error for %s : %s",
         $task_id, $http_result->{'error'}
@@ -177,8 +190,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,.,,.,.,,,.,,,.,.,.,,,,,..,,..,,.,,,,,,,,,.,..,,...,...,...,,,.,,,.,,,,,.,.,
-#HFMEKVKLKXXDV3TGOLM4QY4RUY7VJU5C7XXKT56UQKJJM5HTTBDPDGVP7ARKZOKGXZLJWNJSXFS2I
-#\\\|CMYRVOR4VZBZEABI5GJ6LKAEXVQ6GGEMCBAVFMBYVJ4DTB64RZV \ / AMOS7 \ YOURUM ::
-#\[7]JVZRRFQ6257XNHRCQC45MGUBOUDKPF4CQQPNXTJAWNVAUNOSTMBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,...,,.,,,..,,,.,,,.,,..,..,,,.,,..,,...,...,,..,,,,,,..,.,,,...,
+#DHRKSBCBWX52XKVVHFQRP6CHIN66DZKYCFKK3SILVEYYUMBRBHUN6NMXMXSSFFJZEFV7B627W2HKC
+#\\\|4PLBL7OCIOTKDFLAGETBXO644GVSKIGPZMF5KKMB3JHC2TRMNQU \ / AMOS7 \ YOURUM ::
+#\[7]XUYARVVM2W46AVTK6L2G7CTNEFX2ARB2HMLQ4GS2K476MN3XL4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

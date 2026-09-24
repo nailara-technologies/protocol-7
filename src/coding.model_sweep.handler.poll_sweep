@@ -96,7 +96,8 @@ my $finish_sweep = sub {
     ## backend_release's holder check when nothing is held ]             ##
     my $held_switch_id = $state->{'switch_id'} // '';
     <[coding.async.backend_release]>->(
-        sprintf( qw| sweep:%s |, $held_switch_id ), $backend
+        sprintf( qw| sweep:%s |, $held_switch_id ),
+        $backend, qw| force |
     ) if length $held_switch_id;
 
     $clear_cursor->();
@@ -532,7 +533,8 @@ if ( $phase eq qw| waiting | ) {
         ## reset to '' a few lines down [ guarded no-op via                ##
         ## backend_release's holder check when somehow nothing is held ]   ##
         <[coding.async.backend_release]>->(
-            sprintf( qw| sweep:%s |, $switch_id ), $backend
+            sprintf( qw| sweep:%s |, $switch_id ),
+            $backend, qw| force |
         ) if length $switch_id;
 
         ## advance cursor ##
@@ -591,7 +593,8 @@ if ( $phase eq qw| waiting | ) {
 ## backend_release's holder check ]                                         ##
 my $orphan_switch_id = $state->{'switch_id'} // '';
 <[coding.async.backend_release]>->(
-    sprintf( qw| sweep:%s |, $orphan_switch_id ), $backend
+    sprintf( qw| sweep:%s |, $orphan_switch_id ),
+    $backend, qw| force |
 ) if length $orphan_switch_id;
 <[base.logs]>->(
     0,        '[model_sweep] %s : unknown phase %s, aborting sweep',
@@ -600,8 +603,8 @@ my $orphan_switch_id = $state->{'switch_id'} // '';
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,..,...,.,,,.,,,...,,.,,,..,.,.,..,,,,.,,..,..,,...,..,,,.,,,.,,,,.,,..,...,
-#PYW22QM7QCXVDCMBRPVCFIAPL55W2AV7XZO76MBAQ7NNABRP7DPG2D23F6DC3NTIVKSVOF3IDRRNG
-#\\\|FYHBG32UUTD5HIH2UGV4KONT3SRYXYUZRTRZQXJ5T3IZTBKQYRF \ / AMOS7 \ YOURUM ::
-#\[7]J2JHNMHXQOAK26JHZHEIIT7XVGTFV466TN2SUTQR4EELLQ363KDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,,,,,.,...,...,,..,,,,,,,,,,.,,..,,...,...,,,,,...,,.,,,,.,,,,,
+#EU4G7DWC552OR7VJKZWEY5NDX5TY4TL2XC2NIR27PXDT3R2TEYJDUFGLVZP4M7GKKVRHRFXWU7ADA
+#\\\|KY7354SM566CXW2M5C7KQW5O57LJY44WNZRYCSG37ELMKJ2ZPFZ \ / AMOS7 \ YOURUM ::
+#\[7]QIVLEANY3R45HPSX5XU5CRBV3CS3XEO4JJQ75GYI4B5CMADJJSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

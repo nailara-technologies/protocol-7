@@ -66,9 +66,12 @@ if ( not defined $state ) {
 
 my $job_id = $state->{'job_id'};
 
-## release backend lock : wakes next queued task if any ##
+## release backend lock : wakes next queued task if any. force : the task ##
+## is ending, whichever of its requests or callers gets here [ the holder ##
+## check still applies -- only this task's own lock ]                     ##
 my $backend = $state->{'backend'} // '';
-<[coding.async.backend_release]>->( $task_id, $backend ) if length $backend;
+<[coding.async.backend_release]>->( $task_id, $backend, qw| force | )
+    if length $backend;
 
 ## save conversation state before cleanup  : needed for task-append ##
 ## resumption                                                       ##
@@ -797,8 +800,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,.,,,,,.,,.,,...,,..,.,.,,..,.,,,.,.,...,.,.,...,...,,.,,,,,,.,.,...,.,,,
-#BKH3WC6GR2TUAQ4OIH3QI25B3C5J6NF2SS7IJUGVP4DHPQCVABFJO7ERURMG2LUG6WMGTBIN2A4FQ
-#\\\|HZIP6LDKK3OMDOFCLZURUXJU5233DSRMF6XQUQRW2AZ7SILSGXC \ / AMOS7 \ YOURUM ::
-#\[7]IBEAL3R7AEJKWZVEO6TEO4DU5TDMWSIJPL74J6MO7L5NHHVIIUCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,,.,,,,.,...,,,.,...,,.,,.,,,.,.,...,...,.,.,.,.,.,,,,,.,.,,,
+#BUDPHJGPD2EUTRZHOHZQVJUT4W3E7RUHI3L7UFZ6TYMXTWST5ITQFKCR7OB2Z27K6MPT6SXDEUELC
+#\\\|OWV4CXHBXVDEXBWETKIL4UKCXQCLT425FN667UYYJQXGSQCLNXT \ / AMOS7 \ YOURUM ::
+#\[7]CFB22LS6Z27V5V45XNKHJ6YCFVRYW6YKUXMIRL44RGBXC74O2ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -69,7 +69,8 @@ for my $backend (@backends) {
     if ($had_state) {
         my $held_switch_id = $state->{'switch_id'} // '';
         <[coding.async.backend_release]>->(
-            sprintf( qw| sweep:%s |, $held_switch_id ), $backend
+            sprintf( qw| sweep:%s |, $held_switch_id ),
+            $backend, qw| force |
         ) if length $held_switch_id;
     }
 
@@ -105,8 +106,8 @@ if ($changed) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,,,,,,,.,.,.,..,,,..,,,,,.,,,,.,,...,,.,,.,.,...,...,.,.,.,.,...,.,.,.,,,
-#I4JHXYWCMM65WGJXQ3UFANUMJYNJAHG5UDXCEEOFP6RWBBVHILJMYV3RVP5AGO4FYJ2K5REQHL4UM
-#\\\|Y666MFTMHIMRWT6V7AJZMGPL3ORKQSIKTH5WYLECZFWJLHYMPHR \ / AMOS7 \ YOURUM ::
-#\[7]7V2GTN26XRUKBSIDREA2RRO7BKJS4L6S77BYVUH3HOOFIAOEPUBY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,.,.,..,,..,,.,.,,..,..,,,,,,.,.,...,...,,.,,,..,.,,,...,,,,,
+#IEUO2HITRYZ2JOJYCOMESAM34DKUY2WQUHETZGSPTBZIYI3A7Z35S23UJ2UFN6OHKGHEV6KYDOLK2
+#\\\|WGZI46AKFPDM4SYK3KUYLFOXKDL3IU42CWTIHKGK5LVLDQV5SBM \ / AMOS7 \ YOURUM ::
+#\[7]CPOS73YKMMBTTOONTO7XY74U7DHYS4RQWZV3MLEJ3GJJOC6NV6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

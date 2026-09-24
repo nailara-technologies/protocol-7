@@ -40,7 +40,8 @@ my $pause_batch = sub {
     ## backend_release's holder check when nothing held ]                   ##
     my $held_id = $state->{'switch_id'} // '';
     <[coding.async.backend_release]>->(
-        sprintf( qw| batch:%s |, $held_id ), $backend
+        sprintf( qw| batch:%s |, $held_id ),
+        $backend, qw| force |
     ) if length $held_id;
     $state->{'switch_id'} = '';
 
@@ -100,7 +101,8 @@ my $finish_batch = sub {
     ## defensive lock release [ guarded no-op when nothing held ] ##
     my $held_id = $state->{'switch_id'} // '';
     <[coding.async.backend_release]>->(
-        sprintf( qw| batch:%s |, $held_id ), $backend
+        sprintf( qw| batch:%s |, $held_id ),
+        $backend, qw| force |
     ) if length $held_id;
 
     my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
@@ -896,7 +898,8 @@ if ( $phase eq qw| restoring | ) {
     ## terminal transition of the candidate cycle ]                  ##
     my $switch_id = $state->{'switch_id'} // '';
     <[coding.async.backend_release]>->(
-        sprintf( qw| batch:%s |, $switch_id ), $backend
+        sprintf( qw| batch:%s |, $switch_id ),
+        $backend, qw| force |
     ) if length $switch_id;
     $state->{'switch_id'} = '';
     <coding.self_test_switch_in_progress> = FALSE;
@@ -975,8 +978,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,.,.,,,...,,,.,.,,,...,,.,,,.,,...,,..,.,,,..,,...,...,.,.,,..,...,..,,.,.,
-#NHHOQ3GH3JEAK6JYBCPACWMQGYHOZ2NOSP5DFY7NDCD2KA45AZ6BBKO57RMRBT6LCRGBJNUDSBCLA
-#\\\|SKOBWP7FCDWBDTT2OUY2J6CYKEJVPGYQJJOSHACUTE67X3GCSQK \ / AMOS7 \ YOURUM ::
-#\[7]5KE23UWWXNS7GZ3A2UQCCNZUM57NZQ7S4TOSSKFOGYVOQ23NSMCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,..,,..,,,,.,.,.,.,.,,..,..,,..,,...,...,.,.,.,.,,,,,,.,,..,,
+#B37LU7B32IW6CJ2YDWDFF77PRTTXSHJT5XTREN6N42A5XWFCSIG6HZ64LM5EBUWEAEQTTQENKFQC6
+#\\\|AUTKKWUMOUO3RIX5AFYWVUU5PKBSUA6ZKSSROEOJB5PFTI24YZF \ / AMOS7 \ YOURUM ::
+#\[7]RZWC3E4NX66SCK6SAJ6K4SLHMPRAAYPF34Z4TRHFJDMS34XQ36CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
