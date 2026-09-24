@@ -57,10 +57,21 @@ if ($structural) {
     return undef if $full_match_len < $homogeneous_min_len;
 }
 
+## count by class : whitespace-only, structural [ past the long threshold ] ##
+## or a real phrase loop -- see coding.abort.count                          ##
+<[coding.abort.count]>->(
+    qw| repetition |,
+    (     $matched_unit =~ m|^\s+$| ? qw| whitespace |
+        : $structural               ? qw| structural |
+        :                             qw| phrase |
+    ),
+    $matched_unit
+);
+
 return { matched => $matched_unit, unit_len => length($matched_unit) };
 
-#,,,.,,,,,.,.,,.,,.,,,,..,,.,,...,,,.,.,.,,,.,.,.,...,...,,,.,,,.,...,,,,,.,,,
-#BC2JZXPQZTNI434SFXM36XDJAH26Y6SBQLTRIY7IZRAQLSE4OQ256CXTVICD6JOOR2WOMRPF3CBD2
-#\\\|RIYWL3CCCCC434W5SN2SIQ34XIHGWKIMERJ6GUT3RBSNCIJQEAU \ / AMOS7 \ YOURUM ::
-#\[7]UBKYJKPXZEPEMWTOPTNTUXYO7PS3SEDUSJ4HCGXGTR7PNTOBN6CY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,,.,,,,.,,.,,..,,..,,..,,,,,,.,.,...,...,..,,..,,..,,,..,,.,,
+#GMG2CJ7RZYPKAW4NSXZ4S4EZOCBNZOZL7SLKSX6ACJ4ATFA7CBJEKZ4I6S3GH74TGOQM2E5MEIYI4
+#\\\|UHAQTKXZOHISITO2AKWPRDM47ABQHQF2V4QB3QK5SUYVAYJUWVA \ / AMOS7 \ YOURUM ::
+#\[7]IALG5Y3FAX35QH6AH6L56U3BOHIV5RXUOHS2V7HIMXADWXBVU6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

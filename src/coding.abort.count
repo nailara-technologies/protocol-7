@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.abort.count
+# descr = count an automatic stream abort by reason and class
+# param = reason, class, sample
+
+## totals per reason / class under <coding.stats.aborts> [ read with       ##
+## 'coding.tree-read coding.stats.aborts 3' ]. a false-positive-prone rule ##
+## shows up as one class dominating the counts -- the 68 blank-line aborts ##
+## of 2026-09 would have been visible here long before anyone read the log ##
+
+my ( $reason, $class, $sample ) = @ARG;
+$reason //= qw| unknown |;
+$class  //= qw| - |;
+$sample //= '';
+
+my $stats = <coding.stats.aborts>       //= {};
+my $entry = $stats->{$reason}->{$class} //= { count => 0 };
+
+$entry->{'count'}++;
+$entry->{'last_at'} = <[base.ntime]>;
+## short, single-line sample of what matched ##
+$entry->{'last_sample'} = substr( $sample =~ s|\n|\\n|gr, 0, 60 );
+
+return $entry->{'count'};
+
+#,,..,...,,,.,..,,,,,,...,...,,,.,.,.,,..,.,,,..,,...,...,..,,,,,,,,,,,,.,,,,,
+#5E35ZPU4JV7YYXZPMYV2MRFB6AIHSJ3FCW7VI5BSGTGIDBGHW36TUJLRPS7EEZDZWDO6OBDTG6NCU
+#\\\|DXZQ3N5TUHZE7R7QWIWFOJGFPHIWY5IQBTSR44W4VB2SAMNN7SD \ / AMOS7 \ YOURUM ::
+#\[7]YXAQLJSPH2FQLLM7Y32QNMFPKVRBPVT32LYTIWKATG3EWR7KXYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

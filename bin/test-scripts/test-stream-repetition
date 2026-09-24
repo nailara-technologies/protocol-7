@@ -3,8 +3,8 @@ use strict;
 use warnings;
 use English;
 use feature qw| say |;    ## no use VERSION here -- the eval'd wrapper   ##
-## carries the v5.36 preamble per the harness ##
-## spec, and a nested use VERSION would warn  ##
+## carries the v5.36 preamble per the harness  spec, and a nested use ##
+## VERSION would warn                                                 ##
 
 ###                                                                  ###
 ## coding.detect_stream_repetition : offline fixture regression test   ##
@@ -81,6 +81,10 @@ die "extracted body has no result hash return -- source restructured?\n"
 my $macro_count = ( $body =~ s{<coding\.cfg\.[a-z_]+>}{undef}g );
 die "no <coding.cfg.*> macros replaced -- source restructured?\n"
     unless $macro_count;
+
+## <[module.name]> calls [ eg the coding.abort.count side effect ] become a ##
+## no-op sub : only the detector's own decision is under test               ##
+$body =~ s|<\[[\w.\-]+\]>|sub { return }|g;
 
 ## ---- compile the extracted body wrapped in a plain sub ---- ##
 
@@ -166,8 +170,8 @@ if ($fail_count) {
 say 'all ' . scalar(@fixtures) . ' fixtures passed';
 exit 0;
 
-#,,,,,.,,,,,,,,.,,..,,,,.,,..,,.,,..,,,.,,,..,..,,...,...,,,.,.,.,..,,,,.,...,
-#2DLMZZXNALOAME7OC6DRVLBXDWFZOPU7K2EXCAHTSXD26XZH2FZFMGHLPJGCUOIF2WMZZ2RRUNDHA
-#\\\|NH4O6NS23OIHAXTRIP2BSOUGXEV7H4CE7OHUGPXP2FGIKPB7H4S \ / AMOS7 \ YOURUM ::
-#\[7]VHKWAILHXS7DYLHEWBGPMYKPYGOUIIOLI6LGHKGLQALRKAN7XEDY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,,,,,...,..,,,,.,.,,,.,.,,.,,..,,...,...,..,,,,,,.,,,,.,,.,,,
+#UP6UP2TUMNODGU5I5STUMK2KGF3TNUX3S72PSABZ7VQD3WFG2FVYTOTYT2ENLWUIG4MNUIYNKGGVQ
+#\\\|ZMFRZHFDVWYK53FZPB5ZLCFK2Q6AZAWL3VL4FWFIVK2BABN2JE5 \ / AMOS7 \ YOURUM ::
+#\[7]BXMVWBRV4B7HTQK73OX456JV5VYPVMIYFXZU4R5EPRTBDVLWEUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
