@@ -110,8 +110,14 @@ $state_ref->{'request_seq'} = $req_seq;
 ## was sent, see above ] must not free the lock this request now holds --  ##
 ## backend_release skips when given a seq that doesn't match               ##
 my $bs_seq = ( <coding.state.backend> // {} )->{$backend} // {};
-$bs_seq->{'lock_seq'} = $req_seq
-    if ( $bs_seq->{'lock'} // '' ) eq $task_id;
+if ( ( $bs_seq->{'lock'} // '' ) eq $task_id ) {
+    my $prev_seq = $bs_seq->{'lock_seq'} // '-';
+    $bs_seq->{'lock_seq'} = $req_seq;
+    <[base.logs]>->(
+        1, 'lock %s: %s#%s -> %s#%d [stamp]',
+        $backend, $task_id, $prev_seq, $task_id, $req_seq
+    );
+}
 
 ## setup callbacks : extracted to coding.callback.* modules ##
 my $callbacks = {
@@ -171,8 +177,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,...,,.,,.,,,...,.,,,,.,,.,.,.,.,,,,,.,,,..,,...,...,..,,..,,,..,...,,.,,
-#AWJ3PBRLKLYDHMN3DG2HFG2Y7MRIJ6AWIJRXQXM73KUZJOHSOT3GF7Z6AZCUWWW7ZEAIHH4H3HW3W
-#\\\|4S47GAB6QDEHAOYZQRSJNCZ6OEY6IAZ3PQWUD2WSNLMZRX4C3HX \ / AMOS7 \ YOURUM ::
-#\[7]Y3BBP5XEMUTI474VGYBUOW37RLAX4OOHUPTL3SNW6Q5SBCUJ42AI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,.,.,.,,,,,..,,..,,.,,,,,,,,,.,..,,...,...,...,,,.,,,.,,,,,.,.,
+#HFMEKVKLKXXDV3TGOLM4QY4RUY7VJU5C7XXKT56UQKJJM5HTTBDPDGVP7ARKZOKGXZLJWNJSXFS2I
+#\\\|CMYRVOR4VZBZEABI5GJ6LKAEXVQ6GGEMCBAVFMBYVJ4DTB64RZV \ / AMOS7 \ YOURUM ::
+#\[7]JVZRRFQ6257XNHRCQC45MGUBOUDKPF4CQQPNXTJAWNVAUNOSTMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

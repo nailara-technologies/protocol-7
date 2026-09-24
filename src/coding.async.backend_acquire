@@ -32,6 +32,11 @@ my $bs = <coding.state.backend>->{$backend};
 ## caller", not task_state's mere existence -- revisit with more care       ##
 ## before re-adding, don't re-copy this exact check                         ##
 if ( defined $bs->{'lock'} and $bs->{'lock'} eq $task_id ) {
+    <[base.logs]>->(
+        1, 'lock %s: %s#%s -> %s#%s [reenter]',
+        $backend, $task_id, $bs->{'lock_seq'} // '-',
+        $task_id, $bs->{'lock_seq'} // '-'
+    );
     return { acquired => TRUE, queued => FALSE };
 }
 
@@ -41,6 +46,10 @@ if ( not defined $bs->{'lock'} ) {
     <[base.logs]>->(
         2,        'backend_acquire: %s acquired %s lock',
         $task_id, $backend
+    );
+    <[base.logs]>->(
+        1,        'lock %s: free -> %s#- [acquire]',
+        $backend, $task_id
     );
     return { acquired => TRUE, queued => FALSE };
 }
@@ -53,12 +62,23 @@ unless ( grep { $ARG eq $task_id } @{$queue} ) {
         1, 'backend_acquire: %s queued behind %s [%s] [%d waiting]',
         $task_id, $bs->{'lock'}, $backend, scalar @{$queue}
     );
+    <[base.logs]>->(
+        1,
+        'lock %s: %s#%s -> %s#%s [queue %s, %d waiting]',
+        $backend,
+        $bs->{'lock'},
+        $bs->{'lock_seq'} // '-',
+        $bs->{'lock'},
+        $bs->{'lock_seq'} // '-',
+        $task_id,
+        scalar @{$queue}
+    );
 }
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,.,,...,.,,,.,.,,.,,,.,,...,..,,...,,..,,..,..,,...,...,,,.,,..,..,,,,,,,.,,
-#TJCZPFGJPNVTIOQ2YIJIGRWXQABCCUE5VY27VJWWMOGAKADNP2F3AE7QG5DE33EOJM7RYP7JUGYPM
-#\\\|MWEZWJOQDSGAZQUM3VX4ZKDJGIRMLLSP6YJ6DTV4SAWPEQFUZWQ \ / AMOS7 \ YOURUM ::
-#\[7]BRXGAPXKF3NIKZC7WFQGX7IIFUYEMPF3LL6ATEYTB4ERLYNLPKCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,.,,,.,.,...,,,.,,.,,,..,,,.,..,,...,..,,,,.,,,,,..,,,,,,,..,
+#M55QP34CNT4XWCNFHYA62Z6BLDJVOZY56772RNPDDE44IOFGU24SQ3EIU7476WJGCMWZ5ABU3ZEFI
+#\\\|Y4SYNIL6VPNB6FX7UQ2D5BKMOT5CPAEKHHKCRBWG2WRGKRV3SGO \ / AMOS7 \ YOURUM ::
+#\[7]7ULSA3KGHGABBRXVZR2VEKOLP7Q3CIFUGEOBVEAEBMGQFC46RSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

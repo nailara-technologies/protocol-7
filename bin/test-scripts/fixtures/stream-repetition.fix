@@ -1,0 +1,66 @@
+# stream-repetition fixture set -- read by bin/test-scripts/test-stream-repetition
+#
+# one record per case, records separated by blank lines :
+#
+#   name:   short human-readable label
+#   expect: PASS [ detector returns undef ] or FLAG [ returns hashref ]
+#   build:  a single perl expression evaluating to the stream text
+#
+# keep every build expression on ONE line -- the harness evals it verbatim.
+# unicode literals are stored as utf-8 and read back decoded.
+
+name: box line
+expect: PASS
+build: "demo:\n" . ("─" x 120)
+
+name: mojibake line
+expect: PASS
+build: "demo " . ("â\x{94}\x{80}" x 40)
+
+name: table rule
+expect: PASS
+build: ("|--------" x 12)
+
+name: real prose with em-dashes
+expect: PASS
+build: ("normal prose with — dashes — and more words here. " x 3)
+
+name: short blank runs
+expect: PASS
+build: "x\n" . ("  \n    \n" x 10)
+
+name: phrase loop
+expect: FLAG
+build: "ok " . ("the same thing again " x 6)
+
+name: endless whitespace
+expect: FLAG
+build: ("  \n    \n" x 60)
+
+name: long box line past threshold
+expect: FLAG
+build: ("─" x 400)
+
+name: dotted leader
+expect: PASS
+build: ("." x 150)
+
+# --- additional realistic cases ---
+
+name: markdown table with repeated separator rows
+expect: PASS
+build: "| col | col |\n" . ("|------|------|\n" x 8)
+
+name: german phrase loop
+expect: FLAG
+build: "ok " . ("t explizi" x 12)
+
+name: arrow rule line
+expect: PASS
+build: ("-------> " x 12)
+
+#,,,,,,,.,...,,.,,,.,,,.,,...,.,,,.,.,..,,..,,..,,...,...,,.,,.,.,,.,,.,,,.,,,
+#6AUECN4WY6ZFJCSFW32OV6C5MMJZAT2UIDFHHTLV7IVQN46PEPWIB5NHFGSRREPPAWD4YSVJBKIPE
+#\\\|67B354TLJOFOQER7ELBK4UW5IBQQPNRDFFUSKTJ2FHRVM6XBNJC \ / AMOS7 \ YOURUM ::
+#\[7]N3IPIOMNESBMDQMVPQOMKIE6SLN3G6OSXKRVE72AHX2NX2KF4YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
