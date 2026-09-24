@@ -53,6 +53,7 @@ if (    $response->{'cmd'} eq qw| TRUE |
         if (    defined $ref_value
             and $ref_value > 0
             and $latency > 10 * $ref_value ) {
+            $stats->{'outliers'}++;
             <[base.logs]>->(
                 '2:1', '%s heartbeat latency %.5f s [ %s %.5f s, %s ]',
                 $zenka_name, $latency, $ref_name, $ref_value, $source
@@ -118,8 +119,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,.,,,,.,,,,,,,,,,,,,.,.,.,,,.,.,,,,,...,,,.,..,,...,...,.,,,,..,,..,.,,,,.,,
-#OGHW3XC3DM5FJCOB5O2R2RRAPBS343ORW54AU4HBNNVWBGU6C2AURL6MEQY4RH2YCFJ6HMQSU2SY6
-#\\\|KCTBVL4C7FHRWC6V3W52YNRZWYCBWCCSS6U2AQUUE5JSLHMLFIS \ / AMOS7 \ YOURUM ::
-#\[7]UXYMGCJFVYICSVFXZ24AVB44XCSYJAIZ7OY74WXL3AVBT3CZZMDY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,,.,,,,,,.,.,..,,.,.,.,.,,,.,..,,...,...,.,.,..,,.,,,.,.,..,,
+#72AQK2T6OHRXFEXMYIMFFUB7MR7RU2ZHNHHJXTWCN32SBW4GBQSBTD2BQ7I4OEP7KQQKF6JV75F2G
+#\\\|QPSRCPOYTLYB5XB4BRI645F2MWBIKHPOIE4A4KXY3PA3B3SHHAY \ / AMOS7 \ YOURUM ::
+#\[7]54YBFN2KMYF6KVASAK56MDTTZBENNJSMI636KPHTNYH6PEOPTYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
