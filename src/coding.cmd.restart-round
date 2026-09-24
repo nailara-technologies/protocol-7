@@ -47,7 +47,9 @@ my $http_state = $async_state->{'http_state'} // undef;
 ## round_soft_restart assumes the socket/timers are already gone     ##
 <[coding.async.http_cleanup]>->($http_state) if defined $http_state;
 
-my $restarted = <[coding.async.round_soft_restart]>->($task_id);
+## user command : force the release [ holder check still applies ] ##
+my $restarted
+    = <[coding.async.round_soft_restart]>->( $task_id, undef, qw| force | );
 
 return {
     mode => qw| false |,
@@ -62,8 +64,8 @@ return {
     data => "round restarted for $task_id [full ceiling granted]"
 };
 
-#,,,.,.,.,,,,,...,..,,...,,..,,.,,.,.,..,,...,..,,...,...,...,,.,,,,.,,..,.,.,
-#DJPNOKP3ZPBH7OFZCRHMLFOIWWTYOIWMDIFOOPPDL4P7RI4EVHLNN3KSATEHMJIFPFERINGIY6MXI
-#\\\|IKRL2N2JZ5T4QTSEWQCRLWQIRFQ7TL6HWMGIQC2BJTVI737MDOP \ / AMOS7 \ YOURUM ::
-#\[7]SPTHCAYQ4FWO5DKC5AYLTI2ZWNQJNJRZBPTWE6MOCB44GF5I4WCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,...,,.,,.,.,,,.,.,.,...,,,,,..,,...,...,...,,..,,,.,.,,,...,
+#YFZB4PHPHFVSL4EYAI7VQMKIT43BQTWPSW7TFAR3SYPI3ZF4BMREEGHBMDT63JWP2XLODMIMA5VTG
+#\\\|CCCWWL5DMICXGWDCWUYCSOFZV52ZOCYP76FNBIHGRU5JEASWB57 \ / AMOS7 \ YOURUM ::
+#\[7]UB5RAUSR4IYAMUXMSQBGYFWCNRCFSFBUWHTJSQ5U3SR2BSNZ7AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -73,7 +73,10 @@ if ( $state->{'model_selection_applied'} ) {
 my $release_backend_lock = sub {
     my $backend = $state->{'backend'} // '';
     return unless length $backend;
-    <[coding.async.backend_release]>->( $task_id, $backend, $req_seq );
+    <[coding.async.backend_release]>->(
+        $task_id, $backend,
+        <[coding.async.lock_token]>->( $task_id, $backend )
+    );
 };
 
 if ( $sm_state eq 'tool_exec' ) {
@@ -172,17 +175,20 @@ if ( $sm_state eq 'streaming' ) {
             $state->{'round'}++;
             <coding.async.task_state>->{$task_id} = $state;
             ## release before re-enqueueing : this task's own lock is still ##
-            ## held from the request that just closed. backend_acquire's    ##
-            ## same-task_id shortcut would also let it through, but an      ##
-            ## explicit release keeps the handoff honest and lets a waiting ##
-            ## task go first                                                ##
+            ## held from the request that just closed [ its token is this   ##
+            ## callback's lock context ]. releasing lets a waiting task go  ##
+            ## first ; enqueue_round then acquires fresh or queues          ##
             <[coding.async.backend_release]>->(
-                $task_id, $state->{'backend'} // '', $req_seq
+                $task_id,
+                $state->{'backend'} // '',
+                <[coding.async.lock_token]>->(
+                    $task_id, $state->{'backend'} // ''
+                )
             );
             <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
-            ## return now : the shared release below would otherwise fire   ##
-            ## again and incorrectly free the NEW round's lock, acquired by ##
-            ## the enqueue_round call just above                            ##
+            ## return now : the shared release below would otherwise fire  ##
+            ## again -- harmless now [ the new round holds a rotated token ##
+            ## ], but the round is handed over, nothing is left to do here ##
             return;
         } else {
             <[coding.async.state_machine]>->(
@@ -265,7 +271,11 @@ if ( $sm_state eq 'streaming' ) {
                 ## release before re-enqueueing -- see the identical note ##
                 ## on the no-tool_calls branch above                      ##
                 <[coding.async.backend_release]>->(
-                    $task_id, $state->{'backend'} // '', $req_seq
+                    $task_id,
+                    $state->{'backend'} // '',
+                    <[coding.async.lock_token]>->(
+                        $task_id, $state->{'backend'} // ''
+                    )
                 );
                 <[coding.task.enqueue_round]>
                     ->( $task_id, $state->{'round'} );
@@ -305,20 +315,24 @@ if ( $sm_state eq 'streaming' ) {
     }
     ## release backend lock if we own it ##
     my $backend = $state->{'backend'} // '';
-    <[coding.async.backend_release]>->( $task_id, $backend, $req_seq )
-        if length $backend;
+    <[coding.async.backend_release]>->(
+        $task_id, $backend,
+        <[coding.async.lock_token]>->( $task_id, $backend )
+    ) if length $backend;
     return;
 }
 
 ## release backend lock on early return paths ##
 my $backend_early = $state->{'backend'} // '';
-<[coding.async.backend_release]>->( $task_id, $backend_early, $req_seq )
-    if length $backend_early;
+<[coding.async.backend_release]>->(
+    $task_id, $backend_early,
+    <[coding.async.lock_token]>->( $task_id, $backend_early )
+) if length $backend_early;
 
 return;
 
-#,,,.,..,,.,.,,.,,.,,,.,,,.,,,.,,,..,,,,,,,..,..,,...,..,,...,,,.,...,,..,.,.,
-#CV7GD4SOLV5URGIYLAN4Y4XKY5WIOGK57IQ353NE6XSXCILZUA5FJK6GXEV2UKPAZB43FHEMLJSD6
-#\\\|AGVZSWHI45E6B22ZNUJIGOYDPMNESUOYEEEGB2WO33NGVSQUQCO \ / AMOS7 \ YOURUM ::
-#\[7]CLCYFRF7HOIYYQR4ZVL7HGWXUORSAIWNK4SP63A524L3ZN3KNIDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,,..,...,,,,,,,.,..,,.,.,,..,..,,...,...,.,.,,,.,.,.,...,.,.,
+#O5K3PXVHDXPAROXFQTHXSTUNPNLI2ZSUC3ZXBHP75C5RQELP43P3GT6LG6GVTPK44LRKDMLRRGYJG
+#\\\|372IZBGHQASL37CZXJJFDAKGSY735KO46AW5O5QGMS5KQDZUTH7 \ / AMOS7 \ YOURUM ::
+#\[7]AGWVW63FZQDSY5PBROJD37XHXD63D5YHXBVGZYKEMVTGRCWODGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -163,7 +163,8 @@ if ($force) {
                 if defined $probe_timer && $probe_timer->is_active();
 
             delete $probe_states->{$id};
-            <[coding.async.backend_release]>->( $id, $backend );
+            ## switch-model cancel : force [ holder check still applies ] ##
+            <[coding.async.backend_release]>->( $id, $backend, qw| force | );
             $cancelled = TRUE;
             last;
         }
@@ -281,8 +282,8 @@ if ($had_live_pid) {
 return
     <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
 
-#,,..,.,,,.,.,,..,.,.,.,,,.,.,,.,,,,.,.,,,..,,.,.,...,.,.,.,.,,.,,...,..,,.,,,
-#2UTOGUHPAICQFCXUKQBP3FPOP4EGSYQP2SFP2A22QO47N7NVN67EMAZ2B6JNNBABZDVKHLXMIUR4S
-#\\\|EO4CEPVRDHUG572AEUBNLYICKYU6Y3BMIROMWCRJZ2WAWLJEJ5R \ / AMOS7 \ YOURUM ::
-#\[7]HZ5EQO3CQPIZZN6UNZK5TNXEDHMCWXCMHV2MZZO2Z5N7JAEHG6AQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,..,,,,.,,,,,..,,.,.,..,,,,,,.,.,...,...,,.,,,,.,,,,,,.,,.,,,
+#D5GJEZ34I4G5XDHQLVZC5BO4SWQ2O4NJAQZJCVNU3MIM6ANWPVTG7GENTCTB7XF4MIAEF3R3JL6C6
+#\\\|6IWGJ6MIRXEYTKLAHM52CJT4MGPDLXVKHVHXIFU2JI7CRNU64IC \ / AMOS7 \ YOURUM ::
+#\[7]MLKLBSE76WY5IN7D3N3EJQJB2A4GQV6V6CDABCXN22SISRRGQIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
