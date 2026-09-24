@@ -315,7 +315,12 @@ sub p7_load_time_hires {
     eval {
         use Time::HiRes;
         $TH_aref = [    ## takes floating point precision argument ##
-            sub { sprintf qw| %.*f |, $ARG[0] // 7, Time::HiRes::time },
+            sub {       ## truncated, a clock value is never in the future ##
+                my $precision = $ARG[0] // 7;
+                my $factor    = 10**$precision;
+                sprintf qw| %.*f |, $precision,
+                    int( Time::HiRes::time * $factor ) / $factor;
+            },
             \&Time::HiRes::sleep
         ];
     };
@@ -6644,8 +6649,8 @@ __DATA__
 :
 :.
 
-#,,,,,..,,,,,,.,.,,,,,,..,...,..,,,.,,.,.,,..,..,,...,...,.,,,...,...,...,,..,
-#XH3F3QIQGOJITTRSXBXY4GYMKMAQUL4ASAK2XT3TALTKUCL2PCBLEXJNAVDBXKXRUXPG52H6DG5QI
-#\\\|7246RIEWVZ2JE5DIR2DR5YJXAYXQZ6WFRX754E5PC3ZXBUM3PTW \ / AMOS7 \ YOURUM ::
-#\[7]XTO4XZZRCTG2CQMXAMHAHFAU4EGTA2NNLPIJSNPELHC5UTVSX4DI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,..,.,.,,,.,..,,.,,,..,,,,.,..,,...,.,.,..,,.,,,,..,.,.,,..,
+#FMGJLBJMUZCZDBZKNBNLG5WT6NNYBKEE2UJCVKDHEFZWUIOCBLVJLCLNATUKAXNQZHTCGNBBYQXIQ
+#\\\|WA2I5AV3EDH43W6XW7XWEJKVVTTJYUNNYL3FWL3QV5YTNEREW6E \ / AMOS7 \ YOURUM ::
+#\[7]LXQRNDJUACJSKSRCZZUBHNXA3TIFTBCTMGN7WWPZLKHDZMBJWADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -61,21 +61,22 @@ return $base_value_average
     if $value_ref->$* == $base_value_average;    ##  skip  ##
 
 ## adjusting for minimal differences ##
-if (abs( $value_ref->$* - $base_value_average ) <= sprintf( qw| %.*f |,
-        $result_precision, 1 / sprintf( qw| 1%d |, '0' x $result_precision ) )
-) {
+if (abs( $value_ref->$* - $base_value_average )
+    <= sprintf( qw| %.*f |, $result_precision, 10**-$result_precision ) ) {
     $value_ref->$*
         = sprintf( qw| %.*f |, $result_precision, $base_value_average );
     $value_ref->$* =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitize zulum  ##
     return $base_value_average;
 }
 
-##  calculated average : outlier to stored value : increase change_rel  ####
+## calculated average : upward outlier to stored value : increase       ##
+## change_rel [ downward changes blend normally, so an average that was ##
+## initialized or raised by an outlier batch recovers quickly ]         ##
 $change_rel = ( 1 - $outlier_rel )
-    if sprintf( qw| %.*f |,
+    if $base_value_average > $value_ref->$*
+    and sprintf( qw| %.*f |,
     $internal_precision, abs( $value_ref->$* - $base_value_average ) )
     > sprintf qw| %.*f |, $internal_precision, $value_ref->$* * $base_mass;
-###  otherwise no updates when started with outlier value  ###
 
 $value_ref->$* = sprintf                ##  storing result value  ##
     qw| %.*f |, $result_precision,
@@ -87,8 +88,8 @@ $value_ref->$* =~ s,(\.0+|(*nlb:\.)0+)$,,g;      ##  sanitizing zulum  ##
 
 return $base_value_average;   ##  returning filtered average of input data  ##
 
-#,,,.,,,.,..,,.,.,,..,.,,,.,.,.,,,...,,..,,.,,..,,...,...,..,,...,,,.,.,.,..,,
-#A4LT54F3VXDACN32SH4PLKVTGTCT3HW4HXZOW3ZWLC7VJBCZAK7U6M2DR2YBJA6MZMXIYQFW6XYQQ
-#\\\|6KTOEHZNI56PYLVA3TJIG2Q32DQUER2CA4IIVI5FQXCK2MCVIZW \ / AMOS7 \ YOURUM ::
-#\[7]QWVDJKE3A3XYUS5D33OI43LIFIAMA7BOH5PHL6VIHO54FR5T3SDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,.,.,...,.,.,,..,..,,,.,,,.,,..,,...,.,.,..,,..,,,..,,,,,...,
+#7LSYJCVCVVQ3VQB3PJXURQCAQYALY7GDTVMUD4AQOJLI472SH7FVSKTPOQ7F5BXJPIRCFE2KW46FW
+#\\\|JFEB2NA2KOOHSSXD4WOEN6KMY7CBJ6ZH554DUR7VTXAL7SRRRLC \ / AMOS7 \ YOURUM ::
+#\[7]BWTJY6YKFTUYCSYNCAAMROQVNLN3MCVJY4ZTR25AXSCLM6DRLOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
