@@ -84,6 +84,12 @@ status : implemented, syntax-checked [ `bin/format-code -c` ], reflowed,
 offline-simulated. NOT yet live-verified -- the five checks above are the
 local session's job, fixes go onto this branch before signing.
 
+archived [ 2026-09-28 ] : landed as 45995da5b, in use since 2026-09-24
+without a stuck lock. `coding.lock-status` [ aa2b1df9c ] verified live under
+contention [ holder + token + queue ]. the five checks above were not run
+one by one -- if a lock problem shows up, start from `p7c coding.lock-status`
+and the "what to watch" list below.
+
 ### the mechanism
 
 - `<coding.state.backend>->{$b}` = `{ lock => $task_id, lock_token => N,
@@ -187,8 +193,8 @@ it found one real bug [ `qw| release force |` in scalar context ], fixed.
 - `lock ... [handoff, ..]` followed by `handoff to X not taken` : expected
   only for tasks finished / paused while queued
 
-#,,,,,,..,.,,,..,,.,.,,,.,,,.,,.,,...,,.,,,.,,..,,...,...,...,.,,,,,.,.,.,.,.,
-#WT5IWZ2JX54RLUWVE7HXQFVBHU2B2ZMDMWN2C3M372PK5OEQJPXDJXNPFWVJK4ZCTPR26VPZAJ4E4
-#\\\|JKR5AZMPQGZV6JSLLC643N7NZYYVLI23GTVI2N33S7TD244EVH2 \ / AMOS7 \ YOURUM ::
-#\[7]ZELSOMZJT5TOOWIUQIYVPCTCN2RWG5DZJ3WOPWQNU5M4IWCKWEDI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,,,,,.,.,,..,...,,,,,,..,...,..,,...,..,,...,..,,,..,.,.,,.,,
+#GCMEMKH3OWKDX5XQTB576NNNPVEHZSHAP2RD6LNT5SF7WAXEL2FVVBWL3KZKVV6G4AZXPZOVKDM7A
+#\\\|STRIXNDD3Q5E2OWSXESHVQH6IAQZI6YIJ3XS564DJYAUIYFRXF5 \ / AMOS7 \ YOURUM ::
+#\[7]GALN5GGCUBMP7EB3QPQAVYJPNV4SHS6HFUOIUZWQ5PAV7IMGBIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
