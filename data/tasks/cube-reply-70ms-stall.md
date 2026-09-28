@@ -104,8 +104,41 @@ cube [ `base.handler.input`, the read watcher callback, net.read_* ] the
 same way ; check whether the read watcher is active when bytes arrive, and
 whether Event's poll wakes late [ ~70ms quantum = some timer interval ? ].
 
-#,,.,,.,,,..,,.,,,,.,,..,,..,,.,,,,,,,,.,,..,,.,.,...,...,.,,,,,,,,.,,..,,,..,
-#HKVSATJU7A77SNQIF63ZCM7U3SVP5SZ7LNX4HPLNGQSKS7Q4DGP2UQXLXGSQKLS3DBMO5NCCHG7SQ
-#\\\|P2XJ27GEOQEGKKZDPQY5GHLWPT6FOXOVX76A2D357BDMGLLEFUE \ / AMOS7 \ YOURUM ::
-#\[7]GVMEOFQWM4HOIHUWN4CLNSXN6NVBH6CRYM3VK7U6Z4AAYGYMSYBY 7  DATA SIGNATURE ::
+## result round 2 [ 2026-09-29, instrumentation reverted, cube restarted ]
+
+Event hooks [ prepare / check / callback ] + stamps in connect / read /
+input / emit, cube only, 40x `p7c heart` : 18/40 slow.
+
+- the loop is NOT idle during a stall : single callback slices of 70.4ms
+  multiples [ 71, 141, 211, 282ms ; 48 slices > 20ms in ~2 min ]
+- the slices start right after `input` on a session [ command processing ],
+  once after a disconnect [ `read-done 0 2` ] -- so synchronous work in the
+  command path, for plain routed commands too
+- `/proc/<cube>/task/<tid>/stat` sampling : during the slices the main
+  thread is in state S [ sleeping ], not R -> a blocking syscall, not CPU.
+  main thread stime ~2x utime. the two extra threads are idle [ 0 cpu ]
+- no sleep / select-timeout in base.* / net.* / plugin.* / cube.*
+- wchan reads 0 on this WSL kernel ; strace of cube needs root [ other user ]
+
+leading hypothesis : blocking write to the terminal. all zenki run as
+children of v7 on the user's pty [ `ps -t pts/<n>` ] ; a full pty / pipe
+buffer blocks the writer until the terminal drains, and conpty / Windows
+Terminal drains in render ticks -> fixed ~70ms quantum. unverified.
+
+next tests [ cheap, decisive ] :
+1. probe with console verbosity 0 vs normal, and with the terminal window
+   hidden / minimized vs visible -- stalls should follow console output
+2. `sudo strace -f -T -e trace=write,writev -p <cube pid>` during a probe :
+   look for ~70ms writes and their fd [ `ls -l /proc/<pid>/fd/<n>` ]
+3. check how v7 wires child stdout [ `v7-zenki.handler.zenka_output` ] --
+   pipe to v7 [ then v7's own pty write is the bottleneck ] or inherited pty
+
+side note : the instrumentation patch had a sprintf-arity bug that warned on
+every slice and flooded the console -- hooks can't be removed from a running
+Event loop, so any rerun needs a cube restart to remove them.
+
+#,,,,,,,.,.,.,..,,,.,,,.,,,,,,,.,,,,.,.,.,,,,,.,.,...,...,,,.,..,,...,,,.,,.,,
+#QEAPSVJJVAFJD5A3OALNLFO7YGL7ONXWUULG67UEEB4PWM4XPALSPIFQVINLEHNYIFZUTUJVJOOPO
+#\\\|533ILEJ4BUWQAT353TGZBQ2CHFKQAU3WXPMYMN77IG7LOVJ2DBN \ / AMOS7 \ YOURUM ::
+#\[7]ZQRO7H2PAWFUCRAPNTQYN357TR7OEK4QMLPROQMYF3EYCZ3PMOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
