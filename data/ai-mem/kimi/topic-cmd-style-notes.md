@@ -38,8 +38,19 @@ strings.
 
 Both now explicitly document the deferred-return exception.
 
-#,,.,,,,.,.,.,,,,,..,,.,,,.,.,,.,,,,,,.,.,,,.,..,,...,...,...,,,.,,..,...,,..,
-#Q6KIWCWPO6CMJLPLMR7ER5Y7XARTPMLDGUG5TCBW2QYR2CGWCFXCZWFVY5GH2NRCUJ777ZHTRLNWU
-#\\\|NZ2GUDS7NGR27KMFD74DSRON6MPT53AFVJJXC663UMRBPQE67VM \ / AMOS7 \ YOURUM ::
-#\[7]XYQ5FS564VCOD6MOEI727TCTZXFPOD6H3OMZGQUERKJQT6SA5WAQ 7  DATA SIGNATURE ::
+## `$call` and `$reply` are pre-declared in `.cmd.` modules
+
+The compiled-in `.cmd.` header already declares `$call` [ the network args ]
+and `$reply`. Never write `my $reply = ...` [ or `my $call` ] in a `.cmd.`
+module : it masks the earlier declaration and warns at source update
+[ hit in `v7-zenki.cmd.pressure`, 2026-09-29 ]. The header presets `$reply`
+to a `false` 'error during invocation' reply and the footer returns it when
+the module ends without an explicit `return` -- so either fill
+`$reply->{'mode'}` \ `$reply->{'data'}` and fall through, or
+`return { mode => .., data => .. }`. Use `$text` \ `$out` for a text buffer.
+
+#,,..,,.,,..,,,,,,,..,...,.,.,,.,,...,.,,,,,,,..,,...,..,,.,,,,.,,.,.,.,,,,.,,
+#V47GGOIC252SYWIOCGSZOPCB6DGJ2ZHX6EBI2R5VJJ4OY3YO3AH26PV6IHOS3QZO5WGUPBOUDMNJ4
+#\\\|VAMAY5XRZROSILQKRJEMGVBE37FKLL2JCS3NQYS3T5MBTJVASMW \ / AMOS7 \ YOURUM ::
+#\[7]ADPXIFI5IBFAK46TCQWXWLVZFDWCFGB7JTJAKDASI43CCP555SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

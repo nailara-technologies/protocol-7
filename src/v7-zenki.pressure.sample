@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.sample
+# descr = collect one pressure sample into the ring buffer
+
+## cheap and never blocking : small plain /proc reads only ##
+
+my $now = <[base.time]>->(3);
+
+my $sample = {
+    'ts'             => $now,
+    'psi'            => FALSE,
+    'mem_some_avg10' => undef,
+    'mem_some_avg60' => undef,
+    'mem_full_avg10' => undef,
+    'mem_full_avg60' => undef,
+    'io_some_avg10'  => undef,
+    'io_full_avg10'  => undef,
+    'swap_in_pps'    => 0,
+    'swap_out_pps'   => 0,
+    'mem_avail_mb'   => undef,
+};
+
+## psi : /proc/pressure/memory + io [ absent on older kernels ] ##
+if (<v7-zenki.pressure.psi_available>) {
+    for my $kind (qw| memory io |) {
+        my $prefix = $kind eq qw| memory | ? 'mem' : 'io';
+        next if not open my $fh, '<', "/proc/pressure/$kind";
+        while ( my $line = <$fh> ) {
+            next
+                if $line !~ m{^(some|full) avg10=([\d.]+) avg60=([\d.]+)};
+            my ( $scope, $avg10, $avg60 ) = ( $1, $2, $3 );
+            $sample->{ sprintf( '%s_%s_avg10', $prefix, $scope ) }
+                = 0 + $avg10;
+            $sample->{ sprintf( '%s_%s_avg60', $prefix, $scope ) }
+                = 0 + $avg60;
+        }
+        close $fh;
+    }
+    $sample->{'psi'} = TRUE;
+}
+
+## swap in\out rate [ /proc/vmstat pswpin\pswpout deltas, pages\s ] ##
+if ( open my $fh, '<', '/proc/vmstat' ) {
+    my ( $pswpin, $pswpout );
+    while ( my $line = <$fh> ) {
+        $pswpin  = 0 + $1 if $line =~ m{^pswpin (\d+)};
+        $pswpout = 0 + $1 if $line =~ m{^pswpout (\d+)};
+        last if defined $pswpin and defined $pswpout;
+    }
+    close $fh;
+    my $prev_in  = <v7-zenki.pressure.prev.pswpin>;
+    my $prev_out = <v7-zenki.pressure.prev.pswpout>;
+    my $prev_ts  = <v7-zenki.pressure.prev.ts>;
+    if (    defined $prev_in
+        and defined $prev_out
+        and defined $prev_ts
+        and $now > $prev_ts ) {
+        my $delta_t = $now - $prev_ts;
+        $sample->{'swap_in_pps'}
+            = sprintf( '%.1f', ( $pswpin - $prev_in ) / $delta_t ) + 0;
+        $sample->{'swap_out_pps'}
+            = sprintf( '%.1f', ( $pswpout - $prev_out ) / $delta_t ) + 0;
+    }
+    <v7-zenki.pressure.prev.pswpin>  = $pswpin;
+    <v7-zenki.pressure.prev.pswpout> = $pswpout;
+    <v7-zenki.pressure.prev.ts>      = $now;
+}
+
+## MemAvailable [ /proc/meminfo, kB -> MB ] ##
+if ( open my $fh, '<', '/proc/meminfo' ) {
+    while ( my $line = <$fh> ) {
+        if ( $line =~ m{^MemAvailable:\s+(\d+)} ) {
+            $sample->{'mem_avail_mb'} = int( $1 / 1024 );
+            last;
+        }
+    }
+    close $fh;
+}
+
+## push onto ring buffer [ latest last ] ##
+my $samples   = <v7-zenki.pressure.samples> //= [];
+my $ring_size = <v7-zenki.cfg.pressure.ring_size> // 72;
+push @{$samples}, $sample;
+shift @{$samples} while @{$samples} > $ring_size;
+<v7-zenki.pressure.latest> = $sample;
+
+## derive level with hysteresis ##
+<[v7-zenki.pressure.update_level]>;
+
+return $sample;
+
+#,,,,,,,.,...,...,.,.,..,,..,,.,,,,.,,.,.,.,.,..,,...,..,,,..,.,,,,..,,,.,.,,,
+#4VPQXTFI4S4W5ZNEQRSZNZNIZOEDZV3YKCH6HOJZVOABN33DQQLSXT7ZKAXADKVSARWODJT7DMYMC
+#\\\|SY2VGPDEZ5RZGK7TDNO5UZ4QVNZ7NVKFZGCNKHOKTT5OGLRXY55 \ / AMOS7 \ YOURUM ::
+#\[7]TSGVMR73GGCI6ERG45G3H4Y25Y3AQUHR4ZMOOPHOCHKU6JFBV2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
