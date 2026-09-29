@@ -2745,8 +2745,31 @@ sub p7_load_code {
                 push @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
                     $warn_string;
                 $warn_count_total++;
-                push @compile_errors, sprintf( "  : \l%s", $err_str_line ),
-                    '  :', '< :.', '= .';
+                push @compile_errors, sprintf( "  : \l%s", $err_str_line );
+
+                ## .cmd. header variables : hint for the reader [ a model ##
+                ## reading the compile report knows what to change ]      ##
+                if (    $sub_name =~ m|\.cmd\.|
+                    and $err_str_line
+                    =~ m{variable \$(call|reply) masks earlier declaration} )
+                {
+                    my @hint = (
+                        sprintf(
+                            'hint : $%s is pre-declared by the compiled-in',
+                            $LAST_PAREN_MATCH ),
+                        '.cmd. code header [ '
+                            . 'bin/Protocol-7 ] : $call holds the',
+                        'args hashref, $reply the '
+                            . 'reply hashref { mode, data }',
+                        'the footer returns when the routine ends without',
+                        'return. drop the "my" to use '
+                            . 'it, or rename your variable'
+                    );
+                    push @{ $data{'code'}{$sub_name}{'warnings'} },
+                        map {"  :: $ARG"} @hint;
+                    push @compile_errors, '  :', map {"  : $ARG"} @hint;
+                }
+                push @compile_errors, '  :', '< :.', '= .';
             }
         }
 
@@ -6614,8 +6637,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,.,.,.,.,,,.,.,.,,,,..,...,,,.,.,.,...,..,,...,...,,,.,..,,.,.,.,,,...,
-#4JMMREPXRTMFCJPRVHY4JWHEYTINAGKCTB4UXLDFME6FIA3D7EH6MAZUKIC56K5V3DBOY7IIOORRM
-#\\\|LCKTT33ZYF5QK7AOXSJHTQEWJBP6LNBTONUYXDWLVYFLPAZED4K \ / AMOS7 \ YOURUM ::
-#\[7]DWNFP6QGK6DPEBVKSYMGDQU3RAEGGUTXLDTFSDN5AQSWZSZWUYDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,.,.,,,.,..,,...,,..,,,,,..,,..,,...,...,,..,.,.,.,.,,..,.,.,
+#4MVTCEQXMWWHWFFNZZ2KCEZT4IDE4ITNVSAT2RD4KSCP42G725TGRE3SLZ7MJZMHVVZSRP5JNPHQK
+#\\\|MJ6EHJIOXTFQM3YWQ2FCQ3A46LFQE6VDR37W2SAVX7AYLV4IWYJ \ / AMOS7 \ YOURUM ::
+#\[7]SEZSKRYCGBPCEKVWRMZOQOCKWPG32CHOUBN5AI5EKBZADBIPZKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
