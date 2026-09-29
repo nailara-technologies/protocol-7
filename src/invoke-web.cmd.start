@@ -107,7 +107,7 @@ my @cmd = ( $binary, "--root=$root" );
 ## start paused : hold the pending items until the pause at ready is through [
 ## invoke.ai's processor starts resumed and dequeues before its api is up ]
 <[invoke-web.queue.hold]>
-    if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 )
+    if <[invoke-web.start_paused]> ne qw| no |
     or defined <invoke-web.recover>;
 
 ## spawn via IPC::Open3
@@ -194,8 +194,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,..,,..,,..,...,...,.,,,,..,...,,..,...,,.,,..,,...,...,...,,,.,..,,...,...,
-#BKONLAE4OFFW7RNWUZOOP3OMR2746DY6HCBSVQHEXFKHGL55FXRM7JIXWHOEQ4YNLJUVM4577SROM
-#\\\|STPBOZDRSSGGVQZVI6I353EPJKLHHQJHZ4EH52FPNAANOSQCZBY \ / AMOS7 \ YOURUM ::
-#\[7]7VPWKJGVYHSOIK4YP6QAEDATZBIELMMTL3C3VVLUKODS3YP5A2BA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,.,,,,,.,...,.,,,,..,.,,,.,,,..,,...,...,,,,,,,,,,.,,,,.,..,,
+#AHLROVTPEOOHRS6CI4AQRKLYH7FI2Y7E334YDOZ2MSCA44EORPX4FS7IMTVZQJ65BFQ4MFUZEU4EG
+#\\\|OI2CV3HM7S2NOYCNXO4TXARQSWTO6VINZEVLFPVLVL7T4J2OLNF \ / AMOS7 \ YOURUM ::
+#\[7]KXZZBCZXMSFG4YMEBBLIMN77UWBRK5MKDQZP6DKOGINW7IV3QGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
