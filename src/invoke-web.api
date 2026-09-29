@@ -3,16 +3,24 @@
 # name   = invoke-web.api
 # descr  = one request to the local invoke.ai rest api [ 3s timeout, never
 #          through a proxy ] -- returns { ok, code, status, data }
-# param  = method [ GET | PUT | POST ], path [ '/api/v1/..' ]
+# param  = method [ GET | PUT | POST ], path [ '/api/v1/..' ],
+#          [ request data : a perl structure, sent as json ]
 
-my $method = uc( shift // qw| GET | );
-my $path   = shift // '/';
+my $method  = uc( shift // qw| GET | );
+my $path    = shift // '/';
+my $payload = shift;
 
 my $url = <invoke-web.url> // 'http://127.0.0.1:9090';
 my $ua  = LWP::UserAgent->new( timeout => 3 );
 $ua->no_proxy( 'localhost', '127.0.0.1' );    ## local api : direct ##
 
-my $response = $ua->request( HTTP::Request->new( $method, "$url$path" ) );
+my $request = HTTP::Request->new( $method, "$url$path" );
+if ( defined $payload ) {
+    $request->header( 'Content-Type' => 'application/json' );
+    $request->content( JSON::PP::encode_json($payload) );
+}
+
+my $response = $ua->request($request);
 my $body     = $response->decoded_content // '';
 my $decoded  = eval { JSON::PP::decode_json($body) };
 
@@ -23,8 +31,8 @@ return {
     'data'   => $decoded // $body,
 };
 
-#,,,,,,..,,,.,...,.,.,..,,...,,..,,,,,...,,..,..,,...,...,,.,,..,,...,,,,,..,,
-#YK5BYFO47HOCLTBUSBN7XT75WFSX6MTSBVWAYIBDWWE4HIUB4NKSZM7RD4AFX7RCWXJOHAP7HS7U6
-#\\\|QNANZH5N24UJMDIH5F472UZTZ2JUTNOL6DJT43CXAPDUHOFKFUD \ / AMOS7 \ YOURUM ::
-#\[7]J3Y3WTDRD6QF775V3IE27MK6P3YIKA2PMD7FFJ5SQ4YCKKC46GDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,,.,,,.,,,,,,.,,,.,.,..,,.,.,..,,...,...,,.,,..,,.,.,.,,,...,
+#DBK3T5U6XPODX772ATA3L5MW32CD5PMNYTMXRUPSYYF4NDK4EQZLSSH3Z4Q4YKVASXL5AAAMHIWD2
+#\\\|JE355GKLX2WAMYVHVORQL72X65NDGTULJINILNGGNV5DMMWSJ6E \ / AMOS7 \ YOURUM ::
+#\[7]M3OPFQ5EYIYXRXTALJUBFITYM4JZRHISOZ22ZTUFUEWTCD2A42AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
