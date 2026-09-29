@@ -76,6 +76,40 @@ item record.
 - recorded since then : pattern `model_render` ->
   `<invoke-web.missing_at_render>->{<name>}` = path, item, session, time
 
+## resolution : built [ 2026-09-29 ]
+
+- `src/invoke-web.model.source` : model name -> invoke.ai db record[s]
+  through the shared `<[invoke-web.queue.db]>` handle [ read-only
+  selects only ] ; returns `{ name, found, records => [ .. ] }` with
+  per-record `key` [ db id — graphs keying still the open question ],
+  `type`, `base`, `format`, absolute expected `path` under
+  `<external.models.invokeai.path>` [ bare-uuid and dir paths are
+  diffusers directories ], `source`, `source_type`, `hash`,
+  `fetchable` and a short `reason` ; the fetchable mapping mirrors
+  invoke-model-recover's `get_download_url` : `hf_repo_id` and `url`
+  = TRUE, `path` and anything else = FALSE
+- `src/invoke-web.cmd.model-source` : `p7c invoke-web.model-source
+  <name>` prints the record[s] ; unknown name -> false reply ;
+  registered in `cfg/zenki/invoke-web/zenka.v7` access.cmd.usr.cube
+  next to queue-front [ whitelist regenerated ]
+- source_type distribution over all 312 records : `path` 274,
+  `url` 18, `hf_repo_id` 20. of the 117 missing : `path` 80,
+  `url` 18, `hf_repo_id` 19 — only 37 missing models are fetchable
+  from db metadata ; 80 are local-path sources with no recorded
+  origin, including today's two render failures
+  [ perfection-cinematic-ilxl-v20-sdxl, realistic-improved-mix-v10-sdxl
+  ] — a render failing on one of those cannot be resolved from the
+  db alone [ needs external source lookup or backup restore ]
+- duplicate names exist [ 15 names, e.g. sdxl-vae-fp16-fix : one
+  local-path record + one hf_repo_id record ] — the module returns
+  all records, each marked `name_collision`
+- quirk found while verifying : invoke-model-recover --dry-run
+  reports directory-style diffusers models with relative dir paths
+  [ e.g. sdxl/main/perfection-realistic-ilxl-v32-sdxl, present on
+  disk ] as MISSING — its get_filename fallback appends
+  .safetensors, and the uuid-dir special case only covers bare-uuid
+  paths
+
 ## open questions
 
 - how graphs reference models [ key vs name ] and how to read them from
@@ -86,8 +120,8 @@ item record.
 - fetch-files job interface : what invoke-web sends, how completion is
   reported back [ callback \ event ]
 
-#,,..,,.,,...,,,,,,.,,,..,,,.,,.,,.,.,,.,,,,.,..,,...,...,.,.,,,.,..,,.,,,.,,,
-#NBARGKKTOCUCVJOO2VHCTHXGELSG7RTLJ4L6US7HKR567IDQOQJ44YG23DEOKIKVVNDDW5QZMUTEU
-#\\\|D465KTQZHS7GAQIXXKMQTQDCZGOE4YKZDZN5MMQNMAUJUR7SIAI \ / AMOS7 \ YOURUM ::
-#\[7]IGBAJ44CFTNGV44LNNFSNRQBORWWY5GMK7NKMXI2DAC3NUTRKKAQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,,,,,,..,,,.,..,,,..,,.,,,..,..,,...,...,.,.,..,,,.,,,,.,..,,
+#HWK6UQRCHSIB4S2BE5L2PXQMERBFUKKU6ZLYTSZJCQT25X4XKYG45UMJQV2A75I7QXE47JNQD5UP2
+#\\\|C32PYOAC2G6SZWFQAFTT6CJJZVDNWRZBCVGTU4XXFCG3O4DY6QK \ / AMOS7 \ YOURUM ::
+#\[7]CPS5GLKBF4KI5VCI5SLXQS55R7PSX7QOVKF6RGU5G67DEMU2S4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = invoke-web.cmd.requeue-missing
+# descr = retry items that failed on a model that is back
+# param = [ model name | all ] [ none : list recorded ]
+
+my $arg = $call->{'args'} // '';
+$arg =~ s{^\s+|\s+$}{}g;
+
+if ( not length $arg ) {    ##  list only  ##
+    my $records = <invoke-web.missing_at_render> // {};
+    return { mode => qw| false |, data => 'no failed renders recorded' }
+        if not keys %$records;
+    return {
+        mode => qw| size |,
+        data => join( '',
+            map {
+                sprintf "%-40s item %-6s %s\n", $ARG,
+                    $records->{$ARG}->{'item'} // '?',
+                    -e ( $records->{$ARG}->{'path'} // '' ) ? 'present' : 'missing'
+            } sort keys %$records )
+    };
+}
+
+my $results = <[invoke-web.requeue_missing]>->( $arg eq 'all' ? undef : $arg );
+
+return { mode => qw| false |, data => "no failed render recorded for '$arg'" }
+    if not @$results;
+
+return {
+    mode => qw| size |,
+    data => join( '',
+        map { sprintf "%-40s item %-6s %s\n", $ARG->{'name'}, $ARG->{'item'}, $ARG->{'result'} }
+            @$results )
+};
+
+#,,,.,,,,,,,,,.,.,...,,.,,...,.,,,..,,.,,,...,..,,...,...,..,,,,,,,.,,..,,,,.,
+#PIT3USRXB26XIGRLTLVCAQ2JIHO2CGAWTKFBJL533VJBG6IDWTXAUQI3CFIXDUPLNB5CBIQYSLHRW
+#\\\|3R7ERU2HD6WFUEW2LWMPJUA4PN55I2HVEGV76WO442AANVBYKOV \ / AMOS7 \ YOURUM ::
+#\[7]YTFLPOAO6X2OIJMZXGJDTJRKSOX7OXXDLOE5MIKUGRS53OXIGACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

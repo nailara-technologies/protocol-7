@@ -1,0 +1,80 @@
+## [:< ##
+
+# name   = invoke-web.model.source
+# descr  = resolve model name to db record[s] and fetch source
+# param  = model name [ from 'Missing model file: <name>' lines ]
+# return = hashref { name, found, records => [ hashref, .. ] } | undef
+
+## read-only selects through the shared queue db handle [ WAL — invoke.ai ##
+## writes concurrently ]                                                  ##
+my $name = shift // return undef;
+
+my $dbh = <[invoke-web.queue.db]> // return undef;
+
+my $records = $dbh->selectall_arrayref(
+    'SELECT id, name, type, base, format, path, source, '
+        . 'source_type, hash, file_size FROM models WHERE name = ?',
+    { Slice => {} },
+    $name
+);
+
+return undef if not @$records;
+
+my $models_root = <external.models.invokeai.path> // '';
+
+my $found = scalar @$records;
+
+my @results;
+foreach my $record (@$records) {
+    my $rel_path = $record->{'path'} // '';
+
+    ## expected absolute path under the models root [ bare uuid paths are ##
+    ## diffusers directories ]                                            ##
+    my $expected_path
+        = $rel_path =~ m{^/}
+        ? $rel_path
+        : sprintf( '%s/%s', $models_root, $rel_path );
+
+    ## same source mapping as invoke-model-recover get_download_url ##
+    my ( $fetchable, $reason );
+    my $source_type = $record->{'source_type'} // '';
+    if ( $source_type eq 'hf_repo_id' ) {
+        ( $fetchable, $reason ) = ( TRUE, 'huggingface repo source' );
+    } elsif ( $source_type eq 'url' ) {
+        ( $fetchable, $reason ) = ( TRUE, 'direct url source' );
+    } elsif ( $source_type eq 'path' ) {
+        ( $fetchable, $reason )
+            = ( FALSE, 'local path source [ nothing to fetch ]' );
+    } else {
+        ( $fetchable, $reason )
+            = ( FALSE, 'no fetchable source in db record' );
+    }
+
+    push @results, {
+        ## graphs may key on name or id [ open question in the autofetch ##
+        ## brief ] — key carries the db primary key                      ##
+        'key'    => $record->{'id'},
+        'type'   => $record->{'type'},
+        'base'   => $record->{'base'},
+        'format' => $record->{'format'},
+
+        'path'        => $expected_path,
+        'source'      => $record->{'source'},
+        'source_type' => $source_type,
+        'hash'        => $record->{'hash'},
+
+        'fetchable' => $fetchable,
+        'reason'    => $reason,
+
+        ## more than one db record under this name : marked ##
+        'name_collision' => $found > 1 ? TRUE : FALSE,
+    };
+}
+
+return { 'name' => $name, 'found' => $found, 'records' => \@results };
+
+#,,..,...,,.,,...,...,..,,,,,,...,...,,,.,,,,,..,,...,...,,.,,,,.,.,,,.,,,.,,,
+#QTQOHNRP3DXOVEXT4UB5FYQOD7FPELJO3AVSGKP6JQ324QLCETWZ6XNXW63WAXXVFDTLE2DWTIPTE
+#\\\|VWTIRIJYSZCGVLREEWC7TZJAXIXSLFCPJXGOZ43L7OQOSJFGDVY \ / AMOS7 \ YOURUM ::
+#\[7]AUDETDKDBD636ZG3O6SNQKTSAQSDY6XGCMJ3APFJMPJPOIYYLODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
