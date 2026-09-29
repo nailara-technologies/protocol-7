@@ -25,7 +25,7 @@ if ( not -d $db_dir ) {
     sub {
         my $event = shift;
         return if ( $event->name // '' ) !~ m|^invokeai\.db|;
-        <[invoke-web.activity.touch]>->( qw| db | );
+        <[invoke-web.activity.touch]>->(qw| db |);
         <[invoke-web.queue.watch_trigger]>;    ## interactive mode ##
     }
 );
@@ -34,8 +34,8 @@ if ( not -d $db_dir ) {
 
 return defined <invoke-web.activity.db_watch> ? TRUE : FALSE;
 
-#,,..,..,,,,,,,..,,.,,,..,..,,...,,,.,,,.,...,..,,...,..,,..,,...,.,.,...,,,,,
-#ACWKKHQA344AL5LMFS3RZCXKX4RRQHJCHYEESS2B3TZMYVL7OBQ323BB6ZJJ4UTAQQHGWARZ2E7UC
-#\\\|NHMOYVP7YD34YERCRPYVPMVAGPP5Q4IH2GYS7VX7DLN6K54HSXC \ / AMOS7 \ YOURUM ::
-#\[7]TWTE3K7GM6AESLWCA7Q6AGLWWNQCQ3BPWW6OEW5SIK3SW53UM6DI 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,...,...,,..,..,,,..,..,,,,.,..,,...,...,,..,,,,,,,,,...,.,,,
+#F3U2PU6UY5VO7XM4ES2XMZTWSGUS7QKVPIKKMOER4DAJCNRSLEQ6FBRQBURPLEBNQUHCFB2AK65LS
+#\\\|K4YQTMRMBR7OXNI4ASY2LP3SEQMQQ7XISJ3YD4WQTRVF6FHQ7NT \ / AMOS7 \ YOURUM ::
+#\[7]LBAZ6CU5ZVMWQRMOE5BQLBWHHOUUAOTIBDIKCFWCCFWKD6V36YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

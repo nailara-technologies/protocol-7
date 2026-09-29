@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = invoke-web.handler.hash_poll
+# descr = poll the forked blake3 child of an autofetch finalize
+# note  = repeating timer [ 1 s ] : waitpid WNOHANG [ no zombie ], on exit
+#         the digest is read from the pipe [ the writer is gone -- all of
+#         it is already buffered ] and handed to invoke-web.hash_finalize.
+#         a wedged child is killed after invoke-web.autofetch.hash_timeout
+
+my $event = shift;
+my $name  = eval { $event->w->data->{'name'} } // return;
+
+my $job = <invoke-web.hashverify.jobs>->{$name} // return;
+
+if ( waitpid( $job->{'pid'}, POSIX::WNOHANG() ) == 0 ) {
+
+    ## still hashing [ multi-GB file ] : a wedged child must not poll ##
+    ## forever                                                        ##
+    return
+        if time - ( $job->{'time'} // time )
+        < ( <invoke-web.autofetch.hash_timeout> // 1800 );
+
+    kill( 15, $job->{'pid'} );
+    waitpid( $job->{'pid'}, 0 );
+    <[base.logs]>->(
+        0, "autofetch : %s : hash child killed [ timeout ]", $name
+    );
+}
+
+my $digest = '';
+if ( defined $job->{'fh'} ) {
+    my $buf = '';
+    $digest .= $buf while sysread( $job->{'fh'}, $buf, 256 );
+    close $job->{'fh'};
+}
+chomp $digest;
+
+$job->{'timer'}->cancel
+    if defined $job->{'timer'} and $job->{'timer'}->is_active;
+delete <invoke-web.hashverify.jobs>->{$name};
+
+if ( $digest !~ m{\A[0-9a-f]{64}\z} ) {
+    <[base.logs]>->(
+        0,
+        "autofetch : %s : hash child gave no digest [ %s ]",
+        $name,
+        length $digest
+        ? sprintf( 'unexpected output : %.64s', $digest )
+        : 'no output'
+    );
+    <[invoke-web.hash_finalize]>->( $name, undef );
+    return;
+}
+
+<[invoke-web.hash_finalize]>->( $name, lc $digest );
+
+return;
+
+#,,,,,...,.,.,,,.,..,,,..,...,.,.,..,,..,,.,.,..,,...,...,.,,,,,,,,.,,.,,,.,,,
+#DLPKGZ32WGLONPCPQBZY6URYO3CLDXQBKMIW2IZFI736SLMTNWOSW2ZDZGFEUNCBAW3V2LUOTACK6
+#\\\|HC57RQECVY27FAYWEC2YFD6G6QCD5KCQ75Y5IY2WOXKKOYJNUWG \ / AMOS7 \ YOURUM ::
+#\[7]RVIKCLOTKNMNKVPJEAD3IPWZEWDEGBZKIEBIGV6AFYI3B5QREWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

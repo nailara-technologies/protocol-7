@@ -1,0 +1,74 @@
+## [:< ##
+
+# name   = invoke-web.autofetch.verify_dir
+# descr  = private staging directory for the hash-before-rename
+# return = path | undef [ reason logged ]
+# note   = the public staging directory sits in a world-writable models
+#          root without the sticky bit : a staged file hashed BY PATH can
+#          be swapped by any local user before the rename [ TOCTOU ]. the
+#          file is therefore moved here first [ atomic, same filesystem ]
+#          -- a 0700 directory owned by this zenka's user, after the move
+#          no other user can reach the file by path. a planted directory
+#          [ symlink, foreign owner, looser mode ] is refused, never
+#          repaired -- its existence means someone is playing games
+
+my $dir = <invoke-web.autofetch.verify_staging>
+    // sprintf( '%s/.autofetch-verify',
+    <external.models.invokeai.path> // '/tmp' );
+
+## create on first use, then validate from an lstat [ never stat : a ##
+## symlink to a real directory must fail, not pass through ]         ##
+if ( not lstat($dir) ) {
+    if ( not mkdir( $dir, 0700 ) ) {
+        <[base.logs]>->(
+            0,    "autofetch : cannot create verify directory %s : %s",
+            $dir, "$OS_ERROR"
+        );
+        return undef;
+    }
+    return undef if not lstat($dir);
+}
+
+if ( not -d _ ) {
+    <[base.logs]>->(
+        0,
+        "autofetch : verify directory %s is not a plain directory "
+            . '[ symlink \ other file -- refused ]',
+        $dir
+    );
+    return undef;
+}
+
+my $uid  = ( stat(_) )[4];
+my $mode = ( stat(_) )[2] & 07777;
+
+if ( $uid != $EFFECTIVE_USER_ID ) {
+    <[base.logs]>->(
+        0,
+        "autofetch : verify directory %s owned by uid %d [ expected %d"
+            . ' -- refused ]',
+        $dir,
+        $uid,
+        $EFFECTIVE_USER_ID
+    );
+    return undef;
+}
+
+if ( $mode != 0700 ) {
+    <[base.logs]>->(
+        0,
+        "autofetch : verify directory %s has mode %04o [ expected 0700"
+            . ' -- refused ]',
+        $dir,
+        $mode
+    );
+    return undef;
+}
+
+return $dir;
+
+#,,,,,,,.,,.,,.,,,...,,,,,,.,,..,,,..,.,,,...,..,,...,...,...,...,,,.,,,.,..,,
+#FYRYXCVEQL6GWPH2MGYCCI7MU6MEJJUUZPRH664MVORUWFARST4QQQGZLP3NOZA4JKPVPCP2MEDFE
+#\\\|6MSW3Y4O2O6S4742F7SHO2V7CXF5GCJUBMV74HFXRE3EAPWQBFL \ / AMOS7 \ YOURUM ::
+#\[7]ASHUKFIEN7QPGS7QKUSAYMWH27GYLP2N4VUBA5UMA4OVDSYH4OAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

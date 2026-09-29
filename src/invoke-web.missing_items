@@ -1,0 +1,52 @@
+## [:< ##
+
+# name   = invoke-web.missing_items
+# descr  = queue items that failed on a missing model, grouped by model
+# param  = [ model name ; undef : every model ]
+# return = hashref { name => { path, items, present } } | undef [ no db ]
+# note   = the selection shared by invoke-web.requeue_missing [ manual,
+#          blocking ] and the autofetch finalize path [ async ] -- read
+#          from invoke.ai's queue db [ the source of truth : every such
+#          item, also from before a zenka restart ]. an item qualifies
+#          only when ALL hold : status 'failed', error_type
+#          FileNotFoundError, the error message names the model and its
+#          path, no copy of it exists yet [ retried_from_item_id,
+#          pending \ in_progress \ completed -- a ui retry counts too ].
+#          a manual cancel is never touched
+
+my $only = shift;
+
+my $dbh  = <[invoke-web.queue.db]> // return undef;
+my $rows = $dbh->selectall_arrayref(
+    "SELECT q.item_id, q.error_message FROM session_queue q "
+        . "WHERE q.status = 'failed' AND q.error_type = 'FileNotFoundError' "
+        . 'AND NOT EXISTS ( SELECT 1 FROM session_queue c '
+        . 'WHERE c.retried_from_item_id = q.item_id '
+        . "AND c.status IN ( 'pending', 'in_progress', 'completed' ) ) "
+        . 'ORDER BY q.item_id',
+    { 'Slice' => {} }
+) // return undef;
+
+## group by model [ name + path from the error message ] ##
+my %models;
+foreach my $row (@$rows) {
+    my ( $name, $path )
+        = ( $row->{'error_message'} // '' )
+        =~ m|Files for model '([^'{}]+)' not found at (\S+)|;
+    next if not defined $name;
+    next if defined $only and $name ne $only;
+    $models{$name}->{'path'} = $path;
+    push $models{$name}->{'items'}->@*, $row->{'item_id'};
+}
+
+foreach my $name ( keys %models ) {
+    $models{$name}->{'present'} = -e $models{$name}->{'path'} ? TRUE : FALSE;
+}
+
+return \%models;
+
+#,,,.,...,,,.,..,,.,,,,,,,,,,,,.,,..,,..,,...,..,,...,...,.,.,.,.,..,,,.,,...,
+#M4AZLDGZN4PCCJ6MVSN3Q5LWAEMBZHSG67PKVYJ6STUYNZU2QQ5YZREQLPFSBZ4TWQLVMGU5PHJUC
+#\\\|JE5Y5F424A6XBPP6IFGKBGCSJMKRMY76BUBQJNE4H6SQLOA3UVS \ / AMOS7 \ YOURUM ::
+#\[7]3HG2EWWTH4WRKE2ICEV3PJ4WRNWD6HDLKZP3EQQ3F225ZMWWWKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
