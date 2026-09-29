@@ -50,7 +50,7 @@ if ( $kind eq qw| ready | ) {
             }
             )
             if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 )
-            or defined <invoke-web.gpu_recover>;    ## requeue first ##
+            or defined <invoke-web.recover>;    ## requeue first ##
 
         ## interactive queue mode from the start [ zenka.v7 flag ; armed ##
         ## here, not in init_code : that one still runs as root ]        ##
@@ -159,39 +159,21 @@ if ( $kind eq qw| ready | ) {
             : $decoded                    ? qw| done |
             :                               qw| suspicious |;
 
-        ## a clean graph can still hide a silent decode failure : look at ##
-        ## the result image itself [ black \ flat -> failed ]             ##
+        ## a clean graph can still hide a silent decode failure : the     ##
+        ## result image is checked in its own timer -- reading \ decoding ##
+        ## it here blocked the output handler past the v7 heartbeat under ##
+        ## load                                                           ##
         if ( $render->{'result'} eq qw| done |
             and defined $render->{'session'} ) {
-            my $check = <[invoke-web.render.check_images]>
-                ->( $render->{'session'} );
-            $render->{'images'} = $check->{'images'} if defined $check;
-            if ( defined $check and $check->{'bad'}->@* ) {
-                $render->{'result'} = qw| failed |;
-                $render->{'failed'} = sprintf 'silent failure : %s',
-                    join '; ', $check->{'bad'}->@*;
-            }
+            <[event.add_timer]>->(
+                {   'after'   => 0.5,
+                    'handler' => 'invoke-web.handler.render_check',
+                    'data'    => { 'render' => $render },
+                }
+            );
+        } else {
+            <[invoke-web.render.report]>->($render);
         }
-
-        <[base.logs]>->(
-            $render->{'result'} eq qw| done | ? 1 : 0,
-            'render %s [ item %s%s ]',
-            $render->{'result'},
-            $render->{'item'} // '?',
-            $render->{'result'} eq qw| failed |
-            ? " : $render->{'failed'}"
-            : ''
-        ) if $render->{'result'} ne qw| done |;
-
-        return if $render->{'result'} ne qw| done |;
-        <[base.logs]>->(
-            1,
-            'render done [ item %s : %s, ram %s, vram %s ]',
-            $render->{'item'}                                    // '?',
-            $render->{'stats'}->{'TOTAL GRAPH EXECUTION TIME'}   // '?',
-            $render->{'stats'}->{'RAM used by InvokeAI process'} // '?',
-            $render->{'stats'}->{'VRAM in use'}                  // '?'
-        );
     }
 }
 
@@ -200,8 +182,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,.,,,,.,,,.,...,...,,,,,,,,,,..,,..,..,,...,..,,...,...,,..,,.,,,..,.,.,,,,,
-#LOJORAXXEGFWJF5BV2EJISNZ6VKEK7FCBN5T2PHNCK7RURTBGWFFAM7O77ZITM66K575NKWZEKRK2
-#\\\|LEATMDR7NHDTCU6JATRFACPXIQBODNM2HLS6COFDKZEVGCU3PI3 \ / AMOS7 \ YOURUM ::
-#\[7]YPGN5IFQV6W6HZBU7PZNI7NOTJ3LSEVCWHLNYI66EHHHVPHI7SDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,.,.,.,,,...,..,,,,.,,.,,,,.,..,,...,..,,.,.,,..,,,,,,..,...,
+#ILSZXD23SVRG43QSNWJSH47PHUHHLKGG4NQHENSSVH3IRE6VQSFBYYBNQ5U3S725G52L56M3UN7R4
+#\\\|PG56ECNXMAZ6X4WUCGNRHJD3H732IRACV6CJZGAUT4QMSNNJHWB \ / AMOS7 \ YOURUM ::
+#\[7]57QGB3NVCLYLXXXST67UEAQR5AB53BFWMT4S7KXXDSSHX6TFXSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

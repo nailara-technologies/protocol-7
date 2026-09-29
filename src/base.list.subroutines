@@ -1791,7 +1791,6 @@ return [ qw[
         invoke-web.memory_free
         invoke-web.json_octets
         invoke-web.index.image
-        invoke-web.gpu.requeue
         invoke-web.gpu.recover
         invoke-web.cmd.restart
         invoke-web.cmd.requeue
@@ -2374,6 +2373,7 @@ return [ qw[
         io.unix.socket.init_code
         invoke.handler.poll_jobs
         invoke-web.session.store
+        invoke-web.render.report
         impressive.screen-change
         impressive.check_tmp_dir
         httpsd.create_ssl_socket
@@ -2893,6 +2893,7 @@ return [ qw[
         io.unix.socket.output.open
         io.unix.socket.input.close
         invoke-web.requeue_missing
+        invoke-web.recover.requeue
         invoke-web.cmd.queue-order
         invoke-web.cmd.queue-front
         index.tick.wordlist-import
@@ -3969,10 +3970,10 @@ return [ qw[
         jobsite.chksum.group-by-branch
         jobqueue.handler.queue_counter
         invoke-web.render.check_images
+        invoke-web.recover.after_crash
         invoke-web.queue.watch_trigger
         invoke-web.handler.start_guard
         invoke-web.handler.queue_watch
-        invoke-web.handler.gpu_restart
         invoke-web.handler.drain_check
         invoke-web.cmd.requeue-missing
         index.callback.wordlist-import
@@ -4188,6 +4189,7 @@ return [ qw[
         jobsite.report.mime_decode_body
         jobsite.report.evidence_collect
         jobsite.handler.pending-changed
+        invoke-web.handler.render_check
         invoke-web.handler.check_health
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
@@ -4758,6 +4760,7 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobsite.handler.stray-job-exported
         jobqueue.event.register_job_queues
+        invoke-web.handler.recover_restart
         invoke-web.handler.gpu_pause_reply
         invoke-web.handler.drain_processor
         impressive.subscribe-screen-change
@@ -4932,7 +4935,6 @@ return [ qw[
         jobsite.handler.desc-refetch-queued
         io.ssl.ip.handler.handshake_timeout
         invoke-web.handler.queue_watch_once
-        invoke-web.handler.gpu_resume_reply
         impressive.handler.reposition_reply
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
@@ -5055,7 +5057,6 @@ return [ qw[
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
         jobsite.report.mail_evidence_collect
-        invoke-web.handler.gpu_requeue_reply
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -5358,6 +5359,7 @@ return [ qw[
         letsencr.parent.cmd.install-certificate
         letsencr.child.generate_rsa_account_key
         jobsite.handler.reassess-refetch-queued
+        invoke-web.handler.recover_resume_reply
         graphics.matrix.visual.build-cubic-grid
         editor.control.multiline.viewport_slice
         discover.callback.resend_interval_reset
@@ -5427,6 +5429,7 @@ return [ qw[
         letsencr.parent.handler_enrollment_reply
         letsencr.parent.handler_challenge_needed
         jobsite.util.fix_encoding.mojibake-table
+        invoke-web.handler.recover_requeue_reply
         httpsd.request_certificate_from_letsencr
         graphics.matrix.visual.generate-batch-id
         graphics.matrix.visual.detect-resolution
@@ -5713,8 +5716,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,..,.,.,..,,,,,,..,,...,.,.,,,,,,..,,,,,.,.,...,...,..,,,,.,.,.,.,,,.,.,
-#SZPOAF5QGOZDQBKS2EH5PZDXK4OUCKOUDUUU57W6EOU2RMJH3ALAQF4KJ4Q5TZLNXEUZGPUBGX6EK
-#\\\|3Z4C4GK7PN73JNW3B4SIMJDMWNZPJH6TVIOB6NFPSQJMUHL6QIM \ / AMOS7 \ YOURUM ::
-#\[7]XLERGJAQVXFORYWDBXVCQLSBEPKQED52YCDQKEGD7CB7PNUODIAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,...,,.,,...,,,.,.,.,,..,,.,,.,.,...,...,,.,,,,,,.,,,,,,,.,.,
+#XBA2HOWAKERI4AJLZEIGBD3IPYE3LWYR46NRX6KPM53TQMKF2ETE6S2L5GMIQVFEOVZGJNUAO3RAQ
+#\\\|VSRSYQF7KOEZTOIZIEE4JYWPQROLBSUJDVHKQS4SVFNGLCNT66H \ / AMOS7 \ YOURUM ::
+#\[7]TFOYIP67AIKEFRSMIZOMZYNWCWJHKMO2SOPA262EJOZUGAT6SQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
