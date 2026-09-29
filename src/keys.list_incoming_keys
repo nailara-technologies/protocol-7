@@ -78,7 +78,7 @@ foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
     next if not defined $pubkey_b32 or not length $pubkey_b32;
     chomp $pubkey_b32;
 
-    my $mtime = ( stat($file) )[9];
+    my $mtime = ( CORE::stat($file) )[9];
 
     ( my $stem = $file_name ) =~ s|\.public$||;
 
@@ -97,8 +97,8 @@ foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
 
 return \%incoming_keys;
 
-#,,.,,.,.,,,.,,.,,...,,,.,.,,,,,,,..,,,,.,.,,,..,,...,..,,,,,,,,.,,..,.,.,,,,,
-#OKCS7R4T6QDLCGNPDL76A4G6CRQ7ZUMTS2CUMBKIXWSADRKZN7MPAKMYZTARIMENKPWYR5D744PCG
-#\\\|5H6DNYFLIBH3CG2Z3IPNSQBGZIUC6MI2LD3OYGZRCAMSUUP5HE7 \ / AMOS7 \ YOURUM ::
-#\[7]R27EE5QLSQ44DFBTS2PDCBJICALNXI7QRAEACHRX226VXFFVMYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,,,.,.,,,,..,,,,,...,,.,,,,,,..,,...,...,.,.,...,.,.,,..,,.,,
+#TKGWIGQXYQFVTNIE75QSFQKX2QEPZ5AOA6X6LKPP7V57K674TCNXXC3EMZSLWC3KMKO2CI53N52AU
+#\\\|T4TQCLRO5HTJX3TMCTLWLOHKL63PGLUPCPACLBH6MLEL53W5PPT \ / AMOS7 \ YOURUM ::
+#\[7]MOVJZMROUOBEMT4VCBDHP7ZMVJPMZANCRQF3U3PYRR2ZFF2M5ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

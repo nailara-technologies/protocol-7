@@ -94,7 +94,8 @@ if ( not symlink( $pid_file_abs, $symlink_abs ) ) {
 ## deletion-time owner check [ clean-up ] survives a v7-zenki restart ##
 ##
 my $sidecar_path = sprintf( qw| %s.uid |, $symlink_abs );
-if (   not open( my $sidecar_fh, qw| > |, $sidecar_path )
+my $sidecar_fh;
+if (   not open( $sidecar_fh, qw| > |, $sidecar_path )
     or not printf( {$sidecar_fh} "%d %d\n", $owner_uid, $owner_gid )
     or not close($sidecar_fh) ) {
     <[base.s_warn]>->(
@@ -108,8 +109,8 @@ if (   not open( my $sidecar_fh, qw| > |, $sidecar_path )
 
 return $symlink_abs;    ##  returning absolute path of created symlink  ##
 
-#,,.,,.,.,.,.,,,.,.,,,,..,,.,,,,.,.,,,,.,,.,,,..,,...,..,,,.,,,..,.,.,,,,,.,,,
-#TZXSTLO6OCVGGISKRUOCKEXAUPIRLM4BPAYAWYJB2XG3PIPQMYOFUTB5HC2OAG5ZEG7GJXXUOF4TU
-#\\\|BZ4QEQQIVTWXPSF2PJSP5J3AVJBXVGBQBNEKDRH3AUSXRWHKACD \ / AMOS7 \ YOURUM ::
-#\[7]CTKFZN27PYKFSF2ZEZMFPZMGIIN553BSUBB5EPQFW2HNGKTJ3KCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,.,,,,,.,..,,,..,..,,,,,,.,,,..,,...,...,..,,...,..,,.,.,.,.,
+#GH7WL35I5DCRKQQBR63TUZUJW2NRYWOQYHK6EA7CQDWB2KNZGALIUWRGADSJEIN6IP4W24VEEMIQK
+#\\\|AUNQEMSWSKLFSO73REHVG6MKUUHNZQ5SOWXY7EIZAE7S2LYQ3KM \ / AMOS7 \ YOURUM ::
+#\[7]LNZQLLTTKGJQXDLIQOTMFLVM4FOXG3DQQXW7HPHNHHLAMGS6NCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

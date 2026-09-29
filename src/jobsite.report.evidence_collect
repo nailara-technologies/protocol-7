@@ -21,7 +21,7 @@ my $cv;
 my $newest_mtime = -1;
 for my $path ( glob("$cv_dir/*") ) {
     next if not -f $path;
-    my $mtime = ( stat($path) )[9] // 0;
+    my $mtime = ( CORE::stat($path) )[9] // 0;
     next if $mtime <= $newest_mtime;
     $newest_mtime = $mtime;
     $cv           = $path;
@@ -141,8 +141,8 @@ return {
     'letters'    => \@letters,
 };
 
-#,,..,,,.,...,.,.,..,,,.,,,.,,,,.,..,,,..,,,.,.,.,...,...,.,,,,,,,.,,,.,,,...,
-#KS23VUHC2WHEOVTLA2I2MODJ6EYIJSZODONOFW2FC47D6SOPD3N5LMJANCTWESCHZQQSBERCRQ3CM
-#\\\|WOYJMCGKY2L4J4MAJTHIP6SQCQCUJMPNUWJT3MNKUWHPJTIFZXZ \ / AMOS7 \ YOURUM ::
-#\[7]DCWFR2ELIBCRQ3LL3DUMPVCXQTYWUBFY5AO7QODIPJHNVBANXUCY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,...,,..,..,,,.,,,,.,..,,..,,.,.,...,...,...,.,,,..,,,..,,,.,
+#NKFJWVMUJAXJJH642SXNW6T2O4A4XCGAP7NMFDFEHPKYMHNFX6GPRJUK37HEL3TFY7ZIONHZ7JUMG
+#\\\|QC5O2ET3RMW2ZXXIQWIZUXDSXIH2HANJ6FTZ4QBBHRWUCGMTG57 \ / AMOS7 \ YOURUM ::
+#\[7]B3LDXVRM6D7HGHF3V5TPRJONMRSIRVLXCJCJPWIJE6244SUWBGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

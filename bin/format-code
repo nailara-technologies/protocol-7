@@ -2597,6 +2597,17 @@ STUB
         $preamble
             .= qq{use English; use List::Util qw| min max uniq reduce |; }
             . qq{use POSIX qw| strftime |; use Const::Fast; }
+
+            ## the loader's own imports [ bin/Protocol-7 :              ##
+            ## p7_load_perl_modules ] are in scope for every module --  ##
+            ## File::stat overrides stat \ lstat [ object, not a list ; ##
+            ## 'stat(_)' is a bareword under strict ]                   ##
+            . qq{use File::stat; use Sys::Hostname; }
+            . qq{use Text::Wrap qw| wrap |; use File::Spec::Functions; }
+            . qq{use Cwd qw| abs_path |; }
+            . qq{use FindBin qw| \$RealBin \$RealScript |; }
+            . qq{use Fcntl qw| :seek :mode :DEFAULT :flock F_GETFL F_SETFL |; }
+            . qq{use constant qw| tau | => 6.28318530717958647692; }
             . qq{use constant TRUE => 5; use constant FALSE => 0; }
             . qq{use constant UNKNOWN => 2; }
             . qq{use feature qw| declared_refs bitwise |; }
@@ -2605,7 +2616,43 @@ STUB
             . qq{eval { use Crypt::Misc qw| decode_b32r encode_b32r | }; }
             . qq{our ( \%code, \%data, \%keys, \%colors, \@INDEXCUBE, }
             . qq{\$p7_devmod_sub_tracing, \%signatures, \%p7_subroutines, }
-            . qq{\%fh_encoding );\n};
+            . qq{\%fh_encoding ); }
+
+            ## the loader compiles every module inside its own 'use strict' ##
+            ## [ bin/Protocol-7 top level ] : check the same way -- an      ##
+            ## undeclared variable or a bareword must fail here, not only   ##
+            ## at the zenka's source update                                 ##
+            . qq{use strict; }
+
+            ## loader file-scope lexical visible to every module [ ##
+            ## bin/Protocol-7 : my $zenkaname ]                    ##
+            . qq{my \$zenkaname; }
+
+            ## the loader's unicode constant [ tau under its greek name ] ##
+            . q[BEGIN { no strict 'refs'; *{"main::\x{3c4}"} ]
+            . q[= sub () { 6.28318530717958647692 } } ]
+
+            ## perl modules the zenki have loaded before a module compiles ##
+            ## : only for a file that uses them [ Gtk3 is slow to load ]   ##
+            . join(
+            '',
+            map {
+                      "BEGIN { eval { require $ARG->[0]; "
+                    . "$ARG->[0]->import( $ARG->[2] ) } } "
+                }
+                grep { $src =~ $ARG->[1] } [ 'Encode', qr{Encode::}, '' ],
+            [ 'Socket', qr{Socket::|\bAF_}, "':all'" ],
+            [ 'Symbol', qr{Symbol::},       '' ],
+            [ 'POSIX',  qr{\bWNOHANG\b},    "':sys_wait_h'" ],
+            [ 'Gtk3',   qr{Gtk3::},         '' ]
+            )
+
+            ## .cmd. modules : the compiled-in code header pre-declares ##
+            ## $call [ args ] and $reply [ reply hashref ] -- see       ##
+            ## bin/Protocol-7 [ command type routine code header ]      ##
+            . ( $file_path =~ m{\.cmd\.[^/]+$}
+            ? qq{my ( \$call, \$reply ); }
+            : '' ) . qq{\n};
     }
     $preamble .= qq{#line 1 "$file_path"\n};
 
@@ -2793,8 +2840,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,.,,.,.,,,.,,,,,..,,,,,,,..,,,.,,,.,,,.,..,,...,...,..,,,.,,,.,,..,,,.,,
-#4NHIDRP73UAAACQKFBIIWL7T5ZG5GH3AUEWMFCOWXF4VRYFMK7ER25HLTYJCINDLKUBYUR7RJ4XGO
-#\\\|RVDVPEQDBIK2GCI3NWJVRJ7S5FPS6GZPKMLTU7RS34U4KXDBADH \ / AMOS7 \ YOURUM ::
-#\[7]5V7NMVQCE3JRIIYS47WJROWMZYKTKYUIQGCV2LKGE6EQYH42HCDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,.,,,,,,,,,,.,,..,,..,,,,.,,..,..,,...,...,,..,..,,,,.,,,,,,.,,
+#TE4WQE55GZ6ME5A6QIK72GKLWDXK6SK6WC5DWN5HDHKCSUTSESFZ3X6CW4XWBWWKOW3DMQUSOQRAS
+#\\\|5IPADXJXDPZKB2LCPNYPY7HH4BYEM6ORVXIUIBK5EZIDSNLKVOU \ / AMOS7 \ YOURUM ::
+#\[7]YMTBF3LMWR26FMQEXLXBOISDA4NCKRLE6IUUBY5GVA4IODI4KICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,7 +32,7 @@ foreach my $epoch_dir ( @{ $epoch_dirs // [] } ) {
     my $snapshot_files = <[file.match_files]>->( $epoch_dir, qw| *.yaml | );
 
     foreach my $snapshot_path ( @{ $snapshot_files // [] } ) {
-        my @stat_info = stat($snapshot_path);
+        my @stat_info = CORE::stat($snapshot_path);
         next if not @stat_info;
         push @snapshots,
             {
@@ -47,8 +47,8 @@ return [
     sort { $b->{'mtime'} <=> $a->{'mtime'} } @snapshots
 ];
 
-#,,,,,,,,,,..,,,,,..,,...,,,,,.,,,,,,,,..,.,.,.,.,...,...,...,..,,,..,..,,,,.,
-#4ON477QLE5T43ZMNWFPP7GSP54TCDJZE5SJTEOOCJCNZ7NPGEYDVC3QZOUENB4AFNBKPUGB6YYGB6
-#\\\|Q5VV44YBJCMNF3TX55CLHJKKZCOBK2U7J4U3GGNSYDNPZGSM34P \ / AMOS7 \ YOURUM ::
-#\[7]VRMJSR3HT53YYGZ52B6VZQYY4UTKZV7XYUIW3O7567KAHWHTCADQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,...,,.,,.,.,.,.,,..,.,,,...,.,.,...,...,..,,.,,,,.,,...,.,,,
+#ERAHSWNL36FYJGW2JTF53PXL6XBMIUY2IXWHSMWYFMXV7A6654TJQCOBUJL5SPJBPZVV2EIX5RFO6
+#\\\|OWT6EDX7KP7ZEYZM5KXKIFYMOEOPW6W67PWF4QTAAOUUT4ANTQ5 \ / AMOS7 \ YOURUM ::
+#\[7]KEJUHJNBZ6G5EIGAUMNX2GJLIMJGR4THMWN44GJ4OC22NTNSAICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
