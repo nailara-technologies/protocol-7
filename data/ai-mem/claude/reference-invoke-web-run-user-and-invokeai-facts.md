@@ -30,14 +30,30 @@ sudo from a zenka prompts on the v7 console [ never use it : no NOPASSWD ].
 - `curl` needs `--noproxy '*'` for localhost unless no_proxy is set
   [ ~/.bashrc has it since 2026-09-29, /etc/environment does not ]
 
+**never block invoke-web's event loop** [ 2026-09-29, a real crash ] :
+invoke.ai is a CHILD of invoke-web [ registered via report_child_pid ] --
+any end of invoke-web kills it, mid-render. a `p7c invoke-web.reload` with
+new namespaces [ ~710 subs recompiled ] blocked long enough for two v7
+response timeouts -> `error` -> signal 9 -> invoke.ai gone, the running
+item became `canceled`. so : no heavy reloads while it renders [ new code
+simply loads at the next zenka start ] ; timer \ event paths use
+`invoke-web.api_async` [ clients.http ], never the blocking
+`invoke-web.api` [ its 3s LWP call stalled the loop while invoke.ai loaded
+models ]. option discussed, not decided : start invoke.ai with setsid and
+let the next invoke-web start adopt it [ the adoption code exists ].
+- `Invoke running on ..` is printed shortly BEFORE the server accepts
+  connections : an immediate request gets `Connection refused` [ retry ]
+- after a crash invoke.ai marks the interrupted item `canceled` with an
+  empty error_type [ = a manual ui cancel ]
+
 **config keys** : `load_config_file` nests dotted names ->
 `<external.models.invokeai.path>`, never `$data{'models'}{'external....'}`
 [ models export \ resolve \ repair still use the dead flat form ].
 
 see [[feedback-init-code-runs-before-drop-privs]].
 
-#,,,,,..,,,,.,..,,..,,.,.,.,,,...,,..,,,.,.,.,..,,...,...,.,,,,,.,,..,,.,,,,,,
-#C4JF2OWZWUJVAJZDVSNHCJUVLXOT7JDAGIIM22BZPFFQS7HCGMP7I2M4WQEAOR3TN3YRRUG634OJW
-#\\\|XDUOMVTDI6HUTRIG4TSXQAONNXCVQGQN7LKYUY3VYTBDKKJS7RM \ / AMOS7 \ YOURUM ::
-#\[7]3MUAXPWFL4ZVDZATRA52CEZDDLEL4GNKWE43KDQWFRD4PMNT7CBQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,...,.,.,,..,.,,,.,,,...,,,,,..,,...,.,,,..,,.,.,,,.,,..,.,,,
+#EKP3JDJ3ODAFUGWE7LANF3GTWENUIDYYCFM7ISKGRNA7HCVN3V5XBMAKB4ID4FAASOBBSVFC4T6VU
+#\\\|O2CNUHLIRXI34OKCUNJZWMHBVVLWJC3LGB3B76BMVBHX5RIHSCO \ / AMOS7 \ YOURUM ::
+#\[7]HP5RUGOIIQZIRIDFSHPEB7MA3MPIH2KLPYT656ZAK5HIXD26QUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
