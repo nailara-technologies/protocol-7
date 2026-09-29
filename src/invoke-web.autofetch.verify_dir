@@ -18,7 +18,7 @@ my $dir = <invoke-web.autofetch.verify_staging>
 
 ## create on first use, then validate from an lstat [ never stat : a ##
 ## symlink to a real directory must fail, not pass through ]         ##
-my @st = lstat($dir);
+my @st = CORE::lstat($dir);
 if ( not @st ) {
     if ( not mkdir( $dir, 0700 ) ) {
         <[base.logs]>->(
@@ -27,7 +27,7 @@ if ( not @st ) {
         );
         return undef;
     }
-    @st = lstat($dir) or return undef;
+    @st = CORE::lstat($dir) or return undef;
 }
 
 if ( not -d _ ) {
@@ -68,8 +68,8 @@ if ( $mode != 0700 ) {
 
 return $dir;
 
-#,,,.,...,.,,,...,..,,,,.,,,,,,..,..,,.,,,,,,,..,,...,.,.,...,...,...,,,.,,..,
-#UPLBP3JFBRSYCPFLPBCTYQYDOHRIQFSN7SXAMLPGOWBECJNWDD42TAF6GKK5O4YU2MNP62QW6GO7M
-#\\\|FIVWHHMA3ZKOPRHZJLSUIJDH4LANZ234PLURKO6C7NV435ATHLT \ / AMOS7 \ YOURUM ::
-#\[7]FLTJ4ZFKY2MTCLBKNQRD52M5LEXVTSPSD42CJBDUTR26PX5ARQBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,...,,,,,.,,,...,..,,,..,,.,,..,,...,...,..,,,.,,.,,,..,,...,
+#JULMDPPLGCOSFRNZPQ4YYZ6GJMTUSVMZLCQM7YWRI6SG626E5EITZGGAD6JU5RWQMSZK4R6YSTLWW
+#\\\|MXOX3SCCWXJDHQLHGXJJNHAAOJJGPAGIENBA4ANLCTH7B5WJ7O3 \ / AMOS7 \ YOURUM ::
+#\[7]TGBDSMR7BB6UKFZBXCFKHC7QYLCUV5P674SDNSANHH57SL2FSWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

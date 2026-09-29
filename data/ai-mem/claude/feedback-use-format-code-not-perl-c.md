@@ -45,8 +45,18 @@ reference memory doesn't mention `format-code` as the better default, and vice v
 memories keep getting missed, consider: always run `bin/format-code -c` FIRST for any `src/*` edit
 in this project, full stop, before considering `p7-module-syntax-check` at all.
 
-#,,,.,,..,,.,,,,,,...,,,,,.,,,..,,,,.,.,.,,,,,..,,...,...,,.,,,.,,,.,,,,,,...,
-#2NTK45SEDQATMOWLW4SSICNB4TE244DKCUWGPI37FVNMHFUH2GTHTTZH6YP7EOW3VWW77AUS3WIQE
-#\\\|EXTD4OPCA7TC7UBYRRRI6T5THESW7TO5XOVWRA5DT446Z7YOSVA \ / AMOS7 \ YOURUM ::
-#\[7]2NOJ4EZZRCODO6MXF2BIPWHKVAQVO73BSKQOMUB6FHTWBHYIR2BY 7  DATA SIGNATURE ::
+**blind spot [ 2026-09-29 ] : format-code -c does not check `use strict`.** it
+reported "syntax valid" for two modules the zenka compiler then rejected :
+`stat(_)` [ bareword under strict subs ] and `my $fh` declared inside an `if`
+condition and used later in the same condition [ strict vars ].
+`bin/test-scripts/p7-module-syntax-check` caught the second one. so : run
+format-code -c first, then p7-module-syntax-check for new \ changed modules,
+and read its FAILs past the known false positives [ `$call` in `.cmd.`,
+`%colors`, `uniq @x`, `JSON::false` before JSON is loaded ]. applies to kimi
+dispatch results too -- its "syntax valid" is format-code -c only.
+
+#,,,,,,.,,.,,,,.,,,.,,,,.,..,,...,...,,,.,...,..,,...,...,.,.,..,,..,,,,,,,,.,
+#EHMAH5BRNKRLUUSZVXL2FZMYTMOTDNFAQ6AVDNZPNTN4WZAYKSD2DLJ3BSM6KDOT7VWLQMM2BKDG6
+#\\\|3MLIC77PRXUOTUFKFFBWML7UZEFJ6A2YHPJXZYMQRX3RHR3YAXP \ / AMOS7 \ YOURUM ::
+#\[7]OHRZEMAKQBT2YCZVXIX6BAM2K4KIRUG3PIQ7SZ6FNCNLXSTAQEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
