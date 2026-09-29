@@ -39,11 +39,15 @@ if ( $kind eq qw| ready | ) {
         <invoke-web.ready_logged> = TRUE;
         <[base.logs]>->( 1, 'invoke.ai ready at %s', <invoke-web.url> );
 
-        ## invoke.ai resumes its queue on every start [ zenka.v7 flag ] ##
-        ## async : right after ready invoke.ai is still loading models  ##
-        <[invoke-web.api_async]>->(
-            'PUT', '/api/v1/queue/default/processor/pause',
-            undef, 'invoke-web.handler.startup_pause_reply'
+        ## invoke.ai resumes its queue on every start [ zenka.v7 flag ]  ##
+        ## async : right after ready invoke.ai is still loading models ; ##
+        ## its socket accepts a moment after this line [ 1s, no refused  ##
+        ## connect in the log ; the retry stays for slower starts ]      ##
+        <[event.add_timer]>->(
+            {   'after'   => 1,
+                'handler' => 'invoke-web.handler.startup_pause_retry',
+                'data'    => { 'attempt' => 1 },
+            }
             )
             if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 )
             or defined <invoke-web.gpu_recover>;    ## requeue first ##
@@ -196,8 +200,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,.,...,.,.,,,.,,..,,..,,.,,.,.,,..,.,.,,,.,..,,...,...,...,.,,,..,,,..,,,.,
-#3Y7AOEIGTMGL3JN6WWV656JWAOB6MQQ32XFXL42WXRUOT5BP3AOXIDKPWIDZMRWAAV425NMAWU5WE
-#\\\|3HF765JSFCQ5BHBEUU6NN262LQJGVUHDLEBOMRV6UCRXHQWKH6U \ / AMOS7 \ YOURUM ::
-#\[7]U2JQ7QDQEOOSSLC7GTFYGEKRD4AYR7LMDP6TRMUIWSQ737N7AWCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,...,...,,,,,,,,,,..,,..,..,,...,..,,...,...,,..,,.,,,..,.,.,,,,,
+#LOJORAXXEGFWJF5BV2EJISNZ6VKEK7FCBN5T2PHNCK7RURTBGWFFAM7O77ZITM66K575NKWZEKRK2
+#\\\|LEATMDR7NHDTCU6JATRFACPXIQBODNM2HLS6COFDKZEVGCU3PI3 \ / AMOS7 \ YOURUM ::
+#\[7]YPGN5IFQV6W6HZBU7PZNI7NOTJ3LSEVCWHLNYI66EHHHVPHI7SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
