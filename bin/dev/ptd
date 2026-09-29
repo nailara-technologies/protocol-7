@@ -234,7 +234,10 @@ while ( my $file_path = shift @files ) {
                 $file_path );
             $had_error = TRUE;    ##  true  ##
         } else {
-            print color_msg( 'syntax ok', $file_path, $NEON_green_yellow );
+            ## syntax only : no 'use strict', no loader imports -- the ##
+            ## authoritative check is bin/format-code -c               ##
+            print color_msg( 'syntax ok [ no strict ]',
+                $file_path, $NEON_green_yellow );
         }
         next;
     }
@@ -468,8 +471,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,,.,..,,...,,..,,.,,.,.,.,.,.,,,..,,.,,,..,,...,...,,,.,,,,,,,.,,,.,...,
-#HSUNAPPXFASVQIXWXYMDXEOP4MQR3P5ECLA5UGGM6ND2XJFLO6YJ2MBUHICM3SWUB7E72MWLHKRH2
-#\\\|NUTMDL36EJW2BLEOK2V7XZVJMI3Z45PDZZN7366JCIS4XOFL54A \ / AMOS7 \ YOURUM ::
-#\[7]BP3YES3O3Q2H3CKO77IIY3YLDG33BEZT5OMGDFQH65FWHP4OMWBY 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,,,.,.,,,.,,,.,,,.,.,.,.,,,,,.,..,,...,...,...,,,,,,..,,.,,,,,,
+#PLLMNZ2YQMXIG3QGVB4PF25HIK5RSD7VA7KWA7EFFQBBUCGRAADMWMUHKXSG5NUMO3XP5BANZPXEC
+#\\\|542WTRRPSIRVMJE5OWFH3GI6H2RFKPHZ232W45N4LCIDEMMYUW3 \ / AMOS7 \ YOURUM ::
+#\[7]XYPNBALBCIRJBYKBQUOWRM3RDQ7KU47RJXGQA36Y2RNULILG46CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
