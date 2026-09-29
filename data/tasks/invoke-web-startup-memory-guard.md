@@ -53,8 +53,27 @@ thresholds in zenka.v7 [ e.g. 8 GB RAM, 4 GB VRAM free ].
   user starting" marker might be needed
 - `start --force` for the user who knows better
 
-#,,,.,.,.,..,,,..,..,,.,.,.,,,.,,,.,.,,.,,,..,..,,...,...,,,,,,,.,.,,,,..,,,.,
-#WODQOJYZL5HOPW7AHHXW6L5VJPFZXGEMCFJP4UAD6U7HCAGILMQUTP4SNQP7OMEZQ5Z5SMUHYKYDQ
-#\\\|EC52T33KVCDS22NJZJPHZU3JRNHHZUN5D6MUCJODOXM3HEFGQOJ \ / AMOS7 \ YOURUM ::
-#\[7]TF2WSUWOFU5MPI55MY7XCOCCWI3AKZ4YDQOUZPLIOYLTH3OUJ6CQ 7  DATA SIGNATURE ::
+## built [ 2026-09-29, kimi dispatch dce6e60fa, reviewed ]
+
+- dependency objects `memory_system` \ `memory_gpu` with the coding zenka's
+  callbacks cross-loaded [ modules.load : `coding.callback.object_memory_system
+  coding.callback.object_memory_gpu` ], set up in `invoke-web.init_code`,
+  thresholds `invoke-web.start.min_free_ram_mb` \ `_vram_mb` [ 8192 \ 4096 ]
+  refreshed on every init
+- `invoke-web.cmd.start` : not satisfied -> the start is queued
+  [ `invoke-web.start_waiting`, `invoke-web.handler.start_guard` re-checks
+  every 13s and starts by itself ], on-demand timeout paused meanwhile ;
+  `start force` skips the guard ; `status` shows a waiting start with free
+  vs needed [ `invoke-web.memory_free` ]
+- verified live via eval-code : RAM 4485 \ 8192 MB -> not met [ invoke.ai
+  itself held the memory ], VRAM 7102 \ 4096 -> met ; threshold 1 MB ->
+  met, 999999 -> not met [ re-evaluated live, not cached ]
+- still to test live [ needs invoke.ai stopped ] : a real queued start that
+  proceeds once memory frees up ; `start force`
+- coding side : `data/tasks/coding-invoke-awareness.md`
+
+#,,..,..,,.,,,...,.,,,,,,,,,.,,,.,,..,,,.,..,,..,,...,...,.,.,.,,,...,.,,,.,.,
+#IYXJFQ3JOW3HLQ3KRZCFR6TCKKHB4LHZ6EAFRKKR25UBTYVOQMOZNPIXEBPN4XUR6OLPE2I3QDNVK
+#\\\|ZZ3524HCQVW76IBONXCTQDMUKO5KWCPVKQMJBP3MVNXFKK6BG64 \ / AMOS7 \ YOURUM ::
+#\[7]RZGZWDSTFKVEO3KFFHU6GK6LBWZHQITKGT7CXC3TE6MTQXJ3RKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
