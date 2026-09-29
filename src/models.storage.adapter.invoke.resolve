@@ -6,10 +6,10 @@
 # [ input: $ARG = model record hashref ]
 # [ output: absolute path string if found on disk, undef if not ]
 
-my $root = $data{'models'}{'external.models.invokeai.path'}
+my $root = <external.models.invokeai.path>
     // '/mnt/ext-xfs-data/models-invoke';
 
-my $path = $ARG->{'path'} // return undef;
+my $path = $ARG[0]->{'path'} // return undef;
 
 ## bare uuid -> diffusers directory ##
 if ( $path
@@ -35,8 +35,8 @@ if ( $path
 
 return undef;
 
-#,,,.,,.,,.,.,,,.,,..,,.,,..,,.,,,...,.,,,,.,,.,.,...,...,...,...,.,,,,.,,.,,,
-#OJLZNAOTRW3BF4PIJ3HR72V2JTHH5WQJJIP24TXVFHYYRXWMGRZMANCQRWB6QYZEXQQHXP6CGBMC4
-#\\\|S3GFQISX27IGY3IFGWCUBPIWLO2NASFXW5THE7VAIOUKTYP3MZH \ / AMOS7 \ YOURUM ::
-#\[7]WWLRRWBZA52DBY6QTQI7CZHKSCEPNSMNHRQ3BP3H2PD3IHDK7SDA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,,..,,..,.,.,,.,,...,,..,.,,,.,.,...,..,,.,,,,..,.,,,,..,,..,
+#FNBJNS365DKNGZ5MPBJPB6G3SR7U5UIYORXTVO4FZJVWDWQEA2LH6H3JTXGSI2L3RXKAI2CN4AF7A
+#\\\|UZS2OKATWOB22MO3KXO35MI3TTLFUUTMZMSK5HUYOS3R43EM7WV \ / AMOS7 \ YOURUM ::
+#\[7]XZVYBDQA2BMJC5NBY2G4CXZX6W7SFDR6LYOVAXG4SIIJ4KAYHMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
