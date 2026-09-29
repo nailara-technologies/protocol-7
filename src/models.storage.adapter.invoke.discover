@@ -10,17 +10,34 @@ my $params = $ARG // {};
 
 # determine db path from config, params, or default
 my $admin_user = <system.admin-user> // '';
-my $db_path    = $params->{'db_path'}
-    // $data{'models'}{'external.models.invokeai.db'} // (
-    length($admin_user)
-    ? "/home/$admin_user/.invokeai/db/invokeai.db"
-    : undef
-    ) // ( glob('/home/*/.invokeai/db/invokeai.db') )[0]
-    // "$ENV{'HOME'}/.invokeai/db/invokeai.db";
+my $admin_home = length $admin_user ? ( getpwnam $admin_user )[7] : undef;
+## invoke.ai default db location : <root>/databases/invokeai.db [ an  ##
+## older layout used <root>/db/ -- a stale copy may still sit there ] ##
+my $invoke_root = <external.models.invokeai.root>
+    // ( defined $admin_home ? "$admin_home/.invokeai" : undef );
+my $db_path = $params->{'db_path'} // <external.models.invokeai.db>
+    // ( defined $invoke_root ? "$invoke_root/databases/invokeai.db" : undef )
+    // "$ENV{'HOME'}/.invokeai/databases/invokeai.db";
 
 # check if db exists
 unless ( -f $db_path ) {
-    <[base.logs]>->( 0, "discover: db not found [ %s ]", $db_path );
+
+    ## not readable after privilege drop [ e.g. a 700 home directory ] : ##
+    ## fall back to the snapshot read as root during init_code           ##
+    my $snapshot = <models.invoke.db_snapshot>;
+    if ( $!{'EACCES'} and defined $snapshot ) {
+        <[base.logs]>->(
+            2, "discover: db not readable [ %s ], startup snapshot [ %d ]",
+            $db_path, scalar $snapshot->{'records'}->@*
+        );
+        return [ $snapshot->{'records'}->@* ];
+    }
+
+    <[base.logs]>->(
+        0,
+        "discover: db %s [ %s ]",
+        $!{'EACCES'} ? 'not readable' : 'not found', $db_path
+    );
     return [];
 }
 
@@ -33,7 +50,19 @@ my $sql
     . "json_extract(config, '\$.base') as base FROM models ORDER BY "
     . "type, name;";
 
-my $cmd  = qq{sqlite3 "$db_path" ".mode json" "$sql" 2>/dev/null};
+## read-only [ no journal rollback ]. as root [ init_code ] : run as the db ##
+## owner -- a WAL mode reader creates missing -shm \ -wal files, and        ##
+## root-owned ones would lock the owner's own process out                   ##
+my $run_as    = '';
+my $db_owner  = ( stat $db_path )[4] // 0;
+my $owner_str = getpwuid $db_owner;
+$run_as = qq{/usr/sbin/runuser -u "$owner_str" -- }
+    if $EUID == 0
+    and $db_owner != 0
+    and defined $owner_str;
+my $cmd
+    = qq{${run_as}sqlite3 -readonly "file:$db_path?mode=ro" ".mode json" }
+    . qq{"$sql" 2>/dev/null};
 my $json = qx{$cmd};
 
 unless ($json) {
@@ -86,10 +115,17 @@ for my $m (@$models) {
 
 <[base.logs]>->( 2, "discover: found %d models", scalar @filtered );
 
+## snapshot for reads after the privilege drop [ see above ] ##
+<models.invoke.db_snapshot> = {
+    'records' => [@filtered],
+    'path'    => $db_path,
+    'time'    => <[base.time]>->(3),
+};
+
 return \@filtered;
 
-#,,.,,,,,,.,.,,,.,.,,,,,,,,.,,.,,,.,.,.,,,..,,.,.,...,...,.,.,,..,,,,,,,.,,,.,
-#2Z6T45ZB7E6GKD67ZNP6PJPJM5ZLQ4TR2EKR3F262JU2ELHD7VQECETZHS3PKV6BTSW2HSIUNOZWM
-#\\\|AH73CBR4NUARF3UYC7MCMIXME25Y2JXCQ3RR42Y2OO3QOQ3FV24 \ / AMOS7 \ YOURUM ::
-#\[7]3DNYVCRJ3P3GPJ4T3EQRRIIJPOMO7T5JO4XRSZSX4WK4Q5VSIMBI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,,..,..,,.,.,.,.,..,,,..,,.,,.,.,...,..,,...,...,,,,,,..,,,.,
+#B3FBQE5XP2ZETZQZHGR6DZVR7FZWRGBYJOH56AFDMEQP4WI67FDTAVLATVQ6SI4LMTQ6YQIUI6I5C
+#\\\|4AFB22QJGRLNYLRVCTHWPFLP7UBXBHMZXZXKFSJMPUQZS6T5SSS \ / AMOS7 \ YOURUM ::
+#\[7]E2WVOY7CDWRGZE6XJS4ZPK2Z5H2JAOTSMA7ZGBSWFT6WX24MOEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

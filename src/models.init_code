@@ -213,6 +213,11 @@ unless ( exists <models.registry> ) {
     <[models.registry.init_from_definitions]>;
 }
 
+## invoke.ai db snapshot : read once while still root [ init_code runs   ##
+## before the privilege drop ; the db may sit below a 700 home dir ].  a ##
+## reinit runs unprivileged and keeps the existing snapshot              ##
+<[models.storage.adapter.invoke.discover]> if $first_init;
+
 # =============================================================================
 # TASK DISPATCH - Jobqueue-managed, event-driven via task-notify [ no polling ]
 # =============================================================================
@@ -244,8 +249,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    ## module initialization successful
 
-#,,.,,.,.,.,,,...,,,.,.,,,,,,,.,,,...,,..,,..,..,,...,...,,..,,,.,,..,,.,,.,.,
-#GDLGKUEEV5F5ACLE2LWZ2JMMP7BELRFKMHKE7FCRMFJFNS7ZKXG4IWIUUGMMB5ZSU72U3C6DKYABE
-#\\\|C6NB2UZRKQNNWI6HVSPGS57C5USXRZFML2PMX25QGQP6MXTAXCT \ / AMOS7 \ YOURUM ::
-#\[7]3SE3IGLRXURRAE3LGCPNTDRIBWUM2PAR2OMFIXYKBMUYFPKC3SBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,.,.,,.,,.,.,,..,.,,,,,.,...,..,,...,...,,..,,..,.,.,...,,..,
+#A5PEY53Z5XQPFLSRY3OOPW22XKM3WXXX65Z7YX5IPKOFU374TGWLW5F5XHBHLQSV336TFJGZCRQP6
+#\\\|FZJWB4AHN432JVHQRXJ2K3OPFLSAKDY4RR7DDGIHVV4GGBSA6SR \ / AMOS7 \ YOURUM ::
+#\[7]4HQ5AYC5FNPDREVXVHFGMCYXNNYCWOSQB4JPJLATYEZ3FJGAPIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

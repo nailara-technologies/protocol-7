@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = invoke-web.cmd.resume
+# descr = resume the invoke.ai queue processor
+
+my $result = <[invoke-web.api]>->( 'PUT', '/api/v1/queue/default/processor/resume' );
+
+return {
+    mode => qw| false |,
+    data => sprintf( 'resume failed [ %s ]', $result->{'status'} )
+    }
+    if not $result->{'ok'};
+
+return { mode => qw| size |, data => "invoke.ai queue resumed\n" };
+
+#,,..,...,..,,...,,..,.,,,.,,,,..,..,,.,,,...,..,,...,...,.,.,,.,,.,.,..,,...,
+#AOYIOK7FNXUMSB7QZPIDHOKZQK7D45OHGLKB5CTNKWWRG6L2BIHNY3EBHNAP3PZKN2NAYXDU6IWOY
+#\\\|PCOROZZ4QHXWCFZP4PL2VXOQYJMTACUZ2ZUFER5X2HEXFBVNI7D \ / AMOS7 \ YOURUM ::
+#\[7]GZUVR4AJU5VHJF7T3XTVTT2T27ST7KYQNQYPB6Z7QWUIUQ7R4WBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

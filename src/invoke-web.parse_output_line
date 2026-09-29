@@ -1,0 +1,94 @@
+## [:< ##
+
+# name   = invoke-web.parse_output_line
+# descr  = one line of invoke.ai output : keep it in the output tail, match
+#          it against <invoke-web.output_patterns> [ first match wins ] and
+#          update status \ last error \ render progress
+# param  = line, stream [ out | err ]
+
+my $line   = shift // return;
+my $stream = shift // qw| out |;
+
+$line =~ s|\e\[[0-9;?]*[A-Za-z]||g;    ## ansi colors \ cursor codes ##
+$line =~ s|\s+$||;
+return if not length $line;
+
+## bounded output tail [ invoke-web.log ] ##
+my $tail = <invoke-web.output_tail> //= [];
+push $tail->@*, $line;
+splice( $tail->@*, 0, @$tail - <invoke-web.output_tail_max> )
+    if @$tail > <invoke-web.output_tail_max>;
+
+my ( $kind, $level ) = ( qw| line |, 3 );
+foreach my $pattern ( <invoke-web.output_patterns>->@* ) {
+    next if $line !~ $pattern->{'match'};
+    ( $kind, $level ) = ( $pattern->{'kind'}, $pattern->{'level'} );
+    last;
+}
+
+if ( $kind eq qw| ready | ) {
+
+    ## the port actually listened on [ invoke.ai config, not ours ] ##
+    <invoke-web.url> = <invoke-web.url_detected> = "http://127.0.0.1:$1"
+        if $line =~ m{https?://[^\s:/]+:(\d+)};
+
+    if ( not <invoke-web.ready_logged> ) {
+        <invoke-web.status>       = 'running';
+        <invoke-web.ready_logged> = TRUE;
+        <[base.logs]>->( 1, 'invoke.ai ready at %s', <invoke-web.url> );
+
+        ## invoke.ai resumes its queue on every start [ zenka.v7 flag ] ##
+        if ( <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 ) ) {
+            my $result = <[invoke-web.api]>->(
+                'PUT', '/api/v1/queue/default/processor/pause'
+            );
+            <[base.logs]>->(
+                $result->{'ok'} ? 1 : 0, 'queue pause on startup : %s',
+                $result->{'ok'} ? 'done' : $result->{'status'}
+            );
+        }
+    }
+    return;
+} elsif ( $kind eq qw| progress | ) {    ## tqdm : ' 45%|####  | 9/20 [..' ##
+    <invoke-web.progress> = $1 if $line =~ m{(\d+/\d+)\s*\[};
+    return;                              ## no log line per step ##
+} elsif ( $kind eq qw| model | ) {    ## startup lists every missing file ##
+    <invoke-web.missing_models>++;
+} elsif ( $kind =~ m{^(?:error|oom)$} ) {
+    <invoke-web.last_error> = {
+        'kind' => $kind,
+        'line' => $line,
+        'time' => <[base.time]>->(3),
+    };
+} elsif ( $kind eq qw| item | ) {
+    delete <invoke-web.progress>;        ## a new render item starts ##
+    <invoke-web.render> = { 'item' => $1, 'session' => $2 }
+        if $line =~ m{queue item (\d+), session (\S+)};
+} elsif ( $kind eq qw| item_done | ) {
+    delete <invoke-web.progress>;
+    <invoke-web.render>->{'done'} = TRUE if defined <invoke-web.render>;
+} elsif ( $kind eq qw| render_stat | ) {
+
+    ## one summary line once the table's last collected value arrives ##
+    my ( $key, $value ) = $line =~ m{^\s*([^:]+):\s*(.+)$};
+    my $render = <invoke-web.render> //= {};
+    $render->{'stats'}->{$key} = $value;
+    if ( $key eq 'Cache high water mark' ) {
+        <invoke-web.last_render> = $render;
+        <[base.logs]>->(
+            1, 'render done [ item %s : %s, ram %s, vram %s ]',
+            $render->{'item'} // '?',
+            $render->{'stats'}->{'TOTAL GRAPH EXECUTION TIME'} // '?',
+            $render->{'stats'}->{'RAM used by InvokeAI process'} // '?',
+            $render->{'stats'}->{'VRAM in use'} // '?'
+        );
+    }
+}
+
+<[base.logs]>->( $level, '[invoke.ai] %s', $line );
+
+#,,..,,..,..,,.,,,..,,..,,...,.,.,,,,,.,.,..,,..,,...,...,..,,,..,...,,.,,,.,,
+#H3X2PP53CJBFS5G3ZJHKURZV3QM2GAT534SMT3SCCYLT5F374EPW7YNGRNBVMX2XR64VKRY7RF5WE
+#\\\|WWRPOCTCCQ5EAKZTERCJNQQSYFBY3NDZINJEZ3ZDQU35HTMRPDM \ / AMOS7 \ YOURUM ::
+#\[7]JWPH3TTG5XYS7RRO44LO2Y55W7REH4ESEFP55FJ75IX7MQYWNOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
