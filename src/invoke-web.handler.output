@@ -16,7 +16,8 @@ my $pid    = $wdata->{'pid'};
 my $stream = $wdata->{'stream'} // qw| out |;
 
 ## stale watcher guard [ a previous process ] ##
-if ( not defined <invoke-web.pid> or not defined $pid
+if (   not defined <invoke-web.pid>
+    or not defined $pid
     or <invoke-web.pid> != $pid ) {
     $watcher->cancel if $watcher->is_active;
     return;
@@ -28,8 +29,8 @@ unless ( defined fileno($fh) ) {
     return;
 }
 
-## single read per invocation : yields to the event loop, the watcher ##
-## fires again while more data is waiting                             ##
+## single read per invocation : yields to the event loop, the watcher fires ##
+## again while more data is waiting                                         ##
 my $buf = '';
 my $n   = sysread( $fh, $buf, 65536 );
 
@@ -61,7 +62,7 @@ if ( $n > 0 ) {
 }
 
 ## :[ eof on this stream ]: ##
-$watcher->cancel if $watcher->is_active;
+$watcher->cancel                                      if $watcher->is_active;
 <[invoke-web.parse_output_line]>->( $carry, $stream ) if length $carry;
 delete <invoke-web.carry>->{$stream};
 close($fh);
@@ -76,10 +77,11 @@ if ( not <invoke-web.ready_logged> and not <invoke-web.crash_logged> ) {
     my @tail = <invoke-web.output_tail>->@*;
     @tail = @tail[ -8 .. -1 ] if @tail > 8;
     <[base.logs]>->( 0, ':. %s', $ARG ) for @tail;
+    <[invoke-web.queue.release]>;    ## a failed start holds nothing ##
 }
 
-#,,,.,,..,,,,,,..,,..,..,,..,,..,,,,.,.,,,,,.,..,,...,..,,...,,,,,.,.,.,,,...,
-#6DDCFCA2IZWQN4AUHUU5T4PFJPMLJUEWV7EFROTDPMJGZ3BYFIIFHFMGYFIHR2KF424M62UHO6P5K
-#\\\|I5NGF7G4FB3UNWHYSK2G6SEICB2PU32QN3Q7XEYL5AA37H44P4H \ / AMOS7 \ YOURUM ::
-#\[7]GQQEOLCGL6AFDN3XXRYQHB7URV5EVRAJP4TIB3FFZZIQL5POA6BA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,...,.,,,,,,,,,.,.,,,...,.,.,..,,...,..,,..,,,,,,,,,,...,.,,,
+#WP7WKU7NJLSUSUPFBKED6F2TPFP4WJCD7PJ55R75GPU3ILTCDBR4JKV7PTXBIY7VUPZFU3W4ZJLTG
+#\\\|HVCSNRQI445NHYLEWTVFRFPNTXLB62GOMU3JJGH45GEYQAE5YOY \ / AMOS7 \ YOURUM ::
+#\[7]C27PSJ2RZSTG3FYNTH7KM2AETLDHM2M4AOYFHURRD3OS5577RWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

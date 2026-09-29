@@ -794,6 +794,7 @@ return [ qw[
         jobsite.cmd.reject
         jobqueue.init_code
         jobqueue.find_jobs
+        invoke-web.retried
         invoke-web.cmd.log
         index.restore.cube
         index.persist.cube
@@ -1397,6 +1398,7 @@ return [ qw[
         v7-zenki.zenka.get_id
         v7-zenki.instance_ids
         v7-zenki.cmd.teardown
+        v7-zenki.cmd.pressure
         users.record.validate
         user-edit.outbox.list
         user-edit.menu.select
@@ -1500,6 +1502,7 @@ return [ qw[
         io.ssl.ip.input.close
         io.ip.tcp.output.open
         io.ip.tcp.input.close
+        invoke-web.queue.hold
         invoke-web.index.step
         invoke-web.drain.stop
         invoke-web.cmd.status
@@ -2259,6 +2262,7 @@ return [ qw[
         v7-zenki.zenka.setup.add
         v7-zenki.zenka.init_code
         v7-zenki.zenka.cmd.start
+        v7-zenki.pressure.sample
         v7-zenki.parser.children
         v7-zenki.compile_bin_p7r
         v7-zenki.compile_bin_p7c
@@ -2374,6 +2378,7 @@ return [ qw[
         invoke.handler.poll_jobs
         invoke-web.session.store
         invoke-web.render.report
+        invoke-web.queue.release
         impressive.screen-change
         impressive.check_tmp_dir
         httpsd.create_ssl_socket
@@ -3052,6 +3057,7 @@ return [ qw[
         v7-zenki.zenka.set_cube_sid
         v7-zenki.zenka.instance.add
         v7-zenki.setup_stdout_redir
+        v7-zenki.pressure.init_code
         v7-zenki.instance_pid_count
         v7-zenki.init_restart_timer
         v7-zenki.extract_short_desc
@@ -3861,6 +3867,7 @@ return [ qw[
         v7-zenki.zenka.cmd.status-time
         v7-zenki.sub-process.pid_alive
         v7-zenki.set_up_ondemand_zenki
+        v7-zenki.pressure.update_level
         v7-zenki.handler.drain_timeout
         v7-zenki.handler.children_left
         v7-zenki.cmd.forced-mod-reload
@@ -4318,6 +4325,7 @@ return [ qw[
         v7-zenki.parent.stream_zenka_log
         v7-zenki.load_zenka_startup_cfgs
         v7-zenki.handler.restart-timeout
+        v7-zenki.handler.pressure_sample
         v7-zenki.handler.heartbeat_timer
         users.handler.remote_fetch_reply
         universal.handler.switch_timeout
@@ -5293,6 +5301,7 @@ return [ qw[
         io.unix.socket.handler.report-tmp-path
         invoke-web.handler.startup_pause_retry
         invoke-web.handler.startup_pause_reply
+        invoke-web.handler.queue_release_retry
         impressive.callback.rendering_finished
         httpd.route.handler.iris-route-advance
         httpd.handler.download_transfer.broken
@@ -5716,8 +5725,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,.,.,.,.,.,...,,.,,...,,,.,.,.,,..,,.,,.,.,...,...,,.,,,,,,.,,,,,,,.,.,
-#XBA2HOWAKERI4AJLZEIGBD3IPYE3LWYR46NRX6KPM53TQMKF2ETE6S2L5GMIQVFEOVZGJNUAO3RAQ
-#\\\|VSRSYQF7KOEZTOIZIEE4JYWPQROLBSUJDVHKQS4SVFNGLCNT66H \ / AMOS7 \ YOURUM ::
-#\[7]TFOYIP67AIKEFRSMIZOMZYNWCWJHKMO2SOPA262EJOZUGAT6SQCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,..,,,..,,.,,,.,,,.,,,,.,,.,,.,.,...,..,,.,,,,.,,..,,.,.,,,,,
+#JQJJVVTJW6U4QPN7MCEVSJ5HKY5HY7PO2BW6TQ3Y25QXVJ4LI5Y4PWVWJ7ZY6MHOOZYI3M5QZAG3M
+#\\\|P45FDDUE3GT6N3H7MKUXHCZIOGK7TYML4NQIJQUJPZF2Y5A2O2W \ / AMOS7 \ YOURUM ::
+#\[7]LCQ4ZZ6BV2W656CCEYLYTCTADHGRQVDDJ4YLWOAVZ7KOSUY5JKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

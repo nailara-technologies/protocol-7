@@ -71,6 +71,7 @@ foreach my $name ( sort keys %models ) {
         = ref $retry->{'data'} eq qw| HASH |
         ? scalar( ( $retry->{'data'}->{'retried_item_ids'} // [] )->@* )
         : '?';
+    <[invoke-web.retried]>->( $model->{'items'} );
     push @results, { %result, 'result' => "retried $retried" };
     <[base.logs]>->(
         1, "queue : %s item%s re-queued [ model '%s' is back ]",
@@ -83,8 +84,8 @@ foreach my $name ( sort keys %models ) {
 
 return \@results;
 
-#,,.,,.,.,.,,,.,,,,.,,,.,,,.,,,,,,,..,.,.,.,,,..,,...,...,.,,,.,.,,,,,..,,..,,
-#IOTNBEOGWTQTFROKOCGJ5MULSNT342QUSU244F27MDQKAPLTBLEBFXP7B4APSS3R2FSIBAYUTR3CS
-#\\\|QYQV33LPH5QLFQEFAUX4L7HQSWEEGTNK2PTDD2C6YIZSBLM23FO \ / AMOS7 \ YOURUM ::
-#\[7]VLA3PLIONIARWJKU44AEDKU4I6TK3VVIXRQF454AUP4UI2HNFSAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,..,,.,.,,..,.,,,,,,,...,...,..,,..,,...,...,..,,...,.,.,...,,,.,
+#5Y5RMCPJJLFGPGK5PRLF4TP42XR2C2VHEGMEF4DOVX5FJZXWQQKCKKNWVHR5DLSRXS3NSA37GSDDU
+#\\\|DIQGPBETZR7GH27IZYVWG445NGNTQ6X4TEEQG24I6CJ76TLW5KZ \ / AMOS7 \ YOURUM ::
+#\[7]5UYQEO6OWFVTV5WROZ44ALWOIJGJZ5UK7VLDWJO3OOZQMNBKO2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

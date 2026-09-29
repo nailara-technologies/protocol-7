@@ -1,0 +1,57 @@
+## [:< ##
+
+# name   = invoke-web.queue.hold
+# descr  = before an invoke.ai start : pending items -> status 'held', so the
+#          queue processor finds nothing to dequeue until the startup pause
+#          is through [ invoke-web.queue.release ]
+# return = number of held items | undef [ no queue db ]
+# note   = invoke.ai starts its processor resumed [ hardcoded ] and takes
+#          the first item long before its api accepts a pause [ 83s seen ].
+#          only while invoke.ai is down : no concurrent writer. the dequeue
+#          selects status = 'pending' only ; startup only cancels
+#          'in_progress'. state/held-items marks an unreleased hold
+
+my $dbh = <[invoke-web.queue.db]> // return undef;
+
+## invoke.ai is down : an item still 'in_progress' was interrupted [ crash ]
+## -- exactly these are retried by a recovery [ invoke-web.recover.requeue ;
+## earlier cancels, manual ones included, are never touched ]. invoke.ai sets
+## them 'canceled' at its start
+my $interrupted = $dbh->selectcol_arrayref(
+    "SELECT item_id FROM session_queue WHERE status = 'in_progress'") // [];
+if (@$interrupted) {
+    <invoke-web.recover>->{'interrupted'} = [@$interrupted]
+        if defined <invoke-web.recover>;
+    <[base.logs]>->(
+        1,
+        'queue : interrupted item%s %s%s',
+        @$interrupted == 1 ? '' : 's',
+        join( ' ', @$interrupted ),
+        defined <invoke-web.recover> ? '' : ' [ requeue <id> ]'
+    );
+}
+
+my $held = $dbh->do(
+    "UPDATE session_queue SET status = 'held' WHERE status = 'pending'");
+if ( not defined $held ) {
+    <[base.logs]>->( 0, 'queue hold failed [ %s ]', $dbh->errstr );
+    return undef;
+}
+$held += 0;    ## '0E0' -> 0 ##
+return 0 if not $held;
+
+<[file.zenka_dir.write]>->(
+    'state/held-items', \sprintf( "%d\n%s\n", $held, <[base.time]>->(3) )
+);
+<[base.logs]>->(
+    1,     'queue : %d pending item%s held for the start',
+    $held, $held == 1 ? '' : 's'
+);
+
+return $held;
+
+#,,.,,.,,,...,.,,,...,.,,,...,..,,,,,,.,.,,.,,..,,...,..,,,..,,,,,..,,...,...,
+#UUAFUGWOK62SQKDE3GBUTWHRZJQAUZMTJWQFHJCDN7DNYHP4VSC7BGWCHPHHHZJMHE3NYLMNNPBDO
+#\\\|LE4C26IRHFP3IFUBUHODDJBXBMRBFM673SKSQX2MSAV2TUGFFO5 \ / AMOS7 \ YOURUM ::
+#\[7]IBRTXKELL3M62YREINS5OQWU3KR27DATNCTA3TB5GH626F5HZUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
