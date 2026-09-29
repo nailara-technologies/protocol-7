@@ -39,8 +39,10 @@ item became `canceled`. so : no heavy reloads while it renders [ new code
 simply loads at the next zenka start ] ; timer \ event paths use
 `invoke-web.api_async` [ clients.http ], never the blocking
 `invoke-web.api` [ its 3s LWP call stalled the loop while invoke.ai loaded
-models ]. option discussed, not decided : start invoke.ai with setsid and
-let the next invoke-web start adopt it [ the adoption code exists ].
+models ]. setsid detaching rejected [ v7 must keep the pid : terminate \ restart
+protection ] -- instead a generic v7 feature : keep children on a CRASH
+restart only, reattach by name + cmdline + start time
+[ data/tasks/v7-zenki-keep-children-on-crash.md ].
 - `Invoke running on ..` is printed shortly BEFORE the server accepts
   connections : an immediate request gets `Connection refused` [ retry ]
 - after a crash invoke.ai marks the interrupted item `canceled` with an
@@ -48,12 +50,12 @@ let the next invoke-web start adopt it [ the adoption code exists ].
 
 **config keys** : `load_config_file` nests dotted names ->
 `<external.models.invokeai.path>`, never `$data{'models'}{'external....'}`
-[ models export \ resolve \ repair still use the dead flat form ].
+[ models export \ resolve \ repair fixed 0b1a08710 ].
 
 see [[feedback-init-code-runs-before-drop-privs]].
 
-#,,,,,,..,..,,,,,,...,.,.,,..,.,,,.,,,...,,,,,..,,...,.,,,..,,.,.,,,.,,..,.,,,
-#EKP3JDJ3ODAFUGWE7LANF3GTWENUIDYYCFM7ISKGRNA7HCVN3V5XBMAKB4ID4FAASOBBSVFC4T6VU
-#\\\|O2CNUHLIRXI34OKCUNJZWMHBVVLWJC3LGB3B76BMVBHX5RIHSCO \ / AMOS7 \ YOURUM ::
-#\[7]HP5RUGOIIQZIRIDFSHPEB7MA3MPIH2KLPYT656ZAK5HIXD26QUAY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,.,,,..,,,.,,,,.,,.,,,..,,,.,..,,...,...,..,,.,,,,.,,.,,,.,,,
+#AJUFGZCPC3H55PNTX3UOSBE46GBROCSO5YCRRON3IGTVVOLZXPDRRKA5ZF53CIHCENHNTY5M675KI
+#\\\|TQADF3DRN2MUHVRYCLD3RUJIBWAMPEAXLRI2UZRVBSM3BDCFW3G \ / AMOS7 \ YOURUM ::
+#\[7]7JJFOLHBGJ46SWSI3RT2KW3MS4NSWX2KQHJQMIV6RFZGEBJ372AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
