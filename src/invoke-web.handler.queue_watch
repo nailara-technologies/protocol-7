@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = invoke-web.handler.queue_watch
+# descr = interactive queue mode timer : pending items added since the
+#         last check jump ahead of everything already queued
+# note  = all items found in one check share one priority [ max + 1 ] :
+#         a batch keeps its own order [ item_id ASC tie-break ], the next
+#         batch lands ahead of it -- newest work first
+
+if ( not <invoke-web.queue_interactive> ) {    ## switched off meanwhile ##
+    my $timer = delete <invoke-web.timer.queue_watch>;
+    $timer->cancel if defined $timer and $timer->is_active;
+    return;
+}
+
+my $dbh = <[invoke-web.queue.db]> // return;
+
+my $last_seen = <invoke-web.queue.last_seen> // 0;
+my $new_items = $dbh->selectcol_arrayref(
+    "SELECT item_id FROM session_queue WHERE status = 'pending' "
+        . 'AND item_id > ? ORDER BY item_id ASC',
+    undef, $last_seen
+) // [];
+return if not @$new_items;
+
+my ($max_priority) = $dbh->selectrow_array(
+    "SELECT MAX(priority) FROM session_queue WHERE status = 'pending'");
+my $priority = ( $max_priority // 0 ) + 1;
+
+$dbh->begin_work;
+my $sth = $dbh->prepare('UPDATE session_queue SET priority = ? WHERE item_id = ?');
+foreach my $item_id (@$new_items) {
+    next if $sth->execute( $priority, $item_id );
+    <[base.logs]>->( 0, 'queue watch : update failed [ %s ]', $dbh->errstr );
+    $dbh->rollback;
+    return;
+}
+$dbh->commit;
+
+<invoke-web.queue.last_seen> = $new_items->[-1];
+<[base.logs]>->(
+    1, 'queue : %d new item%s moved to the front [ priority %d ]',
+    scalar @$new_items, @$new_items == 1 ? '' : 's', $priority
+);
+
+#,,.,,,,,,,.,,,..,...,,.,,,,.,...,...,,,.,..,,..,,...,.,.,.,,,,,.,,,,,,,.,,.,,
+#6G2FTBR5VK3IV44RGMM4XMEG5RZI2X7RMC6TA2YPR45O5CAVLD2DVUQ4YTP642UTLAWYZBVMITRXQ
+#\\\|IESJOGQPYCWVDJRTJS3DJL22CAMKBVT5MFATI34NNGY67BYBTPW \ / AMOS7 \ YOURUM ::
+#\[7]IPPSU6VKS7TO573VHWPPSTXO264WSYB5CWF7VBBKGU2QP7MYDCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

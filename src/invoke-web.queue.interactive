@@ -1,0 +1,38 @@
+## [:< ##
+
+# name   = invoke-web.queue.interactive
+# descr  = switch the interactive queue mode on \ off [ timer + baseline ]
+# param  = TRUE | FALSE
+# note   = on : only items added AFTER switching on move to the front
+
+my $enable = shift // FALSE;
+
+my $timer = delete <invoke-web.timer.queue_watch>;
+$timer->cancel if defined $timer and $timer->is_active;
+
+if ( not $enable ) {
+    <invoke-web.queue_interactive> = FALSE;
+    return FALSE;
+}
+
+## baseline : everything queued so far keeps its order ##
+my $dbh = <[invoke-web.queue.db]> // return FALSE;
+my ($max_id) = $dbh->selectrow_array('SELECT MAX(item_id) FROM session_queue');
+
+<invoke-web.queue.last_seen>   = $max_id // 0;
+<invoke-web.queue_interactive> = TRUE;
+<invoke-web.timer.queue_watch> = <[event.add_timer]>->(
+    {   'after'    => 3,
+        'interval' => 3,
+        'repeat'   => TRUE,
+        'handler'  => 'invoke-web.handler.queue_watch',
+    }
+);
+
+return TRUE;
+
+#,,,.,...,,.,,,,.,,,,,.,,,.,.,.,,,..,,,,,,..,,..,,...,...,,,,,,,,,.,.,.,,,,,,,
+#6X45L7VCOQTLRWTRDRG266CV6ZP2QGQUCSBEJL5AIY6NVC4VYPYVHEZLODWD6ATR5XNK2NTGHHVDM
+#\\\|YFRJXAWQYLKE34DGPJ7KLCR7LV2KZIQ3CUOYRQU4BQE2NTUQBB4 \ / AMOS7 \ YOURUM ::
+#\[7]G3DOHH2NY77L4LNRZIKEYASY3YGT6QDON2X4ZNLPBMHEDY7NBGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

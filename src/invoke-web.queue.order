@@ -1,0 +1,85 @@
+## [:< ##
+
+# name   = invoke-web.queue.order
+# descr  = re-sort the pending invoke.ai queue items [ in_progress untouched ]
+# param  = mode : newest | oldest | harmonic
+# return = number of reordered items | undef [ error, logged ]
+# note   = harmonic : ported from bin/dev/tools/invoke-queue-harmonize
+#          [ session id seed, division-by-13 passes ] -- with its own seeded
+#          Fortuna instead of srand, the zenka's global rand state stays
+
+my $mode = shift // qw| newest |;
+
+if ( $mode !~ m{^(?:newest|oldest|harmonic)$} ) {
+    <[base.logs]>->( 0, 'queue order : unknown mode [ %s ]', $mode );
+    return undef;
+}
+
+my $dbh = <[invoke-web.queue.db]> // return undef;
+
+my $items = $dbh->selectall_arrayref(
+    "SELECT item_id, session_id FROM session_queue WHERE status = 'pending' "
+        . 'ORDER BY priority DESC, item_id ASC',
+    { 'Slice' => {} }
+);
+if ( not defined $items ) {
+    <[base.logs]>->( 0, 'queue order : read failed [ %s ]', $dbh->errstr );
+    return undef;
+}
+return 0 if not @$items;
+
+my @sorted;
+if ( $mode eq qw| newest | ) {
+    @sorted = sort { $b->{'item_id'} <=> $a->{'item_id'} } @$items;
+} elsif ( $mode eq qw| oldest | ) {
+    @sorted = sort { $a->{'item_id'} <=> $b->{'item_id'} } @$items;
+} else {    ##  harmonic  ##
+
+    <[base.perlmod.autoload]>->('Crypt::PRNG::Fortuna');
+
+    ## seed from the session ids [ same material as the script ] ##
+    my $seed = 0;
+    foreach my $char ( split m||, join '', map { $ARG->{'session_id'} // '' } @$items ) {
+        $seed = int( ( ( $seed << 5 ) + ( $seed << 4 ) + ord $char ) % 2**31 );
+    }
+    $seed = int( $seed / 13 ) while $seed > 2**30;
+
+    my $prng   = Crypt::PRNG::Fortuna->new($seed);
+    my $passes = 3 + $seed % 5;
+    my %entropy;
+    foreach my $item (@$items) {
+        my $value = $prng->int32 % 2**31;
+        foreach my $pass ( 1 .. $passes ) {    ## division-by-13 passes ##
+            $value = int( $value / 13 ) ^ ( $pass << 8 );
+            $value ||= 1;
+        }
+        $entropy{ $item->{'item_id'} } = $value;
+    }
+    @sorted = sort {
+        $entropy{ $a->{'item_id'} } <=> $entropy{ $b->{'item_id'} }
+            or $a->{'item_id'} <=> $b->{'item_id'}
+    } @$items;
+}
+
+## descending priorities : first in @sorted runs first ##
+my $sth = $dbh->prepare('UPDATE session_queue SET priority = ? WHERE item_id = ?');
+my $priority = scalar @sorted;
+$dbh->begin_work;
+foreach my $item (@sorted) {
+    if ( not $sth->execute( $priority--, $item->{'item_id'} ) ) {
+        <[base.logs]>->( 0, 'queue order : update failed [ %s ]', $dbh->errstr );
+        $dbh->rollback;
+        return undef;
+    }
+}
+$dbh->commit;
+
+<[base.logs]>->( 1, 'queue reordered [ %s, %d items ]', $mode, scalar @sorted );
+
+return scalar @sorted;
+
+#,,.,,.,.,,,.,.,.,.,.,..,,,.,,,,,,..,,...,.,,,..,,...,...,,,.,,..,,.,,...,,..,
+#QLX5MITCFN622ZMRA4QPKO3TESSWOZVBJGAWFIQGCTB3XF2RCIFCTOWT7CUXL2XK7PZZYQDMIWXOQ
+#\\\|MKS4BKE4UXTPXNLT2M7S7QAET7HFJXTL3W2BRT27MWTYMO4JWON \ / AMOS7 \ YOURUM ::
+#\[7]BRDW6UAPU3TAF23CDBOVQRUYYGWNHJQHXLKTEENMUZXZXOAMJCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
