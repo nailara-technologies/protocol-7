@@ -1,57 +1,68 @@
 ---
 name: project-2026-09-29-invoke-images-session-handover
-description: handover of the 2026-09-29 session [ ntime fix, invoke-web rebuilt, image.analyze + image index, many briefs ] -- what runs, what is open, where the briefs are
+description: handover of the 2026-09-29 \ 30 session [ invoke-web rebuilt + recovery chain, image index, pressure sampler + pressure-aware heartbeat, pid-file registry, strict format-code ] -- what runs, what is open, where the briefs are
 metadata:
   type: project
 ---
 
-**running when the session ended [ 2026-09-29 ~13:00 ]** :
-- image index job in invoke-web [ `p7c invoke-web.index status` ] :
-  ~49215 invoke.ai images, ~0.2s each, resumable [ `index start` skips the
-  indexed ones ]. index : /var/protocol-7/invoke-web/state/image-index.db,
-  lazy backup /mnt/ext-xfs-data/p7-images/image-index.db. final log line
-  `image index done : ..`. 25 early `failed` = missing files counted
-  before the missing-handling fix -> a re-run records them as missing
-- invoke.ai rendering the queue [ ~66 pending ], interactive mode on
-  [ new ui items first ], drain after 4620s idle [ not while indexing ]
+**state at the end [ 2026-09-30 ~01:00 ]** : invoke.ai rendering the queue,
+invoke-web `start_paused = startup`, v7-zenki pressure sampler live. last
+commits 6eabe182c .. d8908bf8d, working tree clean except kimi's pending
+legacy strict fixes [ data/tasks/legacy-zenki-strict-errors.md ].
 
-**built today** [ commits cae127ef0 .. a8756f568 ] :
-- `p7_ntime` : harmonic step-back on the RETURNED value, no sleeps
-  [ fixed the 70ms cube reply stalls ] ; b32 : harmony on the encoded value
-- v7 -> v7-zenki reference sweep [ memory, docs, tasks ] ; v7 sig_chld
-  fallback by process id [ phantom 'online' instances ]
-- invoke-web rebuilt : see [[reference-invoke-web-run-user-and-invokeai-facts]]
-  [ run user, output parsing, queue control, sessions, drain, memory guard,
-  async api, requeue from the queue db, render outcome check incl. silent
-  failures via the result image ]
-- models : live db path, snapshot as root via runuser, `$ARG[0]` fix
-- `image.analyze.file` [ shared layer : 1x1..3x3 tiles, hsv, luma,
-  entropy, flags, png text ] ; graphics-matrix color_sample fixed with it
-- image index [ BMW-L13 of content as key, prompts hash-only ]
+**invoke-web** [ see [[reference-invoke-web-run-user-and-invokeai-facts]] ] :
+- image index done : ~49k images, BMW-L13 keys, state/image-index.db ;
+  idle-watcher job, chunked reads with event.once, backup in a forked child
+- render outcome : `render done` \ `failed` \ `suspicious` [ l2i node ] ;
+  the result-image check [ black \ flat ] runs in its own timer
+  [ handler.render_check ] -- inline it blocked past the heartbeat
+- recovery chain `recover.*` : cuda error [ gpu.recover, max 3 \ hour ] and
+  zenka crash [ recover.after_crash : pid file left + process gone, max 3 \
+  hour ] -> pause, restart, retry EXACTLY the interrupted items [ recorded by
+  queue.hold while invoke.ai is down : status in_progress ] + cuda failures
+  -> resume. own retried record state/retried-items [ survives a prune ]
+- queue hold : invoke.ai's processor starts resumed and dequeues ~80s before
+  its api is up -- pending items -> status 'held' while it is down, released
+  after the startup pause. start_paused : no | yes | startup
+- requeue \ requeue-failed \ requeue-cancelled [ list, all, text filter,
+  cancel times ] ; requeue-missing ; autofetch [ off \ ask \ on, default off ;
+  blake3 verified in a private 0700 dir ; symlink \ hard link \ owner checks ]
+  -- NOT live-tested yet : `p7c invoke-web.fetch-missing <model>`
 
-**open, with briefs in data/tasks/** :
-- render tests still due : memory guard waiting case, drain after idle
-- `coding-invoke-awareness.md` : coding waits for invoke.ai via dependency
-  object [ present invoke-web -> status -> notify_offline ]
-- `v7-zenki-keep-children-on-crash.md` : keep + reattach children on a
-  crash restart [ invoke.ai, X-11 ] -- output pipe \ SIGPIPE problem first
-- `invoke-missing-model-autofetch.md` : trigger = 2nd complaint ; 37 of 117
-  missing fetchable from db metadata, 80 local-only [ hash lookup \ backup ]
-- `invoke-web-queue-sessions.md` [ park built ; cold resume via the task
-  zenka's gpu cooldown ], `invoke-web-interrupted-item-requeue.md`,
-  `invoke-web-startup-memory-guard.md`
-- `images-elfdb-feature-collection.md` + `images-elfdb-landscape-survey.md`
-  : planning base for the new zenki, see [[project-images-elfdb-planning-base]]
-- next index steps : use the data [ color wheel from hue \ sat, duplicates,
-  model \ lora graph ] ; index new renders at `render done`
+**v7-zenki** :
+- pressure sampler [ psi, swap rate, MemAvailable ] : `p7c v7-zenki.pressure`
+  ; elevated from avg60, critical from avg10 \ avg60, leave after 13 samples
+- heartbeat : under elevated \ critical pressure [ or a latest avg10 over
+  the critical threshold ] a late reply extends the timeout [ 3x \ 6x 17s ]
+  instead of an error restart. cause found 2026-09-29 : model loads push
+  `mem full avg10` to ~19 -> direct reclaim stalls every process
+- report-pid-file : pid files removed only on teardown, v7 startup, manual
+  terminate \ restart ; an error restart keeps them -> crash detection.
+  owner uid recorded in a sidecar, lstat, re-registration = owner refresh
+- host : vm.swappiness 10 [ /etc/sysctl.d/60-swappiness.conf ]
 
-**Why:** the session reached ~940k tokens ; compaction and cache expiry
-would lose the thread.
-**How to apply:** start from here when invoke-web, the image index, or
-images \ elfdb come up ; check `index status` first.
+**tooling** : bin/format-code -c checks use strict + loader imports [
+fbbc58194 ], see [[feedback-use-format-code-not-perl-c]] ; compile report
+hints for `my $call` \ `my $reply` in .cmd. ; base.cfg_bool knows on \ off.
 
-#,,.,,.,.,..,,..,,..,,,,,,,..,,..,..,,,,,,..,,..,,...,...,..,,..,,,,.,..,,...,
-#HE2I2P5IDGAU7QUQMRMEDJKWVUUYQDYBQETSODS347SOYZXNUKLLX442CIDF267HG6OW2NOSEPWOA
-#\\\|NJSMA2UZSFDBFZO3H4TUMQV44UXTZHIGWZKGBJ7KZ5LQOBYBFTY \ / AMOS7 \ YOURUM ::
-#\[7]ZDAZBIX6N6BFC7T3ETOOL4KQGTGQZM37LIQVJ7GX3RW27SQ4XYCI 7  DATA SIGNATURE ::
+**open, in this order** :
+1. index new renders at `render done` [ small : handler.render_check has the
+   image content already ]
+2. data/tasks/v7-zenki-keep-children-on-crash.md : invoke.ai survives an
+   invoke-web restart [ SIGPIPE on the output pipes first ]
+3. pressure brief pieces 4-5 [ defer restarts \ starts while critical, atom
+   start gate ] + per-zenka memory stats collected by the system zenka
+4. coding-invoke-awareness.md ; images \ elfdb planning, see
+   [[project-images-elfdb-planning-base]]
+
+**Why:** a long session with many interlocking parts ; compaction would lose
+which pieces are live, which are untested and why they were built.
+**How to apply:** start here when invoke-web, v7-zenki pressure \ pid files
+or the image index come up ; check `p7c invoke-web.status`, `index status`
+and `v7-zenki.pressure` first.
+
+#,,,,,,..,...,,,,,,,,,,,.,,..,,..,.,.,...,.,,,..,,...,...,...,.,,,.,.,,,,,,.,,
+#KXC7J2ZFCXR57A72CAPK4TQ5USBP2VK3OGPN4GKACKA625QBL6ASPFJRFBPMQC4ORC2K6KAQTJ7Z6
+#\\\|I56HRGSZXHNNBPWUCP2T2DUFYDH4FHJZORUFFPKCD25OCTZFPP4 \ / AMOS7 \ YOURUM ::
+#\[7]NY6IVQTCMYQAP6JFMYULE6KRHICEIY7B2BNSM7IBW7CJWV77ZGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
