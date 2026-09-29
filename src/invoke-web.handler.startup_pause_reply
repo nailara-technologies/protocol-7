@@ -34,8 +34,18 @@ if (    not $reply->{'ok'}
 <[invoke-web.recover.requeue]>
     if $reply->{'ok'} and defined <invoke-web.recover>;
 
-#,,.,,,,.,.,,,..,,,,,,..,,...,...,,..,..,,...,..,,...,..,,..,,..,,,.,,,..,.,,,
-#SGRWRKJMTO2A7ZOH7PYLU2NFNAYUGT22D5MZLKOKQWA42OFWRBTENP4IUN6SSCETDA4T7NM2IKZK4
-#\\\|XHSUZFMKQUEDGYUCZBFKIIZQZZKSH2WSSEJVONDQKPRLCK2AALS \ / AMOS7 \ YOURUM ::
-#\[7]AQ7VSTPPXTZLFREZ4XYUDDBVLDMJVMFNA3OURFIPZ2THAMPAJSAA 7  DATA SIGNATURE ::
+## start_paused = startup : the pause only covered the start -- resume now ##
+## [ a recovery resumes through its own chain after the requeue ]          ##
+<[invoke-web.api_async]>->(
+    'PUT', '/api/v1/queue/default/processor/resume',
+    undef, 'invoke-web.handler.startup_resume_reply'
+    )
+    if $reply->{'ok'}
+    and not defined <invoke-web.recover>
+    and <[invoke-web.start_paused]> eq qw| startup |;
+
+#,,,.,.,,,,,.,,,.,...,,.,,,,,,,..,,,.,,..,,,,,..,,...,...,.,.,..,,..,,...,..,,
+#ONULDIKH2EH3KLUPZ6TZCXCFCSY5NTKCTBI7WLVCW3ZHAVFCLBB4E6HYAJXDZKURSCVSOP4E6IA5W
+#\\\|CBDN2BUP7ESYNGNKNFTD3D2NF6CXNTQRF2UWTT3SUXD3TLJCVC7 \ / AMOS7 \ YOURUM ::
+#\[7]BZGIMIHGRIF4SFCRZAKL7FSBCSJSGDZGIDXLOPKLDORIYUCIG2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
