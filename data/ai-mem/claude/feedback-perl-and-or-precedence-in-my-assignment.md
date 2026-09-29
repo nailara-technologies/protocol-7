@@ -31,8 +31,14 @@ followed by a separate `and`/`or`-modified statement if the low-precedence
 short-circuit control-flow idiom (`open(...) or die`) was actually the
 intent.
 
-#,,..,,,.,...,.,.,,,,,.,,,,,,,,,.,,,.,,.,,,.,,..,,...,..,,,..,,,,,,..,,..,..,,
-#3TJ257JH5DH44M23KKYBAMM6SHTFBSORJSG4C2WTNDHVGIFBYUOS3N22XRG7BZL4P3Q24QNEUZSSI
-#\\\|X7NKQWLGGTUGOX5TXFF2WQU7V6UQMUXRHG2YD774S6FJRV5KYK6 \ / AMOS7 \ YOURUM ::
-#\[7]RSMVIAFFPGO7AU7RAFZSOG7NXVT5AWALVDILI4HUOJSZANSTAYBQ 7  DATA SIGNATURE ::
+**same trap with `not` in a ternary [ 2026-09-29 ]** : `A ? x : not $d ? y : z`
+parses as `not( $d ? y : z )` -- `not` binds looser than `?:`, the branch is
+always '' [ both y and z true ]. in `invoke-web.parse_output_line` every
+successful render got result '' : logged at level 0 as `render  [ item N ]`
+and the silent-failure image check never ran. use `!$d`, or invert the branches [ `$d ? z : y` ].
+
+#,,..,.,,,...,,.,,,.,,..,,,,,,..,,,,,,...,,.,,..,,...,...,.,,,.,.,...,...,.,.,
+#2GB6RBJC7VP55TK3NQ6IHUC7SUCEZBT42AMS4G4Y4WRSOSHFUNSIV6HU7W2CAEEAPY22IX2BTRAUI
+#\\\|PMUBTMQM2A7463EV7V6HFTTWGZLYDJUKJM7TJJS4ZKLAKEJ2ZI6 \ / AMOS7 \ YOURUM ::
+#\[7]RCIAJDVJ4SLJ5SYDAB4XTRLLX72I2S6S3GFT5DKJT65IXROS2EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
