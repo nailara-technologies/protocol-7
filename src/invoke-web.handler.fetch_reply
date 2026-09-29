@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = invoke-web.handler.fetch_reply
+# descr = fetch-files reply for an autofetch download [ deferred mode ]
+
+my $reply = shift                        // {};
+my $name  = $reply->{'params'}->{'name'} // return;
+
+my $entry = <invoke-web.missing_at_render>->{$name} // return;
+my $fetch = $entry->{'fetch'}                       // {};
+
+## cancel the watchdog [ timer objects live outside the persisted record ] ##
+if ( defined <invoke-web.autofetch.timers>->{$name} ) {
+    <invoke-web.autofetch.timers>->{$name}->cancel;
+    delete <invoke-web.autofetch.timers>->{$name};
+}
+
+## verified download [ lfs sha256 checked by fetch-files ] : move it to the ##
+## db path and re-queue the failed item[s]                                  ##
+if ( uc( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    <[invoke-web.fetch_finalize]>->($name);
+    return;
+}
+
+$fetch->{'state'} = qw| failed |;
+$fetch->{'reason'}
+    = sprintf( 'download failed : %s', $reply->{'data'} // 'unknown error' );
+$fetch->{'time'} = <[base.time]>->(3);
+<[invoke-web.missing.save]>;
+<[base.logs]>->( 0, 'autofetch : %s : %s', $name, $fetch->{'reason'} );
+
+return;
+
+#,,,.,.,,,,..,,..,...,,.,,.,,,..,,,.,,..,,,,,,..,,...,...,..,,..,,..,,...,..,,
+#LRK4WK2T574KRSJKSN7K7EDQ3BAAUOYA7ETACJZC6BSAIRA2PJBIT5QITIIUOXTH6UAYZKIM72LHC
+#\\\|ORI7Q6ZFKFYHMDZWGCCT7OFB4HWAMEJBAJ7Z2BSFKTPVN464HHJ \ / AMOS7 \ YOURUM ::
+#\[7]KE33UY7UKPI5KFUPT4FHS46ZYTLSLYB3YDHX3CKBPG343UUERMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

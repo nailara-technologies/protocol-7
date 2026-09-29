@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = invoke-web.handler.fetch_watchdog
+# descr = clear a stuck autofetch fetch [ the reply never arrived ]
+
+my $event = shift;
+my $name  = eval { $event->w->data->{'name'} } // return;
+
+delete <invoke-web.autofetch.timers>->{$name};
+
+my $entry = <invoke-web.missing_at_render>->{$name} // return;
+my $fetch = $entry->{'fetch'}                       // return;
+return if ( $fetch->{'state'} // '' ) ne qw| fetching |;
+
+$fetch->{'state'}  = qw| failed |;
+$fetch->{'reason'} = 'the fetch reply never arrived [ timeout ]';
+$fetch->{'time'}   = <[base.time]>->(3);
+<[invoke-web.missing.save]>;
+<[base.logs]>->( 0, 'autofetch : %s : %s', $name, $fetch->{'reason'} );
+
+return;
+
+#,,,.,.,.,,.,,,.,,.,.,,,.,.,,,,,,,...,,..,,..,..,,...,..,,,..,...,,.,,.,.,,,.,
+#CYTDOLTJM3P5X4GFW7OVSZWHKDPO5M6TE7REUZOU3H5CHNPHXBJ6XQJS5K4C4GNENXSD6Y6PQSNNQ
+#\\\|OTFPQBVE6DBDJME2AXWQ55SN5W33XPEDJRANQNPBLUS3RNXK54O \ / AMOS7 \ YOURUM ::
+#\[7]VLWB4UKMNETMRUPGSCYLT2BDPM7B7WMCO5JFME5WCXK235A23CDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

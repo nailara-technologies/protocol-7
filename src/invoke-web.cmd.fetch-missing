@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = invoke-web.cmd.fetch-missing
+# descr = fetch a missing model [ confirm \ status ]
+# param = [ model name ] [ none : list fetch states ]
+
+my $arg = $call->{'args'} // '';
+$arg =~ s{^\s+|\s+$}{}g;
+
+my $missing = <invoke-web.missing_at_render> // {};
+
+if ( not length $arg ) {
+    return {
+        mode => qw| false |,
+        data => 'no render failed on a missing model'
+        }
+        if not keys %$missing;
+    return {
+        mode => qw| size |,
+        data => join(
+            '',
+            map {
+                my $f = $missing->{$ARG}->{'fetch'} // {};
+                sprintf "%-40s %-11s %s\n",
+                    $ARG,
+                    $f->{'state'} // qw| seen |,
+                    $f->{'reason'} // $missing->{$ARG}->{'path'} // '';
+            } sort keys %$missing
+        )
+    };
+}
+
+my $result = <[invoke-web.autofetch]>->( $arg, TRUE );
+
+return { mode => qw| false |, data => 'autofetch failed' }
+    if not defined $result;
+
+return {
+    mode => $result->{'ok'} ? qw| size | : qw| false |,
+    data => $result->{'msg'} // 'no result'
+};
+
+#,,,.,.,,,.,,,,,,,.,.,,..,,,.,,.,,.,.,...,,..,..,,...,...,...,.,,,..,,..,,...,
+#AU7JNN62FOMTLVLSCE7L7ACLQS5YNM6KPLUCYKH2TYQGADD72D25BWONXWELCMXHHL7JUHITF7MQC
+#\\\|Q3I5BMKW36VXFN75J7GERXOTBIER4BI25Q5YEBEON6NRYOBZIWB \ / AMOS7 \ YOURUM ::
+#\[7]POU3FMYSNBL2CQBN3XSFJZ3RE4LF4XG52EBSAZFYH4H7X4NWLUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
