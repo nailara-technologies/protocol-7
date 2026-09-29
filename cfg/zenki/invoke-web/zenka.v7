@@ -14,6 +14,16 @@ invoke-web.start_paused = yes
 ##  interactive queue mode at ready : new items jump to the front  ##
 invoke-web.queue_interactive_start = yes
 
+##  start memory guard [ invoke.ai takes ~9 GB RAM while loading ] :     ##
+##  start waits until at least this much RAM \ VRAM is free             ##
+invoke-web.start.min_free_ram_mb  = 8192
+invoke-web.start.min_free_vram_mb = 4096
+
+##  drain : once the queue is done and invoke.ai idle this long [ output ##
+##  lines, db writes from ui use ], stop it and end the zenka [ 0 = off ]  ##
+invoke-web.drain.idle_after         = 4620
+invoke-web.drain.paused_counts_idle = no
+
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.logfile = 2
 system.zenka.verbosity.console = 2
@@ -30,9 +40,18 @@ access.cmd.usr.cube = heart verify-instance commands reload \
                       start stop restart status health log \
                       pause resume queue queue-order \
                       queue-interactive queue-front \
-                      model-source requeue-missing
+                      model-source requeue-missing \
+                      session-park session-resume sessions
 
-modules.load = auth.client net protocol io.unix ui invoke-web
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
+access.devcmd.usr.cube = devmod:*
+
+##  memory guard callbacks cross-loaded from the coding zenka [ same    ##
+##  dependency objects gate its inference server spawns ]               ##
+modules.load = auth.client net protocol io.unix ui invoke-web \
+               coding.callback.object_memory_system \
+               coding.callback.object_memory_gpu
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -45,8 +64,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web
 
 [zenka.loop]
 
-#,,,.,.,.,..,,,..,..,,,,,,,.,,..,,,.,,,..,...,..,,...,...,..,,,.,,,,,,.,.,,,.,
-#DNW5V33IA6OSFXWH4QAWJAIHLJDKILVVIUA65YT64XB3S6U2BIJCZYIC3XCAOCFSCF2PZSHPGRG3C
-#\\\|65DSECGWXBZQ6GOAF5ASCXBHP4ETVF3FMQBZAEIOPKDO2WYDJZ4 \ / AMOS7 \ YOURUM ::
-#\[7]ASLLYCZ6VFNKDE7DKEALUZFRH5MWJBYXKIK32VGLIU535ABYF6CY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,,,.,.,.,..,,,,.,.,,,,,.,,,,,..,,...,...,.,.,,.,,,..,.,,,,..,
+#UXO2OFALSQFLM36DFGVUZXPYLKN3JIDKR2WPZBU2TZKFZWJZQFOEB3TT3C23OSVZ3BGCANBYKVBO2
+#\\\|S7EG5XTD5RIRXMPWGL5GI562Y7VELKHT2OANYSDN3JMSDBUX5I3 \ / AMOS7 \ YOURUM ::
+#\[7]RFUTSKEZVKG3NJQI4HRQL4JHF37V6BWCKEUD3QQZR5ECIT7M5OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

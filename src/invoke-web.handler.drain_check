@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = invoke-web.handler.drain_check
+# descr = drain timer [ every minute while invoke.ai runs ] :
+#         1. queue empty + a parked session with resume mode 'empty' ->
+#            resume it [ oldest first ]
+#         2. queue drained and no activity for <invoke-web.drain.idle_after>
+#            seconds -> stop invoke.ai, wait for its exit, then the regular
+#            idle-term path [ base.handler.ondemand_timeout : v7 ends the
+#            zenka cleanly, notify_offline subscribers get their reply ]
+# note  = activity : any output line or database write [ invoke-web.
+#         activity.* ]. a paused queue with pending items only counts as
+#         drained with invoke-web.drain.paused_counts_idle = yes
+
+my $now = <[base.time]>->(0);
+
+## phase 2 : stop requested, wait until invoke.ai is gone ##
+if ( defined <invoke-web.drain.stopping> ) {
+    ## cmd.stop clears <invoke-web.pid> at once : the pid is kept here ##
+    return
+        if <[invoke-web.is_alive]>->( <invoke-web.drain.stopping_pid> )
+        and $now - <invoke-web.drain.stopping> < 60;
+    delete <invoke-web.drain.stopping>;
+    delete <invoke-web.drain.stopping_pid>;
+    <[base.logs]>->( 1, 'invoke.ai drained : zenka idle shutdown' );
+    <[base.handler.ondemand_timeout]>;
+    return;
+}
+
+return if ( <invoke-web.status> // '' ) ne 'running';
+
+## queue state : in progress, pending outside parked sessions ##
+my $status = <[invoke-web.api]>->( 'GET', '/api/v1/queue/default/status' );
+return if not $status->{'ok'} or ref $status->{'data'} ne qw| HASH |;
+my $queue = $status->{'data'}->{'queue'}     // {};
+my $proc  = $status->{'data'}->{'processor'} // {};
+return if $queue->{'in_progress'};
+
+my $dbh = <[invoke-web.queue.db]> // return;
+my ($pending) = $dbh->selectrow_array(
+    "SELECT COUNT(*) FROM session_queue WHERE status = 'pending' AND priority > ?",
+    undef, -( <invoke-web.session.park_offset> // 1000000 ) / 2 );
+
+## 1. empty queue : resume a parked session with resume mode 'empty' ##
+if ( not $pending ) {
+    my $sessions = <[invoke-web.session.store]>;
+    my ($next) = sort { $sessions->{$a}->{'parked_at'} <=> $sessions->{$b}->{'parked_at'} }
+        grep { ( $sessions->{$ARG}->{'mode'} // '' ) eq qw| empty | } keys %$sessions;
+    if ( defined $next ) {
+        <[invoke-web.session.resume]>->($next);
+        <[invoke-web.activity.touch]>->( qw| resume | );
+        return;
+    }
+}
+
+## 2. drain : idle long enough with nothing left to render ##
+my $idle_after = <invoke-web.drain.idle_after> // 0;
+return if $idle_after < 1;
+
+my $idle = $now - ( <invoke-web.activity.last> // $now );
+return if $idle < $idle_after;
+
+if ($pending) {
+    return if $proc->{'is_started'};    ## it is about to render ##
+    return if not <[base.cfg_bool]>->( <invoke-web.drain.paused_counts_idle> // 0 );
+}
+
+<[base.logs]>->(
+    1, 'queue drained, idle %dm%s : stopping invoke.ai',
+    $idle / 60, $pending ? " [ $pending paused items stay queued ]" : ''
+);
+<invoke-web.drain.stopping>     = $now;
+<invoke-web.drain.stopping_pid> = <invoke-web.pid>;
+<[invoke-web.cmd.stop]>;
+
+#,,,,,,..,,,.,,,.,,,.,,.,,,,,,..,,,,.,,..,.,,,..,,...,...,,.,,.,.,.,,,,,,,,.,,
+#6NVICCUFKQIGVZPUDMCLU6CYTNMHM2LZ47UCICG2EPWIQXHXFDJTZ4RN6SQESYVVJ44KZVH67USTO
+#\\\|CK4BJARCXZDNNQFG6LNKLOSVPBCC27HMZBA7AHR3IQJPOUBAWFV \ / AMOS7 \ YOURUM ::
+#\[7]WJNJXTCNOR4HL2UJTLTAYSF7PC7EDAK5LQ4DDRLDWBFLW6TKEACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

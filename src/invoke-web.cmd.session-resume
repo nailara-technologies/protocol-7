@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = invoke-web.cmd.session-resume
+# descr = resume a parked session [ restores its order ]
+# param = <name>
+
+my $name = $call->{'args'} // '';
+$name =~ s{^\s+|\s+$}{}g;
+
+return { mode => qw| false |, data => 'expected : <name> [ see sessions ]' }
+    if not length $name;
+
+my $count = <[invoke-web.session.resume]>->($name);
+
+return { mode => qw| false |, data => "no parked session '$name'" }
+    if not defined $count;
+
+return {
+    mode => qw| size |,
+    data => sprintf( "session '%s' resumed [ %d items pending ]\n", $name, $count )
+};
+
+#,,..,,.,,.,,,..,,...,,,.,,.,,.,.,.,.,.,.,,,.,..,,...,...,,,.,.,.,.,,,,,.,.,,,
+#JODAXUOMN4XP2ICY5D5PRFRAW3TIND3CBCLOOYGU36Z3PKV72EVSXXBXZSMYHRWX6SOJKRWPJU5ZW
+#\\\|E3J2TGZASJVDGTWPOI2OAFJCJ2EAJJTPBD3A6QPQGBCAOEFANIW \ / AMOS7 \ YOURUM ::
+#\[7]NKDKJ6IHGQLFXUMAMMHJTFLQ3E2VGDBYPOT7555I2A56DH6SG6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

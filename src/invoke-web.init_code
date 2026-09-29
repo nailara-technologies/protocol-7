@@ -151,6 +151,49 @@ if ( defined $saved_ref ) {
     }
 }
 
+## start memory guard [ coding zenka pattern ] : dependency objects for  ##
+## free RAM \ VRAM, gated with the cross-loaded coding callbacks. a      ##
+## start while memory is short waits [ invoke-web.handler.start_guard ]  ##
+## instead of spawning into an exhausted machine                         ##
+<[dependency.setup]>->(
+    'memory_system',
+    { 'callback' => $code{'coding.callback.object_memory_system'} }
+);
+<[dependency.setup]>->(
+    'memory_gpu', { 'callback' => $code{'coding.callback.object_memory_gpu'} }
+);
+
+if ( not defined <invoke-web.dep.memory_system> ) {
+    <invoke-web.dep.memory_system> = <[dependency.add_object]>->(
+        {   'type'        => 'memory_system',
+            'min_free_mb' => <invoke-web.start.min_free_ram_mb> // 8192,
+            'description' => 'System RAM available for invoke.ai start'
+        }
+    );
+    <invoke-web.dep.memory_gpu> = <[dependency.add_object]>->(
+        {   'type'        => 'memory_gpu',
+            'min_free_mb' => <invoke-web.start.min_free_vram_mb> // 4096,
+            'description' => 'GPU VRAM available for invoke.ai start'
+        }
+    );
+
+    ## self-chains so dependency.ok actually calls the callbacks ##
+    <[dependency.add]>->(
+        <invoke-web.dep.memory_system>, <invoke-web.dep.memory_system>
+    );
+    <[dependency.add]>->(
+        <invoke-web.dep.memory_gpu>, <invoke-web.dep.memory_gpu>
+    );
+}
+
+## refresh thresholds from config on every init [ reload config ] ##
+my $ram_dep_id = <invoke-web.dep.memory_system>;
+my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
+<dependency.object>->{$ram_dep_id}->{'min_free_mb'}
+    = <invoke-web.start.min_free_ram_mb> // 8192;
+<dependency.object>->{$gpu_dep_id}->{'min_free_mb'}
+    = <invoke-web.start.min_free_vram_mb> // 4096;
+
 ## schedule periodic health check timer [ every 30 seconds ]
 <[event.add_timer]>->(
     {   'after'    => 30,
@@ -164,8 +207,8 @@ if ( defined $saved_ref ) {
 
 0;
 
-#,,,,,,,,,,,.,...,...,,,.,...,,,.,.,,,...,,..,..,,...,...,..,,,..,,.,,,,,,...,
-#VEUDRNYGNH55HE5LCXCDVXHPFC74NNWJJUJ7ADTTFVEUKXW6JBIDL36Z33I6EWJTIPLU6OO6YQQ2I
-#\\\|UFFC3TFV2FIT34GC4TBPWKGQ5PDVY6UMVO6YKJXGN4XJX67PUZX \ / AMOS7 \ YOURUM ::
-#\[7]HPT76KBPRTW6T3PTZPONF6AHLWNDN5SRC55XXIKVR6HPJVP7T2AI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,,,.,..,,..,,..,,...,,.,,.,.,..,,...,...,,,,,...,,.,,..,,..,,
+#G5Y424YUVVN5Z2XE4TDMO3BFZYBZI3EOVYQPR5V3T34RAHDCEWDBBTLI7FHBMRRTSWT2L6CVI7YWQ
+#\\\|CLMMSLYT4TM7WTMDPQ55ARNB3CJWQBPFG377TKNLCQZQGKS423A \ / AMOS7 \ YOURUM ::
+#\[7]EAYJHHENI62HQ564DHIAMEF6ZGQ2OZEBTNZX2RZ2RFM66GB27WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
