@@ -7,35 +7,35 @@
 my $arg = $call->{'args'} // '';
 $arg =~ s{^\s+|\s+$}{}g;
 
-if ( not length $arg ) {    ##  list only  ##
-    my $records = <invoke-web.missing_at_render> // {};
-    return { mode => qw| false |, data => 'no failed renders recorded' }
-        if not keys %$records;
-    return {
-        mode => qw| size |,
-        data => join( '',
-            map {
-                sprintf "%-40s item %-6s %s\n", $ARG,
-                    $records->{$ARG}->{'item'} // '?',
-                    -e ( $records->{$ARG}->{'path'} // '' ) ? 'present' : 'missing'
-            } sort keys %$records )
-    };
-}
+my $list_only = length $arg ? FALSE : TRUE;
+my $results   = <[invoke-web.requeue_missing]>->(
+    ( $arg eq 'all' or not length $arg ) ? undef : $arg, $list_only
+);
 
-my $results = <[invoke-web.requeue_missing]>->( $arg eq 'all' ? undef : $arg );
-
-return { mode => qw| false |, data => "no failed render recorded for '$arg'" }
+return { mode => qw| false |, data => 'queue db not available' }
+    if not defined $results;
+return {
+    mode => qw| false |,
+    data => length $arg && $arg ne 'all'
+    ? "no failed render on model '$arg'"
+    : 'no renders failed on a missing model'
+    }
     if not @$results;
 
 return {
     mode => qw| size |,
-    data => join( '',
-        map { sprintf "%-40s item %-6s %s\n", $ARG->{'name'}, $ARG->{'item'}, $ARG->{'result'} }
-            @$results )
+    data => join(
+        '',
+        map {
+            sprintf "%-40s %3d item%s  %s\n", $ARG->{'name'},
+                scalar $ARG->{'items'}->@*,
+                $ARG->{'items'}->@* == 1 ? ' ' : 's', $ARG->{'result'}
+        } @$results
+    )
 };
 
-#,,,.,,,,,,,,,.,.,...,,.,,...,.,,,..,,.,,,...,..,,...,...,..,,,,,,,.,,..,,,,.,
-#PIT3USRXB26XIGRLTLVCAQ2JIHO2CGAWTKFBJL533VJBG6IDWTXAUQI3CFIXDUPLNB5CBIQYSLHRW
-#\\\|3R7ERU2HD6WFUEW2LWMPJUA4PN55I2HVEGV76WO442AANVBYKOV \ / AMOS7 \ YOURUM ::
-#\[7]YTFLPOAO6X2OIJMZXGJDTJRKSOX7OXXDLOE5MIKUGRS53OXIGACQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,.,,.,.,...,.,.,.,,,,..,,.,,..,,..,,...,.,.,,..,..,,.,.,,,.,,,,,
+#WR3XI4AHDG37PZQXVLHNULC4EDQE6FWWNZZLLZLNBVERNC5YUGAIO5MBXN7QUF6QDO25PIGZRKRYK
+#\\\|TSFOVQVL2PWCLOV753QPGZUG4EOVRA5PRBI653OFXWNJZQNB2CL \ / AMOS7 \ YOURUM ::
+#\[7]FKEHIF6JXGFIOH6VHSADSWDQCFR6HS4Y3MV7SMCF426KU5SOYOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
