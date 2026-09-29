@@ -72,7 +72,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md)
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
 - [small-generic-components-before-wiring](feedback-small-generic-components-before-wiring.md) — for multi-feature-converging fixes, decompose into a few independently-complete generic pieces before any code; pick a low-stakes pilot
-- [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
+- [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / || ; also `not $x ? a : b` = `not($x ? a : b)`, use `!` in ternaries
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md)
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md)
 - [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md)
@@ -158,8 +158,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [no-per-call-perlmod-autoload](feedback-no-per-call-perlmod-autoload.md) — never base.perlmod.autoload in per-call \ per-tick modules [ floods the console ] ; init_code or `if not defined &Pkg::sub` guard
 
-#,,,,,.,,,.,.,,.,,..,,...,,.,,,..,,,.,,,.,,..,..,,...,...,.,,,,,.,,,.,,,,,...,
-#K7PQDHXKK5DV56UVFENLLW24AGJGLECB6FCGBK6RWQNW4VRGNSKBSKRRU2QFNJGFNHADCJMZDJROO
-#\\\|CBRUVL2TNNG477PP77IUAZVD24CETQA22QOZGNYCWKCQ7SH4UZT \ / AMOS7 \ YOURUM ::
-#\[7]FPYYFM27MP4JO2WGG7BQQAWKB5FGIUKUPRU2J5AEWIOS5BST46BY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,,,..,,,,,,,.,,...,.,.,...,..,,..,,...,...,.,,,.,.,,,.,.,.,,.,,
+#NSN24KCNVYNEDKRQDMQLOZIDHM2O57NYQJL5CD75B5EPFBDNKT2ZX4NKOFQI5KKXMRUGLIXKVHRPU
+#\\\|RS6Y7ZQG3DOZKYZ7MX7WLPJ3HVOTJOSKD4FIGMNFKT5MDWY26TY \ / AMOS7 \ YOURUM ::
+#\[7]R5GIK4GP7TY7GPE4XXN47RKLS7ILIOUQUJRF3ENOP3GIQ4JYFADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

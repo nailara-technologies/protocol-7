@@ -152,8 +152,8 @@ if ( $kind eq qw| ready | ) {
             = grep { m{(?:^|_)l2i$} and $nodes->{$ARG} > 0 } keys %$nodes;
         $render->{'result'}
             = defined $render->{'failed'} ? qw| failed |
-            : not $decoded                ? qw| suspicious |
-            :                               qw| done |;
+            : $decoded                    ? qw| done |
+            :                               qw| suspicious |;
 
         ## a clean graph can still hide a silent decode failure : look at ##
         ## the result image itself [ black \ flat -> failed ]             ##
@@ -196,8 +196,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,..,,.,,.,,,.,.,,.,,,..,,..,.,.,,,,,...,,,.,..,,...,...,.,,,.,.,,,,,,..,...,
-#OYFJEXZF2AI5QGKDYR3LJBPSWFSYTA4XBEFEHFUW2SN55EGWLOORTE4B66OOXCNGY7ICTUJ7D2YHK
-#\\\|X7XBOMP6ZL4QNT3ON725YZXNDW6W7SIIWJV6K4PXVS4FQYGR6RS \ / AMOS7 \ YOURUM ::
-#\[7]4FHCZC7QI534F3DSNV7XSQAZWIIQOGAAT3Z4PVNXPU4ORQVSOYBI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,,..,,..,,.,,.,.,,..,.,.,,,.,..,,...,...,...,.,,,..,,,..,,,.,
+#3Y7AOEIGTMGL3JN6WWV656JWAOB6MQQ32XFXL42WXRUOT5BP3AOXIDKPWIDZMRWAAV425NMAWU5WE
+#\\\|3HF765JSFCQ5BHBEUU6NN262LQJGVUHDLEBOMRV6UCRXHQWKH6U \ / AMOS7 \ YOURUM ::
+#\[7]U2JQ7QDQEOOSSLC7GTFYGEKRD4AYR7LMDP6TRMUIWSQ737N7AWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
