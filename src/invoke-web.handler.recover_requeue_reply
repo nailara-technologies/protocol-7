@@ -21,6 +21,9 @@ my $kind    = $recover->{'kind'}          // qw| recover |;
     : "retry failed [ $reply->{'status'} ] -- queue stays paused"
 ) if defined $count;
 
+<[invoke-web.retried]>->( $reply->{'params'}->{'ids'} )
+    if $reply->{'ok'} and defined $reply->{'params'}->{'ids'};
+
 return if not $reply->{'ok'};
 if ( $kind eq qw| crash | and not $count ) {
     <[base.logs]>->( 1, 'crash : invoke.ai back, queue stays paused' );
@@ -34,8 +37,8 @@ if ( $kind eq qw| crash | and not $count ) {
     { 'kind' => $kind }
 );
 
-#,,.,,,..,.,.,...,,,.,...,,,.,,..,,,.,.,,,,,,,..,,...,..,,.,,,.,.,...,..,,..,,
-#KAJYUBBS4AS3LHSWHVZ5NJIBTU66EAZ4LKACE4NYRRUXKRY6OFGNT53E4JI2ROV5EUDVJCTTRGDEC
-#\\\|QL6F5Q6OVE3E6ZOWF65U4LZWK6QQB6V3UUF7UQ75VDIA3HD3VZ4 \ / AMOS7 \ YOURUM ::
-#\[7]OGACVC7LKGXEEYX5PFF7OG65RRLS6CTVTNB6V6ZU5SYBYAW3MIDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,,,.,..,,...,,,.,...,,,.,..,,..,,...,..,,..,,,..,.,,,,,,,.,,,
+#RGL7EQPXJWNOJHDN3SHNL55VDMKUSMVWJ4CGUYGJU6RZCNK5BO2BTX64EZN2NDAGMWKTA6YDF5FIS
+#\\\|UBBR6XBDHP4EWKZDFRYN25MWQ7YVDCUNN4MQSG5QDWQAVORF5KU \ / AMOS7 \ YOURUM ::
+#\[7]XVUST5WEHLG3GBWQ2OZYQTKQPOX5IB72EWXD53KWKZJVMI64Y2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
