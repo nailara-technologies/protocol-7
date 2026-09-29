@@ -1,0 +1,51 @@
+## [:< ##
+
+# name   = invoke-web.gpu.recover
+# descr  = a render hit 'CUDA error' : invoke.ai's gpu context is broken and
+#          every following item fails within a second [ the whole queue
+#          drains into failed ]. pause the queue, restart invoke.ai, retry
+#          the cuda-failed items, resume
+# param  = [ queue item id of the failed render ]
+# note   = steps : this pause -> handler.gpu_pause_reply [ stop ] ->
+#          handler.gpu_restart [ start ] -> ready : startup pause ->
+#          gpu.requeue -> handler.gpu_requeue_reply [ resume ]. at most 3
+#          recoveries per hour, then only the pause [ a broken gpu \ driver
+#          must not become a restart loop ]
+
+my $item = shift;
+
+return if defined <invoke-web.gpu_recover>;    ## one recovery at a time ##
+
+my $now    = <[base.time]>->(3);
+my $recent = <invoke-web.gpu_recoveries> //= [];
+$recent->@* = grep { $now - $ARG < 3600 } $recent->@*;
+my $restart = $recent->@* < 3 ? TRUE : FALSE;
+push $recent->@*, $now if $restart;
+
+<invoke-web.gpu_recover> = {
+    'time'    => $now,
+    'item'    => $item,
+    'restart' => $restart,
+};
+
+<[base.logs]>->(
+    0,
+    'gpu : cuda error [ item %s ] -- pausing the queue%s',
+    $item // '?',
+    $restart
+    ? ', restarting invoke.ai'
+    : ' only [ 3 recoveries this hour, needs a look ]'
+);
+
+<[invoke-web.api_async]>->(
+    'PUT', '/api/v1/queue/default/processor/pause',
+    undef, 'invoke-web.handler.gpu_pause_reply'
+);
+
+return TRUE;
+
+#,,..,,.,,...,.,,,,.,,,,,,.,,,,..,.,,,,.,,,.,,..,,...,..,,,.,,...,,,.,.,.,..,,
+#V247XGITNLEXW7MNON6ZIDYWUO2QCQ2YUAUM2UP7OEMQQYJOXIZCGQLGYVI6PGAGE7H6JR2RU4HCI
+#\\\|YYIMOQXJ43MIPZQ6WA23JSEUIEYJR3ZN6VLDKDWANLZ5DMLG3TK \ / AMOS7 \ YOURUM ::
+#\[7]RKPGCCGGEJ3Y6RAQKFZGQ2TUH7QGF47CV4T4SCAEZ7EQRWRLVIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
