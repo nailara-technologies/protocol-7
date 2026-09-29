@@ -158,3 +158,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|HTJFDBHUFHFRE33V34ZELPU33PJAWG2XKFDXGYYXYY7ZQUQEFNW \ / AMOS7 \ YOURUM ::
 #\[7]GW4ZALPONIFTF7NZ4VLC2DKL6V2SYAFDT5LYDCO3JQBSY3NT3IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [images-elfdb-planning-base](project-images-elfdb-planning-base.md) — new images \ elfdb zenki : start from data/tasks/images-elfdb-feature-collection.md [ da16f16e0 ], names provisional, elves first
+
+#,,.,,.,,,,,.,,.,,,,,,,.,,,..,.,.,..,,.,.,,..,..,,...,...,.,,,,,.,.,.,..,,,,.,
+#6E53VM2BAHXMMXKNUHWOXPURMQ3MNFHQKRSGK6S7ESF6K5UNZLDPK5ITSVVJSE5UTXOBK7NFRZWRS
+#\\\|SFF47COPQ4FDXMFPYYCPS7LLMWNNWKTR4574KOWNGYH3ZZ7N76P \ / AMOS7 \ YOURUM ::
+#\[7]AO7ABBEDLXGCKWDCDV6EIKJO6S2NZUSS7YAJERIQ7G45YMMQEWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
