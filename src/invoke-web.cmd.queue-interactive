@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = invoke-web.cmd.queue-interactive
+# descr = new queue items jump to the front [ on | off ]
+# param = on | off [ no param : show the current state ]
+
+my $arg = lc( $call->{'args'} // '' );
+
+if ( not length $arg ) {
+    return {
+        mode => qw| size |,
+        data => sprintf( "interactive queue mode : %s\n",
+            <invoke-web.queue_interactive> ? 'on' : 'off' )
+    };
+}
+
+return { mode => qw| false |, data => 'expected : on | off' }
+    if $arg !~ m{^(?:on|off)$};
+
+my $on = <[invoke-web.queue.interactive]>->( $arg eq 'on' ? TRUE : FALSE );
+
+return { mode => qw| false |, data => 'queue db not available [ see log ]' }
+    if $arg eq 'on' and not $on;
+
+return {
+    mode => qw| size |,
+    data => $on
+    ? "interactive queue mode on : new items jump to the front\n"
+    : "interactive queue mode off\n"
+};
+
+#,,,.,,,,,...,,,.,.,.,...,,,,,,..,,,.,,..,,.,,..,,...,...,..,,...,,..,..,,.,.,
+#JCEFIN6USKRDZRPFGGJZPVZKGQ47ZFXMACEDXZQAI5VGLJWVBJ2QRQQ7OBXIQJGTIO4N2MLYHWK22
+#\\\|IIVV4MNRKJE2RRSEMJFMKXIE6TBKXWSJAITBKVEFI4IO7Z7JRK4 \ / AMOS7 \ YOURUM ::
+#\[7]JZ42BCAXOSFO3DFS5FYI5ZGA4K73V5OS2ENIEEEXZIRSLHQAKEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

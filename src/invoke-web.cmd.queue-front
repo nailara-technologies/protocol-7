@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = invoke-web.cmd.queue-front
+# descr = move pending queue items to the front [ item ids ]
+# param = <item_id> [ <item_id> .. ]
+
+my @item_ids = grep { m|^\d+$| } split m|[\s,]+|, $call->{'args'} // '';
+
+return { mode => qw| false |, data => 'expected : pending item id[s]' }
+    if not @item_ids;
+
+my $dbh = <[invoke-web.queue.db]>
+    // return { mode => qw| false |, data => 'queue db not available' };
+
+## one shared priority above everything pending : the given items keep ##
+## their own order [ item_id ASC tie-break ], the rest stays untouched  ##
+my ($max_priority) = $dbh->selectrow_array(
+    "SELECT MAX(priority) FROM session_queue WHERE status = 'pending'");
+my $priority = ( $max_priority // 0 ) + 1;
+
+my $sth = $dbh->prepare( 'UPDATE session_queue SET priority = ? '
+        . "WHERE item_id = ? AND status = 'pending'" );
+my @moved;
+$dbh->begin_work;
+foreach my $item_id (@item_ids) {
+    my $rows = $sth->execute( $priority, $item_id );
+    if ( not defined $rows ) {
+        $dbh->rollback;
+        return {
+            mode => qw| false |,
+            data => sprintf( 'update failed [ %s ]', $dbh->errstr )
+        };
+    }
+    push @moved, $item_id if $rows > 0;    ## not pending : skipped ##
+}
+$dbh->commit;
+
+return { mode => qw| false |, data => 'no pending item among the given ids' }
+    if not @moved;
+
+<[base.logs]>->(
+    1, 'queue : moved to the front [ %s, priority %d ]',
+    join( ' ', @moved ), $priority
+);
+
+return {
+    mode => qw| size |,
+    data => sprintf( "moved to the front : %s\n", join ' ', @moved )
+};
+
+#,,,.,,,.,,.,,,,,,..,,,,,,,,.,.,,,.,.,...,,..,..,,...,...,,,,,..,,,..,.,.,.,.,
+#U2VLTZKZCHXL64TWBVT4MKCIFTKBRYWBZJMRRKM44PPWJWPJRLYISVUENPF56WNCQVK2SXUW7VPQC
+#\\\|GKRTWMWA6ISWGSAYFJ2TVC3KYVYCHIVK5HHY3FR2FZMLMTEBKD6 \ / AMOS7 \ YOURUM ::
+#\[7]HWVAFYEIEZP6FSLD57NBF3VL3JOLB5KUQWOFYXHYVDFPC5B4CQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

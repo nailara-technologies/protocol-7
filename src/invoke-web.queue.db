@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = invoke-web.queue.db
+# descr  = connect to invoke.ai's session queue database [ sqlite, WAL ]
+# note   = invoke.ai reads the queue order at every dequeue [ priority DESC,
+#          item_id ASC ] -- priority updates here take effect with the next
+#          item, while invoke.ai runs
+# return = dbi handle | undef
+
+## reuse the open connection [ the interactive queue watch calls this ##
+## every few seconds ; DBI itself is loaded once in init_code ]       ##
+my $cached = <invoke-web.queue_dbh>;
+return $cached if defined $cached and $cached->ping;
+
+my $db_path = <external.models.invokeai.db>
+    // sprintf( '%s/databases/invokeai.db', <invoke-web.root> // '' );
+
+if ( not -f $db_path ) {
+    <[base.logs]>->( 0, 'queue db not found [ %s ]', $db_path );
+    return undef;
+}
+
+my $dbh = DBI->connect( "dbi:SQLite:dbname=$db_path",
+    '', '', { 'RaiseError' => 0, 'PrintError' => 0, 'AutoCommit' => 1 } );
+
+if ( not defined $dbh ) {
+    <[base.logs]>->( 0, 'queue db connect failed [ %s ]', $DBI::errstr );
+    return undef;
+}
+
+$dbh->sqlite_busy_timeout(3000);    ## invoke.ai writes concurrently ##
+
+return <invoke-web.queue_dbh> = $dbh;
+
+#,,..,,.,,.,,,,,.,,,,,,.,,,.,,...,,,.,,..,,,,,..,,...,...,..,,..,,,..,,,,,,,.,
+#FVBLOQC2ZF7YBAUK3LV4I7AM3BYZRA3JJ6M3QL34RSM6MEHOFARF4477XOOPKJ25IERWOYS54243E
+#\\\|CRONS6XUWYMVKTLZPM6TXTV6GDVW7LF7PDCOMHRRPWXPH2B2NOS \ / AMOS7 \ YOURUM ::
+#\[7]XSFIDC34WQHZJHLUNMWVYFKXNTYEGC3NM372KQOO7UWVRUT4A4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
