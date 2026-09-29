@@ -2,50 +2,26 @@
 
 # name   = invoke-web.requeue_missing
 # descr  = retry queue items that failed on a missing model once the model
-#          file is back -- read from invoke.ai's queue db [ the source of
-#          truth : every such item, also from before a zenka restart ]
+#          file is back [ manual command path : blocking api call ]
 # param  = [ model name ; undef : every model ], [ list only : TRUE ]
 # return = arrayref of { name, path, present, items, result }
-# note   = an item qualifies only when ALL hold : status 'failed',
-#          error_type FileNotFoundError, the error message names the model
-#          and its path, no copy of it exists yet [ retried_from_item_id,
-#          pending \ in_progress \ completed -- a ui retry counts too ], the
-#          file is present again. a manual cancel is never touched
+# note   = the autofetch finalize path retries through api_async instead
+#          [ invoke-web.hash_finalize ] -- the selection is shared
+#          [ invoke-web.missing_items ], only the request differs
 
 my $only      = shift;
 my $list_only = shift // FALSE;
 
-my $dbh  = <[invoke-web.queue.db]> // return undef;
-my $rows = $dbh->selectall_arrayref(
-    "SELECT q.item_id, q.error_message FROM session_queue q "
-        . "WHERE q.status = 'failed' AND q.error_type = 'FileNotFoundError' "
-        . 'AND NOT EXISTS ( SELECT 1 FROM session_queue c '
-        . 'WHERE c.retried_from_item_id = q.item_id '
-        . "AND c.status IN ( 'pending', 'in_progress', 'completed' ) ) "
-        . 'ORDER BY q.item_id',
-    { 'Slice' => {} }
-) // return undef;
-
-## group by model [ name + path from the error message ] ##
-my %models;
-foreach my $row (@$rows) {
-    my ( $name, $path )
-        = ( $row->{'error_message'} // '' )
-        =~ m|Files for model '([^'{}]+)' not found at (\S+)|;
-    next if not defined $name;
-    next if defined $only and $name ne $only;
-    $models{$name}->{'path'} = $path;
-    push $models{$name}->{'items'}->@*, $row->{'item_id'};
-}
+my $models = <[invoke-web.missing_items]>->($only) // return undef;
 
 my @results;
-foreach my $name ( sort keys %models ) {
-    my $model  = $models{$name};
+foreach my $name ( sort keys %$models ) {
+    my $model  = $models->{$name};
     my %result = (
         'name'    => $name,
         'path'    => $model->{'path'},
         'items'   => [ $model->{'items'}->@* ],
-        'present' => -e $model->{'path'} ? TRUE : FALSE,
+        'present' => $model->{'present'},
     );
     if ( $list_only or not $result{'present'} ) {
         push @results,
@@ -84,8 +60,8 @@ foreach my $name ( sort keys %models ) {
 
 return \@results;
 
-#,,,.,,,,,.,.,..,,.,.,,..,.,,,,,,,...,...,..,,..,,...,...,..,,...,.,.,...,,,.,
-#5Y5RMCPJJLFGPGK5PRLF4TP42XR2C2VHEGMEF4DOVX5FJZXWQQKCKKNWVHR5DLSRXS3NSA37GSDDU
-#\\\|DIQGPBETZR7GH27IZYVWG445NGNTQ6X4TEEQG24I6CJ76TLW5KZ \ / AMOS7 \ YOURUM ::
-#\[7]5UYQEO6OWFVTV5WROZ44ALWOIJGJZ5UK7VLDWJO3OOZQMNBKO2BA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,.,,,,.,,..,,.,,,,..,.,,,.,,,..,,...,...,.,.,.,,,...,,..,.,,,
+#DLKBJSQGDPFZWD3GR57KHV5JZU6UUZDJEHMCHIBIC46R6MB7NPGYECOJZQ2Z6L2LOQOVDIJNVTFQS
+#\\\|V5LKFU33RMQYBMJYP4J2JG64YIN56OSBMD3YEXPWETGSU2RC7WZ \ / AMOS7 \ YOURUM ::
+#\[7]3XZWVJ5NZNHON7WZWMF4XNRSFFVBRCQRX6ET5UWTH6ZILMK2DYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,10 +31,12 @@ if ( not defined $items ) {
 }
 return 0 if not @$items;
 
-my $sth = $dbh->prepare('UPDATE session_queue SET priority = ? WHERE item_id = ?');
+my $sth = $dbh->prepare(
+    'UPDATE session_queue SET ' . 'priority = ? WHERE item_id = ?' );
 $dbh->begin_work;
 foreach my $item (@$items) {
-    next if $sth->execute( $item->{'priority'} - $offset, $item->{'item_id'} );
+    next
+        if $sth->execute( $item->{'priority'} - $offset, $item->{'item_id'} );
     <[base.logs]>->( 0, 'session park : update failed [ %s ]', $dbh->errstr );
     $dbh->rollback;
     return undef;
@@ -44,7 +46,7 @@ $dbh->commit;
 $sessions->{$name} = {
     'parked_at' => <[base.time]>->(0),
     'mode'      => $mode,
-    'items'     => { map { $ARG->{'item_id'} => $ARG->{'priority'} } @$items },
+    'items' => { map { $ARG->{'item_id'} => $ARG->{'priority'} } @$items },
 };
 <[invoke-web.session.store]>->($sessions);
 
@@ -55,8 +57,8 @@ $sessions->{$name} = {
 
 return scalar @$items;
 
-#,,..,.,.,,.,,..,,,.,,.,,,.,.,,.,,,,,,.,.,.,,,..,,...,...,..,,...,,.,,..,,,.,,
-#6FMCHFUNDYEHB7KWAXYFOFOUN3TS3JRU5RXC5O6CXHIB2GK2TTN2OP52JUJA7LBGC5VV7UCERGDEW
-#\\\|WQGU6AZRUMZFB64UL3L7HTRLKISC3DENW4GPWTZ5LLHGDDHBMZ2 \ / AMOS7 \ YOURUM ::
-#\[7]JFHHMULDE2GLG57XDA6HUIQSXINA3GJCOVXUKORULAQ6TULLQKBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,..,.,.,.,,,..,,,,.,,,,,,,.,..,,...,...,.,,,,.,,..,,,.,,.,.,
+#P7APYFZANDHVIB7WTD3DPOTFL4TDIQX5IZUOVHMQIJ3AMOXKH6UIIVKFKJOLLBZ7H44VOMAC7AA26
+#\\\|CPG3KEWZZC3ED5NUD4VNCTJCPBRKO722CFKYCVO2V7BZKYWIG5B \ / AMOS7 \ YOURUM ::
+#\[7]GLZZRBYE7JEX3L3VLILBSHHF2CSUYTGWVAT275KPPAKSXFHB2GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

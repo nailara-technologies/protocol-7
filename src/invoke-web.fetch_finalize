@@ -1,14 +1,25 @@
 ## [:< ##
 
 # name   = invoke-web.fetch_finalize
-# descr  = move a staged autofetch download into place, re-queue items
+# descr  = verify a staged autofetch download [ blake3, forked child ]
 # param  = model name [ key of <invoke-web.missing_at_render> ]
-# return = { ok, msg } hashref
-# note   = the fetch-files zenka downloads into the staging directory
-#          under the repo file name ; the db record expects a specific
-#          path [ possibly a different file name ] so the verified file
-#          is renamed into place here -- same filesystem, and this
-#          zenka runs as the invoke.ai install owner
+# return = { ok, msg } hashref [ ok : verification started \ not needed ]
+# note   = the staging directory sits in a world-writable models root : a
+#          size check alone lets any local user place a file of the right
+#          size that would then be moved into place as a model, and a file
+#          hashed BY PATH there can be swapped before the rename [ TOCTOU
+#          -- no sticky bit ]. the staged file is therefore moved into the
+#          private verify directory first [ invoke-web.autofetch.verify_dir
+#          : 0700, owned by this zenka's user, same filesystem ], then
+#          hashed and compared against the invoke.ai db record
+#          [ models.hash : 'blake3:<hex>' ], and only then renamed into
+#          place [ invoke-web.hash_finalize ]. the hash runs in a forked
+#          child [ multi-GB files must not block the event loop -- patterns
+#          : invoke-web.index.backup \ coding.spawn_inference_server ] and
+#          the digest comes back through a pipe [ never a file in the
+#          writable staging dir ], polled by invoke-web.handler.hash_poll.
+#          only the 'blake3:' algorithm is verified -- invoke.ai's default
+#          ; another prefix fails safe instead of faking it
 
 my $name = shift // return { 'ok' => FALSE, 'msg' => 'no model name' };
 
@@ -19,49 +30,194 @@ my $fetch = $entry->{'fetch'} // {};
 my $staged = $fetch->{'staging'} // '';
 my $dest   = $fetch->{'path'}    // '';
 
-return { 'ok' => FALSE, 'msg' => 'no staged download recorded' }
-    if not length $staged or not length $dest;
-return { 'ok' => FALSE, 'msg' => "staged file not found [ $staged ]" }
-    if not -s $staged;
-
-## the db path's parent directory [ fetch-files only made the staging dir ##
-## -- e.g. the bare-uuid model directory ]                                ##
-my ($dir) = $dest =~ m{^(.+)/[^/]+$};
-if ( length $dir and not -d $dir ) {
-    my $mk = '';
-    foreach my $part ( grep {length} split m|/|, $dir ) {
-        $mk .= "/$part";
-        mkdir($mk) if not -d $mk;
-    }
-}
-
-if ( -e $dest ) {
-
-    ## already back [ manual restore \ overlap ] : drop the staged copy ##
-    unlink($staged);
-} elsif ( not rename( $staged, $dest ) ) {
+## terminal record helper : state, reason, persist, log ##
+my $fail = sub {
+    my $reason = shift;
     $fetch->{'state'}  = qw| failed |;
-    $fetch->{'reason'} = "move to $dest failed : $OS_ERROR";
+    $fetch->{'reason'} = $reason;
     $fetch->{'time'}   = <[base.time]>->(3);
     <[invoke-web.missing.save]>;
-    <[base.logs]>->( 0, 'autofetch : %s : %s', $name, $fetch->{'reason'} );
-    return { 'ok' => FALSE, 'msg' => $fetch->{'reason'} };
+    <[base.logs]>->( 0, 'autofetch : %s : %s', $name, $reason );
+    return { 'ok' => FALSE, 'msg' => $reason };
+};
+
+return { 'ok' => FALSE, 'msg' => 'no staged download recorded' }
+    if not length $staged or not length $dest;
+
+## lstat, never stat : a symlink planted by another user [ the staging ##
+## directory is world-writable ] must fail here, not pass through      ##
+return { 'ok' => FALSE, 'msg' => "staged file not found [ $staged ]" }
+    if not lstat($staged);
+return {
+    'ok'  => FALSE,
+    'msg' => "staged path not a " . "regular file [ $staged ]"
+    }
+    if not -f _;
+return { 'ok' => FALSE, 'msg' => "staged file is empty [ $staged ]" }
+    if not -s _;
+
+## already back [ manual restore \ overlap ] : drop the staged copy -- the ##
+## file in place is what invoke.ai uses, nothing to verify here            ##
+if ( -e $dest ) {
+    unlink($staged);
+    return <[invoke-web.hash_finalize]>->( $name, undef, TRUE );
 }
 
-$fetch->{'state'} = qw| done |;
+## a verify for this model is already running ##
+return { 'ok' => TRUE, 'msg' => 'hash verification already running' }
+    if defined <invoke-web.hashverify.jobs>
+    and defined <invoke-web.hashverify.jobs>->{$name};
+
+## TOCTOU : hashing \ renaming BY PATH in a world-writable directory        ##
+## without the sticky bit lets any local user swap the file after [ or      ##
+## during -- multi-GB hashing takes minutes ] the check. move the staged    ##
+## file into the private verify directory first [ atomic rename, same       ##
+## filesystem ; world-writable .autofetch allows this zenka to rename in it ##
+## ] -- from there on no other user can reach it by path. the stored        ##
+## staging path follows the file [ restart self-heal \ mismatch removal     ##
+## look in the private directory ]                                          ##
+my $verify_dir = <[invoke-web.autofetch.verify_dir]>
+    // return $fail->('private verify directory not usable [ see log ]');
+
+if ( $staged !~ m{^\Q$verify_dir\E/[^/]+$} ) {
+    my ($repo_file) = $staged =~ m{([^/]+)$};
+    my $verify_path = sprintf( '%s/%s', $verify_dir, $repo_file );
+    return $fail->("move to the verify directory failed : $OS_ERROR")
+        if not rename( $staged, $verify_path );
+    $fetch->{'staging'} = $staged = $verify_path;
+    <[invoke-web.missing.save]>;
+}
+
+## re-check in the private directory [ nothing can be swapped here any more ##
+## ] : the file could have been replaced between the lstat above and the    ##
+## rename. a symlink [ rename moves the link, the hash would read its       ##
+## target ], a hard link [ a second path outside stays writable ] or a file ##
+## of another owner [ an open handle stays writable ] is refused            ##
+my @st          = lstat($staged);
+my %trusted_uid = map { $ARG => TRUE } grep {defined} $EFFECTIVE_USER_ID,
+    scalar getpwnam( <invoke-web.autofetch.downloader_user>
+        // <system.amos-zenka-user> // '' );
+my $refuse
+    = not @st                    ? 'gone after the move'
+    : not -f _                   ? 'not a regular file'
+    : $st[3] != 1                ? "hard linked [ $st[3] links ]"
+    : not $trusted_uid{ $st[4] } ? "owner uid $st[4] not the downloader"
+    :                              undef;
+if ( defined $refuse ) {
+    unlink($staged) if @st and not -d _;
+    return $fail->("staged file refused : $refuse -- removed");
+}
+
+## the hash the install was recorded with [ db : 'blake3:<hex>' ] ; a ##
+## record from before this check lacks it -- resolve once more        ##
+if ( not length( $fetch->{'hash'} // '' ) ) {
+    my $resolved = <[invoke-web.model.source]>->($name);
+    if ( defined $resolved ) {
+        my ($record)
+            = grep { $ARG->{'path'} eq $dest } $resolved->{'records'}->@*;
+        $fetch->{'hash'} = $record->{'hash'}
+            if defined $record and length( $record->{'hash'} // '' );
+    }
+}
+return $fail->(
+    sprintf( 'no verifiable blake3 hash in the db record [ %s ]',
+        length( $fetch->{'hash'} // '' )
+        ? $fetch->{'hash'}
+        : 'none recorded' )
+) if ( $fetch->{'hash'} // '' ) !~ m{^blake3:[0-9a-f]{64}$}i;
+
+## the invokeai conda python [ the env invoke.ai itself hashes with -- no ##
+## perl blake3 module \ b3sum binary on this host ]                       ##
+my $python = <invoke-web.binary> // '';
+$python =~ s{/[^/]+$}{/python};
+return $fail->("no invokeai python to hash with [ $python ]")
+    if not length $python or not -x $python;
+
+my $script = join( "\n",
+    'import sys',
+    'from blake3 import blake3',
+    'h = blake3()',
+    'with open( sys.argv[1], "rb" ) as f :',
+    '    for chunk in iter( lambda : f.read( 1 << 22 ), b"" ) :',
+    '        h.update( chunk )',
+    'sys.stdout.write( h.hexdigest() )',
+);
+
+## digest pipe + exec-status pipe [ FD_CLOEXEC : a successful exec closes   ##
+## it, so the parent tells "exec worked" [ EOF ] apart from "exec failed" [ ##
+## errno text ] -- the idiom of coding.spawn_inference_server ]             ##
+my ( $digest_r, $digest_w, $stat_r, $stat_w );
+pipe( $digest_r, $digest_w ) or return $fail->("pipe failed : $OS_ERROR");
+pipe( $stat_r,   $stat_w )   or return $fail->("pipe failed : $OS_ERROR");
+
+## raw bytes, not the ambient :utf8 default [ sysread refuses :utf8 ] ##
+binmode($ARG) foreach ( $digest_r, $digest_w, $stat_r, $stat_w );
+
+my $stat_flags = fcntl( $stat_w, Fcntl::F_GETFD(), 0 );
+fcntl( $stat_w, Fcntl::F_SETFD(), $stat_flags | Fcntl::FD_CLOEXEC() );
+
+my $pid = fork;
+if ( not defined $pid ) {
+    close($ARG) foreach ( $digest_r, $digest_w, $stat_r, $stat_w );
+    return $fail->("fork failed : $OS_ERROR");
+}
+if ( $pid == 0 ) {
+    close $digest_r;
+    close $stat_r;
+    open( STDOUT, '>&', $digest_w )
+        and close($digest_w)
+        and exec( $python, '-c', $script, $staged );
+
+    ## exec failed : errno through the status pipe, then _exit -- never ##
+    ## plain exit() in a forked child pre-exec                          ##
+    print $stat_w "$OS_ERROR";
+    close $stat_w;
+    POSIX::_exit(255);
+}
+
+close $digest_w;
+close $stat_w;
+
+## blocks only until the exec [ immediate ] ##
+my $exec_err = do { local $INPUT_RECORD_SEPARATOR; <$stat_r> };
+close $stat_r;
+if ( length( $exec_err // '' ) ) {
+    close $digest_r;
+    waitpid( $pid, 0 );
+    return $fail->("hash child exec failed : $exec_err");
+}
+
+$fetch->{'state'} = qw| verifying |;
 $fetch->{'time'}  = <[base.time]>->(3);
 delete $fetch->{'reason'};
-<[base.logs]>->( 1, "autofetch : model '%s' is back at %s", $name, $dest );
-
-## retry the item[s] that failed on this model [ deletes the record and ##
-## saves on success ]                                                   ##
-<[invoke-web.requeue_missing]>->($name);
 <[invoke-web.missing.save]>;
 
-return { 'ok' => TRUE, 'msg' => "model '$name' restored, items re-queued" };
+## poll timer [ timer objects \ pipes are not json -- kept out of the ##
+## persisted record ]                                                 ##
+<invoke-web.hashverify.jobs> //= {};
+<invoke-web.hashverify.jobs>->{$name} = {
+    'pid'  => $pid,
+    'fh'   => $digest_r,
+    'time' => time,
+};
+<invoke-web.hashverify.jobs>->{$name}->{'timer'} = <[event.add_timer]>->(
+    {   'after'    => 1,
+        'interval' => 1,
+        'repeat'   => TRUE,
+        'handler'  => qw| invoke-web.handler.hash_poll |,
+        'data'     => { 'name' => $name },
+    }
+);
 
-#,,,,,,,,,,,.,.,.,.,.,,.,,..,,..,,,..,,,,,,,,,..,,...,...,...,..,,,,.,..,,,,.,
-#YUCRFQ6J4KFHTQLJBVABAVIWWDEOTDGXIBIUZKWW62IVLEJXP3SN6RL3ANWPP7H7DEWAIJXF6RVRM
-#\\\|E47JTMOAZCNRQCCHTG2JDCJUJJBOMOHGR24CDPWN4QNTRYT5FS5 \ / AMOS7 \ YOURUM ::
-#\[7]IDVFEDXQYRUJDGHHJQSBRL5ZXPU5FXXY7JYKMGA5RDYDPJDI3IBQ 7  DATA SIGNATURE ::
+<[base.logs]>->(
+    2,     "autofetch : verifying blake3 of '%s' [ child %d ]",
+    $name, $pid
+);
+
+return { 'ok' => TRUE, 'msg' => "hash verification running [ child $pid ]" };
+
+#,,,,,,,.,,..,.,,,..,,,..,..,,..,,,.,,,,.,.,.,..,,...,..,,..,,.,.,,,,,.,.,.,,,
+#6RFXEB76KUQOLA52UQ7AIZ7WCY2UFIFCXYU52PCM6OIN5BCAZ6PY5ZURCPKMLKX4SHJEPO3ACH3IA
+#\\\|JLQQRASJMY7VJAG4SE324DECGJXT4DDLIHFH6BAWIGJKQ5UOZT6 \ / AMOS7 \ YOURUM ::
+#\[7]I44I7VXA3OOBAPXNL7DXITSLKUV2DLGBMRGZS4DY33SMPKDDZACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
