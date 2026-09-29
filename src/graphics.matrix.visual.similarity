@@ -47,8 +47,8 @@ my $sphere_b = <[graphics.matrix.visual.sphere]>->(
 my $result;
 
 if ( $method eq qw| color_sample | ) {
-    my $rgb_a = $info_a->{'rgb'} // [ 128, 128, 128 ];
-    my $rgb_b = $info_b->{'rgb'} // [ 128, 128, 128 ];
+    my $rgb_a = <[graphics.matrix.visual.extract-color]>->($info_a);
+    my $rgb_b = <[graphics.matrix.visual.extract-color]>->($info_b);
 
     my $distance     = <[graphics.matrix.visual.color]>->( $rgb_a, $rgb_b );
     my $max_distance = sqrt( 3 * 255**2 );
@@ -135,8 +135,8 @@ if ( $method eq qw| color_sample | ) {
     if ( $sphere_a->{'sphere'} == 0 || $sphere_b->{'sphere'} == 0 ) {
 
         # Color samples - use color comparison
-        my $rgb_a = $info_a->{'rgb'} // [ 128, 128, 128 ];
-        my $rgb_b = $info_b->{'rgb'} // [ 128, 128, 128 ];
+        my $rgb_a = <[graphics.matrix.visual.extract-color]>->($info_a);
+        my $rgb_b = <[graphics.matrix.visual.extract-color]>->($info_b);
 
         my $distance = <[graphics.matrix.visual.color]>->( $rgb_a, $rgb_b );
         my $max_distance = sqrt( 3 * 255**2 );
@@ -217,8 +217,8 @@ $result->{'cubic'} = {
 $result->{'mode'} = qw| true |;
 return $result;
 
-#,,.,,,,.,,..,.,.,.,.,.,.,.,.,..,,,,.,.,.,..,,.,.,...,.,.,.,,,,.,,,.,,,.,,,..,
-#ZIXNXFENAH7NRWTH3NSZ7X5VSVPVQDH4JW6CKOY6IXAICQZUO5PJVGK5DT5SXUTRQPYVQP5I7XU3O
-#\\\|6X5VV5QKFACJOE472K4ATWHWYKAIBOA4ASHPZCWZBCA46O2MKPA \ / AMOS7 \ YOURUM ::
-#\[7]5LVXRDWWEAUSOYG4OWGDR57HWQL6AFRVH6NCU43OWFFDAFJEHUBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,.,...,,,,,,,.,.,.,...,..,,..,,.,.,...,...,..,,,,.,..,,.,,,,.,,
+#H2BIF3G6TOWHHBZKIOZ3TR6YUBSJCOQU63ESTBNP46JAOI5WOECNSAFSU5QA2RZ6MLBSYOW6N4REE
+#\\\|RE5SDLGZDRZCGADICMX76ZVAJNZKAYESZH2WTUP3TZCGAKGQ6UB \ / AMOS7 \ YOURUM ::
+#\[7]DXYK4E533BNV2FL7HB3KAUBGL7C5GUIRENFPHAC42URC2ZT4FICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
