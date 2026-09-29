@@ -45,18 +45,21 @@ reference memory doesn't mention `format-code` as the better default, and vice v
 memories keep getting missed, consider: always run `bin/format-code -c` FIRST for any `src/*` edit
 in this project, full stop, before considering `p7-module-syntax-check` at all.
 
-**blind spot [ 2026-09-29 ] : format-code -c does not check `use strict`.** it
-reported "syntax valid" for two modules the zenka compiler then rejected :
-`stat(_)` [ bareword under strict subs ] and `my $fh` declared inside an `if`
-condition and used later in the same condition [ strict vars ].
-`bin/test-scripts/p7-module-syntax-check` caught the second one. so : run
-format-code -c first, then p7-module-syntax-check for new \ changed modules,
-and read its FAILs past the known false positives [ `$call` in `.cmd.`,
-`%colors`, `uniq @x`, `JSON::false` before JSON is loaded ]. applies to kimi
-dispatch results too -- its "syntax valid" is format-code -c only.
+**strict since 2026-09-29 [ fbbc58194 ].** format-code -c used to skip
+`use strict` and passed two modules the zenka compiler rejected [ `stat(_)`,
+a `my $fh` declared inside an `if` condition ]. it now compiles P7 modules
+the way the loader does : `use strict`, the loader's imports [ File::stat
+overrides stat \ lstat -- list-context `stat()` returns ONE object there,
+use `CORE::stat` for `( stat $f )[9]` ], `$call` \ `$reply` in `.cmd.`,
+`$zenkaname`, and runtime-loaded modules [ Encode, Socket, Symbol, POSIX
+WNOHANG, Gtk3 ] only for files that use them. across all of src/ it then
+reported 12 real errors in dormant legacy zenki [ ssl, power, keys,
+weather css, download ] and no noise.
+`bin/dev/ptd -c` stays the simple, fast precursor : syntax only, its ok line
+reads `syntax ok [ no strict ]` -- never treat it as the final check.
 
-#,,,,,,.,,.,,,,.,,,.,,,,.,..,,...,...,,,.,...,..,,...,...,.,.,..,,..,,,,,,,,.,
-#EHMAH5BRNKRLUUSZVXL2FZMYTMOTDNFAQ6AVDNZPNTN4WZAYKSD2DLJ3BSM6KDOT7VWLQMM2BKDG6
-#\\\|3MLIC77PRXUOTUFKFFBWML7UZEFJ6A2YHPJXZYMQRX3RHR3YAXP \ / AMOS7 \ YOURUM ::
-#\[7]OHRZEMAKQBT2YCZVXIX6BAM2K4KIRUG3PIQ7SZ6FNCNLXSTAQEAA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,,.,,..,,..,,,..,.,.,...,...,..,,...,...,...,.,.,..,,..,,...,
+#G5KXSQUXZYS6YPV4FXFVFKG6N5LGKFKT2UO6A4A5QDLSJUKIOI2YGOWM77EI6MBOV2O4C2ARH2ZHK
+#\\\|NCG7CBSKCBLRLT2RBHDUWLWXEZ645YD7I6IABEG6GVFPMZEFSKX \ / AMOS7 \ YOURUM ::
+#\[7]DWHMI6AC76VZO4ZS6NTOMPPKDABQJDGIIBQJ75CPSL2KBQC4UQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
