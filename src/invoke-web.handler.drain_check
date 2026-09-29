@@ -18,7 +18,7 @@ my $now = <[base.time]>->(0);
 if ( defined <invoke-web.drain.stopping> ) {
     ## cmd.stop clears <invoke-web.pid> at once : the pid is kept here ##
     return
-        if <[invoke-web.is_alive]>->( <invoke-web.drain.stopping_pid> )
+        if <[invoke-web.is_alive]>->(<invoke-web.drain.stopping_pid>)
         and $now - <invoke-web.drain.stopping> < 60;
     delete <invoke-web.drain.stopping>;
     delete <invoke-web.drain.stopping_pid>;
@@ -29,26 +29,30 @@ if ( defined <invoke-web.drain.stopping> ) {
 
 return if ( <invoke-web.status> // '' ) ne 'running';
 
-## queue state : in progress, pending outside parked sessions ##
-my $status = <[invoke-web.api]>->( 'GET', '/api/v1/queue/default/status' );
-return if not $status->{'ok'} or ref $status->{'data'} ne qw| HASH |;
-my $queue = $status->{'data'}->{'queue'}     // {};
-my $proc  = $status->{'data'}->{'processor'} // {};
-return if $queue->{'in_progress'};
-
+## queue state from the db : no blocking http call in the event loop -- ##
+## invoke.ai's api answers slowly while it loads models [ a blocking    ##
+## request stalled the zenka : v7 response timeouts ]                   ##
 my $dbh = <[invoke-web.queue.db]> // return;
-my ($pending) = $dbh->selectrow_array(
-    "SELECT COUNT(*) FROM session_queue WHERE status = 'pending' AND priority > ?",
-    undef, -( <invoke-web.session.park_offset> // 1000000 ) / 2 );
+my ( $in_progress, $pending ) = $dbh->selectrow_array(
+    "SELECT SUM( status = 'in_progress' ), SUM( status "
+        . "= 'pending' AND priority > ? ) FROM session_queue",
+    undef,
+    -( <invoke-web.session.park_offset> // 1000000 ) / 2
+);
+return if not defined $in_progress or $in_progress;
+$pending //= 0;
 
 ## 1. empty queue : resume a parked session with resume mode 'empty' ##
 if ( not $pending ) {
     my $sessions = <[invoke-web.session.store]>;
-    my ($next) = sort { $sessions->{$a}->{'parked_at'} <=> $sessions->{$b}->{'parked_at'} }
-        grep { ( $sessions->{$ARG}->{'mode'} // '' ) eq qw| empty | } keys %$sessions;
+    my ($next) = sort {
+        $sessions->{$a}->{'parked_at'} <=> $sessions->{$b}->{'parked_at'}
+        }
+        grep { ( $sessions->{$ARG}->{'mode'} // '' ) eq qw| empty | }
+        keys %$sessions;
     if ( defined $next ) {
         <[invoke-web.session.resume]>->($next);
-        <[invoke-web.activity.touch]>->( qw| resume | );
+        <[invoke-web.activity.touch]>->(qw| resume |);
         return;
     }
 }
@@ -61,20 +65,25 @@ my $idle = $now - ( <invoke-web.activity.last> // $now );
 return if $idle < $idle_after;
 
 if ($pending) {
-    return if $proc->{'is_started'};    ## it is about to render ##
-    return if not <[base.cfg_bool]>->( <invoke-web.drain.paused_counts_idle> // 0 );
+    return
+        if not
+        <[base.cfg_bool]>->( <invoke-web.drain.paused_counts_idle> // 0 );
+
+    ## the processor state is only in the api : ask async, drain in the ##
+    ## reply [ invoke-web.handler.drain_processor ]                     ##
+    <[invoke-web.api_async]>->(
+        'GET', '/api/v1/queue/default/status',
+        undef,
+        'invoke-web.handler.drain_processor',
+        { 'idle' => $idle, 'pending' => $pending }
+    );
+    return;
 }
 
-<[base.logs]>->(
-    1, 'queue drained, idle %dm%s : stopping invoke.ai',
-    $idle / 60, $pending ? " [ $pending paused items stay queued ]" : ''
-);
-<invoke-web.drain.stopping>     = $now;
-<invoke-web.drain.stopping_pid> = <invoke-web.pid>;
-<[invoke-web.cmd.stop]>;
+<[invoke-web.drain.stop]>->( $idle, 0 );
 
-#,,,,,,..,,,.,,,.,,,.,,.,,,,,,..,,,,.,,..,.,,,..,,...,...,,.,,.,.,.,,,,,,,,.,,
-#6NVICCUFKQIGVZPUDMCLU6CYTNMHM2LZ47UCICG2EPWIQXHXFDJTZ4RN6SQESYVVJ44KZVH67USTO
-#\\\|CK4BJARCXZDNNQFG6LNKLOSVPBCC27HMZBA7AHR3IQJPOUBAWFV \ / AMOS7 \ YOURUM ::
-#\[7]WJNJXTCNOR4HL2UJTLTAYSF7PC7EDAK5LQ4DDRLDWBFLW6TKEACI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,,,.,,..,,.,,,..,,,,,,,,,..,,..,,...,...,..,,,..,.,.,,,,,...,
+#B2VETFCJ3VCP7OO3PYPCOFWPS35TWQTF6ET45S4LPZYJ6GG5WIGMDSQWJK3GFKAJVUYV5HI64ZCBE
+#\\\|7OMGDJSHLUEZTYSAFIX42TOZAXOUQJRJQHVWKOVIFOZC57BFBWX \ / AMOS7 \ YOURUM ::
+#\[7]HWHXXAVI4RYYYUVXYVJYRWF5EZ46SHLWFF3HOTLETNWCNF3WVGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

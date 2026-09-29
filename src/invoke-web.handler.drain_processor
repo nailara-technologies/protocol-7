@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = invoke-web.handler.drain_processor
+# descr = async reply for drain_check [ paused_counts_idle only ] : drain
+#         only when the queue processor is really paused
+
+my $reply  = shift              // {};
+my $params = $reply->{'params'} // {};
+
+return if not $reply->{'ok'} or ref $reply->{'data'} ne qw| HASH |;
+## about to render ##
+return if $reply->{'data'}->{'processor'}->{'is_started'};
+return if ( <invoke-web.status> // '' ) ne 'running';
+
+<[invoke-web.drain.stop]>->( $params->{'idle'}, $params->{'pending'} );
+
+#,,,,,.,.,..,,.,.,,,,,,.,,,,.,,..,.,.,,..,..,,..,,...,...,...,.,,,,,,,,,,,...,
+#WHC4GWAQSC7NAGMG7CREAHVBZ3NJ3UWA6OM7ITKF3ZMZRDYHIJR6VGU3XMYPJPH5MVPCLGJAF4NAE
+#\\\|TJU6EIDXORNP6FW5CCARFULD2Q52AQCCWN6PQ73T6LQV4HYJR4I \ / AMOS7 \ YOURUM ::
+#\[7]3EAATXAP3GWAEM66Y3UZP457UUUPKDNP34NXPYQCZ6W3RWVMC6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
