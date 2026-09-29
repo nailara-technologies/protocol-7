@@ -11,8 +11,8 @@ my $latest = $samples->[-1];
 my %severity = ( 'calm' => 0, 'elevated' => 1, 'critical' => 2 );
 
 ## thresholds [ config keys, defaults set in pressure.init_code ] ##
-my $elev_full10 = <v7-zenki.cfg.pressure.elevated.mem_full_avg10> // 1.0;
-my $elev_some10 = <v7-zenki.cfg.pressure.elevated.mem_some_avg10> // 10.0;
+my $elev_full60 = <v7-zenki.cfg.pressure.elevated.mem_full_avg60> // 1.0;
+my $elev_some60 = <v7-zenki.cfg.pressure.elevated.mem_some_avg60> // 10.0;
 my $elev_swap   = <v7-zenki.cfg.pressure.elevated.swap_pps>       // 256;
 my $elev_avail  = <v7-zenki.cfg.pressure.elevated.min_avail_mb>   // 1024;
 my $crit_full10 = <v7-zenki.cfg.pressure.critical.mem_full_avg10> // 5.0;
@@ -29,8 +29,8 @@ my $indicated = qw| calm |;
 if (   ( defined $avail and $avail <= $elev_avail )
     or $swap_pps >= $elev_swap
     or ($latest->{'psi'}
-        and (  $latest->{'mem_full_avg10'} >= $elev_full10
-            or $latest->{'mem_some_avg10'} >= $elev_some10 )
+        and (  $latest->{'mem_full_avg60'} >= $elev_full60
+            or $latest->{'mem_some_avg60'} >= $elev_some60 )
     )
 ) {
     $indicated = qw| elevated |;
@@ -66,7 +66,7 @@ if ( $pending->{'level'} ne $indicated ) {
 my $need
     = $severity{$indicated} > $severity{$current}
     ? <v7-zenki.cfg.pressure.enter_samples> // 3
-    : <v7-zenki.cfg.pressure.leave_samples> // 6;
+    : <v7-zenki.cfg.pressure.leave_samples> // 13;
 
 return 0 if $pending->{'count'} < $need;
 
@@ -76,13 +76,11 @@ return 0 if $pending->{'count'} < $need;
 $pending->{'level'} = '';
 $pending->{'count'} = 0;
 
+## short line on the console [ 1 ], the numbers at 2 [ buffer \ log ] ##
+<[base.logs]>->( 1, ':. memory pressure : %s --> %s', $current, $indicated );
 <[base.logs]>->(
-    1,
-    ':. host memory pressure level : %s --> %s [ sustained %d samples '
-        . '| mem full avg10 %.2f avg60 %.2f | swap %.0f pps | avail %s MB ]',
-    $current,
-    $indicated,
-    $need,
+    2,
+    ':. mem full avg10 %.2f avg60 %.2f, swap %.0f pps, avail %s MB',
     $latest->{'mem_full_avg10'} // 0,
     $latest->{'mem_full_avg60'} // 0,
     $swap_pps,
@@ -91,8 +89,8 @@ $pending->{'count'} = 0;
 
 return 0;
 
-#,,,.,,.,,.,,,,,.,,,,,,..,,.,,...,.,.,..,,,.,,..,,...,...,,,.,,,.,.,.,,.,,...,
-#P4T2TV7HACYFOUEP5KCAZKM2AQTD2LZVNN5NSLYWYPIUG3Y2EUET4Y4BI5EB3YM5U3GDMU52SSRIC
-#\\\|HPIMFB2CCW4TPJP4XEZSB5OIRURKARMPHKBYG4AQSKZI3NY2SNN \ / AMOS7 \ YOURUM ::
-#\[7]I4CT2AJUNBSLBRZ6JO4VY4FE77M67TIJFJPSRTGE5LI3AQ2F2QAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,,,.,..,,,..,,.,,...,,.,,,.,,..,,...,...,.,,,.,,,..,,...,.,,,
+#J7EAS62PI33NVNTYGM5EQQV2UTZRVQICLV6CJ7X6GXNX2XORMMZGJEG6NOUH3KRU4RTCFBR4AYXTG
+#\\\|OAYSVYWHFCTJ42LIXCK5OYLQPRSLNO3A64I54EPVNQKL36JOECL \ / AMOS7 \ YOURUM ::
+#\[7]T223LWF744Z62KAZXF4XX6T4EJSEYYVZ7PTVPNOOSCJGMSIQRSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
