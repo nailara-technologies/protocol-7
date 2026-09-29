@@ -165,3 +165,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|SFF47COPQ4FDXMFPYYCPS7LLMWNNWKTR4574KOWNGYH3ZZ7N76P \ / AMOS7 \ YOURUM ::
 #\[7]AO7ABBEDLXGCKWDCDV6EIKJO6S2NZUSS7YAJERIQ7G45YMMQEWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — index job + queue running, what was built, open briefs [ start here for invoke-web \ image index \ images-elfdb ]
+
+#,,,.,.,.,,..,...,.,,,.,,,,,.,,,.,,.,,,.,,,..,..,,...,...,..,,...,.,.,,.,,,,,,
+#NNQOGXLSATOYOFZ53SYK22S2M45ZMM5PCDVJ35CJL6RDHBLMSMFCB7UWSX6HR5AV5OE4YQKBZIM6M
+#\\\|ATEJS5XCLGA7UA4ES6YJH6QLVYTQGWEMSIJXPZZSL5JYS4KSQ5Z \ / AMOS7 \ YOURUM ::
+#\[7]ZUOKHBCHW2ST2DVXSMIFJTFZVUVS5UL4PPKFPA3WUJ7AZB5Q4YBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
