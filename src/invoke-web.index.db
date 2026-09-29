@@ -1,0 +1,55 @@
+## [:< ##
+
+# name   = invoke-web.index.db
+# descr  = image index database [ <zenka data dir>/state/image-index.db ] :
+#          opens \ creates it, returns a reused handle
+# return = dbi handle | undef
+# note   = key = BMW-L13 of the file CONTENT [ chk-sum.bmw.L13-str ] : paths
+#          change when images move into the categorized storage, the
+#          checksum does not -- the index carries over. `sources` maps
+#          image names \ paths to it [ duplicates share one image row ].
+#          prompts are stored as a hash only : the text stays in the png
+#          until the rating + encrypted non-safe section exist
+
+my $cached = <invoke-web.index_dbh>;
+return $cached if defined $cached and $cached->ping;
+
+my $dir = sprintf '%s/state', <[file.zenka_dir.data_path]>;
+if ( not -d $dir ) {
+    <[base.logs]>->( 0, 'image index : no state directory [ %s ]', $dir );
+    return undef;
+}
+
+my $dbh = DBI->connect( "dbi:SQLite:dbname=$dir/image-index.db",
+    '', '', { 'RaiseError' => 0, 'PrintError' => 0, 'AutoCommit' => 1 } );
+if ( not defined $dbh ) {
+    <[base.logs]>->( 0, 'image index : connect failed [ %s ]', $DBI::errstr );
+    return undef;
+}
+$dbh->sqlite_busy_timeout(500);
+$dbh->do('PRAGMA journal_mode = WAL');
+
+$dbh->do($ARG)
+    for (
+      'CREATE TABLE IF NOT EXISTS images ( chksum TEXT PRIMARY KEY, bytes '
+    . 'INTEGER, width INTEGER, height INTEGER, tile1 TEXT, tile2 TEXT, '
+    . 'tile3 TEXT, hue REAL, sat REAL, val REAL, luma_mean REAL, '
+    . 'luma_spread REAL, entropy REAL, clip_low REAL, clip_high REAL, '
+    . 'flags TEXT, generation_mode TEXT, model_key TEXT, model_name '
+    . 'TEXT, seed INTEGER, steps INTEGER, cfg REAL, loras TEXT, '
+    . 'prompt_hash TEXT, analyzer INTEGER, indexed_at INTEGER )',
+    'CREATE TABLE IF NOT EXISTS sources ( image_name TEXT PRIMARY KEY, '
+    . 'chksum TEXT, path TEXT, session_id TEXT, created_at TEXT, '
+    . 'source_rowid INTEGER )',
+    'CREATE INDEX IF NOT EXISTS images_hue ON images ( hue )',
+    'CREATE INDEX IF NOT EXISTS images_model ON images ( model_name )',
+    'CREATE INDEX IF NOT EXISTS sources_chksum ON sources ( chksum )',
+    );
+
+return <invoke-web.index_dbh> = $dbh;
+
+#,,,,,.,.,..,,,,.,,,,,...,.,,,,,,,.,.,,,,,..,,..,,...,..,,..,,,..,,,,,.,.,.,.,
+#UEZKRCFIGIGBXNRZKL5UNNW53TL24O2QESORSMCG5MHETEB4Z7JUWMAUXKQCUUAGN5UIGX3NGTYAA
+#\\\|F6TVD3AUMMXYSOJYCHCJ55YMUU2WTQSL67XGNNWQVEZKDEP4CA6 \ / AMOS7 \ YOURUM ::
+#\[7]7EQULOOICKIFPZMQSNBLQH4JZED4EHN4E2HE2X5YICLD64SMUICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

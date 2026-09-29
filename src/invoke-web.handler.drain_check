@@ -15,7 +15,7 @@
 my $now = <[base.time]>->(0);
 
 ## fallback for the interactive mode : a database write missed by the ##
-## inotify watch is caught here within a minute                        ##
+## inotify watch is caught here within a minute                       ##
 <[invoke-web.handler.queue_watch]> if <invoke-web.queue_interactive>;
 
 ## phase 2 : stop requested, wait until invoke.ai is gone ##
@@ -32,6 +32,8 @@ if ( defined <invoke-web.drain.stopping> ) {
 }
 
 return if ( <invoke-web.status> // '' ) ne 'running';
+## the image index job needs the zenka ##
+return if <invoke-web.index.running>;
 
 ## queue state from the db : no blocking http call in the event loop -- ##
 ## invoke.ai's api answers slowly while it loads models [ a blocking    ##
@@ -86,8 +88,8 @@ if ($pending) {
 
 <[invoke-web.drain.stop]>->( $idle, 0 );
 
-#,,.,,,.,,,,.,.,,,,.,,,.,,.,.,,..,,,,,.,.,,,,,..,,...,...,.,.,,..,,,.,,.,,,.,,
-#D55AUUXJXKV5HVPUGPFUXV6LGCENCE72YXMDZ4FMSC22MOBXNYY223XS74HAL35LGIOV4LGLHGO4S
-#\\\|WLIAXTDWWSX3RIJNTWIPZ2LZRSUY52UH6XR64MQNTTW7ZIPP2Z7 \ / AMOS7 \ YOURUM ::
-#\[7]WOTTNPSPIAUQ5VEMWDOFNCJHSDIC6ZAJAHOH7ZROSXS7VVJGI2DA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,,.,,,..,.,,,..,,.,.,...,..,,..,,...,...,...,,,,,...,,..,,,.,
+#JBOWSBZU6D24VLAP7Q7YLTO64DSFIBYL3VYJYD7IYWRGZUGTH7KZWKRO5IV5PIR6BRKXRYATO7ZKO
+#\\\|HDB5VKRXCOQ5OXSYUVXJ54RC6HZ2VTXOL5APAX3H7RYRTZXI3TV \ / AMOS7 \ YOURUM ::
+#\[7]IUJZKZDOD7IGCSNUXL5DPZMZJNCVKFO3LMK2RHQRWG5E35WRLYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
