@@ -270,7 +270,6 @@ invoke-web.queue.order
 invoke-web.memory_free
 invoke-web.json_octets
 invoke-web.index.image
-invoke-web.gpu.requeue
 invoke-web.gpu.recover
 invoke-web.cmd.restart
 invoke-web.cmd.requeue
@@ -331,6 +330,7 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
 invoke-web.session.store
+invoke-web.render.report
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
@@ -390,6 +390,7 @@ protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
 invoke-web.requeue_missing
+invoke-web.recover.requeue
 invoke-web.cmd.queue-order
 invoke-web.cmd.queue-front
 crypt.C25519.encrypted_key
@@ -519,10 +520,10 @@ ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 invoke-web.render.check_images
+invoke-web.recover.after_crash
 invoke-web.queue.watch_trigger
 invoke-web.handler.start_guard
 invoke-web.handler.queue_watch
-invoke-web.handler.gpu_restart
 invoke-web.handler.drain_check
 invoke-web.cmd.requeue-missing
 crypt.C25519.key_name_and_type
@@ -542,6 +543,7 @@ base.chk-sum.bmw.harmonize_L13
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
+invoke-web.handler.render_check
 invoke-web.handler.check_health
 crypt.C25519.decrypt_secret_key
 coding.tools.definitions.search
@@ -610,6 +612,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+invoke-web.handler.recover_restart
 invoke-web.handler.gpu_pause_reply
 invoke-web.handler.drain_processor
 crypt.C25519.load_keys_from_secret
@@ -630,7 +633,6 @@ protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 invoke-web.handler.queue_watch_once
-invoke-web.handler.gpu_resume_reply
 coding.tools.definitions.scratchpad
 coding.self_test.handler.poll_probe
 base.zenki.resolve_primary_sid.pick
@@ -642,7 +644,6 @@ base.callback.reset_strm_size_timer
 base.callback.report_children_reply
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
-invoke-web.handler.gpu_requeue_reply
 graphics-3d.calc.cursor-translucency
 coding.util.multiplier.percentile_95
 coding.tools.definitions.regex_tools
@@ -693,6 +694,7 @@ coding.handler.switch_model_spawn_done
 coding.handler.inference_crash_restart
 coding.handler.http_data_start_timeout
 base.log.send-buffer.idle-callback-set
+invoke-web.handler.recover_resume_reply
 coding.tools.handler.record_observation
 coding.tools.definitions.task_lifecycle
 coding.parser.model_name_with_selection
@@ -707,6 +709,7 @@ base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+invoke-web.handler.recover_requeue_reply
 coding.handler.monitor_inference_startup
 coding.callback.object_self_test_pending
 protocol.protocol-7.auth.select-size-mode
@@ -734,8 +737,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,...,.,,,.,.,.,,,.,,,...,,.,,..,,..,,..,,..,,...,.,,,.,.,,..,..,,,,,,.,,,
-#FAE3TDSQOOKASEKN7QOWY44ZW5FDL463Q5X4KRQ7QTX5ZREPQTQUAOELDQJWXFUVN43GVICLJZS2U
-#\\\|CPMKY4HUNN2OHX4IIBTZAMIDXMY55Y6AD76IACK6AZNZRGLCZCS \ / AMOS7 \ YOURUM ::
-#\[7]SXEUI35KEAKZDVKPHRNIK7ZED66ENRHO7J5LKNIM7UV3CUVVPAAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,,,,,,.,,..,,.,,,.,.,...,,,.,..,,...,...,.,.,,,,,,.,,,,.,.,.,
+#I6PBTOY7PNUMAHTRUPIVUZ6L4B6FA4GEYDLFNKP3XLOQ7NVD5FVLX5BOJYEJBAHI36FF4AKKHQEEO
+#\\\|UVB5XLRJQARUPTWWUKORHET6YQIPLYKF6VA6OJ5ZZMF3HIAOQZ6 \ / AMOS7 \ YOURUM ::
+#\[7]6ARUMJ6WVLP55RZ6IJC2MBNVOJCFDM5ERGYMRY4OGRVPX2R65EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

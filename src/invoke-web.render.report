@@ -1,0 +1,34 @@
+## [:< ##
+
+# name   = invoke-web.render.report
+# descr  = log the outcome of a finished render item [ done : level 1 with
+#          time \ ram \ vram ; failed \ suspicious : level 0 with reason ]
+# param  = render hashref [ <invoke-web.render> of that item ]
+
+my $render = shift               // return;
+my $result = $render->{'result'} // qw| suspicious |;
+
+if ( $result ne qw| done | ) {
+    <[base.logs]>->(
+        0, 'render %s [ item %s%s ]',
+        $result,
+        $render->{'item'} // '?',
+        $result eq qw| failed | ? " : $render->{'failed'}" : ''
+    );
+    return;
+}
+
+<[base.logs]>->(
+    1,
+    'render done [ item %s : %s, ram %s, vram %s ]',
+    $render->{'item'}                                    // '?',
+    $render->{'stats'}->{'TOTAL GRAPH EXECUTION TIME'}   // '?',
+    $render->{'stats'}->{'RAM used by InvokeAI process'} // '?',
+    $render->{'stats'}->{'VRAM in use'}                  // '?'
+);
+
+#,,,.,...,,,,,...,,,.,..,,.,.,.,,,.,,,...,,,.,..,,...,...,,,.,.,,,,,.,,,,,,..,
+#WD4F2BSFG4UU7ZSFHWEJVJ4G6RVQDAX6VDXSY4GZNUQJKIKROZKHDHMJPQ444LJEHWGKZ47Y6R6BS
+#\\\|XJT3ZXIKXE5X233JLMBTCFU7Z5BQHP2X6SMFVXCACCFYBTTAQUT \ / AMOS7 \ YOURUM ::
+#\[7]6NYUZ26PD3WUJRP5QADNNQQPNOTXWRI4D7223XZGK5ZZOVFCGSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

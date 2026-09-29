@@ -1,0 +1,49 @@
+## [:< ##
+
+# name   = invoke-web.recover.after_crash
+# descr  = the zenka restarted while invoke.ai was running [ it died with
+#          the zenka ] : start it again through the recovery chain
+# note   = called from init_code [ still root ] : only arms a timer, the
+#          start runs after the privilege drop. at most 3 per hour, kept
+#          in state/crash-restarts [ the zenka's memory is new each time ]
+
+my $now    = <[base.time]>->(3);
+my $saved  = <[file.zenka_dir.load]>->('state/crash-restarts');
+my @recent = grep { m|^[\d.]+$| and $now - $ARG < 3600 }
+    split m|\n|, defined $saved ? $saved->$* : '';
+
+if ( @recent >= 3 ) {
+    <[base.logs]>->(
+        0, 'crash : invoke.ai not restarted [ 3 crash restarts this hour ]'
+    );
+    return FALSE;
+}
+
+push @recent, $now;
+<[file.zenka_dir.write]>->(
+    'state/crash-restarts', \join( "\n", @recent, '' )
+);
+
+<invoke-web.recover> = {
+    'kind'    => qw| crash |,
+    'time'    => $now,
+    'restart' => TRUE,
+};
+<[base.logs]>->(
+    0, 'crash : invoke.ai died with ' . 'the zenka -- restarting it'
+);
+
+<[event.add_timer]>->(
+    {   'after'   => 3,
+        'handler' => 'invoke-web.handler.recover_restart',
+        'data'    => { 'attempt' => 1 },
+    }
+);
+
+return TRUE;
+
+#,,.,,,,.,.,,,.,,,..,,,,,,,.,,,,.,...,.,,,,,.,..,,...,...,,..,.,,,,.,,..,,.,.,
+#7TUHMECOM7YHS6R7OWG6NVPPVHEYO3A2NCJQEMNDJSTBJYZ5NISZ7GMEMBTDVZAJTV6KAVJL3X2EO
+#\\\|KM5ICULMXAMUQ7CFGUQ3TWTTNKJZUVBH5NGEYBOFEAOT3ADIH2N \ / AMOS7 \ YOURUM ::
+#\[7]FM4TXRRUCFU5JTYNKTUCXWMT2IPLHMGUM2KX6LJUQAH4ETR3B2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

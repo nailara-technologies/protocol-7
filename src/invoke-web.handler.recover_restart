@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = invoke-web.handler.recover_restart
+# descr = start invoke.ai again [ cuda error \ zenka crash recovery ] once the old
+#         process is gone [ it frees the gpu memory on exit ; 5s steps, 12x ]
+
+my $event   = shift;
+my $attempt = eval { $event->w->data->{'attempt'} } // 1;
+my $recover = <invoke-web.recover>                  // return;
+my $old     = $recover->{'old_pid'};
+
+if ( defined $old and <[invoke-web.is_alive]>->($old) ) {
+    if ( $attempt >= 12 ) {
+        <[base.logs]>->(
+            0, '%s : old invoke.ai [pid:%d] still alive -- no restart',
+            $recover->{'kind'}, $old
+        );
+        delete <invoke-web.recover>;
+        return;
+    }
+    <[event.add_timer]>->(
+        {   'after'   => 5,
+            'handler' => 'invoke-web.handler.recover_restart',
+            'data'    => { 'attempt' => $attempt + 1 },
+        }
+    );
+    return;
+}
+
+my $result = <[invoke-web.cmd.start]>->( { 'args' => '' } );
+<[base.logs]>->(
+    1, '%s : %s', $recover->{'kind'}, $result->{'data'} =~ s|\n.*||sr
+) if ref $result;
+
+#,,,.,,,.,...,,,.,..,,,,.,.,.,,..,...,,,.,,..,..,,...,..,,.,.,...,,,.,,,,,,,,,
+#Y6GSJ25PDAUMW5GMLFOSYZWRPLUWZCTH3GLJJWJDRG6AFZOIQGF5Z6SGSZ7BAQW3RAEVKIIB4BJQM
+#\\\|A2SH6KLMURRVYDRVC6VI4H5D7ZPR5ISPDEDPGZKJXH6WCTI7HTQ \ / AMOS7 \ YOURUM ::
+#\[7]YCNCXGXFBQJAGFIVP4II3B4BJAX4XICHCQYJLXOHPDB47ACBF2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

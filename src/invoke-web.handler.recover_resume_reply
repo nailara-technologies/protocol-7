@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = invoke-web.handler.recover_resume_reply
+# descr = last step of a recovery [ cuda error \ zenka crash ] : queue resumed
+
+my $reply = shift // {};
+<[base.logs]>->(
+    $reply->{'ok'} ? 1 : 0,
+    '%s : recovery done, queue %s',
+    $reply->{'params'}->{'kind'} // qw| recover |,
+    $reply->{'ok'} ? 'resumed' : "not resumed [ $reply->{'status'} ]"
+);
+
+#,,,,,,,.,,,,,,,.,,.,,...,..,,...,,..,...,,,,,..,,...,...,.,,,..,,,,,,.,.,.,,,
+#VILKNEYHE2AM3S3HRNNZ353SHOUHCCABWQFUAI2SHKSPE6VAKBOM6CRGF7Z7V5JXOOT3JZJYFUDOS
+#\\\|WPYZHY2UFDLZA2GPOWTSEM5AOK46LYAP5Y7OSPKE445IWA4AZ5K \ / AMOS7 \ YOURUM ::
+#\[7]XESW346YFPFWU5MR23PHWRQMLM2SCVHYBZ25MYAV53UK7SHKYADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

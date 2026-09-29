@@ -12,34 +12,48 @@ my $session = shift // return undef;
 
 my $dbh   = <[invoke-web.queue.db]> // return undef;
 my $names = $dbh->selectcol_arrayref(
-    'SELECT image_name FROM images WHERE session_id = ? '
-        . 'AND is_intermediate = 0 AND deleted_at IS NULL',
+    'SELECT image_name FROM images WHERE session_id = '
+        . '? AND is_intermediate = 0 AND deleted_at IS NULL',
     undef, $session
 ) // [];
 return undef if not @$names;
 
-my $dir = sprintf '%s/outputs/images', <invoke-web.root> // '';
+my $dir   = sprintf '%s/outputs/images', <invoke-web.root> // '';
 my %check = ( 'images' => [], 'bad' => [] );
 
 foreach my $name (@$names) {
-    my $analysis = <[image.analyze.file]>->("$dir/$name") // next;
-    my @flags    = sort grep { $ARG ne 'tiny_file' } keys $analysis->{'flags'}->%*;
-    push $check{'images'}->@*, {
+    ## chunked read with event loop turns in between [ index.image ] ##
+    my $path = "$dir/$name";
+    my $content;
+    if ( open my $fh, '<:raw', $path ) {
+        $content = '';
+        while ( sysread( $fh, my $chunk, 262144 ) ) {
+            $content .= $chunk;
+            <[event.once]>->(0.0007);
+        }
+        close $fh;
+    }
+    next if not defined $content;
+    my $analysis = <[image.analyze.file]>->( $path, \$content ) // next;
+    my @flags
+        = sort grep { $ARG ne 'tiny_file' } keys $analysis->{'flags'}->%*;
+    push $check{'images'}->@*,
+        {
         'name'    => $name,
         'flags'   => \@flags,
         'hsv'     => $analysis->{'hsv'},
         'entropy' => $analysis->{'luma'}->{'entropy'},
         'tile1'   => $analysis->{'tiles'}->{1}->[0],
-    };
+        };
     ## black \ flat = nothing usable was decoded ##
     push $check{'bad'}->@*, sprintf( '%s [ %s ]', $name, join ', ', @flags )
-        if grep { m{^(?:black|flat)$} } @flags;
+        if grep {m{^(?:black|flat)$}} @flags;
 }
 
 return \%check;
 
-#,,,,,..,,,..,,,.,,,.,,..,,..,.,.,,,.,,,,,,,,,..,,...,..,,...,...,,..,,,.,,..,
-#3X4R4EZYTQA5MEX4DWE4SZ6LAWINH4VMJ7CUOUGQEQKKXD5ZZKIWJIWERL5XHZWNJ72XVUOZ6UPG2
-#\\\|GCHI2FEVXW7ASSKXXJU4SLUYV4L4ZG362LLMOVVLDUWJAE5YE3K \ / AMOS7 \ YOURUM ::
-#\[7]67MRJEFZG2N3VNN2RCHMIHDGZDI4SSKF6YGAF3CE5EJPS3Y75SAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,,,.,,..,..,,,..,,,,,,,.,,.,,..,,...,..,,.,,,.,.,,..,.,.,.,,,
+#24HQTZKFGFQJPROXXTB3S25EO3P53G5PSJMQKZSVQZHWY6O7WGB4U24JCXPCUHJNYFW2P3ZRHYRTA
+#\\\|V3I3R4B3JRCOWBF5462H2DKJPY2MX6VSBBONZ4L5KVEFTMBMBS3 \ / AMOS7 \ YOURUM ::
+#\[7]VUKMHNH3JCUHIXUYVOARD6YNBFHKRBDKCA7JLDKEG6GWQQSNP2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

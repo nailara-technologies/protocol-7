@@ -7,14 +7,14 @@
 #          the cuda-failed items, resume
 # param  = [ queue item id of the failed render ]
 # note   = steps : this pause -> handler.gpu_pause_reply [ stop ] ->
-#          handler.gpu_restart [ start ] -> ready : startup pause ->
-#          gpu.requeue -> handler.gpu_requeue_reply [ resume ]. at most 3
+#          handler.recover_restart [ start ] -> ready : startup pause ->
+#          recover.requeue -> handler.recover_requeue_reply [ resume ]. at most 3
 #          recoveries per hour, then only the pause [ a broken gpu \ driver
 #          must not become a restart loop ]
 
 my $item = shift;
 
-return if defined <invoke-web.gpu_recover>;    ## one recovery at a time ##
+return if defined <invoke-web.recover>;    ## one recovery at a time ##
 
 my $now    = <[base.time]>->(3);
 my $recent = <invoke-web.gpu_recoveries> //= [];
@@ -22,7 +22,8 @@ $recent->@* = grep { $now - $ARG < 3600 } $recent->@*;
 my $restart = $recent->@* < 3 ? TRUE : FALSE;
 push $recent->@*, $now if $restart;
 
-<invoke-web.gpu_recover> = {
+<invoke-web.recover> = {
+    'kind'    => qw| gpu |,
     'time'    => $now,
     'item'    => $item,
     'restart' => $restart,
@@ -44,8 +45,8 @@ push $recent->@*, $now if $restart;
 
 return TRUE;
 
-#,,..,,.,,...,.,,,,.,,,,,,.,,,,..,.,,,,.,,,.,,..,,...,..,,,.,,...,,,.,.,.,..,,
-#V247XGITNLEXW7MNON6ZIDYWUO2QCQ2YUAUM2UP7OEMQQYJOXIZCGQLGYVI6PGAGE7H6JR2RU4HCI
-#\\\|YYIMOQXJ43MIPZQ6WA23JSEUIEYJR3ZN6VLDKDWANLZ5DMLG3TK \ / AMOS7 \ YOURUM ::
-#\[7]RKPGCCGGEJ3Y6RAQKFZGQ2TUH7QGF47CV4T4SCAEZ7EQRWRLVIBY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,...,,..,,,.,..,,.,,,..,,..,,..,,...,..,,,..,.,.,.,,,...,...,
+#5WECCXBDPGVVOU33A7BQISNB3IN5KO3NLH2T7ZBN3TESH4AU6VT6EV2BEAQNSFYTTPNQ5KATMJUAG
+#\\\|ANM44LLQIZK5GOPP3DXHSSVBBGVVQ5EJTNDZBAWVYIAJCSBW42J \ / AMOS7 \ YOURUM ::
+#\[7]O6VVZKCUSLORWQ5LA23XW7VHUH324VZWLVOCKWWHDB6XPNITQCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
