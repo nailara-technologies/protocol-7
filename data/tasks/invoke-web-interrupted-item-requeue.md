@@ -44,6 +44,23 @@ would lose it ]. only items invoke.ai itself already ended are retried.
 - completion : FOUND [ 2026-09-29 ] -- `::INFO --> Graph stats: <session>`
   carries the same session id as `Executing queue item <id>, session
   <session>` [ pattern `item_done`, sets `<invoke-web.render>->{done}` ].
+  CORRECTION [ same day, item 15757 ] : graph stats also come for a FAILED
+  item [ 0.038s, ram +0.000G ] -- it marks the END of an item, not success.
+  the parser now sets `<invoke-web.render>->{failed}` on an error \
+  model_render line of the running session, and a memory based sanity
+  check [ no image decode node -- l2i -- ran with vram in use ; not the time,
+  it depends on the hardware ] marks `suspicious` ; the record for requeue must use the
+  outcome, never the bare graph stats line
+  NEXT STAGE [ user, same day ] : a failure can also happen in the VAE decode
+  after an uneventful diffusion. with an error line [ e.g. oom ] it is
+  covered ; SILENT ones are not -- the classic sdxl vae fp16 NaN case gives
+  a black \ garbled image with a normal looking graph stats table [ fittingly
+  `sdxl-vae-fp16-fix` is on the missing list ]. needs a look at the RESULT
+  image : 1x1 color near black, luminance histogram fully clipped, entropy
+  near 0 or far off the normal range, implausibly small file size [ result
+  path via api \ the images table for the item's session ]. this is the
+  lightweight analysis layer of images-elfdb-feature-collection.md --
+  build it once, use it here first
   still open : the line of a ui cancel [ collect with `invoke-web.log` ]
 - ANSWERED [ 2026-09-29, a real crash : invoke-web killed by v7 mid-render ]
   : at startup invoke.ai sets the interrupted item to `canceled` with an
@@ -87,8 +104,8 @@ flows lags one call behind -- `resolve` can see the previous call's record.
 export's per-record `on_disk` numbers are affected by that ; the config-key
 fix itself is correct [ proven with a correctly-populated `$ARG` ].
 
-#,,..,...,.,,,.,.,..,,...,,,,,.,.,,,.,,..,,.,,..,,...,...,.,,,,..,.,,,...,,..,
-#NMR7LHCGA4LDTFL7FONKA4ZIJ72WSOGPLZZJIZJLKP3JNYSLNBYJ74SV7STHIXHSXRI5FXKCAU2UM
-#\\\|WWHYOXE4FZD5PO3AHVBKBP7SR3LZIFPTKPM6XVQ3NSEJV75X7U5 \ / AMOS7 \ YOURUM ::
-#\[7]GOTKHUMU3KUROQIPHBG5FHP4LW4YRLGO3XVKSNBJCWIPFXJUIYBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,...,,,.,,..,..,,..,,,..,,.,,..,,...,.,,,...,...,.,.,.,,,,,.,
+#F4QTU4UUNKKCF6U2ZHIYHGV2KHXG6SXIEN6PCFYUTO4PHISUY2HOFMNDN3GXXPEFWWLOTAK2BZWG6
+#\\\|74WJPU7V3E4AC73DI4V5PFIT3Y6PIVC2D4YTNMG7HC42N4JVEC2 \ / AMOS7 \ YOURUM ::
+#\[7]MQHGW4T2J6NW65MYHBY3MPJNJB3V3CIILAHC7C6IZVJUAIVQ2WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
