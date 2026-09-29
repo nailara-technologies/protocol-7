@@ -9,16 +9,19 @@ my $reinit = shift;    ## guard : a reload must not arm a second timer ##
 <v7-zenki.cfg.pressure.sample_interval>         //= 5;
 <v7-zenki.cfg.pressure.ring_size>               //= 72;
 <v7-zenki.cfg.pressure.enter_samples>           //= 3;
-<v7-zenki.cfg.pressure.leave_samples>           //= 6;
+<v7-zenki.cfg.pressure.leave_samples>           //= 13;
 <v7-zenki.cfg.pressure.curve_values>            //= 24;
-<v7-zenki.cfg.pressure.elevated.mem_full_avg10> //= 1.0;
-<v7-zenki.cfg.pressure.elevated.mem_some_avg10> //= 10.0;
+<v7-zenki.cfg.pressure.elevated.mem_full_avg60> //= 1.0;
+<v7-zenki.cfg.pressure.elevated.mem_some_avg60> //= 10.0;
 <v7-zenki.cfg.pressure.elevated.swap_pps>       //= 256;
 <v7-zenki.cfg.pressure.elevated.min_avail_mb>   //= 1024;
 <v7-zenki.cfg.pressure.critical.mem_full_avg10> //= 5.0;
 <v7-zenki.cfg.pressure.critical.mem_full_avg60> //= 5.0;
 <v7-zenki.cfg.pressure.critical.swap_pps>       //= 2048;
 <v7-zenki.cfg.pressure.critical.min_avail_mb>   //= 256;
+<v7-zenki.cfg.pressure.heartbeat_ext.secs>      //= 17;
+<v7-zenki.cfg.pressure.heartbeat_ext.elevated>  //= 3;
+<v7-zenki.cfg.pressure.heartbeat_ext.critical>  //= 6;
 
 ## state [ samples ring : latest last ] [ .zenka reserved for per-zenka ##
 ## rss\swap stats [ collected later by the system zenka ] ]             ##
@@ -52,8 +55,8 @@ if (   not $reinit
 
 return TRUE;
 
-#,,,.,.,,,,..,,.,,...,,,.,,,,,...,.,.,...,.,.,..,,...,...,,.,,,,,,.,.,,,,,,.,,
-#OS2M3LHJ6ODVSTJQR5O4KCVDVWJZZLQ4YFQYLMGGRQ4Q3NOFILZWVCBS3NY4DUF3N24ZJCAN42DY6
-#\\\|II454X5XUFPZWXD7M3WQEMZMMQFOJCKFTPN5OBXMQ74QIOQ2ITR \ / AMOS7 \ YOURUM ::
-#\[7]LAKOBHPFKF2D62JWUAO7PU6Q76XJQHLO7VAPAO55UVQUJDLP3KAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,.,.,.,.,,..,,..,...,.,.,...,..,,...,...,..,,,,.,,..,.,,,.,,,
+#WM6RKMB37L73H5R5HVLEUJ5HOPDNETEWIC2CRUYKIROVS3DSLC3H6OAPAWLPFW7IPDM2MEDI3M5HQ
+#\\\|SYL2TIK5SQQUIJC2VQQFLKZ676B2CVSOBRO6IRNJYT745KOYWTI \ / AMOS7 \ YOURUM ::
+#\[7]SGGJVWPD4NKAIOQ5Q3D4M5HP7BW4OPVRTDOE64BJOKHKJFX6IWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -60,34 +60,42 @@ if ( not length $pid_file_abs ) {
     return undef;    ##  returning undef on error  ##
 }
 
-##  checking if registered already and skipping if  ##
+## registered already [ e.g. the zenka restarted after an error and reports ##
+## the same file again ] : a refresh, not an error -- the caller has just   ##
+## re-checked the current owner, so the existing link is kept and only its  ##
+## owner record is rewritten below                                          ##
 ##
 my @match_link
     = <[file.matching_path_linknames]>->( $pid_file_dir, $pid_file_abs );
+my $symlink_abs;
 if ( scalar @match_link and defined $match_link[0] ) {
-    foreach my $link_abs_path (@match_link) {
-        <[base.s_warn]>->(
-            'already registered pid file [ %s ] as %s <{C1}>',
-            $pid_file_abs, $link_abs_path
-        );
-    }
-    return undef;
-}
-
-my $symlink_abs    ##  generate a symlink path for on-disk registry  ##
-    = <[file.gen_path_linkname]>->( $pid_file_dir, $pid_file_abs );
-
-##  create reference for run-time clean-up  ##
-<v7-zenki.pid_files>->{$pid_file_abs} = $symlink_abs;
-
-##  also create the symbolic link in the target directory  ##
-##
-if ( not symlink( $pid_file_abs, $symlink_abs ) ) {
-    <[base.s_warn]>->(
-        "error creating symlink in %s : [ %s ] <{C1}>",
-        $pid_file_dir, <[base.str.os_err]>
+    $symlink_abs = shift @match_link;
+    <v7-zenki.pid_files>->{$pid_file_abs} = $symlink_abs;
+    <[base.logs]>->(
+        2, 'pid file already registered, owner record refreshed [ %s ]',
+        $pid_file_abs
     );
-    return undef;    ##  returning undef on error  ##
+    ## duplicate links for the same file [ should not exist ] ##
+    foreach my $duplicate (@match_link) {
+        unlink($duplicate);
+        unlink( sprintf( qw| %s.uid |, $duplicate ) );
+    }
+} else {
+    $symlink_abs    ##  generate a symlink path for on-disk registry  ##
+        = <[file.gen_path_linkname]>->( $pid_file_dir, $pid_file_abs );
+
+    ##  create reference for run-time clean-up  ##
+    <v7-zenki.pid_files>->{$pid_file_abs} = $symlink_abs;
+
+    ##  also create the symbolic link in the target directory  ##
+    ##
+    if ( not symlink( $pid_file_abs, $symlink_abs ) ) {
+        <[base.s_warn]>->(
+            "error creating symlink in %s : [ %s ] <{C1}>",
+            $pid_file_dir, <[base.str.os_err]>
+        );
+        return undef;    ##  returning undef on error  ##
+    }
 }
 
 ## sidecar records the owner uid \ gid accepted at report time -- the ##
@@ -109,8 +117,8 @@ if (   not open( $sidecar_fh, qw| > |, $sidecar_path )
 
 return $symlink_abs;    ##  returning absolute path of created symlink  ##
 
-#,,,.,,.,,.,.,...,.,,,,,.,..,,,..,..,,,,,,.,,,..,,...,...,..,,...,..,,.,.,.,.,
-#GH7WL35I5DCRKQQBR63TUZUJW2NRYWOQYHK6EA7CQDWB2KNZGALIUWRGADSJEIN6IP4W24VEEMIQK
-#\\\|AUNQEMSWSKLFSO73REHVG6MKUUHNZQ5SOWXY7EIZAE7S2LYQ3KM \ / AMOS7 \ YOURUM ::
-#\[7]LNZQLLTTKGJQXDLIQOTMFLVM4FOXG3DQQXW7HPHNHHLAMGS6NCBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,.,,,.,.,.,,,,,,,,,.,...,,..,..,,...,...,.,.,.,,,,,,,,.,,.,,,
+#JOOBL2QXUJRGVZPEAEZIAF4MAD3327RGBKDM6RSQSITERJBXSUMQ5OER6TWJFM7VLEE6YTK4NGYES
+#\\\|JZL3HU6ORDCCVDU6UPBQTTTXBT53SFB6YKCFSYTCTGTP7Y5GKCS \ / AMOS7 \ YOURUM ::
+#\[7]6F7VAM4KGEMOSEJ4BUHVC5DBFESCBQZ4CCUCPLKNF4VQCHSBPYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
