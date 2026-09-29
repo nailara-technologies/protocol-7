@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = invoke-web.is_alive
+# descr  = liveness of the tracked invoke.ai pid [ own child or adopted
+#          orphan ; EPERM counts as alive for one started by another user ]
+# param  = pid
+# return = TRUE | FALSE
+
+my $pid = shift // return FALSE;
+return FALSE if $pid !~ m|^\d+$|;
+
+## own exited child : reap it [ a zombie would still answer kill 0 ] ##
+return FALSE if waitpid( $pid, POSIX::WNOHANG() ) == $pid;
+
+return FALSE if not kill( 0, $pid ) and not $!{'EPERM'};    ## gone ##
+
+## pid reuse guard [ /proc/<pid>/cmdline is readable across users ] ##
+my $cmdline = '';
+if ( open my $cfh, '<', "/proc/$pid/cmdline" ) {
+    local $/;
+    $cmdline = <$cfh> // '';
+    close $cfh;
+}
+return $cmdline =~ m|invokeai-web| ? TRUE : FALSE;
+
+#,,,,,,..,,..,.,.,,,,,,,.,,..,,..,.,.,.,,,...,..,,...,...,,.,,,.,,..,,...,,,,,
+#4M5C4RGYIPJU3ZIFFUV7K74FFBKT4SJK5O3H65XDDYK6PPXMSQ6CIIJ374D2NOL3MLASQ53Q3T466
+#\\\|OPJCAPSBIB3PK62ALNEMQM2KG2CO33KFCCEYNGGCGIQH5KRVE5H \ / AMOS7 \ YOURUM ::
+#\[7]SHKJFZGR7MEYX6B3METUJ5J6AVTAHBHFE7USK3YMKFPSUDG6BKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

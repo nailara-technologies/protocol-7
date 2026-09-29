@@ -6,15 +6,95 @@
 ## load required modules [ one at a time per base.perlmod.autoload ]
 map { <[base.perlmod.autoload]>->($ARG) } qw| IPC::Open3 Symbol Fcntl |;
 
-## initialize state
-<invoke-web.status> = 'idle';
-<invoke-web.pid>    = undef;
-<invoke-web.url> = <external.models.invokeai.url> // 'http://127.0.0.1:9090';
-<invoke-web.binary> = '/home/taeki/miniconda3/envs/invokeai/bin/invokeai-web';
-<invoke-web.root>   = '/home/taeki/.invokeai';
-<invoke-web.output> = '';
-<invoke-web.ready_logged> = FALSE;
-<invoke-web.crash_logged> = FALSE;
+my $reinit = shift // TRUE;    ## provided by 'base.init_modules' ##
+
+## zenka output directory owned by the run user [ zenka.v7 sets        ##
+## system.zenka-user.current ; recursive : fixes content created while ##
+## the zenka still ran as the protocol-7 user ]                        ##
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0, '', TRUE );
+
+## initialize state [ a reinit keeps track of a running process ]
+<invoke-web.status>       //= 'idle';
+<invoke-web.pid>          //= undef;
+<invoke-web.output_tail>  //= [];      ## last lines [ invoke-web.log ] ##
+<invoke-web.carry>        //= {};      ## incomplete line per stream ##
+<invoke-web.ready_logged> //= FALSE;
+delete <invoke-web.output>;    ## replaced by the bounded output tail ##
+
+## invoke.ai output lines : first match wins, unmatched lines log at 3 ##
+<invoke-web.output_tail_max> = 200;
+<invoke-web.output_patterns> = [
+    {   'kind'  => 'ready',
+        'level' => 1,
+        'match' => qr{uvicorn running on|invoke running on|application startup complete}i
+    },
+    {   'kind'  => 'oom',
+        'level' => 0,
+        'match' => qr{out of memory|OutOfMemoryError|cannot allocate memory}i
+    },
+    {   'kind'  => 'model',
+        'level' => 2,
+        'match' => qr{missing model file|model\b.*\b(?:not found|does not exist)|unknown model}i
+    },
+    {   'kind'  => 'error',
+        'level' => 0,
+        'match' => qr{::ERROR\b|^Traceback \(most recent call last\)|\bError:\s}
+    },
+    {   'kind'  => 'progress',
+        'level' => 3,
+        'match' => qr{\d+%\|.*\|\s*\d+/\d+\s*\[}
+    },
+    {   'kind'  => 'item',
+        'level' => 1,
+        'match' => qr{executing queue item|queue item \d+ (?:started|completed|failed)}i
+    },
+    {   'kind'  => 'item_done',    ## same session id as 'Executing ..' ##
+        'level' => 2,
+        'match' => qr{::INFO --> Graph stats: \S+}
+    },
+    {   'kind'  => 'render_stat',  ## graph stats table, summarized ##
+        'level' => 3,
+        'match' => qr{^(?:TOTAL GRAPH EXECUTION TIME|RAM used by InvokeAI process|VRAM in use|\s*Cache high water mark):}
+    },
+    {   'kind'  => 'warning',
+        'level' => 2,
+        'match' => qr{::WARNING\b}
+    },
+    {   'kind'  => 'info',
+        'level' => 2,
+        'match' => qr{::INFO\b}
+    },
+];
+<invoke-web.crash_logged> //= FALSE;
+## the port invoke.ai reported [ parse_output_line ] wins over the config ##
+<invoke-web.url> = <invoke-web.url_detected> // <external.models.invokeai.url>
+    // 'http://127.0.0.1:9090';
+
+## invoke.ai is installed below the home of the zenka's run user [ zenka.v7 ] ##
+my $run_user = <invoke-web.run_user> // <system.admin-user> // '';
+my $run_home = length $run_user ? ( getpwnam $run_user )[7] : undef;
+<invoke-web.binary>   = <external.models.invokeai.binary> // (
+    defined $run_home
+    ? "$run_home/miniconda3/envs/invokeai/bin/invokeai-web"
+    : undef
+);
+<invoke-web.root> = <external.models.invokeai.root>
+    // ( defined $run_home ? "$run_home/.invokeai" : undef );
+
+## binary check while still root [ init_code runs before the privilege drop ##
+## ; the home directory may be 700 ]. unprivileged reinit : only a definite ##
+## ENOENT changes the stored result                                         ##
+if ( not defined <invoke-web.binary> ) {
+    <invoke-web.binary_ok> = FALSE;
+} elsif ( -x <invoke-web.binary> ) {
+    <invoke-web.binary_ok> = TRUE;
+} elsif ( not $reinit or $!{'ENOENT'} ) {
+    <invoke-web.binary_ok> = FALSE;
+    <[base.logs]>->(
+        0,                   'invoke.ai binary not usable [ %s : %s ]',
+        <invoke-web.binary>, "$OS_ERROR"
+    );
+}
 
 ## check for orphan invoke.ai process from previous run
 my $saved_ref = <[file.zenka_dir.load]>->('state/invokeai.pid');
@@ -22,7 +102,8 @@ if ( defined $saved_ref ) {
     my ( $saved_pid, $saved_bin ) = split m|\n|, $saved_ref->$*;
     $saved_pid //= '';
     $saved_bin //= '';
-    if ( $saved_pid =~ m|^\d+$| and kill( 0, $saved_pid ) ) {
+    if (    ( <invoke-web.pid> // -1 ) != $saved_pid    ## own process [ reinit ] ##
+        and <[invoke-web.is_alive]>->($saved_pid) ) {
         ## verify process name matches before adopting
         my $proc_cmd = '';
         if ( open my $cfh, '<', "/proc/$saved_pid/cmdline" ) {
@@ -34,6 +115,7 @@ if ( defined $saved_ref ) {
             ## adopt orphan process
             <invoke-web.pid>        = $saved_pid;
             <invoke-web.status>     = 'running';
+            <[base.zenki.pause_ondemand_timeout]>;    ## see cmd.start ##
             <invoke-web.start_time> = <[base.time]>->(3);
             <[base.zenki.report_child_pid]>->($saved_pid);
             <[base.logs]>->(
@@ -65,8 +147,8 @@ if ( defined $saved_ref ) {
 
 0;
 
-#,,.,,,.,,.,.,,,,,..,,..,,...,...,.,,,..,,,,.,..,,...,...,.,,,.,,,...,.,,,,.,,
-#OGPJCCFJHIGTWRIYV63H4D3PLHHNGM74ZH2TBY5H4GXS7NF6NCR25NXCLHRF63CQO5NGKG4565T2O
-#\\\|BCD5UORXMBWRK42GVBDMFTOC73EIK7745KKZIMZZLWCWVHAAHDS \ / AMOS7 \ YOURUM ::
-#\[7]OU243527IHZMABK6RQCNVSKXFJWAWZ4KADB6OXOKVYHMKPBIWYBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,,..,.,.,.,,,,..,,,.,.,.,,,.,..,,...,..,,,,,,,..,...,,..,..,,
+#B462WOIVUCCZAU72GV5AC4VTTJ7E5EK7VD4IEF257FVACGQ727HKKUO27ENQPV7CRMFTHPRWNFJUI
+#\\\|JRMZOEJHHV5ZXJWFW442J5DOIPGLHMXEFTJAG6RT37TIE2SYAPX \ / AMOS7 \ YOURUM ::
+#\[7]VAUOOJON5HHRTAERRVBSKVLKFFZGL5RJ7LDLJ2CKAEOAF6ZDT4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

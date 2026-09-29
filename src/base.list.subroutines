@@ -195,6 +195,7 @@ return [ qw[
         keyring.derive
         jobqueue.count
         iteration.loop
+        invoke-web.api
         index.gen_path
         index.feed.dir
         index.activate
@@ -793,6 +794,7 @@ return [ qw[
         jobsite.cmd.reject
         jobqueue.init_code
         jobqueue.find_jobs
+        invoke-web.cmd.log
         index.restore.cube
         index.persist.cube
         index.cmd.stop-job
@@ -1005,6 +1007,7 @@ return [ qw[
         iteration.init_code
         io.ip.tcp.init_code
         invoke.cmd.generate
+        invoke-web.is_alive
         invoke-web.cmd.stop
         index.tick.feed-dir
         index.cmd.correlate
@@ -1241,6 +1244,8 @@ return [ qw[
         io.ip.tcp.input.open
         invoke-web.init_code
         invoke-web.cmd.start
+        invoke-web.cmd.queue
+        invoke-web.cmd.pause
         impressive.parse_bin
         impressive.init_code
         impressive.cmd.pause
@@ -1491,6 +1496,7 @@ return [ qw[
         io.ip.tcp.output.open
         io.ip.tcp.input.close
         invoke-web.cmd.status
+        invoke-web.cmd.resume
         invoke-web.cmd.health
         index.source.register
         impressive.cmd.status
@@ -2609,6 +2615,7 @@ return [ qw[
         jobqueue.priorities_table
         jobqueue.joblist_template
         io.unix.socket.input.open
+        invoke-web.handler.output
         impressive.process_subcfg
         impressive.cmd.reposition
         image2html.base.init_code
@@ -3424,6 +3431,7 @@ return [ qw[
         jobsite.handler.rescan-timer
         jobsite.dispatch.assessments
         io.unix.socket.input.connect
+        invoke-web.parse_output_line
         index.cube.format.dir_offset
         impressive.autoinstall_check
         httpsd.request_capture.write
@@ -4708,7 +4716,6 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobsite.handler.stray-job-exported
         jobqueue.event.register_job_queues
-        invoke-web.handler.monitor_startup
         impressive.subscribe-screen-change
         image2html.child.cmd.convert_image
         httpsd.discover_active_certificate
@@ -5657,8 +5664,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,.,..,,.,,,,..,,,,,,,.,,,.,,,,,,..,,,,,.,.,...,.,.,.,,,,..,,,,,,,,,.,,,
-#HHHW5CSLVMHWQXPENQTZ3LCTTSTPQ5NAV5FNKKSBRSI2WC6MZQ6S4OT3TTEITXPESNSEDQTSRMDF2
-#\\\|MAATFFHLZXW76T4NE3S42W7BDUWA66WMZ6XI3MJLDMV2XPDJI6T \ / AMOS7 \ YOURUM ::
-#\[7]FQQPIYUJBSIXW4OI3QGQAV2TWLPXONAFAGOLPJD7QKT5E5TAKSAI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,,,.,...,,,,,..,,...,.,,,,.,,.,.,...,...,.,,,,.,,,.,,...,,,.,
+#GYGIJJFAHQK22MXWGSG7LNAJK3DA4MFYE5IBY5BKJE3B3Y67UD3U2CE4JDJJGFDIPO3XDRAN6MNKE
+#\\\|AQWZ4NN4OBST3NSZCXEGTU6LV6UTBEX6J2DGC54ZVB722GCHJRH \ / AMOS7 \ YOURUM ::
+#\[7]MYQL3PRXRV6MOM7HBRFLBRNH6PIUC3LNDFPKHNVLATL46QDHHUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

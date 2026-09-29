@@ -9,9 +9,10 @@ my $url    = <invoke-web.url>    // '-';
 
 ## verify pid is still alive if we think it is running
 if ( $status eq 'running' and defined <invoke-web.pid> ) {
-    unless ( kill( 0, <invoke-web.pid> ) ) {
+    unless ( <[invoke-web.is_alive]>->(<invoke-web.pid>) ) {
         $status = 'crashed';
         <invoke-web.status> = 'crashed';
+        <[base.zenki.resume_ondemand_timeout]>;
     }
 }
 
@@ -24,10 +25,26 @@ if ( defined <invoke-web.start_time> ) {
 my $out = sprintf "status : %s%s\npid    : %s\nurl    : %s\n",
     $status, $uptime, $pid, $url;
 
+$out .= sprintf "render : %s\n", <invoke-web.progress>
+    if defined <invoke-web.progress>;
+if ( my $last = <invoke-web.last_render> ) {
+    $out .= sprintf "last   : item %s [ %s, ram %s ]\n", $last->{'item'} // '?',
+        $last->{'stats'}->{'TOTAL GRAPH EXECUTION TIME'}   // '?',
+        $last->{'stats'}->{'RAM used by InvokeAI process'} // '?';
+}
+$out .= sprintf "models : %d missing [ invoke-web.log ]\n",
+    <invoke-web.missing_models>
+    if <invoke-web.missing_models>;
+
+if ( my $err = <invoke-web.last_error> ) {
+    $out .= sprintf "error  : [%s, %ds ago] %s\n", $err->{'kind'},
+        <[base.time]>->(3) - $err->{'time'}, $err->{'line'};
+}
+
 return { mode => qw| size |, data => $out };
 
-#,,.,,...,.,,,,.,,.,.,..,,,,,,...,,.,,...,,,,,..,,...,..,,...,.,,,...,.,,,,,,,
-#HCWGDVNFKIV2BZYQ4GZIXFH56XHKXPBJQXZ4DNPC2T3ATD5MUC37CKLXAJ2GBXD7CZDCKOTJJH4K6
-#\\\|ANURMYEIDOE5SGJIXPVJTWI3GNVSZ2IIFAHYICS5BHFIYONMKSC \ / AMOS7 \ YOURUM ::
-#\[7]XJ3R7DKWU73E4E57KSFA66XQQWVX6UBP55DLBX3EGIKHENIJ3SAY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,.,,,,.,,.,,,...,,,.,.,.,,,.,..,,...,...,.,.,.,.,...,.,.,,,,,
+#FEMR43RN6XNKWWAKYWLNATJAAX7KXJ5UYJKEUY7ZQOF5O6QT53YOOUA7PNOWWSXV3SYKDH6WNOMZI
+#\\\|FUNOYTFLJNBEHKYBSY6ABKLISS626YSJY7Y4GIIHTEOHBTDE3OH \ / AMOS7 \ YOURUM ::
+#\[7]6A7MDPSWIORMO6SPEXSMGFNKB6CW7KRY36VC33MZTFVKISVI56DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

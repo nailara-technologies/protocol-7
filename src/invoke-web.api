@@ -1,0 +1,33 @@
+## [:< ##
+
+# name   = invoke-web.api
+# descr  = one request to the local invoke.ai rest api [ 3s timeout, never
+#          through a proxy ] -- returns { ok, code, status, data }
+# param  = method [ GET | PUT | POST ], path [ '/api/v1/..' ]
+
+my $method = uc( shift // qw| GET | );
+my $path   = shift // '/';
+
+<[base.perlmod.autoload]>->('LWP::UserAgent');
+<[base.perlmod.autoload]>->('JSON::PP');
+
+my $url = <invoke-web.url> // 'http://127.0.0.1:9090';
+my $ua  = LWP::UserAgent->new( timeout => 3 );
+$ua->no_proxy( 'localhost', '127.0.0.1' );    ## local api : direct ##
+
+my $response = $ua->request( HTTP::Request->new( $method, "$url$path" ) );
+my $body     = $response->decoded_content // '';
+my $decoded  = eval { JSON::PP::decode_json($body) };
+
+return {
+    'ok'     => $response->is_success ? TRUE : FALSE,
+    'code'   => $response->code,
+    'status' => $response->status_line,
+    'data'   => $decoded // $body,
+};
+
+#,,,,,..,,...,.,.,...,,..,,,,,,..,..,,...,,,,,..,,...,...,.,.,...,,,.,.,,,..,,
+#WDSRM4WKQ5QGMGTHDFX4FWENVH3HER3ENQAPIWG4NLLVCERR3646C6JJAJSDDEBXVJMZFLBIU33GW
+#\\\|RT3XVFPHNCM6Q2DHZAKBF72TQ3L347KLVCJ32RXIHD326YOBTXT \ / AMOS7 \ YOURUM ::
+#\[7]PQPGUL25RJD66PDC5TIRAVVLJIWV4KAZ4O7RSJGLOBRS66PUTSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

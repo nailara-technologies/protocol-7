@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = invoke-web.handler.output
+# descr = drain invoke.ai stdout \ stderr line by line : every complete line
+#         goes to the output tail and invoke-web.parse_output_line [ status,
+#         errors, render progress ] ; eof before ready = crashed
+# note  = single-read io watcher, modeled after povray.handler.render_output
+
+my $event   = shift;
+my $watcher = eval { $event->w };
+my $fh      = eval { $watcher->fd };
+return unless defined $fh;
+
+my $wdata  = eval { $watcher->data } // {};
+my $pid    = $wdata->{'pid'};
+my $stream = $wdata->{'stream'} // qw| out |;
+
+## stale watcher guard [ a previous process ] ##
+if ( not defined <invoke-web.pid> or not defined $pid
+    or <invoke-web.pid> != $pid ) {
+    $watcher->cancel if $watcher->is_active;
+    return;
+}
+
+## precheck : avoid a perl warning on a closed filehandle ##
+unless ( defined fileno($fh) ) {
+    $watcher->cancel if $watcher->is_active;
+    return;
+}
+
+## single read per invocation : yields to the event loop, the watcher ##
+## fires again while more data is waiting                             ##
+my $buf = '';
+my $n   = sysread( $fh, $buf, 65536 );
+
+if ( not defined $n ) {
+    $watcher->cancel    ## EBADF \ EINVAL : fd closed meanwhile ##
+        if ( $OS_ERROR == 9 or $OS_ERROR == 22 ) and $watcher->is_active;
+    return;             ## EAGAIN : fires again when readable ##
+}
+
+my $carry = <invoke-web.carry>->{$stream} //= '';
+
+if ( $n > 0 ) {
+    $carry .= $buf;
+
+    ## complete lines [ \r too : tqdm progress bars only rewrite the line ] ##
+    while ( $carry =~ s|^([^\r\n]*)[\r\n]+|| ) {
+        my $line = $1;
+        next if not length $line;
+        <[invoke-web.parse_output_line]>->( $line, $stream );
+    }
+
+    ## no line end within 64k : hand it over as it is ##
+    if ( length $carry > 65536 ) {
+        <[invoke-web.parse_output_line]>->( $carry, $stream );
+        $carry = '';
+    }
+    <invoke-web.carry>->{$stream} = $carry;
+    return;
+}
+
+## :[ eof on this stream ]: ##
+$watcher->cancel if $watcher->is_active;
+<[invoke-web.parse_output_line]>->( $carry, $stream ) if length $carry;
+delete <invoke-web.carry>->{$stream};
+close($fh);
+
+return if $stream ne qw| out |;    ## stdout eof marks the process end ##
+
+if ( not <invoke-web.ready_logged> and not <invoke-web.crash_logged> ) {
+    <invoke-web.crash_logged> = TRUE;
+    <invoke-web.status>       = 'crashed';
+    <[base.zenki.resume_ondemand_timeout]>;
+    <[base.logs]>->( 0, 'invoke.ai ended before ready, last output :' );
+    my @tail = <invoke-web.output_tail>->@*;
+    @tail = @tail[ -8 .. -1 ] if @tail > 8;
+    <[base.logs]>->( 0, ':. %s', $ARG ) for @tail;
+}
+
+#,,,.,,..,,,,,,..,,..,..,,..,,..,,,,.,.,,,,,.,..,,...,..,,...,,,,,.,.,.,,,...,
+#6DDCFCA2IZWQN4AUHUU5T4PFJPMLJUEWV7EFROTDPMJGZ3BYFIIFHFMGYFIHR2KF424M62UHO6P5K
+#\\\|I5NGF7G4FB3UNWHYSK2G6SEICB2PU32QN3Q7XEYL5AA37H44P4H \ / AMOS7 \ YOURUM ::
+#\[7]GQQEOLCGL6AFDN3XXRYQHB7URV5EVRAJP4TIB3FFZZIQL5POA6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
