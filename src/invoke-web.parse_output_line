@@ -49,7 +49,7 @@ if ( $kind eq qw| ready | ) {
                 'data'    => { 'attempt' => 1 },
             }
             )
-            if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 )
+            if <[invoke-web.start_paused]> ne qw| no |
             or defined <invoke-web.recover>;    ## requeue first ##
 
         ## interactive queue mode from the start [ zenka.v7 flag ; armed ##
@@ -203,8 +203,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,,,.,,,,,.,,,,,,.,,,..,,.,,,.,,,.,,,.,,,.,,..,,...,...,.,.,.,,,.,,,,,.,,,.,
-#OFJY5KSAXD6MUNN5LGFS3IVZCPQA5JGUC66DTJST4PRXMTTNEINHUZOO23J7OBVTHU5UDMIHLDECM
-#\\\|DC5JKAMYPM7LLCVLGPBWFWEGSP3QO6QSMPNJOR2JXLXCP737OZO \ / AMOS7 \ YOURUM ::
-#\[7]QM4VH2GETT45YJYEKDATFQW7HLZGHJXBWEP2SWGMBVRTKBFOAKDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,.,,,,,.,..,,,,.,..,,,,,,.,.,..,,...,..,,.,,,,.,,.,,,,,,,..,,
+#ACGTNXGTZY6ZBDQC2Y2FENNJ6UQAFM6BLBYA3QFVK3IH7A2NP6J3HJTMHTJP436SGV47FCP3BU34S
+#\\\|FSA6RCMUOYOY5B6VWJB3KCVJ4VXU2QY5BYOAXSNSKENDW2KTQZT \ / AMOS7 \ YOURUM ::
+#\[7]3QYLB43J6FNGWW2G475W6HPQ2COLLKH2YEPOT2PZBGVMNIKU6KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

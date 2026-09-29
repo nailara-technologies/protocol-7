@@ -1,0 +1,19 @@
+## [:< ##
+
+# name   = invoke-web.start_paused
+# descr  = queue pause mode for an invoke.ai start [ invoke-web.start_paused ]
+# return = 'no' | 'yes' | 'startup'
+# note   = yes : paused at ready, stays paused until resume. startup : held
+#          and paused only while starting [ invoke.ai dequeues before its
+#          api is up ], resumed after the release. other values as
+#          base.cfg_bool [ on \ true -> yes, off \ no -> no ]
+
+my $mode = lc( <invoke-web.start_paused> // qw| no | );
+return $mode if $mode eq qw| startup |;
+return <[base.cfg_bool]>->($mode) ? qw| yes | : qw| no |;
+
+#,,,.,,,,,.,.,..,,,,.,,,.,,,,,.,,,,..,..,,,..,..,,...,...,..,,...,,,.,.,,,,.,,
+#PQJXRQERQLDWZLANQ62NEAECGPD25DWAMLO275TKWNPUUMTY67TVR7Q3SVWCFXXLOB2LMDO6C7LAQ
+#\\\|YFXR5JAJQFPORDU24YZ54EOKAZ5UHWWS3K363HCLRZBILSX5KDW \ / AMOS7 \ YOURUM ::
+#\[7]WIYXJ4WSBREE3HSLBDZHM2Z6OB34LLQNEDRS3R67ZCPR7XUCJIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
