@@ -137,8 +137,60 @@ side note : the instrumentation patch had a sprintf-arity bug that warned on
 every slice and flooded the console -- hooks can't be removed from a running
 Event loop, so any rerun needs a cube restart to remove them.
 
-#,,,,,,,.,.,.,..,,,.,,,.,,,,,,,.,,,,.,.,.,,,,,.,.,...,...,,,.,..,,...,,,.,,.,,
-#QEAPSVJJVAFJD5A3OALNLFO7YGL7ONXWUULG67UEEB4PWM4XPALSPIFQVINLEHNYIFZUTUJVJOOPO
-#\\\|533ILEJ4BUWQAT353TGZBQ2CHFKQAU3WXPMYMN77IG7LOVJ2DBN \ / AMOS7 \ YOURUM ::
-#\[7]ZQRO7H2PAWFUCRAPNTQYN357TR7OEK4QMLPROQMYF3EYCZ3PMOBQ 7  DATA SIGNATURE ::
+## ROOT CAUSE + FIX [ 2026-09-29 ]
+
+strace [ `-T -p <cube>` ] : `clock_nanosleep( 70000000 )`, 1..4x in a row,
+after `AUTH_TRUE`, per command and on close. source : `p7_ntime` in
+`bin/Protocol-7`. precision-0 `base.ntime` checked harmony on a unix time
+rounded to 2 digits [ 10ms ticks ] ; a retry lands in the same tick
+[ collision ] and slept `7 x tick` = 70ms. ~29% of ticks are harmonic at any
+resolution [ mean disharmonic run 2.4 ticks, max ~21 ] -> 70ms multiples.
+hot-path precision-0 callers : `base.handler.command` [ last_activity ],
+`base.handler.auth` [ auth_time, connected_since ], `base.session.check.close`
+[ last_seen ]. log timestamps [ precision 5 ] were NOT affected [ zero short
+sleeps in the trace ].
+
+- harmony off [ `base.ntime-harmony = 0` in cube zenka.v7, test only ] :
+  0/40 slow, 4.2..5.7ms
+- fix 1 : `unix_precision = ntime_precision + 4` [ one ntime unit is
+  1/4200s ], cap 11 -> 22 : 1/40 slow [ first probe after restart ]
+- fix 2 : collision delay 1 tick instead of 7 : 0/80 slow, mean 6.7ms
+  [ several ntime calls per request ]
+- per call, measured standalone : mean 14.9 -> 0.49ms, p99 702 -> 2.4ms,
+  max 1194 -> 3.3ms
+
+option left open : zero-wait lookup of the latest harmonic tick <= now
+[ backdates <= ~1.5ms, monotonic guard per call ]. `p7_ntime__b32` has its
+own harmony loop [ sub-us delay, not blocking today ] -- keep in step if
+`p7_ntime` changes further. the unix-input branch still maps
+`ntime_precision = unix_precision - 2` [ unchanged ].
+
+## final fix [ 2026-09-29, same session ]
+
+finding : `p7_ntime` asserted harmony on the INTERNAL unix time, but returns
+the ntime derived from it -- the returned value was harmonic only 29.0% of
+the time [ = the rate of any value, uncorrelated ]. the waits bought nothing
+for the value callers get. `p7_ntime__b32` checks its own encoded value
+[ correct ].
+
+`p7_ntime` now : ntime truncated from the clock [ or the unix input ], then
+stepping BACK one ntime unit at a time until the returned value is harmonic.
+no sleep, never in the future, monotonic across calls. the step is a
+decrement on the digit string -- a float step [ first attempt ] does not move
+the value at precision >= 4 [ below double resolution at ~3.2e12 ], burned
+all 24 retries per call and, through b32 [ log timestamps, precision 5 ],
+cost ~6.5ms per log line. standalone, p0/p2/p5/p8 : ~25us mean, < 0.2ms
+max, 100% harmonic, no limit hits.
+
+live, all zenki restarted : 0/80 slow, mean ~6.9ms [ harmony-off baseline
+4.6ms also had log timestamps without harmony ]. harmony stays the default
+[ decided : routable timestamps may carry harmony requirements later ].
+
+behaviour changes to keep in mind : unix-input conversions [ `->()` ]
+now step back instead of forward ; values are truncated, not rounded.
+
+#,,,,,.,,,..,,.,,,,,.,..,,,.,,,.,,,,,,.,,,.,.,.,.,...,...,.,.,..,,.,.,,,,,,..,
+#GKTC5IJEX3AR72C6SZRKSSAULUGNSYZMMOICZR663GNXPZENURGLNRDLBZAXPOPHASPV56MNQHOBG
+#\\\|34HPQ2LEWPTP7JH62N5XPR5TPDC54HCWP7PVLGW6UCBFVVGLA2I \ / AMOS7 \ YOURUM ::
+#\[7]KDWAA2E5B5UHUHR7MY66WPLRIJ46WUPLCXRTEKAMWX2ISDIZPKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
