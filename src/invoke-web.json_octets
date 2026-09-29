@@ -1,0 +1,17 @@
+## [:< ##
+
+# name   = invoke-web.json_octets
+# descr  = request body for the invoke.ai api : json as utf-8 octets [
+#          format.json.encode returns characters -- prompts can hold
+#          non-ascii text ]
+# param  = perl structure
+
+my $json = <[format.json.encode]>->(shift);
+utf8::encode($json);
+return $json;
+
+#,,,,,..,,,.,,...,,,,,...,.,,,,.,,.,.,...,.,,,..,,...,...,...,,,.,..,,,,,,...,
+#3W7QS6F6ANX2KEV5Y4JSVHV6SCVWX6BMY5NGXOPIN3W7ZEKJJOZTRTNG2GYW7LUHEGQUBKIGPCVSQ
+#\\\|WGY7AAP6MZ5VX6BJSPZQIKGIB5Y7UOVCALPHRI47X5BK3JLJTKE \ / AMOS7 \ YOURUM ::
+#\[7]PU3RBFCUA2CJKXO7QZLQMUAXXYSMNOOGNUICRAA7NO3M4LSNQ4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

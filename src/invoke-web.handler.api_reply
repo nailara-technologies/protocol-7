@@ -9,8 +9,9 @@ my $reply   = shift              // {};
 my $wrap    = $reply->{'params'} // {};
 my $handler = $wrap->{'handler'} // return;
 
-my $body    = $reply->{'body'} // '';
-my $decoded = length $body ? eval { JSON::PP::decode_json($body) } : undef;
+my $body = $reply->{'body'} // '';
+## json bodies only : an error text stays the raw body ##
+my $decoded = $body =~ m|^\s*[\[{]| ? <[format.json.decode]>->($body) : undef;
 
 return if not exists $code{$handler};
 
@@ -23,8 +24,8 @@ $code{$handler}->(
     }
 );
 
-#,,,.,..,,,,.,,,,,,..,..,,.,.,.,,,.,,,,.,,.,.,..,,...,...,.,.,...,,..,,.,,..,,
-#4APO36O3IMG5XTKJVA4FGESQIJPIIKCDD5PPADBSCSDNC6IPS5B43AQB722UTXJJ4RGQTVYADOVES
-#\\\|TSFUT4ML2HKJWV7O2XACSAUNRA6ZRIV7ALPO4UQIP3CIZWOZYOW \ / AMOS7 \ YOURUM ::
-#\[7]KWD2OLDO6PL2NCMCM6NUWKJF7MEXJEHZCH5QF6A34CY3MUH7YSBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,..,,,,.,.,.,,,,,..,,.,,,,,,,..,,...,...,..,,...,,,.,,,,,,,.,
+#AAX3IZDBLYRR4OKFZCLF7UJO2YS77CHN5GMKHZB6YP3QA3UVQLRQCE3TZAGS73WZISR2DI3VUBYO2
+#\\\|PEPSFLVP5A3CDUIL2XCNQMA5PXT2R475RWSEZYBMHWGMR2THGC2 \ / AMOS7 \ YOURUM ::
+#\[7]NZ72M5QZ5XNVC2KBXYWZJXNL64JVUECXPZENLQ5IZBLLIAYZOWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,12 +17,12 @@ $ua->no_proxy( 'localhost', '127.0.0.1' );    ## local api : direct ##
 my $request = HTTP::Request->new( $method, "$url$path" );
 if ( defined $payload ) {
     $request->header( 'Content-Type' => 'application/json' );
-    $request->content( JSON::PP::encode_json($payload) );
+    $request->content( <[invoke-web.json_octets]>->($payload) );
 }
 
 my $response = $ua->request($request);
-my $body     = $response->decoded_content // '';
-my $decoded  = eval { JSON::PP::decode_json($body) };
+my $body     = $response->decoded_content( charset => qw| none | ) // '';
+my $decoded = $body =~ m|^\s*[\[{]| ? <[format.json.decode]>->($body) : undef;
 
 return {
     'ok'     => $response->is_success ? TRUE : FALSE,
@@ -31,8 +31,8 @@ return {
     'data'   => $decoded // $body,
 };
 
-#,,,,,,..,,,.,,..,,.,,,.,,,,,,.,,,.,.,..,,.,.,..,,...,...,,.,,..,,.,.,.,,,...,
-#DBK3T5U6XPODX772ATA3L5MW32CD5PMNYTMXRUPSYYF4NDK4EQZLSSH3Z4Q4YKVASXL5AAAMHIWD2
-#\\\|JE355GKLX2WAMYVHVORQL72X65NDGTULJINILNGGNV5DMMWSJ6E \ / AMOS7 \ YOURUM ::
-#\[7]M3OPFQ5EYIYXRXTALJUBFITYM4JZRHISOZ22ZTUFUEWTCD2A42AQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,,..,..,,,..,,.,,,,.,.,,,,..,..,,...,..,,.,,,..,,,..,.,,,...,
+#UD4FD6EGFCAG2OLNVBS6IESEOU6XXQQIW5N6FYHRM5W7R5OH4YZENLWVBMGIJ44ZG55SQ2QZUJLC2
+#\\\|BR7Z4JWNXFTZKISJBLOT6ZSYPKSTU5BJSUZ6BGMTMBE2F6TY3B7 \ / AMOS7 \ YOURUM ::
+#\[7]BCK4FDGW2ZEHEXCNFGIEPLIL4H5WCLFQQBI7TMYPWTM7MQITKCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

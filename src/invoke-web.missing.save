@@ -5,13 +5,12 @@
 #          -- models a render failed on, with the failed item : survives a
 #          zenka restart, read back in init_code
 
-my $json = JSON::PP->new->canonical->pretty->encode(
-    <invoke-web.missing_at_render> // {} );
+my $json = <[format.json.encode]>->( <invoke-web.missing_at_render> // {} );
 
 return <[file.zenka_dir.write]>->( 'state/missing-at-render', \$json );
 
-#,,,.,,..,...,.,,,,,,,..,,..,,...,...,..,,,.,,..,,...,...,,,.,...,..,,.,.,,,,,
-#U2C2AKQTCKAFC5I34OYJPPFD436CWZXA2XEDCY5X3HVOJS6SAHQ3WW3CSSBRYO7OT4CEBOQUP3MII
-#\\\|D5F5QEPQ2KJBTE7VGZ6GKSOUUIVXYBNXIYJ4HTVBZANJKDDE7FB \ / AMOS7 \ YOURUM ::
-#\[7]6L7YRHDNFUV2ZWJHQZ7PDN4AIVHTVZE2A5Z7HI3YPXME6B3ATAAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,.,,,.,,.,,,,,.,.,.,,,,,...,..,,...,...,.,.,..,,..,,.,,,,..,
+#XXYUCNHCD42KGNOXPXPLCHRODADCLJ7STKJQO6FVXS6NRVJKA35R5SPAVH7XWVGEPSTZST564GIQK
+#\\\|G5DD2I77WLBIWMYYFOFPMXPRKYO56HQ6RYQONPO4LGPHOK5E6T5 \ / AMOS7 \ YOURUM ::
+#\[7]YLQJGPLSCKUHM4HWRGTIP2VL42QHT2BJFWIDP3EPGPGWROVBX2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
