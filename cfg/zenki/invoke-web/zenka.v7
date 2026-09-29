@@ -4,6 +4,13 @@
 [load_config_file:'shared-params']
 [load_config_file:'external-inference-models']
 
+##  the invoke.ai install owner : the zenka runs as this user  ##
+invoke-web.run_user = <system.admin-user>
+system.zenka-user.current = <invoke-web.run_user>   ## <-- not 'protocol-7' ##
+
+##  pause the invoke.ai queue once it is ready [ it resumes on every start ]  ##
+invoke-web.start_paused = yes
+
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.logfile = 2
 system.zenka.verbosity.console = 2
@@ -17,14 +24,15 @@ heartbeat.disabled = 1
 
 access.cmd.usr.cube = heart verify-instance commands reload \
                       show-buffer show-access \
-                      start stop restart status health
+                      start stop restart status health log \
+                      pause resume queue
 
 modules.load = auth.client net protocol io.unix ui invoke-web
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+[root.drop_privs:<system.zenka-user.current>]
 
 [base.net.connect:'unix']
 
@@ -32,8 +40,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web
 
 [zenka.loop]
 
-#,,,.,,,.,,.,,.,.,,,,,,..,...,,,.,..,,.,,,,,,,..,,...,...,.,.,.,.,,,,,,..,.,.,
-#7FK7MN6YAGDWGWLNW7NGOZI6ZFUH6BSD3TSU4IFLC42FP7TWKSWMG4EASLTLGRPJTEV2RIUMKQVJK
-#\\\|WYBHZCY4SUVMP2H3TGTGYFCWUSMUSEMRSBAIVCKYATH2UY4F5EC \ / AMOS7 \ YOURUM ::
-#\[7]OYI63YEWEWMWVI4L5IUVZV2WFYXGMS7H2LJDXVIDNGNQJONZVGBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,,,,.,.,,,.,,.,,.,.,,.,,,,.,..,,...,..,,.,.,.,.,..,,,,,,,,.,
+#6AZDHQGNHFDTUJBOV67GQAUMACA4JPXOCSC63INRHEFGLGEG73WQLMGY7R3LCV2ZYUCRUZ7OZI5UQ
+#\\\|2GZHRGOP5AUD3XZZ6TUP6W3ULRALIJYZLTOFVAASRUH3XJ3HE54 \ / AMOS7 \ YOURUM ::
+#\[7]QBZ2Y7I77D3TJGHU3EMBOK4VPXDMSQMRD2FDNFSEPSVAWUUQBKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

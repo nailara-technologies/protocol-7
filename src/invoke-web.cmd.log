@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = invoke-web.cmd.log
+# descr = last lines of invoke.ai output [ default 20 ]
+# param = [ number of lines ]
+
+my $count = $call->{'args'} // '';
+$count = 20 if $count !~ m|^\d+$| or $count < 1;
+
+my @tail = ( <invoke-web.output_tail> // [] )->@*;
+@tail = @tail[ -$count .. -1 ] if @tail > $count;
+
+return { mode => qw| false |, data => 'no invoke.ai output yet' }
+    if not @tail;
+
+return { mode => qw| size |, data => join( "\n", @tail ) . "\n" };
+
+#,,.,,.,,,...,,,,,.,.,...,,,.,...,,.,,.,.,,,.,..,,...,..,,..,,..,,,,,,,.,,...,
+#HXEMLAKAS6QGIHP6SAXCKEMDRCDBCOPS2LRKGNBVWZ4B2YRJKQEFATDGDWOY4KT3JBXLXTGRALAI2
+#\\\|EZK7ZG3G2RJ77VR5C567E7APTOHUMP42YJXHZQEL653PQNGGYFU \ / AMOS7 \ YOURUM ::
+#\[7]XYF2KJURXCOGMMXBNVEMD4N75KHEB4M4VDGH4WHAPM6NO4KTNGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
