@@ -3,7 +3,7 @@
 # name  = models.storage.adapter.invoke.repair
 # descr = create verbose-path symlinks for invoke model storage
 
-my $params = $ARG // {};
+my $params = $ARG[0] // {};
 
 my $dry_run     = $params->{'dry_run'} // 0;
 my $type_filter = $params->{'type'};           # optional filter
@@ -32,7 +32,7 @@ my %BASE_ALIASES = (
     'sdxl-refiner' => ['sdxl-refiner'],
 );
 
-my $root = $data{'models'}{'external.models.invokeai.path'}
+my $root = <external.models.invokeai.path>
     // '/mnt/ext-xfs-data/models-invoke';
 
 # autoload URI::Escape if not present
@@ -137,8 +137,8 @@ my $result = {
 
 return $result;
 
-#,,,,,,,,,,.,,...,,.,,.,,,,,.,,,,,..,,,,,,,..,.,.,...,...,,,,,,..,,.,,..,,,,.,
-#GBS3ONYNY4I7CPIA4ZGPVWLZQL7DQI33AFAKCVVOIBQ3Z7A3Z24WVWAY3QJP3V532EKQGNALF2SKO
-#\\\|OYYIW6PXKQFWO3CMJTDDA7ZBIGOHAYBMB5KHR2MKWQLMMFGTSMY \ / AMOS7 \ YOURUM ::
-#\[7]4JGUILCQHK673NFUIWWGP6IW3RDVEYAES6AHJ5KUCS4XTR6GFEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,.,,,..,,,.,,.,,,,,,..,,...,..,,.,.,...,...,.,,,..,,,,.,,.,,...,
+#X5Q5CW6RJLQ4MA5AYVPC3ETVAXKFLL7TIWNFKCG4RUVKEG7DAT6JLX6PFG7TDSSRGZQBN7T6RCMXI
+#\\\|EFPFIGW474VKA65MCLEPAXLLJMXDLK5N25EUFGQ3KECVRHZRWBV \ / AMOS7 \ YOURUM ::
+#\[7]5N6C4WKWPY6CIORQD2S6X6FQXRMSOPSNWQVOOP7QOIQ5G5WY4YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

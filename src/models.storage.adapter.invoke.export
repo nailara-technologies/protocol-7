@@ -3,7 +3,7 @@
 # name  = models.storage.adapter.invoke.export
 # descr = export invoke model collection to portable yaml snapshot
 
-my $params = $ARG // {};
+my $params = $ARG[0] // {};
 
 my $output_path = $params->{'output_path'}
     // sprintf( '/tmp/invoke-models-%s.yaml',
@@ -14,7 +14,7 @@ unless ($records) {
     $records = <[models.storage.adapter.invoke.discover]>;
 }
 
-my $root = $data{'models'}{'external.models.invokeai.path'}
+my $root = <external.models.invokeai.path>
     // '/mnt/ext-xfs-data/models-invoke';
 
 my @models;
@@ -111,8 +111,8 @@ return {
     'missing' => $missing
 };
 
-#,,,.,,,.,,..,.,.,...,,..,..,,...,...,,..,,.,,..,,...,..,,.,.,,..,,,,,,,.,,..,
-#GFM6FHTTKPFRD54VKT24MRPNG5LPJZVBFSTVY5NKXOJA3W4SYILP6GU32LACSBR5WB2HVK6U27Z72
-#\\\|5IFAORO463SIVSGJSDE6IVAXMTCDAEHCW7HSQNH33ZS2IMFAAZ5 \ / AMOS7 \ YOURUM ::
-#\[7]SYNUIFOLOUY6YN4F53AMYY6UYWMT7F4OJOPTWIVMKZ6X76GCMGDI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,..,,.,.,...,...,..,,...,.,,,..,,...,...,.,,,.,,,,,.,,..,..,,
+#5RI3TNT2STNS2F6KQZHYUG6CLZMCWLOQ7WGQPBYYOAPQLRQXLLCNUHJKEKLKMWXJ3NSQEG2A2RCBG
+#\\\|IEGGOLQXY6U53ZA5V2SK4W5SUBKMQR2KTUND4TUSLGUHDD2ZVSE \ / AMOS7 \ YOURUM ::
+#\[7]V7VA4TDLLLWCUGCZE5YGY2R7RKDNKTSDQ5FIA5P7BSGRHBXKEKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
