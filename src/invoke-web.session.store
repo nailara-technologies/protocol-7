@@ -11,16 +11,17 @@
 my $sessions = shift;
 
 if ( defined $sessions ) {
-    my $json = JSON::PP->new->canonical->pretty->encode($sessions);
+    my $json = <[format.json.encode]>->($sessions);
     <[file.zenka_dir.write]>->( 'state/parked-sessions', \$json );
     return $sessions;
 }
 
 my $saved = <[file.zenka_dir.load]>->('state/parked-sessions');
-return ( defined $saved ? eval { JSON::PP::decode_json( $saved->$* ) } : undef ) // {};
+return ( defined $saved ? <[format.json.decode]>->( $saved->$* ) : undef )
+    // {};
 
-#,,..,.,,,,.,,,,,,.,.,,..,.,.,,,,,,..,..,,,.,,..,,...,..,,..,,...,.,.,,,.,...,
-#ECOJJ3B3YMRJOCDO6MZZ6NRFNLCBJSS3NNVULJFFY7QDBMAX6ZFGCIT2V6ZUFPIXD2I5GXCHTZL2K
-#\\\|CMS2GWY5PPDLNGICNHD3Y7PC6YE7YICJMDIDCLZ55LJOMTUSTRP \ / AMOS7 \ YOURUM ::
-#\[7]S5AHTG4AKGUB4NE462GWF7ZYYWCIA2ZNRP7GHFTCXMEVSKCTVWDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,.,.,.,..,,.,,,.,.,...,...,,..,..,,...,..,,...,..,,,..,,,,,.,,,
+#ON7ERMHGMLFZSUWCOO2TTWTP5EOBWSMEVMBE5WCQ3FNOZF7BLY2QQMX33VXSPVMUUO5CDRQ5NDZ2E
+#\\\|UOM2TL43TTTPSAZVYIZZOFBO7QZ47AFOXZPOE5HX7IMAFNHVAAW \ / AMOS7 \ YOURUM ::
+#\[7]PK356GFMPUPUTXVQ2MTT5XTYVKGJSBH5EZMGN2WJNOWQLOQ4UIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
