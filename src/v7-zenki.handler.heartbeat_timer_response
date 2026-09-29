@@ -23,6 +23,7 @@ $instance->{'timer'}->{'heartbeat-timeout'}->cancel
 if (    $response->{'cmd'} eq qw| TRUE |
     and $response->{'call_args'}->{'args'} =~ m|^beating| ) {  # success again
     delete $instance->{'heartbeat'}->{'errors'};
+    delete $instance->{'heartbeat'}->{'pressure_ext'};    ## answered again ##
 
     ##  latency stats [ zenka-stamped, cube : v7 round trip ]  ##
     my ( $latency, $source );
@@ -119,8 +120,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,.,,.,,,.,.,...,,.,,...,,,.,,,,,.,,,.,,,,..,..,,...,...,,.,,,..,.,.,..,,.,.,
-#7IR3USEXQSKH5P5LAZOIVNWMUHUZCCUATMJN6D5QGVZJDZN3RAVVFQKPDP4HGSFMXLGHDP2ARUEUI
-#\\\|VGLRAERVM6UOODP2H6WUZ6WLJ6V5NCGOQDQCCUP6O6TOE2ZLKOV \ / AMOS7 \ YOURUM ::
-#\[7]NB2FNGYSWHA326BMYJZTLPXTLGO63BZ3BFRS5Q55KUNEJC6XSGCQ 7  DATA SIGNATURE ::
+#,,,.,...,...,...,.,.,..,,...,,,.,.,,,,,,,,.,,..,,...,...,.,.,,,.,.,,,,.,,,.,,
+#TVBJO7GF46FBTZ54R3CQOEBXHQQ7BIDLKU5GQJZAWJT737ZU4PWXOXKHKWIOCPO7W2T5W2ODDGKRI
+#\\\|VGQVE3WSQ7QDGSNARU62PWCQUR5NSOAXRIIJTZZR7FP4L3KSEDE \ / AMOS7 \ YOURUM ::
+#\[7]6SNJSCDTQECHYSHPFYX5643UFL5Y3XX76HT77BRZUMPB2BFOKSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
