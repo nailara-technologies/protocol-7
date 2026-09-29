@@ -22,9 +22,14 @@ if ( $arg eq qw| start | ) {
     <invoke-web.index.stats>
         = { 'indexed' => 0, 'skipped' => 0, 'failed' => 0 };
     <[base.zenki.pause_ondemand_timeout]>;    ## the job keeps the zenka ##
-    <invoke-web.timer.index_step> = <[event.add_timer]>->(
-        {   'after'   => 0.1,
-            'handler' => 'invoke-web.index.step',
+    ## idle watcher [ index zenka pattern, index.tick.start ] : a step runs
+    ## only when the event loop has nothing else to do -- heartbeats and
+    ## replies always come first, idle time goes to the job
+    <invoke-web.index.idle_watcher> //= <[event.add_idle]>->(
+        {   'handler'   => 'invoke-web.index.step',
+            'repeat'    => TRUE,
+            'reentrant' => FALSE,    ## event.once turns inside a step ##
+            'desc'      => 'invoke-web image index',
         }
     );
     return { mode => qw| size |, data => "image index job started\n" };
@@ -50,7 +55,8 @@ my $source_db = <[invoke-web.queue.db]>;
 my ($total)
     = defined $source_db
     ? $source_db->selectrow_array( 'SELECT COUNT(*) FROM images WHERE '
-        . 'is_intermediate = 0 AND deleted_at IS NULL' )
+        . 'is_intermediate = 0 AND deleted_at '
+        . 'IS NULL' )
     : ('?');
 my $stats = <invoke-web.index.stats> // {};
 
@@ -73,8 +79,8 @@ return {
     )
 };
 
-#,,,,,..,,.,.,.,,,...,.,.,,..,,.,,,,.,...,,,,,..,,...,..,,,..,.,,,...,,..,...,
-#3QXEBRVOIHM5PKTFD7S4QKK7TDXOIPKW744IGHIDYYQCFBCO5H53MO2GDCO7AOIHUN7BETL5XV6YE
-#\\\|KVLBMDCUBL4HHAG3QQW6ZHK2JPTGVZ6MCH4NCBYVIQXNR6OVVCD \ / AMOS7 \ YOURUM ::
-#\[7]UP3H4FC27T6ZWCJEYB5U66L5OVGVSKMQMMJJPOUEF5FPFREAYADQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,.,.,.,.,.,,,.,,,,.,,,..,...,..,,...,...,,..,,,,,,,.,,.,,,,.,
+#Y4VSTLZVKYAHWLWJC6SO5K4SXLWONLPTLZK4VEU3NMLCACELGAPXBGVVOQ4HSHZBRASHGFGRWDFVC
+#\\\|TBY7HVW66YDLZJYNDWDNKLRB3Q4LTNOU2GSGFCCJJV372CMBDGG \ / AMOS7 \ YOURUM ::
+#\[7]LODEFF4RCDTTWP5V6734UGTKHHJ26CFBTXVUF4A2AUM5R4AAS2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

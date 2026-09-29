@@ -12,8 +12,6 @@
 my $target = <invoke-web.index.backup_path> // '';
 return FALSE if not length $target;
 
-my $index = <[invoke-web.index.db]> // return FALSE;
-
 ( my $target_dir = $target ) =~ s|/[^/]+$||;
 if ( not -d $target_dir and not mkdir $target_dir ) {
     <[base.logs]>->(
@@ -22,20 +20,42 @@ if ( not -d $target_dir and not mkdir $target_dir ) {
     return FALSE;
 }
 
-if ( not $index->sqlite_backup_to_file($target) ) {
+## one backup at a time ; reap a finished one [ no zombie ] ##
+my $running = <invoke-web.index.backup_pid>;
+if ( defined $running ) {
+    return FALSE if waitpid( $running, POSIX::WNOHANG() ) == 0;
+    delete <invoke-web.index.backup_pid>;
+}
+
+## in a short-lived child : the copy to a busy external disk can take seconds
+## -- the zenka's event loop must not wait for it. the child opens its own
+## connection [ never shares the parent's handle ]
+my $source = sprintf '%s/state/image-index.db', <[file.zenka_dir.data_path]>;
+my $pid    = fork;
+if ( not defined $pid ) {
     <[base.logs]>->(
-        1,
-        'image index backup ' . 'failed [ %s ]',
-        $index->errstr // '?'
+        1, 'image index backup ' . ': fork failed [ %s ]', "$OS_ERROR"
     );
     return FALSE;
 }
+if ( $pid == 0 ) {
+    my $ok = eval {
+        my $dbh = DBI->connect( "dbi:SQLite:dbname=$source", '', '',
+            { 'RaiseError' => 1, 'PrintError' => 0 } );
+        $dbh->sqlite_busy_timeout(5000);
+        $dbh->sqlite_backup_to_file($target) or die;
+        $dbh->disconnect;
+        1;
+    };
+    POSIX::_exit( $ok ? 0 : 1 );
+}
 
-<[base.logs]>->( 2, 'image index backup -> %s', $target );
+<invoke-web.index.backup_pid> = $pid;
+<[base.logs]>->( 2, 'image index backup -> %s [ child %d ]', $target, $pid );
 return TRUE;
 
-#,,,.,..,,...,...,.,,,,.,,,,,,,,.,...,,..,,.,,..,,...,...,...,,,,,,..,,,.,..,,
-#ORP7FA64FFF26V3E3ICZF3EAMZPZY6GJQAV7X7NR7KCK4RSNCCT7FUXZWNLCYB7SRF7XQFBJCUNZA
-#\\\|4GMQ3X2PXHNPSTS44WKBMDI2HTFFR7R4P6I7N435Y2I5CUADWLF \ / AMOS7 \ YOURUM ::
-#\[7]HWRXTFFJXWWYLF5V42CRBQGP4WGCQLGFQHTDPGTRTNGQWBLVW4DA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,..,.,,,.,.,.,.,.,,,...,...,,,.,..,,...,...,.,,,,.,,.,.,...,,,.,
+#R5BIAIPNB75EOKSVXBG3TKSLRO2ZJPS6S2XU77G4PIWBD2GJLQJKRXE5BKBZLOVGGO56HQDTFREHY
+#\\\|KGZ32XR74GKUGMXEE3YVEXL3JKZE2CIBJLNJGPZPLUS5M5LHCDB \ / AMOS7 \ YOURUM ::
+#\[7]3D5TMIQQ7EERYDYKRMR6UWYABY5PIQ7WW4PZ5BEHQ4TLZD3T4QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

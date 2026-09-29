@@ -8,8 +8,8 @@
 my $reason = shift // 'stopped';
 
 <invoke-web.index.running> = FALSE;
-my $timer = delete <invoke-web.timer.index_step>;
-$timer->cancel if defined $timer and ref $timer and $timer->is_active;
+my $watcher = delete <invoke-web.index.idle_watcher>;
+$watcher->cancel if defined $watcher and ref $watcher;
 
 my $stats = <invoke-web.index.stats> // {};
 <[base.logs]>->(
@@ -28,8 +28,8 @@ my $stats = <invoke-web.index.stats> // {};
 
 return undef;
 
-#,,.,,.,,,..,,.,,,,..,.,.,..,,..,,,..,...,,,,,..,,...,...,,..,,.,,...,.,.,...,
-#D5BZOMKH5AGPUOT7RFLZZ2KDBXW5IYISZILLVOAG4RY3X24GMZNUSG3U2CPFX6VHWQJI45GSJ2MZO
-#\\\|3XPFGWAVHOFVVFUMELXQVQYTGPTAFYD56R6RY4ECJTA7HNMXCSF \ / AMOS7 \ YOURUM ::
-#\[7]WO333RML5JITIVGRE6T2R35GOKBMBEGYFIYOJHAVTH6UB6TZCKDQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,...,.,,,,,.,,,,,,,.,...,..,,..,,...,...,,,,,..,,.,,,,..,,,.,
+#7O5A3V754NPFERHM77NCTTIBRB4EV5GYBBTPXETEMO4BP7PPKQNFJFWY7F672UVBDSHNUOTYPRCNS
+#\\\|5EACHQLTHM7YEWORIZFS4DAKMQLTAVYEUGQ3AGFYWTEP5Q3DXYF \ / AMOS7 \ YOURUM ::
+#\[7]P4GM6V7RCFFOO6NNE6ATNFZATMZHAFGIXPEDZ2ZWC7CRLWVTVGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
