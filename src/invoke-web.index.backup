@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = invoke-web.index.backup
+# descr  = lazy copy of the image index to the external path [ sqlite
+#          online backup : consistent while the index is in use ]
+# note   = the local index [ zenka data dir ] is the fast primary ; the
+#          external copy is optional [ invoke-web.index.backup_path, empty
+#          = off ]
+
+<invoke-web.index.last_backup> = time;
+
+my $target = <invoke-web.index.backup_path> // '';
+return FALSE if not length $target;
+
+my $index = <[invoke-web.index.db]> // return FALSE;
+
+( my $target_dir = $target ) =~ s|/[^/]+$||;
+if ( not -d $target_dir and not mkdir $target_dir ) {
+    <[base.logs]>->(
+        1, 'image index backup ' . ': no directory [ %s ]', $target_dir
+    );
+    return FALSE;
+}
+
+if ( not $index->sqlite_backup_to_file($target) ) {
+    <[base.logs]>->(
+        1,
+        'image index backup ' . 'failed [ %s ]',
+        $index->errstr // '?'
+    );
+    return FALSE;
+}
+
+<[base.logs]>->( 2, 'image index backup -> %s', $target );
+return TRUE;
+
+#,,,.,..,,...,...,.,,,,.,,,,,,,,.,...,,..,,.,,..,,...,...,...,,,,,,..,,,.,..,,
+#ORP7FA64FFF26V3E3ICZF3EAMZPZY6GJQAV7X7NR7KCK4RSNCCT7FUXZWNLCYB7SRF7XQFBJCUNZA
+#\\\|4GMQ3X2PXHNPSTS44WKBMDI2HTFFR7R4P6I7N435Y2I5CUADWLF \ / AMOS7 \ YOURUM ::
+#\[7]HWRXTFFJXWWYLF5V42CRBQGP4WGCQLGFQHTDPGTRTNGQWBLVW4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
