@@ -5,7 +5,7 @@
 # descr = overwrite /dev/shm capture file with current request context
 #         [ pure tmpfs write : no disk I/O, survives process crash ]
 
-return if not <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 );
+return if not <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // TRUE );
 <httpsd.path.request_capture> //= qw| /dev/shm/httpsd-last-request |;
 
 my $info = shift // {};
@@ -27,8 +27,8 @@ $content .= " tls       : $tls\n"    if length $tls;
 
 <[file.put]>->( $path, \$content ) or warn ': request-capture : write failed';
 
-#,,,,,,,,,.,,,,,,,,..,,..,..,,,,.,,.,,...,...,..,,...,...,..,,,..,..,,...,,,.,
-#TPZZ5AQLHG7AH3XGQNZJ4T34CVZ4SZUEY4WBKJMYXE25XCDNWV7LVPGXXQZNH6WYKPOCBPUB2XNBU
-#\\\|PO5YCJZPMQN3ZSPQKMYM5BIUHQGDCHKIWPSM6CDN6CETSKOPP7D \ / AMOS7 \ YOURUM ::
-#\[7]S45K3B7ZOQWKPWZDD6F6WF3HBP5LPPUCEB3BAIULQLB5BJR2S2BA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,.,,.,,,,.,,,..,,..,.,.,..,,..,,...,...,..,,..,,,,.,,..,,,,,
+#BMEWGBDEYXGBHVYJJS6LE6NQSO7X4M4HIRQLN4B4LUDGJM6TEG5E6MTIVBXUR53U5PIQ4FJBRXNDG
+#\\\|OMC6WD3IOCTWHXGUH6A3CRVNHTGCPY6QFXRV4AUYN6JQQFE62KZ \ / AMOS7 \ YOURUM ::
+#\[7]HQFVKB3SGEONGXNNUXKYU6JACEMZXJ32JKWWM2XGKLTEIQHTO6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
