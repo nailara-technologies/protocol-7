@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = invoke-web.handler.startup_pause_reply
+# descr = async reply of the queue pause at ready [ invoke-web.start_paused ]
+# note  = invoke.ai prints its 'running on' line shortly BEFORE its server
+#         accepts connections : a refused connect is retried [ 2s, 10x ]
+
+my $reply   = shift                           // {};
+my $attempt = $reply->{'params'}->{'attempt'} // 1;
+
+if (    not $reply->{'ok'}
+    and ( $reply->{'status'} // '' ) =~ m|refused|i
+    and $attempt < 10 ) {
+    <[event.add_timer]>->(
+        {   'after'   => 2,
+            'handler' => 'invoke-web.handler.startup_pause_retry',
+            'data'    => { 'attempt' => $attempt + 1 },
+        }
+    );
+    return;
+}
+
+<[base.logs]>->(
+    $reply->{'ok'} ? 1 : 0,
+    'queue pause on startup : %s%s',
+    $reply->{'ok'} ? 'done'                  : $reply->{'status'},
+    $attempt > 1   ? " [ attempt $attempt ]" : ''
+);
+
+#,,,.,.,.,,,,,,,,,..,,...,,,,,.,.,,.,,.,,,.,,,..,,...,...,..,,,..,,.,,,.,,,.,,
+#IEMPV5XTAU2Z74WHWV3AKCKOLJXQ6A3TGWJUCCY35SUJ56UFBMN6DD56MPRBRVTQFPNTYNTQSOT4U
+#\\\|E4R4VKSJ2FPXGGVOBXY6HRHRHZDILH35EYIOVXF3VDGQ3U6MUER \ / AMOS7 \ YOURUM ::
+#\[7]W5K6QWIV5MAEU4NO43CAWLUEHPVR26MBKCGMZXMMRPP4NDG5SGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
