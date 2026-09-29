@@ -110,31 +110,48 @@ my @cmd = ( $binary, "--root=$root" );
     if <[invoke-web.start_paused]> ne qw| no |
     or defined <invoke-web.recover>;
 
-## spawn via IPC::Open3
-my ( $stdout_fh, $stderr_fh );
-$stderr_fh = Symbol::gensym();
+## output : stdout + stderr go to a transport file in the zenka's runtime   ##
+## dir [ invoke-web.output.path ] -- not a pipe : a pipe's read end dies    ##
+## with this zenka, a file can be reopened by the next instance and read on ##
+## from its offset [ invoke-web.output.read ]. O_APPEND, so the reader may  ##
+## truncate it ; PYTHONUNBUFFERED, or lines wait in python's buffer         ##
+my $out_path = <[invoke-web.output.path]>;
+my ( $null_in, $out_fh );
+my $spawn_err
+    = not length( $out_path // '' ) ? 'no runtime dir for the output'
+    : not open( $null_in, qw| < |, '/dev/null' ) ? "/dev/null : $OS_ERROR"
+    : not sysopen(
+    $out_fh,
+    $out_path,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_TRUNC()
+        | Fcntl::O_APPEND(),
+    0600
+    ) ? "$out_path : $OS_ERROR"
+    : undef;
 
-my $child_pid
-    = eval { IPC::Open3::open3( undef, $stdout_fh, $stderr_fh, @cmd ) };
+my $child_pid;
+if ( not defined $spawn_err ) {
+    local $ENV{'PYTHONUNBUFFERED'} = 1;
+    $child_pid = eval {
+        IPC::Open3::open3(
+            '<&' . fileno($null_in),
+            '>&' . fileno($out_fh),
+            undef,    ## stderr : the same file as stdout ##
+            @cmd
+        );
+    };
+    $spawn_err = $EVAL_ERROR || 'unknown' if not $child_pid;
+}
+close($null_in) if defined $null_in;
+close($out_fh)  if defined $out_fh;
 
-if ( !$child_pid || $EVAL_ERROR ) {
-    <[base.logs]>->(
-        0,
-        'failed to spawn invoke.ai [ %s ]',
-        $EVAL_ERROR // 'unknown'
-    );
+if ( defined $spawn_err ) {
+    <[base.logs]>->( 0, 'failed to spawn invoke.ai [ %s ]', $spawn_err );
     <[invoke-web.queue.release]>;
     return {
         mode => qw| false |,
-        data => sprintf( 'spawn failed [ %s ]', $EVAL_ERROR || 'unknown' )
+        data => sprintf( 'spawn failed [ %s ]', $spawn_err )
     };
-}
-
-## set pipes to non-blocking
-for my $pipe_fh ( $stdout_fh, $stderr_fh ) {
-    my $flags = fcntl( $pipe_fh, Fcntl::F_GETFL(), 0 );
-    fcntl( $pipe_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
-        if defined $flags;
 }
 
 ## update state
@@ -152,8 +169,6 @@ delete <invoke-web.missing_models>;
 delete <invoke-web.url_detected>;    ## reported again by the ready line ##
 <invoke-web.ready_logged> = FALSE;
 <invoke-web.crash_logged> = FALSE;
-<invoke-web.io_stdout>    = $stdout_fh;
-<invoke-web.io_stderr>    = $stderr_fh;
 
 ## persist pid for orphan detection
 <[file.zenka_dir.write]>->( 'state/invokeai.pid', \"$child_pid\n$binary\n" );
@@ -167,25 +182,10 @@ delete <invoke-web.url_detected>;    ## reported again by the ready line ##
 ## report child pid to v7
 <[base.zenki.report_child_pid]>->($child_pid);
 
-## register I/O watchers : line-wise output parsing for the process lifetime
-my $watcher_out = <[event.add_io]>->(
-    {   'fd'      => $stdout_fh,
-        'handler' => 'invoke-web.handler.output',
-        'data'    => { 'pid' => $child_pid, 'stream' => qw| out | },
-        'poll'    => qw| re |,
-    }
-);
-
-my $watcher_err = <[event.add_io]>->(
-    {   'fd'      => $stderr_fh,
-        'handler' => 'invoke-web.handler.output',
-        'data'    => { 'pid' => $child_pid, 'stream' => qw| err | },
-        'poll'    => qw| re |,
-    }
-);
-
-<invoke-web.watcher_stdout> = $watcher_out;
-<invoke-web.watcher_stderr> = $watcher_err;
+## follow the output file from its start : line-wise parsing for the process
+## lifetime [ invoke-web.output.read ] ; a start marker in the invokeai buffer
+## [ persisted by p7-log ]
+<[invoke-web.output.follow]>->( $child_pid, 0, qw| started | );
 
 <[base.logs]>->( 1, 'invoke.ai starting [pid:%d]', $child_pid );
 
@@ -194,8 +194,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,..,,.,,,,.,,,,,.,,,,,.,...,.,,,,..,.,,,.,,,..,,...,...,,,,,,,,,,.,,,,.,..,,
-#AHLROVTPEOOHRS6CI4AQRKLYH7FI2Y7E334YDOZ2MSCA44EORPX4FS7IMTVZQJ65BFQ4MFUZEU4EG
-#\\\|OI2CV3HM7S2NOYCNXO4TXARQSWTO6VINZEVLFPVLVL7T4J2OLNF \ / AMOS7 \ YOURUM ::
-#\[7]KXZZBCZXMSFG4YMEBBLIMN77UWBRK5MKDQZP6DKOGINW7IV3QGAA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,.,.,,,...,,.,,,,,,..,,...,...,..,,...,...,...,,.,,.,.,..,,..,,
+#35NBCMP4ILOXIOZG3XVMNZ5XPFZ4QDKPWV3633OCL333UPC5MYWSUCKMUKI5PZH6PVNDWWWUWWBJW
+#\\\|J5ZEMT4LPFYPPWUITN6SE44HVX5UEOZZQGZJDKAWKUT5QSVSJYW \ / AMOS7 \ YOURUM ::
+#\[7]PBI2VUDVAPZWA3BC6N6OJ44WMY3F7DPV4CSUDWCNUV2TAOIHTSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

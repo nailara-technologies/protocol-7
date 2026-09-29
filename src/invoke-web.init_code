@@ -14,6 +14,11 @@ my $reinit = shift // TRUE;    ## provided by 'base.init_modules' ##
 ## zenka still ran as the protocol-7 user ]                                ##
 <[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0, '', TRUE );
 
+## runtime dir [ /var/run/.7/invoke-web ] : invoke.ai's output transport file
+## [ invoke-web.output.path ] -- created here while still root
+<invoke-web.run_dir> = <[base.file.zenka_dir.run_path]>->(TRUE)
+    if not $reinit or not defined <invoke-web.run_dir>;
+
 ## initialize state [ a reinit keeps track of a running process ]
 <invoke-web.status>       //= 'idle';
 <invoke-web.pid>          //= undef;
@@ -165,6 +170,15 @@ if ( defined $saved_ref ) {
             <[base.logs]>->(
                 1, 'adopted orphan invoke.ai process [pid:%d]', $saved_pid
             );
+
+            ## read its output on from the saved offset -- after the ##
+            ## privilege drop [ a timer armed here fires post-drop ] ##
+            <[event.add_timer]>->(
+                {   'after'   => 1,
+                    'handler' => qw| invoke-web.handler.output_adopt |,
+                    'data'    => { 'pid' => $saved_pid },
+                }
+            );
         } else {
             ## stale pid file : process is not invokeai-web
             <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
@@ -255,8 +269,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,.,,,,.,,,.,,.,,..,,.,,,,,.,.,,,..,,..,,.,.,..,,...,..,,,..,.,.,,..,,..,,..,
-#5IC4ZYLVXVCUUQOIWFJDCMWE6S42U33XVIJELTW4D7RUWX4LGSZBAG6LBSCC4QDQ3XM6QCW4TQVQU
-#\\\|7PPVVXC5MIHNLPFFH5776CLRASZRY4U25APAIGPK5QKZJELQH7O \ / AMOS7 \ YOURUM ::
-#\[7]VPWIQNVYKZLLM3CYVRHMT3DDKKI3YGRX4MWXG6VA743JOG4DUODY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,.,,,.,,,.,,,,,,,,..,...,,,,,..,,...,...,..,,.,,,,,.,,.,,...,
+#F5UYJGWVFTZOBHHJMDZ7X37FT4RV2N2ABR4SGSTMZRGUEIEZUEX3XQSKCFAV4YT3NYWZC4GOAJTDE
+#\\\|W4YT6FS2HFQEANF5SSTUILMB47RPXXXHVJ3C5PTWTCVRIZAKUW2 \ / AMOS7 \ YOURUM ::
+#\[7]XFACWYZA27QF46LTFDQR43KZKZEEU37NKBSL6M62DJIHUT7SLABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

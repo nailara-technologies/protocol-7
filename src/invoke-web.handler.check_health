@@ -7,6 +7,21 @@ my $pid = <invoke-web.pid>;
 return unless defined $pid;
 
 unless ( <[invoke-web.is_alive]>->($pid) ) {
+
+    ## its last lines first [ a traceback explains the end ] ##
+    <[invoke-web.output.read]>;
+    <[invoke-web.output.stop]>;
+
+    ## ended before ready : the start failed -- show why, hold nothing ##
+    if ( not <invoke-web.ready_logged> and not <invoke-web.crash_logged> ) {
+        <invoke-web.crash_logged> = TRUE;
+        <[base.logs]>->( 0, 'invoke.ai ended before ready, last output :' );
+        my @tail = ( <invoke-web.output_tail> // [] )->@*;
+        @tail = @tail[ -8 .. -1 ] if @tail > 8;
+        <[base.logs]>->( 0, ':. %s', $ARG ) for @tail;
+        <[invoke-web.queue.release]>;
+    }
+
     <[base.logs]>->( 0, 'invoke.ai process [pid:%d] disappeared', $pid );
     <invoke-web.status> = 'crashed';
     <[base.zenki.resume_ondemand_timeout]>;
@@ -14,8 +29,8 @@ unless ( <[invoke-web.is_alive]>->($pid) ) {
     <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
 }
 
-#,,,,,.,,,...,,,,,,,,,...,.,.,.,,,,,.,,..,...,..,,...,...,.,,,,,.,..,,...,.,,,
-#P67B5TMKHAGEPCSVGHFZM244BRJXF4O2D2H3VCR5ENG2BEZURP5CQWQUL2LDTGG55Q6UCIVXQBKCU
-#\\\|ZJJLGECPTGJAPR5IRTQG2WLGLSKA6NVOU7FJ7FJZX3CYC6KQAL3 \ / AMOS7 \ YOURUM ::
-#\[7]O3J7ORCSOTAUHBH5U2NMNFJRARAUNDIYAZ4Y4H4BC66Q56VHWMDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,,..,.,,,,,,,,.,,,.,,...,,.,,..,,...,..,,...,,,,,.,.,.,,,.,.,
+#FSHT6SPA4QD2T3WRP7CURJ4W47FV6TXJ4HR3M2NIQBHVHMAKMYUHNJEBJWANJX7N3VSNC4BEVGYNW
+#\\\|V5ZODQO6TFR7B7QZ3XG6CNABGTAONYCW72RPV24MRB2BQXHD7WQ \ / AMOS7 \ YOURUM ::
+#\[7]CKXJPVRMNKMDZ2G6MIGV64INTGMQBZOHOHLUU35AROOIRDFJTMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
