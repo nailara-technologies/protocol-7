@@ -101,3 +101,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|KWTQ65VJRERYB5H6W5VRPUHMPFA55BCVFFOMDWH2URPJAYF742Y \ / AMOS7 \ YOURUM ::
 #\[7]OIEYRD5AMBCK4QQUUHAMQITFE25YCFBVO7ZJKFAPXDRZ2PBXG2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
+
+#,,,,,..,,,,,,..,,,,.,.,.,,,,,,.,,,,,,,,.,,.,,..,,...,...,,.,,...,,..,,..,...,
+#IMJ5YKTEVWJA2RC7Q3XXNQGMKC5IDRFWPVWCRSU6D2F2UAJFPMAAHFJXZGAMC53SYEV75GZRPTVUU
+#\\\|6TK34QFQOPXYM3NGK4LO746QG7YWK6Y4SZ4K5K2RVNH76B4BZZC \ / AMOS7 \ YOURUM ::
+#\[7]5HKX4NZVHQB6B7RQTIGWYLNL5VILRFBMCSG2ZCLOTNIEUEVWX2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
