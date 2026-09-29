@@ -1,0 +1,110 @@
+## [:< ##
+
+# name   = invoke-web.hash_finalize
+# descr  = blake3 checked : move the staged autofetch download into
+#          place, re-queue the failed item[s] [ async ]
+# param  = model name, [ digest : 64 hex | undef : verify failed ],
+#          [ skip verify : the file is already back in place ]
+# return = { ok, msg } hashref
+# note   = called by invoke-web.handler.hash_poll [ digest in hand ] and
+#          directly by invoke-web.fetch_finalize [ file already back ]. a
+#          mismatch removes the staged file -- nothing is moved. the
+#          re-queue goes through api_async [ this path runs inside the
+#          event loop ; the blocking invoke-web.api would stall the zenka
+#          -- the manual requeue-missing command keeps that variant ]
+
+my $name        = shift // return { 'ok' => FALSE, 'msg' => 'no model name' };
+my $digest      = shift;
+my $skip_verify = shift // FALSE;
+
+my $entry = <invoke-web.missing_at_render>->{$name}
+    // return { 'ok' => FALSE, 'msg' => "model '$name' not recorded" };
+my $fetch = $entry->{'fetch'} // {};
+
+my $staged = $fetch->{'staging'} // '';
+my $dest   = $fetch->{'path'}    // '';
+
+## terminal record helper : state, reason, persist, log ##
+my $fail = sub {
+    my $reason = shift;
+    $fetch->{'state'}  = qw| failed |;
+    $fetch->{'reason'} = $reason;
+    $fetch->{'time'}   = <[base.time]>->(3);
+    <[invoke-web.missing.save]>;
+    <[base.logs]>->( 0, 'autofetch : %s : %s', $name, $reason );
+    return { 'ok' => FALSE, 'msg' => $reason };
+};
+
+if ( not $skip_verify ) {
+
+    ## checked before the fork [ invoke-web.fetch_finalize ] ##
+    my $expected = lc( $fetch->{'hash'} // '' );
+    $expected =~ s{^blake3:}{};
+
+    return $fail->('hash verification did not complete [ staged file kept ]')
+        if not defined $digest or $digest !~ m{\A[0-9a-f]{64}\z};
+
+    if ( $digest ne $expected ) {
+        unlink($staged);
+        return $fail->(
+            sprintf(
+                'blake3 mismatch [ db %s.. != '
+                    . 'file %s.. ] -- staged file removed',
+                substr( $expected, 0, 12 ),
+                substr( $digest,   0, 12 )
+            )
+        );
+    }
+    <[base.logs]>->( 2, "autofetch : %s : blake3 verified", $name );
+}
+
+## the db path's parent directory [ fetch-files only made the staging dir ##
+## -- e.g. the bare-uuid model directory ]                                ##
+my ($dir) = $dest =~ m{^(.+)/[^/]+$};
+if ( length $dir and not -d $dir ) {
+    my $mk = '';
+    foreach my $part ( grep {length} split m|/|, $dir ) {
+        $mk .= "/$part";
+        mkdir($mk) if not -d $mk;
+    }
+}
+
+if ( -e $dest ) {
+
+    ## already back [ manual restore \ overlap ] : drop the staged copy ##
+    unlink($staged) if length $staged and -e $staged;
+} elsif ( not rename( $staged, $dest ) ) {
+    return $fail->("move to $dest failed : $OS_ERROR");
+}
+
+$fetch->{'state'} = qw| done |;
+$fetch->{'time'}  = <[base.time]>->(3);
+delete $fetch->{'reason'};
+<[invoke-web.missing.save]>;
+<[base.logs]>->( 1, "autofetch : model '%s' is back at %s", $name, $dest );
+
+## retry the item[s] that failed on this model [ the selection is shared    ##
+## with the manual command : invoke-web.missing_items ; the reply drops the ##
+## missing record on success ]                                              ##
+my $models = <[invoke-web.missing_items]>->($name);
+my $model  = defined $models ? $models->{$name} : undef;
+
+if ( defined $model and $model->{'present'} and $model->{'items'}->@* ) {
+    <[invoke-web.api_async]>->(
+        'PUT',
+        '/api/v1/queue/default/retry_items_by_id',
+        [ map { $ARG + 0 } $model->{'items'}->@* ],
+        qw| invoke-web.handler.requeue_missing_reply |,
+        {   'name'  => $name,
+            'items' => [ $model->{'items'}->@* ],
+        }
+    );
+}
+
+return { 'ok' => TRUE, 'msg' => "model '$name' restored, items re-queued" };
+
+#,,,.,...,,,,,...,.,,,...,,.,,,,.,.,,,...,,.,,..,,...,...,.,.,,,.,,..,,,.,,,.,
+#BDPIQYJEAZ6Y7ZNYXVSWNZUTQT6YETIDYBDSAR3AAMTKFMODPZSJOE3LQOV34CI6LODEVI6AMT52Q
+#\\\|PGT5GDKUMXMBNZFVCAMKONYHBLFBBZ5I5VCZAGVMHWH54OWWNEV \ / AMOS7 \ YOURUM ::
+#\[7]27XNP3EWSXTKVZ65AGUCLI6CIZJCQ5GZEN6SI6I6MFLBQYYDU4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,8 +9,12 @@
 #          actually asking for it, data/tasks/invoke-missing-model-
 #          autofetch.md ]. the download runs async in the fetch-files
 #          zenka [ route-send, never blocking the event loop ] into a
-#          staging directory ; invoke-web.handler.fetch_reply moves the
-#          verified file to the db path and re-queues the failed item.
+#          staging directory ; invoke-web.fetch_finalize moves the staged
+#          file into a private verify directory [ 0700, same filesystem --
+#          hashing BY PATH in the world-writable staging directory would
+#          be a TOCTOU hole ], verifies it against the db hash [ blake3,
+#          forked child ] and renames it to the db path, then re-queues
+#          the failed item[s].
 #          models without a fetchable recorded source [ source_type
 #          'path', bare hf repo trees ] are only reported -- a source is
 #          never guessed
@@ -49,11 +53,12 @@ return {
     }
     if $state =~ m{^(?:failed|unfetchable)$} and not $force;
 
-if ( $state eq qw| fetching | and not $force ) {
+if ( $state =~ m{^(?:fetching|verifying)$} and not $force ) {
     my $staged = $fetch->{'staging'} // '';
 
-    ## self-heal : the reply died with a zenka restart [ the state file ##
-    ## outlives it ] -- a complete staged file finalizes directly       ##
+    ## self-heal : the reply [ or the hash poll timer ] died with a zenka ##
+    ## restart [ the state file outlives it ] -- a complete staged file   ##
+    ## finalizes directly [ the hash is verified again ]                  ##
     if (    length $staged
         and -s $staged
         and ( $fetch->{'size'} // 0 )
@@ -65,6 +70,13 @@ if ( $state eq qw| fetching | and not $force ) {
     ## size : a fresh dispatch truncates it [ stream_to_file ]          ##
     if ( <[base.time]>->(3) - ( $fetch->{'time'} // 0 )
         > ( <invoke-web.autofetch.timeout> // 7200 ) ) {
+
+        ## orphan cleanup : a 'verifying' leftover sits in the private ##
+        ## verify directory [ no downloader touches it ]               ##
+        unlink($staged)
+            if $state eq qw| verifying |
+            and length $staged
+            and -e $staged;
         $fetch->{'state'} = qw| seen |;    ## falls through, re-resolves ##
     } else {
         return { 'ok' => FALSE, 'msg' => 'fetch already in progress' };
@@ -146,8 +158,10 @@ return $report->(
     'repo file in a subfolder [ not built ]', 1
 ) if $repo_file =~ m|/|;
 
-## staging : inside the models root [ world-writable, same filesystem as ##
-## the destination -- the finalize rename stays atomic ]                 ##
+## staging : inside the models root [ world-writable, same filesystem as  ##
+## the destination -- the finalize moves the file into the private verify ##
+## directory [ invoke-web.autofetch.verify_dir ] before hashing, then     ##
+## renames it into place : every step stays atomic on this fs             ##
 my $staging_dir = <invoke-web.autofetch.staging>
     // sprintf( '%s/.autofetch', <external.models.invokeai.path> // '/tmp' );
 
@@ -155,6 +169,7 @@ $fetch->{'repo'}    = $repo;
 $fetch->{'file'}    = $repo_file;
 $fetch->{'path'}    = $record->{'path'};
 $fetch->{'size'}    = $record->{'size'} // 0;
+$fetch->{'hash'}    = $record->{'hash'} // '';
 $fetch->{'staging'} = sprintf( '%s/%s', $staging_dir, $repo_file );
 
 ## mode gate [ default off until tested ] : 'ask' logs a confirm hint,      ##
@@ -225,8 +240,8 @@ if ( defined <invoke-web.autofetch.timers>->{$name} ) {
 
 return { 'ok' => TRUE, 'msg' => "fetch dispatched [ $repo : $repo_file ]" };
 
-#,,..,,..,,,.,,,,,..,,,,.,.,.,...,,..,,.,,...,..,,...,..,,...,,..,,..,.,,,...,
-#75OZ5TRSKVQRB745KGVGAV6VCOYGQLQAYEG7EUBVWW2BH5BMGRUZXMI7CCNRF4YOBCABVFXDHT3GA
-#\\\|6QYIHK337EBTBZTIPZFMVRLRC6FEKWSHL5ZXTT2XATFPDU66MXZ \ / AMOS7 \ YOURUM ::
-#\[7]Q2THFQ2JWMCX6VNNHOFV4R4P4P2KFVYU5VNJEPDSRBFVTV3KR2DA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,,,.,..,,,.,,...,.,.,.,.,.,.,..,,...,...,..,,.,.,,..,..,,...,
+#E7QST2NUVN6DZTE7IG2HDLXAHJDIBMX6H6YI4QTYQUB6MTUZ5G6MVAWSTZ664JN4JQAKYKTHW6QWI
+#\\\|EU7VPAPWHCCG44P4XSEKDLP4OU3WTPGCFIQQ2XYWTC7QDXB2PG6 \ / AMOS7 \ YOURUM ::
+#\[7]E6OMOUZMNHVJJFDSE525JRRVZTBQMJMMMZMBK3O5XCPRTKKDQIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

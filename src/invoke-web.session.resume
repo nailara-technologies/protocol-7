@@ -24,7 +24,10 @@ $dbh->begin_work;
 foreach my $item_id ( sort { $a <=> $b } keys $session->{'items'}->%* ) {
     my $rows = $sth->execute( $session->{'items'}->{$item_id}, $item_id );
     if ( not defined $rows ) {
-        <[base.logs]>->( 0, 'session resume : update failed [ %s ]', $dbh->errstr );
+        <[base.logs]>->(
+            0, 'session resume : ' . 'update failed [ %s ]',
+            $dbh->errstr
+        );
         $dbh->rollback;
         return undef;
     }
@@ -42,8 +45,8 @@ delete $sessions->{$name};
 
 return $restored;
 
-#,,.,,,,.,,.,,,,.,,..,.,,,,,.,..,,.,,,.,.,,.,,..,,...,...,...,...,...,,..,,.,,
-#XAOND7R5VGGNZMXTXAM72W43W3M3RMQ7VD2D4XCT5U53W4DWOHTQJZMFVKTQBEEUM265F7E3E757E
-#\\\|K2WYZK75T5AM6VAJ6BC43I5QLM73MXFP2KINUINZJJGGWPOGDBZ \ / AMOS7 \ YOURUM ::
-#\[7]HTXXDMGLKYDEVMTVEKJP373ZNPSQ57F5STNXYBOWWQJINDO7BIDY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,.,,,,.,.,.,,,.,,.,,.,.,,..,,,.,..,,...,...,.,,,,..,.,.,,.,,,..,
+#YOFTJIND7K4ONQNYDTI6YYCWWBLGV5HZGQ7XTPY5SFJ6VTVKMUHTTUPYDDD725GBIEY2B3YPNTKPO
+#\\\|4YMCJHDQCDY7EAEEVMQZNJCM5XDDFIVGGMWNDJ723KZNJMSJWAS \ / AMOS7 \ YOURUM ::
+#\[7]ACPSNVEBZDH4PIW2BU3M42O3XA2ROWOZXTTJ757ULYXSWTN35ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

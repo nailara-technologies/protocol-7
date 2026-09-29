@@ -15,8 +15,8 @@ if ( defined <invoke-web.autofetch.timers>->{$name} ) {
     delete <invoke-web.autofetch.timers>->{$name};
 }
 
-## verified download [ lfs sha256 checked by fetch-files ] : move it to the ##
-## db path and re-queue the failed item[s]                                  ##
+## verified download [ lfs sha256 checked by fetch-files ] : verify the ##
+## staged file against the db hash, move it in place, re-queue items    ##
 if ( uc( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
     <[invoke-web.fetch_finalize]>->($name);
     return;
@@ -31,8 +31,8 @@ $fetch->{'time'} = <[base.time]>->(3);
 
 return;
 
-#,,,.,.,,,,..,,..,...,,.,,.,,,..,,,.,,..,,,,,,..,,...,...,..,,..,,..,,...,..,,
-#LRK4WK2T574KRSJKSN7K7EDQ3BAAUOYA7ETACJZC6BSAIRA2PJBIT5QITIIUOXTH6UAYZKIM72LHC
-#\\\|ORI7Q6ZFKFYHMDZWGCCT7OFB4HWAMEJBAJ7Z2BSFKTPVN464HHJ \ / AMOS7 \ YOURUM ::
-#\[7]KE33UY7UKPI5KFUPT4FHS46ZYTLSLYB3YDHX3CKBPG343UUERMAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,,..,,,.,.,.,,,.,,.,,,,.,.,,,..,,...,...,...,,,,,,,,,...,,.,,
+#CKOA66EQ6G3K2EQ2FPWND6P224HYLOFHPLTHFLJOWN276IBAN5EG6Z4XEYYO673JHK6GZ3NU2F4JS
+#\\\|ADVZTULN2EJCEGHEQMVGZ2QSVNOE55TXE5DBSA36T7EFYBL645M \ / AMOS7 \ YOURUM ::
+#\[7]7DA5HGGHNK6K5ZTXZT4O6CVMZKAIUMHWMEWLX6LUPE556NJZ2YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

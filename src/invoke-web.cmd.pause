@@ -3,7 +3,9 @@
 # name  = invoke-web.cmd.pause
 # descr = pause the invoke.ai queue [ running item finishes ]
 
-my $result = <[invoke-web.api]>->( 'PUT', '/api/v1/queue/default/processor/pause' );
+my $result = <[invoke-web.api]>->(
+    qw| PUT |, qw| /api/v1/queue/default/processor/pause |
+);
 
 return {
     mode => qw| false |,
@@ -13,8 +15,8 @@ return {
 
 return { mode => qw| size |, data => "invoke.ai queue paused\n" };
 
-#,,.,,..,,,.,,...,.,.,,,,,,,.,...,..,,,..,,,,,..,,...,...,.,,,,..,,,,,,,,,...,
-#32WWEPB2YQGDELZ2N5QUPA5BRNMLIFZDCDR2H4XHUHNOB3NLHEXLEPWOFRKBR5PFQM5MLXVYW3RIM
-#\\\|XP4QCTNENZPHDQBKFMOEBIW7R7KUXUTUJWY6LPOHOLM6Z3DTBZ6 \ / AMOS7 \ YOURUM ::
-#\[7]IX3GQSHBPHUZNHGYEDS4HQGXYXWAXTIYJNSXCQAQUFUEOI3YMYBI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,..,,,,.,,,.,,.,,,,,,.,,,.,,,..,,...,...,...,.,,,...,,,.,.,.,
+#AF3QW4FV2YD3OLUDCDYQ4EGOOPEOLE74YDKNBMDSRV2VUNE4DOCIPU2GQ47FQOAFNND5XMHVM4SCU
+#\\\|FPL77KTNTFXNH2QJVP3UWN52VOM752E4OAATKNWUCGIIJACOQEV \ / AMOS7 \ YOURUM ::
+#\[7]BUKPS4P7DDCVQNLYG2ROFJT3UYPIM7UTAEBE6ID5ULDJOIUHK6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

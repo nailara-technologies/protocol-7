@@ -4,7 +4,7 @@
 # descr = move pending queue items to the front [ item ids ]
 # param = <item_id> [ <item_id> .. ]
 
-my @item_ids = grep { m|^\d+$| } split m|[\s,]+|, $call->{'args'} // '';
+my @item_ids = grep {m|^\d+$|} split m|[\s,]+|, $call->{'args'} // '';
 
 return { mode => qw| false |, data => 'expected : pending item id[s]' }
     if not @item_ids;
@@ -13,8 +13,9 @@ my $dbh = <[invoke-web.queue.db]>
     // return { mode => qw| false |, data => 'queue db not available' };
 
 ## one shared priority above everything pending : the given items keep ##
-## their own order [ item_id ASC tie-break ], the rest stays untouched  ##
-my ($max_priority) = $dbh->selectrow_array(
+## their own order [ item_id ASC tie-break ], the rest stays untouched ##
+my ($max_priority)
+    = $dbh->selectrow_array(
     "SELECT MAX(priority) FROM session_queue WHERE status = 'pending'");
 my $priority = ( $max_priority // 0 ) + 1;
 
@@ -39,7 +40,8 @@ return { mode => qw| false |, data => 'no pending item among the given ids' }
     if not @moved;
 
 <[base.logs]>->(
-    1, 'queue : moved to the front [ %s, priority %d ]',
+    1,
+    'queue : moved to the front [ %s, priority %d ]',
     join( ' ', @moved ), $priority
 );
 
@@ -48,8 +50,8 @@ return {
     data => sprintf( "moved to the front : %s\n", join ' ', @moved )
 };
 
-#,,,.,,,.,,.,,,,,,..,,,,,,,,.,.,,,.,.,...,,..,..,,...,...,,,,,..,,,..,.,.,.,.,
-#U2VLTZKZCHXL64TWBVT4MKCIFTKBRYWBZJMRRKM44PPWJWPJRLYISVUENPF56WNCQVK2SXUW7VPQC
-#\\\|GKRTWMWA6ISWGSAYFJ2TVC3KYVYCHIVK5HHY3FR2FZMLMTEBKD6 \ / AMOS7 \ YOURUM ::
-#\[7]HWVAFYEIEZP6FSLD57NBF3VL3JOLB5KUQWOFYXHYVDFPC5B4CQDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,..,,.,.,..,,,..,.,,,,..,,..,..,,...,..,,...,..,,...,,..,..,,
+#4NRM4D7NGNSYS6HNZVMSXGHUKOVC3MWPGBVQAV3F3QJXSARAARBOARXR7SBPSRQM3QJWPQQURCUME
+#\\\|SYXO6PQE2LO6TJ5RD2H72HSGTKWMUGBO2RFLGE6EJSPSDHSGTTI \ / AMOS7 \ YOURUM ::
+#\[7]YCBEEVJ6HVWCNID5QYULAF6TPH25FRREC32WJDGO45DJOKUEXKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
