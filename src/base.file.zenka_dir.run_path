@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = base.file.zenka_dir.run_path
+# descr  = runtime dir path for the current zenka [ /var/run/.7/<zenka> ]
+# param  = [ create : TRUE -> make it if missing ]
+# return = path | undef [ create failed ]
+# note   = the runtime category [ tmpfs : survives a zenka restart, gone
+#          after a reboot ] for state that only means something while a
+#          process runs -- transport files, sockets. create : 0700, owner
+#          the zenka user [ system.zenka-user.current ] ; needs root, so call
+#          it with create from init_code [ before the privilege drop ]
+
+my $create = shift // FALSE;
+
+my $run_base = <system.path.zenka-dirs>->{'var_run'} // qw| /var/run/.7 |;
+my $run_dir  = join qw| / |, $run_base, <system.zenka.name>;
+
+return $run_dir if not $create or -d $run_dir;
+
+<[base.file.make_path]>->(
+    $run_dir, 0700, <system.zenka-user.current> // <system.amos-zenka-user>
+) or return undef;
+
+return -d $run_dir ? $run_dir : undef;
+
+#,,.,,.,,,..,,,,,,,.,,.,.,,.,,.,.,..,,..,,,,,,..,,...,...,,..,..,,..,,..,,.,,,
+#UEVSV3ZE3U4WDHEODXOLTVRYCRXQZEJVNQRETOIDREPNV2GI3WWOFDAOGE3N26CCPK2Z2XYQEY2KE
+#\\\|US3GV42JH75XLCM7VBB3A7ZV73XUOUGMY4CCHJNV6K4QYQJ4BFD \ / AMOS7 \ YOURUM ::
+#\[7]4OIQLSYSWXSMPAUK2KD7PPMD74EBQR3UIFPNRJMCETEGA5UNQSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

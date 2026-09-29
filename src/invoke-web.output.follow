@@ -1,0 +1,63 @@
+## [:< ##
+
+# name   = invoke-web.output.follow
+# descr  = follow invoke.ai's output file : inotify on writes + a slow
+#          safety timer, both read on from the stored offset
+# param  = pid, [ offset : undef -> the end of the file ], [ marker :
+#          started | reattached ]
+# note   = the file outlives this zenka [ invoke-web.cmd.start ] ; the
+#          lines go to parse_output_line and into the invokeai buffer
+#          [ persisted by p7-log : buffer.invokeai.log_cmd ]
+
+my $pid    = shift // return;
+my $offset = shift;
+my $marker = shift;
+
+my $path = <[invoke-web.output.path]> // return;
+
+<[invoke-web.output.stop]>;
+
+<invoke-web.output.pid>    = $pid;
+<invoke-web.output.offset> = $offset // ( -s $path // 0 );
+<invoke-web.carry>         = {};
+
+## start marker in the buffer [ calc session pattern ] ##
+if ( defined $marker ) {
+    my $stamp = POSIX::strftime( '%H:%M:%S  \\\\  %Y-%m-%d', localtime );
+    <[base.buffer.add_line]>->(
+        qw| invokeai |, join( ' ', <[base.ntime]>, 1, $ARG )
+        )
+        for '.            \\\\',
+        sprintf(
+        '..  %s  \\\\  %s ' . 'invoke.ai [ pid %d ]',
+        $stamp, $marker, $pid
+        ),
+        '...                                      \\\\';
+}
+
+<[base.perlmod.autoload]>->('Linux::Inotify2')
+    if not defined &Linux::Inotify2::new;
+<[base.inotify.install_io_watcher]>;
+<invoke-web.output.watch> = <base.obj.inotify>->watch(
+    $path,
+    Linux::Inotify2::IN_MODIFY(),
+    sub {<[invoke-web.output.read]>}
+);
+
+## safety net : a missed event, a truncation, a slow file system ##
+<invoke-web.output.timer> = <[event.add_timer]>->(
+    {   'after'    => 3,
+        'interval' => 3,
+        'repeat'   => TRUE,
+        'handler'  => qw| invoke-web.handler.output_read |,
+    }
+);
+
+<[invoke-web.output.read]>;
+return TRUE;
+
+#,,..,,.,,,.,,..,,,..,.,.,,,,,.,.,.,.,...,.,.,..,,...,...,,,,,,..,..,,..,,.,,,
+#KQRKEII4IXCZTJWH2W7XPDI7BXM2I32B27AT4B6PRD4TZCAIMZDQWRKNSFIPJDBILRBSJL5JOXJ3K
+#\\\|77I32FZ73A7BFBUUY7ONSY43NWN4ZU2CXQ2WB7AD764ALC5U7R3 \ / AMOS7 \ YOURUM ::
+#\[7]GWLSZ4AEI6QLAQORVOP347G5RRGFMFJTDYHLM6CQVLLIHZL2YWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

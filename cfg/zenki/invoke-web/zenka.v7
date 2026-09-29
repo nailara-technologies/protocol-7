@@ -38,6 +38,13 @@ invoke-web.autofetch.timeout = 7200
 ##  lazy external backup copy [ empty = off ]                                   ##
 invoke-web.index.backup_path = /mnt/ext-xfs-data/p7-images/image-index.db
 
+##  invoke.ai output : ring buffer 'invokeai' [ show-buffer invokeai ],  ##
+##  persisted by p7-log ; the transport file in /var/run/.7/invoke-web  ##
+##  is truncated once read beyond output.trim_mb                        ##
+buffer.invokeai.log_cmd  = p7-log.append
+buffer.invokeai.max_size = 262144
+invoke-web.output.trim_mb = 16
+
 ##  index the result images of every finished render [ yes | no ]  ##
 invoke-web.index.on_render = yes
 
@@ -84,8 +91,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
 
 [zenka.loop]
 
-#,,.,,.,.,..,,,,.,..,,,,.,,,.,,,.,,.,,.,.,,..,..,,...,..,,.,,,...,.,.,.,.,,..,
-#2BTTVPZRXOMAOOTTNRBDXKG4QPUKLJKPRGJO4PO5D45K56QNSGF2T2FJSI5EWKJS6L6PLOSY3N4SW
-#\\\|E75THQO3GTHF5MNAAYZAZ5WHQZIGKNOUDKJUKNQTPOIDZXJ365F \ / AMOS7 \ YOURUM ::
-#\[7]SWL2Y5GUW3NAX3KLO7YTSUNRVUFN6TGSGFYZ4AOAFLV3EIKVNADA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,.,,.,.,..,,...,.,,,...,,.,,..,,...,...,,,.,.,,,,.,,.,.,,,,,
+#PP4I5V5T6XJHQOPM4AJL6ZVPUR7GWEIIGSWMKQHKVDZO46ZNLMRSN27X2XE52RFFGTBGYRZHSHHBE
+#\\\|DSOB5ZWHWXBZVRYWOKSMV5OZBTXYNN2KXY2WJ3P7BAJHLLCYKGZ \ / AMOS7 \ YOURUM ::
+#\[7]RXQCRFVU234LZOCMIOTMWBSGGLFKXKOSXODZ6VEV6GYZN5DQAKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
