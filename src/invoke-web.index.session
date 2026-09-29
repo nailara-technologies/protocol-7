@@ -1,0 +1,51 @@
+## [:< ##
+
+# name   = invoke-web.index.session
+# descr  = index the result images of one render session [ right after
+#          `render done` -- the index stays current without a full run ]
+# param  = session id
+# return = number of newly indexed images | undef [ no db ]
+# note   = same rows and path as the index job [ invoke-web.index.step ] ;
+#          images already in `sources` are skipped. invoke-web.index.image
+#          reads chunked with event loop turns, the file is still in the
+#          page cache from the render check
+
+my $session = shift // return undef;
+
+my $source_db = <[invoke-web.queue.db]> // return undef;
+my $index     = <[invoke-web.index.db]> // return undef;
+my $dir       = sprintf '%s/outputs/images', <invoke-web.root> // '';
+
+my $rows = $source_db->selectall_arrayref(
+    'SELECT rowid AS source_rowid, image_name, session_id, created_at FROM '
+        . 'images WHERE session_id = ? AND is_intermediate = 0 AND '
+        . 'deleted_at IS NULL ORDER BY rowid',
+    { 'Slice' => {} },
+    $session
+) // return undef;
+
+my $indexed = 0;
+foreach my $row (@$rows) {
+    my ($seen)
+        = $index->selectrow_array(
+        'SELECT 1 FROM sources ' . 'WHERE image_name = ?',
+        undef, $row->{'image_name'} );
+    next if $seen;
+
+    $row->{'path'} = "$dir/$row->{'image_name'}";
+    my $result = <[invoke-web.index.image]>->($row);
+    $indexed++ if defined $result and $result ne qw| missing |;
+}
+
+<[base.logs]>->(
+    2, 'image index : %d new image%s from session %s',
+    $indexed, $indexed == 1 ? '' : 's', $session
+) if $indexed;
+
+return $indexed;
+
+#,,..,.,.,.,.,,,.,.,,,.,,,..,,.,.,,,.,.,.,.,,,..,,...,...,,.,,..,,,,,,,.,,...,
+#QYH4VJPUXJ47OSKYBQGWVWWXG3D7PAEBWWN5E56O5EXRMEFWYRZCK6ZLQOUHCE6L5XNDAURH77ESW
+#\\\|X4U7YHKTSP6O6B7RTKH5WHYSWXJHHISDNNXHYABKGFF4UOZ5EGC \ / AMOS7 \ YOURUM ::
+#\[7]HZOXOIA4TTTHFDLBIQMKM5XANCBY32NHRYFDVJSIUYC5D4EK6IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
