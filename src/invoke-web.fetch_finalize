@@ -1,0 +1,67 @@
+## [:< ##
+
+# name   = invoke-web.fetch_finalize
+# descr  = move a staged autofetch download into place, re-queue items
+# param  = model name [ key of <invoke-web.missing_at_render> ]
+# return = { ok, msg } hashref
+# note   = the fetch-files zenka downloads into the staging directory
+#          under the repo file name ; the db record expects a specific
+#          path [ possibly a different file name ] so the verified file
+#          is renamed into place here -- same filesystem, and this
+#          zenka runs as the invoke.ai install owner
+
+my $name = shift // return { 'ok' => FALSE, 'msg' => 'no model name' };
+
+my $entry = <invoke-web.missing_at_render>->{$name}
+    // return { 'ok' => FALSE, 'msg' => "model '$name' not recorded" };
+my $fetch = $entry->{'fetch'} // {};
+
+my $staged = $fetch->{'staging'} // '';
+my $dest   = $fetch->{'path'}    // '';
+
+return { 'ok' => FALSE, 'msg' => 'no staged download recorded' }
+    if not length $staged or not length $dest;
+return { 'ok' => FALSE, 'msg' => "staged file not found [ $staged ]" }
+    if not -s $staged;
+
+## the db path's parent directory [ fetch-files only made the staging dir ##
+## -- e.g. the bare-uuid model directory ]                                ##
+my ($dir) = $dest =~ m{^(.+)/[^/]+$};
+if ( length $dir and not -d $dir ) {
+    my $mk = '';
+    foreach my $part ( grep {length} split m|/|, $dir ) {
+        $mk .= "/$part";
+        mkdir($mk) if not -d $mk;
+    }
+}
+
+if ( -e $dest ) {
+
+    ## already back [ manual restore \ overlap ] : drop the staged copy ##
+    unlink($staged);
+} elsif ( not rename( $staged, $dest ) ) {
+    $fetch->{'state'}  = qw| failed |;
+    $fetch->{'reason'} = "move to $dest failed : $OS_ERROR";
+    $fetch->{'time'}   = <[base.time]>->(3);
+    <[invoke-web.missing.save]>;
+    <[base.logs]>->( 0, 'autofetch : %s : %s', $name, $fetch->{'reason'} );
+    return { 'ok' => FALSE, 'msg' => $fetch->{'reason'} };
+}
+
+$fetch->{'state'} = qw| done |;
+$fetch->{'time'}  = <[base.time]>->(3);
+delete $fetch->{'reason'};
+<[base.logs]>->( 1, "autofetch : model '%s' is back at %s", $name, $dest );
+
+## retry the item[s] that failed on this model [ deletes the record and ##
+## saves on success ]                                                   ##
+<[invoke-web.requeue_missing]>->($name);
+<[invoke-web.missing.save]>;
+
+return { 'ok' => TRUE, 'msg' => "model '$name' restored, items re-queued" };
+
+#,,,,,,,,,,,.,.,.,.,.,,.,,..,,..,,,..,,,,,,,,,..,,...,...,...,..,,,,.,..,,,,.,
+#YUCRFQ6J4KFHTQLJBVABAVIWWDEOTDGXIBIUZKWW62IVLEJXP3SN6RL3ANWPP7H7DEWAIJXF6RVRM
+#\\\|E47JTMOAZCNRQCCHTG2JDCJUJJBOMOHGR24CDPWN4QNTRYT5FS5 \ / AMOS7 \ YOURUM ::
+#\[7]IDVFEDXQYRUJDGHHJQSBRL5ZXPU5FXXY7JYKMGA5RDYDPJDI3IBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

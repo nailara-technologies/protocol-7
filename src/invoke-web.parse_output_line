@@ -75,6 +75,14 @@ if ( $kind eq qw| ready | ) {
     return;    ## no log line per step ##
 } elsif ( $kind eq qw| model | ) {    ## startup lists every missing file ##
     <invoke-web.missing_models>++;
+
+    ## collect only : name, path, first seen [ the autofetch trigger is the ##
+    ## render-time second complaint, not this startup list ]                ##
+    if ( $line =~ m{Missing model file: (.+?) at (\S+)} ) {
+        <invoke-web.missing_list> //= {};
+        <invoke-web.missing_list>->{$1}
+            //= { 'path' => $2, 'first_seen' => <[base.time]>->(3) };
+    }
 } elsif ( $kind eq qw| model_render | ) {
 
     ## second complaint about a missing model : the autofetch trigger [   ##
@@ -85,6 +93,12 @@ if ( $kind eq qw| ready | ) {
     my $path      = $2;
     my ($session) = $line =~ m{invoking session (\S+),};
     my $render    = <invoke-web.render> // {};
+    ## keep the autofetch sub-state across repeated failures of the same ##
+    ## model [ the fetch runs while the user retries ]                   ##
+    my $prior_fetch
+        = defined $name
+        ? <invoke-web.missing_at_render>->{$name}->{'fetch'}
+        : undef;
     <invoke-web.missing_at_render>->{$name} = {
         'path'    => $path,
         'item'    => $render->{'item'},
@@ -92,7 +106,14 @@ if ( $kind eq qw| ready | ) {
         'time'    => <[base.time]>->(3),
         }
         if defined $name;
+    <invoke-web.missing_at_render>->{$name}->{'fetch'} = $prior_fetch
+        if defined $name and defined $prior_fetch;
     <[invoke-web.missing.save]> if defined $name;
+
+    ## the second complaint : something actually asks for this model --   ##
+    ## resolve the source and fetch it [ async via the fetch-files zenka, ##
+    ## policy gate in invoke-web.autofetch ]                              ##
+    <[invoke-web.autofetch]>->($name) if defined $name;
     <invoke-web.render>->{'failed'} //= sprintf "model '%s' " . "missing",
         $name // '?'
         if defined <invoke-web.render> and not <invoke-web.render>->{'done'};
@@ -182,8 +203,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,.,,,,,,..,,.,,,.,.,.,,,...,..,,,,.,,.,,,,.,..,,...,..,,.,.,,..,,,,,,..,...,
-#ILSZXD23SVRG43QSNWJSH47PHUHHLKGG4NQHENSSVH3IRE6VQSFBYYBNQ5U3S725G52L56M3UN7R4
-#\\\|PG56ECNXMAZ6X4WUCGNRHJD3H732IRACV6CJZGAUT4QMSNNJHWB \ / AMOS7 \ YOURUM ::
-#\[7]57QGB3NVCLYLXXXST67UEAQR5AB53BFWMT4S7KXXDSSHX6TFXSAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,,.,,,..,,.,,,.,,,.,,,.,,,.,,..,,...,...,.,.,.,,,.,,,,,.,,,.,
+#OFJY5KSAXD6MUNN5LGFS3IVZCPQA5JGUC66DTJST4PRXMTTNEINHUZOO23J7OBVTHU5UDMIHLDECM
+#\\\|DC5JKAMYPM7LLCVLGPBWFWEGSP3QO6QSMPNJOR2JXLXCP737OZO \ / AMOS7 \ YOURUM ::
+#\[7]QM4VH2GETT45YJYEKDATFQW7HLZGHJXBWEP2SWGMBVRTKBFOAKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,6 +24,14 @@ invoke-web.start.min_free_vram_mb = 4096
 invoke-web.drain.idle_after         = 4620
 invoke-web.drain.paused_counts_idle = no
 
+##  autofetch : a render failing on a missing model fetches it through the ##
+##  fetch-files zenka [ off | ask = log a confirm hint for fetch-missing | ##
+##  on ; yes \ no as usual ] -- default off. max_gb : per-model size limit ##
+##  [ 0 = no limit ] ; timeout : watchdog for a lost fetch reply           ##
+invoke-web.autofetch.mode    = off
+invoke-web.autofetch.max_gb  = 0
+invoke-web.autofetch.timeout = 7200
+
 ##  image index : local primary in the zenka data dir [ state/image-index.db ],  ##
 ##  lazy external backup copy [ empty = off ]                                   ##
 invoke-web.index.backup_path = /mnt/ext-xfs-data/p7-images/image-index.db
@@ -44,7 +52,7 @@ access.cmd.usr.cube = heart verify-instance commands reload \
                       start stop restart status health log \
                       pause resume queue queue-order \
                       queue-interactive queue-front \
-                      model-source requeue requeue-failed \
+                      model-source fetch-missing requeue requeue-failed \
                       requeue-cancelled requeue-missing \
                       session-park session-resume sessions index
 
@@ -71,8 +79,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
 
 [zenka.loop]
 
-#,,.,,..,,.,,,,.,,,,,,.,.,,.,,.,.,.,,,..,,..,,..,,...,.,.,.,.,.,,,,..,,,,,...,
-#YLPNOAWGXMJYSGEBWW2555DA4YMW2TXLO35ESMAYXZFZWLIAWWIT775OH5H5CAEJLSY6NAPY5OZWO
-#\\\|Q6KFVAMVABXWNH4R5OXOWWWOTDK7XPWAVFHR2XGGW7NEUQASBEJ \ / AMOS7 \ YOURUM ::
-#\[7]R64ZBDASK57JCGM6KS7ZFUAZBOWCKXMB4NPNZ6R5EC5D6PIG3SBY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,,.,..,,,,,,...,.,.,,,,,..,,..,,...,...,.,,,,.,,,,,,...,..,,
+#IQM2ZUOIZLBM637NVHHYNKV4W7RDICO256U3ZGKKOAEZVVN65RPJ5ZZYHVAVB75LPNTBLWEBWUYSU
+#\\\|OR2YJZFGJLPTYMDFO2RMX3GD6I57TJWUNSTU7IBULLH4IWZTUIG \ / AMOS7 \ YOURUM ::
+#\[7]N6TWRACPXNACFV6NBLUKGF5TMNH34IF7WZOPGG2ECFWJ4VJG7AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
