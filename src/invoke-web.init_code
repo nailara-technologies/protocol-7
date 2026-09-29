@@ -45,6 +45,12 @@ if ( not defined <invoke-web.missing_at_render> ) {
         'level' => 0,
         'match' => qr{out of memory|OutOfMemoryError|cannot allocate memory}i
     },
+    ## the render error line only [ after oom : 'CUDA out of memory' leaves ##
+    ## the gpu context usable ; 'unknown error' does not ]                  ##
+    {   'kind'  => 'gpu',
+        'level' => 0,
+        'match' => qr{::ERROR --> Error while invoking session .*CUDA error}
+    },
     ## order matters [ first match wins ] : the render error also reads ##
     ## 'model .. not found' -- it must be tested before the startup one ##
     {   'kind'  => 'model_render',    ## a render needs a missing model ##
@@ -229,8 +235,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,..,.,,,.,,,..,,,.,,,..,...,,,.,,.,,..,,,,,,..,,...,...,.,,,,,,,,,,,,.,,.,.,
-#VFVRKJGGLPBAZFXUVT5TTCABKZA3MLL7OMTBQEYRAOJHS64Y37VQIZHK5VQHP563FGH2YZXD374HQ
-#\\\|IN3B325PLXCLFYGAFK6W7L4R5SSCZZ4E565PVYQF3SFTKY4LPCQ \ / AMOS7 \ YOURUM ::
-#\[7]7WFPWGR35OVLQXO4UHHVBEDFRM6KVS2SKW7WUVLKINYBQF4FPYCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,.,,,...,.,.,,..,,,,,,.,,.,.,..,,...,.,,,.,.,,,.,,,,,,.,,,..,
+#DIZ65FGKNKV3KIFMCVIGNOD6EP6RSZWS3OWQSRM47PZR2JGYFVY5FXRPRWUFWYHSITQF576NGRNOU
+#\\\|KIQHDOMQGUH3SYJZHMS4XVSQWESIAAKLEOIV5UH3QEJETSY2656 \ / AMOS7 \ YOURUM ::
+#\[7]GM3TMUCNF75AEW6CV6RJB2FPAGQJJRAS3SRV54IHK2FLLMPWKIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
