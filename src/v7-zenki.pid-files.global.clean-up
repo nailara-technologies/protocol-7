@@ -1,0 +1,158 @@
+## [:< ##
+
+# name  = v7-zenki.pid-files.global.clean-up
+# descr = clean up globally registered pid files
+
+## removes pid files registered in the on-disk registry [ symlinks + owner  ##
+## sidecars ] -- called at v7-zenki teardown and at v7-zenki startup.       ##
+## differs from v7-zenki.tmp-paths.global.clean-up : no fixed user          ##
+## whitelist [ too narrow : zenki run as different users ] -- the owner uid ##
+## recorded at report time [ sidecar next to the registry link ] must equal ##
+## the file's CURRENT owner uid [ lstat ] or the unlink is refused.         ##
+## regular files only, never a symlink [ skipped, never unlinked through ]  ##
+
+<v7-zenki.pid_files>         //= {};
+<v7-zenki.dirpath.pid_files> //= qw| /var/run/.7/v7-zenki/pid_files |;
+( my $pid_file_dir = <v7-zenki.dirpath.pid_files> ) =~ s|/+$||;
+
+return undef if not -d $pid_file_dir;
+
+my $log_level = shift // 1;    ##  regular clean-up messages  ##
+
+if ( $log_level !~ m|^\d+$| ) {
+    <[base.s_warn]>->(
+        'log level parameter not numerical [%s] <{C1}>', $log_level
+    );
+    $log_level = 0;
+}
+
+my $number_files_cleaned = 0;
+
+my @unlink_path_symlink = <[file.matching_path_linknames]>->($pid_file_dir);
+
+if ( scalar @unlink_path_symlink ) {
+    <[base.logs]>->(
+        $log_level,
+        '.:[ left-over pid file%s clean-up ]:.',
+        <[base.cnt_s]>->( scalar @unlink_path_symlink )
+    );
+    <[base.log]>->( $log_level, qw| : | );
+} else {
+    $log_level++ if $log_level == 0;
+    <[base.log]>->( $log_level, ': no pid files to clean up ..,' );
+    return $number_files_cleaned;    ##[ 000 ]##
+}
+
+foreach my $remove_path_link (@unlink_path_symlink) {
+
+    my $remove_path = readlink($remove_path_link);
+
+    ## handle broken symlinks [ readlink returns undef ] ##
+    if ( not defined $remove_path ) {
+        <[base.logs]>->(
+            2, ': removing broken symlink %s',
+            $remove_path_link
+        );
+        unlink($remove_path_link);
+        next;
+    }
+
+    ## check if v7 zenka responsible [ by installation path ] ##
+    ##
+    if ( not -e $remove_path and not -l $remove_path ) {
+
+        ##  remove symlink from disk , path already gone  ##
+        ##
+        <[v7-zenki.pid-files.global.unregister]>->($remove_path);
+
+        next;    ##  skipping path , is gone  ##
+    }
+
+    ## a symlink as registered path : skipped with a warning [ never     ##
+    ## unlinked through ] -- registration rejects symlinks, so this is a ##
+    ## post-registration replacement [ suspicious ]                      ##
+    if ( -l $remove_path ) {
+        <[base.s_warn]>->(
+            'registered pid file path is a symlink, skipping : %s',
+            $remove_path
+        );
+        next;
+    }
+
+    ## lstat [ no symlink follow ] : must be a regular file ##
+    my $f_stat = File::stat::lstat($remove_path);
+    if ( not defined $f_stat ) {
+        <[base.s_warn]>->(
+            'lstat on unlink target [ %s ] : %s',
+            $remove_path, <[base.str.os_err]>
+        );
+        next;    ##  skipping path  ##
+    }
+    if ( not -f _ ) {    ##  regular files only [ never a directory ]  ##
+        <[base.s_warn]>->(
+            'registered pid file path is not a regular file, skipping : %s',
+            $remove_path
+        );
+        next;
+    }
+
+    ## owner uid recorded at report time [ sidecar next to the link ] ##
+    ##
+    my $sidecar_path = sprintf( qw| %s.uid |, $remove_path_link );
+    my $recorded_uid;
+    my $recorded_gid;
+    if ( open( my $sidecar_fh, qw| < |, $sidecar_path ) ) {
+        my $sidecar_line = <$sidecar_fh> // '';
+        close($sidecar_fh);
+        ( $recorded_uid, $recorded_gid )
+            = $sidecar_line =~ m|^(\d+) (\d+)| ? ( $1, $2 ) : ();
+    }
+    if ( not defined $recorded_uid ) {
+        <[base.s_warn]>->(
+            'no owner record [ sidecar %s ] for '
+                . 'registered pid file : %s [ refusing unlink ]',
+            $sidecar_path, $remove_path
+        );
+        next;    ##  cannot verify owner : skip path and symlink  ##
+    }
+
+    ## deletion allowed only when the file's CURRENT owner uid equals the ##
+    ## uid recorded at report time                                        ##
+    if ( $f_stat->uid != $recorded_uid ) {
+        <[base.s_warn]>->(
+            'owner mismatch [ current %d != '
+                . 'recorded %d ] [ refusing unlink : %s ]',
+            $f_stat->uid, $recorded_uid, $remove_path
+        );
+        next;    ##  skip unlink path and symlink  ##
+    }
+
+    <[base.logs]>->( $log_level, ': [ %s ]', $remove_path );
+    if ( not unlink($remove_path) ) {
+        <[base.s_warn]>->(
+            ': error on pid file clean-up : [ %s ] : %s',
+            $remove_path, <[base.str.os_err]>
+        );
+    }
+    ##  skip symlink removal [ errors ]  ##
+    if ( -e $remove_path or -l $remove_path ) {
+        <[base.logs]>->(
+            2, 'keeping pid file registry link : %s .,',
+            $remove_path_link
+        );
+        next;
+    } else {
+        $number_files_cleaned++;    ##  pid file is gone now  ##
+    }
+    <[v7-zenki.pid-files.global.unregister]>->($remove_path);
+}
+
+<[base.log]>->( $log_level, qw| :. | ) if scalar @unlink_path_symlink;
+
+return $number_files_cleaned;
+
+#,,,.,..,,.,.,.,.,...,.,,,,,.,.,.,..,,..,,..,,..,,...,..,,,,.,,,,,,.,,,..,.,.,
+#5TPLA5AMDDO6R3QFDEDQJQ4CFO2OYFPABIIZYBSE5HKKUTOMNFS3DZK4Z4OSFF2LCUNAFKDTTNCQU
+#\\\|BOVDMFTHJKQGUK64GMSYEHFXTP7MVE543ODYRMBYJ4DMDKTXNAY \ / AMOS7 \ YOURUM ::
+#\[7]S4LL353YIUYDDQFOWFQ3CSPRRHXNJCIHULDEHTEYCP5VLTF22ABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

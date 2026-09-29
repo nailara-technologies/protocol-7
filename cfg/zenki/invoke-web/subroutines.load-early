@@ -335,6 +335,8 @@ io.unix.socket.init_code
 invoke-web.session.store
 invoke-web.render.report
 invoke-web.queue.release
+invoke-web.missing_items
+invoke-web.hash_finalize
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
@@ -416,6 +418,7 @@ coding.async.state_manager
 coding.async.state_machine
 coding.async.complete_task
 coding.async.chunk_handler
+base.zenki.report_pid_file
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -467,6 +470,7 @@ protocol.amos_term.init_code
 io.unix.socket.input.connect
 invoke-web.queue.interactive
 invoke-web.parse_output_line
+invoke-web.handler.hash_poll
 invoke-web.handler.api_reply
 invoke-web.cmd.fetch-missing
 invoke-web.activity.watch_db
@@ -547,11 +551,13 @@ base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
+base.callback.report_pid_files
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
 invoke-web.handler.render_check
 invoke-web.handler.check_health
+invoke-web.autofetch.verify_dir
 crypt.C25519.decrypt_secret_key
 coding.tools.definitions.search
 coding.task.ensure_model_pinned
@@ -718,6 +724,7 @@ base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+invoke-web.handler.requeue_missing_reply
 invoke-web.handler.recover_requeue_reply
 coding.handler.monitor_inference_startup
 coding.callback.object_self_test_pending
@@ -746,8 +753,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,.,.,.,,,...,...,...,,..,,,.,...,.,,,,..,..,,...,...,,.,,.,,,...,.,.,,,.,
-#X27RW4YI7DS5N2U7FPTYZYALPTFRIYMMMTHSAMEX47VYZUH6QUOUJ3CGGBI26AZ2QC2TJMJMA4DG2
-#\\\|QJDSGSNWPKZ5U4YBJQJQ2AHNNEPHQCFSXQOWODOV4HMPWGLHB7V \ / AMOS7 \ YOURUM ::
-#\[7]ARGYAIPGBCIBLEWLGKXIIYHPCVQU2HHWG3T3DDFCJKAAWJQHBYDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,,,.,...,,,,,.,.,..,,...,,,,,..,,...,...,.,,,...,,..,.,.,,.,,
+#RBTBI6PR2P4FMVGFY5W3Q5A24FRIFJFALNCLDUMRYQJRF3TL675LLD3EF6DWP3TSQJTZVIYWHXRFE
+#\\\|NNILUOMOCYFFUAMXALR4367WZATBQDCJBJVZH5BQJ6HYDVMZPMZ \ / AMOS7 \ YOURUM ::
+#\[7]RZEFMCHRSNHBF42WZQ2SD6KO52BVH6O4UNMFFRELC6ZXGNO45QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

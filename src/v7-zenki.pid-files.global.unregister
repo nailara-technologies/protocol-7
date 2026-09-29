@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = v7-zenki.pid-files.global.unregister
+# descr = remove pid file from the on-disk registry
+
+## removes a pid file from the on-disk registry [ symlinks ] -- clone of ##
+## v7-zenki.tmp-paths.global.unregister                                  ##
+
+<v7-zenki.pid_files>         //= {};
+<v7-zenki.dirpath.pid_files> //= qw| /var/run/.7/v7-zenki/pid_files |;
+
+my $unregister_pid_file = shift // '';  ##  link target path to unregister  ##
+
+if (@ARG) {
+    warn 'expecting no additional parameter <{C1}>';
+    return undef;
+}
+
+( my $pid_file_dir = <v7-zenki.dirpath.pid_files> ) =~ s|/+$||;
+
+if ( not length $unregister_pid_file ) {
+    warn 'pid file path parameter expected <{C1}>';
+    return undef;
+}
+
+my $devmod_loglevel = 2;    ##  report log level for devmod  ##
+
+my $number_files_cleaned = 0;
+
+##  check if pid file path is still registered in memory  ##
+##
+if ( defined <v7-zenki.pid_files>->{$unregister_pid_file} ) {
+    my $symlink_path_abs = <v7-zenki.pid_files>->{$unregister_pid_file};
+    if ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+        delete <v7-zenki.pid_files>->{$unregister_pid_file};
+        return $number_files_cleaned;    ##  symlink was not present  ##
+    } else {
+        <[base.logs]>->(
+            $devmod_loglevel,  'unregistering : %s : %s',
+            $symlink_path_abs, $unregister_pid_file
+        );
+        if ( not unlink($symlink_path_abs) ) {
+            <[base.s_warn]>->(
+                'error removing pid file symlink [ %s ] : %s',
+                $symlink_path_abs, <[base.str.os_err]>
+            );
+        } elsif ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+            my $sidecar_path    ##  owner record belongs to the link  ##
+                = sprintf( qw| %s.uid |, $symlink_path_abs );
+            if ( -e $sidecar_path and not unlink($sidecar_path) ) {
+                <[base.s_warn]>->(
+                    'error removing pid file sidecar [ %s ] : %s',
+                    $sidecar_path, <[base.str.os_err]>
+                );
+            }
+            $number_files_cleaned++;
+        }
+    }
+}
+
+foreach my $symlink_path_abs (
+    <[file.matching_path_linknames]>->( $pid_file_dir, $unregister_pid_file )
+) {
+
+    <[base.logs]>->(
+        $devmod_loglevel,  'unregistering : %s : %s',
+        $symlink_path_abs, $unregister_pid_file
+    );
+    if ( not unlink($symlink_path_abs) ) {
+        <[base.s_warn]>->(
+            'error removing pid file symlink [ %s ] : %s',
+            $symlink_path_abs, <[base.str.os_err]>
+        );
+    } elsif ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+        my $sidecar_path    ##  owner record belongs to the link  ##
+            = sprintf( qw| %s.uid |, $symlink_path_abs );
+        if ( -e $sidecar_path and not unlink($sidecar_path) ) {
+            <[base.s_warn]>->(
+                'error removing pid file sidecar [ %s ] : %s',
+                $sidecar_path, <[base.str.os_err]>
+            );
+        }
+        $number_files_cleaned++;
+    }
+}
+
+if ($number_files_cleaned) { ##  success , cleaning up in-memory reference  ##
+    if (<[base.is_defined_recursive]>->(
+            sprintf qw| v7-zenki.pid_files.%s |,
+            $unregister_pid_file
+        )
+    ) {
+        delete <v7-zenki.pid_files>->{$unregister_pid_file};
+        delete <v7-zenki.pid_files> if not keys <v7-zenki.pid_files>->%*;
+    }
+}
+
+return $number_files_cleaned;
+
+#,,..,.,.,,,.,,.,,,..,,,.,,..,,,,,,..,,.,,...,..,,...,...,...,.,.,...,,.,,.,.,
+#PUQGMHAUX7JDUPAA4WWADUNYNSXAE776QXRMUXWGDRQOVABJHWA25TVBDQLV5UVJAALNDTIYKFGOW
+#\\\|CCKS6H23AQV5WCV4KMK5CANIAMNZRJJJFNY7GVNAB2B323HLNR5 \ / AMOS7 \ YOURUM ::
+#\[7]UZRKXK7JEUGKAC6FZEKPKAZKOGYNJNPRRLSX2VYGSGUJ6QMYN2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

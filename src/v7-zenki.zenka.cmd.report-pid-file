@@ -1,0 +1,186 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.report-pid-file
+# param = <pid-file-path>
+# descr = register pid files for planned-end clean-up
+
+## clone of v7-zenki.zenka.cmd.report-temp-path with a different clean-up  ##
+## policy : registered pid files are removed by v7-zenki.cleanup_pid_files ##
+## on a planned end only [ v7-zenki shutdown \ teardown, successful manual ##
+## terminate \ restart, v7-zenki startup ] -- NOT on an error restart and  ##
+## not when the zenka process dies by itself, so a pid file still present  ##
+## at the next zenka start means 'not a planned end' [ crash recovery ]    ##
+
+( my $zenka, my $zenka_sid, my $pid_file )
+    = split( m| |, $call->{'args'}, 3 );
+
+my $valid_chars_re = qr|[0-9a-zA-Z\-_\./:\+]+|;
+$zenka =~ s|^.*\.||;    # <-- node portion
+
+my $err_reason;
+$err_reason = 'expected zenka sid from cube [ misconfigured ]'
+    if not defined $zenka_sid or $zenka_sid !~ m|^\d+$|;
+
+<[base.s_warn]>->( '[%d] << %s >>', $call->{'session_id'}, $err_reason )
+    if defined $err_reason;
+
+$err_reason = 'expected path parameter' if not length( $pid_file // '' );
+$err_reason = 'absolute path expected'
+    if not defined $err_reason and $pid_file !~ m|^/|;
+$err_reason
+    = sprintf( 'path parameter %s not allowed for deletion', $pid_file )
+    if not defined $err_reason
+    and abs_path($pid_file)    ##  checking minimal exclusion list  ##
+    =~ m,^/[^/]+(/local(/s?bin)?|/share|/s?bin)?$,;   ## system directories ##
+
+my $inv_chars = '';
+( $inv_chars = $pid_file ) =~ s|$valid_chars_re||g
+    if not defined $err_reason;    ## <-- $pid_file may be undef otherwise ##
+$err_reason = sprintf 'pid file path contains not valid characters [%s]',
+    $inv_chars
+    if not defined $err_reason and $pid_file !~ m|^$valid_chars_re$|;
+
+$pid_file = abs_path($pid_file) if not defined $err_reason;
+
+$err_reason = sprintf( "specified path '%s' does not exist", $pid_file )
+    if not defined $err_reason
+    and ( not defined $pid_file or not -e $pid_file );
+
+## no symlinks accepted [ lstat semantics at deletion time ] ##
+##
+$err_reason
+    = sprintf( "pid file path '%s' is a symlink [ not accepted ]", $pid_file )
+    if not defined $err_reason and -l $pid_file;
+
+## regular files only [ never a directory ] ##
+##
+$err_reason = sprintf( "pid file path '%s' is not a regular file", $pid_file )
+    if not defined $err_reason and not -f $pid_file;
+
+my $zenka_instance;
+if ( not defined $err_reason ) {
+
+    foreach my $instance_id (<[v7-zenki.instance_ids]>) {
+
+        my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+
+        $zenka_instance = $instance_id and last
+            if exists $instance->{'cube_sid'}
+            and defined $instance->{'cube_sid'}
+            and $instance->{'cube_sid'} == $zenka_sid
+            or $zenka eq qw| cube |
+            and $zenka_sid eq qw| 0000000 |
+            and $instance->{'zenka_name'} eq $zenka;
+    }
+}
+
+##
+##
+$err_reason = 'no instance matches cube-sid [ requested ? ]'
+    if not defined $err_reason and not defined $zenka_instance;
+
+my $instance;
+my %has_uid;
+my %has_gid;
+if ( not defined $err_reason ) {
+    $instance = <v7-zenki.zenka.instance>->{$zenka_instance};
+    my $p_pid = $instance->{'process'}->{'id'};
+
+    <v7-zenki.process.instance_cache>->{$p_pid} = $zenka_instance;
+
+    my @children = <[v7-zenki.sub-process.get_children]>->($p_pid)->@*;
+    my @i_pids   = @children ? ( $p_pid, @children ) : ($p_pid);
+
+    foreach my $inst_PID (@i_pids) {
+
+        ( my $p_uid, my $p_gid )
+            = <[v7-zenki.sub-process.get_uid]>->($inst_PID);
+
+        if ( $p_uid == -1 and $inst_PID == $p_pid ) {
+            $err_reason
+                = sprintf( 'zenka %s seems gone [ no uid match for pid %d ]',
+                $zenka, $inst_PID );
+            last;
+        } else {
+            push( $has_uid{$p_uid}->@*, $inst_PID );
+            push( $has_gid{$p_gid}->@*, $inst_PID ) if defined $p_gid;
+        }
+    }
+
+    $err_reason //= 'could not map instance to user id' if not keys %has_uid;
+}
+
+my $uid_match = FALSE;    # LLL: also check gids.,
+
+my $stat_uid;
+my $stat_gid;
+if ( not defined $err_reason ) {
+    my @match_type;
+    my $stat_ref = File::stat::lstat($pid_file);    ##  no symlink follow  ##
+    if ( not defined $stat_ref ) {    ##  vanished between checks [ race ]  ##
+        $err_reason = sprintf( "cannot stat pid file '%s' : %s",
+            $pid_file, <[base.str.os_err]> );
+    } else {
+        $stat_uid = $stat_ref->uid;
+        $stat_gid = $stat_ref->gid;
+        my %match_pid;
+
+        push( @match_type, qw| user | )
+            if exists $has_uid{$stat_uid}
+            and $stat_ref->cando( S_IWUSR(), $stat_uid )
+            ;    ## <-- user can write
+
+        push( @match_type, qw| group | )
+            if defined $stat_gid
+            and exists $has_gid{$stat_gid}
+            and $stat_ref->cando( S_IWGRP(), $stat_gid )
+            ;    # <-- group write access
+
+        if (@match_type) {
+            ## re-checked at deletion ##
+            $instance->{'pid-file-uid'} = $stat_uid;
+            $instance->{'pid-file-gid'} = $stat_gid;
+            <[base.logs]>->(
+                2,
+                "<report-pid-file> %s write access for '%s'",
+                join( ' and ', @match_type ), $zenka
+            );
+        } else {    ##  no owner match in @match_type  ##
+            $err_reason
+                = sprintf 'path owner of %s does not match process [ path '
+                . 'pid : %d gid : %d \ process uid : %s gid : ' . '%s ]',
+                $pid_file, $stat_uid, $stat_gid,
+                join( ', ', sort keys %has_uid ),
+                join( ', ', sort keys %has_gid );
+        }
+    } ##  end lstat success  ##
+}
+<[base.logs]>->(
+    0, "< %s > [sid:%d] report-pid-file : %s",
+    $zenka, $zenka_sid, $err_reason
+) if defined $err_reason;
+
+return { 'mode' => qw|false|, 'data' => $err_reason } if defined $err_reason;
+
+my $pid_files_aref
+    = <v7-zenki.zenka.instance>->{$zenka_instance}->{'pid-files'} //= [];
+push( $pid_files_aref->@*, $pid_file )
+    if not grep { $ARG eq $pid_file } $pid_files_aref->@*;
+
+## register global [ survives a v7-zenki restart, like tmp-paths.global ] [ ##
+## owner uid \ gid recorded in the registry for the deletion re-check ]     ##
+<[v7-zenki.pid-files.global.register]>->( $pid_file, $stat_uid, $stat_gid );
+
+my $str_len = 52 - length <system.node.name>;
+
+my $pid_file_str = <[base.parser.ellipse_center]>->( $pid_file, $str_len );
+<[base.logs]>->( '[%s] <pid> %s', $zenka_instance, $pid_file_str );
+
+##  reporting success  ##
+return { 'mode' => qw|true|, 'data' => sprintf "registered '%s'", $pid_file };
+
+#,,..,,..,...,.,,,,,,,...,,,,,.,.,,,.,,,,,,.,,..,,...,...,.,.,,.,,.,.,.,,,,,.,
+#5XKIG3X3GROJT7SBKJUMSR4CCN6U6PLWUCXDOU2RQK73P5T6TNGJA6QIDP3HMAOHYVMENWCA3D6D6
+#\\\|FW4L5GA6USPOSW7VUX6EHAUBTV6YCHU7NGG5SYWJHA546MPIRQ7 \ / AMOS7 \ YOURUM ::
+#\[7]N2ACMVJSAWEG5TSY5FYA2SFX56L5C3HSZYHUTEGQKTKPYU4RYKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
