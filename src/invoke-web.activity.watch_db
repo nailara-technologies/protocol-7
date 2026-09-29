@@ -1,0 +1,40 @@
+## [:< ##
+
+# name   = invoke-web.activity.watch_db
+# descr  = inotify on invoke.ai's databases directory : any write to
+#          invokeai.db* counts as activity [ browsing \ selecting images in
+#          the web ui writes client_state -- it produces no output lines ]
+# note   = the directory, not the -wal file : sqlite deletes and recreates
+#          the wal at checkpoints, a file watch would lose it. armed at
+#          ready [ runs as the invoke user, after the privilege drop ]
+
+return TRUE if defined <invoke-web.activity.db_watch>;
+
+my $db_dir = sprintf '%s/databases', <invoke-web.root> // '';
+if ( not -d $db_dir ) {
+    <[base.logs]>->( 1, 'activity watch : no db directory [ %s ]', $db_dir );
+    return FALSE;
+}
+
+<[base.perlmod.autoload]>->('Linux::Inotify2');
+<[base.inotify.install_io_watcher]>;
+
+<invoke-web.activity.db_watch> = <base.obj.inotify>->watch(
+    $db_dir,
+    IN_MODIFY(),
+    sub {
+        my $event = shift;
+        return if ( $event->name // '' ) !~ m|^invokeai\.db|;
+        <[invoke-web.activity.touch]>->( qw| db | );
+    }
+);
+
+<[base.logs]>->( 2, 'activity watch on %s', $db_dir );
+
+return defined <invoke-web.activity.db_watch> ? TRUE : FALSE;
+
+#,,,,,,.,,,.,,..,,...,,,,,,,,,..,,,,.,,,,,,,,,..,,...,...,...,.,,,...,,..,..,,
+#6ANGERKY43TDEQE23PPOT3BGB4EYYQYP4HFAB2SNKRIOK43OVEY5IVKEHEGDLOCWVSZ44UPSDSI74
+#\\\|SWREJNKP5A6VVCOLAASOVDL3Y5OQQT5P2WBMVJLO76B3JEMAVYR \ / AMOS7 \ YOURUM ::
+#\[7]6IRBMDWYV5U4UEIPDESWTUIK63UXSK2QTGYCZDVVK2WQ53MZZCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

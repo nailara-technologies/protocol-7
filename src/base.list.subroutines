@@ -1782,6 +1782,7 @@ return [ qw[
         invoke.cmd.list-images
         invoke.api.build_graph
         invoke-web.queue.order
+        invoke-web.memory_free
         invoke-web.cmd.restart
         index.load.compartment
         index.cmd.add-wordlist
@@ -2076,8 +2077,10 @@ return [ qw[
         io.ssl.ip.input.connect
         io.ip.tcp.input.connect
         invoke.cmd.queue-status
+        invoke-web.session.park
         invoke-web.model.source
         invoke-web.missing.save
+        invoke-web.cmd.sessions
         index.tick.persist-cube
         index.cmd.contributions
         index.callback.feed-dir
@@ -2357,6 +2360,7 @@ return [ qw[
         iteration.template.delta
         io.unix.socket.init_code
         invoke.handler.poll_jobs
+        invoke-web.session.store
         impressive.screen-change
         impressive.check_tmp_dir
         httpsd.create_ssl_socket
@@ -2619,7 +2623,9 @@ return [ qw[
         jobqueue.priorities_table
         jobqueue.joblist_template
         io.unix.socket.input.open
+        invoke-web.session.resume
         invoke-web.handler.output
+        invoke-web.activity.touch
         impressive.process_subcfg
         impressive.cmd.reposition
         image2html.base.init_code
@@ -3152,6 +3158,7 @@ return [ qw[
         io.unix.socket.output.close
         io.ssl.ip.handshake.cleanup
         io.ssl.ip.handler.handshake
+        invoke-web.cmd.session-park
         invoke-web.cmd.model-source
         index.cube.load_compartment
         image2html.parent.init_code
@@ -3441,6 +3448,7 @@ return [ qw[
         io.unix.socket.input.connect
         invoke-web.queue.interactive
         invoke-web.parse_output_line
+        invoke-web.activity.watch_db
         index.cube.format.dir_offset
         impressive.autoinstall_check
         httpsd.request_capture.write
@@ -3681,6 +3689,7 @@ return [ qw[
         jobsite.handler.rewire-assess
         jobsite.dispatch.reassess_now
         jobsite.dispatch.consume_slot
+        invoke-web.cmd.session-resume
         index.handler.summarize-reply
         image2html.parent.cmd.get_url
         image2html.base.get_html_path
@@ -3944,7 +3953,9 @@ return [ qw[
         jobsite.handler.assess-timeout
         jobsite.chksum.group-by-branch
         jobqueue.handler.queue_counter
+        invoke-web.handler.start_guard
         invoke-web.handler.queue_watch
+        invoke-web.handler.drain_check
         invoke-web.cmd.requeue-missing
         index.callback.wordlist-import
         impressive.cmd.playlist-update
@@ -5676,8 +5687,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,,,,,,.,,.,,..,,.,,,...,,,,,..,,..,,,,.,.,.,...,...,,,.,..,,,,.,...,,,,,
-#7NL5GZZYQJUF2BFU65KVBJUYIZE7P6DLDYSL5RCA7VEESAWVFG3HL4JWMLYYY3O74YFASYMQCRQKW
-#\\\|IBRVCYEGASXL24IFTPGBFGKKKUZEBS526ELAROQAGYDGSM3U7LO \ / AMOS7 \ YOURUM ::
-#\[7]MNB3XW2KVEO4RMT4JTUOKFHMKZSV7EPE5MYOI77KPDGNW2LLZGCY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,,..,...,,..,...,,,,,..,,..,,.,.,...,...,.,.,,.,,.,,,,.,,...,
+#SO5FI3UWY67LVVVYS7FGK6LV7SI3MZPO5Y46CXOIXIWBGATVIZCNWC25KEZ4TFFPT6AZB3HPOVTQQ
+#\\\|M5IBK2THM4UCJUGSEEWID5NGZURJ4X35DBB7VUVLKDN7ZCDHACA \ / AMOS7 \ YOURUM ::
+#\[7]YGN6SGTGAOSD6RKGJPKEUMB2OWFVZP47VHIHXW5USXX4MUEWDMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

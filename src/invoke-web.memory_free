@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = invoke-web.memory_free
+# descr = free vs required RAM + VRAM for the start memory guard
+
+## thresholds from zenka.v7 [ same values the dependency objects carry ] ##
+my $ram_need  = <invoke-web.start.min_free_ram_mb>  // 8192;
+my $vram_need = <invoke-web.start.min_free_vram_mb> // 4096;
+
+## free RAM from /proc/meminfo [ same source as the coding callback ] ##
+my $ram_free = 0;
+if ( open my $fh, '<', '/proc/meminfo' ) {
+    while (<$fh>) {
+        if (m|^MemAvailable:\s+(\d+)|) {
+            $ram_free = int( $1 / 1024 );
+            last;
+        }
+    }
+    close $fh;
+}
+
+## free VRAM via nvidia-smi [ undef when not readable ] ##
+my $vram_free;
+my $exec_str = join ' ',
+    qw| nvidia-smi |,
+    '--query-gpu=memory.free',
+    '--format=csv,noheader,nounits';
+##
+my $nvidia_smi = qx{ $exec_str 2>/dev/null };
+$vram_free = $1
+    if $? == 0
+    and defined $nvidia_smi
+    and $nvidia_smi =~ m|^(\d+)|m;
+
+return {
+    'ram_free_mb'  => $ram_free,
+    'ram_need_mb'  => $ram_need,
+    'vram_free_mb' => $vram_free,
+    'vram_need_mb' => $vram_need,
+};
+
+#,,..,,..,..,,.,.,.,,,.,.,..,,.,.,..,,.,.,,..,..,,...,...,...,,..,...,,,.,..,,
+#BWYECSN7QHXO6TSOXBOEZFGJOGJECETLDQ6LJHW3IOZ42EM5ISZ667BVGUT3FHMF6HW6GMELYRMO4
+#\\\|GMVSM5ORNH6OPQKFNCP4EFH6HHASOEOK25GQIEWPN3AUD5V4WFJ \ / AMOS7 \ YOURUM ::
+#\[7]ABD5MMXUKAQBKNBR5JHFUQVLQQ3HSWIZ6LMOXUDCZ7TNZNYVHOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

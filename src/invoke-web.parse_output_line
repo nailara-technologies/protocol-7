@@ -13,6 +13,8 @@ $line =~ s|\e\[[0-9;?]*[A-Za-z]||g;    ## ansi colors \ cursor codes ##
 $line =~ s|\s+$||;
 return if not length $line;
 
+<[invoke-web.activity.touch]>->( qw| output | );    ## drain idle clock ##
+
 ## bounded output tail [ invoke-web.log ] ##
 my $tail = <invoke-web.output_tail> //= [];
 push $tail->@*, $line;
@@ -53,6 +55,16 @@ if ( $kind eq qw| ready | ) {
         <[invoke-web.queue.interactive]>->(TRUE)
             if <[base.cfg_bool]>->( <invoke-web.queue_interactive_start> // 0 )
             and not <invoke-web.queue_interactive>;
+
+        ## activity from ui use [ db writes ] + the drain timer ##
+        <[invoke-web.activity.watch_db]>;
+        <invoke-web.timer.drain_check> //= <[event.add_timer]>->(
+            {   'after'    => 60,
+                'interval' => 60,
+                'repeat'   => TRUE,
+                'handler'  => 'invoke-web.handler.drain_check',
+            }
+        );
     }
     return;
 } elsif ( $kind eq qw| progress | ) {    ## tqdm : ' 45%|####  | 9/20 [..' ##
@@ -119,8 +131,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,,,..,,..,,,,,,..,,,,.,.,.,.,.,,,,,...,,,.,..,,...,...,,,.,.,,,.,,,..,,.,,,
-#4I5Y6XKDKAGFFOUYGLUQS62DERWBEWJKVOPOUVDSMFW7DMGCNXTKQQNZDDMRJFCJCWOY7CEW3OUWU
-#\\\|2FC26R65FL6RRLWXBXZIOAE3QN5BAGNF2XXFU3JA46IEMBPVHWW \ / AMOS7 \ YOURUM ::
-#\[7]GXMS7L43V3WMLD63DFXILQG3K6CZCMIRPW5CDLW6V5Y6VRHDASCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,.,,,.,.,,.,,.,.,.,,,,.,,..,,..,,...,.,.,..,,,,,,,..,.,,,,..,
+#JFZ2GZW3ZGRFAZAKBKM4VBMF3ZSX5OEN5DFM5X4YXMQSHRCTP3ETHBHMQLBHCDKPELMHXSRS5G6EG
+#\\\|KTATABK5PHFNSIHUV4ALQ7324B22IMOLH346YWOBJEW25UHCFXT \ / AMOS7 \ YOURUM ::
+#\[7]SFLHBZ5PKFRZVOOUB3LF76MLLELCG2YF4QEASKGJ7OEIIQSU6CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

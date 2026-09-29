@@ -2,6 +2,7 @@
 
 # name  = invoke-web.cmd.start
 # descr = start the invoke.ai web server process
+# param = [ force : skip the memory guard ]
 
 my $status = <invoke-web.status> // 'idle';
 my $pid    = <invoke-web.pid>;
@@ -24,6 +25,77 @@ my $root   = <invoke-web.root>;
 unless (<invoke-web.binary_ok>) {
     <[base.logs]>->( 0, 'binary not usable [ %s ]', $binary // 'undef' );
     return { mode => qw| false |, data => 'binary not usable' };
+}
+
+## start memory guard [ coding zenka pattern ] : when the dependency    ##
+## objects [ free RAM \ VRAM ] are not satisfied the start is queued   ##
+## through invoke-web.handler.start_guard instead of refused -- it      ##
+## proceeds by itself once memory frees up. 'start force' skips this    ##
+my $force = ( $call->{'args'} // '' ) =~ m{(?:^|\s)force(?:\s|$)} ? TRUE : FALSE;
+
+if ( $force and defined <invoke-web.start_waiting> ) {
+    ## drop the queued wait : starting now ##
+    delete <invoke-web.start_waiting>;
+    my $guard_timer = delete <invoke-web.timer.start_guard>;
+    $guard_timer->cancel if defined $guard_timer and ref $guard_timer;
+}
+
+if ( not $force and defined <invoke-web.dep.memory_system> ) {
+    my $ram_dep = <invoke-web.dep.memory_system>;
+    my $gpu_dep = <invoke-web.dep.memory_gpu>;
+    my $ram_ok  = defined $ram_dep ? <[dependency.ok]>->($ram_dep) : TRUE;
+    my $gpu_ok  = defined $gpu_dep ? <[dependency.ok]>->($gpu_dep) : TRUE;
+
+    if ( not $ram_ok or not $gpu_ok ) {
+        my $mem = <[invoke-web.memory_free]>;
+        my $mem_str = sprintf "ram  : %d MB free [ need %d MB ]\n"
+            . "vram : %s free [ need %d MB ]\n",
+            $mem->{'ram_free_mb'},
+            $mem->{'ram_need_mb'},
+            defined $mem->{'vram_free_mb'}
+            ? $mem->{'vram_free_mb'} . ' MB'
+            : '?',
+            $mem->{'vram_need_mb'};
+
+        ## a start is already queued : report it, don't queue twice ##
+        if ( defined <invoke-web.start_waiting> ) {
+            return {
+                mode => qw| size |,
+                data => sprintf(
+                    "invoke.ai start already waiting [ %ds ]\n%s",
+                    <[base.time]>->(3) - <invoke-web.start_waiting>, $mem_str
+                )
+            };
+        }
+
+        ## queue the start through the dependency wait ##
+        <invoke-web.start_waiting> = <[base.time]>->(3);
+        <invoke-web.timer.start_guard> //= <[event.add_timer]>->(
+            {   'after'    => 13,
+                'interval' => 13,
+                'repeat'   => TRUE,
+                'handler'  => qw| invoke-web.handler.start_guard |,
+            }
+        );
+
+        ## the zenka must survive the wait [ on-demand idle timeout ] ##
+        <[base.zenki.pause_ondemand_timeout]>;
+
+        <[base.logs]>->(
+            1, 'start queued : waiting for memory [ ram %d/%d MB free ]',
+            $mem->{'ram_free_mb'}, $mem->{'ram_need_mb'}
+        );
+
+        return {
+            mode => qw| size |,
+            data => sprintf(
+                "invoke.ai start queued : waiting for memory\n%s"
+                    . "[ starts by itself once satisfied ;"
+                    . " 'start force' skips the guard ]\n",
+                $mem_str
+            )
+        };
+    }
 }
 
 ## build spawn command
@@ -107,8 +179,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,,,,..,...,,,.,...,,,,,,.,,,,,,,,.,,..,,,,,..,,...,...,.,,,,..,,,.,,.,,.,.,
-#HG5OUNXUQF3VDDTE6SCF7E3J7ULMNMT3TZUNYGNVWOCKEIOQO577TRYVQAOVUGIQBT7ANAIRRNOY2
-#\\\|YONMFO6CRM2FII5SV475S3IEZVW7ALPNJRPKKZYQU7SPKRZJAWW \ / AMOS7 \ YOURUM ::
-#\[7]ZOOU4W7ZNC22ZRQEPIYXIIMGDJ24GRKKIC7DYTSSQJ2KEBLWTOCI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,...,,,.,,.,,...,,..,.,,,,,.,..,,...,..,,...,..,,.,,,.,.,.,,,
+#SSVGJ4E4K2ULNWDT5TKSI6IUQKMGHQWZIYWOPZRK6CE2JQPEHLWNW4C6MMF5UWLZK7WT7KWVG5WZ6
+#\\\|NFVOCEA67IP4QRA4S6I7IGXHTGPM7OLXJCVHJRMPVHHQ4FFKCZL \ / AMOS7 \ YOURUM ::
+#\[7]4JXIGPIT232EJCXHANANK44SUO4MAVSEDQCRLCVY3MOMJQPJNYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

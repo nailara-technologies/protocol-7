@@ -17,10 +17,12 @@ if ( $mode !~ m{^(?:newest|oldest|harmonic)$} ) {
 
 my $dbh = <[invoke-web.queue.db]> // return undef;
 
-my $items = $dbh->selectall_arrayref(
+## parked sessions stay parked [ invoke-web.session.park ] ##
+my $parked = -( <invoke-web.session.park_offset> // 1000000 ) / 2;
+my $items  = $dbh->selectall_arrayref(
     "SELECT item_id, session_id FROM session_queue WHERE status = 'pending' "
-        . 'ORDER BY priority DESC, item_id ASC',
-    { 'Slice' => {} }
+        . 'AND priority > ? ORDER BY priority DESC, item_id ASC',
+    { 'Slice' => {} }, $parked
 );
 if ( not defined $items ) {
     <[base.logs]>->( 0, 'queue order : read failed [ %s ]', $dbh->errstr );
@@ -78,8 +80,8 @@ $dbh->commit;
 
 return scalar @sorted;
 
-#,,.,,.,.,,,.,.,.,.,.,..,,,.,,,,,,..,,...,.,,,..,,...,...,,,.,,..,,.,,...,,..,
-#QLX5MITCFN622ZMRA4QPKO3TESSWOZVBJGAWFIQGCTB3XF2RCIFCTOWT7CUXL2XK7PZZYQDMIWXOQ
-#\\\|MKS4BKE4UXTPXNLT2M7S7QAET7HFJXTL3W2BRT27MWTYMO4JWON \ / AMOS7 \ YOURUM ::
-#\[7]BRDW6UAPU3TAF23CDBOVQRUYYGWNHJQHXLKTEENMUZXZXOAMJCAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,.,.,,..,,..,,,.,,,.,,.,,,.,,..,,...,...,...,,,,,.,,,,,.,..,,
+#CY2FQQ63JIUJF3KWIZZ3IDBN7T3HY56VXIERSGXWCWS5FUT2AOFBWCQPAYBCV64OVHEXZ5U6NFCCO
+#\\\|CGQGQYGIETI2SOAMGXHADJXVYKGNFT3PQMW63HURQIUUQRMC6I7 \ / AMOS7 \ YOURUM ::
+#\[7]RDOHIX5KC5E4SSCPI73D7VMTS5CUWNEOQZDAUATXG2DGELN6YGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
