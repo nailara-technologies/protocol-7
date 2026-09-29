@@ -1108,19 +1108,11 @@ sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
 
     ## harmony is asserted on the returned value itself : stepping back one ##
     ## ntime unit at a time to the latest harmonic value, no waiting [      ##
-    ## never in the future, monotonic across calls ]  decrement on the      ##
-    ## digit string : exact at every precision [ a unit below double        ##
-    ## resolution would not move a floating point value ]                   ##
+    ## never in the future, monotonic across calls ]                        ##
     while ( $want_harmony
         and not $code{'base.assert.harmony'}->( $ntime, 0 )
         and $retries_left-- > 0 ) {
-        my @digits = split m||, $ntime;
-        for ( my $i = $#digits; $i >= 0; $i-- ) {
-            next if $digits[$i] eq qw| . |;
-            if ( $digits[$i] > 0 ) { $digits[$i]--; last }
-            $digits[$i] = 9;    ##  borrow  ##
-        }
-        $ntime = join '', @digits;
+        $ntime = $code{'base.ntime.step_back'}->($ntime);
         ++$data{'base'}{'retry-count'}{'ntime'};
     }
     $ntime = sprintf qw| %.*f |, $ntime_precision, $ntime_now
@@ -1136,14 +1128,25 @@ sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
 
 ##############################################################################
 
+sub p7_ntime__step_back {    ##  one unit of the last digit back  ##
+
+    ## decrement on the digit string : exact at every precision [ a unit ##
+    ## below double resolution would not move a floating point value ]   ##
+    my @digits = split m||, shift // '';
+    for ( my $i = $#digits; $i >= 0; $i-- ) {
+        next if $digits[$i] eq qw| . |;
+        if ( $digits[$i] > 0 ) { $digits[$i]--; last }
+        $digits[$i] = 9;    ##  borrow  ##
+    }
+    return join '', @digits;
+}
+
+##############################################################################
+
 sub p7_ntime__b32 {
 
     my $param        = shift // 4;    # <-- precision or utime
     my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // TRUE;
-    my $ntime_value;
-    my $last_ntime      = 0;
-    my $ntime_precision = 0;
-    my $was_unix_input  = FALSE;
 
     ##  keeping low to visualize disharmony in system events  ##
     ##
@@ -1154,60 +1157,31 @@ sub p7_ntime__b32 {
     $data{'base'}{'timestamp-count'}{'ntime_base32'} //= 0;
     if ( length $data{'base'}{'timestamp-count'}{'ntime_base32'}++ > 17 ) {
         $data{'base'}{'timestamp-count'}{'ntime_base32'}   = 1;
-        $data{'base'}{'retry-limits-reached'}{'ntime-B32'} = 0;
+        $data{'base'}{'retry-limits-reached'}{'ntime_b32'} = 0;
     }
 
-    ##  updated below  ##
-    my $zulum_len       = $ntime_precision + 1;
-    my $collision_delay = 0;
+    ##  unix time input : converted as given [ base.ntime harmonizes ]  ##
+    return $code{'base.encode_ntime_to_B32'}
+        ->( $code{'base.ntime'}->( $param, $want_harmony ) )
+        if length $param >= 3 or not $want_harmony;
 
-    $was_unix_input = TRUE if length $param >= 3;    ## true ##
-
-RETRY_BASE_NTIME_B32:    ##  harmonizing values  ##
-
-    $last_ntime = $ntime_value
-        if $want_harmony
-        and not $was_unix_input
-        and defined $ntime_value
-        and $ntime_value != $last_ntime;
-
-    ####
-    $ntime_value = $code{'base.ntime'}->( $param, $want_harmony );
-    ####
-
-    if ($want_harmony) {
-
-        $ntime_precision ||= length $LAST_PAREN_MATCH
-            if $ntime_value =~ m|\.(\d+)$|;
-
-        my $unix_precision = $ntime_precision + 2;
-
-        my $zulum_len ||= $ntime_precision + 1;
-        my $collision_delay ||= 0 + sprintf qw| 0.%s113 |, '0' x $zulum_len;
-
-        if ($was_unix_input) {    ##  randomizing value  ##
-
-            if ( $unix_precision > 0 ) {
-                $param = sprintf qw| %.*f |, $unix_precision,
-                    $param + 1 / 10**$unix_precision;
-            }
-
-        } elsif ( $last_ntime == $ntime_value ) { ## same input \ collision ##
-            Time::HiRes::sleep($collision_delay);
-            goto RETRY_BASE_NTIME_B32;
-        }
-    }
-
+    ## harmony is asserted on the encoded value [ the one returned ] : the ##
+    ## numeric ntime needs none of its own. stepping back one unit at a    ##
+    ## time until the encoding is harmonic, no waiting                     ##
+    my $ntime_now     = $code{'base.ntime'}->( $param, FALSE );
+    my $ntime_value   = $ntime_now;
     my $encoded_ntime = $code{'base.encode_ntime_to_B32'}->($ntime_value);
 
-    ++$data{'base'}{'retry-count'}{'ntime-B32'}
-        and goto RETRY_BASE_NTIME_B32
-        if $want_harmony
-        and length($param) < 9    # <-- precision
-        and $code{'base.assert.harmony'}->($encoded_ntime) == 0
-        and $retries_left-- > 0;
+    while ( $code{'base.assert.harmony'}->($encoded_ntime) == 0
+        and $retries_left-- > 0 ) {
+        $ntime_value   = $code{'base.ntime.step_back'}->($ntime_value);
+        $encoded_ntime = $code{'base.encode_ntime_to_B32'}->($ntime_value);
+        ++$data{'base'}{'retry-count'}{'ntime-B32'};
+    }
 
-    if ( $retries_left <= 0 ) {    ##  count limit reached  ##
+    if ( $retries_left < 0 ) {    ##  count limit reached  ##
+        $encoded_ntime            ##  none found : current value  ##
+            = $code{'base.encode_ntime_to_B32'}->($ntime_now);
         $data{'base'}{'retry-limits-reached'}{'ntime_b32'} //= 0;
         $data{'base'}{'retry-limits-reached'}{'ntime_b32'}++;
     }
@@ -6640,8 +6614,8 @@ __DATA__
 :
 :.
 
-#,,.,,...,.,,,,,,,,..,...,.,,,.,.,.,,,,..,...,..,,...,...,..,,...,,,.,,,.,,.,,
-#QAITQ2KQJO3QGV5533YWPUOXBY23R35VEWAK3NTD3673FYZDQWBMJR6WR3VN7GR7O4OSOGTWUNGNM
-#\\\|SFJTKWUZCOZHTPQTXRH4ZZ2YAGZJINJMN2YRKRSDXI7N64R6MRI \ / AMOS7 \ YOURUM ::
-#\[7]ECSI4UIIKXOJYNACD6BZR2MIVAJZLVMSFGGW2GZREC76XPQCCCCY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,.,.,.,,,,..,...,,,.,.,.,...,..,,...,...,,,.,..,,.,.,.,,,...,
+#4JMMREPXRTMFCJPRVHY4JWHEYTINAGKCTB4UXLDFME6FIA3D7EH6MAZUKIC56K5V3DBOY7IIOORRM
+#\\\|LCKTT33ZYF5QK7AOXSJHTQEWJBP6LNBTONUYXDWLVYFLPAZED4K \ / AMOS7 \ YOURUM ::
+#\[7]DWNFP6QGK6DPEBVKSYMGDQU3RAEGGUTXLDTFSDN5AQSWZSZWUYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
