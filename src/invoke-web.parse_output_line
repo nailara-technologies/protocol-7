@@ -87,6 +87,9 @@ if ( $kind eq qw| ready | ) {
         }
         if defined $name;
     <[invoke-web.missing.save]> if defined $name;
+    <invoke-web.render>->{'failed'} //= sprintf "model '%s' " . "missing",
+        $name // '?'
+        if defined <invoke-web.render> and not <invoke-web.render>->{'done'};
     <invoke-web.last_error> = {
         'kind' => qw| model |,
         'line' => sprintf(
@@ -97,6 +100,8 @@ if ( $kind eq qw| ready | ) {
         'time' => <[base.time]>->(3),
     };
 } elsif ( $kind =~ m{^(?:error|oom)$} ) {
+    <invoke-web.render>->{'failed'} //= $kind    ## this render failed ##
+        if defined <invoke-web.render> and not <invoke-web.render>->{'done'};
     <invoke-web.last_error> = {
         'kind' => $kind,
         'line' => $line,
@@ -109,6 +114,12 @@ if ( $kind eq qw| ready | ) {
 } elsif ( $kind eq qw| item_done | ) {
     delete <invoke-web.progress>;
     <invoke-web.render>->{'done'} = TRUE if defined <invoke-web.render>;
+} elsif ( $kind eq qw| render_node | ) {
+
+    ## executed graph nodes of this item : name -> vram [ G ] ##
+    my ( $node, $vram ) = $line =~ m{^\s*(\w+)\s+\d+\s+[\d.]+s\s+([\d.]+)G};
+    <invoke-web.render>->{'nodes'}->{$node} = $vram
+        if defined $node and defined <invoke-web.render>;
 } elsif ( $kind eq qw| render_stat | ) {
 
     ## one summary line once the table's last collected value arrives ##
@@ -117,6 +128,31 @@ if ( $kind eq qw| ready | ) {
     $render->{'stats'}->{$key} = $value;
     if ( $key eq 'Cache high water mark' ) {
         <invoke-web.last_render> = $render;
+
+        ## graph stats come for failed items too : an error in the same    ##
+        ## session, or a memory based sanity check -- no image decode node ##
+        ## [ l2i \ *_l2i ] ran with vram in use = nothing was rendered.    ##
+        ## not the time : it depends on the hardware ; not the ram delta   ##
+        ## alone : a fully cached render shows +0.000G too                 ##
+        my $nodes = $render->{'nodes'} // {};
+        my $decoded
+            = grep { m{(?:^|_)l2i$} and $nodes->{$ARG} > 0 } keys %$nodes;
+        $render->{'result'}
+            = defined $render->{'failed'} ? qw| failed |
+            : not $decoded                ? qw| suspicious |
+            :                               qw| done |;
+
+        <[base.logs]>->(
+            $render->{'result'} eq qw| done | ? 1 : 0,
+            'render %s [ item %s%s ]',
+            $render->{'result'},
+            $render->{'item'} // '?',
+            $render->{'result'} eq qw| failed |
+            ? " : $render->{'failed'}"
+            : ''
+        ) if $render->{'result'} ne qw| done |;
+
+        return if $render->{'result'} ne qw| done |;
         <[base.logs]>->(
             1,
             'render done [ item %s : %s, ram %s, vram %s ]',
@@ -133,8 +169,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,.,...,..,,...,,.,,...,,..,..,,,.,,,.,,,..,..,,...,...,...,,,,,...,,..,.,.,
-#YTIOVU64GN73ANQGDVHPBMCU4PLHQTUYNQ2XWOPBEWIU7TKKS6MNH5RODMP4QILE7SZWRFEISQEVO
-#\\\|W3GB7XDHTH4FAUH5SUJWSKP7Z3DI3OLPNX3FCXYHYIZGLRN6H6Y \ / AMOS7 \ YOURUM ::
-#\[7]EM3IYO2NLRWRVVIYFJUHRSVRCKWUEL6GC2Z6TJD6VHWJBW7BQSCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,,,,..,,.,.,.,.,.,,,...,.,,,..,,...,...,,,,,,,,,,,,,,.,,.,,,
+#34E5SW4S37VBL3IA2DVZPBAHRSXLXYEQJQUDFCYVZFRGSRHGGE4YDFPI3PEOBCGW7YIVLQ26K5FO2
+#\\\|XVODZPWLJZ6DTZ5TGJX7AEOUXSSVYRZPB3HANMNPYSKUIRIOZXT \ / AMOS7 \ YOURUM ::
+#\[7]NMLPUX7SGLOSGZ6KKV5U45KK3V3PDXBIXOG4RMO3WDMADIBKYMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

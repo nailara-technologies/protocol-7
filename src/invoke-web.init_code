@@ -4,30 +4,32 @@
 # descr = invoke-web zenka initialization
 
 ## load required modules [ one at a time per base.perlmod.autoload ]
-map { <[base.perlmod.autoload]>->($ARG) } qw| IPC::Open3 Symbol Fcntl DBI LWP::UserAgent JSON::PP |;
+map { <[base.perlmod.autoload]>->($ARG) }
+    qw| IPC::Open3 Symbol Fcntl DBI LWP::UserAgent JSON::PP |;
 
 my $reinit = shift // TRUE;    ## provided by 'base.init_modules' ##
 
-## zenka output directory owned by the run user [ zenka.v7 sets        ##
-## system.zenka-user.current ; recursive : fixes content created while ##
-## the zenka still ran as the protocol-7 user ]                        ##
+## zenka output directory owned by the run user [ zenka.v7 sets            ##
+## system.zenka-user.current ; recursive : fixes content created while the ##
+## zenka still ran as the protocol-7 user ]                                ##
 <[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0, '', TRUE );
 
 ## initialize state [ a reinit keeps track of a running process ]
 <invoke-web.status>       //= 'idle';
 <invoke-web.pid>          //= undef;
-<invoke-web.output_tail>  //= [];      ## last lines [ invoke-web.log ] ##
-<invoke-web.carry>        //= {};      ## incomplete line per stream ##
+<invoke-web.output_tail>  //= [];       ## last lines [ invoke-web.log ] ##
+<invoke-web.carry>        //= {};       ## incomplete line per stream ##
 <invoke-web.ready_logged> //= FALSE;
 delete <invoke-web.output>;    ## replaced by the bounded output tail ##
 
 ## models a render failed on [ invoke-web.missing.save ] : kept across ##
-## restarts until the failed item is re-queued                          ##
+## restarts until the failed item is re-queued                         ##
 if ( not defined <invoke-web.missing_at_render> ) {
     my $saved = <[file.zenka_dir.load]>->('state/missing-at-render');
     <invoke-web.missing_at_render>
-        = ( defined $saved ? eval { JSON::PP::decode_json( $saved->$* ) } : undef )
-        // {};
+        = ( defined $saved
+        ? eval { JSON::PP::decode_json( $saved->$* ) }
+        : undef ) // {};
 }
 
 ## invoke.ai output lines : first match wins, unmatched lines log at 3 ##
@@ -35,27 +37,33 @@ if ( not defined <invoke-web.missing_at_render> ) {
 <invoke-web.output_patterns> = [
     {   'kind'  => 'ready',
         'level' => 1,
-        'match' => qr{uvicorn running on|invoke running on|application startup complete}i
+        'match' =>
+            qr{uvicorn running on|invoke running on|application startup complete}i
     },
     {   'kind'  => 'oom',
         'level' => 0,
         'match' => qr{out of memory|OutOfMemoryError|cannot allocate memory}i
     },
-    {   'kind'  => 'model',
-        'level' => 2,
-        'match' => qr{missing model file|model\b.*\b(?:not found|does not exist)|unknown model}i
-    },
+    ## order matters [ first match wins ] : the render error also reads ##
+    ## 'model .. not found' -- it must be tested before the startup one ##
     {   'kind'  => 'model_render',    ## a render needs a missing model ##
         'level' => 1,
         'match' => qr{Files for model '[^']+' not found at }
     },
+    ## startup : one line per missing file ##
+    {   'kind'  => 'model',
+        'level' => 2,
+        'match' => qr{Missing model file:}
+    },
     {   'kind'  => 'traceback',       ## detail : keeps the real error ##
         'level' => 2,
-        'match' => qr{::ERROR --> Traceback|^Traceback \(most recent call last\)}
+        'match' =>
+            qr{::ERROR --> Traceback|^Traceback \(most recent call last\)}
     },
     {   'kind'  => 'error',
         'level' => 0,
-        'match' => qr{::ERROR\b|^Traceback \(most recent call last\)|\bError:\s}
+        'match' =>
+            qr{::ERROR\b|^Traceback \(most recent call last\)|\bError:\s}
     },
     {   'kind'  => 'progress',
         'level' => 3,
@@ -63,15 +71,22 @@ if ( not defined <invoke-web.missing_at_render> ) {
     },
     {   'kind'  => 'item',
         'level' => 1,
-        'match' => qr{executing queue item|queue item \d+ (?:started|completed|failed)}i
+        'match' =>
+            qr{executing queue item|queue item \d+ (?:started|completed|failed)}i
     },
     {   'kind'  => 'item_done',    ## same session id as 'Executing ..' ##
         'level' => 2,
         'match' => qr{::INFO --> Graph stats: \S+}
     },
-    {   'kind'  => 'render_stat',  ## graph stats table, summarized ##
+    ## graph stats row : node calls secs vram ##
+    {   'kind'  => 'render_node',
         'level' => 3,
-        'match' => qr{^(?:TOTAL GRAPH EXECUTION TIME|RAM used by InvokeAI process|VRAM in use|\s*Cache high water mark):}
+        'match' => qr{^\s*\w+\s+\d+\s+[\d.]+s\s+[\d.]+G\s*$}
+    },
+    {   'kind'  => 'render_stat',    ## graph stats table, summarized ##
+        'level' => 3,
+        'match' =>
+            qr{^(?:TOTAL GRAPH EXECUTION TIME|RAM used by InvokeAI process|VRAM in use|\s*Cache high water mark):}
     },
     {   'kind'  => 'warning',
         'level' => 2,
@@ -84,13 +99,14 @@ if ( not defined <invoke-web.missing_at_render> ) {
 ];
 <invoke-web.crash_logged> //= FALSE;
 ## the port invoke.ai reported [ parse_output_line ] wins over the config ##
-<invoke-web.url> = <invoke-web.url_detected> // <external.models.invokeai.url>
-    // 'http://127.0.0.1:9090';
+<invoke-web.url> = <invoke-web.url_detected>
+    // <external.models.invokeai.url> // 'http://127.0.0.1:9090';
 
-## invoke.ai is installed below the home of the zenka's run user [ zenka.v7 ] ##
+## invoke.ai is installed below the home of the zenka's run user [ zenka.v7 ##
+## ]                                                                        ##
 my $run_user = <invoke-web.run_user> // <system.admin-user> // '';
 my $run_home = length $run_user ? ( getpwnam $run_user )[7] : undef;
-<invoke-web.binary>   = <external.models.invokeai.binary> // (
+<invoke-web.binary> = <external.models.invokeai.binary> // (
     defined $run_home
     ? "$run_home/miniconda3/envs/invokeai/bin/invokeai-web"
     : undef
@@ -119,7 +135,8 @@ if ( defined $saved_ref ) {
     my ( $saved_pid, $saved_bin ) = split m|\n|, $saved_ref->$*;
     $saved_pid //= '';
     $saved_bin //= '';
-    if (    ( <invoke-web.pid> // -1 ) != $saved_pid    ## own process [ reinit ] ##
+    ## own process [ reinit ] ##
+    if ( ( <invoke-web.pid> // -1 ) != $saved_pid
         and <[invoke-web.is_alive]>->($saved_pid) ) {
         ## verify process name matches before adopting
         my $proc_cmd = '';
@@ -130,8 +147,8 @@ if ( defined $saved_ref ) {
         }
         if ( $proc_cmd =~ m|invokeai-web| ) {
             ## adopt orphan process
-            <invoke-web.pid>        = $saved_pid;
-            <invoke-web.status>     = 'running';
+            <invoke-web.pid>    = $saved_pid;
+            <invoke-web.status> = 'running';
             <[base.zenki.pause_ondemand_timeout]>;    ## see cmd.start ##
             <invoke-web.start_time> = <[base.time]>->(3);
             <[base.zenki.report_child_pid]>->($saved_pid);
@@ -151,10 +168,10 @@ if ( defined $saved_ref ) {
     }
 }
 
-## start memory guard [ coding zenka pattern ] : dependency objects for  ##
-## free RAM \ VRAM, gated with the cross-loaded coding callbacks. a      ##
-## start while memory is short waits [ invoke-web.handler.start_guard ]  ##
-## instead of spawning into an exhausted machine                         ##
+## start memory guard [ coding zenka pattern ] : dependency objects for   ##
+## free RAM \ VRAM, gated with the cross-loaded coding callbacks. a start ##
+## while memory is short waits [ invoke-web.handler.start_guard ] instead ##
+## of spawning into an exhausted machine                                  ##
 <[dependency.setup]>->(
     'memory_system',
     { 'callback' => $code{'coding.callback.object_memory_system'} }
@@ -179,7 +196,8 @@ if ( not defined <invoke-web.dep.memory_system> ) {
 
     ## self-chains so dependency.ok actually calls the callbacks ##
     <[dependency.add]>->(
-        <invoke-web.dep.memory_system>, <invoke-web.dep.memory_system>
+        <invoke-web.dep.memory_system>,
+        <invoke-web.dep.memory_system>
     );
     <[dependency.add]>->(
         <invoke-web.dep.memory_gpu>, <invoke-web.dep.memory_gpu>
@@ -207,8 +225,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,.,,,.,,.,,,...,,,.,..,,..,,..,,...,,.,,.,.,..,,...,...,,,,,...,,.,,..,,..,,
-#G5Y424YUVVN5Z2XE4TDMO3BFZYBZI3EOVYQPR5V3T34RAHDCEWDBBTLI7FHBMRRTSWT2L6CVI7YWQ
-#\\\|CLMMSLYT4TM7WTMDPQ55ARNB3CJWQBPFG377TKNLCQZQGKS423A \ / AMOS7 \ YOURUM ::
-#\[7]EAYJHHENI62HQ564DHIAMEF6ZGQ2OZEBTNZX2RZ2RFM66GB27WBQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,,..,...,.,,,...,..,,...,,,.,..,,...,...,...,,..,,,,,,..,.,.,
+#ABXDFQZQXVPNVJRX6WGQKJXFFZZ2H2MBETPL2PF47PENIKF6D63WOC76DONB7MVU3H5QSLGGKOLNU
+#\\\|3MTAZZDJPWSASYGRC2N6LAFWFXOJXJJZDTRXOXCOCUZTMLPNIG7 \ / AMOS7 \ YOURUM ::
+#\[7]MF4LKUTJKOQKNJU5DIQTD7XES2JZTMRHCO73IKHBXW7DMVS4Q6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
