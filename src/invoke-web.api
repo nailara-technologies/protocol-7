@@ -8,9 +8,6 @@
 my $method = uc( shift // qw| GET | );
 my $path   = shift // '/';
 
-<[base.perlmod.autoload]>->('LWP::UserAgent');
-<[base.perlmod.autoload]>->('JSON::PP');
-
 my $url = <invoke-web.url> // 'http://127.0.0.1:9090';
 my $ua  = LWP::UserAgent->new( timeout => 3 );
 $ua->no_proxy( 'localhost', '127.0.0.1' );    ## local api : direct ##
@@ -26,8 +23,8 @@ return {
     'data'   => $decoded // $body,
 };
 
-#,,,,,..,,...,.,.,...,,..,,,,,,..,..,,...,,,,,..,,...,...,.,.,...,,,.,.,,,..,,
-#WDSRM4WKQ5QGMGTHDFX4FWENVH3HER3ENQAPIWG4NLLVCERR3646C6JJAJSDDEBXVJMZFLBIU33GW
-#\\\|RT3XVFPHNCM6Q2DHZAKBF72TQ3L347KLVCJ32RXIHD326YOBTXT \ / AMOS7 \ YOURUM ::
-#\[7]PQPGUL25RJD66PDC5TIRAVVLJIWV4KAZ4O7RSJGLOBRS66PUTSAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,.,.,..,,...,,..,,,,,...,,..,..,,...,...,,.,,..,,...,,,,,..,,
+#YK5BYFO47HOCLTBUSBN7XT75WFSX6MTSBVWAYIBDWWE4HIUB4NKSZM7RD4AFX7RCWXJOHAP7HS7U6
+#\\\|QNANZH5N24UJMDIH5F472UZTZ2JUTNOL6DJT43CXAPDUHOFKFUD \ / AMOS7 \ YOURUM ::
+#\[7]J3Y3WTDRD6QF775V3IE27MK6P3YIKA2PMD7FFJ5SQ4YCKKC46GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

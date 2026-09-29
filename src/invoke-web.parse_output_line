@@ -47,6 +47,12 @@ if ( $kind eq qw| ready | ) {
                 $result->{'ok'} ? 'done' : $result->{'status'}
             );
         }
+
+        ## interactive queue mode from the start [ zenka.v7 flag ; armed ##
+        ## here, not in init_code : that one still runs as root ]         ##
+        <[invoke-web.queue.interactive]>->(TRUE)
+            if <[base.cfg_bool]>->( <invoke-web.queue_interactive_start> // 0 )
+            and not <invoke-web.queue_interactive>;
     }
     return;
 } elsif ( $kind eq qw| progress | ) {    ## tqdm : ' 45%|####  | 9/20 [..' ##
@@ -54,6 +60,28 @@ if ( $kind eq qw| ready | ) {
     return;                              ## no log line per step ##
 } elsif ( $kind eq qw| model | ) {    ## startup lists every missing file ##
     <invoke-web.missing_models>++;
+} elsif ( $kind eq qw| model_render | ) {
+
+    ## second complaint about a missing model : the autofetch trigger    ##
+    ## [ data/tasks/invoke-missing-model-autofetch.md ]. same model name ##
+    ## as the startup 'Missing model file' line ; item status : failed,  ##
+    ## error_type FileNotFoundError                                      ##
+    my ($name) = $line =~ m{Files for model '([^']+)' not found at (\S+)};
+    my $path = $2;
+    my ($session) = $line =~ m{invoking session (\S+),};
+    my $render = <invoke-web.render> // {};
+    <invoke-web.missing_at_render>->{$name} = {
+        'path'    => $path,
+        'item'    => $render->{'item'},
+        'session' => $session // $render->{'session'},
+        'time'    => <[base.time]>->(3),
+    } if defined $name;
+    <invoke-web.last_error> = {
+        'kind' => qw| model |,
+        'line' => sprintf( "model '%s' missing [ item %s ]",
+            $name // '?', $render->{'item'} // '?' ),
+        'time' => <[base.time]>->(3),
+    };
 } elsif ( $kind =~ m{^(?:error|oom)$} ) {
     <invoke-web.last_error> = {
         'kind' => $kind,
@@ -85,10 +113,13 @@ if ( $kind eq qw| ready | ) {
     }
 }
 
-<[base.logs]>->( $level, '[invoke.ai] %s', $line );
+## console \ logfile in house style : '(node_name)' -> '[ node_name ]' ##
+## [ single identifiers only ; the output tail keeps the raw line ]    ##
+( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
+<[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,..,,..,..,,.,,,..,,..,,...,.,.,,,,,.,.,..,,..,,...,...,..,,,..,...,,.,,,.,,
-#H3X2PP53CJBFS5G3ZJHKURZV3QM2GAT534SMT3SCCYLT5F374EPW7YNGRNBVMX2XR64VKRY7RF5WE
-#\\\|WWRPOCTCCQ5EAKZTERCJNQQSYFBY3NDZINJEZ3ZDQU35HTMRPDM \ / AMOS7 \ YOURUM ::
-#\[7]JWPH3TTG5XYS7RRO44LO2Y55W7REH4ESEFP55FJ75IX7MQYWNOCA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,.,,,,,.,.,.,,..,,..,..,,.,,,..,,...,...,.,.,.,,,,,.,...,..,,
+#XBNADN2PLKAK7GP57VYFNGS7LGZUX26CBURSJAQTOOI7WCOF2WQ2BTG75KC5XPGPEL4QTWIL7JTM2
+#\\\|OPT3HY6Q7BCAO2QXTVIEVBB63YQ7S4FBD7PAFUGGVKQW7NZUYMO \ / AMOS7 \ YOURUM ::
+#\[7]G72WCONUZCFCV7AT4OOGWAE7KU2WWFP76OOOMULYHM6IE5HBDUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

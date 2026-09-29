@@ -11,6 +11,9 @@ system.zenka-user.current = <invoke-web.run_user>   ## <-- not 'protocol-7' ##
 ##  pause the invoke.ai queue once it is ready [ it resumes on every start ]  ##
 invoke-web.start_paused = yes
 
+##  interactive queue mode at ready : new items jump to the front  ##
+invoke-web.queue_interactive_start = no
+
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.logfile = 2
 system.zenka.verbosity.console = 2
@@ -25,7 +28,8 @@ heartbeat.disabled = 1
 access.cmd.usr.cube = heart verify-instance commands reload \
                       show-buffer show-access \
                       start stop restart status health log \
-                      pause resume queue
+                      pause resume queue queue-order \
+                      queue-interactive queue-front
 
 modules.load = auth.client net protocol io.unix ui invoke-web
 
@@ -40,8 +44,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web
 
 [zenka.loop]
 
-#,,.,,,,,,,.,,..,,,,,,.,.,,,.,,.,,.,.,,.,,,,.,..,,...,..,,.,.,.,.,..,,,,,,,,.,
-#6AZDHQGNHFDTUJBOV67GQAUMACA4JPXOCSC63INRHEFGLGEG73WQLMGY7R3LCV2ZYUCRUZ7OZI5UQ
-#\\\|2GZHRGOP5AUD3XZZ6TUP6W3ULRALIJYZLTOFVAASRUH3XJ3HE54 \ / AMOS7 \ YOURUM ::
-#\[7]QBZ2Y7I77D3TJGHU3EMBOK4VPXDMSQMRD2FDNFSEPSVAWUUQBKCI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,,,.,,,.,,,,..,...,..,,.,,,.,.,..,,...,..,,..,,.,.,...,,,.,.,.,
+#ZZTWG4SERISW2VRONLT44TAMOQQ57DRRAKAJY7MB2L6IEHU2VJKM5ORCQECUXCJF6RSWES2ISAJJK
+#\\\|6OMAVRTATC4W4ZD6TMIBNRJWKQOA76I4BTZ6FCRNDK5V4LPFQVV \ / AMOS7 \ YOURUM ::
+#\[7]HIGRCOBPUD7YXQ64JH6VAPMFPHCGLCHLOLMQC6HQJIQENV2O3QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

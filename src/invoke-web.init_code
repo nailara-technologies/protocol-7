@@ -4,7 +4,7 @@
 # descr = invoke-web zenka initialization
 
 ## load required modules [ one at a time per base.perlmod.autoload ]
-map { <[base.perlmod.autoload]>->($ARG) } qw| IPC::Open3 Symbol Fcntl |;
+map { <[base.perlmod.autoload]>->($ARG) } qw| IPC::Open3 Symbol Fcntl DBI LWP::UserAgent JSON::PP |;
 
 my $reinit = shift // TRUE;    ## provided by 'base.init_modules' ##
 
@@ -35,6 +35,14 @@ delete <invoke-web.output>;    ## replaced by the bounded output tail ##
     {   'kind'  => 'model',
         'level' => 2,
         'match' => qr{missing model file|model\b.*\b(?:not found|does not exist)|unknown model}i
+    },
+    {   'kind'  => 'model_render',    ## a render needs a missing model ##
+        'level' => 1,
+        'match' => qr{Files for model '[^']+' not found at }
+    },
+    {   'kind'  => 'traceback',       ## detail : keeps the real error ##
+        'level' => 2,
+        'match' => qr{::ERROR --> Traceback|^Traceback \(most recent call last\)}
     },
     {   'kind'  => 'error',
         'level' => 0,
@@ -147,8 +155,8 @@ if ( defined $saved_ref ) {
 
 0;
 
-#,,,,,,,.,,,.,.,.,,..,.,.,.,,,,..,,,.,.,.,,,.,..,,...,..,,,,,,,..,...,,..,..,,
-#B462WOIVUCCZAU72GV5AC4VTTJ7E5EK7VD4IEF257FVACGQ727HKKUO27ENQPV7CRMFTHPRWNFJUI
-#\\\|JRMZOEJHHV5ZXJWFW442J5DOIPGLHMXEFTJAG6RT37TIE2SYAPX \ / AMOS7 \ YOURUM ::
-#\[7]VAUOOJON5HHRTAERRVBSKVLKFFZGL5RJ7LDLJ2CKAEOAF6ZDT4CI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,..,,.,,,.,,,,.,.,,,,,.,,.,,..,,...,..,,..,,...,...,.,,,..,,
+#KIPIK6XQQ2CMRV3G4APHVO2UFIUJMHLKPNDUDXXUQNKPZKR4U5IWBZT6YZ2WPGU474PY6VWGOK3DC
+#\\\|DYMERWRSS7GA7T4JTL2I7WZM3LNEAMOHCIGSCSQDWBMO5ZUHJNL \ / AMOS7 \ YOURUM ::
+#\[7]RFYMFSRTWUQ2DE3REOGHEBEJ2IPCOY4T6CTMSN4I5SF6VUYCCODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

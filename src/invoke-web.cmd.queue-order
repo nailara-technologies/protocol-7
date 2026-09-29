@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = invoke-web.cmd.queue-order
+# descr = re-sort pending queue items [ newest|oldest|harmonic ]
+# param = newest | oldest | harmonic [ default newest ]
+
+my $mode = $call->{'args'} // '';
+$mode = qw| newest | if not length $mode;
+
+return { mode => qw| false |, data => 'mode : newest | oldest | harmonic' }
+    if $mode !~ m{^(?:newest|oldest|harmonic)$};
+
+my $count = <[invoke-web.queue.order]>->($mode);
+
+return { mode => qw| false |, data => 'queue reorder failed [ see log ]' }
+    if not defined $count;
+
+return {
+    mode => qw| size |,
+    data => sprintf( "queue reordered [ %s, %d pending items ]\n", $mode, $count )
+};
+
+#,,.,,,..,,,,,..,,,..,.,.,,..,.,.,,.,,,,.,.,.,..,,...,...,,..,.,,,...,.,.,,.,,
+#IHRKQCRFN53SM74CACVTA6KAZ56C6DDZABXSKWJJKI3OAXBEQXUYGGVPWL67IDYYEQAZADC5RQM5U
+#\\\|GFZFZGHBC5UU7MGZGXHF3XLRZTRIWVVFE7D2KURVO574LEUDLUZ \ / AMOS7 \ YOURUM ::
+#\[7]RHRRB625RZVAOELRD5H4OCUQ63WSYYUQO56O36VMQ6VLPWUAE6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

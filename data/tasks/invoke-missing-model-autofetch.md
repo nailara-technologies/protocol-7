@@ -61,9 +61,23 @@ an item that failed on a missing model is identified by invoke-web itself
 `data/tasks/invoke-web-interrupted-item-requeue.md`. build both on the same
 item record.
 
+## observed [ 2026-09-29, items 15755 \ 15756 moved to the front with
+## `invoke-web.queue-front` ]
+
+- second complaint :
+  `::ERROR --> Error while invoking session <session>, invocation <id>
+  [ sdxl_compel_prompt ]: Files for model '<name>' not found at <abs path>`
+  -- the SAME model name as the startup `Missing model file: <name> at
+  <path relative to the model root>` line : match on the name
+- item status via api : `failed`, `error_type` FileNotFoundError,
+  `error_message` = the same text -- unambiguous, never a manual cancel
+  [ those are `canceled` ] : safe to retry after the fetch
+- the item fails within ~0.1s [ at the prompt node, before any model load ]
+- recorded since then : pattern `model_render` ->
+  `<invoke-web.missing_at_render>->{<name>}` = path, item, session, time
+
 ## open questions
 
-- the error line \ status of an item failing on a missing model
 - how graphs reference models [ key vs name ] and how to read them from
   pending queue items
 - invoke.ai's rescan \ install api for a file placed by us vs letting
@@ -71,11 +85,9 @@ item record.
   sources -- but fetch-files gives lan-first + our hash checks ]
 - fetch-files job interface : what invoke-web sends, how completion is
   reported back [ callback \ event ]
-- does the second complaint name the model the same way as the startup
-  line [ name vs key vs path ] -- the match between the two must be exact
 
-#,,.,,.,,,...,..,,,.,,...,.,,,,,,,...,,.,,,.,,..,,...,...,,..,,,,,.,.,,,,,,.,,
-#LCBG6BBEZVPMVLRBTRTVHVXLFKTIVK2NYBTXMYENOAIHNLW4ZGAA6ARQTBCHYMC4HDI5H7LI2RD5G
-#\\\|YT6N4K4V2BCA2CI4PVPNV2URTTMTUX3OEANXB5KNNWWYBQ2J56C \ / AMOS7 \ YOURUM ::
-#\[7]PBEXINNMEBC3AIT3SXK5F4TVA7WXPLQUTHRXQ54DY6XKAQFGSECQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,,,,.,,,..,,,.,,.,,.,.,,.,,,,.,..,,...,...,.,.,,,.,..,,.,,,.,,,
+#NBARGKKTOCUCVJOO2VHCTHXGELSG7RTLJ4L6US7HKR567IDQOQJ44YG23DEOKIKVVNDDW5QZMUTEU
+#\\\|D465KTQZHS7GAQIXXKMQTQDCZGOE4YKZDZN5MMQNMAUJUR7SIAI \ / AMOS7 \ YOURUM ::
+#\[7]IGBAJ44CFTNGV44LNNFSNRQBORWWY5GMK7NKMXI2DAC3NUTRKKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
