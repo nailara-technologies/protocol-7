@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = invoke-web.handler.gpu_pause_reply
+# descr = queue paused after a cuda error : stop invoke.ai, the start
+#         follows once the process is gone [ invoke-web.handler.gpu_restart ]
+
+my $reply   = shift                    // {};
+my $recover = <invoke-web.gpu_recover> // return;
+
+<[base.logs]>->(
+    $reply->{'ok'} ? 1 : 0,
+    'gpu : queue pause %s',
+    $reply->{'ok'} ? 'done' : $reply->{'status'}
+);
+
+if ( not $recover->{'restart'} ) {
+    delete <invoke-web.gpu_recover>;    ## paused, left for the user ##
+    return;
+}
+
+$recover->{'old_pid'} = <invoke-web.pid>;
+<[invoke-web.cmd.stop]>->( {} );
+
+<[event.add_timer]>->(
+    {   'after'   => 5,
+        'handler' => 'invoke-web.handler.gpu_restart',
+        'data'    => { 'attempt' => 1 },
+    }
+);
+
+#,,,.,,..,.,,,..,,..,,..,,,,,,,..,,..,,..,,..,..,,...,...,,,.,...,.,,,...,,..,
+#75YCWLT2QR4OMYMKZP7GCZVV6MJRS6I4YMMRIVYDHPLTUI5NEVABAQXFC5I4VDXQGOLMGXXK3MTGM
+#\\\|HOKWGQ3UMIGWFXGRMOCBNDYYMQZU7MACURBYJVXGX2NDQNA6SUI \ / AMOS7 \ YOURUM ::
+#\[7]LK3FFHZU6ITNQ6WR3LLDDIBWHOJWKQBYV72DD2CHJCMC2BYI6CBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
