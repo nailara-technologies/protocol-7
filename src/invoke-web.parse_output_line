@@ -142,6 +142,18 @@ if ( $kind eq qw| ready | ) {
             : not $decoded                ? qw| suspicious |
             :                               qw| done |;
 
+        ## a clean graph can still hide a silent decode failure : look at ##
+        ## the result image itself [ black \ flat -> failed ]             ##
+        if ( $render->{'result'} eq qw| done | and defined $render->{'session'} ) {
+            my $check = <[invoke-web.render.check_images]>->( $render->{'session'} );
+            $render->{'images'} = $check->{'images'} if defined $check;
+            if ( defined $check and $check->{'bad'}->@* ) {
+                $render->{'result'} = qw| failed |;
+                $render->{'failed'} = sprintf 'silent failure : %s',
+                    join '; ', $check->{'bad'}->@*;
+            }
+        }
+
         <[base.logs]>->(
             $render->{'result'} eq qw| done | ? 1 : 0,
             'render %s [ item %s%s ]',
@@ -169,8 +181,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,.,.,,,...,..,,,,,,..,,.,.,.,.,.,,,...,.,,,..,,...,...,,,,,,,,,,,,,,.,,.,,,
-#34E5SW4S37VBL3IA2DVZPBAHRSXLXYEQJQUDFCYVZFRGSRHGGE4YDFPI3PEOBCGW7YIVLQ26K5FO2
-#\\\|XVODZPWLJZ6DTZ5TGJX7AEOUXSSVYRZPB3HANMNPYSKUIRIOZXT \ / AMOS7 \ YOURUM ::
-#\[7]NMLPUX7SGLOSGZ6KKV5U45KK3V3PDXBIXOG4RMO3WDMADIBKYMBI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,,.,,,,,,..,,,.,,.,.,..,,,,.,..,,...,..,,...,,.,,..,,...,,,,,
+#22WGRNBUJM5K7SSXFLCXT3CF3QD7BEQXS7SVAPKRLX3JPHHB6PFDEX6VQLINV2TLG4T2UDPIVVPHW
+#\\\|AC6BIQQOHO3UIAHJ2FKBDI4DEGVGLRLIWSAMLQYSQYY7RWGHKC5 \ / AMOS7 \ YOURUM ::
+#\[7]5UDTKEKYA3UVFMGVDZ5OWOJFX73WMH36O2EUVDPB23ZYQJEX6WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
