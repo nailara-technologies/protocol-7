@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = invoke-web.handler.render_check
+# descr = timer : result image check of a finished render [ black \ flat ->
+#         silent failure ], then the outcome log [ invoke-web.render.report ]
+# note  = out of the output handler : the image read yields to the event
+#         loop between chunks [ invoke-web.render.check_images ] ; the check
+#         duration is logged when it is slow [ disk \ swap contention ]
+
+my $event  = shift;
+my $render = eval { $event->w->data->{'render'} } // return;
+
+my $started = <[base.time]>->(3);
+my $check   = <[invoke-web.render.check_images]>->( $render->{'session'} );
+my $took    = <[base.time]>->(3) - $started;
+
+<[base.logs]>->(
+    $took > 2 ? 1 : 2,
+    'render check [ item %s ] took %.3fs',
+    $render->{'item'} // '?', $took
+);
+
+if ( defined $check ) {
+    $render->{'images'} = $check->{'images'};
+    if ( $check->{'bad'}->@* ) {
+        $render->{'result'} = qw| failed |;
+        $render->{'failed'} = sprintf 'silent failure : %s',
+            join '; ', $check->{'bad'}->@*;
+    }
+}
+
+<[invoke-web.render.report]>->($render);
+
+#,,.,,.,,,,..,,..,,.,,...,.,,,,,,,,,.,,..,,,.,..,,...,...,,,.,...,.,.,,,.,,,.,
+#IVUVOKXS2YDXDIXUEX65TM2RNTYRJKUND2JAWLTS3G5ZBWGF3VK45A3SC7VEW5BHYTIC2D4C7II5A
+#\\\|KKLOX47SG6PMNYCDVZLWRZRNASYXE6PHK7IQYUGU6DLQCTFLS25 \ / AMOS7 \ YOURUM ::
+#\[7]HIQ6GZIGSK6HVB2R2DRTC2EZJHZZNYG4R2QO7MZOTPNSOPIAHCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

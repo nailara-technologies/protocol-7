@@ -27,12 +27,12 @@ if (    not $reply->{'ok'}
     $attempt > 1   ? " [ attempt $attempt ]" : ''
 );
 
-## restart of a cuda error recovery : retry its items, then resume ##
-<[invoke-web.gpu.requeue]>
-    if $reply->{'ok'} and defined <invoke-web.gpu_recover>;
+## restart of a recovery [ cuda error \ zenka crash ] : retry, resume ##
+<[invoke-web.recover.requeue]>
+    if $reply->{'ok'} and defined <invoke-web.recover>;
 
-#,,.,,..,,...,.,.,.,,,,..,.,,,,.,,,,.,,,,,,,,,..,,...,..,,..,,..,,...,...,,.,,
-#AC3MK3JEMN5W4VMPNRKX7U6QOJ5IUF3NYW73AERVM3OBB26GHJIYXZNOQAO6EWMQWTBV5NK6W6KUA
-#\\\|UU6PKYQYJDKF7UOTFVDDKDPG3YQ3WK72VVKLRZ6S24UGH7NGOXG \ / AMOS7 \ YOURUM ::
-#\[7]MF4QBDHYANTQ7LNDOFSZTZBGFC6VM6OEY4LCBAKFZMFGRYOAKADY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,..,,,,.,.,,,.,,,,..,.,,,,.,,..,,...,...,...,..,,,,,,,,.,...,
+#RQ7VHE356VAIQFJYOPCDNIAPHMRDJTGDKI5RTHTULFLX73JWELUS6EKDQ73GUYBWZG34UJD4FBJUO
+#\\\|WF2PNDYCZ64OHKHBBWCUT3VXM4OSYKLCIQHXDPODURO2J2AOCOJ \ / AMOS7 \ YOURUM ::
+#\[7]OO65ED4KP5TUWPIURBTSR2XCHZ5VMQCDDAE7Z6TXO6LTCU75TUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

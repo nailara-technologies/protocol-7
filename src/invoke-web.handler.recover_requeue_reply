@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = invoke-web.handler.recover_requeue_reply
+# descr = interrupted items retried : resume the queue, recovery done
+# note  = cuda recovery : always resumed [ it was rendering ]. crash
+#         recovery : resumed only when an item was interrupted -- a queue
+#         that was paused before the crash stays paused [ start_paused ]
+
+my $reply   = shift // {};
+my $count   = $reply->{'params'}->{'count'};
+my $recover = delete <invoke-web.recover> // {};
+my $kind    = $recover->{'kind'}          // qw| recover |;
+
+<[base.logs]>->(
+    $reply->{'ok'} ? 1 : 0,
+    '%s : %s',
+    $kind,
+    $reply->{'ok'}
+    ? sprintf( '%d interrupted ' . 'item%s re-queued',
+        $count, $count == 1 ? '' : 's' )
+    : "retry failed [ $reply->{'status'} ] -- queue stays paused"
+) if defined $count;
+
+return if not $reply->{'ok'};
+if ( $kind eq qw| crash | and not $count ) {
+    <[base.logs]>->( 1, 'crash : invoke.ai back, queue stays paused' );
+    return;
+}
+
+<[invoke-web.api_async]>->(
+    'PUT', '/api/v1/queue/default/processor/resume',
+    undef,
+    'invoke-web.handler.recover_resume_reply',
+    { 'kind' => $kind }
+);
+
+#,,.,,,..,.,.,...,,,.,...,,,.,,..,,,.,.,,,,,,,..,,...,..,,.,,,.,.,...,..,,..,,
+#KAJYUBBS4AS3LHSWHVZ5NJIBTU66EAZ4LKACE4NYRRUXKRY6OFGNT53E4JI2ROV5EUDVJCTTRGDEC
+#\\\|QL6F5Q6OVE3E6ZOWF65U4LZWK6QQB6V3UUF7UQ75VDIA3HD3VZ4 \ / AMOS7 \ YOURUM ::
+#\[7]OGACVC7LKGXEEYX5PFF7OG65RRLS6CTVTNB6V6ZU5SYBYAW3MIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
