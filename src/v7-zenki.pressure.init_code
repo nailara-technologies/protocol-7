@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.init_code
+# descr = init host memory\io pressure sampler + level state
+
+my $reinit = shift;    ## guard : a reload must not arm a second timer ##
+
+## config defaults [ overridable in cfg/zenki/v7-zenki/pressure.cfg ] ##
+<v7-zenki.cfg.pressure.sample_interval>         //= 5;
+<v7-zenki.cfg.pressure.ring_size>               //= 72;
+<v7-zenki.cfg.pressure.enter_samples>           //= 3;
+<v7-zenki.cfg.pressure.leave_samples>           //= 6;
+<v7-zenki.cfg.pressure.curve_values>            //= 24;
+<v7-zenki.cfg.pressure.elevated.mem_full_avg10> //= 1.0;
+<v7-zenki.cfg.pressure.elevated.mem_some_avg10> //= 10.0;
+<v7-zenki.cfg.pressure.elevated.swap_pps>       //= 256;
+<v7-zenki.cfg.pressure.elevated.min_avail_mb>   //= 1024;
+<v7-zenki.cfg.pressure.critical.mem_full_avg10> //= 5.0;
+<v7-zenki.cfg.pressure.critical.mem_full_avg60> //= 5.0;
+<v7-zenki.cfg.pressure.critical.swap_pps>       //= 2048;
+<v7-zenki.cfg.pressure.critical.min_avail_mb>   //= 256;
+
+## state [ samples ring : latest last ] [ .zenka reserved for per-zenka ##
+## rss\swap stats [ collected later by the system zenka ] ]             ##
+<v7-zenki.pressure.samples>     //= [];
+<v7-zenki.pressure.level>       //= qw| calm |;
+<v7-zenki.pressure.level_since> //= <[base.time]>->(3);
+<v7-zenki.pressure.pending>     //= { 'level' => '', 'count' => 0 };
+<v7-zenki.pressure.zenka>       //= {};
+
+## probe psi once [ older kernels have no /proc/pressure ] ##
+<v7-zenki.pressure.psi_available>
+    //= -r '/proc/pressure/memory' ? TRUE : FALSE;
+
+## first sample right away so the curve has data immediately ##
+<[v7-zenki.pressure.sample]>;
+
+## arm repeating sampler timer [ reinit guard : never a second timer ] ##
+if (   not $reinit
+    or not defined <v7-zenki.pressure.timer>
+    or not <v7-zenki.pressure.timer>->is_active ) {
+    <v7-zenki.pressure.timer> = <[event.add_timer]>->(
+        {   'after'    => <v7-zenki.cfg.pressure.sample_interval>,
+            'interval' => <v7-zenki.cfg.pressure.sample_interval>,
+            'repeat'   => 1,
+            'handler'  => qw| v7-zenki.handler.pressure_sample |,
+            'data'     => {},
+            'desc'     => qw| host memory\io pressure sampler |,
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,...,,.,,...,,..,,..,,.,,,,,,,,.,,,,,,..,..,,...,...,,.,,.,,,,..,,,,,..,,
+#UWVTLHAWMRESPQJPJG75ITBFIIC6IAPO63HYY4SCDTM5ARKTDP5QIYLPP5SK6ZAALM6IKQVKZ4AEG
+#\\\|3ZQ47G5FXVWXBSWZ6JOZPFOWXV7U747ZXVFFSY7TTGXPJUAKMXZ \ / AMOS7 \ YOURUM ::
+#\[7]2FMI5BXYRREVGAZGDFGKTOCICCHJXFLPVQE2FOZP7PQLKJ7KB2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

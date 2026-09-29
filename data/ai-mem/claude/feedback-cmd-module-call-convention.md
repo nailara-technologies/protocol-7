@@ -69,8 +69,19 @@ any `.cmd.` module, alongside the `$ARG`/`shift` mistake above.
 [[arg-calling-convention]]
 [[topic-ncode-safe-refactor-workflow]]
 
-#,,..,,,.,,..,,..,,..,...,.,,,,,.,.,.,..,,,,,,..,,...,...,.,.,...,...,,,.,,,.,
-#MTXTBVBFBEOXMN4K6EAKQTOP6IHMMNGUH3XRYREVSZ44SBQWZAB2JOSGRJNHCIYAIROXDNV7FTJFM
-#\\\|TVWBACDICFY42FX7R4G3NFAQA4XWIKRUYVJCQD546CWL7BM3U3A \ / AMOS7 \ YOURUM ::
-#\[7]5WKOHSRI2Y7QM3WN57VD3ESDD35ABACWQ7TU53M25A5ADLUNDSCI 7  DATA SIGNATURE ::
+**`$reply` is pre-declared too [ 2026-09-29 ]** : the compiled-in `.cmd.`
+header declares `$reply` the same way as `$call`. a module's own
+`my $reply = ..` gives "my variable $reply masks earlier declaration" at
+source update [ kimi's `v7-zenki.cmd.pressure` hit it ]. the header presets
+`$reply` to a `false` 'error during invocation' reply and the footer
+[ bin/Protocol-7 ] returns it when the module falls through without an
+explicit return -- so a masking `my $reply` also breaks fall-through : the
+error text goes out instead. either fill `$reply->{'mode'}` \ `{'data'}`
+and fall through, or `return { .. }` ; name a text buffer `$text` \ `$out`.
+include this in `.cmd.` dispatch prompts for kimi.
+
+#,,,.,...,,,.,,,,,.,,,,,.,.,,,...,.,,,,..,.,,,..,,...,..,,...,..,,..,,,.,,,,,,
+#LQDAXM63T2BINBFWVWT4IB4OJS3E4AANAFG4S3MROS2EOXBGYXZOU4ZD3HOEY5BUX4CWCTHLKRXA4
+#\\\|7S5BMEHDFTVOEZW2DVXXX3IEEIJCUGQQ4HWD6KT4VLASOKMNLJJ \ / AMOS7 \ YOURUM ::
+#\[7]LQJZTCCROHD3F4WF3PCYXFXEV2CHZUFWLITMQC3UQORG4I3YNICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

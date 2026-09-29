@@ -96,7 +96,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
 - [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor; grant access.cmd.usr.cube
 - [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — .git chmod-child LANDED; warn_apply TTY-only
-- [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
+- [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG ; $call and $reply are pre-declared, never `my $reply`
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist itself isn't fragile; real gap was missing canonical doc of active swaps AND (corrected 2026-07-25) the loader's own nested-lifecycle-hook coverage, see [[bug-swap-subs-nested-lifecycle-hook-gate]]
 - [swap-subs-deferred-stub-alias-regression](bug-swap-subs-deferred-stub-alias-regression.md) — RESOLVED 2026-08-12: the `next if deferred_stub` guard added by the v7-reload fix silently UNDID the base32 fix, making non-whitelisted subs in swapped namespaces permanently unreachable ("event.loop not defined") instead of on-demand compiled; swap_subs now ALIASES stubs into the target namespace; whitelist is compile TIMING, never reachability — never hand-add entries to work around it; read all three swap_subs memories together before touching this cluster
@@ -158,8 +158,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [no-per-call-perlmod-autoload](feedback-no-per-call-perlmod-autoload.md) — never base.perlmod.autoload in per-call \ per-tick modules [ floods the console ] ; init_code or `if not defined &Pkg::sub` guard
 
-#,,,,,,,,,,..,.,,,..,,,,,,,.,,...,.,.,...,..,,..,,...,...,.,,,.,.,,,.,.,.,,.,,
-#NSN24KCNVYNEDKRQDMQLOZIDHM2O57NYQJL5CD75B5EPFBDNKT2ZX4NKOFQI5KKXMRUGLIXKVHRPU
-#\\\|RS6Y7ZQG3DOZKYZ7MX7WLPJ3HVOTJOSKD4FIGMNFKT5MDWY26TY \ / AMOS7 \ YOURUM ::
-#\[7]R5GIK4GP7TY7GPE4XXN47RKLS7ILIOUQUJRF3ENOP3GIQ4JYFADA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,..,,,,.,..,,,.,,,.,,.,,,,,.,..,,...,...,,,.,...,..,,,..,...,
+#P56O4VZO6IUDIBMYX7UFJLBVN7BU2H6SIRNHGCDKDK2Y3RMMLELCT4JHWIZ47PBY656DW7PLJWUCW
+#\\\|H6RGXX4F7Z5IGYBZ3DJJR3Y5MVA2VVLRVG75TP6QNLFHUPTJRD6 \ / AMOS7 \ YOURUM ::
+#\[7]ISVH6X5HS2Q6BGKGFZPHQDD6GHIZXKVAIUSMDTWMTEIBA6OPBADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.pressure
+# descr = show memory pressure level, latest sample and curve
+
+my $level   = <v7-zenki.pressure.level>   // qw| calm |;
+my $samples = <v7-zenki.pressure.samples> // [];
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no pressure samples ' . 'collected yet'
+    }
+    if not @{$samples};
+
+my $latest = $samples->[-1];
+my $now    = <[base.time]>->(3);
+
+## time in current level ##
+my $in_level = $now - ( <v7-zenki.pressure.level_since> // $now );
+my $secs     = int($in_level);
+my $duration
+    = $secs < 90   ? sprintf( '%ds', $secs )
+    : $secs < 5400 ? sprintf( '%dm %ds', int( $secs / 60 ), $secs % 60 )
+    :   sprintf( '%dh %dm', int( $secs / 3600 ), int( $secs % 3600 / 60 ) );
+
+my $text = ":\n";
+$text .= sprintf( ": host memory pressure : %s [ in level for %s ]\n",
+    uc($level), $duration );
+$text .= ":\n";
+
+if ( not $latest->{'psi'} ) {
+    $text .= ": no /proc/pressure [ fallback : swap rate + MemAvailable ]\n";
+}
+
+$text .= ": latest sample :\n";
+if ( $latest->{'psi'} ) {
+    $text .= sprintf(
+        ":   mem some avg10/avg60 : %5.2f \\ %5.2f\n",
+        $latest->{'mem_some_avg10'},
+        $latest->{'mem_some_avg60'}
+    );
+    $text .= sprintf(
+        ":   mem full avg10/avg60 : %5.2f \\ %5.2f\n",
+        $latest->{'mem_full_avg10'},
+        $latest->{'mem_full_avg60'}
+    );
+    $text .= sprintf( ":   io  full avg10       : %5.2f\n",
+        $latest->{'io_full_avg10'} // 0 );
+}
+$text .= sprintf(
+    ":   swap in/out          : %.1f \\ %.1f pages/s\n",
+    $latest->{'swap_in_pps'},
+    $latest->{'swap_out_pps'}
+);
+$text .= sprintf( ":   mem available        : %s MB\n",
+    defined $latest->{'mem_avail_mb'} ? $latest->{'mem_avail_mb'} : '?' );
+
+## short curve : last N mem full avg10 values [ swap rate on non-psi ] ##
+my $curve_len = <v7-zenki.cfg.pressure.curve_values> // 24;
+my @window
+    = @{$samples} > $curve_len
+    ? @{$samples}[ -$curve_len .. -1 ]
+    : @{$samples};
+
+my $curve_key = $latest->{'psi'} ? 'mem_full_avg10' : 'swap_out_pps';
+my @values    = map { $ARG->{$curve_key} // 0 } @window;
+
+## ascii sparkline scaled against the critical threshold ##
+my @chars = ( ' ', '.', ':', '|', '#' );
+my $crit
+    = $latest->{'psi'}
+    ? <v7-zenki.cfg.pressure.critical.mem_full_avg10> // 5.0
+    : <v7-zenki.cfg.pressure.critical.swap_pps> // 2048;
+my $sparkline = '[';
+for my $val (@values) {
+    my $idx
+        = $val <= 0     ? 0
+        : $val >= $crit ? 4
+        :                 1 + int( $val / $crit * 3 );
+    $idx = 4 if $idx > 4;
+    $sparkline .= $chars[$idx];
+}
+$sparkline .= ']';
+
+$text .= ":\n";
+$text .= sprintf(
+    ": %s curve [ last %d ] : %s\n",
+    $latest->{'psi'} ? 'mem full avg10' : 'swap out pages/s',
+    scalar @values, $sparkline
+);
+$text .= sprintf( ":   %s\n",
+    join( ' ', map { sprintf( '%.1f', $ARG ) } @values ) );
+$text .= ":\n";
+
+return { 'mode' => qw| size |, 'data' => $text }
+
+#,,,,,...,...,.,.,,.,,,,.,,..,,..,,.,,...,,..,..,,...,...,,,,,,..,,.,,,,,,..,,
+#2NZ556Z2YAN4FPWXJLRNKFCDX5DXGF5HKOJTEKSCOFS6ULJBB6Z53THNZRHPOQ2H75QDKTXCTFP6S
+#\\\|ZY7DPSN5YW3KCHLK25T2QNL7ZHBEFTGCXBADHPVPYIVG3D22NVY \ / AMOS7 \ YOURUM ::
+#\[7]QFGTGNOZAGRMSXJQHJOKTUZBUW3YWZ2ZB7BZ4XU2JX3DESYAUYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
