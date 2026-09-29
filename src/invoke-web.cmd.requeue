@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = invoke-web.cmd.requeue
+# descr = retry failed \ canceled queue items
+# param = <id ..> | failed|canceled [ all | text ]
+
+## no filter : list only [ grouped by error ] ; 'all' or an error text [  ##
+## e.g. 'cuda' ] retries. an item with a copy already [ ui retry too ] is ##
+## never retried again. missing model items : see requeue-missing         ##
+
+my $arg = lc( $call->{'args'} // '' );
+$arg =~ s{^\s+|\s+$}{}g;
+$arg =~ s{^cancelled\b}{canceled};
+
+my $usage = 'requeue <id ..> | failed|canceled [ all | error text ]';
+return { mode => qw| false |, data => $usage } if not length $arg;
+
+my $dbh = <[invoke-web.queue.db]>
+    // return { mode => qw| false |, data => 'queue db not available' };
+
+my $not_copied = 'NOT EXISTS ( SELECT 1 FROM session_queue c '
+    . 'WHERE c.retried_from_item_id = q.item_id )';
+
+my ( $rows, $filter, $status );
+if ( $arg =~ m{^[\d\s,]+$} ) {    ## explicit item ids ##
+    my @ids = $arg =~ m{(\d+)}g;
+    $rows = $dbh->selectall_arrayref(
+        'SELECT q.item_id, q.status, q.error_type, '
+            . 'q.error_message FROM session_queue q WHERE q.item_id IN ( '
+            . join( ', ', ('?') x @ids )
+            . " ) AND q.status IN ( 'failed', 'canceled' ) AND $not_copied",
+        { 'Slice' => {} },
+        @ids
+    );
+    $filter = qw| all |;
+} elsif ( $arg =~ m{^(failed|canceled)(?:\s+(.+))?$} ) {
+    ( $status, $filter ) = ( $1, $2 );
+    $rows = $dbh->selectall_arrayref(
+        'SELECT q.item_id, q.status, q.error_type, q.error_message '
+            . "FROM session_queue q WHERE q.status = ? AND $not_copied "
+            . 'ORDER BY q.item_id',
+        { 'Slice' => {} },
+        $status
+    );
+} else {
+    return { mode => qw| false |, data => $usage };
+}
+
+return { mode => qw| false |, data => 'queue db read failed' }
+    if not defined $rows;
+
+## error text filter [ type or message, case insensitive ] ##
+@$rows = grep {
+    index(
+        lc(       ( $ARG->{'error_type'} // '' ) . ' '
+                . ( $ARG->{'error_message'} // '' )
+        ),
+        $filter
+        )
+        >= 0
+    } @$rows
+    if defined $filter and $filter ne qw| all |;
+
+## 'failed all' : a missing model would fail again [ requeue-missing ] ##
+@$rows = grep { ( $ARG->{'error_type'} // '' ) ne 'FileNotFoundError' } @$rows
+    if defined $status and ( $filter // '' ) eq qw| all |;
+
+return {
+    mode => qw| false |,
+    data => sprintf 'no %s items to retry',
+    $status // 'matching'
+    }
+    if not @$rows;
+
+## list only : grouped by error type + first message line ##
+if ( not defined $filter ) {
+    my ( %groups, @order );
+    foreach my $row (@$rows) {
+        my ($first) = ( $row->{'error_message'} // '' ) =~ m{^([^\n]*)};
+        my $key     = sprintf '%s : %s', $row->{'error_type'} || '-',
+            substr( $first, 0, 60 );
+        push @order,            $key if not exists $groups{$key};
+        push $groups{$key}->@*, $row->{'item_id'};
+    }
+    return {
+        mode => qw| size |,
+        data => join(
+            '',
+            map {
+                my $ids = $groups{$ARG};
+                sprintf "%4d  [ %d .. %d ]  %s\n", scalar @$ids,
+                    $ids->[0], $ids->[-1], $ARG
+            } @order
+            )
+            . sprintf(
+            "[ %s %s all | <error text> : retry ]\n",
+            qw| requeue |, $status
+            )
+    };
+}
+
+my $retry = <[invoke-web.api]>->(
+    'PUT',
+    '/api/v1/queue/default/retry_items_by_id',
+    [ map { $ARG->{'item_id'} + 0 } @$rows ]
+);
+return {
+    mode => qw| false |,
+    data => sprintf( 'retry failed [ %s ]', $retry->{'status'} )
+    }
+    if not $retry->{'ok'};
+
+my $count
+    = ref $retry->{'data'} eq qw| HASH |
+    ? scalar( ( $retry->{'data'}->{'retried_item_ids'} // [] )->@* )
+    : scalar @$rows;
+<[base.logs]>->(
+    1, 'queue : %d item%s re-queued [ requeue %s ]',
+    $count, $count == 1 ? '' : 's', $arg
+);
+
+return {
+    mode => qw| size |,
+    data => sprintf( "%d item%s re-queued\n", $count, $count == 1 ? '' : 's' )
+};
+
+#,,,.,..,,.,.,...,,,,,,..,..,,,.,,.,.,...,,.,,..,,...,...,,.,,...,...,.,,,.,.,
+#H7JZWUKSALU4OQKGC4EZFZBEAKXR5KSBATXRQIYD73V63YQ3KSZH6TOMNT3U22KEM3I34AFLSLZG4
+#\\\|Q37XHP2KZOSRJ7NHGAMITAPMUT55DIY6RJH2DIPA2WHWYQHLISA \ / AMOS7 \ YOURUM ::
+#\[7]742YH2XGO2LFAVG2AWNI6ASRIYL3KN7EYYXUPQSS6ZTCIYTO2CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
