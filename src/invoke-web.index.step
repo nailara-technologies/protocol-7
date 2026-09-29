@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = invoke-web.index.step
+# descr = image index background job : one image per timer tick [ ~0.1s
+#         of work, then back to the event loop -- never a long block ]
+# note  = walks invoke.ai's images table by rowid [ non-intermediate, not
+#         deleted ] ; names already in `sources` are skipped [ up to 200 per
+#         tick ] -- resumable. lazy backup every 15 minutes and at the end
+
+return if not <invoke-web.index.running>;
+
+my $source_db = <[invoke-web.queue.db]>
+    // return <[invoke-web.index.finish]>->('no invoke.ai db');
+my $index = <[invoke-web.index.db]>
+    // return <[invoke-web.index.finish]>->('no index db');
+my $stats = <invoke-web.index.stats>
+    //= { 'indexed' => 0, 'skipped' => 0, 'failed' => 0 };
+my $dir = sprintf '%s/outputs/images', <invoke-web.root> // '';
+
+for ( 1 .. 200 ) {
+    my $row = $source_db->selectrow_hashref(
+        'SELECT rowid AS source_rowid, image_name, session_id, created_at '
+            . 'FROM images WHERE rowid > ? AND is_intermediate = 0 AND '
+            . 'deleted_at IS NULL ORDER BY rowid LIMIT 1',
+        undef,
+        <invoke-web.index.cursor> // 0
+    );
+    return <[invoke-web.index.finish]>->('done') if not defined $row;
+    <invoke-web.index.cursor> = $row->{'source_rowid'};
+
+    my ($seen)
+        = $index->selectrow_array(
+        'SELECT 1 FROM sources ' . 'WHERE image_name = ?',
+        undef, $row->{'image_name'} );
+    if ($seen) {
+        $stats->{'skipped'}++;
+        next;
+    }
+
+    $row->{'path'} = "$dir/$row->{'image_name'}";
+    my $result = <[invoke-web.index.image]>->($row);
+    if ( not defined $result ) {
+        $stats->{'failed'}++;
+    } elsif ( $result eq qw| missing | ) {
+        $stats->{'missing'}++;
+        next;    ## no file read : cheap, go on like a skip ##
+    } else {
+        $stats->{'indexed'}++;
+    }
+    last;        ## one real image per tick ##
+}
+
+<[base.logs]>->(
+    1,
+    'image index : %d indexed, %d skipped, %d missing, %d failed',
+    $stats->{'indexed'},
+    $stats->{'skipped'},
+    $stats->{'missing'} // 0,
+    $stats->{'failed'}
+) if $stats->{'indexed'} and $stats->{'indexed'} % 500 == 0;
+
+<[invoke-web.index.backup]>
+    if time - ( <invoke-web.index.last_backup> // time ) > 900;
+<invoke-web.index.last_backup> //= time;
+
+<invoke-web.timer.index_step> = <[event.add_timer]>->(
+    {   'after'   => 0.01,
+        'handler' => 'invoke-web.index.step',
+    }
+);
+
+#,,,.,.,.,,.,,...,..,,.,.,.,.,...,,,,,,,.,.,.,..,,...,...,,,.,,.,,,,.,,.,,,..,
+#I3SPALLCIWHSAGJJMMC4MWSNOZ2MIZTMEEAINQJFGDVMV67CF37A75MIS6OKKWCETEL6CMFOGWDHK
+#\\\|W2UNCXQTXBYCAT62NNZ4O7DXLJDAFFYJVBRFFQ2TDD2S4EWXUX5 \ / AMOS7 \ YOURUM ::
+#\[7]CG5FQU5UGHZNZRC4ZUXWF25PGSUAKBBPZ6ZYZKN3ERH4G7TJJUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

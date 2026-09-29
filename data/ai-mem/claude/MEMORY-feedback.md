@@ -156,3 +156,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|CQXG3LO7WWFRCC3IJT6IXD43W5SUQILCKQP3ARH3X63QLFDXLM6 \ / AMOS7 \ YOURUM ::
 #\[7]BXZ2DA4NGJTIFXUXJ7LGQ2OYTRMJ2IP6NIE7LONFGLSCCAVHAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [no-per-call-perlmod-autoload](feedback-no-per-call-perlmod-autoload.md) — never base.perlmod.autoload in per-call \ per-tick modules [ floods the console ] ; init_code or `if not defined &Pkg::sub` guard
+
+#,,,,,.,,,.,.,,.,,..,,...,,.,,,..,,,.,,,.,,..,..,,...,...,.,,,,,.,,,.,,,,,...,
+#K7PQDHXKK5DV56UVFENLLW24AGJGLECB6FCGBK6RWQNW4VRGNSKBSKRRU2QFNJGFNHADCJMZDJROO
+#\\\|CBRUVL2TNNG477PP77IUAZVD24CETQA22QOZGNYCWKCQ7SH4UZT \ / AMOS7 \ YOURUM ::
+#\[7]FPYYFM27MP4JO2WGG7BQQAWKB5FGIUKUPRU2J5AEWIOS5BST46BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
