@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = invoke-web.output.stop
+# descr  = stop following invoke.ai's output file [ the file stays ]
+# note   = the offset is saved first : an adopted process is read on from it
+
+my $watch = delete <invoke-web.output.watch>;
+$watch->cancel if defined $watch and ref $watch;
+my $timer = delete <invoke-web.output.timer>;
+$timer->cancel if defined $timer and ref $timer;
+
+my $pid = delete <invoke-web.output.pid>;
+<[file.zenka_dir.write]>->(
+    'state/invokeai.out.offset',
+    \sprintf( "%d %d\n", $pid, <invoke-web.output.offset> // 0 )
+) if defined $pid;
+
+return TRUE;
+
+#,,.,,,,.,,,,,.,.,...,...,.,,,,,,,,,,,..,,..,,..,,...,..,,...,,.,,.,,,.,.,,,,,
+#WDRH2O34R5BWHHALG4VI2Y4YPY6OJMLZY2SVDNG2633CV2FWJMO4WRJVLJ4VKKPWN5YANSTC7DRJA
+#\\\|D52HW3BVXTPHWS3R4JAM2GST4X7GF2UGPCML6WW6OSSKMPGKYC4 \ / AMOS7 \ YOURUM ::
+#\[7]V2IJ4I3JRYPZ4DKM3S6ZLOVQ4YOKXQEHZK6YCFNSNGCHBDMRAWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

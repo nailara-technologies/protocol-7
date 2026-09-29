@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = invoke-web.handler.output_adopt
+# descr = timer : follow the output of an adopted invoke.ai from the offset
+#         the previous instance saved [ same pid ], else from the file end
+
+my $event = shift;
+my $pid   = eval { $event->w->data->{'pid'} } // return;
+
+my $saved = <[file.zenka_dir.load]>->('state/invokeai.out.offset');
+my ( $saved_pid, $offset ) = split m|\s+|, defined $saved ? $saved->$* : '';
+$offset = undef if not defined $saved_pid or $saved_pid != $pid;
+
+<[invoke-web.output.follow]>->( $pid, $offset, qw| reattached | );
+
+#,,,,,,..,,..,.,.,.,.,...,,,,,..,,,.,,.,.,.,.,..,,...,..,,..,,..,,..,,.,,,,,.,
+#BONEM5KSCSNHAFARZTM34QKMEC7ZKMLJY4YO2OZS53QLGOTHRUXABAB4OPSFPEVI5IV6EQHUUEROO
+#\\\|KYVPOGCNFYKBYGEBVTX27ZQ2M3KR36AVDWGQV3APYDLVJFGWV75 \ / AMOS7 \ YOURUM ::
+#\[7]MFK5V3YAH6HSXCSOAMETOA6743LMB4FLX6MFLLX3EROFI2WYDKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
