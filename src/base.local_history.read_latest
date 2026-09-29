@@ -39,7 +39,7 @@ foreach my $epoch_dir ( @{ $epoch_dirs // [] } ) {
     my $snapshot_files = <[file.match_files]>->( $epoch_dir, qw| *.yaml | );
 
     foreach my $snapshot_path ( @{ $snapshot_files // [] } ) {
-        my @stat_info = stat($snapshot_path);
+        my @stat_info = CORE::stat($snapshot_path);
         next if not @stat_info;
         my $mtime = $stat_info[9];
         if ( $mtime > $latest_mtime ) {
@@ -56,8 +56,8 @@ my ( $data_href, $err ) = <[format.yaml.load_file]>->($latest_path);
 
 return wantarray ? ( $data_href, $err ) : $data_href;
 
-#,,.,,..,,.,,,.,,,,,,,.,.,.,.,..,,,,,,...,,,,,.,.,...,...,...,,,,,,.,,...,.,,,
-#JYZQD4OUXYTOOZLFKBBBYIVFRVSTSLOE45CLKJTFEJGJUQ22RCWP4PJXIZXDFDUUC5VLDBFUZJTUA
-#\\\|XWQPAUHUUGQNSIPZ6QHJSXA7JYOOBYAJZJ6WPSRYQAAVDT7T7CE \ / AMOS7 \ YOURUM ::
-#\[7]RX25CB6QGXVUHU7B7ITEAZXAAGAPBPXDREYYGTUCKGJ2BTZCQKDY 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,,.,,.,.,.,.,.,,,..,,,..,...,.,.,...,..,,...,,..,,,.,..,,,,.,
+#XNWGV5E2SKFTFDNEZ6NJVE7VP5E7Q7XBN6XFQZRSGIHIQGHNQWQUFUJNLKIBYRTLQJ7BH2IPCZKFQ
+#\\\|WZXWDECURZ54UTEYNSDOZ647VVZYTOZM2N5ZI2FFCQ3JCQ43OHB \ / AMOS7 \ YOURUM ::
+#\[7]QLABD2BBXBB3EDJOONQHS4IMZU7IHPJEOW7ERGDLZNJVDXLYKIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

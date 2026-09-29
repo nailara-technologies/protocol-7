@@ -102,7 +102,7 @@ for my $csv_path ( sort glob("$csv_dir/*.csv") ) {
     ## snapshot date : trailing YYYY-MM-DD in filename, else file mtime ##
     my ($snapshot_date) = $csv_path =~ m|(\d{4}-\d{2}-\d{2})|;
     if ( not defined $snapshot_date ) {
-        my @mt = gmtime( ( stat($csv_path) )[9] // time );
+        my @mt = gmtime( ( CORE::stat($csv_path) )[9] // time );
         $snapshot_date = sprintf qw| %04d-%02d-%02d |, $mt[5] + 1900,
             $mt[4] + 1, $mt[3];
     }
@@ -248,8 +248,8 @@ return {
     'count'       => scalar @entries,
 };
 
-#,,,,,.,.,,..,,,,,,.,,..,,...,,.,,...,,,.,,..,.,.,...,...,..,,..,,,,,,.,.,.,.,
-#BQ2JX27YHVAKEELTIW4ITNV3I5OUYWPSNCXLS3ZCMOFAYEEA4N63SL6UNYZODN67ZRJF3YFVNBVHO
-#\\\|7CUTUUDGQWQL2OM2SC62KACKWGXJ2YGAX5ILDFX4AUZPF2JYUTH \ / AMOS7 \ YOURUM ::
-#\[7]CVLKQ5NYWM5DHHJYKDEGVW6BKJG5OLTRV2TWXFROFVZA5JGUSUCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,,,,,,..,,,.,,,,,.,,,,.,,.,.,.,.,...,...,..,,..,,..,,.,.,..,,
+#B44ZE5YJ2MUSO3INQ345VOPTU5K3KZLLKVHQJXXWBNU75LKHGRWVKSA7MXO2DW3ZLIERDRBGVBFYY
+#\\\|CBVWDQEB5SABAYS45ITRGLVHCRXEE4PV7F2F7MY727JDVGYWUKD \ / AMOS7 \ YOURUM ::
+#\[7]Z2M7ENJGHBO7AW3ZWCAPK6SRMB4O22KCA3JZHPACQR4JUSGL4QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
