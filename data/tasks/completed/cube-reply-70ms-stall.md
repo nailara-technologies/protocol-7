@@ -189,8 +189,29 @@ live, all zenki restarted : 0/80 slow, mean ~6.9ms [ harmony-off baseline
 behaviour changes to keep in mind : unix-input conversions [ `->()` ]
 now step back instead of forward ; values are truncated, not rounded.
 
-#,,,,,.,,,..,,.,,,,,.,..,,,.,,,.,,,,,,.,,,.,.,.,.,...,...,.,.,..,,.,.,,,,,,..,
-#GKTC5IJEX3AR72C6SZRKSSAULUGNSYZMMOICZR663GNXPZENURGLNRDLBZAXPOPHASPV56MNQHOBG
-#\\\|34HPQ2LEWPTP7JH62N5XPR5TPDC54HCWP7PVLGW6UCBFVVGLA2I \ / AMOS7 \ YOURUM ::
-#\[7]KDWAA2E5B5UHUHR7MY66WPLRIJ46WUPLCXRTEKAMWX2ISDIZPKAA 7  DATA SIGNATURE ::
+## follow-up : p7_ntime__b32 [ 2026-09-29 ]
+
+b32 harmonized twice : the numeric ntime [ inner `base.ntime` call, never
+returned ] and then the encoded value. with the step-back `p7_ntime`, an
+encoded-harmony retry got the same numeric value back -> collision sleep
+[ 113ns requested, ~60us real ] -> up to 9 retries per log line.
+
+now : numeric ntime fetched without harmony, then stepping back on the digit
+string until the ENCODED value is harmonic [ retry limit 9 kept : ~5% of
+stamps stay disharmonic by design ]. no sleeps. shared helper
+`base.ntime.step_back` [ `p7_ntime__step_back` ]. unix-time input unchanged.
+the retry-limit counter reset used `ntime-B32`, the increment `ntime_b32` --
+unified to `ntime_b32`. standalone ~55us per call.
+
+live : 0/80 slow, mean 4.63ms = harmony-off baseline [ 4.57ms ].
+
+note [ user ] : the numeric value's harmony was intentional too, dropped for
+the performance gain. restoring it = step back until BOTH numeric and encoded
+are harmonic [ ~8% density, ~12 steps, still sub-0.1ms ] with a larger
+retry limit.
+
+#,,,,,..,,,,.,,,,,...,,.,,.,,,...,...,,,,,,..,.,.,...,...,...,,.,,..,,.,,,.,,,
+#ZVHQ2Y5CJI7CCSERZUEQHWQBFFIAOMOPKHLSSQM77MDUAV2ARY64UHWYMMUPV6TZA4OXU3ZJ74C62
+#\\\|PPW74UWHY7MLZH5JXIWLRLZQWEUZHTSGBFWHFMVI4LMFJS6IMWS \ / AMOS7 \ YOURUM ::
+#\[7]PMEQY2SOISK4RLNONCKPDVJJKXIGNVBFAG4AF2O3R4UPLKOFRCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
