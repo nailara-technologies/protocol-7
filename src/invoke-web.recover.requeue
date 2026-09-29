@@ -4,34 +4,39 @@
 # descr  = after the restart of a recovery [ cuda error \ zenka crash ] :
 #          retry its victims, then resume the queue [ through
 #          invoke-web.handler.recover_requeue_reply ]
-# note   = victims : failed on 'CUDA error' since 15 minutes before the
-#          recovery started, or canceled since then [ invoke.ai cancels
-#          an interrupted in_progress item at its next start -- a manual
-#          cancel from before the recovery stays untouched ]. never an
-#          item that has a copy already
+# note   = victims : the items interrupted by the restart [ recorded by
+#          invoke-web.queue.hold while invoke.ai was down ] and, for a cuda
+#          recovery, the items that failed on 'CUDA error' since 15 minutes
+#          before it. never an item retried before [ copy \ own record ] --
+#          earlier cancels, manual ones included, are never touched
 
 my $recover = <invoke-web.recover> // return;
 
-## queue db times are utc ##
-my $utc = sub { POSIX::strftime( '%Y-%m-%d %H:%M:%S', gmtime shift ) };
-
 my $dbh = <[invoke-web.queue.db]>;
-my $ids
-    = defined $dbh
-    ? $dbh->selectcol_arrayref(
-    'SELECT q.item_id FROM session_queue q WHERE ( ( '
-        . "q.status = 'failed' AND q.error_message LIKE 'CUDA error%' "
-        . "AND q.updated_at >= ? ) OR ( q.status = 'canceled' "
-        . "AND COALESCE( q.error_type, '' ) = '' AND q.updated_at >= ? ) ) "
-        . 'AND NOT EXISTS ( SELECT 1 FROM session_queue c '
-        . 'WHERE c.retried_from_item_id = q.item_id ) ORDER BY q.item_id',
-    undef,
-    $utc->( $recover->{'time'} - 900 ),
-    $utc->( $recover->{'time'} )
-    )
-    : undef;
+my @ids = ( $recover->{'interrupted'} // [] )->@*;
 
-if ( not defined $ids or not @$ids ) {
+if ( $recover->{'kind'} eq qw| gpu | and defined $dbh ) {
+    my $since = POSIX::strftime( '%Y-%m-%d %H:%M:%S',
+        gmtime( $recover->{'time'} - 900 ) );
+    push @ids,
+        (
+        $dbh->selectcol_arrayref(
+            "SELECT q.item_id FROM session_queue q WHERE q.status = 'failed' "
+                . "AND q.error_message LIKE 'CUDA "
+                . "error%' AND q.updated_at >= ? "
+                . 'AND NOT EXISTS ( SELECT 1 FROM session_queue c '
+                . 'WHERE c.retried_from_item_id = q.item_id )',
+            undef, $since
+        ) // []
+        )->@*;
+}
+
+my $retried = <[invoke-web.retried]>;
+my %seen;
+@ids = sort { $a <=> $b }
+    grep { not $retried->{$ARG} and not $seen{$ARG}++ } @ids;
+
+if ( not @ids ) {
     <[base.logs]>->(
         1, '%s : no interrupted items to retry',
         $recover->{'kind'}
@@ -40,13 +45,15 @@ if ( not defined $ids or not @$ids ) {
 }
 
 <[invoke-web.api_async]>->(
-    'PUT',                      '/api/v1/queue/default/retry_items_by_id',
-    [ map { $ARG + 0 } @$ids ], 'invoke-web.handler.recover_requeue_reply',
-    { 'count' => scalar @$ids }
+    'PUT',
+    '/api/v1/queue/default/retry_items_by_id',
+    [ map { $ARG + 0 } @ids ],
+    'invoke-web.handler.recover_requeue_reply',
+    { 'count' => scalar @ids, 'ids' => [@ids] }
 );
 
-#,,.,,.,,,.,,,..,,,..,...,,.,,.,,,.,,,,..,,.,,..,,...,...,..,,,..,,.,,.,.,.,.,
-#KAGWF7RSNNBBP23GDVHL7PMXS6FEGWEUUJYJ7BGAW3C5B4V23BIWYR32WYTQGFWWDBRFR5ZLBCNGI
-#\\\|ECTIIGO2AGMINQYKYWF5XF3PM7UMGQJJFA3XGG3YD5M4TPQ2NDB \ / AMOS7 \ YOURUM ::
-#\[7]RNTGWWGL7FMIPFCV3K3WNBLVQDRL6LUC6JNFES3VLKFBNTSLT4AQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,,,.,,..,,..,,,.,,,.,.,.,.,,,..,,...,...,.,,,,,,,...,,,,,,,,,
+#DG2QZVR4MVQPQKWJUJFEVNCM7F4V5OI4NGKWABKVTKUDDMHQ4HEVNREBA4ZYTFPHRX3AAIGPJSHS2
+#\\\|QOB5LVCE6DTAUZGCPM7Z6BKQHJCDNHNRS4NDF3VT4II73LLU2TX \ / AMOS7 \ YOURUM ::
+#\[7]DTIRLBVFOUDWKLM45A6VYCXIUIJTNF2Z7PBN47NV7R35D36DUUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,8 +25,8 @@ my ( $rows, $filter, $status );
 if ( $arg =~ m{^[\d\s,]+$} ) {    ## explicit item ids ##
     my @ids = $arg =~ m{(\d+)}g;
     $rows = $dbh->selectall_arrayref(
-        'SELECT q.item_id, q.status, q.error_type, '
-            . 'q.error_message FROM session_queue q WHERE q.item_id IN ( '
+        'SELECT q.item_id, q.status, q.error_type, q.error_message, '
+            . 'q.updated_at FROM session_queue q WHERE q.item_id IN ( '
             . join( ', ', ('?') x @ids )
             . " ) AND q.status IN ( 'failed', 'canceled' ) AND $not_copied",
         { 'Slice' => {} },
@@ -36,8 +36,9 @@ if ( $arg =~ m{^[\d\s,]+$} ) {    ## explicit item ids ##
 } elsif ( $arg =~ m{^(failed|canceled)(?:\s+(.+))?$} ) {
     ( $status, $filter ) = ( $1, $2 );
     $rows = $dbh->selectall_arrayref(
-        'SELECT q.item_id, q.status, q.error_type, q.error_message '
-            . "FROM session_queue q WHERE q.status = ? AND $not_copied "
+        'SELECT q.item_id, q.status, q.error_type, q.error_message, '
+            . "q.updated_at FROM session_queue q WHERE q.status = ? "
+            . "AND $not_copied "
             . 'ORDER BY q.item_id',
         { 'Slice' => {} },
         $status
@@ -48,6 +49,11 @@ if ( $arg =~ m{^[\d\s,]+$} ) {    ## explicit item ids ##
 
 return { mode => qw| false |, data => 'queue db read failed' }
     if not defined $rows;
+
+## retried by invoke-web before [ its copy may be pruned since ] ##
+my $retried = <[invoke-web.retried]>;
+@$rows = grep { not $retried->{ $ARG->{'item_id'} } } @$rows
+    if defined $status;    ## explicit ids : the user decides ##
 
 ## error text filter [ type or message, case insensitive ] ##
 @$rows = grep {
@@ -71,6 +77,36 @@ return {
     $status // 'matching'
     }
     if not @$rows;
+
+## list only : canceled one per line with the cancel time [ a crash cancel
+## lands at the next invoke.ai start, a manual one while it ran ]
+if ( not defined $filter and $status eq qw| canceled | ) {
+    <[base.perlmod.autoload]>->('Time::Local')
+        if not defined &Time::Local::timegm;
+    return {
+        mode => qw| size |,
+        data => join(
+            '',
+            map {
+                my @utc = ( $ARG->{'updated_at'} // '' )
+                    =~ m{^(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)};
+                my $local
+                    = @utc
+                    ? POSIX::strftime(
+                    '%Y-%m-%d %H:%M',
+                    localtime Time::Local::timegm(
+                        @utc[ 5, 4, 3, 2 ],
+                        $utc[1] - 1,
+                        $utc[0]
+                    )
+                    )
+                    : '?';
+                sprintf "%6d  canceled %s\n", $ARG->{'item_id'}, $local
+            } @$rows
+            )
+            . "[ requeue <id ..> | requeue canceled all : retry ]\n"
+    };
+}
 
 ## list only : grouped by error type + first message line ##
 if ( not defined $filter ) {
@@ -114,6 +150,7 @@ my $count
     = ref $retry->{'data'} eq qw| HASH |
     ? scalar( ( $retry->{'data'}->{'retried_item_ids'} // [] )->@* )
     : scalar @$rows;
+<[invoke-web.retried]>->( [ map { $ARG->{'item_id'} } @$rows ] );
 <[base.logs]>->(
     1, 'queue : %d item%s re-queued [ requeue %s ]',
     $count, $count == 1 ? '' : 's', $arg
@@ -124,8 +161,8 @@ return {
     data => sprintf( "%d item%s re-queued\n", $count, $count == 1 ? '' : 's' )
 };
 
-#,,,.,..,,.,.,...,,,,,,..,..,,,.,,.,.,...,,.,,..,,...,...,,.,,...,...,.,,,.,.,
-#H7JZWUKSALU4OQKGC4EZFZBEAKXR5KSBATXRQIYD73V63YQ3KSZH6TOMNT3U22KEM3I34AFLSLZG4
-#\\\|Q37XHP2KZOSRJ7NHGAMITAPMUT55DIY6RJH2DIPA2WHWYQHLISA \ / AMOS7 \ YOURUM ::
-#\[7]742YH2XGO2LFAVG2AWNI6ASRIYL3KN7EYYXUPQSS6ZTCIYTO2CDQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,,..,,,.,...,...,,..,,.,,,..,..,,...,..,,..,,...,...,,.,,,..,
+#LZRUTZJ3XV7XZJ6GDU5XQIJDOMKV4E7IHR3D7RQZZRXDVDXDRS3NSEN3YARKGZ4DALHBGVEMSB344
+#\\\|JVXNVUVDGTVDNQZHQOJV5XRM62VI3G4QGWVUJD7DBIGVYDSPENS \ / AMOS7 \ YOURUM ::
+#\[7]OIIA6VWLH7WN6OEJBQ7R7TVDYACTCVLCEH4OHOPHPRYFIKYMYKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

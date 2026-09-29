@@ -27,12 +27,15 @@ if (    not $reply->{'ok'}
     $attempt > 1   ? " [ attempt $attempt ]" : ''
 );
 
+## paused [ or given up ] : the held items are dequeueable again ##
+<[invoke-web.queue.release]>;
+
 ## restart of a recovery [ cuda error \ zenka crash ] : retry, resume ##
 <[invoke-web.recover.requeue]>
     if $reply->{'ok'} and defined <invoke-web.recover>;
 
-#,,.,,,,,,,..,.,.,..,,,,.,.,,,.,,,,..,.,,,,.,,..,,...,...,...,..,,,,,,,,.,...,
-#RQ7VHE356VAIQFJYOPCDNIAPHMRDJTGDKI5RTHTULFLX73JWELUS6EKDQ73GUYBWZG34UJD4FBJUO
-#\\\|WF2PNDYCZ64OHKHBBWCUT3VXM4OSYKLCIQHXDPODURO2J2AOCOJ \ / AMOS7 \ YOURUM ::
-#\[7]OO65ED4KP5TUWPIURBTSR2XCHZ5VMQCDDAE7Z6TXO6LTCU75TUCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,,,,,..,,...,...,,..,..,,...,..,,...,..,,..,,..,,,.,,,..,.,,,
+#SGRWRKJMTO2A7ZOH7PYLU2NFNAYUGT22D5MZLKOKQWA42OFWRBTENP4IUN6SSCETDA4T7NM2IKZK4
+#\\\|XHSUZFMKQUEDGYUCZBFKIIZQZZKSH2WSSEJVONDQKPRLCK2AALS \ / AMOS7 \ YOURUM ::
+#\[7]AQ7VSTPPXTZLFREZ4XYUDDBVLDMJVMFNA3OURFIPZ2THAMPAJSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

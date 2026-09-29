@@ -33,6 +33,8 @@ unless ( kill( 'TERM', $pid ) ) {
     };
 }
 <invoke-web.status> = 'stopping';
+## stopped during startup : nothing stays held ##
+<[invoke-web.queue.release]>;
 
 <[base.logs]>->( 1, 'sent SIGTERM to invoke.ai [pid:%d]', $pid );
 
@@ -54,8 +56,8 @@ return {
     data => sprintf( "invoke.ai stopping [pid:%d sent SIGTERM]\n", $pid )
 };
 
-#,,,,,..,,,,,,..,,,,.,,,,,,,.,,..,..,,,..,,,.,..,,...,...,.,.,...,,,,,,,.,,,,,
-#FGEYIMWPWIKO4WCS2MPKLCTVL3XQPURK2SWE5RY2OKTPQGSP6KL4N7EWUPEWVWAAOMDFBT5U5DMO2
-#\\\|GWHX53ATIPGAA5CJP7XRJAEUFYM6JJW5WSXNYUEII6GKKQXHPDQ \ / AMOS7 \ YOURUM ::
-#\[7]ZITIW5ALHHI3NPYUPWCET4S5RO6PB3LKATWXIGPKA3LSCC7WDSAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,,,.,,,,,,,.,,..,,.,,...,,..,..,,...,...,..,,.,.,,,,,.,,,,,.,
+#DDADBSTCO7SPCH6LNIX3TOJGFR3QW5INXNXOTW2CODIHAWSSDVYAHW6ZB7LLDAYEIIUYQY7X5CA7G
+#\\\|MGXWHNMRM63BAN3KDH347PKGAVHR3SD3MXLWFBULKTG2XEK5OLJ \ / AMOS7 \ YOURUM ::
+#\[7]FJJBDCSZGGLELGCJKQDLJKQP2BT64KBHEMFZCVG4XVWMSJI5KIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

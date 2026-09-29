@@ -27,11 +27,12 @@ unless (<invoke-web.binary_ok>) {
     return { mode => qw| false |, data => 'binary not usable' };
 }
 
-## start memory guard [ coding zenka pattern ] : when the dependency    ##
-## objects [ free RAM \ VRAM ] are not satisfied the start is queued   ##
-## through invoke-web.handler.start_guard instead of refused -- it      ##
-## proceeds by itself once memory frees up. 'start force' skips this    ##
-my $force = ( $call->{'args'} // '' ) =~ m{(?:^|\s)force(?:\s|$)} ? TRUE : FALSE;
+## start memory guard [ coding zenka pattern ] : when the dependency        ##
+## objects [ free RAM \ VRAM ] are not satisfied the start is queued        ##
+## through invoke-web.handler.start_guard instead of refused -- it proceeds ##
+## by itself once memory frees up. 'start force' skips this                 ##
+my $force
+    = ( $call->{'args'} // '' ) =~ m{(?:^|\s)force(?:\s|$)} ? TRUE : FALSE;
 
 if ( $force and defined <invoke-web.start_waiting> ) {
     ## drop the queued wait : starting now ##
@@ -48,8 +49,9 @@ if ( not $force and defined <invoke-web.dep.memory_system> ) {
 
     if ( not $ram_ok or not $gpu_ok ) {
         my $mem = <[invoke-web.memory_free]>;
-        my $mem_str = sprintf "ram  : %d MB free [ need %d MB ]\n"
-            . "vram : %s free [ need %d MB ]\n",
+        my $mem_str
+            = sprintf "ram  : %d MB free [ need %d MB "
+            . "]\nvram : %s free [ need %d MB ]\n",
             $mem->{'ram_free_mb'},
             $mem->{'ram_need_mb'},
             defined $mem->{'vram_free_mb'}
@@ -89,18 +91,24 @@ if ( not $force and defined <invoke-web.dep.memory_system> ) {
         return {
             mode => qw| size |,
             data => sprintf(
-                "invoke.ai start queued : waiting for memory\n%s"
-                    . "[ starts by itself once satisfied ;"
-                    . " 'start force' skips the guard ]\n",
+                "invoke.ai start queued : waiting for memory\n%s[ starts by "
+                    . "itself once satisfied ; 'start force' skips the guard "
+                    . "]\n",
                 $mem_str
             )
         };
     }
 }
 
-## build spawn command
-## the zenka itself runs as the admin user [ zenka.v7 drop_privs ] ##
+## build spawn command  the zenka itself runs as the admin user [ zenka.v7 ##
+## drop_privs ]                                                            ##
 my @cmd = ( $binary, "--root=$root" );
+
+## start paused : hold the pending items until the pause at ready is through [
+## invoke.ai's processor starts resumed and dequeues before its api is up ]
+<[invoke-web.queue.hold]>
+    if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 )
+    or defined <invoke-web.recover>;
 
 ## spawn via IPC::Open3
 my ( $stdout_fh, $stderr_fh );
@@ -115,6 +123,7 @@ if ( !$child_pid || $EVAL_ERROR ) {
         'failed to spawn invoke.ai [ %s ]',
         $EVAL_ERROR // 'unknown'
     );
+    <[invoke-web.queue.release]>;
     return {
         mode => qw| false |,
         data => sprintf( 'spawn failed [ %s ]', $EVAL_ERROR || 'unknown' )
@@ -129,14 +138,14 @@ for my $pipe_fh ( $stdout_fh, $stderr_fh ) {
 }
 
 ## update state
-<invoke-web.pid>          = $child_pid;
-<invoke-web.status>       = 'starting';
+<invoke-web.pid>    = $child_pid;
+<invoke-web.status> = 'starting';
 
 ## no idle shutdown while invoke.ai runs [ it would take it down too ] ##
 <[base.zenki.pause_ondemand_timeout]>;
-<invoke-web.start_time>   = <[base.time]>->(3);
-<invoke-web.output_tail>  = [];
-<invoke-web.carry>        = {};
+<invoke-web.start_time>  = <[base.time]>->(3);
+<invoke-web.output_tail> = [];
+<invoke-web.carry>       = {};
 delete <invoke-web.progress>;
 delete <invoke-web.last_error>;
 delete <invoke-web.missing_models>;
@@ -179,8 +188,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,.,..,,,,,,..,,...,,,.,,.,,...,,..,.,,,,,.,..,,...,..,,...,..,,.,,,.,.,.,,,
-#SSVGJ4E4K2ULNWDT5TKSI6IUQKMGHQWZIYWOPZRK6CE2JQPEHLWNW4C6MMF5UWLZK7WT7KWVG5WZ6
-#\\\|NFVOCEA67IP4QRA4S6I7IGXHTGPM7OLXJCVHJRMPVHHQ4FFKCZL \ / AMOS7 \ YOURUM ::
-#\[7]4JXIGPIT232EJCXHANANK44SUO4MAVSEDQCRLCVY3MOMJQPJNYCY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,..,,...,...,,,.,..,,..,,.,.,,,.,..,,...,...,,..,,..,,.,,.,.,.,.,
+#KXLPC7433HBAUBQCVQ7XTCYC57RXRJ446YS75TSZY2MTTO7OIILAMP5QH34H3RQ3BLLLV65C3N2L6
+#\\\|NAKZ2SM5TIIYOD634E4A3LYQHPJZWTGTZPUHQJOPUOWKYLEUFOF \ / AMOS7 \ YOURUM ::
+#\[7]MWXD67BIATRVARNEVKSLVJHBPFWJX3V4CJUJSSMJ2KOB56WBKWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

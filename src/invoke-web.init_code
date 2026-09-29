@@ -187,6 +187,17 @@ if ( defined $saved_ref ) {
     }
 }
 
+## items still held from a start the zenka did not survive : release them
+## after the privilege drop [ a db write as root here would leave root owned
+## -wal \ -shm files behind ]
+<[event.add_timer]>->(
+    {   'after'   => 1,
+        'handler' => 'invoke-web.handler.queue_release_retry',
+        'data'    => { 'attempt' => 1 },
+    }
+    )
+    if not $reinit and defined <[file.zenka_dir.load]>->('state/held-items');
+
 ## start memory guard [ coding zenka pattern ] : dependency objects for   ##
 ## free RAM \ VRAM, gated with the cross-loaded coding callbacks. a start ##
 ## while memory is short waits [ invoke-web.handler.start_guard ] instead ##
@@ -244,8 +255,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,,,,...,...,,,.,..,,,,,,,,,,,.,,,.,,.,,,,.,,..,,...,...,.,,,..,,...,..,,.,.,
-#AJOY3S5U7BAA4BO64N7UA6ZQOPUF7C5EEMHH4M3KLYLSO2TXKJSAOLQQ3UBJLE4Q45SKA7ZIZ3RWK
-#\\\|FLUV4JIPWBLH5QN5BRTSRVYL3JG3KSYTPA6TBV226C2U3L3R6GZ \ / AMOS7 \ YOURUM ::
-#\[7]YVDE62M6VCKMBZ2ZU7SKPF7ECC6GGGZMHIFYJLKATMR2S7EGNQBA 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,,,,,,,,.,,.,.,,..,,,,,,,.,,,.,..,,...,...,.,.,.,,,,..,,.,,.,.,
+#EVPUABH4OL3PBFSF7GSOE6P6E7QL6DWZO6K2OF3MZO3ZNJI72RPCIOKHKCJKQWAAPOGHLW5OPQK2W
+#\\\|S5OX3TPSYX5QXBFDMEZOH7TAPU3JOAXYQ7GHQCXCPHDG5F6R65Q \ / AMOS7 \ YOURUM ::
+#\[7]EQWRVIOZXC574ID4T33SJKTZVJDCPVRER5D4JTQKO2AZWQDCJUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
