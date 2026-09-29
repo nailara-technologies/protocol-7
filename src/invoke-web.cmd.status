@@ -28,7 +28,8 @@ my $out = sprintf "status : %s%s\npid    : %s\nurl    : %s\n",
 ## a queued start waiting for the memory guard [ invoke-web.cmd.start ] ##
 if ( defined <invoke-web.start_waiting> ) {
     my $mem = <[invoke-web.memory_free]>;
-    $out .= sprintf "start  : waiting for memory [ %ds, ram %d/%d MB, vram %s/%d MB ]\n",
+    $out .= sprintf "start  : waiting for memory [ %ds, "
+        . "ram %d/%d MB, vram %s/%d MB ]\n",
         <[base.time]>->(3) - <invoke-web.start_waiting>,
         $mem->{'ram_free_mb'}, $mem->{'ram_need_mb'},
         defined $mem->{'vram_free_mb'} ? $mem->{'vram_free_mb'} : '?',
@@ -38,7 +39,8 @@ if ( defined <invoke-web.start_waiting> ) {
 $out .= sprintf "render : %s\n", <invoke-web.progress>
     if defined <invoke-web.progress>;
 if ( my $last = <invoke-web.last_render> ) {
-    $out .= sprintf "last   : item %s [ %s, ram %s ]\n", $last->{'item'} // '?',
+    $out .= sprintf "last   : item %s " . "[ %s, ram %s ]\n",
+        $last->{'item'}                                    // '?',
         $last->{'stats'}->{'TOTAL GRAPH EXECUTION TIME'}   // '?',
         $last->{'stats'}->{'RAM used by InvokeAI process'} // '?';
 }
@@ -53,8 +55,8 @@ if ( my $err = <invoke-web.last_error> ) {
 
 return { mode => qw| size |, data => $out };
 
-#,,,,,,,,,.,.,,,.,,,,,.,,,.,.,...,,..,..,,,..,..,,...,...,,..,.,.,,,,,,,.,.,,,
-#3L556EI2HCBR6POQPAEKIWMQ57MINJOEVBOJUTKIZSHWV6MYT443LLNO6YTU4N5LXMTK32ZKYIY7Y
-#\\\|PFLIFJ4LJDK5XPKAZW2ZYH53VVMYTPDKPZ6YS7P3UFEVEOWVG5L \ / AMOS7 \ YOURUM ::
-#\[7]NBHYY4RNJFBVT2GJX4FMA6WIIAGX6CNAIOD3KMC3BABQ65ITMMBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,..,,...,,..,,,.,,,,,,,,,..,,.,.,..,,...,...,..,,.,,,,,.,,.,,,..,
+#7I7ZS7NMOGHRBY2FXDNDN7KT2AGEQAD22C57M6LYH4UT7BZSNFC3TL3UYT3H3FBJMQ2KZ35BVIMLO
+#\\\|QHYCRI7QRZO2LKOXBIOM4PY4OHPJ5HW5N7FEVUVQZCH6PNWYJMD \ / AMOS7 \ YOURUM ::
+#\[7]ADOGXTYC736D7PUQALTZB7PESL3YUGJHZJMAHNZA5AZ6MDXAGIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

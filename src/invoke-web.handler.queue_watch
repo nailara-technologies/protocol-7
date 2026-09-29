@@ -23,12 +23,14 @@ my $new_items = $dbh->selectcol_arrayref(
 ) // [];
 return if not @$new_items;
 
-my ($max_priority) = $dbh->selectrow_array(
+my ($max_priority)
+    = $dbh->selectrow_array(
     "SELECT MAX(priority) FROM session_queue WHERE status = 'pending'");
 my $priority = ( $max_priority // 0 ) + 1;
 
 $dbh->begin_work;
-my $sth = $dbh->prepare('UPDATE session_queue SET priority = ? WHERE item_id = ?');
+my $sth = $dbh->prepare(
+    'UPDATE session_queue SET ' . 'priority = ? WHERE item_id = ?' );
 foreach my $item_id (@$new_items) {
     next if $sth->execute( $priority, $item_id );
     <[base.logs]>->( 0, 'queue watch : update failed [ %s ]', $dbh->errstr );
@@ -39,12 +41,14 @@ $dbh->commit;
 
 <invoke-web.queue.last_seen> = $new_items->[-1];
 <[base.logs]>->(
-    1, 'queue : %d new item%s moved to the front [ priority %d ]',
-    scalar @$new_items, @$new_items == 1 ? '' : 's', $priority
+    1,
+    'queue : %d new item%s moved to the front [ priority %d ]',
+    scalar @$new_items,
+    @$new_items == 1 ? '' : 's', $priority
 );
 
-#,,.,,,,.,.,,,.,.,,,.,,..,..,,,,.,,,.,..,,,,.,..,,...,...,,.,,...,.,.,,,.,.,.,
-#4N7SLX73A6E4CLG26GVTVURHC7EWLHDQIEVASOPAQDRQZWTMOCH5NDZS3KECWFKQ6WVN7USREP6CM
-#\\\|XLWPHUO254B4P6FTZ23VWIJRFD2WJRZDW53CG2OZ3CAM6DGLGL4 \ / AMOS7 \ YOURUM ::
-#\[7]VZV4LNR3WHLTDG32OLR2BE6WAL3S2AUBK4JJ4NAINMKOKF72LODY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,.,.,,.,,...,,.,,.,.,,.,,,,.,..,,...,...,,,.,,..,,..,.,,,.,,,
+#5Z2BL2SBCNWNILV77Q7J4SXP6JLHOBIX6CSOLMKM43XM4USMIHBU3JHUVP45WRN6E2FQDFS6T4EGQ
+#\\\|UZF4M53DDLFHLW3D4DYGDIB2Z2BY4EVW4ZEA7FE3D6GDIGE634O \ / AMOS7 \ YOURUM ::
+#\[7]SQVIFDD6B2X6YCYMUZET75D4AUXIYOLDJH7WNN2IMMEYKG3BDSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

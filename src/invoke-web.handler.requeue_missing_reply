@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = invoke-web.handler.requeue_missing_reply
+# descr = async retry_items_by_id reply for the autofetch finalize path
+# note  = sent by invoke-web.hash_finalize once a verified model is back
+#         in place ; params carry { name, items }. on success the retried
+#         ids are recorded and the missing-model record is dropped --
+#         same end state as the manual requeue-missing command
+
+my $reply = shift                         // {};
+my $name  = $reply->{'params'}->{'name'}  // return;
+my $items = $reply->{'params'}->{'items'} // [];
+
+if ( not $reply->{'ok'} ) {
+    <[base.logs]>->(
+        0,
+        "queue : re-queue after autofetch failed [ %s ] -- '%s' "
+            . 'stays recorded [ requeue-missing %s ]',
+        $reply->{'status'} // '?',
+        $name,
+        $name
+    );
+    return;
+}
+
+my $retried
+    = ref $reply->{'data'} eq qw| HASH |
+    ? scalar( ( $reply->{'data'}->{'retried_item_ids'} // [] )->@* )
+    : '?';
+
+<[invoke-web.retried]>->($items) if @$items;
+
+<[base.logs]>->(
+    1, "queue : %s item%s re-queued [ model '%s' is back ]",
+    $retried, ( $retried eq '1' ? '' : 's' ), $name
+);
+
+delete <invoke-web.missing_at_render>->{$name};
+<[invoke-web.missing.save]>;
+
+return;
+
+#,,,,,,..,,,,,.,,,.,.,,..,,.,,,..,...,,,,,,..,..,,...,..,,,,,,.,,,..,,,.,,,..,
+#ZQWDHKFI7LAY4GWRNJUPZLXSHBR3IVX6NS5S3IZ7KMGMYPWWRLZEVDWYGAQPVKZGJJGPOYFWF3FYS
+#\\\|GHBJZSSVJWBAA5YJN7NR34HBLLEIA4MX4X5GULKO55WIFINAF3J \ / AMOS7 \ YOURUM ::
+#\[7]UTC4WOTWHJW6SJ3XLYXRW3TUHJ4EARF5WLJQ5IIAR4ZVTGMPFOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

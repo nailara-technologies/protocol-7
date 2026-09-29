@@ -22,7 +22,8 @@ my $out = '';
 foreach my $name ( sort keys %$sessions ) {
     my $session = $sessions->{$name};
     my @items   = keys $session->{'items'}->%*;
-    $out .= sprintf "%-24s %4d of %4d pending  resume : %-6s  parked %dm ago\n",
+    $out .= sprintf "%-24s %4d of %4d pending  "
+        . "resume : %-6s  parked %dm ago\n",
         $name, scalar( grep { $pending{$ARG} } @items ), scalar @items,
         $session->{'mode'} // 'manual',
         ( $now - ( $session->{'parked_at'} // $now ) ) / 60;
@@ -30,8 +31,8 @@ foreach my $name ( sort keys %$sessions ) {
 
 return { mode => qw| size |, data => $out };
 
-#,,,.,.,,,.,,,,,.,...,.,,,,.,,,.,,,..,,..,,,.,..,,...,...,..,,,..,..,,,,.,.,,,
-#4U4SZL34TJAZXSTAKVF4P7MZE6F3EFAP2LCSRJKEV3VFHWE2SX2HSPHFL6Z23IWNB6BMKLFUA5GQU
-#\\\|CAZ5MDGGCXRBLLILDWMBPDQHCKFH25YHOEQHS2TM4NXFASRYOAU \ / AMOS7 \ YOURUM ::
-#\[7]QY6LIRNZ7L63IYC23TQSX4IX6D7UTIT6UVCA6BM6OLTOI2JPEIDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,,,,,..,,.,,,.,,,...,.,,,..,,..,,...,...,,..,...,.,.,.,.,,,,,
+#QVEHSS6FYCALMYBHHPVBWVEMZYHIUTDR3NVZXPXPCNXBR2ZQTMEEN6CO7CZNKLEZFZAMQU7GCBCJU
+#\\\|XWR5S6IT5ID7QKDECCXRASVG65GRCIYMEOSKG5Q7HGS27OLYIQK \ / AMOS7 \ YOURUM ::
+#\[7]ZDQ5OJW4ST6HMRWKKCRXDAYEQL6MSDPSOFPVBP7YBASQ2JGRK4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

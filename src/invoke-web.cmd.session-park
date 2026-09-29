@@ -6,7 +6,10 @@
 
 my ( $name, $mode ) = split m|\s+|, $call->{'args'} // '';
 
-return { mode => qw| false |, data => 'expected : <name> [ manual|empty|cold ]' }
+return {
+    mode => qw| false |,
+    data => 'expected : <name> [ ' . 'manual|empty|cold ]'
+    }
     if not defined $name or $name !~ m|^[\w.-]+$|;
 
 $mode //= qw| manual |;
@@ -22,12 +25,14 @@ return { mode => qw| false |, data => 'no pending items to park' }
 
 return {
     mode => qw| size |,
-    data => sprintf( "session '%s' parked [ %d items, resume : %s ]\n",
-        $name, $count, $mode )
+    data => sprintf(
+        "session '%s' parked [ %d items, resume : %s ]\n",
+        $name, $count, $mode
+    )
 };
 
-#,,,,,.,.,,,,,,.,,...,..,,..,,,..,,.,,.,,,,..,..,,...,...,...,.,,,,,.,.,,,...,
-#2G23YM3MDQU2TCTNOPFQI63QQFY4LCETRT6W227KEZQ2DKKUDIV5TZWB6J2BYAUM4A5RNNKV3B6JE
-#\\\|DONRX32BJZVYM6YWZKD3LCZPUSK2I55DX7DLZJPRRGXU7TYEGE2 \ / AMOS7 \ YOURUM ::
-#\[7]SVTHE64S23LHJOJUELZVOPDOMZ4VYYKMR3GF7JRNVAHWAMQYU4BY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,,,.,,..,,..,,.,,,,,,...,.,,,..,,...,...,.,.,..,,,..,...,.,.,
+#HH7XMM3NBCZECDOKDHKJ33ZEXUHV633ZK3DWNMVKMQTDRB32KJABVAZW3WF7JSBQ2JBQYRXPGCGVG
+#\\\|HQDN5W75KMPWRZHQ6AYZ4WZFOSWOMSJCO5Q5RDG573ZTATMRTVU \ / AMOS7 \ YOURUM ::
+#\[7]PHEE5OPNKDENTE3PSNNYDNH4NQCJFRNM5RLCDJ62KBLJABU7XUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

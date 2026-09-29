@@ -9,7 +9,8 @@ return {
     mode => qw| false |,
     data => sprintf( 'queue status failed [ %s ]', $result->{'status'} )
     }
-    if not $result->{'ok'} or ref $result->{'data'} ne qw| HASH |;
+    if not $result->{'ok'}
+    or ref $result->{'data'} ne qw| HASH |;
 
 my $queue = $result->{'data'}->{'queue'}     // {};
 my $proc  = $result->{'data'}->{'processor'} // {};
@@ -17,18 +18,21 @@ my $proc  = $result->{'data'}->{'processor'} // {};
 return {
     mode => qw| size |,
     data => sprintf(
-        "processor : %s%s\npending   : %d\nrunning   : %d [ item %s ]\n"
-            . "completed : %d\nfailed    : %d\ncanceled  : %d\n",
-        $proc->{'is_started'}    ? 'started' : 'paused',
+        "processor : %s%s\npending   : %d\nrunning   : %d [ item "
+            . "%s ]\ncompleted : %d\nfailed    : %d\ncanceled  : %d\n",
+        $proc->{'is_started'}    ? 'started'         : 'paused',
         $proc->{'is_processing'} ? ' [ processing ]' : '',
-        $queue->{'pending'}     // 0, $queue->{'in_progress'} // 0,
-        $queue->{'item_id'}     // '-', $queue->{'completed'} // 0,
-        $queue->{'failed'}      // 0, $queue->{'canceled'}    // 0
+        $queue->{'pending'}     // 0,
+        $queue->{'in_progress'} // 0,
+        $queue->{'item_id'}     // '-',
+        $queue->{'completed'}   // 0,
+        $queue->{'failed'}      // 0,
+        $queue->{'canceled'}    // 0
     )
 };
 
-#,,,.,,..,,.,,,.,,,,.,,..,,,.,,.,,...,.,.,.,,,..,,...,...,..,,...,...,,,.,.,,,
-#I6DGQMXOEWLNVSQ2OOV3YT5PS2OHKNTFWQAPDI2OWNMMZDWMSLGGUMNCFLIUBVVQRKPSU5SJLSXXA
-#\\\|MI2IAY6ZOLKM7CAIRDUUQDD4FANVVPYE5MXAIJGZ33CI2XAFW4Z \ / AMOS7 \ YOURUM ::
-#\[7]U56USQQRXEBRS6M3DFI3ERMCNGE4ODZNE64K6K22M66VHNJXIODY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,..,,.,.,.,,,,.,,.,,,..,,...,..,,...,...,,.,,.,.,.,,,..,,,,.,
+#C6B5ZE452YPTCQZBPDJOUEQZHCDRCM3CIGHJQWLWPV4RVKGEG6AE4PZSRHRNGEWGUO4FCWBZ4C6NO
+#\\\|DDMIXGWZY7HATOOZJ3L45ZK2IRT5MCAOGAJQANUVWP36OSBFMR4 \ / AMOS7 \ YOURUM ::
+#\[7]R4EIE6M35SZYPW2N2XTDEDGGDJDBVKRGHYFMSPJOE4WPVNO5EUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

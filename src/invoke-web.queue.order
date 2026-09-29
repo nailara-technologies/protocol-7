@@ -22,7 +22,8 @@ my $parked = -( <invoke-web.session.park_offset> // 1000000 ) / 2;
 my $items  = $dbh->selectall_arrayref(
     "SELECT item_id, session_id FROM session_queue WHERE status = 'pending' "
         . 'AND priority > ? ORDER BY priority DESC, item_id ASC',
-    { 'Slice' => {} }, $parked
+    { 'Slice' => {} },
+    $parked
 );
 if ( not defined $items ) {
     <[base.logs]>->( 0, 'queue order : read failed [ %s ]', $dbh->errstr );
@@ -41,8 +42,10 @@ if ( $mode eq qw| newest | ) {
 
     ## seed from the session ids [ same material as the script ] ##
     my $seed = 0;
-    foreach my $char ( split m||, join '', map { $ARG->{'session_id'} // '' } @$items ) {
-        $seed = int( ( ( $seed << 5 ) + ( $seed << 4 ) + ord $char ) % 2**31 );
+    foreach my $char ( split m||, join '',
+        map { $ARG->{'session_id'} // '' } @$items ) {
+        $seed
+            = int( ( ( $seed << 5 ) + ( $seed << 4 ) + ord $char ) % 2**31 );
     }
     $seed = int( $seed / 13 ) while $seed > 2**30;
 
@@ -58,30 +61,37 @@ if ( $mode eq qw| newest | ) {
         $entropy{ $item->{'item_id'} } = $value;
     }
     @sorted = sort {
-        $entropy{ $a->{'item_id'} } <=> $entropy{ $b->{'item_id'} }
+               $entropy{ $a->{'item_id'} } <=> $entropy{ $b->{'item_id'} }
             or $a->{'item_id'} <=> $b->{'item_id'}
     } @$items;
 }
 
 ## descending priorities : first in @sorted runs first ##
-my $sth = $dbh->prepare('UPDATE session_queue SET priority = ? WHERE item_id = ?');
+my $sth = $dbh->prepare(
+    'UPDATE session_queue SET ' . 'priority = ? WHERE item_id = ?' );
 my $priority = scalar @sorted;
 $dbh->begin_work;
 foreach my $item (@sorted) {
     if ( not $sth->execute( $priority--, $item->{'item_id'} ) ) {
-        <[base.logs]>->( 0, 'queue order : update failed [ %s ]', $dbh->errstr );
+        <[base.logs]>->(
+            0, 'queue order : ' . 'update failed [ %s ]',
+            $dbh->errstr
+        );
         $dbh->rollback;
         return undef;
     }
 }
 $dbh->commit;
 
-<[base.logs]>->( 1, 'queue reordered [ %s, %d items ]', $mode, scalar @sorted );
+<[base.logs]>->(
+    1,     'queue reordered ' . '[ %s, %d items ]',
+    $mode, scalar @sorted
+);
 
 return scalar @sorted;
 
-#,,.,,...,,.,,.,.,.,.,,..,,..,,,.,,,.,,.,,,.,,..,,...,...,...,,,,,.,,,,,.,..,,
-#CY2FQQ63JIUJF3KWIZZ3IDBN7T3HY56VXIERSGXWCWS5FUT2AOFBWCQPAYBCV64OVHEXZ5U6NFCCO
-#\\\|CGQGQYGIETI2SOAMGXHADJXVYKGNFT3PQMW63HURQIUUQRMC6I7 \ / AMOS7 \ YOURUM ::
-#\[7]RDOHIX5KC5E4SSCPI73D7VMTS5CUWNEOQZDAUATXG2DGELN6YGBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,..,,..,,,..,.,,,,,.,,,.,,.,,..,,...,...,,.,,,,,,..,,,,,,,,,,
+#7JVGMTEWRO56HGHHAEIKIQKLIGV4BCLT53JNQWI4PW4YF5SZ5IWQY2UYWO4GBT5J3S7UAQWPY4E5U
+#\\\|DTUFE2ULWMG24LCQTYX23R7YM5BR6C5T6FLAW6MXG3UYAJ57NWY \ / AMOS7 \ YOURUM ::
+#\[7]Y7SLHRHLCEADM4SOKUHEA5WON36JDIVLY6E52P6S6NYYK2IOZABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
