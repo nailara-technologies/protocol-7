@@ -1,0 +1,232 @@
+## [:< ##
+
+# name   = invoke-web.autofetch
+# descr  = fetch a model a render failed on through the fetch-files zenka
+# param  = model name, [ force : ignore the mode gate + retry failures ]
+# return = { ok, msg } hashref
+# note   = trigger : the second complaint about a missing model [ the
+#          render-time 'Files for model .. not found' line -- something is
+#          actually asking for it, data/tasks/invoke-missing-model-
+#          autofetch.md ]. the download runs async in the fetch-files
+#          zenka [ route-send, never blocking the event loop ] into a
+#          staging directory ; invoke-web.handler.fetch_reply moves the
+#          verified file to the db path and re-queues the failed item.
+#          models without a fetchable recorded source [ source_type
+#          'path', bare hf repo trees ] are only reported -- a source is
+#          never guessed
+
+my $name  = shift // return undef;
+my $force = shift // FALSE;
+
+my $entry = <invoke-web.missing_at_render>->{$name} //= {};
+my $fetch = $entry->{'fetch'} //= { 'state' => qw| seen | };
+
+my $state = $fetch->{'state'} // qw| seen |;
+
+## terminal record helper : state, reason, persist, log ##
+my $report = sub {
+    my ( $new_state, $reason, $level ) = @_;
+    $fetch->{'state'}  = $new_state;
+    $fetch->{'reason'} = $reason;
+    $fetch->{'time'}   = <[base.time]>->(3);
+    <[invoke-web.missing.save]>;
+    <[base.logs]>->( $level // 1, "autofetch : %s : %s", $name, $reason );
+    return { 'ok' => FALSE, 'msg' => $reason };
+};
+
+return { 'ok' => TRUE, 'msg' => 'model already fetched' }
+    if $state eq qw| done | and not $force;
+
+return { 'ok' => TRUE, 'msg' => 'awaiting confirmation [ fetch-missing ]' }
+    if $state eq qw| ask | and not $force;
+
+return {
+    'ok'  => FALSE,
+    'msg' => sprintf(
+        '%s [ fetch-missing %s to retry ]',
+        $fetch->{'reason'} // $state, $name
+    )
+    }
+    if $state =~ m{^(?:failed|unfetchable)$} and not $force;
+
+if ( $state eq qw| fetching | and not $force ) {
+    my $staged = $fetch->{'staging'} // '';
+
+    ## self-heal : the reply died with a zenka restart [ the state file ##
+    ## outlives it ] -- a complete staged file finalizes directly       ##
+    if (    length $staged
+        and -s $staged
+        and ( $fetch->{'size'} // 0 )
+        and -s $staged >= $fetch->{'size'} * 0.99 ) {
+        return <[invoke-web.fetch_finalize]>->($name);
+    }
+
+    ## a partial file cannot be told from a complete one without the db ##
+    ## size : a fresh dispatch truncates it [ stream_to_file ]          ##
+    if ( <[base.time]>->(3) - ( $fetch->{'time'} // 0 )
+        > ( <invoke-web.autofetch.timeout> // 7200 ) ) {
+        $fetch->{'state'} = qw| seen |;    ## falls through, re-resolves ##
+    } else {
+        return { 'ok' => FALSE, 'msg' => 'fetch already in progress' };
+    }
+}
+
+## resolve the model against the invoke.ai db [ read-only selects ] ##
+my $resolved = <[invoke-web.model.source]>->($name);
+
+return $report->( qw| unfetchable |, 'model not in the invoke.ai db', 1 )
+    if not defined $resolved;
+
+my @fetchable = grep { $ARG->{'fetchable'} } $resolved->{'records'}->@*;
+return $report->(
+    qw| unfetchable |,
+    $resolved->{'records'}->[0]{'reason'} // 'no fetchable source', 1
+) if not @fetchable;
+
+## single checkpoint files only : a diffusers tree is not one download ##
+my ($record) = grep { $ARG->{'path'} =~ m{\.\w+$} } @fetchable;
+return $report->(
+    qw| unfetchable |,
+    'diffusers tree source [ single file fetch only ]', 1
+) if not defined $record;
+
+<[base.logs]>->(
+    2, "autofetch : name '%s' has %d db records, using key %s",
+    $name, $resolved->{'found'}, $record->{'key'} // '?'
+) if $record->{'name_collision'};
+
+## per-model size limit [ 0 = no limit ] ##
+my $max_gb = <invoke-web.autofetch.max_gb> // 0;
+if ( $max_gb and ( $record->{'size'} // 0 ) > $max_gb * 1024**3 ) {
+    return $report->(
+        qw| unfetchable |,
+        sprintf(
+            'over the autofetch size limit [ %.1f GB > %d GB ]',
+            ( $record->{'size'} // 0 ) / 1024**3, $max_gb
+        ),
+        1
+    );
+}
+
+## repo + file from the recorded source [ never guessed ] ##
+my ( $repo, $repo_file );
+my $source = $record->{'source'} // '';
+if ( $record->{'source_type'} eq qw| hf_repo_id | ) {
+
+    ## invokeai appends ::file to select one file out of the repo [ a ##
+    ## ::subfolder without an extension selects a diffusers tree ]    ##
+    my ( $r, $sub ) = split m|::|, $source, 2;
+    if ( defined $sub and $sub =~ m{\.[\w]+$} ) {
+        ( $repo, $repo_file ) = ( $r, $sub );
+    } else {
+        return $report->(
+            qw| unfetchable |,
+            'bare hf repo source [ tree fetch not built ]', 1
+        );
+    }
+} elsif ( $record->{'source_type'} eq qw| url | ) {
+
+    ## a huggingface resolve url carries repo + file deterministically ##
+    if ( $source
+        =~ m{^https?://huggingface\.co/([^/]+/[^/]+)/resolve/[^/]+/([^\s?]+)}
+    ) {
+        ( $repo, $repo_file ) = ( $1, $2 );
+    } else {
+        return $report->(
+            qw| unfetchable |,
+            'non-huggingface url source [ not built ]', 1
+        );
+    }
+} else {
+    return $report->( qw| unfetchable |, 'unknown source type', 1 );
+}
+
+return $report->(
+    qw| unfetchable |,
+    'repo file in a subfolder [ not built ]', 1
+) if $repo_file =~ m|/|;
+
+## staging : inside the models root [ world-writable, same filesystem as ##
+## the destination -- the finalize rename stays atomic ]                 ##
+my $staging_dir = <invoke-web.autofetch.staging>
+    // sprintf( '%s/.autofetch', <external.models.invokeai.path> // '/tmp' );
+
+$fetch->{'repo'}    = $repo;
+$fetch->{'file'}    = $repo_file;
+$fetch->{'path'}    = $record->{'path'};
+$fetch->{'size'}    = $record->{'size'} // 0;
+$fetch->{'staging'} = sprintf( '%s/%s', $staging_dir, $repo_file );
+
+## mode gate [ default off until tested ] : 'ask' logs a confirm hint,      ##
+## everything else is a switch through base.cfg_bool [ on \ yes \ true, off ##
+## \ no \ 0 ; unknown : warned by cfg_bool, then off ]                      ##
+my $mode = lc( <invoke-web.autofetch.mode> // qw| off | );
+$mode = <[base.cfg_bool]>->($mode) ? qw| on | : qw| off |
+    if $mode ne qw| ask |;
+
+if ( not $force and $mode eq qw| off | ) {
+    return { 'ok' => FALSE, 'msg' => 'autofetch off [ autofetch.mode ]' };
+}
+if ( not $force and $mode eq qw| ask | ) {
+    $fetch->{'state'} = qw| ask |;
+    $fetch->{'time'}  = <[base.time]>->(3);
+    <[invoke-web.missing.save]>;
+    <[base.logs]>->(
+        1, "autofetch : '%s' fetchable [ %s ] -- confirm : fetch-missing %s",
+        $name, $source, $name
+    );
+    return { 'ok' => TRUE, 'msg' => 'confirmation requested [ see log ]' };
+}
+
+## dispatch to the fetch-files zenka [ async : the deferred reply arrives ##
+## in invoke-web.handler.fetch_reply once the download is verified ]      ##
+$fetch->{'state'} = qw| fetching |;
+$fetch->{'time'}  = <[base.time]>->(3);
+<[invoke-web.missing.save]>;
+
+## single line : the command protocol is line based [ pretty json would ##
+## break it -- the values carry no newlines ]                           ##
+my $args_json
+    = <[format.json.encode]>
+    ->( { 'repo' => $repo, 'file' => $repo_file, 'dest' => $staging_dir } );
+$args_json =~ s{\s*\n\s*}{ }g;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| fetch-files.hf-download |,
+        'call_args' => { 'args' => $args_json },
+        'reply'     => {
+            'handler' => qw| invoke-web.handler.fetch_reply |,
+            'params'  => { 'name' => $name },
+        },
+    }
+);
+
+return $report->( qw| failed |, 'route to the fetch-files zenka failed', 0 )
+    if not $sent;
+
+## watchdog : a lost reply [ fetch-files restart \ route drop ] must not   ##
+## pin the state at 'fetching' forever. timer objects are not json -- kept ##
+## out of the persisted record                                             ##
+<invoke-web.autofetch.timers> //= {};
+if ( defined <invoke-web.autofetch.timers>->{$name} ) {
+    <invoke-web.autofetch.timers>->{$name}->cancel;    ## a forced retry ##
+}
+<invoke-web.autofetch.timers>->{$name} = <[event.add_timer]>->(
+    {   'after'   => <invoke-web.autofetch.timeout> // 7200,
+        'handler' => qw| invoke-web.handler.fetch_watchdog |,
+        'data'    => { 'name' => $name },
+    }
+);
+
+<[base.logs]>->(
+    1, "autofetch : fetching '%s' [ %s : %s ]",
+    $name, $repo, $repo_file
+);
+
+return { 'ok' => TRUE, 'msg' => "fetch dispatched [ $repo : $repo_file ]" };
+
+#,,..,,..,,,.,,,,,..,,,,.,.,.,...,,..,,.,,...,..,,...,..,,...,,..,,..,.,,,...,
+#75OZ5TRSKVQRB745KGVGAV6VCOYGQLQAYEG7EUBVWW2BH5BMGRUZXMI7CCNRF4YOBCABVFXDHT3GA
+#\\\|6QYIHK337EBTBZTIPZFMVRLRC6FEKWSHL5ZXTT2XATFPDU66MXZ \ / AMOS7 \ YOURUM ::
+#\[7]Q2THFQ2JWMCX6VNNHOFV4R4P4P2KFVYU5VNJEPDSRBFVTV3KR2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

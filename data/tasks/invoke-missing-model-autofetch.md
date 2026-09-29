@@ -110,6 +110,48 @@ item record.
   .safetensors, and the uuid-dir special case only covers bare-uuid
   paths
 
+## trigger + fetch : built [ 2026-09-29, second round ]
+
+- `src/invoke-web.autofetch` : called from the model_render branch of
+  `invoke-web.parse_output_line` [ the second complaint ]. resolves via
+  `<[invoke-web.model.source]>`, picks the first fetchable single-file
+  record [ diffusers trees skipped -- not one download ], derives
+  repo+file ONLY from the recorded source [ `hf_repo_id` with a
+  `::file` suffix, or a huggingface `/resolve/` url ; bare repos and
+  non-hf urls are report-only, never guessed ], then dispatches
+  `fetch-files.hf-download` through `<[protocol-7.route-send]>` with a
+  deferred reply handler -- never blocks the event loop. state lives in
+  `<invoke-web.missing_at_render>->{<name>}->{fetch}` [ persisted by
+  `invoke-web.missing.save` ] : seen | ask | fetching | done | failed |
+  unfetchable. a lost reply is caught by a watchdog timer
+  [ `invoke-web.handler.fetch_watchdog`, timeout cfg ] ; a zenka
+  restart mid-download self-heals on the next trigger [ staged file
+  size vs db size, a fresh dispatch truncates a partial ]
+- the download lands in a staging dir [ `<invoke-web.autofetch.staging>`
+  // `<external.models.invokeai.path>/.autofetch` -- fetch-files runs
+  as the amos zenka user and cannot write the model subdirs ; the
+  models root is world-writable and on the same filesystem ]
+- `src/invoke-web.handler.fetch_reply` : on a verified download
+  [ fetch-files checks the lfs sha256 before replying TRUE ] calls
+  `src/invoke-web.fetch_finalize` : rename the staged file to the db
+  path [ repo file name can differ from the db file name ] and run
+  `<[invoke-web.requeue_missing]>->(<name>)` -- the failed items are
+  retried, the record is deleted
+- `src/invoke-web.cmd.fetch-missing` : `p7c invoke-web.fetch-missing
+  <name>` forces a fetch [ the ask-mode confirmation ] ; no arg lists
+  the recorded fetch states ; registered in zenka.v7 access.cmd.usr.cube
+- policy [ zenka.v7, all default-safe ] : `invoke-web.autofetch.mode`
+  = off | ask | on [ default off until tested ],
+  `invoke-web.autofetch.max_gb` per-model size limit [ 0 = none ],
+  `invoke-web.autofetch.timeout` watchdog [ 7200 ]
+- startup 'Missing model file' lines now also collect
+  `<invoke-web.missing_list>->{<name>}` = { path, first_seen } [ the
+  counter is kept for cmd.status ]
+- not built : diffusers tree fetch, github \ non-hf url fetch, repo
+  file resolution for bare hf_repo_id sources [ needs a hf api repo
+  listing -- fetch-files hf-list filters .gguf only ], the proactive
+  pending-queue intersection, invoke.ai rescan api call after finalize
+
 ## open questions
 
 - how graphs reference models [ key vs name ] and how to read them from
@@ -120,8 +162,8 @@ item record.
 - fetch-files job interface : what invoke-web sends, how completion is
   reported back [ callback \ event ]
 
-#,,..,.,.,..,,,,.,,,,,,..,,,.,..,,,..,,.,,,..,..,,...,...,.,.,..,,,.,,,,.,..,,
-#HWK6UQRCHSIB4S2BE5L2PXQMERBFUKKU6ZLYTSZJCQT25X4XKYG45UMJQV2A75I7QXE47JNQD5UP2
-#\\\|C32PYOAC2G6SZWFQAFTT6CJJZVDNWRZBCVGTU4XXFCG3O4DY6QK \ / AMOS7 \ YOURUM ::
-#\[7]CPS5GLKBF4KI5VCI5SLXQS55R7PSX7QOVKF6RGU5G67DEMU2S4CA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,...,,.,,,,,,,.,,,.,,,..,,.,,..,,...,..,,,,.,,,,,.,,,,..,..,,
+#26734M443OBPQSOTGATYFB2YCX6O3X4GMYX6RHOSKVAFXSH46JNKWIYT7ZG4IG2CUQQHFECGODRIC
+#\\\|YHJW64KDKGHOSCKWERGPTVETJDRTJURMGZIDI2EA5Y6237CX2GX \ / AMOS7 \ YOURUM ::
+#\[7]FX7INH7N5XRZ73G7C2SWVDFZ2UJM7AY3IKPUWOACBKLRBFBOEMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
