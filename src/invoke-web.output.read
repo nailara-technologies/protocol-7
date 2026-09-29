@@ -1,0 +1,75 @@
+## [:< ##
+
+# name   = invoke-web.output.read
+# descr  = read new output of invoke.ai from the stored offset : complete
+#          lines to parse_output_line and the invokeai buffer
+# note   = at most 256k per call, the rest in a follow-up timer [ never one
+#          long block ]. offset persisted every few seconds [ the next
+#          zenka instance reads on from there ] ; a fully read file over
+#          output.trim_mb is truncated [ the writer appends : O_APPEND ]
+
+my $pid  = <invoke-web.output.pid>    // return;
+my $path = <[invoke-web.output.path]> // return;
+
+my $size   = -s $path                   // return;
+my $offset = <invoke-web.output.offset> // 0;
+$offset = 0 if $size < $offset;    ## truncated meanwhile ##
+return if $size == $offset;
+
+open( my $fh, '<:raw', $path ) or return;
+seek( $fh, $offset, 0 );
+my $n = sysread( $fh, my $buf, 262144 );
+close $fh;
+return if not $n;
+$offset += $n;
+
+my $carry = ( <invoke-web.carry>->{'out'} // '' ) . $buf;
+
+## complete lines [ \r too : tqdm progress bars only rewrite the line ] ##
+while ( $carry =~ s|^([^\r\n]*)[\r\n]+|| ) {
+    my $line = $1;
+    next if not length $line;
+
+    ## the buffer keeps the log, not every progress bar step ##
+    ( my $clean = $line ) =~ s|\e\[[0-9;?]*[A-Za-z]||g;
+    <[base.buffer.add_line]>->(
+        qw| invokeai |, join( ' ', <[base.ntime]>, 1, $clean )
+    ) if length $clean and $clean !~ m{\d+%\|.*\|\s*\d+/\d+\s*\[};
+
+    <[invoke-web.parse_output_line]>->( $line, qw| out | );
+}
+
+## no line end within 64k : hand it over as it is ##
+if ( length $carry > 65536 ) {
+    <[invoke-web.parse_output_line]>->( $carry, qw| out | );
+    $carry = '';
+}
+<invoke-web.carry>->{'out'} = $carry;
+<invoke-web.output.offset> = $offset;
+
+## persist the offset for a next instance [ every 5s at most ] ##
+if ( time - ( <invoke-web.output.offset_saved> // 0 ) >= 5 ) {
+    <[file.zenka_dir.write]>->(
+        'state/invokeai.out.offset', \"$pid $offset\n"
+    );
+    <invoke-web.output.offset_saved> = time;
+}
+
+## trim : everything read and large -> truncate [ lines are in the buffer ] ##
+if (    $offset == ( -s $path // -1 )
+    and $offset > ( <invoke-web.output.trim_mb> // 16 ) * 1024 * 1024 ) {
+    truncate( $path, 0 ) and <invoke-web.output.offset> = 0;
+}
+
+## more waiting : continue right after the event loop had a turn ##
+<[event.add_timer]>->(
+    { 'after' => 0.05, 'handler' => qw| invoke-web.handler.output_read | } )
+    if ( -s $path // 0 ) > <invoke-web.output.offset>;
+
+return $n;
+
+#,,,.,,..,..,,,.,,,..,.,,,...,...,.,.,...,,..,..,,...,...,...,.,.,,,.,...,,.,,
+#IBVILU2NNAETAPRGMRTH3MMKHXX3Q6J6YHB6XDIQIOVNYMMO5EAUSJ3I5U7GZHXFBD7ETPQYTTCRU
+#\\\|SININKF7B74GYSGWNYQWWWQZRZI3BC6HF4EY5VIZPL6JWLTCMBS \ / AMOS7 \ YOURUM ::
+#\[7]7W43E24MSLSOLRNKIWP7UQGGKLPW4G3SWHN3HB2A6JTWQ3BG7YCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

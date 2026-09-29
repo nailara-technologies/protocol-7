@@ -9,17 +9,8 @@ unless ( defined $pid and <[invoke-web.is_alive]>->($pid) ) {
     return { mode => qw| false |, data => 'invoke.ai is not running' };
 }
 
-## cancel I/O watchers
-for my $key (qw| watcher_stdout watcher_stderr |) {
-    my $w = $data{'invoke-web'}{$key};
-    $w->cancel if defined $w and $w->is_active;
-}
-
-## close I/O pipes
-for my $key (qw| io_stdout io_stderr |) {
-    my $fh = $data{'invoke-web'}{$key};
-    close($fh) if defined $fh;
-}
+## stop following the output file [ it stays : the offset is saved ] ##
+<[invoke-web.output.stop]>;
 
 ## send SIGTERM first
 unless ( kill( 'TERM', $pid ) ) {
@@ -56,8 +47,8 @@ return {
     data => sprintf( "invoke.ai stopping [pid:%d sent SIGTERM]\n", $pid )
 };
 
-#,,.,,,..,.,.,.,.,,,.,,,,,,,.,,..,,.,,...,,..,..,,...,...,..,,.,.,,,,,.,,,,,.,
-#DDADBSTCO7SPCH6LNIX3TOJGFR3QW5INXNXOTW2CODIHAWSSDVYAHW6ZB7LLDAYEIIUYQY7X5CA7G
-#\\\|MGXWHNMRM63BAN3KDH347PKGAVHR3SD3MXLWFBULKTG2XEK5OLJ \ / AMOS7 \ YOURUM ::
-#\[7]FJJBDCSZGGLELGCJKQDLJKQP2BT64KBHEMFZCVG4XVWMSJI5KIAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,.,,,.,.,...,,..,.,.,,..,.,.,..,,...,.,.,..,,..,,.,,,...,,,.,
+#YNRBMQFUUY2L6HJ2INN2LLDE5GVBDEKPS7RAPZYITZW7NHI3ISJIOTXZAW6BOFHZXQ4TLVEEQGOP6
+#\\\|GKBGKK2PPL4LO5NPSTRLZLO3UBRHCLOQ5VYF3FYISLWKSFVTWZU \ / AMOS7 \ YOURUM ::
+#\[7]QIH7NIBM273F6XEJFDWOLJIOWLSPW5AVKBX6TOR3USOITLL3FQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
