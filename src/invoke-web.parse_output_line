@@ -76,6 +76,7 @@ if ( $kind eq qw| ready | ) {
         'session' => $session // $render->{'session'},
         'time'    => <[base.time]>->(3),
     } if defined $name;
+    <[invoke-web.missing.save]> if defined $name;
     <invoke-web.last_error> = {
         'kind' => qw| model |,
         'line' => sprintf( "model '%s' missing [ item %s ]",
@@ -118,8 +119,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,,,,..,,.,,,.,,.,,,,,.,.,.,,..,,..,..,,.,,,..,,...,...,.,.,.,,,,,.,...,..,,
-#XBNADN2PLKAK7GP57VYFNGS7LGZUX26CBURSJAQTOOI7WCOF2WQ2BTG75KC5XPGPEL4QTWIL7JTM2
-#\\\|OPT3HY6Q7BCAO2QXTVIEVBB63YQ7S4FBD7PAFUGGVKQW7NZUYMO \ / AMOS7 \ YOURUM ::
-#\[7]G72WCONUZCFCV7AT4OOGWAE7KU2WWFP76OOOMULYHM6IE5HBDUCY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,..,,,,.,.,.,.,.,,,,,...,,,.,..,,...,...,,,.,.,,,.,,,..,,.,,,
+#4I5Y6XKDKAGFFOUYGLUQS62DERWBEWJKVOPOUVDSMFW7DMGCNXTKQQNZDDMRJFCJCWOY7CEW3OUWU
+#\\\|2FC26R65FL6RRLWXBXZIOAE3QN5BAGNF2XXFU3JA46IEMBPVHWW \ / AMOS7 \ YOURUM ::
+#\[7]GXMS7L43V3WMLD63DFXILQG3K6CZCMIRPW5CDLW6V5Y6VRHDASCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
