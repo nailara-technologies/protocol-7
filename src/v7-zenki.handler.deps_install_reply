@@ -20,7 +20,7 @@ if ( $mode ne qw| true | ) {
     <[base.logs]>->(
         0,
         'check_zenka_deps: install via debian zenka failed : %s',
-        $reply->{'data'} // qw| unknown error |
+        $reply->{'data'} // 'unknown error'
     );
     my $msg = "still missing deps for zenka '$zenka_name': ";
     $msg .= 'pm=' . join( ', ', @$missing_pm ) . ' ' if @$missing_pm;
@@ -96,8 +96,8 @@ if ( @still_pm or @still_os or @still_bin ) {
 
 return;
 
-#,,.,,.,,,,.,,,.,,.,,,.,.,,.,,,.,,.,,,,.,,...,..,,...,...,...,,.,,,,.,,.,,...,
-#Z2KTXB6DHGXOGTVQUAP6OSYUFT3HWWJ3CJJEMJWEVQCK4OKPXK3LJE3R4NXWUYGNW2V6KK7T3AYDE
-#\\\|RUNBJGV73HRNHCBARBEOPCK5E62DENFKWRSBQ6HO5ZWN7LQY6NJ \ / AMOS7 \ YOURUM ::
-#\[7]FIWHGYS7URJM7H6OY7HNHENLI3FONHRCYW2GOC7CDJ4OYGJV6ADQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,.,.,..,,..,,,.,,.,,,..,,,,,,..,,...,...,...,.,.,,,,,.,.,.,,,
+#WGFCGAYL4WMI4D55VWGYHPTTRLFX5P66V3WJP6Z2CMTUDYIT4XNJZNT7AFBP4P7TQISCH6K532P44
+#\\\|2EBGFUTOZBC6GJIWFFTVMINCR6ZCEXQOLPS3EFO5GXAFPTNLFR7 \ / AMOS7 \ YOURUM ::
+#\[7]GYLL5UEAHPSLX5XMB7BWMX4TMACHISLKHGLQQ3VSR53KUQNOMMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
