@@ -207,9 +207,9 @@ Files with no actual `base.perlmod.load`/`autoload` call are marked N/A.
 
 | file | module(s) | frequency | init_code has it? | recommendation | reasoning |
 |------|-----------|-----------|--------------------|-----------------|-----------|
-| src/v7.check_zenka_deps | AMOS7::deps::module, AMOS7::deps::os_package, AMOS7::deps::debp | startup/one-shot | no | KEEP | per-zenka dependency check runs once at startup |
-| src/v7.cleanup_temp_paths | File::Path | rare | no | KEEP | instance cleanup on sub-process exit; not a hot path |
-| src/v7.setup_stdout_redir | File::Spec, Fcntl | startup/one-shot | no | KEEP | one-time stdout log setup; preloading not warranted |
+| src/v7-zenki.check_zenka_deps | AMOS7::deps::module, AMOS7::deps::os_package, AMOS7::deps::debp | startup/one-shot | no | KEEP | per-zenka dependency check runs once at startup |
+| src/v7-zenki.cleanup_temp_paths | File::Path | rare | no | KEEP | instance cleanup on sub-process exit; not a hot path |
+| src/v7-zenki.setup_stdout_redir | File::Spec, Fcntl | startup/one-shot | no | KEEP | one-time stdout log setup; preloading not warranted |
 
 ## X-11 (3 files)
 
@@ -371,8 +371,8 @@ Files with no actual `base.perlmod.load`/`autoload` call are marked N/A.
 |------|-----------|-----------|--------------------|-----------------|-----------|
 | src/zulum.cmd.export-streams | JSON | hot (.cmd) | no | MOVE | called on every (.cmd) invocation, modules should be in init_code |
 
-#,,..,,.,,,..,..,,,..,,,.,,,.,,.,,,..,...,,,,,..,,...,...,.,.,.,,,...,,,.,..,,
-#MCPZ2J6EF2DDIQUL37JZ27CYVMZGTBSBX4LO5OUGPUOYGZF6ETSUCCXUNHFA2V2LHQJLB6JRED454
-#\\\|5B7PW3ECKJ6WOKJL37DVACFD7CAATIJMAEDGI6MKCP6TLWSEYXF \ / AMOS7 \ YOURUM ::
-#\[7]MZGAUZZX2KIEOVXHLYTAG4M2IYDEZWWIKHPQZ6GBM2TSVTAA2ODA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,.,.,...,...,,,,,...,,,.,,,,,..,,...,...,.,.,.,.,,,,,...,,,.,
+#LIF4QVPLF4FOQWGPOGQO3GCZ7TMVS2QDK67FCVVJFPTR7LRHCWSYZCOBUMGHJ72XZP3SJO4HDQOBU
+#\\\|WPMAJ3PQSTXRICPUL7INHY5LP4AKAQVH72DDT377IBLMFJOUOUB \ / AMOS7 \ YOURUM ::
+#\[7]25HPRLOGEN5VLDMNJH65NEYVLG3GX6VFM7PVZLDBNTGOBAKPNWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,8 +36,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   unlink choice.
 
 - **[MEMORY-feedback.md](MEMORY-feedback.md)** — gotchas, failure modes, and incidents.  
-  open for: fork-child gotchas, iteration-counter quality rejection, `v7.stop` deadlock,
-  `v7.reload init` live-network teardown.
+  open for: fork-child gotchas, iteration-counter quality rejection, `v7-zenki.terminate` deadlock,
+  `v7-zenki.reload init` live-network teardown.
 
 - **[topic-model-batch-harness-and-self-test-findings.md](topic-model-batch-harness-and-self-test-findings.md)**
   — 2026-09-21: Event.pm silent watcher suspension, `event.add_timer` `data` vs `params`,
@@ -47,8 +47,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,.,,,,.,,,.,..,,..,,..,,...,,,.,,.,,..,,,,.,.,.,...,...,.,.,..,,.,.,...,.,.,
-#LFLNEUV7TVXRMBPVFZWFBL6W3KIER7G2J3DLY2V3GISQMPM4VEUHTLGTZHE57FD44OVR4OALIZHEK
-#\\\|KXS66XE7QGIFOY2FAO6F7DKLE6U65RVH7MGE7XJ4VWZLLI2HP6D \ / AMOS7 \ YOURUM ::
-#\[7]PBWN6NBOXLHWVTVRJM33UVXXAU25PUCR4Q7KU4Q426BMG3R4S6BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,,,.,.,,,,..,.,.,..,,..,,,.,,.,.,...,...,...,,,.,,..,.,,,,,.,
+#OGKVM6AJOQUIZ4GRRMR3SPOTFU4FSMCKNMHJW6XQT4RFSPA2JG6RS7Z4I7NYS7BINVJVEKJVX65FS
+#\\\|DHUHCY445MQMIDSG24YW6P3CJPTICTPJR7PH4FJNUNVSGVZIZGT \ / AMOS7 \ YOURUM ::
+#\[7]OZXOKSTWVZN365AE3PMZ4CTLKAMEOCYKBSH7YBVIAWVNGARAAECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

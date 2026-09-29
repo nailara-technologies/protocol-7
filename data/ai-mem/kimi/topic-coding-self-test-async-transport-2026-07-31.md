@@ -83,7 +83,7 @@ Background: `data/ai-mem/claude/topic-coding-self-test-http500-and-hint-fixes-20
 
 ## cold-boot confirmation [ final, same session ]
 
-After a final `v7.restart coding` with ALL modules loading from disk [ no
+After a final `v7-zenki.restart coding` with ALL modules loading from disk [ no
 runtime-loading involved ] : clean compile, auto-cycle ran the full
 cat-fail -> defer -> respawn -> 2/2 PASS chain [ fresh seed ], heart
 0.0012s mid-probe, 6b refusal branch [ "self-test already in progress" ]
@@ -104,8 +104,8 @@ counter reset ].
 - `follow_up` + `tier2_judge` still use the blocking client — deliberately
   out of scope (post-test disposition path), separate lower-value task.
 
-#,,..,.,.,,..,,.,,,..,..,,..,,,,.,...,,..,.,.,..,,...,...,...,.,,,,,.,..,,.,.,
-#23DTUMWSM3OBXQYF6YB7XX6UPRX7NYPJ6CAGKQWWXYXVGYNSVQ3BUOF5YJGYQRIXO43V2ZJ4IK7IW
-#\\\|K3JAOVN2RLBLS2IMPS3BVPW3BCN4OLT5PRF2TRGN4KCLK6TNFN2 \ / AMOS7 \ YOURUM ::
-#\[7]F7TARRAH2E7WK3STJSGAEKWOR4MPIVM7IBKLUZ3NAV3GLC75KUCA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,.,,,,.,,.,,,...,.,.,,.,,,..,..,,...,..,,,..,,.,,,..,...,,,.,
+#53QIKHNUO4UJ7RW42LTYU7PSRSBVKREI5RIJFWJKBHAEOTF6VC4YZNCG6OYBS2KCH2EVWPOTWYCPW
+#\\\|Q3J5UYMDMA4TKBFMZI4VOBGEXDR3FBBVULKW6K3AX6QUML6PQ3P \ / AMOS7 \ YOURUM ::
+#\[7]HD63TII452KH3Q57ZMIZZYNMOVXXTO7LAVJYJB3RGFWUOKBDUYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

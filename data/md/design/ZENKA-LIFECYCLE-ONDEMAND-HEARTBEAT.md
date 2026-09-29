@@ -13,8 +13,8 @@ command" (implementation order items 1-2) are LANDED** — see
 `0f1ba4446`. the shipped design is simpler than proposed below: no opt-in
 `heartbeat.on-demand.hybrid` flag, no `pre_stop_window` — exclusion of
 `heart` from resetting the idle timer is unconditional/automatic for
-every on-demand zenka, and `v7.idle-term` (not `zenka.unregister-heartbeat`)
-is the zenka-initiated pre-exit notice, wrapping `v7.zenka.instance.stop`
+every on-demand zenka, and `v7-zenki.idle-term` (not `zenka.unregister-heartbeat`)
+is the zenka-initiated pre-exit notice, wrapping `v7-zenki.zenka.instance.stop`
 directly rather than a separate suspend-then-fire sequence. verified live
 on a throwaway on-demand+heartbeat test zenka.
 
@@ -228,8 +228,8 @@ remediation via the task zenka.
   lifecycle categories (disposable/decoupled/monitored)
 - `data/tasks/v7-teardown-whitelist.md` — v7 access control, related work
 
-#,,,.,.,.,,,.,,.,,,.,,...,..,,,.,,,,.,,,,,,..,..,,...,...,..,,.,.,,,,,..,,.,.,
-#B34DGZIEMVX4PRZ3NKEXN3TVNALPDBWVDJCPW2L5JTYFKVUHWSOG5DXWT4IMRASE33PB3LCHCL74E
-#\\\|6Y6OG23ZC42XNSFJVWLY2KOGFR7FRYKZB77CNVVAO5OCLQB5RSV \ / AMOS7 \ YOURUM ::
-#\[7]4JV7PEKXFY7ADQLPM65FG74P2VUKR4NVLXKV7H34DQC5WLUSIGAI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,.,,,...,..,,..,,.,.,..,,..,,..,,...,...,,..,,,,,,..,.,.,..,,
+#QLTBWAMHUYCA3QJCY7Y6NPDQ4TFOTFUMJFBWBPXIYRKQD76EE7ZNN5XDKRYR2X23INHVAQALLAEGS
+#\\\|WN76TVGWX2GPTEO5RFDCFZRGDB2SRNXOXEE6S6NBNIFSL4PVTSN \ / AMOS7 \ YOURUM ::
+#\[7]NLDD32JEJLCA7A4GEM5TCMRTMVIOOOBUN7PJGZ7ABRYKHXQW4GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

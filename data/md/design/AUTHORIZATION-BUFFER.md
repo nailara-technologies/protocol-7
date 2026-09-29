@@ -38,7 +38,7 @@ ntime B32 as first column, space-separated, parseable by the same tools.
 ```
 <ntime-B32>  <type>      <subject>  <state>    <bmw384-short>  <summary>
 XBCDEF123..  tofu_pin    system     pending    ABCD1234        key:EFGH... sig:VALID
-YZZZZZ456..  cmd_elev    taeki      approved   BBBB5678        v7.teardown by:taeki
+YZZZZZ456..  cmd_elev    taeki      approved   BBBB5678        v7-zenki.teardown by:taeki
 ```
 
 the compact format is log-compatible — auth events can be appended to the
@@ -62,7 +62,7 @@ subject:
 
 request:
   action:     pin_key | approve_cmd | grant_route
-  target:     v7.teardown                    ## what is being authorized
+  target:     v7-zenki.teardown                    ## what is being authorized
   source:     cube.system                    ## routing context
   reason:     "first connection from system zenka"
 
@@ -283,8 +283,8 @@ one approve, remembered forever.
 - `data/tasks/credentials-zenka.md` — auth buffer as credential release gate
 - `data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` — signature-as-identity
 
-#,,,.,.,.,,,.,.,,,,..,.,,,,,,,..,,...,,,.,,..,..,,...,...,...,,,.,,..,,.,,,,,,
-#LYXWS2P37YAD2DNR2QJPS4QK56A3MR63GYUWU4JAHR2LP36NB4XPJ4RKJPSBSX7ZENHG3NOPFALV2
-#\\\|ZLRJZCYAMDELXJ7ZB45QCZUB47DAT5ARKHNZA2GPUELHOURYKSF \ / AMOS7 \ YOURUM ::
-#\[7]MPV6QC42IBWQ6PRD5CU4G574OP224XCCFR5MKFJGWJ56GGP25QCI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,..,,.,,,,.,,.,.,.,.,,,,,,,.,..,,...,...,.,,,.,.,.,.,,.,,.,,,
+#6ALCKO4A7YESSFN3XKEUCSFBFBWVIXOC5PXQHIAMYY62YPBPS46VROTXYYY5NLSA74JOYSZQG3MYY
+#\\\|YRKDKZD7WJKQPBRNOEUJDNLH47W36VAZ37X6YWWCYOSBK56ANCV \ / AMOS7 \ YOURUM ::
+#\[7]J2CQXHI52W64LEYFRHXW3M6SJC4SH7CFT4C4DZNJ6XREWYMI6AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

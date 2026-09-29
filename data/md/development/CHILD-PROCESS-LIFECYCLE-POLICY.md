@@ -74,7 +74,7 @@ push @{<system.kill_list>}, $child_pid;
 ```
 
 stores in `<{zenka}.child.decoupled>` hash. does NOT add to kill_list.
-extends existing `v7.zenka.cmd.register_child` with a `category` parameter —
+extends existing `v7-zenki.zenka.cmd.register_child` with a `category` parameter —
 v7 already tracks child PIDs via `register_child` / `gone_child` pair;
 decoupled simply means v7 skips the kill on restart for that child.
 
@@ -98,15 +98,15 @@ v7 takes ownership — can terminate via `v7.terminate_child <label>`.
 
 v7 maintains a per-zenka child inventory in instance data:
 ```
-<v7.zenka.instance>->{$id}->{'children'} = {
+<v7-zenki.zenka.instance>->{$id}->{'children'} = {
     'xorg-server' => { pid => N, category => 'decoupled', socket => ... },
     'gpu-monitor'  => { pid => N, category => 'disposable' },
 }
 ```
 
-populated via `v7.register_child <pid> [category]` — existing command extended
+populated via `v7-zenki.register_child <pid> [category]` — existing command extended
 with optional category param. `gone_child <pid>` is the deregister counterpart.
-both already exist in `src/v7.zenka.cmd.*`; category param is the only addition.
+both already exist in `src/v7-zenki.zenka.cmd.*`; category param is the only addition.
 
 ### on zenka restart
 
@@ -117,7 +117,7 @@ both already exist in `src/v7.zenka.cmd.*`; category param is the only addition.
 
 ### full teardown
 
-`v7.teardown` terminates all children regardless of category.
+`v7-zenki.teardown` terminates all children regardless of category.
 override: `v7.terminate_decoupled yes` for staged shutdown.
 
 ### orphan detection
@@ -154,15 +154,15 @@ see `X11-RELIABILITY-AND-WINDOW-REGISTRY.md` for the reference implementation.
 
 ## open items
 
-- `v7.register_child` already exists with `gone_child` counterpart — extend with
+- `v7-zenki.register_child` already exists with `gone_child` counterpart — extend with
   optional `category` param (disposable default, decoupled opt-in)
   auto-discovers parent instance from ppid — no source alias needed
 - monitored category: defer until a concrete use case drives it
-- `v7.teardown` access control: restrict to `system` zenka only
+- `v7-zenki.teardown` access control: restrict to `system` zenka only
   (currently `access.cmd.usr.cube = *` — any zenka can trigger full shutdown)
 
-#,,..,,..,.,.,,,,,,.,,.,.,,,.,..,,...,,,.,,..,..,,...,...,.,,,,,.,,..,.,,,,,,,
-#JWOOJ462I2SNEWM2KOXIS2LSBZRB6VH5QQRLPJWYJ6STUSZIHO4P2OWURP43C3SBFWIIPNUVSM5KK
-#\\\|MCOST4FIAKEIXZHOU573GSBUSYIMZOFH4G4DCDQ3BCTK7HHCBKG \ / AMOS7 \ YOURUM ::
-#\[7]5IDEL3EDD5GI47WTIZ7MYAEVWXS7CMRP4X44NITXJSAOWEMMFWDQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,..,,,..,,..,,..,,..,.,,,.,.,..,,...,...,.,,,,.,,..,,..,,,,,,
+#VBPJG7CRVGZQ4AW2J2LUB2KUG7UY5QF4Y3XAZ6AVVDQZUIMIWLMPXGUEQJP4MGDP4J37A55CCZXEI
+#\\\|EWM75S3OKIVTNSEL7RMSGBEF42442MVK3DBT4Z6CRZDBHJBN5CA \ / AMOS7 \ YOURUM ::
+#\[7]2UU63OPKYEKJTENWSW7EXKNAJR3Z72PB727EYZGOISDIG6FES6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

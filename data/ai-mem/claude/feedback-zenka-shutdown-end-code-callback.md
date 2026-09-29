@@ -26,14 +26,14 @@ currently not supported", `bin/Protocol-7` ~line 3768). Register with:
 push <callbacks.end_code>->@*, qw| your.module.name |;
 ```
 
-Precedent: `src/v7.setup_stdout_redir` → `push <callbacks.end_code>->@*,
-qw| v7.stdout_log.close |`. The callback module itself is plain cleanup logic,
+Precedent: `src/v7-zenki.setup_stdout_redir` → `push <callbacks.end_code>->@*,
+qw| v7-zenki.stdout_log.close |`. The callback module itself is plain cleanup logic,
 no `exit()` call inside it — the process is already exiting via whatever path
 triggered the END block; the callback just does its cleanup and `return TRUE`.
 
 **CORRECTION / caveat (2026-08-01, confirmed via a real segfault,
 `bac000eef`):** `<callbacks.end_code>` is safe ONLY for local, non-blocking
-cleanup (closing file handles, unlinking temp files — see `v7.stdout_log.
+cleanup (closing file handles, unlinking temp files — see `v7-zenki.stdout_log.
 close`). It is NOT safe for anything that needs the event loop to actually
 run before the process exits — e.g. a `route-send` that needs a follow-up
 `event.once`/`Event::loop` pump to flush to a socket. `bin/Protocol-7`'s
@@ -76,8 +76,8 @@ real `$SIG{...}`/`END` block of their own; `AMOS7::SHM.pm`'s standalone-mode
 `END` block is the correct counterexample, gated on `not defined
 $main::PROTOCOL_SEVEN`.
 
-#,,,,,..,,..,,,.,,,.,,.,.,,.,,,.,,.,.,,..,,..,..,,...,...,..,,..,,,.,,.,.,..,,
-#X4SKHW7M6AGJGKLU2P4HUVAHRGZRL63CTPIPYFQXRMEKPDZM7SOGTEN6JJLBLIQWUEVYBPEC726S2
-#\\\|EQUSQJ7H4K7VGXM5G63GGZ6QOOA6PAL4FQHHQELNQJIOVGFLST7 \ / AMOS7 \ YOURUM ::
-#\[7]AJP5DHNLLDQXHB6GOWDVTKI6ML6ALGSXQ5LPPRHJMJCSJHURP4DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,...,,.,,,.,,,,.,,..,,..,,,.,..,,...,...,.,.,,,,,..,,,..,.,,,
+#2FOBIIBUIWBJQ2MP5CY2YJZ7JQNGVGKSPQMX3Y7VBHYG6JBJQYCRO7TBZ4WQUZPNW6AOFUIOKZ66G
+#\\\|FPW563V4XTM2MZ5ZRXK4Y4MTCITSLA3AYJENCAQVKINKD4NDJGL \ / AMOS7 \ YOURUM ::
+#\[7]KQAKDKLJFH57OI5SJPSGODISU3MMUOU42SBEUZIHCK4AUCJCN4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

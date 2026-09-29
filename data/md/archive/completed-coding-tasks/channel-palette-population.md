@@ -24,7 +24,7 @@ cmd.channel) separates frequency bands using the division-13-table (generator 07
 
 ## goal
 
-after `p7c v7.start_once graphics-matrix` and waiting for the orbital fetch cycle (13s):
+after `p7c v7-zenki.start_once graphics-matrix` and waiting for the orbital fetch cycle (13s):
 `NO_PROXY=127.0.0.1 curl -s -H "Host: space.v7.ax" http://127.0.0.1/orbital.json`
 should show `channel.palette` as a non-empty array of hex color strings like:
   `["#3040ff", "#4060cc", "#2080aa", ...]`
@@ -44,8 +44,8 @@ c) if channel.palette returns wrong format: fix the map in orbital-sync to match
 
 do NOT add stub signature line to modified files.
 
-#,,,.,.,.,,,.,,,.,,.,,...,,,.,,..,...,.,,,,,.,..,,...,...,,..,.,,,,..,,,,,,,.,
-#IGISO4HQHQ3CJHB5ZBLNMH5NULVNA4SYLY2HVWLQP7J45WICUJR3HRN6RFS324YFQQNDBWEAWKCIY
-#\\\|LQ72XNAMVHT2U4SLQBWR2UA454IJONI3UJ4AUBNJEX3EPPO4OI2 \ / AMOS7 \ YOURUM ::
-#\[7]RRI2JI32S7XPZTEQNY5RZHOTJLKC5Z7NGVRJUB2DZCNHARBXRSAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,,,.,.,,,,.,,.,.,,..,,..,,,.,..,,...,...,,..,...,...,...,,,,,
+#DX3KQ7LVELUDKALNFVJ3FS65KM7ERFBCX5RZQTXAH3ZMWVBJOPSAQ46Y5KDUHTB5AUUKMDWLCU6DQ
+#\\\|RGUJNM2E7D2N6DZ5GGGV7NFJSQDAOJXCMTU77E5MPXS6O2QR7UO \ / AMOS7 \ YOURUM ::
+#\[7]H3STT5JFGVWJ2TEXNIBXIXTWJNYZXPTSD5RN7GZ6RWCT3L2XEAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,7 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
 
   `credential-fabric-integration-test.md` needed real new infrastructure,
   not a quick fix: a generic per-invocation env-override capability for
-  `v7.start` (`:env:KEY=VALUE:` tag, same shape as the codebase's existing
+  `v7-zenki.start` (`:env:KEY=VALUE:` tag, same shape as the codebase's existing
   `:model:...:`/`:sign-silent:` tag convention), gated by a new
   `env_override_allowed` directive each target zenka declares in its own
   trusted `start.cfg` (not caller-controlled — a caller can only
@@ -111,7 +111,7 @@ confusing across restarts).
 
 **lesson for next run: do not reload/restart the coding zenka while a batch
 scan is in flight.** roughly 37 of 54 batches failed this session because of
-GPU backend restarts triggered by `coding.reload` / `v7.restart coding`
+GPU backend restarts triggered by `coding.reload` / `v7-zenki.restart coding`
 calls made mid-scan for unrelated work. in-flight requests get orphaned
 (dangling `http_state`, `completed=1` with 0 bytes received — check via
 `p7c coding.tree-read "coding.async.task_state.<task_id>.http_state"`) or
@@ -254,8 +254,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,,.,...,,..,,,.,,,.,,.,,,,,,,.,,,,.,,.,,...,..,,...,...,,.,,...,,..,...,,..,
-#A5JNDEMAOF2BWLXEJR4JXM4SZRKTJ5TVT7MIHBSRTTEL4KEY7GDP4ICHGNIPRFRZ26QGIDV6ABBRY
-#\\\|HY6L2ZNQ5HUPGOGE6VEUIBJSEYZBXJ4N2F2RQ4AKHWSZGTZGX4D \ / AMOS7 \ YOURUM ::
-#\[7]VOF43ATM7BSM45RZTPWNMHFL6QNBVSS337S77DCIFZ433JVSKWAQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,.,.,,.,,,..,...,..,,..,,,..,..,,...,...,,,,,,,,,,.,,.,.,...,
+#46THU34Q2M2M6KRPP3YLQLCYHGMNS3PBWMLECMOIEIGBXGBUKFOKHJGUTKSQM62D2AK5BQG45A4KA
+#\\\|XSGSYT5RRQHUMNZER2TYIIJVGVWREPPETPL63LP5K2ZWDA7ZZPE \ / AMOS7 \ YOURUM ::
+#\[7]AUWCF2ANVBFJIEAA7HQI7K52TVQYR7BF2D6O2OQLRETHBR2LUADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

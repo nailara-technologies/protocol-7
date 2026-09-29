@@ -76,14 +76,14 @@ whitelist regenerated [ 652 subs ]; signatures pending - user re-signs.
   `web-browser.goto-waypoint` added. route-send returns send count > 0 even
   when the target REFUSES on access — silent failure, check grants first.
   apply with `p7c reload config` [ bare target = cube, not `cube.reload` ].
-- live-verified: started 2 extra instances `v7.start web-browser[grpA]`,
+- live-verified: started 2 extra instances `v7-zenki.start web-browser[grpA]`,
   wpA on both, fired goto-waypoint-group from instance 1 -> both landed
   exactly [ 45/1.5 ]. test instances stopped after. v7 fast path NOT
   live-tested [ no v7-resident caller in this pass ].
 - whitelist regenerated [ 655 subs ]; signatures pending - user re-signs.
 
-#,,..,,.,,,..,...,...,.,.,,,,,.,,,.,,,,.,,,..,..,,...,..,,.,,,,.,,.,,,.,.,,.,,
-#NHKNSHC4EQ6N6KXVBGGHBUPREOKQJ6BVCXHLT2VOHWLNPGTQE75RUDYU2OK2RKI5T755FBLIL5ZMO
-#\\\|J43G3PFWKRKPYMAL4VCCMTMOHTYXOKA7CAHKGQDMHNKH4KH4IFN \ / AMOS7 \ YOURUM ::
-#\[7]DPNDDVCEQ5P2Y2AWXUWFWYGQY5CRZEEIUEMYQ5ZI3BBYEYAMG2DA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,...,...,,..,.,,,,,.,..,,,,,,..,,...,...,.,,,,,,,,.,,,,,,.,.,
+#6SYJY4ZY7FOH5NFTCKKGJ5TUIHEO2M32VLD4V2JMEEZEGVYVJDEVQHJQ5ECIKKX7LXVBQIQA66LFC
+#\\\|C3ZH7YWKK6ZYP6KBEO5Z6MLBR4L7FLJWL3UPB5PFLTC67PRN342 \ / AMOS7 \ YOURUM ::
+#\[7]2NIBWJSS74XXL2TBFSKVJCBLW6UIUJNHQXJDN7AOYOPE6BYT4KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ originSessionId: 22e240a2-b6d9-41a1-bfe7-0b6526db01b4
 - **base**: recv-test dev tool (base.strm.callback.recv_test)
 - **httpd bridge**: plugin.httpd.radio.* — /radio/stream HTTP endpoint, per-client radio.listen
 - **TCP rewrite**: radio.connect uses base.open ip.tcp output + TLS (IO::Socket::SSL) for HTTPS
-- **phase 4**: mpv[audio-0] background player via v7.start_once + v7.notify_online
+- **phase 4**: mpv[audio-0] background player via v7-zenki.start_once + v7-zenki.notify_online
 
 ### STRM cancel — FIXED (2026-04-25, commit 01b6be26e)
 
@@ -63,7 +63,7 @@ fixed to `sprintf '(%d)'` in all four files.
 all issues fixed via kimi task `radio-resilience`:
 1. **reconnect**: exponential backoff 5s→60s (radio.handler.reconnect); guard against double-schedule
 2. **gap_fill pacing**: 1s repeating timer; chunk 65KB→16KB (~128kbps) — "stopped suddenly" bug eliminated
-3. **mpv offline**: radio.audio.handler.player_offline; v7.notify_offline in audio.init; re-inits after 3s
+3. **mpv offline**: radio.audio.handler.player_offline; v7-zenki.notify_offline in audio.init; re-inits after 3s
 4. **post-hoc jingle**: tracks under min_track_seconds trigger gap_fill; magicstreams/PsyNdora in filter
 
 ### key config
@@ -99,7 +99,7 @@ when socat/direct client disconnects:
                           └─ HTTP session output buffer → curl/mpv HTTP client
 
     radio.post_init (1s timer) → httpd.radio_online → plugin.httpd.radio.cmd.radio_online
-    radio.audio.init (2s timer) → v7.notify_online + v7.start_once mpv[audio-0]
+    radio.audio.init (2s timer) → v7-zenki.notify_online + v7-zenki.start_once mpv[audio-0]
     mpv[audio-0] online → player_online handler → mpv[audio-0].play http://127.0.0.1/radio/stream
 
 ### future: buffer-fill curve (phase 5 / post-resilience)
@@ -143,7 +143,7 @@ abrupt cutoff. First attempt (`radio.end_code`, a plain `<callbacks.
 end_code>` callback) segfaulted — see [[feedback-zenka-shutdown-end-code-callback]]
 for why that mechanism can't safely pump the event loop. Also fixed:
 `plugin.httpd.radio.cmd.radio_online` was re-subscribing to
-`v7.notify_offline` on every call with no guard, so repeated restarts
+`v7-zenki.notify_offline` on every call with no guard, so repeated restarts
 during testing left multiple stale subscriptions that all fired at once
 on the next real shutdown (observed as 3 duplicate "endpoint disabled"
 log lines) — now guarded to only subscribe once per active period.
@@ -215,8 +215,8 @@ against `data/yaml/coding-tasks/radio-playback-resilience-phase2.yaml` and
 Live-verified stable afterward (user's own words: "playback is working in
 the background, no errors").
 
-#,,..,,,,,,.,,,.,,.,.,.,.,,,,,,.,,.,.,,,.,,,,,..,,...,...,...,,,.,,.,,...,,,,,
-#7BKGLPFZ2NDWFNIZ4TSJ7WEM2CICOVHNSDXDEBXQJR4EEJNQY4RBNHLDL5ZCROLDTZRYMM2LZW2AS
-#\\\|UDMUR3SX7AZUXABNNDAVFCN74WOLXTCDBKRE3SHRF44ZB2XVOTX \ / AMOS7 \ YOURUM ::
-#\[7]BSQUROXPDOFFWQCVQ7DWUHUSO63C2EDFS4DGN6N26XOJOCN43IBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,.,,,.,,,.,.,...,.,.,,..,.,.,..,,...,...,,..,.,.,..,,..,,,,.,
+#4AXM5Y62F3GYI7DO7HPLILL2HZMWU6RPMJ5M6YHX3J5FICOYLIFIACPEEII7EDGDNPVD7M54S2DM2
+#\\\|2QAR4Y4LAIFQPZWA3XGHIE25MHGWDHJD37RVMRGUR4JB74YQQPC \ / AMOS7 \ YOURUM ::
+#\[7]AMQIRJ5FKJ2OFKB5FVXPEIRFTQ6QPSJVPRKH5OBBQDR6ST6M2OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

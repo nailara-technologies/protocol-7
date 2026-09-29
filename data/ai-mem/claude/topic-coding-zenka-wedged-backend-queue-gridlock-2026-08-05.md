@@ -32,7 +32,7 @@ output on 2026-08-05. Traced live, in order:
    works. The log showed this same 120s-ceiling message firing 3 times across
    2 different sessions before this incident — a recurring pattern, not a
    one-off.
-4. **Fix applied**: `p7c v7.restart coding` — restarted the coding zenka
+4. **Fix applied**: `p7c v7-zenki.restart coding` — restarted the coding zenka
    process itself, NOT the GPU backend (which was healthy, so reloading a 9B
    GGUF model would have wasted time for no reason). Queue drained clean
    (`progress:0, failed:0`), backend re-verified via a fresh self-test cycle on
@@ -63,7 +63,7 @@ round 0 first (cheap, immediate signal), then probe the backend directly
 (`no_proxy=localhost,127.0.0.1 curl .../health`) before assuming the model
 itself is slow — an idle-but-healthy backend with a permanently-stuck task
 means the gridlock is in the zenka's dispatch path or the verify/self-test
-gate, not the model. `v7.restart coding` is a safe, fast, non-destructive fix
+gate, not the model. `v7-zenki.restart coding` is a safe, fast, non-destructive fix
 that doesn't touch the (possibly perfectly fine) backend process.
 
 ## related
@@ -93,8 +93,8 @@ instead of dying after one shot, and resumes cleanly once unpaused.
 its 120s ceiling) is unrelated and still stands as a separate, lower-value
 improvement if this recurs.
 
-#,,..,,.,,,.,,,,,,,.,,.,,,,..,..,,..,,,.,,.,.,..,,...,...,.,,,,.,,.,.,,,,,...,
-#NDZSWBITFUNICI4SV7QBOBOANFKF4ALKJ3PZF5TUTFRVFMNERYZSNESVMMDIQP7MWM5DDJFY4JSM4
-#\\\|TSNSKMBKSWLIFNDF6ACXVR2IPNGK4O7A5YPRD2R7HZSF4EDHUB4 \ / AMOS7 \ YOURUM ::
-#\[7]ZAQGCMZBPY7UELUWWJ4ODEZU35AQXUMRSFSBCUZXMZY7LCTFVQBY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,,..,..,,..,,..,,.,.,.,,,.,.,..,,...,...,.,.,,,,,,,.,,.,,,,.,
+#ROUHOCQ4GKHS55FBAW53F3QLCCM4DJKVIZ4SMJS6QG44U3UINZQ2U7HHHOFIUA2H53MXX3E6PZ34K
+#\\\|PTTSTMYZTASTN4VE7IX27GLEUPTQI6DJ37PF3LZEXRSTSHZAPIA \ / AMOS7 \ YOURUM ::
+#\[7]KABBG6JI5PXM2JXLMZUWBAFYEB6T5I3LXIXDLA4DI5V5CFJG5CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

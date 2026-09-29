@@ -55,7 +55,7 @@ the boot-time issues are fixed.
   `cfg/zenki/credential_fabric/start.cfg`, adding
   `auth.setup.usr.credential_fabric = :zenka:`, removing `proxy` from
   credential_fabric's `modules.load`, and adding credential_fabric to
-  `cfg/zenki/v7/start-set-up.base` — v7 reload did not pick up
+  `cfg/zenki/v7-zenki/start-set-up.base` — v7 reload did not pick up
   the new start-set-up entry, so credential_fabric remains unstartable
   via v7. manual `./bin/Protocol-7 credential_fabric` fails because it
   runs as unix user `taeki` and cube rejects the auth handshake
@@ -72,7 +72,7 @@ the boot-time issues are fixed.
 
 **verdict: blocked — credential_fabric zenka will not start**
 
-`p7c v7.start credential_fabric` returns:
+`p7c v7-zenki.start credential_fabric` returns:
 ```
 zenka 'credential_fabric' not configured for 'v7'-managed start-up,
 see log-buffer.
@@ -258,7 +258,7 @@ socket. two independent module errors remain:
 
 `cfg/zenki/transport/` does not exist. there is no `start`
 file, no `start.cfg`, and no `auth.zenki` entry for `transport`.
-`v7.list available` does **not** list transport. even after creating the
+`v7-zenki.list available` does **not** list transport. even after creating the
 directory, the transport init_code depends on `<external.transports>`
 being initialized by the `external` zenka. `external` is listed as
 "gone" in `list virtual`, so that dependency also needs to be satisfied.
@@ -326,7 +326,7 @@ runtime-tested.
 | 7 | confirm cross-zenka `protocol-7-menu.input-text` / `input-password` routing works end-to-end (first cross-zenka consumer of these cmd.* dialogs) | **p1** | on-demand auth relay |
 | 8 | verify `proxy.outbound.connect_or_use` debug log actually prints when a transport handle socket is reused (currently unobservable due to proxy init failure) | **p2** | acceptance #2 |
 | 9 | verify injected headers reach upstream via local listener or httpbin (currently unobservable) | **p2** | acceptance #3 |
-| 10 | add transport start config to `v7.list available` (may need v7 config reload or ondemand-zenka registration) | **p2** | transport visibility |
+| 10 | add transport start config to `v7-zenki.list available` (may need v7 config reload or ondemand-zenka registration) | **p2** | transport visibility |
 | 11 | `credential_fabric.handler.auth-relay-reply` uses `->%*` postfix dereference (perl 5.24+); safe on current host (5.40.1) but document if target platform is older | **p3** | portability |
 | 12 | grant a console/admin user (e.g. `access.cmd.usr.taeki` or extend the `*` wildcard) access to `credential_fabric.list`/`.resolve`/`.rotate`/`.approve` — currently **nobody** at the console can call any of them (see addendum) | **p0** | acceptance #1, #4, #5 — entirely, independent of boot status |
 | 13 | add `max_concurrency = 1` to `cfg/zenki/proxy/start.cfg` (compare `acquire/start.cfg`) — proxy binds a fixed listening address (`127.0.0.1:8118`); concurrent instances will race on bind | **p1** | proxy stability |
@@ -381,7 +381,7 @@ unblock testing):
   `modules.load` (was causing compile failure due to broken
   `proxy.handler.accept`); temporarily commented out `[root.drop_privs]`
 - `cfg/zenki/credential_fabric/start.cfg` — created
-- `cfg/zenki/v7/start-set-up.base` — added `- credential_fabric`
+- `cfg/zenki/v7-zenki/start-set-up.base` — added `- credential_fabric`
   (not picked up by v7 reload)
 - `cfg/zenki/credential_fabric/zenka.v7`
 - `cfg/zenki/credential_fabric/access.zenki`
@@ -410,13 +410,13 @@ kept. this corrects and extends several items above.
 
 ### correction — credential_fabric DOES boot and seed correctly
 
-`p7c v7.reload` then `p7c v7.start credential_fabric` against the
+`p7c v7-zenki.reload` then `p7c v7-zenki.start credential_fabric` against the
 spec-compliant config (still has `proxy` in `modules.load`, still has
 `root.drop_privs` active — none of kimi's "unblocking" edits present)
 brought the zenka up cleanly and kept it stable:
 
 ```
-p7c v7.list zenki
+p7c v7-zenki.list zenki
    1744151      4727907      credential_fabric   7597072   online
 ```
 
@@ -433,7 +433,7 @@ this means kimi's belief that `proxy` had to be dropped from
 `modules.load` and `root.drop_privs` disabled in order to boot
 credential_fabric was **incorrect** — the two real blockers were only
 the missing `start.cfg` and the missing `auth.zenki` entry,
-both already present in the kept/reverted tree, and `p7c v7.start
+both already present in the kept/reverted tree, and `p7c v7-zenki.start
 credential_fabric` (direct on-demand start) is the right invocation.
 kimi's path via `start-set-up.base` is the wrong mechanism for an
 on-demand zenka — which explains why it stayed stuck on "v7 reload did
@@ -505,8 +505,8 @@ not a per-process collision). `cfg/zenki/proxy/
 start.cfg` has no `max_concurrency` key; compare
 `cfg/zenki/acquire/start.cfg`, which sets
 `max_concurrency = 1` — a real, working gate (read in
-`v7.zenka.cmd.start:102` / `v7.zenka.cmd.restart`, checked against
-`v7.start_count`). for a zenka that binds a fixed listening-socket
+`v7-zenki.zenka.cmd.start:102` / `v7-zenki.zenka.cmd.restart`, checked against
+`v7-zenki.start_count`). for a zenka that binds a fixed listening-socket
 address (`127.0.0.1:8118`), running concurrently is actively harmful —
 multiple instances would race to bind the same address rather than
 share load. `proxy/start.cfg` should set `max_concurrency = 1`
@@ -765,7 +765,7 @@ context: user reported proxy/cred-mesh had been restarted and commit `20012341c`
 grant) was already applied. on starting this pass, `proxy.src-age` and
 `cred-mesh.src-age` both showed ~2h 29m, indicating the running instances were
 started *before* `20012341c`. to test the committed code rather than stale
-binaries, both zenki were stopped and restarted (`p7c v7.stop/start proxy`
+binaries, both zenki were stopped and restarted (`p7c v7-zenki.terminate/start proxy`
 and `cred-mesh`) at the beginning of this pass. transport was left running.
 
 ### harness re-run result
@@ -1147,7 +1147,7 @@ cd /data/projects/protocol-7
   assertions failed : 11
 ```
 
-After stopping and restarting proxy (`p7c v7.stop/start proxy`) to load the
+After stopping and restarting proxy (`p7c v7-zenki.terminate/start proxy`) to load the
 current source against a fresh process (pid 4494007):
 
 ```
@@ -1271,8 +1271,8 @@ per-scenario assertion counts from the restarted run:
 | 5 | make scenario 5 harness resilient to 502 HTML / configure site-yaml or hosts for `auth-relay-test.local` | **p1** | scenario 5 |
 | 6 | tighten harness seed assertions so `"failed to store rotated credential"` is reported as a failure | **p1** | test signal quality |
 
-#,,,.,..,,...,,,.,...,,,.,,..,.,.,,,.,..,,,..,.,.,...,...,,.,,,.,,,,,,,,.,,..,
-#45J3U7Z2NN63JK4NRISQHX7KFDP2Y6LONHYKWLXGOLDYXPX67M5TBYCVPER7BDHDZPEZ5ZNPAKL42
-#\\\|F6BBEHVNF7J5T7DAYAC22RMMKX6X273Y3P4SYFTSCV5PIIY72YT \ / AMOS7 \ YOURUM ::
-#\[7]CVB35XCUKZBTUP4SPAQ6J4FTQQS2VX3JVQCCS2HW4WXN4BILHUCA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,,.,,,.,,.,,,..,,..,,,,,..,,.,.,...,...,.,,,..,,.,.,...,..,,
+#GFDPZF2WSQIWI5EJDYK7VI7S37DF3NBCQ7NX3QSYZ74YUKVH3DGRGKL6X273J3X4CTGQNM3G26NUO
+#\\\|UFN6VJHP5KMBHUVJH5NBHF3MPYLBZDGE7MISCLEF5BIVS2FOX4P \ / AMOS7 \ YOURUM ::
+#\[7]4Z2GGO7Q7FRRELHC56JB6JFJRJQHJVWPNL4X3HG4X4TAZTUIV6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

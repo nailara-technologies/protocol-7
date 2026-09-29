@@ -7,7 +7,7 @@ metadata:
 
 ## symptom
 
-`v7.user-edit` → `<< no such zenka found ['<init>'] >>`. Not new-zenka
+`v7-zenki.user-edit` → `<< no such zenka found ['<init>'] >>`. Not new-zenka
 specific: `v7.workspace-transfer` (long pre-existing) failed identically,
 while `v7.keys` / `v7.work` / `v7.sourcecode` worked. The discriminator
 is the **hyphen in the zenka name**, nothing else.
@@ -54,7 +54,7 @@ bug 1 masked it. Fixed to `v7\.`.
 **How to apply:** when adding or debugging a `v7.<zenka>` symlink, note
 that the symlink path exercises name-parsing code that
 `./bin/Protocol-7 <zenka>` never touches — test BOTH invocations. And
-`v7.*` symlinks are auto-installed by `v7.install_zenka_symlinks` only
+`v7.*` symlinks are auto-installed by `v7-zenki.install_zenka_symlinks` only
 for zenki that own a `<zenka>.console.*` module (see
 [[reference-v7-zenka-symlinks]]), so a zenka gains its symlink — and this
 whole code path — the moment its first console command lands.
@@ -63,8 +63,8 @@ Found while landing `user-edit`'s first console command; the user
 spotted the `p7.`/`v7.` mismatch and correctly predicted a second,
 `'-'`-related bug rather than accepting the first fix as complete.
 
-#,,.,,.,.,,,.,,,,,,,,,,..,,,,,...,.,,,,..,,,.,..,,...,..,,,,.,,,.,,..,,,.,,,.,
-#TZOH2VAKO7OJ6MQ2MBX5OFL2KUVASARPHDVUGCIBZKXP34KW6MXQPL3NTQDNV3FU4L7A7TBY2QSEI
-#\\\|ROHO6CZ6FOKSJTIYEVRUCFPTIK7ZF556DISPLJ6UR3YILPAFTID \ / AMOS7 \ YOURUM ::
-#\[7]6UR55CVGRRU7DZ3YQRF3ZWY2Q7W6PTMNIS25RIF3DXXBBND43QDY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,.,.,,.,,,,.,...,.,.,..,,,.,,..,,...,...,...,,,.,,,.,..,,,,.,
+#LHGWSAF4YBM4HO67D5I4YRSTKJO3TF7FLGCCLNNILY4CJF73YLLXFIKKTKZBOVUUFFODN37JMHYYS
+#\\\|3ICC2R3QQFH3H5ID5ZBILPTA7MBAU6YRCRPVNEY7B33OE43UJJE \ / AMOS7 \ YOURUM ::
+#\[7]7KFIWJN6LYA2J75R2ITIYBUA4ZDDHYYETHM3YOT744PSGWYYS6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

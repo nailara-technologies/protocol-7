@@ -162,9 +162,9 @@ src/terminal.curses_ui.widget.detail
 src/terminal.curses_ui.widget.list
 src/transport.handle.socks5
 src/transport.handle.udt-tunnel
-src/v7.check_zenka_deps
-src/v7.cleanup_temp_paths
-src/v7.setup_stdout_redir
+src/v7-zenki.check_zenka_deps
+src/v7-zenki.cleanup_temp_paths
+src/v7-zenki.setup_stdout_redir
 src/vision-batch.parent.cmd.cancel
 src/vision-batch.parent.cmd.process
 src/vision-batch.parent.cmd.status
@@ -243,8 +243,8 @@ first — this doubles as the batching order for the follow-up refactor task).
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,,.,,..,..,,.,,,...,,..,.,.,..,,.,.,.,,,,,,,..,,...,...,.,.,,..,,.,,,.,,,..,
-#KFC4OMODFQKU7ZDOITXZRTXOHKEINYCLP33SMA3YCY5FSJU4QB6MKB6575POPYGNRXFMVCQQNJMAO
-#\\\|UFVVVGNQTHTUP666DSDDRVE5POPMDUDVBOQZNGMVX7KCZ3ERVFV \ / AMOS7 \ YOURUM ::
-#\[7]TNDKOQ6XFEDZGXVFTU5AWIZCM6L37Y47KOBU2RONPBJSAJRR7EDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,.,,.,.,...,.,.,.,,,,..,...,,.,,..,,...,...,.,.,...,.,,,.,,,...,
+#CF5AOR2EHNXCQZ2BLHAFIRCNXLKBMVLNW4TH5FQT7Q3O6QGIPFGWASM2A5G4U5HZOAF6QARATWHEO
+#\\\|QCVKXDF2SOMTLP5XD2RZLLUIQKLL5Z2T75HKDRSK63TIEEQS2X6 \ / AMOS7 \ YOURUM ::
+#\[7]T4YDQUJLXNDT7IVRNV3IPNBSSFN35QWEJGVPMTRU3FDMOJTH36BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

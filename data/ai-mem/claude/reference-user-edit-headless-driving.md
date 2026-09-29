@@ -81,7 +81,7 @@ silently stops testing what it thinks it does; this produced two false
 
 ## restart after every code change
 
-The form process holds the code it loaded at start. `v7.restart users` for
+The form process holds the code it loaded at start. `v7-zenki.restart users` for
 the `users` side ([[reference-editor-add-field-cycler]]) does nothing for
 the form — kill and restart it.
 
@@ -214,8 +214,8 @@ sibling feature):
   drain that only waits for that exact sequence will legitimately time out
   on some keystrokes; treat that as normal, not a hang.
 
-#,,,,,...,,..,...,.,.,,,.,.,,,...,..,,.,.,...,..,,...,...,...,,,.,,,.,,.,,.,,,
-#ATVQ5KUYC6NE6RELK4FW5XNTV4DDSA45OWG7VGB2YRQVKCUJUKNLW2DTEL563AQGG6E2NBPDA7TFO
-#\\\|K47OVF4LMVH63TWRJCH7RUANRLRHLDG2VR4XC7QSTHKU4MQBRDD \ / AMOS7 \ YOURUM ::
-#\[7]66BMRPIS3K4BXJUKJDSCLRNKW5MYLH5QREYXT3HWTDY2K62226DA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,,.,,,.,,,.,,,,,,.,,,..,,.,,,..,,...,...,,.,,,,,,,,,,..,,.,.,
+#3G7P7LNAK7GR6K5BPTVWUT7TPTQASRYNB55WOCKH4I5DP5CI5T3273GRXD6XLRMLBQEPEXJVQDSOM
+#\\\|VKZPZJCUM7GMMQH3WIVQRSN4DP372AE3ZK4KGIAZ75XTLLOP3IL \ / AMOS7 \ YOURUM ::
+#\[7]PFZOF7O637IWF462KWIOHB3UUWYTYSMX7WBZYBCLOWKAFUIK7MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

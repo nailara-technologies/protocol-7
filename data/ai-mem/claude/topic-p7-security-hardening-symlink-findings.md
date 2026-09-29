@@ -8,11 +8,11 @@ metadata:
 Found 2026-08-12 while checking `p7_security_hardening` for further
 `v7.<zenka>` symlink bugs after
 [[bug-v7-symlink-hyphenated-zenka-names]]. **Both deliberately NOT fixed
-— user said "it could be later."** Neither is what broke `v7.user-edit`.
+— user said "it could be later."** Neither is what broke `v7-zenki.user-edit`.
 
 **Checked and CLEAN, do not re-investigate:** `$char_map`
 (`qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|`) already contains `\-` and accepts
-every hyphenated symlink name (`v7.user-edit`, `v7.workspace-transfer`,
+every hyphenated symlink name (`v7-zenki.user-edit`, `v7.workspace-transfer`,
 `v7.web-browser` all pass). `${^CAPTURE}[0]` also populates correctly —
 a test that appeared to show it empty was actually capturing a space.
 
@@ -36,7 +36,7 @@ and any further hop in the `while` loop. Demonstrated:
 readlink        -> ../../../../data/projects/protocol-7/bin/Protocol-7
 derived libpath -> <cwd>/../../../../data/.../data/lib-path/pm   [ NO ]
 ```
-**Latent, not live** — `v7.install_zenka_symlinks` writes ABSOLUTE
+**Latent, not live** — `v7-zenki.install_zenka_symlinks` writes ABSOLUTE
 targets, which is why every real `v7.*` symlink resolves fine. Only bites
 a hand-made relative symlink. One-line fix when wanted:
 `File::Spec->rel2abs( $link_target, dirname($bin_path) )` when the target
@@ -46,8 +46,8 @@ Note this code lives in a `BEGIN` block inside `p7_security_hardening` —
 it runs at compile time, before any zenka-name resolution, so changes
 there affect every invocation of every zenka.
 
-#,,,,,,.,,,.,,.,,,..,,.,.,,,.,.,,,...,...,,,.,..,,...,...,..,,,.,,..,,,,.,,..,
-#VPR472YPISQGTSCA2RGIG5UCHYZCAGMIMB5GORSI42TK7SHMBQFG4WZNB3INKWXU244VH6VQYGSDU
-#\\\|YM3WM7QY3XCLIJ7D43JTPLCURURSRBZJ6QGXTA4ABRWJZHMZ7O3 \ / AMOS7 \ YOURUM ::
-#\[7]VZKZ6GC4H22KNESEMIEAWPI5YDXBB3H555VSSPJQTRZCIKGXP6BY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,..,.,.,,.,,.,.,,.,,,.,,..,,.,,,..,,...,...,,,,,..,,,..,.,.,.,.,
+#V64JRXS7QWNQYOGE2WA245BUXTTEEAXIELA2XMRYI5B73BVJHDL4JUJMLSZ3F2MF5HNXTHLMOH62S
+#\\\|5EUZEGY445WQNAPATDOYFK6O5OZUWAAENBWO4SGOEB5OA2CO4NG \ / AMOS7 \ YOURUM ::
+#\[7]GFBXN7KH2VRQ6RRKAG4W4CRU5ZT33QT3LKJ6DNSUHNZJFS3W4EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

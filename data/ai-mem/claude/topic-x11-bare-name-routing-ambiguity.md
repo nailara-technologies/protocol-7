@@ -32,12 +32,12 @@ verified live: three concurrent instances (host `:0`, `xvfb-0000` `:7`,
     caller's default upstream), parses the returned table.
   - **v7 callers use a local fast path** — v7 already has `root_sid`/
     `cube_sid`/`subname`/`status` synced per managed instance in
-    `<v7.zenka.instance>` (via `v7.zenka-instances.get-ids`), no network
+    `<v7-zenki.zenka.instance>` (via `v7-zenki.zenka-instances.get-ids`), no network
     round-trip needed. Caught and fixed two wrong turns here: (1) first
-    used `root_sid` — wrong, that's set only by `v7.callback.connect_to_cube`
+    used `root_sid` — wrong, that's set only by `v7-zenki.callback.connect_to_cube`
     for v7's *own* cube connection, not the managed instance's session;
     the actual per-instance sid is `cube_sid`. (2) briefly built
-    `"$root_sid.$cube_sid"` mirroring `v7.handler.heartbeat_timer` — also
+    `"$root_sid.$cube_sid"` mirroring `v7-zenki.handler.heartbeat_timer` — also
     wrong, that manual nesting is only needed because heartbeat_timer
     calls `command.send.local` directly; every resolver caller goes
     through `protocol-7.route-send`, which already auto-prepends the
@@ -78,20 +78,20 @@ verified live: three concurrent instances (host `:0`, `xvfb-0000` `:7`,
 
 ### commit `505f5505b` — v7's own per-instance display tracking
 
-`v7.zenka.start` read `<x11.display>` as one flat scalar for every zenka
+`v7-zenki.zenka.start` read `<x11.display>` as one flat scalar for every zenka
 it spawns — even with routing fixed, whichever X-11 instance's reply
 landed last would silently override the DISPLAY env var for every
 subsequently-spawned zenka, host or virtual alike.
 
-- `v7.callback.get_x11_display` now runs **per-instance**: `start.cfg`'s
+- `v7-zenki.callback.get_x11_display` now runs **per-instance**: `start.cfg`'s
   `v7-post-init` passes `<instance_id>` explicitly
-  (`[v7.callback.get_x11_display:<instance_id>]`), and the callback reads
-  that specific instance's `cube_sid` directly from `<v7.zenka.instance>` —
+  (`[v7-zenki.callback.get_x11_display:<instance_id>]`), and the callback reads
+  that specific instance's `cube_sid` directly from `<v7-zenki.zenka.instance>` —
   no subname-group resolution here, since v7 itself has no subname and
   would otherwise always match the host instance regardless of which one
   just started.
-- `v7.handler.get_display_reply` stores under `<x11.display>->{$cube_sid}`.
-- `v7.zenka.start` resolves the display for *the zenka being spawned* via
+- `v7-zenki.handler.get_display_reply` stores under `<x11.display>->{$cube_sid}`.
+- `v7-zenki.zenka.start` resolves the display for *the zenka being spawned* via
   `resolve_primary_sid('X-11', ..., $zenka_subname)` — resolves
   synchronously since v7's own process always takes the local fast path
   (no real round-trip), so the existing spawn flow's control flow didn't
@@ -119,8 +119,8 @@ range, both use subname suffixes but different separators, `:WxH` vs
 [[topic-x11-protocol-hardening]] · [[topic-window-canvas-addressing]]
 (unrelated identity question, already solved differently)
 
-#,,.,,,,.,.,.,,,,,.,,,,,,,,,,,,,.,...,.,.,,,,,..,,...,..,,..,,.,.,,.,,,..,,,.,
-#OBWOG3A3G27SBFIL4XRHBHJVQTBT5L7XN4O77C4TK53JHZFNEUF45DGT6C3ZYVFLWBD2JZHW6T2RS
-#\\\|ZG2VHI6FEUDAAGZLXBPUBYLF64P2F5TEV6G5JZVFPXYOPY3OYIW \ / AMOS7 \ YOURUM ::
-#\[7]LKHZNRDR7NZVSYSISMPVUD4G22FFFWB3RILQFKKHCC6UDGVSL4DI 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,..,,,..,.,.,,.,,,,,,,,.,.,.,..,,...,...,,.,,...,.,.,..,,,,.,
+#FFUC5QXFKDUFTKSP6FP6TWIDZVHINX4HW6L5RB7LBFD5VFVURLJNSVCTEDPXDNW4A2ZO3A26LHKWE
+#\\\|3V22ALTXDFHGTYQV7CLG5A6HG3KLIR7PTVUJG2GLWJBK6KGD5ET \ / AMOS7 \ YOURUM ::
+#\[7]X5TFQKX3TIO5YR6XTFEU7KVHIJKSE3RVDI45SPOUSPNB66ODFWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

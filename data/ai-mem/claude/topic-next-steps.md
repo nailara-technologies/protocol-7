@@ -588,7 +588,7 @@ what it should actually invoke.
 - GPU STRM subscription + coding zenka feed + sparkline (3 phases)
 - MCP external command config table + kimi_dispatch tool
 - data/yaml/reasoning-templates/holographic-grid-interface.yaml (733 lines)
-- v7-teardown-whitelist ✓ — access.cmd.usr.system = v7.teardown in v7/start; SOURCE alias in cube/command_aliases; test pending with devmod switch-user
+- v7-teardown-whitelist ✓ — access.cmd.usr.system = v7-zenki.teardown in v7/start; SOURCE alias in cube/command_aliases; test pending with devmod switch-user
 - MCP kimi_dispatch/kimi_continue: LIVE — 47min timeout, session resume via kimi -r <uuid>
 
 ## planned / future
@@ -806,8 +806,8 @@ had more real-world exercise (today's fix covers case 1's underlying
 mechanism but hasn't been stress-tested; case 2 has no design yet beyond
 "probably AMOS7-level, not a bin/ shellout").
 
-#,,,.,.,,,.,,,.,.,,..,.,,,.,,,,.,,,,.,,.,,...,..,,...,..,,,.,,.,.,..,,,,.,..,,
-#NSLTLJPIEPVXUVFEBZ3REYI2FRDAORLCH2OTI6F46MHJJEU427UM4NGMZCLNSI4DUI5HXE4S3CMWK
-#\\\|S36ET5TJVGMPQG67HQEGFXEW6YKBUAIN4N5LQRCH6YGPL37OHXZ \ / AMOS7 \ YOURUM ::
-#\[7]IUSOSYO7JCJNVPCBHUFVALDYKGPC4HF7EFKYS43DSXB5NM6FNMDI 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,,,.,..,,,,,,.,.,..,,,,,,.,.,..,,...,...,...,..,,,,,,,.,,.,,,
+#4JMIC7SY67QB42GVA2FNXGIGVG7NGCGFCDSGYAYO4KYY6ALSIEY5CLDGNMU3Z6C7GNM5IU6CWGHHI
+#\\\|XLHMN3ANBGRSBWHS3KE3BCXPSS4LIXJXLRVOKNFURKK3ZLALEAX \ / AMOS7 \ YOURUM ::
+#\[7]74P4K5VA3ZUQGEFYH6VXB3OJ6OT3NNN3742V2FFTHPLJBHMHKGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

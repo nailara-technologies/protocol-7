@@ -177,10 +177,10 @@ consistent failure, a `SIGBUS`, logs not correlating with the actual command
 sequence). Spent real effort chasing this as a logic bug (re-tracing the
 clock-regression guard by hand, reproducing standalone) before the actual
 cause surfaced: **a stray `data` zenka process had been running for ~40
-minutes, started outside `v7`'s management** (`v7.list zenki` didn't show it;
+minutes, started outside `v7`'s management** (`v7-zenki.list zenki` didn't show it;
 `list sessions` did) — `cube` was routing test requests inconsistently
 between it and the properly-managed instance. User caught this by comparing
-the two listings directly. Terminated (`term-all data` + `v7.start data`),
+the two listings directly. Terminated (`term-all data` + `v7-zenki.start data`),
 confirmed clean (3 consecutive full-suite passes). **Lesson**: if self-test
 results look inexplicably inconsistent and don't correlate with the
 edits/reloads being done, check for a duplicate/stray zenka process *before*
@@ -199,7 +199,7 @@ to cover the phase-3 FIFO's lifecycle alongside the segment's.
 
 ## Process notes
 
-- Every `data.mount.shm.*` / `AMOS7::SHM.pm` edit needs `v7.restart data`
+- Every `data.mount.shm.*` / `AMOS7::SHM.pm` edit needs `v7-zenki.restart data`
   (or `p7c reload`) before it's live — same lesson as
   [[topic-summary-tree-phase1]], still easy to forget mid-loop.
 - `p7c data.shm-self-test` is fast and cheap — run it after every change to
@@ -209,8 +209,8 @@ to cover the phase-3 FIFO's lifecycle alongside the segment's.
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,.,,..,,,,,,...,.,,,,.,,,..,.,.,..,,,,.,,.,,..,,...,...,,..,,..,,,,,...,...,
-#WC2ICVWAF7AFM5QCY6TU3PPC2PWJD6KWU6GGYDGBG2JRWZ7LRIZH4RCTJ4RAEAUOWIH53X5P5L6LE
-#\\\|FYUAK6WJGRYY5OPQMMJYAQL45NFKPJV55DJRPTHNLWRLZ7BKUR3 \ / AMOS7 \ YOURUM ::
-#\[7]LQCPPSJTJ5DAY3YYALV5DINNUIV6XD3ENXPYFVUV67GQ7IDFBEAA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,.,,,,.,,...,..,,,,.,,..,,..,..,,...,...,,,,,,..,,.,,,,,,.,.,
+#ZCKXVFYE235ZLLMMFGQOZJFDSCDMF2I4MF24K7XG3JYHWPQGGB2SHUPG74A247EBLBOOLMOGNXOXU
+#\\\|DU3ME3KPWMVMR6GA5J4HGZPLVHOIA4URESZF7KAVSFZ4GK4NK3A \ / AMOS7 \ YOURUM ::
+#\[7]AYT7H655WB5UPOCMQI54XMZEDQCC72T5JDKTZ2SBFQR2ZFEDK4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

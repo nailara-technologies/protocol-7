@@ -64,7 +64,7 @@ ondemand watchdog gave up. Fixed by broadening the regex to
 the `s|^\s+|\s+$| | g` corruption fixed elsewhere in `smtpd.*` this session
 -- `{}`/`()` delimiters don't have this ambiguity, prefer them whenever the
 pattern itself contains alternation). Verified live: `dbus` reaches `online`
-status reliably now (`p7c v7.restart dbus` + `v7.list zenki dbus`), and
+status reliably now (`p7c v7-zenki.restart dbus` + `v7-zenki.list zenki dbus`), and
 `notify`/`notify-osd` both come up online right after (on-demand, chained).
 
 **problem 3 -- environment gap, worked around with a Windows-toast backend
@@ -142,8 +142,8 @@ in `src/smtpd.route` with a channel publish.
 
 related: [[pattern-registry-engine]], [[topic-powershell-native-toast-notifications]], [[dunst-notify-zenka]]
 
-#,,..,..,,,.,,.,,,,,,,,,,,...,...,,.,,,,.,...,..,,...,...,.,,,.,,,..,,,,.,,,.,
-#CJB52HV2L5RKEGTF3JGYNNUTIE32MWRUWW7XQXVM3APUWWH3EMCYKZ4KONWVCF25HEQ4MLZW2VERO
-#\\\|5MOVPXWR6E7UYEGESRLR5NPVFF6C65J4OLOLOI3MYKN7ZRK5O27 \ / AMOS7 \ YOURUM ::
-#\[7]6ZIE6JI4L5BGKFS26QX5PTNCTOOOGSXDGGKSR7LE4WAGH5HYIIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,,,,.,.,..,,,,.,,..,.,,,..,,..,,...,...,.,,,,..,.,.,..,,.,,,
+#BHG3KSY4ZM7OMK5SIX36POIVZG3ASFDV5LYTSKMXLWFU2NLZ5IS75HZF5ITR5UVQUV3FSRLRME3SM
+#\\\|DC3VSQATITNJ5GXA44M6PXKCDBYSNUUTC5DXCDN46LFUNHPJVOZ \ / AMOS7 \ YOURUM ::
+#\[7]7JDAFHGEQ3QRNCAVYGTBG3WBQ4EHNQRQOXQZ24FFU3XQHULD7KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

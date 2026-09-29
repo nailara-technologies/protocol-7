@@ -196,7 +196,7 @@ then: `XSelectInput($display, $xid, StructureNotifyMask)` to watch for
 ### window disappearance
 
 **primary path — v7 lifecycle:**
-`v7.handler.zenka_status` on `offline` transition sends:
+`v7-zenki.handler.zenka_status` on `offline` transition sends:
 ```perl
 <[base.protocol-7.command.send.local]>->(
     'X-11', "X-11.unregister_window $dying_session_id\n"
@@ -267,8 +267,8 @@ then wrapper.
 - `X11-WAIT-VISIBLE-HOST-MODE-SKIP.md` (task) — superseded by window registry
   (keep as fallback for external-process windows not using self-registration)
 
-#,,,,,,.,,,.,,...,..,,...,.,.,...,.,,,,..,.,,,..,,...,...,...,.,.,...,,,.,,,.,
-#IGLD4BYBOBVITSIX7SK5MMHQRBW53BSTTHFF7CZIXYV5NRE6CFFEI33WTBX7GG646HV5NG3OYTUHA
-#\\\|HLRTTDJK6CQDCDX3ZZLTTJE7E3I4RL2NSL3IDFRAN4HK4UHQ6CH \ / AMOS7 \ YOURUM ::
-#\[7]CVPICRVROGB2FR6WWKJ4GJ4B2R6JVME65GR4H4APIIN4PB2BWMCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,,,,,..,,..,,.,.,...,,..,,,,,..,,...,...,..,,...,,,.,,..,,,.,
+#VAVEJHVBEVKXDDFKM7F47AUTA5GDTJUCDKVSAZK4AGH32NG443OMATQOMR7EO6ZICR3U4S5YFRCSQ
+#\\\|6LHY2GEK2PGTBJWM37LBATL76QNSIRCQ5362KXV6G2V5LE3GXZR \ / AMOS7 \ YOURUM ::
+#\[7]5YADZWREM3KT3KC45MNOEN7FGW3M5E67VV2KAMAIXWYGXABFG4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

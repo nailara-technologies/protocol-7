@@ -139,7 +139,7 @@ cross-monitor-restore gap), and screen.setup.enumerate-monitors now
 DELEGATES to base.gtk.list_monitors (deduped, one enumerator). Menu's
 (5110,20) now snaps to (5110,1080) = top-right of the ultrawide. Both
 white-lists regen'd (screen-setup 527, menu 462). NEEDS SIGNING; menu was
-crash-looping so `p7c v7.stop protocol-7-menu` while iterating.
+crash-looping so `p7c v7-zenki.terminate protocol-7-menu` while iterating.
 
 **LANDED 2026-06-27 (unsigned): window rect overlay + PNG snapshot.**
 
@@ -247,8 +247,8 @@ form.
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,.,,,,,,.,.,,.,,.,.,,,,,,,.,,,.,.,,,,..,.,.,..,,...,...,...,.,,,.,.,,,,,,,.,
-#MT2FOIOP4I5YDO2KBO4GF2XUQ2TJTTGTV2XLQWGFCK7NRQIWL5374VBPTI5FKX6VBCLHIAFOSJC22
-#\\\|QW2TEAXQEW73NLQ4FWALSFGX7U4GSXNSKIWBCME32FV5IYZNSNJ \ / AMOS7 \ YOURUM ::
-#\[7]AV74XTTLNST7K2V3FO2OWY2SSPJATJIWXE47J4TKHXKNWCPQXEBI 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,.,,,.,,,,,,,..,,,..,...,,,,,..,,...,..,,..,,,.,,.,.,...,.,,,
+#FZPDMCVNXT6GX7YGP5MJXFK52QC3YNQ2V4ETNQS7KP3WROLICYYX3QEPV3TTDZWGWXVXVQAVXRLNO
+#\\\|H2QWIGKOCYT2FLDC5NSCY3SSKETVX2IHZ7B2S7MZ5ZWB6BBHOC6 \ / AMOS7 \ YOURUM ::
+#\[7]7I7JXQKFRXBTBANRMQ2KS5NJD65IA6GXDHNQP7EWDKL44QIHUIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

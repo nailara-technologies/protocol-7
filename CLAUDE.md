@@ -179,13 +179,13 @@ Each zenka is a configured agent instance defined by:
 
 #### Agent Communication & Lifecycle:
 - The `cube` zenka acts as message router between all other zenki
-- The `v7` zenka manages the lifecycle of connected zenki:
+- The `v7-zenki` zenka manages the lifecycle of connected zenki:
   - Monitors with heartbeat commands and restarts unresponsive zenki
-  - Management commands: `v7.start`, `v7.stop`, `v7.restart`
+  - Management commands: `v7-zenki.start`, `v7-zenki.terminate`, `v7-zenki.restart`
 - **Deployment Options**:
-  - **Always-on**: Listed in `cfg/zenki/v7/start-set-up.base` (e.g., `cube`, `p7-log`, `httpd`, `system`)
+  - **Always-on**: Listed in `cfg/zenki/v7-zenki/start-set-up.base` (e.g., `cube`, `p7-log`, `httpd`, `system`)
   - **On-demand**: Started when first accessed, configured with `start.on-demand = 1`
-  - **Unmanaged**: Zenki manually started, connects to cube but not monitored by v7
+  - **Unmanaged**: Zenki manually started, connects to cube but not monitored by v7-zenki
   - **Standalone**: Zenki runs independently without connecting (e.g., `keys`, `sourcecode` zenki)
 - **On-demand Management**:
   - Automatic startup when commands are routed to them

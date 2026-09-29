@@ -8,12 +8,12 @@ metadata:
 v7 learns a freshly-spawned instance exists, and later confirms it, **purely by
 pattern-matching the instance's raw console stdout** — not via any reply, not via
 `base.session.send_init_reports`. Two config-driven regexes in
-`cfg/zenki/v7/zenka-output.patterns` (matched by `v7.handler.zenka_output`
-→ `v7.handler.process_output_line`) drive the whole handshake:
+`cfg/zenki/v7-zenki/zenka-output.patterns` (matched by `v7-zenki.handler.zenka_output`
+→ `v7-zenki.handler.process_output_line`) drive the whole handshake:
 
 ```
 ^cube session id received \[(\d+)\]$   → zenka.set_cube_sid:<instance_id>,<match_1>
-^instance verification \[KEY:([a-zA-Z\d]+)\]$ → v7.handler.instance_verification:<instance_id>,<match_1>
+^instance verification \[KEY:([a-zA-Z\d]+)\]$ → v7-zenki.handler.instance_verification:<instance_id>,<match_1>
 ```
 
 The real chain, confirmed end-to-end 2026-08-10:
@@ -24,7 +24,7 @@ get_session_id (sync) / base.handler.whoami_reply (async)
   → v7's stdout pattern-matcher sees it → calls zenka.set_cube_sid
   → set_cube_sid sends the "verify-instance" command
   → base.cmd.verify-instance logs "instance verification [KEY:...]" to CONSOLE
-  → v7's stdout pattern-matcher sees it → calls v7.handler.instance_verification
+  → v7's stdout pattern-matcher sees it → calls v7-zenki.handler.instance_verification
   → sets instance status 'online' directly
   → base.cmd.verify-instance ALSO drains <system.callbacks.initialized> itself
     [ the array most zenki push their real deferred startup work onto ]
@@ -109,8 +109,8 @@ console specifically).
 
 [[topic-mpv-jobqueue-startup]]
 
-#,,,,,,..,...,,,.,.,.,,,,,,..,,,,,,,,,,,,,,,,,..,,...,...,..,,...,..,,,..,,,.,
-#AYXWANEFYRPQDTKJGHF2WG3M5IQ3DABPGP4P7HKPRWQSXMQT462T6FBPZ57LS4373CYPIJ6THVR5S
-#\\\|RBLWYN3SKFUMSXT7RTXC3V54YAFAIUEVJC37DC6W6TDF5R6JI6R \ / AMOS7 \ YOURUM ::
-#\[7]PLQP4CN7TGDHMQWSOSUAWKP5ONWFA4GMM4NMZ22WQMHP7PNXPOBY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,.,.,,.,,..,,,,,,,.,,,.,,...,..,,...,...,..,,,.,,...,,..,...,
+#4RVQEBJE6OHOTKSUMOPXZDLM4V5FB7C5PAMJ2UBZ3E4U4NB3HUGOEAWZR3JEWGUF5CKZOKQ4J2PDI
+#\\\|SN57HW5UZK6HZNT7BKS6NBE4C32XQKB5HXDC5XP4PHUKQ4BDMKO \ / AMOS7 \ YOURUM ::
+#\[7]XQNBR6KGEFPYNSDMDTG4PQ2VGVJC25EFR26SSJT5UTJFWARUO2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

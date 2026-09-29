@@ -100,7 +100,7 @@ disagrees with this one.
 - task-coding-wait-done-task-orphaning.md : fix commits `aaf139175` + `edf1b9a44`; `coding.handler.wait_done_timeout` + `coding.task.complete` exist
 - task-summary-topic-tree.md : `task.cmd.summary-tree-{notify,query}` + `coding.cmd.tree-query-reply` + `task.persist.summary_tree.save` exist
 - task-zenka-cold-queue-gpu-cooldown-trigger.md : `task.cmd.trigger-cold-queue` + `handler.cold-queue-sweep` + `handler.gpu_temp_update` exist
-- v7-lpw-sync-debug.md : fix commits `e77cbaf7b` + `b777eff17` ("lpw sync") on `v7.calc_prefix_lengths` et al.
+- v7-lpw-sync-debug.md : fix commits `e77cbaf7b` + `b777eff17` ("lpw sync") on `v7-zenki.calc_prefix_lengths` et al.
 - web-auth-plugin.md : full `plugin.web.auth.*` suite (create/verify/destroy_session, handler.login/logout/status, session.*)
 - web-browser-value-replay-waypoints.md : `web-browser.cmd.{goto-waypoint,goto-waypoint-group,waypoint-set,state-play}` + `replay.dispatch` exist
 - x11-capture-commands-rewrite.md : screenshot zenka landed (`screenshot.cmd.capture-to-disk` + `cfg/zenki/screenshot`)
@@ -162,7 +162,7 @@ disagrees with this one.
 - tool-hints-and-extended-docs.md : `coding.tools.handler.{register_hint,tool_help}` + `hints.check` missing; git -S shows only docs commits
 - version-aware-loader.md : no `cfg/loader/`, no loader-versioning git evidence
 - zenki-elves-network-habitat.md : philosophical design doc, no code targets referenced or found
-- zenki-profile-configuration-interface.md : no profile interface; only `cfg/zenki/v7/start-set-up.base` exists
+- zenki-profile-configuration-interface.md : no profile interface; only `cfg/zenki/v7-zenki/start-set-up.base` exists
 
 ### data/tasks/ (39)
 
@@ -246,8 +246,8 @@ disagrees with this one.
 - Human confirmation needed before any file is actually moved/archived —
   this document is the audit trail, not an archival action itself.
 
-#,,..,,..,..,,...,,.,,,.,,.,,,,,,,,,.,,..,,..,..,,...,...,,..,,.,,.,.,,..,...,
-#4247SO5MVJFJH5Z6NPWVGJWMR5N5VDP5YGB32BZDB4CCIYZL7HNNMBRPDPYKUNDESZUIG5JH5GRB2
-#\\\|RA43ZGZQDLH67SPSI65WMXFRETZBHGTE5U3WYGG5XEAYTH2UQH3 \ / AMOS7 \ YOURUM ::
-#\[7]BWSKRO4HCUK2ZN6CFWWQANUB4POIU5EKOJNGVUMEJ2B4FPDJVCBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,.,.,..,,,.,,,,.,..,,,.,,.,.,..,,...,...,.,.,,..,,,.,..,,,,.,
+#Q3NGGQTWPRUCWT22G43LLYL4MQTWQ6QZU2QOXTCXFRGRM6IL7DX2T3RLLG52Y4TSNQGG7X436YCUC
+#\\\|FCDKHGO5D6CUNLRUK7RCEWM4X2TCHCWO7TXXBTDOCDB3E2LECHK \ / AMOS7 \ YOURUM ::
+#\[7]JBUT4VPXVI7NNWNYHKKGHWQZ3M32GOT5R7DPLQIOH3XWO54GCIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

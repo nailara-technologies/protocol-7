@@ -15,14 +15,14 @@ hamming]>` are the direct code-refs, faster for a batch since `similarity`'s
 
 **1. `eval-code` needs explicit per-zenka whitelisting, unlike `web-browser`.**
 `devmod.cmd.eval-code` is a devmod command, available on any zenka once
-`v7.devmod-enable <zenka>` loads the module — but each zenka's OWN
+`v7-zenki.devmod-enable <zenka>` loads the module — but each zenka's OWN
 `access.cmd.usr.*` line in its `zenka.v7` startup file can still block it.
 `web-browser`'s access line ends in a wildcard (`* *.*`), so eval-code just
 worked there. `graphics-matrix`'s access line is a strict enumerated
 whitelist with devmod commands explicitly commented out
 (`# get set del dump exec-sub ## <-- devmod commands`). Fix: add the
 specific commands needed (`eval-code get set`, not a broad wildcard) to the
-zenka's `access.cmd.usr.cube` line, then a full `v7.stop` + `v7.start` (this
+zenka's `access.cmd.usr.cube` line, then a full `v7-zenki.terminate` + `v7-zenki.start` (this
 whitelist, like others, is startup-only, not `reload`-refreshed — see
 [[topic-gtk-wsl-window-positioning]]'s sibling note on this pattern
 elsewhere). Landed for `graphics-matrix`, commit `4dfd2425d`.
@@ -48,9 +48,9 @@ kill above, EVERY subsequent `eval-code` call failed with "command does not
 exist" — not because the function name was wrong, but because the crash-
 triggered restart wiped devmod (it's a runtime-only SIGNUM53 attach, exactly
 like [[feedback-editing-p7-owned-data-files-reowns-them]]'s sibling
-gotcha about state not surviving a restart). Fix: `v7.devmod-enable
+gotcha about state not surviving a restart). Fix: `v7-zenki.devmod-enable
 <zenka>` again after ANY unexpected restart, before assuming a genuine code
-problem. Cheap to check first (`v7.list zenki` for a new instance/PID)
+problem. Cheap to check first (`v7-zenki.list zenki` for a new instance/PID)
 before debugging "command does not exist" as a naming/permissions issue.
 
 **4. Cross-user file permissions.** Files created by the interactive shell
@@ -90,8 +90,8 @@ perceptual hash as a candidate filter only.
 
 #,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
 
-#,,,,,..,,..,,,,.,,,,,..,,,.,,,..,...,,,.,...,..,,...,...,..,,.,,,...,,.,,...,
-#AY577L3ASCEX46WPOFXODZDQMHH6ORVW3SKSNVRXGMWICQTJBJ3FAJWBB5W3QP2VP5KDLQV2X43LC
-#\\\|XFIBJHXE5WHAJ47GGD65G5XKTAKKKJX7PHG6A4MFMUXXAORNJAR \ / AMOS7 \ YOURUM ::
-#\[7]H75TA5A2TOJICIUZG7UZGIVE334NSHM6YZVRZIHR2BVD6EBBIABI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,,,,,..,.,.,,,,,,..,..,,,..,..,,...,...,.,,,,.,,.,.,,..,,.,,
+#CIIMRJAXTIF6NGBQTVBEO3T7LSWV3RKE3JTCVHCD7DBF45L4YH4F3WEG24D6ESLNPJYWLK6NRDEPY
+#\\\|QAH3JUUEXNMF2LUVUIRDMO4BXN4IXIEYMQMMOHSND7VKMKQIP6G \ / AMOS7 \ YOURUM ::
+#\[7]EP2IVFCGIDY74THWE4AUJW6AY2IMBQR7ADSXVGNT3UF2QI3QLWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

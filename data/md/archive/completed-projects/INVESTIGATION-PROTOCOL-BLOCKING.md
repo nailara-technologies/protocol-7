@@ -146,7 +146,7 @@ The user also reported a pre-existing log storm bug when starting cube+nshell wi
 
 1. Idle callback fires (Event->idle with repeat=>FALSE)
 2. Checks if paused and not already asking (line 32)
-3. Sends `v7.notify_online` to check if p7-log is online
+3. Sends `v7-zenki.notify_online` to check if p7-log is online
 4. Sets `n.o.-asking = TRUE` (line 74)
 5. Reply handler should set `n.o.-asking = FALSE` (notify-online line 18)
 6. Then calls idle-callback-set again to register new idle callback (line 29)
@@ -158,7 +158,7 @@ The flag management or callback re-registration might be causing repeated attemp
 ### Files Involved
 - `base.log.send-buffer.send-idle-callback` - Idle callback handler
 - `base.log.send-buffer.idle-callback-set` - Registers idle callback
-- `base.log.send-buffer.reply-handler.notify-online` - Handles reply from v7.notify_online
+- `base.log.send-buffer.reply-handler.notify-online` - Handles reply from v7-zenki.notify_online
 
 ## Current Implementation Status
 
@@ -210,7 +210,7 @@ This format is applied by `base.protocol-7.command.send.local` at line 101, ensu
 **Issue 3: Log Storm - System Issue (Not nshell Specific)**
 - User clarified: "it could be any other zenka... that is the logging system"
 - **Root cause**: When a zenka tries to log and p7-log is unavailable:
-  - send-idle-callback tries `v7.notify_online` to check p7-log availability
+  - send-idle-callback tries `v7-zenki.notify_online` to check p7-log availability
   - If v7 isn't running, command fails silently (base.protocol-7.command.send.local returns 0)
   - Reply handler never called, so `n.o.-asking` flag stays TRUE
   - Callback doesn't fire again (repeat=>FALSE and reply handler not called)
@@ -224,7 +224,7 @@ This format is applied by `base.protocol-7.command.send.local` at line 101, ensu
 
 1. **Idle callback fires** → `base.log.send-buffer.send-idle-callback`
 2. **Checks paused + asking** → `paused=TRUE` and `n.o.-asking=FALSE`
-3. **Sends query** → `base.protocol-7.command.send.local` → `v7.notify_online`
+3. **Sends query** → `base.protocol-7.command.send.local` → `v7-zenki.notify_online`
 4. **Reply handler fires** → `base.log.send-buffer.reply-handler.notify-online`
    - Sets `paused=TRUE` (zenka is offline)
    - Sets `n.o.-asking=FALSE` (reply received)
@@ -240,7 +240,7 @@ This format is applied by `base.protocol-7.command.send.local` at line 101, ensu
   - Calls `idle-callback-set` which registers a new idle callback
 - The new callback fires immediately in idle state
 - Checks condition: `if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} )` → TRUE
-- Immediately sends v7.notify_online again
+- Immediately sends v7-zenki.notify_online again
 - Gets same FALSE response
 - Loop repeats indefinitely
 
@@ -288,8 +288,8 @@ The reply handler unconditionally calls `idle-callback-set` even when the target
 - `src/base.log.send-buffer.reply-handler.notify-online` - Fixed idle callback loop (COMMITTED)
 - `src/nshell.shell_loop` - Fixed protocol mismatch, now uses direct buffer relay (PENDING)
 
-#,,..,.,,,,..,...,,..,.,.,.,,,,.,,,.,,,,,,...,..,,...,...,.,,,,.,,,..,,.,,,,,,
-#7LQN235HLZCPCCLHWBQ6OV4GCEKBF2XFRRVCTFOFGBJQTSQPQV5FTMZJMRE6VMT2QU4YLILUXHXNE
-#\\\|VMRPZXEWYDLBFXAKVNH444JK5SBSFOF7ZV4NTKM2FK6R6D4BJRZ \ / AMOS7 \ YOURUM ::
-#\[7]3MNRT6GMYYVGWUOYAXPJLLJ2UTOKDAWTO2EPHNUZYBV4UIVCBUCA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,...,,..,,.,,,.,,.,,,,,.,,,,,..,,...,...,...,.,.,...,...,.,.,
+#QW5VQKOWU5ANSPL2F5T5JENEFNL7VGLT3OX6DWAR2TIPUSSVE67XSPYX3P53RHPLXWKRAEXPGBUUQ
+#\\\|UOA7WJESHVJJQNXKMCQQN2XIDZMLHRCPYHWHFYGYHSJTKDJSEYZ \ / AMOS7 \ YOURUM ::
+#\[7]CVO7REQGLBVQSW7K2GF3PSQVEPMH6NXPPNQBDKQLSFEECKMPY6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

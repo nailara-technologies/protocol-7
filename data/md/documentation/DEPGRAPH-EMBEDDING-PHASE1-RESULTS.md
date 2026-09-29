@@ -70,7 +70,7 @@ base.log.send-buffer.add-queue     0.385
 base.locales.load_file             0.372
 ```
 
-direct callees from .asc : `v7.stdout_log.write base.utf8.clean_str
+direct callees from .asc : `v7-zenki.stdout_log.write base.utf8.clean_str
 base.buffer.add_line base.log.format_entry base.code.call_expected`
 
 **result: logging-adjacent clustering confirmed** [ base.logs, base.logt,
@@ -122,8 +122,8 @@ specified. subword sharing [ minn 3 / maxn 6 ] reinforces the
   finding above is the knob to tune in phase 2 if semantic-load needs
   callee-precise hubs
 
-#,,,.,,..,,,.,...,,,.,,..,...,...,.,.,..,,...,..,,...,...,.,,,,..,,.,,...,.,.,
-#CEX6VPPM5Y5FYDXCGI4V37SR2E5GF27PIMXZK2SI7B3PCTLZXRZRD7FGYTWANFA7AH2B6QRH34TSM
-#\\\|TPFOCAGLZ2SEAFOSIPCVB72372MPUA3NDLTY3ZSZ54QEYSQ2AP2 \ / AMOS7 \ YOURUM ::
-#\[7]MYQHE3OVV3NHHIBXLDXY7WLGJQ7DZZ5EHZHLW6UTVFTV2SDA5UCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,..,,,.,,,,,,...,,,.,,.,,,,.,..,,...,...,...,..,,..,,,.,,,,,,
+#4XTQHA5NMIW4LZUACZVZN35YICQCZ3PSPFAQX3CIZBAGFEPRC5GRNXCSH6T7TO6GWQHVJ35ZD4H7Y
+#\\\|GDONDNTR4FMD2GZRFV2RGJO7TSEH7UYQEUDKUSP4UVNDXDUNNOK \ / AMOS7 \ YOURUM ::
+#\[7]3EISDLNG6K6XU4FCLSKTW4DQHDSRAQMKLD2KSRTB62EIFH35VGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

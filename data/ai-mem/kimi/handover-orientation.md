@@ -88,11 +88,11 @@ the context.* namespace is a unified context management layer for budget-aware l
 ## immediate next steps
 
 1. start with `ncode.regex.assess` — foundational for the learning loop
-2. test context zenka via `v7.start context` and nshell commands
+2. test context zenka via `v7-zenki.start context` and nshell commands
 3. read existing context.* modules to understand the provider pattern deeply
 
-#,,,,,.,.,,.,,,.,,,,,,..,,.,,,,,,,.,,,..,,..,,.,.,...,...,.,.,..,,,.,,,.,,.,.,
-#UGYHBDVVVDTEOONS76MLE6ITGOJPIMUOARXPNCYXTUVLT7UUUG5WMFRR2BF4CWQVMWWHKPK5TF5EE
-#\\\|PCQHWGDGHHM2DDB3UI6ORPJR3M37XIB2H5DDZTOZVBGB3SKRXXH \ / AMOS7 \ YOURUM ::
-#\[7]SVYAPMBA5WV5QSO7EBTB72A6VFD6M2YNCRQ4TLFSNL2A7O5XHABQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,.,.,...,,..,.,.,.,,,..,,.,.,.,.,...,...,..,,,.,,..,,.,.,...,
+#E77OW63EKRNFPKK5F274M3AWS7ZNHMSDOEF447VCBPDBXJU7KU2XL4ARSBWHPSWPORRWNSGCKQ3M4
+#\\\|NGR3RXEXJAFQIPDAH2UNQMEHGMAD2M2PTZEBR6V2UQDM5Z7ASHK \ / AMOS7 \ YOURUM ::
+#\[7]AJ35Y7N6RUGHVWF7LK5LY23X754QDEREAKDAHRPJ2K7NSTANR4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

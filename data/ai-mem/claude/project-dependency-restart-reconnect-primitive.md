@@ -1,6 +1,6 @@
 ---
 name: dependency-restart-reconnect-primitive
-description: "new generic v7.notify_restart + base.zenka.on_restart primitive lets a running zenka detect when a dependency it already has a stateful relationship with (STRM subscription, SHM handshake) restarts and re-establish it automatically; Opus's first pass used instance_id as the restart signal, which is wrong (v7.zenka.instance.restart reuses the same instance_id in place) -- corrected to cube_sid, which changes on every restart, both in-place and idle-shutdown-then-fresh-start. Both the SHM pilot (protocol-7-menu/powershell) and base.strm.subscribe's STRM re-affirm are wired and live-verified."
+description: "new generic v7-zenki.notify_restart + base.zenka.on_restart primitive lets a running zenka detect when a dependency it already has a stateful relationship with (STRM subscription, SHM handshake) restarts and re-establish it automatically; Opus's first pass used instance_id as the restart signal, which is wrong (v7-zenki.zenka.instance.restart reuses the same instance_id in place) -- corrected to cube_sid, which changes on every restart, both in-place and idle-shutdown-then-fresh-start. Both the SHM pilot (protocol-7-menu/powershell) and base.strm.subscribe's STRM re-affirm are wired and live-verified."
 metadata:
   node_type: memory
   type: project
@@ -19,10 +19,10 @@ stops reflecting pointer movement after `powershell` restarts, with no reconnect
 
 ## design (dispatched to claude_dispatch model=opus, `data/tasks/dependency-restart-reconnect-primitive.md`)
 
-- `src/v7.zenka.cmd.notify_restart` — persistent (not one-shot, unlike `v7.zenka.cmd.
+- `src/v7-zenki.zenka.cmd.notify_restart` — persistent (not one-shot, unlike `v7-zenki.zenka.cmd.
   notify_online`) restart-notify request; records a baseline identifier at registration time,
   fires once a *different* value shows up on the next online transition for that zenka name.
-- `src/v7.handler.zenka_status` — fires all pending registrations for a zenka whenever it
+- `src/v7-zenki.handler.zenka_status` — fires all pending registrations for a zenka whenever it
   transitions to `online`/`extbin`, comparing against the recorded baseline; deletes fired
   entries (caller must re-register to keep watching).
 - `src/base.zenka.on_restart` + `.reply-handler` — consumer-facing wrapper, mirrors `base.
@@ -39,29 +39,29 @@ stops reflecting pointer movement after `powershell` restarts, with no reconnect
 Opus's design tracked `instance_id` as the restart-detection baseline (`at_iid` field) — matching
 the intuition "a restart should get a new instance_id," and matching how this session's earlier
 `present since` / session-id checks worked for identifying *fresh starts*. Live-tested twice with
-`v7.start powershell` after a full idle-shutdown (instance fully removed from `<v7.zenka.
+`v7-zenki.start powershell` after a full idle-shutdown (instance fully removed from `<v7-zenki.zenka.
 instance>` first) — worked both times, hash ref and shm_ptr both changed as expected.
 
-Then tested `v7.restart powershell` (the actual common case, restarting while running) — **did
-not fire**. Confirmed via `git`-style live inspection: `src/v7.zenka.instance.restart` (called
-by `v7.zenka.cmd.restart`) operates on the *same* `$instance_id` throughout — it's an in-place
+Then tested `v7-zenki.restart powershell` (the actual common case, restarting while running) — **did
+not fire**. Confirmed via `git`-style live inspection: `src/v7-zenki.zenka.instance.restart` (called
+by `v7-zenki.zenka.cmd.restart`) operates on the *same* `$instance_id` throughout — it's an in-place
 restart of the existing tracked instance slot, not a remove-and-recreate. So `instance_id` never
-actually changes across a `v7.restart`, and the whole "fire when instance_id differs" check
+actually changes across a `v7-zenki.restart`, and the whole "fire when instance_id differs" check
 silently never fires for the single most common restart path.
 
-**What does reliably change on every restart**, live-confirmed directly (`v7.list zenki` /
-`list sessions` before and after a `v7.restart`): `cube_sid` (the cube session id tracked per
-instance) changes every time, both for in-place `v7.restart` and for idle-shutdown-then-fresh-
-`v7.start`. Fix: swap the tracked baseline from `instance_id` to `$instance->{'cube_sid'}`
+**What does reliably change on every restart**, live-confirmed directly (`v7-zenki.list zenki` /
+`list sessions` before and after a `v7-zenki.restart`): `cube_sid` (the cube session id tracked per
+instance) changes every time, both for in-place `v7-zenki.restart` and for idle-shutdown-then-fresh-
+`v7-zenki.start`. Fix: swap the tracked baseline from `instance_id` to `$instance->{'cube_sid'}`
 (renamed `at_iid`→`at_sid` throughout `v7.zenka.cmd.notify_restart` and `v7.handler.zenka_status`)
-— same architecture, corrected identifier. `cube_sid` is set early in `v7.zenka.set_cube_sid`
+— same architecture, corrected identifier. `cube_sid` is set early in `v7-zenki.zenka.set_cube_sid`
 (during instance verification, before the `online` transition that triggers our firing check), so
 it's reliably populated by the time the comparison runs.
 
 ## live verification (both directions, repeated)
 
-Two consecutive `v7.restart powershell` cycles, each independently confirmed via direct MCP
-`p7_command` state inspection (not just visual/log observation): `v7.zenka.notify_restart.
+Two consecutive `v7-zenki.restart powershell` cycles, each independently confirmed via direct MCP
+`p7_command` state inspection (not just visual/log observation): `v7-zenki.zenka.notify_restart.
 powershell`'s hash reference changed each time (fired + re-armed), and `protocol-7-menu.pointer.
 shm_ptr`'s scalar reference changed each time (fresh `shm_open`/mmap). User confirmed visually
 that translucency-from-pointer-position resumed immediately after each restart, with log evidence
@@ -80,7 +80,7 @@ unsubscribed and re-issues the attempt, covering multiple subscriptions to the s
 
 Diff stayed correctly scoped to `base.strm.subscribe*` only — did not touch the primitive itself
 or the SHM pilot, as directed. Live-verified independently by the orchestrating agent (not just
-kimi's self-report) across two consecutive `v7.restart cred-mesh` cycles with `proxy` staying up:
+kimi's self-report) across two consecutive `v7-zenki.restart cred-mesh` cycles with `proxy` staying up:
 `<base.strm.subscribe.registry>`'s `subscribed` flag dropped to `0` and recovered to `5`
 automatically each time.
 
@@ -97,8 +97,8 @@ as well as `kimi_dispatch`, not just a kimi-specific quirk.
 
 [[ondemand-idle-timeout-active-streams]] · [[topic-kimi-dispatch-infra-hardening]]
 
-#,,,.,,,,,,,,,,,.,,.,,,..,.,.,,,.,,,,,,.,,...,..,,...,...,...,,,.,,..,.,,,.,.,
-#HD46GAT2GI3KR524NDYXRBS2YAVGECKWLENOUBWH73RAKU5KUKBCGD62MF2347WLGIGHHGSRM7JIS
-#\\\|3UWQ2E5ZWDGK5T33VTEHH5I2WIQR3AOMZ7K5ZBJVSZ5B6DBIWLP \ / AMOS7 \ YOURUM ::
-#\[7]PLXGRHPSWFZ7GQYNYEV3LHIYXJBIIKBIPZT6Y5PNZYOWTTORNABA 7  DATA SIGNATURE ::
+#,,..,...,,..,...,,..,,,.,..,,,,.,,..,.,.,.,,,..,,...,...,.,,,,..,.,.,.,.,,..,
+#7FWSAAKF3NCZEOPQV7NURB47VKCGAT4SOVGIAOXUTVTRSEHKRI2ETANNHLKH6IVPIM5PDC4RDU6JO
+#\\\|6OL2DSD3PHEZG7BRIQLUQ353NKQPWPGRCZLTPMU4ZOVOET6GXJX \ / AMOS7 \ YOURUM ::
+#\[7]6E73LMOYDMCSLIXV533U6YNIFLPXJSHCAB4KTMZYVMAH6QD37YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

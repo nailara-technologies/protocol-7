@@ -131,7 +131,7 @@ Work:                    → <system.root_path>/data/
   Music/                → (radio zenka stream sources)
 ```
 
-zenka icons: double-clicking a `.zenka` icon calls `p7c v7.start_once <zenka>`
+zenka icons: double-clicking a `.zenka` icon calls `p7c v7-zenki.start_once <zenka>`
 and opens a window showing the zenka's current state / commands.
 
 ---
@@ -203,12 +203,12 @@ p7c web-browser.cmd.load_uri \
 - [ ] HippoPlayer plays MOD files from modland.com
 - [ ] P7 httpd endpoints respond to TAWS directory listing requests (phase 2)
 - [ ] Work: drawer shows actual P7 namespace tree contents (phase 3)
-- [ ] double-clicking a zenka icon starts the zenka via v7.start_once (phase 3)
+- [ ] double-clicking a zenka icon starts the zenka via v7-zenki.start_once (phase 3)
 - [ ] web-browser zenka loads TAWS as default start page (phase 4)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,.,,,,..,,..,,,,,.,,,..,,...,,,.,,..,,,,,..,,...,...,...,,,.,,.,,.,,,.,,,
-#KMRCWNOSJFKVDKXQWMHDUJO4ANQPN7QVJC5KHQZUA26SEB5XDE7BNO3E2EZVJISHAFJPOHHJWV5PC
-#\\\|BRZLSIMWJK2EE4F72SBMOUPPKIKLCRFAKQNCCJIHCNBLNTXXOW3 \ / AMOS7 \ YOURUM ::
-#\[7]CP36GWHHHOS3VQ6LUX7TW5IYKVQV74EY3TBOQCXYPZ6N2FEXBKAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,.,,,...,,,.,,.,,..,,..,,,..,..,,...,...,.,,,,..,...,.,.,.,.,
+#3TPI6RCCKVEVIHPNKRRFBSNNRU4ZHSFQ52CTHESJNW5MIAGYHRWBJ6UR3H6EBH23JG7A7Y3CELERO
+#\\\|I676WKG67QZRE4JR4EEGQYRWSC2W553OXKFFZGTPQLEATCEX6GI \ / AMOS7 \ YOURUM ::
+#\[7]FBNJUKTZCJHGIQU7BZHD27QE2LRZCEXLXDZDP3XXPV37L737HUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

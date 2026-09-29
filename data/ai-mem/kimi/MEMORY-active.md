@@ -110,9 +110,9 @@ root, and thus inaccessible, meanwhile owned by `<admin-user>` for
 enabling access ( or `<system.amos-zenka-user>` if the admin group is
 undefined — `p7c <z>.show-buffer zenka` can be used as an alternative ) ];
 `sprintf(qw|multi-word|)` collapses to last element [ scalar ctx ];
-send.local args via call_args, never in command string; `v7.zenka.*`
-swapped to `zenka.*` at runtime and `v7.reload source` does NOT re-apply
-swaps [ use reload all ]; undef-sub in v7.init_start_setup is network-fatal
+send.local args via call_args, never in command string; `v7-zenki.zenka.*`
+swapped to `zenka.*` at runtime and `v7-zenki.reload source` does NOT re-apply
+swaps [ use reload all ]; undef-sub in v7-zenki.init_start_setup is network-fatal
 [ guard with base.code.call_expected ]; network runs as root only [ taeki
 cannot restart it ].  see
 [topic-routing-mode-implementation.md](topic-routing-mode-implementation.md)
@@ -351,8 +351,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,..,,..,,.,,,.,,,,.,.,,,.,,,,.,,.,,,,,.,.,,,..,,...,...,...,.,,,,,.,,,,,...,
-#ELH4ERNYL2WXNLXGR2Z6I4NDCK3DYQZBBV6J2Y24XGHIHQ7YPJWGCOQ6K5RIDPUHV7KNK5K6LTZWO
-#\\\|6ORWE6BFP6N5KTASWPMU3W3K3VARL7OQIFEBHPKOCDNX75222Z5 \ / AMOS7 \ YOURUM ::
-#\[7]KFKCUFHRGITXJSNIR657OPVIQKBZI6PKXGGDK653NO33WQZRM6CA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,...,,.,,...,,..,.,.,.,.,.,.,..,,...,...,,,.,,,,,,.,,..,,,..,
+#22N2AK6PVD7OX3DCG7KSVVLUI2SURUNF34LBQIEOI5PK4THQTHPY3DWNZOPD3XUZ4MPRR5VIU5UK4
+#\\\|FQEGKBLPGEQF76N5GGGWG5SPAHQAWRPCGZCE5W7HLNZWFQINUX5 \ / AMOS7 \ YOURUM ::
+#\[7]DQZLRFRFILTZIWLMUPQLOSBP64MHV6WHPKL2PR3DR2K2LAP64SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

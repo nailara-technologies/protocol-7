@@ -27,15 +27,15 @@ dots (dots collide with `zenka.command` routing).
 
 **how to spot more candidates:** `ls -ld cfg/zenki/*_*` and
 `ls cfg/zenki/` for dotted names; cross-check with
-`v7.list zenki` / `v7.list available <prefix>` for routing collisions.
+`v7-zenki.list zenki` / `v7-zenki.list available <prefix>` for routing collisions.
 
 **how to apply:** when doing a rename like this, use `bin/ncode` —
 add a target to `%targets` (`..,` suffix = recursive) for doc/task dirs,
 then `ncode -ai-friendly -confirm replace <target> <old> <new>`. user
 handles the src/cfg/module rename pass themselves typically.
 
-#,,,.,..,,,..,,,.,,,,,,..,,,.,...,,,,,.,,,.,,,..,,...,...,.,.,,..,..,,,.,,,.,,
-#UWJGJ63X5DO2V5MQDEQF7FEPJ3ITVDWCY73A4WWS6RVU2AGPOVBNTC2DJ7TDXSIJ3PL7YWQZVVILE
-#\\\|4MADMJOUTSF4ST6IXEGLDG674CECNEPHTL7QUDDGVQOMAON5HWI \ / AMOS7 \ YOURUM ::
-#\[7]WQH3WRBYO7F6NH2MBW5IC7NZRM5OVBKHMUJLOB5NIU7D7UCDEIBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,,,.,,..,,,,,,.,,,.,,.,,,...,..,,...,...,...,,.,,.,.,,,,,,,,,
+#7RZKKVMPCS74BTCHARRV6AXBMFOOESIRXSXF66EUTJTKP2PBQSAOCDWXYKDUQD6DR4CW6PZI24ILA
+#\\\|3GLC5W3XZ6LHLPB2CQM57LB6ZTH7MIVE2MDBBTL3HZXXJ6XSBPZ \ / AMOS7 \ YOURUM ::
+#\[7]4EQJPTJQLPRQES3FDQMU6AQQD2X6IILFI4EA2ECDKHIBD3HHTKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

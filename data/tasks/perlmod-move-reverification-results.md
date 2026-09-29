@@ -34,8 +34,8 @@ flagged `N/A (no perlmod load in file)`.
 | src/base.handler.read.encryption-wrapper | Crypt::AuthEnc::ChaCha20Poly1305 | N/A | N/A (no perlmod load in file) | yes | grep shows 0 `base.perlmod.{load,autoload}` calls in this file (only `use`/direct calls) — nothing to move; classification stale. The handler itself IS on the encrypted-transport read path (referenced from `protocol.protocol-7.init_code` as `handler => base.handler.read.encryption-wrapper`) so would be hot if a load did exist |
 | src/base.handler.write.encryption-wrapper | Crypt::AuthEnc::ChaCha20Poly1305 | N/A | N/A (no perlmod load in file) | yes | grep shows 0 `base.perlmod.{load,autoload}` calls in this file — nothing to move; classification stale. Paired-write counterpart of read wrapper — would be hot if a load did exist |
 | src/base.stdio.transport.connect | IO::Socket::UNIX | rare/single-caller | KEEP | yes | only real caller is `base.stdio_multiplex.connect` (line 37), which itself has 0 static callers — this whole subtree is a stdio-multiplex helper used only when a zenka opens a multiplex socket, not a general per-call helper. Load-on-demand appropriate |
-| src/base.stdio.transport.listen | IO::Socket::UNIX | startup/one-shot | KEEP | yes | only caller is `v7.handler.stdio_multiplex_listen`, invoked once from `v7.post_init` at v7 boot — classic startup path, load-on-demand is correct |
-| src/base.tmp_dir | File::Path | startup/one-shot (per methodology trap 1) | KEEP | yes | only caller is `<[base.tmp_dir]>` inside `base.root.drop_privs` (line 187) — per methodology trap #1 and CLAUDE.md's documented startup sequence, `base.root.drop_privs` runs exactly ONCE per zenka lifetime (6 static callers, all in `*.init_code`/`*.post_init`/startup paths: coding.init_code, X-11.chk.early-priv-drop, v7.zenka.start, X-11.post_init, web-browser.set-up.set_privs, ncode.init_code). Effectively one-shot |
+| src/base.stdio.transport.listen | IO::Socket::UNIX | startup/one-shot | KEEP | yes | only caller is `v7-zenki.handler.stdio_multiplex_listen`, invoked once from `v7-zenki.post_init` at v7 boot — classic startup path, load-on-demand is correct |
+| src/base.tmp_dir | File::Path | startup/one-shot (per methodology trap 1) | KEEP | yes | only caller is `<[base.tmp_dir]>` inside `base.root.drop_privs` (line 187) — per methodology trap #1 and CLAUDE.md's documented startup sequence, `base.root.drop_privs` runs exactly ONCE per zenka lifetime (6 static callers, all in `*.init_code`/`*.post_init`/startup paths: coding.init_code, X-11.chk.early-priv-drop, v7-zenki.zenka.start, X-11.post_init, web-browser.set-up.set_privs, ncode.init_code). Effectively one-shot |
 | src/channels.cmd.ai-review-approve | JSON::PP | unverified (dynamic cmd) | MOVE (unverified — cmd frequency not determinable statically) | no | .cmd file, no static callers (expected); not exposed in `cfg/zenki/cube/access.zenki` (channels/ai-review-* cmds don't appear there at all — narrow use only from within channels/context zenki). Loaded in `subroutines.load-early` for both zenki. Feature-usage-dependent; cannot confirm hot statically |
 | src/channels.cmd.ai-review-feedback | JSON::PP | unverified (dynamic cmd) | MOVE (unverified — cmd frequency not determinable statically) | no | same shape as ai-review-approve — no static callers, not in cube access.zenki, narrow feature-usage dependent |
 | src/channels.cmd.ai-review-status | JSON::PP | unverified (dynamic cmd) | MOVE (unverified — cmd frequency not determinable statically) | no | same shape as ai-review-approve |
@@ -140,8 +140,8 @@ list-stray-jobs`/`export-stray-job` (admin inspection cmds).
 - No module file was edited (verification only).
 - No stub signature lines added — signing left to the system.
 
-#,,,,,,,.,...,,,,,..,,,,.,,,,,..,,.,.,.,.,...,..,,...,...,.,.,,,.,,,,,,,,,.,,,
-#SNCGIM5XGL7PPKMBV6N5HIR5RZDMTZKCNIJH2MRKYRRMNNXTMBSB7GJQPRHEA2VX3D4WMY3Y7XXYO
-#\\\|IDDJICKE7NEZGSABJNSSDZWTWJENBHB2C7PNC7BZPAL7GJKPXEB \ / AMOS7 \ YOURUM ::
-#\[7]2TACKNKJNFGXECPLPTN2ZP7U6BPEOYLLRRPXEC7CJROEAXPPGEAI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,..,,,..,..,,,.,,...,...,,..,..,,...,...,,..,,.,,,.,,.,,,...,
+#O4X6EHJS7ZW5LIT6EECSMB6JR73OT5YIHZNKIDBY4BI7GUBHJJLWIT3GPNX6W2GXSN5CWLJ3DOMRA
+#\\\|5RIEU6SDZOFCAZJ6K2GGZEB3LYS2VVSKP4Q5HSGGP5QKSPJAIX4 \ / AMOS7 \ YOURUM ::
+#\[7]JRDIOV35AVGWQQ5KWAUGEJLRMVDXNB7JVJ7XJOEHSQILSZS6TKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

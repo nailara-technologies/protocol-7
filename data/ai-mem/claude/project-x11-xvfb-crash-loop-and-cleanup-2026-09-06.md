@@ -56,7 +56,7 @@ fundamentally broken. It now works.
 
 ## process notes worth remembering
 
-- `v7-zenki` is the zenka name (not `v7` - `p7c v7.list` returns "client
+- `v7-zenki` is the zenka name (not `v7` - `p7c v7-zenki.list` returns "client
   not present"). Routable commands drop the `.cmd.` infix from the
   filename AND, for `v7-zenki.zenka.cmd.terminate`, also the `zenka.`
   segment - the actual command is `v7-zenki.terminate` (confirmed via
@@ -367,8 +367,8 @@ primary instance) was noted in the original task as a deployment
 pattern worth knowing about, not evaluated against this session's
 approach.
 
-#,,,.,,..,,,,,..,,.,,,,.,,...,,.,,...,,..,,..,..,,...,...,...,,..,.,,,..,,.,.,
-#QWU6UZQ67M7PLO5YEPGFVTLFRWHUAUZOTURMQYKMC5ZS6YGCB3J54VYCUJYTOQKVFH2HBSAX3XQ4S
-#\\\|RG6QCZSEP6FFBPVC2HLIEXMLFE3GQEA4ZWDUF4SSCROPPPUKHFT \ / AMOS7 \ YOURUM ::
-#\[7]TUXSNJAL6VRTDNVC7HXB6MSSC7YUE25XGCOONOHPQQT6FBHL3ECI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,...,,,.,.,,,,,,,...,,,.,,,,,..,,...,...,,..,.,,,...,.,.,,,.,
+#PIH2UFDXESS2IU3YRWUXMGG3FNTDBSJ76WTKISCBUXOHVMA2EM6BHERNAY5IV6VMSJQJZAT4RRF5A
+#\\\|WZ2DWL2Y2HZQVSDUUXIRFWPQNFKNPMJ4SKISMSO2GALPSE2RPZS \ / AMOS7 \ YOURUM ::
+#\[7]E3MXZFOPJSIBBXALO7RJUZZPMOBTSWVXGOBU5EX6H4QDU7QF7SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

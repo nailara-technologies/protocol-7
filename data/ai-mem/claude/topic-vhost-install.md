@@ -45,7 +45,7 @@ test with: `NO_PROXY=127.0.0.1 curl -s -H "Host: space.v7.ax" http://127.0.0.1/`
 - httpd.cmd.install-vhosts: dns_match:none skips DNS check
 - httpd.vhost.request_tls_cert: use letsencr.request-certificate (not internal path)
 - httpd.vhost.request_tls_cert: skip if httpsd not online
-- cube/access.zenki: added letsencr.request-certificate + v7.status to httpd perms
+- cube/access.zenki: added letsencr.request-certificate + v7-zenki.status to httpd perms
 - plugin.web.space.init_code: register web.space.* aliases for template commands
   (template processor looks up code{web.space.state}, module is plugin.web.space.state)
 - plugin.web.space.template-resolver.json: fix scalar/deref syntax for history_depth
@@ -79,8 +79,8 @@ orbital pipeline fully live:
 - graphics-matrix idle timeout: 23s → 420s
 - cube/access.zenki: web + httpd + discover + nodes permissions fully wired
 
-#,,..,,.,,,..,,,,,,,.,,,.,.,,,...,...,,..,,,.,..,,...,...,,,.,..,,...,..,,...,
-#4JSXTE5XSKVWFYGCONL2SHK72GLF3VWBACOIGCOJWNR456A3VCWAKUTWHSH6TEJTXEJ6NXFXP7FI4
-#\\\|IQVHHYYGTQRX22VO2PCI5KSMEIAQTNEQ4GV6NZJND5DPBUGWQSZ \ / AMOS7 \ YOURUM ::
-#\[7]BTW6IWQMKDH5U7XZDKONWKVHTI6M6N6BWL4HDISNPCMEHN4XZSCY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,.,.,,.,,.,.,.,.,,,.,..,,.,,,..,,...,...,.,.,.,.,,..,,.,,.,.,
+#KH3V564DFZZQFZQBIFOM6XPZ4DCJG2SFZC55T5STQEMSWSFT635W5QA4O5HPGQ7Y324NBQ22ZQWUO
+#\\\|IDJIJRNKSO66A7KJJXLOBLHPVOL4RUWBBYNWSDXWYGNU26LJM5S \ / AMOS7 \ YOURUM ::
+#\[7]CQV26KCJYYGPZYXJBL4BQQNFP26UIFTL4E5QLI44ZJ7BRAESUWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

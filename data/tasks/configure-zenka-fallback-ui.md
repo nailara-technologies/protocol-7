@@ -149,7 +149,7 @@ through `configure.cmd.decide` rather than coding its own picker.
 # descr = the landing-address query — returns top-level zenka set
 ```
 
-reads `<v7.zenka.setup>` plus statically-configured navigation roots
+reads `<v7-zenki.zenka.setup>` plus statically-configured navigation roots
 [ `system.configure.cfg.navigation_roots` ] and returns an ordered
 list of addressable children. the *only* configure-specific query;
 all other navigation delegates to `base.ui.render.fallback`.
@@ -214,7 +214,7 @@ exact required keys.
   decision.
 - `harmony configure.cmd.ui-show` etc. clean.
 - starts under v7 management at boot when added to
-  `cfg/zenki/v7/start-set-up.base` [ or on-demand otherwise ].
+  `cfg/zenki/v7-zenki/start-set-up.base` [ or on-demand otherwise ].
 
 ## non-goals
 
@@ -242,8 +242,8 @@ harmony configure.ui.render.decisions
 harmony configure.cmd.ui-show
 ```
 
-#,,,.,,,.,.,.,,.,,,,.,..,,,.,,.,.,,.,,,,,,.,,,..,,...,...,...,.,,,,,.,,,,,,,,,
-#Z75VMTXYE4NGTSE6QPSKT2FD4XQYET54CAHGINQP36KQ3TQ7ECTGWKUJXDFHLOC4QP7LYUE2KGE2M
-#\\\|A3P24WCCT54XAD2PAXP2YT7XXZQNLWWHSOZ3CAJIBZ7J3EHZOZF \ / AMOS7 \ YOURUM ::
-#\[7]4LZAS4JHRKSA3HHCUUHUP4VEYJ6GV7DRXEWYQV7HCVC37WPRZSCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,.,,,,.,,,.,,,,,.,.,.,,,,,.,..,,...,...,,..,.,.,,..,.,.,.,.,
+#6G37TYMNSFOJ5URNG5EAJC36CEFMCEIIDLPOZ46LJGBT4TBJDSYNBCEUYCC6LFJ34K5OBGD75L7WO
+#\\\|AW3DYCE3G6WRWKDTGGZIABKEH5UJ7RLQ6IZ7MYTHBNQTQYAZ3TN \ / AMOS7 \ YOURUM ::
+#\[7]QH4LKXCMF77RUKS46DDKQE7YI2M2HSFQ6ZVFYWGHXHSX7FTC34DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

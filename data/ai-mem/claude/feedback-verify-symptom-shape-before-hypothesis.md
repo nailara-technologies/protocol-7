@@ -10,7 +10,7 @@ During the radio-zenka resilience session ([[topic-radio-relay-zenka]]'s
 happens that i go to sleep and it is off when waking up again." I read that
 as a process-death symptom and spent a real chunk of the session chasing it
 as one: checked whether the radio zenka was v7-managed, read
-`v7.handler.zenka_status`'s restart/heartbeat logic in detail, checked `ps`
+`v7-zenki.handler.zenka_status`'s restart/heartbeat logic in detail, checked `ps`
 parent-child relationships, grepped the zenka's log for crash signatures —
 all before the user corrected me: "the issue is not the zenka
 disappearing.. only the playback.."
@@ -25,7 +25,7 @@ picked (a) because a prior memory-documented incident class
 ([[topic-mpv-x11-dependency-cascade-restart]], general v7 restart-cascade
 behavior) was fresh and available to reason about, not because the evidence
 actually pointed there — the log I eventually pulled (`ps` uptimes,
-`v7.zenka.start`/`v7.handler.zenka_status` source) never showed an actual
+`v7-zenki.zenka.start`/`v7-zenki.handler.zenka_status` source) never showed an actual
 crash-and-stay-down pattern, it showed a zenka that had just been manually
 restarted that day, which is at best weak circumstantial evidence, not
 confirmation.
@@ -44,8 +44,8 @@ significant investigation time before the user has to correct it.
 
 #,,.,,,,,,...,,,,,,..,...,.,,,,,,,,..,.,,,,,,,..,,...,..,,.,,,,..,.,.,,,.,,.,,
 
-#,,,.,.,,,,,,,.,.,,..,...,.,.,.,,,,..,,.,,.,,,..,,...,...,.,.,.,.,,..,,.,,,,,,
-#B3LJI4KZICITKJXJAZZ5IFVISTOT4Q735QKAOOP2BZG7YDRFWSZEBLX4TSPBTQBKJR2DDF6W6XNGG
-#\\\|NIELIQGARTI5W7S4VTRAFWJPQBW27ACRGTQ3NO5EVNMK3QCFVQ3 \ / AMOS7 \ YOURUM ::
-#\[7]J5SMWOC574IQN3EP2MTGHMK365H6NTL64JL4KQ46EVN6SUQ42WBY 7  DATA SIGNATURE ::
+#,,,.,...,...,,,,,,.,,..,,,,,,..,,,..,,,.,.,.,..,,...,...,...,.,,,.,,,...,,,,,
+#5QM65LDB7JUZUPFBGI7GLT4OTXQ7C5ZTQJAAPY3VK2QUF4WEY2MZ4AHBPIUFTN6AQZ7YF6YTFFCQ6
+#\\\|QLZAZDM4MLACIKMNT7EGCV2QFRMCIDBV6KIKKHVY53SJPETW7IA \ / AMOS7 \ YOURUM ::
+#\[7]RKHO6GDFY6ERGLNCT3ZZFUWPPY4FSOCC5HNZCNQLSAQQQMK72OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

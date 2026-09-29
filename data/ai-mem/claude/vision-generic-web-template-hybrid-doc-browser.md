@@ -82,7 +82,7 @@ concrete target for the deferred "scan many documents for style elements" step.
 user caught it**: the batch SPEED fix was `<web-browser.slideshow.
 no_scroll>` — an EXISTING flag, `//= 0` in `web-browser.init_code`,
 already checked in `web-browser.callback.load_finished` to gate whether
-`scroll_start` gets called at all. Set via devmod (`v7.devmod-enable
+`scroll_start` gets called at all. Set via devmod (`v7-zenki.devmod-enable
 web-browser` then `web-browser.set web-browser.slideshow.no_scroll 1`),
 zero new code, ~136s/page down to ~9s/page. Real lesson: check for an
 existing config/flag before reaching for new code, even with a
@@ -242,8 +242,8 @@ wheel is a natural color-selection UI, and the slider set is a ready-made patter
 tunable-parameter controls generally, not just color. Worth extracting when stage 3/4
 actually starts.
 
-#,,,,,..,,...,,.,,...,,,.,,.,,,.,,,.,,,..,.,,,..,,...,...,,,,,,.,,,,.,,.,,,,.,
-#WKH4Q2HYOS64U7CEOQ2GFZ6KIKB5HU3PRLUW2UA7PTB7GFXK2WGSXHBXSNZKQ4AT65SXZOOPWV2QM
-#\\\|QYO4D3U25OPFBVMLKD4IPTZXVC5PMGCJ4ZPLNXN5TZBOLFPCQCM \ / AMOS7 \ YOURUM ::
-#\[7]QKCPDX4UOMRANUVNHTEWXIPPRZ6CACIDDZMLUOW34TSBTHMSVMAI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,,,.,.,,,...,...,,..,,.,,...,..,,...,..,,.,.,,,,,,,.,,..,,.,,
+#7O4GWKRSLB4RCN4BO7332FWW4IJD4WRXZBM4LDELPIJ3VKMCKGFVRBSNSDNNBY4M45TEGD4JZ2REU
+#\\\|VV7SZ2PS2PQD3K3GCZOBG2EPK2YGTZTSJSQIRBWFO3TBPWHFIK3 \ / AMOS7 \ YOURUM ::
+#\[7]PSJZWTVOU3BY65WCKPTVPKLO4JKSYHYE7EJHPKJJEY4KS3ZGLQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

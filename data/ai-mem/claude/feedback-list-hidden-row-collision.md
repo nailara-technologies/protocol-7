@@ -6,8 +6,8 @@ metadata:
 ---
 
 Found live while debugging why a brand-new `sessions` zenka (and the
-pre-existing `users` zenka) silently didn't appear in `v7.list
-available`, despite `<v7.zenki.available>` demonstrably containing both
+pre-existing `users` zenka) silently didn't appear in `v7-zenki.list
+available`, despite `<v7-zenki.zenki.available>` demonstrably containing both
 (`v7.dump` confirmed well-formed data). Static tracing of the entire
 render pipeline (`base.cmd.list` → `base.resolve_hash` →
 `base.reverse-sort`/`base.context.list` → filter-matching →
@@ -15,7 +15,7 @@ render pipeline (`base.cmd.list` → `base.resolve_hash` →
 checked out correct, including empirically re-verifying the regex
 filter matched `"sessions"` fine. The bug was find-able only by
 comparing `v7.dump available` (data present) against the actual
-rendered table (`v7.list available`, unfiltered — both entries just...
+rendered table (`v7-zenki.list available`, unfiltered — both entries just...
 absent) and asking what "sessions" and "users" have in common structurally,
 not what's wrong with the zenka.
 
@@ -31,7 +31,7 @@ setting `$data{'lists_hidden'}{'sessions'} = 1` /
 But `base.parser.list`/`base.parser.list_filtered` checked that SAME
 hash **per-row**, inside the render loop (`next if exists
 $data{'lists_hidden'}{$key_val}`), where `$key_val` is each row's own
-key — a zenka name for `v7.list available`, a username for
+key — a zenka name for `v7-zenki.list available`, a username for
 `base.init_code:140`'s `list.users`. So a zenka or user literally named
 `sessions`/`users` collides with the hidden LIST names and gets its row
 silently dropped from ANY list keyed that way — nothing to do with the
@@ -67,8 +67,8 @@ share a hash, not a defect in any individual list's own logic.
 
 [[project-users-zenka-unblocks-cross-host-testing]]
 
-#,,..,,..,,,.,,.,,.,.,,..,,..,,,,,,,.,...,,,,,..,,...,.,.,..,,.,,,,,,,...,,..,
-#TWE2WDSGREMA4SHF4CSLG4CMYWJBBSTCUXZRTNMWC64JIYX4Q4UTAXJTNYSJVIFSXVWP6HE4QPHVQ
-#\\\|WUKVKNM3KCXB6YSMJBVADZN66S5OU4OE4XCPJMCQW2Z53LBEZZ6 \ / AMOS7 \ YOURUM ::
-#\[7]BQURCMRAZYLV7MTDZO5WDRLW6237YHFVIIM47DNMYAXXPDCCFADQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,.,,,.,.,..,,...,.,,,...,.,,,..,,...,.,.,.,.,..,,,,.,.,,,.,.,
+#HSLV57H3OZTAKME3SMXTY2MOJEPUCQB2I6UPBF7HIR2RCFGNN5MJJ6M5ZLZ5UHNGNRK7VCFKQSVT2
+#\\\|W57RNRPRU2V2RWC32GHMVHA3FTWRKB57KY2HGDELX2ZI5MK2EHE \ / AMOS7 \ YOURUM ::
+#\[7]GBZPIEJ3A2AZBYHG67NSXOF2PKLSEJPKL25LZDHLG25OEKW7S6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

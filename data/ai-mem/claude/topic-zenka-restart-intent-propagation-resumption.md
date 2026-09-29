@@ -55,13 +55,13 @@ its data-tree state), (2) a restart path that reads and acts on that
 intent rather than just re-running init from a static config, (3) a
 crash-report mechanism that attaches to the resumed intent rather than
 just logging the crash separately. relates to existing zenka lifecycle
-concepts (`v7.zenka.instance.track_handover`,
-`v7.zenka.instance.handover_cleanup` — see handover/restart infra already
-in `src/v7.zenka.*`) but those handle *zenka* handover between
+concepts (`v7-zenki.zenka.instance.track_handover`,
+`v7-zenki.zenka.instance.handover_cleanup` — see handover/restart infra already
+in `src/v7-zenki.zenka.*`) but those handle *zenka* handover between
 instances, not *intent* surviving an actual crash.
 
-#,,.,,,.,,,,,,,,,,,..,.,.,,..,.,,,..,,.,.,...,..,,...,...,...,,.,,,.,,.,,,,.,,
-#WVRW7R5HM6FHAUUN4V2SNR5STCYX6GEZ4N44CVAQYGGQAOF4ICG7V4IMEBJQTLDAFZMBSLUP2F754
-#\\\|OX6WTWBBBUR5KQPGAY7IRYTZO35REBIGMW42UTAMYOQC5BTKFPR \ / AMOS7 \ YOURUM ::
-#\[7]CDNGOUFJHPGFWF3MTDV5TIZXHJ33OKNBKLN6JBDX5MYIJEHLU2CA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,.,,,.,.,,,,,,.,,..,,,..,.,.,..,,...,...,.,.,.,.,,.,,.,,,,,,,
+#VMQDAJ6V7U6FUE7XFQ6645YHDMJJFJAJE4TXSZKXR5N4BWGCBIF3IPKUIRP7XSA5ZSDA6KR463HEQ
+#\\\|4ABD3XMKL3L3D6BWBNVXD5ADS2E6CAA3ZSUX7R6XPNBZEQOQU55 \ / AMOS7 \ YOURUM ::
+#\[7]JUAEQ7HHVPWQTOQ6PYIFL3CGOEQVV2DDQEU4TJ6HTHG5J72M4WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

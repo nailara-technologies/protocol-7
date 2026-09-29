@@ -81,7 +81,7 @@ Pattern:
 ```
 start_mode = stdin-zenka
 [base.auth.set_v7_key:<random-key>]
-[v7.callback.register_ondemand]
+[v7-zenki.callback.register_ondemand]
 ```
 - Coding IS managed by v7 (on-demand startup)
 - Expects authentication via v7-provided key
@@ -174,8 +174,8 @@ start_mode = stdin-zenka
 - **Network daemon zenka:** ⚠️ 2 known anomalies (coding, data)
 - **Desktop/X11 zenka:** ? Requires user auto-discovery (needs testing)
 
-#,,.,,.,,,,..,,.,,..,,..,,...,.,,,..,,...,,.,,..,,...,...,,..,,,.,..,,.,.,.,.,
-#WG2L3BETDWDL5Q7YAZ2YWUG6CQJUWLZPWHVSEXRFACRLBD57T3PGKWQUG2QDFPN3THG7Q7J4Q4RBI
-#\\\|6RUWDI5QYOM4NJ5WZMIDG7OAYA7LEVT3Y4CBQEJ4LVGK5UBSPSF \ / AMOS7 \ YOURUM ::
-#\[7]S3Q3RZFM4I4IBIIYD2IOEFOMTIIF2XY7W7N5Y4NT6QW5ZMTPTYCY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,,,,,,,.,.,,,,,,,,,.,,.,,,,,,..,,...,...,,,,,,,,,,,.,,,.,,,,,
+#JARP4CPWMJGMMWGKMS2WCHZ7REZTSZGJ26WKKEWLKF4FVOIKSR3ASCNL6RWBIRFSNVLN5SHC7SIVI
+#\\\|54RI4CIIOL24VTT5MRKSFIUC4DC5CLF42FYJNNJAYCYFRLWLYYN \ / AMOS7 \ YOURUM ::
+#\[7]VHOTTWZUM4E2H2YEUT3XQHLTTGRY24PE3FJ7GZLJYVR7NWW7YECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

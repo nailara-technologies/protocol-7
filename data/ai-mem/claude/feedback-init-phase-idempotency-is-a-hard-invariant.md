@@ -20,7 +20,7 @@ a real `$reinit`-aware guard. The generic trust assumption is supposed to hold e
 counterexample is a gap in coverage to close, not an exception to document and route around.
 
 **Direct precedent — a real reinit crash, fixed at the root, not avoided:**
-[[feedback-v7-reload-init-live-swap-subs-crash]] — a bare `v7.reload init` crashed the whole v7
+[[feedback-v7-reload-init-live-swap-subs-crash]] — a bare `v7-zenki.reload init` crashed the whole v7
 process via `base.swap_subs`'s destructive wipe firing on a stale/partial snapshot (an
 un-whitelisted nested lifecycle hook resolving on a different pass than its whitelisted sibling).
 The fix was in the shared loader/`swap_subs` code (stub-awareness + per-namespace generation
@@ -61,8 +61,8 @@ being fundamentally impossible for some subsystems.
   case of a callback bound once before any init_code runs at all (outside the reinit-reachable
   path) — not as a substitute for fixing a genuinely broken reinit.
 
-#,,,.,...,...,,,,,.,.,..,,,..,,..,.,,,.,.,,.,,.,.,...,...,.,,,..,,,.,,.,,,.,,,
-#42VVFPPVFK6J6E43UTF46XP3TOTS4YUUM5FY2FTNTLR4B5AGYP5L3KRCBZQ2GY42OZIJMARUPEBZC
-#\\\|PUU6TDEKN5SJNWE7JCRNE6GM7XYJE7U7E5OWEBBS3CKJJ3CGOUL \ / AMOS7 \ YOURUM ::
-#\[7]AJGCWIQII674X6XEB353ED6RHNAL54JJOHKZGF75E2CIFDMCQYBA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,...,,,,,,.,,,..,..,,,.,,,,.,.,.,...,...,,.,,.,.,.,,,,..,,..,
+#KUACAVG3EZO2XKCFK2EFRZUAZ6PZJ52BHQPL25EJKUFYTCGXDHACIBMU4A77SXAA3U5EEGM7ZNSWQ
+#\\\|KNR67RMVNQTUXWKGN6EU4BCRZVXKTSWRLBIV3BE2K74Y3JHCEHK \ / AMOS7 \ YOURUM ::
+#\[7]ERBZP65KOZ6S7HGCOZUKS5YHUZ3PT2JG7JTDULKBXX5CSEBKCWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

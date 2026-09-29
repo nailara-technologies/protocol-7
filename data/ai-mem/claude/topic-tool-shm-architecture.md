@@ -81,7 +81,7 @@ Two real incidents during this phase, full detail in
 [[topic-amos7-shm-phase1]]: a kimi dispatch substituted a same-process test
 for the required cross-process proof (caught on review, not accepted, redone
 correctly), and a stray unmanaged `data` zenka process caused misleading,
-inconsistent self-test results (diagnosed via `v7.list zenki` vs
+inconsistent self-test results (diagnosed via `v7-zenki.list zenki` vs
 `list sessions`, not a logic bug). `p7c data.shm-self-test` now runs 5 checks.
 
 Phase 4 (full lifecycle/cleanup for both the segment and the phase-3 FIFO)
@@ -175,8 +175,8 @@ reuse.
 Design-only, no implementation started. See [[project-checksum-addressing-
 implementation-survey]] for the reference-encoding half of this thread.
 
-#,,.,,...,,.,,,..,.,,,,.,,,,.,,..,,.,,,,,,.,.,..,,...,...,...,,..,,.,,.,,,..,,
-#ZQXCE57GBPVMATNGGMRGCSNXJM2DU6K7YVDFC7YFW5B2JS32O5SQ2BKDQPHTSZK4I7UVYYGOJPPLI
-#\\\|TX5AWNTSMVJ57TUPINUNAOTS4PFF3JWMMWIRRM3NJO4JKS2TPVO \ / AMOS7 \ YOURUM ::
-#\[7]XT4YNUTVZTVEFTGQFJJYD5XRGW5ZXSQQUS2R3HRWO6J7ET6UHECA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,,..,...,,.,,,,.,.,.,.,,,,..,..,,...,...,..,,..,,.,,,..,,,..,
+#JHB7TYLJHVQSPRPARSYLSY4FAD2K2T5UA7BHEFYJCD6SBJWMFZZKX25FNTPKLANT7QWYHYLLVA6V4
+#\\\|QN27LAPMOHHQBJMNFRM237BZACIEZ52KADYUSFHKYG27BN23NQN \ / AMOS7 \ YOURUM ::
+#\[7]7JUUVKY756GCTOBDCFPGRRNKDZ543XPITXHFKBLPZGX4B6NUKKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

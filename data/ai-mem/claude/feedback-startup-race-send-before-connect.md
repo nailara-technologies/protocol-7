@@ -88,7 +88,7 @@ fix is usually a two-minute read of that one file.
   traveling **consumer→producer** ("stop pushing to me, I'm gone") — not
   useful for "the *publisher* I depend on restarted, tell me." Confirmed
   via `plugin.httpd.radio.handler.strm_open`'s own comment.
-- Don't assume `v7.notify_online`/`v7.notify_offline` (the
+- Don't assume `v7-zenki.notify_online`/`v7-zenki.notify_offline` (the
   `radio.audio.init` pattern: register both, react to transitions) is the
   right tool for *every* "wait for a dependency" case — it's for
   zenka-level presence tracking. A specific pending/deferred *route*
@@ -115,8 +115,8 @@ handles X," check both ends, not just the one you're touching.
 
 [[topic-strm-subscription-evolution]] · [[base-caller-route-send-detection-off-by-one]]
 
-#,,..,,.,,...,,.,,...,,..,,,.,,.,,..,,.,.,..,,..,,...,...,,..,.,.,,.,,,,.,...,
-#KHBBXM3I236YW43DDCRMFPWW46V2KA7FFO3PIBN5XB2VIVGKBWG5QA3DKEP47GBDNNDNOMSQECDUW
-#\\\|5I2D4BBOADLGAHBD2XEEWSIWC5ATHTGKVIHTYSGEX5A4T26V7PU \ / AMOS7 \ YOURUM ::
-#\[7]LFSJ4KHW3LLAXG33NGUUVSRO3EGVBGQTN2M6HZNBWLA2BINRO6CQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,..,,,,.,,..,,.,,.,,,,,,,...,,..,..,,...,...,.,,,,,.,...,.,,,,,,,
+#QB5RVQD37YHPRDRBNGYESELFPBZXBZHWVDQWBBBZWY23WUWHJZRTMYLL62IWVNTSLUAVWMSVAFCNQ
+#\\\|S3XRZ4XGOOYJJ7ERVM76B2YTMHG757GXJOKCPKW7G27KHZSR6NW \ / AMOS7 \ YOURUM ::
+#\[7]JUCDS5K442JYKRDUSAEHAS44IKLV7R6TR76MTO4K2WS4ZNCS5ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

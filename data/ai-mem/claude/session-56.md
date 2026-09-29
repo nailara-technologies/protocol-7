@@ -58,9 +58,9 @@ metadata:
 
 **chunked persist job pattern** — `index.persist` enqueues `<index.jobs>->{'persist-cube'} //= { 'job-type' => 'persist-cube' }` (fixed key prevents double-enqueue); `index.tick.persist-cube` 3 phases: (1) init: precompute layout + header, store state; (2) per-batch: 2000 compartments, ring_offset advances, ring complete → current_depth++; (3) finalize: assemble header+dir+comp strings, write file; accumulates to scalar strings (not arrays) for O(1) finalize join
 
-**v7 restart race fix** — race: SIGCHLD fires first → `init_restart_timer` sets 0.05s timer; then STDIO close fires → second `v7.zenka.instance.restart` call cancels timer, re-adds dead PID to restart_pids → permanently stuck; two guards added to `v7.zenka.instance.restart`: (1) return early if timer active AND all processes dead (`v7.instance_pid_count == 0`); (2) call `init_restart_timer` directly if process already dead after `terminate_process`
+**v7 restart race fix** — race: SIGCHLD fires first → `init_restart_timer` sets 0.05s timer; then STDIO close fires → second `v7-zenki.zenka.instance.restart` call cancels timer, re-adds dead PID to restart_pids → permanently stuck; two guards added to `v7-zenki.zenka.instance.restart`: (1) return early if timer active AND all processes dead (`v7-zenki.instance_pid_count == 0`); (2) call `init_restart_timer` directly if process already dead after `terminate_process`
 
-**sig_chld_ignore_pid wiring fix** — three disconnected key paths: restart used instance-local `$instance->{'sig_chld_ignore_pid'}`, handler checked top-level `<v7.sig_chld.ignore_child_pid.{pid}>`, base handler used `<sig.chld.ignore.pid>`; fixed: restart now sets top-level `<v7.sig_chld.ignore_child_pid>->{$parent_pid}`; handler `next` only skips non-registered PIDs (registered zenka children fall through to process_zenka_end)
+**sig_chld_ignore_pid wiring fix** — three disconnected key paths: restart used instance-local `$instance->{'sig_chld_ignore_pid'}`, handler checked top-level `<v7-zenki.sig_chld.ignore_child_pid.{pid}>`, base handler used `<sig.chld.ignore.pid>`; fixed: restart now sets top-level `<v7-zenki.sig_chld.ignore_child_pid>->{$parent_pid}`; handler `next` only skips non-registered PIDs (registered zenka children fall through to process_zenka_end)
 
 ---
 
@@ -72,8 +72,8 @@ metadata:
 
 **whitelist lifecycle hook skip rule** (bin/Protocol-7 lines 1568-1574): lifecycle hooks (`pre_init`/`init_code`/`post_init`/`end_code`) for OTHER namespaces not in the whitelist are silently `next`'d — they never even get a deferred stub; this is distinct from regular subs which get `base.handler.deferred_compile` stubs
 
-#,,..,.,,,.,.,,,.,,..,.,,,,,,,,..,,..,,.,,,,,,.,.,...,..,,.,,,,,.,,.,,,,,,.,.,
-#X4KOH5DCOYXLTTKQY55EQ4WTEU5IZ5PSQADPBDFDVDBJLHCNRIBEB5DVPNLSGSN7ACZY5AZVD3YZG
-#\\\|KE7IG2DXTMPUTBEGLUELXPIBZ4VVJ4NPPOSG6TRLJQFMO5NOGGU \ / AMOS7 \ YOURUM ::
-#\[7]DTFXHMNLRKZ3UUSCMDFS752LTUPNEAXKJXTJLVWMNG6MTTKOBGDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,.,.,,,,,,,.,,..,,..,...,,.,,.,.,...,.,.,.,.,,,.,.,,,..,,...,
+#JQ6OESI3UIKMMZFCMELZ4KKYNEPXPBOSIIZ5MLMVPCK2MRYKPYO7OPAJBPMD7YSJYD2OIPOORDTCC
+#\\\|4COK22W53UFTGLLFYF5VWPY6VYX3XALZFJJKG7ZQ24U6GZLIAXQ \ / AMOS7 \ YOURUM ::
+#\[7]ITUG6SQYAYZFF7QK3PT3RJMTSZETFC76C7K4PEW6V34ZGLLW2MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

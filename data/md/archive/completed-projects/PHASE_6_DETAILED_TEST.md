@@ -26,7 +26,7 @@ export PROTOCOL_7_LINK_UPGRADE=yes  # Enable encryption
 
 # Get local cube info
 p7c list sessions
-p7c v7.cfg.p7r_bin_path  # Verify p-7-r location
+p7c v7-zenki.cfg.p7r_bin_path  # Verify p-7-r location
 ```
 
 ### Test Steps
@@ -72,7 +72,7 @@ p7c keys.console.list
 #### Step 4: Test Validation (Reconnect)
 ```bash
 # Second connection should validate, not re-pin
-p-7-r localhost v7.available_zenki
+p-7-r localhost v7-zenki.available_zenki
 
 # Expected:
 # - No TOFU prompt (key already pinned)
@@ -136,14 +136,14 @@ p7c select auth-keypair
 
 # Verify link-upgrade
 export PROTOCOL_7_LINK_UPGRADE=yes
-p7c v7.cfg.bin_p7r_has_symlink
+p7c v7-zenki.cfg.bin_p7r_has_symlink
 
 # List all modules
 p7c base.list.subroutines | grep -E "(tofu|remote|keypair)"
 ```
 
-#,,,.,,..,,.,,,,.,...,...,,,,,,.,,,,,,,.,,.,.,..,,...,...,,..,..,,,..,.,,,,.,,
-#7HRDIDKOTEZLD4H7ZT4CN5VZWTVSAYADFYCG26DCV6WBD66ZUCDX3VTI7KIVW77KWYCX4V5IDP2VY
-#\\\|JDGRRM6NLI3ZIWX2LJXG4QMCBAUFCJUJFAJ7SHJZFQKFJF5FOUW \ / AMOS7 \ YOURUM ::
-#\[7]URFY3R6XABR5U5S3FVSW7BIXWJDBI7N5TUVWVE5HA5LVELNW46AY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,,..,,..,,,,,.,,,...,.,.,,..,..,,...,...,,,.,,.,,..,,,,.,..,,
+#LY6Z7IM2YGA3AK5LBBB7TSQL3UY2TSGLKWWW4PCVOX7DRVESKT6K3ZP3CVY77TMGLNAGW3H6T3LPY
+#\\\|WVQRHBZ4E7RYXIL47VK34N4IYJFBZWDUPR7DGSRDWIIEI36YVJI \ / AMOS7 \ YOURUM ::
+#\[7]5ZQKHBO2T4D5LL4DGHHLUNCCJ4CAHNTLREVNSCBO4LOGBCWF5UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
