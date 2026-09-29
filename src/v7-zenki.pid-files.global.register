@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = v7-zenki.pid-files.global.register
+# descr = register pid file in the on-disk registry
+
+## on-disk registry [ symlinks ] of zenka-reported pid files, surviving a ##
+## v7-zenki restart -- clone of v7-zenki.tmp-paths.global.register with a ##
+## separate registry directory                                            ##
+
+<v7-zenki.pid_files>         //= {};
+<v7-zenki.dirpath.pid_files> //= qw| /var/run/.7/v7-zenki/pid_files |;
+
+my $register_pid_file = shift // '';
+my $owner_uid         = shift;       ##  owner uid accepted at report time  ##
+my $owner_gid         = shift;       ##  owner gid accepted at report time  ##
+( my $pid_file_dir = <v7-zenki.dirpath.pid_files> ) =~ s|/+$||;
+
+if ( not -d $pid_file_dir ) {
+    <[base.s_warn]>->(
+        'symlink storage directory path [ %s ] not found <{C1}>',
+        $pid_file_dir
+    );
+    return undef;    ##  returning undef on error  ##
+} elsif ( not -w $pid_file_dir ) {
+    <[base.s_warn]>->(
+        'symlink storage directory path [ %s ] not writable <{C1}>',
+        $pid_file_dir
+    );
+    return undef;    ##  returning undef on error  ##
+} elsif ( not length $register_pid_file ) {
+    warn 'pid file path parameter expected <{C1}>';
+    return undef;    ##  returning undef on error  ##
+} elsif ( not defined $owner_uid or $owner_uid !~ m|^\d+$| ) {
+    warn 'owner uid parameter expected <{C1}>';
+    return undef;    ##  returning undef on error  ##
+} elsif ( not defined $owner_gid or $owner_gid !~ m|^\d+$| ) {
+    warn 'owner gid parameter expected <{C1}>';
+    return undef;    ##  returning undef on error  ##
+} elsif ( index( $register_pid_file, qw| / |, 0 ) != 0 ) {
+    <[base.s_warn]>->(
+        'relative path [ %s ] not accepted <{C1}>',
+        $register_pid_file
+    );
+    return undef;    ##  returning undef on error  ##
+} elsif ( not -e $register_pid_file and not -l $register_pid_file ) {
+    <[base.s_warn]>->( 'pid file %s not found <{C1}>', $register_pid_file );
+    return undef;    ##  returning undef on error  ##
+}
+
+my $pid_file_abs
+    = -l $register_pid_file
+    ? <[base.path.clean_symlink]>->($register_pid_file)
+    : abs_path($register_pid_file);
+
+if ( not length $pid_file_abs ) {
+    <[base.s_warn]>->(
+        'cannot resolve abs path [ %s ] <{C1}>',
+        $register_pid_file
+    );
+    return undef;    ##  returning undef on error  ##
+}
+
+##  checking if registered already and skipping if  ##
+##
+my @match_link
+    = <[file.matching_path_linknames]>->( $pid_file_dir, $pid_file_abs );
+if ( scalar @match_link and defined $match_link[0] ) {
+    foreach my $link_abs_path (@match_link) {
+        <[base.s_warn]>->(
+            'already registered pid file [ %s ] as %s <{C1}>',
+            $pid_file_abs, $link_abs_path
+        );
+    }
+    return undef;
+}
+
+my $symlink_abs    ##  generate a symlink path for on-disk registry  ##
+    = <[file.gen_path_linkname]>->( $pid_file_dir, $pid_file_abs );
+
+##  create reference for run-time clean-up  ##
+<v7-zenki.pid_files>->{$pid_file_abs} = $symlink_abs;
+
+##  also create the symbolic link in the target directory  ##
+##
+if ( not symlink( $pid_file_abs, $symlink_abs ) ) {
+    <[base.s_warn]>->(
+        "error creating symlink in %s : [ %s ] <{C1}>",
+        $pid_file_dir, <[base.str.os_err]>
+    );
+    return undef;    ##  returning undef on error  ##
+}
+
+## sidecar records the owner uid \ gid accepted at report time -- the ##
+## deletion-time owner check [ clean-up ] survives a v7-zenki restart ##
+##
+my $sidecar_path = sprintf( qw| %s.uid |, $symlink_abs );
+if (   not open( my $sidecar_fh, qw| > |, $sidecar_path )
+    or not printf( {$sidecar_fh} "%d %d\n", $owner_uid, $owner_gid )
+    or not close($sidecar_fh) ) {
+    <[base.s_warn]>->(
+        "error writing owner sidecar [ %s ] : %s <{C1}>",
+        $sidecar_path, <[base.str.os_err]>
+    );
+    unlink($symlink_abs);    ##  no registry entry without owner record  ##
+    delete <v7-zenki.pid_files>->{$pid_file_abs};
+    return undef;            ##  returning undef on error  ##
+}
+
+return $symlink_abs;    ##  returning absolute path of created symlink  ##
+
+#,,.,,.,.,.,.,,,.,.,,,,..,,.,,,,.,.,,,,.,,.,,,..,,...,..,,,.,,,..,.,.,,,,,.,,,
+#TZXSTLO6OCVGGISKRUOCKEXAUPIRLM4BPAYAWYJB2XG3PIPQMYOFUTB5HC2OAG5ZEG7GJXXUOF4TU
+#\\\|BZ4QEQQIVTWXPSF2PJSP5J3AVJBXVGBQBNEKDRH3AUSXRWHKACD \ / AMOS7 \ YOURUM ::
+#\[7]CTKFZN27PYKFSF2ZEZMFPZMGIIN553BSUBB5EPQFW2HNGKTJ3KCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

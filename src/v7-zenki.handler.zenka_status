@@ -147,6 +147,20 @@ if (    $status ne qw| starting |
     );
     ## clean-up ##
     <[v7-zenki.cleanup_temp_paths]>->( $parent_pid, $instance_id );
+
+    ## registered pid files : removed on a planned end only [ a manual      ##
+    ## terminate -> status 'shutdown', a manual restart -> status 'restart' ##
+    ## from a live state ]. NOT on an error restart [ heartbeat response    ##
+    ## timeout -> status 'error' -> restart timer, which never passes       ##
+    ## 'restart' \ 'shutdown' here ] and not when the zenka process died by ##
+    ## itself [ 'offline' -> 'restart' transition in                        ##
+    ## v7-zenki.handler.children_left ] : a pid file still present at the   ##
+    ## next zenka start then means 'not a planned end' [ crash marker ]     ##
+    <[v7-zenki.cleanup_pid_files]>->( $parent_pid, $instance_id )
+        if $status eq qw| shutdown |
+        or $status eq qw| restart |
+        and $old_status ne qw| offline |
+        and $old_status ne qw| error |;
 }
 
 if ( $old_status ne qw| error | and $status eq qw| error | ) {
@@ -619,8 +633,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,,..,,,.,,.,,..,,...,,..,.,,,,..,.,,,..,,..,,...,...,,..,.,,,...,.,.,,,,,
-#NLGRID5FGGQK3LPYJMA7OU5L32SIMST57LEAZVZPPSOBZ5ANJW3MU2YDVRZ7YXWTKJGBFCKX4VHNK
-#\\\|2ZPDLX7JDSKHBXIDF2N4JX4RBEBIDQBREUHZOIDBHUYWYZWZAXE \ / AMOS7 \ YOURUM ::
-#\[7]XBH7P5Y2ZDX5OC27YYQ73SAFRFZSCAU7EJ4M5DREVTS4B2M5FOCA 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,,..,..,,...,.,.,.,.,,.,,,,,,..,,...,...,...,...,...,.,.,.,.,
+#USLHEOHPEXM7OWFZDWUKYLQCEPQ2I3XI3QE2TJWP7TPCQQYQV52DG6A3CVEWS2AOXO7X5LRC2NYMG
+#\\\|4REHO6IHGMRG7G6XIC32BOXMCC62WWOKS3PDLJ6OYHVL6NXJ4L6 \ / AMOS7 \ YOURUM ::
+#\[7]4CO2ZXBRLOUMWXSFHS7IGPE66DRNNA3U3MSBKYM2BOEQK3O7FMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

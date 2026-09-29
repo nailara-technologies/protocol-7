@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = base.zenki.report_pid_file
+# descr = register a zenka-owned pid file path at v7-zenki
+
+## reports a pid file path to v7-zenki [ v7-zenki.zenka.cmd.report-pid-file ##
+## ] which removes it on a planned end only -- like base.zenki.report_child ##
+## _pid the report is deferred until the zenka is initialized \ connected   ##
+
+my $pid_file_path = shift // '';
+die 'expected pid file path parameter' if not length $pid_file_path;
+die 'absolute pid file path expected'
+    if index( $pid_file_path, qw| / |, 0 ) != 0;
+
+push( @{ <system.report_pid_files> //= [] }, $pid_file_path );
+
+if (<system.zenka.initialized>) {
+    <[base.callback.report_pid_files]>;
+} else {
+    push(
+        @{ <system.callbacks.initialized> //= [] },
+        'base.callback.report_pid_files'
+    );
+}
+
+#,,.,,,,,,,..,.,,,.,.,.,,,.,,,..,,..,,...,..,,..,,...,..,,.,,,...,..,,..,,...,
+#VTNMEKEVAD3GONQG5F7U3O7MVZIVI7VBLDBQEQ47JV5KNHNTJA5DBMZ6TCKJAQXVVWMTVDSU2LTKK
+#\\\|JIA3TZKTDL5Y7NS2A4WLDWJWT3IZFWXUNNTJVMX7KHVJM4OTB4H \ / AMOS7 \ YOURUM ::
+#\[7]AVHC2JMIDN56VAGUAHBEFLC4SPLASPZLRIZVTT7MURKAA3OQ6WAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
