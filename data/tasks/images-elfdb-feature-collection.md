@@ -113,6 +113,148 @@ several categories ; gather them here as they come up, then plan. context :
 - network kittens also carry fluorescence [ in a space overlay context ] --
   not addressed yet
 
+## audience rating [ user, 2026-09-29 ]
+
+- a sophisticated distinction whether an image is safe for all audiences
+  or not ; both are kept and treated SEPARATELY [ storage, queues, anything
+  shown or exported ]
+- transitions from one into the other are allowed internally, planned for
+  and used a lot -- the rating is a property of each render, not of a
+  whole iteration series
+- tested by the user : the rendering queues alone, given enough iterations,
+  can reliably ensure a category -- e.g. a portrait extraction queue that
+  extracts elf characters from the entire dataset in really high quality,
+  safe for all audiences
+- so the rating must be checked per render and at every export \ display
+  boundary, never inherited from a queue's intent alone [ a queue aiming at
+  "safe" still needs the per-image check before anything leaves it ]
+
+## drift detection \ recycling tags [ user, 2026-09-29 ]
+
+- within the non-safe section further distinctions tag generations with a
+  RECYCLING requirement : anatomical errors, age drift, bias not intended by
+  the scene description or explicitly defined differently
+- drift sources can be indirect : e.g. a kitten in a reference image makes
+  the elf adopt slight feline features and get YOUNGER with each iteration,
+  with no obvious source at first -- the source is the kitten. so the
+  reference mix is a drift source to check, not only the prompt
+- HARD RULE : a render with age drift in the non-safe section is never kept
+  in recognizable form -- not even encrypted in the black box : it is shrunk
+  to <= 3x3 IMMEDIATELY [ color values only ] or deleted, before any other
+  step, and never enters a reference channel or any further processing
+  [ the drift would carry into the next iteration ]. the age check is part
+  of the per-image export \ display check, not only of the queue logic
+- preemptive stabilization [ user-tested ] : queues aware of possible drifts
+  counteract them up front -- phrases like "optimum age", "perfect anatomy"
+  and further distinctions that make the elves more of a shamanic, spiritual
+  expression than just a female humanoid with pointy ears. such additions
+  strongly reduce anatomy errors and especially drifting or mismatching
+  facial expressions -- a really functional stabilizing strategy
+- DEFAULT PROMPT ATTRIBUTES [ user, 2026-09-29 ] : "optimum age" and
+  "perfect anatomy" [ among other possible attributes ] belong in ALL
+  rendering prompts involving elves -- for the quality level they give
+  alone. build them into the elf prompt template as fixed parts, not as
+  per-queue options that can be forgotten
+- DESIGN PRINCIPLE [ user, 2026-09-29 ] : the default attributes control the
+  overall drift and counteract biases of certain rendering sections or input
+  [ obviously broken or unsafe input included ]. mix strategy +
+  deduplication over the many renders stabilize the categories -- so for
+  desirability you evaluate and fine-tune the CATEGORIES and their templates,
+  and can ignore the input state : what can not be integrated only ends up
+  as randomizing start entropy
+  - limit 1 : "ignore the input" covers desirability \ quality, NOT the
+    per-image output checks [ rating, exclusion parameters, age drift ] --
+    those stay, they are what guarantees broken \ unsafe input never
+    surfaces in the result
+  - what "ignore the input" means [ user clarification ] : the queue is
+    robust enough that even RANDOM internet images, given a long enough
+    run, only produce results within the exact thresholds of all main
+    categories they are fed into
+  - the input is still filtered : by desirability selection from a larger
+    batch [ e.g. an image search for elves -- the quality spread alone means
+    only the best images, already close to the category, are chosen ], plus
+    explicit exclusion \ downvoting criteria. do not rely on broad search
+    terms alone
+  - scoring with a STRICT cut-off is exclusion, not its absence : only the
+    top results within a margin pass, so even a slight downvote drops whole
+    categories of elements [ example : "mobile phones excluded" -- rendering
+    them out once they emerge costs too many heavy inference iterations ]
+  - safety = matching ALL shared requirements together ; that also catches
+    outliers, legality included. NO single gate is generically safe : tested
+    by the user -- vision models rated obviously unsafe images "safe for all
+    audiences" out of admiration for their aesthetics, and only admitted
+    after ~5 rounds of direct chat that a character was naked. a rule nailed
+    onto one gate alone is loud, not safe -- defense in depth : selection
+    margin + all category requirements + exclusion criteria + per-image
+    output checks, none of them trusted alone
+- detection without a vision model where possible : face distance to the
+  character's anchor [ see face-anchored cells ] drifting in one direction
+  over iterations flags identity \ age drift early ; reference images whose
+  category differs from the scene [ e.g. a kitten reference in an elf queue ]
+  flag a likely drift source before rendering
+
+## recycling = shrinking, the self-sustaining dataset [ user, 2026-09-29 ]
+
+- recycling works in BOTH directions :
+  - upward = extraction [ in the character sense ], two modes : face
+    extraction, and the optimum age upgrade -- in whichever scene context.
+    the results all match the threshold bracket, or the queue is not done
+    rendering yet. it renders to REPLACE the poor input imagery state
+    without losing its integratable entropy
+  - downward : the superseded images are kicked out into a recycling queue
+    system that scavenges them for anything still usable -- isolating
+    elements and feeding them into other queues. none of the actual pixels
+    within the not accepted range survive
+  - the downward path can only run automatically once the system can rely
+    on having extracted all desirable elements for upgrading the categories
+    it already has
+  - EXCEPTION : age drift in the non-safe section is not scavenged either --
+    the hard rule under drift detection applies [ immediately <= 3x3 or
+    deleted, no isolation, no feeding into other queues ]
+- tests show this is reachable by the number of translation steps alone,
+  without necessarily a vision capable llm ; the safe for all audiences part
+  also has more lightweight classifiers available. vision models still
+  greatly enhance the system
+- every raised [ improved ] image gets its lower quality predecessors dropped
+- dropped is not deleted : predecessors shrink back into the 3x3, 2x2, 1x1
+  sizes, with process steps in between -- e.g. element separation, mask
+  based foreground removal and inpainting to complete a background, and
+  other generic or more contextualized queues \ steps
+- goal : a fully self-sustaining dataset that neither explodes in size nor
+  loses context or data, kept in a desirable range from any perspective
+- why it works : the desired minimum quality technically needs many
+  iterations ; by then, with correctly defined queues, the result set has
+  grown out of any fluctuation and out of its source state
+
+## non-safe section : nested encrypted black box [ user, 2026-09-29 ]
+
+- encrypted by default ; nested [ black boxes inside black boxes ] ; not
+  transferable through the regular character sharing logic
+- users never have to look at degenerated anatomy or anything matching an
+  exclusion parameter for the result set -- those stay inside the box
+- [ see the hard rule under drift detection : age drift is not kept inside
+  the box either ]
+
+## open data ingestion [ later, user, 2026-09-29 ]
+
+- ingestion from image search engines -- not immediately : only once the
+  queues themselves are reliably safe and stable
+- ingested images pass the same per-image rating \ exclusion \ drift checks
+  as renders before they enter any queue or reference channel ; source \
+  licence metadata kept with them [ open question : which sources and
+  licences are acceptable ]
+- the user notes a philosophical side to character extraction and to
+  recycling itself [ not yet written down ]
+
+## characters : face-anchored cells [ user, 2026-09-29 ]
+
+- face detection + face distance sorting "branch" the main characters : the
+  renders belonging to one character form a CELL
+- the extracted faces themselves are simple graphical anchors for matching
+  and grouping all [ sub- ] styles and scenes of that character
+- ties into the topology : a character cell is an arc bundle \ depth branch
+  on the wheel ; the face is its anchor, the color angle its position
+
 ## categories : elves first
 
 - elves, kittens, stargates, deep space and other elements have direct
@@ -224,6 +366,26 @@ several categories ; gather them here as they come up, then plan. context :
   switch starts at the top and reloads all thumbnails -- a weak point with
   40k+ images, user 2026-09-29 ]. not a blocker : our ui replaces it
 
+## scheduling by curves [ user, 2026-09-29 ]
+
+- why the strict cut-off : available rendering time is a SCARCE resource.
+  first the high quality categories must be saturated, then more high
+  quality category items should keep appearing -- the fastest, least
+  effort way is to let the queue system process and schedule them by all
+  the parameters it has
+- those parameters are curves, mapped onto \ compared with each other :
+  curves and thresholds
+- graph the parameters over queue runs ; visualize them and EDIT them
+  visually : levels, thresholds, amplification, dampening, range brackets
+- the curves are settings control AND a direct part of the state machine
+  itself [ editing a curve changes the scheduler's behaviour, not a copy ]
+- existing ground : `base.curve.compose` [ named in
+  `vision-consensus-vote-as-curve-decision.md` as the continuous
+  replacement for discrete winner decisions ],
+  `topic-implicit-perspective-navigation` [ "curves \ thresholds ARE the
+  nav decision" ], web-browser `graph-params` [ caught a real bug visually,
+  `vision-environmental-param-graphing-correlation-convergence.md` ]
+
 ## render control [ exists in invoke-web, reuse ]
 
 - queue order [ newest \ oldest \ harmonic ], interactive mode, queue-front,
@@ -233,8 +395,8 @@ several categories ; gather them here as they come up, then plan. context :
   `data/tasks/task-zenka-cold-queue-gpu-cooldown-trigger.md` [ gpu-temp
   cooldown gate, implementation plan already written ]
 
-#,,.,,,,.,.,,,,.,,,.,,.,,,,.,,.,,,.,.,.,.,,..,..,,...,...,...,...,,..,,..,,,.,
-#6GKGZFL37R42JIKFJL3MWWO6TUPKCCEJ7HG5AHWCL7DU5VBR4JUELJRZRCB4AHWSHBLS7O3T6LFD2
-#\\\|56236WCUN3I56YCPUL47RONM522LXTN4Z4OL3YQI6MTJZ3E36YF \ / AMOS7 \ YOURUM ::
-#\[7]TFFBBN3Z46MC5IRKND76L2BMDHGC6CMWGFGA5WZN652QWPKV6CBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,.,.,,,.,.,.,,,.,,.,,,..,.,,,..,,...,...,..,,,,.,..,,,.,,.,.,
+#ZDUT5ELNPPVZ77SN2C2USQJFUPDKQR5SGKSEWAR4ZDTCYNXEM73LZXSPJYJ6AYXTBLQISNYAD57T6
+#\\\|M2VGMFAUKMBJ2UBVDSSNUGDZ2NOJD37CDQL7YWOTG2KSS2XKQVM \ / AMOS7 \ YOURUM ::
+#\[7]N6J6VURJEILXCSN33BRPUMQ5KWM7G66YHC4TSAZBEZ4SJXAIXSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
