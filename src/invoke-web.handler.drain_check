@@ -14,6 +14,10 @@
 
 my $now = <[base.time]>->(0);
 
+## fallback for the interactive mode : a database write missed by the ##
+## inotify watch is caught here within a minute                        ##
+<[invoke-web.handler.queue_watch]> if <invoke-web.queue_interactive>;
+
 ## phase 2 : stop requested, wait until invoke.ai is gone ##
 if ( defined <invoke-web.drain.stopping> ) {
     ## cmd.stop clears <invoke-web.pid> at once : the pid is kept here ##
@@ -82,8 +86,8 @@ if ($pending) {
 
 <[invoke-web.drain.stop]>->( $idle, 0 );
 
-#,,.,,.,,,,.,,,..,,,.,,..,,.,,,..,,,,,,,,,..,,..,,...,...,..,,,..,.,.,,,,,...,
-#B2VETFCJ3VCP7OO3PYPCOFWPS35TWQTF6ET45S4LPZYJ6GG5WIGMDSQWJK3GFKAJVUYV5HI64ZCBE
-#\\\|7OMGDJSHLUEZTYSAFIX42TOZAXOUQJRJQHVWKOVIFOZC57BFBWX \ / AMOS7 \ YOURUM ::
-#\[7]HWHXXAVI4RYYYUVXYVJYRWF5EZ46SHLWFF3HOTLETNWCNF3WVGAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,,.,,,.,,.,.,,..,,,,,.,.,,,,,..,,...,...,.,.,,..,,,.,,.,,,.,,
+#D55AUUXJXKV5HVPUGPFUXV6LGCENCE72YXMDZ4FMSC22MOBXNYY223XS74HAL35LGIOV4LGLHGO4S
+#\\\|WLIAXTDWWSX3RIJNTWIPZ2LZRSUY52UH6XR64MQNTTW7ZIPP2Z7 \ / AMOS7 \ YOURUM ::
+#\[7]WOTTNPSPIAUQ5VEMWDOFNCJHSDIC6ZAJAHOH7ZROSXS7VVJGI2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
