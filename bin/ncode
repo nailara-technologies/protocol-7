@@ -1967,11 +1967,11 @@ sub load_source {
     my @params = @_;
     my %source;
 
-    # '+' combines multiple targets [ e.g. 'src+bin', 'src:file+zenki:v7-zenki' ],
-    # but a target:pattern pattern may itself contain a literal '+' [ regexp
-    # quantifier, e.g. 'zenki:.+/zenka' ] -- so a '+' only starts a new
-    # target when what follows it up to the next '+' names a real target;
-    # otherwise it's kept as part of the running pattern ..,
+# '+' combines multiple targets [ e.g. 'src+bin', 'src:file+zenki:v7-zenki' ],
+# but a target:pattern pattern may itself contain a literal '+' [ regexp
+# quantifier, e.g. 'zenki:.+/zenka' ] -- so a '+' only starts a new
+# target when what follows it up to the next '+' names a real target;
+# otherwise it's kept as part of the running pattern ..,
     my @load_types;
     {
         my @raw_parts = split( '\+', $type, -1 );
@@ -2845,8 +2845,9 @@ sub pattern_invalid {
     if ( $pattern_type eq qw| search | ) {
     } elsif ( $pattern_type eq qw| replace | ) {
 
-        # remove $1, $2 etc.. [as they are allowed]
-        $_tmp_pattern =~ s,\$\d+,,g;
+        # remove $1, $2 etc.. and the braced ${1} form [ needed when a digit
+        # follows the group : ${1}2 ] -- both only capture groups, allowed
+        $_tmp_pattern =~ s,\$(?:\d+|\{\d+\}),,g;
     } else {
         return 1;    # pattern type invalid
     }
@@ -3172,8 +3173,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,..,.,,,..,,,,.,..,,.,.,,..,,,,,,,,,,..,,..,..,,...,...,.,,,,..,,.,,,,,,,.,,
-#V7257G2MC4NGSH7CUAIVQNJJQNH4QZYXECIPBOH54QUXATOYMRDCWK7UUXKZ6IZHHNNOAKWLR2TGM
-#\\\|73ZKAXT4TZA5SQLH5N6JV6AK7AOW67QY52SJI2KRRGJB5TBFTJ4 \ / AMOS7 \ YOURUM ::
-#\[7]VHIUPA5USLQG3RCEOEKM5Q6Z7PYZGJIVJNIUUFOZ7F43JAEIFMCQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,,..,.,.,.,,,.,,,,,,,,,.,...,..,,...,..,,,,,,.,,,..,,,,.,...,
+#5D2EQLIC7CXYXZJM4QPO6DL3LF6V5BR6NPCOU6XQFXDZFY7WTGNFBW4CH7Y4JRB6IKZXCY537NTOU
+#\\\|4BOSEBOM5ZBMOTA34H3Q3MFEJ55JZMWSEVVGXKV4TG5XGCF75NX \ / AMOS7 \ YOURUM ::
+#\[7]UMUMGOEL2AZYMICPTBW6WWTOYNGDF2GX3JXSGUMKPPJALS3ESMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
