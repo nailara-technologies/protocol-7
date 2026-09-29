@@ -93,7 +93,7 @@ if ( $staged !~ m{^\Q$verify_dir\E/[^/]+$} ) {
 ## rename. a symlink [ rename moves the link, the hash would read its       ##
 ## target ], a hard link [ a second path outside stays writable ] or a file ##
 ## of another owner [ an open handle stays writable ] is refused            ##
-my @st          = lstat($staged);
+my @st          = CORE::lstat($staged);
 my %trusted_uid = map { $ARG => TRUE } grep {defined} $EFFECTIVE_USER_ID,
     scalar getpwnam( <invoke-web.autofetch.downloader_user>
         // <system.amos-zenka-user> // '' );
@@ -124,7 +124,7 @@ return $fail->(
         length( $fetch->{'hash'} // '' )
         ? $fetch->{'hash'}
         : 'none recorded' )
-) if ( $fetch->{'hash'} // '' ) !~ m{^blake3:[0-9a-f]{64}$}i;
+) if ( $fetch->{'hash'} // '' ) !~ m|^blake3:[0-9a-f]{64}$|i;
 
 ## the invokeai conda python [ the env invoke.ai itself hashes with -- no ##
 ## perl blake3 module \ b3sum binary on this host ]                       ##
@@ -216,8 +216,8 @@ delete $fetch->{'reason'};
 
 return { 'ok' => TRUE, 'msg' => "hash verification running [ child $pid ]" };
 
-#,,,,,,,.,,..,.,,,..,,,..,..,,..,,,.,,,,.,.,.,..,,...,..,,..,,.,.,,,,,.,.,.,,,
-#6RFXEB76KUQOLA52UQ7AIZ7WCY2UFIFCXYU52PCM6OIN5BCAZ6PY5ZURCPKMLKX4SHJEPO3ACH3IA
-#\\\|JLQQRASJMY7VJAG4SE324DECGJXT4DDLIHFH6BAWIGJKQ5UOZT6 \ / AMOS7 \ YOURUM ::
-#\[7]I44I7VXA3OOBAPXNL7DXITSLKUV2DLGBMRGZS4DY33SMPKDDZACQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,,,.,...,.,.,..,,.,,,.,,,,..,..,,...,...,...,,.,,,,.,.,,,..,,
+#JWHIBBKKVFFWYNHCL7W4W4OLXG4BQOL5TM4XU7Z6GAY5DGWCGHDUO6NVFT4TVO3JIEEA7AQBKDLE4
+#\\\|A3MNAWFP67UZMZXH6LZ4VP2ENVKQZJZ6IUNUFGOWSPFRUNCRK2H \ / AMOS7 \ YOURUM ::
+#\[7]3F42ZMREHXQGRADB2VPIYYYLGRNTEHB22KHGHLJYCKK2RKJ35CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
