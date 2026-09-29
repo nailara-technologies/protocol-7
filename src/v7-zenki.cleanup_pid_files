@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = v7-zenki.cleanup_pid_files
+# descr = remove registered pid files of an instance
+
+## removes pid files registered by a zenka instance [ report-pid-file ] -- ##
+## called on a planned end only [ manual terminate \ restart ], NOT from   ##
+## the error-restart path [ v7-zenki.handler.zenka_status decides ] --     ##
+## clone of v7-zenki.cleanup_temp_paths : regular files only, never a      ##
+## symlink [ lstat, never unlinked through ], owner re-checked at deletion ##
+## : current owner uid must equal the uid recorded at report               ##
+
+( my $process_id, my $instance_id ) = @ARG;
+return warn 'process id parameter not defined <{C1}>'
+    if not defined $process_id;
+
+$instance_id //= <[v7-zenki.sub-process.retrieve_cached_iid]>->($process_id);
+
+return warn 'instance_id not defined <{C1}>' if not defined $instance_id;
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+return if not defined $instance;    # <-- gone..,
+return <[base.logs]>->(
+    2, 'no pid files to clean up for instance %d ..,', $instance_id
+    )
+    if not defined $instance->{'pid-files'}
+    or not $instance->{'pid-files'}->@*;
+
+<[base.logs]>->(
+    'cleaning up registered pid files for instance %d [PID:%d]',
+    $instance_id, $process_id
+);
+
+my $stat_uid = delete $instance->{'pid-file-uid'};
+delete $instance->{'pid-file-gid'};    ##  informational [ uid enforces ]  ##
+
+while ( my $pid_file = shift $instance->{'pid-files'}->@* ) {
+    next if not length($pid_file) > 1;
+    if ( not -e $pid_file ) {    ##  already removed [ zenka's own stop ]  ##
+        <[v7-zenki.pid-files.global.unregister]>->($pid_file);
+        next;
+    }
+    ## a symlink : skipped with a warning [ never unlinked through ] -- ##
+    ## registration rejects symlinks, so this is a post-registration    ##
+    ## replacement [ suspicious ]                                       ##
+    if ( -l $pid_file ) {
+        <[base.s_warn]>->(
+            'registered pid file path is a symlink, skipping : %s', $pid_file
+        );
+        next;
+    }
+    ## lstat [ no symlink follow ] : must be a regular file ##
+    my $stat_ref = File::stat::lstat($pid_file);
+    if ( not defined $stat_ref or not -f _ ) {
+        <[base.s_warn]>->(
+            'registered pid file path is not a regular file, skipping : %s',
+            $pid_file
+        );
+        next;
+    }
+    ## owner re-check at deletion time : the file's CURRENT owner uid must ##
+    ## equal the owner uid recorded at registration [ the report already   ##
+    ## established the reporting process owns \ can write it ]             ##
+    if ( defined $stat_uid and $stat_ref->uid == $stat_uid ) {
+        my $len     = 52 - length <system.node.name>;
+        my $pth_str = <[base.parser.ellipse_center]>->( $pid_file, $len );
+        <[base.logs]>->( ":. unlink pid file '%s'", $pth_str );
+        if ( not unlink($pid_file) ) {
+            <[base.s_warn]>->(
+                '<unlink> %s : %s',
+                $pid_file, <[base.str.os_err]>
+            );
+        }
+        ## unregister global [ from startup \ teardown clean-up ] ##
+        ##
+        <[v7-zenki.pid-files.global.unregister]>->($pid_file)
+            if not -e $pid_file;
+    } else {
+        <[base.s_warn]>->(
+            'ownership re-check failed, keeping registered pid file : %s',
+            $pid_file
+        );
+    }
+}
+
+delete $instance->{'pid-files'};
+
+#,,,.,,.,,,.,,,,,,,,,,.,,,,,.,.,.,.,.,.,.,,,,,..,,...,...,,..,,.,,.,,,,..,..,,
+#K3AHBVXEZMSEP7AG2464E7HB3KKSZA7EPPUGGWCSGU4K4QPU7KHBG66JCAGU54LXZDNLW5QNLSUMK
+#\\\|5PWJ7DWPRXJDL4ALVFBD5SXDDKNRJ5YEZX3ZHV6RBTZHKGSL67D \ / AMOS7 \ YOURUM ::
+#\[7]6F5E3J5I7Y6DVTSWLMHI76DLTGXOKDBGB4D3J73JRV3FI74RJCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

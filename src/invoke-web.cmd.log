@@ -2,7 +2,7 @@
 
 # name  = invoke-web.cmd.log
 # descr = last lines of invoke.ai output [ default 20 ]
-# param = [ number of lines ]
+# param = [ lines ]
 
 my $count = $call->{'args'} // '';
 $count = 20 if $count !~ m|^\d+$| or $count < 1;
@@ -15,8 +15,8 @@ return { mode => qw| false |, data => 'no invoke.ai output yet' }
 
 return { mode => qw| size |, data => join( "\n", @tail ) . "\n" };
 
-#,,.,,.,,,...,,,,,.,.,...,,,.,...,,.,,.,.,,,.,..,,...,..,,..,,..,,,,,,,.,,...,
-#HXEMLAKAS6QGIHP6SAXCKEMDRCDBCOPS2LRKGNBVWZ4B2YRJKQEFATDGDWOY4KT3JBXLXTGRALAI2
-#\\\|EZK7ZG3G2RJ77VR5C567E7APTOHUMP42YJXHZQEL653PQNGGYFU \ / AMOS7 \ YOURUM ::
-#\[7]XYF2KJURXCOGMMXBNVEMD4N75KHEB4M4VDGH4WHAPM6NO4KTNGDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,,.,,,.,,,..,,,,,..,,..,,,,,,..,,...,..,,,..,,,,,,,,,.,,,,,,,
+#WER24BSOH5AQ7FKQWOMSQASIG34L7EAHPXIDAB427PY3IFXZRL6LFXA7EREXWI7C4YZ2LWVTID3QW
+#\\\|UOFDST7K4T7YRJHEBISKSQES3VF3AMQQLA67FBPCVC7FTESD2SJ \ / AMOS7 \ YOURUM ::
+#\[7]QK225XFRMOJNK4SDEMRROOXJNIZZZN5IIQYP2PWZCY2HMYN5HICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

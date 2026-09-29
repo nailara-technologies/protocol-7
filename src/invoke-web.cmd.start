@@ -1,8 +1,8 @@
 ## [:< ##
 
 # name  = invoke-web.cmd.start
-# descr = start the invoke.ai web server process
-# param = [ force : skip the memory guard ]
+# descr = start invoke.ai [ force : skip the memory guard ]
+# param = [ force ]
 
 my $status = <invoke-web.status> // 'idle';
 my $pid    = <invoke-web.pid>;
@@ -158,6 +158,12 @@ delete <invoke-web.url_detected>;    ## reported again by the ready line ##
 ## persist pid for orphan detection
 <[file.zenka_dir.write]>->( 'state/invokeai.pid', \"$child_pid\n$binary\n" );
 
+## register pid file at v7-zenki : removed on a planned end only, so a pid ##
+## file still present at the next zenka start means 'not a planned end' [  ##
+## invoke-web.recover.after_crash then restarts invoke.ai ]                ##
+<[base.zenki.report_pid_file]>
+    ->( sprintf( '%s/state/invokeai.pid', <[file.zenka_dir.data_path]> ) );
+
 ## report child pid to v7
 <[base.zenki.report_child_pid]>->($child_pid);
 
@@ -188,8 +194,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,.,.,.,..,,..,,...,...,,,.,..,,..,,.,.,,,.,..,,...,...,,..,,..,,.,,.,.,.,.,
-#KXLPC7433HBAUBQCVQ7XTCYC57RXRJ446YS75TSZY2MTTO7OIILAMP5QH34H3RQ3BLLLV65C3N2L6
-#\\\|NAKZ2SM5TIIYOD634E4A3LYQHPJZWTGTZPUHQJOPUOWKYLEUFOF \ / AMOS7 \ YOURUM ::
-#\[7]MWXD67BIATRVARNEVKSLVJHBPFWJX3V4CJUJSSMJ2KOB56WBKWCI 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,...,.,,,,..,...,,..,...,,.,,..,,...,...,...,,,.,..,,...,...,
+#BKONLAE4OFFW7RNWUZOOP3OMR2746DY6HCBSVQHEXFKHGL55FXRM7JIXWHOEQ4YNLJUVM4577SROM
+#\\\|STPBOZDRSSGGVQZVI6I353EPJKLHHQJHZ4EH52FPNAANOSQCZBY \ / AMOS7 \ YOURUM ::
+#\[7]7VPWKJGVYHSOIK4YP6QAEDATZBIELMMTL3C3VVLUKODS3YP5A2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.callback.report_pid_files
+# descr = send pending pid file registrations to v7-zenki
+
+## sends pending pid file registrations to v7-zenki [ cube injects the ##
+## source zenka name + sid via the source_zenka_sid command alias ] -- ##
+## clone of base.callback.report_children                              ##
+
+return
+    if not exists <system.report_pid_files> or !<system.report_pid_files>->@*;
+
+return warn 'zenka not initialized' if !<system.zenka.initialized>;
+
+my $route_str = <system.net.cube_route> // qw| cube |;
+$route_str .= '.' if length($route_str);
+
+my @pending = <system.report_pid_files>->@*;
+<system.report_pid_files>->@* = ();    ## clear before sending ##
+
+map {
+    <[base.logs]>->( 1, "reporting pid file '%s' to 'v7-zenki'", $ARG );
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => "${route_str}v7-zenki.report-pid-file",
+            'call_args' => { 'args'    => $ARG },    ##  pid file path  ##
+            'reply'     => { 'handler' => qw| dev.null | }
+        }
+    );
+} @pending;
+
+#,,.,,...,,,,,,,,,.,.,.,,,,,,,.,.,..,,.,,,,..,..,,...,...,...,..,,,..,,,.,...,
+#5XYYBCMFPKKW3S3UMF4N6WN43M476SXAAS653E23JFZT77Y6CKPWSDRLWRGCQHIOGO23JASMX3NYG
+#\\\|C7YPMCQW36PF6RU3ILD7QAIKQNL556RIYLRZVEB7CKCJFPN6R3G \ / AMOS7 \ YOURUM ::
+#\[7]U5UU4BWIDQEDC3TDVHTHX5QZTTEZDVCVIJBSSZ6QCG377EJWUAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

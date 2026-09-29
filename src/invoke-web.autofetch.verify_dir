@@ -18,7 +18,8 @@ my $dir = <invoke-web.autofetch.verify_staging>
 
 ## create on first use, then validate from an lstat [ never stat : a ##
 ## symlink to a real directory must fail, not pass through ]         ##
-if ( not lstat($dir) ) {
+my @st = lstat($dir);
+if ( not @st ) {
     if ( not mkdir( $dir, 0700 ) ) {
         <[base.logs]>->(
             0,    "autofetch : cannot create verify directory %s : %s",
@@ -26,7 +27,7 @@ if ( not lstat($dir) ) {
         );
         return undef;
     }
-    return undef if not lstat($dir);
+    @st = lstat($dir) or return undef;
 }
 
 if ( not -d _ ) {
@@ -39,8 +40,8 @@ if ( not -d _ ) {
     return undef;
 }
 
-my $uid  = ( stat(_) )[4];
-my $mode = ( stat(_) )[2] & 07777;
+my $uid  = $st[4];
+my $mode = $st[2] & 07777;
 
 if ( $uid != $EFFECTIVE_USER_ID ) {
     <[base.logs]>->(
@@ -67,8 +68,8 @@ if ( $mode != 0700 ) {
 
 return $dir;
 
-#,,,,,,,.,,.,,.,,,...,,,,,,.,,..,,,..,.,,,...,..,,...,...,...,...,,,.,,,.,..,,
-#FYRYXCVEQL6GWPH2MGYCCI7MU6MEJJUUZPRH664MVORUWFARST4QQQGZLP3NOZA4JKPVPCP2MEDFE
-#\\\|6MSW3Y4O2O6S4742F7SHO2V7CXF5GCJUBMV74HFXRE3EAPWQBFL \ / AMOS7 \ YOURUM ::
-#\[7]ASHUKFIEN7QPGS7QKUSAYMWH27GYLP2N4VUBA5UMA4OVDSYH4OAY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,..,,,,.,,,,,,..,..,,.,,,,,,,..,,...,.,.,...,...,...,,,.,,..,
+#UPLBP3JFBRSYCPFLPBCTYQYDOHRIQFSN7SXAMLPGOWBECJNWDD42TAF6GKK5O4YU2MNP62QW6GO7M
+#\\\|FIVWHHMA3ZKOPRHZJLSUIJDH4LANZ234PLURKO6C7NV435ATHLT \ / AMOS7 \ YOURUM ::
+#\[7]FLTJ4ZFKY2MTCLBKNQRD52M5LEXVTSPSD42CJBDUTR26PX5ARQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

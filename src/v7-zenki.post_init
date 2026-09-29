@@ -9,8 +9,10 @@ my $module_reinitialization = shift;
 ##
 my $tmp_dir_owner = <system.amos-zenka-user>;
 <v7-zenki.dirpath.tmp_paths> //= qw| /var/run/.7/v7-zenki/tmp_paths |;
+<v7-zenki.dirpath.pid_files> //= qw| /var/run/.7/v7-zenki/pid_files |;
 #
 <[file.make_path]>->( <v7-zenki.dirpath.tmp_paths>, 0775, $tmp_dir_owner );
+<[file.make_path]>->( <v7-zenki.dirpath.pid_files>, 0775, $tmp_dir_owner );
 #
 <[v7-zenki.cleanup_temp_files]> if not $module_reinitialization;
 
@@ -100,8 +102,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,..,.,.,,,,,..,,.,,,,..,,.,,,..,,,,,,,,,...,..,,...,...,,,,,.,.,..,,...,..,,
-#6HOVWDKT2DO27FWGHOBVZ27PTKU2XQLF7YGAHKDR3OWPEF3RQFZVTT36T572NCJEMLH63QH2KMLEA
-#\\\|CJFAE5VCGPZKGJEGZ5BSCDHJ3QIDDFV222W3WU7AFF5JO23GWG2 \ / AMOS7 \ YOURUM ::
-#\[7]M5DFHAHLKGFULX45FWQRCHP6HFUSFZHYIKTYM5CMGHO5WNAKWQBY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,.,.,.,.,.,.,.,.,,,,,...,.,,,..,,...,...,,..,.,,,,.,,,.,,..,,
+#2R6POSIYRGCW4CQ6PU4MOEILSPHNGNNXIWDTC4JKHTO2TCFBK53VKUQHX5VMUOXZEBOINPGRQRHBO
+#\\\|HK65W3RAJFO32RF4C2TBTLTE2AOQIU5E6WDIBBIF4SSEMIBGTMC \ / AMOS7 \ YOURUM ::
+#\[7]45NGYO46AAPMI54QTFB2TEY2L5V7NQ2FEOCF7QQZ62P3X266FIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
