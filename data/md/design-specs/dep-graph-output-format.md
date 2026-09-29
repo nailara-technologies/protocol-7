@@ -20,7 +20,7 @@ the current `generate_text_output` format looks like this :
 ```
 :001: net.get
   --> :002: base.log
-    --> :001: v7.stdout_log.write
+    --> :001: v7-zenki.stdout_log.write
       --> :002: base.logs
         --> :002: base.log
         --> :001: base.s_warn
@@ -85,7 +85,7 @@ these are actual edges from the graph to use as example input :
 ```
 net.get         -> base.log        [ 2 calls ]
 net.get         -> base.buffer.add_line [ 3 calls ]
-base.log        -> v7.stdout_log.write  [ 1 call  ]
+base.log        -> v7-zenki.stdout_log.write  [ 1 call  ]
 base.log        -> base.utf8.clean_str [ 2 calls ]
 base.log        -> base.buffer.add_line [ 3 calls ]
 base.buffer.add_line -> base.log   [ 2 calls ]
@@ -97,8 +97,8 @@ base.buffer.add_line -> base.s_warn [ 1 call  ]
 call each other — the format must handle cycles gracefully without infinite
 expansion ]
 
-#,,,.,,.,,.,.,...,...,..,,.,.,...,,,,,.,.,,,,,..,,...,...,...,..,,,..,,.,,,.,,
-#H2BNWQW3DBQG72Y5NWQTHCJUXFMSW4HM474WDSI5CW3HDGWT4ZMR2GKZBNHLB3FPXN6GWXNLM4HYO
-#\\\|FM2ILJYST6XJ3QH5NDEC76WQF5B64TOPSXORJKU6NQM2FWWL22J \ / AMOS7 \ YOURUM ::
-#\[7]ERKV2QJ32HOZCKW25ISQHCQNTBYHKEDLFFRQTLE4EQGOMV45YCDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,,,.,..,,..,,.,.,..,,,,,,,,,,..,,...,...,.,,,,,,,,..,,,.,,.,,
+#IAH4RUBUSTC5CK4HK4LWEIGMJOLVVOFEIECPJOWZRCTZ24UW24QKMNAQAPKCK46O6ETRV3WIKJBFK
+#\\\|DDBHCDGTI3JWNUFTP3QETEXFKJKZ6Z6BARGFGOJCVLQEL2VVSAF \ / AMOS7 \ YOURUM ::
+#\[7]LJW7YJDRKQH35ZGTEXAMUVN2ZZJYYENN4NHOTITZGV3RTLD3Z6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

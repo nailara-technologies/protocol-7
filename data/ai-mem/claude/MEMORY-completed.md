@@ -70,7 +70,7 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   gained auth.client/ascii/format.yaml in modules.load along the way. Real pipeline bugs in
   AMOS7::deps::* found+fixed during live verification, not just deletion.
 - [ondemand-zenki registry wipe](project-ondemand-zenki-registry-wipe.md) — LANDED 255d8cc43:
-  v7.set_up_ondemand_zenki was fed only the added-since-last-run delta, wiping <v7.ondemand_zenki> to
+  v7-zenki.set_up_ondemand_zenki was fed only the added-since-last-run delta, wiping <v7-zenki.ondemand_zenki> to
   empty on reload; broke clean-idle-shutdown detection for every on-demand zenka (restart-loop despite
   restart.disabled). Confirmed live at 0/56, fixed, confirmed 56/56.
 - [ondemand idle timeout vs active STRM streams](ondemand-idle-timeout-active-streams.md) — LANDED
@@ -88,12 +88,12 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   sprintfs) instead of base.logs; root-caused a live p7-log crash-loop, then swept codebase-wide via
   kimi k2.7, independently re-verified clean.
 - [dependency restart reconnect primitive](project-dependency-restart-reconnect-primitive.md) —
-  LANDED 7e83d6915 + a18850091: new v7.notify_restart + base.zenka.on_restart primitive, so a
+  LANDED 7e83d6915 + a18850091: new v7-zenki.notify_restart + base.zenka.on_restart primitive, so a
   running zenka detects when a dependency it has a stateful relationship with restarts (STRM
   subscribe, SHM handshake) and reconnects automatically. Opus's first pass used instance_id as
-  the restart signal -- wrong, v7.zenka.instance.restart reuses the same instance_id in place --
+  the restart signal -- wrong, v7-zenki.zenka.instance.restart reuses the same instance_id in place --
   corrected to cube_sid, which changes on every restart. Both pilots wired and live-verified:
-  protocol-7-menu/powershell pointer-stream (SHM) across two consecutive v7.restart cycles, and
+  protocol-7-menu/powershell pointer-stream (SHM) across two consecutive v7-zenki.restart cycles, and
   base.strm.subscribe's own publisher-restart re-affirm gap (STRM, dispatched to kimi k3,
   independently re-verified) across two consecutive cred-mesh/proxy restart cycles.
 - [inline_elf Perl-version infinite loop + 4 more](bug-inline-elf-perl-version-infinite-loop.md) —
@@ -167,8 +167,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   sweep cursor paused mid-run (`cpu : paused [ circuit-breaker ] : idx=3/90`), resumable once the
   binary issue is fixed.
 
-#,,,,,..,,,,.,..,,,..,,,.,,,,,,.,,,.,,.,,,..,,..,,...,...,,..,,..,,,,,,,,,...,
-#VIERTBC5HCGQEGRJVDMQ7LLMQ4PS3D5KWLT765MGMM5ZT2LRN62QVTSYI37WNZHBZLWJLX7GQCCDQ
-#\\\|P2JTBR46HYIO4AY6RO4GNNNJFVZR4OLK7EUIK5Q7E5K57Q6EKAE \ / AMOS7 \ YOURUM ::
-#\[7]INFEVUQMMKYRJACX2XDZN4O36KBSC7X52IKG42D7CRABREIX4OAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,...,,,.,,.,,,..,.,,,..,,,,,,..,,...,...,.,.,.,.,...,,,,,...,
+#JCC5FSV6LKJLFZDTXFQ6JX3GSTQXGDMMVJ5B54H63HVMEB3NYXSR3PGLHC6LAV6QHHVPIFVIH46HW
+#\\\|TOXGRUGDESRL5DJHRXWDDE4PTTXZAE25D5J7K6CL3XOPB2U2GYL \ / AMOS7 \ YOURUM ::
+#\[7]LXNJ6C7FDYEOY7MGLEK4ZWVKARRRMMTF6JSVMACQZKXIEE732YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

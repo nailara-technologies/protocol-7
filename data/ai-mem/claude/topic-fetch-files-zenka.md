@@ -10,7 +10,7 @@ metadata:
 ## Status: FULLY LIVE [:<  (session 36)
 
 On-demand startup works after full v7 backend restart.
-Shows in `v7.list available fetch` alongside rss-ticker.
+Shows in `v7-zenki.list available fetch` alongside rss-ticker.
 Note: v7 reload does NOT pick up new on-demand zenki — needs full v7 restart.
 Bug: v7 reload should re-scan zenki dir for new on-demand configs (v7 rescan-ondemand?)
 
@@ -71,8 +71,8 @@ modules.load: `auth net protocol io.unix fetch.file fetch-files.cmd devmod`
 `p7 fetch-files.hf-list '{"repo":"..."}` to see quantizations, then download with hf-download.
 LAN check happens automatically before HF download.
 
-#,,.,,,,,,...,,,,,,,.,,..,,.,,..,,...,...,..,,..,,...,..,,...,.,.,,,,,,.,,...,
-#TWYJYYM3OZSSY42FBYVNZP264OT7UIT5MFSW4WQMDZFT23APAHDXRKMSCI2MSVNVZJ3VSNENGZJDE
-#\\\|FEQCVB3PWWCAHCOUX5NN6XEHKOCI4M3TNDQHPZLOUTUEDRKDFQH \ / AMOS7 \ YOURUM ::
-#\[7]VZQWB56CLEB432D4FGTGCC6AORKOAJFSEQYKLFCOUJV3KV5PJWDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,.,,,,.,,,,,,..,,,..,.,.,,,,,..,,...,...,..,,...,...,.,.,...,
+#HEBLQPILTYPIXCUL7VWB6LLQWRUWECGTFIRNYQJSILTE6W2VSWHQW5QLX4FGKYZ2AGNECJF4BIPEY
+#\\\|3LSGGTV5WPERRW7Z7BJGQDQ6N2T5HN574TYIQWR7JDCCDLBVDET \ / AMOS7 \ YOURUM ::
+#\[7]PRID7WJRVY2W3JJ26YMXTHRURWGNVCVQ7TNNNWHRHDMFD4A724CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

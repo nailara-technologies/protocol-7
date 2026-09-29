@@ -129,7 +129,7 @@ gateway.inner_identity = cube
 main v7 start-set-up includes gateway but not inner cube zenki:
 
 ```
-## cfg/zenki/v7/start-set-up.base
+## cfg/zenki/v7-zenki/start-set-up.base
 cube
 gateway     ## registers as ext-cube on outer, cube on inner
 ```
@@ -145,7 +145,7 @@ with `base.has_access` hierarchical source matching (see
 
 ```
 ## v7/start — allow web to call specific v7 commands via the full chain
-access.cmd.usr.cube.ext-cube.web = v7.notify_online v7.register_child
+access.cmd.usr.cube.ext-cube.web = v7-zenki.notify_online v7-zenki.register_child
 ```
 
 this is precise: only web, routed through ext-cube (the gateway), can
@@ -191,7 +191,7 @@ to the inner network when the tunnel is active.
 ```
 ## gateway config:
 gateway.tunnel_mode         = intelligent
-gateway.tunnel.expose_cmds  = v7.teardown v7.stop    ## always full chain
+gateway.tunnel.expose_cmds  = v7-zenki.teardown v7-zenki.terminate    ## always full chain
 gateway.tunnel.collapse_cmds = heart notify_online   ## always collapsed
 gateway.tunnel.default      = collapse               ## collapse by default
 ```
@@ -238,8 +238,8 @@ the main cube is the outside world.
   (yes, if the gateway honors the flag — it should, as part of its
   transparent bridging contract)
 
-#,,.,,...,,.,,..,,...,,,.,...,...,,.,,,.,,,,,,..,,...,..,,,.,,,..,,.,,...,,.,,
-#EHRHCVROKUIGVZOEPXXHAVWATDLFSE5D74KGUY6EHMFOKDCP6GM2YLIFR2FXAAL7VGLAVMLWGR53E
-#\\\|THYFSRW3PPRWLZGZX3OIFWITW7YRV2TWQXSIYJMNWWLOGZDT3BJ \ / AMOS7 \ YOURUM ::
-#\[7]OPD5BH5UA5GKPCEAY7THJBTTZJ3DY7KVIWQKPJSCE42ZPB5K6IDI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,,..,.,.,...,,.,,,.,,,..,.,.,..,,...,...,...,,,.,,,.,.,,,,,.,
+#FQ3E7ZO57LLETYPDO45BK2DXMAQLJEGEFXMFDEVQXDH2MATKPHCPTPPUGS4652DMZ34QCNMSST6I6
+#\\\|6YJICPGCPYNPJV52ZNZA27DOSDKCTU35ZT44HZKLOQBCTZ36NCN \ / AMOS7 \ YOURUM ::
+#\[7]MG2XO6FQZENGFX6MXYE2G4BESZMADB6Q6WDNS3N4WOQVLMZ4EWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

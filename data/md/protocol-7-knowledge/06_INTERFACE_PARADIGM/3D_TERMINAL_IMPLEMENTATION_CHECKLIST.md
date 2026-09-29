@@ -432,13 +432,13 @@ src/decoder.base.decode_d13_bits  # Decoding
 sudo apt-get install libgtk3-perl libcairo-perl
 
 # 2. Test ticker zenka (verify GTK3 works)
-p7c v7.start ticker
+p7c v7-zenki.start ticker
 
 # 3. Build amos-term.3d
 # (after implementation)
 
 # 4. Run 3D terminal
-p7c v7.start amos-term-3d
+p7c v7-zenki.start amos-term-3d
 
 # 5. Verify display
 # Should see blue translucent terminal
@@ -483,8 +483,8 @@ p7c v7.start amos-term-3d
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,,,.,...,,,,,...,.,,,,,,,.,.,,..,,.,,,..,..,,...,...,...,.,,,.,.,,..,.,,,
-#SCTH5R24SNNNVVHW2S3B7MBGFQVOBONOTF4OHF2T4FSMCMFW73EPUJZFCA3O3GXT266RMF3NXQKK2
-#\\\|UC4CWRYFHHFJZZ5HOUWACY5W2C7VYRRVO5YONL44NM4T4WZ3EUX \ / AMOS7 \ YOURUM ::
-#\[7]U5WVY74LAYHUZ5V4OP57S2YXFXC2NS7HQVYLN3WIVZWIJAND3KAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,...,..,,...,.,,,,,,,...,,.,,..,,...,...,.,.,..,,,.,,,..,.,,,
+#WAI26N3Z7EQX5YGURD545RPUY664M5HOBFDHH7PAIHAJXPFIWDYXH4FZ22I6IK2KWLBMLHX2MCEOY
+#\\\|3HCDPLJLSQKWTZK2C73Y2QWFU2BSAHYT7QATQOJKEGKGYKBZCG6 \ / AMOS7 \ YOURUM ::
+#\[7]LJCT36BUZORMH5IBOPFLDMRNRG4ITQ3BN4QRTW6N7SVXA63NMUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

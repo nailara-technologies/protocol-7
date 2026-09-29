@@ -30,12 +30,12 @@ only the `notify_online`/init-report handshake to cube/v7 stalls.
 
 Related: the retry timer in `base.session.send_init_reports` used to fire that log
 message at a flat 0.777s forever with no backoff. Now grows `*1.2` per retry capped at
-5s — same envelope shape as `v7.handler.zenka_status`'s `restart_delay` (multiplicative
+5s — same envelope shape as `v7-zenki.handler.zenka_status`'s `restart_delay` (multiplicative
 growth + min/max envelope), the canonical backoff pattern to reach for in this codebase
 rather than inventing a linear/additive scheme. Fixed in commit `3b3cc5ab7`.
 
-#,,.,,,..,,,,,,,.,...,.,,,,.,,,..,.,.,...,.,,,..,,...,...,..,,,.,,..,,,..,.,,,
-#4UA6KR3YPTASYBWF7GWEPIC3ALOMGX3QIZ4CDWGVEE4F6GW27Y7I264NWSMWNXXSTLIBPZKKJS57A
-#\\\|WEMLABIOEVEQJQOICL7YTLSNQOSKQGRGZ74RMCFUHW34RRBEVUM \ / AMOS7 \ YOURUM ::
-#\[7]PE6OQNTPAQUYEY3P2I6R3IUPJ7TMXKZ4VJXDXARMCI3ZXNC42SDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,.,,,,,,,.,.,...,,..,,,.,.,.,..,,...,...,..,,,..,.,.,,..,...,
+#KFHGDMEECCTSO3IESY5MATNABUXEE3MSMK4RD5RBXAHA5XEBTVDEQYF2P7HPYMUOZO4T7Q3A6UAII
+#\\\|GJZRRQBUKQPOHIJOHBQJ6LZ2JPUJKKOE34XYMIFJRVXWJN343SH \ / AMOS7 \ YOURUM ::
+#\[7]JY35R7RNDMHA2V5WXL7YIU3WUFBXGFJS6JOZLHQ5FFIQFXF44WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

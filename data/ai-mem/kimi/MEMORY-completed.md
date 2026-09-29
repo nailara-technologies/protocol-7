@@ -67,10 +67,10 @@ landed in commit `67f30d0a0` and extended in the following commit.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ## SHM Console Admin-Group Readable — COMPLETE (2026-08-17)
 
-todo `W2O` resolved in `src/v7.setup_stdout_redir`: when `<system.admin-user>` is configured, `/dev/shm/.7/STDOUT` is created owned by `<system.amos-zenka-user>` with the admin user's primary group and mode `0750`; the per-socket SHM log file is created with mode `0640` and `chown`ed to `<system.amos-zenka-user>:<admin-group>` when running as root. falls back to the original `0750`/`0600` setup when no admin user is configured. runtime verified: `-rw-r----- 1 protocol-7 taeki` on `/dev/shm/.7/STDOUT/NIW7OAQ` and admin user can `tail -f` the log.
+todo `W2O` resolved in `src/v7-zenki.setup_stdout_redir`: when `<system.admin-user>` is configured, `/dev/shm/.7/STDOUT` is created owned by `<system.amos-zenka-user>` with the admin user's primary group and mode `0750`; the per-socket SHM log file is created with mode `0640` and `chown`ed to `<system.amos-zenka-user>:<admin-group>` when running as root. falls back to the original `0750`/`0600` setup when no admin user is configured. runtime verified: `-rw-r----- 1 protocol-7 taeki` on `/dev/shm/.7/STDOUT/NIW7OAQ` and admin user can `tail -f` the log.
 
-#,,..,.,,,,..,,,.,.,.,,,.,...,,,,,,..,,..,.,.,..,,...,...,...,.,,,...,,.,,,,.,
-#CIA6JBF3KWVVW2WWSAZLKCSUBDCWIWEYVZYNRJRONB3LCWRRT5YWNEX54VLTBWWQSCLXG3ETW66UG
-#\\\|KT6RFGS7Z3RITMLQ5UESYZLSKWWOR265T7MM42IPAIJ2ZDUODXZ \ / AMOS7 \ YOURUM ::
-#\[7]B4CBNTT43ZLZTJQGXUZUG2NQJFZJ7PWLPIYKBXFQJSHXCFF6DGDY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,..,,,.,,,,,,,,,...,,.,,,,.,..,,...,..,,.,.,.,.,.,.,..,,..,,
+#F3REX7UXPOTS7H3UJJRGPEKJKD2CT5QPJD6QFYIYGP7EDRUV3Z4SD6JJEA36HCUQKXO4GC24LDAN2
+#\\\|AYTT55WIA4TZMZ2KF4GMIZXHEFKEXFDKTHDTZYMCBNXVQ7OWHJW \ / AMOS7 \ YOURUM ::
+#\[7]SEBUBF4U4CRIQVGTUYUV5WYRC5JT3KQBGD3ABJGOUXCDFR5UGCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ Two failure modes from using it outside that narrow window:
    `base.file.temp`, `radio.post_init`).
 2. **Items with a deferred reply handler queued pre-connect** are
    unreliable through the one-shot flush — confirmed live: routing
-   `v7.notify_online` (whose *reply* triggers the real action, e.g.
+   `v7-zenki.notify_online` (whose *reply* triggers the real action, e.g.
    `radio.audio.handler.player_online` issuing the actual mpv `play`
    command) through `init_reports` sent the initial command fine but
    the reply-triggered follow-up never fired. Playback silently never
@@ -68,8 +68,8 @@ is gone" — the error clearing is necessary but not sufficient; the
 regression here cleared the log noise while silently breaking the
 actual reply-triggered behavior.
 
-#,,,.,,,,,,..,...,,..,.,,,.,,,,..,,..,...,.,.,..,,...,...,..,,,.,,...,,.,,,.,,
-#D4LFI5DMAUYSZFSCXH45YINZV357VJ2A5W37UXA6YWW3UJ2YC2LIANAKBQBWDDF5PT2MCY7JBVMSY
-#\\\|XMUIGIN3KLFMT3MWDSZDTQCHICQIIID6SQEX7DDES5F4FU4EWWP \ / AMOS7 \ YOURUM ::
-#\[7]SUSVKOUTNKHOFEP7SH6ZA2RDEFFFMFVQAWKEEM5OZ4ELBMSDKWAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,.,,..,.,,,,,.,,.,,,,.,,.,,,,.,..,,...,...,..,,.,.,,..,..,,,,.,
+#SU5PFMM7P7XUEXG37AHUTU6M74MJHF63UN5BGTVTFNMRAQX43TVLTRTIELUCUN6WPCZWBVXUXFDQM
+#\\\|QWMSW2VLTJIMOHMUJVHBTDOXT44HMTXR5EDGTW7XH75I2IXB3JR \ / AMOS7 \ YOURUM ::
+#\[7]XYDSOZIQ5A4QLEXRM5ZDMN7562D5BJNPPFGJJTMP477EBAAF6EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

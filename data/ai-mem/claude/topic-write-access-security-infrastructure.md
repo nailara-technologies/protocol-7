@@ -178,7 +178,7 @@ governs what `<X>` may call *outward* as source, not what may call *into*
 option: an `access.cmd.usr.ncode` block would grant **`ncode` itself**
 outbound permission to contact other zenki, e.g. push a notification to
 `coding`/`task` when a pattern graduates, mirroring existing outbound
-patterns like `v7.notify_online`/`cred-mesh.rotate` elsewhere in the same
+patterns like `v7-zenki.notify_online`/`cred-mesh.rotate` elsewhere in the same
 file. Not built, but a real option for phase 2+ if the loop should ever
 notify proactively instead of only being polled/driven externally.
 
@@ -241,8 +241,8 @@ deferred there pending this decision.
 [[topic-jobsite-ui-usability]]
 [[topic-ncode-pattern-learning-loop]]
 
-#,,,.,.,.,...,,,.,,.,,.,.,...,.,,,...,.,.,,,,,..,,...,...,..,,,,,,...,.,,,,,,,
-#ITO2LAOQPP6FEBESAHCP63UNZB4C3CRC2LG27HX6JSXSXSZOJ3F3STSMZUINVVP6EBZCOC3OL6ORC
-#\\\|QVAMKCFIL3YL7NJBB2HLEXRKXVT3XWKXYGQNVGOKN2R6Z4J3IAW \ / AMOS7 \ YOURUM ::
-#\[7]36TGPVQ2YYKXDQ4XJROQPLCSYMR5FFNNUHZQFQCBZIUEJJZYPCDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,.,,,.,,,..,,,.,,,,,,..,,,,,..,,...,...,..,,.,,,,,,,.,,,..,,
+#J55F6AXLNZFZ5EBJGHQYJAH7FIYAAM4F6D4GKT23ANLM4PDQEQLWTIH3J7EDLVN25IU6OAXJHKQUU
+#\\\|LBNMVGWZYDCBJZLIRHRPF6EFDNMXMBDXAHKC6SILO63FFB6HYVS \ / AMOS7 \ YOURUM ::
+#\[7]EGOUM4PZHMJMRHXQ3ADDMRSTNMEZ4LGWEIMNLMVKI64MXZ5PEUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

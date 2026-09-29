@@ -109,7 +109,7 @@ write src/embeddings.cmd.retrain-category:
 ```
 add to cfg/zenki/cube/access.zenki:
   access.cmd.usr.* = embeddings.retrain-category
-  access.cmd.usr.embeddings = v7.notify_online v7.register_child
+  access.cmd.usr.embeddings = v7-zenki.notify_online v7-zenki.register_child
 ```
 
 ---
@@ -219,8 +219,8 @@ modify coding.complete-analysis:
   to support deduplication and parenting? likely yes — aligns with
   checksum-parenting-namespace-trees design
 
-#,,..,,.,,,..,,.,,...,,,.,,..,,,.,,..,,,,,...,..,,...,..,,.,.,.,,,,.,,...,,..,
-#KVSCBCD2PC5N55BQIV7NI7H3ILCUN55GD5QBSR6RQH7OHPGK2T5AGEJV7WFCRUDJB3WAZBZB2MBR4
-#\\\|7HHFGISH476XOOP62QX5EOL6RW26IJO7EJJSC7XXZQV7QZRO37X \ / AMOS7 \ YOURUM ::
-#\[7]IMX3JEEVZFWEAITJT2WJ6F675C6IWRFE5OMS45URDOVA5RIFIKAA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,.,.,..,,...,...,...,,,.,,.,,..,,...,...,,.,,,.,,.,.,..,,..,,
+#DXE6V3CLJYNNEIF42XACP7FCRHD77ES6DJN73FY6H4HDSHYAKQTP3EARBZSNS4ZAS746CA4QUTXAI
+#\\\|OPQFDUYYTNKTFVIOOPVV5K6DPFUBWNCL5R742D2EPUJJPR3U3RX \ / AMOS7 \ YOURUM ::
+#\[7]DKZ7V27O7MA3KAQJPGI2RLCJDXQQHCJW6U34VK53PSZY6RPZIADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

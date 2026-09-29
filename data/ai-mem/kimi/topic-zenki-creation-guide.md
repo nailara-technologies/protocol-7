@@ -65,7 +65,7 @@ cube/auth.zenki:   auth.setup.usr.<name> = :zenka:
 ### Child-Bearing Zenki Specifics
 
 From kimi-web implementation:
-- Call `<[v7.register_child_zenka]>->(qw| <name> |)` in init_code
+- Call `<[v7-zenki.register_child_zenka]>->(qw| <name> |)` in init_code
 - Track child PIDs in registry hash: `<zenka-name>.agent.registry`
 - Use `event.add_timer` for health checks
 - Implement graceful shutdown with context preservation
@@ -84,7 +84,7 @@ From kimi-web implementation:
 ./bin/dev/ptd src/<zenka-name>.*
 
 # 2. Start zenka
-p7c v7.start <zenka-name>
+p7c v7-zenki.start <zenka-name>
 
 # 3. Test command
 p7c <zenka-name>.commands
@@ -111,13 +111,13 @@ p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
 
 ### Files to Know
 - `data/yaml/context-templates/zenki-create.yaml` <- Base creation template
-- `src/v7.register_child_zenka` <- Child zenka registration
+- `src/v7-zenki.register_child_zenka` <- Child zenka registration
 - `src/cube.auth.zenki` <- Auth routing
 
 ---
 
-#,,..,,,.,.,,,..,,...,...,..,,,.,,,,.,..,,.,.,...,...,...,..,,..,,.,.,,.,,.,,,
-#4KTFPPT73GCLWGREGAW56VHMTQX6EZK23IKICUETY4II2PWEPZ6FSRGJKCCLQD54DRSE4BABOMUN4
-#\\\|L3URICSITYAJPPDATLU6VONA3L3N5K7JABC62UFBXSTOMZNVUAB \ / AMOS7 \ YOURUM ::
-#\[7]M4EWQAFJ67BB7RJKV2MYFECKY4KUZQZZBZNKIPXRSCR6P5WLDMDQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,...,..,,,,.,,.,,,..,.,.,,,.,...,...,...,.,.,,.,,...,..,,,,.,
+#A2LDCRF6TSD35W4OBGNNNHASJYOJQ2RZY2X5AADE6A5W65F4FXK6HNH7OZQXBJH2A7ALZHWFS747C
+#\\\|CW3O2ZCPMHX24OJURIU3AXSWEEMZ2YO36LNEVA545MUDGPBDWM4 \ / AMOS7 \ YOURUM ::
+#\[7]NAARUPC3XKI5KL43UBOWMY3MFJH3YOAL725ERJG3ZUPKNV2DHMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

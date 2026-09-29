@@ -21,11 +21,11 @@ needed, it's already done (see below).
 
 1. K3 dispatch `v7-check-zenka-deps-jobqueue-and-binary-gap` (task file:
    `data/yaml/coding-tasks/v7-check-zenka-deps-jobqueue-and-binary-gap.yaml`)
-   -- fully reviewed diff-by-diff: `src/v7.check_zenka_deps` rewritten to
+   -- fully reviewed diff-by-diff: `src/v7-zenki.check_zenka_deps` rewritten to
    route apt-installs through the jobqueue-serialized `debian.cmd.
    install-packages` bridge (async, no event-loop-pump needed -- its only
-   caller `v7.autostart_zenki` already discards the return value), new
-   `src/v7.handler.deps_install_reply` (mirrors `sys-deps.handler.
+   caller `v7-zenki.autostart_zenki` already discards the return value), new
+   `src/v7-zenki.handler.deps_install_reply` (mirrors `sys-deps.handler.
    install_reply`), binary-dependency gap fixed (16 binary->package
    mappings added to `src/base.known_dependencies`'s new `binary`
    section, spot-checked 2 against the live system, both correct),
@@ -63,8 +63,8 @@ redo the review above if resuming -- it already happened, thoroughly,
 file by file. Just check git status and commit once the user confirms
 signing is done.
 
-#,,,,,...,..,,,,,,,,.,,,,,,,.,.,.,.,,,..,,...,..,,...,...,.,,,.,,,.,,,,,,,...,
-#63GVFRAGZ2IPOTMDUW5EUPAE4XJ4PSFNLE6J7S247X56EPRNKI4F7DD6ONAJXVTEIPKWKB63MZAIK
-#\\\|CTHJEPIXHC4KHASM36GLWQZWP7PIGQ47FMMBUCOISIJI64WZW3K \ / AMOS7 \ YOURUM ::
-#\[7]2PALE6E63VLAODBDVLJSPLL4SPYECTA5EECYSBP6QAMSLHRZQYCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,,,.,..,,.,,,...,,,.,,.,,,.,,..,,...,...,..,,,..,.,,,,,,,,,,,
+#T5X5WQGXKY523BCYISAQQ3N22KQA5RWPG7OC4TW5YZLUXTYUSADWTBGDHM2DSGMOKQ3E7KJFNJK3M
+#\\\|CUDCWWQH2B5GYFPHKSH5QM2PB5EIMFE5HSE7EBKEEAT3YOYMWFJ \ / AMOS7 \ YOURUM ::
+#\[7]CZYKL67PTOLGJA7W2SA253OK5QH3VRVEPTE2RBXZKW7O5L7Y6AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

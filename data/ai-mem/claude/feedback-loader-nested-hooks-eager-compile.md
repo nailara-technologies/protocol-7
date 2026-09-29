@@ -1,6 +1,6 @@
 ---
 name: loader-nested-hooks-eager-compile
-description: FIXED 2026-08-04 (bin/Protocol-7 p7_load_code whitelist-gate) — nested base.*.pre_init/init_code hooks were always solo-lazy-compiled even when their ancestor namespace was already in the current batch; also polluted $data{base}{p7_mod}{loaded} with bogus per-hook pseudo-module keys, needing one v7.restart to clear
+description: FIXED 2026-08-04 (bin/Protocol-7 p7_load_code whitelist-gate) — nested base.*.pre_init/init_code hooks were always solo-lazy-compiled even when their ancestor namespace was already in the current batch; also polluted $data{base}{p7_mod}{loaded} with bogus per-hook pseudo-module keys, needing one v7-zenki.restart to clear
 metadata:
   type: feedback
 ---
@@ -31,7 +31,7 @@ every subsequent reload, forever, once created. Fixing the eager-compile
 path stops new bogus keys from being created, but **does not retroactively
 clean up ones already accumulated in a long-running zenka's memory** — a
 `reload` alone stays "dirty" (still lists old per-hook pseudo-module
-`p7-source` lines) until one `v7.restart` resets `$data{'base'}{'p7_mod'}`
+`p7-source` lines) until one `v7-zenki.restart` resets `$data{'base'}{'p7_mod'}`
 fresh; every `reload` after that restart is clean. Confirmed on `cube-13`
 and the `coding` zenka.
 
@@ -41,8 +41,8 @@ already-running zenka, don't conclude a fix failed just because
 first is needed to clear accumulated registry state, before treating a
 lingering symptom as evidence the fix itself is wrong.
 
-#,,..,.,,,..,,..,,,,.,.,,,..,,..,,.,,,,..,,.,,..,,...,...,.,,,,..,...,.,,,.,.,
-#EED7KPXW477MOHUYKU6T6A53ALRDFSP4BWZYNDOGBKLUPMUEDENR4FB2S5MEZNPFBUPWHL5SSBTC4
-#\\\|TK4FITFR5JVCJRR3N3ZVMLLIKSLTFCMJEQUW7EIVJ4I3N4S3X5Y \ / AMOS7 \ YOURUM ::
-#\[7]U4FBPVAMNZ7D7GKWYHINUL7AZBGQD5YBQY6W2SUCINLRHDUMVGCI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,,.,,.,,,..,,,,.,,.,,...,.,.,..,,...,...,,,,,.,,,,..,,..,.,,,
+#AM4XSRBZEFWKNRC7EWQANUH7O72VZ67JIKSXN5Y4JNJ5EWNZRQ6EG64TCSN5R6VJN4PDYXYJ6TC2G
+#\\\|QV67QH3C7BBRBPFBBNPCRVQJ57BMCQWUVEX5VAAPE3DFIVL34O7 \ / AMOS7 \ YOURUM ::
+#\[7]BNPRHEROWQ4ITEYTLHW3PZ2OMPIZSF3542XISOPJU2WOSL3BZEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

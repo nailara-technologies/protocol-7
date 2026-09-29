@@ -11,7 +11,7 @@ namespace-swap convention:
 - `src/base.strm.subscribe` — entry: validation, registry,
   defer-or-attempt
 - `src/base.strm.subscribe.attempt` — single route-send attempt
-- `src/base.strm.subscribe.wait-online` — v7.notify_online wait with
+- `src/base.strm.subscribe.wait-online` — v7-zenki.notify_online wait with
   push-shaped 2**n backoff (60s cap, waiting_no/last_attempt gating)
 - `src/base.strm.subscribe.reply-handler` — TRUE=subscribed,
   `client not present`=offline wait, else definitive error (no blind retry)
@@ -62,7 +62,7 @@ no fixed-delay timers anywhere.
 validation rejections, fresh subscribe (`*:proxy` in cred-mesh),
 idempotent repeat, distinct-slot subscribe, offline wait
 (`waiting_no=5` while cred-mesh stopped), auto-resubscribe on
-`v7.start cred-mesh`, real rotation event reached `proxy.cred-rotated`.
+`v7-zenki.start cred-mesh`, real rotation event reached `proxy.cred-rotated`.
 
 ## still open (by design, flagged in the task file)
 
@@ -70,8 +70,8 @@ publisher-restart re-affirm: `<base.strm.subscribe.registry>` entries
 persist after success so a future hook (e.g. on `command route
 collapsed` over a pending subscribe route) can re-issue attempts.
 
-#,,,,,,..,.,,,,,.,,.,,,.,,,..,..,,..,,.,,,,..,..,,...,...,...,,,.,.,,,,..,...,
-#2OVIOE4ZHJXY6G6W2SLITG4EZKILBVK56QKFLTGMMI3QQE36ESPPL2XGGQQV4OIQPLVIYSSVO6MC4
-#\\\|KXJBPTYSTKVZOKNGPHVGZZ5DLI5GA54U3FEQKV6UKY344D7NE2H \ / AMOS7 \ YOURUM ::
-#\[7]QISUIW7EBQGMCRRE3LE4C2RIGDJZEC4B3YV5Q72BRVPXZFGDD6BY 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,,,,,..,,..,,,,,,,.,..,,.,,,..,,...,...,...,,,.,...,,,,,,,.,
+#KCLTQXNVF2BY6YECDSTH3ZGOXYHSQJYXFXE5I53NLGKSQFYN4WTHC6J7TJQDYVO4XCWOVHWG753V4
+#\\\|5OG4H5IFM5MK22EDUI7EFR2D3GR2TMVCBNFW3G7QRGR7SRHK3YD \ / AMOS7 \ YOURUM ::
+#\[7]O33A7VI457Q4MWUQH6R4H6FYVARU35HMW2ZYJBDB7Q6E56RKDOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 - `task.cmd.complete/fail` accept `claimed` OR `in_progress` status
 - valued commands exposed as `task.valued-*` (hyphenated) to avoid cube sub-routing clash
 - cube/access.zenki controls which zenki can route to which commands — `p7c reload` after editing
-- `v7.restart cube` restarts all zenki at once (fastest config reload path)
+- `v7-zenki.restart cube` restarts all zenki at once (fastest config reload path)
 - YAML data files must NOT have `## [:< ##` P7 headers — YAML::XS chokes on them
 
 ### session 15 additions (2026-05-09)
@@ -49,8 +49,8 @@ originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 `modules.load = auth net protocol io.unix calc format.yaml task valued`
 `access.cmd.usr.cube` includes: `create continue queue show result claim complete fail reset start next handover wait-done valued-list valued-query valued-stats`
 
-#,,.,,,..,.,,,..,,.,,,,,,,,,.,...,,,.,.,.,,,.,..,,...,...,...,.,.,..,,.,.,,,.,
-#IC2WGSSBVMBHWQIOQLJUWASGC4PBXM3XGHK3YVHTNQKBA7QSVFCVTJX2CALD65DBRAGPI33PBQ4AY
-#\\\|6PCMFATT7ZP5DKE6O7OM6SGAP4I5K577ADUVTSV5KWYCBLONMV2 \ / AMOS7 \ YOURUM ::
-#\[7]2JKEXHATR7MCCQ5SL36D4JELLGV3CA35H6VNO3VDC27FG4OTTIDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,...,,,,,,..,.,,,,,.,,.,,..,,,.,,..,,...,...,,.,,.,.,.,.,.,.,.,,,
+#OQNYWAEGV2NYV7CE2ZYTL53SUAIIXZXKX3DIITQY42VIQW7SQHTSYBGUN4UQ5DHE5NRQQ3AOEFV36
+#\\\|OYD4AATWFSAOGXD6FHQPPUQIRD3SYGZQDBJPZT54EOUQTTQJPZ6 \ / AMOS7 \ YOURUM ::
+#\[7]DDCXKVAJS23GP23URUXGGXQQUHJ7NRAEAVNPGVW6WXOVKYPKB4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

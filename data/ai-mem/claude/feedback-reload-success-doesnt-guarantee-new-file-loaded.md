@@ -72,7 +72,7 @@ access), the gate's `if (not exists $code{$file_name})` guard treated
 "already exists" as "nothing to do" and unconditionally skipped the file
 on every future `p7_load_code` pass — it never re-entered
 `@compile_order`, so no `reload` could ever pick up further edits, only
-`v7.restart`. Fixed by distinguishing "still an uncompiled deferred
+`v7-zenki.restart`. Fixed by distinguishing "still an uncompiled deferred
 stub" (unchanged: skip) from "real code already there" (now: falls
 through to normal recompilation, like any other file).
 
@@ -80,7 +80,7 @@ Verified live on `mod-test`: two consecutive `reload source` calls
 correctly picked up edits with no restart needed.
 
 **Updated guidance**: the "default every live-fix dispatch's
-verification to `v7.restart <zenka>` instead of `<zenka>.reload`"
+verification to `v7-zenki.restart <zenka>` instead of `<zenka>.reload`"
 workaround below is no longer necessary as a blanket default — plain
 `<zenka>.reload` can be trusted again for modules reached via the
 normal load path. Still worth a literal-marker sanity check on
@@ -98,7 +98,7 @@ is actually what's executing. Confirmed unambiguously in [[topic-job-pipeline]]'
 (`$numeric_prefs{'_marker_v2'} = 1;`) to a command's JSON reply, reloaded
 repeatedly (`reload source`, then `reload all`), and the marker never
 appeared in the live HTTP response across multiple attempts — only a
-full `v7.restart <zenka>` picked up the change.
+full `v7-zenki.restart <zenka>` picked up the change.
 
 This happened on a **freshly-created** `jobsite.cmd.*` file being edited
 again shortly after creation, which may be a relevant factor (as opposed
@@ -129,7 +129,7 @@ because the real one (stale reload) was never suspected.
 `QuestionRequest` silent-hang fix (new module
 `src/kimi.wire.question_respond` + a `src/kimi.handler.ws_message`
 branch edit), `kimi.reload source` reported success but the edit did not
-take effect — the user had to direct `v7.restart kimi` explicitly, and K3
+take effect — the user had to direct `v7-zenki.restart kimi` explicitly, and K3
 discovered the staleness itself mid-verification. Same shape, third zenka
 (`jobsite` twice, now `kimi`), confirms this is a real, general loader bug
 not specific to one zenka or one kind of edit. Root-cause investigation
@@ -139,7 +139,7 @@ given this third hit) — has already traced the likely faulty commit
 (`08b42f019`'s `$is_reload_batch` staging-vs-direct-install fork) and a
 minimal isolated reproduction via coderef-address comparison. Until that
 lands: **default every live-fix dispatch's verification instructions to
-`v7.restart <zenka>` after editing an already-loaded module**, not
+`v7-zenki.restart <zenka>` after editing an already-loaded module**, not
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
@@ -152,8 +152,8 @@ not just as a fallback for when something looks wrong.
 
 **Restart-only changes are defects [ 2026-09-24, per user ]**: the only remaining reason a zenka needs a restart for a code or config change is a handler that is neither registered reload-safe nor reinstalled in an init phase. when such an instance is found, fix it [ make it reload-safe or reinstall it at init ] rather than accepting the restart -- the goal is that no zenka ever needs a restart just for code or config changes.
 
-#,,,.,,.,,,.,,.,,,.,,,..,,,,,,..,,...,.,.,.,,,...,...,...,..,,..,,...,..,,,..,
-#CQVPVHRVPYMZPEY7BUAJGKONZUQKJUNHBQQNA7TF6DD4AM2GVNPLKJA7Z64VMXFVX6U6TQF6KMTHM
-#\\\|XE2IB6ZG57DVLHMI3IXHFXUVCMA2K5FV4AK4LKXUZBNCYMYBG5H \ / AMOS7 \ YOURUM ::
-#\[7]HTM7EQQIRJVVRDT74PJXEDZC6HY7F6LEYWFN7W5VQLHNXQ3IFCBA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,,..,,,.,..,,...,,,,,.,,,,..,...,...,...,...,,.,,.,.,.,,,,.,,
+#BJ6TKFLIDGWPLQ7YSQONG6462JPQCK6FOUV4SIESTQ4BBNDKGHYLF5HZKRAOKQGGAGWSFSJNNLPAE
+#\\\|UAWNI74JHP723RSG67QP57BZI6ZV27SLOBN4JA5HFH7NC7FURZ2 \ / AMOS7 \ YOURUM ::
+#\[7]6CL3N2KXEBJHLSFFLXBWLGVQY2LMGQL6CCEKJTQM6YEZGWX3PKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

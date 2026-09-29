@@ -14,13 +14,13 @@ session). `set_ondemand_timeout` is the idle-shutdown window (see
 waits for a *single* `.heart` reply before treating the zenka as hung.
 
 **Probe cadence is fixed, independent of heartbeat.timeout.**
-`v7.handler.heartbeat_timer` runs on a repeating timer (~5.7s interval,
-`v7.enable_heartbeat_timer`'s `status_timer_interval` default), and on
+`v7-zenki.handler.heartbeat_timer` runs on a repeating timer (~5.7s interval,
+`v7-zenki.enable_heartbeat_timer`'s `status_timer_interval` default), and on
 *every* firing it unconditionally queues a fresh `.heart` command via
 `base.protocol-7.command.send.local` — there is no guard anywhere that
 checks "is a previous probe already outstanding" before sending another.
 The only thing `heartbeat.timeout` gates is the failsafe kill timer
-(`v7.handler.heartbeat_response_timeout`), which is armed once and left
+(`v7-zenki.handler.heartbeat_response_timeout`), which is armed once and left
 alone while active (not re-armed each cycle).
 
 **Consequence: backlog scales with block-duration / 5.7s, not with
@@ -38,7 +38,7 @@ fix this** — it only delays the hypothetical kill; the probe backlog and
 log noise happen regardless of the timeout value, because that value
 never governs the probe-send cadence, only the failsafe.
 
-**The retry model** (`v7.enable_heartbeat_timer`): `max_retries`
+**The retry model** (`v7-zenki.enable_heartbeat_timer`): `max_retries`
 defaults to 3, seeded into `retry_count` once per instance. On a true
 non-response, `heartbeat.timeout` (default 17s, from
 `$zenka_config->{heartbeat}{timeout} || $globals->{heartbeat}{timeout}
@@ -48,7 +48,7 @@ tolerance ≈ `heartbeat.timeout` + a few seconds, not
 `heartbeat.timeout` × 3.
 
 **`restart.disabled = 1` doesn't fully neutralize an 'error' status
-either** — `v7.handler.zenka_status` tolerates up to
+either** — `v7-zenki.handler.zenka_status` tolerates up to
 `restart.disabled.consecutive-failure-tolerance` (default 3)
 consecutive error/offline transitions before calling `zenka.cmd.stop`
 and giving up for real. So a single false-positive heartbeat miss on a
@@ -74,8 +74,8 @@ refactored to real async, don't just pick a bigger number. See
 [[topic-ondemand-heartbeat-upgrade]] for the 2026-08-24 zenka-by-zenka
 rollout this came out of, and which zenki landed on which side.
 
-#,,.,,..,,,,,,,,.,,..,..,,,,,,,.,,,,,,...,,,.,..,,...,...,.,,,.,,,,.,,.,,,...,
-#KTVBS4HYVLWV4G7IBME2NSN3OPFPVLULVELCS3DUBQ6YBJ3H2STFZJ6KRNGZDGIIR4SCZVICNCFD4
-#\\\|IIRX5JBVCEDU7QM7WEQ6D5HJYCLQDJGOWFFB7GU3LMLWHOWVDZE \ / AMOS7 \ YOURUM ::
-#\[7]PRBQAVKC75CWAGV5X33Y7SVYX4EX74G2UIF7AE5LOKOMSFL67UCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,,..,,,,,,.,,...,,.,,,,.,.,,,..,,...,...,.,.,..,,,.,,,.,,,,.,
+#KV76CEONSOGR4G3EM5O5WAPLSJRX2SD6LX2KM5M66REHYOTWDLWOSWP5AMS3SXGQF2EVSC4CVPQPG
+#\\\|6AUKBBHIE5K5TDBWYKYKMMBGPVY3RXMUKO4GLVEAJYDQODWZ65V \ / AMOS7 \ YOURUM ::
+#\[7]S5CNSOKLIRIHF6NHL6UNZCX3ND6Y3A2YHFOIGXWIERXADQP6AIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

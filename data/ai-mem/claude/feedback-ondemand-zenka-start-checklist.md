@@ -22,10 +22,10 @@ Also required on the cube side:
 
 For dev-only `eval-code`/`exec-sub`/`set`/`del`/etc., add `devmod` to `modules.load` and `access.cmd.usr.cube`, but per [[feedback-devmod-leave-disabled]] leave the write-capable ones commented out by default.
 
-If `v7.start <zenka>` enters a restart loop (each attempt ~64.7s), stop it with `p7c v7.stop reasoning` between fix iterations to avoid resource churn — used this repeatedly while debugging [[topic-zenka-naming-cleanup]]-adjacent reasoning zenka startup (2026-06-16).
+If `v7-zenki.start <zenka>` enters a restart loop (each attempt ~64.7s), stop it with `p7c v7-zenki.terminate reasoning` between fix iterations to avoid resource churn — used this repeatedly while debugging [[topic-zenka-naming-cleanup]]-adjacent reasoning zenka startup (2026-06-16).
 
-#,,,,,,,,,.,.,..,,..,,,,.,...,...,.,.,,..,,,,,..,,...,...,...,...,,,,,,.,,...,
-#F4FAFJTZWJQRVHVLLNAQXOXZ4XXGJLJST4PJ3SQEV7FU52KMSHAA5AMR2HK6S2TVWYXC7XBF4G4HM
-#\\\|NBH2JAMXCR7IVE5YDF2ORJGJBI7UA3TTAGDW6VYKOQOTOO4X34P \ / AMOS7 \ YOURUM ::
-#\[7]YD5UVR5VNADHL4G7TUUKNJTRW2XYO46KYN6PKZBLHMS44EICZWDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,..,,...,..,,.,.,,,.,,.,,,,,,..,,...,...,,,.,..,,..,,,,.,.,.,
+#AETFU55Y4RXW7S6NPMBXNDV2AKVQCQRRLSAYUKY57VFYQZ2ZXJ2QSNAZNJ7MI5V2PMPJKBYI6N73O
+#\\\|RTRVIFRMYJTXN3Y3HYQVBUKJR7BHELIN4KEKGZ5OJUNZ56AJWED \ / AMOS7 \ YOURUM ::
+#\[7]WI4DCFPEAKDR7LTPXWABDVOAXGTR7Y4NKZR5DJWSVTYNQJPT2YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

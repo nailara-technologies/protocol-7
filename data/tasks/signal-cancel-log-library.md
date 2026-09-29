@@ -148,7 +148,7 @@ p7c coding.call-tool analyze_log '{
 
 ```bash
 # pipe live v7 console through the cancellation filter
-p7c v7.console | p7c signal.filter
+p7c v7-zenki.console | p7c signal.filter
 
 # analyze a captured log with stats
 p7c signal.analyze --stats --context=3 /tmp/session.log
@@ -267,8 +267,8 @@ implement phase 1 and 2 of the signal cancellation log library:
 verify phase 1+2 with: `p7c signal.filter < /dev/shm/.7/STDOUT/NIW7OAQ`
 should return only lines that don't match any known pattern.
 
-#,,..,.,,,.,.,,,,,.,.,..,,,,,,.,.,...,.,,,.,.,..,,...,...,.,.,.,.,,.,,,.,,...,
-#AMBWYBGNOL3FPQDMVK6BPOZAWQJWEUJY566L6XAYW4TZDW2J4HS7NCASQHMMQXW7OF5YEOHO7ZKVS
-#\\\|235M6FCEKLXE7W63L54FJZILGJWIB7FGNMU2VZ4KRK4BCQYWYAP \ / AMOS7 \ YOURUM ::
-#\[7]CWTWJGGCV5HFJX3OZZUSUIACIUUDTUZ2CH2APEBON4LUWUUSRIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,.,.,.,,,,..,.,.,...,...,,.,,..,,...,..,,..,,,,.,,.,,..,,,..,
+#UF6VZV3GAB2V2PTHRQ35WY6SLYLQGLCWTCL2TNANALSKGUIBIVYG2TP7ZV4JOUNMAFF7OGVK5E4QY
+#\\\|JPLQBXPLKTFWKCPDYIH5L76H3HVGVSAYL3DPY3PGBQ7YKRVMUSJ \ / AMOS7 \ YOURUM ::
+#\[7]NLNXCQBLXXFVPK7KHZSKOO4VXIM3NDGM6GWCQFCCW6X5OTKXTOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

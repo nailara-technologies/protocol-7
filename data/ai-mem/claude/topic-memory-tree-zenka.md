@@ -9,7 +9,7 @@ metadata:
 
 the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and renders it via `ascii.frame.*`. design doc: `data/md/design/MEMORY-TREE-SYSTEM.md`.
 
-**status (2026-06-03): the tree BUILD is now LIVE.** 162 file branches / 1139 nodes. `p7c memory.show 1` renders it. **to rebuild: `v7.restart memory`** — `memory.startup` is idempotent on `<memory.ready>`, which survives source reload.
+**status (2026-06-03): the tree BUILD is now LIVE.** 162 file branches / 1139 nodes. `p7c memory.show 1` renders it. **to rebuild: `v7-zenki.restart memory`** — `memory.startup` is idempotent on `<memory.ready>`, which survives source reload.
 
 **STEP 2 = flow-weighting — LIVE 2026-06-04.** focus tokens in leaf BODIES propagate up to ancestor branches via `memory.tree.flow` (bottom-up post-order). `memory.tree.score` pass-2 sources `w_focus = 1 + min(4, flow_focus)`.
 
@@ -59,8 +59,8 @@ the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and rend
 
 related: [[topic-ascii-frame-system]], [[namespace-tree-intelligence]], [[feedback-perltidy-sil0]].
 
-#,,,.,,.,,,,,,,..,,..,,..,...,,,,,...,..,,,..,..,,...,...,.,,,...,,..,,,.,,,,,
-#NJQ3LSB6TQOFDN75GQQKWOTTXT3ZXSOM4UJG3DKRJQ3XT5AJOSKH2EPH5TPDZSGOTSPGIKOXTDLWA
-#\\\|YT4YLP32PIJKFL4BPL7BMIU5VQVLDVKEBZRAROH6C7NRMONTTVE \ / AMOS7 \ YOURUM ::
-#\[7]MOAYWUGMUFNNIJK4EU5QJC3APATCXRTPAO6WDVVYNFREDZIRNKBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,.,,,,,,,..,,,,,,...,,.,,...,..,,...,..,,.,,,..,,,..,,..,..,,
+#PLCWZUVUEHC5CSFJLDUP6TU53YTXNBFDGAVARKQ5MJ7YFTM34R6ZQ7K43HLJP22K22V4HHLZE2TR6
+#\\\|5RIZAQKDIG7VKEPQQSZLM7IIOTM2EAKHFYY4I45VP3I3IZYOZX3 \ / AMOS7 \ YOURUM ::
+#\[7]SKFT4ZKTGAD2L3PULQNXHDLNNCMIJ6HNIAURAVOSCSVXM7DI5ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -171,8 +171,8 @@ ascii-frame width drift:**
 
 **Fixed and committed 2026-06-13 (`898ac7156`) — live ui-show verification
 + ascii.frame width bugs:** v7 wasn't running credential_fabric (not
-on-demand, no v7 always-on entry) — started manually via `v7.start
-credential_fabric` (v7.list available shows it as a manual-start zenka).
+on-demand, no v7 always-on entry) — started manually via `v7-zenki.start
+credential_fabric` (v7-zenki.list available shows it as a manual-start zenka).
 With it live:
 - `p7c credential_fabric.resolve/.rotate/.list-slots/.ui-show` all
   console-callable with `.cmd.` stripped, routed + permission-checked
@@ -206,7 +206,7 @@ With it live:
 **Still open:**
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 - credential_fabric has no v7 always-on/on-demand registration — must be
-  started manually (`v7.start credential_fabric`) each P7 restart until
+  started manually (`v7-zenki.start credential_fabric`) each P7 restart until
   that's added
 
 **2026-06-15 update — cred-mesh integration harness + key_holder fixes:**
@@ -229,7 +229,7 @@ With it live:
 - **Stale-process lesson**: F1 (`proxy` denied `credential_fabric.resolve`)
   and F13 (`proxy.template.passthrough:74` undefined subroutine ref) were
   both false alarms — `proxy`/`cred-mesh` sessions were running 1-2 day old
-  pre-rename/pre-fix code. `p7c v7.restart <zenka>` after landing fixes,
+  pre-rename/pre-fix code. `p7c v7-zenki.restart <zenka>` after landing fixes,
   before re-verification, resolved both with no code change needed.
 - Remaining open items for next kimi round: scenario 1 header-injection
   (x-api-key not reaching upstream via `proxy.auth.lookup`/slot-matching),
@@ -340,8 +340,8 @@ cred-mesh a legitimate `clients.https` consumer — don't rely on the F13
 framing if this area comes up again; verify current `subroutines.load-early`
 contents directly rather than trusting this note's old claim.
 
-#,,..,,.,,...,,,,,..,,,,,,,..,..,,,,.,,..,,..,..,,...,...,...,..,,.,,,,.,,.,.,
-#ZDCCRDVVQT27XLPRPSW45XHCWZHYL2MLOK4OZGCNKTT3MET6AFLLAVTNRK6TH3QMYOJ6KXXSJCVHY
-#\\\|LCP4UUS2JLQZDW544IRLODC2D2T5KVW4Y7HYLT7RKFZTI37I4WE \ / AMOS7 \ YOURUM ::
-#\[7]MB7SC4BA67GVM4PJTMJY7IBGBFI64APXOXNSVT6BS625UF3UQIDY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,,..,...,,,,,,,,,,..,...,,..,..,,...,...,.,,,,.,,.,.,...,,.,,
+#J4KUF7OCG2KF26U7JZ5WQ7VUORJJKX6B4VAQESVB6IJJJFRAA3L6RJXLXISIQX6U5FD3FROIFWQBQ
+#\\\|VCFMUL4UOTUX3INYBZ4JGO5HP6BWIUU3BOWIMEKFE5MT2ZJ2PQC \ / AMOS7 \ YOURUM ::
+#\[7]WQWSWI4CSY5MLC3B6YO5B6GFMTRKINZT6RCIZK27DIQKVMOBW4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

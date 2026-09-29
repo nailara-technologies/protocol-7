@@ -67,7 +67,7 @@ Error paths verified: bad path → `not readable : ...`; non-audio input →
 
 ## incident during implementation
 
-a `v7.reload init` call (to register the new zenka) crashed the entire
+a `v7-zenki.reload init` call (to register the new zenka) crashed the entire
 zenka network — see [[feedback-v7-reload-init-live-swap-subs-crash]] for
 the full root-cause writeup. Kimi worked around it correctly afterward
 using `audio.reload source` for its own module iteration instead.
@@ -76,15 +76,15 @@ using `audio.reload source` for its own module iteration instead.
 
 - human sign-off (AMOS7 signatures) on all 7 modules + 4 zenki config
   files + 2 cube config edits — nothing here is committed yet.
-- `access.cmd.usr.audio = v7.register_child` was added to
+- `access.cmd.usr.audio = v7-zenki.register_child` was added to
   `cfg/zenki/cube/access.zenki` separately (permission gap
   Kimi hit when its ffmpeg children tried to register) — confirmed
-  working live (`v7.start audio` → online → `v7.stop audio` clean).
+  working live (`v7-zenki.start audio` → online → `v7-zenki.terminate audio` clean).
 - task file `data/tasks/audio-waveform-visualization.md` not yet moved to
   `completed/` — pending final review/sign-off.
 
-#,,.,,,,,,...,.,,,.,,,..,,...,,,.,.,,,.,,,,.,,..,,...,...,...,.,,,,.,,,..,,,,,
-#KKDXBGIN7ZXW26ATKBXBO5ZSMXGOKV5AXIJFRB7KMD56QM5HSLSK5X65WTS3QQNEDV32V5TCKUHPW
-#\\\|KGSQMI5IWCLG53YBLGYSFEUYADMPUKJLTXJS66VFEJFETFJP5OA \ / AMOS7 \ YOURUM ::
-#\[7]IJCZXBPTMFZKYIV3RTTTULPFSM4SFJKHBYYDL5SUE2EW3YX2Y4BQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,.,,,,,.,,,.,.,,,...,.,.,.,,,..,,...,...,.,.,,,.,,,,,,..,...,
+#Q2NUP76TGRHCDPQVJI4UQCQGFYUEK3PEJYXF7HGQHHRX2XV7OAOZKNEVBCZ3UK6UP4HGL4JHYYNOW
+#\\\|I4YPP3XSHXTMK7BTJXVIWBOTL2YXBWDMI62GIYVNPET6SH7O4D5 \ / AMOS7 \ YOURUM ::
+#\[7]OXG6LPQECFNCHLGNFXZ4IUDY5AJQSHI55QACBXJJ4G2QWPVNOQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

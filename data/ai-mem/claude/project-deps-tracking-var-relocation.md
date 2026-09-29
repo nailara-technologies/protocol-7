@@ -80,19 +80,19 @@ direction:**
   reviewed and verified) — `AMOS7::deps::module::load_known_deps` is now
   the single canonical accessor (confirmed zero remaining
   `<[base.known_dependencies]>` invocations anywhere in `src/`, including
-  a second holder found beyond the original `v7.check_zenka_deps` case,
+  a second holder found beyond the original `v7-zenki.check_zenka_deps` case,
   `base.perlmod.install`), and it also gained a `binary` section (16
   binary-name -> debian-package mappings, closing the "detected but never
-  installed" gap for `v7.check_zenka_deps`'s `@missing_bin`). The
+  installed" gap for `v7-zenki.check_zenka_deps`'s `@missing_bin`). The
   STALENESS concern above is still real and separate — fixing who reads
   the file doesn't fix whether its content stays current.
 
-  **Bootstrap-ordering check, closed 2026-09-01**: `v7.check_zenka_deps`
+  **Bootstrap-ordering check, closed 2026-09-01**: `v7-zenki.check_zenka_deps`
   now routes apt installs to `debian.install-packages` via
   `<[protocol-7.route-send]>`, which only delivers to an already-connected
   session (`base.protocol-7.command.send.local`) — raised as a real open
   question whether this could deadlock for `cube` itself (the first zenka
-  `v7.autostart_zenki` starts, before `debian`'s own `dependencies = cube`
+  `v7-zenki.autostart_zenki` starts, before `debian`'s own `dependencies = cube`
   could be satisfied). Checked all 66 on-demand zenki's `start.cfg`:
   `dependencies = cube` is the near-universal pattern (61/66), and
   crucially **`sys-deps` itself declares only `dependencies = cube`** (no
@@ -194,8 +194,8 @@ retirement can follow once the `var/` relocation lands and (for
 list.subroutines specifically) once the BMW-for-all-files checksum
 system exists — don't retire either prematurely on its own.
 
-#,,,.,,,.,,,,,,..,.,.,..,,,,,,.,,,,,,,.,.,,..,..,,...,...,.,,,...,..,,,..,,..,
-#5HUATYRLJMS3GDH7NLOWM6GHXIZDVKEXL3WOKLJXDNJNJULWHHSIK2A2ZIRES6IMHU3FOHDLTG4RY
-#\\\|QXMG35LIGMCFHDPS6OQ3WZKHNSMYRJJ7AFRQACC54WPOQKSPONO \ / AMOS7 \ YOURUM ::
-#\[7]PXJ6S24Z7OLUPDR5XLIFWUNEVK6YE2ZLQVK6ALFLY2WSZWVC4QDA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,.,.,,..,...,,..,,.,,..,,,.,,..,,...,...,,.,,.,,,...,,.,,...,
+#DDVYQPZV75H3AFJXRBJP2FHMMQJIGZNQ7TJWWQ7TXSV7XQNJT267WQYM36UNUGY57UAGA2L4WWJ6M
+#\\\|ZQT7FCDH4DN5BHVEYL3XEASPFIZXOKZTHCOZEPEZBQTTBURBWRB \ / AMOS7 \ YOURUM ::
+#\[7]JWT3KLH4WVR3NXCSWMO5IH3NPUH4HIJ3QYHKSKUJALZRQAQCRKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

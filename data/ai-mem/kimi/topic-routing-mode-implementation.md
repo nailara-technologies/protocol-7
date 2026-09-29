@@ -29,14 +29,14 @@ pattern ].
 
 ## swapped-family call sites + reload semantics [ critical ]
 
-- `v7.zenka.*` is swapped to `zenka.*` at runtime [ src/v7.zenka.pre_init ].
-  calling `<[v7.zenka.new_sub]>` at runtime = undef-sub crash. call sites must
+- `v7-zenki.zenka.*` is swapped to `zenka.*` at runtime [ src/v7-zenki.zenka.pre_init ].
+  calling `<[v7-zenki.zenka.new_sub]>` at runtime = undef-sub crash. call sites must
   use the short form `<[zenka.new_sub]>`. the WHITELIST keeps the long
   filename-based name [ correct ].
-- `v7.reload source` does NOT re-apply the swap: recompiled `v7.zenka.*`
+- `v7-zenki.reload source` does NOT re-apply the swap: recompiled `v7-zenki.zenka.*`
   modules stay inactive under their runtime `zenka.*` key. after changing a
-  swapped-family module, use `v7.reload all` [ re-runs pre_init ].
-- an undef-sub call inside `v7.init_start_setup` [ runs from v7.init_code ]
+  swapped-family module, use `v7-zenki.reload all` [ re-runs pre_init ].
+- an undef-sub call inside `v7-zenki.init_start_setup` [ runs from v7-zenki.init_code ]
   is FATAL: `module 'v7'-init not successful` → v7 gives up → tears down
   the ENTIRE network. guard init-path calls with
   `<[base.code.call_expected]>->( <[base.mod.exists]>->(qw| v7 |), ... )`.
@@ -58,10 +58,10 @@ pattern ].
 - resolver: `base.zenki.resolve_routing_sids` [ shared by
   route_to_target + send.local ]; composes AFTER the initialized/drain
   filter. default absent-key mode = contact-oldest.
-- `<v7.start_setup.zenki.config>` exists ONLY in the v7 process — cube
+- `<v7-zenki.start_setup.zenki.config>` exists ONLY in the v7 process — cube
   cannot read it. bridge: v7 pushes to cube-side `<cube.zenki.routing_mode>`
-  via `cube.set-routing-mode` [ on zenka online in v7.handler.zenka_status,
-  on v7.init_start_setup re-parse, on v7.callback.connect_to_cube ].
+  via `cube.set-routing-mode` [ on zenka online in v7-zenki.handler.zenka_status,
+  on v7-zenki.init_start_setup re-parse, on v7-zenki.callback.connect_to_cube ].
 - in every zenka the upstream cube session is registered as user 'cube'
   [ base.net.connect ] — `cube.<cmd>` from a zenka = "send <cmd> to cube";
   inside cube itself `cube.<cmd>` is NOT routable [ no user 'cube' ].
@@ -73,8 +73,8 @@ pattern ].
   gained base.zenki.resolve_routing_sids; runtime ignores signatures,
   human re-signs before commit.
 
-#,,,.,,..,,,,,...,,,,,.,,,,.,,,..,.,,,.,.,,,,,..,,...,..,,.,.,...,,.,,,.,,...,
-#4OMRVMF4OMGMVVQRZK5RBSNRSP6GY2LI365FKJN3UUV5NXIBSUUYPMZCUPWYCEGSVIVLGQRCTC5YE
-#\\\|YJ4T3V5BP5CCRHXUABFQILTVF2DWIOKIHXYFRFJY2X2CPMQDRBP \ / AMOS7 \ YOURUM ::
-#\[7]YRKTWV24RQSDI2PQQMVFEP7HC6JNMZ5D6MMHTZMWCQSTOK7OVYCQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,...,.,.,.,,,.,,,...,,..,...,..,,..,,...,...,.,,,..,,.,,,...,...,
+#TY6EE7L3YZT6O5SYUVSHUP22L7SRCEUZAXANM36Z3ILGGSHF7UAVXIF7PVZDHW37PMPCETRUWMMAQ
+#\\\|5U4HQ7K47IKTIBDXKYW4MDAWDSXQ24XUYTCVOSBMLVOP443WXXG \ / AMOS7 \ YOURUM ::
+#\[7]KENS4BVWNOPBZA3QQPAU4GTPNA6P5M2TFQICYBPBFAXKSLCMWWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

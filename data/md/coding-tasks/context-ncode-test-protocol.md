@@ -16,14 +16,14 @@ This document provides a test protocol for verifying the context zenka (context 
 
 ```bash
 export PROTOCOL_7_UNIX_PATH=/var/run/.7/UNIX/NIW7OAQ
-p7c v7.list zenki | grep context
+p7c v7-zenki.list zenki | grep context
 ```
 
 **Expected:** Context zenka shown as `online`
 
 **If not running:**
 ```bash
-p7c v7.start context
+p7c v7-zenki.start context
 ```
 
 ### 1.2 List Available Commands
@@ -196,7 +196,7 @@ Test context routing commands to other zenki (via delegate):
 
 | Test | Status | Notes |
 |------|--------|-------|
-| v7.start context | ✅ | Working |
+| v7-zenki.start context | ✅ | Working |
 | context.heart | ✅ | Working |
 | context.commands | ✅ | Working |
 | context.tool_list | ⚠️ | Returns hashref, needs formatting |
@@ -223,8 +223,8 @@ access.cmd.usr.context = * *.*
 
 This allows other zenki to route commands to the context zenka.
 
-#,,,,,...,...,,,,,,..,..,,,.,,...,,,,,,.,,,.,,..,,...,...,...,,..,,..,,,.,,,,,
-#A42TDSAQ5RVHCPWA6JMIVKSEC3ZZESLUBMGQYLCLEM6ZLVRWFEENGIIXUG3263P42SQVOWHUWTKGC
-#\\\|TW2Y4QAXQSNPGGKMY3M5EDG2PKVY5I5C5YNPQIEKFLG4RXCJUR2 \ / AMOS7 \ YOURUM ::
-#\[7]LIHUFEM3O3EK3YZ5DLABOHSTT6GRDWIPQGJBK23LLVAZRN3H3SCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,,,.,.,.,,,,,..,,,.,,,.,,,..,..,,...,...,.,.,,..,,..,.,.,,.,,
+#2MNAEEUGPGVFCFQDTG3M3KGWSAICGTKGBGB3PRYLUNS73ERVQINQU7FJSUZWX35COST6UO22VMYKY
+#\\\|OMZ2A76NRYSPRTQMRYNH6J3JU2OLY4RIWHCZMBRLP272Z5HGD6A \ / AMOS7 \ YOURUM ::
+#\[7]FPYYGZQCWBXY6AIJRJCVTPXDQDTTMMIMJLLGVOZP5V3LX7R5QCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

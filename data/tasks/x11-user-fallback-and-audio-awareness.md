@@ -50,7 +50,7 @@ it once it exists.
 ### part 2: global audio device awareness
 
 The deeper, parallel gap: v7 already has a working pattern for exactly
-this class of problem, just not extended to audio. `v7.zenka.start`
+this class of problem, just not extended to audio. `v7-zenki.zenka.start`
 resolves the correct DISPLAY for a spawning zenka via
 `resolve_primary_sid('X-11', ..., $zenka_subname)` and preps
 `$ENV{'DISPLAY'}` before exec — X-11 is the standing source of truth a
@@ -65,7 +65,7 @@ wrong — exactly what happened today.
 Proposed: a zenka (X-11 itself, or a new sibling with the equivalent
 role for audio) maintains this awareness and exposes it the same way
 `get_xauth_data`/display resolution already work — a queryable "what's
-the right audio backend/address right now" primitive. `v7.zenka.start`
+the right audio backend/address right now" primitive. `v7-zenki.zenka.start`
 gets the audio-equivalent of its existing DISPLAY-prep logic: before
 spawning a zenka that declares an audio need, resolve the correct
 `PULSE_SERVER` (or whichever backend) from this registry rather than
@@ -115,8 +115,8 @@ hardcoded per-zenka again.
   `amos7-x11` to exist at all — worth confirming before assuming an
   ordering dependency that isn't actually there).
 
-#,,,,,.,,,,,,,,,,,.,.,,.,,,.,,,.,,,,,,...,..,,..,,...,...,..,,.,.,.,.,,..,,..,
-#RCAONHI5ZXZH7FRFF2UIDVSN54ZMPCZFEME6FXU2PYEFHK7KCFPFQ6XTBHFARKOQYGOJL36C3T54A
-#\\\|76GEJP4IFBJAUDUW7PJM6I6EBCHRMVVBBM3UFFTOCZZ7X7CFDHF \ / AMOS7 \ YOURUM ::
-#\[7]SQSXQLYIDRLIHN7TS6UA5XH6MOUXLTRDQ5NX4APYRHOBP3Y3HQDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,.,,.,,,,,.,,,,,...,...,...,.,.,..,,...,...,..,,,,,,...,.,.,..,,
+#GQJFX4FXBQZ6A5BK6OC63F7ASQSY2HGPVWYTBJA7QLWPGFI7OLGBO36HPO77JICVBFTA2BVQVUOZQ
+#\\\|UMRZUMITSFSBRZLUQHKGCITD4IXLUVEJAB4YFQJH2XUHYFRKB2A \ / AMOS7 \ YOURUM ::
+#\[7]NOKFUAPG4PIW5QJZ2WWQJF6DJ5PSIFCJFVUVUK4AMWEFP7D6WKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

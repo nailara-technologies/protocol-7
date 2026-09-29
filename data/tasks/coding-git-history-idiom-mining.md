@@ -110,7 +110,7 @@ precision tiers, both checked live 2026-09-10:**
   (session-verified, not inferred): personal commit habit was
   subject-line-only, no body text, for exactly this class of change
   ("style clean-up in 'base.net.send_to_socket'", "minor style
-  adjustment in 'v7.callback.register_ondemand'", etc.) -- these are
+  adjustment in 'v7-zenki.callback.register_ondemand'", etc.) -- these are
   human-authored, explicitly self-labeled pure style/idiom commits,
   the closest thing to ground truth this repo has without a labeled
   corpus. distribution: 2021:23, 2022:5, 2023:3, 2025:21, **2026:65**
@@ -297,8 +297,8 @@ total, before the rating/dedup pass.
    `--flash-attn off` fix in `coding.spawn_inference_server`) --
    none of that was dataset-specific and all of it is still correct.
 
-#,,.,,,.,,,.,,,..,.,,,.,.,..,,.,,,.,,,,..,,.,,..,,...,..,,..,,,,.,.,.,...,,,,,
-#XDGX2PMSIZ3POTORHMYBGVWJ4F4GTWUFFBLGVYUFMOO3LOV62V6J53TNGX2U66VH5CV4BPNRFN5Q4
-#\\\|B3I5P7D6IPTYN6WQWINBPFCZVOMMUX467CKP7F5EUIZZLZRVCRI \ / AMOS7 \ YOURUM ::
-#\[7]MM53YZGLEPCXAD5AJJN4M5VEAUFPJPK7CNHL6PT77PXVGSBY4EAA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,.,,..,,..,,,,.,,,.,.,,,.,,,..,,...,...,.,.,...,,,,,,,,,.,,,
+#EP2FNR5R4SNB4K2B3W4PBZ2BE3ETBNHBDDGCILNBXZEN72GMCC44DFPWFCUDMWRJLEBTO237VOHCG
+#\\\|RUGTTJ6HUEMESAPLIBVLGOLN445XP7GECTRREPIGEPJJR3ZGGQX \ / AMOS7 \ YOURUM ::
+#\[7]52DIJ6DOR3JDN4CBDFMMHSDIUTCLWH6W3OFFMR57PWVKMFV25UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

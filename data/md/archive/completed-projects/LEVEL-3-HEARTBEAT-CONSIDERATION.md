@@ -48,18 +48,18 @@ The Protocol-7 system has **two classes of zenka** with fundamentally different 
 
 ### Path 1: Always-On Zenka (Continuous Monitoring)
 
-**Where**: v7 heartbeat verification loop (lines 52-61 in v7.init_code)
+**Where**: v7 heartbeat verification loop (lines 52-61 in v7-zenki.init_code)
 
 **Logic**:
 ```perl
-foreach my $instance (@{<v7.zenka.instance>}) {
+foreach my $instance (@{<v7-zenki.zenka.instance>}) {
     my $zenka_name = $instance->{zenka_name};
     my $status = $instance->{status};
 
     next unless $status eq 'online' || $status eq 'extbin';
 
     ## IMPORTANT: Skip on-demand zenka
-    next if <[v7.zenka.is_enabled]>->($zenka_name, 'heartbeat_disabled');
+    next if <[v7-zenki.zenka.is_enabled]>->($zenka_name, 'heartbeat_disabled');
 
     ## Only monitor always-on zenka
     <[v7.monitor_dependency_health]>->($zenka_name);
@@ -277,8 +277,8 @@ Both strategies work **because they match the operational model** of each class.
 
 Result: **Self-healing dependencies without performance overhead**, appropriate for each zenka class.
 
-#,,,.,..,,,..,...,,..,,,,,.,.,,..,.,,,.,.,,..,..,,...,...,,.,,,,,,.,.,,..,..,,
-#PB4JR53ETRGYNNHVCYXTSVJ6SSIWWRCF7PVX3EI5XGMUPJAVMVWOU3NG7GIDMXXVJI3N3QGQTFCHK
-#\\\|FDQL35C2EAFSVTI7XCXR5O4Y7IDBUXLQNK2UKVMZZGIKFG4TAKO \ / AMOS7 \ YOURUM ::
-#\[7]J2AZR3XYSRS2DO2TEG7JQQRZ73MSOQORHLW65BML2CDF3EAE32BI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,.,,,...,,,.,,,.,,,,,,..,..,,..,,...,...,..,,,..,..,,,..,,,.,
+#DEYPQUZFAVW7DOI7BPABG5ISFMTWHKFYKHC5BC6AQU5WKNQKFJJRG6DFK43FGYA6J7OFKYH3KSZ24
+#\\\|2PP2ULRU6JKQMMNANRIDG7WG4QFD43N4LPUANVADNN5LFIVYPQZ \ / AMOS7 \ YOURUM ::
+#\[7]363QTHEXGND7KPDQ5RNXGPSCI6UA7WGMR6MGX7YICVT6WXSDGYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

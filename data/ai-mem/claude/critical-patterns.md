@@ -135,7 +135,7 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 
 ## p7c vs p7
 - Always use `p7c` not `p7` — binary was renamed
-- `p7c v7.restart cube` restarts all zenki at once; use after editing cube/access.zenki
+- `p7c v7-zenki.restart cube` restarts all zenki at once; use after editing cube/access.zenki
 
 ## chmod child restore readline
 - Every restore cmd to chmod child needs `readline` after; missing one desyncs the pipe
@@ -149,8 +149,8 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 ## ptd usage
 - Use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass
 
-#,,,,,.,.,,,,,,,,,,..,,..,.,,,...,,,.,.,,,.,,,..,,...,...,,.,,..,,..,,,..,,.,,
-#E2KPSKYHLT74XC2LR5JQ57GNHWITXIME6MNNY3O34QPM4UJHOQ7PU2O2Z6HC2K2NACGLGO4OUZKKW
-#\\\|FTUWRVAFWJRLLSIUAZ4BXZOEB75XLDFVWO7ZYP5MFKU6ZSWNNMO \ / AMOS7 \ YOURUM ::
-#\[7]ACBETBJKBYEEV7TOHLNWNPRSRWBMEWXOBZTFSX3E3APMZ3IGY2CA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,...,,,.,,..,,,.,,..,,,.,,..,..,,...,..,,.,.,..,,,.,,..,,..,,
+#IF3IDSNFZVC7FCC4PB5V2EBCRTZBB4H4AHWLXFS7ZHJUTBRPFMIQX5CRCV7NEOIZ7PVANEQFMVU3Q
+#\\\|HCMNXAQDFMEIQ4CLRJ77KDT7RWUTMKUU2AQSOELHX7KFYHQEZ4G \ / AMOS7 \ YOURUM ::
+#\[7]526CGZG7UWG6QJQMX4B5P4F6KVTZJUAQW2SCAPH7OZUGQSZYHWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

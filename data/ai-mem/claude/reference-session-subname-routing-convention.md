@@ -68,14 +68,14 @@ flipping the order.
 - `cube.cmd.select`, `cube.cmd.idle-next`/`oldest-next`,
   `v7.zenka.cmd.stop` : already match instances by subname
 - `list subnames <name>` : defined TWICE — session-keyed in base.init_code,
-  instance-keyed in v7.init_code ; which you get depends on who answers
+  instance-keyed in v7-zenki.init_code ; which you get depends on who answers
 - `plugin.auth.zenka` + `plugin.auth.unix` : both accept the wire form
 - `base.session.split_subname` / `base.session.set_subname` : the shared
   pair, extracted 2026-08-12 so the two plugins do not each carry a copy
 - `base.session.check.close` : releases the per-user registration that
   `set_subname` creates — **the session write and the per-user counter must
   stay paired**, which is why `set_subname` is one module
-- `v7.start <zenka>[<subname>]` : starts a named instance
+- `v7-zenki.start <zenka>[<subname>]` : starts a named instance
 
 ## changing a subname is DELIBERATELY not implemented
 
@@ -97,14 +97,14 @@ load-bearing, not duplicates of each other.
    the `$data{'user'}{$u}{'subname'}{$s}` counter, in CUBE's process,
    keyed per SESSION. This is what `base.handler.command.route_to_target`
    and `cube.cmd.select`/`idle-next`/`oldest-next`/`group-next` consult.
-3. **v7's LIFECYCLE registry** — `<v7.zenka.instance>->{$iid}{'subname'}`,
+3. **v7's LIFECYCLE registry** — `<v7-zenki.zenka.instance>->{$iid}{'subname'}`,
    in V7's process, keyed per INSTANCE. Used by `v7.zenka.cmd.stop`,
-   `v7.instance_count` (hence max_concurrency) and `v7.start
+   `v7-zenki.instance_count` (hence max_concurrency) and `v7-zenki.start
    <zenka>[<subname>]`.
 
 `list subnames` is defined TWICE and resolves differently depending on
 which zenka answers: `base.init_code:171` is session-keyed (column header
-`session`), `v7.init_code:208` is keyed on `v7.zenka.instance` (header
+`session`), `v7-zenki.init_code:208` is keyed on `v7-zenki.zenka.instance` (header
 `instance`). Same command name, different registry — do not read one and
 conclude anything about the other.
 
@@ -149,9 +149,9 @@ deferred, not a checklist to work through mechanically:**
    per-user counter, increment the new — i.e. the inverse-plus-forward of
    `base.session.set_subname` / `base.session.check.close`, which is why
    it belongs beside them.
-4. a v7-side equivalent for `<v7.zenka.instance>`, or v7 must be told to
+4. a v7-side equivalent for `<v7-zenki.zenka.instance>`, or v7 must be told to
    re-read. Skipping this desynchronises `v7.zenka.cmd.stop` and
-   `v7.instance_count` — so max_concurrency could miscount and a stop
+   `v7-zenki.instance_count` — so max_concurrency could miscount and a stop
    command could target the wrong instance.
 5. a generic `base.cmd.change-subname` that sets the local view and drives
    (2) and (3), leaving zenka-specific side effects (mpv's playlist
@@ -171,8 +171,8 @@ Landed in `d0848477b`; live-verified both paths — `mpv[audio]` (pre-existing
 zenka auth, unaffected by the refactor) and `taeki[user-edit]` addressed via
 `p7c 'taeki[user-edit].char-add'`, with the subname released on exit.
 
-#,,,,,,,,,.,.,,,,,...,...,.,,,..,,.,.,..,,,,.,..,,...,.,,,,.,,,.,,,.,,,..,...,
-#TEHZU67NTFQUTC22XOPRZNQIYTAARRD5QHQGGSMDIVW5JQ4N7IF32C2EP4HNC7JKSFGSB5D4XNIKU
-#\\\|UMGVUJXR5EWHGXKLMOUNZS5NCHTHZG52DUXXAGBKSRPI7ADCRX4 \ / AMOS7 \ YOURUM ::
-#\[7]6M6AAM63N2QJP6YXSG2FGWYJA5HGPKVYCS74LUGOOHIQ7SI5C6DI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,..,,...,,,,,.,.,,..,.,.,...,..,,...,..,,.,.,...,,,,,,..,...,
+#WCJI6C773O24MYOZOLZSSNS2FE7CWREZKCXMXBI3ERQ7TUDZ3LCIRQCMN2PXIIYQZHBG3XRQTEMN2
+#\\\|O2HXGZIMPIHQCDGNW4Z4IBEJYELXDHVY2LTLBSBZJXFDAFSKA57 \ / AMOS7 \ YOURUM ::
+#\[7]5AEVRUN7NOLOR5KWC6NA2KVXSE2MIYO73ETF7CAILF7ZJLSTXKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

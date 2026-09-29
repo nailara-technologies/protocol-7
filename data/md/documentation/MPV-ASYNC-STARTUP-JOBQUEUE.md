@@ -17,7 +17,7 @@ player is never opened before the event loop. paths:
 
 - **audio mode** → push `mpv.startup.job.fork_player`
 - **local profile found** → set geometry, push `mpv.startup.job.fork_player`
-- **placement mode** → push `mpv.startup.request_geometry` (sends `v7.notify_online`,
+- **placement mode** → push `mpv.startup.request_geometry` (sends `v7-zenki.notify_online`,
   reply chain: `placement_online` → `coords_reply` → `fork_player`)
 - **fallback** → resolve geometry, push `mpv.startup.job.fork_player`
 
@@ -85,8 +85,8 @@ is ready (or after binary crash) drain automatically when socket resolves.
 - **`:twin:` restart integration**: zero-downtime player config reload using v7
   twin restart when zenka is still processing traffic
 
-#,,.,,.,.,,.,,..,,,..,,,,,...,,.,,.,.,..,,,..,..,,...,...,,..,..,,,,,,.,.,,,.,
-#CLTPFDKSI6XDILRCUHZJRVXFB6HXM4EJ6DT55J6OKENA4MKHJYHFCJTOAGLMPFR5VKXN6AB7TIT3Y
-#\\\|GMPE5MWSNDB5OYH5I6BDYADMOLWNLBFATOUQXETISK3IVJTGBP2 \ / AMOS7 \ YOURUM ::
-#\[7]AHAXIFLLNO3JBRXUDUL77GZMRTNCYQEWRLYB5FS657IEPHO4GABI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,.,,,...,,,,,,,.,..,,...,.,,,..,,...,.,.,...,.,,,,..,,,,,..,,
+#QZCBSTWMLOS42PXTNUBOHDQWSPSG4SSSFPTE5ON66YRTQZBZKURRA5SGUXBRRFZ7FYHKJNP5O3UT4
+#\\\|UCIA7ZTJ2EZVNPLERQOIWQ4BJLUJNMIM5XUBSM7C37IT4DMDQHN \ / AMOS7 \ YOURUM ::
+#\[7]32INY7BHUBK7HHZK6APXLUS6OV5PSEGQADWUELE4O6S3DPL5YADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

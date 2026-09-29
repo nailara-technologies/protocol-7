@@ -92,7 +92,7 @@ first, always.
 
 ## testing gotcha, cost real time twice
 
-**`users.*` changes need `v7.restart users` before they are exercised.** The
+**`users.*` changes need `v7-zenki.restart users` before they are exercised.** The
 form side reloads per invocation; the zenka does not. A fresh record came out
 with the old scalar shape and looked like the change had not worked.
 
@@ -459,8 +459,8 @@ the PID had changed (session restarted) and the exclusion silently stopped
 matching. Fixed by filtering on the TTY column (`awk '$7 == "?"'`, only kill
 processes with NO controlling terminal) instead of a PID, going forward.
 
-#,,,.,,.,,.,.,,,.,,.,,...,,..,,,.,..,,.,.,,..,..,,...,...,,,.,...,,..,...,.,.,
-#MG3DXLRJTIAZQU22S6UGDQWCFKJLK7MO7CHDLGZPAH42JMN3K6DRWMGQHAZOYNPOYIM5RW4QTLOSI
-#\\\|NMKXZ6TPTSOAU4JKKADLSE23X4JWLTT5CGP677CD6ATP2CY3AK6 \ / AMOS7 \ YOURUM ::
-#\[7]5LLNECYKQGVMDZM5IEB53YMHN4SG2UO5RLE6LI7NEE47ATLOVACI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,,..,,.,,,..,.,.,,.,,...,,,.,..,,...,...,..,,...,.,,,..,,,.,,
+#OY4A4MOCKU32VTLSSHFTWQDY3KVDS47DUOM6M6UHYGC3P5TR52DOWVAOW7OQAJVEEZQVBL6ZPNJJY
+#\\\|EF7LC3JYXMZ43X3AJ7N6E7SXMN45Q22547ZS4UDZYV6N3HPB6E5 \ / AMOS7 \ YOURUM ::
+#\[7]QYQWQKMSD4ERBMAUBB6YERHRIJIKUTU4A5INXCMSUEWUIEP4BWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ Date: 2026-08-16
 The initial report said "no change" after the viewport code was added. A temporary `[viewport debug: ...]` printf in the render path showed the branch was actually being reached (`rows=27 budget=27 total=27 vp=off`). The real problem was not viewport bypass but the extra newline: the form happened to be exactly the terminal height, so the unconditional newline scrolled the screen every render.
 
 ### testing notes
-- Python pty harness is useful but timing-sensitive; a fresh `v7.user-edit start taeki` process may take several seconds before emitting the first frame.
+- Python pty harness is useful but timing-sensitive; a fresh `v7-zenki.user-edit start taeki` process may take several seconds before emitting the first frame.
 - When frame height == terminal height, the screen should not scroll.
 - When frame height > terminal height, the viewport should slice to exactly the terminal height and scroll with the active field.
 
@@ -27,8 +27,8 @@ The initial report said "no change" after the viewport code was added. A tempora
 - `src/user-edit.handler.term_resize`
 - `cfg/zenki/user-edit/subroutines.load-early`
 
-#,,..,.,.,,..,,,.,,..,...,,..,,..,,,.,,,.,,,.,..,,...,...,.,,,..,,...,,..,...,
-#I52PK5HWT6DDWLY7YSIFA6T7MQ2R4H6LHHOKHDTRSJXZQDX33EMPXKEDB33AXVYNJALM6RTGUWZUI
-#\\\|IZIFTUUPDOWFZ6IGSZ5CHBDEQ2ZNS4APPJJJD4O6L5JUEXSTBPU \ / AMOS7 \ YOURUM ::
-#\[7]MBGDMSKO5L6IKYRT54GQUUU2FDOGVT3GYHMGO42GXDJIBZGLQCDI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,..,,,.,,,..,,..,...,.,.,.,,,..,,...,..,,..,,,,,,...,,,.,.,.,
+#7VUP5YM75AUH3VJWOZIJ3PCVMIOB52CZH5PIE47HE6WQPN5LKLMAUQUN3L7KP7GABBGZ65YOTBZKG
+#\\\|BSU5KINAPO5E4JYGVZZ2W7TPBZRI6627FSZQDMYALOZT6TZZTVZ \ / AMOS7 \ YOURUM ::
+#\[7]24KK3PXFPRDFY7B5BRIMXEOZVVJV4LX4GBEGDBJ4RUVZOQC4CCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

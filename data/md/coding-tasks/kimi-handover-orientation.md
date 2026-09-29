@@ -57,15 +57,15 @@ orientation task — no code changes, just building understanding.
 
 ## context
 
-the context zenka is live and running via `v7.start context`. it loads
+the context zenka is live and running via `v7-zenki.start context`. it loads
 context.*, ncode.*, format.yaml.*, and channels.* module namespaces.
 zero compile errors after the latest fixes. the ncode seed patterns
 include pipe-delimiter detection, comment style, qw-quoting, module
 call syntax, and other P7 conventions that ncode should eventually
 enforce automatically during code generation.
 
-#,,,.,.,,,,..,,.,,,,,,.,,,...,,..,,,.,.,.,.,,,..,,...,..,,...,,,.,.,,,,,.,...,
-#BRRCE3ZLT6AYSRE2F7D33RJYLZQUCKZ2JZMIBWGERMA5KPH7CFPKJR4ALNHFN6UIR37VJQGMSE5YK
-#\\\|7F3QQJ5FMGB3KF53PJDDQHAYAI67IW6GZPNYZSQWVX5NYZFBB2F \ / AMOS7 \ YOURUM ::
-#\[7]RK6GXNY4MPNPH5EOFIIGTQR7SRIZVCV3FMYBDN53FZMGK7BO6GCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,...,,.,,...,,.,,,,,,...,,..,.,.,..,,...,..,,.,.,.,,,.,,,,.,,..,,
+#CNWK3LUYG7CCIX2FRGYGXFKP32SXXHEPLM5DTQDEGPKDLI5MMCJ7DMVJD6SK4WLJN7TLQM4D6THLW
+#\\\|ABBOM655SJ4GKCKIRATH2SNYBHERLR4WNKCZNEBND25ZUSSODLD \ / AMOS7 \ YOURUM ::
+#\[7]2BOU4EKOG4UGJLKUP3KOPGZZC4SIYQ7WGQRZBDX4BXMKJPNGKICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

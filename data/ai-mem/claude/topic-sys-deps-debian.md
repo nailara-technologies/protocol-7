@@ -17,7 +17,7 @@ live and working: on-demand startup, 64s idle shutdown, `sys-deps.state`/`check`
 - `sys-deps.cmd.install` → routes to `debian.install` via `protocol-7.route-send` (fire-and-forget)
 - `debian.cmd.install` auto-scans if registry is empty (handles fresh on-demand startup)
 - `AMOS7::deps::*` shared library: `module.pm`, `os_package.pm`, `debp.pm`, `dist_upgr.pm`
-- `v7.check_zenka_deps` — v7 pre-start dep check hook
+- `v7-zenki.check_zenka_deps` — v7 pre-start dep check hook
 
 ### debian zenka root apt-child pattern
 
@@ -74,7 +74,7 @@ planned layers (add step by step, each independently useful):
 2. **perl module dependency scanning** — scan `use`/`require` at module load time →
    auto-register → sys-deps verifies/installs before zenka starts
 3. **auto-install on demand** — sys-deps hooks into zenka startup: missing deps → install → retry
-   (extends existing `v7.check_zenka_deps` pattern)
+   (extends existing `v7-zenki.check_zenka_deps` pattern)
 
 key: each layer works standalone and can be verified before building the next one.
 
@@ -101,8 +101,8 @@ fallback, see above), not something to duplicate into the standalone `bin/ncpan`
 `ncpan` stays a simple CPAN-source client; don't bolt apt-checking onto it later without a
 reason `sys-deps` itself can't cover.
 
-#,,,,,,.,,,..,...,,..,,..,.,.,,,.,.,,,,.,,,,,,..,,...,..,,..,,.,,,...,,,.,.,,,
-#2OZI7RWSTWQD7GCOWEMBCSBXWQYAO47LCTOKD2EDKPZ5MHX5VDIEVJGV3FND2GM5T743HYVXEAWU6
-#\\\|BZN6K27S6HWU7P25SV4RXLLYXRLOPWPAOBBCOLSXBLZREOZDOO6 \ / AMOS7 \ YOURUM ::
-#\[7]3CTADDV6UVBXAMRPVDBUYMQ7IC7BY7TYOLUYC3URZFJ3KJMMMEDI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,..,,..,,.,,,...,...,,.,,...,..,,...,...,.,,,.,.,.,.,.,,,,.,,
+#3S723RNERMJHE5HLPXHBBQUF3BBHFNP6SXX43435OX6SG7BVMQWQ3FUG62EPG4N534YVTG2R46UKM
+#\\\|XV3XI2TX2E6APUBUD46IV6RRBDAUXMHIR7HSTU3PGV5CWHVLR6Q \ / AMOS7 \ YOURUM ::
+#\[7]AKUYZEI26SUVKD7ICMTCS3IFTVKDVNHTFMHHT2YQT6JTYDSIQCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

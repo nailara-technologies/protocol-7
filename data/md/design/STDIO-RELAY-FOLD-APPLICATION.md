@@ -28,14 +28,14 @@ related primary sources [ read in order if new to this thread ]:
 - `data/md/design/LAYER-MATRIX-STATE-TRANSFER.md` — the layered overlay
   / reversible-state-transfer primitive a filter overlay actually rides
 - existing v7 plumbing this doc applies the philosophy to:
-  `src/v7.handler.output_zenka_stdout`,
-  `src/v7.handler.zenka_output`,
-  `src/v7.handler.process_output_line`,
-  `src/v7.setup_stdout_redir`,
-  `src/v7.stdout_log.write`,
-  `src/v7.callback.stdout_log_rotate`,
-  `src/v7.init_zenka_output_patterns`,
-  `src/v7.load_zenka_output_patterns`,
+  `src/v7-zenki.handler.output_zenka_stdout`,
+  `src/v7-zenki.handler.zenka_output`,
+  `src/v7-zenki.handler.process_output_line`,
+  `src/v7-zenki.setup_stdout_redir`,
+  `src/v7-zenki.stdout_log.write`,
+  `src/v7-zenki.callback.stdout_log_rotate`,
+  `src/v7-zenki.init_zenka_output_patterns`,
+  `src/v7-zenki.load_zenka_output_patterns`,
   `src/base.log`, `src/base.logs`, `src/base.log.format_entry`,
   `src/base.log-delayed`, `src/base.log.send-buffer.*`
 
@@ -49,8 +49,8 @@ fire-and-forget mirror into v7's console; it is an **addressable
 foldable element** under the same console-fold algebra as everything
 else, with vterm nesting toward the user's host machine carrying its
 unfolded form whenever attention requests it. the existing v7 relay
-[ `v7.setup_stdout_redir` → `v7.handler.process_output_line` →
-`v7.handler.output_zenka_stdout` → `v7.stdout_log.write` ] *already
+[ `v7-zenki.setup_stdout_redir` → `v7-zenki.handler.process_output_line` →
+`v7-zenki.handler.output_zenka_stdout` → `v7-zenki.stdout_log.write` ] *already
 does most of this in fragments*; this doc names the seam where the
 fragments line up under the fold primitives.
 
@@ -65,7 +65,7 @@ address. its forms:
   no rendered output reaches the v7 console; the line in the v7
   surface IS the folded handle, updating the rate cell only
 - **unfolded raw** — the existing v7 console line-relay behaviour
-  [ `say $line` in `v7.handler.output_zenka_stdout` ] is *one
+  [ `say $line` in `v7-zenki.handler.output_zenka_stdout` ] is *one
   particular* unfold mode, equivalent to "render this address as one
   line per buffered entry, no filter, no grouping"
 - **unfolded filtered** — same address, different render-side filter
@@ -94,7 +94,7 @@ every node is a complete tree. so:
   and `base.ntime_BASE32_to_numerical` per [[feedback-ntime]] for the
   sortable timestamp address ]
 - `<zenka>.stdout.pattern` is a complete sub-tree of registered
-  pattern handlers [ matches `v7.init_zenka_output_patterns` ]
+  pattern handlers [ matches `v7-zenki.init_zenka_output_patterns` ]
 - `<zenka>.stdout.filter` is a complete sub-tree of currently-attached
   filter overlays [ named, foldable, removable ]
 - `<zenka>.stdout.view` is a complete sub-tree of currently-bound
@@ -120,12 +120,12 @@ its rendered form. four layers, named, each composable independently:
   [ source ]    a zenka's actual STDOUT/STDERR fds [ unchanged ]
        |
   [ ingest ]   line-extraction + per-zenka buffer + pattern dispatch
-       |        [ existing: v7.handler.process_output_line,
-       |          v7.handler.zenka_output, v7.init_zenka_output_patterns ]
+       |        [ existing: v7-zenki.handler.process_output_line,
+       |          v7-zenki.handler.zenka_output, v7-zenki.init_zenka_output_patterns ]
        |
   [ store  ]   ring-buffer storage + ntime address + retention policy
-       |        [ existing: v7.stdout_log.write,
-       |          v7.callback.stdout_log_rotate, /dev/shm/.7/STDOUT/<sock> ]
+       |        [ existing: v7-zenki.stdout_log.write,
+       |          v7-zenki.callback.stdout_log_rotate, /dev/shm/.7/STDOUT/<sock> ]
        |
   [ filter ]   render-side filter/group/decorate chain [ NEW; can be
        |        empty, single, or stacked; bound to <zenka>.stdout.filter ]
@@ -149,7 +149,7 @@ the philosophy is *almost* satisfied by what's there; the gap is the
    address `<zenka>.stdout`. the v7 console line that `say`s every
    relayed line is recharacterised as *one default view bound to one
    default slot*, not as the relay itself.
-3. **`v7.handler.output_zenka_stdout` shrinks** — instead of "always
+3. **`v7-zenki.handler.output_zenka_stdout` shrinks** — instead of "always
    `say $line`," it routes lines into the store layer and notifies any
    currently-bound views via the slot's refresh hook
    [ `base.slot.refresh` from `console-stdio-slot-addressing.md` ].
@@ -162,7 +162,7 @@ the philosophy is *almost* satisfied by what's there; the gap is the
    continuity that makes "presence undisturbed" literally true.
 
 this is *generalisation*, not replacement: today's `say $line` becomes
-the default-view refresh; today's `v7.stdout_log.write` ring buffer
+the default-view refresh; today's `v7-zenki.stdout_log.write` ring buffer
 becomes the store layer; today's pattern-table dispatch becomes the
 ingest layer's hook surface. the only genuinely new code is the
 filter chain and the slot-binding seam, both of which are local
@@ -174,7 +174,7 @@ additions, not re-plumbing.
 substrate. unfolded views of `<zenka>.stdout` that are richer than
 "one line per write" [ filter overlays, tree-grouped views, fullscreen
 expansions ] render into `vterm.*` layers, not into raw stdout. that
-keeps the existing `v7.handler.output_zenka_stdout` raw-`say` path
+keeps the existing `v7-zenki.handler.output_zenka_stdout` raw-`say` path
 untouched while richer views compose against the layered buffer.
 
 the "vterm nesting toward the user's host" the user mentioned is the
@@ -206,7 +206,7 @@ below explicitly relies on this rather than re-inventing it.
 
 ### example A — pattern-matching filter overlay on the v7 console
 
-today: `v7.init_zenka_output_patterns` already matches patterns
+today: `v7-zenki.init_zenka_output_patterns` already matches patterns
 against zenka output to trigger commands. it does NOT filter the
 rendered view — every line still reaches the v7 console verbatim. the
 user wants a one-key toggle that hides everything *but* matched lines
@@ -244,7 +244,7 @@ with the fold primitives:
 1. the time-ordered view is the default render of `v7.console`
 2. a sibling render is registered at `v7.console.view.by-zenka` that
    groups by `instance_id` → zenka_name [ data already extracted in
-   `v7.handler.process_output_line` ]
+   `v7-zenki.handler.process_output_line` ]
 3. each per-zenka group is a foldable child node at
    `v7.console.view.by-zenka.<zenka>` — `ui.render.tree` handles
    recursion automatically [ branch-as-complete-tree ]
@@ -384,8 +384,8 @@ framing by being the smallest possible consumers of that language —
 they have almost no zenka-specific code because, per the philosophy
 doc, *they don't need any*.
 
-#,,,.,...,,,.,.,.,,,.,,..,,,,,.,.,.,.,,.,,,..,..,,...,..,,...,..,,,.,,.,.,.,.,
-#2GZ2UNHKC2BQ3H4FYWRYE7QHABMDX6PKN226A2JRLRAPU6Z5SSEDULU7NHPLCZZEA3J3KFIR433R2
-#\\\|3JOQTD34HVDRKOX5GEF44J2NDSX4IO57QEXQINOJ6GEZ2HAZTWS \ / AMOS7 \ YOURUM ::
-#\[7]FEBFMGG5TC5MRUEAAXAXIVZDCCCDFSH3CBXTN733F5CYKNCGJ2AQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,,.,,,,.,...,.,,,,,,,...,...,..,,...,...,.,,,.,,,,..,.,.,,..,
+#NLS6RLFNYSPAZBM6FL2ILRXIZTTM7BJMSZF47OOO3TYRJBO7O6XQYZ54U2NGU2GNINWFHVWOQYE3K
+#\\\|RKTXAVQNJQRLPRWIZNY6AEU42XA6IKH2XDAJ3463ZEDPUYFAK7G \ / AMOS7 \ YOURUM ::
+#\[7]E5VR2UDFKABZ5ZOZAS4XGP25LL7I5XL676Z4TIUBREPELFVQOGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

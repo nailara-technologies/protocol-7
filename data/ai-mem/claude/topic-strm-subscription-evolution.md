@@ -48,7 +48,7 @@ separate problems — solving one doesn't solve the other.
 are the "latest method" — but currently hand-rolled per subscriber
 (`proxy`/`transport` → `cred-mesh` rotation) with no shared re-
 subscription-on-restart handling and a fragile fixed-delay timer instead
-of the offline-safe `base.zenka.push`/`v7.notify_online`+backoff pattern
+of the offline-safe `base.zenka.push`/`v7-zenki.notify_online`+backoff pattern
 that already exists elsewhere in the codebase.
 
 Key structural fact, corrected twice en route to the right answer:
@@ -64,13 +64,13 @@ The actual signal is the *other* half of the same function:
 collapsed\n"` to a route's **source** when that route's target session
 (the one it's still waiting on a reply from) dies. A STRM subscription is
 naturally a long-lived/deferred route (same reply shape as
-`v7.zenka.cmd.notify_online`'s own `{'mode' => 'deferred'}`), so as long as
+`v7-zenki.zenka.cmd.notify_online`'s own `{'mode' => 'deferred'}`), so as long as
 the subscribe is wired as a genuine pending route rather than fire-and-
 forget, the subscriber gets `command route collapsed` automatically the
 moment the publisher's session dies — no new signal to invent.
 
 **The user's full loop**: (1) subscribe via a pending/deferred route so it
-can collapse; (2) on `command route collapsed`, issue `v7.notify_online`
+can collapse; (2) on `command route collapsed`, issue `v7-zenki.notify_online`
 for the publisher, optionally with `:start:` to also (re)start it; (3) on
 a positive reply, re-subscribe immediately; (4) on a negative reply, retry
 `notify_online` again with an increasing/backoff delay — a negative reply
@@ -112,8 +112,8 @@ addressing so deeply that a pubkey-addressed channel can't slot in later).
 [[strm-generic-subscribe-wrapper]] ·
 [[topic-kimi-dispatch-infra-hardening]]
 
-#,,.,,.,.,...,,,,,,..,,..,.,.,,.,,,,.,,..,,.,,..,,...,...,...,,.,,.,.,,,,,,..,
-#XL7DFRPU5DPDGKYJB73L2W7LHMM66KYX7RYZLU2JTZNNHS3H64S3ZVU27KWCMSZF772U7DASPSHUC
-#\\\|52NTUEMGUJQNFDQYLPN5ZT3Y47KJXPHDOLVGXI2542DWADUZSDL \ / AMOS7 \ YOURUM ::
-#\[7]NI5XRCOPT2LRBMMGJPM5CTHQ2ZJYSJCWYAAMME2ZKL3QV6X3YCDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,.,.,,..,..,,..,,...,,,,,..,,..,,...,..,,...,,..,,.,,,,,,,,.,
+#ILFX7PLYE4EQTBPP7VGFVNPH4MCJDVTUHKFQXLKAPP25WLHQSAZ6HFLFCHEJAZ26IPUWYWPNYQFFO
+#\\\|MTGOLXYTMAHKXHIANSWDAXD5T2EJZX6MRO4Q5UKATGBFVYF2KGV \ / AMOS7 \ YOURUM ::
+#\[7]YAA46JGSMCJ536PXECUDQMIZVVRI7INLZTKWAPBX4RFYD4HHYECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

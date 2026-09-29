@@ -24,7 +24,7 @@ channel instead of being polled:
   recomputed-on-demand respectively), so each runs its own 45s
   listeners-gated timer — a no-op when nobody's subscribed.
 - `web` subscribes once per producer at init, with exponential backoff
-  (mirrors `v7.handler.zenka_status`'s `restart_delay *1.2`/capped/
+  (mirrors `v7-zenki.handler.zenka_status`'s `restart_delay *1.2`/capped/
   reset-after-stable shape) if a producer is offline at subscribe time —
   never a fixed-interval retry.
 - Real STRM consumption mechanism (verified via `coding.handler.
@@ -69,8 +69,8 @@ v7-style backoff on the subscribe side — never a fixed-interval retry.
 
 [[topic-httpd-route-arg-parsing-fix]] · [[feedback-no-unsolicited-cross-zenka-push]] · [[topic-async-window-startup-transition]]
 
-#,,,.,,,,,,.,,,.,,,,,,...,,,.,..,,,.,,.,,,...,..,,...,...,...,,..,,.,,...,...,
-#IIJS2FH3JDFSVLIK62A4UIMB3QL7DSBVUH5O22TMY7NBVVBWOFKRS6DPIYRTUXOUUO47LYQMTXJME
-#\\\|BLJPOQQHVCB5Y7YUHJ6S52KXGP2LROIX5ZDLYFNN3LB2EZHTOYW \ / AMOS7 \ YOURUM ::
-#\[7]KRU26WXS5KF2OC4SMYCXE5TJ2BLOLJPJUMWGQRYX52VUCULY7SDA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,,,,.,,,,,,..,,...,,,.,,,,,,,,,..,,...,...,.,,,,,,,...,,.,,,,.,
+#RUO43Y4KRPHFJ7EOH3JGPSYHHI6A4UYLY34T6SZ5UXET2RG3UN5I5Q2NGSQXXLZTJLLJGEDDS3EBW
+#\\\|PFDVW5OTBL4I6WAQJDZZKPYXBLHV5NULG72G7QBOUVIMVQE3ABT \ / AMOS7 \ YOURUM ::
+#\[7]5ESK62BJ2DK5F2O2UAW4RE23PZGRM3ATZANGFHZN5WHN7RXEAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

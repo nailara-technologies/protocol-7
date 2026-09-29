@@ -176,7 +176,7 @@ Path format: `/dev/shm/p7:vterm:<cube>:<layer_id>`
 ## Connection to Broader System
 
 ### Relation to stdout log redirection
-The recently implemented `v7.setup_stdout_redir` system was the **text-mode prototype** for this architecture:
+The recently implemented `v7-zenki.setup_stdout_redir` system was the **text-mode prototype** for this architecture:
 - tmpfs backing → SHM backing
 - Ring buffer rotation → Spiral sync priority
 - Early message capture → Sub-bit superposition
@@ -278,8 +278,8 @@ src/vterm.util.clamp
 *Authors: taeki / claude*
 *Status: Ready for review*
 
-#,,.,,.,.,,..,...,,,.,,.,,.,,,.,.,.,,,.,.,...,.,.,...,...,.,.,..,,.,.,.,.,,..,
-#WSTHZCU4V7PL4PWTDX4OBA54CGZFS472YNMPBM54ZJB6XJV3ESJXWZTOWQCPTFQLFCQ42IVPRCKZQ
-#\\\|T7QW46E4R3QUEXH5OGQ25NNTPJOUUN3YUXGZMEDYK7VFLHT4SEC \ / AMOS7 \ YOURUM ::
-#\[7]7VDYROLQIYTUIPKICGBZZNBQSSKXDCTJ3JIIZQV6WICZAC55MQAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,,,...,.,,,..,,.,,,..,,,,,,.,.,.,.,...,...,,,,,.,,,..,,..,,,,.,
+#SNMLH4DFUIXPZPKFADTUTDACDMJNWRAEKJFIIJH5GOBTYJDWCCG22RCMPAY22IWYGBQKWB3VB7FFU
+#\\\|C5W7A2JGKQ3LNLFITFVLOGH34HGWJ7QHJAPZ6O37LVGM3XTGQD7 \ / AMOS7 \ YOURUM ::
+#\[7]6FQDRKESI3ATGNDK2DMVCLLY7LTSD7T53AK655HDCB4IIM6PZ4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

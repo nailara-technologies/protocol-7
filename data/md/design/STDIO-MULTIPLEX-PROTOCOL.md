@@ -384,13 +384,13 @@ CONSOLE-FOLD-TREE-PHILOSOPHY.md            [ first principles ]
 ```
 
 dependency order: codec → transport → demux. the existing v7 relay
-[ `v7.handler.process_output_line` etc. ] gains the demux as an
+[ `v7-zenki.handler.process_output_line` etc. ] gains the demux as an
 **alternate ingest path** alongside its current line-relay path; the
 two coexist while zenki are migrated to the multiplexed transport,
 so no zenka has to flip atomically.
 
-#,,,,,,..,.,,,,,.,.,.,,,.,,,.,.,,,,,.,,,.,,..,..,,...,...,...,...,,,.,..,,.,,,
-#2F7YIGVDJ374A7VQKZMGPBMQ7VZSRAA2QNXU3EQE26ZWAXYJVF6LREG6DXGHNXUD7HDUBIZHVEJWW
-#\\\|6PTBO7OJQ6YSORAY2QFTH5BEVQTJB27BH2QGOW7HLRU6SZT52HS \ / AMOS7 \ YOURUM ::
-#\[7]UXF3ELE5MGZBUQ4QRR7TYUYF56QZB4FSO2VT7OVJMUENHCZAVGDQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,,.,,.,,,,.,,,.,,,.,,.,,,,,.,..,,...,...,..,,,,,,...,,.,,,.,,
+#Z7IFFW6Q3V2PJQ4ISE7ME2PKKKVNR3CCHMJMBBMQP5VSOBAEGHQBVWDZIN4ACGT7HLL5WHUWBLFJK
+#\\\|3JIRTM64KHXWU767WSZDPGVDAC3LJAEJBYNCHVI4VQU5P3A6PIG \ / AMOS7 \ YOURUM ::
+#\[7]KWDSMQV5BDTTPLTBEGBB5UGTT5I4XRXNSQ7NDS57XDT64W4F7SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

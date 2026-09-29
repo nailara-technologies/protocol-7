@@ -161,7 +161,7 @@ otherwise rejected.
 ```
 
 template root may carry a `commit_address` that fires once at end —
-e.g. `set-up.install-profile`, `v7.register_ondemand_zenki`, etc. on
+e.g. `set-up.install-profile`, `v7-zenki.register_ondemand_zenki`, etc. on
 success: archive the run under `installer.archive.<run_id>` and
 remove from `<installer.run>`.
 
@@ -283,8 +283,8 @@ harmony installer.ui.render.run
 harmony installer.cmd.ui-show
 ```
 
-#,,,.,,,.,..,,,,.,,..,,,,,...,,,.,.,,,,..,.,.,..,,...,...,..,,,,.,,.,,.,.,...,
-#4UNC3T5QSIEBRGFE6PV7QQ4Y6MU7E5BYAZ26JIVYHMM4M3JSTMIPW2MWOSH5XAIWX7CXRJ2RB4Z76
-#\\\|GS75XB34O3YIH24OOPQJMY2GPLL5GP6T3ZVHZPO7PYV7XTXMU5C \ / AMOS7 \ YOURUM ::
-#\[7]JUOARR23OATRWW3KAA7NXWNDP5MGIJGQ2ZMRAHLEMFSXO3SNU4CA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,.,,,,,.,..,,,,.,,.,,..,,..,,..,,...,...,.,.,,.,,,,.,..,,...,
+#IIH4RLQR67I7XD6QCXFNAUZQMGXPG76BFNQ6M3KBEIT3FH2AJ5P6HRPZP2BPUA7AA7AEA4R2GXIUG
+#\\\|DOBTVPN75XQXQPO5XWATIFGNTYYEINGHIW76A3IJYNOTOYLYWAF \ / AMOS7 \ YOURUM ::
+#\[7]AHCHY72KKF6EIC2QVUVXDKGYOYW7J3FW37QHRQVGCJCQYPN6MYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 - heartbeat traffic at verbosity level 2 on the cube console slowly washes away
   all other messages — signal-to-noise degrades rapidly with connected zenki
 - child zenka startup produces a burst of buffered messages when p7-log becomes
-  accessible (v7.notify_online p7-log reply), visually resembling a runaway loop
+  accessible (v7-zenki.notify_online p7-log reply), visually resembling a runaway loop
   but settling once the initial buffer drains
 - log files on disk grow unbounded without compaction; older entries have equal
   visual weight regardless of relevance
@@ -145,8 +145,8 @@ the other consumes them to find causes across time.
 - data/md/documentation/LOGGING-AND-VERBOSITY-REFERENCE.md
 - data/md/concepts/CONCEPT-SELF-MORPHING-CODE-STYLE-CONVERGENCE.md
 
-#,,,.,.,,,.,,,,..,.,,,...,,..,,,.,,,,,...,.,.,..,,...,...,...,.,.,,.,,,.,,..,,
-#NAW3WJPSMV4FQ3VNKIMDHU7LHWBUSH3WG4Z3QTDSIRX5A3FUC34XEV3QPG47F6ECSCJCX4C53NQTY
-#\\\|KJHC6RNR2PPFSHLVGGV74VW7TGQ5BJHHFSQMG6OLAQXBQK6SESP \ / AMOS7 \ YOURUM ::
-#\[7]DX5LMA6YRG7J5HPEDTJ4QFH3RK6AN73XSTNM5IJCUNC2UXMH5WAI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,,,.,,.,,.,.,,,.,,,.,.,,,...,..,,...,...,..,,...,,.,,...,..,,
+#JFOGAP6X5T2HSLFGW4Q64CN47YU4DJP7ERVBWKSKOBEM2ASRPZZVLAOANUMSWKHKJUFVRHW7BDFZ4
+#\\\|MEVDHXKHV5UCUMSF6ZFMF657FLD7NTWSUAJIAG74NVJ72KIF56Y \ / AMOS7 \ YOURUM ::
+#\[7]A76DA3X6HC22BRO5WZAWSQQDK64UVAC6VP7ELJPV6G3DK4N4MCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

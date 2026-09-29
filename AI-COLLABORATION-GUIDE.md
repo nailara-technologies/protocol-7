@@ -33,7 +33,7 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **`src/plugin.httpd.radio.*`** - HTTP audio bridge: `/radio/stream` endpoint via STRM consumers
 - **`src/base.strm.local.*`** - Local STRM consumer primitive (register/cancel/consume)
 - **`src/base.handler.command`** - STRM cancel propagation: `!TERM!` forwarded to route target
-- **`src/v7.zenka.cmd.notify_online`** - Fixed subname matching (audio-0 vs audio)
+- **`src/v7-zenki.zenka.cmd.notify_online`** - Fixed subname matching (audio-0 vs audio)
 - **`src/mpv.open_player`** - Subname regex extended to `audio-\d+`
 - **`src/coding.*`** - Async ML inference orchestration with tool loop
 - **`src/httpd.*`** - Async HTTP server with template rendering
@@ -53,7 +53,7 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 1. Read `CLAUDE.md` section "Multi-Agent System (Zenki)"
 2. Check `cfg/zenki/[zenka-name]/zenka.v7` - defines module loading and execution flow
 3. Look at `src/cube.*` - message routing between zenki
-4. Look at `src/v7.*` - zenka lifecycle management
+4. Look at `src/v7-zenki.*` - zenka lifecycle management
 
 ### Event-Driven Architecture
 1. Read `src/base.event.*` - EV wrapper functions
@@ -168,7 +168,7 @@ Two-UUID pattern: track both the outer claude UUID and the inner kimi UUID indep
 ./bin/Protocol-7 [zenka-name]    # Start zenka directly
 p7c 'command args'                # Send command via cube router
 ./bin/nshell                      # Interactive Protocol-7 shell
-p7c 'v7.restart zenka-name'       # Reload zenka to pick up code changes
+p7c 'v7-zenki.restart zenka-name'       # Reload zenka to pick up code changes
 ```
 
 ### Testing Modules

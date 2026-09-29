@@ -248,7 +248,7 @@ my %model_path_fallbacks = (
 ### Manual Verification (Previous Session)
 ```bash
 # Coding zenka startup
-p7c v7.start coding
+p7c v7-zenki.start coding
 # Result: ✅ No timeout, initializes immediately
 
 # Server startup
@@ -436,8 +436,8 @@ Currently awaiting:
 **Status**: Infrastructure COMPLETE, Cleanup IN PROGRESS
 **Next Review**: After formatting cleanup and models integration
 
-#,,,,,,..,.,,,.,,,.,,,,..,,.,,,.,,.,.,...,,,.,..,,...,...,,..,,..,,..,.,,,,.,,
-#BWPZJNNHNDSEN5DACC5NQDDNPQXQO3B35C2CNYS3JA7HD2XMZXQWTSUH4BPUQW4LB2GDK2A7OSMAW
-#\\\|NEVB2Y22V4VXMXU53UY7XXYYQFB4ODFLR5TMRX2GEKEOVD7LMOM \ / AMOS7 \ YOURUM ::
-#\[7]AIWANZYOHKDG6KCIP3WELQSNM6VBTWJQQJIFCUGQL2E46RDTAEAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,..,,,.,,,,.,...,..,,,.,,,,.,..,,...,...,...,...,,..,..,,.,,,
+#BYLA2BHN5ZS2U4SZ4FICUIGHYVZBQ7SA5TL6IQFWOBBWJ5QCW37SXSBC4QZTKKKFQFC2I2PXAJU5E
+#\\\|X555YMVSXNKIX5EPRMDF3HPVSDMYRKRYTMJJ6NRAY33SKPIBAAZ \ / AMOS7 \ YOURUM ::
+#\[7]GJZ25GDW6QGTJQ3K4Z7KFAUZEMTV34YDPBBGXISK6OHVKEBO32AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

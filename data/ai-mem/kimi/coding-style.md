@@ -79,7 +79,7 @@ current list):
 `base.templates`→`templates` · `base.chk-sum.*`→`chk-sum.*` ·
 `base.zenka.push`→`zenka.push` · `base.dependency`→`dependency` ·
 `base.locales`→`locales` · `base.protocol-7`→`protocol-7` ·
-`v7.zenka`→`zenka` · `fetch.file.huggingface`→`huggingface` ·
+`v7-zenki.zenka`→`zenka` · `fetch.file.huggingface`→`huggingface` ·
 `event.anyevent`→`event`
 
 ```perl
@@ -218,7 +218,7 @@ if ( $mode eq qw| false | ) {
 Pass all needed context in `reply.params`:
 ```perl
 <[protocol-7.route-send]>->(
-    {   'command'   => 'v7.notify_online',
+    {   'command'   => 'v7-zenki.notify_online',
         'call_args' => { 'args' => ":start: $zenka_name" },
         'reply'     => {
             'handler' => qw| models.handler.my-reply |,
@@ -737,7 +737,7 @@ consequence: writing `exists $code{'literal.name'}` directly in a module
 ## expected : guard by module registry, loud error if sub missing
 <[base.code.call_expected]>->(
     <[base.mod.exists]>->(qw| v7 |),
-    qw| v7.teardown |
+    qw| v7-zenki.teardown |
 );
 
 ## hard requirement : condition TRUE, errors if absent
@@ -754,7 +754,7 @@ my $pubkey_response = <[base.code.call_expected]>->(
 if ( <[base.code.exists]>->(qw| auth.auth_select |) ) { ... }
 ```
 
-real examples: `base.sig_term` / `base.sig_int` [ v7.teardown ],
+real examples: `base.sig_term` / `base.sig_int` [ v7-zenki.teardown ],
 `base.buffer.add_line` [ p7-log ], `base.zenki.resolve_primary_sid`,
 `auth.auth_select` [ crypt.C25519.cmd.get-public-key, expected=TRUE ],
 `base.handler.auth` [ code.exists + call_optional ],
@@ -1107,8 +1107,8 @@ differs from what the template serialization produces. also : the assistant
 turn in these files carries NO `<think>` wrapper -- the training script adds
 `<think>\n\n</think>\n\n` programmatically later; do not pre-add it.
 
-#,,,,,...,...,.,.,,,,,..,,,..,,,.,,,.,.,.,.,,,..,,...,.,.,...,,,.,,.,,,..,,.,,
-#IGEFL5IDXJGSXZDFW624XCPC7KUXN4CVQVCJGFOUU3Q62M5VX7VJ3XHGU6BLBIRXOOPD3GSPSM57C
-#\\\|5Q36CHPOXSV2UXUELWCKLCSES6TJJ7BQTT6GNPYXOHTYOFWIW3J \ / AMOS7 \ YOURUM ::
-#\[7]WXJ5WVYI5EQ4GVKT57L7XFRCS6SLNBQCPH62HULEUAAPH4VTFWCY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,.,,,.,,,,,,,..,,.,,,,..,.,,,..,,...,...,,,.,...,.,,,,,,,.,.,
+#6ZEK226634MIS3IAD4545MVMBVICNDZ7ULXBYDF54RWKR3TPIGME5WA4FJVSFHJYSINMBKQLLM556
+#\\\|A44IJFP5ZJ2Y5LTQHSE3B3GUMXSAJHUDZEK6JNZSYXYVZDPAYA3 \ / AMOS7 \ YOURUM ::
+#\[7]NJUDBPLY7L6V5SMGR42UCDFAZCQV6DGAVEWM5SR6R45ABADCXEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,9 +9,9 @@ metadata:
 
 ## session-69 summary (2026-06-01)
 
-### what was built: v7.restart :twin: — zero-downtime concurrent restart
+### what was built: v7-zenki.restart :twin: — zero-downtime concurrent restart
 
-`v7.restart :twin: <zenka>` starts a replacement alongside the running instance,
+`v7-zenki.restart :twin: <zenka>` starts a replacement alongside the running instance,
 drains old one gracefully, suppresses restart, leaves exactly one instance running.
 
 **key commits (branch: base):**
@@ -34,11 +34,11 @@ access.zenki: `drain` added to `access.cmd.usr.*` (general) so cube can forward 
 **cube backchannel**: `cube.cmd.unset-initialized` pauses command delivery to old
 zenka after drain is sent (send drain FIRST while initialized, THEN unset).
 
-**restart suppression**: in `v7.handler.zenka_status`, capture `being_replaced_by`
+**restart suppression**: in `v7-zenki.handler.zenka_status`, capture `being_replaced_by`
 before `handover_cleanup`, check if new instance is online → suppress restart of old.
 Restore `cube.set-initialized` on old if new twin fails startup.
 
-**namespace swap**: `v7.zenka.*` subroutine names unavailable after `base.swap_subs`
+**namespace swap**: `v7-zenki.zenka.*` subroutine names unavailable after `base.swap_subs`
 runs — use `zenka.instance.track_handover` / `zenka.instance.handover_cleanup`.
 
 ### coding zenka :twin: specifics
@@ -59,8 +59,8 @@ inference rounds to complete before force-kill.
 **instance-scoped pid files**: `state/inference.gpu.$$.pid` — prevents spawn_inference_server
 orphan scan from killing sibling instance's live GPU server.
 
-#,,..,.,.,.,.,.,.,,,,,,.,,,..,,,.,,..,,,.,,.,,..,,...,...,...,,,,,,.,,,..,.,.,
-#66D4YJQZXW6O32OLKSCWU4J5JHCSF34LFR22JYJL2GHVENEKIJOXCMVL37NP5UWFH65HDIWNBTDYU
-#\\\|DMF4DWSDT3PGLG4IIF3Q642ZI32WIHQF6LRF2SFRCGSXL7E2CZZ \ / AMOS7 \ YOURUM ::
-#\[7]5N2G6B4K5M2IGGOH5T6FFEAEJHCRQHPQX7B7Q4XKHDVSOWH5FECA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,...,..,,.,,,,..,.,,,,..,..,,..,,...,...,,..,.,.,,,.,,.,,...,
+#E3MIOAW3ZVOZYWWWNIMDE32DK7IRDATS6H3MX7JMLA64VJ4PA666XLU4DTQ4GJ4PUKAOE2IXF635O
+#\\\|DVSQWFNOTHHYH56WTR2AUSPK3TFLQY6SY7JURK4NN336XALBAUB \ / AMOS7 \ YOURUM ::
+#\[7]VYVSKXKOGXSHI7BQHWTHXJYSAPZ6M7NIH5HSKFLZGHPZOWBS2WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

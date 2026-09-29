@@ -44,7 +44,7 @@ this state in the backup. Reset with inline Perl script (not via jobsite.cmd.res
 tasks hash was empty after scan-state.yaml strip). After reset: 370 assessed, 306 new.
 
 ### scan started
-Coding zenka started (`p7c v7.start coding`; on-demand so would have auto-started anyway).
+Coding zenka started (`p7c v7-zenki.start coding`; on-demand so would have auto-started anyway).
 `p7c jobsite.scan` triggered — running, will take several hours, found many new jobs.
 
 ## new dev script
@@ -56,8 +56,8 @@ in this session but may still be useful.
 - [[session-64]] — encoding root cause
 - [[plugin-web-jobs]] — sync pipeline state
 
-#,,.,,...,.,.,,..,.,.,,,,,,..,,.,,,,,,,.,,..,,..,,...,...,,.,,,,,,,..,,.,,,.,,
-#6MCIQKMG7RWDHXBK3WG6DWSEXNVVPJOWQVZJWR7HAWSSEHVYL6GKHY3OXLCWAUOYEBSMMPJR27QPI
-#\\\|42ZRSYODG74ZOS65FSLBEXODCIDY4IYQZQUIDJPXWDIDAUOAG2O \ / AMOS7 \ YOURUM ::
-#\[7]O7WPWEJDCQ2IYOMGHVIS3SJXO63XUWGHZO7Q3J6MMUC52ULUDOCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,..,,...,,,.,,.,,...,.,.,,,.,..,,...,...,..,,,.,,,,,,...,,..,
+#RQRP6RSFOZ66ZAN4K2PYE64MLJSXJPGTBCAEH6XE2SYE6BDG2V4LNMFAKTI4RWZP542Z3JVNGSOY2
+#\\\|HJHAK3KMYKDWHYYAO27PFVN2RLMBB5VV76FJ7MT44UXTZTSFLQR \ / AMOS7 \ YOURUM ::
+#\[7]SF7XIDNQAFK6OP5SDKU7BMKBG6NZTIBDFCQ44KEKGNLA47HYW4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

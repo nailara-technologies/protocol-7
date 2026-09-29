@@ -37,7 +37,7 @@ array-ref-shaped args before trusting any of them.
    instead of replying. fixed (commit `49f6dc768`), and the `eval` wrapper removed per
    explicit user feedback: **this codebase's philosophy is warn/die should surface loudly
    with the `<{C1}>` caller-pointing marker — don't reintroduce silent-failure eval wraps**,
-   see `src/v7.zenka.change_status` for the established `return warn '... <{C1}>' if
+   see `src/v7-zenki.zenka.change_status` for the established `return warn '... <{C1}>' if
    <bad condition>;` guard-clause pattern. wrote `data/yaml/context-templates/
    warn-guard-fix.yaml` to apply this pattern elsewhere mechanically.
 2. `coding.handler.switch_model_reply`'s `mark_backend_updated` closure updated
@@ -166,8 +166,8 @@ scanner gap worth investigating before assuming the file itself is bad).
 - Debian/host system upgrade was requested and deliberately deferred — do it as its own
   isolated task, never stacked on top of a binary/deployment change in progress.
 
-#,,,,,,,.,,,.,,.,,..,,.,,,,,.,,..,..,,,,,,.,,,..,,...,...,.,.,,..,,,,,...,.,,,
-#A7VEAPJJQA7WT6XBKMDQT6LQC75S5KZTDJS7QRVHV6KMLOPRROVKUZ5TS5QX7DEAOH6M2H3U5HJCA
-#\\\|7SHIVMJWB2LKHPSX646TSPXZPU5AOOEAA7HLVTJ4BETTM3CRF3Y \ / AMOS7 \ YOURUM ::
-#\[7]76RLWFEU7R7E4YTGUR2FAHMYIENQX46JMDO2UOVEVDIIZVJ7OGAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,.,.,,,,,,,.,,.,,,,,,.,.,.,.,..,,...,...,,..,,..,,,,,,,.,.,.,
+#5UEVDNAJ6VNCI4NQL7FMBGNHWBJ6R4SXGI3T2ORI53XTU3RZG64CB4VMYRMUUXKKELUUBGFAZN556
+#\\\|BV2IFO3B7CEPWYL5I6J3OENNA5I5I646UOBH3SUFWAKVZDCXSLK \ / AMOS7 \ YOURUM ::
+#\[7]5GRQLZMVYUGD4FILNR2GQOUSE4NAUIZN4IMGDCHMOM2AQT5Q7YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

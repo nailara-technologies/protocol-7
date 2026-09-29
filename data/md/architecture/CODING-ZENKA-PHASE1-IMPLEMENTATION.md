@@ -532,7 +532,7 @@ To verify Phase 1 implementation is working:
 
 1. **Zenka Startup**:
    ```bash
-   v7.autostart_zenki coding
+   v7-zenki.autostart_zenki coding
    ```
 
 2. **Submit Test Task**:
@@ -561,8 +561,8 @@ All commands should execute without errors and return proper status information.
 
 **Phase 1 Complete** - Foundation ready for LLM integration and sensory services.
 
-#,,..,,,.,,..,...,.,,,...,,,.,.,.,,..,,,.,..,,..,,...,...,...,.,.,...,,..,.,,,
-#6PVBPQI4UDWVQSE7CB7RFAYHIRFPMLPW7HBIDEVS2NYDC4IPVQBDEOUDSB3AYJ2CEXSXKAEOBIUFG
-#\\\|A37ATL6PO34Z56QIVB6SUSDPPGYVQWF5JVHIWVEGGNY5IZC7S4G \ / AMOS7 \ YOURUM ::
-#\[7]6B3CT7S6KVMQNVWVWPANRYCDMBJZAU7DQWOARSX6MW2MQRJOHSDY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,.,.,..,,,.,,,.,,...,..,,,,.,..,,...,...,...,,,,,.,.,...,.,,,
+#TJ3JFZXPO2UDYTV4AOHBJTLV7QLR5QGXE7DBKFT5P2YKKJGNSAPA23J6KYV67DFN7BWDCHSY2T6JG
+#\\\|LCGTOWWVEA5ISCSG4GWTCLFB2HELT62D3ZTY5HGN6ZZUAELAEME \ / AMOS7 \ YOURUM ::
+#\[7]LEXPAZKX6UL4NA2XVJV3PACGUMZCM5P5DGPREVRPTVI4S63MTKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

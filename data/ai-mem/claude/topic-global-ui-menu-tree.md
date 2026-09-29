@@ -48,7 +48,7 @@ best way is to make it generic, addressable and made available").
 ## starting points: settings + configure zenki
 
 - **`settings`** — renamed to **`set-up`** (corrected 2026-06-08, per
-  `v7.list available set-up` showing it live). Already substantially built —
+  `v7-zenki.list available set-up` showing it live). Already substantially built —
   not a blank slate: `cfg/zenki/set-up/` + `src/set-up.*`
   ship `create-profile`/`install-profile`/`export-config`/
   `fetch-zenka-config`/`list-exportable`/`get-config` commands, plus
@@ -666,8 +666,8 @@ becomes an *exception channel* for the rare cases where "correct" and
 "wanted" come apart. That is a dramatically smaller, sharper, and more
 buildable thing than "an authorization protocol for the network."
 
-#,,..,,.,,.,.,,.,,,,.,,,,,,.,,.,,,,..,,,,,,,.,..,,...,...,..,,.,.,.,.,..,,.,.,
-#QFDOOWHZJGXWV3NG4EK7I3YRBOGKDBWKZNXGTZS43TXEAVUYOLFRT7JUG4CK6Y4RZG6XBOZ4PAQSE
-#\\\|MCEFE3MMJ4ZTSAF3LXFQ54KJGR64PGL5XWH76DDFKXSSAVBOT5B \ / AMOS7 \ YOURUM ::
-#\[7]52C2KBBLZLUOES4BEF6PACCDBHCYP2AUABRY35HYWU5JUXT5SSBA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,...,..,,,..,.,.,.,,,,.,,..,,.,,,..,,...,...,,,,,,.,,.,,,,,.,,,,,
+#J3LCTPZKKE25YBTX7IXTIOM7IBKRCQ53EBFVX2D5VMW6KMCYUF6NDLS343XCBAWGRL4NEQB445DT2
+#\\\|WU7PRP3MI2BHBAQDIT3ONFTTAICCCNOBZJ4GO3DQJIBZCD6UKOH \ / AMOS7 \ YOURUM ::
+#\[7]A3EPRT5EFA6A2SPRSIP5KSL4JOU3PUAPD2A54W43V535KII6HAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

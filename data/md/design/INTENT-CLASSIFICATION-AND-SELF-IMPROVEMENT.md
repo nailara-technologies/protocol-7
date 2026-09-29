@@ -63,7 +63,7 @@ nodes:
 
   - pattern: "start|launch|run|spawn"
     intent:  action.start
-    doc:     "v7.start <zenka-name>"
+    doc:     "v7-zenki.start <zenka-name>"
     next:
       - pattern: "what.*available|which.*zenki|options"
         intent:  orientation.list-available
@@ -244,8 +244,8 @@ data/yaml/cluster-registry/intent-classification.yaml
 src/intent.*                          ## classifier zenka modules (to create)
 ```
 
-#,,,,,.,,,.,.,.,.,.,.,,,.,...,.,,,...,,,.,.,,,..,,...,...,.,,,..,,,,,,,..,,,.,
-#KFJ3V6LDPWXDGBABA4GJIQWOBAIKOWFNB55EJGKO276CX5MPFBI2P3CAIVQ7KOERVZ6PL3RDQ4X7A
-#\\\|R6EFO3NKKAHODCO46LDULEIIC4VH63NFZMHE4ZLJIOQJJYAYPUW \ / AMOS7 \ YOURUM ::
-#\[7]JDTYSU7MY5ZRKXEFX54YH6SVXXWCQSSJ3X5PZRRQMAW7KA7JHOBQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,,,,,...,,,.,,.,,..,,,.,,,,,,..,,...,...,,,,,.,.,.,.,,..,.,,,
+#UIR667RM4RMFNJ2S3OWVU3RGR3BCRTFLA23NIDLVTRK7EG66OC6V33OOPRVIIHBYBWSRUJEYLCRQ6
+#\\\|WP4KG7Z3NEBLXMZ6CFANR6Z4ELX5G62C2LZHT4BOYSOF3QF4SZF \ / AMOS7 \ YOURUM ::
+#\[7]V6ZQ7I4MITQQ5QTKK2F4DCRH3GE23XRQVVW77AA4RJKJIN5PEYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ metadata:
   originSessionId: 5ac91c78-9af6-4d29-bfc3-06bee0e50cd4
 ---
 
-Established while building `v7.idle-term` (see
+Established while building `v7-zenki.idle-term` (see
 [[ondemand-heartbeat-upgrade]]) — cost several rounds of wrong guesses
 before reading the actual call sites. Verify against these files, don't
 re-derive from memory of this note alone if the code has moved.
@@ -22,7 +22,7 @@ command as a LOCAL `.cmd.` dispatch never touches it at all.**
    `source.sid == target.sid ==` the sender's own upstream session (e.g.
    v7's link to cube). This is how v7 tracks its own outbound `heart`
    probes to correlate the eventual reply with
-   `v7.handler.heartbeat_timer_response`.
+   `v7-zenki.handler.heartbeat_timer_response`.
 3. A zenka *receiving* a routed command and dispatching it as a local
    `.cmd.` module (`$data{'base'}{'cmd'}{$cmd}` → `$code{...}->($call_args)`
    in `base.handler.command`) uses neither — it's tracked purely via
@@ -54,21 +54,21 @@ which flows back through that source's normal `process_reply` path as if
 a genuine FALSE reply arrived. This is why a zenka dying mid-heartbeat
 (with v7's own outbound-probe route entry still open) doesn't leak
 anything on v7's side, and doesn't need special-casing — it resolves
-through `v7.handler.heartbeat_timer_response` exactly like an ordinary
-crash always has, whether or not `v7.idle-term` is involved.
+through `v7-zenki.handler.heartbeat_timer_response` exactly like an ordinary
+crash always has, whether or not `v7-zenki.idle-term` is involved.
 
-**`v7.zenka.instance.stop` is race-proof against a concurrent heartbeat
+**`v7-zenki.zenka.instance.stop` is race-proof against a concurrent heartbeat
 failure flipping status to `error`** — it sets
 `<zenka.instance.shutdown>->{$instance_id}` as its first action and
 synchronously cancels the instance's `Event::timer` objects (including
-`heartbeat-timeout`) via `v7.cancel_instance_timers`, before the process
-is even killed. `v7.handler.zenka_status` has an unconditional override
+`heartbeat-timeout`) via `v7-zenki.cancel_instance_timers`, before the process
+is even killed. `v7-zenki.handler.zenka_status` has an unconditional override
 near its end: if `<zenka.instance.shutdown>` exists for the instance, the
 status is forced to `shutdown` regardless of what was computed, and
-`v7.init_restart_timer` never fires.
+`v7-zenki.init_restart_timer` never fires.
 
-**`v7.zenka.cmd.pause-instance` is not a heartbeat-detection test tool** —
-it explicitly calls `v7.stop_heartbeat_timer` as part of pausing (storing
+**`v7-zenki.zenka.cmd.pause-instance` is not a heartbeat-detection test tool** —
+it explicitly calls `v7-zenki.stop_heartbeat_timer` as part of pausing (storing
 `paused_status_timer` for `resume-instance` to re-enable), specifically
 so a deliberate admin freeze doesn't trigger a spurious restart. To
 actually simulate a genuinely unresponsive zenka (for testing heartbeat
@@ -89,8 +89,8 @@ toggled on temporarily.
   wire shapes (`call_args` only transmits `args`, reply `cmd` values,
   SIZE/STRM producer-side modes)
 
-#,,.,,...,.,,,,,,,,..,.,,,,..,...,.,.,...,,,,,..,,...,...,..,,,.,,,..,..,,,,,,
-#ONQMVVAST5S7BQ35QBAL5F777BXO65X5WVJWASFMY4UFHP3YVTMFYJ3LITMQJDVAGKTCAUTWKOP4K
-#\\\|R4UHTMHWEZU2WLY42SLM33M3ZLWTHW5TRZIGVXVOU62R44DSNLI \ / AMOS7 \ YOURUM ::
-#\[7]5AIDYAWYLETJOKEZQAAZHTZCGSF57YJFSVE7FP7TILW6KP4WLABI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,,.,,..,,,,,,,.,,..,..,,..,,..,,...,...,,,.,,..,.,,,.,.,,..,
+#KYB5QQMNQA6IOPOYAJEDINRGMYXS44OLWSOWA7XMFDFEFE5UEARR5OQMJSLLZJ7JX6AWBFLKX4VAW
+#\\\|XVDN7LOLH6A3TC2EZAYCAIL56EMBYZS4N5HXGQTV3SIKAUDVYK6 \ / AMOS7 \ YOURUM ::
+#\[7]SSMF7HIGH2V7IXRIHELQSAYSWUFVFC63HZXPSNTBC2XPNPHEEYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

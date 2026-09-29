@@ -673,9 +673,9 @@ future P7-module-side caller; the standalone script keeps its own copy.
 
 **Debugging method worth repeating**: black-box `p7c`-level testing
 repeatedly gave misleading signal (stale/orphaned zenka instances still
-registered with cube after `v7.restart`/`v7.stop` — confirmed via `ps -o
+registered with cube after `v7-zenki.restart`/`v7-zenki.terminate` — confirmed via `ps -o
 pid,ppid` cross-checking against `list subnames`; `p7c term-all <sid>`
-was the reliable way to force a clean instance when `v7.restart`/`v7.stop`
+was the reliable way to force a clean instance when `v7-zenki.restart`/`v7-zenki.terminate`
 left stale registrations, a pre-existing v7 lifecycle gap unrelated to
 this work). The turning point was capturing `waitpid`'s raw `$?` directly
 in the code path under test, before the framework's own automatic
@@ -815,7 +815,7 @@ secret_hold_reply` chains straight into a RELEASE call the same way.
 **Verified live, first try, no debugging needed this time** — the prior
 two builds each needed multiple live-crash-driven fix cycles; this one
 worked on the first real test:
-- `v7.user-edit test-secret-roundtrip` → both synthetic cases (32 random
+- `v7-zenki.user-edit test-secret-roundtrip` → both synthetic cases (32 random
   bytes; a pathological string starting with the literal `OK ` prefix
   and containing embedded NUL/newline/space/0xFF, specifically chosen to
   probe the child's own line-framing) came back byte-identical,
@@ -1015,8 +1015,8 @@ flexible-recreatability]].
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,.,,,,..,,,,,,.,,,,,,,,,,..,,,..,,,,,,,,,.,.,...,...,,..,,,,,..,,,,.,,.,,
-#EZCREICYKZYMLYDXWUVSPUQHG4REEJBS2TSHVWH2QCIHHGTAKSOPMZTLZFYCXEUWBWBEZ76TVLHCY
-#\\\|XATNUE3EEZICOI6ZNXKBSQA2SGC6I45N43GHH5PSF3CS54QNUJ6 \ / AMOS7 \ YOURUM ::
-#\[7]7Q4N2ACHQJNTKXZTLADR6WKES5HX5JIIFMMJ42ZIMR6FXNOQE4BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,...,..,,..,,...,.,,,..,,,,.,.,.,...,...,,.,,.,,,.,.,..,,,,,,
+#ES7S7FZCJGQAAACHLMKTBJP5MM5BDFYV6SHHM6QFGSWSP25X6DYVZRDQP2EOUC3RBA5UUIT2Q3IBQ
+#\\\|A76LPAUH3B4ZXKCWAOSRR7NKNKB7G6ASH3YOUXOPHNQDHEU4T6C \ / AMOS7 \ YOURUM ::
+#\[7]U7XZKMX32O6HRJOPNTSNARUEN7TNCUZUBWXKD4XA5RDELXG26QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

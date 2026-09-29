@@ -30,7 +30,7 @@ then `/extend` via the existing `powershell.exec` plumbing) — a host-side
 Windows topology re-push, triggered from `X-11.handler.screen_change` on
 monitor-count drop, cooldown-guarded (10s). Confirmed live, repeatedly.
 INCREASE case (beamer reconnect) has no automated fix; only a full
-`v7.restart <zenka>` recovers a stuck-invisible window from that direction,
+`v7-zenki.restart <zenka>` recovers a stuck-invisible window from that direction,
 and even that is non-deterministic for STARTUP placement (see open issues).
 
 **GENERIC RECOVERY MECHANISM BUILT (the real deliverable):**
@@ -132,7 +132,7 @@ tonight since the screen-change subscriber list was always empty/broken):**
    occurrence the SAME session showed "nothing, no draw callback" (not even
    a border) after manual move-window recovery from a void-landing startup.
    No errors in the zenka log either time. A forced 1px-nudge-and-back move
-   did NOT fix the first occurrence; a full `v7.restart ticker` was tried
+   did NOT fix the first occurrence; a full `v7-zenki.restart ticker` was tried
    for the second (landed in ANOTHER void, needed the same manual
    move-window recovery, draw state after that not re-confirmed - session
    ended on context limits). Looks like a pure COMPOSITOR rendering/paint
@@ -145,10 +145,10 @@ tonight since the screen-change subscriber list was always empty/broken):**
    preceding void-landing event to confirm/rule out the correlation.
 3. Practical manual recovery commands for next session if this recurs:
    `p7c X-11.move-window <id> 1920 1080 3440 72` (secondary-top, confirmed
-   durably safe) to fix position; `p7c v7.restart ticker` for a full reset
+   durably safe) to fix position; `p7c v7-zenki.restart ticker` for a full reset
    (non-deterministic on landing, may need the move-window fix afterward
    too); `p7c X-11.get-windows` / `p7c X-11.get_geometry <id>` to check
-   state; `p7c v7.devmod-enable <zenka>` + `p7c <zenka>.get <key>` / `.set`
+   state; `p7c v7-zenki.devmod-enable <zenka>` + `p7c <zenka>.get <key>` / `.set`
    to inspect/patch live data state without a restart.
 
 **Files touched this session (uncommitted, verify against `git status`):**
@@ -190,7 +190,7 @@ live recovering a minimized protocol-7-menu window.
 
 **>>> CURRENT TRUTH (2026-06-24, supersedes the stale middle sections below):
 TICKER RESILIENCE FULLY IMPLEMENTED + LIVE-VERIFIED with tile fully stuck
-(SIGSTOP via v7.pause-instance). Three bounded fallbacks + resolve-once
+(SIGSTOP via v7-zenki.pause-instance). Three bounded fallbacks + resolve-once
 guards all fire correctly and the ticker comes up online with one window:**
   1. `base.X-11.get_coordinates_async` — fallback timer, config
      `<x11.coordinates_fallback_timeout> // 7`s, named handler
@@ -340,7 +340,7 @@ still unstaged; the _NET_WM_MOVERESIZE attempt is reverted.
   calls it before ticker.select_monitor [ GDK wasn't inited that early →
   no-monitor-strip → undef coords → move-window errors ]. ticker white-list
   regen'd (589). Sign base.gtk.ensure_display + ticker.startup.geo_ready +
-  white-list, then `v7.start ticker`: expect `fallback strip on monitor`
+  white-list, then `v7-zenki.start ticker`: expect `fallback strip on monitor`
   line, no move-window errors, strip on monitor index:1 (no void).
 - UNSIGNED/UNCOMMITTED file inventory (this transition): modules
   base.gtk.{strip_on_monitor,centered_on_monitor,ensure_display},
@@ -500,9 +500,9 @@ reenc-msg, universal. get_geometry: universal, select-region, web-browser,
 impressive, ticker[done]. get_screen_size: tile.
 
 **NEXT (do NOT skip — verify before multiplying 9×):**
-1. sign + `v7.start protocol-7-menu` → bank `snap_to_monitor` (load-bearing
+1. sign + `v7-zenki.start protocol-7-menu` → bank `snap_to_monitor` (load-bearing
    now; still unverified from the earlier iteration).
-2. sign + `v7.start ticker` → confirm the reference actually comes up on a
+2. sign + `v7-zenki.start ticker` → confirm the reference actually comes up on a
    real monitor strip, no verify-timeout.
 3. THEN write the abstract recipe (NOT the ticker diff — ticker's swap-mode/
    startup-settle/target-monitor quirks must not leak into the template;
@@ -604,13 +604,13 @@ open issue #2 (the separate "shadow only, no content"/"no draw callback"
 compositor-paint glitch that followed void-landing recoveries) is UNCHANGED,
 still unconfirmed whether placement patience reduces or fixes it.
 Left cfg/zenki/graphics-matrix/start.cfg (on-demand
-commented out) and cfg/zenki/v7/start-set-up.base
+commented out) and cfg/zenki/v7-zenki/start-set-up.base
 (`zenki.disabled = graphics-matrix`) AS-IS per taeki — confirmed unrelated to
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,,.,,,.,,,.,..,,..,,..,,,,,,,,,,,..,,..,,,.,..,,...,...,,,.,,..,...,,,,,,..,
-#P4UWASHLG4TLF4F35N3SWHNBIU2QOSVYTN2EEKHPGWWMWNKSHIIZFYGA2FRIQNURBK2YM2NE5U6DS
-#\\\|77VPFULV5N225NMS5HFP3LTJLYNGWXGXJRONGDWHSTPZD56KFFA \ / AMOS7 \ YOURUM ::
-#\[7]3PLOWFKIZTWSEQ6KA5I2GDB63NXMUIQ4ZCLKCBKB7FBFLEI4JQCI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,..,.,.,,,,,,.,,...,.,.,...,..,,...,...,.,,,.,,,,..,...,...,
+#X7HE4ITW3EY5FRPYMFGB3U3MG7UVKU3RN43GBP2U6SRTH75TRHTHQBL7V73TKUPF5VXYWDDPXNNZ4
+#\\\|7L5BZHN3A4NNWGX3ZNTGIORT25VIEDORRMHPPCAZBF56YS6XQN4 \ / AMOS7 \ YOURUM ::
+#\[7]LFH6PRP6ANPV7VFQ2HKUXKYDCJJ4EHTSCTDPIC7QVJ6SGO4IOYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

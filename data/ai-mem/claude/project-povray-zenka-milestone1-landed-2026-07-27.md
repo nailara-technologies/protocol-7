@@ -90,11 +90,11 @@ not from kimi's own claimed test output:
 
 ## permission gap found and fixed live
 
-`cube` logged `no perm. [ src 'povray' cmd|usr 'v7.register_child' ]`
+`cube` logged `no perm. [ src 'povray' cmd|usr 'v7-zenki.register_child' ]`
 during the first live render — the exact same gap Kimi hit building
 the `audio` zenka originally (per
 `project-audio-waveform-visualization-landed-2026-07-26.md`).
-fixed by adding `access.cmd.usr.povray = v7.register_child` to
+fixed by adding `access.cmd.usr.povray = v7-zenki.register_child` to
 `cfg/zenki/cube/access.zenki`, mirroring the existing
 `access.cmd.usr.audio` line, then `p7c reload config` (bare cube
 command, not dotted `cube.reload` — that returned "client not
@@ -138,8 +138,8 @@ anywhere in the povray-side code) rather than something narrower and
 audio-icon-specific — that genericity is the actual point, not
 incidental design hygiene.
 
-#,,,,,...,,,.,..,,,.,,..,,.,.,..,,.,,,.,,,..,,..,,...,...,..,,,.,,.,.,,..,,,,,
-#EYYFAILNXM4UR6TSLUGYXSS5JAGMPLZVSSRU73FTNCRYETXCJUMKVN75EONCD4OMXRCSIFNSXRGEU
-#\\\|VNGURSROJ7ZY5FMVKCXHBFNDXZPA73K4CAJ72SJARBLVG6I6RQF \ / AMOS7 \ YOURUM ::
-#\[7]MLYGHBLXHNDU4KFDDNDY2425JC46CHN3HOHKP32NO3KXEW2VPWAQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,...,,,,,...,,.,,,.,,,,.,,..,..,,...,...,,..,,,.,,..,,..,,.,,
+#XLLJNQWPUIEHX446PTVS5FFMCCDNKE3I4UOHUDZ3OPCNX6772IXIE4GXO3ZCWYQ4H2C46ZH7FDW2G
+#\\\|75JGYBLCGKVU6IIUBJZKOEOJQSBAITNMPH5YVPHFEXT5SZI4SYQ \ / AMOS7 \ YOURUM ::
+#\[7]IC5RBYDZFQNRKJJIGIJCVRDD47WPD6EEUTMUJWKYMCBAF3OH7YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

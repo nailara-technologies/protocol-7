@@ -126,7 +126,7 @@ plugin list
 ```
 
 ### Pattern Matching (Decoder Integration)
-Inspired by `v7.init_zenka_output_patterns` and `zenka-output.patterns`:
+Inspired by `v7-zenki.init_zenka_output_patterns` and `zenka-output.patterns`:
 
 **Pattern Format:**
 ```
@@ -241,8 +241,8 @@ GTK3 Window
 *Architecture: Object-oriented, event-driven, hot-reloadable*
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,,.,,.,,,.,,,,,,,,..,,..,,,,,,.,,.,.,...,..,,...,...,...,,,.,.,,,,,,,.,.,
-#5YMWGRJKZSUCDCWEZDMXLXCFTZSR5JOLAF2YEC6QQB3AVJUYR6YZBDEKOYO3JBLBNUG6CODV7ZXG6
-#\\\|JRPFIPLIGQCJRZ3X45COLDD6YVBGHHJR2CC4UO7MIKOX6UTOBAZ \ / AMOS7 \ YOURUM ::
-#\[7]FTVLBKTXOYZBKZRVWEUNOH6B2MN4ZMZGTFFGVBY2LN7UVMOAU2CY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,,,,,,,,,..,,,,,,,,.,,,.,..,,..,,...,...,.,.,,,.,...,...,,.,,
+#XY3DO6CK5VEPAV2ND7IOD6MSEDEJOCPZQU5O7TXZNMBPKG7YOOQLNMWR42Z4UZZ4VISJEIDEFLMQY
+#\\\|KPLAPBLETAVJSR5WUILPHYVWRIEJO3LT4NX5RXER2HYCHZLRCPI \ / AMOS7 \ YOURUM ::
+#\[7]IPAXUEEC7KYMUXSX2TRLI7UQNGYGZ5S5QYM6BEBP3J3U54YQD6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

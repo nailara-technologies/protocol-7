@@ -23,7 +23,7 @@ the admin's key is already present in `src/USR.[username].*`.
 mirrors the AMOS7 module signature footer exactly — same crypto, new context:
 
 ```
-v7.teardown reason:maintenance
+v7-zenki.teardown reason:maintenance
 #,,.,,...,,,..,..
 #<BMW384 of: command-string + timestamp-ntime + nonce>
 #\\\|<C25519 signature of above>  \ / AMOS7 \ YOURUM ::
@@ -46,7 +46,7 @@ its handler — handlers never see raw signature data.
 ## command-level security tiers
 
 ```
-## in zenka start config (e.g., cfg/zenki/v7/zenka.v7):
+## in zenka start config (e.g., cfg/zenki/v7-zenki/zenka.v7):
 security.cmd.require-signed  = teardown host-reboot forced-mod-reload \
                                root.drop_privs key-operations
 security.cmd.signed-optional = restart stop start    ## signed preferred, not required
@@ -181,7 +181,7 @@ all callers to sign.
 
 ```bash
 ## p7c transparently signs:
-p7c v7.teardown reason:maintenance
+p7c v7-zenki.teardown reason:maintenance
 ## → p7c detects teardown requires signing
 ## → invokes bin/p7-sign-cmd with ~/.p7/keys/taeki.priv
 ## → attaches footer
@@ -190,10 +190,10 @@ p7c v7.teardown reason:maintenance
 ## → log: "teardown authorized: signed by taeki [key:XXXX]"
 
 ## explicit sign (for scripts):
-p7-sign-cmd <<< "v7.teardown reason:maintenance" | p7c -stdin
+p7-sign-cmd <<< "v7-zenki.teardown reason:maintenance" | p7c -stdin
 
 ## verify a signed command without executing:
-p7c base.cmd.verify "v7.teardown reason:maintenance
+p7c base.cmd.verify "v7-zenki.teardown reason:maintenance
 #,,. ...signature footer... "
 ```
 
@@ -205,7 +205,7 @@ no pre-provisioning required. keys are generated automatically on first use.
 
 **generate on first use**:
 ```
-p7c v7.teardown reason:maintenance
+p7c v7-zenki.teardown reason:maintenance
   → p7c: no signing key found for taeki
   → generate C25519 keypair → store at ~/.p7/keys/taeki.{priv,pub}
   → sign command with new key
@@ -278,8 +278,8 @@ development environments may skip pinning for flexibility.
 6. key authorization list per command
 7. nonce dedup store (simple ntime-windowed set)
 
-#,,..,.,,,,..,,..,,,.,..,,,.,,,,.,,,.,,..,.,,,..,,...,...,...,,,.,,..,.,,,.,.,
-#7CBAE7UW6VGOXHIEUJ7DKRNDGJ4HM4B7ZTIXHLTJ44LZZYYBUSKEKRENDLBQWPBDDY2T4LQRWMHKO
-#\\\|BLTU3JTSH7S2WNQTZJRGQLBJARY4GS2SRWKXQHOTHUFEVJ5VIPK \ / AMOS7 \ YOURUM ::
-#\[7]6XGP5HD2OOPFGNSL6GAXJDG7ACK7ZLOVOUSFD54ZMSJ3C62EESAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,,,...,...,..,,.,,,,,,,...,,..,..,,...,...,...,,,,,.,.,.,,,,,,,
+#2R5INGJD6BQMSIKYIHGTALMXKFEE66RCC5ZKO6KCSOTBZVGYGUVW2BDLEFYXCJSDAIUS7ZFZNABQ4
+#\\\|UUXDO7PA3CN27XWJ6UZWPYHDT7SOUONEFPTMRYEII55YMTUDEPK \ / AMOS7 \ YOURUM ::
+#\[7]27JJH3OTBC3G6XSGRXHPDEFVX3UEJGFIIO3YRSUJL4G4TVFHAUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

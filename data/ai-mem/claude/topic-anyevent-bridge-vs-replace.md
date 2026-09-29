@@ -86,8 +86,8 @@ observation that solving it has independent value.
 **Why this would be tractable, not just desirable — user's point**:
 `base.event.add_var` is the single, central gate every variable-watcher
 registration goes through — confirmed live, exactly 15 real call sites
-codebase-wide (`grep -rl "event\.add_var\b" src/`: `v7.init_code`,
-`protocol-7-menu.menu-structure-init`, `v7.setup_stdout_redir`,
+codebase-wide (`grep -rl "event\.add_var\b" src/`: `v7-zenki.init_code`,
+`protocol-7-menu.menu-structure-init`, `v7-zenki.setup_stdout_redir`,
 `jobqueue.event.register_job_queues`, `httpd.http_post`,
 `base.log.send-buffer.init`, `coding.cmd.complete-analysis`,
 `vision-batch.parent.process`, `httpd.handler.input.body_remainder`,
@@ -140,8 +140,8 @@ preserve exactly this seam, not just "watch a variable" in the abstract.
 [[feedback-base-prefix-stripped]] (the swap_subs mechanism + the scanner
 false-positive this stub currently causes), [[feedback-swap-subs-not-fragile]]
 
-#,,..,,.,,.,.,,.,,,,,,...,.,.,.,,,.,,,,,,,.,,,..,,...,...,,,,,.,,,,.,,,..,..,,
-#6GQJC3NL24PSQDC2O3XJ5B7VREHUP2PWA2AQJHRA4FMNDKGXAGTCFJ6JP2XC3MPNOZWM6YPIH6NWO
-#\\\|HXVPAZJA2NRRG5FL6QPPPFW3D7GDPWELOMDQ3YI4HF5JVRCG57A \ / AMOS7 \ YOURUM ::
-#\[7]YTNYPEMSOMUP5LQ5NYPLAT76BRXNLP3DIVOF6HRMIQMQSMZRQCAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,.,,,,,,,,,,,..,,,.,,.,,.,,,..,,...,...,.,,,,,.,...,...,,,.,
+#SVS3MQQZ5UEUJMDO2OZ4CG54YBPUZJD2RWCVLV3X4C5N56C7UEKY5YZXVTSY3T3RSN4HHD7TNCMES
+#\\\|MMZVHYRJMMAWWTXRHERJWCRIWZEJ3BXHJJ5GC5RV3IW3UVCFVYA \ / AMOS7 \ YOURUM ::
+#\[7]XZHJXQPRR3XIEMCV52AWALIJWEKOE5RHAOPVSBB7K4XIM6KIUQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
