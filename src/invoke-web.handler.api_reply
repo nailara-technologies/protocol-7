@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = invoke-web.handler.api_reply
+# descr = clients.http on_done for invoke-web.api_async : decode the json
+#         body and pass { ok, status, data, error, params } to the caller's
+#         handler
+
+my $reply   = shift              // {};
+my $wrap    = $reply->{'params'} // {};
+my $handler = $wrap->{'handler'} // return;
+
+my $body    = $reply->{'body'} // '';
+my $decoded = length $body ? eval { JSON::PP::decode_json($body) } : undef;
+
+return if not exists $code{$handler};
+
+$code{$handler}->(
+    {   'ok'     => $reply->{'ok'} ? TRUE : FALSE,
+        'status' => $reply->{'status'} // $reply->{'error'} // '?',
+        'error'  => $reply->{'error'},
+        'data'   => $decoded          // $body,
+        'params' => $wrap->{'params'} // {},
+    }
+);
+
+#,,,.,..,,,,.,,,,,,..,..,,.,.,.,,,.,,,,.,,.,.,..,,...,...,.,.,...,,..,,.,,..,,
+#4APO36O3IMG5XTKJVA4FGESQIJPIIKCDD5PPADBSCSDNC6IPS5B43AQB722UTXJJ4RGQTVYADOVES
+#\\\|TSFUT4ML2HKJWV7O2XACSAUNRA6ZRIV7ALPO4UQIP3CIZWOZYOW \ / AMOS7 \ YOURUM ::
+#\[7]KWD2OLDO6PL2NCMCM6NUWKJF7MEXJEHZCH5QF6A34CY3MUH7YSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

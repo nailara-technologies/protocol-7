@@ -1,0 +1,25 @@
+## [:< ##
+
+# name   = invoke-web.drain.stop
+# descr  = drain step : stop invoke.ai and let drain_check finish with the
+#          idle-term once the process is gone
+# param  = idle seconds, pending [ paused ] items
+
+my $idle    = shift // 0;
+my $pending = shift // 0;
+
+return if defined <invoke-web.drain.stopping>;    ## already on its way ##
+
+<[base.logs]>->(
+    1,          'queue drained, idle %dm%s : stopping invoke.ai',
+    $idle / 60, $pending ? " [ $pending paused items stay queued ]" : ''
+);
+<invoke-web.drain.stopping>     = <[base.time]>->(0);
+<invoke-web.drain.stopping_pid> = <invoke-web.pid>;
+<[invoke-web.cmd.stop]>;
+
+#,,..,...,,.,,,,,,,,.,,,.,.,.,,,.,..,,...,,,,,..,,...,...,,..,,.,,,.,,..,,,,.,
+#NVLQGN5V6FP5UHHF4XK53KQUNSOXI3SGFRQ3HQZQ743WH27GJ2YWRWE52STHVNFHLK4DPHZ4GANAK
+#\\\|4ONLKCFTULLVDR6ZJCWTXZKAREQFCKHHM5KSSFXP5XQJAL4J3P3 \ / AMOS7 \ YOURUM ::
+#\[7]WLLR4TWR6SZMSIAF2EGIF4O67E2NXDLXQS3FOHCOVFHEPRQKJYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = invoke-web.handler.startup_pause_retry
+# descr = timer : resend the queue pause at startup [ see
+#         invoke-web.handler.startup_pause_reply ]
+
+my $event   = shift;
+my $attempt = eval { $event->w->data->{'attempt'} } // 2;
+
+<[invoke-web.api_async]>->(
+    'PUT', '/api/v1/queue/default/processor/pause',
+    undef,
+    'invoke-web.handler.startup_pause_reply',
+    { 'attempt' => $attempt }
+);
+
+#,,,.,,,.,.,.,,,.,,..,.,.,,,,,,,.,,.,,.,,,.,,,..,,...,..,,..,,...,,,.,,,,,..,,
+#BITQCE724PMXITKGD6XOI37VF2UVUHZMCANZGLFMPDWJVHPBILIGY3X6GANKYF6KTKYGLM57YLCZE
+#\\\|XQ6MWBQ3YING7HWHANCJ4YTYOFQP7JXU7U7P2GGRYOZOV77RHRQ \ / AMOS7 \ YOURUM ::
+#\[7]2VZMJZJBYXHEN5DGZ54N4IU6IA3ENESTHMTTHDRTP7JCLRS3YKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
