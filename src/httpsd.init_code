@@ -173,7 +173,7 @@ $data{'ssl_handshake'} = {};
 };
 
 ## crash-capture buffer : initialize or clean up depending on feature state ##
-if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
+if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // TRUE ) ) {
 
     <httpsd.path.request_capture> //= qw| /dev/shm/httpsd-last-request |;
     ##
@@ -195,8 +195,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,..,.,,,,..,.,.,,,,,,,,,.,,,...,,,.,...,,..,..,,...,...,,,.,.,.,.,.,,,,,,,,,
-#DR6BIOKZUYFFQLUFLRJRV4TISJKXQWBBTAIM7J6RCT3KJV34WWAEKFHYD2EZN36PRZM5FDJH2JCOO
-#\\\|LESK5VCZK5JSHLRF2YIKPOVTV3QNHJCRCBJKKR6DGEP2LAOS2F3 \ / AMOS7 \ YOURUM ::
-#\[7]MVJFMA2UELSXOKC6NGC3IJGWZGEPJMGQNYM5GM443BARX2KTO2BY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,.,.,,,,,.,.,,.,,.,,,,,.,...,..,,...,...,...,.,.,...,..,,,..,
+#KVVJCJVZTXILZ4KXMMYSR6QD3CU3JQ4GY2DX4DRDHWFYOHQJUVQWSMDQ4FYBW52XGL6OMQZHFE2WK
+#\\\|QGENSWC52BIEYKJRSPQ5T3OEOMLOTLPG66JYJYFIWR6RJD7DQYY \ / AMOS7 \ YOURUM ::
+#\[7]T72KH5N5XCH7HHABXUONFXPII54TCYGNOGAKSVAS4DOE4C6C6KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

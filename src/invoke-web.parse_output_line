@@ -55,8 +55,8 @@ if ( $kind eq qw| ready | ) {
         ## interactive queue mode from the start [ zenka.v7 flag ; armed ##
         ## here, not in init_code : that one still runs as root ]        ##
         <[invoke-web.queue.interactive]>->(TRUE)
-            if
-            <[base.cfg_bool]>->( <invoke-web.queue_interactive_start> // 0 )
+            if <[base.cfg_bool]>
+            ->( <invoke-web.queue_interactive_start> // FALSE )
             and not <invoke-web.queue_interactive>;
 
         ## activity from ui use [ db writes ] + the drain timer ##
@@ -203,8 +203,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,.,,..,,.,,.,,,.,,,,,.,..,,,,.,..,,,,,,.,.,..,,...,..,,.,,,,.,,.,,,,,,,..,,
-#ACGTNXGTZY6ZBDQC2Y2FENNJ6UQAFM6BLBYA3QFVK3IH7A2NP6J3HJTMHTJP436SGV47FCP3BU34S
-#\\\|FSA6RCMUOYOY5B6VWJB3KCVJ4VXU2QY5BYOAXSNSKENDW2KTQZT \ / AMOS7 \ YOURUM ::
-#\[7]3QYLB43J6FNGWW2G475W6HPQ2COLLKH2YEPOT2PZBGVMNIKU6KAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,.,.,.,.,.,,,.,,,.,.,,.,,,..,..,,...,...,,..,,,.,.,,,.,.,,,.,
+#TB27DDFCFRLRQUNVOJDHSW3YOCL27BP6HMXRHW63TMUFHBSCFP4RZEKF7FEGVIRRIXFUJ3AL6GR2E
+#\\\|W2NLX2QPGANPHVL44XS6MUW4OQPHVZYMYKPKPPTGQA43PRKZ65U \ / AMOS7 \ YOURUM ::
+#\[7]XF5WTQ4H3KLT5AZSM24QRPCYGALUYMZSLBVBMYMOECRT7SXTDGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
