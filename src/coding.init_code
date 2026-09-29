@@ -66,7 +66,7 @@ map { <[base.perlmod.autoload]>->($_) }
 ## resolve drop_privs args [ secondary admin group for project file access ##
 ## ]                                                                       ##
 my $assume_admin
-    = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // 0 );
+    = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // FALSE );
 <coding.cfg.drop_privs_user> = <system.amos-zenka-user>;
 ## default: zenka's own group [ no-op in drop_privs ] ##
 my ( undef, undef, undef, $zenka_gid ) = getpwnam(<system.amos-zenka-user>);
@@ -729,8 +729,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,,,.,,,,,..,,,,,,,,.,,..,,,.,,.,,,,,,...,.,.,...,...,,.,,..,,.,.,,,,,.,.,
-#ORMOSJO7DSWE6CHTBXOXNI6TGM2ELQAIXI7HAIGTROQP7XDSHEX4OV2ZZNTQ4E6YCVZ62OJYCL3WC
-#\\\|DBSK2WB54FMIVQQLIVR67HBFDA6IPY7DN3S4DDP3E7VM52DOZ5D \ / AMOS7 \ YOURUM ::
-#\[7]NAYKUTLSX7DKLFHLV44EXX2ZAFFXSMJWPMKBAR3FRIWX4657WACY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,.,.,,..,,.,,,,.,,.,,.,,,...,.,.,...,...,...,.,.,.,,,,.,,,.,,
+#UTVG5OMB45VFSGPNIM4PSMFQ6RTLSLAD64G52WEFMADE5GBUVOLXPEBHHZ2EVUCXNZ5CPRAXQWTB2
+#\\\|7BBKQZXMVLBYBWGWQMCSRN5QHOVR3V6IRHHXJ6DOIDSWXRVZLSW \ / AMOS7 \ YOURUM ::
+#\[7]UNLS6HTFGSZS6OSJFJNA3IMEHVHADQBGZ7J5AWWNWWDXQGGNHABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

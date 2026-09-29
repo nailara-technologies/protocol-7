@@ -6,9 +6,10 @@
 return if defined <coding.chmod_child.w_fh>;
 return if not( $EUID == 0 or $UID == 0 );      ## must be root to fork ##
 
-my $allow_chmod = <[base.cfg_bool]>->( <coding.cfg.allow_chmod_apply> // 0 );
+my $allow_chmod
+    = <[base.cfg_bool]>->( <coding.cfg.allow_chmod_apply> // FALSE );
 my $assume_admin
-    = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // 0 );
+    = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // FALSE );
 
 return if not $allow_chmod or not $assume_admin;
 
@@ -130,8 +131,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,.,,..,..,,,,,,,..,,..,,,.,,.,,...,,..,..,,.,.,...,...,..,,,.,,...,,,,,,,.,
-#YLIZRVLCDJ6HMQE6SACXWWXVSUE54QSQJNHZTOBUZGIOJWSD3DNEB5R5PCCDNVGHGZE7HEAMVDLGA
-#\\\|JHV6L6HHWPT2J5YFVJ4UUAEYQZSP6JPU5OLOUHFKMORS774OUVO \ / AMOS7 \ YOURUM ::
-#\[7]VBP64ZAJN2CJR37TH3X2B6LASHDPGTELET3DLI5D4H6I3BPA2QAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,,,,..,...,..,,,,,,..,,.,.,.,.,...,...,,..,,.,,..,,,,,,,,,,
+#33ZMJUFHTRCSVOZWJUH5LL3EA3GYNNGTMGHJKYWP2PNBOM5OWDGQQIUB2CEXXQA4QLKJFLYNM7USY
+#\\\|SWQTPPOCVLGMQ27JSVGKPIRJI2HDKBMI5LNM4ZQQJZ67STTUSV5 \ / AMOS7 \ YOURUM ::
+#\[7]LFJJOGSY55RLS7UEEPRL4J6HEBKTBNFSZO6Z6CRM3JAZAIBDFWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
