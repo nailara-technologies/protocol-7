@@ -115,7 +115,7 @@ match via `.pick`. This needs a **list-all-matches sibling**, not a reuse
 of `.pick`:
 
 - new `base.zenki.resolve_group_sids(<zenka_name>, <group_subname>,
-  <callback>)` — same v7-fast-path (`<v7.zenka.instance>`) /
+  <callback>)` — same v7-fast-path (`<v7-zenki.zenka.instance>`) /
   non-v7-caller (`protocol-7.route-send` with `command=list,
   call_args={args=>"subnames $zenka_name"}`, reply handler parses the
   table exactly like `base.zenki.resolve_primary_sid.reply` does — read
@@ -201,8 +201,8 @@ space as ambient substrate, parent-space nesting, dedicated inter-instance
 sync channels including `httpd` zenki) remains open for a future pass,
 not designed in detail.
 
-#,,,.,,..,.,.,,..,..,,,.,,,.,,,,.,,..,,,,,,..,..,,...,...,,..,,,,,,,.,...,...,
-#6VVDE7244R5UIR7EW3QTXOAPHYBUDEZD6J7XNUUN36XFYNL2LYYGJ6M4T2PCM2KT7I6TQ42CZQTOW
-#\\\|UGRABVUMLUDDRM53KWKYCHLDPZQGW2HCRGGZHXJAHL5Y7B66DZD \ / AMOS7 \ YOURUM ::
-#\[7]RL37HBXNC5CLJEAON5YYVYOTBJZFCNEFHV2IR7LNUZTNLFMTSIDY 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,,,,,,,,,,..,.,,,...,,,,,...,..,,...,...,,..,..,,.,,,,,,,,,.,
+#H5WE75LZER6FW26EOTLJRUIVKD5E4B3XEEQFH4JTHIFUIYOAYH7CEC4YE4X7X63NWCZ4XJPNEK76K
+#\\\|43RSS6UAPF3LVFLEZ7AFJSJKMJV37E6WABYPVZK65EPDNGIQUCL \ / AMOS7 \ YOURUM ::
+#\[7]QB7NU57EPUJRTJ7RJYQCMLHCWA3465VZ55V33RPJ2K76ME5CK4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

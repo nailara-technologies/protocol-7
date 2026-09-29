@@ -39,7 +39,7 @@ same wall.
 
 ## the actual mechanism (traced, not guessed)
 
-`src/v7.handler.zenka_status`, the reverse-dependency block (~lines 458-479
+`src/v7-zenki.handler.zenka_status`, the reverse-dependency block (~lines 458-479
 as of the commit above):
 
 ```perl
@@ -53,8 +53,8 @@ if (    $status ne qw| online |
         next if <[dependency.ok]>->($dep_id);
         map {
             <[zenka.instance.restart]>->($ARG)
-                if not exists <v7.zenka.instance>->{$ARG}->{'stopping'}
-                and not <v7.zenka.instance>
+                if not exists <v7-zenki.zenka.instance>->{$ARG}->{'stopping'}
+                and not <v7-zenki.zenka.instance>
                 ->{$ARG}->{'dependency_exempt'}->{$zenka_name}
             } @{
             <[zenka.instance.get_ids]>->(
@@ -69,7 +69,7 @@ whenever a zenka's status transitions away from online/extbin (for ANY
 reason -- crash, manual stop, idle-term), this walks every OTHER zenka that
 declared a dependency on it (`dependency.get_reverse`) and unconditionally
 calls `zenka.instance.restart` on each. there is already a per-instance
-`dependency_exempt` escape hatch (`<v7.zenka.instance>->{$id}
+`dependency_exempt` escape hatch (`<v7-zenki.zenka.instance>->{$id}
 ->{'dependency_exempt'}->{$zenka_name}`), which hints the author was aware
 this needed finer control at some point, but nothing in `v7.set_up_zenka_
 dependencies` or the `dependencies = a b c` config-string parser ever
@@ -77,10 +77,10 @@ populates it -- it's a plumbed-in but currently-dead knob, not a working
 opt-out.
 
 separately worth confirming empirically as part of this task: does
-`v7.zenka.instance.stop`'s idle-term path (which forces status to
+`v7-zenki.zenka.instance.stop`'s idle-term path (which forces status to
 `shutdown`, see `data/ai-mem/claude/` notes on commit `3f386f6de2d`) hit
 this same block? the condition checks `$status ne 'starting'` etc. using
-whatever status was passed to `v7.handler.zenka_status` BEFORE the
+whatever status was passed to `v7-zenki.handler.zenka_status` BEFORE the
 shutdown-flag override later in the same function -- so on a quick read it
 looks like idle-term SHOULD also trigger the cascade, contradicting the
 "idle shutdown likely does not" assumption raised live. don't assume either
@@ -94,7 +94,7 @@ extend the dependency declaration itself with a kind, defaulting to today's
 behavior so nothing existing changes silently:
 
 - config syntax: something like `dependencies = cube models:soft` (a
-  per-name suffix, parsed in `v7.set_up_zenka_dependencies` alongside the
+  per-name suffix, parsed in `v7-zenki.set_up_zenka_dependencies` alongside the
   existing `type.name` dotted-object-reference syntax already handled
   there) -- or a separate `dependencies.soft = ...` config line if mixing
   suffix syntax into the existing space-separated list gets awkward
@@ -143,8 +143,8 @@ the same shape -- worth having, not worth interrupting other work for.
   contact once the dependency comes back (same mechanism validated live
   today: reload + resolve hook cascade-start).
 
-#,,,,,...,,,.,..,,,.,,,..,...,,.,,.,.,..,,,.,,..,,...,...,...,.,.,,..,.,.,.,.,
-#EGMPS3K7U5GHRUIBF44AH2WV2RNA2J4RY6WL4ZHFYHLLY7SOH3W2Z4DPJ4GA6PUYGOSNGEV5QMIOY
-#\\\|TW26FC3NCTIBMTX5S6ASEOSVPNRP3S3VPV5QD4PGNCTXZXZOU6E \ / AMOS7 \ YOURUM ::
-#\[7]L2RNEDWH34J4OLPEP4ZPCFV5RVMSD6HG5KMCOX5LJWBKBDZOJSCY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,,,.,.,.,..,,..,,..,,.,.,..,,..,,...,...,.,.,,,,,.,,,,..,,,,,
+#CL6QDUY3E5DB4EYKWYZVIJVLPM26E2ORVQO6WVKYT6WAVPI2AJQNT2OKJRD4LW4SN2MBZJAVG6I2I
+#\\\|LTYN6KMLVHVEPTHA3SFQGMCBFW7DIHXL7RTTC66ZI37L426PLBG \ / AMOS7 \ YOURUM ::
+#\[7]47C5ZPTSOVJ7AYPLC3GEJAO3JVYMSKGOMPELBIIL3S74KTTXHQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

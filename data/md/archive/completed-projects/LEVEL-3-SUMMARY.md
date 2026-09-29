@@ -8,7 +8,7 @@
 
 1. **Existing Dependency Infrastructure** (47 modules across 8 namespaces)
    - 10 modules in `base.dependency.*` - Graph-based dependency system (mature)
-   - 4 modules in `v7.zenka.*` - Zenka dependency orchestration (mature)
+   - 4 modules in `v7-zenki.zenka.*` - Zenka dependency orchestration (mature)
    - 8 modules in `debian.parent.*` - Package scanning and installation (mature)
    - 5 modules in `session.parent.*` - Session-level auto-install (partial)
    - 7 modules in `workflow.*` - Workflow dependency checking (flexible)
@@ -125,8 +125,8 @@ Same pattern works for dependency verification—eval is the gold standard.
 | 3 | Check & repair | v7.verify_and_install_zenka_dependencies | New | HIGH | Medium |
 | 4 | Health monitor | v7.monitor_dependency_health | New | MEDIUM | Medium |
 | 5 | Parent fork verify | weather/image2html/pdf fork modules | Modify | MEDIUM | Tiny |
-| 6 | v7 monitoring | v7.init_code heartbeat integration | Modify | MEDIUM | Tiny |
-| 7 | Lists | v7.init_code list definitions | New | LOW | Tiny |
+| 6 | v7 monitoring | v7-zenki.init_code heartbeat integration | Modify | MEDIUM | Tiny |
+| 7 | Lists | v7-zenki.init_code list definitions | New | LOW | Tiny |
 
 **Critical Design Detail**: ~45 zenka have continuous heartbeats, ~42 have `heartbeat.disabled = 1`.
 - **Always-on zenka**: Use v7 heartbeat loop for continuous monitoring (Step 6)
@@ -327,13 +327,13 @@ After implementation, Protocol-7 will have:
 Level 3 fits seamlessly with:
 - **Level 1**: Reduced immediate dependencies ✓
 - **Level 2**: Safe subprocess handling ✓
-- **Existing**: base.dependency.*, v7.zenka.*, debian.parent.* ✓
+- **Existing**: base.dependency.*, v7-zenki.zenka.*, debian.parent.* ✓
 - **Future**: Workflow task prerequisites, dependency resolution
 
 The system is **coherent, extensible, and production-ready** by design.
 
-#,,,,,..,,.,,,,,,,,,.,,..,.,,,,.,,...,,.,,..,,..,,...,..,,,,.,...,,.,,,,,,,..,
-#VGIAHCLUE4IM6LSSTAFOK76RR6B2TI5JR6NHVTRKBIAQQNPLJBY3QOEAX2LZNSEV3G7FEI5T5NEPI
-#\\\|GV3JRWHXS35FCLNVGEL3RFBAMBMA4ZI7HZPGM67Y4YCZD53BS2R \ / AMOS7 \ YOURUM ::
-#\[7]JIVYSDQ3IA55Q4GOZCB3WAGHXMYYC27EU6GNGYRWJ4MHOVZRR2AI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,..,,...,.,.,,.,,,.,,.,.,..,,,..,..,,...,...,,..,,,,,,..,.,.,..,,
+#CNSBVRVMEGHPCNK545JS4AAHF7JTD6XYPJ7EPDQ42UKWK7GTGG3745K6IS6GEGJO4V7EHHAQEUBQ6
+#\\\|7OFWKTG5NWOPCDPMHT2IXZT63BAIEFXUD3GZON3XY2RL2NJCM6C \ / AMOS7 \ YOURUM ::
+#\[7]UVDYGHCN7XDSKFWS6656NYESHBRCBILBTMOQ3TIR5J7TWOQS7ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

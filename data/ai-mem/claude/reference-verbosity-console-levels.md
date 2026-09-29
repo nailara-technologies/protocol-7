@@ -14,9 +14,9 @@ zenka *behavior*, not just log verbosity:
   debug/tracing code inlined that is not present in normal operation —
   this shows subroutine calls and parameters as they execute. Not just
   "print more," a genuinely different compiled artifact.
-- **level 4**: `src/v7.init_code`/`src/v7.post_init` gate extra
+- **level 4**: `src/v7-zenki.init_code`/`src/v7-zenki.post_init` gate extra
   console-visible detail behind `<system.zenka.verbosity.console> > 4`
-  (e.g. `$verbosity_factor = 5.447 * ($level - 1)` in `v7.init_code`) —
+  (e.g. `$verbosity_factor = 5.447 * ($level - 1)` in `v7-zenki.init_code`) —
   parsed code gets printed to console at this level.
 - **level 5**: `src/devmod.post_init` dumps the entire `%data` hash to
   console (`Dumper(\%data)`) when the `devmod` module is loaded — the most
@@ -36,8 +36,8 @@ named-level mapping for it — the real scale is 0-5 numeric intensity, with
 3/4/5 specifically wired to compile-time tracing / parsed-code dump /
 full `%data` dump respectively, not to severity meanings like FATAL.
 
-#,,,.,..,,.,,,...,..,,,,.,,..,.,,,.,.,...,,,.,..,,...,...,,,.,...,.,,,,,,,...,
-#ZTI7F5CCITR4N3V7GLQEKQXQ3XJD7PG6PCED7ROHRRKE7P4A7QWYDDCZG253XJTUAXIM2NNKC7P74
-#\\\|664HIYGLVIYAJMFQS57FGUZEY576X2ALJIHMMBERGYXDGRZZV7B \ / AMOS7 \ YOURUM ::
-#\[7]K4FWA2ZE2T4OYAVL7TXJU3PZ6E3NN37J26K2WBZAAXDADO76FODQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,..,,.,,,,.,,,,,,.,.,..,,,..,..,,...,..,,...,.,,,.,.,.,,,...,
+#KOERIZSH4URXWKZGLCYHWXA73VR5UEMVFIIQJHRE7ERCSEBRFNK42DHN2CG62IPD3U2FYH3TKBWCM
+#\\\|6RD6WV3BFGTTRC5M5YRJEGTYYG4VO7WM343VZCWB42KFLI2OF6E \ / AMOS7 \ YOURUM ::
+#\[7]MLLOLK6H73PF6MRUL57AF3WLJWA62MI4ENVQSXJP2UHYE5TKS2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,16 +1,16 @@
 ---
 name: v7-prio-starvation-and-ansi-corruption-2026-07-25
-description: "v7.zenka.start prio=>5 was an 11yr-inert typo exposed by the add_io prio fix, causing startup-timeout false failures; separately chased -vvvq ANSI corruption to a likely WezTerm-side throughput limit, landed real write-completion-loop fixes along the way"
+description: "v7-zenki.zenka.start prio=>5 was an 11yr-inert typo exposed by the add_io prio fix, causing startup-timeout false failures; separately chased -vvvq ANSI corruption to a likely WezTerm-side throughput limit, landed real write-completion-loop fixes along the way"
 metadata:
   node_type: memory
   type: project
   originSessionId: 10c54b94-5d67-41ab-a52a-127a6a5170be
 ---
 
-## thread 1 : v7.zenka.start prio starvation -- RESOLVED, prio=>0 confirmed live
+## thread 1 : v7-zenki.zenka.start prio starvation -- RESOLVED, prio=>0 confirmed live
 
 `base.event.add_io`'s prio copy-paste bug (fixed [[feedback-base-prefix-stripped]]-adjacent
-commit `fbe0b6f21`) had an undiscovered side effect: `src/v7.zenka.start`'s
+commit `fbe0b6f21`) had an undiscovered side effect: `src/v7-zenki.zenka.start`'s
 `zenka_output` watcher (reads a managed child's stdout) had `'prio' => 5` sitting
 inert for 11 years -- under the bug, `$params->{'prio'}` actually read
 `$params->{'desc'}` (undef here, no desc key passed), and `Event->io(prio=>undef)`
@@ -35,7 +35,7 @@ reentrant hang ("awaiting init-code on stdin" never resolved) because this is a
 long-lived repeating ones** without testing -- the docs' own warning is not
 theoretical.
 
-final state: `v7.zenka.start`'s `zenka_output` watcher has explicit `'prio' => 0`,
+final state: `v7-zenki.zenka.start`'s `zenka_output` watcher has explicit `'prio' => 0`,
 landed in commit `1391ba11b` [ supersedes `de3e345ca`, which had no explicit
 prio key and defaulted to Event's own io default of `4` -- not the
 live-tested-fastest value ].
@@ -47,18 +47,18 @@ very high `-vvvq`/`-vvvvv` traffic in WezTerm specifically (xterm comparison:
 "hard to tell," no audible bell configured there either way). extensive chase,
 most branches ruled out:
 
-- **not** `v7.callback.stdout_log_rotate`'s byte-offset truncation [ real latent
+- **not** `v7-zenki.callback.stdout_log_rotate`'s byte-offset truncation [ real latent
   bug -- rotation seeks to `$size - $rotate_to` with zero line/escape-sequence
   boundary awareness, genuinely can start mid-escape-sequence -- but user
   confirmed this is "the shm log console clone," a different channel from the
   live terminal output being chased. fix was drafted then reverted, unrelated ].
 - **not** a UTF-8 mid-character split at the read/reassembly boundary in
-  `v7.handler.zenka_output`/`process_output_line` -- `\n` (0x0A) can never appear
+  `v7-zenki.handler.zenka_output`/`process_output_line` -- `\n` (0x0A) can never appear
   as a UTF-8 continuation or lead byte, so the newline-based line-reassembly
   split is provably always byte-safe. initial theory here was wrong, retracted
   after re-derivation.
 - **not** (provably ruled out via live test) a partial/short write in either of
-  the two real write sites found: `src/v7.handler.output_zenka_stdout` (v7's
+  the two real write sites found: `src/v7-zenki.handler.output_zenka_stdout` (v7's
   own relay of a child's stdout to the terminal) and `bin/Protocol-7`'s
   `p7_devmod_sub` [ aka `base.devmod_sub` via `-core-subs` ] (any traced zenka's
   own `say sprintf(...)` emitting its call-argument trace line into its stdout
@@ -144,13 +144,13 @@ and fd redirection... expand bit groups with types" -- a full typed-multiplex
 wire protocol over unix sockets, 8 type-tags in a 3-bit payload group riding on
 `[[topic-stream-framing-protocol]]`'s 3+1 self-synchronizing frame ] and
 `data/md/design/VTERM-BUFFER-SPECIFICATION.md` [ explicitly names
-`v7.setup_stdout_redir` -- the shm-log-clone system from thread 2, ruled-out but
+`v7-zenki.setup_stdout_redir` -- the shm-log-clone system from thread 2, ruled-out but
 related -- as "the text-mode prototype" for a much larger vterm/5-of-7-consensus
 rendering architecture ].
 
 **agreed scope, explicitly NOT the full multiplex protocol**: extracted the
 raw-fd-duplicate-plus-redirect-override logic that previously existed twice
-[ near-identically, once in `src/v7.handler.output_zenka_stdout`, once
+[ near-identically, once in `src/v7-zenki.handler.output_zenka_stdout`, once
 inline in `bin/Protocol-7`'s `p7_devmod_sub` ] into one shared module,
 `src/base.stdout.raw_fh`, with an explicit override slot
 (`<base.stdout.redirect_fh>`) a future redirect command/feature can
@@ -170,17 +170,17 @@ thread 3) before it worked cleanly.
 ## committed state
 
 everything in this memory landed in commit `1391ba11b` on `base`:
-`v7.zenka.start` (`prio=>0`), `bin/Protocol-7` (devmod tracer write-loop +
+`v7-zenki.zenka.start` (`prio=>0`), `bin/Protocol-7` (devmod tracer write-loop +
 reentrancy-guard recursion fix + raw-fd/binmode handling),
-`src/v7.handler.output_zenka_stdout` (relay write-completion-loop, the
+`src/v7-zenki.handler.output_zenka_stdout` (relay write-completion-loop, the
 temporary diagnostic scan already stripped back out before commit), and the
 new `src/base.stdout.raw_fh`. `src/source.cmd.get-code-signed`
 remains separately uncommitted -- unrelated, pre-existing pending TOCTOU work
 from earlier in the same session, see [[feedback-base-prefix-stripped]]'s
 sibling context / task history.
 
-#,,..,...,..,,..,,.,,,,.,,,,,,,.,,.,,,,,.,,.,,..,,...,...,,..,,..,,,,,,..,...,
-#SIHN2YSTLNEML4WPUB6UMEU7DEPCUM77HXEEUD5KGUBLDDSPIIT4P7VT2QTET7CNLT3ASNGKLOEMS
-#\\\|P44EIGBWWGQGXBBB3MAXBNE2UKSYXDY5BMDBGVTNHBEP7PLOTPS \ / AMOS7 \ YOURUM ::
-#\[7]PMZ6VRWYMWNHSMLK57ENOFKOE25ZCJS2Q2HUXYVTRL33UZEY4MAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,..,,,.,,..,,.,.,.,,,.,.,,,,,..,,...,...,,..,..,,.,.,..,,,..,
+#7PGTFQN4LQUMWLXEWC7SGMCDYVIRAHKXPA6HVPT7N5FTXIKR4TYT4E6PWMV3E42NZ3TV5SLFSKX54
+#\\\|DRX4APIXPOTS7D7G7ZAPTGF6WHNR5XWIYSUIHNMD25HW3VZGCTX \ / AMOS7 \ YOURUM ::
+#\[7]Y462GP6XPY4XXDQVNKKF6NLT4RJQC4MFVN2NBQK3VESSRESKBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

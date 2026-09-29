@@ -210,7 +210,7 @@ Maps existing pager keys + new hyperspace navigation:
 
 ```bash
 # Start console zenka
-p7c v7.start console
+p7c v7-zenki.start console
 
 # Connect to data stream
 p7c "console.connect data.hyperspace"
@@ -273,8 +273,8 @@ my $color = $FNC{'true_int'}->($num) ? $C{'T'} : $C{'0'};
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,..,,.,.,,,,,,..,,.,,,,.,,.,,..,,..,,.,,,..,,...,...,.,,,..,,,,.,.,.,..,,
-#7XK7EVIHWT3EPP63P36AUKRZU2M7VU75K6EIJVDRDGRQB64LH4PQ2LHKVLLINCYT4HHY5GAZHIILW
-#\\\|NLRUMQQI5VY6SVU3SRWEQIF6VIVK3G7TNJDIPHXT32OV54H54RD \ / AMOS7 \ YOURUM ::
-#\[7]ZMXBGFBTDBJL4ZJZOT3M5FHSESKSPY6ZV3E2LXGGJFGVMK27DKDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,..,...,,..,...,,,.,,.,,.,,,..,,...,..,,,.,,.,.,...,.,,,,.,,
+#7SKTUEMJEFUJVCWBE24QIL66IPMDMBCWOWBR3AFGFUY6WSLBT2XLRAKXJGXQOCJLUYFPZPQMSU5AW
+#\\\|MDUFTKUOB7JOFMPFKAK2LWV3D6XD3REYSW4HUKHTBKNHZLKXGXO \ / AMOS7 \ YOURUM ::
+#\[7]MBNZ7ERLEQFBHPTBTFMYQX2YHCHTNCJJ4VWZUB5AKHWHIAHZJAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -84,12 +84,12 @@ from fixes interacting, not from any one fix being wrong.
 Verified on fresh boot: `user-edit` reaches `zenka.loop` and renders with
 `base.event.loop`/`base.zenka.loop` absent from its whitelist; `keys`,
 `sourcecode`, `work`, `session`, `configure` all boot clean. NOT verified
-under `v7.reload init` on a live process — which is precisely the
+under `v7-zenki.reload init` on a live process — which is precisely the
 scenario that produced the original crash in (2), so that remains the
 discriminating test if anything in this cluster misbehaves later.
 
-#,,,,,..,,,.,,,,.,,,,,,,,,,..,,,,,..,,,.,,.,,,..,,...,...,...,...,,,.,.,.,.,,,
-#PHXD3RBTREFHRA4HHWRPJ4R4YO6JRBJE2TBEFCVUTYUY5ESJK4P74VKQ5XFIQF7XYVZXUKJ7A3ZOG
-#\\\|AV7Y3A6L573OQ7CFTIBN4JHBEPZCGMR3BHF7TKLBM56TYB3HKWE \ / AMOS7 \ YOURUM ::
-#\[7]7IV5Z6ICXEXJCTPLKZHGOXFMNE67YEV5LPPDPAZTMD4UTW5E3ADI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,,,.,.,,,,..,.,.,.,.,...,,,.,..,,...,...,..,,,,.,,,,,...,,,,,
+#A4CNMKWT64JX3N2PCML7YH5KHW75ZY3ZNNKODF5D4ICIC4VYC3GY76ID4WBOXKSRNAH35UXI3AJGY
+#\\\|SUHC643RVFAQ4F3XFSOL5N3TVCGHZH4ZW2J5JHBZ2ESEVSM5DBY \ / AMOS7 \ YOURUM ::
+#\[7]7LQWN42FHRHATZRSBP55BTNPQLRVKUUUCB4F4L4JQOVVDLKGBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -91,7 +91,7 @@ three concrete seams, all already cross-referenced in both directions:
 ### UI/fold ↔ checksum/epoch
 
 one explicit seam [ added in this round ]: the persistent on-disk
-counterpart of `v7.stdout_log` rotation [ named as future work in
+counterpart of `v7-zenki.stdout_log` rotation [ named as future work in
 `STDIO-RELAY-FOLD-APPLICATION.md` ] adopts the `epoch/chksum` native
 tree from `EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md` *if/when* it lands.
 the in-memory ring stays flat; this is a future-direction note, not
@@ -216,8 +216,8 @@ more docs in advance.
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,..,,,,,,,,,,.,.,,,,,.,.,,..,,,.,,,.,,.,,..,,...,...,..,,.,,,,.,,..,,,.,,
-#WW3JQHE3G2Y6LSQYL5I2CJLX4FFLX2Q6FHRKR7NNVMI6KD33MIFRWWZV6NRMWNHITP4ZHRSTXNFBY
-#\\\|G5FH5PROLUDX7AY22NGT53KMJW5PW66LJQBPIHC632SXURCLXCC \ / AMOS7 \ YOURUM ::
-#\[7]NITRHJWRLV6HB3D6MRKHGJEBJ2RK6FJA4CM7TC3QY4ZZ3GVPDACQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,.,,,..,,,.,,..,,,.,,...,.,.,..,,...,...,...,.,,,...,,,.,,..,
+#KXFFZUZLJSYTKEMY37JQ7PT6ME5TTMM76HNE7GT3FK6EOG7OVFW3HV6ZBAIWHZG6JYTFLU7UVRVEC
+#\\\|PA33HCU2TVKX6NBHBGUTXMCPFHS5HUWOWUHBBRXDYCSAHYODNOE \ / AMOS7 \ YOURUM ::
+#\[7]LF4KM27ZT3O2GQWU5LEXI7K2CPQRC4ZHKIZ72KNOPZHDJH26WSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

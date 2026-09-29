@@ -53,7 +53,7 @@ session's own accumulated context:
   `.cmd.`/`.handler.`-style file-naming segment), with one full worked
   example command + expected reply shape
 - which zenki need to be running first and how to start them
-  (`v7.start <name>`, dependencies)
+  (`v7-zenki.start <name>`, dependencies)
 - any auth/access-grant requirement that must already exist
   (`cfg/zenki/cube/access.zenki`, `auth.zenki`)
 - how to tell a genuine "command doesn't exist" apart from a "command
@@ -67,8 +67,8 @@ any P7-specific wire convention the dispatched task depends on being
 right the first time — a wasted 85%-of-budget session on a single
 missing sentence is a much worse trade than a slightly longer prompt.
 
-#,,,.,.,.,..,,,,.,,..,,,.,,,.,.,.,...,...,.,.,..,,...,...,..,,.,.,,.,,,,.,,..,
-#XVW55F3AHUSIHZY5DTU63LF3PWBTJ5LSVQSUI2R6VWEXKNMTEUQZ37JXJIHNW6PAEL62JZMM2PZFK
-#\\\|O7F7SGNAIBVRIDB7NZHN4TKD2CV565QRLRMUUAPQMYESZH62J2X \ / AMOS7 \ YOURUM ::
-#\[7]FG7BR4R443O7FSPJVGCPJPQPCB76NOOMNYEMSGT3ZKBBNEXJKKAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,.,,,,..,,,.,,.,,..,,,..,..,,..,,...,...,,..,..,,...,.,,,,,,,
+#QEADSX4235C2B6ZUAVTIJERISQKLO4U62MIFDGEZWBN5ZKT3KB72CSO7NFFZ4LNCIEYAR4CA6BMRG
+#\\\|52LT3WLTERJATCLQ4JOKW7LEZFQHV5KGT43HMCPHCJ6JMIEG35D \ / AMOS7 \ YOURUM ::
+#\[7]RPKHWGHOWXZ55KPESRVF7FN4WEOZRCT74HUC7CWIUWV4QR72SECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

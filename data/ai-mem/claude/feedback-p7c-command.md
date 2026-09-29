@@ -8,10 +8,10 @@ Always use `p7c` for Protocol-7 network commands, never `p7`.
 
 **Why:** the `p7` binary was renamed to `p7c`; `p7` now prints an error and exits.
 
-**How to apply:** any time issuing a network command via the CLI — `p7c list users`, `p7c nodes.orbital-position`, `p7c v7.restart X`, etc.
+**How to apply:** any time issuing a network command via the CLI — `p7c list users`, `p7c nodes.orbital-position`, `p7c v7-zenki.restart X`, etc.
 
-#,,,.,.,,,,,,,..,,..,,.,.,,.,,,..,.,.,.,.,,.,,..,,...,...,,..,.,.,,,,,,.,,...,
-#GLZ7BX3JLM6KB7X3445KBJZLMV7KEFIASCGZ3NP237LPV5AYUVH53MPO35EJJP7OCJMF6R52RG5K6
-#\\\|LXDKASZEVV745BY223QWMK6GBMNT4CSKDMF5IC2YTO6XE7LSPDA \ / AMOS7 \ YOURUM ::
-#\[7]YGSEYGVTJDULN6OJMJQ3DPP4F2SW6IKJ3GIWO4X3EHYHMB23FQAQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,.,.,,..,,,.,.,,,,.,,,,.,,,,,..,,...,..,,.,.,..,,,,.,...,...,
+#QPGAJQEZKB2ONBLXDL7MDJGIC36KXNNJF4ZTMB3I6UDNIIHSPAE4XC7ME4YPRT5WFZH54UTWQ6N5G
+#\\\|2MNZDPFKNUXL5IUKU7S36WAVQANIIRXJU64I676FIJ4JGTYEWOW \ / AMOS7 \ YOURUM ::
+#\[7]IRBAP6G6UF62DDFNVVYOP755Q5QBEG24VKHPMV2UDY74WVPSDOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

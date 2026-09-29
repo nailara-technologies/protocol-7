@@ -82,10 +82,10 @@ composed these exact primitives together before (client-side auth-keypair
    `users`) deadlocked the whole zenka: cube routed the command to
    `users`' own pre-existing link session, which couldn't be serviced
    because the SAME single-threaded process was already blocked waiting
-   on its own reply. `v7.restart` could not recover it either — the
+   on its own reply. `v7-zenki.restart` could not recover it either — the
    stuck process couldn't process its own restart command while
-   blocked. Recovered only via `v7.stop` (TERM then KILL). A racing
-   `v7.start` during the hang also produced two live instances at once
+   blocked. Recovered only via `v7-zenki.terminate` (TERM then KILL). A racing
+   `v7-zenki.start` during the hang also produced two live instances at once
    — `max_concurrency` wasn't set (see `image2html`/`window-place` for
    the precedent). Fixed at the root: `base.session.init` +
    `base.session.init_state($id, 1)` hands the post-auth connection to
@@ -104,8 +104,8 @@ section.
 
 [[project-users-zenka-unblocks-cross-host-testing]]
 
-#,,.,,,,.,,,,,..,,...,.,,,,,.,,..,.,.,,,.,.,,,..,,...,...,,.,,...,...,,,.,..,,
-#PGOSCCQLVKBPDSKYFQFIKR2ELQUWP6TKBMHTRMI3VL4QFVNGFFNT3HSC2C5KCGW6NW4QZ2FUWC3BG
-#\\\|J24LLX2KRH2HABRRFQ65QERL5LV53CTRZ35FLC2KJBIGNJSDEDI \ / AMOS7 \ YOURUM ::
-#\[7]DRYGKUH6EBBHBDOPPDIVBYREJJ4Y237SFOFSCCAEBG2MRFOS2UDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,..,,,,,,.,.,,,.,,..,,,.,,,,,..,,...,..,,,.,,.,,,,,,,,,.,,,,,
+#7LLQSXL7HCMARRZES677XQKSFKGE27LAJAZ2VAYMZOIQ3BMF26LODO2ZDN7VZNLSNTSLGBXKRTD5Q
+#\\\|CEGOPYP32RK7VUMHAMVO43DIGKLOVRTVYDW6BFBM3QKR5XYA6DP \ / AMOS7 \ YOURUM ::
+#\[7]3HG6JY2CBLJVJVFWZY4ABJM4WRHWG6XTURPATNOGBVBGI2SANYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

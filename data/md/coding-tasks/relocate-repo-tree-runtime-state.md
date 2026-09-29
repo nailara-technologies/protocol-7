@@ -52,7 +52,7 @@ for genuinely external state is to stop writing it inside the repo tree.
 
 1. **`var/sys-deps/`** (live, needs a real code change) — used by
    `src/sys-deps.init_code`, `src/sys-deps.cmd.install`,
-   `src/sys-deps.cmd.promote`, `src/v7.check_zenka_deps`, and
+   `src/sys-deps.cmd.promote`, `src/v7-zenki.check_zenka_deps`, and
    `bin/os-pkg` (currently `File::Spec->catdir($P7_ROOT, qw|var sys-deps|)`).
    All of these build the path from `<system.root_path>` / `$P7_ROOT`
    (repo root) — switch them to `<system.path.zenka-dirs>{'var_P7'}` (or
@@ -108,8 +108,8 @@ for genuinely external state is to stop writing it inside the repo tree.
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,..,,..,.,,,,..,.,.,...,,.,,.,,,,,.,...,...,..,,...,...,.,.,,..,,..,.,,,,,,,
-#M76PSNY4J5PWKH5BJH3PJ7TY3K2EOQWDOWDB722APNJGRJECV3TTCTGPA7VZXIOMOOOBVST2VIVGO
-#\\\|DWOKHBG5STMYEQTJGWRU7IAGMGLABJHUOZXQQEYD63RMEHWLIVH \ / AMOS7 \ YOURUM ::
-#\[7]SJXTHIJDAEM5ZT6TGVTQ57LE7IPFG2GYGXGZZVMSKZ22MXVPACAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,.,,,.,,,..,,,.,...,..,,,..,..,,...,...,,,.,..,,,.,,..,,.,.,
+#33THVFAB6MFC7JN4HUBMARPA5Y6F3ORPTQ6KNEJNKBJSYPOROVOU2DQJT2O5N5B3C5TVHGXJBV75M
+#\\\|LWWWPPAKMW4I4IRTFO3RILP6LVJ2V6M2GMRIQN5K2YRDHWVFHDY \ / AMOS7 \ YOURUM ::
+#\[7]HIQLBWAB3Y77Q7SC3J6UFOLJAI6YZAYTCT2CZIZCYEW3CXT4LEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

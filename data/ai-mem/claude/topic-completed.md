@@ -24,7 +24,7 @@
 - session-72 — ascii.frame.* complete (9 modules + context.provider.frame + render.color), nshell cursor/color fixes (4 bugs — root cause: orphaned-route `(0)!TERM!` on cmd_id==0, see [archive](archive/topic-completed-archive.md)), coding zenka hardening (chmod 0020→0002, compaction restart recovery, write permission chain)
 
 ## 2026-06-01
-- [session-69](session-69.md) — v7.restart :twin: zero-downtime concurrent restart; drain + spawn resilience; coding await_resources + instance-scoped pid files
+- [session-69](session-69.md) — v7-zenki.restart :twin: zero-downtime concurrent restart; drain + spawn resilience; coding await_resources + instance-scoped pid files
 - [session-70](session-70.md) — coding zenka :twin: fixes (drain permission, awaiting_resources guard, pid file age display); channels on-demand; chat STDIN blocking fix; coding transparent task requeue on timeout
 
 ## 2026-05-24
@@ -34,7 +34,7 @@
 ## 2026-05-23
 - session 48c — X-11 nvidia GPU monitoring + 3 bug fixes; intel binary noise fix; GPU STRM subscription + sparkline; MCP external commands; holographic-grid-interface.yaml (733 lines); v7-teardown-whitelist
 - session 48b — stale endline recovery (normalize + re-sign); vc-changed-files fix (git diff HEAD); source.signature_valid anatomy documented
-- session 48 — v7.instance_count fix; Fuse→Fuse3 migration; ssh/pm-dep colon-format cleanup; lpw sync root bug (kill 41/55 swap); log prefix alignment; heartbeat log silence
+- session 48 — v7-zenki.instance_count fix; Fuse→Fuse3 migration; ssh/pm-dep colon-format cleanup; lpw sync root bug (kill 41/55 swap); log prefix alignment; heartbeat log silence
 - session 47 — sys-deps zenka live; AMOS7::deps::* library; debian root apt-child; AptPkg::Cache probing; cpanm --no-man-pages; task zenka reasoning.branch fix
 
 ## 2026-05-21/22
@@ -127,8 +127,8 @@
 ## Full Archive
 - [Complete session archive](archive/topic-completed-archive.md) — all detailed session summaries preserved
 
-#,,..,.,.,..,,,,,,,,,,.,.,...,...,...,...,,,.,..,,...,..,,..,,.,.,.,,,,,.,.,,,
-#YYOT7UF7TJVNUUPVQBCLSZE5SGQN7VV3YXLWO6R5JSAW3EOENKAJKOTLC2FKQ4CM3MZM6SSHIW64G
-#\\\|5JKTOJDRRA2AOLX7XJHT4B6JHPKKXTDPOGG25H5GGT3TRI43EIX \ / AMOS7 \ YOURUM ::
-#\[7]3FQH2I6WJKSWRIHOUCEOGYK4YKEOXRND4K3D5LXS4D2QJ3SPNAAI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,.,.,,..,...,...,,,,,...,..,,..,,...,...,...,..,,,,,,,.,,,,.,
+#7FOEMF6ETZF6SDJAPKMWW4HAQCFITAKRFJ45DYCJYSLHUIDGZTNC7W2SMK2WUUPEBQHMSLADAIKJY
+#\\\|4NKGVOVNX3EZUM2WVM3HTP7I3FLIQPPHMBKCD76T3CAWHLBEOJF \ / AMOS7 \ YOURUM ::
+#\[7]ESW5S7O4EP5ZF6PVYTN3NSDYRBWDZ6S2CWODIPLTGD5UQK24GMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

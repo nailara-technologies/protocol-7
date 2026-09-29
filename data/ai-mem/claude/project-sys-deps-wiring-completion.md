@@ -1,6 +1,6 @@
 ---
 name: sys-deps-wiring-completion
-description: "K3-dispatched: retired the debian-zenka dependency-management stack and session zenka's dependency-check half per the pre-existing sys-deps-zenka-audit disposition table, after live-verifying the v7.check_zenka_deps/sys-deps replacement pipeline actually works end to end (it had real bugs of its own, now fixed)"
+description: "K3-dispatched: retired the debian-zenka dependency-management stack and session zenka's dependency-check half per the pre-existing sys-deps-zenka-audit disposition table, after live-verifying the v7-zenki.check_zenka_deps/sys-deps replacement pipeline actually works end to end (it had real bugs of its own, now fixed)"
 metadata:
   node_type: memory
   type: project
@@ -8,7 +8,7 @@ metadata:
 ---
 
 Follow-on from [[topic-auth-client-namespace-split]]'s undef-sub sweep: fixing v7's `auth.client`
-gap surfaced a chain of dead code in `v7.init_code` (guarded `debian.parent.*` calls,
+gap surfaced a chain of dead code in `v7-zenki.init_code` (guarded `debian.parent.*` calls,
 `v7.verify_and_install_zenka_dependencies`, an orphaned `v7.post_init_code` with the wrong hook-name
 suffix) that traced back to two superseded dependency-management mechanisms: the `debian` zenka
 (disabled in v7's own `modules.load` since Nov 2025, "temporarily... for testing", never restored)
@@ -28,11 +28,11 @@ in the "already built" replacement before deleting anything —
 - stale `AptPkg` cache in `data/lib-path/pm/AMOS7/deps/debp.pm`
 - a compile-time `use debp qw(...)` in `os_package.pm` that broke under `Module::Refresh` (now
   fully-qualified runtime calls)
-- `var/sys-deps` ownership/perms in `v7.check_zenka_deps`
+- `var/sys-deps` ownership/perms in `v7-zenki.check_zenka_deps`
 - a `return`-inside-`eval{}` bug in `bin/os-pkg load_tracked`
 - `src/sys-deps.cmd.install` was a stub, filled in for real
 
-Then executed: deleted `v7.init_code:128-167`'s dead block + `v7.verify_and_install_zenka_dependencies`
+Then executed: deleted `v7-zenki.init_code:128-167`'s dead block + `v7.verify_and_install_zenka_dependencies`
 + `base.ensure_zenka_dependencies` (zero callers, fully orphaned) + 26 `debian.*` files per the audit
 table (kept `debian.cmd.install-history`, `base.debian.install_package`, `debian.start.apt_child` as
 directed). Retired `session`'s dependency-check half too (not in the original audit's scope, same
@@ -57,8 +57,8 @@ apt-installed on the host from K3's live dep-install testing — no root to remo
 [[project-ondemand-zenki-registry-wipe]] · [[topic-auth-client-namespace-split]] ·
 [[project-kimi-k2.7-vs-k3-tier-economics]] · [[project-depgraph-conditional-calls-blindspot]]
 
-#,,,.,,,.,.,,,...,,..,.,.,,..,.,.,,.,,,,,,,,,,..,,...,...,,..,.,.,,,.,..,,...,
-#6O3YVMJRK65O5RC35K474RBY4QM2AUMCME33NYR4TADZEPJRPQRRAQCYSOX46CXFIWYEXKT4NAEXU
-#\\\|X45TYTUUH6QOWKDD3H2KERWKYRLSVUXNR3PQMHAJ6PCPHVDQGST \ / AMOS7 \ YOURUM ::
-#\[7]4YGMYSLL2CJK2AWMMCIY4QDVADJS2D2AMCRHHAGJUBV27DL5RWCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,.,,,,,,,,,,,.,,,.,.,,,.,,..,..,,...,...,...,,.,,.,.,,,.,...,
+#TSYZ2TO65BLBBEBXHSJAJBHYRDQ5UW2MOJJVRIR2SWHAK2OZBQMQLHAKQE5PV3QM6PCAQKFVYF3PA
+#\\\|POA77KXFBQFORSCHJ4DXTSHT7RB3BXLN75MWIBT5ZZIGFHYWZEN \ / AMOS7 \ YOURUM ::
+#\[7]C4PD5EDEEFXENOWZRGLAQJYX4P2R2IAJARGKFCUTS53WSXHMQGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

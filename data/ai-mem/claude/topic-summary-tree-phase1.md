@@ -110,7 +110,7 @@ applies there.
 
 ## Process notes for next time
 
-- Every module-file edit needs a `coding.reload` or `v7.restart <zenka>`
+- Every module-file edit needs a `coding.reload` or `v7-zenki.restart <zenka>`
   before it takes effect live — easy to forget mid-debugging-loop and chase a
   phantom bug that's actually just stale code.
 - Every `bin/mcp-server-p7` edit needs the MCP connection killed + user runs
@@ -124,8 +124,8 @@ applies there.
   sessionId" jsonl structure) — when they state a hard constraint, trust it
   and act on it rather than re-deriving/re-verifying from scratch first.
 
-#,,.,,,,.,..,,.,,,.,,,,..,.,,,,.,,,.,,,..,.,.,..,,...,...,.,,,..,,.,,,,,,,,,,,
-#KZU42ETOVLP4GJEH5VO3MWIQWY4PNFXJYBHLGXZPYPOIJ4QARAK47HQGPXTLOSI7CHEYT5CPYRT3W
-#\\\|6ZZQL7MIWPH2AX3IREUY4YKZ7XYE6N6M57GMGK627NUIYXZ7X3D \ / AMOS7 \ YOURUM ::
-#\[7]5YA4T3FDD24G5BLSBWNBOHMTLTN63TVYB7R7KCJSHEOGUAGB2IBQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,.,,,,..,,..,...,,,.,.,,,.,,,..,,...,...,...,,,.,.,,,..,,..,,
+#5ICQM7KJY3LBVIFRQPTQT4HMZ2IMMR5ZIXTLD6H27XBUONQJBOGTQCPL5NUOXQD3H5VHSQYS2RNPK
+#\\\|7SZEKX7MPPSMSKH3HHLZOTZXIL2LFW62FI4X3QVITQHO3QZNQYA \ / AMOS7 \ YOURUM ::
+#\[7]OU7FM5XEEW5D6DTSTF6AXCIHFG6RS2UHIWNRSKT7HM7346JI3WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

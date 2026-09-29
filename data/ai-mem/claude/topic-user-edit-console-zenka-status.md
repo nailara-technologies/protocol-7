@@ -288,7 +288,7 @@ see [[feedback-backslash-keyword-is-not-a-reference]].
 
 
 **2026-08-12 (later) — create-admin LANDED, and the record now exists.**
-`v7.user-edit show-form` no longer dead-ends on "user 'taeki' not found".
+`v7-zenki.user-edit show-form` no longer dead-ends on "user 'taeki' not found".
 
 Authority side owns the shape, per user: `users.record.default_fields`
 (freshly-built hashref each call, NOT cached) + `users.cmd.create-default
@@ -403,7 +403,7 @@ Commits `c12351f92` (namespace menu), `2bef4639b` (record-as-directory +
 contact multi-valued + no vertical jump). The add-field cycler is
 UNCOMMITTED and mid-flight -- see [[reference-editor-add-field-cycler]].
 
-`v7.user-edit browse` gives namespace -> record -> form with Esc ascending;
+`v7-zenki.user-edit browse` gives namespace -> record -> form with Esc ascending;
 see [[reference-editor-list-field-and-render-contract]] for the row-list
 primitive and [[reference-editor-add-field-cycler]] for the inline one.
 
@@ -586,7 +586,7 @@ shape is easy to mis-predict as a plain alpha sort otherwise.
   8-entry contact list submitted in arbitrary order came back sorted
   length-ascending/alpha-descending-tiebreak, byte-matching a hand-derived
   prediction.
-- **Gotcha re-hit**: `users.*` code changes need `v7.restart users` before
+- **Gotcha re-hit**: `users.*` code changes need `v7-zenki.restart users` before
   they take effect — the FIRST post-edit `value-set` in this session still
   wrote unsorted contact, silently, because the zenka was still running
   the pre-edit code (already documented in
@@ -1310,7 +1310,7 @@ known or no permission for 'remove'" until this was added. Kept, not
 reverted.
 
 All 6 acceptance checks from the task file verified live via `p7c` after a
-`v7.restart users` picked up both fixes: create → remove → value-get 404s →
+`v7-zenki.restart users` picked up both fixes: create → remove → value-get 404s →
 directory actually gone from `/etc/protocol-7/users/host-system/` → a
 second remove refuses cleanly ("record does not exist") → the
 path-separator guard rejects `../escape-test`. Also used to clean up the
@@ -1525,8 +1525,8 @@ stage an unwanted edit. Caught and corrected that time with `[Backspace]`
 default going forward is a throwaway/test record, per every other
 char-add session logged above in this file, not the invoking user's own.
 
-#,,,.,,,.,.,.,,,.,.,.,.,,,,,,,,.,,.,,,..,,,,.,..,,...,..,,.,.,.,.,.,,,..,,,..,
-#5SUHJOIEOPCIZYVEU2PLPNAK4B7FUVUVWCEDERV3LEGSCY2Q6X7TAGKDDHNMGLT5RUSTCGFX4DDXM
-#\\\|66X36JW4UPRJFOKTX27X4LCC422GUDRQOCE3QCXLBLQDDKCJS3F \ / AMOS7 \ YOURUM ::
-#\[7]2PEEF7PJZ6FSJYBQHGRZDQMO7C2IZPNHGH7LAXDB7MWKHBH4IIAA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,,,.,...,.,.,.,,,,..,.,,,...,..,,...,...,..,,..,,..,,..,,,,,,
+#2KV5ABA672S5TLN6OFSBV4SOJPLQGS2RZR5UZS2H76WJCC2M4WMFQNVWLW6FOTV4W43VSQ2E6GB5S
+#\\\|Y22E6YSPJTUMAZ6KPNO6QJODXGNJ7WZEA3OOFTGVIUM3FE7JWGN \ / AMOS7 \ YOURUM ::
+#\[7]FLNEM45MVX52YO5CV2DMT7W7JDLLVWVGCFSEXWAGUXHDX5CDPADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

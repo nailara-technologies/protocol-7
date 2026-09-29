@@ -21,7 +21,7 @@ The codebase has **mature, production-ready dependency infrastructure**:
    - Status checking via `dependency.ok`
    - Ready to use directly
 
-2. **v7.zenka dependency system** (4 modules)
+2. **v7-zenki.zenka dependency system** (4 modules)
    - Orchestrates zenka dependencies
    - Reads from config, builds chains
    - Safe dependency object creation
@@ -297,19 +297,19 @@ if ($UID == 0 and exists $code{'v7.verify_and_install_zenka_dependencies'}) {
 
 **For Always-On Zenka (with heartbeats)**:
 
-Modify `v7.init_code`, lines 52-61 (instance verification section):
+Modify `v7-zenki.init_code`, lines 52-61 (instance verification section):
 
 ```perl
 ## Monitor dependency health during instance verification (always-on zenka only)
 if ($UID == 0 and exists $code{'v7.monitor_dependency_health'}) {
-    foreach my $instance (@{<v7.zenka.instance>}) {
+    foreach my $instance (@{<v7-zenki.zenka.instance>}) {
         my $zenka_name = $instance->{zenka_name};
         my $status = $instance->{status};
 
         next unless $status eq 'online' || $status eq 'extbin';
 
         ## Skip zenka with disabled heartbeats (on-demand)
-        next if <[v7.zenka.is_enabled]>->($zenka_name, 'heartbeat_disabled');
+        next if <[v7-zenki.zenka.is_enabled]>->($zenka_name, 'heartbeat_disabled');
 
         <[v7.monitor_dependency_health]>->($zenka_name);
     }
@@ -341,7 +341,7 @@ Verification happens at two points:
 ### List 1: Dependency Verification Status
 
 ```yaml
-# In v7.init_code, create list structure:
+# In v7-zenki.init_code, create list structure:
 list.dependency-status:
   var: data
   key: v7.dependency.verification_state
@@ -456,7 +456,7 @@ Comprehensive state stored in `<v7.dependency.verification_state>`:
 | 3 | v7.verify_and_install_zenka_dependencies (new) | Comprehensive orchestrator | HIGH | Step 2 |
 | 4 | v7.monitor_dependency_health (new) | Periodic monitoring | MEDIUM | Step 3 |
 | 5 | Parent fork modules (extend) | Insert verify before fork | MEDIUM | Step 3 |
-| 6 | v7.init_code (modify) | Integrate monitoring | MEDIUM | Step 4 |
+| 6 | v7-zenki.init_code (modify) | Integrate monitoring | MEDIUM | Step 4 |
 | 7 | Lists (create) | Monitoring UI | LOW | Step 3+ |
 
 ---
@@ -490,7 +490,7 @@ Comprehensive state stored in `<v7.dependency.verification_state>`:
 
 **Level 3 is NOT about replacing the existing dependency system**—it's about **adding runtime verification and repair on top of existing infrastructure**.
 
-The existing `base.dependency.*`, `v7.zenka.*`, and `debian.parent.*` systems are mature and production-ready. Level 3 adds:
+The existing `base.dependency.*`, `v7-zenki.zenka.*`, and `debian.parent.*` systems are mature and production-ready. Level 3 adds:
 
 1. **Binary dependency scanning** (extend existing scanner)
 2. **Unified verification function** (check any dep type)
@@ -501,8 +501,8 @@ The existing `base.dependency.*`, `v7.zenka.*`, and `debian.parent.*` systems ar
 
 Result: **Self-healing dependency system that catches and repairs issues continuously, not just at startup.**
 
-#,,..,...,,,.,,.,,...,,,.,..,,,,,,,.,,,,,,.,,,..,,...,..,,.,.,,..,...,,.,,,.,,
-#YF3J2EX3M374B4UGRPS7L2TWPRY7JUKLAWICNW7ZSCJM7MLDLS5D3LB75GJLN3EFNM3OVGYFH7EIE
-#\\\|UM2PQ23ZOQ2HD3ZDKIGTTCCYVI7OB7GG6AKRQF55ZMLHUFABZBM \ / AMOS7 \ YOURUM ::
-#\[7]7SIE7PGKXKGGGESECJQL5UACTHWEVBFMV3NSZYVAAKFVK6URGUDI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,.,,,.,,,,.,.,,,..,,,..,.,.,..,,...,..,,...,,,.,.,,,,,,,,,,,
+#AUSLQGRMBEQLXGPXCULCBVWGNPNCLZFRWIG43FKL27WGHREU7KYR5G4CDL3KCKCFMN4FAYMYJNQWO
+#\\\|U57VFBCH5K7YJ6NM7URPWURPPFAWLQXQ43JZYYCIAJ2OKOC6NK7 \ / AMOS7 \ YOURUM ::
+#\[7]SW7OUBPG3L45UVXPPAZJBTJKIW7DV5UKXSANZLXYBKYC46GY66AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

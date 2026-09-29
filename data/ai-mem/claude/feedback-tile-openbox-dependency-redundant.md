@@ -19,8 +19,8 @@ running**, and the dependency was what broke clean restart.
 dependency; its upgraded functions now cover what openbox provided, so tile
 no longer needs openbox at all under Weston.
 
-**Verified:** full backend restart with no X-11 running → `v7.start
-protocol-7-menu` starts all dependencies and displays the menu; `v7.restart
+**Verified:** full backend restart with no X-11 running → `v7-zenki.start
+protocol-7-menu` starts all dependencies and displays the menu; `v7-zenki.restart
 X-11` restarts the menu zenka too and it reopens immediately.
 
 **Why:** the earlier handoff theory ("tile on-demand with no keepalive → dies
@@ -32,8 +32,8 @@ openbox as a zenka dependency when a compositor/WM is already running. If a
 window zenka won't restart cleanly, suspect a redundant WM dependency before
 suspecting on-demand/keepalive. Related: [[feedback-wslg-deiconify-limitation]].
 
-#,,.,,,,,,,,,,,.,,..,,,,.,.,.,,,,,.,,,..,,,,.,..,,...,...,..,,,..,,,.,,,.,,..,
-#VMYXNZABVO3K6JIPAC7OWE5JNCM4FS4AOTM3ZHOTL4LESMPFVDRQD6GVHWHI3ZIS2SFQDZ5M7W2VY
-#\\\|QD62MMPTS7WL7G5FXA6WD6WYPC27RSPVGYAF4HY5MMO3DXCGNXB \ / AMOS7 \ YOURUM ::
-#\[7]GSD4UHKD5WONQHICUKGSHPQ4KLEYM4LY4M3EECNPL5W2KMTZXSCA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,.,,,,,,,.,.,.,,..,,,,,,..,,,.,..,,...,...,.,,,.,.,..,,..,,,,.,
+#SG6AQJSSUZB6COQ2NPBTMOKC6E26CDMX44TDEC5AG64RMRI6RAB2Y6QINBIFLLXDGU32DEFQZBJGI
+#\\\|F5GIA6C3BCBTNG54G4AZSSNMKVSLW5LM3O6J7SYRLCDRKNXQO3D \ / AMOS7 \ YOURUM ::
+#\[7]A3WAXGBAJP5YWTYVQ3L2VT23F43NEMT7QXIRI4X5CRJFNXUDIWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

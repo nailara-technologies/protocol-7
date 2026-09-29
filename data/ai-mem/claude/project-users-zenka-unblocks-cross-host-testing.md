@@ -39,7 +39,7 @@ across auth methods, `base.session.init`'s session-name regex constraint,
 the `protocol-7.command.send.local` non-prefixed alias requirement, a reply
 handler's real single-hashref call signature, and a genuine self-deadlock
 when a blocking-read client implementation loops back through the same
-zenka process — recovered only via `v7.stop`/TERM+KILL, `v7.restart`
+zenka process — recovered only via `v7-zenki.terminate`/TERM+KILL, `v7-zenki.restart`
 couldn't reach the stuck process). Full writeup in `users-zenka.yaml`'s
 `transport_implementation_choice` section. Still open: `discover.orbital.
 known` -> host:port resolution, `remote/{incoming,outgoing}` sync-cache
@@ -47,8 +47,8 @@ storage, link-upgrade encryption, command-level signing.
 
 [[project-checksum-addressing-implementation-survey]]
 
-#,,..,..,,,..,...,.,.,.,,,,,.,...,...,.,,,.,,,..,,...,...,..,,.,.,,.,,.,,,..,,
-#55Y65AQC66O2QKUXNPYAVM5NX52XIWMPAMUQP5R7WYQ42ITCOIJE6FWIOUW6VVY6FXVJUURLNA5WY
-#\\\|QOXO2ZWU4JW5ZJXG7Y2ZQR5U7JPPCWPET7ERBFUP6AO4E5JLHGH \ / AMOS7 \ YOURUM ::
-#\[7]T5SJ7HQFAFZOBYBUOBTZU6H5N26Q2KFXSZ3QHBQBVPOQZVFDXKBY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,,..,...,,,,,,,.,,,.,,.,,..,,..,,...,...,,..,.,,,.,.,...,,..,
+#LAWX6EAZWCILJOVQTCLXIW5BS2HGCRO3NTHO7I7LTDWWO6UYFMYLTCZLHHFCGMJ5M4UCV3B4AYXWE
+#\\\|FHT2QE6BODZOCAQ2TYG5KBRYKBOWXWKENYHZZ2GQJ4RT5CDRU6Z \ / AMOS7 \ YOURUM ::
+#\[7]2645OGR3RLAJPYXQQSWFBAJLCD3MNSSLRCIZP5W4ZP3S54FVBOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

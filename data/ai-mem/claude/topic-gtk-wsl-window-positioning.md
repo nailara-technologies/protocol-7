@@ -38,7 +38,7 @@ disproven by direct test (see below).
   drop_privs no-ops (already running as the target user), causing
   `base.file.zenka_dir.write` to try (and fail) to chown to the wrong
   expected owner, deleting the just-written file on failure.
-- `v7.zenka.start`'s own `GDK_BACKEND` line (inside the `exec-external`
+- `v7-zenki.zenka.start`'s own `GDK_BACKEND` line (inside the `exec-external`
   branch) was found to be **dead code** — no `start.cfg` in the repo
   uses `start_mode = exec-external` (all use `stdin-zenka`), and even if one
   did, `<x11.display>` is never populated in v7's own process (v7 never
@@ -158,8 +158,8 @@ about focus/stacking, not position, and contains no `move()`.
 [[feedback-source-identity-spoofing]] · [[topic-mpv-jobqueue-startup]] ·
 [[topic-zenka-naming-cleanup]] (select-region clone landed this session)
 
-#,,..,...,...,.,.,,,,,..,,,..,.,.,,,.,..,,,.,,..,,...,...,..,,,.,,...,,,.,,,,,
-#U2XZLKCLSZV5ZFFBX4XOEKQCLXDA6FWLZ73PRFSHEP34KU65POFZXM6GINCLJQL2NUHYMVBIFHRSY
-#\\\|KLRRYNP5BHUEBGJG7SVZJXYUIOVKJALYJ4NUOYLLET7EDLKALVX \ / AMOS7 \ YOURUM ::
-#\[7]YBNNOXN6UIETSEJW65HXYQLCNDQ4SDAJD3AGBKQMJKNYTLR7U4CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,.,,..,,.,.,..,,.,,,.,.,,..,...,..,,...,...,.,.,...,.,.,..,,.,.,
+#IXJNKPHLCUAMBWZCGXB2EVKXDHVFEOTLOCY6YV4BQJ5D3SE3ACSORCTAIDBBROCDLNDIZTOY4Z72A
+#\\\|CLZPXZVQFVAJLOKULLXXUIYDZ2IOTY4NJYAVZ2BZUEBXVDLL6PD \ / AMOS7 \ YOURUM ::
+#\[7]EXZ7X5FRWPPQSWKUHPRUVQIRLHIFZKSB47Q5MSYPLNBYTP7T7YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
