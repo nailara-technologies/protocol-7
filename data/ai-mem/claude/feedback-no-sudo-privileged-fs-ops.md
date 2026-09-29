@@ -24,8 +24,28 @@ exact command (or a short list of them) and ask the user to run it, rather than 
 back. Don't try to route around it via a different privileged mechanism either; just hand off
 the command.
 
-#,,,,,,..,,,.,,.,,..,,..,,.,.,...,.,.,.,.,.,,,..,,...,...,...,,,.,,,,,..,,,.,,
-#622YHWWKMGB5VX7KGFCZ57BMHYTTPRGY6P273RDLZJYNH27IQNKB3RBJSDBYLK7PPGQGBCO4PPIIE
-#\\\|2GFGTEHBJZN3AS2BHR2OCW7JD7Z3RWVM5UMQT54JRFV24XZZSZT \ / AMOS7 \ YOURUM ::
-#\[7]UMYT5QWXWFCCU2I3JYB6L5FAAID47YLI4XS6FYG3FCU3AU44RWBQ 7  DATA SIGNATURE ::
+**Also for dispatched agents [ 2026-09-29 ]** : a kimi dispatch [ `-y`, no
+harness gate ] ran `sudo -u protocol-7 test -d ..` to check path access as the
+zenka user -- the password prompt landed on the user's terminal and blocked it
+until the dispatch was killed. every dispatch prompt that may touch
+permissions or other users' paths must say explicitly : no `sudo`, `runuser`,
+`setpriv` or `su` -- report the question instead. checking what another user
+can see is done by reading modes \ owners [ `ls -ld` along the path ], not by
+becoming that user.
+
+**the approved way to test AS the zenka user** [ user suggestion, verified
+2026-09-29 ] : load devmod into that zenka, then eval inside its process --
+its real uid and permissions, no sudo :
+
+    p7c v7-zenki.devmod-enable models
+    p7c models.eval-code 'return join " ", "uid=$<",
+        ( -r "<path>" ? "readable" : "NOT readable [$!]" );'
+
+[ answered uid=777, models dir visible, invokeai db `Permission denied` ].
+give dispatched agents this recipe instead of any privilege switch.
+
+#,,,.,,,,,.,.,,.,,.,,,,..,,,,,,,.,...,.,.,,,,,..,,...,...,,,,,..,,,..,...,,..,
+#M2K7TOTST7OJ7YMWH7RP3TKTPHTAYNTTLQVZH4JBM4DKFKO24CZSYD5XMWBPGAOBDPQ66KARG6NEC
+#\\\|XPG2564VPEDH2W3DGYS5PWLPC4367XCP3C7WQGX2UEDFLEC326L \ / AMOS7 \ YOURUM ::
+#\[7]6RVIRUDKKQCB3K6EUIBQACOXAJCAXPLNQV26GE26BP4MJJUB2QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

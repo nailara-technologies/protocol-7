@@ -61,11 +61,32 @@ would lose it ]. only items invoke.ai itself already ended are retried.
 `models.storage.adapter.invoke.export`, `.resolve`, `.repair` read
 `$data{'models'}{'external.models.invokeai.path'}` -- a key that is never
 set : `load_config_file` nests dotted names, the value lives at
-`<external.models.invokeai.path>`. they run on their fallbacks today.
-`repair` writes files -- check what the fallback resolves to before fixing.
+`<external.models.invokeai.path>`. they ran on their fallbacks.
 
-#,,..,,..,,.,,.,,,...,,..,,,,,,.,,,..,.,.,.,,,..,,...,.,.,,,.,,..,,,,,.,.,,.,,
-#KFQTSRHGQRLN3KOUZGTYV7QOHW62LZMPIMFEUWK4DQ7ZI5X554IATHHFZUWMYIXPDRM4BOAMNFVLG
-#\\\|RYCRGWR2SYHUNXYEA4CCOVEYI7YEMZ56FBIRYG6B4DGAUQSFZLH \ / AMOS7 \ YOURUM ::
-#\[7]ZIPBQMG7X2WEDZLZYDOTYU24QCEN2AP7GZCEBXZBLOSV3QSFQACQ 7  DATA SIGNATURE ::
+FIXED [ 2026-09-29, kimi dispatch, reviewed ] : all three now read
+`<external.models.invokeai.path>`, fallback kept. the fallback
+[ `/mnt/ext-xfs-data/models-invoke` ] equals the configured value, so no
+path changes on this machine -- `repair` included. the config now takes
+effect should the two ever differ.
+
+verified live [ 2026-09-29 ] : `bin/format-code -c` on all three [ syntax
+valid ] ; `models.reload` did NOT pick the edit up [ `p7c models.adapter-resolve`
+kept returning empty ] -- `p7c v7-zenki.restart models` did. afterwards,
+as uid 777 via `models.eval-code` : root visible, uuid subdirs visible ;
+`p7c models.adapter-resolve invoke <name>` returns paths under
+`/mnt/ext-xfs-data/models-invoke` ; `p7c models.adapter-export invoke`
+wrote a complete 302-model yaml [ to its `/tmp` default -- the output_path
+arg did not pass through ]. `repair` NOT run live [ per task rules ] --
+code-read only : symlinks via `symlink()` + `File::Path::make_path` under
+`<root>/<base>/<type>/<name>`, existing links skipped, `:dry-run:` flag
+maps to dry_run [ no writes in that mode ]. surprise found while verifying
+[ pre-existing, out of scope ] : modules read `$ARG`, which in live command
+flows lags one call behind -- `resolve` can see the previous call's record.
+export's per-record `on_disk` numbers are affected by that ; the config-key
+fix itself is correct [ proven with a correctly-populated `$ARG` ].
+
+#,,,.,...,...,,,.,,.,,,,.,..,,.,,,.,.,.,.,...,..,,...,...,...,,,.,..,,.,,,.,.,
+#3MY5VFCJIP3JARROJBXIALLWDAKOPLMCZTKY7CDQAS5PBOA4TWXUXR7EHNCV4MYTYDNQBNJAMW5YA
+#\\\|CH6FMJRPOWUMD5Y62DOEYXRUPHKWMR4A42Y7IOFTO27HPAQJWEY \ / AMOS7 \ YOURUM ::
+#\[7]4Z6BJACNBHYQ56ZBDPQQVHVZJTBBG4UDAWFA3G53DPPD3N2LMMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

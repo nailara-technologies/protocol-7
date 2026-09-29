@@ -8,6 +8,14 @@ metadata:
 - `p7c set <key> <value>` on cube answers `command does not exist` until devmod
   is loaded : `p7c v7-zenki.devmod-enable cube` first [ user tip 2026-09-29 ].
   avoids a temp `zenka.v7` edit + restart for a runtime toggle
+- devmod-enable is PERSISTENT : v7 remembers it and re-enables devmod after
+  every restart of that zenka. `p7c v7-zenki.devmod-clear <zenka>` only
+  clears the remembered state [ the next restart comes up without devmod ;
+  the running process keeps it until then ]. clearing on another zenka
+  than the caller needs the admin user. a restart is NOT a cleanup.
+  full cleanup in one step : `p7c <zenka>.unload-devmod` [ undefines the
+  devmod subs in the running process AND sends devmod-clear for its own
+  instance ]
 - cube takes BARE commands : `p7c reload source`, not `cube.reload`
   [ -> `client not present` ]
 - restart cube : `p7c v7-zenki.restart cube` [ `v7.restart` -> not present ]
@@ -18,8 +26,8 @@ metadata:
 **How to apply:** runtime experiments on cube -> devmod-enable + set, not
 config edits. see [[reload-success-doesnt-guarantee-new-file-loaded]].
 
-#,,,.,.,.,.,.,,,,,.,,,...,..,,.,.,...,.,,,..,,..,,...,...,,,.,...,.,,,.,,,...,
-#NJQ7NKLPGLIREZWCDQHMVCY6KFJVLBEAJXUJIB4UJEWTDZNALSP423EF7IVNRC2O5H7TYTN663GXM
-#\\\|YJKTGEAFL5S3IPGAJCVJVL4D4RCD36M3YHGQOENNCUW2EKYC4IO \ / AMOS7 \ YOURUM ::
-#\[7]5TRKP346WZHXTK35FPKFW2GDWHPFLHWT3SURPJQC6AWIMCYLOUCI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,.,,,.,,...,.,.,,..,,.,,.,.,..,,..,,...,...,.,.,,,,,,..,...,,,,,
+#EVCJ7DUHLQIG5DWBYCQCKRPSMVU2ZJU5I4VC2VLSIAQ6ZCYXGY4RLWXWELIOYLUWOL63DNG5WEQ5E
+#\\\|UCSWDJYAGTDVNZIQLQCI766S2KIQSRLSPDSJQZJ5GJYBQVKXJLG \ / AMOS7 \ YOURUM ::
+#\[7]B2567CWJ6LUKRQK33B2IKAGDGY27N62LDS5PRAXN2BHJK73H4SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
