@@ -24,6 +24,10 @@ invoke-web.start.min_free_vram_mb = 4096
 invoke-web.drain.idle_after         = 4620
 invoke-web.drain.paused_counts_idle = no
 
+##  image index : local primary in the zenka data dir [ state/image-index.db ],  ##
+##  lazy external backup copy [ empty = off ]                                   ##
+invoke-web.index.backup_path = /mnt/ext-xfs-data/p7-images/image-index.db
+
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.logfile = 2
 system.zenka.verbosity.console = 2
@@ -41,7 +45,7 @@ access.cmd.usr.cube = heart verify-instance commands reload \
                       pause resume queue queue-order \
                       queue-interactive queue-front \
                       model-source requeue-missing \
-                      session-park session-resume sessions
+                      session-park session-resume sessions index
 
 ## devmod commands : only reachable while devmod is loaded on THIS zenka ##
 ## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
@@ -65,8 +69,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
 
 [zenka.loop]
 
-#,,,.,,,,,.,,,,..,...,...,...,,..,.,.,..,,,,,,..,,...,...,,,.,...,.,,,,,,,.,.,
-#6EJDXD57AXV2PORBKN2HTSPEC6VTNXURO5HWKSMITUAMAWQE6CPV5ZAJJSWO44B4A75MH22AARDNM
-#\\\|F4VHRKDEZ36CS3XZZDUR6B5HA364LO3CGAMSJY3BQ4HWLEBKCOR \ / AMOS7 \ YOURUM ::
-#\[7]RWW37V7LCQTCXB7FRI33TF6I2A2A3COD2V3G6QHSTKFBKR5DO4AI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,.,,.,,,.,,,,,,.,.,,,.,.,.,,,.,..,,...,.,.,...,,..,.,,,.,.,..,,
+#H7MXURWXLDZJ3S6TJ7N7SBQ4NMLMIZKR57KSSXERB5CTPT4GUEDOCF6AV2YYMW55YNEM2JTWYSTTE
+#\\\|GI56WNNVI2M2RFOOEZJMYML3VA6U4F4CKYK2HJYEH5DEMOTWKQX \ / AMOS7 \ YOURUM ::
+#\[7]3H4ESBKMGSVBV6OVJVIOPDXG5GSWCENPFPNKUBNZV7TJCT62SKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

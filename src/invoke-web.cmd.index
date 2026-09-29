@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = invoke-web.cmd.index
+# descr = image index job [ start | stop | status ]
+# param = start | stop | status [ default status ]
+
+my $arg = lc( $call->{'args'} // '' );
+$arg =~ s{^\s+|\s+$}{}g;
+$arg = qw| status | if not length $arg;
+
+return { mode => qw| false |, data => 'expected : start | stop | status' }
+    if $arg !~ m{^(?:start|stop|status)$};
+
+if ( $arg eq qw| start | ) {
+    return { mode => qw| false |, data => 'image index job already running' }
+        if <invoke-web.index.running>;
+    return { mode => qw| false |, data => 'image index db not available' }
+        if not defined <[invoke-web.index.db]>;
+
+    <invoke-web.index.running> = TRUE;
+    <invoke-web.index.cursor>  = 0;
+    <invoke-web.index.stats>
+        = { 'indexed' => 0, 'skipped' => 0, 'failed' => 0 };
+    <[base.zenki.pause_ondemand_timeout]>;    ## the job keeps the zenka ##
+    <invoke-web.timer.index_step> = <[event.add_timer]>->(
+        {   'after'   => 0.1,
+            'handler' => 'invoke-web.index.step',
+        }
+    );
+    return { mode => qw| size |, data => "image index job started\n" };
+}
+
+if ( $arg eq qw| stop | ) {
+    return { mode => qw| false |, data => 'image index job not running' }
+        if not <invoke-web.index.running>;
+    <[invoke-web.index.finish]>->('stopped');
+    return { mode => qw| size |, data => "image index job stopped\n" };
+}
+
+## status ##
+my $index = <[invoke-web.index.db]>;
+my ( $images, $sources )
+    = defined $index
+    ? (
+    $index->selectrow_array('SELECT COUNT(*) FROM images'),
+    $index->selectrow_array('SELECT COUNT(*) FROM sources')
+    )
+    : ( '?', '?' );
+my $source_db = <[invoke-web.queue.db]>;
+my ($total)
+    = defined $source_db
+    ? $source_db->selectrow_array( 'SELECT COUNT(*) FROM images WHERE '
+        . 'is_intermediate = 0 AND deleted_at IS NULL' )
+    : ('?');
+my $stats = <invoke-web.index.stats> // {};
+
+return {
+    mode => qw| size |,
+    data => sprintf(
+        "job     : %s%s\nindexed : %s sources of %s "
+            . "invoke.ai images [ %s distinct contents ]\n",
+        <invoke-web.index.running> ? 'running' : 'idle',
+        <invoke-web.index.running>
+        ? sprintf(
+            ' [ %d new, %d skipped, %d missing, %d failed ]',
+            $stats->{'indexed'} // 0,
+            $stats->{'skipped'} // 0,
+            $stats->{'missing'} // 0,
+            $stats->{'failed'}  // 0
+            )
+        : '',
+        $sources, $total, $images
+    )
+};
+
+#,,,,,..,,.,.,.,,,...,.,.,,..,,.,,,,.,...,,,,,..,,...,..,,,..,.,,,...,,..,...,
+#3QXEBRVOIHM5PKTFD7S4QKK7TDXOIPKW744IGHIDYYQCFBCO5H53MO2GDCO7AOIHUN7BETL5XV6YE
+#\\\|KVLBMDCUBL4HHAG3QQW6ZHK2JPTGVZ6MCH4NCBYVIQXNR6OVVCD \ / AMOS7 \ YOURUM ::
+#\[7]UP3H4FC27T6ZWCJEYB5U66L5OVGVSKMQMMJJPOUEF5FPFREAYADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

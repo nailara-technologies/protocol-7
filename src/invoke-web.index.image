@@ -1,0 +1,112 @@
+## [:< ##
+
+# name   = invoke-web.index.image
+# descr  = index one image : read once, BMW-L13 of the content, analysis +
+#          invokeai metadata, store [ images + sources ]
+# param  = { image_name, path, session_id, created_at, source_rowid }
+# return = chksum | undef [ unreadable ]
+
+my $source = shift             // return undef;
+my $path   = $source->{'path'} // return undef;
+
+my $index = <[invoke-web.index.db]> // return undef;
+
+## listed by invoke.ai but gone from disk [ older losses ] : not an error.
+## recorded with an empty checksum -- a resumed run skips it, and the list of
+## missing images stays queryable
+if ( not -e $path ) {
+    $index->do(
+        'INSERT OR REPLACE INTO sources VALUES ( ?, NULL, ?, ?, ?, ? )',
+        undef,
+        $source->{'image_name'},
+        $path,
+        $source->{'session_id'},
+        $source->{'created_at'},
+        $source->{'source_rowid'},
+    );
+    <[base.logs]>->( 3, 'image index : missing on disk [ %s ]', $path );
+    return qw| missing |;
+}
+
+my $content;
+if ( open my $fh, '<:raw', $path ) {
+    local $INPUT_RECORD_SEPARATOR;
+    $content = <$fh>;
+    close $fh;
+}
+if ( not defined $content ) {
+    <[base.logs]>->( 2, 'image index : unreadable [ %s ]', $path );
+    return undef;
+}
+
+my $chksum = <[chk-sum.bmw.L13-str]>->($content) // return undef;
+
+## content already indexed [ duplicate or a re-run ] : only the source ##
+my ($known)
+    = $index->selectrow_array( 'SELECT 1 FROM images WHERE chksum = ?',
+    undef, $chksum );
+
+if ( not $known ) {
+    my $analysis = <[image.analyze.file]>->( $path, \$content )
+        // return undef;
+
+    my $meta = eval {
+        JSON::PP::decode_json( $analysis->{'text'}->{'invokeai_metadata'}
+                // '{}' );
+    } // {};
+    my $prompt = $meta->{'positive_prompt'};
+
+    my $tiles = $analysis->{'tiles'};
+    my $luma  = $analysis->{'luma'};
+    $index->do(
+        'INSERT INTO images VALUES ( ' . join( ', ', ('?') x 26 ) . ' )',
+        undef, $chksum,
+        $analysis->{'bytes'},
+        $analysis->{'width'},
+        $analysis->{'height'},
+        (   map {
+                join ' ', map { join ',', @$ARG } $tiles->{$ARG}->@*
+            } 1 .. 3
+        ),
+        $analysis->{'hsv'}->@*,
+        $luma->{'mean'},
+        $luma->{'spread'},
+        $luma->{'entropy'},
+        $luma->{'clipped_low'},
+        $luma->{'clipped_high'},
+        join( ',', sort keys $analysis->{'flags'}->%* ),
+        $meta->{'generation_mode'},
+        $meta->{'model'}->{'key'},
+        $meta->{'model'}->{'name'},
+        $meta->{'seed'},
+        $meta->{'steps'},
+        $meta->{'cfg_scale'},
+        join(
+            ',',
+            map { $ARG->{'model'}->{'name'} // '?' }
+                ( $meta->{'loras'} // [] )->@*
+        ),
+        defined $prompt ? <[chk-sum.bmw.L13-str]>->($prompt) : undef,
+        1,    ## analyzer version : bump when image.analyze.file changes ##
+        time,
+    );
+}
+
+$index->do(
+    'INSERT OR REPLACE INTO sources VALUES ( ?, ?, ?, ?, ?, ? )',
+    undef,
+    $source->{'image_name'},
+    $chksum,
+    $path,
+    $source->{'session_id'},
+    $source->{'created_at'},
+    $source->{'source_rowid'},
+);
+
+return $chksum;
+
+#,,,.,.,.,...,.,,,...,.,.,.,.,,..,.,,,.,.,..,,..,,...,...,...,,,.,,..,.,,,,.,,
+#6D4MQ6CAWDH2HIPRIXVRTHMQDVN3JJWM7PP33PQFBOUWKGFHKYO5K3BR2PXVL5RLW3G3I3OROF74A
+#\\\|HUSKTVP4NEIVHN6OEBAIJ3PPXPMZMJAWNEMT75TS7DOPG7CEWQP \ / AMOS7 \ YOURUM ::
+#\[7]DF7VZPX3S6OY7AOQPLBDFIVV6YNYOFLTA7O5HDH66GZKQXQJT6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
