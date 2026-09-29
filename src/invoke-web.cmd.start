@@ -19,14 +19,16 @@ if ( $status eq 'running' or $status eq 'starting' ) {
 my $binary = <invoke-web.binary>;
 my $root   = <invoke-web.root>;
 
-## verify binary exists [ cannot use -x since it runs as taeki ]
-unless ( -e $binary ) {
-    <[base.logs]>->( 0, 'binary not found [ %s ]', $binary );
-    return { mode => qw| size |, data => "error: binary not found\n" };
+## verified while still root [ init_code ] : an unprivileged -e would fail ##
+## below a 700 home directory even when the binary is present              ##
+unless (<invoke-web.binary_ok>) {
+    <[base.logs]>->( 0, 'binary not usable [ %s ]', $binary // 'undef' );
+    return { mode => qw| false |, data => 'binary not usable' };
 }
 
 ## build spawn command
-my @cmd = ( 'sudo', '-u', 'taeki', $binary, "--root=$root" );
+## the zenka itself runs as the admin user [ zenka.v7 drop_privs ] ##
+my @cmd = ( $binary, "--root=$root" );
 
 ## spawn via IPC::Open3
 my ( $stdout_fh, $stderr_fh );
@@ -42,9 +44,8 @@ if ( !$child_pid || $EVAL_ERROR ) {
         $EVAL_ERROR // 'unknown'
     );
     return {
-        mode => qw| size |,
-        data => sprintf( "error: spawn failed [ %s ]\n",
-            $EVAL_ERROR // 'unknown' )
+        mode => qw| false |,
+        data => sprintf( 'spawn failed [ %s ]', $EVAL_ERROR || 'unknown' )
     };
 }
 
@@ -58,8 +59,16 @@ for my $pipe_fh ( $stdout_fh, $stderr_fh ) {
 ## update state
 <invoke-web.pid>          = $child_pid;
 <invoke-web.status>       = 'starting';
+
+## no idle shutdown while invoke.ai runs [ it would take it down too ] ##
+<[base.zenki.pause_ondemand_timeout]>;
 <invoke-web.start_time>   = <[base.time]>->(3);
-<invoke-web.output>       = '';
+<invoke-web.output_tail>  = [];
+<invoke-web.carry>        = {};
+delete <invoke-web.progress>;
+delete <invoke-web.last_error>;
+delete <invoke-web.missing_models>;
+delete <invoke-web.url_detected>;    ## reported again by the ready line ##
 <invoke-web.ready_logged> = FALSE;
 <invoke-web.crash_logged> = FALSE;
 <invoke-web.io_stdout>    = $stdout_fh;
@@ -71,19 +80,19 @@ for my $pipe_fh ( $stdout_fh, $stderr_fh ) {
 ## report child pid to v7
 <[base.zenki.report_child_pid]>->($child_pid);
 
-## register I/O watchers for startup monitoring
+## register I/O watchers : line-wise output parsing for the process lifetime
 my $watcher_out = <[event.add_io]>->(
     {   'fd'      => $stdout_fh,
-        'handler' => 'invoke-web.handler.monitor_startup',
-        'data'    => { 'pid' => $child_pid },
+        'handler' => 'invoke-web.handler.output',
+        'data'    => { 'pid' => $child_pid, 'stream' => qw| out | },
         'poll'    => qw| re |,
     }
 );
 
 my $watcher_err = <[event.add_io]>->(
     {   'fd'      => $stderr_fh,
-        'handler' => 'invoke-web.handler.monitor_startup',
-        'data'    => { 'pid' => $child_pid },
+        'handler' => 'invoke-web.handler.output',
+        'data'    => { 'pid' => $child_pid, 'stream' => qw| err | },
         'poll'    => qw| re |,
     }
 );
@@ -98,8 +107,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,.,,...,,,,,,,,,.,,,,.,,,.,,,..,...,.,.,,,.,..,,...,..,,,.,,,,,,,,,,.,.,..,,
-#5BCQKQWF7NSTU5GEBKI2RMXU5OIIRAUBGVIFM5IZWNFWEXRP6E32WNNLIRL6IJMSC3RPKBVPMJQS6
-#\\\|OL2CQRG4JWFD2IEK76OZBZR6OFHFYCF3ZDWIZ6NIPL4SHF6ZLC3 \ / AMOS7 \ YOURUM ::
-#\[7]Z6DEJFYT37K7IAJXVKRZRYRKJVH4SXAJC422JNYCFVE7DBLXSYCI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,...,,,,,,.,,,,,,,,.,,..,,,,,..,,...,...,.,,,,..,,,.,,.,,.,.,
+#HG5OUNXUQF3VDDTE6SCF7E3J7ULMNMT3TZUNYGNVWOCKEIOQO577TRYVQAOVUGIQBT7ANAIRRNOY2
+#\\\|YONMFO6CRM2FII5SV475S3IEZVW7ALPNJRPKKZYQU7SPKRZJAWW \ / AMOS7 \ YOURUM ::
+#\[7]ZOOU4W7ZNC22ZRQEPIYXIIMGDJ24GRKKIC7DYTSSQJ2KEBLWTOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,6 +75,19 @@ while ( my $end_pid = shift @waitpid_pid ) {
     $instance_id //= delete <v7-zenki.process.instance_cache>->{$end_pid};
     <[base.clean_hashref]>->(<v7-zenki.process.instance_cache>);
 
+    ## child entry and cache both gone [ instance.stop deletes the child  ##
+    ## entry before the process ends, the cache is reset independently ] :##
+    ## the instance record still holds its process id -- without this the ##
+    ## instance stays 'online' with no process behind it                 ##
+    if ( not defined $instance_id ) {
+        foreach my $iid (<[v7-zenki.instance_ids]>) {
+            my $proc = <v7-zenki.zenka.instance>->{$iid}->{'process'} // {};
+            next if ( $proc->{'id'} // -1 ) != $end_pid;
+            $instance_id = $iid;
+            last;
+        }
+    }
+
     $instance = <v7-zenki.zenka.instance>->{$instance_id}
         if not defined $instance
         and defined $instance_id
@@ -107,8 +120,8 @@ while ( my $end_pid = shift @waitpid_pid ) {
     ) if defined $instance_id or defined $end_pid;
 }
 
-#,,,,,.,,,,,,,.,.,..,,..,,,,.,..,,,.,,.,,,.,,,..,,...,...,,,.,...,,,.,,,,,,.,,
-#KI65NZYZFSHM6NQWVU2FDAV3RUMZ6MAZ53AMZWMJWHTZ4KZFU3FKI2SUSXZ7LRNY2YFSYCVURBKKM
-#\\\|ZTWD4JVH2EZY2Z3ZKHABGUL4NLOJT5YORUILZQJVGDPTNLMHYRU \ / AMOS7 \ YOURUM ::
-#\[7]OC7S2VSC4JX7RAXQMQJPD7A43XL6MUQD6FPDQNEKEAHSVZXVOYAY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,,..,.,.,,.,,.,,,,,.,,.,,,,,,..,,...,...,,,.,,.,,...,...,,.,,
+#OJSUF7ZUY3FAMM54DABU7GRD77J7CI6JTAVWWP4RXMXES2N7TXAULKHWUMLVMNHB732HVF32AOMXA
+#\\\|TUJASYORYMZ3KTBCGU55EXAI35GFTQM7RQULJ6BXAGGQBW6MNDY \ / AMOS7 \ YOURUM ::
+#\[7]IG6RR7OSN5PH76YX6NOV3RJWUBV7DNPVEWVRVGN25VPSMAACFCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
