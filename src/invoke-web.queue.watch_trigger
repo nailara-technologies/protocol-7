@@ -1,0 +1,25 @@
+## [:< ##
+
+# name   = invoke-web.queue.watch_trigger
+# descr  = debounce for the interactive queue check : called on every
+#          database write [ inotify, invoke-web.activity.watch_db ] -- arms
+#          one short timer if none is pending, so a burst of writes leads
+#          to a single check
+# note   = invoke.ai writes the wal many times per second while rendering ;
+#          our own priority update triggers once more, that check finds
+#          nothing new and ends
+
+return if not <invoke-web.queue_interactive>;
+return if defined <invoke-web.timer.queue_watch_once>;
+
+<invoke-web.timer.queue_watch_once> = <[event.add_timer]>->(
+    {   'after'   => 0.5,
+        'handler' => 'invoke-web.handler.queue_watch_once',
+    }
+);
+
+#,,..,.,,,,,,,,,.,,,,,,,,,,,,,,,.,,..,,.,,..,,..,,...,..,,..,,,,,,.,.,...,,.,,
+#UQ4NPRFTCDIVFSJSXJVWYZQZ4C62ZXYZGSSAOSMT3R4A6NIVB7A2OWT7YLV2PIDA5FIFXBL5V4BVK
+#\\\|HWG6M4ZUZOUD3CTMLSGYIEUYHTFQOXY3HT6EMUVYA2LBYMMCLSA \ / AMOS7 \ YOURUM ::
+#\[7]2D4CGYNRDFYEZZ5PLTACYJG5WCX6ORUP6S7E3MAA3M56PQ2UTABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
