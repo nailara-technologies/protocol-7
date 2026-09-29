@@ -1,28 +1,27 @@
 ## [:< ##
 
 # name  = graphics.matrix.visual.extract-color
-# descr = Extract dominant/average color from image info
+# descr = average color of an image : the whole image scaled to 1x1
 #
-# input : $info - image info hash
+# input : $info - image info hash [ graphics.matrix.visual.detect-resolution ]
 # output: [r, g, b] array
 
 my $info = shift // {};
 
-# Placeholder - would use actual image analysis
-# For now, return gray or extract from info if available
+## given directly [ 1x1 pixel input, precomputed average ] ##
+return $info->{'average_color'} if $info->{'average_color'};
+return $info->{'rgb'}           if $info->{'rgb'};
 
-if ( $info->{'average_color'} ) {
-    return $info->{'average_color'};
+## an image file : its 1x1 core ring tile [ image.analyze.file ] ##
+if ( defined $info->{'path'} and -f $info->{'path'} ) {
+    my $analysis = <[image.analyze.file]>->( $info->{'path'} );
+    return $analysis->{'tiles'}->{1}->[0] if defined $analysis;
 }
 
-if ( $info->{'rgb'} ) {
-    return $info->{'rgb'};
-}
+return [ 128, 128, 128 ];    ## unreadable input : neutral gray ##
 
-return [ 128, 128, 128 ];    # Gray default
-
-#,,,.,...,,,,,,,,,,..,.,.,,,,,.,.,.,,,,.,,,,.,.,.,...,..,,.,.,,,,,,,.,.,,,,..,
-#QNI2G26U3GB4KANYATXCX5QUM433XF4F4IVWOOLAZXYSUDV4EKRJR5VYFPJ4MQZOGO4MJFI7Z5Y4G
-#\\\|MRZCSLZRX5GRBWYVBRNIFAJLF3PDGIHRYE4AIW5AD3ALAWRAQS4 \ / AMOS7 \ YOURUM ::
-#\[7]QMQRAIUXAPXMDBQ3PYAHBXXSIJP2HBINGIHF4XDZHQV2SJSLEGBA 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,.,,,..,,...,.,,,,,.,,,,,,,,,..,,...,...,,.,,.,.,,..,...,..,,
+#PJAV54OCRYHWJBMVMG2ITWNUVHBIKTJSGXVZSHGZFZ7DYZ32LESRAM3GPBIJBKAV2EUWKKQGPGPFY
+#\\\|XBTGGRYXYFLFATUEYJA6VGN23NNLBM66C3F7GUD4JYGNRVQLPIQ \ / AMOS7 \ YOURUM ::
+#\[7]XD66VWGMYHKO5QYHCNI37HGQPC6NRX3LWVY2JATOOWQUEIB3MWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
