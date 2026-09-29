@@ -58,10 +58,9 @@ if ( not $known ) {
         // return undef;
     <[event.once]>->(0.0007);
 
-    my $meta = eval {
-        JSON::PP::decode_json( $analysis->{'text'}->{'invokeai_metadata'}
-                // '{}' );
-    } // {};
+    my $meta = <[format.json.decode]>
+        ->( $analysis->{'text'}->{'invokeai_metadata'} // '{}' );
+    $meta = {} if ref $meta ne qw| HASH |;
     my $prompt = $meta->{'positive_prompt'};
 
     my $tiles = $analysis->{'tiles'};
@@ -115,8 +114,8 @@ $index->do(
 
 return $chksum;
 
-#,,.,,..,,.,,,,.,,.,,,,,,,.,,,,..,,,.,..,,,,,,..,,...,..,,,,.,,,,,.,,,.,,,,..,
-#H2AAPZ65TWW5JMS2NN7DPOWZD7DOA6L5S7PURJPDNJ2GPEN7NWQYTF5G7P7EIKLNY4DBXVPIAZC6W
-#\\\|ETNTF4CTXYNB3MIWRIPUNSX7FA2LVNMXX7NBURE22QVHIQXB2WJ \ / AMOS7 \ YOURUM ::
-#\[7]SEKMHJPV2DAXBSPJG35DML67YU4M53SFOIEG2724F5D4OYAJNAAQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,.,.,,.,,.,,,..,,,.,,,.,,.,.,..,,...,...,,.,,.,,,,..,...,..,,
+#T5NJUC6ZQ5UNE5DVW37TFL5ZDA36GTAGTENFET3M4VBFZIWU2RD7UC52EEHHB7PVX44N7PHUGLDKQ
+#\\\|EKWOABN37RGTPZFNAPZUUCC2N7YMOPLIFHC5LVOMXHTVE4BTG4Q \ / AMOS7 \ YOURUM ::
+#\[7]DN4FBW4PI5NWC4XNCOZBV3DHIUHY2B5RNS2OYCRKKGK4XTBBWGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

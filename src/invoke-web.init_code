@@ -5,7 +5,7 @@
 
 ## load required modules [ one at a time per base.perlmod.autoload ]
 map { <[base.perlmod.autoload]>->($ARG) }
-    qw| IPC::Open3 Symbol Fcntl DBI LWP::UserAgent JSON::PP |;
+    qw| IPC::Open3 Symbol Fcntl DBI LWP::UserAgent |;
 
 my $reinit = shift // TRUE;    ## provided by 'base.init_modules' ##
 
@@ -28,7 +28,7 @@ if ( not defined <invoke-web.missing_at_render> ) {
     my $saved = <[file.zenka_dir.load]>->('state/missing-at-render');
     <invoke-web.missing_at_render> = (
         defined $saved
-        ? eval { JSON::PP::decode_json( $saved->$* ) }
+        ? <[format.json.decode]>->( $saved->$* )
         : undef
     ) // {};
 }
@@ -235,8 +235,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,,.,,,,,,.,,,..,.,,,...,.,.,,..,,,,,,.,,.,.,..,,...,.,,,.,.,,,.,,,,,,.,,,..,
-#DIZ65FGKNKV3KIFMCVIGNOD6EP6RSZWS3OWQSRM47PZR2JGYFVY5FXRPRWUFWYHSITQF576NGRNOU
-#\\\|KIQHDOMQGUH3SYJZHMS4XVSQWESIAAKLEOIV5UH3QEJETSY2656 \ / AMOS7 \ YOURUM ::
-#\[7]GM3TMUCNF75AEW6CV6RJB2FPAGQJJRAS3SRV54IHK2FLLMPWKIAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,...,,.,,,,,,,..,.,,,,.,,..,,..,,...,..,,.,.,,,,,,..,,,.,,,.,
+#OGSZKUYIURUGZS7OFIZ64TUPJY3TKRZAF6JHYPXJIU67ERA6UUBO6XB2EPYO6KH6NH7V3IJ27J33C
+#\\\|QXGVPSNTYUVXQPZDZKL5YAGEJIEJDG2COGXGF4WQMI3QY5YIBPH \ / AMOS7 \ YOURUM ::
+#\[7]NQHXFJH7JIHEUYMK6LYV3LD6XXD6FCKLWF4LKWVTRV3BWA5SFOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

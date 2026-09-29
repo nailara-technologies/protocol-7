@@ -18,7 +18,7 @@ my $params  = shift // {};
 my %headers = ();
 my $body    = '';
 if ( defined $payload ) {
-    $body = JSON::PP::encode_json($payload);
+    $body = <[invoke-web.json_octets]>->($payload);
     $headers{'Content-Type'} = 'application/json';
 }
 
@@ -34,8 +34,8 @@ return <[clients.http.request]>->(
     }
 );
 
-#,,.,,.,,,.,.,,..,...,,.,,,.,,.,.,.,.,,,,,,..,..,,...,...,,..,.,,,,,,,..,,..,,
-#YMNBLDE5HTF2IG4XWX5A5RLN6VXXGNE5CRQYCNR6MWA2FQS4Z5BFMOUFU72VKCN2UB6IXWOZ6QLV4
-#\\\|WDPOE3UPEXSBWMRKMSJOHGYNWVLBRO23TO33ETNKOCM4T2T7O43 \ / AMOS7 \ YOURUM ::
-#\[7]4FMJCQHBHJ75CS4YVSLQQPUZMAL4MYSRMU6EJFU5DNUKK6JNN6CI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,.,.,.,.,..,,,,,,.,,,,,.,.,.,..,,...,..,,,..,,,,,.,,,,,,,..,,
+#X6B5DKEBCLM7PUN2YV55PULEPO34WQIZH3C2P77ESDOSNCCZMI75LDLATZMR5LOF3QDJZYEN2UQFO
+#\\\|OXZYGKTFECAZNTBW3RA5LB2KNBD2KNMVOOI2CEGVHFHRIKZEPY6 \ / AMOS7 \ YOURUM ::
+#\[7]VEFX2LBYXX7OKARW4ZMYUF63UFE5OUNCPLOV6E7SPLRC3CCHCKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
