@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = invoke-web.session.store
+# descr  = load \ save the parked render sessions [ state/parked-sessions ]
+# param  = [ hashref to save ; none : load ]
+# return = hashref { <name> => { parked_at, mode, items => { id => prio } } }
+# note   = parked items sit at priority - <invoke-web.session.park_offset> ;
+#          everything below half of it counts as parked [ queue-order and
+#          session-park leave those alone ]
+
+my $sessions = shift;
+
+if ( defined $sessions ) {
+    my $json = JSON::PP->new->canonical->pretty->encode($sessions);
+    <[file.zenka_dir.write]>->( 'state/parked-sessions', \$json );
+    return $sessions;
+}
+
+my $saved = <[file.zenka_dir.load]>->('state/parked-sessions');
+return ( defined $saved ? eval { JSON::PP::decode_json( $saved->$* ) } : undef ) // {};
+
+#,,..,.,,,,.,,,,,,.,.,,..,.,.,,,,,,..,..,,,.,,..,,...,..,,..,,...,.,.,,,.,...,
+#ECOJJ3B3YMRJOCDO6MZZ6NRFNLCBJSS3NNVULJFFY7QDBMAX6ZFGCIT2V6ZUFPIXD2I5GXCHTZL2K
+#\\\|CMS2GWY5PPDLNGICNHD3Y7PC6YE7YICJMDIDCLZ55LJOMTUSTRP \ / AMOS7 \ YOURUM ::
+#\[7]S5AHTG4AKGUB4NE462GWF7ZYYWCIA2ZNRP7GHFTCXMEVSKCTVWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

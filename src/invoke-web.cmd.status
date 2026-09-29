@@ -25,6 +25,16 @@ if ( defined <invoke-web.start_time> ) {
 my $out = sprintf "status : %s%s\npid    : %s\nurl    : %s\n",
     $status, $uptime, $pid, $url;
 
+## a queued start waiting for the memory guard [ invoke-web.cmd.start ] ##
+if ( defined <invoke-web.start_waiting> ) {
+    my $mem = <[invoke-web.memory_free]>;
+    $out .= sprintf "start  : waiting for memory [ %ds, ram %d/%d MB, vram %s/%d MB ]\n",
+        <[base.time]>->(3) - <invoke-web.start_waiting>,
+        $mem->{'ram_free_mb'}, $mem->{'ram_need_mb'},
+        defined $mem->{'vram_free_mb'} ? $mem->{'vram_free_mb'} : '?',
+        $mem->{'vram_need_mb'};
+}
+
 $out .= sprintf "render : %s\n", <invoke-web.progress>
     if defined <invoke-web.progress>;
 if ( my $last = <invoke-web.last_render> ) {
@@ -43,8 +53,8 @@ if ( my $err = <invoke-web.last_error> ) {
 
 return { mode => qw| size |, data => $out };
 
-#,,.,,,,,,..,,..,,.,,,,.,,.,,,...,,,.,.,.,,,.,..,,...,...,.,.,.,.,...,.,.,,,,,
-#FEMR43RN6XNKWWAKYWLNATJAAX7KXJ5UYJKEUY7ZQOF5O6QT53YOOUA7PNOWWSXV3SYKDH6WNOMZI
-#\\\|FUNOYTFLJNBEHKYBSY6ABKLISS626YSJY7Y4GIIHTEOHBTDE3OH \ / AMOS7 \ YOURUM ::
-#\[7]6A7MDPSWIORMO6SPEXSMGFNKB6CW7KRY36VC33MZTFVKISVI56DA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,,,,.,,,.,.,...,,..,..,,,..,..,,...,...,,..,.,.,,,,,,,.,.,,,
+#3L556EI2HCBR6POQPAEKIWMQ57MINJOEVBOJUTKIZSHWV6MYT443LLNO6YTU4N5LXMTK32ZKYIY7Y
+#\\\|PFLIFJ4LJDK5XPKAZW2ZYH53VVMYTPDKPZ6YS7P3UFEVEOWVG5L \ / AMOS7 \ YOURUM ::
+#\[7]NBHYY4RNJFBVT2GJX4FMA6WIIAGX6CNAIOD3KMC3BABQ65ITMMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
