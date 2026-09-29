@@ -44,7 +44,9 @@ if ( $kind eq qw| ready | ) {
         <[invoke-web.api_async]>->(
             'PUT', '/api/v1/queue/default/processor/pause',
             undef, 'invoke-web.handler.startup_pause_reply'
-        ) if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 );
+            )
+            if <[base.cfg_bool]>->( <invoke-web.start_paused> // 0 )
+            or defined <invoke-web.gpu_recover>;    ## requeue first ##
 
         ## interactive queue mode from the start [ zenka.v7 flag ; armed ##
         ## here, not in init_code : that one still runs as root ]        ##
@@ -99,6 +101,17 @@ if ( $kind eq qw| ready | ) {
         ),
         'time' => <[base.time]>->(3),
     };
+} elsif ( $kind eq qw| gpu | ) {
+
+    ## broken cuda context : every next item would fail as well ##
+    <invoke-web.render>->{'failed'} //= $kind
+        if defined <invoke-web.render> and not <invoke-web.render>->{'done'};
+    <invoke-web.last_error> = {
+        'kind' => $kind,
+        'line' => $line,
+        'time' => <[base.time]>->(3),
+    };
+    <[invoke-web.gpu.recover]>->( ( <invoke-web.render> // {} )->{'item'} );
 } elsif ( $kind =~ m{^(?:error|oom)$} ) {
     <invoke-web.render>->{'failed'} //= $kind    ## this render failed ##
         if defined <invoke-web.render> and not <invoke-web.render>->{'done'};
@@ -144,8 +157,10 @@ if ( $kind eq qw| ready | ) {
 
         ## a clean graph can still hide a silent decode failure : look at ##
         ## the result image itself [ black \ flat -> failed ]             ##
-        if ( $render->{'result'} eq qw| done | and defined $render->{'session'} ) {
-            my $check = <[invoke-web.render.check_images]>->( $render->{'session'} );
+        if ( $render->{'result'} eq qw| done |
+            and defined $render->{'session'} ) {
+            my $check = <[invoke-web.render.check_images]>
+                ->( $render->{'session'} );
             $render->{'images'} = $check->{'images'} if defined $check;
             if ( defined $check and $check->{'bad'}->@* ) {
                 $render->{'result'} = qw| failed |;
@@ -181,8 +196,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,..,..,,...,.,.,,.,,,,,,..,,,.,,.,.,..,,,,.,..,,...,..,,...,,.,,..,,...,,,,,
-#22WGRNBUJM5K7SSXFLCXT3CF3QD7BEQXS7SVAPKRLX3JPHHB6PFDEX6VQLINV2TLG4T2UDPIVVPHW
-#\\\|AC6BIQQOHO3UIAHJ2FKBDI4DEGVGLRLIWSAMLQYSQYY7RWGHKC5 \ / AMOS7 \ YOURUM ::
-#\[7]5UDTKEKYA3UVFMGVDZ5OWOJFX73WMH36O2EUVDPB23ZYQJEX6WCI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,,.,,,..,,..,.,.,,,,,...,,,.,..,,...,...,.,,,.,.,,,,,,..,...,
+#OYFJEXZF2AI5QGKDYR3LJBPSWFSYTA4XBEFEHFUW2SN55EGWLOORTE4B66OOXCNGY7ICTUJ7D2YHK
+#\\\|X7XBOMP6ZL4QNT3ON725YZXNDW6W7SIIWJV6K4PXVS4FQYGR6RS \ / AMOS7 \ YOURUM ::
+#\[7]4FHCZC7QI534F3DSNV7XSQAZWIIQOGAAT3Z4PVNXPU4ORQVSOYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1790,6 +1790,8 @@ return [ qw[
         invoke-web.queue.order
         invoke-web.memory_free
         invoke-web.index.image
+        invoke-web.gpu.requeue
+        invoke-web.gpu.recover
         invoke-web.cmd.restart
         index.load.compartment
         index.cmd.add-wordlist
@@ -3967,6 +3969,7 @@ return [ qw[
         invoke-web.queue.watch_trigger
         invoke-web.handler.start_guard
         invoke-web.handler.queue_watch
+        invoke-web.handler.gpu_restart
         invoke-web.handler.drain_check
         invoke-web.cmd.requeue-missing
         index.callback.wordlist-import
@@ -4751,6 +4754,7 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobsite.handler.stray-job-exported
         jobqueue.event.register_job_queues
+        invoke-web.handler.gpu_pause_reply
         invoke-web.handler.drain_processor
         impressive.subscribe-screen-change
         image2html.child.cmd.convert_image
@@ -4924,6 +4928,7 @@ return [ qw[
         jobsite.handler.desc-refetch-queued
         io.ssl.ip.handler.handshake_timeout
         invoke-web.handler.queue_watch_once
+        invoke-web.handler.gpu_resume_reply
         impressive.handler.reposition_reply
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
@@ -5046,6 +5051,7 @@ return [ qw[
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
         jobsite.report.mail_evidence_collect
+        invoke-web.handler.gpu_requeue_reply
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -5703,8 +5709,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,.,,,,,,,,.,,..,,,..,.,,,,,.,.,.,...,..,,.,.,...,...,,,,,,,,,..,,,.,,,,,,
-#OGEZA2EOHJJENRHNQZZPMANH3M74ZLJ6TUMBWZU4IHH6CWL6MQWY53UDJB5PLIHVICOSL7XHKRBUG
-#\\\|B6VRJHZMOFPGE2FQSC27FUCYYMI65AO7KLDXZJXH5USF3WMPG3A \ / AMOS7 \ YOURUM ::
-#\[7]PPF2RVIMJWXLXIBAHF4HXZLBVQI4NVWXYNSPADQ6SW7S42NS4CDY 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,.,.,.,.,.,.,..,,,,.,.,.,,,,,.,.,...,...,...,,..,.,,,,.,,,,,,
+#6PU7XVBKFP4UENCEE3PBYJQGOQHG7B7XJTY427AW7YE3ZFPGDKXKDFYZGKLGUNKT4SIP475Y565WO
+#\\\|YTVFIVF6QAUNT2KOY4PCKCSI4S2WFVJA7H7FR7FWSTLR3UDDOYK \ / AMOS7 \ YOURUM ::
+#\[7]O73OCLY7GK7IS7N6LGTWSVILFH3TIM4VJ2BLNZD2JZAVS6F6PSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
