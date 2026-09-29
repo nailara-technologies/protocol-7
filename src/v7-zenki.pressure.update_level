@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.update_level
+# descr = derive calm\elevated\critical level with hysteresis
+
+my $samples = <v7-zenki.pressure.samples> // [];
+return 0 if not @{$samples};
+
+my $latest = $samples->[-1];
+
+my %severity = ( 'calm' => 0, 'elevated' => 1, 'critical' => 2 );
+
+## thresholds [ config keys, defaults set in pressure.init_code ] ##
+my $elev_full10 = <v7-zenki.cfg.pressure.elevated.mem_full_avg10> // 1.0;
+my $elev_some10 = <v7-zenki.cfg.pressure.elevated.mem_some_avg10> // 10.0;
+my $elev_swap   = <v7-zenki.cfg.pressure.elevated.swap_pps>       // 256;
+my $elev_avail  = <v7-zenki.cfg.pressure.elevated.min_avail_mb>   // 1024;
+my $crit_full10 = <v7-zenki.cfg.pressure.critical.mem_full_avg10> // 5.0;
+my $crit_full60 = <v7-zenki.cfg.pressure.critical.mem_full_avg60> // 5.0;
+my $crit_swap   = <v7-zenki.cfg.pressure.critical.swap_pps>       // 2048;
+my $crit_avail  = <v7-zenki.cfg.pressure.critical.min_avail_mb>   // 256;
+
+my $swap_pps = $latest->{'swap_in_pps'} + $latest->{'swap_out_pps'};
+my $avail    = $latest->{'mem_avail_mb'};
+
+## level indicated by this single sample ##
+my $indicated = qw| calm |;
+
+if (   ( defined $avail and $avail <= $elev_avail )
+    or $swap_pps >= $elev_swap
+    or ($latest->{'psi'}
+        and (  $latest->{'mem_full_avg10'} >= $elev_full10
+            or $latest->{'mem_some_avg10'} >= $elev_some10 )
+    )
+) {
+    $indicated = qw| elevated |;
+}
+
+if (   ( defined $avail and $avail <= $crit_avail )
+    or $swap_pps >= $crit_swap
+    or ($latest->{'psi'}
+        and (  $latest->{'mem_full_avg10'} >= $crit_full10
+            or $latest->{'mem_full_avg60'} >= $crit_full60 )
+    )
+) {
+    $indicated = qw| critical |;
+}
+
+## hysteresis : sustained N samples to enter, M to leave [ no flapping ] ##
+my $current = <v7-zenki.pressure.level>   //= qw| calm |;
+my $pending = <v7-zenki.pressure.pending> //= { 'level' => '', 'count' => 0 };
+
+if ( $indicated eq $current ) {
+    $pending->{'level'} = '';
+    $pending->{'count'} = 0;
+    return 0;
+}
+
+if ( $pending->{'level'} ne $indicated ) {
+    $pending->{'level'} = $indicated;
+    $pending->{'count'} = 1;
+} else {
+    $pending->{'count'}++;
+}
+
+my $need
+    = $severity{$indicated} > $severity{$current}
+    ? <v7-zenki.cfg.pressure.enter_samples> // 3
+    : <v7-zenki.cfg.pressure.leave_samples> // 6;
+
+return 0 if $pending->{'count'} < $need;
+
+## sustained : switch level [ logged once per change, not per sample ] ##
+<v7-zenki.pressure.level>       = $indicated;
+<v7-zenki.pressure.level_since> = <[base.time]>->(3);
+$pending->{'level'} = '';
+$pending->{'count'} = 0;
+
+<[base.logs]>->(
+    1,
+    ':. host memory pressure level : %s --> %s [ sustained %d samples '
+        . '| mem full avg10 %.2f avg60 %.2f | swap %.0f pps | avail %s MB ]',
+    $current,
+    $indicated,
+    $need,
+    $latest->{'mem_full_avg10'} // 0,
+    $latest->{'mem_full_avg60'} // 0,
+    $swap_pps,
+    defined $avail ? $avail : '?'
+);
+
+return 0;
+
+#,,,.,,.,,.,,,,,.,,,,,,..,,.,,...,.,.,..,,,.,,..,,...,...,,,.,,,.,.,.,,.,,...,
+#P4T2TV7HACYFOUEP5KCAZKM2AQTD2LZVNN5NSLYWYPIUG3Y2EUET4Y4BI5EB3YM5U3GDMU52SSRIC
+#\\\|HPIMFB2CCW4TPJP4XEZSB5OIRURKARMPHKBYG4AQSKZI3NY2SNN \ / AMOS7 \ YOURUM ::
+#\[7]I4CT2AJUNBSLBRZ6JO4VY4FE77M67TIJFJPSRTGE5LI3AQ2F2QAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
