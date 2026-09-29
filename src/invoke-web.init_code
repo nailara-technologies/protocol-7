@@ -175,6 +175,15 @@ if ( defined $saved_ref ) {
     } else {
         ## pid not running : remove stale file
         <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
+
+        ## a clean stop removes the pid file : here invoke.ai was running when
+        ## the zenka died [ v7 restart kills the children too ]. start it
+        ## again, retry the interrupted item, resume -- the cuda error
+        ## recovery chain [ invoke-web.handler.recover_restart ]. at most 3
+        ## per hour [ state file : a crash loop must not become a start loop ]
+        <[invoke-web.recover.after_crash]>
+            if not $reinit
+            and <[base.cfg_bool]>->( <invoke-web.crash_restart> // 1 );
     }
 }
 
@@ -235,8 +244,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,.,,,..,.,.,,..,...,,.,,,,,,,..,.,,,,.,,..,,..,,...,..,,.,.,,,,,,..,,,.,,,.,
-#OGSZKUYIURUGZS7OFIZ64TUPJY3TKRZAF6JHYPXJIU67ERA6UUBO6XB2EPYO6KH6NH7V3IJ27J33C
-#\\\|QXGVPSNTYUVXQPZDZKL5YAGEJIEJDG2COGXGF4WQMI3QY5YIBPH \ / AMOS7 \ YOURUM ::
-#\[7]NQHXFJH7JIHEUYMK6LYV3LD6XXD6FCKLWF4LKWVTRV3BWA5SFOBY 7  DATA SIGNATURE ::
+#,,,,,...,...,,,.,..,,,,,,,,,,,.,,,.,,.,,,,.,,..,,...,...,.,,,..,,...,..,,.,.,
+#AJOY3S5U7BAA4BO64N7UA6ZQOPUF7C5EEMHH4M3KLYLSO2TXKJSAOLQQ3UBJLE4Q45SKA7ZIZ3RWK
+#\\\|FLUV4JIPWBLH5QN5BRTSRVYL3JG3KSYTPA6TBV226C2U3L3R6GZ \ / AMOS7 \ YOURUM ::
+#\[7]YVDE62M6VCKMBZ2ZU7SKPF7ECC6GGGZMHIFYJLKATMR2S7EGNQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
