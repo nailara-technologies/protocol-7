@@ -45,9 +45,11 @@ would lose it ]. only items invoke.ai itself already ended are retried.
   carries the same session id as `Executing queue item <id>, session
   <session>` [ pattern `item_done`, sets `<invoke-web.render>->{done}` ].
   still open : the line of a ui cancel [ collect with `invoke-web.log` ]
-- what invoke.ai does with an in-progress item at startup after a crash :
-  status `canceled`, `failed`, or still `in_progress` \ picked up again ? if
-  it resumes the same item itself, nothing must be retried
+- ANSWERED [ 2026-09-29, a real crash : invoke-web killed by v7 mid-render ]
+  : at startup invoke.ai sets the interrupted item to `canceled` with an
+  EMPTY `error_type` -- indistinguishable from a manual ui cancel. it does
+  not pick it up again. so the record written at item start is the only
+  way to tell them apart [ as planned above ]
 - does `retry_items_by_id` create a new item [ new id ] or reuse it -- the
   record must not match the retried copy on the next start
 - does the item record carry a reason field [ error_type \ error_message ]
@@ -85,8 +87,8 @@ flows lags one call behind -- `resolve` can see the previous call's record.
 export's per-record `on_disk` numbers are affected by that ; the config-key
 fix itself is correct [ proven with a correctly-populated `$ARG` ].
 
-#,,,.,...,...,,,.,,.,,,,.,..,,.,,,.,.,.,.,...,..,,...,...,...,,,.,..,,.,,,.,.,
-#3MY5VFCJIP3JARROJBXIALLWDAKOPLMCZTKY7CDQAS5PBOA4TWXUXR7EHNCV4MYTYDNQBNJAMW5YA
-#\\\|CH6FMJRPOWUMD5Y62DOEYXRUPHKWMR4A42Y7IOFTO27HPAQJWEY \ / AMOS7 \ YOURUM ::
-#\[7]4Z6BJACNBHYQ56ZBDPQQVHVZJTBBG4UDAWFA3G53DPPD3N2LMMBI 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,..,,...,,,,,.,.,,,.,,..,,.,,..,,...,...,.,,,,..,.,,,...,,..,
+#NMR7LHCGA4LDTFL7FONKA4ZIJ72WSOGPLZZJIZJLKP3JNYSLNBYJ74SV7STHIXHSXRI5FXKCAU2UM
+#\\\|WWHYOXE4FZD5PO3AHVBKBP7SR3LZIFPTKPM6XVQ3NSEJV75X7U5 \ / AMOS7 \ YOURUM ::
+#\[7]GOTKHUMU3KUROQIPHBG5FHP4LW4YRLGO3XVKSNBJCWIPFXJUIYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
