@@ -21,18 +21,17 @@ my ($max_id) = $dbh->selectrow_array('SELECT MAX(item_id) FROM session_queue');
 
 <invoke-web.queue.last_seen>   = $max_id // 0;
 <invoke-web.queue_interactive> = TRUE;
-<invoke-web.timer.queue_watch> = <[event.add_timer]>->(
-    {   'after'    => 3,
-        'interval' => 3,
-        'repeat'   => TRUE,
-        'handler'  => 'invoke-web.handler.queue_watch',
-    }
-);
+
+## no polling : checks run on database writes [ inotify ->
+## invoke-web.queue.watch_trigger, debounced ] ; drain_check's minute
+## timer is the fallback. arm the db watch in case ready has not
+## armed it yet [ it is a no-op when already armed ]
+<[invoke-web.activity.watch_db]>;
 
 return TRUE;
 
-#,,,.,...,,.,,,,.,,,,,.,,,.,.,.,,,..,,,,,,..,,..,,...,...,,,,,,,,,.,.,.,,,,,,,
-#6X45L7VCOQTLRWTRDRG266CV6ZP2QGQUCSBEJL5AIY6NVC4VYPYVHEZLODWD6ATR5XNK2NTGHHVDM
-#\\\|YFRJXAWQYLKE34DGPJ7KLCR7LV2KZIQ3CUOYRQU4BQE2NTUQBB4 \ / AMOS7 \ YOURUM ::
-#\[7]G3DOHH2NY77L4LNRZIKEYASY3YGT6QDON2X4ZNLPBMHEDY7NBGCI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,.,.,,,,,...,,.,,..,,,.,,.,,,..,,...,...,,,,,,,.,...,,,,,...,
+#ENKYAI4ISKCS5HM6IMOENAOTTBGROCGPCEWGN5GBB6K4EQR6KE23QOKTY36MPLX25GS2R5NBAZ4AK
+#\\\|TK32YJ2RECDMS4XLH57XZJVWAR5A2XCBF7IOBG6CIXOHYKQEZPC \ / AMOS7 \ YOURUM ::
+#\[7]4BXJ6GQ2M6LNFEOKQS6Q6SZM52XFZLFRFATUHM6KIGSTXALOTMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
