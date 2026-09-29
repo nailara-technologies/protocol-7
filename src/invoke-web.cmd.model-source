@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = invoke-web.cmd.model-source
+# descr = show model db record and fetch source [ model name ]
+# param = <model name>
+
+my $name = $call->{'args'} // '';
+$name =~ s{^\s+|\s+$}{}g;
+
+return { mode => qw| false |, data => 'expected : model name' }
+    if not length $name;
+
+my $info = <[invoke-web.model.source]>->($name) // return {
+    mode => qw| false |,
+    data => sprintf( 'unknown model name [ %s ]', $name )
+};
+
+my $out = sprintf "model : %s [ %d record%s ]\n", $name,
+    $info->{'found'},
+    $info->{'found'} > 1 ? 's' : '';
+
+my $record_num = 0;
+foreach my $record ( @{ $info->{'records'} } ) {
+    $record_num++;
+    $out .= sprintf "\n -- record %d of %d%s --\n", $record_num,
+        $info->{'found'},
+        $record->{'name_collision'} ? ' [ name collision ]' : '';
+
+    $out .= sprintf "  key         : %s\n", $record->{'key'};
+    $out .= sprintf "  type        : %s\n", $record->{'type'};
+    $out .= sprintf "  base        : %s\n", $record->{'base'};
+    $out .= sprintf "  format      : %s\n", $record->{'format'};
+    $out .= sprintf "  path        : %s\n", $record->{'path'};
+    $out .= sprintf "  source_type : %s\n", $record->{'source_type'};
+    $out .= sprintf "  source      : %s\n", $record->{'source'};
+    $out .= sprintf "  hash        : %s\n",
+        defined $record->{'hash'} ? $record->{'hash'} : '-';
+    $out .= sprintf "  fetchable   : %s [ %s ]\n",
+        $record->{'fetchable'} ? 'true' : 'false',
+        $record->{'reason'};
+}
+
+return { mode => qw| size |, data => $out };
+
+#,,..,...,..,,,,.,.,,,,,,,.,,,,,.,..,,,..,..,,..,,...,...,,..,.,.,,,,,..,,...,
+#ROVYGZB2EMBARFCM2TW7GPYB3TLKMBGS2WXFEHDHHA5EGT7UWWBWJV22Y2IFNLWBVLHCWOF6DZYKI
+#\\\|SXEMIA64OHRKKXG3FTTDHSH4MQCVMVDGSVRRICWIVF4LVBT6XEN \ / AMOS7 \ YOURUM ::
+#\[7]NVVUJTZMHKRUOUEA6DVKGSZH6G2GHVIN662GAMRSMDBB5RMDH6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

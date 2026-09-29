@@ -1,0 +1,17 @@
+## [:< ##
+
+# name   = invoke-web.missing.save
+# descr  = persist <invoke-web.missing_at_render> [ state/missing-at-render ]
+#          -- models a render failed on, with the failed item : survives a
+#          zenka restart, read back in init_code
+
+my $json = JSON::PP->new->canonical->pretty->encode(
+    <invoke-web.missing_at_render> // {} );
+
+return <[file.zenka_dir.write]>->( 'state/missing-at-render', \$json );
+
+#,,,.,,..,...,.,,,,,,,..,,..,,...,...,..,,,.,,..,,...,...,,,.,...,..,,.,.,,,,,
+#U2C2AKQTCKAFC5I34OYJPPFD436CWZXA2XEDCY5X3HVOJS6SAHQ3WW3CSSBRYO7OT4CEBOQUP3MII
+#\\\|D5F5QEPQ2KJBTE7VGZ6GKSOUUIVXYBNXIYJ4HTVBZANJKDDE7FB \ / AMOS7 \ YOURUM ::
+#\[7]6L7YRHDNFUV2ZWJHQZ7PDN4AIVHTVZE2A5Z7HI3YPXME6B3ATAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

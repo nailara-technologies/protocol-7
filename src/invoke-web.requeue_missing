@@ -1,0 +1,97 @@
+## [:< ##
+
+# name   = invoke-web.requeue_missing
+# descr  = retry queue items that failed on a missing model once the model
+#          file is back [ recorded by parse_output_line : model_render ]
+# param  = [ model name ; undef : every recorded model ]
+# return = arrayref of { name, item, result, [ retried ] }
+# note   = an item is retried only when ALL hold : the file is present at
+#          the path from the error line ; the item is 'failed' with
+#          error_type FileNotFoundError naming this model ; same session.
+#          anything else is left alone [ never a manual cancel ]
+
+my $only    = shift;
+my $records = <invoke-web.missing_at_render> // {};
+my @results;
+
+foreach my $name ( sort keys %$records ) {
+    next if defined $only and $name ne $only;
+    my $record = $records->{$name};
+    my %result = ( 'name' => $name, 'item' => $record->{'item'} // '?' );
+
+    if ( not -e ( $record->{'path'} // '' ) ) {
+        push @results, { %result, 'result' => 'model still missing' };
+        next;
+    }
+    if ( not defined $record->{'item'} ) {    ## no item seen : nothing to do ##
+        delete $records->{$name};
+        push @results, { %result, 'result' => 'model back, no item recorded' };
+        next;
+    }
+
+    my $item = <[invoke-web.api]>->(
+        'GET', sprintf( '/api/v1/queue/default/i/%d', $record->{'item'} ) );
+    my $data = ref $item->{'data'} eq qw| HASH | ? $item->{'data'} : {};
+
+    if ( not $item->{'ok'} ) {
+        push @results, { %result, 'result' => "item lookup failed [ $item->{'status'} ]" };
+        next;
+    }
+    my $matches
+        = ( $data->{'status'} // '' ) eq qw| failed |
+        && ( $data->{'error_type'} // '' ) eq qw| FileNotFoundError |
+        && index( $data->{'error_message'} // '', "'$name'" ) >= 0
+        && ( !defined $record->{'session'}
+        || ( $data->{'session_id'} // '' ) eq $record->{'session'} );
+    if ( not $matches ) {    ## changed meanwhile : not ours to retry ##
+        delete $records->{$name};
+        push @results, {
+            %result,
+            'result' => sprintf( 'not retried [ item status %s ]',
+                $data->{'status'} // '?' )
+        };
+        next;
+    }
+
+    ## already retried [ ui or an earlier run ] : invoke.ai keeps the  ##
+    ## original 'failed' and marks the copy with retried_from_item_id ##
+    my $dbh = <[invoke-web.queue.db]>;
+    my ($copies) = defined $dbh
+        ? $dbh->selectrow_array(
+        'SELECT COUNT(*) FROM session_queue WHERE retried_from_item_id = ? '
+            . "AND status IN ( 'pending', 'in_progress', 'completed' )",
+        undef, $record->{'item'} )
+        : (undef);
+    if ( not defined $copies ) {
+        push @results, { %result, 'result' => 'retry check failed [ queue db ]' };
+        next;
+    }
+    if ($copies) {
+        delete $records->{$name};
+        push @results, { %result, 'result' => 'already retried' };
+        next;
+    }
+
+    my $retry = <[invoke-web.api]>->(
+        'PUT', '/api/v1/queue/default/retry_items_by_id', [ $record->{'item'} + 0 ] );
+    if ( not $retry->{'ok'} ) {
+        push @results, { %result, 'result' => "retry failed [ $retry->{'status'} ]" };
+        next;
+    }
+    delete $records->{$name};
+    push @results, { %result, 'result' => 'retried' };
+    <[base.logs]>->(
+        1, "queue : item %d re-queued [ model '%s' is back ]",
+        $record->{'item'}, $name
+    );
+}
+
+<[invoke-web.missing.save]>;
+
+return \@results;
+
+#,,,,,.,,,,..,,,,,...,,.,,...,,,.,.,.,.,.,,,,,..,,...,...,,..,,,.,...,.,.,.,,,
+#ULW62O4573CWO5NNX4RH7JRR2Q4RLUUZVK3ZMKG6CYUP6SWVAXQOTSURVTA6MROCXCCZDBG6VWWJK
+#\\\|FYTVPLC25ZXJSGU72TTLIXVFV7R2W4MRPKQUJXV4E6LLY63OIYH \ / AMOS7 \ YOURUM ::
+#\[7]IMSIP6PORPQCCEB3UW7KU6W6STMB6IZ2IVGHRKZEINRAHZNHA2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
