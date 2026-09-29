@@ -410,13 +410,13 @@ From ticker and web-browser testing:
 ### Test Procedure
 ```bash
 ## 1. Verify GTK3 works
-p7c v7.start ticker
+p7c v7-zenki.start ticker
 
 ## 2. Check transparency
 ## Should see ticker window with transparent background
 
 ## 3. Test web-browser
-p7c v7.start web-browser
+p7c v7-zenki.start web-browser
 
 ## 4. If both work, amos-term-3d will work
 ```
@@ -457,8 +457,8 @@ All patterns verified, code locations mapped, WSL compatibility confirmed! üê±
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,,..,.,.,.,.,,,,,,,.,,..,.,,,...,,,,,...,..,,...,...,...,..,,.,.,.,.,...,
-#2QQD5C7V62LEX7OQVKZI4ELMBQI7RA5B7GLYJYLSGSP74OCTIWXS4J5FAAZ535O6DZD6ANUBM4MI2
-#\\\|ZL7Y4X7JWPFQVNPHZTSLEAIQMDK4EAL6YKKR3EGUUVZMMZSE4V6 \ / AMOS7 \ YOURUM ::
-#\[7]AZWMPLYBZ25V4BMFWIBLWWINCY3D7FTBQOLM6XQTTPAML4WT3UDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,,..,,..,,..,..,,..,,,,.,,,.,..,,...,...,...,,,.,..,,,,.,...,
+#EKVTGQPJOTTHSMVSVGY2SBENKP22IDTY23DQOFOGHDLYTQIWAG2UJS2JTF4FNRFMBGXLDEQHH7ANY
+#\\\|4WFTGXT4LARH6PC3BCMLR4V5XIJJQVQBQ6FAZC25QUCJVUHW6TV \ / AMOS7 \ YOURUM ::
+#\[7]XP4JW6OWPNNVOVMUEDZUMTAXKVLMHKNUFVP4VDB7FWQRK77JNKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

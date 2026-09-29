@@ -38,8 +38,8 @@ once, enforced consistently):
   round-robin load balancing across the pool for free.
 
 **Scope is narrower than "any multi-instance name"**: deliberate temporary
-twin instances (`v7.restart :twin: httpd`-style zero-downtime handover via
-`v7.zenka.cmd.restart_concurrent` / `drain-instance`) already work correctly
+twin instances (`v7-zenki.restart :twin: httpd`-style zero-downtime handover via
+`v7-zenki.zenka.cmd.restart_concurrent` / `drain-instance`) already work correctly
 today — the old instance gets `unset-initialized` on cube, and
 `route_to_target`'s existing initialized-check already excludes it from
 bare-name fan-out with no routing_mode involved. routing_mode is only needed
@@ -90,8 +90,8 @@ session; whether routing_mode/admin-override should be settable *within* a
 subname group too; `group-next` etc. naming vs. `next.group` dot-namespaced
 alternative (bikeshed only).
 
-#,,,.,,,.,.,,,,..,,,.,,,,,..,,,,,,,..,...,.,.,..,,...,...,...,.,,,.,.,,..,,.,,
-#LUGHTFCDBE3ZYBWXIHURQ23Q7CTBRB3CIAF2RTV54AL7E4BIWPQQCD6HLA2O4UTLW5HA22NKJ5SPY
-#\\\|VK7HDTF7L3WVVUXMKGDWX6VCSKRURS5AR4VPDQG64PSRKVIB7XB \ / AMOS7 \ YOURUM ::
-#\[7]V7ULZ2ZLQ22MK2OUHVBMINM74ZFZHK3U2W5VICDU5WYYVBDSGCBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,,..,...,,,.,,,,,.,,,,..,.,.,..,,...,...,.,.,,..,,..,.,,,,,.,
+#IB3AC4UQEIHPJZLCL2HWC7LII4NB2JHHLQ44UFCHSKTGDP5HA3FEN74MAW4NR4ZPER2HQXTFVBDVS
+#\\\|2BKLHUJBFMLX3TSFE5AVT46DIBHGIZ3OKPYCYKESQP6NJE2OTKD \ / AMOS7 \ YOURUM ::
+#\[7]ZNQZG6BTE72YIGOA7CGFTZ4FL36OUJ2TWLVZ3THZ7XB4KCNENQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

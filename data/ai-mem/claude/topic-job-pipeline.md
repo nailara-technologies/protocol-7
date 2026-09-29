@@ -250,7 +250,7 @@ purely-local-but-should-agree-across-profiles browser setting — see
 `jobsite.reload all`/`reload source` reported success but did not
 actually recompile `jobsite.cmd.set-prefs` after a fresh edit — verified
 unambiguously by adding a literal marker field to the JSON reply and
-watching it not appear across multiple reloads. Only a full `v7.restart
+watching it not appear across multiple reloads. Only a full `v7-zenki.restart
 jobsite` picked it up. In hindsight this likely also explains part of the
 earlier `jobsite.cmd.list-trashed` "diag=1 branch never fired" confusion
 from the prior session entry above, which had been fully chalked up to
@@ -419,8 +419,8 @@ infers it correctly every time from a posting's text.
 `--noproxy '*'` first if any live-page fetch/debug against a job-board domain
 times out through the configured proxy.
 
-#,,..,,.,,,.,,,,,,.,,,,.,,.,,,,..,,.,,.,,,,.,,..,,...,...,.,.,,,.,.,,,...,.,,,
-#EET2V6MAHVQCPIGI3CCULWDJWU2TCQJOZTOB3IJBHEVER6UR5XHARJ6NLTULKUFG4UECGHW3BVLMY
-#\\\|PWFU2SWQQDR4P7YSRDEWOCQD22YPHVBXHNAHDPWXBIDIZQA4TTL \ / AMOS7 \ YOURUM ::
-#\[7]2OE6FWYNMJSFULI2QWPEVPR4UCEDP77RYZSWVRA4QCWI5IAWNQDQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,.,,,,,,,,.,,..,,,.,,..,,,..,..,,...,...,...,.,.,,..,.,,,,,.,
+#3SLBB3GONH352ZXV3GZCRUAVBI52TGKUXSXIEGEAQ4O46KUN6P7ZK6WJ3ALYL423CRCP2FPXYAJQE
+#\\\|KRJ3E2XMA2DUWLE5HYMY4MDKEF4NHH6KVJMOJ4TUCTQ4LA72QRU \ / AMOS7 \ YOURUM ::
+#\[7]7CU4UQUOQ3MUYOCXNTJNJP6ZMFAKUZWCPE2SLBWL37BVA5LLHUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

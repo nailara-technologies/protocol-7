@@ -18,10 +18,10 @@ scripted metric n=5055 rho=+0.008 ] + distortion-injection [ 12 bugs +
 also: the count is signing-KEY dependent — identical body, different key →
 unrelated count. full writeup: data/tasks/iteration-counter-quality-results.md.
 
-## incident : v7.stop vs v7.restart deadlock (2026-08-04)
+## incident : v7-zenki.terminate vs v7-zenki.restart deadlock (2026-08-04)
 
-ran `v7.stop kimi` instead of `v7.restart kimi` while iterating — with the
-zenka stopped there is NO path to send `v7.start kimi` from inside the
+ran `v7-zenki.terminate kimi` instead of `v7-zenki.restart kimi` while iterating — with the
+zenka stopped there is NO path to send `v7-zenki.start kimi` from inside the
 session [ all p7_command/cube routing to kimi dies with it ]. needed user
 to restart by hand. NEVER use bare stop on the zenka you are running
 inside; use a combined restart [ stops AND starts ] or don't touch it.
@@ -36,13 +36,13 @@ real single command doing stop+start together -- use this one, not a
 manual terminate-then-start sequence, unless you specifically need
 `:twin:` zero-downtime handover, which only `restart` supports ].
 
-## incident : `v7.reload init` TORE DOWN the entire network [ again ]
+## incident : `v7-zenki.reload init` TORE DOWN the entire network [ again ]
 
-issued to re-scan start.cfg files ; re-running v7.init_code hit
+issued to re-scan start.cfg files ; re-running v7-zenki.init_code hit
 the fatal init path [ ai-mem kimi topic-routing-mode-implementation.md
 warned exactly this ] → v7 SIGTERMed everything. root restarted v7 on
 pts/3 ~2min later ; fresh boot picked up the new zenka config fine.
-lesson confirmed : NEVER `v7.reload init|all` on a live network to
+lesson confirmed : NEVER `v7-zenki.reload init|all` on a live network to
 register a new zenka — wait for a network restart instead. single-zenka
 `audio.reload source` worked fine for module iteration.
 
@@ -64,8 +64,8 @@ Also fixed: `src/web-browser.cmd.stop_slideshow` line 7 was doing a bare `== 0`
 comparison against `<web-browser.slideshow.running>`, throwing an undef warning
 when called on an already-stopped slideshow. Guarded with `( // 0 )`.
 
-#,,.,,,,.,...,..,,,.,,,,.,,.,,.,.,...,.,.,,..,..,,...,..,,..,,,.,,..,,,.,,,,,,
-#FHBT6SGPJXCIWYWIDJIGZPHKZC4HAU4DD7PK4MK5YPI5K6GTNHPHDUVUNKIBHNSWO6QZDU7EM5OU4
-#\\\|CPD25MNO7OEFDGS2YI7QYB6OWNYPFGIHTLZTLCRJRWYKELEMWPV \ / AMOS7 \ YOURUM ::
-#\[7]IQXDPHBGWTLSJOBBWZHS6NVINIFZU3CNLM5M4YSYR54YZL5FWGBQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,..,,,,.,,..,,..,,..,,,.,,,.,..,,...,..,,..,,,,,,,..,.,,,.,.,
+#EKNOHNSFGB2RFRU7GZT2DVYWF5SBHM3HTVEC2Y7FGYAJ6PGLZJTMXEXUAVT7CDVWUMJD436QNEQNQ
+#\\\|YULN2F6RGQJP2EX7PWDVFEYA6VX2DDDL3IG3GB2CEHDIZONVZ2A \ / AMOS7 \ YOURUM ::
+#\[7]LCV5WSA6XB4YCX3M2X4XREURH7L6KH6PQLRFUTM2EFJWAXTXWYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

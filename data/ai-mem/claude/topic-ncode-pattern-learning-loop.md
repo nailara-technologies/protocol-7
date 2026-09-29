@@ -387,7 +387,7 @@ ported from) looking for a divergence — none found; `ncode`'s `restore`
 command handler is if anything *less* restrictive than `coding`'s `gw`
 (no file-group-match gate at all, just `chmod($mode,$path)` gated only on
 `-e $path`). Root cause was never fully isolated line-by-line, but
-**resolved by `p7c v7.stop ncode`** (killing the long-running zenka and
+**resolved by `p7c v7-zenki.terminate ncode`** (killing the long-running zenka and
 its chmod-child together, letting both respawn fresh on the next
 on-demand call) — strongly suggesting stale long-running process/pipe
 state rather than a logic bug in the restore mechanism, consistent with
@@ -407,7 +407,7 @@ small bug, low priority, noted for whoever next touches `ncode.cmd.
 suggest`.
 
 **If chmod-child `Permission denied` recurs on a long-running `ncode`/
-`coding` zenka:** try `p7c v7.stop <zenka>` first (on-demand respawn picks
+`coding` zenka:** try `p7c v7-zenki.terminate <zenka>` first (on-demand respawn picks
 it back up) before assuming a logic bug — this session's evidence points
 at stale process/pipe state on a long-lived instance, not the restore
 command's permission logic itself.
@@ -444,8 +444,8 @@ and [[project-2026-07-30-gap-audit]].
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,.,,...,.,,,.,,,.,,,,.,,.,.,..,,..,,,..,,,,,..,,...,...,.,,,,.,,,.,,,..,..,,
-#O73OSDHPXTUNKILMD74ZGGWKUAR2OPVEGMTJLDRO4NW4PZC2Q4BH2W4HTRGMCHUEORYYA34WGH6BA
-#\\\|OVXDPOZWXU5Y4Y7DOWDDDGMZEONC7OLSFHSRJ5MCDPKM7J6JSHN \ / AMOS7 \ YOURUM ::
-#\[7]LTDVMEJUXRK4LX6D3MAU5MP2JAEMQWUALEQFFBIUMXRFFL4TFABY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,.,,,,,...,,.,,..,,,,.,,,.,..,,..,,...,...,,,.,.,.,,..,.,,,,.,,
+#ZKMAEURY6Y6O76QMR4FO2E7G2TSULOKGVVFV6GFS5YC7P6FD5RFVKZRQVLTBWGFHOV4GINGNOFAFK
+#\\\|ZBLJZMEBUVS2MCA2SH5BWFORP5LZTJKT3AYXV5INUHVGJ465MEH \ / AMOS7 \ YOURUM ::
+#\[7]SV7BTRPP2MQ4XTVUT6NPUQTIX5D6J7JRYCXKZANA2TLMKCEXICBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

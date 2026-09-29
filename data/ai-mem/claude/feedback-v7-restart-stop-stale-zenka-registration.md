@@ -1,16 +1,16 @@
 ---
 name: feedback-v7-restart-stop-stale-zenka-registration
-description: "v7.restart/v7.stop can leave a zenka's OLD process still connected to cube under the same zenka name -- cube then routes commands to whichever registration it prefers, which may be the stale one, silently testing dead code. p7c term-all <sid> (found via list subnames) is the reliable forced cleanup."
+description: "v7-zenki.restart/terminate can leave a zenka's OLD process still connected to cube under the same zenka name -- cube then routes commands to whichever registration it prefers, which may be the stale one, silently testing dead code. p7c term-all <sid> (found via list subnames) is the reliable forced cleanup."
 metadata:
   type: feedback
 ---
 
 Hit repeatedly 2026-08-14 live-testing the `sessions` zenka's first
 key-holding child (see [[vision-sessions-zenka-key-holding-children]]).
-Neither `v7.restart <zenka>` nor `v7.stop <zenka>` reliably guaranteed a
+Neither `v7-zenki.restart <zenka>` nor `v7-zenki.terminate <zenka>` reliably guaranteed a
 single live instance — `p7c list subnames` sometimes showed TWO `sessions`
 entries at once (an old one from a prior test cycle, still connected to
-cube, alongside a freshly-spawned one), and `v7.stop <zenka>` sometimes
+cube, alongside a freshly-spawned one), and `v7-zenki.terminate <zenka>` sometimes
 stopped the wrong one (`shutting down 1 zenka instance` — but the OLDER
 one was still there afterward) or reported `there is no zenka matching
 zenka running` while a stale instance was demonstrably still alive and
@@ -32,7 +32,7 @@ sometimes-stale) process-lifecycle bookkeeping. Confirmed this reliably
 leaves zero stale processes, verified via `ps aux | grep <zenka>`
 immediately after.
 
-**How to apply**: before trusting a `v7.restart`/`v7.stop` result during
+**How to apply**: before trusting a `v7-zenki.restart`/`v7-zenki.terminate` result during
 live iteration on a zenka's code, cross-check `list subnames` for
 duplicate registrations and `ps -o pid,ppid` to confirm which process is
 actually the current v7's child. If in doubt, `term-all` every matching
@@ -42,8 +42,8 @@ the restart/stop command's own success message.
 [[vision-sessions-zenka-key-holding-children]]
 [[feedback-stuck-zenka-recovery-v7-stop]]
 
-#,,.,,,..,,,,,,..,.,.,,,.,,,.,,.,,,,,,.,.,..,,..,,...,...,.,.,...,..,,,,.,,,,,
-#WH4ZLIUDLDLCWYOIJ25UYGGGMNTQOSGK3QV3TSMWYWWA4DRVJAFAJ6OSCSIX5CWNBATNKYS64L45Y
-#\\\|33OBS3N2KBQI2A6VSBXBYZWJRLTLXVRDMIJRPWMULFV4INOABJV \ / AMOS7 \ YOURUM ::
-#\[7]NLCNVQS7GOPKF437APCWIU2D66VZYYWH4IUNSRMYAZ2EVZFGSEDI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,..,,,.,,,..,...,.,.,.,.,.,.,..,,...,...,.,,,..,,..,,..,,..,,
+#NQDDICF4D35YRUGY5EI56GQ5B6NBMDLQJPHNFXE7RFTUE2TAVBGGXBIGGC2VCOFHKRYC2ABT22CVM
+#\\\|CPNWXUDVDBEJL4II2RNV4ZC2YUVF43F6F4L5X5EYRU5AIQSHYXL \ / AMOS7 \ YOURUM ::
+#\[7]7743L4E2HKEUJ5CIDYJMOZIAB75CGXK2SELUNBE6TMCTI5RT2YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

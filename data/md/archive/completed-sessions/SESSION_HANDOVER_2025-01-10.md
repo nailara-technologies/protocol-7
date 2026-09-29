@@ -76,8 +76,8 @@ my $pref = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
 - `src/zenki.console.status` - Show running zenki status
 
 **Log Streaming (Foundation):**
-- `src/v7.parent.attach_zenka_logs` - Attach to zenka output
-- `src/v7.parent.stream_zenka_log` - Stream via unix socket (TODO: full implementation)
+- `src/v7-zenki.parent.attach_zenka_logs` - Attach to zenka output
+- `src/v7-zenki.parent.stream_zenka_log` - Stream via unix socket (TODO: full implementation)
 
 **Usage:**
 ```bash
@@ -126,7 +126,7 @@ Protocol-7 zenki status         # Show all running zenki
 
 **Integration:**
 - `src/v7.post_init_code` - Triggers check after module initialization
-- `cfg/zenki/v7/zenka.v7` - Added 'session' to modules.load
+- `cfg/zenki/v7-zenki/zenka.v7` - Added 'session' to modules.load
 - `cfg/zenki/session/zenka.v7` - Standalone session zenka (FIXED in 7e9ef7a85)
 
 **Decision Logic:**
@@ -423,7 +423,7 @@ if (time() - <git.cache.log_time> < 300) {
 ### Medium Priority
 
 4. **Log Streaming - Unix Domain Sockets**
-   - Implement socket server in v7.parent.stream_zenka_log
+   - Implement socket server in v7-zenki.parent.stream_zenka_log
    - Support multiple observers (clone)
    - Detach/reattach like tmux/screen
    - Stop v7 pass-through when terminal zenka active
@@ -542,13 +542,13 @@ Protocol-7 debian list-zenki
 - `src/workflow.parent.*` (4 files)
 - `src/workflow.console.*` (4 files)
 - `src/git.parent.*` (2 files)
-- `src/v7.parent.attach_zenka_logs`
-- `src/v7.parent.stream_zenka_log`
+- `src/v7-zenki.parent.attach_zenka_logs`
+- `src/v7-zenki.parent.stream_zenka_log`
 - `src/v7.post_init_code`
 - `cfg/zenki/session/zenka.v7`
 
 **Modified Files:**
-- `cfg/zenki/v7/zenka.v7` - Added session module
+- `cfg/zenki/v7-zenki/zenka.v7` - Added session module
 - `src/debian.parent.*` (5 files) - Configuration refactoring
 - `data/yaml/protocol-7-coding-style.md` - 2 major sections added
 
@@ -681,8 +681,8 @@ Protocol-7 session setup-keys                 # Create key directory
 
 ### UPDATE: 'workflow' zenka renamed to 'work', in PATH as 'p7.work' [symlink]
 
-#,,.,,.,,,.,,,,,,,...,,,.,,,.,.,,,.,,,,.,,.,.,..,,...,...,,,,,,.,,,,.,,,,,.,.,
-#KFTSAGYWQCHCQNTO6UNNOLZ4QFA3QB7XBV73LGOA7EK2464JVLPT6OOPYNQXQ2X7KTHJRXX55VOVO
-#\\\|QXGIUX4F6DZ4Y7AYVOGBRIAKLEWPBMZVJ6SAHAIMEYH3PXLUPCT \ / AMOS7 \ YOURUM ::
-#\[7]HDVWOXKRMORFR53T453EQFPAZNVD5AFUDNFW5MSGMUWKZKZW6ECQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,,..,..,,,..,,..,.,,,.,.,,..,..,,...,...,,,.,,..,,.,,...,...,
+#X3M7HQWTKYBZUEAQETJWEAFNMGG45PMSAK6MWXNFMPKLDKJM6TEL4ZIEJTVFS2BLMVP2RZSQCDETY
+#\\\|PDQYGLEMSCJZC6OAP4HQL2FGEMAQTZKTY6VFDL5BDNDE4BTUSNE \ / AMOS7 \ YOURUM ::
+#\[7]EZY2VAYL4AG6XKLQKL7CASERCMKSJPSQZLX7W55KOFV42R5P5GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

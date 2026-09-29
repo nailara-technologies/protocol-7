@@ -31,8 +31,8 @@ a zenka that:
 
 v7 already has a related but more limited mechanism: `extbin` mode
 zenki entries — zenki-table entries that point at a script path instead
-of a zenka name + the Protocol-7 binary (`src/v7.callback.object.zenka`,
-`src/v7.handler.zenka_status`, `src/v7.zenka.instance.cmd.change-status`
+of a zenka name + the Protocol-7 binary (`src/v7-zenki.callback.object.zenka`,
+`src/v7-zenki.handler.zenka_status`, `src/v7-zenki.zenka.instance.cmd.change-status`
 status enum `online|extbin|queued|depending|error|offline`). extbin
 zenki are spawned/monitored like real zenki but run arbitrary external
 binaries.
@@ -64,10 +64,10 @@ security-level model before it migrates further inward:
    catalog in a low-stakes, isolated zenka first
 2. **v7 zenka** — once smooth, migrate the same model into v7 itself
    for fine-grained / selective / dynamic control of zenki-state-
-   modifying commands (`v7.start`/`v7.stop`/`v7.restart`/etc, currently
+   modifying commands (`v7-zenki.start`/`v7-zenki.terminate`/`v7-zenki.restart`/etc, currently
    gated only by coarse `access.cmd.usr.<role>` lists in
    `cube/access.zenki` — see e.g. `access.cmd.usr.system` granting
-   `v7.stop v7.start v7.restart ...` as an all-or-nothing block).
+   `v7-zenki.terminate v7-zenki.start v7-zenki.restart ...` as an all-or-nothing block).
    security-level-per-command would let e.g. "restart a specific
    on-demand zenka" be a lower bar than "restart core always-on zenki
    (cube/v7/httpd)".
@@ -113,8 +113,8 @@ vterm buffer addressing for results, relation to extbin (explicitly
 non-overlapping). then split into task files the same way
 [[topic-ui-show-security-levels]] was split.
 
-#,,,.,.,.,..,,...,,,,,.,,,..,,...,,.,,.,,,...,..,,...,...,.,.,..,,.,.,,,.,...,
-#U4PNUYAWGOORAURRVNQPBIVY5KIXNDWG5MGR2YQ2PBMIQ3DXHBWEPFW6CW5ZXNY7S567RD6FCCCHM
-#\\\|FYWSXCHGUQ7HMLEZ6WSDNIOOLNXKJNQ4JIHP3P5FFNT4VTCSD7G \ / AMOS7 \ YOURUM ::
-#\[7]H2ANSNJX53IX2SMWLLWCNL3HAQP3G5CEU2NDPW7KHBGU3O6RUGAQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,.,,,,,.,,..,.,,,,,.,.,.,,,,,..,,...,...,,.,,..,,,,,,..,,,.,,
+#RRSAKL2O34ZILVQCDRMBKXGYYGUNL4PLJ6FIZQ4UBFRGG5U7Z6ZNKAWDCNS5DBZDW3XXFUXGDIQME
+#\\\|SNVTCR7W4HMW54ZCQNHJ3BZSKGFFLRMAOKLACGBJLCWZ2RK3IFM \ / AMOS7 \ YOURUM ::
+#\[7]F2CJYHLYFPHK3DTFG5UE6W6KJGUT2HFIZNIAZMV3FHMDXZRQQYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

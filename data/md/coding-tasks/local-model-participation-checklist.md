@@ -172,8 +172,8 @@ but nothing assembles them into the inference prompt yet.
 ```bash
 ## start zenki ##
 ./bin/nshell
-> v7.start coding
-> v7.start context        ## if context integration active
+> v7-zenki.start coding
+> v7-zenki.start context        ## if context integration active
 
 ## basic inference ##
 > coding.ask-reply what is protocol-7
@@ -273,8 +273,8 @@ noticeably better local model experience.
 - `src/coding.handler.process-queued-task` — integration point
 - `data/yaml/context-templates/` — existing templates
 
-#,,,.,...,.,,,...,,,,,,,.,.,.,,,.,,,,,...,,..,..,,...,...,..,,.,,,,,.,,..,,,,,
-#SXSYR2FMGLO6OJD2A4BV6MFFAMQT5YVPKB3ARHKZIHWHBPAMYY55WSSMVRZKDKMHHJR2DCHOUM67C
-#\\\|BKMP6URUAHAF6SAUVMVK6KFOZW3BV5YTVFDT5HTNCWKRFCOSRJL \ / AMOS7 \ YOURUM ::
-#\[7]I64RHU7EAQNL3OT6IWLLXIBZ3X4C3KSPP35J6DR54A5DJP3DW6BA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,..,.,.,,..,.,,,.,,,.,.,,,.,..,,...,...,..,,,..,,.,,...,.,.,
+#J2PBLJX7KO234WTDR33YMEU7U5MR6UQ6DVL3SIXL5VCS2APHGHHZLNZ3ON6GEKI46YRTEJWZ7EFKU
+#\\\|7752JH2EUXHEDGQS6X6SPVUHOL7YC6GX7ASIWLOXYYW5FBW32GV \ / AMOS7 \ YOURUM ::
+#\[7]JLXFPMJ7DIRBC7IFUWCUN3KEGHKEGDWISDWUMGL5FQOVCWMBVADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

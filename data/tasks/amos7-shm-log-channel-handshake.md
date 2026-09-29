@@ -58,7 +58,7 @@ buffered log line it does **one full command + reply round-trip**:
   outstanding reply before the next line can go.
 - the buffer is **paused / resumed** depending on online-status checks against
   the target zenka [ `:37-79` — `v7` checks its registry, `cube` checks its
-  sessions, other zenki ask `v7.notify_online` ]. so the path is not only
+  sessions, other zenki ask `v7-zenki.notify_online` ]. so the path is not only
   one-command-per-line, it is one-command-per-line-gated-on-liveness.
 
 `src/p7-log.cmd.append` is the receiver side. it parses
@@ -376,12 +376,12 @@ build item.
 the nonce; the sender echoes it back through the new SHM channel.** this is the
 backward-compatible direction and it gets the security property right.
 
-the precedent is `src/base.cmd.verify-instance` + `v7.zenka.set_cube_sid`:
-v7 generates a private 13-char key [ `v7.zenka.set_cube_sid:43`,
+the precedent is `src/base.cmd.verify-instance` + `v7-zenki.zenka.set_cube_sid`:
+v7 generates a private 13-char key [ `v7-zenki.zenka.set_cube_sid:43`,
 `uc(<[base.prng.chars-anum]>->(13))` ], hands it to the instance over a **direct
 command** [ `:57-61` ], and then watches the instance's own log stream for the
-echo [ `cfg/zenki/v7/zenka-output.patterns:29`,
-`^instance verification \[KEY:([a-zA-Z\d]+)\]$` → `v7.handler.instance_verification` ].
+echo [ `cfg/zenki/v7-zenki/zenka-output.patterns:29`,
+`^instance verification \[KEY:([a-zA-Z\d]+)\]$` → `v7-zenki.handler.instance_verification` ].
 the security property: **only a process that actually received the privately
 injected key can produce the echo.** that is exactly what we reuse — but the
 direction matters because `/dev/shm` is **world-readable**
@@ -862,8 +862,8 @@ first, note the reuse potential.
    a partially-filled active slot?** this is the pool analogue of the old "ring
    capacity" choice, but with a real latency dimension the ring did not have.
 
-#,,,,,.,.,,.,,.,.,,,,,...,.,,,..,,.,.,,,.,,.,,..,,...,...,,,,,...,.,,,...,.,.,
-#KJMC6E32LYQK4R3ZUP3UGMEG22BJG6WIR6WFZKYJAGYKCEZX4BKHN5N4Q2PAWYYY5HK34SIHZI57Y
-#\\\|RSW55OJHRY2Z6K5Q2JFSQ4XVWNO24SIEFAQ33ST7LHXVFZGT34U \ / AMOS7 \ YOURUM ::
-#\[7]ERTZFIC2RCDBAWUJMJNQGIW5PLM54XM3YIY2RYNKX3CDG5WLMOAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,...,,.,,..,,,..,,..,.,,,,..,..,,...,...,...,.,,,.,.,..,,,,.,
+#RWWOILJN5B7JOWWOKG7BCERHO5SQCN44RE6RXLV3FQZ2O5BNTBYAYCD3MWHZRXC43OCNA2MCSJWXI
+#\\\|4HM666GOYUYCIMDDWTHY2UMYKRPFVWH2E2QQIVCSELUHUU5XECM \ / AMOS7 \ YOURUM ::
+#\[7]PJZ2YWN5MQ3WJODU4T35DIUBPJECLFBYUXVNWSFEBFDONSBWTUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

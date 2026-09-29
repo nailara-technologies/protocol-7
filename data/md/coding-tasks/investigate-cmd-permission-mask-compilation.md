@@ -43,7 +43,7 @@ Investigate how wildcard patterns are matched:
 ### Phase 3: Reload vs Restart Behavior
 
 Document the difference:
-- [ ] What happens on `zenka.reload` vs `v7.restart zenka` vs full cube restart?
+- [ ] What happens on `zenka.reload` vs `v7-zenki.restart zenka` vs full cube restart?
 - [ ] Which phase recompiles access masks?
 - [ ] Is there a way to force mask recompilation without restart?
 
@@ -94,8 +94,8 @@ Using wildcard `*.receive-entropy` instead of `cube-13.receive-entropy` allows z
 - `cfg/zenki/cube-13/access.zenki` - cube-13 specific access
 - `cfg/zenki/cube-13/access.users` - user authentication
 
-#,,..,..,,,,,,,,,,...,,.,,...,,.,,.,,,...,...,..,,...,...,,,.,,.,,.,.,..,,,.,,
-#BRCXXIACYK2IUOUYFKJRNVUG2AXL6H7INRUXID2F57FRKAHS66TDVX4IR22SMAYZ6KFS5MUJPVNLG
-#\\\|2KOB2SHOJJ3VJKFY4GF3H5AJ6NLUMOCSECP3MQU6XRWJ5VK3YDO \ / AMOS7 \ YOURUM ::
-#\[7]CRRGTBI5LC3P7E3SLCNKZFLVHKVBGN6JFCS63AA3V5DFRQ3JG2DI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,.,,,,.,,...,,,,,..,,.,.,...,..,,...,...,.,.,...,...,,,.,,..,
+#CIYD7IICQIO4FDUS4VVOS6PUQTV7JFYGLY7WDMNHOBA4OOHT6GEETN6YAVXNRKMWHT5VTCMFOFO4M
+#\\\|PLOMTZOWZ5VKQ5THPZRXTCXUDJK3M3R3YFPIWYMM4RYKYKTFHA5 \ / AMOS7 \ YOURUM ::
+#\[7]WNOM2GCNRGKVPI3LM7OVFBA7TALPNSGJM5VZ7ALIKSEPFBGOZCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

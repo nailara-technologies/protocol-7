@@ -1,7 +1,7 @@
 # v7 hot self-restart — design skeleton
 
 status: seed / not started — written down so the idea doesn't get lost,
-not because it's urgent. `v7.reload` is reliable for code updates today;
+not because it's urgent. `v7-zenki.reload` is reliable for code updates today;
 this is about replacing the *process* itself without an outage window.
 intended next step: hand this skeleton to opus for refinement once the
 shape feels solid enough to be worth the design-doc treatment properly.
@@ -18,9 +18,9 @@ shape feels solid enough to be worth the design-doc treatment properly.
 
 ## the problem
 
-`v7.restart <zenka>` works for ordinary zenki, and even `v7.restart cube`
+`v7-zenki.restart <zenka>` works for ordinary zenki, and even `v7-zenki.restart cube`
 works today — chaotic (every zenka that depends on cube restarts along
-with it) but functional. `v7.restart v7` does not — and naively can't,
+with it) but functional. `v7-zenki.restart v7` does not — and naively can't,
 since the manager can't drop the floor it's standing on. there is
 currently no way to replace the running v7 process with a fresh one
 without a window where nothing is listening / managing.
@@ -61,7 +61,7 @@ without a window where nothing is listening / managing.
 - **handoff timing/ordering** — at what point does the outgoing process
   stop accepting new work vs. finish in-flight work vs. actually exit?
   what's the new process's view during the overlap window, if any?
-- **relationship to `v7.restart cube`'s existing cascade** — that path
+- **relationship to `v7-zenki.restart cube`'s existing cascade** — that path
   is "chaotic but functional" today; does it already solve part of this
   problem by accident, or is it a different shape entirely (full restart
   vs. hot replace)?
@@ -197,7 +197,7 @@ a second cluster, surfacing *existing, working* mechanisms that already
 embody "intent as configuration" above, plus what backporting and
 extending them could unlock:
 
-- **the subname feature already does intent-signaling** — `v7.start
+- **the subname feature already does intent-signaling** — `v7-zenki.start
   mpv[audio]` starts `mpv` carrying an `audio` subname; the instance is
   then specifically reachable as that named "group of one", and `mpv`
   already *knows* that subname and conditionally skips its
@@ -206,7 +206,7 @@ extending them could unlock:
   the intent, and the zenka resolves its own startup shape from it
 - **backporting that principle up the tree** — toward a `Protocol-7
   v7[profile]` type syntax, or via the *other* possible command
-  parameters that `src/v7.call_cmd` is already positioned to
+  parameters that `src/v7-zenki.call_cmd` is already positioned to
   process (the module exists, sits ready, and currently routes *no*
   defined commands — an empty slot waiting for exactly this)
 - **v7 can already background itself** — `-B` / `-BK` flags exist
@@ -250,8 +250,8 @@ extending them could unlock:
   when available — the same intent, resolved through whichever
   resolution-capable substrate the local environment actually offers
 
-#,,,,,.,.,.,.,,,.,.,,,..,,,,,,,..,,,,,..,,..,,..,,...,...,,.,,...,...,,,,,...,
-#7Z7FMS7O2VLYVQITZVEMVDR22GVJ73QV43V5H4IDVF4X4JS5VY3B2NZON3ZJ6N7WNIFQ46JSVWQRA
-#\\\|QHZ6CTIUKL6MAT4NHQGAMNLQ3TUBQK7N4C3YGLHTH3THE3YBFLT \ / AMOS7 \ YOURUM ::
-#\[7]QYCFYWBS63IEPL7OV23D3M7L7TWAO5OQVHDQ6NQAL3QCSDD27WBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,.,,,.,,,,..,.,,,...,,..,...,..,,...,...,.,.,,,.,...,,,,,,..,
+#PHQPTEWBV4MSX7BCLZVATXJKCRAKTI3OJR6LATRVVO4DUFQNS3D375KDAYXE5Z3HGPOSJWUAJCBSM
+#\\\|IXIK46XBP2KVWDZQP4MXE4OJFST4GKFBT5GPYXV437OTOPBICHG \ / AMOS7 \ YOURUM ::
+#\[7]UXXEOJPKIPEZEEJIY4UE6D4NAVRK63CE65V3QEVGRJIO23JHESCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

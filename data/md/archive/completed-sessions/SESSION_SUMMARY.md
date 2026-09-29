@@ -40,7 +40,7 @@ Successfully designed and implemented a complete **Trust-On-First-Use (TOFU) aut
   - Optional hostname[:port] syntax
   - Defaults to port 42, supports custom with host:PORT format
   - Example: `p-7-r relay.internal list sessions` (port 42)
-  - Example: `p-7-r compute-node.lan:47 v7.list zenki` (port 47 - harmonically validated)
+  - Example: `p-7-r compute-node.lan:47 v7-zenki.list zenki` (port 47 - harmonically validated)
 
 ## Architecture Highlights
 
@@ -82,14 +82,14 @@ Successfully designed and implemented a complete **Trust-On-First-Use (TOFU) aut
 - `nshell.check_remote_connection`
 
 **Compilation & Verification:**
-- `v7.compile_bin_p7c` / `v7.compile_bin_p7r`
-- `v7.bin_p7c_chksum_current` / `v7.bin_p7r_chksum_current`
-- `v7.bin_p7c_comp_chksum` / `v7.bin_p7r_comp_chksum`
+- `v7-zenki.compile_bin_p7c` / `v7-zenki.compile_bin_p7r`
+- `v7-zenki.bin_p7c_chksum_current` / `v7-zenki.bin_p7r_chksum_current`
+- `v7-zenki.bin_p7c_comp_chksum` / `v7-zenki.bin_p7r_comp_chksum`
 
 ### Configuration Changes
-- `cfg/zenki/v7/zenka.v7`: Dual binary compilation setup
+- `cfg/zenki/v7-zenki/zenka.v7`: Dual binary compilation setup
 - `cfg/shared-params`: `protocol-7.remote.default-port = 42`
-- `src/v7.init_code`: Independent p7c/p7r initialization
+- `src/v7-zenki.init_code`: Independent p7c/p7r initialization
 - `src/keys.console.list`: [hostkey] display extension
 - `src/base.list.subroutines`: Module reference updates
 
@@ -164,8 +164,8 @@ Comprehensive implementation of enterprise-grade remote auth system with securit
 **Status**: ✓ Implementation complete, testing phase ready to begin
 **Next Action**: Start Phase 6 local TOFU testing
 
-#,,,,,.,.,,.,,..,,,,,,,.,,,.,,.,,,,..,.,.,,..,..,,...,...,,.,,,..,.,,,..,,.,.,
-#2Y3AF5NYU3ZOAMCGTGJP27REHLTV5CEA6TIZMM2VGFSTRJOGDJ7SPKULOT4KFO2TIJXYHDR4PZG64
-#\\\|FDFPOPA6N67XMGI5SL4DRSELILYYYKCFXBYY3QBCSYDVPZNPT73 \ / AMOS7 \ YOURUM ::
-#\[7]M4MRJ2IRMMM7ESJLZAV6CHK5YO7GSK5XUO6HXK2P4JUMQCMAQ6AI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,..,...,,,,,..,,,.,,..,,,,,,,,.,..,,...,...,...,,..,.,,,,..,,.,,
+#BA7ICIWRN3UQBLHRHGFTCQUJW2INGADOHGQ6WQL7YZJ5X62ZWVKBM4UT2OFST7ZMXDIHZ4YHZ5RGA
+#\\\|V5QQYFWPR4I7POAU3JICTWRIU2YLCQ7XZN2JL5SFF6B4X5TDK5D \ / AMOS7 \ YOURUM ::
+#\[7]C3TAQCQAAQ7WQJUUVOALZMW7HZ5OIONE4TPLE26XM2A7JJRU6SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

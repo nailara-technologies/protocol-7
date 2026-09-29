@@ -9,33 +9,33 @@ metadata:
 ---
 
 **Incident (2026-08-01):** X-11 zenka went `online -> error` (compositor/mouse-event related).
-v7's cascade-restart logic in `v7.handler.zenka_status:457-474` walked reverse dependents and
+v7's cascade-restart logic in `v7-zenki.handler.zenka_status:457-474` walked reverse dependents and
 force-restarted (SIGTERM then SIGKILL) every instance of every zenka declared dependent on X-11
 — including `mpv[audio-0]`, which was just piping the radio zenka's stream to PulseAudio and
 never touches a display. `openbox` also depends on X-11 and `mpv` also depends on `openbox`, so
 even removing `X-11` from mpv's own dependency line would not have prevented the cascade — the
-openbox hop re-triggers it (`v7.handler.zenka_status` fires again when openbox's own status
+openbox hop re-triggers it (`v7-zenki.handler.zenka_status` fires again when openbox's own status
 transitions through `restart`).
 
 **Root cause:** `cfg/zenki/mpv/start.cfg:6` declares
-`dependencies = cube X-11 openbox` at the zenka-*type* level. `v7.set_up_zenka_dependencies` and
-`v7.zenka.instance.get_ids` have no subname/instance granularity at all — restart cascades hit
+`dependencies = cube X-11 openbox` at the zenka-*type* level. `v7-zenki.set_up_zenka_dependencies` and
+`v7-zenki.zenka.instance.get_ids` have no subname/instance granularity at all — restart cascades hit
 every instance of a dependent zenka type regardless of whether that specific instance (e.g. an
 audio-only subname) actually needs the failed dependency.
 
 **Design landed on (mechanism, not yet the config syntax):**
 - Per-instance `$instance->{'dependency_exempt'}->{$dep_zenka_name}` hash, seeded at
-  `v7.zenka.start` (after `$zenka_subname` is resolved) from a config directive, matched via
+  `v7-zenki.zenka.start` (after `$zenka_subname` is resolved) from a config directive, matched via
   regex against the instance's own subname.
-- Enforcement: `v7.handler.zenka_status`'s restart loop skips `zenka.instance.restart($ARG)` when
-  `<v7.zenka.instance>->{$ARG}->{'dependency_exempt'}->{$zenka_name}` is true — `$zenka_name`
+- Enforcement: `v7-zenki.handler.zenka_status`'s restart loop skips `zenka.instance.restart($ARG)` when
+  `<v7-zenki.zenka.instance>->{$ARG}->{'dependency_exempt'}->{$zenka_name}` is true — `$zenka_name`
   there is whichever dependency just changed status, so this one check covers both the direct
   X-11 hop and the openbox hop without hop-counting.
-- Confirmed sufficient: `v7.zenka.instance.restart`'s own separate `dependency.ok` check (lines
+- Confirmed sufficient: `v7-zenki.zenka.instance.restart`'s own separate `dependency.ok` check (lines
   70-74) only gates the restart-timeout retry timer *after* a restart is already committed, not
   whether restart happens — so blocking the call site in `zenka_status` is the correct, sole
   chokepoint.
-- IMPLEMENTED already (code side): `v7.zenka.start` seeding logic, `v7.handler.zenka_status`
+- IMPLEMENTED already (code side): `v7-zenki.zenka.start` seeding logic, `v7-zenki.handler.zenka_status`
   enforcement check, and a new `src/mpv.startup.resolve_x11_info` module (replaces the
   previously-unconditional `[base.X-11.get_mode]`/`[base.X-11.get_display]` in
   `cfg/zenki/mpv/zenka.v7`, skipped for `^audio(?:-\d+)?$` subnames — matches the existing
@@ -64,8 +64,8 @@ viable syntax (mpv only needs one rule today, so this is not urgent to perfect),
 user to propose a shorter naming convention. The mechanism/code side does not need to change
 regardless of which directive syntax wins.
 
-#,,,,,,,.,,,.,,,.,,.,,...,.,,,...,,,.,..,,...,..,,...,..,,,.,,,,.,.,,,.,.,..,,
-#JUNFMQWS2IRTWMADSVXLAMU4T3R5V77FF3TDVYXDWYKDRZG73HLK5TRKFV3DXZRC3SZ4CWE5VEJ6G
-#\\\|2FWRUG2U26MFP7GTDD5IZMDMLQA53SATYNXZWFH7CRYDYYAXWBN \ / AMOS7 \ YOURUM ::
-#\[7]WVIBBFPX5JQ3KMFIQGYFK7IFCS34CKE4MOEHDHSV725MQQFH3CDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,..,,,,,,,.,,.,,,.,,,,,,...,,,.,..,,...,...,...,,,,,,..,.,.,,,.,
+#KHPDVWV3NPZOYGYCLRZEUNECZV7MHJNPN6A5GFTGMQOLCM3EXRTZF37U2IZ7RMNHOJGVARSQGRHOS
+#\\\|4AQ6D46UV557CS43WEXCL6P53ROKHTJFKSE32VLXVZ46AQ2AJFN \ / AMOS7 \ YOURUM ::
+#\[7]HUP25PHQWHZTZSVJX7IOIO7GFB222C6OG6EFQNQUB3N3TASHQOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

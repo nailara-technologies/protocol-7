@@ -23,8 +23,8 @@
   - auto-registration into `@tools` with duplicate name guard
   - dispatch handler in elsif chain → `tool_external_command`
   - `tool_external_command`: `qx()` + SIGALRM timeout, merged stdout+stderr, `send_tool_result`
-- **v7-teardown-whitelist**: `access.cmd.usr.system = v7.teardown` in `cfg/zenki/v7/zenka.v7`;
-  SOURCE alias for `v7.teardown` already in `cube/command_aliases` (passes caller identity through cube);
+- **v7-teardown-whitelist**: `access.cmd.usr.system = v7-zenki.teardown` in `cfg/zenki/v7-zenki/zenka.v7`;
+  SOURCE alias for `v7-zenki.teardown` already in `cube/command_aliases` (passes caller identity through cube);
   test pending with devmod switch-user (taeki has full wildcard → need non-taeki user to verify denial)
 - **reasoning template**: `data/yaml/reasoning-templates/holographic-grid-interface.yaml`
   created (733 lines) — div-13/7 invariants, vortex-cube, holographic emergence, interface
@@ -56,22 +56,22 @@
 
 ## session 48 — bug fixes: v7 instance_count, Fuse→Fuse3, lpw sync, log levels (2026-05-23)
 
-- `v7.instance_count`: exclude error-state instances from start_once guard (false "already running")
+- `v7-zenki.instance_count`: exclude error-state instances from start_once guard (false "already running")
 - `Fuse` → `Filesys::Fuse3` migration: known_dependencies, .deps/profiles.yaml, install scripts
   - `libfuse-perl` removed (dropped from debian); `libfuse3-dev` + cpanm `Filesys::Fuse3`
   - `data/tasks/fuse3-migration.md` written for kimi to do data.mount.fuse.* API update
 - ssh/pm-dep: removed all old colon-format (`::`) duplicate files (Windows compat history)
-- `v7.handler.process_output_line`: fixed log prefix alignment in `-vq` mode
-- `v7.calc_prefix_lengths`: added `cube` alongside `v7` in hardcoded iteration
-  - cube never enters v7.online-zenki (uses set-initialized not notify-online)
-- **lpw sync root bug fixed**: `v7.calc_prefix_lengths` had `kill 41`/`kill 55` swapped in
+- `v7-zenki.handler.process_output_line`: fixed log prefix alignment in `-vq` mode
+- `v7-zenki.calc_prefix_lengths`: added `cube` alongside `v7` in hardcoded iteration
+  - cube never enters v7-zenki.online-zenki (uses set-initialized not notify-online)
+- **lpw sync root bug fixed**: `v7-zenki.calc_prefix_lengths` had `kill 41`/`kill 55` swapped in
   increase/decrease branches — v7 (direct calls) stepped correctly, all other zenki received
   wrong signal and stayed silent. LLM introduced the swap during an earlier refactor.
 - `base.sig_NUM41`: fixed copy-paste bug in message string (said NUM55); fixed typo "descrease"
 - `base.sig_NUM55` + `base.sig_NUM41`: all lpw messages now use `devmod.lpw_log_level // 3`
 - `p7-log.add_line` + `p7-log.handler.close_log`: opening/lock/closing messages now
   use `devmod.p7_log_level // 3`
-- heartbeat log silence: `v7.handler.heartbeat_timer_response` success log → level 3
+- heartbeat log silence: `v7-zenki.handler.heartbeat_timer_response` success log → level 3
 - cmd-offset session-prefix strip: `base.handler.command` + `base.protocol-7.command.send.local`
   now strip `\d+.` session prefix before `log.level.cmd-offset` table lookup
 
@@ -400,7 +400,7 @@ open issues:
 - task 4: ephemeral WebView default (WebsiteDataManager), clear_data + set_cookie_policy cmds
 - task 5: get_snapshot native screenshot — eliminates Xvfb+scrot for visual-feedback pipeline
 - analysis doc: data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md
-- test profile: cfg/zenki/v7/start-set-up.browser-test
+- test profile: cfg/zenki/v7-zenki/start-set-up.browser-test
 - X-11 mode: changed host→auto-xephyr (detects WSLg/desktop automatically, safe for production)
 - XEmbed confirmed NOT viable for UI separation — P7 command routing is correct model
 
@@ -438,15 +438,15 @@ open issues:
 - child categories: disposable (kill_list) / decoupled (survive restart) / monitored
 - window registry: self-registration via source_zenka_sid cube alias (cube-authenticated)
 - STRM subscription: tile-groups opens stream, X-11 pushes window.appeared/gone/moved
-- unregister paths: v7.handler.zenka_status on offline + DestroyNotify fallback
+- unregister paths: v7-zenki.handler.zenka_status on offline + DestroyNotify fallback
 - X-11 protocol reconnect: exponential backoff (1→2→4→...→60s, 7 attempts)
   LLL in X-11.post_init RESOLVED — new X-11.reconnect module wired into error handler
 - wrapper process: decoupled X server survives zenka restart (design only, not impl yet)
 - wait_visible: capability flag + STRM subscription replaces polling model
-- v7.teardown whitelist: currently unprotected (access.cmd.usr.cube = *); needs fix
+- v7-zenki.teardown whitelist: currently unprotected (access.cmd.usr.cube = *); needs fix
 
 **P7 LLM reference doc**: data/md/development/P7-LLM-REFERENCE.md (kimi verified live)
-  corrections: p7c v7.list zenki, p7c p7-log.show-buffer, no cmd. prefix on routing
+  corrections: p7c v7-zenki.list zenki, p7c p7-log.show-buffer, no cmd. prefix on routing
 
 **kimi task file standard note added**:
 - "if in doubt: cat data/ai-mem/kimi/MEMORY.md" in all new task files
@@ -1006,7 +1006,7 @@ distinct nodes visible once second P7 instance joins network.
 - **httpd bridge** (`b6e20ce10`): plugin.httpd.radio.* — /radio/stream HTTP endpoint, per-client
   radio.listen STRM subscription
 - **TCP rewrite** (`f388f8674`): replaced curl subprocess with base.open ip.tcp + IO::Socket::SSL
-- **phase 4** (`707415c7b`): mpv[audio-0] background player via v7.start_once + v7.notify_online;
+- **phase 4** (`707415c7b`): mpv[audio-0] background player via v7-zenki.start_once + v7-zenki.notify_online;
   fade-in to configured volume; TLS connect + strm_open guard on route collapse
 
 ### STRM cancel + cmd_id fixes (Apr 25, commit `01b6be26e`)
@@ -1055,8 +1055,8 @@ bin/kimi-task without -next returns cached output but session keeps working in b
 New modules: `kimi.session.create` (extracted REST session creation), `kimi.session.reset_and_reconnect`
 (fresh session for `:next:` prefix), `models.handler.notify-online-reply` (dispatch after online confirm).
 `:next:` prefix: `models.task.execute` prepends to all prompts, `ask-reply` detects it, stores deferred,
-triggers reset_and_reconnect, ws_message dispatches after ready. `v7.notify_online` extended with `:start:`
-prefix (calls start_once before waiting). `models.task.execute` gates dispatch on `v7.notify_online :start:`
+triggers reset_and_reconnect, ws_message dispatches after ready. `v7-zenki.notify_online` extended with `:start:`
+prefix (calls start_once before waiting). `models.task.execute` gates dispatch on `v7-zenki.notify_online :start:`
 — prevents "route collapsed" on restarts. Kimi startup: `get_session_id` in start file (immediate online),
 `kimi.connect` via 0.5s timer (non-blocking for v7). Stale session verification via GET (handles 200+null
 and archived). Idle disconnect: no aggressive retry, reconnect on demand in `ask-reply`. Websocket
@@ -1360,8 +1360,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
   request-dispatch not first-byte; was reading as a contradiction
   against the data-start-timeout log line).
 
-#,,,.,,..,,.,,,,.,.,,,.,.,,.,,,..,,,.,,..,..,,..,,...,...,,..,..,,.,.,...,,.,,
-#IZ4376GS64X5PDH4GPN2ORWMZO3XUUL24NLERJUUNKNT7QO4M26JPHUP2ZIOQ4KJC7M2SUEG7FQ4S
-#\\\|ZPMXLATXVO2FKCBLW23H6Y4UJD5RDSSNILFB3CIHNHRMKPA3KCX \ / AMOS7 \ YOURUM ::
-#\[7]POSQ5PMEZCHHWHBUSOFMZ7KQ222IDFGTPCPULWTKYMYEB3JC6SBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,,.,,.,,,,,,,,,,,,,.,..,,,,.,..,,...,...,.,,,..,,.,.,.,,,,.,,
+#7XJEGNQFHZ7VZBOMNQNBQFB25ZMJHSTQRODFG2FHMJ2Z6KBQ3LF74HQGLQ4LGLN65UAZ2FLBUDBHY
+#\\\|XBDSJSSH2TZLFUTRX7WQ3DD6UATK7N52ULKWCZMZX3V5INOY2FJ \ / AMOS7 \ YOURUM ::
+#\[7]E6UL63OW7ES3BJEIUBIEH4LTKQTSOXB7AUJSKM7NW7LZ42MTROCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -178,7 +178,7 @@ Generate both header and a sample data row, then use the max length for separato
 | `system.process.init_code` | pid (center-1), state (center-2) |
 | `httpd.init_code` | added_at (center-1) |
 | `web.init_code` | client_id, status, depth, started_at, template_id, status, created_at (all center-1) |
-| `v7.init_code` | status (center-1), status (center-2) |
+| `v7-zenki.init_code` | status (center-1), status (center-2) |
 | `coding.init_code` | status, backend, amos-chksum-id (center-1) |
 | `index.init_code` | type (center-2) |
 | `menu-commands.init_code` | enabled (center-1), order (center-2), items (center-1) |
@@ -228,8 +228,8 @@ $table_string .= '  '  # 2 leading spaces
     . ' ';  # 1 trailing space
 ```
 
-#,,,,,...,,,.,,.,,...,,..,.,,,.,,,,,.,,,.,...,..,,...,..,,.,,,..,,,,,,,.,,.,.,
-#RLLYSBKIBJ7CISMO2PIMDFV662ZEXRN5SKM32DJIGOWRFBV6P3WVKNV75I56ZPPELVP3VWQKFJNDE
-#\\\|WJFC4K7C7H6FYSR3245UWDGXKEBI5D57C6EQUE6OSJGW2PSLGIY \ / AMOS7 \ YOURUM ::
-#\[7]57KBH4XGHZSOTG53XEICLT3HPYM7Y4YYYWTJWZSBOYGKX47CICAA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,.,,,,..,,.,,.,,,,,,,.,.,,,.,..,,...,...,.,,,.,.,..,,,,,,,.,,
+#5QF7KI2GJW67OEYTIJVP6QB2DNITL36X6JAH3GHEHPMQED2KHOG7SSAZKVAI6U6T7CB75JGTWAFRS
+#\\\|WNVVQ2LKFPKYVQAYYTTFUFGB6KS4HNTJXC3EVHI7FBAJEZFHRWU \ / AMOS7 \ YOURUM ::
+#\[7]FQBC223LD3OTX3ADHRSWGC46IGJX5S6N4HE4LUOTY6Y4A4EICKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

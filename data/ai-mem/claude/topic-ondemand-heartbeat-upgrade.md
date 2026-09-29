@@ -40,11 +40,11 @@ excluded from resetting `<base.ondemand.last_activity>`
 (`base.handler.command`), and `base.event.callback.io-idle-restart` arms
 the idle timer with the *remaining* time since last real activity instead
 of the full window every time — unconditional/automatic, no opt-in flag.
-(2) `v7.idle-term` (new `src/v7.zenka.cmd.idle-term`, cloned from
-`v7.zenka.cmd.restart_own-zenka`'s cube_sid→instance resolution) — an
-idling zenka asks v7 to terminate it via `v7.zenka.instance.stop`, which
+(2) `v7-zenki.idle-term` (new `src/v7-zenki.zenka.cmd.idle-term`, cloned from
+`v7-zenki.zenka.cmd.restart_own-zenka`'s cube_sid→instance resolution) — an
+idling zenka asks v7 to terminate it via `v7-zenki.zenka.instance.stop`, which
 sets `<zenka.instance.shutdown>` *before* killing the process so
-`v7.handler.zenka_status`'s override forces `shutdown` status regardless
+`v7-zenki.handler.zenka_status`'s override forces `shutdown` status regardless
 of what was computed, meaning no restart-on-idle-exit — race-proof by
 construction, no separate "unregister"/pre-stop-window step needed. v7
 replies `'deferred'` and deliberately never completes it on the accept
@@ -123,8 +123,8 @@ item from the original design remains unresolved; only its
 all need either a real bound discovered/added in code, or a genuine
 async refactor, before heartbeat can be safely turned on for them.
 
-#,,,,,,,,,.,.,.,,,,..,,,.,.,.,...,..,,,..,,..,..,,...,...,.,,,.,.,.,,,.,.,,.,,
-#N2SYEDI4FUGNUEB5IQ5FI5T3WNR3KRIYNVOWFEKZR4YQ2E4O6ZWEU4M3LOKALPBF6Q3VZU6VV2L4O
-#\\\|R6WPLUO22VUIYJH6EKUJTBNXO2UZ4XOPQGOYVRNKTKDG6BO35KH \ / AMOS7 \ YOURUM ::
-#\[7]AIDOJX32XT2SERSY4YR3NIGRUOTYKGWPAS3J3TM5EBIQFDGRI2CQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,..,,,,,,,,,,,..,..,,,,,,,..,.,.,..,,...,...,,.,,..,,..,,,,,,,.,,
+#WERGALAPRPMGE4T27LIPOVTBEU5GCLSIEF4QKQZZ5BKPDVCEZCYAPTZWAKK6IJML6ROBHBKELSPQQ
+#\\\|Z2FEKREQ2J3TXCF4A7I4ZIAHHWXAVAKSNT2GNFXPMQ3EFB4RQIF \ / AMOS7 \ YOURUM ::
+#\[7]SC2WV333ENHSLBKPWXVV4DX3S5V3P645IYDPPV2K63LTGIAOKUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

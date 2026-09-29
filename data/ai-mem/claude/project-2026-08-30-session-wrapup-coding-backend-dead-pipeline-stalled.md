@@ -37,7 +37,7 @@ than being killed — the pipeline is genuinely unblocked, not just
 appearing to work.
 
 **also fixed same session, smaller/related**: `base.callback.report_children`
-(the `v7.register_child` sender) was fire-and-forget with zero visibility on
+(the `v7-zenki.register_child` sender) was fire-and-forget with zero visibility on
 failure — added a reply handler (`base.callback.report_children_reply`,
 new file) that logs at level 0 on a `FALSE` reply. Doesn't fix the
 orphaning race itself, just makes any future failure-to-register visible
@@ -49,20 +49,20 @@ instead of silent.
   (reparented to init) — root cause not found, deliberately not chased via
   a destructive live-process core dump per user's call (see below). user
   has since restarted the backend.
-- `v7.sub-process.orphan_pids`'s `$ARG->pgrp == $GID` check compares a
+- `v7-zenki.sub-process.orphan_pids`'s `$ARG->pgrp == $GID` check compares a
   process-group id against `$GID` (real Unix group id via `English.pm`,
-  same convention as `$EGID` in `v7.zenka.start`'s privilege-drop code) —
+  same convention as `$EGID` in `v7-zenki.zenka.start`'s privilege-drop code) —
   wrong quantity entirely, AND even fixed to compare v7's true pgid, would
   never catch any descendant deliberately `setpgid`'d into its own process
   group (confirmed `coding.spawn_inference_server:488` does exactly this,
   same pattern used this session in `site-yaml.async_fetch.spawn`/
   `povray.spawn_render`). top-level zenka processes (`coding`, `jobsite`,
-  etc.) don't need a separate fix for this — confirmed `v7.zenka.start` has
+  etc.) don't need a separate fix for this — confirmed `v7-zenki.zenka.start` has
   no `setpgid` calls, so they still inherit v7's own process group by
   default; only setpgid-isolated grandchildren (inference-server-style
   workers) are structurally invisible to this check.
 - the fork→registration async round-trip (`base.callback.report_children`
-  → cube → `v7.zenka.cmd.register_child`) has a real, if small, timing
+  → cube → `v7-zenki.zenka.cmd.register_child`) has a real, if small, timing
   window where a child process exists but isn't yet known to v7 —
   registration send is genuinely fire-and-forget (now at least logs
   failure, see above, but still no retry).
@@ -70,8 +70,8 @@ instead of silent.
   bare pid) to make cleanup on both `coding`-zenka-restart and
   `v7`-zenka-restart fully reliable — deliberately deferred, "can be
   postponed until the already obvious things are addressed."
-- `v7.zenka.instance.restart` (single-zenka `v7.restart <name>`) and full
-  `v7.teardown` were both read in full this session and confirmed to
+- `v7-zenki.zenka.instance.restart` (single-zenka `v7-zenki.restart <name>`) and full
+  `v7-zenki.teardown` were both read in full this session and confirmed to
   correctly TERM+KILL-escalate registered children when given a live
   target (user had this right, my initial claim otherwise was wrong and
   retracted) — NOT the source of any remaining gap on their own.
@@ -149,8 +149,8 @@ this exact failure mode, before reaching for gdb again.
   mid-session, not left in any task file or dispatch prompt in its wrong
   form.
 
-#,,..,,,.,.,,,,..,.,,,,,.,,..,.,.,,,.,..,,..,,.,.,...,...,.,.,..,,,,.,,..,,,,,
-#3N3VQFSMH7COOLUCYBRVZB6SA46I32P7ZYDTWD4W2LBMDLLNX6TGKJ3UVC5LDKGEMO5BBF4KKHNWW
-#\\\|HVMZXIYBKN54XIROS4KNE4BQPIFK6QYYC3UER5M2OV4IHAGDHSI \ / AMOS7 \ YOURUM ::
-#\[7]KQM4AH3YCLS63LFVHPKIFPMJAX5YAEF5W5ZFJNOGKMXOMYX52SBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,.,,.,.,,..,..,,,.,,,,,,.,.,.,.,...,..,,..,,.,.,...,,..,,,.,
+#AODHAZRIF5I5MP6XVC5DL5TFWDCURKY23SV5JWJ6E45YEUSMYWEORFA2FJNJYXHFTCXS6DAKEY6ZM
+#\\\|TGA5ZAXNGKZKM2BWW5WRZAJPLNTOC53CD3LKZBEJPXNFXG4T5RX \ / AMOS7 \ YOURUM ::
+#\[7]KSRTLEFX7LJMGYFCT3SZMAECGEV2MV7LZ4T75QUK35WGGBFWWCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ detection overhaul + auth.client split), both on `base`.
 - `base.code.call_expected(condition, name, @args)` — call only if
   condition true; if condition true but sub still missing, logs a real
   error (loud) — for cases where reachability genuinely guarantees
-  presence (e.g. `<[base.mod.exists]>->('v7')` before `v7.teardown`).
+  presence (e.g. `<[base.mod.exists]>->('v7')` before `v7-zenki.teardown`).
 - `base.code.call_optional(name, @args)` — call if present, silent skip
   if not — for genuinely best-effort/optional integrations, no
   expectation either way.
@@ -100,8 +100,8 @@ one file.
   used throughout, and [[feedback-ncode-tools]] for a tooling caveat hit
   during the `auth.client` config sweep.
 
-#,,..,,,.,,,.,,.,,.,,,,,,,.,.,..,,,.,,,,,,,.,,..,,...,...,.,,,.,,,.,,,,.,,.,,,
-#4ASPIDSX5AHS7KEBXUUNRMCPOBPBVVLJH7ZTZBZ5MMGG4SDHO3HD6Z2FAQTL6O6CW5HRKCXC4FPSK
-#\\\|ZO2ZS45S5YPV5PS3FURMPOJSGLHZT44WT7UVEFCKR2JYQUSYEIK \ / AMOS7 \ YOURUM ::
-#\[7]JVCUJIDGHRKBLT66OV5EW3KKKGHS5IQFJL22APDQHXUELGZNFYCY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,.,,...,..,,,..,..,,.,.,,,.,..,,...,...,,,.,..,,,,.,.,.,,..,
+#KYIQW4DWSPVKLXVJ7FTIZDFRMQESTMWEURPDKNSMIHAHFUCIVYHUMBN2TUNISJ22ZSDSBMC2XCVZO
+#\\\|KSJ7SUVA63ZQS35VKHZ6YRVKHMPMUZ2QWQIZFSSZKH4Z5LCWZP6 \ / AMOS7 \ YOURUM ::
+#\[7]RLJP6WFXPH5MOMBS5PCKQZ3FBZTPFPWGGD7IPUYY7CNO44JB3EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -179,7 +179,7 @@ per-client X11 grab:
   (right after the closed window's own destroy). Result: mouse input
   broke on EVERY window, including ones that had never been touched.
   Reverting the code did NOT fix the now-broken live process — needed
-  `v7.restart` of the affected zenka (no effect), a Windows
+  `v7-zenki.restart` of the affected zenka (no effect), a Windows
   `explorer.exe` restart (no effect), and finally a **full Windows host
   reboot** before it recovered. Lesson: don't chain a destroy and a
   recreate synchronously in the same call under this stack when
@@ -204,8 +204,8 @@ per-client X11 grab:
 
 [[topic-tile-window-place-hybrid-desktop]] · [[topic-gtk-wsl-window-positioning]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,.,.,.,...,,,,,..,,,.,,...,,.,,,.,,.,.,,,.,..,,...,...,.,.,..,,..,,.,.,,,.,
-#QALTA4SGET2YKJPIJAUCZ3LQO7WHCY2U45H5ZV6JTOXRTJ4NPRD2HXMEADIWCV7OTTTF3DWKPDSTQ
-#\\\|3YQ2ZZEN6QCZ4TAJR52UUOEKHUJDOI57RQVTGHYRCQCRWTVU3L7 \ / AMOS7 \ YOURUM ::
-#\[7]HNM4LQPTGRNQMR7TZGDU4YI4JV3ZRPBDLNRZDH54OZMBHT6HUIBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,.,,,,,,.,,,.,,,.,,.,.,...,.,.,..,,...,...,.,,,...,,,,,,,,,,..,
+#6NBGIMP3WRBRLMV6L2ZT7IMKRH3XZ6VUIA65GMMVQ4V25ZOUDSN6XQ4NP3X6XZKKBJZN7JYPNG7GE
+#\\\|NO35AFY27D6O6FOGCFTH3YFABVPT3VQGEZSSD5EYGK3SVTAPK6D \ / AMOS7 \ YOURUM ::
+#\[7]7S477TNEDRYUBVOECYAMKOXVLBJDGWKVEGO2JTRUJ2VV3J7XV2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

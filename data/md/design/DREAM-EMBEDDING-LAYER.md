@@ -65,7 +65,7 @@ idle:     the same resources, now generating dreams conditioned on
 ```
 
 the idle detection already exists (watch_tiles.inactive_timeout,
-v7.stop_implicit). the dream generation is the productive use of
+v7-zenki.terminate-implicit). the dream generation is the productive use of
 that idle capacity rather than letting it expire unused.
 
 dream generation rate scales with idle depth:
@@ -456,8 +456,8 @@ with everywhere it has been. [:
 - [[EMBEDDING-INFRASTRUCTURE-TRACK]] — dream embeddings as
   the deepest capability row in the shared pipeline
 
-#,,,.,,,.,.,,,,..,,,.,.,,,,,.,,,,,.,.,,,.,.,,,..,,...,...,...,.,.,,,.,.,.,..,,
-#UMTTA76IZTSGRBQZICS64VGZ4LP2HY2A7K4ATYB23MIPRN6GISYKYP2XU2Q5OSQTMNZYGDAXKDQT6
-#\\\|DE76SJNDQ2MC24MBETJXZBFRFW7UGJJ2YYY3V6AQOODYHNM6YNU \ / AMOS7 \ YOURUM ::
-#\[7]Q7YA7QOXJZ4AY42HVSXV57HGCLKSRCNZEY5PGIWNHAK5DLTJL2BY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,..,,,,,,,,,,..,,,.,,..,,.,,,..,,...,...,,..,...,...,,,.,,.,,
+#K7YIJRLHX4L2FHE5BTLC3JG7Z3JE7JRELVZK7P7CS7Z6DUJKSZO6NAYGAVIDQ4O5MBONOECNEJG5G
+#\\\|RV7F2QRPBWWBIZTYOFWQ744W2J5ADHMAUAEKPSBWHWXUADQAXXP \ / AMOS7 \ YOURUM ::
+#\[7]X7ZOJV5IGDXLYQHAC55JSNMUJTGJLZGC33JPMZ3NC6B2GYWW5UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

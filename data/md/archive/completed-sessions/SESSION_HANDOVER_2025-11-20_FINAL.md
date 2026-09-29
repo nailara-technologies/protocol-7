@@ -92,7 +92,7 @@ path: '[protocol-7]/data/yaml/coding-tasks/task.yaml'
 **For v7-started zenka (e.g., cube):**
 ```
 1. zenka/cube starts (running as root)
-2. v7.zenka.start spawns child process via IPC::Open2
+2. v7-zenki.zenka.start spawns child process via IPC::Open2
 3. crypt.C25519.init_code runs:
    - Detects is_v7_started() = true
    - Reads <system.amos-zenka-user> = 'protocol-7'
@@ -268,8 +268,8 @@ If issues arise:
 **Session Status:** ✅ COMPLETE & CLEAN
 **All Changes:** ✅ COMMITTED, ✅ TESTED, ✅ SIGNED, ✅ PUSHED
 
-#,,.,,,,,,.,.,.,.,,..,,,,,.,,,.,.,,.,,.,,,,.,,..,,...,...,..,,,,.,.,.,,.,,..,,
-#2XES2K5VC4KSQGNQPTJLPZQTLA2EQHQBCDNFLVLAG5LD62ZC6NV2QPPGVC7QLDPIHSBOP5A4I2QIK
-#\\\|XKRC3GJYSQD2C3DPNRZA5EMLRWAVHSZGFP6NBB3DEACGWIOCLOP \ / AMOS7 \ YOURUM ::
-#\[7]XX2KIDZZMLHM2YUEQTDFINREIWSXQKCJNN5I53QWSCOYTX7QMSDQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,..,,,.,,.,.,...,,,,,,.,,,.,,.,.,..,,...,...,,.,,.,,,,,.,,.,,,.,,
+#B4XRTOSY362F2FH5IGEV4OCQYD5WK7BJOLL7ZU6CM6DKVD4UTGOU6WDFQXHPJNXOMGF5FPIPCI52E
+#\\\|NJIC4YVZSHGVVUBSUAQBWWOTKWI543L27U2RNWB2MGYAVG774XG \ / AMOS7 \ YOURUM ::
+#\[7]3AWTVH63GD5JEOFOQZCSQPJET5QOR5CBGKRBXCF6C76J7ACLQIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,7 +44,7 @@ separate, additional way the same symptom can show up.
 
 **What `swap_subs` is actually for, corrected 2026-09-18** — it was NOT originally written for
 zenki to reuse each other's modules (an earlier draft of this note wrongly framed it that way,
-citing `v7.zenka.*`→`zenka.*` and a guessed `cube-13`/`cube.*` example — the latter unverified,
+citing `v7-zenki.zenka.*`→`zenka.*` and a guessed `cube-13`/`cube.*` example — the latter unverified,
 dropped). The original design purpose is **alternate implementations of one namespace**: a
 higher-level namespace like `event.*` normally gets populated by `base.event.*`, but an alternate
 backend module can swap_subs itself in as a drop-in replacement instead. Real example,
@@ -59,7 +59,7 @@ work the same way). It was deliberately kept flexible enough for other uses too,
 **the main use today** is the different, simpler pattern of shortening a longer on-disk namespace
 into a shorter live one with *implicit* loading — e.g. `base.file.*` installs to `<[file.*]>` so
 every zenka gets `file.*` for free without needing `file` added to its own `modules.load`. This is
-almost certainly what `v7.zenka.*`→`zenka.*` actually is too (an instance of this shortening
+almost certainly what `v7-zenki.zenka.*`→`zenka.*` actually is too (an instance of this shortening
 pattern within one zenka's own namespace), not cross-zenka module reuse.
 
 **This specific incident, verified, corrected 2026-09-18** — checked directly: both
@@ -98,8 +98,8 @@ further in the interim mechanism ahead of that. See
 [[feedback-init-phase-idempotency-is-a-hard-invariant]] for why relying on `reload init` in the
 meantime is safe by design, not a workaround.
 
-#,,,,,,..,,,.,,.,,,,,,,,,,,.,,,.,,.,.,,,,,,..,..,,...,..,,..,,,.,,..,,,,,,...,
-#5RHBIMPXURCKI27ULEK2WXMS35RV3ANILGC6H5SHGM5KF6VUJRJCVAXXMLZPYR72HXAX4E3FFSWLI
-#\\\|NKWRFTNRSHQJTX3GTOHPMXNPXCQ2VFUSA6UIBKY73Y4PEQOJFJ7 \ / AMOS7 \ YOURUM ::
-#\[7]ZK7Y5SSKO2IKYM5URIKHFR5MZNPMW2DIPRH3IBDXTY4K5USIIKBQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,,.,,...,,,.,,.,,.,.,.,.,,,.,..,,...,...,,,.,.,.,...,.,,,.,,,
+#MPFM2LTK4JPGPC2VNCOIPE2PF6JUW3IUSNOD57SLXECNJZFMAVADTM7WRR2YEJWMRYNU7642IGBAA
+#\\\|I2OGDF3RMFOQRO25OJDACDVKAESHEGS4SNVTAODP3N54F5ROVIP \ / AMOS7 \ YOURUM ::
+#\[7]YQPZX7MRSGXMJQDCZJCOUSG2L5TAGKTLEIDUFIXHM2SCH4R3A2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
