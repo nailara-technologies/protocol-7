@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = invoke-web.api_async
+# descr  = non-blocking request to the local invoke.ai rest api [ through
+#          clients.http.request ] -- the reply arrives in <handler> as
+#          { ok, status, data [ decoded json | raw body ], error, params }
+# param  = method, path [ '/api/v1/..' ], [ payload : perl structure, sent
+#          as json | undef ], handler [ sub name ], [ params hashref ]
+# note   = use this from timers \ event handlers : invoke.ai answers slowly
+#          while it loads models, a blocking request stalls the zenka
+
+my $method  = uc( shift // qw| GET | );
+my $path    = shift // '/';
+my $payload = shift;
+my $handler = shift // return undef;
+my $params  = shift // {};
+
+my %headers = ();
+my $body    = '';
+if ( defined $payload ) {
+    $body = JSON::PP::encode_json($payload);
+    $headers{'Content-Type'} = 'application/json';
+}
+
+return <[clients.http.request]>->(
+    {   'method' => $method,
+        'url'    => sprintf( '%s%s',
+            <invoke-web.url> // 'http://127.0.0.1:4707', $path ),
+        'body'    => $body,
+        'headers' => \%headers,
+        'timeout' => 20,
+        'on_done' => qw| invoke-web.handler.api_reply |,
+        'params'  => { 'handler' => $handler, 'params' => $params },
+    }
+);
+
+#,,.,,.,,,.,.,,..,...,,.,,,.,,.,.,.,.,,,,,,..,..,,...,...,,..,.,,,,,,,..,,..,,
+#YMNBLDE5HTF2IG4XWX5A5RLN6VXXGNE5CRQYCNR6MWA2FQS4Z5BFMOUFU72VKCN2UB6IXWOZ6QLV4
+#\\\|WDPOE3UPEXSBWMRKMSJOHGYNWVLBRO23TO33ETNKOCM4T2T7O43 \ / AMOS7 \ YOURUM ::
+#\[7]4FMJCQHBHJ75CS4YVSLQQPUZMAL4MYSRMU6EJFU5DNUKK6JNN6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

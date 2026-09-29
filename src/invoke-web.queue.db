@@ -7,8 +7,8 @@
 #          item, while invoke.ai runs
 # return = dbi handle | undef
 
-## reuse the open connection [ the interactive queue watch calls this ##
-## every few seconds ; DBI itself is loaded once in init_code ]       ##
+## reuse the open connection [ the interactive queue watch calls this every ##
+## few seconds ; DBI itself is loaded once in init_code ]                   ##
 my $cached = <invoke-web.queue_dbh>;
 return $cached if defined $cached and $cached->ping;
 
@@ -20,20 +20,21 @@ if ( not -f $db_path ) {
     return undef;
 }
 
-my $dbh = DBI->connect( "dbi:SQLite:dbname=$db_path",
-    '', '', { 'RaiseError' => 0, 'PrintError' => 0, 'AutoCommit' => 1 } );
+my $dbh = DBI->connect( "dbi:SQLite:dbname=$db_path", '', '',
+    { 'RaiseError' => 0, 'PrintError' => 0, 'AutoCommit' => 1 } );
 
 if ( not defined $dbh ) {
     <[base.logs]>->( 0, 'queue db connect failed [ %s ]', $DBI::errstr );
     return undef;
 }
 
-$dbh->sqlite_busy_timeout(3000);    ## invoke.ai writes concurrently ##
+## short : callers run in the event loop, a missed read is retried next tick ##
+$dbh->sqlite_busy_timeout(500);
 
 return <invoke-web.queue_dbh> = $dbh;
 
-#,,..,,.,,.,,,,,.,,,,,,.,,,.,,...,,,.,,..,,,,,..,,...,...,..,,..,,,..,,,,,,,.,
-#FVBLOQC2ZF7YBAUK3LV4I7AM3BYZRA3JJ6M3QL34RSM6MEHOFARF4477XOOPKJ25IERWOYS54243E
-#\\\|CRONS6XUWYMVKTLZPM6TXTV6GDVW7LF7PDCOMHRRPWXPH2B2NOS \ / AMOS7 \ YOURUM ::
-#\[7]XSFIDC34WQHZJHLUNMWVYFKXNTYEGC3NM372KQOO7UWVRUT4A4CI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,,.,,.,,,,..,..,,,.,,,,,,.,,,..,,...,...,,,,,.,.,,..,..,,,,,,
+#IRQE7SEA4ME6KLOGIJN7V4LDSCW3N4ZB6OTIV6RFW65MPALQ52IO75JTJIEHUAWDSHQK7ZRDP5SW6
+#\\\|BKQXJWCTYJWZGN7MGBWQ4ARVSQY5ID4RB7QCPBWTNIXBIZ5UXGM \ / AMOS7 \ YOURUM ::
+#\[7]YRSLOMYSM3IGM2PIGQLB25O6JDC6X6QXHXTQ45AR7NAUU3LUCMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
