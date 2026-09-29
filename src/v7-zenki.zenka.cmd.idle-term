@@ -46,7 +46,8 @@ my $zenka_name   = <v7-zenki.zenka.instance>->{$instance_id}->{'zenka_name'};
 my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name} // {};
 
 unless ( ref $zenka_config eq qw| HASH |
-    and <[base.cfg_bool]>->( $zenka_config->{'start'}->{'on-demand'} // 0 )
+    and
+    <[base.cfg_bool]>->( $zenka_config->{'start'}->{'on-demand'} // FALSE )
     == TRUE ) {
     <[base.logs]>->(
         1, 'idle-term: %s is not an on-demand zenka, rejecting', $zenka_name
@@ -82,8 +83,8 @@ delete <base.cmd_reply>->{ $call->{'reply_id'} };
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,,..,,..,.,.,.,.,,..,,..,,,.,,.,,.,.,..,,..,,...,...,..,,,.,,,,.,.,,,.,,,
-#QSI4NGJMQNSUVJZQZX4OHJD7L6PCO7CNWS7BWC6MEFMIXTVAXT5YYEI676TL327KF6CDKTH4L5HW4
-#\\\|OI7C566AM2U6DCNEROUTUM6GOQT5YIWU5EVCXN4H57ZKZD6QGMY \ / AMOS7 \ YOURUM ::
-#\[7]PSD72ZQFKQEYJOXNPP656P5Y6BXJMB4ZVWGWZJFGQQKJINRVIEBI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,..,,,,.,,..,...,..,,.,,,...,..,,...,..,,,,,,...,...,.,.,,,,,
+#2CBGG5I6O7PTXTIH6YRUWL2FHB3IYR6KZ4NNLYCDMTVPVSVGMVTVGH7ZIMNU7ZSG6K2PM4VRXREQW
+#\\\|NO73PGWT62U64C5EVN6VYPDPIYF7HFTOBRLWAEBADDSFKO6RP55 \ / AMOS7 \ YOURUM ::
+#\[7]7FISXEDOCBH3DR3UJPBYSEHLZHUPZGG22AY7474IVWV5CVWSZKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
