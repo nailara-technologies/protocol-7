@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = invoke-web.cmd.session-park
+# descr = park the pending queue as a named session
+# param = <name> [ manual | empty | cold ]
+
+my ( $name, $mode ) = split m|\s+|, $call->{'args'} // '';
+
+return { mode => qw| false |, data => 'expected : <name> [ manual|empty|cold ]' }
+    if not defined $name or $name !~ m|^[\w.-]+$|;
+
+$mode //= qw| manual |;
+return { mode => qw| false |, data => 'resume mode : manual | empty | cold' }
+    if $mode !~ m{^(?:manual|empty|cold)$};
+
+my $count = <[invoke-web.session.park]>->( $name, $mode );
+
+return { mode => qw| false |, data => 'session park failed [ see log ]' }
+    if not defined $count;
+return { mode => qw| false |, data => 'no pending items to park' }
+    if not $count;
+
+return {
+    mode => qw| size |,
+    data => sprintf( "session '%s' parked [ %d items, resume : %s ]\n",
+        $name, $count, $mode )
+};
+
+#,,,,,.,.,,,,,,.,,...,..,,..,,,..,,.,,.,,,,..,..,,...,...,...,.,,,,,.,.,,,...,
+#2G23YM3MDQU2TCTNOPFQI63QQFY4LCETRT6W227KEZQ2DKKUDIV5TZWB6J2BYAUM4A5RNNKV3B6JE
+#\\\|DONRX32BJZVYM6YWZKD3LCZPUSK2I55DX7DLZJPRRGXU7TYEGE2 \ / AMOS7 \ YOURUM ::
+#\[7]SVTHE64S23LHJOJUELZVOPDOMZ4VYYKMR3GF7JRNVAHWAMQYU4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = invoke-web.handler.start_guard
+# descr = start invoke.ai once the memory guard is satisfied
+
+my $event = shift;
+
+## wait cancelled [ force start ] : disarm the timer ##
+if ( not defined <invoke-web.start_waiting> ) {
+    $event->w->cancel if defined $event->w;
+    delete <invoke-web.timer.start_guard>;
+    return FALSE;
+}
+
+## re-check the same dependency objects cmd.start gates on [ coding zenka ##
+## memory_system \ memory_gpu callbacks : free RAM \ VRAM ]               ##
+my $ram_dep = <invoke-web.dep.memory_system>;
+my $gpu_dep = <invoke-web.dep.memory_gpu>;
+
+if ( not defined $ram_dep or not defined $gpu_dep ) {
+    <[base.logs]>->( 0, 'start guard : dependency objects missing, abort' );
+    $event->w->cancel if defined $event->w;
+    delete <invoke-web.timer.start_guard>;
+    delete <invoke-web.start_waiting>;
+    <[base.zenki.resume_ondemand_timeout]>;
+    return FALSE;
+}
+
+my $ram_ok = <[dependency.ok]>->($ram_dep);
+my $gpu_ok = <[dependency.ok]>->($gpu_dep);
+
+if ( not $ram_ok or not $gpu_ok ) {
+    <[base.logs]>->( 2, 'start guard : memory still short, waiting' );
+    return FALSE;    ## timer continues ##
+}
+
+## satisfied : disarm and start [ cmd.start re-checks the guard itself, a ##
+## memory drop in between simply re-queues the wait ]                     ##
+$event->w->cancel if defined $event->w;
+delete <invoke-web.timer.start_guard>;
+delete <invoke-web.start_waiting>;
+
+<[base.logs]>->( 1, 'start guard : memory satisfied, starting invoke.ai' );
+
+return <[invoke-web.cmd.start]>->( { 'args' => '' } );
+
+#,,,,,,,,,...,..,,,..,.,.,...,..,,.,.,...,,,.,..,,...,...,,,.,.,,,,..,.,,,..,,
+#EYNESP6RLL3RVEBYZ3HIFVDAXT2BNCJFKFQWRGB2PEJBY7PMQOHGWWBG2EDNIWT2D2PFXJFACGCVI
+#\\\|22SLDYVCBNYTRS672CUKT5KWF4MRRAD3G4GKUH2WYIHP4BZJTQY \ / AMOS7 \ YOURUM ::
+#\[7]7DQ5XBAUF5UN3ALD6YSCVKA4DEZPXBTSVVPBEEQP47ACHDNMEWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

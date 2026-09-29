@@ -1,0 +1,49 @@
+## [:< ##
+
+# name   = invoke-web.session.resume
+# descr  = resume a parked session : restore each item's stored priority
+#          [ items no longer pending are skipped ] and forget the session
+# param  = name
+# return = number of restored items | undef [ unknown session or error ]
+
+my $name     = shift // return undef;
+my $sessions = <[invoke-web.session.store]>;
+my $session  = $sessions->{$name};
+
+if ( not defined $session ) {
+    <[base.logs]>->( 0, "session resume : no parked session '%s'", $name );
+    return undef;
+}
+
+my $dbh = <[invoke-web.queue.db]> // return undef;
+my $sth = $dbh->prepare( 'UPDATE session_queue SET priority = ? '
+        . "WHERE item_id = ? AND status = 'pending'" );
+
+my $restored = 0;
+$dbh->begin_work;
+foreach my $item_id ( sort { $a <=> $b } keys $session->{'items'}->%* ) {
+    my $rows = $sth->execute( $session->{'items'}->{$item_id}, $item_id );
+    if ( not defined $rows ) {
+        <[base.logs]>->( 0, 'session resume : update failed [ %s ]', $dbh->errstr );
+        $dbh->rollback;
+        return undef;
+    }
+    $restored += $rows;
+}
+$dbh->commit;
+
+delete $sessions->{$name};
+<[invoke-web.session.store]>->($sessions);
+
+<[base.logs]>->(
+    1, "session '%s' resumed [ %d of %d items still pending ]",
+    $name, $restored, scalar keys $session->{'items'}->%*
+);
+
+return $restored;
+
+#,,.,,,,.,,.,,,,.,,..,.,,,,,.,..,,.,,,.,.,,.,,..,,...,...,...,...,...,,..,,.,,
+#XAOND7R5VGGNZMXTXAM72W43W3M3RMQ7VD2D4XCT5U53W4DWOHTQJZMFVKTQBEEUM265F7E3E757E
+#\\\|K2WYZK75T5AM6VAJ6BC43I5QLM73MXFP2KINUINZJJGGWPOGDBZ \ / AMOS7 \ YOURUM ::
+#\[7]HTXXDMGLKYDEVMTVEKJP373ZNPSQ57F5STNXYBOWWQJINDO7BIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,62 @@
+## [:< ##
+
+# name   = invoke-web.session.park
+# descr  = park the pending queue as a named session : store each item's
+#          priority, move them far below anything new [ nothing leaves the
+#          queue ; in_progress and already parked items stay untouched ]
+# param  = name, [ resume mode : manual | empty | cold ]
+# return = number of parked items | undef [ error, logged ]
+
+my $name = shift // return undef;
+my $mode = shift // qw| manual |;
+
+my $offset   = <invoke-web.session.park_offset> //= 1000000;
+my $sessions = <[invoke-web.session.store]>;
+
+if ( exists $sessions->{$name} ) {
+    <[base.logs]>->( 0, "session park : '%s' is already parked", $name );
+    return undef;
+}
+
+my $dbh   = <[invoke-web.queue.db]> // return undef;
+my $items = $dbh->selectall_arrayref(
+    "SELECT item_id, priority FROM session_queue WHERE status = 'pending' "
+        . 'AND priority > ?',
+    { 'Slice' => {} },
+    -$offset / 2
+);
+if ( not defined $items ) {
+    <[base.logs]>->( 0, 'session park : read failed [ %s ]', $dbh->errstr );
+    return undef;
+}
+return 0 if not @$items;
+
+my $sth = $dbh->prepare('UPDATE session_queue SET priority = ? WHERE item_id = ?');
+$dbh->begin_work;
+foreach my $item (@$items) {
+    next if $sth->execute( $item->{'priority'} - $offset, $item->{'item_id'} );
+    <[base.logs]>->( 0, 'session park : update failed [ %s ]', $dbh->errstr );
+    $dbh->rollback;
+    return undef;
+}
+$dbh->commit;
+
+$sessions->{$name} = {
+    'parked_at' => <[base.time]>->(0),
+    'mode'      => $mode,
+    'items'     => { map { $ARG->{'item_id'} => $ARG->{'priority'} } @$items },
+};
+<[invoke-web.session.store]>->($sessions);
+
+<[base.logs]>->(
+    1, "session '%s' parked [ %d items, resume : %s ]",
+    $name, scalar @$items, $mode
+);
+
+return scalar @$items;
+
+#,,..,.,.,,.,,..,,,.,,.,,,.,.,,.,,,,,,.,.,.,,,..,,...,...,..,,...,,.,,..,,,.,,
+#6FMCHFUNDYEHB7KWAXYFOFOUN3TS3JRU5RXC5O6CXHIB2GK2TTN2OP52JUJA7LBGC5VV7UCERGDEW
+#\\\|WQGU6AZRUMZFB64UL3L7HTRLKISC3DENW4GPWTZ5LLHGDDHBMZ2 \ / AMOS7 \ YOURUM ::
+#\[7]JFHHMULDE2GLG57XDA6HUIQSXINA3GJCOVXUKORULAQ6TULLQKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
