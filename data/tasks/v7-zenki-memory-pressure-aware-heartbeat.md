@@ -57,8 +57,48 @@ over a threshold + a short-term load value, not a single reading ].
 - host side : `vm.swappiness` 60 -> 10 keeps zenka memory in ram and
   drops model file cache first [ root, user decision ]
 
-#,,,.,,,.,,..,...,.,,,.,,,.,.,.,,,...,,..,,,,,..,,...,..,,..,,,..,...,.,.,,,.,
-#DXMWLQNFM6B5EPE7EV4WWNRCJPUE6J3A3PLQYXIT7VXE4WLO7J5HAR74Q7GZB5CD4TU2OGWSDRV7Y
-#\\\|VDZYOUTHBO7IDE2Y2HNXZA7LBLZP3CY6C6NZVZWNVCGJPBM6I77 \ / AMOS7 \ YOURUM ::
-#\[7]J2EN3BOOFHKW5T3DRRTOP22N4FI6HCSIDB2W46AL43TBWZNQEADA 7  DATA SIGNATURE ::
+
+## state 2026-09-30 [ pieces 1, 2, 3, 6 done ]
+
+- done : sampler + levels [ 4d8fe31e2 ], elevated from avg60, leave after 13
+  samples, short level log [ 6eabe182c ], heartbeat extension under
+  pressure [ 6eabe182c -- extends 3x \ 6x 17s at the moment the timeout
+  fires, also when the latest avg10 already crosses critical ], verified
+  live 2026-09-30 [ 'heartbeat late under critical memory pressure --
+  waiting [ 1 \ 6 ]' instead of a restart ]
+- config : cfg/zenki/v7-zenki/pressure.cfg [ heartbeat_ext.secs \ elevated
+  \ critical ]
+- seen live : model loads push `mem full avg10` to ~19 ; invoke.ai + coding
+  [ 9B, -ngl 27 ] together keep the host at elevated \ critical for long
+  stretches -- that is the normal working state now, not an exception
+
+## next : pieces 4 + 5 [ for a kimi dispatch ]
+
+4. restart gate : while the level is critical, a zenka restart requested by
+   `init_restart_timer` [ error path ] is deferred, not dropped : queue it,
+   re-check every sample, run it when the level leaves critical or after a
+   max wait [ config, e.g. 300s ]. log once per deferred zenka. manual
+   restarts \ starts are NOT gated [ the user decides ]
+5. start gate : on-demand starts and start-set-up autostarts go one at a
+   time while elevated \ critical, with a sample in between ; on a host with
+   a small MemAvailable [ atom, 1G ] each start waits for MemAvailable above
+   a per-zenka estimate [ below ]. v7-zenki.zenka.cmd.start is the entry
+   point for on-demand, v7-zenki.autostart_zenki for the set-up
+6b. per-zenka memory estimate : the system zenka samples rss + swap of
+   every zenka process [ /proc/<pid>/status VmRSS \ VmSwap, children
+   included ] and keeps a per-zenka-name peak \ average across runs
+   [ state file, survives restarts ]. v7-zenki asks it [ or reads the state
+   file ] for the start gate. `<v7-zenki.pressure.zenka>` was reserved for
+   this in piece 1
+
+rules for the dispatch : read data/ai-mem/claude/feedback-llm-fix-regressions-pattern.md
+first [ generic paths : list every caller ], no idle \ timer loops without a
+bound, start.cfg changes currently only take effect after a v7-zenki restart
+[ cause open, data/tasks/v7-zenki-start-setup-runtime-reload.md ] -- test
+on mod-test with a v7 restart until that is solved
+
+#,,..,...,.,,,,.,,,,.,,.,,,..,,,,,,,,,,.,,,..,..,,...,...,.,,,.,,,,,,,,..,.,.,
+#J4Q2OIBGMAF7AQYJB2DP5BP3GUC3ZDZRR35E3LF6SJ4LLUXCBIVBFMZ5VVHDPAGSQXSZDFGWAGM4Y
+#\\\|3YDRZR7TZZZWTXRBYGVIOEJ6XPFEFA33YBSFMDXITHJMNVVAC4A \ / AMOS7 \ YOURUM ::
+#\[7]EWKYQGT2GNFMHYNS3Y4LJLIUTMVHGKOZYAELVWOQ4VGF2ONDWCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

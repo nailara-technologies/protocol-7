@@ -31,12 +31,14 @@ starting generic changes before explaining why other zenki worked ].
 - read the fix history of the path for storm \ race fixes a change must not
   undo [ e.g. 494791f15, the log storm fix ]
 - test every scenario type the history names, not only the reported one
-- one-shot mechanisms [ init_reports, callbacks.initialized, verify-instance,
-  start setups read only at v7 start ] are the usual trap : anything queued
-  after they fired is silently never processed
+- one-shot mechanisms [ init_reports, callbacks.initialized, verify-instance ]
+  are the usual trap : anything queued after they fired is silently never
+  processed. [ start.cfg changes not applied on a v7-zenki reload look
+  similar, but the files ARE re-read -- cause open, see
+  data/tasks/v7-zenki-start-setup-runtime-reload.md ]
 
-#,,..,,.,,,,.,,,.,...,.,,,,,,,,..,,,.,.,.,.,,,..,,...,...,...,.,.,.,,,,,,,.,.,
-#BJATPY2EKHB6L5CCRENT65HUAXKYPHGZ3H6MIAKC3IGGRW5K3V74WDO4FD6TB2ZU7VLO4GTH7VR7A
-#\\\|AUORA3E4APNVR6KCI3WRPHJXUXSVTBZPG3IMBS54POUECCGV77H \ / AMOS7 \ YOURUM ::
-#\[7]T4VLJUD7P425ZHA5UAELQC2H64Z6G2NFUGONBROQHXNGJNN5G4CI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,.,,,..,,.,.,.,.,...,,,,,,,.,..,,...,...,,,,,,,,,.,,,..,,...,
+#IVB45S6AL4T6D56IPG6VSILY5TF6DNOZOWMKN6CVOWWLVV3U4USKQYNTRFMDPKVQIIKPSWFS4BMRQ
+#\\\|ZLTZX4H7KVDZVYJDJ4PVKP57YF3KHER6FQ2UUOMINDESV5O77ZN \ / AMOS7 \ YOURUM ::
+#\[7]3CWLHGAW6NKT3N5ALR3U2UCDYXQWPEGQHAUU7TIQE3G5EIDOZWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
