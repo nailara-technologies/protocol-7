@@ -59,11 +59,24 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
 syntax only. named subs in bin/Protocol-7's main:: are a transitional state
 to convert : data/tasks/bin-protocol-7-main-subs-to-modules.md
 
+**in flight at ~11:00 2026-09-30** :
+- kimi REVIEW of 98da67302 \ e697008ad \ ab0d22e5b \ 554362c1c [ read-only,
+  session adf6c425-6ac9-490c-acbc-c76c217a66c7 -> kimi_check_status ] --
+  check its findings, each needs a concrete failure scenario
+- bin/format-code : `use warnings` + P7 modules compiled as a sub body like
+  the loader [ uncommitted, needs signing ]. first attempt flagged 38 files,
+  mostly artifacts ; fixed version found 2 real ones so far :
+  `letsencr.cmd.enroll:110` multi-word qw in scalar [ error text = 'error' ],
+  `weather.cmd.current:9` comma in qw [ harmless ]. full run result in
+  /tmp/claude-1000/fc-warn2.txt
+- T-C PASSED [ starting mod-test started its missing dependency models ]
+- new task files for kimi : v7-zenki-start-setup-runtime-reload.md [ files
+  ARE re-read on reload, loss happens in the merge ],
+  zenki-ondemand-config-consistency.md, v7-zenki-heartbeat-offline-race.md,
+  pressure brief pieces 4-5
+
 **open, in this order** :
-1. T-C at the next backend restart : mod-test `dependencies = cube models`,
-   models stopped -> starting mod-test must start models [ ok_resolve ]
-2. `use warnings` in format-code's check preamble
-3. mod-test start.cfg : remove the keep-children test lines when done
+1. kimi review findings + commit format-code [ see in flight ]
 4. invoke-web keep-children first real run [ a crash while rendering ]
 5. pressure brief pieces 4-5 [ defer restarts \ starts while critical ] +
    per-zenka memory stats by the system zenka
@@ -76,8 +89,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,..,,,,,...,,,,,,..,,.,,.,.,.,.,..,,,,,,..,,..,,...,..,,...,...,,.,,.,.,...,
-#LISHMOYC4UXDADGDG5WJTQMEFMF2ODQE5VKODJAAB6C4RXCHYSPH4X4TCEF53LPB7YKGUTAWSEBX6
-#\\\|P2HKOVZFJKUVJTBWM4J22QVXC3VG6AKN6C73XZERWPMQ36E7OQQ \ / AMOS7 \ YOURUM ::
-#\[7]AEQNBHN2TSP7C2QP27MCYJQOU4G2CRRLEY5QJL63LJYHSZ7VDYDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,.,,,,,,,,.,,..,,,,,,,,,,,..,..,,...,...,,,.,,..,,..,.,.,,,.,
+#MQ7XS65SQ2W5NZDUKDTMORUCQBOXNM765L5ZLEJ3ZZULFBFLXONP4R6W52D7EAYYH65BKZZAJULGI
+#\\\|OLXQU3OICF4O2UU7JECGSLGAR7LCGLJAMX7VXD47NOEDUYNY5S6 \ / AMOS7 \ YOURUM ::
+#\[7]YD4ZHHLFYV25L2ESVTCUG6KBNVL3YZPT5MKHWWBSBZYCKSLH7AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
