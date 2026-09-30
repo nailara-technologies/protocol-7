@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.callback.run_initialized
+# descr = run the <system.callbacks.initialized> list once the zenka is ready
+
+## the zenka is connected and ready to process requests : run the deferred  ##
+## callbacks [ log send-buffer resume, strm subscriptions, pid reports ..   ##
+## ].  v7-managed zenki get here through 'verify-instance', hybrid [ non-v7 ##
+## managed ] zenki through [init-done:TRUE] -- exactly once either way      ##
+
+return FALSE if <system.callbacks.initialized_run>;
+<system.callbacks.initialized_run> = TRUE;
+
+map {
+    ref($ARG) eq 'CODE'
+        ? <[event.add_timer]>->( { 'after' => 0, 'cb'      => $ARG } )
+        : <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } );
+} @{ <system.callbacks.initialized> //= [] };
+
+return TRUE;
+
+#,,,.,,..,.,,,.,,,..,,,..,...,.,,,,..,..,,.,,,..,,...,...,...,.,,,,,.,...,.,,,
+#JUAATS4TIANWG4ZEBIRGGMMK22T36JGAFS7GZW5IW4UYYFJKLA4I3BXMRSMRIFWVWVETU36SZPGRI
+#\\\|JQBO7TAW4ZLZDXJ6KPDWHE23APVPM5UMZTBUDZB77EFW2I2Q3AS \ / AMOS7 \ YOURUM ::
+#\[7]YDPP5G6DIN7HP4FH6B7YB4KRQSYSKWBHA4RJWP55LNI5GPY2KCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
