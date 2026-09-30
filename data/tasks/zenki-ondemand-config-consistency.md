@@ -23,8 +23,20 @@ every idle period. mod-test had it since its start.cfg was copied from calc
 4. optional, for later : a check at v7-zenki start that warns once about
    such a mismatch [ read-only, log level 1 ]
 
-#,,.,,,..,...,,,.,,,,,,.,,...,,,.,.,.,.,.,.,.,..,,...,...,,,.,,,,,,,,,,..,..,,
-#PV6LYBZIPLNF5LGBYHO4AC5JEVKWFB5VFLBNYOZ65FSC3ED3Z2L6RWIYBCKKBXM72EIMRNHDI5NVQ
-#\\\|56UY3MTYR6NUB7ISUFOLEIBBR47AT3BDRA64EA36YYAB3KAROGH \ / AMOS7 \ YOURUM ::
-#\[7]RKBCVUROVEBGGSV4USIBD2B6AOF3YOKHB352QA44YRMWCOHATADY 7  DATA SIGNATURE ::
+## done [ 2026-09-30, claude ]
+
+mismatches [ idle timeout, no `start.on-demand` ] : channels [ 600s, in
+zenka.v7 ], osd-logo [ 33s ], power [ 33s ]. none in start-set-up.base.
+all three got `start.on-demand = 1`, osd-logo \ power also
+`restart.disabled = 1` [ calc \ geoloc pattern ]. osd-logo is started \
+ended by tile [ `tile.callback.start_osd_logo` : `v7-zenki.start_once` \
+`terminate-implicit` -- neither reads the flag, only `idle-term` does ].
+its old appliance use [ logo stays present ] would need no timeout.
+registered by a v7-zenki reload [ "registering 3 ondemand zenki at cube" ].
+step 4 [ warn once at v7-zenki start on such a mismatch ] still open.
+
+#,,.,,..,,..,,.,,,...,,,.,,.,,...,,,,,..,,,..,..,,...,...,...,..,,...,..,,...,
+#HM2UJPREPABMQD2WKXDV6K5OE3USJMOAKGAFVJCEWC43BAC4FJMI5LF2RODZ3YBO4LPMC4QGRRNC6
+#\\\|5SHJ27C4NX63HMBJFZTO46PPM52XJD4OQEEYANE42YSL7FOWG22 \ / AMOS7 \ YOURUM ::
+#\[7]6PCOENECJJDCYKBVJBTVLWUGM24AILV3FN5UMN7DLUFWTHHT3KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
