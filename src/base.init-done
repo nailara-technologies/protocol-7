@@ -20,10 +20,14 @@ if ( defined <zenka.init_return> and <zenka.init_return> == TRUE ) {
 <system.zenka.initialized> = TRUE
     if $hybrid_init or <system.zenka.name> eq qw| cube |;
 
+## hybrid zenki never receive 'verify-instance' [ only v7-zenki sends it, to ##
+## the zenki it started ] : run the deferred callbacks here instead         ##
+<[base.callback.run_initialized]> if $hybrid_init;
+
 return <zenka.init_return> = TRUE;    ## true ##
 
-#,,..,,,,,,,,,..,,.,.,...,,,.,,,.,.,,,.,,,...,..,,...,...,,,,,,.,,.,,,.,,,.,.,
-#IJCVAG37XQB74YM636X5DEUYGUTNC54CNM3K2SITCHJUMFEQDH3TQ2PVM7EIGOWUXDCRGNUIE3EPK
-#\\\|WVEUKUTAKHTU2E2PJJ56FYLUEHWKJWMUHKQ6BIVQB4JM22CMFFD \ / AMOS7 \ YOURUM ::
-#\[7]FHLLFWWAM3ZZXTCPUDKRCKMWA7VAIF6VTK2CDK2MGX7GVJR2CUBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,..,,,,.,..,,,,.,.,,,,,.,,,.,..,,...,...,..,,,..,...,,.,,...,
+#TCZQDMMHFS5N47X4WCIC2FDZC7MYYGRMUOQETZSFZGTPYYLVFC4XQHOS7OQUMA3FLJTYYQMPK22OM
+#\\\|VIIIAJVQD3COVYQ4H5BEOFIRHA3Y4GMZATYT63Y3ZE54TTOK4EW \ / AMOS7 \ YOURUM ::
+#\[7]S5MC7GXVPKTRSBZCXZ22DSGH7YFTD4HQE7JNP4F7DJVWA53F5OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
