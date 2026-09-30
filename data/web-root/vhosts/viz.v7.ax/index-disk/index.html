@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>INDEX DISK GEOMETRY · zenka telemetry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ── palette ─────────────────────────────────────────────────────────
+     Defaults lean deep-navy + fluorescent backlight per the brief's
+     'backlit / slightly fluorescent' steer. The Tweaks panel swaps full
+     palettes (Deep Navy / Classic Brief / Cold Backlight).                */
+  :root {
+    --bg:        #04060c;
+    --panel:     #0a1018;
+    --panel-2:   #0d1422;
+    --row-a:     #0b121c;
+    --row-b:     #0e1622;
+    --border:    #16202e;
+    --border-2:  #1f2c3e;
+
+    --cyan:      #4dd8ff;
+    --cyan-deep: #0a2638;
+    --mint:      #5bffb8;
+    --mint-deep: #052418;
+    --amber:     #ffc857;
+    --amber-deep:#2a1d05;
+    --violet:    #8c7dff;
+    --violet-deep:#170c34;
+    --rose:      #ff5b8a;
+
+    --tx:        #dce6f2;
+    --tx-2:      #8fa8c2;
+    --tx-3:      #54647a;
+    --tx-4:      #36465c;
+
+    --scanline:  rgba(180, 220, 255, 0.035);
+    --glow:      0.55; /* multiplier */
+
+    --font: "JetBrains Mono", "SF Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: var(--tx);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  /* viewport-fit scaler ------------------------------------------------ */
+  #viewport {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background:
+      radial-gradient(ellipse at 50% 30%, #0c1a3c 0%, #050a1c 55%, #000 100%);
+  }
+  /* faint hyperspace grid floor (visible behind/around the stage) */
+  #viewport::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right,  rgba(60,80,200,0.10) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(60,80,200,0.10) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, #000 0%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, transparent 75%);
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  #stage {
+    width: 1400px; height: 900px;
+    transform-origin: center center;
+    position: relative;
+  }
+
+  /* CRT bezel + scanlines --------------------------------------------- */
+  #crt {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    position: relative;
+    box-shadow:
+      inset 0 0 0 1px #0b1422,
+      inset 0 0 32px 4px rgba(0, 30, 60, 0.55),
+      inset 0 0 140px 10px rgba(0, 10, 30, 0.85),
+      0 0 0 1px #050810,
+      0 30px 80px -20px rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+  }
+  #crt::before {
+    /* scanlines */
+    content: "";
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--scanline) 0px,
+      var(--scanline) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+    pointer-events: none;
+    z-index: 9;
+    mix-blend-mode: screen;
+  }
+  #crt::after {
+    /* faint vignette + curvature hint */
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* layout ------------------------------------------------------------ */
+  .frame {
+    position: absolute; inset: 0;
+    padding: 18px 22px 16px 22px;
+    display: grid;
+    grid-template-rows: 44px 1fr;
+    gap: 12px;
+    z-index: 5;
+  }
+
+  /* top bar ----------------------------------------------------------- */
+  .topbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 32px;
+    border-bottom: 1px solid var(--border);
+    padding: 0 4px 12px 4px;
+  }
+  .title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--amber);
+    text-shadow: 0 0 calc(8px * var(--glow)) rgba(255, 200, 87, 0.55);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .title .bullet {
+    width: 6px; height: 6px;
+    background: var(--amber);
+    box-shadow: 0 0 calc(10px * var(--glow)) var(--amber);
+  }
+  .title .subt {
+    color: var(--tx-3);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    font-size: 10px;
+  }
+
+  .pills {
+    display: flex; gap: 18px;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  .pill {
+    display: inline-flex; align-items: baseline; gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid var(--border-2);
+    background: rgba(10, 20, 34, 0.6);
+    text-transform: uppercase;
+  }
+  .pill .k { color: var(--tx-3); font-size: 9px; letter-spacing: 0.18em; }
+  .pill .v { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; }
+  .pill.v-white .v { color: #fff; }
+  .pill.v-cyan  .v { color: var(--cyan); text-shadow: 0 0 calc(6px * var(--glow)) rgba(77,216,255,0.5); }
+  .pill.v-mint  .v { color: var(--mint); text-shadow: 0 0 calc(6px * var(--glow)) rgba(91,255,184,0.45); }
+  .pill.v-violet .v { color: var(--violet); }
+
+  .pills .sep {
+    width: 1px; height: 14px;
+    background: var(--border-2);
+  }
+
+  .led-cluster {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 10px;
+    color: var(--tx-3);
+    letter-spacing: 0.16em;
+  }
+  .led-cluster .ts { font-feature-settings: "tnum"; color: var(--tx-2); }
+  .led {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow:
+      0 0 calc(10px * var(--glow)) var(--mint),
+      0 0 calc(20px * var(--glow)) rgba(91,255,184,0.55),
+      inset 0 0 4px rgba(255,255,255,0.4);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .led[data-state="idle"]  { background: var(--amber); box-shadow: 0 0 calc(10px * var(--glow)) var(--amber), inset 0 0 4px rgba(255,255,255,0.3); animation: none; }
+  .led[data-state="dirty"] { background: var(--rose);  box-shadow: 0 0 calc(10px * var(--glow)) var(--rose),  inset 0 0 4px rgba(255,255,255,0.3); animation: pulse-fast 0.9s ease-in-out infinite; }
+
+  @keyframes pulse {
+    0%, 100% { filter: brightness(1); }
+    50%      { filter: brightness(1.6); }
+  }
+  @keyframes pulse-fast {
+    0%, 100% { filter: brightness(0.7); }
+    50%      { filter: brightness(1.9); }
+  }
+
+  /* panel grid -------------------------------------------------------- */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-rows: 32px 1fr;
+    min-height: 0;
+    min-width: 0;
+    position: relative;
+  }
+  .panel::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    box-shadow: 0 0 calc(12px * var(--glow)) var(--accent);
+  }
+  .panel.cyan   { --accent: var(--cyan); }
+  .panel.mint   { --accent: var(--mint); }
+  .panel.amber  { --accent: var(--amber); }
+  .panel.violet { --accent: var(--violet); }
+
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px 0 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--tx-2);
+  }
+  .panel-head .h {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-head .h .glyph {
+    color: var(--accent);
+    text-shadow: 0 0 calc(6px * var(--glow)) var(--accent);
+  }
+  .panel-head .meta {
+    color: var(--tx-3);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .panel-head .meta b {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .panel-body {
+    padding: 14px 16px 14px 18px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Ring Population bar chart ───────────────────────────────────── */
+  .rings {
+    display: grid;
+    grid-template-rows: 1fr 18px;
+    height: 100%;
+  }
+  .rings .bars {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    align-items: end;
+    gap: 14px;
+    position: relative;
+    padding-bottom: 4px;
+  }
+  .rings .gridlines {
+    position: absolute; inset: 0 0 4px 0;
+    pointer-events: none;
+  }
+  .rings .gridlines i {
+    position: absolute; left: 0; right: 0;
+    border-top: 1px dashed rgba(77, 216, 255, 0.10);
+    font-size: 8px;
+    color: var(--tx-4);
+    padding-left: 0;
+  }
+  .rings .gridlines i::before {
+    content: attr(data-v);
+    position: absolute; right: 0; top: -10px;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    color: var(--tx-4);
+  }
+  .bar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    height: 100%;
+  }
+  .bar .col {
+    border: 1px solid var(--cyan);
+    background: linear-gradient(to top,
+      rgba(77, 216, 255, 0.55) 0%,
+      rgba(77, 216, 255, 0.28) 40%,
+      rgba(77, 216, 255, 0.08) 80%,
+      transparent 100%);
+    box-shadow:
+      inset 0 -8px 18px rgba(77, 216, 255, 0.35),
+      0 0 calc(10px * var(--glow)) rgba(77, 216, 255, 0.25);
+    position: relative;
+  }
+  .bar .col::after {
+    /* bright base line */
+    content: "";
+    position: absolute; left: -1px; right: -1px; bottom: -1px;
+    height: 2px;
+    background: var(--cyan);
+    box-shadow: 0 0 calc(8px * var(--glow)) var(--cyan);
+  }
+  .bar .count {
+    position: absolute;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 9px;
+    color: rgba(77, 216, 255, 0.85);
+    letter-spacing: 0.04em;
+    font-feature-settings: "tnum";
+    bottom: calc(var(--h, 0%) + 6px);
+    transition: bottom 0.4s ease;
+    white-space: nowrap;
+  }
+  .bar.r0 .count { color: #fff; }
+  .bar.peak .col {
+    border-color: #b8f1ff;
+    box-shadow:
+      inset 0 -8px 22px rgba(77, 216, 255, 0.55),
+      0 0 calc(18px * var(--glow)) rgba(77, 216, 255, 0.45);
+  }
+  .bar.peak .count::after {
+    content: " ◀ peak";
+    color: var(--mint);
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+  .rings .axis {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 14px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .rings .axis span {
+    text-align: center;
+    font-size: 9px;
+    color: var(--tx-3);
+    letter-spacing: 0.18em;
+  }
+  .rings .axis span b {
+    color: var(--cyan);
+    font-weight: 500;
+  }
+
+  /* ── Source map table ────────────────────────────────────────────── */
+  .smap {
+    height: 100%;
+    display: flex; flex-direction: column;
+    font-size: 10px;
+  }
+  .smap .thead {
+    display: grid;
+    grid-template-columns: 1fr 110px 80px 50px;
+    gap: 12px;
+    padding: 0 2px 6px 2px;
+    border-bottom: 1px solid var(--mint);
+    color: var(--mint);
+    text-shadow: 0 0 calc(5px * var(--glow)) rgba(91,255,184,0.4);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .smap .tbody {
+    flex: 1;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+  .smap .row {
+    display: grid;
+    grid-template-columns: 1fr 110px 80px 50px;
+    gap: 12px;
+    align-items: center;
+    height: 22px;
+    padding: 0 4px;
+    font-size: 10px;
+  }
+  .smap .row:nth-child(odd)  { background: var(--row-a); }
+  .smap .row:nth-child(even) { background: var(--row-b); }
+  .smap .row:hover { background: #142336; }
+  .smap .path { color: var(--tx-2); }
+  .smap .path .dim { color: var(--tx-4); }
+  .smap .csum { color: var(--mint); letter-spacing: 0.06em; text-shadow: 0 0 calc(4px * var(--glow)) rgba(91,255,184,0.4); }
+  .smap .stat { display: flex; }
+  .smap .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .smap .tag.active  { color: var(--mint);   border-color: rgba(91,255,184,0.5);  background: rgba(91,255,184,0.07); }
+  .smap .tag.pending { color: var(--amber);  border-color: rgba(255,200,87,0.45); background: rgba(255,200,87,0.06); }
+  .smap .tag.removed { color: var(--tx-3);   border-color: rgba(140,150,170,0.3); background: rgba(140,150,170,0.04); }
+  .smap .age { color: var(--tx-3); font-size: 9px; text-align: right; font-feature-settings: "tnum"; }
+
+  /* ── Recent queries log ──────────────────────────────────────────── */
+  .qlog {
+    height: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--tx-2);
+    letter-spacing: 0.02em;
+  }
+  .qlog .ln { white-space: pre; }
+  .qlog .qhead {
+    color: var(--tx-3);
+    margin-top: 6px;
+  }
+  .qlog .qhead:first-child { margin-top: 0; }
+  .qlog .br { color: var(--tx-4); }
+  .qlog .q  { color: var(--amber); text-shadow: 0 0 calc(5px * var(--glow)) rgba(255,200,87,0.4); }
+  .qlog .n  { color: var(--tx); font-feature-settings: "tnum"; }
+  .qlog .tok { color: #cbeafa; }
+  .qlog .rk  { color: var(--cyan); }
+  .qlog .tag {
+    display: inline-block;
+    padding: 0 6px;
+    margin-left: 4px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mint);
+    border: 1px solid rgba(91,255,184,0.4);
+    background: rgba(91,255,184,0.06);
+  }
+  .qlog .tag.exact { color: var(--mint); }
+  .qlog .tag.term  { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+  .qlog .tag.cyan  { color: var(--cyan); border-color: rgba(77,216,255,0.45); background: rgba(77,216,255,0.06); }
+  .qlog .lookup {
+    margin-top: 12px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255,200,87,0.2);
+    background: rgba(255,200,87,0.04);
+    color: var(--tx-2);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+  .qlog .lookup .k { color: var(--tx-3); }
+  .qlog .lookup .v { color: var(--amber); }
+  .qlog .lookup .vp { color: #fff; font-feature-settings: "tnum"; }
+  .qlog .lookup .vy { color: var(--mint); }
+  .qlog .cursor {
+    display: inline-block; width: 7px; height: 12px;
+    background: var(--amber);
+    box-shadow: 0 0 calc(8px * var(--glow)) var(--amber);
+    vertical-align: -2px;
+    animation: blink 1s steps(2, end) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── Contribution vectors ────────────────────────────────────────── */
+  .contrib {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 14px;
+    height: 100%;
+    font-size: 10px;
+  }
+  .contrib .target {
+    display: flex; align-items: baseline; gap: 12px;
+    color: var(--tx-3);
+    letter-spacing: 0.14em;
+    font-size: 9px;
+    text-transform: uppercase;
+  }
+  .contrib .target .csum {
+    color: var(--violet);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 calc(8px * var(--glow)) rgba(140,125,255,0.5);
+  }
+  .contrib .target .totl {
+    margin-left: auto;
+    color: var(--tx-2);
+    font-size: 10px;
+    font-feature-settings: "tnum";
+  }
+  .contrib .target .totl b { color: #fff; font-weight: 600; }
+
+  .stack {
+    display: flex;
+    height: 28px;
+    border: 1px solid var(--border-2);
+    background: var(--row-a);
+  }
+  .stack .seg {
+    position: relative;
+    border-right: 1px solid rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+    overflow: hidden;
+    transition: flex-basis 0.4s ease;
+  }
+  .stack .seg:last-child { border-right: none; }
+  .stack .seg .ring { font-size: 8px; letter-spacing: 0.16em; color: rgba(255,255,255,0.7); margin-right: 4px; }
+  .stack-key {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: var(--tx-3);
+    margin-top: -4px;
+  }
+  .stack-key .k {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .stack-key .sw {
+    width: 8px; height: 8px;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .stack-key .v { color: var(--tx); font-feature-settings: "tnum"; }
+  .stack-key .lbl { color: var(--tx-3); }
+
+  .tagcloud-wrap {
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    overflow: hidden;
+  }
+  .tagcloud-head {
+    display: flex; justify-content: space-between;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--tx-3);
+    margin-bottom: 8px;
+  }
+  .tagcloud-head b { color: var(--violet); font-weight: 500; }
+  .tagcloud {
+    display: flex; flex-wrap: wrap; gap: 4px 4px;
+  }
+  .tagcloud .ck {
+    font-size: 9px;
+    padding: 3px 6px;
+    color: var(--violet);
+    background: #170c34;
+    border: 1px solid rgba(140,125,255,0.18);
+    letter-spacing: 0.08em;
+    font-feature-settings: "tnum";
+  }
+  .tagcloud .ck.active {
+    background: #2b1860;
+    color: #d9d2ff;
+    border-color: rgba(140,125,255,0.6);
+    box-shadow: 0 0 calc(8px * var(--glow)) rgba(140,125,255,0.4);
+  }
+  .tagcloud .ck.dim {
+    color: #6b5fa8;
+    background: #100726;
+    border-color: rgba(140,125,255,0.1);
+  }
+
+  /* small details ------------------------------------------------------ */
+  .corner {
+    position: absolute;
+    width: 8px; height: 8px;
+    border: 1px solid var(--border-2);
+  }
+  .corner.tl { top: 4px; left: 4px;  border-right: none; border-bottom: none; }
+  .corner.tr { top: 4px; right: 4px; border-left:  none; border-bottom: none; }
+  .corner.bl { bottom: 4px; left: 4px;  border-right: none; border-top: none; }
+  .corner.br { bottom: 4px; right: 4px; border-left:  none; border-top: none; }
+
+  /* bottom data signature strip --------------------------------------- */
+  .sig {
+    position: absolute;
+    left: 22px; right: 22px; bottom: 4px;
+    font-size: 8px;
+    color: rgba(140, 168, 194, 0.3);
+    letter-spacing: 0.12em;
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* tweaks panel host fixes ------------------------------------------- */
+  #tweaks-root { position: fixed; top: 0; right: 0; z-index: 999; }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+    <div id="crt">
+
+      <!-- corner ticks for that "machine viewport" feel -->
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+
+      <div class="frame">
+
+        <!-- ─────────── TOP BAR ─────────── -->
+        <header class="topbar" data-screen-label="00 Top Bar">
+          <div class="title">
+            <span class="bullet"></span>
+            <span>INDEX&nbsp;DISK&nbsp;GEOMETRY</span>
+            <span class="subt">// zenka.index · ring-trie telemetry · live</span>
+          </div>
+          <div class="pills">
+            <span class="pill v-white"><span class="k">chars</span><span class="v" id="stat-chars">4,821,093</span></span>
+            <span class="sep"></span>
+            <span class="pill v-cyan"><span class="k">rings</span><span class="v">7</span></span>
+            <span class="sep"></span>
+            <span class="pill v-mint"><span class="k">sources</span><span class="v">42</span></span>
+            <span class="sep"></span>
+            <span class="pill v-violet"><span class="k">deltas</span><span class="v">2,885</span></span>
+          </div>
+          <div class="led-cluster">
+            <span class="ts" id="clock">14:23:07Z</span>
+            <span>STATE</span>
+            <span class="led" id="led" data-state="active" title="ingesting"></span>
+          </div>
+        </header>
+
+        <!-- ─────────── 2×2 PANEL GRID ─────────── -->
+        <div class="grid">
+
+          <!-- ── TL: Ring Population ─────────────────────────────── -->
+          <section class="panel cyan" data-screen-label="01 Ring Population">
+            <div class="panel-head">
+              <div class="h"><span class="glyph">▮</span><span>Ring Population</span></div>
+              <div class="meta">peak <b>R3</b> · σ-density <b>38.4k</b> · focal <b>13</b></div>
+            </div>
+            <div class="panel-body">
+              <div class="rings">
+                <div class="bars" id="ringbars">
+                  <div class="gridlines">
+                    <i data-v="40k" style="bottom: 96%"></i>
+                    <i data-v="30k" style="bottom: 72%"></i>
+                    <i data-v="20k" style="bottom: 48%"></i>
+                    <i data-v="10k" style="bottom: 24%"></i>
+                  </div>
+                  <div class="bar r0"            style="--h: 0.5%">  <span class="count">187</span>     <div class="col" style="height: 0.5%"></div></div>
+                  <div class="bar r1"            style="--h: 6.1%">  <span class="count">2,341</span>   <div class="col" style="height: 6.1%"></div></div>
+                  <div class="bar r2"            style="--h: 38.7%"> <span class="count">14,892</span>  <div class="col" style="height: 38.7%"></div></div>
+                  <div class="bar r3 peak"       style="--h: 96%">   <span class="count">38,471</span>  <div class="col" style="height: 96%"></div></div>
+                  <div class="bar r4"            style="--h: 75.6%"> <span class="count">29,108</span>  <div class="col" style="height: 75.6%"></div></div>
+                  <div class="bar r5"            style="--h: 40.9%"> <span class="count">15,732</span>  <div class="col" style="height: 40.9%"></div></div>
+                  <div class="bar r6"            style="--h: 17.9%"> <span class="count">6,894</span>   <div class="col" style="height: 17.9%"></div></div>
+                  <div class="bar r7"            style="--h: 5.5%">  <span class="count">2,103</span>   <div class="col" style="height: 5.5%"></div></div>
+                </div>
+                <div class="axis">
+                  <span><b>R0</b> chars</span>
+                  <span><b>R1</b></span>
+                  <span><b>R2</b></span>
+                  <span><b>R3</b></span>
+                  <span><b>R4</b></span>
+                  <span><b>R5</b></span>
+                  <span><b>R6</b></span>
+                  <span><b>R7</b></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── TR: Source Map ──────────────────────────────────── -->
+          <section class="panel mint" data-screen-label="02 Source Map">
+            <div class="panel-head">
+              <div class="h"><span class="glyph">▮</span><span>Source Map</span></div>
+              <div class="meta">42 indexed · <b>38</b> active · <b>3</b> pending · <b>1</b> removed</div>
+            </div>
+            <div class="panel-body">
+              <div class="smap">
+                <div class="thead">
+                  <span>path</span>
+                  <span>checksum</span>
+                  <span>status</span>
+                  <span>age</span>
+                </div>
+                <div class="tbody">
+                  <div class="row"><span class="path"><span class="dim">/docs/</span>vision.md</span>      <span class="csum">HZRZBIY</span><span class="stat"><span class="tag active">active</span></span><span class="age">2m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/docs/</span>axioms.yaml</span>     <span class="csum">Y2DSM23</span><span class="stat"><span class="tag active">active</span></span><span class="age">7m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/base/</span>zenka-spec.txt</span>  <span class="csum">VR5B5QT</span><span class="stat"><span class="tag active">active</span></span><span class="age">11m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/base/</span>ring-trie.pl</span>    <span class="csum">GYH6AJC</span><span class="stat"><span class="tag active">active</span></span><span class="age">11m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/lib/</span>AMOS7/checksum.pm</span><span class="csum">7DPG7J3</span><span class="stat"><span class="tag active">active</span></span><span class="age">22m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/lib/</span>Protocol7/index.pm</span><span class="csum">PEICCGW</span><span class="stat"><span class="tag pending">pending</span></span><span class="age">31s</span></div>
+                  <div class="row"><span class="path"><span class="dim">/test/corpus/</span>canon.dat</span> <span class="csum">OAYZABS</span><span class="stat"><span class="tag active">active</span></span><span class="age">1h</span></div>
+                  <div class="row"><span class="path"><span class="dim">/test/corpus/</span>scratch.dat</span><span class="csum">QNRHSDE</span><span class="stat"><span class="tag removed">removed</span></span><span class="age">3h</span></div>
+                  <div class="row"><span class="path"><span class="dim">/data/snapshots/</span>2026-05.b32</span><span class="csum">NAUCDAK</span><span class="stat"><span class="tag pending">pending</span></span><span class="age">8s</span></div>
+                  <div class="row"><span class="path"><span class="dim">/data/cache/</span>freq-cache.db</span><span class="csum">EAIKQQ6</span><span class="stat"><span class="tag active">active</span></span><span class="age">12m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/data/md/</span>design-briefs.md</span><span class="csum">LSNIQVZ</span><span class="stat"><span class="tag active">active</span></span><span class="age">4m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/data/yaml/</span>state-machine.yaml</span><span class="csum">YAZSN6L</span><span class="stat"><span class="tag active">active</span></span><span class="age">19m</span></div>
+                  <div class="row"><span class="path"><span class="dim">/lib/</span>AMOS7/Assert.pm</span><span class="csum">QN6IXJA</span><span class="stat"><span class="tag pending">pending</span></span><span class="age">1m</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── BL: Recent Queries ──────────────────────────────── -->
+          <section class="panel amber" data-screen-label="03 Recent Queries">
+            <div class="panel-head">
+              <div class="h"><span class="glyph">▮</span><span>Recent Queries</span></div>
+              <div class="meta">last <b>6</b> ops · stream <b>tail -f</b></div>
+            </div>
+            <div class="panel-body">
+              <div class="qlog">
+<div class="ln qhead"><span class="br">search [</span> <span class="q">lov</span> <span class="br">]</span> <span style="color:var(--tx-3)">·· 12 results :</span></div>
+<div class="ln">    <span class="n">  4823</span>  <span class="tok">love</span>      <span class="tag exact">exact</span><span class="tag term">terminal</span><span class="tag cyan">rank&nbsp;7</span></div>
+<div class="ln">    <span class="n">  2104</span>  <span class="tok">lover</span>     <span class="tag cyan">rank&nbsp;3</span></div>
+<div class="ln">    <span class="n">  1891</span>  <span class="tok">loving</span>    <span class="tag cyan">rank&nbsp;5</span></div>
+<div class="ln">    <span class="n">   612</span>  <span class="tok">lovely</span>    <span class="tag cyan">rank&nbsp;8</span></div>
+
+<div class="ln qhead"><span class="br">search [</span> <span class="q">zen</span> <span class="br">]</span> <span style="color:var(--tx-3)">··  4 results :</span></div>
+<div class="ln">    <span class="n">  3447</span>  <span class="tok">zenka</span>     <span class="tag exact">exact</span><span class="tag term">terminal</span><span class="tag cyan">rank&nbsp;1</span></div>
+<div class="ln">    <span class="n">  1206</span>  <span class="tok">zenith</span>    <span class="tag cyan">rank&nbsp;2</span></div>
+
+                <div class="lookup">
+                  <span class="k">token</span> : <span class="v">love</span> &nbsp;<span class="k">│</span>&nbsp;
+                  <span class="k">depth</span> : <span class="vp">3</span> &nbsp;<span class="k">│</span>&nbsp;
+                  <span class="k">address</span> : <span class="vp">7</span> &nbsp;<span class="k">│</span>&nbsp;
+                  <span class="k">terminal</span> : <span class="vy">yes</span> &nbsp;<span class="k">│</span>&nbsp;
+                  <span class="k">children</span> : <span class="vp">4</span>
+                </div>
+<div class="ln" style="margin-top:10px;color:var(--tx-3)">▸ <span class="cursor"></span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── BR: Contributions ───────────────────────────────── -->
+          <section class="panel violet" data-screen-label="04 Contributions">
+            <div class="panel-head">
+              <div class="h"><span class="glyph">▮</span><span>Contributions</span></div>
+              <div class="meta">target <b>HZRZBIY</b> · 24 active checksums</div>
+            </div>
+            <div class="panel-body">
+              <div class="contrib">
+
+                <div class="target">
+                  <span>focused signature</span>
+                  <span class="csum">HZRZBIY</span>
+                  <span class="totl">total Δ <b>2,885</b> across 6 rings</span>
+                </div>
+
+                <div class="stack" id="stack">
+                  <div class="seg" style="flex-basis: 43.2%; background: linear-gradient(90deg, #4a37c4, #8c7dff);">
+                    <span class="ring">R0</span><span>1,247 char</span>
+                  </div>
+                  <div class="seg" style="flex-basis: 30.9%; background: linear-gradient(90deg, #5b4dd6, #6f5fff);">
+                    <span class="ring">R1</span><span>892 seq</span>
+                  </div>
+                  <div class="seg" style="flex-basis: 15.4%; background: linear-gradient(90deg, #3a4fd1, #4d8cff);">
+                    <span class="ring">R2</span><span>443</span>
+                  </div>
+                  <div class="seg" style="flex-basis: 6.5%;  background: linear-gradient(90deg, #2a5fc0, #4dc8ff);">
+                    <span class="ring">R3</span><span>188</span>
+                  </div>
+                  <div class="seg" style="flex-basis: 2.5%;  background: linear-gradient(90deg, #205585, #4dd8ff);">
+                    <span class="ring">R4</span><span></span>
+                  </div>
+                  <div class="seg" style="flex-basis: 1.5%;  background: linear-gradient(90deg, #163e60, #b8f1ff);">
+                    <span class="ring"></span><span></span>
+                  </div>
+                </div>
+
+                <div class="stack-key">
+                  <div class="k"><span class="sw" style="background:#8c7dff;color:#8c7dff"></span><span class="lbl">R0</span><span class="v">1,247</span></div>
+                  <div class="k"><span class="sw" style="background:#6f5fff;color:#6f5fff"></span><span class="lbl">R1</span><span class="v">892</span></div>
+                  <div class="k"><span class="sw" style="background:#4d8cff;color:#4d8cff"></span><span class="lbl">R2</span><span class="v">443</span></div>
+                  <div class="k"><span class="sw" style="background:#4dc8ff;color:#4dc8ff"></span><span class="lbl">R3</span><span class="v">188</span></div>
+                  <div class="k"><span class="sw" style="background:#4dd8ff;color:#4dd8ff"></span><span class="lbl">R4</span><span class="v">71</span></div>
+                  <div class="k"><span class="sw" style="background:#b8f1ff;color:#b8f1ff"></span><span class="lbl">R5</span><span class="v">24</span></div>
+                </div>
+
+                <div class="tagcloud-wrap">
+                  <div class="tagcloud-head">
+                    <span>active checksums</span>
+                    <span><b>24</b> contributors · top 18 shown</span>
+                  </div>
+                  <div class="tagcloud" id="tagcloud">
+                    <span class="ck active">HZRZBIY</span>
+                    <span class="ck">Y2DSM23</span>
+                    <span class="ck">VR5B5QT</span>
+                    <span class="ck">GYH6AJC</span>
+                    <span class="ck">7DPG7J3</span>
+                    <span class="ck">PEICCGW</span>
+                    <span class="ck">OAYZABS</span>
+                    <span class="ck">QNRHSDE</span>
+                    <span class="ck">NAUCDAK</span>
+                    <span class="ck">EAIKQQ6</span>
+                    <span class="ck">LSNIQVZ</span>
+                    <span class="ck">YAZSN6L</span>
+                    <span class="ck">QN6IXJA</span>
+                    <span class="ck dim">N6IXJAA</span>
+                    <span class="ck dim">JFLLKFK</span>
+                    <span class="ck dim">DENAUCD</span>
+                    <span class="ck dim">M23VR5B</span>
+                    <span class="ck dim">CGWOAYZ</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+      <!-- data signature strip (decorative, base32 - same family as the brief) -->
+      <div class="sig">
+        # .,,.,,,..,,..,..,,...,,,.,,,,,,..,,.,,,,.,..,,...,..,,.,,,,,,,...,..,,...,&nbsp;&nbsp;&nbsp;# 7 73MJWHJFLLKFKIY6BSMLNPEICCGWOAYZABSQNRHSDENAUCDAKEAI&nbsp;&nbsp;# YOURUM :: AMOS7 :: DATA SIGNATURE
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="tweaks-root"></div>
+
+<!-- ── scaling + light dynamics ─────────────────────────────────────── -->
+<script>
+  // fit 1400x900 stage into viewport
+  (function () {
+    const stage = document.getElementById('stage');
+    function fit() {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const s = Math.min(vw / 1400, vh / 900);
+      stage.style.transform = 'scale(' + s + ')';
+    }
+    fit();
+    window.addEventListener('resize', fit);
+  })();
+
+  // little ticking clock + chars counter (very slow drift, terminal feel)
+  (function () {
+    const clock = document.getElementById('clock');
+    const chars = document.getElementById('stat-chars');
+    let n = 4821093;
+    function pad(x){ return String(x).padStart(2, '0'); }
+    function tick() {
+      const d = new Date();
+      clock.textContent = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds()) + 'Z';
+      if (Math.random() < 0.55) {
+        n += Math.floor(Math.random() * 19) + 1;
+        chars.textContent = n.toLocaleString('en-US');
+      }
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+
+<!-- ── Tweaks ───────────────────────────────────────────────────────── -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "palette": "deep-navy",
+    "glow": 0.55,
+    "scanlines": 3.5,
+    "ledState": "active",
+    "bezel": true
+  }/*EDITMODE-END*/;
+
+  const PALETTES = {
+    "deep-navy": {
+      label: "Deep Navy + Fluorescent",
+      vars: {
+        '--bg': '#04060c', '--panel': '#0a1018', '--panel-2': '#0d1422',
+        '--row-a': '#0b121c', '--row-b': '#0e1622',
+        '--border': '#16202e', '--border-2': '#1f2c3e',
+        '--cyan': '#4dd8ff', '--mint': '#5bffb8',
+        '--amber': '#ffc857', '--violet': '#8c7dff',
+        '--tx': '#dce6f2', '--tx-2': '#8fa8c2', '--tx-3': '#54647a', '--tx-4': '#36465c',
+      }
+    },
+    "cold-backlight": {
+      label: "Cold Backlight (deep blue)",
+      vars: {
+        '--bg': '#060f28', '--panel': '#0a163a', '--panel-2': '#0d1c46',
+        '--row-a': '#0c1a3e', '--row-b': '#102048',
+        '--border': '#1a2c5e', '--border-2': '#243a78',
+        '--cyan': '#9ff0ff', '--mint': '#7af6ff',
+        '--amber': '#b6cfff', '--violet': '#a6b8ff',
+        '--tx': '#e6f1ff', '--tx-2': '#a8c0e0', '--tx-3': '#5e76a0', '--tx-4': '#3a4f78',
+      }
+    },
+    "hyperspace": {
+      label: "Hyperspace (viz.v7.ax)",
+      vars: {
+        // backdrop pulls from visual.v7.ax: near-black with purple ambient,
+        // panels tinted with the same rgba(12,5,24) family, electric ultra-
+        // marine wireframe accents and a cyan highlight for selection.
+        '--bg':       '#000007',
+        '--panel':    '#080414',
+        '--panel-2':  '#0c0620',
+        '--row-a':    '#0a0418',
+        '--row-b':    '#0e0824',
+        '--border':   '#1c1240',
+        '--border-2': '#2a1c5a',
+        '--cyan':     '#60d0ff',
+        '--mint':     '#24a0f0',
+        '--amber':    '#a0c0ff',
+        '--violet':   '#7a6cff',
+        '--tx':       '#c8d8f0',
+        '--tx-2':     '#77AAEE',
+        '--tx-3':     '#5070a0',
+        '--tx-4':     '#304060',
+      }
+    },
+    "classic-brief": {
+      label: "Classic Brief",
+      vars: {
+        '--bg': '#080808', '--panel': '#0d0d0d', '--panel-2': '#101010',
+        '--row-a': '#0d0d0d', '--row-b': '#111111',
+        '--border': '#1a1a1a', '--border-2': '#222222',
+        '--cyan': '#00e5ff', '--mint': '#39ff14',
+        '--amber': '#ffb300', '--violet': '#9d4edd',
+        '--tx': '#e0e0e0', '--tx-2': '#b8d4e3', '--tx-3': '#5c677d', '--tx-4': '#3a4453',
+      }
+    },
+    "phosphor": {
+      label: "Phosphor (CRT green)",
+      vars: {
+        '--bg': '#030a04', '--panel': '#06140a', '--panel-2': '#081a0d',
+        '--row-a': '#071810', '--row-b': '#0a1f14',
+        '--border': '#0f2a1a', '--border-2': '#173d28',
+        '--cyan': '#7affc0', '--mint': '#39ff86',
+        '--amber': '#e6ff8a', '--violet': '#5aff70',
+        '--tx': '#d9ffe6', '--tx-2': '#9ad4ad', '--tx-3': '#4c7a5b', '--tx-4': '#2f5239',
+      }
+    },
+  };
+
+  function applyPalette(name) {
+    const p = PALETTES[name] || PALETTES["deep-navy"];
+    const r = document.documentElement;
+    Object.entries(p.vars).forEach(([k, v]) => r.style.setProperty(k, v));
+  }
+
+  function App() {
+    const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+    React.useEffect(() => { applyPalette(t.palette); }, [t.palette]);
+    React.useEffect(() => {
+      document.documentElement.style.setProperty('--glow', String(t.glow));
+    }, [t.glow]);
+    React.useEffect(() => {
+      const a = (t.scanlines / 100).toFixed(4);
+      document.documentElement.style.setProperty('--scanline', `rgba(180, 220, 255, ${a})`);
+    }, [t.scanlines]);
+    React.useEffect(() => {
+      const led = document.getElementById('led');
+      if (led) led.setAttribute('data-state', t.ledState);
+    }, [t.ledState]);
+    React.useEffect(() => {
+      const crt = document.getElementById('crt');
+      if (!crt) return;
+      crt.style.boxShadow = t.bezel
+        ? ''
+        : 'inset 0 0 0 1px #0b1422';
+    }, [t.bezel]);
+
+    return (
+      <TweaksPanel>
+        <TweakSection label="Palette" />
+        <TweakSelect
+          label="Theme"
+          value={t.palette}
+          options={Object.keys(PALETTES).map(k => ({ value: k, label: PALETTES[k].label }))}
+          onChange={(v) => setTweak('palette', v)}
+        />
+        <TweakSection label="Backlight" />
+        <TweakSlider label="Glow"      value={t.glow}      min={0}  max={2}   step={0.05} onChange={(v) => setTweak('glow', v)} />
+        <TweakSlider label="Scanlines" value={t.scanlines} min={0}  max={12}  step={0.5}  unit="%" onChange={(v) => setTweak('scanlines', v)} />
+        <TweakToggle label="CRT bezel shadow" value={t.bezel} onChange={(v) => setTweak('bezel', v)} />
+        <TweakSection label="State" />
+        <TweakRadio
+          label="Index LED"
+          value={t.ledState}
+          options={['active','idle','dirty']}
+          onChange={(v) => setTweak('ledState', v)}
+        />
+      </TweaksPanel>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
+</script>
+
+</body>
+</html>

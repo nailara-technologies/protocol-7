@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Ring-Trie Geometry · Protocol-7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #000007;
+    --r0: #BFD0FF;
+    --r1: #7CE6FF;
+    --r2: #38C1FF;
+    --r3: #5A78FF;
+    --r4: #3645E8;
+    --r5: #1F2DB8;
+    --r6: #131C7A;
+    --r7: #0A1245;
+    --accent: #60D0FF;
+    --accent-dim: #2A6AC2;
+    --bar-bg: #02041A;
+    --bar-border: #0A1240;
+    --text: #A0C0FF;
+    --text-dim: #6580B8;
+    --text-faint: #2B3F78;
+    --vignette: rgba(40, 0, 80, 0.32);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace; }
+  body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    overflow: auto;
+  }
+  .frame {
+    width: 1000px;
+    height: 1000px;
+    position: relative;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 380px rgba(40, 0, 80, 0.45),
+      inset 0 0 100px rgba(20, 30, 120, 0.18),
+      0 0 60px rgba(20, 16, 80, 0.5);
+    isolation: isolate;
+  }
+  .viz {
+    position: absolute;
+    inset: 0 0 44px 0;
+    overflow: hidden;
+  }
+  .viz svg { display: block; width: 100%; height: 100%; }
+
+  /* slow rotor for the body of the chart; labels & root counter-stay still via separate group */
+  .rotor { transform-origin: 500px 478px; }
+  .rotor.spinning { animation: spin var(--spin-time, 240s) linear infinite; }
+  @keyframes spin { to { transform: rotate(-360deg); } }
+
+  .ring-guide { fill: none; }
+  /* additive glow for edges + halos — mimics repo canvas 'lighter' compositing */
+  #edges { mix-blend-mode: screen; }
+  #nodes .halo { mix-blend-mode: screen; }
+  .hyper-grid line { stroke: #1A2470; stroke-width: 0.35; mix-blend-mode: screen; }
+  .ring-tag { font-size: 8.5px; letter-spacing: 1px; }
+  .axis-label { font-size: 8px; fill: var(--text-faint); letter-spacing: 1.5px; }
+  .rank-label { font-size: 6.5px; font-variant-numeric: tabular-nums; pointer-events: none; user-select: none; }
+  .node { cursor: crosshair; }
+  .node:hover .dot { stroke: #ffffff; stroke-width: 0.6; }
+
+  /* tooltip */
+  .tip {
+    position: absolute;
+    pointer-events: none;
+    transform: translate(-50%, calc(-100% - 10px));
+    background: rgba(12, 5, 24, 0.92);
+    border: 1px solid currentColor;
+    padding: 7px 10px 8px;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 90ms;
+    z-index: 5;
+    min-width: 130px;
+  }
+  .tip.on { opacity: 1; }
+  .tip .seq { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; }
+  .tip .meta { color: #A0C0FF; font-size: 10.5px; margin-top: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tip .meta b { color: #60D0FF; font-weight: 500; }
+  .tip .term { display: inline-block; padding: 1px 5px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.8px; color: #02041A; background: #60D0FF; }
+  .tip .term.no { background: #1A1F3A; color: #6580B8; }
+  .tip .arrow {
+    position: absolute;
+    left: 50%; bottom: -5px;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px; height: 8px;
+    background: rgba(12, 5, 24, 0.92);
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+  }
+
+  /* status bar */
+  .status {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 44px;
+    background: var(--bar-bg);
+    border-top: 1px solid var(--bar-border);
+    color: var(--text);
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    gap: 12px;
+  }
+  .status .left, .status .right { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+  .status .left { gap: 11px; }
+  .status .pill { color: var(--text-dim); white-space: nowrap; }
+  .status .pill .num { color: var(--text); }
+  .status .peak { color: var(--text-dim); }
+  .status .peak b { color: var(--accent); font-weight: 500; }
+  .status .sep { color: var(--text-faint); }
+  .status .right { color: var(--text-dim); gap: 14px; }
+  .status .right .swatch {
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .status .right .swatch .s { width: 8px; height: 8px; display: inline-block; }
+  .status .right .zoom { color: var(--text); }
+
+  /* title slug top-left, optional */
+  .slug {
+    position: absolute;
+    top: 14px; left: 18px;
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    z-index: 3;
+  }
+  .slug b { color: var(--accent); font-weight: 500; letter-spacing: 2px; }
+  .slug .dot {
+    display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 6px var(--accent), 0 0 14px rgba(96, 208, 255, 0.5);
+    margin-right: 8px; vertical-align: middle;
+  }
+  .corner {
+    position: absolute;
+    top: 14px; right: 18px;
+    font-size: 9.5px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    z-index: 3;
+    text-align: right;
+  }
+  .corner b { color: var(--accent); font-weight: 500; }
+
+  /* tweaks panel */
+  .tweaks {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    width: 240px;
+    background: rgba(12, 5, 24, 0.92);
+    border: 1px solid #3030a0;
+    color: var(--text);
+    font-size: 10.5px;
+    padding: 14px 14px 12px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.6), 0 0 24px rgba(60, 0, 120, 0.25);
+    z-index: 1000;
+    display: none;
+    user-select: none;
+  }
+  .tweaks.on { display: block; }
+  .tweaks h3 {
+    margin: 0 0 10px;
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .tweaks .close {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; color: var(--text-dim);
+    font-family: inherit; font-size: 14px; cursor: pointer; line-height: 1;
+  }
+  .tweaks .row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 9px 0; gap: 10px;
+  }
+  .tweaks .row label { color: var(--text-dim); font-size: 10px; letter-spacing: 0.5px; flex: 1; }
+  .tweaks .row .val { color: #fff; font-size: 10px; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+  .tweaks input[type="range"] { width: 100px; accent-color: var(--r4); }
+  .tweaks .seg { display: flex; border: 1px solid #2A3070; }
+  .tweaks .seg button {
+    flex: 1; background: transparent; border: none; color: var(--text-dim);
+    font-family: inherit; font-size: 9.5px; padding: 4px 6px; cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .tweaks .seg button.on { background: #0E1640; color: var(--accent); }
+  .tweaks hr { border: none; border-top: 1px solid #0E1640; margin: 10px -14px; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="slug">
+    <span class="dot"></span><b>RING-TRIE</b> · CORPUS GEOMETRY · DEPTH 8
+  </div>
+  <div class="corner">
+    INDEX <b>AMOS7</b> · <span style="color:#39FF14;">live</span>
+  </div>
+
+  <div class="viz" id="vizWrap">
+    <svg id="viz" viewBox="0 0 1000 956" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="haze" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#1A2470" stop-opacity="0.40" />
+          <stop offset="34%" stop-color="#28177A" stop-opacity="0.20" />
+          <stop offset="66%" stop-color="#280060" stop-opacity="0.08" />
+          <stop offset="100%" stop-color="#000007" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="rootHalo" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#BFD0FF" stop-opacity="0.85" />
+          <stop offset="40%" stop-color="#60D0FF" stop-opacity="0.32" />
+          <stop offset="100%" stop-color="#60D0FF" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="rootCore" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#DCE6FF" stop-opacity="0.95" />
+          <stop offset="55%" stop-color="#7AB8FF" stop-opacity="0.75" />
+          <stop offset="100%" stop-color="#3D78FF" stop-opacity="0" />
+        </radialGradient>
+        <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="1.4" />
+        </filter>
+      </defs>
+
+      <!-- background haze -->
+      <!-- background fill + haze + faint hyperspace grid -->
+      <rect width="1000" height="956" fill="#000007" />
+      <rect id="hazeRect" width="1000" height="956" fill="url(#haze)" />
+      <g id="hyperGrid" class="hyper-grid"></g>
+
+      <!-- guide rings (stay still even when rotating) -->
+      <g id="rings"></g>
+
+      <!-- the rotor: edges + nodes + rank labels -->
+      <g id="rotor" class="rotor">
+        <g id="edges"></g>
+        <g id="nodes"></g>
+        <g id="labels"></g>
+      </g>
+
+      <!-- ring tags in margin, stay still -->
+      <g id="ringTags"></g>
+
+      <!-- root point: empty string axis -->
+      <circle cx="500" cy="478" r="22" fill="url(#rootHalo)" opacity="0.55" />
+      <circle cx="500" cy="478" r="11" fill="url(#rootCore)" />
+      <circle cx="500" cy="478" r="2.4" fill="#DCE6FF" fill-opacity="0.9" />
+      <text x="500" y="510" text-anchor="middle" class="axis-label" fill="#4258A8">ROOT  ε</text>
+
+      <!-- axis-like crosshair (very faint) -->
+      <line x1="500" y1="80" x2="500" y2="876" stroke="#0A1240" stroke-width="0.4" stroke-dasharray="2 6" />
+      <line x1="80" y1="478" x2="920" y2="478" stroke="#0A1240" stroke-width="0.4" stroke-dasharray="2 6" />
+    </svg>
+
+    <div class="tip" id="tip" role="tooltip">
+      <div class="seq" id="tipSeq">""</div>
+      <div class="meta" id="tipMeta"></div>
+      <div class="arrow"></div>
+    </div>
+  </div>
+
+  <div class="status">
+    <div class="left" id="statLeft"></div>
+    <div class="right" id="statRight">
+      <span class="zoom" id="zoomLabel">100%</span>
+      <span class="sep">│</span>
+      <span class="swatch">dot ∝ freq</span>
+      <span class="sep">·</span>
+      <span class="swatch">
+        color ∝ depth
+        <span class="s" style="background:#7CE6FF;"></span>
+        <span class="s" style="background:#38C1FF;"></span>
+        <span class="s" style="background:#5A78FF;"></span>
+        <span class="s" style="background:#3645E8;"></span>
+        <span class="s" style="background:#1F2DB8;"></span>
+        <span class="s" style="background:#131C7A;"></span>
+      </span>
+      <span class="sep">·</span>
+      <span class="swatch">CCW rotation</span>
+    </div>
+  </div>
+</div>
+
+<!-- tweaks panel -->
+<div class="tweaks" id="tweaks">
+  <button class="close" id="tweaksClose" aria-label="close">×</button>
+  <h3>TWEAKS</h3>
+
+  <div class="row">
+    <label>edge opacity</label>
+    <input type="range" id="tw_edge" min="0" max="60" step="1" />
+    <span class="val" id="tw_edge_v"></span>
+  </div>
+
+  <div class="row">
+    <label>label density</label>
+    <div class="seg" id="tw_labels">
+      <button data-v="0">off</button>
+      <button data-v="6">top 6</button>
+      <button data-v="13">top 13</button>
+      <button data-v="26">top 26</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <label>rotation</label>
+    <div class="seg" id="tw_rot">
+      <button data-v="0">off</button>
+      <button data-v="240">slow</button>
+      <button data-v="90">fast</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <label>galaxy haze</label>
+    <input type="range" id="tw_haze" min="0" max="100" step="1" />
+    <span class="val" id="tw_haze_v"></span>
+  </div>
+
+  <hr />
+
+  <div class="row">
+    <label>dot size scale</label>
+    <input type="range" id="tw_dot" min="60" max="180" step="5" />
+    <span class="val" id="tw_dot_v"></span>
+  </div>
+
+  <div class="row">
+    <label>zoom</label>
+    <input type="range" id="tw_zoom" min="70" max="160" step="5" />
+    <span class="val" id="tw_zoom_v"></span>
+  </div>
+</div>
+
+<script id="data-script">
+// ──────────────────────────────────────────────────────────────────────────
+// Tweakable defaults — host rewrites this block when user changes values
+// ──────────────────────────────────────────────────────────────────────────
+window.TWEAKS = /*EDITMODE-BEGIN*/{
+  "edgeOpacity": 28,
+  "labelTop": 13,
+  "rotation": 0,
+  "haze": 70,
+  "dotScale": 100,
+  "zoom": 100
+}/*EDITMODE-END*/;
+</script>
+
+<script src="viz.js"></script>
+<script src="tweaks.js"></script>
+
+</body>
+</html>
