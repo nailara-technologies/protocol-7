@@ -15,7 +15,7 @@ return <signal.cancel.library>
 
 my $pattern_dir = <system.root_path> . '/data/signal-cancel/patterns';
 my @pattern_files
-    = sort @{ <[base.file.glob]>->( $pattern_dir . '/*.yaml' ) // [] };
+    = sort @{ <[file.glob]>->( $pattern_dir . '/*.yaml' ) // [] };
 
 my $library = {
     'loaded_at'   => <[base.ntime]>,
@@ -27,7 +27,7 @@ my $library = {
 my $loaded_count = 0;
 
 foreach my $file_path (@pattern_files) {
-    my $yaml_text = <[base.file.read]>->($file_path);
+    my $yaml_text = <[file.read]>->($file_path);
     next if not defined $yaml_text;
 
     my $doc = eval { YAML::XS::Load($yaml_text) };
@@ -85,8 +85,8 @@ foreach my $file_path (@pattern_files) {
 
 return $loaded_count;
 
-#,,,,,..,,,,.,,,.,,..,,..,,..,,..,.,.,,,.,,.,,.,.,...,...,,,,,,,,,,..,,.,,..,,
-#LGRSSIIITBEPVGUGS7MZ6PC3GWF2FOSIMJSWUH2DHXYVDNRZIBBRG24EG77JHBMLEFEXRDYH3SSKW
-#\\\|PC2QFZS4ERSTBL3RL7JM6MN23L4NFJJ757W4YZKE4PJPEDYRY7S \ / AMOS7 \ YOURUM ::
-#\[7]IQVPCRWYBNITBY3NGNTGRMVTTKXS3YK5EHQBLUFE4A5O4YQIIYCA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,,,,,,.,,..,.,,,.,.,,,.,.,.,.,.,...,...,.,.,,..,..,,,,,,,.,,
+#4HIKL7LZQEJ3FLENOAUAOCO67OEHGV2YGODGDI2TSGQSINFLTVGDHSFCEHIQU5XQE4A74QF25DUEG
+#\\\|JQHUM5RSHTS6FSSKQP6O5AJNZD7X3SJXPLVG7FQACS5KRV5PDZP \ / AMOS7 \ YOURUM ::
+#\[7]HIAQ7Y4OICQFRRHU7FZEUTERGVUJGCVSMY7UYXH2IMW2RCX73OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my $pattern_dir = <httpd.classify.pattern_dir>
     // <system.root_path> . '/data/httpd-classify/patterns';
 
 my @pattern_files
-    = sort @{ <[base.file.glob]>->( $pattern_dir . '/*.yaml' ) // [] };
+    = sort @{ <[file.glob]>->( $pattern_dir . '/*.yaml' ) // [] };
 
 my $library = {};    ##  family => { descr, severity, patterns => [..] }  ##
 
@@ -84,8 +84,8 @@ foreach my $file_path (@pattern_files) {
 
 return $library;
 
-#,,,,,,.,,,,.,,..,,,,,,,,,,,.,.,.,,,,,,,,,,,,,..,,...,...,,..,.,.,,,,,...,,,,,
-#FUGTYJCGMHMHH2Z56M4Z3UWL2SLZ7NFPWLJMBKS5YPBW5I5GXSQLWIYQ55FCENF3TOGCUN6N7MSU6
-#\\\|BZHTGJ7TXGNS3LTETWEN2NC22VWJ365AD56G4JG7VTDVTL2R6CG \ / AMOS7 \ YOURUM ::
-#\[7]ZJTCKPOHGQVBI4CXJ2YWN6LLREKWF6BB5TXT4W2KGGN6F2XNMSBI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,..,,,.,,,,,...,.,,,,..,,,.,..,,...,...,...,.,,,...,.,.,..,,
+#OBOX3TBG55EEIEFOBEWDY7RV5QG6DM6LA5YFI56YIAFZ6AISFHNRLLQACCCJ4426X3JE6AP37YYBE
+#\\\|BO2LKNUDT72Z5RMMM662AIZEVVMLXYJTTGFM2UH3WHEPQ4LMNUF \ / AMOS7 \ YOURUM ::
+#\[7]SKVRPN4663BQ7X7HN4UFDALUNARXOZAREGCW2LBFMOVHYQRFOCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
