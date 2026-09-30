@@ -9,6 +9,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **commit policy** — never commit without a valid version number (`./bin/dev/update-version`) and
   proper signatures (`bin/Protocol-7 sourcecode update-signatures`). use `--no-verify` only in
   emergencies.
+- **commit message form** — short `area : topic` title [ <= 72 chars ], ONE empty line, then `- `
+  bullets wrapped at ~75 [ two-space continuation ]. a one-line message is fine only when there
+  is nothing more to say — never fold the whole body into the title with `;` `--` `[ ]`. the
+  multi-line messages in the history are the CORRECT form, the long one-liners are the offenders
+  [ 2026-09-30 a reword task inverted this, collapsed the correct messages and was force-pushed ;
+  before any history reword, show the older-history baseline and state which form is produced ].
 - **structural work conventions** — before structural work, read
   `data/md/development/STYLE-PHILOSOPHY.md` alongside `data/yaml/code-style/CONVENTIONS.yaml` and
   `data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`; update the philosophy doc if you refine
@@ -47,8 +53,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,,,,,,,,,,.,.,,,,,.,.,,,,..,.,.,..,,..,,,.,,.,.,...,...,...,,,.,,..,.,,,,,.,
-#OGKVM6AJOQUIZ4GRRMR3SPOTFU4FSMCKNMHJW6XQT4RFSPA2JG6RS7Z4I7NYS7BINVJVEKJVX65FS
-#\\\|DHUHCY445MQMIDSG24YW6P3CJPTICTPJR7PH4FJNUNVSGVZIZGT \ / AMOS7 \ YOURUM ::
-#\[7]OZXOKSTWVZN365AE3PMZ4CTLKAMEOCYKBSH7YBVIAWVNGARAAECI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,.,,..,,,.,.,.,.,.,.,,,,,.,.,,,.,.,...,..,,...,,.,,.,.,,,,,,.,,
+#6JRRS3EKFMS3MIVRREWVERVOWDRWE7JD2H2LMC5VWWI2SL7HGAM2LDY6ZK3TZYP6TQMA56BT4EXDA
+#\\\|2TRC36FG453VPA54IMQ6PIDGCEALUT75I62LUZFC37D2KY2U2LQ \ / AMOS7 \ YOURUM ::
+#\[7]P6DDCX3KELVHRTWVGLCCYHYK4U22KCY5BUREKJQVYZSBD63WTODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
