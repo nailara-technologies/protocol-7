@@ -105,7 +105,7 @@ both, plus the start time -- each covers something the others do not :
 
 ## state 2026-09-30 [ stage 1 done, code locations for stage 2 ]
 
-- stage 1 DONE [ ab0d22e5b ] : invoke.ai's stdout \ stderr go to
+- stage 1 DONE [ cf4864498 ] : invoke.ai's stdout \ stderr go to
   /var/run/.7/invoke-web/invokeai.out [ O_APPEND, PYTHONUNBUFFERED ], read by
   inotify from a saved offset [ invoke-web.output.* ] -- no pipe, no SIGPIPE ;
   a new instance reads on [ invoke-web.handler.output_adopt ]
@@ -182,8 +182,8 @@ both, plus the start time -- each covers something the others do not :
   process_zenka_end ] terminates children BEFORE any error status -- that
   path is unchanged by design [ only the status 'error' path keeps ]
 
-#,,..,,..,...,,.,,,,.,,,.,.,.,.,.,,..,...,...,..,,...,..,,..,,...,,,.,,,.,,,.,
-#MHC46FTDAKTEDL427BXWJNXSIPLYURGBVVA4Q675CVOMD2ALSW6RAACF5FKGRBY7TGT5EA7WZVQ3W
-#\\\|LJN4XB7A7O5CDQOMJ3BLMHWFXY7OMMBG42I76M27ZHORVQOV3WN \ / AMOS7 \ YOURUM ::
-#\[7]JGZVMTY5PJMB3PMWETHKEG22KCZSI53WCZD3P5GVHKOSK46OBEDI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,.,,,,,...,..,,,.,,,..,...,..,,...,...,,.,,..,,..,,.,.,,..,
+#PNR3CS5VA6BLUBRMC4NNDD4I57JDSHQLFBB3ECKDBXF32FSZ46KPKS66T36BC7MI7V5TXFDCXXG3W
+#\\\|G7PIOFHYVBVMIZKFNNBLEWS6EWXUYLARFVICAZTUV5HPFNQXCQG \ / AMOS7 \ YOURUM ::
+#\[7]JCFJ6HKNTQYTPNK5WAYPGJWKFBHFSL2TMLLK376QNALIY3R4GOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

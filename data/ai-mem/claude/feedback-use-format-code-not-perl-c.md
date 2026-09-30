@@ -45,7 +45,7 @@ reference memory doesn't mention `format-code` as the better default, and vice v
 memories keep getting missed, consider: always run `bin/format-code -c` FIRST for any `src/*` edit
 in this project, full stop, before considering `p7-module-syntax-check` at all.
 
-**strict since 2026-09-29 [ fbbc58194 ].** format-code -c used to skip
+**strict since 2026-09-29 [ 8722cf792 ].** format-code -c used to skip
 `use strict` and passed two modules the zenka compiler rejected [ `stat(_)`,
 a `my $fh` declared inside an `if` condition ]. it now compiles P7 modules
 the way the loader does : `use strict`, the loader's imports [ File::stat
@@ -58,8 +58,8 @@ weather css, download ] and no noise.
 `bin/dev/ptd -c` stays the simple, fast precursor : syntax only, its ok line
 reads `syntax ok [ no strict ]` -- never treat it as the final check.
 
-#,,..,...,,.,,,..,,.,,..,,..,,,..,.,.,...,...,..,,...,...,...,.,.,..,,..,,...,
-#G5KXSQUXZYS6YPV4FXFVFKG6N5LGKFKT2UO6A4A5QDLSJUKIOI2YGOWM77EI6MBOV2O4C2ARH2ZHK
-#\\\|NCG7CBSKCBLRLT2RBHDUWLWXEZ645YD7I6IABEG6GVFPMZEFSKX \ / AMOS7 \ YOURUM ::
-#\[7]DWHMI6AC76VZO4ZS6NTOMPPKDABQJDGIIBQJ75CPSL2KBQC4UQBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,..,,.,,,,.,,.,,..,,,,,,,..,...,..,,...,.,,,.,,,...,..,,.,.,.,,,
+#WDEEOKEV7KMXWGGHBR5V5SKNO4YK32IQ265DBOIFQMZZ3CYV2PRPYX7YT7DKZZ752L46T2BM6E4KY
+#\\\|WNILNT3WW7C3CE3P4EKCJB4KE2DGXFAQBJS26BZYDXUQCVANKJ7 \ / AMOS7 \ YOURUM ::
+#\[7]HQRCKUGP4CFWZZU2NBNBSOUKCASEKMZKOP3N5KWAVXB27VZ65WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
