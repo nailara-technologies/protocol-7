@@ -46,6 +46,10 @@ if (   ( defined $avail and $avail <= $crit_avail )
     $indicated = qw| critical |;
 }
 
+## single-sample level kept for the start gate [ pacing already on the    ##
+## first elevated sample, eg. at boot, before hysteresis enters a level ] ##
+<v7-zenki.pressure.indicated> = $indicated;
+
 ## hysteresis : sustained N samples to enter, M to leave [ no flapping ] ##
 my $current = <v7-zenki.pressure.level>   //= qw| calm |;
 my $pending = <v7-zenki.pressure.pending> //= { 'level' => '', 'count' => 0 };
@@ -89,8 +93,8 @@ $pending->{'count'} = 0;
 
 return 0;
 
-#,,,.,,,,,.,,,,..,,,.,..,,,..,,.,,...,,.,,,.,,..,,...,...,.,,,.,,,..,,...,.,,,
-#J7EAS62PI33NVNTYGM5EQQV2UTZRVQICLV6CJ7X6GXNX2XORMMZGJEG6NOUH3KRU4RTCFBR4AYXTG
-#\\\|OAYSVYWHFCTJ42LIXCK5OYLQPRSLNO3A64I54EPVNQKL36JOECL \ / AMOS7 \ YOURUM ::
-#\[7]T223LWF744Z62KAZXF4XX6T4EJSEYYVZ7PTVPNOOSCJGMSIQRSDY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,,,,,.,,,,.,,...,..,,.,.,...,..,,...,...,,,,,..,,..,,..,,,,.,
+#PXATP6WAYTME5XWP5JGYJWUFNSAKUCDSCKDG3XJATHC7IDEMDQYYZFZV2XODCNWMTYIL7FA3SX4WO
+#\\\|QE34G76NVYEI64HOKQAIK26K3ED6DBCPNTXGUT5WTUSSJRBGGOE \ / AMOS7 \ YOURUM ::
+#\[7]2SM44VOZAB6TFTARTKVHPIGHCGMEPYOTZJ4XFG6JGIJIIP6CHQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,130 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.release_deferred
+# descr = per sample : run deferred restarts \ held starts the curve allows
+
+## called by v7-zenki.handler.pressure_sample after every sample [ no own   ##
+## timer ]. state lives on the instance \ job hashes [ ids get reused ], so ##
+## a terminated instance or a removed job simply drops out here             ##
+
+my $instances = <v7-zenki.zenka.instance>      // {};
+my $jobs      = <jobqueue.joblist.by_id>       // {};
+my $seq       = <v7-zenki.pressure.sample_seq> // 0;
+my $now       = <[base.time]>->(3);
+my $level     = <v7-zenki.pressure.level>     // qw| calm |;
+my $indicated = <v7-zenki.pressure.indicated> // $level;
+my $paced     = ( $level ne qw| calm | or $indicated ne qw| calm | );
+
+##[ DEFERRED RESTARTS ]#######################################################
+
+my $restart_max_wait = <v7-zenki.cfg.pressure.restart_gate.max_wait> // 300;
+
+my @deferred = sort {
+    $instances->{$a}->{'pressure_deferred_restart'}->{'since'}
+        <=> $instances->{$b}->{'pressure_deferred_restart'}->{'since'}
+    }
+    grep {
+    ref $instances->{$ARG} eq qw| HASH |
+        and defined $instances->{$ARG}->{'pressure_deferred_restart'}
+    }
+    keys $instances->%*;
+
+foreach my $instance_id (@deferred) {
+    my $instance = $instances->{$instance_id};
+    my $waited   = $now - $instance->{'pressure_deferred_restart'}->{'since'};
+
+    ## handled meanwhile [ manual restart \ terminate changed the status ] ##
+    if ( ( $instance->{'status'} // '' ) ne qw| error | ) {
+        delete $instance->{'pressure_deferred_restart'};
+        next;
+    }
+
+    next if $level eq qw| critical | and $waited < $restart_max_wait;
+
+    ## one restart per sample while not calm [ a released restart runs an ##
+    ## unflagged job the start gate does not space out ]                  ##
+    last
+        if $paced
+        and defined <v7-zenki.pressure.restart_gate.last_seq>
+        and <v7-zenki.pressure.restart_gate.last_seq> >= $seq;
+
+    delete $instance->{'pressure_deferred_restart'};
+    <v7-zenki.pressure.restart_gate.last_seq> = $seq;
+
+    <[base.logs]>->(
+        1,
+        ": '%s' deferred restart released [ %s, waited %ds ]",
+        $instance->{'zenka_name'} // qw| ? |,
+        $level eq qw| critical | ? 'max wait' : $level,
+        int($waited)
+    );
+    <[v7-zenki.init_restart_timer]>->( $instance_id, TRUE );
+}
+
+##[ HELD STARTS ]#############################################################
+
+my $start_max_wait = <v7-zenki.cfg.pressure.start_gate.max_wait> // 45;
+
+my @held;
+foreach my $instance_id ( keys $instances->%* ) {
+    my $instance = $instances->{$instance_id};
+    next if ref $instance ne qw| HASH |;
+    my $held = $instance->{'pressure_held_start'} // next;
+    my $job  = $jobs->{ $held->{'job_id'} };
+
+    ## started or ended meanwhile [ delayed auto-fire, terminate ] ##
+    if (   not defined $job
+        or not defined $job->{'pressure_gate'}
+        or ( $instance->{'job_id'} // '' ) ne $held->{'job_id'}
+        or ( $instance->{'status'} // '' ) ne qw| delayed | ) {
+        delete $instance->{'pressure_held_start'};
+        next;
+    }
+    push @held, $instance_id;
+}
+
+## on-demand first [ a caller waits, cube's ondemand watchdog ], then ##
+## oldest                                                             ##
+@held = sort {
+    my $ha = $instances->{$a}->{'pressure_held_start'};
+    my $hb = $instances->{$b}->{'pressure_held_start'};
+    ( $ha->{'origin'} eq qw| on-demand | ? 0 : 1 )
+        <=> ( $hb->{'origin'} eq qw| on-demand | ? 0 : 1 )
+        or $ha->{'since'} <=> $hb->{'since'}
+} @held;
+
+foreach my $instance_id (@held) {
+    my $instance = $instances->{$instance_id};
+    my $held     = $instance->{'pressure_held_start'};
+    my $job      = $jobs->{ $held->{'job_id'} };
+    my $name     = $job->{'callback_params'} // $instance->{'zenka_name'};
+    $name =~ s|\s*:env:.*$||;
+    my $waited = $now - $held->{'since'};
+
+    last
+        if $paced
+        and defined <v7-zenki.pressure.start_gate.last_seq>
+        and <v7-zenki.pressure.start_gate.last_seq> >= $seq;
+
+    my $reason = <[v7-zenki.pressure.start_gate_check]>->($name);
+    next if defined $reason and $waited < $start_max_wait;
+
+    $job->{'pressure_gate'}->{'released'} = TRUE;
+    delete $instance->{'pressure_held_start'};
+    <v7-zenki.pressure.start_gate.last_seq> = $seq;
+
+    <[base.logs]>->(
+        1, ": '%s' held %s start released [ %s, waited %ds ]",
+        $name, $held->{'origin'}, defined $reason ? 'max wait' : $level,
+        int($waited)
+    );
+    <[jobqueue.exec_job]>->( $held->{'job_id'} );
+}
+
+return 0;
+
+#,,,.,.,,,..,,.,,,,,.,,,.,,,,,,..,.,,,,,,,.,.,..,,...,...,...,,.,,,..,,,.,,..,
+#G3LTNJTMPMSZMNMY4AN2E6ELXZBLMPMEZZWZWZVDIZROWECNLJJWZHSBQDCK7QZMSQXBILSNY3JT4
+#\\\|5TBRDGQCVUTFTEOYHLNVOKWJXAQFG6PEHTEGR4MQIUCIKHRBW3J \ / AMOS7 \ YOURUM ::
+#\[7]OSTISOCDDK6WZNZOAYN6C5CY6NOOBSMMLKY7OHOPVX4Q3NYI6WDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
