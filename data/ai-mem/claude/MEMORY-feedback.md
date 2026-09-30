@@ -146,6 +146,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 
 - [log-send-buffer-regression-eaab2467f](feedback-log-send-buffer-regression-eaab2467f.md) — since 2026-07-18 zenki without an early loop turn lost their p7-log files [ notify_online stuck in one-shot init_reports ] ; fixed 2026-09-30 [ session guard + one-time re-arm ] ; method : measure the order, compare with mod-test, read the storm \ race fix history first
 - [bin-protocol-7-main-subs](../../../data/tasks/bin-protocol-7-main-subs-to-modules.md) — the 86 named subs in bin/Protocol-7's main:: [ and the P7Syntax.pm translator copy ] are a transitional state to be converted, NOT a pattern to extend ; never reloadable, outside the module system, translator kept in lockstep twice
+- [llm-fix-regressions-pattern](feedback-llm-fix-regressions-pattern.md) — 4 regressions in one night [ 2026-09-30 ] from earlier LLM fixes assuming 'single choke point' in generic paths ; method : callers first, measure the order, compare with mod-test, git log --follow the path, test every scenario the history names
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
@@ -160,8 +161,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [no-per-call-perlmod-autoload](feedback-no-per-call-perlmod-autoload.md) — never base.perlmod.autoload in per-call \ per-tick modules [ floods the console ] ; init_code or `if not defined &Pkg::sub` guard
 
-#,,..,..,,.,,,,..,,,,,,.,,...,,.,,.,,,,,.,,..,..,,...,.,.,.,.,.,.,.,,,.,,,.,.,
-#33TQBBHITIXNK2H3CJ3ZTL4HMTOXR7LM5XFRNQTFYXHXJAVUNND4N3VMXD7KGT7NMBSICX2YCBGCC
-#\\\|QSGS6LFN4CWSUELZNG75MQO7QA7DY7P7LYY4NWFFZDIZ5GAAX6Z \ / AMOS7 \ YOURUM ::
-#\[7]FT2MMYRO4DAVVC5MK2HCH3Y352GK7MJGXNJWOBZOTAYIAZPFGSDI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,...,..,,...,..,,...,,..,.,.,..,,...,..,,..,,,.,,,..,...,...,
+#GXNRGN7KVR3M6M5XPB77QSWJO7G4OZTNLBLGYRFHFMCJZAI46WUSO5NF3IW3I7BG72FOIH7GNK4CK
+#\\\|OSEBUZXVEPSVI5UCFIOCHLGBPG6YPXFMJWCRBZJIPEX2THEGLIA \ / AMOS7 \ YOURUM ::
+#\[7]JIKHIHU4AVIDWQIIHNKWDPJRMFJJ33S3W4PRZUMXL3WNA3MWE6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
