@@ -9,7 +9,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **commit policy** — never commit without a valid version number (`./bin/dev/update-version`) and
   proper signatures (`bin/Protocol-7 sourcecode update-signatures`). use `--no-verify` only in
   emergencies.
-- **commit message form** — short `area : topic` title [ <= 72 chars ], ONE empty line, then `- `
+- **commit message form** — short `area : topic` title [ aim ~72 chars ], ONE empty line, then `- `
   bullets wrapped at ~75 [ two-space continuation ]. a one-line message is fine only when there
   is nothing more to say — never fold the whole body into the title with `;` `--` `[ ]`. the
   multi-line messages in the history are the CORRECT form, the long one-liners are the offenders
@@ -53,8 +53,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,,.,,.,,..,,.,.,,..,,,.,.,.,.,.,.,,,,,.,.,,,.,.,...,..,,...,,.,,.,.,,,,,,.,,
-#6JRRS3EKFMS3MIVRREWVERVOWDRWE7JD2H2LMC5VWWI2SL7HGAM2LDY6ZK3TZYP6TQMA56BT4EXDA
-#\\\|2TRC36FG453VPA54IMQ6PIDGCEALUT75I62LUZFC37D2KY2U2LQ \ / AMOS7 \ YOURUM ::
-#\[7]P6DDCX3KELVHRTWVGLCCYHYK4U22KCY5BUREKJQVYZSBD63WTODI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,...,,..,..,,...,,,.,.,.,..,,.,.,...,...,...,.,.,,..,...,...,
+#3ARYAXD6BWLSP2WXLXB5H5KHE2YPU5M3D5XBEUITC732PPRV25JBAUFCURF2HCODWBGLVYPXSSROS
+#\\\|2DU7QNMT3IM32A2W2CLW3667QEYU5YWBLNJCKFCPXWWXMB4EEJP \ / AMOS7 \ YOURUM ::
+#\[7]WNHBKA6KCPSX6DLAOJR4BHOC6JJJSIR3NUIYPCCBXRJBXHEV32BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
