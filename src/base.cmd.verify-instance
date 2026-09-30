@@ -18,11 +18,7 @@ return { 'mode' => qw| false |, 'data' => 'no random string supplied' }
 
 <[base.disable_command]>->('verify-instance');    # used only once by v7 zenka
 
-map {
-    ref($ARG) eq 'CODE'
-        ? <[event.add_timer]>->( { 'after' => 0, 'cb'      => $ARG } )
-        : <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } );
-} @{ <system.callbacks.initialized> //= [] };
+<[base.callback.run_initialized]>;
 
 ## triggering instance reports before the timer does ##
 <system.timer>->{'send_reports'}->now
@@ -31,8 +27,8 @@ map {
 
 return { 'mode' => qw| true |, 'data' => 'verification code logged' };
 
-#,,,,,.,,,,.,,,.,,.,.,...,,..,...,.,.,,.,,.,,,..,,...,...,,,,,.,.,.,,,...,,..,
-#ATXT26BICP3PNX2RMZCZNLX56AMM6D2R4UL2QXSQXC7TT5GTINZ6BUD2ZUAVUPCBR7WVFUWBEBAIO
-#\\\|YAKGHSB6CQGOX57USQ24W4ZHLPGONSGSCOPNBONQBEOLUNZXTDF \ / AMOS7 \ YOURUM ::
-#\[7]UWULQ6UW2YEJCS2JDWDN3DGQ7JF5TFBMXUEGGFZJ2CLPRIS5GCCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,,,.,,,...,.,.,...,,..,,,,,...,..,,...,...,,..,..,,,,,,,..,,..,
+#QTZGM2UFH5TZ5IWTIG6DTOUL7FQMXVTBTUDRFYF7SI7IYRFKMNBEBFDN4T3L76YO2KYXPMXBLOZCC
+#\\\|MTPMMLVHIAODHVRWVVJHRG4CFNPWFMPB6FMJ5SF2P77O3D7TGX4 \ / AMOS7 \ YOURUM ::
+#\[7]FFWOTN7QOPIOKH3TQDWHRAFWOGIOJQFKLBXQAR64OS5PCVZ4JKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
