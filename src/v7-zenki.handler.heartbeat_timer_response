@@ -10,15 +10,90 @@ if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
     );
     return;
 }
-my $instance        = <v7-zenki.zenka.instance>->{$instance_id};
-my $is_cube_zenka   = $instance->{'is-cube'};
-my $zenka_name      = $instance->{'zenka_name'};
-my $fail_count      = $instance->{'heartbeat'}->{'errors'}++;
-my $heartbeat_retry = $fail_count ? 0 : 1;                        # retry once
+my $instance      = <v7-zenki.zenka.instance>->{$instance_id};
+my $is_cube_zenka = $instance->{'is-cube'};
+my $zenka_name    = $instance->{'zenka_name'};
 
 $instance->{'timer'}->{'heartbeat-timeout'}->cancel
     if defined $instance->{'timer'}->{'heartbeat-timeout'}
     and not $instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
+
+## cube answered FALSE 'client not present' : the zenka's session at cube   ##
+## is gone. between a zenka ending [ its cube session closes the moment the ##
+## process exits ] and our own end processing [ sig_chld ->                 ##
+## process_zenka_end ] there is a window where a heartbeat in flight gets   ##
+## exactly this reply -- that is not a heartbeat error. ending states are   ##
+## left to the end path ; only 'still online, no zombie, still no session   ##
+## after one 1s re-check [ no loop ]' falls through as a real problem       ##
+if ( $response->{'cmd'} eq qw| FALSE |
+    and ( $response->{'call_args'}->{'args'} // '' )
+    =~ m{^client not present} ) {
+
+    my $current_status = $instance->{'status'} // '';
+    my $process_id     = $instance->{'process'}->{'id'};
+    my $process_ending = FALSE;
+
+    ##  zombie : process exited, sig_chld -> process_zenka_end pending  ##
+    if (    defined $process_id
+        and <[v7-zenki.sub-process.pid_alive]>->($process_id)
+        and open( my $stat_fh, '<', "/proc/$process_id/stat" ) ) {
+        my $stat_line = <$stat_fh> // '';
+        close($stat_fh);
+        $process_ending = TRUE if $stat_line =~ m{^.*\)\s+[XZx]\s};
+    }
+
+    if ( $current_status ne qw| online | or $process_ending ) {
+        <[base.logs]>->(
+            2,
+            'instance %d [ %s ] heartbeat : session gone, zenka '
+                . 'ending [ status : %s ] -- left to the end path',
+            $instance_id,
+            $zenka_name,
+            $current_status
+        );
+        return;
+    }
+
+    my $recheck_pid = $response->{'params'}->{'offline_recheck'} // 0;
+    if ( not $recheck_pid ) {
+        $response->{'params'}->{'offline_recheck'} = $process_id // -1;
+        <[base.logs]>->(
+            2,
+            'instance %d [ %s ] heartbeat : session gone at '
+                . 'cube [ status : %s ] -- re-checking once in 1s',
+            $instance_id,
+            $zenka_name,
+            $current_status
+        );
+        <[event.add_timer]>->(
+            {   'after' => 1,
+                'desc'  => qw| v7-zenki heartbeat offline re-check |,
+                'cb'    => sub {
+                    $code{'v7-zenki.handler.heartbeat_timer_response'}
+                        ->($response);
+                }
+            }
+        );
+        return;
+    }
+    if ( defined $process_id and $process_id != $recheck_pid ) {
+        <[base.logs]>->(
+            2,
+            'instance %d [ %s ] heartbeat : process changed during '
+                . 'offline re-check [ %d -> %d ] -- left to the end path',
+            $instance_id,
+            $zenka_name,
+            $recheck_pid,
+            $process_id
+        );
+        return;
+    }
+    ## re-check done : same process still online with no cube session -- ##
+    ## falling through to the normal error path below [ real problem ]   ##
+}
+
+my $fail_count      = $instance->{'heartbeat'}->{'errors'}++;
+my $heartbeat_retry = $fail_count ? 0 : 1;                      # retry once
 
 if (    $response->{'cmd'} eq qw| TRUE |
     and $response->{'call_args'}->{'args'} =~ m|^beating| ) {  # success again
@@ -126,8 +201,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,.,,..,...,..,,...,.,.,,,.,,..,,,,,.,,,.,,,..,,...,...,..,,,,.,,..,,,.,,.,,
-#LAMK4364F5BLIN5I23EKSOLE62UTBPO3JDL3QJWGB2GHICQF4KITLHUYYVY2TJFHG7DOUUQZHSN24
-#\\\|IEUVQEJLBELYAGKIBQUZO5SRE55CNEIZ4PQBEM5GPDR4DVIXZMQ \ / AMOS7 \ YOURUM ::
-#\[7]VQ4ETDCYNVMR2T52MCQMNU2WRR6DR7HTK2R34GRK6OCMMSGZ3QCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,,,.,.,...,...,.,,,,,.,.,.,,,.,..,,...,...,,,.,.,.,.,.,..,,.,.,
+#3Y6EOMKI76O66TVWSA7SW7LZTY3EYWESPN7MSOXGLOPAYYWNDIRUMIQJKKJGNQVNDW5XLVCRRCN6K
+#\\\|RXISK2ECVYKLNOOK56HQ2IFDLXZIWZUABP2PBSO5SZHOPVNIS3P \ / AMOS7 \ YOURUM ::
+#\[7]I64LF4O25NKP76TS76UDSWWYXKIK373E6WNGXDB5K6HMBTLXTADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
