@@ -158,7 +158,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|HTJFDBHUFHFRE33V34ZELPU33PJAWG2XKFDXGYYXYY7ZQUQEFNW \ / AMOS7 \ YOURUM ::
 #\[7]GW4ZALPONIFTF7NZ4VLC2DKL6V2SYAFDT5LYDCO3JQBSY3NT3IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-- [images-elfdb-planning-base](project-images-elfdb-planning-base.md) — new images \ elfdb zenki : start from data/tasks/images-elfdb-feature-collection.md [ da16f16e0 ], names provisional, elves first
+- [images-elfdb-planning-base](project-images-elfdb-planning-base.md) — new images \ elfdb zenki : start from data/tasks/images-elfdb-feature-collection.md [ bd8e504ab ], names provisional, elves first
 
 #,,.,,.,,,,,.,,.,,,,,,,.,,,..,.,.,..,,.,.,,..,..,,...,...,.,,,,,.,.,.,..,,,,.,
 #6E53VM2BAHXMMXKNUHWOXPURMQ3MNFHQKRSGK6S7ESF6K5UNZLDPK5ITSVVJSE5UTXOBK7NFRZWRS
@@ -167,8 +167,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,,.,,..,,,.,...,..,,,.,,.,.,.,,,,,,,,.,,,,,,..,,...,...,...,.,,,.,,,,..,..,,
-#LZIHZD6B3XIQRXNJTWYQZYUFFIDR4VFKAH5CA4EBUCMCWEYYB74TDEBVURTZZH2DHLX3YBJAMFTEI
-#\\\|PBSP44FVHAHOWXBTDR2OE4OEQBY6XGSON555C3J3BX7LFMOIIV5 \ / AMOS7 \ YOURUM ::
-#\[7]SBOQC6IV47Y5BR5N64TBCGRLCSZCIHSUBHHHW7HW6F7YVPP7LEAI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,..,,,.,,,.,,,,,,,..,,.,,.,,,..,,...,...,.,,,,,,,,,,,,..,,,,,
+#IFROSM2GV7HTN3L3CUJ4RJS74DEOSMA2SMLAA6X47DGXH3B3NNXJQFEQS5VY2QCU6XJQI2LBOQBIO
+#\\\|M4PC56GONXTNH3CU6CGVLI3KJXSXGJ2MZ3OUXIGDIT72QUMC233 \ / AMOS7 \ YOURUM ::
+#\[7]HBRVHXZQYNKMWXQL2PDPRUZ5BTAELREOKRX5J3V5HULZLHZWMOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
