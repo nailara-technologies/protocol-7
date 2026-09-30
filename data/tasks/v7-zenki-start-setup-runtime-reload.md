@@ -23,6 +23,28 @@ data/ai-mem/claude/feedback-llm-fix-regressions-pattern.md. [ an earlier
 note of mine said "start setups are only read at v7-zenki's first start" --
 wrong in that form ]
 
+## reproduced 2026-09-30 ~17:50 [ clean case ]
+
+- mod-test's start.cfg had `dependencies = cube models` [ T-C test ] when
+  v7-zenki started [ 16:42 ] ; the file then went back to `dependencies =
+  cube` [ committed 02926e1bf, 16:49 ]
+- `p7c v7-zenki.list dependency` after a v7-zenki reload : mod-test still
+  `cube models` -- restarting mod-test cascade-started models
+- after a full v7-zenki restart : `cube` only
+- so : a REMOVED dependency survives the reload. check first whether the
+  merge only adds [ `dependency.add` for keys it finds, nothing for keys
+  that are gone ]
+
+## likely direction [ unverified ]
+
+`v7-zenki.cmd.drop-dependency` already removes dependency objects :
+`dependency.get_reverse` + `dependency.del`. but it drops ONE zenka from ALL
+chains [ a manual override ] -- a reload needs the per-zenka form : for each
+zenka whose start setup changed, delete its dependency objects that are no
+longer in `dependencies =`, add the new ones. `drop-dependency` is also the
+manual workaround until this is fixed [ affects every dependent of the
+dropped zenka ].
+
 ## goal
 
 a runtime reload of the start setups -- e.g. `p7c v7-zenki.reload-start-setup
@@ -42,8 +64,8 @@ on mod-test [ the free test zenka ] : change a key in its start.cfg, reload,
 check `p7c v7-zenki.list dependency mod-test` and the behavior at the next
 mod-test start -- without a v7-zenki restart.
 
-#,,,.,.,.,,,.,.,.,,,.,...,,,,,,.,,.,.,..,,,,.,..,,...,...,..,,,,,,..,,.,.,...,
-#5BK47XDPX6RC4EXYALGNQORV6ZJCTYJRCMSGB2N4KBXHZ3FCSFL5EURKAIHRQUWISTZZ7CADQ25A6
-#\\\|HHNC4E2SSSGVNAUZ362PF7TJV5FEWQF7ZR45KZQHYPUC5UNGFTW \ / AMOS7 \ YOURUM ::
-#\[7]TZDAMQJEAVVK5DXI56JMHBWOQZ4M3C7WWRPV3ISSIWFUFJML5GCA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,...,..,,,,.,,,,,,,.,,..,...,..,,...,...,..,,...,,,,,,..,...,
+#XRKXLU7UUSIMZ5SBRB54HGPZWWWOGC6N6YNPTKJJODSRD6FKXLKRXVYAL7JR23CNG7C3LF7P3EJKO
+#\\\|HKTR6JM7NAERKK4KTG7ICC6Z542FKNSNA2T2G4UQ6W33MU7NQM3 \ / AMOS7 \ YOURUM ::
+#\[7]667QSZEUI5HBRQEBPPKNYE436DBHACMC7BVWD7L6DFD6LY7PREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
