@@ -3,7 +3,7 @@
 # name  = ssl.connect_handler
 
 if ( -S $_[0] ) {
-    if ( not $new_sock = $_[0]->accept() ) {
+    if ( not my $new_sock = $_[0]->accept() ) {
         my $ssl_err = &IO::Socket::SSL::errstr();
         $ssl_err =~ s|\n.+||mg;
         <[base.log]>->( 0, "ssl.connect_handler: cannot accept [$ssl_err]" );
@@ -24,8 +24,8 @@ if ( -S $_[0] ) {
     return FALSE;
 }
 
-#,,,.,.,,,,.,,.,.,.,.,.,,,.,,,.,.,,..,...,...,..,,...,...,,.,,,..,..,,.,.,,,.,
-#ZRJS6Y2HRNAW3XAFMSTTVBNPVYAR5YGVNAZ5HBI6QQ7LL2DA3YBWMX6YMMRZK35B5LH5HPOJUBTVK
-#\\\|IB2SNAA3XBUW4ESCXPPT5MYRKKV743NWD72ZTCY45HJAJ4ZGEXQ \ / AMOS7 \ YOURUM ::
-#\[7]BV24GTILERGQNHYDWZLV7ZSF5AXOW5BONNPB3BTFWOCZKC2DASCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,,,,,.,.,,,.,..,,...,.,.,...,..,,...,...,..,,,,,,,,.,...,..,,
+#EDBZVBSAPEEY65U2NCB6KT2HQC3ZQ37ROVBH5KLAGBKTUE5ADZKMPHLHGES3S3VFASI56BOVM2D5C
+#\\\|MOCIHDIJ7M4CLIG37OS4OI4TF4NIVZANVZCGHR77XOMHNRGVVWB \ / AMOS7 \ YOURUM ::
+#\[7]QQI2IEUIUMWSTSPIINN374EIJWLW3R6WYEK3GO7MKJR454XBB6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

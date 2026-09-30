@@ -2,21 +2,21 @@
 
 # name = ssl.cmd.read_data
 
-local ( $id, $com_id, $name, $mode, $count ) = @ARG;
-if ( -S $buffer{'link'}{$name}{'handle'} ) {
+my ( $id, $com_id, $name, $mode, $count ) = @_;
+if ( -S $data{'link'}{$name}{'handle'} ) {
     if ( $mode eq qw| bytes | ) {
         if (<[base.s_read]>->(
-                $buffer{'link'}{$name}{'handle'},
+                $data{'link'}{$name}{'handle'},
                 my \$buffer, $count
             )
         ) {
             <[base.logs]>->( 0, 'length : %d', length($buffer) );
             <[base.net.send_to_socket]>->( $buffer, $com_id );
             <[base.log]>->( 1, 'success - wrote' );
-            $buffer{'link'}{$name}{'handle'}->flush();
+            $data{'link'}{$name}{'handle'}->flush();
             <[base.log]>->( 1, 'success - flushed' );
         } else {
-            $buffer{'link'}{$name}{'status'} = qw| closed |;
+            $data{'link'}{$name}{'status'} = qw| closed |;
             <[base.logs]>->( 0, "link '%s' terminated", $name );
             return {
                 mode => qw| false |,
@@ -33,8 +33,8 @@ if ( -S $buffer{'link'}{$name}{'handle'} ) {
     };
 }
 
-#,,,,,..,,,.,,...,,,,,,.,,,,.,,,,,,,,,,.,,,,.,..,,...,...,.,.,..,,,..,.,.,,,.,
-#RPUNUDU7OVQOND6AGPUCJOYP5ZTYGPWAWGS2T4ABSRMMHM4TOPNWIIKNTDVJIPKIPPWN4MNLGL2RK
-#\\\|K3VJM2PWFKZUUMREAIS7WL2EU3JS3QCUUSTIW5635O645VFMFD7 \ / AMOS7 \ YOURUM ::
-#\[7]4UZRBHUSWQUJLMKRRCEMUPQEPUYH4UV2F445ZTMVHQ3XG2WIZYBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,.,,,,.,,,.,,,.,,,.,.,.,..,,,,,,..,,...,...,.,.,,,.,..,,..,,...,
+#PPNC7G3Z3HWKCKOPP6OU4AURPSBSPXSXEGRKNB4MYPSBP6QLYB5FXSYOOBANZQU3W2PMWCATGTD74
+#\\\|K5IXLUHDZVKYYZDCSOKQSXF44WTGVAW7KIFAC3NAE6IMSFGYQVW \ / AMOS7 \ YOURUM ::
+#\[7]5KRPI6D7Q7HELWA6VUWW6UIC4VVK5WI53NEWUM6VHV3WP5QAT2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

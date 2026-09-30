@@ -2,6 +2,11 @@
 
 # name = power.set_states
 
+##  gembird socket state constants [ values per Device::Gembird ]
+use constant SOCK_ON   => 0x01;
+use constant SOCK_OFF  => 0x02;
+use constant SOCK_SKIP => 0x04;
+
 my $device_id  = shift;
 my @set_states = @_;
 die "expected valid device id"
@@ -58,8 +63,8 @@ if ( $dev->{'poller'}->can_write(0.1) ) {
 
 return @new_states;
 
-#,,,.,,..,.,,,,,.,,..,,..,,.,,...,.,,,...,,..,..,,...,..,,.,.,,..,,.,,,,,,,,.,
-#65CPU6LDF3LWTKDVS3SLIPQKZEPZZIDZ2KAM3AKGKN6M4TSHLBNVK2AUGBKCGKOLXNW45OVHRFSBU
-#\\\|F5R2DX2J3PHGXTCZYUT3UDFNBG6QXN5NFTCYZ2CADBCVD7IOTXR \ / AMOS7 \ YOURUM ::
-#\[7]TNLU7VALJ45656ITGVR4TVZ2E3JYHKJGNL6LSS5KFULBZ5KTP4DQ 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,,,.,,,.,.,,,..,,.,,,.,.,...,..,,...,...,...,,..,...,..,,,,,,
+#GMYHEJAZ3YSZUM3PWKRZBZDIUZ5FRYYCBGXRANJC767NH2YCMFQ6AJQ2EYDLA2DUDUTNQUG3VQBPA
+#\\\|LLAVPUTW3GDFE46FSFKP3ZU7SJZUBQ2IYAKYEABDF4KOB7VGSQB \ / AMOS7 \ YOURUM ::
+#\[7]SMNBDASCPCWL2WWVRJCNRB5L6F6PR3LWST7LPFTZDFNJBYS4BABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
