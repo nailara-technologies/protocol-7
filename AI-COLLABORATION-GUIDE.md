@@ -204,12 +204,14 @@ EOF
 ```
 
 ### Commit Message Form
-- **Title**: short `area : topic` line, at most 72 characters
+- **Title**: short `area : topic` line, aim for ~72 characters
 - **Separator**: exactly one empty line
 - **Body**: `- ` bullets wrapped at ~75 columns, two-space continuation indent
 - A one-line message is fine only when there is nothing more to say
 - **Never** fold the whole body into the title with `;` `--` `[ ]` — in the history, the
   multi-line messages are the correct form and the long one-liners are the offenders
+- The `commit-msg` hook enforces this: it rejects a non-empty line 2 and a single-line
+  message over 100 characters, and warns when a title with a body is over 80
 
 ### ⚠️ NEVER Bypass Pre-Commit Hooks
 - **NO** `git commit --no-verify` (equivalent to `--no-verify`)

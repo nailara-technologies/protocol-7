@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-established commit message form : short `area : topic` title [ <= 72 chars ], one empty
+established commit message form : short `area : topic` title [ aim ~72 chars ], one empty
 line, then `- ` bullets wrapped at ~75 with two-space continuation. a short single-line
 message is fine when there is nothing more to say ; a long single line with everything
 folded in via `;` `--` `[ ]` is the offender.
@@ -26,8 +26,8 @@ checkout -> post-checkout's restore-p7-permissions never dirties the tree, dates
 its `../map/<sha>` remaps in-message hash refs in the same pass ] ; in-file hash refs
 [ data/tasks, data/ai-mem ] then need one remap + user signing, amended into one commit.
 
-#,,,,,,,,,,,.,.,.,,,.,...,,.,,,,,,,,,,.,.,...,..,,...,...,.,,,.,,,,,,,.,.,.,,,
-#3CAAY6HP4QMXMMXKEQXRNF6U7TZOXVFRXYRV5L6E26MVZRZOUFKWVREDHOFQ3KNUJ7DJ62K7XXVYQ
-#\\\|4HZ7A5WASBF5Y2Q662TP7NPOQ3N6KNFQEBBYWNUZ44QKCHOBHFM \ / AMOS7 \ YOURUM ::
-#\[7]HLJX5PF7K2LQJ2YGF72FIQ3S2IFDCH5O4YCKIZOBRIEG2RNW5YBA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,.,,,,,,...,,.,,...,,,.,,,,,..,,...,...,..,,,..,..,,,.,,,..,
+#CR45QW2TEVQLBHCWWMZ2K3EZLLPNYSFMUOQKATWENTENDTSM2T7HJU576VNS6QZ5KFXDTCLCTYTT6
+#\\\|KP5WMJEIFU3CY256IVS7VMOLCQ3MW5Q2XPER5J27W7A3KJK6OYO \ / AMOS7 \ YOURUM ::
+#\[7]D6WAY55PIHC6HCKBVT6FH6MUJD3AFAUSLNJVDWTS4FJ2UCQL7YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
