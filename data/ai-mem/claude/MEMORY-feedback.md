@@ -144,6 +144,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [verify-staged-content-before-commit](feedback-verify-staged-content-before-commit.md) — 2026-09-17: landed an incomplete commit by only re-`git add`ing untracked (`??`) files before committing; 4 already-tracked files were ALSO still unstaged (leading-space `M`) and got silently left out, shipping stale content (a `$reinit` guard missing entirely). Always read full `git status --short` / diff `--cached --stat` vs plain `--stat` before every commit, not just scan for `??`
 - [verify-live-not-just-static-read](feedback-verify-live-not-just-static-read.md) — for auth/permission/security claims, a static code trace is a hypothesis not a verdict, especially when a plausible benign explanation is already on the table that would let investigation stop early; confirmed 2026-09-20 when only a real cross-account `USER=X p7c whoami` test (not either side's static reading) settled [[project-2026-09-20-unix-auth-identity-bypass-fixed]]
 
+- [log-send-buffer-regression-eaab2467f](feedback-log-send-buffer-regression-eaab2467f.md) — since 2026-07-18 zenki without an early loop turn lost their p7-log files [ notify_online stuck in one-shot init_reports ] ; fixed 2026-09-30 [ session guard + one-time re-arm ] ; method : measure the order, compare with mod-test, read the storm \ race fix history first
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
@@ -158,8 +159,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [no-per-call-perlmod-autoload](feedback-no-per-call-perlmod-autoload.md) — never base.perlmod.autoload in per-call \ per-tick modules [ floods the console ] ; init_code or `if not defined &Pkg::sub` guard
 
-#,,,,,..,,,..,...,..,,,,.,..,,,.,,,.,,.,,,,,.,..,,...,...,,,.,...,..,,,..,...,
-#P56O4VZO6IUDIBMYX7UFJLBVN7BU2H6SIRNHGCDKDK2Y3RMMLELCT4JHWIZ47PBY656DW7PLJWUCW
-#\\\|H6RGXX4F7Z5IGYBZ3DJJR3Y5MVA2VVLRVG75TP6QNLFHUPTJRD6 \ / AMOS7 \ YOURUM ::
-#\[7]ISVH6X5HS2Q6BGKGFZPHQDD6GHIZXKVAIUSMDTWMTEIBA6OPBADA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,.,.,,,.,..,,,,,,,.,,.,.,,,,,..,,...,...,..,,,..,...,,.,,.,.,
+#ZOTO5OFRMUYQATDEFDV4O7UTEJAAWRDYEWYNBGG4P2GWOIAYAVP24VGBDPNDGJK4ETTYKD4GPS4PO
+#\\\|JP7RNFQPNOD2JFDF3EAO7QJVQBUOFG4E3CJBPNKNKW4X7SMUO6C \ / AMOS7 \ YOURUM ::
+#\[7]JSPIPJSXUTWIRU6F22NKJHINULCE47IYZGAYSLBJEY2EKSX4U6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
