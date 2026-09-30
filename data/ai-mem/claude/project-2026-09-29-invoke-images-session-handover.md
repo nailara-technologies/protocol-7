@@ -5,8 +5,8 @@ metadata:
   type: project
 ---
 
-**state at the end [ 2026-09-30 ~09:30 ]** : working tree clean, last commit
-62f67700f. invoke.ai rendering [ start_paused = startup ], coding zenka can
+**state [ 2026-09-30 ~18:00 ]** : working tree clean, last commit 08577b71f.
+invoke.ai rendering [ start_paused = startup ], coding zenka can
 run next to it [ Qwen3.8-9B -ngl 27 + invoke.ai fit, critical pressure but
 stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
 
@@ -55,28 +55,32 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
   precedence bugs in my own code [ 3x ]
 
 **tooling** : `bin/format-code -c` checks use strict + the loader's imports
-[ not yet `use warnings` -- would have caught an `or` bug, open ] ; ptd -c is
+and `use warnings`, P7 modules wrapped in a sub like the loader ; ptd -c is
 syntax only. named subs in bin/Protocol-7's main:: are a transitional state
 to convert : data/tasks/bin-protocol-7-main-subs-to-modules.md
 
-**in flight at ~11:00 2026-09-30** :
-- kimi REVIEW of 98da67302 \ e697008ad \ ab0d22e5b \ 554362c1c [ read-only,
-  session adf6c425-6ac9-490c-acbc-c76c217a66c7 -> kimi_check_status ] --
-  check its findings, each needs a concrete failure scenario
-- bin/format-code : `use warnings` + P7 modules compiled as a sub body like
-  the loader [ uncommitted, needs signing ]. first attempt flagged 38 files,
-  mostly artifacts ; fixed version found 2 real ones so far :
-  `letsencr.cmd.enroll:110` multi-word qw in scalar [ error text = 'error' ],
-  `weather.cmd.current:9` comma in qw [ harmless ]. full run result in
-  /tmp/claude-1000/fc-warn2.txt
-- T-C PASSED [ starting mod-test started its missing dependency models ]
-- new task files for kimi : v7-zenki-start-setup-runtime-reload.md [ files
-  ARE re-read on reload, loss happens in the merge ],
-  zenki-ondemand-config-consistency.md, v7-zenki-heartbeat-offline-race.md,
-  pressure brief pieces 4-5
+**done since ~11:00 2026-09-30** :
+- kimi review of 98da67302 \ e697008ad \ ab0d22e5b \ 554362c1c : one real
+  finding -- power-x11 never set `<system.zenka.initialized>` [ no
+  get_session_id, no init-done:TRUE ] -> its log send-buffer never resumed.
+  fixed be99ae2c2 : `[init-done:TRUE]` in its zenka.v7, plus
+  `base.callback.run_initialized` [ runs `<system.callbacks.initialized>`
+  once, from verify-instance AND init-done:TRUE ; in all load-early lists ]
+- kimi's "hybrid zenki [ nshell, user-edit, vault-edit ] lose logs too" was
+  NOT real : the send-buffer's first idle send fires only at [zenka.loop],
+  after init-done:TRUE set initialized. nshell logs as its SESSION name ->
+  `<host>.taeki.zenka.log`, not `nshell` [ I searched the wrong name ]
+- format-code `use warnings` + sub wrap committed [ b4dbf5e76 ] ; 5 real
+  multi-word qw bugs -> data/tasks/multi-word-qw-as-string.md
+- start.cfg reload loss REPRODUCED : a removed dependency survives a
+  v7-zenki reload [ `p7c v7-zenki.list dependency` ], gone after restart ->
+  task file updated 08577b71f. `v7-zenki.drop-dependency <zenka>` is the
+  manual override [ drops it from ALL chains ]
 
 **open, in this order** :
-1. kimi review findings + commit format-code [ see in flight ]
+1. kimi task files [ after the reset ] : multi-word-qw-as-string,
+   format-code-chk-files-out-of-src, v7-zenki-start-setup-runtime-reload,
+   zenki-ondemand-config-consistency, v7-zenki-heartbeat-offline-race
 4. invoke-web keep-children first real run [ a crash while rendering ]
 5. pressure brief pieces 4-5 [ defer restarts \ starts while critical ] +
    per-zenka memory stats by the system zenka
@@ -89,8 +93,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,,.,.,,,,,,,,.,,.,,,,,,,,.,,..,,,,,,,,,,,..,..,,...,...,,,.,,..,,..,.,.,,,.,
-#MQ7XS65SQ2W5NZDUKDTMORUCQBOXNM765L5ZLEJ3ZZULFBFLXONP4R6W52D7EAYYH65BKZZAJULGI
-#\\\|OLXQU3OICF4O2UU7JECGSLGAR7LCGLJAMX7VXD47NOEDUYNY5S6 \ / AMOS7 \ YOURUM ::
-#\[7]YD4ZHHLFYV25L2ESVTCUG6KBNVL3YZPT5MKHWWBSBZYCKSLH7AAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,,.,,...,,,.,,..,,,,,.,,,...,..,,...,..,,..,,.,.,.,,,,..,,.,,
+#5AAM5MBD6FLFF4ZKTM5XWL6XHNDSAAGXUEKCNV4LMTKJY2TB4AOUYCAGNVS22RGPHBGU6P6OKOMRY
+#\\\|KO6NG5E2PTCKGS7RAQ3YWWAMKXPXW2KAXLS4EESFPBRYJEOKGDK \ / AMOS7 \ YOURUM ::
+#\[7]RW4FAWI34LRS7OVIUFNOXRLEXBMQDBJV5E52N7QN62BT5GFM5SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
