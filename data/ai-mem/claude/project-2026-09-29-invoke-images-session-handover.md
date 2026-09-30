@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-**state [ 2026-09-30 ~18:00 ]** : working tree clean, last commit 08577b71f.
+**state [ 2026-09-30 ~19:30 ]** : working tree clean, last commit 163b96906.
 invoke.ai rendering [ start_paused = startup ], coding zenka can
 run next to it [ Qwen3.8-9B -ngl 27 + invoke.ai fit, critical pressure but
 stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
@@ -77,14 +77,26 @@ to convert : data/tasks/bin-protocol-7-main-subs-to-modules.md
   task file updated 08577b71f. `v7-zenki.drop-dependency <zenka>` is the
   manual override [ drops it from ALL chains ]
 
+**done ~18:00-19:30** [ a v7-zenki reload is enough for all of these ] :
+- 979aca2d7 start.cfg dependency changes applied by a RELOAD [ post_init
+  rebuilt chains only for added zenki ; now all, every run ]
+- 33caf9e50 channels \ osd-logo \ power : start.on-demand [ idle timeout
+  without it = error restart loop ] ; osd-logo is started \ ended by tile
+- 8ec0d3bb0 heartbeat FALSE `client not present` between a zenka end and
+  sig_chld no longer an error [ kimi ]
+- 163b96906 pressure pieces 4 + 5 : restart gate [ critical, max 300s ;
+  manual \ cube \ log target \ kept children exempt ] + start gate [ max
+  45s ] [ claude opus dispatch -- aliases now 5.5 \ fable 5.1, 12fb99476 ;
+  pass max_budget ~15 for opus ]
+- db85bb9ad multi-word qw ; 6c6b7b760 format-code .chk. out of src
+
 **open, in this order** :
-1. kimi task files [ after the reset ] : multi-word-qw-as-string,
-   format-code-chk-files-out-of-src, v7-zenki-start-setup-runtime-reload,
-   zenki-ondemand-config-consistency, v7-zenki-heartbeat-offline-race
-4. invoke-web keep-children first real run [ a crash while rendering ]
-5. pressure brief pieces 4-5 [ defer restarts \ starts while critical ] +
+1. NOT yet seen live : heartbeat race branch [ level 2 "session gone" ],
+   pressure gates [ next critical episode ], keep-children on a real
+   invoke.ai crash, `p7c invoke-web.fetch-missing <model>`
+2. on-demand mismatch warning at v7-zenki start [ task step 4 ] ;
    per-zenka memory stats by the system zenka
-6. coding-invoke-awareness.md ; images \ elfdb planning,
+3. coding-invoke-awareness.md ; images \ elfdb planning,
    [[project-images-elfdb-planning-base]]
 
 **Why:** a very long session [ >900k tokens ] with many interlocking fixes ;
@@ -93,8 +105,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,.,,..,,,.,,.,.,,.,,...,,,.,,..,,,,,.,,,...,..,,...,..,,..,,.,.,.,,,,..,,.,,
-#5AAM5MBD6FLFF4ZKTM5XWL6XHNDSAAGXUEKCNV4LMTKJY2TB4AOUYCAGNVS22RGPHBGU6P6OKOMRY
-#\\\|KO6NG5E2PTCKGS7RAQ3YWWAMKXPXW2KAXLS4EESFPBRYJEOKGDK \ / AMOS7 \ YOURUM ::
-#\[7]RW4FAWI34LRS7OVIUFNOXRLEXBMQDBJV5E52N7QN62BT5GFM5SAY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,,,,.,,,,,,,,,.,,.,,...,,..,..,,...,...,.,.,.,.,...,,,,,.,,,
+#HVAHHCSY33FYT2DSU3AS3AKVQBZD45UCIK32DUC2ZAMDN6PU5WUFE373X2SEODFKXLUHI3OCRYRCE
+#\\\|RRQPWI4RIJWAKUGLRMBYY5AJS2V5KI36RQGOQ55B5IR7VAGAIAR \ / AMOS7 \ YOURUM ::
+#\[7]UKKEZXK2U4SXFLQAWSTB667STZQ65YKAOV5E4JR3QBH6XZZPJCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
