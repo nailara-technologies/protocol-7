@@ -1,0 +1,28 @@
+## [:< ##
+
+# name   = invoke-web.proc_start_time
+# descr  = process start time [ /proc stat field 22 ] [ pid-reuse guard ]
+# param  = pid
+# return = start time string | undef [ gone \ unreadable ]
+
+my $pid = shift // '';
+return undef if $pid !~ m|^\d+$|;
+
+open( my $stat_fh, '<', "/proc/$pid/stat" ) or return undef;
+my $stat_content = do { local $/; <$stat_fh> };
+close($stat_fh);
+return undef if not defined $stat_content;
+
+## comm [ field 2 ] may contain spaces \ parens : fields resume after ')' ##
+my $close_pos = rindex( $stat_content, ')' );
+return undef if $close_pos < 0;
+my $start_time = ( split m| |, substr( $stat_content, $close_pos + 2 ) )[19];
+return undef if not defined $start_time or $start_time !~ m|^\d+$|;
+
+return $start_time;
+
+#,,..,.,,,..,,,.,,..,,,,.,.,,,,,,,,,,,,.,,.,.,..,,...,...,..,,.,,,,.,,,.,,.,.,
+#I5Z2ES4LGUEF5FJP4KNRQJX274BPCAPWIF56O2F6TRQKCNGK5N4EIC4JZNXRFSNEUM6ZRFO27QXQC
+#\\\|5BBUAFBOR2QCQONTBWQW4DY7OB7BF34FONZH5F5FX3RZQVZLUL4 \ / AMOS7 \ YOURUM ::
+#\[7]6FYKMOXL6X6X6BPQGYHVGSB5EFTYJUVRPG5MNYMEZI5GOAZU7WDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

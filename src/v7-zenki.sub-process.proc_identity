@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = v7-zenki.sub-process.proc_identity
+# descr = process identity from /proc [ start time + cmdline ]
+
+## start_time : /proc/<pid>/stat field 22 [ clock ticks since boot ] -- the ##
+## only reliable guard against pid reuse ; cmdline : plausibility [ still   ##
+## the same program ]. undef when the process is gone \ not readable        ##
+
+my $pid = shift // '';
+return undef if $pid !~ m|^\d+$| or $pid <= 2;
+
+open( my $stat_fh, '<', "/proc/$pid/stat" ) or return undef;
+my $stat_content = do { local $/; <$stat_fh> };
+close($stat_fh);
+return undef if not defined $stat_content;
+
+## comm [ field 2 ] may contain spaces \ parens : fields resume after ')' ##
+my $close_pos = rindex( $stat_content, ')' );
+return undef if $close_pos < 0;
+my @fields = split( m| |, substr( $stat_content, $close_pos + 2 ) );
+my $start_time = $fields[19];    ## field 22 [ 3 is the first after comm ] ##
+return undef if not defined $start_time or $start_time !~ m|^\d+$|;
+
+my $cmdline = '';
+if ( open( my $cmd_fh, '<', "/proc/$pid/cmdline" ) ) {
+    $cmdline = do { local $/; <$cmd_fh> } // '';
+    close($cmd_fh);
+    $cmdline =~ s{\0}{ }g;
+    $cmdline =~ s|\s+$||;
+}
+
+return [ $start_time, $cmdline ];
+
+#,,.,,,,,,,.,,.,,,...,.,,,,..,,..,,,,,.,,,,..,..,,...,.,,,.,,,,..,..,,.,,,,,.,
+#RWEGFMXFKKOMBYIN62EYHACKKCDDU3UFQXITIV6LJT7HBU53SRJQD22FED6QBI6QJOQTSSDLEKZGE
+#\\\|CUTVFGJOYWWEJ4L7EU7KQ7NTRZDWCRAHKPGRQFZJUXCXMX5DLVO \ / AMOS7 \ YOURUM ::
+#\[7]EMJOV2D4LKSIXUO42XQHAJYQJ5HJIWYZDZXWE2ZNWSLVNA6PUQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

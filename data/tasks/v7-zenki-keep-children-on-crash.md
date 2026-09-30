@@ -102,3 +102,88 @@ both, plus the start time -- each covers something the others do not :
 #\\\|EYWV43DXXVLY75B2KZ3YOU22BRRLB6FHH62R36R3V5465XU5MPK \ / AMOS7 \ YOURUM ::
 #\[7]55YVNYWD7343W3LOWCIHW2BEV4MLQ5RFZH6UC7DCX2VNVTYEVUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## state 2026-09-30 [ stage 1 done, code locations for stage 2 ]
+
+- stage 1 DONE [ ab0d22e5b ] : invoke.ai's stdout \ stderr go to
+  /var/run/.7/invoke-web/invokeai.out [ O_APPEND, PYTHONUNBUFFERED ], read by
+  inotify from a saved offset [ invoke-web.output.* ] -- no pipe, no SIGPIPE ;
+  a new instance reads on [ invoke-web.handler.output_adopt ]
+- the pid file stays on an error restart [ v7-zenki report-pid-file, only
+  removed on teardown \ manual terminate \ restart ] ; invoke-web's
+  init_code already adopts a running invoke.ai from it [ process alive +
+  'invokeai-web' in /proc/<pid>/cmdline ]
+- where v7-zenki ends children : `v7-zenki.handler.zenka_status` [ ~l.137 :
+  any status except starting \ online \ extbin -- error included ] calls
+  `v7-zenki.terminate_process` for [ a ] the zenka pid, [ b ]
+  `v7-zenki.instance_child_pids`, [ c ] `v7-zenki.sub-process.orphan_pids`.
+  `terminate_process` itself sweeps the /proc tree of each pid
+  [ `v7-zenki.sub-process.get_children` ] -> SIGTERM, later SIGKILL via
+  `v7-zenki.handler.process_kill_list`. also called from
+  process_zenka_end, zenka.instance.restart, handler.drain_timeout
+- registration : `v7-zenki.zenka.cmd.register_child` [ from
+  base.zenki.report_child_pid ]
+
+## stage 2 scope
+
+1. `base.zenki.report_child_pid <pid> [ <name> ]` + register_child : name,
+   start time [ /proc/<pid>/stat field 22 ], cmdline pattern, per child
+2. zenka.v7 opt-in `restart.keep_children = yes` [ invoke-web first ]
+3. on status `error` only : kept children excluded at all three places
+   [ a : the tree sweep of the zenka pid, b : instance_child_pids, c :
+   orphan_pids ] -- every other status and every other caller unchanged
+4. kept children table + grace timer [ default 120s, config ] ; before ANY
+   signal or claim : pid + start time + cmdline re-checked, a mismatch =
+   pid reused -> forget, never signal
+5. claim : the new instance [ same zenka name ] claims by name -> v7 moves
+   the entry back to the instance's children, cancels the grace timer.
+   invoke-web : adoption in init_code [ existing ] + start time check
+   against the value recorded in its pid file + claim call
+6. an unclaimed kept child after the grace period : terminated as today
+
+
+## state 2026-09-30 [ stage 2 implemented, unsigned ]
+
+- opt-in : `restart.keep_children = yes` + `restart.keep_children_grace`
+  [ default 120 ] in `cfg/zenki/invoke-web/start.cfg` -> lands in
+  `<v7-zenki.start_setup.zenki.config>` like `restart.disabled`
+- registration : `base.zenki.report_child_pid <pid> [ <name> ]` ->
+  `v7-zenki.zenka.cmd.register_child` stores `child_name` +
+  `proc_start_time` + `proc_cmdline` in `<v7-zenki.child>->{pid}`
+  [ identity : `v7-zenki.sub-process.proc_identity`, /proc stat field 22 ]
+- error path : `v7-zenki.handler.zenka_status` status `error` only [ guarded
+  against `zenka.instance.shutdown` \ `stopping` ] calls
+  `v7-zenki.keep_children_on_error` BEFORE the terminate map : kept children
+  are removed from `<v7-zenki.child>` + the instance child registry [ that
+  excludes them from the terminate_process tree sweep = a, and from
+  instance_child_pids = b ] and `v7-zenki.sub-process.orphan_pids` skips
+  kept pids explicitly [ c ]. children already signalled [ drain \
+  force-kill : `<v7-zenki.terminating.pid>` ] are NOT kept
+- kept table : `<v7-zenki.kept_children>->{zenka_name}->{pid}` +
+  one-shot grace timer per child [ `v7-zenki.handler.kept_child_grace` ] ;
+  identity re-checked before ANY signal \ claim [
+  `v7-zenki.sub-process.identity_match` ] : mismatch = pid reuse -> forget,
+  never signal
+- planned end : `v7-zenki.kept_children_reabsorb` moves kept children back
+  before the usual sweep -- called from zenka_status on `shutdown` \ manual
+  `restart` [ same condition as the pid-file clean-up ] and from
+  `v7-zenki.teardown` [ all ] : terminate \ restart \ idle-term \ drain \
+  teardown end children exactly as before
+- claim : `v7-zenki.zenka.cmd.claim-children <child-name>` [ cube injects
+  zenka name + sid, `source_zenka_sid` alias ] -> identity re-check, move
+  back to the claiming instance, cancel grace timer, reply with the pid.
+  access : `access.cmd.usr.invoke-web` in cfg/zenki/cube/access.zenki
+- invoke-web : `cmd.start` records the /proc start time as 3rd pid-file
+  line + reports the child as `invokeai` ; `init_code` adoption re-checks
+  the start time [ `invoke-web.proc_start_time`, /proc only -- still root ]
+  and arms a post-drop timer [ `invoke-web.handler.claim_child` + reply
+  handler ] for the claim
+- known limit : a zenka process dying by itself [ sig_chld ->
+  process_zenka_end ] terminates children BEFORE any error status -- that
+  path is unchanged by design [ only the status 'error' path keeps ]
+
+#,,..,,..,...,,.,,,,.,,,.,.,.,.,.,,..,...,...,..,,...,..,,..,,...,,,.,,,.,,,.,
+#MHC46FTDAKTEDL427BXWJNXSIPLYURGBVVA4Q675CVOMD2ALSW6RAACF5FKGRBY7TGT5EA7WZVQ3W
+#\\\|LJN4XB7A7O5CDQOMJ3BLMHWFXY7OMMBG42I76M27ZHORVQOV3WN \ / AMOS7 \ YOURUM ::
+#\[7]JGZVMTY5PJMB3PMWETHKEG22KCZSI53WCZD3P5GVHKOSK46OBEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

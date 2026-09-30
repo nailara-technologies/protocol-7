@@ -14,8 +14,10 @@ my @pending = <system.report_children>->@*;
 <system.report_children>->@* = ();    ## clear before sending ##
 
 map {
+    my ( $child_pid, $child_name ) = split( m| |, $ARG, 2 );
+    $child_name //= '';
     <[base.logs]>->(
-        1, "reporting child process " . "[PID:%d] to 'v7-zenki'", $ARG
+        1, "reporting child process " . "[PID:%d] to 'v7-zenki'", $child_pid
     );
     <[protocol-7.command.send.local]>->(   ## [LLL] use new route-send command
         {   'command' => "${route_str}v7-zenki.register_child",
@@ -25,17 +27,23 @@ map {
             ## parent [ eg a transient shell wrapping a piped-open spawn ]
             ## exits before v7 gets to look, the child has already been
             ## reparented to init and the real relationship is unrecoverable
-            'call_args' => { 'args' => "$ARG $PID" },  ## child_pid parent_pid
-            'reply'     => {
+            'call_args' => {
+                'args' => join(
+                    ' ',
+                    "$child_pid $PID",    ## child_pid parent_pid ##
+                    length($child_name) ? $child_name : ()
+                )                         ## + name ##
+            },
+            'reply' => {
                 'handler' => qw| base.callback.report_children_reply |,
-                'params'  => { 'pid' => $ARG }
+                'params'  => { 'pid' => $child_pid }
             }
         }
     );
 } @pending;
 
-#,,.,,,.,,,..,,,.,..,,.,,,,.,,..,,.,.,,,.,..,,..,,...,...,,..,,.,,...,,,.,,.,,
-#BJ2C53UDUIROEO6JYUYIGD47JH4Y475XLPZXBTCMC6PYX3G74H4XB6QRWXIGTRJYS74GVIAAOFPLE
-#\\\|PJVIP5F4XFCXQ6S5BQVWFSRPPOUM4OM6FDFY5GHCUUTPDA6RLCY \ / AMOS7 \ YOURUM ::
-#\[7]5CSL65GBXCSFCYJ47J4TQLZRUHOI4MDX4SEUC7XPZJ5ZSJWLSWCY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,.,,,..,,.,,,..,,,..,,.,,,,.,..,,...,...,,.,,,.,,,,.,..,,,..,
+#DZKMPFSCXCB6CBQNHHJ7KKW46IN4AJ2TBX445GJNPIJTKNUJTLX2HUPLMOAS3Q6HSVTUBA3VVONR6
+#\\\|555FQWSIOB57DHT6EGFJQCDFE62I2A5A5XGIF25SQC7ZHOU5OTH \ / AMOS7 \ YOURUM ::
+#\[7]HSIBF5PLMWMY76NDTXXLMONCTOTRQF47VKFWZRY3E5673WPFTEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

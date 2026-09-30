@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = invoke-web.handler.claim_child_reply
+# descr = log the v7-zenki.claim-children reply [ kept child ]
+
+my $arg  = shift;
+my $pid  = $arg->{'params'}{'pid'}      // 0;
+my $name = $arg->{'params'}{'name'}     // qw| invokeai |;
+my $data = $arg->{'call_args'}{'args'}  // '';
+
+if ( $arg->{'cmd'} eq qw| FALSE | ) {
+    ## no kept entry [ the child ended as today, or v7 too old ] : the    ##
+    ## adoption stands, report_child_pid already re-registered it         ##
+    <[base.logs]>->(
+        2, "claim of kept child '%s' [pid:%d] refused : %s",
+        $name, $pid, $data
+    );
+    return;
+}
+
+## success : v7 answers with the claimed pid -- cross-check ##
+if ( $data =~ m|^(\d+)$| and $1 == $pid ) {
+    <[base.logs]>->( 1, "claimed kept child '%s' [pid:%d]", $name, $pid );
+} else {
+    <[base.logs]>->(
+        0,
+        "claim of kept child '%s' returned unexpected pid '%s'"
+            . " [ adopted pid:%d ]",
+        $name, $data, $pid
+    );
+}
+
+#,,,.,,..,.,,,,..,.,.,.,.,,.,,.,,,,,,,,,.,.,,,..,,...,...,,..,..,,,..,,..,,.,,
+#V645TWUO5T7LB4HWOCEAZZMBIVVCHAV2MWZ7QKVXB33HJEPDKRO4PKE56UKXBR3T7T6XCOPUSDU6W
+#\\\|X2CNNVLEKZLNXNTOSMOQWETZNJIXDH2JSIGBTFXT7FKWCZ5T72K \ / AMOS7 \ YOURUM ::
+#\[7]3STJJ6PTUHY3BGRTRRUKF6SV5YW2NRT2ZNJDWNG3NAYTEYU6NGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

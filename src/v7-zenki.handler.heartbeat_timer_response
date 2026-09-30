@@ -51,14 +51,20 @@ if (    $response->{'cmd'} eq qw| TRUE |
             = defined $stats->{'average'}
             ? ( $stats->{'average'}, qw| average | )
             : ( $stats->{'min'}, qw| min | );
+        ## an outlier is counted [ list heartbeat ] ; logged only above an ##
+        ## absolute floor too -- 10x a ~2ms average is ~20ms, under memory ##
+        ## pressure nearly every heartbeat, which filled the log file at   ##
+        ## level 1 every few seconds [ c9ffcacca ]. logfile at level 2     ##
         if (    defined $ref_value
             and $ref_value > 0
             and $latency > 10 * $ref_value ) {
             $stats->{'outliers'}++;
             <[base.logs]>->(
-                '3:1', '%s heartbeat latency %.5f s [ %s %.5f s, %s ]',
+                '3:2', '%s heartbeat latency %.5f s [ %s %.5f s, %s ]',
                 $zenka_name, $latency, $ref_name, $ref_value, $source
-            );
+                )
+                if $latency
+                >= ( <v7-zenki.cfg.heartbeat.log_latency_min> // 1 );
         }
         $stats->{'count'}++;
         $stats->{'last'} = $latency;
@@ -120,8 +126,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,.,...,...,...,.,.,..,,...,,,.,.,,,,,,,,.,,..,,...,...,.,.,,,.,.,,,,.,,,.,,
-#TVBJO7GF46FBTZ54R3CQOEBXHQQ7BIDLKU5GQJZAWJT737ZU4PWXOXKHKWIOCPO7W2T5W2ODDGKRI
-#\\\|VGQVE3WSQ7QDGSNARU62PWCQUR5NSOAXRIIJTZZR7FP4L3KSEDE \ / AMOS7 \ YOURUM ::
-#\[7]6SNJSCDTQECHYSHPFYX5643UFL5Y3XX76HT77BRZUMPB2BFOKSDY 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,...,.,.,,,.,,..,,,,,.,,,.,,,..,,...,...,..,,,,.,,..,,,.,,.,,
+#LAMK4364F5BLIN5I23EKSOLE62UTBPO3JDL3QJWGB2GHICQF4KITLHUYYVY2TJFHG7DOUUQZHSN24
+#\\\|IEUVQEJLBELYAGKIBQUZO5SRE55CNEIZ4PQBEM5GPDR4DVIXZMQ \ / AMOS7 \ YOURUM ::
+#\[7]VQ4ETDCYNVMR2T52MCQMNU2WRR6DR7HTK2R34GRK6OCMMSGZ3QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

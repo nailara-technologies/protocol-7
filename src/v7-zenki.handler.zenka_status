@@ -140,6 +140,32 @@ if (    $status ne qw| starting |
     and exists $instance->{'process'}
     and defined $instance->{'process'}->{'id'} ) {
     my $parent_pid = $instance->{'process'}->{'id'};
+
+    ## crash keep-children opt-in [ restart.keep_children ] : on status    ##
+    ## 'error' only, the instance's registered children move into the      ##
+    ## kept-children table instead of being terminated below -- removal    ##
+    ## from <v7-zenki.child> and the instance child registry excludes them ##
+    ## from the terminate_process tree sweep [ a ] and from                ##
+    ## instance_child_pids [ b ] ; orphan_pids [ c ] skips kept pids. a    ##
+    ## planned end [ shutdown \ manual restart \ idle-term \ drain ]       ##
+    ## reabsorbs them first and ends them exactly as today                 ##
+    if (    $status eq qw| error |
+        and not exists <zenka.instance.shutdown>->{$instance_id}
+        and not defined $instance->{'stopping'}
+        and
+        <[base.cfg_bool]>->( $zenka_config->{'restart'}->{'keep_children'} ) )
+    {
+        <[v7-zenki.keep_children_on_error]>->($instance_id);
+    } elsif ( $status eq qw| shutdown |
+        or $status eq qw| restart |
+        and $old_status ne qw| offline |
+        and $old_status ne qw| error | ) {
+        ## planned end [ manual terminate \ restart ] : kept children of ##
+        ## this instance are ended as today [ same condition as the pid  ##
+        ## file clean-up below ]                                         ##
+        <[v7-zenki.kept_children_reabsorb]>->($instance_id);
+    }
+
     map { <[v7-zenki.terminate_process]>->($ARG) } (
         $parent_pid,
         <[v7-zenki.instance_child_pids]>->($instance_id),
@@ -633,8 +659,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,..,,...,,,,,,..,..,,...,.,.,.,.,,.,,,,,,..,,...,...,...,...,...,.,.,.,.,
-#USLHEOHPEXM7OWFZDWUKYLQCEPQ2I3XI3QE2TJWP7TPCQQYQV52DG6A3CVEWS2AOXO7X5LRC2NYMG
-#\\\|4REHO6IHGMRG7G6XIC32BOXMCC62WWOKS3PDLJ6OYHVL6NXJ4L6 \ / AMOS7 \ YOURUM ::
-#\[7]4CO2ZXBRLOUMWXSFHS7IGPE66DRNNA3U3MSBKYM2BOEQK3O7FMDA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,...,,,,,...,,.,,,,,,,.,,,..,..,,...,...,.,.,.,,,..,,,.,,..,,
+#JSEJLLGOHV6DZ4YLZ6SBGR3WTIB5A27SAQOID2PJSW2AW7WW5FJNH34SATDX3AXUDWKGLDWRJIKZS
+#\\\|BLKMTANYZE33G6FLCPUJCX54RPX6CBA4JJRD4FMHNSNNDLWVDAM \ / AMOS7 \ YOURUM ::
+#\[7]RNJXIHD4HMFU7OLNGAAKUDQ2LVWPIUWZZ2QX2QNJTU55XBZM6UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

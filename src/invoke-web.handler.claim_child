@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = invoke-web.handler.claim_child
+# descr = claim a kept invoke.ai child at v7-zenki [ post-drop ]
+
+## armed by init_code after adopting a running invoke.ai [ pid file ] --   ##
+## v7-zenki kept it across the crash [ restart.keep_children ] ; the claim ##
+## moves it back to this instance and cancels its grace timer. a timer     ##
+## because init_code runs as root before drop_privs [ network calls only   ##
+## after the drop ]                                                       ##
+
+my $event = shift;
+my $data  = eval { $event->w->data } // return undef;
+my $pid   = $data->{'pid'} // return undef;
+my $name  = $data->{'name'} // qw| invokeai |;
+
+## only claim the child this instance actually adopted ##
+return undef if ( <invoke-web.pid> // -1 ) != $pid;
+
+my $route_str = <system.net.cube_route> // qw| cube |;
+$route_str .= '.' if length $route_str;
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => "${route_str}v7-zenki.claim-children",
+        'call_args' => { 'args' => $name },
+        'reply'     => {
+            'handler' => qw| invoke-web.handler.claim_child_reply |,
+            'params'  => { 'pid' => $pid, 'name' => $name },
+        }
+    }
+);
+
+return TRUE;
+
+#,,,,,,.,,.,,,.,,,.,,,...,,,,,...,...,,,.,.,,,..,,...,...,,..,...,.,.,...,,,.,
+#4COEZEMQQVLY5AZTNEAWRV7T3Z6MO7Z3VABRCBUWNMYZLAVEIDLD3D54NWLMHWFCSI4R5KV4J25JA
+#\\\|J6TVG2HZPCCLDZHYP6I7HLO2JDKKUCKJRMHGRTQCZ5BFRS73EFE \ / AMOS7 \ YOURUM ::
+#\[7]UBGQCDQECWCXGE2DSHCCBDH3BFKTBLUKZQMPGIJWDEEF5653MYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
