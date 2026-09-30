@@ -62,23 +62,26 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
     } else {    ## other zenki using 'v7-zenki.notify_online' command ##
 
-        ## deferred via <system.init_reports> instead of a direct send -- ##
-        ## this callback can fire before this zenka's own cube session is ##
-        ## established (e.g. from an early idle-watcher tick), which      ##
-        ## send.local silently drops with no retry. init_reports already  ##
-        ## solves exactly this: queued here, flushed once by              ##
-        ## base.session.send_init_reports once <system.zenka.initialized> ##
-        ## is true, self-rescheduling until then                          ##
-        <system.init_reports> //= [];
-        push(
-            <system.init_reports>->@*,
-            {   'target_command' =>
+        ## no session yet [ an early event loop turn before the cube       ##
+        ## connection, e.g. crypt.C25519.gen_keys' harmonic key search ] : ##
+        ## send nothing, stay paused and not asking -- the lines collect.  ##
+        ## no re-arm here [ no idle loop, see 494791f15 ] : the one-time   ##
+        ## callback registered by base.log.send-buffer.init re-arms it at  ##
+        ## instance verification. replaces the <system.init_reports> queue ##
+        ## of eaab2467f : its single flush at verification ran before this ##
+        ## callback in every zenka without such an early loop turn -- the  ##
+        ## request was never sent and the buffer stayed paused for good    ##
+        return FALSE if not <system.zenka.initialized>;
+
+        <[protocol-7.command.send.local]>->(
+            {   'command' =>
                     join( '', $route_prefix, qw| v7-zenki.notify_online | ),
-                'param'   => $target_zenka,
-                'descr'   => "waiting for log target $target_zenka..,",
-                'handler' =>
-                    qw| base.log.send-buffer.reply-handler.notify-online |,
-                'reply_params' => { 'name' => $name },
+                'call_args' => { 'args' => $target_zenka },
+                'reply'     => {
+                    'handler' =>
+                        qw| base.log.send-buffer.reply-handler.notify-online |,
+                    'params' => { 'name' => $name }
+                }
             }
         );
     }
@@ -143,8 +146,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,.,,,,.,.,.,,.,,,.,,,,.,..,,.,.,,..,.,.,...,..,,...,...,,,,,.,.,,,.,...,,,.,
-#5MAYWZXTTPB6B2BSEJ4757HG2G7QUJENSQYNEMTNDREHALYUPGIJZY3XWBMBZFNLLWLAQIMNXFKHG
-#\\\|L6ZYHWCWZMTOURANK5QR7JXCLTXWQ4WV2P72OMAMU6TH6Z2QI7L \ / AMOS7 \ YOURUM ::
-#\[7]ABKBGCE6M6V7EYCSDLEPFYYFQUJ7R5FBMQJWFEC22JRJU7QVNUDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,.,,,,.,,,..,,.,,.,.,,,,,,,.,..,,...,..,,,..,..,,,..,..,,.,,,
+#G7MAXWJIPFMNVVBFIKOERJLIN5MQHHGQQTUQUBUPT7NHT4CRSXXJCFVUHNJW54GRMRRZRGA2VYQRO
+#\\\|S66EK3IADKXQ6JFYYKBXRGMMAISM7SM7IOITPEYSOBVIBXYTBOC \ / AMOS7 \ YOURUM ::
+#\[7]CVL5IHXUJJXPXYPDI5UCMM32Q6CUK2AHEAOOLEOMIA4NQ4JFPUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
