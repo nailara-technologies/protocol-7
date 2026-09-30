@@ -10,8 +10,8 @@ my $domain = $params->{domain};
 if ( !$domain ) {
     return {
         success => FALSE,
-        error   => qw| domain parameter required |,
-        usage   => qw| letsencr.revoke domain=example.com [reason=<0-5>] |
+        error   => 'domain parameter required',
+        usage   => 'letsencr.revoke domain=example.com [reason=<0-5>]'
     };
 }
 
@@ -69,7 +69,7 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
     }
 
     if ( !$result || $result->{status} ne 'success' ) {
-        my $error_msg = $result->{error} || qw| unknown revocation error |;
+        my $error_msg = $result->{error} || 'unknown revocation error';
         <[base.log]>->( 0, "  Revocation failed : $error_msg" );
 
         return {
@@ -104,16 +104,15 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
 
     return {
         success => FALSE,
-        error   => qw| letsencr zenka IPC not implemented |,
-        hint    =>
-            qw| ensure letsencr zenka is running or load modules directly |
+        error   => 'letsencr zenka IPC not implemented',
+        hint    => 'ensure letsencr zenka is running or load modules directly'
     };
 }
 
 0;
 
-#,,,,,,,,,,,.,,..,.,.,,,.,.,,,.,.,,,.,.,,,...,..,,...,...,.,,,,,,,..,,,,.,,,.,
-#YOU5B5QWDCYF3FH2XNECL7VNSY4VD74XZF2UIBLNHVMO2FCAL5D55MOL7LGGWYKVJD46NBZRVJZW2
-#\\\|3JFXP7AR6ZDM5VGJI7NJ4AOELPZR6PW4UD5BI37RD2MSPIX42C2 \ / AMOS7 \ YOURUM ::
-#\[7]WMUD6SBMMTCIG2F5WNKIUSUVUONEWHT66I4V4SMY2OLIWPFWBIDQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,,,.,,,.,.,.,,,,,,,.,,,,,,..,..,,...,...,..,,..,,,,,,.,.,,..,
+#7F5P7JYBNCA7RXIRUKQ5263NARBSXU25HKYTGDLHT2B5FVVEH37JQ3PKNVU3K4KAUQUUIZCCMOBZW
+#\\\|I7SYZVD2V4QDKJVOA2OXLN7VUPRKJWI3V42FX3X4COFHT36KH6W \ / AMOS7 \ YOURUM ::
+#\[7]HJ4YZAOZEFQKGTUX5FUSWAWEYP7FEQJBK3SNGAA2GN7CF773D4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
