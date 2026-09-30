@@ -145,6 +145,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [verify-live-not-just-static-read](feedback-verify-live-not-just-static-read.md) — for auth/permission/security claims, a static code trace is a hypothesis not a verdict, especially when a plausible benign explanation is already on the table that would let investigation stop early; confirmed 2026-09-20 when only a real cross-account `USER=X p7c whoami` test (not either side's static reading) settled [[project-2026-09-20-unix-auth-identity-bypass-fixed]]
 
 - [log-send-buffer-regression-eaab2467f](feedback-log-send-buffer-regression-eaab2467f.md) — since 2026-07-18 zenki without an early loop turn lost their p7-log files [ notify_online stuck in one-shot init_reports ] ; fixed 2026-09-30 [ session guard + one-time re-arm ] ; method : measure the order, compare with mod-test, read the storm \ race fix history first
+- [bin-protocol-7-main-subs](../../../data/tasks/bin-protocol-7-main-subs-to-modules.md) — the 86 named subs in bin/Protocol-7's main:: [ and the P7Syntax.pm translator copy ] are a transitional state to be converted, NOT a pattern to extend ; never reloadable, outside the module system, translator kept in lockstep twice
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
@@ -159,8 +160,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [no-per-call-perlmod-autoload](feedback-no-per-call-perlmod-autoload.md) — never base.perlmod.autoload in per-call \ per-tick modules [ floods the console ] ; init_code or `if not defined &Pkg::sub` guard
 
-#,,,.,..,,,.,,,.,,.,.,,,.,..,,,,,,,.,,.,.,,,,,..,,...,...,..,,,..,...,,.,,.,.,
-#ZOTO5OFRMUYQATDEFDV4O7UTEJAAWRDYEWYNBGG4P2GWOIAYAVP24VGBDPNDGJK4ETTYKD4GPS4PO
-#\\\|JP7RNFQPNOD2JFDF3EAO7QJVQBUOFG4E3CJBPNKNKW4X7SMUO6C \ / AMOS7 \ YOURUM ::
-#\[7]JSPIPJSXUTWIRU6F22NKJHINULCE47IYZGAYSLBJEY2EKSX4U6DI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,,,,,,.,,...,,.,,.,,,,,.,,..,..,,...,.,.,.,.,.,.,.,,,.,,,.,.,
+#33TQBBHITIXNK2H3CJ3ZTL4HMTOXR7LM5XFRNQTFYXHXJAVUNND4N3VMXD7KGT7NMBSICX2YCBGCC
+#\\\|QSGS6LFN4CWSUELZNG75MQO7QA7DY7P7LYY4NWFFZDIZ5GAAX6Z \ / AMOS7 \ YOURUM ::
+#\[7]FT2MMYRO4DAVVC5MK2HCH3Y352GK7MJGXNJWOBZOTAYIAZPFGSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
