@@ -219,6 +219,43 @@ my $progress_line_open = FALSE;
 ## runs when SIGINT lands between creating it and unlinking it             ##
 my $current_chk_file;
 
+##[ external scratch dir for the .chk. copies of P7 modules ]#################
+## the -c check needs one small on-disk copy per file for the real perl -c  ##
+## subprocess [ see real_syntax_errors ] -- written NEXT to the checked     ##
+## file, that copy flickers inside src/ during every check, 'git add -A'    ##
+## picks it up, and a SIGKILL leaves it behind [ 2026-09-29 :               ##
+## src/.chk.download.init_code ]. P7 modules carry no own $0-depth lib-path ##
+## BEGIN block [ their depth does not matter -- real_syntax_ errors only    ##
+## preserves depth for standalone scripts ] , so their copies move here ,   ##
+## outside the source tree entirely [ pid in the name -- a same-file-twice  ##
+## collision is still caught by the -e check below ] ; standalone scripts   ##
+## keep the same-dir sibling copy their depth-based self-location needs.    ##
+## fallback when ~/.7 is unavailable : the old sibling copy for everything  ##
+my $chk_scratch_dir;
+if ($check_only) {
+    my $home_dir = $ENV{'HOME'} // '';
+    if ( length $home_dir and -d $home_dir ) {
+        my $dot_seven_dir = "$home_dir/.7";
+        if ( -d $dot_seven_dir and -w $dot_seven_dir ) {
+            my $scratch_dir = "$dot_seven_dir/format-code";
+            mkdir $scratch_dir, 0700 if not -d $scratch_dir;
+            $chk_scratch_dir = $scratch_dir
+                if -d $scratch_dir and -w $scratch_dir;
+        }
+    }
+
+    ## sweep stale .chk.<name>.<pid> leftovers [ a SIGKILLed run never     ##
+    ## reaches its own unlink ] -- the pid in the name is dead , so nobody ##
+    ## will ever come back to clean that file                              ##
+    if ( defined $chk_scratch_dir and -d $chk_scratch_dir ) {
+        for my $stale_file ( glob "$chk_scratch_dir/.chk.*" ) {
+            next unless $stale_file =~ m{\.chk\..+\.(\d+)$};
+            next if $1 == $PROCESS_ID;
+            unlink $stale_file if not kill 0, $1;
+        }
+    }
+}
+
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
     $progress_line_open = TRUE;
@@ -296,8 +333,16 @@ while ( my $file_path = shift @files ) {
         ## once the child's output fills the OS pipe buffer before we're   ##
         ## done writing its input -- not theoretical here, this file's own ##
         ## ~57K is already close to a typical 64K buffer                   ##
-        my $dir      = dirname($file_path) || qw| . |;
-        my $chk_file = "$dir/.chk." . basename($file_path);
+        my $dir = dirname($file_path) || qw| . |;
+        ## P7 module copies live in the external scratch dir [ never in ##
+        ## src/ ] ; standalone scripts keep the same-dir sibling their  ##
+        ## $0-depth lib-path detection needs [ see real_syntax_errors ] ##
+        my $chk_file
+            = ( defined $chk_scratch_dir and is_p7_module_text($orig_text) )
+            ? "$chk_scratch_dir/.chk."
+            . basename($file_path)
+            . ".$PROCESS_ID"
+            : "$dir/.chk." . basename($file_path);
         if ( -e $chk_file ) {
             warn color_msg( "temp file collision [ $chk_file ]", $file_path );
             next;
@@ -2528,19 +2573,21 @@ sub real_syntax_errors {
     ## bin/protocol-7-gtk3 , same pattern ] derive their OWN @INC lib-path  ##
     ## in a BEGIN block by walking up N directories from $0/$PROGRAM_NAME - ##
     ## correct when run as the real file, but $file_path here is actually   ##
-    ## $chk_file [ a '.chk.NAME' sibling written next to the original, see  ##
-    ## the caller above ], and this sub then copies THAT into yet another   ##
-    ## File::Temp tempfile under system tmpdir for the actual perl -c run.  ##
-    ## left alone, $0 inside that subprocess is the tmpdir path, at the     ##
-    ## wrong directory depth entirely, so the checked file's own lib-path   ##
+    ## $chk_file [ a '.chk.NAME' copy -- same-dir sibling for standalone    ##
+    ## scripts, external scratch-dir path for P7 modules, see the caller    ##
+    ## above ], and this sub then copies THAT into yet another File::Temp   ##
+    ## tempfile under system tmpdir for the actual perl -c run.  left       ##
+    ## alone, $0 inside that subprocess is the tmpdir path, at the wrong    ##
+    ## directory depth entirely, so the checked file's own lib-path         ##
     ## detection resolves to nonsense [ e.g. bare '/data/lib-path/pm' with  ##
     ## no repo-root prefix ] and it false-reports 'local lib path not       ##
-    ## found'. $chk_file itself sits at the SAME depth as the original [    ##
-    ## same dir, just a '.chk.' prefix on the basename ], so pointing $0 at ##
-    ## its absolute path -- via a BEGIN block that runs before the checked  ##
-    ## file's own -- makes any such depth-relative self-location logic      ##
-    ## resolve exactly as it would for the real file, regardless of which   ##
-    ## script does it or how many directories it walks                      ##
+    ## found'. $chk_file itself sits at the SAME depth as the original for  ##
+    ## every file that actually does depth-relative self-location [ P7      ##
+    ## module copies only move to the scratch dir because they never do ] , ##
+    ## so pointing $0 at  its absolute path -- via a BEGIN block that runs  ##
+    ## before the checked file's own -- makes any such depth-relative       ##
+    ## self-location logic resolve exactly as it would for the real file,   ##
+    ## regardless of which script does it or how many directories it walks  ##
     my $abs_chk_path = abs_path($file_path) // $file_path;
     my $preamble     = qq{BEGIN { \$0 = "$abs_chk_path" }\n};
 
@@ -2855,8 +2902,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,,.,,,,,..,,.,,,,,,,,..,.,,,.,,,,,.,,,,,..,,...,..,,...,.,.,.,.,...,.,,,
-#A7J7UV3VKZI3O5PLUCXUSCRXRDX3CK2QEE5BAAMOCBRVZF5C7AO7BKCJGWCZXSRTU3G4FCMJDBN3A
-#\\\|JP5EIMMY4EYRW2LDGZMNP3UV7HK5ZPVUTOBWLZA3RRZN3G5A2MK \ / AMOS7 \ YOURUM ::
-#\[7]VBZBG25CR3WPC7KAR4EZRBSBORM67M6WOLITWR5SGVEV67DDNQDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,,,,.,,.,.,,.,,..,,.,,,,,,,,,.,..,,...,...,,..,,..,,,.,.,,,,,.,
+#W2YP6KVZKGNQQFBVNKAKDMDVT7SMNJHIOHBAUSXPG5PGRRW75DXFYQSMCNOUKXF55RIYRLPUBNEUA
+#\\\|SEU5QHPHC4QIYHZ6OHRBQ2TNLYTKL2RZPCXN4X6INLT5MTDGD4W \ / AMOS7 \ YOURUM ::
+#\[7]DUIBSEUPFQ5CLMKVKRTG7CWV5FFA6XNDMBLFXIV2TJTJR24QASBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
