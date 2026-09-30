@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-**state [ 2026-09-30 ~20:00 ]** : last commit 585e6ea2d.
+**state [ 2026-09-30 ~20:00 ]** : last commit 1cc6a525e.
 invoke.ai rendering [ start_paused = startup ], coding zenka can
 run next to it [ Qwen3.8-9B -ngl 27 + invoke.ai fit, critical pressure but
 stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
@@ -27,7 +27,7 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
 - pressure sampler [ `p7c v7-zenki.pressure` ] ; heartbeat timeout extended
   under pressure [ 3x \ 6x ] instead of an error restart -- verified live
 - report-pid-file : removed only on planned ends -> crash detection
-- keep-children [ 98da67302 ] : opt-in `restart.keep_children` in
+- keep-children [ 36a2d8259 ] : opt-in `restart.keep_children` in
   start.cfg ; on status error the registered children survive, a new
   instance claims them [ `v7-zenki.claim-children` ], grace 120s. tested
   live on mod-test [ keep, grace expiry, claim ]. invoke-web opted in --
@@ -37,20 +37,20 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
 
 **regressions fixed this night** [ method : [[feedback-llm-fix-regressions-pattern]] ] :
 - `eaab2467f` [ 07-18 ] log send-buffer request in one-shot init_reports ->
-  most zenki lost their p7-log files. fixed e697008ad, see
+  most zenki lost their p7-log files. fixed bf6bc9570, see
   [[feedback-log-send-buffer-regression-eaab2467f]]
 - `a40e31e96` [ 08-26 ] resolve hook inside dependency.ok -> pure checks
   [ zenka stop, `list dependency` ] cascade-started dependencies of
-  non-running zenki. fixed 98da67302 : dependency.ok pure, start paths call
+  non-running zenki. fixed 36a2d8259 : dependency.ok pure, start paths call
   dependency.ok_resolve
 - `c9ffcacca` [ 09-24 ] heartbeat latency outliers at log level 1 every few
   seconds. now only >= 1s, level 2
 - v7-zenki's OWN log branch never checked "already online" [ old gap ] :
   stuck after any pause while p7-log stayed online. fixed [ 5s resume timer ]
 - usage kimi \ claude : a refresh cycle ending without a token failed the
-  retry at once. now one more 30s cycle [ 554362c1c ]
+  retry at once. now one more 30s cycle [ 954c341a6 ]
 - plus : p7 syntax translator read y- \ s- \ m- .. key segments as quote
-  operators [ kimi, 62f67700f ] ; list-context stat() under File::stat in
+  operators [ kimi, 5b46b49ef ] ; list-context stat() under File::stat in
   8 modules ; `<[base.file.*]>` calls in 12 modules ; `not` \ `or`
   precedence bugs in my own code [ 3x ]
 
@@ -60,41 +60,41 @@ syntax only. named subs in bin/Protocol-7's main:: are a transitional state
 to convert : data/tasks/bin-protocol-7-main-subs-to-modules.md
 
 **done since ~11:00 2026-09-30** :
-- kimi review of 98da67302 \ e697008ad \ ab0d22e5b \ 554362c1c : one real
+- kimi review of 36a2d8259 \ bf6bc9570 \ cf4864498 \ 954c341a6 : one real
   finding -- power-x11 never set `<system.zenka.initialized>` [ no
   get_session_id, no init-done:TRUE ] -> its log send-buffer never resumed.
-  fixed be99ae2c2 : `[init-done:TRUE]` in its zenka.v7, plus
+  fixed 627488de3 : `[init-done:TRUE]` in its zenka.v7, plus
   `base.callback.run_initialized` [ runs `<system.callbacks.initialized>`
   once, from verify-instance AND init-done:TRUE ; in all load-early lists ]
 - kimi's "hybrid zenki [ nshell, user-edit, vault-edit ] lose logs too" was
   NOT real : the send-buffer's first idle send fires only at [zenka.loop],
   after init-done:TRUE set initialized. nshell logs as its SESSION name ->
   `<host>.taeki.zenka.log`, not `nshell` [ I searched the wrong name ]
-- format-code `use warnings` + sub wrap committed [ b4dbf5e76 ] ; 5 real
+- format-code `use warnings` + sub wrap committed [ 54997cf44 ] ; 5 real
   multi-word qw bugs -> data/tasks/multi-word-qw-as-string.md
 - start.cfg reload loss REPRODUCED : a removed dependency survives a
   v7-zenki reload [ `p7c v7-zenki.list dependency` ], gone after restart ->
-  task file updated 08577b71f. `v7-zenki.drop-dependency <zenka>` is the
+  task file updated 4b8b5c766. `v7-zenki.drop-dependency <zenka>` is the
   manual override [ drops it from ALL chains ]
 
 **done ~18:00-19:30** [ a v7-zenki reload is enough for all of these ] :
-- 979aca2d7 start.cfg dependency changes applied by a RELOAD [ post_init
+- ba1b07685 start.cfg dependency changes applied by a RELOAD [ post_init
   rebuilt chains only for added zenki ; now all, every run ]
-- 33caf9e50 channels \ osd-logo \ power : start.on-demand [ idle timeout
+- 7fafe8d97 channels \ osd-logo \ power : start.on-demand [ idle timeout
   without it = error restart loop ] ; osd-logo is started \ ended by tile
-- 8ec0d3bb0 heartbeat FALSE `client not present` between a zenka end and
+- de0fa8a1d heartbeat FALSE `client not present` between a zenka end and
   sig_chld no longer an error [ kimi ]
-- 163b96906 pressure pieces 4 + 5 : restart gate [ critical, max 300s ;
+- 65aa80072 pressure pieces 4 + 5 : restart gate [ critical, max 300s ;
   manual \ cube \ log target \ kept children exempt ] + start gate [ max
-  45s ] [ claude opus dispatch -- aliases now 5.5 \ fable 5.1, 12fb99476 ;
+  45s ] [ claude opus dispatch -- aliases now 5.5 \ fable 5.1, b2b4f1170 ;
   pass max_budget ~15 for opus ]
-- db85bb9ad multi-word qw ; 6c6b7b760 format-code .chk. out of src
+- 177a79ef3 multi-word qw ; e5a3e6662 format-code .chk. out of src
 
 **done ~19:30-20:00** : task files from design docs [ research-first ] --
 v7-zenki-hot-self-restart, signed-command-interface, authorization-buffer,
 nested-cube-network-segmentation, dream-idle-generation-first-step,
 repo-pii-leak-prevention, zenka-hybrid-startup-followups. session \ work
-start.cfg removed [ 585e6ea2d -- console-only zenki have NO start.cfg,
+start.cfg removed [ 1cc6a525e -- console-only zenki have NO start.cfg,
 that is the marker ; user rule ]
 
 **open, in this order** :
@@ -118,8 +118,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,,,,,.,,.,,,,,,,...,.,,,.,,,,..,,,,,..,,...,..,,...,...,.,,,,..,,.,,,.,,...,
-#AUI4DUAFGF2BGDJ3PIYFWETZG5FVC63RIQ4QY3C6NJSODY5QU4C5BSADZ3TFAZEK7K6E76TPJ2FXQ
-#\\\|U63KTMSDNPARLVMYB2JWICMNIBQIOGGQ5MLKWIH6HCWYM3IYSRS \ / AMOS7 \ YOURUM ::
-#\[7]RIXJVORKIIJPMMXNF36KKO3UPUN7X6SN4TMKPPMVAOC3H7OM3ICI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,..,,...,.,,,,..,.,.,...,...,..,,...,..,,.,,,,..,,.,,.,.,...,
+#IXYUYVFOJ6YFA5ZCHU7G3I3X22WUDNHFXS2CECLKDPC22JSCU3TUX3S2YW6VU6IMAORPE3PLQDHUA
+#\\\|MASQZ5JYZLBMPMV57DGGC3GSOF4EQGX7BH5XI5Y276QGL5XM5PV \ / AMOS7 \ YOURUM ::
+#\[7]Z3BP7BN4RUSCDW7HHHKRLXQ36JM6J4Y4AYKFX45ISDP4IAJQESCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

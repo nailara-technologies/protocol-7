@@ -1,6 +1,6 @@
 # invoke : detect missing models at render time, fetch them automatically
 
-planning brief [ 2026-09-29 ]. built 593ca0c28 + e19d7cd66 -- not yet run
+planning brief [ 2026-09-29 ]. built 806f0e2ca + 70c76b819 -- not yet run
 live [ `p7c invoke-web.fetch-missing <model>` ]. read `CLAUDE.md` first.
 
 the concrete trigger for layer 4 [ on-demand model lifecycle ] of
@@ -18,7 +18,7 @@ the trigger and the path from detection to download are not.
 - the fetch-files zenka downloads from huggingface with hash verification
   and a lan check [ `src/fetch.file.huggingface.*` ] -- the intended home of
   the download part [ user, 2026-09-29 ]
-- invoke-web reads invoke.ai's output line by line since 0dfb27c8b
+- invoke-web reads invoke.ai's output line by line since 138396484
   [ `invoke-web.parse_output_line`, pattern table in init_code ] and counts
   the missing models [ `<invoke-web.missing_models>` ]
 
@@ -163,8 +163,8 @@ item record.
 - fetch-files job interface : what invoke-web sends, how completion is
   reported back [ callback \ event ]
 
-#,,,.,,,.,,..,.,.,..,,.,.,.,.,,.,,.,,,,,,,,..,..,,...,...,...,..,,,.,,...,,..,
-#3ELBQUGIGKI6KOZXHUQ3RXXJCWOLAUPPWISBEYQ2RTPF5MOZZOSJ3GYDUCZSRAZJBZEHZVJZ5CZKC
-#\\\|I4K52RQJD2AUBJANGNWJOADYHSDNUOYQ23HMIYUO2AGNEWED3RG \ / AMOS7 \ YOURUM ::
-#\[7]7STMM2G26HCS4M5BENC4PNAMJ5RRRV2QGLMVVG47LBE6ALBQN4BA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,..,,,,,,,.,...,.,,,,,,,...,.,.,..,,...,...,...,..,,,..,,,.,.,.,
+#AISUUQKTJ2W2ZHFFX7AHKMNHRPP6KBA4BK5KMAEV4WZDIB5FHQDLGZE3XOPZ6GLKHPKYINYO6R4UI
+#\\\|7HO43ZYCTLWW7EKEPTSV7LMGN7JATPJY6JFCBQL5SPIFDAFZM22 \ / AMOS7 \ YOURUM ::
+#\[7]LLBTVVYZYQRCT7JHALJGJ5RBKW34PSJVNBXSLJ3QZLDQH6YRE6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
