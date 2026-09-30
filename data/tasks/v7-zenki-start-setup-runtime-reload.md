@@ -54,9 +54,9 @@ objects only for the added zenki [ stable ids ], every chain deleted and
 rebuilt from its current config. tested live : baseline identical after
 a reload, `models` added -> `cube models`, removed -> `cube`, all other
 chains identical. a `drop-dependency` override now lasts until the next
-reload. still open from the goal below : verify on-demand registration
-[ set_up_ondemand_zenki already rebuilds every run ], a log line per
-changed zenka, zenki removed from cfg [ see
+reload. on-demand registration follows a reload too [ verified : 3
+zenki flagged -> "registering 3 ondemand zenki at cube", no restart ].
+still open from the goal below : a log line per changed zenka, zenki removed from cfg [ see
 zenki-ondemand-config-consistency.md ].
 
 ## goal
@@ -78,8 +78,8 @@ on mod-test [ the free test zenka ] : change a key in its start.cfg, reload,
 check `p7c v7-zenki.list dependency mod-test` and the behavior at the next
 mod-test start -- without a v7-zenki restart.
 
-#,,..,,..,.,,,,,.,,,,,,,.,.,,,.,.,.,,,..,,.,,,..,,...,...,.,,,,..,.,.,..,,.,.,
-#BFBG7KJ2ZVN3JD5U6R572KCRE77M7CHXKOPG23I2V7RWW77IZWSR2H7ALEBIJMTYIYLZVGZ2CSJN4
-#\\\|GCGUD3TENIKUS56KSPUZ6NX3HGZFZYB6EUQ5BMBHZ3QG55FHZSK \ / AMOS7 \ YOURUM ::
-#\[7]VEIHRI3EJBPCYWEAHYSAPUNMYGQ3HA5Y7WIUVZ6JJNU3W3Q5IYCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,...,...,.,.,,..,.,,,.,,,,,.,..,,...,...,.,.,,.,,.,.,,.,,.,.,
+#6S6IKBUF6URSCEADIEECB33FXWWXBXK2FZMQXJKDUY3X67ZDCG36KFWBX3DLF3D46AI3I3V6HRK24
+#\\\|STXMK44LYKLFOQ7JQNZIWRB5MWLP27QFS7X4B6V5IQHWNZ7D3JZ \ / AMOS7 \ YOURUM ::
+#\[7]BTVAFBK3IQP5D5YAFQ2XAX7LBLBC7IWQCWDMUHTOAB3VMOIHJWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
