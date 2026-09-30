@@ -1,6 +1,6 @@
 ---
 name: reference-invoke-web-run-user-and-invokeai-facts
-description: invoke-web runs as the invoke user [ not protocol-7 ] ; InvokeAI facts [ port 4707, db in databases/, queue resumes on start ] ; zenka-as-other-user pattern ; landed 0dfb27c8b 2026-09-29
+description: invoke-web runs as the invoke user [ not protocol-7 ] ; InvokeAI facts [ port 4707, db in databases/, queue resumes on start ] ; zenka-as-other-user pattern ; landed 138396484 2026-09-29
 metadata:
   type: reference
 ---
@@ -50,12 +50,12 @@ restart only, reattach by name + cmdline + start time
 
 **config keys** : `load_config_file` nests dotted names ->
 `<external.models.invokeai.path>`, never `$data{'models'}{'external....'}`
-[ models export \ resolve \ repair fixed 0b1a08710 ].
+[ models export \ resolve \ repair fixed d16c38e49 ].
 
 see [[feedback-init-code-runs-before-drop-privs]].
 
-#,,,,,,,.,...,..,,.,,,..,,,.,,,,.,,.,,,..,,,.,..,,...,...,..,,.,,,,.,,.,,,.,,,
-#AJUFGZCPC3H55PNTX3UOSBE46GBROCSO5YCRRON3IGTVVOLZXPDRRKA5ZF53CIHCENHNTY5M675KI
-#\\\|TQADF3DRN2MUHVRYCLD3RUJIBWAMPEAXLRI2UZRVBSM3BDCFW3G \ / AMOS7 \ YOURUM ::
-#\[7]7JJFOLHBGJ46SWSI3RT2KW3MS4NSWX2KQHJQMIV6RFZGEBJ372AA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,,..,.,,,...,.,.,,.,,,..,,,,,..,,...,...,..,,,..,,..,,,.,,,,,
+#Q2QO7ZQRSCSPXQFCIQ5PJLS7FVLDWWXQY6CBTURKT4AESGLH54EXPBH5XDSPRGX4HFHY6WHCZ2MK4
+#\\\|ZG7B7TWCQE6QODRQKP7QF3JP3A6NG2D4DKNF5FMXFHW7UJLITQL \ / AMOS7 \ YOURUM ::
+#\[7]D7IS3Q5ZHG6F4UDIE5EAH6I5AZNKFWCA3HOXXOBKPFTEF574BUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

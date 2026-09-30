@@ -27,7 +27,7 @@ wrong in that form ]
 
 - mod-test's start.cfg had `dependencies = cube models` [ T-C test ] when
   v7-zenki started [ 16:42 ] ; the file then went back to `dependencies =
-  cube` [ committed 02926e1bf, 16:49 ]
+  cube` [ committed 181c26372, 16:49 ]
 - `p7c v7-zenki.list dependency` after a v7-zenki reload : mod-test still
   `cube models` -- restarting mod-test cascade-started models
 - after a full v7-zenki restart : `cube` only
@@ -87,8 +87,8 @@ on mod-test [ the free test zenka ] : change a key in its start.cfg, reload,
 check `p7c v7-zenki.list dependency mod-test` and the behavior at the next
 mod-test start -- without a v7-zenki restart.
 
-#,,,.,,,,,...,,,.,...,,..,,.,,,,.,...,,,,,,,,,..,,...,...,...,...,...,...,,,,,
-#Z3UFYQAOOATLDCTS5VOJJ5JE6ABDCG4H43TVOXK6PLLYRKWGZF325NG6PZKSNQ7IIAURFM2AJA4GC
-#\\\|P6TEOJHAPGK47KKCSCIGRVDE2QE5COU2N23725VQZAWGXYAIMPD \ / AMOS7 \ YOURUM ::
-#\[7]4WL5YH7H4UVNVD3CKDP3QHLOFVMKERUF4WG26UAWFJ46WNHELWBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,..,,..,,,,,,,.,,,,,,,,,,,..,..,,...,...,,,,,,..,,.,,,,.,.,,,
+#7VOUQM4JK4STUO4B66JEIOTXKMPMKMASQ2TPZTEC5KAI3IKH4WIEYBPKFOQXTGQ46BTT6EOLUG53O
+#\\\|5QQ2TETPKSVMTKAWSL3NILXU2SVPWNYXAVSHQCJTVHNVHSZP2RK \ / AMOS7 \ YOURUM ::
+#\[7]WNNHP7V4AIC5WKCP2PRWWPPBWC447BBMOXL7XGXH7ZPAUZ5K7EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

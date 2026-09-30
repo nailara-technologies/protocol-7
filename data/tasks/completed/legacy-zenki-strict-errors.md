@@ -3,7 +3,7 @@
 ## found [ 2026-09-30 ]
 
 `bin/format-code -c` compiles P7 modules under `use strict` with the loader's
-imports since fbbc58194. a run over all of src/ left these errors -- all in
+imports since 8722cf792. a run over all of src/ left these errors -- all in
 zenki no running zenka loads, so no compile report ever showed them. each
 module would fail at the zenka's source update [ or, without strict, run with
 undef \ empty values ].
@@ -42,8 +42,8 @@ undef \ empty values ].
 `bin/format-code -c <file>` must report `syntax valid` for each ; do not
 reload \ start these zenki as part of the fix unless the user asks.
 
-#,,.,,,,.,,,.,,,.,.,.,,..,.,.,,,,,..,,..,,,,,,..,,...,...,..,,,..,,..,.,,,,.,,
-#ZIMQ5NL5QCKC27U5RCORHO3ZFH474ATRMBY4TRLGQLAWS3J7WFEJWHG27ELODJBA3D7ND2AHDVH4E
-#\\\|E5BDEBVSOJKA5EQFWHTHZP2GJOLXYZZSQFQ4V5KNN7RLPYZB53D \ / AMOS7 \ YOURUM ::
-#\[7]M5AUSW5JLKNAYN6DYDRFLS3HWB2V5XUDBBTV5EBOI3JY32XQXSCQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,,,.,.,,,,.,,,..,.,.,..,,..,,..,,...,...,.,.,..,,.,,,..,,,..,
+#E2OAZGPVKSUZYVASABAKZ6UUHFKG2XCE6OWTLVV3CJBKJFK2ZEVRZLNAAHFVVDTMIFSEDBTQKMO6O
+#\\\|XP36LPTZNS4BJFYNOQLUOPSSZUQ7J7TQRWKUR577MAPDPVCUSZF \ / AMOS7 \ YOURUM ::
+#\[7]4RQ735JPHXEWKYO2TZIN7GN2U3W3WPV4UUS6OSQUO6MUNUSQZWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

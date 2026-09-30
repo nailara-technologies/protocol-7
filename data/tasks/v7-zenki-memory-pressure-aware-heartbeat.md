@@ -60,9 +60,9 @@ over a threshold + a short-term load value, not a single reading ].
 
 ## state 2026-09-30 [ pieces 1, 2, 3, 6 done ]
 
-- done : sampler + levels [ 4d8fe31e2 ], elevated from avg60, leave after 13
-  samples, short level log [ 6eabe182c ], heartbeat extension under
-  pressure [ 6eabe182c -- extends 3x \ 6x 17s at the moment the timeout
+- done : sampler + levels [ 180535263 ], elevated from avg60, leave after 13
+  samples, short level log [ 776d3f8bf ], heartbeat extension under
+  pressure [ 776d3f8bf -- extends 3x \ 6x 17s at the moment the timeout
   fires, also when the latest avg10 already crosses critical ], verified
   live 2026-09-30 [ 'heartbeat late under critical memory pressure --
   waiting [ 1 \ 6 ]' instead of a restart ]
@@ -302,8 +302,8 @@ shows the gate lines, per-sample release runs without errors ].
 8. autostart : v7 restart with elevated forced -> start-set-up zenki start
    one per sample, `held starts` shows the rest with origin autostart
 
-#,,.,,.,.,,..,..,,,.,,,,.,,,,,..,,,..,...,...,.,.,...,...,..,,,.,,,..,.,,,.,.,
-#FUUXLEMJT67MT53TR2WIKCDA6G425D7SJTEFZJVVLYG3ESAAWHYTABDDGEKIBR5R77CGW2UDDB2RQ
-#\\\|ZAGRBNI3NIBPF2RCD2Z3GPNLW4R5AIUBXJJUHRCKFPVLRSMOFPN \ / AMOS7 \ YOURUM ::
-#\[7]V6REUDGZDWDTUD3JZYONZQ4QPKYQ63ZVCMEVJCVIPZ53RSVL56DY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,...,,.,,...,,,,,,..,..,,...,.,.,...,...,,..,,,,,.,,,...,.,.,
+#2YT4MKAVKOLLPWY4AETI2FBSIDZ64FYPREVRR3OZH2NMQVAAPJPPSBT7U3GURKEPGJMC44ZJGXIRM
+#\\\|EG5XOERPNWXEIYX6THHIMD6LUD7GWCYULZ3II2LRXM3FDLK5WUB \ / AMOS7 \ YOURUM ::
+#\[7]P2M6RA5M7SGQ3GQKF7KP3GXT6H2HSJ2C74HAYGDMTJEZRNGSNMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
