@@ -64,9 +64,9 @@ my ( $added_all_ref, $removed_all_ref )
 
 <[v7-zenki.calc_prefix_lengths]>->(qw| v7 cube |);    # <-- running, not start
 
-if ( @{$added_all_ref} ) {
-    <[v7-zenki.set_up_zenka_dependencies]>->( @{$added_all_ref} );
-}
+## every run : objects for the added zenki, chains for all [ a reload must ##
+## apply changed and removed dependencies too ]                            ##
+<[v7-zenki.set_up_zenka_dependencies]>->( @{$added_all_ref} );
 
 ## full-state rebuild every run -- set_up_ondemand_zenki resets             ##
 ## <v7-zenki.ondemand_zenki> to [] and repopulates strictly from its args,  ##
@@ -102,8 +102,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,,,.,.,..,,..,,.,.,.,.,.,.,.,.,,,,,...,.,,,..,,...,...,,..,.,,,,.,,,.,,..,,
-#2R6POSIYRGCW4CQ6PU4MOEILSPHNGNNXIWDTC4JKHTO2TCFBK53VKUQHX5VMUOXZEBOINPGRQRHBO
-#\\\|HK65W3RAJFO32RF4C2TBTLTE2AOQIU5E6WDIBBIF4SSEMIBGTMC \ / AMOS7 \ YOURUM ::
-#\[7]45NGYO46AAPMI54QTFB2TEY2L5V7NQ2FEOCF7QQZ62P3X266FIBA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,..,.,.,.,,,.,.,..,,..,,,,.,..,,...,...,.,.,...,,.,,.,.,.,.,
+#XCBL7KDDNQF2A5EH6COUXUVKD73U6CRE5YLRJ4OISMVDUAY6DEOUUHRZYK3S4QXYZGQE57YSFKWK2
+#\\\|6G3FO5YFE4XMP23NZBNINDMPTYGXIALPYMI73DOICWIIBUDJJXB \ / AMOS7 \ YOURUM ::
+#\[7]WFQTSB3M36ADVJGVPLOQJTRCLA3CNENNRYOHXHSNOLR2WD7B3QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

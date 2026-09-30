@@ -45,6 +45,20 @@ longer in `dependencies =`, add the new ones. `drop-dependency` is also the
 manual workaround until this is fixed [ affects every dependent of the
 dropped zenka ].
 
+## fixed : dependencies [ 2026-09-30, claude ]
+
+root cause : `v7-zenki.post_init` called `set_up_zenka_dependencies` only
+with the zenki ADDED since the last run, and `dependency.add` only appends
+-- a known zenka never had its chain rebuilt. now : called every run,
+objects only for the added zenki [ stable ids ], every chain deleted and
+rebuilt from its current config. tested live : baseline identical after
+a reload, `models` added -> `cube models`, removed -> `cube`, all other
+chains identical. a `drop-dependency` override now lasts until the next
+reload. still open from the goal below : verify on-demand registration
+[ set_up_ondemand_zenki already rebuilds every run ], a log line per
+changed zenka, zenki removed from cfg [ see
+zenki-ondemand-config-consistency.md ].
+
 ## goal
 
 a runtime reload of the start setups -- e.g. `p7c v7-zenki.reload-start-setup
@@ -64,8 +78,8 @@ on mod-test [ the free test zenka ] : change a key in its start.cfg, reload,
 check `p7c v7-zenki.list dependency mod-test` and the behavior at the next
 mod-test start -- without a v7-zenki restart.
 
-#,,..,...,.,,,.,,,...,..,,,,.,,,,,,,.,,..,...,..,,...,...,..,,...,,,,,,..,...,
-#XRKXLU7UUSIMZ5SBRB54HGPZWWWOGC6N6YNPTKJJODSRD6FKXLKRXVYAL7JR23CNG7C3LF7P3EJKO
-#\\\|HKTR6JM7NAERKK4KTG7ICC6Z542FKNSNA2T2G4UQ6W33MU7NQM3 \ / AMOS7 \ YOURUM ::
-#\[7]667QSZEUI5HBRQEBPPKNYE436DBHACMC7BVWD7L6DFD6LY7PREAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,,,,,,,.,.,,,.,.,.,,,..,,.,,,..,,...,...,.,,,,..,.,.,..,,.,.,
+#BFBG7KJ2ZVN3JD5U6R572KCRE77M7CHXKOPG23I2V7RWW77IZWSR2H7ALEBIJMTYIYLZVGZ2CSJN4
+#\\\|GCGUD3TENIKUS56KSPUZ6NX3HGZFZYB6EUQ5BMBHZ3QG55FHZSK \ / AMOS7 \ YOURUM ::
+#\[7]VEIHRI3EJBPCYWEAHYSAPUNMYGQ3HA5Y7WIUVZ6JJNU3W3Q5IYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
