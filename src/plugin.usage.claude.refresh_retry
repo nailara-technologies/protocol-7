@@ -18,6 +18,41 @@
 
 my $params = shift // {};
 
+## the refresh cycle can end without a new token [ cli too slow to reach its
+## oauth refresh before the timeout -- seen on the kimi side 2026-09-30 under
+## critical memory pressure ]. claude's expiresAt is not trustworthy [ see
+## plugin.usage.claude.refresh_watchdog ] -- the signal here is whether the
+## credential file was REWRITTEN since the 401 [ refresh_since, from
+## handler.response ]. if not : ONE more cycle with a longer timeout [ queues
+## onto a running one ] before the retry.  bounded : attempt 2 always goes on
+## to the retry
+my $attempt  = $params->{'attempt'} // 1;
+my $provider = <usage.provider.claude>;
+my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my $mtime
+    = length $home_dir
+    ? ( CORE::stat( catfile( $home_dir, $provider->{'cred_rel'} ) ) )[9]
+    : undef;
+my $rewritten = defined $mtime
+    && $mtime >= ( $params->{'refresh_since'} // time );
+
+if ( !$rewritten and $attempt < 2 ) {
+    <[base.logs]>->(
+        1,
+        'usage [ claude ] : refresh cycle ended without a '
+            . 'rewritten credential, one more cycle before the retry ..,'
+    );
+    my $started = <[plugin.usage.claude.refresh_token]>->(
+        $provider->{'refresh_timeout_retry'} // 30,
+        {   'on_done' => {
+                'handler' => qw| plugin.usage.claude.refresh_retry |,
+                'params'  => { %$params, 'attempt' => $attempt + 1 },
+            },
+        }
+    );
+    return TRUE if $started;    ## on_done brings us back here ##
+}
+
 <[event.add_idle]>->(
     {   'handler' => qw| plugin.usage.claude.fetch |,
         'params'  => {
@@ -30,8 +65,8 @@ my $params = shift // {};
 
 return TRUE;
 
-#,,,,,,,.,,,.,,,,,,,,,,.,,.,.,...,.,,,...,..,,..,,...,...,.,,,,..,,.,,,,,,.,.,
-#E24UNQQOWB5XTRDLOXZCZYRFUJ5ER7PONH77GTIZE6PGVVDLGUG62MQWY2AKHDLNJ53MZQKLLTOUE
-#\\\|VC2NRHPUCIE56ZEY7KKERM2IGFZMB3T3G323VUNUAYKZS7KLZ6B \ / AMOS7 \ YOURUM ::
-#\[7]KM6UVU3P3766AO3SGDAIM3EQ5AAIRN55QRIBV4XFN3UA2NVXTGDA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,,,.,,.,,,.,,.,.,.,.,,,,,,,.,..,,...,...,.,.,...,,..,.,,,,..,
+#PYQ3BUO2FVKKVVBSY7IQZPL5JS2JIKCCSFB6C5UF7UMSZBFGUMY45CAMVVOHFOKVIVQ5FUWPI5OFO
+#\\\|R3AKYA7OZ66SRYFPCSKZYFBKPQNGTPSCMWRE2HJLB54NZ5MJTPO \ / AMOS7 \ YOURUM ::
+#\[7]ZXMH7RKONFYPT6MJEMQZAUZW2S73SZWG5P4JW2DAB5FZJ6LU7MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

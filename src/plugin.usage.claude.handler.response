@@ -54,6 +54,9 @@ if ( $status == 401 and not $pending->{'retried'} ) {
                 'params'  => {
                     'on_result' => $on_result,
                     'params'    => $pending->{'params'},
+
+                    ## refresh_retry : was the credential rewritten since ? ##
+                    'refresh_since' => time,
                 },
             },
         }
@@ -157,8 +160,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,..,.,.,..,,,,,,...,,.,,,..,,,.,,..,..,,.,,,..,,...,...,.,.,,.,,,.,,,.,,,..,
-#IOSKY4DNYMMSHOZUAUW6NRK7HKBBCJRHM5NUAZNOJNQPW5BKOGSI3YLHEQCKF6WV74CE5XLR4UKOI
-#\\\|CHW4SO7PKGQEJOTGZ4WDMYITE2LV7QFMRMXEYRN2FMKMIDOUR5L \ / AMOS7 \ YOURUM ::
-#\[7]PWTRGEVPD2DJZCAIEYKBCURW7EQ2DVHEHWLIDQFLZ4WFGR66Z6CI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,,.,,,..,...,..,,,.,,..,,,,,,..,,...,...,...,..,,,,.,,.,,...,
+#HC3B3FL6KVQM74FUBCZBQ2IN2V66R6ORPRE2UR34SVZEROJWHJXL5W7NHQV5MC6YLH7PYGAX44B3G
+#\\\|BR4BIRZLBOO6UNEOAVAZLOU56JDM4DTONVED6KA3CT4QBDDO4BA \ / AMOS7 \ YOURUM ::
+#\[7]KCP5HVJCVYCIHGVIHDFBWOT7YTSLHR4HO6CJCBI5NKHV5N4DBYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
