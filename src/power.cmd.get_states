@@ -4,6 +4,11 @@
 # descr = return power socket states
 # param = <device_id>
 
+##  gembird socket state constants [ values per Device::Gembird ]
+use constant SOCK_ON   => 0x01;
+use constant SOCK_OFF  => 0x02;
+use constant SOCK_SKIP => 0x04;
+
 <power.cfg.devices> //= {};
 my $device_id = $call->{'args'} // '';
 
@@ -51,8 +56,8 @@ if ( $dev->{poller}->can_write(0.1) ) {
 
 return { 'mode' => qw| TRUE |, 'data' => join( ' ', @states ) }
 
-#,,.,,,,.,,,,,..,,,.,,,,.,,.,,..,,..,,..,,...,..,,...,...,,,.,..,,.,.,...,,,.,
-#4OHNZEAIF4DJVUPU7KABABDRONEFWZBVXUW275NKHGYEGM7DRELOB6KRKL22RGGI7YEJ4KQPIY22A
-#\\\|MIIHT3SVSKKYD4KKQJX45J3ADOYPVBIDLG2U2S3OUF6GLAUCHA6 \ / AMOS7 \ YOURUM ::
-#\[7]SADW6O4WPBTURTTUZKCBLFUGNFLC7ALMG6IU2XRNOSV33QN4MCDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,,,.,,..,...,,..,,..,.,.,,..,..,,...,...,...,..,,,,.,,..,...,
+#LS7FRD6MVZQ6OU3IVQDNPE7RXTQMS55FAB2VBRX55DTT7G42YBIQHY2TUX6TQ7NIRTB4HFNMILS74
+#\\\|HPVWLBPOSYOVXZNCM76OKSR3O7ZC7IOX7FNN4NZPCA4YV326IMO \ / AMOS7 \ YOURUM ::
+#\[7]4XY3WWOTVZ2AT66CKK2BZ7XZONF3LERAGEE4ZR5YNB2V7YPY6ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
