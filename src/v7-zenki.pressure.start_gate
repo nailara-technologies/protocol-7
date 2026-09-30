@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.start_gate
+# param = <job_id> <instance_id> <zenka_name[subname]>
+# descr = start gate : TRUE when the start may run now, FALSE when held
+
+## called by v7-zenki.zenka.start [ job callback ] for every start. only   ##
+## jobs flagged 'pressure_gate' are gated : on-demand starts [             ##
+## v7-zenki.zenka.cmd.start ] and start-set-up autostarts  [               ##
+## v7-zenki.autostart_zenki ]. the flag lives on the job hash and is       ##
+## removed at the first real start, so a later restart re-running the same ##
+## job [ callback.instance.restart ] is not start-gated                    ##
+
+my ( $job_id, $instance_id, $zenka_name ) = @ARG;
+
+my $job      = <jobqueue.joblist.by_id>->{ $job_id // '' } // return TRUE;
+my $gate     = $job->{'pressure_gate'}                     // return TRUE;
+my $instance = <v7-zenki.zenka.instance>->{ $instance_id // '' }
+    // return TRUE;
+
+my $release = sub {
+    delete $job->{'pressure_gate'};
+    delete $instance->{'pressure_held_start'};
+    <v7-zenki.pressure.start_gate.last_seq> = <v7-zenki.pressure.sample_seq>
+        // 0;
+    return TRUE;
+};
+
+## released by v7-zenki.pressure.release_deferred [ max wait included ] ##
+return $release->() if $gate->{'released'};
+
+return $release->()
+    if not
+    <[base.cfg_bool]>->( <v7-zenki.cfg.pressure.start_gate.enabled> // TRUE );
+
+my $reason = <[v7-zenki.pressure.start_gate_check]>->($zenka_name);
+return $release->() if not defined $reason;
+
+## held : instance waits as 'delayed' [ counted by start_count, so no ##
+## duplicate start ; notify_online keeps waiting ]                    ##
+if ( not defined $instance->{'pressure_held_start'} ) {
+    $instance->{'pressure_held_start'} = {
+        'job_id' => $job_id,
+        'origin' => $gate->{'origin'},
+        'since'  => <[base.time]>->(3),
+    };
+    <[base.logs]>->(
+        1, ": '%s' %s start held [ %s ]",
+        $zenka_name, $gate->{'origin'}, $reason
+    );
+}
+<[zenka.change_status]>->( $instance_id, qw| delayed | );
+
+return FALSE;
+
+#,,..,,,,,.,,,,.,,...,..,,...,.,,,.,,,.,,,.,.,..,,...,..,,..,,..,,.,.,,,,,,.,,
+#SWS4CRN5PAUP4E5JCJZD77NI27WNXNNMH4MQVGHJIINI6PBQKYZBAVSZVW2PQALEMZEOQZ6SLRIQE
+#\\\|D2QX2XBYASQQKMI3U5QADO5YPPIMJY33ZKXS3LJORFOSFEHFKDT \ / AMOS7 \ YOURUM ::
+#\[7]M6Y6XS76XUITO7VGRCCFNIMF6XH2YQULLEMFZN3SRKYFAFLMJSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

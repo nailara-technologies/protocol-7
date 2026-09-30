@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.start_gate_check
+# param = <zenka_name[subname]>
+# descr = start gate : undef when a gated start may run now, else the reason
+
+my $zenka_name = shift // '';
+$zenka_name =~ s|\[[^\]]*\]$||;
+
+my $samples = <v7-zenki.pressure.samples> // [];
+return undef if not @{$samples};    ## no sampler data [ yet ] : open ##
+
+my $latest = $samples->[-1];
+my $seq    = <v7-zenki.pressure.sample_seq> // 0;
+
+## MemAvailable must cover the zenka estimate + a reserve [ small hosts, ##
+## atom 1G ] -- estimate from <v7-zenki.pressure.zenka> once the system  ##
+## zenka collects per-zenka rss \ swap [ piece 6b ], config default now  ##
+my $zenka_stats = <v7-zenki.pressure.zenka> // {};
+my $estimate
+    = ref $zenka_stats->{$zenka_name} eq qw| HASH |
+    ? $zenka_stats->{$zenka_name}->{'estimate_mb'}
+    : undef;
+$estimate //= <v7-zenki.cfg.pressure.start_gate.default_estimate_mb> // 64;
+my $reserve = <v7-zenki.cfg.pressure.start_gate.reserve_mb> // 256;
+
+if ( defined $latest->{'mem_avail_mb'}
+    and $latest->{'mem_avail_mb'} < $estimate + $reserve ) {
+    return sprintf(
+        'MemAvailable %d MB < %d MB [ estimate + reserve ]',
+        $latest->{'mem_avail_mb'},
+        $estimate + $reserve
+    );
+}
+
+## calm [ level and latest sample ] : no pacing ##
+my $level     = <v7-zenki.pressure.level>     // qw| calm |;
+my $indicated = <v7-zenki.pressure.indicated> // $level;
+return undef if $level eq qw| calm | and $indicated eq qw| calm |;
+
+## elevated \ critical : one gated start per sample [ curve checked in ##
+## between ]                                                           ##
+return sprintf( 'one start per sample [ %s ]', $level )
+    if defined <v7-zenki.pressure.start_gate.last_seq>
+    and <v7-zenki.pressure.start_gate.last_seq> >= $seq;
+
+return undef;
+
+#,,,.,.,.,.,.,,,,,.,,,.,.,...,,,.,.,.,...,,,,,..,,...,..,,,,,,..,,...,,,,,,.,,
+#5N67IBQWZNL3LTSOCGJLQSWZ7X6YI46B2C6BSR6QZMCDJIQXQ56SRMUFV6WYSZLYJUSSXBVYVBYHU
+#\\\|2VLO2AFX3A52TZTQ5ZZYYGUOETXOYSVAF5FKTYLINRRX2MW7ULT \ / AMOS7 \ YOURUM ::
+#\[7]UJUUBDLB6K5SPDMO6IZ7YDKOLKMB7CC3TY64AJBHI5ZGH5KS6YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

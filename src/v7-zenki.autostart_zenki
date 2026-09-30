@@ -24,11 +24,17 @@ foreach my $zenka_name (@ARG) {
             }
         );
         <v7-zenki.zenka.autostart>->{$zenka_name}->{'job'} = $job_id;
+
+        ## start gate flag [ v7-zenki.pressure.start_gate ] : start-set-up ##
+        ## autostarts go one at a time under memory pressure               ##
+        <jobqueue.joblist.by_id>->{$job_id}->{'pressure_gate'}
+            = { 'origin' => qw| autostart | }
+            if ref <jobqueue.joblist.by_id>->{$job_id} eq qw| HASH |;
     }
 }
 
-#,,,,,.,.,...,.,,,,.,,,,.,.,.,,..,...,.,,,.,,,..,,...,...,...,..,,.,,,,..,..,,
-#CMUQYP4KZYEIWAK7F6BGFYQGC4DOH5OA5AHZFEXOXZERIK63NAGKLZDLBOUNRD4S66RZ45DSD7G52
-#\\\|EILG4FCYIQJLBUINLZ2MGDOBJHJAK6GTBTZGGQ5GLETIJAZND6P \ / AMOS7 \ YOURUM ::
-#\[7]WOHRJMLDTHRXKSS6JJ2J25YV6X3YQNFHIGLZC75QV6R4SDNYJCBA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,..,.,,,,,,,,..,..,,..,,.,,,..,,...,...,..,,...,,.,,.,,,...,
+#L234CY5TFIX6G2TQ7TZOK2SF5D7O7DL2NJBRETOIQUP4RGRQ7DYAOGF35TD5W4T2FNPXW447PAPYS
+#\\\|PYHJ25AXUM7AL42PHCOSITTOINKVVXFA3JMUDVOPGXPWZ2TKO3Q \ / AMOS7 \ YOURUM ::
+#\[7]Z7GL6GMTGDPCUH5YEY6USYZEXQMF7EAHLT62KGFDFALLDPSF7YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

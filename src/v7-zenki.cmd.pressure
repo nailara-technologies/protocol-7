@@ -92,10 +92,44 @@ $text .= sprintf( ":   %s\n",
     join( ' ', map { sprintf( '%.1f', $ARG ) } @values ) );
 $text .= ":\n";
 
+## deferred restarts \ held starts [ restart \ start gate ] ##
+my $instances = <v7-zenki.zenka.instance> // {};
+my ( @restarts, @starts );
+foreach my $instance_id ( sort { $a <=> $b } keys $instances->%* ) {
+    my $instance = $instances->{$instance_id};
+    next if ref $instance ne qw| HASH |;
+    my $name = $instance->{'zenka_name'} // qw| ? |;
+    $name .= sprintf( '[%s]', $instance->{'subname'} )
+        if defined $instance->{'subname'};
+    if ( my $deferred = $instance->{'pressure_deferred_restart'} ) {
+        push @restarts,
+            sprintf( ":   %-20s instance %u, waiting %ds\n",
+            $name, $instance_id, $now - $deferred->{'since'} );
+    }
+    if ( my $held = $instance->{'pressure_held_start'} ) {
+        push @starts,
+            sprintf( ":   %-20s %s, waiting %ds\n",
+            $name, $held->{'origin'}, $now - $held->{'since'} );
+    }
+}
+$text .= sprintf(
+    ": deferred restarts : %s [ max wait %ds ]\n",
+    scalar @restarts || 'none',
+    <v7-zenki.cfg.pressure.restart_gate.max_wait> // 300
+);
+$text .= join( '', @restarts );
+$text .= sprintf(
+    ": held starts       : %s [ max wait %ds ]\n",
+    scalar @starts || 'none',
+    <v7-zenki.cfg.pressure.start_gate.max_wait> // 45
+);
+$text .= join( '', @starts );
+$text .= ":\n";
+
 return { 'mode' => qw| size |, 'data' => $text }
 
-#,,,,,...,...,.,.,,.,,,,.,,..,,..,,.,,...,,..,..,,...,...,,,,,,..,,.,,,,,,..,,
-#2NZ556Z2YAN4FPWXJLRNKFCDX5DXGF5HKOJTEKSCOFS6ULJBB6Z53THNZRHPOQ2H75QDKTXCTFP6S
-#\\\|ZY7DPSN5YW3KCHLK25T2QNL7ZHBEFTGCXBADHPVPYIVG3D22NVY \ / AMOS7 \ YOURUM ::
-#\[7]QFGTGNOZAGRMSXJQHJOKTUZBUW3YWZ2ZB7BZ4XU2JX3DESYAUYCI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,,,.,,,.,.,.,.,.,,..,,.,,,..,..,,...,...,.,,,,..,,.,,,,.,,.,,
+#4RJZJSDNUQ7KH2T6T4IMEZENRZCXFIQHOP3UR3MUJIST72ZCMHMU2H7VDYW3J6SODY36UHLSRT7Z6
+#\\\|LL2GITNBTB2MLC3JMRYLGG6QUTF2O4AC3XUIZ43G443B6EMLOJD \ / AMOS7 \ YOURUM ::
+#\[7]4UGJK5VXXVAIVYYAGWOOKQ453LPOAPKLKISBJOT7EJB5IM3PE2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
