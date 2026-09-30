@@ -6,22 +6,28 @@
 my $reinit = shift;    ## guard : a reload must not arm a second timer ##
 
 ## config defaults [ overridable in cfg/zenki/v7-zenki/pressure.cfg ] ##
-<v7-zenki.cfg.pressure.sample_interval>         //= 5;
-<v7-zenki.cfg.pressure.ring_size>               //= 72;
-<v7-zenki.cfg.pressure.enter_samples>           //= 3;
-<v7-zenki.cfg.pressure.leave_samples>           //= 13;
-<v7-zenki.cfg.pressure.curve_values>            //= 24;
-<v7-zenki.cfg.pressure.elevated.mem_full_avg60> //= 1.0;
-<v7-zenki.cfg.pressure.elevated.mem_some_avg60> //= 10.0;
-<v7-zenki.cfg.pressure.elevated.swap_pps>       //= 256;
-<v7-zenki.cfg.pressure.elevated.min_avail_mb>   //= 1024;
-<v7-zenki.cfg.pressure.critical.mem_full_avg10> //= 5.0;
-<v7-zenki.cfg.pressure.critical.mem_full_avg60> //= 5.0;
-<v7-zenki.cfg.pressure.critical.swap_pps>       //= 2048;
-<v7-zenki.cfg.pressure.critical.min_avail_mb>   //= 256;
-<v7-zenki.cfg.pressure.heartbeat_ext.secs>      //= 17;
-<v7-zenki.cfg.pressure.heartbeat_ext.elevated>  //= 3;
-<v7-zenki.cfg.pressure.heartbeat_ext.critical>  //= 6;
+<v7-zenki.cfg.pressure.sample_interval>                //= 5;
+<v7-zenki.cfg.pressure.ring_size>                      //= 72;
+<v7-zenki.cfg.pressure.enter_samples>                  //= 3;
+<v7-zenki.cfg.pressure.leave_samples>                  //= 13;
+<v7-zenki.cfg.pressure.curve_values>                   //= 24;
+<v7-zenki.cfg.pressure.elevated.mem_full_avg60>        //= 1.0;
+<v7-zenki.cfg.pressure.elevated.mem_some_avg60>        //= 10.0;
+<v7-zenki.cfg.pressure.elevated.swap_pps>              //= 256;
+<v7-zenki.cfg.pressure.elevated.min_avail_mb>          //= 1024;
+<v7-zenki.cfg.pressure.critical.mem_full_avg10>        //= 5.0;
+<v7-zenki.cfg.pressure.critical.mem_full_avg60>        //= 5.0;
+<v7-zenki.cfg.pressure.critical.swap_pps>              //= 2048;
+<v7-zenki.cfg.pressure.critical.min_avail_mb>          //= 256;
+<v7-zenki.cfg.pressure.heartbeat_ext.secs>             //= 17;
+<v7-zenki.cfg.pressure.heartbeat_ext.elevated>         //= 3;
+<v7-zenki.cfg.pressure.heartbeat_ext.critical>         //= 6;
+<v7-zenki.cfg.pressure.restart_gate.enabled>           //= TRUE;
+<v7-zenki.cfg.pressure.restart_gate.max_wait>          //= 300;
+<v7-zenki.cfg.pressure.start_gate.enabled>             //= TRUE;
+<v7-zenki.cfg.pressure.start_gate.max_wait>            //= 45;
+<v7-zenki.cfg.pressure.start_gate.reserve_mb>          //= 256;
+<v7-zenki.cfg.pressure.start_gate.default_estimate_mb> //= 64;
 
 ## state [ samples ring : latest last ] [ .zenka reserved for per-zenka ##
 ## rss\swap stats [ collected later by the system zenka ] ]             ##
@@ -30,6 +36,7 @@ my $reinit = shift;    ## guard : a reload must not arm a second timer ##
 <v7-zenki.pressure.level_since> //= <[base.time]>->(3);
 <v7-zenki.pressure.pending>     //= { 'level' => '', 'count' => 0 };
 <v7-zenki.pressure.zenka>       //= {};
+<v7-zenki.pressure.sample_seq>  //= 0;
 
 ## probe psi once [ older kernels have no /proc/pressure ] ##
 <v7-zenki.pressure.psi_available>
@@ -55,8 +62,8 @@ if (   not $reinit
 
 return TRUE;
 
-#,,,,,,,,,,,,,,,.,.,.,.,.,,..,,..,...,.,.,...,..,,...,...,..,,,,.,,..,.,,,.,,,
-#WM6RKMB37L73H5R5HVLEUJ5HOPDNETEWIC2CRUYKIROVS3DSLC3H6OAPAWLPFW7IPDM2MEDI3M5HQ
-#\\\|SYL2TIK5SQQUIJC2VQQFLKZ676B2CVSOBRO6IRNJYT745KOYWTI \ / AMOS7 \ YOURUM ::
-#\[7]SGGJVWPD4NKAIOQ5Q3D4M5HP7BW4OPVRTDOE64BJOKHKJFX6IWCY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,..,,...,,.,,,,,,..,,.,.,,.,,..,,...,...,,,.,..,,...,.,,,,..,
+#IUFGAOVV3UAJDRJE57PWZT6PF2TBBL757N7UQYDZUF4D375IACQLZYZP44VAAXHFPOI3K4ZGWX7EY
+#\\\|Y37B3RTXFL3WBTGOBDW2SEGMJW5MBJJPKM75FNH6XSAJCVEHOLM \ / AMOS7 \ YOURUM ::
+#\[7]GP63X5QRGHGACQ6D65DPTTIN3LB6UIHGWKS3WWAJ65OIAZXQOSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

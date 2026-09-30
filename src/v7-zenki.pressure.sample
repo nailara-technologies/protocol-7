@@ -84,14 +84,15 @@ my $ring_size = <v7-zenki.cfg.pressure.ring_size> // 72;
 push @{$samples}, $sample;
 shift @{$samples} while @{$samples} > $ring_size;
 <v7-zenki.pressure.latest> = $sample;
+<v7-zenki.pressure.sample_seq>++;    ## start \ restart gate pacing ##
 
 ## derive level with hysteresis ##
 <[v7-zenki.pressure.update_level]>;
 
 return $sample;
 
-#,,,,,,,.,...,...,.,.,..,,..,,.,,,,.,,.,.,.,.,..,,...,..,,,..,.,,,,..,,,.,.,,,
-#4VPQXTFI4S4W5ZNEQRSZNZNIZOEDZV3YKCH6HOJZVOABN33DQQLSXT7ZKAXADKVSARWODJT7DMYMC
-#\\\|SY2VGPDEZ5RZGK7TDNO5UZ4QVNZ7NVKFZGCNKHOKTT5OGLRXY55 \ / AMOS7 \ YOURUM ::
-#\[7]TSGVMR73GGCI6ERG45G3H4Y25Y3AQUHR4ZMOOPHOCHKU6JFBV2DI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,.,.,...,,..,,.,,...,.,.,,.,,..,,...,...,...,..,,..,,,,,,.,,,
+#Q3RLRCLSQMBCOQJIGBWEVJB7F4T2XFW2OFWRIQ2ZDEWSCOLG4FF3N4AFBZLCFYORGX6EUIFHBFXAU
+#\\\|CLQM47ROO4SYCMFQK5FO2FXLITU6ZZVYBWQZPZR2D63PCWTD4QG \ / AMOS7 \ YOURUM ::
+#\[7]4WFXX66QMD4QWBF2EIW2I35M3G6LKDFTC7BBBJ4Y344WEMYZBGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

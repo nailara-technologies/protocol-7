@@ -89,6 +89,16 @@ if ($starting) {
     }
 }
 
+## start gate : flagged on-demand \ autostart jobs wait as 'delayed' under ##
+## memory pressure [ released by pressure.release_deferred ]               ##
+return
+    if not <[v7-zenki.pressure.start_gate]>->(
+    $job_id, $instance_id,
+    defined $zenka_subname
+    ? sprintf( qw| %s[%s] |, $zenka_name, $zenka_subname )
+    : $zenka_name
+    );
+
 # initialize zenka instance start-up ..,
 <[zenka.change_status]>->( $instance_id, qw| starting | );
 
@@ -452,8 +462,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,,..,,.,,,..,,.,,...,,.,,,.,,,..,.,.,,..,..,,...,...,.,,,...,...,.,,,,,.,
-#WVLFIC6QHSWV66PTEMI6ZZNQGENQDLEXRFRUVYSJXPY6XYRESAUS7PL5S22B4JGWZD2BPMFLRMNNS
-#\\\|H22DKUVAIMGRQ7565BM64QLTZZRFCLAYCZM3DWALNFAHY6VBEGE \ / AMOS7 \ YOURUM ::
-#\[7]DAC2EUEBNU4MYVPXHTI4JFP5R4FLX5KUNBCOXFXVEDLOJ6F25GCI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,..,,..,,.,,,.,,,,,.,..,,,,,,..,,...,..,,...,...,,,.,,,.,.,,,
+#QDB4PGW6ZLWJ7FO4WY7NKIPU3SGJXWL5GXZMPQSARIIEWRN4TY5L34AA36T4RIGN65D6BN54XEPUQ
+#\\\|T35OUM32BTIF2O3XSDY52MRI6KTOGJBJPM6YC4FUR6TRIZI6XBP \ / AMOS7 \ YOURUM ::
+#\[7]665FZUZWEZY7L44LNLJYKPON6YJ3N5DSFBZIZHXPRPJJMS4IEIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.defer_restart
+# param = <instance_id>
+# descr = restart gate : defer an error-path restart while memory is critical
+
+## called by v7-zenki.init_restart_timer only. error path = the instance is ##
+## in status 'error' at that moment [ set synchronously by change_status :  ##
+## heartbeat \ start timeout, crash, startup error ]. a manual restart [    ##
+## zenka.instance.restart ] arrives with status 'restart' : never gated     ##
+
+my $instance_id = shift;
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
+
+## status first : a manual restart during a deferral [ status 'restart' ] ##
+## is never gated, init_restart_timer then drops the stale deferral       ##
+return FALSE if ( $instance->{'status'} // '' ) ne qw| error |;
+
+## already deferred [ second caller of the same error, eg. startup error + ##
+## process end ] : stays deferred, nothing new to log                      ##
+return TRUE if defined $instance->{'pressure_deferred_restart'};
+
+return FALSE
+    if not <[base.cfg_bool]>
+    ->( <v7-zenki.cfg.pressure.restart_gate.enabled> // TRUE );
+return FALSE if ( <v7-zenki.pressure.level> // '' ) ne qw| critical |;
+
+my $zenka_name = $instance->{'zenka_name'} // qw| ? |;
+
+## cube : the message router -- while it is down no manual command [ p7c  ##
+## v7-zenki.restart \ .pressure ] reaches v7-zenki, and heartbeats of all ##
+## other zenki fail through it [ 'is-cube' is set only once it connected, ##
+## the name covers a crash before that ]                                  ##
+if ( $instance->{'is-cube'} or $zenka_name eq qw| cube | ) {
+    <[base.logs]>->(
+        1, ": '%s' restart not deferred [ message router ]", $zenka_name
+    );
+    return FALSE;
+}
+
+## log target [ the zenka named by v7-zenki's own log_cmd, normally p7-log ##
+## -- configurable ] : while it is down every zenka's log send- buffer     ##
+## stays paused, deferring it would hold all log output                    ##
+( my $log_target = <buffer.zenka.log_cmd> // '' ) =~ s|\..+$||;
+if ( length $log_target and $zenka_name eq $log_target ) {
+    <[base.logs]>->(
+        1, ": '%s' restart not deferred [ log target ]", $zenka_name
+    );
+    return FALSE;
+}
+
+## kept children [ restart.keep_children ] wait for the new instance to ##
+## claim them within their grace time -- deferring would let the grace  ##
+## timer end them [ invoke-web : the invoke.ai render ]                 ##
+if (    ref <v7-zenki.kept_children> eq qw| HASH |
+    and ref <v7-zenki.kept_children>->{$zenka_name} eq qw| HASH |
+    and keys <v7-zenki.kept_children>->{$zenka_name}->%* ) {
+    <[base.logs]>->(
+        1, ": '%s' restart not deferred [ kept children wait for claim ]",
+        $zenka_name
+    );
+    return FALSE;
+}
+
+$instance->{'pressure_deferred_restart'} = { 'since' => <[base.time]>->(3) };
+
+<[base.logs]>->(
+    1, ": '%s' restart deferred [ critical memory pressure, max %ds ]",
+    $zenka_name, <v7-zenki.cfg.pressure.restart_gate.max_wait> // 300
+);
+
+return TRUE;
+
+#,,,,,,,,,,,,,,,,,.,.,.,,,,..,..,,.,,,...,,..,..,,...,...,,,,,,..,..,,.,.,,,.,
+#YOCD7FBDCIFLDB2DPDGI3AGGESVXQRFXT7CHL3HKWQTPN3PJTT7H5EFSJY7BASDYCTTR6AB6HTDK6
+#\\\|4ZIHXVYPTZISIVS23GF4YWWE7SHPD37KJDRRHY6IKDPX2IIULL7 \ / AMOS7 \ YOURUM ::
+#\[7]GKWM3VZ4WUGGX6V7KWP6JQKV5UGZ3MHER3VXK55U222OEU7PLSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
