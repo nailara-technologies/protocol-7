@@ -20,9 +20,42 @@
 #         reached plugin.usage.kimi.fetch with a non-hash argument ]. named
 #         handler + params [ not a coderef closure ] so a source reload
 #         between refresh start and completion still runs current code.
-# param = { on_result => <handler name>, params => <original query params> }
+# param = { on_result => <handler name>, params => <original query params>,
+#           [ attempt : refresh cycles so far, default 1 ] }
 
 my $params = shift // {};
+
+## the refresh cycle can end without a new token [ kimi cli too slow to reach
+## its oauth refresh before the timeout -- seen 2026-09-30 under critical
+## memory pressure : cycle 1 killed after 18s with nothing written, the next
+## cycle wrote a token 6s in ]. retrying the query then only ever fails again
+## -- check the credential first and give it ONE more cycle with a longer
+## timeout [ queues onto a running one, e.g. the watchdog's ] before the
+## retry. bounded : attempt 2 always goes on to the retry, so a real failure
+## still reaches the caller
+my $attempt = $params->{'attempt'} // 1;
+my $cred    = <[plugin.usage.kimi.read_credential]>;
+my $fresh
+    = length( $cred->{'token'} // '' )
+    && defined $cred->{'expires_at'}
+    && $cred->{'expires_at'} > time;
+
+if ( !$fresh and $attempt < 2 ) {
+    <[base.logs]>->(
+        1,
+        'usage [ kimi ] : refresh cycle ended without a '
+            . 'new token, one more cycle before the retry ..,'
+    );
+    my $started = <[plugin.usage.kimi.refresh_token]>->(
+        <usage.provider.kimi>->{'refresh_timeout_retry'} // 30,
+        {   'on_done' => {
+                'handler' => qw| plugin.usage.kimi.refresh_retry |,
+                'params'  => { %$params, 'attempt' => $attempt + 1 },
+            },
+        }
+    );
+    return TRUE if $started;    ## on_done brings us back here ##
+}
 
 <[event.add_idle]>->(
     {   'handler' => qw| plugin.usage.kimi.fetch |,
@@ -36,8 +69,8 @@ my $params = shift // {};
 
 return TRUE;
 
-#,,,,,,..,.,.,...,,,,,,..,.,,,,,,,,..,,.,,,,.,.,.,...,...,...,...,..,,..,,.,,,
-#VGAG7V6OHO3GOOUO35VFP3WAUQMDD6E72A64ZM2WOKMFQYUWIAKDPQKM4KIAGWYX4GXUF5Y3GD7G6
-#\\\|GP4FKK4PABJRNIWL7X6IZ2JMUU4B35OPK5FBYU5CEVU3HCRXIYN \ / AMOS7 \ YOURUM ::
-#\[7]M37K7734WDNMFE63CAQ3ASJWVKT26YFIUL6VPW6APHOA7NLIZ2DI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,..,,.,,..,,...,,,.,.,.,,,.,.,.,.,.,...,...,.,,,..,,,.,,,.,,,,.,
+#AW3BUPQDCEJVIMGERZG6NSVSX72KECTE4HOP46E436OURIDXCC3B2RJXB2FKOTFQHOKDBOP4MMDWU
+#\\\|DOEUYCLRBJWWPPL6WWYRR4FQTKRWYC6XV4FJX2OYBZQZ6NXFMIW \ / AMOS7 \ YOURUM ::
+#\[7]OLPIIX6IZF7LSBY5YLKBTX25JRAARNDQNJ3MD2LGQ7KE7S6P5ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
