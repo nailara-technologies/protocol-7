@@ -1,6 +1,7 @@
 # invoke : detect missing models at render time, fetch them automatically
 
-planning brief [ 2026-09-29 ]. not built. read `CLAUDE.md` first.
+planning brief [ 2026-09-29 ]. built 593ca0c28 + e19d7cd66 -- not yet run
+live [ `p7c invoke-web.fetch-missing <model>` ]. read `CLAUDE.md` first.
 
 the concrete trigger for layer 4 [ on-demand model lifecycle ] of
 `data/md/design/AUTONOMOUS-MODEL-MANAGEMENT.md` [ subsystem #5 ] : states
@@ -162,8 +163,8 @@ item record.
 - fetch-files job interface : what invoke-web sends, how completion is
   reported back [ callback \ event ]
 
-#,,.,,..,,,,,,..,,...,,.,,,,,,,.,,,.,,,..,,.,,..,,...,..,,,,.,,,,,.,,,,..,..,,
-#26734M443OBPQSOTGATYFB2YCX6O3X4GMYX6RHOSKVAFXSH46JNKWIYT7ZG4IG2CUQQHFECGODRIC
-#\\\|YHJW64KDKGHOSCKWERGPTVETJDRTJURMGZIDI2EA5Y6237CX2GX \ / AMOS7 \ YOURUM ::
-#\[7]FX7INH7N5XRZ73G7C2SWVDFZ2UJM7AY3IKPUWOACBKLRBFBOEMAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,..,,.,.,.,.,,.,,.,,,,,,,,..,..,,...,...,...,..,,,.,,...,,..,
+#3ELBQUGIGKI6KOZXHUQ3RXXJCWOLAUPPWISBEYQ2RTPF5MOZZOSJ3GYDUCZSRAZJBZEHZVJZ5CZKC
+#\\\|I4K52RQJD2AUBJANGNWJOADYHSDNUOYQ23HMIYUO2AGNEWED3RG \ / AMOS7 \ YOURUM ::
+#\[7]7STMM2G26HCS4M5BENC4PNAMJ5RRRV2QGLMVVG47LBE6ALBQN4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
