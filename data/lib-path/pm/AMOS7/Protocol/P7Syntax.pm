@@ -49,9 +49,9 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 my %CLOSE_OF = ( '(' => ')', '{' => '}', '[' => ']', '<' => '>' );
 
-## every helper below takes the source as a SCALAR REF, never by value :    ##
-## 'my ( $str, ... ) = @_' copies the whole module source on each call, and ##
-## these are called once per quote / regex / keyword in the file            ##
+## every helper below takes the source as a SCALAR REF, never by value :  ##
+## 'my ( $str, ... ) = @ARG' copies the whole module source on each call, ##
+## and these are called once per quote / regex / keyword in the file      ##
 
 ## delimiter patterns are memoized by delimiter char rather than rebuilt by ##
 ## string interpolation on each call -- interpolating quotemeta() output    ##
@@ -64,7 +64,7 @@ my ( %PAIRED_RE, %SAMECHAR_RE );
 ## jumps forward by a full regex match instead of one char at a time, which ##
 ## matters since this runs on every quote/regex body in every file          ##
 sub find_paired_end {    ## $pos just past the opening delim ##
-    my ( $sref, $pos, $open, $close ) = @_;
+    my ( $sref, $pos, $open, $close ) = @ARG;
     ## unrolled-loop form [ friedl ] : 'plain* (?: escape plain* )*' lets  ##
     ## the engine scan runs of plain chars with its fast character-class   ##
     ## loop, instead of re-entering an alternation once per character. the ##
@@ -85,7 +85,7 @@ sub find_paired_end {    ## $pos just past the opening delim ##
 }
 
 sub find_samechar_end {    ## $pos just past the opening delim ##
-    my ( $sref, $pos, $delim ) = @_;
+    my ( $sref, $pos, $delim ) = @ARG;
     my $re = $SAMECHAR_RE{$delim} //= do {
         my $qdelim = quotemeta($delim);
         qr{\G[^\\$qdelim]*(?:\\.[^\\$qdelim]*)*$qdelim}s;
@@ -98,7 +98,7 @@ sub find_samechar_end {    ## $pos just past the opening delim ##
 ## consume one delimited body : $pos must point AT the opening delim char. ##
 ## returns ( $open, $close, $inner_text, $pos_after_close ) or ()          ##
 sub consume_body {
-    my ( $sref, $pos ) = @_;
+    my ( $sref, $pos ) = @ARG;
     my $open  = substr( $$sref, $pos, 1 );
     my $close = $CLOSE_OF{$open};
     my $end;
@@ -122,7 +122,7 @@ sub consume_body {
 ## delimiters it does not [ the middle delimiter was already emitted as     ##
 ## body1's close ]                                                          ##
 sub consume_second_body {
-    my ( $sref, $pos, $open1, $close1 ) = @_;
+    my ( $sref, $pos, $open1, $close1 ) = @ARG;
     if ( $open1 ne $close1 ) {
         pos($$sref) = $pos;
         $$sref =~ m{\G\s*}gc;
@@ -138,16 +138,31 @@ sub consume_second_body {
         $end, $pos, 0 );
 }
 
-my %QLIKE = map { $_ => 1 } qw| q qq qw qr m s tr y |;
+my %QLIKE = map { $ARG => 1 } qw| q qq qw qr m s tr y |;
+
+## true when $pos sits on a segment of a '<..>' data key chain : directly ##
+## after '<' or after a key chain character inside it [ both the 'y' and  ##
+## the '-y' remainder of 'qq-y' in <x.qq-y> ]. scans back over key chain  ##
+## characters [ word, '-', '.', ':' ] -- reaching '<' means inside a key. ##
+## any other left context stops the scan before a '<' can be reached      ##
+sub inside_key_chain {
+    my ( $sref, $pos ) = @ARG;
+    my $p = $pos - 1;
+    $p-- while $p >= 0 and substr( $$sref, $p, 1 ) =~ m{[\w.:-]};
+    return 0 if $p < 0;
+    return substr( $$sref, $p, 1 ) eq qw|<| ? 1 : 0;
+}
 
 ## $pos must point at the first letter of a candidate keyword. returns ( ##
 ## $keyword, $delim_pos ) or ()                                          ##
 sub match_qlike_op {
-    my ( $sref, $pos ) = @_;
+    my ( $sref, $pos ) = @ARG;
     return () if $pos > 0 and substr( $$sref, $pos - 1, 1 ) =~ m{[\w\$]};
     ## anything right after '->' is a method name, never an operator ##
     ## keyword [ eg $event->y, $obj->s ] -- real perl's own rule     ##
     return () if $pos >= 2 and substr( $$sref, $pos - 2, 2 ) eq qw|->|;
+    ## a '<..>' data key chain segment is key text, not an operator   ##
+    return () if inside_key_chain( $sref, $pos );
     pos($$sref) = $pos;
     return () unless $$sref =~ m|\G([a-z]{1,2})\b|cg;
     my $kw = $1;
@@ -166,7 +181,7 @@ sub match_qlike_op {
 ## interpolate [ m'..' s'..'..' qr'..' ] ; everything else [ qq m s qr with ##
 ## a non-' delim, plain "..." ] interpolates by default                     ##
 sub qlike_class {
-    my ( $kw, $delim ) = @_;
+    my ( $kw, $delim ) = @ARG;
     return 'NEVER' if $kw eq qw|q|  or $kw eq qw|qw|;
     return 'NEVER' if $kw eq qw|tr| or $kw eq qw|y|;
     return 'NEVER' if $delim eq qw|'|;
@@ -197,7 +212,7 @@ BEGIN {
 }
 
 sub translate_segment {
-    my ( $text, $honor_escape ) = @_;
+    my ( $text, $honor_escape ) = @ARG;
     return $text unless index( $text, '<' ) >= 0;    ## cheap early-out ##
     ## the four sub-call rules all require a literal '<[' -- one index() ##
     ## skips all four passes for a segment that has none                 ##
@@ -227,7 +242,7 @@ sub translate_segment {
 
 ## emit one quote-like body [ open .. translated-or-raw-inner .. close ]  ##
 sub render_body {
-    my ( $open, $close, $inner, $class ) = @_;
+    my ( $open, $close, $inner, $class ) = @ARG;
     return
           $open
         . ( $class eq 'INTERP' ? translate_segment( $inner, 1 ) : $inner )
@@ -242,7 +257,7 @@ BEGIN {
 }
 
 sub match_heredoc_marker {    ## $pos points at '<<' ##
-    my ( $sref, $pos ) = @_;
+    my ( $sref, $pos ) = @ARG;
     pos($$sref) = $pos;
     if ( $$sref =~ m{$RE_HEREDOC_MARKER}gc ) {
         my ( $indent, $sq, $dq, $bs, $bare ) = ( $1, $2, $3, $4, $5 );
@@ -264,7 +279,7 @@ sub match_heredoc_marker {    ## $pos points at '<<' ##
 my %HEREDOC_RE;    ## memoized by indent-flag + terminator tag ##
 
 sub extract_heredoc_body {
-    my ( $sref, $pos, $hd ) = @_;
+    my ( $sref, $pos, $hd ) = @ARG;
     my $tag = $hd->{'tag'};
     my $key = $hd->{'indent'} . $tag;
     %HEREDOC_RE = () if keys %HEREDOC_RE > 512;    ## bound the cache ##
@@ -543,8 +558,8 @@ sub p7_syntax__translate
 
 return 5;  ###################################################################
 
-#,,..,..,,.,.,,.,,.,.,,,.,.,,,...,,.,,...,,,,,..,,...,...,..,,,.,,,..,,,.,...,
-#53WQZY5HRUDURXHHT2DUQFNK2FLHZC5ZT6JVSUZS5NYE345A5NOTN6RK3PJTLDCXT7YPQJP3G4ZEE
-#\\\|65UYG7OG4BGK6QXQNYGBQM3M6SWCGCBHJNU2ZUELJZXU2RFHHXS \ / AMOS7 \ YOURUM ::
-#\[7]O2VXA7LMFFDPBRXMSVF27RF47FVIOA753XVZG7NWIXP2VQESRIBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,.,.,,,,..,,..,,.,,,..,..,,..,,...,...,.,.,.,.,,..,,,.,,.,,
+#XTOUNOICFPG3RIFFGYAIMO3EDXIL5A2Z6HTRXRA5BGOWGYKTTCUO4Y5QCYMRUQCVUPKQCRGIPZJPE
+#\\\|WOEPBC23HD7J5YIYSRS2IYNYW5ROZKOZ4GFEL2Q4MK4DSVXM7N5 \ / AMOS7 \ YOURUM ::
+#\[7]HKCMNYBIYRIS5MELEIF4AWE4QEWZGYGHEQWE5OT44BLEUTQJRYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
