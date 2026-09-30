@@ -268,13 +268,28 @@ my $job_id = <[jobqueue.add_job]>->(
     }
 );
 
+## start gate flag [ v7-zenki.pressure.start_gate ] : on-demand path =      ##
+## cube's ondemand routing sends 'v7-zenki.start_once' over the network [   ##
+## session_id set ] for a zenka configured start.on-demand. internal calls  ##
+## [ dependency \ resolve cascade, restart, notify_online :start: ] carry   ##
+## no session_id. a user typing 'v7-zenki.start_once <on-demand>' takes the ##
+## same path and is gated too [ 'v7-zenki.start' is not ]                   ##
+<jobqueue.joblist.by_id>->{$job_id}->{'pressure_gate'}
+    = { 'origin' => qw| on-demand | }
+    if defined $job_id
+    and ref <jobqueue.joblist.by_id>->{$job_id} eq qw| HASH |
+    and $once
+    and not $recursion
+    and defined $call->{'session_id'}
+    and grep { $ARG eq $zenka_name } ( <v7-zenki.ondemand_zenki> // [] )->@*;
+
 return {
     'mode' => qw| true |,
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,..,..,,,..,..,,...,,,,,.,,,..,,..,,...,,,.,..,,...,...,..,,.,,,,,,,.,.,,..,
-#W6AOTFE3CZG5WOM3VIN3KS4KSO5LCB2TEOHQHTENSW56QIUHYDJKXIL7BMF74A3BDT7C6CE6LS64G
-#\\\|AS72CKXBTOLXY76THSNJMXSEXQCQHYF7ZTQIJBICKDMSIGY5LPD \ / AMOS7 \ YOURUM ::
-#\[7]OUKCS7EZTNHIXBK7UQK7TSHR23UKD2JDAM3BX63Z7FA65R5UIYAY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,..,,.,.,..,,.,,,.,.,,,,,.,.,..,,...,...,..,,.,,,,,.,.,,,.,,,
+#JMKX36VPHCR7REMYIFOKQWQ7D4SYP3YUBFFVSTD2ME3U746UUF26FVIAJNQC6BUYPOXVG7SXNNIRE
+#\\\|RKGA2EVVSEYOSM4CKPYXIW7CUJXYZHNN7D76ZT5JOYJOVROEO5Q \ / AMOS7 \ YOURUM ::
+#\[7]XXTBZ4NKF47EQG33FITTFRPI7EEOC4YAVXBN5366R2LIQRY37ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

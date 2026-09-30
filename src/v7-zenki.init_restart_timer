@@ -2,7 +2,8 @@
 
 # name = v7-zenki.init_restart_timer
 
-my $instance_id = shift;
+my $instance_id   = shift;
+my $gate_released = shift;    ## TRUE : v7-zenki.pressure.release_deferred ##
 
 if ( not defined $instance_id ) {
     warn 'expected instance id <{C1}>';
@@ -31,6 +32,15 @@ if ( defined $instance->{'timer'}->{'restart'}
     return FALSE;
 }
 
+## restart gate : an error-path restart waits while memory pressure is ##
+## critical [ v7-zenki.pressure.defer_restart, released per sample ]   ##
+return FALSE
+    if not $gate_released
+    and <[v7-zenki.pressure.defer_restart]>->($instance_id);
+
+## any other arming [ manual restart ] replaces a pending deferral ##
+delete $instance->{'pressure_deferred_restart'};
+
 my $fallback_delay = 0.7;    ## <-- when 'restart_delay' not defined ##
 
 if ( not defined $instance->{'restart_delay'} ) {
@@ -56,8 +66,8 @@ return $instance->{'timer'}->{'restart'} = <[event.add_timer]>->(
     }
 );
 
-#,,..,.,,,...,,,,,,,,,.,,,..,,.,,,.,.,.,.,...,..,,...,..,,..,,,..,,.,,,.,,...,
-#72AVQ753XHNBNC2OZLY7PAVIOGV7GBCD62UMDSBR36L3UVTNXRZU5SUU6OQ7CH5P4ND6H76LWSWAU
-#\\\|APJQE6AO6Z4XOJGPMLL66UFVHQ6KQRETJZ3DBWI5EUWOJ2ROT6M \ / AMOS7 \ YOURUM ::
-#\[7]6I524A6CH4Z4FX6WXWUXKO5YKLOX6L2GAJRKP7TVGBM6NF3MGUCY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,.,.,,..,..,,...,,,.,.,,,,,,,..,,...,...,.,.,.,,,,,,,,,.,...,
+#FVD54RS4HYXWCZ32IXRX4MS7KW7V53WAC44MPLYMW2FLV72HXVNW4ZUZKWDHOG6JAFOUGIBSY6TZU
+#\\\|WY7JBRTAXXSLYF7ZQKB2OGVA2JWH5A3HANMBAO2TI3XT34GLIE2 \ / AMOS7 \ YOURUM ::
+#\[7]AIZ72RWFZLXRUFH2ZIGACURSPMMWZHVIIMY2L6LPKTN5SFGKROCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
