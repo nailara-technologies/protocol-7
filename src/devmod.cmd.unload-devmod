@@ -11,7 +11,7 @@ return { 'mode' => qw| false |, 'data' => 'devmod module not loaded' }
     if ref( $code{'devmod.dump'} ) ne 'CODE';
 
 ## [LLL] create interface
-my %mod = map { $ARG => 1 } split( m| +|, <modules.load> );
+my %mod = map { $ARG => 1 } split( m| +|, <modules.load> // '' );
 if ( delete $mod{'devmod'} ) {
     <[base.log]>->( 1, '<< [persistently] disabled devmod module >>' );
 
@@ -44,8 +44,8 @@ if ( ref( $code{'devmod.dump'} ) ne 'CODE' ) {
 
 return { 'mode' => qw| false |, 'data' => 'cannot remove devmod module `:|' }
 
-#,,,,,...,,,.,,,,,,..,,,.,..,,,,,,,.,,.,,,,,.,..,,...,...,...,,,,,,,,,.,.,,.,,
-#JL7EN5EEOF7FGEOGRIIEY5VV6TZJ6TNKB3DVCIIMME5K3A7TPSF2FWKMVVN3XHWB5OGNIPRK66WFS
-#\\\|NF522YLJLNUIO4ROXIGQIY3RIAEUUQL3USPKKBE3IGKGESC3HRD \ / AMOS7 \ YOURUM ::
-#\[7]Q7GGNYH6YV7MF5NHXFDMIDFKDTFIH5LBQS4RKBW3SCZIMOXU2YDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,..,,,.,,,.,,,,,,.,.,,,.,...,..,,...,...,...,...,,.,,.,,,,..,
+#BKI2FIFN2QHRVXKMY6G6DIL76BXXWB2BEQKYQOYP3BMZMNQEYAB4CHTQKJDZB3355RLD2GPFWLAN6
+#\\\|CHUURDOXJTAZ4S3V66QCHS3ZJF65ORCLEIGKAKQCVS5EDSORMMB \ / AMOS7 \ YOURUM ::
+#\[7]2PAUIK5PRP4HZLWTJRVFXK3K5N7GMFBEJMMFYX3GHFVD2FFVOEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

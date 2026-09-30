@@ -34,6 +34,16 @@ my $b_ref = <log.send-buffer>->{$name} = {
     qw|   watcher   | => {}        ## references to idle \ var watchers ##
 };
 
+## created before the session exists : send-idle-callback holds its        ##
+## notify_online request back until then [ no session, no send ] -- re-arm ##
+## it once at instance verification [ callbacks.initialized ].  a buffer   ##
+## created later needs nothing : its first idle turn already finds the     ##
+## session. cube and v7-zenki use their own presence paths                 ##
+push @{ <system.callbacks.initialized> //= [] },
+    sub { <[base.log.send-buffer.idle-callback-set]>->($name) }
+    if not <system.zenka.initialized>
+    and <system.zenka.name> !~ m{^(?:cube|v7-zenki)$};
+
 foreach my $var_name (qw|  lines-added  sent-lines  |) {
 
     my $cb_data_param = $var_name ne qw| lines-added | ? undef : {
@@ -59,8 +69,8 @@ foreach my $var_name (qw|  lines-added  sent-lines  |) {
 
 return TRUE;
 
-#,,,.,,.,,.,,,.,,,.,,,.,.,,,,,,..,..,,,.,,..,,..,,...,...,.,,,,..,,..,,.,,...,
-#YZRSDV2BK7QB5HGXXC7CS7R7BUT3XHS754HOWD5B2N3UQFQOMWBI3WH4QRT6FREEZ5ROXJPAJS6RE
-#\\\|Z5YRP674VGYUXWIF7SUI5L64FRSPCCL7PCEYOTEDUEEMXQAXOJD \ / AMOS7 \ YOURUM ::
-#\[7]D6ARQ46KAJR47PH5NMZCHMR2R6KFCOIVCTIAKSEIJGLPJMTCCMBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,.,.,,,.,..,,,,.,.,,,,.,,.,.,..,,...,...,.,.,.,,,,.,,,..,...,
+#3TGJGENROY6B2ISMBKAHWUFQACJOSUORJJ4OMCZQCRLTLTZBTJ32TSS732SJ2SZRL2YUKHZ7LZWGS
+#\\\|O3QILE756ULVBDBMITPVLY3TI7QKJP4XCP6K55ZDIEXT4WXUNI5 \ / AMOS7 \ YOURUM ::
+#\[7]LG25VX4JAM6C52FKK7GTSNMAMH27GTT2VONXIORYJPED7RKTMOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
