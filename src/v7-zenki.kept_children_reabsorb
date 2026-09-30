@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = v7-zenki.kept_children_reabsorb
+# descr = return kept children to their instance [ planned end ]
+
+## a planned end [ manual terminate \ restart, idle-term, drain, teardown, ##
+## give-up shutdown ] ends kept children exactly as today : they are moved ##
+## back into <v7-zenki.child> and the instance child registry before the   ##
+## caller's usual termination sweep. identity is re-checked first -- a pid ##
+## reused meanwhile is forgotten, never signalled. called with an          ##
+## instance id [ that instance only ] or without one [ all -- teardown ]   ##
+
+my $only_instance_id = shift;    ## optional ##
+
+return 0 if not defined <v7-zenki.kept_children>;
+
+my $moved_count = 0;
+foreach my $zenka_name ( keys <v7-zenki.kept_children>->%* ) {
+    my $kept_href = <v7-zenki.kept_children>->{$zenka_name};
+    foreach my $pid ( keys $kept_href->%* ) {
+        my $entry = $kept_href->{$pid};
+        next
+            if defined $only_instance_id
+            and $entry->{'instance_id'} != $only_instance_id;
+
+        delete $kept_href->{$pid};
+        $entry->{'timer'}->cancel
+            if defined $entry->{'timer'} and ref $entry->{'timer'};
+
+        if ( ! <[v7-zenki.sub-process.identity_match]>->(
+                $pid, $entry->{'proc_start_time'}, $entry->{'proc_cmdline'}
+            )
+        ) {
+            <[base.logs]>->(
+                1,
+                'kept child pid %d [ %s ] : identity mismatch'
+                    . ' [ pid reuse ] -- forgotten, not signalled',
+                $pid, $zenka_name
+            );
+            next;
+        }
+
+        <v7-zenki.child>->{$pid} = {
+            'instance_id'     => $entry->{'instance_id'},
+            'child_name'      => $entry->{'name'},
+            'proc_start_time' => $entry->{'proc_start_time'},
+            'proc_cmdline'    => $entry->{'proc_cmdline'},
+            'start_time'      => $entry->{'kept_since'}, ## teardown sort ##
+        };
+        my $instance = <v7-zenki.zenka.instance>->{ $entry->{'instance_id'} };
+        $instance->{'process'}->{'child'}->{$pid} = 1 if defined $instance;
+        $moved_count++;
+    }
+    delete <v7-zenki.kept_children>->{$zenka_name} if not keys $kept_href->%*;
+}
+delete <v7-zenki.kept_children> if not keys <v7-zenki.kept_children>->%*;
+
+return $moved_count;
+
+#,,,,,,,.,..,,.,,,...,,,.,..,,,,.,..,,...,,,.,..,,...,...,,.,,,,,,,..,.,,,,,,,
+#AF6SC5BO4GQDV5GWMPVDTALOLGXGC2GR4NYARPU7TKVPD6UMDBCDAIS6JEWMUWHPEIKDYCP6B5RCU
+#\\\|Z26TXOPYJDOTNTYECOZOTVILYZ6CYOUREX6EXW4CVXWODC7VIHM \ / AMOS7 \ YOURUM ::
+#\[7]URHLIBNM2CN4OANJ7UOFZT6VTI36AWFN4MZMEIXEVFOF5SXNOACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

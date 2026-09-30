@@ -17,6 +17,13 @@ foreach my $i_id (<[v7-zenki.instance_ids]>) {
 }
 
 my %orphans;
+my %kept_pids;    ## crash-kept children [ restart.keep_children ] :     ##
+if ( defined <v7-zenki.kept_children> ) {    ## deliberately kept ..,     ##
+    map { $kept_pids{$ARG} = 1 }
+    map { keys <v7-zenki.kept_children>->{$ARG}->%* }
+        keys <v7-zenki.kept_children>->%*;
+}
+
 map {
     $orphans{ $ARG->pid } = $ARG->exec // $ARG->cmndline // ''
         if $ARG->pid > 2
@@ -26,6 +33,7 @@ map {
         and $ARG->pgrp == $GID    # process group was 'v7-zenki' zenka
         and $ARG->pid != $PID     # and is not this process ['v7-zenki']
         and not exists $own_children{ $ARG->pid }
+        and not exists $kept_pids{ $ARG->pid }    ## kept on error ##
         and ( not defined $ARG->exec
         or $ARG->exec ne qw| /usr/bin/dbus-launch | ) ## <-- whitelist\cfg LLL
     } @{ <v7-zenki.process.pt>->table };
@@ -42,8 +50,8 @@ map {
 
 return @orphaned_pids;
 
-#,,..,.,.,.,.,.,.,,,.,,,,,..,,.,.,.,,,.,,,,..,..,,...,...,,,.,.,.,,,,,,,.,,.,,
-#RLIWZLWE6ADSU3D6SOAOKW3XQVSMKPTOLB6JLDTTF5JSMY6D2KK5CYLPRDEVGQASYXMX4MVMLQ6TK
-#\\\|IJW6JR3GH25DVPYDC2TINTDMZSGMUIP4XUE2N54NGJNVGXSJS5Z \ / AMOS7 \ YOURUM ::
-#\[7]YZNJ74IHNR5B5OOXLCLBLEH4LXQCQVCY2XG3G6I7YRVANQFK56DY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,.,,,.,,,,..,..,,..,,..,,,,.,..,,...,..,,..,,,,,,,..,,,.,..,,
+#4MD6WUA5SK4LWX6EV5J4MJOTBO6ILYNTJQXK5PZ5BTOI3CQ7YPB2SEFYWADDBPPO3PXX4YB7V6IFQ
+#\\\|F4JOSGDRREITMULYSLWZ37YLVTUOWONVRB4TKIWEHHAH3NP46FA \ / AMOS7 \ YOURUM ::
+#\[7]HCVWPRMJYGSHZWHNQUT67NQ26ASIJPL4ESYQHRX6OZNJ2UONKCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

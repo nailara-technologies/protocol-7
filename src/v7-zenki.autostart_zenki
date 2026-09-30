@@ -11,7 +11,8 @@ foreach my $zenka_name (@ARG) {
     my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name};
     my $zenka_id     = <[zenka.get_id]>->($zenka_name);
     my $obj_id       = <[zenka.get_object_id]>->($zenka_id);
-    my $target_queue = <[dependency.ok]>->($obj_id) ? 'queued' : 'depending';
+    my $target_queue
+        = <[dependency.ok_resolve]>->($obj_id) ? 'queued' : 'depending';
     my $instance_count = $zenka_config->{'start'}->{'instances'} || 1;
 
     while ( <[zenka.is_enabled]>->($zenka_name) and $instance_count-- ) {
@@ -26,8 +27,8 @@ foreach my $zenka_name (@ARG) {
     }
 }
 
-#,,,.,,,,,,,.,..,,..,,,,,,,.,,.,.,...,...,..,,..,,...,...,...,,.,,,,,,.,,,..,,
-#KH3AVHYUX6JZRYNISCVHLFBVV2ENHIRWWHMNDUOQOBAMWG2N5OGJ62HTVSJPAKIKEAJRTSP7MMEYS
-#\\\|TEUPZKFXILXK57F2524UKFNHCUNNFRD5BHEDSITKOSVGTIVF7VQ \ / AMOS7 \ YOURUM ::
-#\[7]EMGBMM4YEBJC2J276X3UXMWLOPYZCTSRANV4PK72THEXK23QXYDI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,.,,,,.,.,.,,..,...,.,,,.,,,..,,...,...,...,..,,.,,,,..,..,,
+#CMUQYP4KZYEIWAK7F6BGFYQGC4DOH5OA5AHZFEXOXZERIK63NAGKLZDLBOUNRD4S66RZ45DSD7G52
+#\\\|EILG4FCYIQJLBUINLZ2MGDOBJHJAK6GTBTZGGQ5GLETIJAZND6P \ / AMOS7 \ YOURUM ::
+#\[7]WOHRJMLDTHRXKSS6JJ2J25YV6X3YQNFHIGLZC75QV6R4SDNYJCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

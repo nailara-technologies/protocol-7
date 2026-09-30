@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = v7-zenki.keep_children_on_error
+# descr = keep an errored instance's children for the next one
+
+## called from v7-zenki.handler.zenka_status on status 'error' only, when   ##
+## the zenka opted in [ restart.keep_children ] : the registered children   ##
+## of the instance are NOT terminated with it but move into                 ##
+## <v7-zenki.kept_children> for the next instance to claim by name [        ##
+## v7-zenki.zenka.cmd.claim-children ]. removal from <v7-zenki.child> and   ##
+## the instance child registry is what excludes them from the /proc tree    ##
+## sweep in terminate_process and from instance_child_pids ; orphan_pids    ##
+## skips kept pids explicitly. a one-shot grace timer per child [ default   ##
+## 120s, restart.keep_children_grace ] terminates it when unclaimed [       ##
+## v7-zenki.handler.kept_child_grace ]. a planned end moves them back first ##
+## [ v7-zenki.kept_children_reabsorb ]                                      ##
+
+my $instance_id = shift;
+return 0 if not defined $instance_id;
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+return 0 if not defined $instance;
+
+my $zenka_name = $instance->{'zenka_name'}         // return 0;
+my $child_href = $instance->{'process'}->{'child'} // {};
+return 0 if not keys $child_href->%*;
+
+my $globals      = <v7-zenki.start_setup.globals>                     // {};
+my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name} // {};
+my $grace_secs   = $zenka_config->{'restart'}->{'keep_children_grace'}
+    // $globals->{'restart'}->{'keep_children_grace'} // 120;
+
+my $kept_count = 0;
+foreach my $pid ( sort { $a <=> $b } keys $child_href->%* ) {
+
+    ## already terminating [ drain \ force-kill paths signalled it before ##
+    ## the status changed ] : ends as today, not kept                     ##
+    next if exists <v7-zenki.terminating.pid>->{$pid};
+
+    ## identity anchor : captured NOW from /proc [ the process is alive at ##
+    ## this point ] -- unreadable : gone, left to the usual sweep          ##
+    my $identity = <[v7-zenki.sub-process.proc_identity]>->($pid);
+    next if not defined $identity;
+
+    ## register-time start time [ register_child ] disagrees : the pid was ##
+    ## reused since registration -- left to the usual sweep                ##
+    my $child_entry      = <v7-zenki.child>->{$pid} // {};
+    my $registered_start = $child_entry->{'proc_start_time'};
+    next if defined $registered_start and $registered_start ne $identity->[0];
+
+    <v7-zenki.kept_children>->{$zenka_name} //= {};
+    <v7-zenki.kept_children>->{$zenka_name}->{$pid} = {
+        'instance_id'     => $instance_id,
+        'name'            => $child_entry->{'child_name'} // '',
+        'proc_start_time' => $identity->[0],
+        'proc_cmdline'    => $identity->[1],
+        'kept_since'      => <[base.time]>->(3),
+    };
+
+    delete $child_href->{$pid};
+    delete <v7-zenki.child>->{$pid};
+
+    ## one-shot grace timer : an unclaimed kept child is terminated ##
+    <v7-zenki.kept_children>->{$zenka_name}->{$pid}->{'timer'}
+        = <[event.add_timer]>->(
+        {   'after'   => $grace_secs,
+            'handler' => qw| v7-zenki.handler.kept_child_grace |,
+            'data'    => { 'zenka_name' => $zenka_name, 'pid' => $pid }
+        }
+        );
+
+    <[base.logs]>->(
+        1,
+        "instance %d [ %s ] : keeping child pid "
+            . "%d on error [ claimable, grace %ds ]",
+        $instance_id,
+        $zenka_name,
+        $pid,
+        $grace_secs
+    );
+    $kept_count++;
+}
+
+return $kept_count;
+
+#,,.,,,..,,,,,,..,,,.,.,.,.,.,,,,,.,.,.,.,..,,..,,...,...,..,,...,..,,...,,.,,
+#OOM72RMYMJPHQ5LQ4Y3IEKRN334YVZPFIHBMCCPIEC27FE2PUVDKOT6BI7M4DO537TLMTST5O6D4M
+#\\\|5KJH3E5ISH7UGS5FE6UIO2ZZHMN7UWNX2PW6KXK2IMWPIEUUJTF \ / AMOS7 \ YOURUM ::
+#\[7]L5F47JOSWBCFEPC3TNAFUJ4APSRKX55JQFFMP36ENAIR5NHFNSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

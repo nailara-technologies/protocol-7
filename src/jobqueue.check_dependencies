@@ -35,7 +35,7 @@ foreach my $prio ( sort { $a <=> $b } keys $prio_queue->%* ) {
         }
         <[base.log]>->( 2, ": dependencies for object $object_id" );
         if ( not exists <dependency.chain>->{$object_id}
-            or <[dependency.ok]>->($object_id) ) {
+            or <[dependency.ok_resolve]>->($object_id) ) {
             <[base.log]>->(
                 2, ": : deps successfully resolved [obj.$object_id]"
             );
@@ -46,8 +46,8 @@ foreach my $prio ( sort { $a <=> $b } keys $prio_queue->%* ) {
     }
 }
 
-#,,.,,...,,,.,,,,,..,,,,.,,,,,...,,.,,..,,...,..,,...,..,,.,.,,.,,.,,,.,.,,..,
-#NVPFOBQYFDZFZYA2T6BYGHLTS7WSIEYUKCK7EFG7QTFWFJ7Y3U24NBGAZ3CWAHDUVFYXCYF2BUXY2
-#\\\|VHH6JO3VMP5KO64AZ2V5IHYZEC53Q3GPNGGJP7CHY7IJE2SN2PH \ / AMOS7 \ YOURUM ::
-#\[7]SAGNFKTU62UKHN3YTADEHTNPFIX3K7VWZG2HGXQNMXSM4NFQUABI 7  DATA SIGNATURE ::
+#,,,,,...,...,,,,,,,,,.,.,,.,,.,,,,,.,,..,,.,,..,,...,...,...,,.,,,,,,..,,,,,,
+#NVEYSX6C5266D3OLD5TO2DAAYOYLUMIA2GZJVJLGINBSCPRROVB2SM3RFO4SQWR6IYRQ76HGW4WGU
+#\\\|SEELVRQBEJ5IIXTQCRCPTXKEVGNMBX4MN2IKIOACHMXU2ZFPPXG \ / AMOS7 \ YOURUM ::
+#\[7]3THR7ZYOICHWTRWPBCREFSI6YICKCB2AUAJOGSEV7SAYBNP2HWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

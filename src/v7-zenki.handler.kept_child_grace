@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = v7-zenki.handler.kept_child_grace
+# descr = grace expiry : terminate an unclaimed kept child
+
+## one-shot timer per kept child [ v7-zenki.keep_children_on_error ] :      ##
+## unclaimed after the grace period [ restart.keep_children_grace, default ##
+## 120s ] the child is terminated as today. identity is re-checked before  ##
+## any signal -- a mismatch means pid reuse : forgotten, never signalled   ##
+
+my $watcher    = shift->w;
+my $data       = $watcher->data // {};
+my $zenka_name = $data->{'zenka_name'} // return undef;
+my $pid        = $data->{'pid'}        // return undef;
+
+my $kept_href = <v7-zenki.kept_children>->{$zenka_name} // {};
+my $entry     = delete $kept_href->{$pid};
+
+delete <v7-zenki.kept_children>->{$zenka_name} if not keys $kept_href->%*;
+delete <v7-zenki.kept_children> if not keys <v7-zenki.kept_children>->%*;
+
+## claimed meanwhile [ timer cancelled \ entry gone ] : nothing to do ##
+return undef if not defined $entry;
+
+## identity re-check before any signal : a mismatch means pid reuse -- ##
+## forget the entry, never signal that pid                             ##
+if ( ! <[v7-zenki.sub-process.identity_match]>->(
+        $pid, $entry->{'proc_start_time'}, $entry->{'proc_cmdline'} )
+) {
+    <[base.logs]>->(
+        1,
+        'kept child pid %d [ %s ] : identity mismatch on grace expiry'
+            . ' [ pid reuse ] -- forgotten, not signalled',
+        $pid, $zenka_name
+    );
+    return undef;
+}
+
+## re-registered meanwhile by a new instance [ its report_child_pid     ##
+## arrived before the claim ] : belongs to a live instance again        ##
+if ( exists <v7-zenki.child>->{$pid} ) {
+    <[base.logs]>->(
+        2, 'kept child pid %d [ %s ] re-registered meanwhile, left alone',
+        $pid, $zenka_name
+    );
+    return undef;
+}
+
+<[base.logs]>->(
+    1,
+    'kept child pid %d [ %s ] unclaimed after %.0fs -- terminating',
+    $pid, $zenka_name,
+    <[base.time]>->(3) - ( $entry->{'kept_since'} // <[base.time]>->(3) )
+);
+<[v7-zenki.terminate_process]>->($pid);
+
+return TRUE;
+
+#,,,.,,.,,,..,,..,,,.,,,.,..,,,,,,,,,,,,.,..,,..,,...,...,...,,..,..,,,,.,..,,
+#D63ZN533PNATNQCQ7JTD5I2BWL5SQPCTNRGTGZPJHYV4MWRTTZNBJQZR3RJNIETPSJ4PZ6EI4NTOE
+#\\\|VCSH5OCBS6NQY25PF42KYTKXWPIKK2Q3BLYVQ2LEED5ALC6PXPU \ / AMOS7 \ YOURUM ::
+#\[7]6VOHIVJENR5ONRLJP77ZCYQMKGLD3LPSKINEAEG5QAEE56476SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
