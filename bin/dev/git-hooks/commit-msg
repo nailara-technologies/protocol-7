@@ -78,10 +78,65 @@ if (@filtered_lines) {
     print STDERR "\n";
 }
 
+## message form check [ title, one empty line, '- ' bullet body ] ##
+##
+## rejects the two unambiguous cases : line 2 not empty, and a long
+## single-line message with the whole body folded into the title.  a long
+## title with a body only warns [ the history has many > 80 ]
+
+my $max_single_len = 100;    ## single-line message without a body ##
+my $warn_title_len = 80;     ## title of a message with a body ##
+
+my @form_lines;
+foreach my $line (@kept_lines) {
+    last if $line =~ m|^# -+ >8 -+$|;    ## verbose commit scissors ##
+    next if $line =~ m|^#|;              ## editor comment lines ##
+    my $text = $line;
+    $text =~ s|\s+$||;
+    push @form_lines, $text;
+}
+shift @form_lines while @form_lines and not length $form_lines[0];
+pop @form_lines   while @form_lines and not length $form_lines[-1];
+
+## git generated messages are left alone ##
+exit 0
+    if not @form_lines
+    or $form_lines[0] =~ m,^(Merge|Revert|fixup!|squash!|amend!) ,;
+
+my $title     = $form_lines[0];
+my $title_len = length $title;
+my @errors;
+
+if ( @form_lines > 1 and length $form_lines[1] ) {
+    push @errors,
+        "line 2 must be empty [ separates " . "the title from the body ]";
+}
+if ( @form_lines == 1 and $title_len > $max_single_len ) {
+    push @errors,
+        "single-line message of $title_len chars [ max $max_single_len "
+        . "] -- the details belong in a body, not folded into the title";
+}
+
+if (@errors) {
+    print STDERR "\n:: error :: commit message form\n";
+    print STDERR "::   - $_\n" foreach @errors;
+    print STDERR "::\n:: expected form :\n::\n::   area : short topic "
+        . "title\n::\n::   - first detail [ annotation ]\n::   "
+        . "- second detail, wrapped at ~75 columns with a "
+        . "two-space\n::     continuation indent\n::\n:: [ see "
+        . "'Commit Message Form' in AI-COLLABORATION-GUIDE.md " . "]\n\n";
+    exit 1;
+}
+
+if ( @form_lines > 1 and $title_len > $warn_title_len ) {
+    print STDERR "\n:: warning :: title is $title_len chars [ "
+        . "aim for ~72, move details into the body ]\n\n";
+}
+
 exit 0;
 
-#,,.,,,,.,.,.,,,,,,.,,,..,.,.,,,,,.,.,.,.,...,..,,...,...,,,.,,.,,..,,,.,,,,,,
-#L3IGJWMX3ANPBKD5A6WPZ2SEMKQL2YLY2XWEUZ6RAZSUJIJ7RW5GRLGB26S256JV3HOSAN6RGLEX2
-#\\\|XPISUG3MKSMD7EAEXDGUP52Z52VJEJHHZXK3ID66OKN6IBTJNMJ \ / AMOS7 \ YOURUM ::
-#\[7]6GYAJ6WKADL4WA2MZXZT5KQJM2M5O66NRK4TS6E36TR6Q7SZ3EDA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,..,,.,.,,,,,.,,,..,,,..,,.,,..,,...,...,..,,,..,,..,,,,,,,,,
+#2XMT4XOC7BDUXDWYIUCG5JIZA6EVZK77NHKOTU3KU3UCAGEUKCRFZU25G5HYGLLJDH3RRK7VJ5KDK
+#\\\|MJ32AQJ5X434D7MOSQQQK37GDYMXDVSMC5DS7MQOYVOVXSCEUMW \ / AMOS7 \ YOURUM ::
+#\[7]P5ETEBGQ22WKRTNFHMWXNLXMUQAPZDBDARWMDOUBLAMH74DQ7GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
