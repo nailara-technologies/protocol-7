@@ -166,3 +166,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|OSEBUZXVEPSVI5UCFIOCHLGBPG6YPXFMJWCRBZJIPEX2THEGLIA \ / AMOS7 \ YOURUM ::
 #\[7]JIKHIHU4AVIDWQIIHNKWDPJRMFJJ33S3W4PRZUMXL3WNA3MWE6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [commit-message-form-and-reword-baseline](feedback-commit-message-form-and-reword-baseline.md) — title + empty line + bullet body ; reword offenders are derived from the older-history baseline [ kimi inverted it 2026-09-30 ] ; message-only rewrites via filter-branch --msg-filter
+
+#,,,.,..,,...,..,,..,,,..,..,,,.,,.,,,...,..,,..,,...,...,,.,,,..,.,,,.,.,..,,
+#4CDPD33DNK77WGEDAZAWJVJ3KATI5PQQJWGMOKGUCR7XVJZT5U7DVFNDQWWJRPPK2KY2YI4KG2YZ4
+#\\\|6XOENNWWTC2KQD6IVGCQXIGMTI26JHOFOW2QXLGQDFVHUXPS22Y \ / AMOS7 \ YOURUM ::
+#\[7]KV77BWCGTKCKHEOX54EUS25OLBPBSRLPBW3GR5IWZ56U2R4YOADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
