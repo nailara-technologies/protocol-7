@@ -31,8 +31,9 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
   start.cfg ; on status error the registered children survive, a new
   instance claims them [ `v7-zenki.claim-children` ], grace 120s. tested
   live on mod-test [ keep, grace expiry, claim ]. invoke-web opted in --
-  its first real use is untested. start.cfg changes need a V7 RESTART
-  [ start setups are only read at v7-zenki's first start ]
+  its first real use is untested. start.cfg changes currently only take
+  effect after a v7-zenki restart [ the files ARE re-read on a reload -- the
+  cause is open : data/tasks/v7-zenki-start-setup-runtime-reload.md ]
 
 **regressions fixed this night** [ method : [[feedback-llm-fix-regressions-pattern]] ] :
 - `eaab2467f` [ 07-18 ] log send-buffer request in one-shot init_reports ->
@@ -75,8 +76,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,..,,,.,,.,,.,.,.,.,,,.,..,,,,.,.,,,,..,...,..,,...,...,..,,.,,,.,.,..,,,,,,
-#JHJDXLLG7HGNILVG6XYYLTPHILCDRPOZWLFVDBO4XEUPSUS57BWF3VDSNR33WVJYA3BLQ45D4CSQU
-#\\\|RC7WYIOUCNUSVMPIPGITJEZ44AVTENFENYXE2TK2APMYGO4LD6D \ / AMOS7 \ YOURUM ::
-#\[7]IJ3MDDH4RL4VP3SNCSXGZNTW3EOR7OFFDAKBTCTKDYIO6W566SCY 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,..,,.,,.,.,.,.,..,,,,,,..,,..,,...,..,,...,...,,.,,.,.,...,
+#LISHMOYC4UXDADGDG5WJTQMEFMF2ODQE5VKODJAAB6C4RXCHYSPH4X4TCEF53LPB7YKGUTAWSEBX6
+#\\\|P2HKOVZFJKUVJTBWM4J22QVXC3VG6AKN6C73XZERWPMQ36E7OQQ \ / AMOS7 \ YOURUM ::
+#\[7]AEQNBHN2TSP7C2QP27MCYJQOU4G2CRRLEY5QJL63LJYHSZ7VDYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
