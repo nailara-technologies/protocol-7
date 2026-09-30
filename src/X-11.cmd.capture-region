@@ -22,12 +22,12 @@ return { 'mode' => qw| false |, 'data' => 'invalid geometry values' }
 my $capture_bin;
 my @capture_args;
 
-my $scrot_bin = <[base.file.which]>->('scrot');
+my $scrot_bin = <[file.which]>->('scrot');
 if ( defined $scrot_bin ) {
     $capture_bin  = $scrot_bin;
     @capture_args = ( qw| -a |, "$x,$y,$w,$h", $output_path );
 } else {
-    my $import_bin = <[base.file.which]>->('import');
+    my $import_bin = <[file.which]>->('import');
     return {
         'mode' => qw| false |,
         'data' => 'scrot or imagemagick import not found'
@@ -53,8 +53,8 @@ return {
     )
 };
 
-#,,..,...,,,.,.,.,...,.,.,,,,,..,,.,,,,,,,,..,..,,...,...,..,,,..,,,.,...,,..,
-#4HXQWCP7NGEXPOQOKRPXOEIZY2LHH6SF6F6ZYUMXOOE3AMZCKG6KLASBWY7TTEZ733JTXCCIJMEXQ
-#\\\|HMMVCAWINNDKSNFDJMJUTTGSROH4EJZ32SDACYRT4T6LPXR25ME \ / AMOS7 \ YOURUM ::
-#\[7]R5YRGDPHL66W5RGBCXNTMP7C6OPEXDEDVL3BACJBQM7Z4UHWTAAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,,,,,,,,,.,.,...,,,,,...,,..,..,,...,...,..,,,..,..,,.,,,...,
+#VOIFDCACVII2NVYKUPE5USEY5UNFGN52PBEC35DSNALD4W5SVXVN7P3NGS7IJ5DUTAQRIEYUXIRL6
+#\\\|74WNJK3B6LGJ2EREOGCMD64UYN4NIQT2GYR752SSUZ2XPUWBSNQ \ / AMOS7 \ YOURUM ::
+#\[7]P7T5LS4FEOQQ55FCNFULTRVKCOUF7R6SGH4Y67Z2VLWAXARJEACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

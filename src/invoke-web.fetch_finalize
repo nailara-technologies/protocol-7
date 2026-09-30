@@ -98,11 +98,11 @@ my %trusted_uid = map { $ARG => TRUE } grep {defined} $EFFECTIVE_USER_ID,
     scalar getpwnam( <invoke-web.autofetch.downloader_user>
         // <system.amos-zenka-user> // '' );
 my $refuse
-    = not @st                    ? 'gone after the move'
-    : not -f _                   ? 'not a regular file'
-    : $st[3] != 1                ? "hard linked [ $st[3] links ]"
-    : not $trusted_uid{ $st[4] } ? "owner uid $st[4] not the downloader"
-    :                              undef;
+    = !@st                    ? 'gone after the move'
+    : !-f _                   ? 'not a regular file'
+    : $st[3] != 1             ? "hard linked [ $st[3] links ]"
+    : !$trusted_uid{ $st[4] } ? "owner uid $st[4] not the downloader"
+    :                           undef;
 if ( defined $refuse ) {
     unlink($staged) if @st and not -d _;
     return $fail->("staged file refused : $refuse -- removed");
@@ -216,8 +216,8 @@ delete $fetch->{'reason'};
 
 return { 'ok' => TRUE, 'msg' => "hash verification running [ child $pid ]" };
 
-#,,,.,..,,...,.,.,,,.,...,.,.,..,,.,,,.,,,,..,..,,...,...,...,,.,,,,.,.,,,..,,
-#JWHIBBKKVFFWYNHCL7W4W4OLXG4BQOL5TM4XU7Z6GAY5DGWCGHDUO6NVFT4TVO3JIEEA7AQBKDLE4
-#\\\|A3MNAWFP67UZMZXH6LZ4VP2ENVKQZJZ6IUNUFGOWSPFRUNCRK2H \ / AMOS7 \ YOURUM ::
-#\[7]3F42ZMREHXQGRADB2VPIYYYLGRNTEHB22KHGHLJYCKK2RKJ35CBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,,,,,.,,,,..,,..,,,,,,,.,.,,,..,,...,...,.,,,,.,,.,.,.,.,,,,,
+#5FCQGXZY4XHUUPP4ORSTX4VHUYHRSO2KY624LLWJ5AP5B5BN6IO45RUZMXTNVDJUHZXWHMUIKIMSC
+#\\\|HWGVBB4YCSTV4WFXEFREKB3OZT44RWOWAFTFCYHRDFV2SYSNKUF \ / AMOS7 \ YOURUM ::
+#\[7]Q6SRXOWM2IX3YTOXOOFFKTZGR6OIBZS7SXTA773JVH73G5UGZGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -66,7 +66,7 @@ my $pattern_file = $pattern_dir . '/' . $category . '.yaml';
 my $new_file     = not -f $pattern_file;
 
 if ( not $new_file ) {
-    my $existing = <[base.file.read]>->($pattern_file);
+    my $existing = <[file.read]>->($pattern_file);
     if ( defined $existing and length $existing ) {
         my $doc = eval { YAML::XS::Load($existing) };
         if ( !$@ and ref $doc eq qw| HASH | ) {
@@ -107,10 +107,9 @@ if ($new_file) {
 
 my $write_result;
 if ($new_file) {
-    $write_result = <[base.file.write]>->( $pattern_file, $entry_lines );
+    $write_result = <[file.write]>->( $pattern_file, $entry_lines );
 } else {
-    $write_result
-        = <[base.file.append]>->( $pattern_file, "\n" . $entry_lines );
+    $write_result = <[file.append]>->( $pattern_file, "\n" . $entry_lines );
 }
 
 return {
@@ -128,8 +127,8 @@ return {
     $category, $pattern_name
 };
 
-#,,,.,..,,...,...,,..,,,,,...,.,,,...,,,,,,,,,.,.,...,...,...,,,,,,,,,.,.,...,
-#FPW2GU2RYUZ3FLQHTTOS72SCFNOFH7ZHA6RNHSV3F5A3TZ23I5XMVMMF3YQ5BDPPFWYZ6OPHSFUTQ
-#\\\|3SDVKW3L6YEM3R6FO4HXFJKWHVF5NUBLDIJ3FQRKAE5LP4CZMEL \ / AMOS7 \ YOURUM ::
-#\[7]IHOIZUAECAMTP532353E2BN666SMB5ZJ2TUNZMLPK5X7PEI342AA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,.,...,,.,,,,.,,,.,,,,,,..,,,,,.,.,...,...,..,,...,.,,,,,,,,,,,
+#VL56VUDEOAYWDAER4WWDSBYLGFZ3R6TYXEZ3KWKX3ZMNPCKBCFTSRKHLGQUA7PHCKMTUTOD5IY56Y
+#\\\|NED4SJOWQ6SMZFEE3QMF6EOYNWSTPEZ7J4BBMKWVGS7QHVPLBLB \ / AMOS7 \ YOURUM ::
+#\[7]IO45BAAL3SDTBOMKXCHZ7UB7WMGRPK5W7NDCUOGJKZ54CMPHLSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

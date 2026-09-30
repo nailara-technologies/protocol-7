@@ -10,7 +10,7 @@ $shm_dir =~ s|/+$||;
 
 if ( not -d $shm_dir ) {
     ##  world-unreadable transfer dir [ owner list only ]  ##
-    if ( not <[base.file.make_path]>->( $shm_dir, 0711 ) ) {
+    if ( not <[file.make_path]>->( $shm_dir, 0711 ) ) {
         <[base.logs]>->(
             0, 'base.shm.path : cannot create shm dir %s', $shm_dir
         );
@@ -28,8 +28,8 @@ if ( not -w $shm_dir ) {
 
 return $shm_dir;
 
-#,,.,,,,.,.,,,,..,,..,.,.,.,,,..,,,.,,.,.,,..,..,,...,...,...,,,,,,..,.,.,...,
-#RSHC2FHOSDWFGFUEB7HXXWEJFZXJ2BLCJKSWWJFXNCHJEEPKVGVXHZCAHG62N6TI3H6MWPSZI26TQ
-#\\\|PME4GEK4KHJMFDDKSRTIPGJGQGP527CIVSEXZHRWXZVTVWN5GGD \ / AMOS7 \ YOURUM ::
-#\[7]TWGEO2CUMUCIYGMJOIOEWWNBXWMYFCHE6YXTMHUL745ZTOUJOWDI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,..,,...,.,,,,,.,.,.,,..,.,,,..,,...,...,,..,..,,,,,,.,,,,.,,
+#65YUX7AIKVBFIUVG6XPQTN4NSKPE5ERTPKSOSMZHCBRSX2IPWNEYW4GQVQBDYW5Z6JSJPUWUX4J7S
+#\\\|CRGS7HWPNOODQQOK44PSQUDE4JEJ2N2GWFGQW2KNHT4ERVUQIMF \ / AMOS7 \ YOURUM ::
+#\[7]UIVXQDUJOIVHPLTQBHV4YB2VRBIZKYU3NQMP73T3K4QWT2GFWWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

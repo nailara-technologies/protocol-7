@@ -22,7 +22,7 @@ return {
     }
     if not -r $log_path;
 
-my $content = <[base.file.read]>->($log_path);
+my $content = <[file.read]>->($log_path);
 return {
     'mode' => qw| false |,
     'data' => 'could not read p7-log ring buffer'
@@ -45,7 +45,7 @@ if ( not length $output_path ) {
 }
 
 my $out_content  = join( "\n", @lines ) . "\n";
-my $write_result = <[base.file.write]>->( $output_path, $out_content );
+my $write_result = <[file.write]>->( $output_path, $out_content );
 
 return {
     'mode' => qw| false |,
@@ -55,7 +55,7 @@ return {
 
 ## also keep a stable 'latest.log' reference ##
 my $latest_path = $baseline_dir . '/latest.log';
-<[base.file.write]>->( $latest_path, $out_content );
+<[file.write]>->( $latest_path, $out_content );
 
 return {
     'mode' => qw| true |,
@@ -63,8 +63,8 @@ return {
     scalar(@lines), $output_path
 };
 
-#,,..,,..,.,.,,,,,.,.,.,.,,.,,.,,,...,,,.,,,,,.,.,...,...,.,,,.,,,.,,,,..,..,,
-#VCCNPNGHTSKVHXY4QZH4FHJQG4ZQCQCNPMIDO4GIUCJIKDNN3U4WGEITYMHFBJG5GKBZZJXJSNG3S
-#\\\|KYKIHHALRAONXIVHJPFY7YE7CFDHTTNBAYBFHEZVTA4COR7Y5HF \ / AMOS7 \ YOURUM ::
-#\[7]DCITEFJGMB5UWBNHKJAG2PIQFHXQ6AST4MAVHDNX72C7RKTHIQDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,,.,,,.,,..,,.,,,,,.,,.,,,..,.,.,...,...,...,.,,,,,,,,,.,.,.,
+#FW4YW47RJ5DV2DX74OQNIO6DRF3BO62WFK6AKJV6ZZ6GQMAGM23XIYZLMS3YWYDAGR3UA5OZFRSU6
+#\\\|OXVR3TTD6AER6LO6ZDGGWONZIWQLSI47WBJBYA74AVUGDLCKGJU \ / AMOS7 \ YOURUM ::
+#\[7]NMQ3UYUZXUT3RDIBYTJWFKEO6DFYCLYIO4IAYXEUC5IQHVCEL2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
