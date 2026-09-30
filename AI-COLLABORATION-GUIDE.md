@@ -194,8 +194,22 @@ git add src/...
 # User runs: bin/Protocol-7 sourcecode update-signatures
 
 # 4. Commit normally - pre-commit hooks will pass with valid signatures
-git commit -m "message"
+git commit -F - <<'EOF'
+area : short topic title
+
+- first detail [ annotation ]
+- second detail, wrapped at ~75 columns with a two-space
+  continuation indent
+EOF
 ```
+
+### Commit Message Form
+- **Title**: short `area : topic` line, at most 72 characters
+- **Separator**: exactly one empty line
+- **Body**: `- ` bullets wrapped at ~75 columns, two-space continuation indent
+- A one-line message is fine only when there is nothing more to say
+- **Never** fold the whole body into the title with `;` `--` `[ ]` — in the history, the
+  multi-line messages are the correct form and the long one-liners are the offenders
 
 ### ⚠️ NEVER Bypass Pre-Commit Hooks
 - **NO** `git commit --no-verify` (equivalent to `--no-verify`)
