@@ -2,18 +2,16 @@
 
 # name  = v7-zenki.set_up_zenka_dependencies
 # descr = configures zenka dependency chains
+# param = [zenka_name ..] [ new zenki : setup data + dependency objects ]
 
+## called on every [re-]init : objects only for the zenki passed [ new     ##
+## since the last run -- their ids must stay stable ], chains rebuilt for  ##
+## ALL known zenki from their current config [ a dependency removed from a ##
+## start.cfg survived a reload before, 2026-09-30 ]                        ##
 my @zenki = @ARG;
 
-if ( !@zenki ) {
-    <[base.log]>->(
-        0, 'v7-zenki.set_up_zenka_dependencies: no zenka list provided'
-    );
-    return;
-}
-
 # callbacks for dependency validation
-<[dependency.install_callbacks]>->('v7-zenki');
+<[dependency.install_callbacks]>->('v7-zenki') if @zenki;
 
 # set up dependency objects ..,
 foreach my $zenka_name (@zenki) {
@@ -40,15 +38,19 @@ foreach my $s_id (
             <v7-zenki.zenka.setup>->{$b}->{'name'}
     } keys( <v7-zenki.zenka.setup>->%* )
 ) {
-    my $zenka_name   = <v7-zenki.zenka.setup>->{$s_id}->{'name'};
+    my $zenka_name    = <v7-zenki.zenka.setup>->{$s_id}->{'name'};
+    my $source_object = <[zenka.get_object_id]>->($s_id);
+
+    ## rebuilt from config : a missing chain means 'no dependencies' to the ##
+    ## readers [ dependency.ok \ get_missing \ parser.dependency_chain ]    ##
+    delete <dependency.chain>->{$source_object} if defined $source_object;
+
     my $dependencies = <[zenka.get_dependencies]>->($zenka_name);
     next if not defined $dependencies;
 
     <[base.log]>->(
         2, ": zenka '$zenka_name' dependencies [ $dependencies ]"
     );
-
-    my $source_object = <[zenka.get_object_id]>->($s_id);
 
     foreach my $dep_zenka_name ( split m| +|, $dependencies ) {
         my $object_id;
@@ -101,8 +103,8 @@ foreach my $s_id (
     }
 }
 
-#,,,,,.,.,.,.,.,.,.,.,,,.,.,,,.,.,...,...,,,,,..,,...,..,,,,.,...,.,,,,.,,,.,,
-#7GREFPJABHMZ773ZJROU7RIYORXQVKH63NNY7ULH2ZQ6LPVJ2HDU4ZVDW4MGEH3ROMBEZBQABNTCE
-#\\\|RJB6A72GMAZ7BA4QN6R5E2WUEJYMJKFRGONUKFYAHH6ZXWD6EAN \ / AMOS7 \ YOURUM ::
-#\[7]GVTBL7PPG7NNL6RJDR6OIS6JN3YGZIZ3NFOHXXZYOOGQJRZOICCY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,.,,..,,,,,,,..,..,,,.,,.,.,.,,,..,,...,...,...,,,.,...,.,,,,.,,
+#VHDTUMF47NZMDD7AHAO6Q64LVUVRPE5VVRMHVXKIOXXL2YWXTOVXRWJXFMXMOUKRFKZ2AYKBPQ62I
+#\\\|R6GWQDJUUB4D6NU64KCVJUH4QY5JUK2EKBBMAJQBPNGWSYBEH3T \ / AMOS7 \ YOURUM ::
+#\[7]LJMM4Z7DL4BADWKBTUEQIL6P7NKSBUNZQFU37SQGAC4TI4UZKMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
