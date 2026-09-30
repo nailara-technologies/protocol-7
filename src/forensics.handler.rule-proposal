@@ -30,9 +30,9 @@ if ( $cmd eq 'TRUE' ) {
 } elsif ( $cmd eq 'SIZE' ) {
     $response = $data;
 } elsif ( $cmd eq 'FALSE' ) {
-    $response = sprintf qw| error : %s |, $call_args->{'args'} // qw| ? |;
+    $response = sprintf 'error : %s', $call_args->{'args'} // qw| ? |;
 } else {
-    $response = sprintf qw| error : unknown reply type %s |, $cmd;
+    $response = sprintf 'error : unknown reply type %s', $cmd;
 }
 
 my $anomaly_key = $params->{'anomaly_key'} // '';
@@ -74,7 +74,7 @@ if ( not length $regex_str // '' ) {
 } else {
     $regex_ok = eval {qr|$regex_str|};
     push @reject_reasons,
-        sprintf( qw| regex-does-not-compile [ %s ] |, $EVAL_ERROR // qw| ? | )
+        sprintf( 'regex-does-not-compile [ %s ]', $EVAL_ERROR // qw| ? | )
         if not defined $regex_ok or length $EVAL_ERROR;
 }
 
@@ -103,7 +103,7 @@ my $candidate = {
     'replace'        => undef,      ## detect-only rule ##
     'status'         => $status,    ## candidate = review-gated, not active ##
     'origin'         => qw| llm-suggested |,
-    'synthesized_by' => qw| coding zenka [ local model, :simple: ] |,
+    'synthesized_by' => 'coding zenka [ local model, :simple: ]',
     'applicability'  => {
         'file_type'  => qw| p7-log |,
         'namespace'  => qw| forensics |,
@@ -174,14 +174,14 @@ if ( length $anomaly_key ) {
     $name,
     $candidate_path,
     @reject_reasons
-    ? sprintf( qw| rejected : %s |, join( q|, |, @reject_reasons ) )
+    ? sprintf( 'rejected : %s', join( q|, |, @reject_reasons ) )
     : ''
 );
 
 return TRUE;
 
-#,,,,,,,,,..,,,.,,,..,...,.,.,,..,.,.,,.,,..,,..,,...,...,.,,,,,,,..,,,,,,,,,,
-#N575F7WPWKVIQ5YRLAH54APFPZ7WGD6AD6WK5PX5PUK6EBDB4U7OFP7QE5SOOKWVKSLJRTFGM745Y
-#\\\|UQWTCXRDWNHHJ4IY6W2W5GVXHKPCVW2TCSKMA75DDND3FVHGA37 \ / AMOS7 \ YOURUM ::
-#\[7]HLYTZSEUV2RAC6WCPBPFGN7PDHBBLNAJ3I5DBHTXXFCJKJSEMMDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,.,,,.,,,..,,.,,,..,,,,.,.,,,..,,...,...,..,,,.,,.,.,...,..,,
+#VVDR3UCE7MM4EZ4Q4W5BZO6NHLJEJKZ5SO6G37GNPOYLXQ6WMIWAFPATC5TYC6CYWTPCGZP65RHTW
+#\\\|5TFXRQA36KIUBX5CGDPH7AC7EGAIF4WREEZB7HSBHN3OON5ITKK \ / AMOS7 \ YOURUM ::
+#\[7]FWKMV75E6Y6KRWPEDNRA4YYPE5JR6LC5SIWQGU7O7JUZB7AXEUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

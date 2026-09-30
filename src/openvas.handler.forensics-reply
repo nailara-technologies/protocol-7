@@ -20,9 +20,9 @@ if ( $cmd eq 'TRUE' ) {
 } elsif ( $cmd eq 'SIZE' ) {
     $response = $data;
 } elsif ( $cmd eq 'FALSE' ) {
-    $response = sprintf qw| error : %s |, $call_args->{'args'} // qw| ? |;
+    $response = sprintf 'error : %s', $call_args->{'args'} // qw| ? |;
 } else {
-    $response = sprintf qw| error : unknown reply type %s |, $cmd;
+    $response = sprintf 'error : unknown reply type %s', $cmd;
 }
 
 my $cid = $params->{'correlation_id'} // qw| ? |;
@@ -36,8 +36,8 @@ return 0;
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,,.,.,,,,..,,,.,,.,,.,.,...,,.,,.,.,.,.,...,..,,...,..,,.,.,..,,.,.,.,,,.,,,
-#VZRU6JLEBR3VZBQ3WDZKG2WIKZZPJRSMRLJGZ2INDX2AY7QHA7ORQQ3YSEJD2JP4DVCOYX3OPHTGM
-#\\\|JIUDPB7OK46XTGMNCBHST4CERUV3NUX722WMXCM4EI64IBH75DL \ / AMOS7 \ YOURUM ::
-#\[7]Z2SND7WKWHCM7TEWHMQXSLZD7S6DOESYYP7EBPCQ6TU3L7TFBMCI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,,.,,..,,,..,,,.,,.,,,,,,..,,..,,...,..,,..,,...,.,.,...,..,,
+#74E7IRBUSJHE4ZYYM37FK5WKVQ5VBUHITHDT66F2EN42V3RWLV3W3NXECUWQEOFZZKKBMBBD43R24
+#\\\|6UZB3LWF73BBN76DO7LQXDQJH4MD7Y5TBO2DZJVPRH7PDJOEMTB \ / AMOS7 \ YOURUM ::
+#\[7]AXPLG5X5KGGFC5P5UYHVOCEGR33GQQZNXEEDCOWKZJ4Q7A7WYMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

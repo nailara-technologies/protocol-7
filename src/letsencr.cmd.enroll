@@ -10,8 +10,8 @@ my $domain = $params->{domain};
 if ( !$domain ) {
     return {
         success => FALSE,
-        error   => qw| domain parameter required |,
-        usage   => qw| letsencr.enroll domain=example.com [auto_install=1] |
+        error   => 'domain parameter required',
+        usage   => 'letsencr.enroll domain=example.com [auto_install=1]'
     };
 }
 
@@ -81,7 +81,7 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
     }
 
     if ( !$result || !$result->{success} ) {
-        my $error_msg = $result->{error} || qw| unknown enrollment error |;
+        my $error_msg = $result->{error} || 'unknown enrollment error';
         <[base.log]>->( 0, "  Enrollment failed : $error_msg" );
 
         return {
@@ -108,7 +108,7 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
             my $error
                 = $EVAL_ERROR
                 || $install_result->{error}
-                || qw| unknown install error |;
+                || 'unknown install error';
             <[base.log]>->( 0, "  Certificate installation failed : $error" );
 
             return {
@@ -146,16 +146,15 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
 
     return {
         success => FALSE,
-        error   => qw| letsencr zenka IPC not implemented |,
-        hint    =>
-            qw| ensure letsencr zenka is running or load modules directly |
+        error   => 'letsencr zenka IPC not implemented',
+        hint    => 'ensure letsencr zenka is running or load modules directly'
     };
 }
 
 0;
 
-#,,..,,..,,.,,,,,,,.,,.,.,,,,,,.,,,..,..,,...,..,,...,...,,,,,.,.,.,,,,.,,,,.,
-#D7WHLFUAFYJUKI5Z53Y6DGZLA6POYXU5T36J465OQIXB6JGOZYB3PMLH4HAKMBUXHC24IJICCHQVM
-#\\\|DDUUOQRSXJQRNPFWOKAWELQUCKG5PCVBQU5WQMTISH6BCOLVFTD \ / AMOS7 \ YOURUM ::
-#\[7]Q3ZIZTWNF4M3CX4LFKW5HMYB63FOJMXCWC6YVYQEF5BZJI2ZMAAA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,...,.,.,,..,,,.,,..,.,,,,.,,..,,...,...,,,.,,.,,.,.,...,.,.,
+#KH2SCXIRGBKGW35PDD53W3IT5TDVM6K7TK7M6ZIEHHRUFBK5EYNMAOM4NDRFKDXOJSQBWVJJLZ6A2
+#\\\|33SHFGTY244G6E374QUEEZX256WHFJLNCVEY7DV4CQWZ6NSFTC5 \ / AMOS7 \ YOURUM ::
+#\[7]J3GGJUOAVPLLXU2PQU52YXSEJQCG5TU7FYQPKWLC2WZ4QKYNJADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
