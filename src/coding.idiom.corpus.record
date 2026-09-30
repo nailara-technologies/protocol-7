@@ -34,7 +34,7 @@ my $dir  = <coding.cfg.idiom_corpus_dir>
     // sprintf qw| %s/data/idioms/corpus |, $root;
 
 if ( not -d $dir ) {
-    if ( not <[base.file.make_path]>->($dir) ) {
+    if ( not <[file.make_path]>->($dir) ) {
         <[base.logs]>->( 0, ': idiom.corpus : cannot create %s', $dir );
         return { 'mode' => qw| false |, 'data' => "cannot create $dir" };
     }
@@ -102,7 +102,7 @@ foreach my $line (@lines) {
 ## one newline-delimited record per line, appended : concurrent zenki     ##
 ## appending short lines to the same file is the reason this is jsonl and ##
 ## not a rewritten json array                                             ##
-<[base.file.append]>->( $path, join( "\n", @lines ) . "\n" );
+<[file.append]>->( $path, join( "\n", @lines ) . "\n" );
 
 <[base.logs]>->(
     2, ': idiom.corpus : recorded %d pair%s [ %s ]',
@@ -111,8 +111,8 @@ foreach my $line (@lines) {
 
 return { 'mode' => qw| true |, 'data' => scalar @lines };
 
-#,,,,,,,.,...,,,.,,..,...,,,,,,.,,..,,,,.,,,,,..,,...,...,...,.,.,.,,,.,.,..,,
-#J5JODYV4CGAEOXS3E3P3J24V2SUXB62BIPATQ5YCMSVK5USC6JKE7UCEVD3TQONJYUVNALUSN3TUU
-#\\\|3PW2ALHYRIRJJSECUBIUJAQJOHMHA3G3DQYFVZTGQWJV742SKPV \ / AMOS7 \ YOURUM ::
-#\[7]KQXFFJFSZ6XCRLC5ZSAGLAAOD3N7OLB4YFZZZFTE4B7KIF2JYYBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,...,,.,,,,.,.,.,,..,,,.,,,,,..,,...,..,,,,,,,.,,,..,,,,,..,,
+#UM33U4RJ4K47T5KQ433B2FIWRORLJHQTINKXWVOSWZFUVGQRWFAAEEIJ7GLU7L3TZXBTP6KKF7DLQ
+#\\\|RCIVJUV67C2KABY27NLIQY6D55FDOBTVPEV2AMJFOPRVV4DXZ32 \ / AMOS7 \ YOURUM ::
+#\[7]JZMKIZ3JCOU54G4ASN7RJQ3VD5PXK6HFTLTKZFXIUR4Z7KSVOCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

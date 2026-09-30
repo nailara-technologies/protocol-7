@@ -118,9 +118,9 @@ my @cmd = ( $binary, "--root=$root" );
 my $out_path = <[invoke-web.output.path]>;
 my ( $null_in, $out_fh );
 my $spawn_err
-    = not length( $out_path // '' ) ? 'no runtime dir for the output'
-    : not open( $null_in, qw| < |, '/dev/null' ) ? "/dev/null : $OS_ERROR"
-    : not sysopen(
+    = !length( $out_path // '' ) ? 'no runtime dir for the output'
+    : !open( $null_in, qw| < |, '/dev/null' ) ? "/dev/null : $OS_ERROR"
+    : !sysopen(
     $out_fh,
     $out_path,
     Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_TRUNC()
@@ -194,8 +194,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,,,,.,,.,,,.,.,.,,,...,,.,,,,,,..,,...,...,..,,...,...,...,,.,,.,.,..,,..,,
-#35NBCMP4ILOXIOZG3XVMNZ5XPFZ4QDKPWV3633OCL333UPC5MYWSUCKMUKI5PZH6PVNDWWWUWWBJW
-#\\\|J5ZEMT4LPFYPPWUITN6SE44HVX5UEOZZQGZJDKAWKUT5QSVSJYW \ / AMOS7 \ YOURUM ::
-#\[7]PBI2VUDVAPZWA3BC6N6OJ44WMY3F7DPV4CSUDWCNUV2TAOIHTSAI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,,,,,...,,,,,,,.,.,.,...,,,.,..,,...,...,,..,...,,.,,.,.,.,,,
+#HLNDHEWQHHFEHRNNM4YQZ5N2ZB2K62XELA4T6CEUXDTSLDUTE3Q4O63TF66JLIWWXTZFEIJIW24E4
+#\\\|DH4566UZHTF4ITFB3GHCSKAHE5QX25A7ORXDADXZFHVXTCCMLEC \ / AMOS7 \ YOURUM ::
+#\[7]VFCLLMY3YJNFCTRNEDHVLGF4WS5SJAXWMU2CQ3MFFVUWIRR76GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

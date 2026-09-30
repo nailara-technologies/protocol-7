@@ -15,7 +15,7 @@ if ( length $args ) {
 } else {
     my $baseline_dir = <system.root_path> . '/data/signal-cancel/baseline';
     my @files        = sort grep { -f $_ }
-        @{ <[base.file.glob]>->( $baseline_dir . '/*.log' ) // [] };
+        @{ <[file.glob]>->( $baseline_dir . '/*.log' ) // [] };
     $baseline_path = $files[-1] // '';
 }
 
@@ -26,7 +26,7 @@ return {
     if not length $baseline_path
     or not -f $baseline_path;
 
-my $content = <[base.file.read]>->($baseline_path);
+my $content = <[file.read]>->($baseline_path);
 return {
     'mode' => qw| false |,
     'data' => 'could not read baseline file'
@@ -65,8 +65,8 @@ return {
     'data' => $report
 };
 
-#,,..,.,.,.,.,,..,,,,,...,,..,..,,..,,,,,,,..,.,.,...,...,,.,,...,.,,,.,,,...,
-#TY4JLGXPPI6GFMB35T24E4R4ZTMGE33TNHAHBI5XBWY2HD5SOIYVFXJERBBIVHGC2FZNN3RQSEH7S
-#\\\|AZX2N3H4TDMTP2SXZF52UZYHY6PMZOSLP3QK467K6OWYW4VDT5Q \ / AMOS7 \ YOURUM ::
-#\[7]V575J4B5D37DTINKXSN37YCTECOBMS7YPRCP6V3HYNQNQMOCKIBA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,.,,,,,.,,,,,...,...,,,.,,,.,.,.,...,...,,.,,,..,,,.,,,,,..,,
+#7SMQFZSUHDLSSILMCZ2Y4JSS7VRDBVSGPCJ5QMRITLESOYJN5C7DA2GRZK3MXUULSY36VEIJ2KAYC
+#\\\|QWLQ6WKTMIFPGLM5JWCBHNGTSKATBREQGJ723FVHCPNAUBMRWE4 \ / AMOS7 \ YOURUM ::
+#\[7]D3KH2KXHBCNWKEFO3D7GQCGNEISMSEYKJAZXELUVDDLFIHB5ASBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

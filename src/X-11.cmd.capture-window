@@ -21,12 +21,12 @@ return { 'mode' => qw| false |, 'data' => 'output path required' }
 my $capture_bin;
 my @capture_args;
 
-my $scrot_bin = <[base.file.which]>->('scrot');
+my $scrot_bin = <[file.which]>->('scrot');
 if ( defined $scrot_bin ) {
     $capture_bin  = $scrot_bin;
     @capture_args = ( qw| -u -d 0 -w |, $window_id, $output_path );
 } else {
-    my $import_bin = <[base.file.which]>->('import');
+    my $import_bin = <[file.which]>->('import');
     return {
         'mode' => qw| false |,
         'data' => 'scrot or imagemagick import not found'
@@ -48,8 +48,8 @@ return {
     'data' => sprintf( 'captured window %d to %s', $window_id, $output_path )
 };
 
-#,,,.,,,,,...,.,.,,,.,..,,,..,,.,,.,.,..,,,,.,..,,...,...,...,,..,,,,,,,.,,.,,
-#UMHRPJFDCYATTZTDXVCPAFAGW3QEVCC4KRKNNXD5DOOCPYGUFPOL4ICVNFLWQFLEM6MSQXKVPUCSI
-#\\\|Y52YYOAO5LRVBKXSFRUB7MN2PQYJF5DXN3BDL6CXT376IYMXG7F \ / AMOS7 \ YOURUM ::
-#\[7]RPDLMSRNEMCX3LJ2JN5JXLDBRUG4THMRUCCU4R64RIVBTLA54KCY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,.,,.,,...,,,.,.,.,,,.,,..,.,,,..,,...,...,...,..,,,,.,.,.,...,
+#3UYETVDXE2XQIYLUHGUJINR6E7ZB22QL7MACSZSMCPB57TJXBBOQD3XOKV54WAREEZIDYERRNN4KI
+#\\\|6654E6M6SXCXOH72WG7WW3THV7M4QQ7XDEOKHWHS4XBAEBWJW3A \ / AMOS7 \ YOURUM ::
+#\[7]TVTK5XZXDQW2DED5HDFAORYNH57MWMHXGSZ56WKILHXAXDJDEKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
