@@ -2624,6 +2624,13 @@ STUB
             ## at the zenka's source update                                 ##
             . qq{use strict; }
 
+            ## the loader compiles with 'use warnings' too [ bin/Protocol-7 ##
+            ## top level ] : 'useless use of .. in void context' flagged an ##
+            ## `my $x = A or B` that dropped B [ 2026-09-30 ]               ##
+            . qq{use warnings; }
+            . qq{no warnings qw| experimental::declared_refs }
+            . qq{experimental::bitwise |; }
+
             ## loader file-scope lexical visible to every module [ ##
             ## bin/Protocol-7 : my $zenkaname ]                    ##
             . qq{my \$zenkaname; }
@@ -2650,13 +2657,21 @@ STUB
             ## .cmd. modules : the compiled-in code header pre-declares ##
             ## $call [ args ] and $reply [ reply hashref ] -- see       ##
             ## bin/Protocol-7 [ command type routine code header ]      ##
-            . ( $file_path =~ m{\.cmd\.[^/]+$}
+            . (
+            $file_path =~ m{\.cmd\.[^/]+$}
             ? qq{my ( \$call, \$reply ); }
-            : '' ) . qq{\n};
+            : ''
+            ) . qq{\n};
     }
+    ## a P7 module is compiled as a sub body by the loader [ bin/Protocol-7 :
+    ## eval "sub {\n# line 1 ..\n" . code . "}" ] -- its last value is the
+    ## return value, not a 'useless use .. in void context' ; check the same
+    ## way. the '#line' reset after the opening brace keeps line numbers
+    my $wrap_sub = is_p7_module_text($src) ? TRUE : FALSE;
+    $preamble .= 'my $p7_check_module_body = sub {' . "\n" if $wrap_sub;
     $preamble .= qq{#line 1 "$file_path"\n};
 
-    print {$tmp_fh} $preamble . $translated;
+    print {$tmp_fh} $preamble . $translated . ( $wrap_sub ? "\n};\n" : '' );
     close $tmp_fh;
 
     ## -Mfeature=:5.24 : P7 modules have no 'use v5.10'/'use feature' of    ##
@@ -2840,8 +2855,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,,,,.,,,.,.,,,,,,,,,,.,,..,,..,,,,.,,..,..,,...,...,,..,..,,,,.,,,,,,.,,
-#TE4WQE55GZ6ME5A6QIK72GKLWDXK6SK6WC5DWN5HDHKCSUTSESFZ3X6CW4XWBWWKOW3DMQUSOQRAS
-#\\\|5IPADXJXDPZKB2LCPNYPY7HH4BYEM6ORVXIUIBK5EZIDSNLKVOU \ / AMOS7 \ YOURUM ::
-#\[7]YMTBF3LMWR26FMQEXLXBOISDA4NCKRLE6IUUBY5GVA4IODI4KICI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,.,,,,,,,,..,.,,,.,,,,,.,,,,,..,,...,..,,...,.,.,.,.,...,.,,,
+#A7J7UV3VKZI3O5PLUCXUSCRXRDX3CK2QEE5BAAMOCBRVZF5C7AO7BKCJGWCZXSRTU3G4FCMJDBN3A
+#\\\|JP5EIMMY4EYRW2LDGZMNP3UV7HK5ZPVUTOBWLZA3RRZN3G5A2MK \ / AMOS7 \ YOURUM ::
+#\[7]VBZBG25CR3WPC7KAR4EZRBSBORM67M6WOLITWR5SGVEV67DDNQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
