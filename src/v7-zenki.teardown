@@ -12,6 +12,12 @@ my $t_res     = 3;        # <-- time delta float resolution
 my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
 my $abort_timeout = 2;
 
+## kept crash-surviving children [ restart.keep_children opt-in ] : a v7    ##
+## teardown ends them exactly as today -- moved back first [ identity       ##
+## re-checked inside ; a pid reused meanwhile is forgotten, never signalled ##
+## ]                                                                        ##
+<[v7-zenki.kept_children_reabsorb]>;
+
 my %wait_pids = map { $ARG => TRUE } keys <v7-zenki.child>->%*;
 foreach my $p_pid ( keys <v7-zenki.child>->%* ) {
     map { $wait_pids{$ARG} = TRUE }
@@ -147,8 +153,8 @@ map {
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,..,.,.,..,,..,,...,...,,..,.,.,,,,,...,,,,,..,,...,...,,,.,,..,,,.,,,,,,,,,
-#ADD4YUKI4CXI62ZADQJA4UWMWMQ5SYYQGOHNVBH6ANX5BFCJREFULHRE2MD4G5CLTCJHGRLJAWKAU
-#\\\|LXOXVFMDDYYULDGYPJFUMSLTE3XRO4JOXF3HSPNJK3CUHUFNJCR \ / AMOS7 \ YOURUM ::
-#\[7]5HFRIMDS4KM4YC4LZ6Z6GGVO6X27NSE6PRO5PW6NSBQXDN3ODUBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,,..,,..,,.,,,,,,...,,..,.,.,..,,...,...,.,,,,,,,,,.,,..,...,
+#TNWKYXROF2K2BZQ53MS4K4GKY4R6XY3DBWKEL7EKCARIWWUN2CAGBCDT2CPKJIEQVQXIGGI23MX6Y
+#\\\|RH6TV7TWUDMJIBPORCXGLYU4DADBM55LOH6GXMAYEZXLL23NLGP \ / AMOS7 \ YOURUM ::
+#\[7]J2TOS7FLTQPFWT4WGREQBDZLCOKOYJOBRULHOT5XB6IFY6RUGADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

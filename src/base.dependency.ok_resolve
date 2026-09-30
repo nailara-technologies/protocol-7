@@ -1,0 +1,138 @@
+## [:< ##
+
+# name  = base.dependency.ok_resolve
+# descr = base.dependency.ok + the type's resolve hook on an unmet check
+# note  = for START paths only [ v7-zenki start \ autostart \ restart,
+#         jobqueue ] : a failed check gives the object type's resolve hook
+#         a chance to fix it [ eg. cascade-start a zenka ]. pure status
+#         checks call base.dependency.ok -- the hook firing there started
+#         dependencies of non-running zenki [ regression a40e31e96,
+#         2026-08-26, fixed 2026-09-30 ]
+
+my $object_id = shift // '';
+my $event_id  = shift;         # <-- optional
+
+# virtual object_id 0 means "explicitly no dependencies" : resolves silently
+if ( not length $object_id ) {
+
+    # Warn when object_id is undefined\empty [ not 0 ]
+    # This indicates inconsistent state - job created without
+    #                                     proper object registration
+    # Guidance: use object_id => 0 for jobs with no dependencies expected
+    <[base.log]>->(
+        0, "base.dependency.ok_resolve: object_id for job %s not defined .,"
+    );
+    <[base.log]>->(
+        0, ":. use object_id 0 for any explicit no dependency cases"
+    );
+    return TRUE;
+} elsif ( $object_id == 0 ) {
+    return TRUE;    ## implicit resolution ##
+}
+
+if ( not exists <dependency.object>->{$object_id} ) {
+    <[base.logs]>->(
+        0, "base.dependency.ok_resolve: object id '%s' not found", $object_id
+    );
+    return undef;
+}
+return TRUE if not exists <dependency.chain>->{$object_id};
+foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
+    if ( not exists <dependency.object>->{$chain_object_id} ) {
+        <[base.logs]>->(
+            0,
+            "base.dependency.ok_resolve: " . "chain object id '%s' not found",
+            $object_id
+        );
+        return undef;
+    }
+    my $object_type = <dependency.object>->{$chain_object_id}->{'type'};
+
+    if ( not exists <dependency.setup.type>->{$object_type} ) {
+        <[base.logs]>->(
+            0,
+            "base.dependency.ok_resolve: no "
+                . "dependency setup for object type '%s'",
+            $object_type
+        );
+        return undef;
+    }
+    my $callback = <dependency.setup.type>->{$object_type}->{'callback'};
+    if ( ref($callback) ne qw| CODE | ) {
+        <[base.log]>->(
+            0,
+            "base.dependency.ok_resolve: no valid "
+                . "callback found in object type setup"
+        );
+        return undef;
+    }
+    my $callback_ok
+        = defined $event_id
+        ? $callback->( $chain_object_id, $event_id )
+        : $callback->($chain_object_id);
+
+    if ( !$callback_ok ) {
+
+        ## generic resolve hook : gives a per-type callback a chance to   ##
+        ## actively fix an unmet dependency [ eg. cascade-start a zenka ] ##
+        ## instead of only ever passively re-checking it. debounced per   ##
+        ## chain object so a burst of dependency.ok calls across one      ##
+        ## unresolved object [ eg. check_dependencies sweeping the whole  ##
+        ## 'depending' queue every tick ] doesn't fire it more than once  ##
+        ## per <dependency.resolve.min_interval> seconds                  ##
+        my $resolve = <dependency.setup.type>->{$object_type}->{'resolve'};
+        if ( ref($resolve) eq qw| CODE | ) {
+            my $now          = <[base.ntime]>;
+            my $min_interval = <dependency.resolve.min_interval> // 5;
+            my $last_resolve = <dependency.resolve.last>->{$chain_object_id};
+
+            ## ntime is NOT seconds -- base.ntime.delta_seconds divides by  ##
+            ## 4200 to get real seconds. comparing raw ntime deltas against ##
+            ## a plain "5" made this debounce a near no-op [ ~1.2ms, not 5s ##
+            ## ], confirmed live: repeated un-throttled resolve calls for   ##
+            ## the SAME chain object [ cube, during v7's own dependency-    ##
+            ## chain setup at boot ] spawned multiple redundant cube        ##
+            ## instances before the first one's v7-zenki.zenka.instance     ##
+            ## entry existed for zenka.cmd.start_once's own idempotency     ##
+            ## check to catch -- see data/ai-mem/claude/ session notes,     ##
+            ## 2026-08-26                                                   ##
+            my $elapsed_secs
+                = defined $last_resolve
+                ? <[base.ntime.delta_seconds]>->( $last_resolve, $now )
+                : undef;
+            if ( not defined $elapsed_secs or $elapsed_secs >= $min_interval )
+            {
+                <dependency.resolve.last>->{$chain_object_id} = $now;
+                <[base.log]>->(
+                    2,
+                    ": object '$chain_object_id' [$object_type] unresolved, "
+                        . 'invoking resolve hook'
+                );
+                eval {
+                    if ( defined $event_id ) {
+                        $resolve->( $chain_object_id, $event_id );
+                    } else {
+                        $resolve->($chain_object_id);
+                    }
+                };
+                my $eval_error = <[base.str.eval_error]>;
+                <[base.logs]>->(
+                    0,
+                    "base.dependency.ok_resolve: resolve hook for type '%s' "
+                        . '[id %s] failed: %s',
+                    $object_type,
+                    $chain_object_id,
+                    $eval_error
+                ) if length $eval_error;
+            }
+        }
+        return FALSE;
+    }
+}
+return TRUE;
+
+#,,,.,,.,,.,.,.,.,,,.,,.,,,.,,..,,.,.,,.,,,..,.,.,...,...,.,,,,,,,,..,.,.,...,
+#4V2YDRELJOTR7N5DLDB53RXPSZJ47JBVSBCE6D2QAHZFD4XERLJN7VKMECCPIHBOS4LKVSOLIMBBC
+#\\\|RWDGNLAMW6KWPGCLYX3NVT4BWQUIBD334CLTYVUJWZATZQZTIRW \ / AMOS7 \ YOURUM ::
+#\[7]M6IXEAMMIXAISWSMXTDEHMZOX7HKTMZDNLH4ZB4RPQD7I4ZL5WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

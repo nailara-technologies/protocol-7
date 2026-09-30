@@ -33,7 +33,7 @@ if ( $queue_name eq 'queued' ) {
         my ( $job_id, $job_data ) = <[jobqueue.get_next_job]>->($queue_name);
         last if not defined $job_id;
         my $object_id = $job_data->{'object_id'};
-        if ( !<[dependency.ok]>->($object_id) ) {
+        if ( !<[dependency.ok_resolve]>->($object_id) ) {
             <[jobqueue.move_job]>->( $job_id, 'depending' );
             <[base.log]>->( 1, "moved job '$job_id' into 'depending' queue" );
         } else {
@@ -44,8 +44,8 @@ if ( $queue_name eq 'queued' ) {
 }
 <[jobqueue.check_dependencies]>;
 
-#,,,.,,,,,...,..,,,.,,.,,,...,.,,,,.,,,.,,,.,,..,,...,..,,...,.,.,...,,,.,.,,,
-#6CVT6IRNAXH4UGRSI7ZFM7U72KHZ7U3X7E24AGLUELWBDYFIVPFUWE3U3FPQAOH42OH2IXVUJMLBI
-#\\\|K6GBU7AATTHMVYW5N7UZFLWSUCT2DIHLBTOYR5FUSB6KUR5SLNX \ / AMOS7 \ YOURUM ::
-#\[7]EKRY6TIQWU3N62HXB4NCW6XHLIRHXNYRNRPSGBBHPVJUQ7BQ7UAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,,..,..,,,,.,,.,,,,,,,.,,,,.,..,,...,...,,.,,..,,.,,,.,,,.,.,
+#JUQN734TWUXQWLT4FRATTIXFJED2CKHWIY7ZJYT5NNCTLBPWZLVTCTSHI5HTJNQYHL3TKX6RYBI5M
+#\\\|4GKT63TJWVWGERHDUUPGOCRFBXDNVAHFHOYHMEEBDDJIHDRTN63 \ / AMOS7 \ YOURUM ::
+#\[7]FQPOZLNRVRUFWAL6QAMRXWPSMABEBODPVAOQQFBH6GK4VQAQPKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -70,7 +70,7 @@ map { $instance->{'restart_pids'}->{$ARG} = 1 } ( $parent_pid, @children )
 
 my $dependencies_ok
     = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
-    ? <[dependency.ok]>
+    ? <[dependency.ok_resolve]>
     ->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
     : TRUE;
 
@@ -100,8 +100,8 @@ if ( defined $parent_pid
     <[v7-zenki.init_restart_timer]>->($instance_id);
 }
 
-#,,,.,,.,,,..,,,.,,.,,.,.,.,.,..,,,,,,,,,,,..,..,,...,...,..,,,,,,.,,,,..,...,
-#3ALEQKLHZD3MN74VHBIQEX4PHDAX47NZCFDVVLI62GLEU2EICAHRSQV7GZN3K75FEEGRA5YJJGOSS
-#\\\|AGZ357ZNUSLJKUT46O5YES4W72AZ2QGXZI2RLIE472YENW3ZDIM \ / AMOS7 \ YOURUM ::
-#\[7]ZMPXYK6MVFPXILHZEHE52JWTH3HBCDDXAGC7V6E5NZXZEEB5A4AI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,.,,,,,,...,.,.,,.,,...,.,,,.,.,..,,...,...,.,,,..,,,..,...,.,.,
+#EKP4OT6QYVC6FH4HCQCLIWG3CFHTASXZZSQJU2QG7LDBIBWR3R62CJCF62NGNH2PFRVBIYWDKTAGW
+#\\\|TCFIP5GGOBUEEJDZFNRUPMUXJHTT5ZWEI25ZU6L4SDX2TWWYQ3E \ / AMOS7 \ YOURUM ::
+#\[7]W72OMYFXDEVV3RN3XNXA7OBTV64IDWRX7R6LIEJWGFAMGJBZ5YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

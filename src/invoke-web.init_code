@@ -147,9 +147,10 @@ if ( not defined <invoke-web.binary> ) {
 ## check for orphan invoke.ai process from previous run
 my $saved_ref = <[file.zenka_dir.load]>->('state/invokeai.pid');
 if ( defined $saved_ref ) {
-    my ( $saved_pid, $saved_bin ) = split m|\n|, $saved_ref->$*;
-    $saved_pid //= '';
-    $saved_bin //= '';
+    my ( $saved_pid, $saved_bin, $saved_start ) = split m|\n|, $saved_ref->$*;
+    $saved_pid   //= '';
+    $saved_bin   //= '';
+    $saved_start //= '';    ## process start time [ pid-reuse guard ] ##
     ## own process [ reinit ] ##
     if ( ( <invoke-web.pid> // -1 ) != $saved_pid
         and <[invoke-web.is_alive]>->($saved_pid) ) {
@@ -160,15 +161,34 @@ if ( defined $saved_ref ) {
             $proc_cmd = <$cfh>;
             close $cfh;
         }
-        if ( $proc_cmd =~ m|invokeai-web| ) {
+        ## start time re-check [ /proc stat field 22, recorded in the pid   ##
+        ## file by cmd.start ] : a reused pid with a matching cmdline is    ##
+        ## NOT our invoke.ai -- the pid file is stale then  || , not 'or' : ##
+        ## 'or' binds lower than '=' and dropped the comparison -- adoption ##
+        ## was refused whenever a start time was recorded                   ##
+        my $start_matches = !length $saved_start
+            || ( <[invoke-web.proc_start_time]>->($saved_pid) // '' ) eq
+            $saved_start;
+        if ( $proc_cmd =~ m|invokeai-web| and $start_matches ) {
             ## adopt orphan process
             <invoke-web.pid>    = $saved_pid;
             <invoke-web.status> = 'running';
             <[base.zenki.pause_ondemand_timeout]>;    ## see cmd.start ##
             <invoke-web.start_time> = <[base.time]>->(3);
-            <[base.zenki.report_child_pid]>->($saved_pid);
+            <[base.zenki.report_child_pid]>->( $saved_pid, qw| invokeai | );
             <[base.logs]>->(
                 1, 'adopted orphan invoke.ai process [pid:%d]', $saved_pid
+            );
+
+            ## claim the kept child at v7-zenki [ crash keep-children ] : a ##
+            ## network call, so via post-drop timer -- init_code still runs ##
+            ## as root here [ only /proc reads above ]                      ##
+            <[event.add_timer]>->(
+                {   'after'   => 2,
+                    'handler' => qw| invoke-web.handler.claim_child |,
+                    'data'    =>
+                        { 'pid' => $saved_pid, 'name' => qw| invokeai | },
+                }
             );
 
             ## read its output on from the saved offset -- after the ##
@@ -269,8 +289,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,.,,.,.,.,.,,.,,...,,.,,.,.,,.,,.,,,,,.,,.,,..,,...,...,,.,,.,,,.,.,,,.,,,.,
-#273NHCOBUFEH6MN7234NXORJ4TNBA3SF6XYVBZ5422CK2T5NAAUAFPVOPD63QTCKEZ3ZVVQQ7AW74
-#\\\|T4ZKNIOOTCMNBHM3U4XDETGKCXWL5ULHFUC4BI6BJO253COYDUF \ / AMOS7 \ YOURUM ::
-#\[7]PJ5KPOLSIT4WBKOPJJMLIFN66UV6RSI7WSL5AIQAK4ZR5TWURADI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,,..,,.,,.,.,,,.,,,,,.,.,,.,,..,,...,..,,.,.,,,,,..,,..,,.,,,
+#D7ZPNGBALI6Y2C3GHZEFWFTYLBW2OKLOSYVZP7F4TJJM6LSH7USSMG2FAUALL3H63TXAC2FCU6WT2
+#\\\|JGR2BHMEAQHD2YTPGMU4BZDTN7K5TCFJAJX2BPHOS47AOAGHUH5 \ / AMOS7 \ YOURUM ::
+#\[7]D3M2MYFFAG4K4F444QDXCMF3SVG5JFI32AXPWYNWABUOWH7TN2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

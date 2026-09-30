@@ -250,7 +250,8 @@ if ( not defined $zenka_id ) {
 
 my $obj_id = <[zenka.get_object_id]>->($zenka_id);
 
-my $target_queue = <[dependency.ok]>->($obj_id) ? qw|queued| : qw|depending|;
+my $target_queue
+    = <[dependency.ok_resolve]>->($obj_id) ? qw|queued| : qw|depending|;
 
 my $sn_str = defined $zenka_subname ? sprintf( '[%s]', $zenka_subname ) : '';
 my $env_str
@@ -272,8 +273,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,,,,..,..,,...,..,,,..,,.,,,..,.,,,,,,,,,.,..,,...,...,...,.,,,,.,,.,.,,..,
-#F7T2EXSTALJ452MVTUL7PZCKAZD7PMOFDQQBNG6AQ7ZW2TWDZPY5ZZE5ACUUYPU46I7W6AEXXYQOG
-#\\\|2P6ZKZY7QPH55PICKKFXI2RIIGB6YA2XCWCBOB2UIUNBWN4ZMW2 \ / AMOS7 \ YOURUM ::
-#\[7]FPDNWX5TAIWUWNC43ISUGNC73NT7BYZT7ZB4UK6RHQ4AG6HDN6DQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,...,,,,,.,,,..,,..,,...,,,.,..,,...,...,..,,.,,,,,,,.,.,,..,
+#W6AOTFE3CZG5WOM3VIN3KS4KSO5LCB2TEOHQHTENSW56QIUHYDJKXIL7BMF74A3BDT7C6CE6LS64G
+#\\\|AS72CKXBTOLXY76THSNJMXSEXQCQHYF7ZTQIJBICKDMSIGY5LPD \ / AMOS7 \ YOURUM ::
+#\[7]OUKCS7EZTNHIXBK7UQK7TSHR23UKD2JDAM3BX63Z7FA65R5UIYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

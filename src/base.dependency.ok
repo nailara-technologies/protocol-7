@@ -2,6 +2,8 @@
 
 # name  = base.dependency.ok
 # descr = return TRUE when dependency for given object id fulfilled, or FALSE
+# note  = a pure check without side effects -- start paths that want an
+#         unmet dependency actively fixed call base.dependency.ok_resolve
 
 my $object_id = shift // '';
 my $event_id  = shift;         # <-- optional
@@ -61,68 +63,14 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
         ? $callback->( $chain_object_id, $event_id )
         : $callback->($chain_object_id);
 
-    if ( !$callback_ok ) {
-
-        ## generic resolve hook : gives a per-type callback a chance to   ##
-        ## actively fix an unmet dependency [ eg. cascade-start a zenka ] ##
-        ## instead of only ever passively re-checking it. debounced per   ##
-        ## chain object so a burst of dependency.ok calls across one      ##
-        ## unresolved object [ eg. check_dependencies sweeping the whole  ##
-        ## 'depending' queue every tick ] doesn't fire it more than once  ##
-        ## per <dependency.resolve.min_interval> seconds                  ##
-        my $resolve = <dependency.setup.type>->{$object_type}->{'resolve'};
-        if ( ref($resolve) eq qw| CODE | ) {
-            my $now          = <[base.ntime]>;
-            my $min_interval = <dependency.resolve.min_interval> // 5;
-            my $last_resolve = <dependency.resolve.last>->{$chain_object_id};
-
-            ## ntime is NOT seconds -- base.ntime.delta_seconds divides by  ##
-            ## 4200 to get real seconds. comparing raw ntime deltas against ##
-            ## a plain "5" made this debounce a near no-op [ ~1.2ms, not 5s ##
-            ## ], confirmed live: repeated un-throttled resolve calls for   ##
-            ## the SAME chain object [ cube, during v7's own dependency-    ##
-            ## chain setup at boot ] spawned multiple redundant cube        ##
-            ## instances before the first one's v7-zenki.zenka.instance     ##
-            ## entry existed for zenka.cmd.start_once's own idempotency     ##
-            ## check to catch -- see data/ai-mem/claude/ session notes,     ##
-            ## 2026-08-26                                                   ##
-            my $elapsed_secs
-                = defined $last_resolve
-                ? <[base.ntime.delta_seconds]>->( $last_resolve, $now )
-                : undef;
-            if ( not defined $elapsed_secs or $elapsed_secs >= $min_interval )
-            {
-                <dependency.resolve.last>->{$chain_object_id} = $now;
-                <[base.log]>->(
-                    2,
-                    ": object '$chain_object_id' [$object_type] unresolved, "
-                        . 'invoking resolve hook'
-                );
-                eval {
-                    if ( defined $event_id ) {
-                        $resolve->( $chain_object_id, $event_id );
-                    } else {
-                        $resolve->($chain_object_id);
-                    }
-                };
-                my $eval_error = <[base.str.eval_error]>;
-                <[base.logs]>->(
-                    0,
-                    "base.dependency.ok: resolve hook for type '%s' "
-                        . '[id %s] failed: %s',
-                    $object_type,
-                    $chain_object_id,
-                    $eval_error
-                ) if length $eval_error;
-            }
-        }
-        return FALSE;
-    }
+    ## pure check : no resolve hook here [ see base.dependency.ok_resolve ##
+    ## for the start paths ] -- status checks must never start anything   ##
+    return FALSE if !$callback_ok;
 }
 return TRUE;
 
-#,,.,,.,,,,,.,,.,,,,,,.,,,.,,,,..,,,,,.,,,..,,..,,...,...,..,,,,,,..,,.,,,.,.,
-#S5EDUNAV5N5DAGPKKC7PKE3KLLKBA6JCUYGNOR6B7XCODROIB5G76D5ZGC6TPGSARYQQUL5SKWT2U
-#\\\|4UVCYRE7F5RTVMCMWKDSZQYLHBL26HV3DSNBX2HVBC6QI6LB4ZT \ / AMOS7 \ YOURUM ::
-#\[7]HAT5ODBJQ2S4EVGBLIDTHS3FHFZQ5EBOVAYNEYKGHY4S4EP4BWCY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,.,.,,..,,..,,.,,.,.,..,,,..,..,,...,...,..,,...,,,.,.,,,,.,,
+#5SNM36B662SCP35M4CZCQXO5UAFBNJ4GKA6RHMKPE2JGCVMTSXRZVWYS2GUNA2FY6LSF4GCTLR6UU
+#\\\|NLWGJQLALUUC5VHYJADTVLYLUK4KHCT42OA5RVAGL54YJS6DR3Q \ / AMOS7 \ YOURUM ::
+#\[7]NRUUJWRHCANWZO7YMA5KTN6MCRFS4ZT4WEL7ROYJWH5UXH7ODUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

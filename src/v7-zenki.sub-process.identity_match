@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = v7-zenki.sub-process.identity_match
+# descr = identity re-check before signal \ claim [ pid reuse ]
+# param = <pid> <start_time> <cmdline>
+
+## a mismatch means the pid was reused by another process : the caller must ##
+## forget the entry and never signal that pid                              ##
+
+my ( $pid, $start_time, $cmdline ) = @ARG;
+
+return FALSE if not defined $pid or $pid !~ m|^\d+$|;
+return FALSE if not defined $start_time or !length $start_time;
+$cmdline //= '';
+
+my $current = <[v7-zenki.sub-process.proc_identity]>->($pid);
+return FALSE if not defined $current;    ## gone \ not readable ##
+
+return FALSE if $current->[0] ne $start_time;    ## pid reused ##
+
+## cmdline : plausibility [ a process may rewrite its argv -- an empty     ##
+## recorded cmdline disables this half, the start time stays authoritative ]
+return FALSE if length $cmdline and $current->[1] ne $cmdline;
+
+return TRUE;
+
+#,,..,,.,,.,,,,.,,..,,,,,,..,,...,.,.,,.,,.,.,..,,...,...,..,,...,,..,,..,,.,,
+#UNNSUQPIJDRFEDMHUD3CI4TRJ3BEE43MAD4WTZSHGBDGGCBDBYTP5STFJD6ZCYF273AJ2VXKYO6TQ
+#\\\|QV5PTQMI7T56Y4EXPWZD5R7OAMB7L7XYIFI6JFCX7KPKARO7EVG \ / AMOS7 \ YOURUM ::
+#\[7]HHD3LAL4MW6R7OJEJKYN7YPRRQN5A2YZC4ROIBRPMFAT4GPB2OAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

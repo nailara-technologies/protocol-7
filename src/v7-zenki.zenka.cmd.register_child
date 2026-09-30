@@ -1,9 +1,8 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.register_child
-# param = <child-pid> <parent-pid>
+# param = <child-pid> <parent-pid> [ <child-name> ]
 # descr = associate process ID with its parent instance
-# todo  = also extract and set process start_time in process->child->PID = ..,
 
 ## parent_pid comes from the caller directly [ its own pid, since it is the
 ## process that did the actual spawning ] rather than being re-derived here
@@ -14,7 +13,8 @@
 ## ever runs, and the real relationship is gone for good by then -- trusting
 ## the spawner's own identity sidesteps the race entirely
 my $instance_id;
-my ( $child_pid, $parent_pid ) = split( m| +|, $call->{'args'}, 2 );
+my ( $child_pid, $parent_pid, $child_name )
+    = split( m| +|, $call->{'args'}, 3 );
 
 foreach my $id (<[v7-zenki.instance_ids]>) {
     next if not defined <v7-zenki.zenka.instance>->{$id}->{'process'}{'id'};
@@ -35,6 +35,20 @@ return { 'mode' => qw| true |, 'data' => 'was known' }
 %{ <v7-zenki.child>->{$child_pid} } = %{ <v7-zenki.child>->{$parent_pid} };
 <v7-zenki.child>->{$child_pid}->{'zenka_child'} = 1;
 
+## optional child name \ role [ e.g. 'invokeai' ] + process identity for    ##
+## the crash keep-children path [ keep_children_on_error \ claim-children ] ##
+## : the /proc start time is the pid-reuse guard, the cmdline the           ##
+## plausibility check -- both re-verified before any keep \ claim \ signal  ##
+if ( defined $child_name and length $child_name ) {
+    $child_name =~ s|[^A-Za-z0-9_.\-]+||g;
+    <v7-zenki.child>->{$child_pid}->{'child_name'} = $child_name
+        if length $child_name;
+}
+if ( my $identity = <[v7-zenki.sub-process.proc_identity]>->($child_pid) ) {
+    <v7-zenki.child>->{$child_pid}->{'proc_start_time'} = $identity->[0];
+    <v7-zenki.child>->{$child_pid}->{'proc_cmdline'}    = $identity->[1];
+}
+
 my $instance = <v7-zenki.zenka.instance>->{$instance_id};
 $instance->{'process'}->{'child'}->{$child_pid} = 1;
 <[base.logs]>->(
@@ -44,8 +58,8 @@ $instance->{'process'}->{'child'}->{$child_pid} = 1;
 
 return { 'mode' => qw| true |, 'data' => 'registered' };
 
-#,,,.,...,..,,...,.,.,..,,,.,,,,,,,..,.,.,.,,,..,,...,...,.,,,,,.,,,,,...,..,,
-#5YO7OE4OA6WENM5PFTOAFBFUFARD3E2QQ4DVYN3OTGYJF6FOKSJXMLL6QEDQ3KRMR4YY3E5RPE4WI
-#\\\|KSOH4ZMSIVEVHK32UJWXAT26IGPIQQP2P2YUDIGTPYYH726D2XF \ / AMOS7 \ YOURUM ::
-#\[7]BJDSBCUYPV5VDZK3LSUBWZVICGK4HIJQVCLN6HXCRKA64MVWS6BA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,.,,,.,,,,..,.,,,...,..,,,,.,..,,...,...,...,...,,,.,.,,,.,.,
+#XZKVUO5NXCHXUVVDPLP2TMBJ3DQ3SDV6GT6EBRY4Q77IWUUOEIFEYOQU3H3CFGDGIG5QAKU2DEN7C
+#\\\|V5RCUT7VLTD7KCAC3XAPTWMWZMMAYLU5Y3B66RJPUJZ72DCNLPH \ / AMOS7 \ YOURUM ::
+#\[7]YMQMX74B2YQAVGGDFTOXPX7F5JUAPXLGVXW4SBFZHT2PLYGKJQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

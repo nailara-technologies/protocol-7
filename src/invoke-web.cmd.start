@@ -170,8 +170,16 @@ delete <invoke-web.url_detected>;    ## reported again by the ready line ##
 <invoke-web.ready_logged> = FALSE;
 <invoke-web.crash_logged> = FALSE;
 
-## persist pid for orphan detection
-<[file.zenka_dir.write]>->( 'state/invokeai.pid', \"$child_pid\n$binary\n" );
+## process start time [ /proc stat field 22 ] : pid-reuse guard, recorded ##
+## in the pid file ; the adopting instance re-checks it [ init_code ] and ##
+## v7-zenki uses it as the kept-child identity anchor [ keep_children ]   ##
+my $proc_start = <[invoke-web.proc_start_time]>->($child_pid) // '';
+
+## persist pid [ + process start time ] for orphan detection \ crash adoption
+<[file.zenka_dir.write]>->(
+    'state/invokeai.pid',
+    \sprintf( "%d\n%s\n%s\n", $child_pid, $binary, $proc_start )
+);
 
 ## register pid file at v7-zenki : removed on a planned end only, so a pid ##
 ## file still present at the next zenka start means 'not a planned end' [  ##
@@ -179,8 +187,8 @@ delete <invoke-web.url_detected>;    ## reported again by the ready line ##
 <[base.zenki.report_pid_file]>
     ->( sprintf( '%s/state/invokeai.pid', <[file.zenka_dir.data_path]> ) );
 
-## report child pid to v7
-<[base.zenki.report_child_pid]>->($child_pid);
+## report child pid to v7 [ named 'invokeai' : claimable after a crash ] ##
+<[base.zenki.report_child_pid]>->( $child_pid, qw| invokeai | );
 
 ## follow the output file from its start : line-wise parsing for the process
 ## lifetime [ invoke-web.output.read ] ; a start marker in the invokeai buffer
@@ -194,8 +202,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,.,...,.,.,.,,,,,,,...,,,,,,,.,.,.,...,,,.,..,,...,...,,..,...,,.,,.,.,.,,,
-#HLNDHEWQHHFEHRNNM4YQZ5N2ZB2K62XELA4T6CEUXDTSLDUTE3Q4O63TF66JLIWWXTZFEIJIW24E4
-#\\\|DH4566UZHTF4ITFB3GHCSKAHE5QX25A7ORXDADXZFHVXTCCMLEC \ / AMOS7 \ YOURUM ::
-#\[7]VFCLLMY3YJNFCTRNEDHVLGF4WS5SJAXWMU2CQ3MFFVUWIRR76GBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,.,,,.,.,..,,,,.,.,,,,..,..,,..,,...,..,,,,.,.,.,,.,,,,.,.,.,
+#BKADE7HE2FEZ45CWPAQDMNVMHQCK6QGGD2E6VJD2DNCXYIXDFS7PRZPDMI4XOJO6AG24DRQBQVBQW
+#\\\|U57KAWBGJPGQLFAXULUSM5ZLZL6YHST62GNKZNOVNC6BHNQXDAX \ / AMOS7 \ YOURUM ::
+#\[7]A2WSV52N4TXASALDCNX5LB5PERCXTMXL3RIKFYQNAUWCTYSTS4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

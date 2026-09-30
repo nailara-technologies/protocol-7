@@ -2909,6 +2909,7 @@ return [ qw[
         io.unix.socket.input.close
         invoke-web.requeue_missing
         invoke-web.recover.requeue
+        invoke-web.proc_start_time
         invoke-web.cmd.queue-order
         invoke-web.cmd.queue-front
         index.tick.wordlist-import
@@ -3017,6 +3018,7 @@ return [ qw[
         base.file.read_timestamped
         base.file.path.chksum.AMOS
         base.event.io_idle_restart
+        base.dependency.ok_resolve
         base.dependency.del_object
         base.dependency.add_object
         base.crypt.flush_passwords
@@ -3998,6 +4000,7 @@ return [ qw[
         invoke-web.handler.output_read
         invoke-web.handler.fetch_reply
         invoke-web.handler.drain_check
+        invoke-web.handler.claim_child
         invoke-web.cmd.requeue-missing
         index.callback.wordlist-import
         impressive.cmd.playlist-update
@@ -4139,6 +4142,8 @@ return [ qw[
         v7-zenki.zenka.cmd.pid-instance
         v7-zenki.zenka.cmd.devmod-clear
         v7-zenki.zenka.cmd.clear-manual
+        v7-zenki.kept_children_reabsorb
+        v7-zenki.keep_children_on_error
         v7-zenki.install_zenka_symlinks
         v7-zenki.handler.start-time-out
         v7-zenki.enable_heartbeat_timer
@@ -4534,10 +4539,12 @@ return [ qw[
         v7-zenki.zenka.cmd.notify_restart
         v7-zenki.zenka.cmd.notify_offline
         v7-zenki.zenka.cmd.drain-instance
+        v7-zenki.zenka.cmd.claim-children
         v7-zenki.sub-process.get_children
         v7-zenki.parser.dependency_status
         v7-zenki.parent.attach_zenka_logs
         v7-zenki.init_match_name_patterns
+        v7-zenki.handler.kept_child_grace
         v7-zenki.callback.system-poweroff
         v7-zenki.callback.setup_zenka_key
         v7-zenki.callback.get_x11_display
@@ -4699,6 +4706,7 @@ return [ qw[
         v7-zenki.zenka.cmd.report-pid-file
         v7-zenki.tmp-paths.global.register
         v7-zenki.tmp-paths.global.clean-up
+        v7-zenki.sub-process.proc_identity
         v7-zenki.set_up_zenka_dependencies
         v7-zenki.pid-files.global.register
         v7-zenki.pid-files.global.clean-up
@@ -4881,6 +4889,7 @@ return [ qw[
         vision-batch.parent.collect_results
         v7-zenki.zenka.cmd.report-temp-path
         v7-zenki.zenka.cmd.get-instance-ids
+        v7-zenki.sub-process.identity_match
         v7-zenki.report_collected_child_pid
         v7-zenki.load_zenka_output_patterns
         v7-zenki.install_workflow_shortcuts
@@ -5089,6 +5098,7 @@ return [ qw[
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
         jobsite.report.mail_evidence_collect
+        invoke-web.handler.claim_child_reply
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -5751,8 +5761,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,.,.,.,,.,,,..,.,.,.,.,,.,,.,.,,..,.,,,.,.,...,...,..,,,,.,,,.,,..,..,,
-#XE2LRAO4SGJU2S7GSQT5XZIMSYBRZEJ734ZU7FI5H4AH5QTRAHSIJGGABNCBC243DDPAL62RBKQZY
-#\\\|UBSTBZJYQIAZ5VJ4437HXOXEX3DZ2NERUPEQTNTCVJW6K4VBUKR \ / AMOS7 \ YOURUM ::
-#\[7]AZCT5OEP5FSPOV5YJAPOFDVMADSE3NKXIUQAXTNLVUK2BHG7XCBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,,,,,,,,,,.,,,,.,...,,,.,.,,,.,.,...,...,..,,,.,,,,.,.,.,,,.,
+#IQRHR334KJJRAHWBLBORU3E44NWGEC36VTCCZJBJ6QFECE6UHIIGKCR54MAUAW7S5QSX5WH5XS6Q2
+#\\\|3FPMU7AMWV6NVKPJOGF6ZM52LZVSK23JYOS472TA75LILDHI3CF \ / AMOS7 \ YOURUM ::
+#\[7]N2YZH46RPUWTE4CBUOWGYAUMJ32XDAIO4IIQLG2X7VB3U3UJZ4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
