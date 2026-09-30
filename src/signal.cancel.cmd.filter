@@ -8,7 +8,7 @@ my $args  = $call->{'args'} // '';
 my $input = '';
 
 if ( length $args and -f $args ) {
-    $input = <[base.file.read]>->($args) // '';
+    $input = <[file.read]>->($args) // '';
 } else {
     local $/ = undef;
     $input = <STDIN> // '';
@@ -31,8 +31,8 @@ return {
     'data' => $output
 };
 
-#,,.,,,..,...,,,,,,..,.,,,,,.,...,,.,,...,..,,.,.,...,...,.,.,..,,.,,,,,,,.,.,
-#5EOBK556WVPHBJEKRZWIEADTZVDXTQZXPTLWB6PC3G5UHOQZT67K54MPCZF7ZIRNUPBAH5B3BZLHK
-#\\\|7KT3DSUWP23HS447UMJHKITG7Q2YW3W3I4KCVTAW3BWMKFNSUVK \ / AMOS7 \ YOURUM ::
-#\[7]EP2WMUCLZ7XSJCK4AYNBC6QFD6TTL4AKJINSJUCUSKDPCBPNUACA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,,,,..,.,,,,.,,.,.,,.,,,,.,,.,,.,.,...,...,,,,,.,,,,.,,.,.,,..,
+#3IYXVHFOLIPDAQPZXJIM7SYC3BG2MW7Y3MQVZRTJYXNNDHI2WJMOF4SWJF4MDR2D7U43GO2VIATNU
+#\\\|3KWIO3BKN3C4ASMCISLNGYR35SPM752R65G5UZRXFDJSJJ65GLQ \ / AMOS7 \ YOURUM ::
+#\[7]YOBSC5JTFW2RQIKGCGGKM6RXGKTMFCSXGFXPUSNP4S6PX2LPDUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
