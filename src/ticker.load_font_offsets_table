@@ -20,9 +20,11 @@ if ( exists <ticker.font.known_offsets>->{<ticker.font.name>} ) {
         ##  scale offset not implemented yet  ##
         next if $type eq qw| scale-offset |;
 
-        <ticker.font.y-offset> = sprintf qw| %.0f |,
+        ## direct %data form : <ticker.font.y-offset> trips the p7 syntax
+        ## translator's y-operator detection [ y followed by - ]
+        $data{'ticker'}{'font'}{'y-offset'} = sprintf qw| %.0f |,
             <x11.window.height> * ( $offset_params->{$type} / 100 )
-            if not defined <ticker.font.y-offset>
+            if not defined $data{'ticker'}{'font'}{'y-offset'}
             and exists $offset_params->{$type};
 
         $loaded_matching = TRUE if not $loaded_matching;
@@ -31,8 +33,8 @@ if ( exists <ticker.font.known_offsets>->{<ticker.font.name>} ) {
 
 return $loaded_matching;
 
-#,,.,,,,,,,.,,.,.,,..,.,.,,.,,..,,...,...,.,.,..,,...,...,...,...,.,.,..,,.,,,
-#NY55GW45J44ZV2YHNU3EORDU37WTRFZM4O4TBMJDSYPMN6AGD4G3XEY2CC3HZIX6GKXVJYTS46RKS
-#\\\|Y6BRRLDNQ6ZFMLJOAYAXSHIWGINH3RZKPTEU7DP4D2I4S4T7IV3 \ / AMOS7 \ YOURUM ::
-#\[7]VH6AOTG73WKD7TCH4FYTGSWSCMVQV2PICV4TY2F6APGRZ4I32CDY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,,,.,.,,,,..,.,,,,,.,...,..,,..,,...,.,.,...,.,.,.,,,..,,.,,,
+#JQMHQ6KKCXNXH27S66TA5JSORQ34JX6Z46BDRZXQFR3PUQEXAMPCDKSTVAHTWI5MMODQH4U2CDGKW
+#\\\|6QIQGWWRLG67YR3AJHMIXPS3VGWKUHZFSK42BIFLVHHIO2HRBTB \ / AMOS7 \ YOURUM ::
+#\[7]WPK7UPH2ILO6BG6PU6HUKNX3MZXBNGVPQFL2ULYPP57WHNTLBKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
