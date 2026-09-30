@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-**state [ 2026-09-30 ~19:30 ]** : working tree clean, last commit 163b96906.
+**state [ 2026-09-30 ~20:00 ]** : last commit 585e6ea2d.
 invoke.ai rendering [ start_paused = startup ], coding zenka can
 run next to it [ Qwen3.8-9B -ngl 27 + invoke.ai fit, critical pressure but
 stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
@@ -90,7 +90,20 @@ to convert : data/tasks/bin-protocol-7-main-subs-to-modules.md
   pass max_budget ~15 for opus ]
 - db85bb9ad multi-word qw ; 6c6b7b760 format-code .chk. out of src
 
+**done ~19:30-20:00** : task files from design docs [ research-first ] --
+v7-zenki-hot-self-restart, signed-command-interface, authorization-buffer,
+nested-cube-network-segmentation, dream-idle-generation-first-step,
+repo-pii-leak-prevention, zenka-hybrid-startup-followups. session \ work
+start.cfg removed [ 585e6ea2d -- console-only zenki have NO start.cfg,
+that is the marker ; user rule ]
+
 **open, in this order** :
+0. zenki whose start.cfg was REMOVED keep their v7-zenki entries after a
+   reload [ `list dependency` still shows session \ work ] :
+   `init_start_setup` resets config only for zenki still present, the
+   chain rebuild then recreates them. fix : drop config \ setup \
+   dependency entries of vanished zenki on reload [ v7-zenki-start-setup-
+   runtime-reload.md ] -- clears on a v7-zenki restart meanwhile
 1. NOT yet seen live : heartbeat race branch [ level 2 "session gone" ],
    pressure gates [ next critical episode ], keep-children on a real
    invoke.ai crash, `p7c invoke-web.fetch-missing <model>`
@@ -105,8 +118,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,..,.,,,.,.,.,,,,,,,.,,,,,,,,,.,,.,,...,,..,..,,...,...,.,.,.,.,...,,,,,.,,,
-#HVAHHCSY33FYT2DSU3AS3AKVQBZD45UCIK32DUC2ZAMDN6PU5WUFE373X2SEODFKXLUHI3OCRYRCE
-#\\\|RRQPWI4RIJWAKUGLRMBYY5AJS2V5KI36RQGOQ55B5IR7VAGAIAR \ / AMOS7 \ YOURUM ::
-#\[7]UKKEZXK2U4SXFLQAWSTB667STZQ65YKAOV5E4JR3QBH6XZZPJCDI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,...,.,,,.,,,,..,,,,,..,,...,..,,...,...,.,,,,..,,.,,,.,,...,
+#AUI4DUAFGF2BGDJ3PIYFWETZG5FVC63RIQ4QY3C6NJSODY5QU4C5BSADZ3TFAZEK7K6E76TPJ2FXQ
+#\\\|U63KTMSDNPARLVMYB2JWICMNIBQIOGGQ5MLKWIH6HCWYM3IYSRS \ / AMOS7 \ YOURUM ::
+#\[7]RIXJVORKIIJPMMXNF36KKO3UPUN7X6SN4TMKPPMVAOC3H7OM3ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

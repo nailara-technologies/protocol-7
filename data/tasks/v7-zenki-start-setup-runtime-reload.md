@@ -59,6 +59,15 @@ zenki flagged -> "registering 3 ondemand zenki at cube", no restart ].
 still open from the goal below : a log line per changed zenka, zenki removed from cfg [ see
 zenki-ondemand-config-consistency.md ].
 
+seen 2026-09-30 ~20:00 : after removing session \ work start.cfg + a
+reload, `list dependency` still lists both. `init_start_setup` resets
+`<v7-zenki.start_setup.zenki.config>` only for zenki it finds, so the
+removed ones keep their old config, and `set_up_zenka_dependencies`
+rebuilds their chains from it. fix : on reload, zenki in
+`$removed_all_ref` [ v7-zenki.post_init ] lose their config, setup
+entry and dependency object \ chain -- unless an instance is running
+[ then keep until it ends ].
+
 ## goal
 
 a runtime reload of the start setups -- e.g. `p7c v7-zenki.reload-start-setup
@@ -78,8 +87,8 @@ on mod-test [ the free test zenka ] : change a key in its start.cfg, reload,
 check `p7c v7-zenki.list dependency mod-test` and the behavior at the next
 mod-test start -- without a v7-zenki restart.
 
-#,,,.,,.,,,..,.,.,...,...,.,.,,..,.,,,.,,,,,.,..,,...,...,.,.,,.,,.,.,,.,,.,.,
-#6S6IKBUF6URSCEADIEECB33FXWWXBXK2FZMQXJKDUY3X67ZDCG36KFWBX3DLF3D46AI3I3V6HRK24
-#\\\|STXMK44LYKLFOQ7JQNZIWRB5MWLP27QFS7X4B6V5IQHWNZ7D3JZ \ / AMOS7 \ YOURUM ::
-#\[7]BTVAFBK3IQP5D5YAFQ2XAX7LBLBC7IWQCWDMUHTOAB3VMOIHJWCA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,.,...,,..,,.,,,,.,...,,,,,,,,,..,,...,...,...,...,...,...,,,,,
+#Z3UFYQAOOATLDCTS5VOJJ5JE6ABDCG4H43TVOXK6PLLYRKWGZF325NG6PZKSNQ7IIAURFM2AJA4GC
+#\\\|P6TEOJHAPGK47KKCSCIGRVDE2QE5COU2N23725VQZAWGXYAIMPD \ / AMOS7 \ YOURUM ::
+#\[7]4WL5YH7H4UVNVD3CKDP3QHLOFVMKERUF4WG26UAWFJ46WNHELWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
