@@ -1,6 +1,7 @@
 # p7 syntax translator : quote-like operators inside data keys
 
-found by kimi [ 2026-09-30, legacy strict fixes ]. not fixed.
+found by kimi [ 2026-09-30, legacy strict fixes ]. fixed 62f67700f [ both
+copies, `inside_key_chain` ; ticker sugar restored ].
 
 ## the bug
 
@@ -46,8 +47,8 @@ key before adding a look-behind.
 - `bin/format-code -c` on all of src/ reports no new errors
 - after the fix, `ticker.load_font_offsets_table` may go back to the sugar form
 
-#,,,.,,..,.,,,.,.,.,,,,.,,.,,,,,,,,,.,,..,...,..,,...,...,.,,,.,,,.,.,,.,,..,,
-#7724JCLCV7KO2E3ZJS5PB6ZNBDQNNWEHPJ5ZEJY22IWXKE6WFU4VQYWYKPYL22VO4DVOGDIOM5IDW
-#\\\|OGYYODUG2CMBQPS5H3FVMM5W5DNATEO6WHOUTBIC4ZSSVTYC35I \ / AMOS7 \ YOURUM ::
-#\[7]N7OM2JGEL55OIIKX2ZBVIKUF5ZGMJVROHAWMJ4E3M73ULW2INCBY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,,,,,.,,,,..,.,.,,.,,.,.,,,,,..,,...,...,,,,,,.,,.,,,.,,,,..,
+#ELHPDCIXN5PBTT7ZNGOP3WLTPXGMGNXQF6OQU3FWMC2SVJ2X6HTWL2ZRITZFAPAPMIUZJNH2TPGLM
+#\\\|DBQCEKX2HPZAK4YXSJ5YQNSNRPRJCJ2ALIR4ITQ37SFEKZLAIWX \ / AMOS7 \ YOURUM ::
+#\[7]LGIGVZSHYD3KMPCYJTQ2QQF5K2VOY4TUW6VI7QDND7JCQ54LJOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
