@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Space Engine Grid · Protocol-7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #06050f;
+    --hud: #8aa4c2;
+    --hud-dim: #3d4a66;
+    --hud-line: #161a2e;
+    --axis: #1a1f3a;
+  }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--hud);
+    font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  #stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #scaler {
+    width: 1200px; height: 900px;
+    position: relative;
+    transform-origin: center center;
+  }
+  svg.grid {
+    width: 1200px; height: 900px;
+    display: block;
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 45%, #0d0a26 0%, #08071a 45%, #04030f 100%);
+  }
+  .hud {
+    position: absolute;
+    color: var(--hud);
+    font-size: 10.5px;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    user-select: none;
+    text-transform: lowercase;
+    opacity: 0.85;
+  }
+  .hud .k { color: var(--hud-dim); }
+  .hud .v { color: #b8c8e0; }
+  .hud .accent { color: #6ad0ff; }
+  .hud .warn   { color: #e9c875; }
+  .hud .v-strong { color: #cfe3ff; }
+  .hud-block { padding: 9px 13px; border: 1px solid var(--hud-line); background: rgba(8,7,22,0.45); backdrop-filter: blur(2px); }
+  .hud-block .title { font-size: 8.5px; letter-spacing: 0.22em; color: var(--hud-dim); margin-bottom: 6px; }
+  .hud-block .row { display: flex; justify-content: space-between; gap: 22px; }
+  .corner-tl { top: 28px; left: 28px; min-width: 260px; }
+  .corner-tr { top: 28px; right: 28px; min-width: 240px; text-align: right; }
+  .corner-bl { bottom: 28px; left: 28px; min-width: 240px; }
+  .corner-br { bottom: 28px; right: 28px; min-width: 280px; }
+
+  /* corner brackets */
+  .bracket { position: absolute; width: 18px; height: 18px; border: 1px solid #1a1d36; pointer-events: none; opacity: 0.7; }
+  .bracket.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+  .bracket.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+  .bracket.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+  .bracket.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+  .legend-row { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .legend-row .sym { color: var(--hud); font-size: 14px; line-height: 1; }
+
+  /* Darksun pulse */
+  @keyframes darksunPulse {
+    0%, 100% { opacity: 0.82; }
+    50%      { opacity: 1.0; }
+  }
+  @keyframes irisShimmer {
+    0%, 100% { opacity: 0.42; }
+    50%      { opacity: 0.62; }
+  }
+  .darksun-core { animation: darksunPulse 4.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  .iris-active { animation: irisShimmer 6s ease-in-out infinite; }
+
+  /* node interactions */
+  .node { cursor: crosshair; transition: filter 120ms ease-out; }
+  .node-hit { fill: transparent; stroke: transparent; }
+  .node-glyph { transition: filter 160ms ease; }
+  .node.hover .node-glyph { filter: drop-shadow(0 0 4px currentColor); }
+  .neighbor-pulse { animation: neighborPulse 0.9s ease-out 1; transform-origin: center; transform-box: fill-box; }
+  @keyframes neighborPulse {
+    0%   { transform: scale(1); filter: drop-shadow(0 0 0 currentColor) brightness(1); }
+    35%  { transform: scale(1.55); filter: drop-shadow(0 0 6px currentColor) brightness(1.35); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0 currentColor) brightness(1); }
+  }
+
+  /* tooltip */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    /* default = sit to the left of the node; JS may flip to right for edge cases */
+    transform: translate(-100%, -50%);
+    border: 1px solid rgba(110,140,220,0.35);
+    border-radius: 10px;
+    background: rgba(8,8,28,0.62);
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+    padding: 10px 13px;
+    font-size: 10px;
+    line-height: 1.65;
+    min-width: 180px;
+    box-shadow: 0 8px 40px rgba(20,40,140,0.30), 0 0 0 0.5px rgba(150,180,255,0.10) inset;
+    z-index: 10;
+  }
+  .tooltip.flip-right { transform: translate(0%, -50%); }
+  .tooltip .id { color: #6ad0ff; letter-spacing: 0.1em; font-weight: 500; }
+  .tooltip .k { color: var(--hud-dim); text-transform: lowercase; font-size: 9px; letter-spacing: 0.15em; }
+  .tooltip .v { color: #cfe3ff; }
+  .tooltip .dom { color: #e9c875; font-weight: 700; }
+  .tooltip-arrow {
+    position: absolute;
+    right: -5px; top: 50%; transform: translateY(-50%) rotate(45deg);
+    width: 8px; height: 8px; background: rgba(8,8,28,0.62);
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+    border-top: 1px solid rgba(110,140,220,0.35);
+    border-right: 1px solid rgba(110,140,220,0.35);
+  }
+  .tooltip.flip-right .tooltip-arrow {
+    right: auto; left: -5px;
+    border-top: none; border-right: none;
+    border-bottom: 1px solid rgba(110,140,220,0.35);
+    border-left: 1px solid rgba(110,140,220,0.35);
+  }
+
+  /* faint scan/perforation along the margins */
+  .perforation {
+    position: absolute; left: 0; right: 0; height: 1px;
+    background: repeating-linear-gradient(to right, transparent 0 6px, #1a2530 6px 7px);
+    opacity: 0.35;
+  }
+  .perforation.top { top: 100px; opacity: 0.25; background: repeating-linear-gradient(to right, transparent 0 6px, #1a1d36 6px 7px); }
+  .perforation.bottom { bottom: 100px; opacity: 0.25; background: repeating-linear-gradient(to right, transparent 0 6px, #1a1d36 6px 7px); }
+  .perforation.v { top: 100px; bottom: 100px; height: auto; width: 1px; opacity: 0.25; background: repeating-linear-gradient(to bottom, transparent 0 6px, #1a1d36 6px 7px); }
+  .perforation.left { left: 100px; }
+  .perforation.right { right: 100px; }
+
+  /* label rendered text */
+  .nlabel {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 7.5px;
+    letter-spacing: 0.05em;
+    fill: #B8D4E3;
+    fill-opacity: 0.55;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* tweaks panel anchor */
+  #tweaks-mount { position: fixed; right: 16px; bottom: 16px; z-index: 50; }
+
+  /* status flicker */
+  @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0.15} }
+  .led {
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:#6ad0ff; box-shadow: 0 0 10px #6ad0ff;
+    animation: blink 1.6s steps(2,end) infinite;
+    vertical-align: 1px;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="scaler">
+      <div class="bracket tl"></div>
+      <div class="bracket tr"></div>
+      <div class="bracket bl"></div>
+      <div class="bracket br"></div>
+      <div class="perforation top"></div>
+      <div class="perforation bottom"></div>
+      <div class="perforation v left"></div>
+      <div class="perforation v right"></div>
+
+      <div id="grid-root"></div>
+
+      <div class="hud corner-tl">
+        <div class="hud-block">
+          <div class="title">[ observer · focal field ]</div>
+          <div class="row"><span class="k">focal length</span><span class="v"><span id="hud-focal">13</span></span></div>
+          <div class="row"><span class="k">max shell</span><span class="v"><span id="hud-maxshell">5</span></span></div>
+          <div class="row"><span class="k">cube group</span><span class="v">4³−1 ≡ 63</span></div>
+          <div class="row"><span class="k">visible nodes</span><span class="v accent" id="hud-visible">—</span></div>
+        </div>
+      </div>
+
+      <div class="hud corner-tr">
+        <div class="hud-block">
+          <div class="title">[ signal · index ]</div>
+          <div class="row"><span class="k">harmonic</span><span class="v">÷13 vortex</span></div>
+          <div class="row"><span class="k">frame</span><span class="v">076923 · false</span></div>
+          <div class="row"><span class="k">payload</span><span class="v warn">153846 · true</span></div>
+          <div class="row"><span class="k">link state</span><span class="v"><span class="led"></span>resolved</span></div>
+        </div>
+      </div>
+
+      <div class="hud corner-bl">
+        <div class="hud-block">
+          <div class="title">[ observer · position ]</div>
+          <div class="row"><span class="k">coord  z:y:x</span><span class="v-strong">0 : 0 : 0</span></div>
+          <div class="row"><span class="k">checksum</span><span class="v">— darksun —</span></div>
+          <div class="row"><span class="k">reach</span><span class="v">hop-1 / 63 nbrs</span></div>
+        </div>
+      </div>
+
+      <div class="hud corner-br">
+        <div class="hud-block">
+          <div class="title">[ route · legend ]</div>
+          <div class="legend-row"><span class="k">straight hop</span><span class="sym v">.</span></div>
+          <div class="legend-row"><span class="k">90° ccw turn</span><span class="sym v">,</span></div>
+          <div class="legend-row"><span class="k">sample route</span><span class="v" style="font-size:10px;letter-spacing:0.08em;">..,.,..,.</span></div>
+        </div>
+      </div>
+
+      <div id="tooltip" class="tooltip" style="display:none">
+        <div><span class="id" id="tt-id">—</span></div>
+        <div><span class="k">z:y:x</span> <span class="v" id="tt-coord">—</span></div>
+        <div><span class="k">shell</span> <span class="v" id="tt-shell">—</span></div>
+        <div><span class="k">dominant</span> <span class="dom" id="tt-dom">—</span></div>
+        <div class="tooltip-arrow"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tweaks-mount"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="engine-grid.jsx"></script>
+
+  <script>
+    // Letterbox-fit the 1200×900 stage into viewport, preserving aspect.
+    (function fit() {
+      const el = document.getElementById('scaler');
+      function update() {
+        const sx = window.innerWidth / 1200;
+        const sy = window.innerHeight / 900;
+        const s = Math.min(sx, sy);
+        el.style.transform = `scale(${s})`;
+      }
+      window.addEventListener('resize', update);
+      update();
+    })();
+  </script>
+</body>
+</html>
