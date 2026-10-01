@@ -7,10 +7,12 @@
 
 my $json = <[format.json.encode]>->( <invoke-web.missing_at_render> // {} );
 
-return <[file.zenka_dir.write]>->( 'state/missing-at-render', \$json );
+return <[file.zenka_dir.write]>->(
+    <[invoke-web.state_name]>->('missing-at-render'), \$json
+);
 
-#,,,.,,,.,,,.,..,,,.,,,.,,.,,,,,.,.,.,,,,,...,..,,...,...,.,.,..,,..,,.,,,,..,
-#XXYUCNHCD42KGNOXPXPLCHRODADCLJ7STKJQO6FVXS6NRVJKA35R5SPAVH7XWVGEPSTZST564GIQK
-#\\\|G5DD2I77WLBIWMYYFOFPMXPRKYO56HQ6RYQONPO4LGPHOK5E6T5 \ / AMOS7 \ YOURUM ::
-#\[7]YLQJGPLSCKUHM4HWRGTIP2VL42QHT2BJFWIDP3EPGPGWROVBX2CI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,,..,,,.,,,,,.,,,,..,.,,,.,,,..,,...,...,..,,.,.,.,.,..,,,..,
+#3IVGZPRYUTS5WHG5RWP4U2RFZW6TCI6RULPPWZ4FC3DF57OVO7C6LMQOOIQHECULKLBJWXIVAFF6Y
+#\\\|LRVCVQZOJ2NTS6BHCAEE4N756YKJBOKCAC565DTH4G5VQ7F4MZP \ / AMOS7 \ YOURUM ::
+#\[7]VK5HHQWEJEYPVB23G4LMQ5KBIEIRMPYHU6EG5K2ECWD3WVXUZ4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
