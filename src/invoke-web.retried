@@ -10,21 +10,23 @@
 
 my $add = shift;
 
-my $saved = <[file.zenka_dir.load]>->('state/retried-items');
-my @ids   = grep {m|^\d+$|} split m|\n|, defined $saved ? $saved->$* : '';
+my $saved = <[file.zenka_dir.load]>
+    ->( <[invoke-web.state_name]>->('retried-items') );
+my @ids = grep {m|^\d+$|} split m|\n|, defined $saved ? $saved->$* : '';
 
 if ( defined $add and ref $add eq qw| ARRAY | and @$add ) {
     push @ids, grep {m|^\d+$|} @$add;
     @ids = @ids[ -20000 .. -1 ] if @ids > 20000;
     <[file.zenka_dir.write]>->(
-        'state/retried-items', \join( "\n", @ids, '' )
+        <[invoke-web.state_name]>->('retried-items'),
+        \join( "\n", @ids, '' )
     );
 }
 
 return { map { $ARG => 1 } @ids };
 
-#,,,,,,..,,,,,.,.,.,.,..,,,,,,,,,,,,.,.,,,.,.,..,,...,...,...,,,,,.,.,,,,,,..,
-#477PI6YWOD6JYUC2VUPBNTIIB6DUK7QTSZ33COBDBLHC6K5IVVXM6GTNENVLDYADST4YDIK6IQ5PO
-#\\\|QN4ZWZ22WMWJ42JFKB7VJPMIY3J2C55UCXQPBFA62CDA762W46T \ / AMOS7 \ YOURUM ::
-#\[7]OLRWGSKM5XT44JMVIBQYPXQEBA3USP6IEINZFFJOM34JSM2YKYCY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,...,,.,,..,,,..,,..,..,,,.,,..,,...,..,,,..,,,,,,..,,,,,,,,,
+#B5JW5OVVH2TCOW7Q6KNF6WTQJSTIXOSGMWZQPG44GKG52XT3L23CXF2TRNXQD754SGPHT3COLGNVK
+#\\\|R4NSYMH737J3TTA6BEPXN5YYPCST2KPX6BAQK73ZKLM6CMBFNYF \ / AMOS7 \ YOURUM ::
+#\[7]AOU3DVKC6NIBBUCW6K6CNNJBKCWUHEZFJI7XYHVBOJIAFPDXRSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

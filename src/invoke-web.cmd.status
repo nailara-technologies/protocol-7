@@ -25,6 +25,11 @@ if ( defined <invoke-web.start_time> ) {
 my $out = sprintf "status : %s%s\npid    : %s\nurl    : %s\n",
     $status, $uptime, $pid, $url;
 
+## the active install, once variants are configured [ invoke-web.variant ] ##
+$out .= sprintf "install: %s [ %s ]\n", <invoke-web.variant_active>,
+    <invoke-web.root> // '?'
+    if keys( ( <invoke-web.variant_set> // {} )->%* ) > 1;
+
 ## a queued start waiting for the memory guard [ invoke-web.cmd.start ] ##
 if ( defined <invoke-web.start_waiting> ) {
     my $mem = <[invoke-web.memory_free]>;
@@ -55,8 +60,8 @@ if ( my $err = <invoke-web.last_error> ) {
 
 return { mode => qw| size |, data => $out };
 
-#,,,,,,.,,,.,,..,,...,,..,,,.,,,,,,,,,..,,.,.,..,,...,...,..,,.,,,,,.,,.,,,..,
-#7I7ZS7NMOGHRBY2FXDNDN7KT2AGEQAD22C57M6LYH4UT7BZSNFC3TL3UYT3H3FBJMQ2KZ35BVIMLO
-#\\\|QHYCRI7QRZO2LKOXBIOM4PY4OHPJ5HW5N7FEVUVQZCH6PNWYJMD \ / AMOS7 \ YOURUM ::
-#\[7]ADOGXTYC736D7PUQALTZB7PESL3YUGJHZJMAHNZA5AZ6MDXAGIAA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,...,.,,,..,,.,.,...,...,,.,,..,,...,...,,,,,,..,...,..,,...,
+#5RDSDLAXRCSSJE3TMCUEO5GMQBJWF6X4KIG5JTF6CYCZ67N5TZUYM5XQ33BVJ3YSKNLVLDMFNEY4Y
+#\\\|FD7IIOKS2Q57OD2XAP43LR5KZEIEGLZJBKEWDYNDAMOWXIWVRH6 \ / AMOS7 \ YOURUM ::
+#\[7]X72Y6BXUXPVTGFJHJZHHFZMVU3NFKJFNH3JVLBRUV3JNJHSJ3CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

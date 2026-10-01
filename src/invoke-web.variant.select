@@ -1,0 +1,44 @@
+## [:< ##
+
+# name   = invoke-web.variant.select
+# descr  = switch to another invoke.ai install [ variant ] and remember it
+#          for the next zenka start [ state/variant ]
+# param  = variant name
+# return = ( TRUE | FALSE, message )
+# note   = refused while invoke.ai runs or a start waits : the running
+#          process belongs to the active install [ same port, its own db ]
+
+my $name = shift                    // '';
+my $set  = <invoke-web.variant_set> // {};
+
+return ( FALSE, sprintf 'unknown install [ %s ] -- known : %s',
+    $name, join ' ', sort keys %$set )
+    if not exists $set->{$name};
+
+my $active = <invoke-web.variant_active> // qw| default |;
+return ( TRUE, "install $name already active\n" ) if $name eq $active;
+
+my $status = <invoke-web.status> // 'idle';
+my $alive  = defined <invoke-web.pid>
+    && <[invoke-web.is_alive]>->(<invoke-web.pid>);
+return ( FALSE, sprintf 'invoke.ai is %s [ install %s ] : stop it first',
+    $status, $active )
+    if $alive
+    or $status eq 'starting'
+    or $status eq 'running'
+    or defined <invoke-web.start_waiting>;
+
+return ( FALSE, "install $name : invoke-web binary not usable\n" )
+    if not $set->{$name}->{'ok'};
+
+<[invoke-web.variant.apply]>->($name);
+<[file.zenka_dir.write]>->( 'state/variant', \"$name\n" );
+<[base.logs]>->( 1, 'invoke.ai install switched : %s -> %s', $active, $name );
+
+return ( TRUE, sprintf "install %s active [ was %s ]\n", $name, $active );
+
+#,,.,,..,,,.,,...,.,.,,,.,,.,,,,,,,,,,...,.,.,..,,...,...,...,.,,,,,.,...,.,.,
+#MSQXPBL6LY4ZXTCVV7FCET3WDMTMY4UCQGOR3ZZ5POLCPUAFUASY2ECSBFLQMUKWMKH3XFK7N63QM
+#\\\|FLP3AUNVM5QMJQTMWSWKGLXGSBI4RHRYLSSMJESDBDZCJMGVZMI \ / AMOS7 \ YOURUM ::
+#\[7]I542EBF6LO24BYDGH5OL5RDFL5LRY2UA5Q5NACMVOK4B6LISDUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

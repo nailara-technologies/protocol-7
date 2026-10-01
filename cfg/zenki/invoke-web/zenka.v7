@@ -8,6 +8,15 @@
 invoke-web.run_user = <system.admin-user>
 system.zenka-user.current = <invoke-web.run_user>   ## <-- not 'protocol-7' ##
 
+##  invoke.ai installs besides the main one [ variants ] : env = conda env  ##
+##  below the run user's miniconda3, root = invoke.ai root dir relative to  ##
+##  the run user's home. one runs at a time [ same port ] ; `variant` lists ##
+##  \ switches, `start <name>` switches + starts. a variant has its OWN db, ##
+##  models and outputs -- never point root at the main install's           ##
+invoke-web.variants.qwen21.env   = invokeai-qwen21
+invoke-web.variants.qwen21.root  = .invokeai-qwen21
+invoke-web.variants.qwen21.descr = qwen-image 2.1 fork by krakotay
+
 ##  queue at an invoke.ai start [ its processor starts resumed ] : yes =  ##
 ##  paused until resume ; startup = paused only while starting, resumed  ##
 ##  after it ; no = untouched                                            ##
@@ -62,7 +71,7 @@ heartbeat.disabled = 1
 access.cmd.usr.cube = heart verify-instance commands reload \
                       show-buffer list buffer-erase buffer-erase-level \
                       show-access \
-                      start stop restart status health log \
+                      start stop restart status health log variant \
                       pause resume queue queue-order \
                       queue-interactive queue-front \
                       model-source fetch-missing requeue requeue-failed \
@@ -92,8 +101,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
 
 [zenka.loop]
 
-#,,.,,...,,,.,.,.,.,.,,,,,,.,,,..,..,,.,.,..,,..,,...,...,,,.,.,.,.,.,,.,,,,,,
-#YOK5ZM4F4UUFZZNBZABOVN7AZTYWYL7Y37I35HKHUSXGM7PCQHUOK4NOHJATBBNES5JUOB4CCCO7W
-#\\\|DPUJIXOY77QF3UDAZAGYTMAYES6SKSPE3WLL7N7XPCWDOOJMNVX \ / AMOS7 \ YOURUM ::
-#\[7]C5UZYLBZIFYPR2CC5MQADEA2V6KHZTOCOV7DPPBKF5HYMY7XTCAA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,.,.,,.,,,,,,...,,..,,.,,.,,,..,,...,..,,...,...,,,,,,,.,,..,
+#PJHO7CWEIHINCWSHDIG2F3BLB4GUZ65JWLHZDWOE6WAVXDOVSD2DDFPAMONEMZ664HYIESTBBKEC2
+#\\\|RGPFML5OCWKAJITSOOBYU4LTMGH3CVPTLYE3EDOLSVCJGBGBPEQ \ / AMOS7 \ YOURUM ::
+#\[7]TSVYHAPZJ6ZH7TX5Z22WMJRVVY6B2HYSONR3RDNLTFL7BJFROGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

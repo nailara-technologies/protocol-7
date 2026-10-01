@@ -17,6 +17,13 @@ if ( $status eq 'running' or $status eq 'starting' ) {
     };
 }
 
+## an install name selects that install first [ start qwen21 ] ##
+my ($install) = grep { $ARG ne qw| force | } split ' ', $call->{'args'} // '';
+if ( defined $install ) {
+    my ( $ok, $msg ) = <[invoke-web.variant.select]>->($install);
+    return { mode => qw| false |, data => $msg } if not $ok;
+}
+
 my $binary = <invoke-web.binary>;
 my $root   = <invoke-web.root>;
 
@@ -202,8 +209,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,.,,.,.,,,,,,,,,.,,,.,.,..,,,,.,.,,,,..,..,,..,,...,..,,,,.,.,.,,.,,,,.,.,.,
-#BKADE7HE2FEZ45CWPAQDMNVMHQCK6QGGD2E6VJD2DNCXYIXDFS7PRZPDMI4XOJO6AG24DRQBQVBQW
-#\\\|U57KAWBGJPGQLFAXULUSM5ZLZL6YHST62GNKZNOVNC6BHNQXDAX \ / AMOS7 \ YOURUM ::
-#\[7]A2WSV52N4TXASALDCNX5LB5PERCXTMXL3RIKFYQNAUWCTYSTS4DI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,,,.,,,.,,.,,.,.,..,,,.,,...,..,,...,...,,.,,,,,,,.,,..,,.,.,
+#4DNOR4O65OQM42Z6UR3HI5KT32SCUTRME6IBEMFPPDE7CIHJD2GIDKYX6SDO4LRMKWFWMVQSNT5NQ
+#\\\|PKCUR2ZWLGIMD7QFWSVM6BQ2YCQSC7BTCUOEXIYR6XG64RSHQJZ \ / AMOS7 \ YOURUM ::
+#\[7]O7A5DLBDBQFCLX4SUHMYH46O46NLOCY4F37DTXY4ZXBVJ3JQS2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
