@@ -37,7 +37,9 @@ if ( not defined $released ) {
 }
 
 $released += 0;
-<[file.zenka_dir.unlink_file]>->( 'state/held-items', TRUE );
+<[file.zenka_dir.unlink_file]>->(
+    <[invoke-web.state_name]>->('held-items'), TRUE
+);
 <[base.logs]>->(
     1,         'queue : %d held item%s released',
     $released, $released == 1 ? '' : 's'
@@ -45,8 +47,8 @@ $released += 0;
 
 return $released;
 
-#,,.,,,.,,..,,,,,,.,,,,,,,,..,..,,.,,,,,.,.,.,..,,...,...,,..,,..,,..,.,,,..,,
-#CFNBQGXNQQPS5EPN5BJG2CYS4KSFAMPKBWIUY6AXMOC2ZPQFSU23QVDRHYA7J2PE5SDYRAKJCWWII
-#\\\|RQYRJ55J65L4V5THKROV6I3MCC63UW6HTLPU2BJHBABXQMTVT4M \ / AMOS7 \ YOURUM ::
-#\[7]6BMYBZ73LCT6Y6AET6ZV7PDVPZUCBM4SNKYZYKVYY4BS3ITYB4CI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,.,,..,,.,,,.,,..,,,,.,,..,,,,,..,,...,..,,.,,,.,.,,.,,,,.,..,,
+#MN5PTVHCQDUSK3XB5JLQHQ6KNRXGBSQYVB53UPMQI62VKYSFLBOTJVDTS2O6MCX2MMG3REP56BPPE
+#\\\|6DINC5UH676YIZ6RPB4LORRDXXDKWUMV34M5HBLUSBLMGCZMYEF \ / AMOS7 \ YOURUM ::
+#\[7]I5MPRX2CJ5TQZYC6GB2EKMKDOXT7TCENOBXPYXBYLJVQFYYO6CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

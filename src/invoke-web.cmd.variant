@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = invoke-web.cmd.variant
+# descr = list or switch the invoke.ai installs [ variants ]
+# param = [ variant name ]
+
+my $want = ( $call->{'args'} // '' ) =~ s{^\s+|\s+$}{}gr;
+
+if ( length $want ) {
+    my ( $ok, $msg ) = <[invoke-web.variant.select]>->($want);
+    return { mode => $ok ? qw| size | : qw| false |, data => $msg };
+}
+
+my $set    = <invoke-web.variant_set>    // {};
+my $active = <invoke-web.variant_active> // qw| default |;
+my $out    = '';
+
+## the main install first ##
+my @names = ( qw| default |, sort grep { $ARG ne qw| default | } keys %$set );
+foreach my $name (@names) {
+    my $variant = $set->{$name};
+    $out .= sprintf "%s %-10s %s\n%13s root   : %s\n",
+        $name eq $active ? '*' : ' ',
+        $name,
+        $variant->{'descr'} // '',
+        '', $variant->{'root'} // '?';
+    $out .= sprintf "%13s binary : %s%s\n", '', $variant->{'binary'} // '?',
+        $variant->{'ok'} ? '' : ' [ not usable ]';
+}
+
+return { mode => qw| size |, data => $out };
+
+#,,,,,,.,,.,.,..,,,.,,,,,,,,.,,,.,...,,..,..,,..,,...,...,,,,,.,,,,.,,,,,,.,.,
+#V5Y6V5HOLZGFY7YI7MZMI3VFKTWSTK6HRVGLQHSYGYM66OSY4JY7EW6XVPNAT6SH3SLIZSQWNXBZI
+#\\\|ZKHNE23IQE6TOPC3HIE4BUIPKTBDYIVFUJLG6HS4JY3ADWHP33R \ / AMOS7 \ YOURUM ::
+#\[7]7JUBBZZM5XE3FZ4GFN4KHELL53C7EVRMZJBPIC4H4IS44FFQMODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

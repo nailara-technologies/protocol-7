@@ -58,8 +58,17 @@ weather css, download ] and no noise.
 `bin/dev/ptd -c` stays the simple, fast precursor : syntax only, its ok line
 reads `syntax ok [ no strict ]` -- never treat it as the final check.
 
-#,,.,,,.,,,,.,,..,,.,,,,.,,.,,..,,,,,,,..,...,..,,...,.,,,.,,,...,..,,.,.,.,,,
-#WDEEOKEV7KMXWGGHBR5V5SKNO4YK32IQ265DBOIFQMZZ3CYV2PRPYX7YT7DKZZ752L46T2BM6E4KY
-#\\\|WNILNT3WW7C3CE3P4EKCJB4KE2DGXFAQBJS26BZYDXUQCVANKJ7 \ / AMOS7 \ YOURUM ::
-#\[7]HQRCKUGP4CFWZZU2NBNBSOUKCASEKMZKOP3N5KWAVXB27VZ65WBA 7  DATA SIGNATURE ::
+**never keyword-filter format-code's output** [ 2026-10-01 ] : I grepped it
+for `syntax\|error\|warn\|strict` and saw nothing -- the real compile error
+[ `Experimental keys on scalar is now forbidden` ] contains none of those
+words, a broken init_code went live and the user had to paste it from the
+console. check instead that EVERY per-file verdict line reads `syntax
+valid` : strip ANSI, `grep "^::\[\|^    " | grep -v "syntax valid"` must
+print nothing. format-code itself caught it fine [ same perl 5.42.3 as
+bin/Protocol-7 ].
+
+#,,..,,,.,,,,,.,,,...,,..,,..,,..,.,,,,.,,,,,,..,,...,...,...,,.,,,.,,,,.,.,,,
+#S7HVSQ2K5XXTWLGX2QJV2HUVOCTX3QQTIOLDPBOZZJRGINAZZGI2LCZUS6KZOYOQJS2VXRGSMBUQ6
+#\\\|M4CC23FXPNZ4UG6GL6AF4XIGZE3BTOMWCLRX7R7GTHQHFALGGNC \ / AMOS7 \ YOURUM ::
+#\[7]2FB4N7WO4N4RKWT5EHK7FTBQ3G4USBCTS5GLA2TFV4MVJ4KQSQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

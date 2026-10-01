@@ -1,0 +1,54 @@
+## [:< ##
+
+# name   = invoke-web.variant.apply
+# descr  = make one invoke.ai install [ variant ] the active one : binary,
+#          root, models path. on a change everything bound to the previous
+#          install's database is dropped [ queue db handle, db activity
+#          watch, index cursor ] and its per-variant state read back
+# param  = variant name [ 'default' = the main install ]
+# return = TRUE | FALSE [ unknown variant ]
+# note   = no process check here : callers switch only while invoke.ai is
+#          not running [ invoke-web.variant.select ] or at init
+
+my $name    = shift                                       // qw| default |;
+my $variant = ( <invoke-web.variant_set> // {} )->{$name} // return FALSE;
+
+my $changed = ( <invoke-web.variant_active> // '' ) ne $name
+    || !defined <invoke-web.root>;
+
+<invoke-web.variant_active> = $name;
+<invoke-web.binary>         = $variant->{'binary'};
+<invoke-web.root>           = $variant->{'root'};
+<invoke-web.models_path>    = $variant->{'models'};
+<invoke-web.binary_ok>      = $variant->{'ok'};
+
+return TRUE if not $changed;
+
+## handles on the previous install's database ##
+my $dbh = delete <invoke-web.queue_dbh>;
+$dbh->disconnect if defined $dbh;
+my $watch = delete <invoke-web.activity.db_watch>;
+$watch->cancel if defined $watch and ref $watch;
+delete <invoke-web.index.cursor>;    ## a rowid of the other images table ##
+delete <invoke-web.missing_models>;
+
+## models a render failed on : item ids of this install's queue ##
+my $saved
+    = <[file.zenka_dir.load]>
+    ->( <[invoke-web.state_name]>->('missing-at-render') );
+<invoke-web.missing_at_render>
+    = ( defined $saved ? <[format.json.decode]>->( $saved->$* ) : undef )
+    // {};
+
+<[base.logs]>->(
+    2,     'invoke.ai install ' . ': %s [ %s ]',
+    $name, <invoke-web.root> // '?'
+);
+
+return TRUE;
+
+#,,,.,,..,,..,,,.,,,.,,.,,,.,,,,,,,..,..,,..,,..,,...,...,,..,,.,,,.,,...,..,,
+#YPW2GTS6YR4ALOCTZDGQTGZQIHFUPANUQ6LC4L3VH3UNQE27G25HGOEQAJTNMZS6262GDTDG7KGX6
+#\\\|PGDF3MDDXVFJSGRJO6ZRHDUW4NT3DZBSQP47LNXS3Y4AMGABC4U \ / AMOS7 \ YOURUM ::
+#\[7]RXK4QAHR4I23HG5ZYRD7JTHG56UBEB7ZGGEYEESBAH3SBYGMJEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
