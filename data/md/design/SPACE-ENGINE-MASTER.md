@@ -66,6 +66,55 @@ space.grid.vote        { coord, character }  →  add statistical vote
 AND its immediate adjacency simultaneously. two adjacent nodes share one
 arm character — adjacency is encoded in identity.
 
+**address = role** : with trit coordinates `−1 0 +1` per axis, the number of
+nonzero coordinates names the cell's role in the 3×3×3 block :
+
+```
+0 nonzero  →   1  center    C(3,0)·2⁰
+1 nonzero  →   6  faces     C(3,1)·2¹   [ 3D plus sign, 1-hop octahedron N(1)=7 ]
+2 nonzero  →  12  edges     C(3,2)·2²   [ plus + edges = 19 ]
+3 nonzero  →   8  corners   C(3,3)·2³   [ inverted 3D plus ]
+              ──
+              27 = 3³
+```
+
+**the inverted 3D plus — one shape, three roles** [ 2026-10-02 ] : 8 cells
+around a center point that is itself not a cell. the same shape at every
+scale, read three ways :
+
+```
+1  parent structure    octree node : a parent = its 8 octant children around
+                       a point [ the 2×2×2 void of the 8 × 63 = 504 group ]
+2  implosion core      all 8 corners point at the same center : convergence
+                       onto a neutral point owned by no cell [ darksun ]
+3  traveling entity    NEW : the entity's own center, origin of its own
+                       frame ; its 8 corners are its 8 possible octant
+                       directions
+```
+
+role 3 is the functional primitive : a corner `(±1 ±1 ±1)` is one sign per
+axis = **3 bits = one declared 3D direction**. lighting corner bits declares
+intent of directional movement before the move :
+
+```
+axis bits lit   meaning                         address class
+      1         move along one axis             face  [ plus arm ]
+      2         diagonal within a plane         edge
+      3         spatial diagonal into octant    corner
+```
+
+8 octants = the 8 payloads `000`–`111` of the 3+1 stream frame
+[ `topic-stream-framing-protocol` ] : a direction declaration is one frame.
+because the declaration precedes the entity, adjacent sectors can
+pre-provision the destination [ see space.travel-* ] — and because the
+entity's center has the same shape as the parent node that receives it,
+handover onto a parent is shape-compatible at every scale.
+
+```
+space.grid.intent      { node_id, octant_bits }  →  declared direction
+                        [ 3 bits ; 1-bit = face, 2-bit = edge, 3-bit = corner ]
+```
+
 connects to: `branch.space.*` calc utilities, `OBSERVER-CENTRIC-REFERENCE-SPACE.md`
 
 ---
@@ -456,8 +505,8 @@ is the darksun of the computation layer — always 0, never evicted.
 | (to write) space-engine-export-import.md | space.export-* space.import-* | pending |
 | (to write) space-engine-template.md | space.template-* | pending |
 
-#,,.,,.,.,,..,,.,,,.,,,..,.,.,..,,,.,,..,,,,,,..,,...,...,...,,.,,.,,,,,.,,,,,
-#MT23LQGVGK4ZJDK2WQ6TZLU2RQX2SQN6ZLJBMCCDH3LQCZY76262PZNFGECUIHWD7ONYXQ3NZEQW4
-#\\\|SQ3MH2B647JOVZQPFBKUCINAJ4WUOLZ4K2TPNBH75FXPI7F6SHG \ / AMOS7 \ YOURUM ::
-#\[7]KKRRQ26JSBTYJZUMWNIA3OIMYVDZVKFL7MXXCST33RJRJE2GTWBA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,,,,,.,,,,,,,.,,,,,,,..,.,.,..,,...,..,,...,.,,,,..,..,,,.,,
+#Z7FNEFHT3R3FAWJ5QQ2LKXXT2QX4HIWAB4ALXF4XV6VNN65EWACJXHVAKMPKPWSOAG2HEOKX274V4
+#\\\|GTUX4MW3CVUCNHM5KABATICFNBQABR4VOQVKGZBSGZHJ2QTUQKH \ / AMOS7 \ YOURUM ::
+#\[7]BM65H5KMHCHRGSXBEGX7OYKQET3DH5DAF2ETPCTRJ6UDSELP4MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
