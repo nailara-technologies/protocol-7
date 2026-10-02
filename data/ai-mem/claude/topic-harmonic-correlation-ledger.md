@@ -94,6 +94,21 @@ directly checkable against running code, not surface resemblance.
   unconnected once verified. Kept visible, not deleted, same discipline as
   [[feedback-esoteric-research-verification-pipeline]] — retract in place.
 
+**12 = 5 + 7 and the perfect golay code** [ 2026-10-02 ] : a network
+decision as 5 decision bits + 7 address bits = 12, +1 closing bit = 13 ;
+1 prefix + 1 trail marker per chain half = 15, forward + inverse chain = 30 ;
+2 extra read bits are the reserve of a 5-of-7 group [ 7−5 ], so they pull
+in the whole 7 -> 37 [ 999 = 27×37, 10⁶−1 = 3³·7·11·13·37 ; 37 has period 3 ].
+coding theory : the only nontrivial perfect binary codes are the hamming
+codes and the binary golay code [ tietäväinen \ van lint 1973 ]. golay
+[23,12,7] carries **12 data bits** with minimum distance **7** ; extended
+[24,12,8] distance 8 [ voyager jupiter \ saturn imaging ]. tier : the code
+parameters are fact ; 12 = 5+7 matching golay's payload is a coincidence
+until shown otherwise -- WEAK, worth a look. user's framing : the
+tightest packings are reserved for the most useful structures ; decoding
+to the nearest codeword is completion as a process, perfection as the
+current-best state.
+
 **BFT quorums over the 3×3×3 shells** [ 2026-10-02, arithmetic, checked ] :
 n participants tolerate f = ⌊(n−1)/3⌋ faulty, quorum 2f+1.
 
@@ -459,8 +474,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,.,,..,,.,.,...,.,,,.,,,,.,,,.,,,,,,.,,,..,,.,.,...,...,..,,..,,,.,,,.,,..,,
-#CL7N3ZB67MBTNYU6J5T5V2P4T6IKQGXKJPPOJZJRWGR46WXLZQUQQTXRJWB5Q4Q3JEX3FKMSN7RR6
-#\\\|BXRU5WRB2Q6RPVGXWRIYFPIHD4G3ZSSNABP6NT2AQINLIVEX5NL \ / AMOS7 \ YOURUM ::
-#\[7]GXCXLCWL2L7GPQ7OGGFYZ3LA3ZXAIMZHWAI3YCKICVJRDKEDK2DY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,.,,..,,..,,..,,,.,,,,,,,.,.,.,...,...,,.,,.,.,.,,,.,.,,.,,
+#HRECCUSM5JOVIVXAYAWLDVDXIKX3Z26V7M6KAHIW2ALXQR4GKFXGA5N4T36ZEJKFYHIN5TTSWUD6M
+#\\\|HZXL64S3IQ6SDJLKGRGWMZXAXBMYI3YUFKFLN3YH5R2ERETFLGV \ / AMOS7 \ YOURUM ::
+#\[7]MJP65EU6ERQEQ4WEXS2R25R3KOGW4DA4ZMVVJXCWQKCIVWABUADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
