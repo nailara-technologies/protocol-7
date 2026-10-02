@@ -1,0 +1,177 @@
+## [:< ##
+
+# name  = debian.log.condense
+# descr = condense raw apt-get \ dpkg output to one line per package
+# param = { lines => [ raw lines ], state => \%carry, final => 0|1 }
+#
+# pure condenser : raw apt \ dpkg output lines in, condensed lines out.
+# one condensed line per package on its 'Setting up' line :
+#   <pkg>  <old> -> <new>  <size>      [ 'new' as old for fresh installs ]
+# errors, warnings, conffile prompts and every unknown line pass through
+# verbatim - routine progress lines are dropped and counted into a single
+# summary line appended on the final chunk. the optional state hashref
+# carries partial per-package state across calls for incremental stream
+# use - pass final => 1 on the last chunk [ default when no state given ].
+
+my $args  = shift            // {};
+my $lines = $args->{'lines'} // [];
+my $state = $args->{'state'};
+my $final = $args->{'final'};
+
+return { 'mode' => 'false', 'data' => 'lines arrayref required' }
+    unless ref $lines eq qw| ARRAY |;
+
+$state = undef if defined $state and ref $state ne qw| HASH |;
+
+## self-contained call without state : flush the summary line at the end of ##
+## this call - incremental callers pass final => 1 on the last chunk        ##
+$final //= !defined $state;
+
+$state //= {
+    'pkg'         => {},
+    'order'       => [],
+    'header'      => undef,
+    'dropped'     => 0,
+    'passthrough' => 0,
+};
+
+my @out;
+
+## remember package fields, keeping earlier values unless overridden ##
+my $remember = sub {
+    my $pkg    = shift;
+    my $fields = shift // {};
+    my $rec    = $state->{'pkg'}->{$pkg} //= {};
+    push $state->{'order'}->@*, $pkg
+        unless grep { $_ eq $pkg } $state->{'order'}->@*;
+    while ( my ( $field, $value ) = each %$fields ) {
+        $rec->{$field} = $value;
+    }
+    return $rec;
+};
+
+## routine progress lines : dropped, counted into the final summary line ##
+my $routine_re
+    = qr{^(?:Reading package lists\.{3}|Building dependency tree\.{3}|Reading state information\.{3}|Solving dependencies\.{3}|Calculating upgrade\.{3}|Fetched \S|\(Reading database|Processing triggers for|Extracting templates from packages:|Selecting previously unselected package|Preparing to unpack)};
+
+##[ per-line rules ]##########################################################
+
+foreach my $raw_line (@$lines) {
+    next unless defined $raw_line;
+    my $line = $raw_line;
+    $line =~ s|\r+$||;
+
+    ## mirror fetch line : remember size per package, header line once ##
+    if ($line =~ m{^Get:(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+
+                    (\S+)\s+\[([^\]]+)\]\s*$}x
+    ) {
+        my ( undef, $url, $suite, $arch, $pkg, undef, undef, $size )
+            = @{^CAPTURE};
+        $state->{'pkg'}->{$pkg}->{'size'} = $size;
+        if ( not defined $state->{'header'} ) {
+            my $mirror = $url;
+            $mirror =~ s{^\w+://([^/]+).*}{$1};
+            $state->{'header'}
+                = sprintf 'mirror %s  suite %s  arch %s',
+                $mirror, $suite, $arch;
+        }
+        $state->{'dropped'}++;
+        next;
+    }
+
+    ## mirror cache lines : routine, dropped ##
+    if ( $line =~ m{^(?:Hit|Ign):} ) {
+        $state->{'dropped'}++;
+        next;
+    }
+
+    ## package unpack with previous version : old -> new ##
+    if ($line =~ m{^Unpacking\s+(.+?)\s+\((\S+?)\)\s+over\s+\((\S+?)\)
+                    \s+\.\.\.$}x
+    ) {
+        my ( $full, $new, $old ) = @{^CAPTURE};
+        my $pkg = $full =~ s{:.*$}{}r;
+        $remember->(
+            $pkg, { 'old' => $old, 'new' => $new, 'status' => 'upgraded' }
+        );
+        next;
+    }
+
+    ## package unpack without previous version : fresh install ##
+    if ( $line =~ m{^Unpacking\s+(.+?)\s+\((\S+?)\)\s+\.\.\.$} ) {
+        my ( $full, $new ) = @{^CAPTURE};
+        my $pkg = $full =~ s{:.*$}{}r;
+        $remember->(
+            $pkg, { 'old' => 'new', 'new' => $new, 'status' => 'installed' }
+        );
+        next;
+    }
+
+    ## package setup done : emit the single condensed line ##
+    if ( $line =~ m{^Setting up\s+(.+?)\s+\((\S+?)\)\s+\.\.\.$} ) {
+        my ( $full, $ver ) = @{^CAPTURE};
+        my $pkg = $full =~ s{:.*$}{}r;
+        my $rec = $state->{'pkg'}->{$pkg} // {};
+        next if $rec->{'emitted'};    ## duplicate setup line : emit once ##
+        my $old = $rec->{'old'} // 'new';
+        my $new = $rec->{'new'} // $ver;
+        my $size
+            = defined $rec->{'size'} && length $rec->{'size'}
+            ? $rec->{'size'}
+            : '-';
+        push @out, sprintf '%s  %s -> %s  %s', $pkg, $old, $new, $size;
+        $remember->(
+            $pkg,
+            { 'new' => $new, 'status' => $rec->{'status'} // 'installed' }
+        );
+        $state->{'pkg'}->{$pkg}->{'emitted'} = 1;
+        next;
+    }
+
+    ## routine progress lines : dropped, counted ##
+    if ( $line =~ $routine_re ) {
+        $state->{'dropped'}++;
+        next;
+    }
+
+    ## everything else passes through verbatim - errors, warnings, conffile ##
+    ## prompts, held \ removed packages, unknown lines                      ##
+    $state->{'passthrough'}++;
+    push @out, $line;
+}
+
+##[ final chunk : one summary line for the dropped routine lines ]############
+
+if ( $final and $state->{'dropped'} ) {
+    push @out,
+        sprintf '.. %d routine line%s condensed',
+        $state->{'dropped'}, $state->{'dropped'} == 1 ? '' : 's';
+    $state->{'dropped'} = 0;
+}
+
+my @packages = map {
+    my $rec = $state->{'pkg'}->{$_} // {};
+    {   'pkg'    => $_,
+        'old'    => $rec->{'old'},
+        'new'    => $rec->{'new'},
+        'size'   => $rec->{'size'},
+        'status' => $rec->{'status'} // 'pending',
+    }
+} $state->{'order'}->@*;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'header'      => $state->{'header'},
+        'lines'       => \@out,
+        'packages'    => \@packages,
+        'passthrough' => $state->{'passthrough'},
+        'state'       => $state,
+    }
+};
+
+#,,,,,..,,...,.,,,..,,.,.,.,,,.,,,,..,,..,,.,,..,,...,...,,.,,.,.,.,,,..,,...,
+#R22RL6HK4MOYVNS62D2MSOEUC6AR7EWTTEOOODULYTHAC52YR6TL2N7IEMKEBM7XMFR2T4NZHFD32
+#\\\|YJVPTP3KO3Z3GBFFE2LEBFA3233WP7OV6IS2ZWMWUHDI352OJEA \ / AMOS7 \ YOURUM ::
+#\[7]Q7BIXPEOEXSVOYUIM4YUH4IVONHG3VL5BQT4ZXGK7YCUF7DKTGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
