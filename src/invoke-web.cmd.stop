@@ -6,6 +6,33 @@
 my $pid = <invoke-web.pid>;
 
 unless ( defined $pid and <[invoke-web.is_alive]>->($pid) ) {
+
+    ## a start not spawned yet is stopped too : a pending recovery restart ##
+    ## [ crash \ cuda -- its timer finds no <invoke-web.recover> ] or a    ##
+    ## start queued by the memory guard                                    ##
+    my @dropped;
+    push @dropped, sprintf '%s recovery restart',
+        ( delete <invoke-web.recover> )->{'kind'} // '?'
+        if defined <invoke-web.recover>;
+    if ( defined <invoke-web.start_waiting> ) {
+        delete <invoke-web.start_waiting>;
+        my $guard_timer = delete <invoke-web.timer.start_guard>;
+        $guard_timer->cancel if defined $guard_timer and ref $guard_timer;
+        push @dropped, 'start waiting for memory';
+    }
+    if (@dropped) {
+        <[invoke-web.queue.release]>;
+        <[base.zenki.resume_ondemand_timeout]>;
+        <[base.logs]>->( 1, 'stop : %s canceled', join ', ', @dropped );
+        return {
+            mode => qw| size |,
+            data => sprintf(
+                "invoke.ai not started : %s canceled\n",
+                join ', ', @dropped
+            )
+        };
+    }
+
     return { mode => qw| false |, data => 'invoke.ai is not running' };
 }
 
@@ -47,8 +74,8 @@ return {
     data => sprintf( "invoke.ai stopping [pid:%d sent SIGTERM]\n", $pid )
 };
 
-#,,,,,..,,.,.,,,,,.,,,.,.,...,,..,.,.,,..,.,.,..,,...,.,.,..,,..,,.,,,...,,,.,
-#YNRBMQFUUY2L6HJ2INN2LLDE5GVBDEKPS7RAPZYITZW7NHI3ISJIOTXZAW6BOFHZXQ4TLVEEQGOP6
-#\\\|GKBGKK2PPL4LO5NPSTRLZLO3UBRHCLOQ5VYF3FYISLWKSFVTWZU \ / AMOS7 \ YOURUM ::
-#\[7]QIH7NIBM273F6XEJFDWOLJIOWLSPW5AVKBX6TOR3USOITLL3FQDY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,,,,,,.,,..,,..,,.,,.,.,,..,..,,...,...,.,,,,,.,,..,,.,,,,.,
+#5N72L5HQQ3AWTYFIWGJAZ32T7FHIXGBUZC5ZHUXZVELMATHYIA3EDC2JTYTJB4W5GPOPE4DTMFRXY
+#\\\|JBL4FSAT2CIMOUJNW2ELA4XD7PACUQKA2Y7TBEG5ZLSKLIMHFIC \ / AMOS7 \ YOURUM ::
+#\[7]E4QCF5TTA33UTZNDKK6WP3UC5JD4QK4NG7Z2244F2MXAOYPPKOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

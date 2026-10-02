@@ -54,12 +54,19 @@ $dbh->do(
 my %have = map { $ARG->[1] => TRUE }
     @{ $dbh->selectall_arrayref('PRAGMA table_info(renders)') // [] };
 my @added = (
-    [ 'models_disk',      'TEXT' ],    ## disk of the models directory ##
-    [ 'disk_read_mb',     'REAL' ],    ## read from it during the render ##
-    [ 'disk_busy_s',      'REAL' ],    ## time it was busy ##
-    [ 'disk_mb_s',        'REAL' ],    ## read throughput while busy ##
-    [ 'disk_read_lat_ms', 'REAL' ],    ## average time per read ##
-    [ 'disks',            'TEXT' ],    ## json : every disk's deltas ##
+    [ 'models_disk',        'TEXT' ],     ## disk of the models directory ##
+    [ 'disk_read_mb',       'REAL' ],     ## read from it during the render ##
+    [ 'disk_busy_s',        'REAL' ],     ## time it was busy ##
+    [ 'disk_mb_s',          'REAL' ],     ## read throughput while busy ##
+    [ 'disk_read_lat_ms',   'REAL' ],     ## average time per read ##
+    [ 'disks',              'TEXT' ],     ## json : every disk's deltas ##
+    [ 'clock_min_mhz',      'INTEGER' ],  ## gpu sm clock while rendering ##
+    [ 'clock_avg_mhz',      'INTEGER' ],
+    [ 'power_avg_w',        'REAL' ],
+    [ 'power_max_w',        'REAL' ],
+    [ 'throttle_bits',      'INTEGER' ],  ## reasons seen [ OR ] ##
+    [ 'throttle_thermal_s', 'INTEGER' ],  ## seconds thermal limited ##
+    [ 'throttle_power_s',   'INTEGER' ],  ## seconds power limited ##
 );
 foreach my $column (@added) {
     next if $have{ $column->[0] };
@@ -72,8 +79,8 @@ $dbh->do( 'CREATE INDEX IF NOT EXISTS '
 
 return <invoke-web.stats_dbh> = $dbh;
 
-#,,,,,...,,..,.,.,...,.,,,.,,,,.,,.,.,,,.,..,,..,,...,..,,.,,,...,.,,,,,.,,.,,
-#KXL46PTKMFFVW5HKRAROTTF233EWW6LMWOGKD3MFVWHNQ2AUJSFKODTRIG6NYQOAHBDR653Y6AKBM
-#\\\|MLBPNL6GX3YOBQZRODSLTLOC62KIVG7LFGV5WIFBJ5CMU6PUYFE \ / AMOS7 \ YOURUM ::
-#\[7]DUN6HJEIAYSJTRDIE3VEFMWRVUDRINBHKSQVFTSZJKZALJ75IMBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,,,,,...,.,.,,.,,.,.,...,.,.,..,,...,.,.,,,,,,.,,,..,...,.,.,
+#KPGJNKJYMUZAOBX4HCBXPC63FYUENC7KPUHSODDEFC7IXXI4QELWUB6RKT2FJSBNI54L6DLKKG47G
+#\\\|6Z7ATYC2M3W2G7CAUH5EIR4NEGGFFKXHM3MWAQY4YHFREVSJW6O \ / AMOS7 \ YOURUM ::
+#\[7]PKVCVTTCZTCAVC2VT3VF7W3RL5RZR5IYNKKI2OHUYQAOTZREOCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

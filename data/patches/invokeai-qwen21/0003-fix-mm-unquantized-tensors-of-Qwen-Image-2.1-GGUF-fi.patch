@@ -1,0 +1,63 @@
+From 2f6837480f146839b4dc5154e614979d6a2454f0 Mon Sep 17 00:00:00 2001
+From: "Taeki Ten of {[.NAiLArA:T3K`]}" <taeki.ten@protocol-7.network>
+Date: Fri, 2 Oct 2026 04:57:44 +0200
+Subject: [PATCH] fix(mm): unquantized tensors of Qwen Image 2.1 GGUF files
+
+GGUF files that keep norm and input projection weights in BF16 failed in
+the first forward pass: the 2.1 norm layers compute self.weight.float(),
+GGMLTensor refuses dtype changes, and BF16 is not in
+TORCH_COMPATIBLE_QTYPES, so those weights stayed wrapped. Replace
+unquantized GGUF tensors (F32, F16, BF16) with plain tensors in the 2.1
+GGUF load path; quantized blocks keep the GGMLTensor wrapper.
+---
+ .../load/model_loaders/qwen_image.py          | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/invokeai/backend/model_manager/load/model_loaders/qwen_image.py b/invokeai/backend/model_manager/load/model_loaders/qwen_image.py
+index 3e9c304..3d97ea1 100644
+--- a/invokeai/backend/model_manager/load/model_loaders/qwen_image.py
++++ b/invokeai/backend/model_manager/load/model_loaders/qwen_image.py
+@@ -3,6 +3,7 @@ from pathlib import Path
+ from typing import Optional
+ 
+ import accelerate
++import gguf
+ import torch
+ 
+ from invokeai.backend.model_manager.configs.base import Checkpoint_Config_Base, Diffusers_Config_Base
+@@ -171,6 +172,24 @@ def _build_qwen_image_2_1_transformer_config(sd: dict) -> dict:
+     }
+ 
+ 
++def _unwrap_unquantized_gguf_tensors(sd: dict) -> None:
++    """Replace unquantized GGUF tensors (F32, F16, BF16) with plain tensors.
++
++    Qwen Image 2.1 norm layers compute ``self.weight.float()``. A GGMLTensor refuses dtype
++    changes, and BF16 is not in TORCH_COMPATIBLE_QTYPES, so GGUF files that keep their norm and
++    input projection weights in BF16 failed in the first forward pass with "Operation changed the
++    dtype of GGMLTensor unexpectedly". Only quantized blocks need the GGMLTensor wrapper.
++    """
++    unquantized = {
++        gguf.GGMLQuantizationType.F32,
++        gguf.GGMLQuantizationType.F16,
++        gguf.GGMLQuantizationType.BF16,
++    }
++    for key, value in list(sd.items()):
++        if isinstance(value, GGMLTensor) and value._ggml_quantization_type in unquantized:
++            sd[key] = value.get_dequantized_tensor()
++
++
+ def _split_qwen_image_2_1_mlp_weights(sd: dict) -> None:
+     """Comfy-Org combines SwiGLU gate and up projections; Diffusers stores them separately."""
+     for key in [k for k in sd if isinstance(k, str) and k.endswith(".img_mlp.gate_up.weight")]:
+@@ -353,6 +372,7 @@ class QwenImageGGUFCheckpointModel(ModelLoader):
+         )
+         if is_2_1:
+             _split_qwen_image_2_1_mlp_weights(sd)
++            _unwrap_unquantized_gguf_tensors(sd)
+ 
+         with accelerate.init_empty_weights():
+             model = (
+-- 
+2.53.0
+
