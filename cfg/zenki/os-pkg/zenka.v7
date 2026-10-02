@@ -4,7 +4,10 @@
 [load_config_file:'shared-params']
 
 modules.load          = net protocol io.unix ui auth os-pkg
-access.cmd.usr.cube   = *
+## explicit command list : no wildcard, install is root-equivalent ##
+access.cmd.usr.cube   = commands heart reload verify-instance \
+                        list show-buffer buffer-erase buffer-erase-level \
+                        backend status install
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -16,8 +19,8 @@ access.cmd.usr.cube   = *
 
 [zenka.loop]
 
-#,,,,,...,,.,,..,,..,,.,,,,,,,,..,..,,...,,,.,..,,...,...,...,.,.,,,,,,..,..,,
-#5DRCNFIY5BN4QSOGQN7J74664N33YMS7B3LNY2PCPQMUUVQ6CB2YFEUI2A56NT6LVEDE7BRNAPKMY
-#\\\|OWQXBIJVQDUXMMLOT3DSUT6IYNIOODH6SFUY3N4ZS6GLVKPGHUU \ / AMOS7 \ YOURUM ::
-#\[7]3RPFAMHEY7QBPUFDBORB7EEVH225QDKAVOHPWYMVLAYNM4LIGCCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,..,,..,,..,,...,,,,,,.,,...,..,,...,..,,...,,,,,,,,,,,,,.,.,
+#AKUFEAXEEHBAMY74VSJ7T7ZGB73WCFIZZX47DSLL4YONFBQDOOIUJZ3HLZM3UV3JW77IJTSR57AZY
+#\\\|LIA5ALOZSLRC6KTDV6M7H3KH535LG43GZUIIXRO7U65QEAPUSTX \ / AMOS7 \ YOURUM ::
+#\[7]36NMTOT5TXP6WRNFK6RKIUOY4E3AQAMYHIPHIWX5WFSS4VSJO4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
