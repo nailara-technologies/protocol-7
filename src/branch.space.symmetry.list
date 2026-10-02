@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = branch.space.symmetry.list
+# descr = all 48 cube symmetries of the 3D plus axes
+# param = { }  [ no parameters ]
+#
+# every axis permutation [ 6 ] combined with every sign pattern [ 8 ]
+# gives the 48 signed permutation matrices of the cube group on the
+# z y x axis order : out[i] = signs[i] * position[ perm[i] ]
+# det +1 = the 24 proper rotations, det -1 = the 24 mirror maps
+# [ orientation on connect : apply all 48 per scale, count invariants ]
+
+my @axis_permutations = (
+    [ 0, 1, 2 ],
+    [ 0, 2, 1 ],
+    [ 1, 0, 2 ],
+    [ 1, 2, 0 ],
+    [ 2, 0, 1 ],
+    [ 2, 1, 0 ],
+);
+
+my @sign_patterns = (
+    [  1,  1,  1 ],
+    [  1,  1, -1 ],
+    [  1, -1,  1 ],
+    [  1, -1, -1 ],
+    [ -1,  1,  1 ],
+    [ -1,  1, -1 ],
+    [ -1, -1,  1 ],
+    [ -1, -1, -1 ],
+);
+
+my @symmetries;
+
+foreach my $perm (@axis_permutations) {
+    ## permutation parity from inversion count ##
+    my $inversions = 0;
+    foreach my $i ( 0 .. 2 ) {
+        foreach my $j ( $i + 1 .. 2 ) {
+            $inversions++ if $perm->[$i] > $perm->[$j];
+        }
+    }
+    my $parity = $inversions % 2 ? -1 : 1;
+    foreach my $signs (@sign_patterns) {
+        my $det = $parity;
+        $det *= $ARG foreach $signs->@*;
+        push @symmetries,
+            {
+            'perm'  => [ $perm->@* ],
+            'signs' => [ $signs->@* ],
+            'det'   => $det,
+            };
+    }
+}
+
+return {
+    'mode' => 'true',
+    'data' => { 'symmetries' => \@symmetries }
+};
+
+#,,,.,,,.,,.,,..,,..,,.,,,,..,,.,,.,.,.,,,.,,,..,,...,...,...,,,.,,,.,..,,..,,
+#AAHTY5S7WE4VV23TQ4VBAZ5KCAXC2GG735GVIAT7V6JYLGZ527HRUCTA7SHOTO2FFWL42VEMSITPW
+#\\\|2G63DFH66KDSPQWA3JJTPAA3IQI5NCVD6U65DW6J4VV4LMUWODR \ / AMOS7 \ YOURUM ::
+#\[7]AFGGC7QOG3WOLZJWAOR36NCOVYIEW3KDCU37ETBEUWUTSHBR7WAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
