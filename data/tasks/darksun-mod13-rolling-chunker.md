@@ -37,6 +37,25 @@ insert -> always the rolling window, never the prefix.
 5. compare with an established CDC baseline [ rabin \ gear hash ] on the
    same data -- report honestly where mod-13 wins or loses
 
+## status 2026-10-02
+
+stage 1 landed [ `src/base.chunk.rolling_mod`, test passes ]. stages 4-5
+first run via `bin/dev/chunk-bench` [ column `stored%` = unique bytes total, lower = better ] :
+
+- edit stability : mod-13 and gear tie at ~99.9 % ; fixed-size 13-50 %
+- dedup : gear better on every corpus [ src : 50.6 % vs 23.4 % stored at
+  avg ~5 ; md : 75.9 % vs 67.1 % ] -> mod-13 does NOT yet beat the known
+  improvement
+- text skews mod-13 averages [ 5-8 bytes instead of 13 ] ; binary matches
+  theory
+- throughput : gear ~3x faster [ both pure perl ]
+
+the run is not conclusive : chunks of 5-90 bytes are far below real dedup
+sizes [ 2-8 KB, the index alone would dominate ] and the 3-byte window is
+much shorter than established cdc windows [ 32-64 bytes ] -> likely cause
+of the text skew. next : fair rerun at ~4 KB target, window a multiple of
+the order of 256 for the chosen modulus, same corpora and edit script.
+
 ## relation
 
 existing dedup modules work on text tokens \ trees [ `index.deduplicate`,
@@ -45,8 +64,8 @@ below them. average chunk ~13 is small for storage -- larger averages via
 a larger modulus or by requiring k consecutive crossings ; measure, do not
 assume.
 
-#,,.,,,.,,,,,,,,.,,.,,..,,,..,.,,,.,.,.,.,,,,,..,,...,...,.,.,.,.,.,.,,,.,,.,,
-#422BKGRLWWTYWRIGZ7I7HYENNBX42X7J6RKTIJK24HAL7GBDP4V4YTHD7XTXOK67MZ62P5PELERTW
-#\\\|TJOSGBHLQEBCV7OJHLLV3U57IEGUGEJ5ZBK4FGF2PONYVMHEZ67 \ / AMOS7 \ YOURUM ::
-#\[7]57PZOSBPIKVTE7JLVKRXOD7IDB2OFPD7NL6ZFMZ45ORPT263KIBA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,...,...,...,,.,,...,,.,,..,,..,,...,..,,,,.,..,,,.,,,,.,.,.,
+#3AAUJORGXU3442CFRFP4IO3SSYFB37USLNMQHWHPRQNWN4QW4ELQ5FFASQXKIAKCSCPQ2RVNCYVQ4
+#\\\|6RYBBRD45SBEIOIRTSAKO5CR27EVAPHI522LMQBZLDK3NPDPT7U \ / AMOS7 \ YOURUM ::
+#\[7]YZ4UXORXTLCIIZXJA74V6FKWSQBIIJLSP4QDNS5OX4YYXOCXI2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
