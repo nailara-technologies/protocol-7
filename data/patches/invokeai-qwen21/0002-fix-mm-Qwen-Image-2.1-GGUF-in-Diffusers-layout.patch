@@ -1,0 +1,35 @@
+From c23cf2fd62d4e448c9bf91b07719f7f938adcdb7 Mon Sep 17 00:00:00 2001
+From: "Taeki Ten of {[.NAiLArA:T3K`]}" <taeki.ten@protocol-7.network>
+Date: Fri, 2 Oct 2026 04:37:57 +0200
+Subject: [PATCH 2/2] fix(mm): Qwen Image 2.1 GGUF in Diffusers layout
+
+_build_qwen_image_2_1_transformer_config read mlp_ratio only from the
+fused Comfy-Org key img_mlp.gate_up.weight. GGUF quantizations in the
+Diffusers layout store gate_layer and proj separately (the split step
+already handles both), so loading them failed with a KeyError. Read
+mlp_ratio from gate_layer when gate_up is absent.
+---
+ .../backend/model_manager/load/model_loaders/qwen_image.py | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/invokeai/backend/model_manager/load/model_loaders/qwen_image.py b/invokeai/backend/model_manager/load/model_loaders/qwen_image.py
+index 5ad4c98..3e9c304 100644
+--- a/invokeai/backend/model_manager/load/model_loaders/qwen_image.py
++++ b/invokeai/backend/model_manager/load/model_loaders/qwen_image.py
+@@ -150,7 +150,12 @@ def _build_qwen_image_2_1_transformer_config(sd: dict) -> dict:
+     head_dim = 128
+     context_in_dim = int(_shape(sd["txt_in.in_layer.weight"])[1])
+     out_channels = int(_shape(sd["proj_out.weight"])[0])
+-    mlp_ratio = int(_shape(sd["transformer_blocks.0.img_mlp.gate_up.weight"])[0]) // (2 * hidden_size)
++    if "transformer_blocks.0.img_mlp.gate_up.weight" in sd:
++        # Comfy-Org layout: fused gate + up projection
++        mlp_ratio = int(_shape(sd["transformer_blocks.0.img_mlp.gate_up.weight"])[0]) // (2 * hidden_size)
++    else:
++        # Diffusers layout: separate gate_layer and proj (e.g. community GGUF quantizations)
++        mlp_ratio = int(_shape(sd["transformer_blocks.0.img_mlp.gate_layer.weight"])[0]) // hidden_size
+     return {
+         "patch_size": 1,
+         "in_channels": in_channels,
+-- 
+2.53.0
+
