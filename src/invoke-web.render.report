@@ -8,6 +8,15 @@
 my $render = shift               // return;
 my $result = $render->{'result'} // qw| suspicious |;
 
+## render statistics row : every outcome, the result is final here [ out of ##
+## the output handler : it reads the queue db ]                             ##
+<[event.add_timer]>->(
+    {   'after'   => 0.2,
+        'handler' => qw| invoke-web.handler.stats_record |,
+        'data'    => { 'render' => $render },
+    }
+) if defined $render->{'session'} and not $render->{'stats_armed'}++;
+
 if ( $result ne qw| done | ) {
     <[base.logs]>->(
         0, 'render %s [ item %s%s ]',
@@ -27,8 +36,8 @@ if ( $result ne qw| done | ) {
     $render->{'stats'}->{'VRAM in use'}                  // '?'
 );
 
-#,,,.,...,,,,,...,,,.,..,,.,.,.,,,.,,,...,,,.,..,,...,...,,,.,.,,,,,.,,,,,,..,
-#WD4F2BSFG4UU7ZSFHWEJVJ4G6RVQDAX6VDXSY4GZNUQJKIKROZKHDHMJPQ444LJEHWGKZ47Y6R6BS
-#\\\|XJT3ZXIKXE5X233JLMBTCFU7Z5BQHP2X6SMFVXCACCFYBTTAQUT \ / AMOS7 \ YOURUM ::
-#\[7]6NYUZ26PD3WUJRP5QADNNQQPNOTXWRI4D7223XZGK5ZZOVFCGSDY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,,,,,,.,,,,.,...,..,,.,.,...,..,,...,...,,.,,.,,,.,,,,.,,,..,
+#HLEAJIHM3TO4WEDUADM5H4UOKOZJRLTAX2LDHKE6YZDMF5MYPDYQCTADEPZPV5366DE7MTNO6OACY
+#\\\|2QS4R6MH66EQQNMQSRWOFSD62N4JWHF2XOCQU3RLJ5EJTIC3P7A \ / AMOS7 \ YOURUM ::
+#\[7]TEGSWN6PFG6PKN7M2RP22ROIRDWQ2RR6QEFSXLBWBNMRUDZVAUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
