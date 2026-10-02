@@ -1,21 +1,26 @@
 ## [:< ##
 
 # name   = invoke-web.stats.gpu_subscribe
-# descr  = gpu temperature feed for the render statistics : STRM
-#          subscription to X-11's 'temp' metric [ X-11.gpu_metric ]
+# descr  = gpu feeds for the render statistics : STRM subscriptions to
+#          X-11's metrics [ X-11.gpu_metric : temp, clock, power, throttle ]
 # return = TRUE [ live or requested ] | FALSE
-# note   = lazy : called at every render start, does nothing while the feed
-#          is live or a request is pending. no X-11 session : v7-zenki
-#          starts it [ notify_online ':start:' ], then a retry subscribes by
-#          sid [ bare X-11 names would fan out to every instance ]. the open stream keeps X-11 from its idle
-#          shutdown -- it ends with this zenka's session [ invoke-web idles
-#          out after invoke.ai stopped ]
+# note   = lazy : called at every render start, subscribes only the metrics
+#          not live [ no sample for 15s ] while no request is pending. no
+#          X-11 session : v7-zenki starts it [ notify_online ':start:' ],
+#          then a retry subscribes by sid [ bare X-11 names would fan out
+#          to every instance ]. open streams keep X-11 from its idle
+#          shutdown -- they end with this zenka's session [ invoke-web
+#          idles out after invoke.ai stopped ]
 
 my $feed = <invoke-web.gpu_feed> //= {};
 my $now  = <[base.time]>->(3);
 
-return TRUE
-    if defined $feed->{'updated_at'} and $now - $feed->{'updated_at'} < 15;
+my @stale = grep {
+    not defined $feed->{'live'}->{$ARG}
+        or $now - $feed->{'live'}->{$ARG} >= 15
+} qw| temp clock power throttle |;
+
+return TRUE if not @stale;
 return TRUE
     if defined $feed->{'pending'} and $now - $feed->{'pending'} < 30;
 
@@ -27,15 +32,18 @@ $feed->{'pending'} = $now;
         my $sid = shift;
 
         if ( defined $sid ) {
-            <[protocol-7.route-send]>->(
-                {   'command'   => "$sid.gpu_metric",
-                    'call_args' => { 'args' => 'temp subscribe' },
-                    'reply'     => {
-                        'handler' => qw| invoke-web.handler.gpu_temp_reply |,
-                        'params'  => {}
+            foreach my $metric (@stale) {
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.gpu_metric",
+                        'call_args' => { 'args' => "$metric subscribe" },
+                        'reply'     => {
+                            'handler' =>
+                                qw| invoke-web.handler.gpu_metric_reply |,
+                            'params' => { 'metric' => $metric }
+                        }
                     }
-                }
-            );
+                );
+            }
             return;
         }
 
@@ -45,7 +53,7 @@ $feed->{'pending'} = $now;
             {   'command'   => qw| v7-zenki.notify_online |,
                 'call_args' => { 'args' => ':start: X-11' },
                 'reply'     => {
-                    'handler' => qw| invoke-web.handler.gpu_temp_reply |,
+                    'handler' => qw| invoke-web.handler.gpu_metric_reply |,
                     'params'  => { 'wake' => TRUE }
                 }
             }
@@ -55,8 +63,8 @@ $feed->{'pending'} = $now;
 
 return TRUE;
 
-#,,.,,.,.,,,,,..,,.,,,,.,,.,,,,..,...,,.,,...,..,,...,...,.,.,..,,...,,.,,,.,,
-#PEBMO6PIAGTKY6GRWPJA5HN7GBSQ7VQY2Q2WYCY56HTFCOYSBHFEO4V5PDJF7QOGTIDTMF5TLMD2K
-#\\\|OEO5BM4OFPMZD3BSSAMGQPJR5HYU3OO4Q226OIO5E2XPUDDZV2Q \ / AMOS7 \ YOURUM ::
-#\[7]4GJOZF5ZVJDOKWH6HPZEGVAZW3FZD3P7B76HBMJL5LNR2EEVGEAY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,,.,,.,,,,.,,,,,,.,.,.,.,,..,..,,...,...,,,,,.,.,.,.,,..,..,,
+#4JRF2XEJ7B25JWK6DIHG3N4HPBSFZUAUL7JCZRKQY7SMA23RRN53VPZIQ2DLBULGFAD2FIFYEWFG2
+#\\\|BOJOQWVYOBS2HRA4QYYSD2CU7H3T6YZGWGJKDTWPEWYLPOTIEEK \ / AMOS7 \ YOURUM ::
+#\[7]SP2TJO7TMA3CMHN2CZ23WHMO4EU6AP4AH3PM6AM5G5W3O3HG2AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
