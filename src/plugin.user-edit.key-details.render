@@ -83,8 +83,8 @@ my $checksum = $checksum_cache{$key_name}
 ## editor.control.get_display_value:46 calls display_override with
 ## ($editor_state, $field), not the field_def hashref this file's own param
 ## comment previously implied -- a first attempt treating $field as the
-## hashref died with "string as HASH ref" ]. resolve the real field_def from
-## $editor_state's own schema instead : the SAME hashref
+## hashref terminated with "string as HASH ref" ]. resolve the real field_def
+## from $editor_state's own schema instead : the SAME hashref
 ## user-edit.form.build_frame and editor.ui.ascii_frame.render_form both
 ## already hold their own reference to, so mutating it here is visible to
 ## both, same hand-data-forward pattern user_keys_names already uses to carry
@@ -106,8 +106,8 @@ if ( ref $field_def eq qw| HASH | and $field_def->{'identity_detail_mode'} ) {
 ## not outer framing
 return sprintf( q|%s %s|, $key_name, $checksum );
 
-#,,,,,,..,,..,,..,.,.,.,,,,..,,,,,.,,,,..,.,,,..,,...,...,...,.,,,.,.,,,,,,,.,
-#AQHW6GXHY7DWACJ7OSGF6EQD2M2VZ5BLMH5TEMT4LLI4RGEXMSXU5CKAMOZFWZSM3M3E6AMYJHKIO
-#\\\|CHLHOZ7ENQX5QWM4QQ2777ETLWS6OFCSSBPPXWMTRL4LF45OTP5 \ / AMOS7 \ YOURUM ::
-#\[7]AXT5CXPT7CFX6ADIDL6AX54LB7XOFYCWRA3X7DFAU5E7RHOFXCBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,.,,..,,..,..,,,.,,,,,,.,,,..,,...,...,..,,.,,,...,.,.,,.,,
+#TQP7ZEKVD4O7V5BGIMCXGAG6MCCNRBJYO75FJ7C5Z6BZJJKGVE2L6HX2SIA2XHRPMEXAHVJFZOBDC
+#\\\|OK5I46BIS5DXBV52GC2T5FGENMSSJLI6YNGGDP7RVBPHCG3YYQ7 \ / AMOS7 \ YOURUM ::
+#\[7]LGLP5JTML2I4UA4322UYHQ2YHOLRSUKZJJA7LW4MF5PCBQIRMQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
