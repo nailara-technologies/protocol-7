@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = base.chunk.rolling_mod
+# descr = content-defined chunk boundaries via rolling mod window
+# param = { data, modulus => 13, window => 3, min_len => 1, max_len => 0 }
+
+my $params  = shift                // {};
+my $input   = $params->{'data'}    // '';
+my $modulus = $params->{'modulus'} // 13;
+my $window  = $params->{'window'}  // 3;
+my $min_len = $params->{'min_len'} // 1;
+my $max_len = $params->{'max_len'} // 0;
+my $trace_f = $params->{'trace'}   // 0;
+
+return { 'mode' => 'false', 'data' => 'modulus must be >= 2' }
+    if $modulus < 2;
+return { 'mode' => 'false', 'data' => 'window must be >= 1' }
+    if $window < 1;
+return { 'mode' => 'false', 'data' => 'min_len must be >= 1' }
+    if $min_len < 1;
+
+my $bytes = ref $input eq qw| SCALAR | ? $input->$* : $input;
+my $len   = length $bytes;
+
+## bytes are base-256 digits  outgoing byte weight is 256^window mod m ; ##
+## equals 1 when window is a multiple of the multiplicative order of 256 ##
+## mod m [ 3 for 7,13,91 ]                                               ##
+my $weight = 1;
+$weight = ( $weight * 256 ) % $modulus for 1 .. $window;
+
+my @boundaries = ();
+my $trace      = [];
+my $last       = 0;
+my $v          = 0;
+
+## prime rolling value with first full window ##
+if ( $len >= $window ) {
+    $v = ( $v * 256 + ord substr $bytes, $_, 1 ) % $modulus
+        for 0 .. $window - 1;
+}
+
+for ( my $i = $window - 1; $i < $len; $i++ ) {
+    push @$trace, $v if $trace_f;
+
+    my $chunk_len = $i + 1 - $last;
+
+    ## boundary on zero crossing past min_len ; force at max_len ##
+    if (   ( $v == 0 and $chunk_len >= $min_len )
+        or ( $max_len > 0 and $chunk_len >= $max_len ) ) {
+        push @boundaries, $i + 1;
+        $last = $i + 1;
+    }
+
+    last if $i + 1 >= $len;
+
+    ## slide window : v = 256*v - b_out*weight + b_in  [ mod m ] ##
+    my $b_out = ord substr $bytes, $i - $window + 1, 1;
+    my $b_in  = ord substr $bytes, $i + 1, 1;
+    $v = ( 256 * $v - $b_out * $weight + $b_in ) % $modulus;
+    $v += $modulus if $v < 0;
+}
+
+push @boundaries, $len if not @boundaries or $boundaries[-1] != $len;
+
+my $chunks = scalar @boundaries;
+my $result = {
+    'boundaries' => \@boundaries,
+    'chunks'     => $chunks,
+    'avg_len'    => $chunks ? $len / $chunks : 0,
+};
+$result->{'trace'} = $trace if $trace_f;
+
+return { 'mode' => 'true', 'data' => $result };
+
+#,,,.,...,.,,,.,.,.,.,.,,,..,,.,,,,..,.,.,..,,..,,...,..,,...,...,,,,,,,.,..,,
+#TWMQ6GZ6R2PCNBNBM7LQUS63RZ264NCFLGKMEPU3XGZC3VJPD3GOVQBBREDTP6YLSJOMGTWIFYJPE
+#\\\|CYVMXTBC726RIJEZX4Y2NJ2NW54CBNXWQPSYFKOOXHOB4XCRJ4P \ / AMOS7 \ YOURUM ::
+#\[7]YHCKN2GNFOPL5KNKRNOOFLIUB232K36FIQOG5LGI76N5WFMSDECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

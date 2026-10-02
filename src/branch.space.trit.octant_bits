@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = branch.space.trit.octant_bits
+# descr = octant sign bits <-> position, axis order z y x
+# param = { position => [z,y,x] }  or  { bits => '010' }
+#
+# bit per axis in z y x order : 1 = positive, 0 = negative or zero
+# forward : position -> { bits, axes_lit }  [ axes_lit = nonzero count ]
+# reverse : bits -> { position => [z,y,x] }  [ corner, values -1 or +1 ]
+
+my $params   = shift // {};
+my $position = $params->{'position'};
+my $bits     = $params->{'bits'} // '';
+
+if ( length $bits ) {
+    return { 'mode' => 'false', 'data' => 'bits must be 3 chars of 0 or 1' }
+        unless length $bits == 3 and $bits =~ m|^[01]{3}$|;
+
+    my @position = map { $_ eq qw| 1 | ? 1 : -1 } split m{},
+        $bits;    ## z y x order ##
+
+    return {
+        'mode' => 'true',
+        'data' => { 'position' => \@position }
+    };
+}
+
+return { 'mode' => 'false', 'data' => 'position arrayref or bits required' }
+    unless ref $position eq qw| ARRAY | and scalar $position->@* == 3;
+
+my $axes_lit = 0;
+my $out_bits = '';
+foreach my $axis ( $position->@* ) {
+    return { 'mode' => 'false', 'data' => 'integer coordinates required' }
+        unless defined $axis and $axis =~ m{^-?\d+$};
+    $axes_lit++ if $axis != 0;
+    $out_bits .= $axis > 0 ? qw| 1 | : qw| 0 |;
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'bits'     => $out_bits,
+        'axes_lit' => $axes_lit,
+    }
+};
+
+#,,.,,,.,,.,.,.,.,,,.,.,.,,,.,.,,,...,,,.,..,,..,,...,...,..,,.,,,..,,..,,...,
+#RTP3WODO6KRWRIBLSO2XQXDLBHY7MRAJEXRQMB6ZL4WG24CKZDRQPKX4OLJMIRIJ3G6HM3K273NWM
+#\\\|P6JKCP2EBHHIA2LDUM4YDYG6S3XXLNIFOVJM3W7OGQJS46BKZOF \ / AMOS7 \ YOURUM ::
+#\[7]XTRJH2NJKJXDVQDQEFTR6IPYTAWTKNIQFBKRP5WJODJ2BXU3LUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
