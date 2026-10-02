@@ -170,6 +170,7 @@ base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 io.ip.tcp.init_code
+invoke-web.stats.db
 invoke-web.queue.db
 invoke-web.is_alive
 invoke-web.index.db
@@ -341,6 +342,7 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
 invoke-web.variant.apply
+invoke-web.stats.win_mem
 invoke-web.session.store
 invoke-web.render.report
 invoke-web.queue.release
@@ -452,6 +454,7 @@ net.read_linewise_estimated
 jobqueue.check_dependencies
 io.unix.socket.output.close
 invoke-web.cmd.session-park
+invoke-web.cmd.render-stats
 invoke-web.cmd.model-source
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
@@ -482,6 +485,7 @@ auth.client.zenka.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
+invoke-web.stats.models_disk
 invoke-web.queue.interactive
 invoke-web.parse_output_line
 invoke-web.handler.hash_poll
@@ -511,6 +515,8 @@ base.file.zenka_dir.run_path
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 protocol.protocol-7.init_code
+invoke-web.stats.render_start
+invoke-web.stats.graph_params
 invoke-web.cmd.session-resume
 invoke-web.cmd.requeue-failed
 crypt.C25519.key_name_to_skey
@@ -545,6 +551,9 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+invoke-web.stats.mem_available
+invoke-web.stats.host_snapshot
+invoke-web.stats.gpu_subscribe
 invoke-web.render.check_images
 invoke-web.recover.after_crash
 invoke-web.queue.watch_trigger
@@ -573,6 +582,7 @@ base.callback.report_pid_files
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
+invoke-web.handler.stats_record
 invoke-web.handler.render_check
 invoke-web.handler.output_adopt
 invoke-web.handler.check_health
@@ -598,6 +608,7 @@ base.p7refs.gen_template_chksum
 base.inotify.install_io_watcher
 base.handler.link-upgrade.input
 base.file.zenka_dir.unlink_file
+invoke-web.handler.win_mem_reply
 invoke-web.cmd.requeue-cancelled
 invoke-web.cmd.queue-interactive
 crypt.C25519.name_from_skey_name
@@ -621,6 +632,7 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 ascii.frame.parse.border_segment
 protocol.amos-chksum.ext-cmd.exit
+invoke-web.handler.gpu_temp_reply
 invoke-web.handler.fetch_watchdog
 coding.tools.handler.replace_line
 coding.tools.handler.delete_lines
@@ -724,6 +736,7 @@ io.unix.socket.handler.report-tmp-path
 invoke-web.handler.startup_pause_retry
 invoke-web.handler.startup_pause_reply
 invoke-web.handler.queue_release_retry
+invoke-web.handler.gpu_subscribe_retry
 coding.tools.handler.scratchpad_rescue
 coding.handler.switch_model_spawn_done
 coding.handler.inference_crash_restart
@@ -774,8 +787,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,..,,,.,.,.,..,,.,,,...,.,.,,,,,...,.,.,..,,...,...,.,.,.,,,..,,,..,..,,
-#FF77QF2HUPZMGAZAF6YQ3DPEDM6L3DJ7PQQ6T7EXJI7DMBCAI5K54YC7DAWOXPXH2FSN3JM2GABR2
-#\\\|NNUYHI24YGJ6ZBQA7RTMUFABM342P7VAQRTPCUBLFFFR4U7EYYB \ / AMOS7 \ YOURUM ::
-#\[7]XZSQCTNBJSWZOIB4OAAOGHUDOXFIDTLO56YZUAWSDOMRBBJTQECQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,.,.,,,.,...,,,,,.,,,..,,.,,,..,,...,...,..,,.,,,,,.,..,,,,,,
+#7BLWXKBN27DYDKVCFOESA5A44RCDYL3FY5MNMIKG3UES57HRCQGJK57WMURT7JEMZMZWLRBPEE2YE
+#\\\|27LDZWHPNFEHP3XSSLUQVYF7KIZASPHPG7H7DDO4YN5B6UE56H3 \ / AMOS7 \ YOURUM ::
+#\[7]YHYPLQPLJWI5EZOE4ASWSBRLDVB2EW3AZGKNTMGNHXADBE5GWGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

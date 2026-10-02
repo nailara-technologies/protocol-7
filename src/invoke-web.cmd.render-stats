@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = invoke-web.cmd.render-stats
+# descr = recent render statistics [ time, memory, disk, gpu ]
+# param = [ count ] [ install ]
+
+my ( $count, $install ) = ( 20, undef );
+foreach my $arg ( split ' ', $call->{'args'} // '' ) {
+    if   ( $arg =~ m{^\d+$} ) { $count   = $arg }
+    else                      { $install = $arg }
+}
+
+my $dbh = <[invoke-web.stats.db]>
+    // return { mode => qw| false |, data => 'no render stats db' };
+
+my $rows = $dbh->selectall_arrayref(
+    'SELECT * FROM renders '
+        . ( defined $install ? 'WHERE install = ? ' : '' )
+        . 'ORDER BY ended_at DESC LIMIT ?',
+    { 'Slice' => {} },
+    ( defined $install ? ($install) : () ),
+    $count
+) // [];
+
+return { mode => qw| size |, data => "no renders recorded yet\n" }
+    if not @$rows;
+
+my $when = sub {
+    my $time = shift // return '?';
+    my ( $min, $hour, $day, $mon, $year ) = ( localtime $time )[ 1 .. 5 ];
+    return sprintf '%04d-%02d-%02d %02d:%02d', $year + 1900, $mon + 1, $day,
+        $hour, $min;
+};
+
+## s/pass : denoise seconds per unet evaluation [ steps x passes ] -- ##
+## comparable across step counts, not across size \ lora \ ref counts ##
+my $out = sprintf "%-16s %-8s %-22s %9s %6s %7s "
+    . "%6s %7s %6s %6s %6s %7s %6s\n",
+    'ended', 'install', 'model', 'size', 'steps', 'denoise', 's/pass',
+    'decode', 'miss', 'readGB', 'MB/s', 'availMB', 'tmax';
+
+foreach my $row ( reverse @$rows ) {
+    my $passes = ( $row->{'steps'} // 0 ) * ( $row->{'passes'} // 1 );
+    $out
+        .= sprintf "%-16s %-8s %-22.22s %9s %6s %7s "
+        . "%6s %7s %6s %6s %6s %7s %6s\n",
+        $when->( $row->{'ended_at'} ),
+        $row->{'install'},
+        $row->{'model'} // '?',
+        sprintf( '%sx%s', $row->{'width'} // '?', $row->{'height'} // '?' ),
+        sprintf( '%s%s',
+        $row->{'steps'} // '?',
+        ( $row->{'passes'} // 1 ) > 1 ? 'x' . $row->{'passes'} : '' ),
+        defined $row->{'secs_denoise'}
+        ? sprintf( '%.1f', $row->{'secs_denoise'} )
+        : '-',
+        $passes && defined $row->{'secs_denoise'}
+        ? sprintf( '%.2f', $row->{'secs_denoise'} / $passes )
+        : '-',
+        defined $row->{'secs_decode'}
+        ? sprintf( '%.1f', $row->{'secs_decode'} )
+        : '-',
+        $row->{'cache_misses'} // '-',
+        defined $row->{'read_bytes'}
+        ? sprintf( '%.1f', $row->{'read_bytes'} / 1e9 )
+        : '-', $row->{'disk_mb_s'} // '-',    ## models disk ##
+        $row->{'mem_avail_min_mb'} // $row->{'mem_avail_end_mb'} // '-',
+        $row->{'temp_max'} // '-';
+}
+
+return { mode => qw| size |, data => $out };
+
+#,,,.,,.,,,.,,,..,.,,,,,.,,.,,,..,,..,,,,,,,,,..,,...,...,...,..,,.,,,..,,...,
+#EIG6NTMK27UJTE4NIWBKLDEMM6NTM7I2VN3S3X754IRBQC3JUU57A4UY4EGXXXUFMVZOVJWKXINUC
+#\\\|G5TU6OPNGEVWPTTGQOANDDWTK2CHP6U2KA5B35TFFTEXU3ALGNG \ / AMOS7 \ YOURUM ::
+#\[7]NDR3RTDXXHDHDTUPLZHQXCPKS4FX5P7HRGUWKCZA4LEAPXNGQKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

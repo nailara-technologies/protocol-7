@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = invoke-web.handler.gpu_temp_reply
+# descr = reply \ stream of the X-11 gpu temperature feed : every sample
+#         goes to the running render's statistics [ temperature + the
+#         lowest available memory while it renders ]
+# note  = a refused \ wake-up reply retries the subscription in 20s [ a
+#         fresh X-11 answers 'retry in n seconds' until its feed averaged ]
+
+my $reply  = shift;
+my $params = $reply->{'params'} // {};
+my $feed   = <invoke-web.gpu_feed> //= {};
+
+if ( $reply->{'cmd'} ne qw| STRM | ) {
+    delete $feed->{'pending'};
+    <[base.logs]>->(
+        2,
+        'gpu temp feed : %s [ retry in 20s ]',
+        $params->{'wake'}
+        ? sprintf( 'X-11 start : %s',
+            $reply->{'call_args'}->{'args'} // $reply->{'cmd'} )
+        : ( $reply->{'call_args'}->{'args'} // $reply->{'cmd'} // '?' )
+    );
+    ## at most 4 timed retries in a row : the next render start tries again ##
+    <[event.add_timer]>->(
+        {   'after'   => 20,
+            'handler' => qw| invoke-web.handler.gpu_subscribe_retry |,
+        }
+        )
+        if ++$feed->{'failures'} <= 4
+        and not $feed->{'retry_armed'}++;
+    return;
+}
+
+return if ( $reply->{'args'} // '' ) ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m{^\d+$};
+
+delete $feed->{'pending'};
+$feed->{'failures'}   = 0;
+$feed->{'updated_at'} = <[base.time]>->(3);
+
+<[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $lines = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            foreach my $line ( split m{\n}, $lines ) {
+                my ($temp) = $line =~ m{^\s*(\d+(?:\.\d+)?)} or next;
+                $feed->{'temp'}       = 0 + $temp;
+                $feed->{'updated_at'} = <[base.time]>->(3);
+
+                ## samples belong to a render while it runs ##
+                my $render = <invoke-web.render> // next;
+                next if defined $render->{'result'};
+                my $samples = $render->{'gpu'} //= {};
+                $samples->{'n'}++;
+                $samples->{'sum'} += $temp;
+                $samples->{'max'} = $temp
+                    if not defined $samples->{'max'}
+                    or $temp > $samples->{'max'};
+
+                my $avail = <[invoke-web.stats.mem_available]>;
+                $samples->{'mem_avail_min_mb'} = $avail
+                    if defined $avail
+                    and ( not defined $samples->{'mem_avail_min_mb'}
+                    or $avail < $samples->{'mem_avail_min_mb'} );
+            }
+        },
+    }
+);
+
+<[base.logs]>->( 2, 'gpu temp feed live [ cmd_id %d ]', $cmd_id );
+
+#,,,,,,,.,.,,,.,.,.,.,...,.,.,,.,,,,,,.,.,..,,..,,...,...,..,,,,.,,,,,...,,.,,
+#FWMPPBV5A5R6GG2CDNN5WQSM4SVZVMJQL2DU2NTCMVWIO3ZEPBJBCAXPGJOV7ENQ4A3XZLMPXVBKO
+#\\\|IF7EGPOQUM6YLYI36GHPMS4COJFGGNZR2RKQOCOK4BA6FLMBLOJ \ / AMOS7 \ YOURUM ::
+#\[7]ZVQYDSFIWL6L5D22U7B5IQTKX63L43353DBK7ZKXEUXNRHAJ4ECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

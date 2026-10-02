@@ -1009,6 +1009,7 @@ return [ qw[
         iteration.init_code
         io.ip.tcp.init_code
         invoke.cmd.generate
+        invoke-web.stats.db
         invoke-web.queue.db
         invoke-web.is_alive
         invoke-web.index.db
@@ -1503,6 +1504,7 @@ return [ qw[
         io.ssl.ip.input.close
         io.ip.tcp.output.open
         io.ip.tcp.input.close
+        invoke-web.state_name
         invoke-web.queue.hold
         invoke-web.index.step
         invoke-web.drain.stop
@@ -1799,6 +1801,7 @@ return [ qw[
         invoke-web.json_octets
         invoke-web.index.image
         invoke-web.gpu.recover
+        invoke-web.cmd.variant
         invoke-web.cmd.restart
         invoke-web.cmd.requeue
         index.load.compartment
@@ -2381,6 +2384,8 @@ return [ qw[
         iteration.template.delta
         io.unix.socket.init_code
         invoke.handler.poll_jobs
+        invoke-web.variant.apply
+        invoke-web.stats.win_mem
         invoke-web.session.store
         invoke-web.render.report
         invoke-web.queue.release
@@ -2650,6 +2655,7 @@ return [ qw[
         jobqueue.priorities_table
         jobqueue.joblist_template
         io.unix.socket.input.open
+        invoke-web.variant.select
         invoke-web.session.resume
         invoke-web.fetch_finalize
         invoke-web.activity.touch
@@ -3192,6 +3198,7 @@ return [ qw[
         io.ssl.ip.handshake.cleanup
         io.ssl.ip.handler.handshake
         invoke-web.cmd.session-park
+        invoke-web.cmd.render-stats
         invoke-web.cmd.model-source
         index.cube.load_compartment
         image2html.parent.init_code
@@ -3480,6 +3487,7 @@ return [ qw[
         jobsite.handler.rescan-timer
         jobsite.dispatch.assessments
         io.unix.socket.input.connect
+        invoke-web.stats.models_disk
         invoke-web.queue.interactive
         invoke-web.parse_output_line
         invoke-web.handler.hash_poll
@@ -3727,6 +3735,8 @@ return [ qw[
         jobsite.handler.rewire-assess
         jobsite.dispatch.reassess_now
         jobsite.dispatch.consume_slot
+        invoke-web.stats.render_start
+        invoke-web.stats.graph_params
         invoke-web.cmd.session-resume
         invoke-web.cmd.requeue-failed
         index.handler.summarize-reply
@@ -3994,6 +4004,9 @@ return [ qw[
         jobsite.handler.assess-timeout
         jobsite.chksum.group-by-branch
         jobqueue.handler.queue_counter
+        invoke-web.stats.mem_available
+        invoke-web.stats.host_snapshot
+        invoke-web.stats.gpu_subscribe
         invoke-web.render.check_images
         invoke-web.recover.after_crash
         invoke-web.queue.watch_trigger
@@ -4221,6 +4234,7 @@ return [ qw[
         jobsite.report.mime_decode_body
         jobsite.report.evidence_collect
         jobsite.handler.pending-changed
+        invoke-web.handler.stats_record
         invoke-web.handler.render_check
         invoke-web.handler.output_adopt
         invoke-web.handler.check_health
@@ -4421,6 +4435,7 @@ return [ qw[
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
         jobsite.handler.import-url-reply
+        invoke-web.handler.win_mem_reply
         invoke-web.cmd.requeue-cancelled
         invoke-web.cmd.queue-interactive
         index.cube.format.pack_dir_entry
@@ -4619,6 +4634,7 @@ return [ qw[
         keys.console.downgrade-enc-status
         jobsite.handler.stray-jobs-listed
         jobsite.handler.queue-depth-reply
+        invoke-web.handler.gpu_temp_reply
         invoke-web.handler.fetch_watchdog
         index.cube.format.parse_dir_entry
         impressive.handler.stop_lsp_reply
@@ -5341,6 +5357,7 @@ return [ qw[
         invoke-web.handler.startup_pause_retry
         invoke-web.handler.startup_pause_reply
         invoke-web.handler.queue_release_retry
+        invoke-web.handler.gpu_subscribe_retry
         impressive.callback.rendering_finished
         httpd.route.handler.iris-route-advance
         httpd.handler.download_transfer.broken
@@ -5766,8 +5783,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,,,,.,,,,,,...,,..,.,.,,,,,,,,,,.,,,,.,.,.,...,...,..,,,,.,...,,.,,.,,,
-#MGKTMUJAJ7D2ZRLC5RZCU2QXNXGESD2EOS2BKAFBJ3B5HAPJAP3XPBOLZJAVWZDEY2V4JVZTKYOAO
-#\\\|SXT2R5IWSLTZZ5ODXTGFOW7YQMPYSOYWVL6KBBPVGUG74HENK2Z \ / AMOS7 \ YOURUM ::
-#\[7]QUXUABS7NWAW4M4JN2WT3B7YZJPWR57RBWXTPNGFNB6EFA4YRQCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,,,.,.,,,,.,,.,.,,.,,,..,.,.,.,.,...,...,.,.,.,.,,,.,,.,,..,,
+#CVYK7ZHMMZ5DJLBVGZTHLIWMK4UVXCXNWSFTGUEWIQJSN55MJDRRRPBKS3EW3WCBXLEA23BDTFVEC
+#\\\|CYGVPRORH7KA5UIJD6BV4AAALVFWF7EOZE7CB7DLHWLYWWTS73I \ / AMOS7 \ YOURUM ::
+#\[7]FTTYCWFCN65PGAMH5SUSYW2OPJ47ZO6J6AJARNBQ6AAE3NSRMSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
