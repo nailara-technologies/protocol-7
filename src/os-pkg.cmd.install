@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = os-pkg.cmd.install
+# descr = install packages through the distribution backend zenka
+# param = <pkg> [ <pkg> .. ]
+
+my $param = shift;
+my $args  = $param->{'args'} // '';
+
+my @pkgs = grep {length} split m{\s+}, $args;
+
+return { 'mode' => qw| false |, 'data' => 'no packages specified' }
+    unless @pkgs;
+
+## validate package names before anything leaves this zenka ##
+for my $pkg (@pkgs) {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid package name : $pkg"
+        }
+        unless $pkg =~ m{^[a-z0-9][a-z0-9+.\-]+$};
+}
+
+my $backend_type = <os-pkg.backend_type>;
+my $dist_id      = ( <os-pkg.os_release> // {} )->{'ID'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "unsupported distribution : $dist_id"
+    }
+    unless defined $backend_type;
+
+return {
+    'mode' => qw| false |,
+    'data' => "unsupported backend : $backend_type"
+    }
+    unless $backend_type eq qw| debian |;
+
+<[base.logs]>->(
+    1,             'os-pkg: install via %s : %s',
+    $backend_type, join( ' ', @pkgs )
+);
+
+## os-pkg never holds root : the install runs in the debian zenka's root ##
+## apt child. the reply arrives async via os-pkg.handler.install_reply,  ##
+## which completes this command's reply [ same path as sys-deps ]        ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| debian.install-packages |,
+        'call_args' => { 'args' => join( ' ', @pkgs ) },
+        'reply'     => {
+            'handler' => qw| os-pkg.handler.install_reply |,
+            'params'  => {
+                'packages' => \@pkgs,
+                'backend'  => $backend_type,
+                'reply_id' => $param->{'reply_id'}
+            }
+        }
+    }
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => "could not reach $backend_type zenka [ route-send failed ]"
+    }
+    if not $sent;
+
+return { 'mode' => qw| deferred | };
+
+#,,..,,..,..,,...,.,.,,,.,...,...,,.,,,.,,.,,,..,,...,...,.,.,..,,..,,,,,,.,.,
+#C7IEZNTJ7LZHXI7LXKXLEMW63RPWJDRJZPYEJEJHKSD57HXF52GQ5SSHTEPQEDPZ74TDAZYBMDTJI
+#\\\|DNUB62BKHBWJ2OCVKGCIBJ5YUOQ5AXM2DBJWPEF7I5KERZOHLFY \ / AMOS7 \ YOURUM ::
+#\[7]GW7GGREKD36F4GPF4IXVZFTKP6VYQLNSKCJF3WGCU3LOQMKUBKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
