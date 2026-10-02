@@ -659,6 +659,39 @@ kept as a live reminder that "the primitive is rollover-safe" and "every
 piece of code that touches the primitive uses its rollover-safe path"
 are two different claims — this doc conflated them for one draft. ]
 
+## the stream cannot be reversed — three layers [ 2026-10-02 ]
+
+temporal coordination closes both directions of time at once : an attack
+cannot reach the next agreement in time [ it was committed a cycle ahead,
+anything late is dropped in place ], and it cannot reverse the stream into
+the past. the backward bound is built from three independent layers :
+
+```
+1  rolling validity window   checksums are only valid inside
+                             { prev, current, next } [ 3 epochs ] -> an old
+                             checksum replayed later is structurally
+                             invalid. same shape as totp one-time codes,
+                             which accept the previous \ current \ next
+                             time step to tolerate clock skew
+2  first seen                the first validated holder of a name or
+                             address owns it ; later claims lose
+3  exclusion period          a released name or identity cannot be
+                             reassigned before at least one epoch has
+                             passed [ globally ] -> the gap is a
+                             handshaking and validation period : every
+                             reference to the old holder expires or is
+                             updated before a new holder can appear
+```
+
+layer 3 closes the real-world attack class of identity re-registration :
+repo-jacking [ an attacker registers a deleted \ renamed account's old
+name and serves manipulated code to everything still pointing at it ;
+github now retires popular old names for that reason ] and expired domain
+takeover [ registries run a grace \ redemption period before re-release ].
+with forward security on top [ keys of past epochs deleted once no longer
+needed ], a breach today cannot rewrite or reinterpret what an earlier
+epoch agreed.
+
 ## open questions
 
 - **epoch source of truth — answered, see
@@ -832,8 +865,8 @@ because they are mathematically bound to that bucket's template.
 - no policy decisions about *which* trees adopt the epoch outer
   dimension. that's per-consumer; this dispatch ships the substrate.
 
-#,,,.,,,.,.,,,...,...,,,.,.,.,,,.,,,,,.,.,...,..,,...,...,,.,,.,,,,,,,..,,.,.,
-#5FBEKUVJRWQQ6KQBL543OOO7G2D2AQCZMBEXAUILP6VJH2GVT7KBKXA5ODCAASZSZECURON7JRIDI
-#\\\|BDW4NFKSXQDZMFXNQ772IB5T5GFRUGSNBRP77KU7PE3CMPD3BL3 \ / AMOS7 \ YOURUM ::
-#\[7]B3D2CGUDAQ4NDZLOOURQGTLBMSANPN2L3RBYUF6QJVEH6ELLA6DA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,,,,,.,,,,.,,..,,,.,.,.,...,..,,...,...,...,,,,,,,.,,.,,.,,,
+#2KUCJSQHUYVX2DMJC4HBKU6RNJMLCHNMFRCEGJVGFZ276EBAVJ7QA7CFOFXMY7ZT3GVDBRQ4HGTRW
+#\\\|KI43YLFJ2ISWLSROKXF4VJ3SH2MF6MMYAA77JHNAMD7RT5DAUIH \ / AMOS7 \ YOURUM ::
+#\[7]PQZKWVZU3VLYWMSYWJKGP5CSS6WL6PT6XKISK6SAVRY4LZHKG4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
