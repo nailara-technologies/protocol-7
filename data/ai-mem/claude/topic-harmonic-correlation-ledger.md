@@ -94,6 +94,22 @@ directly checkable against running code, not surface resemblance.
   unconnected once verified. Kept visible, not deleted, same discipline as
   [[feedback-esoteric-research-verification-pipeline]] — retract in place.
 
+**BFT quorums over the 3×3×3 shells** [ 2026-10-02, arithmetic, checked ] :
+n participants tolerate f = ⌊(n−1)/3⌋ faulty, quorum 2f+1.
+
+```
+plus sign  [ 1+6 ]      n = 7    f = 2    quorum  5
+plus+edges [ 1+6+12 ]   n = 19   f = 6    quorum 13
+full block [ 3³ ]       n = 27   f = 8    quorum 17
+```
+
+the 19-shell needs exactly 13 ; the 27-block tolerates exactly 8 faulty =
+its 8 corners [ the inverse 3D plus ]. truth starts at 5 and the assertion
+expands shell by shell [ 5 -> 13 -> 17 ] ; no single node holds it. user's
+framing : a balanced system with its inverse prefixes, where the chain does
+not allow guessing the prefix. tier : arithmetic STRONG [ forced by the
+formula ], meaning open.
+
 **mod-13 zero crossings = content-defined chunking — and period 6 makes it a
 one-step rolling hash** [ 2026-10-02, user's idea, simulated ] : a "zero
 crossing" = the stream window reading `≡ 0 mod 13` ; packet length = distance
@@ -443,8 +459,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,,.,.,.,...,...,,,,,.,.,,..,,,,,,.,,.,,,.,,,.,.,...,...,...,..,,,.,,..,,,.,,
-#KBWDICGNDJA3MFAVDX3MR3PP4FGKETQBTV24PSO2A3EWTNIJUIQ4JGT7ZJC5GZCNRY66WSSLX4E3A
-#\\\|F5LLEC3PLVCQX4AM7CHOQESIENNIHHGDHA4VRWSICXHMUE3HVO6 \ / AMOS7 \ YOURUM ::
-#\[7]PWFFALWS2XD5IEVYRWYIOCPF4XZN26XA6EA5GD5KUD4I7PB336AI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,.,,,.,,,,.,,,.,,,,,,.,,,..,,.,.,...,...,..,,..,,,.,,,.,,..,,
+#CL7N3ZB67MBTNYU6J5T5V2P4T6IKQGXKJPPOJZJRWGR46WXLZQUQQTXRJWB5Q4Q3JEX3FKMSN7RR6
+#\\\|BXRU5WRB2Q6RPVGXWRIYFPIHD4G3ZSSNABP6NT2AQINLIVEX5NL \ / AMOS7 \ YOURUM ::
+#\[7]GXCXLCWL2L7GPQ7OGGFYZ3LA3ZXAIMZHWAI3YCKICVJRDKEDK2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
