@@ -78,12 +78,31 @@ next wsl restart ; keep [experimental] LAST in .wslconfig -- swap lines
 below it would be ignored ]. still > 90 % as firefox ages -> memory=20GB +
 max_cache_ram_gb 10.
 
+**gpu thermals [ 2026-10-02, X-11 clock \ power \ throttle feeds ]** : long
+qwen 2.1 renders [ 10.7 min ] at 100 % power : fan 100 % [ ~2700 rpm, one
+fan with a worn bearing, audible since ~a year ], 83-85 C, thermal
+throttle 0x20 for 57 % of the render, avg clock 1897 MHz. power limit 85 %
+[ 144.5 W, user set it via a gpu tool ] : 612.8 s vs 631.6 s [ FASTER ],
+avg clock 1912, max 81 C, 0 s thermal, fan ~2580 rpm. steady power limit
+beats oscillating thermal throttling -- keep 85 %. check after reboots
+that it persists [ `nvidia-smi --query-gpu=enforced.power.limit` ].
+2026-10-02 06:40:50 the WSL VM was stopped abruptly [ p7-log 'unflushed
+writeback lost' at the next start ] right when the user changed a target in
+the NVIDIA App, idle, no TDR \ WHEA \ kernel-power event -- most likely a
+gpu reinit dropping WSL's paravirtualized gpu : change gpu tuning only when
+a WSL restart is acceptable. the NVIDIA App installs FvKMDSvc [ FrameView
+kernel driver ] for its tuning page -- harmless. power limit survived.
+gpu : Gigabyte [ subsystem 0x40E2, 3 fans ], host bought 2024-02, one fan
+bearing clicks at 100 % [ ~2700 rpm ] -> warranty check [ gigabyte, serial ].
+cooldown pauses between images : not needed [ the throttle cost is
+steady, not cumulative ]. advised : fan replacement \ cleaning \ repaste.
+
 **suspects, untested** : device_working_mem_gb 5 in invokeai.yaml [ leaves the
 model cache too little VRAM -> partial loading streams UNet layers from RAM ],
 WSL page cache \ swap \ host paging building up with uptime, the old driver.
 
-#,,..,...,,,.,,..,,,,,..,,...,..,,.,,,.,,,.,.,..,,...,...,,.,,,.,,...,...,.,.,
-#CCU7LINASHGX3FLBVTQUHHODDVOCVLINHEPKZ6FORVVWBOIWFFWMPTY22OYC7D3X7U3SPVTSV2COS
-#\\\|RJVICXLHZ34RAPFJBOUV2DETDWATOO5I6Z4TPMREZ2CWAEJQV4X \ / AMOS7 \ YOURUM ::
-#\[7]MELESBL53SAMHGJB2MSOJYFQS5XXU3U4RFYZM5LI4DSDGTI7IKBY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,,,,,.,,,.,,..,,,.,.,,,,..,,..,..,,...,...,,,,,.,.,..,,,.,,,..,
+#JVFLUX4C3YQRKQFK2CZAVJBJ5YMVL3WT7KJNPWUMJ7GTSJGS4S2LW27NRT2DW7SQZRLJ6BQRB5T2W
+#\\\|E5SWUSATCJDJEJ6BK2F4X375Q3EJPQ2PDBXBGYJW4TYY4WDOD6U \ / AMOS7 \ YOURUM ::
+#\[7]GEVKH7K4KH7BY2RHE5LPGUOPTJOLUB7XF6RQEIG3DNXSE5KY36BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
