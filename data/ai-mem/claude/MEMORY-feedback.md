@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [check-filesystem-before-large-files-on-windows-drives](feedback-check-filesystem-before-large-files-on-windows-drives.md) — 2026-10-02 : WSL swap on D: [ FAT32 inside C:\DISKS\projects.vhdx ] failed past 4 GiB and killed WSL \ zenki twice ; check Get-Volume + Get-Disk before placing big growing files on a Windows drive
 - [chmod-child-revert-on-failed-grant](feedback-chmod-child-revert-on-failed-grant.md) — a chmod-child grant/create succeeding (`ok`) doesn't mean the caller's write will; readline-consuming the reply (see [[feedback-chmod-child-restore-readline]]) fixes pipe sync but not this — if `-w` is still false after an `ok` grant, or a later step fails after a successful `create`, the side effect must be explicitly reverted/removed or it's abandoned permanently. Swept across `coding.start.chmod_child` + 12 tool handlers + `ncode.cmd.apply` 2026-09-23
 - [kimi-dispatch-quota-cutoff-reports-completed](feedback-kimi-dispatch-quota-cutoff-reports-completed.md) — `kimi_check_status` shows `status=completed` when the weekly 403 quota cuts a run off mid-task too, not just on a genuine finish; the result text is truncated mid-sentence — always read it, don't trust the status field alone. Wait for the window to actually reset before `kimi_continue`, don't retry into a still-dead window
 - [search-memory-before-reaching-for-restart](feedback-search-memory-before-reaching-for-restart.md) — before `v7-zenki.restart <zenka>` to apply a zenka.v7 config/access.cmd.usr change, try `<zenka>.reload config` first (live, no restart, no dropped in-flight state) -- this exact fact was already documented from a 2026-09-15 session, re-derived the hard way 2026-09-20. Grep memory for "reload config"/"access.cmd.usr" before restarting
@@ -168,8 +169,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [commit-message-form-and-reword-baseline](feedback-commit-message-form-and-reword-baseline.md) — title + empty line + bullet body ; reword offenders are derived from the older-history baseline [ kimi inverted it 2026-09-30 ] ; message-only rewrites via filter-branch --msg-filter
 
-#,,,.,..,,...,..,,..,,,..,..,,,.,,.,,,...,..,,..,,...,...,,.,,,..,.,,,.,.,..,,
-#4CDPD33DNK77WGEDAZAWJVJ3KATI5PQQJWGMOKGUCR7XVJZT5U7DVFNDQWWJRPPK2KY2YI4KG2YZ4
-#\\\|6XOENNWWTC2KQD6IVGCQXIGMTI26JHOFOW2QXLGQDFVHUXPS22Y \ / AMOS7 \ YOURUM ::
-#\[7]KV77BWCGTKCKHEOX54EUS25OLBPBSRLPBW3GR5IWZ56U2R4YOADY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,.,,,.,,,,..,,..,...,.,.,,,.,..,,...,...,...,...,,,.,...,.,.,
+#W67LSYEQLNXMA2LTYO6IULNH6QX574HF7BRRJMCUGHGN66ICQVIMYW4CFXVYVSC27BRCBETQVBKRU
+#\\\|62RVIQB3PZ3IFMNFXIEXC7JU27EOYQG3QSQZFV7ZKYIEXDVQEI5 \ / AMOS7 \ YOURUM ::
+#\[7]JM64KPPKAFJ6226WORJZHASAOMN3YJIFCAMCAAMIDLQS3KYKPEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
