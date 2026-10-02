@@ -1,0 +1,97 @@
+#!/bin/bash
+## [:< ##
+# name  = build-qwen21-fork
+# descr = build the qwen-image 2.1 invoke.ai fork with protocol-7's patches
+# usage = build-qwen21-fork [ --ui ]
+#
+# the second invoke.ai install [ invoke-web variant 'qwen21' ] : krakotay's
+# qwen-image-2.1 branch at the commit the patches were made against, the
+# patches from data/patches/invokeai-qwen21 [ git am, branch p7-local ],
+# the web ui built, a conda env 'invokeai-qwen21' with torch pinned to the
+# main install's cu126 build and the 'qwen-int8' extra [ comfy-kitchen ].
+#
+#   --ui : only rebuild the web ui and install it into the env [ after a
+#          frontend patch change ]
+#
+# the root [ ~/.invokeai-qwen21 ] is not touched : its own db and models.
+# lessons built in [ 2026-10-01 \ 02 ] : 'pnpm build' runs a nested pnpm
+# that is not on PATH -> vite directly ; eslint import-sort fails the
+# build ; a failed build leaves the OLD dist, so the copy is gated.
+
+set -euo pipefail
+
+REPO=https://github.com/krakotay/InvokeAI.git
+BRANCH=qwen-image-2.1
+BASE=c518116    ## the fork commit the patches apply to ##
+SRC=$HOME/src/InvokeAI-qwen21
+ENV=invokeai-qwen21
+CONDA=$HOME/miniconda3/bin/conda
+P7=$( cd "$( dirname "$0" )/../../.." && pwd )
+PATCHES=$P7/data/patches/invokeai-qwen21
+P=$HOME/miniconda3/envs/$ENV/bin
+
+export NVM_DIR=$HOME/.nvm
+. "$NVM_DIR/nvm.sh"
+
+build_ui () {
+    cd "$SRC/invokeai/frontend/web"
+    corepack pnpm@10.12.4 install --frozen-lockfile
+    corepack pnpm@10.12.4 exec eslint --fix \
+        $( cd "$SRC" && git diff --name-only "$BASE" -- 'invokeai/frontend/web/src' \
+           | sed 's|^invokeai/frontend/web/||' )
+    rm -rf dist
+    corepack pnpm@10.12.4 exec vite build
+    test -f dist/index.html
+}
+
+install_ui () {
+    local target
+    target=$( "$P/python" -c 'import invokeai.frontend.web as w, os; print(os.path.dirname(w.__file__))' )
+    rm -rf "$target/dist"
+    cp -a "$SRC/invokeai/frontend/web/dist" "$target/dist"
+    echo ": web ui installed into $target/dist"
+}
+
+if [ "${1:-}" = "--ui" ]; then
+    build_ui
+    install_ui
+    exit 0
+fi
+
+echo ": source"
+if [ ! -d "$SRC/.git" ]; then
+    mkdir -p "$( dirname "$SRC" )"
+    git clone --branch "$BRANCH" "$REPO" "$SRC"
+fi
+cd "$SRC"
+if git rev-parse -q --verify p7-local >/dev/null; then
+    git checkout -q p7-local
+    echo ": branch p7-local exists, patches assumed applied"
+else
+    git checkout -q -b p7-local "$BASE"
+    git am "$PATCHES"/*.patch
+fi
+git log --oneline -3
+
+echo ": web ui"
+build_ui
+
+echo ": conda env"
+"$CONDA" env list | grep -q "^$ENV " || "$CONDA" create -y -n "$ENV" python=3.11
+
+echo ": python install"
+"$P/pip" install "torch==2.7.1" "torchvision==0.22.1" \
+    --index-url https://download.pytorch.org/whl/cu126
+"$P/pip" install "$SRC[qwen-int8]" "torch==2.7.1" "torchvision==0.22.1" \
+    --extra-index-url https://download.pytorch.org/whl/cu126
+"$P/pip" check
+install_ui    ## the built dist, also when pip took a cached wheel ##
+"$P/python" -c "import invokeai.version as v, torch, comfy_kitchen; \
+print(': invokeai', v.__version__, 'torch', torch.__version__, 'cuda', torch.cuda.is_available())"
+echo ": done -- p7c invoke-web.start qwen21"
+
+#,,,.,.,.,..,,,,.,,..,,,.,..,,.,,,.,.,.,.,,,.,..,,...,...,,,.,,.,,...,..,,.,.,
+#QL62TP7J4BN2S5PHCQMMGGO7MNRV27GKFPFXSRXUNMDHP2FSDRGVECIIV2RD7D7TRDRNST3GJ5IX4
+#\\\|BQUPKBOETGIDWLG547HYMSDSJSEFBV726LGYZ7OLUCH5QF7QUDS \ / AMOS7 \ YOURUM ::
+#\[7]NURROHIAR5TWIV6K54OQS2KK5I5URYWAZ4EWZICICR73DOAAZYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
