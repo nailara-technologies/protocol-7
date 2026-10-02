@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = invoke-web.handler.gpu_metric_reply
+# descr = reply \ stream of one X-11 gpu feed [ temp, clock, power,
+#         throttle ] : every sample goes to the running render's statistics
+# note  = per render and metric : n, sum, min, max. throttle : the reason
+#         bits OR'ed, plus seconds with thermal [ 0x20 \ 0x40 ] and power
+#         cap [ 0x04 \ 0x80 ] bits. temp samples also record the lowest
+#         available memory. a refused \ wake-up reply retries the
+#         subscriptions in 20s [ a fresh X-11 answers 'retry in n seconds'
+#         until its feeds averaged ] -- at most 4 times in a row
+
+my $reply  = shift;
+my $params = $reply->{'params'} // {};
+my $metric = $params->{'metric'};
+my $feed   = <invoke-web.gpu_feed> //= {};
+
+if ( $reply->{'cmd'} ne qw| STRM | ) {
+    delete $feed->{'pending'};
+    <[base.logs]>->(
+        2,
+        'gpu feed %s : %s [ retry in 20s ]',
+        $metric // 'X-11',
+        $params->{'wake'}
+        ? sprintf( 'X-11 start : %s',
+            $reply->{'call_args'}->{'args'} // $reply->{'cmd'} )
+        : ( $reply->{'call_args'}->{'args'} // $reply->{'cmd'} // '?' )
+    );
+    <[event.add_timer]>->(
+        {   'after'   => 20,
+            'handler' => qw| invoke-web.handler.gpu_subscribe_retry |,
+        }
+        )
+        if ++$feed->{'failures'} <= 4
+        and not $feed->{'retry_armed'}++;
+    return;
+}
+
+return if ( $reply->{'args'} // '' ) ne qw| open | or not defined $metric;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m{^\d+$};
+
+delete $feed->{'pending'};
+$feed->{'failures'} = 0;
+$feed->{'live'}->{$metric} = <[base.time]>->(3);
+
+<[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $lines = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            foreach my $line ( split m{\n}, $lines ) {
+                my ($value) = $line =~ m{^\s*(\d+(?:\.\d+)?)} or next;
+                $value += 0;
+                $feed->{'value'}->{$metric} = $value;
+                $feed->{'live'}->{$metric}  = <[base.time]>->(3);
+
+                ## samples belong to a render while it runs ##
+                my $render = <invoke-web.render> // next;
+                next if defined $render->{'result'};
+                my $samples = $render->{'gpu'}->{$metric} //= {};
+                $samples->{'n'}++;
+                $samples->{'sum'} += $value;
+                $samples->{'max'} = $value
+                    if not defined $samples->{'max'}
+                    or $value > $samples->{'max'};
+                $samples->{'min'} = $value
+                    if not defined $samples->{'min'}
+                    or $value < $samples->{'min'};
+
+                if ( $metric eq qw| throttle | ) {
+                    $samples->{'bits'} = ( $samples->{'bits'} // 0 ) | $value;
+                    $samples->{'thermal_s'}++ if $value & 0x60;
+                    $samples->{'power_s'}++   if $value & 0x84;
+                } elsif ( $metric eq qw| temp | ) {
+                    my $avail = <[invoke-web.stats.mem_available]>;
+                    $render->{'mem_avail_min_mb'} = $avail
+                        if defined $avail
+                        and ( not defined $render->{'mem_avail_min_mb'}
+                        or $avail < $render->{'mem_avail_min_mb'} );
+                }
+            }
+        },
+    }
+);
+
+<[base.logs]>->( 2, 'gpu feed %s live [ cmd_id %d ]', $metric, $cmd_id );
+
+#,,.,,..,,,..,.,.,,,,,,..,..,,.,,,.,.,,,,,,,,,..,,...,...,,..,,,.,,,,,,,.,.,.,
+#UUVZIGXZ3SHCVESCXDTBC4POQCY4OCQN45HJ6SLDTHC7HZT2ETAAY6CLIEXEWXYTXSWN3S75C26BI
+#\\\|KRFLTYC5LEIHBJ5XMKYJSYDLWIGUNKN45GBPSQ4BGT5NEAJ6QD4 \ / AMOS7 \ YOURUM ::
+#\[7]KRMKCSR4A54HSO6MPGX6DQVFV42R534KKTTFQI2PRBM46KL3RAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

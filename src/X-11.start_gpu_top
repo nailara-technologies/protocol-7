@@ -42,6 +42,19 @@ if ( $vendor eq 'nvidia' ) {
     ## parallel feeds for additional single-value metrics [ generic ] ##
     <[X-11.start_gpu_metric_feed]>->(
         { 'metric' => qw| temp |, 'query_field' => qw| temperature.gpu | } );
+    <[X-11.start_gpu_metric_feed]>
+        ->( { 'metric' => qw| clock |, 'query_field' => qw| clocks.sm | } );
+    <[X-11.start_gpu_metric_feed]>
+        ->( { 'metric' => qw| power |, 'query_field' => qw| power.draw | } );
+
+    ## clock throttle reason bits [ hex ; thermal 0x20 \ 0x40, power cap ##
+    ## 0x04 \ 0x80, idle 0x01 ] -- averages of a bitmask mean nothing,   ##
+    ## consumers use the 1s value                                        ##
+    <[X-11.start_gpu_metric_feed]>->(
+        {   'metric'      => qw| throttle |,
+            'query_field' => qw| clocks_throttle_reasons.active |
+        }
+    );
 
 } elsif ( $vendor eq 'intel' ) {
     my $refresh_period
@@ -89,8 +102,8 @@ if ( $vendor eq 'nvidia' ) {
     );
 }
 
-#,,,,,..,,.,.,.,,,.,,,...,,,,,,.,,..,,,.,,.,.,.,.,...,..,,..,,,..,,..,,.,,,,.,
-#TRC3JHJBLXQEUU5PK6LFPO3C5MGLOMBHCLRWRDOOJVDY37IBGC67PTH2MEDR3NPI7WULMHU3NJZIY
-#\\\|EV6C3AXISM6HCVD6KP4SBIZKKJUGDF3TULRI255JONYA3RUEKO6 \ / AMOS7 \ YOURUM ::
-#\[7]KAYVBS4ZZAQVZ7R347HV44GA4LKJ7SX7ZJQHBZITMDFDSIMMZCDA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,.,,,.,.,.,,.,,.,.,...,.,,,,,,,.,.,...,...,.,.,,..,,,,,,.,,.,.,
+#5FPXTEQQ2QEJ7UN62TLEHOIQJK3MEIBFDIQIR36L3F5FTY4BUKCG2OWRY24Y6WORVZHKGJ3LEVZ3Y
+#\\\|DWEQ5G22LE5PAY667AYWD4KTWTKHGF2HG67GGMP3BRRRC2PS25W \ / AMOS7 \ YOURUM ::
+#\[7]2CLJUFPV7UDKL4GRBEUMKEABUF6NTOMVZBL7KNHMFCSYL7DYV4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

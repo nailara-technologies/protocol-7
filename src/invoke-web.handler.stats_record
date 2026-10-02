@@ -18,6 +18,10 @@ my $params = <[invoke-web.stats.graph_params]>->( $render->{'session'} )
 my $stats = $render->{'stats'}     // {};
 my $secs  = $render->{'node_secs'} // {};
 my $gpu   = $render->{'gpu'}       // {};
+my $temp  = $gpu->{'temp'}         // {};
+my $clock = $gpu->{'clock'}        // {};
+my $power = $gpu->{'power'}        // {};
+my $thr   = $gpu->{'throttle'}     // {};
 
 ## seconds per kind of node [ several nodes of one kind add up ] ##
 my %kind_secs;
@@ -85,16 +89,26 @@ my %row = (
     'nodes'          => <[format.json.encode]>->($secs),
     'ram_process_gb' =>
         $number->( $stats->{ 'RAM used by ' . 'InvokeAI process' } ),
-    'ram_delta_gb'       => $ram_delta,
-    'cache_hits'         => $number->( $stats->{'Model cache hits'} ),
-    'cache_misses'       => $number->( $stats->{'Model cache misses'} ),
-    'vram_gb'            => $number->( $stats->{'VRAM in use'} ),
-    'read_bytes'         => $delta->('read_bytes'),
-    'temp_n'             => $gpu->{'n'} // 0,
-    'temp_avg'           => $gpu->{'n'} ? $gpu->{'sum'} / $gpu->{'n'} : undef,
-    'temp_max'           => $gpu->{'max'},
+    'ram_delta_gb'  => $ram_delta,
+    'cache_hits'    => $number->( $stats->{'Model cache hits'} ),
+    'cache_misses'  => $number->( $stats->{'Model cache misses'} ),
+    'vram_gb'       => $number->( $stats->{'VRAM in use'} ),
+    'read_bytes'    => $delta->('read_bytes'),
+    'temp_n'        => $temp->{'n'} // 0,
+    'temp_avg'      => $temp->{'n'} ? $temp->{'sum'} / $temp->{'n'} : undef,
+    'temp_max'      => $temp->{'max'},
+    'clock_min_mhz' => $clock->{'min'},
+    'clock_avg_mhz' => $clock->{'n'} ? int( $clock->{'sum'} / $clock->{'n'} )
+    : undef,
+    'power_avg_w' => $power->{'n'}
+    ? sprintf( '%.1f', $power->{'sum'} / $power->{'n'} )
+    : undef,
+    'power_max_w'        => $power->{'max'},
+    'throttle_bits'      => $thr->{'bits'},
+    'throttle_thermal_s' => $thr->{'n'} ? $thr->{'thermal_s'} // 0 : undef,
+    'throttle_power_s'   => $thr->{'n'} ? $thr->{'power_s'}   // 0 : undef,
     'mem_avail_start_mb' => $start->{'mem_avail_mb'},
-    'mem_avail_min_mb'   => $gpu->{'mem_avail_min_mb'},
+    'mem_avail_min_mb'   => $render->{'mem_avail_min_mb'},
     'mem_avail_end_mb'   => $end->{'mem_avail_mb'},
     'cached_start_mb'    => $start->{'cached_mb'},
     'cached_end_mb'      => $end->{'cached_mb'},
@@ -147,8 +161,8 @@ $render->{'recorded'} = TRUE;
 ## end value of the windows host memory : updates this row on reply ##
 <[invoke-web.stats.win_mem]>->( $render, qw| end | );
 
-#,,,.,..,,..,,...,...,..,,...,,,.,,..,,.,,.,,,..,,...,...,...,.,.,...,,..,..,,
-#BCOU4SHVCCW7ZVIRS7UU5PKNAAGNZ35SIOCQDGPMDQ2N4CVTO4IGTJN2JPRVBCF2ZWI4LWT6YW2LC
-#\\\|UNE5PDZRNPYXNRW55RUPH7QOPUV4V452NOUX7JWDBPMEKCFWMQC \ / AMOS7 \ YOURUM ::
-#\[7]W6ELA3CG3I3O2J55NPFTZCSLFZMA3PRCYXXEWL5FX2O5TTEIMWBA 7  DATA SIGNATURE ::
+#,,..,...,,..,...,,..,..,,,.,,,,.,...,...,,..,..,,...,...,,.,,,,.,...,,,.,,.,,
+#K7YBXLMMQI44SAMUAVKRQUPNTEILGKH5GDNZX2QPAO4RCKKRTXMZWY725732KVQY3JDVLLP5UZ5XO
+#\\\|CDECYUPQWLCWSTVFSIBOEQPNQMZ55ZHXZOWGW75ULAHD5POXVP3 \ / AMOS7 \ YOURUM ::
+#\[7]LU5NXA62NNGCJT2SVNATBNHTIHVBD4BWRU7YKD53X2M3QZKAB4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
