@@ -292,6 +292,45 @@ CCW rotation in harmonic transit, cube routing, heartbeat encoding, and
 now as the orientation of the semantic core of the reference tree. the
 same structure at every layer. =)
 
+### the sorting algorithm perspective — tree of overarching rhythms
+
+the same logic priority, seen as a process instead of an orientation
+[ origin : "life as a sorting algorithm, made of a tree of overarching
+rhythms, extracting realizations from entropy, leading into the
+deduplicated core to merge as the pulse that is reflected back into the
+tree" — `data/asc/what-AI-thinks/full-chat-captures/3O37VUNMMS3UU.claude-sonnet.protocol-7-knowledge.asc:6793` ] :
+
+```
+upward    sequence    convergecast : each level summarizes its branches
+                      [ like merkle hashes ] until all of it merges in the
+                      deduplicated core -> the pulse
+downward  frequency   the pulse, signed, is reflected back down the branches ;
+                      every leaf checks its own part against it and
+                      synchronizes to it [ like a ptp clock tree ]
+nesting   rhythms     heartbeats inside time slices inside orbits inside
+                      epochs ; the period-6 cycle shared by 7 and 13 as the
+                      smallest rhythm the larger ones are built from
+```
+
+the reflection originates in the darksun core, but a synchronized node
+rarely sees the core itself : its immediate neighborhood catches the wave
+first, informs itself, and passes it on translated to the bandwidth and
+context of the one the wave reaches next. from the leaf the pulse seems to
+come from everywhere, or from nowhere visible [ the core "never shines
+visibly", see the blue magnetar in
+`data/md/research/holographic-cubic-topology-research-2026-01-13.md` ].
+technically : gossip \ epidemic propagation, and ptp boundary clocks that
+re-time at every hop instead of forwarding the original signal.
+
+the core is powered by the lit 8 corners of the 3³ inverse 3D plus sign
+[ the corners are the inverse cube's identity — "edge-cubes" in the source
+wording ; see `data/md/design/SPACE-ENGINE-MASTER.md`, address = role ].
+
+the semantic core triangle says **where** content sorts to [ proximity to
+TRUTH \ LOVE \ AWARENESS ] ; the rhythm tree says **how** it gets there
+[ converge, merge, reflect ]. same priority, two readings : orientation
+and process.
+
 ---
 
 ## template deduplication — antientropic quality propagation
@@ -360,8 +399,8 @@ traversable: task references become explicit graph edges, completion
 events update node weights, and the forensics zenka can query the tree
 for convergence state rather than reconstructing it from log history.
 
-#,,,,,..,,,,.,,.,,,,,,,,.,,,.,,.,,,,.,,.,,.,,,..,,...,...,,.,,.,,,,,.,...,..,,
-#UNX7WCW3IBQ5EMMTZGSLYPVI6NNMBQITAWY3VG7IJFOTQSZM2NLRE7SV2PAB5H4RILKVNN4HVT7AC
-#\\\|G7YEMK343QCDAPGU6IP6UGO4C6WAUQ5VR4NC2XFZTJ2KF5GFQYT \ / AMOS7 \ YOURUM ::
-#\[7]5JY62TIXW6ON7A56WBI6GRTAYGCONDMINJRNHVMDW7WYM4MWEQBI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,,,,,,..,,..,,,.,.,.,...,.,.,..,,...,...,.,,,..,,..,,,,.,...,
+#HCMBDTGW357RBJE6FXNDOPH2COWJUYQSYPZDQHTA77BWWPRSTZZQSRWWSHKNKMSB3KHXS6A6RUYIG
+#\\\|65JCN5AO2FYWHQDOFD25R3HFABBCS7XZMTQFFLLOSRGR5IZDZET \ / AMOS7 \ YOURUM ::
+#\[7]JUHADZXKGPCOS6HZN2VQI6XYGFSWOCLYA3N2PY6VTUVAPVGP3KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

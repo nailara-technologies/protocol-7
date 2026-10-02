@@ -66,11 +66,29 @@ polarity + shared time slice + 5-of-7 ]. measure :
 - behavior with 1 and 2 faulty \ lying participants
 - sensitivity to time error [ where does the margin break ]
 
+## attack cases for the simulator [ consensus layer, not bandwidth ]
+
+- **sybil** : one attacker, many identities -> 3 of 7 in one group wins the
+  quorum. defense : position = checksum of the key, so placement cannot be
+  chosen -> attacker must grind keys until enough land in one group ;
+  calculate that cost, do not assume it
+- **eclipse** : surround one target so all its neighbors are the attacker's.
+  same defense [ unchoosable placement ]
+- **coordination across groups** : latency grouping + geographic spread +
+  agreed time slices -> an attack must hit several groups inside one slice
+  and inside each group's living handshake sequence [ session-specific
+  depth, like rolling codes \ nonces ] ; injected traffic outside the
+  sequence fails
+- **latency is a one-sided bound** : round-trip time proves "not closer
+  than" [ distance bounding, speed of light ] but an attacker can always
+  add delay -> latency grouping resists pretending to be near, not
+  pretending to be far ; check what pretending to be far could gain
+
 hook into `data/web-root/vhosts/space.v7.ax/visualization.html` later
 [ `setCurveSet`, `toggleTrails`, `project()` ] -- calm animation defaults.
 
-#,,,.,.,,,,..,.,.,.,.,..,,...,..,,...,.,,,...,..,,...,...,,,,,,,,,..,,,,,,..,,
-#EGGSGFIM4XGWBZ77GWTZOVUWP23LIDV2XBDKSRIQBEEB6CAAHKZQ6WENVNS7JO5GSQPUINYSTHISG
-#\\\|E2UKM73O2G3NDAL6JYAJAJ65P4U2YYLH5YYUJVE6L67JTF5HEV5 \ / AMOS7 \ YOURUM ::
-#\[7]KLWEJNM6WDN64AFZKGAS66CAKU2J3UWG665HP3S6PGQCK2VRLQAA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,.,.,,..,,,,,,..,.,,,...,,.,,..,,...,...,..,,,,,,.,,,...,...,
+#ZHVLCOSZ6SSU7WOCNTDUGLHMJTBCMXTWNKDJ5ZFFUIJXPCDI5S3EFVJDKCIZ7OV44LDDV3VR5RZUM
+#\\\|4UG34FU7GPYUWP5DNLMDRK5VYVOP6LWKHMBAK456BEE4R5WSDAJ \ / AMOS7 \ YOURUM ::
+#\[7]MV4AVA2JYIZDWMTPEZRL2LECESC44QTLPET3SON6IBR6KWVBFGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
