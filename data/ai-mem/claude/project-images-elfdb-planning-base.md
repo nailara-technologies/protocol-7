@@ -19,6 +19,12 @@ control built into invoke-web the same day [ queue order, interactive mode,
 parked sessions, drain, memory guard, requeue ] -- see
 [[reference-invoke-web-run-user-and-invokeai-facts]].
 
+2026-10-02 : qwen-image 2.1 added as its own category in the feature
+collection [ native references = prompt-controlled channels, measured
+costs, two-pass with SDXL ] and pointed to from step 6 of
+`data/tasks/network-elf-avatar-pipeline.md` -- see
+[[project-2026-10-02-invoke-qwen21-fork-install]].
+
 **Why:** the user explicitly wants features collected first, design later ;
 the collection is the agreed starting base [ "at least feature-wise, even if
 not namespace wise" ].
@@ -27,8 +33,8 @@ color wheel topology come up, open the feature collection first and extend
 it by category ; keep the addressing layer separate from image semantics
 and the elf build generic underneath [ both are stated design rules there ].
 
-#,,.,,.,,,..,,,,.,,.,,,,,,,..,.,,,,.,,.,,,...,..,,...,..,,...,.,.,.,,,.,.,,..,
-#IU3AEWBIHNDO4P5NKVRV5J6N7HCZUZLQJYGWR74YRV72M6L2AAV466YWY7Z7IEEG6RM4PDTVHN4IU
-#\\\|GO7UFV2VNM36MLSWTDZDBF6DVPSGIMPJ5W5D7S7Q6YXBVTSYZTZ \ / AMOS7 \ YOURUM ::
-#\[7]BNTUCCBKQXCTBS2M5XWEKEB2LL6BZKKTAG6A54XJWRSYV6AFBIBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,,,.,,,.,.,.,,,.,..,,.,,,..,,..,,...,..,,..,,,..,,..,,..,,..,
+#RYLIZOLIFPWADPCGUPSREBGHZYC54GDQHPU3QDS7IUCZ6H6IGBOAD7YLKYQRG3FTVDK4SLUMYWIM2
+#\\\|MFALTGM4EMMREF4F2VXRDZLPD2KM4BQS3HRZWLYCAWBEAXSGOC3 \ / AMOS7 \ YOURUM ::
+#\[7]O2M4GHLE3EYFOGLBA74EEIPR4GHU56NOH7TPBCCSOEB5AC2DFACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
