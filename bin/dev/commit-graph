@@ -1,0 +1,173 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long qw| :config bundling no_ignore_case |;
+
+####          ####
+## commit-graph ##   [  ascii graph of git commits over years and months  ]
+###           ####
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $show_numbers = 0;     ## -n : month grid with commit counts
+my $all_refs     = 0;     ## -a : count commits of all refs, not only HEAD
+my $bar_width    = 50;    ## -w : width of the year bars
+my $linear       = 0;     ## -l : linear shading [ default : logarithmic ]
+my $author;               ## -A : only commits by matching author
+
+GetOptions(
+    'n|numbers'  => \$show_numbers,
+    'a|all'      => \$all_refs,
+    'w|width=i'  => \$bar_width,
+    'l|linear'   => \$linear,
+    'A|author=s' => \$author,
+    'h|help'     => sub { usage() },
+) or usage();
+
+my $repo_dir = shift // '.';
+error_exit("not a directory : '$repo_dir'") if !-d $repo_dir;
+
+##[ COLLECT COMMITS ]#########################################################
+
+my @git_cmd = (
+    qw| git -C |, $repo_dir, qw| -c color.ui=false log |,
+    '--format=%ad', '--date=format:%Y %m'
+);
+push @git_cmd, '--all'             if $all_refs;
+push @git_cmd, "--author=$author" if defined $author;
+
+open( my $git_fh, '-|', @git_cmd ) or error_exit("cannot run git : $OS_ERROR");
+
+my ( %month_count, %year_count );
+while ( my $line = <$git_fh> ) {
+    my ( $year, $month ) = $line =~ m|^(\d{4}) (\d\d)| or next;
+    $month_count{$year}{ int $month }++;
+    $year_count{$year}++;
+}
+close $git_fh or error_exit("git log failed [ exit ${\( $CHILD_ERROR >> 8 )} ]");
+
+error_exit('no commits found') if !%year_count;
+
+my @years     = sort keys %year_count;
+my @all_years = ( $years[0] .. $years[-1] );    ## include years without commits
+
+my $total      = 0;
+my $max_year   = 0;
+my $max_month  = 0;
+$total += $ARG for values %year_count;
+for my $year (@years) {
+    $max_year = $year_count{$year} if $year_count{$year} > $max_year;
+    for my $count ( values %{ $month_count{$year} } ) {
+        $max_month = $count if $count > $max_month;
+    }
+}
+
+##[ YEAR BARS ]###############################################################
+
+say '';
+say ":: commits per year [ total $total ]";
+say '';
+for my $year (@all_years) {
+    my $count = $year_count{$year} // 0;
+    my $len   = $count ? int( $count / $max_year * $bar_width + 0.5 ) : 0;
+    $len = 1 if $count and !$len;    ## a single commit stays visible
+    printf "  %s  %-*s %5s\n", $year, $bar_width, '#' x $len,
+        $count ? $count : '.';
+}
+
+##[ MONTH GRID ]##############################################################
+
+## shading levels, lowest to highest [ ' ' = no commits ]
+my @shades = split //, '.:-=+*#%@';
+
+say '';
+say ':: commits per month'
+    . ( $show_numbers ? '' : $linear ? ' [ linear ]' : ' [ logarithmic ]' );
+say '';
+
+my @month_names = qw| jan feb mar apr may jun jul aug sep oct nov dec |;
+my $cell_width  = $show_numbers ? 5 : 4;
+print '        ';
+printf "%*s", $cell_width, $ARG for @month_names;
+say '';
+
+for my $year (@all_years) {
+    print "  $year  ";
+    for my $month ( 1 .. 12 ) {
+        my $count = $month_count{$year}{$month} // 0;
+        if ($show_numbers) {
+            printf "%*s", $cell_width, $count ? $count : '.';
+            next;
+        }
+        my $cell = $count ? $shades[ shade_index($count) ] x 3 : '   ';
+        printf "%*s", $cell_width, $cell;
+    }
+    printf "  %5s\n", $year_count{$year} // 0;
+}
+
+if ( !$show_numbers ) {
+    say '';
+    print '  scale : ';
+    print join '  ', map { "$shades[$ARG] >= " . shade_floor($ARG) } 0 .. $#shades;
+    say '';
+}
+say '';
+
+exit 0;
+
+##[ SUBROUTINES ]#############################################################
+
+## map a commit count to a shade level [ 0 .. $#shades ]
+sub shade_index {
+    my $count  = shift;
+    my $levels = scalar @shades;
+    my $ratio
+        = $linear
+        ? $count / $max_month
+        : log( $count + 1 ) / log( $max_month + 1 );
+    my $index = int( $ratio * $levels );
+    return $index > $#shades ? $#shades : $index;
+}
+
+## smallest commit count that reaches a shade level
+sub shade_floor {
+    my $index = shift;
+    return 1 if !$index;
+    my $ratio = $index / scalar @shades;
+    my $floor
+        = $linear
+        ? $ratio * $max_month
+        : exp( $ratio * log( $max_month + 1 ) ) - 1;
+    my $rounded = int($floor);
+    $rounded++ if $rounded < $floor;
+    return $rounded;
+}
+
+sub usage {
+    print <<~"EOT";
+
+    :: usage : commit-graph [ options ] [ repo-dir ]
+
+      -n, --numbers      month grid with commit counts instead of shading
+      -l, --linear       linear shading [ default : logarithmic ]
+      -a, --all          count commits of all refs, not only HEAD
+      -A, --author STR   only commits by matching author
+      -w, --width N      width of the year bars [ default : 50 ]
+
+    EOT
+    exit 0;
+}
+
+sub error_exit {
+    my $msg = shift;
+    say STDERR "\n:\n:: $msg\n:\n";
+    exit 1;
+}
+
+#,,.,,,,,,,..,.,.,,..,.,.,..,,,,,,..,,,.,,.,.,..,,...,...,...,..,,.,.,...,,..,
+#KE2OVJ66KA3SB766FOM6HPW42FMWEG65G2XNZ6BP7637VMYTTREKT5TAELYCGEI67EBS5BYMTSP7S
+#\\\|JX3DX5MCEZ2VC6ZCAIYUXYVPFX6JSQLUJ76OAWUX7ICDUEGADQF \ / AMOS7 \ YOURUM ::
+#\[7]WIZVRTJC2UMGPB5Z5GKQYBHJETHPZZ4T62HGLGRHOMH3GMVHLGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

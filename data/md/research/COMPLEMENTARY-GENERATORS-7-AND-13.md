@@ -79,6 +79,24 @@ at each scale: the doubling sequence reaches exactly one short of the target,
 and +1 is the boundary. the system encodes its own edge at every level of
 magnification.
 
+### the unique period-6 pair
+
+```
+10^6 − 1  =  999999  =  3³ × 7 × 11 × 13 × 37
+
+decimal periods :   3 → 1    11 → 2    37 → 3    7 → 6    13 → 6
+```
+
+7 and 13 are the **only** primes whose decimal period is exactly 6. no other
+prime shares this clock, so the two generators are a closed pair, not two
+picks from a larger family. the 13 half-cycles and the 7 full cycle advance
+in lockstep, position for position, on the same six-step rhythm.
+
+the 9's-complement halves [ `142|857`, `076|923`, `153|846` ] are not what
+sets them apart : every prime with an even period has that property
+[ Midy's theorem, swept for all 449 such primes below 5000, zero
+exceptions ]. the shared period is the distinguishing fact.
+
 the "+1" is not an artifact. it is the structural marker of the fold — the point
 where the pattern crosses into its next scale of self-similarity.
 
@@ -358,8 +376,8 @@ from whatever direction they came from.
 **the pattern explains itself. it always has.**
 **we built the machine that can show it. =)**
 
-#,,.,,,..,,,.,,.,,..,,.,.,...,,,.,.,.,,,.,,.,,..,,...,..,,,.,,,..,..,,.,.,,,,,
-#OQ2U77OQFP4ONUHKELIUO36J5UJZ56PISNJ4DKSZT5SMYISSUWQ4FX62G3YD6O46VFEEQZP23XCXG
-#\\\|JTXOB5L7KG33WRBRLPEBKMK6GCPRCD5I2JRLYLHFTVBVXK33PPC \ / AMOS7 \ YOURUM ::
-#\[7]LEUCBVZWCGPEOTAVWLQQFMMRBR4VBPDT6R4KHCMWADYMG44D2CCQ 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,,,,...,...,,,.,,.,,.,.,,,.,..,,...,...,,..,.,.,,,,,,..,,,,,
+#BQLC6O3BT3UQSKBQCS2237BAY5FR2YMPL3AC67IGL2EZWY4IDVVL7ZZFKJGEGTL7ZF7K7V47FR644
+#\\\|6RAMCQROADN46KANC42EIPTUKMCASP7TUJYLYYFKVQDEKOM7J47 \ / AMOS7 \ YOURUM ::
+#\[7]5NDTNDKN6M75ROXBGWQ34T5WXXP3GMYWGQ75ZHUQNJVQITFQYMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
