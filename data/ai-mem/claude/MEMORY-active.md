@@ -165,10 +165,12 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|SFF47COPQ4FDXMFPYYCPS7LLMWNNWKTR4574KOWNGYH3ZZ7N76P \ / AMOS7 \ YOURUM ::
 #\[7]AO7ABBEDLXGCKWDCDV6EIKJO6S2NZUSS7YAJERIQ7G45YMMQEWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [invoke-render-degradation-baseline](project-2026-10-02-invoke-render-degradation-baseline.md) — renders slow 2-6x with uptime ; fresh-reboot baseline denoise 125 s vs 304-798 s before [ same graph, item 16005 ], gpu-only probe to separate causes
+- [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,,.,.,,,..,,,,.,..,,,.,,,.,,,,,,,..,,.,,.,,,..,,...,...,.,,,,,,,,,,,,..,,,,,
-#IFROSM2GV7HTN3L3CUJ4RJS74DEOSMA2SMLAA6X47DGXH3B3NNXJQFEQS5VY2QCU6XJQI2LBOQBIO
-#\\\|M4PC56GONXTNH3CU6CGVLI3KJXSXGJ2MZ3OUXIGDIT72QUMC233 \ / AMOS7 \ YOURUM ::
-#\[7]HBRVHXZQYNKMWXQL2PDPRUZ5BTAELREOKRX5J3V5HULZLHZWMOCI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,...,,.,,...,.,.,,,.,,,,,,..,..,,...,...,..,,,,,,.,,,,,,,.,,,
+#2OQXI53ZYFW5RKXJDIPQ2BV3UQF2SGSMZKDTW3VRKU6N2MWE4HCVXFUJFRMTMEJ3C6JNIK732EXLQ
+#\\\|DJ5JMLSBQPKJYQLJ7JS25DEGVCSZHDKUE5EHNGA63IFBTXBIHMK \ / AMOS7 \ YOURUM ::
+#\[7]4V7ROGYU7NMF5QAOMZ6VENTSXCUI3EZHV2AUPWBUZDOTGBGPS4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
