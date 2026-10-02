@@ -1,0 +1,97 @@
+From b2482ccb1ec3163abb65187e517128760e63eb80 Mon Sep 17 00:00:00 2001
+From: "Taeki Ten of {[.NAiLArA:T3K`]}" <taeki.ten@protocol-7.network>
+Date: Fri, 2 Oct 2026 04:37:57 +0200
+Subject: [PATCH 1/2] fix(ui): reference images for Qwen Image 2.1
+
+The graph builder feeds reference images to the qwen_image_2_1 variant
+(isQwenImageEditModel), but the prompts panel only showed the reference
+image list for the 'edit' variant: stale references were used without a
+way to see or remove them. Show the list for qwen_image_2_1 too.
+
+Qwen-Image-2.1 takes up to 10 reference images (model card); the list was
+capped at 5 for every model. Allow 10 for qwen_image_2_1, keep 5 for the
+rest, and lay the list out in rows of 5 at the existing height.
+---
+ .../components/RefImage/RefImageList.tsx      | 36 +++++++++++++++----
+ .../parameters/components/Prompts/Prompts.tsx |  3 +-
+ 2 files changed, 31 insertions(+), 8 deletions(-)
+
+diff --git a/invokeai/frontend/web/src/features/controlLayers/components/RefImage/RefImageList.tsx b/invokeai/frontend/web/src/features/controlLayers/components/RefImage/RefImageList.tsx
+index 9145ea5..969fc42 100644
+--- a/invokeai/frontend/web/src/features/controlLayers/components/RefImage/RefImageList.tsx
++++ b/invokeai/frontend/web/src/features/controlLayers/components/RefImage/RefImageList.tsx
+@@ -26,6 +26,7 @@ import { memo, useEffect, useMemo } from 'react';
+ import { flushSync } from 'react-dom';
+ import { useTranslation } from 'react-i18next';
+ import { PiBoundingBoxBold, PiUploadBold } from 'react-icons/pi';
++import { useSelectedModelConfig } from 'services/api/hooks/useSelectedModelConfig';
+ import type { ImageDTO } from 'services/api/types';
+ 
+ import { RefImageHeader } from './RefImageHeader';
+@@ -37,6 +38,23 @@ export const RefImageList = memo(() => {
+   const isPanelOpen = useAppSelector(selectIsRefImagePanelOpen);
+   const selectedEntityId = useAppSelector(selectSelectedRefEntityId);
+   const dispatch = useAppDispatch();
++  const modelConfig = useSelectedModelConfig();
++  // qwen image 2.1 takes up to 10 reference images [ model card ], other models 5
++  const maxRefImages =
++    modelConfig && 'variant' in modelConfig && modelConfig.variant === 'qwen_image_2_1' ? 10 : 5;
++  // rows of 5 at the original fixed height : a full row with room left gets
++  // an empty row after it for the add button
++  const rows = useMemo(() => {
++    const result: string[][] = [];
++    for (let i = 0; i < ids.length; i += 5) {
++      result.push(ids.slice(i, i + 5));
++    }
++    const last = result[result.length - 1];
++    if (!last || (last.length === 5 && ids.length < maxRefImages)) {
++      result.push([]);
++    }
++    return result;
++  }, [ids, maxRefImages]);
+ 
+   useEffect(() => {
+     return monitorForElements({
+@@ -81,14 +99,18 @@ export const RefImageList = memo(() => {
+ 
+   return (
+     <Flex flexDir="column">
+-      <Flex gap={2} h={16}>
+-        {ids.map((id) => (
+-          <RefImageIdContext.Provider key={id} value={id}>
+-            <RefImagePreview />
+-          </RefImageIdContext.Provider>
++      <Flex flexDir="column" gap={2}>
++        {rows.map((rowIds, rowIndex) => (
++          <Flex key={rowIndex} gap={2} h={16}>
++            {rowIds.map((id) => (
++              <RefImageIdContext.Provider key={id} value={id}>
++                <RefImagePreview />
++              </RefImageIdContext.Provider>
++            ))}
++            {rowIndex === rows.length - 1 && ids.length < maxRefImages && <AddRefImageDropTargetAndButton />}
++            {rowIndex === rows.length - 1 && ids.length >= maxRefImages && <MaxRefImages />}
++          </Flex>
+         ))}
+-        {ids.length < 5 && <AddRefImageDropTargetAndButton />}
+-        {ids.length >= 5 && <MaxRefImages />}
+       </Flex>
+       <Collapse in={isPanelOpen}>
+         <Flex pt={2} w="full">
+diff --git a/invokeai/frontend/web/src/features/parameters/components/Prompts/Prompts.tsx b/invokeai/frontend/web/src/features/parameters/components/Prompts/Prompts.tsx
+index c93841d..7172d7e 100644
+--- a/invokeai/frontend/web/src/features/parameters/components/Prompts/Prompts.tsx
++++ b/invokeai/frontend/web/src/features/parameters/components/Prompts/Prompts.tsx
+@@ -24,7 +24,8 @@ export const Prompts = memo(() => {
+     }
+     if (modelConfig?.base === 'qwen-image') {
+       const variant = 'variant' in modelConfig ? modelConfig.variant : null;
+-      if (variant !== 'edit') {
++      // the unified qwen image 2.1 model takes reference images too
++      if (variant !== 'edit' && variant !== 'qwen_image_2_1') {
+         return false;
+       }
+     }
+-- 
+2.53.0
+

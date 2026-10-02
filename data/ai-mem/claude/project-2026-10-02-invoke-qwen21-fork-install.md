@@ -24,8 +24,12 @@ via `invoke-web.state_name`. both installs share port 4707 -> the browser keeps
 ONE ui state [ canvas, ref images ] across them : stale refs from the other
 install give `Image record not found`.
 
-**local fork patches** [ uncommitted in the clone -- re-apply after any fork
-update \ rebuild ] : `Prompts.tsx` showed the ref image list only for variant
+**local fork patches -- SECURED 2026-10-02** : clone branch `p7-local` [ 2
+commits on fork commit c518116 ], exported to
+`data/patches/invokeai-qwen21/000{1,2}-*.patch` [ git am clean on c518116,
+verified ], full rebuild : `bin/scripts/invoke-ai/build-qwen21-fork`
+[ `--ui` = web ui only ]. a fork update : rebase p7-local, re-export,
+bump BASE in the script. the history of the patches : `Prompts.tsx` showed the ref image list only for variant
 `edit`, while buildQwenImageGraph also feeds refs to `qwen_image_2_1` ->
 condition widened, dist rebuilt [ `pnpm exec vite build`, NOT `pnpm build` :
 its nested pnpm is not on PATH ] and copied into the env's
@@ -49,8 +53,8 @@ LoRA applies to 2.1 there yet. old SDXL \ FLUX LoRAs never carry over
 offered, not done : importing main's image records [ 49441 ] + boards into
 the fork db so the old gallery works there.
 
-#,,,.,.,.,,,.,,,,,,.,,,,,,,.,,,..,.,,,,..,,,.,..,,...,...,.,,,,.,,..,,,..,.,,,
-#ZSIKVLT7J6LUNP4GXVNUL3PG2IAPHP5Q24STDQVC5UNIJTXRMF247OWH5BXR2U5TTAGDOJ4FD5DC6
-#\\\|SSSODVBOMMKLA5VLBMVJNVEUZFD7WZYPT6V5LAVUED76QXKPNC6 \ / AMOS7 \ YOURUM ::
-#\[7]ZNDTCIH2S2UJDDG6RTXOQ5FHWNH7YJ2VLZRXBCQ7GVNW4UI27IAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,..,,,..,.,.,.,,,,.,,,,,,,..,,,,,..,,...,..,,.,,,...,,,.,,,,,,,.,
+#YBOMJTLXEVUFO4CMKRK53RIVDNJXV3RISNNHPNBY7D5DWCNPC3LXPDEFBUBZZUA5U24KZ644K6SQW
+#\\\|77YLGK7LIGF3UHTO7FAALI7752AJ64Y4Q5HNM53NXXUXSMP4ZTP \ / AMOS7 \ YOURUM ::
+#\[7]ZBD4T5ZADKXFRRQRPY2ZGO56XY2THHJLAYKXFG5TH6J6PQUSD6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
