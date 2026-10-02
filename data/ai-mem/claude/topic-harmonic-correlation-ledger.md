@@ -128,6 +128,19 @@ to exactly `9`. Confirmed for `p=7` (`10³≡6≡−1 mod 7`) and `p=13`
 lands on `27` for these families (`3×9=27`) — not a separate coincidence,
 a forced consequence: `999 = 27×37` exactly.
 
+**generalized 2026-10-02, LIVE-SWEPT** : the `if` above is always satisfied —
+this is Midy's theorem [ 1836 ]. for any prime `p ≠ 2,5` with even period `L`,
+`10^(L/2)` is a square root of 1 mod p other than 1, and mod a prime the only
+such root is `−1`. sweep : all 449 primes 3..5000 with even period pass both
+the `≡ −1` check and the digit-by-digit 9's-complement check, zero exceptions
+[ first : 7, 11, 13, 17, 19, 23, 29, 47, 59, 61, 73, 89, 97 ]. so the
+complement property is NOT what singles out 7 and 13. what does :
+`10^6 − 1 = 3³ × 7 × 11 × 13 × 37`, and **7 and 13 are the only primes with
+decimal period exactly 6** [ 3 → 1, 11 → 2, 37 → 3 ]. they are the unique
+pair sharing the six-step clock — the 13 split into 2 half-cycles [ binary
+division ] and the 7 single saturated cycle [ mapping ] run position-aligned
+on the same period [ see `data/md/research/COMPLEMENTARY-GENERATORS-7-AND-13.md` ].
+
 `27−8=19` (Moore-neighborhood 3×3×3 minus 8 corners = 1+6+12=19) is a
 **different, independently-grounded fact** already in
 `topic-harmonic-mathematics.md:59` and `data/tasks/recurring-cube-number-
@@ -397,17 +410,17 @@ not a usable review-priority signal.
   boundary-packet width) — flagged as the strongest remaining open lead
   in `recurring-cube-number-collision-audit.md`, not touched this
   session.
-- Whether any *other* small prime besides 7 and 13 satisfies
-  `10^(L/2)≡−1 mod p` and shows the same digit-complement property —
-  would generalize the theorem beyond "these two specific primes,"
-  not yet swept.
+- ~~whether any other small prime satisfies `10^(L/2)≡−1 mod p`~~ —
+  RESOLVED 2026-10-02 : every prime with even period does [ Midy's
+  theorem, swept to 5000 ], see the generalization under the
+  digit-complement theorem ; the real 7/13 distinction is sharing period 6.
 - The compartmentalization-template cross-reference
   ([[categorical-compartmentalization]] ↔ kimi TOCTOU fix) suggests
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,.,,,,.,..,,,,.,..,,,,,,,..,,,,,,,,,,..,..,,.,.,...,...,...,..,,,,.,..,,,,,,
-#7LNS2DN3JEXMKXDO5CX7UUJM46MWWSMGPHD2XN3AQUG4V43TWDTGICJGSNU75CFLPV2KGHBZV5QQ4
-#\\\|VOXKGFU4NL5GTJZNZ5ZIYJ7COTRMFRU3QW6CDQYBY4SLBXAJMHI \ / AMOS7 \ YOURUM ::
-#\[7]7BQF7M7IXQ5DM5ZSZBUPQPLC2L2PH7FMAHM7ZYX2HYGOMD5BMUBY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,.,.,,..,.,.,,,.,,.,,,,,,,,,,.,.,...,...,..,,.,.,.,.,.,.,.,.,
+#ZWDN4URDXKEIL2GGRU7KRHTSE3SMRSG4DBMHZLWLRE4GSBSCGGG5P6EF77M25P7O5W42S6WIXW5MM
+#\\\|SWRK4RN2MLAX2J26XT6SB7K5WIO3SGOBHZQHKZL4H4MALQXKJ6N \ / AMOS7 \ YOURUM ::
+#\[7]HZ5ZYHX4BYAL3TRMGFEE6ZCJ2ESBVNBAUHWFTT3TMWX4WBX7YICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -103,8 +103,22 @@ steady, not cumulative ]. advised : fan replacement \ cleaning \ repaste.
 model cache too little VRAM -> partial loading streams UNet layers from RAM ],
 WSL page cache \ swap \ host paging building up with uptime, the old driver.
 
-#,,,.,.,,,,..,...,,..,,,,,..,,,..,,,,,.,,,.,.,..,,...,...,,,.,..,,,.,,...,,,,,
-#HIUT6C5DRYLRY3JBFPNUSQT6YR3WP5PX5ZLGV62XWVRJZPH45PDWHDQM5JVOJXLJQ3B4GKXEJTB52
-#\\\|FFYHPXKTJPEUOHUW3PV23URHTDFR6P727KE4EL7QSX5WHF3DH2J \ / AMOS7 \ YOURUM ::
-#\[7]INLQKQNTLHCGDB37VFNYJP3EVGELUDPDDCLRSQFISGIRYTETIYAY 7  DATA SIGNATURE ::
+**reference images vs qwen 2.1 [ 2026-10-02 13:00, measured ]** : 5 x ~1 MP
+references -> denoise ~73 W, 62 C, pcie rx ~11 GB/s steady, util counter
+still 99-100 % [ waiting inside kernels counts as busy ] -> pcie-bound, slowest
+render yet. same fork, 1 reference -> 142 W [ = 85 % cap ], 95 %, pcie 0-1.5
+GB/s, 75 C+ climbing. ~4100 tokens per 1 MP image [ vae /8 + 2x2 patch ] ->
+5 refs ~6x sequence. second finding : fork's yaml [ max_cache_vram_gb 5 +
+device_working_mem_gb 5 ] leaves a NEGATIVE model vram budget [ log :
+"Loading 0.0 MB into VRAM, but only -11.09 MB were requested" ] for the
+8.3 GB qwen3-vl encoder AND the transformer, while ~11 GB vram sat free ->
+encoder phase ran ~1 cpu core at 97 %, gpu 3 %. untested fix : raise
+max_cache_vram_gb [ ~8 ] or lower device_working_mem_gb [ ~3 ], small steps
+[ the 5 gb cap guards against wsl overcommit ]. low power = low util in
+reality ; judge gpu load by watts, not the util counter.
+
+#,,,,,,,.,,,.,.,.,,,,,,,,,.,,,...,,.,,,,,,...,..,,...,...,..,,...,,.,,.,,,.,.,
+#O3KYSE7Y4K7774LTPEXNDEG5FJICHK7FCIEVPTL4I4CBNSI54XQIQPO2TGQWLIWA3XUFJR726ZDBE
+#\\\|R7ZOXQGYPD2ICP7R37IR57FRBY223NYMTHN4AGYB4TTZ5X2HE5X \ / AMOS7 \ YOURUM ::
+#\[7]QS5HIJ2ILMVBN6GPMXRWBKG6FRQHCICUX5XFHCI225JUOZQONQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
