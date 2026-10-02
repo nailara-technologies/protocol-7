@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = os-pkg.handler.install_reply
+# descr = complete os-pkg.install with the backend zenka's deferred reply
+
+my $reply = shift;
+return warn 'no reply hashref received' if not defined $reply;
+
+## reply-handler signature : one hashref { sid, cmd, call_args, params }  ##
+## 'cmd' is the wire-level mode keyword, the payload is call_args->args [ ##
+## see sys-deps.handler.install_reply ]                                   ##
+my $mode      = uc( $reply->{'cmd'} // '' );
+my $params    = $reply->{'params'}              // {};
+my $reply_str = $reply->{'call_args'}->{'args'} // '';
+my $reply_id  = $params->{'reply_id'};
+my $backend   = $params->{'backend'} // 'backend';
+
+my $ok = $mode eq qw| TRUE |;
+
+<[base.logs]>->(
+    $ok ? 1 : 0,
+    'os-pkg: %s %s : %s',
+    $backend,
+    $ok                ? 'done'     : 'failed',
+    length($reply_str) ? $reply_str : qw| no details |
+);
+
+return if not defined $reply_id;
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => $ok ? qw| true | : qw| false |,
+        'data' => length($reply_str)
+        ? $reply_str
+        : ( $ok ? 'installed' : 'install failed' )
+    }
+);
+
+return;
+
+#,,..,,,.,...,,.,,,,.,,..,,.,,..,,,,.,,.,,...,..,,...,...,...,,..,,,.,,..,,.,,
+#W52ZG3OWQ3JPXVCH73OO4NB3ZIGMRUXLJ5X6KVNA33EXTTDGUTJI5MIH5WREPTQJNYBH2XQBOLAZQ
+#\\\|EMNLXJNK4TFYC2XJSKV2TGSQBHHN3VN3CENRC7SQ6ANZJ3FDW6B \ / AMOS7 \ YOURUM ::
+#\[7]7KYFPHGNNSPWFV3F4T5TSIBJ4KK6XFM6OJLJE5Q2L7S4PNQJGEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
