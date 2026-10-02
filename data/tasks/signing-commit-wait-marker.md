@@ -73,6 +73,18 @@ swapped -- this host does swap ], reachable only through an authenticated
 local socket, and a lock \ timeout after which the passphrase is needed
 again.
 
+already designed [ read before building the agent ] :
+- `data/ai-mem/claude/vision-sessions-zenka-key-holding-children.md` :
+  one minimal key-holding child per decrypted key [ chmod_child pattern,
+  `IPC::Open2`, local pipes only, zero network surface, closed command
+  vocabulary ] ; detach \ reattach across a manager restart
+- `credential_fabric.*` : a detached key-holder child already partially
+  built [ `CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md`, `key-holder-status.yaml` ]
+- `V7-HOT-SELF-RESTART.md` [ seed ] : fd handoff [ SCM_RIGHTS ] to resume
+  instead of cold-init
+-> the signing agent is one instance of that key-holding child, not a new
+mechanism.
+
 ## test
 
 - start `update-signatures :stage:` on a large file set, commit right
@@ -83,8 +95,8 @@ again.
   waiting for the longer one [ its marker is untouched ]
 - no marker -> hook behaves exactly as today
 
-#,,,,,.,,,,..,.,.,..,,..,,,,.,...,.,,,,..,,,,,..,,...,..,,..,,.,,,,.,,.,,,...,
-#4G7FXCVNRXPRMZAGVWX6DR2SLOPIQK3Z36YSHJ6OBMGHV2FZTPLKVCRJEDC4YVGM53TRUMUFPYPKI
-#\\\|AWEGS3B4KY5Y7KAHDL4SZENB6O4J6FHE6LOJQ3DYSC5Z4MZMN2Q \ / AMOS7 \ YOURUM ::
-#\[7]BYYDNB65YHHWZFLCJLYU6PHALJT3RMWPLYWP4VFN53CPDCQVQQCI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,..,.,,,...,,..,..,,..,,.,.,..,,...,...,..,,,,,,.,.,.,.,...,
+#C3QB2UK7GB4QMVSMROBEGY447UDREP64MFYYHKZJMPZW5ZUJJJ3NLDAS23GLB3NMVWLXYWPJCOVA4
+#\\\|DM4AI6QJMCVW4QO7OUEI5PB3VE2SQJVJLWMGYQG5TDTN52BPYVL \ / AMOS7 \ YOURUM ::
+#\[7]EED4IM5GR57VW6MEKEMQQMDHAPERTTSIM2XA54GQFERN23NX7YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
