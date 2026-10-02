@@ -154,10 +154,15 @@ if ( $kind eq qw| ready | ) {
     <invoke-web.render>->{'done'} = TRUE if defined <invoke-web.render>;
 } elsif ( $kind eq qw| render_node | ) {
 
-    ## executed graph nodes of this item : name -> vram [ G ] ##
-    my ( $node, $vram ) = $line =~ m{^\s*(\w+)\s+\d+\s+[\d.]+s\s+([\d.]+)G};
-    <invoke-web.render>->{'nodes'}->{$node} = $vram
-        if defined $node and defined <invoke-web.render>;
+    ## executed graph nodes of this item : name -> vram [ G ]. a signed  ##
+    ## value is the 6.14+ 'VRAM Change' column : a delta, not the use -- ##
+    ## the row itself proves the node ran                                ##
+    my ( $node, $sign, $vram )
+        = $line =~ m{^\s*(\w+)\s+\d+\s+[\d.]+s\s+([+-]?)([\d.]+)G};
+    if ( defined $node and defined <invoke-web.render> ) {
+        <invoke-web.render>->{'nodes'}->{$node} = $vram;
+        <invoke-web.render>->{'vram_delta'} = TRUE if length $sign;
+    }
 } elsif ( $kind eq qw| render_stat | ) {
 
     ## one summary line once the table's last collected value arrives ##
@@ -172,9 +177,11 @@ if ( $kind eq qw| ready | ) {
         ## [ l2i \ *_l2i ] ran with vram in use = nothing was rendered.    ##
         ## not the time : it depends on the hardware ; not the ram delta   ##
         ## alone : a fully cached render shows +0.000G too                 ##
-        my $nodes = $render->{'nodes'} // {};
-        my $decoded
-            = grep { m{(?:^|_)l2i$} and $nodes->{$ARG} > 0 } keys %$nodes;
+        my $nodes   = $render->{'nodes'} // {};
+        my $decoded = grep {
+            m{(?:^|_)l2i$}
+                and ( $render->{'vram_delta'} or $nodes->{$ARG} > 0 )
+        } keys %$nodes;
         $render->{'result'}
             = defined $render->{'failed'} ? qw| failed |
             : $decoded                    ? qw| done |
@@ -203,8 +210,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,.,,,.,,.,.,.,.,.,.,.,.,.,,,.,,,.,.,,.,,,..,..,,...,...,,..,,,.,.,,,.,.,,,.,
-#TB27DDFCFRLRQUNVOJDHSW3YOCL27BP6HMXRHW63TMUFHBSCFP4RZEKF7FEGVIRRIXFUJ3AL6GR2E
-#\\\|W2NLX2QPGANPHVL44XS6MUW4OQPHVZYMYKPKPPTGQA43PRKZ65U \ / AMOS7 \ YOURUM ::
-#\[7]XF5WTQ4H3KLT5AZSM24QRPCYGALUYMZSLBVBMYMOECRT7SXTDGBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,..,,,,,,,,.,,..,.,,,.,.,.,,,..,,...,...,..,,,..,.,,,,..,,..,
+#7ZO2KY223R4WIFS2O6673EWPJB3YXMRUJ5CNNWYCEPQDP3ZCWLEK5RITHNR6422HM3NEMGA5KE3X6
+#\\\|S2CF5COWWJJY6W5LNDRRWLRVZALTUFJXVARSTSDMTPVHOSGOIL4 \ / AMOS7 \ YOURUM ::
+#\[7]H6GR7GQ7Z62WU6NXTY4PQ7UQHHXJ4PDYTP63CY7PHCXIVHZMDSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
