@@ -347,6 +347,47 @@ several categories ; gather them here as they come up, then plan. context :
   `data/tasks/coding-invoke-awareness.md` for the same pattern with the
   coding zenka
 
+## qwen-image 2.1 : native references [ 2026-10-02 ]
+
+- a second invoke.ai install runs qwen-image 2.1 [ krakotay fork, invoke-web
+  variant `qwen21`, see `data/ai-mem/claude/project-2026-10-02-invoke-qwen21-
+  fork-install.md` ]. it changes how references work at the root :
+  - SDXL : a reference passes an ADAPTER [ ip-adapter + clip vision ] ->
+    weight %, step range, adapter type per reference
+  - 2.1 : references go into the model itself [ its qwen3-vl text encoder
+    SEES them with the prompt, plus one latent segment each ] -> no weights,
+    no adapters, up to 10 references. control is the PROMPT : "the woman
+    from image 1, the palette of image 2, the setting of image 3"
+- first observation [ user, 2026-10-02 ] : one reference, never mentioned in
+  the prompt -> the character kept precisely [ face, a large number on the
+  suit at the same spot, no skewing ], its color style integrated. where
+  prompt and reference disagree [ prompt 'elf', reference hair over the
+  ears ] the seed decides -- naming the detail and its source settles it
+- reference CHANNELS map onto it directly : a channel's ROLE becomes text
+  in the prompt [ "image 1 = identity, image 2 = palette" ] instead of an
+  adapter type \ weight. the lightweight side still chooses WHICH images
+  [ momentum toward the target color bracket ] ; HOW STRONGLY moves into
+  the prompt phrasing [ emphasis, how many references carry the target
+  state ] -- also the lever for accelerating or holding back a threshold
+  transition
+- cost [ render-stats, 3060 12 GB, 1024x1024, 30 steps, cfg 4 ] : ~4.5 min
+  without, +~8 % \ ~21 s per reference [ warm ]. 5 references at
+  1408x896 spilled vram -> unusable ; 2-3 at 1024 are comfortable.
+  per-fingerprint costs from `p7c invoke-web.render-stats` are the input
+  for queue time estimates [ scheduling by curves ]
+- no LoRAs on 2.1 in the fork yet [ its graph builder skips them ] -> the
+  two-pass route : 2.1 for composition \ identity \ references, the main
+  install [ SDXL + LoRAs + ip-adapters ] for refinement. only ONE install
+  runs at a time [ same port ] : batch by install, a switch costs a restart
+  [ ~20-60 s ] + model loads
+- both installs share the browser's ui state [ same origin ] : stale
+  references \ cfg leak between them. the pipeline drives invoke.ai through
+  the api, not the shared ui state
+- idea, unverified : the 2.1 text encoder IS a vision-language model that
+  is loaded anyway while 2.1 renders -- a possible cheap 'does this match
+  image N' check without a separate vision model [ the fork strips its
+  language head : needs a look first ]
+
 ## image analysis
 
 - color histograms, histogram \ palette distance
@@ -395,8 +436,8 @@ several categories ; gather them here as they come up, then plan. context :
   `data/tasks/task-zenka-cold-queue-gpu-cooldown-trigger.md` [ gpu-temp
   cooldown gate, implementation plan already written ]
 
-#,,,.,.,,,.,,,.,.,.,.,,,.,.,.,,,.,,.,,,..,.,,,..,,...,...,..,,,,.,..,,,.,,.,.,
-#ZDUT5ELNPPVZ77SN2C2USQJFUPDKQR5SGKSEWAR4ZDTCYNXEM73LZXSPJYJ6AYXTBLQISNYAD57T6
-#\\\|M2VGMFAUKMBJ2UBVDSSNUGDZ2NOJD37CDQL7YWOTG2KSS2XKQVM \ / AMOS7 \ YOURUM ::
-#\[7]N6J6VURJEILXCSN33BRPUMQ5KWM7G66YHC4TSAZBEZ4SJXAIXSAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,...,.,,,...,..,,,.,,..,,,..,..,,...,...,.,.,,.,,..,,,.,,,,.,
+#A7B2JY25O6N466R66SQPFZHSFKTZTWI2PI4FLUZO4RRQ6UERPFQSVGFDX3YDNB7X5KRGI7GB2XJKI
+#\\\|QVYGQZHBQSGWMKLXMSCCOG5S65C7OMZWQZXNMZYN7IEQW25EDQG \ / AMOS7 \ YOURUM ::
+#\[7]Q2XJJQKPTCICTXIHQTALEJWNGNSFMECOMZBHMNJNGBBHPSCT46DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
