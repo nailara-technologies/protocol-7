@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = invoke-web.stats.win_mem
+# descr  = windows host memory use for the render statistics [ the linux
+#          side cannot see the host paging the wsl vm ] : powershell.mem-used
+# param  = render hashref, 'start' | 'end'
+# return = TRUE [ requested ] | FALSE [ no wsl interop : native linux ]
+# note   = asynchronous [ powershell takes ~1s ] : the start value lands in
+#          the render hash, the end value updates the stored row
+#          [ invoke-web.handler.win_mem_reply ]
+
+my $render = shift // return FALSE;
+my $phase  = shift // qw| start |;
+
+## wsl interop present [ 'WSLInterop' or 'WSLInterop-late' ] ##
+<invoke-web.wsl_interop>
+    //= ( glob '/proc/sys/fs/binfmt_misc/WSLInterop*' ) ? TRUE : FALSE;
+return FALSE if not <invoke-web.wsl_interop>;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| powershell.mem-used |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| invoke-web.handler.win_mem_reply |,
+            'params'  => {
+                'render' => $render,
+                'phase'  => $phase
+            }
+        }
+    }
+);
+
+return TRUE;
+
+#,,,.,,,.,,.,,,,.,,..,,..,,,.,..,,..,,,,.,.,.,..,,...,...,.,.,.,,,.,.,..,,,,,,
+#AZ6HKBCHW6FRBIUGDJWCWTUVBQG5LTBWXCK5VWDUNGAFR7BKHKE2TJBJRUOFIDTJ2LS2T3IER37AC
+#\\\|6PIGEZG2TQQ5JPSMJCLS26YCASD7UFE2W6UUNDZ2APKMKPATQD2 \ / AMOS7 \ YOURUM ::
+#\[7]QQ7R6VVQVIXPGYGCCSWHFPOGQCPBHKPS5DEZWPTAH4NTSDWV6MCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

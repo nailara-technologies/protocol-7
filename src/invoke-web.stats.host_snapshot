@@ -1,0 +1,63 @@
+## [:< ##
+
+# name   = invoke-web.stats.host_snapshot
+# descr  = linux side memory \ io state for the render statistics : the
+#          kernel counters directly [ cheap file reads, no network ]
+# param  = [ invoke.ai pid : adds its storage read bytes ]
+# return = hashref { time, uptime_s, mem_avail_mb, cached_mb, swap_used_mb,
+#          pswpin, pswpout, psi_mem_full_us, psi_io_full_us, read_bytes,
+#          disks => { <disk> => [ reads, sectors, read_ms, busy_ms ] } }
+# note   = counters [ pswp*, psi totals, read_bytes ] are cumulative : the
+#          render row stores end - start. read_bytes = bytes the process
+#          really fetched from storage [ page cache hits do not count ]
+
+my $pid = shift;
+
+my %snap = ( 'time' => <[base.time]>->(3) );
+
+my $read = sub {
+    my $path = shift;
+    open my $fh, qw| < |, $path or return '';
+    local $INPUT_RECORD_SEPARATOR;
+    my $text = <$fh>;
+    close $fh;
+    return $text // '';
+};
+
+my $meminfo = $read->('/proc/meminfo');
+my %kb      = $meminfo =~ m{^(\w+):\s+(\d+)}mg;
+$snap{'mem_avail_mb'} = int( ( $kb{'MemAvailable'} // 0 ) / 1024 );
+$snap{'cached_mb'}    = int( ( $kb{'Cached'}       // 0 ) / 1024 );
+$snap{'swap_used_mb'}
+    = int( ( ( $kb{'SwapTotal'} // 0 ) - ( $kb{'SwapFree'} // 0 ) ) / 1024 );
+
+my $vmstat = $read->('/proc/vmstat');
+( $snap{'pswpin'} )  = $vmstat =~ m{^pswpin (\d+)}m;
+( $snap{'pswpout'} ) = $vmstat =~ m{^pswpout (\d+)}m;
+
+## 'full' : time all non-idle tasks were stalled at once ##
+( $snap{'psi_mem_full_us'} )
+    = $read->('/proc/pressure/memory') =~ m{^full .*total=(\d+)}m;
+( $snap{'psi_io_full_us'} )
+    = $read->('/proc/pressure/io') =~ m{^full .*total=(\d+)}m;
+
+( $snap{'uptime_s'} ) = $read->('/proc/uptime') =~ m{^(\d+)};
+
+## whole disks : reads, sectors read, ms reading, ms busy [ diskstats ##
+## fields 4 6 7 13 ] -- partitions and virtual devices left out       ##
+foreach my $line ( split m{\n}, $read->('/proc/diskstats') ) {
+    my @field = split ' ', $line;
+    next if ( $field[2] // '' ) !~ m{^(?:sd[a-z]+|vd[a-z]+|nvme\d+n\d+)$};
+    $snap{'disks'}->{ $field[2] } = [ @field[ 3, 5, 6, 12 ] ];
+}
+
+( $snap{'read_bytes'} ) = $read->("/proc/$pid/io") =~ m{^read_bytes: (\d+)}m
+    if defined $pid and $pid =~ m{^\d+$};
+
+return \%snap;
+
+#,,,.,...,,,,,,,,,,,,,,,,,...,...,,.,,,,.,...,..,,...,.,.,.,.,,..,,.,,.,.,,..,
+#45G44HWWRV3SOZC7TK7IP55HWG5G3L3NVWE6YEU3YN27BJZQCCQJ6HB766RWSMUL3GD7OFJNPQXTQ
+#\\\|Q7KVNAXRL64FXYIBI5DT4QSJ65OGGR5HVN7Q4BRH7BNP65HBAKJ \ / AMOS7 \ YOURUM ::
+#\[7]HUSZQVUJWPDGT5XNXE3XOZR4YPRXTYRGMMLVR7EQOVTBYPFLTSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

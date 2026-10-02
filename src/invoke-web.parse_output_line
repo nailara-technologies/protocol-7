@@ -147,8 +147,13 @@ if ( $kind eq qw| ready | ) {
     };
 } elsif ( $kind eq qw| item | ) {
     delete <invoke-web.progress>;    ## a new render item starts ##
-    <invoke-web.render> = { 'item' => $1, 'session' => $2 }
-        if $line =~ m{queue item (\d+), session (\S+)};
+    if ( $line =~ m{queue item (\d+), session (\S+)} ) {
+        <invoke-web.render> = { 'item' => $1, 'session' => $2 };
+
+        ## render statistics : host snapshot, gpu feed [ /proc reads and ##
+        ## asynchronous requests only ]                                  ##
+        <[invoke-web.stats.render_start]>->(<invoke-web.render>);
+    }
 } elsif ( $kind eq qw| item_done | ) {
     delete <invoke-web.progress>;
     <invoke-web.render>->{'done'} = TRUE if defined <invoke-web.render>;
@@ -156,12 +161,13 @@ if ( $kind eq qw| ready | ) {
 
     ## executed graph nodes of this item : name -> vram [ G ]. a signed  ##
     ## value is the 6.14+ 'VRAM Change' column : a delta, not the use -- ##
-    ## the row itself proves the node ran                                ##
-    my ( $node, $sign, $vram )
-        = $line =~ m{^\s*(\w+)\s+\d+\s+[\d.]+s\s+([+-]?)([\d.]+)G};
+    ## the row itself proves the node ran. seconds : render statistics   ##
+    my ( $node, $secs, $sign, $vram )
+        = $line =~ m{^\s*(\w+)\s+\d+\s+([\d.]+)s\s+([+-]?)([\d.]+)G};
     if ( defined $node and defined <invoke-web.render> ) {
-        <invoke-web.render>->{'nodes'}->{$node} = $vram;
-        <invoke-web.render>->{'vram_delta'} = TRUE if length $sign;
+        <invoke-web.render>->{'nodes'}->{$node}     = $vram;
+        <invoke-web.render>->{'node_secs'}->{$node} = 0 + $secs;
+        <invoke-web.render>->{'vram_delta'}         = TRUE if length $sign;
     }
 } elsif ( $kind eq qw| render_stat | ) {
 
@@ -210,8 +216,8 @@ if ( $kind eq qw| ready | ) {
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,,,,,,,,,.,,,..,..,,,,,,,,.,,..,.,,,.,.,.,,,..,,...,...,..,,,..,.,,,,..,,..,
-#7ZO2KY223R4WIFS2O6673EWPJB3YXMRUJ5CNNWYCEPQDP3ZCWLEK5RITHNR6422HM3NEMGA5KE3X6
-#\\\|S2CF5COWWJJY6W5LNDRRWLRVZALTUFJXVARSTSDMTPVHOSGOIL4 \ / AMOS7 \ YOURUM ::
-#\[7]H6GR7GQ7Z62WU6NXTY4PQ7UQHHXJ4PDYTP63CY7PHCXIVHZMDSDI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,.,,,..,,.,,.,.,...,,.,,...,.,,,..,,...,...,.,,,,.,,,.,,,.,,..,,
+#7LKJCSBHW7WFXZDDNK7BIN5MTVL5VA37FNBQZPVJY4ZOXWHKSGLIAAWBH7PYH4K5F6BVZNHO6UTDI
+#\\\|JXBL6MR3XW64R2IWCA3PZI4SHRQZQOLQXQXLK33ZIDR6RCWRIMA \ / AMOS7 \ YOURUM ::
+#\[7]KP7THHRM63P2JXFMVFXY4ZSRA2E3O76JSEI22GIVZHMFR6UAIYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
