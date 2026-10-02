@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name   = invoke-web.recover.after_crash
-# descr  = the zenka restarted while invoke.ai was running [ it died with
+# descr  = the zenka restarted while invoke.ai was running [ it terminated with
 #          the zenka ] : start it again through the recovery chain
 # note   = called from init_code [ still root ] : only arms a timer, the
 #          start runs after the privilege drop. at most 3 per hour, kept
@@ -30,7 +30,7 @@ push @recent, $now;
     'restart' => TRUE,
 };
 <[base.logs]>->(
-    0, 'crash : invoke.ai died with ' . 'the zenka -- restarting it'
+    0, 'crash : invoke.ai terminated with ' . 'the zenka -- restarting it'
 );
 
 <[event.add_timer]>->(
@@ -42,8 +42,8 @@ push @recent, $now;
 
 return TRUE;
 
-#,,.,,,,.,.,,,.,,,..,,,,,,,.,,,,.,...,.,,,,,.,..,,...,...,,..,.,,,,.,,..,,.,.,
-#7TUHMECOM7YHS6R7OWG6NVPPVHEYO3A2NCJQEMNDJSTBJYZ5NISZ7GMEMBTDVZAJTV6KAVJL3X2EO
-#\\\|KM5ICULMXAMUQ7CFGUQ3TWTTNKJZUVBH5NGEYBOFEAOT3ADIH2N \ / AMOS7 \ YOURUM ::
-#\[7]FM4TXRRUCFU5JTYNKTUCXWMT2IPLHMGUM2KX6LJUQAH4ETR3B2DY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,,,,,,,,,.,.,,,...,.,.,.,,,,,,,..,,...,...,,.,,.,.,,..,,,.,,,.,
+#Q4V2Z2CTTL4AL33J64UK3IDLNC7MOA6SJCGAPLHDP3N6JGZYJNUKSKL66JRR24YOMZXHCZWXOVJFQ
+#\\\|C2HKRUYQGV2JZDD25QYR2M2CWIUEOFKGV22LCEI2H2LHYUKKY3L \ / AMOS7 \ YOURUM ::
+#\[7]DQH7TBYYEFVMEW36IC4XGFXISSHP47WFDWTVZ7A2CW4WJROLECCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
