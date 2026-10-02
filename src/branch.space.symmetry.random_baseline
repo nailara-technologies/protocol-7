@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = branch.space.symmetry.random_baseline
+# descr = invariant-count baseline for random cell sets
+# param = { cells => n, size => s, trials => t, seed => n }
+#
+# generates trials random n-cell sets inside an s^3 cube centered on
+# the origin and counts the cube symmetries leaving each set invariant
+# [ branch.space.symmetry.invariants with center => 0 ]
+# a real pattern must clearly exceed this baseline at every scale
+# [ orientation on connect ]
+
+my $params = shift // {};
+my $n      = $params->{'cells'};
+my $size   = $params->{'size'};
+my $trials = $params->{'trials'} // 200;
+my $seed   = $params->{'seed'}   // 1;
+
+return { 'mode' => 'false', 'data' => 'cells count required' }
+    unless defined $n
+    and $n =~ m{^\d+$}
+    and $n > 0;
+
+return { 'mode' => 'false', 'data' => 'size required' }
+    unless defined $size
+    and $size =~ m{^\d+$}
+    and $size > 0;
+
+return { 'mode' => 'false', 'data' => 'positive trials required' }
+    unless $trials =~ m{^\d+$} and $trials > 0;
+
+my $volume = $size**3;
+return { 'mode' => 'false', 'data' => 'cells exceed cube volume' }
+    if $n > $volume;
+
+srand $seed if defined $seed;
+
+## cube edge s centered on the origin ##
+my $half = int( $size / 2 );
+
+my ( $sum, $max, %histogram ) = ( 0, 0 );
+
+foreach my $trial ( 1 .. $trials ) {
+    my %picked;
+    while ( scalar keys %picked < $n ) {
+        my @cell = map { int( rand($size) ) - $half } 0 .. 2;
+        $picked{ join( ',', @cell ) } = 1;
+    }
+    my $result = <[branch.space.symmetry.invariants]>->(
+        {   'cells'  => [ map { [ split m{,}, $ARG ] } keys %picked ],
+            'center' => 0,
+        }
+    );
+    my $count = $result->{'data'}->{'count'} // 0;
+    $sum += $count;
+    $max = $count if $count > $max;
+    $histogram{$count}++;
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'mean'      => $sum / $trials,
+        'max'       => $max,
+        'histogram' => \%histogram,
+    }
+};
+
+#,,..,,..,,.,,,..,.,.,...,,.,,,,,,.,,,,..,.,,,..,,...,...,..,,...,.,,,,.,,,,,,
+#B4DWB6JKN2BAHRIKGFVHCADP3M7H3VU5MH4GYD47U3WKCCOHOTGLMUKZTS2L7RUNAUUFVH7QB3DUE
+#\\\|WIVPUMSWGY4BH6PKXK2TYGPGLUSIHZCYUAWQ4IOQER3D2TZKBWX \ / AMOS7 \ YOURUM ::
+#\[7]RTOYUSIXOTXVI4WG2SYEPQT2WT3OU4FG45HM5RGFHSCX6PPWEWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

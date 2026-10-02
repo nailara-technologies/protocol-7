@@ -1,0 +1,355 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long qw| :config bundling no_ignore_case |;
+use File::Spec;
+use Cwd         qw| abs_path |;
+use FindBin     qw| $RealBin |;
+use Time::HiRes qw| time |;
+use Digest::MD5 qw| md5 |;
+
+####         ####
+## chunk-bench ##   [  bench : mod-13 rolling chunker vs fixed vs gear  ]
+###         ####
+
+##[ benchmark for base.chunk.rolling_mod -- task darksun-mod13 stages 4-5 ]###
+## methods on identical input :  A : base.chunk.rolling_mod  [ modulus 13  ##
+## window 3, modulus 91 w 3 ] B : fixed-size chunks at the avg length each ##
+## A variant produced C : gear hash cdc [ 256 fixed-seed random 64-bit     ##
+## values,  h = ( h << 1 ) + table[byte], boundary at ( h & mask ) == 0,   ##
+## mask = nearest power-of-two so avg length matches the A variant ]       ##
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $corpus_opt = 'all';    ## -c : src | md | gfx | all
+my $size_cap   = 0;   ## -s : per-corpus size cap in MB [ 0 = corpus default ]
+
+GetOptions(
+    'c|corpus=s' => \$corpus_opt,
+    's|size=i'   => \$size_cap,
+    'h|help'     => sub { usage() },
+) or usage();
+
+usage() if $corpus_opt !~ m{^(all|src|md|gfx)$};
+
+my $gfx_cap_mb = $size_cap > 0 ? $size_cap : 20;    ## gfx default 20 MB
+
+##[ module loader ]###########################################################
+
+my $up_dir    = File::Spec->updir;
+my $root_path = abs_path(
+    File::Spec->rel2abs( File::Spec->catdir( $RealBin, $up_dir, $up_dir ) ) );
+my $src_dir = File::Spec->catdir( $root_path, qw| src | );
+
+sub load_mod {
+    my $name = shift;
+    my $path = File::Spec->catfile( $src_dir, $name );
+    open( my $fh, '<', $path ) or die "cannot read $path : $OS_ERROR";
+    my $src = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close($fh);
+    $src =~ s{\n#,.*\z}{}s;    ## strip signature footer when present ##
+    my $cref = eval "sub { $src }";
+    die "compile error in $name : $EVAL_ERROR" if $EVAL_ERROR;
+    return $cref;
+}
+
+my $rolling_mod = load_mod('base.chunk.rolling_mod');
+
+sub mod_boundaries {
+    my ( $data, $modulus ) = @_;
+    my $res = $rolling_mod->(
+        { 'data' => $data, 'modulus' => $modulus, 'window' => 3 } );
+    die 'rolling_mod failed : ' . $res->{'data'}
+        if ref $res ne 'HASH'
+        or $res->{'mode'} ne 'true';
+    return $res->{'data'}->{'boundaries'};
+}
+
+##[ chunkers ]################################################################
+
+sub fixed_boundaries {
+    my ( $data, $size ) = @_;
+    my $len = length $data;
+    my @b   = ();
+    for ( my $off = $size; $off < $len; $off += $size ) {
+        push @b, $off;
+    }
+    push @b, $len if !@b or $b[-1] != $len;
+    return \@b;
+}
+
+## gear hash table : fixed-seed random 64-bit values ; md5-seeded because ##
+## lcg low bits fail randomness [ measured avg 4x below target ]          ##
+my @gear_table = map { unpack 'q', md5("gear-table-$_") } 0 .. 255;
+
+## pick k so measured gear avg lands closest to the A variant avg ; mask = ##
+## 2^k - 1, expected avg 2^k [ gear undershoots ~10 pct ]                  ##
+sub best_gear_k {
+    my ( $data, $target ) = @_;
+    my $base = int( log($target) / log(2) + 0.5 );
+    $base = 1 if $base < 1;
+    my ( $best_k, $best_d ) = ( $base, ~0 );
+    for my $k ( $base - 1 .. $base + 1 ) {
+        next if $k < 1;
+        my $avg = chunk_stats( length $data,
+            gear_boundaries( $data, ( 1 << $k ) - 1 ) )->{'avg'};
+        my $d = abs( $avg - $target );
+        if ( $d < $best_d ) { $best_d = $d; $best_k = $k; }
+    }
+    return $best_k;
+}
+
+sub gear_boundaries {
+    my ( $data, $mask ) = @_;
+    use integer;    ## h stays a wrapping 64-bit integer [ never a float ] ##
+    my $len  = length $data;
+    my @b    = ();
+    my $last = 0;
+    my $h    = 0;
+    for my $i ( 0 .. $len - 1 ) {
+        $h = ( $h << 1 ) + $gear_table[ ord substr $data, $i, 1 ];
+        if ( ( $h & $mask ) == 0 and $i + 1 > $last ) {
+            push @b, $i + 1;
+            $last = $i + 1;
+        }
+    }
+    push @b, $len if !@b or $b[-1] != $len;
+    return \@b;
+}
+
+##[ corpora ]#################################################################
+
+sub slurp_file {
+    my $path = shift;
+    open( my $fh, '<', $path ) or return '';
+    binmode $fh;
+    my $data = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    return $data // '';
+}
+
+sub list_files {
+    my $dir = shift;
+    open( my $fh, '-|', 'find', $dir, '-type', 'f' )
+        or die "find $dir : " . "$OS_ERROR";
+    my @files = grep {length} map { chomp; $_ } <$fh>;
+    close $fh;
+    return sort @files;
+}
+
+sub corpus_src {
+    my $cap  = shift;
+    my $data = join '', map { slurp_file($_) } list_files('src');
+    return $cap > 0 ? substr( $data, 0, $cap ) : $data;
+}
+
+sub corpus_md {
+    my $cap  = shift;
+    my $data = join '', map { slurp_file($_) }
+        grep {m{\.md\z}} list_files('data/md');
+    return $cap > 0 ? substr( $data, 0, $cap ) : $data;
+}
+
+sub corpus_gfx {
+    my $cap  = shift;
+    my $data = '';
+    for my $file ( list_files('data/gfx') ) {
+        $data .= slurp_file($file);
+        last if $cap > 0 and length $data >= $cap;
+    }
+    return $cap > 0 ? substr( $data, 0, $cap ) : $data;
+}
+
+##[ edited copy : 50 inserts + 50 deletes + one moved 4 KB block ]############
+
+sub make_edited {
+    my $data = shift;
+    srand(1337);    ## fixed seed -> identical edit script for every corpus ##
+    my $s = $data;
+    for ( 1 .. 50 ) {    ## single-byte inserts ##
+        my $pos = int rand length $s;
+        substr( $s, $pos, 0 ) = chr int rand 256;
+    }
+    for ( 1 .. 50 ) {    ## single-byte deletes ##
+        substr( $s, int( rand length $s ), 1 ) = '';
+    }
+    my $block_len = 4096;
+    if ( length $s > $block_len * 2 ) {
+        my $from  = int rand( length($s) - $block_len );
+        my $block = substr( $s, $from, $block_len, '' );
+        my $to    = int rand length $s;
+        substr( $s, $to, 0 ) = $block;
+    }
+    return $s;
+}
+
+##[ metrics ]#################################################################
+
+## digest keyed on first 8 bytes of md5 [ collisions negligible for a bench ##
+## ]                                                                        ##
+sub chunk_digests {
+    my ( $data, $boundaries ) = @_;
+    my %seen;
+    my $prev = 0;
+    for my $end (@$boundaries) {
+        $seen{ unpack 'q', md5( substr $data, $prev, $end - $prev ) } = 1;
+        $prev = $end;
+    }
+    return \%seen;
+}
+
+sub chunk_stats {
+    my ( $len, $boundaries ) = @_;
+    my ( $sum, $sumsq, $min, $max ) = ( 0, 0, $len, 0 );
+    my $prev = 0;
+    for my $end (@$boundaries) {
+        my $cl = $end - $prev;
+        $sum   += $cl;
+        $sumsq += $cl * $cl;
+        $min  = $cl if $cl < $min;
+        $max  = $cl if $cl > $max;
+        $prev = $end;
+    }
+    my $n   = scalar @$boundaries;
+    my $avg = $n ? $sum / $n                 : 0;
+    my $var = $n ? $sumsq / $n - $avg * $avg : 0;
+    $var = 0 if $var < 0;    ## float rounding guard ##
+    return {
+        'chunks' => $n,
+        'avg'    => $avg,
+        'stddev' => sqrt $var,
+        'min'    => $n ? $min : 0,
+        'max'    => $max,
+    };
+}
+
+##[ bench driver ]############################################################
+
+sub run_corpus {
+    my ( $name, $data ) = @_;
+    my $len      = length $data;
+    my $len_mb   = $len / 1048576;
+    my $edited   = make_edited($data);
+    my $avg13    = chunk_stats( $len, mod_boundaries( $data, 13 ) )->{'avg'};
+    my $avg91    = chunk_stats( $len, mod_boundaries( $data, 91 ) )->{'avg'};
+    my $fixed13  = int( $avg13 + 0.5 ) || 1;
+    my $fixed91  = int( $avg91 + 0.5 ) || 1;
+    my $gear13_k = best_gear_k( $data, $avg13 );
+    my $gear91_k = best_gear_k( $data, $avg91 );
+
+    my @methods = (
+        [ sprintf('A  mod13/3   '), sub { mod_boundaries( $_[0], 13 ) } ],
+        [   sprintf( 'B  fixed-%d  ', $fixed13 ),
+            sub { fixed_boundaries( $_[0], $fixed13 ) }
+        ],
+        [   sprintf( 'C  gear-%d   ', 1 << $gear13_k ),
+            sub { gear_boundaries( $_[0], ( 1 << $gear13_k ) - 1 ) }
+        ],
+        [ sprintf('A  mod91/3   '), sub { mod_boundaries( $_[0], 91 ) } ],
+        [   sprintf( 'B  fixed-%d  ', $fixed91 ),
+            sub { fixed_boundaries( $_[0], $fixed91 ) }
+        ],
+        [   sprintf( 'C  gear-%d   ', 1 << $gear91_k ),
+            sub { gear_boundaries( $_[0], ( 1 << $gear91_k ) - 1 ) }
+        ],
+    );
+
+    say '';
+    say sprintf ':: corpus : %-6s [ %.1f MB, edited %.1f MB ]',
+        $name, $len_mb, length($edited) / 1048576;
+    say '';
+    say 'method         chunks        avg     stddev '
+        . '     min      max  stored%  stable%     MB/s';
+    my @summary = ();
+    for my $method (@methods) {
+        my ( $label, $chunker ) = @$method;
+
+        my $t0         = time;
+        my $bounds     = $chunker->($data);
+        my $mbps       = $len_mb / ( time - $t0 );
+        my $stats      = chunk_stats( $len, $bounds );
+        my $dig_orig   = chunk_digests( $data, $bounds );
+        my $uniq_bytes = 0;
+        my $prev       = 0;
+        my %counted    = ();
+
+        for my $end (@$bounds) {
+            my $key = unpack 'q', md5( substr $data, $prev, $end - $prev );
+            $uniq_bytes += $end - $prev if !$counted{$key}++;
+            $prev = $end;
+        }
+        ## stored : unique chunk bytes / total bytes -> lower = more ##
+        ## deduplication                                             ##
+        my $dedup = $len ? $uniq_bytes / $len * 100 : 0;
+
+        ## stability : fraction of unique original chunk digests that still ##
+        ## appear anywhere in the edited copy                               ##
+        my $edit_bounds = $chunker->($edited);
+        my $dig_edit    = chunk_digests( $edited, $edit_bounds );
+        my $orig_n      = scalar keys %$dig_orig;
+        my $hits        = grep { $dig_edit->{$ARG} } keys %$dig_orig;
+        my $stable      = $orig_n ? $hits / $orig_n * 100 : 0;
+
+        printf "%s  %9d  %9.2f  %9.2f  %7d  %7d  %7.2f  %7.2f  %7.1f\n",
+            $label, $stats->{'chunks'}, $stats->{'avg'}, $stats->{'stddev'},
+            $stats->{'min'}, $stats->{'max'}, $dedup, $stable, $mbps;
+
+        push @summary,
+            sprintf '%s : %d chunks, avg %.1f, stored '
+            . '%.2f%% [ lower = better ], stable %.2f%%',
+            $label, $stats->{'chunks'}, $stats->{'avg'}, $dedup, $stable;
+    }
+    return @summary;
+}
+
+##[ main ]####################################################################
+
+my $cap_bytes = $size_cap > 0 ? $size_cap * 1048576 : 0;
+my %corpora   = (
+    'src' => sub { corpus_src($cap_bytes) },
+    'md'  => sub { corpus_md($cap_bytes) },
+    'gfx' => sub {
+        corpus_gfx( $cap_bytes > 0 ? $cap_bytes : $gfx_cap_mb * 1048576 );
+    },
+);
+
+say '';
+say '=== chunk-bench : rolling mod vs fixed vs gear ===';
+
+my @summary_all = ();
+for my $name ( sort keys %corpora ) {
+    next if $corpus_opt ne 'all' and $corpus_opt ne $name;
+    my $data = $corpora{$name}->();
+    die "corpus $name is empty" if !length $data;
+    push @summary_all, run_corpus( $name, $data );
+}
+
+say '';
+say ':: raw summary';
+say "  $_" for @summary_all;
+say '';
+
+exit 0;
+
+##[ SUBROUTINES ]#############################################################
+
+sub usage {
+    print <<~"EOT";
+
+    :: usage : chunk-bench [ options ]
+
+      -c, --corpus STR   one of src | md | gfx | all [ default : all ]
+      -s, --size MB      per-corpus size cap in MB [ gfx default : 20 ]
+      -h, --help         this help
+
+    EOT
+    exit 0;
+}
+
+#,,..,,,.,,.,,...,,,.,,..,,.,,.,,,.,,,,,,,..,,..,,...,...,..,,.,.,,,,,.,,,,.,,
+#IT6C2F52UD3Q5N6UUY3NGCMCW7AMMOJZI7DFMZQDWWE6ZKAH3QFAVBNO74MPOP4IHDIAU7YOTPGAG
+#\\\|4LV7RPGD352M5Y6WVSX7P6IG4BCPBXBOZZ4XKGLKXUEITSK5X7D \ / AMOS7 \ YOURUM ::
+#\[7]IEYPVUNWTBVRSOODBT73XCK5BS5NFKTAYEFF3ENLNVKDAZJY7GBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
