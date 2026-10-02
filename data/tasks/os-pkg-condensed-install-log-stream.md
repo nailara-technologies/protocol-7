@@ -1,5 +1,7 @@
 # os-pkg \ debian : condensed install log as a STRM reply stream
 
+design : `data/md/design/OS-PKG-GENERIC-PACKAGE-ZENKA.md` [ 2026-10-03 ].
+
 brief [ 2026-10-02 ]. no defaults left in place : an apt \ dpkg upgrade log
 is mostly implicit, repeated context. reformat it into one line per
 package, full detail only for failures and anything unexpected.
@@ -59,8 +61,8 @@ it can be designed purely for reading and for the network.
 - never drop an error or prompt line ; when in doubt, pass through
 - keep the raw log too [ history \ forensics ], condensed is only the view
 
-#,,..,..,,.,,,..,,.,,,,..,,..,,,.,.,,,,,,,..,,..,,...,..,,..,,...,,.,,,,,,..,,
-#HKUOXWG3A5ODFIZJG5ACL4D3OYLDCNWL4ZW77N23BA5K2DASXY6P3VTDGEWKAMC2LRQJNSQJTZSAE
-#\\\|3WWRRBDBLJ4REJYUOQUSC2BXY222ZC5LBATENOB2R4CF3GG2FIB \ / AMOS7 \ YOURUM ::
-#\[7]NHABHLGE7VICGWOGQFUZO4UHAHKHZU27ODS2GTDIWNHTV4JC5GDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,,,..,,..,,,,,,,,.,...,,,,,.,,,..,,...,...,...,.,,,,..,..,,..,,
+#537TOKHGURS6SHIJMIOJMUWFC7QVMOYDURKH4VSTHOS4JQPX7MMHQGE5NTKF2DKFR5SBGDKALU2VY
+#\\\|W6FKE6225RBUFU7WOLHPVHATUIHCONWUFNPKVA44SQMDXAEXBIY \ / AMOS7 \ YOURUM ::
+#\[7]EHLWYDRV67AIH74OPDS4GOEQ4RT3N4KZCAHN5C4X2NGYGXMYKICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
