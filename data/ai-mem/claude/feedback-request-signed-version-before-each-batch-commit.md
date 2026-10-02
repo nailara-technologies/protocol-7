@@ -26,8 +26,15 @@ covering the whole batch. A single commit following one explicit sign-off
 is fine as-is; this is specifically about NOT assuming that sign-off
 extends to a second, later commit without asking again.
 
-#,,,.,,..,.,.,..,,.,,,...,,..,.,.,..,,,.,,,,,,.,.,...,..,,,.,,.,,,,..,.,,,,..,
-#V2YMGJH3P2YEYGBQBSJPOORR6R7TFJRUNSDT4IE6S6C6VWFPO4M342C2IJ7CLTFSLPIU72KDXK7HS
-#\\\|J565SMAIEUWPKHMS72JNANJJP3GJWIOPTGGLKTIG4FNVRTKLKQB \ / AMOS7 \ YOURUM ::
-#\[7]7HF2RUOZG3ZYQPAZJBYVBYHNPYJTHZHS3BT6QJHXG7B5BK35X4CY 7  DATA SIGNATURE ::
+**Signing may still be running when the user says "staged"** [ 2026-10-03 ] :
+the signing zenka stages files when it finishes. before committing, check
+`git -c color.ui=false status --short` : any entry with a second-column
+change [ ` M` or `MM` ] means signing is still in progress -> wait and
+re-check instead of committing. one commit [ `80c7f4a5d` ] went through
+mid-signing and only came out complete because the zenka finished first.
+
+#,,,,,,..,..,,...,,.,,,..,.,,,,.,,..,,,,.,..,,.,.,...,...,.,.,,.,,.,.,,,,,,..,
+#IPBWHDZ252ATXKMO3XQQMNVXQKPPLR2H2FXUODVUYTNV7L7AEH7J3DRPSYTUBUT3F5VXSYKDIC734
+#\\\|HOGFXEPE7ZQCNPMOGYRDCEGON37567YL6HW4S2B75BZSUYKL3SS \ / AMOS7 \ YOURUM ::
+#\[7]BVXGL4QJSYUPH36LGAMJOAAG6QOCKNZKA7HTMR2JAJ46J2TSTECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
