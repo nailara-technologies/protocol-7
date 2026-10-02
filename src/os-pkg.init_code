@@ -1,11 +1,68 @@
 ## [:< ##
 
-# name = os-pkg.init_code
+# name  = os-pkg.init_code
+# descr = detect OS distribution and select package backend
+# param = [ reinit ]
+
+my $reinit = shift // FALSE;
+
+if ( $reinit and defined <os-pkg.backend_type> ) {
+    <[base.log]>->( 2, 'skipping os-pkg re-init [ backend already set ]' );
+    return 0;
+}
+
+<[base.log]>->( 2, 'initializing os-pkg zenka..,' );
+
+## read /etc/os-release once ##
+my %os_release;
+if ( open my $fh, '<', qw| /etc/os-release | ) {
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next unless $line =~ m{^([A-Z_]+)=(.*)$};
+        my ( $key, $value ) = ( $1, $2 );
+        $value =~ s{^"|"$}{}g;
+        $os_release{$key} = $value;
+    }
+    close $fh;
+}
+
+## map distribution to backend type [ same type names as             ##
+## AMOS7::deps::os_package : debian for debian, ubuntu or raspbian ] ##
+my $id      = $os_release{'ID'}      // '';
+my $id_like = $os_release{'ID_LIKE'} // '';
+
+my %id_like_map = map { $ARG => 1 } split m{\s+}, $id_like;
+
+my $backend_type;
+$backend_type = qw| debian |
+    if $id =~ m{^(debian|ubuntu|raspbian)$}
+    or grep { $id_like_map{$ARG} } qw| debian ubuntu raspbian |;
+
+## optional config override [ os-pkg.backend = <type> in zenka config ] ##
+my $override = <os-pkg.backend>;
+if ( defined $override and length $override ) {
+    $backend_type = $override;
+    <[base.log]>->( 2, "  backend override from config : $override" );
+}
+
+<os-pkg.os_release>   = \%os_release;
+<os-pkg.backend_type> = $backend_type;    ## undef when unsupported ##
+
+if ( defined $backend_type ) {
+    <[base.log]>->( 2, "  package backend : $backend_type" );
+} else {
+    <[base.s_warn]>->(
+        'unsupported distribution [ ID : %s ]',
+        length $id ? $id : 'unknown'
+    );
+}
+
+<[base.log]>->( 2, 'os-pkg zenka initialization complete' );
 
 0;
 
-#,,.,,,,,,,..,.,,,,.,,,..,,..,,,,,.,,,.,.,.,,,..,,...,...,.,.,.,.,.,.,.,,,.,,,
-#BNV3OUA6ILJCBFGTIOORRCSBJQEUIEWRYRLPJ6ZXEKUYKV3JJEDJ3B3KM2UARQQIM7IP6ZRYVE2F4
-#\\\|RJOZ5NMQDFJSZM4TZACWHSZJZQ6V3MYUZZOAVDUM4X4KVJLJYAV \ / AMOS7 \ YOURUM ::
-#\[7]PZBCZX5O2HENML55G6GQIQBNIMNHCYL4FARXC6WWL4DNQ7ZIM6BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,,,.,..,,,..,,,.,...,,,.,,,,,.,.,...,...,.,,,,..,.,,,...,,.,,
+#JM3AEAE6VZ2OBEG7VCQNW3JRAKYOTAMRZSN2IRAD3RFWICZ2YBM5BQLGRR7PLEWR447IV36TTYPRC
+#\\\|EYD7GGM5JYAZOACR2MUCFP2SJM2PTA2PHOIWXGU7UUVWG5IX65Z \ / AMOS7 \ YOURUM ::
+#\[7]PWNI2KRQSNCH3GAORLRDDBWX5INNXSES6BWIHWPCGWFS223VVABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
