@@ -166,11 +166,12 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\[7]AO7ABBEDLXGCKWDCDV6EIKJO6S2NZUSS7YAJERIQ7G45YMMQEWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-render-degradation-baseline](project-2026-10-02-invoke-render-degradation-baseline.md) — renders slow 2-6x with uptime ; fresh-reboot baseline denoise 125 s vs 304-798 s before [ same graph, item 16005 ], gpu-only probe to separate causes
+- [host-pc-warranty-until-2027-02](project-host-pc-warranty-until-2027-02.md) — full-system 3-year ebay seller warranty, ordered 2024-02-17 / delivered 2024-02-23 -> ends ~2027-02 ; rtx 3060 fan bearing claim opened 2026-10-02, dead front-fan led rings to report too ; 5700x has no igpu
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,..,.,.,.,,,,..,...,,.,,...,.,.,,,.,,,,,,..,..,,...,...,..,,,,,,.,,,,,,,.,,,
-#2OQXI53ZYFW5RKXJDIPQ2BV3UQF2SGSMZKDTW3VRKU6N2MWE4HCVXFUJFRMTMEJ3C6JNIK732EXLQ
-#\\\|DJ5JMLSBQPKJYQLJ7JS25DEGVCSZHDKUE5EHNGA63IFBTXBIHMK \ / AMOS7 \ YOURUM ::
-#\[7]4V7ROGYU7NMF5QAOMZ6VENTSXCUI3EZHV2AUPWBUZDOTGBGPS4DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,,,.,,,,,,,.,,,..,,...,.,,,.,,,..,,...,..,,,,.,...,.,,,..,,..,,
+#4WXNYT5KUOLQ5IKWZIOIQL3GRUUE5FQKV2RNHUXV4VH4Z6ZXS42AF75S3OKQPLSIDCKH3DCV76J2Q
+#\\\|265SLZWBXBFOCEZSJEXI2FJCQKAG3BBJGKAEISH7QSIMIPI5IOS \ / AMOS7 \ YOURUM ::
+#\[7]BZJFIMCIX5WKY4UTJKXBCPNQRDAEKB2JAAWTL4IIM7CIHKUK76AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
