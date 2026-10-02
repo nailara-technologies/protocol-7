@@ -86,10 +86,11 @@ delete <invoke-web.output>;    ## replaced by the bounded output tail ##
         'level' => 2,
         'match' => qr{::INFO --> Graph stats: \S+}
     },
-    ## graph stats row : node calls secs vram ##
+    ## graph stats row : node calls secs vram [ 'VRAM Used' up to 6.9 ; ##
+    ## signed 'VRAM Change' since 6.14 : +4.136G \ -3.515G ]            ##
     {   'kind'  => 'render_node',
         'level' => 3,
-        'match' => qr{^\s*\w+\s+\d+\s+[\d.]+s\s+[\d.]+G\s*$}
+        'match' => qr{^\s*\w+\s+\d+\s+[\d.]+s\s+[+-]?[\d.]+G\s*$}
     },
     {   'kind'  => 'render_stat',    ## graph stats table, summarized ##
         'level' => 3,
@@ -355,8 +356,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,.,,,,.,,..,.,.,..,,..,,,.,,.,.,.,.,,,,,,,.,..,,...,.,.,...,,,.,.,,,.,.,,,.,
-#GXZDLTBL6XOC7ZUKN36AV645LEG26XPY6QSDWHH3K4WCRJGHEG24TB4DLZQCWIM2ULYOCBEBHRKTQ
-#\\\|4LTDPB6DEYTC3JFFSSUULVST5GFHJHJIYMU2YNJQMY6VN6GB2WZ \ / AMOS7 \ YOURUM ::
-#\[7]Y5VQMTHFJ5GYVT27E5QKZPEKAVDQMBMNY6BNA2AW5U35WWLW72BA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,,..,,,.,.,.,,.,,...,,,,,,,,,..,,...,...,...,,,,,,..,,.,,,,.,
+#USWEGCJWADXYXK5IOJ7G45EKWG6NPZ7TCP7V6OMS6XQR4D3KMO3ARD6PJPFHOPUZH3CCWRKET3CME
+#\\\|76A4FKYCITBDRXC2CSNEBN4OUODABZ2CQZT6WKVWLGYG4DE7XWL \ / AMOS7 \ YOURUM ::
+#\[7]UL3NCPL56LTZAPOYZF2B3AI5TKBPN5FU3UHEQWTQG5LQLBZBL2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
