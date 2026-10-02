@@ -94,6 +94,30 @@ directly checkable against running code, not surface resemblance.
   unconnected once verified. Kept visible, not deleted, same discipline as
   [[feedback-esoteric-research-verification-pipeline]] — retract in place.
 
+**mod-13 zero crossings = content-defined chunking — and period 6 makes it a
+one-step rolling hash** [ 2026-10-02, user's idea, simulated ] : a "zero
+crossing" = the stream window reading `≡ 0 mod 13` ; packet length = distance
+to the next crossing [ variable, avg ~13 ], no fixed clock, no resonance
+needed. this is exactly content-defined chunking [ rsync, LBFS rabin
+fingerprints, restic \ borg dedup ] -> directly the darksun dedup boundary rule.
+because `10⁶ ≡ 1 mod 13` [ and mod 7 ], a 6-digit rolling window updates as
+`v' = 10·v − d_out + d_in  (mod 13)` — the outgoing digit has weight 1.
+simulated on 5000 random digits : 369 boundaries, a 1-digit insert changed
+ZERO boundaries [ only the chunk holding the insert differs ] ; a running
+prefix remainder instead lost all 164 boundaries after the insert point.
+-> must be the rolling window, never the running prefix. this also answers
+the ticker \ shift coherence problem in [[stream-framing-protocol]] :
+boundaries come from content, so they re-sync by themselves after any shift.
+
+**truncate, never round — the remainder IS the rest of the reading**
+[ 2026-10-02, user's principle, checked ] : long division of 1/13 stopped
+after 10 digits gives `0.0769230769` with remainder `3`, and `3/13 =
+0.230769…` is exactly the continuation of the stream. truncation + remainder
+is lossless and resumable [ the remainder is a member of the same family ] ;
+rounding injects a digit that is not in the stream and destroys the resume
+state. so the family itself mandates truncation. this is also why the
+rounding demonstrations below are out of scope : they read the wrong way.
+
 **Deliberately out of scope**: the finite-decimal truncation/rounding
 demonstrations this session (`0.076923076923076923×1001` undershooting
 `77`, the `×1.000000005`/`×1.000000007` overshoot-scaling series). Those
@@ -419,8 +443,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,,,,,.,,...,,.,,.,.,,..,.,.,,,.,,.,,,,,,,,,,.,.,...,...,..,,.,.,.,.,.,.,.,.,
-#ZWDN4URDXKEIL2GGRU7KRHTSE3SMRSG4DBMHZLWLRE4GSBSCGGG5P6EF77M25P7O5W42S6WIXW5MM
-#\\\|SWRK4RN2MLAX2J26XT6SB7K5WIO3SGOBHZQHKZL4H4MALQXKJ6N \ / AMOS7 \ YOURUM ::
-#\[7]HZ5ZYHX4BYAL3TRMGFEE6ZCJ2ESBVNBAUHWFTT3TMWX4WBX7YICQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,,,,.,.,,..,,,,,,.,,.,,,.,,,.,.,...,...,...,..,,,.,,..,,,.,,
+#KBWDICGNDJA3MFAVDX3MR3PP4FGKETQBTV24PSO2A3EWTNIJUIQ4JGT7ZJC5GZCNRY66WSSLX4E3A
+#\\\|F5LLEC3PLVCQX4AM7CHOQESIENNIHHGDHA4VRWSICXHMUE3HVO6 \ / AMOS7 \ YOURUM ::
+#\[7]PWFFALWS2XD5IEVYRWYIOCPF4XZN26XA6EA5GD5KUD4I7PB336AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

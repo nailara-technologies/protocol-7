@@ -70,8 +70,29 @@ time is observer-relative — ntime measures from own creation event.
 `00` tunnel duration = ntime delta between gate entry and exit = always 2.
 comparing ntimes = comparing relative distance from own darksuns.
 
-#,,..,,,.,..,,...,.,,,..,,.,.,...,..,,.,,,...,..,,...,.,.,...,..,,..,,,..,,.,,
-#5NBL7MHHM4K4J3ICZYZLEBUQ43L72BK5L5TR3W7XOU6IB5V6VE2QU4IDOQP7KMCTQPGRLBFHAUTYY
-#\\\|TLCNEIJM2FJCGVSR2RCHZA24DNS2WCU5M65E6JLYZGWLGVPA53H \ / AMOS7 \ YOURUM ::
-#\[7]MPPXRLS33HTRAFSSB7QPRMJ36WRDC65EJAZDLF2FVWGCJCJZ4UAA 7  DATA SIGNATURE ::
+## inversion marker is literal : 10³ ≡ −1 [ mod 1001 ] [ 2026-10-02 ]
+
+`1001 = 10³ + 1 = 7 × 11 × 13` — the same number as a sum and as a product,
+the substitution that keeps moves short. read mod 1001 :
+
+  `1000 ≡ −1`  ->  a 3-digit shift IS a sign inversion, simultaneously
+  mod 7, mod 11 and mod 13 [ checked : 10³ mod 7 = 6, mod 11 = 10, mod 13 = 12 ]
+
+consequences, all one mechanism :
+- the 9's-complement half-cycles [ `142|857`, `076|923` ] : shifting the
+  period by half [ 3 digits ] negates the remainder, negation of a
+  repeating block = 9's complement
+- `abc × 1001 = abcabc` [ the `n×1001="nn"` duplication ] : abc·1000 + abc
+  = abc·(−1) + abc ≡ 0 -> the duplicated block is the ring closing on itself
+- `10⁶ ≡ +1` : two inversions return home -> period 6 for 7 and 13
+  [ the only primes with period exactly 6, see
+  [[topic-harmonic-correlation-ledger]] ]
+
+so "1001 = inversion marker" is not a label, it is the arithmetic : crossing
+a 1001 boundary flips sign, crossing two restores it [ 01 / 10 duality ].
+
+#,,,.,,.,,.,.,.,,,,,,,,..,,,,,.,.,...,,.,,..,,..,,...,...,,.,,,,,,.,,,,,.,,,,,
+#6VJHH5BF4AUAVOR7AJORVLJBT7LSWSE2QO2C7UPUF3PPKBXI5VPIKILKHF5FRRUNQXFQ3K6DII7HA
+#\\\|CVIHEI46PXQAS4ETU5C7FFB53OLLNM2YY7YVTDULOXNHT2GV2VC \ / AMOS7 \ YOURUM ::
+#\[7]2Q5EXPPXKMNDHNGQ7W4M2D3VYWTL63WIHUCCVX22OLNZPJ6JLGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
