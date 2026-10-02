@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = invoke-web.stats.mem_available
+# descr  = MemAvailable in MB [ one /proc/meminfo read : sampled with every
+#          gpu temperature line while a render runs ]
+# return = MB | undef
+
+open my $fh, qw| < |, '/proc/meminfo' or return undef;
+while ( my $line = <$fh> ) {
+    next if $line !~ m{^MemAvailable:\s+(\d+)};
+    close $fh;
+    return int( $1 / 1024 );
+}
+close $fh;
+
+return undef;
+
+#,,,,,,,.,...,.,,,,,,,,,.,..,,,,.,.,,,,,,,,,,,..,,...,..,,,,.,.,.,,.,,,,,,,,.,
+#SAOESQNE67ARRXKUF2XOYD2GME4QY5KC5AIFGODANZPRCBOEN7DAV2D7BOQSULURAYRVMC6LQ6ARC
+#\\\|2B7HN275NN2NJ5SLXQCFKAOCKUEZMWJBVE2LSNXNEMSWKZM5D6O \ / AMOS7 \ YOURUM ::
+#\[7]PW2S7IE54WSBWAPE4NLT3H45LVLEK3UTQ77GSG4YDCLFCVDUHEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

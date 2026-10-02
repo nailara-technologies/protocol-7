@@ -1,0 +1,79 @@
+## [:< ##
+
+# name   = invoke-web.stats.db
+# descr  = render statistics database [ <zenka data dir>/state/render-stats.db
+#          ] : opens \ creates it, returns a reused handle
+# return = dbi handle | undef
+# note   = one row per finished render, keyed by install + session [ item
+#          ids repeat across installs ]. raw inputs are stored [ size, steps,
+#          scheduler, lora \ ip-adapter \ ref counts ] -- normalized views
+#          [ seconds per unet pass, like-for-like by fingerprint ] are made
+#          when reading. opened lazily : first use is after the privilege
+#          drop [ no root owned -wal \ -shm ]
+
+my $cached = <invoke-web.stats_dbh>;
+return $cached if defined $cached and $cached->ping;
+
+my $dir = sprintf '%s/state', <[file.zenka_dir.data_path]>;
+if ( not -d $dir ) {
+    <[base.logs]>->( 0, 'render stats : no state directory [ %s ]', $dir );
+    return undef;
+}
+
+my $dbh = DBI->connect( "dbi:SQLite:dbname=$dir/render-stats.db",
+    '', '', { 'RaiseError' => 0, 'PrintError' => 0, 'AutoCommit' => 1 } );
+if ( not defined $dbh ) {
+    <[base.logs]>->(
+        0, 'render stats : ' . 'connect failed [ %s ]', $DBI::errstr
+    );
+    return undef;
+}
+$dbh->sqlite_busy_timeout(500);
+$dbh->do('PRAGMA journal_mode = WAL');
+
+$dbh->do(
+          'CREATE TABLE IF NOT EXISTS renders ( install TEXT, session TEXT, '
+        . 'item INTEGER, started_at REAL, ended_at REAL, result TEXT, '
+        . 'model TEXT, base TEXT, width INTEGER, height INTEGER, steps '
+        . 'INTEGER, scheduler TEXT, cfg REAL, passes INTEGER, loras '
+        . 'INTEGER, ip_adapters INTEGER, refs INTEGER, fingerprint '
+        . 'TEXT, secs_total REAL, secs_denoise REAL, secs_decode REAL, '
+        . 'secs_encode REAL, nodes TEXT, ram_process_gb REAL, '
+        . 'ram_delta_gb REAL, cache_hits INTEGER, cache_misses '
+        . 'INTEGER, vram_gb REAL, read_bytes INTEGER, temp_n INTEGER, '
+        . 'temp_avg REAL, temp_max REAL, mem_avail_start_mb INTEGER, '
+        . 'mem_avail_min_mb INTEGER, mem_avail_end_mb INTEGER, '
+        . 'cached_start_mb INTEGER, cached_end_mb INTEGER, '
+        . 'swap_start_mb INTEGER, swap_end_mb INTEGER, swap_in_pages '
+        . 'INTEGER, swap_out_pages INTEGER, psi_mem_full_s REAL, '
+        . 'psi_io_full_s REAL, uptime_s INTEGER, win_mem_start_pct '
+        . 'REAL, win_mem_end_pct REAL, PRIMARY KEY ( install, session '
+        . ') )' );
+## columns added later : an existing table gets them [ null for older rows ##
+## ]                                                                       ##
+my %have = map { $ARG->[1] => TRUE }
+    @{ $dbh->selectall_arrayref('PRAGMA table_info(renders)') // [] };
+my @added = (
+    [ 'models_disk',      'TEXT' ],    ## disk of the models directory ##
+    [ 'disk_read_mb',     'REAL' ],    ## read from it during the render ##
+    [ 'disk_busy_s',      'REAL' ],    ## time it was busy ##
+    [ 'disk_mb_s',        'REAL' ],    ## read throughput while busy ##
+    [ 'disk_read_lat_ms', 'REAL' ],    ## average time per read ##
+    [ 'disks',            'TEXT' ],    ## json : every disk's deltas ##
+);
+foreach my $column (@added) {
+    next if $have{ $column->[0] };
+    $dbh->do( sprintf 'ALTER TABLE renders ADD COLUMN %s %s', @$column );
+}
+
+$dbh->do('CREATE INDEX IF NOT EXISTS renders_ended ON renders ( ended_at )');
+$dbh->do( 'CREATE INDEX IF NOT EXISTS '
+        . 'renders_fingerprint ON renders ( fingerprint )' );
+
+return <invoke-web.stats_dbh> = $dbh;
+
+#,,,,,...,,..,.,.,...,.,,,.,,,,.,,.,.,,,.,..,,..,,...,..,,.,,,...,.,,,,,.,,.,,
+#KXL46PTKMFFVW5HKRAROTTF233EWW6LMWOGKD3MFVWHNQ2AUJSFKODTRIG6NYQOAHBDR653Y6AKBM
+#\\\|MLBPNL6GX3YOBQZRODSLTLOC62KIVG7LFGV5WIFBJ5CMU6PUYFE \ / AMOS7 \ YOURUM ::
+#\[7]DUN6HJEIAYSJTRDIE3VEFMWRVUDRINBHKSQVFTSZJKZALJ75IMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

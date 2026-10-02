@@ -1,0 +1,36 @@
+## [:< ##
+
+# name   = invoke-web.stats.models_disk
+# descr  = whole disk the active install's models directory lives on [ its
+#          device number through /sys/dev/block -> partition -> disk ]
+# return = disk name [ 'sdd' ] | undef
+# note   = per install : the default install's models are on the external
+#          disk, a variant's below its root. single model directories can be
+#          symlinks to other disks -- the per-disk deltas of the row cover
+#          those. CORE::stat : File::stat may override stat in this zenka
+
+my $path = <invoke-web.models_path> // return undef;
+
+my $cache = <invoke-web.models_disk_cache> //= {};
+return $cache->{$path} if exists $cache->{$path};
+
+my $dev = ( CORE::stat($path) )[0] // return undef;
+
+## linux dev_t : major bits 8-19, minor bits 0-7 + 20-31 ##
+my $major = ( $dev >> 8 ) & 0xfff;
+my $minor = ( $dev & 0xff ) | ( ( $dev >> 12 ) & 0xfff00 );
+
+my $link = readlink "/sys/dev/block/$major:$minor" // return undef;
+my @part = split m{/}, $link;
+my $name = $part[-1];
+
+## a partition sits below its disk [ ../sdd/sdd3 ] ##
+$name = $part[-2] if not -e "/sys/block/$name" and @part > 1;
+
+return $cache->{$path} = $name;
+
+#,,.,,,.,,..,,..,,,.,,,,.,,.,,...,.,.,...,...,..,,...,.,,,...,.,,,...,.,.,...,
+#F7AG6KC6I6NSXBOF33HMDJ3TU6HTIS6G6XWYHDVDIAFHNQXC2W47XP4KH4PZUUYIITLWYKLLY6IK4
+#\\\|VBHL2OOGFNLKHFBPJFWRPJEYSS2CKYDKXAA52OJRZ4KGOCK7OBT \ / AMOS7 \ YOURUM ::
+#\[7]K5OCSRDOSCUIF4B5KJBVUIYTHYMIG5S2PVYYEDJCME5NFKNYKUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

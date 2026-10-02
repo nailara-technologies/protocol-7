@@ -1,0 +1,154 @@
+## [:< ##
+
+# name  = invoke-web.handler.stats_record
+# descr = timer : one render statistics row for a finished render [ every
+#         outcome : done \ failed \ suspicious -- armed by
+#         invoke-web.render.report once the result is final ]
+# note  = out of the output handler : reads the queue db [ graph settings ]
+#         and writes the stats db
+
+my $event  = shift;
+my $render = eval { $event->w->data->{'render'} } // return;
+return if not defined $render->{'session'};
+
+my $start  = $render->{'host_start'} // {};
+my $end    = <[invoke-web.stats.host_snapshot]>->(<invoke-web.pid>);
+my $params = <[invoke-web.stats.graph_params]>->( $render->{'session'} )
+    // {};
+my $stats = $render->{'stats'}     // {};
+my $secs  = $render->{'node_secs'} // {};
+my $gpu   = $render->{'gpu'}       // {};
+
+## seconds per kind of node [ several nodes of one kind add up ] ##
+my %kind_secs;
+foreach my $node ( keys %$secs ) {
+    my $kind
+        = $node =~ m{denoise}                          ? qw| denoise |
+        : $node =~ m{(?:^|_)l2i$}                      ? qw| decode |
+        : $node =~ m{compel|text_encoder|prompt|t5_en} ? qw| encode |
+        :                                                undef;
+    $kind_secs{$kind} += $secs->{$node} if defined $kind;
+}
+
+## always one value [ a failed match returns undef, never an empty list : ##
+## %row below is built in list context ]                                  ##
+my $number = sub {
+    my ($value) = ( shift // '' ) =~ m{([+-]?[\d.]+)};
+    return $value;
+};
+my $delta = sub {
+    my $key = shift;
+    return undef if not defined $start->{$key} or not defined $end->{$key};
+    return $end->{$key} - $start->{$key};
+};
+## stall time [ psi 'full' totals, microseconds ] ; undef -> null ##
+my $psi_mem_us = $delta->('psi_mem_full_us');
+my $psi_io_us  = $delta->('psi_io_full_us');
+
+my ($ram_delta)
+    = ( $stats->{ 'RAM used by ' . 'InvokeAI process' } // '' )
+    =~ m{\(([+-][\d.]+)G\)};
+
+## disks : deltas per whole disk [ MB read, busy s, reads, read ms ] ##
+my %disks;
+foreach my $disk ( sort keys %{ $end->{'disks'} // {} } ) {
+    my $before = $start->{'disks'}->{$disk} // next;
+    my $after  = $end->{'disks'}->{$disk};
+    my @diff   = map { $after->[$ARG] - $before->[$ARG] } 0 .. 3;
+    next if not $diff[0];    ## no reads during the render ##
+    $disks{$disk} = {
+        'reads'   => $diff[0],
+        'read_mb' => sprintf( '%.1f', $diff[1] * 512 / 1e6 ),
+        'read_ms' => $diff[2],
+        'busy_s'  => sprintf( '%.3f', $diff[3] / 1000 ),
+    };
+}
+my $models_disk = <[invoke-web.stats.models_disk]>;
+my $mdisk       = defined $models_disk ? $disks{$models_disk} : undef;
+
+my %row = (
+    'install'    => $render->{'install'} // qw| default |,
+    'session'    => $render->{'session'},
+    'item'       => $render->{'item'},
+    'started_at' => $start->{'time'},
+    'ended_at'   => $end->{'time'},
+    'result'     => $render->{'result'},
+    (   map { $ARG => $params->{$ARG} }
+            qw| model base width height steps scheduler cfg passes loras
+            ip_adapters refs fingerprint |
+    ),
+    'secs_total' =>
+        $number->( $stats->{ 'TOTAL GRAPH ' . 'EXECUTION TIME' } ),
+    'secs_denoise'   => $kind_secs{'denoise'},
+    'secs_decode'    => $kind_secs{'decode'},
+    'secs_encode'    => $kind_secs{'encode'},
+    'nodes'          => <[format.json.encode]>->($secs),
+    'ram_process_gb' =>
+        $number->( $stats->{ 'RAM used by ' . 'InvokeAI process' } ),
+    'ram_delta_gb'       => $ram_delta,
+    'cache_hits'         => $number->( $stats->{'Model cache hits'} ),
+    'cache_misses'       => $number->( $stats->{'Model cache misses'} ),
+    'vram_gb'            => $number->( $stats->{'VRAM in use'} ),
+    'read_bytes'         => $delta->('read_bytes'),
+    'temp_n'             => $gpu->{'n'} // 0,
+    'temp_avg'           => $gpu->{'n'} ? $gpu->{'sum'} / $gpu->{'n'} : undef,
+    'temp_max'           => $gpu->{'max'},
+    'mem_avail_start_mb' => $start->{'mem_avail_mb'},
+    'mem_avail_min_mb'   => $gpu->{'mem_avail_min_mb'},
+    'mem_avail_end_mb'   => $end->{'mem_avail_mb'},
+    'cached_start_mb'    => $start->{'cached_mb'},
+    'cached_end_mb'      => $end->{'cached_mb'},
+    'swap_start_mb'      => $start->{'swap_used_mb'},
+    'swap_end_mb'        => $end->{'swap_used_mb'},
+    'swap_in_pages'      => $delta->('pswpin'),
+    'swap_out_pages'     => $delta->('pswpout'),
+    'psi_mem_full_s'     => defined $psi_mem_us ? $psi_mem_us / 1e6 : undef,
+    'psi_io_full_s'      => defined $psi_io_us  ? $psi_io_us / 1e6  : undef,
+    'uptime_s'           => $end->{'uptime_s'},
+    'win_mem_start_pct'  => $render->{'win_mem_start_pct'},
+    'models_disk'        => $models_disk,
+    'disk_read_mb'       => defined $mdisk ? $mdisk->{'read_mb'} : 0,
+    'disk_busy_s'        => defined $mdisk ? $mdisk->{'busy_s'}  : 0,
+    'disk_mb_s'          => defined $mdisk && $mdisk->{'busy_s'} > 0
+    ? sprintf( '%.1f', $mdisk->{'read_mb'} / $mdisk->{'busy_s'} )
+    : undef,
+    'disk_read_lat_ms' => defined $mdisk
+    ? sprintf( '%.2f', $mdisk->{'read_ms'} / $mdisk->{'reads'} )
+    : undef,
+    'disks' => <[format.json.encode]>->( \%disks ),
+);
+
+my $dbh     = <[invoke-web.stats.db]> // return;
+my @columns = sort keys %row;
+my $done    = $dbh->do(
+    sprintf(
+        'INSERT OR REPLACE INTO renders ( %s ) VALUES ( %s )',
+        join( ', ', @columns ),
+        join( ', ', ('?') x @columns )
+    ),
+    undef,
+    @row{@columns}
+);
+if ( not $done ) {
+    <[base.logs]>->( 0, 'render stats : insert failed [ %s ]', $dbh->errstr );
+    return;
+}
+$render->{'recorded'} = TRUE;
+
+<[base.logs]>->(
+    2,
+    'render stats [ item %s ] : denoise %ss, read %.1f GB, temp max %s',
+    $render->{'item'} // '?',
+    $kind_secs{'denoise'} // '?',
+    ( $row{'read_bytes'} // 0 ) / 1e9,
+    $row{'temp_max'} // '-'
+);
+
+## end value of the windows host memory : updates this row on reply ##
+<[invoke-web.stats.win_mem]>->( $render, qw| end | );
+
+#,,,.,..,,..,,...,...,..,,...,,,.,,..,,.,,.,,,..,,...,...,...,.,.,...,,..,..,,
+#BCOU4SHVCCW7ZVIRS7UU5PKNAAGNZ35SIOCQDGPMDQ2N4CVTO4IGTJN2JPRVBCF2ZWI4LWT6YW2LC
+#\\\|UNE5PDZRNPYXNRW55RUPH7QOPUV4V452NOUX7JWDBPMEKCFWMQC \ / AMOS7 \ YOURUM ::
+#\[7]W6ELA3CG3I3O2J55NPFTZCSLFZMA3PRCYXXEWL5FX2O5TTEIMWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

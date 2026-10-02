@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = invoke-web.stats.render_start
+# descr  = render statistics at a render's start : host snapshot, gpu
+#          temperature feed [ lazy subscribe ], windows host memory
+# param  = render hashref [ <invoke-web.render> ]
+# note   = runs in the output handler : /proc reads and asynchronous
+#          requests only
+
+my $render = shift // return;
+
+$render->{'install'} = <invoke-web.variant_active> // qw| default |;
+$render->{'host_start'}
+    = <[invoke-web.stats.host_snapshot]>->(<invoke-web.pid>);
+
+## a new render : the gpu feed may retry again ##
+( <invoke-web.gpu_feed> //= {} )->{'failures'} = 0;
+<[invoke-web.stats.gpu_subscribe]>;
+<[invoke-web.stats.win_mem]>->( $render, qw| start | );
+
+return;
+
+#,,,,,,,.,,,.,.,.,...,,..,,.,,,,,,.,,,,..,,,,,..,,...,...,..,,.,.,.,.,,,,,..,,
+#RSMSMV7PYKJDXKKESHNOH627JD7NGR7N3Q6ONVV3CWUSC3WC3L5OOOFTBCGIWYTXBQ5RROXQJD6LG
+#\\\|7TJHFLWBY67ZYE35AGU5MCA4WXJP6HBOAU5FH4ABXII5Z2YMEI3 \ / AMOS7 \ YOURUM ::
+#\[7]ZJDYDJUFKWZLLZCCXLG2ACAGZIXVPLDCMUFA63E47BJ3SPF2B6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = invoke-web.handler.win_mem_reply
+# descr = powershell.mem-used reply : windows host memory use [ % ] into
+#         the render statistics -- start into the render hash, end into
+#         the stored row [ it is written before this reply arrives ]
+
+my $reply  = shift;
+my $params = $reply->{'params'}  // {};
+my $render = $params->{'render'} // return;
+my $phase  = $params->{'phase'} eq qw| end | ? qw| end | : qw| start |;
+
+return if $reply->{'cmd'} ne qw| TRUE |;
+my ($percent) = ( $reply->{'call_args'}->{'args'} // '' ) =~ m{([\d.]+)}
+    or return;
+
+$render->{"win_mem_${phase}_pct"} = 0 + $percent;
+
+## the row exists once the render was recorded ##
+return if not $render->{'recorded'};
+
+my $dbh = <[invoke-web.stats.db]> // return;
+$dbh->do(
+    "UPDATE renders SET win_mem_${phase}_pct "
+        . "= ? WHERE install = ? AND session = ?",
+    undef, 0 + $percent, $render->{'install'}, $render->{'session'}
+);
+
+#,,..,,,,,,,.,,,,,.,,,...,,.,,,,,,,,,,,,,,...,..,,...,...,.,.,.,,,.,,,,.,,.,.,
+#ASJT6VNNR7F3RGSDXQ37PE6EOZQQGMTZC5S346OAKXPRUE6OATYANX3HI52YBBBK6SZP736EO6OGI
+#\\\|NT27ORDYVA5CZVAG55QF3ZN5Y7OORMUH2R4IVCCUYRKAHU5FASJ \ / AMOS7 \ YOURUM ::
+#\[7]YWOPVOGMX3TTY3ESVMQ3HXFCK47HYSIALEVDP4CQXWS6TFHSEMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

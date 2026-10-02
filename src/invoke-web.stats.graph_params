@@ -1,0 +1,65 @@
+## [:< ##
+
+# name   = invoke-web.stats.graph_params
+# descr  = render settings of one session from the active install's queue
+#          [ model, size, steps, scheduler, cfg, lora \ ip-adapter \ ref
+#          counts ] for the render statistics
+# param  = session id
+# return = hashref | undef [ no db \ session ]
+# note   = passes = unet evaluations per step : second order schedulers run
+#          the model twice [ heun, dpmpp_2s, dpmpp_sde ]. refs : qwen image
+#          reference images [ 'qwen_ref_img' nodes, not their vae copies ]
+
+my $session = shift // return undef;
+
+my $dbh = <[invoke-web.queue.db]> // return undef;
+my ($json)
+    = $dbh->selectrow_array(
+    'SELECT session FROM session_queue WHERE session_id = ?',
+    undef, $session );
+return undef if not defined $json;
+
+my $graph = eval { <[format.json.decode]>->($json)->{'graph'}->{'nodes'} }
+    // return undef;
+
+my %params = ( 'loras' => 0, 'ip_adapters' => 0, 'refs' => 0 );
+foreach my $id ( sort keys %$graph ) {
+    my $node = $graph->{$id};
+    my $type = $node->{'type'} // '';
+
+    if ( $type =~ m{denoise} and defined $node->{'steps'} ) {
+        $params{'steps'}     //= $node->{'steps'};
+        $params{'scheduler'} //= $node->{'scheduler'};
+        my $cfg = $node->{'cfg_scale'};
+        $params{'cfg'} //= ref $cfg eq qw| ARRAY | ? $cfg->[0] : $cfg;
+    }
+    if ( defined $node->{'width'} and defined $node->{'height'} ) {
+        $params{'width'}  //= $node->{'width'};
+        $params{'height'} //= $node->{'height'};
+    }
+    if ( $type =~ m{model_loader$} and ref $node->{'model'} eq qw| HASH | ) {
+        $params{'model'} //= $node->{'model'}->{'name'};
+        $params{'base'}  //= $node->{'model'}->{'base'};
+    }
+    $params{'loras'}++       if $type =~ m{lora_(?:selector|loader)$};
+    $params{'ip_adapters'}++ if $type eq qw| ip_adapter |;
+    $params{'refs'}++        if $id =~ m{^qwen_ref_img:};
+}
+
+$params{'passes'}
+    = ( $params{'scheduler'} // '' ) =~ m{^(?:heun|dpmpp_2s|dpmpp_sde)}
+    ? 2
+    : 1;
+
+## like-for-like key : same work per render ##
+$params{'fingerprint'} = join qw| \| |,
+    map { $params{$ARG} // '' }
+    qw| model width height steps scheduler loras ip_adapters refs |;
+
+return \%params;
+
+#,,.,,,,.,.,.,,..,,.,,.,.,,.,,,..,..,,...,,,.,..,,...,...,..,,.,.,.,.,.,.,,,.,
+#HAVDFBYUKLTC66CIMQHQHNN2OSNAOE4H2WYVMQWYKN5SVPBP2CKH2I62DRBYYOQOQDB3XHZGLLYCW
+#\\\|XPMHGLHLKZWUMKIRHPFPBGO3HGFQPNI2WV47ZXJ2OH2T2RF7ETM \ / AMOS7 \ YOURUM ::
+#\[7]XETB3Y36NMQAWQKYT572GGYGJAD6E4VKC3HBYET7VCKAJ6SU6IDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
