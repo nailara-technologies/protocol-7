@@ -20,19 +20,33 @@ use Digest::MD5 qw| md5 |;
 ## A variant produced C : gear hash cdc [ 256 fixed-seed random 64-bit     ##
 ## values,  h = ( h << 1 ) + table[byte], boundary at ( h & mask ) == 0,   ##
 ## mask = nearest power-of-two so avg length matches the A variant ]       ##
+##                                                                           ##
+## target 4k [ -t 4k ] : fair rerun at realistic ~4 KB chunks [ task note  ##
+## 2026-10-02 ] : A : rolling_mod modulus 4095, window 48 and 63 [         ##
+## multiples of 3 -> outgoing-byte weight 1, avg ~4 KB on uniform bytes ] ##
+## C : gear hash, 12-bit mask [ ~4 KB ] ; B : fixed 4096 ; A and C also    ##
+## with cdc guards min_len 1024, max_len 16384 [ same guards for both ] ;  ##
+## extra dedup corpus : src tree at HEAD~200 and at HEAD, stored% pooled   ##
+## over both versions [ the real dedup case ]                              ##
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
-my $corpus_opt = 'all';    ## -c : src | md | gfx | all
+my $corpus_opt = 'all';       ## -c : src | md | gfx | dedup[4k] | all
 my $size_cap   = 0;   ## -s : per-corpus size cap in MB [ 0 = corpus default ]
+my $target_opt = 'mod13';    ## -t : mod13 [ avg-matched sizes ] | 4k
 
 GetOptions(
     'c|corpus=s' => \$corpus_opt,
     's|size=i'   => \$size_cap,
+    't|target=s' => \$target_opt,
     'h|help'     => sub { usage() },
 ) or usage();
 
-usage() if $corpus_opt !~ m{^(all|src|md|gfx)$};
+usage() if $target_opt !~ m{^(mod13|4k)$};
+my $corpus_re = $target_opt eq '4k'
+    ? qr{^(all|src|md|gfx|dedup)$}
+    : qr{^(all|src|md|gfx)$};
+usage() if $corpus_opt !~ $corpus_re;
 
 my $gfx_cap_mb = $size_cap > 0 ? $size_cap : 20;    ## gfx default 20 MB
 
@@ -58,9 +72,18 @@ sub load_mod {
 my $rolling_mod = load_mod('base.chunk.rolling_mod');
 
 sub mod_boundaries {
-    my ( $data, $modulus ) = @_;
+    my ( $data, $modulus, $window, $min_len, $max_len ) = @_;
+    $window  //= 3;
+    $min_len //= 1;
+    $max_len //= 0;
     my $res = $rolling_mod->(
-        { 'data' => $data, 'modulus' => $modulus, 'window' => 3 } );
+        {   'data'    => $data,
+            'modulus' => $modulus,
+            'window'  => $window,
+            'min_len' => $min_len,
+            'max_len' => $max_len,
+        }
+    );
     die 'rolling_mod failed : ' . $res->{'data'}
         if ref $res ne 'HASH'
         or $res->{'mode'} ne 'true';
@@ -102,7 +125,9 @@ sub best_gear_k {
 }
 
 sub gear_boundaries {
-    my ( $data, $mask ) = @_;
+    my ( $data, $mask, $min_len, $max_len ) = @_;
+    $min_len //= 1;
+    $max_len //= 0;
     use integer;    ## h stays a wrapping 64-bit integer [ never a float ] ##
     my $len  = length $data;
     my @b    = ();
@@ -110,7 +135,11 @@ sub gear_boundaries {
     my $h    = 0;
     for my $i ( 0 .. $len - 1 ) {
         $h = ( $h << 1 ) + $gear_table[ ord substr $data, $i, 1 ];
-        if ( ( $h & $mask ) == 0 and $i + 1 > $last ) {
+        my $cl = $i + 1 - $last;
+        ## boundary on hash hit past min_len ; force at max_len [ guards ] ##
+        if (    ( ( $h & $mask ) == 0 and $cl >= $min_len )
+            or ( $max_len > 0 and $cl >= $max_len ) )
+        {
             push @b, $i + 1;
             $last = $i + 1;
         }
@@ -160,6 +189,43 @@ sub corpus_gfx {
         last if $cap > 0 and length $data >= $cap;
     }
     return $cap > 0 ? substr( $data, 0, $cap ) : $data;
+}
+
+##[ two-version dedup corpus : src tree at HEAD~200 and at HEAD ]#############
+## both versions stream via git archive piped to tar stdout -- the working  ##
+## tree is never touched                                                     ##
+
+sub shell_root {    ## root path quoted for shell interpolation ##
+    my $q = $root_path;
+    $q =~ s{'}{'\\''}g;
+    return "'$q'";
+}
+
+sub git_have_rev {
+    my $rev = shift;
+    system "git -C @{[shell_root()]} rev-parse --verify --quiet $rev "
+        . '>/dev/null 2>&1';
+    return $? == 0;
+}
+
+sub git_src_tree {
+    my $rev = shift;
+    open( my $fh, '-|',
+        "git -C @{[shell_root()]} archive $rev src | tar -x -O -f -" )
+        or die "git archive $rev failed : $OS_ERROR";
+    binmode $fh;
+    my $data = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    die "git archive $rev produced no data" if !length( $data // '' );
+    return $data;
+}
+
+sub corpus_dedup {
+    my $cap = shift;    ## per-version cap [ 0 = uncapped ] ##
+    my $blobs = [ map { git_src_tree($ARG) } qw| HEAD~200 HEAD | ];
+    @$blobs = map { $cap > 0 ? substr( $ARG, 0, $cap ) : $ARG } @$blobs
+        if $cap > 0;
+    return $blobs;
 }
 
 ##[ edited copy : 50 inserts + 50 deletes + one moved 4 KB block ]############
@@ -223,6 +289,56 @@ sub chunk_stats {
         'min'    => $n ? $min : 0,
         'max'    => $max,
     };
+}
+
+##[ pooled variants for the 4k target ]#######################################
+
+## chunk stats pooled over [ data, boundaries ] pairs from all versions ##
+sub pooled_stats {
+    my @pairs = @_;
+    my ( $sum, $sumsq, $min, $max, $n ) = ( 0, 0, ~0, 0, 0 );
+    for my $pair (@pairs) {
+        my ( $data, $boundaries ) = @$pair;
+        my $prev = 0;
+        for my $end (@$boundaries) {
+            my $cl = $end - $prev;
+            $sum   += $cl;
+            $sumsq += $cl * $cl;
+            $min = $cl if $cl < $min;
+            $max = $cl if $cl > $max;
+            $prev = $end;
+            $n++;
+        }
+    }
+    my $avg = $n ? $sum / $n                 : 0;
+    my $var = $n ? $sumsq / $n - $avg * $avg : 0;
+    $var = 0 if $var < 0;    ## float rounding guard ##
+    return {
+        'chunks' => $n,
+        'avg'    => $avg,
+        'stddev' => sqrt $var,
+        'min'    => $n ? $min : 0,
+        'max'    => $max,
+    };
+}
+
+## stored% pooled across versions : unique chunk bytes / total bytes [ ##
+## lower = better deduplication ]                                      ##
+sub stored_pct {
+    my @pairs = @_;
+    my ( $uniq, $total ) = ( 0, 0 );
+    my %counted = ();
+    for my $pair (@pairs) {
+        my ( $data, $boundaries ) = @$pair;
+        my $prev = 0;
+        for my $end (@$boundaries) {
+            my $key = unpack 'q', md5( substr $data, $prev, $end - $prev );
+            $uniq += $end - $prev if !$counted{$key}++;
+            $prev = $end;
+        }
+        $total += length $data;
+    }
+    return $total ? $uniq / $total * 100 : 0;
 }
 
 ##[ bench driver ]############################################################
@@ -304,26 +420,122 @@ sub run_corpus {
     return @summary;
 }
 
+##[ 4k target bench driver ]##################################################
+## methods at realistic ~4 KB target :                                     ##
+##   A : rolling_mod modulus 4095, window 48 and 63 [ multiples of 3 ]     ##
+##   C : gear hash, 12-bit mask [ ~4 KB ]                                  ##
+##   B : fixed 4096                                                        ##
+##   +g variants : cdc guards min_len 1024, max_len 16384 [ A and C ]      ##
+## one blob  : stats on corpus, stored% on corpus, stable% vs edited copy  ##
+## two blobs : stats pooled, stored% pooled over versions [ real dedup ],  ##
+##             stable% = unique v1 digests found in v2                     ##
+
+sub run_corpus_4k {
+    my ( $name, $blobs ) = @_;
+    my $versions = scalar @$blobs;
+    my $edited   = $versions == 1 ? make_edited( $blobs->[0] ) : undef;
+    my $total_len = 0;
+    $total_len += length $ARG for @$blobs;
+    my $total_mb = $total_len / 1048576;
+
+    my @methods = (
+        [ 'A mod4095/48 ', sub { mod_boundaries( $_[0], 4095, 48 ) } ],
+        [   'A mod4095/48g',
+            sub { mod_boundaries( $_[0], 4095, 48, 1024, 16384 ) }
+        ],
+        [ 'A mod4095/63 ', sub { mod_boundaries( $_[0], 4095, 63 ) } ],
+        [   'A mod4095/63g',
+            sub { mod_boundaries( $_[0], 4095, 63, 1024, 16384 ) }
+        ],
+        [ 'C gear-4096  ', sub { gear_boundaries( $_[0], 4095 ) } ],
+        [   'C gear-4096g ', sub { gear_boundaries( $_[0], 4095, 1024, 16384 ) }
+        ],
+        [ 'B fixed-4096 ', sub { fixed_boundaries( $_[0], 4096 ) } ],
+    );
+
+    say '';
+    if ( $versions == 2 ) {
+        say sprintf ':: corpus : %-6s [ v1 %.1f MB @ HEAD~200, v2 %.1f MB @ HEAD ]',
+            $name, length( $blobs->[0] ) / 1048576,
+            length( $blobs->[1] ) / 1048576;
+        say '   stored% pooled over both versions ; stable% = v1 digests found in v2';
+    } else {
+        say sprintf ':: corpus : %-6s [ %.1f MB, edited %.1f MB ]',
+            $name, $total_mb, length($edited) / 1048576;
+    }
+    say '   g = cdc guards min_len 1024, max_len 16384';
+    say '';
+    say 'method         chunks        avg     stddev '
+        . '     min      max  stored%  stable%     MB/s';
+    my @summary = ();
+    for my $method (@methods) {
+        my ( $label, $chunker ) = @$method;
+
+        my $t0    = time;
+        my @pairs = map { [ $ARG, $chunker->($ARG) ] } @$blobs;
+        my $mbps  = $total_mb / ( time - $t0 );
+        my $stats = pooled_stats(@pairs);
+        my $dedup = stored_pct(@pairs);
+
+        ## stability : single version vs edited copy ; two versions = v1 vs v2 ##
+        my $stable;
+        if ( $versions == 1 ) {
+            my $dig_orig = chunk_digests( $blobs->[0], $pairs[0][1] );
+            my $edit_bounds = $chunker->($edited);
+            my $dig_edit    = chunk_digests( $edited, $edit_bounds );
+            my $orig_n = scalar keys %$dig_orig;
+            my $hits = grep { $dig_edit->{$ARG} } keys %$dig_orig;
+            $stable = $orig_n ? $hits / $orig_n * 100 : 0;
+        } else {
+            my $dig1 = chunk_digests( $blobs->[0], $pairs[0][1] );
+            my $dig2 = chunk_digests( $blobs->[1], $pairs[1][1] );
+            my $n1   = scalar keys %$dig1;
+            my $hits = grep { $dig2->{$ARG} } keys %$dig1;
+            $stable = $n1 ? $hits / $n1 * 100 : 0;
+        }
+
+        printf "%s  %9d  %9.2f  %9.2f  %7d  %7d  %7.2f  %7.2f  %7.1f\n",
+            $label, $stats->{'chunks'}, $stats->{'avg'}, $stats->{'stddev'},
+            $stats->{'min'}, $stats->{'max'}, $dedup, $stable, $mbps;
+
+        push @summary,
+            sprintf '%s : %d chunks, avg %.1f, stored '
+            . '%.2f%% [ lower = better ], stable %.2f%%',
+            $label, $stats->{'chunks'}, $stats->{'avg'}, $dedup, $stable;
+    }
+    return @summary;
+}
+
 ##[ main ]####################################################################
 
 my $cap_bytes = $size_cap > 0 ? $size_cap * 1048576 : 0;
 my %corpora   = (
-    'src' => sub { corpus_src($cap_bytes) },
-    'md'  => sub { corpus_md($cap_bytes) },
+    'src' => sub { [ corpus_src($cap_bytes) ] },
+    'md'  => sub { [ corpus_md($cap_bytes) ] },
     'gfx' => sub {
-        corpus_gfx( $cap_bytes > 0 ? $cap_bytes : $gfx_cap_mb * 1048576 );
+        [ corpus_gfx( $cap_bytes > 0 ? $cap_bytes : $gfx_cap_mb * 1048576 ) ];
     },
 );
 
+if ( $target_opt eq '4k' ) {    ## dedup corpus : src tree at two revisions ##
+    die 'chunk-bench : git revision HEAD~200 not available'
+        if !git_have_rev('HEAD~200');
+    $corpora{'dedup'} = sub { corpus_dedup($cap_bytes) };
+}
+
 say '';
-say '=== chunk-bench : rolling mod vs fixed vs gear ===';
+say "=== chunk-bench : rolling mod vs fixed vs gear [ target : $target_opt ] ===";
 
 my @summary_all = ();
 for my $name ( sort keys %corpora ) {
     next if $corpus_opt ne 'all' and $corpus_opt ne $name;
-    my $data = $corpora{$name}->();
-    die "corpus $name is empty" if !length $data;
-    push @summary_all, run_corpus( $name, $data );
+    my $blobs = $corpora{$name}->();
+    die "corpus $name is empty" if !length $blobs->[0];
+    if ( $target_opt eq '4k' ) {
+        push @summary_all, run_corpus_4k( $name, $blobs );
+    } else {
+        push @summary_all, run_corpus( $name, $blobs->[0] );
+    }
 }
 
 say '';
@@ -340,16 +552,20 @@ sub usage {
 
     :: usage : chunk-bench [ options ]
 
-      -c, --corpus STR   one of src | md | gfx | all [ default : all ]
+      -c, --corpus STR   one of src | md | gfx | dedup[4k] | all
+                         [ default : all ]
       -s, --size MB      per-corpus size cap in MB [ gfx default : 20 ]
+      -t, --target STR   mod13 [ avg-matched sizes ] | 4k [ ~4 KB target,
+                         window 48|63, gear 12-bit, fixed 4096, cdc guards ]
+                         [ default : mod13 ]
       -h, --help         this help
 
     EOT
     exit 0;
 }
 
-#,,..,,,.,,.,,...,,,.,,..,,.,,.,,,.,,,,,,,..,,..,,...,...,..,,.,.,,,,,.,,,,.,,
-#IT6C2F52UD3Q5N6UUY3NGCMCW7AMMOJZI7DFMZQDWWE6ZKAH3QFAVBNO74MPOP4IHDIAU7YOTPGAG
-#\\\|4LV7RPGD352M5Y6WVSX7P6IG4BCPBXBOZZ4XKGLKXUEITSK5X7D \ / AMOS7 \ YOURUM ::
-#\[7]IEYPVUNWTBVRSOODBT73XCK5BS5NFKTAYEFF3ENLNVKDAZJY7GBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,,..,.,,,,,,,,.,,...,,,.,,..,..,,...,..,,.,.,.,.,.,.,...,.,.,
+#G5EJSCGARPA3UOKM7Y44ABZQ6JX2YA6B3SS4NLTRDU4LCSFP7XEUFPFJYHCSQKKOKCOJ4TKQNXMEY
+#\\\|6WUNIUPEAEFD2S4XWG655VIEFIA7ONSMMVQDLUXTTMQT7DBSTOY \ / AMOS7 \ YOURUM ::
+#\[7]6WZMTZONF3VFIJ7HVHQ5ADINDTRW6NY2QCNATIKRQVM6YERYUGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -56,6 +56,29 @@ much shorter than established cdc windows [ 32-64 bytes ] -> likely cause
 of the text skew. next : fair rerun at ~4 KB target, window a multiple of
 the order of 256 for the chosen modulus, same corpora and edit script.
 
+## fair rerun at ~4 KB [ 2026-10-02, `bin/dev/chunk-bench -t 4k` ]
+
+modulus 4095 = 2^12 − 1 = 3²·5·7·13 ; 256³ ≡ 1 mod 4095 -> weight 1 for
+any window that is a multiple of 3 ; windows 48 and 63, vs gear 12-bit
+mask and fixed 4096, cdc guards 1–16 KB for both as a variant. real dedup
+case : src/ at HEAD~200 + HEAD pooled [ 26.5 MB ] :
+
+```
+A mod4095/48   stored 58.87 %   stable 89.88 %   2.9 MB/s
+C gear-4096    stored 59.32 %   stable 91.75 %   5.9 MB/s
+B fixed-4096   stored 99.82 %   stable  0.36 %
+```
+
+result : at realistic sizes the mod-4095 family is **on par with gear** —
+all cdc variants within 0.45 points stored, mod marginally better on
+stored, gear marginally better on stability and ~2x faster in pure perl.
+single-version corpora are ~100 % stored for everything [ no internal
+duplicates at 4 KB ] -> noise. so it ties the known improvement, it does
+not beat it on raw efficiency ; any advantage would have to come from
+structure [ boundaries in the 7 \ 13 family aligning with the rest of the
+addressing ], which this benchmark does not measure. unguarded runs make
+1-byte chunks -> always use min \ max guards.
+
 ## relation
 
 existing dedup modules work on text tokens \ trees [ `index.deduplicate`,
@@ -64,8 +87,8 @@ below them. average chunk ~13 is small for storage -- larger averages via
 a larger modulus or by requiring k consecutive crossings ; measure, do not
 assume.
 
-#,,..,,,.,..,,.,,,...,...,...,,.,,...,,.,,..,,..,,...,..,,,,.,..,,,.,,,,.,.,.,
-#3AAUJORGXU3442CFRFP4IO3SSYFB37USLNMQHWHPRQNWN4QW4ELQ5FFASQXKIAKCSCPQ2RVNCYVQ4
-#\\\|6RYBBRD45SBEIOIRTSAKO5CR27EVAPHI522LMQBZLDK3NPDPT7U \ / AMOS7 \ YOURUM ::
-#\[7]YZ4UXORXTLCIIZXJA74V6FKWSQBIIJLSP4QDNS5OX4YYXOCXI2AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,,.,,,,,,.,,,,,.,,,.,..,,.,,,..,,...,...,,,.,..,,.,.,,..,...,
+#H7YF2VDWIZHUY3L525GRDAY5WAH7JTCNSME7YW7VP4C6XDJ65YRV6JZWYZZHURMJJYHRUVMJWYQQC
+#\\\|UFYPEJWSBL4CMWSZS32IEKZJJP3WAEQC3ETI4OQ42C65VCPIVV3 \ / AMOS7 \ YOURUM ::
+#\[7]GX4TUWZMVKJGPM3MKQNZMAZ45PCIXWOAYXKW77ENEQYCTPBLHQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
