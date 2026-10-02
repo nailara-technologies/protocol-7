@@ -85,6 +85,22 @@ already designed [ read before building the agent ] :
 -> the signing agent is one instance of that key-holding child, not a new
 mechanism.
 
+unlock without constant passphrase re-entry : the optional pin logic
+[ `topic-write-access-security-infrastructure.md` : pin auth as the fast
+alternative to the full passphrase for many small approvals, explicitly
+naming batches of code-signing requests ; plus a styled diff image of what
+is being signed before approval ] and passphrase+pin-derived keys
+[ `topic-latency-algorithmic-authority-entropy-toll.md` ]. the security is
+in the agent's contract : what may be signed [ the signed corpus only,
+closed vocabulary ], who may ask [ sourcecode zenka, local pipe ], every
+signature logged, lock after timeout \ session end.
+the ui for it exists in `protocol-7-menu` : `input-password` [ masked
+dialog -> passphrase unlock and pin entry ], `input-choice` [ one button
+per option -> approve \ deny ], and the pending-question queue with its
+ambient indicator [ `pending-question-add` \ `-answer` \ `-open` ] ->
+a batch of signing requests waits there as pending questions instead of
+interrupting.
+
 ## test
 
 - start `update-signatures :stage:` on a large file set, commit right
@@ -95,8 +111,8 @@ mechanism.
   waiting for the longer one [ its marker is untouched ]
 - no marker -> hook behaves exactly as today
 
-#,,.,,,,.,..,,,,.,,..,.,,,...,,..,..,,..,,.,.,..,,...,...,..,,,,,,.,.,.,.,...,
-#C3QB2UK7GB4QMVSMROBEGY447UDREP64MFYYHKZJMPZW5ZUJJJ3NLDAS23GLB3NMVWLXYWPJCOVA4
-#\\\|DM4AI6QJMCVW4QO7OUEI5PB3VE2SQJVJLWMGYQG5TDTN52BPYVL \ / AMOS7 \ YOURUM ::
-#\[7]EED4IM5GR57VW6MEKEMQQMDHAPERTTSIM2XA54GQFERN23NX7YAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,,,,,,,,.,.,..,,,,,,,,,,...,..,,...,...,..,,,,.,...,...,...,
+#GFGHO7YY74SLTNWGBR6IAP4TLK6OBN7MIXHG5GP3BQBUS5BXEOGWFDKYZSDUOFJSULCDTWNLYF2PU
+#\\\|MTBL737YZBKMVRQLG6HZQQL5FOMJZOMNU5FGASUXNNIUZ26V5P3 \ / AMOS7 \ YOURUM ::
+#\[7]4GIQJXLGMLOT6QRG6KL27TYACQZGVGB7YJX5TKJMVTMXNTHYMECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
