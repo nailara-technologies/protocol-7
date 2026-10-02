@@ -64,10 +64,12 @@ install's invokeai.yaml [ backup .pre-cache-ram-20261002 ] -- without it the
 heuristic stays below the graph's 9.67 GB. success check : warm reference
 render readGB ~12 -> ~0, cache misses < 40, ~22 s disk wait gone. watch
 win_mem_end_pct : > ~90 % -> back to 20 GB. the fork's yaml is unchanged
-[ qwen 2.1 set = 4.6 + 9.4 + 0.7 GB ]. same .wslconfig : `swap=6GB`,
-`swapFile=D:\\wsl\\swap.vhdx` [ was a 4 GB growing vhdx in C:'s
-AppData\Local\Temp ; D: = 7 GB, otherwise unused ; /mnt/d itself is 9p,
-no linux swapfile possible there ].
+[ qwen 2.1 set = 4.6 + 9.4 + 0.7 GB ]. same .wslconfig : `swap=6GB` at the DEFAULT location [ C: ]. a
+`swapFile=D:\\wsl\\swap.vhdx` [ 2026-10-02 04:00 -> 08:40 ] crashed WSL \
+the zenki twice [ 06:40, 08:26 ] : D: is C:\DISKS\projects.vhdx, FAT32
+inside -> the swap image could not grow past 4 GiB, hv_storvsc
+0xc0000001, swap device offlined, swapped-out pages lost. see
+[[feedback-check-filesystem-before-large-files-on-windows-drives]].
 
 **result 2026-10-02 04:21** [ after the wsl restart ] : cache budget 11.0 GB,
 warm reference render 0 misses, 0.0 GB read, denoise 94.0 s [ was 121.9 ],
@@ -101,8 +103,8 @@ steady, not cumulative ]. advised : fan replacement \ cleaning \ repaste.
 model cache too little VRAM -> partial loading streams UNet layers from RAM ],
 WSL page cache \ swap \ host paging building up with uptime, the old driver.
 
-#,,..,,..,.,,,,,,,,,.,,,.,,..,,,.,.,,,,..,,..,..,,...,...,,,,,.,.,..,,,.,,,..,
-#JVFLUX4C3YQRKQFK2CZAVJBJ5YMVL3WT7KJNPWUMJ7GTSJGS4S2LW27NRT2DW7SQZRLJ6BQRB5T2W
-#\\\|E5SWUSATCJDJEJ6BK2F4X375Q3EJPQ2PDBXBGYJW4TYY4WDOD6U \ / AMOS7 \ YOURUM ::
-#\[7]GEVKH7K4KH7BY2RHE5LPGUOPTJOLUB7XF6RQEIG3DNXSE5KY36BQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,..,,,,,..,,,..,,,,,.,,,.,.,..,,...,...,,,.,..,,,.,,...,,,,,
+#HIUT6C5DRYLRY3JBFPNUSQT6YR3WP5PX5ZLGV62XWVRJZPH45PDWHDQM5JVOJXLJQ3B4GKXEJTB52
+#\\\|FFYHPXKTJPEUOHUW3PV23URHTDFR6P727KE4EL7QSX5WHF3DH2J \ / AMOS7 \ YOURUM ::
+#\[7]INLQKQNTLHCGDB37VFNYJP3EVGELUDPDDCLRSQFISGIRYTETIYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
