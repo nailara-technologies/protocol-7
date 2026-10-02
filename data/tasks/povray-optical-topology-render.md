@@ -22,6 +22,13 @@ csg ]. needs a new template + a context builder, not a new system.
   rotator ]
 - **color by cascade stage** : uv -> blue -> green -> yellow -> orange
   per stage passed [ fluorescence down-conversion, one-way ]
+- **hue as angle** [ user ] : neon blue = aligned ; drift toward neon green
+  or neon orange = angular drift from the aligned axis, or a context
+  change. hue is itself an angle on the color wheel [ blue ~240°, green
+  ~120°, orange ~30° ], so the mapping is direct ; matches the color-range
+  -> angle routing in `topic-checksum-addressing.md`
+- **brightness as resource** : remaining light along a route = remaining
+  budget [ optical power budget : source minus losses per stage ]
 - **decisions** : where paths cross, marked as small bright points
 - dark background, blacklight palette, calm defaults
 
@@ -40,8 +47,8 @@ emitting color.
 4. later : frame sequence for animation [ lookahead : paths known in
    advance render at higher quality ]
 
-#,,..,,,,,,..,,,,,..,,.,.,,,,,,,.,.,,,,..,..,,..,,...,...,.,,,.,.,...,...,...,
-#EA5EQBRN7Z5LLHJWMUI2QRHTJX2HPYJT7TCYV7OPSXEEE2BDHXDMI4OJDIOXCYZBZHLD4ASTX5EYI
-#\\\|FY2EK2PRACNCO6B23RYPVUGYETGW4YCWW7BOLUH6GT63KDHXCEM \ / AMOS7 \ YOURUM ::
-#\[7]AWZJJAZ2BRTSKT7YVRRAN3OIVMPYR5HKMAUCYQM64OW5MOGCKWAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,,,,..,,,,.,,.,,..,,,.,,,,.,..,,...,...,.,,,,,.,...,,,.,.,.,
+#SE2AFBYXANZAGT32Q4AU7SOQEWKCOFHWCUOBNCJEZ7D3QN4UOEXBQXGN4XGB43QC4GK6PIMRAUFOU
+#\\\|MVBR4GC4DJW6GJF3KCCFB63ESBU7PAJ5GPWCCAR4CG7V5VNJUZ3 \ / AMOS7 \ YOURUM ::
+#\[7]O3UYG64BTSWYQLMG5PL3D4PCLF2AXWJX53YJHIJEKC66BXFYCKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
