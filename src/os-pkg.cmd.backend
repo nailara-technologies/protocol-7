@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = os-pkg.cmd.backend
+# descr = show selected package backend and distribution
+# param = [ none ]
+
+my $backend_type = <os-pkg.backend_type>;
+my $os_release   = <os-pkg.os_release> // {};
+
+unless ( defined $backend_type ) {
+    my $id = $os_release->{'ID'} // 'unknown';
+    return {
+        'mode' => qw| false |,
+        'data' => "unsupported distribution : $id"
+    };
+}
+
+my $pretty = $os_release->{'PRETTY_NAME'} // '';
+
+return {
+    'mode' => qw| true |,
+    'data' => "backend $backend_type  [ $pretty ]"
+};
+
+#,,..,...,.,.,,,.,,..,...,,,.,,,,,.,,,,,,,.,,,.,.,...,...,,..,,..,,,.,,,.,...,
+#7J5DCKJY6AUSUFRDVWMUBPZATJQSNGC6G3F56556NFZZLURQFKLCFV3Y7T7H2WJN2YAIRGY2ZJ5RK
+#\\\|76E323VRDEUB7DV2XLUYB627XHLL2BJ2UPVRN6OXMVGLZSEISN4 \ / AMOS7 \ YOURUM ::
+#\[7]7KTU2P3OJCFXTOVHGAZQANTKDUGI23LWBMQAJMHHK3SJ2YYLPKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

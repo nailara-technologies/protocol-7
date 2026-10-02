@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = os-pkg.cmd.status
+# descr = installed version or 'absent' per package
+# param = <pkg> [ <pkg> .. ]
+
+my $args = $call->{'args'} // '';
+
+<[base.perlmod.autoload]>->(qw| IPC::Open3 |);
+<[base.perlmod.autoload]>->(qw| Symbol |);
+
+my @pkgs = split m{\s+}, $args;
+
+return { 'mode' => qw| false |, 'data' => 'no packages specified' }
+    unless @pkgs;
+
+## validate package names before touching the system ##
+for my $pkg (@pkgs) {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid package name : $pkg"
+        }
+        unless $pkg =~ m{^[a-z0-9][a-z0-9+.\-]+$};
+}
+
+my $backend_type = <os-pkg.backend_type>;
+
+my $dist_id = ( <os-pkg.os_release> // {} )->{'ID'} // 'unknown';
+
+return {
+    'mode' => qw| false |,
+    'data' => "unsupported distribution : $dist_id"
+    }
+    unless defined $backend_type;
+
+return {
+    'mode' => qw| false |,
+    'data' => "unsupported backend : $backend_type"
+    }
+    unless $backend_type eq qw| debian |;
+
+## debian backend : unprivileged read-only version probe   [ stderr ##
+## discarded via separate pipe, no shell interpolation ]            ##
+my @output;
+
+for my $pkg (@pkgs) {
+    my ( $out_fh, $err_fh );
+    $err_fh = Symbol::gensym();
+
+    my $pid = eval {
+        IPC::Open3::open3( undef, $out_fh, $err_fh,
+            qw| dpkg-query -W -f=${Version} |, $pkg );
+    };
+
+    if ( !$pid or length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            0, ': dpkg-query spawn failed [ %s ]',
+            <[base.str.eval_error]>
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => 'dpkg-query spawn failed'
+        };
+    }
+
+    my $version = <$out_fh>;
+    close $out_fh;
+    close $err_fh;
+    <[base.waitpid]>->($pid);    ## non-blocking reap ##
+
+    if ( not defined $version or not length $version ) {
+        push @output, "$pkg  absent";
+    } else {
+        chomp $version;
+        push @output, "$pkg  $version";
+    }
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @output ) . "\n"
+};
+
+#,,.,,..,,,.,,,.,,,..,,,.,,.,,.,.,,..,...,,,,,.,.,...,...,,.,,,,.,..,,,..,,..,
+#IA7PJFSRMJ22LMKI3LZL2O75RTBEWCNVJNRCOO4ZVGVNNTKZZL7T5G3OU5XGDL44VGJBBZZCPLBHU
+#\\\|K54UTSUHBELLS67NE33X2OJ5M6XV54MSNXX5RYLLETZD3XUM2LQ \ / AMOS7 \ YOURUM ::
+#\[7]RAGDQRMMPQ5WRK5YVGUN3XM5U7O2PIAR6ODLV5HYZJNBQPZYRUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
