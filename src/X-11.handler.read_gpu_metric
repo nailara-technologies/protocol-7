@@ -41,9 +41,15 @@ while ( $m->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $LAST_PAREN_MATCH;
     next if $output_line =~ m|^\s*$|;
 
+    ## a value the gpu cannot report right now : skip, keep the feed ##
+    next if $output_line =~ m{\[N/A\]|Not Supported}i;
+
     my ( $time, $load );
     if ( $output_line =~ m|^\s*(\d+(?:\.\d+)?)\s*$| ) {
         ( $time, $load ) = ( ++$m->{'sample_seq'}, 0 + $LAST_PAREN_MATCH );
+    } elsif ( $output_line =~ m|^\s*0x([0-9a-fA-F]+)\s*$| ) {
+        ## bit fields [ throttle reasons ] as integers ##
+        ( $time, $load ) = ( ++$m->{'sample_seq'}, hex $LAST_PAREN_MATCH );
     } else {
         <[base.parser.ellipse_center]>->( \$output_line, 253 );
         <[base.logs]>->(
@@ -98,8 +104,8 @@ while ( $m->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,,,,..,,,.,,.,.,.,,,,,.,..,,..,,.,,,,,.,..,,..,,...,.,.,,..,,,,,.,.,...,.,,,
-#X5M2OZWIFLAA3VA375MADAPHZI5ZMA7UKCXZHFR3AXGO4ISGV4BRIVISH2SMXJUMUZ7IR4X5JWBLC
-#\\\|YJM5JFDRCSGIL5FANHV5YXYQP4377O7ZLYA6ORQADA2GSC7LT5J \ / AMOS7 \ YOURUM ::
-#\[7]CPK6YOWCLKKEXJ5VU7ZGLHKM7QXXAXPT2U36DBQQGSYO7ZQOM6DQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,..,,...,.,.,...,,..,,,,,,,,,..,,...,...,,,.,,..,,,.,,..,,,.,
+#EGHF36VDLAC26MCJPYH2F4I7G76ZQA2YLPSTZADVRFD2TTPH3MRYGD7D2KOPBWATHYTXXLGSPASUE
+#\\\|YG6466ZNEQ37WVAU4S2HMRUWIPDMBRKA4JJSCXKEG5GKZERP3BM \ / AMOS7 \ YOURUM ::
+#\[7]Q4GELVFCG6WHPBQSVR2RBWJG4UPU3EN3E6WGRB5AUAR7KWEZLCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

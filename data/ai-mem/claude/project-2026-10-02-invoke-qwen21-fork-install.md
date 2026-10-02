@@ -24,9 +24,11 @@ via `invoke-web.state_name`. both installs share port 4707 -> the browser keeps
 ONE ui state [ canvas, ref images ] across them : stale refs from the other
 install give `Image record not found`.
 
-**local fork patches -- SECURED 2026-10-02** : clone branch `p7-local` [ 2
+**local fork patches -- SECURED 2026-10-02** : clone branch `p7-local` [ 3
 commits on fork commit c518116 ], exported to
-`data/patches/invokeai-qwen21/000{1,2}-*.patch` [ git am clean on c518116,
+`data/patches/invokeai-qwen21/000{1,2,3}-*.patch` [ 0003 : BF16 tensors of
+the GGUF stayed GGMLTensor -> 'Operation changed the dtype of GGMLTensor'
+in txt_in.text_norm ; unquantized F32 \ F16 \ BF16 now plain tensors ] [ git am clean on c518116,
 verified ], full rebuild : `bin/scripts/invoke-ai/build-qwen21-fork`
 [ `--ui` = web ui only ]. a fork update : rebase p7-local, re-export,
 bump BASE in the script. the history of the patches : `Prompts.tsx` showed the ref image list only for variant
@@ -44,6 +46,13 @@ leaves the OLD local dist, `cp -a` then silently installs it ].
 mlp_ratio only from the fused Comfy `img_mlp.gate_up` key -> KeyError on the
 abenzerps GGUF [ diffusers layout gate_layer + proj ; all 297 keys match the
 model exactly, checked with init_empty_weights ] -> falls back to gate_layer.
+fork invokeai.yaml [ low-vram guide, backup .pre-lowvram-20261002 ] :
+max_cache_vram_gb 5, max_cache_ram_gb 11, pytorch_cuda_alloc_conf
+"backend:cudaMallocAsync", device_working_mem_gb 5 -- without the vram cap
+encoder [ 6 GB ] + transformer [ 4.4 GB ] sat in vram together and the
+driver spilled to shared memory [ see the degradation note ]. ui state is
+shared with the main install : the first 2.1 renders inherited cfg 34 + 5
+refs + 72 steps from SDXL settings [ 2.1 wants cfg ~4 ].
 the int8 convrot encoder needs the `qwen-int8` extra : comfy-kitchen
 0.2.35 installed in the env.
 
@@ -53,8 +62,8 @@ LoRA applies to 2.1 there yet. old SDXL \ FLUX LoRAs never carry over
 offered, not done : importing main's image records [ 49441 ] + boards into
 the fork db so the old gallery works there.
 
-#,,,.,,,,,.,.,..,,,..,.,.,.,,,,.,,,,,,,..,,,,,..,,...,..,,.,,,...,,,.,,,,,,,.,
-#YBOMJTLXEVUFO4CMKRK53RIVDNJXV3RISNNHPNBY7D5DWCNPC3LXPDEFBUBZZUA5U24KZ644K6SQW
-#\\\|77YLGK7LIGF3UHTO7FAALI7752AJ64Y4Q5HNM53NXXUXSMP4ZTP \ / AMOS7 \ YOURUM ::
-#\[7]ZBD4T5ZADKXFRRQRPY2ZGO56XY2THHJLAYKXFG5TH6J6PQUSD6BI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,,.,..,,,,.,..,,,..,.,,,...,..,,...,...,,.,,,,,,,..,,,.,,.,,
+#HRV7PARD4FWOORKVYN32RDBGPVOHJE5BBGJGAVWTDRSAQ7M56RMW7JZQEF3YM3L7JTP5UK4ZFBGUS
+#\\\|PSRANVMVH7URDGIBVLAWBUFLYVDKOBVJGUUS32JNTZFFHI2NFHG \ / AMOS7 \ YOURUM ::
+#\[7]FOZEDXPAA6QOKDOQBLNRLBBG5WR5SAIDNCX7VORDDACJITWMZEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

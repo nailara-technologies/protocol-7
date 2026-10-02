@@ -457,8 +457,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                             } ##  end local consumer check  ##
 
+                            ## per packet : debug level [ a 1s feed washed ##
+                            ## the zenka log out of the ring buffer ]      ##
                             <[base.logs]>->(
-                                2,
+                                3,
                                 defined $session->{'streams'}->{$cmd_id}
                                     ->{'total_bytes'}
                                 ? "[%d] STRM pkt : [%04d:%04d]"
@@ -1129,8 +1131,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,.,,,.,,...,...,,,.,.,.,..,,.,.,.,,,,..,.,.,..,,...,...,,.,,...,,.,,,..,..,,
-#77U7LHOVFCJ2CN6F6IRBDLZIMBHDCWU6KU5YV2E322KMXPWW525QK3E5Q2FC4QQYR76XEY4PNPO6U
-#\\\|U7CMRMPGCQA2ZQ3ATHNQRWN3GYMRX3PO3LXI2AVW35TDPSHPES5 \ / AMOS7 \ YOURUM ::
-#\[7]5FLMIKKDKJMQLJ2BBUO2TFRT5VN5CRENFPQSDW37QKPY6TMLRUCY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,,,,,,,.,,..,.,.,,..,.,,,,..,..,,...,...,...,...,,.,,.,,,,..,
+#32BW3B42CVEPJK2VDD43MPZSGFFHSGETGXURJILXJASNRXYIILD3TLCYDBQKHAUPPKO62I4OV2K56
+#\\\|QR2JUG3EY4E3W2CYBCB2OG4TDSAJKZJVMU7VESMHT27TKKMWYA3 \ / AMOS7 \ YOURUM ::
+#\[7]IQTM5HF5EWWQNVQSGQXV3VR3CSJNTPLLK3S3RV5MEABGCOJVFKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

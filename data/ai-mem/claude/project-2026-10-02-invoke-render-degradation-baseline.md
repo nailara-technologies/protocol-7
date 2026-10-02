@@ -30,8 +30,13 @@ warm-up ] = 0.26 s \ ~26 TFLOPS healthy. same speed while renders are slow ->
 memory \ swap \ streaming, not the GPU. pressure counters :
 /proc/pressure/{memory,io}.
 
-**ruled out** : NVIDIA sysmem fallback -- user checked 2026-10-02 : "Prefer No
-Sysmem Fallback" was already set [ persisted through the driver update ].
+**NOT ruled out [ corrected 2026-10-02 05:08 ]** : "Prefer No Sysmem Fallback"
+is set in the NVIDIA control panel, but under WSL CUDA still overcommits :
+a qwen 2.1 OOM reported "21.65 GiB allocated by PyTorch" on the 12 GiB
+card, after 5 min at 100 % gpu on step 0 [ = running from shared memory ].
+the only real guard is invoke.ai's own `max_cache_vram_gb` [ fork : 5 ;
+3 screens take ~1.7 GB vram ] + `device_working_mem_gb`. the main install
+has no max_cache_vram_gb yet -- candidate if SDXL renders slow again.
 
 **model cache too small [ strongest suspect ]** : invoke.ai's RAM cache budget
 is 5.79 GB [ heuristic, 16 GB VM ] while this graph loads 9.67 GB of models
@@ -77,8 +82,8 @@ max_cache_ram_gb 10.
 model cache too little VRAM -> partial loading streams UNet layers from RAM ],
 WSL page cache \ swap \ host paging building up with uptime, the old driver.
 
-#,,..,.,,,,,,,.,.,..,,,,,,,,,,,,,,.,.,.,,,.,.,..,,...,...,.,,,..,,.,,,.,,,..,,
-#W4BOPWJXVDUV6NV5WNDGBF6LGS3VASEJ2AZAHEMFCDWMQRYZ4XFVAN27NBREBVJRAAKN4BCTWYMJU
-#\\\|FD4IE7UVWB6HJCKHR53OT3YEKJ6PIANS3TIXYC5FEUFQ3BPLLGP \ / AMOS7 \ YOURUM ::
-#\[7]GACG4D2TPBGJ4LWYTAPDEJOUGBKUAGDVQAA3POLPWAJS6S4FYCCQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,,,,..,,...,..,,.,,,.,,,.,.,..,,...,...,,.,,,.,,...,...,.,.,
+#CCU7LINASHGX3FLBVTQUHHODDVOCVLINHEPKZ6FORVVWBOIWFFWMPTY22OYC7D3X7U3SPVTSV2COS
+#\\\|RJVICXLHZ34RAPFJBOUV2DETDWATOO5I6Z4TPMREZ2CWAEJQV4X \ / AMOS7 \ YOURUM ::
+#\[7]MELESBL53SAMHGJB2MSOJYFQS5XXU3U4RFYZM5LI4DSDGTI7IKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
