@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = branch.space.trit.role
+# descr = cell role in 3x3x3 trit block by nonzero count
+# param = { position => [z,y,x] }  [ trit values -1 0 +1 ]
+#
+# role by number of nonzero coordinates :
+#   0 nonzero = center   1 = face   2 = edge   3 = corner
+# [ address = role , the inverted 3D plus ]
+# coordinates outside -1..+1 are rejected
+
+my $params   = shift // {};
+my $position = $params->{'position'};
+
+return { 'mode' => 'false', 'data' => 'position arrayref required' }
+    unless ref $position eq qw| ARRAY | and scalar $position->@* == 3;
+
+my @role_names = qw| center face edge corner |;
+
+my $nonzero = 0;
+foreach my $axis ( $position->@* ) {
+    return { 'mode' => 'false', 'data' => 'trit values -1 0 +1 required' }
+        unless defined $axis
+        and $axis =~ m{^-?\d+$}
+        and $axis >= -1
+        and $axis <= 1;
+    $nonzero++ if $axis != 0;
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'role'    => $role_names[$nonzero],
+        'nonzero' => $nonzero,
+    }
+};
+
+#,,,,,.,,,..,,.,.,,,.,.,.,.,,,.,.,.,,,..,,.,.,..,,...,...,...,,,.,...,.,.,,.,,
+#5KTCFSKTMHWI75AVXD46F5YHC5IVZABYB6KJL7RKO5VOVIJAYGCKATKUCNSI2B3H7AFHY7F22H2SQ
+#\\\|MIORJUNOTLQQZLT3ZSOZACMNY2IWLVYQ2NR5PZK2GQDIW7VNZSL \ / AMOS7 \ YOURUM ::
+#\[7]T6OBCBFK36ICZOZM5MU7D6QLQTXI6WD5F7VP7X65Q7CCKXS4MEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
