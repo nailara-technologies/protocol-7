@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = branch.space.symmetry.invariants
+# descr = count cube symmetries mapping a cell set onto itself
+# param = { cells => [ [z,y,x], ... ], center => 1 }
+#
+# default center => 1 : derive the integer-or-half center from the
+# bounding box per axis and work on doubled coordinates so half-integer
+# centers stay exact. center => 0 pins the symmetry origin at 0,0,0
+# [ for sets that are not centered ]
+#
+# returns how many of the 48 symmetries [ see branch.space.symmetry.list ]
+# map the cell set onto itself, split into rotations [ det +1 ] and
+# mirror maps [ det -1 ], plus the list of their indices
+# [ orientation on connect : invariance that exceeds random baseline ]
+
+my $params = shift // {};
+my $cells  = $params->{'cells'};
+my $center = $params->{'center'} // 1;
+
+return { 'mode' => 'false', 'data' => 'cells arrayref required' }
+    unless ref $cells eq qw| ARRAY | and scalar $cells->@*;
+
+my @doubled;
+
+foreach my $cell ( $cells->@* ) {
+    return { 'mode' => 'false', 'data' => '[z,y,x] cell required' }
+        unless ref $cell eq qw| ARRAY | and scalar $cell->@* == 3;
+    foreach my $axis ( $cell->@* ) {
+        return {
+            'mode' => 'false',
+            'data' => 'integer coordinates required'
+            }
+            unless defined $axis and $axis =~ m{^-?\d+$};
+    }
+    push @doubled, [ map { 2 * $ARG } $cell->@* ];
+}
+
+if ($center) {
+    ## bounding box center per axis, kept doubled [ min + max ] ##
+    foreach my $axis ( 0 .. 2 ) {
+        my ( $min, $max ) = ( $doubled[0]->[$axis], $doubled[0]->[$axis] );
+        foreach my $cell (@doubled) {
+            $min = $cell->[$axis] if $cell->[$axis] < $min;
+            $max = $cell->[$axis] if $cell->[$axis] > $max;
+        }
+        my $shift = $min + $max;
+        $_->[$axis] -= $shift foreach @doubled;
+    }
+}
+
+my %cell_set = map { join( ',', $ARG->@* ) => 1 } @doubled;
+
+my $symmetries = <[branch.space.symmetry.list]>->{'data'}->{'symmetries'};
+
+my ( $count, $rotations, $mirrors, @indices );
+
+foreach my $index ( 0 .. scalar $symmetries->@* - 1 ) {
+    my $sym = $symmetries->[$index];
+    my %image;
+    foreach my $key ( keys %cell_set ) {
+        my @pos = split m{,}, $key;
+        my @out
+            = map { $sym->{'signs'}->[$ARG] * $pos[ $sym->{'perm'}->[$ARG] ] }
+            0 .. 2;
+        $image{ join( ',', @out ) } = 1;
+    }
+    next
+        unless scalar keys %image == scalar keys %cell_set
+        and not grep { not $image{$ARG} } keys %cell_set;
+    $count++;
+    if ( $sym->{'det'} == 1 ) {
+        $rotations++;
+    } else {
+        $mirrors++;
+    }
+    push @indices, $index;
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'count'     => $count,
+        'rotations' => $rotations,
+        'mirrors'   => $mirrors,
+        'indices'   => \@indices,
+    }
+};
+
+#,,,.,,,.,,,,,..,,,,.,,,,,.,.,,..,.,.,...,,..,..,,...,..,,,,,,,..,,.,,..,,,,.,
+#H7LA6Y34XUC2MJYFU4HJTOAGMOKXKUAQMW2VHGIRSN773V6XE5C56UMU6LI7SLLGU4I7WFVPUNKF2
+#\\\|MFMAN2XYBMROYJDZ53JUSEAXQGSICX4DX3KMNZZCRUZYGZMCZXC \ / AMOS7 \ YOURUM ::
+#\[7]Z5E422SSBHWJDRGKMLYV5TQO5R43NLSONWLEDZZKPCWJ7YC5OUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

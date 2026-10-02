@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = branch.space.symmetry.apply
+# descr = apply one cube symmetry to a z y x position
+# param = { symmetry => entry, position => [z,y,x] }  [ any integers ]
+#
+# entry as listed by branch.space.symmetry.list :
+#   out[i] = signs[i] * position[ perm[i] ]
+# the entry itself is not modified [ pure transform ]
+
+my $params   = shift // {};
+my $symmetry = $params->{'symmetry'};
+my $position = $params->{'position'};
+
+return { 'mode' => 'false', 'data' => 'symmetry hashref required' }
+    unless ref $symmetry eq qw| HASH |;
+
+foreach my $field (qw| perm signs |) {
+    return { 'mode' => 'false', 'data' => "$field arrayref required" }
+        unless ref $symmetry->{$field} eq qw| ARRAY |
+        and scalar $symmetry->{$field}->@* == 3;
+}
+
+my @seen;
+$seen[ $symmetry->{'perm'}->[$ARG] ] = 1 foreach 0 .. 2;
+return { 'mode' => 'false', 'data' => 'perm must be an axis permutation' }
+    unless scalar grep { $ARG // 0 } @seen == 3;
+
+return { 'mode' => 'false', 'data' => 'signs must be +1 or -1' }
+    if grep { $ARG != 1 and $ARG != -1 } $symmetry->{'signs'}->@*;
+
+return { 'mode' => 'false', 'data' => 'position arrayref required' }
+    unless ref $position eq qw| ARRAY | and scalar $position->@* == 3;
+
+foreach my $axis ( $position->@* ) {
+    return { 'mode' => 'false', 'data' => 'integer coordinates required' }
+        unless defined $axis and $axis =~ m{^-?\d+$};
+}
+
+my @transformed = map {
+    $symmetry->{'signs'}->[$ARG] * $position->[ $symmetry->{'perm'}->[$ARG] ]
+} 0 .. 2;
+
+return {
+    'mode' => 'true',
+    'data' => { 'position' => \@transformed }
+};
+
+#,,,.,...,,,,,.,,,.,,,.,.,.,,,,,.,,..,..,,.,,,..,,...,...,,,,,..,,...,,..,,..,
+#KL2XFKNIOCCFUERKJM6MGK7KE4K7AQOQHMO5RUOBC6IXYCXJZPZZBZIJ6TOT5PDG4J24LLLNIXWQ4
+#\\\|MZQ5WH3EAF5IKXUG5AIQY5AIJRYKZZHKGFFS6Z6BIFJKQN3XFAP \ / AMOS7 \ YOURUM ::
+#\[7]VFZ2SBBNKRNI6PSLD34OTT25GU47RG5AQGAOL2P6RFKWURYH64AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
