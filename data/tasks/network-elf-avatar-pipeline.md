@@ -180,6 +180,16 @@ OR use IP-Adapter style reference injection:
   conditioning weight: 0.7
   (appearance guided by essence, not copied)
 
+### qwen-image 2.1 alternative [ 2026-10-02 ]
+
+the img2img \ ip-adapter weights above are the SDXL route. qwen-image 2.1
+[ second invoke.ai install ] takes the domain archetype composite as a
+NATIVE reference : no weight, the prompt says what to keep -- "the elf from
+image 1 : keep ear geometry and eye luminosity, recolor to the [domain]
+palette". first tests kept identity and fine details without distortion.
+costs, channels and the two-pass route with SDXL refinement :
+`data/tasks/images-elfdb-feature-collection.md` [ section qwen-image 2.1 ].
+
 ### per-zenka avatar generation
 
 input: zenka BMW384 coordinate
@@ -302,8 +312,8 @@ the elf pipeline is calibrated correctly when:
 
 leave new files clean. no stub footer.
 
-#,,.,,,..,.,.,.,.,,..,,,,,,..,,,,,,,,,,,.,,..,..,,...,..,,,,.,..,,.,,,,,,,.,.,
-#TSF7M6UIF7ADQMSMMKZPSVGOWHJ26M6L5PZOLBQMODXHXTVLYLBW2F7VI7DXCJ4BPQ4SK4HQOTIWY
-#\\\|FSZQVPN7QAATBFG3XEF4EEV3P5JPDYBEUS4ROKY5GTIAKXGHO2W \ / AMOS7 \ YOURUM ::
-#\[7]BE65ZAY5NLOU4SZAB7FRNFARFSDPSTAIAHUTW3PPI6N3O64CJIAY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,,,.,,.,,.,.,,,,,..,,.,.,,..,..,,...,...,,,.,,,,,.,.,,,,,.,,,
+#RA6HKQOJSCUIMAU5XMYDGFFK4275D5I7JLLPADF3ECOA452EGY4AAZTZI4JGCGK3JCKIWLAGFFQ3Y
+#\\\|LDVFLHQF65DG3CH7C275XN2GNZBJNR7LN3UOGBBYMOA4PUEHKUW \ / AMOS7 \ YOURUM ::
+#\[7]UYG7LEWPBQX2RJJY3FQDOWPVGR5QVOHPI34NMIN7AL7VRKSQQ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
