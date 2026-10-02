@@ -64,12 +64,21 @@ win_mem_end_pct : > ~90 % -> back to 20 GB. the fork's yaml is unchanged
 AppData\Local\Temp ; D: = 7 GB, otherwise unused ; /mnt/d itself is 9p,
 no linux swapfile possible there ].
 
+**result 2026-10-02 04:21** [ after the wsl restart ] : cache budget 11.0 GB,
+warm reference render 0 misses, 0.0 GB read, denoise 94.0 s [ was 121.9 ],
+total 101 s [ was 150 ] ; user : gallery image switching now immediate.
+cost : windows host at 94 % during renders, invoke.ai 16.6 GB RSS ->
+added `[experimental] autoMemoryReclaim=gradual` [ effective after the
+next wsl restart ; keep [experimental] LAST in .wslconfig -- swap lines
+below it would be ignored ]. still > 90 % as firefox ages -> memory=20GB +
+max_cache_ram_gb 10.
+
 **suspects, untested** : device_working_mem_gb 5 in invokeai.yaml [ leaves the
 model cache too little VRAM -> partial loading streams UNet layers from RAM ],
 WSL page cache \ swap \ host paging building up with uptime, the old driver.
 
-#,,.,,.,,,,,,,,,.,,.,,.,.,,.,,,.,,,,.,,,.,,,.,..,,...,.,.,.,,,,,,,,,.,.,.,.,,,
-#DQR6OMZHGEJR3RYF4H3G3PK2RO3EAEQG4AMEDSD6PCNJABTUVJ6ZVLQMSJBUA7CMVMQPBS6FZNOQM
-#\\\|6MR76RM5XON6A6EQHNUKERO22JOZHJ6QQQRUIQFK7TOZZV73EPS \ / AMOS7 \ YOURUM ::
-#\[7]MBEDNACNVJS22QXVTGPMR6OXF4XR6N5HEAOLTIVSX5ZHHR45ACBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,..,,,,,,,,,,,,,,.,.,.,,,.,.,..,,...,...,.,,,..,,.,,,.,,,..,,
+#W4BOPWJXVDUV6NV5WNDGBF6LGS3VASEJ2AZAHEMFCDWMQRYZ4XFVAN27NBREBVJRAAKN4BCTWYMJU
+#\\\|FD4IE7UVWB6HJCKHR53OT3YEKJ6PIANS3TIXYC5FEUFQ3BPLLGP \ / AMOS7 \ YOURUM ::
+#\[7]GACG4D2TPBGJ4LWYTAPDEJOUGBKUAGDVQAA3POLPWAJS6S4FYCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
