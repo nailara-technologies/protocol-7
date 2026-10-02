@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = branch.space.trit.polarity
+# descr = checkerboard parity of coordinate sum mod 2
+# param = { position => [z,y,x] }  [ any integers ]
+#
+# polarity = ( z + y + x ) mod 2, always non-negative
+# adjacent cells always carry opposite polarity
+#
+# this is the documented even/odd segmentation : "apply even/odd assertion
+# to coordinate (x+y+z)" -> alternating transport and processing cells
+# [ data/md/research/holographic-cubic-topology-research-2026-01-13.md,
+#   'even/odd segmentation for transport vs. processing' ]
+
+my $params   = shift // {};
+my $position = $params->{'position'};
+
+return { 'mode' => 'false', 'data' => 'position arrayref required' }
+    unless ref $position eq qw| ARRAY | and scalar $position->@* == 3;
+
+my $sum = 0;
+foreach my $axis ( $position->@* ) {
+    return { 'mode' => 'false', 'data' => 'integer coordinates required' }
+        unless defined $axis and $axis =~ m{^-?\d+$};
+    $sum += $axis;
+}
+
+return {
+    'mode' => 'true',
+    'data' => { 'polarity' => $sum % 2 }
+};
+
+#,,..,.,.,.,,,,..,,,,,.,.,..,,.,.,.,,,,.,,..,,..,,...,...,.,,,,,.,,.,,.,.,,,,,
+#SIUXTZGW3TZYGJZNKPXS5S6ME4ZIDGH3CQ7LG2KPAHTHJQRHXJW7WRHD2AM2XSI3V6P244BIG7KXM
+#\\\|SUO5EIZQDNYFGC3YW7CDNFKOPXNDROPBEL3HSTGWIWMSTDKMNS6 \ / AMOS7 \ YOURUM ::
+#\[7]MUTMRB3IECMYFW3NTCXPS5XOGLL2XAXZYWNW7FR4L5CYGH5DE6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -115,6 +115,43 @@ space.grid.intent      { node_id, octant_bits }  →  declared direction
                         [ 3 bits ; 1-bit = face, 2-bit = edge, 3-bit = corner ]
 ```
 
+**orientation on connect — symmetry, reference scale, grid as carrier**
+[ 2026-10-02 ] : when an entity connects to a grid field it first has to
+know how it sits in it. three steps, usable before any payload flows
+[ topology before payload ] :
+
+```
+1  normalize     if the incoming pattern is warped, read it against the
+                 strongest [ dominant ] scale as reference frame first
+                 [ registration ] -- the formatting pattern, like the
+                 remainder streams read reversed along a space axis
+2  decompose     nested waveform decomposition on the grid itself :
+                 triadic multiresolution [ scales 3^j, positions aligned
+                 to the cube grid ] -> the grid alignment is the carrier,
+                 every pattern is described as deviation relative to it
+3  test          apply the 48 cube symmetries [ 24 rotations × mirror :
+                 axis swaps + sign flips of the 3D plus axes ] per scale
+                 and count the invariant ones
+```
+
+signal = invariance that holds at every scale [ the field does not warp
+scale, so a real pattern keeps its symmetry at 3³, 9³, 27³ ] and clearly
+exceeds a random-pattern baseline. invariance at one scale only = likely
+coincidence of that scale. example already in code : the cell role
+[ `branch.space.trit.role`, number of nonzero trits ] is invariant under
+all 48 ; octant bits [ `branch.space.trit.octant_bits` ] are not — they
+encode direction, so they transform with sign flips.
+
+the orientation result tells the connecting entity its frame relative to
+the field : which axes and polarity [ `branch.space.trit.polarity` ] it
+shares with the grid, and at which scale it is aligned.
+
+```
+space.grid.orient      { pattern, scales }  →  { reference_scale,
+                        invariant_symmetries per scale, frame }
+                        [ proposal ]
+```
+
 connects to: `branch.space.*` calc utilities, `OBSERVER-CENTRIC-REFERENCE-SPACE.md`
 
 ---
@@ -505,8 +542,8 @@ is the darksun of the computation layer — always 0, never evicted.
 | (to write) space-engine-export-import.md | space.export-* space.import-* | pending |
 | (to write) space-engine-template.md | space.template-* | pending |
 
-#,,.,,,,.,..,,,,.,,,,,,.,,,,,,,.,,,,,,,..,.,.,..,,...,..,,...,.,,,,..,..,,,.,,
-#Z7FNEFHT3R3FAWJ5QQ2LKXXT2QX4HIWAB4ALXF4XV6VNN65EWACJXHVAKMPKPWSOAG2HEOKX274V4
-#\\\|GTUX4MW3CVUCNHM5KABATICFNBQABR4VOQVKGZBSGZHJ2QTUQKH \ / AMOS7 \ YOURUM ::
-#\[7]BM65H5KMHCHRGSXBEGX7OYKQET3DH5DAF2ETPCTRJ6UDSELP4MAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,...,,,,,.,,,...,,.,,,.,,..,,..,,...,...,.,.,,.,,...,...,,,.,
+#S3KZ7E2OWY4PEN6TEOMWMOOFD7LEURM5EC5BVIJQLNPTFCLPSN2OUNVLBWDZRZ37BGOKCGW3QVEG6
+#\\\|MQMYIOW2XIKIAT6RB76GF23GJRWNOCNW4C3IUA3LOO2JSVMEUGI \ / AMOS7 \ YOURUM ::
+#\[7]Q2W2455QBTJVA7RC73GUWG4FDDAJA46COU5EKG6KNUFYRHBEEEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

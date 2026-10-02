@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = branch.space.trit.intent_frame
+# descr = 3+1 stream frame for octant payload bits
+# param = { bits => '000'..'111' }
+#
+# frame = payload . separator
+# separator '0' normally, inverts to '1' only for payload '000'
+# [ topic-stream-framing-protocol : inversion on zero payload ]
+
+my $params = shift             // {};
+my $bits   = $params->{'bits'} // '';
+
+return { 'mode' => 'false', 'data' => 'bits must be 3 chars of 0 or 1' }
+    unless length $bits == 3 and $bits =~ m|^[01]{3}$|;
+
+my $separator = $bits eq qw| 000 | ? qw| 1 | : qw| 0 |;
+
+return {
+    'mode' => 'true',
+    'data' => { 'frame' => $bits . $separator }
+};
+
+#,,,.,,..,.,,,..,,.,.,,..,.,,,,.,,,,.,...,.,,,..,,...,...,..,,...,,,,,,,,,,.,,
+#BJLAZVZP2OSXX4LQVTFBOF2BGYVZEW6PXMPYABKMIJZ6NR5BAE6FWDEIC3Q5ZCOVUP2AVABGHTZXO
+#\\\|Z5GFE24CMLUN7AWU5WLQXGKZL6B7BL37M6XPWZRVEBFNJN74R2G \ / AMOS7 \ YOURUM ::
+#\[7]SMNI4RVIC2LXDLLZJ7HAEWMV6PSO7AVCUXSHKLADVPCVYQFOZGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

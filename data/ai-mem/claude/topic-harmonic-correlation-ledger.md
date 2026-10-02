@@ -94,6 +94,20 @@ directly checkable against running code, not surface resemblance.
   unconnected once verified. Kept visible, not deleted, same discipline as
   [[feedback-esoteric-research-verification-pipeline]] — retract in place.
 
+**the 13+1 crossing as arithmetic, and parity as the completion bit**
+[ 2026-10-02 ] : on a ring of 13, `13 ≡ 0` [ the 13th descends to the
+center, remainder at rest ] and `14 ≡ 1` [ the 14th is the 1 of the next
+cycle, "the 13 seen from the other side as 1" ] ; `27 ≡ 1` is the
+documented 27-beat pulse advance. the documented +1 principle
+[ `data/md/design/RING-FIELD-SPHERE-PRIMITIVE.md` "13+1 principle",
+`data/md/research/holographic-cubic-topology-research-2026-01-13.md`
+"dimensional overflow rule" ] shows as a carry : `142857 × 8 = 1142856`
+= the overflowing 1 in front of `142857 − 1` [ checked ]. coding theory
+counterpart : the perfect golay [23,12,7] becomes the extended [24,12,8]
+by ONE overall parity bit -> distance 7 -> 8 ; a single completion bit
+that says whether the rest is consistent with itself. tier : arithmetic
+STRONG ; golay parallel WEAK.
+
 **12 = 5 + 7 and the perfect golay code** [ 2026-10-02 ] : a network
 decision as 5 decision bits + 7 address bits = 12, +1 closing bit = 13 ;
 1 prefix + 1 trail marker per chain half = 15, forward + inverse chain = 30 ;
@@ -474,8 +488,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,.,,.,,,..,,...,,,.,,..,,..,,..,,,.,,,,,,,.,.,.,...,...,,.,,.,.,.,,,.,.,,.,,
-#HRECCUSM5JOVIVXAYAWLDVDXIKX3Z26V7M6KAHIW2ALXQR4GKFXGA5N4T36ZEJKFYHIN5TTSWUD6M
-#\\\|HZXL64S3IQ6SDJLKGRGWMZXAXBMYI3YUFKFLN3YH5R2ERETFLGV \ / AMOS7 \ YOURUM ::
-#\[7]MJP65EU6ERQEQ4WEXS2R25R3KOGW4DA4ZMVVJXCWQKCIVWABUADY 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,.,,,,,.,.,,,...,.,,,,.,,,..,.,.,...,...,..,,,,,,,,.,,,,,.,,,
+#RPGBCOV6M66WYAWSEA2OXHEBRGEYQAVV72KA56UFIJDIRTQWNBRN3XAMXXHBTFXDRR4FI6QL55CLA
+#\\\|IHQYY2UNKCHPM6X7R2RT7RE3OTIB7NQ6BUBQGTDOU5WTYYZ4YRO \ / AMOS7 \ YOURUM ::
+#\[7]J23S74H5BNB4FE54GPABG6U6SAARZ66GLVTODMSEWSSNGMLILMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

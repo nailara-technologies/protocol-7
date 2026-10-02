@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = branch.space.hop_ball_size
+# descr = cell count of l1 ball radius h in 3d lattice
+# param = { hops => h }  [ h >= 0 integer ]
+#
+# cells = ( 2h + 1 )( 2h^2 + 2h + 3 ) / 3
+# N(1) = 7 [ 3D plus ] , N(50) = 171801
+# honest search-coverage bound for hop-limited sweeps
+
+my $params = shift // {};
+my $h      = $params->{'hops'};
+
+return { 'mode' => 'false', 'data' => 'hops must be a non-negative integer' }
+    unless defined $h and $h =~ m{^\d+$};
+
+my $cells = ( 2 * $h + 1 ) * ( 2 * $h * $h + 2 * $h + 3 ) / 3;
+
+return {
+    'mode' => 'true',
+    'data' => { 'cells' => $cells }
+};
+
+#,,..,,..,.,,,,,,,...,,.,,.,,,,.,,,.,,,..,,,.,..,,...,...,.,.,,,,,,,,,,,,,..,,
+#O4ACXUM74JJ4UMFMED54EZ3Q2RP6LCD2FV3YWDJYQ5UFY3U7KF7S3GMSAT7F7LO5VXD3APBA2FPFA
+#\\\|GCJJWLU5KDBFDCUG2EO6CAZ6SZ234SNQQ2KLBARKDE2FUZXPFPF \ / AMOS7 \ YOURUM ::
+#\[7]VHORLPNXR63VFEFBYV536JZQ2VNMX2G3OYG4H7WTCI3AZM5KNGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
