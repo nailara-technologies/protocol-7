@@ -106,6 +106,27 @@ lightweight frontend for shells and scripts. the same stream feeds a
 fixed-height status segment in terminal uis \ dashboards [ header `n of m
 packages`, errors pinned, never scrolled past ].
 
+## a contextualized p7c clone [ later ]
+
+`bin/c_src/sftp_srv.c` is the precedent for cloning `p7c` into a binary for
+one use case : it connects to its own unix socket [ `UNIX_SFTP_PATH` ],
+sends its context first as `set-ENV <name> '<value>'` lines
+[ `SSH_CLIENT`, `SSH_CONNECTION` ], ends the init phase with `done-init`,
+then becomes a transparent select-based relay between stdin \ stdout and
+the socket [ 112 KiB buffers ].
+
+the same shape gives a dedicated package frontend [ name to decide, e.g.
+`p7-pkg` ] :
+
+- context sent before the command : caller uid, `isatty`, terminal
+  columns \ rows, `TERM` -> os-pkg can render the condensed stream as a
+  fixed-height status segment sized to the real terminal, or plain lines
+  when piped into a script
+- the command prefix is implicit : `p7-pkg install foo` = `os-pkg.install
+  foo`, so scripts and shells use it like a native package tool
+- after init : the transparent relay streams the STRM lines unchanged
+  [ no perl startup, low latency, same as p7c ]
+
 ## implementation stages
 
 1. os-pkg skeleton : init_code with backend detection, `os-pkg.backend`,
@@ -118,8 +139,8 @@ packages`, errors pinned, never scrolled past ].
 5. remove \ upgrade \ update \ search : new debian commands, then os-pkg
 6. second backend [ rpm ] when a host needs it
 
-#,,..,.,.,,.,,,..,.,.,,,,,.,.,,.,,,,.,,.,,.,,,..,,...,...,,,,,,..,,,.,..,,,,,,
-#BWCSRQG2BENPYL6XXCQBSNYFJTUY6KRFOB7MWCOCHZS4BCUBDRXTVCULUZMNOHWMH567AWS66N4UK
-#\\\|CKNYCRNGG6HHYPTCHIPHIGESNKFZ7SG4WC63LPFDPHNADFYN5ZV \ / AMOS7 \ YOURUM ::
-#\[7]4MVFET75OHX3PXV22GWVVRR2O7HRQQFFN3FFDW4M4OF7L3KIFMAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,...,..,,,,,,,,.,...,.,,,.,,,..,,...,..,,.,,,..,,,..,,..,,,.,
+#DIT4XWFR6UANPSH47GW6F56EB3UBW2V7JVIVBD5JPWPS5K7WVOCVVNFIER7SQUSS4S7NZBCL76DTI
+#\\\|C53BDE6WEOI5LKYUVTJB7LT6P6KXFNFGZDH2AWIHKBKBIEADSLT \ / AMOS7 \ YOURUM ::
+#\[7]4OU2JRZ25BZVLJOHBFKUYJ36HF5C7ZM5YNECPAFD4VA4CHYFVKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
