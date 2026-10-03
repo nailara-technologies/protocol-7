@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = osf-cache.debian.read_packages
+# descr = stream a debian Packages file into a sha256 index
+# param = { path, expect_sha256 [ optional ] }
+#
+# reads a debian Packages index line by line [ never slurped - real
+# indexes reach hundreds of thousands of stanzas ]. every stanza with
+# both Package and SHA256 fields is indexed by its file hash :
+# by_sha256 => { sha256 => { package, version, architecture,
+# filename, size } }. the sha256 of the Packages file itself is
+# computed while streaming ; when expect_sha256 is given, anchored
+# reports 1 if the computed hash matches [ the value anchored in the
+# signed InRelease ] and 0 otherwise.
+
+my $args   = shift                    // {};
+my $path   = $args->{'path'}          // '';
+my $expect = $args->{'expect_sha256'} // '';
+
+require Digest::SHA;    ## core - loaded here, modules carry no use ##
+
+return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
+return { 'mode' => 'false', 'data' => "cannot read $path" } unless -f $path;
+open( my $fh, '<', $path )
+    or return {
+    'mode' => 'false',
+    'data' => "cannot open $path : $OS_ERROR"
+    };
+
+my %field_map = (
+    'Package'      => 'package',
+    'Version'      => 'version',
+    'Architecture' => 'architecture',
+    'Filename'     => 'filename',
+    'Size'         => 'size',
+    'SHA256'       => 'sha256',
+);
+
+my $ctx     = Digest::SHA->new(256);
+my $ctx_512 = Digest::SHA->new(512);
+my %by_sha256;
+my $entries = 0;
+my %cur;
+
+## flush one stanza into the index [ needs package + sha256 ] ##
+my $flush = sub {
+    if (    length( $cur{'package'} // '' )
+        and length( $cur{'sha256'} // '' ) ) {
+        $by_sha256{ lc $cur{'sha256'} } = {
+            'package'      => $cur{'package'},
+            'version'      => $cur{'version'},
+            'architecture' => $cur{'architecture'},
+            'filename'     => $cur{'filename'},
+            'size'         => $cur{'size'},
+        };
+        $entries++;
+    }
+    %cur = ();
+};
+
+while ( my $line = <$fh> ) {
+    ## hash the raw line before any chomping [ sha512 for the repos whose ##
+    ## index anchors sha512-only entries ]                                ##
+    $ctx->add($line);
+    $ctx_512->add($line);
+    chomp $line;
+    $line =~ s{\r$}{};
+    if ( $line =~ m{^\s*$} ) {
+        $flush->();
+        next;
+    }
+    next unless $line =~ m{^(\S+):\s?(.*)$};
+    my $key = $field_map{$1};
+    $cur{$key} = $2 if $key;
+}
+$flush->();    ## trailing stanza without final blank line ##
+close($fh);
+
+my $file_sha256 = $ctx->hexdigest;
+my $file_sha512 = $ctx_512->hexdigest;
+
+## anchored when the expected hash matches either digest [ expect may carry ##
+## a sha512 entry from a sha512-only signed index ]                         ##
+my $expect_lc = lc $expect;
+my $anchored
+    = length $expect_lc
+    && ( $file_sha256 eq $expect_lc or $file_sha512 eq $expect_lc )
+    ? 1
+    : 0;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'entries'     => $entries,
+        'by_sha256'   => \%by_sha256,
+        'file_sha256' => $file_sha256,
+        'file_sha512' => $file_sha512,
+        'anchored'    => $anchored,
+    }
+};
+
+#,,,.,...,,,.,,,.,.,.,.,,,,,,,,,.,,.,,.,,,,,,,..,,...,...,,..,,,,,..,,,,.,,..,
+#AK2BGMIGORRR2K7BEFAL2QPGLS25M4YG7HSCPNYFQAC67GYTDUJ332JB4DL2GZZIHRT77ADWZELEC
+#\\\|4FZNWSB3G7W7H4XC6MIIBZ4UGKBCZZ3N52CFJ3O2ZSBYCTMF4ZF \ / AMOS7 \ YOURUM ::
+#\[7]Y2CSP6LZVCFQE3FSDDTX4OCVRSLDQMBH5KFYN6OF5Y7KNAMHWIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
