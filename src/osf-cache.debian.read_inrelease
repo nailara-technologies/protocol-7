@@ -1,0 +1,192 @@
+## [:< ##
+
+# name  = osf-cache.debian.read_inrelease
+# descr = parse signed debian InRelease + verify signature
+# param = { path }
+#
+# reads a debian InRelease file [ clearsigned or plain ] :
+# header fields origin, suite, codename, date, valid_until and the
+# checksum section mapping '<relpath>' => { sha256, size } - sha256
+# entries preferred, sha512 entries used when no sha256 section is
+# present [ some third-party repos sign sha512 only ]. the clearsign
+# signature is verified read-only with gpgv against the keyrings apt
+# trusts : /etc/apt/trusted.gpg.d/*, the debian archive keyring and any
+# 'signed-by' keyring referenced in /etc/apt/sources.list[ .d ]. result
+# signature is 'good', 'bad' or 'unverified' [ gpgv missing, no keyring
+# or no signature block present ] - verification failure never fails
+# the call hard, the parsed index is still returned.
+
+my $args = shift           // {};
+my $path = $args->{'path'} // '';
+
+return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
+return { 'mode' => 'false', 'data' => "cannot read $path" } unless -f $path;
+open( my $fh, '<', $path )
+    or return {
+    'mode' => 'false',
+    'data' => "cannot open $path : $OS_ERROR"
+    };
+
+my %meta;
+my %files;
+my %files_sha512;
+my $has_signature = 0;
+my $section;
+
+##[ parse header fields and the sha256 section ]##############################
+
+while ( my $line = <$fh> ) {
+    if ( $line =~ m{^-----BEGIN PGP SIGNATURE-----} ) {
+        $has_signature = 1;
+        last;    ## content ends at the signature block ##
+    }
+    chomp $line;
+    $line =~ s{\r$}{};
+
+    ## checksum section header : remember which section we are in ##
+    if ( $line =~ m{^(MD5Sum|SHA1|SHA256|SHA512):$} ) {
+        $section = $1;
+        next;
+    }
+
+    ## header field line outside checksum sections ##
+    if ( $line =~ m{^(\S+):\s*(.*)$} ) {
+        $meta{$1} = $2;
+        $section = undef;
+        next;
+    }
+
+    ## checksum section entry : hash, size, relpath ##
+    next
+        unless defined $section
+        and ( $section eq qw| SHA256 |
+        or $section eq qw| SHA512 | );
+    my $hex_len = $section eq qw| SHA256 | ? 64 : 128;
+    if ( $line =~ m{^\s+([0-9a-fA-F]{$hex_len})\s+(\d+)\s+(\S+)\s*$} ) {
+        my $target = $section eq qw| SHA256 | ? \%files : \%files_sha512;
+        $target->{$3} = { 'sha256' => lc $1, 'size' => 0 + $2 };
+    }
+}
+close($fh);
+
+%files = %files_sha512 unless scalar keys %files;
+
+##[ collect the keyrings apt trusts ]#########################################
+
+my @keyring;
+foreach my $entry ( sort glob '/etc/apt/trusted.gpg.d/*' ) {
+    push @keyring, $entry if -f $entry;
+}
+my $debian_keyring = '/usr/share/keyrings/debian-archive-keyring.gpg';
+push @keyring, $debian_keyring if -f $debian_keyring;
+
+## signed-by keyrings from apt source configuration [ .list + .sources ] ##
+foreach my $src ( '/etc/apt/sources.list', glob '/etc/apt/sources.list.d/*' )
+{
+    next unless -f $src;
+    open( my $sfh, '<', $src ) or next;
+    while ( my $line = <$sfh> ) {
+        ## one-line form 'signed-by=…' and deb822 field 'Signed-By: …' ##
+        while ( $line =~ m{signed-by\s*[=:]\s*([^\s\]\)]+)}gi ) {
+            my $kr = $1;
+            $kr =~ s{^["'\[]+|["'\]]+$}{}g;
+            next unless -f $kr;
+            push @keyring, $kr unless grep { $_ eq $kr } @keyring;
+        }
+    }
+    close($sfh);
+}
+
+##[ locate gpgv and gpg ]#####################################################
+
+my ( $gpgv, $gpg );
+foreach my $dir ( split m{:}, $ENV{'PATH'} // '' ) {
+    my $candidate = "$dir/gpgv";
+    $gpgv //= $candidate if -x $candidate;
+    $candidate = "$dir/gpg";
+    $gpg //= $candidate if -x $candidate;
+}
+
+##[ verify the clearsign signature read-only ]################################
+
+my $signature = qw| unverified |;
+my $signer;
+
+if ( $has_signature and defined $gpgv and @keyring ) {
+
+    ## gpgv cannot search armored keyrings [ apt dearmors them into a ##
+    ## temporary keyring - same approach here, cleaned up on exit ]   ##
+    my @keyring_binary;
+    my $dearmor_dir;
+    foreach my $kr (@keyring) {
+        open( my $kf, '<', $kr ) or next;
+        my $head = '';
+        read( $kf, $head, 14 );
+        close($kf);
+        if ( $head !~ m{^-----BEGIN} ) {
+            push @keyring_binary, $kr;    ## already binary ##
+            next;
+        }
+        next unless defined $gpg;
+        require File::Temp;
+        $dearmor_dir //= File::Temp::tempdir(qw| CLEANUP 1 |);
+        my $bin_path = sprintf '%s/keyring-%04d.gpg',
+            $dearmor_dir, scalar @keyring_binary;
+        next
+            if
+            system( $gpg, qw| --batch --dearmor --output |, $bin_path, $kr )
+            != 0;
+        push @keyring_binary, $bin_path if -f $bin_path;
+    }
+
+    my @cmd = ( $gpgv, qw| --quiet | );
+    push @cmd, map { ( '--keyring' => $_ ) } @keyring_binary;
+    push @cmd, $path;
+
+    my $pid = open my $vh, '-|';
+    if ( defined $pid and $pid == 0 ) {
+        ## child : merge stderr, gpgv reports there exclusively ##
+        open( STDERR, '>&', \*STDOUT );
+        exec @cmd;
+        exit 127;    ## exec failed : treat as unverified below ##
+    }
+    if ($pid) {
+        my $report = do { local $INPUT_RECORD_SEPARATOR = undef; <$vh> };
+        close($vh);
+        if ( $? == 0 ) {
+            $signature = qw| good |;
+            if ( defined $report
+                and $report =~ m{Good signature from "([^"]+)"} ) {
+                $signer = $1;
+            }
+        } elsif ( ( $? >> 8 ) != 127 ) {
+
+            ## a missing key is not a bad signature : gpgv cannot check it ##
+            ## at all -> unverified ; only a failed check is bad           ##
+            $signature
+                = ( defined $report and $report =~ m{No public key} )
+                ? qw| unverified |
+                : qw| bad |;
+        }
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'origin'      => $meta{'Origin'},
+        'suite'       => $meta{'Suite'},
+        'codename'    => $meta{'Codename'},
+        'date'        => $meta{'Date'},
+        'valid_until' => $meta{'Valid-Until'},
+        'files'       => \%files,
+        'signature'   => $signature,
+        'signer'      => $signer,
+    }
+};
+
+#,,,.,.,.,,..,.,.,.,,,.,.,,,,,,..,,,.,,..,,,,,..,,...,...,.,,,..,,...,.,,,,..,
+#SGSY4NCMSBYXCGN7566UEUZXCLY7TJLIDH5YF7ZEKIDUB4YA4TIQY52BRORVQ6SZGOAVZMQIK45NE
+#\\\|NRPJGV2SGAIXT7U5O6M3VFPCHVAX5FY2LQGXNO7TMMGRCZ7J27M \ / AMOS7 \ YOURUM ::
+#\[7]AS4SNM3JEEQL3WY4WT77GVO6NHMLMQCJZVQDTYFCHPTII62W6EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
