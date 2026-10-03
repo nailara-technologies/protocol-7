@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = osf-cache.holdings.scan_apt_cache
+# descr = scan local apt archive cache against a sha256 index
+# param = { dir => '/var/cache/apt/archives', index => \%by_sha256 }
+#
+# passive supply : many nodes never cleared their apt cache and those
+# .debs already match the signed index hashes exactly - free supply,
+# announced by hash. scans the cache directory for .deb files [ partial
+# and lock entries skipped ], computes each file sha256 while reading
+# in chunks, and anchors it against the combined index. package and
+# version come from the index entry when anchored, else from the file
+# name [ '<name>_<version>_<arch>.deb' ].
+
+my $args  = shift            // {};
+my $dir   = $args->{'dir'}   // '/var/cache/apt/archives';
+my $index = $args->{'index'} // {};
+
+require Digest::SHA;    ## core - loaded here, modules carry no use ##
+
+return { 'mode' => 'false', 'data' => 'dir required' } unless length $dir;
+return { 'mode' => 'false', "data" => "not a directory : $dir" }
+    unless -d $dir;
+opendir( my $dh, $dir )
+    or return {
+    'mode' => 'false',
+    'data' => "cannot open $dir : $OS_ERROR"
+    };
+
+my @files;
+while ( my $entry = readdir $dh ) {
+    next unless $entry =~ m{\.deb$};
+    my $path = "$dir/$entry";
+    next unless -f $path;
+
+    my $size = -s $path;
+    open( my $fh, '<', $path ) or next;
+    binmode($fh);
+    my $ctx = Digest::SHA->new(256);
+    while ( read( $fh, my $chunk, 65536 ) ) { $ctx->add($chunk) }
+    close($fh);
+    my $sha256 = $ctx->hexdigest;
+
+    my $anchored_entry = $index->{$sha256};
+    my ( $package, $version );
+    if ($anchored_entry) {
+        $package = $anchored_entry->{'package'};
+        $version = $anchored_entry->{'version'};
+    } elsif ( $entry =~ m{^([^_]+)_(.+)_[^_]+\.deb$} ) {
+        ( $package, $version ) = ( $1, $2 );    ## from file name ##
+    }
+
+    push @files,
+        {
+        'name'     => $entry,
+        'size'     => $size,
+        'sha256'   => $sha256,
+        'anchored' => $anchored_entry ? 1 : 0,
+        'package'  => $package,
+        'version'  => $version,
+        };
+}
+closedir($dh);
+
+@files = sort { $a->{'name'} cmp $b->{'name'} } @files;
+
+my $anchored_count = 0;
+my $total_bytes    = 0;
+my $anchored_bytes = 0;
+foreach my $file (@files) {
+    $total_bytes += $file->{'size'};
+    if ( $file->{'anchored'} ) {
+        $anchored_count++;
+        $anchored_bytes += $file->{'size'};
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'files'          => \@files,
+        'anchored_count' => $anchored_count,
+        'total_bytes'    => $total_bytes,
+        'anchored_bytes' => $anchored_bytes,
+    }
+};
+
+#,,..,,,.,.,.,,,,,.,,,,..,.,,,,.,,,,,,,,,,,,.,..,,...,...,.,,,...,.,.,...,,,,,
+#QTXXLI6DQU3JXLOAW7PNMFIEN4XOISM4QMGF7X4GJSF7CMDRQEWCCXF5VEFTECNDB7IZPHYR2EE3U
+#\\\|RJ4THSQD2J6HR5XSCC6CRBZBDBO62DN7A3T3UBIHCSSQ6DMF4Z5 \ / AMOS7 \ YOURUM ::
+#\[7]YWX4ZIOLFCOGX6FQADYOZYYOY7BNX5SB4ICS556GIAGHKZCWJECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
