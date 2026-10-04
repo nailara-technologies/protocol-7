@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = osf-cache.lookup.format_lookup_reply
+# descr = format a merged peer lookup into the reply text
+# param = { merged => <merge_replies data>, anchors => [ asked ] }
+#
+# one line per held anchor : '<anchor> <n> holders : <sid> <sid> ..',
+# then the summary lines : missing anchors, failed peers, size
+# conflicts [ corrupt or lying node ] and bmw384 conflicts [ holders
+# disagree on the internal id ]. anchors with a bmw conflict have no
+# agreeing holder set and therefore also show up in missing - both
+# lines are printed, the conflict line explains the missing one.
+
+my $args    = shift                // {};
+my $merged  = $args->{'merged'}    // {};
+my $holders = $merged->{'holders'} // {};
+
+my @lines;
+
+foreach my $anchor ( sort keys %$holders ) {
+    my @sids = @{ $holders->{$anchor} // [] };
+    push @lines,
+        sprintf '%s %d holders : %s', $anchor, scalar @sids,
+        join( ' ', @sids );
+}
+
+my @missing = @{ $merged->{'missing'} // [] };
+push @lines, sprintf 'missing : %s', join ' ', @missing
+    if @missing;
+
+my @failed = @{ $merged->{'failed_nodes'} // [] };
+push @lines, sprintf 'failed peers : %s', join ' ', @failed
+    if @failed;
+
+foreach my $conflict ( @{ $merged->{'conflicts'} // [] } ) {
+    push @lines,
+        sprintf 'conflict : %s %s size %d',
+        $conflict->{'anchor'} // '?',
+        $conflict->{'node'}   // '?',
+        $conflict->{'size'}   // 0;
+}
+
+my $bmw_conflicts = $merged->{'bmw_conflicts'} // {};
+foreach my $anchor ( sort keys %$bmw_conflicts ) {
+    push @lines, sprintf 'bmw conflict : %s', $anchor;
+    foreach my $bmw ( sort keys %{ $bmw_conflicts->{$anchor} } ) {
+        push @lines,
+            sprintf '  %s : %s', $bmw,
+            join ' ', @{ $bmw_conflicts->{$anchor}{$bmw} // [] };
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => "\n" . join( "\n", @lines ) . "\n"
+};
+
+#,,.,,,.,,,,,,...,,.,,,,,,.,.,,.,,.,,,,.,,,.,,.,.,...,...,...,.,.,...,,,,,,.,,
+#XN25Z3RCO4VBJQWOJZZVHEMJU6OC7HFCBG7DM3HXEFNCUDDV2UUBIDIJUTV6FORUYXBIKMV5PUB3M
+#\\\|XG2EZCHYAY56WODZWCMA6FAIJ5IWYZN74SACEXGMC3DJOUQI3OX \ / AMOS7 \ YOURUM ::
+#\[7]PTQRVQYUEJTDMXOHYUUGUGX2U2E2SNDXIKQJLYQIOI2RFK6WFEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

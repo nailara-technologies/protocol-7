@@ -21,18 +21,36 @@ if ( $reinit and defined <osf-cache.cfg.cache_dir> ) {
 
 <[base.log]>->( 2, 'initializing osf-cache zenka..,' );
 
-<osf-cache.cfg.cache_dir> //= qw| /var/cache/apt/archives |;
+## per-subname instance config [ 'v7-zenki.start osf-cache[peer]' sets ##
+## <system.zenka.subname> ; ticker.init_code pattern ] : the subname   ##
+## selects the state file and may override the cache dir through       ##
+## <osf-cache.cfg.by_subname.<subname>.cache_dir> - it never touches   ##
+## authorization [ subname routing convention ].                       ##
+my $subname = <system.zenka.subname> // '';
+my $sub_cfg
+    = length $subname
+    ? ( <osf-cache.cfg.by_subname> // {} )->{$subname} // {}
+    : {};
+
+my $state_file
+    = length $subname
+    ? sprintf( qw| holdings.%s.yaml |, $subname )
+    : qw| holdings.yaml |;
+
+<osf-cache.cfg.cache_dir> //= $sub_cfg->{'cache_dir'}
+    // qw| /var/cache/apt/archives |;
 <osf-cache.cfg.lists_dir> //= qw| /var/lib/apt/lists |;
 <osf-cache.cfg.state_path>
-    //= <[file.zenka_dir.data_path]> . '/holdings.yaml';
-<osf-cache.cfg.scan_slice> //= 4;
+    //= <[file.zenka_dir.data_path]> . '/' . $state_file;
+<osf-cache.cfg.scan_slice>     //= 4;
+<osf-cache.cfg.lookup_timeout> //= 5;    ## seconds [ peer lookup ] ##
 
 <[base.log]>->( 2, 'osf-cache zenka initialization complete' );
 
 0;
 
-#,,..,...,,,,,,.,,,.,,,..,,,,,,,,,...,,..,.,,,.,.,...,...,.,.,.,,,.,.,...,...,
-#JMW5T5EF2QEL7TKCS2AU3BIIWYYXGWVERNU5FVDFU44NCJNBRGGHOSXJB4VLY4KKG6UBJFH5HANXG
-#\\\|YDZ3UVOSCH4IBGRV6YVIIG4RWOROLH73R7WB4QMFUHOOMFOXQMU \ / AMOS7 \ YOURUM ::
-#\[7]ZUKWBYRFYZ7OWVWFHNWZ23W3CKIUFSC4GYGDHOE5SERVXXRN4KBA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,.,,,.,.,,.,,..,,,,,,,.,,,.,,.,.,...,...,...,,,,,,,,,...,,,.,
+#RMA4HL2KIVY3APKPQ67TADC6ZVTZ3Y4TLABC3WHM4XWPEBZHM2NTN3SFXNUI2OLV3O4FQBDGEWKFK
+#\\\|CQVYDI3DLC4XGXRE3ZIYUVI2LI2WOJRFNE4LLVC7BFQRCD33KUL \ / AMOS7 \ YOURUM ::
+#\[7]USJZXRVBXXU4DVXFPLGZDFOYI7MMI4V673OPRSVV2FQCNBFVGYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

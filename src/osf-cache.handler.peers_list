@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = osf-cache.handler.peers_list
+# descr = parse cube's 'list sessions osf-cache' table, run the callback
+#
+# reply handler for the peer query osf-cache.peers.list sends. cube
+# answers mode size with a formatted table [ there is no structured
+# form ] : usid protocol type mode uname since. rows whose uname is
+# osf-cache [ with or without a [subname] ] and whose usid is not
+# this instance's own cube session id are the peers. the callback
+# module named in the request params is invoked with
+# { peers => [ sids sorted numeric ], params => <caller params> }.
+# a failed query [ cmd not SIZE or TRUE ] logs and calls back with
+# an empty peer list - the lookup then completes as 'no peers'.
+
+my $reply    = shift                 // {};
+my $params   = $reply->{'params'}    // {};
+my $callback = $params->{'callback'} // '';
+
+return unless length $callback;
+
+## this instance's own cube session id [ stored by base.get_session_id ] ##
+my $cube_sessions = <user.cube.session> // {};
+my ($local_sid) = keys %$cube_sessions;
+my $own_sid
+    = defined $local_sid
+    ? ( $data{'session'}{$local_sid}{'cube_sid'} // '' )
+    : '';
+
+my @peers;
+my $cmd = $reply->{'cmd'} // '';
+if ( $cmd eq qw| SIZE | or $cmd eq qw| TRUE | ) {
+    my $table = $reply->{'data'} // $reply->{'call_args'}{'args'} // '';
+    foreach my $line ( split m{\n}, $table ) {
+        next
+            unless $line
+            =~ m{^\s*(\d+)\s+\S+\s+\S+\s+\S+\s+(osf-cache(?:\[\S+\])?)(?:\s|$)};
+        my $usid = $1;
+        next if length $own_sid and $usid == $own_sid;
+        push @peers, $usid;
+    }
+} else {
+    <[base.logs]>->(
+        0,
+        ': osf-cache : peer query failed [ %s ]',
+        length $cmd ? $cmd : 'no reply'
+    );
+}
+
+@peers = sort { $a <=> $b } @peers;
+
+## explicit dispatch : the callback modules stay visible to the static ##
+## dependency graph [ dynamic $code{$name} calls are not ]             ##
+if ( $callback eq qw| osf-cache.lookup.with_peers | ) {
+    <[osf-cache.lookup.with_peers]>->(
+        {   'peers'  => \@peers,
+            'params' => $params->{'params'} // {},
+        }
+    );
+} else {
+    <[base.logs]>->(
+        0, ': osf-cache : unknown peers callback : %s', $callback
+    );
+}
+
+return;
+
+#,,.,,..,,,,.,,,.,,,,,,.,,,.,,...,..,,,..,.,.,.,.,...,..,,,..,,,.,,..,,..,,,.,
+#WQPKJBJP2IS4MMIW723P2MNKBYMV422FMFQ54VATWLW5I6YLB6PTOU4QX3ZG4AL5ZPLGAR5HCKYIW
+#\\\|FKSBYQTKUYZUS3FOSCBYO6EHYMBFYVGQLNAI4R5JGOCMLTAW2LT \ / AMOS7 \ YOURUM ::
+#\[7]72OPQBRHRBAWQAFNZWRCYUR32IKQFOJEVGIHFOH2QAZVCNVGN4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

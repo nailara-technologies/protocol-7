@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = osf-cache.lookup.timeout
+# descr = complete a lookup with whatever arrived [ timer handler ]
+# param = timer event [ data => { lookup_id } ]
+#
+# one-shot timer armed by osf-cache.cmd.lookup [ after
+# <osf-cache.cfg.lookup_timeout>, repeat FALSE - never an undef
+# interval ]. completes the lookup with the replies that arrived :
+# peers still pending count as failed [ undef reply ]. a lookup that
+# already completed is gone from <osf-cache.lookup.pending> and this
+# fire does nothing. the completion deletes the state and cancels
+# this timer's handle, so a timeout leaves no pending state and no
+# timer behind. a peer LIST that never arrived fails the lookup
+# instead of reporting every anchor as missing.
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data }   // {};   ## poll_switch pattern ##
+my $lookup_id  = $timer_data->{'lookup_id'} // '';
+
+my $state = <osf-cache.lookup.pending>->{$lookup_id};
+return unless ref $state eq qw| HASH |;
+
+if ( !$state->{'peers_resolved'} ) {
+    <[osf-cache.lookup.complete]>->(
+        {   'lookup_id' => $lookup_id,
+            'mode'      => qw| false |,
+            'data'      => 'lookup timeout [ peer list never arrived ]',
+        }
+    );
+    return;
+}
+
+<[base.logs]>->(
+    0,          ': osf-cache : lookup %s timeout : %d peer[s] unanswered',
+    $lookup_id, scalar keys %{ $state->{'pending'} // {} }
+);
+
+<[osf-cache.lookup.complete]>->( { 'lookup_id' => $lookup_id } );
+
+return;
+
+#,,..,,..,,,.,.,,,...,.,,,...,,..,...,.,,,.,.,.,.,...,...,,,.,.,.,.,.,,,,,,.,,
+#25KLK3SMUNPA3W6SOKN7FHGMTX62HNKTORINQVOJG2PUK3FXR4LCI6JHT6MVBT7HHBJFRMNH7HLPS
+#\\\|BD7QY3JUWVYE7FLTEFHZRWIVATUIOH32KXG3RRCT25U53CZS255 \ / AMOS7 \ YOURUM ::
+#\[7]VOW23UM7J5UOERTRZH4CPB6ZHI5BUBY4BE7CPU4ZFBEO7BTD4YCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
