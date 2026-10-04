@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.sid-lookup
+# param = <cube-sid>
+# descr = instance id for a cube session id [ for restart ]
+
+my $cube_sid = $call->{'args'} // '';
+$cube_sid =~ s{^\s+|\s+$}{}g;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected numerical cube session id parameter'
+    }
+    if $cube_sid !~ m{^\d{1,12}$};
+
+foreach my $instance_id (<[v7-zenki.instance_ids]>) {
+    my $instance_sid
+        = <v7-zenki.zenka.instance>->{$instance_id}->{'cube_sid'};
+    return { 'mode' => qw| true |, 'data' => $instance_id }
+        if defined $instance_sid and $instance_sid eq $cube_sid;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => "no instance with cube session id $cube_sid"
+};
+
+#,,,.,,,.,,,,,.,,,.,,,..,,,..,,,.,.,.,,..,,,.,..,,...,...,,..,,,.,.,,,,,.,,,.,
+#4I44HZN3IDWKSFA3N77NHNHWNURKHXX3JCW6XNNIUZLDFMP7KULDQZTV6JTZMF2VJZEFWHUBDKJ5G
+#\\\|YWNKEMJBLAOR5DJAPP5JMR3IUMNFH35J3SYFEPERMK5MZDK4C4S \ / AMOS7 \ YOURUM ::
+#\[7]F3ACAUIONC5QGTPCTKROO2ILGI2QBFEYTAZLRIB6HR2XOV2FHKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

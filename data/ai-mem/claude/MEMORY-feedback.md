@@ -181,3 +181,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|SCYLEIY4QOYAT6BLIBDTAUGA6EFZIRS6BS5PGNQTDFGRVGE4QY6 \ / AMOS7 \ YOURUM ::
 #\[7]ZPLCKXNLSQNONWTB64N3KEPN3LN3ZHDEBT2X56XE3GT7W2QOXYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [standalone-test-harness-zenka-environment](feedback-standalone-test-harness-zenka-environment.md) — standalone tests miss the zenka's utf-8 open layer, File::stat object stat, .cmd. $call/$reply header, size-mode multi-line replies ; mirror them in the harness [ 2026-10-04, osf-cache ]
+
+#,,,,,.,.,...,,,.,...,.,,,...,,..,,,,,...,,..,..,,...,...,..,,,.,,.,,,..,,.,,,
+#RQ7RMD7D7IXJROVCU3WIROTFKI3D3AKNUCOUXTH3IFJNAZ5QKLS753RDIPEYP777HKUAEKW3KRQHU
+#\\\|FLXC5NG4HAVAGYPPKSS2JEWZCEHCOK6WALGPAKE5FSD6J3646BV \ / AMOS7 \ YOURUM ::
+#\[7]X3FVGKZNAERMRJR3FLB3AKTOFY36IQFXHKSICQUTNQ7G57F53KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

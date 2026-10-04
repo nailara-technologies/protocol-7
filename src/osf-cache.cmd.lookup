@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = osf-cache.cmd.lookup
+# descr = ask the other osf-cache sessions who holds anchors
+# param = <algo>:<hex> [ <algo>:<hex> .. ]
+#
+# the 'who holds H' fan-out [ acquisition flow step 2 ]. tokens are
+# validated with the exact checks cmd.has runs [ query_local ] ;
+# anchors the LOCAL index does not know are refused up front [ their
+# size cannot be verified against anything ]. the peers resolve
+# through osf-cache.peers.list, each gets '<sid>.has <tokens>' with
+# osf-cache.handler.has_reply as reply handler, and when the last
+# answer landed - or the <osf-cache.cfg.lookup_timeout> [ //= 5 s ]
+# timer fires - osf-cache.lookup.complete merges the replies against
+# the index sizes [ merge_replies ] and answers through
+# base.callback.cmd_reply : this command returns mode deferred.
+# per-lookup state lives in <osf-cache.lookup.pending> keyed by a
+# lookup id and is always cleaned up [ the completion cancels the
+# timeout timer and deletes the state ; cmd_reply resolves the
+# <base.cmd_reply> entry itself ]. unanswered peers count as failed
+# [ undef reply into merge_replies ].
+
+require Time::HiRes;    ## core - loaded here, modules carry no use ##
+
+my $args     = $call->{'args'}     // '';
+my $reply_id = $call->{'reply_id'} // '';
+
+my @tokens = grep {length} split m{\s+}, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : lookup <algo>:<hex> [ <algo>:<hex> .. ]'
+    }
+    unless @tokens;
+
+return { 'mode' => qw| false |, 'data' => 'lookup needs a reply route' }
+    unless length $reply_id;
+
+## the exact token checks cmd.has runs [ empty holdings : validation only, ##
+## the held map is not used here ]                                         ##
+my $check = <[osf-cache.lookup.query_local]>->(
+    {   'hashes'   => \@tokens,
+        'holdings' => { 'files' => [] },
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => $check->{'data'} }
+    if $check->{'mode'} ne qw| true |;
+
+my %seen;
+my @anchors = grep { !$seen{$ARG}++ } map { lc $ARG } @tokens;
+
+## anchors unknown to the local index are refused up front [ cannot verify ##
+## a size we do not know ]                                                 ##
+my $index = <osf-cache.index> // {};
+my %expect;
+foreach my $anchor (@anchors) {
+    my $entry = $index->{'anchors'}{$anchor};
+    return {
+        'mode' => qw| false |,
+        'data' => "unknown anchor : $anchor [ not in the local index ]"
+        }
+        unless ref $entry eq qw| HASH |
+        and defined $entry->{'size'};
+    $expect{$anchor} = $entry->{'size'};
+}
+
+## per-lookup state keyed by a lookup id ##
+<osf-cache.lookup.pending> //= {};
+my $lookup_id = <[base.gen_id]>->(<osf-cache.lookup.pending>);
+
+my $timeout = <osf-cache.cfg.lookup_timeout> // 5;
+$timeout = 5 if !$timeout or $timeout < 1;    ## explicit floor ##
+
+my $timer = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'repeat'  => FALSE,
+        'handler' => qw| osf-cache.lookup.timeout |,
+        'data'    => { 'lookup_id' => $lookup_id },
+    }
+);
+
+<osf-cache.lookup.pending>->{$lookup_id} = {
+    'reply_id'       => $reply_id,
+    'anchors'        => \@anchors,
+    'expect'         => \%expect,
+    'started'        => Time::HiRes::time(),
+    'peers_resolved' => 0,
+    'replies'        => {},
+    'pending'        => {},
+    'timer'          => $timer,
+};
+
+## resolve the peers, then fan out [ with_peers continues from there ] ##
+<[osf-cache.peers.list]>->(
+    {   'callback' => qw| osf-cache.lookup.with_peers |,
+        'params'   => { 'lookup_id' => $lookup_id },
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,.,,,..,,.,.,,,,,,..,,,.,,,.,,.,,.,.,,..,.,.,...,...,...,,,,,.,,,..,,.,,,
+#5ZCLOG2QR2BX47FQRH4TAKCS3AN5RU2AKU2SWWAT2D5LIYYCAHBJNLQ7OARG2OXWWVGXRGCTF2VFK
+#\\\|XCHBMFMI2FNLK4M5ISAXP4FRHHV7MV2MAIW3MFHFGGZS452HYMR \ / AMOS7 \ YOURUM ::
+#\[7]3NCXZK4LH4P6CNKR3MGOQDWRFBR5G6JTDQ2CMCBD7K4FY2HHJGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

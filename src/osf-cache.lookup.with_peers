@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = osf-cache.lookup.with_peers
+# descr = fan a lookup out to the resolved peers
+# param = { peers => [ cube session ids ], params => { lookup_id } }
+#
+# the peers.list callback of osf-cache.cmd.lookup : sends
+# '<sid>.has <tokens>' to every peer with osf-cache.handler.has_reply
+# as the reply handler and marks each sid pending. zero peers answer
+# the lookup immediately [ mode true, 'no peers' ]. a lookup the
+# timeout already completed is gone from <osf-cache.lookup.pending>
+# and this call does nothing.
+
+my $args      = shift                  // {};
+my $params    = $args->{'params'}      // {};
+my $lookup_id = $params->{'lookup_id'} // '';
+
+my $state = <osf-cache.lookup.pending>->{$lookup_id};
+return unless ref $state eq qw| HASH |;    ## timeout beat the query ##
+
+$state->{'peers_resolved'} = 1;
+
+my @peers = @{ $args->{'peers'} // [] };
+
+if ( !@peers ) {
+    <[osf-cache.lookup.complete]>->(
+        {   'lookup_id' => $lookup_id,
+            'mode'      => qw| true |,
+            'data'      => 'no peers',
+        }
+    );
+    return;
+}
+
+my $token_str = join ' ', @{ $state->{'anchors'} // [] };
+
+foreach my $sid (@peers) {
+    $state->{'pending'}{$sid} = 1;
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$sid.has",
+            'call_args' => { 'args' => $token_str },
+            'reply'     => {
+                'handler' => qw| osf-cache.handler.has_reply |,
+                'params'  => { 'lookup_id' => $lookup_id, 'sid' => $sid },
+            },
+        }
+    );
+}
+
+return;
+
+#,,.,,,.,,..,,,,,,,,.,,,,,,..,,,.,,.,,,,,,,..,.,.,...,...,,,,,,..,.,.,.,,,.,,,
+#SCBT6M4KNRMF5ZKVHVP67QNNSVQCKWIF3GRX773BSNMBEOVJLZ6L3NYU2PSVUN3XYNY62HHZ3W5IM
+#\\\|QO3M7IZUI2RHPBUWRQPMXD42BN4BSNY4ZKF7J3IREKYURZR35AH \ / AMOS7 \ YOURUM ::
+#\[7]ABDC3D4QB3W7VJZLKBEANV5H6LW6OKLVGJIM4RO5F7EILYAF5SBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = osf-cache.lookup.complete
+# descr = finish a peer lookup : merge, reply, clean up
+# param = { lookup_id [, mode, data ] }
+#
+# the single completion path of osf-cache.cmd.lookup - called by
+# osf-cache.handler.has_reply [ last peer answered ],
+# osf-cache.lookup.with_peers [ zero peers : mode true 'no peers'
+# passed in ] and osf-cache.lookup.timeout [ whatever arrived ].
+# sids still pending count as failed [ undef reply ]. without an
+# explicit mode the replies merge against the index sizes [
+# merge_replies ] and format into the reply text [
+# format_lookup_reply, mode size ]. the reply goes out through
+# base.callback.cmd_reply [ which resolves the <base.cmd_reply>
+# entry itself ], the timeout timer is cancelled and the per-lookup
+# state deleted - a completed lookup leaves nothing behind.
+
+my $args      = shift                // {};
+my $lookup_id = $args->{'lookup_id'} // '';
+
+my $state = <osf-cache.lookup.pending>->{$lookup_id};
+return unless ref $state eq qw| HASH |;
+
+## unanswered peers count as failed [ undef reply into merge_replies ] ##
+foreach my $sid ( keys %{ $state->{'pending'} // {} } ) {
+    $state->{'replies'}{$sid} = undef
+        unless exists $state->{'replies'}{$sid};
+}
+
+my $reply;
+if ( defined $args->{'mode'} ) {
+    $reply = { 'mode' => $args->{'mode'}, 'data' => $args->{'data'} // '' };
+} else {
+    my $merged = <[osf-cache.lookup.merge_replies]>->(
+        {   'replies' => $state->{'replies'} // {},
+            'expect'  => $state->{'expect'}  // {},
+        }
+    );
+    my $formatted = <[osf-cache.lookup.format_lookup_reply]>->(
+        {   'merged'  => $merged->{'data'}   // {},
+            'anchors' => $state->{'anchors'} // [],
+        }
+    );
+    $reply = { 'mode' => qw| size |, 'data' => $formatted->{'data'} // '' };
+}
+
+## reply first, then clean up [ cmd_reply deletes the <base.cmd_reply> ##
+## entry itself ]                                                      ##
+if ( length( $state->{'reply_id'} // '' ) ) {
+    <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply );
+}
+
+if ( defined $state->{'timer'} ) {
+    $state->{'timer'}->cancel
+        if eval { $state->{'timer'}->is_active };
+}
+delete <osf-cache.lookup.pending>->{$lookup_id};
+
+return;
+
+#,,,,,,,.,,..,,,,,,..,.,,,.,.,,,.,,..,,.,,,,,,.,.,...,...,.,,,.,,,,,.,..,,..,,
+#V54DZO57EY3VEMWQRNYLACLCBHIWRXTENUQ3P3B4DOG5TCR4XZLDS62Q3HXFODIEGCVTC62X73PS4
+#\\\|ROBQKCH3TJBZHXO25OYOECR6R3J4RYAAAJ3E7LR5TRTCUQZGBOV \ / AMOS7 \ YOURUM ::
+#\[7]K5PSYZAWP47FI24EBKFHE6Q7II33JSBOUIGW6YT7RPJVNG4ATIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
