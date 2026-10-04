@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-04-session-handover-osf-cache-stage2
-description: handover of the 2026-10-04 session [ last cb6e0ac8c ] -- osf-cache stages 2 \ 2b \ 2c landed and verified live [ local holdings, peer lookup ], stage 3 task file ready for kimi, plus loader \ storage \ hook \ v7-zenki fixes ; next = dispatch stage 3 once kimi's 5h window resets
+description: handover of the 2026-10-04 session [ last cb6e0ac8c ] -- osf-cache stages 2 \ 2b \ 2c landed and verified live [ local holdings, peer lookup ], stage 3 task file ready for kimi, plus loader \ storage \ hook \ v7-zenki fixes ; stage 3 landed + live-verified later the same day [ 512c58752 ] ; next = stage 4
 metadata:
   type: project
 ---
@@ -50,6 +50,27 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
 4. later : cross-host peers via the `discover` zenka [ swap
    `osf-cache.peers.list` ], stage 4 multi-source segments + merkle
 
+## update later the same day [ `16e32691c`, `512c58752` ]
+
+- **stage 3 landed and verified live** : kimi [ k2.8 ] implemented
+  segment \ fetch \ verify ; review added a request `seq` so a late
+  reply to a timed-out segment is dropped [ it used to advance the
+  offset and leave two requests outstanding ]. live : peer fetched
+  igt-gpu-tools from main, 2035064 bytes, 32 segments, 1.2 s,
+  byte-identical, holdings updated, main lookup lists the peer
+- live-only fix : `segment` had to go on the main's
+  `access.cmd.usr.cube` line [ routed calls arrive as user cube, see
+  [[feedback-whitelist-vs-access-cmd-usr-cube]] ]
+- holder test [ step 2 below ] done : lookup finds the peer for hello
+  \ povray ; libprotocol-http2-perl is not in the index [ version not
+  in testing ]
+- open : one unknown anchor fails a whole lookup [ skip-and-answer
+  may suit batches better ] ; a fetched file is 0640 [ partial
+  inherits the zenka umask ] -- matters once fetch targets a real apt
+  archive dir
+- next : stage 4 [ multi-source segments + merkle ], cross-host peers
+  via `discover`
+
 ## live facts
 
 - two osf-cache instances share one name -> address by session id
@@ -71,8 +92,8 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   for out-of-scope files after a kimi job
 - pre-commit hook : `# descr` max 55 chars
 
-#,,..,.,,,,..,.,.,,,.,..,,..,,...,,..,,,.,,,,,..,,...,...,,.,,,..,,,.,..,,,..,
-#BMPR23CQX5VUIC2KRXL5MCVD6LRRA5PLY5D64IUPC5H4DKPHKFKVQDWP2GTPVN6ZLVYE4GLBFGY52
-#\\\|YCGAXOERXFKZTSKDSSQMJWQ7NVGMRHOI74FCA7VRCFR6PGBUKJQ \ / AMOS7 \ YOURUM ::
-#\[7]4P2EX46EXTSLQBRQ4GJJUZ44EBCNR5KXN25Q2EYWUY4S5JG4MCDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,,,,,..,,,..,,,,,..,,,,,,,.,,..,,...,.,.,,,,,,..,,,,,,.,,...,
+#O5W5PRL5GYMOXQASAJRBTC4AD2SXRSIPG7J4M3ZVLXQLTFDA3GD5WOVUAMQWXURDRIBRZ43NYOB3Q
+#\\\|R5XE4BMDO6ANPN5L53VYT7EXZ7YGF7HEY654TUBZDADDPX6QDQI \ / AMOS7 \ YOURUM ::
+#\[7]EJJN2BCGAD26WGVBWEATY2E5AVPTFD3RVBWM7L3ZAC2N2PUIUYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
