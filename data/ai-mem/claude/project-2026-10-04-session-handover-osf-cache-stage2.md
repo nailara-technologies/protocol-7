@@ -64,12 +64,33 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
 - holder test [ step 2 below ] done : lookup finds the peer for hello
   \ povray ; libprotocol-http2-perl is not in the index [ version not
   in testing ]
-- open : one unknown anchor fails a whole lookup [ skip-and-answer
-  may suit batches better ] ; a fetched file is 0640 [ partial
+- lookup with unknown anchors FIXED [ `30636818e`, user's rule ] :
+  known ones are looked up, an `unknown :` line lists the rest ;
+  nothing known [ incl. a single anchor ] -> mode false
+- open : a fetched file is 0640 [ partial
   inherits the zenka umask ] -- matters once fetch targets a real apt
   archive dir
 - next : stage 4 [ multi-source segments + merkle ], cross-host peers
   via `discover`
+
+## stage 4 landed [ `1c15c65d9`, after midnight 2026-10-05 ]
+
+- decided with the user : REAL binary merkle tree now [ a flat list
+  would change the root later ], 64 KiB leaves, bmw384, leaf `\x00` \
+  inner `\x01` prefixes, odd node promoted ; root trust = all asked
+  agree [ own nodes ], `root_quorum` //= 5/7 once n holders exist
+  [ variants may follow, rule lives in `osf-cache.merkle.quorum` ]
+- task file `data/tasks/osf-cache-stage4-multi-source.md`, kimi k3
+- verified live : main and peer compute the same root for
+  igt-gpu-tools, peer fetched libopenexr [ 12 segments, 0.7 s ]
+  byte-identical ; trees backfilled into `/var/protocol-7/osf-cache/
+  merkle/` [ shared, content-addressed ]
+- NOT verified live : parallel fetch from 2+ holders and bad-holder
+  exclusion [ unit-tested with 2 and 7 holders ] -> needs a third
+  instance, e.g. `osf-cache[peer2]` [ by_subname.peer2.cache_dir in
+  zenka.v7 + v7-zenki start ]
+- kimi stopped before regenerating the whitelist -- after any kimi
+  job, check `subroutines.load-early` was regenerated
 
 ## live facts
 
@@ -92,8 +113,8 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   for out-of-scope files after a kimi job
 - pre-commit hook : `# descr` max 55 chars
 
-#,,.,,..,,.,,,.,,,,,,,..,,,..,,,,,..,,,,,,,.,,..,,...,.,.,,,,,,..,,,,,,.,,...,
-#O5W5PRL5GYMOXQASAJRBTC4AD2SXRSIPG7J4M3ZVLXQLTFDA3GD5WOVUAMQWXURDRIBRZ43NYOB3Q
-#\\\|R5XE4BMDO6ANPN5L53VYT7EXZ7YGF7HEY654TUBZDADDPX6QDQI \ / AMOS7 \ YOURUM ::
-#\[7]EJJN2BCGAD26WGVBWEATY2E5AVPTFD3RVBWM7L3ZAC2N2PUIUYAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,,..,...,..,,,.,,.,.,.,,,..,,..,,...,...,,.,,,,,,...,.,.,.,.,
+#NSF7HBXDXQIADOTUUSQKSPYRI36JKNMPY53CXM7Z4QGDZXPTKQQJI6O4J7VKWMLCS7LGY2BQ4YONS
+#\\\|6X4XKPQIMMKT6ZW7ASRBMHGZ4TT4HQCNZERPJO24SZHWYJ4H5AZ \ / AMOS7 \ YOURUM ::
+#\[7]F44T4DCHA4WKG46DLRRZ2EIZUL5YWJYH2KWY5XIGW5JC5QBDLYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

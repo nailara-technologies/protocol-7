@@ -90,8 +90,16 @@ reverse) purely because the model differs from the last call --
 only worry about it if context has actually grown past the smaller
 ceiling.
 
-#,,..,,..,.,.,,..,..,,,,.,,..,.,.,..,,...,,..,..,,...,...,...,,.,,,.,,,,.,.,,,
-#AIHX4HHAB4V2Q7PI5JYHRH26O6QQ6CFVZQ3XOLD57PY25SADYMGW62UFJBKMC5RS6EQ77IVGJIZK4
-#\\\|63E2FPRQ7WM637GXX44ZLDN4KJTOC53CT7OLQS65GJK572N2QGY \ / AMOS7 \ YOURUM ::
-#\[7]CPATCC3ILVFHZGKA4QWOHLGVGTK3P5X6IAIWHH6YCT3SIO5RACBQ 7  DATA SIGNATURE ::
+**k3 cost data point** [ 2026-10-05, osf-cache stage 4 ] : ONE
+stage-sized k3 run [ ~22 new modules + 200-check harness, concurrent
+state ] took kimi's 5h window from 18% to 100% and the 7d window from
+40% to 56% -- it finished the work but hit the quota during cleanup.
+the comparable stage 3 on k2.8 used ~18% of 5h. pick k3 only when its
+reasoning is clearly worth roughly 4-5x the quota ; otherwise k2.8 plus
+a careful review [ which caught the real defects in both stages anyway ].
+
+#,,,.,,..,,..,..,,,.,,...,,.,,..,,,,.,.,,,,.,,..,,...,...,...,.,.,.,,,,.,,...,
+#6QPSG2PBXV6VX2PEWEJDRJSCCFGQPEPF44HXAY4I53NYITFKD32STUYHVELYPLZPL2ODRWXWK75EC
+#\\\|6TPA6KJLMSCSCKFFGUTVSU4RBDHUYY2GI7FDEYFMAYT7EOP7YF2 \ / AMOS7 \ YOURUM ::
+#\[7]WWRFT4ER3WPMF7KYJ52LCCFYNTZZR3UBBEUWC5YV4TRCEVVUC2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
