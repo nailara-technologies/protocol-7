@@ -45,12 +45,29 @@ my $state_file
 <osf-cache.cfg.scan_slice>     //= 4;
 <osf-cache.cfg.lookup_timeout> //= 5;    ## seconds [ peer lookup ] ##
 
+## a cache dir inside this zenka's own data dir [ per-subname peers ] is ##
+## created here, still as root, owned by the zenka user [ web.init_code  ##
+## pattern ]. never outside the data dir [ the apt archive cache is the  ##
+## system's, not ours ]                                                  ##
+my $data_dir  = <[file.zenka_dir.data_path]>;
+my $cache_dir = <osf-cache.cfg.cache_dir>;
+if ( index( $cache_dir, "$data_dir/" ) == 0 and not -d $cache_dir ) {
+    my $zenka_user  = <system.amos-zenka-user>  // qw| protocol-7 |;
+    my $zenka_group = <system.amos-zenka-group> // $zenka_user;
+    <[file.make_path]>->( $cache_dir, 0750, $zenka_user, $zenka_group );
+    <[base.logs]>->(
+        -d $cache_dir ? 1 : 0,
+        ': osf-cache : cache dir %s %s',
+        $cache_dir, -d $cache_dir ? 'created' : 'could not be created'
+    );
+}
+
 <[base.log]>->( 2, 'osf-cache zenka initialization complete' );
 
 0;
 
-#,,,.,..,,,..,.,.,.,,,.,.,,.,,..,,,,,,,.,,,.,,.,.,...,...,...,,,,,,,,,...,,,.,
-#RMA4HL2KIVY3APKPQ67TADC6ZVTZ3Y4TLABC3WHM4XWPEBZHM2NTN3SFXNUI2OLV3O4FQBDGEWKFK
-#\\\|CQVYDI3DLC4XGXRE3ZIYUVI2LI2WOJRFNE4LLVC7BFQRCD33KUL \ / AMOS7 \ YOURUM ::
-#\[7]USJZXRVBXXU4DVXFPLGZDFOYI7MMI4V673OPRSVV2FQCNBFVGYAA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,,,,,,.,,,,,,.,.,...,,,.,,,.,.,.,...,..,,.,,,.,.,,.,,.,.,,,,,
+#ULAZ6HEYKTDUIDP23CDXJCNEP66E2T5DCLFYQ4HLSPWXXOMCXQIA4SN2FUQWL6RM6PFKCI5DYT63W
+#\\\|6JS4IPTY6DKUJ6JZAOWJZPAGHA3JCY4J4627HRX4TPWYNCVT4ZJ \ / AMOS7 \ YOURUM ::
+#\[7]FXDFG3DXP3AKFXOWJRTBGFWMKYIJDORPODV7L5QCPY77TRPWJSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
