@@ -68,8 +68,10 @@ sub compile_module {
 compile_module('osf-cache.debian.read_inrelease');
 compile_module('osf-cache.debian.read_packages');
 compile_module('osf-cache.holdings.scan_apt_cache');
+compile_module('osf-cache.holdings.scan_file');
 compile_module('osf-cache.holdings.state_save');
 compile_module('osf-cache.holdings.state_load');
+compile_module('osf-cache.index.build');
 compile_module('format.yaml.pre_init');
 compile_module('format.yaml.write_file');
 compile_module('format.yaml.load_file');
@@ -144,98 +146,25 @@ say "   state : $state_path" if defined $state_path;
 say '';
 
 ##[ read + verify every InRelease, build the combined anchor index ]##########
+##                                                                       ##
+## the combining logic lives in osf-cache.index.build - this script only ##
+## renders the report around it                                          ##
 
-my %combined_anchors;
-my %combined_algos;
-my @repo_report;
-my %claimed_packages_file;
+my $index_result
+    = call_module( 'osf-cache.index.build', { 'lists_dir' => $lists_dir } );
 
-foreach my $inrelease_path (@inrelease_files) {
-    my $list_name = $inrelease_path;
-    $list_name =~ s{^.*/}{};
-    my $base = $list_name;
-    $base =~ s{_InRelease$}{};
+error_exit("index build failed : $index_result->{'data'}")
+    if $index_result->{'mode'} ne qw| true |;
 
-    my $ir = call_module( 'osf-cache.debian.read_inrelease',
-        { 'path' => $inrelease_path } );
-
-    my $repo = {
-        'id'        => $base,
-        'suite'     => $ir->{'data'}{'suite'} // '-',
-        'codename'  => $ir->{'data'}{'codename'},
-        'signature' => $ir->{'data'}{'signature'} // qw| unverified |,
-        'signer'    => $ir->{'data'}{'signer'},
-        'packages'  => [],
-        'skipped'   => [],
-        'entries'   => 0,
-    };
-
-    foreach my $rel_path ( sort keys %{ $ir->{'data'}{'files'} } ) {
-
-        ## only uncompressed Packages indexes are read [ apt stores them ##
-        ## plain in the list dir ]                                       ##
-        next unless $rel_path eq qw| Packages | or $rel_path =~ m{/Packages$};
-
-        my $entry     = $ir->{'data'}{'files'}->{$rel_path};
-        my $flat_path = $rel_path;
-        $flat_path =~ s{/}{_}g;
-        my $packages_name = "$base" . '_' . $flat_path;
-        my $packages_path = "$lists_dir/$packages_name";
-
-        if ( !-f $packages_path ) {
-            push $repo->{'skipped'}->@*, $rel_path;
-            next;
-        }
-
-        my $pr = call_module(
-            'osf-cache.debian.read_packages',
-            {   'path'   => $packages_path,
-                'expect' => {
-                    'algo' => $entry->{'algo'},
-                    'hash' => $entry->{'hash'},
-                },
-            }
-        );
-
-        if ( $pr->{'mode'} ne qw| true | ) {
-            push $repo->{'skipped'}->@*,
-                "$rel_path [ read failed : $pr->{'data'} ]";
-            next;
-        }
-
-        $claimed_packages_file{$packages_name} = 1;
-
-        ## trust needs both : the InRelease signature verified good AND the ##
-        ## packages file matching its hash -- otherwise entries are listed  ##
-        ## but never used to anchor cached files                            ##
-        if (    $repo->{'signature'} eq qw| good |
-            and $pr->{'data'}{'anchored'} ) {
-            foreach my $anchor ( keys %{ $pr->{'data'}{'by_anchor'} } ) {
-                $combined_anchors{$anchor}
-                    = $pr->{'data'}{'by_anchor'}->{$anchor};
-                my ($algo) = split m{:}, $anchor, 2;
-                $combined_algos{$algo} = 1 if length $algo;
-            }
-        }
-
-        push $repo->{'packages'}->@*,
-            {
-            'rel_path' => $rel_path,
-            'anchored' => $pr->{'data'}{'anchored'},
-            'entries'  => $pr->{'data'}{'entries'},
-            };
-        $repo->{'entries'} += $pr->{'data'}{'entries'};
-    }
-
-    push @repo_report, $repo;
-}
+my %combined_anchors = %{ $index_result->{'data'}{'anchors'} };
+my @combined_algos   = @{ $index_result->{'data'}{'algos'} };
+my @repo_report      = @{ $index_result->{'data'}{'sources'} };
+my %claimed          = %{ $index_result->{'data'}{'claimed'} };
 
 ## packages files present in the list dir but claimed by no InRelease ##
-my @unclaimed_files = sort grep {
-            m{_Packages$}
-        and -f $_
-        and not $claimed_packages_file{ $ARG =~ s{^.*/}{}r }
-} glob "$lists_dir/*";
+my @unclaimed_files = sort
+    grep { m{_Packages$} and -f $ARG and not $claimed{ $ARG =~ s{^.*/}{}r } }
+    glob "$lists_dir/*";
 
 ##[ holdings scan against the combined index ]################################
 
@@ -247,8 +176,6 @@ if ( defined $state_path ) {
         if $loaded->{'mode'} ne qw| true |;
     $previous_files = $loaded->{'data'}{'holdings'}{'files'} // [];
 }
-
-my @combined_algos = sort keys %combined_algos;
 
 my $holdings = call_module(
     'osf-cache.holdings.scan_apt_cache',
@@ -290,7 +217,7 @@ foreach my $repo (@repo_report) {
     my $codename
         = defined $repo->{'codename'} ? " [ $repo->{'codename'} ]" : '';
     printf "   %s%s\n     signature : %s\n",
-        $repo->{'id'}, $codename, $repo->{'signature'};
+        $repo->{'inrelease'}, $codename, $repo->{'signature'};
     say "     signer    : $repo->{'signer'}"
         if defined $repo->{'signer'};
     foreach my $pkg ( $repo->{'packages'}->@* ) {
@@ -389,8 +316,8 @@ sub error_exit {
     exit 1;
 }
 
-#,,..,,,,,.,,,,,,,,,.,.,.,..,,..,,,,.,,,,,,..,..,,...,...,,,.,.,,,...,.,.,,,.,
-#OZ2YIA5BQFB3PHPOCFPAZYD4JJOPV6JRMPZXPFUWPKN6UP2V5YFMZVHXL3PAYBZNAQM2XFLMOIS4A
-#\\\|BS4JEWPVUKVPVH2HWVHLHN4OEZKTFOMTA6FGF7JZVFAOMY5G74S \ / AMOS7 \ YOURUM ::
-#\[7]YRXP6H4VJTCUVVKYXOKU7BTJPW7TOXRWQZZLXZ2WFTZBIDUQFYDQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,,..,..,,..,,.,,,.,.,..,,,.,,..,,...,...,.,,,,.,,..,,.,.,...,
+#ONPOAVV7C4SBAONKTYLEWWP3UZ3BQLFJ6CFA4ACKY2A3GN3WDFH52DBEMNDPPPZHKWBICBNWURPR4
+#\\\|627FSVM7K3PAY53J6HQF3UXXUTKOEIQEJAP2CHMCACUCQGFEI3R \ / AMOS7 \ YOURUM ::
+#\[7]SFZP3LAPQBT6GGYXMZXONOZTX7MYXSLTQ7WLDJ3JY6YIYY3OUYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

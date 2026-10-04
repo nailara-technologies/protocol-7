@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = osf-cache.holdings.scan_file
+# descr = scan one cached .deb into a holdings entry
+# param = { path, name => [ defaults to the basename ],
+#           anchors => \%anchor_map, algos => \@algos,
+#           previous => \%previous_entry [ optional ] }
+#
+# the per-file body of osf-cache.holdings.scan_apt_cache - same reuse
+# and anchoring rules. ONE read pass computes every algo in algos plus
+# bmw384 [ the protocol-7 internal id, B32 : require Digest::BMW ;
+# Digest::BMW->new(384), encoded through <[chk-sum.bmw.encode_digest]>
+# - no base. prefix : pre_init aliases the family via swap_subs ].
+# the five-field reuse check [ name, size, mtime, ctime, inode -
+# ctime cannot be set back like mtime with touch -d ] against
+# previous reuses ALL recorded digests, unless the current algos need
+# one it lacks -> the file is re-read. anchoring always matches the
+# computed digests against the CURRENT anchor map. the returned entry
+# carries an extra rehashed flag [ 1 when the file was actually read ]
+# so callers can count without re-deriving the reuse decision.
+# returns undef when the file cannot be stat'ed or read.
+
+my $args     = shift              // {};
+my $path     = $args->{'path'}    // '';
+my $name     = $args->{'name'}    // ( $path =~ s{^.*/}{}r );
+my $anchors  = $args->{'anchors'} // {};
+my $algos    = $args->{'algos'}   // [];
+my $previous = $args->{'previous'};
+
+return undef unless length $path;
+return undef unless -f $path;
+
+## CORE::stat : bin/Protocol-7 imports File::stat, whose stat returns an ##
+## object -> a plain list stat left all five fields undef in the zenka   ##
+my @stat = CORE::stat($path);
+return undef unless @stat > 10;
+my $size  = $stat[7];
+my $mtime = $stat[9];
+my $ctime = $stat[10];
+my $inode = $stat[1];
+
+my %digests;
+if (    ref $previous eq qw| HASH |
+    and ( $previous->{'size'}  // '' ) eq $size
+    and ( $previous->{'mtime'} // '' ) eq $mtime
+    and ( $previous->{'ctime'} // '' ) eq $ctime
+    and ( $previous->{'inode'} // '' ) eq $inode
+    and ref $previous->{'digests'} eq qw| HASH |
+    and length( $previous->{'digests'}{'bmw384'} // '' ) == 77 ) {
+    ## reuse only when the current algos are ALL recorded ##
+    my $complete = 1;
+    foreach my $algo (@$algos) {
+        if ( length( $previous->{'digests'}{$algo} // '' ) == 0 ) {
+            $complete = 0;
+            last;
+        }
+    }
+    %digests = %{ $previous->{'digests'} } if $complete;
+}
+
+my $rehashed = 0;
+if ( !scalar keys %digests ) {
+    open( my $fh, '<:raw', $path ) or return undef;
+    binmode($fh);
+    my %ctxs
+        = map { $ARG => Digest::SHA->new( $ARG eq qw| sha256 | ? 256 : 512 ) }
+        grep {m{^sha(?:256|512)$}} @$algos;
+    require Digest::BMW;    ## known dependency - loaded here ##
+    my $bmw_ctx = Digest::BMW->new(384);
+    while ( read( $fh, my $chunk, 65536 ) ) {
+        $ARG->add($chunk) foreach values %ctxs;
+        $bmw_ctx->add($chunk);
+    }
+    close($fh);
+    $digests{$ARG}     = $ctxs{$ARG}->hexdigest foreach keys %ctxs;
+    $digests{'bmw384'} = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
+    $rehashed          = 1;
+}
+
+## anchor against the CURRENT map - never copied from previous ##
+my $anchor;
+foreach my $algo ( sort keys %digests ) {
+    next if $algo eq qw| bmw384 |;    ## internal id, not an anchor ##
+    my $token = sprintf '%s:%s', $algo, $digests{$algo};
+    if ( $anchors->{$token} ) { $anchor = $token; last }
+}
+
+my ( $package, $version );
+if ( $anchor and $anchors->{$anchor} ) {
+    $package = $anchors->{$anchor}->{'package'};
+    $version = $anchors->{$anchor}->{'version'};
+} elsif ( $name =~ m{^([^_]+)_(.+)_[^_]+\.deb$} ) {
+    ( $package, $version ) = ( $1, $2 );    ## from file name ##
+}
+
+return {
+    'name'     => $name,
+    'size'     => $size,
+    'mtime'    => $mtime,
+    'ctime'    => $ctime,
+    'inode'    => $inode,
+    'anchor'   => $anchor,
+    'digests'  => \%digests,
+    'anchored' => $anchor ? 1 : 0,
+    'package'  => $package,
+    'version'  => $version,
+    'rehashed' => $rehashed,
+};
+
+#,,,.,..,,,,,,,,.,.,,,.,,,,..,,..,,,.,.,,,...,.,.,...,...,,..,.,,,,.,,,..,,.,,
+#PC3U7T7YYAIBGFQTBN3KVAXCEWWRTFGYFJLE3R6ZIR7BMSVSYOUA2WO75HHURC25SHFVPJPKMVIX2
+#\\\|VRJWHOSWLV6BL32ARIBUZP2ZATA4WBBFSRGF4KZSODSP7IKQM5X \ / AMOS7 \ YOURUM ::
+#\[7]2ABOJDKOHRLPYALEX436TQPNGFQZNFXUUE6J4ZJT2IKZXOEFIOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,133 @@
+## [:< ##
+
+# name  = osf-cache.index.build
+# descr = combine InRelease + Packages indexes into one anchor map
+# param = { lists_dir }
+#
+# reads every *_InRelease in the lists directory through
+# osf-cache.debian.read_inrelease, then every uncompressed Packages
+# file it anchors through osf-cache.debian.read_packages, expecting
+# the hash recorded in the InRelease. the trust rule is absolute :
+# only Packages files that are anchored in an InRelease whose
+# clearsign signature verifies good contribute anchors - everything
+# else is listed in sources for the status report but never used.
+# result data :
+# { anchors => { '<algo>:<hex>' => { package, version, .. } },
+#   algos   => [ sorted algos across the contributing anchors ],
+#   sources => [ { inrelease, suite, codename, signature, signer,
+#   packages => [ { rel_path, anchored, entries } ],
+#   skipped => [ display strings ], anchored, entries } ],
+#   claimed => { '<flat packages name>' => 1 } }.
+
+my $args      = shift                // {};
+my $lists_dir = $args->{'lists_dir'} // '';
+
+return { 'mode' => 'false', 'data' => 'lists_dir required' }
+    unless length $lists_dir;
+return { 'mode' => 'false', "data" => "not a directory : $lists_dir" }
+    unless -d $lists_dir;
+
+my %anchors;
+my %algos;
+my @sources;
+my %claimed_packages_file;
+
+foreach my $inrelease_path ( sort grep { m{_InRelease$} and -f $ARG }
+    glob "$lists_dir/*" ) {
+    my $list_name = $inrelease_path;
+    $list_name =~ s{^.*/}{};
+    my $base = $list_name;
+    $base =~ s{_InRelease$}{};
+
+    my $ir = <[osf-cache.debian.read_inrelease]>
+        ->( { 'path' => $inrelease_path } );
+
+    next if $ir->{'mode'} ne qw| true |;
+
+    my $signature = $ir->{'data'}{'signature'} // qw| unverified |;
+    my $source    = {
+        'inrelease' => $base,
+        'suite'     => $ir->{'data'}{'suite'},
+        'codename'  => $ir->{'data'}{'codename'},
+        'signature' => $signature,
+        'signer'    => $ir->{'data'}{'signer'},
+        'packages'  => [],
+        'skipped'   => [],
+        'anchored'  => 0,
+        'entries'   => 0,
+    };
+
+    foreach my $rel_path ( sort keys %{ $ir->{'data'}{'files'} } ) {
+
+        ## only uncompressed Packages indexes are read [ apt stores them ##
+        ## plain in the list dir ]                                       ##
+        next unless $rel_path eq qw| Packages | or $rel_path =~ m{/Packages$};
+
+        my $entry     = $ir->{'data'}{'files'}->{$rel_path};
+        my $flat_path = $rel_path;
+        $flat_path =~ s{/}{_}g;
+        my $packages_name = "$base" . '_' . $flat_path;
+        my $packages_path = "$lists_dir/$packages_name";
+
+        if ( !-f $packages_path ) {
+            push $source->{'skipped'}->@*, $rel_path;
+            next;
+        }
+
+        my $pr = <[osf-cache.debian.read_packages]>->(
+            {   'path'   => $packages_path,
+                'expect' => {
+                    'algo' => $entry->{'algo'},
+                    'hash' => $entry->{'hash'},
+                },
+            }
+        );
+
+        if ( $pr->{'mode'} ne qw| true | ) {
+            push $source->{'skipped'}->@*,
+                "$rel_path [ read failed : $pr->{'data'} ]";
+            next;
+        }
+
+        $claimed_packages_file{$packages_name} = 1;
+
+        ## trust needs both : the InRelease signature verified good AND the ##
+        ## packages file matching its hash - otherwise the entries are      ##
+        ## listed but never used to anchor cached files                     ##
+        my $anchored = $pr->{'data'}{'anchored'} ? 1 : 0;
+        if ( $signature eq qw| good | and $anchored ) {
+            foreach my $anchor ( keys %{ $pr->{'data'}{'by_anchor'} } ) {
+                $anchors{$anchor} = $pr->{'data'}{'by_anchor'}->{$anchor};
+                my ($algo) = split m{:}, $anchor, 2;
+                $algos{$algo} = 1 if length $algo;
+            }
+            $source->{'anchored'} = 1;
+        }
+
+        push $source->{'packages'}->@*,
+            {
+            'rel_path' => $rel_path,
+            'anchored' => $anchored,
+            'entries'  => $pr->{'data'}{'entries'},
+            };
+        $source->{'entries'} += $pr->{'data'}{'entries'};
+    }
+
+    push @sources, $source;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'anchors' => \%anchors,
+        'algos'   => [ sort keys %algos ],
+        'sources' => \@sources,
+        'claimed' => \%claimed_packages_file,
+    }
+};
+
+#,,,.,,.,,...,,..,...,..,,.,.,,,,,.,,,..,,.,.,.,.,...,...,..,,...,,,,,,.,,,.,,
+#CKSIJANLH6KTSNB4H3K34APF4A2PW2RAWZ6HJCH6XGYLQ5JLU3SXUUAYUQXOLH5OVOBQQW2OEDJBA
+#\\\|YTHRPXIMLCEBU72LHAGNQKUMIBDBMDK2X5RFES4KFAKLBYYWXA3 \ / AMOS7 \ YOURUM ::
+#\[7]X2XNCWVYVFX6UONIP2SLDAONBGHQ3YGUNVYHNDVTLJGRFNBT74AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

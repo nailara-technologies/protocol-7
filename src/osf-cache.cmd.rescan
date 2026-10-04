@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = osf-cache.cmd.rescan
+# descr = start a sliced holdings rescan unless one is running
+# param = [ none ]
+#
+# resets the scan progress and arms the rescan timer [ the first tick
+# does the setup : work list, previous state, counters ]. when a scan
+# is already running the command says so and leaves it alone - a
+# rescan is never duplicated.
+
+my $scan = <osf-cache.scan> // {};
+
+if ( $scan->{'running'} ) {
+    my $done
+        = ( $scan->{'total'} // 0 ) - scalar @{ $scan->{'pending'} // [] };
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf 'rescan already running [ %d of %d ]',
+        $done, $scan->{'total'} // 0,
+    };
+}
+
+<osf-cache.scan> = {
+    'running' => 0,
+    'done'    => 0,
+    'total'   => 0,
+    'started' => undef,
+};
+
+<osf-cache.scan.timer> = <[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| osf-cache.holdings.rescan_step |,
+        'data'    => {},
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => 'rescan started',
+};
+
+#,,..,.,.,...,.,,,.,,,..,,,.,,.,.,..,,.,,,,..,.,.,...,...,...,,,.,,,.,,,,,...,
+#DK4ES5RGEYGRZE5F7NTSBBQ5VGFQL2KDAZWNZ2CVV3NUPXDGKY2NHVKTKOBABSG2DBHZVMDYVPTD4
+#\\\|3CN4FE33QTTYLGHQP6N3IYWA3VGQQF6OMAFWM25NSHDMWY6HC6K \ / AMOS7 \ YOURUM ::
+#\[7]VZS4KJ2DYDGAOQGAFPVLDZCBTMUCWEJ6JK4SQV72ZJFVSJH4PEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

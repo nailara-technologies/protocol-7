@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = osf-cache.startup
+# descr = post-drop-privs startup : load state, build index, arm rescan
+# note  = called from cfg/zenki/osf-cache/zenka.v7 directly, after
+#         [root.drop_privs] and [base.net.connect] - the same pattern
+#         usage.startup uses [ init_code runs during [init_modules],
+#         BEFORE the drop, and must not scan or arm timers there ].
+#         this module runs once per process start ; a reload re-runs
+#         init_code [ guarded ] but not this file, so the rescan
+#         timer can never be duplicated by a reload.
+#
+# - loads the previous holdings state [ state_load ; a missing file
+#   is the first run, not an error ]
+# - builds the combined anchor index [ osf-cache.index.build ] - it
+#   blocks while parsing Packages, acceptable for now, the elapsed
+#   time is logged
+# - starts a sliced rescan : osf-cache.holdings.rescan_step as a
+#   re-armed timer handler hashing <osf-cache.cfg.scan_slice> files
+#   per tick into a NEW holdings result ; the zenka loop is never
+#   blocked on hashing the whole cache in one go. when a scan is
+#   already running [ reload edge ] it is left alone.
+# - <osf-cache.scan> holds the progress [ running, done, total,
+#   started ] the cmd modules report.
+
+require Time::HiRes;    ## core - loaded here, modules carry no use ##
+
+my $state_path = <osf-cache.cfg.state_path> // '';
+my $lists_dir  = <osf-cache.cfg.lists_dir>  // '';
+
+## previous state [ a missing file is the first run, not an error ] ##
+my $previous_files = [];
+if ( length $state_path and -f $state_path ) {
+    my $loaded
+        = <[osf-cache.holdings.state_load]>->( { 'path' => $state_path } );
+    if ( $loaded->{'mode'} eq qw| true | ) {
+        $previous_files = $loaded->{'data'}{'holdings'}{'files'} // [];
+    } else {
+        <[base.logs]>->(
+            0, ': osf-cache : state load failed : %s',
+            $loaded->{'data'}
+        );
+    }
+}
+<osf-cache.holdings.previous> = $previous_files;
+
+## combined anchor index [ blocks while parsing Packages ] ##
+my $index_started = Time::HiRes::time();
+my $index = <[osf-cache.index.build]>->( { 'lists_dir' => $lists_dir } );
+my $index_elapsed = Time::HiRes::time() - $index_started;
+
+if ( $index->{'mode'} ne qw| true | ) {
+    <[base.logs]>->(
+        0, ': osf-cache : index build failed : %s',
+        $index->{'data'}
+    );
+    <osf-cache.index> = { 'anchors' => {}, 'algos' => [], 'sources' => [] };
+} else {
+    <osf-cache.index> = $index->{'data'};
+    my $anchor_count = scalar keys %{ $index->{'data'}{'anchors'} };
+    <[base.log]>->(
+        2, sprintf ': osf-cache : index built in %.2fs : %d anchors',
+        $index_elapsed, $anchor_count
+    );
+}
+
+## arm the sliced rescan timer [ never duplicated ] ##
+if ( defined <osf-cache.scan.timer> ) {
+    <[base.log]>->( 2, ': osf-cache : rescan already armed, leaving it' );
+} else {
+    <osf-cache.scan> //= {};
+    <osf-cache.scan.timer> = <[event.add_timer]>->(
+        {   'after'   => 0,
+            'handler' => qw| osf-cache.holdings.rescan_step |,
+            'data'    => {},
+        }
+    );
+    <[base.log]>->( 1, ': osf-cache : sliced rescan armed' );
+}
+
+0;
+
+#,,..,..,,,..,,.,,,..,.,,,,,,,.,.,.,,,,..,..,,.,.,...,...,..,,.,,,..,,.,.,,..,
+#ZVKNZD2FNU74HTN6GRJF6AQRNS6J2C4CTSGB2WYWQ7TJVDCIYXRC45TS7L346OHTSRKN2BGTTDINM
+#\\\|WABJA2QKSVOPQGZKW6DUCHE4J3ZS3LWX2DLXZNSUULH5U3BMCUZ \ / AMOS7 \ YOURUM ::
+#\[7]Y53BVZQD3LH5RC2DOT6IQRNQP5W3AY3NRUFUVTYB55XBF72Q6ECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

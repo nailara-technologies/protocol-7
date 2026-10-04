@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = osf-cache.init_code
+# descr = osf-cache config defaults [ runs before the privilege drop ]
+# param = [ reinit ]
+#
+# runs during [init_modules], BEFORE [root.drop_privs] : config
+# defaults only - no filesystem scan and no timers here, those need
+# the post-drop home and rights [ see osf-cache.startup, called from
+# zenka.v7 after the drop - same pattern usage.startup uses ].
+# reinit guarding is a hard invariant in this repo : a reload must
+# never break or duplicate state, so on reinit the existing holdings
+# and any running scan are kept exactly as they are.
+
+my $reinit = shift // FALSE;
+
+if ( $reinit and defined <osf-cache.cfg.cache_dir> ) {
+    <[base.log]>->( 2, 'skipping osf-cache re-init [ config already set ]' );
+    return 0;
+}
+
+<[base.log]>->( 2, 'initializing osf-cache zenka..,' );
+
+<osf-cache.cfg.cache_dir> //= qw| /var/cache/apt/archives |;
+<osf-cache.cfg.lists_dir> //= qw| /var/lib/apt/lists |;
+<osf-cache.cfg.state_path>
+    //= <[file.zenka_dir.data_path]> . '/holdings.yaml';
+<osf-cache.cfg.scan_slice> //= 4;
+
+<[base.log]>->( 2, 'osf-cache zenka initialization complete' );
+
+0;
+
+#,,..,...,,,,,,.,,,.,,,..,,,,,,,,,...,,..,.,,,.,.,...,...,.,.,.,,,.,.,...,...,
+#JMW5T5EF2QEL7TKCS2AU3BIIWYYXGWVERNU5FVDFU44NCJNBRGGHOSXJB4VLY4KKG6UBJFH5HANXG
+#\\\|YDZ3UVOSCH4IBGRV6YVIIG4RWOROLH73R7WB4QMFUHOOMFOXQMU \ / AMOS7 \ YOURUM ::
+#\[7]ZUKWBYRFYZ7OWVWFHNWZ23W3CKIUFSC4GYGDHOE5SERVXXRN4KBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

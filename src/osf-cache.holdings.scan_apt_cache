@@ -10,26 +10,19 @@
 # passive supply : many nodes never cleared their apt cache and those
 # .debs already match the signed index hashes exactly - free supply,
 # announced by hash. scans the cache directory for .deb files [ partial
-# and lock entries skipped ]. ONE read pass per file computes every
-# algo the index lists plus bmw384 [ the protocol-7 internal id, B32 ] :
-# require Digest::BMW ; Digest::BMW->new(384), encoded through
-# <[chk-sum.bmw.encode_digest]> [ no base. prefix : pre_init aliases the
-# family via swap_subs ]. every entry carries size, mtime, ctime and
-# inode, its anchor => '<algo>:<hex>' or undef, digests =>
-# { sha256 => hex, …, bmw384 => b32 } and anchored. when previous
-# [ a prior scan's files list ] is given, an entry whose name, size,
-# mtime, ctime and inode all match a previous entry reuses ALL recorded
-# digests - but when the current index needs an algo the previous
-# entry lacks, the file is re-read. anchoring is always recomputed
-# against the CURRENT index, never copied from previous. rehashed in
-# the result counts the files actually read.
+# and lock entries skipped ] by delegating every file to
+# osf-cache.holdings.scan_file [ the per-file body lives there - same
+# reuse and anchoring rules : ONE read pass per file computes every
+# index algo plus bmw384, the five-field reuse check reuses all
+# recorded digests unless the current index needs an algo the previous
+# entry lacks ]. anchoring always uses the CURRENT index, never the
+# previous result. rehashed in the result counts the files actually
+# read.
 
 my $args     = shift               // {};
 my $dir      = $args->{'dir'}      // '/var/cache/apt/archives';
 my $index    = $args->{'index'}    // {};
 my $previous = $args->{'previous'} // [];
-
-require Digest::SHA;    ## core - loaded here, modules carry no use ##
 
 my %anchors;
 my @index_algos;
@@ -65,79 +58,17 @@ while ( my $entry = readdir $dh ) {
     my $path = "$dir/$entry";
     next unless -f $path;
 
-    my @stat  = stat $path;
-    my $size  = $stat[7];
-    my $mtime = $stat[9];
-    my $ctime = $stat[10];
-    my $inode = $stat[1];
-
-    my %digests;
-    my $previous_entry = $previous_by_name{$entry};
-    if (    $previous_entry
-        and $previous_entry->{'size'} eq $size
-        and ( $previous_entry->{'mtime'} // '' ) eq $mtime
-        and ( $previous_entry->{'ctime'} // '' ) eq $ctime
-        and ( $previous_entry->{'inode'} // '' ) eq $inode
-        and ref $previous_entry->{'digests'} eq qw| HASH |
-        and length( $previous_entry->{'digests'}{'bmw384'} // '' ) == 77 ) {
-        ## reuse only when the current index algos are ALL recorded ##
-        my $complete = 1;
-        foreach my $algo (@index_algos) {
-            if ( length( $previous_entry->{'digests'}{$algo} // '' ) == 0 ) {
-                $complete = 0;
-                last;
-            }
+    my $file = <[osf-cache.holdings.scan_file]>->(
+        {   'path'     => $path,
+            'name'     => $entry,
+            'anchors'  => \%anchors,
+            'algos'    => \@index_algos,
+            'previous' => $previous_by_name{$entry},
         }
-        %digests = %{ $previous_entry->{'digests'} } if $complete;
-    }
-
-    if ( !scalar keys %digests ) {
-        open( my $fh, '<', $path ) or next;
-        binmode($fh);
-        my %ctxs = map {
-            $ARG => Digest::SHA->new( $ARG eq qw| sha256 | ? 256 : 512 )
-        } grep {m{^sha(?:256|512)$}} @index_algos;
-        require Digest::BMW;    ## known dependency - loaded here ##
-        my $bmw_ctx = Digest::BMW->new(384);
-        while ( read( $fh, my $chunk, 65536 ) ) {
-            $ARG->add($chunk) foreach values %ctxs;
-            $bmw_ctx->add($chunk);
-        }
-        close($fh);
-        $digests{$ARG} = $ctxs{$ARG}->hexdigest foreach keys %ctxs;
-        $digests{'bmw384'} = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
-        $rehashed_count++;
-    }
-
-    ## anchor against the CURRENT index - never copied from previous ##
-    my $anchor;
-    foreach my $algo ( sort keys %digests ) {
-        next if $algo eq qw| bmw384 |;    ## internal id, not an anchor ##
-        my $token = sprintf '%s:%s', $algo, $digests{$algo};
-        if ( $anchors{$token} ) { $anchor = $token; last }
-    }
-
-    my ( $package, $version );
-    if ( $anchor and $anchors{$anchor} ) {
-        $package = $anchors{$anchor}->{'package'};
-        $version = $anchors{$anchor}->{'version'};
-    } elsif ( $entry =~ m{^([^_]+)_(.+)_[^_]+\.deb$} ) {
-        ( $package, $version ) = ( $1, $2 );    ## from file name ##
-    }
-
-    push @files,
-        {
-        'name'     => $entry,
-        'size'     => $size,
-        'mtime'    => $mtime,
-        'ctime'    => $ctime,
-        'inode'    => $inode,
-        'anchor'   => $anchor,
-        'digests'  => \%digests,
-        'anchored' => $anchor ? 1 : 0,
-        'package'  => $package,
-        'version'  => $version,
-        };
+    );
+    next unless ref $file eq qw| HASH |;
+    $rehashed_count++ if $file->{'rehashed'};
+    push @files, $file;
 }
 closedir($dh);
 
@@ -166,8 +97,8 @@ return {
     }
 };
 
-#,,,.,.,.,,,,,...,,.,,,..,,.,,,,.,.,,,,,,,,..,..,,...,...,.,.,,..,,..,.,.,.,,,
-#EFD3IWE5JMOFFZ5QC4QLB5U763IAX4R5N677L55EPTC5DP5KY72M3AGL4CBRMODEELQRTGCHBJWLC
-#\\\|BZJ7P6HYHDBVTYMQPGZ2K2BJCGZV6X7M4FG64S3YYVSJZFG3YKO \ / AMOS7 \ YOURUM ::
-#\[7]AH7NZ2EWLR5OUDNYRQYS4PQIOFITIKOIB2FCLENN2SMPDYQJIGAA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,.,.,,,.,.,.,..,,,,,,.,,,..,,..,,...,...,,..,,.,,.,.,,..,,,.,
+#4QRBA2MTGP5BIRUGEY5N77INOBPEXO324HRMW7TQIXC7ALGD4K52BSYEGOHPUKNYO5QHNWUEPDAS4
+#\\\|WKOPAWZT6Z6LYI54A3AMO4TSAB7OEF6X5BAXU2LOICPZI5LZX3Q \ / AMOS7 \ YOURUM ::
+#\[7]6DF3V3ZREY5V4SUHMBLISVTZNXRZF3KIAFJAES2BBXLAIII6QKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

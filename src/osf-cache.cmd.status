@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = osf-cache.cmd.status
+# descr = human-readable holdings, index and scan progress report
+# param = [ none ]
+#
+# one line per fact : state path, index sources with their signature
+# state, holdings counts [ files, anchored, bytes, rehashed ] and the
+# scan progress [ idle or running with done-of-total and start time ].
+
+my $state_path = <osf-cache.cfg.state_path> // '-';
+my $index      = <osf-cache.index>          // {};
+my $holdings   = <osf-cache.holdings>;
+my $scan       = <osf-cache.scan> // {};
+
+my @lines = sprintf 'state    : %s', $state_path;
+
+## index sources with their signature state ##
+my @sources = @{ $index->{'sources'} // [] };
+if (@sources) {
+    push @lines,
+        sprintf 'index    : %d source%s, %d anchor%s [ %s ]',
+        scalar @sources,
+        @sources == 1 ? '' : 's',
+        scalar keys %{ $index->{'anchors'} // {} },
+        ( keys %{ $index->{'anchors'} // {} } ) == 1 ? '' : 's',
+        join( ',', @{ $index->{'algos'} // [] } );
+    foreach my $source (@sources) {
+        push @lines,
+            sprintf '  %s : signature %s%s, %d entries, anchored %s',
+            $source->{'inrelease'},
+            $source->{'signature'},
+            defined $source->{'signer'}
+            ? " [ $source->{'signer'} ]"
+            : '',
+            $source->{'entries'},
+            $source->{'anchored'} ? qw| y | : qw| n |;
+    }
+} else {
+    push @lines, 'index    : no InRelease sources';
+}
+
+## holdings counts ##
+if ( ref $holdings eq qw| HASH | and $scan->{'done'} ) {
+    push @lines,
+        sprintf 'holdings : %d file%s, %d anchored, %d bytes, %d rehashed',
+        scalar @{ $holdings->{'files'} // [] },
+        @{ $holdings->{'files'} // [] } == 1 ? '' : 's',
+        $holdings->{'anchored_count'} // 0,
+        $holdings->{'total_bytes'}    // 0,
+        $holdings->{'rehashed'}       // 0;
+} else {
+    push @lines, 'holdings : not ready';
+}
+
+## scan progress ##
+if ( $scan->{'running'} ) {
+    my $done
+        = ( $scan->{'total'} // 0 ) - scalar @{ $scan->{'pending'} // [] };
+    push @lines,
+        sprintf 'scan     : running [ %d of %d, started %.1fs ago ]',
+        $done,
+        $scan->{'total'} // 0,
+        time - ( $scan->{'started'} // time );
+} elsif ( $scan->{'done'} ) {
+    push @lines, sprintf 'scan     : idle [ %d file%s, last run %.1fs ago ]',
+        $scan->{'total'} // 0,
+        ( $scan->{'total'} // 0 ) == 1 ? '' : 's',
+        time - ( $scan->{'started'} // time );
+} else {
+    push @lines, 'scan     : not started';
+}
+
+return {
+    'mode' => qw| size |,                          ## multi-line reply ##
+    'data' => "\n" . join( "\n", @lines ) . "\n"
+};
+
+#,,.,,,,,,.,,,...,,,.,.,.,,,.,.,,,,.,,...,.,.,.,.,...,...,.,,,.,.,.,.,,,,,..,,
+#REECNWRDKSIV6VHKZMKERTLR3QZRKSFZIDPRPTIHJBZ73H4IMRFRIEZXBJITLHDG2FIJAVTYMO4JO
+#\\\|JPJTGPZ2VQKJHP6ZIBPRMBDONTRYKF6RROZNFBD7NZFJJJIJPFB \ / AMOS7 \ YOURUM ::
+#\[7]CFUFCDVUMLI67ODFZY2FDPMZKSTMIUOWCEZRRUXDJYTA7QT4CSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
