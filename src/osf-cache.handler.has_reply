@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = osf-cache.handler.has_reply
+# descr = record one peer's has reply, complete the lookup when full
+#
+# reply handler for the '<sid>.has' fan-out of osf-cache.cmd.lookup.
+# a SIZE reply carries the wire string in 'data', a TRUE reply in
+# call_args.args [ an empty string is a valid 'holds nothing' answer
+# - it is NOT a failure ] ; FALSE or anything else records undef [
+# failed node in merge_replies ]. when no pending sid remains the
+# lookup completes. a lookup the timeout already completed is gone
+# from <osf-cache.lookup.pending> and this reply is dropped.
+
+my $reply     = shift                  // {};
+my $params    = $reply->{'params'}     // {};
+my $lookup_id = $params->{'lookup_id'} // return;
+my $sid       = $params->{'sid'}       // return;
+
+my $state = <osf-cache.lookup.pending>->{$lookup_id};
+return unless ref $state eq qw| HASH |;    ## timed out already ##
+
+my $cmd = $reply->{'cmd'} // '';
+my $payload;
+if ( $cmd eq qw| SIZE | ) {
+    $payload = $reply->{'data'} // '';
+} elsif ( $cmd eq qw| TRUE | ) {
+    $payload = $reply->{'call_args'}{'args'} // '';
+}
+## FALSE or unknown : undef -> failed peer ##
+
+$state->{'replies'}{$sid} = $payload;
+delete $state->{'pending'}{$sid};
+
+<[osf-cache.lookup.complete]>->( { 'lookup_id' => $lookup_id } )
+    unless scalar keys %{ $state->{'pending'} // {} };
+
+return;
+
+#,,,.,,.,,,.,,.,.,.,,,,..,,,.,.,.,,,.,,.,,..,,.,.,...,...,,..,..,,...,,,,,,,,,
+#GUIUOEIZDQTLZ2JLNCJE2MAX4XPOQ5RVIDHZSQJ2XMBOMMAB6VNAFEHBB6P2EC3CU35M3KR7EWXG6
+#\\\|OP72B4I3QSUJ5YLX37FKA6PVEXWY2VVRTW22LW3LLN37DMBSKCL \ / AMOS7 \ YOURUM ::
+#\[7]SUG5NST3REGVAUGQAX5CO5U45T53IMZVHJVN4Y2LAAV3WAEKXMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

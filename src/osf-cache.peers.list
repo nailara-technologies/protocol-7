@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = osf-cache.peers.list
+# descr = ask cube for the other osf-cache sessions [ asynchronous ]
+# param = { callback => <module name>, params => { .. } }
+#
+# the single place peer discovery lives : cross-host discovery through
+# the discover zenka [ branch.discover.* ] is a later stage and swaps
+# in HERE, the callers stay unchanged. asks cube for
+# 'list sessions osf-cache' [ the argument is a name pattern ] and
+# returns immediately - the query is asynchronous. cube offers no
+# structured reply for it, so osf-cache.handler.peers_list parses the
+# table [ usid protocol type mode uname since ], drops this
+# instance's own session id and invokes the callback module with
+# { peers => [ cube session ids ], params => <param params> }.
+
+my $args     = shift               // {};
+my $callback = $args->{'callback'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'callback required' }
+    unless length $callback;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| list |,
+        'call_args' => { 'args' => 'sessions osf-cache' },
+        'reply'     => {
+            'handler' => qw| osf-cache.handler.peers_list |,
+            'params'  => {
+                'callback' => $callback,
+                'params'   => $args->{'params'} // {},
+            },
+        },
+    }
+);
+
+return { 'mode' => qw| true |, 'data' => 'peer query sent' };
+
+#,,,,,...,..,,..,,,.,,,.,,,,,,..,,.,,,,..,,.,,.,.,...,...,..,,..,,,.,,,.,,,,.,
+#BSEF7TOSAAIKXVRCANTJ52Z7LXRP4C6E6ODWLWU7ME3KV4Z6V2MJXO2WBRLOKQYDCIXVGJ6YH3ILW
+#\\\|F3ECBVRM3TTNRH2PW7GOZONDNYODHT6CORBXSBYJCA7XNQRWANY \ / AMOS7 \ YOURUM ::
+#\[7]55UJMHHG4GMKIWWBQQ7F7ZU7E3LAH2NNZEZ355KGUPAN4H2GXCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
