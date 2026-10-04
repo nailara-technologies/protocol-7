@@ -20,6 +20,16 @@ return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
 return { 'mode' => 'false', 'data' => 'holdings required' }
     unless ref $holdings eq qw| HASH |;
 
+## the zenka data dir does not exist before the first save ##
+( my $state_dir = $path ) =~ s{/[^/]+$}{};
+if ( length $state_dir and not -d $state_dir ) {
+    require File::Path;
+    File::Path::make_path( $state_dir,
+        { 'mode' => oct 750, 'error' => \my $mkdir_err } );
+    return { 'mode' => 'false', 'data' => "cannot create $state_dir" }
+        if not -d $state_dir;
+}
+
 my $tmp_path = sprintf '%s.tmp.%d', $path, $PROCESS_ID;
 
 my ( $written, $err ) = <[format.yaml.write_file]>->(
@@ -46,8 +56,8 @@ if ( not rename( $tmp_path, $path ) ) {
 
 return { 'mode' => qw| true |, 'data' => $path };
 
-#,,.,,,..,...,,,.,...,,.,,,,,,,.,,,..,.,,,,,.,.,.,...,..,,...,,,.,.,,,,,.,,,,,
-#ZUO4TTRPNIATACJRSCOEZYKIREDJSLIUP3BRZILTNBH7ITTBJ7YSDFDFAQ3UNXSY6N4AUYR4HUBDO
-#\\\|ML64GDE36FI7PQY6RIORMKNQY5APKC3NQ5TPE3EITODHZAQGYKR \ / AMOS7 \ YOURUM ::
-#\[7]VART5ZQ5JEYHNVCG2MNIYFHRMAOGBOIRY63L3H4JHBSZR42S2KDI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,..,,,..,.,.,,,,,,..,,,.,.,,,.,.,...,...,.,.,..,,,.,,,..,,,.,
+#B7EHHFA4LYV3Z44QAWPRVJIQWCEEGZDDULJAT7DND6VLZCL5C3XSL7BP6UNWIZPCQ3NOCLADQDHCE
+#\\\|UNMJYSW5APSGIUHXPYATMTXFOAKCQFP2O3GFXEIA7LTH4LSZH5K \ / AMOS7 \ YOURUM ::
+#\[7]2OVBMV3M6NSDOXVZMMQZYAOMF3NCWZFDPSY64FYY5GSMOV6IQACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

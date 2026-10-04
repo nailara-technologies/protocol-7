@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = osf-cache.cmd.has
+# descr = answer which asked anchors this zenka holds
+# param = <algo>:<hex> [ <algo>:<hex> .. ]
+#
+# the 'who holds H' answer for this node's OWN holdings [ the fan-out
+# to other nodes is a later stage ]. queries <osf-cache.holdings>
+# through osf-cache.lookup.query_local and encodes the reply with
+# osf-cache.lookup.format_has_reply : one '<algo>:<hex> <size>
+# <bmw384>' line per held anchor, '' when none. before the first
+# rescan finished the holdings are not ready : mode false. invalid
+# tokens and the 1024 cap fail mode false with query_local's message.
+
+my $args = $call->{'args'} // '';
+
+my $scan = <osf-cache.scan> // {};
+
+return { 'mode' => qw| false |, 'data' => 'holdings not ready' }
+    unless $scan->{'done'};
+
+my $holdings = <osf-cache.holdings>;
+
+return { 'mode' => qw| false |, 'data' => 'holdings not ready' }
+    unless ref $holdings eq qw| HASH |;
+
+my @tokens = grep {length} split m{\s+}, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : has <algo>:<hex> [ <algo>:<hex> .. ]'
+    }
+    unless @tokens;
+
+my $query = <[osf-cache.lookup.query_local]>->(
+    {   'hashes'   => \@tokens,
+        'holdings' => $holdings,
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => $query->{'data'} }
+    if $query->{'mode'} ne qw| true |;
+
+my $formatted = <[osf-cache.lookup.format_has_reply]>
+    ->( { 'held' => $query->{'data'}{'held'} } );
+
+return {
+    'mode' => qw| size |,             ## one line per held file ##
+    'data' => $formatted->{'data'},
+    }
+    if $formatted->{'mode'} eq qw| true |;
+
+return { 'mode' => qw| false |, 'data' => $formatted->{'data'} };
+
+#,,,,,,..,...,,,.,..,,,..,.,.,,..,,..,..,,.,,,.,.,...,...,...,,,.,..,,,.,,,.,,
+#C5ZMAMZTJUJP5ZDU5ZDENTMR6WOEFQY6U65MWIMT3IWZWQOETWWXV6ELTHRTIWB2TNCD4CAQC5FVU
+#\\\|B7QY5F2RWGI3SBW45XA7VRCKAVYWPAJP73W6MAKBZO7AOTJHYH2 \ / AMOS7 \ YOURUM ::
+#\[7]Z6LJUNAZYSMZG7OFIH4H2F4F6P6BWLOV4OD7J3EYLCGWWD7UZYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
