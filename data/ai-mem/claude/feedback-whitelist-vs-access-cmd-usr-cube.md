@@ -71,8 +71,19 @@ so if a command is "not known" or "no permission," check `access.cmd.
 usr.cube`/`access.zenki` first, and only reach for `subroutines.load-early`
 if the actual symptom is a deferred compile error.
 
-#,,.,,..,,,,,,,,,,..,,...,.,.,,..,.,.,,.,,.,.,..,,...,...,,,.,..,,..,,,..,.,,,
-#7ZUPAIGSQTA46XMMMKU5SOVPBCCOW7O4RUWYGXGNI25IMQQPRWW2QCHUCYCX4N35M4P4NZVB3AE6I
-#\\\|5UU2IPNCMPQ5OMQJU4JTID7E2TK2GW24VCWXJRTROG2NPCUJSS7 \ / AMOS7 \ YOURUM ::
-#\[7]KFKSZ7ARAO63G4HKQ7SHQQUIQKWWEPC7YXXBXIWUGOGQQG5XQWAQ 7  DATA SIGNATURE ::
+**Zenka-to-zenka calls routed via cube arrive as user `cube` too**
+[ 2026-10-04, osf-cache stage 3, `512c58752` ] : a peer grant on
+`access.cmd.usr.<caller-zenka>` alone does NOT cover a `<sid>.cmd` /
+`<zenka>.cmd` call sent through cube -- the target zenka logs `no perm.
+[ src 'cube' cmd|usr '<cmd>' ]` and the caller gets `command not known
+or no permission`. The command must be on the target's
+`access.cmd.usr.cube` line ; who may route it at all stays cube's
+`access.zenki`. `access.cmd.usr.<zenka>` only matters for a direct
+zenka-to-zenka connection. Unit tests with a stubbed route-send can
+never catch this -- only a live run does.
+
+#,,,.,..,,.,.,,,.,,,,,...,.,.,,.,,,,.,.,,,,..,..,,...,..,,.,.,,,.,..,,...,.,,,
+#BK75NVDFMYXMAM5LOGFY4TPY73ZI4KZL3YJF7G7JFW72TCMOV2YVJ5O4LKWIJFX2XUTCOYT52ZF5O
+#\\\|HUFBZSIMB5E3DBZ6PYVYW3NKTWUJ2RG2PMNOFRFN55LE2Y3FL2H \ / AMOS7 \ YOURUM ::
+#\[7]CSOSJNGCLQGIMUZJD6XKKVOHLMJJGNTZWAUCLRRPCGLLWWOAUMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
