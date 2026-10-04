@@ -1,26 +1,36 @@
 ## [:< ##
 
 # name  = osf-cache.debian.read_packages
-# descr = stream a debian Packages file into a sha256 index
-# param = { path, expect_sha256 [ optional ] }
+# descr = stream a debian Packages file into an anchor index
+# param = { path, expect => { algo, hash } [ optional ] }
 #
 # reads a debian Packages index line by line [ never slurped - real
-# indexes reach hundreds of thousands of stanzas ]. every stanza with
-# both Package and SHA256 fields is indexed by its file hash :
-# by_sha256 => { sha256 => { package, version, architecture,
-# filename, size } }. the sha256 of the Packages file itself is
-# computed while streaming ; when expect_sha256 is given, anchored
-# reports 1 if the computed hash matches [ the value anchored in the
-# signed InRelease ] and 0 otherwise.
+# indexes reach hundreds of thousands of stanzas ]. BOTH 'SHA256:' and
+# 'SHA512:' stanza fields are read ; every stanza with a Package field
+# and at least one of them is indexed by its anchor token :
+# by_anchor => { '<algo>:<hex>' => { package, version, architecture,
+# filename, size } } - a stanza carrying both fields is indexed under
+# both keys. algos lists the sorted algos seen. the file digests are
+# computed while streaming ; when expect => { algo, hash } is given
+# [ the value anchored in the signed InRelease ], anchored reports 1
+# if the digest of that algo matches and 0 otherwise.
 
-my $args   = shift                    // {};
-my $path   = $args->{'path'}          // '';
-my $expect = $args->{'expect_sha256'} // '';
-
-require Digest::SHA;    ## core - loaded here, modules carry no use ##
+my $args   = shift           // {};
+my $path   = $args->{'path'} // '';
+my $expect = $args->{'expect'};
 
 return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
 return { 'mode' => 'false', 'data' => "cannot read $path" } unless -f $path;
+
+my %expect_entry;
+if ( defined $expect ) {
+    return { 'mode' => 'false', 'data' => 'expect must be a hash' }
+        unless ref $expect eq qw| HASH |;
+    %expect_entry = %$expect;
+}
+
+require Digest::SHA;    ## core - loaded here, modules carry no use ##
+
 open( my $fh, '<', $path )
     or return {
     'mode' => 'false',
@@ -34,26 +44,32 @@ my %field_map = (
     'Filename'     => 'filename',
     'Size'         => 'size',
     'SHA256'       => 'sha256',
+    'SHA512'       => 'sha512',
 );
 
 my $ctx     = Digest::SHA->new(256);
 my $ctx_512 = Digest::SHA->new(512);
-my %by_sha256;
+my %by_anchor;
 my $entries = 0;
 my %cur;
 
-## flush one stanza into the index [ needs package + sha256 ] ##
+## flush one stanza into the index [ needs package + at least one hash ] ##
 my $flush = sub {
-    if (    length( $cur{'package'} // '' )
-        and length( $cur{'sha256'} // '' ) ) {
-        $by_sha256{ lc $cur{'sha256'} } = {
-            'package'      => $cur{'package'},
-            'version'      => $cur{'version'},
-            'architecture' => $cur{'architecture'},
-            'filename'     => $cur{'filename'},
-            'size'         => $cur{'size'},
-        };
-        $entries++;
+    if ( length( $cur{'package'} // '' ) ) {
+        my $indexed = 0;
+        foreach my $field ( sort grep {m{^SHA\d+$}} keys %field_map ) {
+            my $hex = $cur{ lc $field } // '';
+            next unless length $hex;
+            $by_anchor{ sprintf '%s:%s', lc $field, lc $hex } = {
+                'package'      => $cur{'package'},
+                'version'      => $cur{'version'},
+                'architecture' => $cur{'architecture'},
+                'filename'     => $cur{'filename'},
+                'size'         => $cur{'size'},
+            };
+            $indexed = 1;
+        }
+        $entries++ if $indexed;
     }
     %cur = ();
 };
@@ -65,6 +81,7 @@ while ( my $line = <$fh> ) {
     $ctx_512->add($line);
     chomp $line;
     $line =~ s{\r$}{};
+    next if $line =~ m{^#};      ## signature footer lines are never fields ##
     if ( $line =~ m{^\s*$} ) {
         $flush->();
         next;
@@ -79,28 +96,36 @@ close($fh);
 my $file_sha256 = $ctx->hexdigest;
 my $file_sha512 = $ctx_512->hexdigest;
 
-## anchored when the expected hash matches either digest [ expect may carry ##
-## a sha512 entry from a sha512-only signed index ]                         ##
-my $expect_lc = lc $expect;
-my $anchored
-    = length $expect_lc
-    && ( $file_sha256 eq $expect_lc or $file_sha512 eq $expect_lc )
-    ? 1
-    : 0;
+## anchored when the expected hash matches the digest of its algo ##
+my $anchored = 0;
+if ( length( $expect_entry{'hash'} // '' ) ) {
+    my $algo = lc( $expect_entry{'algo'} // '' );
+    my $hash = lc $expect_entry{'hash'};
+    $anchored = 1
+        if ( $algo eq qw| sha256 | and $file_sha256 eq $hash )
+        or ( $algo eq qw| sha512 | and $file_sha512 eq $hash );
+}
+
+my %seen_algos;
+foreach my $token ( keys %by_anchor ) {
+    my ($algo) = split m{:}, $token, 2;
+    $seen_algos{$algo} = 1;
+}
 
 return {
     'mode' => qw| true |,
     'data' => {
         'entries'     => $entries,
-        'by_sha256'   => \%by_sha256,
+        'by_anchor'   => \%by_anchor,
+        'algos'       => [ sort keys %seen_algos ],
         'file_sha256' => $file_sha256,
         'file_sha512' => $file_sha512,
         'anchored'    => $anchored,
     }
 };
 
-#,,,.,...,,,.,,,.,.,.,.,,,,,,,,,.,,.,,.,,,,,,,..,,...,...,,..,,,,,..,,,,.,,..,
-#AK2BGMIGORRR2K7BEFAL2QPGLS25M4YG7HSCPNYFQAC67GYTDUJ332JB4DL2GZZIHRT77ADWZELEC
-#\\\|4FZNWSB3G7W7H4XC6MIIBZ4UGKBCZZ3N52CFJ3O2ZSBYCTMF4ZF \ / AMOS7 \ YOURUM ::
-#\[7]Y2CSP6LZVCFQE3FSDDTX4OCVRSLDQMBH5KFYN6OF5Y7KNAMHWIDY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,..,.,,,.,,,,,.,,,.,.,.,,,.,.,.,...,..,,.,,,,.,,.,.,...,,.,,
+#W7VJFWZYYKPEVR4NOFZDHRIP2XM5TMDSOWKZYFRKR5NYJB6JFNJNBEP4ZRCAYGCBXORSSBMSZVNXI
+#\\\|XQOYWY4X26RVSQHQHRUXWNF2UTP45N5WHCGJAHKQKI2SE3LO2JT \ / AMOS7 \ YOURUM ::
+#\[7]RUNKBCTL6DE4BQ2U5CPNBFNNMY6YDNXP75KBDA557STVIEK622CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

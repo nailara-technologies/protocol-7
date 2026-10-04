@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = osf-cache.lookup.format_has_reply
+# descr = encode a held-anchor map into the wire reply string
+# param = { held => { anchor => { size, bmw384 } } }
+#
+# wire format for the later .cmd.has exchange [ stage 2 announces and
+# answers hashes only, no transfer yet ]. one line
+# '<algo>:<hex> <size> <bmw384>' per held anchor, sorted by anchor,
+# newlines between lines. the bmw384 field carries the protocol-7
+# internal id [ B32, 77 chars ] so the asker switches to it for
+# segment fetching. an empty map becomes '' [ empty string ]. the
+# output of this module is exactly what
+# osf-cache.lookup.parse_has_reply accepts back - the round trip is
+# lossless.
+
+my $args = shift           // {};
+my $held = $args->{'held'} // {};
+
+return { 'mode' => 'false', 'data' => 'held required' }
+    unless ref $held eq qw| HASH |;
+
+my @lines;
+foreach my $anchor ( sort keys %$held ) {
+    my $entry = $held->{$anchor};
+    next unless ref $entry eq qw| HASH |;
+    push @lines,
+        sprintf '%s %s %s', $anchor,
+        $entry->{'size'}   // 0,
+        $entry->{'bmw384'} // '';
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n", @lines )
+};
+
+#,,,,,..,,..,,..,,,..,,,,,..,,,,.,..,,.,.,..,,.,.,...,...,,.,,,,.,,,,,..,,..,,
+#I5ZR3UYCZQWO343EWW2VZJLFR6YW53HWWEZ6J3KOUZL73PITQXLRERDZIJNLKJTTN2ZH3PEGJXODW
+#\\\|HYPWON3IMITPYQXLPZXI7W2QI44JI67T7KDTYMVLUPN5O45F7O6 \ / AMOS7 \ YOURUM ::
+#\[7]RSUS53ESFODPRK6UT4445QDP2VETJ6H3QALZSR6RZHO3JKAUEABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = osf-cache.lookup.merge_replies
+# descr = merge 'who holds H' replies from several nodes
+# param = { replies => { node => STRING or undef },
+#           expect => { anchor => size } }
+#
+# combines the per-node wire replies [ osf-cache.lookup.format_has_reply
+# strings, parsed through osf-cache.lookup.parse_has_reply ] for one
+# query into a holder map. expect carries the asked anchor tokens with
+# the size from the signed index - it is the truth replies are checked
+# against :
+# - undef reply  -> the node is listed in failed_nodes [ unreachable ]
+# - a node reporting a size different from expect for an anchor is NOT
+#   counted as a holder ; the mismatch is listed in conflicts as
+#   { node, anchor, size } [ corrupt or lying node ]
+# - anchors reported but never asked are ignored, counted per node in
+#   unrequested
+# - holders of one anchor that disagree on its bmw384 [ the internal
+#   id the segment fetch runs on ] put that anchor into bmw_conflicts
+#   as { anchor => { bmw384 => [ nodes sorted ] } } and it is NOT in
+#   holders [ the fetch stage resolves it by verifying against the
+#   anchor ] ; it is not 'missing' either - nodes DID offer it
+# - otherwise holders => { anchor => [ nodes ] } plus
+#   bmw384 => { anchor => b32 } for the agreed internal id.
+# malformed reply lines are dropped by the parser [ a lying node
+# cannot inject a map entry it cannot spell correctly ]. result data :
+# { holders => { anchor => [ nodes sorted ] },
+#   bmw384 => { anchor => b32 },
+#   missing => [ asked anchors with no size-agreeing holder, sorted ],
+#   failed_nodes => [ sorted ],
+#   conflicts => [ { node, anchor, size } ],
+#   bmw_conflicts => { anchor => { bmw384 => [ nodes sorted ] } },
+#   unrequested => { node => count } }.
+
+my $args    = shift              // {};
+my $replies = $args->{'replies'} // {};
+my $expect  = $args->{'expect'}  // {};
+
+return { 'mode' => 'false', 'data' => 'replies required' }
+    unless ref $replies eq qw| HASH |;
+return { 'mode' => 'false', 'data' => 'expect required' }
+    unless ref $expect eq qw| HASH |;
+
+my ( %holders, %bmw384, @missing, @failed_nodes, @conflicts,
+    %bmw_conflicts, %unrequested );
+my %candidates;    ## anchor => { node => bmw384 } ##
+
+foreach my $node ( sort keys %$replies ) {
+    my $reply = $replies->{$node};
+
+    if ( !defined $reply ) {
+        push @failed_nodes, $node;
+        next;
+    }
+
+    ## one wire format, parsed in one place ##
+    my $parsed
+        = <[osf-cache.lookup.parse_has_reply]>->( { 'reply' => $reply } );
+    my $reported = $parsed->{'data'}->{'held'} // {};
+
+    foreach my $anchor ( sort keys %$reported ) {
+        if ( !exists $expect->{$anchor} ) {
+            $unrequested{$node}++;
+            next;
+        }
+        if ( $reported->{$anchor}->{'size'} != $expect->{$anchor} ) {
+            push @conflicts,
+                {
+                'node'   => $node,
+                'anchor' => $anchor,
+                'size'   => $reported->{$anchor}->{'size'},
+                };
+            next;
+        }
+        $candidates{$anchor}{$node} = $reported->{$anchor}->{'bmw384'} // '';
+    }
+}
+
+foreach my $anchor ( sort keys %candidates ) {
+    my %by_bmw;
+    foreach my $node ( sort keys %{ $candidates{$anchor} } ) {
+        push @{ $by_bmw{ $candidates{$anchor}{$node} } }, $node;
+    }
+    if ( scalar keys %by_bmw > 1 ) {    ## holders disagree on bmw384 ##
+        $bmw_conflicts{$anchor} = \%by_bmw;
+        next;
+    }
+    $holders{$anchor} = [ sort keys %{ $candidates{$anchor} } ];
+    $bmw384{$anchor}  = ( keys %by_bmw )[0];
+}
+
+foreach my $anchor ( sort keys %$expect ) {
+    push @missing, $anchor unless scalar @{ $holders{$anchor} // [] };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'holders'       => \%holders,
+        'bmw384'        => \%bmw384,
+        'missing'       => \@missing,
+        'failed_nodes'  => [ sort @failed_nodes ],
+        'conflicts'     => \@conflicts,
+        'bmw_conflicts' => \%bmw_conflicts,
+        'unrequested'   => \%unrequested,
+    }
+};
+
+#,,..,.,.,.,.,.,,,,,,,.,.,.,,,,,.,...,,,,,,,,,.,.,...,...,,,,,,,,,,.,,...,.,,,
+#GDFTOZ3XF6225R7PXQ3RO2MIDLAQQIEQTN2TULH7KJBJ4WOIHPH5PE46B3VLPMMW7S3KA74CI6TG6
+#\\\|7TWSBBNJH7AF6UREDV67XMNQZ42FUVHG2H4FSEFML2CUAMS5NVB \ / AMOS7 \ YOURUM ::
+#\[7]JOXHV2NB675XEKK2DI5K3IGYONKIMKKXYBA7BUGGWWICVPAK7OAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
