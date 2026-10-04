@@ -3,6 +3,11 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+## same default layer bin/Protocol-7 sets : modules compiled below by
+## string eval inherit it -> binary reads must ask for :raw themselves ##
+use open qw| :encoding(UTF-8) |;
+## bin/Protocol-7 also imports File::stat [ object-returning stat ] ##
+use File::stat;
 
 ###                                                                  ###
 ##  osf-cache : debian index readers + holdings scan + hash lookup   ##
@@ -63,7 +68,14 @@ sub compile_module {
     my $src = join( '', <$fh> );
     close($fh);
     my $translated = p7_syntax__translate($src);
-    my $cref       = eval "sub {\n# line 1 \"$module_name\"\n$translated\n}";
+    ## .cmd. modules get the loader's $call header [ bin/Protocol-7 ] ##
+    $translated
+        = "my \$call = ref( \$ARG[0] ) eq q|HASH| "
+        . "? \$ARG[0] : { args => \$ARG[0] };\n"
+        . "my \$reply = { mode => q|false|, data => q|| };\n"
+        . $translated
+        if $module_name =~ m{\.cmd\.};
+    my $cref = eval "sub {\n# line 1 \"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR"
         if not defined $cref;
     $code{$module_name} = $cref;
@@ -73,12 +85,20 @@ sub compile_module {
 compile_module('osf-cache.debian.read_inrelease');
 compile_module('osf-cache.debian.read_packages');
 compile_module('osf-cache.holdings.scan_apt_cache');
+compile_module('osf-cache.holdings.scan_file');
 compile_module('osf-cache.holdings.state_save');
 compile_module('osf-cache.holdings.state_load');
 compile_module('osf-cache.lookup.query_local');
 compile_module('osf-cache.lookup.format_has_reply');
 compile_module('osf-cache.lookup.parse_has_reply');
 compile_module('osf-cache.lookup.merge_replies');
+compile_module('osf-cache.index.build');
+compile_module('osf-cache.init_code');
+compile_module('osf-cache.startup');
+compile_module('osf-cache.cmd.has');
+compile_module('osf-cache.cmd.status');
+compile_module('osf-cache.cmd.rescan');
+compile_module('osf-cache.holdings.rescan_step');
 compile_module('format.yaml.pre_init');
 compile_module('format.yaml.write_file');
 compile_module('format.yaml.load_file');
@@ -113,6 +133,13 @@ $code{'base.logs'} = sub {
     return 5;
 };
 
+$code{'base.log'} = sub {
+    my $level  = shift;
+    my $format = shift // '';
+    push @{ $data{'test'}{'logs'} }, sprintf $format, @_;
+    return 5;
+};
+
 $code{'base.buffer.add_line'} = sub {
     my ( $buffer_name, $line ) = @ARG;
     push @{ $data{'test'}{'buffer_lines'} }, "$buffer_name : $line";
@@ -127,6 +154,19 @@ $code{'base.str.eval_error'} = sub {
 };
 
 call_module('format.yaml.pre_init');
+
+## stage 2b : the zenka flow modules need these two stubs as well ##
+my $zenka_data_dir = tempdir( CLEANUP => 1 );
+
+$code{'file.zenka_dir.data_path'} = sub {
+    return $zenka_data_dir;
+};
+
+$code{'event.add_timer'} = sub {
+    my $params = shift // {};
+    push @{ $data{'test'}{'timers'} }, $params;
+    return 'timer-handle';
+};
 
 sub call_module {
     my ( $module_name, $params ) = @ARG;
@@ -240,7 +280,7 @@ say ': InRelease parse + signature';
 ## 4648 [ A-Z 2-7 ], unpadded, 77 chars for a bmw384 : never guessed       ##
 my $abc_bmw_b32 = encode_b32r( Digest::BMW::bmw_384('abc') );
 
-ok( $abc_bmw_b32 =~ m{^[A-Z2-7]{77}$}o,
+ok( $abc_bmw_b32 =~ m|^[A-Z2-7]{77}$|o,
     'bmw384 B32 alphabet verified against a real digest [ A-Z 2-7, 77 ]' );
 
 my $ir = call_module( 'osf-cache.debian.read_inrelease',
@@ -523,7 +563,7 @@ ok( ( $igt_deb->{'anchored'} // 1 ) == 0
     'unlisted .deb not anchored, name parsed from file name'
 );
 
-ok( ( $igt_deb->{'digests'}{'bmw384'} // '' ) =~ m{^[A-Z2-7]{77}$}o,
+ok( ( $igt_deb->{'digests'}{'bmw384'} // '' ) =~ m|^[A-Z2-7]{77}$|o,
     'unanchored .deb still carries its bmw384 internal id'
 );
 
@@ -1066,8 +1106,278 @@ ok( !exists $merge_data->{'holders'}{$h5}
 
 ok( join( ',', @{ $merge_data->{'missing'} // [] } ) eq
         join( ',', sort ( $h3, $h4, $h5 ) ),
-    'anchors without a size-agreeing '
-        . 'holder are missing [ conflicts count ]'
+    'anchors without a size-agreeing holder are missing [ conflicts count ]'
+);
+
+##[ 12 : stage 2b - scan_file split ]#########################################
+
+say ': stage 2b - scan_file split';
+
+my $sf_path = "$s2_dir/aa-pkg_1.0-1_amd64.deb";
+
+my $sf_first = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'    => $sf_path,
+        'name'    => 'aa-pkg_1.0-1_amd64.deb',
+        'anchors' => \%s2_index,
+        'algos'   => [qw| sha256 |],
+    }
+);
+
+ok( ref $sf_first eq qw| HASH |
+        && $sf_first->{'anchored'} == 1
+        && $sf_first->{'rehashed'} == 1
+        && ( $sf_first->{'anchor'} // '' ) eq "sha256:$aa_sha256",
+    'scan_file hashes + anchors one .deb [ rehashed 1 ]'
+);
+
+my $sf_reuse = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'     => $sf_path,
+        'name'     => 'aa-pkg_1.0-1_amd64.deb',
+        'anchors'  => \%s2_index,
+        'algos'    => [qw| sha256 |],
+        'previous' => $sf_first,
+    }
+);
+
+ok( ref $sf_reuse eq qw| HASH |
+        && $sf_reuse->{'rehashed'} == 0
+        && ( $sf_reuse->{'digests'}{'sha256'} // '' ) eq $aa_sha256
+        && ( $sf_reuse->{'digests'}{'bmw384'} // '' ) eq $aa_bmw384,
+    'scan_file reuses the previous entry [ rehashed 0 ]'
+);
+
+my $sf_wide = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'     => $sf_path,
+        'name'     => 'aa-pkg_1.0-1_amd64.deb',
+        'anchors'  => \%s2_index_both,
+        'algos'    => [qw| sha256 sha512 |],
+        'previous' => $sf_first,
+    }
+);
+
+ok( ref $sf_wide eq qw| HASH |
+        && $sf_wide->{'rehashed'} == 1
+        && ( $sf_wide->{'digests'}{'sha512'} // '' ) eq $aa_sha512,
+    'scan_file rehashes when the previous entry lacks an algo'
+);
+
+my $sf_missing = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'    => "$s2_dir/no-such-file.deb",
+        'anchors' => {},
+        'algos'   => [],
+    }
+);
+
+ok( !defined $sf_missing, 'scan_file returns undef for a missing file' );
+
+##[ 13 : stage 2b - index.build ]#############################################
+
+say ': stage 2b - index.build';
+
+## the index builder expects the apt list dir naming : <base>_InRelease ##
+## plus <base>_<flat relpath> for every Packages entry                  ##
+my $ib_dir = tempdir( CLEANUP => 1 );
+write_fixture( "$ib_dir/fixture_InRelease", slurp_file($inrelease_path) );
+write_fixture( "$ib_dir/fixture_main_binary-amd64_Packages",
+    slurp_file($packages_path) );
+
+my $ib = call_module( 'osf-cache.index.build', { 'lists_dir' => $ib_dir } );
+
+my $ib_data = $ib->{'data'}            // {};
+my $ib_src  = $ib_data->{'sources'}[0] // {};
+
+ok( $ib->{'mode'} eq qw| true | && scalar @{ $ib_data->{'sources'} } == 1,
+    'index.build reports one source per InRelease' );
+
+## the fixture signature is never 'good' -> the trust rule keeps the ##
+## anchors map empty, exactly like osf-holdings today                ##
+ok( ( $ib_src->{'signature'} // '' ) =~ m{^(?:bad|unverified)$}o
+        && scalar keys %{ $ib_data->{'anchors'} } == 0
+        && scalar @{ $ib_data->{'algos'} } == 0,
+    'not-good signature : sources listed, zero contributing anchors'
+);
+
+ok( ( $ib_src->{'inrelease'} // '' ) eq qw| fixture |
+        && ( $ib_src->{'entries'}                 // 0 ) == 3
+        && ( $ib_src->{'packages'}[0]{'entries'}  // 0 ) == 3
+        && ( $ib_src->{'packages'}[0]{'anchored'} // 0 ) == 1,
+    'source carries inrelease, entries and the Packages anchor state'
+);
+
+my $ib_missing_dir = call_module( 'osf-cache.index.build',
+    { 'lists_dir' => "$ib_dir/no-such-dir" } );
+
+ok( ref $ib_missing_dir eq qw| HASH |
+        && $ib_missing_dir->{'mode'} eq qw| false |,
+    'missing lists dir returns mode false'
+);
+
+##[ 14 : stage 2b - zenka flow [ init, startup, rescan, commands ] ]##########
+
+say ': stage 2b - zenka flow';
+
+## a mini cache dir the scan can own ##
+my $zc_dir = tempdir( CLEANUP => 1 );
+foreach my $deb_name (
+    qw|
+    fake-hello_2.12.3-1_amd64.deb
+    igt-gpu-tools_2.5-1_amd64.deb
+    |
+) {
+    symlink fixture_path($deb_name), "$zc_dir/$deb_name"
+        or die "symlink failed : $OS_ERROR";
+}
+
+my $init_r = call_module( 'osf-cache.init_code', 0 );
+
+ok( $init_r == 0
+        && ( $data{'osf-cache'}{'cfg'}{'cache_dir'} // '' ) eq
+        qw| /var/cache/apt/archives |
+        && ( $data{'osf-cache'}{'cfg'}{'lists_dir'} // '' ) eq
+        qw| /var/lib/apt/lists |
+        && ( $data{'osf-cache'}{'cfg'}{'state_path'} // '' ) eq
+        "$zenka_data_dir/holdings.yaml"
+        && ( $data{'osf-cache'}{'cfg'}{'scan_slice'} // 0 ) == 4,
+    'init_code sets the config defaults [ pre-drop shape ]'
+);
+
+$data{'osf-cache'}{'cfg'}{'cache_dir'}  = $zc_dir;
+$data{'osf-cache'}{'cfg'}{'lists_dir'}  = $ib_dir;
+$data{'osf-cache'}{'cfg'}{'state_path'} = "$zc_dir/holdings.yaml";
+$data{'osf-cache'}{'cfg'}{'scan_slice'} = 1;
+$data{'osf-cache'}{'holdings'}          = { 'kept' => 1 };
+
+my $init_re = call_module( 'osf-cache.init_code', 1 );
+
+ok( $init_re == 0
+        && ( $data{'osf-cache'}{'cfg'}{'cache_dir'} // '' ) eq $zc_dir
+        && ( $data{'osf-cache'}{'holdings'}{'kept'} // 0 ) == 1,
+    'reinit keeps the existing config and holdings untouched'
+);
+
+delete $data{'osf-cache'}{'scan'};
+delete $data{'osf-cache'}{'holdings'};
+
+my $has_early = call_module( 'osf-cache.cmd.has',
+    { 'args' => "sha256:$hello_sha256" } );
+
+ok( ref $has_early eq qw| HASH |
+        && $has_early->{'mode'} eq qw| false |
+        && $has_early->{'data'} eq 'holdings not ready',
+    'cmd.has refuses before the first rescan finished'
+);
+
+my $startup_r = call_module( 'osf-cache.startup', {} );
+
+my $timer_count = scalar @{ $data{'test'}{'timers'} };
+
+ok( $startup_r == 0
+        && $timer_count == 1
+        && ( $data{'test'}{'timers'}[-1]{'handler'} // '' ) eq
+        qw| osf-cache.holdings.rescan_step |
+        && ref $data{'osf-cache'}{'index'} eq qw| HASH |
+        && exists $data{'osf-cache'}{'index'}{'anchors'},
+    'startup builds the index and arms exactly one rescan timer'
+);
+
+my $rescan = call_module( 'osf-cache.cmd.rescan', {} );
+
+ok( $rescan->{'mode'} eq qw| true |
+        && ( $rescan->{'data'} eq 'rescan started'
+        || $rescan->{'data'} =~ m{^rescan already running} ),
+    'cmd.rescan answers [ startup scan or fresh start ]'
+);
+
+## slice 1 over 2 files : tick one processes one file and re-arms ##
+$data{'test'}{'timers'} = [];
+
+my $tick_one = call_module( 'osf-cache.holdings.rescan_step', {} );
+
+my $scan_progress = $data{'osf-cache'}{'scan'};
+
+ok( $tick_one == 0
+        && $scan_progress->{'running'} == 1
+        && $scan_progress->{'total'} == 2
+        && scalar @{ $scan_progress->{'files'} } == 1
+        && scalar @{ $data{'test'}{'timers'} } == 1,
+    'rescan tick hashes scan_slice files and re-arms the timer'
+);
+
+my $tick_two = call_module( 'osf-cache.holdings.rescan_step', {} );
+
+my $zc_holdings = $data{'osf-cache'}{'holdings'} // {};
+
+ok( $tick_two == 0
+        && $scan_progress->{'running'} == 0
+        && $scan_progress->{'done'} == 1
+        && scalar @{ $zc_holdings->{'files'} } == 2
+        && scalar @{ $data{'test'}{'timers'} } == 1
+        && -f "$zc_dir/holdings.yaml",
+    'last tick swaps holdings in, state_saves, no re-arm [ timer count flat ]'
+);
+
+my $has_late = call_module( 'osf-cache.cmd.has',
+    { 'args' => "sha256:$hello_sha256 sha512:$hello_sha512" } );
+
+ok( $has_late->{'mode'} eq qw| size |
+        && ref $has_late->{'data'} eq ''
+        && $has_late->{'data'} eq '',
+    'cmd.has answers after the rescan [ no anchors : bad signature ]'
+);
+
+my $status = call_module( 'osf-cache.cmd.status', {} );
+
+ok( $status->{'mode'} eq qw| size |
+        && $status->{'data'} =~ m{^holdings : 2 files}m
+        && $status->{'data'} =~ m{^scan     : idle}m
+        && $status->{'data'} =~ m{^state    : \Q$zc_dir\E/holdings\.yaml}m,
+    'cmd.status reports holdings, scan progress and state path'
+);
+
+## a second rescan reuses the state : nothing to rehash ##
+my $rescan2 = call_module( 'osf-cache.cmd.rescan', {} );
+
+$data{'test'}{'timers'} = [];
+call_module( 'osf-cache.holdings.rescan_step', {} );
+call_module( 'osf-cache.holdings.rescan_step', {} );
+
+my $zc_holdings2 = $data{'osf-cache'}{'holdings'} // {};
+
+ok( $rescan2->{'data'} eq 'rescan started'
+        && ( $zc_holdings2->{'rehashed'} // -1 ) == 0,
+    'second rescan reuses the saved state [ rehashed 0 ]'
+);
+
+##[ 15 : binary content under the zenka's utf-8 default layer ]##############
+
+say ': binary content [ every byte value, utf-8 default layer active ]';
+
+## the fixtures are ascii -> a plain '<' open passed here while the live ##
+## zenka died on 964 utf-8 decode errors. every byte value 0..255 below  ##
+my $bin_dir  = tempdir( CLEANUP => 1 );
+my $bin_path = "$bin_dir/bin-pkg_1.0-1_amd64.deb";
+my $bin_data = join '', map { chr $ARG } 0 .. 255, reverse 0 .. 255;
+open( my $bin_fh, '>:raw', $bin_path ) or die "cannot write $bin_path";
+print {$bin_fh} $bin_data;
+close($bin_fh);
+
+my $bin_entry = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'    => $bin_path,
+        'name'    => 'bin-pkg_1.0-1_amd64.deb',
+        'anchors' => {},
+        'algos'   => [qw| sha256 |],
+    }
+);
+
+ok( ref $bin_entry eq qw| HASH |
+        && ( $bin_entry->{'digests'}{'sha256'} // '' ) eq
+        Digest::SHA::sha256_hex($bin_data),
+    'scan_file hashes raw bytes, not utf-8 decoded characters'
 );
 
 ##[ summary ]#################################################################
@@ -1080,8 +1390,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,,.,,.,,.,,,.,,,.,,,,,,,,,,,.,,,,.,,.,.,.,.,...,...,,..,,.,,,.,,..,,..,,
-#SBGJIOOBYE2F3YR5JEZPN7YVYYMJHWI3HBGDZDSZ3RAEOMWVVSPTKEM7XCWVNAUN4RCULF5WWLGA6
-#\\\|K77XSJAZ4LD3YQRWBNR52KPGTMA4XINKGM7LJURAQ77MXOUMDZZ \ / AMOS7 \ YOURUM ::
-#\[7]M7NC2WXIKKRIJNJUGZV5HXN7ZUXJKXFX54NUUGX7BXST52BCOIDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,.,,,...,,..,.,.,,,.,,,,,,,.,.,.,...,...,...,...,,,,,,,,,,.,,
+#4ZGXAZM2ACHOCJB3NZ777KLUXIVB66PSOVK6JCAT22XGKWFVTNF6FT2LACH6OVFHJFWW2YE2HWHGG
+#\\\|3KNUUVRIFKOAZAIDJW7YVRSC6K6PKZDHMMNNAPB2JXK6HFABVA4 \ / AMOS7 \ YOURUM ::
+#\[7]7FM3OYSQH7IO3AKINPVHSKM3E2GJN5SQMAL7QNOHIBNSMUFSEOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

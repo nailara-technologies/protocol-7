@@ -1,0 +1,163 @@
+## [:< ##
+
+# name  = osf-cache.holdings.rescan_step
+# descr = one tick of the sliced holdings rescan [ timer handler ]
+# param = timer event [ data => { } ]
+#
+# hashes up to <osf-cache.cfg.scan_slice> files per tick [ via
+# osf-cache.holdings.scan_file, reusing the previous entry when the
+# five-field check matches ], appending entries to the NEW result
+# under construction. when every .deb in the cache dir was processed,
+# the result is swapped into <osf-cache.holdings>, state_saved and
+# the counts are logged - and the timer is NOT re-armed. otherwise
+# the timer re-arms itself for the next tick [ the discover.check_
+# packet_timeouts pattern : after + repeat FALSE + the handler stores
+# the new handle ], so the zenka loop is never blocked on hashing the
+# whole cache in one go.
+# <osf-cache.scan> holds the progress [ running, done, total,
+# started ] - cmd.status and cmd.has read it.
+
+require Time::HiRes;    ## core - loaded here, modules carry no use ##
+
+my $scan = <osf-cache.scan> //= {};
+
+## first tick of a new scan : set up the work list ##
+if ( !$scan->{'running'} ) {
+    my $cache_dir  = <osf-cache.cfg.cache_dir>  // '';
+    my $state_path = <osf-cache.cfg.state_path> // '';
+
+    my @pending;
+    if ( length $cache_dir and -d $cache_dir ) {
+        opendir( my $dh, $cache_dir );
+        @pending
+            = sort grep { m{\.deb$} and -f "$cache_dir/$ARG" } readdir $dh;
+        closedir($dh);
+    } else {
+        <[base.logs]>->(
+            0,
+            ': osf-cache : cache dir missing : %s',
+            length $cache_dir ? $cache_dir : 'unset'
+        );
+    }
+
+    ## previous state [ fresh load : the scan may run long after startup, ##
+    ## the state on disk is the newest truth ]                            ##
+    my $previous_files = <osf-cache.holdings.previous> // [];
+    if ( length $state_path and -f $state_path ) {
+        my $loaded = <[osf-cache.holdings.state_load]>
+            ->( { 'path' => $state_path } );
+        $previous_files = $loaded->{'data'}{'holdings'}{'files'}
+            if $loaded->{'mode'} eq qw| true |;
+    }
+    <osf-cache.holdings.previous> = $previous_files;
+
+    <osf-cache.scan> = $scan = {
+        'running'  => 1,
+        'done'     => 0,
+        'total'    => scalar @pending,
+        'started'  => Time::HiRes::time(),
+        'pending'  => \@pending,
+        'files'    => [],
+        'by_name'  => { map { $ARG->{'name'} => $ARG } @$previous_files },
+        'rehashed' => 0,
+    };
+    <[base.log]>->(
+        1, ": osf-cache : rescan started : $scan->{'total'} files"
+    );
+}
+
+my $slice = <osf-cache.cfg.scan_slice> // 4;
+$slice = 4 if !$slice or $slice < 1;    ## explicit floor ##
+
+my $cache_dir  = <osf-cache.cfg.cache_dir> // '';
+my $index_data = <osf-cache.index>         // {};
+
+my $processed = 0;
+while ( $processed < $slice
+    and my $name = shift @{ $scan->{'pending'} // [] } ) {
+    my $entry = <[osf-cache.holdings.scan_file]>->(
+        {   'path'     => "$cache_dir/$name",
+            'name'     => $name,
+            'anchors'  => $index_data->{'anchors'} // {},
+            'algos'    => $index_data->{'algos'}   // [],
+            'previous' => $scan->{'by_name'}{$name},
+        }
+    );
+    next unless ref $entry eq qw| HASH |;
+    $scan->{'rehashed'}++ if $entry->{'rehashed'};
+    push @{ $scan->{'files'} }, $entry;
+    $processed++;
+}
+
+if ( scalar @{ $scan->{'pending'} // [] } ) {
+    ## more files left : re-arm for the next tick ##
+    $scan->{'timer'} = <[event.add_timer]>->(
+        {   'after'   => 0.1,
+            'handler' => qw| osf-cache.holdings.rescan_step |,
+            'data'    => {},
+        }
+    );
+    <osf-cache.scan.timer> = $scan->{'timer'};
+} else {
+    ## done : swap the NEW result in, persist, log the counts ##
+    my @files
+        = sort { $a->{'name'} cmp $b->{'name'} } @{ $scan->{'files'} // [] };
+
+    my $anchored_count = 0;
+    my $total_bytes    = 0;
+    my $anchored_bytes = 0;
+    foreach my $file (@files) {
+        $total_bytes += $file->{'size'};
+        if ( $file->{'anchored'} ) {
+            $anchored_count++;
+            $anchored_bytes += $file->{'size'};
+        }
+    }
+
+    <osf-cache.holdings> = {
+        'files'          => \@files,
+        'anchored_count' => $anchored_count,
+        'total_bytes'    => $total_bytes,
+        'anchored_bytes' => $anchored_bytes,
+        'rehashed'       => $scan->{'rehashed'}    // 0,
+        'algos'          => $index_data->{'algos'} // [],
+    };
+
+    my $state_path = <osf-cache.cfg.state_path> // '';
+    if ( length $state_path ) {
+        my $saved = <[osf-cache.holdings.state_save]>->(
+            {   'path'     => $state_path,
+                'holdings' => <osf-cache.holdings>,
+            }
+        );
+        <[base.logs]>->(
+            0, ': osf-cache : state save failed : %s',
+            $saved->{'data'}
+        ) if $saved->{'mode'} ne qw| true |;
+    }
+
+    my $elapsed = Time::HiRes::time() - ( $scan->{'started'} // time );
+    <[base.log]>->(
+        1,
+        sprintf ': osf-cache : rescan done in %.2fs : %d '
+            . 'files, %d anchored, %d rehashed, %d bytes',
+        $elapsed,
+        scalar(@files),
+        $anchored_count,
+        $scan->{'rehashed'} // 0,
+        $total_bytes
+    );
+
+    $scan->{'running'} = 0;
+    $scan->{'done'}    = 1;
+    delete $scan->{'timer'};
+    <osf-cache.scan.timer> = undef;
+}
+
+0;
+
+#,,,.,.,.,.,.,,,.,,,.,,.,,,..,...,.,.,.,,,..,,.,.,...,...,,,,,...,,,,,,,.,.,.,
+#FFKVX3UXI2OER4ZXJ6IPGFAO6PHIDF5JPK67TWEU5LSPZNVMY7NA3EOWIQOTSC4TRATCG7F6TK5KE
+#\\\|XYU3R5LMXKCP7VU5BV6CDOUWJVTUQ5GJSE3PYVC463GYSAAOMNX \ / AMOS7 \ YOURUM ::
+#\[7]BX4IQUAZ437QSU4D5BQVDJMXAMYLY2PD47FN3E56G4OOQ35H42DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

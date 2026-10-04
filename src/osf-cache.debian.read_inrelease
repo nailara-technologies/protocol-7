@@ -22,7 +22,7 @@ my $path = $args->{'path'} // '';
 
 return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
 return { 'mode' => 'false', 'data' => "cannot read $path" } unless -f $path;
-open( my $fh, '<', $path )
+open( my $fh, '<:raw', $path )
     or return {
     'mode' => 'false',
     'data' => "cannot open $path : $OS_ERROR"
@@ -90,14 +90,14 @@ push @keyring, $debian_keyring if -f $debian_keyring;
 foreach my $src ( '/etc/apt/sources.list', glob '/etc/apt/sources.list.d/*' )
 {
     next unless -f $src;
-    open( my $sfh, '<', $src ) or next;
+    open( my $sfh, '<:raw', $src ) or next;
     while ( my $line = <$sfh> ) {
         ## one-line form 'signed-by=…' and deb822 field 'Signed-By: …' ##
         while ( $line =~ m{signed-by\s*[=:]\s*([^\s\]\)]+)}gi ) {
             my $kr = $1;
             $kr =~ s{^["'\[]+|["'\]]+$}{}g;
             next unless -f $kr;
-            push @keyring, $kr unless grep { $_ eq $kr } @keyring;
+            push @keyring, $kr unless grep { $ARG eq $kr } @keyring;
         }
     }
     close($sfh);
@@ -125,7 +125,7 @@ if ( $has_signature and defined $gpgv and @keyring ) {
     my @keyring_binary;
     my $dearmor_dir;
     foreach my $kr (@keyring) {
-        open( my $kf, '<', $kr ) or next;
+        open( my $kf, '<:raw', $kr ) or next;
         my $head = '';
         read( $kf, $head, 14 );
         close($kf);
@@ -146,7 +146,7 @@ if ( $has_signature and defined $gpgv and @keyring ) {
     }
 
     my @cmd = ( $gpgv, qw| --quiet | );
-    push @cmd, map { ( '--keyring' => $_ ) } @keyring_binary;
+    push @cmd, map { ( '--keyring' => $ARG ) } @keyring_binary;
     push @cmd, $path;
 
     my $pid = open my $vh, '-|';
@@ -191,8 +191,8 @@ return {
     }
 };
 
-#,,,,,..,,.,.,...,,,,,...,,..,..,,,,.,.,,,,.,,..,,...,...,...,..,,.,,,,..,,,.,
-#WJGXT2OVJLSRFJFYSTPXBEF2EHRMMLO3JXZDRZ25D24TEOTUYSGQKQ6BFNTT3JTCIB4G2AOA2R4BY
-#\\\|WSJM57KTF6WEZJOVYQJRHL5EPG2FJJAGXYHW5CJ2OJHIUIN3G4Q \ / AMOS7 \ YOURUM ::
-#\[7]7EYFC253AVY3OXDXJQ3NWC57XTCIYJ7PHA7NPOVGEEMWDNZ6CSAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,...,..,,,,.,,,,,.,,,,,,,.,,,,,,,..,,...,...,,,,,.,,,,.,,...,..,,
+#I4HH3AX6VHWIQYGYGMMDORLE5NJK26LUJX2LYEZ3YVFZII3BZA43IMWBYR2JWFC7HDIOEASMETQS2
+#\\\|BEL3UKQ6UUOM7P2AFVKQTMFU3YNYZ3RT5JS2LXNCGUVGBAO7QH3 \ / AMOS7 \ YOURUM ::
+#\[7]AAX4IKC3J5NFMZA4VSFUPFK3ECCI5ZYTI6K54MSZY3FHS3IAAYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
