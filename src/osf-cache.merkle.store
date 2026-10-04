@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = osf-cache.merkle.store
+# descr = store a file's merkle tree, atomic, addressed
+# param = { bmw384, size, leaves => \@raw_48_byte_digests }
+#
+# builds the root from the raw leaf digests [ osf-cache.merkle.build_
+# root ] and writes { leaf_size, size, leaf_count, root, leaves } to
+# <[osf-cache.merkle.tree_path]> as YAML [ hashes B32 through
+# <[chk-sum.bmw.encode_digest]> - raw is memory only ]. the write is
+# '<path>.tmp.<pid>' + rename [ atomic, the state_save pattern ] and
+# the merkle dir is created with <[file.make_path]> when missing. an
+# empty leaf list [ size 0 file ] is refused : mode false 'no tree
+# for an empty file'.
+
+my $args   = shift             // {};
+my $bmw384 = $args->{'bmw384'} // '';
+my $size   = $args->{'size'};
+my $leaves = $args->{'leaves'} // [];
+
+return { 'mode' => qw| false |, 'data' => 'bmw384 required' }
+    unless length $bmw384;
+
+return { 'mode' => qw| false |, 'data' => 'no tree for an empty file' }
+    unless scalar @$leaves;
+
+my $root_raw = <[osf-cache.merkle.build_root]>->( { 'leaves' => $leaves } );
+
+return { 'mode' => qw| false |, 'data' => 'root build failed' }
+    unless defined $root_raw;
+
+my $path = <[osf-cache.merkle.tree_path]>->( { 'bmw384' => $bmw384 } );
+
+return { 'mode' => qw| false |, 'data' => 'no tree path [ state_path ]' }
+    unless length $path;
+
+( my $dir = $path ) =~ s{/[^/]+$}{};
+<[file.make_path]>->( $dir, 0750 ) unless -d $dir;
+
+my $tmp_path = sprintf '%s.tmp.%d', $path, $PROCESS_ID;
+
+my ( $written, $err ) = <[format.yaml.write_file]>->(
+    $tmp_path,
+    {   'leaf_size'  => 65536,
+        'size'       => $size,
+        'leaf_count' => scalar @$leaves,
+        'root'       => <[chk-sum.bmw.encode_digest]>->($root_raw),
+        'leaves'     =>
+            [ map { <[chk-sum.bmw.encode_digest]>->($ARG) } @$leaves ],
+    }
+);
+
+## a failed write must not leave a partial temp file behind ##
+if ( not $written ) {
+    unlink $tmp_path;
+    return { 'mode' => qw| false |, 'data' => "cannot write tree : $err" };
+}
+
+if ( not rename( $tmp_path, $path ) ) {
+    my $rename_err = $OS_ERROR;    ## before unlink overwrites it ##
+    unlink $tmp_path;
+    return {
+        'mode' => qw| false |,
+        'data' => "cannot rename $tmp_path to $path : $rename_err"
+    };
+}
+
+return { 'mode' => qw| true |, 'data' => $path };
+
+#,,,,,,.,,...,.,.,,..,...,...,.,.,,,.,...,,,.,.,.,...,...,.,.,...,,,,,,,.,,,,,
+#BKLTXTJSSU7JQUF5JTN222MOKAQFJDG3KJ6WD3ZRW2WZ6Z45VKYH7JATJ62YMZA7WX5XVPXA53EQS
+#\\\|EJMSQSVA4CS2LOADIBNNYGSBPFRFRQNUE2GBJ3G6ICIQ2T2RRAJ \ / AMOS7 \ YOURUM ::
+#\[7]GM5A35RQZ3D4S6V47H7TWTKYLMPQQH3SKOCBIRMZIB5FPLLISOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

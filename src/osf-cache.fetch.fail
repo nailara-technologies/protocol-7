@@ -5,15 +5,19 @@
 # param = { fetch_key => <anchor>, reason => <text> }
 #
 # every failure of the fetch flow funnels through here : the
-# verification-failed paths [ osf-cache.fetch.complete ], the
-# lookup-level failures [ osf-cache.fetch.lookup_done ], the holder
-# exhaustion [ osf-cache.fetch.retry ] and the partial-open \ rename
-# errors. the reply goes out mode false with the reason through
-# base.callback.cmd_reply [ which resolves the <base.cmd_reply>
-# entry itself ], the partial file is unlinked [ the cache dir never
-# sees an unverified byte ], the per-segment timer is cancelled and
-# the per-anchor state deleted - a failed fetch leaves nothing
-# behind either.
+# lookup-level failures [ osf-cache.fetch.lookup_done ], the root
+# agreement failures [ osf-cache.fetch.merkle_eval : 'merkle
+# conflict' \ 'merkle unavailable' \ a tree that does not match the
+# index ], the leaf-list exhaustion [ osf-cache.fetch.leaves_next ],
+# holder exhaustion [ osf-cache.fetch.holder_fail ], the partial
+# open \ write \ rename errors and the whole-file verification [
+# osf-cache.fetch.complete ]. EXACTLY ONE reply goes out mode false
+# with the reason through base.callback.cmd_reply [ which resolves
+# the <base.cmd_reply> entry itself ]. the cleanup is total [ stage
+# 4 step 10 ] : the phase timer AND every per-holder timer are
+# cancelled, the partial fh closed, the partial file unlinked [ the
+# cache dir never sees an unverified byte ] and the per-anchor state
+# deleted - a failed fetch leaves nothing behind either.
 
 my $args      = shift                // {};
 my $fetch_key = $args->{'fetch_key'} // return;
@@ -32,8 +36,16 @@ if ( defined $state->{'timer'}
     $state->{'timer'}->cancel;
 }
 
+foreach my $hs ( values %{ $state->{'hs'} // {} } ) {
+    if ( defined $hs->{'timer'}
+        and eval { $hs->{'timer'}->is_active } ) {
+        $hs->{'timer'}->cancel;
+    }
+}
+
 unlink $state->{'partial'}
-    if length( $state->{'partial'} // '' ) and -e $state->{'partial'};
+    if length( $state->{'partial'} // '' )
+    and -e $state->{'partial'};
 
 if ( length( $state->{'reply_id'} // '' ) ) {
     <[base.callback.cmd_reply]>->(
@@ -48,8 +60,8 @@ delete <osf-cache.fetch.pending>->{$fetch_key};
 
 return;
 
-#,,.,,,,.,...,...,..,,,.,,,.,,,..,,,,,.,.,,,,,..,,...,...,..,,.,.,,..,,,,,,..,
-#7477ZLUQAKZKPY5P7RNKBBDAHE4MGBIW4KXNG5GI35FKTAJQS53RM4W4ERVQ7WTI65Y7POWPPKICM
-#\\\|YRL45GU5DEBJGCC3UXJO663KJ632ETYNJUY56IHONS4S2WMSVHW \ / AMOS7 \ YOURUM ::
-#\[7]URQWGERVP32KJMPSGH46525WJQUTZR3O773ZDJ72B6OPWOFNXQAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,..,,.,,,..,,,,,,...,.,,,,,,,.,.,...,..,,.,.,,,,,...,..,,,.,,
+#ZPQJINT4VWYQX4GLG45M2HF7KKPRXUFTGA2SKRC4SU63E5JESL6EDEZS6Z2XRZ3Q54MTHJ5OEHG4C
+#\\\|PNSKISSZQYLOAQWL2DI7Q2HHBSS6MYQRCKSRBMPKXX5536OOAYI \ / AMOS7 \ YOURUM ::
+#\[7]BJ2VRPXB5A3BAPYSBEAVN2ZSWDV45VKFTH3JXTUPK6JRTQHRFCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

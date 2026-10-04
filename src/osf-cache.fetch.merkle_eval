@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = osf-cache.fetch.merkle_eval
+# descr = apply the root quorum, continue to the leaf list
+# param = { fetch_key => <anchor> }
+#
+# stage 4 acquisition steps 2-3 : runs osf-cache.merkle.quorum [ THE
+# one rule module ] over the asked holders and their answers. mode
+# false ends the fetch with the quorum's reason [ 'merkle conflict'
+# [ roots listed ] or 'merkle unavailable' ]. on agreement the size
+# and leaf_count must match the local index size [ leaf_count ==
+# ceil( size / 65536 ) ], else the fetch fails - the tree must
+# describe the file the index signed. dissenting \ silent holders
+# are excluded for the rest of this fetch ; the leaf list is then
+# paged from the first agreeing holder [ osf-cache.fetch.
+# leaves_request ]. called by osf-cache.handler.merkle_reply [ all
+# answered ] and osf-cache.fetch.merkle_timeout.
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| merkle |;
+
+if ( defined $state->{'timer'}
+    and eval { $state->{'timer'}->is_active } ) {
+    $state->{'timer'}->cancel;
+}
+
+my $quorum = <[osf-cache.merkle.quorum]>->(
+    {   'asked'   => $state->{'asked'}   // [],
+        'answers' => $state->{'answers'} // {},
+    }
+);
+
+if ( $quorum->{'mode'} ne qw| true | ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => $quorum->{'data'} // 'merkle unavailable'
+        }
+    );
+    return;
+}
+
+my $agreed = $quorum->{'data'} // {};
+
+## the tree must describe the file the LOCAL index anchors ##
+my $expect_leaves = int( ( $state->{'size'} + 65535 ) / 65536 );
+
+if (   $agreed->{'size'} != $state->{'size'}
+    or $agreed->{'leaf_count'} != $expect_leaves ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => sprintf
+                'merkle mismatch : index %d vs tree %d [ %d leaves ]',
+            $state->{'size'}, $agreed->{'size'}, $agreed->{'leaf_count'}
+        }
+    );
+    return;
+}
+
+$state->{'agreed'} = $agreed;
+push @{ $state->{'excluded'} }, @{ $agreed->{'excluded'} // [] };
+
+## the leaf list : paged from one agreeing holder at a time ##
+$state->{'phase'}      = qw| leaves |;
+$state->{'eligible'}   = $agreed->{'eligible'} // [];
+$state->{'leaves_sid'} = $state->{'eligible'}[0];
+$state->{'leaves_in'}  = [];
+
+<[osf-cache.fetch.leaves_request]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,,,,...,,,.,..,,,,.,,,,,..,,...,,..,..,,,.,,.,.,...,...,,.,,.,.,...,,..,,,.,
+#B2HHTQ7TEMFLP623GEMEFMQNF7CPS6VZJE3ZLP54RYWZIDFZBSLS3IC6PSXJKVJPY6DN2PAD3YN5K
+#\\\|S4LLHTAKBFPXXRXMZHYFU4TIGWO3S4FNCUXIE5VOLZWUOQGP3KL \ / AMOS7 \ YOURUM ::
+#\[7]WSVWC2MJBZUBEQJQZIV7NUBFSZ4EGQOQ7Q2LKMHUQZWJEXL5LEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

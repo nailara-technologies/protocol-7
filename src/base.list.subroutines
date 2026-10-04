@@ -1208,9 +1208,11 @@ return [ qw[
         p7-log.cmd.list-logs
         p7-log.anon.classify
         osf-cache.peers.list
+        osf-cache.fetch.pump
         osf-cache.fetch.fail
         osf-cache.cmd.status
         osf-cache.cmd.rescan
+        osf-cache.cmd.merkle
         osf-cache.cmd.lookup
         osd-logo.open_window
         openvas.cmd.scan-run
@@ -1467,8 +1469,9 @@ return [ qw[
         p7-log.cmd.file-sizes
         p7-log.anon.transform
         p7-log.anon.init_code
+        osf-cache.merkle.load
+        osf-cache.merkle.have
         osf-cache.index.build
-        osf-cache.fetch.retry
         osf-cache.cmd.segment
         nshell.search.handler
         nshell.register_hooks
@@ -1756,6 +1759,7 @@ return [ qw[
         pager.source.file-list
         pager.decode.direction
         pager.command-dispatch
+        osf-cache.merkle.store
         openvas.enrich.finding
         nshell.write_to_buffer
         nshell.render.viewport
@@ -2060,7 +2064,7 @@ return [ qw[
         pcycle.handler.shutdown
         pager.filter.preference
         p7-log.anon.cmd.resolve
-        osf-cache.fetch.request
+        osf-cache.merkle.quorum
         openbox.cleanup_tmp_dir
         nshell.render.full_line
         nshell.read_from_buffer
@@ -2622,6 +2626,7 @@ return [ qw[
         plan-9.server.buffer-stat
         pdf.html.parent.init_code
         pager.view.true-int-color
+        osf-cache.merkle.leaf_add
         osf-cache.lookup.complete
         nshell.parser.term_encode
         nshell.parser.term_decode
@@ -2886,6 +2891,9 @@ return [ qw[
         plan-9.client.read-message
         pager.view.amos-data-pager
         pager.source.checksum-list
+        osf-cache.merkle.tree_path
+        osf-cache.merkle.leaf_done
+        osf-cache.merkle.hash_leaf
         nshell.state.reset_history
         nshell.setup_stdin_watcher
         nshell.render.empty_prompt
@@ -3169,9 +3177,13 @@ return [ qw[
         pdf.html.base.get_page_size
         pdf.html.base.get_html_path
         pdf.html.base.download_file
+        osf-cache.merkle.build_root
         osf-cache.lookup.with_peers
         osf-cache.handler.has_reply
+        osf-cache.fetch.merkle_eval
         osf-cache.fetch.lookup_done
+        osf-cache.fetch.leaves_next
+        osf-cache.fetch.holder_fail
         nshell.tofu_validate_pubkey
         nshell.render.content_print
         nshell.hook.unknown_command
@@ -3472,6 +3484,8 @@ return [ qw[
         osf-cache.lookup.query_local
         osf-cache.holdings.scan_file
         osf-cache.handler.peers_list
+        osf-cache.fetch.send_segment
+        osf-cache.fetch.merkle_start
         osd-logo.set-up.import_rules
         os-pkg.handler.install_reply
         nshell.handler.command_reply
@@ -4002,6 +4016,12 @@ return [ qw[
         p7-log.startup.repair_nul_gaps
         osf-cache.lookup.merge_replies
         osf-cache.holdings.rescan_step
+        osf-cache.handler.merkle_reply
+        osf-cache.handler.leaves_reply
+        osf-cache.fetch.start_segments
+        osf-cache.fetch.merkle_timeout
+        osf-cache.fetch.leaves_timeout
+        osf-cache.fetch.leaves_request
         osf-cache.debian.read_packages
         nshell.hook.unknown_reply_type
         nshell.check_remote_connection
@@ -5834,8 +5854,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,,,,,.,.,.,,,,,,..,.,,,.,.,,.,,.,.,,.,,.,.,...,...,...,.,.,,,,,,..,,.,,
-#H2UM5KZQXFRSTUUX4K23CHUTJADLPAQSGIGJ6CSBJONU6AHXU2XKMY34FMXSTZBPFVMYB5BC4HU2Y
-#\\\|4T2J57HNTPNC5PR3HW2OEE4ONLJ2M7XYALO2TTCMMJWBOT6PVQL \ / AMOS7 \ YOURUM ::
-#\[7]4KPVAJJSVOV5FAKEEKAFY5F2QJDHUUTFBY3KC7QCEIFE6UYQWWCI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,...,,,,,,,.,.,,,...,,,.,,,,,.,.,...,..,,...,.,.,.,.,..,,,,,,
+#6K7ETFGCA32PXUPXI3FF2EIQY63EF4YCFB2MKT636XJ5FQ3543BVEOY2ESYUOTFCXTAI5DQ5EJN4Q
+#\\\|WZZMWDUV6EKQ7QMSSSLZIAOYAS55KKZQJHZNXAGNME3J4XJVELQ \ / AMOS7 \ YOURUM ::
+#\[7]TPHZYPOWN5EY2LSL7V674LC5UZWP7ICFISGOWPQVZPN7WDUMZWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

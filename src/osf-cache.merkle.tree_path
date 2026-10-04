@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = osf-cache.merkle.tree_path
+# descr = the content-addressed tree file path of a bmw384
+# param = { bmw384 }
+#
+# ONE place that knows where trees live : '<dirname of
+# osf-cache.cfg.state_path>/merkle/<bmw384>.yaml' [ content-addressed
+# : the same file has the same tree on every instance, so main and
+# peer may share the dir ]. returns '' without a bmw384 or a state
+# path.
+
+my $args   = shift             // {};
+my $bmw384 = $args->{'bmw384'} // '';
+
+return '' unless length $bmw384;
+
+my $state_path = <osf-cache.cfg.state_path> // '';
+return '' unless length $state_path;
+
+( my $dir = $state_path ) =~ s{/[^/]+$}{};
+
+return sprintf '%s/merkle/%s.yaml', $dir, $bmw384;
+
+#,,.,,,..,.,,,..,,,,,,,,.,,.,,..,,.,.,,.,,,.,,.,.,...,...,,.,,,.,,.,.,,.,,,..,
+#YEV347ZKLU4EIASMJTEUOYHZAK6FIMPP64ISWHI7V5LJI2LO2GFNY2TGD4Q7NGJAGL3NPWOLUTM6Y
+#\\\|SMAPQ3NUBUTJ4XODLV3DKL4YFNSQSZNHKM7U2GESOUSWEBSHR25 \ / AMOS7 \ YOURUM ::
+#\[7]T7FVPSZR5F4JR35XTF5MCM6PDPK4DEZCRPVF7QUS6PAVFA5HR4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

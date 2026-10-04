@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = osf-cache.fetch.leaves_timeout
+# descr = leaf page timer fired : next agreeing holder
+# param = timer event [ data => { fetch_key } ]
+#
+# one-shot timer armed per leaf page by osf-cache.fetch.
+# leaves_request [ after <osf-cache.cfg.segment_timeout>, repeat
+# FALSE ]. a silent leaves holder is a failure : it is excluded for
+# the rest of this fetch and the leaf list restarts at the next
+# agreeing holder [ the same path osf-cache.handler.leaves_reply
+# takes for a bad page ] ; no agreeing holder left fails the fetch.
+# a fetch past the leaves phase ignores the fire.
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data }   // {};   ## poll_switch pattern ##
+my $fetch_key  = $timer_data->{'fetch_key'} // '';
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| leaves |;
+
+<[base.logs]>->(
+    0,
+    ': osf-cache : leaf page timeout [ %s ]',
+    $state->{'leaves_sid'} // ''
+);
+
+<[osf-cache.fetch.leaves_next]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,..,.,.,,.,,.,,,,,.,.,,,,..,,,,,.,.,,.,,.,.,.,.,...,...,,..,..,,.,.,,,,,,.,,
+#VM6IBHE55SHD7L6AJEMEMVKLFVSFGEC6BRJ5IQWLXT4PEADT6BEABAH7RTVXF63IJ4SQQX4EULRNW
+#\\\|NFDZLQTBH34VZYO553EDEN6NMYBZMS6ZYJ7B2ZRE6MA2FKFRZEE \ / AMOS7 \ YOURUM ::
+#\[7]ZAAY5S4FCXV3W4AQB3SJ7XVRZXZH2MLTSSCH3OAU2SQTE44JE6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

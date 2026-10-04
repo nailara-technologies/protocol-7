@@ -4,28 +4,34 @@
 # descr = fetch one anchor from a holder, verify, cache it
 # param = <algo>:<hex>
 #
-# acquisition flow step 3 [ single-source ] : the anchor must be in the
-# local index [ size + filename known ] ; sizes above
-# <osf-cache.cfg.fetch_max> [ //= 512 MiB ] are refused. the target dir
-# is THIS instance's <osf-cache.cfg.cache_dir> and must be writable by
-# the zenka [ the main instance's /var/cache/apt/archives is root's ->
-# mode false 'cache dir not writable' ; the live test fetches INTO the
-# peer ]. an anchor already held answers mode true 'already held' and
-# one fetch per anchor runs at a time [ second request : mode false
-# 'fetch already running' ]. the 'who holds H' lookup then runs with
-# osf-cache.fetch.lookup_done as internal on_done caller [ the merged
-# result, not a text reply ] : no holder -> mode false with the
-# missing \ failed summary, an anchor in bmw_conflicts -> mode false
-# [ stage 4 resolves those ]. holders are tried in sorted sid order,
-# ONE outstanding segment request at a time [ <sid>.segment via
-# protocol-7.route-send, <osf-cache.cfg.segment_timeout> per segment,
-# retry once then switch holder at the same offset ]. the bytes land
-# in <cache_dir>/partial/<deb filename>.partial and are verified there
-# [ size + anchor digest + bmw384 ] before the rename into the cache
-# dir - an unverified byte never reaches the cache dir. on success the
-# file is scan_file'd into the holdings and state_saved. this command
-# returns mode deferred ; every exit path cleans up pending state,
-# timers and the partial file [ osf-cache.fetch.fail ].
+# acquisition flow steps 3-4 [ stage 4 : multi-source ] : the anchor
+# must be in the local index [ size + filename known ] ; sizes above
+# <osf-cache.cfg.fetch_max> [ //= 512 MiB ] are refused. the target
+# dir is THIS instance's <osf-cache.cfg.cache_dir> and must be
+# writable by the zenka [ the main instance's /var/cache/apt/archives
+# is root's -> mode false 'cache dir not writable' ; the live test
+# fetches INTO the peer ]. an anchor already held answers mode true
+# 'already held' and one fetch per anchor runs at a time [ second
+# request : mode false 'fetch already running' ]. the 'who holds H'
+# lookup then runs with osf-cache.fetch.lookup_done as internal
+# on_done caller [ the merged result, not a text reply ] : no holder
+# -> mode false with the missing \ failed summary, an anchor in
+# bmw_conflicts -> mode false [ kept from stage 3 ]. the stage 4 flow
+# [ osf-cache.fetch.merkle_start ] : the holders agree on a merkle
+# root [ osf-cache.merkle.quorum, k/n over <osf-cache.cfg.
+# root_quorum> //= '5/7' - ALL asked must agree below n ], the leaf
+# list is paged from one agreeing holder and rebuilt against the
+# agreed root, then leaves are fetched in parallel [ one leaf per
+# '<sid>.segment' request, ONE outstanding per holder, per-holder seq
+# + timeout ] and verified against their leaf hash on arrival. the
+# bytes land in <cache_dir>/partial/<deb filename>.partial and the
+# stage 3 whole-file verification stays [ size + anchor digest +
+# bmw384 ] before the rename into the cache dir - an unverified byte
+# never reaches the cache dir. on success the file is scan_file'd
+# into the holdings [ which also writes the merkle tree ] and
+# state_saved. this command returns mode deferred ; every exit path
+# cleans up pending state, ALL timers and the partial file [
+# osf-cache.fetch.fail ].
 
 require Time::HiRes;    ## core - loaded here, modules carry no use ##
 
@@ -82,13 +88,17 @@ return {
 my $cache_dir = <osf-cache.cfg.cache_dir> // '';
 
 return { 'mode' => qw| false |, 'data' => 'cache dir not writable' }
-    unless length $cache_dir and -d $cache_dir and -w $cache_dir;
+    unless length $cache_dir
+    and -d $cache_dir
+    and -w $cache_dir;
 
 ## already held ? unanchored files never count [ the trust rule ] ##
 my $holdings = <osf-cache.holdings>;
 my $held     = <[osf-cache.lookup.query_local]>->(
     {   'hashes'   => [$token],
-        'holdings' => ref $holdings eq qw| HASH | ? $holdings : { 'files' => [] },
+        'holdings' => ref $holdings eq qw| HASH |
+        ? $holdings
+        : { 'files' => [] },
     }
 );
 
@@ -107,21 +117,19 @@ my $filename = $entry->{'filename'} =~ s{^.*/}{}r;
 
 ## per-anchor state - every module of the flow reads THIS entry ##
 <osf-cache.fetch.pending>->{$token} = {
-    'reply_id'   => $reply_id,
-    'anchor'     => $token,
-    'algo'       => $algo,
-    'hex'        => $hex,
-    'size'       => $size,
-    'filename'   => $filename,
-    'cache_dir'  => $cache_dir,
-    'partial'    => "$cache_dir/partial/$filename.partial",
-    'offset'     => 0,
-    'segments'   => 0,
-    'retries'    => 0,
-    'holder_idx' => 0,
-    'holders'    => [],
-    'bmw384'     => '',
-    'started'    => Time::HiRes::time(),
+    'reply_id'  => $reply_id,
+    'anchor'    => $token,
+    'algo'      => $algo,
+    'hex'       => $hex,
+    'size'      => $size,
+    'filename'  => $filename,
+    'cache_dir' => $cache_dir,
+    'partial'   => "$cache_dir/partial/$filename.partial",
+    'segments'  => 0,
+    'holders'   => [],
+    'excluded'  => [],
+    'bmw384'    => '',
+    'started'   => Time::HiRes::time(),
 };
 
 ## the lookup with an internal caller : lookup_done continues the fetch ##
@@ -143,8 +151,8 @@ if ( ref $lookup eq qw| HASH | and $lookup->{'mode'} ne qw| deferred | ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,,,,,.,,.,,,..,,,.,,,,,,.,,.,,,.,,,,,.,..,,...,.,.,..,,.,,,.,.,,,.,..,,
-#WKQ4SDLKYURMPVCE327R2MMO5AI4VJHUGMXRVWQWBNBCUHO6OCPRHKDXLORWD6KLE36HPS5CH24CM
-#\\\|AVHHBOSPEWH7QGPLT3K354K3R53HZO3W25K6O224JJUDD3AZ2P7 \ / AMOS7 \ YOURUM ::
-#\[7]UM32ZFWONQGDEAOBAVSFNFD7TLBUL2Q2NZRK7YSITPETQRUTBAAY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,...,..,,,..,,,.,...,,,.,..,,..,,...,...,,,.,..,,,,.,,..,.,,,
+#UIR7OZEA5UZUCCBPGFPAAYXUD7NEX6435FGVHY5KH7YNT3HBTX4T2T52BZWGSF5M4ZBSGLJCLIRRQ
+#\\\|OBHODP2QHJZHE4HC4EZ2S62BCCLSOCIIPFITUDCYBVT3IYQZX4C \ / AMOS7 \ YOURUM ::
+#\[7]4V4HZVIYDIBD6UGKSNWYJOZEJ47NZAT6RIFOHJXKJFER35XZQABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

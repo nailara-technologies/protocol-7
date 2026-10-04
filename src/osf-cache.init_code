@@ -45,10 +45,13 @@ my $state_file
 <osf-cache.cfg.scan_slice>     //= 4;
 <osf-cache.cfg.lookup_timeout> //= 5;    ## seconds [ peer lookup ] ##
 
-## stage 3 : single-source segment fetch + verify ##
-<osf-cache.cfg.segment_max>     //= 65536;       ## bytes per segment ##
-<osf-cache.cfg.segment_timeout> //= 10;          ## seconds per segment ##
-<osf-cache.cfg.fetch_max>       //= 536870912;   ## 512 MiB cap ##
+## stage 3 : segment fetch + verify ##
+<osf-cache.cfg.segment_max>     //= 65536;        ## bytes per segment ##
+<osf-cache.cfg.segment_timeout> //= 10;           ## seconds per segment ##
+<osf-cache.cfg.fetch_max>       //= 536870912;    ## 512 MiB cap ##
+
+## stage 4 : merkle root agreement [ osf-cache.merkle.quorum ] ##
+<osf-cache.cfg.root_quorum> //= qw| 5/7 |;        ## k of n holders ##
 
 ## a cache dir inside this zenka's own data dir [ per-subname peers ] is ##
 ## created here, still as root, owned by the zenka user [ web.init_code  ##
@@ -71,8 +74,8 @@ if ( index( $cache_dir, "$data_dir/" ) == 0 and not -d $cache_dir ) {
 
 0;
 
-#,,,,,,,.,..,,.,,,..,,,,.,,.,,,.,,,..,.,,,,,.,.,.,...,...,..,,,,,,...,..,,...,
-#6ABD2PW4AHJUOUDZ5AV4SQ735G7DTBZ766XMPEZQ2DNWMFFTXMZ6VGCQJPKGFPRCIHLRJZDOOXLLS
-#\\\|ZUUWXBN7NWWK2XWURFE7B7VJ6H4HTQ5LGWU5OVQALX36AOZV3LN \ / AMOS7 \ YOURUM ::
-#\[7]SQCOMA5GZO3RQUF6NNA5KKOJIW4L5FKNWDBAAHCXQOMV3Q4QNCCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,..,,.,,,,.,,,,,,,,,,,,.,.,,,.,.,...,...,..,,,,,,,..,,,.,,,,,
+#RDAWTQANPRTCWHHXZ5LSHPVCJS2CBSERO66WDAT2JONYKH4BRWBOI5ENIQD4P6DBOIBYAJ6MP3TBI
+#\\\|CCH3HVL2NGSSLZS4LLTTV4UKBRRB4IRNYGZUSZ2YZRZIE3ZBQWP \ / AMOS7 \ YOURUM ::
+#\[7]2SQC6OA5ALLOA2GOS7YXGQT37TIUZDET5UXQIVICAPUPCRU5RYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

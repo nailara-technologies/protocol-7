@@ -5,20 +5,22 @@
 modules.load          = net protocol io.unix ui auth format.yaml osf-cache
 ## explicit command list : no wildcard - has answers for this node's own
 ## holdings, status and rescan are read-only, lookup fans out to the
-## other osf-cache sessions, fetch pulls one anchor from a holder
-## into this instance's cache dir [ verified ] and segment serves it -
-## peer calls routed via cube arrive as user cube, so has \ segment
-## must be listed HERE ; who may route them is cube's access.zenki.
+## other osf-cache sessions, fetch pulls one anchor from the holders
+## into this instance's cache dir [ verified ] and segment \ merkle
+## serve it [ bytes and the stage 4 tree ] - peer calls routed via
+## cube arrive as user cube, so has \ segment \ merkle must be listed
+## HERE ; who may route them is cube's access.zenki.
 ## install stays out ##
 access.cmd.usr.cube   = commands heart reload verify-instance \
                         list show-buffer buffer-erase buffer-erase-level \
-                        status has rescan lookup fetch segment
+                        status has rescan lookup fetch segment merkle
 ## peer grant [ zenka-to-zenka form, like zulum's cube-13 line ] : a
-## session authenticated as osf-cache may ask this node's holdings
-## and pull one verified segment of an anchored holding [ stage 3 ].
-## routed-via-cube calls arrive as user cube [ covered above ] - this
-## covers a direct zenka-to-zenka connection and documents the intent ##
-access.cmd.usr.osf-cache = has segment
+## session authenticated as osf-cache may ask this node's holdings,
+## pull verified segments of an anchored holding [ stage 3 ] and its
+## merkle tree [ stage 4 ]. routed-via-cube calls arrive as user cube
+## [ covered above ] - this covers a direct zenka-to-zenka connection
+## and documents the intent ##
+access.cmd.usr.osf-cache = has segment merkle
 
 ## per-subname instance config [ v7-zenki.start osf-cache[peer] ] :
 ## the peer instance scans this dir instead of the apt archive cache ##
@@ -39,8 +41,8 @@ osf-cache.cfg.by_subname.peer.cache_dir = /var/protocol-7/osf-cache/peer-archive
 
 [zenka.loop]
 
-#,,..,.,,,.,,,,.,,..,,.,.,,..,,,.,,..,.,.,,.,,.,.,...,...,..,,,.,,,..,,,,,,,.,
-#FC6RAFAT5BO2HYFXHSKNZ7SF7U2O27NJNFHE3Z2FJCDNTTMXEP4CWDK2ZJ4ATZJRKWGTS2NQDBPYK
-#\\\|AQCO65QHXSBYOVZ3VLM3XCJ5WOVA2PQSXKU5STLAUKPNI4ZONDO \ / AMOS7 \ YOURUM ::
-#\[7]X6VMNIZSO6UEBOBMHLCFDYLGMSNSSFKUWDIMGKDY4FS5QHJTJ6CI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,,,,,...,.,,,...,,,.,,,,,,,.,.,.,...,...,.,.,,,.,...,.,.,,.,,
+#MEIZSUNKYJKBX2AIS7JSI67XEDDHSDPVOVFBEAYKLC5VLGIPZABU3XGA2YTILY6KFLBHIHWA7S2TW
+#\\\|XGGTGWYOEQBKU2CWKCZXFOAYNQI2BZMW5GOA3PQ3PXE42ZGMWRB \ / AMOS7 \ YOURUM ::
+#\[7]47SD54HDUCQKYB6U6QLNX572VGOTGHNRPQT2G6F3PKCNZIJYVCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

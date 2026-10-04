@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = osf-cache.merkle.have
+# descr = cheap tree-file existence check
+# param = { bmw384 }
+#
+# the reuse-path question of osf-cache.holdings.scan_file : is there
+# a tree file for this bmw384 at all ? existence only - VERIFYING is
+# osf-cache.merkle.load's job, done when the tree is actually served.
+# an invalid tree file counts as present here : load will ignore it
+# and cmd.merkle answers 'merkle not ready' until a rescan rewrites
+# it [ scan_file only re-reads when the file is absent ].
+
+my $args   = shift             // {};
+my $bmw384 = $args->{'bmw384'} // '';
+
+return 0 unless length $bmw384;
+
+my $path = <[osf-cache.merkle.tree_path]>->( { 'bmw384' => $bmw384 } );
+
+return length $path && -f $path ? 1 : 0;
+
+#,,.,,,,,,.,,,.,,,.,.,..,,,.,,,,,,,.,,,..,...,.,.,...,..,,.,.,,,,,,.,,,.,,,..,
+#VWTFOO7AXCCJEOIJMDB5XHZ6NHKDXGXPM7DS5W7XGWBS3MLOCF2MP2JCDU3ETLLUKJVCZICVNWA2U
+#\\\|JZWW2PJPR4GLA5XGWZI72QKQSNXXWO7HUAEDKBHRCTTWU7S762H \ / AMOS7 \ YOURUM ::
+#\[7]CLEQ45QV4NM7O74DQK5PMXCFHQZGVIORMIK6MKKRULXC5TT7PUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

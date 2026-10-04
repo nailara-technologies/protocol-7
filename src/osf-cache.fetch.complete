@@ -4,19 +4,22 @@
 # descr = verify the partial, rename into the cache dir
 # param = { fetch_key => <anchor> }
 #
-# the last segment closed the partial file. verification runs over
-# '<cache_dir>/partial/<name>.partial' in ONE read pass : the byte
-# count against the index size, the anchor digest [ sha256 \ sha512
-# per the anchor algo ] against the anchor, and bmw384 [ Digest::BMW
-# 384 + <[chk-sum.bmw.encode_digest]> ] against the bmw384 the
-# holders agreed on. ANY mismatch fails the fetch mode false
-# 'verification failed : <which>' and unlinks the partial - an
-# unverified byte never reaches the cache dir. on success the partial
-# is renamed into '<cache_dir>/<deb filename>', scan_file'd into the
-# holdings [ the counts follow, then state_save ] and the reply goes
-# out : 'fetched <filename> <size> bytes from <sid> [ <n> segments,
-# <secs> s ]'. the per-anchor state is deleted - a completed fetch
-# leaves nothing behind.
+# the last leaf closed the partial file. the stage 3 whole-file
+# check stays [ stage 4 step 8 ] : ONE read pass over
+# '<cache_dir>/partial/<name>.partial' - the byte count against the
+# index size, the anchor digest [ sha256 \ sha512 per the anchor
+# algo ] against the anchor, and bmw384 [ Digest::BMW 384 +
+# <[chk-sum.bmw.encode_digest]> ] against the bmw384 the holders
+# agreed on. ANY mismatch fails the fetch mode false 'verification
+# failed : <which>' and unlinks the partial - an unverified byte
+# never reaches the cache dir. on success the partial is renamed
+# into '<cache_dir>/<deb filename>', scan_file'd into the holdings [
+# which now also writes the merkle tree ; the counts follow, then
+# state_save ] and the reply goes out : 'fetched <filename> <size>
+# bytes from <n> holders [ <sids> ] [ <segments> segments, <secs>
+# s ]' [ excluded holders mentioned when there were any ]. the
+# per-anchor state is deleted - a completed fetch leaves nothing
+# behind.
 
 require Time::HiRes;    ## core - loaded here, modules carry no use ##
 
@@ -31,10 +34,17 @@ if ( defined $state->{'timer'}
     $state->{'timer'}->cancel;
 }
 
+foreach my $hs ( values %{ $state->{'hs'} // {} } ) {
+    if ( defined $hs->{'timer'}
+        and eval { $hs->{'timer'}->is_active } ) {
+        $hs->{'timer'}->cancel;
+    }
+}
+
 my $partial = $state->{'partial'};
 
-## CORE::stat : bin/Protocol-7 imports File::stat, whose stat returns ##
-## an object -> a plain list stat left all fields undef in the zenka  ##
+## CORE::stat : bin/Protocol-7 imports File::stat, whose stat returns an ##
+## object -> a plain list stat left all fields undef in the zenka        ##
 my @stat = CORE::stat($partial);
 
 my $which;
@@ -43,8 +53,8 @@ if ( @stat < 11 or $stat[7] != $state->{'size'} ) {
 } else {
     ## one pass : the anchor algo + bmw384 ##
     require Digest::BMW;    ## known dependency - loaded here ##
-    my $sha_ctx = Digest::SHA->new(
-        $state->{'algo'} eq qw| sha256 | ? 256 : 512 );
+    my $sha_ctx
+        = Digest::SHA->new( $state->{'algo'} eq qw| sha256 | ? 256 : 512 );
     my $bmw_ctx = Digest::BMW->new(384);
     if ( open( my $fh, '<:raw', $partial ) ) {
         while ( read( $fh, my $chunk, 65536 ) ) {
@@ -53,7 +63,7 @@ if ( @stat < 11 or $stat[7] != $state->{'size'} ) {
         }
         close($fh);
         my $anchor_hex = $sha_ctx->hexdigest;
-        my $bmw_b32 = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
+        my $bmw_b32    = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
         $which = 'anchor' if $anchor_hex ne $state->{'hex'};
         $which = 'bmw384' if !$which and $bmw_b32 ne $state->{'bmw384'};
     } else {
@@ -122,17 +132,27 @@ if ( ref $entry eq qw| HASH | and ref $holdings eq qw| HASH | ) {
 
 my $secs = Time::HiRes::time() - $state->{'started'};
 
+my @used = sort { $a <=> $b }
+    grep { ( $state->{'used'}{$ARG} // 0 ) > 0 }
+    keys %{ $state->{'used'} // {} };
+
+my $excluded = join ' ', @{ $state->{'excluded'} // [] };
+
 if ( length( $state->{'reply_id'} // '' ) ) {
     <[base.callback.cmd_reply]>->(
         $state->{'reply_id'},
         {   'mode' => qw| true |,
-            'data' => sprintf 'fetched %s %d bytes from %s '
-                . '[ %d segments, %.1f s ]',
-            $state->{'filename'},
-            $state->{'size'},
-            $state->{'current_sid'} // '',
-            $state->{'segments'},
-            $secs
+            'data' => sprintf(
+                'fetched %s %d bytes from %d holders '
+                    . '[ %s ] [ %d segments, %.1f s ]%s',
+                $state->{'filename'},
+                $state->{'size'},
+                scalar @used,
+                join( ' ', @used ),
+                $state->{'segments'},
+                $secs,
+                length $excluded ? " [ excluded $excluded ]" : ''
+            )
         }
     );
 }
@@ -141,8 +161,8 @@ delete <osf-cache.fetch.pending>->{$fetch_key};
 
 return;
 
-#,,..,...,,,,,,,,,,..,.,.,,,,,...,,,.,,..,..,,..,,...,...,...,,..,,..,,..,...,
-#42EDX6YUUPITBULRSL34HY2CPFNPS6GVWRFRTCG3JTPKJA32TZCY5K6OSPL3AX3NBOZENQF3YH2KA
-#\\\|WIVLDY5V7FTJB5EQFNNIGCCXZND5TKM3RRXGLUQES2PDWVFTBWL \ / AMOS7 \ YOURUM ::
-#\[7]X4ZICBSAJSUX3FXA7IEL6MKRHUPVTP5EVYM6L7WLXQ7USDAXEEDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,.,,,.,,,.,,..,,...,..,,.,,,.,.,...,...,..,,.,,,,,,,.,,,,,,,
+#OAZQA2T3WIE7GIXJLLZCQUW6KOH4LA33OWWZGS3JERS4BHRETDVMB7IL2OSKFIMCKWLAJ3F7JCVUK
+#\\\|TC7OL5V5XAS4EQB3MJUPC34I6RNZ3YNCSB5AJGIE3EJLMASWPKI \ / AMOS7 \ YOURUM ::
+#\[7]5KQPG5KVAUVSZWSV4TAGKNSPVXOCTIUALYJWXC3PC7B6JGZYBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

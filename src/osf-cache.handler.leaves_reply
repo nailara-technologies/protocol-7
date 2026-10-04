@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = osf-cache.handler.leaves_reply
+# descr = collect one leaf page, verify the list, start segments
+# param = reply envelope [ params : fetch_key, sid, from, count ]
+#
+# reply handler for the '<sid>.merkle <bmw384> leaves <from> <count>'
+# pages of the fetch flow [ ONE outstanding page ]. a TRUE reply
+# carries '<from> <count> <leaf> <leaf> ..' [ B32 ] in
+# call_args.args, a SIZE reply in data. the page must be exactly
+# what was asked [ from \ count, valid B32 leaves ] - anything else
+# fails the leaves holder [ osf-cache.fetch.leaves_next ]. the last
+# page completes the list : the root rebuilt from it must equal the
+# agreed root [ stage 4 step 4 ], else the holder is excluded and
+# the next one tried. a verified list starts the segment phase [
+# osf-cache.fetch.start_segments ]. a reply past the leaves phase or
+# from a sid that is not the leaves holder : dropped.
+
+my $reply     = shift                  // {};
+my $params    = $reply->{'params'}     // {};
+my $fetch_key = $params->{'fetch_key'} // return;
+my $sid       = $params->{'sid'}       // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'}      // '' ) eq qw| leaves |;
+return unless ( $state->{'leaves_sid'} // '' ) eq $sid;
+
+if ( defined $state->{'timer'}
+    and eval { $state->{'timer'}->is_active } ) {
+    $state->{'timer'}->cancel;
+}
+
+my $cmd     = $reply->{'cmd'} // '';
+my $payload = '';
+if ( $cmd eq qw| TRUE | ) {
+    $payload = $reply->{'call_args'}{'args'} // '';
+} elsif ( $cmd eq qw| SIZE | ) {
+    $payload = $reply->{'data'} // '';
+}
+
+my ( $from, $count, @leaves ) = grep {length} split m{\s+}, $payload;
+
+## no 'my $good = .. and ..' : 'and' would modify the statement, not the ##
+## assignment [ the checks must be an if-condition ]                     ##
+my $good = 0;
+$good = 1
+    if length $payload
+    and $from =~ m{^\d+$}o
+    and $from == $params->{'from'}
+    and $count =~ m{^\d+$}o
+    and $count == $params->{'count'}
+    and scalar @leaves == $count
+    and !grep { $ARG !~ m|^[A-Z2-7]{77}$|o } @leaves;
+
+if ( !$good ) {
+    <[osf-cache.fetch.leaves_next]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => 'bad leaf page'
+        }
+    );
+    return;
+}
+
+push @{ $state->{'leaves_in'} }, @leaves;
+
+my $leaf_count = $state->{'agreed'}{'leaf_count'} // 0;
+
+if ( scalar @{ $state->{'leaves_in'} } < $leaf_count ) {
+    <[osf-cache.fetch.leaves_request]>->( { 'fetch_key' => $fetch_key } );
+    return;
+}
+
+## the full list : it must rebuild to the AGREED root ##
+<[base.perlmod.autoload]>->( 'Crypt::Misc', qw| decode_b32r | );
+
+my @raw      = map { decode_b32r($ARG) } @{ $state->{'leaves_in'} };
+my $root_raw = <[osf-cache.merkle.build_root]>->( { 'leaves' => \@raw } );
+
+if ( !defined $root_raw
+    or <[chk-sum.bmw.encode_digest]>->($root_raw) ne
+    ( $state->{'agreed'}{'root'} // '' ) ) {
+    <[osf-cache.fetch.leaves_next]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => 'leaf list does not rebuild to the root'
+        }
+    );
+    return;
+}
+
+$state->{'leaves'} = $state->{'leaves_in'};
+delete $state->{'leaves_in'};
+
+<[osf-cache.fetch.start_segments]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,..,...,.,.,,,.,..,,...,,.,,,,.,...,..,,,..,.,.,...,...,.,,,...,,..,.,.,,..,
+#ODEPHVILV6OTT5KOXPHQPOTL5OD5KBMOKHFTD3RYANPHLZGA4QJV5L5LV7N46JWOIGVPBSJS7I77I
+#\\\|3BTJILZP6RG34ZPJSTWGQKJSMFABLR2N6TVNPP4F3LSN76UPVVW \ / AMOS7 \ YOURUM ::
+#\[7]MRR7HGG4GN4LYFXWKHBWCQF366SSCOQMUTTLC4KIEAZ2RFWLSCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
