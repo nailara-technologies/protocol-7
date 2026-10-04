@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = osf-cache.fetch.start_segments
+# descr = open the partial read-write, start the parallel fetch
+# param = { fetch_key => <anchor> }
+#
+# stage 4 acquisition step 5 begins : the agreed \ verified leaf
+# list is in place. the partial '<cache_dir>/partial/<name>.partial'
+# is opened '+>:raw' [ read-write : segments arrive OUT OF ORDER and
+# land at their own offsets, sysseek + syswrite ], the leaf queue [
+# 0 .. leaf_count-1 ] and the per-holder state are set up and
+# osf-cache.fetch.pump hands every eligible holder its first leaf.
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+my $leaf_count = $state->{'agreed'}{'leaf_count'} // 0;
+
+## the partial file : one dir inside the cache dir, created as needed ##
+my $partial_dir = "$state->{'cache_dir'}/partial";
+
+<[file.make_path]>->( $partial_dir, 0750 ) unless -d $partial_dir;
+
+open( my $fh, '+>:raw', $state->{'partial'} ) or do {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => "cannot write partial : $OS_ERROR"
+        }
+    );
+    return;
+};
+
+$state->{'phase'} = qw| segments |;
+$state->{'fh'}    = $fh;
+$state->{'queue'} = [ 0 .. $leaf_count - 1 ];
+$state->{'done'}  = {};
+$state->{'used'}  = {};
+$state->{'hs'}
+    = { map { $ARG => { 'seq' => 0, 'timeouts' => 0, 'leaf' => undef } }
+        @{ $state->{'eligible'} // [] } };
+
+<[osf-cache.fetch.pump]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,,.,.,,,.,.,.,,,,,.,,,.,.,.,,..,,..,,,,,,,,,.,.,...,...,,..,,..,.,.,,,,,...,
+#2JEEO4E6GPGALVRRJKFWEPRLZLHQ7FOYQYLHV2XBE4T4IKU64MMHEKAT7R7J6X7RQN7ASOWXUSDNC
+#\\\|RW4EBRGB6DSHP32IUJRSF2D2TFC3NV2QCYXF3WHBNT5NE5WNT4W \ / AMOS7 \ YOURUM ::
+#\[7]PMRUBBMXJHPX4MMKUQV66C5DXSX5QZZOYDO77J24K42WR5CGFADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

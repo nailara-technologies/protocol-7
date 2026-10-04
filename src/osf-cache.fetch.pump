@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = osf-cache.fetch.pump
+# descr = hand queued leaves out to idle eligible holders
+# param = { fetch_key => <anchor> }
+#
+# the scheduler of the segment phase : leaves are handed out IN
+# ORDER from the queue, ONE outstanding request per eligible holder
+# [ a holder with a request in flight is skipped ]. called whenever
+# capacity frees up : osf-cache.fetch.start_segments, the segment
+# reply handler [ a leaf landed or a holder was excluded ] and
+# osf-cache.fetch.holder_fail.
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| segments |;
+
+my $queue = $state->{'queue'} // [];
+
+foreach my $sid ( @{ $state->{'eligible'} // [] } ) {
+    last unless scalar @$queue;
+    my $hs = $state->{'hs'}{$sid} // next;
+    next if defined $hs->{'leaf'};    ## one outstanding per holder ##
+    my $leaf = shift @$queue;
+    <[osf-cache.fetch.send_segment]>->(
+        {   'fetch_key' => $fetch_key,
+            'sid'       => $sid,
+            'leaf'      => $leaf,
+        }
+    );
+}
+
+return;
+
+#,,..,...,,.,,..,,,.,,,..,,..,,.,,,,.,,.,,,,.,.,.,...,..,,..,,.,,,.,,,...,.,.,
+#FH7B4SXYZC2DQ67PWZ4RHRYRXTPHIZ3A4YAIJB3TTKO4FCO5ACPC6N4RU76POKHO2AWGYKI3YG4LC
+#\\\|VMIOLGWFLRKJPPSIJSLAR7APO7QH7GRBUQFZETZ7DZCHYPUTVJP \ / AMOS7 \ YOURUM ::
+#\[7]Z3OMNZUQUVZCFHAHGKJPGTS4V3O4AWTVVGXD62YEAIZ7AC5LEUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

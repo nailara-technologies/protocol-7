@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = osf-cache.merkle.leaf_done
+# descr = flush the leaf accumulator : the short last leaf
+# param = { state => \%acc }
+#
+# finishes an osf-cache.merkle.leaf_add accumulator : bytes left in
+# the buffer are the last, shorter leaf [ a file whose size is a
+# multiple of 65536 has NO empty trailing leaf ]. returns the raw
+# leaf digest list. zero bytes fed means no leaves at all [ a file
+# of size 0 has no tree - callers refuse it ].
+
+my $args  = shift            // {};
+my $state = $args->{'state'} // {};
+
+$state->{'buf'}    //= '';
+$state->{'leaves'} //= [];
+
+if ( length $state->{'buf'} ) {
+    push @{ $state->{'leaves'} },
+        <[osf-cache.merkle.hash_leaf]>->( { 'bytes' => $state->{'buf'} } );
+    $state->{'buf'} = '';
+}
+
+return $state->{'leaves'};
+
+#,,,,,,..,..,,.,,,,..,,,.,,..,,,,,.,,,..,,.,,,.,.,...,...,.,.,..,,,..,,,.,,,,,
+#FX25POXSTZXHSPC7Z2BLTISBIXDXHYMWQTG7GWVYSUKXN73MUH5GMMDVJ6RKTMKAS5NAMERZH63SS
+#\\\|GFOJLPXGIZDILNM2TGXIEJRPM65OVVX3M2UWLAXAGWW7MCJGZLE \ / AMOS7 \ YOURUM ::
+#\[7]SXLEYWTX3ETIFWZTBAQERCBXXAJML2TJJLLPZ5PJ6ZZOEBRM7SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

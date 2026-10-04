@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = osf-cache.fetch.holder_fail
+# descr = exclude a holder for this fetch, requeue its leaf
+# param = { fetch_key => <anchor>, sid => <holder>, reason => <text> }
+#
+# the holder exclusion path of the segment phase : a leaf that fails
+# verification [ osf-cache.handler.segment_reply ] or a second
+# timeout [ osf-cache.fetch.segment_timeout ] excludes the holder
+# for the rest of THIS fetch. its outstanding leaf goes back to the
+# front of the queue [ the order is kept ], its timer is cancelled
+# and the pump hands work to whoever is eligible. NO eligible holder
+# left while leaves are missing fails the fetch [ stage 4 step 7 ].
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+my $sid       = $args->{'sid'}       // return;
+my $reason    = $args->{'reason'}    // 'holder failed';
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| segments |;
+
+my $hs = $state->{'hs'}{$sid} // return;
+return if $hs->{'excluded'};
+
+if ( defined $hs->{'timer'}
+    and eval { $hs->{'timer'}->is_active } ) {
+    $hs->{'timer'}->cancel;
+}
+
+if ( defined $hs->{'leaf'} ) {
+    unshift @{ $state->{'queue'} }, $hs->{'leaf'};
+    $hs->{'leaf'} = undef;
+}
+
+$hs->{'excluded'} = 1;
+push @{ $state->{'excluded'} }, $sid;
+$state->{'eligible'}
+    = [ grep { $ARG != $sid } @{ $state->{'eligible'} // [] } ];
+
+<[base.logs]>
+    ->( 0, ': osf-cache : holder %s excluded [ %s ]', $sid, $reason );
+
+my $leaf_count = $state->{'agreed'}{'leaf_count'} // 0;
+my $done       = scalar keys %{ $state->{'done'} // {} };
+
+if ( !scalar @{ $state->{'eligible'} } and $done < $leaf_count ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => 'no holders left [ segment fetch failed ]'
+        }
+    );
+    return;
+}
+
+<[osf-cache.fetch.pump]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,,.,..,,..,,.,,,...,.,,,,,.,,.,,,,.,.,.,,,,,.,.,...,...,.,.,.,.,...,,,.,...,
+#AGROGMJNK4GX6KPZKMRIAW42Q7TR7KZOTWCKXAEVNZ7KKE6VR4MDECJ3KFGHWV7JMMS5K5CU4VFYO
+#\\\|ACRUMKRODBNJHEPECMM3Q5FX4BYXFBO7NA4TUHSWEEYRLZ5TPTG \ / AMOS7 \ YOURUM ::
+#\[7]RTT6EYI3CZJPV75GPCVPFMC6V6Q5IR4OU5XLT4WH6RGCXRO6EICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

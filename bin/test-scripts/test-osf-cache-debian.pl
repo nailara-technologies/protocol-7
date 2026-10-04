@@ -108,11 +108,31 @@ compile_module('osf-cache.lookup.complete');
 compile_module('osf-cache.lookup.format_lookup_reply');
 compile_module('osf-cache.lookup.timeout');
 compile_module('osf-cache.cmd.segment');
+compile_module('osf-cache.cmd.merkle');
+compile_module('osf-cache.merkle.hash_leaf');
+compile_module('osf-cache.merkle.build_root');
+compile_module('osf-cache.merkle.leaf_add');
+compile_module('osf-cache.merkle.leaf_done');
+compile_module('osf-cache.merkle.tree_path');
+compile_module('osf-cache.merkle.store');
+compile_module('osf-cache.merkle.load');
+compile_module('osf-cache.merkle.have');
+compile_module('osf-cache.merkle.quorum');
 compile_module('osf-cache.cmd.fetch');
 compile_module('osf-cache.handler.segment_reply');
 compile_module('osf-cache.fetch.lookup_done');
-compile_module('osf-cache.fetch.request');
-compile_module('osf-cache.fetch.retry');
+compile_module('osf-cache.fetch.merkle_start');
+compile_module('osf-cache.handler.merkle_reply');
+compile_module('osf-cache.fetch.merkle_timeout');
+compile_module('osf-cache.fetch.merkle_eval');
+compile_module('osf-cache.fetch.leaves_request');
+compile_module('osf-cache.handler.leaves_reply');
+compile_module('osf-cache.fetch.leaves_timeout');
+compile_module('osf-cache.fetch.leaves_next');
+compile_module('osf-cache.fetch.start_segments');
+compile_module('osf-cache.fetch.pump');
+compile_module('osf-cache.fetch.send_segment');
+compile_module('osf-cache.fetch.holder_fail');
 compile_module('osf-cache.fetch.segment_timeout');
 compile_module('osf-cache.fetch.complete');
 compile_module('osf-cache.fetch.fail');
@@ -2073,10 +2093,123 @@ sub fetch_timer {
     return $data{'osf-cache'}{'fetch'}{'pending'}{$fc_anchor}{'timer'};
 }
 
-## flow 1 : the happy path [ 4 segments via the sorted-first holder ] ##
+##[ stage 4 : merkle \ leaf \ holder helpers ]################################
+
+sub merkle_sends {
+    return
+        grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.merkle$}o }
+        @{ $data{'test'}{'route_sends'} };
+}
+
+sub holder_timer {
+    my $sid = shift;
+    return $data{'osf-cache'}{'fetch'}{'pending'}{$fc_anchor}{'hs'}{$sid}
+        {'timer'};
+}
+
+## the B32 leaf list of a content, computed through the real modules ##
+sub bmw384_leaves {
+    my ( $content, $chunk_size ) = @ARG;
+    $chunk_size //= 65536;
+    my $acc = {};
+    my $pos = 0;
+    while ( $pos < length $content ) {
+        my $piece = substr( $content, $pos, $chunk_size );
+        $pos += length $piece;
+        $code{'osf-cache.merkle.leaf_add'}
+            ->( { 'state' => $acc, 'bytes' => $piece } );
+    }
+    my $raw = $code{'osf-cache.merkle.leaf_done'}->( { 'state' => $acc } );
+    return [ map { $code{'chk-sum.bmw.encode_digest'}->($ARG) } @$raw ];
+}
+
+## the B32 root over a B32 leaf list [ decode, build, encode ] ##
+sub bmw384_root_b32 {
+    my $leaves = shift;
+    my @raw    = map { decode_b32r($ARG) } @$leaves;
+    return $code{'chk-sum.bmw.encode_digest'}
+        ->( $code{'osf-cache.merkle.build_root'}->( { 'leaves' => \@raw } ) );
+}
+
+sub deliver_merkle_root {
+    my ( $send, $root, $leaf_count, $size ) = @ARG;
+    $send->{'__delivered'} = 1;
+    deliver_reply(
+        $send,
+        {   'cmd'  => qw| TRUE |,
+            'args' => "$root $leaf_count $size"
+        }
+    );
+    return;
+}
+
+## answer one '<sid>.merkle <bmw> leaves <from> <count>' page request ##
+sub deliver_leaves_page {
+    my ( $send, $leaves ) = @ARG;
+    $send->{'__delivered'} = 1;
+    my ( undef, undef, $from, $count ) = split m{\s+},
+        $send->{'call_args'}{'args'};
+    my $end = $from + $count - 1;
+    $end = $#$leaves if $end > $#$leaves;
+    my @page = @{$leaves}[ $from .. $end ];
+    deliver_reply(
+        $send,
+        {   'cmd'  => qw| TRUE |,
+            'args' => sprintf '%d %d %s',
+            $from, scalar @page, join( ' ', @page )
+        }
+    );
+    return;
+}
+
+## drive the stage 4 control phase [ merkle root round + leaf pages ] from ##
+## one content's tree ; segment requests are left open                     ##
+sub drive_control {
+    my ( $content, %opt ) = @ARG;
+    my $leaves = $opt{'leaves'} // bmw384_leaves($content);
+    my $root   = $opt{'root'}   // bmw384_root_b32($leaves);
+    my $guard  = 0;
+    while ( ++$guard < 100 ) {
+        my @open = grep { !$ARG->{'__delivered'} }
+            grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.merkle$}o }
+            @{ $data{'test'}{'route_sends'} };
+        last unless @open;
+        foreach my $send (@open) {
+            if ( ( $send->{'call_args'}{'args'} // '' ) =~ m{ leaves }o ) {
+                deliver_leaves_page( $send, $leaves );
+            } else {
+                deliver_merkle_root(
+                    $send, $root,
+                    scalar @$leaves,
+                    length $content
+                );
+            }
+        }
+    }
+    return;
+}
+
+## a valid envelope with wrong bytes : the leaf hash check must fail ##
+sub deliver_bad_segment {
+    my ( $send, $content ) = @ARG;
+    $send->{'__delivered'} = 1;
+    my ( undef, $offset, $len ) = split m{\s+}, $send->{'call_args'}{'args'};
+    my $chunk = substr $content, $offset, $len;
+    substr( $chunk, 0, 1 )
+        = chr( ( ord( substr( $chunk, 0, 1 ) ) + 1 ) % 256 );
+    deliver_reply(
+        $send,
+        {   'cmd'  => qw| TRUE |,
+            'args' => sprintf '%d %d %s',
+            $offset, length $chunk, encode_b32r($chunk)
+        }
+    );
+    return;
+}
+
+## flow 1 : the happy path [ stage 4 : agree, leaves, one segment ] ##
 my $fc_dir = tempdir( CLEANUP => 1 );
 fetch_reset($fc_dir);
-$data{'osf-cache'}{'cfg'}{'segment_max'} = 128;
 
 $data{'base'}{'cmd_reply'}{'r-happy'} = { 'fake' => 1 };
 my $ff = call_module( 'osf-cache.cmd.fetch',
@@ -2101,11 +2234,23 @@ deliver_reply(
     }
 ) foreach @ff_has;
 
+## stage 4 : the merkle round goes to ALL holders [ 2 < n ] ##
+my @ff_merkle = merkle_sends();
+ok( scalar @ff_merkle == 2
+        && join( ',', map { $ARG->{'command'} } @ff_merkle ) eq
+        '4301.merkle,4302.merkle'
+        && ( $ff_merkle[0]{'call_args'}{'args'} // '' ) eq $fc_bmw,
+    'fetch : merkle root asked of every holder [ below n : ALL ]'
+);
+
+drive_control($fc_content);
+
+## 500 bytes = ONE leaf : one leaf page, then one segment request ##
 my @ff_seg = segment_sends();
 ok( scalar @ff_seg == 1
         && $ff_seg[0]{'command'} eq qw| 4301.segment |
-        && $ff_seg[0]{'call_args'}{'args'} eq "$fc_bmw 0 128",
-    'fetch : ONE outstanding segment request, sorted sid order'
+        && $ff_seg[0]{'call_args'}{'args'} eq "$fc_bmw 0 500",
+    'fetch : leaf list agreed, ONE segment request [ offset 0 len 500 ]'
 );
 
 deliver_segments($fc_content);
@@ -2116,9 +2261,10 @@ ok( ( $fc_reply->{'mode'} // '' ) eq qw| true |
         && scalar(
         $fc_reply->{'data'}
             =~ m{^fetched\s+fetch-pkg_1\.0-1_amd64\.deb\s+500\s+bytes\s+from
-            \s+4301\s+\[\s+4\s+segments,\s+\d+\.\d\s+s\s+\]$}xo
+            \s+1\s+holders\s+\[\s+4301\s+\]\s+\[\s+1\s+segments,
+            \s+\d+\.\d\s+s\s+\]$}xo
         ),
-    'fetch : fetched reply with size, holder, segments and seconds'
+    'fetch : fetched reply [ holders list, segments, seconds ]'
 );
 
 open( my $rfh, '<:raw', "$fc_dir/fetch-pkg_1.0-1_amd64.deb" )
@@ -2143,15 +2289,31 @@ ok( ref $fc_held eq qw| HASH |
     'fetch : holdings updated [ anchored entry, bmw384 ] + state saved'
 );
 
+## stage 4 : the fetched file's tree was stored [ content-addressed ] ##
+my $fc_tree = call_module( 'osf-cache.merkle.load', { 'bmw384' => $fc_bmw } );
+
+ok( ref $fc_tree eq qw| HASH |
+        && ( $fc_tree->{'leaf_count'} // 0 ) == 1
+        && ( $fc_tree->{'root'}       // '' ) eq
+        bmw384_root_b32( bmw384_leaves($fc_content) ),
+    'fetch : scan_file stored the merkle tree of the fetched file'
+);
+
 ok( fetch_pending() == 0
         && !exists $data{'base'}{'cmd_reply'}{'r-happy'}
         && ( grep { $ARG->is_active } @{ $data{'test'}{'watchers'} } ) == 0,
     'fetch : pending state, timers and the cmd_reply entry cleaned up'
 );
 
-## flow 2 : a corrupted segment fails verification, nothing is placed ##
+## flow 2 : a corrupt-but-agreed tree fails the whole-file anchor check ##
 my $fc_dir2 = tempdir( CLEANUP => 1 );
 fetch_reset($fc_dir2);
+
+## both holders agree on the tree of CORRUPT content : every leaf check ##
+## passes, the stage 3 whole-file verification catches it               ##
+my $fc_corrupt = join '', map { chr( ( $ARG + 1 ) % 256 ) } unpack 'C*',
+    $fc_content;
+my $fc_corrupt_bmw = $code{'chk-sum.bmw.384.B32'}->( \$fc_corrupt );
 
 $data{'base'}{'cmd_reply'}{'r-corrupt'} = { 'fake' => 1 };
 call_module( 'osf-cache.cmd.fetch',
@@ -2160,14 +2322,11 @@ resolve_peers();
 deliver_reply(
     $ARG,
     {   'cmd'  => qw| SIZE |,
-        'data' => "$fc_anchor 500 $fc_bmw"
+        'data' => "$fc_anchor 500 $fc_corrupt_bmw"
     }
 ) foreach has_sends();
 
-## valid envelope, wrong bytes : the per-segment checks pass, the ##
-## whole-file verification catches it                             ##
-my $fc_corrupt = join '', map { chr( ( $ARG + 1 ) % 256 ) } unpack 'C*',
-    $fc_content;
+drive_control($fc_corrupt);
 deliver_segments($fc_corrupt);
 
 my $c_reply = $data{'test'}{'cmd_replies'}{'r-corrupt'} // {};
@@ -2183,7 +2342,7 @@ ok( !-e "$fc_dir2/fetch-pkg_1.0-1_amd64.deb"
     'fetch : nothing placed, the partial is gone, state cleaned'
 );
 
-## flow 3 : timeout twice -> retry once, then the next holder ##
+## flow 3 : timeout twice -> holder excluded, the other continues ##
 my $fc_dir3 = tempdir( CLEANUP => 1 );
 fetch_reset($fc_dir3);
 
@@ -2198,34 +2357,36 @@ deliver_reply(
     }
 ) foreach has_sends();
 
+drive_control($fc_content);
+
 my @t_seg = segment_sends();
 ok( scalar @t_seg == 1 && $t_seg[0]{'command'} eq qw| 4301.segment |,
     'fetch : the segment request goes to the first holder'
 );
 
-## first timeout : the SAME holder is retried once, same offset ##
-fire_timer( fetch_timer() );
+## first timeout : the SAME holder is retried once, same leaf ##
+fire_timer( holder_timer(4301) );
 
 my @t_all = segment_sends();
 ok( scalar @t_all == 2
         && $t_all[1]{'command'} eq qw| 4301.segment |
         && $t_all[1]{'call_args'}{'args'} eq "$fc_bmw 0 500",
-    'fetch : first timeout retries the same holder at the same offset'
+    'fetch : first timeout retries the same holder, same leaf'
 );
 
-## second timeout : the next holder continues at the same offset ##
-fire_timer( fetch_timer() );
+## second timeout : the holder is EXCLUDED, the other continues ##
+fire_timer( holder_timer(4301) );
 
 my @t_all2 = segment_sends();
 ok( scalar @t_all2 == 3
         && $t_all2[2]{'command'} eq qw| 4302.segment |
         && $t_all2[2]{'call_args'}{'args'} eq "$fc_bmw 0 500",
-    'fetch : second failure switches holder, same offset'
+    'fetch : second timeout excludes the holder, 4302 gets the leaf'
 );
 
 ## a late reply to a timed-out request is dropped : no write, no new ##
 ## request, the current request keeps its timer                      ##
-my $t_timer = fetch_timer();
+my $t_timer = holder_timer(4302);
 $t_all2[0]{'__delivered'} = 1;
 deliver_reply(
     $t_all2[0],
@@ -2238,7 +2399,7 @@ deliver_reply(
 ok( scalar segment_sends() == 3
         && fetch_pending() == 1
         && !exists $data{'test'}{'cmd_replies'}{'r-timeout'}
-        && fetch_timer() == $t_timer
+        && holder_timer(4302) == $t_timer
         && $t_timer->is_active,
     'fetch : a late reply to a timed-out request is dropped'
 );
@@ -2251,8 +2412,9 @@ deliver_segments($fc_content);
 my $t_reply = $data{'test'}{'cmd_replies'}{'r-timeout'} // {};
 
 ok( ( $t_reply->{'mode'} // '' ) eq qw| true |
-        && $t_reply->{'data'} =~ m{from 4302 \[ 1 segments}o,
-    'fetch : the switched holder serves the rest'
+        && $t_reply->{'data'} =~ m{from 1 holders \[ 4302 \]}o
+        && $t_reply->{'data'} =~ m{\[ excluded 4301 \]$}o,
+    'fetch : the remaining holder serves, the excluded one is named'
 );
 
 ## flow 4 : no holder ##
@@ -2400,6 +2562,636 @@ ok( ref $toobig eq qw| HASH |
     'fetch : sizes above fetch_max [ 512 MiB ] are refused'
 );
 
+##[ 21 : stage 4 - merkle tree [ pure modules ] ]#############################
+
+say ': stage 4 - merkle tree [ pure modules ]';
+
+sub ref_bmw384_raw {
+    my $data = shift;
+    my $ctx  = Digest::BMW->new(384);
+    $ctx->add($data);
+    return $ctx->digest;
+}
+
+sub ref_inner {
+    my ( $left, $right ) = @ARG;
+    return ref_bmw384_raw( "\x01" . $left . $right );
+}
+
+my $m_content = join '', map { chr( ( $ARG * 7 ) % 256 ) } 0 .. 66535;
+## 66536 bytes = two leaves [ 65536 + 1000 ]                                ##
+my $m_bmw = $code{'chk-sum.bmw.384.B32'}->( \$m_content );
+
+my $m_leaf0 = $code{'osf-cache.merkle.hash_leaf'}
+    ->( { 'bytes' => substr( $m_content, 0, 65536 ) } );
+
+ok( $m_leaf0 eq ref_bmw384_raw( "\x00" . substr( $m_content, 0, 65536 ) )
+        && length $m_leaf0 == 48,
+    'leaf : bmw384( "\\x00" . bytes ), raw 48 bytes'
+);
+
+ok( $m_leaf0 ne ref_bmw384_raw( substr( $m_content, 0, 65536 ) ),
+    'leaf : the "\\x00" domain prefix changes the digest'
+);
+
+my ( $la, $lb, $lc, $ld, $le )
+    = map { ref_bmw384_raw("fake-leaf-$ARG") } 1 .. 5;
+
+ok( $code{'osf-cache.merkle.build_root'}->( { 'leaves' => [$la] } ) eq $la,
+    'root of a one-leaf file is that leaf hash' );
+
+ok( $code{'osf-cache.merkle.build_root'}->( { 'leaves' => [ $la, $lb ] } ) eq
+        ref_inner( $la, $lb ),
+    'two leaves : bmw384( "\\x01" . left . right )'
+);
+
+my $root3
+    = $code{'osf-cache.merkle.build_root'}
+    ->( { 'leaves' => [ $la, $lb, $lc ] } );
+
+ok( $root3 eq ref_inner( ref_inner( $la, $lb ), $lc ),
+    'three leaves : the odd node is PROMOTED unchanged'
+);
+
+ok( $root3 ne ref_inner( ref_inner( $la, $lb ), ref_inner( $lc, $lc ) ),
+    'three leaves : never duplicated [ a different root ]'
+);
+
+ok( $code{'osf-cache.merkle.build_root'}
+        ->( { 'leaves' => [ $la, $lb, $lc, $ld, $le ] } ) eq ref_inner(
+        ref_inner( ref_inner( $la, $lb ), ref_inner( $lc, $ld ) ), $le
+        ),
+    'five leaves : promotion at every odd level'
+);
+
+ok( $code{'osf-cache.merkle.build_root'}->( { 'leaves' => [ $la, $lb ] } ) ne
+        $code{'osf-cache.merkle.hash_leaf'}->( { 'bytes' => $la . $lb } ),
+    'domain separation : a leaf hash fed as an inner node differs'
+);
+
+ok( !defined $code{'osf-cache.merkle.build_root'}->( { 'leaves' => [] } ),
+    'no leaves : no root [ a file of size 0 has no tree ]'
+);
+
+## short read chunks give the same leaves as one-shot reads ##
+my $lv_one = bmw384_leaves($m_content);
+my $lv_odd = bmw384_leaves( $m_content, 997 );
+
+ok( join( ',', @$lv_one ) eq join( ',', @$lv_odd ),
+    'short read chunks give the same leaves'
+);
+
+ok( scalar @$lv_one == 2
+        && $lv_one->[1] eq $code{'chk-sum.bmw.encode_digest'}->(
+        $code{'osf-cache.merkle.hash_leaf'}
+            ->( { 'bytes' => substr( $m_content, 65536 ) } )
+        ),
+    'the last leaf may be shorter [ 1000 bytes ]'
+);
+
+## tree file round trip + tamper detection ##
+my $mt_dir = tempdir( CLEANUP => 1 );
+$data{'osf-cache'}{'cfg'}{'state_path'} = "$mt_dir/holdings.yaml";
+
+my @m_raw = map { decode_b32r($ARG) } @$lv_one;
+
+my $m_stored = call_module(
+    'osf-cache.merkle.store',
+    {   'bmw384' => $m_bmw,
+        'size'   => length $m_content,
+        'leaves' => \@m_raw,
+    }
+);
+
+ok( $m_stored->{'mode'} eq qw| true | && -f "$mt_dir/merkle/$m_bmw.yaml",
+    'tree stored at <state_path dir>/merkle/<bmw384>.yaml'
+);
+
+my $m_loaded = call_module( 'osf-cache.merkle.load', { 'bmw384' => $m_bmw } );
+
+ok( ref $m_loaded eq qw| HASH |
+        && ( $m_loaded->{'leaf_size'}  // 0 ) == 65536
+        && ( $m_loaded->{'leaf_count'} // 0 ) == 2
+        && ( $m_loaded->{'size'}       // 0 ) == length $m_content
+        && ( $m_loaded->{'root'}       // '' ) eq bmw384_root_b32($lv_one)
+        && join( ',', @{ $m_loaded->{'leaves'} } ) eq join( ',', @$lv_one ),
+    'tree file round trip : leaf_size, size, leaf_count, root, leaves'
+);
+
+ok( call_module( 'osf-cache.merkle.have', { 'bmw384' => $m_bmw } ) == 1,
+    'merkle.have sees the stored tree' );
+
+## tamper one stored leaf : treated as missing [ and logged ] ##
+my $tampered = $code{'format.yaml.load_file'}->("$mt_dir/merkle/$m_bmw.yaml");
+$tampered->{'leaves'}[1] = $tampered->{'leaves'}[0];
+$code{'format.yaml.write_file'}->( "$mt_dir/merkle/$m_bmw.yaml", $tampered );
+$data{'test'}{'logs'} = [];
+
+my $m_tampered
+    = call_module( 'osf-cache.merkle.load', { 'bmw384' => $m_bmw } );
+
+ok( !defined $m_tampered
+        && ( grep { $ARG =~ m{merkle tree .* invalid}o }
+        @{ $data{'test'}{'logs'} } ) >= 1,
+    'a tampered stored leaf is treated as missing [ logged ]'
+);
+
+my $m_empty = call_module( 'osf-cache.merkle.store',
+    { 'bmw384' => $m_bmw, 'size' => 0, 'leaves' => [] } );
+
+ok( $m_empty->{'mode'} eq qw| false |
+        && $m_empty->{'data'} eq 'no tree for an empty file',
+    'a file of size 0 has no tree [ store refuses ]'
+);
+
+##[ 22 : stage 4 - scan_file stores the tree ]################################
+
+say ': stage 4 - scan_file stores the tree';
+
+ok( ( $data{'osf-cache'}{'cfg'}{'root_quorum'} // '' ) eq '5/7',
+    'init_code defaults root_quorum to 5/7' );
+
+my $t4_dir = tempdir( CLEANUP => 1 );
+$data{'osf-cache'}{'cfg'}{'state_path'} = "$t4_dir/holdings.yaml";
+
+my $t4_content = join '', map { chr( ( $ARG * 11 ) % 256 ) } 0 .. 143496;
+## 143497 bytes = three leaves [ 65536 + 65536 + 12345 ]                    ##
+my $t4_name = 't4-pkg_1.0-1_amd64.deb';
+open( my $t4_fh, '>:raw', "$t4_dir/$t4_name" ) or die $OS_ERROR;
+print {$t4_fh} $t4_content;
+close($t4_fh);
+
+my $t4_sha256 = Digest::SHA::sha256_hex($t4_content);
+my $t4_bmw    = $code{'chk-sum.bmw.384.B32'}->( \$t4_content );
+my %t4_index  = (
+    "sha256:$t4_sha256" => { 'package' => 't4-pkg', 'version' => '1.0-1' } );
+
+my $t4_entry = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'    => "$t4_dir/$t4_name",
+        'name'    => $t4_name,
+        'anchors' => \%t4_index,
+        'algos'   => [qw| sha256 |],
+    }
+);
+
+ok( ref $t4_entry eq qw| HASH |
+        && $t4_entry->{'anchored'} == 1
+        && $t4_entry->{'rehashed'} == 1
+        && -f "$t4_dir/merkle/$t4_bmw.yaml",
+    'an anchored scan stores the tree in the same pass'
+);
+
+my $t4_tree = call_module( 'osf-cache.merkle.load', { 'bmw384' => $t4_bmw } );
+
+ok( ref $t4_tree eq qw| HASH |
+        && ( $t4_tree->{'leaf_count'} // 0 ) == 3
+        && ( $t4_tree->{'root'}       // '' ) eq
+        bmw384_root_b32( bmw384_leaves($t4_content) ),
+    'the stored tree rebuilds to the content root [ 3 leaves ]'
+);
+
+my $t4_reuse = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'     => "$t4_dir/$t4_name",
+        'name'     => $t4_name,
+        'anchors'  => \%t4_index,
+        'algos'    => [qw| sha256 |],
+        'previous' => $t4_entry,
+    }
+);
+
+ok( $t4_reuse->{'rehashed'} == 0, 'reuse with a present tree reads nothing' );
+
+## an anchored reuse whose tree is missing is re-read [ backfill ] ##
+unlink "$t4_dir/merkle/$t4_bmw.yaml" or die $OS_ERROR;
+
+my $t4_backfill = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'     => "$t4_dir/$t4_name",
+        'name'     => $t4_name,
+        'anchors'  => \%t4_index,
+        'algos'    => [qw| sha256 |],
+        'previous' => $t4_entry,
+    }
+);
+
+ok( $t4_backfill->{'rehashed'} == 1 && -f "$t4_dir/merkle/$t4_bmw.yaml",
+    'anchored reuse with a missing tree re-reads + backfills'
+);
+
+## unanchored files get no tree ##
+my $t4_u_content = 'unanchored stage 4 content';
+my $t4_u_name    = 't4-un_1.0-1_amd64.deb';
+write_fixture( "$t4_dir/$t4_u_name", $t4_u_content );
+my $t4_u_bmw = $code{'chk-sum.bmw.384.B32'}->( \$t4_u_content );
+
+my $t4_u_entry = call_module(
+    'osf-cache.holdings.scan_file',
+    {   'path'    => "$t4_dir/$t4_u_name",
+        'name'    => $t4_u_name,
+        'anchors' => {},
+        'algos'   => [qw| sha256 |],
+    }
+);
+
+ok( $t4_u_entry->{'anchored'} == 0 && !-f "$t4_dir/merkle/$t4_u_bmw.yaml",
+    'unanchored files get no tree' );
+
+##[ 23 : stage 4 - cmd.merkle ]###############################################
+
+say ': stage 4 - cmd.merkle';
+
+$data{'osf-cache'}{'cfg'}{'cache_dir'} = $t4_dir;
+$data{'osf-cache'}{'scan'}     = { 'running' => 0, 'done' => 1 };
+$data{'osf-cache'}{'holdings'} = { 'files'   => [ $t4_entry, $t4_u_entry ], };
+
+my $mk_root = call_module( 'osf-cache.cmd.merkle', { 'args' => $t4_bmw } );
+
+ok( $mk_root->{'mode'} eq qw| true |
+        && $mk_root->{'data'} eq sprintf( '%s 3 %d',
+        bmw384_root_b32( bmw384_leaves($t4_content) ),
+        length $t4_content ),
+    'cmd.merkle : mode true "<root> <leaf_count> <size>"'
+);
+
+my $mk_page = call_module( 'osf-cache.cmd.merkle',
+    { 'args' => "$t4_bmw leaves 0 2" } );
+
+my @t4_leaves = @{ bmw384_leaves($t4_content) };
+
+ok( $mk_page->{'mode'} eq qw| true |
+        && $mk_page->{'data'} eq "0 2 $t4_leaves[0] $t4_leaves[1]",
+    'cmd.merkle leaves : "<from> <count> <leaf> <leaf>" one line'
+);
+
+my $mk_tail = call_module( 'osf-cache.cmd.merkle',
+    { 'args' => "$t4_bmw leaves 2 5" } );
+
+ok( $mk_tail->{'mode'} eq qw| true |
+        && $mk_tail->{'data'} eq "2 1 $t4_leaves[2]",
+    'cmd.merkle leaves : the page clamps at leaf_count'
+);
+
+## the 1024 cap : a planted 1025-leaf tree [ fake leaves, real store ] ##
+my @cap_raw = map { ref_bmw384_raw("cap-leaf-$ARG") } 1 .. 1025;
+call_module(
+    'osf-cache.merkle.store',
+    {   'bmw384' => $t4_bmw,
+        'size'   => 1025 * 65536,
+        'leaves' => \@cap_raw,
+    }
+);
+
+my $mk_cap = call_module( 'osf-cache.cmd.merkle',
+    { 'args' => "$t4_bmw leaves 0 2000" } );
+
+my @cap_reply = split m{\s+}, $mk_cap->{'data'} // '';
+
+ok( $mk_cap->{'mode'} eq qw| true |
+        && $cap_reply[0] == 0
+        && $cap_reply[1] == 1024
+        && scalar @cap_reply == 1026,
+    'cmd.merkle leaves : count is capped at 1024 per request'
+);
+
+## restore the real tree for the file ##
+call_module(
+    'osf-cache.merkle.store',
+    {   'bmw384' => $t4_bmw,
+        'size'   => length $t4_content,
+        'leaves' => [ map { decode_b32r($ARG) } @t4_leaves ],
+    }
+);
+
+my $mk_range = call_module( 'osf-cache.cmd.merkle',
+    { 'args' => "$t4_bmw leaves 3 1" } );
+
+ok( $mk_range->{'mode'} eq qw| false |
+        && $mk_range->{'data'} =~ m{^from outside 0 \.\. 3}o,
+    'cmd.merkle leaves : from beyond leaf_count refused'
+);
+
+## no tree yet -> mode false 'merkle not ready' ##
+rename "$t4_dir/merkle", "$t4_dir/merkle-away" or die $OS_ERROR;
+
+my $mk_none = call_module( 'osf-cache.cmd.merkle', { 'args' => $t4_bmw } );
+
+ok( $mk_none->{'mode'} eq qw| false |
+        && $mk_none->{'data'} eq 'merkle not ready',
+    'cmd.merkle : no tree yet -> merkle not ready'
+);
+
+rename "$t4_dir/merkle-away", "$t4_dir/merkle" or die $OS_ERROR;
+
+my $mk_unanch
+    = call_module( 'osf-cache.cmd.merkle', { 'args' => $t4_u_bmw } );
+
+ok( $mk_unanch->{'mode'} eq qw| false |
+        && $mk_unanch->{'data'} =~ m{not an anchored holding}o,
+    'cmd.merkle : an unanchored match is refused'
+);
+
+## the stat rule of cmd.segment applies to the tree as well ##
+open( my $t4_app, '>>:raw', "$t4_dir/$t4_name" ) or die $OS_ERROR;
+print {$t4_app} 'x' x 16;
+close($t4_app);
+
+my $mk_changed = call_module( 'osf-cache.cmd.merkle', { 'args' => $t4_bmw } );
+
+ok( $mk_changed->{'mode'} eq qw| false |
+        && $mk_changed->{'data'} eq 'changed since scan',
+    'cmd.merkle : a file changed since the scan is never served'
+);
+
+##[ 24 : stage 4 - multi-source fetch ]#######################################
+
+say ': stage 4 - multi-source fetch';
+
+my $ms_content = join '', map { chr( ( $ARG * 13 ) % 256 ) } 0 .. 132071;
+## 132072 bytes = three leaves [ 65536 + 65536 + 1000 ] ##
+my $ms_sha256 = Digest::SHA::sha256_hex($ms_content);
+my $ms_bmw    = $code{'chk-sum.bmw.384.B32'}->( \$ms_content );
+my $ms_anchor = "sha256:$ms_sha256";
+my $ms_entry  = {
+    'size'     => length $ms_content,
+    'filename' => 'pool/main/m/ms-pkg/ms-pkg_2.0-1_amd64.deb',
+    'package'  => 'ms-pkg',
+    'version'  => '2.0-1',
+};
+my $ms_root = bmw384_root_b32( bmw384_leaves($ms_content) );
+
+my $ms_other      = 'other content, other tree' x 4000; ## 3+ leaves, wrong ##
+my $ms_other_root = bmw384_root_b32( bmw384_leaves($ms_other) );
+
+my $sessions_table7 = join(
+    "\n",
+    ' usid  protocol    type   mode   uname             since',
+    '----------------------------------------------------------',
+    ' 4242  protocol-7  zenka  ----   osf-cache         2h 13m',
+    (   map {
+            sprintf ' %d  protocol-7  zenka  ----   osf-cache   5m 2s', $ARG
+        } 4301 .. 4307
+    ),
+    ''
+);
+
+sub ms_setup {
+    my $dir = shift;
+    fetch_reset($dir);
+    $data{'osf-cache'}{'index'}{'anchors'}{$ms_anchor} = $ms_entry;
+    return;
+}
+
+sub ms_fetch {
+    my $reply_id = shift;
+    $data{'base'}{'cmd_reply'}{$reply_id} = { 'fake' => 1 };
+    call_module( 'osf-cache.cmd.fetch',
+        { 'args' => $ms_anchor, 'reply_id' => $reply_id } );
+    resolve_peers();
+    deliver_reply(
+        $ARG,
+        {   'cmd'  => qw| SIZE |,
+            'data' => sprintf '%s %d %s',
+            $ms_anchor, length $ms_content, $ms_bmw
+        }
+    ) foreach has_sends();
+    return;
+}
+
+sub open_merkle_sends {
+    return grep { !$ARG->{'__delivered'} } merkle_sends();
+}
+
+sub ms_has7 {
+    deliver_reply( $data{'test'}{'route_sends'}[0],
+        { 'cmd' => qw| SIZE |, 'data' => $sessions_table7 } );
+    deliver_reply(
+        $ARG,
+        {   'cmd'  => qw| SIZE |,
+            'data' => sprintf '%s %d %s',
+            $ms_anchor, length $ms_content, $ms_bmw
+        }
+    ) foreach has_sends();
+    return;
+}
+
+## flow 1 : two holders both serve segments ##
+my $ms_dir1 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir1);
+ms_fetch('r-ms1');
+drive_control($ms_content);
+
+my @ms_seg = segment_sends();
+ok( scalar @ms_seg == 2
+        && join( ',', map { $ARG->{'command'} } @ms_seg ) eq
+        '4301.segment,4302.segment'
+        && $ms_seg[0]{'call_args'}{'args'} eq "$ms_bmw 0 65536"
+        && $ms_seg[1]{'call_args'}{'args'} eq "$ms_bmw 65536 65536",
+    'multi : leaves handed out in order, ONE outstanding per holder'
+);
+
+deliver_segments($ms_content);
+
+my $ms_r1 = $data{'test'}{'cmd_replies'}{'r-ms1'} // {};
+
+ok( ( $ms_r1->{'mode'} // '' ) eq qw| true |
+        && $ms_r1->{'data'}
+        =~ m{^fetched ms-pkg_2\.0-1_amd64\.deb 132072 bytes from 2 holders
+        \s+\[\s+4301\s+4302\s+\]\s+\[\s+3\s+segments,}xo,
+    'multi : both holders served [ 3 segments, reply lists both ]'
+);
+
+open( my $ms_fh1, '<:raw', "$ms_dir1/ms-pkg" . "_2.0-1_amd64.deb" )
+    or die $OS_ERROR;
+my $ms_placed1 = do { local $INPUT_RECORD_SEPARATOR = undef; <$ms_fh1> };
+close($ms_fh1);
+
+ok( $ms_placed1 eq $ms_content
+        && fetch_pending() == 0
+        && ( grep { $ARG->is_active } @{ $data{'test'}{'watchers'} } ) == 0,
+    'multi : file byte-exact, nothing left behind'
+);
+
+## flow 2 : a bad leaf excludes its holder, the other refetches it ##
+my $ms_dir2 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir2);
+ms_fetch('r-ms2');
+drive_control($ms_content);
+
+@ms_seg = segment_sends();
+deliver_bad_segment( $ms_seg[0], $ms_content );    ## 4301 serves wrong ##
+deliver_segments($ms_content);
+
+my $ms_r2 = $data{'test'}{'cmd_replies'}{'r-ms2'} // {};
+
+ok( ( $ms_r2->{'mode'} // '' ) eq qw| true |
+        && $ms_r2->{'data'} =~ m{from 1 holders \[ 4302 \]}o
+        && $ms_r2->{'data'} =~ m{\[ excluded 4301 \]$}o,
+    'multi : bad leaf -> holder excluded, leaf refetched, file placed'
+);
+
+open( my $ms_fh2, '<:raw', "$ms_dir2/ms-pkg" . "_2.0-1_amd64.deb" )
+    or die $OS_ERROR;
+my $ms_placed2 = do { local $INPUT_RECORD_SEPARATOR = undef; <$ms_fh2> };
+close($ms_fh2);
+
+ok( $ms_placed2 eq $ms_content, 'multi : the refetched file is byte-exact' );
+
+## flow 3 : root conflict with 2 holders -> fail, nothing sent ##
+my $ms_dir3 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir3);
+ms_fetch('r-ms3');
+
+my @mk3 = merkle_sends();
+deliver_merkle_root( $mk3[0], $ms_root,       3, length $ms_content );
+deliver_merkle_root( $mk3[1], $ms_other_root, 3, length $ms_content );
+
+my $ms_r3 = $data{'test'}{'cmd_replies'}{'r-ms3'} // {};
+
+ok( ( $ms_r3->{'mode'} // '' ) eq qw| false |
+        && $ms_r3->{'data'} =~ m{^merkle conflict : }o
+        && $ms_r3->{'data'} =~ m{\Q$ms_root\E}o
+        && $ms_r3->{'data'} =~ m{\Q$ms_other_root\E}o
+        && segment_sends() == 0
+        && fetch_pending() == 0
+        && !-e "$ms_dir3/partial/ms-pkg_2.0-1_amd64.deb.partial",
+    'multi : root conflict -> fail [ roots listed ], no segments sent'
+);
+
+## flow 4 : 7 holders, 2 dissenting -> proceeds without them ##
+my $ms_dir4 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir4);
+$data{'base'}{'cmd_reply'}{'r-ms4'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $ms_anchor, 'reply_id' => 'r-ms4' } );
+ms_has7();
+
+my @mk4 = merkle_sends();
+ok( scalar @mk4 == 7, 'multi : 7 holders asked [ the first n ]' );
+
+deliver_merkle_root( $mk4[$ARG], $ms_root, 3, length $ms_content )
+    foreach 0 .. 4;
+deliver_merkle_root( $mk4[$ARG], $ms_other_root, 3, length $ms_content )
+    foreach 5 .. 6;
+
+drive_control($ms_content);    ## the leaf pages from 4301 ##
+deliver_segments($ms_content);
+
+my $ms_r4 = $data{'test'}{'cmd_replies'}{'r-ms4'} // {};
+
+## 5 eligible holders, 3 leaves : 4301 .. 4303 each serve one ##
+ok( ( $ms_r4->{'mode'} // '' ) eq qw| true |
+        && $ms_r4->{'data'} =~ m{from 3 holders \[ 4301 4302 4303 \]}o
+        && $ms_r4->{'data'} =~ m{\[ excluded 4306 4307 \]$}o
+        && ( grep { $ARG->{'command'} =~ m{^430[67]\.segment$}o }
+        segment_sends() ) == 0,
+    'multi : 5 of 7 agree -> proceeds, dissenting holders excluded'
+);
+
+## flow 5 : 7 holders, 3 dissenting -> fail ##
+my $ms_dir5 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir5);
+$data{'base'}{'cmd_reply'}{'r-ms5'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $ms_anchor, 'reply_id' => 'r-ms5' } );
+ms_has7();
+
+my @mk5 = merkle_sends();
+deliver_merkle_root( $mk5[$ARG], $ms_root, 3, length $ms_content )
+    foreach 0 .. 3;
+deliver_merkle_root( $mk5[$ARG], $ms_other_root, 3, length $ms_content )
+    foreach 4 .. 6;
+
+my $ms_r5 = $data{'test'}{'cmd_replies'}{'r-ms5'} // {};
+
+ok( ( $ms_r5->{'mode'} // '' ) eq qw| false |
+        && $ms_r5->{'data'} =~ m{^merkle conflict : }o
+        && segment_sends() == 0
+        && fetch_pending() == 0,
+    'multi : 4 of 7 agree [ below k ] -> merkle conflict, fail'
+);
+
+## flow 6 : a leaf list that does not rebuild -> the next holder ##
+my $ms_dir6 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir6);
+ms_fetch('r-ms6');
+
+deliver_merkle_root( $ARG, $ms_root, 3, length $ms_content )
+    foreach merkle_sends();
+
+my @mk6 = open_merkle_sends();    ## the leaves request to 4301 ##
+deliver_leaves_page( $mk6[0], bmw384_leaves($ms_other) );
+
+my @mk6b = open_merkle_sends();    ## retried at 4302 ##
+ok( scalar @mk6b == 1 && $mk6b[0]{'command'} eq qw| 4302.merkle |,
+    'multi : bad leaf list -> the next agreeing holder is tried'
+);
+
+deliver_leaves_page( $mk6b[0], bmw384_leaves($ms_content) );
+deliver_segments($ms_content);
+
+my $ms_r6 = $data{'test'}{'cmd_replies'}{'r-ms6'} // {};
+
+ok( ( $ms_r6->{'mode'} // '' ) eq qw| true |
+        && $ms_r6->{'data'} =~ m{from 1 holders \[ 4302 \]}o
+        && $ms_r6->{'data'} =~ m{\[ excluded 4301 \]$}o,
+    'multi : the good list wins, the bad-list holder is excluded'
+);
+
+## flow 7 : tree size \ leaf_count must match the local index ##
+my $ms_dir7 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir7);
+ms_fetch('r-ms7');
+
+deliver_merkle_root( $ARG, $ms_root, 3, length($ms_content) + 1 )
+    foreach merkle_sends();
+
+my $ms_r7 = $data{'test'}{'cmd_replies'}{'r-ms7'} // {};
+
+ok( ( $ms_r7->{'mode'} // '' ) eq qw| false |
+        && $ms_r7->{'data'} eq
+        'merkle mismatch : index 132072 vs tree 132073 [ 3 leaves ]'
+        && segment_sends() == 0,
+    'multi : a tree size that differs from the index fails'
+);
+
+my $ms_dir7b = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir7b);
+ms_fetch('r-ms7b');
+
+deliver_merkle_root( $ARG, $ms_root, 2, length $ms_content )
+    foreach merkle_sends();
+
+my $ms_r7b = $data{'test'}{'cmd_replies'}{'r-ms7b'} // {};
+
+ok( ( $ms_r7b->{'mode'} // '' ) eq qw| false |
+        && $ms_r7b->{'data'} eq
+        'merkle mismatch : index 132072 vs tree 132072 [ 2 leaves ]',
+    'multi : a leaf_count that differs from the index fails'
+);
+
+## flow 8 : all holders excluded -> fail + full cleanup ##
+my $ms_dir8 = tempdir( CLEANUP => 1 );
+ms_setup($ms_dir8);
+ms_fetch('r-ms8');
+drive_control($ms_content);
+
+my @ms_seg8 = segment_sends();
+deliver_bad_segment( $ms_seg8[0], $ms_content );    ## 4301 out ##
+deliver_bad_segment( $ms_seg8[1], $ms_content );    ## 4302 out ##
+
+my $ms_r8 = $data{'test'}{'cmd_replies'}{'r-ms8'} // {};
+
+ok( ( $ms_r8->{'mode'} // '' ) eq qw| false |
+        && $ms_r8->{'data'} eq 'no holders left [ segment fetch failed ]'
+        && fetch_pending() == 0
+        && !exists $data{'base'}{'cmd_reply'}{'r-ms8'}
+        && !-e "$ms_dir8/partial/ms-pkg_2.0-1_amd64.deb.partial"
+        && ( grep { $ARG->is_active } @{ $data{'test'}{'watchers'} } ) == 0,
+    'multi : all holders excluded -> fail, no timer left active'
+);
+
 ##[ summary ]#################################################################
 
 say '';
@@ -2410,8 +3202,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,.,...,..,,...,.,.,...,.,,,,.,,,,.,,..,.,.,...,...,...,,..,.,,,..,,...,
-#TEMZY7BGMZHBCZ42OQKXCMHACVPBP433B7IRQTGFL5M2JQXLWXWYUZJGFAK3YOQGAYEPNTKAJMMOW
-#\\\|HZJFS4EJBP4MECBC4BPEKCSOKKCEC7TDSTRCISJNYDVDKN4L7VY \ / AMOS7 \ YOURUM ::
-#\[7]WJA4OYZZPLZY5T2UYX2YBYK7WPOE4FXIDOHA7F43KECBOTB5UQCY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,.,,,.,.,.,.,...,,,,,..,,.,.,.,.,...,..,,,.,,,,,,,,,,,,.,,.,,
+#6SIZRX5ZOX4YCDVYANQPNTWUS2VLVQ2KJVLMBEXYXGS7YL7SZMQ4I3SFGMNCZD4WFKA344UFRM36W
+#\\\|CFIAQN5JWRF3IFQC67DWSH67LVQ6Z57PFOQG3JLEG6OV45TVLWJ \ / AMOS7 \ YOURUM ::
+#\[7]EID7LATDU4BU5UKSTXXVDQZNBECMDSRHNKOFXA333P6NSW5B4ADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

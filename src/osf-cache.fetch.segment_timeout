@@ -1,37 +1,61 @@
 ## [:< ##
 
 # name  = osf-cache.fetch.segment_timeout
-# descr = segment timer fired : retry or switch holder
-# param = timer event [ data => { fetch_key } ]
+# descr = holder timer fired : retry once, then exclude
+# param = timer event [ data => { fetch_key, sid } ]
 #
-# one-shot timer armed per segment request by osf-cache.fetch.request
-# [ after <osf-cache.cfg.segment_timeout>, repeat FALSE - never an
-# undef interval ]. a silent holder is a failed segment : the retry
-# policy decides [ osf-cache.fetch.retry - same holder once, then the
-# next one at the current offset, no holders left fails the fetch ].
-# a fetch that already completed or failed is gone from
-# <osf-cache.fetch.pending> and this fire does nothing.
+# one-shot per-holder timer armed by osf-cache.fetch.send_segment [
+# after <osf-cache.cfg.segment_timeout>, repeat FALSE ]. a silent
+# holder is retried ONCE with the same leaf [ a fresh seq makes the
+# late reply to the timed-out request a dead letter ] ; a second
+# timeout excludes it and requeues the leaf [ osf-cache.fetch.
+# holder_fail ] - the other holders continue. the timeout count
+# resets on every good reply from that holder. a fetch past the
+# segment phase or a holder without an outstanding leaf ignores the
+# fire.
 
 my $event      = shift;
 my $timer_data = eval { $event->w->data }   // {};   ## poll_switch pattern ##
 my $fetch_key  = $timer_data->{'fetch_key'} // '';
+my $sid        = $timer_data->{'sid'}       // '';
 
 my $state = <osf-cache.fetch.pending>->{$fetch_key};
 return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| segments |;
+
+my $hs = $state->{'hs'}{$sid} // return;
+return if $hs->{'excluded'};
+return unless defined $hs->{'leaf'};                 ## nothing outstanding ##
+
+$hs->{'timeouts'}++;
 
 <[base.logs]>->(
-    0,
-    ': osf-cache : segment %d timeout [ %s ]',
-    $state->{'offset'},
-    $state->{'current_sid'} // ''
+    0, ': osf-cache : leaf %d timeout [ %s, %d ]',
+    $hs->{'leaf'}, $sid, $hs->{'timeouts'}
 );
 
-<[osf-cache.fetch.retry]>->( { 'fetch_key' => $fetch_key } );
+if ( $hs->{'timeouts'} >= 2 ) {
+    <[osf-cache.fetch.holder_fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'sid'       => $sid,
+            'reason'    => 'timeout'
+        }
+    );
+    return;
+}
+
+## first timeout : the SAME holder gets the same leaf once more ##
+<[osf-cache.fetch.send_segment]>->(
+    {   'fetch_key' => $fetch_key,
+        'sid'       => $sid,
+        'leaf'      => $hs->{'leaf'},
+    }
+);
 
 return;
 
-#,,..,.,,,,,,,,,,,.,.,.,.,.,,,,..,,,,,.,.,,,,,..,,...,...,..,,,..,...,,,.,,,.,
-#25SGMGEBLVS7GNUGZPIECGNVZRAV2LTMMI5DAE5LFCRFQEUTFGLU6M5TF5NMMK46QNQIKOCM76V5C
-#\\\|XZ6ZFJSCYHXU67UNLBYKSF35KJNX7CLQPOLRR6TU4LWNLQ54ICO \ / AMOS7 \ YOURUM ::
-#\[7]JUJHFR3DWE3QZNXZ4FAZPMBEF2XKVF3T47ZPK2BGBK5PUYW2OUCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,,.,,,..,,.,,.,.,.,,,,.,,.,,,.,.,...,.,.,.,,,,.,,,,.,...,..,,
+#ZOVGHC7VRVPCL4PK3M5G2QSXW26TYWOLOQLAION45F5CQZBJ2AOPV36PWMHFGSBMUFVU4NX6FVMSS
+#\\\|2CS7VQL6JYKK3BVCNIKGOYVVU35BSR6DZXHHPBWLU7G5BGWVYN6 \ / AMOS7 \ YOURUM ::
+#\[7]SH53TNT4SZWQVUH7Y5NMUJ5L3R2R7CULZ6LQ6KKMEIEQU5AZ6AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
