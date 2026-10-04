@@ -6,8 +6,11 @@
 #
 # the 'who holds H' fan-out [ acquisition flow step 2 ]. tokens are
 # validated with the exact checks cmd.has runs [ query_local ] ;
-# anchors the LOCAL index does not know are refused up front [ their
-# size cannot be verified against anything ]. the peers resolve
+# anchors the LOCAL index does not know are never asked [ their size
+# cannot be verified against anything ] : when NONE is known [ a
+# single unknown anchor included ] the lookup is refused mode false,
+# otherwise the known ones are looked up and the reply lists the
+# unknown ones on an 'unknown :' line. the peers resolve
 # through osf-cache.peers.list, each gets '<sid>.has <tokens>' with
 # osf-cache.handler.has_reply as reply handler, and when the last
 # answer landed - or the <osf-cache.cfg.lookup_timeout> [ //= 5 s ]
@@ -53,25 +56,35 @@ return { 'mode' => qw| false |, 'data' => $check->{'data'} }
 my %seen;
 my @anchors = grep { !$seen{$ARG}++ } map { lc $ARG } @tokens;
 
-## anchors unknown to the local index are refused up front [ cannot verify ##
-## a size we do not know ]                                                 ##
+## anchors unknown to the local index are never asked [ cannot verify a ##
+## size we do not know ] ; the known ones are still looked up           ##
 my $index = <osf-cache.index> // {};
-my %expect;
+my ( %expect, @known, @unknown );
 foreach my $anchor (@anchors) {
     my $entry = $index->{'anchors'}{$anchor};
-    return {
-        'mode' => qw| false |,
-        'data' => "unknown anchor : $anchor [ not in the local index ]"
-        }
-        unless ref $entry eq qw| HASH |
-        and defined $entry->{'size'};
-    $expect{$anchor} = $entry->{'size'};
+    if ( ref $entry eq qw| HASH | and defined $entry->{'size'} ) {
+        $expect{$anchor} = $entry->{'size'};
+        push @known, $anchor;
+    } else {
+        push @unknown, $anchor;
+    }
 }
 
+## nothing left to ask : one unknown anchor answers as before ##
+return {
+    'mode' => qw| false |,
+    'data' => sprintf '%s : %s [ not in the local index ]',
+    @unknown == 1 ? 'unknown anchor' : 'unknown anchors',
+    join ' ', @unknown
+    }
+    unless @known;
+
+@anchors = @known;
+
 ### an optional internal caller : lookup.complete dispatches the merged ##
-## result to this module instead of answering a text reply [ explicit,  ##
-## like osf-cache.handler.peers_list - the static dependency graph stays  ##
-## intact ]. used by osf-cache.cmd.fetch.                              ##
+## result to this module instead of answering a text reply [ explicit, like ##
+## osf-cache.handler.peers_list - the static dependency graph stays intact  ##
+## ]. used by osf-cache.cmd.fetch.                                          ##
 my $on_done = $call->{'on_done'} // '';
 
 ## per-lookup state keyed by a lookup id ##
@@ -92,6 +105,7 @@ my $timer = <[event.add_timer]>->(
 <osf-cache.lookup.pending>->{$lookup_id} = {
     'reply_id'       => $reply_id,
     'anchors'        => \@anchors,
+    'unknown'        => \@unknown,
     'expect'         => \%expect,
     'started'        => Time::HiRes::time(),
     'peers_resolved' => 0,
@@ -110,8 +124,8 @@ my $timer = <[event.add_timer]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,,,,,.,.,...,,.,,,,.,..,,..,,,,.,..,,.,.,...,...,.,,,...,..,,,..,.,,,
-#KEYVHGMR2CX3SQGERG5DANFGFEEZVJTM66E2GMJCT7H2KBFK5AYOEPJV7FQRKKIWQBZEBGY5IIUCU
-#\\\|JLVARANNPC2D3CDLQCO5CKL5FAHV3BLHUAZ4LK5XT4C7I2L6QJ2 \ / AMOS7 \ YOURUM ::
-#\[7]ISGPPB7DBTSN6MMNM3DRX64R3OKCEWRLIN5PISN7C37UHJULYGCA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,...,,,.,..,,.,,,.,,,.,.,,.,,.,.,...,...,,..,...,.,.,,..,.,.,
+#6D7H23RS2OGYZZPLZHJ7JNH3K2RIQK64FV4TI5X2ASXEY5LLF72M4VFDJEQ42FE4B36TQA26KMBBI
+#\\\|Y73EWLSAR65X2T54SOCOFFKFQSUYNZU5RX5YT4GH34VRV2CMUUL \ / AMOS7 \ YOURUM ::
+#\[7]AIR2BOQQXDZPHQ6IXTPJ53HV6E4X4J2223JYPDNNCULNLTWT4ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
