@@ -33,6 +33,45 @@ nodes [ for files outside any signed index ]. once valid, holding it is
 safe to distribute -> it gets routed ; otherwise the space would be
 wasted and usefulness stall.
 
+## hash layers [ 2026-10-04 ]
+
+the anchor hash is not our choice : it is whatever the distribution
+signed [ debian : sha256, sometimes sha512-only third-party repos ;
+rpm repodata, alpine apkindex differ ]. it is kept at the boundary
+only, always as `{ algo, hash }`, never as a bare `sha256` field :
+
+- **trust check** : the received file against the signed index
+- **the "who holds H ?" query** : a node that wants a file knows
+  nothing else about it before holding it
+
+everything protocol-7 defines itself is **bmw384** [ B32, 77 chars,
+`base.chk-sum.bmw.384.B32` \ `bmw.ctx(384)` + `bmw.encode_digest` ] :
+holdings, store, chunk addresses, merkle segments, credits, eviction,
+dedup across distributions. a holder computes both digests in ONE read
+pass. the binding `anchor -> bmw384` is recorded only after the whole
+file was verified against the anchor ; a `has` reply carries
+`<anchor-hash> <size> <bmw384>` so the asker switches to the internal
+id for segment fetching. two holders reporting different bmw384 for the
+same anchor = conflict [ like a size mismatch ].
+
+**why 384** [ user, 2026-10-04 ] : collision security is half the
+length -> bmw224 = 112 bit, WEAKER than the sha256 anchor [ 128 ] it
+stands in for ; bmw384 = 192 bit. bmw was dropped in sha-3 round 2
+[ compression-function distinguishers, nothing practical on the full
+hash ] and is far less analysed than sha-2 \ 3 -> margin above the
+anchor, not merely equal. layers 3 \ 4 dedup user-chosen content, so
+chosen-content collisions are the real threat there. 384 \ 512 are the
+64-bit-word bmw variants -> no speed cost on 64-bit hosts ; the only
+price is length [ 77 vs 45 B32 chars ].
+
+**human handles** [ user ] : short ids people copy-paste are handles,
+never identity. form : an amos group checksum as parent scope + a
+224-bit branch checksum below it. resolving a handle yields the bmw384,
+and content is verified against the bmw384 -> a handle collision can at
+most misdirect, never make wrong content pass. derive the handle FROM
+the bmw384 [ re-hash to 224 ] rather than a second pass over the
+content -> one hash pass, handle always recomputable from the id.
+
 ## components
 
 ```
@@ -203,8 +242,8 @@ not corruption.
 5. credits accounting
 6. second distribution type
 
-#,,,,,..,,...,,..,,.,,.,,,,..,.,.,...,.,,,.,.,..,,...,..,,,,,,.,,,,..,,,.,,,,,
-#3E2OMHKOZRCG6OOS4CZ7HCEOG737GQQYOSCNFYPGCOM76AFJJ5BA7UO3J6AME3H77G7IHJZLM2PHQ
-#\\\|L3DLS7FIYPY6RLSAWKN4ECWRHBGIOLJFIDM3L4HSTW2S6YUMZUY \ / AMOS7 \ YOURUM ::
-#\[7]2ZEFZ2N6SDRHNQJ5HPZQSQ2RW33V6ZXZCCT46CT33Q5J2RDLQICY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,..,,..,,.,,,,,.,.,,,,,,,,.,,..,,...,...,,.,,,..,,..,.,.,..,,
+#6RTYJTRIGIYYMPFMLHF7BRADWCYJADGNF6D6E2CFLTVVLH6NL43EOD3ICYX65WL4Q2IWPPUZXXXMY
+#\\\|LJFLHUISUMHU6AR256QPAH3RHLKUCKBOEE7FCMNIIWZ2WTFF7OX \ / AMOS7 \ YOURUM ::
+#\[7]WTVX2PFIBXQSKPPDBOL5PL6WW2ST2LXOPYRIQFBPWHKBVJHXQMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

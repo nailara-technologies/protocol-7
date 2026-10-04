@@ -21,7 +21,10 @@ if ( exists $registry->{'cache'}{$path} ) {
     if ( -f $path ) {
         my $st = File::stat::stat($path);
         my ( $mtime, $size ) = ( $st->mtime, $st->size );
-        if ( $cached->{mtime} == $mtime and $cached->{size} == $size ) {
+        ## a hit needs the same algorithm too, not only an unchanged file ##
+        if (    $cached->{mtime} == $mtime
+            and $cached->{size} == $size
+            and ( $cached->{algorithm} // '' ) eq $algorithm ) {
             $registry->{'stats'}{'cached'}++;
             return {
                 'mode' => 'true',
@@ -42,12 +45,14 @@ return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 my $checksum;
 
 # Dispatch to correct BMW/AMOS checksum module
-if ( $algorithm eq 'bmw' ) {
-    $checksum = <[chk-sum.bmw.filesum]>->($path);
+## file content via filesum, never the .B32 variants [ those hash their ##
+## input string -> the path itself ] ; plain bmw = 384, osf-cache layer ##
+if ( $algorithm eq 'bmw' or $algorithm eq 'bmw-384' ) {
+    $checksum = <[chk-sum.bmw.filesum]>->( 384, $path );
 } elsif ( $algorithm eq 'bmw-224' ) {
-    $checksum = <[chk-sum.bmw.224.B32]>->($path);
+    $checksum = <[chk-sum.bmw.filesum]>->( 224, $path );
 } elsif ( $algorithm eq 'bmw-512' ) {
-    $checksum = <[chk-sum.bmw.512_32]>->($path);
+    $checksum = <[chk-sum.bmw.filesum]>->( 512, $path );
 } elsif ( $algorithm eq 'bmw-L13' ) {
 
     # For L13, we need to read file content as string
@@ -63,7 +68,12 @@ if ( $algorithm eq 'bmw' ) {
     close $fh;
     $checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
 } elsif ( $algorithm eq 'amos' ) {
-    $checksum = <[chk-sum.amos]>->($path);
+    ## amos hashes its input string -> read the file content first ##
+    open my $fh, '<:raw', $path
+        or return { 'mode' => 'false', 'data' => 'cannot read file' };
+    my $content = do { local $/; <$fh> };
+    close $fh;
+    $checksum = <[chk-sum.amos]>->( \$content );
 } else {
     return {
         'mode' => 'false',
@@ -103,8 +113,8 @@ return {
     }
 };
 
-#,,,,,,,.,,..,,.,,.,.,,,.,,,.,,..,...,...,,.,,.,.,...,...,,,,,...,,.,,...,.,.,
-#EY6SVFSAGOHFTJXQ7J6OGSPTPOERLPTS5UMUTDVYNS26Z3PP6IXYVJVJBEIHK5JDT27HCDGOVVQBG
-#\\\|AZN5LVYEKVZP5TCPBWXGOGC4TKCTY24UWTHJJAA2XEJMN3N3U2O \ / AMOS7 \ YOURUM ::
-#\[7]VB7JRRCTREBSR4REOJZIINKRMU5O3BTRTXBMV32OSO3EBS4TGEBI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,,,...,,.,,.,.,...,,..,,..,,,,,.,.,...,...,..,,,,.,..,,.,.,,,,,
+#WARMHLNNIM76KLIPEIYEJSG5ODAP6MXPSB37YXRQMVRGBTP6UMM2QWJI5EULWIOGS5M3D5XW3LDLA
+#\\\|SPQQ2ZONFPSMYPW3IQLHZVAZNYVBLD6E5LAIQUAT2W4N5LZRL6O \ / AMOS7 \ YOURUM ::
+#\[7]2HKOGTW3CQALYQ2UNIHGAV5SHISZ4EHDH2OZIFC7S3J7F4JXGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

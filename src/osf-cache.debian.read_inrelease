@@ -6,10 +6,11 @@
 #
 # reads a debian InRelease file [ clearsigned or plain ] :
 # header fields origin, suite, codename, date, valid_until and the
-# checksum section mapping '<relpath>' => { sha256, size } - sha256
-# entries preferred, sha512 entries used when no sha256 section is
-# present [ some third-party repos sign sha512 only ]. the clearsign
-# signature is verified read-only with gpgv against the keyrings apt
+# checksum section mapping '<relpath>' => { algo, hash, size } - the
+# sha256 section preferred, the sha512 section used when no sha256
+# section exists [ some third-party repos sign sha512 only ; each entry
+# carries its algo so a sha512 value is never stored under a sha256
+# key ]. the clearsign signature is verified read-only with gpgv against the keyrings apt
 # trusts : /etc/apt/trusted.gpg.d/*, the debian archive keyring and any
 # 'signed-by' keyring referenced in /etc/apt/sources.list[ .d ]. result
 # signature is 'good', 'bad' or 'unverified' [ gpgv missing, no keyring
@@ -42,6 +43,7 @@ while ( my $line = <$fh> ) {
     }
     chomp $line;
     $line =~ s{\r$}{};
+    next if $line =~ m{^#};      ## signature footer lines are never fields ##
 
     ## checksum section header : remember which section we are in ##
     if ( $line =~ m{^(MD5Sum|SHA1|SHA256|SHA512):$} ) {
@@ -62,9 +64,13 @@ while ( my $line = <$fh> ) {
         and ( $section eq qw| SHA256 |
         or $section eq qw| SHA512 | );
     my $hex_len = $section eq qw| SHA256 | ? 64 : 128;
-    if ( $line =~ m{^\s+([0-9a-fA-F]{$hex_len})\s+(\d+)\s+(\S+)\s*$} ) {
+    if ( $line =~ m|^\s+([0-9a-fA-F]{$hex_len})\s+(\d+)\s+(\S+)\s*$| ) {
         my $target = $section eq qw| SHA256 | ? \%files : \%files_sha512;
-        $target->{$3} = { 'sha256' => lc $1, 'size' => 0 + $2 };
+        $target->{$3} = {
+            'algo' => lc $section,
+            'hash' => lc $1,
+            'size' => 0 + $2,
+        };
     }
 }
 close($fh);
@@ -185,8 +191,8 @@ return {
     }
 };
 
-#,,,.,.,.,,..,.,.,.,,,.,.,,,,,,..,,,.,,..,,,,,..,,...,...,.,,,..,,...,.,,,,..,
-#SGSY4NCMSBYXCGN7566UEUZXCLY7TJLIDH5YF7ZEKIDUB4YA4TIQY52BRORVQ6SZGOAVZMQIK45NE
-#\\\|NRPJGV2SGAIXT7U5O6M3VFPCHVAX5FY2LQGXNO7TMMGRCZ7J27M \ / AMOS7 \ YOURUM ::
-#\[7]AS4SNM3JEEQL3WY4WT77GVO6NHMLMQCJZVQDTYFCHPTII62W6EBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,,,,,...,,..,..,,,,.,.,,,,.,,..,,...,...,...,..,,.,,,,..,,,.,
+#WJGXT2OVJLSRFJFYSTPXBEF2EHRMMLO3JXZDRZ25D24TEOTUYSGQKQ6BFNTT3JTCIB4G2AOA2R4BY
+#\\\|WSJM57KTF6WEZJOVYQJRHL5EPG2FJJAGXYHW5CJ2OJHIUIN3G4Q \ / AMOS7 \ YOURUM ::
+#\[7]7EYFC253AVY3OXDXJQ3NWC57XTCIYJ7PHA7NPOVGEEMWDNZ6CSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

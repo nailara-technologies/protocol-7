@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = osf-cache.lookup.parse_has_reply
+# descr = decode a wire reply string into a held-anchor map
+# param = { reply => STRING }
+#
+# inverse of osf-cache.lookup.format_has_reply : splits the reply
+# string into lines and accepts only well-formed
+# '<algo>:<hex> <size> <bmw384>' lines - the anchor as sha256: plus 64
+# lowercase hex or sha512: plus 128, one space, a decimal size, one
+# space and a bmw384 of exactly 77 chars in the B32 alphabet RFC 4648
+# defines [ A-Z 2-7, unpadded - the alphabet encode_b32r emits,
+# checked against a real digest in the tests ]. malformed lines are
+# COUNTED in bad_lines and never silently accepted into the map - a
+# corrupt or lying node can always be told apart from an empty one.
+# result data : { held => { anchor => { size, bmw384 } },
+# bad_lines => N }.
+
+my $args = shift // {};
+return { 'mode' => 'false', 'data' => 'reply required' }
+    unless defined $args->{'reply'};
+my $reply = $args->{'reply'};
+
+my %held;
+my $bad_lines = 0;
+foreach my $line ( split m{\n}, $reply ) {
+    next unless length $line;    ## empty reply / blank padding ##
+    if ( $line
+        =~ m{^(sha256:[0-9a-f]{64}|sha512:[0-9a-f]{128}) (\d+) ([A-Z2-7]{77})$}
+    ) {
+        $held{$1} = { 'size' => 0 + $2, 'bmw384' => $3 };
+    } else {
+        $bad_lines++;
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'held' => \%held, 'bad_lines' => $bad_lines }
+};
+
+#,,,.,,..,,,.,...,...,.,,,,..,,,.,,,,,...,,,,,.,.,...,...,..,,,.,,.,,,...,,,.,
+#FLOVYKHLGI6VU6PJGPTFOMAXP3N4VHHDA5V2PMUOMRJ4VCJ62M3VDSZC4C2Q54H37D7FFYXP5WQNU
+#\\\|SUK4DS2EYZJSEOG3FDXGDGKAPVD57MIWVZPP2NKBTG5SLFRPBJ4 \ / AMOS7 \ YOURUM ::
+#\[7]6JQIBZYZJVS5GCUH5EDNO5IWK7ETSQKQHLVNDQRS3R2S7A4BJWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

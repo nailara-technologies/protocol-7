@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = osf-cache.holdings.state_load
+# descr = load a versioned holdings state file saved by state_save
+# param = { path }
+#
+# reads the YAML state file written by osf-cache.holdings.state_save
+# through the format.yaml wrapper modules [ format.yaml.pre_init must
+# have run ]. a missing file is not an error - the first run has no
+# state yet and gets mode true with empty holdings. a version 1 state
+# [ the sha256-only shape ] also loads as 'no previous state' : mode
+# true with empty holdings -> the caller rehashes everything once.
+# corrupt yaml fails mode false with a clear message, as does a state
+# file whose version field is neither 1 nor 2 [ written by another
+# code shape ]. data on success : { holdings => <scan result data> }.
+
+my $args = shift           // {};
+my $path = $args->{'path'} // '';
+
+return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
+
+if ( !-f $path ) {
+    return {
+        'mode' => qw| true |,
+        'data' => { 'holdings' => {} }
+    };
+}
+
+my ( $state, $err ) = <[format.yaml.load_file]>->($path);
+
+return { 'mode' => 'false', "data" => "cannot load state $path : $err" }
+    unless defined $state;
+return { 'mode' => 'false', "data" => "cannot decode $path : corrupt yaml" }
+    unless ref $state eq qw| HASH |;
+
+my $version = $state->{'version'};
+
+## version 1 = the pre-hash-layers shape : no previous state ##
+if ( defined $version and $version == 1 ) {
+    return {
+        'mode' => qw| true |,
+        'data' => { 'holdings' => {} }
+    };
+}
+
+return {
+    'mode' => 'false',
+    "data" => "unsupported state version : $version"
+    }
+    if !defined $version or $version != 2;
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'holdings' => $state->{'holdings'} // {} }
+};
+
+#,,.,,,..,,.,,,,,,...,,..,,,.,,,.,..,,,,,,..,,.,.,...,...,...,,,,,.,,,,..,...,
+#ZMETC7U4DA3QCMEAVSHLXKFQM5I7RX45W23LRS5IT3W6I7FRA37DOXMXTQRDI7GTRRDBIP5NSONSY
+#\\\|NCZIGCNKC6P7HKYMP6LAJTXM5UZVNYM6TJ6O3DDDSRLDH6QE2KF \ / AMOS7 \ YOURUM ::
+#\[7]BEA4KTMNRGSSKTPUBNS5LLRVO4XKL6Y3H4DELGQSPWDMEV25YWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

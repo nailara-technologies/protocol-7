@@ -5,17 +5,22 @@ use English;
 use warnings;
 
 ###                                                                  ###
-##  osf-holdings ##   [ stage 1 : debian index reader + holdings scan ] ##
+##  osf-holdings ##  [ stage 2 : stateful incremental holdings scan ] ##
 ###                                                                 ###
 
-## reads every *_InRelease in the apt list directory, verifies its     ##
-## clearsign signature with gpgv against the keyrings apt trusts, then ##
-## reads each Packages file it anchors [ expecting the InRelease hash ]##
-## into one combined sha256 index. the local apt archive cache is      ##
-## scanned against that index : how many cached .debs are exactly      ##
-## anchored in a signed distribution index -> free passive supply.     ##
+## reads every *_InRelease in the apt list directory, verifies its          ##
+## clearsign signature with gpgv against the keyrings apt trusts, then      ##
+## reads each Packages file it anchors [ expecting the InRelease hash ]     ##
+## into one combined anchor index [ '<algo>:<hex>' keys ]. the local apt    ##
+## archive cache is scanned against that index in ONE pass per file,        ##
+## computing every index algo plus bmw384 [ B32, the protocol-7 internal id ##
+## ] : how many cached .debs are exactly anchored in a signed distribution  ##
+## index -> free passive supply. with --state <path> the scan becomes       ##
+## incremental : unchanged files [ name, size, mtime, ctime, inode ] reuse  ##
+## all recorded digests, the new state is saved, and 'rehashed N of M'      ##
+## reports how many files were actually read.                               ##
 
-##[ module loading [ standalone, same shape as bin/test-scripts ] ]#############
+##[ module loading [ standalone, same shape as bin/test-scripts ] ]###########
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -36,11 +41,14 @@ BEGIN {
 }
 
 use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
+## base.chk-sum.bmw.encode_digest calls it ##
+use Crypt::Misc qw| encode_b32r |;
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
 our %code;
+our %data;
 
 sub compile_module {
     my $module_name = shift;
@@ -60,32 +68,85 @@ sub compile_module {
 compile_module('osf-cache.debian.read_inrelease');
 compile_module('osf-cache.debian.read_packages');
 compile_module('osf-cache.holdings.scan_apt_cache');
+compile_module('osf-cache.holdings.state_save');
+compile_module('osf-cache.holdings.state_load');
+compile_module('format.yaml.pre_init');
+compile_module('format.yaml.write_file');
+compile_module('format.yaml.load_file');
+compile_module('base.chk-sum.bmw.encode_digest');
+$code{'chk-sum.bmw.encode_digest'}
+    ## short name modules call ##
+    = $code{'base.chk-sum.bmw.encode_digest'};
+
+##[ format.yaml wiring [ standalone stubs ] ]#################################
+##                                                                       ##
+## the state modules persist through the format.yaml wrappers, which     ##
+## resolve their dependencies through the p7 call syntax : %code entries ##
+## for <[base.*]> calls and %data for <format.yaml.*> values. the zenka  ##
+## provides the real ones ; here they are minimal standalone stubs.      ##
+## pre_init must run once before the first write_file / load_file call.  ##
+
+$code{'base.perlmod.autoload'} = sub {
+    my $module = shift // return undef;
+    eval "require $module" or die $EVAL_ERROR;
+    return 5;
+};
+
+$code{'base.logs'} = sub {
+    return 5;
+};
+
+$code{'base.buffer.add_line'} = sub {
+    return 5;
+};
+
+$code{'base.str.eval_error'} = sub {
+    my $error = $EVAL_ERROR // '';
+    $error =~ s|\s*\n.*||s;
+    $error =~ s|\s+$||;
+    return $error;
+};
+
+call_module('format.yaml.pre_init');
 
 sub call_module {
     my ( $module_name, $params ) = @ARG;
     return $code{$module_name}->($params);
 }
 
-##[ run ]#######################################################################
+##[ run ]#####################################################################
 
-my $lists_dir = shift // '/var/lib/apt/lists';
+my $state_path = undef;
+my $lists_dir  = undef;
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if ( $arg eq qw| --state | ) {
+        $state_path = shift @ARGV;
+        error_exit('--state requires a path') unless defined $state_path;
+    } else {
+        $lists_dir = $arg;
+    }
+}
+$lists_dir //= '/var/lib/apt/lists';
 my $cache_dir = '/var/cache/apt/archives';
 
 error_exit("not a directory : '$lists_dir'") if !-d $lists_dir;
 
-my @inrelease_files = sort grep { m{_InRelease$} and -f $_ }
-    glob "$lists_dir/*";
+my @inrelease_files
+    = sort grep { m{_InRelease$} and -f $_ } glob "$lists_dir/*";
 
 say '';
 say ':: osf-holdings [ debian index reader + local holdings scan ]';
 say '';
 say "   lists : $lists_dir";
 say "   cache : $cache_dir";
+say "   state : $state_path" if defined $state_path;
 say '';
 
-##[ read + verify every InRelease, build the combined sha256 index ]#############
+##[ read + verify every InRelease, build the combined anchor index ]##########
 
-my %combined_index;
+my %combined_anchors;
+my %combined_algos;
 my @repo_report;
 my %claimed_packages_file;
 
@@ -111,12 +172,12 @@ foreach my $inrelease_path (@inrelease_files) {
 
     foreach my $rel_path ( sort keys %{ $ir->{'data'}{'files'} } ) {
 
-        ## only uncompressed Packages indexes are read [ apt stores ##
-        ## them plain in the list dir ]                              ##
+        ## only uncompressed Packages indexes are read [ apt stores them ##
+        ## plain in the list dir ]                                       ##
         next unless $rel_path eq qw| Packages | or $rel_path =~ m{/Packages$};
 
-        my $entry      = $ir->{'data'}{'files'}->{$rel_path};
-        my $flat_path  = $rel_path;
+        my $entry     = $ir->{'data'}{'files'}->{$rel_path};
+        my $flat_path = $rel_path;
         $flat_path =~ s{/}{_}g;
         my $packages_name = "$base" . '_' . $flat_path;
         my $packages_path = "$lists_dir/$packages_name";
@@ -128,8 +189,11 @@ foreach my $inrelease_path (@inrelease_files) {
 
         my $pr = call_module(
             'osf-cache.debian.read_packages',
-            {   'path'          => $packages_path,
-                'expect_sha256' => $entry->{'sha256'},
+            {   'path'   => $packages_path,
+                'expect' => {
+                    'algo' => $entry->{'algo'},
+                    'hash' => $entry->{'hash'},
+                },
             }
         );
 
@@ -144,17 +208,22 @@ foreach my $inrelease_path (@inrelease_files) {
         ## trust needs both : the InRelease signature verified good AND the ##
         ## packages file matching its hash -- otherwise entries are listed  ##
         ## but never used to anchor cached files                            ##
-        if ( $repo->{'signature'} eq qw| good | and $pr->{'data'}{'anchored'} )
-        {
-            $combined_index{$ARG} = $pr->{'data'}{'by_sha256'}->{$ARG}
-                foreach keys %{ $pr->{'data'}{'by_sha256'} };
+        if (    $repo->{'signature'} eq qw| good |
+            and $pr->{'data'}{'anchored'} ) {
+            foreach my $anchor ( keys %{ $pr->{'data'}{'by_anchor'} } ) {
+                $combined_anchors{$anchor}
+                    = $pr->{'data'}{'by_anchor'}->{$anchor};
+                my ($algo) = split m{:}, $anchor, 2;
+                $combined_algos{$algo} = 1 if length $algo;
+            }
         }
 
-        push $repo->{'packages'}->@*, {
+        push $repo->{'packages'}->@*,
+            {
             'rel_path' => $rel_path,
             'anchored' => $pr->{'data'}{'anchored'},
             'entries'  => $pr->{'data'}{'entries'},
-        };
+            };
         $repo->{'entries'} += $pr->{'data'}{'entries'};
     }
 
@@ -163,31 +232,63 @@ foreach my $inrelease_path (@inrelease_files) {
 
 ## packages files present in the list dir but claimed by no InRelease ##
 my @unclaimed_files = sort grep {
-    m{_Packages$} and -f $_ and not $claimed_packages_file{ $ARG =~ s{^.*/}{}r }
+            m{_Packages$}
+        and -f $_
+        and not $claimed_packages_file{ $ARG =~ s{^.*/}{}r }
 } glob "$lists_dir/*";
 
-##[ holdings scan against the combined index ]###################################
+##[ holdings scan against the combined index ]################################
 
-my $holdings = call_module( 'osf-cache.holdings.scan_apt_cache',
-    { 'dir' => $cache_dir, 'index' => \%combined_index } );
+my $previous_files = [];
+if ( defined $state_path ) {
+    my $loaded = call_module( 'osf-cache.holdings.state_load',
+        { 'path' => $state_path } );
+    error_exit("cannot load state '$state_path' : $loaded->{'data'}")
+        if $loaded->{'mode'} ne qw| true |;
+    $previous_files = $loaded->{'data'}{'holdings'}{'files'} // [];
+}
 
-error_exit( "holdings scan failed : $holdings->{'data'}" )
+my @combined_algos = sort keys %combined_algos;
+
+my $holdings = call_module(
+    'osf-cache.holdings.scan_apt_cache',
+    {   'dir'   => $cache_dir,
+        'index' => {
+            'anchors' => \%combined_anchors,
+            'algos'   => \@combined_algos,
+        },
+        'previous' => $previous_files,
+    }
+);
+
+error_exit("holdings scan failed : $holdings->{'data'}")
     if $holdings->{'mode'} ne qw| true |;
 
-##[ report ]#####################################################################
+if ( defined $state_path ) {
+    my $saved = call_module(
+        'osf-cache.holdings.state_save',
+        {   'path'     => $state_path,
+            'holdings' => $holdings->{'data'},
+        }
+    );
+    error_exit("cannot save state '$state_path' : $saved->{'data'}")
+        if $saved->{'mode'} ne qw| true |;
+}
+
+##[ report ]##################################################################
 
 printf "   %d InRelease file%s, %d package index entr%s anchored\n\n",
     scalar @inrelease_files,
     @inrelease_files == 1 ? '' : 's',
-    scalar keys %combined_index,
-    ( keys %combined_index ) == 1 ? 'y' : 'ies';
+    scalar keys %combined_anchors,
+    ( keys %combined_anchors ) == 1 ? 'y' : 'ies';
 
 say ':: repositories';
 say '';
 
 foreach my $repo (@repo_report) {
-    my $codename = defined $repo->{'codename'}
-        ? " [ $repo->{'codename'} ]" : '';
+    my $codename
+        = defined $repo->{'codename'} ? " [ $repo->{'codename'} ]" : '';
     printf "   %s%s\n     signature : %s\n",
         $repo->{'id'}, $codename, $repo->{'signature'};
     say "     signer    : $repo->{'signer'}"
@@ -203,14 +304,13 @@ foreach my $repo (@repo_report) {
     my @skipped_ex = $repo->{'skipped'}->@*;
     if (@skipped_ex) {
         my $skipped_total = scalar @skipped_ex;
-        my $more = '';
+        my $more          = '';
         if ( @skipped_ex > 3 ) {
             $more = sprintf ' .. %d more', $skipped_total - 3;
             splice @skipped_ex, 3;
         }
-        printf
-            "     skipped   : %d index entries not downloaded"
-            . " [ e.g. %s%s ]\n",
+        printf "     skipped   : %d index entries "
+            . "not downloaded [ e.g. %s%s ]\n",
             $skipped_total, join( ', ', @skipped_ex ), $more;
     }
 }
@@ -227,8 +327,8 @@ my @cached = $data->{'files'}->@*;
 
 my $hr_size = sub {
     my $bytes = shift // 0;
-    return sprintf '%.1f MB', $bytes / 1048576 if $bytes >= 1048576;
-    return sprintf '%.1f kB', $bytes / 1024    if $bytes >= 1024;
+    return sprintf '%.1f MB',  $bytes / 1048576 if $bytes >= 1048576;
+    return sprintf '%.1f kB',  $bytes / 1024    if $bytes >= 1024;
     return sprintf '%d bytes', $bytes;
 };
 
@@ -243,33 +343,45 @@ say ":: holdings [ $cache_dir ]";
 say '';
 say "   $summary";
 
+printf "   rehashed %d of %d\n", $data->{'rehashed'} // 0, scalar @cached
+    if defined $state_path;
+
 my @anchored_example = grep { $ARG->{'anchored'} } @cached;
 my @loose_example    = grep { !$ARG->{'anchored'} } @cached;
 
 say '';
 say '   anchored examples :';
 say '     none' unless @anchored_example;
-foreach my $file ( @anchored_example[ 0 .. ( @anchored_example > 2 ? 2 : $#anchored_example ) ] )
-{
+foreach my $file (
+    @anchored_example[
+    0 .. ( @anchored_example > 2 ? 2 : $#anchored_example )
+    ]
+) {
     printf "     %-42s %10d bytes  %s %s\n",
         $file->{'name'}, $file->{'size'},
         $file->{'package'} // '-', $file->{'version'} // '-';
+    my ( $algo, $hex ) = split m{:}, $file->{'anchor'} // ':', 2;
+    printf "     algo %-7s anchor %s…  bmw384 %s…\n",
+        $algo // '-', substr( $hex // '', 0, 12 ),
+        substr( $file->{'digests'}{'bmw384'} // '', 0, 12 );
 }
 
 say '';
 say '   unanchored examples :';
 say '     none' unless @loose_example;
-foreach my $file ( @loose_example[ 0 .. ( @loose_example > 2 ? 2 : $#loose_example ) ] )
-{
+foreach my $file (
+    @loose_example[ 0 .. ( @loose_example > 2 ? 2 : $#loose_example ) ] ) {
     printf "     %-42s %10d bytes  %s %s\n",
         $file->{'name'}, $file->{'size'},
         $file->{'package'} // '-', $file->{'version'} // '-';
+    printf "     bmw384 %s…  [ unanchored ]\n",
+        substr( $file->{'digests'}{'bmw384'} // '', 0, 12 );
 }
 
 say '';
 exit 0;
 
-##[ SUBROUTINES ]###############################################################
+##[ SUBROUTINES ]#############################################################
 
 sub error_exit {
     my $msg = shift;
@@ -277,8 +389,8 @@ sub error_exit {
     exit 1;
 }
 
-#,,,,,..,,.,.,,,.,,..,..,,.,,,,.,,,,.,...,,.,,..,,...,...,,..,.,,,,..,,.,,,,,,
-#E2GNAFSIA6HAG6IPKYJXF47E7S3GWNB3ZJAGJEY7GPPPQUASCWSDZNT3W4XAHHAPW47ESIWMHY4GM
-#\\\|XAXZJG53R4LVCKHEEDNKQCAOCPTKT4MVCM44647SO6LZVEYHEAT \ / AMOS7 \ YOURUM ::
-#\[7]NFZHELNF472QQ2O2EBPQDSANS754RLR4LL73253Z27NE6UA6S4BY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,,,,,.,.,.,..,,..,,,,.,,,,,,..,..,,...,...,,,.,.,,,...,.,.,,,.,
+#OZ2YIA5BQFB3PHPOCFPAZYD4JJOPV6JRMPZXPFUWPKN6UP2V5YFMZVHXL3PAYBZNAQM2XFLMOIS4A
+#\\\|BS4JEWPVUKVPVH2HWVHLHN4OEZKTFOMTA6FGF7JZVFAOMY5G74S \ / AMOS7 \ YOURUM ::
+#\[7]YRXP6H4VJTCUVVKYXOKU7BTJPW7TOXRWQZZLXZ2WFTZBIDUQFYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
