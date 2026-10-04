@@ -50,6 +50,14 @@ my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
 ## write itself had compiled ]                                              ##
 <[base.register_p7_mod_load]>->(@modules_to_load);
 
+## plugin.* names listed in modules.load [ storage, universal ] must land  ##
+## in the same registry base.load_plugins fills : 'reload source' skips    ##
+## plugin.* by design and 'reload plugins' only walks <plugins.status>, so ##
+## without this no reload ever recompiled them [ while both reported       ##
+## success ]                                                               ##
+map { <plugins.status>->{$ARG} //= {} }
+    grep {m|^plugin\.|} @modules_to_load;
+
 if ( not defined $subs_ok or $subs_ok == 0 ) {
     <[base.log]>->( 0, '[base.load_modules] no routines were loaded ..,' );
 }
@@ -60,8 +68,8 @@ return TRUE if not $subs_failed and $subs_ok;
 
 return FALSE;
 
-#,,,.,,,.,...,,.,,,.,,.,.,..,,..,,,,.,.,,,,..,..,,...,..,,.,.,...,.,.,.,.,...,
-#YSZ36GNBR75ZCH2OVN6QLLKUT3QNL73AU7VGMQKI4TA6KX7WENUGGRU5Y4KCDUH67CXOIXZZNWVYC
-#\\\|P2Q3RDLD6UQ6NYNBM447IMYZTXFKGRVDGUTS6DNKUKHEPA4RSC6 \ / AMOS7 \ YOURUM ::
-#\[7]P3APC6EVMXJTEWT6FNDEYZ3CNHNXYYWCRUWFT6F5ROGNZ6ICWCDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,,.,,.,.,.,,,...,,,,,..,,,,.,..,,...,...,,..,.,.,,..,,.,,..,,
+#4YA7F6KIY5EQAOHALKZ6WIYUJ4MAWEBNQGCG2JTCPH2OPWLFAZPPISH4GYHSNCKJIDBA63HS243OC
+#\\\|V2MEF6O4UXM3VIXXGB3PVCKUL34LUNXPGUHBOAN2E5GPDONVAI7 \ / AMOS7 \ YOURUM ::
+#\[7]ITY3ANDGSJXJI6CDMJERZ3EEF4JXBC2T7QT64BKUQCZOBP3PZ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

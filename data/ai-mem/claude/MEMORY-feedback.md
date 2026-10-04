@@ -174,3 +174,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|62RVIQB3PZ3IFMNFXIEXC7JU27EOYQG3QSQZFV7ZKYIEXDVQEI5 \ / AMOS7 \ YOURUM ::
 #\[7]JM64KPPKAFJ6226WORJZHASAOMN3YJIFCAMCAAMIDLQS3KYKPEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [storage-restart-allowed](feedback-storage-restart-allowed.md) — `p7c v7-zenki.restart storage` is mine to run when a change needs it [ 2026-10-04 ]
+
+#,,..,.,,,,,,,.,.,,,.,,..,,..,,..,.,.,,,.,,,,,..,,...,...,...,..,,,,,,,,.,,,.,
+#MSCCZK5SOODI72JODWEMOXMH5U7XX4YIUVF7ZIZFI4EMW2CMD64QP2EOUBIT7NDOFU4KTEEJ62HXW
+#\\\|SCYLEIY4QOYAT6BLIBDTAUGA6EFZIRS6BS5PGNQTDFGRVGE4QY6 \ / AMOS7 \ YOURUM ::
+#\[7]ZPLCKXNLSQNONWTB64N3KEPN3LN3ZHDEBT2X56XE3GT7W2QOXYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

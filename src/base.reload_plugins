@@ -15,14 +15,18 @@ if ( defined <callbacks.end_code>
 
 my @loaded_plugins = <[base.sort]>->(<plugins.status>);
 
+## an empty registry used to report success silently -- say so instead ##
+<[base.log]>->( 1, 'reload_plugins : no plugins registered' )
+    if not @loaded_plugins;
+
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@loaded_plugins);
 
 $success = FALSE if $subs_failed;
 
 return $success;
 
-#,,,.,.,.,,.,,...,,.,,,..,,,,,...,.,.,,.,,.,,,..,,...,...,..,,..,,..,,,,,,.,,,
-#J2POTXTZ5GNJSLDN7C3XZPH2QLLKGHRDYY3AKK4O6447NLBVCYOBVXO6QYSSQ6URFY4XB7SXOZEIK
-#\\\|I3W2N5IFUVP36CLGFUADAWUZVMJ5JPPO75IFEXGDHUAFQ4VGTT7 \ / AMOS7 \ YOURUM ::
-#\[7]TB67YMSRLFKBSFA7JB4GCBD4EYD4E4DGEAISHMK4RGIAU53UHGAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,,,.,,,,,.,,,..,,...,,,.,.,,,..,,...,...,...,,,,,,..,...,,,.,
+#K7KVHYRN62FBLG4V2QFQSDI247UI4NABNWB2GZFX6AT2KHIUTUMAZXOKJROSG42JJLBYGUR252WIU
+#\\\|ECWMBZBLN3HRDQPRGK4BHZSAJIA3DEVRAAHZJHZSREBSPE7RXXU \ / AMOS7 \ YOURUM ::
+#\[7]DPKZKYSDFYKTA2SN4NBAMTFAN7AR3ZBN6RHL7OFR2VM2GP7X5QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

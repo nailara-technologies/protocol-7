@@ -5,6 +5,18 @@ metadata:
   type: feedback
 ---
 
+## 2026-10-04 : third gap found + fixed [ plugin.* via modules.load ]
+
+storage and universal listed their plugins in `modules.load` instead of
+`plugins.load` -> loaded by `[load_modules]`, never registered in
+`<plugins.status>` -> `reload plugins` walked an empty registry and still
+reported success, `reload source` skips plugin.* -> NO reload ever
+recompiled them. fixed in `base.load_modules` [ registers plugin.* names
+in <plugins.status> too ] + `base.reload_plugins` logs "no plugins
+registered". verified live with a probe message. if a plugin edit still
+seems not to take : check the zenka log for `. loading : plugin.*` lines
+after the reload -- none means the registry is empty.
+
 ## CORRECTED 2026-09-16: the 2026-09-15/16 "recurrence" was not a bug
 
 Root cause found in `src/base.cmd.reload` itself (confirmed by reading the
@@ -152,8 +164,8 @@ not just as a fallback for when something looks wrong.
 
 **Restart-only changes are defects [ 2026-09-24, per user ]**: the only remaining reason a zenka needs a restart for a code or config change is a handler that is neither registered reload-safe nor reinstalled in an init phase. when such an instance is found, fix it [ make it reload-safe or reinstall it at init ] rather than accepting the restart -- the goal is that no zenka ever needs a restart just for code or config changes.
 
-#,,,,,,.,,,,,,,,.,,..,,,.,..,,...,,,,,.,,,,..,...,...,...,...,,.,,.,.,.,,,,.,,
-#BJ6TKFLIDGWPLQ7YSQONG6462JPQCK6FOUV4SIESTQ4BBNDKGHYLF5HZKRAOKQGGAGWSFSJNNLPAE
-#\\\|UAWNI74JHP723RSG67QP57BZI6ZV27SLOBN4JA5HFH7NC7FURZ2 \ / AMOS7 \ YOURUM ::
-#\[7]6CL3N2KXEBJHLSFFLXBWLGVQY2LMGQL6CCEKJTQM6YEZGWX3PKCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,.,.,.,.,,,,,.,.,...,.,.,,,.,...,...,...,..,,,,,,,..,,,.,...,
+#BJIAS47LTNC6WTOQCQAGSDK6EP5JRKF7ZPKY3IOYU5F7GR3AQJ2XXWJM3YTWCNU7LVR4FOVGGMVUS
+#\\\|BYOTBNHBEYNGZH223K53I6OHPTCMTV3ZCJQRYUAFJVQIQX32SXD \ / AMOS7 \ YOURUM ::
+#\[7]MEIMY2HNU4NUW6575NPSP4JSUH5ZYDH7NA3YFYYD6ZNOBPDF6KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
