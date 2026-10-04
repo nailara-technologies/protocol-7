@@ -1,0 +1,31 @@
+.:[ osf-cache : operating system file cache - local holdings lookup ]:.
+
+[load_config_file:'shared-params']
+
+modules.load          = net protocol io.unix ui auth format.yaml osf-cache
+## explicit command list : no wildcard - has answers for this node's own
+## holdings, status and rescan are read-only ; install stays out ##
+access.cmd.usr.cube   = commands heart reload verify-instance \
+                        list show-buffer buffer-erase buffer-erase-level \
+                        status has rescan
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+## post-drop startup : load state, build the anchor index, arm the
+## sliced rescan timer [ same pattern usage.startup uses - init_code
+## runs BEFORE the drop and must not scan or arm timers ]
+[osf-cache.startup]
+
+[zenka.loop]
+
+#,,,.,.,,,,..,,,,,.,.,..,,.,,,...,,..,.,.,.,.,.,.,...,.,.,,.,,.,.,,,,,,,.,.,.,
+#AHB5JMGM6N2G7LMUAVTGDK6C5PWXYJFBNL7LMPRXAXAZUBI6ZO2GJ5QIUYU7C5W2XFJSNPZ3565UQ
+#\\\|RKVYZDHIYEYXMGYR6SCJY73TJPOX3EFP4VSYGDMKE47DW7IOLEZ \ / AMOS7 \ YOURUM ::
+#\[7]NJ6L6JA2XVVKUBKEJTOQ73VPXRYONW2AFPEZGMA7RHDJI2CUCSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
