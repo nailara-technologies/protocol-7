@@ -15,6 +15,13 @@
 # base.callback.cmd_reply [ which resolves the <base.cmd_reply>
 # entry itself ], the timeout timer is cancelled and the per-lookup
 # state deleted - a completed lookup leaves nothing behind.
+# an INTERNAL caller [ on_done module name in the lookup state ]
+# never gets a text reply : the merged result
+# { holders, bmw384, missing, failed_nodes, conflicts, bmw_conflicts }
+# goes to the on_done module through explicit dispatch [ the 'no
+# peers' case merges to plain missing ; only an explicit FALSE
+# completion - the peer list never arrived - passes its failure
+# through ]. external lookups are unchanged.
 
 my $args      = shift                // {};
 my $lookup_id = $args->{'lookup_id'} // '';
@@ -28,27 +35,67 @@ foreach my $sid ( keys %{ $state->{'pending'} // {} } ) {
         unless exists $state->{'replies'}{$sid};
 }
 
-my $reply;
-if ( defined $args->{'mode'} ) {
-    $reply = { 'mode' => $args->{'mode'}, 'data' => $args->{'data'} // '' };
-} else {
-    my $merged = <[osf-cache.lookup.merge_replies]>->(
-        {   'replies' => $state->{'replies'} // {},
-            'expect'  => $state->{'expect'}  // {},
-        }
-    );
-    my $formatted = <[osf-cache.lookup.format_lookup_reply]>->(
-        {   'merged'  => $merged->{'data'}   // {},
-            'anchors' => $state->{'anchors'} // [],
-        }
-    );
-    $reply = { 'mode' => qw| size |, 'data' => $formatted->{'data'} // '' };
-}
+if ( length( $state->{'on_done'} // '' ) ) {
+    ## internal caller : the merged result, never a text reply ##
+    my $result;
+    if ( defined $args->{'mode'} and $args->{'mode'} eq qw| false | ) {
+        $result = {
+            'mode' => qw| false |,
+            'data' => $args->{'data'} // ''
+        };
+    } else {
+        my $merged = <[osf-cache.lookup.merge_replies]>->(
+            {   'replies' => $state->{'replies'} // {},
+                'expect'  => $state->{'expect'}  // {},
+            }
+        );
+        $result = {
+            'mode'   => qw| true |,
+            'merged' => $merged->{'data'} // {},
+        };
+    }
 
-## reply first, then clean up [ cmd_reply deletes the <base.cmd_reply> ##
-## entry itself ]                                                      ##
-if ( length( $state->{'reply_id'} // '' ) ) {
-    <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply );
+    ## explicit dispatch : the on_done modules stay visible to the static ##
+    ## dependency graph [ dynamic $code{$name} calls are not ]            ##
+    if ( $state->{'on_done'} eq qw| osf-cache.fetch.lookup_done | ) {
+        <[osf-cache.fetch.lookup_done]>->(
+            {   'anchor' => $state->{'anchors'} // [],
+                'result' => $result,
+            }
+        );
+    } else {
+        <[base.logs]>->(
+            0, ': osf-cache : unknown lookup on_done : %s',
+            $state->{'on_done'}
+        );
+    }
+} else {
+    my $reply;
+    if ( defined $args->{'mode'} ) {
+        $reply = {
+            'mode' => $args->{'mode'},
+            'data' => $args->{'data'} // ''
+        };
+    } else {
+        my $merged = <[osf-cache.lookup.merge_replies]>->(
+            {   'replies' => $state->{'replies'} // {},
+                'expect'  => $state->{'expect'}  // {},
+            }
+        );
+        my $formatted = <[osf-cache.lookup.format_lookup_reply]>->(
+            {   'merged'  => $merged->{'data'}   // {},
+                'anchors' => $state->{'anchors'} // [],
+            }
+        );
+        $reply
+            = { 'mode' => qw| size |, 'data' => $formatted->{'data'} // '' };
+    }
+
+    ## reply first, then clean up [ cmd_reply deletes the <base.cmd_reply> ##
+    ## entry itself ]                                                      ##
+    if ( length( $state->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply );
+    }
 }
 
 if ( defined $state->{'timer'} ) {
@@ -59,8 +106,8 @@ delete <osf-cache.lookup.pending>->{$lookup_id};
 
 return;
 
-#,,,,,,,.,,..,,,,,,..,.,,,.,.,,,.,,..,,.,,,,,,.,.,...,...,.,,,.,,,,,.,..,,..,,
-#V54DZO57EY3VEMWQRNYLACLCBHIWRXTENUQ3P3B4DOG5TCR4XZLDS62Q3HXFODIEGCVTC62X73PS4
-#\\\|ROBQKCH3TJBZHXO25OYOECR6R3J4RYAAAJ3E7LR5TRTCUQZGBOV \ / AMOS7 \ YOURUM ::
-#\[7]K5PSYZAWP47FI24EBKFHE6Q7II33JSBOUIGW6YT7RPJVNG4ATIDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,,,,.,,,.,,,,,,.,.,,.,,.,.,...,.,.,...,...,...,,,,,.,.,.,,,,.,,
+#RZ5AKCKJHK2HAVVXVY3XDHFUJEV6SFOADWF22INBAGVS5H72R5IMLEAUNPCEGM3W5ETXRRBKJYWBG
+#\\\|OORBHW72UATQAXZNAUCL3PIPVVBOSCHYSIB3GM3RK6Y3XKQEEFQ \ / AMOS7 \ YOURUM ::
+#\[7]GKOJFMMIEXA757ZN6JJ26CZOQH3ADTNSZEQ4G6OEYZTQGSMW56BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

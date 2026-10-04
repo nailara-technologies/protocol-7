@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = osf-cache.fetch.request
+# descr = request the next segment from the current holder
+# param = { fetch_key => <anchor> }
+#
+# sends '<sid>.segment <bmw384> <offset> <len>' via
+# protocol-7.route-send to the current holder [ holders in sorted sid
+# order, ONE outstanding request at a time ] with
+# osf-cache.handler.segment_reply as the reply handler, and arms the
+# per-segment timer [ <osf-cache.cfg.segment_timeout> //= 10 s,
+# handler osf-cache.fetch.segment_timeout ]. the last segment is
+# shorter : len is min( segment_max, size - offset ). called by
+# osf-cache.fetch.lookup_done [ first segment ], the segment reply
+# handler [ next offset ] and osf-cache.fetch.retry [ same offset,
+# retried or next holder ].
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+my $holders = $state->{'holders'} // [];
+my $sid     = $holders->[ $state->{'holder_idx'} ] // return;
+
+my $seg_max = <osf-cache.cfg.segment_max> // 65536;
+$seg_max = 65536 if !$seg_max or $seg_max < 1;    ## explicit floor ##
+
+my $want = $state->{'size'} - $state->{'offset'};
+$want = $seg_max if $want > $seg_max;
+
+$state->{'current_sid'} = $sid;
+$state->{'want'}        = $want;
+
+## every request gets a new seq : a late reply to a timed-out request ##
+## carries an old one and is dropped by the reply handler             ##
+$state->{'seq'}++;
+
+my $timeout = <osf-cache.cfg.segment_timeout> // 10;
+$timeout = 10 if !$timeout or $timeout < 1;       ## explicit floor ##
+
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'repeat'  => FALSE,
+        'handler' => qw| osf-cache.fetch.segment_timeout |,
+        'data'    => { 'fetch_key' => $fetch_key },
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$sid.segment",
+        'call_args' => {
+            'args' => sprintf '%s %d %d',
+            $state->{'bmw384'}, $state->{'offset'}, $want
+        },
+        'reply' => {
+            'handler' => qw| osf-cache.handler.segment_reply |,
+            'params'  => {
+                'fetch_key' => $fetch_key,
+                'seq'       => $state->{'seq'}
+            },
+        },
+    }
+);
+
+return;
+
+#,,,,,.,,,,..,...,...,...,,.,,,..,..,,..,,.,,,..,,...,..,,..,,..,,..,,,.,,..,,
+#E5H56BV67LCYHUJAKLE4OTMGRRAR22KCE2PLG5KYSBUKQZCT5VJF4HWKYR7D4EXZP2C2LMLX6G7XK
+#\\\|CVQALSOHLYA22QZKNFLKZZHBLRPCEWFY44PBDEIKVRKGNSCX74G \ / AMOS7 \ YOURUM ::
+#\[7]T35RXRTVEEB3FQBRUOXG5PXLMQZKMFZ4BLOLHRBAMWV2SHL6XCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
