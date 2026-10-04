@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = osf-cache.debian.archive_name
+# descr = apt's archive cache file name for an index entry
+# param = { package, version, architecture, filename }
+#
+# apt stores a downloaded .deb as '<package>_<version>_<arch>.deb' in
+# its archive cache, each field quoted [ apt QuoteString : '_' and ':'
+# in all three fields, '.' in the architecture too, plus '%' and bytes
+# outside printable ascii -> lowercase '%xx' ]. the epoch colon is the
+# case that matters : version '1:3.7' -> '1%3a3.7'. the pool basename
+# [ Filename: in Packages ] has NO epoch, so a fetched file placed
+# under it would never be found by apt. without package \ version \
+# architecture the pool basename is the fallback.
+
+my $args = shift // {};
+
+my ( $package, $version, $arch )
+    = map { $args->{$ARG} // '' } qw| package version architecture |;
+
+my $basename = ( $args->{'filename'} // '' ) =~ s{^.*/}{}r;
+
+return $basename
+    unless length $package
+    and length $version
+    and length $arch;
+
+my $quote = sub {
+    my ( $string, $bad ) = @ARG;
+    return join '', map {
+        my $ord = ord $ARG;
+        (          $ord <= 0x20
+                or $ord >= 0x7f
+                or $ARG eq '%'
+                or index( $bad, $ARG ) >= 0
+            )
+            ? sprintf( '%%%02x', $ord )
+            : $ARG
+    } split m{}, $string;
+};
+
+my $ext = $basename =~ m{(\.[^.]+)$}o ? $1 : '.deb';
+
+return sprintf '%s_%s_%s%s',
+    $quote->( $package, '_:' ),
+    $quote->( $version, '_:' ),
+    $quote->( $arch,    '_:.' ),
+    $ext;
+
+#,,,,,,,,,,,.,.,.,,..,,.,,,,,,...,...,,.,,,.,,..,,...,...,,,.,..,,.,,,..,,.,,,
+#IRYARVB42WZPWDP7DDESV57NQE7ZINUVFCMFMEZOUQ25N63X323635ADRA3QHVTRK5YFIKY4SETGM
+#\\\|3W6NJK3DVIKSFRAZRLYVPU5S4QEMBPWZSTOZZXIGMI4XAYZNEKY \ / AMOS7 \ YOURUM ::
+#\[7]ZQDIYPRPT2Z4FMRJXDZGYWFYRQVZNHAA26RP6RUHWD4W7AYDKCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
