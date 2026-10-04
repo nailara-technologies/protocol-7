@@ -19,6 +19,18 @@ print ":\n: running 'post-checkout' checks ..,\n:\n";
 
 my $admin_path = 'bin/admin';
 my $p7_root    = p7_root_dir();    ## safely determine protocol-7 root path ##
+
+## core.hooksPath is absolute -> a checkout in another worktree runs this ##
+## same hook, but p7_root always points at the main tree : skip there     ##
+## instead of normalizing a tree that was not checked out                 ##
+chomp( my $work_tree = `git rev-parse --show-toplevel` // '' );
+$work_tree = abs_path($work_tree) if length $work_tree;
+if ( not length $work_tree or $work_tree ne $p7_root ) {
+    printf ":\n: not the protocol-7 root [ %s ] , skipped.\n:\n",
+        length $work_tree ? $work_tree : 'unknown work tree';
+    exit 0;
+}
+
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
 ## checking files and permissions ##
@@ -38,8 +50,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,..,,.,,..,,,.,,..,,,..,,,.,..,,..,,,.,,,,.,..,,...,...,...,...,.,,,,,,,.,,,
-#IIXJAQZEQ3I52LOVHBQLMAH7HFNGP2C5LWTCE25BV4QGJQSCYZ5263HH6W7GZCSRF7KFTWN4Q3MXE
-#\\\|U3CH4XHYZDVCPDJ3LMDGXJL7JZMADGKD2QVC7LDMMCO42TI2HU3 \ / AMOS7 \ YOURUM ::
-#\[7]DNQMZDUVUEI7TGEIJ7UP3F6JUUBAATE2QCGK74TYRLYGQBXUCOBA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,...,,..,...,..,,...,,.,,,..,..,,...,..,,.,,,.,,,.,.,,,.,,,.,
+#O2VL36QOUW3KNMMEHPBKMQFYLAGWJ5FSNJUGJ6WEJYZJSCBOVGGIQKZVDF5OD2QPJTSXTCX37AITG
+#\\\|7OWU7FX3VZTV4WCKZPSZES7WSXE44EM24DXYGLEVV5JGS4E7BSQ \ / AMOS7 \ YOURUM ::
+#\[7]U6PNHEINUKY2ZAV6DWCJOHCCRN3XP6VXV2KJHGJA56OZL4ARXYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

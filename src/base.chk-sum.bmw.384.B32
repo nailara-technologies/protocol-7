@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = base.chk-sum.bmw.512_32
-# descr = 512 bit blue midnight wish chksum [ BASE32 encoded ]
+# name  = base.chk-sum.bmw.384.B32
+# descr = 384 bit blue midnight wish chksum [ B32 encoded ]
 
 if ( @ARG == 0 ) {
     warn 'expected input param to checksum <{C1}>';
@@ -11,13 +11,13 @@ if ( @ARG == 0 ) {
     return undef;
 
 } elsif ( ref $ARG[0] eq qw| SCALAR | ) {    ##  scalar ref to input data  ##
-    return encode_b32r Digest::BMW::bmw_512( $ARG[0]->$* );
+    return encode_b32r Digest::BMW::bmw_384( $ARG[0]->$* );
 
 } elsif ( ref $ARG[0] eq qw| ARRAY | ) { ##  ARRAY reference to input data  ##
-    return encode_b32r Digest::BMW::bmw_512( $ARG[0]->@* );
+    return encode_b32r Digest::BMW::bmw_384( $ARG[0]->@* );
 
 } elsif ( not length ref $ARG[0] ) {    ## string or array of strings ##
-    return encode_b32r Digest::BMW::bmw_512(@ARG);
+    return encode_b32r Digest::BMW::bmw_384(@ARG);
 
 } else {
     <[base.s_warn]>
@@ -25,8 +25,8 @@ if ( @ARG == 0 ) {
     return undef;
 }
 
-#,,,.,...,.,,,...,..,,,,,,.,,,,,.,,,.,,,.,,.,,..,,...,...,.,,,,..,,.,,,,,,,..,
-#MVFKYUL5JNDGO2Q5LDBTISRH65OASKSV6HBGCWTH3LG24RJH2I3USDI66O63DF4BJJEMAJQEKTROA
-#\\\|N2ZGXJ7AJG64SGCPDLKLEYJV5LK7WSZKKT7QYI4JMEPTQ4SDW7P \ / AMOS7 \ YOURUM ::
-#\[7]SIGJUN4MI6XV5XRY4WLUNDUTE3ZQ23AQMLKBJWJQJT4M37N52YDQ 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,..,,,,,,.,,,,,,,,..,,,,,,,,,..,,...,...,..,,...,...,.,,,,..,
+#F4RQFHDZMOCI2OR4AZQLFFCTNKRYVNCEBFOXOZ6JBXKD7K3G4QSMWNE57T5UZ6CGT4BQFGT6FPTJ4
+#\\\|OCXDZOYE243WSZQ5HGSMQKWUWOSOFOIWJ3N4Q5LQKR4B7RKGRG2 \ / AMOS7 \ YOURUM ::
+#\[7]IONF6STK64THWLEEPME4CKN6D7FF37QQMXKLOW5R4M6AZIHFLMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

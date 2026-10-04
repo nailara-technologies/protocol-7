@@ -18,12 +18,14 @@ return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 my $current_checksum;
 my $algorithm = $cached->{algorithm};
 
-if ( $algorithm eq 'bmw' ) {
-    $current_checksum = <[chk-sum.bmw.filesum]>->($path);
+## file content via filesum, never the .B32 variants [ those hash their ##
+## input string -> the path itself ] ; plain bmw = 384, osf-cache layer ##
+if ( $algorithm eq 'bmw' or $algorithm eq 'bmw-384' ) {
+    $current_checksum = <[chk-sum.bmw.filesum]>->( 384, $path );
 } elsif ( $algorithm eq 'bmw-224' ) {
-    $current_checksum = <[chk-sum.bmw.224.B32]>->($path);
+    $current_checksum = <[chk-sum.bmw.filesum]>->( 224, $path );
 } elsif ( $algorithm eq 'bmw-512' ) {
-    $current_checksum = <[chk-sum.bmw.512_32]>->($path);
+    $current_checksum = <[chk-sum.bmw.filesum]>->( 512, $path );
 } elsif ( $algorithm eq 'bmw-L13' or $algorithm eq 'bmw-L13-b32' ) {
     open my $fh, '<:raw', $path
         or return { 'mode' => 'false', 'data' => 'cannot read file' };
@@ -36,7 +38,12 @@ if ( $algorithm eq 'bmw' ) {
         $current_checksum = <[chk-sum.bmw.str-b32.L13]>->($content);
     }
 } elsif ( $algorithm eq 'amos' ) {
-    $current_checksum = <[chk-sum.amos]>->($path);
+    ## amos hashes its input string -> read the file content first ##
+    open my $fh, '<:raw', $path
+        or return { 'mode' => 'false', 'data' => 'cannot read file' };
+    my $content = do { local $/; <$fh> };
+    close $fh;
+    $current_checksum = <[chk-sum.amos]>->( \$content );
 }
 
 return { 'mode' => 'false', 'data' => 'checksum computation failed' }
@@ -55,8 +62,8 @@ return {
     }
 };
 
-#,,,,,,,.,,..,,..,,,,,.,,,,,,,,,,,..,,.,.,.,.,.,.,...,...,.,.,,.,,..,,...,,,,,
-#BZQFC6E4VJS4YGFNKRZJMN77HDHAFM55ZBIEN2VM6IO2ZLJV52VTKJTGXAFF6QOQMEIF6G7ODZO7Q
-#\\\|CHBAQ5Z2C2BM4RPMQXEJO75NHND45MNOE7PDBFS5BX33OLAC2VI \ / AMOS7 \ YOURUM ::
-#\[7]T3HHUI52IA6CAM4ZTBMVLGXIF4X5GAZ54YUT4DSW75GAWCJRAIAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,..,,,..,,,,,,,.,.,,,,..,..,,.,.,...,...,,,,,,,.,,.,,...,,..,
+#2KIE5BWOATBZQHVRE5KTS5LCOAC66JBYI22ZJRW4UZDDIM7GEGEGCIHTP2R5RWAFZTEZEDEFM42QU
+#\\\|7OPPG3EB6474YEQUZUQWEG7K54TIFDQIL4L6PUAT67TAISC6MGL \ / AMOS7 \ YOURUM ::
+#\[7]E7AWRKMBYRDKURU7KOBJEP26C6AYF7T74ZJO3CV2ZUPB7TSYTGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

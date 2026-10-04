@@ -222,8 +222,7 @@ foreach my $entry ( $symmetries->@* ) {
     my @inv_perm;
     $inv_perm[ $entry->{'perm'}->[$ARG] ] = $ARG foreach 0 .. 2;
     my @inv_signs;
-    $inv_signs[$ARG] = $entry->{'signs'}->[ $inv_perm[$ARG] ]
-        foreach 0 .. 2;
+    $inv_signs[$ARG] = $entry->{'signs'}->[ $inv_perm[$ARG] ] foreach 0 .. 2;
     my $inverse = { 'perm' => \@inv_perm, 'signs' => \@inv_signs };
 
     my $fwd = call_module( 'branch.space.symmetry.apply',
@@ -297,8 +296,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,,,,,,,..,,..,,,,.,..,,,.,,...,.,,,,..,..,,...,...,...,,..,,..,.,,,...,
-#CRMUUJD63BOGJQSMVJFELWLL7OD3JCJEPL5EFTDGZXNE3AF6AWNBUALDCA4JQB7627CDLTPYAUYOQ
-#\\\|OAD52S3OOBP43OOODYR3UODNTSCACMXL7WKUSSIMNCSOM2KSCH6 \ / AMOS7 \ YOURUM ::
-#\[7]ITKREXCFA5TSXFK2UHVCQ4ZQ5YCHRXQBIVUVADAZZRRLJKBF7QAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,,.,,,,,..,,.,,,...,,,.,..,,..,,...,...,,.,,,,.,,,,,.,.,.,.,
+#6IJX3WGKQUEKYC3KEH2AYWRZEQUN6L7QXEJSN5NR53MXVRQNR7PJPBZ6AZLNKV7EWJ2BGQ543MM4W
+#\\\|XB64N66CUAFY2Y3VJSWSEFWXQD6CGPBSII2HEXEGIRSSMGO2HFE \ / AMOS7 \ YOURUM ::
+#\[7]QEIXHIZT5KX6463L2ZHKIHFNCNZFO2HJJ3QMRC3W6ST5N7Y3AQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

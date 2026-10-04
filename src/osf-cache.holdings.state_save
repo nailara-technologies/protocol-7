@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = osf-cache.holdings.state_save
+# descr = persist holdings scan result as a versioned YAML state file
+# param = { path, holdings }
+#
+# writes the holdings scan result data [ the scan's data hash ] to path
+# as YAML through the format.yaml wrapper modules [ the zenka loads
+# format.yaml in its zenka.v7 ; format.yaml.pre_init must have run ].
+# write_file is not atomic itself : the state goes to '<path>.tmp.<pid>'
+# first and is renamed into place only when complete [ a concurrent
+# state_load never sees a truncated file ]. the state carries a version
+# field : { version => 2, holdings => ... }.
+
+my $args     = shift           // {};
+my $path     = $args->{'path'} // '';
+my $holdings = $args->{'holdings'};
+
+return { 'mode' => 'false', 'data' => 'path required' } unless length $path;
+return { 'mode' => 'false', 'data' => 'holdings required' }
+    unless ref $holdings eq qw| HASH |;
+
+my $tmp_path = sprintf '%s.tmp.%d', $path, $PROCESS_ID;
+
+my ( $written, $err ) = <[format.yaml.write_file]>->(
+    $tmp_path,
+    {   'version'  => 2,
+        'holdings' => $holdings,
+    }
+);
+
+## a failed write must not leave a partial temp file behind ##
+if ( not $written ) {
+    unlink $tmp_path;
+    return { 'mode' => 'false', 'data' => "cannot write state : $err" };
+}
+
+if ( not rename( $tmp_path, $path ) ) {
+    my $rename_err = $OS_ERROR;    ## before unlink overwrites it ##
+    unlink $tmp_path;
+    return {
+        'mode' => 'false',
+        'data' => "cannot rename $tmp_path to $path : $rename_err"
+    };
+}
+
+return { 'mode' => qw| true |, 'data' => $path };
+
+#,,.,,,..,...,,,.,...,,.,,,,,,,.,,,..,.,,,,,.,.,.,...,..,,...,,,.,.,,,,,.,,,,,
+#ZUO4TTRPNIATACJRSCOEZYKIREDJSLIUP3BRZILTNBH7ITTBJ7YSDFDFAQ3UNXSY6N4AUYR4HUBDO
+#\\\|ML64GDE36FI7PQY6RIORMKNQY5APKC3NQ5TPE3EITODHZAQGYKR \ / AMOS7 \ YOURUM ::
+#\[7]VART5ZQ5JEYHNVCG2MNIYFHRMAOGBOIRY63L3H4JHBSZR42S2KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
