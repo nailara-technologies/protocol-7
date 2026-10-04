@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = osf-cache.merkle.quorum
+# descr = root agreement rule : all asked, or k of n
+# param = { asked => \@sids, answers => { sid => { root,
+#           leaf_count, size } } [ valid replies only ],
+#           quorum => 'k/n' [ //= '5/7' ] }
+#
+# THE root trust rule of stage 4 - it lives in this ONE module [
+# variants may follow, callers never re-implement it ]. 'asked' are
+# the holders the merkle question went to [ all holders when fewer
+# than n exist, else the first n - the caller decides ]. the rule :
+#
+# - fewer than n asked : ALL must have answered and ALL must agree
+#   on root \ leaf_count \ size, else mode false 'merkle conflict'
+#   [ the seen roots listed ] or 'merkle unavailable' [ answers
+#   missing ]
+# - n or more asked : at least k must agree on the triple ;
+#   dissenting \ silent holders are listed as excluded, the agreeing
+#   ones as eligible
+#
+# mode true data : { root, leaf_count, size, eligible, excluded }.
+
+my $args    = shift              // {};
+my $asked   = $args->{'asked'}   // [];
+my $answers = $args->{'answers'} // {};
+
+my $quorum = $args->{'quorum'} // <osf-cache.cfg.root_quorum> // '5/7';
+my ( $k, $n ) = $quorum =~ m{^(\d+)\s*/\s*(\d+)$}o ? ( $1, $2 ) : ( 5, 7 );
+( $k, $n ) = ( 5, 7 ) if !$k or !$n or $k > $n;
+
+my %by_triple;
+foreach my $sid ( sort { $a <=> $b } keys %$answers ) {
+    my $answer = $answers->{$sid} // {};
+    my $triple = join ':',
+        $answer->{'root'}       // '',
+        $answer->{'leaf_count'} // '',
+        $answer->{'size'}       // '';
+    push @{ $by_triple{$triple} }, $sid;
+}
+
+my $need_all = scalar @$asked < $n ? 1 : 0;
+
+my $missing = grep { !exists $answers->{$ARG} } @$asked;
+
+if ( $need_all and $missing ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf 'merkle unavailable [ %d of %d answered ]',
+        scalar @$asked - $missing, scalar @$asked
+    };
+}
+
+## the winner : most sids, ties broken by the lowest first sid ##
+my ($winner) = sort {
+    scalar @{ $by_triple{$b} } <=> scalar @{ $by_triple{$a} }
+        or $by_triple{$a}[0]   <=> $by_triple{$b}[0]
+} keys %by_triple;
+
+my $agree = defined $winner ? scalar @{ $by_triple{$winner} } : 0;
+
+my $enough
+    = $need_all
+    ? ( !$missing and $agree == scalar @$asked )
+    : ( $agree >= $k );
+
+if ( !$enough ) {
+    my %roots;
+    foreach my $triple ( keys %by_triple ) {
+        my ($root) = split m{:}, $triple;
+        $roots{$root} = scalar @{ $by_triple{$triple} };
+    }
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'merkle conflict : %s',
+            join ' ', map {"$ARG [ $roots{$ARG} ]"} sort keys %roots
+        )
+    };
+}
+
+my ( $root, $leaf_count, $size ) = split m{:}, $winner;
+
+my %agreeing = map { $ARG => 1 } @{ $by_triple{$winner} };
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'root'       => $root,
+        'leaf_count' => $leaf_count,
+        'size'       => $size,
+        'eligible'   => [ sort { $a <=> $b } @{ $by_triple{$winner} } ],
+        'excluded'   => [ grep { !$agreeing{$ARG} } @$asked ],
+    }
+};
+
+#,,,,,.,,,...,,.,,.,.,,,.,.,,,.,,,.,,,.,.,,..,.,.,...,..,,.,.,..,,,.,,.,,,,..,
+#6RPA4HXAEEVZR64MNYGIKEHMNOONYHQA3P4KSG5JL7XIP2YEHFXU7OA7VI26QQVLG2OKKEEOAZUKE
+#\\\|QXX7QI562L44AQAVUCNVAGNCWY4AQKS3W5DX4RO3TEJBVP3L5M2 \ / AMOS7 \ YOURUM ::
+#\[7]5GMIYXA2MNMCMRKKQUY7M2G6E2MTU4LCYWFLN5W4WDXAHVJ4DYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

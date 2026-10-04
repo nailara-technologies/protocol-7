@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = osf-cache.merkle.hash_leaf
+# descr = bmw384 leaf hash : domain-separated raw digest
+# param = { bytes => <raw leaf bytes> }
+#
+# the leaf hash construction of the stage 4 merkle tree : bmw384 over
+# "\x00" . bytes [ the "\x00" prefix is the leaf domain - inner nodes
+# use "\x01", so no byte string is both a leaf and an inner node ].
+# returns the RAW 48-byte digest [ Digest::BMW->new(384), ->digest ] ;
+# B32 through <[chk-sum.bmw.encode_digest]> is for storage \ wire only.
+
+my $args  = shift            // {};
+my $bytes = $args->{'bytes'} // '';
+
+require Digest::BMW;    ## known dependency - loaded here ##
+my $ctx = Digest::BMW->new(384);
+$ctx->add("\x00");
+$ctx->add($bytes);
+
+return $ctx->digest;
+
+#,,..,...,.,,,.,.,.,,,,,,,,.,,..,,.,,,,,,,,,,,.,.,...,.,.,...,,..,.,.,...,,,,,
+#TCYHYT5H5UATNEJ4LCK7QVCSBEG2NPQ2LWAD6KCFNJUES2FA7TWRUBASSWP6G72BZTJUUVFOYY26Y
+#\\\|OHU7IBG2LE5DSFENHLJAH6W5UNKSLD6SRNUKDQOROV7U6MFTNJX \ / AMOS7 \ YOURUM ::
+#\[7]FNLVOO5755IFGX4YV6C4HRWTCD2MVSVJPSE5KNGHK56PX3GY54BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

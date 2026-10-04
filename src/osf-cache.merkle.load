@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = osf-cache.merkle.load
+# descr = load + verify a stored merkle tree
+# param = { bmw384 }
+#
+# reads <[osf-cache.merkle.tree_path]> and VERIFIES it before anyone
+# serves from it : leaf_size must be the protocol 65536, the leaves
+# must be valid bmw384 B32, leaf_count must match the leaf list, and
+# the root rebuilt from the stored leaves [ osf-cache.merkle.build_
+# root ] must equal the stored root. ANY mismatch is logged and the
+# tree is treated as missing [ undef ] - a tampered tree file is
+# never served. returns the tree hashref [ root \ leaves B32 ] on
+# success, undef when missing or invalid.
+
+my $args   = shift             // {};
+my $bmw384 = $args->{'bmw384'} // '';
+
+return undef unless length $bmw384;
+
+my $path = <[osf-cache.merkle.tree_path]>->( { 'bmw384' => $bmw384 } );
+return undef unless length $path and -f $path;
+
+my $tree = <[format.yaml.load_file]>->($path);
+
+return undef unless ref $tree eq qw| HASH |;
+
+my $leaves = $tree->{'leaves'} // [];
+
+my $why;
+if ( ( $tree->{'leaf_size'} // 0 ) != 65536 ) {
+    $why = 'leaf_size';
+} elsif ( ref $leaves ne qw| ARRAY | or !scalar @$leaves ) {
+    $why = 'leaves';
+} elsif ( ( $tree->{'leaf_count'} // -1 ) != scalar @$leaves ) {
+    $why = 'leaf_count';
+} elsif ( grep { $ARG !~ m|^[A-Z2-7]{77}$|o } @$leaves ) {
+    $why = 'leaf format';
+}
+
+if ( !defined $why ) {
+    <[base.perlmod.autoload]>->( 'Crypt::Misc', qw| decode_b32r | );
+    my @raw      = map { decode_b32r($ARG) } @$leaves;
+    my $root_raw = <[osf-cache.merkle.build_root]>->( { 'leaves' => \@raw } );
+    $why = 'root'
+        if !defined $root_raw
+        or <[chk-sum.bmw.encode_digest]>->($root_raw) ne
+        ( $tree->{'root'} // '' );
+}
+
+if ( defined $why ) {
+    <[base.logs]>->(
+        0,       ': osf-cache : merkle tree %s invalid [ %s ] - ignored',
+        $bmw384, $why
+    );
+    return undef;
+}
+
+return $tree;
+
+#,,.,,.,.,..,,.,.,,,,,,,,,,.,,..,,,.,,..,,,,.,.,.,...,...,..,,..,,,,.,,,,,,,.,
+#UO6SKY6XH3V5E7TM2LMNC4GYDJEQA7OJ5HFSHTNPBXA46FFYWXFWEMH662Z3EPY5UOXRAFEVCIJAW
+#\\\|EVZHUNW4CVUAQBPWLDFEPMZ3B4JARRSL5TZKGQUXA4EG4F2PJUI \ / AMOS7 \ YOURUM ::
+#\[7]ULIYB52UK3TYV6UFTS5DCDFOLHUDJN32VTKBSYKZKK6LHZUWFWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

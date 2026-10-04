@@ -1,0 +1,130 @@
+## [:< ##
+
+# name  = osf-cache.cmd.merkle
+# descr = serve a held file's merkle root or leaf pages
+# param = <bmw384> [ leaves <from> <count> ]
+#
+# the merkle answer of acquisition flow step 4 : '<bmw384>' replies
+# mode true '<root> <leaf_count> <size>' [ B32 root ], '<bmw384>
+# leaves <from> <count>' replies mode true '<from> <count> <leaf>
+# <leaf> ..' on ONE line [ B32 leaves, count capped at 1024 per
+# request, ~80 KB ]. serves only an ANCHORED holding whose bmw384
+# matches and whose file still matches size \ mtime \ inode of the
+# holdings entry [ the exact cmd.segment rule - bytes the recorded
+# digests do not describe are never served, and neither is their
+# tree ]. no tree file yet [ or an invalid one - load verifies ]
+# answers mode false 'merkle not ready'.
+
+my $args = $call->{'args'} // '';
+
+my @argv = grep {length} split m{\s+}, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : merkle <bmw384> [ leaves <from> <count> ]'
+    }
+    unless @argv == 1
+    or ( @argv == 4 and $argv[1] eq qw| leaves | );
+
+my ( $bmw384, $want_leaves, $from, $count )
+    = @argv == 1 ? ( $argv[0], 0 ) : ( $argv[0], 1, @argv[ 2, 3 ] );
+
+return { 'mode' => qw| false |, 'data' => "invalid bmw384 : $bmw384" }
+    unless $bmw384 =~ m|^[A-Z2-7]{77}$|o;
+
+if ($want_leaves) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'from and count must be non-negative integers'
+        }
+        unless $from =~ m{^\d+$}o and $count =~ m{^\d+$}o;
+    return {
+        'mode' => qw| false |,
+        'data' => 'count outside 1 .. 1024'
+        }
+        if $count < 1;
+}
+
+my $scan = <osf-cache.scan> // {};
+
+return { 'mode' => qw| false |, 'data' => 'holdings not ready' }
+    unless $scan->{'done'};
+
+my $holdings = <osf-cache.holdings>;
+return { 'mode' => qw| false |, 'data' => 'holdings not ready' }
+    unless ref $holdings eq qw| HASH |;
+
+## only ANCHORED entries are served [ the cmd.segment rule ] ##
+my ( $entry, $unanchored );
+foreach my $file ( @{ $holdings->{'files'} // [] } ) {
+    next unless ( $file->{'digests'}{'bmw384'} // '' ) eq $bmw384;
+    if ( $file->{'anchored'} ) {
+        $entry = $file;
+        last;
+    }
+    $unanchored //= $file;
+}
+
+return { 'mode' => qw| false |, 'data' => "unknown bmw384 : $bmw384" }
+    unless ref $entry eq qw| HASH |
+    or ref $unanchored eq qw| HASH |;
+
+return {
+    'mode' => qw| false |,
+    'data' => "refused : $bmw384 [ not an anchored holding ]"
+    }
+    unless ref $entry eq qw| HASH |;
+
+## the path comes from the holdings entry - never from the request ##
+my $path = sprintf '%s/%s', <osf-cache.cfg.cache_dir> // '', $entry->{'name'};
+
+## CORE::stat : bin/Protocol-7 imports File::stat, whose stat returns an ##
+## object -> a plain list stat left all fields undef in the zenka        ##
+my @stat = CORE::stat($path);
+
+return { 'mode' => qw| false |, 'data' => 'changed since scan [ gone ]' }
+    unless @stat > 10;
+
+return { 'mode' => qw| false |, 'data' => 'changed since scan' }
+    unless $stat[7] eq $entry->{'size'}
+    and $stat[9] eq $entry->{'mtime'}
+    and $stat[1] eq $entry->{'inode'};
+
+## the verified tree [ load rebuilds the root from the leaves ] ##
+my $tree = <[osf-cache.merkle.load]>->( { 'bmw384' => $bmw384 } );
+
+return { 'mode' => qw| false |, 'data' => 'merkle not ready' }
+    unless ref $tree eq qw| HASH |;
+
+if ( !$want_leaves ) {
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf '%s %d %d',
+        $tree->{'root'}, $tree->{'leaf_count'}, $tree->{'size'}
+    };
+}
+
+my $leaves     = $tree->{'leaves'}     // [];
+my $leaf_count = $tree->{'leaf_count'} // 0;
+
+return {
+    'mode' => qw| false |,
+    'data' => "from outside 0 .. $leaf_count"
+    }
+    if $from >= $leaf_count;
+
+$count = 1024 if $count > 1024;    ## the per-request cap [ ~80 KB ] ##
+$count = $leaf_count - $from if $from + $count > $leaf_count;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%d %d %s',
+        $from,    $count,
+        join ' ', @{$leaves}[ $from .. $from + $count - 1 ] )
+};
+
+#,,..,,,.,.,.,,,,,..,,.,.,,.,,,.,,...,,,,,,..,.,.,...,..,,,.,,,..,,.,,,,,,,..,
+#4HSHSYWGCPCOPRFPONVRSTCTYAZMXHJU5RYYUFJUA25P2F5A7IL223X3MPANM7CZGLXQC74ZPZAX2
+#\\\|RIONM53YZRUDBOO6F2LXY76W4GHNNU3DAUETYJPD2FGU34AWVOH \ / AMOS7 \ YOURUM ::
+#\[7]C4XIRGRVUUUHTD662VP3UGI74MTCENOVLMBABPGI2HQLD3JP2WBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

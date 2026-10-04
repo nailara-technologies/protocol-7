@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = osf-cache.fetch.leaves_next
+# descr = leaves holder failed : exclude it, try the next
+# param = { fetch_key => <anchor>, reason => <text> }
+#
+# the failure path of the leaf-list phase [ osf-cache.handler.
+# leaves_reply : bad page or a list that does not rebuild to the
+# agreed root ; osf-cache.fetch.leaves_timeout : silence ] : the
+# current leaves holder is excluded for the rest of THIS fetch, the
+# collected pages are dropped and the leaf list restarts at the next
+# agreeing holder. none left fails the fetch mode false 'merkle
+# leaves unavailable'.
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+my $reason    = $args->{'reason'}    // 'leaves failed';
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| leaves |;
+
+if ( defined $state->{'timer'}
+    and eval { $state->{'timer'}->is_active } ) {
+    $state->{'timer'}->cancel;
+}
+
+my $sid = $state->{'leaves_sid'} // '';
+
+<[base.logs]>->(
+    0,    ': osf-cache : leaves holder %s excluded [ %s ]',
+    $sid, $reason
+);
+
+push @{ $state->{'excluded'} }, $sid if length $sid;
+$state->{'eligible'}
+    = [ grep { $ARG != $sid } @{ $state->{'eligible'} // [] } ];
+$state->{'leaves_in'} = [];
+
+if ( !scalar @{ $state->{'eligible'} } ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => 'merkle leaves unavailable'
+        }
+    );
+    return;
+}
+
+$state->{'leaves_sid'} = $state->{'eligible'}[0];
+
+<[osf-cache.fetch.leaves_request]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,..,,..,.,,,..,,.,,,,,.,,.,,...,,,,,,.,,...,.,.,...,...,,.,,...,..,,.,.,..,,
+#EWHYOM54MBMRQLMWOMGQ3MBTBHA6QDW7G4M72SX3GUG6W4Y367F546RBYGTUPFIKKPJPDQSR344FC
+#\\\|VTRMMQ5XYV6FR2SHWJMTVDHQIZ4KUODRU4VMXHPLKKEH7SP464K \ / AMOS7 \ YOURUM ::
+#\[7]EGWGVHECIXIPBW2USBOHB3FC42BPHTPYBLZLNZWTK6CTUPGXR4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

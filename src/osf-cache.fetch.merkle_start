@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = osf-cache.fetch.merkle_start
+# descr = ask the holders for the file's merkle root
+# param = { fetch_key => <anchor> }
+#
+# stage 4 acquisition step 2 : '<sid>.merkle <bmw384>' goes to the
+# holders [ sorted sid order ] - ALL holders when fewer than n of the
+# root_quorum 'k/n' exist, else the first n [ the ask set ; the
+# agreement rule itself lives in osf-cache.merkle.quorum ]. every
+# reply lands in osf-cache.handler.merkle_reply ; ONE phase timer [
+# <osf-cache.cfg.segment_timeout> ] bounds the whole round - silent
+# holders are whatever did not answer when it fires [
+# osf-cache.fetch.merkle_timeout ].
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+my $quorum = <osf-cache.cfg.root_quorum> // '5/7';
+my ($n) = $quorum =~ m{^(\d+)\s*/\s*(\d+)$}o ? $2 : 7;
+$n = 7 if !$n or $n < 1;
+
+my @asked = @{ $state->{'holders'} // [] };
+$#asked = $n - 1 if @asked > $n;    ## the first n holders ##
+
+$state->{'phase'}    = qw| merkle |;
+$state->{'asked'}    = \@asked;
+$state->{'answers'}  = {};
+$state->{'answered'} = {};
+
+my $timeout = <osf-cache.cfg.segment_timeout> // 10;
+$timeout = 10 if !$timeout or $timeout < 1;    ## explicit floor ##
+
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'repeat'  => FALSE,
+        'handler' => qw| osf-cache.fetch.merkle_timeout |,
+        'data'    => { 'fetch_key' => $fetch_key },
+    }
+);
+
+foreach my $sid (@asked) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$sid.merkle",
+            'call_args' => { 'args' => $state->{'bmw384'} },
+            'reply'     => {
+                'handler' => qw| osf-cache.handler.merkle_reply |,
+                'params'  => { 'fetch_key' => $fetch_key, 'sid' => $sid },
+            },
+        }
+    );
+}
+
+return;
+
+#,,,.,,,.,.,.,.,.,,..,.,.,.,.,.,.,...,,,.,.,,,.,.,...,...,.,.,,.,,.,,,.,,,,,.,
+#NFSM6NIXILL7WNOOIHLCE26GJGBSTZCUZ4VXX7HL7PE6D43HJLGLML4EKTD5MN2MLSMXKMJR4TQKU
+#\\\|2V4DNVNU3MOXBQUMDFUXM25MIGM2IMHHCTZ5HSETJAZFHW7YEKS \ / AMOS7 \ YOURUM ::
+#\[7]6LW6LHH5ZSIU57WWXP5MXABDXXJBZPIUGKS56FHNWDWOU5MAEODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

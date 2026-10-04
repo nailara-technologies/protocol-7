@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = osf-cache.fetch.merkle_timeout
+# descr = merkle round timer fired : evaluate what arrived
+# param = timer event [ data => { fetch_key } ]
+#
+# one-shot timer armed by osf-cache.fetch.merkle_start [ after
+# <osf-cache.cfg.segment_timeout>, repeat FALSE ]. whatever answered
+# by now is the quorum input - silent holders are missing answers [
+# osf-cache.merkle.quorum decides : fatal below n, merely excluded at
+# n or more ]. a fetch past the merkle phase ignores the fire.
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data }   // {};   ## poll_switch pattern ##
+my $fetch_key  = $timer_data->{'fetch_key'} // '';
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| merkle |;
+
+<[base.logs]>->(
+    0,
+    ': osf-cache : merkle round timeout [ %d of %d answered ]',
+    scalar keys %{ $state->{'answers'} // {} },
+    scalar @{ $state->{'asked'} // [] }
+);
+
+<[osf-cache.fetch.merkle_eval]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,..,.,.,.,,,.,,,,,.,,..,.,.,...,.,,,,.,,,,.,.,.,...,...,..,,,,,,.,.,..,,...,
+#ZABLBPMIXFAIAAKIB3MXZTPH67YX4FUGU76LPNI6Q4WGYZQ6R7RTP4LKMKUZWGMI5YABHJPP7EHZO
+#\\\|3BVDQFZUWI6IVEAMZOVE7V37XANAHHEX4JDI2LK3KODTXTP4U6Z \ / AMOS7 \ YOURUM ::
+#\[7]UBGYVSTAF6QLUTYV3ZMQDB3NLYF45WNGRSDIWSTHVUW2S6EQTUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = osf-cache.merkle.build_root
+# descr = build the merkle root from raw leaf digests
+# param = { leaves => \@raw_48_byte_digests }
+#
+# the pure, alone-testable tree rule of stage 4 : level by level,
+# inner node = bmw384( "\x01" . left_raw . right_raw ) [ the "\x01"
+# domain prefix - leaf hashes carry "\x00", see
+# osf-cache.merkle.hash_leaf ]. an ODD node at a level is PROMOTED
+# unchanged to the next level - never duplicated [ duplication lets
+# two different leaf lists share a root ]. the root of a one-leaf
+# file is that leaf hash itself. input \ output are RAW 48-byte
+# digests ; an empty leaf list returns undef [ a file of size 0 has
+# no tree ].
+
+my $args  = shift // {};
+my @level = @{ $args->{'leaves'} // [] };
+
+return undef unless scalar @level;
+
+require Digest::BMW;    ## known dependency - loaded here ##
+
+while ( @level > 1 ) {
+    my @next;
+    while (@level) {
+        my $left = shift @level;
+        if (@level) {
+            my $right = shift @level;
+            my $ctx   = Digest::BMW->new(384);
+            $ctx->add("\x01");
+            $ctx->add($left);
+            $ctx->add($right);
+            push @next, $ctx->digest;
+        } else {
+            push @next, $left;    ## odd node : promoted unchanged ##
+        }
+    }
+    @level = @next;
+}
+
+return $level[0];
+
+#,,,.,,,.,..,,...,,,,,,..,..,,...,.,,,,..,,.,,.,.,...,..,,...,,,,,,,.,,..,,,.,
+#DBCFEXPJIFVL7M3DBMQVIZLNU3Z7JERCZ7WF3SE4CYMBHLFVNME3MJALI3EBY6OB56CQTJMV6WEJS
+#\\\|H2ERC7J4P7T452RTSKI7Y7W3ETZJZVXU2YUIGGKXNAG7OZZYRFI \ / AMOS7 \ YOURUM ::
+#\[7]6RTXNVADWHSYDE6OKLI2FMM6QWOVYFDIU4TXD6SHANUB4AEZRYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

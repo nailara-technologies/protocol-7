@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = osf-cache.handler.merkle_reply
+# descr = collect one holder's merkle root answer
+# param = reply envelope [ params : fetch_key, sid ]
+#
+# reply handler for the '<sid>.merkle <bmw384>' round of the fetch
+# flow. a TRUE reply carries '<root> <leaf_count> <size>' in
+# call_args.args, a SIZE reply in data - a valid answer is recorded ;
+# a FALSE \ malformed one only counts as answered [ the quorum treats
+# it as not answering ]. a fetch that is gone, past the merkle phase
+# or a sid that already answered : dropped. when EVERY asked holder
+# answered, the phase timer is cancelled and osf-cache.fetch.
+# merkle_eval applies the quorum rule.
+
+my $reply     = shift                  // {};
+my $params    = $reply->{'params'}     // {};
+my $fetch_key = $params->{'fetch_key'} // return;
+my $sid       = $params->{'sid'}       // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| merkle |;
+return if $state->{'answered'}{$sid};
+
+my %asked = map { $ARG => 1 } @{ $state->{'asked'} // [] };
+return unless $asked{$sid};    ## not part of this round ##
+
+$state->{'answered'}{$sid} = 1;
+
+my $cmd     = $reply->{'cmd'} // '';
+my $payload = '';
+if ( $cmd eq qw| TRUE | ) {
+    $payload = $reply->{'call_args'}{'args'} // '';
+} elsif ( $cmd eq qw| SIZE | ) {
+    $payload = $reply->{'data'} // '';
+}
+
+if ( my ( $root, $leaf_count, $size )
+    = $payload =~ m|^([A-Z2-7]{77}) (\d+) (\d+)$|o ) {
+    $state->{'answers'}{$sid} = {
+        'root'       => $root,
+        'leaf_count' => $leaf_count,
+        'size'       => $size,
+    };
+}
+
+## the round is over when every asked holder answered ##
+my $answered
+    = grep { $state->{'answered'}{$ARG} } @{ $state->{'asked'} // [] };
+
+if ( $answered == scalar @{ $state->{'asked'} // [] } ) {
+    if ( defined $state->{'timer'}
+        and eval { $state->{'timer'}->is_active } ) {
+        $state->{'timer'}->cancel;
+    }
+    <[osf-cache.fetch.merkle_eval]>->( { 'fetch_key' => $fetch_key } );
+}
+
+return;
+
+#,,..,,.,,...,,.,,.,.,,..,.,.,,..,...,.,,,,..,.,.,...,...,...,...,,,.,,,.,,,,,
+#V5M5L37MGTGL4SNU7NRP2IMSJYQYWK6VC4CAR7VNSM7RFYHLNF3MUIHLR6JN6H5D45JFOB7DSLVG4
+#\\\|POYRDQEDSKJPF37GFKVNREQE6MEWKSVFVH2ASQXFEFF3VMMQQB7 \ / AMOS7 \ YOURUM ::
+#\[7]NCUBN6TQAUIW57X2RALDUWWNFOAXTTR5FWWTYNODJ6QCWKM4J4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
