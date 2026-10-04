@@ -2,12 +2,14 @@
 
 # name  = osf-cache.lookup.format_lookup_reply
 # descr = format a merged peer lookup into the reply text
-# param = { merged => <merge_replies data>, anchors => [ asked ] }
+# param = { merged => <merge_replies data>, anchors => [ asked ],
+#           unknown => [ not in the local index, never asked ] }
 #
 # one line per held anchor : '<anchor> <n> holders : <sid> <sid> ..',
 # then the summary lines : missing anchors, failed peers, size
 # conflicts [ corrupt or lying node ] and bmw384 conflicts [ holders
-# disagree on the internal id ]. anchors with a bmw conflict have no
+# disagree on the internal id ] and the anchors the local index
+# does not know [ never asked, cmd.lookup ]. anchors with a bmw conflict have no
 # agreeing holder set and therefore also show up in missing - both
 # lines are printed, the conflict line explains the missing one.
 
@@ -27,6 +29,11 @@ foreach my $anchor ( sort keys %$holders ) {
 my @missing = @{ $merged->{'missing'} // [] };
 push @lines, sprintf 'missing : %s', join ' ', @missing
     if @missing;
+
+my @unknown = @{ $args->{'unknown'} // [] };
+push @lines, sprintf 'unknown : %s [ not in the local index ]',
+    join ' ', @unknown
+    if @unknown;
 
 my @failed = @{ $merged->{'failed_nodes'} // [] };
 push @lines, sprintf 'failed peers : %s', join ' ', @failed
@@ -55,8 +62,8 @@ return {
     'data' => "\n" . join( "\n", @lines ) . "\n"
 };
 
-#,,.,,,.,,,,,,...,,.,,,,,,.,.,,.,,.,,,,.,,,.,,.,.,...,...,...,.,.,...,,,,,,.,,
-#XN25Z3RCO4VBJQWOJZZVHEMJU6OC7HFCBG7DM3HXEFNCUDDV2UUBIDIJUTV6FORUYXBIKMV5PUB3M
-#\\\|XG2EZCHYAY56WODZWCMA6FAIJ5IWYZN74SACEXGMC3DJOUQI3OX \ / AMOS7 \ YOURUM ::
-#\[7]PTQRVQYUEJTDMXOHYUUGUGX2U2E2SNDXIKQJLYQIOI2RFK6WFEBI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,,..,..,,...,.,.,.,,,,,.,.,.,.,.,...,...,...,.,.,,..,...,.,,,
+#PV2CSWXP47DC7FLGSGZVH4PMXUAMTIFJOQ3UOR7QVXWWDJEOL2WIKCKBUPNGZSABFOAZ533XCGQEA
+#\\\|QFFNF3DT3GJ7BGP6VF6VF4FWPJX2YIHCZQZ4NBRI4BWCE7NAPL4 \ / AMOS7 \ YOURUM ::
+#\[7]4HHNHGTUYX7FIYYMML3WH6NLOYVCEVA7BVNDF52IUNZ6NDLEGSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
