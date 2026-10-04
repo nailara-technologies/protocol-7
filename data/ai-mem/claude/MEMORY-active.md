@@ -167,12 +167,13 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-render-degradation-baseline](project-2026-10-02-invoke-render-degradation-baseline.md) — renders slow 2-6x with uptime ; fresh-reboot baseline denoise 125 s vs 304-798 s before [ same graph, item 16005 ], gpu-only probe to separate causes
 - [host-pc-warranty-until-2027-02](project-host-pc-warranty-until-2027-02.md) — full-system 3-year ebay seller warranty, ordered 2024-02-17 / delivered 2024-02-23 -> ends ~2027-02 ; rtx 3060 fan bearing claim opened 2026-10-02, dead front-fan led rings to report too ; 5700x has no igpu
-- [session-handover-2026-10-03](project-2026-10-03-session-handover-osf-os-pkg-space.md) — START HERE after the 2026-10-02/03 marathon [ last b82629df3 ] : landed trit\symmetry\chunker\condenser\os-pkg install\osf-cache stage 1 ; next steps per area [ os-pkg streaming, osf-cache stage 2, signing wait marker ] ; `hello` still installed ; github cli apt key rotated
+- [session-handover-2026-10-04](project-2026-10-04-session-handover-osf-cache-stage2.md) — START HERE [ last cb6e0ac8c ] : osf-cache stages 2 \ 2b \ 2c live [ holdings, bmw384 ids, peer lookup ], stage 3 task file ready -> dispatch to kimi ; holder test pending [ debs into peer-archives ]
+- [session-handover-2026-10-03](project-2026-10-03-session-handover-osf-os-pkg-space.md) — previous handover, superseded by 2026-10-04 ; after the 2026-10-02/03 marathon [ last b82629df3 ] : landed trit\symmetry\chunker\condenser\os-pkg install\osf-cache stage 1 ; next steps per area [ os-pkg streaming, osf-cache stage 2, signing wait marker ] ; `hello` still installed ; github cli apt key rotated
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,,.,.,,,,..,,.,,,,.,...,,,,,.,,,.,,,...,,..,..,,...,..,,..,,.,,,,,,,.,,,,.,,
-#TZGMZ2XUDSHHDIC7HWKS54SQWO2XFXZTSS5UZD5R3A6C2TKJ7OJFTSE4MTUM7O5LUTOPQ4EJKXAYQ
-#\\\|MN6T3CKORZFR24R5BNMBBZWZNULK45PRJ2L2W423ES7K7GPJK5U \ / AMOS7 \ YOURUM ::
-#\[7]3T4RQEGSJCO3C7WXYJ24K274TFZOOBFPERGM5UJTRYDTALZHTIDI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,,.,,.,.,.,,,,,.,,..,,..,.,.,..,,...,...,.,,,,..,,.,,,.,,,.,,
+#QVEMOUSZX2ZUD6MALQMGJJ27JF2NNOD57ZZFHGH4J6SIRXLXCG5TYM4SKBQZZXJIYUBZQ6DFWHHKQ
+#\\\|T7VWHUXRIJE6RF6FXKBPUHXK5GQITEPHYR3DHX66W2A4DX7WVN2 \ / AMOS7 \ YOURUM ::
+#\[7]IX4XWVV6QQC5GL43JTSDE4OKAVXKW6DQTECBWEND7OHNBIOZTUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
