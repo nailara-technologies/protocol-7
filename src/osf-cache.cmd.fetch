@@ -113,7 +113,8 @@ return { 'mode' => qw| false |, 'data' => 'fetch already running' }
     if exists <osf-cache.fetch.pending>->{$token};
 
 my ( $algo, $hex ) = split m{:}, $token, 2;
-my $filename = $entry->{'filename'} =~ s{^.*/}{}r;
+## apt's archive name [ with the epoch ], not the pool basename ##
+my $filename = <[osf-cache.debian.archive_name]>->($entry);
 
 ## per-anchor state - every module of the flow reads THIS entry ##
 <osf-cache.fetch.pending>->{$token} = {
@@ -151,8 +152,8 @@ if ( ref $lookup eq qw| HASH | and $lookup->{'mode'} ne qw| deferred | ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,.,.,..,,,.,,...,..,,,..,,,.,...,,,.,..,,..,,...,...,,,.,..,,,,.,,..,.,,,
-#UIR7OZEA5UZUCCBPGFPAAYXUD7NEX6435FGVHY5KH7YNT3HBTX4T2T52BZWGSF5M4ZBSGLJCLIRRQ
-#\\\|OBHODP2QHJZHE4HC4EZ2S62BCCLSOCIIPFITUDCYBVT3IYQZX4C \ / AMOS7 \ YOURUM ::
-#\[7]4V4HZVIYDIBD6UGKSNWYJOZEJ47NZAT6RIFOHJXKJFER35XZQABA 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,.,.,.,,,,..,,..,..,,.,.,,.,,..,,...,...,..,,...,.,,,,,.,.,,,
+#YCBRGJS73BW33ZPWV6WWLX6ANRBBQ7XNQTUN2T5KSLVGL3HIDTU2FNASOTNLBYNANTKXI5GC5IYE6
+#\\\|7XZECLLRU7YZCTI65HR6OI5A2RHEVJI64JFEBOEI6S6SO36J37Q \ / AMOS7 \ YOURUM ::
+#\[7]S6DPJLFUWQUYROUMZHBW67YGWAQJ2ZT4DWB7LAXFQVRH2XVRDKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
