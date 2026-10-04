@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = osf-cache.fetch.send_segment
+# descr = request one leaf's segment from one holder
+# param = { fetch_key => <anchor>, sid => <holder>, leaf => <index> }
+#
+# sends '<sid>.segment <bmw384> <offset> <len>' via
+# protocol-7.route-send [ offset = leaf * 65536, the protocol leaf
+# size ; len the rest of the file, capped at 65536 - the last leaf
+# is shorter ] with osf-cache.handler.segment_reply as the reply
+# handler. every request gets a new per-holder seq [ the stage 3
+# rule : a reply whose seq is not the holder's current one is
+# dropped ] and arms the per-holder timer [
+# <osf-cache.cfg.segment_timeout> //= 10 s, handler
+# osf-cache.fetch.segment_timeout ]. called by osf-cache.fetch.pump
+# and the timeout handler [ same leaf retried once ].
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+my $sid       = $args->{'sid'}       // return;
+my $leaf      = $args->{'leaf'}      // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+my $hs = $state->{'hs'}{$sid} // return;
+
+my $offset = $leaf * 65536;
+my $want   = $state->{'size'} - $offset;
+$want = 65536 if $want > 65536;
+
+$hs->{'leaf'} = $leaf;
+$hs->{'seq'}++;
+
+if ( defined $hs->{'timer'}
+    and eval { $hs->{'timer'}->is_active } ) {
+    $hs->{'timer'}->cancel;    ## a retried leaf replaces its timer ##
+}
+
+my $timeout = <osf-cache.cfg.segment_timeout> // 10;
+$timeout = 10 if !$timeout or $timeout < 1;    ## explicit floor ##
+
+$hs->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'repeat'  => FALSE,
+        'handler' => qw| osf-cache.fetch.segment_timeout |,
+        'data'    => { 'fetch_key' => $fetch_key, 'sid' => $sid },
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$sid.segment",
+        'call_args' => {
+            'args' => sprintf '%s %d %d',
+            $state->{'bmw384'}, $offset, $want
+        },
+        'reply' => {
+            'handler' => qw| osf-cache.handler.segment_reply |,
+            'params'  => {
+                'fetch_key' => $fetch_key,
+                'sid'       => $sid,
+                'seq'       => $hs->{'seq'}
+            },
+        },
+    }
+);
+
+return;
+
+#,,.,,,.,,,,.,..,,...,..,,,,,,.,.,...,...,.,,,.,.,...,...,..,,.,.,,,,,,.,,...,
+#F77N75P57RGO5KGHR4SHMNN3JNX63FJS7BPVY2AV2N4E5XPNRXF6A66NSUZHXCZS73IO6F3G4WSMQ
+#\\\|T6KMOYLRAEKFE2HIZOVINSYBV7SLT6LGJN5M4QER2PC5IGBU4NZ \ / AMOS7 \ YOURUM ::
+#\[7]6AFW5USVWODY2W2L64MI25KRFBGXVHFPKHG3ZX7KSVNQDOLW4ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

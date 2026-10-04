@@ -11,13 +11,20 @@
 # bmw384 [ the protocol-7 internal id, B32 : require Digest::BMW ;
 # Digest::BMW->new(384), encoded through <[chk-sum.bmw.encode_digest]>
 # - no base. prefix : pre_init aliases the family via swap_subs ].
+# stage 4 : the SAME pass also feeds osf-cache.merkle.leaf_add, so the
+# merkle leaf hashes [ exact 65536-byte leaves, domain-separated ] come
+# out of the one read. an ANCHORED entry gets its tree stored at
+# <[osf-cache.merkle.tree_path]> [ content-addressed, atomic - skipped
+# when the tree already exists or no state_path is configured ].
 # the five-field reuse check [ name, size, mtime, ctime, inode -
 # ctime cannot be set back like mtime with touch -d ] against
 # previous reuses ALL recorded digests, unless the current algos need
-# one it lacks -> the file is re-read. anchoring always matches the
-# computed digests against the CURRENT anchor map. the returned entry
-# carries an extra rehashed flag [ 1 when the file was actually read ]
-# so callers can count without re-deriving the reuse decision.
+# one it lacks -> the file is re-read. an anchored reuse whose tree
+# file is missing is ALSO re-read, so the startup scan backfills the
+# trees of today's holdings. anchoring always matches the computed
+# digests against the CURRENT anchor map. the returned entry carries
+# an extra rehashed flag [ 1 when the file was actually read ] so
+# callers can count without re-deriving the reuse decision.
 # returns undef when the file cannot be stat'ed or read.
 
 my $args     = shift              // {};
@@ -59,6 +66,7 @@ if (    ref $previous eq qw| HASH |
 }
 
 my $rehashed = 0;
+my @leaves;    ## raw merkle leaf digests of the read pass [ stage 4 ] ##
 if ( !scalar keys %digests ) {
     open( my $fh, '<:raw', $path ) or return undef;
     binmode($fh);
@@ -67,14 +75,18 @@ if ( !scalar keys %digests ) {
         grep {m{^sha(?:256|512)$}} @$algos;
     require Digest::BMW;    ## known dependency - loaded here ##
     my $bmw_ctx = Digest::BMW->new(384);
+    my $merkle  = {};       ## { buf, leaves } : the leaf accumulator ##
     while ( read( $fh, my $chunk, 65536 ) ) {
         $ARG->add($chunk) foreach values %ctxs;
         $bmw_ctx->add($chunk);
+        <[osf-cache.merkle.leaf_add]>
+            ->( { 'state' => $merkle, 'bytes' => $chunk } );
     }
     close($fh);
     $digests{$ARG}     = $ctxs{$ARG}->hexdigest foreach keys %ctxs;
     $digests{'bmw384'} = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
-    $rehashed          = 1;
+    @leaves = @{ <[osf-cache.merkle.leaf_done]>->( { 'state' => $merkle } ) };
+    $rehashed = 1;
 }
 
 ## anchor against the CURRENT map - never copied from previous ##
@@ -93,6 +105,46 @@ if ( $anchor and $anchors->{$anchor} ) {
     ( $package, $version ) = ( $1, $2 );    ## from file name ##
 }
 
+## stage 4 : an anchored file needs its tree. a REUSED entry whose tree     ##
+## file is missing is re-read [ leaves only ] so the startup scan backfills ##
+## today's holdings ; the store itself is skipped when the                  ##
+## content-addressed tree already exists [ shared merkle dir ]              ##
+if ($anchor) {
+    my $bmw = $digests{'bmw384'} // '';
+    my $tree_path
+        = length $bmw
+        ? <[osf-cache.merkle.tree_path]>->( { 'bmw384' => $bmw } )
+        : '';
+    my $have = !length $tree_path    ## no state_path : no tree work ##
+        || <[osf-cache.merkle.have]>->( { 'bmw384' => $bmw } );
+    if ( !$have and !$rehashed ) {
+        if ( open( my $fh, '<:raw', $path ) ) {
+            binmode($fh);
+            my $merkle = {};
+            while ( read( $fh, my $chunk, 65536 ) ) {
+                <[osf-cache.merkle.leaf_add]>
+                    ->( { 'state' => $merkle, 'bytes' => $chunk } );
+            }
+            close($fh);
+            @leaves = @{
+                <[osf-cache.merkle.leaf_done]>->( { 'state' => $merkle } ) };
+            $rehashed = 1;    ## the file was actually read ##
+        }
+    }
+    if ( !$have and scalar @leaves ) {
+        my $stored = <[osf-cache.merkle.store]>->(
+            {   'bmw384' => $bmw,
+                'size'   => $size,
+                'leaves' => \@leaves,
+            }
+        );
+        <[base.logs]>->(
+            0, ': osf-cache : merkle store failed : %s',
+            $stored->{'data'}
+        ) if $stored->{'mode'} ne qw| true |;
+    }
+}
+
 return {
     'name'     => $name,
     'size'     => $size,
@@ -107,8 +159,8 @@ return {
     'rehashed' => $rehashed,
 };
 
-#,,,.,..,,,,,,,,.,.,,,.,,,,..,,..,,,.,.,,,...,.,.,...,...,,..,.,,,,.,,,..,,.,,
-#PC3U7T7YYAIBGFQTBN3KVAXCEWWRTFGYFJLE3R6ZIR7BMSVSYOUA2WO75HHURC25SHFVPJPKMVIX2
-#\\\|VRJWHOSWLV6BL32ARIBUZP2ZATA4WBBFSRGF4KZSODSP7IKQM5X \ / AMOS7 \ YOURUM ::
-#\[7]2ABOJDKOHRLPYALEX436TQPNGFQZNFXUUE6J4ZJT2IKZXOEFIOBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,..,,,..,,,.,..,,..,,,.,,,..,.,,,.,.,...,...,.,,,,..,..,,.,,,,,,,
+#2XDBAXVCGOEG4ZN4D2IMGGSKZE3F746KE5RYWOOCQISIIKIENDWX2NGXSS3DNT3U2OZIAVX42TUIO
+#\\\|LO425T2I6CUYWOKIQ2WCWUOODP2RY66R2RLJHXVJZINUBGLXBNZ \ / AMOS7 \ YOURUM ::
+#\[7]IHSEFZUDW4INI34PDS44YSZFUBGT57UZSBORJ4FEYU54FGX6FCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

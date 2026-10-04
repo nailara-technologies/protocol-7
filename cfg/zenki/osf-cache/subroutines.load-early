@@ -172,9 +172,11 @@ base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
 osf-cache.peers.list
+osf-cache.fetch.pump
 osf-cache.fetch.fail
 osf-cache.cmd.status
 osf-cache.cmd.rescan
+osf-cache.cmd.merkle
 osf-cache.cmd.lookup
 io.ip.tcp.input.open
 format.yaml.pre_init
@@ -203,8 +205,9 @@ base.cmd.show-buffer
 base.buffer.add_line
 base.base32.pre_init
 ascii.frame.validate
+osf-cache.merkle.load
+osf-cache.merkle.have
 osf-cache.index.build
-osf-cache.fetch.retry
 osf-cache.cmd.segment
 jobqueue.get_next_job
 jobqueue.get_job_data
@@ -226,6 +229,7 @@ base.console.commands
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+osf-cache.merkle.store
 format.yaml.write_file
 crypt.C25519.sign_data
 base.session.init_code
@@ -239,7 +243,7 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cfg.profile.apply
 protocol.sftp.init_code
-osf-cache.fetch.request
+osf-cache.merkle.quorum
 jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
@@ -286,6 +290,7 @@ base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
+osf-cache.merkle.leaf_add
 osf-cache.lookup.complete
 jobqueue.priorities_table
 io.unix.socket.input.open
@@ -305,6 +310,9 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 protocol.sftp.read_ssh_env
+osf-cache.merkle.tree_path
+osf-cache.merkle.leaf_done
+osf-cache.merkle.hash_leaf
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.encrypted_key
@@ -322,9 +330,13 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
+osf-cache.merkle.build_root
 osf-cache.lookup.with_peers
 osf-cache.handler.has_reply
+osf-cache.fetch.merkle_eval
 osf-cache.fetch.lookup_done
+osf-cache.fetch.leaves_next
+osf-cache.fetch.holder_fail
 net.read_linewise_estimated
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -348,6 +360,8 @@ protocol.amos_term.init_code
 osf-cache.lookup.query_local
 osf-cache.holdings.scan_file
 osf-cache.handler.peers_list
+osf-cache.fetch.send_segment
+osf-cache.fetch.merkle_start
 io.unix.socket.input.connect
 crypt.C25519.compare_keypair
 base.validate.composite_name
@@ -386,6 +400,12 @@ protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 osf-cache.lookup.merge_replies
 osf-cache.holdings.rescan_step
+osf-cache.handler.merkle_reply
+osf-cache.handler.leaves_reply
+osf-cache.fetch.start_segments
+osf-cache.fetch.merkle_timeout
+osf-cache.fetch.leaves_timeout
+osf-cache.fetch.leaves_request
 osf-cache.debian.read_packages
 crypt.C25519.key_name_and_type
 crypt.C25519.chksum_cache.retr
@@ -507,8 +527,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,,.,.,,,,..,,..,,,,,,.,,,.,,,,,,...,,,,,..,,...,...,,.,,.,.,.,,,..,,.,.,
-#FCJZFUNHRCXXHS7QNCKHTN2ZCC4MUWNIHR6OI25YUMVUUB4H3OAZF3ASQV7QBE57RBAPMGOKK3EZW
-#\\\|FVGGLRV2NV3HWSQQCLMUK6IYEQHULTCDOD45CORQRURMG52MSXA \ / AMOS7 \ YOURUM ::
-#\[7]TTLDJG4VSFQEWZRPOFQ7C66LSFSNUAR4XLRAP4OXRCXPIJVOFSBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,.,,..,,,,,,,,,,..,,...,,..,..,,...,..,,,.,,,,,,..,,,,.,...,
+#7JI3TJHFFTTAKH4M7HCCZSVNTDO4YSTWHWFQYE24VAEVH23H3NRN6MLBMPQFR5MC4CSA2GHCQU4FK
+#\\\|NPDYWI4M3AALDEWNOUS73LMN4UVLTUQPW2PDQAKR3OWHUV2SEYV \ / AMOS7 \ YOURUM ::
+#\[7]UYPEZOAKNH5L7ZXLUYNK4DFJ4EFLQ7FIXIH4N2KTASNHBHX4UMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

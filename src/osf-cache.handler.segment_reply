@@ -1,39 +1,51 @@
 ## [:< ##
 
 # name  = osf-cache.handler.segment_reply
-# descr = write one arrived segment, continue or verify
+# descr = verify one arrived leaf, write it, hand out more
+# param = reply envelope [ params : fetch_key, sid, seq ]
 #
 # reply handler for the '<sid>.segment' requests of the fetch flow [
-# one outstanding at a time ]. a TRUE reply carries '<offset> <bytes>
-# <b32>' in call_args.args, a SIZE reply in data ; FALSE or anything
-# else is a failed segment. the payload must match what was asked :
-# the offset equals the fetch offset, the byte count equals the
-# request length [ the last segment may be shorter only in that the
-# request itself was shorter ] and decode_b32r must return exactly
-# that many bytes - anything else retries [ osf-cache.fetch.retry ].
-# a good segment is written to the partial file raw, the offset
-# advances and the next segment is requested ; when the size is
-# reached the partial is closed and osf-cache.fetch.complete verifies
-# it. a fetch the failure path already cleaned up is gone from
-# <osf-cache.fetch.pending> and this reply is dropped ; so is a late
-# reply to a timed-out request [ its seq is no longer current ].
+# ONE outstanding request per holder, leaves in parallel ]. a TRUE
+# reply carries '<offset> <bytes> <b32>' in call_args.args, a SIZE
+# reply in data. the stage 4 verification [ step 6 ] : the offset is
+# the asked leaf's [ leaf * 65536 ], the byte count is the asked
+# length [ the last leaf may be shorter only in that the request
+# itself was shorter ] AND bmw384( "\x00" . bytes ) equals leaf[i]
+# of the agreed list. a good leaf is written at its offset [
+# sysseek + syswrite, segments arrive out of order ] and the holder
+# gets the next queued leaf. ANY failed check EXCLUDES the holder
+# for the rest of this fetch and requeues the leaf [
+# osf-cache.fetch.holder_fail ]. all leaves in -> the partial is
+# closed and osf-cache.fetch.complete verifies the whole file. a
+# fetch that is gone, a stale seq [ late reply to a timed-out
+# request ] or an excluded holder : dropped.
 
-my $reply     = shift                 // {};
-my $params    = $reply->{'params'}    // {};
+my $reply     = shift                  // {};
+my $params    = $reply->{'params'}     // {};
 my $fetch_key = $params->{'fetch_key'} // return;
+my $sid       = $params->{'sid'}       // return;
 
 my $state = <osf-cache.fetch.pending>->{$fetch_key};
 return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| segments |;
 
-## a reply to an earlier, timed-out request : the retry already owns ##
-## the offset and the timer - dropped, never written or retried      ##
-return unless ( $params->{'seq'} // -1 ) == ( $state->{'seq'} // 0 );
+my $hs = $state->{'hs'}{$sid} // return;
 
-## the reply arrived : the per-segment timer is done ##
-if ( defined $state->{'timer'}
-    and eval { $state->{'timer'}->is_active } ) {
-    $state->{'timer'}->cancel;
+## a late reply to a timed-out request : the retry already owns the leaf - ##
+## dropped, never written or re-requested                                  ##
+return unless ( $params->{'seq'} // -1 ) == ( $hs->{'seq'} // 0 );
+return unless defined $hs->{'leaf'};
+
+my $leaf = $hs->{'leaf'};
+
+if ( defined $hs->{'timer'}
+    and eval { $hs->{'timer'}->is_active } ) {
+    $hs->{'timer'}->cancel;
 }
+
+my $offset = $leaf * 65536;
+my $want   = $state->{'size'} - $offset;
+$want = 65536 if $want > 65536;
 
 my $cmd     = $reply->{'cmd'} // '';
 my $payload = '';
@@ -41,55 +53,71 @@ if ( $cmd eq qw| TRUE | ) {
     $payload = $reply->{'call_args'}{'args'} // '';
 } elsif ( $cmd eq qw| SIZE | ) {
     $payload = $reply->{'data'} // '';
-} else {
-    <[base.logs]>->(
-        0,
-        ': osf-cache : segment reply %s from %s [ %s ]',
-        length $cmd ? $cmd : 'no cmd',
-        $state->{'current_sid'} // '',
-        $reply->{'call_args'}{'args'} // $reply->{'data'} // ''
-    );
 }
 
-my ( $offset, $bytes, $b32 );
 my $decoded;
 my $good = 0;
-if (    length $payload
-    and ( $offset, $bytes, $b32 )
+if ( my ( $r_offset, $r_bytes, $b32 )
     = $payload =~ m{^(\d+) (\d+) ([A-Z2-7]+)$}o ) {
     <[base.perlmod.autoload]>->( 'Crypt::Misc', qw| decode_b32r | );
     $decoded = eval { decode_b32r($b32) };
-    $good = 1
-        if $offset == $state->{'offset'}
-        and $bytes == $state->{'want'}
-        and defined $decoded
-        and length $decoded == $bytes;
-    if ($good) {
-        print { $state->{'fh'} } $decoded
-            or $good = 0;
+    if (    defined $decoded
+        and $r_offset == $offset
+        and $r_bytes == $want
+        and length $decoded == $r_bytes ) {
+        my $leaf_raw
+            = <[osf-cache.merkle.hash_leaf]>->( { 'bytes' => $decoded } );
+        $good = 1
+            if <[chk-sum.bmw.encode_digest]>->($leaf_raw) eq
+            ( $state->{'leaves'}[$leaf] // '' );
     }
 }
 
 if ( !$good ) {
-    <[osf-cache.fetch.retry]>->( { 'fetch_key' => $fetch_key } );
+    <[osf-cache.fetch.holder_fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'sid'       => $sid,
+            'reason'    => 'bad segment'
+        }
+    );
     return;
 }
 
-$state->{'offset'}  += $bytes;
-$state->{'segments'}++;
+## the leaf landed : out-of-order write at its own offset ##
+my $written = 0;
+if ( sysseek( $state->{'fh'}, $offset, 0 ) ) {
+    $written = defined syswrite( $state->{'fh'}, $decoded ) ? 1 : 0;
+}
 
-if ( $state->{'offset'} >= $state->{'size'} ) {
+if ( !$written ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => "partial write failed : $OS_ERROR"
+        }
+    );
+    return;
+}
+
+$state->{'done'}{$leaf} = 1;
+$state->{'used'}{$sid}++;
+$state->{'segments'}++;
+$hs->{'leaf'}     = undef;
+$hs->{'timeouts'} = 0;
+
+my $leaf_count = $state->{'agreed'}{'leaf_count'} // 0;
+
+if ( scalar keys %{ $state->{'done'} } >= $leaf_count ) {
     close( $state->{'fh'} );
     delete $state->{'fh'};
     <[osf-cache.fetch.complete]>->( { 'fetch_key' => $fetch_key } );
 } else {
-    <[osf-cache.fetch.request]>->( { 'fetch_key' => $fetch_key } );
+    <[osf-cache.fetch.pump]>->( { 'fetch_key' => $fetch_key } );
 }
 
 return;
 
-#,,,.,..,,,.,,,,,,,..,.,,,,..,...,...,...,.,,,..,,...,...,,..,.,,,,,.,.,,,,,,,
-#PUOWOVNLQLG3ITHUCVMAROTBAGSTR267RDO3HYUJVBSMRW52HKBYQIPXK4HNV53SXG6ZBC7RSBPOO
-#\\\|C3XUWB2E7PNVXZFIUXZ64KPP4SV76ZS5USNSBJD4DUWWTLHI7EK \ / AMOS7 \ YOURUM ::
-#\[7]WDBV6XGI7HC6NCGYMNPOOT5PM4GXSHHP7K5RJPCXLI3PR5BSN2CY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,,..,..,,.,,,...,.,.,,..,,..,.,.,...,...,.,,,,..,...,,,,,,,.,
+#HG2Q2KAAX7KWUBFYJKP6V74RZK43ODKML75TPIQXZC6KX7BJKOYF6EZBEHV4ZIEB2A5NWVJF6N5LU
+#\\\|O37LDEIPJGJECHEZDO35FLPXJH7YNTB4JDBJ2D2PHYCL4ROWGKU \ / AMOS7 \ YOURUM ::
+#\[7]FLGKNN3ZXM5UHEV4AB26FFJNIR7DR32P2H3EWEPFXG3NB425WQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

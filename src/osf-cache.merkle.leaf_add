@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = osf-cache.merkle.leaf_add
+# descr = feed file bytes into exact 65536-byte leaves
+# param = { state => \%acc, bytes => <chunk just read> }
+#
+# the leaf accumulator osf-cache.holdings.scan_file feeds its read
+# chunks into : read may return short mid-file, so bytes are buffered
+# and leaves are cut at EXACTLY 65536 bytes [ the protocol leaf size,
+# part of the tree identity - never the read chunk boundaries ]. each
+# full leaf is hashed domain-separated [ osf-cache.merkle.hash_leaf ]
+# and its raw digest pushed onto state.leaves. the accumulator :
+# { buf => <undigested bytes>, leaves => [ raw digests ] } - create
+# it empty, finish it with osf-cache.merkle.leaf_done.
+
+my $args  = shift            // {};
+my $state = $args->{'state'} // return;
+my $bytes = $args->{'bytes'} // '';
+
+$state->{'buf'}    //= '';
+$state->{'leaves'} //= [];
+$state->{'buf'} .= $bytes;
+
+while ( length $state->{'buf'} >= 65536 ) {
+    push @{ $state->{'leaves'} },
+        <[osf-cache.merkle.hash_leaf]>
+        ->( { 'bytes' => substr( $state->{'buf'}, 0, 65536, '' ) } );
+}
+
+return $state;
+
+#,,,.,.,,,...,...,,..,..,,,,,,,.,,...,,..,.,.,.,.,...,...,,.,,.,,,..,,..,,,,.,
+#5NAEWK3VHINSJYUHRMLPRCKMQSAFTMAAEP7AMPWAVOHQ4Y7IXVJOTQEJC2I76F4WQ7DQPYRRD7PF4
+#\\\|YRBHUDP6Z5NZF6YI3UEZ6YB2RCW2UB55GSKPV4RNCT2ATTJZLKG \ / AMOS7 \ YOURUM ::
+#\[7]WJVGKWYY3UUS3BHGWOQMFXIWU5HHT2A5FTSXHQL62YTX7BD4VEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

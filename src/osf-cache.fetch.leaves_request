@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = osf-cache.fetch.leaves_request
+# descr = page the leaf list from one agreeing holder
+# param = { fetch_key => <anchor> }
+#
+# stage 4 acquisition step 4 : '<sid>.merkle <bmw384> leaves <from>
+# <count>' [ count capped at 1024, the server's cap ] to the current
+# leaves holder, ONE outstanding page, continuation at the number of
+# leaves already collected. osf-cache.handler.leaves_reply collects
+# the pages ; ONE phase timer [ <osf-cache.cfg.segment_timeout>,
+# osf-cache.fetch.leaves_timeout ] bounds a page. called by
+# osf-cache.fetch.merkle_eval [ first page ] and the reply handler [
+# next page \ next holder ].
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+return unless ( $state->{'phase'} // '' ) eq qw| leaves |;
+
+my $sid = $state->{'leaves_sid'} // return;
+
+my $from       = scalar @{ $state->{'leaves_in'} // [] };
+my $leaf_count = $state->{'agreed'}{'leaf_count'} // 0;
+my $count      = $leaf_count - $from;
+$count = 1024 if $count > 1024;
+
+my $timeout = <osf-cache.cfg.segment_timeout> // 10;
+$timeout = 10 if !$timeout or $timeout < 1;    ## explicit floor ##
+
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'repeat'  => FALSE,
+        'handler' => qw| osf-cache.fetch.leaves_timeout |,
+        'data'    => { 'fetch_key' => $fetch_key },
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$sid.merkle",
+        'call_args' => {
+            'args' => sprintf '%s leaves %d %d',
+            $state->{'bmw384'}, $from, $count
+        },
+        'reply' => {
+            'handler' => qw| osf-cache.handler.leaves_reply |,
+            'params'  => {
+                'fetch_key' => $fetch_key,
+                'sid'       => $sid,
+                'from'      => $from,
+                'count'     => $count,
+            },
+        },
+    }
+);
+
+return;
+
+#,,..,...,.,.,..,,...,...,,.,,.,,,,.,,.,,,,,,,.,.,...,..,,.,.,,..,,..,..,,.,,,
+#63PWVV2MJ6H6OH3MH4RQQG7RFI3CEFNERT7IWVODQKO6VYW2OYDPOZH24KUIHAA7N4WFCFMSM7GLI
+#\\\|BS3YZ5NE76WBLC4WEHSFCB63UCP3MP4KVXF7WID7ASBFJZ6TZ7I \ / AMOS7 \ YOURUM ::
+#\[7]ECBQH5LNSMTPDVIZMS35BBUGFIIPNGMKZUYWVH3VG4C4I5RVAKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
