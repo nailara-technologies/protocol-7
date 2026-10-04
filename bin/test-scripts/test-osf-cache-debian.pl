@@ -84,6 +84,7 @@ sub compile_module {
 
 compile_module('osf-cache.debian.read_inrelease');
 compile_module('osf-cache.debian.read_packages');
+compile_module('osf-cache.debian.archive_name');
 compile_module('osf-cache.holdings.scan_apt_cache');
 compile_module('osf-cache.holdings.scan_file');
 compile_module('osf-cache.holdings.state_save');
@@ -498,6 +499,36 @@ ok( exists $by_anchor->{
 #\\\|OZJWLRB2QRC2KX5H7FV2HNUBKUP3DFL2GK7UGR5IJW6A2ZVH753 \ / AMOS7 \ YOURUM ::
 #\[7]5TC2YAM7O3E5VV4BNTIS3BGJUACB5SOZMEMTOPLZ5DKIYCJ2WEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+##[ 2b : apt archive cache file name ]########################################
+
+say ': apt archive name';
+
+ok( $code{'osf-cache.debian.archive_name'}->(
+        {   'package'      => 'povray',
+            'version'      => '1:3.7.0.10-3+b6',
+            'architecture' => 'amd64',
+            'filename'     => 'pool/main/p/povray/povra'
+                . 'y_3.7.0.10-3+b6_amd64.deb'
+        }
+    ) eq 'povray_1%3a3.7.0.10-3+b6_amd64.deb',
+    'archive name : the epoch colon becomes %3a [ apt QuoteString ]'
+);
+
+ok( $code{'osf-cache.debian.archive_name'}->(
+        {   'package'      => 'hello',
+            'version'      => '2.12.3-1',
+            'architecture' => 'amd64',
+            'filename'     => 'pool/main/h/hello/hello_2.12.3-1_amd64.deb'
+        }
+    ) eq 'hello_2.12.3-1_amd64.deb',
+    'archive name : no epoch -> same as the pool basename'
+);
+
+ok( $code{'osf-cache.debian.archive_name'}
+        ->( { 'filename' => 'pool/main/x/x/x_1_all.deb' } ) eq 'x_1_all.deb',
+    'archive name : missing fields fall back to the pool basename'
+);
 
 ##[ 3 : anchoring against the InRelease hash ]################################
 
@@ -3202,8 +3233,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,..,,.,.,,,.,.,,,.,.,.,.,...,,,,,..,,.,.,.,.,...,..,,,.,,,,,,,,,,,,.,,.,,
-#6SIZRX5ZOX4YCDVYANQPNTWUS2VLVQ2KJVLMBEXYXGS7YL7SZMQ4I3SFGMNCZD4WFKA344UFRM36W
-#\\\|CFIAQN5JWRF3IFQC67DWSH67LVQ6Z57PFOQG3JLEG6OV45TVLWJ \ / AMOS7 \ YOURUM ::
-#\[7]EID7LATDU4BU5UKSTXXVDQZNBECMDSRHNKOFXA333P6NSW5B4ADA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,,,,,..,,,,,,..,,..,,,..,,.,,.,.,...,...,..,,...,.,,,,,.,,,,,
+#CIGNNN5WUFOZ3WQBPDT2KSYDUFIICKNIP3XATRGQOMMV7ZZ5ELJS7SK5TBXFYHGS2BUAYRA2FQ5GW
+#\\\|XOZS6Q6EMR6IQTTEEKNZU77TSNQURQFJIQHSN46YTC6WSIWD5AV \ / AMOS7 \ YOURUM ::
+#\[7]6ACD5KXLGJ7ZZI5XRFZK567SZS3J73JSQXSRJEYHOOISSF66TIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
