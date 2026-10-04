@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = osf-cache.lookup.query_local
+# descr = answer which asked anchors this node holds [ anchored only ]
+# param = { hashes => \@anchor_tokens, holdings => <scan result data> }
+#
+# answers a 'who holds H' query against the local holdings scan result.
+# the asked tokens are '<algo>:<hex>' anchor keys [ sha256 with 64 hex,
+# sha512 with 128 hex - the anchored hash, whatever algo the
+# distribution signed ] ; the hex is lowercased before lookup [
+# uppercase hex is accepted ] and the first invalid token fails the
+# call mode false naming it. the trust rule is absolute : only
+# ANCHORED files are ever reported as held - an unanchored cached .deb
+# is never in the answer, even when its hash is asked for. more than
+# 1024 hashes per query is refused [ fan-out queries stay small ].
+# result data : { held => { anchor => { size, bmw384 } } } for asked
+# anchors only - bmw384 is the protocol-7 internal id the asker
+# switches to for segment fetching.
+
+my $args     = shift             // {};
+my $hashes   = $args->{'hashes'} // [];
+my $holdings = $args->{'holdings'};
+
+return { 'mode' => 'false', 'data' => 'hashes required' }
+    unless ref $hashes eq qw| ARRAY |;
+return { 'mode' => 'false', 'data' => 'holdings required' }
+    unless ref $holdings eq qw| HASH |;
+
+return { 'mode' => 'false', 'data' => 'more than 1024 hashes refused' }
+    if scalar @$hashes > 1024;
+
+my %asked;
+foreach my $given (@$hashes) {
+    my $token = $given // '';    ## copy : never alias into caller's list ##
+    my $check;
+    if ( $token =~ m|^sha256:([0-9a-fA-F]{64})$| ) {
+        $check = sprintf 'sha256:%s', lc $1;
+    } elsif ( $token =~ m|^sha512:([0-9a-fA-F]{128})$| ) {
+        $check = sprintf 'sha512:%s', lc $1;
+    } else {
+        return { 'mode' => 'false', "data" => "invalid hash : $token" };
+    }
+    $asked{$check} = 1;
+}
+
+my %held;
+foreach my $file ( @{ $holdings->{'files'} // [] } ) {
+    next unless $file->{'anchored'};
+    my $anchor = $file->{'anchor'} // '';
+    next unless length $anchor;
+    next unless $asked{$anchor};
+    $held{$anchor} = {
+        'size'   => $file->{'size'},
+        'bmw384' => $file->{'digests'}{'bmw384'},
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'held' => \%held }
+};
+
+#,,.,,,,.,,,.,.,.,...,,,.,,,,,.,,,,..,.,,,,,.,.,.,...,...,...,,,.,.,.,,..,.,.,
+#EE4CLJQVILMLTXB45UD7KAS3DRASPOOVKMVFL6YPAWK5UMKPBHBL4NGKO5XYRGKI72HD536V66MH2
+#\\\|W34K5CKIIKB544HKQAXAWADCES6NF3G3FV6DL7P5JPTTPEJVIIF \ / AMOS7 \ YOURUM ::
+#\[7]A3WTLWWSESYWQIXJ5XAPSTW7QFBQL6VSMD65UQC3MX2S7TX62KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

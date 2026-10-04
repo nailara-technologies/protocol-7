@@ -55,9 +55,9 @@ if ( $algorithm eq qw| amos | ) {
     ## L13 [ 13-char BASE32, XORed segments ] is the only mode exposed here ##
     ## -- matches the existing cube.chksum.bmw.cmd.bmw-L13 command and the  ##
     ## project's established scratchpad/session-key convention.             ##
-    ## bmw384/filesum/512_32/etc are separate, more specialized shapes [    ##
-    ## bmw384 in particular is a geometric coordinate mapper for the iris   ##
-    ## visualization, not a general-purpose hash ]                          ##
+    ## 224.B32 \ 384.B32 \ 512.B32 \ filesum are plain digests ; the        ##
+    ## bmw384.* family is a geometric coordinate mapper for the iris        ##
+    ## visualization, not a general-purpose hash                            ##
     $result = <[chk-sum.bmw.L13-str]>->($input);
 
 } elsif ( $algorithm eq qw| elf | ) {
@@ -90,8 +90,8 @@ return { 'content' => "checksum computation failed [ $label ]" }
 
 return { 'content' => "$label: $result" };
 
-#,,,.,,,,,.,,,,,.,.,.,..,,.,,,.,.,..,,,..,,,,,.,.,...,...,...,..,,,..,.,.,,..,
-#4IHJWJSTQUXU5ESXCNJD5AQ4UMQBJI3PCZR3CVSMWNTGI5UQVIUU35SI6ON5AA2QSNQ3NL2MGS5OK
-#\\\|G4XQR7NHA4OJRLM7CDLLXIGGQMA4BJMTPW7SYAXRKOST5XTWUYD \ / AMOS7 \ YOURUM ::
-#\[7]AQKYP3IIPZM77SUDZH4EKRKK4LSGDKOKR64YNLUVYR3Q7HO3QQAI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,...,..,,...,,,,,..,,..,,,.,,.,.,...,...,.,,,.,,,,.,,,,.,,,.,
+#5HRVVAZ4OWBTV24L3ZRHY4WDP5FHGJNEBQGJCZ5OV7KTQJASV2CWSEYDCOXGJK4MOMR4KUZHSG4YK
+#\\\|MP3VG4VPQJM34LHF4343RYZVBW5NYELNSOP6RLBWVN6273YO37V \ / AMOS7 \ YOURUM ::
+#\[7]IQZ4P7WPRKKRKG3R4LTVMPE2V5QQ5JLBNIZNP5F57Z7327SFPABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

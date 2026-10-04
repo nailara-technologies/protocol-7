@@ -1,22 +1,53 @@
 ## [:< ##
 
 # name  = osf-cache.holdings.scan_apt_cache
-# descr = scan local apt archive cache against a sha256 index
-# param = { dir => '/var/cache/apt/archives', index => \%by_sha256 }
+# descr = scan local apt archive cache against an anchor index
+# param = { dir => '/var/cache/apt/archives',
+#           index => { anchors => { '<algo>:<hex>' => \%entry },
+#                      algos => \@algos } [ or a flat anchor map ],
+#           previous => \@{ file entries } [ optional ] }
 #
 # passive supply : many nodes never cleared their apt cache and those
 # .debs already match the signed index hashes exactly - free supply,
 # announced by hash. scans the cache directory for .deb files [ partial
-# and lock entries skipped ], computes each file sha256 while reading
-# in chunks, and anchors it against the combined index. package and
-# version come from the index entry when anchored, else from the file
-# name [ '<name>_<version>_<arch>.deb' ].
+# and lock entries skipped ]. ONE read pass per file computes every
+# algo the index lists plus bmw384 [ the protocol-7 internal id, B32 ] :
+# require Digest::BMW ; Digest::BMW->new(384), encoded through
+# <[chk-sum.bmw.encode_digest]> [ no base. prefix : pre_init aliases the
+# family via swap_subs ]. every entry carries size, mtime, ctime and
+# inode, its anchor => '<algo>:<hex>' or undef, digests =>
+# { sha256 => hex, …, bmw384 => b32 } and anchored. when previous
+# [ a prior scan's files list ] is given, an entry whose name, size,
+# mtime, ctime and inode all match a previous entry reuses ALL recorded
+# digests - but when the current index needs an algo the previous
+# entry lacks, the file is re-read. anchoring is always recomputed
+# against the CURRENT index, never copied from previous. rehashed in
+# the result counts the files actually read.
 
-my $args  = shift            // {};
-my $dir   = $args->{'dir'}   // '/var/cache/apt/archives';
-my $index = $args->{'index'} // {};
+my $args     = shift               // {};
+my $dir      = $args->{'dir'}      // '/var/cache/apt/archives';
+my $index    = $args->{'index'}    // {};
+my $previous = $args->{'previous'} // [];
 
 require Digest::SHA;    ## core - loaded here, modules carry no use ##
+
+my %anchors;
+my @index_algos;
+if ( ref $index eq qw| HASH | and ref $index->{'anchors'} eq qw| HASH | ) {
+    %anchors     = %{ $index->{'anchors'} };
+    @index_algos = sort grep {length} @{ $index->{'algos'} // [] };
+} else {
+    ## flat anchor map : derive the algo list from the tokens ##
+    %anchors = ref $index eq qw| HASH | ? %$index : ();
+    my %seen_algo;
+    foreach my $token ( keys %anchors ) {
+        my ($algo) = split m{:}, $token, 2;
+        $seen_algo{$algo} = 1 if defined $algo and length $algo;
+    }
+    @index_algos = sort keys %seen_algo;
+}
+
+my %previous_by_name = map { $ARG->{'name'} => $ARG } @$previous;
 
 return { 'mode' => 'false', 'data' => 'dir required' } unless length $dir;
 return { 'mode' => 'false', "data" => "not a directory : $dir" }
@@ -28,24 +59,68 @@ opendir( my $dh, $dir )
     };
 
 my @files;
+my $rehashed_count = 0;
 while ( my $entry = readdir $dh ) {
     next unless $entry =~ m{\.deb$};
     my $path = "$dir/$entry";
     next unless -f $path;
 
-    my $size = -s $path;
-    open( my $fh, '<', $path ) or next;
-    binmode($fh);
-    my $ctx = Digest::SHA->new(256);
-    while ( read( $fh, my $chunk, 65536 ) ) { $ctx->add($chunk) }
-    close($fh);
-    my $sha256 = $ctx->hexdigest;
+    my @stat  = stat $path;
+    my $size  = $stat[7];
+    my $mtime = $stat[9];
+    my $ctime = $stat[10];
+    my $inode = $stat[1];
 
-    my $anchored_entry = $index->{$sha256};
+    my %digests;
+    my $previous_entry = $previous_by_name{$entry};
+    if (    $previous_entry
+        and $previous_entry->{'size'} eq $size
+        and ( $previous_entry->{'mtime'} // '' ) eq $mtime
+        and ( $previous_entry->{'ctime'} // '' ) eq $ctime
+        and ( $previous_entry->{'inode'} // '' ) eq $inode
+        and ref $previous_entry->{'digests'} eq qw| HASH |
+        and length( $previous_entry->{'digests'}{'bmw384'} // '' ) == 77 ) {
+        ## reuse only when the current index algos are ALL recorded ##
+        my $complete = 1;
+        foreach my $algo (@index_algos) {
+            if ( length( $previous_entry->{'digests'}{$algo} // '' ) == 0 ) {
+                $complete = 0;
+                last;
+            }
+        }
+        %digests = %{ $previous_entry->{'digests'} } if $complete;
+    }
+
+    if ( !scalar keys %digests ) {
+        open( my $fh, '<', $path ) or next;
+        binmode($fh);
+        my %ctxs = map {
+            $ARG => Digest::SHA->new( $ARG eq qw| sha256 | ? 256 : 512 )
+        } grep {m{^sha(?:256|512)$}} @index_algos;
+        require Digest::BMW;    ## known dependency - loaded here ##
+        my $bmw_ctx = Digest::BMW->new(384);
+        while ( read( $fh, my $chunk, 65536 ) ) {
+            $ARG->add($chunk) foreach values %ctxs;
+            $bmw_ctx->add($chunk);
+        }
+        close($fh);
+        $digests{$ARG} = $ctxs{$ARG}->hexdigest foreach keys %ctxs;
+        $digests{'bmw384'} = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
+        $rehashed_count++;
+    }
+
+    ## anchor against the CURRENT index - never copied from previous ##
+    my $anchor;
+    foreach my $algo ( sort keys %digests ) {
+        next if $algo eq qw| bmw384 |;    ## internal id, not an anchor ##
+        my $token = sprintf '%s:%s', $algo, $digests{$algo};
+        if ( $anchors{$token} ) { $anchor = $token; last }
+    }
+
     my ( $package, $version );
-    if ($anchored_entry) {
-        $package = $anchored_entry->{'package'};
-        $version = $anchored_entry->{'version'};
+    if ( $anchor and $anchors{$anchor} ) {
+        $package = $anchors{$anchor}->{'package'};
+        $version = $anchors{$anchor}->{'version'};
     } elsif ( $entry =~ m{^([^_]+)_(.+)_[^_]+\.deb$} ) {
         ( $package, $version ) = ( $1, $2 );    ## from file name ##
     }
@@ -54,8 +129,12 @@ while ( my $entry = readdir $dh ) {
         {
         'name'     => $entry,
         'size'     => $size,
-        'sha256'   => $sha256,
-        'anchored' => $anchored_entry ? 1 : 0,
+        'mtime'    => $mtime,
+        'ctime'    => $ctime,
+        'inode'    => $inode,
+        'anchor'   => $anchor,
+        'digests'  => \%digests,
+        'anchored' => $anchor ? 1 : 0,
         'package'  => $package,
         'version'  => $version,
         };
@@ -82,11 +161,13 @@ return {
         'anchored_count' => $anchored_count,
         'total_bytes'    => $total_bytes,
         'anchored_bytes' => $anchored_bytes,
+        'rehashed'       => $rehashed_count,
+        'algos'          => \@index_algos,
     }
 };
 
-#,,..,,,.,.,.,,,,,.,,,,..,.,,,,.,,,,,,,,,,,,.,..,,...,...,.,,,...,.,.,...,,,,,
-#QTXXLI6DQU3JXLOAW7PNMFIEN4XOISM4QMGF7X4GJSF7CMDRQEWCCXF5VEFTECNDB7IZPHYR2EE3U
-#\\\|RJ4THSQD2J6HR5XSCC6CRBZBDBO62DN7A3T3UBIHCSSQ6DMF4Z5 \ / AMOS7 \ YOURUM ::
-#\[7]YWX4ZIOLFCOGX6FQADYOZYYOY7BNX5SB4ICS556GIAGHKZCWJECI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,,.,,,..,,.,,,,.,.,,,,,,,,..,..,,...,...,.,.,,..,,..,.,.,.,,,
+#EFD3IWE5JMOFFZ5QC4QLB5U763IAX4R5N677L55EPTC5DP5KY72M3AGL4CBRMODEELQRTGCHBJWLC
+#\\\|BZJ7P6HYHDBVTYMQPGZ2K2BJCGZV6X7M4FG64S3YYVSJZFG3YKO \ / AMOS7 \ YOURUM ::
+#\[7]AH7NZ2EWLR5OUDNYRQYS4PQIOFITIKOIB2FCLENN2SMPDYQJIGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
