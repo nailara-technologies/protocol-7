@@ -99,6 +99,14 @@ compile_module('osf-cache.cmd.has');
 compile_module('osf-cache.cmd.status');
 compile_module('osf-cache.cmd.rescan');
 compile_module('osf-cache.holdings.rescan_step');
+compile_module('osf-cache.peers.list');
+compile_module('osf-cache.handler.peers_list');
+compile_module('osf-cache.cmd.lookup');
+compile_module('osf-cache.lookup.with_peers');
+compile_module('osf-cache.handler.has_reply');
+compile_module('osf-cache.lookup.complete');
+compile_module('osf-cache.lookup.format_lookup_reply');
+compile_module('osf-cache.lookup.timeout');
 compile_module('format.yaml.pre_init');
 compile_module('format.yaml.write_file');
 compile_module('format.yaml.load_file');
@@ -162,10 +170,56 @@ $code{'file.zenka_dir.data_path'} = sub {
     return $zenka_data_dir;
 };
 
+## watcher stub with the Event->timer interface the modules use [ data, ##
+## cancel, is_active ] - fire_timer below invokes the handler like the  ##
+## event loop would [ my \$event = shift ; \$event->w->data ]            ##
+package TestWatcher;
+use English;
+
+sub new {
+    my ( $class, $params ) = @ARG;
+    return bless { 'params' => $params, 'cancelled' => 0 }, $class;
+}
+
+sub data       { return $ARG[0]->{'params'}{'data'} }
+sub cancel     { $ARG[0]->{'cancelled'} = 1; return }
+sub is_active  { return !$ARG[0]->{'cancelled'} }
+sub cancelled  { return $ARG[0]->{'cancelled'} }
+
+## the event object a timer handler receives : $event->w is the watcher ##
+package TestEvent;
+use English;
+
+sub w { return $ARG[0]->{'w'} }
+
+package main;
+
 $code{'event.add_timer'} = sub {
+    my $params  = shift // {};
+    my $watcher = TestWatcher->new($params);
+    push @{ $data{'test'}{'timers'} },   $params;
+    push @{ $data{'test'}{'watchers'} }, $watcher;
+    return $watcher;
+};
+
+## stage 2c : route-send, id generation and the deferred-reply callback ##
+$code{'protocol-7.route-send'} = sub {
     my $params = shift // {};
-    push @{ $data{'test'}{'timers'} }, $params;
-    return 'timer-handle';
+    push @{ $data{'test'}{'route_sends'} }, $params;
+    return 1;
+};
+
+$code{'base.gen_id'} = sub {
+    return ++$data{'test'}{'gen_id'};
+};
+
+## mirrors base.callback.cmd_reply : emits the reply and deletes the    ##
+## <base.cmd_reply> pending entry itself                                ##
+$code{'base.callback.cmd_reply'} = sub {
+    my ( $reply_id, $reply ) = @ARG;
+    $data{'test'}{'cmd_replies'}{$reply_id} = $reply;
+    delete $data{'base'}{'cmd_reply'}{$reply_id};
+    return 5;
 };
 
 sub call_module {
@@ -191,6 +245,30 @@ sub write_fixture {
     open( my $fh, '>', $path ) or die "cannot write $path : $OS_ERROR";
     print {$fh} $content;
     close($fh);
+}
+
+##[ stage 2c : fake event-loop helpers ]######################################
+
+## invoke a timer handler the way the event loop would : my $event = shift ##
+sub fire_timer {
+    my $watcher = shift;
+    my $params  = $watcher->{'params'};
+    my $event   = bless { 'w' => $watcher }, 'TestEvent';
+    return $code{ $params->{'handler'} }->($event);
+}
+
+## deliver a reply to a recorded route-send [ process_reply shape ] ##
+sub deliver_reply {
+    my ( $send, $reply ) = @ARG;
+    my $handler = $send->{'reply'}{'handler'} // return;
+    return $code{$handler}->(
+        {   'sid'       => 7,
+            'cmd'       => $reply->{'cmd'},
+            'data'      => $reply->{'data'},
+            'call_args' => { 'args' => $reply->{'args'} // '' },
+            'params'    => $send->{'reply'}{'params'} // {},
+        }
+    );
 }
 
 ##[ tiny assertion framework ]################################################
@@ -1380,6 +1458,325 @@ ok( ref $bin_entry eq qw| HASH |
     'scan_file hashes raw bytes, not utf-8 decoded characters'
 );
 
+##[ 16 : stage 2c - per-subname instance config ]##############################
+
+say ': stage 2c - per-subname instance config';
+
+my $saved_cfg = delete $data{'osf-cache'}{'cfg'};
+
+$data{'system'}{'zenka'}{'subname'} = 'peer';
+$data{'osf-cache'}{'cfg'}{'by_subname'}{'peer'}{'cache_dir'}
+    = qw| /var/protocol-7/osf-cache/peer-archives |;
+
+call_module( 'osf-cache.init_code', 0 );
+
+ok( ( $data{'osf-cache'}{'cfg'}{'cache_dir'} // '' ) eq
+        qw| /var/protocol-7/osf-cache/peer-archives |
+        && ( $data{'osf-cache'}{'cfg'}{'state_path'} // '' ) eq
+        "$zenka_data_dir/holdings.peer.yaml"
+        && ( $data{'osf-cache'}{'cfg'}{'lookup_timeout'} // 0 ) == 5,
+    'subname peer : by_subname cache dir, subnamed state, lookup timeout'
+);
+
+delete $data{'osf-cache'}{'cfg'};
+call_module( 'osf-cache.init_code', 0 );
+
+ok( ( $data{'osf-cache'}{'cfg'}{'cache_dir'} // '' ) eq
+        qw| /var/cache/apt/archives |
+        && ( $data{'osf-cache'}{'cfg'}{'state_path'} // '' ) eq
+        "$zenka_data_dir/holdings.peer.yaml",
+    'subname without by_subname : default cache dir, subnamed state path'
+);
+
+delete $data{'system'}{'zenka'}{'subname'};
+delete $data{'osf-cache'}{'cfg'};
+call_module( 'osf-cache.init_code', 0 );
+
+ok( ( $data{'osf-cache'}{'cfg'}{'cache_dir'} // '' ) eq
+        qw| /var/cache/apt/archives |
+        && ( $data{'osf-cache'}{'cfg'}{'state_path'} // '' ) eq
+        "$zenka_data_dir/holdings.yaml",
+    'no subname : the original defaults'
+);
+
+$data{'osf-cache'}{'cfg'} = $saved_cfg;
+
+##[ 17 : stage 2c - peer discovery [ cube session table ] ]####################
+
+say ': stage 2c - peer discovery';
+
+## this instance's own cube session [ base.get_session_id stores it ] ##
+$data{'user'}{'cube'}{'session'} = { 7 => 1 };
+$data{'session'}{7} = { 'user' => 'cube', 'cube_sid' => 4242 };
+
+my $sessions_table = join( "\n",
+    ' usid  protocol    type   mode   uname             since',
+    '----------------------------------------------------------',
+    ' 4242  protocol-7  zenka  ----   osf-cache         2h 13m',
+    ' 4301  protocol-7  zenka  ----   osf-cache[peer]   5m 2s',
+    ' 4302  protocol-7  zenka  ----   osf-cache         41s',
+    ' 4400  protocol-7  zenka  ----   coding            3d 1h',
+    '' );
+
+$data{'test'}{'route_sends'} = [];
+my $pl = call_module(
+    'osf-cache.peers.list',
+    {   'callback' => qw| osf-cache.lookup.with_peers |,
+        'params'   => { 'lookup_id' => '77' },
+    }
+);
+
+ok( $pl->{'mode'} eq qw| true |
+        && scalar @{ $data{'test'}{'route_sends'} } == 1
+        && ( $data{'test'}{'route_sends'}[0]{'command'} // '' ) eq qw| list |
+        && ( $data{'test'}{'route_sends'}[0]{'call_args'}{'args'} // '' ) eq
+        'sessions osf-cache'
+        && ( $data{'test'}{'route_sends'}[0]{'reply'}{'handler'} // '' ) eq
+        qw| osf-cache.handler.peers_list |,
+    'peers.list asks cube for list sessions osf-cache [ async ]'
+);
+
+## a pending lookup the callback can continue [ state shape cmd.lookup ##
+## writes ] ; the parse proof : own sid out, [subname] in, coding out   ##
+$data{'osf-cache'}{'lookup'}{'pending'}{'77'} = {
+    'reply_id'       => 'r-peers',
+    'anchors'        => [$h1],
+    'expect'         => { $h1 => 10 },
+    'started'        => time,
+    'peers_resolved' => 0,
+    'replies'        => {},
+    'pending'        => {},
+};
+
+deliver_reply( $data{'test'}{'route_sends'}[0],
+    { 'cmd' => qw| SIZE |, 'data' => $sessions_table } );
+
+my @has_sends = grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$} }
+    @{ $data{'test'}{'route_sends'} };
+
+ok( scalar @has_sends == 2
+        && join( ',', map { $ARG->{'command'} } @has_sends ) eq
+        '4301.has,4302.has'
+        && !exists $data{'test'}{'cmd_replies'}{'r-peers'},
+    'table parse : own sid excluded, [subname] peer in, other zenki out'
+);
+
+delete $data{'osf-cache'}{'lookup'}{'pending'}{'77'};
+
+##[ 18 : stage 2c - lookup state machine ]#####################################
+
+say ': stage 2c - lookup state machine';
+
+## the local index is the size truth the replies merge against ##
+$data{'osf-cache'}{'index'} = {
+    'anchors' => {
+        $h1 => { 'size' => 10 },
+        $h2 => { 'size' => 20 },
+        $h3 => { 'size' => 30 },
+        $h4 => { 'size' => 40 },
+        $h5 => { 'size' => 50 },
+    },
+    'algos'   => [qw| sha256 |],
+    'sources' => [],
+};
+
+sub start_lookup {
+    my ( $reply_id, $token_str ) = @ARG;
+    $data{'test'}{'route_sends'} = [];
+    $data{'test'}{'timers'}      = [];
+    $data{'test'}{'watchers'}    = [];
+    return call_module( 'osf-cache.cmd.lookup',
+        { 'args' => $token_str, 'reply_id' => $reply_id } );
+}
+
+sub resolve_peers {
+    deliver_reply( $data{'test'}{'route_sends'}[0],
+        { 'cmd' => qw| SIZE |, 'data' => $sessions_table } );
+    return;
+}
+
+sub pending_lookups {
+    return scalar keys %{ $data{'osf-cache'}{'lookup'}{'pending'} // {} };
+}
+
+## flow 1 : all peers answer ##
+$data{'base'}{'cmd_reply'}{'r-1'} = { 'fake' => 1 };    ## framework entry ##
+my $lk1 = start_lookup( 'r-1', "$h1 $h2" );
+
+my @lk1_ids = keys %{ $data{'osf-cache'}{'lookup'}{'pending'} // {} };
+
+ok( $lk1->{'mode'} eq qw| deferred |
+        && scalar @lk1_ids == 1
+        && scalar @{ $data{'test'}{'timers'} } == 1
+        && ( $data{'test'}{'timers'}[0]{'handler'} // '' ) eq
+        qw| osf-cache.lookup.timeout |
+        && ( $data{'test'}{'timers'}[0]{'data'}{'lookup_id'} // '' ) eq
+        $lk1_ids[0]
+        && ( $data{'test'}{'timers'}[0]{'after'} // 0 ) == 5,
+    'lookup defers : state keyed by lookup id, one 5s timeout timer'
+);
+
+resolve_peers();
+
+@has_sends = grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$} }
+    @{ $data{'test'}{'route_sends'} };
+
+ok( scalar @has_sends == 2
+        && join( ',', map { $ARG->{'command'} } @has_sends ) eq
+        '4301.has,4302.has'
+        && ( $has_sends[0]{'call_args'}{'args'} // '' ) eq "$h1 $h2"
+        && ( $has_sends[0]{'reply'}{'handler'} // '' ) eq
+        qw| osf-cache.handler.has_reply |,
+    'fan-out : <sid>.has <tokens> to each peer with a reply handler'
+);
+
+deliver_reply( $has_sends[0],
+    { 'cmd' => qw| SIZE |, 'data' => "$h1 10 $bmw_a\n$h2 20 $bmw_a" } );
+
+ok( !exists $data{'test'}{'cmd_replies'}{'r-1'},
+    'no completion while a peer is still pending' );
+
+deliver_reply( $has_sends[1],
+    { 'cmd' => qw| SIZE |, 'data' => "$h1 10 $bmw_a" } );
+
+my $r1 = $data{'test'}{'cmd_replies'}{'r-1'} // {};
+
+ok( ( $r1->{'mode'} // '' ) eq qw| size |
+        && $r1->{'data'} =~ m{^\Q$h1\E 2 holders : 4301 4302$}m
+        && $r1->{'data'} =~ m{^\Q$h2\E 1 holders : 4301$}m
+        && $r1->{'data'} !~ m{missing|failed|conflict}
+        && pending_lookups() == 0
+        && $data{'test'}{'watchers'}[0]->cancelled
+        && !exists $data{'base'}{'cmd_reply'}{'r-1'},
+    'last reply completes : holders lines, state + timer + entry gone'
+);
+
+## flow 2 : one peer times out ##
+start_lookup( 'r-2', $h3 );
+resolve_peers();
+@has_sends = grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$} }
+    @{ $data{'test'}{'route_sends'} };
+deliver_reply( $has_sends[0],
+    { 'cmd' => qw| SIZE |, 'data' => "$h3 30 $bmw_a" } );
+
+fire_timer( $data{'test'}{'watchers'}[0] );
+
+my $r2 = $data{'test'}{'cmd_replies'}{'r-2'} // {};
+
+ok( ( $r2->{'mode'} // '' ) eq qw| size |
+        && $r2->{'data'} =~ m{^\Q$h3\E 1 holders : 4301$}m
+        && $r2->{'data'} =~ m{^failed peers : 4302$}m,
+    'timeout completes with what arrived : silent peer is a failed peer'
+);
+
+ok( pending_lookups() == 0
+        && scalar @{ $data{'test'}{'timers'} } == 1,
+    'timeout cleanup : no pending state, no new timer armed'
+);
+
+## flow 3 : zero peers ##
+start_lookup( 'r-3', $h1 );
+deliver_reply( $data{'test'}{'route_sends'}[0],
+    {   'cmd'  => qw| SIZE |,
+        'data' => " 4242  protocol-7  zenka  ----   osf-cache  1m\n"
+    } );
+
+my $r3 = $data{'test'}{'cmd_replies'}{'r-3'} // {};
+
+ok( ( $r3->{'mode'} // '' ) eq qw| true |
+        && ( $r3->{'data'} // '' ) eq 'no peers'
+        && pending_lookups() == 0
+        && $data{'test'}{'watchers'}[0]->cancelled,
+    'zero peers : mode true no peers, lookup cleaned up'
+);
+
+## flow 4 : unknown anchor refused up front ##
+my $lk4 = start_lookup( 'r-4', $hx );
+
+ok( $lk4->{'mode'} eq qw| false |
+        && $lk4->{'data'} =~ m{^unknown anchor : \Q$hx\E}
+        && scalar @{ $data{'test'}{'route_sends'} } == 0
+        && scalar @{ $data{'test'}{'timers'} } == 0
+        && pending_lookups() == 0,
+    'unknown anchor refused before any state, send or timer'
+);
+
+## flow 5 : the token checks are exactly the has checks ##
+my $lk5 = start_lookup( 'r-5', 'md5:abcd' );
+
+ok( $lk5->{'mode'} eq qw| false |
+        && $lk5->{'data'} eq 'invalid hash : md5:abcd'
+        && pending_lookups() == 0,
+    'invalid token fails with the query_local message'
+);
+
+## flow 6 : size conflict and bmw conflict surface in the reply ##
+start_lookup( 'r-6', "$h4 $h5" );
+resolve_peers();
+@has_sends = grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$} }
+    @{ $data{'test'}{'route_sends'} };
+deliver_reply( $has_sends[0],
+    { 'cmd' => qw| SIZE |, 'data' => "$h4 999 $bmw_a\n$h5 50 $bmw_b" } );
+deliver_reply( $has_sends[1],
+    { 'cmd' => qw| SIZE |, 'data' => "$h4 40 $bmw_a\n$h5 50 $bmw_c" } );
+
+my $r6 = $data{'test'}{'cmd_replies'}{'r-6'} // {};
+
+ok( ( $r6->{'mode'} // '' ) eq qw| size |
+        && $r6->{'data'} =~ m{^\Q$h4\E 1 holders : 4302$}m
+        && $r6->{'data'} =~ m{^conflict : \Q$h4\E 4301 size 999$}m,
+    'size mismatch : holder from the agreeing peer, conflict line'
+);
+
+ok( $r6->{'data'} =~ m{^bmw conflict : \Q$h5\E$}m
+        && $r6->{'data'} =~ m{^  \Q$bmw_b\E : 4301$}m
+        && $r6->{'data'} =~ m{^  \Q$bmw_c\E : 4302$}m
+        && $r6->{'data'} =~ m{^missing : \Q$h5\E$}m,
+    'bmw disagreement : bmw conflict lines, anchor also in missing'
+);
+
+## flow 7 : the peer LIST itself times out ##
+start_lookup( 'r-7', $h1 );
+fire_timer( $data{'test'}{'watchers'}[0] );
+
+my $r7 = $data{'test'}{'cmd_replies'}{'r-7'} // {};
+
+ok( ( $r7->{'mode'} // '' ) eq qw| false |
+        && ( $r7->{'data'} // '' ) eq
+        'lookup timeout [ peer list never arrived ]'
+        && pending_lookups() == 0,
+    'unresolved peer list fails the lookup instead of faking missing'
+);
+
+## flow 8 : the peer query itself fails ##
+start_lookup( 'r-8', $h1 );
+deliver_reply( $data{'test'}{'route_sends'}[0], { 'cmd' => qw| FALSE | } );
+
+my $r8 = $data{'test'}{'cmd_replies'}{'r-8'} // {};
+
+ok( ( $r8->{'mode'} // '' ) eq qw| true |
+        && ( $r8->{'data'} // '' ) eq 'no peers'
+        && pending_lookups() == 0,
+    'failed peer query completes as no peers'
+);
+
+## flow 9 : an empty has reply is a valid 'holds nothing', not a failure ##
+start_lookup( 'r-9', $h1 );
+resolve_peers();
+@has_sends = grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$} }
+    @{ $data{'test'}{'route_sends'} };
+deliver_reply( $has_sends[0], { 'cmd' => qw| SIZE |, 'data' => '' } );
+deliver_reply( $has_sends[1], { 'cmd' => qw| SIZE |, 'data' => '' } );
+
+my $r9 = $data{'test'}{'cmd_replies'}{'r-9'} // {};
+
+ok( ( $r9->{'mode'} // '' ) eq qw| size |
+        && $r9->{'data'} =~ m{^missing : \Q$h1\E$}m
+        && $r9->{'data'} !~ m{failed peers}
+        && pending_lookups() == 0,
+    'empty replies : anchor missing, no failed peers'
+);
+
 ##[ summary ]#################################################################
 
 say '';
@@ -1390,8 +1787,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,..,,.,,,,,,,.,,,...,,..,.,.,,,.,,,,,,,.,.,.,...,...,...,...,,,,,,,,,,.,,
-#4ZGXAZM2ACHOCJB3NZ777KLUXIVB66PSOVK6JCAT22XGKWFVTNF6FT2LACH6OVFHJFWW2YE2HWHGG
-#\\\|3KNUUVRIFKOAZAIDJW7YVRSC6K6PKZDHMMNNAPB2JXK6HFABVA4 \ / AMOS7 \ YOURUM ::
-#\[7]7FM3OYSQH7IO3AKINPVHSKM3E2GJN5SQMAL7QNOHIBNSMUFSEOBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,.,,,,,,.,.,,.,,,,,,.,.,,..,,,,,.,.,...,.,.,,,.,,,.,.,,,..,,,,,,
+#IEGMHBAX4MMTXBFMRSCSE5QBCRRRV7BVWMDNQP4VN7GRWWUHFRAEANUT6SNV3Q4HRJHRPZ6NBBGCS
+#\\\|55AKSM6EEFYHKNAL2BOWU22IZQN2UD7L2CJTOKBF5UX4YZPR4LK \ / AMOS7 \ YOURUM ::
+#\[7]GADC76RS6DNLYKTUQWWMTMTBAZ3D3YHST233ME7VEEMIEWMT6QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
