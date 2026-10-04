@@ -3,7 +3,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-## same default layer bin/Protocol-7 sets : modules compiled below by
+## same default layer bin/Protocol-7 sets : modules compiled below by  ##
 ## string eval inherit it -> binary reads must ask for :raw themselves ##
 use open qw| :encoding(UTF-8) |;
 ## bin/Protocol-7 also imports File::stat [ object-returning stat ] ##
@@ -70,9 +70,9 @@ sub compile_module {
     my $translated = p7_syntax__translate($src);
     ## .cmd. modules get the loader's $call header [ bin/Protocol-7 ] ##
     $translated
-        = "my \$call = ref( \$ARG[0] ) eq q|HASH| "
-        . "? \$ARG[0] : { args => \$ARG[0] };\n"
-        . "my \$reply = { mode => q|false|, data => q|| };\n"
+        = "my \$call = ref( \$ARG[0] ) eq q|HASH| ? \$ARG[0] : { args => "
+        . "\$ARG[0] };\nmy \$reply = { mode => q|false|, data => q|| "
+        . "};\n"
         . $translated
         if $module_name =~ m{\.cmd\.};
     my $cref = eval "sub {\n# line 1 \"$module_name\"\n$translated\n}";
@@ -188,7 +188,7 @@ $code{'file.make_path'} = sub {
 
 ## watcher stub with the Event->timer interface the modules use [ data, ##
 ## cancel, is_active ] - fire_timer below invokes the handler like the  ##
-## event loop would [ my \$event = shift ; \$event->w->data ]            ##
+## event loop would [ my \$event = shift ; \$event->w->data ]           ##
 package TestWatcher;
 use English;
 
@@ -197,10 +197,10 @@ sub new {
     return bless { 'params' => $params, 'cancelled' => 0 }, $class;
 }
 
-sub data       { return $ARG[0]->{'params'}{'data'} }
-sub cancel     { $ARG[0]->{'cancelled'} = 1; return }
-sub is_active  { return !$ARG[0]->{'cancelled'} }
-sub cancelled  { return $ARG[0]->{'cancelled'} }
+sub data      { return $ARG[0]->{'params'}{'data'} }
+sub cancel    { $ARG[0]->{'cancelled'} = 1; return }
+sub is_active { return !$ARG[0]->{'cancelled'} }
+sub cancelled { return $ARG[0]->{'cancelled'} }
 
 ## the event object a timer handler receives : $event->w is the watcher ##
 package TestEvent;
@@ -229,8 +229,8 @@ $code{'base.gen_id'} = sub {
     return ++$data{'test'}{'gen_id'};
 };
 
-## mirrors base.callback.cmd_reply : emits the reply and deletes the    ##
-## <base.cmd_reply> pending entry itself                                ##
+## mirrors base.callback.cmd_reply : emits the reply and deletes the ##
+## <base.cmd_reply> pending entry itself                             ##
 $code{'base.callback.cmd_reply'} = sub {
     my ( $reply_id, $reply ) = @ARG;
     $data{'test'}{'cmd_replies'}{$reply_id} = $reply;
@@ -1446,7 +1446,7 @@ ok( $rescan2->{'data'} eq 'rescan started'
     'second rescan reuses the saved state [ rehashed 0 ]'
 );
 
-##[ 15 : binary content under the zenka's utf-8 default layer ]##############
+##[ 15 : binary content under the zenka's utf-8 default layer ]###############
 
 say ': binary content [ every byte value, utf-8 default layer active ]';
 
@@ -1474,7 +1474,7 @@ ok( ref $bin_entry eq qw| HASH |
     'scan_file hashes raw bytes, not utf-8 decoded characters'
 );
 
-##[ 16 : stage 2c - per-subname instance config ]##############################
+##[ 16 : stage 2c - per-subname instance config ]#############################
 
 say ': stage 2c - per-subname instance config';
 
@@ -1517,7 +1517,7 @@ ok( ( $data{'osf-cache'}{'cfg'}{'cache_dir'} // '' ) eq
 
 $data{'osf-cache'}{'cfg'} = $saved_cfg;
 
-##[ 17 : stage 2c - peer discovery [ cube session table ] ]####################
+##[ 17 : stage 2c - peer discovery [ cube session table ] ]###################
 
 say ': stage 2c - peer discovery';
 
@@ -1553,7 +1553,7 @@ ok( $pl->{'mode'} eq qw| true |
 );
 
 ## a pending lookup the callback can continue [ state shape cmd.lookup ##
-## writes ] ; the parse proof : own sid out, [subname] in, coding out   ##
+## writes ] ; the parse proof : own sid out, [subname] in, coding out  ##
 $data{'osf-cache'}{'lookup'}{'pending'}{'77'} = {
     'reply_id'       => 'r-peers',
     'anchors'        => [$h1],
@@ -1579,7 +1579,7 @@ ok( scalar @has_sends == 2
 
 delete $data{'osf-cache'}{'lookup'}{'pending'}{'77'};
 
-##[ 18 : stage 2c - lookup state machine ]#####################################
+##[ 18 : stage 2c - lookup state machine ]####################################
 
 say ': stage 2c - lookup state machine';
 
@@ -1641,7 +1641,7 @@ ok( scalar @has_sends == 2
         && join( ',', map { $ARG->{'command'} } @has_sends ) eq
         '4301.has,4302.has'
         && ( $has_sends[0]{'call_args'}{'args'} // '' ) eq "$h1 $h2"
-        && ( $has_sends[0]{'reply'}{'handler'} // '' ) eq
+        && ( $has_sends[0]{'reply'}{'handler'}  // '' ) eq
         qw| osf-cache.handler.has_reply |,
     'fan-out : <sid>.has <tokens> to each peer with a reply handler'
 );
@@ -1650,7 +1650,8 @@ deliver_reply( $has_sends[0],
     { 'cmd' => qw| SIZE |, 'data' => "$h1 10 $bmw_a\n$h2 20 $bmw_a" } );
 
 ok( !exists $data{'test'}{'cmd_replies'}{'r-1'},
-    'no completion while a peer is still pending' );
+    'no completion while a peer is still pending'
+);
 
 deliver_reply( $has_sends[1],
     { 'cmd' => qw| SIZE |, 'data' => "$h1 10 $bmw_a" } );
@@ -1685,17 +1686,18 @@ ok( ( $r2->{'mode'} // '' ) eq qw| size |
     'timeout completes with what arrived : silent peer is a failed peer'
 );
 
-ok( pending_lookups() == 0
-        && scalar @{ $data{'test'}{'timers'} } == 1,
+ok( pending_lookups() == 0 && scalar @{ $data{'test'}{'timers'} } == 1,
     'timeout cleanup : no pending state, no new timer armed'
 );
 
 ## flow 3 : zero peers ##
 start_lookup( 'r-3', $h1 );
-deliver_reply( $data{'test'}{'route_sends'}[0],
+deliver_reply(
+    $data{'test'}{'route_sends'}[0],
     {   'cmd'  => qw| SIZE |,
         'data' => " 4242  protocol-7  zenka  ----   osf-cache  1m\n"
-    } );
+    }
+);
 
 my $r3 = $data{'test'}{'cmd_replies'}{'r-3'} // {};
 
@@ -1715,6 +1717,45 @@ ok( $lk4->{'mode'} eq qw| false |
         && scalar @{ $data{'test'}{'timers'} } == 0
         && pending_lookups() == 0,
     'unknown anchor refused before any state, send or timer'
+);
+
+## flow 4b : several anchors, all unknown -> refused, all listed ##
+my $hy   = 'sha256:' . ( '12' x 32 );          ## never in the index either ##
+my $lk4b = start_lookup( 'r-4b', "$hx $hy" );
+
+ok( $lk4b->{'mode'} eq qw| false |
+        && $lk4b->{'data'} eq
+        "unknown anchors : $hx $hy [ not in the local index ]"
+        && scalar @{ $data{'test'}{'route_sends'} } == 0
+        && pending_lookups() == 0,
+    'all anchors unknown : refused, every unknown anchor listed'
+);
+
+## flow 4c : known + unknown -> the known one is looked up, the unknown one ##
+## is listed in the reply                                                   ##
+$data{'base'}{'cmd_reply'}{'r-4c'} = { 'fake' => 1 };
+my $lk4c = start_lookup( 'r-4c', "$h1 $hx" );
+resolve_peers();
+my @sends_4c = grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$} }
+    @{ $data{'test'}{'route_sends'} };
+
+ok( $lk4c->{'mode'} eq qw| deferred |
+        && scalar @sends_4c == 2
+        && ( $sends_4c[0]{'call_args'}{'args'} // '' ) eq $h1,
+    'mixed lookup : only the known anchor goes out to the peers'
+);
+
+deliver_reply( $ARG, { 'cmd' => qw| SIZE |, 'data' => "$h1 10 $bmw_a" } )
+    foreach @sends_4c;
+
+my $r4c = $data{'test'}{'cmd_replies'}{'r-4c'} // {};
+
+ok( ( $r4c->{'mode'} // '' ) eq qw| size |
+        && $r4c->{'data'} =~ m{^\Q$h1\E 2 holders : 4301 4302$}m
+        && $r4c->{'data'}
+        =~ m{^unknown : \Q$hx\E \[ not in the local index \]$}m
+        && pending_lookups() == 0,
+    'mixed lookup : holders for the known, unknown line for the rest'
 );
 
 ## flow 5 : the token checks are exactly the has checks ##
@@ -1744,7 +1785,7 @@ ok( ( $r6->{'mode'} // '' ) eq qw| size |
     'size mismatch : holder from the agreeing peer, conflict line'
 );
 
-ok( $r6->{'data'} =~ m{^bmw conflict : \Q$h5\E$}m
+ok( $r6->{'data'}        =~ m{^bmw conflict : \Q$h5\E$}m
         && $r6->{'data'} =~ m{^  \Q$bmw_b\E : 4301$}m
         && $r6->{'data'} =~ m{^  \Q$bmw_c\E : 4302$}m
         && $r6->{'data'} =~ m{^missing : \Q$h5\E$}m,
@@ -1809,8 +1850,7 @@ my $seg_bmw    = $code{'chk-sum.bmw.384.B32'}->( \$seg_content );
 my $seg_sha256 = Digest::SHA::sha256_hex($seg_content);
 
 my $unanchored_content = 'unanchored-content';
-my $unanchored_bmw
-    = $code{'chk-sum.bmw.384.B32'}->( \$unanchored_content );
+my $unanchored_bmw = $code{'chk-sum.bmw.384.B32'}->( \$unanchored_content );
 write_fixture( "$seg_dir/unanchored_1.0-1_all.deb", $unanchored_content );
 
 $data{'osf-cache'}{'cfg'}{'cache_dir'} = $seg_dir;
@@ -1842,21 +1882,22 @@ $data{'osf-cache'}{'holdings'}         = {
     ],
 };
 
-my $seg_ok = call_module( 'osf-cache.cmd.segment',
-    { 'args' => "$seg_bmw 0 100" } );
+my $seg_ok
+    = call_module( 'osf-cache.cmd.segment', { 'args' => "$seg_bmw 0 100" } );
 
 my ($seg_b32) = $seg_ok->{'data'} =~ m{^0 100 ([A-Z2-7]+)$}o;
 
 ok( $seg_ok->{'mode'} eq qw| true | && length $seg_b32,
-    'segment : mode true, one line <offset> <bytes> <b32>' );
+    'segment : mode true, one line <offset> <bytes> <b32>'
+);
 
 ok( decode_b32r($seg_b32) eq substr( $seg_content, 0, 100 ),
-    'segment : decode_b32r round trips the served bytes' );
+    'segment : decode_b32r round trips the served bytes'
+);
 
 my $seg_last = call_module( 'osf-cache.cmd.segment',
     { 'args' => sprintf '%s 500 100', $seg_bmw } );
-my ( $last_off, $last_bytes, $last_b32 )
-    = split m{\s+}, $seg_last->{'data'};
+my ( $last_off, $last_bytes, $last_b32 ) = split m{\s+}, $seg_last->{'data'};
 
 ok( $seg_last->{'mode'} eq qw| true |
         && $last_off == 500
@@ -1897,8 +1938,8 @@ ok( $seg_badlen->{'mode'} eq qw| false |
     'segment : length above segment_max refused'
 );
 
-my $seg_zero = call_module( 'osf-cache.cmd.segment',
-    { 'args' => "$seg_bmw 0 0" } );
+my $seg_zero
+    = call_module( 'osf-cache.cmd.segment', { 'args' => "$seg_bmw 0 0" } );
 
 ok( $seg_zero->{'mode'} eq qw| false |
         && $seg_zero->{'data'} eq 'length outside 1 .. 65536',
@@ -1925,8 +1966,8 @@ open( my $app_fh, '>>:raw', "$seg_dir/$seg_name" ) or die $OS_ERROR;
 print {$app_fh} 'x' x 16;
 close($app_fh);
 
-my $seg_changed = call_module( 'osf-cache.cmd.segment',
-    { 'args' => "$seg_bmw 0 100" } );
+my $seg_changed
+    = call_module( 'osf-cache.cmd.segment', { 'args' => "$seg_bmw 0 100" } );
 
 ok( $seg_changed->{'mode'} eq qw| false |
         && $seg_changed->{'data'} eq 'changed since scan',
@@ -1940,12 +1981,11 @@ close($fix_fh);
 utime( $seg_stat[9], $seg_stat[9], "$seg_dir/$seg_name" )
     or die "utime failed : $OS_ERROR";
 
-my $seg_restored = call_module( 'osf-cache.cmd.segment',
-    { 'args' => "$seg_bmw 0 100" } );
+my $seg_restored
+    = call_module( 'osf-cache.cmd.segment', { 'args' => "$seg_bmw 0 100" } );
 
 ok( $seg_restored->{'mode'} eq qw| true |,
-    'segment : size + mtime + inode match again -> served'
-);
+    'segment : size + mtime + inode match again -> served' );
 
 ##[ 20 : stage 3 - cmd.fetch ]################################################
 
@@ -1999,25 +2039,29 @@ sub deliver_segments {
         next unless ( $send->{'command'} // '' ) =~ m{^\d+\.segment$}o;
         next if $send->{'__delivered'};
         $send->{'__delivered'} = 1;
-        my ( undef, $offset, $len )
-            = split m{\s+}, $send->{'call_args'}{'args'};
+        my ( undef, $offset, $len ) = split m{\s+},
+            $send->{'call_args'}{'args'};
         my $chunk = substr $content, $offset, $len;
-        deliver_reply( $send,
+        deliver_reply(
+            $send,
             {   'cmd'  => qw| TRUE |,
                 'args' => sprintf '%d %d %s',
                 $offset, length $chunk, encode_b32r($chunk)
-            } );
+            }
+        );
     }
     return;
 }
 
 sub segment_sends {
-    return grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.segment$}o }
+    return
+        grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.segment$}o }
         @{ $data{'test'}{'route_sends'} };
 }
 
 sub has_sends {
-    return grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$}o }
+    return
+        grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$}o }
         @{ $data{'test'}{'route_sends'} };
 }
 
@@ -2038,7 +2082,8 @@ $data{'base'}{'cmd_reply'}{'r-happy'} = { 'fake' => 1 };
 my $ff = call_module( 'osf-cache.cmd.fetch',
     { 'args' => $fc_anchor, 'reply_id' => 'r-happy' } );
 
-ok( ref $ff eq qw| HASH | && $ff->{'mode'} eq qw| deferred |
+ok( ref $ff eq qw| HASH |
+        && $ff->{'mode'} eq qw| deferred |
         && fetch_pending() == 1,
     'fetch : mode deferred, per-anchor state registered'
 );
@@ -2049,8 +2094,12 @@ my @ff_has = has_sends();
 ok( scalar @ff_has == 2,
     'fetch : the internal lookup fans out to both peers' );
 
-deliver_reply( $ARG, { 'cmd' => qw| SIZE |,
-        'data' => "$fc_anchor 500 $fc_bmw" } ) foreach @ff_has;
+deliver_reply(
+    $ARG,
+    {   'cmd'  => qw| SIZE |,
+        'data' => "$fc_anchor 500 $fc_bmw"
+    }
+) foreach @ff_has;
 
 my @ff_seg = segment_sends();
 ok( scalar @ff_seg == 1
@@ -2065,8 +2114,8 @@ my $fc_reply = $data{'test'}{'cmd_replies'}{'r-happy'} // {};
 
 ok( ( $fc_reply->{'mode'} // '' ) eq qw| true |
         && scalar(
-        $fc_reply->{'data'} =~
-            m{^fetched\s+fetch-pkg_1\.0-1_amd64\.deb\s+500\s+bytes\s+from
+        $fc_reply->{'data'}
+            =~ m{^fetched\s+fetch-pkg_1\.0-1_amd64\.deb\s+500\s+bytes\s+from
             \s+4301\s+\[\s+4\s+segments,\s+\d+\.\d\s+s\s+\]$}xo
         ),
     'fetch : fetched reply with size, holder, segments and seconds'
@@ -2078,14 +2127,13 @@ my $fc_placed = do { local $INPUT_RECORD_SEPARATOR = undef; <$rfh> };
 close($rfh);
 
 ok( $fc_placed eq $fc_content,
-    'fetch : the verified file landed in the cache dir [ byte exact ]'
-);
+    'fetch : the verified file landed in the cache dir [ byte exact ]' );
 
 ok( !-e "$fc_dir/partial/fetch-pkg_1.0-1_amd64.deb.partial",
-    'fetch : no partial file left behind'
-);
+    'fetch : no partial file left behind' );
 
-my ($fc_held) = grep { ( $ARG->{'anchor'} // '' ) eq $fc_anchor }
+my ($fc_held)
+    = grep { ( $ARG->{'anchor'} // '' ) eq $fc_anchor }
     @{ $data{'osf-cache'}{'holdings'}{'files'} };
 
 ok( ref $fc_held eq qw| HASH |
@@ -2109,13 +2157,17 @@ $data{'base'}{'cmd_reply'}{'r-corrupt'} = { 'fake' => 1 };
 call_module( 'osf-cache.cmd.fetch',
     { 'args' => $fc_anchor, 'reply_id' => 'r-corrupt' } );
 resolve_peers();
-deliver_reply( $ARG, { 'cmd' => qw| SIZE |,
-        'data' => "$fc_anchor 500 $fc_bmw" } ) foreach has_sends();
+deliver_reply(
+    $ARG,
+    {   'cmd'  => qw| SIZE |,
+        'data' => "$fc_anchor 500 $fc_bmw"
+    }
+) foreach has_sends();
 
 ## valid envelope, wrong bytes : the per-segment checks pass, the ##
-## whole-file verification catches it                          ##
-my $fc_corrupt = join '', map { chr( ( $ARG + 1 ) % 256 ) }
-    unpack 'C*', $fc_content;
+## whole-file verification catches it                             ##
+my $fc_corrupt = join '', map { chr( ( $ARG + 1 ) % 256 ) } unpack 'C*',
+    $fc_content;
 deliver_segments($fc_corrupt);
 
 my $c_reply = $data{'test'}{'cmd_replies'}{'r-corrupt'} // {};
@@ -2139,8 +2191,12 @@ $data{'base'}{'cmd_reply'}{'r-timeout'} = { 'fake' => 1 };
 call_module( 'osf-cache.cmd.fetch',
     { 'args' => $fc_anchor, 'reply_id' => 'r-timeout' } );
 resolve_peers();
-deliver_reply( $ARG, { 'cmd' => qw| SIZE |,
-        'data' => "$fc_anchor 500 $fc_bmw" } ) foreach has_sends();
+deliver_reply(
+    $ARG,
+    {   'cmd'  => qw| SIZE |,
+        'data' => "$fc_anchor 500 $fc_bmw"
+    }
+) foreach has_sends();
 
 my @t_seg = segment_sends();
 ok( scalar @t_seg == 1 && $t_seg[0]{'command'} eq qw| 4301.segment |,
@@ -2167,14 +2223,17 @@ ok( scalar @t_all2 == 3
     'fetch : second failure switches holder, same offset'
 );
 
-## a late reply to a timed-out request is dropped : no write, no ##
-## new request, the current request keeps its timer             ##
+## a late reply to a timed-out request is dropped : no write, no new ##
+## request, the current request keeps its timer                      ##
 my $t_timer = fetch_timer();
 $t_all2[0]{'__delivered'} = 1;
-deliver_reply( $t_all2[0],
+deliver_reply(
+    $t_all2[0],
     {   'cmd'  => qw| TRUE |,
-        'args' => sprintf '0 500 %s', encode_b32r($fc_content)
-    } );
+        'args' => sprintf '0 500 %s',
+        encode_b32r($fc_content)
+    }
+);
 
 ok( scalar segment_sends() == 3
         && fetch_pending() == 1
@@ -2184,8 +2243,8 @@ ok( scalar segment_sends() == 3
     'fetch : a late reply to a timed-out request is dropped'
 );
 
-## the other stale request stays a dead letter : only the current ##
-## one is answered                                               ##
+## the other stale request stays a dead letter : only the current one is ##
+## answered                                                              ##
 $t_all2[1]{'__delivered'} = 1;
 deliver_segments($fc_content);
 
@@ -2204,7 +2263,8 @@ $data{'base'}{'cmd_reply'}{'r-none'} = { 'fake' => 1 };
 call_module( 'osf-cache.cmd.fetch',
     { 'args' => $fc_anchor, 'reply_id' => 'r-none' } );
 resolve_peers();
-deliver_reply( $ARG, { 'cmd' => qw| SIZE |, 'data' => '' } ) foreach has_sends();
+deliver_reply( $ARG, { 'cmd' => qw| SIZE |, 'data' => '' } )
+    foreach has_sends();
 
 my $n_reply = $data{'test'}{'cmd_replies'}{'r-none'} // {};
 
@@ -2225,20 +2285,24 @@ call_module( 'osf-cache.cmd.fetch',
     { 'args' => $fc_anchor, 'reply_id' => 'r-bmw' } );
 resolve_peers();
 my @b_has = has_sends();
-deliver_reply( $b_has[0],
+deliver_reply(
+    $b_has[0],
     {   'cmd'  => qw| SIZE |,
         'data' => "$fc_anchor 500 " . encode_b32r( 'x' x 48 )
-    } );
-deliver_reply( $b_has[1],
+    }
+);
+deliver_reply(
+    $b_has[1],
     {   'cmd'  => qw| SIZE |,
         'data' => "$fc_anchor 500 " . encode_b32r( 'y' x 48 )
-    } );
+    }
+);
 
 my $b_reply = $data{'test'}{'cmd_replies'}{'r-bmw'} // {};
 
 ok( ( $b_reply->{'mode'} // '' ) eq qw| false |
-        && $b_reply->{'data'}
-        eq "bmw conflict : $fc_anchor [ stage 4 resolves ]",
+        && $b_reply->{'data'} eq
+        "bmw conflict : $fc_anchor [ stage 4 resolves ]",
     'fetch : disagreeing bmw384 reports fail the fetch [ stage 4 ]'
 );
 
@@ -2252,16 +2316,17 @@ fetch_reset($fc_dir6);
 
 my @hold_stat = CORE::stat( fixture_path('fake-hello_2.12.3-1_amd64.deb') );
 unshift @{ $data{'osf-cache'}{'holdings'}{'files'} },
-    {   'name'     => 'fetch-pkg_1.0-1_amd64.deb',
-        'size'     => 500,
-        'mtime'    => $hold_stat[9],
-        'ctime'    => $hold_stat[10],
-        'inode'    => $hold_stat[1],
-        'anchor'   => $fc_anchor,
-        'digests'  => { 'sha256' => $fc_sha256, 'bmw384' => $fc_bmw },
-        'anchored' => 1,
-        'package'  => 'fetch-pkg',
-        'version'  => '1.0-1',
+    {
+    'name'     => 'fetch-pkg_1.0-1_amd64.deb',
+    'size'     => 500,
+    'mtime'    => $hold_stat[9],
+    'ctime'    => $hold_stat[10],
+    'inode'    => $hold_stat[1],
+    'anchor'   => $fc_anchor,
+    'digests'  => { 'sha256' => $fc_sha256, 'bmw384' => $fc_bmw },
+    'anchored' => 1,
+    'package'  => 'fetch-pkg',
+    'version'  => '1.0-1',
     };
 
 my $ah = call_module( 'osf-cache.cmd.fetch',
@@ -2311,7 +2376,7 @@ my $fc_dir9 = tempdir( CLEANUP => 1 );
 fetch_reset($fc_dir9);
 
 my $unk_anchor = 'sha256:' . ( 'f' x 64 );
-my $unk = call_module( 'osf-cache.cmd.fetch',
+my $unk        = call_module( 'osf-cache.cmd.fetch',
     { 'args' => $unk_anchor, 'reply_id' => 'r-unk' } );
 
 ok( ref $unk eq qw| HASH |
@@ -2345,8 +2410,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,..,,..,,,,,,,,.,.,.,,,,,...,,,.,.,,,..,,.,.,...,..,,.,.,.,,,...,.,.,.,,,
-#VYK57JJ44ICHENM6YA7PCDWK4AZLTTWA6MEJWZJVMPHDBUZCVG53SFTO2LENJRKX7EJIYTPWYV6N6
-#\\\|RIJH4GFBZPP46K2GV44TM275C6TCVDK7NPM5FC2FY7T5X7WO5GU \ / AMOS7 \ YOURUM ::
-#\[7]3BSP53Y2UA3CYPZEYNBYDBYVYB2LVMXEWOJJ76O3BSPUHWFEHWCA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,...,.,.,...,.,,,,.,,,,.,,..,.,.,...,...,...,,..,.,,,..,,...,
+#TEMZY7BGMZHBCZ42OQKXCMHACVPBP433B7IRQTGFL5M2JQXLWXWYUZJGFAK3YOQGAYEPNTKAJMMOW
+#\\\|HZJFS4EJBP4MECBC4BPEKCSOKKCEC7TDSTRCISJNYDVDKN4L7VY \ / AMOS7 \ YOURUM ::
+#\[7]WJA4OYZZPLZY5T2UYX2YBYK7WPOE4FXIDOHA7F43KECBOTB5UQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -71,11 +71,20 @@ if ( length( $state->{'on_done'} // '' ) ) {
     }
 } else {
     my $reply;
+    my @unknown = @{ $state->{'unknown'} // [] };
     if ( defined $args->{'mode'} ) {
         $reply = {
             'mode' => $args->{'mode'},
             'data' => $args->{'data'} // ''
         };
+        ## [ e.g. no peers ] the never-asked anchors still get listed ##
+        $reply = {
+            'mode' => qw| size |,
+            'data' => sprintf "\n%s\nunknown : %s [ not "
+                . "in the local index ]\n",
+            $reply->{'data'}, join ' ', @unknown
+            }
+            if @unknown and $reply->{'mode'} eq qw| true |;
     } else {
         my $merged = <[osf-cache.lookup.merge_replies]>->(
             {   'replies' => $state->{'replies'} // {},
@@ -85,6 +94,7 @@ if ( length( $state->{'on_done'} // '' ) ) {
         my $formatted = <[osf-cache.lookup.format_lookup_reply]>->(
             {   'merged'  => $merged->{'data'}   // {},
                 'anchors' => $state->{'anchors'} // [],
+                'unknown' => \@unknown,
             }
         );
         $reply
@@ -106,8 +116,8 @@ delete <osf-cache.lookup.pending>->{$lookup_id};
 
 return;
 
-#,,,,,.,.,,,.,.,,,,.,,,.,,,,,,.,.,,.,,.,.,...,.,.,...,...,...,,,,,.,.,.,,,,.,,
-#RZ5AKCKJHK2HAVVXVY3XDHFUJEV6SFOADWF22INBAGVS5H72R5IMLEAUNPCEGM3W5ETXRRBKJYWBG
-#\\\|OORBHW72UATQAXZNAUCL3PIPVVBOSCHYSIB3GM3RK6Y3XKQEEFQ \ / AMOS7 \ YOURUM ::
-#\[7]GKOJFMMIEXA757ZN6JJ26CZOQH3ADTNSZEQ4G6OEYZTQGSMW56BI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,.,.,,.,,.,.,,,,,..,,...,...,.,.,...,...,.,.,.,,,,.,,.,,,...,
+#X7P67F7MR2DAGESU2KC4I6Q6RXLHHJLDD7GVIR4LO7QI7ZFRGIAX2AC52AIZS33VUPOUCPYHZUT2O
+#\\\|FZA5CBR33F2O5HQAEUT7RDDKI3CU24BKR7OB7B7GHFCP7OPIEAW \ / AMOS7 \ YOURUM ::
+#\[7]LOI2BQH5KY57C4F4VPLDE3U6GB7W3ZBY4ONTEZC2HVCO6Q7SLUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
