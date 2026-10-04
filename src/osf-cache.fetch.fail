@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = osf-cache.fetch.fail
+# descr = single fetch failure path : reply and clean up
+# param = { fetch_key => <anchor>, reason => <text> }
+#
+# every failure of the fetch flow funnels through here : the
+# verification-failed paths [ osf-cache.fetch.complete ], the
+# lookup-level failures [ osf-cache.fetch.lookup_done ], the holder
+# exhaustion [ osf-cache.fetch.retry ] and the partial-open \ rename
+# errors. the reply goes out mode false with the reason through
+# base.callback.cmd_reply [ which resolves the <base.cmd_reply>
+# entry itself ], the partial file is unlinked [ the cache dir never
+# sees an unverified byte ], the per-segment timer is cancelled and
+# the per-anchor state deleted - a failed fetch leaves nothing
+# behind either.
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+my $reason    = $args->{'reason'}    // 'fetch failed';
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+if ( defined $state->{'fh'} ) {
+    close( $state->{'fh'} );
+    delete $state->{'fh'};
+}
+
+if ( defined $state->{'timer'}
+    and eval { $state->{'timer'}->is_active } ) {
+    $state->{'timer'}->cancel;
+}
+
+unlink $state->{'partial'}
+    if length( $state->{'partial'} // '' ) and -e $state->{'partial'};
+
+if ( length( $state->{'reply_id'} // '' ) ) {
+    <[base.callback.cmd_reply]>->(
+        $state->{'reply_id'},
+        {   'mode' => qw| false |,
+            'data' => $reason
+        }
+    );
+}
+
+delete <osf-cache.fetch.pending>->{$fetch_key};
+
+return;
+
+#,,.,,,,.,...,...,..,,,.,,,.,,,..,,,,,.,.,,,,,..,,...,...,..,,.,.,,..,,,,,,..,
+#7477ZLUQAKZKPY5P7RNKBBDAHE4MGBIW4KXNG5GI35FKTAJQS53RM4W4ERVQ7WTI65Y7POWPPKICM
+#\\\|YRL45GU5DEBJGCC3UXJO663KJ632ETYNJUY56IHONS4S2WMSVHW \ / AMOS7 \ YOURUM ::
+#\[7]URQWGERVP32KJMPSGH46525WJQUTZR3O773ZDJ72B6OPWOFNXQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
