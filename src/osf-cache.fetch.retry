@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = osf-cache.fetch.retry
+# descr = retry a failed segment once, then switch holder
+# param = { fetch_key => <anchor> }
+#
+# the single retry policy of the fetch flow, shared by the segment
+# reply handler [ failed \ timed out \ malformed segment ] and the
+# segment timeout timer : the FIRST failure retries the SAME holder
+# once [ retries 1 ], the SECOND switches to the next holder in
+# sorted sid order and continues at the CURRENT offset [ nothing
+# already written is re-fetched ]. when no holder is left the fetch
+# fails through osf-cache.fetch.fail. the per-segment timer of the
+# failed request is cancelled here - the retry \ switch requests a
+# fresh one.
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+if ( defined $state->{'timer'}
+    and eval { $state->{'timer'}->is_active } ) {
+    $state->{'timer'}->cancel;
+}
+
+if ( !$state->{'retries'} ) {
+    $state->{'retries'} = 1;
+    <[base.logs]>->(
+        0,
+        ': osf-cache : segment %d retry via %s',
+        $state->{'offset'},
+        $state->{'current_sid'} // ''
+    );
+} else {
+    ## second failure on this holder : the next one continues the offset ##
+    $state->{'retries'} = 0;
+    $state->{'holder_idx'}++;
+}
+
+my $holders = $state->{'holders'} // [];
+
+if ( $state->{'holder_idx'} > $#$holders ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => 'no holders left [ segment fetch failed ]'
+        }
+    );
+    return;
+}
+
+<[osf-cache.fetch.request]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,.,,,..,,,.,..,,,.,,.,,,..,,.,,,,,.,,,,,,,.,..,,...,...,,,,,...,,,,,..,,..,,
+#GGNZ7I22GP2ASBBB7ZV7LVXORAOLCWZB56Q4O2EXOHRULNPDUA56OLVB2H236G7QFLOUPWIFBXQQE
+#\\\|ABPVYPQFYWVMTAWHG5AEBO3DGWBU6URZFNSW2D6NZDKOWMWTD7N \ / AMOS7 \ YOURUM ::
+#\[7]EYPXTAN6LFWK2Z4UUIT3OQKXCKPKHOZ6R7DTEMGRB2S2JHR4U6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

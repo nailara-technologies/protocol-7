@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = osf-cache.fetch.segment_timeout
+# descr = segment timer fired : retry or switch holder
+# param = timer event [ data => { fetch_key } ]
+#
+# one-shot timer armed per segment request by osf-cache.fetch.request
+# [ after <osf-cache.cfg.segment_timeout>, repeat FALSE - never an
+# undef interval ]. a silent holder is a failed segment : the retry
+# policy decides [ osf-cache.fetch.retry - same holder once, then the
+# next one at the current offset, no holders left fails the fetch ].
+# a fetch that already completed or failed is gone from
+# <osf-cache.fetch.pending> and this fire does nothing.
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data }   // {};   ## poll_switch pattern ##
+my $fetch_key  = $timer_data->{'fetch_key'} // '';
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+<[base.logs]>->(
+    0,
+    ': osf-cache : segment %d timeout [ %s ]',
+    $state->{'offset'},
+    $state->{'current_sid'} // ''
+);
+
+<[osf-cache.fetch.retry]>->( { 'fetch_key' => $fetch_key } );
+
+return;
+
+#,,..,.,,,,,,,,,,,.,.,.,.,.,,,,..,,,,,.,.,,,,,..,,...,...,..,,,..,...,,,.,,,.,
+#25SGMGEBLVS7GNUGZPIECGNVZRAV2LTMMI5DAE5LFCRFQEUTFGLU6M5TF5NMMK46QNQIKOCM76V5C
+#\\\|XZ6ZFJSCYHXU67UNLBYKSF35KJNX7CLQPOLRR6TU4LWNLQ54ICO \ / AMOS7 \ YOURUM ::
+#\[7]JUJHFR3DWE3QZNXZ4FAZPMBEF2XKVF3T47ZPK2BGBK5PUYW2OUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

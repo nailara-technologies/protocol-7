@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = osf-cache.fetch.lookup_done
+# descr = continue a fetch from the merged lookup result
+# param = { anchor => \@anchors, result => { mode, merged | data } }
+#
+# the on_done target of the internal lookup osf-cache.cmd.fetch runs [
+# see osf-cache.lookup.complete : explicit dispatch, never a text
+# reply ]. the merged result carries { holders, bmw384, missing,
+# failed_nodes, conflicts, bmw_conflicts } : an anchor in bmw_conflicts
+# fails the fetch mode false [ stage 4 resolves those ] and no holder
+# fails with the missing \ failed summary. otherwise the holders are
+# stored sorted, the partial file '<cache_dir>/partial/<name>.partial'
+# is opened '>raw' [ the partial dir is created with
+# <[file.make_path]> when missing ] and the first segment is requested.
+# a lookup the fetch state no longer knows [ timeout raced it ] does
+# nothing.
+
+my $args   = shift          // {};
+my $anchors = $args->{'anchor'} // [];
+my $result  = $args->{'result'} // {};
+
+my $anchor = $anchors->[0] // return;
+
+my $state = <osf-cache.fetch.pending>->{$anchor};
+return unless ref $state eq qw| HASH |;
+
+if ( $result->{'mode'} ne qw| true | ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $anchor,
+            'reason'    => sprintf 'lookup failed : %s',
+            $result->{'data'} // ''
+        }
+    );
+    return;
+}
+
+my $merged = $result->{'merged'} // {};
+
+## two holders reporting different bmw384 for the same anchor : the  ##
+## fetch refuses - stage 4 resolves conflicts                         ##
+if ( exists $merged->{'bmw_conflicts'}{$anchor} ) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $anchor,
+            'reason'    => "bmw conflict : $anchor [ stage 4 resolves ]"
+        }
+    );
+    return;
+}
+
+my $holders = $merged->{'holders'}{$anchor} // [];
+
+if ( !scalar @$holders ) {
+    my $summary = "no holders : $anchor";
+    my $missing = join ' ', @{ $merged->{'missing'} // [] };
+    my $failed  = join ' ', @{ $merged->{'failed_nodes'} // [] };
+    $summary .= " [ missing $missing ]" if length $missing;
+    $summary .= " [ failed $failed ]"   if length $failed;
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $anchor,
+            'reason'    => $summary
+        }
+    );
+    return;
+}
+
+$state->{'holders'} = [ sort { $a <=> $b } @$holders ];
+$state->{'bmw384'}  = $merged->{'bmw384'}{$anchor} // '';
+
+## the partial file : one dir inside the cache dir, created as needed ##
+my $partial_dir = "$state->{'cache_dir'}/partial";
+
+<[file.make_path]>->( $partial_dir, 0750 ) unless -d $partial_dir;
+
+open( my $fh, '>:raw', $state->{'partial'} ) or do {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $anchor,
+            'reason'    => "cannot write partial : $OS_ERROR"
+        }
+    );
+    return;
+};
+$state->{'fh'} = $fh;
+
+<[osf-cache.fetch.request]>->( { 'fetch_key' => $anchor } );
+
+return;
+
+#,,,.,,..,...,.,.,..,,...,..,,.,.,,,,,,,,,...,..,,...,...,..,,,,.,.,.,,..,,.,,
+#GAUIREUIWMFE6HZSUSGXV7TXBFUII3XJYYJUWZRZ4XNDDB3R6LY2OSMUSW2B7UQNK2ZA6OLLO3X3Q
+#\\\|LARCUISU3TU3W26XNRZ32TMOLVNSG5NUS4GCT2LA2QLQAXEXV2X \ / AMOS7 \ YOURUM ::
+#\[7]ZDXHI5ZOXPPEGCO2VU64FR7G4F3MID5BLCD2LDATSFYASDBNEMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
