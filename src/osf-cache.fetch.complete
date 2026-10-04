@@ -1,0 +1,148 @@
+## [:< ##
+
+# name  = osf-cache.fetch.complete
+# descr = verify the partial, rename into the cache dir
+# param = { fetch_key => <anchor> }
+#
+# the last segment closed the partial file. verification runs over
+# '<cache_dir>/partial/<name>.partial' in ONE read pass : the byte
+# count against the index size, the anchor digest [ sha256 \ sha512
+# per the anchor algo ] against the anchor, and bmw384 [ Digest::BMW
+# 384 + <[chk-sum.bmw.encode_digest]> ] against the bmw384 the
+# holders agreed on. ANY mismatch fails the fetch mode false
+# 'verification failed : <which>' and unlinks the partial - an
+# unverified byte never reaches the cache dir. on success the partial
+# is renamed into '<cache_dir>/<deb filename>', scan_file'd into the
+# holdings [ the counts follow, then state_save ] and the reply goes
+# out : 'fetched <filename> <size> bytes from <sid> [ <n> segments,
+# <secs> s ]'. the per-anchor state is deleted - a completed fetch
+# leaves nothing behind.
+
+require Time::HiRes;    ## core - loaded here, modules carry no use ##
+
+my $args      = shift                // {};
+my $fetch_key = $args->{'fetch_key'} // return;
+
+my $state = <osf-cache.fetch.pending>->{$fetch_key};
+return unless ref $state eq qw| HASH |;
+
+if ( defined $state->{'timer'}
+    and eval { $state->{'timer'}->is_active } ) {
+    $state->{'timer'}->cancel;
+}
+
+my $partial = $state->{'partial'};
+
+## CORE::stat : bin/Protocol-7 imports File::stat, whose stat returns ##
+## an object -> a plain list stat left all fields undef in the zenka  ##
+my @stat = CORE::stat($partial);
+
+my $which;
+if ( @stat < 11 or $stat[7] != $state->{'size'} ) {
+    $which = 'size';
+} else {
+    ## one pass : the anchor algo + bmw384 ##
+    require Digest::BMW;    ## known dependency - loaded here ##
+    my $sha_ctx = Digest::SHA->new(
+        $state->{'algo'} eq qw| sha256 | ? 256 : 512 );
+    my $bmw_ctx = Digest::BMW->new(384);
+    if ( open( my $fh, '<:raw', $partial ) ) {
+        while ( read( $fh, my $chunk, 65536 ) ) {
+            $sha_ctx->add($chunk);
+            $bmw_ctx->add($chunk);
+        }
+        close($fh);
+        my $anchor_hex = $sha_ctx->hexdigest;
+        my $bmw_b32 = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
+        $which = 'anchor' if $anchor_hex ne $state->{'hex'};
+        $which = 'bmw384' if !$which and $bmw_b32 ne $state->{'bmw384'};
+    } else {
+        $which = 'size';
+    }
+}
+
+if ($which) {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => "verification failed : $which"
+        }
+    );
+    return;
+}
+
+my $target = sprintf '%s/%s', $state->{'cache_dir'}, $state->{'filename'};
+
+rename $partial, $target or do {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => "rename failed : $OS_ERROR"
+        }
+    );
+    return;
+};
+
+## the file is verified : it joins the holdings, the state persists ##
+my $index_data = <osf-cache.index> // {};
+my $entry      = <[osf-cache.holdings.scan_file]>->(
+    {   'path'    => $target,
+        'name'    => $state->{'filename'},
+        'anchors' => $index_data->{'anchors'} // {},
+        'algos'   => $index_data->{'algos'}   // [],
+    }
+);
+
+my $holdings = <osf-cache.holdings>;
+if ( ref $entry eq qw| HASH | and ref $holdings eq qw| HASH | ) {
+    push @{ $holdings->{'files'} }, $entry;
+    $holdings->{'total_bytes'} += $entry->{'size'};
+    if ( $entry->{'anchored'} ) {
+        $holdings->{'anchored_count'}++;
+        $holdings->{'anchored_bytes'} += $entry->{'size'};
+    }
+    $holdings->{'rehashed'} = ( $holdings->{'rehashed'} // 0 ) + 1;
+
+    my $state_path = <osf-cache.cfg.state_path> // '';
+    if ( length $state_path ) {
+        my $saved = <[osf-cache.holdings.state_save]>->(
+            {   'path'     => $state_path,
+                'holdings' => $holdings,
+            }
+        );
+        <[base.logs]>->(
+            0, ': osf-cache : state save failed : %s',
+            $saved->{'data'}
+        ) if $saved->{'mode'} ne qw| true |;
+    }
+} elsif ( ref $entry eq qw| HASH | ) {
+    <[base.logs]>->(
+        0, ': osf-cache : fetched %s but holdings not ready',
+        $state->{'filename'}
+    );
+}
+
+my $secs = Time::HiRes::time() - $state->{'started'};
+
+if ( length( $state->{'reply_id'} // '' ) ) {
+    <[base.callback.cmd_reply]>->(
+        $state->{'reply_id'},
+        {   'mode' => qw| true |,
+            'data' => sprintf 'fetched %s %d bytes from %s '
+                . '[ %d segments, %.1f s ]',
+            $state->{'filename'},
+            $state->{'size'},
+            $state->{'current_sid'} // '',
+            $state->{'segments'},
+            $secs
+        }
+    );
+}
+
+delete <osf-cache.fetch.pending>->{$fetch_key};
+
+return;
+
+#,,..,...,,,,,,,,,,..,.,.,,,,,...,,,.,,..,..,,..,,...,...,...,,..,,..,,..,...,
+#42EDX6YUUPITBULRSL34HY2CPFNPS6GVWRFRTCG3JTPKJA32TZCY5K6OSPL3AX3NBOZENQF3YH2KA
+#\\\|WIVLDY5V7FTJB5EQFNNIGCCXZND5TKM3RRXGLUQES2PDWVFTBWL \ / AMOS7 \ YOURUM ::
+#\[7]X4ZICBSAJSUX3FXA7IEL6MKRHUPVTP5EVYM6L7WLXQ7USDAXEEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

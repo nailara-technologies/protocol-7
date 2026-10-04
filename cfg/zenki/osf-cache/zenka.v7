@@ -5,15 +5,17 @@
 modules.load          = net protocol io.unix ui auth format.yaml osf-cache
 ## explicit command list : no wildcard - has answers for this node's own
 ## holdings, status and rescan are read-only, lookup fans out to the
-## other osf-cache sessions ; install stays out ##
+## other osf-cache sessions and fetch pulls one anchor from a holder
+## into this instance's cache dir [ verified ] ; install stays out ##
 access.cmd.usr.cube   = commands heart reload verify-instance \
                         list show-buffer buffer-erase buffer-erase-level \
-                        status has rescan lookup
+                        status has rescan lookup fetch
 ## peer grant [ zenka-to-zenka form, like zulum's cube-13 line ] : a
-## session authenticated as osf-cache may ask this node's holdings.
+## session authenticated as osf-cache may ask this node's holdings
+## and pull one verified segment of an anchored holding [ stage 3 ].
 ## routed-via-cube calls arrive as user cube [ covered above ] - this
 ## covers a direct zenka-to-zenka connection and documents the intent ##
-access.cmd.usr.osf-cache = has
+access.cmd.usr.osf-cache = has segment
 
 ## per-subname instance config [ v7-zenki.start osf-cache[peer] ] :
 ## the peer instance scans this dir instead of the apt archive cache ##
@@ -34,8 +36,8 @@ osf-cache.cfg.by_subname.peer.cache_dir = /var/protocol-7/osf-cache/peer-archive
 
 [zenka.loop]
 
-#,,,,,,,.,,,.,..,,.,.,,..,,,.,.,.,,..,,,.,.,,,.,.,...,..,,,,.,,..,,,.,,..,,,,,
-#ZLTJCPW6HTF75H42VL4NKVZMZWBTHV6C7VPT4Y67ZNJSBDBHXNTDLLP7LFQFLV7AAKTEKR2T7KDJU
-#\\\|KACOHENQXCLUHHEC2K5I65W3PSGU43HMHGUKE6PLPH2NJY4JWQN \ / AMOS7 \ YOURUM ::
-#\[7]DYV457G5GERSRJPHXT2W56DIITVZK76TLRK4DBJ7PKJ23BOLDSCA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,..,,,..,,,.,.,.,.,,,.,,,,..,.,.,...,...,...,,.,,,.,,.,.,.,.,
+#7N6HTM5V2PWXDOLXAGMOFYGZZ7SGXIW3ZU5VPNAMYQGF3CEG5SCAMCKX5LIAGL4OBFCSWUJF77ZFA
+#\\\|SFNN6GUDGWZL7237PB5HEJC53PSGIPENQEXMB3NCBGOTFBYHMQD \ / AMOS7 \ YOURUM ::
+#\[7]6PGAMSGVQGUXJXAMT5J4LTMOI44XWWWP6LQYQFYWGDP43TLSW6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

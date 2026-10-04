@@ -30,7 +30,7 @@ use Cwd         qw| abs_path |;
 use FindBin     qw| $RealBin |;
 use Digest::SHA ();
 use Digest::MD5 ();
-use Crypt::Misc qw| encode_b32r |;
+use Crypt::Misc qw| encode_b32r decode_b32r |;
 use File::Temp  qw| tempdir |;
 
 ## base.chk-sum.bmw.384.B32 calls it fully qualified ##
@@ -107,6 +107,15 @@ compile_module('osf-cache.handler.has_reply');
 compile_module('osf-cache.lookup.complete');
 compile_module('osf-cache.lookup.format_lookup_reply');
 compile_module('osf-cache.lookup.timeout');
+compile_module('osf-cache.cmd.segment');
+compile_module('osf-cache.cmd.fetch');
+compile_module('osf-cache.handler.segment_reply');
+compile_module('osf-cache.fetch.lookup_done');
+compile_module('osf-cache.fetch.request');
+compile_module('osf-cache.fetch.retry');
+compile_module('osf-cache.fetch.segment_timeout');
+compile_module('osf-cache.fetch.complete');
+compile_module('osf-cache.fetch.fail');
 compile_module('format.yaml.pre_init');
 compile_module('format.yaml.write_file');
 compile_module('format.yaml.load_file');
@@ -168,6 +177,13 @@ my $zenka_data_dir = tempdir( CLEANUP => 1 );
 
 $code{'file.zenka_dir.data_path'} = sub {
     return $zenka_data_dir;
+};
+
+## stage 3 : partial/ creation inside the cache dir [ one level deep ] ##
+$code{'file.make_path'} = sub {
+    my ( $path, $mode ) = @ARG;
+    return 1 if -d $path;
+    return mkdir $path, ( $mode // 0750 );
 };
 
 ## watcher stub with the Event->timer interface the modules use [ data, ##
@@ -1777,6 +1793,548 @@ ok( ( $r9->{'mode'} // '' ) eq qw| size |
     'empty replies : anchor missing, no failed peers'
 );
 
+##[ 19 : stage 3 - cmd.segment ]##############################################
+
+say ': stage 3 - cmd.segment';
+
+my $seg_dir     = tempdir( CLEANUP => 1 );
+my $seg_name    = 'seg-pkg_1.0-1_amd64.deb';
+my $seg_content = join '', map { chr $ARG } 0 .. 255, reverse 0 .. 255;
+open( my $seg_fh, '>:raw', "$seg_dir/$seg_name" ) or die $OS_ERROR;
+print {$seg_fh} $seg_content;
+close($seg_fh);
+
+my @seg_stat   = CORE::stat("$seg_dir/$seg_name");
+my $seg_bmw    = $code{'chk-sum.bmw.384.B32'}->( \$seg_content );
+my $seg_sha256 = Digest::SHA::sha256_hex($seg_content);
+
+my $unanchored_content = 'unanchored-content';
+my $unanchored_bmw
+    = $code{'chk-sum.bmw.384.B32'}->( \$unanchored_content );
+write_fixture( "$seg_dir/unanchored_1.0-1_all.deb", $unanchored_content );
+
+$data{'osf-cache'}{'cfg'}{'cache_dir'} = $seg_dir;
+$data{'osf-cache'}{'scan'}             = { 'running' => 0, 'done' => 1 };
+$data{'osf-cache'}{'holdings'}         = {
+    'files' => [
+        {   'name'     => $seg_name,
+            'size'     => length $seg_content,
+            'mtime'    => $seg_stat[9],
+            'ctime'    => $seg_stat[10],
+            'inode'    => $seg_stat[1],
+            'anchor'   => "sha256:$seg_sha256",
+            'digests'  => { 'sha256' => $seg_sha256, 'bmw384' => $seg_bmw },
+            'anchored' => 1,
+            'package'  => 'seg-pkg',
+            'version'  => '1.0-1',
+        },
+        {   'name'     => 'unanchored_1.0-1_all.deb',
+            'size'     => length $unanchored_content,
+            'mtime'    => $seg_stat[9],
+            'ctime'    => $seg_stat[10],
+            'inode'    => $seg_stat[1],
+            'anchor'   => undef,
+            'digests'  => { 'bmw384' => $unanchored_bmw },
+            'anchored' => 0,
+            'package'  => 'unanchored',
+            'version'  => '1.0-1',
+        },
+    ],
+};
+
+my $seg_ok = call_module( 'osf-cache.cmd.segment',
+    { 'args' => "$seg_bmw 0 100" } );
+
+my ($seg_b32) = $seg_ok->{'data'} =~ m{^0 100 ([A-Z2-7]+)$}o;
+
+ok( $seg_ok->{'mode'} eq qw| true | && length $seg_b32,
+    'segment : mode true, one line <offset> <bytes> <b32>' );
+
+ok( decode_b32r($seg_b32) eq substr( $seg_content, 0, 100 ),
+    'segment : decode_b32r round trips the served bytes' );
+
+my $seg_last = call_module( 'osf-cache.cmd.segment',
+    { 'args' => sprintf '%s 500 100', $seg_bmw } );
+my ( $last_off, $last_bytes, $last_b32 )
+    = split m{\s+}, $seg_last->{'data'};
+
+ok( $seg_last->{'mode'} eq qw| true |
+        && $last_off == 500
+        && $last_bytes == 12
+        && decode_b32r($last_b32) eq substr( $seg_content, 500 ),
+    'segment : the last segment comes back shorter'
+);
+
+my $seg_past = call_module( 'osf-cache.cmd.segment',
+    { 'args' => sprintf '%s 512 10', $seg_bmw } );
+
+ok( $seg_past->{'mode'} eq qw| false |
+        && $seg_past->{'data'} =~ m{^offset beyond end}o,
+    'segment : offset at or beyond the end refused'
+);
+
+my $seg_unknown = call_module( 'osf-cache.cmd.segment',
+    { 'args' => ( 'A' x 77 ) . ' 0 10' } );
+
+ok( $seg_unknown->{'mode'} eq qw| false |
+        && $seg_unknown->{'data'} =~ m{^unknown bmw384}o,
+    'segment : unknown bmw384 refused'
+);
+
+my $seg_unanch = call_module( 'osf-cache.cmd.segment',
+    { 'args' => "$unanchored_bmw 0 10" } );
+
+ok( $seg_unanch->{'mode'} eq qw| false |
+        && $seg_unanch->{'data'} =~ m{not an anchored holding}o,
+    'segment : a matching but unanchored file is refused'
+);
+
+my $seg_badlen = call_module( 'osf-cache.cmd.segment',
+    { 'args' => "$seg_bmw 0 65537" } );
+
+ok( $seg_badlen->{'mode'} eq qw| false |
+        && $seg_badlen->{'data'} eq 'length outside 1 .. 65536',
+    'segment : length above segment_max refused'
+);
+
+my $seg_zero = call_module( 'osf-cache.cmd.segment',
+    { 'args' => "$seg_bmw 0 0" } );
+
+ok( $seg_zero->{'mode'} eq qw| false |
+        && $seg_zero->{'data'} eq 'length outside 1 .. 65536',
+    'segment : length 0 refused'
+);
+
+my $seg_badb32 = call_module( 'osf-cache.cmd.segment',
+    { 'args' => ( 'A' x 76 ) . ' 0 10' } );
+
+ok( $seg_badb32->{'mode'} eq qw| false |
+        && $seg_badb32->{'data'} =~ m{^invalid bmw384}o,
+    'segment : a malformed bmw384 refused'
+);
+
+## every byte value survives the B32 envelope [ binary segment content ] ##
+my $all_bytes = join '', map { chr $ARG } 0 .. 255;
+
+ok( decode_b32r( encode_b32r($all_bytes) ) eq $all_bytes,
+    'b32 : every byte value round trips encode_b32r/decode_b32r'
+);
+
+## the digests describe the file at scan time - not a byte later ##
+open( my $app_fh, '>>:raw', "$seg_dir/$seg_name" ) or die $OS_ERROR;
+print {$app_fh} 'x' x 16;
+close($app_fh);
+
+my $seg_changed = call_module( 'osf-cache.cmd.segment',
+    { 'args' => "$seg_bmw 0 100" } );
+
+ok( $seg_changed->{'mode'} eq qw| false |
+        && $seg_changed->{'data'} eq 'changed since scan',
+    'segment : a file changed since the scan is never served'
+);
+
+## restore size + mtime [ inode unchanged ] : served again ##
+open( my $fix_fh, '>:raw', "$seg_dir/$seg_name" ) or die $OS_ERROR;
+print {$fix_fh} $seg_content;
+close($fix_fh);
+utime( $seg_stat[9], $seg_stat[9], "$seg_dir/$seg_name" )
+    or die "utime failed : $OS_ERROR";
+
+my $seg_restored = call_module( 'osf-cache.cmd.segment',
+    { 'args' => "$seg_bmw 0 100" } );
+
+ok( $seg_restored->{'mode'} eq qw| true |,
+    'segment : size + mtime + inode match again -> served'
+);
+
+##[ 20 : stage 3 - cmd.fetch ]################################################
+
+say ': stage 3 - cmd.fetch';
+
+my $fc_content = join '', map { chr $ARG } 0 .. 255, 0 .. 243;    ## 500 ##
+my $fc_sha256  = Digest::SHA::sha256_hex($fc_content);
+my $fc_bmw     = $code{'chk-sum.bmw.384.B32'}->( \$fc_content );
+my $fc_anchor  = "sha256:$fc_sha256";
+my $fc_entry   = {
+    'size'     => 500,
+    'filename' => 'pool/main/f/fetch-pkg/fetch-pkg_1.0-1_amd64.deb',
+    'package'  => 'fetch-pkg',
+    'version'  => '1.0-1',
+};
+
+sub fetch_reset {
+    my $dir = shift;
+    $data{'osf-cache'}{'cfg'}{'cache_dir'}   = $dir;
+    $data{'osf-cache'}{'cfg'}{'state_path'}  = "$dir/holdings.yaml";
+    $data{'osf-cache'}{'cfg'}{'segment_max'} = 65536;
+    $data{'osf-cache'}{'index'}              = {
+        'anchors' => { $fc_anchor => $fc_entry },
+        'algos'   => [qw| sha256 |],
+        'sources' => [],
+    };
+    $data{'osf-cache'}{'holdings'} = {
+        'files'          => [],
+        'anchored_count' => 0,
+        'total_bytes'    => 0,
+        'anchored_bytes' => 0,
+        'rehashed'       => 0,
+        'algos'          => [qw| sha256 |],
+    };
+    $data{'osf-cache'}{'scan'}             = { 'running' => 0, 'done' => 1 };
+    $data{'osf-cache'}{'fetch'}{'pending'} = {};
+    $data{'base'}{'cmd_reply'}             = {};
+    $data{'test'}{'route_sends'}           = [];
+    $data{'test'}{'timers'}                = [];
+    $data{'test'}{'watchers'}              = [];
+    $data{'test'}{'cmd_replies'}           = {};
+    return;
+}
+
+## deliver every not-yet-delivered segment request from $content ##
+sub deliver_segments {
+    my $content = shift;
+    my $guard   = 0;
+    foreach my $send ( @{ $data{'test'}{'route_sends'} } ) {
+        die 'segment request loop' if ++$guard > 100;
+        next unless ( $send->{'command'} // '' ) =~ m{^\d+\.segment$}o;
+        next if $send->{'__delivered'};
+        $send->{'__delivered'} = 1;
+        my ( undef, $offset, $len )
+            = split m{\s+}, $send->{'call_args'}{'args'};
+        my $chunk = substr $content, $offset, $len;
+        deliver_reply( $send,
+            {   'cmd'  => qw| TRUE |,
+                'args' => sprintf '%d %d %s',
+                $offset, length $chunk, encode_b32r($chunk)
+            } );
+    }
+    return;
+}
+
+sub segment_sends {
+    return grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.segment$}o }
+        @{ $data{'test'}{'route_sends'} };
+}
+
+sub has_sends {
+    return grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$}o }
+        @{ $data{'test'}{'route_sends'} };
+}
+
+sub fetch_pending {
+    return scalar keys %{ $data{'osf-cache'}{'fetch'}{'pending'} // {} };
+}
+
+sub fetch_timer {
+    return $data{'osf-cache'}{'fetch'}{'pending'}{$fc_anchor}{'timer'};
+}
+
+## flow 1 : the happy path [ 4 segments via the sorted-first holder ] ##
+my $fc_dir = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir);
+$data{'osf-cache'}{'cfg'}{'segment_max'} = 128;
+
+$data{'base'}{'cmd_reply'}{'r-happy'} = { 'fake' => 1 };
+my $ff = call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-happy' } );
+
+ok( ref $ff eq qw| HASH | && $ff->{'mode'} eq qw| deferred |
+        && fetch_pending() == 1,
+    'fetch : mode deferred, per-anchor state registered'
+);
+
+resolve_peers();
+
+my @ff_has = has_sends();
+ok( scalar @ff_has == 2,
+    'fetch : the internal lookup fans out to both peers' );
+
+deliver_reply( $ARG, { 'cmd' => qw| SIZE |,
+        'data' => "$fc_anchor 500 $fc_bmw" } ) foreach @ff_has;
+
+my @ff_seg = segment_sends();
+ok( scalar @ff_seg == 1
+        && $ff_seg[0]{'command'} eq qw| 4301.segment |
+        && $ff_seg[0]{'call_args'}{'args'} eq "$fc_bmw 0 128",
+    'fetch : ONE outstanding segment request, sorted sid order'
+);
+
+deliver_segments($fc_content);
+
+my $fc_reply = $data{'test'}{'cmd_replies'}{'r-happy'} // {};
+
+ok( ( $fc_reply->{'mode'} // '' ) eq qw| true |
+        && scalar(
+        $fc_reply->{'data'} =~
+            m{^fetched\s+fetch-pkg_1\.0-1_amd64\.deb\s+500\s+bytes\s+from
+            \s+4301\s+\[\s+4\s+segments,\s+\d+\.\d\s+s\s+\]$}xo
+        ),
+    'fetch : fetched reply with size, holder, segments and seconds'
+);
+
+open( my $rfh, '<:raw', "$fc_dir/fetch-pkg_1.0-1_amd64.deb" )
+    or die $OS_ERROR;
+my $fc_placed = do { local $INPUT_RECORD_SEPARATOR = undef; <$rfh> };
+close($rfh);
+
+ok( $fc_placed eq $fc_content,
+    'fetch : the verified file landed in the cache dir [ byte exact ]'
+);
+
+ok( !-e "$fc_dir/partial/fetch-pkg_1.0-1_amd64.deb.partial",
+    'fetch : no partial file left behind'
+);
+
+my ($fc_held) = grep { ( $ARG->{'anchor'} // '' ) eq $fc_anchor }
+    @{ $data{'osf-cache'}{'holdings'}{'files'} };
+
+ok( ref $fc_held eq qw| HASH |
+        && ( $fc_held->{'digests'}{'bmw384'} // '' ) eq $fc_bmw
+        && $fc_held->{'anchored'} == 1
+        && -f "$fc_dir/holdings.yaml",
+    'fetch : holdings updated [ anchored entry, bmw384 ] + state saved'
+);
+
+ok( fetch_pending() == 0
+        && !exists $data{'base'}{'cmd_reply'}{'r-happy'}
+        && ( grep { $ARG->is_active } @{ $data{'test'}{'watchers'} } ) == 0,
+    'fetch : pending state, timers and the cmd_reply entry cleaned up'
+);
+
+## flow 2 : a corrupted segment fails verification, nothing is placed ##
+my $fc_dir2 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir2);
+
+$data{'base'}{'cmd_reply'}{'r-corrupt'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-corrupt' } );
+resolve_peers();
+deliver_reply( $ARG, { 'cmd' => qw| SIZE |,
+        'data' => "$fc_anchor 500 $fc_bmw" } ) foreach has_sends();
+
+## valid envelope, wrong bytes : the per-segment checks pass, the ##
+## whole-file verification catches it                          ##
+my $fc_corrupt = join '', map { chr( ( $ARG + 1 ) % 256 ) }
+    unpack 'C*', $fc_content;
+deliver_segments($fc_corrupt);
+
+my $c_reply = $data{'test'}{'cmd_replies'}{'r-corrupt'} // {};
+
+ok( ( $c_reply->{'mode'} // '' ) eq qw| false |
+        && $c_reply->{'data'} =~ m{^verification failed : anchor$}o,
+    'fetch : corrupted content fails the anchor verification'
+);
+
+ok( !-e "$fc_dir2/fetch-pkg_1.0-1_amd64.deb"
+        && !-e "$fc_dir2/partial/fetch-pkg_1.0-1_amd64.deb.partial"
+        && fetch_pending() == 0,
+    'fetch : nothing placed, the partial is gone, state cleaned'
+);
+
+## flow 3 : timeout twice -> retry once, then the next holder ##
+my $fc_dir3 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir3);
+
+$data{'base'}{'cmd_reply'}{'r-timeout'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-timeout' } );
+resolve_peers();
+deliver_reply( $ARG, { 'cmd' => qw| SIZE |,
+        'data' => "$fc_anchor 500 $fc_bmw" } ) foreach has_sends();
+
+my @t_seg = segment_sends();
+ok( scalar @t_seg == 1 && $t_seg[0]{'command'} eq qw| 4301.segment |,
+    'fetch : the segment request goes to the first holder'
+);
+
+## first timeout : the SAME holder is retried once, same offset ##
+fire_timer( fetch_timer() );
+
+my @t_all = segment_sends();
+ok( scalar @t_all == 2
+        && $t_all[1]{'command'} eq qw| 4301.segment |
+        && $t_all[1]{'call_args'}{'args'} eq "$fc_bmw 0 500",
+    'fetch : first timeout retries the same holder at the same offset'
+);
+
+## second timeout : the next holder continues at the same offset ##
+fire_timer( fetch_timer() );
+
+my @t_all2 = segment_sends();
+ok( scalar @t_all2 == 3
+        && $t_all2[2]{'command'} eq qw| 4302.segment |
+        && $t_all2[2]{'call_args'}{'args'} eq "$fc_bmw 0 500",
+    'fetch : second failure switches holder, same offset'
+);
+
+## a late reply to a timed-out request is dropped : no write, no ##
+## new request, the current request keeps its timer             ##
+my $t_timer = fetch_timer();
+$t_all2[0]{'__delivered'} = 1;
+deliver_reply( $t_all2[0],
+    {   'cmd'  => qw| TRUE |,
+        'args' => sprintf '0 500 %s', encode_b32r($fc_content)
+    } );
+
+ok( scalar segment_sends() == 3
+        && fetch_pending() == 1
+        && !exists $data{'test'}{'cmd_replies'}{'r-timeout'}
+        && fetch_timer() == $t_timer
+        && $t_timer->is_active,
+    'fetch : a late reply to a timed-out request is dropped'
+);
+
+## the other stale request stays a dead letter : only the current ##
+## one is answered                                               ##
+$t_all2[1]{'__delivered'} = 1;
+deliver_segments($fc_content);
+
+my $t_reply = $data{'test'}{'cmd_replies'}{'r-timeout'} // {};
+
+ok( ( $t_reply->{'mode'} // '' ) eq qw| true |
+        && $t_reply->{'data'} =~ m{from 4302 \[ 1 segments}o,
+    'fetch : the switched holder serves the rest'
+);
+
+## flow 4 : no holder ##
+my $fc_dir4 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir4);
+
+$data{'base'}{'cmd_reply'}{'r-none'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-none' } );
+resolve_peers();
+deliver_reply( $ARG, { 'cmd' => qw| SIZE |, 'data' => '' } ) foreach has_sends();
+
+my $n_reply = $data{'test'}{'cmd_replies'}{'r-none'} // {};
+
+ok( ( $n_reply->{'mode'} // '' ) eq qw| false |
+        && $n_reply->{'data'} eq "no holders : $fc_anchor "
+        . "[ missing $fc_anchor ]",
+    'fetch : no holder -> mode false with the missing summary'
+);
+
+ok( fetch_pending() == 0, 'fetch : no-holder cleanup' );
+
+## flow 5 : bmw conflict ##
+my $fc_dir5 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir5);
+
+$data{'base'}{'cmd_reply'}{'r-bmw'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-bmw' } );
+resolve_peers();
+my @b_has = has_sends();
+deliver_reply( $b_has[0],
+    {   'cmd'  => qw| SIZE |,
+        'data' => "$fc_anchor 500 " . encode_b32r( 'x' x 48 )
+    } );
+deliver_reply( $b_has[1],
+    {   'cmd'  => qw| SIZE |,
+        'data' => "$fc_anchor 500 " . encode_b32r( 'y' x 48 )
+    } );
+
+my $b_reply = $data{'test'}{'cmd_replies'}{'r-bmw'} // {};
+
+ok( ( $b_reply->{'mode'} // '' ) eq qw| false |
+        && $b_reply->{'data'}
+        eq "bmw conflict : $fc_anchor [ stage 4 resolves ]",
+    'fetch : disagreeing bmw384 reports fail the fetch [ stage 4 ]'
+);
+
+ok( fetch_pending() == 0 && ( segment_sends() ) == 0,
+    'fetch : bmw conflict cleans up before any segment request'
+);
+
+## flow 6 : already held ##
+my $fc_dir6 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir6);
+
+my @hold_stat = CORE::stat( fixture_path('fake-hello_2.12.3-1_amd64.deb') );
+unshift @{ $data{'osf-cache'}{'holdings'}{'files'} },
+    {   'name'     => 'fetch-pkg_1.0-1_amd64.deb',
+        'size'     => 500,
+        'mtime'    => $hold_stat[9],
+        'ctime'    => $hold_stat[10],
+        'inode'    => $hold_stat[1],
+        'anchor'   => $fc_anchor,
+        'digests'  => { 'sha256' => $fc_sha256, 'bmw384' => $fc_bmw },
+        'anchored' => 1,
+        'package'  => 'fetch-pkg',
+        'version'  => '1.0-1',
+    };
+
+my $ah = call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-held' } );
+
+ok( ref $ah eq qw| HASH |
+        && $ah->{'mode'} eq qw| true |
+        && $ah->{'data'} eq "already held : $fc_anchor"
+        && scalar @{ $data{'test'}{'route_sends'} } == 0
+        && fetch_pending() == 0,
+    'fetch : already held answers without any lookup'
+);
+
+## flow 7 : one fetch per anchor ##
+my $fc_dir7 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir7);
+$data{'osf-cache'}{'fetch'}{'pending'}{$fc_anchor}
+    = { 'reply_id' => 'r-someone-else' };
+
+my $run = call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-2nd' } );
+
+ok( ref $run eq qw| HASH |
+        && $run->{'mode'} eq qw| false |
+        && $run->{'data'} eq 'fetch already running',
+    'fetch : a second request for the running anchor is refused'
+);
+
+## flow 8 : cache dir not writable ##
+my $ro_dir = tempdir( CLEANUP => 1 );
+chmod 0555, $ro_dir or die $OS_ERROR;
+fetch_reset($ro_dir);
+
+my $nw = call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $fc_anchor, 'reply_id' => 'r-ro' } );
+
+ok( ref $nw eq qw| HASH |
+        && $nw->{'mode'} eq qw| false |
+        && $nw->{'data'} eq 'cache dir not writable',
+    'fetch : an unwritable cache dir is refused'
+);
+
+chmod 0755, $ro_dir or die $OS_ERROR;
+
+## flow 9 : unknown anchor + size cap, refused before any state ##
+my $fc_dir9 = tempdir( CLEANUP => 1 );
+fetch_reset($fc_dir9);
+
+my $unk_anchor = 'sha256:' . ( 'f' x 64 );
+my $unk = call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $unk_anchor, 'reply_id' => 'r-unk' } );
+
+ok( ref $unk eq qw| HASH |
+        && $unk->{'mode'} eq qw| false |
+        && $unk->{'data'} =~ m{^unknown anchor : \Q$unk_anchor\E}o,
+    'fetch : an anchor outside the local index is refused'
+);
+
+my $big_anchor = 'sha256:' . ( 'e' x 64 );
+$data{'osf-cache'}{'index'}{'anchors'}{$big_anchor} = {
+    'size'     => 536870913,
+    'filename' => 'pool/main/b/big/big_1.0-1_amd64.deb',
+};
+
+my $toobig = call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $big_anchor, 'reply_id' => 'r-big' } );
+
+ok( ref $toobig eq qw| HASH |
+        && $toobig->{'mode'} eq qw| false |
+        && $toobig->{'data'} =~ m{^size 536870913 above fetch_max}o,
+    'fetch : sizes above fetch_max [ 512 MiB ] are refused'
+);
+
 ##[ summary ]#################################################################
 
 say '';
@@ -1787,8 +2345,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,.,.,,,.,,.,,,,,,.,.,,.,,,,,,.,.,,..,,,,,.,.,...,.,.,,,.,,,.,.,,,..,,,,,,
-#IEGMHBAX4MMTXBFMRSCSE5QBCRRRV7BVWMDNQP4VN7GRWWUHFRAEANUT6SNV3Q4HRJHRPZ6NBBGCS
-#\\\|55AKSM6EEFYHKNAL2BOWU22IZQN2UD7L2CJTOKBF5UX4YZPR4LK \ / AMOS7 \ YOURUM ::
-#\[7]GADC76RS6DNLYKTUQWWMTMTBAZ3D3YHST233ME7VEEMIEWMT6QCI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,,,.,.,.,,,,,...,,,.,.,,,..,,.,.,...,..,,.,.,.,,,...,.,.,.,,,
+#VYK57JJ44ICHENM6YA7PCDWK4AZLTTWA6MEJWZJVMPHDBUZCVG53SFTO2LENJRKX7EJIYTPWYV6N6
+#\\\|RIJH4GFBZPP46K2GV44TM275C6TCVDK7NPM5FC2FY7T5X7WO5GU \ / AMOS7 \ YOURUM ::
+#\[7]3BSP53Y2UA3CYPZEYNBYDBYVYB2LVMXEWOJJ76O3BSPUHWFEHWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -152,6 +152,7 @@ base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 osf-cache.init_code
+osf-cache.cmd.fetch
 io.ip.tcp.init_code
 base.utf8.clean_str
 base.str.eval_error
@@ -171,6 +172,7 @@ base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
 osf-cache.peers.list
+osf-cache.fetch.fail
 osf-cache.cmd.status
 osf-cache.cmd.rescan
 osf-cache.cmd.lookup
@@ -202,6 +204,8 @@ base.buffer.add_line
 base.base32.pre_init
 ascii.frame.validate
 osf-cache.index.build
+osf-cache.fetch.retry
+osf-cache.cmd.segment
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
@@ -235,6 +239,7 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cfg.profile.apply
 protocol.sftp.init_code
+osf-cache.fetch.request
 jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
@@ -263,6 +268,7 @@ ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
 osf-cache.lookup.timeout
+osf-cache.fetch.complete
 io.unix.socket.init_code
 crypt.C25519.single_file
 crypt.C25519.load_single
@@ -318,6 +324,7 @@ base.event.io_idle_restart
 base.check_dependency_dirs
 osf-cache.lookup.with_peers
 osf-cache.handler.has_reply
+osf-cache.fetch.lookup_done
 net.read_linewise_estimated
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -391,6 +398,8 @@ base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
+osf-cache.handler.segment_reply
+osf-cache.fetch.segment_timeout
 osf-cache.debian.read_inrelease
 crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
@@ -498,8 +507,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,,,,,.,,.,,,,,,.,.,,.,,,..,.,,,..,,,,,,..,,...,.,.,.,,,.,.,,.,,...,,,.,
-#FCT3JZDCQIBQNNF2TS7GIKUH7JVMK4RAF64UYWJCZDU57NAMLKQWLS5AQT4GFAQ2DXE2TCK3TERVW
-#\\\|LEPYKNZI7O6IFMVZ6B2OEEMP5XOI46EGHRB6YWQH566S6A3BVQY \ / AMOS7 \ YOURUM ::
-#\[7]ISG4PU445DBLYAKDPUDOCQLP7D7PVP5K4CQAITHRFLDPO5UKHMDY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,,..,,,,,,.,,,.,,,,,,...,,,,,..,,...,...,,.,,.,.,.,,,..,,.,.,
+#FCJZFUNHRCXXHS7QNCKHTN2ZCC4MUWNIHR6OI25YUMVUUB4H3OAZF3ASQV7QBE57RBAPMGOKK3EZW
+#\\\|FVGGLRV2NV3HWSQQCLMUK6IYEQHULTCDOD45CORQRURMG52MSXA \ / AMOS7 \ YOURUM ::
+#\[7]TTLDJG4VSFQEWZRPOFQ7C66LSFSNUAR4XLRAP4OXRCXPIJVOFSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

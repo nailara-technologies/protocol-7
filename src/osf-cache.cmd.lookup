@@ -18,7 +18,10 @@
 # lookup id and is always cleaned up [ the completion cancels the
 # timeout timer and deletes the state ; cmd_reply resolves the
 # <base.cmd_reply> entry itself ]. unanswered peers count as failed
-# [ undef reply into merge_replies ].
+# [ undef reply into merge_replies ]. an optional on_done module name
+# marks an INTERNAL caller : the completion then dispatches the
+# merged result to that module instead of answering a text reply
+# [ osf-cache.cmd.fetch uses this ; external lookups are unchanged ].
 
 require Time::HiRes;    ## core - loaded here, modules carry no use ##
 
@@ -65,6 +68,12 @@ foreach my $anchor (@anchors) {
     $expect{$anchor} = $entry->{'size'};
 }
 
+### an optional internal caller : lookup.complete dispatches the merged ##
+## result to this module instead of answering a text reply [ explicit,  ##
+## like osf-cache.handler.peers_list - the static dependency graph stays  ##
+## intact ]. used by osf-cache.cmd.fetch.                              ##
+my $on_done = $call->{'on_done'} // '';
+
 ## per-lookup state keyed by a lookup id ##
 <osf-cache.lookup.pending> //= {};
 my $lookup_id = <[base.gen_id]>->(<osf-cache.lookup.pending>);
@@ -89,6 +98,7 @@ my $timer = <[event.add_timer]>->(
     'replies'        => {},
     'pending'        => {},
     'timer'          => $timer,
+    'on_done'        => $on_done,
 };
 
 ## resolve the peers, then fan out [ with_peers continues from there ] ##
@@ -100,8 +110,8 @@ my $timer = <[event.add_timer]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,,,..,,.,.,,,,,,..,,,.,,,.,,.,,.,.,,..,.,.,...,...,...,,,,,.,,,..,,.,,,
-#5ZCLOG2QR2BX47FQRH4TAKCS3AN5RU2AKU2SWWAT2D5LIYYCAHBJNLQ7OARG2OXWWVGXRGCTF2VFK
-#\\\|XCHBMFMI2FNLK4M5ISAXP4FRHHV7MV2MAIW3MFHFGGZS452HYMR \ / AMOS7 \ YOURUM ::
-#\[7]3NCXZK4LH4P6CNKR3MGOQDWRFBR5G6JTDQ2CMCBD7K4FY2HHJGDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,...,,.,,,,.,..,,..,,,,.,..,,.,.,...,...,.,,,...,..,,,..,.,,,
+#KEYVHGMR2CX3SQGERG5DANFGFEEZVJTM66E2GMJCT7H2KBFK5AYOEPJV7FQRKKIWQBZEBGY5IIUCU
+#\\\|JLVARANNPC2D3CDLQCO5CKL5FAHV3BLHUAZ4LK5XT4C7I2L6QJ2 \ / AMOS7 \ YOURUM ::
+#\[7]ISGPPB7DBTSN6MMNM3DRX64R3OKCEWRLIN5PISN7C37UHJULYGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
