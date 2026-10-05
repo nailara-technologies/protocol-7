@@ -1,122 +1,110 @@
 ## [:< ##
 
 # name  = protocol.protocol-7.link-upgrade.handshake
-# descr = C25519 key exchange for link upgrade
+# descr = client side link-upgrade handshake [ c25519 dh ]
+# param = $socket, { timeout }
 #
-# usage = <[protocol.protocol-7.link-upgrade.handshake]>->($socket, $options)
-# args  = $socket:  IO::Socket (unix or tcp) to protocol-7 server
-#         $options: hash ref with preferences
-#           - encoding: preferred encoding (utf7|base32|base32-xz|none) [default: none]
-#           - timeout:  negotiation timeout in seconds [default: 17]
-#           - verbose:  enable logging [default: 0]
+# the CLIENT half of the link upgrade, mirroring bin/c_src/p-7-r.c and
+# the server's state 2 handler [ base.handler.link-upgrade ] line by
+# line - run on an authenticated, still plaintext protocol-7 socket
+# BEFORE it is handed to the event loop [ a brief blocking exchange,
+# the shape auth.client.auth-keypair.authenticate already uses ; every
+# read is bounded by the timeout, //= 5 s ] :
 #
-# returns = (success, result_hash)
-#   success: 1 = upgrade complete, 0 = negotiation failed
-#   result_hash: {
-#       shared_secret => <bytes>,
-#       agreed_encoding => 'none|utf7|base32|base32-xz',
-#       session_state => 3,  # upgrade successful
-#       error => 'error message if failed'
-#   }
+#   -> link-upgrade                <- TRUE link-upgrade OK <server pub b32>
+#   -> link-pub-key <client pub>   <- SIZE 0
+#   -> link-confirm-encoding none  <- encoding-confirmed
+#   -> link-complete <nonce sid>   <- link-complete-ok [ still plaintext ]
+#
+# the client key is a throwaway curve25519 pair [ random_bytes +
+# curve25519_public_key, never stored ] ; the nonce sid is a random
+# 32-bit value [ the server packs it with 'N' ]. returns
+# ( 1, { shared_secret => <raw 32 bytes>, nonce_sid => <int> } ) or
+# ( 0, { error => <text> } ). the result is applied to a registered
+# client session by protocol.protocol-7.link-upgrade.client_activate.
+#
+# replaces an earlier stub that never sent 'link-upgrade', never read
+# the server key and therefore never computed the shared secret.
 
 my ( $socket, $options ) = @ARG;
+$options //= {};
 
-my $encoding_pref = $options->{'encoding'} // 'none';
-my $timeout       = $options->{'timeout'}  // 17;
-my $verbose       = $options->{'verbose'}  // 0;
+my $timeout = $options->{'timeout'} // 5;
+$timeout = 5 if !$timeout or $timeout < 1;
 
-## Generate ephemeral C25519 keypair for this client session
-my ( $client_keypair, $client_key_name ) = <[crypt.C25519.gen_keys]>->(
-    sprintf( 'link-upgrade-client-%s', <[base.prng.chars-anum]>->(12) ),
-    'link-upgrade-client-ephemeral'
-);
+require IO::Select;
+require Crypt::Misc;
+require Crypt::Curve25519;
 
-if ( not defined $client_keypair or not defined $client_key_name ) {
-    return ( 0, { error => 'Failed to generate C25519 ephemeral keypair' } );
-}
+my $fail = sub { return ( 0, { 'error' => shift } ) };
 
-my $client_pubkey  = $client_keypair->{'public'};
-my $client_privkey = $client_keypair->{'secret'};
+my $select    = IO::Select->new($socket);
+my $read_line = sub {
+    return undef if not $select->can_read($timeout);
+    my $line = readline($socket);
+    return undef if not defined $line;
+    $line =~ s{\r?\n\z}{};
+    return $line;
+};
+my $send = sub {
+    return print {$socket} shift;
+};
 
-## Encode public key in BASE32 for transmission
-my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
+## 1. ask for the upgrade : the server answers with its ephemeral key ##
+$send->("link-upgrade\n") or return $fail->("send failed : $OS_ERROR");
 
-## Send link-pub-key command with our public key
-my $pubkey_cmd = sprintf( "link-pub-key %s\n", $client_pubkey_b32 );
+my $offer = $read_line->() // return $fail->('no link-upgrade answer');
+my ($server_pub_b32) = $offer =~ m{\bOK\s+([A-Za-z2-7]+)\s*$}o;
+return $fail->("link-upgrade refused : $offer")
+    if not defined $server_pub_b32;
 
-print $socket $pubkey_cmd;
+my $server_pub = eval { Crypt::Misc::decode_b32r($server_pub_b32) };
+return $fail->('invalid server key')
+    if not defined $server_pub
+    or length $server_pub != 32;
 
-if ($verbose) {
-    <[base.logs]>->(
-        2, 'link-upgrade: sent client public key (%d bytes)',
-        length($client_pubkey)
-    );
-}
+## 2. a throwaway client key, the dh secret from it ##
+my $client_secret = Crypt::Misc::random_bytes(32);
+my $client_pub    = Crypt::Curve25519::curve25519_public_key($client_secret);
 
-## Read server response (should be SIZE 0 indicating ready for encoding
-## negotiation)
-my $server_response = readline($socket);
+$send->( sprintf "link-pub-key %s\n", Crypt::Misc::encode_b32r($client_pub) )
+    or return $fail->("send failed : $OS_ERROR");
 
-if ( not defined $server_response or $server_response !~ m|^SIZE 0| ) {
-    return ( 0,
-        { error => 'Server did not acknowledge public key exchange' } );
-}
+my $ack = $read_line->() // return $fail->('no public key answer');
+return $fail->("public key refused : $ack") if $ack ne 'SIZE 0';
 
-## At this point, server has computed shared secret and is ready for encoding
-## negotiation However, we don't have the server's public key yet (it's
-## computed on server side) The shared secret is derived from:
-## DH(client_private, server_ephemeral_public) Since server has both keys, it
-## can compute it. We'll trust the server's computation.
+my $shared_secret
+    = Crypt::Curve25519::curve25519_shared_secret( $client_secret,
+    $server_pub );
+undef $client_secret;
 
-## Send encoding preference
-my $encoding_cmd = sprintf( "link-confirm-encoding %s\n", $encoding_pref );
+return $fail->('dh failed')
+    if not defined $shared_secret
+    or length $shared_secret != 32;
 
-print $socket $encoding_cmd;
+## 3. no transport encoding [ encrypted framing is binary ] ##
+$send->("link-confirm-encoding none\n")
+    or return $fail->("send failed : $OS_ERROR");
 
-if ($verbose) {
-    <[base.logs]>->(
-        2, 'link-upgrade: sent ' . 'encoding preference (%s)',
-        $encoding_pref
-    );
-}
+my $enc = $read_line->() // return $fail->('no encoding answer');
+return $fail->("encoding refused : $enc") if $enc ne 'encoding-confirmed';
 
-## Read server confirmation
-$server_response = readline($socket);
+## 4. the nonce sid both ends derive key + nonces from ##
+my $nonce_sid = unpack qw| N |, Crypt::Misc::random_bytes(4);
+$nonce_sid ||= 1;
 
-if ( not defined $server_response or $server_response !~ m|^TRUE| ) {
-    return ( 0, { error => 'Server rejected encoding preference' } );
-}
+$send->("link-complete $nonce_sid\n")
+    or return $fail->("send failed : $OS_ERROR");
 
-## Send link-complete to finalize upgrade
-my $complete_cmd = "link-complete\n";
-print $socket $complete_cmd;
+my $done = $read_line->() // return $fail->('no link-complete answer');
+return $fail->("link-complete refused : $done")
+    if $done ne 'link-complete-ok';
 
-## Read final confirmation
-$server_response = readline($socket);
+return ( 1,
+    { 'shared_secret' => $shared_secret, 'nonce_sid' => $nonce_sid } );
 
-if ( not defined $server_response or $server_response !~ m|^TRUE| ) {
-    return ( 0, { error => 'Server rejected link-complete' } );
-}
-
-if ($verbose) {
-    <[base.logs]>->(
-        1, 'link-upgrade: negotiation ' . 'complete, encryption enabled'
-    );
-}
-
-return (
-    1,
-    {   agreed_encoding => $encoding_pref,
-        session_state   => 3,
-        client_pubkey   => $client_pubkey,
-        client_privkey  => $client_privkey,
-    }
-);
-
-1;
-
-#,,.,,...,..,,..,,,,.,,,.,.,,,,.,,...,,,,,..,,..,,...,...,...,,.,,,,.,.,.,.,.,
-#VEROIN7SHK7WCBXGY6IBJMF7MX27B23SLUL5DTIXR66J7A6NLZ7BEMVN4SQBWUXM7TPUHTNO7U67K
-#\\\|BUOSE6PKCP52MOUULXIHPGBBKA2J2REDSHSXKH3VCQ346O3PMG5 \ / AMOS7 \ YOURUM ::
-#\[7]PNPAGHY74RZGCCWJY3EBIKGWCR23VOBTJCNBW4TTE3EKMDILPCBY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,...,.,,,.,.,,,.,,,,,...,.,,,,..,..,,...,...,,..,..,,,,,,,,.,..,,
+#GHNXI7AC6INN55ZCWN54ICPZSUROT3GOJDKEJ6Z64DU23BD5SYCOXOWMUJCUAI6AMKTR5EJBOOPOS
+#\\\|JNLIUNWGOQHXYY4FEXISLMVKX5JY6PICOW56Z6IRRDJQAQ6OKQW \ / AMOS7 \ YOURUM ::
+#\[7]BTAQ4H7CPXYCQAFBUYC4AB4ACLCNCYOY2DNQMPXGYDPMQ7QV6YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

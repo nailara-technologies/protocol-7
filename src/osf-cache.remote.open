@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = osf-cache.remote.open
+# descr = encrypted client session to another host's cube
+# param = { host, port }
+#
+# returns the session id of an ENCRYPTED, authenticated protocol-7
+# client session to '<host>:<port>' - reused while it is alive, opened
+# once otherwise : tcp connect [ io.ip.tcp.output.open, 7 s bound ],
+# auth-keypair as <osf-cache.cfg.remote_user> with this unix user's
+# '<user>.base' key [ the remote cube must hold that label's public key
+# under ~/.n/remote-keys/authorized/cube/ ], the link-upgrade handshake
+# [ protocol.protocol-7.link-upgrade.handshake, reads bounded ], then
+# base.session.init + state 1 + state 3 [ link-upgrade.client_activate,
+# link_role client ]. the blocking part is only this setup - every
+# command afterwards goes through the event-driven '<id>.<command>'
+# send [ the users.remote_fetch.run shape, never a blocking read loop ].
+# result : { mode => true, data => <session id> } or mode false + why.
+
+my $args = shift           // {};
+my $host = $args->{'host'} // '';
+my $port = $args->{'port'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'host and port required' }
+    if not length $host or $port !~ m{^\d+$}o;
+
+my $link_key = "$host:$port";
+<osf-cache.remote.sessions> //= {};
+
+## a live session is reused ##
+my $known = <osf-cache.remote.sessions>->{$link_key};
+return { 'mode' => qw| true |, 'data' => $known }
+    if defined $known and exists $data{'session'}{$known};
+delete <osf-cache.remote.sessions>->{$link_key};
+
+my $as_username   = <osf-cache.cfg.remote_user> // qw| osf-cache |;
+my $session_name  = qw| osf-cache-remote |;
+my $base_key_name = sprintf qw| %s.base |, $ENV{'USER'} // getpwuid($EUID);
+
+my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
+return { 'mode' => qw| false |, 'data' => "cannot connect to $link_key" }
+    if not defined $sock;
+
+my $authed = <[auth.client.auth-keypair.authenticate]>->(
+    $sock, $as_username, $session_name, $base_key_name
+);
+if ( not defined $authed ) {
+    close($sock);
+    return {
+        'mode' => qw| false |,
+        'data' => "auth-keypair as $as_username failed [ $link_key ]"
+    };
+}
+
+my ( $upgraded, $link ) = <[protocol.protocol-7.link-upgrade.handshake]>->(
+    $sock, { 'timeout' => 5 }
+);
+if ( not $upgraded ) {
+    close($sock);
+    return {
+        'mode' => qw| false |,
+        'data' => "link-upgrade failed : $link->{'error'} [ $link_key ]"
+    };
+}
+
+my $id = <[base.session.init]>
+    ->( $sock, qw| protocol-7 client |, $session_name );
+if ( not defined $id ) {
+    close($sock);
+    return { 'mode' => qw| false |, 'data' => 'cannot register session' };
+}
+
+## authenticated already [ we were the client ] : straight to state 1, then ##
+## the encrypted state 3                                                    ##
+<[base.session.init_state]>->( $id, 1 );
+
+if (
+    not <[protocol.protocol-7.link-upgrade.client_activate]>->( $id, $link ) )
+{
+    <[base.session.shutdown]>->($id);
+    return {
+        'mode' => qw| false |,
+        'data' => 'encryption ' . 'activation failed'
+    };
+}
+
+<osf-cache.remote.sessions>->{$link_key} = $id;
+
+<[base.logs]>->(
+    1,         ': osf-cache : encrypted link to %s [ session %d ]',
+    $link_key, $id
+);
+
+return { 'mode' => qw| true |, 'data' => $id };
+
+#,,,,,.,,,.,,,,.,,...,,..,.,.,.,.,..,,,,.,.,,,..,,...,...,..,,,,.,.,,,..,,,.,,
+#EVGNDUBP4YNSO6EXZNW7BTT2I67G5TGFO3MPGDCEEPZZJJO54H4DW5CSZX4KDG5C3KRDWB576TS3A
+#\\\|4PEAR5J64VXH5Q5FLOG2EPZPKCKSUK64QC75ZA65CJIXAGBR6IS \ / AMOS7 \ YOURUM ::
+#\[7]7XCU6WR456IWIPLFDWXUF3XAV372ZK7QXYBB5RVIBDVGOHCA3MAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
