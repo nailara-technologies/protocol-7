@@ -109,8 +109,11 @@ static unsigned char *lu_crypt(const char *op, struct encryption_state *st,
 
     char cmd[1200];
     snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl %s %s %u %u < %s 2>/dev/null",
-             op, st->key, st->session_id, counter, tmpname);
+             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl %s %s %u %u %u < %s 2>/dev/null",
+             op, st->key, st->session_id, counter,
+             /* nonce direction : this client encrypts client -> server [ 1 ],
+                decrypts server -> client [ 2 ] - never the same nonce twice */
+             strcmp(op, "encrypt") == 0 ? 1u : 2u, tmpname);
 
     FILE *f = popen(cmd, "r");
     if (!f) {
