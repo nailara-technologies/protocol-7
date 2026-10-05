@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = protocol.protocol-7.link-upgrade.client_activate
+# descr = switch a client session to encrypted state 3
+# param = $session_id, { shared_secret, nonce_sid }
+#
+# applies a protocol.protocol-7.link-upgrade.handshake result to a
+# registered client session [ base.session.init + state 1 ] : the raw
+# dh secret and the nonce sid exactly as sent, and link_role 'client'
+# - set BEFORE state 3, because protocol.protocol-7.encryption.init
+# derives the key and the nonce direction from them [ a client writes
+# direction 1, reads direction 2 ]. the dh secret is dropped once the
+# key is derived. returns TRUE, or FALSE when the session is gone, the
+# state change fails or the direction did not come out as a client's.
+
+my ( $session_id, $result ) = @ARG;
+$result //= {};
+
+my $session = $data{'session'}{$session_id} // return FALSE;
+
+return FALSE
+    if length( $result->{'shared_secret'} // '' ) != 32
+    or not $result->{'nonce_sid'};
+
+$session->{'link_dh_shared_secret'} = $result->{'shared_secret'};
+$session->{'link_nonce_session_id'} = $result->{'nonce_sid'};
+$session->{'link_role'}             = qw| client |;
+
+return FALSE if not <[base.session.init_state]>->( $session_id, 3 );
+
+delete $session->{'link_dh_shared_secret'};
+
+## the role must have taken effect : never run a client on server nonces ##
+return FALSE if ( $session->{'link_nonce_dir_write'} // 0 ) != 1;
+
+return TRUE;
+
+#,,,.,.,.,..,,..,,.,,,,.,,,..,,,.,,,,,.,,,,,.,..,,...,...,.,,,,..,.,.,.,.,,,.,
+#65ZUIC56KPJDPE3AMYDSA2KRJNHPWRU3JMRIY66PCI2MHPZPFFUZ3QSMFELY3B5LSIHJERCU4P7M6
+#\\\|WQ4FEZ7AGDMRZ3B26A7NUN3K5W45IIRSR2PBILJ256IWB234RZD \ / AMOS7 \ YOURUM ::
+#\[7]OZZZJIL2F7NRVJRUR72IMR4Z3EATRSJJ2EHAA4PVHEOXXKMP6YBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
