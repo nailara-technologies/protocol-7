@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = v7-zenki.liveness.init_code
+# descr = arm the liveness sweep of tracked zenka pids
+#
+# v7-zenki learns about a zenka's end only through SIGCHLD. when that
+# never arrives or is not processed, the instance keeps a dead process
+# id and stays 'online' \ 'restart' for good [ 2026-10-05 : after a cube
+# restart, p7-log, three osf-cache instances and powershell were listed
+# for hours with dead pids, p7-log stuck in 'restart', the always-on set
+# never came back ]. the sweep [ v7-zenki.handler.liveness_sweep ] finds
+# such pids every <v7-zenki.cfg.liveness.interval> [ //= 7 s ] seconds
+# and feeds them through the normal SIGCHLD path.
+
+my $reinit = shift;    ## guard : a reload must not arm a second timer ##
+
+<v7-zenki.cfg.liveness.interval> //= 7;
+<v7-zenki.cfg.liveness.interval> = 7
+    if <v7-zenki.cfg.liveness.interval> !~ m{^\d+(\.\d+)?$}o
+    or <v7-zenki.cfg.liveness.interval> < 1;
+
+if (   not $reinit
+    or not defined <v7-zenki.liveness.timer>
+    or not <v7-zenki.liveness.timer>->is_active ) {
+    <v7-zenki.liveness.timer> = <[event.add_timer]>->(
+        {   'after'    => <v7-zenki.cfg.liveness.interval>,
+            'interval' => <v7-zenki.cfg.liveness.interval>,
+            'repeat'   => 1,
+            'handler'  => qw| v7-zenki.handler.liveness_sweep |,
+            'data'     => {},
+            'desc'     => 'liveness sweep of tracked zenka pids',
+        }
+    );
+}
+
+return TRUE;
+
+#,,..,...,.,,,,.,,,,,,,.,,,,.,.,.,...,,,,,,,,,..,,...,...,..,,,,.,,,,,.,,,,..,
+#44BOAPBOJPAHNPRAZRBN63F7EXNE7V7URA4BLYGUUSE33PJROLGY67OYZX7CSPWQBD2POCBS27LYC
+#\\\|VF5WQHY2QOKEB2ZU3JNJ6EQOQKKX7GAOKS3R5MZRIRHLKONI6PT \ / AMOS7 \ YOURUM ::
+#\[7]QVODRMOBMBEHLQVXVPQX5K7A4FI6QQK75HME4M3ACC752A63I4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

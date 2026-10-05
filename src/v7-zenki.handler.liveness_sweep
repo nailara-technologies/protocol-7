@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = v7-zenki.handler.liveness_sweep
+# descr = feed dead tracked pids through the SIGCHLD path
+#
+# every instance with a tracked process id is checked : a pid without
+# /proc/<pid>, or a zombie [ state Z, dead but not reaped ], is gone.
+# instances whose restart timer is already pending are left alone [ the
+# restart owns them ]. each gone pid is handed to
+# v7-zenki.handler.sig_chld as ( pid, -1 ) - exactly the injection that
+# handler accepts - so the end of the process takes the SAME route as a
+# real SIGCHLD [ logging, process_zenka_end, restart \ offline ] and
+# there is no second recovery path to keep in sync. a zombie gets
+# reaped there by the handler's own waitpid loop.
+#
+# the child entry decides what process_zenka_end does : WITH one it
+# restarts \ marks offline per the status ; WITHOUT one it deletes the
+# instance [ the stop path removes the entry first, on purpose ]. so :
+# an instance being stopped [ <zenka.instance.shutdown> ] is injected
+# as is - the stop completes ; any other instance gets its child entry
+# back first - it restarts instead of silently vanishing [ the likely
+# way invoke-web dropped out of 'list zenki' on 2026-10-05 ]. a pid
+# that is still tracked after its recovery is logged once and left
+# alone [ never an injection loop ]. returns the number of pids
+# recovered [ the timer ignores it ; useful when called by hand ].
+
+my @gone;
+
+foreach my $instance_id (<[v7-zenki.instance_ids]>) {
+    my $instance = <v7-zenki.zenka.instance>->{$instance_id} // next;
+    my $pid      = ( $instance->{'process'} // {} )->{'id'}  // next;
+
+    next if $pid !~ m{^\d+$}o or $pid < 2;
+
+    ## a pending restart owns this instance ##
+    next
+        if defined $instance->{'timer'}->{'restart'}
+        and $instance->{'timer'}->{'restart'}->is_active;
+
+    my $alive = <[v7-zenki.sub-process.pid_alive]>->($pid);
+    if ($alive) {
+        ## a zombie is dead too : /proc/<pid>/stat field 3 is 'Z' ##
+        my $state = '';
+        if ( open( my $fh, '<', "/proc/$pid/stat" ) ) {
+            my $stat = readline($fh) // '';
+            close($fh);
+            ($state) = $stat =~ m{\)\s+(\S)}o;
+        }
+        next if ( $state // '' ) ne qw| Z |;
+    }
+
+    push @gone, [ $instance_id, $pid, $instance->{'zenka_name'} // '?' ];
+}
+
+<v7-zenki.liveness.recovered> //= {};
+my $recovered = <v7-zenki.liveness.recovered>;
+
+## forget pids no instance tracks any more ##
+my %tracked = map { $ARG->[1] => 1 } @gone;
+delete $recovered->{$ARG} for grep { not $tracked{$ARG} } keys %$recovered;
+
+my $count = 0;
+foreach my $entry (@gone) {
+    my ( $instance_id, $pid, $zenka_name ) = @$entry;
+
+    ## recovered before and still tracked : say so once, then leave it ##
+    if ( exists $recovered->{$pid} ) {
+        next if $recovered->{$pid}++;
+        <[base.logs]>->(
+            0,
+            ": liveness : instance %u ['%s'] PID %d still tracked after "
+                . 'recovery -- leaving it [ needs a look ]',
+            $instance_id,
+            $zenka_name,
+            $pid
+        );
+        next;
+    }
+    $recovered->{$pid} = 0;
+
+    my $stopping = exists <zenka.instance.shutdown>->{$instance_id};
+
+    <[base.logs]>->(
+        0,
+        ": liveness : instance %u ['%s'] PID %d is gone without a "
+            . 'processed SIGCHLD -- recovering [ %s ]',
+        $instance_id,
+        $zenka_name,
+        $pid,
+        $stopping ? 'stop completes' : 'restart path'
+    );
+
+    ## the child entry routes process_zenka_end to restart, not delete ##
+    <[v7-zenki.child.add]>->(
+        $pid,
+        {   qw| instance_id | => $instance_id,
+            qw| start_time |  => <[base.ntime]>,
+            qw| liveness |    => TRUE,
+        }
+    ) if not $stopping and not exists <v7-zenki.child>->{$pid};
+
+    <[v7-zenki.handler.sig_chld]>->( $pid, -1 );
+    $count++;
+}
+
+return $count;
+
+#,,..,,,,,,,,,..,,..,,,..,,,.,...,,.,,.,,,,,,,..,,...,...,...,...,,,,,..,,...,
+#GRIVANI7VTEMN4SWXNRGFBVGKMSWNEWCG5J2QVEG6JSWY6LS2EP46MPFIMF6R7PY7LTST5KQ3NUEU
+#\\\|54XNSYSMCTNGGGE2CO4FGRT6U277L3C3WSUVOBGGYBBIQD3FY45 \ / AMOS7 \ YOURUM ::
+#\[7]NMLZ372G5HTRIWSN3G43TNGG4PX64BZCUQHWGFLH3JQ2RHOVREDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
