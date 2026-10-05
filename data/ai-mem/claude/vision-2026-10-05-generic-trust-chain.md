@@ -384,6 +384,129 @@ having the gaps closed".
     -> test candidate positions until one checks out, outsiders see no
     pattern. = positional framing every 64K + keyed verification in the
     slot, same principle at line scale and packet scale
+- user : part of the vision since the 63K idea or before -- packets have
+  a NETWORK PROPORTION : the larger part is payload, the smaller a
+  network "backpack" payload -> the 1K is not overhead but a second
+  payload owned by the network [ ties to "63K buffer swaps as base
+  fallback workload" : the network maintains itself on its own traffic ]
+  - backpack cargo : per-hop routing \ payload key \ integrity, keyed
+    framing ; gossip [ node lists, entry-list updates, trust statements,
+    revocations, ring rekey commits ] ; credit receipts [ osf-cache
+    stage 5 ] ; discovery fingerprints \ rendezvous hints
+  - no separate control traffic -> the control plane leaks no timing \
+    volume ; maintenance scales with use [ ~1:63 share, idle links carry
+    cover packets with backpacks ]
+  - rules : HOP-SCOPED, replaced at every hop under that link's
+    encryption [ unchanged backpacks would link a packet along its path ]
+    ; the intelligent queue fills it [ urgent revocations first ]
+  - user : the security advantage is the additional DYNAMIC ENTROPY,
+    beyond plain re-encryption with a different key each hop. precise
+    framing : against OUTSIDE observers a sound cipher with per-hop keys
+    is already indistinguishable from random [ no gain there ] ; the real
+    gains : relays see genuinely new content per hop [ no stable pattern
+    to link by -- re-encryption alone gives none, relays see plaintext ] ;
+    a leaked link key exposes only that hop's transient cargo ; and
+    DEFENCE IN DEPTH against implementation mistakes -- the 2026-10-05
+    link-upgrade key + nonce reuse [ [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]] ]
+    leaks the XOR of two plaintexts, easy to unpick for predictable
+    protocol text, far less so for fresh unpredictable cargo. size +
+    timing unaffected [ still mixing + cover traffic ]
+  - user : splicing the bits with that entropy, like the keys zenka key
+    archive storage, so that breaking C25519 or twofish alone is not
+    enough to get the bitstream
+  - archive as built [ `base.parser.splice_in_data`, used by
+    `keys.write_key_archive_file` ] : payload at a random bit offset in
+    an entropy block, the offset appended [ BER int ] to the SAME block,
+    then the whole block encrypted with the password key -> hides size +
+    position [ real value ], but whoever breaks the cipher reads the
+    offset in plain view : not a second lock [ finding, not a bug ]
+  - rule : a layer meant to survive another layer's break needs its OWN,
+    independently obtained secret, never derived from the same key nor
+    stored inside the same ciphertext ; layers from one key add work,
+    not independence
+    - vs breaking C25519 [ realistic future : quantum ] : HYBRID key
+      exchange, X25519 + a post-quantum KEM [ ML-KEM ], combined [ TLS,
+      Signal PQXDH ] -- a broken DH alone reveals every derived key
+    - vs breaking twofish : a cascade with independent keys [ e.g.
+      ChaCha20 over Twofish ] ; a splice keyed by a separate secret acts
+      as a keyed transposition layer, pattern per packet via a PRF
+    - the backpack's dynamic entropy sits on top : whatever leaks is
+      less predictable
+  - user : the splice would DEPEND ON THE ENTROPY -- an encryption of the
+    payload with the entropy stream, BIT [ stream ] oriented, not on octets
+    - bit orientation = stronger : no byte alignment, octet patterns
+      [ known protocol text, field bounds, char frequencies ] do not
+      survive ; byte-aligned known-plaintext attacks no longer fit
+    - the crux : does the attacker know the driving entropy stream ?
+      IN-BAND [ the carrier, same packet ] -> after breaking the outer
+      cipher they re-run the selection rule = strong obfuscation, adds
+      work not secrecy ; SECRET [ from an independently obtained secret :
+      group secret, separate KEM, entropy delivered earlier elsewhere ]
+      -> a real independent layer, approaching a bit-level one-time pad
+      if never reused -> breaking C25519 or twofish leaves an unreadable
+      bitstream
+    - robustness : a fresh stream per packet [ PRF of the independent
+      secret + the packet's per-hop entropy ; a reused pattern falls to
+      one known plaintext ] + integrity over the whole output bitstream
+      [ no probing the pattern by flipping bits ]
+  - user : parts of the network would COMBINED know the entropy -- parts
+    that themselves have no interest in attacking the payload stream, as
+    to them it all looks the same
+    - = secret sharing along the path : stream = s1 xor s2 xor .. xor sn,
+      each share with a different node ; any n-1 learn NOTHING
+      [ information-theoretic ] ; each node applies \ removes its share
+      like an onion relay strips a layer
+    - holds while not all [ or < k of n ] holders collude -- Tor's path
+      assumption. "no interest" is an INCENTIVE argument, not a
+      cryptographic one [ compromised \ coerced \ curious holders, an
+      adversary running many nodes ] -> holders = distinct trust-chain
+      identities [ the Sybil defence, a concrete reason the chain matters
+      here ] ; diverse groups \ operators, not proximity ; unpredictable
+      selection per packet ; optional k-of-n threshold for dropouts
+    - the indifference is still a real bonus : holders see uniform data,
+      nothing singles out a target -- incentive and crypto agree
+  - user : they may have an interest, but cannot LOCK ONTO a target because
+    of the cross-mapping ; even denial of service only triggers a regular
+    alternate selection and downgrades the attacker -- whatever the attack
+    form, it is efficiency-degrading
+    - agreed core : unpredictable cross-mapping = no target ;
+      efficiency-measured routing makes attacks self-limiting without
+      recognising the attack TYPE
+    - close deliberately :
+      - SELECTIVE DoS [ Borisov et al. 2007, Tor ] : fail only paths not
+        controlled by colluders -> reselection lands on a compromised
+        path ; fix : path failure = evidence [ penalise involved nodes ],
+        cap reselection rate, prefer stable long-lived entry choices
+        [ guards ] over reshuffling
+      - reputation gaming : build standing then strike, or whitewash with
+        a fresh identity -- the trust chain blunts whitewashing [ new
+        identity = new delegation, no standing ] ; standing decays,
+        weighted to recent behaviour
+      - slander : colluders rating honest nodes down -> efficiency rests
+        mainly on each node's OWN measurements, others' reports
+        trust-weighted, never decisive alone
+
+- user : with distance the network has time to ensure the transported
+  logic is the same ; even the last hop before completion can still drop
+  what does not resolve -- refs : 'spatial and temporal
+  compartmentalization' [ `data/yaml/reasoning-templates/categorical-compartmentalization.yaml`
+  : bounded regions with controlled permeability ; temporal = "which
+  transitions are evaluated before being committed" ]
+  - transit distance = the evaluation window ; nothing commits until it
+    resolves = osf-cache stage 3's local rule [ an unverified byte never
+    reaches the cache dir ] lifted to the path ; pushed exploits are
+    dropped before commitment, count only as transport workload
+  - what a hop can verify = what it can see [ the permeable boundary ] :
+    PUBLIC content-addressed -> every hop checks the 63K against its
+    merkle leaf + agreed root, poison dropped at the FIRST honest hop ;
+    PRIVATE [ per-hop re-encrypted ] -> relays verify backpack integrity,
+    chain signatures, structure only ; content meaning at the endpoint ;
+    framing + backpack + chain checked at every hop for everything
+  - caution : WHERE a packet is dropped must not become an oracle
+    [ probing paths \ verification points with malformed packets ] ->
+    the slot keeps moving as a cover packet, the drop shows only in the
+    dropping node's own efficiency accounting
+
 
 
 ## consumers that must move with it [ user ]
@@ -401,8 +524,8 @@ related : [[project-cross-host-trust-bootstrap-gap]],
 [[project-keys-zenka-integration-direction]],
 [[users-zenka-unblocks-cross-host-testing]]
 
-#,,,.,..,,,,.,..,,,..,,,.,...,,,.,,,.,.,,,,.,,..,,...,...,...,,.,,..,,...,.,,,
-#AVNI3OTJRLD6F7B3BRWLJSMWN7QTBV56KM2DCNJMEV4V5QWYTXTICC7RLYYMAA2TJV6MVNIS7OKVS
-#\\\|ABLYJSIBRYVDHVTZ5TAD76DZGB54UOJSNWDJ6UFVYPR4I5KSIEF \ / AMOS7 \ YOURUM ::
-#\[7]MCO2YKCKCUP3M3GZEJJSUCW5NG6ZD5GQU7VD3FSXJUEZDXZJHUCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,.,,,,,,,,,,,,.,,...,,.,,...,..,,...,...,...,...,,..,...,..,,
+#6DMZBKAUPMZJKVEH4Y7IEBQDMLHWY3ZL754XNQUEA5EQOO4KI5CJKLXCH5KOQSPA6KI5OTP7R6QWU
+#\\\|EX4WTZKIMJUE6SVRWVZZOEER4J3RF46Q3EZGVPGD2NTY3L4Q7AV \ / AMOS7 \ YOURUM ::
+#\[7]FMTVZGH6XJ3GN34VEFNXRYFLELRXBHOCEFAUQKVZXR5TYLJ67UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
