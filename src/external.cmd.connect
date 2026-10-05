@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = external.cmd.connect
+# descr = open an encrypted named link to a host's cube
+# param = <name> <host[:port]> [ <as-username> ]
+#
+# opens the link through external.link.open [ deferred : the setup runs
+# from a same-tick timer, users.cmd.remote-fetch shape, so this
+# command's own dispatch never waits on the connect ]. afterwards
+# 'external.<name>.<zenka>.<command>' reaches that host's zenki.
+# port //= <protocol-7.remote.default-port> // 42, as-username //=
+# <external.cfg.link_user>.
+
+my $args     = $call->{'args'}     // '';
+my $reply_id = $call->{'reply_id'} // '';
+
+my ( $name, $host_port, $as_username ) = grep {length} split m{\s+}, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : connect <name> <host[:port]> [ <as-username> ]'
+    }
+    if not length( $name // '' )
+    or not length( $host_port // '' );
+
+return { 'mode' => qw| false |, 'data' => 'connect needs a reply route' }
+    if not length $reply_id;
+
+my ( $host, $port ) = split m{:}, $host_port, 2;
+$port //= <protocol-7.remote.default-port> // 42;
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            ## a die in the setup must still answer : never a hung caller ##
+            my $link = eval {
+                <[external.link.open]>->(
+                    {   'name'        => $name,
+                        'host'        => $host,
+                        'port'        => $port,
+                        'as_username' => $as_username,
+                    }
+                );
+            } // {
+                'mode' => qw| false |,
+                'data' => sprintf( 'link setup failed : %s',
+                    ( $EVAL_ERROR || 'no result' ) =~ s{\s+\z}{}r )
+            };
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                $link->{'mode'} eq qw| true |
+                ? { 'mode' => qw| true |,
+                    'data' => sprintf 'linked %s -> %s:%s [ '
+                        . 'encrypted, session %d ]',
+                    $name, $host, $port, $link->{'data'}
+                    }
+                : $link
+            );
+        }
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,...,,,.,,,.,.,,,...,,,.,..,,.,,,.,.,,..,..,,...,...,.,.,...,,..,,..,,,,,
+#IQFVMKOWMKTXVJSPO5BEPB4F2XX4ZNQKFZUQHNMNF452G7HSEI42H4QEIT6HHHYARVMYZQUM2KOQQ
+#\\\|A44FW2G4IEVGV7W3HKQ6RNFEACOWYWIKCIT44JVVP5FU5DHLP53 \ / AMOS7 \ YOURUM ::
+#\[7]N37KCVPISLTYNMHCMUJQ44HJXV4UKCPEOXNHF54BLK5ABEKBYKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

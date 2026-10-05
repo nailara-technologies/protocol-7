@@ -33,8 +33,21 @@ names in it.
 - the user had a long render running : ask before any restart that could
   touch shared zenki while their work runs
 
-#,,.,,,..,...,.,.,,..,.,.,,,,,.,.,...,,,.,,.,,..,,...,...,.,.,,,,,,,,,,..,...,
-#XTCGEHL77GVRPBO52EAQBX2DHK4ZGTIWLPFAQ3OQNASTI6IEOKGC5SNBGDQ3Y6V5AOIACQY6M6BFC
-#\\\|LKZD7MXA7L5LHOGSTNXCRXZFM56ZOSTS2SVDHBOCRK45OGBABFB \ / AMOS7 \ YOURUM ::
-#\[7]TA4LYKPTWFWLUTMWC2ASMNYJMYNGEQ3DX33JCANT7SL4QKCAPADY 7  DATA SIGNATURE ::
+**aftermath, found ~7 h later** : the cube restart left v7-zenki's state
+diverged from reality -- the zenki that lost their cube link exited
+[ p7-log, all osf-cache instances, powershell ] but v7-zenki kept them
+as `online` \ p7-log stuck in `restart` with DEAD pids, so no log files
+were written, the always-on set never came back [ openbox, compton,
+content, models -> dependents `waiting` ] and ondemand starts misbehaved
+[ invoke-web restart stalled after `restart delay` ]. only a full
+v7-zenki restart recovered it. check with `v7-zenki.list children` +
+`kill -0` on the listed pids. real v7-zenki gaps, not yet fixed : no
+liveness sweep of tracked pids, and `zenka.instance.restart` arms its
+restart timeout only `if $dependencies_ok` [ likely stuck when cube is
+down at that moment -- unconfirmed, the logs of that window are lost ].
+
+#,,..,.,.,.,,,,,.,.,.,,.,,,..,,.,,,.,,,.,,.,.,..,,...,..,,.,.,...,.,,,..,,.,,,
+#R357P6JL42TZ5ROXVHZ4ORK54DOZRB3EGVOLXSVS35OO5U7DDUCLCV4QPAZUR5Y6RPWPEAQ3MIUVO
+#\\\|JOCSXXAFGI4FUKEC3VU4RD4KWKBGEBPL6QZRP4VDGZWFT6HKPOP \ / AMOS7 \ YOURUM ::
+#\[7]YHK2BXPKCX6YWREMRXBAISY3HMKXIVOKDULUAC23OCZU6GIK3KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
