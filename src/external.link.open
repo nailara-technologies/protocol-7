@@ -1,0 +1,142 @@
+## [:< ##
+
+# name  = external.link.open
+# descr = encrypted named link to another host's cube
+# param = { name, host, port, as_username }
+#
+# opens - or reuses while alive - an ENCRYPTED, authenticated protocol-7
+# client session to '<host>:<port>' and registers it under <name> : the
+# remote cube then behaves like a zenka of this one's, every zenka can
+# route 'external.<name>.<zenka>.<command>' [ base.handler.command.
+# route_to_target forwards '<name>.<rest>' over the client session that
+# carries that name ]. steps : tcp connect [ io.ip.tcp.output.open, 7 s
+# bound ], auth-keypair as <as_username> [ //= <external.cfg.link_user> ]
+# with this unix user's '<user>.base' key [ the remote cube must hold
+# that label's public key under ~/.n/remote-keys/authorized/cube/ ], the
+# link-upgrade handshake [ protocol.protocol-7.link-upgrade.handshake,
+# reads bounded ], then base.session.init + state 1 + state 3
+# [ link-upgrade.client_activate, link_role client ]. the blocking part
+# is only this setup ; commands afterwards are event-driven [ the
+# users.remote_fetch.run shape, never a blocking read loop ].
+# result : { mode => true, data => <session id> } or mode false + why.
+
+my $args = shift           // {};
+my $name = $args->{'name'} // '';
+my $host = $args->{'host'} // '';
+my $port = $args->{'port'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'name, host and port required' }
+    if not length $name
+    or not length $host
+    or $port !~ m{^\d+$}o;
+
+return { 'mode' => qw| false |, 'data' => "not a valid link name : $name" }
+    if $name !~ <regex.base.usr>;
+
+<external.links> //= {};
+
+## a live link is reused ##
+my $known = <external.links>->{$name};
+if ( ref $known eq qw| HASH | and exists $data{'session'}{ $known->{'sid'} } )
+{
+    return {
+        'mode' => qw| false |,
+        'data' => "link $name is open to $known->{'host'}:$known->{'port'}"
+        }
+        if $known->{'host'} ne $host
+        or $known->{'port'} ne $port;
+    return { 'mode' => qw| true |, 'data' => $known->{'sid'} };
+}
+delete <external.links>->{$name};
+
+my $as_username = $args->{'as_username'} // <external.cfg.link_user> // '';
+return { 'mode' => qw| false |, 'data' => 'no link identity configured' }
+    if not length $as_username;
+
+my $base_key_name = sprintf qw| %s.base |, $ENV{'USER'} // getpwuid($EUID);
+my $target        = "$host:$port";
+
+my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
+return { 'mode' => qw| false |, 'data' => "cannot connect to $target" }
+    if not defined $sock;
+
+## any die from here on must not leak the socket [ the caller evals ] ##
+my $authed = eval {
+    <[auth.client.auth-keypair.authenticate]>->(
+        $sock, $as_username, $name, $base_key_name
+    );
+};
+if ( length $EVAL_ERROR ) {
+    close($sock);
+    die $EVAL_ERROR;
+}
+if ( not defined $authed ) {
+    close($sock);
+    return {
+        'mode' => qw| false |,
+        'data' => "auth-keypair as $as_username failed [ $target ]"
+    };
+}
+
+my ( $upgraded, $link ) = eval {
+    <[protocol.protocol-7.link-upgrade.handshake]>->(
+        $sock, { 'timeout' => 5 }
+    );
+};
+if ( length $EVAL_ERROR ) {
+    close($sock);
+    die $EVAL_ERROR;
+}
+if ( not $upgraded ) {
+    close($sock);
+    return {
+        'mode' => qw| false |,
+        'data' => "link-upgrade failed : $link->{'error'} [ $target ]"
+    };
+}
+
+## the session NAME is the link name : '<name>.<rest>' routes over it ##
+my $id = <[base.session.init]>->( $sock, qw| protocol-7 client |, $name );
+if ( not defined $id ) {
+    close($sock);
+    return { 'mode' => qw| false |, 'data' => 'cannot register session' };
+}
+
+## authenticated already [ we were the client ] : straight to state 1, then ##
+## the encrypted state 3                                                    ##
+<[base.session.init_state]>->( $id, 1 );
+
+if (
+    not <[protocol.protocol-7.link-upgrade.client_activate]>->( $id, $link ) )
+{
+    <[base.session.shutdown]>->($id);
+    return {
+        'mode' => qw| false |,
+        'data' => 'encryption ' . 'activation failed'
+    };
+}
+
+## routable : base.handler.command.route_to_target skips sessions not  ##
+## marked authenticated [ the child-zenka pattern ]. commands FROM the ##
+## remote still pass this zenka's access rules for user <name>         ##
+$data{'session'}{$id}{'authenticated'} = qw| yes |;
+
+<external.links>->{$name} = {
+    'sid'  => $id,
+    'host' => $host,
+    'port' => $port,
+    'user' => $as_username,
+};
+
+<[base.logs]>->(
+    1, ': external : encrypted link %s -> %s [ session %d ]',
+    $name, $target, $id
+);
+
+return { 'mode' => qw| true |, 'data' => $id };
+
+#,,.,,...,...,,.,,,,.,,,,,...,.,,,,,,,,..,,.,,..,,...,...,..,,,,,,,..,.,,,,,.,
+#T3LP2N45QQGWIU6M3JSNNWAU7FHEP5Q3URDEOD5THZAE234JNA3VM62YJ3CIWAF5V5MWAWVEHMGG2
+#\\\|A2TJ47NDK7YRDNA2TBD7OKFXFFCHFEJB2D2OBLVWKSTBRW5PC6G \ / AMOS7 \ YOURUM ::
+#\[7]SOZFG2R6L2ZWP34L7HNHXDTQZ4VKALICCAPLYISX5KM2WNAYVSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
