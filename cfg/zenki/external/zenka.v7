@@ -4,12 +4,20 @@
 
 [load_config_file:'shared-params']
 
-modules.load           = auth.client net protocol io.unix io.ip ui external   ## devmod
+modules.load           = auth.client net protocol io.unix io.ip ui \
+                         crypt.C25519 external   ## devmod
 
 access.cmd.usr.cube    = verify-instance commands heart reload subname \
                          list show-buffer buffer-erase buffer-erase-level \
-                         list-connections \
-                         list-deps cur-pid src-ver rel-ver src-age
+                         list-connections connect \
+                         list-deps cur-pid src-ver rel-ver src-age \
+                         self.* ## <-- routes cube to the named link [ test ]
+
+## named encrypted links [ external.connect <name> <host[:port]> ] :
+## the auth-keypair label this host authenticates as - the remote cube
+## must hold its public key under ~/.n/remote-keys/authorized/cube/
+## [ unset : connect needs an explicit <as-username> ]
+# external.cfg.link_user = <label>
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -21,8 +29,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 
 [zenka.loop]
 
-#,,..,.,,,,.,,,,,,,,.,,..,.,.,,,,,,.,,,.,,,..,..,,...,..,,..,,,,.,,..,.,,,,,.,
-#GKTSUQPODBXDEERJFMJERTTQYXXASFOZ3PW3Q3LI2GJ7CCWJGBKSQG3JOQ74PJPYMQWQI2YDDTUKQ
-#\\\|7TZVIBTXS57IXSAVFCSQLSO64D6LJ4Y3TY54KTC6YVMOPEK5NCS \ / AMOS7 \ YOURUM ::
-#\[7]2VMVPIDVI6O35IGL6SJRA5E7CNWUOZBPFRX42GM3BYXTA4N6YIBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,.,,,.,,,,..,,.,,,,.,.,.,,..,..,,...,...,..,,..,,.,.,..,,.,,,
+#7WMH7BDVIFLMAZSH2FPWDSBXCOWC7FLDQ2DGMLNOJBJLKZPUBTEFHYROOXNTZ2AEP6QRAF56LL2DM
+#\\\|OYX65NPDTLM7KSPKT5A5CU6HYEDZUAUNMOWKIP2KYV4D4VJUOBD \ / AMOS7 \ YOURUM ::
+#\[7]JC5YP34KBBC7XHDE3ANNPYAPF5M4EUZ4CSTFIN57ODDQDODUHCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
