@@ -139,18 +139,22 @@ sub op_derive_key {
 sub op_encrypt {
 
     # Encrypt message with ChaCha20-Poly1305
-    # Input: base32(key) session_id counter
+    # Input: base32(key) session_id counter direction
     # Input data: plaintext via STDIN
     # Returns: ciphertext + auth_tag (binary) on stdout
 
     my $key_b32    = shift @ARGV;
     my $session_id = shift @ARGV;
     my $counter    = shift @ARGV;
+    my $direction  = shift @ARGV; # 1 : client -> server, 2 : server -> client
 
-    die "Usage: $0 encrypt <key_b32> <session_id> <counter> < plaintext\n"
+    die "Usage: $0 encrypt <key_b32> <session_id> "
+        . "<counter> <direction> < plaintext\n"
         unless $key_b32
         and defined $session_id
-        and defined $counter;
+        and defined $counter
+        and defined $direction
+        and $direction =~ m|^[12]$|;
 
     # Read plaintext from STDIN
     my $plaintext = join( '', <> );
@@ -158,8 +162,13 @@ sub op_encrypt {
     # Decode key from base32
     my $key = Crypt::Misc::decode_b32r($key_b32);
 
-    # Generate nonce: 4-byte session_id + 4-byte counter + 4 zero bytes
-    my $nonce = pack( 'N', $session_id ) . pack( 'N', $counter ) . "\0\0\0\0";
+    # Generate nonce: 4-byte session_id + 4-byte counter + 4-byte direction
+    # [ both directions share one key : the direction keeps the client's
+    #   and the server's frame k from reusing key + nonce ]
+    my $nonce
+        = pack( 'N', $session_id )
+        . pack( 'N', $counter )
+        . pack( 'N', $direction );
 
     # Create cipher and encrypt
     my $cipher     = Crypt::AuthEnc::ChaCha20Poly1305->new( $key, $nonce );
@@ -174,18 +183,22 @@ sub op_encrypt {
 sub op_decrypt {
 
     # Decrypt message with ChaCha20-Poly1305
-    # Input: base32(key) session_id counter
+    # Input: base32(key) session_id counter direction
     # Input data: ciphertext + auth_tag (binary) via STDIN
     # Returns: plaintext on stdout (or error on stderr)
 
     my $key_b32    = shift @ARGV;
     my $session_id = shift @ARGV;
     my $counter    = shift @ARGV;
+    my $direction  = shift @ARGV; # 1 : client -> server, 2 : server -> client
 
-    die "Usage: $0 decrypt <key_b32> <session_id> <counter> < ciphertext\n"
+    die "Usage: $0 decrypt <key_b32> <session_id> "
+        . "<counter> <direction> < ciphertext\n"
         unless $key_b32
         and defined $session_id
-        and defined $counter;
+        and defined $counter
+        and defined $direction
+        and $direction =~ m|^[12]$|;
 
     # Read ciphertext from STDIN (binary data)
     my $ciphertext_with_tag = join( '', <> );
@@ -197,8 +210,13 @@ sub op_decrypt {
     my $auth_tag   = substr( $ciphertext_with_tag, -16 );
     my $ciphertext = substr( $ciphertext_with_tag, 0, -16 );
 
-    # Generate nonce: 4-byte session_id + 4-byte counter + 4 zero bytes
-    my $nonce = pack( 'N', $session_id ) . pack( 'N', $counter ) . "\0\0\0\0";
+    # Generate nonce: 4-byte session_id + 4-byte counter + 4-byte direction
+    # [ both directions share one key : the direction keeps the client's
+    #   and the server's frame k from reusing key + nonce ]
+    my $nonce
+        = pack( 'N', $session_id )
+        . pack( 'N', $counter )
+        . pack( 'N', $direction );
 
     # Create cipher and decrypt
     my $cipher    = Crypt::AuthEnc::ChaCha20Poly1305->new( $key, $nonce );
@@ -240,12 +258,12 @@ Operations:
     Input:  Shared secret (base32), Session ID (integer)
     Output: Encryption key (base32)
 
-  encrypt <key_b32> <session_id> <counter>
+  encrypt <key_b32> <session_id> <counter> <direction>
     Encrypt message with ChaCha20-Poly1305
     Input:  Key (base32), Session ID, Counter (from stdin: plaintext binary)
     Output: Ciphertext + Auth Tag (binary)
 
-  decrypt <key_b32> <session_id> <counter>
+  decrypt <key_b32> <session_id> <counter> <direction>
     Decrypt message with ChaCha20-Poly1305
     Input:  Key (base32), Session ID, Counter (from stdin: ciphertext + tag binary)
     Output: Plaintext (binary)
@@ -265,7 +283,7 @@ Example usage from p7.c:
     pclose(f);
 
     // Encrypt a message
-    FILE *f = popen("p7-link-upgrade-helper.pl encrypt <key> <session_id> <counter>", "w");
+    FILE *f = popen("p7-link-upgrade-helper.pl encrypt <key> <session_id> <counter> <direction>", "w");
     fwrite(plaintext, 1, plaintext_len, f);
     pclose(f);
     // Read output from pipe for ciphertext
@@ -285,8 +303,8 @@ p7-link-upgrade-helper.pl - Cryptographic helper for p7.c link-upgrade
     p7-link-upgrade-helper.pl gen-ephemeral
     p7-link-upgrade-helper.pl compute-dh <client_secret_b32> <server_pubkey_b32>
     p7-link-upgrade-helper.pl derive-key <shared_secret_b32> <session_id>
-    p7-link-upgrade-helper.pl encrypt <key_b32> <session_id> <counter>
-    p7-link-upgrade-helper.pl decrypt <key_b32> <session_id> <counter>
+    p7-link-upgrade-helper.pl encrypt <key_b32> <session_id> <counter> <direction>
+    p7-link-upgrade-helper.pl decrypt <key_b32> <session_id> <counter> <direction>
 
 =head1 DESCRIPTION
 
@@ -379,8 +397,8 @@ As per Protocol-7
 
 =cut
 
-#,,,.,.,,,,..,,,.,,,,,,,.,,..,..,,,,,,.,.,,..,..,,...,...,.,,,..,,..,,.,,,.,.,
-#7LW4X6QOEVVIGR4JHEYT5GDBUZY6J233FVLTDCCTWHRBOKRRC5ZU4FPZFA642ITXAOPZIX5LS3N5E
-#\\\|2LA4IEKUKGBJVLP76GKP5LKUXPKKHWAKI32752POBNRASYYMUKJ \ / AMOS7 \ YOURUM ::
-#\[7]PRHM7LK5AE3YIDTFMTIMUFB3CWADJJL2ZHZX5THCEGRZPA37MQAY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,,..,,..,,.,,,..,.,.,,,,,...,..,,...,...,...,.,,,...,,,,,.,,,
+#TBKS77N6OEVYYMNKHGDHAMQ3MJVA4SMWYOZ43JFN4ZRKQNUIOIJMGFHMV5AQV5GEY5S4TBGZSQCKE
+#\\\|QSSOUZEBU5KL7NWSZ56J75FZSEXA4W6DY4Q6KT57PJOLAYT6QD7 \ / AMOS7 \ YOURUM ::
+#\[7]XQX5AER7DBLH45ZOCZWP2FDFB7SFJTDJWNS7N3WBZD4UKUR6B4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

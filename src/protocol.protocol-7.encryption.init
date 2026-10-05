@@ -14,7 +14,12 @@
 #
 # wire format [ state 3 ] :
 #   frame = pack('N', length) . ciphertext . 16-byte auth tag
-#   nonce = pack('N', link_nonce_session_id) . pack('N', counter) . "\0" x 4
+#   nonce = pack('N', link_nonce_session_id) . pack('N', counter)
+#           . pack('N', direction) [ 1 : client -> server, 2 : server ->
+#           client ] - both directions share ONE key and both counters
+#           start at 0 : without the direction the client's frame k and
+#           the server's frame k would reuse key + nonce [ chacha20
+#           keystream reuse, poly1305 key recovery ]
 #   key   = SHA256( dh_shared_secret . pack('N', link_nonce_session_id ) )
 #   link_nonce_session_id is selected by the client and transmitted with
 #   the 'link-complete <session_id>' line [ fallback : server session id ]
@@ -59,10 +64,27 @@ if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
 }
 
 ## Initialize frame counters for nonce generation [ first frame : counter 0 ]
-$session->{'link_read_counter'}  = 0;              ## read-side frame counter
-$session->{'link_write_counter'} = 0;              ## write-side frame counter
-$session->{'link_frame_state'}   = qw| header |;
-$session->{'link_plain_buffer'}  = q||;    ## decrypted bytes pending parse
+$session->{'link_read_counter'}  = 0;    ## read-side frame counter
+$session->{'link_write_counter'} = 0;    ## write-side frame counter
+
+## nonce direction : this end writes with its own direction and reads with ##
+## the peer's - a frame's nonce never repeats across the two directions.   ##
+## the ROLE in the link-upgrade decides it [ set by the end that answered  ##
+## the upgrade, protocol.protocol-7.link-upgrade.init, or by a client      ##
+## handshake ] - session \ handle modes do not [ accepted tcp sessions are ##
+## handle mode 'input' ]. no role : refuse rather than guess               ##
+my $link_role = $session->{'link_role'} // '';
+if ( $link_role ne qw| server | and $link_role ne qw| client | ) {
+    <[base.logs]>->(
+        0, '[%d] encryption init: link role unknown [ nonce direction ]',
+        $session_id
+    );
+    return FALSE;
+}
+$session->{'link_nonce_dir_write'} = $link_role eq qw| server | ? 2 : 1;
+$session->{'link_nonce_dir_read'}  = $link_role eq qw| server | ? 1 : 2;
+$session->{'link_frame_state'}     = qw| header |;
+$session->{'link_plain_buffer'}    = q||;    ## decrypted bytes pending parse
 
 ## Warn if a transport encoding was negotiated : state 3 framing carries
 ## binary ciphertext, link-layer encodings are not applied on top of it
@@ -99,7 +121,7 @@ $code{$frame_handler_name} = sub {
     my $w_nonce
         = pack( qw| N |, $sess->{'link_nonce_session_id'} // $session_id )
         . pack( qw| N |, $w_counter )
-        . qq|\0\0\0\0|;
+        . pack( qw| N |, $sess->{'link_nonce_dir_write'} );
 
     my $w_cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
         $sess->{'link_encryption_key'}, $w_nonce );
@@ -148,8 +170,8 @@ return TRUE;
 
 1;
 
-#,,.,,,,,,...,..,,,,.,,.,,,,,,,,,,,.,,,.,,...,..,,...,...,...,,.,,,,.,..,,,..,
-#32XHAOYKXBGAQT2WXSAD4U6IK2JVBBNCUKAOEXAZD7Y7E5ZDHB75Y2SA6Z6ZBBRBCPSJQL2UVOMKQ
-#\\\|KZBNJNCOANHFIECJGOIGE5BIIZPGEYV4A2PAQSU26FODD2YBOYR \ / AMOS7 \ YOURUM ::
-#\[7]I26YAT2ZZMDSW4HV3P3NQPAWGZXJVQF6MMYWIPCKGWTQXAB476DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,.,,,,,,,,,.,,,,,.,,,...,..,,..,,...,...,,,,,.,.,...,...,.,,,
+#7Y4FJTOUCXFHZWLL35MIDVWZIV4F7DZEY76YF2GMTDJHFQSLRUBQP27ABWWELFZP7EJC2MV42EZRO
+#\\\|E4QJGVDAUHLOSXHB6S5RL27W4R66X2OEQ4XVOAZTGVZX6SSFURC \ / AMOS7 \ YOURUM ::
+#\[7]XUESCNXJW4UKAXGCCP2TFEFYM4TV2D3CNGNKADBHJC6CBQVAK6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,6 +6,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## CRITICAL
 - [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 (`38e604b29`, v5.99.1): `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below.
+- [link-upgrade-nonce-reuse-fixed](project-2026-10-05-link-upgrade-nonce-reuse-fixed.md) — FIXED 2026-10-05: link-upgrade ChaCha20-Poly1305 used ONE key and all-zero nonce suffix for both directions [ client frame k == server frame k : keystream + poly1305 key reuse ] in encryption.init, link-upgrade.input/.output and p7-link-upgrade-helper.pl/p-7-r. now a direction word from `link_role` [ answering end = server, set in link-upgrade.init ; a Perl client must set `client` ], fail-closed without it ; NOT session/handle mode [ accepted tcp = 'input' ]
 - [security-fix-verify-both-code-paths-not-just-symptom](feedback-security-fix-verify-both-code-paths-not-just-symptom.md) — before broadening/replacing a shared gating check (liveness/existence/permission), enumerate ALL its callers and ask what each relies on it FOR, not just whether the visibly-broken one works — a check can be load-bearing security elsewhere with nothing else backing it up. Caught 2026-09-17 by the user before I shipped a fix that would've let a spoofed self-reported pid through unverified on a second code path.
 - [request-signed-version-before-each-batch-commit](feedback-request-signed-version-before-each-batch-commit.md) — for batch/multiple commits in a session, explicitly request a fresh signed version number from the user before EACH commit, not just once — stated 2026-09-17, don't chain commits on one earlier sign-off.
 - [token-budget-pacing-early-week](feedback-token-budget-pacing-early-week.md) — pace Claude token use from the START of each 7-day usage window, not reactively once tight — flagged 2026-09-17 after ~50%/7d on day 1. Favor one targeted check over repeated live Monitor-polling loops, delegate implementation-heavy/low-risk work to kimi_dispatch/subagents. NOT license to leave a real defect half-fixed to save tokens (user explicitly confirmed this, see [[feedback-fix-immediately-reduces-cognitive-load]]) — trim redundant procedural overhead only, never real fixes/verification.
@@ -68,8 +69,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,...,,.,,,.,,.,,,,,.,,,.,...,,,,,.,.,..,,..,,...,..,,,,,,..,,,.,,,,.,.,,,
-#FIP7W7AUBOP6XUPXR4ZX2XO7XDUFN5UG3GPBVOZFWR4BNXA4VSN7LW7BL4TZPUCHLLUEEZJQELH4I
-#\\\|3BEUW6WNUUEQXXVZZSLTYS42P2HMGSPC7322A5SVHX2KAC6QTBI \ / AMOS7 \ YOURUM ::
-#\[7]J3NKDDUIQJTDA3BU3ZNH4LCAAQYUFOVDIA5TJZY3MDNRAOJA2CDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,,,,,.,,,..,,...,.,.,,,.,,,,,..,,...,..,,..,,,.,,,,,,,,.,,,.,
+#SI4IZG43QCGLAL2EI6EJGCQO54KPK53VKGMYPQNH4SDUDYZD6VSDQRRSN25CGNI46BSWLCUF7RF72
+#\\\|7UKCL5IVXMTDHABWKE3KL6MLUFWBS4UFKHTUG25GMTAFMYQYJRM \ / AMOS7 \ YOURUM ::
+#\[7]DG2G6KZJXRKM35YMZL36PRKKWZEKRK35WQZ3TKLQBWVLSGLZAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,9 @@
 #
 # wire format = frame : pack('N', length) . ciphertext . 16-byte auth tag
 # nonce       = pack('N', link_nonce_session_id) . pack('N', write counter)
-#               . "\0" x 4   [ counter starts at 0, increments per frame ]
+#               . pack('N', link_nonce_dir_write) [ this end's direction,
+#               see protocol.protocol-7.encryption.init ; counter starts at
+#               0, increments per frame ]
 
 my $event = shift;
 my $id    = $event->w->data;
@@ -37,10 +39,20 @@ utf8::downgrade( $$output, 1 ) if utf8::is_utf8($$output);
 
 my $counter = $session->{'link_write_counter'} // 0;
 
+## no direction : never fall back to a zero suffix [ that reuses nonces ##
+## across the two directions ] - the session cannot be encrypted safely ##
+if ( not defined $session->{'link_nonce_dir_write'} ) {
+    <[base.s_warn]>->(
+        sprintf 'link-upgrade nonce direction missing [session %d]', $id
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;
+}
+
 my $nonce
     = pack( qw| N |, $session->{'link_nonce_session_id'} // $id )
     . pack( qw| N |, $counter )
-    . qq|\0\0\0\0|;
+    . pack( qw| N |, $session->{'link_nonce_dir_write'} );
 
 my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
     $session->{'link_encryption_key'}, $nonce );
@@ -77,8 +89,8 @@ $session->{'link_write_counter'} = $counter + 1;
 ## drain the framed bytes to the socket [ restarts watcher as needed ]
 return <[base.handler.write]>->($event);
 
-#,,.,,,,.,...,,.,,,.,,,,.,.,.,,..,,.,,..,,,..,.,.,...,...,,,,,.,.,,,.,..,,...,
-#HODH2PYOFUTQJGIZFSANVYLGCDMEJX6A7DRLLDCPYWHAYI3WYU2S46OETNZDEN23ETJQZFKZEZWRC
-#\\\|Q7PPU7VEXIZKHMIR7KX2DEVUQFOHYKLMDVEUC4ROGFYXXVLWRA4 \ / AMOS7 \ YOURUM ::
-#\[7]UMYP3P6NREKAK7G4CAXJIM55CXL5WVJTSHIKK3FW4EJK4VEF4QBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,.,,.,.,.,.,..,,.,,,,..,,,.,.,.,...,...,.,.,...,.,.,..,,,,,,
+#RMEMZPO7PKKKEM66YYFJJVPSGMJRAIWLDQOK5CQX6T77K5EXV2XGFTAAU23FPQBQJR2GISHTI2MSK
+#\\\|QL2ST3RW7JXVNB54PAW42TLNQV2FCMYHWV3PUPDXFQ4RW52Y6DG \ / AMOS7 \ YOURUM ::
+#\[7]S4AIOJOB4CURY74BFTH5XLZHFIH7J77GG7DPOCF4CIWDP6HDO4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
