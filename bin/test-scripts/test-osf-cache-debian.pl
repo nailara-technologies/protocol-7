@@ -2238,6 +2238,9 @@ sub deliver_bad_segment {
     return;
 }
 
+## the zenka runs with umask 027 : the placed file must still be 0644 ##
+umask 027;
+
 ## flow 1 : the happy path [ stage 4 : agree, leaves, one segment ] ##
 my $fc_dir = tempdir( CLEANUP => 1 );
 fetch_reset($fc_dir);
@@ -2305,6 +2308,11 @@ close($rfh);
 
 ok( $fc_placed eq $fc_content,
     'fetch : the verified file landed in the cache dir [ byte exact ]' );
+
+ok( ( ( CORE::stat( "$fc_dir/fetch-pk" . "g_1.0-1_amd64.deb" ) )[2] & 07777 )
+        == 0644,
+    'fetch : the placed file has the archive mode 0644 [ not the umask ]'
+);
 
 ok( !-e "$fc_dir/partial/fetch-pkg_1.0-1_amd64.deb.partial",
     'fetch : no partial file left behind' );
@@ -3233,8 +3241,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,...,,,.,,.,,,,,,..,,,,,,..,,..,,,..,,.,,.,.,...,...,..,,...,.,,,,,.,,,,,
-#CIGNNN5WUFOZ3WQBPDT2KSYDUFIICKNIP3XATRGQOMMV7ZZ5ELJS7SK5TBXFYHGS2BUAYRA2FQ5GW
-#\\\|XOZS6Q6EMR6IQTTEEKNZU77TSNQURQFJIQHSN46YTC6WSIWD5AV \ / AMOS7 \ YOURUM ::
-#\[7]6ACD5KXLGJ7ZZI5XRFZK567SZS3J73JSQXSRJEYHOOISSF66TIAY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,,,.,.,,,..,,...,,..,,.,,,,.,.,.,...,...,..,,,.,,.,,,,,,,..,,
+#OGWYVXNABV5SRGIX3R57G2OZAPDJCJS5Q5QWNZJKXU3HP5QF46IDGDAQGTU4O6B3CZ7R75NMXA25Q
+#\\\|LOTLWBIJVBWITUX276ZBJPNDYC62OAOTWAMQC3EWLROXPWOALP2 \ / AMOS7 \ YOURUM ::
+#\[7]H4YEPEJI4J6DV6FMZ75CRQZV52GF5WVPNRVMVXMHKZOXZLQNL2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

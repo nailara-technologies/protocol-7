@@ -12,8 +12,10 @@
 # <[chk-sum.bmw.encode_digest]> ] against the bmw384 the holders
 # agreed on. ANY mismatch fails the fetch mode false 'verification
 # failed : <which>' and unlinks the partial - an unverified byte
-# never reaches the cache dir. on success the partial is renamed
-# into '<cache_dir>/<deb filename>', scan_file'd into the holdings [
+# never reaches the cache dir. on success the partial gets
+# <osf-cache.cfg.file_mode> [ //= 0644, apt's own archive mode - the
+# zenka umask would leave 0640 ] and is renamed into
+# '<cache_dir>/<deb filename>', scan_file'd into the holdings [
 # which now also writes the merkle tree ; the counts follow, then
 # state_save ] and the reply goes out : 'fetched <filename> <size>
 # bytes from <n> holders [ <sids> ] [ <segments> segments, <secs>
@@ -81,6 +83,20 @@ if ($which) {
 }
 
 my $target = sprintf '%s/%s', $state->{'cache_dir'}, $state->{'filename'};
+
+## the archive mode BEFORE the rename : the file never appears in the cache ##
+## dir with the zenka's umask mode                                          ##
+my $file_mode = <osf-cache.cfg.file_mode> // '0644';
+$file_mode = '0644' unless $file_mode =~ m|^0?[0-7]{3}$|o;
+
+chmod oct($file_mode), $partial or do {
+    <[osf-cache.fetch.fail]>->(
+        {   'fetch_key' => $fetch_key,
+            'reason'    => "chmod failed : $OS_ERROR"
+        }
+    );
+    return;
+};
 
 rename $partial, $target or do {
     <[osf-cache.fetch.fail]>->(
@@ -161,8 +177,8 @@ delete <osf-cache.fetch.pending>->{$fetch_key};
 
 return;
 
-#,,,,,.,.,,,,,,,.,,.,,,.,,,.,,..,,...,..,,.,,,.,.,...,...,..,,.,,,,,,,.,,,,,,,
-#OAZQA2T3WIE7GIXJLLZCQUW6KOH4LA33OWWZGS3JERS4BHRETDVMB7IL2OSKFIMCKWLAJ3F7JCVUK
-#\\\|TC7OL5V5XAS4EQB3MJUPC34I6RNZ3YNCSB5AJGIE3EJLMASWPKI \ / AMOS7 \ YOURUM ::
-#\[7]5KQPG5KVAUVSZWSV4TAGKNSPVXOCTIUALYJWXC3PC7B6JGZYBYCI 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,.,,,.,,.,,,.,.,,.,,..,,..,,.,.,...,...,,.,,...,.,.,...,..,,
+#JJNXT7HJUJFP4KRHB4PE23MZ67OZE4M74LR33I2MCGR5NTPYMHCNPY2L3WD632XEDFTUNAEOMKRPM
+#\\\|POHSTWQSTCBIO5NF5WFGQQP4MWHMTT7QJRO27ED5HBAESIYT6OK \ / AMOS7 \ YOURUM ::
+#\[7]6EYFV4QA7KHTOYLJL76GEMZH2OVWMR2QZUTC4Y43RZSDJ6GU3EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

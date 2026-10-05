@@ -67,9 +67,7 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
 - lookup with unknown anchors FIXED [ `30636818e`, user's rule ] :
   known ones are looked up, an `unknown :` line lists the rest ;
   nothing known [ incl. a single anchor ] -> mode false
-- open : a fetched file is 0640 [ partial
-  inherits the zenka umask ] -- matters once fetch targets a real apt
-  archive dir
+- 0640 fetched files : FIXED later [ file_mode, see stage 4 section ]
 - next : stage 4 [ multi-source segments + merkle ], cross-host peers
   via `discover`
 
@@ -91,6 +89,18 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   zenka.v7 + v7-zenki start ]
 - kimi stopped before regenerating the whitelist -- after any kimi
   job, check `subroutines.load-early` was regenerated
+- later the same night : LIVE multi-source verified via a third
+  instance `osf-cache[peer2]` [ `by_subname.peer2.cache_dir =
+  /var/protocol-7/osf-cache/peer2-archives`, `ee2d3623d` ] : igt-gpu-tools
+  [ 32 segments ] and povray [ 23 segments, 0.7 s ] from main + peer,
+  byte-identical
+- fixed : fetched files were named after the pool basename [ no epoch ]
+  -> `osf-cache.debian.archive_name` [ apt QuoteString : `1:3.7` ->
+  `1%3a3.7` ] ; and they came out 0640 [ zenka umask ] -> chmod
+  `<osf-cache.cfg.file_mode>` //= 0644 before the rename
+- still not live : bad-holder exclusion [ needs a node that serves
+  wrong bytes on purpose ] ; next = cross-host peers via `discover` or
+  stage 5 credits
 
 ## live facts
 
@@ -113,8 +123,8 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   for out-of-scope files after a kimi job
 - pre-commit hook : `# descr` max 55 chars
 
-#,,.,,,,.,.,,,,,.,,..,...,..,,,.,,.,.,.,,,..,,..,,...,...,,.,,,,,,...,.,.,.,.,
-#NSF7HBXDXQIADOTUUSQKSPYRI36JKNMPY53CXM7Z4QGDZXPTKQQJI6O4J7VKWMLCS7LGY2BQ4YONS
-#\\\|6X4XKPQIMMKT6ZW7ASRBMHGZ4TT4HQCNZERPJO24SZHWYJ4H5AZ \ / AMOS7 \ YOURUM ::
-#\[7]F44T4DCHA4WKG46DLRRZ2EIZUL5YWJYH2KWY5XIGW5JC5QBDLYAY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,..,,..,,,.,,.,,,.,.,,..,,,.,..,,...,..,,.,.,.,.,.,,,...,.,,,
+#BP7QVW3FWKQY53ZOGRVYODVWRANIPIS7LRU6IOEGJWCRIC2RZ5KXRVTLUO2Y4D33U3FLYCI4EWHUW
+#\\\|XCF676DXF5FYG54LAEP57PSXU3IVJNGPEM6YXOTIKJXKG3HFK2Y \ / AMOS7 \ YOURUM ::
+#\[7]ZJZXRHTP7KHHY4PZYB5HEVDBS7JEY3JRW4C7LN64ZDTW4YPOQOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
