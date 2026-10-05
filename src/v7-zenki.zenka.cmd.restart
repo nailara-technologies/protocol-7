@@ -64,6 +64,16 @@ foreach my $param_str ( split m| +|, $params ) {
     }
 }
 
+## ANY unknown name refuses the whole request, before anything restarts : a ##
+## stray word list [ e.g. an error message captured into the args ] must    ##
+## never restart the valid names hidden in it [ 'cube' ! ]                  ##
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no zenka %s found in set-up [ nothing restarted ]',
+        $unknown_name )
+    }
+    if $not_found;
+
 map {
     my $zenka_id           = <v7-zenki.zenka.instance>->{$ARG}->{'zenka_id'};
     my $zenka_name         = <v7-zenki.zenka.setup>->{$zenka_id}->{'name'};
@@ -195,8 +205,8 @@ if ($count) {
     };
 }
 
-#,,..,,,,,...,,,,,.,,,.,,,,,,,.,,,,..,...,.,.,..,,...,...,.,,,.,,,,..,...,,..,
-#JQGRKBNYGYLN7XY3AZFYMVZVKAPQ25SOKQOOODBYRNCGMIYDOY745V7BAQPOD2WI5AIQFW5UHE7JI
-#\\\|2B6G76IWELQN4EWMTICXRBXZHGOGKXZRU236P7GINXC7N2XXZQJ \ / AMOS7 \ YOURUM ::
-#\[7]GKIR4MRM3FNS36WMBSPGAUQSGPBVB3YUPDWUT4PURD4Y7E4VM2AI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,,,,,.,,,,..,,,,,,..,,..,,,,,..,,...,...,.,,,...,,,,,,,,,..,,
+#6W6KYOC2XWMQBTG27ZQUMK5HIRVMEJ7HKGVDERUJZWX3GBVDBOHC7CSLFKJXI66BHI57GTJXZO7WU
+#\\\|5U4FWFUYJSUKMGCKIZNGEDOINIPW544RSP4MINBABNUXQRN6MWO \ / AMOS7 \ YOURUM ::
+#\[7]JFYFONLFGZOWPSNH7KVPX6TI6GO7PWMDDTBKEPMHV574V5SV6IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

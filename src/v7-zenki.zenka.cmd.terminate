@@ -61,6 +61,15 @@ foreach my $param_str ( split m| +|, $params ) {
     }
 }
 
+## ANY unknown name refuses the whole request, before anything stops : a ##
+## stray word list must never terminate the valid names hidden in it     ##
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no zenka %s found in set-up [ nothing terminated ]',
+        $not_found_name )
+    }
+    if $not_found;
+
 ## de-duplicate : a name can be given more than once in the same command [  ##
 ## e.g. "terminate X-11 X-11" to target 2 distinct instances sharing one    ##
 ## name -- each occurrence independently re-resolves to BOTH instances, not ##
@@ -191,8 +200,8 @@ if ($count) {
     };
 }
 
-#,,..,,,,,..,,.,.,...,..,,,.,,,,.,...,.,,,,,.,..,,...,...,,..,,,.,...,,..,.,.,
-#25NA7NF2ZRKYGVNFBDM7JSBWQ36LW3DZPDFKVUONO6WXBJMAOH3RQF2SOIFYQ7UKPMKJ3XGMW52RQ
-#\\\|T6D566C4SHPKNYXYEHB5M4TKTMTYTBMIA6CZG5WMP5INF6JO2ZP \ / AMOS7 \ YOURUM ::
-#\[7]4ZTXJP7J5JOWRBVZ7LVVHILGEYI5BTTMNLBM6YYQW4D3CNCFJADI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,.,,,.,.,...,.,,,..,,.,.,,,.,..,,...,...,...,..,,.,,,,..,.,,,
+#7WODGBDU22P24QXDI3PZ246DECPHYB4MXLH742R64KL5642ZT4NEK3EQB5Y5QKIBQKCM5KSASSE6K
+#\\\|43TUBXLZN4XWDCPCND7XMQRXN22FYACARRCTP2AECM2FQT52ANT \ / AMOS7 \ YOURUM ::
+#\[7]PY3K3CRXVJF6LHMJCHUERN7D572RWLTFWZOZNGHN6FP2GVKMT4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
