@@ -9,7 +9,9 @@
 #
 # wire format = frame : pack('N', length) . ciphertext . 16-byte auth tag
 # nonce       = pack('N', link_nonce_session_id) . pack('N', counter)
-#               . "\0" x 4   [ counter starts at 0, increments per frame ]
+#               . pack('N', link_nonce_dir_read) [ the PEER's direction,
+#               see protocol.protocol-7.encryption.init ; counter starts at
+#               0, increments per frame ]
 #
 # returns = 0 (command processed) | 1 (more data expected) | 2 (shutdown)
 
@@ -73,10 +75,21 @@ $session->{'link_frame_state'} = qw| header |;
 
 my $counter = $session->{'link_read_counter'} // 0;
 
+## no direction : never fall back to a zero suffix [ that reuses nonces ##
+## across the two directions ] - the session cannot be encrypted safely ##
+if ( not defined $session->{'link_nonce_dir_read'} ) {
+    <[base.s_warn]>->(
+        sprintf 'link-upgrade nonce direction ' . 'missing [session %d]',
+        $session_id
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;
+}
+
 my $nonce
     = pack( qw| N |, $session->{'link_nonce_session_id'} // $session_id )
     . pack( qw| N |, $counter )
-    . qq|\0\0\0\0|;
+    . pack( qw| N |, $session->{'link_nonce_dir_read'} );
 
 my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
     $session->{'link_encryption_key'}, $nonce );
@@ -140,8 +153,8 @@ if ( $session->{'link_frame_state'} eq qw| header | ) {
 
 return $ret_code;    ## 0 : command processed | 1 : incomplete plaintext
 
-#,,..,,,.,,.,,,,.,,..,,.,,..,,,..,.,,,.,.,,,.,.,.,...,...,...,,.,,,..,,..,...,
-#ZGBJOTKYSIELNWQRXFAWEKKSFCCXBZYNN7PXADYEBBC7VHJNJKHNSSGLCMUHWR6HOL62VJW6NYF4G
-#\\\|XCUE7GMAINJV76OEWT6DNGSIXJN77U4HJ7ATO5DKZET5DBYSOCU \ / AMOS7 \ YOURUM ::
-#\[7]OUTZKJTJJFWWTWDPYCMVLECMWCXTFBUXSIEEKMP465UGXYPQEIAY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,.,,,...,,,.,.,.,,,,,.,,,,,,,.,.,...,..,,..,,...,..,,,,,,.,,,
+#JXAZARBCONGZFDCQVGVHJWBYWJRG5DOCZKKPYC2ELMMPRMYWKHMT5JHCPV5SRPEAZTG76WYRH4B36
+#\\\|QB5RUZAJAJID7H6CHB6HTYSGFTOJBBHO326OTERUTVNIFSVOYD3 \ / AMOS7 \ YOURUM ::
+#\[7]OQ2HFX7QWCSSR3UUL6JTRFTRZXADEKJBP2HNGVEFWX7D3GS5KMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

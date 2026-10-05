@@ -12,6 +12,10 @@
 my ( $session_id, $mode, $state_id ) = @ARG;
 my $session = $data{'session'}{$session_id};
 
+## this end ANSWERS the upgrade : the server role decides the nonce ##
+## direction in protocol.protocol-7.encryption.init                 ##
+$session->{'link_role'} = qw| server |;
+
 ## Generate ephemeral Curve25519 keypair for this session  Use Crypt::Misc for
 ## key generation (for DH, not Ed25519 signatures)
 use Crypt::Misc;
@@ -79,8 +83,8 @@ return TRUE;
 
 1;
 
-#,,,.,.,,,,..,..,,.,.,...,.,.,,..,..,,.,.,.,.,..,,...,...,,.,,,,.,,,,,..,,.,,,
-#KBFOSIVWG5ESNB4LZVXHRQ73LZFOB3IKRRSWSSV77FBIKUEWXZYFO2B35OXE3FRWGIBYJW47F7Q2Y
-#\\\|CUMQ6MLEPSFCKKTSUJPTR56ZNQIQNTTUUPNYCPHEBSQ45NR7T42 \ / AMOS7 \ YOURUM ::
-#\[7]CW7COBCYQLMWTKFIC6TKMMWC2NDGDMGUOGITKWNNASNMAW3VE4BY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,...,,.,,,,.,,,.,...,,,.,,,,,..,,...,.,.,.,,,.,,,.,,,..,,.,.,
+#AY3IXBFVXHBW5GZUCUYBO5ROMSNNYOW5XUGRYRDQ6F5OAPHEBVX7XHUSB4GMDW2NVT3AH5P2ORMTE
+#\\\|PVMONIAEMGUYZKG22UBCQUM44CIT7CVPXSAF5D3I66QGDRTNNX2 \ / AMOS7 \ YOURUM ::
+#\[7]ISOGQKIJTDETOM4RXJYAKMK34XYN3LQOCWAVIR5EIAIILPPGKUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
