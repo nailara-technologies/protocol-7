@@ -46,8 +46,44 @@ liveness sweep of tracked pids, and `zenka.instance.restart` arms its
 restart timeout only `if $dependencies_ok` [ likely stuck when cube is
 down at that moment -- unconfirmed, the logs of that window are lost ].
 
-#,,..,.,.,.,,,,,.,.,.,,.,,,..,,.,,,.,,,.,,.,.,..,,...,..,,.,.,...,.,,,..,,.,,,
-#R357P6JL42TZ5ROXVHZ4ORK54DOZRB3EGVOLXSVS35OO5U7DDUCLCV4QPAZUR5Y6RPWPEAQ3MIUVO
-#\\\|JOCSXXAFGI4FUKEC3VU4RD4KWKBGEBPL6QZRP4VDGZWFT6HKPOP \ / AMOS7 \ YOURUM ::
-#\[7]YHK2BXPKCX6YWREMRXBAISY3HMKXIVOKDULUAC23OCZU6GIK3KDA 7  DATA SIGNATURE ::
+**follow-up 2026-10-05 afternoon** : the liveness sweep landed
+[ `fa550b716`, every 7 s, dead tracked pids -> the normal SIGCHLD path,
+child entry restored first so the instance restarts instead of being
+deleted by process_zenka_end ]. live : 0 false positives over ~38 sweeps
+on a healthy system ; a deliberate clean `v7-zenki.restart cube` did NOT
+reproduce the incident [ always-on set restarted with new pids, ondemand
+powershell left the list cleanly, sweep had nothing to do ]. user : the
+cause was "something about the ondemand zenka state machine", maybe not
+easily reproducible -- consistent with that night's victims [ invoke-web
+vanished, powershell kept a dead pid ] and with the earlier ondemand
+races [[topic-ondemand-starting-flag-race]] [ resolved by design, the
+deleting line never found ] and [[project-ondemand-zenki-registry-wipe]].
+if it recurs, the sweep's level-0 `: liveness :` line names the instance
+\ zenka -- that is the evidence to start from.
+
+**ON RECURRENCE -- investigate immediately, aim for a reproduction**
+[ user, 2026-10-05 ]. trigger : any `: liveness :` line in the v7-zenki
+log, or v7-zenki listing an instance `online` \ `restart` whose pid is
+dead [ `v7-zenki.list children` + `/proc/<pid>` ]. open hypotheses, none
+with evidence yet :
+1. ondemand state machine timing [ user's first guess ; both victims were
+   ondemand ; see the two ondemand memories above ]
+2. `reload config` without the init phase clobbering runtime state
+   [ [[feedback-config-reload-clobber]] ] -- checked : cube's ondemand
+   registry `<zenki.virtual>` is declared in NO config file, so not via
+   that path ; other keys unchecked
+3. old callback \ code references assigned non-reload-safely [ a timer or
+   watcher keeps running pre-reload code against new data ] -- earlier
+   sweeps fixed such cases ; that night only cube was reloaded
+   [ source x2, config x4 ], v7-zenki was not, so it would have to stem
+   from an older reload
+first steps : note the instance + zenka from the liveness line, grep the
+on-disk zenka logs for `< reload config >` \ `< reload all >` \ reload
+source markers before it, check whether a cube restart or an ondemand
+idle shutdown preceded it, then try to replay that sequence on purpose.
+
+#,,,,,..,,,,,,.,.,,,.,.,,,,.,,.,,,,,.,.,,,.,,,..,,...,...,.,.,,.,,...,,,.,,,,,
+#DOHQKA24DQHBBVC6FUDRWSBB3JJVKKBNPMVJBZ42H4WQ3BJZ7YUNV7JQFZE3T2PC7CA65WOYE5WA4
+#\\\|IMLHZQEPQ2G3I7BFCYQDYMKUYKHROC7M7AMZJQNVULWBN376TR4 \ / AMOS7 \ YOURUM ::
+#\[7]EXCM42VUMXXUYK6OIWEV4W7UIUGVXQNBNQSHEFAF56XR4TNYBACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
