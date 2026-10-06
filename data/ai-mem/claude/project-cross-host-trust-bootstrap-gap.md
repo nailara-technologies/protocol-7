@@ -83,9 +83,9 @@ the `remote-host.*` pattern was found in `src/`" for TOFU-pinned
 files. The user's own `v7.keys list` output today shows real
 `remote-host.local_42.public` / `remote-host.localhost_42.public` /
 `remote-host.127.0.0.1_42.public` files under the `taeki` user, and a
-`global-root` + `protocol-7.base` key pair under a locked-down
-(`no-r.perms`) system `protocol-7` user — global-root is the intended
-common trust anchor these chain toward. The `remote-host.*` writer likely
+`protocol-7.base` key pair under a locked-down (`no-r.perms`) system
+`protocol-7` user [ the trust anchor slot is `host-root` since
+2026-10-06 ]. The `remote-host.*` writer likely
 exists outside `src/` (console/keys-zenka path?) or was written
 manually — **unresolved, worth a targeted grep before relying on either
 naming convention**.
@@ -151,8 +151,8 @@ working-style takeaway.
 [[project-zenka-cryptographic-identity-survey]]
 [[topic-write-access-security-infrastructure]]
 
-#,,,,,.,,,,..,..,,.,.,,..,...,,,,,,..,..,,,,,,..,,...,...,.,.,,.,,,..,,,.,.,,,
-#6FUUE7Q33HYIBZAMKRMJWCAM4AZECEBF6FX46VJXVRE4FJKN7YAOPKB7B7H3RW26245YNJRE5NWEM
-#\\\|PVBDZAMQMLO3DQX7NDKGSJZSP7WUZRBYB4366UY6IZ756FA5TOC \ / AMOS7 \ YOURUM ::
-#\[7]TBKG556SCYCFYYWPRI7IIADTIO64PUJIB5HGM4KFFO7W5RLC3CBY 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,..,,,,,,,..,,.,,,,,,.,.,.,,,..,,...,..,,..,,.,.,...,...,,,.,
+#4BXUF4WPUI574VJYTWZEI5LRHOIE2PNJ6IDKI62IMKXP6NKAEJBKDADMVKUMTAJKFD6IBCQM4ACEG
+#\\\|DL4XMES7P6K4QIBSCX4YL3DSVMCFJ5ZVFXSC2HKR3C56QXF24QN \ / AMOS7 \ YOURUM ::
+#\[7]HDSNJ5NTXOQYQ4LJ6ZVH5X4PY7MVNQP3BGALP6FWNSO2PNGYSIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
