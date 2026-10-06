@@ -2,7 +2,7 @@
 
 # name  = base.prng.reseed
 # descr = [re]seed the CORE::[s]rand and Crypt::PRNG::Fortuna prngs
-#         [ fortuna from OS entropy + machine data + the harmonic seed ]
+#         [ fortuna : OS-seeded by CryptX, the entropy pool ADDED on top ]
 
 ## [ initializing fortuna ] ##
 ##
@@ -20,16 +20,17 @@ while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
     <[base.sleep]>->(0.0013) if $iterations < 37;
 }
 
-## the harmonic seed alone is a function of PID + ms time [ guessable ] : ##
-## it is one input of the entropy pool, which adds OS entropy + machine   ##
-## data [ base.prng.entropy_pool ] -- Crypt::PRNG::Fortuna->new( $seed )  ##
-## uses ONLY the given seed, it reads no OS entropy itself                ##
-return <base.prng.fortuna>
-    = Crypt::PRNG::Fortuna->new(
-    <[base.prng.entropy_pool]>->($harmonic_seed) );
+## the unseeded constructor : CryptX seeds it from the OS itself ; the     ##
+## entropy pool [ machine data, the harmonic seed, its own OS reads ] is   ##
+## ADDED on top through add_entropy. Crypt::PRNG::Fortuna->new( $seed )    ##
+## would REPLACE the OS seeding with that seed alone -- the 2026-10-06 bug ##
+my $fortuna = Crypt::PRNG::Fortuna->new;
+$fortuna->add_entropy( <[base.prng.entropy_pool]>->($harmonic_seed) );
 
-#,,.,,,.,,...,,,.,,.,,.,,,...,...,...,,,.,...,..,,...,..,,...,,,,,,.,,,,.,.,.,
-#6GWLM3NVYOOW2PCWF7ETN4WR4I5PS32ODAUQYTHRFGQMZR54UBHSUUK6SX2BHLR5VHQ5A27N3HMW2
-#\\\|C53T2SJCFF74FRQZFLEKELMPAPPEK4JGVOVVFSIWUSRZV3TPO2N \ / AMOS7 \ YOURUM ::
-#\[7]E6EFVNF3CQBTGYDHOTVID6SN3XP7RGRTP3LNWPRBFGRJ3V3GKSCY 7  DATA SIGNATURE ::
+return <base.prng.fortuna> = $fortuna;
+
+#,,,.,..,,,,,,.,,,.,.,..,,...,,,.,.,.,.,.,,,.,..,,...,.,.,.,.,..,,..,,,.,,,..,
+#UANV762NFJWVJ2ORN6MHLZBVDXJ6DI6TAG3KT3VWCP4IG4QCJFM3WOSLQOQDASS742QF4PHWNRERE
+#\\\|FLRCZTXMC27YBL565P2CFRAXAPV5Q3XBWLV47A6ACCLISH2UIXD \ / AMOS7 \ YOURUM ::
+#\[7]DCELRFDGLUOFUW4VLNM3JIBLSN6EQ4YHXY2I4NONBBDW46ORR6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
