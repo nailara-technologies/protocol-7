@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3XYPXSFYIA-9776.0 :::
+::: SOURCE-CODE VERSION :: 3XYPZNFNJI-9777.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -17,7 +17,7 @@
 ## Release Information
 
 - Detailed release history: [Release Versions](/read-me/project-identity/release-versions.md)
-- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\\\// [AMOS7-v6.02.1](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v6.02.1)
+- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\\\// [AMOS7-v6.13.5](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v6.13.5)
 ---
 
 ## 🌐 Topology Research Visualization
@@ -388,8 +388,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,,,,,...,.,,,...,,..,,..,...,,.,,.,,,.,,,..,,...,...,,,,,..,,,.,,,,,,,,,,
-#CAM65BF6UV7E53OHSPG7B6MHNYWW3JVHRK4NB2FMLTDW5OIUCAT64FO4UHUQKFXII52UA5RJ6OIWE
-#\\\|SWHPMETZBXGLUXNCP2EB7MDA6O2A4T5S6KCJTPZHRIXIX6QWVSQ \ / AMOS7 \ YOURUM ::
-#\[7]N33ONJ52ZSCSUFUKWTMPZMI4L52VUIWNOQWACPY36U37UDKAGIAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,.,.,,,,,.,,,.,.,,..,...,...,..,,...,.,.,,,,,...,,.,,,,.,.,.,
+#5P33RAZSHUWJUVCI7XOHT4GRFUCVAQ7FJINHU52IXWSHA6QEZ7N6MKJHMBKZKAFS4ZTO776QNCYY6
+#\\\|AEV7HDLFNRWMX44XCMVVPIX6OYJDR6K6XZ36DSOSXGVM2IY5IMM \ / AMOS7 \ YOURUM ::
+#\[7]I47CSXTHAO472SEH6ZIEYAR7NLPFHE5HKXBHSTLBMPT5XVAZYOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
