@@ -9,7 +9,11 @@
 # THE root trust rule of stage 4 - it lives in this ONE module [
 # variants may follow, callers never re-implement it ]. 'asked' are
 # the holders the merkle question went to [ all holders when fewer
-# than n exist, else the first n - the caller decides ]. the rule :
+# than n exist, else the first n - the caller decides ] ; since
+# stage 4b a holder is a ROUTE STRING [ '<sid>' or 'external.<link>.
+# <sid>' ] and every sort \ tie-break is string-safe through
+# osf-cache.holder.cmp [ a numeric '<=>' would numify a route to
+# 0 ]. the rule :
 #
 # - fewer than n asked : ALL must have answered and ALL must agree
 #   on root \ leaf_count \ size, else mode false 'merkle conflict'
@@ -30,7 +34,8 @@ my ( $k, $n ) = $quorum =~ m{^(\d+)\s*/\s*(\d+)$}o ? ( $1, $2 ) : ( 5, 7 );
 ( $k, $n ) = ( 5, 7 ) if !$k or !$n or $k > $n;
 
 my %by_triple;
-foreach my $sid ( sort { $a <=> $b } keys %$answers ) {
+foreach
+    my $sid ( sort { <[osf-cache.holder.cmp]>->( $a, $b ) } keys %$answers ) {
     my $answer = $answers->{$sid} // {};
     my $triple = join ':',
         $answer->{'root'}       // '',
@@ -51,10 +56,10 @@ if ( $need_all and $missing ) {
     };
 }
 
-## the winner : most sids, ties broken by the lowest first sid ##
+## the winner : most sids, ties broken by the lowest first holder ##
 my ($winner) = sort {
     scalar @{ $by_triple{$b} } <=> scalar @{ $by_triple{$a} }
-        or $by_triple{$a}[0]   <=> $by_triple{$b}[0]
+        or <[osf-cache.holder.cmp]>->( $by_triple{$a}[0], $by_triple{$b}[0] )
 } keys %by_triple;
 
 my $agree = defined $winner ? scalar @{ $by_triple{$winner} } : 0;
@@ -89,13 +94,16 @@ return {
         'root'       => $root,
         'leaf_count' => $leaf_count,
         'size'       => $size,
-        'eligible'   => [ sort { $a <=> $b } @{ $by_triple{$winner} } ],
-        'excluded'   => [ grep { !$agreeing{$ARG} } @$asked ],
+        'eligible'   => [
+            sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
+                @{ $by_triple{$winner} }
+        ],
+        'excluded' => [ grep { !$agreeing{$ARG} } @$asked ],
     }
 };
 
-#,,,,,.,,,...,,.,,.,.,,,.,.,,,.,,,.,,,.,.,,..,.,.,...,..,,.,.,..,,,.,,.,,,,..,
-#6RPA4HXAEEVZR64MNYGIKEHMNOONYHQA3P4KSG5JL7XIP2YEHFXU7OA7VI26QQVLG2OKKEEOAZUKE
-#\\\|QXX7QI562L44AQAVUCNVAGNCWY4AQKS3W5DX4RO3TEJBVP3L5M2 \ / AMOS7 \ YOURUM ::
-#\[7]5GMIYXA2MNMCMRKKQUY7M2G6E2MTU4LCYWFLN5W4WDXAHVJ4DYCY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,,..,,,.,..,,...,...,,.,,,,,,.,.,...,...,,..,..,,...,,,,,,.,,
+#474M4GUZFBH7W2AR4BMJOK7QQGTFTIJDS32EXPZCOKEPUIP6L23KH2LMFPCGPER42QSMO4MVMHSX2
+#\\\|64WQPZB54HX4IJLHTAT46IY2KTZGUN76LTRC3GIVOYAWQFKRT7M \ / AMOS7 \ YOURUM ::
+#\[7]L2RB3HJWVOCHXT4MSAFXOMYE6TS5BAFX6OHUNRZVFBYTXVEK52BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

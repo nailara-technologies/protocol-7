@@ -7,7 +7,10 @@
 #
 # combines the per-node wire replies [ osf-cache.lookup.format_has_reply
 # strings, parsed through osf-cache.lookup.parse_has_reply ] for one
-# query into a holder map. expect carries the asked anchor tokens with
+# query into a holder map. 'node' is a HOLDER ROUTE STRING since
+# stage 4b [ '<sid>' or 'external.<link>.<sid>' ] - every sort and
+# compare is string-safe through osf-cache.holder.cmp [ local first,
+# then remote by link + sid ]. expect carries the asked anchor tokens with
 # the size from the signed index - it is the truth replies are checked
 # against :
 # - undef reply  -> the node is listed in failed_nodes [ unreachable ]
@@ -79,15 +82,21 @@ foreach my $node ( sort keys %$replies ) {
 
 foreach my $anchor ( sort keys %candidates ) {
     my %by_bmw;
-    foreach my $node ( sort keys %{ $candidates{$anchor} } ) {
+    foreach my $node (
+        sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
+        keys %{ $candidates{$anchor} }
+    ) {
         push @{ $by_bmw{ $candidates{$anchor}{$node} } }, $node;
     }
     if ( scalar keys %by_bmw > 1 ) {    ## holders disagree on bmw384 ##
         $bmw_conflicts{$anchor} = \%by_bmw;
         next;
     }
-    $holders{$anchor} = [ sort keys %{ $candidates{$anchor} } ];
-    $bmw384{$anchor}  = ( keys %by_bmw )[0];
+    $holders{$anchor} = [
+        sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
+            keys %{ $candidates{$anchor} }
+    ];
+    $bmw384{$anchor} = ( keys %by_bmw )[0];
 }
 
 foreach my $anchor ( sort keys %$expect ) {
@@ -97,18 +106,19 @@ foreach my $anchor ( sort keys %$expect ) {
 return {
     'mode' => qw| true |,
     'data' => {
-        'holders'       => \%holders,
-        'bmw384'        => \%bmw384,
-        'missing'       => \@missing,
-        'failed_nodes'  => [ sort @failed_nodes ],
+        'holders'      => \%holders,
+        'bmw384'       => \%bmw384,
+        'missing'      => \@missing,
+        'failed_nodes' =>
+            [ sort { <[osf-cache.holder.cmp]>->( $a, $b ) } @failed_nodes ],
         'conflicts'     => \@conflicts,
         'bmw_conflicts' => \%bmw_conflicts,
         'unrequested'   => \%unrequested,
     }
 };
 
-#,,..,.,.,.,.,.,,,,,,,.,.,.,,,,,.,...,,,,,,,,,.,.,...,...,,,,,,,,,,.,,...,.,,,
-#GDFTOZ3XF6225R7PXQ3RO2MIDLAQQIEQTN2TULH7KJBJ4WOIHPH5PE46B3VLPMMW7S3KA74CI6TG6
-#\\\|7TWSBBNJH7AF6UREDV67XMNQZ42FUVHG2H4FSEFML2CUAMS5NVB \ / AMOS7 \ YOURUM ::
-#\[7]JOXHV2NB675XEKK2DI5K3IGYONKIMKKXYBA7BUGGWWICVPAK7OAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,,.,,...,.,.,,,,,...,..,,,..,.,.,...,...,..,,...,.,.,,,,,...,
+#C6DYCR57BTXOWZHKX2EZ62437B4A3YEH3H7CN6YCCBXXBZJQAPDOFZ7YNISXDI3A5SGZ4J64KXWJQ
+#\\\|64EIQZQJW5YNTV7HV7NLF6LYW7WW24B7ZBSXA5ZFM46CQ2RQURD \ / AMOS7 \ YOURUM ::
+#\[7]PC6J7SRP6TAPYZ47A4ZD5ZDSSAOTODUF6OR2M2CLOYGL5BMKIUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = osf-cache.peers.collect_timeout
+# descr = complete peer discovery with whatever listings arrived
+# param = timer event [ data => { collect_id } ]
+#
+# one-shot timer armed by osf-cache.peers.list [ after
+# <osf-cache.cfg.lookup_timeout>, repeat FALSE - never an undef
+# interval ] whenever remote links are configured. listings still
+# unanswered count as failed : a failed \ timed-out link is
+# reported like a failed peer [ logged + named in the callback's
+# failed list ] and the discovery goes on with what answered -
+# never a crash, never a hang. the single completion path is
+# osf-cache.peers.deliver : sort, cleanup, ONE callback.
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data }    // {};  ## poll_switch pattern ##
+my $collect_id = $timer_data->{'collect_id'} // '';
+
+my $collect = <osf-cache.peers.collecting>->{$collect_id};
+return unless ref $collect eq qw| HASH |;            ## already delivered ##
+
+foreach my $name ( sort keys %{ $collect->{'remaining'} // {} } ) {
+    <[base.logs]>->( 0, ': osf-cache : peer listing %s timed out', $name );
+    push @{ $collect->{'failed'} }, "external.$name"
+        if $name ne qw| local |;
+}
+$collect->{'remaining'} = {};
+
+<[osf-cache.peers.deliver]>->( { 'collect_id' => $collect_id } );
+
+return;
+
+#,,..,,..,.,.,..,,,,,,...,,..,,..,,..,...,,,.,..,,...,...,.,.,,,.,,..,.,,,,.,,
+#VZ4Q53UIFPO23IVUQWKBFXC75XGMJPPV2335PJYUBSYQ4XSSZBQOMM2EWUXYWSRNUFDHQICCYCU7W
+#\\\|6OFBZKULCT3FFDZ4OQWT6BL56TFBYME5T7N74U3F5PSFQQQGB2L \ / AMOS7 \ YOURUM ::
+#\[7]HRFRSDIIFGACVK2N44JDBKR3U5QADIGLMQYEELZFZOUFSHUELUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

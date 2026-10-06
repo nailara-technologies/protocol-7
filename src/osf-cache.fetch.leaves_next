@@ -7,8 +7,10 @@
 # the failure path of the leaf-list phase [ osf-cache.handler.
 # leaves_reply : bad page or a list that does not rebuild to the
 # agreed root ; osf-cache.fetch.leaves_timeout : silence ] : the
-# current leaves holder is excluded for the rest of THIS fetch, the
-# collected pages are dropped and the leaf list restarts at the next
+# current leaves holder is excluded for the rest of THIS fetch [ by
+# its ROUTE STRING since stage 4b : string-safe 'ne', never '!=' ],
+# the collected pages are dropped and the leaf list restarts at the
+# next
 # agreeing holder. none left fails the fetch mode false 'merkle
 # leaves unavailable'.
 
@@ -34,7 +36,7 @@ my $sid = $state->{'leaves_sid'} // '';
 
 push @{ $state->{'excluded'} }, $sid if length $sid;
 $state->{'eligible'}
-    = [ grep { $ARG != $sid } @{ $state->{'eligible'} // [] } ];
+    = [ grep { $ARG ne $sid } @{ $state->{'eligible'} // [] } ];
 $state->{'leaves_in'} = [];
 
 if ( !scalar @{ $state->{'eligible'} } ) {
@@ -52,8 +54,8 @@ $state->{'leaves_sid'} = $state->{'eligible'}[0];
 
 return;
 
-#,,..,,..,.,,,..,,.,,,,,.,,.,,...,,,,,,.,,...,.,.,...,...,,.,,...,..,,.,.,..,,
-#EWHYOM54MBMRQLMWOMGQ3MBTBHA6QDW7G4M72SX3GUG6W4Y367F546RBYGTUPFIKKPJPDQSR344FC
-#\\\|VTRMMQ5XYV6FR2SHWJMTVDHQIZ4KUODRU4VMXHPLKKEH7SP464K \ / AMOS7 \ YOURUM ::
-#\[7]EGWGVHECIXIPBW2USBOHB3FC42BPHTPYBLZLNZWTK6CTUPGXR4BY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,,.,,,..,,,,,...,.,.,..,,.,,,.,.,...,...,,..,,.,,..,,,,.,,,,,
+#T56CDRGSLC2URQDHZD3Z4PIOP6UDDZCONX6RLXIYM2RLPKD3FVOZ45AH27I5WGADHEWDNCEKO3DS4
+#\\\|NJPVYWVJNA52ZVQESOGOHJ5BD4MJ66TB4JIRJWMFL3N7GUFBNUA \ / AMOS7 \ YOURUM ::
+#\[7]QZZJG6RCVBLCVI55DEDJPYQUVRZIDFDIXBSPOKM2KDWV7WLTP2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
