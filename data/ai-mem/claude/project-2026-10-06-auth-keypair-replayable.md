@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-06-auth-keypair-replayable
-description: FOUND 2026-10-06, OPEN : auth-keypair's client line `auth <user> <session_pub> <sig>` signs ONLY the client's own stable session pubkey -- no server nonce, sent plaintext before link-upgrade -> one observed line replays forever from any IP ; nothing later proves possession ; same raw-pubkey message as sign_keys' .sig files [ no domain separation ]. fix = mutual binding, folded into the link-upgrade server proof
+description: FIXED 2026-10-06 [ ad31ddd5a, not yet live-checked ] : auth-keypair's client line `auth <user> <session_pub> <sig>` signs ONLY the client's own stable session pubkey -- no server nonce, sent plaintext before link-upgrade -> one observed line replays forever from any IP ; nothing later proves possession ; same raw-pubkey message as sign_keys' .sig files [ no domain separation ]. fix = mutual binding, folded into the link-upgrade server proof
 metadata:
   type: project
 ---
@@ -29,6 +29,14 @@ found while designing the link-upgrade server proof [ trust chain step 1,
 **exposure today** : TCP links are localhost \ own nodes only [ external
 `self` ] -> low ; it BLOCKS the real second host.
 
+**landed 2026-10-06** : `ad31ddd5a` [ + `8a50cf992` gen_keys supplied
+secret kept, `bcca789e1` spec + tests ]. lanes found + fixed on the way :
+p-7-r popen shell injection from server replies, plaintext frame temp
+files, p7c's half-built link-upgrade [ removed ]. NOT yet live-checked :
+cube restart \ reload plugins + source, rebuild p7c \ p-7-r, re-open
+external.self, first connections re-pin under `servers/` ; then a kimi
+test-only task against the live wire.
+
 **decided 2026-10-06** [ user ] : folded into the link-upgrade server
 proof as ONE wire change, NO backwards compatibility. spec :
 `data/md/design/AUTH-LINK-BINDING.md` [ incl. a live MITM that RELAYS the
@@ -53,8 +61,8 @@ also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
   bin/p7-auth-keypair-helper.pl, p-7-r, link-upgrade helper -- grep again
   before scoping [ [[feedback-security-fix-verify-both-code-paths-not-just-symptom]] ]
 
-#,,.,,.,.,,.,,,..,,,,,.,.,...,.,,,.,.,.,,,...,..,,...,...,,..,..,,,..,,..,..,,
-#KODY6QJCUWMYOYT3K2YNXF3KCBZXSU7QRSNCI4JMDXJGHUFYDLLP6K5IUQ7EIURYOUGRMJ4NPNYCU
-#\\\|7HHIBDVY2EOV7VFAGKN2GKJJY7II6EDV65DHXZD5Q2GFWOA75XC \ / AMOS7 \ YOURUM ::
-#\[7]NROUURSVDXWE2C6F6HSDMJCCDQR2ECOGEHHXD3PS5QBB2QZ222DA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,,.,,,,,,,.,,.,,,,.,.,.,,,.,..,,...,...,.,.,..,,.,.,,,,,..,,
+#RNBXY2NGLRLEWJWLGFJJIQDHMQA2OBMNVUGXW25YEQBMOZURLBNBVGGB6BE6CDEBARFCOAPV46ZKU
+#\\\|RMTK5IUUFVXKXBS7TFW7N7WCGZMKFSZERBKUNVMAZIRWHSTPKTA \ / AMOS7 \ YOURUM ::
+#\[7]OWV56EO2M6NRPAIY7YEKERNNFPICVVJS2POSRA7KKVEAF6MAOCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
