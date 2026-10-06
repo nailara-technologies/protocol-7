@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = crypt.C25519.root_key_dir
+# descr  = <backend key dir>/root : the root-held key directory
+# return = path [ for listing ; key files resolve via crypt.C25519.
+#          key_path ], undef without a backend user \ home
+#
+# <backend key dir> = <home of system.amos-zenka-user>/.n/user-keys --
+# the SAME tree whichever user the process runs as
+
+my $backend_user = <system.amos-zenka-user>;
+
+return undef
+    if not defined $backend_user
+    or not length $backend_user;
+
+my $home_dir = <[base.get_homedir]>->($backend_user);
+
+return undef if not defined $home_dir or not length $home_dir;
+
+return catfile( $home_dir, qw| .n user-keys root | );
+
+#,,,,,.,.,,,.,,,,,,.,,,.,,.,.,,,,,,,.,.,,,.,.,..,,...,.,.,.,,,.,.,.,,,...,.,,,
+#JRB5YZH7HLNS45YTRFATFK4D3PLQNI2DEGUQQP5XJMOIPBIOWDZU7J7FPBZP3DGXVEDQSQQ4EONVC
+#\\\|XVV4Q2N7F4P6QP2WMUCR5WANYVS3GE3KKEMWT4NDKRGUIVEBZHM \ / AMOS7 \ YOURUM ::
+#\[7]Z56PXHHSA34E23JHWXA4QPANDGS46GM4C3CL25AFLZLQMFP6PGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

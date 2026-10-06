@@ -2,12 +2,14 @@
 
 # name = crypt.C25519.key_vars
 
-my $key_name = shift;
+my $key_name     = shift;
+my $key_path_opt = shift;    ## optional : { holder => 'root' } ##
 
 <crypt.C25519.key_vars_error> //= TRUE;
 
 return <crypt.C25519.key_vars>
     if defined <crypt.C25519.key_vars>
+    and not defined $key_path_opt
     and (
     not defined $key_name
     or ( defined <crypt.C25519.base_key_name>
@@ -79,21 +81,24 @@ if ( not -d $key_dir ) {
     return undef;
 }
 
-my $key_file_ext;
-my $key_filename;
-my $key_basepath = catfile( $key_dir, $key_name );
+my $key_file_ext = { map { $ARG => $ARG } qw|  secret  private  public  | };
 
-foreach my $type (qw|  secret  private  public  virtual  |) {
-
-    if ( $type eq qw| virtual | ) {
-
-        $key_filename->{$type} = sprintf qw| %s:seed-phrase |, $key_basepath;
-
-    } else {
-        $key_file_ext->{$type} = $type;
-        $key_filename->{$type} = sprintf( qw| %s.%s |, $key_basepath, $type );
-    }
+## key file paths : ONLY from crypt.C25519.key_path [ user key dir or the   ##
+## root-held root/ ; a refused root-held key is NOT looked up elsewhere ]   ##
+## -- a path given instead of a name [ crypt.C25519.encrypted_key ] gets no ##
+## key file paths at all                                                    ##
+my $key_path_ref;
+my $holder = qw| user |;
+if ( index( $key_name, qw| / | ) == -1 ) {
+    $key_path_ref = <[crypt.C25519.key_path]>->( $key_name, $key_path_opt );
+    return undef if ref $key_path_ref ne qw| HASH |;    ## [ logged ] ##
+    $holder = $key_path_ref->{'holder'};
 }
+my $key_basepath = $key_path_ref->{'key_basepath'};
+my $key_filename = $key_path_ref->{'key_filename'};
+$key_dir = $key_path_ref->{'key_dir'} if $holder eq qw| root |;
+
+( $uid, $gid ) = ( 0, 0 ) if $holder eq qw| root |;    ## owner 0 ##
 
 my $key_vars_ref = {
     'uid'             => $uid,
@@ -101,6 +106,7 @@ my $key_vars_ref = {
     'usr_name'        => $key_usr,
     'usr_home'        => $home_dir,
     'key_dir'         => $key_dir,
+    'holder'          => $holder,
     'auth_dir'        => $auth_dir,
     'known_hosts_dir' => $known_hosts_dir,
     'incoming_dir'    => $incoming_dir,
@@ -111,15 +117,17 @@ my $key_vars_ref = {
 };
 
 <crypt.C25519.key_vars> = $key_vars_ref  ## updating key_vars when base key ##
-    if defined <crypt.C25519.base_key_name>
+    if not defined $key_path_opt
+    and $holder eq qw| user |
+    and defined <crypt.C25519.base_key_name>
     and <crypt.C25519.base_key_name> eq $key_name;
 
 <crypt.C25519.key_vars_error> = FALSE;
 
 return $key_vars_ref;
 
-#,,,.,.,,,,..,..,,..,,..,,.,,,..,,,,,,..,,,,,,..,,...,...,,..,...,,..,,..,,..,
-#27ZGNLDEZNN7HBRZLAULM73KOX5KJT7SWAJWK66KRXTGAC2FTSKQMA2JQUTC67UKP2NSK2GNXTSZE
-#\\\|NN6X7AOS7VNNZFVKHJ2AWBKRXVLHFOR6NHAFN5ZKSBASYPCGHLY \ / AMOS7 \ YOURUM ::
-#\[7]RPNZALZEE4W6T2DMIEP6GJJLO3FQRL5BBYPWARPGTA544GWRKADI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,.,,,.,,.,.,,,,,,,,,,,,,,,.,,,.,..,,...,..,,.,.,..,,,,.,,,.,,,.,
+#KOBJIJK36MZHCXF7ZPJD235DCE7WBA23MVXXR3FRFHJGRBNK6GHUFQNWMHZKBPDMPFBVFIXKSQEG2
+#\\\|MJ6FUW3LFAM5PVS3STS6WNMBCGTRDLHDSTUZIVIP5VU2453DBEE \ / AMOS7 \ YOURUM ::
+#\[7]U4EY3PP7R4PHD6CULM6AKSUN645KOK6JUQJR6JT2XFZUR543SOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,230 @@
+## [:< ##
+
+# name   = v7-zenki.delegation.issue
+# descr  = host-root delegates cube's S [ writes <backend key dir>/<S>.dlg ]
+# return = TRUE [ a valid delegation is in place ], FALSE [ logged why ]
+#
+# data/md/design/HOST-ROOT-DELEGATION.md [ 'delegation file' ] : v7-zenki
+# [ root ] signs the backend user's '<user>.base' public key [ S, read
+# from its PUBLIC file ] with host-root [ root-held, root/ ONLY ], name
+# '<system.hostname lowercased>.cube', 30 days, scope '' ; renewed when
+# fewer than 7 days remain -- and whenever the existing statement does
+# not verify for the CURRENT S under the CURRENT host-root [ S rotated,
+# host-root replaced, file damaged ].
+#
+# the .dlg lives in a directory the backend user owns : S is read and
+# the .dlg written AS the backend user [ effective uid \ gid switched
+# for just that ] -- root never follows a planted symlink there. the
+# file ends up owner backend user, mode 0644, written temp + rename.
+
+require Fcntl;
+
+my $lifetime = 30 * 86400;
+my $renew_at = 7 * 86400;
+my $now      = time;
+
+my $refuse = sub {
+    <[base.logs]>->( 0, ': delegation : %s', sprintf( shift, @ARG ) );
+    return FALSE;
+};
+
+if ( $EUID != 0 ) {
+    <[base.log]>->( 1, ': delegation : not running as root, skipped .,' );
+    return FALSE;
+}
+
+foreach my $sub (qw| trust.statement trust.verify trust.fingerprint |) {
+    return $refuse->( "module '%s' not loaded", $sub )
+        if ref $code{$sub} ne qw| CODE |;
+}
+
+my $backend_user = <system.amos-zenka-user>;
+return $refuse->('no backend user [ system.amos-zenka-user ]')
+    if not defined $backend_user
+    or not length $backend_user;
+( my $backend_uid, my $backend_gid ) = ( getpwnam($backend_user) )[ 2, 3 ];
+return $refuse->( "backend user '%s' not known", $backend_user )
+    if not defined $backend_uid;
+
+my $s_name   = sprintf qw| %s.base |, $backend_user;
+my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
+return $refuse->( "no delegation file path for '%s'", $s_name )
+    if not defined $dlg_file;
+
+## the delegated name : <system.hostname> lowercased [ decision 3 ] ##
+my $host_name = <system.hostname>;
+return $refuse->('<system.hostname> not set, nothing issued')
+    if not defined $host_name
+    or not length $host_name;
+my $name = sprintf qw| %s.cube |, lc $host_name;
+return $refuse->( "name '%s' not valid", $name )
+    if $name !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+
+## host-root : root-held ONLY [ never a same-named key in the user dir ] ##
+my $host_root_path = <[crypt.C25519.key_path]>->(qw| host-root |);
+return $refuse->('host-root is not root-held, nothing issued')
+    if ref $host_root_path ne qw| HASH |
+    or $host_root_path->{'holder'} ne qw| root |;
+
+my $loaded_here = FALSE;
+if ( not exists $keys{'C25519'}->{'host-root'} ) {
+    <[crypt.C25519.load_keypair]>->( qw| host-root |, undef, FALSE );
+    $loaded_here = TRUE;
+}
+my $host_root = $keys{'C25519'}->{'host-root'} // {};
+my $unload    = sub {
+    <[crypt.C25519.unload_key]>->( qw| host-root |, TRUE ) if $loaded_here;
+};
+if (   not defined $host_root->{'public'}
+    or length( $host_root->{'public'} ) != 32
+    or not defined $host_root->{'private'}
+    or length( $host_root->{'private'} ) != 64 ) {
+    $unload->();
+    return $refuse->('host-root not loaded');
+}
+my $issuer_pub  = $host_root->{'public'};
+my $fingerprint = <[trust.fingerprint]>->($issuer_pub);
+
+## run $work with the backend user's effective uid \ gid ##
+my $as_backend = sub {
+    my $work       = shift;
+    my $saved_egid = $EGID;
+    $EGID = sprintf '%d %d', $backend_gid, $backend_gid;
+    $EUID = $backend_uid;
+    my @result;
+    if ( $EUID == $backend_uid ) {
+        @result = eval { $work->() };
+        @result = ( undef, "failed : $EVAL_ERROR" ) if length $EVAL_ERROR;
+    } else {
+        @result = ( undef, 'cannot switch to the backend user' );
+    }
+    $EUID = 0;
+    $EGID = $saved_egid;
+    if ( $EUID != 0 ) {    ## [ untested : needs a real root run ] ##
+        <[base.log]>->( 0, ': delegation : CANNOT regain root' );
+        return ( undef, 'root not regained after the backend-user section' );
+    }
+    return @result;
+};
+
+## read a small file : never through a symlink, regular files only ##
+my $read_small = sub {
+    my ( $path, $max ) = @ARG;
+    my $fh;
+    sysopen( $fh, $path, Fcntl::O_RDONLY() | Fcntl::O_NOFOLLOW() )
+        or return ( undef, "$OS_ERROR" );
+    my @st = stat($fh);
+    return ( undef, 'not a regular file' )
+        if @st < 11
+        or not Fcntl::S_ISREG( $st[2] );
+    my $content = '';
+    my $got     = sysread( $fh, $content, $max + 1 );
+    close($fh);
+    return ( undef, "$OS_ERROR" ) if not defined $got;
+    return ( undef, 'too large' ) if $got > $max;
+    $content =~ s|\n\z||;
+    return ($content);
+};
+
+my ( $issued, $reason ) = $as_backend->(
+    sub {
+        ## S : the backend user's base key, PUBLIC file, user key dir ##
+        my $s_path = <[crypt.C25519.key_path]>->($s_name);
+        return ( undef, "no key path for '$s_name'" )
+            if ref $s_path ne qw| HASH |;
+        return ( undef, "'$s_name' is root-held, not delegated" )
+            if $s_path->{'holder'} ne qw| user |;
+        my ( $s_b32, $why )
+            = $read_small->( $s_path->{'key_filename'}->{'public'}, 128 );
+        return ( undef, "'$s_name' public key not readable [ $why ]" )
+            if not defined $s_b32;
+        return ( undef, "'$s_name' public key not valid" )
+            if $s_b32 !~ m|\A[A-Z2-7]{52}\z|;
+        my $s_pub = eval { Crypt::Misc::decode_b32r($s_b32) };
+        return ( undef, "'$s_name' public key not valid" )
+            if not defined $s_pub
+            or length($s_pub) != 32;
+
+        ## the existing statement : kept while valid and not due ##
+        my ($current) = $read_small->( $dlg_file, 4096 );
+        if ( defined $current ) {
+            my $valid = <[trust.verify]>->(
+                {   qw| chain |   => [$current],
+                    qw| anchors | => [$fingerprint],
+                    qw| subject | => $s_pub,
+                    qw| now |     => $now,
+                }
+            );
+            return ( TRUE, 'current' )
+                if ref $valid eq qw| HASH |
+                and $valid->{'name'} eq $name
+                and $valid->{'not_after'} - $now >= $renew_at;
+        }
+
+        my $statement = <[trust.statement]>->(
+            qw| build |,
+            {   qw| issuer_pub |  => $issuer_pub,
+                qw| subject_pub | => $s_pub,
+                qw| name |        => $name,
+                qw| not_before |  => $now,
+                qw| not_after |   => $now + $lifetime,
+                qw| scope |       => '',
+            }
+        );
+        return ( undef, 'statement not built' ) if not defined $statement;
+
+        ## signed with the host-root loaded above [ root-held, checked ] ##
+        my $sig = Crypt::Ed25519::sign( $statement, $issuer_pub,
+            $host_root->{'private'} );
+        return ( undef, 'statement not signed' )
+            if not defined $sig
+            or length($sig) != 64;
+        my $wire = <[trust.statement]>->( qw| wire |, $statement, $sig );
+        return ( undef, 'statement too long' ) if not defined $wire;
+
+        ## temp + rename, never through a planted name ##
+        my $tmp = sprintf qw| %s.%d.tmp |, $dlg_file, $PID;
+        my $fh;
+        sysopen(
+            $fh,
+            $tmp,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+                | Fcntl::O_NOFOLLOW(),
+            0644
+        ) or return ( undef, "cannot write $tmp [ $OS_ERROR ]" );
+        binmode($fh);
+        my $written = print {$fh} $wire, "\n";
+        chmod( 0644, $fh );
+        if ( not close($fh) or not $written ) {
+            unlink($tmp);
+            return ( undef, "cannot write $tmp" );
+        }
+        if ( not rename( $tmp, $dlg_file ) ) {
+            my $why = "$OS_ERROR";
+            unlink($tmp);
+            return ( undef, "cannot rename to $dlg_file [ $why ]" );
+        }
+        return ( TRUE, 'issued' );
+    }
+);
+
+$unload->();
+
+return $refuse->( '%s', $reason // 'failed' ) if not $issued;
+
+if ( $reason eq qw| issued | ) {
+    <[base.logs]>->(
+        1, ': delegation : %s -> %s [ %s, host-root %s ]',
+        $s_name, $name, $dlg_file, $fingerprint
+    );
+} else {
+    <[base.logs]>->( 2, ': delegation : %s current', $dlg_file );
+}
+
+return TRUE;
+
+#,,,,,..,,..,,.,.,..,,.,,,,,.,...,..,,.,,,.,,,..,,...,...,,..,...,.,,,,..,,,.,
+#PY7FZSDC4ITENRUW6USMACCCZH4Z7J3DAIBXXPYGFJSA5X5DNXL6TGPKN3L2Q7MCA4UUF7VN72QKE
+#\\\|TF2ZDIO3BYHWWFKPXD3H7FGL5CEE4D533CXUFESAM4YIEHDGO3D \ / AMOS7 \ YOURUM ::
+#\[7]5FYS6FDG4ANSGKVOJ4UXWY6MK4V4AJ5DIEMCQXN2YKF4HCF3SCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

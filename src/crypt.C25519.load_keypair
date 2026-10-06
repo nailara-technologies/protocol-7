@@ -10,6 +10,18 @@ my $test_key_chksum    = shift;             ##  optional  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
 
+## no key file paths [ refused root-held key, no key dir ] : not loaded ##
+if (   ref $key_vars_ref ne qw| HASH |
+    or ref $key_vars_ref->{'key_filename'} ne qw| HASH | ) {
+    <[base.logs]>->(
+        0,
+        "key pair '%s' : no usable key path, not loaded",
+        $name_param // '<base>'
+    );
+    return ( FALSE, undef ) if wantarray;
+    return FALSE;
+}
+
 my $key_dir      = $key_vars_ref->{'key_dir'};
 my $key_usr      = $key_vars_ref->{'usr_name'};
 my $name         = $key_vars_ref->{'key_name'};
@@ -392,8 +404,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,,,,...,,..,,..,..,,,.,,.,.,,,,,.,.,.,,,...,..,,...,..,,,,.,,.,,,,.,.,,,...,
-#RLOODIKAR7J2IJRD5PTQJZ5ZKDL4FHLZRCG6TWYEM3EWIDBWXU5ID2MZR47EX23P4RLMXKOUZ5PJQ
-#\\\|VGCHBUX5ZN3IAGQYDWMXTZKZJDXVDIGPEJ35H3UWTZWFG2334JR \ / AMOS7 \ YOURUM ::
-#\[7]BONTAT4XQUPF3RQA6QEF25DEBAT6SUBNWCA3DXF2A7PK2MYXX4DY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,,,,,...,...,.,,,,.,,,.,,...,..,,...,...,,.,,..,,,.,,.,.,,..,
+#U7U5IBAXQIGWDWRIUM6V6JZ3U2JGHNGOWWZYCO27JN7YCIEWU2ZIQCTUBEBISXSCPNLSQJ64Y3UOM
+#\\\|PG6LEOQQ6XKO235G6RU7MZ73O6XJHXWPTRMWEKV5CF6PSPIC67F \ / AMOS7 \ YOURUM ::
+#\[7]VYQOHSESTBQWJNE5Q2MU6KT5KOYU57EZRNTOGDGXBRO26ARPZEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
