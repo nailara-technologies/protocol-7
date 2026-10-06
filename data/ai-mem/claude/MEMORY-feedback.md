@@ -188,3 +188,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|FLXC5NG4HAVAGYPPKSS2JEWZCEHCOK6WALGPAKE5FSD6J3646BV \ / AMOS7 \ YOURUM ::
 #\[7]X3FVGKZNAERMRJR3FLB3AKTOFY36IQFXHKSICQUTNQ7G57F53KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [release-version-tag-explicit](feedback-release-version-tag-explicit.md) — `bin/dev/release-version -s` without an argument recalculates [ time-dependent ] instead of reading rel-ver ; tag with `-s AMOS7-v<x.y.z>` from the committed file, check `git tag --points-at HEAD` before pushing [ 2026-10-06 : tagged v6.13.8 instead of v6.13.5, fixed locally ]
+
+#,,,,,,.,,..,,.,,,.,,,,,,,,,.,..,,.,,,,,.,,,,,..,,...,...,,.,,,,.,,,.,,.,,.,.,
+#JWPM4WTACDRCPA26QA3XMWVGOPA7FDH3OG3W3XJKG7PYEJCWGHCNSVKEXXIDNWI2W76MUMP4GM354
+#\\\|SZMYIXHM7WK7XKNN27HGTGPIV5QHGFHZXJWWMRSN46YQJOSQ2UA \ / AMOS7 \ YOURUM ::
+#\[7]CI2YL5CF2FZZJWNVIV2XSUW76WPKADCRPXFI25FWROQNAFKZTQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
