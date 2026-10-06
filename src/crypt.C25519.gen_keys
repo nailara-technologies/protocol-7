@@ -47,6 +47,7 @@ if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
 ## embedded systems. never hangs, never fails : without /dev/random the  ##
 ## fortuna part alone is used [ logged ]                                 ##
 my $fresh_secret = sub {
+    <[base.prng.add_entropy]>->($name);    ## fresh input for this key ##
     my $kernel = '';
     if ( open( my $fh, '<:raw', '/dev/random' ) ) {
         require IO::Select;
@@ -110,8 +111,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,,,,.,,,,.,,.,,,,.,...,.,.,,,,,.,.,..,,,,,,..,,...,...,,,.,.,,,,,,,,,.,.,.,
-#OR3LMOUAC3JXT4EUI2Q76XDZAZJLOVSRWJM76HY7LLXGHSUYG6AYPY4MKMBPADDYMO6RQUAXRJXT2
-#\\\|QLVZ5SAVURFOR6HX6H4C6Q3DU7CIGQ3CO3LSHOCATJJNV4PQNWW \ / AMOS7 \ YOURUM ::
-#\[7]VM72NZNL3RAUCZEBYW4IDHCR37W5F43CNFAEVGLRQDIUSN7E7GAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,...,,..,,.,,...,,..,..,,...,..,,...,...,...,,,,,..,,...,,.,,
+#7MHZUC4U46FATZ7ACWY2FSM6C7H6HKWX2KP65RF7VVZDV527OPVF5H65NEV3FEG7AJ6A5OBD3QFU4
+#\\\|2CAWTBQ2S62WMOLM4I6YFL7THXE37X2GZCOAIICTDZOZ7DWRYP2 \ / AMOS7 \ YOURUM ::
+#\[7]BVHYF2D5MCC3HTLUUTLKVCU263GUI6F6XQ37QX2DFYU6V4D22WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

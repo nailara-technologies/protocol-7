@@ -71,9 +71,16 @@ $code{'base.ntime'} = sub { return '3225760654008' };
 ## leave the loop at once ##
 $code{'base.assert.harmony'} = sub { return 1 };
 $code{'base.sleep'}          = sub {return};
+my @complaints;
+$code{'base.s_warn'}
+    = sub { push @complaints, sprintf( shift, @ARG ); return };
+$code{'base.caller'} = sub { return '[ test ]' };
+$code{'base.time'}
+    = sub { require Time::HiRes; return sprintf '%.9f', Time::HiRes::time() };
 
 compile_module('base.prng.entropy_pool');
 compile_module('base.prng.reseed');
+compile_module('base.prng.add_entropy');
 
 my @warnings;
 local $SIG{__WARN__} = sub { push @warnings, @ARG };
@@ -109,6 +116,37 @@ my $stream_b = $data{'base'}{'prng'}{'fortuna'}->bytes_hex(32);
 ok( $stream_a ne $stream_b,
     'same PID + same time, two reseeds : different streams' );
 
+say ': add_entropy';
+
+my $before = $data{'base'}{'prng'}{'fortuna'};
+ok( ( $code{'base.prng.add_entropy'}->('test-data') // 0 ) == TRUE
+        && length( $before->bytes(32) ) == 32,
+    'add_entropy on a live prng : TRUE, prng keeps producing'
+);
+ok( !@complaints, 'add_entropy with data : no complaint' );
+{
+    local $data{'base'}{'prng'}{'fortuna'} = undef;
+    ok( ( $code{'base.prng.add_entropy'}->('x') // 1 ) == FALSE,
+        'add_entropy without a prng yet : FALSE, no die'
+    );
+}
+@complaints = ();
+$code{'base.prng.add_entropy'}->($ARG) for ( undef, '' );
+ok( scalar(@complaints) == 2
+        && !grep( { !m{no entropy data given} } @complaints ),
+    'add_entropy complains for undef and for empty data'
+);
+
+## additive : the same OS-seeded start, entropy added to one of them ##
+{
+    my $x = Crypt::PRNG::Fortuna->new('fixed');
+    my $y = Crypt::PRNG::Fortuna->new('fixed');
+    local $data{'base'}{'prng'}{'fortuna'} = $y;
+    $code{'base.prng.add_entropy'}->('more');
+    ok( $x->bytes_hex(16) ne $y->bytes_hex(16),
+        'add_entropy changes the stream [ additive reseed ]' );
+}
+
 ## the pre-fix behaviour, for contrast : a bare seed is deterministic ##
 ok( Crypt::PRNG::Fortuna->new('3225760654008')->bytes_hex(16) eq
         Crypt::PRNG::Fortuna->new('3225760654008')->bytes_hex(16),
@@ -123,8 +161,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,..,,,,,..,,,,.,,,.,..,,..,,.,.,.,,,...,..,,...,...,...,,,.,...,...,...,
-#6ESKFLX4DGQ5RUCZKYYF22A76O67Y6RAM3NIOQVTKUVXZQMZYREBMO6TPSLE7GJE7NTD3ACAJSB5Q
-#\\\|6RUVYFG6ONVGUYHXMCACAIRR2ASILG577CIZUMUIOEIQBF3UJAR \ / AMOS7 \ YOURUM ::
-#\[7]NON6Q26LQYFKCYD6BMWYXYYRVBGYQWHWRWET3QWAH2AYHEK4NMBI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,.,,,,,.,.,.,.,.,.,,,.,.,..,,..,,...,...,,,,,,,,,,..,,,,,,..,
+#TUBKCLTAFNRKHZOVU33EBJRJZDYHQ4AVREIL247EVACZXJDUR2SG5YHS3L6CJ2KMBDYZDSHEXG2KS
+#\\\|NXWSZIMVOUDU3BUI4CRYWJNK2NBGDKDNUS5IILXTKAJWMK3YPHP \ / AMOS7 \ YOURUM ::
+#\[7]W5A6P65BPSN6NOLMA5WSMAWLQJRUZ2BGJYE6FTZJYKIEUHZ6RKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
