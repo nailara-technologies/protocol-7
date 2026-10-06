@@ -1,0 +1,108 @@
+## [:< ##
+
+# name   = crypt.C25519.host_root.create
+# descr  = create this host's 'host-root' key in root/ [ v7-zenki, as root ]
+# return = TRUE [ present or created ], FALSE [ skipped \ refused, logged ]
+#
+# data/md/design/HOST-ROOT-DELEGATION.md [ decisions 5 + 6, 'root-held
+# keys' ] : independent of crypt.C25519.auto_load_keys ; only when the
+# zenka is v7-zenki AND running as root [ else level 1 log, skip ].
+# root/ is created mkdir 0700 + owner 0:0 ; an existing root/ or key
+# file breaking the ownership rule is REFUSED [ never replaced ].
+
+require Fcntl;
+
+<crypt.C25519.cfg.create_host_root_key> //= TRUE;   ##[ enabled by default ]##
+
+return FALSE if not <crypt.C25519.cfg.create_host_root_key>;
+return FALSE if ( <system.zenka.name> // '' ) ne qw| v7-zenki |;
+
+if ( $EUID != 0 ) {
+    <[base.log]>->( 1, ": host-root : not running as root, skipped .," );
+    return FALSE;
+}
+
+my $root_dir = <[crypt.C25519.root_key_dir]>;
+if ( not defined $root_dir ) {
+    <[base.log]>->( 0, ': host-root : no backend key directory, skipped' );
+    return FALSE;
+}
+
+## the backend key dir itself [ created owned by the backend user ] ##
+return FALSE if not defined <[crypt.C25519.chk_key_dir]>;
+
+## root/ : created here, never adopted when it is anything else ##
+my @dir_st = lstat($root_dir);
+if ( not @dir_st ) {
+    if ( not $OS_ERROR{'ENOENT'} ) {
+        <[base.logs]>->(
+            0,           ': host-root ' . ': %s [ %s ]',
+            "$OS_ERROR", $root_dir
+        );
+        return FALSE;
+    }
+    <[base.logs]>->( 1, ": creating root key directory '%s' ..", $root_dir );
+    if ( not mkdir( $root_dir, 0700 ) ) {
+        <[base.logs]>->(
+            0,         ': host-root : cannot create %s [ %s ]',
+            $root_dir, "$OS_ERROR"
+        );
+        return FALSE;
+    }
+    ## owner + mode set on the opened directory, not by path ##
+    my $dir_fh;
+    if (not sysopen( $dir_fh, $root_dir,
+            Fcntl::O_RDONLY() | Fcntl::O_DIRECTORY() | Fcntl::O_NOFOLLOW() )
+        or not chown( 0, 0, $dir_fh )
+        or not chmod( 0700, $dir_fh )
+    ) {
+        <[base.logs]>->(
+            0,         ': host-root : cannot secure %s [ %s ]',
+            $root_dir, "$OS_ERROR"
+        );
+        return FALSE;
+    }
+    close($dir_fh);
+}
+
+## the ownership rule [ checked by the resolver, on every call ] ##
+my $key_path_ref
+    = <[crypt.C25519.key_path]>
+    ->( qw| host-root |, { qw| holder | => 'root' } );
+if ( ref $key_path_ref ne qw| HASH | ) {
+    <[base.log]>->( 0, ': host-root : root key directory REFUSED, skipped' );
+    return FALSE;
+}
+
+foreach my $type (qw| public secret |) {
+    my @st = lstat( $key_path_ref->{'key_filename'}->{$type} );
+    return TRUE if @st;    ## present [ rule checked above ] ##
+}
+
+if ( not exists $keys{'C25519'}->{'host-root'} ) {
+    <[base.log]>->( 1, "creating 'host-root' C25519 key [ random ] .," );
+    <[crypt.C25519.gen_keys]>->(qw| host-root |);
+}
+if ( not exists $keys{'C25519'}->{'host-root'} ) {
+    <[base.log]>->( 0, ': host-root : key generation failed' );
+    return FALSE;
+}
+
+<[base.log]>->( 1, "writing 'host-root' key to root/ .," );
+my $written = <[crypt.C25519.write_keys]>->(
+    qw| host-root |,
+    undef, TRUE, { qw| holder | => 'root' }
+);
+
+if ( not $written ) {
+    <[base.log]>->( 0, ': host-root : writing the key failed' );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,,,,,,,,.,,,.,.,..,,.,,,...,..,,,,.,..,,,.,,..,,...,...,.,.,.,.,.,,,.,,,.,,,
+#24EFZVK4VDESU7EY7FZXORRBGI73D7HWBABENF7HWZN64SZ674BWZRSRQHQTAS3VHSELOLZRTSVEQ
+#\\\|3A26ZT36C65PFRK4DMV4M6Z6SQXW2QZRBCVDUOJFV74PEICDHRT \ / AMOS7 \ YOURUM ::
+#\[7]HUYP6EKOXFO3M372KB7CGDRJYG5CQDGZ7EL7TA6SG5MA7W44IODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,33 +16,41 @@ if ( not defined $re_kfiles ) {
     return undef;
 }
 
-state $key_dir //= <[crypt.C25519.get_usr_keys_dir]>;    ##[ once ]##
-return undef if not -r $key_dir;    ## warned in 'get_usr_keys_dir' ##
-
-if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
-
-    my $key_found = grep { $ARG eq $name }    ##  match for key name  ##
-        grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
-
-    return $key_found ? TRUE : FALSE;
-
+## the key file paths come from crypt.C25519.key_path [ user key dir or  ##
+## root-held root/ -- a refused root-held key is undef, never 'absent' ] ##
+my ( $key_name, $file_type );
+if ( $name =~ m|\A(.+?)$re_kfiles\z| ) {    ## key filename syntax ##
+    $key_name  = ${^CAPTURE}[0];
+    $file_type = ${^CAPTURE}[1];
+    $file_type =~ s|^[.:]||;
+    $file_type = qw| virtual | if $file_type eq qw| seed-phrase |;
 } else {    ## key name syntax ##
-
-    my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
-
-    my @keys_found = grep {m|$match_re|}    ##  match for key name  ##
-        grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
-
-    ## key is virtual [ returning 4 ] ##
-    return 4 if @keys_found == 1 and $keys_found[0] =~ m|:seed-phrase$|;
-
-    return TRUE if scalar @keys_found;      ##  true \ key found  ##
-
-    return FALSE;    ##  key with that name not present  ##
+    $key_name = $name;
 }
 
-#,,,,,..,,,,.,,..,,,.,.,.,,..,,,.,,.,,..,,..,,..,,...,...,.,,,,.,,,.,,.,,,..,,
-#IZBGNRK2S6VC3RGRIUMNCGQKVZQ2HVPHE6XGG46MOXG4PILHJYNLBIHTUI57MZ232YXFIRFB2MOCY
-#\\\|5M4Q62XFKFQFIUH6LKOV25VVDCU4YBJHPWGSCWCXLAZL3G5XZW3 \ / AMOS7 \ YOURUM ::
-#\[7]WAUEL7FOHQZWWO34JNOPFOQ4KJZ3IVJPNZLUZ6QOXBOHXLBTCOAA 7  DATA SIGNATURE ::
+my $key_path_ref = <[crypt.C25519.key_path]>->($key_name);
+return undef if ref $key_path_ref ne qw| HASH |;    ## [ logged ] ##
+return undef
+    if $key_path_ref->{'holder'} eq qw| user |
+    and not -r $key_path_ref->{'key_dir'};
+
+my $key_filename = $key_path_ref->{'key_filename'};
+my $present      = sub { my @st = lstat( $key_filename->{ shift() } ); @st };
+
+return $present->($file_type) ? TRUE : FALSE if defined $file_type;
+
+my @found
+    = grep { $present->($ARG) } qw|  secret  private  public  virtual  |;
+
+## key is virtual [ returning 4 ] ##
+return 4 if @found == 1 and $found[0] eq qw| virtual |;
+
+return TRUE if @found;    ##  true \ key found  ##
+
+return FALSE;             ##  key with that name not present  ##
+
+#,,,.,.,,,.,,,,,.,,.,,,.,,,,,,...,,,,,,,,,,,,,..,,...,...,.,.,.,.,,,.,,,.,...,
+#IKVGF6SQDUVSEZ7GENILQNMZ5X5DLMGHDWJVWONEENPO7TV6Q2DDZDCLF5LKUNXJAAGYM4COO3HCC
+#\\\|DJLW6NGCQ6BVAAYDQRGNKSUXBBZBT4P2PIJ6VJMLF3VMFB5LOXI \ / AMOS7 \ YOURUM ::
+#\[7]TLVKTKF4ZBXGZ3ECQL55E5F3X5V5BUB2VPUV6UB4VCHN7R3MSUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

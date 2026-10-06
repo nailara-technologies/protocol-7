@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = crypt.C25519.cmd.host-root-fingerprint
+# descr = host-root fingerprint [ 77 chars, from the .dlg ]
+#
+# the fingerprint clients pin [ data/md/design/HOST-ROOT-DELEGATION.md ],
+# for an out of band comparison. read from the delegation statement
+# [ cube cannot read root/ ] ; the statement must parse and carry a valid
+# signature by the host-root it names.
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $s_name   = ref $key_vars eq qw| HASH | ? $key_vars->{'key_name'} : undef;
+
+my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
+
+return $false->('trust modules not loaded')
+    if ref $code{'trust.statement'} ne qw| CODE |
+    or ref $code{'trust.fingerprint'} ne qw| CODE |;
+
+my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
+return $false->('no delegation file path') if not defined $dlg_file;
+
+open( my $dlg_fh, '<:raw', $dlg_file )
+    or return $false->("no delegation [ $OS_ERROR ]");
+my $got = read( $dlg_fh, my $dlg_wire, 2050 );
+close($dlg_fh);
+return $false->('delegation not readable') if not defined $got;
+$dlg_wire =~ s|\n\z||;
+
+my ( $st, $why ) = <[trust.statement]>->( qw| parse_wire |, $dlg_wire );
+return $false->("delegation not valid [ $why ]") if not defined $st;
+
+return $false->('delegation signature not valid')
+    if not Crypt::Ed25519::verify( $st->{'statement'}, $st->{'issuer_pub'},
+    $st->{'sig'} );
+
+my $fingerprint = <[trust.fingerprint]>->( $st->{'issuer_pub'} );
+return $false->('no fingerprint') if not defined $fingerprint;
+
+return { 'mode' => qw| true |, 'data' => $fingerprint };
+
+#,,,,,..,,..,,,,.,,,,,,.,,,,.,,,,,...,,,,,,.,,..,,...,...,...,.,,,.,,,,..,...,
+#NLMTGJTLNEGTR6XGUDFVSRX77GSWWJHWMSVVYNKXRRT3LA5EQPXENTXTBB5PRGCSCTUO5HHWMEMRA
+#\\\|7NOCX2QQBB2ODUKGJCGPLJQMRQGXM3N4U23ZOTNFCCOX5VFXIBR \ / AMOS7 \ YOURUM ::
+#\[7]APFNCTAIN3AQM7E2YTOSDPADEE3DJVVRQSDEDUNOYI7NLOSGROBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

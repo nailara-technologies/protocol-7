@@ -1,16 +1,24 @@
 ## [:< ##
 
 # name   = auth.client.server_pin.check
-# descr  = pin \ check a server's announced Ed25519 key [ client TOFU ]
-# param  = <host> <port> <server_pub [ raw 32 bytes ]>
-# return = TRUE [ pinned now or matches the pin ], FALSE [ refuse ]
+# descr  = verify a server's host-root delegation + pin the host-root
+#          fingerprint [ client TOFU, data/md/design/HOST-ROOT-
+#          DELEGATION.md ]
+# param  = <host> <port> <server_pub [ raw 32 bytes ]> <delegation [ b32 ]>
+# return = TRUE [ delegation verified : pinned now or matches the pin ],
+#          FALSE [ refuse ]
 #
-# pin file : ~/.n/remote-keys/servers/<host>_<port>.public [ S_pub b32 ].
-# first contact pins it [ log level 0 'pinned server key <b32>' ] ; a
-# later mismatch is refused and NEVER re-pinned automatically. a pin file
-# that exists but cannot be read or does not hold a valid key : refused.
+# pin file : ~/.n/remote-keys/servers/<host>_<port>.public, content
+# exactly '<77 char host-root fingerprint>\n' [ shared with the C
+# client ]. the delegation must verify [ trust.verify : sig, time, the
+# subject == the announced S, name, scope ] under the pinned host-root ;
+# S itself may rotate. first contact verifies under the statement's own
+# issuer and only THEN pins it [ log level 0 'pinned host-root <fp>
+# [ <name> ]' ]. a later different host-root is refused and NEVER
+# re-pinned automatically ; a pin file that cannot be read or does not
+# hold a fingerprint [ an old 52 char S pin included ] : refused.
 
-my ( $host, $port, $server_pub ) = @ARG;
+my ( $host, $port, $server_pub, $delegation ) = @ARG;
 
 my $refuse = sub {
     <[base.logs]>->( 0, '[#] server key pin : %s', shift );
@@ -35,7 +43,29 @@ return $refuse->('server key is not 32 bytes')
     if not defined $server_pub
     or length($server_pub) != 32;
 
-my $server_pub_b32 = Crypt::Misc::encode_b32r($server_pub);
+foreach my $sub (qw| trust.statement trust.verify trust.fingerprint |) {
+    return $refuse->("module $sub not loaded")
+        if ref $code{$sub} ne qw| CODE |;
+}
+
+## the statement's own issuer [ verified below, before anything is kept ] ##
+my ( $statement, $parse_err )
+    = <[trust.statement]>->( qw| parse_wire |, $delegation );
+return $refuse->( 'delegation not valid [ ' . ( $parse_err // '?' ) . ' ]' )
+    if not defined $statement;
+my $issuer_fp = <[trust.fingerprint]>->( $statement->{'issuer_pub'} );
+return $refuse->('delegation issuer not valid') if not defined $issuer_fp;
+
+my $verify = sub {    ## ( result ) or ( undef, reason ) ##
+    my $anchor = shift;
+    return <[trust.verify]>->(
+        {   qw| chain |   => [$delegation],
+            qw| anchors | => [$anchor],
+            qw| subject | => $server_pub,
+            qw| now |     => time,
+        }
+    );
+};
 
 my $home_dir = <[base.get_homedir]>->();
 return $refuse->('no home directory')
@@ -57,21 +87,32 @@ my $compare = sub {
     close($pin_fh);
     $pinned //= '';
     $pinned =~ s{\s+\z}{};
+    return $refuse->(
+        "pin file holds an old server key pin, never migrated [ $pin_path ]")
+        if $pinned =~ m|\A[A-Z2-7]{52}\z|;
     return $refuse->("pin file not valid [ $pin_path ]")
-        if $pinned !~ m|\A[A-Z2-7]{52}\z|;
-    if ( $pinned ne $server_pub_b32 ) {
+        if $pinned !~ m|\A[A-Z2-7]{77}\z|;
+    if ( $pinned ne $issuer_fp ) {
         <[base.logs]>->(
-            0, '[#] server key MISMATCH for %s:%d [ pinned %s, got %s ]',
-            $host, $port, $pinned, $server_pub_b32
+            0, '[#] host-root MISMATCH for %s:%d [ pinned %s, got %s ]',
+            $host, $port, $pinned, $issuer_fp
         );
         return FALSE;
     }
+    my ( $valid, $why ) = $verify->($pinned);
+    return $refuse->( 'delegation refused [ ' . ( $why // '?' ) . ' ]' )
+        if ref $valid ne qw| HASH |;
     return TRUE;
 };
 
 return $compare->() if -e $pin_path or -l $pin_path;
 
-## first contact : create the pin [ exclusive, 0600 ] ##
+## first contact : the delegation must verify BEFORE anything is pinned ##
+my ( $valid, $why ) = $verify->($issuer_fp);
+return $refuse->( 'delegation refused [ ' . ( $why // '?' ) . ' ]' )
+    if ref $valid ne qw| HASH |;
+
+## create the pin [ exclusive, 0600 ] ##
 foreach my $dir ( join( qw| / |, $home_dir, qw| .n | ),
     join( qw| / |, $home_dir, qw| .n remote-keys | ), $pin_dir ) {
     next if -d $dir;
@@ -91,21 +132,21 @@ if (not sysopen(
     return $compare->() if -e $pin_path;
     return $refuse->("cannot write pin $pin_path : $OS_ERROR");
 }
-my $written = print {$pin_fh} $server_pub_b32, "\n";
+my $written = print {$pin_fh} $issuer_fp, "\n";
 if ( not close($pin_fh) or not $written ) {
     unlink($pin_path);
     return $refuse->("cannot write pin $pin_path");
 }
 
 <[base.logs]>->(
-    0, '[*] pinned server key %s [ %s:%d ]',
-    $server_pub_b32, $host, $port
+    0, '[*] pinned host-root %s [ %s ] [ %s:%d ]',
+    $issuer_fp, $valid->{'name'}, $host, $port
 );
 
 return TRUE;
 
-#,,,,,...,...,,.,,.,.,.,,,,,.,,..,,,,,.,,,,.,,..,,...,...,..,,,,,,..,,,..,.,,,
-#MDGLKBGIDCPBUSIQVX3A6PGCFFJ3NF33ALE5VWDZFKHJUUYQYLDVG534J73H75RZC3B7WRVA2Z6AM
-#\\\|EZTICTQQUI7LFMWKEKKBQEIJ6ZRN4AMD5Z7QH66DNAMDTQU7RA7 \ / AMOS7 \ YOURUM ::
-#\[7]T7KK5ETJAIK27H7ENUJLGPDMKMLGIMIOIWGG4PR63HHEEFRFUIDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,.,,,,,.,,,,,..,,,.,,,..,.,.,..,,...,...,..,,..,,.,.,,..,...,
+#PBWLR3I6PLNPGPADZDTEBDOLKXFJ4C5RGSYF3MERFKGHAW37Z6ZCCDF7BCJKBZKJDB4FYTUY7HR66
+#\\\|LGVA6AFQOXKE67WNUGOG3TW3N3WTS2BXJ5VNUZXJIYYFPS43PF6 \ / AMOS7 \ YOURUM ::
+#\[7]O2HEULH65G3I45OLNNQA246DZCE6URSXGVFUJFWATXGYZXPUWADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

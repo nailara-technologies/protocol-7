@@ -21,6 +21,18 @@ foreach my $type ( grep { !m[^(secret|private|public)$] } @del_types ) {
 
 @del_types = uniq @del_types;
 
+## root-held key : only root may operate on it [ host-root delegation ] ##
+my $key_path_ref = <[crypt.C25519.key_path]>->($name);
+if ( not defined $key_path_ref ) {
+    printf "\n  << key '%s' : key path not resolvable, see log >>\n\n", $name;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_path_ref->{'holder'} eq qw| root |
+    and $EFFECTIVE_USER_ID != 0 ) {
+    printf "\n  << key '%s' is root-held : "
+        . "refused, not running as root >>\n\n", $name;
+    <[base.exit]>->(qw| 0020 |);
+}
+
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 
 my $keys_re = <keys.regex>;
@@ -33,8 +45,19 @@ my $shred_bin = <keys.bin_path.shred>;
 
 my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
 
-## warns when absent ##
-my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
+## root-held : list the root key dir itself, keys.get_keyfiles only knows ##
+## the user key files                                                     ##
+my @k_files;
+if ( $key_path_ref->{'holder'} eq qw| root | ) {
+    opendir( my $key_dir_fh, $key_dir )
+        or die sprintf( "<< %s : opendir [ %s ] >>\n",
+        <[base.str.os_err]>, $key_dir );
+    @k_files = grep { -f catfile( $key_dir, $ARG ) } readdir($key_dir_fh);
+    closedir($key_dir_fh);
+} else {
+    ## warns when absent ##
+    @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
+}
 
 ##  filter for name  ##
 @k_files = grep {m|$match_re|} @k_files;
@@ -94,8 +117,8 @@ foreach my $file_name (@del_file_paths) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,,.,,,,.,.,,,...,...,.,,,.,.,,,.,,.,,...,..,,...,...,.,.,,..,,,.,...,..,,
-#UCI5G25KUFECRNJEAYSYF45EXYEQOCXEU3YIK75K2FRSAVAO2YG6UUUA5U6OAKO6ALIOTTIIPIOBC
-#\\\|K22F6ZW2NLBSXPX5MJBKUP5SIJRZ7KSPOEEZ7XGW4S4QOLYACEH \ / AMOS7 \ YOURUM ::
-#\[7]5YR6NKN2LYBXY6BHIWVWBEYUEML3G3RZEZ6PWH5LPFB3Z4L4OGBY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,,..,.,,,..,,,.,,.,.,..,,,,,,..,,...,.,.,.,.,.,,,,,.,..,,.,,,
+#2YUDQ36MELLN7QRVB7XPTBK3MOPPK5PP5XZVNHKQPXLK4NIXWMS2B27DVFALKNHZKHGTF6DLXKHAO
+#\\\|LHBI3EURATEU2WBJGRKZN4CJJPOGC6PJI5DKUUPXP6BFBAACHY3 \ / AMOS7 \ YOURUM ::
+#\[7]5IE3MIVFDF3ILBCCZ444XNW5JPHEYTI2RHR7PR6TOVKKHYEYXEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

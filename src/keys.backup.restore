@@ -19,6 +19,21 @@ if ( $type !~ m{^(secret|private|public)$} ) {
     return undef;
 }
 
+## root-held key : only root may touch its files [ host-root delegation ] ##
+## the resolved key dir is root/ then, backups stay inside it [ rename    ##
+## keeps owner 0 + modes ]                                                ##
+my $key_path_ref = <[crypt.C25519.key_path]>->($key_name);
+if ( not defined $key_path_ref ) {
+    <[base.logs]>->( 0, "key path of '%s' not resolvable", $key_name );
+    return undef;
+} elsif ( $key_path_ref->{'holder'} eq qw| root |
+    and $EFFECTIVE_USER_ID != 0 ) {
+    <[base.logs]>->(
+        0, "key '%s' is root-held : refused, not running as root", $key_name
+    );
+    return undef;
+}
+
 my $backups  = <[keys.backup.list]>->($key_name);
 my @matching = grep { $ARG->{'type'} eq $type } @$backups;
 
@@ -43,6 +58,19 @@ if ( length( $backup_sel // '' ) ) {
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
 my $live_path    = $key_vars_ref->{'key_filename'}{$type};
 
+## a backup restores only inside the directory of its key's holder : a      ##
+## cross-directory rename would put a backend-user-owned file into root/ or ##
+## move a root file out of it                                               ##
+( my $backup_dir = $chosen->{'path'} ) =~ s|/[^/]+$||;
+( my $live_dir   = $live_path )        =~ s|/[^/]+$||;
+if ( $backup_dir ne $live_dir ) {
+    <[base.logs]>->(
+        0, 'backup %s is not in the key directory %s, restore refused',
+        $chosen->{'path'}, $live_dir
+    );
+    return undef;
+}
+
 ## back up the current live file first [ recursive safety ] ##
 if ( -f $live_path ) {
     my $pre_restore_backup = <[keys.backup.create]>->( $key_name, [$type] );
@@ -64,8 +92,8 @@ if ( not rename( $chosen->{'path'}, $live_path ) ) {
 
 return $live_path;
 
-#,,..,...,,.,,.,.,,,.,..,,.,,,.,.,,.,,...,..,,..,,...,...,,,.,,..,,.,,,.,,...,
-#SF52UN5JV47KWJE3U2T4QEXAX3HA65JW6I2F4EO47WSBEBMONVW7RXYZUH3KAX3YVKEKH6HUABXRM
-#\\\|RCD62HYO6OCO6DOTSQV46J46AYXYVMEZAETC4534LZZE7GA4WML \ / AMOS7 \ YOURUM ::
-#\[7]KFQLZVV2Q57CUYMUMX7ZFBRBA7PJV277QSWCZ4PFWFGF5TRKDABI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,,.,,,,.,..,,...,...,...,...,..,,...,..,,...,,,.,,,.,.,,,...,
+#JMJUWD2H4Y2AMXJE4E2K2U3DMXKT64H76C7EOEIF4MCXPMCUEJHFBUOTBW4H6C2EWD4OPYL57RJYK
+#\\\|LGNLT6QWFFRZZUXPWECTOCQDWXE6CHYNGH7NW26VFQSK6T6ELSE \ / AMOS7 \ YOURUM ::
+#\[7]JKF3TLIN5RCMQMKH2SCIDQPLEOWSQSUPRH3SAQ6F5QK6TRGKPEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = v7-zenki.delegation.startup
+# descr = issue the S delegation now, then daily [ + retries until the
+#         first success : on a fresh host cube writes S after v7-zenki ]
+# note  = called from cfg/zenki/v7-zenki/zenka.v7 after [init-done] --
+#         NOT from init_code [ data/md/design/HOST-ROOT-DELEGATION.md,
+#         'delegation file' ]
+
+foreach my $timer_key (qw| timer retry_timer |) {
+    my $timer = <v7-zenki.delegation>->{$timer_key};
+    $timer->cancel if ref $timer and eval { $timer->can('cancel') };
+    delete <v7-zenki.delegation>->{$timer_key};
+}
+
+<v7-zenki.delegation.retries> = 0;
+
+my $issued = <[v7-zenki.delegation.issue]>;
+
+<v7-zenki.delegation>->{'timer'} = <[event.add_timer]>->(
+    {   'after'    => 86400,
+        'interval' => 86400,
+        'handler'  => qw| v7-zenki.delegation.issue |,
+    }
+);
+
+<v7-zenki.delegation>->{'retry_timer'} = <[event.add_timer]>->(
+    {   'after'    => 60,
+        'interval' => 60,
+        'handler'  => qw| v7-zenki.delegation.retry |,
+    }
+) if not $issued;
+
+0;
+
+#,,.,,.,.,.,.,,.,,.,.,,,.,.,.,.,,,,,,,,..,,,.,..,,...,...,...,,,,,.,.,.,.,,,,,
+#HGQM7V45UPEDHLYEZKO6KBBJGUGVUYMKNXBFBHFNMERTFBXS4UXUJMNGBVET5RQUODCTI6TKKP5M6
+#\\\|3UJ2BI3GFZFEHQLCSWFRL2AXET5SGDOHISO2Z6GNYBLD6XAPKNL \ / AMOS7 \ YOURUM ::
+#\[7]64BI6C2Y5J7BV5C32IUCSFHRHPVZD37C247J2N6WOOYEL63YGUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

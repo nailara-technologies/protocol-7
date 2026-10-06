@@ -47,10 +47,66 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
             if defined $key_name
             and ref $keys{'C25519'}{$key_name} eq qw| HASH |;
 
-        my $server_nonce = eval { <[base.prng.bytes]>->(32) };
+        ## the host-root delegation of S [ data/md/design/HOST-ROOT-        ##
+        ## DELEGATION.md ] : read fresh on EVERY select [ renewals ], sent  ##
+        ## as the REQUIRED 4th field. missing \ unparsable \ expired \ not  ##
+        ## for this S -> auth-keypair refused, before any nonce is drawn or ##
+        ## stored                                                           ##
+        my ( $delegation, $dlg_refusal );
+        if (   ref $code{'trust.verify'} ne qw| CODE |
+            or ref $code{'trust.statement'} ne qw| CODE |
+            or ref $code{'trust.fingerprint'} ne qw| CODE | ) {
+            $dlg_refusal = 'trust modules not loaded';
+        } elsif ( not defined $server_pub or length($server_pub) != 32 ) {
+            $dlg_refusal = 'no server key';
+        } else {
+            my $dlg_file = <[crypt.C25519.delegation_file]>->($key_name);
+            my $dlg_wire;
+            if ( not defined $dlg_file ) {
+                $dlg_refusal = 'no delegation file path';
+            } elsif ( open( my $dlg_fh, '<:raw', $dlg_file ) ) {
+                my $got = read( $dlg_fh, $dlg_wire, 2050 );
+                close($dlg_fh);
+                $dlg_wire = undef     if not defined $got;
+                $dlg_wire =~ s|\n\z|| if defined $dlg_wire;
+                $dlg_refusal = 'delegation file not valid'
+                    if not defined $dlg_wire
+                    or $dlg_wire !~ m|\A[A-Z2-7]{1,2048}\z|;
+            } else {
+                $dlg_refusal = "delegation file missing [ $OS_ERROR ]";
+            }
+            if ( not defined $dlg_refusal ) {
+                my ( $parsed, $why )
+                    = <[trust.statement]>->( qw| parse_wire |, $dlg_wire );
+                my $issuer_fp
+                    = defined $parsed
+                    ? <[trust.fingerprint]>->( $parsed->{'issuer_pub'} )
+                    : undef;
+                my $valid;
+                ( $valid, $why ) = <[trust.verify]>->(
+                    {   qw| chain |   => [$dlg_wire],
+                        qw| anchors | => [$issuer_fp],
+                        qw| subject | => $server_pub,
+                        qw| now |     => time,
+                    }
+                ) if defined $issuer_fp;
+                if ( ref $valid eq qw| HASH | ) {
+                    $delegation = $dlg_wire;
+                } else {
+                    $dlg_refusal = sprintf 'delegation refused [ %s ]',
+                        $why // 'not valid';
+                }
+            }
+        }
+
+        my $server_nonce
+            = defined $delegation
+            ? eval { <[base.prng.bytes]>->(32) }
+            : undef;
 
         if (    defined $server_pub
             and length($server_pub) == 32
+            and defined $delegation
             and defined $server_nonce
             and length($server_nonce) == 32 ) {
 
@@ -62,14 +118,15 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
             ## the reply is built from the stored bytes : announced == stored
             <[base.net.send_to_socket]>->(
                 $client_sock_fd,
-                sprintf( "TRUE %s %s\n",
+                sprintf( "TRUE %s %s %s\n",
                     Crypt::Misc::encode_b32r( $auth->{'server_pub'} ),
-                    Crypt::Misc::encode_b32r( $auth->{'server_nonce'} ) )
+                    Crypt::Misc::encode_b32r( $auth->{'server_nonce'} ),
+                    $delegation )
             );
         } else {
             <[base.logs]>->(
-                0, '[%d] auth-keypair : server key or nonce not available',
-                $id
+                0,   '[%d] auth-keypair : %s',
+                $id, $dlg_refusal // 'server key or nonce not available'
             );
             <[base.net.send_to_socket]>->(
                 $client_sock_fd, "FALSE server key not available\n"
@@ -106,8 +163,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,.,,.,,,.,.,..,,,..,,,,,.,,,,.,,,..,.,.,..,,..,,...,...,.,,,...,.,.,...,...,
-#A5ROYTJNNH7VOXKXDAC7O2CEYZGXTDHAAJV5GWDITNVJILIYKWW53U2L4GEF5K6NS3C36J6M7ZKXY
-#\\\|5NME5VGFKMEJUA4TEYJ43WHTROVJJT5IYGELHRQ5R6V4SAOUQ7K \ / AMOS7 \ YOURUM ::
-#\[7]53XGOP3RSWMKDMGCWWCFHG52MHYKGIBXLNK2KUCBEAKNS6IGY4CY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,,..,,,.,..,,,..,...,.,,,.,.,..,,...,...,...,,..,.,,,,..,,,.,
+#IM2L6VUE5APIDWQTBKYSRFSEO3PHFKY7U4SKRLVAFXAVIEMRTQ3KICXU4KLTUWNEU2AVNGGNVYSTE
+#\\\|OSVYTNOYT4DYZXMXJA62ZDSGKL2PYSQSHPXLYQ34DZ52VUNCWHS \ / AMOS7 \ YOURUM ::
+#\[7]ZSK3K3OMA7EAKN2M2SYA3DPPZAO3D5EJIC5ZIFJR5YGZMPLBBCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

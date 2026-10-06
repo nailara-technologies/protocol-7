@@ -30,13 +30,20 @@ use Crypt::PRNG::Fortuna;
 use Crypt::Curve25519 qw(curve25519_public_key);
 use Crypt::Ed25519;
 use IO::AIO;
+use Digest::BMW;
 use Fcntl      qw(O_WRONLY O_CREAT O_EXCL);
 use File::Path qw(make_path);
 
 ## wire v2 [ data/md/design/AUTH-LINK-BINDING.md ] : every argv value of the
 ## verbs below is PUBLIC [ username, nonce, S_pub, ephemeral pubkeys,
-## nonce_sid, encoding, host, port, signatures ] ; the client's secret is
-## loaded from its key file by this helper, never passed in
+## nonce_sid, encoding, host, port, signatures, delegation ] ; the client's
+## secret is loaded from its key file by this helper, never passed in
+
+## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the
+## select reply's 4th field. upper bound on its b32 length -- the SAME number
+## p-7-r.c uses [ DLG_B32_MAX ]
+use constant DLG_LABEL   => "p7 delegation v1\0";
+use constant DLG_B32_MAX => 2048;
 
 ##[ Main Entry Point ]########################################################
 
@@ -57,8 +64,8 @@ if ( $operation eq 'gen-auth' ) {
     || $operation eq '--help' ) {
     print "Usage: p7-auth-keypair-helper.pl <verb> [args]\n  gen-auth    "
         . "<username> <server_nonce> <s_pub>\n  check-pin   <host> "
-        . "<port> <s_pub> [strict]\n  gen-bind    <username> "
-        . "<server_nonce> <s_pub> <server_eph> <client_eph> "
+        . "<port> <s_pub> <delegation> [strict]\n  gen-bind    "
+        . "<username> <server_nonce> <s_pub> <server_eph> <client_eph> "
         . "<nonce_sid> <encoding>\n  verify-bind <server_bind_sig> "
         . "<username> <server_nonce> <s_pub> <server_eph> <client_eph> "
         . "<nonce_sid> <encoding>\n  self-test\n  [ keys \\ nonces \\ "
@@ -104,6 +111,136 @@ sub verify_server_bind {
         $s_pub, $sig ) ? 1 : 0;
 }
 
+##[ Host-root delegation [ HOST-ROOT-DELEGATION.md ] ]########################
+
+## the statement bytes [ the spec's pack template ; self-test builds with it ]
+sub delegation_statement {
+    my ( $issuer_pub, $subject_pub, $name, $not_before, $not_after, $scope )
+        = @_;
+    die "delegation : issuer \\ subject must be 32 bytes\n"
+        unless length($issuer_pub) == 32 and length($subject_pub) == 32;
+    return pack(
+        'Z* a32 a32 n/a* N N n/a*',
+        'p7 delegation v1',
+        $issuer_pub, $subject_pub, $name, $not_before, $not_after, $scope
+    );
+}
+
+## host-root fingerprint : bmw384 of the raw 32 byte public key, b32 [ 77 ]
+sub host_root_fingerprint {
+    my ($pub) = @_;
+    die "fingerprint : expected a 32 byte public key\n"
+        unless defined $pub and length($pub) == 32;
+    return encode_b32r( Digest::BMW::bmw_384($pub) );
+}
+
+## wire bytes [ statement . sig ] -> fields ; dies with a reason. exact parse
+## : literal label, every length checked, no trailing bytes
+sub parse_delegation {
+    my ($wire) = @_;
+    my $label = DLG_LABEL;
+    die "too short\n"
+        unless defined $wire
+        and length($wire) >= length($label) + 32 + 32 + 2 + 4 + 4 + 2 + 64;
+
+    my $statement = substr( $wire, 0, length($wire) - 64 );
+    my $sig       = substr( $wire, -64 );
+    die "wrong label\n"
+        unless substr( $statement, 0, length($label) ) eq $label;
+
+    my $pos  = length($label);
+    my $take = sub {
+        my ($n) = @_;
+        die "truncated statement\n" if $pos + $n > length($statement);
+        my $bytes = substr( $statement, $pos, $n );
+        $pos += $n;
+        return $bytes;
+    };
+    my %dlg;
+    $dlg{'issuer_pub'}  = $take->(32);
+    $dlg{'subject_pub'} = $take->(32);
+    $dlg{'name'}        = $take->( unpack( 'n', $take->(2) ) );
+    $dlg{'not_before'}  = unpack( 'N', $take->(4) );
+    $dlg{'not_after'}   = unpack( 'N', $take->(4) );
+    $dlg{'scope'}       = $take->( unpack( 'n', $take->(2) ) );
+    die "trailing bytes in statement\n" if $pos != length($statement);
+
+    $dlg{'statement'} = $statement;
+    $dlg{'sig'}       = $sig;
+    return \%dlg;
+}
+
+## one-hop verify [ anchor = the issuer, scope '*' ] of a delegation for the
+## announced S at time now -> ( { fingerprint, name }, undef ) or ( undef,
+## reason ). the pin compare is the CALLER's step, after this
+sub verify_delegation {
+    my ( $wire, $s_pub, $now ) = @_;
+
+    my $dlg = eval { parse_delegation($wire) };
+    if ( not defined $dlg ) {
+        ( my $why = $@ || 'unparsable' ) =~ s{\s+\z}{};
+        return ( undef, "statement $why" );
+    }
+    return ( undef, 'bad signature' )
+        unless Crypt::Ed25519::verify( $dlg->{'statement'},
+        $dlg->{'issuer_pub'}, $dlg->{'sig'} );
+    return ( undef, 'not_before after not_after' )
+        if $dlg->{'not_before'} > $dlg->{'not_after'};
+    return ( undef, 'not yet valid' ) if $now < $dlg->{'not_before'};
+    return ( undef, 'expired' )       if $now > $dlg->{'not_after'};
+    return ( undef, 'subject is not the announced server key' )
+        unless length($s_pub) == 32 and $dlg->{'subject_pub'} eq $s_pub;
+
+    ## name : the anchor's scope is '*' [ this step ] -> any name is within it
+    ## ; the charset only keeps it safe to print \ log
+    return ( undef, 'name not printable' )
+        unless $dlg->{'name'} =~ m|^[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+    ## scope : S certifies nothing in this step [ leaf scope must be '' ]
+    return ( undef, 'subject scope not empty' )
+        unless $dlg->{'scope'} eq '';
+
+    return (
+        {   'fingerprint' => host_root_fingerprint( $dlg->{'issuer_pub'} ),
+            'name'        => $dlg->{'name'},
+        },
+        undef
+    );
+}
+
+## pin store compare [ ONE fingerprint per <host>_<port> file ] -> PIN_VALID \
+## PIN_MISMATCH \ PIN_UNPINNED [ strict, nothing written ] \ PIN_NEW [ written
+## now, 0600, O_EXCL ]. a pin file that exists but is unreadable \ empty \ not
+## a fingerprint -> die [ never re-pinned ]
+sub pin_compare {
+    my ( $pin_dir, $pin_file, $fingerprint, $strict ) = @_;
+
+    if ( -e $pin_file or -l $pin_file ) {
+        open my $fh, '<', $pin_file
+            or die "pin file unreadable : $pin_file : $!\n";
+        my $pinned = <$fh>;
+        close $fh;
+        die "pin file empty : $pin_file\n" unless defined $pinned;
+        chomp $pinned;
+        die "pin file holds a server key, not a host-root fingerprint [ pre "
+            . "host-root pin ; verify the host-root out of band, then "
+            . "remove it ] : $pin_file\n"
+            if $pinned =~ m|^[A-Z2-7]{52}\z|;
+        die "pin file corrupt : $pin_file\n"
+            unless $pinned =~ m|^[A-Z2-7]{77}\z|;
+        return $pinned eq $fingerprint ? 'PIN_VALID' : 'PIN_MISMATCH';
+    }
+
+    return 'PIN_UNPINNED' if $strict;
+
+    make_path( $pin_dir, { mode => 0700 } )  unless -d $pin_dir;
+    die "cannot create pin dir : $pin_dir\n" unless -d $pin_dir;
+    sysopen( my $fh, $pin_file, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+        or die "cannot create pin file : $pin_file : $!\n";
+    print {$fh} "$fingerprint\n" or die "pin write failed : $!\n";
+    close $fh                    or die "pin write failed : $!\n";
+    return 'PIN_NEW';
+}
+
 ##[ Argument checks [ fail closed ] ]#########################################
 
 sub arg_b32 {
@@ -114,6 +251,20 @@ sub arg_b32 {
     my $bin = decode_b32r($value);
     die "$what : b32 decode failed\n"
         unless defined $bin and length($bin) == $bytes;
+    die "$what : non-canonical b32\n" unless encode_b32r($bin) eq $value;
+    return $bin;
+}
+
+## variable length b32 [ 1 .. max chars ], canonical, no padding
+sub arg_b32_var {
+    my ( $value, $max, $what ) = @_;
+    die "$what : expected 1 .. $max b32 chars\n"
+        unless defined $value and $value =~ m|^[A-Z2-7]{1,$max}\z|;
+    die "$what : invalid b32 length\n"
+        unless grep { length($value) % 8 == $ARG } ( 0, 2, 4, 5, 7 );
+    my $bin = decode_b32r($value);
+    die "$what : b32 decode failed\n"
+        unless defined $bin and length($bin);
     die "$what : non-canonical b32\n" unless encode_b32r($bin) eq $value;
     return $bin;
 }
@@ -262,18 +413,27 @@ sub load_client_key {
     return ( $ed25519_secret_bin, $ed25519_pubkey_bin, $ed25519_private_bin );
 }
 
-## server key pin [ TOFU ] : ~/.n/remote-keys/servers/<host>_<port>.public
-## holds the S_pub b32 line. first contact pins [ PIN_NEW, exit 0 ] ; match ->
-## PIN_VALID exit 0 ; mismatch -> PIN_MISMATCH exit 6 [ never re-pinned ] ;
-## strict + no pin -> PIN_UNPINNED exit 5 [ nothing written ] ; pin file
-## present but unreadable \ corrupt -> die [ exit != 0 ]
+## host-root pin [ HOST-ROOT-DELEGATION.md ] :
+## ~/.n/remote-keys/servers/<host>_<port>.public holds the host-root
+## FINGERPRINT [ 77 b32 chars ]. the delegation [ select reply field 4 ] is
+## verified FIRST [ sig under its issuer pub, not_before <= now <=
+## not_after, subject == s_pub, name \ scope ] -- only then the pin :
+##   PIN_VALID <fp> <name>     exit 0 [ incl. a rotated S the pinned
+##                                      host-root delegates ]
+##   PIN_NEW <fp> <name>       exit 0 [ first contact, pinned now ]
+##   PIN_UNPINNED <fp> <name>  exit 5 [ strict, nothing written ]
+##   PIN_MISMATCH <fp> <name>  exit 6 [ other host-root, never re-pinned ]
+##   DELEGATION_INVALID <why>  exit 7 [ nothing read \ written ]
+##   PIN_ERROR <why>           exit 8 [ pin file present but unreadable \
+##                                      corrupt \ an old S_pub pin ;
+##                                      never re-pinned ]
 sub op_check_pin {
-    my ( $host, $port, $s_pub_b32, $mode ) = @_;
+    my ( $host, $port, $s_pub_b32, $dlg_b32, $mode ) = @_;
 
-    die "Usage: p7-auth-keypair-helper.pl "
-        . "check-pin <host> <port> <s_pub> [strict]\n"
-        unless @_ == 3
-        or ( @_ == 4 and defined $mode and $mode eq 'strict' );
+    die "Usage: p7-auth-keypair-helper.pl check-pin "
+        . "<host> <port> <s_pub> <delegation> [strict]\n"
+        unless @_ == 4
+        or ( @_ == 5 and defined $mode and $mode eq 'strict' );
     die "host : invalid\n"
         unless defined $host
         and $host =~ m|^[A-Za-z0-9.:-]{1,253}\z|
@@ -282,46 +442,46 @@ sub op_check_pin {
         unless defined $port
         and $port =~ m|^[1-9][0-9]{0,4}\z|
         and $port <= 65535;
-    arg_b32( $s_pub_b32, 32, 's_pub' );
+    my $s_pub = arg_b32( $s_pub_b32, 32, 's_pub' );
+    my $dlg   = arg_b32_var( $dlg_b32, DLG_B32_MAX, 'delegation' );
     die "HOME not set\n" unless defined $ENV{HOME} and length $ENV{HOME};
+
+    my ( $verified, $why ) = verify_delegation( $dlg, $s_pub, time() );
+    if ( not defined $verified ) {
+        print "DELEGATION_INVALID $why\n";
+        exit 7;
+    }
 
     ## same file name as auth.client.server_pin.check : lowercase, : -> _
     ( my $host_safe = lc $host ) =~ tr/:/_/;
     my $pin_dir  = "$ENV{HOME}/.n/remote-keys/servers";
     my $pin_file = "$pin_dir/${host_safe}_$port.public";
 
-    if ( -e $pin_file or -l $pin_file ) {
-        open my $fh, '<', $pin_file
-            or die "pin file unreadable : $pin_file : $!\n";
-        my $pinned = <$fh>;
-        close $fh;
-        die "pin file empty : $pin_file\n" unless defined $pinned;
-        chomp $pinned;
-        die "pin file corrupt : $pin_file\n"
-            unless $pinned =~ m|^[A-Z2-7]{52}\z|;
-        if ( $pinned eq $s_pub_b32 ) {
-            print "PIN_VALID\n";
-            exit 0;
-        }
-        print "PIN_MISMATCH\n";
-        exit 6;
+    my $result = eval {
+        pin_compare(
+            $pin_dir, $pin_file,
+            $verified->{'fingerprint'},
+            defined $mode
+        );
+    };
+    if ( not defined $result ) {
+        print STDERR $@;
+        print 'PIN_ERROR '
+            . (
+            $@ =~ m{holds a server key}
+            ? 'old server key pin'
+            : 'pin file unreadable or invalid'
+            ) . "\n";
+        exit 8;
     }
-
-    if ( defined $mode ) {
-        print "PIN_UNPINNED\n";
-        exit 5;
-    }
-
-    make_path( $pin_dir, { mode => 0700 } )  unless -d $pin_dir;
-    die "cannot create pin dir : $pin_dir\n" unless -d $pin_dir;
-    sysopen( my $fh, $pin_file, O_WRONLY | O_CREAT | O_EXCL, 0600 )
-        or die "cannot create pin file : $pin_file : $!\n";
-    print {$fh} "$s_pub_b32\n" or die "pin write failed : $!\n";
-    close $fh                  or die "pin write failed : $!\n";
-
-    ## fingerprint = the full S_pub b32
-    print "PIN_NEW $s_pub_b32\n";
-    exit 0;
+    print "$result $verified->{'fingerprint'} $verified->{'name'}\n";
+    exit(
+        {   'PIN_VALID'    => 0,
+            'PIN_NEW'      => 0,
+            'PIN_UNPINNED' => 5,
+            'PIN_MISMATCH' => 6,
+        }->{$result}
+    );
 }
 
 ## client_bind_sig b32 for the transcript given on argv [ public fields ]
@@ -507,12 +667,358 @@ sub op_self_test {
         $refused->( sub { arg_username('../x') } ), 1
     );
 
+    delegation_self_test( $check, $refused, $s_pub );
+
     if (@failed) {
         print "self-test FAILED : " . join( ', ', @failed ) . "\n";
         exit 1;
     }
     print "self-test ok\n";
     exit 0;
+}
+
+## host-root delegation : the fixed vector, every refusal, the pin store [
+## temp dir ] and the real check-pin verb as a subprocess
+sub delegation_self_test {
+    my ( $check, $refused, $s_pub ) = @_;
+
+    ## SELF-BUILT vector [ lane 3 ; to be replaced by the spec's TEST VECTOR
+    ## once lane 1 publishes it ] : host-root = seed 32 x \x03, S = seed 32 x
+    ## \x02 [ the AUTH-LINK-BINDING S ], name test-host.cube, not_before
+    ## 1700000000, not_after 1702592000 [ + 30 d ], scope ''
+    my %want = (
+        'root_pub'  => '5VESRRRI2HBMN2XJAM4JAWMVMEUVSJZ2LRR7SNRWYFDBJLEHG7IQ',
+        'statement' => '70372064656c65676174696f6e20763100ed4928c628d1c2c6eae'
+            . '90338905995612959273a5c63f93636c14614ac8737d181'
+            . '39770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25'
+            . 'df60f5b8fc9b394000e746573742d686f73742e63756265'
+            . '6553f100657b7e000000',
+        'sig' => 'LAL3UIQD4LJVCGNJWXL3TO7DZUD2PCAJ43B2XXPTNWQAQZDDX7G'
+            . 'PYH3DYOFIJZUJEUDB2MKQSBZ4HSXBGCQX4GM5LOA4IOSEBMPFQAQ',
+        'fingerprint' => 'ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3A'
+            . 'WUQWVUNEJIYFOXRWF4XUSHAAXSUFOXWG2JGKC7G',
+    );
+    my ( $nb, $na ) = ( 1700000000, 1702592000 );
+    my $now = 1701000000;
+
+    my ( $root_pub, $root_priv )
+        = Crypt::Ed25519::generate_keypair( "\x03" x 32 );
+    my ( $rot_pub, $rot_priv )
+        = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
+    my ( $foreign_pub, $foreign_priv )
+        = Crypt::Ed25519::generate_keypair( "\x05" x 32 );
+    $check->( 'host-root pub', encode_b32r($root_pub), $want{'root_pub'} );
+
+    my $wire = sub {
+        my ( $ipub, $ipriv, $subject, $from, $to, %opt ) = @_;
+        my $st
+            = delegation_statement( $ipub, $subject,
+            $opt{'name'} // 'test-host.cube',
+            $from, $to, $opt{'scope'} // '' );
+        return $st . Crypt::Ed25519::sign( $st, $ipub, $ipriv );
+    };
+    my $statement = delegation_statement( $root_pub, $s_pub,
+        'test-host.cube', $nb, $na, '' );
+    $check->(
+        'delegation statement hex',
+        unpack( 'H*', $statement ),
+        $want{'statement'}
+    );
+    $check->(
+        'delegation sig',
+        encode_b32r(
+            Crypt::Ed25519::sign( $statement, $root_pub, $root_priv )
+        ),
+        $want{'sig'}
+    );
+    $check->(
+        'host-root fingerprint',
+        host_root_fingerprint($root_pub),
+        $want{'fingerprint'}
+    );
+
+    ## the vector through the wire path [ b32 argv check + parse + verify ]
+    my $vec_wire
+        = arg_b32_var(
+        encode_b32r( $statement . arg_b32( $want{'sig'}, 64, 'sig' ) ),
+        DLG_B32_MAX, 'delegation' );
+    my $verdict = sub {
+        my ( $dlg, $subject, $at ) = @_;
+        my ( $ok, $why ) = verify_delegation( $dlg, $subject, $at );
+        return $ok ? "ok $ok->{'fingerprint'} $ok->{'name'}" : $why;
+    };
+    my $ok_line = "ok $want{'fingerprint'} test-host.cube";
+    $check->(
+        'delegation ok',
+        $verdict->( $vec_wire, $s_pub, $now ), $ok_line
+    );
+    $check->(
+        'delegation ok at not_before',
+        $verdict->( $vec_wire, $s_pub, $nb ), $ok_line
+    );
+    $check->(
+        'delegation ok at not_after',
+        $verdict->( $vec_wire, $s_pub, $na ), $ok_line
+    );
+    $check->(
+        'refuse expired',
+        $verdict->( $vec_wire, $s_pub, $na + 1 ), 'expired'
+    );
+    $check->(
+        'refuse not yet valid',
+        $verdict->( $vec_wire, $s_pub, $nb - 1 ),
+        'not yet valid'
+    );
+    $check->(
+        'refuse wrong subject',
+        $verdict->( $vec_wire, $rot_pub, $now ),
+        'subject is not the announced server key'
+    );
+
+    my $bad_sig = $vec_wire;
+    substr( $bad_sig, -20, 1 ) ^= "\x01";
+    $check->(
+        'refuse bad sig',
+        $verdict->( $bad_sig, $s_pub, $now ),
+        'bad signature'
+    );
+    my $bad_body = $vec_wire;
+    substr( $bad_body, 90, 1 ) ^= "\x01";    ## inside the name
+    $check->(
+        'refuse altered statement',
+        $verdict->( $bad_body, $s_pub, $now ),
+        'bad signature'
+    );
+    $check->(
+        'refuse sig by another key',
+        $verdict->(
+            substr( $vec_wire, 0, -64 )
+                . Crypt::Ed25519::sign(
+                $statement, $foreign_pub, $foreign_priv
+                ),
+            $s_pub, $now
+        ),
+        'bad signature'
+    );
+
+    ## structure refusals [ each correctly signed, so only the parser \ field
+    ## rule can refuse ]
+    my $signed = sub {
+        my ( $st, $ipub, $ipriv ) = @_;
+        return $st . Crypt::Ed25519::sign( $st, $ipub, $ipriv );
+    };
+    ( my $other_label = $statement )
+        =~ s{^p7 delegation v1}{p7 delegation v2};
+    $check->(
+        'refuse wrong label',
+        $verdict->(
+            $signed->( $other_label, $root_pub, $root_priv ), $s_pub,
+            $now
+        ),
+        'statement wrong label'
+    );
+    $check->(
+        'refuse trailing byte',
+        $verdict->(
+            $signed->( $statement . "\0", $root_pub, $root_priv ),
+            $s_pub, $now
+        ),
+        'statement trailing bytes in statement'
+    );
+    $check->(
+        'refuse truncated statement',
+        $verdict->(
+            $signed->( substr( $statement, 0, -1 ), $root_pub, $root_priv ),
+            $s_pub, $now
+        ),
+        'statement truncated statement'
+    );
+    $check->(
+        'refuse too short',
+        $verdict->( 'x' x 100, $s_pub, $now ),
+        'statement too short'
+    );
+    $check->(
+        'refuse not_before after not_after',
+        $verdict->(
+            $wire->( $root_pub, $root_priv, $s_pub, $na, $nb ),
+            $s_pub, $now
+        ),
+        'not_before after not_after'
+    );
+    $check->(
+        'refuse non-empty subject scope',
+        $verdict->(
+            $wire->(
+                $root_pub, $root_priv, $s_pub, $nb, $na, 'scope' => '*'
+            ),
+            $s_pub, $now
+        ),
+        'subject scope not empty'
+    );
+    $check->(
+        'refuse unprintable name',
+        $verdict->(
+            $wire->(
+                $root_pub, $root_priv, $s_pub, $nb, $na,
+                'name' => "evil\e[2Jhost.cube"
+            ),
+            $s_pub, $now
+        ),
+        'name not printable'
+    );
+    $check->(
+        'refuse delegation b32 too long',
+        $refused->(
+            sub { arg_b32_var( 'A' x ( DLG_B32_MAX + 1 ), DLG_B32_MAX, 'x' ) }
+        ),
+        1
+    );
+    $check->(
+        'refuse delegation b32 bad length',
+        $refused->( sub { arg_b32_var( 'AAA', DLG_B32_MAX, 'x' ) } ), 1
+    );
+
+    ## pin store [ temp dir, never a real key dir ]
+    require File::Temp;
+    my $tmp      = File::Temp::tempdir( CLEANUP => 1 );
+    my $pin_dir  = "$tmp/servers";
+    my $pin_file = "$pin_dir/test-host_7.public";
+    my $fp       = $want{'fingerprint'};
+    my ($rot_ok)
+        = verify_delegation(
+        $wire->( $root_pub, $root_priv, $rot_pub, $nb, $na ),
+        $rot_pub, $now );
+    my ($foreign_ok)
+        = verify_delegation(
+        $wire->( $foreign_pub, $foreign_priv, $s_pub, $nb, $na ),
+        $s_pub, $now );
+
+    $check->(
+        'pin strict unpinned',
+        pin_compare( $pin_dir, $pin_file, $fp, 1 ),
+        'PIN_UNPINNED'
+    );
+    $check->( 'pin strict wrote nothing', ( -e $pin_file ? 1 : 0 ), 0 );
+    $check->(
+        'pin first contact',
+        pin_compare( $pin_dir, $pin_file, $fp, 0 ), 'PIN_NEW'
+    );
+    $check->(
+        'pin file mode 0600',
+        sprintf( '%04o', ( stat($pin_file) )[2] & 07777 ), '0600'
+    );
+    $check->(
+        'pin same host-root',
+        pin_compare( $pin_dir, $pin_file, $fp, 0 ), 'PIN_VALID'
+    );
+    $check->(
+        'pin rotated S [ same host-root ]',
+        ( $rot_ok and $rot_ok->{'fingerprint'} eq $fp )
+        ? pin_compare( $pin_dir, $pin_file, $rot_ok->{'fingerprint'}, 0 )
+        : 'rotated delegation refused',
+        'PIN_VALID'
+    );
+    $check->(
+        'pin refuse wrong fingerprint [ foreign host-root ]',
+        $foreign_ok
+        ? pin_compare( $pin_dir, $pin_file, $foreign_ok->{'fingerprint'}, 0 )
+        : 'foreign delegation refused',
+        'PIN_MISMATCH'
+    );
+
+    my $old_pin = "$pin_dir/old_7.public";
+    open my $ofh, '>', $old_pin or die "cannot write $old_pin : $!\n";
+    print {$ofh} encode_b32r($s_pub) . "\n";
+    close $ofh;
+    $check->(
+        'pin refuse an old S_pub pin',
+        $refused->( sub { pin_compare( $pin_dir, $old_pin, $fp, 0 ) } ), 1
+    );
+
+    ## the real verb, as p-7-r runs it [ temp HOME, times around now ]
+    my $self = abs_path(__FILE__);
+    my $t    = time();
+    my $verb = sub {
+        my ( $port, $subject, $dlg, @strict ) = @_;
+        local $ENV{HOME} = $tmp;
+        open( my $ph, '-|', $EXECUTABLE_NAME, $self, 'check-pin',
+            'Test-Host', $port, encode_b32r($subject), encode_b32r($dlg),
+            @strict )
+            or return 'cannot run';
+        my $line = <$ph> // '';
+        close $ph;
+        chomp $line;
+        $line =~ s{ \S+ \S+\z}{}
+            if $line =~ m{^PIN_(?:VALID|NEW|UNPINNED|MISMATCH) };
+        return sprintf( '%s exit %d', $line, $CHILD_ERROR >> 8 );
+    };
+    my $live = $wire->( $root_pub, $root_priv, $s_pub, $t - 60, $t + 3600 );
+    $check->(
+        'check-pin strict unpinned',
+        $verb->( 9, $s_pub, $live, 'strict' ),
+        'PIN_UNPINNED exit 5'
+    );
+    $check->(
+        'check-pin first contact',
+        $verb->( 9, $s_pub, $live ),
+        'PIN_NEW exit 0'
+    );
+    $check->(
+        'check-pin second contact',
+        $verb->( 9, $s_pub, $live ),
+        'PIN_VALID exit 0'
+    );
+    $check->(
+        'check-pin rotated S',
+        $verb->(
+            9, $rot_pub,
+            $wire->( $root_pub, $root_priv, $rot_pub, $t - 60, $t + 3600 )
+        ),
+        'PIN_VALID exit 0'
+    );
+    $check->(
+        'check-pin foreign host-root',
+        $verb->(
+            9, $s_pub,
+            $wire->(
+                $foreign_pub, $foreign_priv, $s_pub, $t - 60, $t + 3600
+            )
+        ),
+        'PIN_MISMATCH exit 6'
+    );
+    $check->(
+        'check-pin expired',
+        $verb->(
+            9, $s_pub,
+            $wire->( $root_pub, $root_priv, $s_pub, $t - 7200, $t - 3600 )
+        ),
+        'DELEGATION_INVALID expired exit 7'
+    );
+    $check->(
+        'check-pin subject != announced S',
+        $verb->( 9, $rot_pub, $live ),
+        'DELEGATION_INVALID subject is not the announced server key exit 7'
+    );
+    $check->(
+        'check-pin pin file [ lowercased host ]',
+        ( -f "$tmp/.n/remote-keys/servers/test-host_9.public" ? 1 : 0 ), 1
+    );
+    rename( $old_pin, "$tmp/.n/remote-keys/servers/test-host_10.public" )
+        or die "cannot move $old_pin : $!\n";
+    $check->(
+        'check-pin old S_pub pin',
+        do {
+            open( my $save, '>&', \*STDERR )            or die "dup : $!\n";
+            open( STDERR,   '>',  File::Spec->devnull ) or die "null : $!\n";
+            my $got = $verb->( 10, $s_pub, $live );
+            open( STDERR, '>&', $save ) or die "restore : $!\n";
+            $got;
+        },
+        'PIN_ERROR old server key pin exit 8'
+    );
+
+    return;
 }
 
 ##[ Helper: Secure buffer erasure ]###########################################
@@ -536,8 +1042,8 @@ sub erase_buffer_secure {
     return $len;
 }
 
-#,,..,.,.,,,.,...,,,.,.,,,.,,,,,.,.,.,,,,,.,,,..,,...,...,...,,,,,,..,..,,,,,,
-#TBFHEQH6ZB7Z22VBHQNRLL5UZJNESBGZ337J44GUSCMA2LMOHJ4NNRB6KME237NCSIH7RYWFXFW6A
-#\\\|ZG4ZNNYEA6XQR4JHZJ46H6J6GRGPGTTGLG2I4AJ6LVELGJPM5FG \ / AMOS7 \ YOURUM ::
-#\[7]I63AW33MAW4AERR4XMZS3PCLJBCM6MWNMJAC6WOSS2PUSSV67OBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,,,,,...,.,.,...,,,,,...,.,,,..,,...,...,,,,,...,.,,,..,,.,,,
+#IQUNA4TDP5AKAKC5MMIOFOUY2GZQGQ4VBD5XIZLF64SYJME56ZBYXMV6XTG5GRKTOL345XWBQVN6O
+#\\\|VE4PQMFZEE3CKD7EOS6MB2H3UT4NHXTIJCERQAKJJTW73JR7NB6 \ / AMOS7 \ YOURUM ::
+#\[7]XNFLOU6WXUSFUZF6CFGHOTQ5PH6RTE27AP6UPGW4LQX2VJZ6QSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

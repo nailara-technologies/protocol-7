@@ -17,7 +17,29 @@ if ( not defined $name ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
-my $key_dir = <[crypt.C25519.chk_key_dir]>;
+## root-held key or root signature key : only root may operate on it [ ##
+## host-root delegation ]                                              ##
+my $key_path_ref;
+foreach my $held_name ( $name, $rkey_name ) {
+    my $held_ref = <[crypt.C25519.key_path]>->($held_name);
+    if ( not defined $held_ref ) {
+        printf "\n  << key '%s' : key path not resolvable, see log >>\n\n",
+            $held_name;
+        <[base.exit]>->(qw| 0110 |);
+    } elsif ( $held_ref->{'holder'} eq qw| root |
+        and $EFFECTIVE_USER_ID != 0 ) {
+        printf "\n  << key '%s' is root-held : "
+            . "refused, not running as root >>\n\n", $held_name;
+        <[base.exit]>->(qw| 0020 |);
+    }
+    $key_path_ref //= $held_ref if $held_name eq $name;
+}
+
+## signature files sit next to the signed key [ its holder's directory ] ##
+my $key_dir
+    = $key_path_ref->{'holder'} eq qw| root |
+    ? $key_path_ref->{'key_dir'}
+    : <[crypt.C25519.chk_key_dir]>;
 
 my $shred_bin = <keys.bin_path.shred>;
 
@@ -61,8 +83,8 @@ foreach my $file_name (@sig_files) {
 printf " :\n :: [ removed %d file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,.,,,,,,,...,,,.,,..,,,.,.,,,.,,,...,..,,..,,...,...,.,.,,..,,.,,,,,,,,.,
-#F5PJ7RXMY24KTVEPT6XHZVDRQLMMHDYY3KCCZO7QRNWFXDTJ5JK2DOCND6CCVPVSPWSAHKK5SFM42
-#\\\|OGM3N2CGLW7CE3W4ROY2AEWN5HTAN47EBR4527SE3TZD5CA3CHE \ / AMOS7 \ YOURUM ::
-#\[7]KTJZO4M2VLCJX67SCXSU2OMXCTU3VX4YE6HWDKHGSJ77YDF3GYCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,.,,,,,.,,,,,,,.,.,,,...,.,.,..,,...,...,.,,,.,,,.,,,,..,,,,,
+#CNIPSUBUSKZUMZ5XCSWMPAM3GI4KOCIUBDWENPFZDOPKS3VE6A54FVJIGVXJZDXUPQ3Z5X3YGYD2G
+#\\\|57HXPRC3NXWXGAYIGLMSL3LVT43JWALAC3VE2DLORBMIVXZA4QS \ / AMOS7 \ YOURUM ::
+#\[7]4RK2JRXMWEJCHSGNPIAN3INS26OMKTEORGZZQUOXPZ7VB7XSQABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

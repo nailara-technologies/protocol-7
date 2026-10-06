@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = v7-zenki.delegation.retry
+# descr = retry the first S delegation every minute, at most 60 times
+
+my $retries = ++<v7-zenki.delegation.retries>;
+
+my $issued = <[v7-zenki.delegation.issue]>;
+
+return if not $issued and $retries < 60;
+
+<[base.log]>->( 0, ': delegation : retries exhausted, daily timer only' )
+    if not $issued;
+
+my $timer = delete <v7-zenki.delegation>->{'retry_timer'};
+$timer->cancel if ref $timer and eval { $timer->can('cancel') };
+
+return;
+
+#,,.,,..,,.,.,.,.,...,,.,,.,,,,..,,.,,.,,,...,..,,...,..,,,..,,,.,.,,,...,,,.,
+#4TI7IFZDUJA6J2CI2UD4DKKLDS3QJYRSEGOEWIDY2BL54IXVF5UXMAQRA7DHUAUQFRYKOTUE7OFWY
+#\\\|BBD27G2IF73IJYJVG7VYVJM7HRH2MX6QCI7DAZVYIEPCF3CBMAI \ / AMOS7 \ YOURUM ::
+#\[7]B7JJH6PO5HGFANG3MFFN3QYXB7QTZTTT4Y3KTGR3EOFF2WFNOYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

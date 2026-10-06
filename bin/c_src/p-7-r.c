@@ -340,12 +340,19 @@ static int lu_read_line(int fd, struct encryption_state *st,
 
 #define B32_32_LEN  52   /* b32 [ no padding ] of 32 bytes */
 #define B32_64_LEN 103   /* b32 [ no padding ] of 64 bytes */
+#define B32_FP_LEN  77   /* b32 of a bmw384 host-root fingerprint */
+/* host-root delegation [ select reply field 4 ] : upper bound on its b32
+   length -- the SAME number the helper uses [ DLG_B32_MAX ] */
+#define DLG_B32_MAX 2048
 
 /* binding context : what the select reply announced + who we are */
 struct bind_ctx {
     const char *username;
-    char s_pub[B32_32_LEN + 1];          /* pinned server identity key */
+    char s_pub[B32_32_LEN + 1];          /* S : accepted only when the
+                                            delegation verified + the
+                                            host-root pin matched */
     char server_nonce[B32_32_LEN + 1];
+    char delegation[DLG_B32_MAX + 1];    /* host-root statement . sig */
 };
 
 /* strict b32 : RFC 4648 alphabet, exact length -- server supplied values
@@ -420,47 +427,104 @@ static int run_helper(char *const argv[], const char *secret_stdin,
     return rc;
 }
 
-/* server key pin [ TOFU ] : ~/.n/remote-keys/servers/<host>_<port>.public
-   0 ok [ matched or pinned now ], 5 strict + not pinned, 6 mismatch,
-   -1 any other failure [ incl. unreadable pin file ] -- fail closed */
-int check_server_pin(const char *remote_host, const char *remote_port,
-                     const char *s_pub_b32, int verbose, int strict)
+/* split a check-pin result line "<WORD> <fingerprint> <name>" ; the
+   fingerprint must be 77 b32 chars and the name a safe token [ it is
+   server supplied and gets printed ]. 1 ok, 0 malformed */
+static int pin_result_fields(const char *line, const char *word,
+                             char *fp, char *name, size_t name_max)
 {
-    char result_line[256];
+    size_t wlen = strlen(word);
+    if (strncmp(line, word, wlen) != 0 || line[wlen] != ' ')
+        return 0;
+    const char *p = line + wlen + 1;
+    const char *sp = strchr(p, ' ');
+    if (sp == NULL || (size_t)(sp - p) != B32_FP_LEN)
+        return 0;
+    memcpy(fp, p, B32_FP_LEN);
+    fp[B32_FP_LEN] = '\0';
+    if (!is_b32(fp, B32_FP_LEN))
+        return 0;
+    if (strlen(sp + 1) >= name_max ||
+        !is_safe_token(sp + 1, name_max - 1, "._-"))
+        return 0;
+    strcpy(name, sp + 1);
+    return 1;
+}
+
+/* host-root pin : the helper verifies the delegation [ sig under the
+   issuer pub, validity window, subject == S_pub, name \ scope ] and then
+   compares the host-root FINGERPRINT with
+   ~/.n/remote-keys/servers/<host>_<port>.public. a rotated S that the
+   pinned host-root delegates passes.
+   0 ok [ matched or pinned now ], 5 strict + not pinned, 6 other
+   host-root, -1 any other failure [ invalid delegation, unreadable \ old
+   pin file ] -- fail closed */
+int check_server_pin(const char *remote_host, const char *remote_port,
+                     const char *s_pub_b32, const char *delegation_b32,
+                     int verbose, int strict)
+{
+    char result_line[512];
+    char fp[B32_FP_LEN + 1];
+    char name[256];
     char *av[] = { P7_AUTH_HELPER, "check-pin", (char *)remote_host,
                    (char *)remote_port, (char *)s_pub_b32,
-                   strict ? "strict" : NULL, NULL };
+                   (char *)delegation_b32, strict ? "strict" : NULL, NULL };
     int rc = run_helper(av, NULL, result_line, sizeof(result_line), NULL, 0);
 
-    if (rc == 0 && strcmp(result_line, "PIN_VALID") == 0) {
+    if (rc == 0 && pin_result_fields(result_line, "PIN_VALID", fp, name,
+                                     sizeof(name))) {
         if (verbose)
-            fprintf(stderr, ":: server key matches pin ::\n");
+            fprintf(stderr, ":: host-root %s [ %s ] matches pin ::\n",
+                    fp, name);
         return 0;
     }
-    if (rc == 0 && strncmp(result_line, "PIN_NEW ", 8) == 0 &&
-        is_b32(result_line + 8, B32_32_LEN)) {
-        fprintf(stderr, ": pinned server key %s [ %s:%s ]\n",
-                result_line + 8, remote_host, remote_port);
+    if (rc == 0 && pin_result_fields(result_line, "PIN_NEW", fp, name,
+                                     sizeof(name))) {
+        fprintf(stderr, ": pinned host-root %s [ %s ]\n", fp, name);
+        if (verbose)
+            fprintf(stderr, ":: pin file for %s:%s -- compare out of band "
+                    "[ p7c crypt.C25519.host-root-fingerprint ] ::\n",
+                    remote_host, remote_port);
         return 0;
     }
-    if (rc == 5 && strcmp(result_line, "PIN_UNPINNED") == 0) {
+    if (rc == 5 && pin_result_fields(result_line, "PIN_UNPINNED", fp, name,
+                                     sizeof(name))) {
         fprintf(stderr, ":\n");
-        fprintf(stderr, ": strict mode: server key not yet pinned\n");
+        fprintf(stderr, ": strict mode: host-root not yet pinned\n");
+        fprintf(stderr, ": offered host-root %s [ %s ]\n", fp, name);
         fprintf(stderr, ": connect once without -strict to pin: p-7-r %s:%s <command>\n",
                 remote_host, remote_port);
         fprintf(stderr, ":\n");
         return 5;
     }
-    if (rc == 6 && strcmp(result_line, "PIN_MISMATCH") == 0) {
+    if (rc == 6 && pin_result_fields(result_line, "PIN_MISMATCH", fp, name,
+                                     sizeof(name))) {
         /* Always print MITM warning - security is more important than silence */
         fprintf(stderr, ":\n");
-        fprintf(stderr, ": << SECURITY WARNING >> server key pin mismatch\n");
-        fprintf(stderr, ": possible MITM attack - server pubkey does not match pinned key\n");
+        fprintf(stderr, ": << SECURITY WARNING >> host-root pin mismatch\n");
+        fprintf(stderr, ": possible MITM attack - server key delegated by another host-root\n");
+        fprintf(stderr, ": offered host-root %s [ %s ]\n", fp, name);
         fprintf(stderr, ": connection rejected [ pin is never replaced automatically ]\n");
         fprintf(stderr, ":\n");
         return 6;
     }
-    fprintf(stderr, "<< server key pin check failed [ pin file unreadable or invalid ? ] >>\n");
+    if (rc == 7 && strncmp(result_line, "DELEGATION_INVALID ", 19) == 0 &&
+        is_safe_token(result_line + 19, 128, " ._-\\")) {
+        fprintf(stderr, "<< server key delegation refused [ %s ] >>\n",
+                result_line + 19);
+        return -1;
+    }
+    if (rc == 8 && strncmp(result_line, "PIN_ERROR ", 10) == 0 &&
+        is_safe_token(result_line + 10, 128, " ._-")) {
+        fprintf(stderr, "<< host-root pin file refused [ %s ] [ %s:%s ] >>\n",
+                result_line + 10, remote_host, remote_port);
+        if (strcmp(result_line + 10, "old server key pin") == 0)
+            fprintf(stderr, ": the pin predates host-root delegation -- verify the host-root\n"
+                    ": out of band [ p7c crypt.C25519.host-root-fingerprint ], then\n"
+                    ": remove ~/.n/remote-keys/servers/<host>_<port>.public\n");
+        return -1;
+    }
+    fprintf(stderr, "<< host-root pin check failed [ delegation or pin file invalid ? ] >>\n");
     return -1;
 }
 
@@ -829,39 +893,62 @@ int main( int argc, char * argv[] ) {
     }
 
     /* Stage 2: Read server response with pubkey announcement */
-    char select_response[512] = {0};
-    if (read_line(socket_fd, select_response, sizeof(select_response)) < 0) {
+    /* "TRUE " S_pub " " nonce " " delegation "\n" + NUL */
+    char select_response[5 + B32_32_LEN + 1 + B32_32_LEN + 1 + DLG_B32_MAX + 2] = {0};
+    int select_len = read_line(socket_fd, select_response, sizeof(select_response));
+    if (select_len < 0) {
         fprintf(stderr, "<< error reading auth method response ::\n");
         return 4;
     }
+    /* a line that did not end in the buffer is refused [ never read the
+       rest of it as the next reply ] */
+    if (select_len == 0 || select_response[select_len - 1] != '\n') {
+        fprintf(stderr, "<< select reply refused [ too long or not terminated ] >>\n");
+        close(socket_fd);
+        return 4;
+    }
     strip_newline(select_response);
+    /* no embedded NUL [ strlen below must see the whole line ] */
+    if (strlen(select_response) != (size_t)select_len - 1) {
+        fprintf(stderr, "<< select reply refused [ embedded NUL ] >>\n");
+        close(socket_fd);
+        return 4;
+    }
 
-    /* select reply v2 : exactly "TRUE <S_pub b32> <server_nonce b32>" ;
-       anything else [ incl. a v1 reply without the nonce ] is refused */
+    /* select reply : exactly
+       "TRUE <S_pub b32> <server_nonce b32> <delegation b32>" ;
+       anything else [ incl. a v2 reply without the delegation ] is refused */
     struct bind_ctx bctx;
     memset(&bctx, 0, sizeof(bctx));
     bctx.username = p7_unix_user;
+    size_t select_fixed = 5 + B32_32_LEN + 1 + B32_32_LEN + 1;
+    size_t dlg_len = strlen(select_response) > select_fixed
+                     ? strlen(select_response) - select_fixed : 0;
     if (strncmp(select_response, "TRUE ", 5) != 0 ||
-        strlen(select_response) != 5 + B32_32_LEN + 1 + B32_32_LEN ||
-        select_response[5 + B32_32_LEN] != ' ') {
-        fprintf(stderr, "<< select reply refused [ expected TRUE <server key> <nonce> ] >>\n");
+        dlg_len == 0 || dlg_len > DLG_B32_MAX ||
+        select_response[5 + B32_32_LEN] != ' ' ||
+        select_response[select_fixed - 1] != ' ') {
+        fprintf(stderr, "<< select reply refused [ expected TRUE <server key> <nonce> <delegation> ] >>\n");
         close(socket_fd);
         return 4;
     }
     memcpy(bctx.s_pub, select_response + 5, B32_32_LEN);
     memcpy(bctx.server_nonce, select_response + 6 + B32_32_LEN, B32_32_LEN);
+    memcpy(bctx.delegation, select_response + select_fixed, dlg_len);
     if (!is_b32(bctx.s_pub, B32_32_LEN) ||
-        !is_b32(bctx.server_nonce, B32_32_LEN)) {
-        fprintf(stderr, "<< select reply refused [ invalid server key or nonce ] >>\n");
+        !is_b32(bctx.server_nonce, B32_32_LEN) ||
+        !is_b32(bctx.delegation, dlg_len)) {
+        fprintf(stderr, "<< select reply refused [ invalid server key, nonce or delegation ] >>\n");
         close(socket_fd);
         return 4;
     }
 
-    /* Stage 3: server key pin check BEFORE the auth line is sent */
+    /* Stage 3: delegation + host-root pin check BEFORE the auth line is
+       sent ; S_pub is used below only because it passed here */
     if (verbose)
-        fprintf(stderr, ":: checking server key pin ::\n");
+        fprintf(stderr, ":: checking server key delegation + host-root pin ::\n");
     int tofu_result = check_server_pin(remote_host, remote_port, bctx.s_pub,
-                                       verbose, strict);
+                                       bctx.delegation, verbose, strict);
     if (tofu_result != 0) {
         close(socket_fd);
         if (tofu_result == 5) {

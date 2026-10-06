@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = crypt.C25519.delegation_file
+# descr  = <backend key dir>/<S name>.dlg : the delegation statement file
+# param  = <S key name> [ e.g. protocol-7.base ]
+# return = path, undef if the name or the backend key dir is not usable
+#
+# a public artefact OUTSIDE root/ [ data/md/design/HOST-ROOT-
+# DELEGATION.md, 'delegation file' ] : written by v7-zenki, read by cube
+
+my $s_name = shift;
+
+return undef
+    if not defined $s_name
+    or ref $s_name
+    or $s_name !~ m|\A[0-9A-Za-z_\-][0-9A-Za-z\.\-_]{0,254}\z|;
+
+my $root_dir = <[crypt.C25519.root_key_dir]>;
+return undef if not defined $root_dir;
+
+( my $backend_key_dir = $root_dir ) =~ s|/root\z||;
+return undef if $backend_key_dir eq $root_dir;
+
+return catfile( $backend_key_dir, "$s_name.dlg" );
+
+#,,,.,,,,,...,,,,,,,.,...,.,,,,..,..,,,,,,.,,,..,,...,...,.,.,,,.,..,,,,.,...,
+#FBZBQLFKMGFL5XXDAOZCEKH2UV7J65ZCXDCZBSPE6LMQZ7UUTP3BX237IL7ZTCFZ4TRPVI2JAXA7C
+#\\\|6JHAESMWQLZEETXFYDERNQTXL42YGHDUX62Q3ORTUMBQVNJF77F \ / AMOS7 \ YOURUM ::
+#\[7]HARB43SNUJGFBNDZYQZEFNXP7IEMSETP5HDSNFKRZHUM6MODPSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

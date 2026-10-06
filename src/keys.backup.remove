@@ -21,6 +21,21 @@ if (   not length( $key_name // '' )
     return undef;
 }
 
+## root-held key : only root may touch its files [ host-root delegation ] ##
+## the resolved key dir is root/ then, backups stay inside it [ rename    ##
+## keeps owner 0 + modes ]                                                ##
+my $key_path_ref = <[crypt.C25519.key_path]>->($key_name);
+if ( not defined $key_path_ref ) {
+    <[base.logs]>->( 0, "key path of '%s' not resolvable", $key_name );
+    return undef;
+} elsif ( $key_path_ref->{'holder'} eq qw| root |
+    and $EFFECTIVE_USER_ID != 0 ) {
+    <[base.logs]>->(
+        0, "key '%s' is root-held : refused, not running as root", $key_name
+    );
+    return undef;
+}
+
 my $backups  = <[keys.backup.list]>->($key_name);
 my @matching = grep { $ARG->{'type'} eq $type } @$backups;
 
@@ -91,8 +106,8 @@ if ( -e $target->{'path'} and not unlink( $target->{'path'} ) ) {
 
 return TRUE;
 
-#,,,,,,,,,,,,,.,.,,,,,,.,,,..,.,,,.,,,,,,,,..,..,,...,...,,..,.,.,...,.,,,,,.,
-#DVIPUXFKNQF7IAGPOBUAPXA3AIDO7J635ZES4OBHXHNCOM46SSYZ3WZXHI4ZIEJEKNX36WX2HRDQO
-#\\\|ZBJXU4OKXSVHLYTD4AI3MCBS7UFMLP5BQJW7DA2E2HQI3HTGZIE \ / AMOS7 \ YOURUM ::
-#\[7]N3ZLNZ3ZJGDXHRJGOI5OCO4HSUSZSTZOA7CU3ZTG33FAUSC3GEBA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,.,.,.,.,,..,,.,,,,,,,..,,.,,..,,...,..,,.,,,,..,..,,,.,,..,,
+#UNBV72NOJM3247HCNMJFQDDTRLNWVA7UJFZ6AKOZPRKIJVDEMTQDBTMAWDRYDSO66MCAANMXIJNOG
+#\\\|TMGGSQK3JW2BL3S7PUTQ2A2J25LF75HBF62AZWBK4GPFKM7TC3J \ / AMOS7 \ YOURUM ::
+#\[7]MKNBJMA75RTDQVUNCXS2H5345JBRP4BBUZXHZ5QURYWKK2OKTQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -79,6 +79,30 @@ foreach my $file ( <[base.sort]>->($read_user_keys) ) {
 <[base.exit]>->( qw| 0110 |, ':. aborted file extraction due to errors', 0 )
     if $errors;
 
+## an archive entry named like a root-held key is never imported : files    ##
+## are restored by basename into the USER key directory, where a root- held ##
+## secret would be readable \ replaceable by the backend user [ host-root   ##
+## delegation ]                                                             ##
+foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
+    my ($held_name)
+        = <[crypt.C25519.key_name_and_type]>->($extracted_filename);
+    next if not defined $held_name;
+    my $held_ref = <[crypt.C25519.key_path]>->($held_name);
+    if ( not defined $held_ref ) {
+        <[base.logs]>->(
+            0, ": key path of '%s' not resolvable, import refused",
+            $held_name
+        );
+        <[base.exit]>->( qw| 0110 |, 'archive import refused', 0 );
+    } elsif ( $held_ref->{'holder'} eq qw| root | ) {
+        <[base.logs]>->(
+            0, ": archive entry '%s' names a root-held key, import refused",
+            $extracted_filename
+        );
+        <[base.exit]>->( qw| 0110 |, 'archive import refused', 0 );
+    }
+}
+
 my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
 
 my @collision_keys;
@@ -206,8 +230,8 @@ return say sprintf "\n  ::[  wrote %d archived key file%s to disk. =)  ]::\n",
     $write_success_count, <[base.cnt_s]>->($write_success_count),
     if $write_success_count;
 
-#,,,.,.,.,,,,,,,,,,,,,..,,,,,,,..,.,,,.,,,.,.,..,,...,...,.,.,.,.,.,,,,,.,.,.,
-#7CDKEXQ32Z7OCXO3K7TW55Q3KFLMEZS7ABXIEVDI6TJAT4R43EFMCIF6VAR5CHS37SLEFOBFSXE6W
-#\\\|HTEXN66AEFUOHBXAKT76OQ6I4HHJYJSCUBYJAQUIUKRJQTNPNPR \ / AMOS7 \ YOURUM ::
-#\[7]7SHSWEMM53OZ7JI5II2C6ZA4HWV3ZWKNXFWM7DA4TCI44EEC2MBY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,.,,...,...,..,,,,,,,,,,,..,..,,...,..,,,.,,,,,,...,...,...,
+#R4ZYFJYGUJCY5YQ4DACTXVMWHJNIT2OAEZI5CS77JMENY6NTKAQ27XRKSUPNR6WZSOPP7ICQWWC62
+#\\\|LTPJFAJYT24SZUODQFVOT4X4NTW4V5QNEPDWB3M37WXUP4UPCVZ \ / AMOS7 \ YOURUM ::
+#\[7]5DIFQ5TKVMXXQ4XNVPDMWEW3PF46MQRXBHEDCV2TVYVSGKDPYGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -121,7 +121,10 @@ sub logged_level0 {
     return scalar grep {
                 defined $ARG->[0]
             and $ARG->[0] eq '0'
-            and ( $ARG->[1] // '' )
+            and do {    ## the rendered line [ format + arguments ] ##
+            no warnings;
+            sprintf( $ARG->[1] // '', @{$ARG}[ 2 .. $ARG->$#* ] );
+            }
             =~ $pattern
     } @logged;
 }
@@ -752,6 +755,9 @@ say ': client [ auth.client.auth-keypair.authenticate + server pin ]';
 my $home
     = tempdir( 'p7-auth-link-binding-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
 $code{'base.get_homedir'} = sub { return $home };
+compile_module('trust.statement');
+compile_module('trust.fingerprint');
+compile_module('trust.verify');
 compile_module('auth.client.server_pin.check');
 compile_module('auth.client.auth-keypair.authenticate');
 my $authenticate = $code{'auth.client.auth-keypair.authenticate'};
@@ -805,9 +811,35 @@ sub run_client {
     return ( $result, @sent );
 }
 
+## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the    ##
+## spec vector's host-root [ seed \x03 ] delegates S ; a foreign one [ seed ##
+## \x04 ] too                                                               ##
+my ( $hr_pub, $hr_priv ) = Crypt::Ed25519::generate_keypair( "\x03" x 32 );
+my ( $fr_pub, $fr_priv ) = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
+my $hr_fp = $code{'trust.fingerprint'}->($hr_pub);
+
+sub delegate {
+    my ( $subject, %opt )  = @ARG;
+    my ( $i_pub, $i_priv ) = ( $opt{'issuer'} // [ $hr_pub, $hr_priv ] )->@*;
+    my $statement = $code{'trust.statement'}->(
+        'build',
+        {   issuer_pub  => $i_pub,
+            subject_pub => $subject,
+            name        => 'peer.cube',
+            not_before  => time - 60,
+            not_after   => $opt{'not_after'} // time + 86400,
+            scope       => '',
+        }
+    );
+    my $sig = Crypt::Ed25519::sign( $statement, $i_pub, $i_priv );
+    return $code{'trust.statement'}->( 'wire', $statement, $sig );
+}
+
 my $nonce      = "\x55" x 32;
-my $good_reply = sprintf 'TRUE %s %s', $b32->($s_pub), $b32->($nonce);
-my $pin_path   = "$home/.n/remote-keys/servers/peer.example_4242.public";
+my $s_dlg      = delegate($s_pub);
+my $good_reply = sprintf 'TRUE %s %s %s', $b32->($s_pub), $b32->($nonce),
+    $s_dlg;
+my $pin_path = "$home/.n/remote-keys/servers/peer.example_4242.public";
 
 sub read_pin {
     open( my $pin_fh, '<', $pin_path ) or return '';
@@ -822,8 +854,12 @@ sub read_pin {
     ok( ref $ctx eq 'HASH', 'first contact : binding context returned' );
     ok( -f $pin_path,       'first contact : pin file written' );
     ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
-    ok( read_pin() eq $b32->($s_pub) . "\n",  'pin file holds S_pub b32' );
-    ok( logged_level0(qr{pinned server key}), 'pinned : logged at level 0' );
+    ok( read_pin() eq "$hr_fp\n",
+        'pin file holds the ' . 'host-root fingerprint' );
+    ok( length($hr_fp) == 77, '  :.. 77 chars' );
+    ok( logged_level0(qr{pinned host-root \Q$hr_fp\E \[ peer\.cube \]}),
+        'pinned : logged at level 0 with fingerprint + name'
+    );
     ok( $ctx->{'server_nonce'} eq $nonce
             && $ctx->{'server_pub'} eq $s_pub
             && $ctx->{'username'} eq 'test-user'
@@ -853,15 +889,55 @@ sub read_pin {
     my ( $ctx, @sent ) = run_client($good_reply);
     ok( ref $ctx eq 'HASH', 'pinned key matches : accepted' );
 
-    my $other_reply = sprintf 'TRUE %s %s', $b32->($x_pub), $b32->($nonce);
+    ## S rotated : x_pub, delegated by the SAME host-root ##
+    my $rotated_reply = sprintf 'TRUE %s %s %s', $b32->($x_pub),
+        $b32->($nonce), delegate($x_pub);
+    ( $ctx, @sent ) = run_client($rotated_reply);
+    ok( ref $ctx eq 'HASH' && $ctx->{'server_pub'} eq $x_pub,
+        'rotated S delegated by the pinned host-root : accepted'
+    );
+    ok( read_pin() eq "$hr_fp\n", '  :.. pin unchanged' );
+
+    ## a foreign host-root delegating S ##
+    my $other_reply = sprintf 'TRUE %s %s %s', $b32->($s_pub),
+        $b32->($nonce), delegate( $s_pub, issuer => [ $fr_pub, $fr_priv ] );
     @logged = ();
     ( $ctx, @sent ) = run_client($other_reply);
-    ok( !defined $ctx, 'pin mismatch : refused' );
+    ok( !defined $ctx, 'foreign host-root : refused' );
+    ok( logged_level0(qr{host-root MISMATCH}), '  :.. logged MISMATCH' );
     ok( !grep( {m{^auth }} @sent ) && !@client_signed,
-        'pin mismatch : nothing signed, no auth line sent'
+        'foreign host-root : nothing signed, no auth line sent'
     );
-    ok( read_pin() eq $b32->($s_pub) . "\n",
-        'pin mismatch : ' . 'pin NOT replaced'
+    ok( read_pin() eq "$hr_fp\n", 'foreign host-root : pin NOT replaced' );
+
+    ## S not the delegated subject ##
+    ( $ctx, @sent ) = run_client( sprintf 'TRUE %s %s %s',
+        $b32->($x_pub), $b32->($nonce), $s_dlg );
+    ok( !defined $ctx && !grep( {m{^auth }} @sent ) && !@client_signed,
+        'announced S != delegated subject : refused, nothing sent'
+    );
+
+    ## expired ##
+    ( $ctx, @sent ) = run_client( sprintf 'TRUE %s %s %s',
+        $b32->($s_pub), $b32->($nonce),
+        delegate( $s_pub, not_after => time - 1 ) );
+    ok( !defined $ctx && !grep( {m{^auth }} @sent ),
+        'expired delegation : refused, no auth line'
+    );
+
+    ## no 4th field [ the v2 reply ] ##
+    ( $ctx, @sent )
+        = run_client( sprintf 'TRUE %s %s', $b32->($s_pub), $b32->($nonce) );
+    ok( !defined $ctx && !grep( {m{^auth }} @sent ),
+        'select reply without delegation : refused, no auth line' );
+
+    ## a 4th field over 2048 chars ##
+    ( $ctx, @sent ) = run_client(
+        sprintf 'TRUE %s %s %s', $b32->($s_pub),
+        $b32->($nonce),          'A' x 2049
+    );
+    ok( !defined $ctx && !grep( {m{^auth }} @sent ),
+        'delegation over 2048 chars : refused'
     );
 
     ( $ctx, @sent ) = run_client( sprintf 'TRUE %s', $b32->($s_pub) );
@@ -869,9 +945,10 @@ sub read_pin {
         'select reply without nonce : refused, no auth line'
     );
 
-    ( $ctx, @sent )
-        = run_client( sprintf 'TRUE %s %s',
-        $b32->($s_pub), $b32->( 'x' x 16 ) );
+    ( $ctx, @sent ) = run_client(
+        sprintf 'TRUE %s %s %s', $b32->($s_pub),
+        $b32->( 'x' x 16 ),      $s_dlg
+    );
     ok( !defined $ctx && !grep( {m{^auth }} @sent ),
         'short nonce : refused, no auth line'
     );
@@ -891,7 +968,7 @@ sub read_pin {
     ## a pin that exists but cannot be read ##
     my $locked = "$home/.n/remote-keys/servers/locked.example_1.public";
     open( my $lfh, '>', $locked ) or die "pin : $OS_ERROR";
-    print {$lfh} $b32->($s_pub), "\n";
+    print {$lfh} $hr_fp, "\n";
     close($lfh);
     chmod 0000, $locked;
 SKIP: {
@@ -918,6 +995,21 @@ SKIP: {
         { 'host' => 'garbled.example', 'port' => 1 } );
     ok( !defined $ctx && !grep( {m{^auth }} @sent ),
         'garbled pin file : refused' );
+
+    ## an old 52 char S pin : refused, never migrated ##
+    my $old_pin = "$home/.n/remote-keys/servers/old.example_1.public";
+    open( my $ofh, '>', $old_pin ) or die "pin : $OS_ERROR";
+    print {$ofh} $b32->($s_pub), "\n";
+    close($ofh);
+    @logged = ();
+    ( $ctx, @sent )
+        = run_client( $good_reply, { 'host' => 'old.example', 'port' => 1 } );
+    ok( !defined $ctx && !grep( {m{^auth }} @sent ),
+        'old 52 char S pin : refused' );
+    ok( logged_level0(qr{old server key pin}), '  :.. logged as old pin' );
+    open( $ofh, '<', $old_pin ) or die "pin : $OS_ERROR";
+    ok( readline($ofh) eq $b32->($s_pub) . "\n", '  :.. NOT re-pinned' );
+    close($ofh);
 }
 
 ######################################################################
@@ -1000,8 +1092,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,,.,.,.,,,,,.,,,,..,...,.,,,,,.,.,,,,..,..,,...,...,,..,...,.,.,.,.,..,,
-#ZSMHGNSUAJSMROYZN3KILBWYC4NMDTTXF5HYX3H55MAGVWALMGYWOSXW2RVVGLUPUQ33J3CESJAH6
-#\\\|WZ3TGLX55AU2MRHJRCXHPJWDZTTXLT3Z4P2VD6OUSOK5HIZKODX \ / AMOS7 \ YOURUM ::
-#\[7]XJWLK7ONR2XP3AGTH4IMYH4UH3H6YDRZEY4MN6IXE22BBRYPJUAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,,.,,,,,,,,.,,..,.,.,,.,,...,..,,...,...,,,,,,..,..,,,,,,...,
+#YBO2IWS7ZBSWFMULVC47QR6HJ4BQD4B5RDKWX54KSPOYJ67HSEFLV747Y3VOOW3NYK3Q5CYDV5RZO
+#\\\|P5VRS4WMI3NXVKE6DO55IHQQIV2ZOQVH5WCWFYQB7XLHYXCTHUI \ / AMOS7 \ YOURUM ::
+#\[7]VLPVPOCI5ZK2IIZH5NBVKGX2FR52Q7NAKG7MD6WRRM6GWHYFFUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

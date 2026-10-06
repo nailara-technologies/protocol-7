@@ -1,0 +1,181 @@
+## [:< ##
+
+# name   = trust.statement
+# descr  = exact bytes of a 'p7 delegation v1' statement [ build \ parse ]
+# param  = 'build'      { issuer_pub subject_pub name not_before not_after
+#                         scope }                   -> statement bytes
+#          'parse'      <statement bytes>          -> { fields }
+#          'parse_wire' <b32 : statement . sig>    -> { fields, statement,
+#                                                       sig }
+#          'wire'       <statement bytes> <sig>    -> b32
+# return = undef on any invalid input [ list context : ( undef, reason ) ]
+#
+# the ONE place for the statement pack template [ data/md/design/
+# HOST-ROOT-DELEGATION.md ]. 'a32' pads or truncates silently, 'N' wraps
+# and unpack ignores trailing bytes : every field is checked first and a
+# parsed statement must re-pack to exactly the input bytes.
+
+my ( $mode, @param ) = @ARG;
+
+my $label        = 'p7 delegation v1';
+my $wire_max_len = 2048;    ## b32 chars [ the select reply 4th field ] ##
+my $sig_len      = 64;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('mode missing') if not defined $mode or ref $mode;
+
+## a value as bytes [ a copy, downgraded -- never a wide string ] ##
+my $as_bytes = sub {
+    my $value = shift;
+    return undef if not defined $value or ref $value;
+    return undef if not utf8::downgrade( $value, 1 );
+    return $value;
+};
+
+## checked copy of the build fields ; ( fields ) or ( undef, reason ) ##
+my $check_fields = sub {
+    my $in = shift;
+    return ( undef, 'fields not a hash' ) if ref $in ne qw| HASH |;
+    my %field;
+    foreach my $key (qw| issuer_pub subject_pub |) {
+        my $value = $as_bytes->( $in->{$key} );
+        return ( undef, "$key not 32 bytes" )
+            if not defined $value
+            or bytes::length($value) != 32;
+        $field{$key} = $value;
+    }
+    my $name = $as_bytes->( $in->{'name'} );
+    return ( undef, 'name not valid' )
+        if not defined $name
+        or $name !~ m|\A[\x21-\x7e]{1,65535}\z|;
+    $field{'name'} = $name;
+
+    my $scope = $as_bytes->( $in->{'scope'} );
+    return ( undef, 'scope not valid' )
+        if not defined $scope
+        or $scope !~ m|\A[\x21-\x7e]{0,65535}\z|;
+    $field{'scope'} = $scope;
+
+    foreach my $key (qw| not_before not_after |) {
+        my $value = $in->{$key};
+        return ( undef, "$key not valid" )
+            if not defined $value
+            or ref $value
+            or $value !~ m|\A[0-9]{1,10}\z|
+            or $value > 4294967295;
+        $field{$key} = 0 + $value;
+    }
+    return ( undef, 'not_after before not_before' )
+        if $field{'not_after'} < $field{'not_before'};
+
+    return \%field;
+};
+
+my $pack_fields = sub {
+    my $f = shift;
+    return pack( 'Z* a32 a32 n/a* N N n/a*',
+        $label, $f->{'issuer_pub'}, $f->{'subject_pub'}, $f->{'name'},
+        $f->{'not_before'}, $f->{'not_after'}, $f->{'scope'} );
+};
+
+## strict parse : the literal label, every length checked, no trailing ##
+my $parse = sub {
+    my $statement = $as_bytes->(shift);
+    return ( undef, 'statement not bytes' ) if not defined $statement;
+
+    my $head = $label . "\0";
+    return ( undef, 'statement label not valid' )
+        if bytes::length($statement) < bytes::length($head) + 64 + 2
+        or substr( $statement, 0, bytes::length($head) ) ne $head;
+
+    my $pos  = bytes::length($head);
+    my $take = sub {
+        my $len = shift;
+        return undef if $pos + $len > bytes::length($statement);
+        my $part = substr( $statement, $pos, $len );
+        $pos += $len;
+        return $part;
+    };
+    my %field;
+    $field{'issuer_pub'}  = $take->(32);
+    $field{'subject_pub'} = $take->(32);
+    my $name_len = $take->(2);
+    return ( undef, 'statement truncated' ) if not defined $name_len;
+    $field{'name'} = $take->( unpack( 'n', $name_len ) );
+    my $times = $take->(8);
+    return ( undef, 'statement truncated' )
+        if not defined $field{'name'}
+        or not defined $times;
+    @field{qw| not_before not_after |} = unpack( 'N N', $times );
+    my $scope_len = $take->(2);
+    return ( undef, 'statement truncated' ) if not defined $scope_len;
+    $field{'scope'} = $take->( unpack( 'n', $scope_len ) );
+    return ( undef, 'statement truncated' ) if not defined $field{'scope'};
+    return ( undef, 'statement has trailing bytes' )
+        if $pos != bytes::length($statement);
+
+    my ( $checked, $reason ) = $check_fields->( \%field );
+    return ( undef, "statement $reason" ) if not defined $checked;
+    return ( undef, 'statement not canonical' )
+        if $pack_fields->($checked) ne $statement;
+
+    return $checked;
+};
+
+if ( $mode eq qw| build | ) {
+    my ( $checked, $reason ) = $check_fields->( $param[0] );
+    return $refuse->($reason) if not defined $checked;
+    return $pack_fields->($checked);
+
+} elsif ( $mode eq qw| parse | ) {
+    my ( $parsed, $reason ) = $parse->( $param[0] );
+    return $refuse->($reason) if not defined $parsed;
+    return $parsed;
+
+} elsif ( $mode eq qw| parse_wire | ) {
+    my $wire = $param[0];
+    return $refuse->('delegation missing')
+        if not defined $wire
+        or ref $wire;
+    return $refuse->('delegation too long')
+        if length($wire) > $wire_max_len;
+    return $refuse->('delegation not b32')
+        if $wire !~ m|\A[A-Z2-7]+\z|;
+    my $bytes = eval { Crypt::Misc::decode_b32r($wire) };
+    return $refuse->('delegation not b32')
+        if not defined $bytes
+        or Crypt::Misc::encode_b32r($bytes) ne $wire;    ## canonical ##
+    return $refuse->('delegation too short')
+        if bytes::length($bytes) <= $sig_len;
+
+    my $statement = substr( $bytes, 0, bytes::length($bytes) - $sig_len );
+    my $sig       = substr( $bytes, -$sig_len );
+    my ( $parsed, $reason ) = $parse->($statement);
+    return $refuse->($reason) if not defined $parsed;
+    $parsed->{'statement'} = $statement;
+    $parsed->{'sig'}       = $sig;
+    return $parsed;
+
+} elsif ( $mode eq qw| wire | ) {
+    my ( $statement, $sig ) = map { $as_bytes->($ARG) } @param[ 0, 1 ];
+    return $refuse->('sig not 64 bytes')
+        if not defined $sig
+        or bytes::length($sig) != $sig_len;
+    my ( $parsed, $reason ) = $parse->($statement);
+    return $refuse->($reason) if not defined $parsed;
+    my $wire = Crypt::Misc::encode_b32r( $statement . $sig );
+    return $refuse->('delegation too long') if length($wire) > $wire_max_len;
+    return $wire;
+}
+
+return $refuse->('mode not known');
+
+#,,.,,,.,,,.,,,,,,,,.,,,.,,.,,,..,,,,,,.,,.,,,..,,...,...,..,,.,.,,.,,..,,,,.,
+#OCFZPICTJMCEKXX4Z4DNFSGQ4J3S6ZSXKFPPS7IXS4Q74T7U5UTPKNDXQYAEJE4INQWTP25C3NSBE
+#\\\|SYNEQ6FD6GC52S6RFZL5YWXWY46FHRBYGWIFWC2T3MHUMKWLS4F \ / AMOS7 \ YOURUM ::
+#\[7]4VH7DBRGM2W3DZANA7KDYWSQNDNMRSFAGE6JXGHIHQOKVCNPEMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
