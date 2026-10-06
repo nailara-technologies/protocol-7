@@ -17,11 +17,27 @@ my $key_vars_ref
 
 my $key_dir = $key_vars_ref->{'key_dir'};
 
+## directories to scan : the resolved key dir [ root/ for a root-held   ##
+## filter name ] and, only when running as root, the root key dir too [ ##
+## host-root delegation ] -- a non-root process never opens root/       ##
+my $root_key_dir = <[crypt.C25519.root_key_dir]> // '';
+my @scan_dirs    = ($key_dir);
+
+if ( length $root_key_dir ) {
+    if ( $EFFECTIVE_USER_ID != 0 ) {
+        return []    ## a root-held name : nothing readable here ##
+            if $key_dir eq $root_key_dir;
+    } elsif ( not length( $name_filter // '' ) and -d $root_key_dir ) {
+        push @scan_dirs, $root_key_dir;
+    }
+}
+
 my $backup_re = qr{ ^ ( [A-Z2-7]+ ) \. (.+) \. (secret|private|public) $ }x;
 
 my @backups;
-foreach my $path ( <[file.all_files]>->($key_dir)->@* ) {
-    ( my $basename = $path ) =~ s|^.*/||;
+foreach my $path ( map { <[file.all_files]>->($ARG)->@* } @scan_dirs ) {
+    ( my $basename   = $path ) =~ s|^.*/||;
+    ( my $holder_dir = $path ) =~ s|/[^/]+$||;
     next if $basename !~ $backup_re;
     my ( $tstamp_b32, $key_name, $type ) = ( $1, $2, $3 );
 
@@ -38,6 +54,10 @@ foreach my $path ( <[file.all_files]>->($key_dir)->@* ) {
         qw| tstamp_b32  | => $tstamp_b32,
         qw| tstamp_unix | => $tstamp_unix,
         qw| path        | => $path,
+        qw| holder      | =>
+            ( length $root_key_dir and $holder_dir eq $root_key_dir )
+        ? qw| root |
+        : qw| user |,
         qw| basename    | => $basename,
         };
 }
@@ -49,8 +69,8 @@ foreach my $path ( <[file.all_files]>->($key_dir)->@* ) {
 
 return \@backups;
 
-#,,.,,..,,.,,,,,,,,,,,...,...,.,,,...,..,,,,,,..,,...,...,,,.,...,.,.,,,.,,.,,
-#JNKJBA7W2CE6HLLCEF34W7AOP24446RIJCTZTW5AM54O7YCIQGCM3KF6XQ43SWF3RA7L5KQ65UJWG
-#\\\|FPBHFPHYF3YDOMHNOFNTX43FPWM356Z5HXJTXPEXML4242J736D \ / AMOS7 \ YOURUM ::
-#\[7]RWY4RMONJOVAVK5JQ7PJU6EQBWX26AYJMZZPJ7VA4CPMYOB2QEAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,,,...,..,,,,,,,,,,,,.,,,,,..,,...,...,.,,,,.,,,,.,,..,,.,,
+#HEHAM2EEWPW7IRBFOL7TQFISIUELGTM3NVU42IWKMHNAK43EI6G34GIGPQD6ZV3KYFM722H5QHHW6
+#\\\|4ZR66ZJP6V55RWV2BY2J65PAETMB6ONCDVQNJRZZQCQJTDYMRWX \ / AMOS7 \ YOURUM ::
+#\[7]YQKAWFQBBGXE7JHIS5PDADPETYKMGD4IXUINAC6TOBTD27F256BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

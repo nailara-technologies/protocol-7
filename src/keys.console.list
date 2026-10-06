@@ -30,8 +30,14 @@ my $key_re_public  = $keys_re->{'key_file'}->{'public'};
 my $key_re_private = $keys_re->{'key_file'}->{'private'};
 my $key_re_sig     = $keys_re->{'key_sig'}->{'signature'};
 
+## root-held keys [ host-root delegation ] are listed as their own group  ##
+## below, never mixed into the user key files whichever way keyfiles goes ##
+my $root_key_dir = <[crypt.C25519.root_key_dir]> // '';
+
 ## warns when absent ##
-my @k_files = grep {s|^.+/||} <[base.reverse-sort]>->(<[keys.get_keyfiles]>)
+my @k_files = grep {s|^.+/||}
+    grep { not length $root_key_dir or index( $ARG, "$root_key_dir/" ) != 0 }
+    <[base.reverse-sort]>->(<[keys.get_keyfiles]>)
     or return;
 
 ##  Load remote [hostkey] entries  ##
@@ -103,6 +109,28 @@ foreach my $file (@display_kfiles) {
     push $key_files{$name}->@*, $file;
 }
 
+## root-held group : readable only when running as root, a non-root process ##
+## can see that the directory exists and nothing more [ 0700 ]              ##
+my %root_key_files;
+my $root_note;
+if ( length $root_key_dir and -d $root_key_dir ) {
+    if ( $EFFECTIVE_USER_ID != 0 ) {
+        $root_note = sprintf 'root-held : not readable as %s', $key_usr;
+    } elsif ( opendir( my $root_dir_fh, $root_key_dir ) ) {
+        foreach my $file ( <[base.sort]>->( [ readdir($root_dir_fh) ] ) ) {
+            next if not -f catfile( $root_key_dir, $file );
+            my $name = <[crypt.C25519.get_keyname]>->($file);
+            next if not defined $name;
+            $root_key_files{$name} //= [];
+            push $root_key_files{$name}->@*, $file;
+        }
+        closedir($root_dir_fh);
+    } else {
+        $root_note = sprintf 'root-held : not readable [ %s ]',
+            <[base.str.os_err]>;
+    }
+}
+
 delete <crypt.C25519.get_keyname.quiet>;
 
 my @unreadable_note_lines;
@@ -120,7 +148,7 @@ foreach my $file (@unreadable_note) {
     }
 }
 
-my $names_len = 2 + max( map {length} keys %key_files );
+my $names_len = 2 + max( map {length} keys %key_files, keys %root_key_files );
 $names_len
     = max( $names_len, map { length( $_ // '' ) } values %key_chksums );
 
@@ -175,6 +203,29 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
         $shown_chksum++ if length $chksum_line;
     }
 
+}
+
+##  Display root-held keys, a group of their own  ##
+if ( not $display_sigs and ( keys %root_key_files or defined $root_note ) ) {
+    foreach my $name ( <[base.sort]>->( \%root_key_files ) ) {
+        $displayed_files_count++;
+
+        $key_list_string .= sprintf " : %*s .\n", $names_len, '';
+        $key_list_string .= sprintf " : %*s .\n", $names_len,
+            sprintf( "'%s' [ root-held ]", $name );
+
+        foreach my $file ( $root_key_files{$name}->@* ) {
+            $key_list_string .= sprintf " : %*s : %s\n", $names_len, '',
+                $file;
+        }
+    }
+
+    if ( defined $root_note ) {
+        $displayed_files_count++;
+        $key_list_string .= sprintf " : %*s .\n", $names_len, '';
+        $key_list_string .= sprintf " : %*s .\n", $names_len,
+            sprintf( '[ %s ]', $root_note );
+    }
 }
 
 ##  Display remote [hostkey] entries  ##
@@ -289,8 +340,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,..,.,,,,..,.,.,,,,,.,,,,,.,,,,,,,.,...,..,,.,.,...,...,.,.,.,,,...,.,.,,,,,
-#IGRHTQMO6O3WEK3BBGNXJRFZPH5SJEKKYFZABKMUW7UUPID3CKKCYL6BKZJ32EX5P7E3EIMG3OSPA
-#\\\|ZW77EWYV6EDR4QNFABCYG3ECITZ6SJDWHJW3RYLZENH6ITNV6SH \ / AMOS7 \ YOURUM ::
-#\[7]56W6LI3FZSBCD356NBTM7PLOBPBTOZN7ZEKHAK3BCA3ONWIW2WCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,..,,,..,,,,,.,,,.,.,,,.,,..,.,.,...,...,.,.,...,.,,,,.,,,,.,
+#FDVTAUNHKIYWQEV2EXYF6MONN7FCYCPVONJ5IOI5RZLXEHOJSX6VCT3YL6ANQEMM2RSS3VIDVCLTQ
+#\\\|4V7NKIKH7BU3ZXRNEWFWKFSYUZCEZYQFG66GPBTTXHQSSSDLDYV \ / AMOS7 \ YOURUM ::
+#\[7]CRB4AWYUVXFQXHHLCGYZ4JGYRH3OJGAPUEIAYZTRI643MAMCYCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

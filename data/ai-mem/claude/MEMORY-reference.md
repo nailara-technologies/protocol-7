@@ -81,6 +81,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 - [cube-type eager devmod precompile](reference-cube-type-eager-devmod-precompile.md) — `system.zenka.type = cube` zenki (cube, cube-13) deliberately keep `devmod.*` in `subroutines.load-early`, regenerated that way by `gen-sub-whitelist`/`dep-graph` even after manual removal; appliance filesystem-crash resilience (only already-compiled code survives a vanished filesystem), not cruft — don't hand-prune it like regular client zenki's load-early lists
 - [log ntime timestamp conversion](reference-log-ntime-timestamp-conversion.md) — `p7c localtime <stamp>` / `p7c delta-time <stamp>` convert zenka-log base32 stamps; `::` = p7c
+- [claude-web-promotion-credits-overflow](reference-claude-web-promotion-credits-overflow.md) — promotion credits on Claude web \ cloud instances count separately from the CLI windows : overflow capacity AND the place for backend-independent tasks [ spec-driven code, offline tests ] -- offer task files there [ ask first ] ; live checks stay local
 
 #,,..,...,,,.,,,.,,.,,,,,,,,,,..,,,,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,,..,
 #IDHQBYU4ZPC26MOBGHIZOXCZW46F4C72HTIW4WGXHFEDKBH4WZOLEIWGJE56VFO6LANL2YY3BLOAY
@@ -103,8 +104,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 
-#,,,,,..,,,,,,..,,,,.,.,.,,,,,,.,,,,,,,,.,,.,,..,,...,...,,.,,...,,..,,..,...,
-#IMJ5YKTEVWJA2RC7Q3XXNQGMKC5IDRFWPVWCRSU6D2F2UAJFPMAAHFJXZGAMC53SYEV75GZRPTVUU
-#\\\|6TK34QFQOPXYM3NGK4LO746QG7YWK6Y4SZ4K5K2RVNH76B4BZZC \ / AMOS7 \ YOURUM ::
-#\[7]5HKX4NZVHQB6B7RQTIGWYLNL5VILRFBMCSG2ZCLOTNIEUEVWX2BI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,.,.,.,.,.,...,...,,,.,,.,,,..,..,,...,...,...,.,,,.,.,...,,,,,
+#B25TGBZ7PBPBQXBOGRIWT4NY5H4TEUAJSYZ4GCAUQ77HYBOWGVR3PDSY5K2ANXEIX35XBPJG4GONQ
+#\\\|5LTMJEQIZ2GHOKWQUJUE6EQ7HPX2L4IBYCIGK7DCEH6M47FUIWE \ / AMOS7 \ YOURUM ::
+#\[7]SWUSNKD35HTQNZCPFP3XN2O4F5YHRI3PKVGA3JLAUBP42FOC7SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

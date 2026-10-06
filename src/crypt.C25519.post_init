@@ -18,6 +18,11 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
+## 'host-root' : this host's SECRET root key [ the trust chain anchors here ##
+## ], created once by v7-zenki [ as root ] in the root-held root/ --        ##
+## independent of auto_load_keys, which v7-zenki switches off               ##
+<[crypt.C25519.host_root.create]>;
+
 if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
     <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
     <crypt.C25519.initialized>++;
@@ -72,24 +77,6 @@ while ( glob sprintf '%s.{spk,sig}.*', $key_basepath ) {
     }
 }
 
-## 'host-root' : this host's SECRET root key [ the trust chain anchors here ##
-## ], created once by v7-zenki's first start from fresh random bytes [      ##
-## gen_keys without a secret -> base.prng.bytes ]                           ##
-<crypt.C25519.cfg.create_host_root_key> //= TRUE;   ##[ enabled by default ]##
-
-if (<crypt.C25519.cfg.create_host_root_key>
-    ## first zenka to start creates it ##
-    and <system.zenka.name> eq qw| v7-zenki |
-    and not <[crypt.C25519.key_exists]>->(qw| host-root |)
-) {
-    if ( not exists $keys{'C25519'}->{'host-root'} ) {
-        <[base.log]>->( 1, "creating 'host-root' C25519 key [ random ] .," );
-        <[crypt.C25519.gen_keys]>->(qw| host-root |);
-    }
-    <[base.log]>->( 1, "writing 'host-root' key to disk..," );
-    <[crypt.C25519.write_keys]>->(qw| host-root |);
-}
-
 my $s_key_name = <system.zenka.name>;
 if (    exists $keys{'C25519'}{$key_name}
     and exists $keys{'C25519'}{$key_name}{'private'}
@@ -102,8 +89,8 @@ if (    exists $keys{'C25519'}{$key_name}
 
 0;
 
-#,,..,,..,.,.,,..,.,.,..,,.,,,.,.,,.,,,,,,.,,,..,,...,...,.,,,..,,,,.,.,.,,..,
-#NRKXQMGFMTXUM4HL2FNKGT3DO5KFX6AAITOLFCZLDMZ2AOIDXILHGHSOSK5JD4JTG3NHTP53FCUFI
-#\\\|AKA2IBCRUC25E2XM2WJUYZF5SHGWRDTC3Y3WCPOK73OVFZTWDXG \ / AMOS7 \ YOURUM ::
-#\[7]YIJ4DROXFBZKGAUE4N5WDONO3LS5QBCPH2CETDA67SYGHMIEHIDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,,,,,..,,,,,,.,,,.,,..,,...,..,,...,...,,,.,..,,.,.,.,,,...,
+#6B2F36AVP4W6IUXRF77SSYNE5DRAHIAOIGEGHRJJZHUV7RIY4MFGUCSUIPYN3XVSOADDWLB4QSJAA
+#\\\|ID32HBISRETKUBY4CQXIZJ3W4C6WSKKI6SMS2KY53TFAW4KC433 \ / AMOS7 \ YOURUM ::
+#\[7]HF5M3KOFJKF6AREMN63OIL2RR6G5DPFGTITN2X5H5AWVWZB6FICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

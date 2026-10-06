@@ -11,6 +11,18 @@ if ( not defined $name ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
+## root-held key : only root may operate on it [ host-root delegation ] ##
+my $key_path_ref = <[crypt.C25519.key_path]>->($name);
+if ( not defined $key_path_ref ) {
+    printf "\n  << key '%s' : key path not resolvable, see log >>\n\n", $name;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_path_ref->{'holder'} eq qw| root |
+    and $EFFECTIVE_USER_ID != 0 ) {
+    printf "\n  << key '%s' is root-held : "
+        . "refused, not running as root >>\n\n", $name;
+    <[base.exit]>->(qw| 0020 |);
+}
+
 my $key_status = <[crypt.C25519.encrypted_key]>->($name);
 
 if ( $key_status < 0 ) {
@@ -77,8 +89,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,,.,,,.,,..,.,.,.,,,...,...,,.,,,.,,.,.,..,,..,,...,...,..,,,..,,..,,.,,,..,
-#AIJLZMTUK2RE5FUVP2CHHLFETKEIIEC636U7DAVI5XJS2FHRKWXHHGY7N7ECLTRA6ZO2SKLLS4WYS
-#\\\|NDMEGORTKTOVMPFNXYM7VUER3Q4L6P4XUGUV2XD5VSOSN7VWK5O \ / AMOS7 \ YOURUM ::
-#\[7]I734R3UEW4AQUZXAXZFIPZJ43NZ4WJ3PE4TETLZEG7E64EYZNCDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,..,,,,.,,..,..,,,,.,.,.,,,,,..,,...,...,,.,,...,...,,.,,,,.,
+#DR3W5BZH6JRZTJ2FPHQOAKKNQEU5YPVMX2FS6ZVLHW4WOZNBLSCC4CRTWSSLJMJO3E3QLWBYTVRSK
+#\\\|K2MTC36LKUAXFU7SQLJHPBG3LFYT22T3N27TDEO4TLDRJ6R47TE \ / AMOS7 \ YOURUM ::
+#\[7]EZ3THSFAZFE2MJ2W45B2OLPXV7WRWGYELDUAMQMRC472NSJL7MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

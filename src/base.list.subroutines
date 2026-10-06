@@ -55,6 +55,7 @@ return [ qw[
         web.cmd.skin
         vterm.subbit
         ui.summarise
+        trust.verify
         ssl.list_ssl
         space.search
         radio.ripper
@@ -253,6 +254,7 @@ return [ qw[
         users.init_code
         usage.init_code
         udev.load_rules
+        trust.statement
         task.cmd.result
         task.cmd.create
         system.pre_init
@@ -522,6 +524,7 @@ return [ qw[
         user-edit.message
         universal.startup
         udev.reload_rules
+        trust.fingerprint
         transport.promote
         ticker.parse_text
         ticker.emit_event
@@ -1572,6 +1575,7 @@ return [ qw[
         crypt.C25519.keyfiles
         crypt.C25519.key_vars
         crypt.C25519.key_type
+        crypt.C25519.key_path
         crypt.C25519.gen_keys
         credentials.init_code
         cred-mesh.store.local
@@ -2582,6 +2586,8 @@ return [ qw[
         v7-zenki.load_start_setup
         v7-zenki.init_start_setup
         v7-zenki.handler.sig_chld
+        v7-zenki.delegation.retry
+        v7-zenki.delegation.issue
         v7-zenki.check_zenka_deps
         user-edit.menu.namespaces
         universal.stop_start-anim
@@ -2729,6 +2735,7 @@ return [ qw[
         cube.cmd.set-routing-mode
         cube.cmd.select-strm-mode
         cube-13.cmd.stream-status
+        crypt.C25519.root_key_dir
         crypt.C25519.load_keypair
         credentials.cmd.authorize
         cred-mesh.util.format_age
@@ -3123,6 +3130,7 @@ return [ qw[
         v7-zenki.instance_pid_count
         v7-zenki.init_restart_timer
         v7-zenki.extract_short_desc
+        v7-zenki.delegation.startup
         v7-zenki.cmd.reboot-warning
         v7-zenki.cleanup_temp_paths
         v7-zenki.cleanup_temp_files
@@ -3586,6 +3594,7 @@ return [ qw[
         data.mount.shm.feedback.ding
         cube.cmd.reply-encoding-mode
         crypt.C25519.keystr_is_valid
+        crypt.C25519.delegation_file
         crypt.C25519.compare_keypair
         cred-mesh.ui.render.overview
         cred-mesh.subscribe_rotation
@@ -3845,6 +3854,7 @@ return [ qw[
         crypt.C25519.signature_exists
         crypt.C25519.load_from_string
         crypt.C25519.key_name_to_skey
+        crypt.C25519.host_root.create
         crypt.C25519.get_usr_keys_dir
         crypt.C25519.chksum_cache.add
         credentials.spawn_web_session
@@ -5450,6 +5460,7 @@ return [ qw[
         httpd.benchmark.get_event_loop_metrics
         graphics.matrix.visual.extract-palette
         external.handler.orbital_connect_reply
+        crypt.C25519.cmd.host-root-fingerprint
         context.provider.frame.bottom_sentinel
         context.investigation.user-me-endpoint
         coding.tools.handler.summarize_enqueue
@@ -5870,8 +5881,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,..,...,.,,,,,,,,..,.,,,,.,,...,.,.,.,,,.,.,...,...,...,,..,..,,,,,,,..,
-#IMHW6NCUKRTD26MNHW4WIHDE3IIGZ5KQY23OAQHEUTB3PGWWZRKUNNDPLXR7HUAIXAL7ELVOLQ2UA
-#\\\|GAKLJTJQ2M235B2CE6CXACWP7FSSSJTDWWOXVU2QLUPWDPVO6Y4 \ / AMOS7 \ YOURUM ::
-#\[7]LEIMOMQKRVJGNNKX4SEY6KHVQ73MQIUIHU7TWQWVOTYXYRGG3KCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,.,,,..,...,.,,,...,..,,,,.,.,.,...,...,...,.,.,...,..,,,.,,
+#2SZ7DPZLGY6EVW7UK2RKBRIW6TV3K52BSTKWFTTE3HDHNYDX56YKA4GLHNP3JIV6V25RRKQVY2HXW
+#\\\|LVHF2JB662DO3Z2Z6EHHNFG22OKUBOJI4MJXV5W6KCMP5GEFTW2 \ / AMOS7 \ YOURUM ::
+#\[7]ZVHAR5WW4SEKETPDE23SL3LPJGJEZUOZINQK6VGNFIZPHJ7HSYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

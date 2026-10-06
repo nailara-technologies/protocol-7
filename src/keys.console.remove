@@ -36,6 +36,26 @@ if ( $name =~ m{[/\x00]} ) {
     <[base.exit]>->(qw| 0113 |);
 }
 
+## root-held key : only root may operate on it [ host-root delegation ] a ##
+## 'known:' pin lives in another directory, the rule is not about it      ##
+my $key_path_ref = <[crypt.C25519.key_path]>->($name);
+if ( ( $forced_category // '' ) ne qw| known | ) {
+    if ( not defined $key_path_ref ) {
+        printf "\n  << key '%s' : key path not resolvable, see log >>\n\n",
+            $name;
+        <[base.exit]>->(qw| 0110 |);
+    } elsif ( $key_path_ref->{'holder'} eq qw| root |
+        and $EFFECTIVE_USER_ID != 0 ) {
+        printf "\n  << key '%s' is root-held : "
+            . "refused, not running as root >>\n\n", $name;
+        <[base.exit]>->(qw| 0020 |);
+    }
+}
+my $held_by_root
+    = ( defined $key_path_ref and $key_path_ref->{'holder'} eq qw| root | )
+    ? TRUE
+    : FALSE;
+
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 
 my $keys_re = <keys.regex>;
@@ -51,8 +71,16 @@ my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
 my $key_found = FALSE;
 my @k_files;
 if ( not defined $forced_category or $forced_category eq qw| user | ) {
-    ## warns when absent ##
-    @k_files = grep {s|^.+/||} <[keys.get_keyfiles]>;
+    if ($held_by_root) {    ## keys.get_keyfiles knows user keys only ##
+        opendir( my $key_dir_fh, $key_dir )
+            or die sprintf( "<< %s : opendir [ %s ] >>\n",
+            <[base.str.os_err]>, $key_dir );
+        @k_files = grep { -f catfile( $key_dir, $ARG ) } readdir($key_dir_fh);
+        closedir($key_dir_fh);
+    } else {
+        ## warns when absent ##
+        @k_files = grep {s|^.+/||} <[keys.get_keyfiles]>;
+    }
     foreach my $file (@k_files) {
         next if $file !~ $match_re;
         $key_found = TRUE;
@@ -152,8 +180,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,..,,...,...,...,,,,,...,,..,.,.,...,,.,,..,,...,...,..,,,.,,,.,,..,,,.,,
-#J6IBPBVMBXSF3JDBEVQUQ6YIRL3NWT363MLSDLDNXLYLDTOA2KTL7VQGAGM7RGYR4EXHYBWKT3ORC
-#\\\|KJ2SAT5ZM2LVGE2B2QNQ75FW7Z3SCJ66JDI3K6ST3CPVEENIHNK \ / AMOS7 \ YOURUM ::
-#\[7]UTCJ5NA7O4RSJPPPXA62HNEKGLID2W3CFM4HSE5OPEZR35MF66AY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,.,.,,,.,...,,..,..,,,,,,.,,,..,,...,...,.,.,..,,,..,..,,..,,
+#F6CA5D76463X4CZ6ROIZFBTGTDAHXQW774BHENPZ6AYLDTYP7MIKDIRXTKDBQUSAAREAAYRL6B4JY
+#\\\|QZHMH44RDVVSPRSFMW4K6FS7G4766D7BYOQOJDZULTIL4NDUSRQ \ / AMOS7 \ YOURUM ::
+#\[7]HRJDVROT5F2D33X3LEXVFSR4HO5JGC7HC7GH4VCLBXDPJ43CIOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
