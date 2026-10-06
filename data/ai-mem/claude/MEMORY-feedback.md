@@ -80,6 +80,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
 - [mcp-server-p7 kimi-dispatch nonblocking](feedback-mcp-server-p7-kimi-dispatch-nonblocking.md) — 2026-09-08: mcp-server-p7 is single-threaded (one blocking STDIN loop); kimi_dispatch/kimi_continue's blocking qx() held the WHOLE server hostage for the entire kimi run, so kimi_check_status queued behind it too — fixed via fork+detach, kimi-only (claude_dispatch has no check_status equivalent, still blocks). does NOT resolve kimi-dispatch-never-parallel — may make that older bug newly testable instead, since true concurrent kimi-legacy execution is now possible for the first time
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
+- [fill-5h-windows-with-prepared-parallel-dispatch](feedback-fill-5h-windows-with-prepared-parallel-dispatch.md) — near a 7d reset the 5h windows are the limit : parent writes task files + reviews, parallel claude_dispatch lanes [ disjoint scopes ] + ONE serial kimi lane implement ; complement of early-week pacing
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
 - [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed; 2026-08-31: a NEW cross-zenka command call also needs a live-tested access.zenki grant, invisible to both static verification and diff review
 - [verify-symptom-shape-before-hypothesis](feedback-verify-symptom-shape-before-hypothesis.md) — "off overnight"/"stops working" is ambiguous between process-death and stuck-alive-state; check ps/status before investing in a process-supervision hypothesis just because it's the memory-documented failure class at hand
@@ -190,8 +191,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [release-version-tag-explicit](feedback-release-version-tag-explicit.md) — `bin/dev/release-version -s` without an argument recalculates [ time-dependent ] instead of reading rel-ver ; tag with `-s AMOS7-v<x.y.z>` from the committed file, check `git tag --points-at HEAD` before pushing [ 2026-10-06 : tagged v6.13.8 instead of v6.13.5, fixed locally ]
 
-#,,,,,,.,,..,,.,,,.,,,,,,,,,.,..,,.,,,,,.,,,,,..,,...,...,,.,,,,.,,,.,,.,,.,.,
-#JWPM4WTACDRCPA26QA3XMWVGOPA7FDH3OG3W3XJKG7PYEJCWGHCNSVKEXXIDNWI2W76MUMP4GM354
-#\\\|SZMYIXHM7WK7XKNN27HGTGPIV5QHGFHZXJWWMRSN46YQJOSQ2UA \ / AMOS7 \ YOURUM ::
-#\[7]CI2YL5CF2FZZJWNVIV2XSUW76WPKADCRPXFI25FWROQNAFKZTQBA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,...,.,.,,,,,,,.,..,,.,,,,.,,..,,...,...,.,.,.,,,..,,.,.,,,,,
+#7P44X75SIQOT7WK4BQT6NIKPJOZRXCKAPHCPXIFLRYUMR3ZVXKHVJZFLXFOG7I2YZ4EQOEXJYXVJ2
+#\\\|UMGPZ26JDLF65PBTLRWNSLSQQJRPZFACRNUBXR7JVWRRPHO4RBL \ / AMOS7 \ YOURUM ::
+#\[7]AT4LAICYPOV4SCZJJHSMK47RG4YWGWYIP7QQ4MRPWUUOPGUJLMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
