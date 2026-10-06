@@ -112,8 +112,24 @@ $code{$frame_handler_name} = sub {
     my $payload = shift;
     $payload = q|| if not defined $payload;
 
-    my $sess = $data{'session'}{$session_id} or return $payload;
-    return $payload if not defined $sess->{'link_encryption_key'};
+    ## FAIL CLOSED : on an encrypted link not one plaintext byte may leave  ##
+    ## -- warn, shut the session down, send nothing [ as the output handler ##
+    ## does ] ; returning $payload here used to send it in clear            ##
+    my $fail_closed = sub {
+        my $why = shift;
+        <[base.s_warn]>->(
+            'link-upgrade frame not encrypted [session %d] : %s',
+            $session_id, $why
+        );
+        $data{'session'}{$session_id}{'shutdown'} = TRUE
+            if exists $data{'session'}{$session_id};
+        return q||;
+    };
+
+    my $sess = $data{'session'}{$session_id}
+        or return $fail_closed->('session gone');
+    return $fail_closed->('no encryption key')
+        if not defined $sess->{'link_encryption_key'};
 
     utf8::downgrade( $payload, 1 ) if utf8::is_utf8($payload);
 
@@ -123,16 +139,19 @@ $code{$frame_handler_name} = sub {
         . pack( qw| N |, $w_counter )
         . pack( qw| N |, $sess->{'link_nonce_dir_write'} );
 
-    my $w_cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
-        $sess->{'link_encryption_key'}, $w_nonce );
-    return $payload if not defined $w_cipher;
+    my $w_cipher = eval {    ## croaks on an invalid key ##
+        Crypt::AuthEnc::ChaCha20Poly1305->new( $sess->{'link_encryption_key'},
+            $w_nonce );
+    };
+    return $fail_closed->('cipher init failed') if not defined $w_cipher;
 
     my $w_framed = eval {
         my $ct  = $w_cipher->encrypt_add($payload);
         my $tag = $w_cipher->encrypt_done();
         pack( qw| N |, bytes::length($ct) + 16 ) . $ct . $tag;
     };
-    return $payload if not defined $w_framed or length $EVAL_ERROR;
+    return $fail_closed->( length $EVAL_ERROR ? $EVAL_ERROR : 'no frame' )
+        if not defined $w_framed or length $EVAL_ERROR;
 
     $sess->{'link_write_counter'} = $w_counter + 1;
     return $w_framed;
@@ -170,8 +189,8 @@ return TRUE;
 
 1;
 
-#,,.,,,,.,,,.,,,.,.,,,,,,,,,.,,,,,.,,,...,..,,..,,...,...,,,,,.,.,...,...,.,,,
-#7Y4FJTOUCXFHZWLL35MIDVWZIV4F7DZEY76YF2GMTDJHFQSLRUBQP27ABWWELFZP7EJC2MV42EZRO
-#\\\|E4QJGVDAUHLOSXHB6S5RL27W4R66X2OEQ4XVOAZTGVZX6SSFURC \ / AMOS7 \ YOURUM ::
-#\[7]XUESCNXJW4UKAXGCCP2TFEFYM4TV2D3CNGNKADBHJC6CBQVAK6AI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,...,,..,,,,,.,,,,..,,,.,,,,,,.,,..,,...,..,,,..,,,,,.,,,..,,.,,,
+#4URMPFHC7JYP4FDNFMA5BWJYQIQMA4LVTPXVNC5332WUJEOARTDVKFLTHHXOBLDEXAJEPZ3SRDMZE
+#\\\|6V2H37DHW5IGI7T4AGZRYLDRKAXJSSWJMGNNN5GWICIH7G46JJ4 \ / AMOS7 \ YOURUM ::
+#\[7]F4G5KYV72YU7SX6CSV2FQL2K77AFNTBQ4UFRFSW2YWCIXONGLYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

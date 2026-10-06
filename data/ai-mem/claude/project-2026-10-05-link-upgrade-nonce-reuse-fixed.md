@@ -56,8 +56,28 @@ handle modes say nothing about link-upgrade roles ; use `link_role`.
 cross-host session layer ] must set `link_role = client` before state 3,
 and must never reuse one counter space for both directions.
 
-#,,..,..,,,..,,..,..,,,,,,,..,.,.,.,,,,,.,...,..,,...,...,,.,,...,,.,,,..,.,,,
-#HVXQPBZCAQLCQUCPQNKAOYI6TAACLC2Z4PEMRUZJAADP7V3YS7YY7KEKFDYADLUXIQBGKZK2Q5MF4
-#\\\|OMMEOILS7V2BRRPOM4Z5YHD3NZ3VKFL7K577IS5TRHUWSO3ENLL \ / AMOS7 \ YOURUM ::
-#\[7]BDYYT7XABCVT4AK6UOVGWVXRRRWIT2XMYJLK536YG7JLQHTS4YDA 7  DATA SIGNATURE ::
+## follow-up 2026-10-06 : fail-open frame writer fixed
+
+found by kimi's test task [ `bin/test-scripts/test-link-upgrade-client.pl`,
+reported, not fixed by it ] : the inline writer `encryption.init` installs
+[ `base.handler.link-upgrade.frame-<id>` ] returned the PLAINTEXT payload
+when the session was gone, no key was set, the cipher could not be created
+or encryption failed -- sent in clear on a link both ends believe
+encrypted. now FAIL CLOSED like `base.handler.link-upgrade.output` : warn
+[ format + args ], set the session's shutdown flag, send nothing. also
+`Crypt::AuthEnc::ChaCha20Poly1305->new` CROAKS on an invalid key [ not
+undef ] -> wrapped in eval. regression checks : no key \ invalid key ->
+'' + shutdown + one complaint. live : encrypted p-7-r list + 64 KiB
+segment fine after cube `reload source`.
+
+second finding, NOT acted on [ latent ] : 39 src modules call
+`bytes::length` but nothing in src/ loads the `bytes` pragma -- production
+works only through a transitive load [ bin/Protocol-7 : use utf8 \ Encode ] ;
+tests must `use bytes` themselves. would break if that transitive load
+ever went away.
+
+#,,.,,,.,,...,,.,,...,,..,,,.,,,,,..,,.,.,..,,..,,...,...,.,.,,,.,...,...,,,.,
+#4PWFIJF52WK6VI76TAPCVNRSNGABA3N7FW77S4IPJV7ALHDGJZBUMBGBSTPYIJPNKRCX63XHW5XVK
+#\\\|5RUFNBUWI7QLY3QHVIY2XBSIJKNLHGFMMNKGT6KTQM654BAPLGF \ / AMOS7 \ YOURUM ::
+#\[7]RQES3QMOATRS4GJZFTAGBCDTG2PKIPSZRSO2KP4ATSLFK4ACT4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
