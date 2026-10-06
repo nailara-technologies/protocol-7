@@ -36,7 +36,9 @@ nonce-bound auth -> auth-keypair sessions stay 'pending' until a client
 sig over the link-upgrade transcript verifies ; shared test vector ].
 lanes : `data/tasks/auth-link-binding-perl.md` \ `-c.md`.
 also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
-\ shared secret on ARGV [ /proc/<pid>/cmdline ] -- reported, scope open.
+\ shared secret on ARGV [ /proc/<pid>/cmdline, world-readable without
+  hidepid ] -- user 2026-10-06 : fix in the SAME change [ secrets via
+  stdin, lane C ].
 
 **fix shape** [ original proposal ] :
 - select reply `TRUE <server_pub> <server_nonce>`
@@ -51,8 +53,8 @@ also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
   bin/p7-auth-keypair-helper.pl, p-7-r, link-upgrade helper -- grep again
   before scoping [ [[feedback-security-fix-verify-both-code-paths-not-just-symptom]] ]
 
-#,,.,,,.,,.,.,.,.,.,.,.,,,,..,..,,,,,,,.,,,.,,..,,...,...,,,,,...,...,..,,,.,,
-#K5JKTENJXJNXZXCRE3HDSWLS5ZH56QFBVZPNJ6KEJ4YBWW7IGT5R6LTXDGIUYU5R2YHPHQL2VHLQG
-#\\\|TZYQ3IDJWSIJFWRSETSTSYA2QIDO4PBERG77UOIJYNDPYSHRKFB \ / AMOS7 \ YOURUM ::
-#\[7]D6FLYG3UKU4HSFZD4IFHRCF7TAJHRZ3BUDABBZUMYZVVLRKMQQDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,,,,.,.,...,.,,,.,.,.,,,...,..,,...,...,,..,..,,,..,,..,..,,
+#KODY6QJCUWMYOYT3K2YNXF3KCBZXSU7QRSNCI4JMDXJGHUFYDLLP6K5IUQ7EIURYOUGRMJ4NPNYCU
+#\\\|7HHIBDVY2EOV7VFAGKN2GKJJY7II6EDV65DHXZD5Q2GFWOA75XC \ / AMOS7 \ YOURUM ::
+#\[7]NROUURSVDXWE2C6F6HSDMJCCDQR2ECOGEHHXD3PS5QBB2QZ222DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

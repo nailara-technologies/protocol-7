@@ -2,8 +2,9 @@
 
 # name  = users.remote_fetch.run
 # param = <host> <port> <as_username> <target_username> <orig_reply_id>
-# descr = connect + auth-keypair authenticate to a peer, then register
-#         the socket as a normal event-driven client session (state 1)
+# descr = connect + auth-keypair authenticate to a peer, bind it to the
+#         link-upgrade [ encrypted, state 3 ], then register the socket
+#         as a normal event-driven client session
 #         and send users.remote-get through the standard async command/
 #         reply machinery -- NOT a hand-rolled blocking read loop.
 #
@@ -44,13 +45,37 @@ my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
 return $fail->( sprintf( "cannot connect to %s:%s", $host, $port ) )
     if not defined $sock;
 
-my $authed = <[auth.client.auth-keypair.authenticate]>->(
-    $sock, $as_username, $session_key_name, $base_key_name
-);
-
-if ( not defined $authed ) {
+## the binding context [ server pinned per host + port ] : the server keeps ##
+## the session binding-PENDING [ link-upgrade only ] until the handshake    ##
+## below binds this identity to the encrypted link                          ##
+my $binding = eval {
+    <[auth.client.auth-keypair.authenticate]>->(
+        $sock, $as_username, $session_key_name, $base_key_name,
+        { qw| host | => $host, qw| port | => $port }
+    );
+};
+if ( length $EVAL_ERROR ) {
+    close($sock);
+    die $EVAL_ERROR;
+}
+if ( ref $binding ne qw| HASH | ) {
     close($sock);
     return $fail->('auth-keypair handshake failed [ see logs ]');
+}
+
+## link-upgrade BEFORE anything else [ the external.link.open shape ] ##
+my ( $upgraded, $link ) = eval {
+    <[protocol.protocol-7.link-upgrade.handshake]>->(
+        $sock, { 'timeout' => 5, 'binding' => $binding }
+    );
+};
+if ( length $EVAL_ERROR ) {
+    close($sock);
+    die $EVAL_ERROR;
+}
+if ( not $upgraded ) {
+    close($sock);
+    return $fail->("link-upgrade failed : $link->{'error'}");
 }
 
 ## session 'name' must satisfy base.regex's usr_str_re -- alnum/hyphen/
@@ -71,8 +96,16 @@ if ( not defined $id ) {
 ## the auth-keypair exchange ourselves as the client, so there is no
 ## select/auth line left for base.handler.auth to process; without this the
 ## session stays stuck at state 0 forever [ same generic promotion
-## base.handler.auth itself calls after a SERVER-side auth succeeds ]
+## base.handler.auth itself calls after a SERVER-side auth succeeds ] ; then
+## the encrypted state 3 [ link-upgrade.client_activate, link_role client ]
 <[base.session.init_state]>->( $id, 1 );
+
+if (
+    not <[protocol.protocol-7.link-upgrade.client_activate]>->( $id, $link ) )
+{
+    <[base.session.shutdown]>->($id);
+    return $fail->('encryption activation failed');
+}
 
 ## non-prefixed swap-family form -- base.protocol-7.command.send.local itself
 ## calls under this stripped name internally too (see
@@ -90,8 +123,8 @@ if ( not defined $id ) {
 
 return;
 
-#,,,.,,..,.,,,,,.,,,,,.,.,,.,,,.,,,..,,..,,,.,..,,...,..,,.,.,...,,..,,..,,..,
-#4AR6OXW4L25VOF7H3UNFHFQB6C2XDVBI4CROPTBUH4ASZOFSAT6PA7S5J7CDPJJN7SJ43BYIMF35I
-#\\\|2TV3ONS6CGRGO2EYIDJOZP6NPYLKJJFZL7EPXGEXXSZRPHXOVPE \ / AMOS7 \ YOURUM ::
-#\[7]NG57TWJW7O2B32BQ4ZKKIP2B2ODBTRXSEQPD7OARLQKPO6SDP2DY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,.,,,.,.,...,...,,.,,,,.,,..,..,,...,...,...,,,,,,.,,,..,..,,
+#DPZTDLPROGWJZV2253OWE5SFXZNLFCMUGI5467CQ3YZBVLUSLANFSZ2TH2ZDYX2POVUOP3YP23VE2
+#\\\|44NN7ZKJKED4AVA7HAQSI25VN7ODVH563QNWQ3TCGW7SCQYMJM7 \ / AMOS7 \ YOURUM ::
+#\[7]V5T5SLOLF5DLTC42JEJOVVUQLHS73IKOJKD7BK6D2MTWXHKDEMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

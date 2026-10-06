@@ -15,18 +15,51 @@
 #
 # returns = 0 (upgrade complete, transition to state 3 encrypted)
 #           1 (awaiting more negotiation data)
-#           2 (negotiation failed, return to state 1 authenticated)
+#           2 (negotiation failed : session disconnected)
+#
+# binding = an auth-keypair session arrives binding-PENDING : link-complete
+#           then REQUIRES <nonce_sid> <client_bind_sig b32>, verified with
+#           the client's master key before answering 'link-complete-ok
+#           <server_bind_sig b32>' [ data/md/design/AUTH-LINK-BINDING.md ]
 
 my $event   = shift;
 my $id      = $event->w->data;
 my $session = $data{'session'}{$id};
 my $input   = \$session->{'buffer'}->{'input'};
 
+## auth-keypair binding [ data/md/design/AUTH-LINK-BINDING.md ] : on a     ##
+## binding-PENDING session every failure disconnects [ never a fallback to ##
+## state 1 ] and drops the single-use server nonce with the rest of the    ##
+## binding material                                                        ##
+my $pending = ( $session->{'link_binding'} // '' ) eq qw| pending |;
+
+my $drop_binding = sub {
+    map { delete $session->{'auth'}{$ARG} }
+        qw| server_nonce server_pub server_key_name client_pub |
+        if ref $session->{'auth'} eq qw| HASH |;
+    delete $session->{'link_client_eph'};
+    return;
+};
+my $refuse = sub {
+    my ( $format, @args ) = @ARG;
+    <[base.logs]>->( 0, "[%d] link-upgrade : $format", $id, @args );
+    $drop_binding->();
+    return 2;    ## <-- disconnecting ##
+};
+
+## strict base32 [ encode_b32r alphabet ] decode of a fixed-length field ##
+my $decode_b32 = sub {
+    my ( $b32, $want_len ) = @ARG;
+    return undef if not defined $b32 or $b32 !~ m{\A[A-Z2-7]+\z};
+    my $bin = eval { Crypt::Misc::decode_b32r($b32) };
+    return undef if not defined $bin or length($bin) != $want_len;
+    return $bin;
+};
+
 ## Check for negotiation timeout
 if ( defined $session->{'link_upgrade_timeout'}
     and time() > $session->{'link_upgrade_timeout'} ) {
-    <[base.logs]>->( 0, '[%d] link-upgrade negotiation timeout', $id );
-    return 2;    ## Disconnect on timeout
+    return $refuse->('negotiation timeout');
 }
 
 ## Parse link-upgrade negotiation protocol  Note: "link-upgrade" command was
@@ -42,14 +75,20 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
         $id, substr( $client_pubkey_b32, 0, 20 )
     );
 
-    ## Decode client's public key from BASE32
-    my $client_pubkey = Crypt::Misc::decode_b32r($client_pubkey_b32);
+    return $refuse->('client public key sent twice')
+        if $pending and defined $session->{'link_client_eph'};
 
-    if ( not defined $client_pubkey or not length $client_pubkey ) {
-        <[base.logs]>->(
-            0, '[%d] invalid client public key (decode failed or empty)', $id
-        );
-        return 2;
+    ## Decode client's public key from BASE32 [ a curve25519 key : 32 bytes ;
+    ## the strict alphabet check only binds pending sessions ]
+    my $client_pubkey
+        = $pending
+        ? $decode_b32->( $client_pubkey_b32, 32 )
+        : eval { Crypt::Misc::decode_b32r($client_pubkey_b32) };
+    undef $client_pubkey
+        if defined $client_pubkey and length($client_pubkey) != 32;
+
+    if ( not defined $client_pubkey ) {
+        return $refuse->('invalid client public key [ not 32 bytes b32 ]');
     }
     <[base.logs]>->(
         2,   '[%d] decoded client pubkey (%d bytes)',
@@ -61,8 +100,7 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     my $ephemeral_keypair = $session->{'link_ephemeral_keypair'};
 
     if ( not defined $ephemeral_keypair ) {
-        <[base.logs]>->( 0, '[%d] ephemeral keypair lost', $id );
-        return 2;
+        return $refuse->('ephemeral keypair lost');
     }
 
     ## Compute shared secret: DH(our_private, client_public)  Use
@@ -74,12 +112,14 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
         $client_pubkey );
 
     if ( not defined $shared_secret or not length $shared_secret ) {
-        <[base.logs]>->( 0, '[%d] DH computation failed', $id );
-        return 2;
+        return $refuse->('DH computation failed');
     }
 
     ## Store shared secret for encryption key derivation
     $session->{'link_dh_shared_secret'} = $shared_secret;
+
+    ## the client eph key is part of the bind transcript ##
+    $session->{'link_client_eph'} = $client_pubkey;
 
     ## Send our public key back (in response to client's key)
     $session->{'buffer'}->{'output'}
@@ -104,16 +144,18 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     }
 
     if ( not $encoding_ok and $client_encoding !~ m|^none$| ) {
-        <[base.logs]>->(
-            0,   '[%d] client requested unsupported encoding: %s',
-            $id, $client_encoding
+        return $refuse->(
+            'client requested unsupported encoding: %s',
+            $client_encoding
         );
-        return 2;
     }
 
     ## Store negotiated encoding mode
     $session->{'link_encoding_mode'} = $client_encoding
         unless $client_encoding =~ m|^none$|;
+
+    ## the exact string [ 'none' too ] is part of the bind transcript ##
+    $session->{'link_confirmed_encoding'} = $client_encoding;
 
     <[base.logs]>->(
         2,   '[%d] encoding mode negotiated: %s',
@@ -125,8 +167,92 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
     return 1;    ## Awaiting completion confirmation
 
-} elsif ( $$input =~ s|^link-complete(?:[ \t]+(\d+))?\n|| ) {
+} elsif ( $$input =~ s|^link-complete(?:[ \t]+(\S+))?(?:[ \t]+(\S+))?\n|| ) {
     ## Handshake complete, transition to encrypted state (state 3)
+    my ( $client_nonce_sid, $client_bind_sig_b32 )
+        = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
+
+    return $refuse->('nonce session id not numerical')
+        if defined $client_nonce_sid
+        and $client_nonce_sid !~ m|\A[0-9]{1,10}\z|;
+
+    my $server_bind_sig_b32;
+
+    if ($pending) {
+
+        ## nonce sid REQUIRED, 1 .. 2**32-1 ##
+        return $refuse->('nonce session id missing \\ out of range')
+            if not defined $client_nonce_sid
+            or $client_nonce_sid < 1
+            or $client_nonce_sid > 4294967295;
+
+        my $client_bind_sig = $decode_b32->( $client_bind_sig_b32, 64 );
+        return $refuse->('client_bind_sig missing \\ not valid')
+            if not defined $client_bind_sig;
+
+        my $auth       = $session->{'auth'} // {};
+        my %transcript = (
+            qw| server_nonce | => $auth->{'server_nonce'},
+            qw| server_pub |   => $auth->{'server_pub'},
+            qw| server_eph |   => $session->{'link_ephemeral_pubkey'},
+            qw| client_eph |   => $session->{'link_client_eph'},
+            qw| nonce_sid |    => $client_nonce_sid,
+            qw| encoding |     => $session->{'link_confirmed_encoding'},
+            qw| username |     => $session->{'user'},
+        );
+
+        my $client_message
+            = <[auth.binding.message]>->( qw| client |, \%transcript );
+        my $client_pub = $auth->{'client_pub'};
+
+        return $refuse->('bind transcript incomplete')
+            if not defined $client_message
+            or not defined $client_pub
+            or length($client_pub) != 32;
+
+        ## verify the client identity BEFORE answering ##
+        my $client_sig_ok = eval {
+            Crypt::Ed25519::verify( $client_message, $client_pub,
+                $client_bind_sig );
+        };
+        return $refuse->(
+            'client_bind_sig NOT valid for \'%s\'',
+            $session->{'user'}
+        ) if not $client_sig_ok;
+
+        ## sign with exactly the key announced at select time ##
+        my $s_name = $auth->{'server_key_name'} // '';
+        my $s_key  = $keys{'C25519'}{$s_name};
+        return $refuse->( 'announced server key \'%s\' not loaded', $s_name )
+            if not length $s_name
+            or ref $s_key ne qw| HASH |
+            or not defined $s_key->{'public'}
+            or not defined $s_key->{'private'}
+            or $s_key->{'public'} ne $auth->{'server_pub'};
+
+        my $server_message
+            = <[auth.binding.message]>->( qw| server |, \%transcript );
+        my $server_bind_sig = eval {
+            Crypt::Ed25519::sign( $server_message, $s_key->{'public'},
+                $s_key->{'private'} );
+        };
+        return $refuse->('cannot sign server_bind_sig')
+            if not defined $server_message
+            or not defined $server_bind_sig
+            or length($server_bind_sig) != 64;
+
+        $server_bind_sig_b32 = Crypt::Misc::encode_b32r($server_bind_sig);
+
+        ## the server nonce is single-use ##
+        $drop_binding->();
+
+    } elsif ( defined $client_bind_sig_b32 ) {
+        <[base.logs]>->(
+            1, '[%d] link-complete : bind sig ignored [ no pending binding ]',
+            $id
+        );
+    }
+
     <[base.logs]>->(
         2, '[%d] link-upgrade negotiation complete, transitioning to state 3',
         $id
@@ -134,7 +260,6 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
     ## client-selected nonce session id [ must match on both ends for the KDF
     ## + nonce construction or decryption fails on every frame ]
-    my $client_nonce_sid = ${^CAPTURE}[0];
     if ( defined $client_nonce_sid and length $client_nonce_sid ) {
         $session->{'link_nonce_session_id'} = 0 + $client_nonce_sid;
         <[base.logs]>->(
@@ -144,7 +269,10 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     }
 
     ## Send completion confirmation to client [ still plaintext ! ]
-    $session->{'buffer'}->{'output'} .= "link-complete-ok\n";
+    $session->{'buffer'}->{'output'}
+        .= defined $server_bind_sig_b32
+        ? "link-complete-ok $server_bind_sig_b32\n"
+        : "link-complete-ok\n";
 
     ## flush pending plaintext reply BEFORE the output path switches to
     ## encrypted framing [ client reads this line unencrypted ]
@@ -152,13 +280,29 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
     ## Trigger state transition from state 2 to state 3
     if ( not <[base.session.init_state]>->( $id, 3 ) ) {
-        <[base.logs]>->(
-            0, '[%d] failed to initialize encryption state (state 3)', $id
-        );
-        return 2;    ## Disconnect on init failure
+        return $refuse->('failed to initialize encryption state (state 3)');
     }
 
-    return 0;        ## Complete, state transition done
+    ## binding complete : only now authenticated + registered ##
+    if ($pending) {
+        $session->{'link_binding'} = qw| done |;
+        return $refuse->('cannot register bound session')
+            if not <[base.session.register_authenticated]>->(
+            $id, $session->{'user'}
+            );
+        <[base.logs]>->(
+            1,   '[%d] link binding verified for \'%s\'',
+            $id, $session->{'user'}
+        );
+    }
+
+    return 0;    ## Complete, state transition done
+
+} elsif ($pending) {
+    ## binding pending : nothing but the negotiation lines ##
+    return 1 if index( $$input, "\n" ) == -1;    ## incomplete line ##
+
+    return $refuse->('unexpected line on binding-pending session');
 
 } else {
     ## Unknown command in link-upgrade state
@@ -170,13 +314,13 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
         $id,
         $buffer_sample
     );
-    return 1;        ## Keep waiting
+    return 1;    ## Keep waiting
 }
 
 1;
 
-#,,..,...,,,,,,,.,,,.,..,,...,,,,,,..,,..,.,,,..,,...,...,.,,,.,.,.,.,..,,...,
-#YIQAZIVKG6MVXLZSBRI2D2D4DE2BNZCGKG4W6N2UDIMJRLVRWUO6E3EGOGWOVOHNIIHZPYH6WNWOQ
-#\\\|D7WZDVZLHDTFBPTGJGDYFOZZPHPNBLZAIZZOQ3HPV2L5K76P7UM \ / AMOS7 \ YOURUM ::
-#\[7]E2YH3X42VSWC6Y4YIPZ6GTBQMTDJVYY37Q4HZOAH24OW66YHZ6CY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,,,.,,,,,,..,,,.,,..,..,,,,.,..,,...,...,,,,,..,,.,,,,..,,,.,
+#I24HOLH76C4NWJLHTPVC2FQZQVKEU3PNR5K5GBHPYSAVEXT2M56ZUXA5ZNP6A5JB4LS45SAIYD2ZO
+#\\\|LM5SKMNDMKO75N6ISBTO4VYCFHATDRY37WR7ROG6ON3GPCJ4UMJ \ / AMOS7 \ YOURUM ::
+#\[7]GWZ5KX3LADO5OFAMABOEBAWYHZ3NCNMVFKGFPQ675EI5VUK7A4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

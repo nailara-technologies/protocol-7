@@ -19,6 +19,25 @@ my $user    = <[base.session.user]>->($id);
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
 
+##[ LINK BINDING GATE ]#######################################################
+
+## an auth-keypair session whose binding is still PENDING may send exactly ##
+## one line : 'link-upgrade' [ data/md/design/AUTH-LINK-BINDING.md ].      ##
+## checked on the raw line, before replies, multi-line, !TRM!, reroute or  ##
+## aliases can reinterpret it. anything else : FALSE + disconnect          ##
+if ( ( $session->{'link_binding'} // '' ) eq qw| pending | ) {
+
+    return 1 if index( $input->$*, "\n" ) == -1;    ## incomplete line ##
+
+    if ( $input->$* !~ m{\Alink-upgrade(?:[ \t]+[a-z0-9-]+)?[ \t]*\n}o ) {
+        <[base.logs]>->(
+            0, '[%d] link binding pending : command refused >:[', $id
+        );
+        $output->$* .= "FALSE link binding pending [ link-upgrade only ]\n";
+        return 2;    ## <-- disconnecting ##
+    }
+}
+
 ## Use bytes::length() for accurate byte count on input buffer  Critical for
 ## SIZE mode protocol where buffer may contain UTF-8 characters
 my $buffer_length = bytes::length( $input->$* );
@@ -507,6 +526,19 @@ if ( defined $alias_to and length $alias_to ) {
             $call_args->{'args'} = ${^CAPTURE}[1];
         }
     }
+}
+
+##[ LINK BINDING GATE \ RESOLVED COMMAND ]####################################
+
+## reroute \ aliases must not turn a binding-pending 'link-upgrade' into ##
+## anything else                                                         ##
+if ( ( $session->{'link_binding'} // '' ) eq qw| pending |
+    and $cmd ne qw| link-upgrade | ) {
+    <[base.logs]>->(
+        0, '[%d] link binding pending : resolved command refused >:[', $id
+    );
+    $output->$* .= "FALSE link binding pending [ link-upgrade only ]\n";
+    return 2;    ## <-- disconnecting ##
 }
 
 ##[ PREPARE REPLY \ HAS REPLY ID ]############################################
@@ -1092,8 +1124,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,,.,...,,.,,...,,..,.,.,,,.,,,,,,,.,,,,,..,,...,...,,..,,,.,,,,,..,,.,.,
-#4UUMNGMT5PZ7NWCNE4JRPH6CY6RTV6MI7T2TJBJ6DONKVCKVRFQQEIIR7BMRHGGRHIVRPOA3UZ3NS
-#\\\|6XFRBPPBVWK3H7F3F4YNKXAH4VCUJPWHA6GHLEV5ZC6PRFYMYHA \ / AMOS7 \ YOURUM ::
-#\[7]RC4YZI64I3IP4LHPOU4J7YMFKPFVPLFBE5TB2J7UTUL5WC73CEAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,.,,,.,,,,..,..,,..,,,.,,.,,,..,,...,...,..,,,,.,,,.,..,,,,.,
+#ZRA7BQELI4OL3SIHVN4W4EV2XPSNJ6UDK5UOIQP5BSBV66LEYH5KZNNALR4MDJFNXLMS66LG4FHSA
+#\\\|VSJG7REMZO4BHQTRKGQGEUVLPIPA3TVMEEMC23B43DXZBMA2HZ7 \ / AMOS7 \ YOURUM ::
+#\[7]7QM4YJ27YMGQDTNT4ELY7RIPBUGOICOY3SBPLZHDRZ2VKZ3IBEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

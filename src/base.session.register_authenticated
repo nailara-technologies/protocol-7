@@ -1,0 +1,44 @@
+## [:< ##
+
+# name   = base.session.register_authenticated
+# descr  = mark a session authenticated and register it for its user
+# param  = <session id> <user name>
+# return = TRUE, FALSE [ session gone \ user name not valid ]
+#
+# the one place a server-side session becomes 'authenticated = yes' :
+# base.handler.auth calls it on success [ every method but auth-keypair ],
+# base.handler.link-upgrade once an auth-keypair binding verified
+# [ data/md/design/AUTH-LINK-BINDING.md ]. registers the session under
+# $data{'user'}{<name>}{'session'}{<id>}, flags it 'initialized' [ not for
+# the zenka method : v7-zenki sets that ] and disarms the auth timeout.
+
+my ( $id, $auth_name ) = @ARG;
+
+my $session = $data{'session'}{ $id // '' } // return FALSE;
+
+return FALSE
+    if not defined $auth_name
+    or $auth_name !~ <regex.base.usr>;
+
+my $auth_method = $session->{'auth'}->{'method'} // '';
+
+$session->{'initialized'}   = TRUE if $auth_method ne qw| zenka |;
+$session->{'authenticated'} = qw| yes |;
+
+$data{'user'}{$auth_name}{'session'}{$id}{'mode'} = qw| client |;
+
+$data{'user'}{$auth_name}{'connected_since'} = <[base.ntime]>
+    if delete $data{'user'}{$auth_name}{'last_seen'}
+    or keys( $data{'user'}{$auth_name}{'session'}->%* ) == 1;
+
+## authentication timeout disabled ##
+$session->{'watcher'}{'input_handler'}->timeout(undef)
+    if defined $session->{'watcher'}{'input_handler'};
+
+return TRUE;
+
+#,,,.,,..,.,.,...,...,...,..,,.,,,.,,,,..,,..,..,,...,...,.,.,...,,,,,,.,,.,,,
+#B5LWT2RNC7WSUFY2WBEOHO2MNCXBY3X7JDOILDEQBWLGYZ443V5VHHITHBJ3KNJLHW6375HHVJVNM
+#\\\|TCPWHWCDNS2XRU5HCN7DAEM26UV6GG7KZ4PG3VNH7LFDA5TFHY5 \ / AMOS7 \ YOURUM ::
+#\[7]TEZDD5K5OYFXA26MOSNVT5IXS7EAP7QW365BIH4EEBGJIYM4JGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

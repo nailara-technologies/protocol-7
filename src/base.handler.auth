@@ -241,27 +241,36 @@ elsif ( defined $auth_method
         my $fh = $data{'session'}{$id}{'handle'};
         $$session{'encryption'} = $data{'handle'}{$fh}{'encryption'}
             // qw| none |;
-        $$session{'user'}          = $auth_name;
-        $$session{'mode'}          = qw| client |;
-        $$session{'auth_time'}     = <[base.ntime]>;
-        $$session{'initialized'}   = TRUE if $auth_method ne qw| zenka |;
-        $$session{'authenticated'} = qw| yes |;
+        $$session{'user'}      = $auth_name;
+        $$session{'mode'}      = qw| client |;
+        $$session{'auth_time'} = <[base.ntime]>;
 
         my $unauth_client = <base.session.uname.client>;
         delete $data{'user'}{$unauth_client}{'session'}{$id};   ## clean-up ##
         <[base.clean_hashref]>->( $data{'user'}{$unauth_client} );
         <[base.clean_hashref]>->( $data{'user'} );
 
-        $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = qw| client |;
+        if ( $auth_method eq qw| auth-keypair | ) {
 
-        $data{'user'}{$auth_name}{'connected_since'} = <[base.ntime]>
-            if delete $data{'user'}{$auth_name}{'last_seen'}
-            or keys( $data{'user'}{$auth_name}{'session'}->%* ) == 1;
+            ## binding PENDING [ data/md/design/AUTH-LINK-BINDING.md ] :  ##
+            ## looks unauthenticated to everything trusting the flag, not ##
+            ## registered for the user, not 'initialized', auth timeout   ##
+            ## stays armed. base.handler.link-upgrade completes it with   ##
+            ## base.session.register_authenticated                        ##
+            if ( ( $$session{'link_binding'} // '' ) ne qw| pending | ) {
+                <[base.logs]>->(
+                    0, '[%d] auth-keypair without pending binding >:[', $id
+                );
+                return 2;    ## <-- disconnecting [ fail closed ] ##
+            }
+            $$session{'authenticated'} = qw| pending |;
 
-        <[base.session.init_state]>->( $id, 1 );
+            <[base.session.init_state]>->( $id, 1 );
 
-        ## authentication timeout disabled ##
-        $$session{'watcher'}{'input_handler'}->timeout(undef);
+        } else {
+            <[base.session.register_authenticated]>->( $id, $auth_name );
+            <[base.session.init_state]>->( $id, 1 );
+        }
 
         undef $count_select;    ## clean-up ##
         delete $session->{'counter'}->{'auth'};
@@ -298,8 +307,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,,..,,.,,...,.,,,,,.,.,,,,.,,,,,,..,,,..,..,,...,..,,...,,..,,..,,..,.,.,
-#SMFCJKYRXKW7VGGVDB4RNRY5NVUKM5LXS7KWCMD5UUN3BESFVAJT42OI3GJ2C5FVA6AFRE5ZX6ZHY
-#\\\|VI3OEW7GZJ7H7W65ROUMXPCO5AJOO7BUH4VTCPI476U4SWFDJR6 \ / AMOS7 \ YOURUM ::
-#\[7]WFZEKSU5F5YQB22LPKBGAD7LXJ5YQ57HNWK24V7RCQV7XCGJM4DQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,,.,,.,.,,.,,..,,.,.,,.,,...,..,,...,...,.,.,.,,,,,,,,,.,...,
+#JHJXRIVWRWE4TZZV63KCR2XJ2IHQTPFTDUKI4QUK5CZT77I2NYIRWQ5MX7M4THNZYTWMOOGE5Q6PK
+#\\\|4B5YSTZA4NS2DXQO7VXBPPTOA325WDRNC2K7JSUGDPN4TI233SW \ / AMOS7 \ YOURUM ::
+#\[7]H3HHVFLUWHJM3TULSFZU2WA766IHNV7ESTKO5RR4UBV27GYB3GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

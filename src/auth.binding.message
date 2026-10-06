@@ -1,0 +1,95 @@
+## [:< ##
+
+# name   = auth.binding.message
+# descr  = exact bytes of the auth-keypair v2 \ link-bind v1 messages
+# param  = <kind> { fields }
+#          kind : auth      [ server_nonce server_pub session_pub username ]
+#                 client    [ server_nonce server_pub server_eph client_eph
+#                 server      nonce_sid encoding username ]
+# return = the message bytes to sign \ verify, undef on any invalid field
+#
+# the ONE place for the pack templates [ data/md/design/
+# AUTH-LINK-BINDING.md ], used by server and client alike. 'a32' pads or
+# truncates silently and 'N' wraps : every field is checked first, a
+# wrong length is never packed.
+
+my ( $kind, $fields ) = @ARG;
+
+return undef if not defined $kind or ref $fields ne qw| HASH |;
+
+my %label = (
+    qw| auth |   => 'p7 auth-keypair v2',
+    qw| client | => 'p7 link-bind v1 client',
+    qw| server | => 'p7 link-bind v1 server',
+);
+
+return undef if not exists $label{$kind};
+
+## binary fields : exactly 32 bytes ; string fields : printable ascii      ##
+## tokens, 1 .. 65535 bytes. each is copied, downgraded to bytes [ never a ##
+## wide character string ] and only the checked copy is packed             ##
+my %field;
+my $take_bin = sub {
+    my $name  = shift;
+    my $value = $fields->{$name};
+    return FALSE if not defined $value or ref $value;
+    return FALSE if not utf8::downgrade( $value, 1 );
+    return FALSE if bytes::length($value) != 32;
+    $field{$name} = $value;
+    return TRUE;
+};
+my $take_str = sub {
+    my $name  = shift;
+    my $value = $fields->{$name};
+    return FALSE if not defined $value or ref $value;
+    return FALSE if not utf8::downgrade( $value, 1 );
+    return FALSE if $value !~ m|\A[\x21-\x7e]{1,65535}\z|;
+    $field{$name} = $value;
+    return TRUE;
+};
+
+if ( $kind eq qw| auth | ) {
+    return undef
+        if not $take_bin->(qw| server_nonce |)
+        or not $take_bin->(qw| server_pub |)
+        or not $take_bin->(qw| session_pub |)
+        or not $take_str->(qw| username |);
+
+    return pack(
+        'Z* a32 a32 a32 n/a*',
+        $label{$kind},        $field{'server_nonce'},
+        $field{'server_pub'}, $field{'session_pub'},
+        $field{'username'}
+    );
+}
+
+## link-bind transcript [ client \ server ] ##
+my $nonce_sid = $fields->{'nonce_sid'};
+
+return undef
+    if not $take_bin->(qw| server_nonce |)
+    or not $take_bin->(qw| server_pub |)
+    or not $take_bin->(qw| server_eph |)
+    or not $take_bin->(qw| client_eph |)
+    or not defined $nonce_sid
+    or ref $nonce_sid
+    or $nonce_sid !~ m|\A[0-9]{1,10}\z|
+    or $nonce_sid < 1
+    or $nonce_sid > 4294967295
+    or not $take_str->(qw| encoding |)
+    or not $take_str->(qw| username |);
+
+my $transcript = pack(
+    'a32 a32 a32 a32 N n/a* n/a*',
+    $field{'server_nonce'}, $field{'server_pub'}, $field{'server_eph'},
+    $field{'client_eph'},   0 + $nonce_sid,       $field{'encoding'},
+    $field{'username'}
+);
+
+return pack( qw| Z* |, $label{$kind} ) . $transcript;
+
+#,,,.,..,,,,.,.,,,,,.,...,,.,,..,,,,,,,,.,.,,,..,,...,...,,,.,.,,,,.,,...,,.,,
+#F6GYGOXDFPOOH7IHNJAYETTWDNY6YNA2NMRU5VBMVUMD4ZO4TXFKDT6K7TSJROEF5ILXT6IL5RN5W
+#\\\|3K7YNVUDL262QLMSEZEBOLC5ZG3CAGEGBHV7RZ4GT3FWGIOQF2E \ / AMOS7 \ YOURUM ::
+#\[7]WNKMBLHETGF6DOL3HHESB33FGXVHMOFOICM3RUKFPZPMGTD7XABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,9 +5,18 @@
 #         modeled directly on auth.client.zenka.authenticate's own
 #         banner-read + select-method + auth-line + reply-parse shape
 # param = <backend_socket> <as_username> <session_key_name> <base_key_name>
+#         { host, port } [ the server key pin : auth.client.server_pin.check ]
+# return = the binding context [ a hash ref : server_nonce, server_pub,
+#          username, base_key_name -- raw bytes ] for protocol.protocol-7.
+#          link-upgrade.handshake, undef on any failure
+#
+# wire v2 [ data/md/design/AUTH-LINK-BINDING.md ] : the select reply is
+# 'TRUE <S_pub b32> <server_nonce b32>' ; S_pub is checked against the pin
+# BEFORE the auth line is sent ; auth_sig signs auth.binding.message 'auth'
 
-my ( $backend_socket, $as_username, $session_key_name, $base_key_name )
-    = @ARG;
+my ($backend_socket, $as_username, $session_key_name,
+    $base_key_name,  $server_id
+) = @ARG;
 
 if ( not defined $backend_socket ) {
     warn 'socket param undefined, cannot '
@@ -66,9 +75,9 @@ if ( $banner_string !~ $re_proto_banner ) {
 ## NOT protocol.protocol-7.auth.select-method -- that helper hard-requires the
 ## reply be literally 'TRUE continue' (real gap found 2026-08-11: it is only
 ## correct for methods like 'zenka' that ack that way).  auth.auth_select's
-## own auth-keypair branch replies 'TRUE <server_ pubkey_b32>' instead
-## (doubles as TOFU material), a different shape the generic helper rejects as
-## a protocol error. Selecting inline here.
+## own auth-keypair branch replies 'TRUE <server_pubkey_b32> <nonce_b32>'
+## instead [ pinned server key + the nonce auth_sig binds to ], a different
+## shape the generic helper rejects as a protocol error. Selecting inline.
 my $select_template = <protocol.protocol-7.connect>->{'select-method'}
     // "select %s\n";
 <[base.net.send_to_socket]>->(
@@ -77,18 +86,40 @@ my $select_template = <protocol.protocol-7.connect>->{'select-method'}
 my $select_reply = readline($backend_socket);
 chomp($select_reply) if defined $select_reply;
 
-if ( not defined $select_reply or $select_reply !~ m|^TRUE\s+\S+| ) {
+my ( $server_pub_b32, $server_nonce_b32 )
+    = ( $select_reply // '' ) =~ m{\ATRUE ([A-Z2-7]+) ([A-Z2-7]+)\z};
+
+if ( not defined $server_nonce_b32 ) {
     <[base.logs]>->(
         0,
-        '[#] select auth-keypair failed: %s',
+        '[#] select auth-keypair failed [ no server key + nonce ] : %s',
         $select_reply // '<none>'
     );
     return undef;
 }
 
-## TODO: TOFU-validate the server pubkey carried in $select_reply against a
-## locally pinned copy -- not implemented yet, see users-zenka.yaml's KNOWN
-## LIMITATION note in users.cmd.remote-fetch
+my $server_pub   = eval { Crypt::Misc::decode_b32r($server_pub_b32) };
+my $server_nonce = eval { Crypt::Misc::decode_b32r($server_nonce_b32) };
+
+if (   not defined $server_pub
+    or length($server_pub) != 32
+    or not defined $server_nonce
+    or length($server_nonce) != 32 ) {
+    <[base.logs]>->(
+        0, '[#] select auth-keypair failed [ server key \\ nonce not valid ]'
+    );
+    return undef;
+}
+
+## the server key pin decides BEFORE anything is signed or sent ##
+if (ref $server_id ne qw| HASH |
+    or not <[auth.client.server_pin.check]>->(
+        $server_id->{'host'}, $server_id->{'port'}, $server_pub
+    )
+) {
+    <[base.logs]>->( 0, '[#] server key not accepted, auth-keypair aborted' );
+    return undef;
+}
 
 ## ensure the local session/base identity keys exist, generating and
 ## persisting them on first use -- MUST be a stable, disk-persisted identity,
@@ -114,8 +145,17 @@ return undef if not defined $session_pubkey_bin;
 ## key_vars() call in the process and that name's key files already exist on
 ## disk (crypt.C25519.key_vars:29-33) -- real bug found + fixed 2026-08-11,
 ## signing silently used the wrong key
-my $sig_bin
-    = <[crypt.C25519.sign_data]>->( \$session_pubkey_bin, $base_key_name );
+my $auth_message = <[auth.binding.message]>->(
+    qw| auth |,
+    {   qw| server_nonce | => $server_nonce,
+        qw| server_pub |   => $server_pub,
+        qw| session_pub |  => $session_pubkey_bin,
+        qw| username |     => $as_username,
+    }
+);
+return undef if not defined $auth_message;
+
+my $sig_bin = <[crypt.C25519.sign_data]>->( \$auth_message, $base_key_name );
 return undef if not defined $sig_bin;
 
 my $pubkey_b32 = Crypt::Misc::encode_b32r($session_pubkey_bin);
@@ -132,12 +172,21 @@ my $sig_b32    = Crypt::Misc::encode_b32r($sig_bin);
 ## plugin.auth.auth-keypair's own success line is literally "AUTH_TRUE =)",
 ## the exact same string auth.client.zenka.process_auth_reply already checks
 ## for -- genuinely reusable as-is, not zenka-specific despite its namespace
-return <[auth.client.zenka.process_auth_reply]>->(
+return undef
+    if not defined <[auth.client.zenka.process_auth_reply]>->(
     $backend_socket, 'success., =), auth-keypair authorized session.'
-);
+    );
 
-#,,,,,,.,,,,,,..,,,,.,.,,,..,,,,,,...,,,.,,,,,..,,...,...,.,,,,..,,..,,..,.,.,
-#ARHFQJZFZGQHZI5XEYHXQ6O2RZ2RW756H26VAGTV27CGOKT4DEFF6K6J7VRQLPQUQLYWB7QK44IKO
-#\\\|BMLADR27BRE34RLLAZ3VMOMWKKZMZUMP2MNC2XVALK3HGBIDM4Z \ / AMOS7 \ YOURUM ::
-#\[7]Z2MNNAJYFZPP3XRYE2KA5I3ZWLMLYAOOH34CGK27EH227ACYFGDQ 7  DATA SIGNATURE ::
+## binding PENDING on the server : the link-upgrade must follow at once ##
+return {
+    qw| server_nonce |  => $server_nonce,
+    qw| server_pub |    => $server_pub,
+    qw| username |      => $as_username,
+    qw| base_key_name | => $base_key_name,
+};
+
+#,,..,.,.,..,,,,.,.,,,,,.,...,.,.,,,,,,,.,,,.,..,,...,...,..,,.,,,...,..,,,.,,
+#3R32TK2P7CDMOF5JUOXZ3MNOPQOGHIW3WNN26AIZKLHHXRSOLGSUD4ML7QYA6ICKFYNQMYPZS6LDY
+#\\\|UOMJRXYA4UQQ2CGYAIYNTGPQ22PY5DVLQGW7LXHKJMZRTAZGLJT \ / AMOS7 \ YOURUM ::
+#\[7]IAXPQ7UVTYYDWLOBGBVIBNHSZL7SSAJCH7UDGN5VJ2O2M37SO6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

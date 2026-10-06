@@ -45,6 +45,8 @@ if ( $operation eq 'gen-ephemeral' ) {
     op_encrypt();
 } elsif ( $operation eq 'decrypt' ) {
     op_decrypt();
+} elsif ( $operation eq 'self-test' ) {
+    op_self_test();
 } elsif ( $operation eq 'help'
     || $operation eq '-h'
     || $operation eq '--help' ) {
@@ -82,18 +84,20 @@ sub op_gen_ephemeral {
 sub op_compute_dh {
 
     # Compute Diffie-Hellman shared secret using Curve25519
-    # Input: client_secret_b32 server_pubkey_b32
+    # argv  : server_pubkey_b32 [ public ]
+    # stdin : client_secret_b32 line [ secret -- never argv ]
     # Returns: base32(shared_secret)
 
-    my $client_secret_b32 = shift @ARGV;
+    die "Usage: $0 compute-dh <server_pubkey_b32> < client_secret_b32\n"
+        unless @ARGV == 1;
     my $server_pubkey_b32 = shift @ARGV;
-
-    die "Usage: $0 compute-dh <client_secret_b32> <server_pubkey_b32>\n"
-        unless $client_secret_b32 and $server_pubkey_b32;
+    my $client_secret_b32 = read_secret_line('client_secret');
 
     # Decode from base32
     my $client_secret = Crypt::Misc::decode_b32r($client_secret_b32);
     my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
+    die "server_pubkey : expected 32 bytes b32\n"
+        unless defined $server_pubkey and length($server_pubkey) == 32;
 
     # Compute DH shared secret using Curve25519
     my $shared_secret
@@ -110,17 +114,17 @@ sub op_compute_dh {
 sub op_derive_key {
 
     # Derive encryption key from shared secret
-    # Input: shared_secret_b32 session_id
+    # argv  : session_id [ public ]
+    # stdin : shared_secret_b32 line [ secret -- never argv ]
     # Returns: base32(encryption_key)
     #
     # Uses simple SHA256-based KDF: key = SHA256(shared_secret || session_id)
     # For production, this should use a proper KDF like PBKDF2
 
-    my $shared_secret_b32 = shift @ARGV;
+    die "Usage: $0 derive-key <session_id> < shared_secret_b32\n"
+        unless @ARGV == 1 and $ARGV[0] =~ m|^[0-9]{1,10}\z|;
     my $session_id        = shift @ARGV;
-
-    die "Usage: $0 derive-key <shared_secret_b32> <session_id>\n"
-        unless $shared_secret_b32 and defined $session_id;
+    my $shared_secret_b32 = read_secret_line('shared_secret');
 
     # Decode shared secret
     my $shared_secret = Crypt::Misc::decode_b32r($shared_secret_b32);
@@ -136,28 +140,31 @@ sub op_derive_key {
     print Crypt::Misc::encode_b32r($key) . "\n";
 }
 
+## argv of encrypt \ decrypt : session_id counter direction [ all public ]
+sub frame_args {
+    my ($verb) = @_;
+    die "Usage: $0 $verb <session_id> <counter> "
+        . "<direction> < key_b32 line + data\n"
+        unless @ARGV == 3
+        and $ARGV[0] =~ m|^[0-9]{1,10}\z|
+        and $ARGV[1] =~ m|^[0-9]{1,10}\z|
+        and $ARGV[2] =~ m{^[12]\z};
+    return @ARGV;
+}
+
 sub op_encrypt {
 
     # Encrypt message with ChaCha20-Poly1305
-    # Input: base32(key) session_id counter direction
-    # Input data: plaintext via STDIN
+    # argv  : session_id counter direction [ public ]
+    # stdin : key_b32 line [ secret -- never argv ], then the plaintext
     # Returns: ciphertext + auth_tag (binary) on stdout
 
-    my $key_b32    = shift @ARGV;
-    my $session_id = shift @ARGV;
-    my $counter    = shift @ARGV;
-    my $direction  = shift @ARGV; # 1 : client -> server, 2 : server -> client
+    # direction : 1 client -> server, 2 server -> client
+    my ( $session_id, $counter, $direction ) = frame_args('encrypt');
 
-    die "Usage: $0 encrypt <key_b32> <session_id> "
-        . "<counter> <direction> < plaintext\n"
-        unless $key_b32
-        and defined $session_id
-        and defined $counter
-        and defined $direction
-        and $direction =~ m|^[12]$|;
-
-    # Read plaintext from STDIN
-    my $plaintext = join( '', <> );
+    # key line first, then the plaintext [ rest of stdin, binary ]
+    my $key_b32   = read_secret_line('key');
+    my $plaintext = read_rest_of_stdin();
 
     # Decode key from base32
     my $key = Crypt::Misc::decode_b32r($key_b32);
@@ -177,31 +184,25 @@ sub op_encrypt {
 
     # Output binary ciphertext + auth_tag
     # Note: This is binary data, not base32
+    binmode STDOUT;
     print STDOUT $ciphertext . $auth_tag;
 }
 
 sub op_decrypt {
 
     # Decrypt message with ChaCha20-Poly1305
-    # Input: base32(key) session_id counter direction
-    # Input data: ciphertext + auth_tag (binary) via STDIN
+    # argv  : session_id counter direction [ public ]
+    # stdin : key_b32 line [ secret -- never argv ], then ciphertext + tag
     # Returns: plaintext on stdout (or error on stderr)
 
-    my $key_b32    = shift @ARGV;
-    my $session_id = shift @ARGV;
-    my $counter    = shift @ARGV;
-    my $direction  = shift @ARGV; # 1 : client -> server, 2 : server -> client
+    # direction : 1 client -> server, 2 server -> client
+    my ( $session_id, $counter, $direction ) = frame_args('decrypt');
 
-    die "Usage: $0 decrypt <key_b32> <session_id> "
-        . "<counter> <direction> < ciphertext\n"
-        unless $key_b32
-        and defined $session_id
-        and defined $counter
-        and defined $direction
-        and $direction =~ m|^[12]$|;
-
-    # Read ciphertext from STDIN (binary data)
-    my $ciphertext_with_tag = join( '', <> );
+    # key line first, then ciphertext + tag [ rest of stdin, binary ]
+    my $key_b32             = read_secret_line('key');
+    my $ciphertext_with_tag = read_rest_of_stdin();
+    die "ciphertext shorter than the auth tag\n"
+        unless length($ciphertext_with_tag) >= 16;
 
     # Decode key from base32
     my $key = Crypt::Misc::decode_b32r($key_b32);
@@ -225,6 +226,7 @@ sub op_decrypt {
 
     # Output plaintext or error
     if ($success) {
+        binmode STDOUT;
         print STDOUT $plaintext;
         exit 0;
     } else {
@@ -232,13 +234,164 @@ sub op_decrypt {
     }
 }
 
+##[ Stdin : secrets never travel on argv ]####################################
+
+## first stdin line : one 32 byte secret, b32 [ 52 chars ]
+sub read_secret_line {
+    my ($what) = @_;
+    binmode STDIN;
+    my $line = <STDIN>;
+    die "$what : expected b32 line on stdin\n" unless defined $line;
+    chomp $line;
+    die "$what : expected 52 b32 chars on stdin\n"
+        unless $line =~ m|^[A-Z2-7]{52}\z|;
+    return $line;
+}
+
+sub read_rest_of_stdin {
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $rest = <STDIN>;
+    return $rest // '';
+}
+
+##[ Self-test : stdin verbs == the old argv verbs ]###########################
+
+## golden values captured from the PREVIOUS argv form [ compute-dh <secret>
+## <pub>, derive-key <shared> <sid>, encrypt \ decrypt <key> ... ] with fixed
+## inputs ; the verbs below run as real subprocesses with the secret on stdin
+## and must reproduce them byte for byte
+sub op_self_test {
+    require IPC::Open2;
+
+    my $self = File::Spec->catfile( $RealBin, $FindBin::RealScript );
+    my %in   = (
+        'client_secret' =>
+            'O53XO53XO53XO53XO53XO53XO53XO53XO53XO53XO53XO53XO53Q',
+        'server_pubkey' =>
+            'EGPE3AANVFUNFJP4WAE4PBHUORWHCOHNXHXEQRFXHHUDBMC46QSA',
+        'session_id' => '305419896',
+        'counter'    => '7',
+        'plaintext'  => "p7 self-test frame\n",
+    );
+    my %want = (
+        'shared' => '6UJXJ5J5E2Y7QO2LZT6DBNOGBGV4VL55S7BQCR4UY62FYQVB6BMQ',
+        'key'    => 'JFTCOSIFTQDJGBNTSREIC3JUL6MDYUO56IMRYBS4SP7ICPCAEFXA',
+        'enc 1'  => 'b1ec0355e130517646160cb6f68b205527c'
+            . '5339a9d44f688544b887ae7cf498d4d6217',
+        'enc 2' => '15375703f04f3b766b8317abc9622d7b824'
+            . 'd2427838de9b828c26beeba890e33825310',
+    );
+
+    ## run this helper : ( exit status, stdout )
+    my $run = sub {
+        my ( $stdin, @args ) = @_;
+        my $pid = IPC::Open2::open2( my $out, my $in, $EXECUTABLE_NAME,
+            $self, @args );
+        binmode $in;
+        binmode $out;
+        print {$in} $stdin;
+        close $in;
+        my $got = do { local $INPUT_RECORD_SEPARATOR = undef; <$out> };
+        close $out;
+        waitpid( $pid, 0 );
+        return ( $CHILD_ERROR >> 8, $got // '' );
+    };
+
+    my @failed;
+    my $check = sub {
+        my ( $name, $got, $expected ) = @_;
+        if ( defined $got and $got eq $expected ) {
+            print "ok   $name\n";
+        } else {
+            print "FAIL $name\n  got  "
+                . ( $got // 'undef' )
+                . "\n  want $expected\n";
+            push @failed, $name;
+        }
+    };
+
+    my ( $rc, $got )
+        = $run->( "$in{'client_secret'}\n", 'compute-dh',
+        $in{'server_pubkey'} );
+    $check->(
+        'compute-dh [ secret on stdin ]',
+        "$rc $got",
+        "0 $want{'shared'}\n"
+    );
+
+    ( $rc, $got )
+        = $run->( "$want{'shared'}\n", 'derive-key', $in{'session_id'} );
+    $check->(
+        'derive-key [ secret on stdin ]',
+        "$rc $got", "0 $want{'key'}\n"
+    );
+
+    my %ct;
+    foreach my $direction ( 1, 2 ) {
+        ( $rc, $ct{$direction} ) = $run->(
+            "$want{'key'}\n$in{'plaintext'}",
+            'encrypt', $in{'session_id'}, $in{'counter'}, $direction
+        );
+        $check->(
+            "encrypt direction $direction [ key on stdin ]",
+            "$rc " . unpack( 'H*', $ct{$direction} ),
+            "0 $want{qq|enc $direction|}"
+        );
+    }
+
+    ( $rc, $got ) = $run->(
+        "$want{'key'}\n$ct{1}", 'decrypt', $in{'session_id'},
+        $in{'counter'},         1
+    );
+    $check->(
+        'decrypt round trip [ key on stdin ]',
+        "$rc $got",
+        "0 $in{'plaintext'}"
+    );
+
+    ## a flipped tag must fail [ exit != 0, no plaintext ]
+    my $bad = $ct{1};
+    substr( $bad, -1, 1 ) ^= "\x01";
+    ( $rc, $got ) = $run->(
+        "$want{'key'}\n$bad", 'decrypt', $in{'session_id'}, $in{'counter'}, 1
+    );
+    $check->(
+        'decrypt refuses a flipped tag',
+        ( $rc != 0 and $got eq '' ) ? 1 : 0, 1
+    );
+
+    ## the old argv forms [ secret first ] are refused, not misread
+    ( $rc, $got )
+        = $run->( '', 'compute-dh', $in{'client_secret'},
+        $in{'server_pubkey'} );
+    $check->( 'old compute-dh argv form refused', $rc != 0 ? 1 : 0, 1 );
+    ( $rc, $got )
+        = $run->( '', 'derive-key', $want{'shared'}, $in{'session_id'} );
+    $check->( 'old derive-key argv form refused', $rc != 0 ? 1 : 0, 1 );
+    ( $rc, $got ) = $run->(
+        $in{'plaintext'}, 'encrypt', $want{'key'}, $in{'session_id'},
+        $in{'counter'},   1
+    );
+    $check->( 'old encrypt argv form refused', $rc != 0 ? 1 : 0, 1 );
+
+    if (@failed) {
+        print "self-test FAILED : " . join( ', ', @failed ) . "\n";
+        exit 1;
+    }
+    print "self-test ok\n";
+    exit 0;
+}
+
 ##[ Help ]####################################################################
 
 sub show_help {
     print <<'EOF';
-Protocol-7 Link-Upgrade Helper for p7.c
+Protocol-7 Link-Upgrade Helper for p-7-r.c
 
 Usage: p7-link-upgrade-helper.pl <operation> [args]
+
+secrets NEVER travel on argv [ /proc/<pid>/cmdline is world-readable ] :
+each secret is the first stdin line [ b32, 52 chars ]
 
 Operations:
 
@@ -248,45 +401,29 @@ Operations:
             Line 1: Public key
             Line 2: Secret/Private key
 
-  compute-dh <client_secret_b32> <server_pubkey_b32>
+  compute-dh <server_pubkey_b32>      stdin : client_secret_b32 line
     Compute Diffie-Hellman shared secret
-    Input:  Client secret (base32), Server public key (base32)
     Output: Shared secret (base32)
 
-  derive-key <shared_secret_b32> <session_id>
+  derive-key <session_id>             stdin : shared_secret_b32 line
     Derive ChaCha20 encryption key from shared secret
-    Input:  Shared secret (base32), Session ID (integer)
     Output: Encryption key (base32)
 
-  encrypt <key_b32> <session_id> <counter> <direction>
+  encrypt <session_id> <counter> <direction>
+                                      stdin : key_b32 line, then plaintext
     Encrypt message with ChaCha20-Poly1305
-    Input:  Key (base32), Session ID, Counter (from stdin: plaintext binary)
     Output: Ciphertext + Auth Tag (binary)
 
-  decrypt <key_b32> <session_id> <counter> <direction>
+  decrypt <session_id> <counter> <direction>
+                                      stdin : key_b32 line, then
+                                              ciphertext + tag
     Decrypt message with ChaCha20-Poly1305
-    Input:  Key (base32), Session ID, Counter (from stdin: ciphertext + tag binary)
-    Output: Plaintext (binary)
+    Output: Plaintext (binary) ; exit != 0 on auth tag failure
 
-Example usage from p7.c:
+  self-test
+    stdin verbs reproduce the golden outputs of the former argv forms
 
-    // Generate ephemeral keys
-    FILE *f = popen("p7-link-upgrade-helper.pl gen-ephemeral", "r");
-    char pubkey[256], secret[256];
-    fgets(pubkey, sizeof(pubkey), f);
-    fgets(secret, sizeof(secret), f);
-    pclose(f);
-
-    // Compute shared secret
-    FILE *f = popen("p7-link-upgrade-helper.pl compute-dh <client_secret> <server_pubkey>", "r");
-    // ... read shared secret
-    pclose(f);
-
-    // Encrypt a message
-    FILE *f = popen("p7-link-upgrade-helper.pl encrypt <key> <session_id> <counter> <direction>", "w");
-    fwrite(plaintext, 1, plaintext_len, f);
-    pclose(f);
-    // Read output from pipe for ciphertext
+direction : 1 client -> server, 2 server -> client
 
 EOF
     exit 0;
@@ -296,100 +433,29 @@ __END__
 
 =head1 NAME
 
-p7-link-upgrade-helper.pl - Cryptographic helper for p7.c link-upgrade
+p7-link-upgrade-helper.pl - Cryptographic helper for p-7-r.c link-upgrade
 
 =head1 SYNOPSIS
 
     p7-link-upgrade-helper.pl gen-ephemeral
-    p7-link-upgrade-helper.pl compute-dh <client_secret_b32> <server_pubkey_b32>
-    p7-link-upgrade-helper.pl derive-key <shared_secret_b32> <session_id>
-    p7-link-upgrade-helper.pl encrypt <key_b32> <session_id> <counter> <direction>
-    p7-link-upgrade-helper.pl decrypt <key_b32> <session_id> <counter> <direction>
+    p7-link-upgrade-helper.pl compute-dh <server_pubkey_b32>  < client_secret_b32
+    p7-link-upgrade-helper.pl derive-key <session_id>         < shared_secret_b32
+    p7-link-upgrade-helper.pl encrypt <session_id> <counter> <direction> < key_b32 + data
+    p7-link-upgrade-helper.pl decrypt <session_id> <counter> <direction> < key_b32 + data
+    p7-link-upgrade-helper.pl self-test
 
 =head1 DESCRIPTION
 
-This helper script provides cryptographic operations for the p7.c Protocol-7
-client to support link-upgrade encryption. It bridges the gap between C code
-that needs complex crypto operations and Perl code that can easily interface
-with AMOS7 and Crypt libraries.
-
-Each operation reads configuration from command-line arguments and performs
-the requested cryptographic operation, outputting the result to stdout.
-
-=head1 OPERATIONS
-
-=head2 gen-ephemeral
-
-Generates an ephemeral C25519 keypair for the client session.
-
-Output format: Two newline-separated base32-encoded strings
-  Line 1: Public key (for sending to server)
-  Line 2: Secret/Private key (for local DH computation)
-
-=head2 compute-dh
-
-Computes the Diffie-Hellman shared secret using C25519.
-
-Arguments:
-  - client_secret_b32: Client's private key (base32)
-  - server_pubkey_b32: Server's public key (base32)
-
-Output: Shared secret (base32)
-
-=head2 derive-key
-
-Derives the ChaCha20-Poly1305 encryption key from the shared secret.
-
-Arguments:
-  - shared_secret_b32: DH shared secret (base32)
-  - session_id: Numeric session identifier
-
-Output: Encryption key (base32)
-
-=head2 encrypt
-
-Encrypts plaintext with ChaCha20-Poly1305 AEAD cipher.
-
-Arguments:
-  - key_b32: Encryption key (base32)
-  - session_id: Numeric session identifier
-  - counter: Message counter for nonce generation
-
-Input (STDIN): Plaintext (binary)
-Output (STDOUT): Ciphertext + 16-byte auth tag (binary)
-
-=head2 decrypt
-
-Decrypts ciphertext with ChaCha20-Poly1305 AEAD cipher.
-
-Arguments:
-  - key_b32: Encryption key (base32)
-  - session_id: Numeric session identifier
-  - counter: Message counter for nonce generation
-
-Input (STDIN): Ciphertext + 16-byte auth tag (binary)
-Output (STDOUT): Plaintext (binary)
-Exit: 0 on success, 1 on auth tag verification failure
+Cryptographic operations for the p-7-r.c Protocol-7 client link-upgrade.
+Public values come from argv ; every secret [ client ephemeral secret,
+DH shared secret, link key ] is read as the first line of stdin, so it
+never appears in /proc/<pid>/cmdline. p-7-r.c runs this helper without
+a shell [ fork + execv ] and writes the secret into a pipe.
 
 =head1 NONCE GENERATION
 
-All encryption/decryption uses the nonce format:
-  pack('N', session_id) . pack('N', counter) . "\0\0\0\0"
-  = 4 bytes (session) + 4 bytes (counter) + 4 bytes (padding)
-  = 12 bytes total (standard for ChaCha20-Poly1305)
-
-=head1 DEPENDENCIES
-
-Requires AMOS7 and Crypt modules from Protocol-7:
-  - AMOS7 (for key derivation)
-  - Crypt::Misc (for base32 encoding/decoding)
-  - Crypt::AuthEnc::ChaCha20Poly1305 (for AEAD encryption)
-  - crypt.C25519.gen_keys (Protocol-7 module)
-  - crypt.C25519.compute_shared (Protocol-7 module)
-
-=head1 AUTHOR
-
-Protocol-7 Development Team
+  pack('N', session_id) . pack('N', counter) . pack('N', direction)
+  = 12 bytes [ direction 1 client -> server, 2 server -> client ]
 
 =head1 LICENSE
 
@@ -397,8 +463,8 @@ As per Protocol-7
 
 =cut
 
-#,,.,,...,.,,,.,.,,..,,..,,.,,,..,.,.,,,,,...,..,,...,...,...,.,,,...,,,,,.,,,
-#TBKS77N6OEVYYMNKHGDHAMQ3MJVA4SMWYOZ43JFN4ZRKQNUIOIJMGFHMV5AQV5GEY5S4TBGZSQCKE
-#\\\|QSSOUZEBU5KL7NWSZ56J75FZSEXA4W6DY4Q6KT57PJOLAYT6QD7 \ / AMOS7 \ YOURUM ::
-#\[7]XQX5AER7DBLH45ZOCZWP2FDFB7SFJTDJWNS7N3WBZD4UKUR6B4DA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,.,...,,..,..,,...,.,,,,,,,.,,,..,,...,...,...,...,,,,,,,,,,.,,
+#VLM25YCB22D3PO6S7VL26TYB52Z5NGXGHDJAF4ARFJQTQWW5J3DY6LIDABJX25KJJUP7TPNWWCS6C
+#\\\|SI442OQQCIYBQFCUKWMAP4V5ESGAQOQANTWYJJLHU4IWIHJKHJT \ / AMOS7 \ YOURUM ::
+#\[7]KPWN5ERHMMQZUBAQWPRW7QHID566XFWOJVIUYFVGTWQKHYG5Q6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
