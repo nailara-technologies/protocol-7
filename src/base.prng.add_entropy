@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = base.prng.add_entropy
+# descr = feed fresh entropy into the running fortuna prng
+# param = <data>
+#
+# fortuna accumulates entropy continuously [ its pools reseed it over
+# time ] -- the additive 'reseed at any time' that srand never offered
+# without replacing state. adds fresh OS bytes [ add_entropy without
+# data ] and hi-res timing + PID + the caller's data [ event timings,
+# a key name ]. COMPLAINS [ base.s_warn, with the caller ] when the data
+# is undef or '' -- a call that adds nothing of its own is a mistake ;
+# the OS bytes are still added. never discards existing state, never
+# fails [ eval ] ; returns FALSE when no prng exists yet. called by the
+# periodic timer [ base.prng.handler.add_entropy ] and before every
+# fresh key secret [ crypt.C25519.gen_keys ].
+
+my $data = shift;
+
+<[base.s_warn]>->(
+    'base.prng.add_entropy : no entropy data given [ undef or empty ] %s',
+    scalar <[base.caller]>
+) if not defined $data or not length $data;
+
+my $fortuna = <base.prng.fortuna> // return FALSE;
+
+eval { $fortuna->add_entropy() };    ## fresh OS bytes ##
+
+my $hires = <[base.time]>->(9);      ## hi-res [ bin/Protocol-7 ] ##
+eval { $fortuna->add_entropy( join ':', $hires, $PID, $data // '' ) };
+
+return TRUE;
+
+#,,.,,..,,,..,...,.,.,,.,,..,,.,,,...,,,.,,..,..,,...,...,,..,..,,..,,,,,,.,.,
+#F6D3R3DVWENEJ5ZJXOVQO5UAXU7RX4PKNAB3WPMAR5DAJKDTQBDJ5FFARQNLNBH4LTUJWUGIJWBYO
+#\\\|LHBZPJWUI2X7ZQJUNKVPTGEJXWRWQL77DPMKAKRML3KYHE4NLOB \ / AMOS7 \ YOURUM ::
+#\[7]7BFZYQPJLOAPCCTPWSAA3X6X4XO2LTT32E3T6ULO643K7WLQV2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
