@@ -39,9 +39,34 @@ if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
     return undef;
 }
 
-##  or create from random input [ Crypt::PRNG::Fortuna ]  ##
+##  or create from random input  ##
 ##
-$secret_key //= <[base.prng.bytes]>->(32); ##  when no passphrase supplied  ##
+## a fresh secret = BMW-256 over the [ OS-seeded ] fortuna stream AND 32 ##
+## bytes from /dev/random, which waits until the kernel CRNG is ready [  ##
+## linux >= 5.6 ; select-bounded, 30 s ] -- matters at early boot and on ##
+## embedded systems. never hangs, never fails : without /dev/random the  ##
+## fortuna part alone is used [ logged ]                                 ##
+my $fresh_secret = sub {
+    my $kernel = '';
+    if ( open( my $fh, '<:raw', '/dev/random' ) ) {
+        require IO::Select;
+        if ( IO::Select->new($fh)->can_read(30) ) {
+            my $read = sysread( $fh, $kernel, 32 );
+            $kernel = '' if not defined $read or $read != 32;
+        }
+        close($fh);
+    }
+    <[base.logs]>->(
+        0, ": C25519 : no kernel random bytes for '%s' [ fortuna only ]",
+        $name
+    ) if not length $kernel;
+    require Digest::BMW;    ## known dependency - loaded here ##
+    return Digest::BMW->new(256)
+        ->add( <[base.prng.bytes]>->(32) . $kernel )
+        ->digest;
+};
+
+$secret_key //= $fresh_secret->();    ##  when no passphrase supplied  ##
 
 my $TRUE = $harmoic_public_keys ? FALSE : TRUE;  ##  need truth assertion?  ##
 
@@ -58,7 +83,7 @@ while ( not $TRUE ) {    ##  harmonic [ true ] public keys  ##
 
     if ( not $TRUE and not defined $key_seed_passphrase ) {
 
-        $secret_key = <[base.prng.bytes]>->(32);    ##  re-generate seed  ##
+        $secret_key = $fresh_secret->();    ##  re-generate seed  ##
 
     } elsif ( not $TRUE ) {
 
@@ -85,8 +110,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,,,.,,,.,,,,,,,,..,.,,,.,.,,,.,...,.,.,,.,,..,,...,...,...,,,.,,.,,.,,,.,,,
-#OUEFCWGAX3B3MIGBDMVHRFMOAIKCTOEHLE7HLBYXNDQHXZFB2M2ODT46EPWL3B4XFVL2TENPXVOZG
-#\\\|PEPHI4Y476O53PBUHXT36VNWWGCXVZZWVROP67OUJAXQVSUFZCA \ / AMOS7 \ YOURUM ::
-#\[7]5CN4QAI2ZLYVSAROP7VLMEGURDPSJWS4UG3WIXSETNIUPAT2AIAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,,,.,...,.,.,,,,,.,.,..,,,,,,..,,...,...,,,.,.,,,,,,,,,.,.,.,
+#OR3LMOUAC3JXT4EUI2Q76XDZAZJLOVSRWJM76HY7LLXGHSUYG6AYPY4MKMBPADDYMO6RQUAXRJXT2
+#\\\|QLVZ5SAVURFOR6HX6H4C6Q3DU7CIGQ3CO3LSHOCATJJNV4PQNWW \ / AMOS7 \ YOURUM ::
+#\[7]VM72NZNL3RAUCZEBYW4IDHCR37W5F43CNFAEVGLRQDIUSN7E7GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
