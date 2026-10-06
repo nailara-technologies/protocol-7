@@ -27,6 +27,7 @@ base.minmax
 base.getcwd
 base.gen_id
 ui.summarise
+trust.verify
 base.waitpid
 base.tmp_dir
 base.sig_int
@@ -77,6 +78,7 @@ base.conf-wrap
 base.cmd.heart
 base.cmd.clear
 auth.auth_list
+trust.statement
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -134,6 +136,7 @@ base.call_filter
 auth.pwd.success
 auth.auth_select
 ascii.frame.load
+trust.fingerprint
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
@@ -252,6 +255,7 @@ crypt.C25519.pre_init
 crypt.C25519.keyfiles
 crypt.C25519.key_vars
 crypt.C25519.key_type
+crypt.C25519.key_path
 crypt.C25519.gen_keys
 base.session.shutdown
 base.reload_whitelist
@@ -287,7 +291,6 @@ base.perlmod.init_code
 base.path.resolved_abs
 base.net.cmd.timestamp
 base.get_max_verbosity
-base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
@@ -358,6 +361,7 @@ source.load_signature_key
 jobqueue.priorities_table
 io.unix.socket.input.open
 devmod.cmd.test-strm-size
+crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
 base.stream.advance_drain
 base.sourcecode.init_code
@@ -429,6 +433,7 @@ protocol.amos_term.init_code
 io.unix.socket.input.connect
 devmod.cmd.receive-multiline
 crypt.C25519.keystr_is_valid
+crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
@@ -449,6 +454,7 @@ crypt.C25519.store_remote_key
 crypt.C25519.signature_exists
 crypt.C25519.load_from_string
 crypt.C25519.key_name_to_skey
+crypt.C25519.host_root.create
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
@@ -580,6 +586,7 @@ auth.client.auth-keypair.authenticate
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
+crypt.C25519.cmd.host-root-fingerprint
 base.log.send-buffer.idle-callback-set
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
@@ -606,8 +613,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,..,.,,,,,,,,.,,..,,,..,,.,,...,,,.,.,,,..,,...,...,,.,,,,,,,,,,.,,,,,.,
-#CFRE6CUBGC54TO7FOMFVO6JWKIDUVNAKWK5L7HOUDFIDRR6ZYUJDQA26KM4HCGUPEGQYCCSYOBUCO
-#\\\|ZOJQT7ZZZ2D2DYHXQ7CJVN4HJ2LGZ2J5UZA27SK3AFKSUQTYJDP \ / AMOS7 \ YOURUM ::
-#\[7]JEKNZBIDW2OH4CKERGD2JJNQWKNCRFVVHIENF4MZN7VHRNK4L6CA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,.,,,,,,,,,.,...,...,.,,,,,.,..,,...,...,...,,.,,..,,...,...,
+#ME6M6J2SS55QVWSE3J7QFMKNVRTZRVJZL7ZZK42NMGKMLA7OB4XWWCRZ2T2GATINHIBR5MEEFEEYS
+#\\\|V2WHRIJ5J6GULQ6ZXZ5IDLHDXTZNE2C2YT6WTLERHSXHIGF2MKE \ / AMOS7 \ YOURUM ::
+#\[7]BOXSQKYLYTZT3MQAMNVXHXHDGKLXFODB3UTVF5DA5OP7TKRFUCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

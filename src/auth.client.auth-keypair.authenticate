@@ -10,9 +10,11 @@
 #          username, base_key_name -- raw bytes ] for protocol.protocol-7.
 #          link-upgrade.handshake, undef on any failure
 #
-# wire v2 [ data/md/design/AUTH-LINK-BINDING.md ] : the select reply is
-# 'TRUE <S_pub b32> <server_nonce b32>' ; S_pub is checked against the pin
-# BEFORE the auth line is sent ; auth_sig signs auth.binding.message 'auth'
+# wire v2 [ data/md/design/AUTH-LINK-BINDING.md ] + host-root delegation
+# [ HOST-ROOT-DELEGATION.md ] : the select reply is 'TRUE <S_pub b32>
+# <server_nonce b32> <delegation b32>' ; the delegation of S_pub is
+# verified under the pinned host-root BEFORE the auth line is sent ;
+# auth_sig signs auth.binding.message 'auth'
 
 my ($backend_socket, $as_username, $session_key_name,
     $base_key_name,  $server_id
@@ -86,13 +88,16 @@ my $select_template = <protocol.protocol-7.connect>->{'select-method'}
 my $select_reply = readline($backend_socket);
 chomp($select_reply) if defined $select_reply;
 
-my ( $server_pub_b32, $server_nonce_b32 )
-    = ( $select_reply // '' ) =~ m{\ATRUE ([A-Z2-7]+) ([A-Z2-7]+)\z};
+## 4th field : the host-root delegation of S [ required, <= 2048 ] ##
+my ( $server_pub_b32, $server_nonce_b32, $delegation_b32 )
+    = ( $select_reply // '' )
+    =~ m|\ATRUE ([A-Z2-7]+) ([A-Z2-7]+) ([A-Z2-7]{1,2048})\z|;
 
-if ( not defined $server_nonce_b32 ) {
+if ( not defined $delegation_b32 ) {
     <[base.logs]>->(
         0,
-        '[#] select auth-keypair failed [ no server key + nonce ] : %s',
+        '[#] select auth-keypair failed [ no '
+            . 'server key + nonce + delegation ] : %.160s',
         $select_reply // '<none>'
     );
     return undef;
@@ -111,10 +116,12 @@ if (   not defined $server_pub
     return undef;
 }
 
-## the server key pin decides BEFORE anything is signed or sent ##
+## the host-root pin + delegation decide BEFORE anything is signed or sent ##
+## : S must be delegated by the pinned host-root                           ##
 if (ref $server_id ne qw| HASH |
     or not <[auth.client.server_pin.check]>->(
-        $server_id->{'host'}, $server_id->{'port'}, $server_pub
+        $server_id->{'host'}, $server_id->{'port'},
+        $server_pub,          $delegation_b32
     )
 ) {
     <[base.logs]>->( 0, '[#] server key not accepted, auth-keypair aborted' );
@@ -185,8 +192,8 @@ return {
     qw| base_key_name | => $base_key_name,
 };
 
-#,,..,.,.,..,,,,.,.,,,,,.,...,.,.,,,,,,,.,,,.,..,,...,...,..,,.,,,...,..,,,.,,
-#3R32TK2P7CDMOF5JUOXZ3MNOPQOGHIW3WNN26AIZKLHHXRSOLGSUD4ML7QYA6ICKFYNQMYPZS6LDY
-#\\\|UOMJRXYA4UQQ2CGYAIYNTGPQ22PY5DVLQGW7LXHKJMZRTAZGLJT \ / AMOS7 \ YOURUM ::
-#\[7]IAXPQ7UVTYYDWLOBGBVIBNHSZL7SSAJCH7UDGN5VJ2O2M37SO6DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,...,,.,,.,,,.,.,,,,,,,,,..,,..,,...,...,,..,,,.,.,,,,,.,.,.,
+#PEHL5SXSKEC4SVC6YZVNKRQ2DEIS77ZPMCAEOBFSRQQZE6CENVTWUXWRAA7TNS3WBDGQYN7AWDZI2
+#\\\|33XGNKA5CABATGLNA7TBNSMNE2VUX6SHEPHK5HVVJA6YMM3WAGF \ / AMOS7 \ YOURUM ::
+#\[7]R2DUG6OLLRTEZ4GA24H63MUBOCEDXKVSTZ3P3NYGIYZXCM574OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

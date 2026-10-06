@@ -1,0 +1,124 @@
+## [:< ##
+
+# name   = trust.verify
+# descr  = walk a delegation chain from a pinned anchor down to a subject
+# param  = { chain   => [ <wire b32 statement>, .. ] [ anchor first ],
+#            anchors => [ <77 char fingerprint>, .. ],
+#            subject => <raw 32 byte public key>,
+#            now     => <unix seconds> }
+# return = { name, anchor, issuer_pub, not_after } [ of the last
+#          statement ] or undef [ list context : ( undef, reason ) ]
+#
+# data/md/design/HOST-ROOT-DELEGATION.md [ 'acceptance rules' ] : per
+# statement, in this order : exact parse -> sig under the issuer pub ->
+# not_before <= now <= not_after -> [ last : subject ] -> name charset ->
+# scope. the first issuer's fingerprint must be an anchor, every later
+# issuer the previous subject. the anchor's scope is '*' ; a statement's
+# scope '' certifies nothing, '*' anything, any other value is not
+# defined yet and refuses. the LAST statement's own scope must be empty.
+
+my $param = shift;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+my $max_chain = 8;
+my $re_name   = qr|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+
+return $refuse->('parameters not a hash') if ref $param ne qw| HASH |;
+
+my ( $chain, $anchors, $subject, $now )
+    = @{$param}{qw| chain anchors subject now |};
+
+return $refuse->('chain missing')
+    if ref $chain ne qw| ARRAY |
+    or not $chain->@*;
+return $refuse->('chain too long') if $chain->@* > $max_chain;
+return $refuse->('anchors missing')
+    if ref $anchors ne qw| ARRAY |
+    or not grep { defined $ARG and not ref $ARG and length $ARG }
+    $anchors->@*;
+return $refuse->('subject not 32 bytes')
+    if not defined $subject
+    or ref $subject
+    or not utf8::downgrade( $subject, 1 )
+    or bytes::length($subject) != 32;
+return $refuse->('time not valid')
+    if not defined $now
+    or ref $now
+    or $now !~ m|\A[0-9]{1,10}\z|;
+
+my %anchor = map { $ARG => TRUE }
+    grep { defined $ARG and not ref $ARG and length $ARG } $anchors->@*;
+
+my $issuer_scope = qw| * |;    ## the anchor's scope ##
+my $prev_subject;
+my $anchor_fp;
+my $last;
+
+foreach my $index ( 0 .. $chain->$#* ) {
+    my $at = sprintf 'statement %d', $index + 1;
+
+    my ( $st, $reason )
+        = <[trust.statement]>->( qw| parse_wire |, $chain->[$index] );
+    return $refuse->("$at : $reason") if not defined $st;
+
+    if ( $index == 0 ) {
+        $anchor_fp = <[trust.fingerprint]>->( $st->{'issuer_pub'} );
+        return $refuse->("$at : issuer is not a pinned anchor")
+            if not defined $anchor_fp
+            or not exists $anchor{$anchor_fp};
+    } elsif ( $st->{'issuer_pub'} ne $prev_subject ) {
+        return $refuse->("$at : issuer is not the previous subject");
+    }
+
+    return $refuse->("$at : signature not valid")
+        if not Crypt::Ed25519::verify( $st->{'statement'},
+        $st->{'issuer_pub'}, $st->{'sig'} );
+
+    return $refuse->("$at : not_after before not_before")
+        if $st->{'not_after'} < $st->{'not_before'};
+    return $refuse->("$at : not yet valid") if $now < $st->{'not_before'};
+    return $refuse->("$at : expired")       if $now > $st->{'not_after'};
+
+    my $is_last = $index == $chain->$#*;
+
+    return $refuse->("$at : subject mismatch")
+        if $is_last
+        and $st->{'subject_pub'} ne $subject;
+
+    return $refuse->("$at : name not valid") if $st->{'name'} !~ $re_name;
+
+    ## the issuer may certify this name ? ##
+    if ( $issuer_scope eq qw| * | ) {
+        ## everything ##
+    } elsif ( $issuer_scope eq '' ) {
+        return $refuse->("$at : issuer scope is empty");
+    } else {
+        return $refuse->("$at : issuer scope not supported");
+    }
+
+    ## the leaf certifies nothing [ this step ] ##
+    return $refuse->("$at : leaf scope not empty")
+        if $is_last
+        and $st->{'scope'} ne '';
+
+    $issuer_scope = $st->{'scope'};
+    $prev_subject = $st->{'subject_pub'};
+    $last         = $st;
+}
+
+return {
+    qw| name |       => $last->{'name'},
+    qw| anchor |     => $anchor_fp,
+    qw| issuer_pub | => $last->{'issuer_pub'},
+    qw| not_after |  => $last->{'not_after'},
+};
+
+#,,,,,..,,...,,,.,.,.,,,,,,,,,,..,,,,,...,,.,,..,,...,..,,,..,,..,.,,,,..,.,.,
+#3VZQ4RCW7CR524N5YWMW66C2JNNAKXA6HHBYZ2SMRBD5ERZWQDKVDPEZJNWDFH27T2CDGMKDMCU7M
+#\\\|LE2TIGUWUY5KY5ERH4GPJ52UZDO3BG53BVFPEOWH7IUG5FLL4YR \ / AMOS7 \ YOURUM ::
+#\[7]NT4YQOZABOG22ZD2J5URJ46OISDLHGOJSNQBOO67LFS2PPLTM6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

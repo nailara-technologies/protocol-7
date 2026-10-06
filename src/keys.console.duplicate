@@ -20,6 +20,22 @@ if ( not defined $cp_from or not defined $cp_to ) {
     <[base.exit]>->(qw| 0113 |);
 }
 
+## a root-held key is never copied : the copy would land in the user key ##
+## directory, readable \ deletable by the backend user [ host-root       ##
+## delegation ] -- refused for root too                                  ##
+foreach my $held_name ( $cp_from, $cp_to ) {
+    my $held_ref = <[crypt.C25519.key_path]>->($held_name);
+    if ( not defined $held_ref ) {
+        printf "\n  << key '%s' : key path not resolvable, see log >>\n\n",
+            $held_name;
+        <[base.exit]>->(qw| 0110 |);
+    } elsif ( $held_ref->{'holder'} eq qw| root | ) {
+        printf "\n  << key '%s' is root-held : cannot be duplicated >>\n\n",
+            $held_name;
+        <[base.exit]>->(qw| 0020 |);
+    }
+}
+
 return say sprintf "\n  << src key %s not found >>\n", $cp_from
     if not <[crypt.C25519.key_exists]>->($cp_from);
 return say sprintf "\n  << dst key name '%s' exists already >>\n", $cp_to
@@ -91,8 +107,8 @@ say sprintf( "\n  ::  successfully copied %d file%s  ::\n",
 
 <[base.exit]>;
 
-#,,,,,,.,,...,,,,,..,,...,,..,,,,,.,.,.,,,..,,..,,...,,..,,..,.,,,,,,,,..,,,.,
-#5BM7WBB3QAWMEXKBKPJWXTOFBHAYWDGWX3NQ6OKQFOOJOM3WKOS2RYAX3352XTIGCUSZV53LSBXPG
-#\\\|2T5FGOWYUO7Q3RHJQ66RB5ZMJNWVU7U2MSNBWVKVEQDTF6MSF73 \ / AMOS7 \ YOURUM ::
-#\[7]2TT2TCUB4XEEZZY27K3GJGKRU4B4DITQLCENBLKLAP3REJ75AEDQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,..,,,,,,.,,,.,,,,,,,,..,,.,,..,,...,...,.,.,.,.,.,,,,,,,...,
+#US6MWKB32CFL7ZGTFUY4VPFO563D5R7I6IQUGIZF26XLGUEVAMCBWR2WLLDNZ6WIMWLZ3FTDNGM3M
+#\\\|DGLSJQTW7VT4SIPZL2LSU3ZR66BCR2SKFSKBQWPPZNUF55POUH5 \ / AMOS7 \ YOURUM ::
+#\[7]Y5PNGYNO4X776MEZXHIP4BFVNQKZKXFQLRT4BEHVT7GYJHYUZUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

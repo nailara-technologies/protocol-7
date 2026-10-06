@@ -6,8 +6,6 @@
 
 my $param_str = shift // '';
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>;
-
 ( my $srckey, my $to_keyname ) = split m| +|, $param_str;
 
 if ( not defined $srckey or not defined $to_keyname ) {
@@ -21,6 +19,23 @@ if ( not defined $srckey or not defined $to_keyname ) {
     <[base.exit]>->(qw| 0113 |);
 }
 
+## root-held key : only root may operate on it [ host-root delegation ] the ##
+## source key's own vars : its directory is the root key dir when root-held ##
+## [ a bare key_vars call is the BASE key's, not the source's ]             ##
+my $key_path_ref = <[crypt.C25519.key_path]>->($srckey);
+if ( not defined $key_path_ref ) {
+    printf "\n  << key '%s' : key path not resolvable, see log >>\n\n",
+        $srckey;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_path_ref->{'holder'} eq qw| root |
+    and $EFFECTIVE_USER_ID != 0 ) {
+    printf "\n  << key '%s' is root-held : "
+        . "refused, not running as root >>\n\n", $srckey;
+    <[base.exit]>->(qw| 0020 |);
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($srckey);
+
 my $keys_re = <keys.regex>;
 my $key_dir = $key_vars_ref->{'key_dir'};
 
@@ -31,7 +46,7 @@ my $key_re_private = $keys_re->{'key_file'}->{'private'};
 return printf "\n  << key with name '%s' not found >>\n\n", $srckey
     if not <[crypt.C25519.key_exists]>->($srckey);
 
-my $key_filename_ref = <[crypt.C25519.key_vars]>->{'key_filename'};
+my $key_filename_ref = $key_vars_ref->{'key_filename'};
 
 my @k_files = grep {s|^.+/||}
     grep { -e $ARG }
@@ -79,8 +94,8 @@ foreach my $file_name (@k_files) {
 printf " :\n  .: successfully renamed %02d file%s\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,,.,,,,,,.,,,,,,,..,.,,,,,,,,..,,..,..,,..,,..,,...,...,.,.,,,,,.,,,,..,.,,,
-#B4SCO2V42Z22PQ5UYVTHQAYGBULE6KSJBEHKOEZ3LEP45ILEE2KDXCIWLJ23ZU7GWF2ORMZNHUOCQ
-#\\\|FML3HX6ALCS2P3PSTLU7WJVLA53SBIQB7XRRPO66MTI4GULJ3JK \ / AMOS7 \ YOURUM ::
-#\[7]FBIHYTBWZM4CEV6OXGQPVPYSQBPY4HIA4P2XZTZDU5VORGRF34AI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,,.,,.,.,...,,,.,...,.,,,.,,,..,,...,..,,,,,,,..,,..,...,,.,,
+#5ADGQL73GRDDNUAJFYQQJ3KPMQMBATFH5OXGI6KLNO6PX2UFEUNZGIGPWIS3EDVN7TSUGN7YFEBO4
+#\\\|55YU62CW6UGNZR4I3MT7CC6Z7YSDVF4RHT6V36TJ6D4I3E66H7E \ / AMOS7 \ YOURUM ::
+#\[7]4SKYAKY3J53FZTO237I7SS4TVHITE5LXSMSNPIVT2Z5FNW6CUAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

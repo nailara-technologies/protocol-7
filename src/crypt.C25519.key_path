@@ -1,0 +1,209 @@
+## [:< ##
+
+# name   = crypt.C25519.key_path
+# descr  = THE key file path resolver [ user key dir \ root-held keys ]
+# param  = <key name> [ { holder => 'root' } ]
+# return = { key_dir, key_basepath, key_filename => { secret private
+#          public virtual }, holder => 'user'|'root' [, key_dir_fd ] }
+#          or undef [ logged why ]
+#
+# data/md/design/HOST-ROOT-DELEGATION.md [ 'root-held keys' ]. a key is
+# root-held iff its .public or .secret is in <backend key dir>/root/ ;
+# holder 'root' forces root/ [ creating host-root ]. for root/ the
+# ownership rule is checked on EVERY call : root/ a real directory, uid
+# 0, mode 0700 ; each existing key file a regular file, uid 0, 0600
+# [ .public 0600 or 0644 ]. anything else -> undef + level 0 log.
+#
+# root/ lives in a directory the backend user owns : it may swap root/
+# between this check and the caller's open. the checked directory is
+# therefore held open and key_basepath \ key_filename go through it
+# [ /proc/self/fd/<n>/.. = key_dir_fd ] -- a swap after the check cannot
+# redirect a read or a write. key_dir stays the plain path [ display,
+# comparisons, listing ] : never build a key FILE path from it.
+#
+# as non-root, root/ cannot be looked into [ 0700 ] : a root-held name
+# then resolves to 'user' [ the kernel enforces the rest ] ; forcing
+# holder 'root' as non-root is refused.
+
+my ( $name, $opt ) = @ARG;
+
+require Fcntl;
+
+my $refuse = sub {
+    my ( $level, $format, @arg ) = @ARG;
+    <[base.logs]>->( $level, 'key path : ' . $format, @arg );
+    return undef;
+};
+
+return $refuse->( 1, 'key name missing' )
+    if not defined $name
+    or ref $name
+    or not length $name;
+return $refuse->( 1, "key name not usable as a file name ['%s']", $name )
+    if index( $name, qw| / | ) != -1
+    or index( $name, "\0" ) != -1
+    or $name eq qw| . |
+    or $name eq qw| .. |;
+
+my $holder;
+if ( defined $opt ) {
+    return $refuse->( 1, 'options not a hash' ) if ref $opt ne qw| HASH |;
+    foreach my $key ( keys $opt->%* ) {
+        return $refuse->( 1, "option '%s' not known", $key )
+            if $key ne qw| holder |;
+    }
+    $holder = $opt->{'holder'};
+    return $refuse->( 1, "holder '%s' not known", $holder // '<undef>' )
+        if not defined $holder
+        or $holder ne qw| root |;
+}
+
+my $types = [qw|  secret  private  public  virtual  |];
+
+my $file_names = sub {
+    my $base = shift;
+    return {
+        map {
+            $ARG => $ARG eq qw| virtual |
+                ? sprintf( qw| %s:seed-phrase |, $base )
+                : sprintf( qw| %s.%s |, $base, $ARG )
+        } $types->@*
+    };
+};
+
+my $root_dir = <[crypt.C25519.root_key_dir]>;
+
+## holder detection : lstat only, never opens root/ [ EACCES as non-root is ##
+## simply 'not found' -- quiet ]                                            ##
+if ( not defined $holder ) {
+    $holder = qw| user |;
+    if ( defined $root_dir ) {
+        foreach my $ext (qw| public secret |) {
+            my @st = lstat( catfile( $root_dir, "$name.$ext" ) );
+            if (@st) { $holder = qw| root |; last }
+        }
+    }
+}
+
+if ( $holder eq qw| user | ) {
+    my $key_dir = <crypt.C25519.key_dir> // <[crypt.C25519.get_usr_keys_dir]>;
+    return $refuse->( 1, 'no user key directory' )
+        if not defined $key_dir
+        or not length $key_dir;
+    my $key_basepath = catfile( $key_dir, $name );
+    return {
+        qw| key_dir |      => $key_dir,
+        qw| key_basepath | => $key_basepath,
+        qw| key_filename | => $file_names->($key_basepath),
+        qw| holder |       => qw| user |,
+    };
+}
+
+## root-held ##
+return $refuse->( 0, "no backend key directory for root-held '%s'", $name )
+    if not defined $root_dir;
+
+my $dir_ok = sub {    ## real directory, uid 0, mode 0700 ##
+    my @st = @ARG;
+    return FALSE if @st < 11;
+    return FALSE if not Fcntl::S_ISDIR( $st[2] );
+    return FALSE if Fcntl::S_ISLNK( $st[2] );
+    return FALSE if $st[4] != 0;
+    return FALSE if ( $st[2] & 07777 ) != 0700;
+    return TRUE;
+};
+
+my @dir_st = lstat($root_dir);
+return $refuse->(
+    0,         "root key directory missing ['%s'] : %s",
+    $root_dir, "$OS_ERROR"
+) if not @dir_st;
+return $refuse->(
+    0, "root key directory REFUSED [ ownership rule ] ['%s']", $root_dir
+) if not $dir_ok->(@dir_st);
+
+## the held-open directory : reused while it still IS root/ ##
+my $held = <crypt.C25519.root_dir_held> //= {};
+my $dir_fh;
+if ( defined $held->{'fh'} ) {
+    my @held_st = stat( $held->{'fh'} );
+    $dir_fh = $held->{'fh'}
+        if @held_st >= 11
+        and $held_st[0] == $dir_st[0]
+        and $held_st[1] == $dir_st[1]
+        and $dir_ok->(@held_st);
+}
+if ( not defined $dir_fh ) {
+    delete $held->{'fh'};
+    if (not sysopen(
+            my $fh, $root_dir,
+            Fcntl::O_RDONLY() | Fcntl::O_DIRECTORY() | Fcntl::O_NOFOLLOW()
+        )
+    ) {
+        my $why = "$OS_ERROR";
+        my $usr = getpwuid($EUID) // $EUID;
+        return $refuse->(
+            1, "root-held '%s' : not readable as %s [ %s ]",
+            $name, $usr, $why
+        );
+    } else {
+        my @fh_st = stat($fh);
+        return $refuse->(
+            0, "root key directory REFUSED [ changed while opened ] ['%s']",
+            $root_dir
+            )
+            if @fh_st < 11
+            or $fh_st[0] != $dir_st[0]
+            or $fh_st[1] != $dir_st[1]
+            or not $dir_ok->(@fh_st);
+        $held->{'fh'} = $dir_fh = $fh;
+    }
+}
+
+my $fd_dir = sprintf qw| /proc/self/fd/%d |, fileno($dir_fh);
+{    ## the fd path must lead to the held directory [ /proc mounted ] ##
+    my @via = stat($fd_dir);
+    my @fh  = stat($dir_fh);
+    return $refuse->( 0, "root-held '%s' : %s not usable", $name, $fd_dir )
+        if @via < 11
+        or $via[0] != $fh[0]
+        or $via[1] != $fh[1];
+}
+
+my $key_basepath = catfile( $fd_dir, $name );
+my $key_filename = $file_names->($key_basepath);
+
+foreach my $type ( $types->@* ) {
+    my @st = lstat( $key_filename->{$type} );
+    if ( not @st ) {
+        next if $OS_ERROR{'ENOENT'};
+        return $refuse->(
+            0, "root-held '%s' [ %s ] : %s",
+            $name, $type, "$OS_ERROR"
+        );
+    }
+    my $mode    = $st[2] & 07777;
+    my $mode_ok = $mode == 0600 || ( $type eq qw| public | && $mode == 0644 );
+    return $refuse->(
+        0,     "root-held '%s' [ %s ] REFUSED [ ownership rule ]",
+        $name, $type
+        )
+        if not Fcntl::S_ISREG( $st[2] )
+        or Fcntl::S_ISLNK( $st[2] )
+        or $st[4] != 0
+        or not $mode_ok;
+}
+
+return {
+    qw| key_dir |      => $root_dir,
+    qw| key_dir_fd |   => $fd_dir,
+    qw| key_basepath | => $key_basepath,
+    qw| key_filename | => $key_filename,
+    qw| holder |       => qw| root |,
+};
+
+#,,..,,,,,...,,.,,.,.,,,,,...,,,,,,..,.,.,.,.,..,,...,...,...,...,.,.,,,,,,.,,
+#RJ3KQ7ICH5A5R42EORZ3NPILH5II7V4RSY5ZRFMOL2SXNG7Y5BZSVVKNDGXN4BPV7LAIAMDWKADXE
+#\\\|ACRNQ3O27N4TDVNBR7LZSFOG6AMCBC4GZ3YIZHVJ42QNH57OES7 \ / AMOS7 \ YOURUM ::
+#\[7]P5DNA4VE3ZUPB6RHLREFR6HS2FLEVO6BPC2IVWBUJV74RSCFLECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

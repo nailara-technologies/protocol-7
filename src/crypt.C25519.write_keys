@@ -7,7 +7,34 @@ my $name_param   = shift;            ##  optional  ##
 my $key_password = shift;            ##  optional  ##
 my $erase_keys   = shift // TRUE;    ##  set to FALSE to keep keys loaded  ##
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
+my $key_path_opt = shift;            ##  optional : { holder => 'root' }  ##
+
+require Fcntl;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->( $name_param, $key_path_opt );
+
+## no key file paths [ refused root-held key, no key dir ] : nothing ##
+## written                                                           ##
+if ( ref $key_vars_ref ne qw| HASH |
+    or not defined $key_vars_ref->{'key_basepath'} ) {
+    <[base.logs]>->(
+        0,
+        "key '%s' : no usable key path, not written",
+        $name_param // '<base>'
+    );
+    return undef;
+}
+
+## root-held [ root/ ] : only root writes, files stay owner 0, mode 0600 ##
+my $root_held = $key_vars_ref->{'holder'} eq qw| root |;
+if ( $root_held and $EUID != 0 ) {
+    <[base.logs]>->(
+        0,
+        "root-held key '%s' : not written [ not running as root ]",
+        $key_vars_ref->{'key_name'}
+    );
+    return undef;
+}
 
 my $uid          = $key_vars_ref->{'uid'};
 my $gid          = $key_vars_ref->{'gid'};
@@ -23,7 +50,7 @@ if ( not exists $keys{'C25519'}->{$name} or not keys $keys{'C25519'}->%* ) {
 }
 
 foreach my $type (qw|  secret  private  public  |) {
-    my $file_name = join( qw| . |, $key_basepath, $type );
+    my $file_name = $key_vars_ref->{'key_filename'}->{$type};
 
     next    ##  skip checking not loaded key file types  ##
         if not exists $keys{'C25519'}->{$name}->{$type}
@@ -47,8 +74,8 @@ my $priv_key_L13_sum;
 my $keywrite_status = TRUE;
 foreach my $type (qw|  secret  private  public  |) {
 
-    my $file_name = join( qw| . |, $key_basepath, $type );
-    my $tmp_fname = join( qw| . |, $file_name,    $PID, <[base.ntime.b32]> );
+    my $file_name = $key_vars_ref->{'key_filename'}->{$type};
+    my $tmp_fname = join( qw| . |, $file_name, $PID, <[base.ntime.b32]> );
 
     next if not exists $keys{'C25519'}->{$name}->{$type};
 
@@ -62,16 +89,26 @@ foreach my $type (qw|  secret  private  public  |) {
         return undef;
     }
 
-    open( my $key_fh, qw| > |, $tmp_fname )
-        or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $tmp_fname );
+    ## a fresh temp file, never through a planted symlink ##
+    my $file_mode = ( $type eq qw| public | and !$root_held ) ? 0640 : 0600;
+    sysopen(
+        my $key_fh,
+        $tmp_fname,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        $file_mode
+    ) or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $tmp_fname );
+    binmode($key_fh);
 
-    if ( $type eq qw| public | ) {
-        chmod( 0640, $tmp_fname )
-            or die sprintf( '< chmod 0640 > %s', <[base.str.os_err]> );
-    } else {
-        chmod( 0600, $tmp_fname )
-            or die sprintf( '< chmod 0600 > %s', <[base.str.os_err]> );
-    }
+    chmod( $file_mode, $key_fh )
+        or die
+        sprintf( '< chmod ' . '%04o > %s', $file_mode, <[base.str.os_err]> );
+
+    ## owner set on the handle [ never a path chown that could follow a ##
+    ## swapped-in symlink ] ; root-held files stay root's [ owner 0 ]   ##
+    chown( $uid, $gid, $key_fh )
+        or warn sprintf( '%s [ %s ]', <[base.str.os_err]>, $tmp_fname )
+        if not $root_held;
 
     if (wantarray) {
         ##  for checksums below  ##
@@ -146,8 +183,6 @@ foreach my $type (qw|  secret  private  public  |) {
         or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $file_name );
     rename( $tmp_fname, $file_name )
         or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $file_name );
-    chown( $uid, $gid, $file_name )
-        or warn sprintf( '%s [ %s ]', <[base.str.os_err]>, $file_name );
 
     $keywrite_status = FALSE if not -f $file_name;    ##  false  ##
 
@@ -197,8 +232,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;    ## return write success status ##
 }
 
-#,,..,.,,,..,,.,.,,,,,...,,,.,..,,...,.,.,.,,,..,,...,...,,,,,.,.,,,,,,,.,,,,,
-#IEGP2ESCQCA25GRR6QZ5NHOBBTCXJBVKOKQBBK5X44QSX2GIFC4XWWENDBUW4YTXHHQEF7LMLNR5Y
-#\\\|3N5SH3XSOEJZHWPN3NYEZOQEWRVER37RJLXQWWRZDUELREFMABU \ / AMOS7 \ YOURUM ::
-#\[7]GMXPDI3OKUAXEXLRJYBSXLUC2WV34LN6XL3AF26RVTUX5H6MJYBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,.,.,,,,,...,..,,,,,,,,,,..,,..,,...,...,...,,.,,..,,.,.,,.,,
+#64HATSBLIJDEJ3BX7LZOZYNY2WPRG6SCPZRG3B5BLEP3YXQPIUSFVGMB4G3ACGJIQBJAKDB5SJFRM
+#\\\|GQPXHVFLVJODKKTJ26P7AXXCCQRXN3YT5UF4PVEUIKZHNC5AO57 \ / AMOS7 \ YOURUM ::
+#\[7]ZH4Q7IGY62Y3KMW6HFJUAIQPEXNVYPWCFFBBHGVADO3AKAFXACCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

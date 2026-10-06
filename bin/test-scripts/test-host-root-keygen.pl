@@ -8,15 +8,16 @@ use warnings;
 ## bytes pragma transitively. mirror that here, as the precedent tests do. ##
 use bytes;
 
-## host-root key creation [ 25a60f33b, 2026-10-05 ] : compiles the REAL   ##
-## crypt.C25519.gen_keys with the real base.prng.* modules it needs [     ##
-## reseed \ entropy_pool \ add_entropy \ bytes ] and checks the fresh     ##
-## random path, the deterministic passphrase path and the error branches. ##
-## then compiles the REAL crypt.C25519.post_init with recorder stubs for  ##
-## gen_keys \ write_keys \ key_exists and checks the host-root decision.  ##
-## every key dir is a File::Temp tempdir ; nothing is written to disk by  ##
-## the code under test [ write_keys is a recorder ]. no zenka started,    ##
-## restarted or reloaded.                                                 ##
+## host-root key creation [ 25a60f33b, 2026-10-05 ] : compiles the REAL    ##
+## crypt.C25519.gen_keys with the real base.prng.* modules it needs [      ##
+## reseed \ entropy_pool \ add_entropy \ bytes ] and checks the fresh      ##
+## random path, the deterministic passphrase path and the error branches.  ##
+## then compiles the REAL crypt.C25519.post_init with recorder stubs and   ##
+## checks it hands host-root creation to crypt.C25519.host_root.create     ##
+## whatever auto_load_keys says [ the decision : test-host-root-delegation ##
+## ] every key dir is a File::Temp tempdir ; nothing is written to disk by ##
+## the code under test [ write_keys is a recorder ]. no zenka started,     ##
+## restarted or reloaded.                                                  ##
 
 use File::Spec;
 use Cwd          qw| abs_path |;
@@ -277,10 +278,12 @@ say "         $ARG" for @perl_warnings;
 
 ## ------------------------------------------------------------------------ ##
 
-say ': post_init : host-root decision';
+say ': post_init : host-root creation is independent of auto_load_keys';
 
+## the decision itself [ v7-zenki, root, root/ ownership rule ] lives in ##
+## crypt.C25519.host_root.create : bin/test-scripts/test-host-root-      ##
+## delegation.pl. here : post_init always hands over to it               ##
 my %called;
-my %key_exists_answer;
 my $pi_tmp = tempdir( CLEANUP => 1 );
 my $pi_kv  = {
     'uid'          => $UID,
@@ -296,7 +299,6 @@ my $pi_kv  = {
     },
 };
 
-## the real gen_keys is saved ; post_init sees recorders ##
 my $real_gen_keys = $code{'crypt.C25519.gen_keys'};
 
 $code{'crypt.C25519.key_vars'}    = sub { return $pi_kv };
@@ -306,103 +308,45 @@ $code{'crypt.C25519.load_keypair'}
     = sub { push $called{'load_keypair'}->@*, [@ARG]; return };
 $code{'file.slurp'} = sub { my $s = ''; return \$s };
 $code{'crypt.C25519.generate_session_keypair'} = sub {return};
-$code{'crypt.C25519.key_exists'}               = sub {
-    push $called{'key_exists'}->@*, [@ARG];
-    return $key_exists_answer{ $ARG[0] } // FALSE;
-};
-$code{'crypt.C25519.gen_keys'} = sub {
-    push $called{'gen_keys'}->@*, [@ARG];
-    $keys{'C25519'}{ $ARG[0] } = { 'public' => 'p', 'private' => 'q' };
-    return ( $keys{'C25519'}{ $ARG[0] }, $ARG[0] );
-};
+$code{'crypt.C25519.host_root.create'}
+    = sub { push $called{'host_root.create'}->@*, [@ARG]; return FALSE };
+$code{'crypt.C25519.gen_keys'}
+    = sub { push $called{'gen_keys'}->@*, [@ARG]; return };
 $code{'crypt.C25519.write_keys'}
     = sub { push $called{'write_keys'}->@*, [@ARG]; return TRUE };
 
 compile_module('crypt.C25519.post_init');
 my $post_init = $code{'crypt.C25519.post_init'};
 
-sub run_post_init {
-    my %param = @ARG;
-    %data                                                   = ();
-    %keys                                                   = ();
-    %called                                                 = ();
-    %key_exists_answer                                      = ();
-    $data{'system'}{'zenka'}{'name'}                        = $param{'zenka'};
-    $data{'crypt'}{'C25519'}{'auto_load_keys'}              = TRUE;
-    $data{'crypt'}{'C25519'}{'cfg'}{'create_host_root_key'} = $param{'create'}
-        if exists $param{'create'};
-    $key_exists_answer{'host-root'} = $param{'on_disk'}
-        if exists $param{'on_disk'};
-    $keys{'C25519'}{'host-root'} = { 'public' => 'P', 'private' => 'Q' }
-        if $param{'in_keys'};
-    my $ret = $post_init->();
-    return $ret;
+for my $zenka (qw| v7-zenki cube |) {
+    for my $autoload ( TRUE, FALSE ) {
+        %data                                      = ();
+        %keys                                      = ();
+        %called                                    = ();
+        $data{'system'}{'zenka'}{'name'}           = $zenka;
+        $data{'crypt'}{'C25519'}{'auto_load_keys'} = $autoload;
+        $post_init->();
+        my $label = sprintf '%s, auto_load_keys %s', $zenka,
+            $autoload ? 'on' : 'off';
+        ok( ( $called{'host_root.create'} // [] )->@* == 1,
+            "$label : host_root.create called once"
+        );
+        ok( !$called{'gen_keys'} && !$called{'write_keys'},
+            "$label : post_init itself neither generates nor writes"
+        );
+    }
 }
 
-sub host_root_calls {
-    my $type = shift;
-    return
-        scalar grep { ( $ARG->[0] // '' ) eq 'host-root' }
-        ( $called{$type} // [] )->@*;
-}
-
-my $ret = run_post_init( 'zenka' => 'v7-zenki' );
-ok( defined $ret && $ret eq '0', 'v7-zenki : post_init returns 0' );
-ok( ( $called{'gen_keys'} // [] )->@* == 1
-        && host_root_calls('gen_keys') == 1
-        && $called{'gen_keys'}[0]->@* == 1,
-    "v7-zenki, nothing on disk : gen_keys('host-root') once [ no secret ]"
-);
-ok( ( $called{'write_keys'} // [] )->@* == 1
-        && host_root_calls('write_keys') == 1,
-    "  :.. write_keys('host-root') once"
-);
-ok( host_root_calls('key_exists') == 1, '  :.. key_exists consulted' );
-ok( ( $data{'crypt'}{'C25519'}{'cfg'}{'create_host_root_key'} // 0 ) == TRUE,
-    '  :.. create_host_root_key defaults to TRUE'
-);
-
-for my $zenka (qw| cube httpd |) {
-    run_post_init( 'zenka' => $zenka );
-    ok( !$called{'gen_keys'} && !$called{'write_keys'},
-        "$zenka : neither gen_keys nor write_keys"
-    );
-}
-
-run_post_init( 'zenka' => 'v7-zenki', 'on_disk' => TRUE );
-ok( !$called{'gen_keys'} && !$called{'write_keys'},
-    'v7-zenki, host-root on disk : neither called'
-);
-
-run_post_init( 'zenka' => 'v7-zenki', 'on_disk' => 4 );
-ok( !$called{'gen_keys'} && !$called{'write_keys'},
-    'v7-zenki, host-root virtual [ key_exists 4 ] : neither called' );
-
-run_post_init( 'zenka' => 'v7-zenki', 'create' => FALSE );
-ok( !$called{'gen_keys'} && !$called{'write_keys'},
-    'v7-zenki, create_host_root_key FALSE : neither called'
-);
-ok( !$called{'key_exists'},
-    '  :.. key_exists not even consulted [ short-circuit ]' );
-
-run_post_init( 'zenka' => 'v7-zenki', 'in_keys' => TRUE );
-ok( !$called{'gen_keys'}
-        && ( $called{'write_keys'} // [] )->@* == 1
-        && host_root_calls('write_keys') == 1,
-    'v7-zenki, host-root in %keys but not on disk : write_keys only'
-);
-
-## and the real gen_keys behind the decision : what v7-zenki would write ##
-run_post_init( 'zenka' => 'v7-zenki' );
+## the real gen_keys : what host_root.create gets for host-root ##
 %keys = ();
 $code{'crypt.C25519.key_vars'} = sub {
     return { 'key_name' => shift, 'key_dir' => $key_tmp };
 };
-$code{'base.prng.reseed'}->();    ## %data was reset by run_post_init ##
-$real_gen_keys->( $called{'gen_keys'}[0]->@* );
+$code{'base.prng.reseed'}->();    ## %data was reset above ##
+$real_gen_keys->(qw| host-root |);
 ok( truth( $keys{'C25519'}{'host-root'}{'public'} )
         && length( $keys{'C25519'}{'host-root'}{'secret'} ) == 32,
-    'the recorded gen_keys call, replayed on the real gen_keys : valid key'
+    'the real gen_keys for host-root : valid key'
 );
 
 say '';
@@ -413,8 +357,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,..,,.,.,,,.,.,,,..,,,..,.,.,,,.,,,,,,.,,..,,...,...,...,..,,,,.,..,,,.,,
-#L45XJ4O632CEMLOQCJF3Y7ADA5TDBOV7FJ47TCCZGQOOUS5TMGLNQYHR5MPAJDILYPJWD5JTTBIB2
-#\\\|TXOHX5LUIOEGZPVIPJZPWNKTLAO4BM333WKL5OYLCNP2YAQLERI \ / AMOS7 \ YOURUM ::
-#\[7]GIMPBSLUX5ITZ6HSYKNSREREIAPUXMEJ5HTF2QA6R76BMWG3T4BY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,..,,.,.,,..,,,.,.,,,,.,,,,.,,,.,..,,...,...,..,,,,.,.,.,.,,,,..,
+#GIAPWGRKSNA6IFFNSFWTKKWGHMDAMFQTG3RIY2LMDP2VKGY4W33V2N3KNTMGTJ2WBNGWZN53T2V7E
+#\\\|6AZQOQWU72QEC3WLHKLUYQRWXCJRWWCXP6HMHEBCRDKCF73D4TT \ / AMOS7 \ YOURUM ::
+#\[7]3XKG6ETJUOKTOW353IF5IFO47EDPEHFN4WD7FSUIXRLHCSI6CMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

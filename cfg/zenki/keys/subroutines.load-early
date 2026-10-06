@@ -53,6 +53,7 @@ base.hide_list
 base.file.open
 base.dump_data
 base.conf-wrap
+trust.statement
 devmod.pre_init
 devmod.cmd.true
 devmod.cmd.echo
@@ -81,6 +82,7 @@ base.load_config
 base.get_homedir
 base.code.exists
 base.chk-sum.elf
+trust.fingerprint
 keys.get_keyfiles
 keys.console.path
 keys.console.list
@@ -175,6 +177,7 @@ crypt.C25519.pre_init
 crypt.C25519.keyfiles
 crypt.C25519.key_vars
 crypt.C25519.key_type
+crypt.C25519.key_path
 crypt.C25519.gen_keys
 base.vec.offset_write
 base.session.shutdown
@@ -205,7 +208,6 @@ base.register_bin_deps
 base.prng.entropy_pool
 base.perlmod.init_code
 base.path.resolved_abs
-base.file.get-non-dirs
 base.comp-int.is_valid
 keys.list_incoming_keys
 keys.console.github-pat
@@ -248,6 +250,7 @@ base.check_cfg_cmd_alias
 keys.console.list-backups
 jobqueue.priorities_table
 devmod.cmd.test-strm-size
+crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
 base.sourcecode.init_code
 base.register_p7_mod_load
@@ -309,6 +312,7 @@ keys.console.decrypt-archive
 keys.console.create-stub-key
 devmod.cmd.receive-multiline
 crypt.C25519.keystr_is_valid
+crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
 base.process-into-background
 base.parser.ondemand_session
@@ -326,6 +330,7 @@ crypt.C25519.store_remote_key
 crypt.C25519.signature_exists
 crypt.C25519.load_from_string
 crypt.C25519.key_name_to_skey
+crypt.C25519.host_root.create
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
@@ -407,6 +412,7 @@ base.perlmod.unregister_loaded_module
 base.handler.ondemand_idle_term_reply
 base.handler.ondemand_idle_term_guard
 keys.unpack_format.key_archive_payload
+crypt.C25519.cmd.host-root-fingerprint
 base.log.send-buffer.idle-callback-set
 base.perlmods.blacklist_collision_index
 base.log.send-buffer.send-idle-callback
@@ -417,8 +423,8 @@ base.agent_code.handler.sig_warn.end_proc
 base.log.send-buffer.reply-handler.send-reply
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,.,,,..,,,,.,..,,.,,,.,.,...,,..,.,.,..,,..,,...,...,,..,..,,,,.,,.,,,.,,
-#5VU43UC7P2EXEZOHXW5SHI5VRPWRUBCWU7SPJWHNVERSFCPVFJMX5XOF5LVNYTAAZKNHSGZKUXH7W
-#\\\|TAYGGSKDNLV6QGYU4BATYNOTF5SNUROYBP3N4BKGCE7XJN4J2FF \ / AMOS7 \ YOURUM ::
-#\[7]Q3QQ37TAOE73LPSQA6VJ5QLURDVZVVCMANQA2KAMUV2BDHMULYBA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,.,.,,,.,,.,,,..,,,.,.,.,,,,,..,,...,...,,.,,,..,...,.,.,..,,
+#C2D7M46G5SCDIMYIZKYKGZOTALVE52H75VDKKUXEUNTCWGF7YVJ4D2QTRLIPRVWGVLNCIA7AMJFGU
+#\\\|65GFDD6RWJGGTJBGDYFKKBCPVOWCYDRJDBPH2NHZGRKUWDYGMIG \ / AMOS7 \ YOURUM ::
+#\[7]LYB6QT4TCY5CPV3EHAWTHKOB6Y4B7LOEZ2OJ45A42K45UN2EPCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
