@@ -4,16 +4,16 @@ use strict;
 use English;
 use warnings;
 
-## the production runtime [ bin/Protocol-7 : use utf8 + Encode ] loads the  ##
+## the production runtime [ bin/Protocol-7 : use utf8 + Encode ] loads the ##
 ## bytes pragma transitively ; keep it so compiled modules resolve it.     ##
 use bytes;
 
 ## external named links [ 2026-10-06 ] compiles the real external.link.open ##
-## and external.cmd.connect and drives them with stubs : base.open hands out ##
-## socketpair ends, auth \ handshake \ session \ activate are scripted      ##
+## and external.cmd.connect and drives them with stubs : base.open hands    ##
+## out socketpair ends, auth \ handshake \ session \ activate are scripted  ##
 ## recorders, event.add_timer records its timer and the callback is run by  ##
 ## hand. regex.base.usr comes from the real base.regex module. no zenka     ##
-## started, restarted or reloaded, no network, no key dirs touched.        ##
+## started, restarted or reloaded, no network, no key dirs touched.         ##
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -85,7 +85,8 @@ $code{'base.regex'} = undef;
 compile_module('base.regex');
 $data{'regex'}{'base'} = $code{'base.regex'}->();
 ok( ref $data{'regex'}{'base'}{'usr'} eq 'Regexp',
-    'regex.base.usr taken from the real base.regex module' );
+    'regex.base.usr taken from the real base.regex module'
+);
 
 ## scripted behaviour of the stubbed collaborators ##
 my %script;
@@ -96,14 +97,14 @@ my $next_sid = 7000;
 sub reset_script {
     %script = (
         'open'      => 'sock',    ## sock | undef ##
-        'auth'      => 'ok',      ## ok | undef | die ##
+        'auth'      => 'ok',      ## ok | undef | die | scalar ##
         'handshake' => 'ok',      ## ok | fail | die ##
         'init'      => 'ok',      ## ok | undef ##
         'activate'  => 'ok',      ## ok | false ##
     );
     @calls = ();
     @socks = ();
-    %{ $data{'session'} } = ();
+    %{ $data{'session'} }  = ();
     %{ $data{'external'} } = ( 'cfg' => { 'link_user' => 'linkuser' } );
     return;
 }
@@ -124,8 +125,9 @@ $code{'base.open'} = sub {
 $code{'auth.client.auth-keypair.authenticate'} = sub {
     push @calls, [ 'auth', @ARG ];
     die "auth exploded\n" if $script{'auth'} eq 'die';
-    return if $script{'auth'} eq 'undef';
-    return TRUE;
+    return                if $script{'auth'} eq 'undef';
+    return TRUE           if $script{'auth'} eq 'scalar';  ## not a context ##
+    return { 'server_pub' => 'stub-binding' };
 };
 $code{'protocol.protocol-7.link-upgrade.handshake'} = sub {
     push @calls, [ 'handshake', @ARG ];
@@ -168,16 +170,15 @@ sub is_false {
 ## ---- external.link.open ---- ##
 say 'external.link.open : argument validation';
 for my $case (
-    [ 'missing name', { host => 'h.example', port => 42 } ],
-    [ 'missing host', { name => 'lnk',       port => 42 } ],
-    [ 'missing port', { name => 'lnk', host => 'h.example' } ],
+    [ 'missing name',     { host => 'h.example', port => 42 } ],
+    [ 'missing host',     { name => 'lnk',       port => 42 } ],
+    [ 'missing port',     { name => 'lnk',       host => 'h.example' } ],
     [ 'non-numeric port', { name => 'lnk', host => 'h', port => '4x2' } ],
-    [ 'empty args', {} ],
-    )
-{
+    [ 'empty args',       {} ],
+) {
     reset_script();
     my $res = $open->( $case->[1] );
-    ok( is_false($res), "$case->[0] -> false" );
+    ok( is_false($res),       "$case->[0] -> false" );
     ok( !calls_named('open'), "$case->[0] -> no base.open call" );
 }
 
@@ -199,7 +200,8 @@ delete $data{'external'}{'cfg'}{'link_user'};
 {
     my $res = $open->( { name => 'lnk', host => 'h', port => 42 } );
     ok( is_false($res) && $res->{'data'} =~ m{no link identity},
-        'no as_username and no cfg.link_user -> false' );
+        'no as_username and no cfg.link_user -> false'
+    );
     ok( !calls_named('open'), 'no identity -> no base.open call' );
 }
 
@@ -220,7 +222,7 @@ $script{'auth'} = 'undef';
     ok( is_false($res) && $res->{'data'} =~ m{auth-keypair as linkuser},
         'auth undef -> false' );
     ok( sock_closed( $socks[0][0] ), 'auth undef -> socket closed' );
-    ok( !calls_named('handshake'), 'auth undef -> no handshake' );
+    ok( !calls_named('handshake'),   'auth undef -> no handshake' );
 }
 
 reset_script();
@@ -228,7 +230,7 @@ $script{'auth'} = 'die';
 {
     my $res = eval { $open->( { name => 'lnk', host => 'h', port => 42 } ) };
     ok( $EVAL_ERROR eq "auth exploded\n", 'auth dies -> die propagates' );
-    ok( sock_closed( $socks[0][0] ), 'auth dies -> socket closed' );
+    ok( sock_closed( $socks[0][0] ),      'auth dies -> socket closed' );
 }
 
 reset_script();
@@ -236,8 +238,9 @@ $script{'handshake'} = 'fail';
 {
     my $res = $open->( { name => 'lnk', host => 'h', port => 42 } );
     ok( is_false($res) && $res->{'data'} =~ m{bad greeting},
-        'handshake ( 0, { error } ) -> false with the error text' );
-    ok( sock_closed( $socks[0][0] ), 'handshake failure -> socket closed' );
+        'handshake ( 0, { error } ) -> false with the error text'
+    );
+    ok( sock_closed( $socks[0][0] ),  'handshake failure -> socket closed' );
     ok( !calls_named('session.init'), 'handshake failure -> no session' );
 }
 
@@ -246,7 +249,8 @@ $script{'handshake'} = 'die';
 {
     my $res = eval { $open->( { name => 'lnk', host => 'h', port => 42 } ) };
     ok( $EVAL_ERROR eq "handshake exploded\n",
-        'handshake dies -> die propagates' );
+        'handshake dies -> die propagates'
+    );
     ok( sock_closed( $socks[0][0] ), 'handshake dies -> socket closed' );
 }
 
@@ -254,9 +258,9 @@ reset_script();
 $script{'init'} = 'undef';
 {
     my $res = $open->( { name => 'lnk', host => 'h', port => 42 } );
-    ok( is_false($res), 'session.init undef -> false' );
+    ok( is_false($res),              'session.init undef -> false' );
     ok( sock_closed( $socks[0][0] ), 'session.init undef -> socket closed' );
-    ok( !calls_named('init_state'), 'session.init undef -> no init_state' );
+    ok( !calls_named('init_state'),  'session.init undef -> no init_state' );
 }
 
 reset_script();
@@ -266,9 +270,20 @@ $script{'activate'} = 'false';
     my @sd  = calls_named('shutdown');
     ok( is_false($res), 'client_activate false -> false' );
     ok( @sd == 1 && !exists $data{'session'}{ $sd[0][1] },
-        'client_activate false -> session.shutdown( id ) once' );
+        'client_activate false -> session.shutdown( id ) once'
+    );
     ok( !exists $data{'external'}{'links'}{'lnk'},
-        'client_activate false -> no link registered' );
+        'client_activate false -> no link registered'
+    );
+}
+
+reset_script();
+$script{'auth'} = 'scalar';
+{
+    my $res = $open->( { name => 'lnk', host => 'h', port => 42 } );
+    ok( is_false($res), 'auth returns no binding context -> false' );
+    ok( sock_closed( $socks[0][0] ), 'no binding context -> socket closed' );
+    ok( !calls_named('handshake'),   'no binding context -> no handshake' );
 }
 
 say 'external.link.open : success and reuse';
@@ -276,21 +291,41 @@ reset_script();
 my $sid;
 {
     my $res = $open->(
-        { name => 'lnk', host => 'h.example', port => 42, as_username => 'bob' }
+        {   name        => 'lnk',
+            host        => 'h.example',
+            port        => 42,
+            as_username => 'bob'
+        }
     );
     $sid = $res->{'data'};
     ok( $res->{'mode'} eq 'true' && $sid =~ m{^\d+$},
         'success -> ( true, sid )' );
     my @a = calls_named('auth');
     ok( $a[0][2] eq 'bob' && $a[0][3] eq 'lnk',
-        'auth got as_username and the link name' );
+        'auth got as_username and the link name'
+    );
+    ok( ref $a[0][5] eq 'HASH'
+            && $a[0][5]{'host'} eq 'h.example'
+            && $a[0][5]{'port'} eq '42',
+        'auth got { host, port } for the server key pin'
+    );
+    my @h = calls_named('handshake');
+    ok( @h == 1
+            && ref $h[0][2] eq 'HASH'
+            && ref $h[0][2]{'binding'} eq 'HASH'
+            && $h[0][2]{'binding'}{'server_pub'} eq 'stub-binding',
+        'handshake got the binding context auth returned'
+    );
     my @o = calls_named('open');
     ok( "@{$o[0]}[1..4]" eq 'ip.tcp output h.example 42',
-        'base.open got ip.tcp output host port' );
+        'base.open got ip.tcp output host port'
+    );
     my @si = calls_named('session.init');
-    ok( $si[0][4] eq 'lnk' && $si[0][2] eq 'protocol-7'
+    ok( $si[0][4] eq 'lnk'
+            && $si[0][2] eq 'protocol-7'
             && $si[0][3] eq 'client',
-        'session.init got the link name as session name' );
+        'session.init got the link name as session name'
+    );
     my @is = calls_named('init_state');
     ok( @is == 1 && $is[0][1] == $sid && $is[0][2] == 1,
         'init_state( id, 1 ) called' );
@@ -300,26 +335,32 @@ my $sid;
     ok( $data{'session'}{$sid}{'authenticated'} eq 'yes',
         'session marked authenticated = yes' );
     my $l = $data{'external'}{'links'}{'lnk'};
-    ok( $l->{'sid'} == $sid && $l->{'host'} eq 'h.example'
-            && $l->{'port'} eq '42' && $l->{'user'} eq 'bob',
-        'external.links entry = { sid host port user }' );
+    ok( $l->{'sid'} == $sid
+            && $l->{'host'} eq 'h.example'
+            && $l->{'port'} eq '42'
+            && $l->{'user'} eq 'bob',
+        'external.links entry = { sid host port user }'
+    );
     ok( !sock_closed( $socks[0][0] ), 'success -> socket left open' );
 }
 
 {
     my $before = scalar calls_named('open');
-    my $res    = $open->( { name => 'lnk', host => 'h.example', port => 42 } );
+    my $res = $open->( { name => 'lnk', host => 'h.example', port => 42 } );
     ok( $res->{'mode'} eq 'true' && $res->{'data'} == $sid,
-        'reuse : same name host port -> same sid' );
+        'reuse : same name host port -> same sid'
+    );
     ok( calls_named('open') == $before, 'reuse -> no new base.open' );
 }
 
 {
     my $before = scalar calls_named('open');
-    my $res = $open->( { name => 'lnk', host => 'other.example', port => 42 } );
+    my $res
+        = $open->( { name => 'lnk', host => 'other.example', port => 42 } );
     ok( is_false($res)
             && $res->{'data'} =~ m{link lnk is open to h\.example:42},
-        'same name other host -> false "link lnk is open to .."' );
+        'same name other host -> false "link lnk is open to .."'
+    );
     my $res2 = $open->( { name => 'lnk', host => 'h.example', port => 43 } );
     ok( is_false($res2) && $res2->{'data'} =~ m{open to h\.example:42},
         'same name other port -> false' );
@@ -333,7 +374,8 @@ my $sid;
     my $before = scalar calls_named('open');
     my $res = $open->( { name => 'lnk', host => 'h2.example', port => 99 } );
     ok( $res->{'mode'} eq 'true' && $res->{'data'} != $sid,
-        'stale entry -> a new link is opened [ new sid ]' );
+        'stale entry -> a new link is opened [ new sid ]'
+    );
     ok( calls_named('open') == $before + 1, 'stale entry -> one new open' );
     ok( $data{'external'}{'links'}{'lnk'}{'host'} eq 'h2.example',
         'stale entry replaced by the new link' );
@@ -351,24 +393,24 @@ reset_script();
 say 'external.cmd.connect';
 ## the compiled-in .cmd. header from bin/Protocol-7 ##
 compile_module( 'external.cmd.connect',
-    'my $call = {}; if ( ref( $ARG[0] ) eq q|HASH| ) { $call = $ARG[0] } '
-        . 'else { $call->{q|args|} = $ARG[0] }' );
+          'my $call = {}; if ( ref( $ARG[0] ) eq q|HASH| ) { '
+        . '$call = $ARG[0] } else { $call->{q|args|} = $ARG[0] }' );
 my $connect = $code{'external.cmd.connect'};
 
 my @timers;
 my @replies;
 my @open_args;
 my $open_result;
-$code{'event.add_timer'} = sub { push @timers, $ARG[0]; return };
-$code{'base.callback.cmd_reply'} = sub { push @replies, [@ARG]; return };
-$code{'external.link.open'} = sub {
+$code{'event.add_timer'}         = sub { push @timers,  $ARG[0]; return };
+$code{'base.callback.cmd_reply'} = sub { push @replies, [@ARG];  return };
+$code{'external.link.open'}      = sub {
     push @open_args, $ARG[0];
     die $open_result->{'die'} if exists $open_result->{'die'};
     return $open_result->{'ret'};
 };
 
 sub reset_connect {
-    @timers = @replies = @open_args = ();
+    @timers      = @replies = @open_args = ();
     $open_result = { 'ret' => { 'mode' => 'true', 'data' => 321 } };
     delete $data{'protocol-7'};
     return;
@@ -403,10 +445,14 @@ reset_connect();
     $timers[0]{'cb'}->();
     ok( @open_args == 1, 'cb -> link.open called once' );
     my $oa = $open_args[0];
-    ok( $oa->{'name'} eq 'lnk' && $oa->{'host'} eq 'host.example'
-            && $oa->{'port'} eq '4242' && $oa->{'as_username'} eq 'carol',
-        'link.open got { name host port as_username }' );
-    ok( @replies == 1 && $replies[0][0] eq 'r9'
+    ok( $oa->{'name'} eq 'lnk'
+            && $oa->{'host'} eq 'host.example'
+            && $oa->{'port'} eq '4242'
+            && $oa->{'as_username'} eq 'carol',
+        'link.open got { name host port as_username }'
+    );
+    ok( @replies == 1
+            && $replies[0][0] eq 'r9'
             && $replies[0][1]{'mode'} eq 'true'
             && $replies[0][1]{'data'}
             =~ m{^linked lnk -> host\.example:4242 \[ encrypted, session 321 \]$},
@@ -434,9 +480,11 @@ reset_connect();
 {
     ## args as a bare string [ the non-hash invocation form ] ##
     my $res = $connect->('lnk h.example:1');
-    ok( ref $res eq 'HASH' && $res->{'mode'} eq 'false'
+    ok( ref $res eq 'HASH'
+            && $res->{'mode'} eq 'false'
             && $res->{'data'} =~ m{reply route},
-        'bare-string args without reply_id -> reply route error' );
+        'bare-string args without reply_id -> reply route error'
+    );
 }
 
 reset_connect();
@@ -446,7 +494,8 @@ reset_connect();
     $connect->( { args => 'lnk h:1', reply_id => 'r4' } );
     $timers[0]{'cb'}->();
     ok( @replies == 1 && $replies[0][0] eq 'r4' && $replies[0][1] == $fail,
-        'link.open false -> that false result passed through' );
+        'link.open false -> that false result passed through'
+    );
 }
 
 reset_connect();
@@ -455,10 +504,12 @@ reset_connect();
     $connect->( { args => 'lnk h:1', reply_id => 'r5' } );
     my $lived = eval { $timers[0]{'cb'}->(); 1 };
     ok( $lived, 'link.open dies -> cb itself does not die' );
-    ok( @replies == 1 && $replies[0][0] eq 'r5'
+    ok( @replies == 1
+            && $replies[0][0] eq 'r5'
             && $replies[0][1]{'mode'} eq 'false'
             && $replies[0][1]{'data'} eq 'link setup failed : auth exploded',
-        'link.open dies -> cmd_reply false "link setup failed : <msg>"' );
+        'link.open dies -> cmd_reply false "link setup failed : <msg>"'
+    );
 }
 
 reset_connect();
@@ -466,8 +517,10 @@ reset_connect();
     $open_result = { 'die' => "multi\nline\n\n" };
     $connect->( { args => 'lnk h:1', reply_id => 'r6' } );
     $timers[0]{'cb'}->();
-    ok( @replies == 1 && $replies[0][1]{'data'} eq "link setup failed : multi\nline",
-        'die message trailing whitespace trimmed' );
+    ok( @replies == 1
+            && $replies[0][1]{'data'} eq "link setup failed : multi\nline",
+        'die message trailing whitespace trimmed'
+    );
 }
 
 reset_connect();
@@ -475,17 +528,19 @@ reset_connect();
     $open_result = { 'ret' => undef };
     $connect->( { args => 'lnk h:1', reply_id => 'r7' } );
     $timers[0]{'cb'}->();
-    ok( @replies == 1 && $replies[0][1]{'mode'} eq 'false'
+    ok( @replies == 1
+            && $replies[0][1]{'mode'} eq 'false'
             && $replies[0][1]{'data'} eq 'link setup failed : no result',
-        'link.open returns undef -> still a reply [ "no result" ]' );
+        'link.open returns undef -> still a reply [ "no result" ]'
+    );
 }
 
 say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,.,,.,,,.,,,..,,,,.,.,,,.,.,...,...,.,.,..,,...,...,...,..,,..,,,,,,,..,
-#53AOAXKX33WJ6WRSDUNAFMCRBB2JVHEN2JKIVUUSGWCLFU6ZRITRIEDX3X4OC7GYJ2AYA5G7BIQTC
-#\\\|JRXC6ENKXAS4KG4R2J2ZALVKTZGI273G5OPO5KSIO7DNDCLYRG7 \ / AMOS7 \ YOURUM ::
-#\[7]NVSNKNVW3WAM7J55PQ66O3UQF3K75KIUOZUDMMYJUJ7STNASRGAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,..,,,..,.,,,,,.,,,.,...,..,,..,,...,...,...,,..,.,.,.,.,,.,,
+#EQLVCJBR5ZBTITHDOK4ZVUEJYRLBXMFT5Z4UJNWPD4K324FUSU3FI6YKATR2LF5NUFKSCSAX4YZYE
+#\\\|VTC235X4KK3NLQ64T3YAZHZVAT5PS2JRLNXQNTOIHU2LSOBYUN3 \ / AMOS7 \ YOURUM ::
+#\[7]2MTOZIWFSIFFL3PIQEQHDTGEBJE2AB24PE3TPOGKILYXE6VBKYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

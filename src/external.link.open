@@ -12,9 +12,10 @@
 # carries that name ]. steps : tcp connect [ io.ip.tcp.output.open, 7 s
 # bound ], auth-keypair as <as_username> [ //= <external.cfg.link_user> ]
 # with this unix user's '<user>.base' key [ the remote cube must hold
-# that label's public key under ~/.n/remote-keys/authorized/cube/ ], the
-# link-upgrade handshake [ protocol.protocol-7.link-upgrade.handshake,
-# reads bounded ], then base.session.init + state 1 + state 3
+# that label's public key under ~/.n/remote-keys/authorized/cube/ ; the
+# remote cube's key is pinned per <host>_<port> ], the link-upgrade
+# handshake bound to that auth [ protocol.protocol-7.link-upgrade.
+# handshake, reads bounded ], then base.session.init + state 1 + state 3
 # [ link-upgrade.client_activate, link_role client ]. the blocking part
 # is only this setup ; commands afterwards are event-driven [ the
 # users.remote_fetch.run shape, never a blocking read loop ].
@@ -60,17 +61,19 @@ my $sock = <[base.open]>->( qw| ip.tcp output |, $host, $port );
 return { 'mode' => qw| false |, 'data' => "cannot connect to $target" }
     if not defined $sock;
 
-## any die from here on must not leak the socket [ the caller evals ] ##
-my $authed = eval {
+## any die from here on must not leak the socket [ the caller evals ] the ##
+## binding context [ server pinned per host + port ]                      ##
+my $binding = eval {
     <[auth.client.auth-keypair.authenticate]>->(
-        $sock, $as_username, $name, $base_key_name
+        $sock, $as_username, $name, $base_key_name,
+        { qw| host | => $host, qw| port | => $port }
     );
 };
 if ( length $EVAL_ERROR ) {
     close($sock);
     die $EVAL_ERROR;
 }
-if ( not defined $authed ) {
+if ( ref $binding ne qw| HASH | ) {
     close($sock);
     return {
         'mode' => qw| false |,
@@ -80,7 +83,7 @@ if ( not defined $authed ) {
 
 my ( $upgraded, $link ) = eval {
     <[protocol.protocol-7.link-upgrade.handshake]>->(
-        $sock, { 'timeout' => 5 }
+        $sock, { 'timeout' => 5, 'binding' => $binding }
     );
 };
 if ( length $EVAL_ERROR ) {
@@ -135,8 +138,8 @@ $data{'session'}{$id}{'authenticated'} = qw| yes |;
 
 return { 'mode' => qw| true |, 'data' => $id };
 
-#,,.,,...,...,,.,,,,.,,,,,...,.,,,,,,,,..,,.,,..,,...,...,..,,,,,,,..,.,,,,,.,
-#T3LP2N45QQGWIU6M3JSNNWAU7FHEP5Q3URDEOD5THZAE234JNA3VM62YJ3CIWAF5V5MWAWVEHMGG2
-#\\\|A2TJ47NDK7YRDNA2TBD7OKFXFFCHFEJB2D2OBLVWKSTBRW5PC6G \ / AMOS7 \ YOURUM ::
-#\[7]SOZFG2R6L2ZWP34L7HNHXDTQZ4VKALICCAPLYISX5KM2WNAYVSBA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,,.,,,,.,,,,,,,,,.,,,,..,...,..,,...,...,..,,.,,,.,,,...,.,,,
+#RZLNWO7R2MCFJ7ZAG6AVENA4YWJDIIXMJAH7HVPHUDFOFZOC5RCVAFL4BECOTP27W3JGOXSRYOM3Y
+#\\\|DUUARHXZWUVYAE27DMTPINUAAEYTRTAM6LYCMSDCKLWY44GBEYN \ / AMOS7 \ YOURUM ::
+#\[7]XJQ6DRKY6O4HUIAR6CFH3HFJ4YNPCAWNZRWTCZ22NGVAPMMG7ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

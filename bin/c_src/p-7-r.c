@@ -10,8 +10,14 @@
 #include <time.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <signal.h>
 
 char *src_bmw_b32 = "[BMW_FILE_CHkSUM]";
+
+#define P7_AUTH_HELPER "/data/projects/protocol-7/bin/p7-auth-keypair-helper.pl"
+#define P7_LU_HELPER   "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl"
 
 /* Link-upgrade encryption state */
 struct encryption_state {
@@ -85,69 +91,147 @@ static int read_full(int fd, void *buf, size_t n)
     return 0;
 }
 
-/* run p7-link-upgrade-helper.pl encrypt|decrypt on a buffer via a temp file
-   [ helper reads stdin, writes binary stdout ] ; returns malloc'd output */
+/* run a helper WITHOUT a shell [ fork + execv ] : argv holds public values
+   only, secrets go in via the stdin pipe [ never argv, env or a file name ].
+   stdout is collected into *out [ malloc'd, always non-NULL on success,
+   caller frees ] ; returns the helper exit status, -1 when it could not
+   run, was killed, or a pipe failed. the raw output is wiped on failure */
+static int helper_exec(char *const argv[], const unsigned char *in,
+                       size_t in_len, unsigned char **out, size_t *out_len)
+{
+    int to_child[2], from_child[2];
+    *out = NULL;
+    *out_len = 0;
+
+    if (pipe2(to_child, O_CLOEXEC) < 0)
+        return -1;
+    if (pipe2(from_child, O_CLOEXEC) < 0) {
+        close(to_child[0]);
+        close(to_child[1]);
+        return -1;
+    }
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(to_child[0]);
+        close(to_child[1]);
+        close(from_child[0]);
+        close(from_child[1]);
+        return -1;
+    }
+    if (pid == 0) {
+        /* child : stdin <- pipe, stdout -> pipe, stderr -> /dev/null ;
+           dup2 clears O_CLOEXEC on 0 \ 1 \ 2, the rest closes on exec */
+        int devnull = open("/dev/null", O_WRONLY | O_CLOEXEC);
+        if (dup2(to_child[0], STDIN_FILENO) < 0 ||
+            dup2(from_child[1], STDOUT_FILENO) < 0)
+            _exit(127);
+        if (devnull >= 0)
+            dup2(devnull, STDERR_FILENO);
+        signal(SIGPIPE, SIG_DFL);
+        execv(argv[0], argv);
+        _exit(127);
+    }
+
+    close(to_child[0]);
+    close(from_child[1]);
+
+    int ok = 1;
+    size_t off = 0;
+    while (off < in_len) {
+        ssize_t w = write(to_child[1], in + off, in_len - off);
+        if (w < 0 && errno == EINTR)
+            continue;
+        if (w < 1) {
+            ok = 0;
+            break;
+        }
+        off += (size_t)w;
+    }
+    close(to_child[1]);
+
+    size_t cap = 4096, len = 0;
+    unsigned char *buf = (unsigned char *)malloc(cap);
+    if (buf == NULL)
+        ok = 0;
+    while (buf != NULL) {
+        if (cap - len < 1024) {
+            /* grow without leaving a stale copy behind [ no realloc ] */
+            unsigned char *nb = (unsigned char *)malloc(cap * 2);
+            if (nb == NULL) {
+                ok = 0;
+                break;
+            }
+            memcpy(nb, buf, len);
+            explicit_bzero(buf, cap);
+            free(buf);
+            buf = nb;
+            cap *= 2;
+        }
+        ssize_t r = read(from_child[0], buf + len, cap - len);
+        if (r < 0 && errno == EINTR)
+            continue;
+        if (r < 0)
+            ok = 0;
+        if (r < 1)
+            break;
+        len += (size_t)r;
+    }
+    close(from_child[0]);
+
+    int status = 0;
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR) {
+            ok = 0;
+            break;
+        }
+    }
+    if (!ok || !WIFEXITED(status)) {
+        if (buf != NULL) {
+            explicit_bzero(buf, cap);
+            free(buf);
+        }
+        return -1;
+    }
+    *out = buf;
+    *out_len = len;
+    return WEXITSTATUS(status);
+}
+
+/* run p7-link-upgrade-helper.pl encrypt|decrypt on a buffer : stdin is
+   "<key b32>\n" + data [ no temp file, the key never on argv ] ;
+   returns malloc'd output */
 static unsigned char *lu_crypt(const char *op, struct encryption_state *st,
                                const unsigned char *in, size_t in_len,
                                unsigned int counter, size_t *out_len)
 {
-    char tmpname[] = "/tmp/p7r-lu-XXXXXX";
-    int tfd = mkstemp(tmpname);
-    if (tfd < 0)
+    char sid[16], ctr[16];
+    snprintf(sid, sizeof(sid), "%u", st->session_id);
+    snprintf(ctr, sizeof(ctr), "%u", counter);
+    /* nonce direction : this client encrypts client -> server [ 1 ],
+       decrypts server -> client [ 2 ] - never the same nonce twice */
+    char *dir = strcmp(op, "encrypt") == 0 ? "1" : "2";
+    char *av[] = { P7_LU_HELPER, (char *)op, sid, ctr, dir, NULL };
+
+    size_t klen = strlen(st->key);
+    size_t stdin_len = klen + 1 + in_len;
+    unsigned char *stdin_buf = (unsigned char *)malloc(stdin_len);
+    if (stdin_buf == NULL)
         return NULL;
-    size_t off = 0;
-    while (off < in_len) {
-        ssize_t w = write(tfd, in + off, in_len - off);
-        if (w < 1) {
-            close(tfd);
-            unlink(tmpname);
-            return NULL;
-        }
-        off += (size_t)w;
-    }
-    close(tfd);
+    memcpy(stdin_buf, st->key, klen);
+    stdin_buf[klen] = '\n';
+    memcpy(stdin_buf + klen + 1, in, in_len);
 
-    char cmd[1200];
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl %s %s %u %u %u < %s 2>/dev/null",
-             op, st->key, st->session_id, counter,
-             /* nonce direction : this client encrypts client -> server [ 1 ],
-                decrypts server -> client [ 2 ] - never the same nonce twice */
-             strcmp(op, "encrypt") == 0 ? 1u : 2u, tmpname);
-
-    FILE *f = popen(cmd, "r");
-    if (!f) {
-        unlink(tmpname);
-        return NULL;
-    }
-
-    size_t cap = in_len + 256;
+    unsigned char *out = NULL;
     size_t len = 0;
-    unsigned char *out = (unsigned char *)malloc(cap);
-    if (!out) {
-        pclose(f);
-        unlink(tmpname);
-        return NULL;
-    }
-    size_t r;
-    while ((r = fread(out + len, 1, cap - len, f)) > 0) {
-        len += r;
-        if (cap - len < 64) {
-            cap *= 2;
-            unsigned char *nb = (unsigned char *)realloc(out, cap);
-            if (!nb) {
-                free(out);
-                pclose(f);
-                unlink(tmpname);
-                return NULL;
-            }
-            out = nb;
-        }
-    }
-    int rc = pclose(f);
-    unlink(tmpname);
+    int rc = helper_exec(av, stdin_buf, stdin_len, &out, &len);
+    explicit_bzero(stdin_buf, stdin_len);
+    free(stdin_buf);
     if (rc != 0) {          /* helper died [ e.g. auth tag mismatch ] */
-        free(out);
+        if (out != NULL) {
+            explicit_bzero(out, len);
+            free(out);
+        }
         return NULL;
     }
     *out_len = len;
@@ -248,183 +332,314 @@ static int lu_read_line(int fd, struct encryption_state *st,
     return pos;
 }
 
-/* TOFU validation helper */
-int validate_tofu_key(const char *remote_host, const char *remote_port, const char *server_pubkey_b32, int verbose, int strict)
+/* --- wire v2 : auth-keypair + link-upgrade mutual binding ------------------
+   [ data/md/design/AUTH-LINK-BINDING.md ] ; every helper argv value below
+   is PUBLIC [ username, nonce, S_pub, ephemeral pubkeys, nonce_sid,
+   encoding, host, port, signatures ] -- the client key is loaded by the
+   helper itself */
+
+#define B32_32_LEN  52   /* b32 [ no padding ] of 32 bytes */
+#define B32_64_LEN 103   /* b32 [ no padding ] of 64 bytes */
+
+/* binding context : what the select reply announced + who we are */
+struct bind_ctx {
+    const char *username;
+    char s_pub[B32_32_LEN + 1];          /* pinned server identity key */
+    char server_nonce[B32_32_LEN + 1];
+};
+
+/* strict b32 : RFC 4648 alphabet, exact length -- server supplied values
+   end up on helper argv / the wire, nothing else may pass */
+static int is_b32(const char *s, size_t len)
 {
-    FILE *f;
-    char cmd[1024];
-    char result_line[256] = {0};
-
-    /* Call TOFU helper: p7-tofu-helper.pl validate <hostname> <port> <pubkey> */
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-tofu-helper.pl validate %s %s %s 2>/dev/null",
-             remote_host, remote_port, server_pubkey_b32);
-
-    f = popen(cmd, "r");
-    if (!f) {
-        if (verbose)
-            fprintf(stderr, ":: failed to spawn TOFU helper ::\n");
-        return -1;
+    if (s == NULL || strlen(s) != len)
+        return 0;
+    for (size_t i = 0; i < len; i++) {
+        if (!((s[i] >= 'A' && s[i] <= 'Z') || (s[i] >= '2' && s[i] <= '7')))
+            return 0;
     }
-
-    if (fgets(result_line, sizeof(result_line), f) == NULL) {
-        pclose(f);
-        if (verbose)
-            fprintf(stderr, ":: TOFU helper returned no output ::\n");
-        return -1;
-    }
-    int exit_code = pclose(f);
-    strip_newline(result_line);
-
-    /* Check result */
-    if (strcmp(result_line, "TOFU_VALID") == 0) {
-        if (verbose)
-            fprintf(stderr, ":: TOFU validation successful (key matches) ::\n");
-        return 0;  /* Success - key already pinned and matches */
-    } else if (strcmp(result_line, "TOFU_PINNED") == 0) {
-        if (strict) {
-            /* In strict mode, reject new unpinned keys */
-            fprintf(stderr, ":\n");
-            fprintf(stderr, ": strict mode: server key not yet pinned\n");
-            fprintf(stderr, ": use -v flag to pin: p-7-r -v %s:%s <command>\n",
-                    remote_host, remote_port);
-            fprintf(stderr, ":\n");
-            return 5;  /* Key not pinned yet - strict mode rejects */
-        }
-        if (verbose)
-            fprintf(stderr, ":: TOFU key pinned on first connection ::\n");
-        return 0;  /* Success - key pinned now, connection allowed */
-    } else if (strcmp(result_line, "TOFU_MISMATCH") == 0) {
-        /* Always print MITM warning - security is more important than silence */
-        fprintf(stderr, ":\n");
-        fprintf(stderr, ": << SECURITY WARNING >> TOFU key mismatch detected\n");
-        fprintf(stderr, ": possible MITM attack - server pubkey does not match pinned key\n");
-        fprintf(stderr, ": connection rejected\n");
-        fprintf(stderr, ":\n");
-        return 6;  /* MITM/hijacking detected - serious issue */
-    } else {
-        if (verbose)
-            fprintf(stderr, ":: unknown TOFU result: %s ::\n", result_line);
-        return -1;
-    }
+    return 1;
 }
 
-/* Link-upgrade negotiation */
-int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
+/* [A-Za-z0-9] plus the characters in extra, 1 .. max chars */
+static int is_safe_token(const char *s, size_t max, const char *extra)
 {
-    FILE *f;
+    size_t len = s ? strlen(s) : 0;
+    if (len == 0 || len > max)
+        return 0;
+    for (size_t i = 0; i < len; i++) {
+        char c = s[i];
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+              (c >= '0' && c <= '9') || strchr(extra, c) != NULL))
+            return 0;
+    }
+    return 1;
+}
+
+/* copy output line n [ 0 based ] of buf into line, without the newline */
+static void helper_line(const unsigned char *buf, size_t len, int n,
+                        char *line, size_t max)
+{
+    size_t pos = 0;
+    line[0] = '\0';
+    while (n > 0 && pos < len) {
+        if (buf[pos++] == '\n')
+            n--;
+    }
+    if (n > 0)
+        return;
+    size_t k = 0;
+    while (pos < len && buf[pos] != '\n' && k + 1 < max)
+        line[k++] = (char)buf[pos++];
+    line[k] = '\0';
+}
+
+/* run a helper [ no shell ] with an optional secret on stdin, keep its
+   first two output lines ; returns the helper exit status, -1 when it
+   could not run or died. the raw output is wiped */
+static int run_helper(char *const argv[], const char *secret_stdin,
+                      char *line1, size_t n1, char *line2, size_t n2)
+{
+    unsigned char *out = NULL;
+    size_t len = 0;
+    int rc = helper_exec(argv, (const unsigned char *)secret_stdin,
+                         secret_stdin ? strlen(secret_stdin) : 0,
+                         &out, &len);
+    if (line1 && n1)
+        line1[0] = '\0';
+    if (line2 && n2)
+        line2[0] = '\0';
+    if (out == NULL)
+        return -1;
+    if (line1 && n1)
+        helper_line(out, len, 0, line1, n1);
+    if (line2 && n2)
+        helper_line(out, len, 1, line2, n2);
+    explicit_bzero(out, len);
+    free(out);
+    return rc;
+}
+
+/* server key pin [ TOFU ] : ~/.n/remote-keys/servers/<host>_<port>.public
+   0 ok [ matched or pinned now ], 5 strict + not pinned, 6 mismatch,
+   -1 any other failure [ incl. unreadable pin file ] -- fail closed */
+int check_server_pin(const char *remote_host, const char *remote_port,
+                     const char *s_pub_b32, int verbose, int strict)
+{
+    char result_line[256];
+    char *av[] = { P7_AUTH_HELPER, "check-pin", (char *)remote_host,
+                   (char *)remote_port, (char *)s_pub_b32,
+                   strict ? "strict" : NULL, NULL };
+    int rc = run_helper(av, NULL, result_line, sizeof(result_line), NULL, 0);
+
+    if (rc == 0 && strcmp(result_line, "PIN_VALID") == 0) {
+        if (verbose)
+            fprintf(stderr, ":: server key matches pin ::\n");
+        return 0;
+    }
+    if (rc == 0 && strncmp(result_line, "PIN_NEW ", 8) == 0 &&
+        is_b32(result_line + 8, B32_32_LEN)) {
+        fprintf(stderr, ": pinned server key %s [ %s:%s ]\n",
+                result_line + 8, remote_host, remote_port);
+        return 0;
+    }
+    if (rc == 5 && strcmp(result_line, "PIN_UNPINNED") == 0) {
+        fprintf(stderr, ":\n");
+        fprintf(stderr, ": strict mode: server key not yet pinned\n");
+        fprintf(stderr, ": connect once without -strict to pin: p-7-r %s:%s <command>\n",
+                remote_host, remote_port);
+        fprintf(stderr, ":\n");
+        return 5;
+    }
+    if (rc == 6 && strcmp(result_line, "PIN_MISMATCH") == 0) {
+        /* Always print MITM warning - security is more important than silence */
+        fprintf(stderr, ":\n");
+        fprintf(stderr, ": << SECURITY WARNING >> server key pin mismatch\n");
+        fprintf(stderr, ": possible MITM attack - server pubkey does not match pinned key\n");
+        fprintf(stderr, ": connection rejected [ pin is never replaced automatically ]\n");
+        fprintf(stderr, ":\n");
+        return 6;
+    }
+    fprintf(stderr, "<< server key pin check failed [ pin file unreadable or invalid ? ] >>\n");
+    return -1;
+}
+
+/* Link-upgrade negotiation + mutual binding [ mandatory : an auth-keypair
+   session is binding-pending until link-complete-ok verifies ] */
+int negotiate_link_upgrade(int socket_fd, struct encryption_state *state,
+                           const struct bind_ctx *ctx)
+{
+    static const char lu_ok[]   = "TRUE link-upgrade OK ";
+    static const char lc_ok[]   = "link-complete-ok ";
+    static const char encoding[] = "none";
     char cmd[1024];
-    char server_pubkey[256] = {0};
+    char server_pubkey[B32_32_LEN + 1] = {0};
     char client_pubkey[256] = {0};
     char client_secret[256] = {0};
     char shared_secret[256] = {0};
+    char client_bind_sig[256] = {0};
+    char verdict[64] = {0};
+    char sid[16] = {0};
+    char secret_in[256 + 2] = {0};   /* "<secret b32>\n" */
+    char response_line[512] = {0};
+    char confirm[512] = {0};
+    int rc = -1;
 
     /* 1. Send link-upgrade init */
-    if (write(socket_fd, "link-upgrade\n", 13) < 0)
-        return -1;
-
-    /* 2. Read server response: "TRUE link-upgrade OK <pubkey_base32>" */
-    char response_line[512] = {0};
-    if (read_line(socket_fd, response_line, sizeof(response_line)) < 0)
-        return -1;
-    strip_newline(response_line);
-
-    /* Extract pubkey from "TRUE link-upgrade OK <pubkey>" */
-    char *pubkey_start = strstr(response_line, "OK ");
-    if (!pubkey_start) {
-        fprintf(stderr, ":: invalid server response during link-upgrade ::\n");
+    if (write(socket_fd, "link-upgrade\n", 13) != 13) {
+        fprintf(stderr, "<< link-upgrade : send failed >>\n");
         return -1;
     }
-    pubkey_start += 3;  /* Skip "OK " */
-    strncpy(server_pubkey, pubkey_start, sizeof(server_pubkey) - 1);
+
+    /* 2. Read server response: "TRUE link-upgrade OK <server_eph b32>" */
+    if (read_line(socket_fd, response_line, sizeof(response_line)) < 0) {
+        fprintf(stderr, "<< link-upgrade : no reply >>\n");
+        return -1;
+    }
+    strip_newline(response_line);
+    if (strncmp(response_line, lu_ok, sizeof(lu_ok) - 1) != 0 ||
+        !is_b32(response_line + sizeof(lu_ok) - 1, B32_32_LEN)) {
+        fprintf(stderr, "<< link-upgrade : invalid server reply >>\n");
+        return -1;
+    }
+    memcpy(server_pubkey, response_line + sizeof(lu_ok) - 1, B32_32_LEN);
 
     /* 3. Generate client ephemeral keypair via helper */
-    f = popen("/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl gen-ephemeral 2>/dev/null", "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to spawn crypto helper ::\n");
-        return -1;
+    char *av_eph[] = { P7_LU_HELPER, "gen-ephemeral", NULL };
+    if (run_helper(av_eph, NULL, client_pubkey, sizeof(client_pubkey),
+                   client_secret, sizeof(client_secret)) != 0 ||
+        !is_b32(client_pubkey, B32_32_LEN) ||
+        !is_b32(client_secret, B32_32_LEN)) {
+        fprintf(stderr, "<< link-upgrade : ephemeral key generation failed >>\n");
+        goto out;
     }
-
-    if (fgets(client_pubkey, sizeof(client_pubkey), f) == NULL ||
-        fgets(client_secret, sizeof(client_secret), f) == NULL) {
-        pclose(f);
-        return -1;
-    }
-    pclose(f);
-    strip_newline(client_pubkey);
-    strip_newline(client_secret);
 
     /* 4. Send client pubkey */
     snprintf(cmd, sizeof(cmd), "link-pub-key %s\n", client_pubkey);
-    if (write(socket_fd, cmd, strlen(cmd)) < 0)
-        return -1;
-
-    /* 5. Read readiness confirmation */
-    char confirm[256] = {0};
-    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
-        return -1;
-
-    /* 6. Compute DH shared secret via helper */
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl compute-dh %s %s 2>/dev/null",
-             client_secret, server_pubkey);
-    f = popen(cmd, "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to compute shared secret ::\n");
-        return -1;
+    if (write(socket_fd, cmd, strlen(cmd)) != (ssize_t)strlen(cmd)) {
+        fprintf(stderr, "<< link-upgrade : send failed >>\n");
+        goto out;
     }
 
-    if (fgets(shared_secret, sizeof(shared_secret), f) == NULL) {
-        pclose(f);
-        return -1;
+    /* 5. Read readiness confirmation : exactly "SIZE 0" */
+    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0) {
+        fprintf(stderr, "<< link-upgrade : no reply to link-pub-key >>\n");
+        goto out;
     }
-    pclose(f);
-    strip_newline(shared_secret);
-
-    /* 7. Derive encryption key via helper */
-    state->session_id = (unsigned int)time(NULL);
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl derive-key %s %u 2>/dev/null",
-             shared_secret, state->session_id);
-    f = popen(cmd, "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to derive encryption key ::\n");
-        return -1;
-    }
-
-    state->key = (char *)malloc(256);
-    if (state->key == NULL || fgets(state->key, 256, f) == NULL) {
-        pclose(f);
-        return -1;
-    }
-    pclose(f);
-    strip_newline(state->key);
-
-    /* 8. Send encoding confirmation (none = no transport encoding) */
-    char enc_cmd[256] = {0};
-    snprintf(enc_cmd, sizeof(enc_cmd), "link-confirm-encoding none\n");
-    if (write(socket_fd, enc_cmd, strlen(enc_cmd)) < 0)
-        return -1;
-
-    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
-        return -1;
     strip_newline(confirm);
-    /* Expect: "encoding-confirmed" or similar success response */
+    if (strcmp(confirm, "SIZE 0") != 0) {
+        fprintf(stderr, "<< link-upgrade : link-pub-key refused >>\n");
+        goto out;
+    }
 
-    /* send link-complete with our nonce session id : the server derives
-       the same key + nonces from THIS value, both ends must match */
-    char complete_cmd[64];
-    snprintf(complete_cmd, sizeof(complete_cmd), "link-complete %u\n",
-             state->session_id);
-    if (write(socket_fd, complete_cmd, strlen(complete_cmd)) < 0)
-        return -1;
+    /* 6. Compute DH shared secret via helper [ secret on stdin ] */
+    char *av_dh[] = { P7_LU_HELPER, "compute-dh", server_pubkey, NULL };
+    snprintf(secret_in, sizeof(secret_in), "%s\n", client_secret);
+    int dh_rc = run_helper(av_dh, secret_in, shared_secret,
+                           sizeof(shared_secret), NULL, 0);
+    explicit_bzero(secret_in, sizeof(secret_in));
+    explicit_bzero(client_secret, sizeof(client_secret));
+    if (dh_rc != 0 ||
+        !is_b32(shared_secret, B32_32_LEN)) {
+        fprintf(stderr, "<< link-upgrade : shared secret computation failed >>\n");
+        goto out;
+    }
 
-    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
-        return -1;
+    /* 7. Derive encryption key via helper ; nonce_sid 1 .. 2**32-1 */
+    state->session_id = (unsigned int)time(NULL);
+    if (state->session_id == 0)
+        state->session_id = 1;
+    snprintf(sid, sizeof(sid), "%u", state->session_id);
+    char *av_kdf[] = { P7_LU_HELPER, "derive-key", sid, NULL };
+    snprintf(secret_in, sizeof(secret_in), "%s\n", shared_secret);
+    state->key = (char *)calloc(1, 256);
+    int kdf_rc = state->key == NULL ? -1
+        : run_helper(av_kdf, secret_in, state->key, 256, NULL, 0);
+    explicit_bzero(secret_in, sizeof(secret_in));
+    explicit_bzero(shared_secret, sizeof(shared_secret));
+    if (kdf_rc != 0 || !is_b32(state->key, B32_32_LEN)) {
+        fprintf(stderr, "<< link-upgrade : key derivation failed >>\n");
+        goto out;
+    }
+
+    /* 8. Send encoding confirmation [ the transcript signs this string ] */
+    snprintf(cmd, sizeof(cmd), "link-confirm-encoding %s\n", encoding);
+    if (write(socket_fd, cmd, strlen(cmd)) != (ssize_t)strlen(cmd)) {
+        fprintf(stderr, "<< link-upgrade : send failed >>\n");
+        goto out;
+    }
+    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0) {
+        fprintf(stderr, "<< link-upgrade : no reply to link-confirm-encoding >>\n");
+        goto out;
+    }
+    strip_newline(confirm);
+    if (strcmp(confirm, "encoding-confirmed") != 0) {
+        fprintf(stderr, "<< link-upgrade : encoding not confirmed >>\n");
+        goto out;
+    }
+
+    /* 9. client_bind_sig over the binding transcript [ public fields only ] */
+    char *av_bind[] = { P7_AUTH_HELPER, "gen-bind", (char *)ctx->username,
+                        (char *)ctx->server_nonce, (char *)ctx->s_pub,
+                        server_pubkey, client_pubkey, sid,
+                        (char *)encoding, NULL };
+    if (run_helper(av_bind, NULL, client_bind_sig, sizeof(client_bind_sig),
+                   NULL, 0) != 0 ||
+        !is_b32(client_bind_sig, B32_64_LEN)) {
+        fprintf(stderr, "<< link-upgrade : client bind signature failed >>\n");
+        goto out;
+    }
+
+    /* 10. link-complete <nonce_sid> <client_bind_sig> : the server derives
+           the same key + nonces from nonce_sid, both ends must match */
+    snprintf(cmd, sizeof(cmd), "link-complete %u %s\n",
+             state->session_id, client_bind_sig);
+    if (write(socket_fd, cmd, strlen(cmd)) != (ssize_t)strlen(cmd)) {
+        fprintf(stderr, "<< link-upgrade : send failed >>\n");
+        goto out;
+    }
+
+    /* 11. link-complete-ok <server_bind_sig> : verified against the PINNED
+           S_pub before anything else is sent */
+    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0) {
+        fprintf(stderr, "<< link-upgrade : no reply to link-complete >>\n");
+        goto out;
+    }
+    strip_newline(confirm);
+    if (strncmp(confirm, lc_ok, sizeof(lc_ok) - 1) != 0 ||
+        !is_b32(confirm + sizeof(lc_ok) - 1, B32_64_LEN)) {
+        fprintf(stderr, "<< link-upgrade : link-complete refused or malformed >>\n");
+        goto out;
+    }
+    char *av_verify[] = { P7_AUTH_HELPER, "verify-bind",
+                          confirm + sizeof(lc_ok) - 1, (char *)ctx->username,
+                          (char *)ctx->server_nonce, (char *)ctx->s_pub,
+                          server_pubkey, client_pubkey, sid,
+                          (char *)encoding, NULL };
+    if (run_helper(av_verify, NULL, verdict, sizeof(verdict), NULL, 0) != 0 ||
+        strcmp(verdict, "BIND_OK") != 0) {
+        fprintf(stderr, ":\n");
+        fprintf(stderr, ": << SECURITY WARNING >> server bind signature invalid\n");
+        fprintf(stderr, ": the peer did not prove the pinned server key for this link\n");
+        fprintf(stderr, ": connection aborted\n");
+        fprintf(stderr, ":\n");
+        goto out;
+    }
 
     state->read_counter = 0;
     state->write_counter = 0;
-    return 0;
+    rc = 0;
+
+out:
+    explicit_bzero(client_secret, sizeof(client_secret));
+    explicit_bzero(shared_secret, sizeof(shared_secret));
+    explicit_bzero(secret_in, sizeof(secret_in));
+    if (rc != 0 && state->key != NULL) {
+        explicit_bzero(state->key, 256);
+        free(state->key);
+        state->key = NULL;
+    }
+    return rc;
 }
 
 int main( int argc, char * argv[] ) {
@@ -438,6 +653,10 @@ int main( int argc, char * argv[] ) {
     struct addrinfo hints, *result, *rp;
     char * remote_host = NULL;
     char * remote_port = NULL;
+
+    /* a helper that exits early must not kill us via SIGPIPE on its
+       stdin pipe : write() then fails and the caller fails closed */
+    signal(SIGPIPE, SIG_IGN);
 
     char * p7_unix_user = secure_getenv("PROTOCOL_7_BIN_P7R_USER");
 
@@ -456,26 +675,6 @@ int main( int argc, char * argv[] ) {
         fprintf( stderr, "     %s relay.internal list sessions\n", argv[0] );
         fprintf( stderr, "     %s compute-node.lan:47 v7-zenki.list zenki\n\n", argv[0] );
         exit(2);
-    }
-
-    /* Parse hostname[:port] format */
-    char * hostname_arg = argv[1];
-    char * port_sep = strchr(hostname_arg, ':');
-
-    if ( port_sep != NULL ) {
-        /* Port specified in hostname:port format */
-        remote_port = port_sep + 1;
-        remote_host = (char *)malloc(port_sep - hostname_arg + 1);
-        if ( remote_host == NULL ) {
-            fprintf(stderr, "< malloc [hostname] > out of memory\n");
-            exit(4);
-        }
-        strncpy(remote_host, hostname_arg, port_sep - hostname_arg);
-        remote_host[port_sep - hostname_arg] = '\0';
-    } else {
-        /* No port specified, use default (from config or 42) */
-        remote_host = hostname_arg;
-        remote_port = "42";  /* Default port - would use config in full implementation */
     }
 
     for (int i = 1; i < argc; i++) {
@@ -509,31 +708,49 @@ int main( int argc, char * argv[] ) {
         }
     }
 
-    /* prepare authentication - use auth-keypair for remote connections */
-    FILE *f;
-    char cmd[1024];
+    /* options removed : hostname[:port] is argv[1] now */
+    if ( argc < 3 ) {
+        fprintf( stderr, "\n < usage : %s [-v] [-strict] <hostname[:port]> <command> [args] >\n\n", argv[0] );
+        exit(2);
+    }
+
+    /* Parse hostname[:port] format */
+    char * hostname_arg = argv[1];
+    char * port_sep = strchr(hostname_arg, ':');
+
+    if ( port_sep != NULL ) {
+        /* Port specified in hostname:port format */
+        remote_port = port_sep + 1;
+        remote_host = (char *)malloc(port_sep - hostname_arg + 1);
+        if ( remote_host == NULL ) {
+            fprintf(stderr, "< malloc [hostname] > out of memory\n");
+            exit(4);
+        }
+        strncpy(remote_host, hostname_arg, port_sep - hostname_arg);
+        remote_host[port_sep - hostname_arg] = '\0';
+    } else {
+        /* No port specified, use default (from config or 42) */
+        remote_host = hostname_arg;
+        remote_port = "42";  /* Default port - would use config in full implementation */
+    }
+
+    /* these reach helper command lines : refuse anything but plain names */
+    if ( ! is_safe_token(remote_host, 253, ".-") || remote_host[0] == '-' ||
+         ! is_safe_token(remote_port, 5, "") || atoi(remote_port) < 1 ||
+         atoi(remote_port) > 65535 ) {
+        fprintf(stderr, "<< invalid hostname or port >>\n");
+        exit(2);
+    }
+    if ( ! is_safe_token(p7_unix_user, 64, "._-") ||
+         p7_unix_user[0] == '.' || p7_unix_user[0] == '-' ) {
+        fprintf(stderr, "<< unix user name not usable for auth-keypair >>\n");
+        exit(2);
+    }
+
+    /* auth-keypair credentials are built after the select reply : the
+       v2 auth_sig covers the server nonce + the pinned server key */
     char c25519_pubkey[256] = {0};
     char ed25519_sig[256] = {0};
-
-    /* Get local user's C25519 pubkey and Ed25519 signature */
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-auth-keypair-helper.pl gen-auth %s 2>/dev/null",
-             p7_unix_user);
-    f = popen(cmd, "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to spawn auth helper ::\n");
-        return 4;
-    }
-
-    if (fgets(c25519_pubkey, sizeof(c25519_pubkey), f) == NULL ||
-        fgets(ed25519_sig, sizeof(ed25519_sig), f) == NULL) {
-        pclose(f);
-        fprintf(stderr, ":: failed to read auth credentials ::\n");
-        return 4;
-    }
-    pclose(f);
-    strip_newline(c25519_pubkey);
-    strip_newline(ed25519_sig);
 
     /* prepare command string - skip hostname[:port] */
     int i;
@@ -569,7 +786,9 @@ int main( int argc, char * argv[] ) {
 
     /* Try each address until we successfully connect */
     for (rp = result; rp != NULL; rp = rp->ai_next) {
-        socket_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        /* close-on-exec : helper processes never inherit the link */
+        socket_fd = socket(rp->ai_family, rp->ai_socktype | SOCK_CLOEXEC,
+                           rp->ai_protocol);
         if (socket_fd == -1)
             continue;
 
@@ -617,20 +836,32 @@ int main( int argc, char * argv[] ) {
     }
     strip_newline(select_response);
 
-    /* Extract server pubkey from "TRUE <pubkey_b32>" */
-    char server_pubkey_b32[256] = {0};
-    if (strncmp(select_response, "TRUE ", 5) == 0) {
-        strncpy(server_pubkey_b32, select_response + 5, sizeof(server_pubkey_b32) - 1);
-        strip_newline(server_pubkey_b32);  /* Remove any trailing whitespace */
-    } else {
-        fprintf(stderr, "<< unexpected auth method response: %s >>\n", select_response);
+    /* select reply v2 : exactly "TRUE <S_pub b32> <server_nonce b32>" ;
+       anything else [ incl. a v1 reply without the nonce ] is refused */
+    struct bind_ctx bctx;
+    memset(&bctx, 0, sizeof(bctx));
+    bctx.username = p7_unix_user;
+    if (strncmp(select_response, "TRUE ", 5) != 0 ||
+        strlen(select_response) != 5 + B32_32_LEN + 1 + B32_32_LEN ||
+        select_response[5 + B32_32_LEN] != ' ') {
+        fprintf(stderr, "<< select reply refused [ expected TRUE <server key> <nonce> ] >>\n");
+        close(socket_fd);
+        return 4;
+    }
+    memcpy(bctx.s_pub, select_response + 5, B32_32_LEN);
+    memcpy(bctx.server_nonce, select_response + 6 + B32_32_LEN, B32_32_LEN);
+    if (!is_b32(bctx.s_pub, B32_32_LEN) ||
+        !is_b32(bctx.server_nonce, B32_32_LEN)) {
+        fprintf(stderr, "<< select reply refused [ invalid server key or nonce ] >>\n");
+        close(socket_fd);
         return 4;
     }
 
-    /* Stage 3: TOFU validation before proceeding with auth */
+    /* Stage 3: server key pin check BEFORE the auth line is sent */
     if (verbose)
-        fprintf(stderr, ":: validating server key via TOFU ::\n");
-    int tofu_result = validate_tofu_key(remote_host, remote_port, server_pubkey_b32, verbose, strict);
+        fprintf(stderr, ":: checking server key pin ::\n");
+    int tofu_result = check_server_pin(remote_host, remote_port, bctx.s_pub,
+                                       verbose, strict);
     if (tofu_result != 0) {
         close(socket_fd);
         if (tofu_result == 5) {
@@ -638,8 +869,22 @@ int main( int argc, char * argv[] ) {
         } else if (tofu_result == 6) {
             return 6;  /* MITM/hijacking detected (serious) */
         } else {
-            return 4;  /* TOFU validation error */
+            return 4;  /* pin check error */
         }
+    }
+
+    /* v2 auth credentials : C25519 session pubkey + auth_sig over
+       [ label, server_nonce, S_pub, session_pub, username ] */
+    char *av_auth[] = { P7_AUTH_HELPER, "gen-auth", p7_unix_user,
+                        bctx.server_nonce, bctx.s_pub, NULL };
+    if (run_helper(av_auth, NULL, c25519_pubkey, sizeof(c25519_pubkey),
+                   ed25519_sig, sizeof(ed25519_sig)) != 0 ||
+        !is_b32(c25519_pubkey, B32_32_LEN) ||
+        !is_b32(ed25519_sig, B32_64_LEN)) {
+        fprintf(stderr, "<< failed to build auth credentials [ user '%s' ] >>\n",
+                p7_unix_user);
+        close(socket_fd);
+        return 4;
     }
 
     /* Stage 4: Send auth credentials after TOFU success */
@@ -669,22 +914,23 @@ int main( int argc, char * argv[] ) {
     char byte = ' ';
     int result_code = 0;
 
-    /* Link-upgrade encryption negotiation (optional) */
+    /* Link-upgrade encryption + binding [ mandatory ] */
     struct encryption_state enc_state = {0, NULL, 0, 0, 0};
 
     /* Stream-locking state initialization */
     struct stream_state stream = {0, 0, 0, 0};
     stream.locking_enabled = 1;  /* p-7-r always uses locked mode for STRM safety */
 
-    char *link_upgrade_env = secure_getenv("PROTOCOL_7_LINK_UPGRADE");
-    if (link_upgrade_env && strcmp(link_upgrade_env, "yes") == 0) {
-        if (negotiate_link_upgrade(socket_fd, &enc_state) == 0) {
-            fprintf(stderr, ":: link-upgrade encryption negotiated ::\n");
-            enc_state.enabled = 1;
-        } else {
-            fprintf(stderr, ":: link-upgrade negotiation failed, continuing plaintext\n");
-        }
+    /* the session stays binding-pending [ unusable ] until the server
+       proves the pinned key for THIS link : no plaintext fallback */
+    if (negotiate_link_upgrade(socket_fd, &enc_state, &bctx) != 0) {
+        fprintf(stderr, "<< link-upgrade binding failed : connection aborted >>\n");
+        close(socket_fd);
+        return 4;
     }
+    if (verbose)
+        fprintf(stderr, ":: link-upgrade encryption negotiated, server binding verified ::\n");
+    enc_state.enabled = 1;
 
     /* Send select-strm-mode first and read its response */
     if ( enc_state.enabled ) {

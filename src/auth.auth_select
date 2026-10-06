@@ -28,29 +28,49 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
 
     $data{'session'}{$id}{'auth'}{'method'} = $method;
 
-    # For auth-keypair, send server's public key for TOFU validation
+    ## a fresh select never inherits an earlier one's binding material ##
+    map { delete $data{'session'}{$id}{'auth'}{$ARG} }
+        qw| server_nonce server_pub server_key_name client_pub |;
+
+    ## auth-keypair : announce the server key [ S ] and a fresh nonce.  the ##
+    ## key name and raw key are stored together : link-complete signs with  ##
+    ## exactly this key [ data/md/design/AUTH-LINK-BINDING ]                ##
     if ( $method eq 'auth-keypair' ) {
         ## unconditional once reached : any zenka accepting auth-keypair  ##
         ## connections must have crypt.C25519 loaded [ cube does; a zenka ##
         ## that reaches this without it is genuinely misconfigured ]      ##
-        my $pubkey_response = <[base.code.call_expected]>->(
-            TRUE, qw| crypt.C25519.cmd.get-public-key |
-        );
-        my $server_pubkey_b32;
+        my $key_vars = <[crypt.C25519.key_vars]>;
+        my $key_name
+            = ref $key_vars eq qw| HASH | ? $key_vars->{'key_name'} : undef;
+        my $server_pub;
+        $server_pub = $keys{'C25519'}{$key_name}{'public'}
+            if defined $key_name
+            and ref $keys{'C25519'}{$key_name} eq qw| HASH |;
 
-        if ( ref $pubkey_response eq qw| HASH |
-            and $pubkey_response->{'mode'} eq qw| true | ) {
+        my $server_nonce = eval { <[base.prng.bytes]>->(32) };
 
-          # Extract just the pubkey from format "[protocol-7.base] PUBKEY_B32"
-            ($server_pubkey_b32)
-                = $pubkey_response->{'data'} =~ m|]\s+(\S+)$|;
-        }
+        if (    defined $server_pub
+            and length($server_pub) == 32
+            and defined $server_nonce
+            and length($server_nonce) == 32 ) {
 
-        if ( defined $server_pubkey_b32 and length $server_pubkey_b32 ) {
+            my $auth = $data{'session'}{$id}{'auth'};
+            $auth->{'server_key_name'} = $key_name;
+            $auth->{'server_pub'}      = $server_pub;
+            $auth->{'server_nonce'}    = $server_nonce;
+
+            ## the reply is built from the stored bytes : announced == stored
             <[base.net.send_to_socket]>->(
-                $client_sock_fd, "TRUE $server_pubkey_b32\n"
+                $client_sock_fd,
+                sprintf( "TRUE %s %s\n",
+                    Crypt::Misc::encode_b32r( $auth->{'server_pub'} ),
+                    Crypt::Misc::encode_b32r( $auth->{'server_nonce'} ) )
             );
         } else {
+            <[base.logs]>->(
+                0, '[%d] auth-keypair : server key or nonce not available',
+                $id
+            );
             <[base.net.send_to_socket]>->(
                 $client_sock_fd, "FALSE server key not available\n"
             );
@@ -86,8 +106,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,,,,.,,,...,.,,,..,,..,,,.,,..,,,,.,,,.,,,.,..,,...,..,,,..,,,.,,,,,,..,...,
-#7IQOH6KLRUTFA4XZCAFZ4BNXWY4PYW3L5353BOGECMTQI66VFR6A7GDRXBELLEW5VXZFFJNSAOCTO
-#\\\|IX54M6DOZQXPJHKRYTSYVZRQ3QBWKCABZ24I7VT5NIR74AKNY3J \ / AMOS7 \ YOURUM ::
-#\[7]JL76XHYB6XIFNMSBYPDQ2F3BEANZADILOREUVE7666RAKFKYQEDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,,..,,,,,.,,,,.,,,..,.,.,..,,..,,...,...,.,,,...,.,.,...,...,
+#A5ROYTJNNH7VOXKXDAC7O2CEYZGXTDHAAJV5GWDITNVJILIYKWW53U2L4GEF5K6NS3C36J6M7ZKXY
+#\\\|5NME5VGFKMEJUA4TEYJ43WHTROVJJT5IYGELHRQ5R6V4SAOUQ7K \ / AMOS7 \ YOURUM ::
+#\[7]53XGOP3RSWMKDMGCWWCFHG52MHYKGIBXLNK2KUCBEAKNS6IGY4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

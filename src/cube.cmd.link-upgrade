@@ -19,6 +19,23 @@ $requested_encoding =~ s|\s+||g;
 
 my $session = $data{'session'}{$session_id};
 
+## a binding-pending session [ auth-keypair ] has no state 1 to fall back  ##
+## to : any refusal here disconnects it [ data/md/design/AUTH-LINK-BINDING ##
+## ]                                                                       ##
+my $refuse = sub {
+    my $reason = shift;
+    if ( ( $session->{'link_binding'} // '' ) eq qw| pending | ) {
+        map { delete $session->{'auth'}{$ARG} }
+            qw| server_nonce server_pub server_key_name client_pub |;
+        $session->{'flush_shutdown'} = TRUE;
+        <[base.logs]>->(
+            0, '[%d] link-upgrade refused on binding-pending session : %s',
+            $session_id, $reason
+        );
+    }
+    return { 'mode' => qw| false |, 'data' => $reason };
+};
+
 ## Validate requested encoding mode [optional]
 my $encoding_mode;
 if ( $requested_encoding =~ m|^$| ) {
@@ -27,18 +44,12 @@ if ( $requested_encoding =~ m|^$| ) {
     $encoding_mode = $requested_encoding;
     if ( $requested_encoding =~ m|^base32-xz$|
         and not <base.perlmod.loaded>->{'Compress::Raw::Lzma'} ) {
-        return {
-            'mode' => qw| false |,
-            'data' =>
-                'base32-xz mode not available [XZ compression not installed]'
-        };
+        return $refuse->(
+            'base32-xz mode not available [XZ compression not installed]');
     }
 } else {
-    return {
-        'mode' => qw| false |,
-        'data' => "unsupported encoding mode: '$requested_encoding' "
-            . "[ optional: utf7, base32, base32-xz ]"
-    };
+    return $refuse->( "unsupported encoding mode: '$requested_encoding' "
+            . "[ optional: utf7, base32, base32-xz ]" );
 }
 
 ## Store requested encoding mode (will be negotiated in state 2)
@@ -48,10 +59,7 @@ $session->{'link_encoding_mode_requested'} = $encoding_mode
 ## Transition session state 1 -> 2 (link-upgrade negotiation)  This triggers
 ## protocol.protocol-7.link-upgrade.init
 if ( not <[base.session.init_state]>->( $session_id, 2 ) ) {
-    return {
-        'mode' => qw| false |,
-        'data' => "failed to transition to link-upgrade state (state 2)"
-    };
+    return $refuse->("failed to transition to link-upgrade state (state 2)");
 }
 
 ## Get the ephemeral public key that was generated during state 2 init
@@ -59,10 +67,7 @@ use Crypt::Misc;
 my $ephemeral_pubkey = $session->{'link_ephemeral_pubkey'};
 
 unless ( defined $ephemeral_pubkey and length $ephemeral_pubkey == 32 ) {
-    return {
-        'mode' => qw| false |,
-        'data' => "failed to generate ephemeral public key"
-    };
+    return $refuse->("failed to generate ephemeral public key");
 }
 
 ## Encode ephemeral pubkey as base32  Include pubkey in response data (client
@@ -76,8 +81,8 @@ return {
     'data' => "link-upgrade OK $pubkey_b32"
 };
 
-#,,.,,...,,,,,,,,,...,...,,,,,...,,..,..,,.,,,..,,...,...,,,.,...,...,,.,,...,
-#G6YFVH3P5ULOHT6HIPIQTJ6GU5LJI54PPJNK7YBLZMGRPGXHCXAYRNCPN6LD2REQW2LKJULEWVMJO
-#\\\|ENOMHXSPAX6R4BEOCVKOAD5J5I7UCTXTBLNWBX3Q3UXGHMD2SQ7 \ / AMOS7 \ YOURUM ::
-#\[7]HGTYLIY6PI74RRHFB3UEFFYLCXM4SEP5JU4TWVAPN2GGUNVPRMCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,,,.,,..,..,,,..,.,.,,,.,,..,..,,...,...,...,,..,,,.,,..,..,,
+#D5PYOYWRU5VLJRCZ4EJE2ZKEH4KICVJFP777MM36ODHZSRBOXBT45XOOIO4OSAA2KLOPR3HS5FV5Y
+#\\\|MC5NHM4D43DYZ2E74PEH5IAPW63SENHSF5BQUAE3F6DCAE7XEVD \ / AMOS7 \ YOURUM ::
+#\[7]6QV2A46HQ2FBTRFIFKG7Q3IYBQEPWBMMLT4OTCACJX6X2EJ6IYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
