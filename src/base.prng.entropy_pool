@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = base.prng.entropy_pool
+# descr = gather seed material : os entropy + machine data
+# param = [ <harmonic seed> ]
+#
+# returns a 64-byte seed [ BMW-512 over everything gathered ] for
+# base.prng.reseed. the one input that carries real secrecy is OS
+# entropy [ Crypt::Misc::random_bytes -- CryptX, seeded from the kernel
+# -- plus /dev/urandom read directly as a second source ]. machine data
+# makes seeds UNIQUE per device and boot [ embedded systems that start
+# with identical boot entropy no longer produce identical streams ], it
+# is not secret : /proc/sys/kernel/random/boot_id [ fresh per boot ],
+# /etc/machine-id, interface MAC addresses, the CPU serial where the
+# platform exposes one, hostname, PID, hi-res time. the digest is kept
+# HARMONIC : rehashed with a counter until the truth assertion holds
+# [ AMOS7::Assert::Truth, as gen_keys does for public keys ; filtering
+# costs ~log2(1/p) bits of 512, bounded loop ]. EVERY source is
+# optional : read inside eval, skipped when missing or unreadable --
+# the pool never fails, it only gets less input. sets
+# <base.prng.os_entropy> TRUE \ FALSE so long-term key generation can
+# tell a weak pool [ crypt.C25519.gen_keys ].
+
+my $harmonic_seed = shift // '';
+
+require Digest::BMW;    ## known dependency - loaded here ##
+my $bmw = Digest::BMW->new(512);
+
+my $os_bytes = 0;
+
+## os entropy : two independent reads, either one is enough ##
+my $cryptx = eval { require Crypt::Misc; Crypt::Misc::random_bytes(32) };
+if ( defined $cryptx and length $cryptx == 32 ) {
+    $bmw->add($cryptx);
+    $os_bytes += 32;
+}
+if ( open( my $fh, '<:raw', '/dev/urandom' ) ) {
+    my $read = sysread( $fh, my $urandom, 32 );
+    close($fh);
+    if ( defined $read and $read == 32 ) {
+        $bmw->add($urandom);
+        $os_bytes += 32;
+    }
+}
+
+## machine data : uniqueness, not secrecy -- all optional ##
+my $slurp = sub {
+    my $path = shift;
+    return '' if not -r $path;
+    my $content = eval {
+        open( my $fh, '<:raw', $path ) or return '';
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $data = readline($fh) // '';
+        close($fh);
+        $data;
+    };
+    return $content // '';
+};
+
+$bmw->add( $slurp->($ARG) ) for qw|
+    /proc/sys/kernel/random/boot_id
+    /etc/machine-id
+    /var/lib/dbus/machine-id
+    /sys/firmware/devicetree/base/serial-number
+    |;
+
+## cpu serial [ e.g. raspberry pi : 'Serial' in /proc/cpuinfo ] ##
+my ($cpu_serial) = $slurp->('/proc/cpuinfo') =~ m{^Serial\s*:\s*(\S+)}mo;
+$bmw->add( $cpu_serial // '' );
+
+## interface MAC addresses ##
+if ( opendir( my $dh, '/sys/class/net' ) ) {
+    foreach my $iface ( sort grep { !m{^\.} } readdir($dh) ) {
+        $bmw->add( $slurp->("/sys/class/net/$iface/address") );
+    }
+    closedir($dh);
+}
+
+## process + time ##
+my $hires
+    = eval { require Time::HiRes; join ' ', Time::HiRes::gettimeofday() }
+    // time;
+$bmw->add(
+    join ':', $PID, $hires,
+    eval { ( getpwuid($EUID) )[0] }                           // '',
+    eval { require Sys::Hostname; Sys::Hostname::hostname() } // ''
+);
+
+$bmw->add($harmonic_seed);
+
+<base.prng.os_entropy> = $os_bytes >= 32 ? TRUE : FALSE;
+
+<[base.logs]>->(
+    0,
+    '<< prng seeded WITHOUT os entropy >> [ machine data '
+        . '+ time only -- not suitable for long-term keys ]'
+) if not <base.prng.os_entropy>;
+
+## harmonic filter : same source, kept true ##
+my $digest = $bmw->digest;
+my $round  = 0;
+eval {
+    require AMOS7::Assert::Truth;
+    while ( $round < 1300
+        and not AMOS7::Assert::Truth::is_true( \$digest, FALSE, TRUE ) ) {
+        $digest
+            = Digest::BMW->new(512)
+            ->add( $digest . pack( qw| N |, ++$round ) )
+            ->digest;
+    }
+};
+
+return $digest;
+
+#,,..,...,...,.,,,,.,,.,,,,,,,..,,..,,...,,,,,..,,...,...,...,.,,,...,.,,,,..,
+#N6NHUQJERAFSQETEMIU7ILZNOFSGWZEJPGRN37PQCPWBQ5M2ZRICGVD3PLZ5TSHRXHAON6MPNCFUK
+#\\\|HHSXAASLCNR47WR5VNLTA56NOHCWYQIQ7VEQ2ISCOMK4JMDV422 \ / AMOS7 \ YOURUM ::
+#\[7]RN7AB5L253WU3O6NYGLXUESWWJHFZSR62GPB6D5FL47DVBJ6PCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

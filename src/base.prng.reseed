@@ -2,6 +2,7 @@
 
 # name  = base.prng.reseed
 # descr = [re]seed the CORE::[s]rand and Crypt::PRNG::Fortuna prngs
+#         [ fortuna from OS entropy + machine data + the harmonic seed ]
 
 ## [ initializing fortuna ] ##
 ##
@@ -19,10 +20,16 @@ while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
     <[base.sleep]>->(0.0013) if $iterations < 37;
 }
 
-return <base.prng.fortuna> = Crypt::PRNG::Fortuna->new($harmonic_seed);
+## the harmonic seed alone is a function of PID + ms time [ guessable ] : ##
+## it is one input of the entropy pool, which adds OS entropy + machine   ##
+## data [ base.prng.entropy_pool ] -- Crypt::PRNG::Fortuna->new( $seed )  ##
+## uses ONLY the given seed, it reads no OS entropy itself                ##
+return <base.prng.fortuna>
+    = Crypt::PRNG::Fortuna->new(
+    <[base.prng.entropy_pool]>->($harmonic_seed) );
 
-#,,,,,..,,,.,,..,,.,.,,.,,.,.,,,,,,,.,.,,,.,.,..,,...,..,,.,.,.,,,,.,,.,,,,.,,
-#HB7I2U6QWSWBJBPSSKRBTNMWCZEAKKWRMYZSCNEAPRFSGLINICL2WOQYQWCAKGFAVRCYSWBAE3XMO
-#\\\|6DD6YBZM3YCV3VJ3QLIYVODIFK4EIAGNSGLVVSUXBNLPJVBGRI7 \ / AMOS7 \ YOURUM ::
-#\[7]L7IBJUZCFWGHGFSLIAFSN5UWQ6O7NZHY2TOQUXBVRJ35BZSXWIDI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,,.,,.,,,...,...,...,,,.,...,..,,...,..,,...,,,,,,.,,,,.,.,.,
+#6GWLM3NVYOOW2PCWF7ETN4WR4I5PS32ODAUQYTHRFGQMZR54UBHSUUK6SX2BHLR5VHQ5A27N3HMW2
+#\\\|C53T2SJCFF74FRQZFLEKELMPAPPEK4JGVOVVFSIWUSRZV3TPO2N \ / AMOS7 \ YOURUM ::
+#\[7]E6EFVNF3CQBTGYDHOTVID6SN3XP7RGRTP3LNWPRBFGRJ3V3GKSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
