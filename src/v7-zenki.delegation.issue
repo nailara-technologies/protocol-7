@@ -7,7 +7,7 @@
 # data/md/design/HOST-ROOT-DELEGATION.md [ 'delegation file' ] : v7-zenki
 # [ root ] signs the backend user's '<user>.base' public key [ S, read
 # from its PUBLIC file ] with host-root [ root-held, root/ ONLY ], name
-# '<system.hostname lowercased>.cube', 30 days, scope '' ; renewed when
+# '<system.node.name lowercased>.cube', 30 days, scope '' ; renewed when
 # fewer than 7 days remain -- and whenever the existing statement does
 # not verify for the CURRENT S under the CURRENT host-root [ S rotated,
 # host-root replaced, file damaged ].
@@ -20,8 +20,12 @@
 require Fcntl;
 
 my $lifetime = 30 * 86400;
-my $renew_at = 7 * 86400;
-my $now      = time;
+
+## not_before backdated : a client clock a few minutes behind must not see ##
+## a freshly renewed statement as not yet valid                            ##
+my $clock_skew = 300;
+my $renew_at   = 7 * 86400;
+my $now        = time;
 
 my $refuse = sub {
     <[base.logs]>->( 0, ': delegation : %s', sprintf( shift, @ARG ) );
@@ -51,9 +55,11 @@ my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
 return $refuse->( "no delegation file path for '%s'", $s_name )
     if not defined $dlg_file;
 
-## the delegated name : <system.hostname> lowercased [ decision 3 ] ##
-my $host_name = <system.hostname>;
-return $refuse->('<system.hostname> not set, nothing issued')
+## the delegated name : <system.node.name> lowercased [ hostname() with the ##
+## domain stripped, set by bin/Protocol-7 ; <system.hostname> is never set  ##
+## anywhere ]                                                               ##
+my $host_name = <system.node.name>;
+return $refuse->('<system.node.name> not set, nothing issued')
     if not defined $host_name
     or not length $host_name;
 my $name = sprintf qw| %s.cube |, lc $host_name;
@@ -166,7 +172,7 @@ my ( $issued, $reason ) = $as_backend->(
             {   qw| issuer_pub |  => $issuer_pub,
                 qw| subject_pub | => $s_pub,
                 qw| name |        => $name,
-                qw| not_before |  => $now,
+                qw| not_before |  => $now - $clock_skew,
                 qw| not_after |   => $now + $lifetime,
                 qw| scope |       => '',
             }
@@ -223,8 +229,8 @@ if ( $reason eq qw| issued | ) {
 
 return TRUE;
 
-#,,,,,..,,..,,.,.,..,,.,,,,,.,...,..,,.,,,.,,,..,,...,...,,..,...,.,,,,..,,,.,
-#PY7FZSDC4ITENRUW6USMACCCZH4Z7J3DAIBXXPYGFJSA5X5DNXL6TGPKN3L2Q7MCA4UUF7VN72QKE
-#\\\|TF2ZDIO3BYHWWFKPXD3H7FGL5CEE4D533CXUFESAM4YIEHDGO3D \ / AMOS7 \ YOURUM ::
-#\[7]5FYS6FDG4ANSGKVOJ4UXWY6MK4V4AJ5DIEMCQXN2YKF4HCF3SCBA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,,..,.,,,...,.,.,.,.,,,.,...,..,,...,...,..,,,,,,.,.,,..,..,,
+#ZQZ7IZ3NF5KPDA4BUVDMONCYSELLJFSOH3K2HWLSCWNAIUW3CUZADKGDMZWVRUZTD37NWUNFZMSNQ
+#\\\|QGFUHMTVDU274OKOWU4AI5OATQNHZ3SZRMNVH26L5D5A2IDTM35 \ / AMOS7 \ YOURUM ::
+#\[7]WY3EHYB2WYOIYEB2ABN4Q74NKG7A7Y5VEWESTPUCORQKJEKTHADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

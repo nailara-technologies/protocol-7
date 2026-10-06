@@ -126,7 +126,9 @@ scope = '*' for this step ], last subject == `subject`.
 1. the delegation travels as a REQUIRED 4th field of the select reply
    [ no compatibility ]
 2. lifetime 30 days, v7-zenki renews when < 7 days remain
-3. host name = `<system.hostname>` lowercased
+3. host name = `<system.node.name>` lowercased [ `hostname()` without the
+   domain, set by `bin/Protocol-7` ; `<system.hostname>` is never set ] ;
+   `not_before` = issue time - 300 s [ client clock skew ]
 4. pins stay keyed by `<host>_<port>`, content = host-root fingerprint
 5. v7-zenki runs as ROOT, cube as the backend user [ `protocol-7` ].
    host-root lives in the BACKEND user's key tree, in a root-held
@@ -257,8 +259,8 @@ fingerprint       : ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3AWUQWVUNEJIYFOXRWF4XUSH
 computed independently [ hand-written pack ] and by `trust.statement` ;
 identical to lane 3's self-built vector.
 
-#,,,,,..,,,,.,...,.,,,.,,,,,.,,,,,..,,.,,,.,,,..,,...,...,,..,,,,,,,,,..,,.,,,
-#S5IQDNT7SKXIN3R3ALX3RZJRSG4JYCCNBZYX7WSV7O5USYXIT57E4LWAMYA5DDKFKPQZX6XO3HEAY
-#\\\|JPNN5JHNWG35PC64FVFFAMANM5RFRUDEXWMJUPIKAFB3GYCAXO6 \ / AMOS7 \ YOURUM ::
-#\[7]DOM36AQPSA5ZDQEL3ZW2CETTR2BK46V5SHIU3EXYXJT7LZHEWACQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,,,,,...,.,,,,.,,.,.,,,,,,,,,..,,...,...,..,,,.,,,,,,,.,,,..,
+#OC3WO37JVCZT4FGYATMYOJNU4ST7OOIUOW5M4AHB5ITM3L6KH4QMYLNCPIYGHSADXHU4F6B2H4232
+#\\\|P6KHFHFZRQY67OHRJLCVHFBXY3MVQUZN3U4PCXRYRSIU4LMU5BP \ / AMOS7 \ YOURUM ::
+#\[7]DPNRCUUOHU6MK6S27R23BTIPSEVSQHZXO4YQWFKGZFB5KGYCLYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
