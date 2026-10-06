@@ -7,11 +7,14 @@
 modules.load           = auth.client net protocol io.unix io.ip ui \
                          crypt.C25519 external   ## devmod
 
+## self.* : routes cube to the named link [ test ] -- '*' is ONE dotted
+## segment [ base.parser.access_conf ], so osf-cache's '<sid>.<cmd>' over
+## the link needs its own one-level-deeper grants ##
 access.cmd.usr.cube    = verify-instance commands heart reload subname \
                          list show-buffer buffer-erase buffer-erase-level \
                          list-connections connect \
                          list-deps cur-pid src-ver rel-ver src-age \
-                         self.* ## <-- routes cube to the named link [ test ]
+                         self.* self.*.has self.*.merkle self.*.segment
 
 ## named encrypted links [ external.connect <name> <host[:port]> ] :
 ## the auth-keypair label this host authenticates as - the remote cube
@@ -29,8 +32,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 
 [zenka.loop]
 
-#,,..,.,.,,,,,.,.,.,,,.,,,,..,,.,,,,.,.,.,,..,..,,...,...,..,,..,,.,.,..,,.,,,
-#7WMH7BDVIFLMAZSH2FPWDSBXCOWC7FLDQ2DGMLNOJBJLKZPUBTEFHYROOXNTZ2AEP6QRAF56LL2DM
-#\\\|OYX65NPDTLM7KSPKT5A5CU6HYEDZUAUNMOWKIP2KYV4D4VJUOBD \ / AMOS7 \ YOURUM ::
-#\[7]JC5YP34KBBC7XHDE3ANNPYAPF5M4EUZ4CSTFIN57ODDQDODUHCBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,..,..,,,.,,,..,,,,,.,.,...,..,,...,...,.,.,,,,,.,,,,,,,,,.,
+#HDG75M3DGEFUO2FG47JPUJQ4RH62UZW5XXA3J6VHD6PXC3QXCZWTENIPHWBZO3MNCOK5WVLOJLGBC
+#\\\|4PXZY2CTO5MBCT4JZ2HYUZN2CTHCSFONHWNWKVYQEOFPVHR7VPK \ / AMOS7 \ YOURUM ::
+#\[7]AYXZLEIMTRN3WAXE4WS2GHMB7WVQHJSH66SQYX6MHCVWJEA2NMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

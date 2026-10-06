@@ -7,7 +7,9 @@
 # the holder exclusion path of the segment phase : a leaf that fails
 # verification [ osf-cache.handler.segment_reply ] or a second
 # timeout [ osf-cache.fetch.segment_timeout ] excludes the holder
-# for the rest of THIS fetch. its outstanding leaf goes back to the
+# for the rest of THIS fetch. the holder id is a ROUTE STRING since
+# stage 4b [ '<sid>' or 'external.<link>.<sid>' ] : the exclusion
+# compares strings [ 'ne', never '!=' ]. its outstanding leaf goes back to the
 # front of the queue [ the order is kept ], its timer is cancelled
 # and the pump hands work to whoever is eligible. NO eligible holder
 # left while leaves are missing fails the fetch [ stage 4 step 7 ].
@@ -37,7 +39,7 @@ if ( defined $hs->{'leaf'} ) {
 $hs->{'excluded'} = 1;
 push @{ $state->{'excluded'} }, $sid;
 $state->{'eligible'}
-    = [ grep { $ARG != $sid } @{ $state->{'eligible'} // [] } ];
+    = [ grep { $ARG ne $sid } @{ $state->{'eligible'} // [] } ];
 
 <[base.logs]>
     ->( 0, ': osf-cache : holder %s excluded [ %s ]', $sid, $reason );
@@ -58,8 +60,8 @@ if ( !scalar @{ $state->{'eligible'} } and $done < $leaf_count ) {
 
 return;
 
-#,,,.,..,,..,,.,,,...,.,,,,,.,,.,,,,.,.,.,,,,,.,.,...,...,.,.,.,.,...,,,.,...,
-#AGROGMJNK4GX6KPZKMRIAW42Q7TR7KZOTWCKXAEVNZ7KKE6VR4MDECJ3KFGHWV7JMMS5K5CU4VFYO
-#\\\|ACRUMKRODBNJHEPECMM3Q5FX4BYXFBO7NA4TUHSWEEYRLZ5TPTG \ / AMOS7 \ YOURUM ::
-#\[7]RTT6EYI3CZJPV75GPCVPFMC6V6Q5IR4OU5XLT4WH6RGCXRO6EICI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,.,,,,,,,..,,,..,...,,.,,,,.,.,.,...,...,,.,,,,.,,,,,,.,,.,,,
+#B5G5VOGXZHX5HP35MZ3JO4N7O3OBASH6G3EK3TZIJOIYSS7MEGWVCNIB6LGTJX5OSKJIITC7I7AMW
+#\\\|QBG2OYGMBOLLE7GKUT4VF32IHTJDFPQ7AH42IXFE4LWE73XGE6P \ / AMOS7 \ YOURUM ::
+#\[7]WXXOARIAEDKHJUVPE5P4X3JWRXNSCVFFGMEWMR26CFBHK7KOFYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

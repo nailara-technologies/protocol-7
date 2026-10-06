@@ -101,6 +101,10 @@ compile_module('osf-cache.cmd.status');
 compile_module('osf-cache.cmd.rescan');
 compile_module('osf-cache.holdings.rescan_step');
 compile_module('osf-cache.peers.list');
+compile_module('osf-cache.peers.parse');
+compile_module('osf-cache.peers.deliver');
+compile_module('osf-cache.peers.collect_timeout');
+compile_module('osf-cache.holder.cmp');
 compile_module('osf-cache.handler.peers_list');
 compile_module('osf-cache.cmd.lookup');
 compile_module('osf-cache.lookup.with_peers');
@@ -2081,13 +2085,18 @@ sub fetch_reset {
     return;
 }
 
+## stage 4b : holders are ROUTE STRINGS - '<sid>' local,
+## 'external.<link>.<sid>' behind a configured external link :  every command
+## matcher accepts both shapes
+my $holder_re = qr{(?:\d+|external\.\S+\.\d+)}o;
+
 ## deliver every not-yet-delivered segment request from $content ##
 sub deliver_segments {
     my $content = shift;
     my $guard   = 0;
     foreach my $send ( @{ $data{'test'}{'route_sends'} } ) {
         die 'segment request loop' if ++$guard > 100;
-        next unless ( $send->{'command'} // '' ) =~ m{^\d+\.segment$}o;
+        next unless ( $send->{'command'} // '' ) =~ m{^$holder_re\.segment$}o;
         next if $send->{'__delivered'};
         $send->{'__delivered'} = 1;
         my ( undef, $offset, $len ) = split m{\s+},
@@ -2106,13 +2115,13 @@ sub deliver_segments {
 
 sub segment_sends {
     return
-        grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.segment$}o }
+        grep { ( $ARG->{'command'} // '' ) =~ m{^$holder_re\.segment$}o }
         @{ $data{'test'}{'route_sends'} };
 }
 
 sub has_sends {
     return
-        grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.has$}o }
+        grep { ( $ARG->{'command'} // '' ) =~ m{^$holder_re\.has$}o }
         @{ $data{'test'}{'route_sends'} };
 }
 
@@ -2128,7 +2137,7 @@ sub fetch_timer {
 
 sub merkle_sends {
     return
-        grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.merkle$}o }
+        grep { ( $ARG->{'command'} // '' ) =~ m{^$holder_re\.merkle$}o }
         @{ $data{'test'}{'route_sends'} };
 }
 
@@ -2202,7 +2211,7 @@ sub drive_control {
     my $guard  = 0;
     while ( ++$guard < 100 ) {
         my @open = grep { !$ARG->{'__delivered'} }
-            grep { ( $ARG->{'command'} // '' ) =~ m{^\d+\.merkle$}o }
+            grep { ( $ARG->{'command'} // '' ) =~ m{^$holder_re\.merkle$}o }
             @{ $data{'test'}{'route_sends'} };
         last unless @open;
         foreach my $send (@open) {
@@ -3231,6 +3240,294 @@ ok( ( $ms_r8->{'mode'} // '' ) eq qw| false |
     'multi : all holders excluded -> fail, no timer left active'
 );
 
+##[ 25 : stage 4b - holders behind external links ]###########################
+
+say ': stage 4b - holders behind external links';
+
+$data{'osf-cache'}{'cfg'}{'remote_links'} = 'self';
+
+## the loopback link repeats the local sessions : the own sid is NOT ##
+## filtered on the remote side [ same data, two transports ]         ##
+my $remote_table = $sessions_table;
+
+## flow 1 : peers.list asks the local cube AND the link, ONE fan-out ##
+$data{'test'}{'route_sends'} = [];
+$data{'test'}{'timers'}      = [];
+$data{'test'}{'watchers'}    = [];
+
+$data{'osf-cache'}{'lookup'}{'pending'}{'78'} = {
+    'reply_id'       => 'r-4b-p',
+    'anchors'        => [$h1],
+    'expect'         => { $h1 => 10 },
+    'started'        => time,
+    'peers_resolved' => 0,
+    'replies'        => {},
+    'pending'        => {},
+};
+
+my $pl4b = call_module(
+    'osf-cache.peers.list',
+    {   'callback' => qw| osf-cache.lookup.with_peers |,
+        'params'   => { 'lookup_id' => '78' },
+    }
+);
+
+ok( $pl4b->{'mode'} eq qw| true |
+        && scalar @{ $data{'test'}{'route_sends'} } == 2
+        && ( $data{'test'}{'route_sends'}[0]{'command'} // '' ) eq qw| list |
+        && ( $data{'test'}{'route_sends'}[1]{'command'} // '' ) eq
+        'external.self.list'
+        && ( $data{'test'}{'route_sends'}[1]{'call_args'}{'args'} // '' ) eq
+        'sessions osf-cache'
+        && ( $data{'test'}{'route_sends'}[1]{'reply'}{'params'}{'link'}
+        // '' ) eq qw| self |,
+    'one link : local list + external.self.list sent'
+);
+
+my @collect_timers = grep {
+    ( $ARG->{'handler'} // '' ) eq qw| osf-cache.peers.collect_timeout |
+} @{ $data{'test'}{'timers'} };
+
+ok( scalar @collect_timers == 1 && ( $collect_timers[0]{'after'} // 0 ) == 5,
+    'one link : a 5 s collect timeout is armed'
+);
+
+## the local listing answers first : the callback has not fired ##
+deliver_reply( $data{'test'}{'route_sends'}[0],
+    { 'cmd' => qw| SIZE |, 'data' => $sessions_table } );
+
+ok( scalar has_sends() == 0,
+    'one link : no fan-out before every listing answered' );
+
+## the link listing answers : ONE callback, the documented order ##
+deliver_reply( $data{'test'}{'route_sends'}[1],
+    { 'cmd' => qw| SIZE |, 'data' => $remote_table } );
+
+my @p4b_has = has_sends();
+
+ok( scalar @p4b_has == 5
+        && join( ',', map { $ARG->{'command'} } @p4b_has ) eq
+        '4301.has,4302.has,external.self.4242.has,'
+        . 'external.self.4301.has,external.self.4302.has',
+    'holders : local first by sid, then the link by sid'
+);
+
+ok( ( grep { $ARG->{'command'} eq qw| 4242.has | } @p4b_has ) == 0,
+    'own sid filtered in the local listing only' );
+
+ok( $data{'test'}{'watchers'}[0]->cancelled,
+    'all listings answered : the collect timer is cancelled' );
+
+delete $data{'osf-cache'}{'lookup'}{'pending'}{'78'};
+
+## flow 2 : a link that times out : the lookup goes on with what answered, ##
+## the failed link is listed like a failed peer                            ##
+$data{'base'}{'cmd_reply'}{'r-4b-to'} = { 'fake' => 1 };
+my $lk_to = start_lookup( 'r-4b-to', $fc_anchor );
+
+ok( ref $lk_to eq qw| HASH | && $lk_to->{'mode'} eq qw| deferred |,
+    'link timeout : the lookup defers first' );
+
+my @to_sends = @{ $data{'test'}{'route_sends'} };
+deliver_reply( $to_sends[0],
+    { 'cmd' => qw| SIZE |, 'data' => $sessions_table } );
+
+ok( scalar has_sends() == 0, 'link still pending : no fan-out yet' );
+
+my ($collect_w) = grep {
+    ( $ARG->{'params'}{'handler'} // '' ) eq
+        qw| osf-cache.peers.collect_timeout |
+} @{ $data{'test'}{'watchers'} };
+
+fire_timer($collect_w);
+
+my @to_has = has_sends();
+ok( scalar @to_has == 2
+        && join( ',', map { $ARG->{'command'} } @to_has ) eq
+        '4301.has,4302.has',
+    'link timeout : the lookup goes on with the local holders'
+);
+
+deliver_reply( $ARG,
+    { 'cmd' => qw| SIZE |, 'data' => "$fc_anchor 500 $fc_bmw" } )
+    foreach @to_has;
+
+my $r_to = $data{'test'}{'cmd_replies'}{'r-4b-to'} // {};
+
+ok( ( $r_to->{'mode'} // '' ) eq qw| size |
+        && $r_to->{'data'} =~ m{^\Q$fc_anchor\E 2 holders : 4301 4302$}m
+        && $r_to->{'data'} =~ m{^failed peers : external\.self$}m
+        && pending_lookups() == 0,
+    'link timeout : completes, the link listed as failed'
+);
+
+## flow 3 : a malformed link answer : no crash, no holders from it ##
+$data{'base'}{'cmd_reply'}{'r-4b-bad'} = { 'fake' => 1 };
+start_lookup( 'r-4b-bad', $fc_anchor );
+
+my @bad_sends = @{ $data{'test'}{'route_sends'} };
+deliver_reply( $bad_sends[0],
+    { 'cmd' => qw| SIZE |, 'data' => $sessions_table } );
+deliver_reply( $bad_sends[1], { 'cmd' => qw| FALSE | } );
+
+my @bad_has = has_sends();
+ok( scalar @bad_has == 2
+        && ( grep { $ARG->{'command'} =~ m{^external\.} } @bad_has ) == 0,
+    'malformed link answer : no crash, no holders from it'
+);
+
+deliver_reply( $ARG,
+    { 'cmd' => qw| SIZE |, 'data' => "$fc_anchor 500 $fc_bmw" } )
+    foreach @bad_has;
+
+my $r_bad = $data{'test'}{'cmd_replies'}{'r-4b-bad'} // {};
+
+ok( ( $r_bad->{'mode'} // '' ) eq qw| size |
+        && $r_bad->{'data'} =~ m{^failed peers : external\.self$}m
+        && pending_lookups() == 0,
+    'malformed link answer : the failed link is listed'
+);
+
+## flow 3b : an EMPTY but valid link answer is not a failure     ##
+$data{'base'}{'cmd_reply'}{'r-4b-empty'} = { 'fake' => 1 };
+start_lookup( 'r-4b-empty', $fc_anchor );
+
+my @empty_sends = @{ $data{'test'}{'route_sends'} };
+deliver_reply( $empty_sends[0],
+    { 'cmd' => qw| SIZE |, 'data' => $sessions_table } );
+deliver_reply( $empty_sends[1], { 'cmd' => qw| SIZE |, 'data' => '' } );
+
+deliver_reply( $ARG,
+    { 'cmd' => qw| SIZE |, 'data' => "$fc_anchor 500 $fc_bmw" } )
+    foreach has_sends();
+
+my $r_empty = $data{'test'}{'cmd_replies'}{'r-4b-empty'} // {};
+
+ok( ( $r_empty->{'mode'} // '' ) eq qw| size |
+        && $r_empty->{'data'} =~ m{^\Q$fc_anchor\E 2 holders : 4301 4302$}m
+        && $r_empty->{'data'} !~ m{failed peers},
+    'empty link answer : valid, no failed entry'
+);
+
+## flow 4 : ONE fetch over a local AND remote holders            ##
+my $lr_local = join( "\n",
+    ' usid  protocol    type   mode   uname             since',
+    '----------------------------------------------------------',
+    ' 4242  protocol-7  zenka  ----   osf-cache         2h 13m',
+    ' 4301  protocol-7  zenka  ----   osf-cache         5m 2s',
+    '' );
+
+my $lr_remote = join( "\n",
+    ' usid  protocol    type   mode   uname             since',
+    '----------------------------------------------------------',
+    ' 4500  protocol-7  zenka  ----   osf-cache         5m 2s',
+    ' 4501  protocol-7  zenka  ----   osf-cache         41s',
+    '' );
+
+sub lr_resolve {
+    my @sends = @{ $data{'test'}{'route_sends'} };
+    deliver_reply( $sends[0], { 'cmd' => qw| SIZE |, 'data' => $lr_local } );
+    deliver_reply( $sends[1], { 'cmd' => qw| SIZE |, 'data' => $lr_remote } );
+    return;
+}
+
+my $lr_dir1 = tempdir( CLEANUP => 1 );
+ms_setup($lr_dir1);
+$data{'osf-cache'}{'cfg'}{'remote_links'} = 'self';
+
+$data{'base'}{'cmd_reply'}{'r-4b-fetch'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $ms_anchor, 'reply_id' => 'r-4b-fetch' } );
+lr_resolve();
+deliver_reply(
+    $ARG,
+    {   'cmd'  => qw| SIZE |,
+        'data' => sprintf '%s %d %s',
+        $ms_anchor, length $ms_content, $ms_bmw
+    }
+) foreach has_sends();
+
+my @lr_merkle = merkle_sends();
+ok( scalar @lr_merkle == 3
+        && join( ',', map { $ARG->{'command'} } @lr_merkle ) eq
+        '4301.merkle,external.self.4500.merkle,external.self.4501.merkle',
+    'fetch : the merkle round reaches remote holders by route'
+);
+
+drive_control($ms_content);
+
+my @lr_seg = segment_sends();
+ok( scalar @lr_seg == 3
+        && join( ',', map { $ARG->{'command'} } @lr_seg ) eq
+        '4301.segment,external.self.4500.segment,external.self.4501.segment',
+    'fetch : local and remote holders get segment requests'
+);
+
+deliver_segments($ms_content);
+
+my $lr_r1 = $data{'test'}{'cmd_replies'}{'r-4b-fetch'} // {};
+
+ok( ( $lr_r1->{'mode'} // '' ) eq qw| true |
+        && $lr_r1->{'data'}
+        =~ m{from\s+3\s+holders\s+\[\s+4301\s+external\.self\.4500
+        \s+external\.self\.4501\s+\]}xo,
+    'fetch : one fetch mixed local + remote holders'
+);
+
+open( my $lr_fh1, '<:raw', "$lr_dir1/ms-pkg_2.0-1_amd64.deb" )
+    or die $OS_ERROR;
+my $lr_placed1 = do { local $INPUT_RECORD_SEPARATOR = undef; <$lr_fh1> };
+close($lr_fh1);
+
+ok( $lr_placed1 eq $ms_content && fetch_pending() == 0,
+    'fetch : the mixed-source file is byte-exact, state cleaned'
+);
+
+## flow 5 : a bad leaf excludes the REMOTE holder by its route    ##
+my $lr_dir2 = tempdir( CLEANUP => 1 );
+ms_setup($lr_dir2);
+$data{'osf-cache'}{'cfg'}{'remote_links'} = 'self';
+
+$data{'base'}{'cmd_reply'}{'r-4b-excl'} = { 'fake' => 1 };
+call_module( 'osf-cache.cmd.fetch',
+    { 'args' => $ms_anchor, 'reply_id' => 'r-4b-excl' } );
+lr_resolve();
+deliver_reply(
+    $ARG,
+    {   'cmd'  => qw| SIZE |,
+        'data' => sprintf '%s %d %s',
+        $ms_anchor, length $ms_content, $ms_bmw
+    }
+) foreach has_sends();
+drive_control($ms_content);
+
+my @lr2_seg = segment_sends();
+my ($lr2_bad)
+    = grep { $ARG->{'command'} eq 'external.self.4500.segment' } @lr2_seg;
+deliver_bad_segment( $lr2_bad, $ms_content );
+deliver_segments($ms_content);
+deliver_segments($ms_content);    ## the retried leaf's request ##
+
+my $lr_r2 = $data{'test'}{'cmd_replies'}{'r-4b-excl'} // {};
+
+ok( ( $lr_r2->{'mode'} // '' ) eq qw| true |
+        && $lr_r2->{'data'} =~ m{from\s+2\s+holders\s+\[\s+4301\s+
+        external\.self\.4501\s+\]}xo
+        && $lr_r2->{'data'} =~ m{\[\s+excluded\s+
+        external\.self\.4500\s+\]$}xo,
+    'bad leaf : remote holder excluded by its route'
+);
+
+open( my $lr_fh2, '<:raw', "$lr_dir2/ms-pkg_2.0-1_amd64.deb" )
+    or die $OS_ERROR;
+my $lr_placed2 = do { local $INPUT_RECORD_SEPARATOR = undef; <$lr_fh2> };
+close($lr_fh2);
+
+ok( $lr_placed2 eq $ms_content,
+    'bad leaf : the local holder finishes byte-exact' );
+
+$data{'osf-cache'}{'cfg'}{'remote_links'} = '';
+
 ##[ summary ]#################################################################
 
 say '';
@@ -3241,8 +3538,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,.,.,..,,.,.,,,.,.,,,..,,...,,..,,.,,,,.,.,.,...,...,..,,,.,,.,,,,,,,..,,
-#OGWYVXNABV5SRGIX3R57G2OZAPDJCJS5Q5QWNZJKXU3HP5QF46IDGDAQGTU4O6B3CZ7R75NMXA25Q
-#\\\|LOTLWBIJVBWITUX276ZBJPNDYC62OAOTWAMQC3EWLROXPWOALP2 \ / AMOS7 \ YOURUM ::
-#\[7]H4YEPEJI4J6DV6FMZ75CRQZV52GF5WVPNRVMVXMHKZOXZLQNL2BQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,..,,..,,.,.,..,,.,,,...,...,.,,,.,.,...,...,,.,,.,,,...,.,,,,,,,
+#L3MBYLPCTN76XM5EMMYK4PXNWVJLEDHI6EZTVKKD7EXNNRJXZPW4SWMCT33UCOCMZF6PY72COMCVM
+#\\\|LBZYNBOL4A5QRLVFJS2KZ4T2ZHENT24QZGKE3J2VU7AOYWAANWM \ / AMOS7 \ YOURUM ::
+#\[7]4IS6C63CPDOI46IQDDBH6HO3S5YFEIWRQVTBIETM3B7Y7WY4H4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,23 +1,32 @@
 ## [:< ##
 
 # name  = osf-cache.handler.peers_list
-# descr = parse cube's 'list sessions osf-cache' table, run the callback
+# descr = parse one peer listing into the collect \ the callback
 #
-# reply handler for the peer query osf-cache.peers.list sends. cube
-# answers mode size with a formatted table [ there is no structured
-# form ] : usid protocol type mode uname since. rows whose uname is
-# osf-cache [ with or without a [subname] ] and whose usid is not
-# this instance's own cube session id are the peers. the callback
-# module named in the request params is invoked with
-# { peers => [ sids sorted numeric ], params => <caller params> }.
-# a failed query [ cmd not SIZE or TRUE ] logs and calls back with
-# an empty peer list - the lookup then completes as 'no peers'.
+# reply handler for the peer queries osf-cache.peers.list sends [
+# the local cube listing and, per configured remote link,
+# 'external.<link>.list sessions osf-cache' ]. the table parsing
+# itself lives in osf-cache.peers.parse [ one parser, every
+# listing ] : rows whose uname is osf-cache [ with or without a
+# [subname] ] become holders - '<usid>' local, 'external.<link>.
+# <usid>' remote - and the own-sid filter applies to the LOCAL
+# listing only. a failed query [ cmd not SIZE or TRUE ] logs [
+# with the listing name ] - a failed remote link is also recorded
+# in the collect's failed list [ reported like a failed peer ].
+# single-listing discovery [ no links configured ] : the sorted
+# holders go straight to the callback [ the stage 2c behavior,
+# kept ]. multi-listing : the holders join the collect state and
+# osf-cache.peers.deliver fires the callback once the LAST listing
+# answered - or the collect timeout did.
 
 my $reply    = shift                 // {};
 my $params   = $reply->{'params'}    // {};
 my $callback = $params->{'callback'} // '';
 
 return unless length $callback;
+
+my $collect_id = $params->{'collect_id'} // '';
+my $link       = $params->{'link'}       // '';
 
 ## this instance's own cube session id [ stored by base.get_session_id ] ##
 my $cube_sessions = <user.cube.session> // {};
@@ -27,46 +36,62 @@ my $own_sid
     ? ( $data{'session'}{$local_sid}{'cube_sid'} // '' )
     : '';
 
-my @peers;
+my ( @holders, $failed );
 my $cmd = $reply->{'cmd'} // '';
 if ( $cmd eq qw| SIZE | or $cmd eq qw| TRUE | ) {
-    my $table = $reply->{'data'} // $reply->{'call_args'}{'args'} // '';
-    foreach my $line ( split m{\n}, $table ) {
-        next
-            unless $line
-            =~ m{^\s*(\d+)\s+\S+\s+\S+\s+\S+\s+(osf-cache(?:\[\S+\])?)(?:\s|$)};
-        my $usid = $1;
-        next if length $own_sid and $usid == $own_sid;
-        push @peers, $usid;
-    }
+    my $table  = $reply->{'data'} // $reply->{'call_args'}{'args'} // '';
+    my $parsed = <[osf-cache.peers.parse]>->(
+        {   'table'   => $table,
+            'link'    => $link,
+            'own_sid' => $own_sid,
+        }
+    );
+    @holders = @{ $parsed->{'data'} // [] };
 } else {
+    $failed = 1;
     <[base.logs]>->(
         0,
-        ': osf-cache : peer query failed [ %s ]',
-        length $cmd ? $cmd : 'no reply'
+        ': osf-cache : peer query failed [ %s ] [ %s ]',
+        length $cmd  ? $cmd         : 'no reply',
+        length $link ? "link $link" : qw| local |
     );
 }
 
-@peers = sort { $a <=> $b } @peers;
+if ( length $collect_id ) {
+    my $collect = <osf-cache.peers.collecting>->{$collect_id};
+    return unless ref $collect eq qw| HASH |;    ## the timeout won ##
 
-## explicit dispatch : the callback modules stay visible to the static ##
-## dependency graph [ dynamic $code{$name} calls are not ]             ##
-if ( $callback eq qw| osf-cache.lookup.with_peers | ) {
-    <[osf-cache.lookup.with_peers]>->(
-        {   'peers'  => \@peers,
-            'params' => $params->{'params'} // {},
-        }
-    );
+    push @{ $collect->{'holders'} }, @holders;
+    push @{ $collect->{'failed'} }, "external.$link"
+        if $failed and length $link;
+
+    delete $collect->{'remaining'}{ length $link ? $link : qw| local | };
+
+    <[osf-cache.peers.deliver]>->( { 'collect_id' => $collect_id } )
+        unless scalar keys %{ $collect->{'remaining'} // {} };
 } else {
-    <[base.logs]>->(
-        0, ': osf-cache : unknown peers callback : %s', $callback
-    );
+    ## single listing [ no links configured ] : the stage 2c path ##
+    @holders = sort { <[osf-cache.holder.cmp]>->( $a, $b ) } @holders;
+
+    ## explicit dispatch : the callback modules stay visible to the static ##
+    ## dependency graph [ dynamic $code{$name} calls are not ]             ##
+    if ( $callback eq qw| osf-cache.lookup.with_peers | ) {
+        <[osf-cache.lookup.with_peers]>->(
+            {   'peers'  => \@holders,
+                'params' => $params->{'params'} // {},
+            }
+        );
+    } else {
+        <[base.logs]>->(
+            0, ': osf-cache : unknown peers callback : %s', $callback
+        );
+    }
 }
 
 return;
 
-#,,.,,..,,,,.,,,.,,,,,,.,,,.,,...,..,,,..,.,.,.,.,...,..,,,..,,,.,,..,,..,,,.,
-#WQPKJBJP2IS4MMIW723P2MNKBYMV422FMFQ54VATWLW5I6YLB6PTOU4QX3ZG4AL5ZPLGAR5HCKYIW
-#\\\|FKSBYQTKUYZUS3FOSCBYO6EHYMBFYVGQLNAI4R5JGOCMLTAW2LT \ / AMOS7 \ YOURUM ::
-#\[7]72OPQBRHRBAWQAFNZWRCYUR32IKQFOJEVGIHFOH2QAZVCNVGN4AY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,,..,.,,,,,,,..,,.,.,,,,,.,,,..,,...,..,,...,,,,,...,,,,,,.,,
+#5CM6IFBESKW2GY5XFRQSLWOS4KF3XILMGCHAC5IYJ65GCHHH23NEAHYNFZOYWWGSA5DRXJAPIDL4C
+#\\\|2Q5IX7LBIXHKJ6EVJ5Y7EWEFTRGEGERJLOKOX4E4VX66KWIO34Q \ / AMOS7 \ YOURUM ::
+#\[7]7KFXOXLJ2TPVKV7S7PNCDBFQE2U2OTNDQLKB6EMJXVSSHAS7GGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

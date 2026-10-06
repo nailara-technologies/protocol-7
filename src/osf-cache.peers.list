@@ -1,18 +1,28 @@
 ## [:< ##
 
 # name  = osf-cache.peers.list
-# descr = ask cube for the other osf-cache sessions [ asynchronous ]
+# descr = ask cube + the configured links for osf-cache sessions
 # param = { callback => <module name>, params => { .. } }
 #
-# the single place peer discovery lives : cross-host discovery through
-# the discover zenka [ branch.discover.* ] is a later stage and swaps
-# in HERE, the callers stay unchanged. asks cube for
-# 'list sessions osf-cache' [ the argument is a name pattern ] and
-# returns immediately - the query is asynchronous. cube offers no
-# structured reply for it, so osf-cache.handler.peers_list parses the
-# table [ usid protocol type mode uname since ], drops this
-# instance's own session id and invokes the callback module with
-# { peers => [ cube session ids ], params => <param params> }.
+# the single place peer discovery lives : cross-host discovery
+# through the discover zenka [ branch.discover.* ] is a later stage
+# and swaps in HERE, the callers stay unchanged. stage 4b : a
+# holder is a ROUTE PREFIX, not a bare sid - '<sid>' local,
+# 'external.<link>.<sid>' behind a configured external link [
+# <osf-cache.cfg.remote_links>, space-separated link names, //= ''
+# in init_code ]. without links the behavior is unchanged since
+# stage 2c : ONE asynchronous 'list sessions osf-cache' to the
+# local cube, parsed by osf-cache.handler.peers_list. with links :
+# the local query PLUS one 'external.<link>.list sessions
+# osf-cache' per link [ the named link reaches that host's cube ].
+# every answer is parsed by the shared osf-cache.peers.parse and
+# collected in <osf-cache.peers.collecting> : the callback fires
+# ONCE, after ALL listings answered or the
+# <osf-cache.cfg.lookup_timeout> timer [ osf-cache.peers.
+# collect_timeout ] fired - a failed \ timed-out link is reported
+# like a failed peer, never a crash, never a hang. the callback
+# contract : { peers => [ holder route strings ], failed =>
+# [ 'external.<link>' names ], params }.
 
 my $args     = shift               // {};
 my $callback = $args->{'callback'} // '';
@@ -20,23 +30,89 @@ my $callback = $args->{'callback'} // '';
 return { 'mode' => qw| false |, 'data' => 'callback required' }
     unless length $callback;
 
+my $params = $args->{'params'} // {};
+
+my @links = grep {length}
+    split m{\s+}, <osf-cache.cfg.remote_links> // '';
+
+if ( !@links ) {
+    ## the single-listing path [ unchanged since stage 2c ] ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| list |,
+            'call_args' => { 'args' => 'sessions osf-cache' },
+            'reply'     => {
+                'handler' => qw| osf-cache.handler.peers_list |,
+                'params'  => {
+                    'callback' => $callback,
+                    'params'   => $params,
+                },
+            },
+        }
+    );
+    return { 'mode' => qw| true |, 'data' => 'peer query sent' };
+}
+
+## multiple listings : ONE collect state, ONE callback ##
+my $collect_id = <[base.gen_id]>->();
+
+<osf-cache.peers.collecting> //= {};
+<osf-cache.peers.collecting>->{$collect_id} = {
+    'callback'  => $callback,
+    'params'    => $params,
+    'remaining' => { qw| local | => 1, map { $ARG => 1 } @links },
+    'holders'   => [],
+    'failed'    => [],
+    'timer'     => undef,
+};
+
+my $timeout = <osf-cache.cfg.lookup_timeout> // 5;
+$timeout = 5 if !$timeout or $timeout < 1;    ## explicit floor ##
+
+<osf-cache.peers.collecting>->{$collect_id}{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'repeat'  => FALSE,
+        'handler' => qw| osf-cache.peers.collect_timeout |,
+        'data'    => { 'collect_id' => $collect_id },
+    }
+);
+
+## the local cube listing : the own-sid filter applies to it ##
 <[protocol-7.route-send]>->(
     {   'command'   => qw| list |,
         'call_args' => { 'args' => 'sessions osf-cache' },
         'reply'     => {
             'handler' => qw| osf-cache.handler.peers_list |,
             'params'  => {
-                'callback' => $callback,
-                'params'   => $args->{'params'} // {},
+                'callback'   => $callback,
+                'params'     => $params,
+                'collect_id' => $collect_id,
+                'link'       => '',
             },
         },
     }
 );
 
-return { 'mode' => qw| true |, 'data' => 'peer query sent' };
+foreach my $link (@links) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => "external.$link.list",
+            'call_args' => { 'args' => 'sessions osf-cache' },
+            'reply'     => {
+                'handler' => qw| osf-cache.handler.peers_list |,
+                'params'  => {
+                    'callback'   => $callback,
+                    'params'     => $params,
+                    'collect_id' => $collect_id,
+                    'link'       => $link,
+                },
+            },
+        }
+    );
+}
 
-#,,,,,...,..,,..,,,.,,,.,,,,,,..,,.,,,,..,,.,,.,.,...,...,..,,..,,,.,,,.,,,,.,
-#BSEF7TOSAAIKXVRCANTJ52Z7LXRP4C6E6ODWLWU7ME3KV4Z6V2MJXO2WBRLOKQYDCIXVGJ6YH3ILW
-#\\\|F3ECBVRM3TTNRH2PW7GOZONDNYODHT6CORBXSBYJCA7XNQRWANY \ / AMOS7 \ YOURUM ::
-#\[7]55UJMHHG4GMKIWWBQQ7F7ZU7E3LAH2NNZEZ355KGUPAN4H2GXCCI 7  DATA SIGNATURE ::
+return { 'mode' => qw| true |, 'data' => 'peer queries sent' };
+
+#,,..,,,,,..,,,..,.,.,,..,,,.,,.,,.,,,...,..,,..,,...,.,.,..,,..,,,..,.,,,,,,,
+#ZL33MEF6OOABAH5Z3CU3TP7SEM73XHOXIOYQUHU2FUBLQIK6NASJ2K5T6NDEJJU3Y6I3ZELGBTZTI
+#\\\|FOATFA63AKOAWQ5CYIFJ4QMVNMQ7KFIFBMP6ICYHMCURVFIXFB7 \ / AMOS7 \ YOURUM ::
+#\[7]TDL6QX7KTVLE6WEDKCPGFDMHZ5BGK3JGQT7XCTMTDPKC3PYADIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

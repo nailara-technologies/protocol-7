@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = osf-cache.peers.parse
+# descr = one sessions table -> holder route strings
+# param = { table => <text>, link => '' | <link name>,
+#           own_sid => <cube session id> }
+#
+# the factored-out table parser every peers_list reply runs through
+# [ stage 4b : ONE parser, local and remote listings ]. cube answers
+# 'list sessions osf-cache' mode size with a formatted table [ there
+# is no structured form ] : usid protocol type mode uname since.
+# rows whose uname is osf-cache [ with or without a [subname] ]
+# become holders : '<usid>' for the LOCAL listing,
+# 'external.<link>.<usid>' for a remote one. the own-sid filter
+# applies to the LOCAL listing ONLY - a loopback link legitimately
+# repeats this instance's sessions [ same data, two transports ].
+# SECURITY : a remote row is a holder behind an external link - the
+# link authenticates US to the remote cube, the SERVER's identity is
+# not yet proven [ open : the trust chain work ] ; content stays
+# safe [ every segment is checked against the agreed merkle leaf,
+# the file against the signed anchor ] but commands over the link
+# are not authenticated end to end : localhost \ own nodes only.
+
+my $args    = shift              // {};
+my $table   = $args->{'table'}   // '';
+my $link    = $args->{'link'}    // '';
+my $own_sid = $args->{'own_sid'} // '';
+
+my $prefix = length $link ? "external.$link." : '';
+
+my @holders;
+foreach my $line ( split m{\n}, $table ) {
+    next
+        unless $line
+        =~ m{^\s*(\d+)\s+\S+\s+\S+\s+\S+\s+(osf-cache(?:\[\S+\])?)(?:\s|$)};
+    my $usid = $1;
+    next if !length $prefix and length $own_sid and $usid == $own_sid;
+    push @holders, "$prefix$usid";
+}
+
+return { 'mode' => qw| true |, 'data' => \@holders };
+
+#,,,,,,..,..,,...,..,,.,,,,,,,,.,,,,.,.,.,.,.,..,,...,..,,..,,.,.,..,,,.,,.,,,
+#23OAPUB3OT6KP564YLOZ7VOQX3WTLAQLGF5YIEZKTIDRCD4L4Q3OUL744LSBAL2657UEQVIP6SERE
+#\\\|52OZ3GWA55MPTMP5Y4QP437JJFBDUAS57N2NEO5IXIC7H4R2K3L \ / AMOS7 \ YOURUM ::
+#\[7]3HIJ5UY22CJFT2POOWWKER6T6FSAHE7FI3AQ5PCCBP76G53IM2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

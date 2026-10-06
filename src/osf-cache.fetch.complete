@@ -19,9 +19,10 @@
 # which now also writes the merkle tree ; the counts follow, then
 # state_save ] and the reply goes out : 'fetched <filename> <size>
 # bytes from <n> holders [ <sids> ] [ <segments> segments, <secs>
-# s ]' [ excluded holders mentioned when there were any ]. the
-# per-anchor state is deleted - a completed fetch leaves nothing
-# behind.
+# s ]' [ excluded holders mentioned when there were any - all
+# holder ids are ROUTE STRINGS since stage 4b, sorted with
+# osf-cache.holder.cmp ]. the per-anchor state is deleted - a
+# completed fetch leaves nothing behind.
 
 require Time::HiRes;    ## core - loaded here, modules carry no use ##
 
@@ -148,7 +149,7 @@ if ( ref $entry eq qw| HASH | and ref $holdings eq qw| HASH | ) {
 
 my $secs = Time::HiRes::time() - $state->{'started'};
 
-my @used = sort { $a <=> $b }
+my @used = sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
     grep { ( $state->{'used'}{$ARG} // 0 ) > 0 }
     keys %{ $state->{'used'} // {} };
 
@@ -177,8 +178,8 @@ delete <osf-cache.fetch.pending>->{$fetch_key};
 
 return;
 
-#,,..,...,,,.,,,,,,.,,,.,,.,,,.,.,,.,,..,,..,,.,.,...,...,,.,,...,.,.,...,..,,
-#JJNXT7HJUJFP4KRHB4PE23MZ67OZE4M74LR33I2MCGR5NTPYMHCNPY2L3WD632XEDFTUNAEOMKRPM
-#\\\|POHSTWQSTCBIO5NF5WFGQQP4MWHMTT7QJRO27ED5HBAESIYT6OK \ / AMOS7 \ YOURUM ::
-#\[7]6EYFV4QA7KHTOYLJL76GEMZH2OVWMR2QZUTC4Y43RZSDJ6GU3EDY 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,.,,,.,.,.,,,,..,.,.,,..,..,,.,.,...,..,,,,,,,,,,...,..,,,,.,
+#35NEOKAOHSDQAFAMO6ITMTEZAX4VBSMZO7CB4EZ5NYJIR3HQQY7M7OLAFI3V6DGH5N7Q3ZP4HRHVK
+#\\\|YPLNWS5JF3LCAOKKXMT4ESCQ7OI7LHSTJ7PGA2XT5KPNYKHXO6X \ / AMOS7 \ YOURUM ::
+#\[7]LHY5GCXQHIG2LLBDNFP2OOTOPRE474DFPQCWNRCUMXGV34QFBIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

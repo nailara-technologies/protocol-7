@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = osf-cache.peers.deliver
+# descr = fire the collect callback once, clean the collect state
+# param = { collect_id => <id> }
+#
+# the single completion path of a multi-listing peer discovery [
+# osf-cache.peers.list with <osf-cache.cfg.remote_links> set ] :
+# called by osf-cache.handler.peers_list when the LAST listing
+# answered and by osf-cache.peers.collect_timeout. sorts the
+# collected holders [ osf-cache.holder.cmp : local first, then
+# remote by link name + sid ], cancels the collect timer, deletes
+# the collect state [ a completed discovery leaves nothing behind ]
+# and invokes the callback module with { peers => [ holder route
+# strings ], failed => [ 'external.<link>' names that failed or
+# timed out ], params }. explicit dispatch : the callback modules
+# stay visible to the static dependency graph [ dynamic $code{$name}
+# calls are not ].
+
+my $args       = shift                 // {};
+my $collect_id = $args->{'collect_id'} // return;
+
+my $collect = <osf-cache.peers.collecting>->{$collect_id};
+return unless ref $collect eq qw| HASH |;    ## timeout beat the reply ##
+
+if ( defined $collect->{'timer'}
+    and eval { $collect->{'timer'}->is_active } ) {
+    $collect->{'timer'}->cancel;
+}
+
+my @holders = sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
+    @{ $collect->{'holders'} // [] };
+
+my $callback = $collect->{'callback'} // '';
+my $params   = $collect->{'params'}   // {};
+my $failed   = $collect->{'failed'}   // [];
+
+delete <osf-cache.peers.collecting>->{$collect_id};
+
+if ( $callback eq qw| osf-cache.lookup.with_peers | ) {
+    <[osf-cache.lookup.with_peers]>->(
+        {   'peers'  => \@holders,
+            'failed' => $failed,
+            'params' => $params,
+        }
+    );
+} else {
+    <[base.logs]>->(
+        0, ': osf-cache : unknown peers callback : %s', $callback
+    );
+}
+
+return;
+
+#,,,,,...,,.,,,..,.,.,,,,,...,..,,...,...,.,,,..,,...,...,...,,,.,..,,,,,,.,,,
+#SP7D7U3QB4WIGPW4ZE6XYTUU32VKAAFUUY2PCTMOSQ5BW2OCZVSDTA4TYVWUFUN4KIZWKOZAAIDY6
+#\\\|Z7OVTM2GP75FIFLQGH7EN4GEE5C6GJFV4OMEYRXU2WUJKF76TVU \ / AMOS7 \ YOURUM ::
+#\[7]FVIAR3CIT35KKMRFKAN2BHZGWCSVDQ3PBEJAQ6IIIJX6F7SF2IAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

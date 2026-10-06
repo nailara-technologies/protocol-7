@@ -5,11 +5,19 @@
 # param = { peers => [ cube session ids ], params => { lookup_id } }
 #
 # the peers.list callback of osf-cache.cmd.lookup : sends
-# '<sid>.has <tokens>' to every peer with osf-cache.handler.has_reply
-# as the reply handler and marks each sid pending. zero peers answer
-# the lookup immediately [ mode true, 'no peers' ]. a lookup the
-# timeout already completed is gone from <osf-cache.lookup.pending>
-# and this call does nothing.
+# '<holder>.has <tokens>' to every peer with osf-cache.handler.
+# has_reply as the reply handler and marks each holder pending.
+# holders are ROUTE STRINGS since stage 4b : '<sid>' local,
+# 'external.<link>.<sid>' behind a configured external link -
+# the command '<holder>.has' routes over the named link for the
+# remote ones. SECURITY : a remote holder is reached over a link
+# that authenticates US but does not yet prove the SERVER's
+# identity [ open : the trust chain work ] - content stays safe
+# [ every segment checked against the agreed merkle leaf, the
+# file against the signed anchor ] : localhost \ own nodes only.
+# zero peers answer the lookup immediately [ mode true, 'no
+# peers' ]. a lookup the timeout already completed is gone from
+# <osf-cache.lookup.pending> and this call does nothing.
 
 my $args      = shift                  // {};
 my $params    = $args->{'params'}      // {};
@@ -21,6 +29,10 @@ return unless ref $state eq qw| HASH |;    ## timeout beat the query ##
 $state->{'peers_resolved'} = 1;
 
 my @peers = @{ $args->{'peers'} // [] };
+
+## failed remote links [ stage 4b ] : reported like failed peers ##
+my @failed_links = @{ $args->{'failed'} // [] };
+$state->{'failed_links'} = \@failed_links if @failed_links;
 
 if ( !@peers ) {
     <[osf-cache.lookup.complete]>->(
@@ -34,14 +46,14 @@ if ( !@peers ) {
 
 my $token_str = join ' ', @{ $state->{'anchors'} // [] };
 
-foreach my $sid (@peers) {
-    $state->{'pending'}{$sid} = 1;
+foreach my $holder (@peers) {
+    $state->{'pending'}{$holder} = 1;
     <[protocol-7.route-send]>->(
-        {   'command'   => "$sid.has",
+        {   'command'   => "$holder.has",
             'call_args' => { 'args' => $token_str },
             'reply'     => {
                 'handler' => qw| osf-cache.handler.has_reply |,
-                'params'  => { 'lookup_id' => $lookup_id, 'sid' => $sid },
+                'params'  => { 'lookup_id' => $lookup_id, 'sid' => $holder },
             },
         }
     );
@@ -49,8 +61,8 @@ foreach my $sid (@peers) {
 
 return;
 
-#,,.,,,.,,..,,,,,,,,.,,,,,,..,,,.,,.,,,,,,,..,.,.,...,...,,,,,,..,.,.,.,,,.,,,
-#SCBT6M4KNRMF5ZKVHVP67QNNSVQCKWIF3GRX773BSNMBEOVJLZ6L3NYU2PSVUN3XYNY62HHZ3W5IM
-#\\\|QO3M7IZUI2RHPBUWRQPMXD42BN4BSNY4ZKF7J3IREKYURZR35AH \ / AMOS7 \ YOURUM ::
-#\[7]ABDC3D4QB3W7VJZLKBEANV5H6LW6OKLVGJIM4RO5F7EILYAF5SBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,,.,,.,,,.,,.,.,...,,,.,,.,,.,.,...,...,,..,,,.,,,.,...,,,.,
+#4DVECGVKWOUTGSUZCQOPCBN2TENWMKA23UQBRNNQYMAZOG2KU6WOWTHHDQZ5VNDQ4AJMPJRSACYQE
+#\\\|H27WOMGUX5ZUIQR2G6ZZIGYPZRFWYU2CL3BTSJJR7HL34KKZ6TC \ / AMOS7 \ YOURUM ::
+#\[7]EL7MLFBPZ3DIFQKQB422X3T4ATHCKIVAKTKFYRZJHDFLOPBCF6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
