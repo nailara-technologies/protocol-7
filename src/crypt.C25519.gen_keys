@@ -6,6 +6,10 @@ my $key_name_param      = shift;    ##  optional  ##
 my $key_seed_passphrase = shift;    ##  optional  ##
 my $secret_key          = shift;    ##  optional  ##
 
+## a caller's own 32 byte secret rebuilds an EXISTING key [ e.g. letsencr ##
+## account key ] -- used exactly as given, never swapped for a fresh one  ##
+my $secret_supplied = defined $secret_key;
+
 my $harmoic_public_keys = TRUE;     ##  public key truth requirement  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
@@ -69,7 +73,8 @@ my $fresh_secret = sub {
 
 $secret_key //= $fresh_secret->();    ##  when no passphrase supplied  ##
 
-my $TRUE = $harmoic_public_keys ? FALSE : TRUE;  ##  need truth assertion?  ##
+##  need truth assertion ? [ not for a supplied secret ]  ##
+my $TRUE = ( $harmoic_public_keys and not $secret_supplied ) ? FALSE : TRUE;
 
 my ( $public_key, $private_key );
 
@@ -111,8 +116,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,.,,,,,,,.,..,,...,,..,,.,,...,,..,..,,...,..,,...,...,...,,,,,..,,...,,.,,
-#7MHZUC4U46FATZ7ACWY2FSM6C7H6HKWX2KP65RF7VVZDV527OPVF5H65NEV3FEG7AJ6A5OBD3QFU4
-#\\\|2CAWTBQ2S62WMOLM4I6YFL7THXE37X2GZCOAIICTDZOZ7DWRYP2 \ / AMOS7 \ YOURUM ::
-#\[7]BVHYF2D5MCC3HTLUUTLKVCU263GUI6F6XQ37QX2DFYU6V4D22WDY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,,,,...,,,,,...,,.,,,,,,.,.,..,,...,..,,,,.,...,.,,,...,,.,,
+#OVASHGN5GTJ5RR2ATT7ZVSZKL63VUW6UE3DMVIA5B6UJYAYZ4K6BQU57UVKUSMIRUASFEIXBG5VNK
+#\\\|YPFOOEGWH5GU2CPTMHFD5E7EQ5DU6QMEGIS3ZDBYGVPALGMTY4H \ / AMOS7 \ YOURUM ::
+#\[7]QLZZUQSETYQE7LJTAFRGPUQXR4GPMBIAD22QRL6XZOASVDRCKYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
