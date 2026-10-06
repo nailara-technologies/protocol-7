@@ -10,7 +10,9 @@
 # failed_nodes, conflicts, bmw_conflicts } : an anchor in bmw_conflicts
 # fails the fetch mode false [ stage 4 keeps this refusal ] and no
 # holder fails with the missing \ failed summary. otherwise the
-# holders are stored sorted and stage 4 begins : the merkle root
+# holders are stored sorted [ osf-cache.holder.cmp : local first,
+# then remote by link + sid - holders are ROUTE STRINGS since
+# stage 4b ] and stage 4 begins : the merkle root
 # agreement over the holders [ osf-cache.fetch.merkle_start ] - the
 # partial file is only opened once a tree is agreed and its leaves
 # verified [ osf-cache.fetch.start_segments ]. a lookup the fetch
@@ -64,16 +66,17 @@ if ( !scalar @$holders ) {
     return;
 }
 
-$state->{'holders'} = [ sort { $a <=> $b } @$holders ];
-$state->{'bmw384'}  = $merged->{'bmw384'}{$anchor} // '';
+$state->{'holders'}
+    = [ sort { <[osf-cache.holder.cmp]>->( $a, $b ) } @$holders ];
+$state->{'bmw384'} = $merged->{'bmw384'}{$anchor} // '';
 
 ## stage 4 : root agreement first - segments follow the verified tree ##
 <[osf-cache.fetch.merkle_start]>->( { 'fetch_key' => $anchor } );
 
 return;
 
-#,,.,,,,.,,,.,.,,,...,,,.,.,,,..,,,.,,.,.,.,,,.,.,...,...,,.,,..,,..,,.,,,..,,
-#CFWQPV5EVRGGW5NUGXMO3CJCEZYHJ364PUFRGPDMHIJWB6T64EEMVEHBXWEQHMKJMK3BOBZEZN2BG
-#\\\|FZQBULOREHG3BXSBC6JTQ6YNVOAGUFQLVTTPY6TFUXP6JEL6NBO \ / AMOS7 \ YOURUM ::
-#\[7]YO7ELLKQDK5VZZ4NCAAEGRJ6UH4NLZMDI7Z67UQPT5EPNBSXKQDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,..,,,,,,,.,,,,,,,,.,,,,,,,.,.,.,...,...,...,..,,,,,,..,,,.,,
+#C6KYMM3YF65NT63R266E25KBRG6DHEBKX7PV3TW76J4VUC3SGQU5Q4ETLXSRZBPCCKVQLMJJDECBM
+#\\\|VZAZHLGO3XQ6PMLQDWMANJHTLZZIQKCM27ABNP2EU4Y2IDOMZ2H \ / AMOS7 \ YOURUM ::
+#\[7]5V37BJYMO2YVCWH43HUOD3IVW7TFEGRIQUWQN3MA5UZFAGRVS2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
