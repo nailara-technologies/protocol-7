@@ -27,6 +27,20 @@ entropy for embedded systems that boot with identical entropy.
 - NOT affected : link-upgrade ephemeral keys, nonce sid and the Perl client
   handshake use `Crypt::Misc::random_bytes` [ CryptX default, OS-seeded ]
 
+## how it came about [ user, 2026-10-06 ]
+
+- the harmonic seed was MEANT as ADDITIONAL seed entropy -- the author
+  knew its bits alone were not enough
+- CryptX only says "If $seed is omitted, the object is automatically
+  seeded by the underlying Crypt::PRNG logic" -- it never states that a
+  given seed REPLACES the automatic seeding. read next to perl's own
+  srand \ rand semantics in the same module [ srand as the normal explicit
+  step, rand self-seeding otherwise ], "seed given" reads naturally as
+  "seed added". only the behaviour shows it [ the identical-output test ]
+- lesson for any code seeding a CryptX PRNG : pass OS entropy IN the seed
+  [ as base.prng.entropy_pool does ] or use the unseeded constructor ;
+  verify with a same-seed test rather than the docs
+
 ## impact [ user, 2026-10-06 ]
 
 - `.base` keys : placeholders, nothing uses them -> discard + regenerate
@@ -39,7 +53,7 @@ entropy for embedded systems that boot with identical entropy.
   the brute-forced seed and tests every position [ the unknown call count
   adds only ~log2(count) bits ]
 
-## fix [ done 2026-10-06, user's go ; uncommitted until signed ]
+## fix [ done 2026-10-06 : ead1c649e + the add_entropy restructure ]
 
 1. `base.prng.entropy_pool` [ new ] : BMW-512 [ user's choice, not SHA ]
    over OS entropy [ Crypt::Misc::random_bytes + /dev/urandom read
@@ -53,15 +67,27 @@ entropy for embedded systems that boot with identical entropy.
    change the source" ] : the digest is rehashed with a counter until
    AMOS7::Assert::Truth holds [ bounded 1300 rounds ; costs ~log2(1/p) of
    512 bits ]
-3. `base.prng.reseed` seeds Fortuna from the pool [ also covers
-   base.fork's child reseed ]
+3. `base.prng.reseed` [ restructured same day ] : the UNSEEDED
+   constructor [ CryptX seeds it from the OS ] + `add_entropy( <pool> )`
+   -- the pool is ADDED on top instead of replacing the OS seeding [ user :
+   "that should have been used for reseeding, then there would have been
+   no issue" ] ; also covers base.fork's child reseed
+3b. continuous entropy [ what fortuna is built for ; the user had seen
+   losing srand's reseed-at-any-time as a drawback when choosing fortuna ] :
+   `base.prng.add_entropy <data>` adds fresh OS bytes + hi-res time + PID
+   + the data, COMPLAINS [ base.s_warn + caller ] when the data is undef or
+   '' [ user's wish ], still adds the OS bytes, never dies ; a timer in
+   every zenka [ `base.prng.init_code`, $reinit-guarded, named handler
+   `base.prng.handler.add_entropy`, `cfg.add_entropy_interval` //= 137 s,
+   eval-armed ] ; gen_keys calls it before every fresh secret
 4. `crypt.C25519.gen_keys` : every fresh secret [ incl. harmonic-loop
    re-draws ] = BMW-256 over the fortuna stream + 32 bytes from
    /dev/random [ waits for the kernel CRNG, select-bounded 30 s, falls
    back logged -- never hangs ]
-5. test : `bin/test-scripts/test-prng-entropy.pl` [ 8 checks : size,
-   per-call difference, harmonic, os flag, no warnings with missing
-   sources, same PID + time -> different streams, bare-seed reference ]
+5. test : `bin/test-scripts/test-prng-entropy.pl` [ 13 checks : pool size
+   \ difference \ harmonic \ os flag \ no warnings with missing sources,
+   same PID + time -> different streams, add_entropy TRUE \ FALSE \
+   complaint \ additive, bare-seed reference ]
 - after landing : discard + regenerate the `.base` placeholders ;
   host-root gets created by the fixed code on the next v7-zenki start
 - gotcha in my own test : AMOS7::Assert::Truth::is_true returns a LIST in
@@ -70,8 +96,8 @@ entropy for embedded systems that boot with identical entropy.
 related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 [[vision-2026-10-05-generic-trust-chain]]
 
-#,,,.,.,.,.,.,,.,,..,,..,,,,,,,,.,.,.,,..,,.,,..,,...,...,,,,,,..,,.,,.,.,,,.,
-#EC5CWEFDVDCZP6QYIGAX7OJ74AOZHEIYHJQX5HCIBUTAMOH5JT2HTQ3MQADEJF4N2OP3QHSDGCVFA
-#\\\|56LZTVBIHBRLT5KGQZR2FSBBKHNVNNOKHBBVBMIKTRXTMQ7B6VK \ / AMOS7 \ YOURUM ::
-#\[7]BWDB26IV37OJNETFHTDSNE54LDNQGHMUP736ZG7INNZANHO5ZEAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,,,,,,.,,,,.,,,.,.,.,.,,,...,..,,...,...,,,.,.,.,..,,,..,,,,,
+#UOB4EYZLSOX3BFP7G4TASSIYG3DBIZW3JF6JVI7IRTC7BQZVH74KMPSCWWSURBY6QTFGRBG7M6LI6
+#\\\|YMMEAS3F4XZZM5IK3OH5KF4GJ5ZOA7HSDUFQL2I7PJHL4Z5C2WI \ / AMOS7 \ YOURUM ::
+#\[7]MFZQ5E6QNY6MLUJR33FN3XE4O2EZ7WYBYD4QCOPCUNEWNT5FWIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

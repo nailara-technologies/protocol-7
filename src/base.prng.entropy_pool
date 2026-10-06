@@ -77,9 +77,7 @@ if ( opendir( my $dh, '/sys/class/net' ) ) {
 }
 
 ## process + time ##
-my $hires
-    = eval { require Time::HiRes; join ' ', Time::HiRes::gettimeofday() }
-    // time;
+my $hires = <[base.time]>->(9);    ## hi-res [ bin/Protocol-7 ] ##
 $bmw->add(
     join ':', $PID, $hires,
     eval { ( getpwuid($EUID) )[0] }                           // '',
@@ -112,8 +110,8 @@ eval {
 
 return $digest;
 
-#,,..,...,...,.,,,,.,,.,,,,,,,..,,..,,...,,,,,..,,...,...,...,.,,,...,.,,,,..,
-#N6NHUQJERAFSQETEMIU7ILZNOFSGWZEJPGRN37PQCPWBQ5M2ZRICGVD3PLZ5TSHRXHAON6MPNCFUK
-#\\\|HHSXAASLCNR47WR5VNLTA56NOHCWYQIQ7VEQ2ISCOMK4JMDV422 \ / AMOS7 \ YOURUM ::
-#\[7]RN7AB5L253WU3O6NYGLXUESWWJHFZSR62GPB6D5FL47DVBJ6PCDQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,.,,..,,,..,,..,,,,,.,.,...,..,,...,..,,,,.,.,,,..,,..,,..,,
+#LTG3JFFHOGIAG26QIRKOG4KHT5AEUOZYFIFPO6PPOYLOIG7ABNPT4R6VOJB7OBHGI75WXNVFGI5MU
+#\\\|KWTVZR65STRQ4FZCZ6WODIT2BP2V3PUIZTRFFSOAS7GVEEOQ5RW \ / AMOS7 \ YOURUM ::
+#\[7]BOJKHJ4JYZJ423SOODREJVKJM2ZJUO233LQZBC4KWOJYYV7ODKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,16 +2,37 @@
 
 # name  = base.prng.init_code
 
+my $reinit = shift;    ## guard : a reload must not arm a second timer ##
+
 <[base.perlmod.load]>->('Crypt::PRNG::Fortuna');
 
 ##  Crypt::PRNG::Fortuna object is in <base.prng.fortuna>  ##
 ##
 <[base.prng.reseed]>;
 
+## keep feeding fresh entropy [ base.prng.add_entropy ] -- eval : a zenka ##
+## without an event loop simply goes without the timer                    ##
+<base.prng.cfg.add_entropy_interval> //= 137;
+if (   not $reinit
+    or not defined <base.prng.entropy_timer>
+    or not eval { <base.prng.entropy_timer>->is_active } ) {
+    eval {
+        <base.prng.entropy_timer> = <[event.add_timer]>->(
+            {   'after'    => <base.prng.cfg.add_entropy_interval>,
+                'interval' => <base.prng.cfg.add_entropy_interval>,
+                'repeat'   => 1,
+                'handler'  => qw| base.prng.handler.add_entropy |,
+                'data'     => {},
+                'desc'     => 'fortuna : periodic fresh entropy',
+            }
+        );
+    };
+}
+
 0;
 
-#,,.,,,,,,,..,..,,.,,,..,,,.,,.,,,.,.,,.,,,.,,..,,...,...,...,...,...,...,,.,,
-#YUM3SVFY624IZ5MOUIUZDGJYURLOUPICEVU3NOUBISSFTL5ORW3VXKX4JD6MI7YSQYWBXTVHSKPQ6
-#\\\|XCNYTF3KTSBLLGTN2SHMRRDICRYLDQH3DETUKUYZOUYOZVFM7VY \ / AMOS7 \ YOURUM ::
-#\[7]3PZEU5KJFH7OG45GYL53F66X3NAF2I45UNBHTCPQMIYIA3J3SGDA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,.,,,,,,,,..,,..,,.,,,.,,,,.,..,,...,..,,..,,.,.,.,.,,.,,,..,
+#SE67R7PXHLGTVKXLKS24CWJ3ZG2A4OD4NBOKBPUOF6FQQNXJ4DTMW5D3IUPPC6IP7SHJW5LQQ5AVA
+#\\\|RO4PRQSH4QSU47ZTKIRROKHYPC4JKUMP4FN2HOHRWG3N5QQ2CW2 \ / AMOS7 \ YOURUM ::
+#\[7]ZQYWFVD2EPU3S55DTTL5HMIX5KZJXLKGHE2G5Z7N6PWVAUDKMIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
