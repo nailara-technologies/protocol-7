@@ -5,6 +5,8 @@ metadata:
   type: project
 ---
 
+**SUPERSEDED** by [[project-2026-10-06-session-handover-security-sweep]] [ last `a35a0ae62` ] -- start there.
+
 session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
 [[project-2026-10-03-session-handover-osf-os-pkg-space]].
 
@@ -123,8 +125,8 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   for out-of-scope files after a kimi job
 - pre-commit hook : `# descr` max 55 chars
 
-#,,..,.,,,..,,,,.,..,,..,,,.,,.,,,.,.,,..,,,.,..,,...,..,,.,.,.,.,.,,,...,.,,,
-#BP7QVW3FWKQY53ZOGRVYODVWRANIPIS7LRU6IOEGJWCRIC2RZ5KXRVTLUO2Y4D33U3FLYCI4EWHUW
-#\\\|XCF676DXF5FYG54LAEP57PSXU3IVJNGPEM6YXOTIKJXKG3HFK2Y \ / AMOS7 \ YOURUM ::
-#\[7]ZJZXRHTP7KHHY4PZYB5HEVDBS7JEY3JRW4C7LN64ZDTW4YPOQOBI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,...,.,,,,,,,,,.,,,,,,..,...,..,,...,..,,..,,.,,,.,.,,..,.,.,
+#BAZIKJUXGWC57QTAP4MTDPXYXAX445PF2DEELH3X2F3RYRLGDB7FM7Q5WRZYETLSNGVRCXGXNBUX6
+#\\\|TQNS3A34SVGYOSGX7NB2L7KYN5OTNTVIVLE2WRGCPBF7B2JKTER \ / AMOS7 \ YOURUM ::
+#\[7]XPNI5UOWEOSYCI2FD3DUWL5Z3Z7AC7BL25XZ5JUFYUBXO3LWTKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
