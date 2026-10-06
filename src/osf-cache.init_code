@@ -45,6 +45,10 @@ my $state_file
 <osf-cache.cfg.scan_slice>     //= 4;
 <osf-cache.cfg.lookup_timeout> //= 5;    ## seconds [ peer lookup ] ##
 
+## stage 4b : peer discovery also asks these external links  [ ##
+## space-separated names, //= '' : the local cube only ]       ##
+<osf-cache.cfg.remote_links> //= '';
+
 ## stage 3 : segment fetch + verify ##
 <osf-cache.cfg.segment_max>     //= 65536;        ## bytes per segment ##
 <osf-cache.cfg.segment_timeout> //= 10;           ## seconds per segment ##
@@ -75,8 +79,8 @@ if ( index( $cache_dir, "$data_dir/" ) == 0 and not -d $cache_dir ) {
 
 0;
 
-#,,.,,,,.,,.,,.,.,,,.,,..,.,.,.,,,..,,..,,...,.,.,...,...,...,,..,,,.,...,,,,,
-#CIWCBMNDE2YWM7M7A7F5A362CNJZFX4VPMLPTGVQVCDCE56OODAFRDFTNCHCU2DRTSZIDKYHTUHHE
-#\\\|EEZTQQADZSSHHFXRNSNWOUETTJKA56PVVEGHNK5QTUQE333YFHG \ / AMOS7 \ YOURUM ::
-#\[7]6GIH53IVT3CSGRCN74CLAR7OX5WDY2V63GVLYOB6M4UHBZRHGQBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,.,...,,,,,...,,.,,,..,...,..,,.,.,...,...,..,,.,,,.,.,..,,,..,
+#L6L37WFP3IL54E5NUGTNNKGJWNWKEYE5NYALFW3TTBUWOTULSPXBX3ZZS2GAWMYHTAE22AYXTCFQA
+#\\\|EC4TWH65EM2YHGJLWJTGTKZJAVYLPCPPZNFAIGNSGLUSTYZFLDA \ / AMOS7 \ YOURUM ::
+#\[7]5Y77IDKNOC25WQUTRNG3GNAM4OKT3OV5MXBCVQUMMGHOZB2NTUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

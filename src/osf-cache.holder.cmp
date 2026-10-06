@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = osf-cache.holder.cmp
+# descr = order two holder route strings [ returns -1 | 0 | 1 ]
+# param = [ <holder>, <holder> ]
+#
+# holders are ROUTE PREFIXES since stage 4b, not bare sids :
+# '<sid>' reaches a holder on the local cube, 'external.<link>.<sid>'
+# one behind a configured external link [ osf-cache.peers.list ]. the
+# order : LOCAL holders first, numeric by sid ; then the remote ones
+# by link name, then numeric by sid. STRING-SAFE ONLY - a numeric
+# '<=>' on a route string would numify 'external.self.42' to 0 [
+# the stage 4b pitfall ]. anything that is not a well-formed holder
+# falls back to a plain string compare [ the merge_replies test
+# nodes ]. SECURITY : a remote holder stands behind an external
+# link - the link authenticates US to the remote cube but does not
+# yet prove the SERVER's identity [ open : the trust chain work ] ;
+# content stays safe [ every segment is checked against the agreed
+# merkle leaf, the file against the signed anchor ] but commands
+# over the link are not authenticated end to end : localhost \
+# own nodes only for now.
+
+my ( $holder_a, $holder_b ) = @ARG;
+
+return 0 if $holder_a eq $holder_b;
+
+my ( $link_a, $sid_a )
+    = $holder_a =~ m{^external\.(\S+)\.(\d+)$}o ? ( $1, $2 )
+    : $holder_a =~ m{^(\d+)$}o           ? ( '', $1 )
+    :                                      ( undef, undef );
+
+my ( $link_b, $sid_b )
+    = $holder_b =~ m{^external\.(\S+)\.(\d+)$}o ? ( $1, $2 )
+    : $holder_b =~ m{^(\d+)$}o           ? ( '', $1 )
+    :                                      ( undef, undef );
+
+return $holder_a cmp $holder_b
+    if !defined $sid_a or !defined $sid_b;
+
+return -1 if !length $link_a and length $link_b;    ## local first ##
+return 1  if length $link_a  and !length $link_b;
+
+return $link_a cmp $link_b if $link_a ne $link_b;
+
+return $sid_a <=> $sid_b;
+
+#,,..,.,,,.,..,,.,.,.,,..,,,,,,.,..,,.,,.,,,,.,.,...,...,..,,,,..,,,,.,,.,,..,
+
+#,,,,,.,.,..,,,.,,.,.,...,,.,,...,,,.,,.,,,.,,..,,...,...,.,,,.,,,.,,,,..,...,
+#NJ2PICXJWVYQQR2ALKVDCHVQWGGOSBKJJJCHYOK4SMGKD2DKM6VBTBKW7KPOIYDVE2IMFI5OGTJIY
+#\\\|ICVAYE7PXURNS43TO6BOF7KXE4PZKKCQDVEFHOHEEHT2JWHLNN2 \ / AMOS7 \ YOURUM ::
+#\[7]QOK5VHSBAJKFNVGX3HI2IR7PRFFAXP22O4D7CY4WEF7SM5YG44AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

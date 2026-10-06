@@ -8,7 +8,9 @@
 # osf-cache.handler.has_reply [ last peer answered ],
 # osf-cache.lookup.with_peers [ zero peers : mode true 'no peers'
 # passed in ] and osf-cache.lookup.timeout [ whatever arrived ].
-# sids still pending count as failed [ undef reply ]. without an
+# peers still pending count as failed [ undef reply ]. failed
+# remote links [ stage 4b, from the peers discovery ] are added to
+# the merged failed_nodes - listed like failed peers. without an
 # explicit mode the replies merge against the index sizes [
 # merge_replies ] and format into the reply text [
 # format_lookup_reply, mode size ]. the reply goes out through
@@ -49,9 +51,17 @@ if ( length( $state->{'on_done'} // '' ) ) {
                 'expect'  => $state->{'expect'}  // {},
             }
         );
+        my $mdata = $merged->{'data'} // {};
+        ## failed remote links : listed like failed peers [ 4b ] ##
+        if ( scalar @{ $state->{'failed_links'} // [] } ) {
+            push @{ $mdata->{'failed_nodes'} }, @{ $state->{'failed_links'} };
+            $mdata->{'failed_nodes'}
+                = [ sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
+                    @{ $mdata->{'failed_nodes'} } ];
+        }
         $result = {
             'mode'   => qw| true |,
-            'merged' => $merged->{'data'} // {},
+            'merged' => $mdata,
         };
     }
 
@@ -91,8 +101,16 @@ if ( length( $state->{'on_done'} // '' ) ) {
                 'expect'  => $state->{'expect'}  // {},
             }
         );
+        my $mdata = $merged->{'data'} // {};
+        ## failed remote links : listed like failed peers [ 4b ] ##
+        if ( scalar @{ $state->{'failed_links'} // [] } ) {
+            push @{ $mdata->{'failed_nodes'} }, @{ $state->{'failed_links'} };
+            $mdata->{'failed_nodes'}
+                = [ sort { <[osf-cache.holder.cmp]>->( $a, $b ) }
+                    @{ $mdata->{'failed_nodes'} } ];
+        }
         my $formatted = <[osf-cache.lookup.format_lookup_reply]>->(
-            {   'merged'  => $merged->{'data'}   // {},
+            {   'merged'  => $mdata,
                 'anchors' => $state->{'anchors'} // [],
                 'unknown' => \@unknown,
             }
@@ -116,8 +134,8 @@ delete <osf-cache.lookup.pending>->{$lookup_id};
 
 return;
 
-#,,..,.,,,,..,.,.,.,.,,.,,.,.,,,,,..,,...,...,.,.,...,...,.,.,.,,,,.,,.,,,...,
-#X7P67F7MR2DAGESU2KC4I6Q6RXLHHJLDD7GVIR4LO7QI7ZFRGIAX2AC52AIZS33VUPOUCPYHZUT2O
-#\\\|FZA5CBR33F2O5HQAEUT7RDDKI3CU24BKR7OB7B7GHFCP7OPIEAW \ / AMOS7 \ YOURUM ::
-#\[7]LOI2BQH5KY57C4F4VPLDE3U6GB7W3ZBY4ONTEZC2HVCO6Q7SLUDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,..,.,.,,,,,,..,,,,,,,,,,.,,.,.,...,...,.,,,.,,,.,.,,.,,.,,,
+#ILAE37S5KZ3X2F64ACZFGJQSK7TE6KTW4Q25CFNJIG7LWYKSYC7HS532IQR6QQHMXTVYZZDV33PFQ
+#\\\|RD7Z7JPKOX3BQLXFIJAAAXHDFG7NJXRELTYQIG24OM5KZNA3KVE \ / AMOS7 \ YOURUM ::
+#\[7]7HGYTJZIDMQ4YVTBZTJDQRG4IE53BGWHZN7UMEBUV2XRIQRZPSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
