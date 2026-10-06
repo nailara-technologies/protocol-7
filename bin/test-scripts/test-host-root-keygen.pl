@@ -258,12 +258,15 @@ ok( defined $true_secret
 );
 delete $keys{'C25519'}{'explicit'};
 $gen_keys->( qw| explicit |, undef, $untrue_secret );
-my $kept = defined $untrue_secret
-    && $keys{'C25519'}{'explicit'}{'secret'} eq $untrue_secret;
-say '         explicit secret with an UNTRUE public key : '
-    . ( $kept ? 'kept as given' : 'REPLACED by a fresh random secret' );
-ok( truth( $keys{'C25519'}{'explicit'}{'public'} ),
-    '  :.. stored key passes truth either way'
+## a supplied secret rebuilds an EXISTING key : kept exactly as given, no ##
+## truth requirement [ was silently replaced before 2026-10-06 ]          ##
+ok( defined $untrue_secret
+        && $keys{'C25519'}{'explicit'}{'secret'} eq $untrue_secret,
+    'explicit secret with an UNTRUE public key : kept as given'
+);
+ok( $keys{'C25519'}{'explicit'}{'public'} eq
+        Crypt::Ed25519::eddsa_public_key( $untrue_secret // '' ),
+    '  :.. public key derived from exactly that secret'
 );
 delete $keys{'C25519'}{'explicit'};
 
@@ -410,8 +413,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,..,,.,,,,.,,,.,,..,,.,.,.,.,..,,,..,,.,,..,,...,...,,,,,,,,,.,.,.,,,,,.,
-#EKJ7CHGZMGZQ6C3DAWGWCCGUZVJFU4DF4UMBXZIGVIXGULUEC6PQ54SXMRTP7OLXJJ6UFRDSOVAO6
-#\\\|AX655Y2KRRG2W6FMAU2SFY3GLRN5DOBREZPFTMOQIOSEWXXZN7J \ / AMOS7 \ YOURUM ::
-#\[7]Q6ZYYLPBM43IGQM23NHAATUYW5YVPE6QKDL7L6WLWE5JGS6N3AAA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,.,,,..,,,..,.,.,,,.,,,,,,.,,..,,...,...,...,..,,,,.,..,,,.,,
+#L45XJ4O632CEMLOQCJF3Y7ADA5TDBOV7FJ47TCCZGQOOUS5TMGLNQYHR5MPAJDILYPJWD5JTTBIB2
+#\\\|TXOHX5LUIOEGZPVIPJZPWNKTLAO4BM333WKL5OYLCNP2YAQLERI \ / AMOS7 \ YOURUM ::
+#\[7]GIMPBSLUX5ITZ6HSYKNSREREIAPUXMEJ5HTF2QA6R76BMWG3T4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
