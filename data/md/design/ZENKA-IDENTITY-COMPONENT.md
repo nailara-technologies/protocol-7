@@ -83,7 +83,7 @@ a key with zero incoming signature edges is a **valid root**. this is
 umbrella question 1's answer (b) — every key its own root — taken as
 the base case, with answer (a) — single root with members — expressible
 later as nothing more than a dense set of edges toward one key
-(`global-root` / `protocol-7.base` already exist as de-facto anchors).
+(`host-root` is that key's slot on every host).
 both perspectives hold over the same data; nothing in this layer
 pre-registers a key into either model, so the question does not need
 further resolution before this component is built.
@@ -124,7 +124,7 @@ properties that fall out of using the existing primitive unchanged:
   is detectable (no matching request).
 - **verification is a walk, already working.** verify one hop with
   `verify_key_signature`; walk from any root the verifier already
-  trusts (a TOFU pin, or `global-root`). discover's presence-packet
+  trusts (a TOFU pin, or `host-root`). discover's presence-packet
   path does exactly this multi-hop walk today.
 
 ## layer 3: rotation — old key signs the handoff, as an edge
@@ -264,8 +264,8 @@ per the umbrella doc's question 8, checked before adding structure:
   (ai memory) — ground-truth inventory establishing that delegation
   needs structure, not new primitives.
 
-#,,.,,.,.,,.,,,..,,,,,...,...,..,,,.,,,.,,,,,,..,,...,...,...,...,,,.,.,.,,,,,
-#4O7PSZ3LZB553PJSUM6J2VZCXKNRIWZ7DPUDC7SHI6SEQLT3FO5X5AXOF3GED5QJ3R5HWT3WAOHIU
-#\\\|AZXCAMZUUHV66LGAQUXROM3K4LD4KNZ5P6WBDB3EU3GK3EKTPQM \ / AMOS7 \ YOURUM ::
-#\[7]XHJKTN6YNB7O6OIA3RJHGK2IG6PXW4IUPZXT2TG6VE6JGCSL2ECY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,,,,,...,,,,,,,,,...,,..,,.,,..,,...,...,.,.,,.,,.,.,...,.,.,
+#4U27KXDT4DCI46U7OYHTF34FSVLEB23NPAZ54U732PI2BKSWNEO7L27PXVEPL6QGL2NU7K6H2XD6E
+#\\\|7YLXIRAFE7O73BHTIK2XC7ZXZPUHSAFR4TCJVA3HR24U42HTL7X \ / AMOS7 \ YOURUM ::
+#\[7]OXFEXTPAG7NVLT7XQSHGVL5MUA5UYSUQ2UBU6XNL3WSJMXPHNSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

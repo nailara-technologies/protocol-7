@@ -51,35 +51,23 @@ having the gaps closed".
 - namespace as the authority boundary [ a host key certifies only
   `<host>.*` ? ]
 
-## existing placeholder : the 'global-root' key [ found 2026-10-05 ]
+## the root key slot : host-root [ 2026-10-06 ]
 
-- created by v7-zenki's first start in every user's key dir
-  [ `crypt.C25519.post_init`, `cfg.create_global_root_key` //= TRUE ] next
-  to `<user>.base` ; user : "a placeholder if you will, we can expand and
-  tie in that mechanism"
-- it is a FIXED, PUBLICLY KNOWN key pair : `crypt.C25519.gen_keys` maps the
-  secret `'0' x 32` to hardcoded public + private keys IN THE SOURCE ->
-  identical on every install, anyone can sign as it. harmless only while
-  nothing verifies against it [ `sign_keys` is commented out in post_init ]
-  -- NEVER anchor a chain on it as is ; a verifier must refuse chains that
-  end at the well-known placeholder
-- what the mechanism already gives : the "C25519" triplets are Ed25519
-  [ `Crypt::Ed25519::generate_keypair`, they can sign ], and gen_keys can
-  derive the secret from a passphrase [ `AMOS7::13::key_32( passphrase,
-  name )` ] -> a candidate answer to the location question : root secret
-  re-derived from the owner's passphrase on demand, never stored, only
-  the public half on disk \ distributed [ like the source signing prompt ]
-- proposed tie-in : keep 'global-root' as the anchor SLOT, fill it with
-  the owner's real root ; the placeholder pair only marks "no root yet" ;
-  root signs host \ user `.base` delegations [ the rewritten `sign_keys`
-  in post_init ]
+- v7-zenki's first start creates `host-root` in the protocol-7 user's
+  key dir from fresh random bytes [ `crypt.C25519.post_init`,
+  `cfg.create_host_root_key` //= TRUE ] -- the per-host root the chain
+  anchors at ; nothing signs with it or trusts it yet
+- the "C25519" key triplets are Ed25519 [ they can sign ] ; gen_keys can
+  also derive a secret from a passphrase [ `AMOS7::13::key_32` ] -> a
+  candidate for the owner root : re-derived on demand, never stored,
+  only the public half on disk [ like the source signing prompt ]
 
 ## per-host roots + fingerprint pinning [ user idea, 2026-10-05 ]
 
-- user : if atom used its global-root to sign all further sub-keys, then
+- user : if atom used its root key to sign all further sub-keys, then
   knowing atom's key checksum [ or the key in full ] closes the trust
   chain, TOFU included ; on-demand resolution possible but adds latency
-- agreed shape : a REAL per-host root [ not today's placeholder ] signs
+- agreed shape : a REAL per-host root [ host-root ] signs
   `<host>.cube`, zenka keys, `<user>.base`, session link keys ; peers pin
   only the root FINGERPRINT [ bmw384 B32, the osf-cache id format ] -- the
   full pubkey may come from anywhere, the fingerprint authenticates it ;
@@ -131,8 +119,7 @@ having the gaps closed".
   shown with fingerprint, the path down to the connected key, and the
   SCOPE trusting it grants [ every name it may certify ] ; the highest is
   the suggestion, the decision may pick a lower level [ intermediate,
-  or only the leaf, per context ] ; the placeholder global-root is never
-  offered
+  or only the leaf, per context ]
 - a decision = a trust declaration [ anchor, scope, context, optional
   expiry ], stored locally, ideally signed by the user's own key so
   declarations cannot be swapped on disk ; later connections find their
@@ -524,8 +511,8 @@ related : [[project-cross-host-trust-bootstrap-gap]],
 [[project-keys-zenka-integration-direction]],
 [[users-zenka-unblocks-cross-host-testing]]
 
-#,,,.,,,,,.,.,,..,.,,,,,,,,,,,,.,,...,,.,,...,..,,...,...,...,...,,..,...,..,,
-#6DMZBKAUPMZJKVEH4Y7IEBQDMLHWY3ZL754XNQUEA5EQOO4KI5CJKLXCH5KOQSPA6KI5OTP7R6QWU
-#\\\|EX4WTZKIMJUE6SVRWVZZOEER4J3RF46Q3EZGVPGD2NTY3L4Q7AV \ / AMOS7 \ YOURUM ::
-#\[7]FMTVZGH6XJ3GN34VEFNXRYFLELRXBHOCEFAUQKVZXR5TYLJ67UBA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,...,,..,.,,,,,.,...,.,.,,,.,..,,...,...,..,,.,.,.,.,,,,,.,,,
+#7XH7UXNXK2YCX4ESYAQYFOIGWJPGFBQISA2NBAT5FM7ANXZ6JTFUDKWIK7KPFBKGIQ225BOCCZOE6
+#\\\|Q6QGCZXH3UZZV7BNRV4DZZMWPKAM3NRGRZ7ZHP3TPXY6TRAKREX \ / AMOS7 \ YOURUM ::
+#\[7]LLDKOFUTTIGNLTKRYVXBFQIP4K5CDFTXZSZFOF4C3W2CLDVLCOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

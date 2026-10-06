@@ -38,9 +38,9 @@ why this is deliberately not being solved in one pass.
   for "user key controlled by a passphrase, never on disk" — it's an
   existing loading mode.
 - storage today, per `p7-keys list`: per-Unix-user keys
-  (`~/.n/user-keys/<user>.*`) plus a `global-root` + `protocol-7.base`
-  pair under a locked-down system `protocol-7` user (`no-r.perms`) —
-  the de-facto common trust anchor. no per-zenka identity concept
+  (`~/.n/user-keys/<user>.*`) plus `protocol-7.base` and the random
+  `host-root` [ this host's trust anchor slot ] under a locked-down
+  system `protocol-7` user (`no-r.perms`). no per-zenka identity concept
   exists yet (confirmed by exhaustive grep, see
   `project-zenka-cryptographic-identity-survey.md`, ai memory).
 - `plugin.auth.auth-keypair.*` — working TOFU pinning, but scoped to
@@ -272,8 +272,8 @@ discovery) not started.
 - `data/ai-mem/claude/project-zenka-cryptographic-identity-survey.md`
   (ai memory) — ground-truth crypto/identity inventory this builds on.
 
-#,,,.,.,.,,,.,...,..,,.,.,...,,..,,.,,...,.,.,..,,...,..,,...,,,,,..,,,,.,.,,,
-#NZC74TNDZJN2DOH7DEPLVWIAAGIUEFWAPCYHYKV6JD4CNLOU3KLLJC2K37V3WUBFLO4BXD7BBTEV6
-#\\\|KLZEBWAVZSZOVFMMGF3EHL6KV4PPCCF3QQYOWHJKBD42OQZI5QZ \ / AMOS7 \ YOURUM ::
-#\[7]QAO6B2CVQR2NCPXM4S56JLQ5TZ3B66XI57GW6B72SMN66EJBBQBQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,..,,,..,..,,,,,,,,.,,..,,.,,..,,...,...,,,.,,,,,,.,,,,.,,.,,
+#TDWIF4YLNRSL56SB5Y2FLDQSC6NGVKQWQMY5EZ6GQ7XJLEQ6C5DGNZK6BS5JOOZ6W7E5E4BW4TXUA
+#\\\|A2BGYG4N7FAS3COHCULZXTHQWQ76COZ663P5SCVZRMGCLG2D4UV \ / AMOS7 \ YOURUM ::
+#\[7]VNWEREBFVNM3XPUJSROW4LX3CSBIHMBXTREBLANKYAHFRJYY5QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

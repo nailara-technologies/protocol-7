@@ -31,34 +31,6 @@ if ( defined $secret_key and length($secret_key) != 32 ) {
 
 <[base.logs]>->( 2, "generating '%s' C25519 key pair ..,", $name );
 
-if (defined $secret_key    ##  'global-root' key  ##
-    and $secret_key eq qw| 00000000000000000000000000000000 |
-    ) {                    ##  filling in known values for speed-up  ##
-
-    my $public_key = Crypt::Misc::decode_b32r join '', qw[
-        DOSAOW3XZHR7WPWN4FONV5JCD4
-        6BANZ6MI7XWDQ665RWNMFPOE3Q
-    ];
-    my $private_key = Crypt::Misc::decode_b32r join '', qw[
-        TC3NCKDIFYUAW5FTETF
-        IFJV243UKH5YXJYDALP
-        6VF24ZJD5NRFCIKTWAR
-        53FF4ZAKXCKT4JLNGW5
-        JBIEQHMVAOT7EISVAFT
-        R2YJEMSA
-    ];
-    $keys{'C25519'}{$name} = {
-        qw| secret |      => $secret_key,
-        qw| public |      => $public_key,
-        qw| private |     => $private_key,
-        qw| checksum |    => qw| <:VAESDLQ:22HJMWY:> |,
-        qw| time-loaded | => <[base.ntime.b32]>->( 1, TRUE )
-    };
-
-    goto SKIP_GENERATING;
-}
-##
-
 $secret_key //= AMOS7::13::key_32( \$key_seed_passphrase, \$name )
     if defined $key_seed_passphrase;    ##  using entropy of key name  ##
 
@@ -106,10 +78,6 @@ $keys{'C25519'}->{$name} = {
     qw| time-loaded | => <[base.ntime.b32]>->( 1, TRUE )
 };
 
-##  already filled in at start  ##
-##
-SKIP_GENERATING:
-
 ##  lock key in memory to not never swap it to disk  ##
 IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 );
 IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
@@ -117,8 +85,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,,,,,.,,,.,,..,,..,,,.,,,,,,.,,,..,,..,,,,,..,,...,...,.,,,,,.,,,.,..,,,.,,
-#HHSOC2VR45U6MDQQBSSRMU6R7BVBF3NK46D5OKKVYVXY3JVGN42E23KGV5KANWLIM4DDSO2ARUNII
-#\\\|JPAKW4D7E64RMLBKEA4DFYHYBABQW5IM34WW4GH533VSH4GZ6YT \ / AMOS7 \ YOURUM ::
-#\[7]R34DLAGXP6PECNKKHJV3YB5GATC7Z5C6UQPAOXNRA4FUPY4JSGBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,,..,.,,,.,.,,,.,...,.,.,,.,,..,,...,...,...,,,.,,.,,.,,,.,,,
+#OUEFCWGAX3B3MIGBDMVHRFMOAIKCTOEHLE7HLBYXNDQHXZFB2M2ODT46EPWL3B4XFVL2TENPXVOZG
+#\\\|PEPHI4Y476O53PBUHXT36VNWWGCXVZZWVROP67OUJAXQVSUFZCA \ / AMOS7 \ YOURUM ::
+#\[7]5CN4QAI2ZLYVSAROP7VLMEGURDPSJWS4UG3WIXSETNIUPAT2AIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -147,7 +147,7 @@ question above (`keys`' hostkey pins vs. `users`' `remote/` vs.
 of the key system is actually load-bearing (see
 [[bug-crypt-c25519-key-vars-base-identity-hijack]]'s "identity key is a
 NEW concept" section for the concrete evidence)**: key names are loose,
-free-form conventions (`base`, `global-root` are just strings someone
+free-form conventions (`base` is just a string someone
 picked, not semantics the system enforces), and almost nothing depends on
 the current structure holding still. Per user: "we can freely change a
 lot without breaking anything. the only load bearing thing currently is
@@ -287,8 +287,8 @@ both up and down, not just a single strict parent-chain per key the way
 `key_signed_by`'s current attached-signature-file scan implicitly assumes.
 Still exploratory — no file format/syntax decided yet as of this message.
 
-#,,,,,..,,.,.,,,,,,..,..,,...,...,,,.,...,,,,,..,,...,...,.,,,.,.,..,,,..,.,,,
-#T7LUDXT2PQDAVG7MW6G2FP62VNJF4RK2TLULLLICNH4XI4GCCTS3E23U7KKVASVJK7MKDHO7ZMTKK
-#\\\|I7WK2PPSH4WY6INBXBOFBSFY7CNQRHTGMGRKTN4XPHL74UVNUL5 \ / AMOS7 \ YOURUM ::
-#\[7]JCSC2ZGJ4KU3W66KDFG5IZFE4UUNCLVBCQV6NDZMYBFHPVRPXQBI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,,.,,.,,,,,,,..,,.,.,.,,,.,.,..,,...,..,,...,,..,,,,,,,.,,.,,
+#YM52L6HZLDNPO24DX2ELUYHNRHBLHWWPTAK2G7NA3B3QNPFOYBBS3ZKHOYX7PE2VEGZWMMTY7DVOO
+#\\\|2EOGDOA6JVVN7MPWXSKRHZVRDZYWQBDVQW6ZUV6X2XOUTMBT5KM \ / AMOS7 \ YOURUM ::
+#\[7]BMFR7ARWTFJUEGC5WVIZWNRSIJYTDRO3ONNYIOKGVNZH7BUUX4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
