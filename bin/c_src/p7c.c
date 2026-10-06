@@ -13,15 +13,6 @@
 char *src_bmw_b32 = "[BMW_FILE_CHkSUM]";
 char *socket_path = "/var/run/.7/UNIX/NIW7OAQ"; // ENV{'PROTOCOL_7_UNIX_PATH'}
 
-/* Link-upgrade encryption state */
-struct encryption_state {
-    int enabled;
-    char *key;
-    unsigned int session_id;
-    unsigned int read_counter;
-    unsigned int write_counter;
-};
-
 /* Stream-locking state for STRM protocol handling */
 struct stream_state {
     int locking_enabled;     /* 1 if stream-locking true sent */
@@ -68,119 +59,6 @@ void strip_newline(char *str)
     int len = strlen(str);
     if (len > 0 && str[len - 1] == '\n')
         str[len - 1] = '\0';
-}
-
-/* Link-upgrade negotiation */
-int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
-{
-    FILE *f;
-    char cmd[1024];
-    char server_pubkey[256] = {0};
-    char client_pubkey[256] = {0};
-    char client_secret[256] = {0};
-    char shared_secret[256] = {0};
-
-    /* 1. Send link-upgrade init */
-    if (write(socket_fd, "link-upgrade\n", 13) < 0)
-        return -1;
-
-    /* 2. Read server response: "TRUE link-upgrade OK <pubkey_base32>" */
-    char response_line[512] = {0};
-    if (read_line(socket_fd, response_line, sizeof(response_line)) < 0)
-        return -1;
-    strip_newline(response_line);
-
-    /* Extract pubkey from "TRUE link-upgrade OK <pubkey>" */
-    char *pubkey_start = strstr(response_line, "OK ");
-    if (!pubkey_start) {
-        fprintf(stderr, ":: invalid server response during link-upgrade ::\n");
-        return -1;
-    }
-    pubkey_start += 3;  /* Skip "OK " */
-    strncpy(server_pubkey, pubkey_start, sizeof(server_pubkey) - 1);
-
-    /* 3. Generate client ephemeral keypair via helper */
-    f = popen("/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl gen-ephemeral 2>/dev/null", "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to spawn crypto helper ::\n");
-        return -1;
-    }
-
-    if (fgets(client_pubkey, sizeof(client_pubkey), f) == NULL ||
-        fgets(client_secret, sizeof(client_secret), f) == NULL) {
-        pclose(f);
-        return -1;
-    }
-    pclose(f);
-    strip_newline(client_pubkey);
-    strip_newline(client_secret);
-
-    /* 4. Send client pubkey */
-    snprintf(cmd, sizeof(cmd), "link-pub-key %s\n", client_pubkey);
-    if (write(socket_fd, cmd, strlen(cmd)) < 0)
-        return -1;
-
-    /* 5. Read readiness confirmation */
-    char confirm[256] = {0};
-    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
-        return -1;
-
-    /* 6. Compute DH shared secret via helper */
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl compute-dh %s %s 2>/dev/null",
-             client_secret, server_pubkey);
-    f = popen(cmd, "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to compute shared secret ::\n");
-        return -1;
-    }
-
-    if (fgets(shared_secret, sizeof(shared_secret), f) == NULL) {
-        pclose(f);
-        return -1;
-    }
-    pclose(f);
-    strip_newline(shared_secret);
-
-    /* 7. Derive encryption key via helper */
-    state->session_id = (unsigned int)time(NULL);
-    snprintf(cmd, sizeof(cmd),
-             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl derive-key %s %u 2>/dev/null",
-             shared_secret, state->session_id);
-    f = popen(cmd, "r");
-    if (!f) {
-        fprintf(stderr, ":: failed to derive encryption key ::\n");
-        return -1;
-    }
-
-    state->key = (char *)malloc(256);
-    if (state->key == NULL || fgets(state->key, 256, f) == NULL) {
-        pclose(f);
-        return -1;
-    }
-    pclose(f);
-    strip_newline(state->key);
-
-    /* 8. Send encoding confirmation (none = no transport encoding) */
-    char enc_cmd[256] = {0};
-    snprintf(enc_cmd, sizeof(enc_cmd), "link-confirm-encoding none\n");
-    if (write(socket_fd, enc_cmd, strlen(enc_cmd)) < 0)
-        return -1;
-
-    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
-        return -1;
-    strip_newline(confirm);
-    /* Expect: "encoding-confirmed" or similar success response */
-
-    if (write(socket_fd, "link-complete\n", 14) < 0)
-        return -1;
-
-    if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
-        return -1;
-
-    state->read_counter = 0;
-    state->write_counter = 0;
-    return 0;
 }
 
 int main( int argc, char * argv[] ) {
@@ -303,22 +181,13 @@ int main( int argc, char * argv[] ) {
         }
     }
 
-    /* Link-upgrade encryption negotiation (optional) */
-    struct encryption_state enc_state = {0, NULL, 0, 0, 0};
-
     /* Stream-locking state initialization */
     struct stream_state stream = {0, 0, 0, 0};
     stream.locking_enabled = 1;  /* p7c always uses locked mode for STRM safety */
 
-    char *link_upgrade_env = secure_getenv("PROTOCOL_7_LINK_UPGRADE");
-    if (link_upgrade_env && strcmp(link_upgrade_env, "yes") == 0) {
-        if (negotiate_link_upgrade(socket_fd, &enc_state) == 0) {
-            fprintf(stderr, ":: link-upgrade encryption negotiated ::\n");
-            enc_state.enabled = 1;
-        } else {
-            fprintf(stderr, ":: link-upgrade negotiation failed, continuing plaintext\n");
-        }
-    }
+    /* no link-upgrade here : p7c talks to cube over the unix socket only,
+       kernel-protected [ peer creds ] -- encryption is for tcp links
+       [ p-7-r ] */
 
     /* Send select-strm-mode first and read its response */
     write( socket_fd, "select-strm-mode locked\n", 24 );
