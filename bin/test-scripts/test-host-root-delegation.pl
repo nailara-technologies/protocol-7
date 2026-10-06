@@ -884,7 +884,7 @@ $code{'crypt.C25519.load_keypair'} = sub {
         if $ARG[0] eq 'host-root';
     return TRUE;
 };
-$data{'system'}{'hostname'} = 'TestHost';
+$data{'system'}{'node'}{'name'} = 'TestHost';
 
 sub setup_host_root {
     reset_root();
@@ -922,14 +922,14 @@ sub read_dlg {
         : undef;
     ok( ref $r eq 'HASH', '  :.. the .dlg verifies under host-root for S' );
     ok( ref $r eq 'HASH' && $r->{'name'} eq 'testhost.cube',
-        '  :.. name <system.hostname lowercased>.cube'
+        '  :.. name <system.node.name lowercased>.cube'
     );
     my $p = $statement->( 'parse_wire', $wire // '' );
     ok( ref $p eq 'HASH'
-            && $p->{'not_after'} - $p->{'not_before'} == 30 * 86400
-            && abs( $p->{'not_before'} - $t0 ) <= 2
+            && $p->{'not_after'} - $p->{'not_before'} == 30 * 86400 + 300
+            && abs( $p->{'not_before'} - ( $t0 - 300 ) ) <= 2
             && $p->{'scope'} eq '',
-        '  :.. 30 days from now, scope empty'
+        '  :.. 30 days from now, not_before 5 min back, scope empty'
     );
     my @st = CORE::stat($dlg_file);
     ok( @st && ( $st[2] & 07777 ) == 0644 && $st[4] == $UID,
@@ -1014,11 +1014,11 @@ sub read_dlg {
     rename "$s_file.real", $s_file;
 
     ## no hostname : nothing issued ##
-    delete $data{'system'}{'hostname'};
+    delete $data{'system'}{'node'}{'name'};
     @logged = ();
-    ok( !$issue->() && !-e $dlg_file, '<system.hostname> unset : refused' );
-    ok( logged_at( 0, qr{system\.hostname} ), '  :.. logged at level 0' );
-    $data{'system'}{'hostname'} = 'TestHost';
+    ok( !$issue->() && !-e $dlg_file, '<system.node.name> unset : refused' );
+    ok( logged_at( 0, qr{system\.node\.name} ), '  :.. logged at level 0' );
+    $data{'system'}{'node'}{'name'} = 'TestHost';
 
     ## host-root only in the user dir [ root/ renamed away ] : refused ##
     reset_root();
@@ -1213,8 +1213,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,...,...,..,,,..,,..,,,,,,..,,.,,..,,,,.,..,,...,..,,.,.,,.,,..,,.,,,,..,
-#JOUDN73SETLXJBUDD3M6CIZWSOJ7JV3NH7ZQFJRRSSIY55EP4B4JXE5QQLHGBNE5GGWFSYLRSMGBI
-#\\\|4H4RL5B45C6PFLLRBKOMLHAQMNGSSPQFVHXFIHNUMRTPJTPDCWI \ / AMOS7 \ YOURUM ::
-#\[7]XUZQNKS47P2RGKCJOALSBOJBPKSSSPLEW4C2I46D4FEB6KYXI4DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,,,.,,.,,,..,.,.,,,,,...,.,,,..,,...,...,,,,,,,.,.,.,,,,,,.,,
+#6MB3FHSHKN5SEJ5FSXF2THSPD33R63ZRUOWBJTJZRB7KPGO72LMMZUAIKU6LLJ26T4NHG4P772RHI
+#\\\|ULXH2KJPWPHCBTMFAU2V5YTGSY5ZTDC3DLSZPBHNINR4BZO3B6J \ / AMOS7 \ YOURUM ::
+#\[7]KCSMPUUQUKB2OON5LFMNNTLIZF4NLKYOPLIPQACPN3CAVTOJPYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
