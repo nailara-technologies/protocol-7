@@ -18,8 +18,6 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
-<crypt.C25519.cfg.create_global_root_key> //= TRUE; ##[ enabled by default ]##
-
 if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
     <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
     <crypt.C25519.initialized>++;
@@ -74,20 +72,22 @@ while ( glob sprintf '%s.{spk,sig}.*', $key_basepath ) {
     }
 }
 
-if (<crypt.C25519.cfg.create_global_root_key>
+## 'host-root' : this host's SECRET root key [ the trust chain anchors here ##
+## ], created once by v7-zenki's first start from fresh random bytes [      ##
+## gen_keys without a secret -> base.prng.bytes ]                           ##
+<crypt.C25519.cfg.create_host_root_key> //= TRUE;   ##[ enabled by default ]##
+
+if (<crypt.C25519.cfg.create_host_root_key>
     ## first zenka to start creates it ##
     and <system.zenka.name> eq qw| v7-zenki |
-    and not <[crypt.C25519.key_exists]>->(qw| global-root |)
+    and not <[crypt.C25519.key_exists]>->(qw| host-root |)
 ) {
-    if ( not exists $keys{'C25519'}->{'global-root'} ) {
-        <[base.log]>->( 1, "creating 'global-root' C25519 key .," );
-        <[crypt.C25519.gen_keys]>->(
-            qw| global-root |,    ##  from known secret key [ '0' x 32 ]  ##
-            undef, qw| 00000000000000000000000000000000 |
-        );
+    if ( not exists $keys{'C25519'}->{'host-root'} ) {
+        <[base.log]>->( 1, "creating 'host-root' C25519 key [ random ] .," );
+        <[crypt.C25519.gen_keys]>->(qw| host-root |);
     }
-    <[base.log]>->( 1, "writing 'global-root' key to disk..," );
-    <[crypt.C25519.write_keys]>->(qw| global-root |);
+    <[base.log]>->( 1, "writing 'host-root' key to disk..," );
+    <[crypt.C25519.write_keys]>->(qw| host-root |);
 }
 
 my $s_key_name = <system.zenka.name>;
@@ -102,8 +102,8 @@ if (    exists $keys{'C25519'}{$key_name}
 
 0;
 
-#,,,,,...,..,,.,.,...,...,,..,,,,,,..,,,.,,,.,..,,...,...,..,,,..,.,,,,.,,.,.,
-#UC2ZJEMQSNQYMPGUXIPYGAQBGQ4B3H26ODHNYMTNZIYRM46ML4LAVWZXIC3W2GUTQJIFS6ZS2VHUQ
-#\\\|PYDYUC3L7SERCH2DRNUMWFKJCYG5LTZSNHVVDANJSBKRUR3BDMT \ / AMOS7 \ YOURUM ::
-#\[7]6JJUDQANSBWVTUZCKN3LVC265TARFU3O7AT2KV7YJBT6UYSUXCBA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,.,.,..,,.,,,.,.,,.,,,,,,.,,,..,,...,...,.,,,..,,,,.,.,.,,..,
+#NRKXQMGFMTXUM4HL2FNKGT3DO5KFX6AAITOLFCZLDMZ2AOIDXILHGHSOSK5JD4JTG3NHTP53FCUFI
+#\\\|AKA2IBCRUC25E2XM2WJUYZF5SHGWRDTC3Y3WCPOK73OVFZTWDXG \ / AMOS7 \ YOURUM ::
+#\[7]YIJ4DROXFBZKGAUE4N5WDONO3LS5QBCPH2CETDA67SYGHMIEHIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
