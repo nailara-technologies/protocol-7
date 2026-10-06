@@ -18,7 +18,7 @@ is passed ; the calculated value drifts between writing rel-ver and tagging.
 version string on STDERR [ the decorated lines go to stdout ], so
 `bin/dev/release-version 2>cfg/protocol-7.rel-ver` writes the release file
 directly [ the terminal line then shows the version part empty -- by
-design ] ; then sign + version [ `uvs` ], commit, tag.
+design ] ; then sign + version [ the user's LOCAL alias `uvs` = `update-version && p7-sourcecode update-signatures :sign-silent: :stage:` -- not a repo tool ], commit, tag.
 
 **How to apply:** after the release commit, tag with the version FROM the
 committed file : `bin/dev/release-version -s $(head -1 cfg/protocol-7.rel-ver)`
@@ -26,8 +26,8 @@ committed file : `bin/dev/release-version -s $(head -1 cfg/protocol-7.rel-ver)`
 [[feedback-never-feed-command-substitution-into-destructive-cmds]] -- then
 check `git tag --points-at HEAD` before pushing tags.
 
-#,,.,,,,,,.,.,.,,,,..,.,,,..,,,,,,,,,,.,.,,,,,..,,...,...,,.,,...,.,,,,,.,,.,,
-#GK2U4JITEZNNHTFVHX6WB74CZPEOFNBIGKIIYU2AZ2ADWACI5UAUOV6XOQXMFM2ANBPW64COUKCWW
-#\\\|E7LJRSWVLUDZAJKOO2AGX4NBBDI7KC76GNU6UG3MJG5I6PAJ7A7 \ / AMOS7 \ YOURUM ::
-#\[7]5MURZFAJSQZI5LIUC5Q5OCVMLJADPL55VQTQOCJQIZL56QQXGACI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,..,,...,,..,,,,,,.,,,,,,,,,,..,,...,...,...,.,,,,.,,...,.,.,
+#WM2T7XWW7UL6636GU4EP3XILHLXS2Q2D3RN4JYTMXFGKYMMHJQYQBCZTKRA4UYG2ISQ4YNBMX5ARG
+#\\\|32IQ2OMAVXAORQ3NHVRUOWO5VZAYUSRZVJFVNC6WHKEMRXYCRPE \ / AMOS7 \ YOURUM ::
+#\[7]JIXE2SD2RAZGHG7DZVAK7ATGCC3PV4BKOTGC6ZXQANWW5HK5EQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
