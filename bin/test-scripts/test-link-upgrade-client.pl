@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 
-## the production runtime [ bin/Protocol-7 : use utf8 + Encode ] loads the  ##
-## bytes pragma transitively ; 39 src modules call bytes::length. mirror  ##
-## that here so the compiled frame writer resolves it.                   ##
+## the production runtime [ bin/Protocol-7 : use utf8 + Encode ] loads the ##
+## bytes pragma transitively ; 39 src modules call bytes::length. mirror   ##
+## that here so the compiled frame writer resolves it.                     ##
 use bytes;
 
 ## link-upgrade client handshake + activation [ 2026-10-06 ] compiles the   ##
@@ -16,7 +16,9 @@ use bytes;
 ## received nonce sid through a temp file. also exercises client_activate   ##
 ## and encryption.init with stubbed session init + perlmod lookups, and the ##
 ## frame-<id> writer the init installs. no zenka started, restarted or      ##
-## reloaded.                                                                ##
+## reloaded. binding [ AUTH-LINK-BINDING ] : the fake server checks the     ##
+## client_bind_sig over its own pack of the transcript and answers with a   ##
+## server_bind_sig ; a wrong \ missing one and a missing context fail.      ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -41,6 +43,7 @@ BEGIN {
 use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
 use Crypt::Misc;
 use Crypt::Curve25519;
+use Crypt::Ed25519;
 use Digest::SHA qw| sha256 |;
 
 use constant TRUE  => 5;
@@ -99,7 +102,38 @@ $code{'event.add_var'} = sub {
     return sub {return}
 };
 
+compile_module('auth.binding.message');
 compile_module('protocol.protocol-7.link-upgrade.handshake');
+
+## binding [ data/md/design/AUTH-LINK-BINDING.md ] : throwaway identities ##
+## from fixed seeds [ test only ] -- C = client base key, S = server key  ##
+my ( $c_pub, $c_priv ) = Crypt::Ed25519::generate_keypair( "\x01" x 32 );
+my ( $s_pub, $s_priv ) = Crypt::Ed25519::generate_keypair( "\x02" x 32 );
+my ( $x_pub, $x_priv ) = Crypt::Ed25519::generate_keypair( "\x03" x 32 );
+my $server_nonce = Crypt::Misc::random_bytes(32);
+my @signed_with;
+$code{'crypt.C25519.sign_data'} = sub {
+    my ( $msg_ref, $key_name ) = @ARG;
+    push @signed_with, $key_name;
+    return Crypt::Ed25519::sign( $msg_ref->$*, $c_pub, $c_priv );
+};
+my $binding = {
+    qw| server_nonce |  => $server_nonce,
+    qw| server_pub |    => $s_pub,
+    qw| username |      => qw| test-user |,
+    qw| base_key_name | => qw| test-c.base |,
+};
+
+## the transcript as the server builds it : packed HERE, independent of ##
+## auth.binding.message [ cross-checks the builder ]                    ##
+sub fake_transcript {
+    my ( $server_eph, $client_eph, $nonce_sid, $encoding ) = @ARG;
+    return pack(
+        'a32 a32 a32 a32 N n/a* n/a*',
+        $server_nonce, $s_pub,    $server_eph, $client_eph,
+        $nonce_sid,    $encoding, 'test-user'
+    );
+}
 compile_module('protocol.protocol-7.encryption.init');
 compile_module('protocol.protocol-7.link-upgrade.client_activate');
 
@@ -123,10 +157,14 @@ sub server_read_line {
     return $line;
 }
 
-## the correct conversation ; writes its DH secret + received sid ##
+## the correct conversation ; writes its DH secret + received sid       ##
+## $server_sign : [ pub, priv ] signing the server_bind_sig [ //= S ] ; ##
+## $reply_form  : 'ok' | 'no-sig' | 'bad-b32'                           ##
 sub server_ok {
     my $socket      = shift;
     my $report_path = shift;
+    my $server_sign = shift // [ $s_pub, $s_priv ];
+    my $reply_form  = shift // qw| ok |;
     my $read_line   = sub { return server_read_line($socket) };
     my $send        = sub {
         print {$socket} shift, "\n" or die "server send : $!";
@@ -153,16 +191,34 @@ sub server_ok {
     $send->('SIZE 0');
 
     my $enc_line = $read_line->() // die 'server : expected encoding line';
+    my ($encoding) = $enc_line =~ m{^link-confirm-encoding (\S+)$}o
+        or die "server : bad encoding line '$enc_line'";
     $send->('encoding-confirmed');
 
     my $done_line = $read_line->() // die 'server : expected link-complete';
-    my ($nonce_sid) = $done_line =~ m{^link-complete\s+(\d+)$}o
+    my ( $nonce_sid, $client_sig_b32 )
+        = $done_line =~ m{^link-complete (\d+) ([A-Z2-7]+)$}o
         or die "server : bad link-complete line '$done_line'";
-    $send->('link-complete-ok');
+
+    my $transcript
+        = fake_transcript( $server_pub, $client_pub, $nonce_sid, $encoding );
+    my $client_ok
+        = Crypt::Ed25519::verify(
+        pack( 'Z*', 'p7 link-bind v1 client' ) . $transcript,
+        $c_pub, Crypt::Misc::decode_b32r($client_sig_b32) ) ? 1 : 0;
+    my $server_sig
+        = Crypt::Ed25519::sign(
+        pack( 'Z*', 'p7 link-bind v1 server' ) . $transcript,
+        $server_sign->[0], $server_sign->[1] );
+    $send->(
+          $reply_form eq qw| no-sig |  ? 'link-complete-ok'
+        : $reply_form eq qw| bad-b32 | ? 'link-complete-ok 1!!'
+        :   'link-complete-ok ' . Crypt::Misc::encode_b32r($server_sig)
+    );
 
     open( my $fh, '>', $report_path )
         or die "server : cannot write $report_path : $OS_ERROR";
-    print {$fh} unpack( qw| H* |, $shared ), " $nonce_sid";
+    print {$fh} unpack( qw| H* |, $shared ), " $nonce_sid $client_ok";
     close($fh);
     return;
 }
@@ -260,7 +316,9 @@ sub run_handshake {
     eval {
         local $SIG{ALRM} = sub { die "test-side alarm\n" };
         alarm 15;
-        @result = $handshake->( $cli, { qw| timeout | => 1 } );
+        @result = $handshake->(
+            $cli, { qw| timeout | => 1, qw| binding | => $binding }
+        );
         alarm 0;
     };
     $died = $EVAL_ERROR if $EVAL_ERROR;
@@ -282,7 +340,7 @@ ok( !length( $died // '' ) && ( $result->[0] // 0 ) == 1,
     'handshake success : ( 1, { .. } )' );
 open( my $report_fh, '<', $tmp_path )
     or die "cannot read $tmp_path : $OS_ERROR";
-my ( $server_secret_hex, $server_nonce_sid ) = split m{\s+}o,
+my ( $server_secret_hex, $server_nonce_sid, $server_saw_sig ) = split m{\s+}o,
     scalar readline($report_fh);
 close($report_fh);
 ok( length( $result->[1]{'shared_secret'} // '' ) == 32,
@@ -295,6 +353,49 @@ ok( $result->[1]{'nonce_sid'} >= 1 && $result->[1]{'nonce_sid'} <= 4294967295,
 ok( $result->[1]{'nonce_sid'} == $server_nonce_sid,
     'nonce sid == what the server received'
 );
+ok( $server_saw_sig eq '1',
+    'client_bind_sig verifies with C over the server-side transcript' );
+ok( "@signed_with" eq 'test-c.base',
+    'client signed with the context base key name' );
+
+say ': binding failures';
+
+foreach my $case (
+    [ 'server_bind_sig by another key', [ $x_pub, $x_priv ], 'ok' ],
+    [ 'link-complete-ok without sig',   undef,               'no-sig' ],
+    [ 'server_bind_sig not base32',     undef,               'bad-b32' ],
+) {
+    my ( $label, $sign_with, $form ) = @$case;
+    my ( $b_fh, $b_path )
+        = tempfile( 'p7-link-upgrade-XXXXXXXX', TMPDIR => 1, UNLINK => 1 );
+    close($b_fh);
+    my ( $b_result, $b_died )
+        = run_handshake(
+        sub { server_ok( shift, $b_path, $sign_with, $form ) } );
+    ok( !length( $b_died // '' )
+            && ( $b_result->[0] // 1 ) == 0
+            && length( $b_result->[1]{'error'} // '' )
+            && !exists $b_result->[1]{'shared_secret'},
+        "$label : ( 0, { error } ), no secret handed out"
+    );
+}
+
+{
+    ## no context : refused before a single byte is sent ##
+    socketpair( my $srv, my $cli, AF_UNIX, SOCK_STREAM, 0 )
+        or die "socketpair failed : $OS_ERROR";
+    my @r = $handshake->( $cli, { qw| timeout | => 1 } );
+    ok( ( $r[0] // 1 ) == 0 && $r[1]{'error'} =~ m{binding context},
+        'no binding context : ( 0, { error } )' );
+    my $bad = { %{$binding}, qw| server_pub | => 'short' };
+    @r = $handshake->( $cli, { qw| timeout | => 1, qw| binding | => $bad } );
+    ok( ( $r[0] // 1 ) == 0, 'context with a short server_pub : refused' );
+    close($cli);
+    $srv->blocking(0);
+    my $got = sysread( $srv, my $buf, 64 );
+    ok( !$got, 'nothing sent without a valid context' );
+    close($srv);
+}
 
 say ': wrong answers';
 
@@ -422,14 +523,14 @@ say ': fail closed [ never plaintext on an encrypted link ]';
 my $kept_key = $data{'session'}{7}{'link_encryption_key'};
 foreach my $case ( [ 'no key', undef ], [ 'invalid key', 'short' ] ) {
     my ( $label, $bad_key ) = @$case;
-    @complaints = ();
+    @complaints                                = ();
     $data{'session'}{7}{'shutdown'}            = 0;
     $data{'session'}{7}{'link_encryption_key'} = $bad_key;
     my $out = eval { $code{$frame_handler_name}->('secret text') };
     ok( defined $out && $out eq '',
         "$label : nothing sent, never the plaintext, no die" );
     ok( $data{'session'}{7}{'shutdown'}, "$label : session shut down" );
-    ok( scalar( grep { m{not encrypted}o } @complaints ) == 1,
+    ok( scalar( grep {m{not encrypted}o} @complaints ) == 1,
         "$label : complains" );
 }
 $data{'session'}{7}{'link_encryption_key'} = $kept_key;
@@ -443,8 +544,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,,,.,.,.,.,.,.,,..,,.,,..,,,,,,.,,,..,,.,.,...,..,,,..,...,,..,,.,,...,
-#Y44CRWNVELHSDCJ6XEVOAWQLUHWHWVHYXXCHSMECXMTMLW5B32LN4KYE2LZGGPOQPWETWLQLRLRXC
-#\\\|IR55RYAA6SDI4VIQRTMFJAUUHOJLNHFIU5X5HYFO74NC7UFTKVE \ / AMOS7 \ YOURUM ::
-#\[7]7EGJZ7BT7Q4S2SEMPRWSRW76D6SP6QEC5EOQRSDWGQVLHVUQ3OCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,,,,,,.,,,..,,..,.,.,,,.,,,.,.,.,...,...,,.,,,,.,,,.,,,.,...,
+#H4W6BGBTBTQFAKWKN3PMRD4EZHGKMIF7TG3PNN2IIBZNY76FJW2CWLVA3BRDUT2XFN6K3WOH4J35O
+#\\\|XNZ7IM2X4CWIMWOIQMFBBSLUX7TVDQNJ27JQLLGFHUATN77AMU3 \ / AMOS7 \ YOURUM ::
+#\[7]NRYQLRCGJGMMNM3IEGBODDG2FJY5NSED6R2QGJGAIFRTFUPMSABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

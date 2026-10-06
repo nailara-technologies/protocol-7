@@ -5,15 +5,26 @@
 # args    = int(session id)
 # return  = str(user name) (success), undef [error]
 #
-# protocol = auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
-#           Client signs C25519 session pubkey with Ed25519 master private key
-#           Server verifies signature using stored Ed25519 master public key
+# protocol = auth <username> <c25519_pubkey_b32> <auth_sig_b32>   [ v2 ]
+#           auth_sig : Ed25519 [ master key ] over auth.binding.message
+#           'auth' [ server_nonce, S_pub, session pubkey, username ] --
+#           the nonce + S_pub auth.auth_select announced to THIS session.
+#           a v1 line [ sig over the bare session pubkey ] fails verify.
+#           success leaves the session binding-PENDING : base.handler.
+#           link-upgrade completes it [ data/md/design/AUTH-LINK-BINDING ]
 
 my $id = $_[0]->w->data;
 my $re = <regex.base>;
 
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
+
+## every refusal drops the binding material [ the nonce is single-use ] ##
+my $drop_binding = sub {
+    map { delete $data{'session'}{$id}{'auth'}{$ARG} }
+        qw| server_nonce server_pub server_key_name client_pub |;
+    return;
+};
 
 ## Parse: auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
 if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
@@ -33,6 +44,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             0,   '[%d] auth-keypair failed: user \'%s\' not authorized',
             $id, $username
         );
+        $drop_binding->();
         return 2;    ## access denied - user not authorized ##
     }
 
@@ -46,6 +58,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             0, '[%d] auth-keypair failed: invalid master key for user \'%s\'',
             $id, $username
         );
+        $drop_binding->();
         return 2;    ## access denied - invalid master key ##
     }
 
@@ -63,6 +76,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             $id,
             $username
         );
+        $drop_binding->();
         return 2;    ## access denied - invalid pubkey ##
     }
 
@@ -75,16 +89,39 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             0, '[%d] auth-keypair failed: invalid signature for user \'%s\'',
             $id, $username
         );
+        $drop_binding->();
         return 2;    ## access denied - invalid signature ##
     }
 
-    ## Verify Ed25519 signature on the C25519 pubkey  Signature must be over
-    ## the raw C25519 public key bytes
+    ## the v2 message : bound to this session's nonce + announced S_pub ##
+    my $session_auth = $data{'session'}{$id}{'auth'} // {};
+    my $auth_message = <[auth.binding.message]>->(
+        qw| auth |,
+        {   qw| server_nonce | => $session_auth->{'server_nonce'},
+            qw| server_pub |   => $session_auth->{'server_pub'},
+            qw| session_pub |  => $c25519_pubkey_bin,
+            qw| username |     => $username,
+        }
+    );
+
+    if ( not defined $auth_message ) {
+        $output->$* .= "AUTH_ERROR no server nonce for this session\n";
+        <[base.logs]>->(
+            0,
+            '[%d] auth-keypair failed : no nonce '
+                . '\\ server key selected for \'%s\'',
+            $id,
+            $username
+        );
+        $drop_binding->();
+        return 2;    ## access denied - nothing to bind to ##
+    }
+
     my $signature_valid = FALSE;
 
     eval {
         $signature_valid = Crypt::Ed25519::verify(
-            $c25519_pubkey_bin,    ## message (C25519 pubkey that was signed)
+            $auth_message,         ## message [ auth-keypair v2 ]
             $master_pubkey_bin,    ## public key (Ed25519 master pubkey)
             $signature_bin         ## signature (64 bytes)
         ) // 0;
@@ -96,6 +133,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             $id, <[base.str.eval_error]>
         );
         $output->$* .= "AUTH_ERROR signature verification error\n";
+        $drop_binding->();
         return 2;    ## access denied - verification error ##
     }
 
@@ -135,6 +173,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
                     $peerhost,
                     $peerport
                 );
+                $drop_binding->();
                 return 2;    ## access denied - not yet authorized ##
             } elsif ( $tofu_result == 2 ) {
                 ##  TOFU mismatch - key compromise suspected!  ##
@@ -149,6 +188,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
                     $peerhost,
                     $peerport
                 );
+                $drop_binding->();
                 return 2;    ## access denied - TOFU violation ##
             } elsif ( $tofu_result == 4 ) {
                 ##  TOFU processing error  ##
@@ -157,12 +197,27 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
                     0,   '[%d] auth-keypair: TOFU error for \'%s\'',
                     $id, $username
                 );
+                $drop_binding->();
                 return 2;    ## access denied - TOFU error ##
+            } elsif ( not defined $tofu_result or $tofu_result != 0 ) {
+                ##  any other result : fail closed  ##
+                $output->$* .= "AUTH_ERROR TOFU result not understood\n";
+                <[base.logs]>->(
+                    0,   '[%d] auth-keypair: TOFU result \'%s\' for \'%s\'',
+                    $id, $tofu_result // 'undef', $username
+                );
+                $drop_binding->();
+                return 2;    ## access denied - unknown TOFU result ##
             }
         }
 
         ## Signature verified and TOFU validated - authenticate user with
-        ## C25519 session key
+        ## C25519 session key. binding PENDING : only link-upgrade passes
+        ## until base.handler.link-upgrade verifies the client_bind_sig with
+        ## this same master key
+        $data{'session'}{$id}{'auth'}{'client_pub'} = $master_pubkey_bin;
+        $data{'session'}{$id}{'link_binding'} = qw| pending |;
+
         $output->$* .= "AUTH_TRUE =)\n";
 
         ## Store C25519 session key for this user
@@ -183,6 +238,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             0, '[%d] auth-keypair : signature verification failed for \'%s\'',
             $id, $username
         );
+        $drop_binding->();
         return 2;    ## access denied - signature verification failed ##
     }
 
@@ -191,6 +247,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     <[base.logs]>->(
         0, '[%d] authentication protocol mismatch [ auth-keypair ] >:[', $id
     );
+    $drop_binding->();
     return 2;    ## no access [ protocol error ] ##
 } else {
     return 1;    ## continue [ incomplete line ] ##
@@ -198,8 +255,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
 1;
 
-#,,,,,,,.,..,,,.,,,.,,,,.,.,.,.,,,...,...,...,..,,...,...,.,,,.,,,.,,,,.,,,,,,
-#CF7C3PKKWUNHCZ2SYLOVMY6ILQKG3P6W3SYB6ILKYZ5UIQQMPXVG5BTG5ER6F6TPWGEJPZ7O2ZU4O
-#\\\|PQ6W3B32AY355SEOLGVY3ICQTIII5D4F5HJ2YS3YD3G4VUYB5XY \ / AMOS7 \ YOURUM ::
-#\[7]4L6FSQIME5ZHYWBZC7GEIELD4BLDEZZ53XARBJNMNAXPG363QODQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,.,,,,,,,.,,,.,,,,.,,,.,,,,,..,,...,...,...,...,..,,.,.,...,
+#QT5NJKVOCLDF3VE72GNADRAMVTXZHPYUPVOIUQ4EELJLJA6PTLERTKHGPVGW23ZEPFGX6RDX2JYIC
+#\\\|OJIJQS7XM7YGIZVOJS2NZYHGID6YU55ZPBO4ICTAN4FCQLNYXB7 \ / AMOS7 \ YOURUM ::
+#\[7]Y7A6PHR5JJMCUEZWF5RRWB3YEZDB4YTYD4NFV6TO4BKISKIDT4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
