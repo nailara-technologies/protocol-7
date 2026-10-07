@@ -43,7 +43,7 @@ use constant FALSE => 0;
 our %data;
 my $fail_count = 0;
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -83,7 +83,7 @@ sub run_for_backend {
     ## <coding.lib_path> is a p7 tree-macro -- translate the one read this ##
     ## statement needs into plain %data access for the isolated eval       ##
     ( my $plain_stmt = $stmt )
-        =~ s{<coding\.lib_path>}{\$data{'coding'}{'lib_path'}}g;
+        =~ s|<coding\.lib_path>|\$data{'coding'}{'lib_path'}|g;
 
     ## eval STRING is its own dynamic scope : a `local` taking effect       ##
     ## inside it unwinds the instant the eval call returns, same as leaving ##
@@ -119,8 +119,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,..,,,,,,...,,,.,,,.,.,,,.,,,..,,.,,,.,.,.,.,...,...,.,.,.,.,,.,,,,.,...,
-#ODHSBIDO5RMUCD2G5T75QXDE3L3OUNNI3F73XEAYHPRFET6E4LDKBJTXGHRYYAZ2GDJR52TVUASJW
-#\\\|4OVMR7WNVTXLMWLJBNVLCAY4WQZ5F6TKSX4EPBY2YFY76TMKMGD \ / AMOS7 \ YOURUM ::
-#\[7]6GVLJNLRBS4AHN2I2GEWRGF6GLAAI6OEO3SXTBA7H5BD55T2XOBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,,,.,.,.,,,,,..,,,..,.,.,,,,,.,.,...,..,,...,..,,.,.,,,,,.,,,
+#LRR5LW3V5BR6O4AIXR5QBVC2N25SAMTH2VD5JYZ3IZJLASRDX6N2YYDIX3IXSVQEZAYIKBW4ZETMQ
+#\\\|5XLB5RQUVEDOVLS2FRYNC3QCXYKUGVKCYPOJ3AGJM7GCYYOAWA3 \ / AMOS7 \ YOURUM ::
+#\[7]GDIGCFEAHO3GNRT57Q6PMJXOBNFW63YRGPXVL55B4AHDF4ODOYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

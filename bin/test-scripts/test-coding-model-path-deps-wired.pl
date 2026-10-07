@@ -63,7 +63,7 @@ my $NEXT_ID    = 1;
     'coding.resolve.object.model_path'  => sub { return TRUE },
 );
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -169,10 +169,10 @@ for my $marker (
 
 ## run it for real against a minimal stub environment ##
 my $plain_block = $block;
-$plain_block =~ s{<coding\.dep\.(\w+)>}{\$data{'coding'}{'dep'}{'$1'}}g;
+$plain_block =~ s|<coding\.dep\.(\w+)>|\$data{'coding'}{'dep'}{'$1'}|g;
 $plain_block
-    =~ s{<\[dependency\.add_object\]>}{\$code{'base.dependency.add_object'}}g;
-$plain_block =~ s{<\[dependency\.add\]>}{\$code{'base.dependency.add'}}g;
+    =~ s|<\[dependency\.add_object\]>|\$code{'base.dependency.add_object'}|g;
+$plain_block =~ s|<\[dependency\.add\]>|\$code{'base.dependency.add'}|g;
 
 eval $plain_block;
 die "eval failed : $EVAL_ERROR" if length $EVAL_ERROR;
@@ -212,8 +212,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,,,,.,,,..,,.,,,.,.,...,,.,,,,.,,,.,.,.,.,.,...,..,,..,,...,,,.,...,.,.,
-#QOU4XRUD7ON6PAXO53HTMWFA4CGJCWB4QBSLZJ3CZTEFFUXWEKFM3O6O3NPTDE6BGVJ4UXBCUJIVM
-#\\\|GPYR5DI3DDAZ2EB2A7TWZYCYMT23EZLHGQSRBH6WATCAFLOZTII \ / AMOS7 \ YOURUM ::
-#\[7]MVZ2GLMOWSPBLJJYFVDAQ4T43LB5IMA4TH7SGEGYTYFILTXLUAAA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,..,,,.,,.,.,..,,.,.,..,,.,.,.,.,...,...,,..,,,.,,.,,...,...,
+#V7GOZIDUOKRW75XIJLWUJJVKIQNPDABN5XEQ7B4DBA6INYSON3ML3EM3YE4QE322FUT6IEWOJPD54
+#\\\|QS3FKXM76QYZHGK2WSWA4YEZXIBW5RMVU6RDOKFEXUBYP3WEHRU \ / AMOS7 \ YOURUM ::
+#\[7]VEPYUETVDA5YBDOI7ZLEWCJIPFSCQNNSWWIXZ4UHDDQA2MMR44AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

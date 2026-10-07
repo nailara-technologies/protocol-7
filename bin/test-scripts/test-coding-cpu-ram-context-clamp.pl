@@ -70,7 +70,7 @@ sub compile_module {
 
 compile_module('coding.helper.calculate_safe_context');
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -90,7 +90,7 @@ sub sparse_file_of_mb {
 my $real_mem_available_mb = 0;
 if ( open my $fh, '<', '/proc/meminfo' ) {
     while (<$fh>) {
-        if (/^MemAvailable:\s+(\d+)/) {
+        if (m|^MemAvailable:\s+(\d+)|) {
             $real_mem_available_mb = int( $1 / 1024 );
             last;
         }
@@ -175,7 +175,7 @@ say ': 5. GPU backend path unaffected by the CPU-branch restructuring';
 my $gpu_result = $code{'coding.helper.calculate_safe_context'}
     ->( { 'model_path' => $small_model, 'backend' => 'gpu' } );
 ok( defined $gpu_result->{'context_length'}
-        and $gpu_result->{'context_length'} >= 7777,
+        && $gpu_result->{'context_length'} >= 7777,
     'gpu path : returns a defined, sane context_length'
 );
 ok( $gpu_result->{'explanation'} !~ m|^RAM=|,
@@ -195,8 +195,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,.,,,.,,,,,,,,,,,..,...,.,,,...,..,,,..,.,.,...,..,,..,,...,...,,,,,,,.,
-#62F26WQUHO2YI56Q6LF673UKGKTDCEA5VHRUQPXXF4CU3M5BSZKQHAA667C5TBL4PVIFUQ2ZDCOJW
-#\\\|GSZGOQFOA777VGEXVTRV7W53ONB3SSFEY3BGTHCH3WPXES2Y54M \ / AMOS7 \ YOURUM ::
-#\[7]RUZBON3R247SAW4ZRGZCREXHDCLDU4CW5T453PFN6TIC3NZ3HUBI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,,,,..,...,..,,.,,,,.,,...,.,.,.,.,...,...,...,,..,...,.,.,..,,
+#42EAQQ5A3QHPAWDCGMV5PKRKMSYJ6FTN3LO63GEOLUAA7C6GRINLHSLVFFYEVQM6OZBVRAJF4AOAC
+#\\\|6G7QAZEUJH6MNURUKROOWNPK7Q6D7BOJ5SK7WJ2BN5XZFOCHSOU \ / AMOS7 \ YOURUM ::
+#\[7]E6NYWDADETDR3KKIJOJPLH22RPHF6JRDQCFBH6Z2IYTGLXB6VSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

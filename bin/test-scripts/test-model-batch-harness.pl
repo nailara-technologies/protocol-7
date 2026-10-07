@@ -65,7 +65,7 @@ our $call;
 
 my $fail_count = 0;
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) {
         print "ok   : $label\n";
@@ -428,7 +428,7 @@ my @blob_files = grep { !m|^\.| } do {
 ok( scalar(@blob_files) == 1, 'identical content packed exactly once' );
 
 my $roundtrip = call_m( 'model_batch.blob.read', $cs_one );
-ok( defined $roundtrip and $roundtrip eq "hello blob store \x{263A}\n",
+ok( defined $roundtrip && $roundtrip eq "hello blob store \x{263A}\n",
     'blob.read round-trips content through xz+base32' );
 
 my $restore_dest = catfile( $tmp_root, qw| deep dir restored.txt | );
@@ -496,7 +496,7 @@ $code{'file.write'}->( catfile( $tree_dir, qw| README | ), "readme\n" );
 
 my $gate_clean = call_m( 'model_batch.gate.check',
     { qw| batch_id | => $batch_id, qw| force | => FALSE } );
-ok( ref $gate_clean eq qw| HASH | and $gate_clean->{'clean'},
+ok( ref $gate_clean eq qw| HASH | && $gate_clean->{'clean'},
     'first gate captures baseline and passes clean'
 );
 ok( $gate_clean->{'baseline_new'}, 'first gate marks baseline as new' );
@@ -512,7 +512,7 @@ ok( $gate_refuse->{'diff'}{'changed'}->[0] eq qw| README |,
 my $blobs_before = scalar @blob_files;
 my $gate_forced  = call_m( 'model_batch.gate.check',
     { qw| batch_id | => $batch_id, qw| force | => TRUE } );
-ok( $gate_forced->{'clean'} and $gate_forced->{'forced'},
+ok( $gate_forced->{'clean'} && $gate_forced->{'forced'},
     ':force: gate proceeds and is marked forced'
 );
 my $forced_cs
@@ -527,7 +527,7 @@ $code{'file.write'}->( catfile( $tree_dir, qw| README | ), "readme\n" );
 ##[ 4. full capture -> revert -> reverify cycle ]#############################
 
 my $pack_result = call_m( 'model_batch.baseline.pack', $batch_id );
-ok( ref $pack_result eq qw| HASH | and $pack_result->{'present'} > 0,
+ok( ref $pack_result eq qw| HASH | && $pack_result->{'present'} > 0,
     'baseline pack stores every baseline path' );
 
 my $baseline_href
@@ -542,8 +542,7 @@ my $capture = call_m( 'model_batch.capture.task',
     { qw| baseline | => $baseline_href } );
 ok( ref $capture eq qw| HASH |, 'capture.task returns a result' );
 ok( ( grep { $_ eq qw| README | } $capture->{'files_touched'}->@* )
-        and
-        ( grep { $_ eq qw| model-new | } $capture->{'files_touched'}->@* ),
+        && ( grep { $_ eq qw| model-new | } $capture->{'files_touched'}->@* ),
     'capture lists touched files'
 );
 ok( $capture->{'paths'}{'README'}{'before'} ne
@@ -558,7 +557,7 @@ ok( !-f catfile( $tree_dir, qw| model-new | ),
     'baseline-absent path deleted' );
 
 my $verify = call_m( 'model_batch.verify.clean', $batch_id );
-ok( ref $verify eq qw| HASH | and $verify->{'clean'},
+ok( ref $verify eq qw| HASH | && $verify->{'clean'},
     'reverify confirms tree matches baseline exactly'
 );
 ok( $code{'file.read'}->( catfile( $tree_dir, qw| README | ) ) eq "readme\n",
@@ -572,8 +571,8 @@ my $diff_str = call_m(
     $capture->{'paths'}{'README'}{'after'}
 );
 ok( defined $diff_str
-        and $diff_str =~ m{^\-readme$}m
-        and $diff_str =~ m{^\+model\ edit$}m,
+        && $diff_str =~ m{^\-readme$}m
+        && $diff_str =~ m{^\+model\ edit$}m,
     'lazy diff recomputed from two checksum blobs'
 );
 
@@ -594,7 +593,7 @@ ok( $record_reply->{'mode'} eq qw| true |, 'record write reports success' );
 my $record_yaml = call_m( 'file.zenka_dir.load',
     qw| state/model_batch/smoke-test/CANDIDATE00000000000000000000000000000000000000000000000000000000000000000000000.yaml |
 );
-ok( defined $record_yaml and $$record_yaml =~ m{verdict:\ completed},
+ok( defined $record_yaml && $$record_yaml =~ m{verdict:\ completed},
     'record persisted under state/model_batch/<batch>/<model>.yaml'
 );
 
@@ -700,16 +699,16 @@ ok( $data{'coding'}{'state'}{'backend'}{'gpu'}{'lock'} eq '',
 
 my $cursor_yaml
     = call_m( 'file.zenka_dir.load', qw| state/model_batch_cursor.yaml | );
-ok( defined $cursor_yaml and $$cursor_yaml !~ m{batch:},
+ok( defined $cursor_yaml && $$cursor_yaml !~ m{batch:},
     'runner: cursor cleared from disk at finish'
 );
 
 my $model_record = call_m( 'file.zenka_dir.load',
     "state/model_batch/$batch_id/$candidate.yaml" );
 ok( defined $model_record
-        and $$model_record =~ m{task-A}
-        and $$model_record =~ m{verdict:\ completed}
-        and $$model_record =~ m{fingerprint},
+        && $$model_record =~ m{task-A}
+        && $$model_record =~ m{verdict:\ completed}
+        && $$model_record =~ m{fingerprint},
     'runner: per-task record written with verdict + fingerprint'
 );
 
@@ -738,8 +737,8 @@ package FakeTimer {
     sub data      { shift->{'params'}{'data'} }
 }
 
-#,,..,.,,,,,.,,,,,,..,,,.,,.,,.,.,..,,...,,..,..,,...,...,...,.,.,,.,,...,..,,
-#4L65IWJ45GODBRN746HBNAFFTAP3IGSV45HK6HTQ6SAVAWS5YDARR6A3BVKX7M5JTGXB3GRHUGAWO
-#\\\|7OS4TSGQMKKOTD5GWHASURTAHDHB3O73P44Y4M6JJ2HRCAULW3O \ / AMOS7 \ YOURUM ::
-#\[7]KE35WBYAAIAOPNAIRYIEQKWMERZPYKTJOIL2D5KF5LFABNHS3EBY 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,,,,,..,,,.,.,.,,,,,..,,,..,..,,...,...,,,,,.,.,,.,,..,,,,,,
+#A4PR5COJFEUM23ROZG5UNMBMT7GZYEDR6TP5U6HRXARGVYASO2T5DG32LBI3W2AN7IIXRYIQUEU2W
+#\\\|F3263LCZTMTQO7PHGEJEQPR5X674W6WDDKU77EXBEN7YYKKSZDG \ / AMOS7 \ YOURUM ::
+#\[7]PZ55B3NDBWZBHJS6AKHE6DRCZU6GBZJ2OE3IY5X3TLG347FR6WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
