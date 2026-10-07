@@ -48,3 +48,23 @@ related : [[project-2026-10-06-auth-keypair-replayable]],
 #\\\|CUR6BK3WXA7NPE3C74F42I3IVJDFAONTIZDLJNDNAUFRVNJNIJA \ / AMOS7 \ YOURUM ::
 #\[7]MLJTOB24UA77AHKEBG77MHVDJUZCGOUT4V3L7E6SI2EOPGG3WMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**2026-10-07 discover branch review [ IN PROGRESS, session hit usage limit ]** :
+branch `discover-host-root-delegation` @ 435ff591b [ web session, Opus 4.8 ].
+its test passes locally : 31 ok. BLOCKER found : `cfg/zenki/discover/zenka.v7`
+modules.load has NO `trust` [ nor `auth.binding` ] and the load-early list
+gained only `discover.read_host_root_pins` -> trust.statement \ verify \
+fingerprint + crypt.C25519.delegation_file are NOT loaded in discover at
+runtime -> every delegation would fail verify [ packets dropped as invalid ?
+check how the receiver handles a missing trust.verify ]. fix before merge :
+add `trust` to discover's modules.load + regenerate its load-early list.
+still to do : format-code -c on the 10 touched src files, read the diff +
+its report's 5 open questions, then merge + sign ; cherry-pick parked
+916a35658 [ parked/e2e-binding-test, pushed to hub ] ; live check after a
+v7-zenki restart ; delete the parked branch when integrated.
+
+#,,..,.,,,..,,..,,,.,,,,,,,..,,..,...,..,,,..,..,,...,...,,..,,,,,,.,,,..,,,,,
+#44LF3D7KVCYXDFWF6YRZU66COW4RJJ325JPAGM3TDCK5WJGU3UYEDT2CS4IEK7UTBDFDQFWUO3RYM
+#\\\|BJYZXPR4K5HMPRTDW3NTILUXIQNTG2P2IVLJBD7VID65X6YNQB2 \ / AMOS7 \ YOURUM ::
+#\[7]KETWUHWKTLWRVTBQLQU3AIBRFECDER6HYNSFCDDUZZ6QFSEJ6SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
