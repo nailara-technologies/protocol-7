@@ -33,8 +33,22 @@ foreach my $key (qw| ip_addr hwaddr pkey |) {
     $host_href->{$key} = $reply_params{$key};
 }
 
-#,,,,,,,.,...,.,.,,.,,.,.,,,.,..,,,.,,,,.,.,,,..,,...,..,,..,,,,,,,.,,,.,,,,.,
-#ADHWYK3X65YTKBS7PQVHZW3VDGW77EDCQXNHYBDU477DN2HUHKU7SZNNLOSNO5AV273NEGM3EIZFQ
-#\\\|UMIT6EI6LR3EHEQE2L2YGRNA7YNTWSYLP6OWRE7QRQ5TDWJOUVA \ / AMOS7 \ YOURUM ::
-#\[7]TUVQHVTB5OXA27MKOQR7MJQ7SWI2WPNC22JAKX72JI5PCPYHR4AA 7  DATA SIGNATURE ::
+## host-root trust fields [ data/md/design/HOST-ROOT-DELEGATION.md ] :      ##
+## stored as strings, shown per node entry -- no trust decisions here.  the ##
+## details reply [ from discover's host entry ] is authoritative ; the      ##
+## host-status stash is the fallback when the reply omits them              ##
+my $stash = <nodes.local-network.host-trust> // {};
+foreach my $key (qw| trust root_fp delegated_name |) {
+    if ( defined $reply_params{$key} ) {
+        $host_href->{$key} = $reply_params{$key};
+    } elsif ( exists $stash->{$name} and defined $stash->{$name}->{$key} ) {
+        $host_href->{$key} = $stash->{$name}->{$key};
+    }
+}
+delete $stash->{$name};    ##  consumed  ##
+
+#,,,,,..,,,,.,...,,,,,.,,,,,.,.,.,..,,,,,,,,.,..,,...,...,,,,,,..,,,,,,..,.,,,
+#5MPPK6PW76CRIYQ674Q6RK5LPG63FV23PFYT5GPKODRGD25GOT5D74VVAAJTF3WGGZXQJO2SO6BFG
+#\\\|53OGDCSZUZ6CJ5EKZV7X3WZPNLN4WLQIRSS24775QWIGGJTSWKZ \ / AMOS7 \ YOURUM ::
+#\[7]M6KK5V6E3225MZGMDUM64IXSRUCXAENY677RDEOBP4INWZTLSMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

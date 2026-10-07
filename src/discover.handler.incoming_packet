@@ -45,7 +45,7 @@ if ( length $packet_buffer_ref->$* and $discover_packet_start_pos == -1 ) {
 
 while (
     $packet_buffer_ref->$* =~ m{^\[:<\|[A-Z0-9_\-\.]{3,24}\|[A-Z2-7]{52}\n(?#
-        )( {3}[A-Z0-9_\-\.]{1,32}:[A-Z2-7]{103}\n)*(?#  key signatures
+        )( {3}dlg:[A-Z2-7]{1,2048}\n)?(?#          host-root delegation field
         )( {6}[^\n]+\n)+(?#                        packet payload lines
         )[A-Z2-7]{11,15}:[A-Z2-7]{103}\n}    #  timestamp  :  packet signature
     ) {    ##  valid packet payload [complete]  ##
@@ -74,8 +74,8 @@ if ( length $packet_buffer_ref->$* ) {
     }
 }
 
-#,,.,,.,,,.,.,.,.,.,,,,,.,.,,,,.,,..,,,,.,,,,,..,,...,...,..,,,.,,,.,,,..,..,,
-#URLXE6TAPE6BEVZ76BNN26V2YKFFH6FPK7QJL6C5YOJZ67VQ2BEUDUPJLQKZODCHIMDDB5EKA6DUC
-#\\\|OVYS3YDQDJXULF467LBH2DOJ2BUKSRFGLDQPEDGF4OWFKXM7XJC \ / AMOS7 \ YOURUM ::
-#\[7]XNHVBTY24RMDI7HLW56UUSSQT3QKW4FKVM5N74R54CRJIFSJL6BA 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,.,,,..,,,,,.,.,,,.,...,,,.,..,,...,...,,..,,,.,,,.,,.,,...,
+#LQI3NBPRZFOYP2DAA6DFNHBIY3A3QRV3CUG7W4H5JD7PMON7YXE3JT5JULU4XEBCEPZ6GWZBL57HK
+#\\\|3S4J2XJOZA6N4RIDKGIPK6FQ2PNCGL52MSXSE3KUQOGSS7POKZN \ / AMOS7 \ YOURUM ::
+#\[7]Z333UAFKLRFJHRPTLTM652MCXODK3AAXCEJCQERU5QNPTLWWECAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
