@@ -24,7 +24,7 @@ return ( warn 'discover packet format error <{C1}>' and undef )
     if $packet_str !~ m{^(?<signed_data>\[:<\|(?#
         )(?<type>[A-Z0-9_\-\.]{3,24})\|(?#
         )(?<hostkey>[A-Z2-7]{52})\n(?#
-        )(?<delegation>(?: {3}+dlg:[A-Z2-7]{1,2048}\n)?)(?#
+        )(?<delegation>(?: {3}+dlg:[A-Z2-7.]{1,2048}\n)?)(?#
         )(?<payload>(?: {6}+[^\n]+\n)+)(?#
         )(?<timestamp>[A-Z2-7]{11,15}):)(?<packet_sig>[A-Z2-7]{103})\n};
 
@@ -34,13 +34,13 @@ $matched_field->{'tstamp-adj'} = <[base.ntime]>->(3);
 
 $matched_field->{'payload'} =~ s|^ {6}||mg;    ##  remove space prefix  ##
 
-## host-root delegation : the bare wire b32 [ or undef when the field is ##
-## absent ] ; parsed + trust-verified in discover.process_host_packet,   ##
-## never here -- the '.sig.*' raw-pubkey signature scheme is retired     ##
+## the delegation chain : the raw field string [ or undef when absent ] ; ##
+## split + trust-verified in discover.process_host_packet, never here --  ##
+## the '.sig.*' raw-pubkey signature scheme is retired                    ##
 my $delegation_wire;
 if ( length $matched_field->{'delegation'}
     and $matched_field->{'delegation'}
-    =~ m|\A {3}dlg:([A-Z2-7]{1,2048})\n\z| ) {
+    =~ m|\A {3}dlg:([A-Z2-7.]{1,2048})\n\z| ) {
     $delegation_wire = $1;
 }
 $matched_field->{'delegation'} = $delegation_wire;
@@ -135,8 +135,8 @@ if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
 
 <[discover.check_packet_timeouts]>; ##  applying timeouts \ setting timers  ##
 
-#,,,.,,..,,.,,,,.,,,.,,.,,...,,.,,,,,,,,.,,..,..,,...,...,.,,,...,,,.,.,,,,..,
-#UV24VX6PTHAPADPM3OBCV2CM3ZWMEXD6Z5V7XG4RU2DQUGYK72K5JOIPSFHAOHWFRNLHCPIVFF4K6
-#\\\|U74RI5KHN35DMHBINQ2MF4UQITN57KMPKNS4MRRZSQICQYVQOAF \ / AMOS7 \ YOURUM ::
-#\[7]FNJQNXPMC7MT4SRF3XFQUEXXMG5RLNHVWLLRH7XV4SNC5IO33ABI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,,,.,..,,.,,,,.,,,,,,,.,,...,..,,...,...,.,.,,,.,,,,,,.,,,.,,
+#PPER4BRJTK7M3D5Y7E7DP77G7UYK6UYXPQCJMYR3THPBQLR3NTRO6734Z7Z5U3XICH3GNRVMKAVWY
+#\\\|R2EWHAYY2VMPAO6AKFMWK57NKFRNQFMCJLN5EHAQ347S7C4TCV4 \ / AMOS7 \ YOURUM ::
+#\[7]2CD7HZKBAICA4GKRP5N5ESO5JP4VV2O2TLXGTARWXVFZWJKIOKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
