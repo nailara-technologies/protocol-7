@@ -1,0 +1,160 @@
+## [:< ##
+
+# name  = keys.console.re-pin
+# param = <zenka>:<username> <new public key>
+# descr = replace the TOFU pin of an already authorized client key
+# note  = keeps the old pin as incoming/<user>.public.<time>.bak
+
+## why : cube keeps a TOFU pin per remote client key in                     ##
+## incoming/<username>.public [ one line : base32 of the 32-byte Ed25519    ##
+## public key ] and authorized/<zenka>/<username>.public is a symlink to    ##
+## that pin [ see keys.console.authorize ]. when a client rotates its key   ##
+## the pin still holds the old key and cube refuses with 'TOFU mismatch' [  ##
+## plugin.auth.auth-keypair.validate-incoming- tofu ] -- this command       ##
+## replaces the pin for an ALREADY authorized identity [                    ##
+## authorized/<zenka>/<username>.public must exist -- it may link to the    ##
+## pin or straight to a key file ], never anyone new. the new key is either ##
+## a local key name [ its .public file resolved via crypt.C25519.key_path,  ##
+## holder 'user' ] or a literal base32 public key string. no cube reload    ##
+## needed : cube reads the pin on every login attempt.                      ##
+
+my $arg = shift;
+
+if ( not defined $arg or not length $arg ) {
+    say "\n  << expected '<zenka>:<username> "
+        . "<new public key>' parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my ( $id_part, $key_spec ) = split( m| +|, $arg, 2 );
+
+if ( not defined $key_spec or not length $key_spec ) {
+    say "\n  << expected '<zenka>:<username> "
+        . "<new public key>' parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my ( $zenka, $username ) = $id_part =~ m{^([^:]+):([^:]+)$};
+
+if ( not defined $zenka or not defined $username ) {
+    say "\n  << expected '<zenka>:<username>' [ e.g. 'cube:taeki' ] >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+if ( $zenka =~ m{[/\x00]} or $username =~ m{[/\x00]} ) {
+    say "\n  << zenka \/ username must not contain '/' >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+my $key_vars_ref  = <[crypt.C25519.key_vars]>;
+my $incoming_dir  = $key_vars_ref->{'incoming_dir'};
+my $auth_base_dir = $key_vars_ref->{'auth_dir'};
+
+my $pin_file  = catfile( $incoming_dir,  "${username}.public" );
+my $zenka_dir = catfile( $auth_base_dir, $zenka );
+my $auth_link = catfile( $zenka_dir,     "${username}.public" );
+
+## re-pin only an already authorized identity [ never authorize new ] : the ##
+## authorized entry may link to the pin or to a local key file              ##
+if ( not -e $auth_link ) {
+    printf( "\n  << '%s' is not authorized for "
+            . "'%s' -- nothing to re-pin >>\n\n",
+        $username, $zenka );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+if ( not -f $pin_file ) {
+    printf( "\n  << pin '%s' not found -- refusing to re-pin >>\n\n",
+        $pin_file );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+## the new key : a local key name [ .public via key_path, holder 'user' ]  ##
+## or a literal base32 public key string -- a name is only considered when ##
+## its .public file actually exists                                        ##
+my $new_b32 = $key_spec;
+if ( $key_spec !~ m{[/\x00]} ) {
+    my $key_path_ref = <[crypt.C25519.key_path]>->($key_spec);
+    if (    ref $key_path_ref eq qw| HASH |
+        and $key_path_ref->{'holder'} eq qw| user |
+        and -f $key_path_ref->{'key_filename'}{'public'} ) {
+        $new_b32 = <[file.slurp]>
+            ->( $key_path_ref->{'key_filename'}{'public'} )->$*;
+    }
+}
+
+$new_b32 =~ s|\s+$||;    ## strip trailing newline from key file ##
+
+## the new key must decode to exactly 32 bytes [ Ed25519 ] ##
+my $new_bin = eval { Crypt::Misc::decode_b32r($new_b32) };
+if ( not defined $new_bin or length $new_bin != 32 ) {
+    printf( "\n  << '%s' is not a valid base32 C25519 public key >>\n\n",
+        $key_spec );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $cur_b32 = <[file.slurp]>->($pin_file)->$*;
+chomp $cur_b32;
+
+if ( $cur_b32 eq $new_b32 ) {
+    printf( "\n  << '%s' is already pinned for '%s' >>\n\n",
+        $username, $zenka );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+## keep the old pin : O_EXCL-safe .bak name [ refuse if taken ]        ##
+my $bak_file = sprintf qw| %s.%d.bak |, $pin_file, time;
+
+if ( -e $bak_file or -l $bak_file ) {
+    printf(
+        "\n  << backup name '%s' already "
+            . "exists -- refusing to re-pin >>\n\n",
+        $bak_file
+    );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+rename( $pin_file, $bak_file )
+    or die sprintf( "<< rename failed : %s >>\n", <[base.str.os_err]> );
+
+## write the new pin via a temp file in the same dir + atomic rename   ##
+require Fcntl;
+
+my $tmp_file = sprintf qw| %s.re-pin.%d |, $pin_file, $PID;
+my $pin_fh;
+if (not sysopen(
+        $pin_fh,
+        $tmp_file,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0640
+    )
+) {
+    rename( $bak_file, $pin_file );    ## best effort restore ##
+    die sprintf( "<< temp pin open failed : %s >>\n", <[base.str.os_err]> );
+}
+
+if ( not print {$pin_fh} $new_b32, "\n" or not close($pin_fh) ) {
+    my $why = <[base.str.os_err]>;
+    unlink($tmp_file);
+    rename( $bak_file, $pin_file );    ## best effort restore ##
+    die sprintf( "<< temp pin write failed : %s >>\n", $why );
+}
+
+if ( not rename( $tmp_file, $pin_file ) ) {
+    my $why = <[base.str.os_err]>;
+    unlink($tmp_file);
+    rename( $bak_file, $pin_file );    ## best effort restore ##
+    die sprintf( "<< pin rename failed : %s >>\n", $why );
+}
+
+( my $bak_file_name = $bak_file ) =~ s|^.+/||;
+
+printf( " :\n :: re-pinned '%s:%s'\n", $zenka, $username );
+printf( " :. old pin kept as '%s' ::\n\n", $bak_file_name );
+
+#,,,,,,,.,,..,.,,,,,,,..,,.,.,,,.,.,.,..,,.,.,.,.,...,...,,.,,,,.,,,.,,,,,.,.,
+#CNO3LBE5G6MRJWOLTKYCAOOEWTUYSFNLJ5HXF7XM3ZNCQW3EEQL3CFKYKUSM7POKL53QSGAZO7X3S
+#\\\|HUA3C6KT4OZR4FIAM74DIH6DKPVXIBNFH4I76LF6GNHTKV3A376 \ / AMOS7 \ YOURUM ::
+#\[7]W7M265AV73RJ447M6H7XALM4V7RMHPNCEOVYYB3WKKW723ACTMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
