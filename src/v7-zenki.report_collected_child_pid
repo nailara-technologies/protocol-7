@@ -22,13 +22,18 @@ my $caller_string = scalar <[base.caller]>;
 );
 <[base.logs]>->( $log_level, ': :. reported .: %s', $caller_string );
 
-<base.process.waitpid_collected>->{$chld_PID} //= $chld_return_status
-    if defined $chld_return_status and $chld_return_status != -1;
+## -1 is the liveness sweep's "unknown" placeholder : a real status wins ##
+if ( defined $chld_return_status and $chld_return_status != -1 ) {
+    my $collected = <base.process.waitpid_collected> //= {};
+    $collected->{$chld_PID} = $chld_return_status
+        if not defined $collected->{$chld_PID}
+        or $collected->{$chld_PID} == -1;
+}
 
 return TRUE;
 
-#,,,,,,.,,,..,,..,,,,,...,.,.,,.,,..,,,,,,...,..,,...,...,...,..,,,,.,..,,,.,,
-#V4TSNOKYSBF47IHLIEN5KY4ROCSVYWIOKPJYKB5NYHD4DJMFT2DFS3NDFXNUPGMRC63ZUF6DIAKNC
-#\\\|OUTBZLAXEY2OWNKXZ7J74H2RMCYYX6DRHLWGTDXPQMNUAXXZ3P2 \ / AMOS7 \ YOURUM ::
-#\[7]I3YFIWAQOC6CJDQ3YY6CGQ5WEIYS72E2U3L3JUQOF36WTCHMLWCI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,.,.,,,,,.,,,,.,,.,.,.,.,.,.,..,,...,...,.,.,.,.,,.,,,..,.,.,
+#4O3E2TL7KMR5NDXODT5CAMRPM4CVLKFZ5OAIXKDJHQZYLEY2STHO5ZMS4FHZH26ODN4MBIORAXORU
+#\\\|KRO66B2JD7FQEGMBD5UHORJHZHEML2ZSXG5W2JMO5VOB6EEJ2PE \ / AMOS7 \ YOURUM ::
+#\[7]B4FALTMKTWSFFS24VBDLRMFCJPIKV4Y4FKUWBKQCZUIDTZCPAGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

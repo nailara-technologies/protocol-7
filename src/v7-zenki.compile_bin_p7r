@@ -32,16 +32,17 @@ push( @gcc_params, qw| -O3 -x c -o |, $tmp_bin, '-' );
 
 unlink($tmp_bin) or die "< unlink > $tmp_bin [ \l$OS_ERROR ]" if -f $tmp_bin;
 
-## save and ignore SIGCHLD during gcc compilation  so gcc's child processes
-## (assembler, linker, etc.) don't trigger zenka SIGCHLD handler
-my $orig_sigchld = $SIG{'CHLD'};
-$SIG{'CHLD'} = 'IGNORE';
-
 ## compiling.., ###
 my $gcc_in_fh  = IO::Handle->new();
 my $gcc_err_fh = IO::Handle->new();
 my $gcc_pid = open3( $gcc_in_fh, undef, $gcc_err_fh, $gcc_bin, @gcc_params )
     or die "<< ! >> compilation failed [ \l$OS_ERROR ] << ! >>\n";
+
+## gcc is reaped right here : sig_chld skips its pid [ never touch          ##
+## $SIG{CHLD} -- restoring it resets the kernel disposition under the Event ##
+## watcher, and every later zenka end goes unnoticed ]                      ##
+<v7-zenki.sig_chld.ignore_child_pid>->{$gcc_pid} = TRUE if defined $gcc_pid;
+
 print {$gcc_in_fh} $bin_p7r_source if $gcc_in_fh->opened;
 close($gcc_in_fh)                  if $gcc_in_fh->opened;
 
@@ -55,9 +56,6 @@ if ( defined $gcc_pid ) {
     <[base.waitpid]>->( $gcc_pid, 0 );
     alarm(0);
 }
-
-## restore original SIGCHLD handler after gcc compilation completes
-$SIG{'CHLD'} = $orig_sigchld;
 
 qx| $strip_bin_p7r_path -R .comment $tmp_bin |
     if length($strip_bin_p7r_path);    # optional ##
@@ -84,8 +82,8 @@ if ( -f $tmp_bin ) {
 }
 return FALSE;
 
-#,,..,...,.,.,.,,,,,.,.,.,...,.,.,..,,,..,...,.,.,...,...,...,...,,,,,,,,,,,.,
-#OWDHBWN5R4NVY5HVOZH6DNG3JIZRJDMT6Z2K7JTIAVCBU3QI3TTZBIJ2EPYO6QHUNVMTBGE5XOT5Y
-#\\\|TQF36RXC4EB6BPRU53DRYQ4SDCSRQ2VZRWD2NPFJRZ2C5AO2Q3P \ / AMOS7 \ YOURUM ::
-#\[7]O3JUQIAOZZGWIMUP4SKZPWVKPMTPBSFIZYITG5TEB63QEA4WVCAY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,...,,..,.,.,...,,,,,...,,..,,..,.,.,...,..,,...,,,,,.,.,..,,,,.,
+#NF4GY4WMJFTUJ5YTAVUS6YULI6Z5MGFL5SBQWNNXLOCEENYZQJGWYNGKK6W3CKUH736WTWVAWMEYK
+#\\\|WUBDYNXGK6H5XSAXXG7P72IOCO2HFULVTIQ7ATBANI7YVTWGOKJ \ / AMOS7 \ YOURUM ::
+#\[7]PPBAWBE2VL2KXPCCCMR6V3MYZKMQKJSK6K77FZU2HWXI6O6DNQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

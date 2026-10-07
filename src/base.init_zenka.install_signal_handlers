@@ -13,10 +13,32 @@ foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
     delete $ignored_sig{ uc $signal_name };
 }
 
+## one watcher per signal number : %SIG carries aliases [ CLD = CHLD, IOT = ##
+## ABRT, POLL = IO ]. a second Event watcher on the same number keeps       ##
+## Event's count above zero, so a later add_signal for that signal never    ##
+## re-installs the kernel handler -- once anything resets the disposition [ ##
+## $SIG{CHLD} restore after a gcc compile ], the signal is lost for good [  ##
+## v7-zenki : 2026-10-07, no SIGCHLD ]                                      ##
+<[base.perlmod.load]>->('Config');
+my %sig_num;
+@sig_num{ split( ' ', $Config::Config{'sig_name'} ) }
+    = split( ' ', $Config::Config{'sig_num'} );
+my %num_taken;
+
 foreach
     my $signal_name ( @registered_signals, <[base.sort]>->( \%ignored_sig ) )
 {
     my $uc_sig = uc($signal_name);
+
+    ## alias of a signal already set up : drop a watcher left from an ##
+    ## earlier init, otherwise a reload still keeps the count up      ##
+    my $num = $sig_num{$uc_sig};
+    if ( defined $num and $num_taken{$num}++ ) {
+        ( delete <watcher.signal>->{$uc_sig} )->cancel
+            if defined <watcher.signal>
+            and exists <watcher.signal>->{$uc_sig};
+        next;
+    }
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
 
     my $signal_handler_name = sprintf( qw| base.sig_%s |, $signal_name );
@@ -57,8 +79,8 @@ foreach
     );
 }
 
-#,,..,...,.,.,.,,,...,,,.,.,.,...,.,.,..,,,,.,..,,...,..,,...,...,,.,,,..,.,.,
-#APTEDT37OLY5S647UQL4FYPVCQVORYVLRJJLI4OVNWSPLERE7NIBKH5OYU2BRAGBRLMR6BDHP67TY
-#\\\|YCL74QIBD2AN5M22Z2Y4G7CQEQS7UNI5CMLEGT44K4OX3HYY44Y \ / AMOS7 \ YOURUM ::
-#\[7]MYEEGPGEIFMFNWBJVAZYHULZYFEYBK77PN5YIVO7YRGZ3CRKGGBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,,.,,,,.,,.,,.,,,,,,,.,,,.,,,..,,...,...,...,.,.,,,.,...,..,,
+#4PV5IP676PIKKTLO46ND4W7ONYW47SIAY4L24ICEFEMW5DEWF4PASFIZZBZKW3PTD2VVATDBUAK6Q
+#\\\|6IMULB73XXNMDIUFKZACEZKRCCULBUVFRWUCDHTTWTH5AZVPUG7 \ / AMOS7 \ YOURUM ::
+#\[7]S6CKTSON4L3ANU2VEZLO3YA5BJFUDTWBT3BEZH3GCOSCOHFABEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
