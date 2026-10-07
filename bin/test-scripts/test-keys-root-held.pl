@@ -257,7 +257,9 @@ $code{'keys.get_keyfiles'} = sub {
         };
 };
 $code{'keys.list_remote_keys'} = sub { return {} };
-$code{'file.all_files'}        = sub {
+## no owner pins [ keys list's owner section, TRUST-CHAIN-STEP2 ] ##
+$code{'keys.remote_keys_dir'} = sub { return undef };
+$code{'file.all_files'}       = sub {
     my $dir = shift;
     push @main::scanned_dirs, $dir;
     opendir( my $dh, $dir ) or return undef;
@@ -655,8 +657,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,..,.,,,,..,,..,,,,,..,,..,,..,,,..,...,..,,...,...,,..,.,.,.,,,,..,,..,
-#C6WYB5EB7AFTYEGGMZDIVTLHUTWW6VI3ZXXV74UFDWLDZCQOXM7IKXKLKALQHKFABVC2WGD6ICTPO
-#\\\|P3PQYMZ2BTUJJ43YX3YZ3ZNML4OBK2RMWIGTGC5B2X4BOOYE54D \ / AMOS7 \ YOURUM ::
-#\[7]MQ2PBA57JV3NZRHPCEF7U7IRDSSNNDQ5YETNH26WPBHNC7LUNUCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,.,,,..,,.,.,,..,,.,,,..,..,,..,,...,...,.,,,,,,,,,.,,,,,..,,
+#AUV4ASCUDS74JIKZ7KCD4XIBQM7QEA4J7PYBFDDNYNCVCNXREHMJ6F4X4RK22YVHZXQ4JM3CD2BOW
+#\\\|HYBL6Z72STRZHX63WG5UJ6627PXONHZPQZXTBYOCEAQDVWPE6AP \ / AMOS7 \ YOURUM ::
+#\[7]YXTE4NO26KOMMCBFTP3H7NLZ4EZNXUUGXF64Y3JIILWGZSRH24DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

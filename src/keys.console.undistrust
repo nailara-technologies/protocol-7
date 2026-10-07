@@ -4,7 +4,7 @@
 # param = <fp>
 # descr = remove a key from the local distrust list
 # note  = <fp> : 77 char key id or 52 char public key ;
-#         the old list is kept as distrust.<time>.bak
+#         the previous list goes to the trash [ undo-remove distrust ]
 
 my ( $fp, $why ) = <[keys.key_id_arg]>->( shift // '' );
 if ( not defined $fp ) {
@@ -38,8 +38,8 @@ say " :\n :: removed from the distrust list";
 <[keys.store_note]>->( $list->{'path'} );
 say " :.\n";
 
-#,,..,,,.,..,,..,,..,,.,,,,..,..,,.,,,,,.,...,..,,...,.,,,.,.,,..,,.,,...,.,.,
-#2ZKQ5AJBKYG7TO3RBOGPLE36XZDBUETXXZVZFJJBHBDSEPMSHBJ4POYBMCKR5N34G3TDXDR756YVK
-#\\\|EUFJXBXANWKPJKIJZ5MIX5TL2MW5K6YTX5ERXYYZNVWLUSNG3BS \ / AMOS7 \ YOURUM ::
-#\[7]AN67CZ5T3DABHKZG3FMKOEGWISQCA6PGC7ZBSRNUDDKVU4EG44BI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,,,...,..,,.,.,..,,,.,,,,.,...,..,,...,..,,..,,.,.,,,,,.,.,,.,,
+#BMAU6K2FGMR73TNLBAVOXBLF6RTN63EBJNPT72FGOJAGZGLEOQS3DKPID3VE3C67ITDY4PFDCT5TI
+#\\\|4XQYY5XTNPOY3UUIX5UPG3OTEYHRX2L4ONW43UHEVHFW4I35K6L \ / AMOS7 \ YOURUM ::
+#\[7]XX3EAWNAFD6XA4VJ2M6OGV36ILFOLA7YA4DY35YX2UDG6GRQE6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
