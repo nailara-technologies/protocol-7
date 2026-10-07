@@ -152,6 +152,19 @@ my $names_len = 2 + max( map {length} keys %key_files, keys %root_key_files );
 $names_len
     = max( $names_len, map { length( $_ // '' ) } values %key_chksums );
 
+## root-held \ remote headers : "'<name>' [ root-held ]" \  "'<name>' ##
+## [<ntime>]"                                                         ##
+$names_len = max(
+    $names_len,
+    (   map { length sprintf( "'%s' [ root-held ]", $ARG ) }
+            keys %root_key_files
+    ),
+    map {
+        length sprintf( "'%s' [%s]",
+            $ARG, $remote_keys_ref->{$ARG}->{'ntime_b32'} // '' )
+    } keys %{$remote_keys_ref}
+);
+
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
 my $linefeed
@@ -341,8 +354,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,..,,,,,.,.,,,.,..,,.,,,.,.,,,,,,..,..,,..,,.,.,...,.,.,.,.,..,,.,.,.,.,,,,,
-#FFFFKAJLKLF4JKWWM6DE66RA46XWAZDLC6ALI5WVCITICXRQ6RA4JMJPRDIMMYNS5L47D4YSPXYFI
-#\\\|L2COIFEZIDYYHYM3IYNF5B3STWL7EOVPEODNNYUTMCTMPN62UQY \ / AMOS7 \ YOURUM ::
-#\[7]3MLUISPWNVZG5O5WNAV2CRIZNWK2K4SBKLGFDFWQI5HGT7JSWYAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,,,.,,,,,,,.,,..,...,,.,,.,,,.,.,...,...,.,.,.,,,,.,,.,,,...,
+#G4BWCDDU7M7KEPRJZBHYPLA6APXRMCY3TV545QM6EPIBIVXVNJKZGCGK7DJBPS6XLQQF4DJP3WMAC
+#\\\|5SSNMLSNTBBES4NKKQSJNISHIIQDPRSNNIWMUOETUQ3KR2RUFFL \ / AMOS7 \ YOURUM ::
+#\[7]ATDF6EUNA5XBIIFXYECQXLAWCLD5SED4D25Q4IFSAW2QLDFYWKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
