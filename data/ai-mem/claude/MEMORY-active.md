@@ -167,14 +167,15 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-render-degradation-baseline](project-2026-10-02-invoke-render-degradation-baseline.md) — renders slow 2-6x with uptime ; fresh-reboot baseline denoise 125 s vs 304-798 s before [ same graph, item 16005 ], gpu-only probe to separate causes
 - [host-pc-warranty-until-2027-02](project-host-pc-warranty-until-2027-02.md) — full-system 3-year ebay seller warranty, ordered 2024-02-17 / delivered 2024-02-23 -> ends ~2027-02 ; rtx 3060 fan bearing claim opened 2026-10-02, dead front-fan led rings to report too ; 5700x has no igpu
-- [session-handover-2026-10-06](project-2026-10-06-session-handover-security-sweep.md) — START HERE [ last a35a0ae62, release AMOS7-v6.13.5 ] : osf-cache 3 \ 4 \ 4b live incl. holders behind encrypted external links ; security fixed : link-upgrade nonce reuse, fail-open frame writer, PRNG without OS entropy ; v7-zenki liveness sweep ; host-root ; next : host-root check, trust chain server proof, pri
+- [session-handover-2026-10-07](project-2026-10-07-session-handover-trust-chain-step1.md) — START HERE [ last f1b7c83ef, pushed ] : trust chain step 1 landed -- auth-keypair v2 mutual binding, host-root delegation + root-held keys, discover carries the .dlg ; p-7-r injection + argv secrets fixed ; next : LIVE CHECK after a v7-zenki restart, .base keys, step 2
+- [session-handover-2026-10-06](project-2026-10-06-session-handover-security-sweep.md) — superseded by 2026-10-07 ; was : START HERE [ last a35a0ae62, release AMOS7-v6.13.5 ] : osf-cache 3 \ 4 \ 4b live incl. holders behind encrypted external links ; security fixed : link-upgrade nonce reuse, fail-open frame writer, PRNG without OS entropy ; v7-zenki liveness sweep ; host-root ; next : host-root check, trust chain server proof, pri
 - [session-handover-2026-10-04](project-2026-10-04-session-handover-osf-cache-stage2.md) — previous handover, superseded by 2026-10-06 [ last cb6e0ac8c ] : osf-cache stages 2 \ 2b \ 2c
 - [session-handover-2026-10-03](project-2026-10-03-session-handover-osf-os-pkg-space.md) — older handover [ last b82629df3 ] : trit\symmetry\chunker\condenser\os-pkg install\osf-cache stage 1
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,,.,,.,,,,,,,,.,.,,,..,,,,,,,..,,..,,..,..,,..,,...,...,,,.,,.,,.,.,,..,,..,
-#AKUNWVZX7T2GWCCQABNJ7OF65KT2WN7YNSU2XXSATI6HVSHTHX552VDAS2CJFOCYDTD3B7PETROOU
-#\\\|SDTBAH5A4SFWBCKU7JJXPMPPVE4NTMZP7PKL6AG3RYDCRIR3THP \ / AMOS7 \ YOURUM ::
-#\[7]PEG3ZX6QEKJX375UMBUAENQG6IAK7PIGQJZIJQI67VXQQTV5B6AA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,,,.,.,,.,,,..,...,.,.,...,,,,,..,,...,...,,,.,,,.,,,,,,..,.,,,
+#L4BC25NEDSOCU6AYKPFWM2TMMAFASRZQV2WE7RRXL42ICLPHAUCZFZNK7BIOEVRHTZI4Z52LENH4U
+#\\\|U7WJMEUWXXXDB37LJZD75U7Z4A7EE7Y2EXUMCUWPBLPVYZREF57 \ / AMOS7 \ YOURUM ::
+#\[7]G3SHW4TYVNG7BHBDMKR2L6PKT2A4F2LEFFGOQQVJRZQB5JYPOYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
