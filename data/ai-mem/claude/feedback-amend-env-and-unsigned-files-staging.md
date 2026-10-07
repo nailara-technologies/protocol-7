@@ -11,8 +11,10 @@ the pre-commit hook refuses `git commit --amend` with "version mismatch [ expect
 
 **How to apply:** before asking for a signed version, `git add` every changed file without a signature block [ bin/c_src/*.c, other unsigned files ] myself ; after the commit check `git status --short` is empty. if one slipped through and the commit is unpushed : stage it, `AMEND=1 git commit --amend --no-edit`.
 
-#,,,.,...,,,,,,.,,,,.,...,,,.,.,.,,,,,,,,,,.,,..,,...,...,.,.,.,.,,,,,.,.,..,,
-#RLORUC5FJMA4BZ6LJKN235F5RZ2SH43YW6DD7BJLVYWMCUXMGNXT4QCK4G2R3ZEHYS353AXRW7JX6
-#\\\|MYNPRJ3S5CIOAXMTSF5G5XTNFLF3IEERW2QIRDISICVXHKJARCC \ / AMOS7 \ YOURUM ::
-#\[7]MMDVRSNRGI6WQBYTL37LZTMJCU5AFONCSLNDPMB7N756WRZVTIDA 7  DATA SIGNATURE ::
+**2026-10-07, later : the sign run stages MORE than intended and rewrites what it stages.** it stages every modified signed file -- including a kimi \ subagent's half-finished edits still in progress [ happened : 7 unreviewed harness files staged next to my 2 ]. and it reformats with `format-code -r`, which changed code meaning [ `s/\@ARG/\@_/g` -> `s|@ARG|@_|g`, committed uncompilable in a561449c0 ; format-code fixed in e8fb73635 ]. so after "signed" : `git status --short`, `git restore --staged` anything not reviewed [ it then needs re-signing in its own batch ], and run `perl -c` \ the harness on the STAGED content right before committing -- a check done before the sign run does not cover what gets committed. better : don't ask for a sign while an agent is still editing.
+
+#,,,,,.,.,...,...,,.,,..,,,,,,,,,,,,.,,..,...,..,,...,...,...,.,,,,,.,.,,,,.,,
+#QNYKLY6KVU7PD5HJQUSBKJHJU3XTF4QXMAJNON3SF6QBIQFNEGOEHFKWGHGGCFSOFY52ZNNRANKSI
+#\\\|YUHMVZNUVMUIH6JHMQ3CRTWKZZXSLC46HMOQGHTMULSVRJJP676 \ / AMOS7 \ YOURUM ::
+#\[7]NQX3BNHYEEH6EDUXU6IICUFCODFAZ5X3MOG46ZC2XE4KLNXBLUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

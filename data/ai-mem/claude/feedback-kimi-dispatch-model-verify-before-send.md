@@ -98,8 +98,10 @@ the comparable stage 3 on k2.8 used ~18% of 5h. pick k3 only when its
 reasoning is clearly worth roughly 4-5x the quota ; otherwise k2.8 plus
 a careful review [ which caught the real defects in both stages anyway ].
 
-#,,,.,,..,,..,..,,,.,,...,,.,,..,,,,.,.,,,,.,,..,,...,...,...,.,.,.,,,,.,,...,
-#6QPSG2PBXV6VX2PEWEJDRJSCCFGQPEPF44HXAY4I53NYITFKD32STUYHVELYPLZPL2ODRWXWK75EC
-#\\\|6TPA6KJLMSCSCKFFGUTVSU4RBDHUYY2GI7FDEYFMAYT7EOP7YF2 \ / AMOS7 \ YOURUM ::
-#\[7]WWRFT4ER3WPMF7KYJ52LCCFYNTZZR3UBBEUWC5YV4TRCEVVUC2CY 7  DATA SIGNATURE ::
+**2026-10-07 harness batches on k2.8 [ data point ]** : 5 jobs [ ok() sweep 18 files, 7 drifted harnesses, full 50-harness inventory, two regression tests ] took kimi 7d ~90% -> 100% ; all passed review, no real corrections. kimi stops at **100 steps** mid-task ["Max number of steps reached"] -- `kimi_continue` the same session with a status recap + "be economical with steps", it resumes fine. give it : harness-only scope, "never weaken a check, report real src bugs instead", cite-the-commit for drift, `timeout -k 5 N` + cleanup for forking harnesses, and a pre-fix run [ `git show <fix>~1:<file>` ] to prove a new regression test fails without the fix. gotcha on my side : `pkill -f <pattern>` inside a bash loop whose own command line contains <pattern> kills that shell [ exit 144, later commands silently skipped ].
+
+#,,..,,,,,,,,,,,.,,,.,,,,,,.,,,.,,,,.,.,.,..,,..,,...,..,,...,..,,.,,,..,,.,,,
+#O7ZWNKX2DVWHGPTGHWS6YDR3V7GO7F32XB6GYCF7SM5ZPMZRLFRXK36X6IPGO7JCDEA5X3DTO33SS
+#\\\|EPCS53ZO7ZRTAUUTNBTY5HMICFTGNXNSM5TNKUTYEFSNEMBBUQZ \ / AMOS7 \ YOURUM ::
+#\[7]BWC7XEX5PVXX6SVHNTUAYOR4GJXCOLVTF4P4PZBF3EMXPFQO5ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

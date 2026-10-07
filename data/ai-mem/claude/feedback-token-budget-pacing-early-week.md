@@ -44,8 +44,10 @@ confirmation, and got it).
 
 [[bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17]]
 
-#,,.,,,.,,,,.,...,,,,,...,.,.,,,,,...,,,,,..,,.,.,...,...,...,.,.,.,,,,.,,,..,
-#L63C4A3ZNYSU6JMF6Z5CN6WLERNEQUES2QTG3TDIWEH5ZLGNHSFCJY53RN3SPXJJ3EVK5RFBDXATI
-#\\\|MN6MZHE6YD3XCBB5WRYTVOTJDNNAYMCT6T2NWFGLPICFYSHUJOF \ / AMOS7 \ YOURUM ::
-#\[7]FRHXGUOK5KCPU7MX7P7NZDDBGR7VI6QPBOULZB6SII3Z2V7SUUBI 7  DATA SIGNATURE ::
+**2026-10-07** : read the numbers myself -- `p7c usage.claude` \ `p7c usage.kimi` -- before stating any usage figure ; quoted a stale pasted 8% when it was 10%. the user prefers I run them [ also when watching kimi's budget during batch dispatches ].
+
+#,,,.,,.,,,,.,,,,,.,.,,.,,...,..,,,,,,,,.,,,,,.,.,...,..,,...,,,.,.,,,,,,,...,
+#23MC6W3Z4X6Z55GF7KK5BXKRHO6VRHNMHHLEBR37B5S6W2HJSIN2NM4NSRAR3YBYACC4EESCS3YEQ
+#\\\|O2MNJXGAQ4MZGAFULKKZQGSEUPRP7N2TJKY3LEUCODWNPRX6FSL \ / AMOS7 \ YOURUM ::
+#\[7]M3C6EQUEK3NJYD5XNKN2GHSCZ37OXTOYIQEODKFUQ5B5BFBC3CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
