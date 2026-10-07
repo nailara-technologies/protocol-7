@@ -47,8 +47,11 @@ service key [ cube S, a zenka key, a user key ]
 - `*` : anything [ only an anchor's implicit scope, never issued ]
 
 a statement is valid under its issuer when its `name` matches the
-issuer's scope AND its own `scope` is within the issuer's scope [ no
-widening : `atom.*` may hand out `atom.zenka.*`, never `beta.*` ].
+issuer's scope AND its own `scope` is STRICTLY narrower than the
+issuer's scope, or `''` [ authority only flows downward and never
+copies itself : `atom.*` may hand out `atom.zenka.*` or `atom.cube`,
+never `atom.*` again, never `beta.*` ; under an exact `<name>` scope only
+`''` ]. a scope `*` is never issued [ only an anchor's implicit scope ].
 one pattern per statement ; charset as the name rule plus a final `*`.
 
 **[ decided : one ]** a list of patterns per statement [ `atom.*,shared.cube` ]
@@ -192,4 +195,12 @@ verifier checks ]. proposal : yes, local only, cheap.
 #APX7ZPMET6CWCA4IURQSBVZRQ7U6BKAC3V4BUU4PYQOZOIMDL7VXZ56CFUU6W4DRNGWWSMGD25Y3Y
 #\\\|KJJFFCROVAHPRJ3GCQTZBJYLML74YN6XO6FG4Q26OKV45ABVS2Y \ / AMOS7 \ YOURUM ::
 #\[7]7UZ5HLE4JOYDWCUETRQFF5ZYVN446GHETISNUJAW5WFF5NEZJUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+6. scope is DOWNWARD and immutable : a subject's scope must be strictly
+   narrower than its issuer's [ or empty ] -- no equal re-delegation
+
+#,,..,...,...,..,,,,,,,,.,,.,,,,,,.,,,.,.,,.,,..,,...,.,.,,,.,...,.,,,,..,.,,,
+#EJQ2D6JNPABFPJZ7QKTCCRMXE3DDR3F7ROFOKRDXINZZLRBJTC3EZLYXLYTVNHBN3YAPEGJ4EODTE
+#\\\|JD4GD3KATFOCY4OOTDQ3YILLQPFUJAFXO7WRYW52RGBZDWDI2NE \ / AMOS7 \ YOURUM ::
+#\[7]P5K3UURHTY2ZR7WKMQFBPBLZIXMSRBXS2QWOQRAQG47AYH77EGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
