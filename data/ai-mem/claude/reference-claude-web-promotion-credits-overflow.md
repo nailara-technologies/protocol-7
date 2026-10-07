@@ -1,6 +1,6 @@
 ---
 name: reference-claude-web-promotion-credits-overflow
-description: the user has promotion credits on Claude WEB instances [ claude.ai \ cloud sessions ], counted separately from this CLI's 5h \ 7d windows -- overflow capacity, AND the default place for tasks that need no running backend [ spec-driven code, offline tests, design ] ; stated 2026-10-06
+description: the user has promotion credits on Claude WEB instances [ claude.ai \ cloud sessions ], counted separately from this CLI's 5h \ 7d windows -- AND the default place for tasks that need no running backend [ spec-driven code, offline tests, design ] ; stated 2026-10-06
 metadata:
   type: reference
 ---
@@ -11,6 +11,20 @@ differently".
 
 user, same day : "the web sessions are also good for offloading tasks
 that do not need a running backend for live testing".
+
+**2026-10-07 : switched, cause unknown** : the credits page states
+"applies automatically to cloud sessions. after it's used or expires,
+your plan's regular usage applies" [ credit expires 2026-11-05 ]. but the
+WEB UI USAGE BAR shows which pool a web session draws : the first time it
+stayed at 0 while the web session worked [ credits ] ; on 2026-10-07 it
+tracked the plan's usage [ plan windows ] -- user's evidence, stronger
+than inferring from usage.status [ local lanes ran in the same window ].
+glitch or silent change ; accounting glitches happen [ the weekly reset
+also moved ~6 h that day ].
+
+- CHECK the web usage bar right after starting a web lane : at 0 ->
+  credits [ free extra capacity ] ; moving -> plan [ competes with local
+  lanes, budget accordingly ]
 
 **How to apply:**
 - when planning lanes, sort tasks : NEEDS the live backend [ live checks,
@@ -26,8 +40,8 @@ that do not need a running backend for live testing".
   [[feedback-fill-5h-windows-with-prepared-parallel-dispatch]] ]
 - do not assume it is free : ask before moving work there
 
-#,,,.,.,,,,..,,..,...,,,,,,,.,,.,,,..,,.,,...,..,,...,..,,..,,,,.,.,.,,..,,,,,
-#AEFYOF65QPYP5REDA3NC2NWIAT6TMMOIDSSEKADH332IFNXCMQNSUCJNIUY22JYR242F4EWPGUVYU
-#\\\|K3SWO7MMNNUZN5OM7DER2VP4QTJX6BVZZYCKZ57JYIBLVXH6NX4 \ / AMOS7 \ YOURUM ::
-#\[7]4T5V5ZLE2HTDCHBEQETUGP47QX65GSXGMUQRVS2CRHCCVSTEZUBA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,...,,,.,,..,...,...,...,,,,,..,,...,...,...,,.,,,,,,,,,,..,,
+#L5KV563YSYIMV2JVN4SDL6DF2OOW4JCJNWOLMY557KFA7UEF2UQQ2KTYB4YPYRMFTZJGCTV2B2RKI
+#\\\|2LL33U37YMHASKT5IHUOJNEURIVGSLADT7JJH3N6IBFHUF37UU6 \ / AMOS7 \ YOURUM ::
+#\[7]PVPUSSSMS5VTHFBDIEZZZZXMBVM5IGOURYKIBK5PW7NOIP6I64DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
