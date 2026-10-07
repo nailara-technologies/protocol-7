@@ -26,7 +26,7 @@ lane drove post_init with autoload ON, so it could not catch it.
   keyed `<host>_<port>` ; host = `<system.hostname>` lc
 - reason to land BEFORE the binding live check : nobody has pinned S yet
 
-lanes : `data/tasks/host-root-delegation-{perl,keys,c}.md`.
+lanes : `data/tasks/archive/host-root-delegation-{perl,keys,c}.md`.
 related : [[project-2026-10-06-auth-keypair-replayable]],
 [[vision-2026-10-05-generic-trust-chain]]
 
@@ -43,7 +43,7 @@ related : [[project-2026-10-06-auth-keypair-replayable]],
 - then retire `crypt.C25519.sign_keys` \ `.sig.*` [ raw-pubkey sig shape ]
 - add a "next consumers" section to HOST-ROOT-DELEGATION.md after lane 1
 - 2026-10-07 : discover lane DISPATCHED to a web session [ task
-  `data/tasks/discover-host-root-delegation.md`, commit b7ffad700, branch
+  `data/tasks/archive/discover-host-root-delegation.md`, commit b7ffad700, branch
   `discover-host-root-delegation` ] -- review the branch + sign locally
 - landed : 1adb45b02 + e3c3ee371 [ node name, not_before -300 s ] ; NOT
   live-checked yet [ v7-zenki restart -> root/host-root.*, protocol-7.base.dlg ]
@@ -71,8 +71,8 @@ test 916a35658 ; web session 435ff591b + review 05e79435b ] :
   still used by keys.console.sign-key ; delete branches
   `discover-host-root-delegation` + `parked/e2e-binding-test` [ local + hub ]
 
-#,,..,,,.,.,.,.,.,,,.,,.,,.,.,.,,,.,,,,..,...,..,,...,...,,,,,..,,...,,.,,,,,,
-#BGDUGE3W5MSJU6H5LPO5AHA44U4QBRUYDHJSTT2ZAXZUPBLRGRKHPHCNVOIEKMGBQLZNFB2MTHU3A
-#\\\|USSZCMA3PZMFIORCDDYN2DNMR5EDUYW76UJUHBX4VI3XUHYFBXR \ / AMOS7 \ YOURUM ::
-#\[7]STLDK2C6GTXR7IOIFPYFBHVORWI5GN3VBTOL6N2IVSMSN5ZRGEDY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,..,,...,..,,.,,,...,,..,.,.,..,,...,...,,..,.,.,.,,,.,,,,,.,
+#2F2BHAZ45THHX2XWGGQ465QJ7W42GTLD5JV67KTSVTUNFK3WWZJKUPP4M7PBAQALS7X5USG65NCG2
+#\\\|FH6L7JK4VXIRNN7RLMZDHXXRKHIWJDWLVKT5X4AR7EGRBGPTYWJ \ / AMOS7 \ YOURUM ::
+#\[7]FHDIXZC3O6HSB3ATEQ646HKBXVT3QLV4OBY7C4WXVF4YN3MRUIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
