@@ -1,0 +1,65 @@
+## [:< ##
+
+# name   = keys.trash.restore
+# descr  = write a trash entry back to its live path [ undo-remove ]
+# param  = <entry [ keys.trash.entries ]> <live path>
+# return = TRUE or undef [ list context : ( undef, reason ) ]
+#
+# decodes the entry [ b32 -> xz ], writes temp + rename next to the live
+# path [ 0600 ; the public owner statement 0644 ], then moves the entry
+# out of the trash [ deleted : its content is live again ]. the CALLER
+# stashes a live file first -- this never overwrites without that.
+
+my ( $entry, $live ) = @ARG;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('entry not valid')   if ref $entry ne qw| HASH |;
+return $refuse->('live path missing') if not defined $live;
+return $refuse->("'$live' exists -- stash it first")
+    if -e $live or -l $live;
+
+open( my $in, '<', $entry->{'path'} )
+    or return $refuse->("cannot read $entry->{'path'}");
+my $b32 = readline($in) // '';
+close($in);
+$b32 =~ s{\s+\z}{};
+return $refuse->('trash entry not b32') if $b32 !~ m|\A[A-Z2-7]+\z|;
+
+require IO::Uncompress::UnXz;
+my $packed = Crypt::Misc::decode_b32r($b32);
+my $content;
+IO::Uncompress::UnXz::unxz( \$packed, \$content )
+    or return $refuse->('trash entry does not unpack');
+
+my $mode = $entry->{'kind'} eq qw| owner-statement | ? 0644 : 0600;
+
+require Fcntl;
+my $tmp = sprintf qw| %s.%d.undo |, $live, $PID;
+my $fh;
+sysopen(
+    $fh,
+    $tmp,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+        | Fcntl::O_NOFOLLOW(),
+    $mode
+) or return $refuse->("cannot write $tmp [ $OS_ERROR ]");
+binmode($fh);
+my $written = print {$fh} $content;
+
+if ( not close($fh) or not $written or not rename( $tmp, $live ) ) {
+    unlink($tmp);
+    return $refuse->("cannot restore $live");
+}
+
+unlink( $entry->{'path'} );
+return TRUE;
+
+#,,,,,...,...,,..,,..,..,,,..,.,.,,,.,..,,,..,..,,...,...,...,.,.,.,.,,.,,,,.,
+#ABD34EFUZDUFIPWQMP36JKOUE47G5FOFXXW36QCZCW7AQEVJL6KOGVFYY7ZWS6XXWCMWM5VQSXSZM
+#\\\|MJ6QZTIEXREQADEST4XKVFAMAXEUD33EPKXD2RHP2RT7PUZNNTD \ / AMOS7 \ YOURUM ::
+#\[7]EPFTVIFREYXSH5KX6ZC44XTMCZTE4M6IVW3BZV5VNCOGTBJE6WBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

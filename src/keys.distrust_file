@@ -3,8 +3,8 @@
 # name   = keys.distrust_file
 # descr  = read \ write the local distrust list [ ~/.n/remote-keys/distrust ]
 # param  = 'read'  -> ( { path, lines => [ raw lines ], fps => { fp => 1 } } )
-#          'write' <lines arrayref> -> TRUE [ temp + rename, 0600, the old
-#                   file kept as distrust.<time>.bak ]
+#          'write' <lines arrayref> -> TRUE [ temp + rename, 0600, the
+#                   previous list in the trash [ undo-remove distrust ] ]
 # return = see param, or ( undef, reason )
 #
 # format [ auth.client.distrust_list ] : one key id per line, '#'
@@ -40,18 +40,13 @@ if ( $mode eq qw| read | ) {
 return ( undef, 'mode not known' )   if $mode ne qw| write |;
 return ( undef, 'lines not a list' ) if ref $lines ne qw| ARRAY |;
 
+## the previous list goes to the trash [ undo-remove distrust ] ##
 if ( -e $path ) {
-    ## a free backup name [ two edits within one second must not collide ] ##
-    my $bak;
-    foreach my $n ( 0 .. 99 ) {
-        $bak = sprintf qw| %s.%d%s.bak |, $path, time, $n ? ".$n" : '';
-        last if not -e $bak and not -l $bak;
-        $bak = undef;
-    }
-    return ( undef, "no free backup name for $path" ) if not defined $bak;
-    require File::Copy;
-    File::Copy::copy( $path, $bak )
-        or return ( undef, "cannot back up $path [ $OS_ERROR ]" );
+    my ( $stashed, $stash_why )
+        = <[keys.trash.stash]>
+        ->( $path, qw| distrust |, qw| distrust |, TRUE );
+    return ( undef, "previous list not stashed [ $stash_why ]" )
+        if not defined $stashed;
 }
 
 require Fcntl;
@@ -71,8 +66,8 @@ if ( not close($fh) or not $written or not rename( $tmp, $path ) ) {
 }
 return TRUE;
 
-#,,.,,.,.,.,.,...,.,.,.,.,..,,.,,,.,,,,,.,...,..,,...,...,,.,,.,.,,..,..,,,.,,
-#NYG5ZM5KKKWVHPG2TJAD333FHC4SQAKMVSRO5SS5SPQBTWQCFJXTTPNBU5UNQDB2DSXV475JKB33K
-#\\\|RU4UBNT47HB2EOCIUJCK6UHVOMGUEOEH7GW7H52ECBFNPVX65GR \ / AMOS7 \ YOURUM ::
-#\[7]MVJBKNB2BRZYLH55DCIY3B5ZT37YVXINOYUL477LN6XJI2QGLKBA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,,,,.,,,,,,,,,,,,,,.,,,,,,,,,.,..,,...,...,,.,,,,,,.,.,..,,..,,
+#MNLQR6DQ5BXI4EFX4GYOG5MCMCKYBHNWNS7QK4XLHFFSGURPFBF47EOKIW3IE2J3VY6UB7XME6DXU
+#\\\|6EONLSYQIHKDDOJHWKJOJINVMXGCDQPLEQXR3MH5DBML3MX3K23 \ / AMOS7 \ YOURUM ::
+#\[7]465Z5H2KHLEH6XDH6VI6HYMNRTQMJS2YDRXKSFDSG7NS2ETVEWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

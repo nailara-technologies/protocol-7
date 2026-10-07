@@ -2,8 +2,8 @@
 
 # name  = keys.console.owner-unpin
 # param = <name>
-# descr = remove an owner pin [ renamed aside, not deleted ]
-# note  = kept as <name>.public.<time>.removed ; host pins written
+# descr = remove an owner pin [ undo-remove brings it back ]
+# note  = moved to the trash [ undo-remove ] ; host pins written
 #         under this owner stay [ they pin the host-root itself ] -- only
 #         automatic rotation needs the owner
 
@@ -25,22 +25,22 @@ if ( not defined $owner_dir or ( not -e $pin_file and not -l $pin_file ) ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
-## never deleted : renamed out of the '*.public' pattern ##
-my $removed = sprintf qw| %s.%d.removed |, $pin_file, time;
-if ( -e $removed or -l $removed or not rename( $pin_file, $removed ) ) {
-    printf "\n  << cannot move '%s' aside [ %s ] >>\n\n", $pin_file,
-        <[base.str.os_err]>;
+## into the trash [ undo-remove brings it back ] ##
+my ( $stashed, $stash_why )
+    = <[keys.trash.stash]>->( $pin_file, qw| owner-pin |, $name );
+if ( not defined $stashed ) {
+    printf "\n  << '%s' not moved to the trash [ %s ] >>\n\n", $pin_file,
+        $stash_why;
     <[base.exit]>->(qw| 0110 |);
 }
 
-( my $removed_name = $removed ) =~ s|^.+/||;
-printf " :\n :: owner '%s' unpinned\n :. kept as '%s'\n", $name,
-    $removed_name;
+printf " :\n :: owner '%s' unpinned\n :. undo : undo-remove owner-pin:%s\n",
+    $name, $name;
 <[keys.store_note]>->($owner_dir);
 say " :.\n";
 
-#,,..,,,.,,,.,,.,,,..,,,,,,,,,.,.,.,,,,.,,,,,,..,,...,...,.,.,..,,.,.,.,,,..,,
-#ZD24IEPPNQLMB52S2OJ7TJ2XDK4KJVU2M3SWWKCSZL7IBKPT5NQCSBBOSTK3YCF7V5FOMWC2OMBXQ
-#\\\|W6OQHSOG3JL4CF4AES4MKBFXCZKFCK62WMQTFIMU7BXKK5OLIO6 \ / AMOS7 \ YOURUM ::
-#\[7]T5EIGS2U2ONGDI6RL6LPMLZRBL5WA5SFLBRMZCILAUNYB2LQZ6DI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,.,,,,..,,,,,..,,.,,,,..,...,..,,...,..,,.,,,,,.,,.,,.,.,...,
+#S3J7QN6X37TTBXE65ZPMD4MZI5IFKURIJGH6COMG5Q5JAMV77NV6UIG4QTW732HIWDFXZ3YTX7YTO
+#\\\|F7NWMWTDNQ42GHSEWPZRDQEEQO7V3G2GM6RDSJYNHDZYLX6ECPP \ / AMOS7 \ YOURUM ::
+#\[7]EVLJDIHALRHVLH2DJM6ZMFBPIMANUMHZFJTEKNZODPVPQQT2ZGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

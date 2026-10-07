@@ -190,6 +190,20 @@ already a chain walker [ step 1 builds it generic ]. changes :
   mismatch \ step 1 x owner pin none \ covers \ foreign x distrust,
   rename, rotate back \ forward ] ; the io layers only do what it says.
 
+## management tools [ landed 2026-10-08 ]
+
+`p7-keys certify-host \ accept-owner \ owner-pin \ owner-unpin \
+owner-pins \ distrust \ undistrust`, `p7c v7-zenki.delegation-issue`.
+every removal or replacement [ `remove known:<host>`, `owner-unpin`, a
+distrust list rewrite, a replaced owner statement ] goes to the trash :
+`~/.n/remote-keys/trash/<kind>/<name>.<epoch>.mxz.B32` [ xz + b32, 0600,
+decoded back and compared BEFORE the original goes ]. `undo-remove
+<[kind:]name> [stamp]` brings it back -- a live file is trashed first, so
+an undo is undoable ; `removed` lists the trash. auto-purge is the
+exception : only entries older than 90 days AND not among the newest 3
+of their name ; asked interactively [ a TTY, at most daily, default keep
+] or `removed purge ::yes::` -- never silently.
+
 ## sign-key migration
 
 `keys.console.sign-key <signer> <subject>` becomes : issue a statement
@@ -282,8 +296,8 @@ plus resilient initial transport types, so adding a host to a network
 6. scope is DOWNWARD and immutable : a subject's scope must be strictly
    narrower than its issuer's [ or empty ] -- no equal re-delegation
 
-#,,.,,,,.,.,,,.,.,,,,,.,,,,,,,...,,,.,,..,,..,..,,...,...,..,,,.,,.,.,...,.,.,
-#UXLRYQSMCY5MRIPLXRSFUK7HC4NZCNV37TPKIBXUCOFEZPA2WYZVUTDJLSVD2K3L6NFHUNJB6M2DI
-#\\\|4QNKQUPU6X6TEATKYS4NRGBKFJFOKNYQSWXQE4EIRZIJ2I6LRLY \ / AMOS7 \ YOURUM ::
-#\[7]C352LQUOFT4BK6UTOEZDX7EYPDDCMSQEL47AIBBQL5H6VYKH5GAY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,..,,,,.,,.,,..,,,.,,..,,,,.,..,,...,...,.,.,,.,,.,.,.,.,,.,,
+#Q7PA2JC2XM4HK5Z2TLQZAA62IW72K3RQYOSVJBFYFGAYILMVRIGYEWXTT5S3GJYXUJSLDZTAFL2UI
+#\\\|ODI4IBXX6YIQO6AHV375WXCIV552S2SKFGEJ5LMLGM6ZFYNLNEH \ / AMOS7 \ YOURUM ::
+#\[7]SG4OEFI774EEJOIMZSONL3TULF22PW7FEY3Q4ZTL4C2QC33HUKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

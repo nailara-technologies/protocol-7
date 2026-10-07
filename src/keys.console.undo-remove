@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = keys.console.undo-remove
+# param = <[kind:]name> [stamp]
+# descr = undo a removal [ pins, distrust list, owner stmt ]
+# note  = newest removal of <name> unless [stamp] [ 'removed' lists them
+#         ] ; kinds : host-pin \ owner-pin \ distrust \ owner-statement ;
+#         a live file is moved to the trash first -- an undo is undoable
+
+my ( $spec, $stamp ) = split m|[\t ]+|, shift // '';
+
+if ( not defined $spec or not length $spec ) {
+    say "\n  << expected '<[kind:]name> [stamp]' [ see 'removed' ] >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my ( $kind, $name ) = $spec =~ m|\A([a-z][a-z-]{1,31}):(.+)\z|;
+$name //= $spec;
+
+## a host pin may be given as shown by 'list' [ port 42 implied ] ##
+my @found = grep { not defined $stamp or $ARG->{'stamp'} eq $stamp }
+    <[keys.trash.entries]>->( $kind, $name )->@*;
+if ( not @found and ( not defined $kind or $kind eq qw| host-pin | ) ) {
+    ( my $stem = $name ) =~ tr{:}{_};
+    $stem .= qw| _42 | if $stem !~ m|_\d+\z|;
+    @found = grep { not defined $stamp or $ARG->{'stamp'} eq $stamp }
+        <[keys.trash.entries]>->( qw| host-pin |, $stem )->@*;
+}
+
+if ( not @found ) {
+    printf "\n  << nothing removed under '%s'%s >>\n\n", $spec,
+        defined $stamp ? " at $stamp" : '';
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my %kinds = map { $ARG->{'kind'} => 1 } @found;
+if ( keys %kinds > 1 ) {
+    printf "\n  << '%s' was removed as %s -- prefix the kind [ e.g. "
+        . "'%s:%s' ] >>\n\n", $name, join( ' and ', sort keys %kinds ),
+        ( sort keys %kinds )[0], $name;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $entry = $found[0];    ## newest first ##
+my ( $live, $why ) = <[keys.trash.live_path]>->( @{$entry}{qw| kind name |} );
+if ( not defined $live ) {
+    printf "\n  << %s >>\n\n", $why;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+## the current live file goes to the trash first [ undoable ] ##
+if ( -e $live or -l $live ) {
+    my ( $stashed, $stash_why )
+        = <[keys.trash.stash]>->( $live, @{$entry}{qw| kind name |} );
+    if ( not defined $stashed ) {
+        printf "\n  << current '%s' not moved to the trash [ %s ] >>\n\n",
+            $live, $stash_why;
+        <[base.exit]>->(qw| 0110 |);
+    }
+    printf " :\n :. current %s moved to the trash\n", $entry->{'name'};
+}
+
+my ( $ok, $restore_why ) = <[keys.trash.restore]>->( $entry, $live );
+if ( not $ok ) {
+    printf "\n  << not restored [ %s ] >>\n\n", $restore_why;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+printf " :\n :: restored %s '%s' [ removed %s ]\n :. %s\n",
+    $entry->{'kind'}, $entry->{'name'},
+    scalar gmtime( $entry->{'time'} ), $live;
+## a restored owner statement acts at the next delegation run ##
+say " :. v7-zenki uses it at its next delegation run [ "
+    . "daily ] or now :\n :.   p7c v7-zenki.delegation-issue"
+    if $entry->{'kind'} eq qw| owner-statement |;
+say " :.\n";
+
+#,,,.,,,.,.,.,,,,,,..,,.,,...,.,,,..,,,.,,,,.,..,,...,...,...,...,..,,...,..,,
+#PAKTI4IXHT25CAXV3GRJCB6KCZTSVNK3DXD3OFI6LKYT4IJRHH4VSPJBKSSJKBDM2HUI2WBYCRDW4
+#\\\|BJFQUYIQADRIP5YR7RMJ2WPNDWC2BCCYKODBAI7EAA6FSF35YBC \ / AMOS7 \ YOURUM ::
+#\[7]EXUZ55UYWCXQQTY4EL65H7MQLKZWUV64TLS3B3PD547SBFLGY2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

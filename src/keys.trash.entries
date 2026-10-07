@@ -1,0 +1,61 @@
+## [:< ##
+
+# name   = keys.trash.entries
+# descr  = removed key-store entries [ the trash, newest first per name ]
+# param  = [ <kind> ] [ <name> ]
+# return = [ { kind, name, stamp, time, path }, .. ] [ newest first ]
+
+my ( $want_kind, $want_name ) = @ARG;
+
+my @entry;
+my $trash_root = <[keys.remote_keys_dir]>->( qw| trash |, FALSE );
+return \@entry if not defined $trash_root;
+
+opendir( my $root_dh, $trash_root ) or return \@entry;
+my @kinds = grep {m|\A[a-z][a-z-]{1,31}\z|} readdir $root_dh;
+closedir $root_dh;
+
+foreach my $kind (@kinds) {
+    next if defined $want_kind and $kind ne $want_kind;
+    my $dir = catfile( $trash_root, $kind );
+    next if -l $dir         or not -d $dir;
+    opendir( my $dh, $dir ) or next;
+    foreach my $file ( readdir $dh ) {
+        next if $file !~ m{ \A
+            ( [A-Za-z0-9] [A-Za-z0-9._:-]{0,127} )    ## name           ##
+            \. ( ( \d{9,11} ) (?: - \d+ )? )        ## stamp [ epoch ] ##
+            \.mxz\.B32 \z }x;
+        my ( $name, $stamp, $time ) = ( $1, $2, $3 );
+        next if defined $want_name and $name ne $want_name;
+        my $path = catfile( $dir, $file );
+        next if -l $path or not -f $path;
+        push @entry,
+            {
+            qw| kind |  => $kind,
+            qw| name |  => $name,
+            qw| stamp | => $stamp,
+            qw| time |  => $time,
+            qw| path |  => $path,
+            };
+    }
+    closedir $dh;
+}
+
+## newest first [ stamp : <epoch>[-n] ] ##
+my $order = sub {
+    my ( $t, $n ) = shift =~ m|\A(\d+)(?:-(\d+))?\z|;
+    return ( $t, $n // 0 );
+};
+@entry = sort {
+    my @a = $order->( $a->{'stamp'} );
+    my @b = $order->( $b->{'stamp'} );
+    $b[0] <=> $a[0] or $b[1] <=> $a[1] or $a->{'name'} cmp $b->{'name'}
+} @entry;
+
+return \@entry;
+
+#,,,.,...,...,,.,,,.,,,..,...,,..,..,,,..,,,.,..,,...,...,,.,,.,.,,,.,,..,...,
+#YEVJ7KWNIAWYQTGMJ4OH5MJ7F7VL7YUHDMPJKIFDXB6Q4QHVBW5CH4YED3SNA5WXSQAJLFZ5KUUWO
+#\\\|7C6CW2RC64EO6K7BSGVGMFB5DIAJDNJJW4TLBT2EGA5C7JMS7KV \ / AMOS7 \ YOURUM ::
+#\[7]RYUKEUSMJBQP4KMW7WU3NDOISURF2SPELFLXGGXKWKK6QI4YRCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

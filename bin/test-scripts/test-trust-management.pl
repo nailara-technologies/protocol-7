@@ -144,7 +144,9 @@ $code{'crypt.C25519.key_path'}   = sub {
         holder       => $ARG[0] eq 'owner' ? $owner_holder : 'user',
     };
 };
-$code{'crypt.C25519.key_vars'} = sub { return { key_name => 'srv.base' } };
+$code{'crypt.C25519.key_vars'} = sub {
+    return { key_name => 'srv.base', known_hosts_dir => "$keys_dir/servers" };
+};
 $code{'crypt.C25519.delegation_file'} = sub { return "$key_dir/$ARG[0].dlg" };
 $code{'crypt.C25519.encrypted_key'}   = sub { $owner_form eq 'encrypted' };
 $code{'crypt.C25519.key_is_virtual'}  = sub {FALSE};
@@ -164,7 +166,9 @@ compile_module($ARG)
     keys.console.owner-pin keys.console.owner-unpin keys.console.owner-pins
     keys.console.distrust keys.console.undistrust keys.console.certify-host
     keys.store_note
-    keys.console.accept-owner |;
+    keys.console.accept-owner keys.trash.live_path keys.trash.stash
+    keys.trash.entries keys.trash.purge_candidates keys.trash.restore
+    keys.console.undo-remove keys.console.removed keys.trash.offer_purge |;
 
 my $statement = $code{'trust.statement'};
 my $leaf_for  = sub {                       ## host-root seed -> S, name ##
@@ -224,9 +228,13 @@ say ': keys.console.owner-pin \ owner-pins \ owner-unpin';
         'owner-pins lists the owner, distrust none' );
 
     $r = run( 'keys.console.owner-unpin', 'acme' );
-    ok( !$r->{'err'} && !-e $pin && glob("$pin.*.removed"),
-        'owner-unpin : moved aside, not deleted'
-    );
+    my ($trashed) = glob("$keys_dir/trash/owner-pin/acme.*.mxz.B32");
+    ok( !$r->{'err'} && !-e $pin && defined $trashed,
+        'owner-unpin : into the trash [ owner-pin/acme.<epoch>.mxz.B32 ]' );
+    ok( defined $trashed && ( ( stat $trashed )[2] & 07777 ) == 0600,
+        '  :.. trash entry 0600' );
+    ok( index( $r->{'out'}, 'undo-remove owner-pin:acme' ) != -1,
+        '  :.. says how to undo' );
     ok( !@{ $code{'auth.client.owner_pins'}->($keys_dir) },
         '  :.. the client reader no longer sees it'
     );
@@ -255,8 +263,11 @@ say ': keys.console.distrust \ undistrust';
     ok( !$r->{'err'} && @{ $list->() } == 1 && $list->()->[0] eq $fp->('03'),
         'undistrust : only that entry removed'
     );
-    ok( scalar( () = glob("$keys_dir/distrust.*.bak") ) >= 1,
-        '  :.. the old list kept as .bak' );
+    ok( scalar( () = glob("$keys_dir/trash/distrust/distrust.*.mxz.B32") )
+            >= 2,
+        '  :.. every previous list in the trash'
+    );
+    ok( !glob("$keys_dir/distrust.*.bak"), '  :.. no .bak files any more' );
     $r = run( 'keys.console.undistrust', $fp->('07') );
     ok( $r->{'exit'} eq '0010', 'undistrust again : not distrusted' );
     run( 'keys.console.undistrust', $fp->('03') );
@@ -271,6 +282,95 @@ say ': keys.console.distrust \ undistrust';
         '  :.. owner-pins says connects are refused'
     );
     unlink "$keys_dir/distrust";
+}
+
+######################################################################
+say ': undo-remove \ removed \ purge';
+{
+    ## owner pin : unpinned above -> back ##
+    my $pin = "$keys_dir/owners/acme.public";
+    my $r   = run( 'keys.console.undo-remove', 'acme' );
+    ok( !$r->{'err'} && slurp($pin) eq $fp->('06') . "\n",
+        'undo-remove acme : the owner pin is back, byte-exact'
+    );
+    ok( ( ( stat $pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
+    ok( !glob("$keys_dir/trash/owner-pin/acme.*"),
+        '  :.. the trash entry is consumed'
+    );
+
+    ## an undo over a live file stashes the live one first ##
+    run( 'keys.console.owner-unpin', 'acme' );
+    put( $pin, $fp->('07') . "\n" );
+    $r = run( 'keys.console.undo-remove', 'owner-pin:acme' );
+    ok( !$r->{'err'} && slurp($pin) eq $fp->('06') . "\n",
+        'undo over a live pin : restored' );
+    my @live_stash = glob("$keys_dir/trash/owner-pin/acme.*.mxz.B32");
+    ok( @live_stash == 1, '  :.. the replaced live pin is in the trash' );
+    $r = run( 'keys.console.undo-remove', 'acme' );
+    ok( slurp($pin) eq $fp->('07') . "\n",
+        '  :.. and that ' . 'undo is undoable'
+    );
+    run( 'keys.console.owner-unpin', 'acme' );
+    run( 'keys.console.undo-remove', 'acme' );    ## back to 07 ##
+
+    ## host pin : removed by name, undone by the 'list' name [ port 42 ] ##
+    mkdir "$keys_dir/servers", 0700;
+    my $hp = put(
+        "$keys_dir/servers/atom_42.public",
+        $fp->('03') . "\natom.cube\n0\n"
+    );
+    my $stashed = $code{'keys.trash.stash'}->( $hp, 'host-pin', 'atom_42' );
+    ok( defined $stashed && !-e $hp, 'host pin stashed' );
+    $r = run( 'keys.console.undo-remove', 'atom' );
+    ok( !$r->{'err'} && slurp($hp) eq $fp->('03') . "\natom.cube\n0\n",
+        'undo-remove atom : host pin back [ port 42 implied ]'
+    );
+
+    ## the same name in two kinds : prefix required ##
+    put( "$keys_dir/servers/acme.public", "x\n" );
+    $code{'keys.trash.stash'}
+        ->( "$keys_dir/servers/acme.public", 'host-pin', 'acme' );
+    run( 'keys.console.owner-unpin', 'acme' );
+    $r = run( 'keys.console.undo-remove', 'acme' );
+    ok( $r->{'exit'} eq '0010' && $r->{'out'} =~ m|prefix the kind|,
+        'same name in two kinds : refused, prefix asked'
+    );
+    run( 'keys.console.undo-remove', 'owner-pin:acme' );
+    ok( -e $pin, '  :.. owner-pin:acme restores the owner pin' );
+
+    $r = run( 'keys.console.undo-remove', 'never-removed' );
+    ok( $r->{'exit'} eq '0010', 'nothing removed under that name : refused' );
+
+    ## removed : the listing ##
+    $r = run('keys.console.removed');
+    ok( index( $r->{'out'}, 'host-pin' ) != -1
+            && index( $r->{'out'}, 'distrust' ) != -1,
+        'removed : lists the trash by kind'
+    );
+
+    ## purge : only past retention AND not among the newest 3 ##
+    my $old_dir = "$keys_dir/trash/host-pin";
+    my $old     = time - 100 * 86400;
+    put( "$old_dir/zz_42.$_.mxz.B32", "AAAA\n" )
+        for map { $old - $ARG } 1 .. 5;
+    put( "$old_dir/zz_42." . ( time - 86400 ) . ".mxz.B32", "AAAA\n" );
+    my $c = $code{'keys.trash.purge_candidates'}->();
+    ok( @{$c} == 3 && !grep( { $ARG->{'name'} ne 'zz_42' } @{$c} ),
+        'purge candidates : 6 entries, newest 3 kept -> 3 old ones'
+    );
+    $r = run( 'keys.console.removed', 'purge' );
+    ok( scalar( () = glob("$old_dir/zz_42.*") ) == 6
+            && $r->{'out'} =~ m|::yes::|,
+        'removed purge without ::yes:: : lists, purges nothing'
+    );
+    $r = run( 'keys.console.removed', 'purge ::yes::' );
+    ok( scalar( () = glob("$old_dir/zz_42.*") ) == 3,
+        'removed purge ::yes:: : the 3 candidates gone, 3 kept'
+    );
+
+    ## the interactive offer never runs without a terminal ##
+    ok( !$code{'keys.trash.offer_purge'}->(),
+        'offer_purge without a TTY : no question, no purge' );
 }
 
 ######################################################################
@@ -393,8 +493,37 @@ say ': keys.console.accept-owner';
     $r = run( 'keys.console.accept-owner', 'AAAA..AAAA' );
     ok( $r->{'exit'} eq '0010', 'malformed chain field : refused' );
 
-    ## end to end : the client pins the owner, then decides via the owner ##
-    run( 'keys.console.owner-pin', 'acme ' . $fp->('06') );
+    ## a NEW valid statement replaces the installed one : the old one goes ##
+    ## to the trash, undo-remove brings it back byte-exact                 ##
+    my $first = slurp($target);
+    chdir $work_dir or die;
+    unlink "$work_dir/atom.host-root.dlg";
+    sleep 1;    ## a later not_before : a different statement ##
+    run( 'keys.console.certify-host',
+        'owner atom ' . encode_b32r( $kp{'03'}[0] ) . ' 200' );
+    chdir $cwd or die;
+    $r = run( 'keys.console.accept-owner', $owner_file );
+    my $second = slurp($target);
+    ok( !$r->{'err'} && $second ne $first,
+        'a second statement installed over the first' );
+    my @stmt = glob("$keys_dir/trash/owner-statement/host-root.*.mxz.B32");
+    ok( @stmt == 1, '  :.. the first one is in the trash' );
+    $r = run( 'keys.console.undo-remove', 'owner-statement:host-root' );
+    ok( !$r->{'err'} && slurp($target) eq $first,
+        'undo-remove owner-statement:host-root : the first one back' );
+    ok( ( ( stat $target )[2] & 07777 ) == 0644,
+        '  :.. mode ' . '0644 [ public ]'
+    );
+    ok( index( $r->{'out'}, 'v7-zenki.delegation-issue' ) != -1,
+        '  :.. says how to make it act now' );
+    ok( scalar( () = glob("$keys_dir/trash/owner-statement/host-root.*") )
+            == 1,
+        '  :.. the replaced second one is in the trash [ undoable ]'
+    );
+
+    ## end to end : the client pins the owner, then decides via the owner [ ##
+    ## its own owner name : the undo tests left 'acme' on another key ]     ##
+    run( 'keys.console.owner-pin', 'acme-e2e ' . $fp->('06') );
     my $owner_wire = slurp($target) =~ s|\n\z||r;
     my $d          = $code{'trust.pin_decide'}->(
         {   chain    => [ $owner_wire, $leaf ],
@@ -429,8 +558,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,..,,..,,,,,..,,,,,,,..,,,,,,,,,.,.,...,..,,...,..,,...,.,,,..,,,..,...,
-#XNPHLQ7FBAFLUST7HK2N3ODVKPS2EZ3OGMCUIIQHRJQR5FGXY52Q5WHYT4WAIO5KEZO5U6UYEFDWK
-#\\\|BLUYKEUZE4GFOPHNMSUX6IAKZZTNMS2MYRYI2OUKXAQ4XEDUFZF \ / AMOS7 \ YOURUM ::
-#\[7]RNVHT445ULWJ3TWIY5O6CBXESPCVWN5VICFQ7NEL35JGD2V7VWBY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,.,.,,,.,,,,,...,,,.,,,.,.,,,..,,...,..,,,..,,,,,.,.,..,,,,.,
+#CZF2BEEXAKMPBCS4GWWQ6FDJDQWFOXU6O6P7LATQNFSQGXB2U2WUQHDGZ546NFUEL2NNGF2A22JLW
+#\\\|QHMP22L3JQJRMUA7MFUJC7VBCXASVQQQRFHNJH2QP2QT4XHW2JT \ / AMOS7 \ YOURUM ::
+#\[7]QXZ6R5GBXCFKL3GDGCX7ODSDDPHXUQQVOSCIZHQTWLHFGDPDEIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

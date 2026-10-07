@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = keys.trash.offer_purge
+# descr  = interactive only : offer to purge trash past retention
+#
+# called after every keys console command [ cfg/zenki/keys/zenka.v7 ].
+# asks ONLY when stdin + stdout are a terminal, something is past
+# retention [ keys.trash.purge_candidates ] and the last question is a
+# day old [ trash/.purge-asked ] ; the default answer keeps everything.
+# never purges without a 'y' -- piped \ scripted runs never ask, never
+# purge.
+
+return FALSE if not -t STDIN or not -t STDOUT;
+
+my $trash = <[keys.remote_keys_dir]>->( qw| trash |, FALSE );
+return FALSE if not defined $trash;
+
+my $stamp_file = catfile( $trash, qw| .purge-asked | );
+my @st         = CORE::stat($stamp_file);
+return FALSE if @st and $st[9] > time - 86400;
+
+my $candidates = <[keys.trash.purge_candidates]>;
+return FALSE if not @{$candidates};
+
+## remember the question first : a ^C does not make it ask again ##
+if ( open( my $fh, '>', $stamp_file ) ) { close($fh) }
+utime( undef, undef, $stamp_file );
+
+printf "\n :: %d removed key-store entr%s older than 90 days -- purge? [ y "
+    . "\\ N "
+    . "] ", scalar @{$candidates}, @{$candidates} == 1 ? 'y' : 'ies';
+my $answer = readline(STDIN) // '';
+if ( $answer !~ m|\A\s*y(?:es)?\s*\z|i ) {
+    say " :. kept [ 'removed purge' any time ]\n";
+    return FALSE;
+}
+
+my $purged = grep { unlink( $ARG->{'path'} ) } @{$candidates};
+printf " :. purged %d ::\n\n", $purged;
+return TRUE;
+
+#,,,,,,,.,..,,..,,..,,..,,.,,,,..,,.,,,..,,,.,..,,...,...,...,,,,,.,.,..,,.,.,
+#22Y5RFNIAXGIB5IWR6EUB2FJYM57OEYWHNXYJVTIYJCR54WOIDZQ4YEGZD3RZ5ZPDHBXZ52OC7WFI
+#\\\|I3PBBZYZKDSHKYZUCC4WNRXTEHX7JT7LTFKACXDJCYMWRFH34Y4 \ / AMOS7 \ YOURUM ::
+#\[7]LLDROOCXVNSVXKWPFADPO5LXZIPYSNSS72JTZYV3R6FV5E33XCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

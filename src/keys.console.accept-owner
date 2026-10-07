@@ -13,7 +13,7 @@
 ## statement lives' ] : accepted only when the WHOLE chain down to the      ##
 ## current delegation leaf verifies -- the owner statement's subject is     ##
 ## THIS host-root, its scope covers this host's '<node>.cube' name, nothing ##
-## expired. the previous host-root.dlg is kept as .<time>.bak.              ##
+## expired. the previous host-root.dlg goes to the trash [ undo-remove ].   ##
 
 my $arg = shift // '';
 $arg =~ s{\A\s+|\s+\z}{}g;
@@ -116,14 +116,14 @@ if ( -e $target ) {
         say "\n  << this owner statement is already installed >>\n";
         <[base.exit]>->(qw| 0010 |);
     }
-    my $bak = sprintf qw| %s.%d.bak |, $target, time;
-    $fail->( qw| 0110 |, 'backup name taken [ %s ]', $bak )
-        if -e $bak or -l $bak;
-    rename( $target, $bak )
-        or $fail->(
-        qw| 0110 |, 'cannot back up %s [ %s ]',
-        $target,    <[base.str.os_err]>
-        );
+    ## the previous statement goes to the trash [ undo-remove ] ##
+    my ( $stashed, $stash_why ) = <[keys.trash.stash]>->(
+        $target,
+        qw| owner-statement |,
+        qw| host-root |, TRUE
+    );
+    $fail->( qw| 0110 |, 'previous statement not stashed [ %s ]', $stash_why )
+        if not defined $stashed;
 }
 
 require Fcntl;
@@ -155,8 +155,8 @@ printf " :. owner %s\n :.       %s\n", substr( $owner_fp, 0, $half ),
 say " :\n :. v7-zenki adds it at its next delegation run [ daily ] or now :";
 say " :.   p7c v7-zenki.delegation-issue ::\n";
 
-#,,,.,,,,,.,,,,..,...,.,.,,.,,,.,,,,,,..,,,,,,..,,...,...,.,.,,,.,,..,,..,..,,
-#OOAQUQRLKCBMGY5JTE5KJV66J5XCTN2QN4C6TXRUMMK6JRTKPJVBXVAJAOMPRCBTZXZIMP2CFIV7G
-#\\\|2HTADQ5UPQBVGLRJRBPBUHGTVK4IUCCWX5F55ZJQVXQIDGGZTLH \ / AMOS7 \ YOURUM ::
-#\[7]Z2W32DQZY56VZCITV62ZTRLWI3UOZGSHNN37RXXHFJYGOLW5AQAA 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,,.,,..,,...,,,,,.,.,,,.,..,,..,,...,...,,,.,,.,,,,,,,,,,.,,,
+#4STKOMPARFL5NFT4DVZP363IXORSXZG6SODOUULVMM7VUAT5JTMOIKPZOWXYT3GNBKBOJ3MVSEAVQ
+#\\\|LJJG2SHXG6M4TRYOERG5W7CDBUBK3G2QXJ7IZNTSHJZRGDKFAUA \ / AMOS7 \ YOURUM ::
+#\[7]QRUKNSXWESEB7BI2CMQAATHNGUBZETVCPXESQZSBVDS5BQB34UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
