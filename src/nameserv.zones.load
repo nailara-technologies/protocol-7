@@ -50,7 +50,8 @@ for my $filename ( sort @zone_files ) {
     }
 
     ## generate serial from mtime if not provided
-    my $serial = $zone_data->{'serial'} // ( stat $filepath )[9] // time();
+    my $serial = $zone_data->{'serial'} // ( CORE::stat $filepath )[9]
+        // time();
 
     $zones->{ lc($zone_name) } = {
         records => $zone_data->{'records'},
@@ -73,8 +74,8 @@ my $total_zones = scalar keys %$zones;
 
 0;
 
-#,,..,.,.,.,,,,.,,..,,.,.,.,,,.,.,.,.,,,,,..,,..,,...,...,,,.,,,.,.,,,...,..,,
-#U6J2XADYWK5PBIIVVSH77YITFJAGX4FS2B3LY372EWQHGDX467MKM7QWK3MAUOR5NBFPAZ2RRCINW
-#\\\|3G3OBQ7NNJBHW72LI65XX6USUBKOV3SI6M5YU6PMFE3VGKMWNYM \ / AMOS7 \ YOURUM ::
-#\[7]GQJ25NJPGBGS6DGC5N7SLLF4YM4TGJL4Q3UTV4AJSQRNA6WUZKDQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,.,.,,,,,,,,,,.,,,..,.,,,,,,,..,,...,...,,,,,.,,,,,.,...,.,,,
+#6XGVMOUJY3TJS6F23X7C573MERPQI7BQBYV3GFLEYQRAQFFC5ZZNW4A2WDSPND7IYE6CU36HY264Q
+#\\\|RCIZW45IGAJU2CJDRTSBQJIKITTS3B4MAQKKIKQAOJ3UNTHRXZI \ / AMOS7 \ YOURUM ::
+#\[7]E43GWW4RBZPYZO6G55S3AZQLAEV2HKC7TJ5GM5TUVHQ24GMO6MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

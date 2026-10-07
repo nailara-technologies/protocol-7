@@ -16,7 +16,7 @@ my $chmod_fh = <coding.chmod_child.w_fh>;
 my $mode_restore;
 
 if ( -f $file_path and !-w $file_path and defined $chmod_fh ) {
-    my $cur_mode = ( stat $file_path )[2] // 0644;
+    my $cur_mode = ( CORE::stat $file_path )[2] // 0644;
     $cur_mode &= 07777;
     printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ), $file_path;
     my $grant_reply = <[coding.chmod_child.readline]>;    ## wait for grant ##
@@ -49,8 +49,8 @@ if ( -w $file_path ) {
 
 return ( 0, 'permission denied: cannot make file writable' );
 
-#,,,.,..,,..,,,.,,.,,,,,.,,.,,...,..,,...,...,.,.,...,...,...,,.,,,.,,.,,,.,,,
-#57G5JRTZ7JEBMGU5HJWZ6HKTX52SB4JK7SKHRFUZU6USWR7TH4UYXV4WCM7LCCRQZ5DNVS4O5PPWY
-#\\\|OA4JUDVHQXBQPDBXD6TTHQDFSBSXGYJMJYLSZ77SIDDPWZUWGCP \ / AMOS7 \ YOURUM ::
-#\[7]QR7USWVKOTQAUBXU57QCOYW7CYY7ONIOHIOEGND4Z2BNPLKSZYCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,..,,,..,..,,,,.,,,,,...,.,,,.,.,...,...,...,,.,,.,,,..,,.,.,
+#HJZXHN4UTQKQUF2NYUM5K7KBK6ZKT6JPISBAQKZBSNPIYP3X674KQF6B3CYNV2IYP3U5D42X37ORM
+#\\\|VB6NJBXIKM76IHDRBJSROL2TL4HB46KUL6JWUXOOILT4UCBJZYE \ / AMOS7 \ YOURUM ::
+#\[7]XJJCKQSQ76S3GTKK5JSMY3DGXYNY6OBDTRXSNKTAYO77FZH4TCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

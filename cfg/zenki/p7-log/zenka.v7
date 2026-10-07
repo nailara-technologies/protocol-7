@@ -11,7 +11,12 @@ log.timestamp_mode  =  ntime-b32  #  [ntime-b32|ntime-num|unix|localtime]
 p7-log.anon.enabled    =  1
 p7-log.anon.token_len  =  13
 
-modules.load        =  auth.client net protocol io.unix io.ip ui p7-log
+## anon.key resolves its key file through crypt.C25519.key_path ; no key  ##
+## auto-loading here [ the secret is read lazily after drop_privs ]       ##
+crypt.C25519.auto_load_keys = 0
+
+modules.load        =  auth.client net protocol io.unix io.ip ui crypt.C25519 \
+                       p7-log
 
 access.cmd.usr.cube =  append commands heart reload cur-pid verify-instance \
                        list-logs \
@@ -33,8 +38,8 @@ access.devcmd.usr.cube = devmod:*
 
 [zenka.loop]
 
-#,,..,,,.,,.,,,,.,.,.,.,.,.,,,,..,,.,,,,.,..,,..,,...,...,...,,,.,..,,.,.,,,.,
-#ROXH7F7P7WWK6HUM45SD7FRHIT6W6EMRX4KH7OYS2RAZWCMQYBOB7YGS6UVGYEFV7QIBZLUNZXU4I
-#\\\|NU7T3G5EONPDEWW2IXBWTLDG2CNFFMGEXNK5GYA6I7BIJRVB32W \ / AMOS7 \ YOURUM ::
-#\[7]QM27V4AUO4Y6W3YBSNIC3OKKSUEFKJCP2VQOUOPQBGII7VAEASCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,,,,,...,...,...,,,.,.,.,,,,,..,,...,..,,,,.,,,,,,,,,,,,,,.,,
+#SZVLFSHHQZ2RVGQWOGBRQUOYJWJ75QB4CWFYC5S5T5D73YZCPUT6T7Q4CKJOP7AKPWQQMNJXLE4BK
+#\\\|QCHOPFVEVTRSBFVGEUN247NBUJDCIHDKWSG4L5GA3HLXI37JAJJ \ / AMOS7 \ YOURUM ::
+#\[7]YCVM65YWJATRSDZ7PMTUVCVYYQ64JY5VZUX3EIWFVRZMSLQPRMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

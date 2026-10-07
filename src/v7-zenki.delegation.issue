@@ -119,7 +119,8 @@ my $read_small = sub {
     my $fh;
     sysopen( $fh, $path, Fcntl::O_RDONLY() | Fcntl::O_NOFOLLOW() )
         or return ( undef, "$OS_ERROR" );
-    my @st = stat($fh);
+    binmode( $fh, qw| :raw | );    ## runtime default layer is :utf8 ##
+    my @st = CORE::stat($fh);
     return ( undef, 'not a regular file' )
         if @st < 11
         or not Fcntl::S_ISREG( $st[2] );
@@ -229,8 +230,8 @@ if ( $reason eq qw| issued | ) {
 
 return TRUE;
 
-#,,,.,,,.,..,,,,,,,..,.,,,...,.,.,.,.,,,.,...,..,,...,...,..,,,,,,.,.,,..,..,,
-#ZQZ7IZ3NF5KPDA4BUVDMONCYSELLJFSOH3K2HWLSCWNAIUW3CUZADKGDMZWVRUZTD37NWUNFZMSNQ
-#\\\|QGFUHMTVDU274OKOWU4AI5OATQNHZ3SZRMNVH26L5D5A2IDTM35 \ / AMOS7 \ YOURUM ::
-#\[7]WY3EHYB2WYOIYEB2ABN4Q74NKG7A7Y5VEWESTPUCORQKJEKTHADQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,.,,,,..,,..,,.,,,,,,.,,,...,..,,...,...,.,.,,,.,,,.,..,,,..,
+#4QAYEZ7KLCMEUABYSEP4ADSV5YYA5ULDTS7QH2EPVYMJJ7777R34YIBBXLQBOAD6A67YAZ7ZVNHMG
+#\\\|SPK3KQ3FKGCUAJDYVCIIEA4IDJPA2SYFY4BKLUEYH37OG3X5KIY \ / AMOS7 \ YOURUM ::
+#\[7]VEHIQ6LXRW4PX6X3KQP6H54XQGPQTO6UEGLGUMSFQCGPATMHCSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
