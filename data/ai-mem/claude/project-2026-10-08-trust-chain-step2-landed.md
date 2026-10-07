@@ -54,6 +54,14 @@ TOFU, old S keys ] archived as ~/.n/remote-keys/known.retired-2026-10-08,
 p7-tofu-helper.pl removed ; known_hosts_dir = servers/ ; `remove
 known:<host>` moves a pin aside [ was shred ].
 
+## key trash [ 2026-10-08 ]
+
+`undo-remove` \ `removed` [ user named it : a reliable undo is regular
+operation, auto-purge the exception ] -- 90 d + newest 3 kept, asked only
+on a TTY at most daily, `removed purge ::yes::`. host pins, owner pins,
+distrust lists, the owner statement. the shredding incident was a test
+entry [ no damage ] -- the fix landed in the same session.
+
 ## lessons
 
 - gen-sub-whitelist [ zenka ] regenerates subroutines.load-early -- they
@@ -72,8 +80,8 @@ known:<host>` moves a pin aside [ was shred ].
   earlier cat ] -- never invoke a destructive command to see what it does,
   even with the output thrown away [ [[tool-probe-empty-args-destructive-default]] ]
 
-#,,.,,,,.,,,,,..,,...,..,,,..,,.,,.,,,,,,,...,..,,...,...,.,.,...,..,,,.,,,.,,
-#IPDDUQTIDBHTMNQWTAL457FOCLDFOCOOGIALB5OMR2FWEK3JXOUKX7JL7RQ6EDCSM3YVERQWVPXZ6
-#\\\|OGF5Z6YGPR5WZB3WI624SXSAXEBMGABJ3BYTWGO3BBNCWSNXOQB \ / AMOS7 \ YOURUM ::
-#\[7]SMMNJRF6QJU5NMNMTONEXAREWOAFWBNCMQLVX6QA2MNYKEQKSOBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,,,,,.,,,..,,,..,,,,,,,.,...,..,,...,...,..,,..,,...,..,,,,,,
+#HTRKP6VE3BBIX4WXBXOYIRVB7RUE2JPLHPLKBCFDYXBWZ6L4STOZBO5457PUKS2BUNSJPUF2MKTBW
+#\\\|BOQRZVMKQHLDN7KEU6GOHCD7HCFDQE2MPJD6OQ4MC44MKZ4KMMF \ / AMOS7 \ YOURUM ::
+#\[7]PHDBU3DAQXZTH7MZ2HHNERHZ3XXBWNZOZIBRFNRJ7CN33MC4FWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
