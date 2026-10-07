@@ -80,8 +80,10 @@ foreach my $entry (@gone) {
 
     my $stopping = exists <zenka.instance.shutdown>->{$instance_id};
 
+    ## a stop does not wait for SIGCHLD [ instance.stop drops the child ##
+    ## entry on purpose ] : only a restart-path recovery is an alarm    ##
     <[base.logs]>->(
-        0,
+        $stopping ? 2 : 0,
         ": liveness : instance %u ['%s'] PID %d is gone without a "
             . 'processed SIGCHLD -- recovering [ %s ]',
         $instance_id,
@@ -105,8 +107,8 @@ foreach my $entry (@gone) {
 
 return $count;
 
-#,,..,,,,,,,,,..,,..,,,..,,,.,...,,.,,.,,,,,,,..,,...,...,...,...,,,,,..,,...,
-#GRIVANI7VTEMN4SWXNRGFBVGKMSWNEWCG5J2QVEG6JSWY6LS2EP46MPFIMF6R7PY7LTST5KQ3NUEU
-#\\\|54XNSYSMCTNGGGE2CO4FGRT6U277L3C3WSUVOBGGYBBIQD3FY45 \ / AMOS7 \ YOURUM ::
-#\[7]NMLZ372G5HTRIWSN3G43TNGG4PX64BZCUQHWGFLH3JQ2RHOVREDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,.,,,...,..,,..,,,,,,,,.,...,..,,...,...,..,,.,.,,..,..,,...,
+#SSRI6TW2SWDORE3MNT7JRHETEN4VERDXXEA43K5A46Z4WZIY77PPAYHGLHPG6Q6CSLQVVZ5CCDN74
+#\\\|OTKW7FCX3AJZ2T2U44SIQZBKIMD57NHB3FTEPT6GJOM3N3MHS33 \ / AMOS7 \ YOURUM ::
+#\[7]FPYVSWQ2OOUYZQBV7EWADHA44DCNFIR2WIX7JYLR2WDABHXWZQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
