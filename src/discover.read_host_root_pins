@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = discover.read_host_root_pins
+# descr = the set of pinned host-root fingerprints from the client pin
+#         store -- read only ; discover NEVER writes a pin
+# return = hashref { <77 char fingerprint> => TRUE, .. } [ empty if none ]
+#
+# the pin store <home>/.n/remote-keys/servers/*.public is shared with
+# auth.client.server_pin.check and the C client [ data/md/design/HOST-
+# ROOT-DELEGATION.md, 'acceptance rules' ] : each file holds exactly one
+# 77 char fingerprint. an old 52 char S pin, a symlink, or any malformed
+# \ unreadable file is skipped -- never trusted [ fail closed ].
+
+my %pin;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $home_dir
+    = ref $key_vars_ref eq qw| HASH | ? $key_vars_ref->{'usr_home'} : undef;
+return \%pin if not defined $home_dir or not length $home_dir;
+
+my $pin_dir = join qw| / |, $home_dir, qw| .n remote-keys servers |;
+return \%pin if not -d $pin_dir;
+
+opendir( my $dir_handle, $pin_dir ) or return \%pin;
+while ( defined( my $entry = readdir $dir_handle ) ) {
+    next if $entry !~ m|\A[^/]+\.public\z|;
+    my $pin_path = join qw| / |, $pin_dir, $entry;
+    next if -l $pin_path or not -f $pin_path;    ##  no symlinks  ##
+    open( my $pin_handle, '<', $pin_path ) or next;
+    my $line = readline($pin_handle);
+    close $pin_handle;
+    next if not defined $line;
+    $line =~ s|\s+\z||;    ##  strip the trailing newline \ space  ##
+    $pin{$line} = TRUE if $line =~ m|\A[A-Z2-7]{77}\z|;
+}
+closedir $dir_handle;
+
+return \%pin;
+
+#,,,.,..,,,..,,,.,,,.,...,,,,,.,,,.,.,,..,,.,,..,,...,..,,..,,,,,,.,,,.,.,.,.,
+#OZ65TBSOCO7LAIG7PNHRBM52ILIMRVT7PFUQENBEEWFWGBMXCJAHPV74JAIXE6S4AZGJ3FUH4ABKQ
+#\\\|KK3LH3KVIHIHSBC435RIS5SYBE2PJZES4IOZHABQL7FXXLX2JD7 \ / AMOS7 \ YOURUM ::
+#\[7]WPJ66N72CM4VS4CUS6BPCHKKADY7DEQPGDB3VINNHPSKWOXEGIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

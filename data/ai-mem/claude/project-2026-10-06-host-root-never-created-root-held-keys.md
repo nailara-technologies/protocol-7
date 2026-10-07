@@ -42,29 +42,37 @@ related : [[project-2026-10-06-auth-keypair-replayable]],
   display ] -> key hosts by verified host-root fingerprint + name
 - then retire `crypt.C25519.sign_keys` \ `.sig.*` [ raw-pubkey sig shape ]
 - add a "next consumers" section to HOST-ROOT-DELEGATION.md after lane 1
+- 2026-10-07 : discover lane DISPATCHED to a web session [ task
+  `data/tasks/discover-host-root-delegation.md`, commit b7ffad700, branch
+  `discover-host-root-delegation` ] -- review the branch + sign locally
+- landed : 1adb45b02 + e3c3ee371 [ node name, not_before -300 s ] ; NOT
+  live-checked yet [ v7-zenki restart -> root/host-root.*, protocol-7.base.dlg ]
 
-#,,.,,,..,.,.,,.,,,.,,..,,,..,.,,,,..,...,,..,..,,...,..,,.,,,,,.,,.,,,..,,,.,
-#36EDENUDUG2I3A24B7KGE2P57XKCA2FEUKGNAPI4TYIUKT6YWNBZJPZ336STU5H5HLYHKT5F5UWGU
-#\\\|CUR6BK3WXA7NPE3C74F42I3IVJDFAONTIZDLJNDNAUFRVNJNIJA \ / AMOS7 \ YOURUM ::
-#\[7]MLJTOB24UA77AHKEBG77MHVDJUZCGOUT4V3L7E6SI2EOPGG3WMCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,.,,,,,,,.,,,..,...,,,.,,..,.,,,..,,...,...,,..,,,,,.,.,...,.,.,
+#GPGACX5DYK3Q6O5D5A6XLAGDBIDROALTIO757KIKSQVRDSVOQ2Z5O6O5Y6OIH6EEJDGOWLPU6T6OY
+#\\\|23MJNAM5LDCWSORF66NMMNXSU7ZK7F6BC23CRAX2OM7MN52XWR2 \ / AMOS7 \ YOURUM ::
+#\[7]WQ5SOVU7EPJHQACVJCYPM5OP6R3MNDOR7563QSUMN2SFII4AB4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**2026-10-07 discover branch review [ IN PROGRESS, session hit usage limit ]** :
-branch `discover-host-root-delegation` @ 435ff591b [ web session, Opus 4.8 ].
-its test passes locally : 31 ok. BLOCKER found : `cfg/zenki/discover/zenka.v7`
-modules.load has NO `trust` [ nor `auth.binding` ] and the load-early list
-gained only `discover.read_host_root_pins` -> trust.statement \ verify \
-fingerprint + crypt.C25519.delegation_file are NOT loaded in discover at
-runtime -> every delegation would fail verify [ packets dropped as invalid ?
-check how the receiver handles a missing trust.verify ]. fix before merge :
-add `trust` to discover's modules.load + regenerate its load-early list.
-still to do : format-code -c on the 10 touched src files, read the diff +
-its report's 5 open questions, then merge + sign ; cherry-pick parked
-916a35658 [ parked/e2e-binding-test, pushed to hub ] ; live check after a
-v7-zenki restart ; delete the parked branch when integrated.
+**2026-10-07 discover MERGED** [ squashed onto base with the parked e2e
+test 916a35658 ; web session 435ff591b + review 05e79435b ] :
+- review fixed a BLOCKER : discover's modules.load lacked `trust` [ the
+  test compiles modules directly, could not see it -- the same class as
+  auth.binding missing in external \ users : CHECK modules.load NAMESPACES
+  whenever a lane adds calls into a new namespace ]
+- host-root change DROPS the packet ; both drop paths log with an
+  adaptive level per sender key [ 0, then 1 2 3 capped, reset on accept ]
+- suites on base : discover 33, e2e 54, delegation 186, binding 155,
+  keys 121
+- still open : LIVE CHECK after a v7-zenki restart [ root/host-root.*,
+  protocol-7.base.dlg, fingerprint cmd 77 chars, external.self re-pins,
+  discover hosts show trust ] ; follow-ups : nodes trust transitions only
+  on re-appearance, orphaned %signatures modules, crypt.C25519.sign_keys
+  still used by keys.console.sign-key ; delete branches
+  `discover-host-root-delegation` + `parked/e2e-binding-test` [ local + hub ]
 
-#,,..,.,,,..,,..,,,.,,,,,,,..,,..,...,..,,,..,..,,...,...,,..,,,,,,.,,,..,,,,,
-#44LF3D7KVCYXDFWF6YRZU66COW4RJJ325JPAGM3TDCK5WJGU3UYEDT2CS4IEK7UTBDFDQFWUO3RYM
-#\\\|BJYZXPR4K5HMPRTDW3NTILUXIQNTG2P2IVLJBD7VID65X6YNQB2 \ / AMOS7 \ YOURUM ::
-#\[7]KETWUHWKTLWRVTBQLQU3AIBRFECDER6HYNSFCDDUZZ6QFSEJ6SBA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,,,.,,.,,.,.,.,,,.,,,,..,...,..,,...,...,,,,,..,,...,,.,,,,,,
+#BGDUGE3W5MSJU6H5LPO5AHA44U4QBRUYDHJSTT2ZAXZUPBLRGRKHPHCNVOIEKMGBQLZNFB2MTHU3A
+#\\\|USSZCMA3PZMFIORCDDYN2DNMR5EDUYW76UJUHBX4VI3XUHYFBXR \ / AMOS7 \ YOURUM ::
+#\[7]STLDK2C6GTXR7IOIFPYFBHVORWI5GN3VBTOL6N2IVSMSN5ZRGEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
