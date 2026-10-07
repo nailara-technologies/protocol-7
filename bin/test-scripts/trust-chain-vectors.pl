@@ -24,6 +24,10 @@ use Crypt::Ed25519;
 use Crypt::Misc qw| encode_b32r |;
 use Digest::BMW;
 
+die 'shared fixture : do() this file and call the returned builder, '
+    . "see the usage header\n"
+    unless caller;
+
 return sub {
 
     ## throwaway fixed-seed keys [ never real ] : owner 06, host-root 03 [ the
@@ -269,8 +273,8 @@ return sub {
     return \@cases;
 };
 
-#,,..,,,,,,.,,.,,,.,.,..,,...,.,.,,,,,,.,,.,.,..,,...,...,..,,,.,,..,,.,,,...,
-#YPJ3ODKNY7WB2HTYU5KDAJLN2NERN6IOYA6MCAL5TZ6SHVX7GAZXJUJZNFEZ6N2WNC63ENERFTLKC
-#\\\|BRJG3ECACWKQ5VGGTVOV7OYWTJACSI77ZPJ6KQYSV3WV4GBHP62 \ / AMOS7 \ YOURUM ::
-#\[7]ZKLKGSCP4DGUNBOLB2WGRH4HADBYOTTZUUGFBKAR66PLMUJAIUBY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,...,..,,,..,...,.,,,,,,,,.,,..,,...,...,..,,,,,,.,.,,..,...,
+#FQ74PL5OT6PJBGHWN4HS5LNGLMU26KEZEGYC6EXMZSEJ4AHSQU2DAUVLLOHOP4YPXBLSB4MBCTXIW
+#\\\|2TJLSNPNLZPYHM4BFFSGM2VMHV7TMMAQY4CBHIEPYK5KDZFSCBT \ / AMOS7 \ YOURUM ::
+#\[7]GPQ7GC2OV3KVSU5BF52ZPJLZBSLMTAB5V235WVQJWIQQUDUT2ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

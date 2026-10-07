@@ -2252,6 +2252,11 @@ sub transform_regex_body {
                 ## alphanumeric escapes [ \n , \d , \Q .. ] are regex ##
                 ## escapes in their own right , keep them as-is       ##
                 $out .= '\\' . $next;
+            } elsif ( $next eq '@' ) {
+                ## '@' interpolates an array in pattern and replacement   ##
+                ## alike -- '\@ARG' turned into '@ARG' changes the code [ ##
+                ## 2026-10-07 : a 9p harness committed uncompilable ]     ##
+                $out .= '\\' . $next;
             } elsif ( $in_bracket and $next eq '-' ) {
                 ## '-' inside a [...] class is the range operator ; an      ##
                 ## escape here disambiguates a literal hyphen from a range  ##
@@ -2902,8 +2907,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,.,.,,..,,,,,,.,,,,,,...,,..,...,,..,,,,,..,,...,...,..,,,,,,,..,,.,,,,.,
-#FDH3LILS5HEIZBZHMP3C4YQE7J7JJRIAWELFZV66JHUYIG76EMHXWQJCXZ2SZ4DLWMBQKDHFO3XOG
-#\\\|M3YYV2N4YSUJVM5COVOOYAY3QOD5WADV7TNQKQLVVVDSOKKM33V \ / AMOS7 \ YOURUM ::
-#\[7]CTIFSWSQM22VNUVOIM4SHYU3IPCMP4S3C6IKKNARO4W3BYRVPMBA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,.,.,.,,,,..,.,.,,.,,,,.,,..,..,,...,...,...,...,,..,.,,,,,.,
+#A4OQN456OF6KLIXUPR3CITET26PBGCSUUIQLIQIFBGJAETNB5FHVGXXYSXRYGHE63VMHPCKBRJSNC
+#\\\|YCSQI2YYXKJ5MF2Z624ZCOO54Z2TNVKULLYSMSXKLNMUBXSYSOB \ / AMOS7 \ YOURUM ::
+#\[7]7AKBZW76WS3LBYKELDSIXQ4C2YH2Y2YM2TIPWC6HWX6TQM3ATECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

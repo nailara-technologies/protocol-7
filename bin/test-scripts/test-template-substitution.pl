@@ -14,7 +14,7 @@ print "\n=== Testing Template Substitution ===\n\n";
 ## Test 1: Simple variable substitution
 print "[TEST 1] Simple variable substitution...\n";
 my $template1 = 'Welcome to <{city}>, temperature is <{temp}>°C';
-my $cmd1 = qq[p7 models.substitute_template ];
+my $cmd1 = qq[p7c models.substitute_template ];
 $cmd1 .= qq['{"template":"$template1","vars":{"city":"Berlin","temp":"15"}}'];
 
 my $output1 = `$cmd1 2>&1`;
@@ -30,7 +30,7 @@ if ($output1 =~ /Berlin.*15/) {
 ## Test 2: Undefined variables
 print "[TEST 2] Handling undefined variables...\n";
 my $template2 = 'City: <{city}>, Unknown: <{unknown_var}>';
-my $cmd2 = qq[p7 models.substitute_template ];
+my $cmd2 = qq[p7c models.substitute_template ];
 $cmd2 .= qq['{"template":"$template2","vars":{"city":"Paris"}}'];
 
 my $output2 = `$cmd2 2>&1`;
@@ -46,7 +46,7 @@ if ($output2 =~ /Paris/ && $output2 =~ /unknown_var/) {
 ## Test 3: Multiple occurrences
 print "[TEST 3] Multiple variable occurrences...\n";
 my $template3 = '<{name}> lives in <{city}>. <{name}> works in <{city}>.';
-my $cmd3 = qq[p7 models.substitute_template ];
+my $cmd3 = qq[p7c models.substitute_template ];
 $cmd3 .= qq['{"template":"$template3","vars":{"name":"Alice","city":"NYC"}}'];
 
 my $output3 = `$cmd3 2>&1`;
@@ -61,7 +61,7 @@ if ($output3 =~ /Alice.*NYC/) {
 
 ## Test 4: Metrics tracking
 print "[TEST 4] Checking metrics tracking...\n";
-my $metrics_cmd = 'p7 models.metrics substitutions';
+my $metrics_cmd = 'p7c models.metrics substitutions';
 
 my $metrics_output = `$metrics_cmd 2>&1`;
 print "Metrics output:\n$metrics_output\n";
@@ -74,7 +74,7 @@ if ($metrics_output =~ /substitutions|metrics/) {
 
 ## Test 5: Empty template handling
 print "[TEST 5] Empty template handling...\n";
-my $cmd5 = qq[p7 models.substitute_template ];
+my $cmd5 = qq[p7c models.substitute_template ];
 $cmd5 .= qq['{"template":"","vars":{"key":"value"}}'];
 
 my $output5 = `$cmd5 2>&1`;
@@ -88,8 +88,8 @@ if ($output5 =~ /required|error/i) {
 
 print "=== Template Substitution Tests Complete ===\n\n";
 
-#,,.,,..,,,..,,,.,.,,,.,,,...,,..,,..,...,..,,..,,...,...,.,,,.,.,..,,,,,,...,
-#ELKHZKOUTLBMSKQLLF3CG7XKUV3PAWBLSYS6AP4LBPT3OCGJQMT3IJT2ROSTRGOU6H4ROO66LJRX6
-#\\\|HNKW36OUSDCZJ3Q4BBPGIZN7Z4V2K6YELV6JFMXANJYNUTOEVNW \ / AMOS7 \ YOURUM ::
-#\[7]X5DMCKOSSNCZSCGT4EQ3RV6BENHISTCKOBR4EPIYUU6QJI4MZADY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,..,,..,,...,...,,,.,,,,,...,..,,...,...,.,.,,..,,..,.,,,...,
+#QOH57YYB6PGNUWGCWAX2LCEMYQTI6F3LYRV2DFHDUUGF7JKAE5NRZWBWK3UX2AN5W5HF7APOV7QQC
+#\\\|TKK656XG3EMCK45BMOOXDLHTPVNPEVXYZ3JURFQTQSVGNWKM6DT \ / AMOS7 \ YOURUM ::
+#\[7]VOYRESTK7ZUKK4DZQKAYUOL54QOL4HSNZEES6J2EYMPOCDOJXABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
