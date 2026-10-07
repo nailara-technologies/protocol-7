@@ -22,6 +22,10 @@ return ( warn 'HOST packet syntax error [ packet format ] <{C1}>' and undef )
 my $hostname = $+{'hostname'};
 my $pkey     = Crypt::Misc::encode_b32r( $packet_fields_href->{'hostkey'} );
 
+## the HOST payload capture is saved HERE : the trust.* calls below run ##
+## regexes that would otherwise clobber %+ before it is read again      ##
+my $host_payload = $+{'payload'} // '';
+
 my $hostname_L13
     = keys <discover.resend-host-reqs>->%*
     ? <[chk-sum.bmw.L13-str]>->($hostname)
@@ -32,7 +36,115 @@ my $entry_added = FALSE;    ##  host [re-]appeared ?  ##
 
 my $pkey_L13 = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
 
-if ( not length $+{'payload'} ) {
+## --------------------------------------------------------------------   ##
+## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the  ##
+## packet signature already verified under the hostkey ; now classify the ##
+## delegation that key carries. the hostkey IS the announced S, so it is  ##
+## the subject. pinning is a read-only set-membership test against the    ##
+## client pin store -- discover NEVER writes a pin.                       ##
+## --------------------------------------------------------------------   ##
+##
+my $delegation = $packet_fields_href->{'delegation'};    ## wire or undef ##
+my $hostkey    = $packet_fields_href->{'hostkey'};       ## raw 32 bytes ##
+
+my ( $trust, $root_fp, $delegated_name );
+my $drop_reason;
+
+if ( not defined $delegation or not length $delegation ) {
+    $trust = qw| unverified |;    ##  no delegation field  ##
+} else {
+    ##  exact parse first -- the issuer is needed as the anchor  ##
+    my ( $parsed, $parse_reason )
+        = <[trust.statement]>->( qw| parse_wire |, $delegation );
+    if ( ref $parsed ne qw| HASH | ) {
+        $drop_reason = $parse_reason // 'parse failed';
+    } else {
+        my $issuer_fp = <[trust.fingerprint]>->( $parsed->{'issuer_pub'} );
+        if ( not defined $issuer_fp ) {
+            $drop_reason = 'issuer fingerprint failed';
+        } else {
+            ## verify under the statement's OWN issuer : sig, the time    ##
+            ## window, subject eq the announced hostkey, the name and the ##
+            ## empty leaf scope. pinning is decided separately so a       ##
+            ## valid-but-unpinned root is 'offered', not refused.         ##
+            my ( $verified, $verify_reason ) = <[trust.verify]>->(
+                {   qw| chain |   => [$delegation],
+                    qw| anchors | => [$issuer_fp],
+                    qw| subject | => $hostkey,
+                    qw| now |     => time,
+                }
+            );
+            if ( ref $verified ne qw| HASH | ) {
+                $drop_reason = $verify_reason // 'verify failed';
+            } else {
+                $root_fp        = $issuer_fp;
+                $delegated_name = $verified->{'name'};
+                my $pins = <[discover.read_host_root_pins]>;
+                $trust
+                    = exists $pins->{$root_fp}
+                    ? qw| pinned |
+                    : qw| offered |;
+            }
+        }
+    }
+}
+
+## adaptive log level per host key : level 0 the first time, then up to 3 ##
+## for repeats -- a flood of bad packets cannot flood the log [ the       ##
+## base.cache.refaddr-prefix.init pattern, kept per sender ]              ##
+$data{'discover.host-root-log'} //= {};
+my $flood_level = sub {
+    my $level = $data{'discover.host-root-log'}->{$pkey_L13}++ // 0;
+    return $level > 3 ? 3 : $level;
+};
+
+## a broken claim is worse than none : DROP the packet ##
+if ( defined $drop_reason ) {
+    <[base.logs]>->(
+        $flood_level->(),
+        "invalid host-root delegation from '%s' [ %s ] : dropping packet",
+        $hostname, $drop_reason
+    );
+    return FALSE;
+}
+
+## a host whose root_fp CHANGES is never adopted : the packet is DROPPED [  ##
+## no address update ], the old entry kept and marked invalid until the new ##
+## root is re-pinned out of band                                            ##
+$data{'discover.host-root'} //= {};
+if ( defined $root_fp ) {
+    my $prev = $data{'discover.host-root'}->{$pkey_L13};
+    if (    defined $prev
+        and defined $prev->{'root_fp'}
+        and $prev->{'root_fp'} ne $root_fp ) {
+        <[base.logs]>->(
+            $flood_level->(), "host-root changed for '%s' : dropping packet",
+            $hostname
+        );
+        $prev->{'trust'} = qw| invalid |;
+        map { $data{'hosts'}->{$ARG}->{'trust'} = qw| invalid | }
+            grep { index( $ARG, $pkey_L13, 0 ) == 0 }
+            keys( ( $data{'hosts'} // {} )->%* );
+        return FALSE;
+    } else {
+        $data{'discover.host-root'}->{$pkey_L13} = {
+            qw| root_fp |        => $root_fp,
+            qw| delegated_name | => $delegated_name,
+            qw| trust |          => $trust,
+        };
+    }
+}
+
+## the trust fields stored on every host entry built below [ and shown by ##
+## discover.cmd.host_details ] ; a bare 'unverified' carries no root an   ##
+## accepted packet resets this sender's flood log level                   ##
+delete $data{'discover.host-root-log'}->{$pkey_L13};
+
+my %trust_field = ( qw| trust | => $trust );
+$trust_field{'root_fp'}        = $root_fp        if defined $root_fp;
+$trust_field{'delegated_name'} = $delegated_name if defined $delegated_name;
+
+if ( not length $host_payload ) {
 
     my $entry_id = $pkey_L13;
 
@@ -46,10 +158,11 @@ if ( not length $+{'payload'} ) {
         qw| timestamp |          => $packet_fields_href->{'timestamp'},
         qw| tstamp-adj |         => $packet_fields_href->{'tstamp-adj'},
         qw| time-delta-seconds | =>
-            $packet_fields_href->{'time-delta-seconds'}
+            $packet_fields_href->{'time-delta-seconds'},
+        %trust_field
     };
 } else {
-    foreach my $line ( split "\n", $+{'payload'} ) {
+    foreach my $line ( split "\n", $host_payload ) {
         next if not length $line;
         return ( warn 'HOST packet error [ address payload line ] <{C1}>'
                 and undef )
@@ -76,7 +189,8 @@ if ( not length $+{'payload'} ) {
             qw| timestamp |          => $packet_fields_href->{'timestamp'},
             qw| tstamp-adj |         => $packet_fields_href->{'tstamp-adj'},
             qw| time-delta-seconds | =>
-                $packet_fields_href->{'time-delta-seconds'}
+                $packet_fields_href->{'time-delta-seconds'},
+            %trust_field
         };
     }
 }
@@ -112,7 +226,11 @@ if (    $entry_added
     <[base.log]>->( 2, "sending host [online] status to 'nodes' zenka .,", );
     <[protocol-7.command.send.local]>->(
         {   'command'   => $nodes_update_cmd,
-            'call_args' => { 'args' => join( ' ', qw| online |, $hostname ) }
+            'call_args' => {    ##  carry root_fp + trust along the route  ##
+                'args' => join( ' ',
+                    qw| online |,                          $hostname,
+                    ( defined $root_fp ? $root_fp : '-' ), $trust )
+            }
         }
     );
 }
@@ -191,8 +309,8 @@ if ( defined $orbital_p7ref and length $orbital_p7ref ) {
     <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
 }
 
-#,,,.,,,.,.,,,..,,,.,,.,.,.,,,,.,,,..,..,,,,,,..,,...,...,...,..,,,..,,,,,..,,
-#WUTTMTPLF7RSQWYXFC7YUH2SVDHKF4T7PCL2SFZSM6576YORGHSATW3GEFSDRRBJ4LSEM32THZERY
-#\\\|X3CEW2SQMP4BFCIIGUDU7FCPNZVVPTECKACY4JGRTJOW37VXLTQ \ / AMOS7 \ YOURUM ::
-#\[7]WO7YAQSUMDMTJ6GAE2KIU7W3KIC3F3W7F66BFZX5VPMWBV4BOWBY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,,,,.,,,,.,,,.,,..,,..,,,.,,..,,...,...,...,,,.,,,.,.,.,.,,,
+#RG7CAML6KMBITYAJQWTIV6D7V3L2S7RVUTF2VWU62RTQP4KUTHGSBHUZXEAXZSLYP3HK3PIUIPXRA
+#\\\|7UKYECX3TNW4K4DF3B3754S4OW5SEAOHPOBAFWXSZX3YXP5BSYE \ / AMOS7 \ YOURUM ::
+#\[7]P7ZLD7IUOAA5XIHVMBZ7YWGRM5PSSLNCUZFGRB5WYQK2BS3TQ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

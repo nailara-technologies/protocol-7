@@ -30,17 +30,26 @@ my $key_len = max( map {length} keys $host_details_ref->%* );
 
 foreach my $param_key ( <[base.reverse-sort]>->($host_details_ref) ) {
 
-    my $param_value = $param_key ne qw| pkey |
-        ? uc $host_details_ref->{$param_key}    ##  encoding host key  ##
-        : Crypt::Misc::encode_b32r( $host_details_ref->{$param_key} );
-    ##  param values are uppercased  ##
+    my $param_value;
+    if ( $param_key eq qw| pkey | ) {
+        $param_value    ##  the host key is b32 encoded  ##
+            = Crypt::Misc::encode_b32r( $host_details_ref->{$param_key} );
+    } elsif ( $param_key eq qw| root_fp |
+        or $param_key eq qw| delegated_name |
+        or $param_key eq qw| trust | ) {
+        ## printed verbatim : a case-sensitive delegated name and the ##
+        ## lowercase trust vocabulary must not be uppercased          ##
+        $param_value = $host_details_ref->{$param_key};
+    } else {
+        $param_value = uc $host_details_ref->{$param_key};    ##  display  ##
+    }
     $reply_string .= sprintf "%*s : %s\n", $key_len, $param_key, $param_value;
 }
 
 return { 'mode' => qw| size |, 'data' => $reply_string };
 
-#,,..,.,,,,.,,.,,,..,,,,,,,,,,...,,,,,,..,.,.,..,,...,.,.,...,,,.,,..,,.,,,,.,
-#TYOIBGIFHPJLM5YGPZKQPCD4SQ3WSMTLEUMRCN4BMCE7DQSHLHHTNXG6WXXY5FKGI5Y3ZO3DVCKFI
-#\\\|QZDEXCDN4CQEHYUPQI5EKIHU5KZN4JTHK3AMAYRMH5ET3NQDSM5 \ / AMOS7 \ YOURUM ::
-#\[7]2F2IGDDPPOKLQVHBBCT34N5O76765W62GBP4AQLJCLQJ2XO6VIDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,,,,,,,,,.,,,,,..,,..,,,..,...,..,,...,...,...,,,.,...,,,,,..,,
+#N7IJEWDGBP3K7TOMU7ZOQV2UVFOJHA2XTAZMDM55CXIU2D552ZEZUAZAN3F7DPMQDYBHQFMFIGJIQ
+#\\\|RMEOY3BKWR2UVCP2I5WKZL7TWPQNOLARMWAOXQFOGNV3ZWD4BH4 \ / AMOS7 \ YOURUM ::
+#\[7]AYIBRYMK6TWJOXHJAFDAM3L5EBNGWPAYQVZ7JV22PC5KZU3AMMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
