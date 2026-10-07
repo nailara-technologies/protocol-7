@@ -8,14 +8,17 @@
 
 <diag.cmd_anomalies> //= {};
 
-my $valid_cmd_re = qr|^[^.]+\.cmd\.[^.]+$|;
+## the loader registers <any.prefix>.cmd.<name> as command <name> : only ##
+## the name may not hold a dot [ the prefix may ] ; <base.cmd> is keyed  ##
+## by that command name, its value the subroutine name                   ##
+my $valid_cmd_re = qr|\.cmd\.([^.]+)$|;
 
 foreach my $name ( keys %code ) {
     next if index( $name, qw| .cmd. | ) < 0;
 
     if ( $name !~ $valid_cmd_re ) {
         <diag.cmd_anomalies>->{$name} = 'extra dots after .cmd.';
-    } elsif ( not defined <base.cmd>->{$name} ) {
+    } elsif ( ( <base.cmd>->{ ${^CAPTURE}[0] } // '' ) ne $name ) {
         <diag.cmd_anomalies>->{$name}
             = 'internal subroutine, not whitelisted command';
     }
@@ -29,8 +32,8 @@ foreach my $name ( keys %{ <base.cmd> // {} } ) {
 
 return FALSE;
 
-#,,.,,...,,.,,..,,.,,,,.,,...,..,,,,,,..,,..,,..,,...,...,.,.,...,,,,,,..,,.,,
-#WA53NJWBFLUNUTOV5NM6EEESAUF3MZ4OUXBT3FXE2MNYCDH5X7QSVPQLSLEOY4OHUQDD4X7Q4EADQ
-#\\\|4K32IHW6PY3FLCN5JHKCFD7LHU3AQ2COX5WFFMPEEQO3JNJV7V7 \ / AMOS7 \ YOURUM ::
-#\[7]ZSWZM3JFJGLAPBWBRQW6ZZEWUZER5DMY4JPW2R5OWO2RGHDPJKCI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,..,,.,,...,.,,,..,,.,.,..,,..,,...,...,..,,..,,,.,,...,.,,,
+#VUQQO7QKTQH4PHTNAOA3VK56YRAWYA4YGHDAKCIO7346FPES6RS7GKTVLXFO3RPROJDIBJZ3FO6BS
+#\\\|W5OUAC3MVN7GRK2SNTSRJDNETOWSUE3WD47TNU6MWGIEQBC7AJ2 \ / AMOS7 \ YOURUM ::
+#\[7]JTCOAXQAUHY7ZXZZRZ4XM3ON23RFNBYQ3CTKXGMP3K4YLJXFUWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

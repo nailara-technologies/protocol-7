@@ -239,3 +239,11 @@ if there's no wrapper to rename in the first place.
 #\\\|JG2HULY2J3WA7ISWUEJHOQCHFVZAU2IFSCWX57GCBVEWA5GPCPO \ / AMOS7 \ YOURUM ::
 #\[7]57XLACX7K55PYPIQ7ZRWGTLC23K2XF4M7MTTVNYV7OMHPNUIDQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**2026-10-07 recurrence + correction :** I named a command `anon.archive-table` [ registered via a dotted `<base.cmd>` alias ] -> routed as hop-chain `anon` -> 'offline'. the PREFIX may hold dots : the loader [ bin/Protocol-7 `m{\.(cmd|console)\.(.+)$}` ] registers `p7-log.anon.cmd.resolve` as `resolve` -- my commit 4bab8c80f message wrongly says p7-log.anon.cmd.* "never became commands" [ pushed, the rename itself is harmless ]. base.post_init's anomaly scan had the same wrong rule [ `^[^.]+\.cmd\.[^.]+$` flagged 139 valid prefix-dotted modules ] and looked `<base.cmd>` up by module name [ it is keyed by command name ] -> every real command reported 'internal subroutine'. fixed to `\.cmd\.([^.]+)$` + lookup by the captured name.
+
+#,,.,,,.,,,,.,,..,,..,.,,,,,,,,,.,.,,,.,,,,,.,..,,...,...,...,..,,,..,,.,,.,,,
+#FTSYMSKSMBVF7BZLLOYOTMI7PHUCKXW6LXVG4DLFDHGHO7762FOKIARBSX5GVBPY6KKA33NKBXDTG
+#\\\|ECEO2WO2MUNURZDVQGXFV27ZYI2H6FGRDCFDLNI2QCGJO2HP74B \ / AMOS7 \ YOURUM ::
+#\[7]QEQKXUDXCADORFPYZIFFBOX6FHMQXQUD564UGHIKIUOFL2NUEOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
