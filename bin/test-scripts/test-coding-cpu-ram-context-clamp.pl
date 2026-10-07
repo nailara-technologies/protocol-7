@@ -69,6 +69,8 @@ sub compile_module {
 }
 
 compile_module('coding.helper.calculate_safe_context');
+## gpu branch [ split out 2026-09-17 ] ##
+compile_module('coding.helper.query_gpu_memory');
 
 sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
@@ -111,7 +113,8 @@ ok( $small_result->{'context_length'} <= 131072,
     'context does not exceed the default MAX_CONTEXT ceiling' );
 ok( $small_result->{'explanation'} =~ m|^RAM=|,
     'explanation reports real RAM math, not the old flat default' );
-ok( $small_result->{'limited_by'} =~ m{^(none|minimum|maximum)$},
+ok( $small_result->{'limited_by'}
+        =~ m{^(none|minimum|maximum|hard_ram_fraction)$},
     'limited_by is one of the CPU-branch\'s valid values'
 );
 
@@ -195,8 +198,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,..,.,,,,,,,,..,...,..,,.,,,,.,,...,.,.,.,.,...,...,...,,..,...,.,.,..,,
-#42EAQQ5A3QHPAWDCGMV5PKRKMSYJ6FTN3LO63GEOLUAA7C6GRINLHSLVFFYEVQM6OZBVRAJF4AOAC
-#\\\|6G7QAZEUJH6MNURUKROOWNPK7Q6D7BOJ5SK7WJ2BN5XZFOCHSOU \ / AMOS7 \ YOURUM ::
-#\[7]E6NYWDADETDR3KKIJOJPLH22RPHF6JRDQCFBH6Z2IYTGLXB6VSCY 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,..,,,..,.,.,,,,,,,.,...,.,.,.,.,...,...,...,..,,.,,,,.,,,,,,
+#QG3GJXPPDILARGARA7FMK6ERBENJTLYRLTFRKTK3FWM5VARDQY4M7AEX7PUGTA4X6ATWVRYWM353E
+#\\\|5N3MSC6M2XESRCJVVB5M4D5IKPH2LSWZRGI6EB72VJAJKOZNJOC \ / AMOS7 \ YOURUM ::
+#\[7]NSXJ3VDRQVRBAYGEWNJRIPSA7NDSDCNXI72IXJACVLBQCQY57CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
