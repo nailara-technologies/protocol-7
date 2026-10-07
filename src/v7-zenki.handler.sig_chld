@@ -54,7 +54,10 @@ while ( my $end_pid = shift @waitpid_pid ) {
         delete <v7-zenki.sig_chld> if not keys <v7-zenki.sig_chld>->%*;
         ## skip pid processing for non-registered processes only registered ##
         ## zenka children still need process_zenka_end                      ##
-        next if not exists <v7-zenki.child>->{$end_pid};
+        if ( not exists <v7-zenki.child>->{$end_pid} ) {
+            delete $collected_child_pids->{$end_pid};
+            next;
+        }
     }
 
     ##  unknown  ##
@@ -75,10 +78,10 @@ while ( my $end_pid = shift @waitpid_pid ) {
     $instance_id //= delete <v7-zenki.process.instance_cache>->{$end_pid};
     <[base.clean_hashref]>->(<v7-zenki.process.instance_cache>);
 
-    ## child entry and cache both gone [ instance.stop deletes the child  ##
-    ## entry before the process ends, the cache is reset independently ] :##
-    ## the instance record still holds its process id -- without this the ##
-    ## instance stays 'online' with no process behind it                 ##
+    ## child entry and cache both gone [ instance.stop deletes the child   ##
+    ## entry before the process ends, the cache is reset independently ] : ##
+    ## the instance record still holds its process id -- without this the  ##
+    ## instance stays 'online' with no process behind it                   ##
     if ( not defined $instance_id ) {
         foreach my $iid (<[v7-zenki.instance_ids]>) {
             my $proc = <v7-zenki.zenka.instance>->{$iid}->{'process'} // {};
@@ -120,8 +123,8 @@ while ( my $end_pid = shift @waitpid_pid ) {
     ) if defined $instance_id or defined $end_pid;
 }
 
-#,,,,,,,.,.,,,,,,,,..,.,.,,.,,.,,,,,.,,.,,,,,,..,,...,...,,,.,,.,,...,...,,.,,
-#OJSUF7ZUY3FAMM54DABU7GRD77J7CI6JTAVWWP4RXMXES2N7TXAULKHWUMLVMNHB732HVF32AOMXA
-#\\\|TUJASYORYMZ3KTBCGU55EXAI35GFTQM7RQULJ6BXAGGQBW6MNDY \ / AMOS7 \ YOURUM ::
-#\[7]IG6RR7OSN5PH76YX6NOV3RJWUBV7DNPVEWVRVGN25VPSMAACFCDY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,,.,,.,,,.,,,...,..,,..,,,.,,..,,...,...,,..,,..,..,,.,,,,,,,
+#Z5VHLTIQUCT6WEFGLDIGWNNCLZ2WFFZY5YFLRE7543OYCBCARYGPGWPCVY75H7DFIQYBUEPKSRM2E
+#\\\|LNFRQJATS2AVWMRO73I7UMIK7ULVBHFHWJZ5UKT3RGUOHOGTPNB \ / AMOS7 \ YOURUM ::
+#\[7]T7QYT5ME4CFI7QTW4K37EUM5V5UYQ2AIL2NF3VIX7SZQISB6WWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
