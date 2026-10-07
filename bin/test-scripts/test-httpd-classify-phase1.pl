@@ -112,7 +112,7 @@ compile_module($_) foreach qw|
 
 ##[ tiny assertion framework ]################################################
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -197,7 +197,7 @@ $code{'httpd.classify.record'}->(
     $peer, { 'method' => 'GET', 'path' => '/clean-page', 'status' => 200 }
 );
 
-ok( defined($r1) and defined($r2) and defined($r3),
+ok( defined($r1) && defined($r2) && defined($r3),
     'record returns match hashref for classified requests'
 );
 
@@ -216,8 +216,7 @@ ok( ( $peer_state->{'request_count'} // 0 ) == 4, 'peer request_count == 4' );
 ok( scalar( $peer_state->{'ring'}->@* ) == 4,
     'peer ring ' . 'holds 4 entries'
 );
-ok( defined $peer_state->{'first_seen'}
-        and defined $peer_state->{'last_seen'},
+ok( defined $peer_state->{'first_seen'} && defined $peer_state->{'last_seen'},
     'first_seen / last_seen present'
 );
 
@@ -429,8 +428,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,...,.,,,,.,,,,,,,.,,,,,,.,.,,.,,...,.,,,..,,...,..,,.,.,..,,.,.,,..,...,
-#3TSV5KNG2IG5UY7L563INKP7U2EG255WBVYOPSBVQRRSSPRPGLMGR22QIKVL644UZ7A4EJOSWGLSM
-#\\\|7N4FAZ5TWEJ262VFWLCAUDUUWQTQRJYZSDKFCN3SLLEBCCPHAG4 \ / AMOS7 \ YOURUM ::
-#\[7]OAU6QAJHEFPGMORIYGTFSTVNHCXDOOESG436JILQ5QF4EZ4RKEBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,..,,,,,,..,,,,,,...,,,.,..,,..,,...,...,...,,,.,...,,,.,.,,,
+#ZZXAW3CFXBEX4VYD3ZLCY7DEX2BY4WZV3C3D2UMIGRZSLB53D55WTSO2FEJIYJYCIXKUSJKYPVLI4
+#\\\|UNQSYP6EOK54CPWHJ4GFYDJLYWIOVAQRCIMSEG4UKW3L5AOSEQ7 \ / AMOS7 \ YOURUM ::
+#\[7]JRZAK4GPMJXWOWM4KO3SCIOMNLVL6ARSBHH7TPHIQ3XNAX7LOSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

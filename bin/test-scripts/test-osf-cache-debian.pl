@@ -314,7 +314,7 @@ sub deliver_reply {
 
 ##[ tiny assertion framework ]################################################
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -3538,8 +3538,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,...,.,.,..,,..,,.,.,..,,.,,,...,...,.,,,.,.,...,...,,.,,.,,,...,.,,,,,,,
-#L3MBYLPCTN76XM5EMMYK4PXNWVJLEDHI6EZTVKKD7EXNNRJXZPW4SWMCT33UCOCMZF6PY72COMCVM
-#\\\|LBZYNBOL4A5QRLVFJS2KZ4T2ZHENT24QZGKE3J2VU7AOYWAANWM \ / AMOS7 \ YOURUM ::
-#\[7]4IS6C63CPDOI46IQDDBH6HO3S5YFEIWRQVTBIETM3B7Y7WY4H4DA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,.,,,,,,,,,.,,..,.,.,,,.,...,.,.,...,...,,,,,,,,,.,,,,,,,,,,,
+#O3KX5JYGFYDM6IOSTO3R3AVV2Y57D7PFTU733LQTUMTF3GJ2B6PMIDUOXQSA4DAIANKMHYE2AE2BG
+#\\\|BUBHW5ZPZ33RZULH2CBH4SMB2FCMAMOGBLXBZ4PDTVRF7WS2VYU \ / AMOS7 \ YOURUM ::
+#\[7]HKRXSB3O64NQ4QXDWN4BLYCMCUBFTTFXZLK3NHGB3FZN47GS6UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

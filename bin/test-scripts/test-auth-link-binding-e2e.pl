@@ -64,7 +64,7 @@ our %keys;
 my $fail_count = 0;
 my $pass_count = 0;
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { $pass_count++; say "  ok   : $label"; return }
     $fail_count++;
@@ -592,7 +592,7 @@ if ($clean) {
     ok( ref $ctx eq qw| HASH |, 'authenticate : binding context returned' );
     ok( $hs_rc == 1,            'handshake : accepted [ 1 ]' );
     ok( ref $hs_data eq qw| HASH |
-            and length( $hs_data->{'shared_secret'} // '' ) == 32,
+            && length( $hs_data->{'shared_secret'} // '' ) == 32,
         'handshake : shared_secret returned [ 32 bytes ]'
     );
     ok( ( $hs_data->{'nonce_sid'} // 0 ) > 0,
@@ -654,7 +654,7 @@ ok( $R2->{'authenticated'} eq qw| yes |,
 my $pin_after_rerun = read_pin() eq $host_root_fp . "\n";
 ok( $pin_after_rerun, 'pin unchanged : content' );
 ok( ( stat $pin_path )[9] == $pin_mtime
-        and ( stat $pin_path )[1] == $pin_inode,
+        && ( stat $pin_path )[1] == $pin_inode,
     'pin unchanged : not rewritten'
 );
 
@@ -987,8 +987,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,.,,...,.,,,.,,,,.,,.,.,...,.,,,...,,,,,..,,...,...,.,.,.,,,,.,,,,,,.,.,
-#QE5ZRKZNAKDEVDD3V36N6XO2DCKBZ3BDOP43DHKH43OOK4KXH7GH7BQS2GXZGUKAA73SIQEDNMA24
-#\\\|OBDHSRS5KPJFTGLLWPRI4WWBQNSIFVJMEALQDABGAUENUPVTYKV \ / AMOS7 \ YOURUM ::
-#\[7]6NHCQQA73FXFHRWZAQQXZ3447BOSKYCHEYZJAIWWBDFNAQ7B4KAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,,,.,..,,,,,,,..,..,,..,,.,,,..,,...,..,,,,.,.,.,.,,,,.,,,,.,
+#5P2GEK2ADBA4GOA3C26VXHJR7FZ7RM24JBHGC6QOHMUD6O6ZIQV5AK3VR7BJPCATEZBDSZKR5QZW6
+#\\\|YTZYTJCFNEOOMQQWPDABXYCSOTDRDY6LR2VOKO5WZFHTLPFQBN6 \ / AMOS7 \ YOURUM ::
+#\[7]WNZOYHSI2LZ6ABX2QOTAUL7JX73Y7HSXZH2MXTLHUWOAR5XM4OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
