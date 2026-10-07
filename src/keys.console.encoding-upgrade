@@ -13,6 +13,19 @@ if ( defined $name and not <[crypt.C25519.key_exists]>->($name) ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
+## root-held keys are never listed here [ crypt.C25519.keyfiles ] : say ##
+## so instead of 'already latest version' [ host-root is always written ##
+## in the current format ]                                              ##
+if ( defined $name ) {
+    my $key_path_ref = <[crypt.C25519.key_path]>->($name);
+    if ( ref $key_path_ref eq qw| HASH |
+        and $key_path_ref->{'holder'} eq qw| root | ) {
+        printf "\n  << key '%s' is root-held : "
+            . "not handled by encoding-upgrade >>\n\n", $name;
+        <[base.exit]>->(qw| 0020 |);
+    }
+}
+
 @k_files = grep { !m|\.upgraded\.| } @k_files;
 
 @k_files = grep {m|/\Q$name\E\.[^/]+$|} @k_files
@@ -177,8 +190,8 @@ return say sprintf "\n  :: successfully upgraded %d key file%s ::\n",
     $upgraded_count, <[base.cnt_s]>->($upgraded_count)
     if $upgraded_count > 0;
 
-#,,,,,.,,,,,,,,,.,...,,,,,..,,,,,,...,,.,,.,.,..,,...,...,.,.,,,.,,,,,.,.,...,
-#3PQWSTNUQ5HMGXAOIOUYF5RNMSTGNU4LWMQ6BZYZJB2FKQEBERUQX6WJIFXM7WOTS5X22QFO7QBJ6
-#\\\|32FYYFR54JPK2KJQEJFD3SPFCI5XK66MY46OQHUC7SY5EAR57O3 \ / AMOS7 \ YOURUM ::
-#\[7]S2J7XIXFQFKXV6W47X3NZ2XZ3X4JRD7622MO6FAAXJJLON2PZEBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,,.,..,,.,.,,,.,.,,,.,,,,,.,..,,...,..,,..,,,.,,,,,,,,.,,.,,
+#XJNDJX2I5FDFIVXLZJFSZDABN5K625CP67PMSGB3ZBBFZ36YV67GLS6FJWNXFDOAEFST7B3CSTE5O
+#\\\|Z5XWZBSEP4TTMOKYPE3KJWU27PMSAIWGRVDGYY3AM5JLWVRNPDK \ / AMOS7 \ YOURUM ::
+#\[7]JXMVEJGN6VMCHHQ6RGFATTNIOZACIWEGWACWYI5RVUAITR6FU6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

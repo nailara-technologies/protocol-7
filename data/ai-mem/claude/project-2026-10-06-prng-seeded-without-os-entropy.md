@@ -117,3 +117,11 @@ related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 #\\\|4LY4X2LHSW3SX725JKQSQG6KZIUB2LVFY4VQERLFTVCZBHZVDJ5 \ / AMOS7 \ YOURUM ::
 #\[7]DK2SIQAPMRJ3EAVQOW4ZKAITH6ZJDLXMNAJVHFANBFCJX6PJOSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**since 9b72e0538 :** the TOFU pin step is `sudo -u protocol-7 p7-keys re-pin cube:<user> <key name | base32 pub>` [ keeps a .bak, no cube reload ] -- not yet run against the real key dirs.
+
+#,,..,,,,,.,,,,.,,,.,,..,,..,,.,,,,,,,..,,.,.,..,,...,...,...,...,.,.,..,,,..,
+#TTVONNMYK6BGQEUURQXJBGGH23KWHE4VRFE3QMAFZTDSNDS7R36S5KF7AB5WEJ6ZZ54UH2HFF24H4
+#\\\|NSQBHHCXMPDUNMMERR46A5L7FMVRJ6723KJDHQZ372FJ5YN63Q6 \ / AMOS7 \ YOURUM ::
+#\[7]5AZVADC3GRLA4K4MPKMZ2DSFEDQJR4CO6KC5RJEEFQ7KDTVJSKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -296,7 +296,7 @@ my $prompted = 0;
 my @console_modules = qw|
     change-passwd enc-key dec-key downgrade-enc-status split-keypair
     get-encoded-key enc-key-chksum remove remove-type remove-signature
-    sign-key rename duplicate decrypt-archive list
+    sign-key rename duplicate decrypt-archive list encoding-upgrade
     |;
 compile_module("keys.console.$ARG") for @console_modules;
 compile_module("keys.backup.$ARG")
@@ -387,6 +387,19 @@ foreach my $euid ( 1000, 0 ) {
     ok( scalar( $err =~ m{^EXIT:0020} )
             && scalar( $out =~ m{cannot be duplicated} ),
         "duplicate host-root : refused at euid $euid"
+    ) or say "       err=[$err] out=[$out]";
+}
+
+## encoding-upgrade : root-held keys are not its business, for everyone ##
+say '';
+say ':: encoding-upgrade : root-held name refused';
+foreach my $euid ( 1000, 0 ) {
+    $fake_euid = $euid;
+    my ( $ret, $err, $out )
+        = run_module( 'keys.console.encoding-upgrade', 'host-root' );
+    ok( scalar( $err =~ m{^EXIT:0020} )
+            && scalar( $out =~ m{not handled by encoding-upgrade} ),
+        "encoding-upgrade host-root : refused at euid $euid"
     ) or say "       err=[$err] out=[$out]";
 }
 $fake_euid        = 1000;
@@ -642,8 +655,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,,,.,,..,,.,,,.,,,..,...,,..,,.,,,.,,..,,...,...,...,.,.,.,.,.,,,,,,,
-#KHTA3QWL6L7UDJSOG34Y2JHPAJJ6FJD7MYO6CL3I552FK4CVYJT672TZYZFFEDAZ2FLNAPHGNO6VA
-#\\\|FI7TDOJ5UVWPANSA6WQPGRM2UNPCLKJRYY67WEDJZLBQ4IRHN3C \ / AMOS7 \ YOURUM ::
-#\[7]ZSWAR2KSLHBFWZZ4PSX62VM2W5RBPYMWGCKL3GKIDTEFOCUG3UBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,.,,,,.,,,,,,...,,,.,,.,,,..,..,,...,...,,.,,,,,,,,.,,,.,.,,,
+#QNTQHLTYGGHTDYKV44GSPKFPOGBCY2DPPQJ7QRRUFM4YFVS5T7V7RGTZTWAB64HO3CO4B7UBMXRQA
+#\\\|X3OI74V6VL3ESXIHMJZ7P3D3ESFGGBV7KWIOWLF3KCKZ7WG7OR7 \ / AMOS7 \ YOURUM ::
+#\[7]MBHRRGOP6H34I2IWMUGBCRRIP6XSDVMBDFQX2WMGIF7HP5JKBECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
