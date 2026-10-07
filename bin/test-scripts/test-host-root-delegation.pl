@@ -211,6 +211,7 @@ my ( $fr_pub, $fr_priv ) = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
 compile_module('trust.statement');
 compile_module('trust.fingerprint');
 compile_module('trust.verify');
+compile_module('trust.chain');
 my $statement   = $code{'trust.statement'};
 my $fingerprint = $code{'trust.fingerprint'};
 my $verify      = $code{'trust.verify'};
@@ -472,6 +473,7 @@ say ': trust.verify : shared chain vectors [ TRUST-CHAIN-STEP2 ]';
                 anchors => $case->{'anchors'},
                 subject => $case->{'subject'},
                 now     => $case->{'now'},
+                ( distrust => $case->{'distrust'} ) x !!$case->{'distrust'},
             }
         );
         if ( $case->{'expect'} eq 'ok' ) {
@@ -487,6 +489,48 @@ say ': trust.verify : shared chain vectors [ TRUST-CHAIN-STEP2 ]';
             ok( !defined $r && defined $why && $why eq $case->{'expect'},
                 "shared : $case->{'label'}" );
         }
+    }
+}
+
+######################################################################
+say ': trust.pin_decide : shared pin vectors [ TRUST-CHAIN-STEP2 ]';
+
+## the SAME cases bin/p7-auth-keypair-helper.pl self-tests pin_decide with ##
+## [ bin/test-scripts/trust-pin-vectors.pl ]                               ##
+compile_module('trust.pin_decide');
+compile_module('auth.client.owner_pins');
+compile_module('auth.client.distrust_list');
+{
+    my $build = do(
+        catfile(
+            $main::root_path, 'bin',
+            'test-scripts',   'trust-pin-vectors.pl'
+        )
+    );
+    die "trust-pin-vectors.pl : $EVAL_ERROR $OS_ERROR"
+        if ref $build ne 'CODE';
+    foreach my $case ( $build->()->@* ) {
+        my ( $r, $why ) = $code{'trust.pin_decide'}->( {
+                (   map { $ARG => $case->{$ARG} }
+                        qw| subject now host_pin owners distrust strict |
+                ),
+                chain => [ map { $b32->($ARG) } $case->{'chain'}->@* ],
+            }
+        );
+        my $got
+            = defined $r
+            ? join( ' ',
+            ( map { $r->{$ARG} // '-' } qw| verdict fp name | ),
+            ( $r->{'owner'} ? 1 : 0 ),
+            ( map { $r->{$ARG} // '-' } qw| since write | ) )
+            : $why // '?';
+        my $want
+            = $case->{'expect'} =~ m|\APIN_|
+            ? join( ' ',
+            map { $case->{$ARG} } qw| expect fp name owner since write | )
+            : $case->{'expect'};
+        ok( $got eq $want, "pin : $case->{'label'}" );
+        say "    got  : $got\n    want : $want" if $got ne $want;
     }
 }
 
@@ -1048,6 +1092,74 @@ sub read_dlg {
     put( $s_file, 0640, $b32->($s_pub) . "\n" );
     $issue->();
 
+    ## owner chain [ TRUST-CHAIN-STEP2.md ] : <user dir>/host-root.dlg ##
+    my ( $ow_pub, $ow_priv )
+        = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
+    my $ow_fp      = $fingerprint->($ow_pub);
+    my $owner_file = catfile( $user_dir, 'host-root.dlg' );
+    my $owner_st   = sub {
+        my ( $scope, $not_after ) = @ARG;
+        my $st = $statement->(
+            'build',
+            {   issuer_pub  => $ow_pub,
+                subject_pub => $hr_pub,
+                name        => 'testhost',
+                not_before  => time - 86400,
+                not_after   => $not_after // time + 365 * 86400,
+                scope       => $scope
+            }
+        );
+        return $statement->(
+            'wire', $st, Crypt::Ed25519::sign( $st, $ow_pub, $ow_priv )
+        );
+    };
+    my $slurp = sub {
+        open( my $fh, '<', $dlg_file ) or return '';
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $all = readline($fh);
+        close($fh);
+        return $all;
+    };
+    my $leaf_before = read_dlg();
+    my $owner_wire  = $owner_st->('testhost.*');
+    put( $owner_file, 0644, "$owner_wire\n" );
+    ok( $issue->(), 'owner chain : issue TRUE' );
+    ok( $slurp->() eq "$leaf_before\n$owner_wire\n",
+        '  :.. .dlg = leaf [ kept ] + owner statement, leaf first' );
+    my $chain = $code{'trust.chain'}->( 'file', $slurp->() );
+    $r = $verify->(
+        {   chain   => $chain,
+            anchors => [$ow_fp],
+            subject => $s_pub,
+            now     => time
+        }
+    );
+    ok( ref $r eq 'HASH' && $r->{'depth'} == 2 && $r->{'anchor'} eq $ow_fp,
+        '  :.. verifies under the owner, depth 2' );
+    ok( $issue->() && $slurp->() eq "$leaf_before\n$owner_wire\n",
+        '  :.. second issue : unchanged' );
+
+    @logged = ();
+    put( $owner_file, 0644, $owner_st->('other.*') . "\n" );
+    ok( $issue->() && $slurp->() eq "$leaf_before\n",
+        'owner scope not covering the leaf : dropped, leaf alone' );
+    ok( logged_at( 0, qr{owner chain dropped} ), '  :.. logged at level 0' );
+
+    @logged = ();
+    put( $owner_file, 0644, $owner_st->( 'testhost.*', time - 60 ) . "\n" );
+    ok( $issue->() && $slurp->() eq "$leaf_before\n",
+        'owner statement expired : dropped'
+    );
+    ok( logged_at( 0, qr{owner chain dropped.*expired} ),
+        '  :.. logged at level 0 [ expired ]'
+    );
+
+    put( $owner_file, 0644, "$owner_wire\n" );
+    $issue->();
+    unlink $owner_file;
+    ok( $issue->() && $slurp->() eq "$leaf_before\n",
+        'owner file removed : back to the leaf alone [ step 1 bytes ]' );
+
     ## atomic write : a planted symlink at the temp name is not followed ##
     my $victim = put( catfile( $home, 'victim' ), 0600, "victim\n" );
     unlink $dlg_file;
@@ -1226,7 +1338,8 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
     open( my $pfh, '<', $pin_file ) or die "pin : $OS_ERROR";
     my $content = join '', readline($pfh);
     close $pfh;
-    ok( $content eq "$hr_fp\n", '  :.. pin = host-root fingerprint + \n' );
+    ok( $content eq "$hr_fp\ntest-host.cube\n0\n",
+        '  :.. pin = host-root fingerprint + the leaf name + since 0' );
     ok( $pin->( 'h.example', 7, $x_pub, $d->($x_pub) ),
         'rotated S, same host-root : ACCEPTED'
     );
@@ -1245,6 +1358,95 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
             && !-e $first,
         'first contact, bad delegation : refused, NOTHING pinned'
     );
+
+    ## owner pins, rotation, distrust [ TRUST-CHAIN-STEP2.md 'pins' ] -- ##
+    ## the file io around trust.pin_decide [ verdicts :                  ##
+    ## trust-pin-vectors.pl ]                                            ##
+    my ( $ow_pub, $ow_priv )
+        = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
+    my ( $nr_pub, $nr_priv )
+        = Crypt::Ed25519::generate_keypair( "\x08" x 32 );
+    my $keys_dir = "$client_home/.n/remote-keys";
+    my $field    = sub { $code{'trust.chain'}->( 'join', [@ARG] ) };
+    my $o2h      = $d->(
+        $hr_pub,
+        issuer => [ $ow_pub, $ow_priv ],
+        name   => 'test-host',
+        scope  => 'test-host.*'
+    );
+    my $o2n = $d->(
+        $nr_pub,
+        issuer => [ $ow_pub, $ow_priv ],
+        name   => 'test-host',
+        scope  => 'test-host.*'
+    );
+    my $n2s  = $d->( $s_pub, issuer => [ $nr_pub, $nr_priv ] );
+    my $read = sub {
+        open( my $fh, '<', shift ) or return '';
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $all = readline($fh) // '';
+        close($fh);
+        return $all;
+    };
+
+    ## step 1 pin [ no name ] : valid, gains its name ##
+    my $o_pin = "$keys_dir/servers/o.example_7.public";
+    put( $o_pin, 0600, "$hr_fp\n" );
+    ok( $pin->( 'o.example', 7, $s_pub, $field->( $o2h, $d->($s_pub) ) ),
+        'step 1 pin, owner chain offered : accepted' );
+    ok( $read->($o_pin) eq "$hr_fp\ntest-host.cube\n0\n",
+        '  :.. the pin gained its name' );
+
+    ## rotation without an owner pin : refused ##
+    ok( !$pin->( 'o.example', 7, $s_pub, $field->( $o2n, $n2s ) ),
+        'host-root rotated, no owner pin : refused' );
+
+    mkdir "$keys_dir/owners", 0700;
+    put( "$keys_dir/owners/test.public",
+        0600, $fingerprint->($ow_pub) . "\n" );
+    ok( $pin->( 'o.example', 7, $s_pub, $field->( $o2n, $n2s ) ),
+        'host-root rotated, owner pinned, same name : accepted'
+    );
+    my $o2n_since = $statement->( 'parse_wire', $o2n )->{'not_before'};
+    ok( $read->($o_pin) eq $fingerprint->($nr_pub)
+            . "\ntest-host.cube\n$o2n_since\n",
+        '  :.. pin rewritten to the new host-root, since = its certification'
+    );
+    ok( !$pin->( 'o.example', 7, $s_pub, $field->( $o2h, $d->($s_pub) ) ),
+        'rotate BACK to the old host-root [ same since ] : refused'
+    );
+    ok( ( ( stat $o_pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
+
+    ## owner-certified first contact : host pin written, never the owner ##
+    my $n_pin = "$keys_dir/servers/n.example_7.public";
+    ok( $pin->( 'n.example', 7, $s_pub, $field->( $o2h, $d->($s_pub) ) )
+            && $read->($n_pin)
+            =~ m|\A\Q$hr_fp\E\ntest-host\.cube\n[0-9]+\n\z|,
+        'owner-certified first contact : host pin + name + since'
+    );
+    my $n_before = $read->($n_pin);
+    ok( $pin->(
+            'n.example', 7, $s_pub, $d->( $s_pub, name => 'other.cube' )
+            )
+            && $read->($n_pin) eq $n_before,
+        'same host-root, other leaf name : accepted, pinned name KEPT'
+    );
+
+    ## distrust ##
+    put( "$keys_dir/distrust", 0600, "# local\n$hr_fp\n" );
+    ok( !$pin->( 'n.example', 7, $s_pub, $d->($s_pub) ),
+        'distrusted host-root : refused' );
+    put( "$keys_dir/distrust", 0600, "garbage\n" );
+    ok( !$pin->( 'n.example', 7, $s_pub, $d->($s_pub) ),
+        'malformed distrust file : refused [ fail closed ]'
+    );
+    unlink "$keys_dir/distrust";
+    ok( $pin->( 'n.example', 7, $s_pub, $d->($s_pub) ),
+        'distrust removed : accepted again' );
+
+    ## malformed chain fields ##
+    ok( !$pin->( 'n.example', 7, $s_pub, $d->($s_pub) . '..' . $o2h ),
+        'chain field with an empty statement : refused' );
 }
 
 ######################################################################
@@ -1273,8 +1475,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,,,..,,,,,,.,.,,,.,,,.,.,,,.,.,,,.,,.,,..,,...,...,..,,..,,,..,.,,,.,,,
-#MFMAIIXND2PSRHRMVBMRNZUJPQCFSEIVJ4UHNWVCRZSBJMKSGSVDD67VOHUZDTM3KC6ZRRSWWCKKW
-#\\\|BR3RE7EIIJZOXMFX2ISKX2QEHTTCEE5GKER574V632PRLCDA7I4 \ / AMOS7 \ YOURUM ::
-#\[7]PXJO2NV5PUKQ3KZZBEUNSRHQPQ46YA5IFMI36X62KF5QBF63QSAA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,.,,,.,,,,..,,..,.,.,,.,,..,,..,,...,...,,,.,..,,...,,,.,..,,
+#5XPNS7J26UK67P5BJ4IF7E7ITJX7MTXXANGCS5YUSEY63CUEBPI5PWLX3KJEX6PCOBVKGFB3A2UZ4
+#\\\|IKR4VTUJRZA35ONMNFEGPUUXTO2JKE5RDWPPGPUNFARUA7LD4G3 \ / AMOS7 \ YOURUM ::
+#\[7]TP5LDIDQRLKOQA5WLNOKQ4H7IX3UJR7ECMMGWSIQJAMXXA3J3ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

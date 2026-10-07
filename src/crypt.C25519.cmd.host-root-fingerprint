@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = crypt.C25519.cmd.host-root-fingerprint
-# descr = host-root fingerprint [ 77 chars, from the .dlg ]
+# descr = host-root fingerprint [ 77 chars, from the .dlg leaf ]
 #
 # the fingerprint clients pin [ data/md/design/HOST-ROOT-DELEGATION.md ],
 # for an out of band comparison. read from the delegation statement
@@ -15,19 +15,26 @@ my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
 
 return $false->('trust modules not loaded')
     if ref $code{'trust.statement'} ne qw| CODE |
-    or ref $code{'trust.fingerprint'} ne qw| CODE |;
+    or ref $code{'trust.fingerprint'} ne qw| CODE |
+    or ref $code{'trust.chain'} ne qw| CODE |;
 
 my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
 return $false->('no delegation file path') if not defined $dlg_file;
 
+## the .dlg holds the chain [ one statement per line, leaf first ] : the ##
+## host-root is the LEAF's issuer                                        ##
 open( my $dlg_fh, '<:raw', $dlg_file )
     or return $false->("no delegation [ $OS_ERROR ]");
-my $got = read( $dlg_fh, my $dlg_wire, 2050 );
+my $got = read( $dlg_fh, my $dlg_content, 2060 );
 close($dlg_fh);
-return $false->('delegation not readable') if not defined $got;
-$dlg_wire =~ s|\n\z||;
+return $false->('delegation not readable')
+    if not defined $got
+    or $got > 2052;
 
-my ( $st, $why ) = <[trust.statement]>->( qw| parse_wire |, $dlg_wire );
+my ( $chain, $chain_why ) = <[trust.chain]>->( qw| file |, $dlg_content );
+return $false->("delegation not valid [ $chain_why ]") if not defined $chain;
+
+my ( $st, $why ) = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
 return $false->("delegation not valid [ $why ]") if not defined $st;
 
 return $false->('delegation signature not valid')
@@ -39,8 +46,8 @@ return $false->('no fingerprint') if not defined $fingerprint;
 
 return { 'mode' => qw| true |, 'data' => $fingerprint };
 
-#,,,,,..,,..,,,,.,,,,,,.,,,,.,,,,,...,,,,,,.,,..,,...,...,...,.,,,.,,,,..,...,
-#NLMTGJTLNEGTR6XGUDFVSRX77GSWWJHWMSVVYNKXRRT3LA5EQPXENTXTBB5PRGCSCTUO5HHWMEMRA
-#\\\|7NOCX2QQBB2ODUKGJCGPLJQMRQGXM3N4U23ZOTNFCCOX5VFXIBR \ / AMOS7 \ YOURUM ::
-#\[7]APFNCTAIN3AQM7E2YTOSDPADEE3DJVVRQSDEDUNOYI7NLOSGROBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,,,,,.,...,.,.,,.,,,.,,...,,,.,..,,...,...,,..,.,,,..,,,,.,,,,,
+#NNCH7YEBTOSMRANBM2A77HZP2J7U7USOPFATIUQL3ZOBP6NS2EMLR5MULUNWDKJKYN5JQK3K6K4NW
+#\\\|3ZMDPF26NWRSTHUTPWLWIHUUOO2GV6SGAHLWGLNFFK3H37JFDWB \ / AMOS7 \ YOURUM ::
+#\[7]D4URH3VZM2MGIJOR7WB7SKDA6GLEEUCN3LIJCP2HG3LB2H4P3YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+## [:< ##
+
+# name   = auth.client.distrust_list
+# descr  = local distrust fingerprints [ <remote-keys>/distrust ]
+# param  = <remote-keys dir> [ e.g. ~/.n/remote-keys ]
+# return = [ <77 char fingerprint>, .. ] or undef [ list context : ( undef,
+#          reason ) -- present but unreadable \ malformed : fail closed ]
+#
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'revocation' ] : one fingerprint
+# per line, '#' starts a comment, blank lines ignored. no file : empty.
+# twin : distrust_list in bin/p7-auth-keypair-helper.pl.
+
+my $keys_dir = shift;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->( 'no remote-keys ' . 'dir' )
+    if not defined $keys_dir or ref $keys_dir;
+
+my $path = join( qw| / |, $keys_dir, qw| distrust | );
+return [] if not -e $path and not -l $path;
+
+open( my $fh, '<', $path )
+    or return $refuse->("distrust file not readable [ $path ]");
+my @fp;
+while ( defined( my $line = readline($fh) ) ) {
+    $line =~ s{#.*}{};
+    $line =~ s{\A\s+|\s+\z}{}g;
+    next if not length $line;
+    if ( $line !~ m|\A[A-Z2-7]{77}\z| ) {
+        close($fh);
+        return $refuse->("distrust file not valid [ $path ]");
+    }
+    push @fp, $line;
+}
+close($fh);
+
+return \@fp;
+
+#,,,,,,,,,.,.,..,,,,.,,.,,,..,,,,,,,.,,,,,,,,,..,,...,...,..,,,,.,,,.,,..,,,,,
+#VI75WFZKB67GLNOWHBNOLVWVUIOSNMQHJQLRFU7IW2CMCOGLSCFKKKFUSPO3XJLEMHSKZAJYYUS6S
+#\\\|VBNUISHX4JS3TPZN72TNJ7PCOFC6YMC5IXE5LPMPCSSDVAK3YOC \ / AMOS7 \ YOURUM ::
+#\[7]E3I7LCD5FFTYPAKJA7CO7QUKGRQLG2BS6BLPNRCLHVFQURPB4ODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

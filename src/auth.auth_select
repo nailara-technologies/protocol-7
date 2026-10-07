@@ -51,9 +51,11 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
         ## DELEGATION.md ] : read fresh on EVERY select [ renewals ], sent  ##
         ## as the REQUIRED 4th field. missing \ unparsable \ expired \ not  ##
         ## for this S -> auth-keypair refused, before any nonce is drawn or ##
-        ## stored                                                           ##
+        ## stored. the file holds the CHAIN [ TRUST-CHAIN-STEP2.md : one    ##
+        ## statement per line, leaf first ; one line = step 1, unchanged ]  ##
         my ( $delegation, $dlg_refusal );
         if (   ref $code{'trust.verify'} ne qw| CODE |
+            or ref $code{'trust.chain'} ne qw| CODE |
             or ref $code{'trust.statement'} ne qw| CODE |
             or ref $code{'trust.fingerprint'} ne qw| CODE | ) {
             $dlg_refusal = 'trust modules not loaded';
@@ -61,40 +63,85 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
             $dlg_refusal = 'no server key';
         } else {
             my $dlg_file = <[crypt.C25519.delegation_file]>->($key_name);
-            my $dlg_wire;
+            my $dlg_content;
             if ( not defined $dlg_file ) {
                 $dlg_refusal = 'no delegation file path';
             } elsif ( open( my $dlg_fh, '<:raw', $dlg_file ) ) {
-                my $got = read( $dlg_fh, $dlg_wire, 2050 );
+                my $got = read( $dlg_fh, $dlg_content, 2060 );
                 close($dlg_fh);
-                $dlg_wire = undef     if not defined $got;
-                $dlg_wire =~ s|\n\z|| if defined $dlg_wire;
                 $dlg_refusal = 'delegation file not valid'
-                    if not defined $dlg_wire
-                    or $dlg_wire !~ m|\A[A-Z2-7]{1,2048}\z|;
+                    if not defined $got
+                    or $got > 2052;
             } else {
                 $dlg_refusal = "delegation file missing [ $OS_ERROR ]";
             }
+            my $chain;
             if ( not defined $dlg_refusal ) {
-                my ( $parsed, $why )
-                    = <[trust.statement]>->( qw| parse_wire |, $dlg_wire );
-                my $issuer_fp
-                    = defined $parsed
-                    ? <[trust.fingerprint]>->( $parsed->{'issuer_pub'} )
-                    : undef;
-                my $valid;
-                ( $valid, $why ) = <[trust.verify]>->(
-                    {   qw| chain |   => [$dlg_wire],
-                        qw| anchors | => [$issuer_fp],
-                        qw| subject | => $server_pub,
-                        qw| now |     => time,
-                    }
-                ) if defined $issuer_fp;
-                if ( ref $valid eq qw| HASH | ) {
-                    $delegation = $dlg_wire;
-                } else {
+                my $why;
+                ( $chain, $why )
+                    = <[trust.chain]>->( qw| file |, $dlg_content );
+                $dlg_refusal = sprintf 'delegation file not valid [ %s ]',
+                    $why // '?'
+                    if not defined $chain;
+            }
+            if ( not defined $dlg_refusal ) {
+
+                ## the leaf decides [ under its own issuer, as in step 1 ] ##
+                ## ; the chain above it is sent only while it verifies too ##
+                ## -- an owner statement that expired between two daily    ##
+                ## issue runs must not refuse every select : the leaf goes ##
+                ## alone                                                   ##
+                my $issuer_of = sub {
+                    my $st = <[trust.statement]>->( qw| parse_wire |, shift );
+                    return
+                        ref $st eq qw| HASH |
+                        ? <[trust.fingerprint]>->( $st->{'issuer_pub'} )
+                        : undef;
+                };
+                my $check = sub {
+                    my ( $list, $anchor ) = @ARG;
+                    return ( undef, 'issuer not ' . 'valid' )
+                        if not defined $anchor;
+                    return <[trust.verify]>->(
+                        {   qw| chain |   => $list,
+                            qw| anchors | => [$anchor],
+                            qw| subject | => $server_pub,
+                            qw| now |     => time,
+                        }
+                    );
+                };
+                my $leaf = $chain->[-1];
+                my ( $valid, $why )
+                    = $check->( [$leaf], $issuer_of->($leaf) );
+                if ( ref $valid ne qw| HASH | ) {
                     $dlg_refusal = sprintf 'delegation refused [ %s ]',
                         $why // 'not valid';
+                } else {
+                    my $send = [$leaf];
+                    my $note = '';
+                    if ( $chain->@* > 1 ) {
+                        my ( $full, $full_why )
+                            = $check->( $chain, $issuer_of->( $chain->[0] ) );
+                        if ( ref $full eq qw| HASH | ) {
+                            $send = $chain;
+                        } else {
+                            $note = $full_why // 'not valid';
+                        }
+                    }
+                    ## one level 0 line per change, not per select ##
+                    if ( ( <auth.dlg_chain_note> // '' ) ne $note ) {
+                        <[base.logs]>->(
+                            0,
+                            '[%d] delegation chain above the leaf '
+                                . 'not sent [ %s ] -- the leaf goes alone',
+                            $id,
+                            $note
+                        ) if length $note;
+                        <auth.dlg_chain_note> = $note;
+                    }
+                    $delegation  = <[trust.chain]>->( qw| join |, $send );
+                    $dlg_refusal = 'delegation chain not joined'
+                        if not defined $delegation;
                 }
             }
         }
@@ -163,8 +210,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,,,,.,,,,..,,..,,..,,,.,..,,,..,...,.,,,.,.,..,,...,...,...,,..,.,,,,..,,,.,
-#IM2L6VUE5APIDWQTBKYSRFSEO3PHFKY7U4SKRLVAFXAVIEMRTQ3KICXU4KLTUWNEU2AVNGGNVYSTE
-#\\\|OSVYTNOYT4DYZXMXJA62ZDSGKL2PYSQSHPXLYQ34DZ52VUNCWHS \ / AMOS7 \ YOURUM ::
-#\[7]ZSK3K3OMA7EAKN2M2SYA3DPPZAO3D5EJIC5ZIFJR5YGZMPLBBCAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,,..,.,.,.,,,,..,...,.,,,,,.,..,,...,..,,,,.,,..,,.,,.,.,.,.,
+#CDWE4WRMBHRAUADRLMHZOAVG7JSFVWG7JMI43CJJVELMX4SXH5JG3HL7N5N2KQR57WHVGKQ6ZLTYU
+#\\\|RASUZQMJ7KYTJDAPCNWSTGHOPOSBLV6JWELYL5WR46ZNNR2HXXD \ / AMOS7 \ YOURUM ::
+#\[7]6BYII4ITZQQWJZFYBFJBNCZ6HD3U3WIW2LWP6T5VBQ3BD5XK74CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
