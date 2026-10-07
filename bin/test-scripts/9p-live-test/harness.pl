@@ -120,7 +120,7 @@ sub load_mod {
     ## chains in these modules to <storage.9p....> sugar                   ##
     $src =~ s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{
         "\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1 }ge;
-    $src =~ s|@ARG|@_|g;
+    $src =~ s|\@ARG|\@_|g;
     my $cref = eval "sub { $src }";
     die "compile error in $name : $@" if $@;
     $code{$name} = $cref;
@@ -540,8 +540,8 @@ kill 9, $pid;
 waitpid( $pid, 0 );
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,,,,.,,.,.,..,,...,,.,,.,,,,.,,,..,,..,..,,...,...,...,.,.,..,,,,.,..,,
-#4VIU3DHT3UGG3BUNNIHEKS2RG43VL3U6YIIKJ3BQOOCEM3NSCL6OMOW4R6IQDWQLQUBY7S23IHEA2
-#\\\|PT4O72JFGTMPUA2UYWRZ4UDR45GU3WXTFIOF6AHTNTAP63KIWSO \ / AMOS7 \ YOURUM ::
-#\[7]3WFPF5Y23ZQLP3EOVBRASAYKAERCYEVPKE5EIPCVRNIOUQIU7KDI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,,,,,,.,,..,,.,,,,,,,.,.,.,,,..,,...,..,,..,,,,.,...,,,,,,,,,
+#G47VBN5Y54JZVYNGNON2POJHE2T7O5LEEBQ4QXAMJI2EVIZJ4R4HLL7ZKA76GZS5SVBSWY3EX6GOY
+#\\\|U2UT3YU5Q743PCTNHOPPCFVUOMCQ7LE3FVTAJTRRMGJPRWG26ND \ / AMOS7 \ YOURUM ::
+#\[7]BCC7OJFAJE6ACA7NWWU3NR3BRMLSVT7LCLTGSRBRUXYVHJNBREBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -587,7 +587,7 @@ sub ns_colors {
         'coding'     => [ '#0d1f10', '#4aee7a' ],
         'httpd'      => [ '#1f100d', '#ee7a4a' ],
         'cube'       => [ '#180d1f', '#b44aee' ],
-        'v7-zenki'         => [ '#1f1a0d', '#eebb4a' ],
+        'v7-zenki'   => [ '#1f1a0d', '#eebb4a' ],
         'p7'         => [ '#1a1f0d', '#aadd44' ],
         'source'     => [ '#1f0d18', '#ee4ab4' ],
         'sourcecode' => [ '#1f0d18', '#ee4ab4' ],
@@ -789,8 +789,8 @@ sub analyze_zenka_reachability {
         }
     }
 
-    #  include subroutines called from zenka-startup.v7 zenka-init section  #
-    #  these lines are injected over stdin by v7-zenki at startup and eval'd      #
+#  include subroutines called from zenka-startup.v7 zenka-init section  #
+#  these lines are injected over stdin by v7-zenki at startup and eval'd      #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
         my $startup_file = c_dir( $root_path, qw| cfg zenki |,
             $zenka_name, qw| start.cfg | );
@@ -1034,10 +1034,11 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ## filter reachable subs from zenka-owned namespaces not in loaded ##
-        ## set this prevents namespace leaks where walk_reachable follows  ##
-        ## static call edges into modules from unrelated zenki [e.g.,      ##
-        ## channels.*, httpd.*, v7-zenki.* subs appearing in X-11 whitelist ]    ##
+        ## filter reachable subs from zenka-owned namespaces not in loaded  ##
+        ## set this prevents namespace leaks where walk_reachable follows   ##
+        ## static call edges into modules from unrelated zenki [e.g.,       ##
+        ## channels.*, httpd.*, v7-zenki.* subs appearing in X-11 whitelist ##
+        ## ]                                                                ##
         my %zenka_ns = get_zenka_namespaces();
         my @filtered_ns;
         for my $sub ( keys %reachable ) {
@@ -1644,7 +1645,7 @@ sub backtrack_variable_origin {
             || $line
             =~ m|^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]|
             || $line
-            =~ m|^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*@ARG\b| ) {
+            =~ m|^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*\@ARG\b| ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
             $result->{type}        = 'parameter';
@@ -1771,8 +1772,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,.,,,,,,,,,,,,.,,..,,..,,..,,,,,,,..,,,,,.,.,...,...,,,,,..,,,.,,..,,,..,
-#NALMRVDE5OABODU7PUXPP45BLJ3OKUTVCLGVLOVDGYNWO4U2FSWB6R7F76RWU2R65ZQWCCTNZGGUC
-#\\\|SYO6OELRO2YTDOJKPTJ7G2PNBBXNJKN6H3RVKZHUD73OB23AGYK \ / AMOS7 \ YOURUM ::
-#\[7]XG7YBGS5VA6MXGEC4FVWKEHTDQ5SO5DEFSAFRIMFCUXPXLKET2AI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,..,.,.,,.,,...,,..,,,.,,,.,.,.,...,...,.,,,..,,,.,,,.,,,.,,
+#36EA6W5BDEC7IUNVTBSIXA5EYDTVBSGYAR3ELC67CANKJ7TPH3WIGCTOSX7A4TOHMBMEE4UVIP3NW
+#\\\|AHRE4XPPFMW6NCTQXDVHSKFG2CMK3XUZ4MM3KMACIABTBH3YRAW \ / AMOS7 \ YOURUM ::
+#\[7]ACE6EXSUFWNESMAW26U3TGXKLBJ3OSWLQFA7HPZE4VK4DGFW5CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
