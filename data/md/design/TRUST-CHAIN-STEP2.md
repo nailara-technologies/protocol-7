@@ -130,6 +130,13 @@ already a chain walker [ step 1 builds it generic ]. changes :
   b32 alphabet ], leaf first. the 2048-char limit holds : one statement
   is ~285 chars, a 3-link chain ~860.
 - discover HOST packets carry the same chain in the `dlg:` line.
+- the server verifies the LEAF under its own issuer first [ as in step 1
+  ; failing : refused ] ; the chain above it is sent only while the whole
+  chain verifies, else the leaf goes alone [ one level 0 line per change ]
+  -- an owner statement expiring between two daily `delegation.issue`
+  runs must not refuse every select. one parser for the field and the
+  file : `trust.chain` [ twin : the helper's `chain_split` ] -- the only
+  place the leaf-first \ anchor-most-first order flips.
 - clients that only know step 1 refuse a 2-link chain [ no compatibility,
   as decided for step 1 -- every client is ours ].
 
@@ -139,10 +146,36 @@ already a chain walker [ step 1 builds it generic ]. changes :
   fingerprint ; NEW `~/.n/remote-keys/owners/<name>.public` holds owner
   fingerprints. a chain is accepted when ANY of its issuers matches a
   pin for that host OR an owner pin.
-- **[ decided : no host pin ]** first contact with an owner-certified host whose owner
-  is pinned : no host pin written [ the owner pin covers it ]. proposal :
-  yes, write nothing -- fewer pins, rotation of host-root then needs no
-  client action at all.
+- **[ REVISED 2026-10-07 : name-bound host pin ]** the earlier 'no host
+  pin' decision left a gap : no client checks the leaf name against the
+  host it dialled, so with only an owner pin ANY host the owner certified
+  [ a compromised `beta` ] could answer on `atom:port` with its valid
+  `beta.cube` chain. now : first owner-verified contact WRITES the host
+  pin, holding the host-root fingerprint AND the leaf name [ `atom.cube` ].
+  a later host-root change is accepted [ level 0 log, pin rewritten ]
+  only when an owner pin covers the new chain AND the leaf name equals
+  the pinned name ; otherwise refused as today.
+- an owner fingerprint is NEVER pinned from first contact [ an anchor's
+  implicit scope is `*` : one TOFU would grant authority over every
+  name ] -- owner pins come only from an explicit command. TOFU without
+  an owner pin pins the leaf's issuer [ the host-root ], as in step 1.
+- a pinned NAME never changes : a matching host-root presenting another
+  leaf name is accepted but the pin is not rewritten [ level 0 note ] --
+  otherwise one statement from atom's host-root naming `beta.cube` would
+  relabel the atom pin and make beta's chain rotate it. only a step 1 pin
+  [ no name ] gains its name.
+- rotation is FORWARD only : the pin keeps `since` [ line 3 : the
+  not_before of the owner-verified statement certifying the pinned
+  host-root, 0 when never owner-verified ] ; a rotation needs a strictly
+  later certifying statement. a compromised OLD host-root under a still
+  valid owner statement [ 365 days, no revocation ] cannot rotate back.
+- pin file : line 1 fingerprint, line 2 leaf name, line 3 since [ lines 2
+  \ 3 optional ; discover and the C client read line 1 only ].
+- the pin decision [ verdict + what to write : none \ new \ replace ] is
+  `trust.pin_decide` \ the helper's `pin_decide`, shared test vectors in
+  `bin/test-scripts/trust-pin-vectors.pl` [ host pin none \ match \
+  mismatch \ step 1 x owner pin none \ covers \ foreign x distrust,
+  rename, rotate back \ forward ] ; the io layers only do what it says.
 
 ## sign-key migration
 
@@ -217,6 +250,16 @@ STANDALONE -- even when the node that signed it is offline again.
 5. passphrase-derived \ plain owner keys : the existing 13-char prompt
    minimum stays ; beyond it a WARNING only, never a refusal [ refusing
    gets circumvented or blocks adoption ]
+6. [ 2026-10-07 ] owner-pinned first contact : name-bound host pin with
+   automatic host-root rotation [ see 'pins' ] -- replaces 'no host pin'
+
+## direction [ user, 2026-10-07 ]
+
+multiple hosts by DEFAULT : complete the missing links of the chain and
+add the management tools around it [ certify, accept, pin, distrust,
+list ] ; if needed the user-edit zenka is cloned into a host-edit zenka ;
+plus resilient initial transport types, so adding a host to a network
+[ and everything around that ] becomes one smooth interaction.
 
 #,,.,,,,,,..,,..,,,..,,..,...,...,...,...,,..,..,,...,...,.,.,,..,..,,.,.,,.,,
 #APX7ZPMET6CWCA4IURQSBVZRQ7U6BKAC3V4BUU4PYQOZOIMDL7VXZ56CFUU6W4DRNGWWSMGD25Y3Y
@@ -226,8 +269,8 @@ STANDALONE -- even when the node that signed it is offline again.
 6. scope is DOWNWARD and immutable : a subject's scope must be strictly
    narrower than its issuer's [ or empty ] -- no equal re-delegation
 
-#,,,.,.,,,,,.,..,,.,.,...,.,,,..,,.,,,,.,,,..,..,,...,...,,,.,.,,,,..,,..,,..,
-#VY6AWI45PLOZNRPKQFTTGKSLT54HVV5PHXYCYGPTHPLLWLNJOVRWR4WCM57O6CKRMCDMDOMFZAZPI
-#\\\|KOOCA5WNEPXPCEJ6B4PLIMCHKQGML6QDYMVRR6WGC2LXSOX5TAK \ / AMOS7 \ YOURUM ::
-#\[7]XTGLNNHK5DA425TH3FXJ234YKCBUDLTCJL3OGVMYX5MD5HBR66BY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,,,.,,.,,,..,.,.,...,,.,,,..,..,,...,..,,,.,,,,,,,..,,,,,,..,
+#PGIVZNQFVNE6VYWVCS5CIQ4OLXRYVZT4RWESUC7OYVF55CN3PNDHGZM6OQ7IMZFX3MECELXMQ2RHI
+#\\\|BDYIGCE23IQGPPAGSXTNAE5SD3IQ7CJX5DWQGHBD7NOKCTLQRHF \ / AMOS7 \ YOURUM ::
+#\[7]GHB5T2YHTCM4VM5BYNHTXADBYPXQGBM3WHNUL3VWURDVBIN7EACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

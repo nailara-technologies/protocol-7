@@ -295,6 +295,10 @@ compile_module('protocol.protocol-7.link-upgrade.init');
 compile_module('base.handler.link-upgrade');
 compile_module('trust.statement');
 compile_module('trust.verify');
+compile_module('trust.chain');
+compile_module('trust.pin_decide');
+compile_module('auth.client.owner_pins');
+compile_module('auth.client.distrust_list');
 compile_module('trust.fingerprint');
 compile_module('crypt.C25519.delegation_file');
 
@@ -334,6 +338,28 @@ my $pin_path = "$home/.n/remote-keys/servers/test-host_4242.public";
 ## the pin is the host-root fingerprint [ 77 chars ], not S ##
 my $host_root_fp = $code{'trust.fingerprint'}->($h_pub);
 
+## the owner [ TRUST-CHAIN-STEP2.md ] : certifies the host-root for ##
+## test-host.* -- valid around now, or expired                      ##
+my ( $o_pub, $o_priv ) = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
+my $owner_fp = $code{'trust.fingerprint'}->($o_pub);
+my $owner_nb = time - 200;
+
+sub owner_wire {
+    my ($expired) = @ARG;
+    my $statement = $code{'trust.statement'}->(
+        qw| build |,
+        {   qw| issuer_pub |  => $o_pub,
+            qw| subject_pub | => $h_pub,
+            qw| name |        => 'test-host',
+            qw| not_before |  => $expired ? time - 2000 : $owner_nb,
+            qw| not_after |   => $expired ? time - 1000 : time + 86400,
+            qw| scope |       => 'test-host.*',
+        }
+    );
+    my $sig = Crypt::Ed25519::sign( $statement, $o_pub, $o_priv );
+    return $code{'trust.statement'}->( qw| wire |, $statement, $sig );
+}
+
 ## a fresh delegation statement for the given issuer \ subject, built and ##
 ## signed with the REAL trust.statement module [ valid around now ]       ##
 sub delegation_wire {
@@ -358,6 +384,7 @@ sub delegation_wire {
 
 sub read_pin {
     open( my $pin_fh, '<', $pin_path ) or return '';
+    local $INPUT_RECORD_SEPARATOR = undef;    ## the whole pin file ##
     my $pinned = readline($pin_fh) // '';
     close($pin_fh);
     return $pinned;
@@ -395,6 +422,11 @@ sub server_child_main {
     mkdir( $key_dir, 0700 ) if !-d $key_dir;
     open( my $dlg_fh, '>', $dlg_path ) or die "dlg write : $OS_ERROR";
     print {$dlg_fh} $dlg_wire, "\n";
+
+    ## an owner statement above the host-root [ TRUST-CHAIN-STEP2.md : the ##
+    ## .dlg holds the chain, one statement per line, leaf first ]          ##
+    print {$dlg_fh} owner_wire( $opt->{'dlg_owner'} eq qw| expired | ), "\n"
+        if defined $opt->{'dlg_owner'};
     close($dlg_fh);
 
     ## server side key material ##
@@ -625,8 +657,8 @@ if ($clean) {
 say ': pin file';
 ok( -f $pin_path,                              'pin file exists' );
 ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
-my $pin_is_fp = read_pin() eq $host_root_fp . "\n";
-ok( $pin_is_fp, 'pin file : one 77-char line == the host-root fingerprint' );
+my $pin_is_fp = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
+ok( $pin_is_fp, 'pin file : host-root fingerprint + the leaf name' );
 ok( length $host_root_fp == 77,
     'host-root fingerprint is 77 chars [ bmw384 b32 ]' );
 my ( $pin_mtime, $pin_inode ) = ( stat $pin_path )[ 9, 1 ];
@@ -651,7 +683,7 @@ my $R2 = read_results($result_path);
 ok( $R2->{'authenticated'} eq qw| yes |,
     'pinned re-run : server bound again'
 );
-my $pin_after_rerun = read_pin() eq $host_root_fp . "\n";
+my $pin_after_rerun = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
 ok( $pin_after_rerun, 'pin unchanged : content' );
 ok( ( stat $pin_path )[9] == $pin_mtime
         && ( stat $pin_path )[1] == $pin_inode,
@@ -681,8 +713,76 @@ waitpid( $srv_pid, 0 );
 shift @child_pids;
 my $Rrot = read_results($result_path);
 ok( $Rrot->{'authenticated'} eq qw| yes |, 'rotated S : server bound' );
-my $pin_after_rot = read_pin() eq $host_root_fp . "\n";
+my $pin_after_rot = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
 ok( $pin_after_rot, 'rotated S : pin unchanged [ pinned to host-root ]' );
+
+######################################################################
+say ': owner chain : the real server sends '
+    . 'leaf.owner, the client pins via the owner';
+
+## the select field, read raw [ banner first ] ##
+my $raw_select = sub {
+    my (%o) = @ARG;
+    $result_path = "$home/server-$o{'tag'}.txt";
+    my ( $pid, $s ) = run_server( 'result_path' => $result_path, %o );
+    alarm(20);
+    readline($s);
+    print {$s} "select auth-keypair\n";
+    my $reply = readline($s) // '';
+    alarm(0);
+    ## the child wrote it under keys-<tag>/ [ its own key dir ] ##
+    my $dlg_path = "$home/keys-$o{'tag'}/srv.base.dlg";
+    open( my $fh, '<', $dlg_path ) or die "dlg read : $OS_ERROR";
+    my @line = map {s|\n\z||r} readline($fh);
+    close($fh);
+    close($s);
+    waitpid( $pid, 0 );
+    shift @child_pids;
+    my ($field) = $reply =~ m|\ATRUE \S+ \S+ (\S+)\n\z|;
+    return ( $field // '', @line );
+};
+my ( $owned_field, @owned_lines )
+    = $raw_select->( 'tag' => 'owner-raw', 'dlg_owner' => 'valid' );
+ok( @owned_lines == 2 && $owned_field eq join( '.', @owned_lines ),
+    'owner chain : select field = leaf.owner [ leaf first, as on disk ]'
+);
+my ( $expired_field, @expired_lines )
+    = $raw_select->( 'tag' => 'owner-exp', 'dlg_owner' => 'expired' );
+ok( @expired_lines == 2 && $expired_field eq $expired_lines[0],
+    'owner statement expired : the leaf goes alone [ select still works ]'
+);
+
+mkdir "$home/.n/remote-keys/owners", 0700;
+open( my $ofh, '>', "$home/.n/remote-keys/owners/test.public" ) or die;
+print {$ofh} "$owner_fp\n";
+close($ofh);
+$result_path = "$home/server-owner.txt";
+( $srv_pid, $sock ) = run_server(
+    'result_path' => $result_path,
+    'tag'         => 'owner',
+    'dlg_owner'   => 'valid'
+);
+alarm(20);
+my $owner_ctx = $authenticate->(
+    $sock, 'test-user', 'cli-session', 'test-c.base',
+    { 'host' => 'test-host', 'port' => 4343 }
+);
+alarm(0);
+ok( ref $owner_ctx eq qw| HASH |, 'owner chain : client accepts' );
+close($sock);
+waitpid( $srv_pid, 0 );
+shift @child_pids;
+my $owner_pin_path = "$home/.n/remote-keys/servers/test-host_4343.public";
+my $owner_pin      = do {
+    open( my $fh, '<', $owner_pin_path ) or die "owner pin : $OS_ERROR";
+    local $INPUT_RECORD_SEPARATOR = undef;
+    readline($fh);
+};
+ok( $owner_pin eq "$host_root_fp\ntest-host.cube\n$owner_nb\n",
+    'owner chain : host pin + name + since '
+        . '= the owner statement [ owner path ]'
+);
+unlink "$home/.n/remote-keys/owners/test.public";
 
 ######################################################################
 say ': a DIFFERENT host-root : refused before any auth line';
@@ -718,7 +818,7 @@ shift @child_pids;
 my $R3        = read_results($result_path);
 my $seen_auth = grep {m{\Aauth }} $R3->{'recv'}->@*;
 ok( !$seen_auth, 'different host-root : the server child saw no auth line' );
-my $pin_after_root = read_pin() eq $host_root_fp . "\n";
+my $pin_after_root = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
 ok( $pin_after_root, 'different host-root : pin NOT replaced' );
 
 ######################################################################
@@ -987,8 +1087,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,,,,,,,..,,,,.,..,,,,,,,..,..,,..,,.,,,..,,...,..,,,,.,.,.,.,,,,.,,,,.,
-#5P2GEK2ADBA4GOA3C26VXHJR7FZ7RM24JBHGC6QOHMUD6O6ZIQV5AK3VR7BJPCATEZBDSZKR5QZW6
-#\\\|YTZYTJCFNEOOMQQWPDABXYCSOTDRDY6LR2VOKO5WZFHTLPFQBN6 \ / AMOS7 \ YOURUM ::
-#\[7]WNZOYHSI2LZ6ABX2QOTAUL7JX73Y7HSXZH2MXTLHUWOAR5XM4OBI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,..,,,..,.,.,,.,,,..,...,,..,..,,...,...,,..,,,.,,,,,.,.,,,.,
+#4WXZGZY2Q3VBRHWCVVIVVLOXEJASLWIAOWVPCGLVUI7TLRTR3UW5E6AKBCNCAMDRB4CHOWDQC6CXY
+#\\\|EJVJFL6NVCSSFGRCGDOERUFGVKRZ5XVRCQY52WZBFED4FWW2YJQ \ / AMOS7 \ YOURUM ::
+#\[7]DSNGX6VMCC5QN6S4SA73SB73GDBHJ3HSDHH7QR3O66VUMQ45IAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

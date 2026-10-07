@@ -1,25 +1,34 @@
 ## [:< ##
 
 # name   = auth.client.server_pin.check
-# descr  = verify a server's host-root delegation + pin the host-root
-#          fingerprint [ client TOFU, data/md/design/HOST-ROOT-
-#          DELEGATION.md ]
-# param  = <host> <port> <server_pub [ raw 32 bytes ]> <delegation [ b32 ]>
-# return = TRUE [ delegation verified : pinned now or matches the pin ],
-#          FALSE [ refuse ]
+# descr  = verify a server's delegation chain + keep the host pin [ client ]
+# param  = <host> <port> <server_pub [ raw 32 bytes ]> <chain field [ b32
+#          statements, '.' between, leaf first ]>
+# return = TRUE [ chain accepted : pin valid, new or rotated ], FALSE
 #
-# pin file : ~/.n/remote-keys/servers/<host>_<port>.public, content
-# exactly '<77 char host-root fingerprint>\n' [ shared with the C
-# client ]. the delegation must verify [ trust.verify : sig, time, the
-# subject == the announced S, name, scope ] under the pinned host-root ;
-# S itself may rotate. first contact verifies under the statement's own
-# issuer and only THEN pins it [ log level 0 'pinned host-root [ <name>
-# \ <host:port> ]' + the fingerprint in two halves ]. a later different
-# host-root is refused and NEVER re-pinned automatically ; a pin file
+# data/md/design/HOST-ROOT-DELEGATION.md + TRUST-CHAIN-STEP2.md [ 'pins' ]
+# ; the verdict is trust.pin_decide [ twin : the helper's check-pin, the
+# C client ], this module only does the file io :
+#
+#   ~/.n/remote-keys/servers/<host>_<port>.public : line 1 the 77 char
+#     host-root fingerprint, line 2 [ optional, a step 1 pin has none ]
+#     the leaf name it was pinned for [ <node>.cube ], line 3 [ optional ]
+#     since -- shared with the C client and discover [ discover reads
+#     line 1 only ]
+#   ~/.n/remote-keys/owners/*.public : owner fingerprints [ line 1 ],
+#     written ONLY by an explicit command, never here
+#   ~/.n/remote-keys/distrust : one fingerprint per line, '#' comments ;
+#     present but unreadable -> refused [ fail closed ]
+#
+# the pin is written exactly as the decider's 'write' says : 'new' [
+# exclusive, 0600 ], 'replace' [ temp + rename, 0600 : a forward rotation,
+# a step 1 pin gaining its name ], 'none'. line 3 of the pin : since [ the
+# not_before of the owner statement certifying the pinned host-root ;
+# rotation is forward only ]. a pinned name never changes. a pin file
 # that cannot be read or does not hold a fingerprint [ an old 52 char S
-# pin included ] : refused.
+# pin included ] : refused, never replaced.
 
-my ( $host, $port, $server_pub, $delegation ) = @ARG;
+my ( $host, $port, $server_pub, $chain_field ) = @ARG;
 
 my $refuse = sub {
     <[base.logs]>->( 0, '[#] server key pin : %s', shift );
@@ -44,29 +53,17 @@ return $refuse->('server key is not 32 bytes')
     if not defined $server_pub
     or length($server_pub) != 32;
 
-foreach my $sub (qw| trust.statement trust.verify trust.fingerprint |) {
+foreach my $sub (
+    qw| trust.statement trust.verify trust.fingerprint trust.chain
+    trust.pin_decide auth.client.owner_pins auth.client.distrust_list |
+) {
     return $refuse->("module $sub not loaded")
         if ref $code{$sub} ne qw| CODE |;
 }
 
-## the statement's own issuer [ verified below, before anything is kept ] ##
-my ( $statement, $parse_err )
-    = <[trust.statement]>->( qw| parse_wire |, $delegation );
-return $refuse->( 'delegation not valid [ ' . ( $parse_err // '?' ) . ' ]' )
-    if not defined $statement;
-my $issuer_fp = <[trust.fingerprint]>->( $statement->{'issuer_pub'} );
-return $refuse->('delegation issuer not valid') if not defined $issuer_fp;
-
-my $verify = sub {    ## ( result ) or ( undef, reason ) ##
-    my $anchor = shift;
-    return <[trust.verify]>->(
-        {   qw| chain |   => [$delegation],
-            qw| anchors | => [$anchor],
-            qw| subject | => $server_pub,
-            qw| now |     => time,
-        }
-    );
-};
+my ( $chain, $chain_err ) = <[trust.chain]>->( qw| split |, $chain_field );
+return $refuse->( 'delegation not valid [ ' . ( $chain_err // '?' ) . ' ]' )
+    if not defined $chain;
 
 my $home_dir = <[base.get_homedir]>->();
 return $refuse->('no home directory')
@@ -74,48 +71,93 @@ return $refuse->('no home directory')
     or not length $home_dir
     or not -d $home_dir;
 
-my $pin_dir = join( qw| / |, $home_dir, qw| .n remote-keys servers | );
+my $keys_dir = join( qw| / |, $home_dir, qw| .n remote-keys | );
+my $pin_dir  = join( qw| / |, $keys_dir, qw| servers | );
 ## same file name as the C client [ p7-auth-keypair-helper.pl ] : ':' -> ##
 ## '_'                                                                   ##
 ( my $host_safe = $host ) =~ tr{:}{_};
 my $pin_path = sprintf( qw| %s/%s_%d.public |, $pin_dir, $host_safe, $port );
 
-## compare against an existing pin ##
-my $compare = sub {
+my $re_fp   = qr|\A[A-Z2-7]{77}\z|;
+my $re_name = qr|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+
+## the host pin : ( undef ) none, ( { fp, name } ) or ( undef, reason ) ##
+my $read_pin = sub {
+    return () if not -e $pin_path and not -l $pin_path;
     open( my $pin_fh, '<', $pin_path )
-        or return $refuse->("pin file not readable [ $pin_path ]");
-    my $pinned = readline($pin_fh);
-    close($pin_fh);
-    $pinned //= '';
-    $pinned =~ s{\s+\z}{};
-    return $refuse->(
-        "pin file holds an old server key pin, never migrated [ $pin_path ]")
-        if $pinned =~ m|\A[A-Z2-7]{52}\z|;
-    return $refuse->("pin file not valid [ $pin_path ]")
-        if $pinned !~ m|\A[A-Z2-7]{77}\z|;
-    if ( $pinned ne $issuer_fp ) {
-        <[base.logs]>->(
-            0, '[#] host-root MISMATCH for %s:%d [ pinned %s, got %s ]',
-            $host, $port, $pinned, $issuer_fp
-        );
-        return FALSE;
+        or return ( undef, "pin file not readable [ $pin_path ]" );
+    my @line;
+    foreach ( 1 .. 3 ) {
+        my $line = readline($pin_fh);
+        last if not defined $line;
+        push @line, $line =~ s{\s+\z}{}r;
     }
-    my ( $valid, $why ) = $verify->($pinned);
-    return $refuse->( 'delegation refused [ ' . ( $why // '?' ) . ' ]' )
-        if ref $valid ne qw| HASH |;
-    return TRUE;
+    close($pin_fh);
+    my ( $fp, $name, $since ) = @line;
+    $fp //= '';
+    $since = 0 if not defined $since or not length $since;
+    return ( undef,
+        "pin file holds an old server key pin, never migrated [ $pin_path ]" )
+        if $fp =~ m|\A[A-Z2-7]{52}\z|;
+    return ( undef, "pin file not valid [ $pin_path ]" )
+        if $fp !~ $re_fp
+        or ( defined $name and length $name and $name !~ $re_name )
+        or $since !~ m|\A[0-9]{1,10}\z|;
+    return {
+        qw| fp |    => $fp,
+        qw| name |  => ( defined $name and length $name ) ? $name : undef,
+        qw| since | => 0 + $since,
+    };
 };
 
-return $compare->() if -e $pin_path or -l $pin_path;
+## owner pins \ local distrust [ distrust unreadable : refused ] ##
+my $owners = <[auth.client.owner_pins]>->($keys_dir);
+my ( $distrust, $distrust_err ) = <[auth.client.distrust_list]>->($keys_dir);
+return $refuse->($distrust_err) if not defined $distrust;
 
-## first contact : the delegation must verify BEFORE anything is pinned ##
-my ( $valid, $why ) = $verify->($issuer_fp);
+my ( $host_pin, $pin_err ) = $read_pin->();
+return $refuse->($pin_err) if defined $pin_err;
+
+my ( $decided, $why ) = <[trust.pin_decide]>->(
+    {   qw| chain |    => $chain,
+        qw| subject |  => $server_pub,
+        qw| now |      => time,
+        qw| host_pin | => $host_pin,
+        qw| owners |   => $owners,
+        qw| distrust | => $distrust,
+        qw| strict |   => FALSE,
+    }
+);
 return $refuse->( 'delegation refused [ ' . ( $why // '?' ) . ' ]' )
-    if ref $valid ne qw| HASH |;
+    if ref $decided ne qw| HASH |;
 
-## create the pin [ exclusive, 0600 ] ##
-foreach my $dir ( join( qw| / |, $home_dir, qw| .n | ),
-    join( qw| / |, $home_dir, qw| .n remote-keys | ), $pin_dir ) {
+my ( $verdict, $fp, $name, $write )
+    = @{$decided}{qw| verdict fp name write |};
+my $fp_half = int( ( length($fp) + 1 ) / 2 );
+
+if ( $verdict eq qw| PIN_MISMATCH | ) {
+    <[base.logs]>->(
+        0, '[#] host-root MISMATCH for %s:%d [ pinned %s, got %s \ %s ]',
+        $host, $port, $host_pin->{'fp'}, $fp, $name
+    );
+    return FALSE;
+}
+return $refuse->("unexpected verdict $verdict")
+    if $verdict !~ m{\APIN_(?:VALID|NEW|ROTATED)\z};
+
+<[base.logs]>->(
+    0, '[*] host pin %s:%d keeps its name %s [ the server presents another ]',
+    $host, $port, $name
+) if $decided->{'name_differs'};
+
+## the decider says what to write [ none \ new \ replace ], nothing else ##
+return TRUE if $write eq qw| none |;
+
+my $content = sprintf "%s\n%s\n%d\n", $fp, $name, $decided->{'since'};
+
+## make sure the pin directory exists [ 0700 ] ##
+foreach my $dir ( join( qw| / |, $home_dir, qw| .n | ), $keys_dir, $pin_dir )
+{
     next if -d $dir;
     mkdir( $dir, 0700 )
         or -d $dir
@@ -123,35 +165,66 @@ foreach my $dir ( join( qw| / |, $home_dir, qw| .n | ),
 }
 
 require Fcntl;
-my $pin_fh;
-if (not sysopen(
-        $pin_fh,                                                $pin_path,
-        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL(), 0600
-    )
-) {
-    ## created concurrently : the existing pin decides ##
-    return $compare->() if -e $pin_path;
-    return $refuse->("cannot write pin $pin_path : $OS_ERROR");
-}
-my $written = print {$pin_fh} $issuer_fp, "\n";
-if ( not close($pin_fh) or not $written ) {
-    unlink($pin_path);
-    return $refuse->("cannot write pin $pin_path");
+
+if ( $write eq qw| new | ) {
+    my $pin_fh;
+    if (not sysopen(
+            $pin_fh,                                                $pin_path,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL(), 0600
+        )
+    ) {
+        ## created concurrently : refuse, the next connect decides ##
+        return $refuse->("cannot write pin $pin_path : $OS_ERROR");
+    }
+    my $written = print {$pin_fh} $content;
+    if ( not close($pin_fh) or not $written ) {
+        unlink($pin_path);
+        return $refuse->("cannot write pin $pin_path");
+    }
+
+    ## level 0 [ a new pin ] : the fingerprint on its own two lines ##
+    <[base.logs]>->(
+        0, '[*] pinned host-root [ %s \ %s:%d ]%s',
+        $name, $host, $port,
+        $decided->{'owner'} ? ' [ owner-certified ]' : ''
+    );
+    <[base.logs]>->( 0, ' :. %s', substr( $fp, 0, $fp_half ) );
+    <[base.logs]>->( 0, ' :. %s', substr( $fp, $fp_half ) );
+    return TRUE;
 }
 
-## level 0 [ a new pin ] : the fingerprint on its own two lines ##
-my $fp_half = int( ( length($issuer_fp) + 1 ) / 2 );
-<[base.logs]>->(
-    0, '[*] pinned host-root [ %s \ %s:%d ]',
-    $valid->{'name'}, $host, $port
-);
-<[base.logs]>->( 0, ' :. %s', substr( $issuer_fp, 0, $fp_half ) );
-<[base.logs]>->( 0, ' :. %s', substr( $issuer_fp, $fp_half ) );
+my $tmp = sprintf qw| %s.%d.tmp |, $pin_path, $PID;
+my $tmp_fh;
+sysopen(
+    $tmp_fh,
+    $tmp,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+        | Fcntl::O_NOFOLLOW(),
+    0600
+) or return $refuse->("cannot write pin $tmp : $OS_ERROR");
+my $written = print {$tmp_fh} $content;
+if ( not close($tmp_fh) or not $written or not rename( $tmp, $pin_path ) ) {
+    unlink($tmp);
+    return $refuse->("cannot rewrite pin $pin_path");
+}
+
+if ( $verdict eq qw| PIN_ROTATED | ) {
+    <[base.logs]>->(
+        0, '[*] host-root ROTATED [ %s \ %s:%d ] [ owner-certified ]',
+        $name, $host, $port
+    );
+    <[base.logs]>->( 0, ' :. was %s', $host_pin->{'fp'} );
+    <[base.logs]>->( 0, ' :. now %s', substr( $fp, 0, $fp_half ) );
+    <[base.logs]>->( 0, ' :.     %s', substr( $fp, $fp_half ) );
+} else {
+    <[base.logs]>
+        ->( 1, ': host pin %s:%d now names %s', $host, $port, $name );
+}
 
 return TRUE;
 
-#,,.,,,..,..,,,,.,...,,,.,..,,.,,,,.,,,,,,,,.,..,,...,...,,,,,.,.,..,,,..,,.,,
-#FD7HKMJ7RSXS6EXRC6COHAG3T3JKLBUXHHY2U4AWHJSJWBZIFUZLV4X2CWO4TN5VQ5UOWNCVGXWQS
-#\\\|VLSGED4YVIRRKKH6SALK4XI4IMUSZUIL2DHHUPTYMWGDDK5HOE6 \ / AMOS7 \ YOURUM ::
-#\[7]2ELQJWKW543SGLPTIOB3FBWJWUVH4IF2AJMDHQF5JZNBBZFGRYBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,.,,,,.,,.,,.,.,..,,.,,,.,,,..,,..,,...,...,..,,,,,,,..,,..,,.,,
+#WQQOPHRJ36SU4U5GYI22IW7CLJ5N6IYWQ22EXAHZHBWGDZOPOD3EUFTOWPZTWGO6KJL4Y7MA6XHQG
+#\\\|SOS3HIHA5YG44XMBQODEDLT4W2NROGOEQROM6UEHBITPETZSJLF \ / AMOS7 \ YOURUM ::
+#\[7]565U3UPVGWKUO54VWRKAMRRMTQUJLUZP36DWRIVHAH7OODKO6ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,6 +16,13 @@
 # the .dlg written AS the backend user [ effective uid \ gid switched
 # for just that ] -- root never follows a planted symlink there. the
 # file ends up owner backend user, mode 0644, written temp + rename.
+#
+# data/md/design/TRUST-CHAIN-STEP2.md : when '<backend key dir>/host-root.dlg'
+# holds an owner chain [ owner -> host-root, leaf first ] and the WHOLE
+# chain down to this leaf verifies, the .dlg file holds the chain [ one
+# statement per line, leaf first ] ; an invalid \ expired owner chain is
+# dropped with a level 0 line and the leaf is written alone [ step 1 ].
+# rewritten whenever the content changes, even with a current leaf.
 
 require Fcntl;
 
@@ -37,7 +44,9 @@ if ( $EUID != 0 ) {
     return FALSE;
 }
 
-foreach my $sub (qw| trust.statement trust.verify trust.fingerprint |) {
+foreach
+    my $sub (qw| trust.statement trust.verify trust.fingerprint trust.chain |)
+{
     return $refuse->( "module '%s' not loaded", $sub )
         if ref $code{$sub} ne qw| CODE |;
 }
@@ -133,6 +142,7 @@ my $read_small = sub {
     return ($content);
 };
 
+my $owner_note;
 my ( $issued, $reason ) = $as_backend->(
     sub {
         ## S : the backend user's base key, PUBLIC file, user key dir ##
@@ -152,42 +162,117 @@ my ( $issued, $reason ) = $as_backend->(
             if not defined $s_pub
             or length($s_pub) != 32;
 
-        ## the existing statement : kept while valid and not due ##
-        my ($current) = $read_small->( $dlg_file, 4096 );
-        if ( defined $current ) {
-            my $valid = <[trust.verify]>->(
-                {   qw| chain |   => [$current],
+        ## the owner chain above host-root [ TRUST-CHAIN-STEP2.md : the ##
+        ## public 'host-root.dlg' beside this file, leaf first ] --     ##
+        ## optional                                                     ##
+        my @owner_chain;
+        my $owner_file = <[crypt.C25519.delegation_file]>->(qw| host-root |);
+        my ( $owner_content, $owner_why )
+            = defined $owner_file
+            ? $read_small->( $owner_file, 8192 )
+            : ( undef, 'no path' );
+        if ( defined $owner_content ) {
+            my ( $parsed, $why )
+                = <[trust.chain]>->( qw| file |, $owner_content );
+            if ( defined $parsed ) {
+                @owner_chain = $parsed->@*;
+            } else {
+                $owner_note = "owner chain dropped [ $why ]";
+            }
+        } elsif ( defined $owner_file
+            and ( -e $owner_file or -l $owner_file ) ) {
+            $owner_note = "owner chain not readable [ $owner_why ]";
+        }
+
+        ## the leaf : the existing statement is kept while valid and not ##
+        ## due                                                           ##
+        my $leaf;
+        my ($current) = $read_small->( $dlg_file, 12288 );
+        my $current_chain
+            = defined $current
+            ? <[trust.chain]>->( qw| file |, $current )
+            : undef;
+        if ( ref $current_chain eq qw| ARRAY | ) {
+            my $current_leaf = $current_chain->[-1];
+            my $valid        = <[trust.verify]>->(
+                {   qw| chain |   => [$current_leaf],
                     qw| anchors | => [$fingerprint],
                     qw| subject | => $s_pub,
                     qw| now |     => $now,
                 }
             );
-            return ( TRUE, 'current' )
+            $leaf = $current_leaf
                 if ref $valid eq qw| HASH |
                 and $valid->{'name'} eq $name
                 and $valid->{'not_after'} - $now >= $renew_at;
         }
 
-        my $statement = <[trust.statement]>->(
-            qw| build |,
-            {   qw| issuer_pub |  => $issuer_pub,
-                qw| subject_pub | => $s_pub,
-                qw| name |        => $name,
-                qw| not_before |  => $now - $clock_skew,
-                qw| not_after |   => $now + $lifetime,
-                qw| scope |       => '',
-            }
-        );
-        return ( undef, 'statement not built' ) if not defined $statement;
+        my $renewed = FALSE;
+        if ( not defined $leaf ) {
+            my $statement = <[trust.statement]>->(
+                qw| build |,
+                {   qw| issuer_pub |  => $issuer_pub,
+                    qw| subject_pub | => $s_pub,
+                    qw| name |        => $name,
+                    qw| not_before |  => $now - $clock_skew,
+                    qw| not_after |   => $now + $lifetime,
+                    qw| scope |       => '',
+                }
+            );
+            return ( undef, 'statement not built' )
+                if not defined $statement;
 
-        ## signed with the host-root loaded above [ root-held, checked ] ##
-        my $sig = Crypt::Ed25519::sign( $statement, $issuer_pub,
-            $host_root->{'private'} );
-        return ( undef, 'statement not signed' )
-            if not defined $sig
-            or length($sig) != 64;
-        my $wire = <[trust.statement]>->( qw| wire |, $statement, $sig );
-        return ( undef, 'statement too long' ) if not defined $wire;
+            ## signed with the host-root loaded above [ root-held, checked ##
+            ## ]                                                           ##
+            my $sig = Crypt::Ed25519::sign( $statement, $issuer_pub,
+                $host_root->{'private'} );
+            return ( undef, 'statement not signed' )
+                if not defined $sig
+                or length($sig) != 64;
+            $leaf = <[trust.statement]>->( qw| wire |, $statement, $sig );
+            return ( undef, 'statement too long' ) if not defined $leaf;
+            $renewed = TRUE;
+        }
+
+        ## the owner chain is kept only when the WHOLE chain verifies under ##
+        ## its own top issuer : the last owner subject is this host-root,   ##
+        ## its scope covers the leaf name, nothing expired                  ##
+        my @chain = ($leaf);
+        if (@owner_chain) {
+            my ( $top, $top_why )
+                = <[trust.statement]>->( qw| parse_wire |, $owner_chain[0] );
+            my $top_fp
+                = defined $top
+                ? <[trust.fingerprint]>->( $top->{'issuer_pub'} )
+                : undef;
+            my ( $valid, $why ) = ( undef, $top_why // 'no issuer' );
+            ( $valid, $why ) = <[trust.verify]>->(
+                {   qw| chain |   => [ @owner_chain, $leaf ],
+                    qw| anchors | => [$top_fp],
+                    qw| subject | => $s_pub,
+                    qw| now |     => $now,
+                }
+            ) if defined $top_fp;
+            if ( ref $valid eq qw| HASH | ) {
+                @chain = ( @owner_chain, $leaf );
+            } else {
+                $owner_note = sprintf 'owner chain dropped [ %s ]',
+                    $why // '?';
+            }
+        }
+        my $wire = <[trust.chain]>->( qw| join |, \@chain );
+        if ( not defined $wire and @chain > 1 ) {
+            $owner_note = 'owner chain dropped [ chain too long ]';
+            @chain      = ($leaf);
+            $wire       = <[trust.chain]>->( qw| join |, \@chain );
+        }
+        return ( undef, 'chain not joined' ) if not defined $wire;
+
+        ## one statement per line, leaf first ##
+        my $content = join '', map {"$ARG\n"} reverse @chain;
+        return ( TRUE, 'current' )
+            if defined $current
+            and "$current\n" eq $content;
 
         ## temp + rename, never through a planted name ##
         my $tmp = sprintf qw| %s.%d.tmp |, $dlg_file, $PID;
@@ -200,7 +285,7 @@ my ( $issued, $reason ) = $as_backend->(
             0644
         ) or return ( undef, "cannot write $tmp [ $OS_ERROR ]" );
         binmode($fh);
-        my $written = print {$fh} $wire, "\n";
+        my $written = print {$fh} $content;
         chmod( 0644, $fh );
         if ( not close($fh) or not $written ) {
             unlink($tmp);
@@ -211,37 +296,45 @@ my ( $issued, $reason ) = $as_backend->(
             unlink($tmp);
             return ( undef, "cannot rename to $dlg_file [ $why ]" );
         }
-        return ( TRUE, 'issued' );
+        return ( TRUE, $renewed ? qw| issued | : qw| chain | );
     }
 );
 
 $unload->();
 
+<[base.logs]>->( 0, ': delegation : %s', $owner_note ) if defined $owner_note;
+
 return $refuse->( '%s', $reason // 'failed' ) if not $issued;
 
 if ( $reason eq qw| issued | ) {
-    ## short at level 1 ; the fingerprint is also on demand ##
-    ## [ host-root-fingerprint command ]                    ##
+    ## short at level 1 ; the fingerprint is also on demand  [ ##
+    ## host-root-fingerprint command ]                         ##
     <[base.logs]>->(
-        1,       ': delegation : %s -> %s [ issued, %dd ]',
+        1, ': delegation : %s -> %s [ issued, %dd ]',
         $s_name, $name, int( $lifetime / 86400 )
     );
     <[base.logs]>->( 2, ': :. file      : %s', $dlg_file );
     my $fp_half = int( ( length($fingerprint) + 1 ) / 2 );
     <[base.logs]>->(
-        3, ': :. host-root : %s', substr( $fingerprint, 0, $fp_half )
+        3,
+        ': :. host-root : %s',
+        substr( $fingerprint, 0, $fp_half )
     );
     <[base.logs]>->(
-        3, ': :.             %s', substr( $fingerprint, $fp_half )
+        3,
+        ': :.             %s',
+        substr( $fingerprint, $fp_half )
     );
+} elsif ( $reason eq qw| chain | ) {
+    <[base.logs]>->( 1, ': delegation : %s chain updated', $s_name );
 } else {
     <[base.logs]>->( 2, ': delegation : %s current', $dlg_file );
 }
 
 return TRUE;
 
-#,,.,,...,,,.,..,,,.,,...,.,.,,..,.,.,,.,,.,,,..,,...,.,.,.,,,,,.,,,.,,,,,,..,
-#WZCEKEVAYRZG3DR6P5PSFZ5VIC6PDNDG6X3IC2BQHSEWGOERVRG74HXFZHXML2H6U2CVQ75BAU6XQ
-#\\\|I4DSVNKN6IDRS5YQLG3O66N3JZGHRLXW76A7PW623KSNADQSREO \ / AMOS7 \ YOURUM ::
-#\[7]QSORB76GCWDGSEX3SBPUIJ4ZRQ7NVXNCPTIVVOARU5VTD6SAUWBY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,,..,,,.,..,,,,,,..,,,,.,,.,,..,,...,...,...,.,.,..,,,.,,..,,
+#NYGLMT3DXY7QSBRQ6C7QI5NKAMKGR2NKQCK5GO3DELZMSUSDFMG3SG4QS73LKMWZVYU7PF3RPT5LO
+#\\\|PPYLR5OPUAESQAHMW5XMTABK7CUTU6VYENGVWJPM65BW5O4G2JW \ / AMOS7 \ YOURUM ::
+#\[7]EKCX2KGEXOAJ4QYX2TORAB6N3YB2FRGLN3HZWFTS57FELQH2EMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

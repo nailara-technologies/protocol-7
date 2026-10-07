@@ -1,0 +1,100 @@
+## [:< ##
+
+# name   = trust.chain
+# descr  = delegation chain field [ split \ join, the one order flip ]
+# param  = 'split' <field>             -> [ wires, anchor-most first ]
+#          'join'  [ wires, anchor-most first ] -> <field>
+#          'file'  <.dlg file content> -> [ wires, anchor-most first ]
+# return = undef on any invalid input [ list context : ( undef, reason ) ]
+#
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'wire' ] : on the wire [ the select
+# reply 4th field, the discover 'dlg:' line ] a chain is its b32 statements
+# joined with '.', LEAF FIRST ; a .dlg file holds one statement per line,
+# leaf first. trust.verify takes the chain ANCHOR-MOST first -- this module
+# is the ONLY place that order is flipped [ twin : the helper's
+# chain_split ]. a step 1 field [ one statement, no '.' ] is a chain of
+# one, byte-identical.
+#
+# refused BEFORE anything is decoded : not a string, over 2048 chars,
+# a char outside b32 + '.', an empty segment [ leading \ trailing \ '..' ],
+# more than 4 segments. then every segment must be canonical b32.
+
+my ( $mode, @param ) = @ARG;
+
+my $field_max_len = 2048;    ## the select reply 4th field ##
+my $chain_max     = 4;       ## same as trust.verify ##
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('mode missing') if not defined $mode or ref $mode;
+
+## leaf-first field -> anchor-most-first wires ##
+my $split = sub {
+    my $field = shift;
+    return ( undef, 'chain missing' )  if not defined $field or ref $field;
+    return ( undef, 'chain empty' )    if not length $field;
+    return ( undef, 'chain too long' ) if length($field) > $field_max_len;
+    return ( undef, 'chain not b32' )  if $field !~ m|\A[A-Z2-7.]+\z|;
+    return ( undef, 'chain has an empty statement' )
+        if $field =~ m|\A\.|
+        or $field =~ m|\.\z|
+        or index( $field, '..' ) != -1;
+    my @wire = split m|\.|, $field;
+    return ( undef, 'chain has too many statements' ) if @wire > $chain_max;
+
+    foreach my $index ( 0 .. $#wire ) {
+        my $bytes = eval { Crypt::Misc::decode_b32r( $wire[$index] ) };
+        return ( undef, sprintf 'chain statement %d not b32', $index + 1 )
+            if not defined $bytes
+            or not length $bytes
+            or Crypt::Misc::encode_b32r($bytes) ne $wire[$index];
+    }
+    return [ reverse @wire ];
+};
+
+if ( $mode eq qw| split | ) {
+    my ( $chain, $reason ) = $split->( $param[0] );
+    return $refuse->($reason) if not defined $chain;
+    return $chain;
+
+} elsif ( $mode eq qw| join | ) {
+    my $chain = $param[0];
+    return $refuse->('chain not a list')
+        if ref $chain ne qw| ARRAY |
+        or not $chain->@*;
+    return $refuse->('chain has an empty statement')
+        if grep { not defined $ARG or ref $ARG or not length $ARG }
+        $chain->@*;
+    my $field = join qw| . |, reverse $chain->@*;
+    ## the joined field must split back to exactly this chain ##
+    my ( $back, $reason ) = $split->($field);
+    return $refuse->($reason) if not defined $back;
+    return $field;
+
+} elsif ( $mode eq qw| file | ) {
+    my $content = $param[0];
+    return $refuse->('chain file missing')
+        if not defined $content
+        or ref $content;
+    my @line = split m|\n|, $content, -1;
+    pop @line if @line and $line[-1] eq '';    ## one final newline ##
+    return $refuse->('chain file has an empty line')
+        if not @line
+        or grep { not length } @line;
+    return $refuse->('chain file line holds more than one statement')
+        if grep { index( $ARG, '.' ) != -1 } @line;
+    my ( $chain, $reason ) = $split->( join qw| . |, @line );
+    return $refuse->($reason) if not defined $chain;
+    return $chain;
+}
+
+return $refuse->('mode not known');
+
+#,,.,,.,,,..,,,..,,,.,...,,,.,,.,,.,.,.,,,,,.,..,,...,.,,,,..,.,,,,..,,..,.,,,
+#FOGDJ46DJO66L4Y2OXZUPJMYWO3PRHE5JAL2LCSBAVQ5VGIMQEWD5CWGWXBBNS4DLKJ5JCTFJTYKK
+#\\\|PNVQGGMW3GLORKCD7Z6PHDKORIRBY5GS7RLFK4TMARYJZTZFSV6 \ / AMOS7 \ YOURUM ::
+#\[7]GXQPZAJFSU5BMAFUEYKJYA7UN4UCB7PIC4WWSZMUMVBR4HKZZADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

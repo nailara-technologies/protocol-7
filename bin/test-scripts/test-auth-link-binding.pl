@@ -765,6 +765,10 @@ $code{'base.get_homedir'} = sub { return $home };
 compile_module('trust.statement');
 compile_module('trust.fingerprint');
 compile_module('trust.verify');
+compile_module('trust.chain');
+compile_module('trust.pin_decide');
+compile_module('auth.client.owner_pins');
+compile_module('auth.client.distrust_list');
 compile_module('auth.client.server_pin.check');
 compile_module('auth.client.auth-keypair.authenticate');
 my $authenticate = $code{'auth.client.auth-keypair.authenticate'};
@@ -848,8 +852,9 @@ my $good_reply = sprintf 'TRUE %s %s %s', $b32->($s_pub), $b32->($nonce),
     $s_dlg;
 my $pin_path = "$home/.n/remote-keys/servers/peer.example_4242.public";
 
-sub read_pin {
+sub read_pin {    ## the whole pin file : fingerprint + leaf name ##
     open( my $pin_fh, '<', $pin_path ) or return '';
+    local $INPUT_RECORD_SEPARATOR = undef;
     my $pinned = readline($pin_fh) // '';
     close($pin_fh);
     return $pinned;
@@ -861,8 +866,9 @@ sub read_pin {
     ok( ref $ctx eq 'HASH', 'first contact : binding context returned' );
     ok( -f $pin_path,       'first contact : pin file written' );
     ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
-    ok( read_pin() eq "$hr_fp\n",
-        'pin file holds the ' . 'host-root fingerprint' );
+    ok( read_pin() eq "$hr_fp\npeer.cube\n0\n",
+        'pin file holds the ' . 'host-root fingerprint'
+    );
     ok( length($hr_fp) == 77, '  :.. 77 chars' );
     my $fp_half = int( ( length($hr_fp) + 1 ) / 2 );
     my ( $fp_a, $fp_b )
@@ -908,7 +914,7 @@ sub read_pin {
     ok( ref $ctx eq 'HASH' && $ctx->{'server_pub'} eq $x_pub,
         'rotated S delegated by the pinned host-root : accepted'
     );
-    ok( read_pin() eq "$hr_fp\n", '  :.. pin unchanged' );
+    ok( read_pin() eq "$hr_fp\npeer.cube\n0\n", '  :.. pin unchanged' );
 
     ## a foreign host-root delegating S ##
     my $other_reply = sprintf 'TRUE %s %s %s', $b32->($s_pub),
@@ -920,7 +926,9 @@ sub read_pin {
     ok( !grep( {m{^auth }} @sent ) && !@client_signed,
         'foreign host-root : nothing signed, no auth line sent'
     );
-    ok( read_pin() eq "$hr_fp\n", 'foreign host-root : pin NOT replaced' );
+    ok( read_pin() eq "$hr_fp\npeer.cube\n0\n",
+        'foreign host-root ' . ': pin NOT replaced'
+    );
 
     ## S not the delegated subject ##
     ( $ctx, @sent ) = run_client( sprintf 'TRUE %s %s %s',
@@ -1104,8 +1112,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,.,,..,,,,.,,,.,,,.,,,,,,,.,,.,,,,.,,..,..,,...,...,...,,.,,.,.,,,.,,..,
-#TZYZGITZOR7T7BTCK6BUWRXW6LDSJUJMZM2YRNJS5S755C5XJG26YOBKPQSTGX2MVCDGVFWEDLOJ6
-#\\\|3P2BYJF2EXOKZ5F2AYBKO3NFOOOJ5CXSBSOCEURNZO2JNQJWHGX \ / AMOS7 \ YOURUM ::
-#\[7]YVWJOKXC4GUNLGFPAMTV7Y62K5FIRQNIT7OLLKZ7ZV2KMQUTI4DQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,,.,,,,,.,.,..,,...,.,,,,.,,..,,...,...,,.,,..,,..,,,.,,.,,,
+#CIZD5OYNPTL6A4A7Z4YS5IJC33H7O5I7654DFM6GACNENUYOZGCEJNONYJPFNOHAWVMIGPFDFSKVG
+#\\\|BAAWKUTXGFT7CMWDORHTS7AAGE2PEL62PNQXRTDJKQYL5UQDMWN \ / AMOS7 \ YOURUM ::
+#\[7]PIFN6PNWGGV2VL6GGFR3DLTL5XGPD4VHRHXHA63ZUEGU6SMZT6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

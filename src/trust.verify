@@ -5,7 +5,8 @@
 # param  = { chain   => [ <wire b32 statement>, .. ] [ anchor-most first ],
 #            anchors => [ <77 char fingerprint>, .. ],
 #            subject => <raw 32 byte public key>,
-#            now     => <unix seconds> }
+#            now     => <unix seconds>,
+#            distrust => [ <77 char fingerprint>, .. ] [ optional ] }
 # return = { name, anchor, issuer_pub, not_after, depth } [ of the last
 #          statement ; depth = statements actually verified ] or undef
 #          [ list context : ( undef, reason ) ]
@@ -27,6 +28,11 @@
 # under an exact <name> only '' ; under '<prefix>.*' the equal scope
 # refuses ]. the last statement's own scope must be ''. max chain length
 # 4 [ refused before anything is parsed ].
+#
+# distrust [ emergency local deny, TRUST-CHAIN-STEP2.md 'revocation' ] :
+# checked FIRST, over EVERY statement of the chain [ also the ones before
+# the anchor ] -- an issuer or subject key whose fingerprint is listed, or
+# the subject itself listed : refused 'distrusted key in chain'.
 
 my $param = shift;
 
@@ -42,8 +48,8 @@ my $label_len = 17;    ## the literal bytes 'p7 delegation v1' . \0 ##
 
 return $refuse->('parameters not a hash') if ref $param ne qw| HASH |;
 
-my ( $chain, $anchors, $subject, $now )
-    = @{$param}{qw| chain anchors subject now |};
+my ( $chain, $anchors, $subject, $now, $distrust )
+    = @{$param}{qw| chain anchors subject now distrust |};
 
 return $refuse->('chain missing')
     if ref $chain ne qw| ARRAY |
@@ -62,6 +68,30 @@ return $refuse->('time not valid')
     if not defined $now
     or ref $now
     or $now !~ m|\A[0-9]{1,10}\z|;
+
+return $refuse->('distrust not a list')
+    if defined $distrust
+    and ref $distrust ne qw| ARRAY |;
+
+## distrusted keys anywhere in the chain : issuer + subject at fixed ##
+## offsets after the label [ a b32 decode is all it needs ]          ##
+my %distrusted = map { $ARG => TRUE }
+    grep { defined $ARG and not ref $ARG and length $ARG }
+    ( $distrust // [] )->@*;
+if (%distrusted) {
+    my @key = ($subject);
+    foreach my $wire ( $chain->@* ) {
+        next if not defined $wire or ref $wire;
+        next if $wire !~ m|\A[A-Z2-7]+\z|;
+        my $bytes = eval { Crypt::Misc::decode_b32r($wire) };
+        next if not defined $bytes or bytes::length($bytes) < $label_len + 64;
+        push @key, substr( $bytes, $label_len, 32 ),
+            substr( $bytes, $label_len + 32, 32 );
+    }
+    return $refuse->('distrusted key in chain')
+        if grep { exists $distrusted{ <[trust.fingerprint]>->($ARG) // '' } }
+        @key;
+}
 
 my %anchor = map { $ARG => TRUE }
     grep { defined $ARG and not ref $ARG and length $ARG } $anchors->@*;
@@ -175,8 +205,8 @@ return {
     qw| depth |      => $chain->$#* - $start + 1,
 };
 
-#,,.,,.,.,,.,,,..,.,,,..,,.,.,..,,,.,,,,,,.,.,..,,...,...,..,,,,.,.,,,.,.,,,.,
-#XZAWLQJVFFODSEJLUGGOIYDWHSQLJJ5IMILFIPTULHYXKVFZSG67BBPUM2CXWP3MVO5K6ETAVR6JC
-#\\\|6TMJLAZHC4YTJTHEM3OD5QANNIYOHMVJWLJHFMWKOKGANBHADER \ / AMOS7 \ YOURUM ::
-#\[7]XFMCGAKH2AN4U5G67IMMDYTRYJ44DAZHQE6427F3SB3B3LASLCCI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,.,,,,,,,,..,...,,,.,..,,,,.,..,,...,...,,.,,..,,.,.,,..,.,.,
+#XTPHSQYU22MKU2WW3ZMUK5G23T62HZFZ4Y3OASY3TRF264XG3UVDLNXRWACC3ZIWRCYBH5C42OVZG
+#\\\|VYG5ZAKD6AOM7TWKDU363O3E2Y4WVVUGZ44EXDGQDXZD62GRFEF \ / AMOS7 \ YOURUM ::
+#\[7]K75UBCKC7W3OD6QB54OZ742DR5S7XKUVPTOHU6M27PQDPO3QGABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

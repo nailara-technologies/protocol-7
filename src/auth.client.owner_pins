@@ -1,0 +1,38 @@
+## [:< ##
+
+# name   = auth.client.owner_pins
+# descr  = owner pin fingerprints [ <remote-keys>/owners/*.public ]
+# param  = <remote-keys dir> [ e.g. ~/.n/remote-keys ]
+# return = [ <77 char fingerprint>, .. ] [ empty when none ]
+#
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'pins' ] : line 1 of each file is
+# the fingerprint. written ONLY by an explicit command, never on contact.
+# symlinks \ malformed \ unreadable entries are skipped -- never trusted.
+# twin : owner_pins in bin/p7-auth-keypair-helper.pl.
+
+my $keys_dir = shift;
+
+my @owner;
+return \@owner if not defined $keys_dir or ref $keys_dir;
+
+my $owner_dir = join( qw| / |, $keys_dir, qw| owners | );
+opendir( my $dir_fh, $owner_dir ) or return \@owner;
+foreach my $entry ( sort readdir $dir_fh ) {
+    next if $entry !~ m|\A[^/]+\.public\z|;
+    my $path = join qw| / |, $owner_dir, $entry;
+    next if -l $path           or not -f $path;
+    open( my $fh, '<', $path ) or next;
+    my $line = readline($fh) // '';
+    close($fh);
+    $line =~ s{\s+\z}{};
+    push @owner, $line if $line =~ m|\A[A-Z2-7]{77}\z|;
+}
+closedir $dir_fh;
+
+return \@owner;
+
+#,,,,,.,,,...,.,,,,..,.,,,,,,,...,.,.,,,,,.,,,..,,...,...,,..,.,,,.,.,,..,,,.,
+#IWUSRZZ6ESDL6MUWAHFKT5FEWT6TD52AS3LFQ257JA7OE7TGAE5ELFBMKO6LX2OIZPJSTTNL3MKVA
+#\\\|PQTK2YEDFO5QCLP4MB5QQVVB2BJ3QD4D4FFCQYYMIS6CG33WHZT \ / AMOS7 \ YOURUM ::
+#\[7]FEWJJSH5PFLT7WX32EBASOE4ETL5LTDGAAM4M5KWRYVKTUEQJSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

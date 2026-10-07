@@ -12,7 +12,8 @@
 # usage  : my $build = do <path> ; my $cases = $build->() ;
 #          cases : [ { label, chain => [ <raw wire bytes>, .. ] [ anchor-
 #          most first ], anchors => [ <fingerprint>, .. ], subject =>
-#          <raw 32 byte pub>, now => <unix>, expect => 'ok' | 'refuse' |
+#          <raw 32 byte pub>, now => <unix>, distrust => [ <fp>, .. ]
+#          [ optional ], expect => 'ok' | 'refuse' |
 #          <exact reason>, name => <leaf name>, anchor => <fp>, depth =>
 #          <n> } ] [ name \ anchor \ depth asserted for 'ok' only ;
 #          'refuse' asserts refusal without pinning a reason -- the ONE
@@ -268,13 +269,66 @@ return sub {
             now     => $now,
             expect  => 'statement 1 : signature not valid',
         },
+
+        ## --- order : a leaf-first list fed as anchor-most first -------
+        {   label   => 'reversed chain, host pinned [ fails closed ]',
+            chain   => [ $h2s, $o2h ],
+            anchors => [ $fp->( $key{'03'}[0] ) ],
+            subject => $key{'02'}[0],
+            now     => $now,
+            expect  => 'statement 2 : issuer is not the previous subject',
+        },
+        {   label   => 'reversed chain, owner pinned [ fails closed ]',
+            chain   => [ $h2s, $o2h ],
+            anchors => [ $fp->( $key{'06'}[0] ) ],
+            subject => $key{'02'}[0],
+            now     => $now,
+            expect  => 'statement 2 : subject mismatch',
+        },
+
+        ## --- distrust [ checked first, over every statement ] ---------
+        {   label    => 'distrusted host-root under an owner pin',
+            chain    => [ $o2h, $h2s ],
+            anchors  => [ $fp->( $key{'06'}[0] ) ],
+            distrust => [ $fp->( $key{'03'}[0] ) ],
+            subject  => $key{'02'}[0],
+            now      => $now,
+            expect   => 'distrusted key in chain',
+        },
+        {   label    => 'distrusted owner ABOVE a pinned host-root',
+            chain    => [ $o2h, $h2s ],
+            anchors  => [ $fp->( $key{'03'}[0] ) ],
+            distrust => [ $fp->( $key{'06'}[0] ) ],
+            subject  => $key{'02'}[0],
+            now      => $now,
+            expect   => 'distrusted key in chain',
+        },
+        {   label    => 'distrusted leaf subject',
+            chain    => [$leaf],
+            anchors  => [ $fp->( $key{'03'}[0] ) ],
+            distrust => [ $fp->( $key{'02'}[0] ) ],
+            subject  => $key{'02'}[0],
+            now      => $now,
+            expect   => 'distrusted key in chain',
+        },
+        {   label    => 'unrelated distrust entry [ accepted ]',
+            chain    => [ $o2h, $h2s ],
+            anchors  => [ $fp->( $key{'06'}[0] ) ],
+            distrust => [ $fp->( $key{'05'}[0] ) ],
+            subject  => $key{'02'}[0],
+            now      => $now,
+            expect   => 'ok',
+            name     => 'atom.cube',
+            anchor   => $fp->( $key{'06'}[0] ),
+            depth    => 2,
+        },
     );
 
     return \@cases;
 };
 
-#,,,.,...,.,,,,..,...,..,,,..,...,.,,,,,,,,.,,..,,...,...,..,,,,,,.,.,,..,...,
-#FQ74PL5OT6PJBGHWN4HS5LNGLMU26KEZEGYC6EXMZSEJ4AHSQU2DAUVLLOHOP4YPXBLSB4MBCTXIW
-#\\\|2TJLSNPNLZPYHM4BFFSGM2VMHV7TMMAQY4CBHIEPYK5KDZFSCBT \ / AMOS7 \ YOURUM ::
-#\[7]GPQ7GC2OV3KVSU5BF52ZPJLZBSLMTAB5V235WVQJWIQQUDUT2ICI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,...,,,.,..,,...,.,,,,.,,,,,,..,,...,..,,...,.,.,.,.,.,.,,,,,
+#DCNO6XVI52A2JPPEQLXJGGSL243OPCKHVH2DXET5U5KFWHRCMCA7N5WWROCEBNMZOJNGCTNXLASXE
+#\\\|YZXK5OPVTME66DGER2HOMKJ4T4DLC4KEEBE3TRQVTZ73IJ6S4XH \ / AMOS7 \ YOURUM ::
+#\[7]BSFOBBYRFFJQSY4J432TQDKWSCJJDF56P5JGI663T3FNZOSUAIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
