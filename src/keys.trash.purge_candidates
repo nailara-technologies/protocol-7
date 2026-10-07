@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = keys.trash.purge_candidates
+# descr  = trash entries past retention [ older than 90 d, not newest 3 ]
+# return = [ entries ] [ keys.trash.entries format ]
+#
+# auto-purge is the EXCEPTION : an entry goes only when it is older than
+# the retention window AND not among the newest 3 of its kind + name --
+# the last few removals of anything stay undoable however old they are.
+
+my $retention_days = 90;
+my $keep_newest    = 3;
+
+my $cutoff = time - $retention_days * 86400;
+my %seen;
+my @candidate;
+foreach my $entry ( <[keys.trash.entries]>->@* ) {    ## newest first ##
+    my $count = ++$seen{"$entry->{'kind'}\0$entry->{'name'}"};
+    next if $count <= $keep_newest;
+    next if $entry->{'time'} >= $cutoff;
+    push @candidate, $entry;
+}
+
+return \@candidate;
+
+#,,,,,..,,,..,,.,,..,,,,.,,..,,,.,...,.,,,..,,..,,...,...,.,,,.,,,...,,,,,..,,
+#J2YY3HHZGUXQMHQO5KQNBSBS6UTLCQYP6DEJZESI3HBFAQEDP22YBKQQ7IRG5ZRXZIBRK77BITJ5S
+#\\\|2NAQOGDO3ZR2BJAV3YPWMXQ4XUWJJQLUA3FN5KGP4HCUVU7TK6Z \ / AMOS7 \ YOURUM ::
+#\[7]JDJCKRNQMOZCABVCPSPDOR4QGU2BEBHN36F675JGHSIRIGCBEGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
