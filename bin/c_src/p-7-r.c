@@ -501,7 +501,7 @@ int check_server_pin(const char *remote_host, const char *remote_port,
                 name, remote_host, remote_port, fp_half, fp, fp + fp_half);
         if (verbose)
             fprintf(stderr, ":: pin file for %s:%s -- compare out of band "
-                    "[ p7c crypt.C25519.host-root-fingerprint ] ::\n",
+                    "[ p7c host-root-fingerprint ] ::\n",
                     remote_host, remote_port);
         return 0;
     }
@@ -554,7 +554,7 @@ int check_server_pin(const char *remote_host, const char *remote_port,
                 result_line + 10, remote_host, remote_port);
         if (strcmp(result_line + 10, "old server key pin") == 0)
             fprintf(stderr, ": the pin predates host-root delegation -- verify the host-root\n"
-                    ": out of band [ p7c crypt.C25519.host-root-fingerprint ], then\n"
+                    ": out of band [ p7c host-root-fingerprint ], then\n"
                     ": remove ~/.n/remote-keys/servers/<host>_<port>.public\n");
         return -1;
     }

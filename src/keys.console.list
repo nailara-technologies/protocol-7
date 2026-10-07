@@ -239,16 +239,17 @@ if ( keys %{$remote_keys_ref} and not $display_sigs ) {
 
         $key_list_string .= sprintf " : %*s .\n", $names_len, '';
 
+        ## the first-seen ntime goes next to the name, the checksum column ##
+        ## only names the type [ it is not a checksum ]                    ##
         $key_list_string .= sprintf " : %*s .\n", $names_len,
-            sprintf( "'%s' [hostkey]", $display_name );
+            sprintf( "'%s' [%s]", $display_name,
+            $remote_info->{'ntime_b32'} );
 
-        ##  Display with ntime_b32 as timestamp and full filename  ##
-        my $ntime_display = $remote_info->{'ntime_b32'};
-        my $key_filename  = $remote_info->{'file_path'};
+        my $key_filename = $remote_info->{'file_path'};
         $key_filename =~ s|^.*/||;    ## extract just the filename ##
 
         $key_list_string .= sprintf " : %*s : %s\n", $names_len,
-            $ntime_display, $key_filename;
+            qw| hostkey |, $key_filename;
 
     }
 }
@@ -295,7 +296,7 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s|: signed \e\S+|$C{0}: signed :$C{T}|mg;
 
     ##  hostkey marker  ##
-    $key_list_string =~ s|(\[hostkey\])|$C{0}$C{b}$1$C{T}|mg;
+    $key_list_string =~ s|( hostkey)(?= : )|$C{0}$C{b}$1$C{T}|mg;
     $key_list_string =~ s|(\[ [^\]]+ \])|$C{0}$1$C{T}|mg;
 
     ##  encrypted marker  ##
@@ -340,8 +341,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,..,.,,,.,,,...,..,,,..,,,,,.,,,.,.,,,.,,..,.,.,...,...,.,.,...,.,,,,.,,,,.,
-#FDVTAUNHKIYWQEV2EXYF6MONN7FCYCPVONJ5IOI5RZLXEHOJSX6VCT3YL6ANQEMM2RSS3VIDVCLTQ
-#\\\|4V7NKIKH7BU3ZXRNEWFWKFSYUZCEZYQFG66GPBTTXHQSSSDLDYV \ / AMOS7 \ YOURUM ::
-#\[7]CRB4AWYUVXFQXHHLCGYZ4JGYRH3OJGAPUEIAYZTRI643MAMCYCBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,..,,.,,,.,.,,,,,,..,..,,..,,.,.,...,.,.,.,.,..,,.,.,.,.,,,,,
+#FFFFKAJLKLF4JKWWM6DE66RA46XWAZDLC6ALI5WVCITICXRQ6RA4JMJPRDIMMYNS5L47D4YSPXYFI
+#\\\|L2COIFEZIDYYHYM3IYNF5B3STWL7EOVPEODNNYUTMCTMPN62UQY \ / AMOS7 \ YOURUM ::
+#\[7]3MLUISPWNVZG5O5WNAV2CRIZNWK2K4SBKLGFDFWQI5HGT7JSWYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
