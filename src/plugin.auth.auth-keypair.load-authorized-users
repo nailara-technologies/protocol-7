@@ -10,10 +10,17 @@ my $key_vars_ref  = <[crypt.C25519.key_vars]>;
 my $auth_base_dir = $key_vars_ref->{'auth_dir'};
 my $auth_key_dir  = catfile( $auth_base_dir, $zenka_name );
 
-return 0 unless -d $auth_key_dir;
-
-$keys{'authorized-remote'} //= {};
+## the table is REBUILT on every call [ startup, reinit ] : a removed or   ##
+## replaced key file takes effect on reload, a revoked user never keeps an ##
+## old entry. no directory \ unreadable : nobody authorized [ closed ]     ##
+my $fresh        = {};
 my $loaded_count = 0;
+my $had_before   = scalar keys( ( $keys{'authorized-remote'} // {} )->%* );
+
+if ( not -d $auth_key_dir ) {
+    $keys{'authorized-remote'} = $fresh;
+    return 0;
+}
 
 ## Scan directory for <user>.public files
 if ( opendir( my $dh, $auth_key_dir ) ) {
@@ -33,7 +40,7 @@ if ( opendir( my $dh, $auth_key_dir ) ) {
             ## Validate it's a valid base32 string
             my $pubkey_bin = eval { Crypt::Misc::decode_b32r($pubkey_b32) };
             if ( defined $pubkey_bin and length $pubkey_bin == 32 ) {
-                $keys{'authorized-remote'}{$username} = {
+                $fresh->{$username} = {
                     'public_b32' => $pubkey_b32,
                     'public'     => $pubkey_bin,
                     'loaded_at'  => <[base.ntime]>,
@@ -53,7 +60,13 @@ if ( opendir( my $dh, $auth_key_dir ) ) {
         }
     }
     closedir($dh);
+} else {
+    <[base.logs]>->(
+        0,             ": cannot read %s [ %s ] -- no remote user authorized",
+        $auth_key_dir, "$OS_ERROR"
+    ) if $had_before;
 }
+$keys{'authorized-remote'} = $fresh;
 
 if ( $loaded_count > 0 ) {
     <[base.logs]>->(
@@ -64,8 +77,8 @@ if ( $loaded_count > 0 ) {
 
 return $loaded_count;
 
-#,,,.,,,,,,.,,,,,,.,,,..,,,..,,..,.,,,.,,,,.,,.,.,...,...,.,,,,..,,.,,.,,,.,.,
-#4Y3CKFJEYOIQLVVXVBG7E7B2S735N4MPZWPRGFDP42EA7QBPZQQPWCZDSUVCC2BE3G4EZK6NH2B34
-#\\\|DUX6F4ZHMU24LINW7J23GGWCBRRDM3EOJBIAHIB2S2NPMBU3LG3 \ / AMOS7 \ YOURUM ::
-#\[7]WL4ZRW4HBB327XY2YQUKXO6B4H7DS6C3G4DDL7J2YSK7VCBFOWBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,,,,,,,,..,..,,.,,,..,,,,.,.,.,...,...,..,,.,.,...,..,,,.,,
+#HAW2HI3I6T2XW6IHEJVQBIWLBNKONF453VH5SLDJRWAYU46OO3JP7ASMECWS7LZUOMFTANO4K7CWK
+#\\\|RVBDMNIPC25MESD5BQRBRLQQSPX6D6UFBOEM24LW6Y3I333OOCI \ / AMOS7 \ YOURUM ::
+#\[7]76QVQ6Z4BB5XAPDEGBJDGC53WC4NDMD6UZBLGG3UQZIPFER4FIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
