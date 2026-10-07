@@ -1,7 +1,7 @@
 use strict; use warnings; use IO::Socket::INET; $|=1;
 our %data; our %code;
 my $PORT=15644;
-my %CONST=(Tversion=>100,Rversion=>101,Tattach=>104,Rattach=>105,Rerror=>107,Twalk=>110,Rwalk=>111,Topen=>112,Ropen=>113,Tread=>116,Rread=>117,Twrite=>118,Tclunk=>120,Rclunk=>121,Tstat=>124,Rstat=>125,DMDIR=>0x80000000,QTDIR=>0x80,QTFILE=>0);
+my %CONST=(Tversion=>100,Rversion=>101,Tattach=>104,Rattach=>105,Rerror=>107,Twalk=>110,Rwalk=>111,Topen=>112,Ropen=>113,Tread=>116,Rread=>117,Twrite=>118,Rwrite=>119,Tclunk=>120,Rclunk=>121,Tstat=>124,Rstat=>125,DMDIR=>0x80000000,QTDIR=>0x80,QTFILE=>0,Tcreate=>114,Rcreate=>115,Tremove=>122,Rremove=>123,Twstat=>126,Rwstat=>127,OWRITE=>1,ORDWR=>2,OTRUNC=>0x10);
 sub P9C { $CONST{+shift} // die "const $_[0]" }
 %code=(
  'plan-9.protocol.codec.encode-uint8'=>sub{pack('C',$_[0])},
@@ -20,7 +20,10 @@ sub P9C { $CONST{+shift} // die "const $_[0]" }
  'base.logs'=>sub{1}, 'base.ntime'=>sub{time},
 );
 sub load_mod { my($n)=@_; open(my $fh,'<',"/data/projects/protocol-7/src/$n") or die; my $s=do{local $/;<$fh>}; close $fh;
- $s=~s/\n#,.*\z//s; $s=~s/<plan-9\.protocol\.constants\.(\w+)>/P9C('$1')/g; $s=~s/<\[([\w.\-]+)\]>/\$code{'$1'}/g; $s=~s/\@ARG/\@_/g;
+ $s=~s/\n#,.*\z//s; $s=~s/<plan-9\.protocol\.constants\.(\w+)>/P9C('$1')/g; $s=~s/<\[([\w.\-]+)\]>/\$code{'$1'}/g;
+ ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} [ format-code pass 87b91fd5f ] ##
+ $s=~s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{"\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1}ge;
+ $s=~s/\@ARG/\@_/g;
  my $c=eval "sub { $s }"; die "$n: $@" if $@; $code{$n}=$c; }
 load_mod($_) for qw|storage.9p.connect storage.9p.version storage.9p.attach storage.9p.walk storage.9p.open storage.9p.readdir storage.9p.clunk storage.9p.read-message
  plan-9.protocol.error plan-9.protocol.codec.encode-stat plan-9.server.handle_version plan-9.server.handle_attach plan-9.server.handle_walk plan-9.server.handle_request
@@ -64,8 +67,8 @@ $res=$code{'storage.9p.readdir'}->($conn,0);
 print "readdir entries: [",join(",",@{$res->{data}}),"]\n";
 kill 9,$pid; waitpid($pid,0);
 
-#,,.,,..,,,.,,..,,...,.,,,.,,,...,.,.,..,,.,,,..,,...,...,..,,,..,.,,,..,,.,,,
-#MAATGSHNPY5VZJCK6NT6TPEWWM4TP7YMEISD5FB2B3DMNOXABJSKTHT25YYRYNYP5246MGATM366I
-#\\\|ZDBXHFHJW6WSKW5JDF4LITDLGDJX6IOW3KZGISXJLXGP74QQQ6W \ / AMOS7 \ YOURUM ::
-#\[7]5PC54DKD6Y2AD74GWSUSTHDQ5UPBLMKDKS7EGJWRKAIVRCX2TAAA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,.,,,,..,...,..,,...,,.,,,,.,..,,...,...,.,.,.,.,.,,,,,.,,,.,
+#5X5AXCMQSYQYCYQECCRD4VLFCCKGHMOW75CLORZP2UNUBSIDP7U4WMDYO2TGNNTMGPYNTFRML3TKK
+#\\\|PKVPG2H5PTYZL53USYGMGEYOCHZWZSG2KZXG6RJB3BP733XWAOL \ / AMOS7 \ YOURUM ::
+#\[7]QHZUAJDVUYYA6NBMOBMPXAMPKTME75PKTMU5ZNNU2TWGGUG6IKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

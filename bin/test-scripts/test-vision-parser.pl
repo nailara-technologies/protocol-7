@@ -31,7 +31,7 @@ print "Extraction Prompt: $extraction_prompt\n\n";
 print "[Step 1] Triggering async vision analysis...\n";
 my $trigger_cmd
     = sprintf(
-    'p7 "coding.vision-parser.analyze_and_extract" -m param image_path="%s" vision_prompt="%s" extraction_prompt="%s" 2>&1',
+    'p7c "coding.vision-parser.analyze_and_extract" -m param image_path="%s" vision_prompt="%s" extraction_prompt="%s" 2>&1',
     $image_path, $vision_prompt, $extraction_prompt );
 
 my $trigger_response = qx($trigger_cmd);
@@ -48,7 +48,7 @@ while ( time() - $start_time < $max_wait ) {
 
     # Check job registry via eval-code
     my $poll_cmd
-        = 'p7 coding.eval-code \'$jobs = <coding.vision-parser.jobs>; foreach my $jid (keys %$jobs) { $job = $jobs->{$jid}; if ($job->{extraction_result}) { print "$jid: " . substr($job->{extraction_result}, 0, 100) } }\'';
+        = 'p7c coding.eval-code \'$jobs = <coding.vision-parser.jobs>; foreach my $jid (keys %$jobs) { $job = $jobs->{$jid}; if ($job->{extraction_result}) { print "$jid: " . substr($job->{extraction_result}, 0, 100) } }\'';
 
     my $poll_response = qx($poll_cmd 2>&1);
 
@@ -71,13 +71,13 @@ if ($result) {
     print "\n\n[ERROR] Job did not complete within timeout\n";
     print "Note: Vision analysis is async and may still be processing\n";
     print
-        "Check job registry manually with: p7 coding.eval-code '<coding.vision-parser.jobs>'\n";
+        "Check job registry manually with: p7c coding.eval-code '<coding.vision-parser.jobs>'\n";
 }
 
 print "\n=== Test Complete ===\n";
 
-#,,,,,...,,,.,.,,,...,.,,,...,...,..,,,..,,,.,..,,...,...,...,.,,,...,,..,.,,,
-#IXVZ7PIJRNQ65SD5Z52LLQOYD5DPNJZZ5WAUPWXSSIAAQAASM7XDSGJ32YQXPC7V4HCGW7HXXUFE2
-#\\\|AJULFC223B545XBYI7V4JKISUY4ODZLSCQSKMLJHKJNFVVBQKIM \ / AMOS7 \ YOURUM ::
-#\[7]S44BQYOOPUMHF2OCVRVDAOVFFLMVMVCBPUO473QY37F3JOL5UMCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,.,.,.,,,..,,.,.,.,,,,.,,,,.,..,,...,...,...,.,.,,,,,,,,,,,,,
+#SF733CSRVKYURG7H2CMKMKOYLVD3I5Z7ZYJNKQ6YPN4WOSA5ILWLXNZ5SN7EGLNUMYXNR2HIGVIXE
+#\\\|ABQL6WX7ZW3LFTVCVNSKQ6BQC332R5DG6ZWUHDAPKDC4LGV34ZE \ / AMOS7 \ YOURUM ::
+#\[7]XR3PYY4M5MNYU76WPQYTXRL3CFZAGHIHLH7ER4Y43MMFRP4HYGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

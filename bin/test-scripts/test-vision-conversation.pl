@@ -25,7 +25,7 @@ print "Using test image: $test_image\n\n";
 
 ## Test 1: Queue vision analysis (async, returns deferred)
 print "[TEST 1] Queueing vision analysis...\n";
-my $analyze_cmd = qq[p7 coding.vision-parser.analyze_and_extract ];
+my $analyze_cmd = qq[p7c coding.vision-parser.analyze_and_extract ];
 $analyze_cmd .= qq['{"image_path":"$test_image","vision_prompt":"Describe"}'];
 
 my $analyze_output = `$analyze_cmd 2>&1`;
@@ -65,7 +65,7 @@ if ($status_output =~ /active|completed|conversations/) {
 
 ## Test 4: Check vision-parser job registry
 print "[TEST 4] Checking vision-parser job registry...\n";
-my $jobs_cmd = 'p7 coding.vision-parser.status 2>&1';
+my $jobs_cmd = 'p7c coding.vision-parser.status 2>&1';
 
 my $jobs_output = `$jobs_cmd 2>&1`;
 print "Vision-parser status:\n$jobs_output\n";
@@ -93,8 +93,8 @@ print "- Async operations may complete in background\n";
 print "- Check v7-zenki logs for completion: tail -f /var/log/protocol-7/v7-zenki.log\n";
 print "- Job results available via callback mechanism\n\n";
 
-#,,.,,,,,,,,.,..,,,,,,,,.,...,.,.,,..,,..,,,.,..,,...,...,,,,,,,,,.,.,,,.,,.,,
-#VLJTMSL7MCME4AMTEIPEKICU26ZWHPGED5ZE2GCX7VA7SBQAMI2WBCDQDSMWS7ELWDOG2IWO3NCH2
-#\\\|UIINVU33MQZBXHWCGX7IE34EBT3SX4YJZP4LWCMKVHGLSTYFKPP \ / AMOS7 \ YOURUM ::
-#\[7]G42ADEG54S6BR52GGMTZDRR5KLIEUG6KRPWDJDTZWL4PKK5EOMAY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,.,,..,..,,,,.,...,.,,,..,,,,,,..,,...,...,.,.,...,,.,,..,,..,,
+#4QWZZCGE5YZFALNPLTZXQUHNXXDBVTEMEAZNRYU4Z3O7YKRRKMQVGC4NU2EUUDJZW2ZOCPGNXSQLI
+#\\\|7ME5QGHLVYDF6PCAE6H25H3EQK66KEDQMN7B4IQZHJFKOYRPJWO \ / AMOS7 \ YOURUM ::
+#\[7]JW3V7SES4CMMLSBF5MHPSVRIKP4TVMMCFUUKIDKYMCDA2H7T44AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

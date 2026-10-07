@@ -84,8 +84,14 @@ sub load_fixture {
     my $path
         = File::Spec->catfile( $RealBin, 'fixtures', 'apt-condense', $name );
     open( my $fh, '<', $path ) or die "cannot read $path : $OS_ERROR";
-    my @lines = map { chomp; $_ } <$fh>;
+    my @lines;
+    while ( my $line = <$fh> ) {
+        last if $line =~ m|^#[,\.]{10,}|;    ## AMOS7 signature footer ##
+        push @lines, $line;
+    }
     close($fh);
+    pop @lines while @lines and $lines[-1] =~ m|^\s*$|;    ## pre-footer ##
+    chomp @lines;
     return \@lines;
 }
 
@@ -329,8 +335,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,.,,..,,.,,,..,...,,,.,,,,,,.,,,.,,..,,..,,...,...,,,.,.,.,...,..,,.,,,
-#ELVJZWDWNPGNKYDVKE4YOGND5OSXMDM3OKZNAOBSUBUOPWDKB4OZ4GXCMOB7M7FF3S3ABFEUQYEMS
-#\\\|D3NZ66AIRWIWBK62DFBO63Q2E4NIVFQJ6B2ENMW3VSNYAHRX4CU \ / AMOS7 \ YOURUM ::
-#\[7]V4SPBQ4T6AWA3XUXJSFPJEBJOUAWGTUDTJRLD6YYTHUBQEGDDYBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,.,.,,..,,..,,.,,,,,,,.,,,,,,..,,...,...,.,.,...,..,,,.,,,..,
+#4BBTZBPDVA3J4YMG2LHIWBJP4JMNVG752J63P67DGYRNK5DLKJZWO7KNHBO5EKKJE5EIP6IHYTNBA
+#\\\|MHB27ZDPJRXH5FKJ5WYJGZ27AWSZVOS5ITGETLJ7MBFI3RUDWEL \ / AMOS7 \ YOURUM ::
+#\[7]BWPKFVKMGLCOKGF5LDESYOUKEF6GUDGVBU2YH6FISGQHN52KIYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

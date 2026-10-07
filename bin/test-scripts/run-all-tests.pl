@@ -63,13 +63,13 @@ if ($failed == 0) {
 print "Next Steps:\n";
 print "1. Review any failed tests\n";
 print "2. Check protocol-7 logs: tail -f /var/log/protocol-7/*\n";
-print "3. Verify v7-zenki zenka health: p7 v7-zenki.status\n";
+print "3. Verify v7-zenki zenka health: p7c v7-zenki.status\n";
 print "4. Test end-to-end vision pipeline when ready\n\n";
 
 exit($failed > 0 ? 1 : 0);
 
-#,,..,,,,,,,.,,,,,..,,.,.,,..,.,.,,,.,..,,,..,..,,...,...,,..,,,,,..,,,,.,,.,,
-#Y53LGUAMK6V4XLDE7GGCC3G7POHTOIGD57UVTS4RTSQHLIHCYR72EGM3RGN3YMH4RB2ITD7ADT7BA
-#\\\|KTPG7AZTZJ6QVLTDJVTKHHSB3UNEO6LJHZO5ZJKR3ILCYSVHA3E \ / AMOS7 \ YOURUM ::
-#\[7]I2X4474DVJGNU7E2CTEVIWVFQ46FTMTA6UEC32TVHOUYZGAW7OAA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,...,...,...,.,,,..,,,..,.,,,..,,...,...,,..,,.,,..,,,.,,,..,
+#3RGHMO3POJXHF2XR5VLWNU5TAFTXQL4FHNVTWA5BEHURF3FN7U73A5JGBMQ2T3TWYP6M2L2BAFKOA
+#\\\|X4IY2PAIEL2EH4LMITPAGMQUU3P3WEPA6YVQUM23MSAJJYUNXR7 \ / AMOS7 \ YOURUM ::
+#\[7]IHSKUEOMJOJW2AMO4IHHQFUHOM4ZI5NNXNKGQPT2JDLNMKHHOAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

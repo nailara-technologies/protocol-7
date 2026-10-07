@@ -15,7 +15,7 @@ print "=== Simple JSON Cleanup Test ===\n\n";
 # Get raw output
 print "[1] Getting raw vision output...\n";
 my $raw
-    = qx(p7 llama-server-vision.analyze_image "$image_path" "$prompt" 2>&1);
+    = qx(p7c llama-server-vision.analyze_image "$image_path" "$prompt" 2>&1);
 print "Raw length: " . length($raw) . " bytes\n";
 print "First 150 chars: " . substr( $raw, 0, 150 ) . "\n\n";
 
@@ -57,8 +57,8 @@ if ($@) {
 
 print "\n=== Test Complete ===\n";
 
-#,,.,,,,.,...,,..,.,.,.,.,...,.,.,.,.,.,.,...,..,,...,...,,,,,..,,,,,,,.,,,.,,
-#GQKD57MT4LQ6MBXI4UXUXLUMLQ5IHHIYBVPT5XUOHO5Z2CRBQD5ZSGCBHP5HO24JVQFFGF5DCI2DK
-#\\\|UR2UCEQK7PXHUZMJBLA372DPUMRSFR4IO3NE2UPNX5PJFALQZBK \ / AMOS7 \ YOURUM ::
-#\[7]N44J22TS5YI5CFCRIIC7DKX634YR4FP6ULTUMQFDJPPKMJV4QMDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,...,..,,.,,,,,,,,.,,,,,,..,,..,,...,...,...,...,,,,,.,,,...,
+#5HNIHZQRMTUV332D7JGNZQQVJVHYO7JZB6GG4C2C6XQ5GUVM44WQMPNFZIV6MKO3MNFDJHH5VEMGM
+#\\\|YG5UUGGHA4QHL6MVV6FOW3R3LGWBYSFOEPANQT3IB3DZTZNVSJ5 \ / AMOS7 \ YOURUM ::
+#\[7]AAERJ7WCHXMLMBZ7PSEINSO34EP2EXR2C6BOP2DFSNKKOCSLIYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
