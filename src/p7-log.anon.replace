@@ -3,6 +3,12 @@
 # name  = p7-log.anon.replace
 # descr = replace classified spans with [L:<bmw-l13>] tokens,
 #         returns anonymized line + aref of [ checksum, plaintext ] pairs
+#
+# the token is KEYED : bmw-l13 over a token key [ derived from the anon
+# key, own label ] + the fragment -- a log reader cannot confirm a
+# guessed fragment [ an ip, a user name ] by checksumming it. no usable
+# key \ no checksum : the span is redacted '[L:-]' [ never plaintext,
+# not resolvable ].
 
 my $line = shift // '';
 
@@ -15,6 +21,18 @@ my $spans = <[p7-log.anon.classify]>->($line);
 
 return ( $line, [] ) if not scalar @{$spans};
 
+## token key : cached next to key32, dropped with it [ anon.archive-table ] ##
+if ( not defined <p7-log.anon.token_key> ) {
+    my $key32 = <[p7-log.anon.key]>;
+    if ( defined $key32 ) {
+        my $input = $key32 . qw| .:log.anon.token.v1:. |;
+        my $tk    = AMOS7::13::key_32( \$input );
+        <p7-log.anon.token_key> = Crypt::Misc::encode_b32r($tk)
+            if defined $tk and length($tk) == 32;
+    }
+}
+my $token_key = <p7-log.anon.token_key>;
+
 my @pairs;
 
 ## apply spans right to left [ earlier offsets stay valid ] ##
@@ -22,8 +40,14 @@ foreach my $span ( reverse @{$spans} ) {
     my ( $start, $end, $label ) = @{$span};
     my $fragment = substr( $line, $start, $end - $start );
 
-    my $checksum = <[chk-sum.bmw.L13-str]>->($fragment);
-    next if not defined $checksum;    ## harmony iteration limit .., ##
+    my $checksum
+        = defined $token_key
+        ? <[chk-sum.bmw.L13-str]>->( $token_key . qw| : | . $fragment )
+        : undef;
+    if ( not defined $checksum ) {    ## no key \ harmony iteration limit ##
+        substr( $line, $start, $end - $start ) = qw| [L:-] |;
+        next;
+    }
     $checksum = substr( $checksum, 0, $token_len );
 
     substr( $line, $start, $end - $start )
@@ -34,8 +58,8 @@ foreach my $span ( reverse @{$spans} ) {
 
 return ( $line, \@pairs );
 
-#,,..,..,,..,,.,,,,.,,.,,,,.,,.,,,,,,,..,,,..,..,,...,...,,.,,.,.,.,,,.,,,,,,,
-#L3LJRNXTOH5SZ337V7ECWO5IM4CQOSARLB72MOBFLRZNTSFLU4NGJQYSWSUDTODBIWQ2DZGJ4FMEE
-#\\\|WLIOQ55KGTMZBDJV362GVW72Z5FOLGXUNL6PHR5MCF5OIQSYAMF \ / AMOS7 \ YOURUM ::
-#\[7]D4D3JQBKQXT7BSYKRPMQ4S3XHQRQ6UNTRU45O45JTLL7DXNRHEDY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,.,,...,.,,,,..,..,,.,,,.,.,..,,...,...,.,,,...,,,,,..,,,,.,
+#UNLJU4QPTEAEAG4WR763H34WK7G3IMUVWU3QNU6QL5NKA6WHJQMNUYCJIBTTQFGTQQ7DVLDSGF34G
+#\\\|AKQA27TRAY6UQNPK4ULCLSF6VXKMAJCMP6QCAI3SAED2WXEIENA \ / AMOS7 \ YOURUM ::
+#\[7]CBSR6TE63EAQTS33ZW4CZLTINYPRG6T222GMJN22LOCPE2C2FQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
