@@ -98,6 +98,35 @@ my $flood_level = sub {
     return $level > 3 ? 3 : $level;
 };
 
+## 'nodes' gets a host's trust when the host [re-]appears AND whenever that ##
+## trust changes [ a host staying online would otherwise keep its first     ##
+## trust state there ] -- last sent state kept per host key                 ##
+$data{'discover.nodes-trust'} //= {};
+my $notify_nodes = sub {
+    my ( $n_root_fp, $n_trust, $force ) = @ARG;
+    my $state = join ' ', ( $n_root_fp // qw| - | ), $n_trust;
+    my $sent  = $data{'discover.nodes-trust'}->{$pkey_L13};
+    return if not $force and defined $sent and $sent eq $state;
+    return
+        if not defined $nodes_update_cmd
+        or not
+        <[base.is_defined_recursive]>->(qw| discover.notify-nodes-zenka |)
+        or not <[base.cfg_bool]>->(<discover.notify-nodes-zenka>);
+    $data{'discover.nodes-trust'}->{$pkey_L13} = $state;
+    <[base.logs]>->(
+        2, "sending host [online] status to 'nodes' zenka [ %s ] .,",
+        $n_trust
+    );
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => $nodes_update_cmd,
+            'call_args' => {    ##  carry root_fp + trust along the route  ##
+                'args' => join( ' ', qw| online |, $hostname, $state )
+            }
+        }
+    );
+    return;
+};
+
 ## a broken claim is worse than none : DROP the packet ##
 if ( defined $drop_reason ) {
     <[base.logs]>->(
@@ -125,6 +154,7 @@ if ( defined $root_fp ) {
         map { $data{'hosts'}->{$ARG}->{'trust'} = qw| invalid | }
             grep { index( $ARG, $pkey_L13, 0 ) == 0 }
             keys( ( $data{'hosts'} // {} )->%* );
+        $notify_nodes->( $prev->{'root_fp'}, qw| invalid | );
         return FALSE;
     } else {
         $data{'discover.host-root'}->{$pkey_L13} = {
@@ -217,23 +247,10 @@ if ($entry_added) {    ## seperate buffer status change logging ##
     );
 }
 
-##  send status change for [all] host to 'nodes' zenka  ##
+## send status change for [all] host to 'nodes' zenka : on [re-]appearance ##
+## [ forced ] and on any trust change                                      ##
 ##
-if (    $entry_added
-    and defined $nodes_update_cmd
-    and <[base.is_defined_recursive]>->(qw| discover.notify-nodes-zenka |)
-    and <[base.cfg_bool]>->(<discover.notify-nodes-zenka>) ) {
-    <[base.log]>->( 2, "sending host [online] status to 'nodes' zenka .,", );
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => $nodes_update_cmd,
-            'call_args' => {    ##  carry root_fp + trust along the route  ##
-                'args' => join( ' ',
-                    qw| online |,                          $hostname,
-                    ( defined $root_fp ? $root_fp : '-' ), $trust )
-            }
-        }
-    );
-}
+$notify_nodes->( $root_fp, $trust, $entry_added );
 
 ##  requested host status updates  ##
 ##
@@ -309,8 +326,8 @@ if ( defined $orbital_p7ref and length $orbital_p7ref ) {
     <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
 }
 
-#,,.,,,,,,..,,,.,,,,,,.,,,,.,,,.,,..,,..,,,.,,..,,...,...,...,,,.,,,.,.,.,.,,,
-#RG7CAML6KMBITYAJQWTIV6D7V3L2S7RVUTF2VWU62RTQP4KUTHGSBHUZXEAXZSLYP3HK3PIUIPXRA
-#\\\|7UKYECX3TNW4K4DF3B3754S4OW5SEAOHPOBAFWXSZX3YXP5BSYE \ / AMOS7 \ YOURUM ::
-#\[7]P7ZLD7IUOAA5XIHVMBZ7YWGRM5PSSLNCUZFGRB5WYQK2BS3TQ4DY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,,,.,,,.,..,,.,,,,,.,.,,,..,,..,,...,...,.,,,.,.,..,,...,,.,,
+#TQMLVIO5GZ5TR72XZ27F2O42LXGK5P2X76WI4QOHDQEEGPXWGKNMR22KLLNVZVFQTPLGBX65RTF6U
+#\\\|KATL5ZOMXFMU3XWOSV6CNWC2TKJFGHDIRQTIQNVS64ANGLUPP52 \ / AMOS7 \ YOURUM ::
+#\[7]CLCK75SVFXCLR6IR65LQ4AAT3XSO34YYERUAELEJD7USLP7CXCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
