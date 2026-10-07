@@ -202,6 +202,7 @@ my $b32 = sub { Crypt::Misc::encode_b32r(shift) };
 compile_module('trust.statement');
 compile_module('trust.fingerprint');
 compile_module('trust.verify');
+compile_module('trust.chain');
 compile_module('discover.read_host_root_pins');
 compile_module('discover.format_discover_mcast_packet');
 compile_module('discover.process_incoming_packet');
@@ -535,8 +536,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,,,,.,,,..,,,.,,,.,.,.,,,,,..,,...,.,.,..,,...,..,,..,,,.,,,,.,...,,,.,
-#TJCSK4VKBSLOG6KXQ5HUL2Z3JSEXIK3XF4ZBLF2BPV4YWMJVLNUZY75V6KXBFDZMS5SOGVL7GL37A
-#\\\|Y7J5WKLPTIGKVD77GAC665TBDQC4OEH42AT627UU46ILCT3KYDR \ / AMOS7 \ YOURUM ::
-#\[7]I5L67RJMLG53MNOG7FBV2LHKGB2HLWFZLM4HMJRVNR3ZLOV6F4CY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,,,,,,..,...,.,,,,,,,,,,,.,,,..,,...,...,..,,,.,,,,,,,,.,.,,,
+#IFOFPMG5DCTZDPYA5MEEEKIVXWJTKHNFIGGHL6Q5YNGY2ZUDDUM2ATUWLQAA25A5EJ572NCX2WC4M
+#\\\|XV5P4WCHTAHU6252XMWYOFSPLV5GEKC24OA5YHTNLY5SFSYQJEE \ / AMOS7 \ YOURUM ::
+#\[7]7IV2VBIBKWH2ZYJRRTL2SPTCQNOPAU7TKYPEJVTB2QN5RFLABWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

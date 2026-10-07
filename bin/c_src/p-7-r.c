@@ -352,7 +352,7 @@ struct bind_ctx {
                                             delegation verified + the
                                             host-root pin matched */
     char server_nonce[B32_32_LEN + 1];
-    char delegation[DLG_B32_MAX + 1];    /* host-root statement . sig */
+    char delegation[DLG_B32_MAX + 1];    /* delegation chain, leaf first */
 };
 
 /* strict b32 : RFC 4648 alphabet, exact length -- server supplied values
@@ -363,6 +363,20 @@ static int is_b32(const char *s, size_t len)
         return 0;
     for (size_t i = 0; i < len; i++) {
         if (!((s[i] >= 'A' && s[i] <= 'Z') || (s[i] >= '2' && s[i] <= '7')))
+            return 0;
+    }
+    return 1;
+}
+
+/* delegation chain field [ TRUST-CHAIN-STEP2.md ] : b32 statements joined
+   with '.', leaf first, exact length -- the helper checks the shape */
+static int is_b32_chain(const char *s, size_t len)
+{
+    if (s == NULL || strlen(s) != len)
+        return 0;
+    for (size_t i = 0; i < len; i++) {
+        if (!((s[i] >= 'A' && s[i] <= 'Z') || (s[i] >= '2' && s[i] <= '7') ||
+              s[i] == '.'))
             return 0;
     }
     return 1;
@@ -491,6 +505,22 @@ int check_server_pin(const char *remote_host, const char *remote_port,
                     remote_host, remote_port);
         return 0;
     }
+    if (rc == 0 && pin_result_fields(result_line, "PIN_OWNER", fp, name,
+                                     sizeof(name))) {
+        int fp_half = (int)((strlen(fp) + 1) / 2);
+        fprintf(stderr, ": pinned host-root [ %s \\ %s:%s ] [ owner-certified ]\n"
+                        " :. %.*s\n :. %s\n",
+                name, remote_host, remote_port, fp_half, fp, fp + fp_half);
+        return 0;
+    }
+    if (rc == 0 && pin_result_fields(result_line, "PIN_ROTATED", fp, name,
+                                     sizeof(name))) {
+        int fp_half = (int)((strlen(fp) + 1) / 2);
+        fprintf(stderr, ": host-root ROTATED [ %s \\ %s:%s ] [ owner-certified ]\n"
+                        " :. %.*s\n :. %s\n",
+                name, remote_host, remote_port, fp_half, fp, fp + fp_half);
+        return 0;
+    }
     if (rc == 5 && pin_result_fields(result_line, "PIN_UNPINNED", fp, name,
                                      sizeof(name))) {
         fprintf(stderr, ":\n");
@@ -513,7 +543,7 @@ int check_server_pin(const char *remote_host, const char *remote_port,
         return 6;
     }
     if (rc == 7 && strncmp(result_line, "DELEGATION_INVALID ", 19) == 0 &&
-        is_safe_token(result_line + 19, 128, " ._-\\")) {
+        is_safe_token(result_line + 19, 128, " ._-:\\")) {
         fprintf(stderr, "<< server key delegation refused [ %s ] >>\n",
                 result_line + 19);
         return -1;
@@ -941,7 +971,7 @@ int main( int argc, char * argv[] ) {
     memcpy(bctx.delegation, select_response + select_fixed, dlg_len);
     if (!is_b32(bctx.s_pub, B32_32_LEN) ||
         !is_b32(bctx.server_nonce, B32_32_LEN) ||
-        !is_b32(bctx.delegation, dlg_len)) {
+        !is_b32_chain(bctx.delegation, dlg_len)) {
         fprintf(stderr, "<< select reply refused [ invalid server key, nonce or delegation ] >>\n");
         close(socket_fd);
         return 4;

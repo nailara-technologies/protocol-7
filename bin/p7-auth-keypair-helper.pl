@@ -208,9 +208,10 @@ sub scope_within {
 ## -> not_before <= now <= not_after -> [ last : subject ] -> name charset
 ## -> scope [ a statement carrying scope '*' refuses ]. -> ( { fingerprint,
 ## name, anchor, issuer_pub, not_after, depth }, undef ) or ( undef, reason )
-## ; depth = statements actually verified
+## ; depth = statements actually verified. $distrust [ optional, fingerprints
+## ] : checked first, over every statement -- the SAME rule as trust.verify
 sub verify_chain {
-    my ( $chain, $anchors, $subject, $now ) = @_;
+    my ( $chain, $anchors, $subject, $now, $distrust ) = @_;
 
     my $refuse = sub {
         my ($reason) = @_;
@@ -235,6 +236,28 @@ sub verify_chain {
         if not defined $now
         or ref $now
         or $now !~ m|\A[0-9]{1,10}\z|;
+
+    return $refuse->('distrust not a list')
+        if defined $distrust and ref $distrust ne 'ARRAY';
+
+    ## distrusted keys anywhere in the chain [ also before the anchor ] :
+    ## issuer + subject at fixed offsets after the label, and the subject
+    my %distrusted = map { $ARG => 1 }
+        grep { defined $ARG and not ref $ARG and length $ARG }
+        ( $distrust // [] )->@*;
+    if (%distrusted) {
+        my $label_len = length(DLG_LABEL);
+        my @key       = ($subject);
+        foreach my $wire ( $chain->@* ) {
+            next if not defined $wire or ref $wire;
+            next if length($wire) < $label_len + 64;
+            push @key, substr( $wire, $label_len, 32 ),
+                substr( $wire, $label_len + 32, 32 );
+        }
+        return $refuse->('distrusted key in chain')
+            if grep { exists $distrusted{ host_root_fingerprint($ARG) } }
+            @key;
+    }
 
     my %anchor = map { $ARG => 1 }
         grep { defined $ARG and not ref $ARG and length $ARG } $anchors->@*;
@@ -323,6 +346,140 @@ sub verify_chain {
     );
 }
 
+## client pin verdict [ TRUST-CHAIN-STEP2.md 'pins' ] -- the twin of
+## src/trust.pin_decide, the SAME rules, shared cases in bin/test-scripts/
+## trust-pin-vectors.pl. chain : RAW wires, anchor-most first ; host_pin :
+## undef | { fp, name | undef, since } -> ( { verdict fp name since write
+## anchor owner name_differs }, undef ) or ( undef, reason ). fp \ name \
+## since = what the host pin holds afterwards ; write = none \ new \ replace.
+## a pinned name never changes, rotation is forward only [ since ], an owner
+## fingerprint is never returned for pinning
+sub pin_decide {
+    my ($p) = @_;
+    return ( undef, 'parameters not a hash' ) if ref $p ne 'HASH';
+    my ( $chain, $subject, $now, $host_pin, $owners, $distrust, $strict )
+        = @{$p}{qw| chain subject now host_pin owners distrust strict |};
+
+    return ( undef, 'chain missing' )
+        if ref $chain ne 'ARRAY' or not $chain->@*;
+    return ( undef, 'host pin not valid' )
+        if defined $host_pin
+        and ( ref $host_pin ne 'HASH'
+        or not defined $host_pin->{'fp'}
+        or $host_pin->{'fp'} !~ m|\A[A-Z2-7]{77}\z| );
+    foreach my $list ( $owners, $distrust ) {
+        return ( undef, 'owners \ distrust not a list' )
+            if defined $list and ref $list ne 'ARRAY';
+    }
+    my @owner
+        = grep { defined $ARG and m|\A[A-Z2-7]{77}\z| } ( $owners // [] )->@*;
+    my %is_owner = map { $ARG => 1 } @owner;
+
+    my $verify = sub {
+        my ($anchors) = @_;
+        return verify_chain( $chain, $anchors, $subject, $now,
+            $distrust // [] );
+    };
+
+    my $leaf = eval { parse_delegation( $chain->[-1] ) };
+    if ( not defined $leaf ) {
+        ( my $why = $@ || 'unparsable' ) =~ s{\s+\z}{};
+        return (
+            undef,
+            sprintf 'statement ' . '%d : %s',
+            scalar $chain->@*, $why
+        );
+    }
+    my $leaf_fp = host_root_fingerprint( $leaf->{'issuer_pub'} );
+
+    my ( $self, $self_why ) = $verify->( [$leaf_fp] );
+    return ( undef, $self_why ) if not defined $self;
+
+    my $name   = $self->{'name'};
+    my $result = sub {
+        my (%r) = @_;
+        return (
+            {   'verdict'      => $r{'verdict'},
+                'fp'           => $leaf_fp,
+                'name'         => $r{'name'}  // $name,
+                'since'        => $r{'since'} // 0,
+                'write'        => $r{'write'} // 'none',
+                'anchor'       => $r{'anchor'},
+                'owner'        => $r{'owner'}        ? 1 : 0,
+                'name_differs' => $r{'name_differs'} ? 1 : 0,
+            },
+            undef
+        );
+    };
+
+    ## an owner pin covers the chain ? -> ( owner anchor, since ) or () ;
+    ## since = not_before of the statement certifying the leaf's issuer
+    my $by_owner = sub {
+        return () if not @owner;
+        my ($v) = $verify->( [@owner] );
+        return () if not defined $v;
+        return () if not exists $is_owner{ $v->{'anchor'} };
+        my $cert
+            = $v->{'depth'} >= 2
+            ? eval { parse_delegation( $chain->[-2] ) }
+            : $leaf;
+        return () if not defined $cert;
+        return ( $v->{'anchor'}, $cert->{'not_before'} );
+    };
+
+    if ( defined $host_pin ) {
+        my $pinned_since = $host_pin->{'since'} // 0;
+        my ($by_host) = $verify->( [ $host_pin->{'fp'} ] );
+        if ( defined $by_host ) {
+            my $pinned_name = $host_pin->{'name'};
+            return $result->(
+                'verdict' => 'PIN_VALID',
+                'anchor'  => $host_pin->{'fp'},
+                'since'   => $pinned_since,
+                'write'   => 'replace',
+            ) if not defined $pinned_name;    ## a step 1 pin gains its name
+            return $result->(
+                'verdict'      => 'PIN_VALID',
+                'anchor'       => $host_pin->{'fp'},
+                'name'         => $pinned_name,
+                'since'        => $pinned_since,
+                'name_differs' => $pinned_name ne $name,
+            );
+        }
+        my ( $anchor, $since ) = $by_owner->();
+        return $result->(
+            'verdict' => 'PIN_ROTATED',
+            'anchor'  => $anchor,
+            'since'   => $since,
+            'write'   => 'replace',
+            'owner'   => 1,
+            )
+            if defined $anchor
+            and defined $host_pin->{'name'}
+            and $host_pin->{'name'} eq $name
+            and $since > $pinned_since;
+        return $result->(
+            'verdict' => 'PIN_MISMATCH',
+            'since'   => $pinned_since,
+        );
+    }
+
+    my ( $anchor, $since ) = $by_owner->();
+    return $result->(
+        'verdict' => 'PIN_NEW',
+        'anchor'  => $anchor,
+        'since'   => $since,
+        'write'   => 'new',
+        'owner'   => 1,
+    ) if defined $anchor;
+    return $result->( 'verdict' => 'PIN_UNPINNED' ) if $strict;
+    return $result->(
+        'verdict' => 'PIN_NEW',
+        'anchor'  => $leaf_fp,
+        'write'   => 'new',
+    );
+}
+
 ## one-hop verify [ anchor = the issuer, scope '*' ] of a delegation for the
 ## announced S at time now -> ( { fingerprint, name }, undef ) or ( undef,
 ## reason ) -- a 1 statement verify_chain with the legacy reason strings.  the
@@ -341,7 +498,13 @@ sub verify_delegation {
         $s_pub, $now );
     return ( $verified, undef ) if defined $verified;
 
-    ## the legacy one-hop wording [ the self-test \ p-7-r see these ]
+    return ( undef, legacy_reason($reason) );
+}
+
+## the legacy one-hop wording [ the self-test \ p-7-r see these ] for a
+## 'statement 1 : ..' reason ; any other reason is kept as is
+sub legacy_reason {
+    my ($reason) = @_;
     my %legacy = (
         'subject not 32 bytes' => 'subject is not the announced server key',
         'signature not valid'  => 'bad signature',
@@ -356,41 +519,124 @@ sub verify_delegation {
     if ( $reason =~ s{\Astatement 1 : }{} ) {
         $reason = $legacy{$reason} // "statement $reason";
     }
-    return ( undef, $reason );
+    return $reason;
 }
 
-## pin store compare [ ONE fingerprint per <host>_<port> file ] -> PIN_VALID \
-## PIN_MISMATCH \ PIN_UNPINNED [ strict, nothing written ] \ PIN_NEW [ written
-## now, 0600, O_EXCL ]. a pin file that exists but is unreadable \ empty \ not
-## a fingerprint -> die [ never re-pinned ]
-sub pin_compare {
-    my ( $pin_dir, $pin_file, $fingerprint, $strict ) = @_;
+## the chain field [ select reply 4th field : b32 statements, '.' between,
+## LEAF FIRST ] -> RAW wires, anchor-most first ; dies with a reason -- the
+## twin of src/trust.chain 'split' [ same limits, same order flip ]
+sub chain_split {
+    my ($field) = @_;
+    die "chain missing\n" unless defined $field and length $field;
+    die "chain too long\n" if length($field) > DLG_B32_MAX;
+    die "chain not b32\n" unless $field =~ m|\A[A-Z2-7.]+\z|;
+    die "chain has an empty statement\n"
+        if $field =~ m|\A\.|
+        or $field =~ m|\.\z|
+        or index( $field, '..' ) != -1;
+    my @b32 = split m|\.|, $field;
+    die "chain has too many statements\n" if @b32 > DLG_CHAIN_MAX;
+    my @raw;
 
-    if ( -e $pin_file or -l $pin_file ) {
-        open my $fh, '<', $pin_file
-            or die "pin file unreadable : $pin_file : $!\n";
-        my $pinned = <$fh>;
-        close $fh;
-        die "pin file empty : $pin_file\n" unless defined $pinned;
-        chomp $pinned;
-        die "pin file holds a server key, not a host-root fingerprint [ pre "
-            . "host-root pin ; verify the host-root out of band, then "
-            . "remove it ] : $pin_file\n"
-            if $pinned =~ m|^[A-Z2-7]{52}\z|;
-        die "pin file corrupt : $pin_file\n"
-            unless $pinned =~ m|^[A-Z2-7]{77}\z|;
-        return $pinned eq $fingerprint ? 'PIN_VALID' : 'PIN_MISMATCH';
+    foreach my $index ( 0 .. $#b32 ) {
+        my $bin = eval { decode_b32r( $b32[$index] ) };
+        die sprintf( "chain statement %d not b32\n", $index + 1 )
+            unless defined $bin
+            and length $bin
+            and encode_b32r($bin) eq $b32[$index];
+        push @raw, $bin;
     }
+    return [ reverse @raw ];
+}
 
-    return 'PIN_UNPINNED' if $strict;
+## host pin file [ TRUST-CHAIN-STEP2.md 'pins' ] : line 1 the 77 char
+## host-root fingerprint, line 2 [ optional, a step 1 pin has none ] the leaf
+## name, line 3 [ optional ] since [ forward-only rotation ] -> undef [ no pin
+## ] or { fp, name, since } ; a file that exists but is  unreadable \ empty \
+## not a fingerprint -> die [ never re-pinned ]
+sub pin_read {
+    my ($pin_file) = @_;
+    return undef unless -e $pin_file or -l $pin_file;
+    open my $fh, '<', $pin_file
+        or die "pin file unreadable : $pin_file : $!\n";
+    my $pinned = <$fh>;
+    my $name   = <$fh>;
+    my $since  = <$fh>;
+    close $fh;
+    die "pin file empty : $pin_file\n" unless defined $pinned;
+    s{\s+\z}{} foreach grep {defined} $pinned, $name, $since;
+    die "pin file holds a server key, not a host-root fingerprint [ pre "
+        . "host-root pin ; verify the host-root out of band, then remove "
+        . "it ] : $pin_file\n"
+        if $pinned =~ m|^[A-Z2-7]{52}\z|;
+    die "pin file corrupt : $pin_file\n"
+        unless $pinned =~ m|^[A-Z2-7]{77}\z|;
+    $name = undef if defined $name and not length $name;
+    die "pin file corrupt : $pin_file\n"
+        if defined $name
+        and $name !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+    $since = 0 if not defined $since or not length $since;
+    die "pin file corrupt : $pin_file\n" unless $since =~ m|\A[0-9]{1,10}\z|;
+    return { 'fp' => $pinned, 'name' => $name, 'since' => 0 + $since };
+}
 
+## write the host pin : 'new' [ O_EXCL ] or 'replace' [ temp + rename ], 0600,
+## content '<fp>\n<name>\n<since>\n' ; dies on failure
+sub pin_store {
+    my ( $pin_dir, $pin_file, $fp, $name, $since, $how ) = @_;
     make_path( $pin_dir, { mode => 0700 } )  unless -d $pin_dir;
     die "cannot create pin dir : $pin_dir\n" unless -d $pin_dir;
-    sysopen( my $fh, $pin_file, O_WRONLY | O_CREAT | O_EXCL, 0600 )
-        or die "cannot create pin file : $pin_file : $!\n";
-    print {$fh} "$fingerprint\n" or die "pin write failed : $!\n";
-    close $fh                    or die "pin write failed : $!\n";
-    return 'PIN_NEW';
+    my $target = $how eq 'new' ? $pin_file : "$pin_file.$$.tmp";
+    sysopen( my $fh, $target, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+        or die "cannot create pin file : $target : $!\n";
+    print {$fh} "$fp\n$name\n$since\n" or die "pin write failed : $!\n";
+    close $fh                          or die "pin write failed : $!\n";
+    if ( $how ne 'new' and not rename( $target, $pin_file ) ) {
+        my $why = $!;
+        unlink $target;
+        die "cannot replace pin file : $pin_file : $why\n";
+    }
+    return 1;
+}
+
+## owner pins : <dir>/*.public, line 1 a 77 char fingerprint ; symlinks \
+## malformed entries skipped [ never trusted ]. written only by an explicit
+## command, never by this helper
+sub owner_pins {
+    my ($owner_dir) = @_;
+    my @owner;
+    opendir( my $dh, $owner_dir ) or return [];
+    foreach my $entry ( sort readdir $dh ) {
+        next unless $entry =~ m|\A[^/]+\.public\z|;
+        my $path = "$owner_dir/$entry";
+        next if -l $path           or not -f $path;
+        open( my $fh, '<', $path ) or next;
+        my $line = <$fh> // '';
+        close $fh;
+        $line =~ s{\s+\z}{};
+        push @owner, $line if $line =~ m|\A[A-Z2-7]{77}\z|;
+    }
+    closedir $dh;
+    return \@owner;
+}
+
+## local distrust list : one fingerprint per line, '#' comments ; present but
+## unreadable \ malformed -> die [ fail closed ]
+sub distrust_list {
+    my ($path) = @_;
+    return [] unless -e $path  or -l $path;
+    open( my $fh, '<', $path ) or die "distrust file unreadable : $path\n";
+    my @fp;
+    while ( my $line = <$fh> ) {
+        $line =~ s{#.*}{};
+        $line =~ s{\A\s+|\s+\z}{}g;
+        next unless length $line;
+        die "distrust file corrupt : $path\n"
+            unless $line =~ m|\A[A-Z2-7]{77}\z|;
+        push @fp, $line;
+    }
+    close $fh;
+    return \@fp;
 }
 
 ##[ Argument checks [ fail closed ] ]#########################################
@@ -580,10 +826,10 @@ sub load_client_key {
 ##                                      corrupt \ an old S_pub pin ;
 ##                                      never re-pinned ]
 sub op_check_pin {
-    my ( $host, $port, $s_pub_b32, $dlg_b32, $mode ) = @_;
+    my ( $host, $port, $s_pub_b32, $chain_field, $mode ) = @_;
 
-    die "Usage: p7-auth-keypair-helper.pl check-pin "
-        . "<host> <port> <s_pub> <delegation> [strict]\n"
+    die "Usage: p7-auth-keypair-helper.pl check-pin <host> "
+        . "<port> <s_pub> <delegation chain> [strict]\n"
         unless @_ == 4
         or ( @_ == 5 and defined $mode and $mode eq 'strict' );
     die "host : invalid\n"
@@ -595,44 +841,81 @@ sub op_check_pin {
         and $port =~ m|^[1-9][0-9]{0,4}\z|
         and $port <= 65535;
     my $s_pub = arg_b32( $s_pub_b32, 32, 's_pub' );
-    my $dlg   = arg_b32_var( $dlg_b32, DLG_B32_MAX, 'delegation' );
-    die "HOME not set\n" unless defined $ENV{HOME} and length $ENV{HOME};
-
-    my ( $verified, $why ) = verify_delegation( $dlg, $s_pub, time() );
-    if ( not defined $verified ) {
+    my $chain = eval { chain_split($chain_field) };
+    if ( not defined $chain ) {
+        ( my $why = $@ || 'not valid' ) =~ s{\s+\z}{};
         print "DELEGATION_INVALID $why\n";
         exit 7;
     }
+    die "HOME not set\n" unless defined $ENV{HOME} and length $ENV{HOME};
 
     ## same file name as auth.client.server_pin.check : lowercase, : -> _
     ( my $host_safe = lc $host ) =~ tr/:/_/;
-    my $pin_dir  = "$ENV{HOME}/.n/remote-keys/servers";
+    my $keys_dir = "$ENV{HOME}/.n/remote-keys";
+    my $pin_dir  = "$keys_dir/servers";
     my $pin_file = "$pin_dir/${host_safe}_$port.public";
 
-    my $result = eval {
-        pin_compare(
-            $pin_dir, $pin_file,
-            $verified->{'fingerprint'},
-            defined $mode
-        );
+    my ( $host_pin, $distrust );
+    my $loaded = eval {
+        $host_pin = pin_read($pin_file);
+        $distrust = distrust_list("$keys_dir/distrust");
+        1;
     };
-    if ( not defined $result ) {
+    if ( not $loaded ) {
         print STDERR $@;
         print 'PIN_ERROR '
             . (
-            $@ =~ m{holds a server key}
-            ? 'old server key pin'
-            : 'pin file unreadable or invalid'
+              $@ =~ m{holds a server key} ? 'old server key pin'
+            : $@ =~ m{distrust} ? 'distrust file ' . 'unreadable or invalid'
+            :                     'pin file unreadable or invalid'
             ) . "\n";
         exit 8;
     }
-    print "$result $verified->{'fingerprint'} $verified->{'name'}\n";
+
+    my ( $decided, $why ) = pin_decide(
+        {   'chain'    => $chain,
+            'subject'  => $s_pub,
+            'now'      => time(),
+            'host_pin' => $host_pin,
+            'owners'   => owner_pins("$keys_dir/owners"),
+            'distrust' => $distrust,
+            'strict'   => defined $mode ? 1 : 0,
+        }
+    );
+    if ( not defined $decided ) {
+        print 'DELEGATION_INVALID ' . legacy_reason($why) . "\n";
+        exit 7;
+    }
+    my ( $verdict, $fp, $name ) = @{$decided}{qw| verdict fp name |};
+
+    ## the decider says what to write [ none \ new \ replace ], nothing else
+    my $stored = eval {
+        pin_store( $pin_dir, $pin_file, $fp, $name, $decided->{'since'},
+            $decided->{'write'} )
+            if $decided->{'write'} ne 'none';
+        1;
+    };
+    print STDERR ": pinned name kept [ $name ] -- the "
+        . "server now names itself differently\n"
+        if $decided->{'name_differs'};
+    if ( not $stored ) {
+        print STDERR $@;
+        print "PIN_ERROR pin file not written\n";
+        exit 8;
+    }
+
+    ## PIN_NEW from an owner pin is reported as PIN_OWNER [ the C client says
+    ## so ] -- both are a new host pin
+    $verdict = 'PIN_OWNER' if $verdict eq 'PIN_NEW' and $decided->{'owner'};
+    print "$verdict $fp $name\n";
     exit(
         {   'PIN_VALID'    => 0,
             'PIN_NEW'      => 0,
+            'PIN_OWNER'    => 0,
+            'PIN_ROTATED'  => 0,
             'PIN_UNPINNED' => 5,
             'PIN_MISMATCH' => 6,
-        }->{$result}
+        }->{$verdict}
     );
 }
 
@@ -1058,7 +1341,8 @@ sub delegation_self_test {
         foreach my $case ( $build->()->@* ) {
             my ( $r, $why ) = verify_chain(
                 $case->{'chain'},   $case->{'anchors'},
-                $case->{'subject'}, $case->{'now'}
+                $case->{'subject'}, $case->{'now'},
+                $case->{'distrust'}
             );
             if ( $case->{'expect'} eq 'ok' ) {
                 $check->(
@@ -1087,6 +1371,36 @@ sub delegation_self_test {
         }
     }
 
+    ## the shared pin verdict vectors [ the SAME cases as src/trust.
+    ## pin_decide in test-host-root-delegation.pl ]
+    {
+        my $vec_root
+            = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir ) );
+        my $vec_file = File::Spec->catfile( $vec_root, 'bin',
+            'test-scripts', 'trust-pin-vectors.pl' );
+        my $build = do $vec_file;
+        die "cannot load $vec_file : $@ $!\n" if ref $build ne 'CODE';
+        foreach my $case ( $build->()->@* ) {
+            my ( $r, $why ) = pin_decide(
+                {   map { $ARG => $case->{$ARG} }
+                        qw| chain subject now host_pin owners distrust strict |
+                }
+            );
+            my $got
+                = defined $r
+                ? join( ' ',
+                map { $r->{$ARG} // '-' }
+                    qw| verdict fp name owner since write | )
+                : $why;
+            my $want
+                = $case->{'expect'} =~ m|\APIN_|
+                ? join( ' ',
+                map { $case->{$ARG} } qw| expect fp name owner since write | )
+                : $case->{'expect'};
+            $check->( "pin vector : $case->{'label'}", $got, $want );
+        }
+    }
+
     ## pin store [ temp dir, never a real key dir ]
     require File::Temp;
     my $tmp      = File::Temp::tempdir( CLEANUP => 1 );
@@ -1102,37 +1416,41 @@ sub delegation_self_test {
         $wire->( $foreign_pub, $foreign_priv, $s_pub, $nb, $na ),
         $s_pub, $now );
 
-    $check->(
-        'pin strict unpinned',
-        pin_compare( $pin_dir, $pin_file, $fp, 1 ),
-        'PIN_UNPINNED'
-    );
-    $check->( 'pin strict wrote nothing', ( -e $pin_file ? 1 : 0 ), 0 );
-    $check->(
-        'pin first contact',
-        pin_compare( $pin_dir, $pin_file, $fp, 0 ), 'PIN_NEW'
-    );
+    $check->( 'pin none yet', ( defined pin_read($pin_file) ? 1 : 0 ), 0 );
+    pin_store( $pin_dir, $pin_file, $fp, 'test-host.cube', 0, 'new' );
     $check->(
         'pin file mode 0600',
         sprintf( '%04o', ( stat($pin_file) )[2] & 07777 ), '0600'
     );
     $check->(
-        'pin same host-root',
-        pin_compare( $pin_dir, $pin_file, $fp, 0 ), 'PIN_VALID'
+        'pin read back',
+        join( ' ', @{ pin_read($pin_file) }{qw| fp name |} ),
+        "$fp test-host.cube"
     );
     $check->(
-        'pin rotated S [ same host-root ]',
-        ( $rot_ok and $rot_ok->{'fingerprint'} eq $fp )
-        ? pin_compare( $pin_dir, $pin_file, $rot_ok->{'fingerprint'}, 0 )
-        : 'rotated delegation refused',
-        'PIN_VALID'
+        'pin new refuses an existing file',
+        $refused->(
+            sub { pin_store( $pin_dir, $pin_file, $fp, 'x.cube', 0, 'new' ) }
+        ),
+        1
+    );
+    pin_store( $pin_dir, $pin_file, $rot_ok ? $fp : 'x',
+        'other.cube', 7, 'replace' );
+    $check->(
+        'pin replace',
+        join( ' ', @{ pin_read($pin_file) }{qw| fp name since |} ),
+        "$fp other.cube 7"
+    );
+    open my $sfh, '>', $pin_file or die "cannot write $pin_file : $!\n";
+    print {$sfh} "$fp\n";
+    close $sfh;
+    $check->(
+        'pin step 1 [ no name line ]',
+        ( pin_read($pin_file)->{'name'} // 'undef' ), 'undef'
     );
     $check->(
-        'pin refuse wrong fingerprint [ foreign host-root ]',
-        $foreign_ok
-        ? pin_compare( $pin_dir, $pin_file, $foreign_ok->{'fingerprint'}, 0 )
-        : 'foreign delegation refused',
-        'PIN_MISMATCH'
+        'pin foreign host-root differs',
+        ( $foreign_ok and $foreign_ok->{'fingerprint'} ne $fp ) ? 1 : 0, 1
     );
 
     my $old_pin = "$pin_dir/old_7.public";
@@ -1141,7 +1459,20 @@ sub delegation_self_test {
     close $ofh;
     $check->(
         'pin refuse an old S_pub pin',
-        $refused->( sub { pin_compare( $pin_dir, $old_pin, $fp, 0 ) } ), 1
+        $refused->( sub { pin_read($old_pin) } ), 1
+    );
+    $check->(
+        'chain field : empty statement',
+        $refused->( sub { chain_split('AAAA..AAAA') } ), 1
+    );
+    $check->(
+        'chain field : five statements',
+        $refused->( sub { chain_split( join '.', ('AE') x 5 ) } ), 1
+    );
+    $check->(
+        'chain field : leaf first -> anchor-most first',
+        join( ',', map { unpack 'H*', $ARG } chain_split('AE.AI')->@* ),
+        '02,01'
     );
 
     ## the real verb, as p-7-r runs it [ temp HOME, times around now ]
@@ -1150,15 +1481,17 @@ sub delegation_self_test {
     my $verb = sub {
         my ( $port, $subject, $dlg, @strict ) = @_;
         local $ENV{HOME} = $tmp;
+        my $field = join '.',
+            map { encode_b32r($ARG) } ref $dlg ? $dlg->@* : $dlg;
         open( my $ph, '-|', $EXECUTABLE_NAME, $self, 'check-pin',
-            'Test-Host', $port, encode_b32r($subject), encode_b32r($dlg),
-            @strict )
+            'Test-Host', $port, encode_b32r($subject), $field, @strict )
             or return 'cannot run';
         my $line = <$ph> // '';
         close $ph;
         chomp $line;
         $line =~ s{ \S+ \S+\z}{}
-            if $line =~ m{^PIN_(?:VALID|NEW|UNPINNED|MISMATCH) };
+            if $line
+            =~ m{^PIN_(?:VALID|NEW|OWNER|ROTATED|UNPINNED|MISMATCH) };
         return sprintf( '%s exit %d', $line, $CHILD_ERROR >> 8 );
     };
     my $live = $wire->( $root_pub, $root_priv, $s_pub, $t - 60, $t + 3600 );
@@ -1226,6 +1559,90 @@ sub delegation_self_test {
         'PIN_ERROR old server key pin exit 8'
     );
 
+    ## owner path [ TRUST-CHAIN-STEP2.md 'pins' ] : owner 06 certifies the
+    ## host-root [ test-host.* ] ; a rotated host-root 08 under the same owner
+    my ( $own_pub, $own_priv )
+        = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
+    my ( $new_pub, $new_priv )
+        = Crypt::Ed25519::generate_keypair( "\x08" x 32 );
+    my $sw = sub {   ## issuer pub, priv, subject, name, scope [, not_before ]
+        my ( $ip, $ik, $sp, $name, $scope, $from ) = @_;
+        my $st = delegation_statement( $ip, $sp, $name, $from // $t - 60,
+            $t + 3600, $scope );
+        return $st . Crypt::Ed25519::sign( $st, $ip, $ik );
+    };
+    my $o2h
+        = $sw->( $own_pub, $own_priv, $root_pub, 'test-host', 'test-host.*' );
+    ## the rotation : the owner certifies the new host-root LATER
+    my $o2n = $sw->(
+        $own_pub, $own_priv, $new_pub, 'test-host', 'test-host.*', $t - 30
+    );
+    my $h2s = $sw->( $root_pub, $root_priv, $s_pub, 'test-host.cube', '' );
+    my $n2s = $sw->( $new_pub,  $new_priv,  $s_pub, 'test-host.cube', '' );
+    my $n2b = $sw->( $new_pub,  $new_priv,  $s_pub, 'other.cube',     '' );
+    make_path( "$tmp/.n/remote-keys/owners", { mode => 0700 } );
+    open my $owfh, '>', "$tmp/.n/remote-keys/owners/test.public"
+        or die "cannot write owner pin : $!\n";
+    print {$owfh} host_root_fingerprint($own_pub) . "\n";
+    close $owfh;
+
+    $check->(
+        'check-pin owner chain, strict, no host pin',
+        $verb->( 11, $s_pub, [ $h2s, $o2h ], 'strict' ),
+        'PIN_OWNER exit 0'
+    );
+    $check->(
+        'check-pin owner chain : host pin written with the name',
+        join(
+            ' ',
+            @{  pin_read("$tmp/.n/remote-keys/servers/test-host_11.public")
+            }{qw| fp name |}
+        ),
+        host_root_fingerprint($root_pub) . ' test-host.cube'
+    );
+    $check->(
+        'check-pin owner chain, again',
+        $verb->( 11, $s_pub, [ $h2s, $o2h ] ),
+        'PIN_VALID exit 0'
+    );
+    $check->(
+        'check-pin rotated host-root, owner covers',
+        $verb->( 11, $s_pub, [ $n2s, $o2n ] ),
+        'PIN_ROTATED exit 0'
+    );
+    $check->(
+        'check-pin rotated : pin now the new host-root, since moved forward',
+        join(
+            ' ',
+            @{  pin_read("$tmp/.n/remote-keys/servers/test-host_11.public")
+            }{qw| fp since |}
+        ),
+        host_root_fingerprint($new_pub) . ' ' . ( $t - 30 )
+    );
+    $check->(
+        'check-pin rotate BACK to the old host-root : refused',
+        $verb->( 11, $s_pub, [ $h2s, $o2h ] ),
+        'PIN_MISMATCH exit 6'
+    );
+    ## the owner does not cover a leaf outside its scope : no owner trust [
+    ## strict : unpinned ] -- under a host pin the statements above the pinned
+    ## host-root are ignored [ trust.verify ], so this needs a new port
+    $check->(
+        'check-pin leaf outside the owner scope, strict',
+        $verb->( 12, $s_pub, [ $n2b, $o2n ], 'strict' ),
+        'PIN_UNPINNED exit 5'
+    );
+    open my $dfh, '>', "$tmp/.n/remote-keys/distrust"
+        or die "cannot write distrust : $!\n";
+    print {$dfh} "# test\n" . host_root_fingerprint($new_pub) . "\n";
+    close $dfh;
+    $check->(
+        'check-pin distrusted host-root',
+        $verb->( 11, $s_pub, [ $n2s, $o2n ] ),
+        'DELEGATION_INVALID distrusted key in chain exit 7'
+    );
+    unlink "$tmp/.n/remote-keys/distrust";
+
     return;
 }
 
@@ -1250,8 +1667,8 @@ sub erase_buffer_secure {
     return $len;
 }
 
-#,,.,,.,.,,..,..,,,.,,,.,,..,,...,...,..,,...,..,,...,...,,,.,..,,,,,,..,,,.,,
-#MCFQ5AWZ5HERZWMNXR4GRXY6CU7ZDRE6YJW2DJ6Q5E7U4QR6VD5MSDK2BECWX57CBWBOHNPMN2GWQ
-#\\\|5TXFM74LHQKDKUP26HLY2NQAKBR253DYVPQ3GFRHV7PKIUHNHI2 \ / AMOS7 \ YOURUM ::
-#\[7]SXNCCHYOFIYADMOZMHQYLWJTB56BGJLRCJRSEF5V6HNYAQY2LABQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,..,,,,,,.,.,.,.,.,.,,..,,..,..,,..,,...,..,,...,,,,,..,,.,,,.,,,
+#UQ752W3ZWCQ7UVQVSEOV5I6735HOFODSU2WSNA5MYT7AX3QID2BSQVB4D6YQGYSPCPGCEV3LYFMNE
+#\\\|GWZJNKESZ2DUSOWGDQIQSBOWVMWHLKMYHXRISXJYGZJEWL2DYGL \ / AMOS7 \ YOURUM ::
+#\[7]2Y37HF7S6H7QGBK55L2YY65I5JW7CFGGIICDMQ3RTNPR5E26SKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
