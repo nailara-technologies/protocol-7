@@ -412,7 +412,10 @@ reset_state();
     $st = $data{'coding'}{'self_test_switch_state'}{'SW1'};
     ok( scalar(@switch_model_calls) == 1,
         'restore switch-model call initiated on stall' );
-    ok( ( $switch_model_calls[0]{'args'} // '' ) eq 'MOLD',
+    ## poll_switch went backend-aware in 8c765db92 : the restore call now ##
+    ## carries an explicit backend= suffix [ default 'gpu' here : SW1 has ##
+    ## no backend field ]                                                 ##
+    ok( ( $switch_model_calls[0]{'args'} // '' ) eq 'MOLD backend=gpu',
         'restore targets the original model' );
     ok( ( defined $st and ( $st->{'error'} // '' ) =~ m{timeout after 300s} ),
         'timeout error recorded against the flat max_wait'
@@ -510,8 +513,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,,,...,,,.,.,.,,..,,.,,.,.,..,,.,,,,,.,..,,...,..,,..,,,.,,.,,,,.,,,,,,
-#7L64GYIUUSGJ4INTUY7BIGIY2I4JVDAH2WYSA2GSWDGUQYXCVQWLKBVQITMIRZZBZX36AYTNJCJKC
-#\\\|AZBDONEI3WYDVLKUHRLOJI4K4XXDHLNACBKLIFP6XO4SSTFIFZO \ / AMOS7 \ YOURUM ::
-#\[7]TWVP7BY5ALK25U33DNPPK3DHF4GUDMAKRXUYBW7XNUJBTGIU4CDY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,,.,,.,,,,,.,,,.,..,,.,,,,,,,..,,...,...,.,.,,,.,..,,,.,,,,.,
+#QMPHTMMSH6SU4WASEVP53QIX3PW76TESF3ESFGF2ZW72DLQLLYO7Q4KAQGL4PMKF4J6KZT27V25SU
+#\\\|EYZVEFMXKDSWLMUP4LCJLUSUXMUDYTJHHVSVDHAIMZMNHMZVEF6 \ / AMOS7 \ YOURUM ::
+#\[7]QMWSSXLXJ2G2FFSNDI3ZSKVAWY2T4MNY77X26BOEJLZVTBECJKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

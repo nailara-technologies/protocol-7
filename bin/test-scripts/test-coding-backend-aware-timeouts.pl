@@ -130,6 +130,11 @@ my %task_states;     ## task_id => hashref [ state_manager stub backing ]  ##
         push @restart_calls, [@ARG];
         return TRUE;
     },
+    ## poll_probe's phase=done completion path [ reached in the SAME tick  ##
+    ## the watchdog abort sets phase=done ] archives the round and records ##
+    ## its model_status entry before invoking on_done                      ##
+    'coding.self_test.archive'   => sub { return TRUE },
+    'coding.model_status.record' => sub { return TRUE },
 );
 
 my $fail_count = 0;
@@ -152,6 +157,10 @@ sub compile_module {
 compile_module('coding.async.stream_tps');
 compile_module('coding.handler.http_timeout');
 compile_module('coding.self_test.handler.poll_probe');
+
+## poll_probe's watchdog abort routes through the shared named module      ##
+## coding.self_test.abort_probe since 0fd85797c [ self-test-stop command ] ##
+compile_module('coding.self_test.abort_probe');
 
 sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
@@ -427,8 +436,9 @@ $data{'coding'}{'self_test_probe_in_flight'} = { 'cpu' => TRUE };
     ok( scalar(@done) == 1, 'completion callback fired at the cap' );
     ok( ( $done[0]{'mode'} // '' ) eq qw| false |,
         'completed as failure [ watchdog abort, partial results ]' );
-    ok( scalar( grep { $_ eq 'probe watchdog abort' } @errors ) == 1,
-        'the probe pipeline got its watchdog-abort error exactly once'
+    ok( scalar( grep { $_ eq 'externally aborted' } @errors ) == 1,
+        'the probe pipeline got its synthesized abort error exactly once '
+            . "[ 'externally aborted' since 0fd85797c's shared abort_probe ]"
     );
     ok( !$data{'coding'}{'self_test_probe_in_flight'}{'cpu'},
         'per-backend guard slot cleared on the way out'
@@ -502,8 +512,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,,..,.,,,...,.,,,,.,,..,,...,,..,,,,,..,,..,,...,...,..,,..,,..,,,,,,..,,
-#VBZR3TM6VPGRYOS6DIITCA3HYX5RP2S4HB5KSHZKVJ6KADZFP54A565DP2RL4NTGG2RITDJUGG4FA
-#\\\|YQXDYOCDHTMJMR3V5RBJQNAVKKIA3G5N4UN7AOSEIUXT5NE5EXG \ / AMOS7 \ YOURUM ::
-#\[7]33MDDNPKVEZ3ZI6J6YVA734APS3QN5GLEDSPTYA274PBUNKA26DI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,...,,,,,.,.,,,.,.,.,,.,,.,.,..,,...,...,,,.,,,.,,,,,,.,,..,,
+#FUQG4TOVYATJP3FHEHG6ZVDHMIB7CPFYF35CGTKUDFHR25SOYNHGNHLOE3NXGQHKGYA4KOEEBYFUY
+#\\\|LLK4JOMCQHTEQTLSWQXDL4EUDMUCQDHRRZLQKGPB46LVQQNBARG \ / AMOS7 \ YOURUM ::
+#\[7]SSW2EMNUTG3ZVITGZHIHG5WDPP5ORQRMTGYUN25RAIS6ZRHZWYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

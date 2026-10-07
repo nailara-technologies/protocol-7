@@ -143,14 +143,17 @@ my $init_code_src
     = read_file(
     File::Spec->catfile( $main::root_path, qw| src coding.init_code | ) );
 
-## the block is nested one level in [ inside the surrounding "if (not      ##
-## $already_initialized)" ], so its own closing brace is indented 4 spaces ##
-## -- anchor on that exact indent, not column 0, to avoid swallowing the   ##
-## OUTER block's closing brace too                                         ##
+## the always-true `exists $code{...}` guard that used to wrap this block  ##
+## was removed in b8e75a0e2, so it now sits directly inside the outer `if  ##
+## (not $already_initialized)` block at indent 4 -- extract from the first ##
+## model_path_gpu object creation through the closing of the LAST          ##
+## dependency.add call [ cpu pair ], anchoring on the cpu model_path       ##
+## reference immediately before that call's own `);` so the OUTER block's  ##
+## closing brace [ column 0 ] is never swallowed                           ##
 my ($block) = $init_code_src =~ m{
-    ( if \s* \( \s* exists \s* \$code\{'coding\.callback\.object\.model_path'\} \s* \) \s* \{
+    ( <coding\.dep\.model_path_gpu> \s* = \s* <\[dependency\.add_object\]>
       .*?
-      \n \x20{4} \} )
+      <coding\.dep\.model_path_cpu> \s* \n \x20{4} \) ; )
 }xms;
 
 ok( defined $block,
@@ -212,8 +215,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,.,.,.,.,.,.,..,,,.,,.,.,..,,.,.,..,,.,.,.,.,...,...,,..,,,.,,.,,...,...,
-#V7GOZIDUOKRW75XIJLWUJJVKIQNPDABN5XEQ7B4DBA6INYSON3ML3EM3YE4QE322FUT6IEWOJPD54
-#\\\|QS3FKXM76QYZHGK2WSWA4YEZXIBW5RMVU6RDOKFEXUBYP3WEHRU \ / AMOS7 \ YOURUM ::
-#\[7]VEPYUETVDA5YBDOI7ZLEWCJIPFSCQNNSWWIXZ4UHDDQA2MMR44AA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,,,.,,,,,,.,,,,.,.,.,.,.,,,,,.,.,...,...,,..,..,,.,.,..,,..,,
+#UCAYL53ITXCE6M4BDITXKDOW3OZY63COP6VHSP2BVWJMWGNQX2SXH5YBIEHJGPQULICDX3ESZQYW4
+#\\\|5SOGSAAXDBOLQJIK65ULNMXNR2HMFIESL6XHV3FGWRUF7AL6BDS \ / AMOS7 \ YOURUM ::
+#\[7]F2HCPDQVWTLJZD2FXHKRIUY6FKU44PHPRIZIS4QWYBZJ2SYG2QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
