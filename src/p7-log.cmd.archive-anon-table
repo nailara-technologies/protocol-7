@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = p7-log.anon.cmd.archive-table
+# name  = p7-log.cmd.archive-anon-table
 # param = <old key name>
 # descr = archive the anon table under the key that wrote it
 #
@@ -16,7 +16,7 @@ my ($name) = grep {length} split m{\s+}, $args;
 
 my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
 
-return $false->('usage : anon.archive-table <old key name>')
+return $false->('usage : archive-anon-table <old key name>')
     if not defined $name;
 return $false->("'$name' is not a key name")
     if $name !~ m|\A[0-9A-Za-z_\-][0-9A-Za-z\.\-_]{0,254}\z|;
@@ -75,8 +75,8 @@ return {
     'data' => "archived under '$name' : $archived"
 };
 
-#,,.,,,,.,...,,.,,...,..,,,.,,,,,,,..,..,,..,,..,,...,...,,,,,.,,,,..,,.,,..,,
-#VDXFVOZH3YNAJ2TS6GRULBBCQGB5QPN6J4Y3OUJMJZE4GJLLEZNWPFM3VVH6OHAKPEXQQI2SEUQNA
-#\\\|YDGNUSE7FEL5G7OWS52L3WVR7XQCECONJY47TJWDCL4GWT6S7NR \ / AMOS7 \ YOURUM ::
-#\[7]7M6QUMUMFPISIRBWHUM2GGPQCXY5EOG7TC4G6PPTUPKGKV5PWGCY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,.,,,...,.,,,.,,,.,.,.,,,..,,..,,...,..,,.,,,.,,,...,...,.,,,
+#LHOUK3LSB6EEE3Q3IG3DV67EI3SIVVXIN7TEVDA4LRO3K3YX6NRP45RCMX3GAM4CWOZA25R64D5WW
+#\\\|SBCZE63TW677N7DPBPLX2NZJXCUBO55D76UQN4QZTGL2MORRKOJ \ / AMOS7 \ YOURUM ::
+#\[7]UPHAL6VOLMZAIGKE4PTDQETB5GJWZVSLNQNVULYO6DJ6727IYEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

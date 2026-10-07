@@ -21,7 +21,7 @@ my $spans = <[p7-log.anon.classify]>->($line);
 
 return ( $line, [] ) if not scalar @{$spans};
 
-## token key : cached next to key32, dropped with it [ anon.archive-table ] ##
+## token key : cached next to key32, dropped with it [ archive-anon-table ] ##
 if ( not defined <p7-log.anon.token_key> ) {
     my $key32 = <[p7-log.anon.key]>;
     if ( defined $key32 ) {
@@ -58,8 +58,8 @@ foreach my $span ( reverse @{$spans} ) {
 
 return ( $line, \@pairs );
 
-#,,..,...,.,,,,.,,,.,,...,.,,,,..,..,,.,,,.,.,..,,...,...,.,,,...,,,,,..,,,,.,
-#UNLJU4QPTEAEAG4WR763H34WK7G3IMUVWU3QNU6QL5NKA6WHJQMNUYCJIBTTQFGTQQ7DVLDSGF34G
-#\\\|AKQA27TRAY6UQNPK4ULCLSF6VXKMAJCMP6QCAI3SAED2WXEIENA \ / AMOS7 \ YOURUM ::
-#\[7]CBSR6TE63EAQTS33ZW4CZLTINYPRG6T222GMJN22LOCPE2C2FQAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,,..,,,,,.,.,...,,,,,,.,,,,.,..,,...,...,.,.,.,.,..,,.,,,,.,,
+#AWFSQONOSKHN6GLNY7FB6V6MIDJ5YHORQJNEEO6WVI5CZ25F2DP4GGGZVOUP64O7W2FAHVYT2EMO4
+#\\\|XRP7NN3V5GGSHD5H2CQ6GK5IZFBDDVFW3YOPV66SO3MA5N6GJHV \ / AMOS7 \ YOURUM ::
+#\[7]P2BA6M22VUR63DZZROPR4QTJPDPJMML7YOWXDHY7EC7TICKJROAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
