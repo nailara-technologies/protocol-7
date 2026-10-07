@@ -53,7 +53,7 @@ my $chmod_fh = <coding.chmod_child.w_fh>;
 my $restore_mode;
 
 if ( defined $chmod_fh && !-w $file_dir ) {
-    $restore_mode = ( stat $file_dir )[2] // 0755;
+    $restore_mode = ( CORE::stat $file_dir )[2] // 0755;
     $restore_mode &= 07777;
     print {$chmod_fh} "gwd $file_dir\n";
     <[coding.chmod_child.readline]>;
@@ -102,8 +102,8 @@ if ($ok) {
 return { 'content' =>
         "error: delete failed: $err [ backup exists at trash/$trash_name ]" };
 
-#,,,.,,..,,.,,,,.,.,,,..,,,..,..,,.,,,.,.,,.,,.,.,...,...,,,.,...,.,,,.,.,..,,
-#PWTBNZZ6QIQLLU3GNQI4Y5PQJ46CPNTHDPB7CS5BYC3B4BWPOWUBSCDZZM3IFAIFBCKHESD6R5ZZS
-#\\\|U3L34OV5554ZR4DIXGNC2HU23JS62FKUA3WQG3SRNVFXRYUBIVR \ / AMOS7 \ YOURUM ::
-#\[7]ECO6KBOEZBFJG6YW6DUPR5MPGVOC5PGJTU4AIVBB3KKNRZBBYIAA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,,.,,..,,..,,...,,..,,.,,,.,,.,.,...,...,.,.,,..,.,.,,,,,.,.,
+#LP6FR2T3GZMMBW3TJC6A2TO3WVWGOVQSKDBLBDJLXOBWORBLFYSJOW4XNC6SX3F3BN3PBO7XW7NXO
+#\\\|R7W5WWCJBP6U72ZOJDND4NGKFZSL2H6DHYBYEE4LZELS5VW5PCW \ / AMOS7 \ YOURUM ::
+#\[7]V6QNYRQDJWLD7AH7QALOLZ757KLBFS6YH4FVTVXC3OUU6CJXBKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -59,7 +59,7 @@ my @restore;
 if ( defined $chmod_fh ) {
     for my $dir ( $src_dir, $tgt_dir ) {
         next if -w $dir;
-        my $mode = ( stat $dir )[2] // 0755;
+        my $mode = ( CORE::stat $dir )[2] // 0755;
         $mode &= 07777;
         print {$chmod_fh} "gwd $dir\n";
         <[coding.chmod_child.readline]>;    ## wait for gwd to complete ##
@@ -88,8 +88,8 @@ if ($ok) {
 
 return { 'content' => "error: rename failed: $err" };
 
-#,,..,..,,,,.,.,.,,,.,,.,,,.,,..,,..,,,.,,,.,,.,.,...,...,...,,,,,.,,,,..,..,,
-#66NGT2TQZLN3QKS26UELJU5AKAVBMZPEWWTDUBYXBGBQYCETQC45W7O3X4ACF6WLIRXYNPBPYTWF4
-#\\\|QXKIFLRMIJPZUMUD4MTOZJHCPSMPMRF3UYJHG43BPNB2TWQLSLE \ / AMOS7 \ YOURUM ::
-#\[7]BFFFMOYZKYYDZ7WQWQ7FVL7X2XBOFSVE7F5YIMOADD452QJS7YBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,,..,,,.,,,.,,..,,..,,,.,,..,.,.,...,...,...,,,,,...,,.,,.,.,
+#TN4LWFPFH7WEUMAZKTMOPFSBKDU6NRZNUW5CXW4WIZTAP5EG7EAYUE3BIA76YXVLEIJX3PDCU2PNE
+#\\\|IRB2YN2DQDKULJZSJGBRMZSXF57LD7LGYTIRFIACWLRWZG7C4AF \ / AMOS7 \ YOURUM ::
+#\[7]S2DCIFLRWAMIP34CUG5NL7E3UKIEK5PG4ZZZASWZJFCD6JWQGMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

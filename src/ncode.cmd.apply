@@ -239,7 +239,7 @@ foreach my $fix_id (@fix_ids) {
         my $mode_restore;
 
         if ( -f $file and not -w $file and defined $chmod_fh ) {
-            my $cur_mode = ( stat $file )[2] // 0644;
+            my $cur_mode = ( CORE::stat $file )[2] // 0644;
             $cur_mode &= 07777;
             printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ),
                 $file;
@@ -305,7 +305,7 @@ foreach my $fix_id (@fix_ids) {
             my $mode_restore;
 
             if ( -f $file and not -w $file and defined $chmod_fh ) {
-                my $cur_mode = ( stat $file )[2] // 0644;
+                my $cur_mode = ( CORE::stat $file )[2] // 0644;
                 $cur_mode &= 07777;
                 printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ),
                     $file;
@@ -371,8 +371,8 @@ $summary .= ", $out_of_scope_count out of scope" if $out_of_scope_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,,,.,,,,,..,,,,.,...,,..,.,,,,,.,,,,,...,.,.,...,...,..,,..,,.,.,..,,.,.,
-#K3HJFCCW474AMLMOQZGR6VI4PNVEWDAC2K3P7SHQLS3WOROVTG5BFWR6Q5AHR3PRGYEJACX2IJOZ6
-#\\\|UNWD765VCKA4BVICF7225NWADZBCG3BAQ34UMXQADMCJIPZHK7Y \ / AMOS7 \ YOURUM ::
-#\[7]FWROHNVLVVMSHHFHQW2ZLQLVO3YSC4XVKID3RPXHUG4IX5KFPYAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,...,,,,,,..,,,.,.,,,,,,,,,,,..,,.,.,...,...,,,,,..,,,,,,,..,.,,,
+#TSW5GKMTQUEPTMBTVA3O4PFUXXS6UQUGGFHT5BDHHRR5V35MEAXDKWAEQIXQBB563JXAJHQSKZOKG
+#\\\|S67UVPA37BPCOI6CGRNGRJW3A5Q525Q7BYLJDEEOS6KUTYAKQEN \ / AMOS7 \ YOURUM ::
+#\[7]ZMVCXEPBNJGGC4BLVCAN7EJKFBRXT7Q5DSTYRWXWNW34DXTRCOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

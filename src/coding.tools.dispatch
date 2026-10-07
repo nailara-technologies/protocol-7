@@ -563,7 +563,7 @@ my %dispatch = (
             my $chmod_fh = <coding.chmod_child.w_fh>;
             my $mode_restore;
             if ( -f $abs_path and !-w $abs_path and defined $chmod_fh ) {
-                my $cur_mode = ( stat $abs_path )[2] // 0644;
+                my $cur_mode = ( CORE::stat $abs_path )[2] // 0644;
                 $cur_mode &= 07777;
                 print {$chmod_fh} "gw $abs_path\n";
                 my $gw_reply
@@ -734,8 +734,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,.,,,,,.,.,.,,,,,,..,,.,,,.,,,,.,,..,.,,,..,,...,...,.,.,.,.,.,.,.,,,..,,
-#4YABMKEIJOY7MS5JIFHCEBN6K7X7SDGA32QUYNEPRKUM4KIQPFXJDRNTXYHQYNN72FEEAELAYT25O
-#\\\|EIEMSHQ3KIW3V7WY67T275CUA6NV6HEZ45X4IJOEQ7QJTGQLLJN \ / AMOS7 \ YOURUM ::
-#\[7]Z6I3H2EJSDQRKON2JOWQ6KN2VZMTPUUUYWJWE76UKEZHJJE4J2BQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,.,,,,,.,,.,,,..,..,,,,,,,..,..,,...,.,.,,,,,...,.,.,.,,,,,,,
+#V333VQMD3ECUWKFPBB56DXWZI7ID2NF6XUY2F3VTXRIH32IGWIECQK4QWK7PYE2FGL5F4SBMQX5Q4
+#\\\|2SHNBTE4HPWRMJCC7UCTS333BHYL6X2ZECFTTWVFLN44GK3BGF5 \ / AMOS7 \ YOURUM ::
+#\[7]OZQIOCPH5F3S3AKMZ4ULKAF7IHHFINZKOPFQNMNMKIRAEI3LXCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

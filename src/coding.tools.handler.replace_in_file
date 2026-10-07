@@ -107,7 +107,7 @@ if ( ref $idiom eq qw| HASH | ) {
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $mode_restore;
 if ( !-w $abs_path and defined $chmod_fh ) {
-    my $cur_mode = ( stat $abs_path )[2] // 0644;
+    my $cur_mode = ( CORE::stat $abs_path )[2] // 0644;
     $cur_mode &= 07777;
     print {$chmod_fh} "gw $abs_path\n";
     my $gw_reply = <[coding.chmod_child.readline]>;    ## wait for gw ##
@@ -149,8 +149,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, "
     . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,..,..,,,..,.,.,..,,,.,,.,.,,.,,,,,,,..,,..,..,,...,...,.,,,.,.,...,.,.,,..,
-#FJZAJIFO3UYKUBT2BVXFPGNW5IYZ5GO26ESKBCYDLS3GC6OE25STOLIAAFBV77B54C7MZDMHEULNO
-#\\\|QKANNNG74IBBOWJZ3TSM67NY3PIDVG5QPQAA7H626Z6W2RYIKG5 \ / AMOS7 \ YOURUM ::
-#\[7]2IRJQEWUKYRIX7LE4WGINUHJI5PCKMGIJWL3SMX2SP576NL5JAAA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,,..,,,,,,,.,.,.,.,,,,..,,,,,..,,...,...,.,,,.,,,..,,,,,,...,
+#FNECDLS7KAK7TLX4LF3MEN7GCX4P4CLLBWNWCPIH2FS7IFEJO4XXS3CEQA5LYEB22TO5BUC2GWW5S
+#\\\|JR6MYP7EGOIMD5NB5QO6JIOHCDRSUZIP7EQ7GCIF3FVVLXMQRWU \ / AMOS7 \ YOURUM ::
+#\[7]4WLIFOEI5COOZPYJ2GCYQ6DG7GW3LAPTDEZEQWU5HCDMFK75EYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,7 +32,7 @@ if ( not defined $root_dir ) {
 return FALSE if not defined <[crypt.C25519.chk_key_dir]>;
 
 ## root/ : created here, never adopted when it is anything else ##
-my @dir_st = lstat($root_dir);
+my @dir_st = CORE::lstat($root_dir);
 if ( not @dir_st ) {
     if ( not $OS_ERROR{'ENOENT'} ) {
         <[base.logs]>->(
@@ -75,7 +75,7 @@ if ( ref $key_path_ref ne qw| HASH | ) {
 }
 
 foreach my $type (qw| public secret |) {
-    my @st = lstat( $key_path_ref->{'key_filename'}->{$type} );
+    my @st = CORE::lstat( $key_path_ref->{'key_filename'}->{$type} );
     return TRUE if @st;    ## present [ rule checked above ] ##
 }
 
@@ -101,8 +101,8 @@ if ( not $written ) {
 
 return TRUE;
 
-#,,,,,,,,,.,,,.,.,..,,.,,,...,..,,,,.,..,,,.,,..,,...,...,.,.,.,.,.,,,.,,,.,,,
-#24EFZVK4VDESU7EY7FZXORRBGI73D7HWBABENF7HWZN64SZ674BWZRSRQHQTAS3VHSELOLZRTSVEQ
-#\\\|3A26ZT36C65PFRK4DMV4M6Z6SQXW2QZRBCVDUOJFV74PEICDHRT \ / AMOS7 \ YOURUM ::
-#\[7]HUYP6EKOXFO3M372KB7CGDRJYG5CQDGZ7EL7TA6SG5MA7W44IODQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,...,,,,,.,,,,.,,...,,.,,,,.,..,,...,...,..,,..,,..,,,.,,,..,
+#JRXNEXAPQN54K6K3Q2TAHD4NVO2BWNDGGJX4K3IX55ZJPMCPQECQ5KP2O7VA2UX2GUJS3RASDRCT2
+#\\\|KBKGK2YF74UCD6CNQACCNOPH73EGWAC3XKFIWACG6ZC2SLAAR72 \ / AMOS7 \ YOURUM ::
+#\[7]26LTAEZYMVKGS3JDS2ZAJKYSIXAHL4KCHPOS367XAZATIHXV7UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
