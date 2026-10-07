@@ -42,7 +42,7 @@ proof as ONE wire change, NO backwards compatibility. spec :
 `data/md/design/AUTH-LINK-BINDING.md` [ incl. a live MITM that RELAYS the
 nonce-bound auth -> auth-keypair sessions stay 'pending' until a client
 sig over the link-upgrade transcript verifies ; shared test vector ].
-lanes : `data/tasks/auth-link-binding-perl.md` \ `-c.md`.
+lanes : `data/tasks/archive/auth-link-binding-perl.md` \ `-c.md`.
 also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
 \ shared secret on ARGV [ /proc/<pid>/cmdline, world-readable without
   hidepid ] -- user 2026-10-06 : fix in the SAME change [ secrets via
@@ -61,8 +61,8 @@ also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
   bin/p7-auth-keypair-helper.pl, p-7-r, link-upgrade helper -- grep again
   before scoping [ [[feedback-security-fix-verify-both-code-paths-not-just-symptom]] ]
 
-#,,,,,...,.,,,,,,,,,.,,,,,,,.,,.,,,,.,.,.,,,.,..,,...,...,.,.,..,,.,.,,,,,..,,
-#RNBXY2NGLRLEWJWLGFJJIQDHMQA2OBMNVUGXW25YEQBMOZURLBNBVGGB6BE6CDEBARFCOAPV46ZKU
-#\\\|RMTK5IUUFVXKXBS7TFW7N7WCGZMKFSZERBKUNVMAZIRWHSTPKTA \ / AMOS7 \ YOURUM ::
-#\[7]OWV56EO2M6NRPAIY7YEKERNNFPICVVJS2POSRA7KKVEAF6MAOCDI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,.,...,.,,,.,.,...,,..,..,,..,,...,...,.,,,,,.,...,.,,,,.,,
+#LZOE3BDOLNAI5QYSUIC7O3LOE75DLHL2KS4TOOLXHQFRMJVPOIM4PMUPIVUSN6PUFF56ABLO4U7GO
+#\\\|SISX4Z5NFLWETYCSCC6QTVR52A6DYEW2FPVGFGXVFBR5R3S3FCY \ / AMOS7 \ YOURUM ::
+#\[7]KAHXJX76ZATHLLU2OHK7JJ56SKD45VF2ICPLCV2AHKHJIKTE2KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
