@@ -14,7 +14,7 @@
 ## decrypts, derives ] -- plain and passphrase-derived forms are WARNED     ##
 ## about, never refused. 365 days unless given. the host-root public key    ##
 ## comes from the host's .dlg [ the leaf's issuer ] or out of band ; its    ##
-## fingerprint is shown for the out of band comparison.                     ##
+## key id is shown for the out of band comparison.                          ##
 
 my ( $owner, $host, $root_arg, $days ) = split m|[\t ]+|, shift // '';
 
@@ -180,18 +180,18 @@ my $halves = sub {
 printf " :\n :: certified host-root of '%s' [ scope %s.* , %d days ]\n",
     $host, $host, $days;
 printf " :. host-root %s\n :.           %s\n",
-    $halves->( <[trust.fingerprint]>->($root_pub) );
+    $halves->( <[trust.key_id]>->($root_pub) );
 printf " :. owner     %s\n :.           %s\n",
-    $halves->( <[trust.fingerprint]>->($owner_pub) );
+    $halves->( <[trust.key_id]>->($owner_pub) );
 printf " :\n :. written   %s\n :\n", $out_file;
-say " :. compare the host-root fingerprint out of band [ on the host :";
-say " :.   p7c host-root-fingerprint ]";
+say " :. compare the host-root key id out of band [ on the host :";
+say " :.   p7c host-root-id ]";
 say " :. copy it to the host ; there, as the backend user :";
 say " :.   p7-keys accept-owner <file>";
-say " :. on clients : p7-keys owner-pin <name> <owner fingerprint> ::\n";
+say " :. on clients : p7-keys owner-pin <name> <owner key id> ::\n";
 
-#,,.,,,..,,,,,.,.,.,.,,,.,,.,,,..,,.,,.,.,,,.,..,,...,...,.,.,,..,...,...,,..,
-#LKCQFHZVDTJ22XW6CEP64E6VIYW72K4GILICWBK2ZUUL5WSEPT7QWEIWB33QXG5NMQZHFGOGPBL5G
-#\\\|RKA3QU4WVUK4IBPEOQVD7XQR4R5AZXIH2EK4ZB7E3GWLKEAF4XB \ / AMOS7 \ YOURUM ::
-#\[7]JKZZ5SECKWHPQQGPGBWDYWGDBV6QJEPAUF3XJEXFSHYLMPMS6GAA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,.,.,.,.,,.,,.,,,,,,,,,.,..,,..,,...,.,.,.,.,...,.,,,,,.,..,,
+#U4GUVHKU5TAZSS4LUR2KZ3YDWM7WGVPDERAVUPFHDOXJIWRZMJ2MJUBGLXQL5DHQPZO3UYKVF4K44
+#\\\|D4TZ2JNTVLJLIFYDASMBLJYBB7N3Z3LRTGAROWJDHYB2UTG2Z2F \ / AMOS7 \ YOURUM ::
+#\[7]SC2GBSURRTMYBMSZHK6U6QIMM2VLM5XB7BC2FML6SVO36DWHCSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

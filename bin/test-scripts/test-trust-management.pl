@@ -158,9 +158,9 @@ $code{'crypt.C25519.load_keypair'} = sub {
 $code{'crypt.C25519.unload_key'} = sub { delete $keys{'C25519'}{ $ARG[0] } };
 
 compile_module($ARG)
-    for qw| trust.statement trust.fingerprint trust.verify trust.chain
+    for qw| trust.statement trust.key_id trust.verify trust.chain
     trust.pin_decide auth.client.owner_pins auth.client.distrust_list
-    keys.fingerprint_arg keys.remote_keys_dir keys.distrust_file
+    keys.key_id_arg keys.remote_keys_dir keys.distrust_file
     keys.console.owner-pin keys.console.owner-unpin keys.console.owner-pins
     keys.console.distrust keys.console.undistrust keys.console.certify-host
     keys.store_note
@@ -185,12 +185,12 @@ my $leaf_for  = sub {                       ## host-root seed -> S, name ##
 };
 
 ######################################################################
-say ': keys.fingerprint_arg';
+say ': keys.key_id_arg';
 {
-    my $f = $code{'keys.fingerprint_arg'};
-    ok( $f->( $fp->('06') ) eq $fp->('06'), 'a fingerprint is taken as is' );
+    my $f = $code{'keys.key_id_arg'};
+    ok( $f->( $fp->('06') ) eq $fp->('06'), 'a key id is taken as is' );
     ok( $f->( encode_b32r( $kp{'06'}[0] ) ) eq $fp->('06'),
-        'a public key becomes its fingerprint' );
+        'a public key becomes its key id' );
     my ( $r, $why ) = $f->('NOPE');
     ok( !defined $r && $why =~ m|77 char|, 'garbage refused with a reason' );
 }
@@ -201,7 +201,7 @@ say ': keys.console.owner-pin \ owner-pins \ owner-unpin';
     my $r   = run( 'keys.console.owner-pin', 'acme ' . $fp->('06') );
     my $pin = "$keys_dir/owners/acme.public";
     ok( !$r->{'err'} && slurp($pin) eq $fp->('06') . "\n",
-        'owner pinned : one fingerprint line' );
+        'owner pinned : one key id line' );
     ok( ( ( stat $pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
     ok( index( $r->{'out'}, "store $keys_dir/owners [ user " ) != -1,
         '  :.. names the store + user it wrote' );
@@ -214,7 +214,7 @@ say ': keys.console.owner-pin \ owner-pins \ owner-unpin';
         'same pin again : already pinned' );
     $r = run( 'keys.console.owner-pin', 'acme ' . $fp->('07') );
     ok( $r->{'exit'} eq '0010' && $r->{'out'} =~ m|owner-unpin acme|,
-        'other fingerprint under the same name : refused, unpin first'
+        'other key id under the same name : refused, unpin first'
     );
     $r = run( 'keys.console.owner-pin', '../x ' . $fp->('06') );
     ok( $r->{'exit'} eq '0010' && !-e "$keys_dir/x.public",
@@ -429,8 +429,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,.,,,,,,,.,,,.,,,,,,,,.,...,,,.,,..,.,.,..,,...,..,,,..,..,,.,.,,,,,,,.,
-#SYSIUFTAYVWUHCNENHZYH6BKV4SSJ6B66SXBOVQS4LCBVWSVLUHNMXSU2KYECHYFDHWUPHD32BP56
-#\\\|AXFTUTO5D3GLCJCZ52QBLFACSCYJ3VBDG733SXLLYNDXOUDWDAJ \ / AMOS7 \ YOURUM ::
-#\[7]D2O2EKA6LVRGSD3PSDLTXCNIJLMW7XG55FXHJXOQKXQ4SQHX4SCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,..,,,,,,,..,,,,,,,,,.,.,...,..,,...,..,,...,.,,,..,,,..,...,
+#XNPHLQ7FBAFLUST7HK2N3ODVKPS2EZ3OGMCUIIQHRJQR5FGXY52Q5WHYT4WAIO5KEZO5U6UYEFDWK
+#\\\|BLUYKEUZE4GFOPHNMSUX6IAKZZTNMS2MYRYI2OUKXAQ4XEDUFZF \ / AMOS7 \ YOURUM ::
+#\[7]RNVHT445ULWJ3TWIY5O6CBXESPCVWN5VICFQ7NEL35JGD2V7VWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

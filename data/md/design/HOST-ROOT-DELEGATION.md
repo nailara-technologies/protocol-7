@@ -24,11 +24,11 @@ leaf-level TOFU the vision wants to avoid:
   where it is ; only v7-zenki loads it.
 - **delegation statement** : host-root signs "key S is `<host>.cube`
   until T". stored next to S, sent by the server inside the select reply.
-- **pin** = the host-root FINGERPRINT [ bmw384 B32 of the host-root
+- **pin** = the host-root KEY ID [ bmw384 B32 of the host-root
   public key, 77 chars -- the osf-cache id format ], not S. the full
-  host-root pub travels in the statement ; the fingerprint authenticates
+  host-root pub travels in the statement ; the key id authenticates
   it.
-- **verify** [ client, every connection ] : fingerprint(issuer pub) ==
+- **verify** [ client, every connection ] : key id(issuer pub) ==
   pin ; statement sig valid under issuer pub ; subject == the S that
   then signs the link transcript ; name within the issuer's scope ; not
   expired. then the existing binding checks run unchanged with S.
@@ -87,12 +87,12 @@ is bound because the client only accepts S if the statement verified.
 ## client side
 
 - pin file stays `~/.n/remote-keys/servers/<host>_<port>.public` but now
-  holds the host-root FINGERPRINT [ 77 chars ] -- **[ decide ]** keyed by
-  host:port [ as now ] or by the fingerprint's claimed name [ one pin
+  holds the host-root KEY ID [ 77 chars ] -- **[ decide ]** keyed by
+  host:port [ as now ] or by the key id's claimed name [ one pin
   per host for all ports ] ; proposal : keep host:port for this step.
-- first contact : pin the fingerprint, log level 0 with the fingerprint +
+- first contact : pin the key id, log level 0 with the key id +
   the delegated name, so it can be checked out of band [ `p7c
-  crypt.C25519.host-root-fingerprint` on the server -- new command ].
+  crypt.C25519.host-root-id` on the server -- new command ].
 - S may change freely [ rotation ] as long as host-root delegates it.
 - Perl : `auth.client.server_pin.check` + `auth.client.auth-keypair.
   authenticate` ; C : `p7-auth-keypair-helper.pl check-pin` [ same
@@ -104,7 +104,7 @@ this step needs ONE hop. build it as the generic walker anyway, with a
 one-hop chain as its first user :
 
 ```
-trust.verify( { chain => [ statement, .. ], anchors => [ fingerprint, .. ],
+trust.verify( { chain => [ statement, .. ], anchors => [ key id, .. ],
                 subject => <pub>, now => <unix> } )
   -> { name => .., anchor => .. }  or  undef + reason
 ```
@@ -129,7 +129,7 @@ scope = '*' for this step ], last subject == `subject`.
 3. host name = `<system.node.name>` lowercased [ `hostname()` without the
    domain, set by `bin/Protocol-7` ; `<system.hostname>` is never set ] ;
    `not_before` = issue time - 300 s [ client clock skew ]
-4. pins stay keyed by `<host>_<port>`, content = host-root fingerprint
+4. pins stay keyed by `<host>_<port>`, content = host-root key id
 5. v7-zenki runs as ROOT, cube as the backend user [ `protocol-7` ].
    host-root lives in the BACKEND user's key tree, in a root-held
    subdirectory : `user-keys/root/` [ below ]
@@ -196,17 +196,17 @@ process runs as.
   anyway, but keep the issuing in a post-init \ startup callback ]
 - cube reads it at select time, every time [ no caching across renewals ]
 
-## host-root fingerprint
+## host-root key id
 
 `bmw384` of the 32-byte public key, `encode_b32r` -> 77 chars [ the
 osf-cache id ; use the same Digest::BMW call osf-cache uses ]. new cube
-command `crypt.C25519.cmd.host-root-fingerprint` returns it from the
+command `crypt.C25519.cmd.host-root-id` returns it from the
 `.dlg` [ cube cannot read root/ ] so it can be compared out of band.
 
 ## acceptance rules [ shared by the Perl and C clients, 2026-10-06 ]
 
 1. **pin file** : `~/.n/remote-keys/servers/<host>_<port>.public` holds
-   exactly `<77 char host-root fingerprint>\n`, fingerprint =
+   exactly `<77 char host-root key id>\n`, key id =
    `encode_b32r( bmw_384( <raw 32 byte issuer pub> ) )`. an existing 52
    char [ old S_pub ] pin is REFUSED -- never migrated, never re-pinned.
    unreadable \ empty \ corrupt pin : refused.
@@ -233,7 +233,7 @@ command `crypt.C25519.cmd.host-root-fingerprint` returns it from the
   `( 'parse', <bytes> )` -> fields hash ; `( 'parse_wire', <b32> )` ->
   fields + `statement` + `sig` ; `( 'wire', <statement>, <sig> )` -> b32.
   undef on any invalid input [ list context : `( undef, reason )` ]
-- `trust.fingerprint( <32 byte pub> )` -> 77 chars
+- `trust.key_id( <32 byte pub> )` -> 77 chars
 - `trust.verify( { chain anchors subject now } )` -> `{ name anchor
   issuer_pub not_after }` or undef [ list : `( undef, reason )` ]
 
@@ -253,14 +253,14 @@ S pub b32         : QE4XODVIPULV6VVDKRTMGTD6ZTFY3CURWTXDPIS56YHVXD6JWOKA
 statement hex     : 70372064656c65676174696f6e20763100ed4928c628d1c2c6eae90338905995612959273a5c63f93636c14614ac8737d18139770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25df60f5b8fc9b394000e746573742d686f73742e637562656553f100657b7e000000
 sig b32           : LAL3UIQD4LJVCGNJWXL3TO7DZUD2PCAJ43B2XXPTNWQAQZDDX7GPYH3DYOFIJZUJEUDB2MKQSBZ4HSXBGCQX4GM5LOA4IOSEBMPFQAQ
 wire b32 [ 274 ]  : OA3SAZDFNRSWOYLUNFXW4IDWGEAO2SJIYYUNDQWG5LUQGOEQLGKWCKKZE45FYY7ZGY3MCRQUVSDTPUMBHF3Q5KD5C5PVNI2UM3BUY7WMZOGYVENU5Y32EXPWB5NY7SNTSQAA45DFON2C22DPON2C4Y3VMJSWKU7RABSXW7QAAAAFQF52EIB6FU2RDGU3LV5ZXPR42B5HRAE6NQ5L3XZW3IAIMRR37TH4D5R4HCUE42ESKBQ5GFIJA46DZLQTBIL6DGOVXAOEHJCAWHSYAI
-fingerprint       : ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3AWUQWVUNEJIYFOXRWF4XUSHAAXSUFOXWG2JGKC7G
+key id       : ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3AWUQWVUNEJIYFOXRWF4XUSHAAXSUFOXWG2JGKC7G
 ```
 
 computed independently [ hand-written pack ] and by `trust.statement` ;
 identical to lane 3's self-built vector.
 
-#,,,,,,.,,..,,,..,,,,,...,.,,,,.,,.,.,,,,,,,,,..,,...,...,..,,,.,,,,,,,.,,,..,
-#OC3WO37JVCZT4FGYATMYOJNU4ST7OOIUOW5M4AHB5ITM3L6KH4QMYLNCPIYGHSADXHU4F6B2H4232
-#\\\|P6KHFHFZRQY67OHRJLCVHFBXY3MVQUZN3U4PCXRYRSIU4LMU5BP \ / AMOS7 \ YOURUM ::
-#\[7]DPNRCUUOHU6MK6S27R23BTIPSEVSQHZXO4YQWFKGZFB5KGYCLYBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,,,.,,.,,,..,,..,...,,,.,,,.,..,,...,...,,.,,...,,..,,..,,,.,
+#3I7DU44CUYBA32USQJ5WAR3Y2R6BUXH4ST6QZIS6UGSLVMUF4WCNOZ7F4JTUOUSELSLUOZMH2OXDW
+#\\\|QHC24BFQSQM7A5TOPBIGHJFFBGACGYSX4FWYDKOBBFU67EX2PNK \ / AMOS7 \ YOURUM ::
+#\[7]T4KSFXFYQCVWCN6IHC3LL24KVA5QNIWR4KTJLJUR5SWTDXMVYGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
