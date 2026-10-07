@@ -998,6 +998,19 @@ int main( int argc, char * argv[] ) {
 
     if (strncmp(auth_response, "AUTH_TRUE", 9) != 0) {
         fprintf(stderr, "<< authentication not successful [ user '%s' ] >>\n", p7_unix_user);
+        /* the server's reason [ 'AUTH_ERROR <reason>' ] : remote text,
+           printable ascii only, 120 chars max */
+        if (strncmp(auth_response, "AUTH_ERROR ", 11) == 0
+            && auth_response[11] != '\0') {
+            char reason[121];
+            size_t n = 0;
+            for (const char *c = auth_response + 11; *c && n < 120; c++)
+                if (*c >= 0x20 && *c <= 0x7e)
+                    reason[n++] = *c;
+            reason[n] = '\0';
+            if (n)
+                fprintf(stderr, " :. %s\n", reason);
+        }
         return 3;
     }
 
