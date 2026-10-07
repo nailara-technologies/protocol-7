@@ -57,7 +57,7 @@ our %keys;
 
 my $fail_count = 0;
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -364,8 +364,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,.,,,,,.,.,.,,,...,,,.,,,.,,,.,,.,,,,,,..,,...,...,,.,,...,,,,,..,,,,.,
-#5UXDWHAXGX5EKAEVEPI2PAUS2A5EMM7TMCI6YLLDFSUFNYIRLUE6YGO2SVLE6EVF3ZBYV4257ZPEW
-#\\\|YQRRZGWTIHE6KMBZKOYTRIFE5GIDC3XYX6VYWTPEUDZAXWXQSHW \ / AMOS7 \ YOURUM ::
-#\[7]UWMSUUQ5O6GW3VZZRAIYTHIR66WKSPVS7QXLIYT4POAH4VWGH4DY 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,,.,..,,.,.,...,,.,,,..,.,,,..,,...,...,...,,,,,,.,,.,.,..,,
+#SZHY2TSYKLH657KINDTTECQDCHHWB5JUI3NUHBWZRNYMRUSOE3WHGOGDYFO7KZATTCFWU7QEDJWZA
+#\\\|TFVMAQBWNB6VXUM7LNCG3N2VNU4MJ23SC3QA4KSSTILHEK7YB65 \ / AMOS7 \ YOURUM ::
+#\[7]6RDXH2QGR3SHHYAQIOUYFVQ3KNPDAQ434GW46KRUZH72HDIKG4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

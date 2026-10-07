@@ -153,7 +153,7 @@ compile_module('coding.async.stream_tps');
 compile_module('coding.handler.http_timeout');
 compile_module('coding.self_test.handler.poll_probe');
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -502,8 +502,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,,,..,,..,,,,.,...,,.,,,..,,,,,,.,,.,,,..,,...,...,.,,,,,.,,,,,.,,,.,.,
-#DCDZ25OP67EFNQMN6Q32DENIAVRZXISSHYZWQVNMWZA43G4AVKNVV6LUP6JTHIDJYWX2JDOOWTLQC
-#\\\|ADCBFVHEJA5LBVJZSOGIBQRM6RKPEB7T6AT6SJRU7SHYJPW5VY3 \ / AMOS7 \ YOURUM ::
-#\[7]5ZLMWXYKBZO2LUPWCYSGZXBTXQNTGXDHHOTKC3ZC3H4MKD2HNGCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,.,,,,.,,..,,...,,..,,,,,..,,..,,...,...,..,,..,,..,,,,,,..,,
+#VBZR3TM6VPGRYOS6DIITCA3HYX5RP2S4HB5KSHZKVJ6KADZFP54A565DP2RL4NTGG2RITDJUGG4FA
+#\\\|YQXDYOCDHTMJMR3V5RBJQNAVKKIA3G5N4UN7AOSEIUXT5NE5EXG \ / AMOS7 \ YOURUM ::
+#\[7]33MDDNPKVEZ3ZI6J6YVA734APS3QN5GLEDSPTYA274PBUNKA26DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

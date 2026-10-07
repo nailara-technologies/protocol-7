@@ -58,7 +58,7 @@ $OUTPUT_AUTOFLUSH = 1;
 my $fail_count = 0;
 my $pass_count = 0;
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { $pass_count++; say "  ok   : $label"; return }
     $fail_count++;
@@ -535,8 +535,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,.,,,.,,,,.,,.,,,.,,,...,,,,,.,.,...,.,.,..,,...,...,,..,,,,,,,,,,.,,,..,
-#5JXFH3JMN5U7OMSUOFUQO2ESD3JOFP4SJWMVMRGHKFCZXM2DIXLMDXJ2P44MNIRRIF23MIUTL2BJY
-#\\\|VKIMRDSPSL2KKRYVDJDDA7UQZM7VN6SSBR6FR54MVEQHXCEC2YG \ / AMOS7 \ YOURUM ::
-#\[7]UNPG5DB4347IDAIB4JDELPKVKZLGKTY5FQ277PO45QXCMESIS6AA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,,.,,,.,.,.,,,,,..,,...,.,.,..,,...,..,,..,,,.,,,,.,...,,,.,
+#TJCSK4VKBSLOG6KXQ5HUL2Z3JSEXIK3XF4ZBLF2BPV4YWMJVLNUZY75V6KXBFDZMS5SOGVL7GL37A
+#\\\|Y7J5WKLPTIGKVD77GAC665TBDQC4OEH42AT627UU46ILCT3KYDR \ / AMOS7 \ YOURUM ::
+#\[7]I5L67RJMLG53MNOG7FBV2LHKGB2HLWFZLM4HMJRVNR3ZLOV6F4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

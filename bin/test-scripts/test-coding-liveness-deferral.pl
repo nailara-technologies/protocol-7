@@ -154,7 +154,7 @@ compile_module('coding.handler.verify_inference_startup');
 compile_module('coding.self_test.handler.poll_switch');
 compile_module('coding.handler.defer_seed_restart');
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -510,8 +510,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,..,,,,.,,,,,.,.,,.,,,.,,.,,,.,,,,,.,...,..,,...,...,,,,,,..,..,,,,.,.,.,
-#2C6USUV2RS7KQLZEZT3HWYTRBK5SWKAENIM66XU5RAWRZYGKERY5BGL2Y2VQJKBGV3SQFFQBNGUNQ
-#\\\|2GWLBMEJ5R4HAFWIXCENHWW2UVJVL6DLO6LOWL3WC4HVHTH7K5O \ / AMOS7 \ YOURUM ::
-#\[7]ZIU4A3TQEPR3LL76XINUEXXCHACQZ5EKQXJ75VVQFTLSKXSWO6AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,.,.,,..,,.,,.,.,..,,.,,,,,.,..,,...,..,,..,,,.,,.,,,,.,,,,,,
+#7L64GYIUUSGJ4INTUY7BIGIY2I4JVDAH2WYSA2GSWDGUQYXCVQWLKBVQITMIRZZBZX36AYTNJCJKC
+#\\\|AZBDONEI3WYDVLKUHRLOJI4K4XXDHLNACBKLIFP6XO4SSTFIFZO \ / AMOS7 \ YOURUM ::
+#\[7]TWVP7BY5ALK25U33DNPPK3DHF4GUDMAKRXUYBW7XNUJBTGIU4CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
