@@ -129,9 +129,9 @@ sub put_key {
 compile_module($ARG)
     for qw| p7-log.anon.key p7-log.anon.key_id p7-log.anon.store
     p7-log.anon.resolve |;
-compile_module( 'p7-log.anon.cmd.archive-table', 'my $call = shift // {};' );
+compile_module( 'p7-log.cmd.archive-anon-table', 'my $call = shift // {};' );
 my $archive_cmd = sub {
-    return $code{'p7-log.anon.cmd.archive-table'}->( { args => shift } );
+    return $code{'p7-log.cmd.archive-anon-table'}->( { args => shift } );
 };
 
 my $table = catfile( $data_dir, 'log-anon', 'table.bin' );
@@ -278,8 +278,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,...,,,.,...,.,.,.,.,..,,,..,,,,,..,,.,.,..,,...,..,,..,,.,,,...,,,,,,,,,
-#AFI5HLJ44Q6XQRJKJSQEFGCEKJIU4XUELOC35HTNJHENCIPTBANSS6NFTZTVNZLPQFVVJIP6KFEXC
-#\\\|ZABMXPW2YCRWJOMGQR5KNU26373ECS4CVCPVT4BYPJGYSUHYI32 \ / AMOS7 \ YOURUM ::
-#\[7]DAK7UOH6Z2SW3QR5FPNWEXYW7MQZUCQKMWPIROAVJPP7CRSEIKCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,,,,...,...,,.,,...,..,,,,,,..,,...,...,.,,,.,,,...,.,.,.,,,
+#25KNOGRX73BAUCRD7TTQSPIGKTCVFGSSAZYGWBMYBDRK5UJRXJ5LE66LA77QGE5XXM53M7TZOQ5NQ
+#\\\|CT4HDGEL7FDTTFI7HEYJ75DAGQ6D4KFAQU5AKA3XBZROWMRFDPB \ / AMOS7 \ YOURUM ::
+#\[7]O72T6S643MWI3IOYGR5D3OPT6H4UKMHEARAF6E4SU7B7UTGZJYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
