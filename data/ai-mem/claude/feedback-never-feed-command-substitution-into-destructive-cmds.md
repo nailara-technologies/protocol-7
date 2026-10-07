@@ -82,8 +82,10 @@ on-disk zenka logs for `< reload config >` \ `< reload all >` \ reload
 source markers before it, check whether a cube restart or an ondemand
 idle shutdown preceded it, then try to replay that sequence on purpose.
 
-#,,,,,..,,,,,,.,.,,,.,.,,,,.,,.,,,,,.,.,,,.,,,..,,...,...,.,.,,.,,...,,,.,,,,,
-#DOHQKA24DQHBBVC6FUDRWSBB3JJVKKBNPMVJBZ42H4WQ3BJZ7YUNV7JQFZE3T2PC7CA65WOYE5WA4
-#\\\|IMLHZQEPQ2G3I7BFCYQDYMKUYKHROC7M7AMZJQNVULWBN376TR4 \ / AMOS7 \ YOURUM ::
-#\[7]EXCM42VUMXXUYK6OIWEV4W7UIUGVXQNBNQSHEFAF56XR4TNYBACQ 7  DATA SIGNATURE ::
+4. **CONFIRMED mechanism 2026-10-07 [ likely the answer ]** : v7-zenki stopped catching SIGCHLD after any p7c \ p-7-r compile [ at start or on reload ] -- `$SIG{CHLD}` restore + a duplicate CLD alias watcher, see [[never-touch-sig-under-event-watcher]]. without SIGCHLD, ended zenki stay zombies and their instances keep dead pids -- exactly 'dead pids listed online' ; the liveness sweep [ fa550b716 ] then recovered them. fixed 07e19f5a2. on recurrence check SigCgt bit 16 of the v7-zenki pid FIRST.
+
+#,,,,,,,.,,.,,.,.,.,.,.,,,,,.,.,.,,,.,.,.,,,.,..,,...,...,.,,,,,,,,,,,.,.,..,,
+#PDQOQMGRVKPIBVXEGIZHRMP4JCZMFBGTL6UU3W5C6FJMPEM7ML7QBFQZPRFA5OCCUVIJBHUY64NN6
+#\\\|H4E6SYB464D7MJKQLPYD2HASOMTFFKNEWVB5OFOXXWDQFNUDRDH \ / AMOS7 \ YOURUM ::
+#\[7]UHJKZI6QWE5ATLW6SWVLDYPWBU6BNOWCTOEYYQJWVH3HOV7UG2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
