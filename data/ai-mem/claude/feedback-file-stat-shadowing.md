@@ -62,3 +62,11 @@ touches file metadata, not just relying on automatic retrieval.
 #\\\|QS3Y6FKM2QU6USCAZZ5T6NHYNM23RHLJCSDJDCYTUVSCR7IYQU3 \ / AMOS7 \ YOURUM ::
 #\[7]4Z2MQOTHPYKQZ5KCCD7Q24ZTCQHFAFVINLLM7SXEIP7AG5SBCYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**RECURRED 2026-10-07 [ host-root lane ] :** `crypt.C25519.key_path` refused a correct root/ [ `my @st = lstat(..)` -> 1 object -> `@st < 11` ] ; `key_exists` \ `host_root.create` "present" checks were always true on a miss [ File::stat failure -> `(undef)`, 1 element ]. all 4 lane tests passed because no harness imports File::stat. a src/ sweep found 13 more `( stat $x )[n]` slices [ coding/ncode write tools reset modes to 0644 defaults ]. rule : in src/ ALWAYS `CORE::stat` \ `CORE::lstat` for list/slice use ; sweep with `grep -nE '(@\w+\s*=\s*|\(\s*)l?stat\b' src/* | grep -v CORE::`. test harnesses faking stat via CORE::GLOBAL must rewrite `CORE::l?stat` -> `CORE::GLOBAL::` [ test-host-root-delegation.pl ].
+
+#,,..,.,.,,..,,.,,...,,.,,,,.,,.,,,,.,.,,,,..,..,,...,...,...,..,,.,.,,.,,,,.,
+#HES36JM2VJGZISTUOUV77D3BORRXK3IZTCXNPZYJYPPPOTBLYK267JVPISTI4H55W2CF6YLTL3WBI
+#\\\|75EWHGNDG56LJKSQ4MDI7VUKPRALJAQ6ZJADLY3VX2QKOKFCO3X \ / AMOS7 \ YOURUM ::
+#\[7]G4FFFO37YM4DWHEQ6WDMAPZT3DJF67PNHVGGNSUEKGPT2VSSHCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

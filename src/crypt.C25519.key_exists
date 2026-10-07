@@ -35,7 +35,7 @@ return undef
     and not -r $key_path_ref->{'key_dir'};
 
 my $key_filename = $key_path_ref->{'key_filename'};
-my $present      = sub { my @st = lstat( $key_filename->{ shift() } ); @st };
+my $present = sub { my @st = CORE::lstat( $key_filename->{ shift() } ); @st };
 
 return $present->($file_type) ? TRUE : FALSE if defined $file_type;
 
@@ -49,8 +49,8 @@ return TRUE if @found;    ##  true \ key found  ##
 
 return FALSE;             ##  key with that name not present  ##
 
-#,,,.,.,,,.,,,,,.,,.,,,.,,,,,,...,,,,,,,,,,,,,..,,...,...,.,.,.,.,,,.,,,.,...,
-#IKVGF6SQDUVSEZ7GENILQNMZ5X5DLMGHDWJVWONEENPO7TV6Q2DDZDCLF5LKUNXJAAGYM4COO3HCC
-#\\\|DJLW6NGCQ6BVAAYDQRGNKSUXBBZBT4P2PIJ6VJMLF3VMFB5LOXI \ / AMOS7 \ YOURUM ::
-#\[7]TLVKTKF4ZBXGZ3ECQL55E5F3X5V5BUB2VPUV6UB4VCHN7R3MSUAA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,..,,...,,.,,,,,,.,,,,.,,.,,,..,,...,..,,...,,..,,,.,,.,,,,.,
+#ZGVUN7G2CLDZEV73API27CWE43XL7TMSI6DUCZDPX7TZIZO3UYB7DP73WHYNSO6ILFG3F4WBXJDDM
+#\\\|ZQT5HKMWS6ZO72HG2AHMEPGF6NN2N3OHT3Q6K6QLGKRBKFUZKPS \ / AMOS7 \ YOURUM ::
+#\[7]F3SICW6RJVITYY6JYRA5RNJOKHZARSXGXOJV3W4RJWMBDJDDQ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

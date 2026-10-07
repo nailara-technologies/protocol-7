@@ -79,7 +79,7 @@ if ( not defined $holder ) {
     $holder = qw| user |;
     if ( defined $root_dir ) {
         foreach my $ext (qw| public secret |) {
-            my @st = lstat( catfile( $root_dir, "$name.$ext" ) );
+            my @st = CORE::lstat( catfile( $root_dir, "$name.$ext" ) );
             if (@st) { $holder = qw| root |; last }
         }
     }
@@ -113,7 +113,9 @@ my $dir_ok = sub {    ## real directory, uid 0, mode 0700 ##
     return TRUE;
 };
 
-my @dir_st = lstat($root_dir);
+## CORE:: : bin/Protocol-7 imports File::stat, whose stat \ lstat return ##
+## one object -- list-context checks below need the 13 fields            ##
+my @dir_st = CORE::lstat($root_dir);
 return $refuse->(
     0,         "root key directory missing ['%s'] : %s",
     $root_dir, "$OS_ERROR"
@@ -126,7 +128,7 @@ return $refuse->(
 my $held = <crypt.C25519.root_dir_held> //= {};
 my $dir_fh;
 if ( defined $held->{'fh'} ) {
-    my @held_st = stat( $held->{'fh'} );
+    my @held_st = CORE::stat( $held->{'fh'} );
     $dir_fh = $held->{'fh'}
         if @held_st >= 11
         and $held_st[0] == $dir_st[0]
@@ -147,7 +149,7 @@ if ( not defined $dir_fh ) {
             $name, $usr, $why
         );
     } else {
-        my @fh_st = stat($fh);
+        my @fh_st = CORE::stat($fh);
         return $refuse->(
             0, "root key directory REFUSED [ changed while opened ] ['%s']",
             $root_dir
@@ -162,8 +164,8 @@ if ( not defined $dir_fh ) {
 
 my $fd_dir = sprintf qw| /proc/self/fd/%d |, fileno($dir_fh);
 {    ## the fd path must lead to the held directory [ /proc mounted ] ##
-    my @via = stat($fd_dir);
-    my @fh  = stat($dir_fh);
+    my @via = CORE::stat($fd_dir);
+    my @fh  = CORE::stat($dir_fh);
     return $refuse->( 0, "root-held '%s' : %s not usable", $name, $fd_dir )
         if @via < 11
         or $via[0] != $fh[0]
@@ -174,7 +176,7 @@ my $key_basepath = catfile( $fd_dir, $name );
 my $key_filename = $file_names->($key_basepath);
 
 foreach my $type ( $types->@* ) {
-    my @st = lstat( $key_filename->{$type} );
+    my @st = CORE::lstat( $key_filename->{$type} );
     if ( not @st ) {
         next if $OS_ERROR{'ENOENT'};
         return $refuse->(
@@ -202,8 +204,8 @@ return {
     qw| holder |       => qw| root |,
 };
 
-#,,..,,,,,...,,.,,.,.,,,,,...,,,,,,..,.,.,.,.,..,,...,...,...,...,.,.,,,,,,.,,
-#RJ3KQ7ICH5A5R42EORZ3NPILH5II7V4RSY5ZRFMOL2SXNG7Y5BZSVVKNDGXN4BPV7LAIAMDWKADXE
-#\\\|ACRNQ3O27N4TDVNBR7LZSFOG6AMCBC4GZ3YIZHVJ42QNH57OES7 \ / AMOS7 \ YOURUM ::
-#\[7]P5DNA4VE3ZUPB6RHLREFR6HS2FLEVO6BPC2IVWBUJV74RSCFLECA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,.,,,...,...,.,,,,.,,...,,.,,..,,...,...,...,.,,,..,,..,,...,
+#D3QR3FFE3JAD2TZINVQ33CATA7YZQIT73XSTXZBRN4RHWJPUGFMXMR4XVDAT6O5526OLCEQVKSZGU
+#\\\|SATAMH6TQESESQB3FTSH52ITSQ5AISOD6WBTXFXFMWOAS6DIBBJ \ / AMOS7 \ YOURUM ::
+#\[7]ZCQ7RTNCJML5SSKPVD5CXGCGN56MKOP334KLPHFLTTTXV42KUGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
