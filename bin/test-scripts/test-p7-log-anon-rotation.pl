@@ -183,7 +183,11 @@ ok( $code{'p7-log.anon.resolve'}->('TOKENXXXXXXXX') eq FALSE,
     '  :.. nothing mixed into the old table' );
 
 my $reply = $archive_cmd->($archive);
-ok( $reply->{'mode'} eq 'true', "archive under '$archive' : TRUE" );
+ok( $reply->{'mode'} eq 'size'
+        && $reply->{'data'}
+        =~ m|^archived under '\Q$archive\E'\n :\. .*table\.\Q$archive\E\.bin\n\z|,
+    "archive under '$archive' : size reply, two lines"
+);
 ok( -e catfile( $data_dir, 'log-anon', "table.$archive.bin" )
         && -e catfile( $data_dir, 'log-anon', "table.$archive.bin.key" )
         && !-e $table
@@ -278,8 +282,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,..,,,,,,..,,,,,...,...,,.,,...,..,,,,,,..,,...,...,.,,,.,,,...,.,.,.,,,
-#25KNOGRX73BAUCRD7TTQSPIGKTCVFGSSAZYGWBMYBDRK5UJRXJ5LE66LA77QGE5XXM53M7TZOQ5NQ
-#\\\|CT4HDGEL7FDTTFI7HEYJ75DAGQ6D4KFAQU5AKA3XBZROWMRFDPB \ / AMOS7 \ YOURUM ::
-#\[7]O72T6S643MWI3IOYGR5D3OPT6H4UKMHEARAF6E4SU7B7UTGZJYBY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,.,,,..,,,,,,,,,,,,,,..,,..,..,,...,..,,.,.,,,.,...,...,.,,,
+#G35OC45BYCPPWRCVHV77SPNYINKZREYJKUYZWI3F7PNKBS6APSW2ASGD23J5CYY2THFZEGF4DFSEC
+#\\\|4PI5WYHL3EMO3ADVMXQLUB7AEMHRTE2VGKAKEBBQXDY3URD25ZM \ / AMOS7 \ YOURUM ::
+#\[7]WN4ST6VJH4OYN7ANGH5DX4FETZNZQTAQWDTRMULN3CUWNY75VQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
