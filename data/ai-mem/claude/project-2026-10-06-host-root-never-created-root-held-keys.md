@@ -76,3 +76,11 @@ test 916a35658 ; web session 435ff591b + review 05e79435b ] :
 #\\\|FH6L7JK4VXIRNN7RLMZDHXXRKHIWJDWLVKT5X4AR7EGRBGPTYWJ \ / AMOS7 \ YOURUM ::
 #\[7]FHDIXZC3O6HSB3ATEQ646HKBXVT3QLV4OBY7C4WXVF4YN3MRUIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**LIVE 2026-10-07 [ ce94fccb0 ] :** first root run of v7-zenki failed twice on runtime-only bugs the harnesses miss [ File::stat object `lstat` -> ownership rule refused a correct root/ ; `sysread` on the runtime's default :utf8 layer in delegation.issue ] + p7-log lacked crypt.C25519 in modules.load. after the fix : host-root written to root/, delegation `protocol-7.base -> desktop-fp4op26.cube` issued by the 1-min retry after `v7-zenki.reload` [ no restart ], `.dlg` 0644 next to S. cube reads .dlg per select [ no cube restart ]. STILL OPEN : a real auth-keypair client login verifying the delegation + host-root pin end to end.
+
+#,,..,...,...,.,.,.,.,,..,.,.,..,,..,,.,.,,,.,..,,...,..,,,..,,,,,.,.,.,.,.,.,
+#UY76OF55HV6WGZV5GRBXRZTSL4VZFF2KXJAHM5CQNO7D44L5L7OEQFB4ULALBZZ3F2XP7GM7S6YQI
+#\\\|HKJ4PS65D2D3H5HZGUWH62EAAHO72PYZT3PPRMY2KOK2BNSWNRM \ / AMOS7 \ YOURUM ::
+#\[7]DQ75PBVAQDMYUZSWGZQWAG6JPWYTQKC4XTQQUXFNN2PLZQQ5AODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
