@@ -64,16 +64,18 @@ sub ok {
 my $runtime_pragmas
     = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
 
+## $prefix : source prepended inside the compiled sub [ the .cmd. header ] ##
 sub compile_module {
-    my $module_name = shift;
+    my ( $module_name, $prefix ) = @ARG;
+    $prefix //= '';
     my $src_path
         = File::Spec->catfile( $main::root_path, 'src', $module_name );
     open( my $fh, '<', $src_path ) or die "cannot read $src_path : $!";
     my $src = join( '', <$fh> );
     close($fh);
     my $translated = p7_syntax__translate($src);
-    my $cref       = eval
-        "$runtime_pragmas sub {\n# line 1 \"$module_name\"\n$translated\n}";
+    my $cref       = eval "$runtime_pragmas sub {\n$prefix\n# "
+        . "line 1 \"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR" if not defined $cref;
     $code{$module_name} = $cref;
     return $cref;
@@ -125,7 +127,12 @@ sub put_key {
 }
 
 compile_module($ARG)
-    for qw| p7-log.anon.key p7-log.anon.store p7-log.anon.resolve |;
+    for qw| p7-log.anon.key p7-log.anon.key_id p7-log.anon.store
+    p7-log.anon.resolve |;
+compile_module( 'p7-log.anon.cmd.archive-table', 'my $call = shift // {};' );
+my $archive_cmd = sub {
+    return $code{'p7-log.anon.cmd.archive-table'}->( { args => shift } );
+};
 
 my $table = catfile( $data_dir, 'log-anon', 'table.bin' );
 
@@ -141,17 +148,51 @@ ok( $code{'p7-log.anon.store'}->( [ [ 'TOKENAAAAAAAA', 'alpha secret' ] ] )
 ok( $code{'p7-log.anon.resolve'}->('[L:TOKENAAAAAAAA]') eq 'alpha secret',
     '  :.. resolves under key A' );
 
-## rotation : key A kept as an archive name, its table renamed to match ##
+ok( -s "$table.key", '  :.. the table key id written next to it' );
+
+## refusals before the rotation ##
+ok( $archive_cmd->('')->{'mode'} eq 'false', 'archive : no name refused' );
+ok( $archive_cmd->('svc.base')->{'data'} =~ m|current key name|,
+    'archive : the current key name refused' );
+put_key( 'other.base', 0x55 );
+ok( $archive_cmd->('other.base')->{'data'} =~ m|did not write|,
+    'archive : a key that did not write the table refused'
+);
+ok( -e $table, '  :.. table untouched' );
+
+## rotation : p7-keys rename + create, then anon.archive-table ##
 my $archive = 'svc.base-anon-2026-10-07';
 rename(
     catfile( $key_dir, 'svc.base.secret' ),
     catfile( $key_dir, "$archive.secret" )
 ) or die;
-rename( $table, catfile( $data_dir, 'log-anon', "table.$archive.bin" ) )
-    or die;
 put_key( 'svc.base', 0x42 );
-delete $data{'p7-log'}{'anon'}{'key32'};
-delete $data{'p7-log'}{'anon'}{'seen'};
+
+## the rotated key without archiving : store refuses, logs once ##
+delete $data{'p7-log'}{'anon'}{'key32'};    ## a restart ##
+@logged = ();
+ok( !$code{'p7-log.anon.store'}->( [ [ 'TOKENXXXXXXXX', 'not stored' ] ] )
+        && !$code{'p7-log.anon.store'}
+        ->( [ [ 'TOKENYYYYYYYY', 'not stored' ] ] ),
+    'new key, old table : store refused'
+);
+ok( 1 == grep( { $ARG->[0] eq '0' && $ARG->[1] =~ m|another key| } @logged ),
+    '  :.. logged once at level 0'
+);
+ok( $code{'p7-log.anon.resolve'}->('TOKENXXXXXXXX') eq FALSE,
+    '  :.. nothing mixed into the old table' );
+
+my $reply = $archive_cmd->($archive);
+ok( $reply->{'mode'} eq 'true', "archive under '$archive' : TRUE" );
+ok( -e catfile( $data_dir, 'log-anon', "table.$archive.bin" )
+        && -e catfile( $data_dir, 'log-anon', "table.$archive.bin.key" )
+        && !-e $table
+        && !-e "$table.key",
+    '  :.. table + key id moved together'
+);
+ok( $archive_cmd->($archive)->{'mode'} eq 'false',
+    '  :.. a second archive : refused [ no table ]'
+);
 
 ok( $code{'p7-log.anon.store'}->( [ [ 'TOKENBBBBBBBB', 'beta secret' ] ] )
         == 1,
@@ -182,8 +223,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,..,,,.,.,.,.,.,,,,,,..,.,.,.,.,...,,,,,..,,...,...,.,,,,..,,,,,.,.,,..,
-#CJAXW5Y4ZFDBQISZQYE2MWFCVZO2KHKBEWR7YCDMNJRMHVLETXZBH4I5OWJYGXXT3N45RW4MDDNLC
-#\\\|HMYSNTFVXGOJIP4NHHGJV27YK5WFZOBYQLRLPNMGJRGZY3P2XLG \ / AMOS7 \ YOURUM ::
-#\[7]O2PN4IYMPVW26VEBCWY4SJDSUFH3KKUWY6UG4GCJOUJYM2C74QBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,,,,,..,,.,,,.,.,,..,,,.,,,,,..,,...,..,,,,,,.,,,.,,,.,,,..,,
+#6O7VQODMKGNFF4Q4OLMHZHQTNYIZRA5YGEFZ3744V37KHIFOJSOQYAJ6LWBMJBJ3NVPCVIWIRE2LA
+#\\\|6HPXNTKXM4G76XXGUN76LR3YISWXI5HL27GYMXNG6CO6TQ7XNZX \ / AMOS7 \ YOURUM ::
+#\[7]DD2Y2CS6BEWESUEQD2WFPBLQB32RFURF2JH264RH4M27JQKVWQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

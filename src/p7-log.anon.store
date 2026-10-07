@@ -4,6 +4,8 @@
 # descr = write [ checksum, twofish(plaintext) ] pairs to the anon table
 #         record : pack[ a16 n ] key + length . ciphertext [ 16-aligned ]
 
+require Fcntl;
+
 my $pairs = shift;
 
 return FALSE if ref $pairs ne qw| ARRAY | or not scalar @{$pairs};
@@ -25,6 +27,44 @@ if ( not -d $table_dir ) {
         <[base.logs]>->(
             0,          'p7-log.anon.store : cannot create %s : %s',
             $table_dir, $err // qw| ? |
+        );
+        return FALSE;
+    }
+}
+
+## a table belongs to ONE key [ <table>.key : its key id ] -- never append ##
+## under another key [ a rotated key without anon.archive-table ]. a table ##
+## from before key ids is adopted under the current key                    ##
+my $key_id = <[p7-log.anon.key_id]>;
+return FALSE if not defined $key_id;
+my $id_path = $table_path . qw| .key |;
+if ( -e $id_path ) {
+    my $table_id = <[file.slurp]>->($id_path)->$* // '';
+    chomp $table_id;
+    if ( $table_id ne $key_id ) {
+        <[base.logs]>->(
+            0,
+            'p7-log.anon.store : %s was written under another key, '
+                . 'nothing stored [ anon.archive-table <old key name> ]',
+            $table_path
+        ) if not <p7-log.anon.key_mismatch_logged>++;
+        return FALSE;
+    }
+} else {
+    my $id_fh;
+    if (not sysopen(
+            $id_fh,
+            $id_path,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+                | Fcntl::O_NOFOLLOW(),
+            0640
+        )
+        or not print {$id_fh} $key_id,
+        "\n" or not close($id_fh)
+    ) {
+        <[base.logs]>->(
+            0,        'p7-log.anon.store : cannot write %s : %s',
+            $id_path, <[base.str.os_err]>
         );
         return FALSE;
     }
@@ -70,8 +110,8 @@ close($table_fh);
 
 return $stored;
 
-#,,..,.,.,,.,,..,,,,.,.,.,,,.,.,,,.,.,,,.,.,,,..,,...,...,...,,,.,,.,,...,,,,,
-#VSDFPZ2PF4SINTX3OPNOHUFPXLXIL7FZQ2HFJMIXPM6IU3R5EQC7CBX6BKPYRC5ZZVW5SA5RZ4LFA
-#\\\|7JPFJRQJAOUA2DTC2KGEVHM7DSDTCCBHVRT7N2J7KMLVRGE2CLY \ / AMOS7 \ YOURUM ::
-#\[7]GDIUYI3LXVUFPQUASLAJJ4T5UZ3IPUIAMA2U5GNTJEXDEPZKN2DA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,.,,,,..,...,.,.,.,,,.,,,,,,,..,,...,...,..,,,..,.,.,.,.,...,
+#XMWBYLPAZQK76O7RAS2JRDZYTW46NC3CLTMDH5FDP53SD3AUAUQGTG2SEUAG2PCTXYPY6CGGVTJ6Q
+#\\\|7AN7OB3NA67WER23PGFYUWY3DQME46DNYYXXT47EMNYQ2JYFXTT \ / AMOS7 \ YOURUM ::
+#\[7]KXUZEEZ7AYTE2NTPGQ7BLHBKAZVDOBHN23DOXM5BTYFNEISME2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
