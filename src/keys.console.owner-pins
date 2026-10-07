@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = keys.console.owner-pins
+# descr = list owner pins + the local distrust list
+
+my $show_fp = sub {
+    my ( $label, $fp ) = @ARG;
+    my $half = int( ( length($fp) + 1 ) / 2 );
+    printf " :. %-24s %s\n :. %-24s %s\n", $label, substr( $fp, 0, $half ),
+        '', substr( $fp, $half );
+};
+
+say " :\n :: owner pins";
+my $owner_dir = <[keys.remote_keys_dir]>->( qw| owners |, FALSE );
+my $count     = 0;
+if ( defined $owner_dir and opendir( my $dh, $owner_dir ) ) {
+    foreach my $entry ( sort readdir $dh ) {
+        next if $entry !~ m|\A(.+)\.public\z|;
+        my $name = $1;
+        my $path = catfile( $owner_dir, $entry );
+        $count++;
+        if ( -l $path or not -f $path ) {
+            printf " :. %-24s << not a plain file : ignored >>\n", $name;
+            next;
+        }
+        my $line = '';
+        if ( open( my $fh, '<', $path ) ) {
+            $line = readline($fh) // '';
+            close($fh);
+        }
+        $line =~ s{\s+\z}{};
+        if ( $line =~ m|\A[A-Z2-7]{77}\z| ) {
+            $show_fp->( $name, $line );
+        } else {
+            printf " :. %-24s << malformed : ignored >>\n", $name;
+        }
+    }
+    closedir $dh;
+}
+say " :. none" if not $count;
+
+say " :\n :: distrust";
+my $keys_dir = <[keys.remote_keys_dir]>->( undef, FALSE );
+my $distrust = defined $keys_dir ? catfile( $keys_dir, qw| distrust | ) : '';
+if ( not length $distrust or ( not -e $distrust and not -l $distrust ) ) {
+    say " :. none";
+} else {
+    my $content;
+    if ( open( my $fh, '<', $distrust ) ) {
+        local $INPUT_RECORD_SEPARATOR = undef;
+        $content = readline($fh) // '';
+        close($fh);
+    }
+    if ( not defined $content ) {
+        say " :. << distrust file not readable : every connect REFUSED >>";
+    } else {
+        my $listed = 0;
+        foreach my $line ( split m|\n|, $content ) {
+            ( my $entry = $line ) =~ s{#.*}{};
+            $entry =~ s{\A\s+|\s+\z}{}g;
+            next if not length $entry;
+            if ( $entry =~ m|\A[A-Z2-7]{77}\z| ) {
+                my ($comment) = $line =~ m|#\s*(.*?)\s*\z|;
+                $show_fp->( $comment // '', $entry );
+                $listed++;
+            } else {
+                say " :. << malformed line : every connect REFUSED >>";
+            }
+        }
+        say " :. none" if not $listed;
+    }
+}
+say " :";
+<[keys.store_note]>
+    ->( <[keys.remote_keys_dir]>->( undef, FALSE ) // '~/.n/remote-keys' );
+say " :.\n";
+
+#,,,,,,,,,.,.,,..,.,.,.,.,...,,,.,..,,,..,..,,..,,...,...,,,.,.,.,,.,,,,,,,.,,
+#R2Y5H2G6L6J4LY62OYOXLXGDZNHT756EFA7FML3YBZPAOAJTFXC6LPA4ZW2QP3V5VQ5JOBZ7QMI46
+#\\\|WXC2PI3F5TWIYLC7SWNYSHQVHVT6FPDVG4PUWLIMOPK5NCHNGJT \ / AMOS7 \ YOURUM ::
+#\[7]6IEVDNVNHTKAHDFKKPJV2HM6BW5BIUA7SOP425AJBRJHELB5DUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

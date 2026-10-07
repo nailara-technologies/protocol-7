@@ -1,0 +1,78 @@
+## [:< ##
+
+# name   = keys.distrust_file
+# descr  = read \ write the local distrust list [ ~/.n/remote-keys/distrust ]
+# param  = 'read'  -> ( { path, lines => [ raw lines ], fps => { fp => 1 } } )
+#          'write' <lines arrayref> -> TRUE [ temp + rename, 0600, the old
+#                   file kept as distrust.<time>.bak ]
+# return = see param, or ( undef, reason )
+#
+# format [ auth.client.distrust_list ] : one fingerprint per line, '#'
+# comments. a malformed file is never rewritten [ every connect is
+# refused until it is fixed by hand ].
+
+my ( $mode, $lines ) = @ARG;
+
+my ( $keys_dir, $dir_why ) = <[keys.remote_keys_dir]>->( undef, TRUE );
+return ( undef, $dir_why ) if not defined $keys_dir;
+my $path = catfile( $keys_dir, qw| distrust | );
+
+if ( $mode eq qw| read | ) {
+    my %fp;
+    return ( { path => $path, lines => [], fps => \%fp } )
+        if not -e $path and not -l $path;
+    return ( undef, "not a plain " . "file [ $path ]" )
+        if -l $path or not -f $path;
+    open( my $fh, '<', $path ) or return ( undef, "not readable [ $path ]" );
+    my @line = map {s|\n\z||r} readline($fh);
+    close($fh);
+    foreach my $line (@line) {
+        ( my $entry = $line ) =~ s{#.*}{};
+        $entry =~ s{\A\s+|\s+\z}{}g;
+        next if not length $entry;
+        return ( undef, "malformed line in $path -- fix it by hand" )
+            if $entry !~ m|\A[A-Z2-7]{77}\z|;
+        $fp{$entry} = 1;
+    }
+    return ( { path => $path, lines => \@line, fps => \%fp } );
+}
+
+return ( undef, 'mode not known' )   if $mode ne qw| write |;
+return ( undef, 'lines not a list' ) if ref $lines ne qw| ARRAY |;
+
+if ( -e $path ) {
+    ## a free backup name [ two edits within one second must not collide ] ##
+    my $bak;
+    foreach my $n ( 0 .. 99 ) {
+        $bak = sprintf qw| %s.%d%s.bak |, $path, time, $n ? ".$n" : '';
+        last if not -e $bak and not -l $bak;
+        $bak = undef;
+    }
+    return ( undef, "no free backup name for $path" ) if not defined $bak;
+    require File::Copy;
+    File::Copy::copy( $path, $bak )
+        or return ( undef, "cannot back up $path [ $OS_ERROR ]" );
+}
+
+require Fcntl;
+my $tmp = sprintf qw| %s.%d.tmp |, $path, $PID;
+my $fh;
+sysopen(
+    $fh,
+    $tmp,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+        | Fcntl::O_NOFOLLOW(),
+    0600
+) or return ( undef, "cannot write $tmp [ $OS_ERROR ]" );
+my $written = print {$fh} map {"$ARG\n"} $lines->@*;
+if ( not close($fh) or not $written or not rename( $tmp, $path ) ) {
+    unlink($tmp);
+    return ( undef, "cannot write $path" );
+}
+return TRUE;
+
+#,,,.,,..,.,,,...,,.,,.,.,...,...,..,,.,,,,..,..,,...,...,..,,..,,,.,,..,,..,,
+#SFXXSCYSKMBMWCMDIYP3WW2NUOHNUAQRXPLHNBUSMV7PORN64FLRQQ7U7HFRPIWDTJKVDHZK3KURE
+#\\\|DM5GIVI776GWHZQOXUOFQFIJ7D2ZZG32JQQKHHHTKQQAQGFKGNT \ / AMOS7 \ YOURUM ::
+#\[7]FL56QAFAS5U6P3FQ2V6XLGWZ4GXQXZHQIZPMFZPIKVJ2J6LY4MAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

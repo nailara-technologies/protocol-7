@@ -36,54 +36,112 @@ my $entry_added = FALSE;    ##  host [re-]appeared ?  ##
 
 my $pkey_L13 = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
 
-## --------------------------------------------------------------------   ##
-## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the  ##
-## packet signature already verified under the hostkey ; now classify the ##
-## delegation that key carries. the hostkey IS the announced S, so it is  ##
-## the subject. pinning is a read-only set-membership test against the    ##
-## client pin store -- discover NEVER writes a pin.                       ##
-## --------------------------------------------------------------------   ##
+## --------------------------------------------------------------------     ##
+## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md,           ##
+## TRUST-CHAIN-STEP2.md ] : the packet signature already verified under the ##
+## hostkey ; now classify the CHAIN that key carries [ the field may hold   ##
+## more than one statement, leaf first ]. the hostkey IS the announced S,   ##
+## so it is the subject. pinning is a read-only set-membership test against ##
+## the client pin stores -- discover NEVER writes a pin.                    ##
+## --------------------------------------------------------------------     ##
 ##
-my $delegation = $packet_fields_href->{'delegation'};    ## wire or undef ##
+my $delegation = $packet_fields_href->{'delegation'};    ## raw field ##
 my $hostkey    = $packet_fields_href->{'hostkey'};       ## raw 32 bytes ##
 
 my ( $trust, $root_fp, $delegated_name );
+my ( $owner_fp, $owner_since );
 my $drop_reason;
 
 if ( not defined $delegation or not length $delegation ) {
     $trust = qw| unverified |;    ##  no delegation field  ##
 } else {
-    ##  exact parse first -- the issuer is needed as the anchor  ##
-    my ( $parsed, $parse_reason )
-        = <[trust.statement]>->( qw| parse_wire |, $delegation );
-    if ( ref $parsed ne qw| HASH | ) {
-        $drop_reason = $parse_reason // 'parse failed';
+    ##  the one parser for the field : leaf-first wire -> anchor-most  ##
+    my ( $chain, $split_reason )
+        = <[trust.chain]>->( qw| split |, $delegation );
+    if ( ref $chain ne qw| ARRAY | ) {
+        $drop_reason = $split_reason // 'chain not valid';
     } else {
-        my $issuer_fp = <[trust.fingerprint]>->( $parsed->{'issuer_pub'} );
-        if ( not defined $issuer_fp ) {
-            $drop_reason = 'issuer fingerprint failed';
+        ## the client pin stores under <usr_home>/.n/remote-keys ##
+        my $key_vars_ref = <[crypt.C25519.key_vars]>;
+        my $home_dir
+            = ref $key_vars_ref eq qw| HASH |
+            ? $key_vars_ref->{'usr_home'}
+            : undef;
+        my $keys_dir
+            = ( defined $home_dir and length $home_dir )
+            ? join( qw| / |, $home_dir, qw| .n remote-keys | )
+            : undef;
+
+        ## local distrust : fail closed when present but unreadable ##
+        my ( $distrust, $distrust_why )
+            = defined $keys_dir
+            ? <[auth.client.distrust_list]>->($keys_dir)
+            : ( [], undef );
+        if ( not defined $distrust ) {
+            $drop_reason = $distrust_why // 'distrust list not readable';
         } else {
-            ## verify under the statement's OWN issuer : sig, the time    ##
-            ## window, subject eq the announced hostkey, the name and the ##
-            ## empty leaf scope. pinning is decided separately so a       ##
-            ## valid-but-unpinned root is 'offered', not refused.         ##
-            my ( $verified, $verify_reason ) = <[trust.verify]>->(
-                {   qw| chain |   => [$delegation],
-                    qw| anchors | => [$issuer_fp],
-                    qw| subject | => $hostkey,
-                    qw| now |     => time,
-                }
-            );
-            if ( ref $verified ne qw| HASH | ) {
-                $drop_reason = $verify_reason // 'verify failed';
+            ## the leaf statement under its OWN issuer : the host-root ##
+            my $leaf = $chain->[-1];
+            my ( $leaf_st, $leaf_why )
+                = <[trust.statement]>->( qw| parse_wire |, $leaf );
+            my $issuer_fp
+                = ref $leaf_st eq qw| HASH |
+                ? <[trust.fingerprint]>->( $leaf_st->{'issuer_pub'} )
+                : undef;
+            if ( not defined $issuer_fp ) {
+                $drop_reason = $leaf_why // 'issuer fingerprint failed';
             } else {
-                $root_fp        = $issuer_fp;
-                $delegated_name = $verified->{'name'};
-                my $pins = <[discover.read_host_root_pins]>;
-                $trust
-                    = exists $pins->{$root_fp}
-                    ? qw| pinned |
-                    : qw| offered |;
+                ## verify under the LEAF's issuer [ + distrust ] : sig, the ##
+                ## time window, subject eq the announced hostkey, the name  ##
+                ## and the empty leaf scope -- statements above the         ##
+                ## host-root are ignored by trust.verify. pinning is        ##
+                ## decided separately so a valid-but-unpinned root is       ##
+                ## 'offered', not refused.                                  ##
+                my ( $verified, $verify_reason ) = <[trust.verify]>->(
+                    {   qw| chain |    => $chain,
+                        qw| anchors |  => [$issuer_fp],
+                        qw| subject |  => $hostkey,
+                        qw| now |      => time,
+                        qw| distrust | => $distrust,
+                    }
+                );
+                if ( ref $verified ne qw| HASH | ) {
+                    $drop_reason = $verify_reason // 'verify failed';
+                } else {
+                    $root_fp        = $issuer_fp;
+                    $delegated_name = $verified->{'name'};
+                    my $pins = <[discover.read_host_root_pins]>;
+                    if ( exists $pins->{$root_fp} ) {
+                        $trust = qw| pinned |;    ##  wins over owner  ##
+                    } else {
+                        my $owners = <[auth.client.owner_pins]>->($keys_dir);
+                        my $by_owner = <[trust.verify]>->(
+                            {   qw| chain |    => $chain,
+                                qw| anchors |  => $owners,
+                                qw| subject |  => $hostkey,
+                                qw| now |      => time,
+                                qw| distrust | => $distrust,
+                            }
+                        );
+                        if ( ref $by_owner eq qw| HASH | ) {
+                            $trust    = qw| owner |;
+                            $owner_fp = $by_owner->{'anchor'};
+                            my $cert
+                                = $by_owner->{'depth'} >= 2
+                                ? <[trust.statement]>->(
+                                qw| parse_wire |,
+                                $chain->[-2]
+                                )
+                                : $leaf_st;
+                            $owner_since
+                                = ref $cert eq qw| HASH |
+                                ? $cert->{'not_before'}
+                                : undef;
+                        } else {
+                            $trust = qw| offered |;
+                        }
+                    }
+                }
             }
         }
     }
@@ -137,32 +195,55 @@ if ( defined $drop_reason ) {
     return FALSE;
 }
 
-## a host whose root_fp CHANGES is never adopted : the packet is DROPPED [  ##
-## no address update ], the old entry kept and marked invalid until the new ##
-## root is re-pinned out of band                                            ##
+## a host whose root_fp CHANGES is adopted only FORWARD [ the same rule as  ##
+## trust.pin_decide ] : the new chain must be owner-trusted, the delegated  ##
+## name the SAME, and the certifying statement STRICTLY later than the one  ##
+## stored for the previous root [ since : the not_before of the statement   ##
+## certifying the host-root, 0 when never owner-verified ]. anything else : ##
+## the packet is DROPPED [ no address update ], the old entry kept and      ##
+## marked invalid                                                           ##
 $data{'discover.host-root'} //= {};
 if ( defined $root_fp ) {
-    my $prev = $data{'discover.host-root'}->{$pkey_L13};
-    if (    defined $prev
+    my $prev  = $data{'discover.host-root'}->{$pkey_L13};
+    my $since = $owner_since // (
+        ref $prev eq qw| HASH |
+        ? $prev->{'since'} // 0
+        : 0
+    );
+    if (    ref $prev eq qw| HASH |
         and defined $prev->{'root_fp'}
         and $prev->{'root_fp'} ne $root_fp ) {
-        <[base.logs]>->(
-            $flood_level->(), "host-root changed for '%s' : dropping packet",
-            $hostname
-        );
-        $prev->{'trust'} = qw| invalid |;
-        map { $data{'hosts'}->{$ARG}->{'trust'} = qw| invalid | }
-            grep { index( $ARG, $pkey_L13, 0 ) == 0 }
-            keys( ( $data{'hosts'} // {} )->%* );
-        $notify_nodes->( $prev->{'root_fp'}, qw| invalid | );
-        return FALSE;
-    } else {
-        $data{'discover.host-root'}->{$pkey_L13} = {
-            qw| root_fp |        => $root_fp,
-            qw| delegated_name | => $delegated_name,
-            qw| trust |          => $trust,
-        };
+        if (    $trust eq qw| owner |
+            and defined $owner_since
+            and defined $prev->{'delegated_name'}
+            and $prev->{'delegated_name'} eq $delegated_name
+            and $owner_since > ( $prev->{'since'} // 0 ) ) {
+            <[base.logs]>->(
+                0,
+                "host-root changed for '%s' : adopting new root "
+                    . '[ owner-certified , forward ]',
+                $hostname
+            );
+        } else {
+            <[base.logs]>->(
+                $flood_level->(),
+                "host-root changed for " . "'%s' : dropping packet",
+                $hostname
+            );
+            $prev->{'trust'} = qw| invalid |;
+            map { $data{'hosts'}->{$ARG}->{'trust'} = qw| invalid | }
+                grep { index( $ARG, $pkey_L13, 0 ) == 0 }
+                keys( ( $data{'hosts'} // {} )->%* );
+            $notify_nodes->( $prev->{'root_fp'}, qw| invalid | );
+            return FALSE;
+        }
     }
+    $data{'discover.host-root'}->{$pkey_L13} = {
+        qw| root_fp |        => $root_fp,
+        qw| delegated_name | => $delegated_name,
+        qw| trust |          => $trust,
+        qw| since |          => $since,
+    };
 }
 
 ## the trust fields stored on every host entry built below [ and shown by ##
@@ -173,6 +254,7 @@ delete $data{'discover.host-root-log'}->{$pkey_L13};
 my %trust_field = ( qw| trust | => $trust );
 $trust_field{'root_fp'}        = $root_fp        if defined $root_fp;
 $trust_field{'delegated_name'} = $delegated_name if defined $delegated_name;
+$trust_field{'owner_fp'}       = $owner_fp       if defined $owner_fp;
 
 if ( not length $host_payload ) {
 
@@ -326,8 +408,8 @@ if ( defined $orbital_p7ref and length $orbital_p7ref ) {
     <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
 }
 
-#,,,,,.,,,,..,.,.,,,.,,,.,..,,.,,,,,.,.,,,..,,..,,...,...,.,,,.,.,..,,...,,.,,
-#TQMLVIO5GZ5TR72XZ27F2O42LXGK5P2X76WI4QOHDQEEGPXWGKNMR22KLLNVZVFQTPLGBX65RTF6U
-#\\\|KATL5ZOMXFMU3XWOSV6CNWC2TKJFGHDIRQTIQNVS64ANGLUPP52 \ / AMOS7 \ YOURUM ::
-#\[7]CLCK75SVFXCLR6IR65LQ4AAT3XSO34YYERUAELEJD7USLP7CXCAY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,..,,,.,,..,,..,,,,,,..,,.,,..,,..,,...,..,,...,..,,...,,..,,,.,
+#VBC7BASDIGAJMQA5RKJBDJVLIX3JNRAW4J3CH2GAY76E2QVIYGE3BN4E33EZV2M6WIXFW7T5CQWT6
+#\\\|KY572GLLFFC5WY5YRNVCUZ6Q3WTW5N5SMDPVTMWVRNNOQSJJJ2K \ / AMOS7 \ YOURUM ::
+#\[7]YRSXCJQXEIM4UTRDBRW2BGNFTBHJ7MSHO2PM2DE2CKIOZPLT66CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

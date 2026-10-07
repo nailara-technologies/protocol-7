@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = keys.console.owner-unpin
+# param = <name>
+# descr = remove an owner pin [ renamed aside, not deleted ]
+# note  = kept as <name>.public.<time>.removed ; host pins written
+#         under this owner stay [ they pin the host-root itself ] -- only
+#         automatic rotation needs the owner
+
+my $name = shift // '';
+$name =~ s{\A\s+|\s+\z}{}g;
+
+if ( $name !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z| ) {
+    say "\n  << expected an owner name >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my ( $owner_dir, $dir_why )
+    = <[keys.remote_keys_dir]>->( qw| owners |, FALSE );
+my $pin_file
+    = defined $owner_dir ? catfile( $owner_dir, "$name.public" ) : '';
+
+if ( not defined $owner_dir or ( not -e $pin_file and not -l $pin_file ) ) {
+    printf "\n  << owner '%s' is not pinned >>\n\n", $name;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+## never deleted : renamed out of the '*.public' pattern ##
+my $removed = sprintf qw| %s.%d.removed |, $pin_file, time;
+if ( -e $removed or -l $removed or not rename( $pin_file, $removed ) ) {
+    printf "\n  << cannot move '%s' aside [ %s ] >>\n\n", $pin_file,
+        <[base.str.os_err]>;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+( my $removed_name = $removed ) =~ s|^.+/||;
+printf " :\n :: owner '%s' unpinned\n :. kept as '%s'\n", $name,
+    $removed_name;
+<[keys.store_note]>->($owner_dir);
+say " :.\n";
+
+#,,..,,,.,,,.,,.,,,..,,,,,,,,,.,.,.,,,,.,,,,,,..,,...,...,.,.,..,,.,.,.,,,..,,
+#ZD24IEPPNQLMB52S2OJ7TJ2XDK4KJVU2M3SWWKCSZL7IBKPT5NQCSBBOSTK3YCF7V5FOMWC2OMBXQ
+#\\\|W6OQHSOG3JL4CF4AES4MKBFXCZKFCK62WMQTFIMU7BXKK5OLIO6 \ / AMOS7 \ YOURUM ::
+#\[7]T5EIGS2U2ONGDI6RL6LPMLZRBL5WA5SFLBRMZCILAUNYB2LQZ6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
