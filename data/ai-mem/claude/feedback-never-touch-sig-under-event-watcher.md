@@ -13,8 +13,10 @@ never write `$SIG{SIGNAL}` [ set, `local`, or save\restore ] in code that runs i
 
 **How to apply:** to skip one child's SIGCHLD in v7-zenki, register it in `ignore_child_pid`. quick live check : `/proc/<pid>/status` SigCgt, bit 16 [ signal 17 ] must be 1. related : [[never-feed-command-substitution-into-destructive-cmds]] [ its "dead pids listed online" hypotheses -- this was likely one ]
 
-#,,,.,,..,.,.,,,,,...,..,,...,,,.,..,,.,.,,,,,..,,...,...,.,,,..,,,.,,.,.,,,.,
-#5YIEOOLT54DGHV2CI6EVRIPSSNBY77F6QVGKW7QB5HXVBQTJTJJ6RCDOLKFMV5FW7TEEWW7ZZ7NOM
-#\\\|A5HU3FD64C25VW5JBKDIA775US7G4QJQLE3XMNIH2SB4PGRY5SE \ / AMOS7 \ YOURUM ::
-#\[7]6FEBJIMEW4TT7KVQ3KMBHWBJ42YSJO4PLIADFFDTYPWMYWVJGKCY 7  DATA SIGNATURE ::
+regression test : `bin/test-scripts/test-signal-handler-aliases.pl` [ 7d6515542 ; fails 6 checks against the pre-fix module, `P7_TEST_SIG_SRC=<file>` to point it elsewhere ]. live-verified the fix on all three stop paths : clean stop [ <TERM>, nothing after ], blocked zenka [ mod-test + `devmod.cmd.sleep` via `v7-zenki.devmod-enable` -> <KILL> then a real `signal 9` exit, no liveness line ], heartbeat timeout -> error -> KILL -> restart [ < name > label, real status ]. symptom fingerprint of the bug : `<KILL>ed children` on every stop + liveness line 2-7 s later + `exit code -001`.
+
+#,,,.,...,,..,,..,.,.,,,.,..,,,.,,...,.,,,,.,,..,,...,...,.,.,,..,,,,,.,,,,,.,
+#2NGEBCE6VD2BUOBVQVU4K4GD5Q6TLO4LC5GGGSGYKL3PYBIZC6QSBFN3JBHNVD3H3OG5HYHVDNTIA
+#\\\|KOQ3FTIWW2W2WMTKMFJ2TZP3TWRARV3HGUWZNRYSQCE4XQ725SO \ / AMOS7 \ YOURUM ::
+#\[7]FB52VSINVZQGJY7XCR3HIXGULP74JSO5ROFACKJHZUCTBAKKDACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
