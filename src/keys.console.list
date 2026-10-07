@@ -40,8 +40,26 @@ my @k_files = grep {s|^.+/||}
     <[base.reverse-sort]>->(<[keys.get_keyfiles]>)
     or return;
 
-##  Load remote [hostkey] entries  ##
+##  Load host pins [ servers/ ] + owner pins [ owners/ ]  ##
 my $remote_keys_ref = <[keys.list_remote_keys]>;
+my %owner_pins;
+{
+    my $owner_dir = <[keys.remote_keys_dir]>->( qw| owners |, FALSE );
+    if ( defined $owner_dir and opendir( my $dh, $owner_dir ) ) {
+        foreach my $entry ( readdir $dh ) {
+            next if $entry !~ m|\A(.+)\.public\z|;
+            my $owner = $1;
+            my $path  = catfile( $owner_dir, $entry );
+            next if -l $path           or not -f $path;
+            open( my $fh, '<', $path ) or next;
+            my $line = readline($fh) // '';
+            close($fh);
+            $line =~ s{\s+\z}{};
+            $owner_pins{$owner} = $line if $line =~ m|\A[A-Z2-7]{77}\z|;
+        }
+        closedir $dh;
+    }
+}
 
 my %key_chksums;
 if ($display_checksums) {    ## calculating key checksums ##
@@ -63,11 +81,6 @@ if ($display_checksums) {    ## calculating key checksums ##
             if not defined $key_chksums{$name};
     }
 
-    ##  Add remote key timestamps to checksums display  ##
-    foreach my $display_name ( keys %{$remote_keys_ref} ) {
-        my $remote_info = $remote_keys_ref->{$display_name};
-        $key_chksums{$display_name} = $remote_info->{'ntime_b32'};
-    }
 }
 
 my %key_signed_by;
@@ -152,8 +165,8 @@ my $names_len = 2 + max( map {length} keys %key_files, keys %root_key_files );
 $names_len
     = max( $names_len, map { length( $_ // '' ) } values %key_chksums );
 
-## root-held \ remote headers : "'<name>' [ root-held ]" \  "'<name>' ##
-## [<ntime>]"                                                         ##
+## root-held \ host pin \ owner headers : "'<name>' [ root-held ]" \ ##
+## "'<name>' [<key id label>]"                                       ##
 $names_len = max(
     $names_len,
     (   map { length sprintf( "'%s' [ root-held ]", $ARG ) }
@@ -161,8 +174,9 @@ $names_len = max(
     ),
     map {
         length sprintf( "'%s' [%s]",
-            $ARG, $remote_keys_ref->{$ARG}->{'ntime_b32'} // '' )
-    } keys %{$remote_keys_ref}
+            $ARG, $remote_keys_ref->{$ARG}->{'label'} // '' )
+    } keys %{$remote_keys_ref},
+    keys %owner_pins
 );
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
@@ -241,7 +255,7 @@ if ( not $display_sigs and ( keys %root_key_files or defined $root_note ) ) {
     }
 }
 
-##  Display remote [hostkey] entries  ##
+##  Display host pins [ servers/ ] ##
 if ( keys %{$remote_keys_ref} and not $display_sigs ) {
 
     foreach
@@ -252,18 +266,33 @@ if ( keys %{$remote_keys_ref} and not $display_sigs ) {
 
         $key_list_string .= sprintf " : %*s .\n", $names_len, '';
 
-        ## the first-seen ntime goes next to the name, the checksum column ##
-        ## only names the type [ it is not a checksum ]                    ##
+        ## the key id label [ a recognition aid, not a checksum ] goes next ##
+        ## to the name, the checksum column names the type                  ##
         $key_list_string .= sprintf " : %*s .\n", $names_len,
-            sprintf( "'%s' [%s]", $display_name,
-            $remote_info->{'ntime_b32'} );
+            sprintf( "'%s' [%s]", $display_name, $remote_info->{'label'} );
 
         my $key_filename = $remote_info->{'file_path'};
         $key_filename =~ s|^.*/||;    ## extract just the filename ##
 
-        $key_list_string .= sprintf " : %*s : %s\n", $names_len,
-            qw| hostkey |, $key_filename;
+        $key_list_string
+            .= sprintf " : %*s : %s%s\n", $names_len,
+            qw| host-root |, $key_filename,
+            defined $remote_info->{'name'}
+            ? "  [ $remote_info->{'name'} ]"
+            : '';
+    }
+}
 
+##  Display owner pins [ owners/ ] ##
+if ( %owner_pins and not $display_sigs ) {
+    foreach my $owner ( sort keys %owner_pins ) {
+        $displayed_files_count++;
+        $key_list_string .= sprintf " : %*s .\n", $names_len, '';
+        $key_list_string .= sprintf " : %*s .\n", $names_len,
+            sprintf( "'%s' [%s]",
+            $owner, substr( $owner_pins{$owner}, 0, 7 ) );
+        $key_list_string .= sprintf " : %*s : %s\n", $names_len, qw| owner |,
+            "$owner.public";
     }
 }
 
@@ -308,8 +337,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     ##  signed marker  ##
     $key_list_string =~ s|: signed \e\S+|$C{0}: signed :$C{T}|mg;
 
-    ##  hostkey marker  ##
-    $key_list_string =~ s|( hostkey)(?= : )|$C{0}$C{b}$1$C{T}|mg;
+    ##  host pin \ owner marker  ##
+    $key_list_string =~ s{( (?:host-root|owner))(?= : )}{$C{0}$C{b}$1$C{T}}gm;
     $key_list_string =~ s|(\[ [^\]]+ \])|$C{0}$1$C{T}|mg;
 
     ##  encrypted marker  ##
@@ -354,8 +383,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,,,,...,.,,,,,.,,,.,,,,,,,.,,..,...,,.,,.,,,.,.,...,...,.,.,.,,,,.,,.,,,...,
-#G4BWCDDU7M7KEPRJZBHYPLA6APXRMCY3TV545QM6EPIBIVXVNJKZGCGK7DJBPS6XLQQF4DJP3WMAC
-#\\\|5SSNMLSNTBBES4NKKQSJNISHIIQDPRSNNIWMUOETUQ3KR2RUFFL \ / AMOS7 \ YOURUM ::
-#\[7]ATDF6EUNA5XBIIFXYECQXLAWCLD5SED4D25Q4IFSAW2QLDFYWKAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,,,.,..,,.,,,.,,,,,.,,,,,,,,,.,.,...,.,,,..,,...,...,.,.,,,.,
+#UK6NOBRCWIGV562BNEZHCUXASCOQIHL7XD3XP4UFNVULQVZS5C432JUF523GC4LE2S3257SYSX236
+#\\\|N5FIJJ4LPLYYEMF4QHDTNDHWYASFQBT7H6B36NASS2JR5YRPFJE \ / AMOS7 \ YOURUM ::
+#\[7]E4JSNAQUKS3IXKBK6IKMLXM5XVF5WJYNKZKBY6A4LDKY3XRKFIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,8 +15,8 @@ use bytes;
 ## keyfiles \ load_keypair \ write_keys through it, host_root.create via    ##
 ## post_init, trust.statement [ the spec test vector, every field ],        ##
 ## trust.verify, v7-zenki.delegation.issue [ renewal, atomic write ],       ##
-## auth.auth_select [ the 4th field ], the client pin and the cube          ##
-## fingerprint command.                                                     ##
+## auth.auth_select [ the 4th field ], the client pin and the cube key id   ##
+## command.                                                                 ##
 ##                                                                          ##
 ## runs as a normal user : uid 0 ownership is FAKED [ lstat \ stat \ chown  ##
 ## overridden for the compiled modules only, inside a File::Temp tree ] ;   ##
@@ -209,12 +209,12 @@ my ( $x_pub,  $x_priv )  = Crypt::Ed25519::generate_keypair( "\x05" x 32 );
 my ( $fr_pub, $fr_priv ) = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
 
 compile_module('trust.statement');
-compile_module('trust.fingerprint');
+compile_module('trust.key_id');
 compile_module('trust.verify');
 compile_module('trust.chain');
-my $statement   = $code{'trust.statement'};
-my $fingerprint = $code{'trust.fingerprint'};
-my $verify      = $code{'trust.verify'};
+my $statement = $code{'trust.statement'};
+my $key_id    = $code{'trust.key_id'};
+my $verify    = $code{'trust.verify'};
 
 ######################################################################
 say ': test vector [ trust.statement, data/md/design/HOST-ROOT-DELEGATION ]';
@@ -232,7 +232,7 @@ my %vector = (
         . 'NY7SNTSQAA45DFON2C22DPON2C4Y3VMJSWKU7RABSXW7QAAAAFQF52EIB6'
         . 'FU2RDGU3LV5ZXPR42B5HRAE6NQ5L3XZW3IAIMRR37TH4D5R4HCUE42ESKB'
         . 'Q5GFIJA46DZLQTBIL6DGOVXAOEHJCAWHSYAI',
-    fingerprint => 'ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3A'
+    key_id => 'ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3A'
         . 'WUQWVUNEJIYFOXRWF4XUSHAAXSUFOXWG2JGKC7G',
 );
 my %vec_fields = (
@@ -260,9 +260,9 @@ my $vec_sig = Crypt::Ed25519::sign( $vec_st, $hr_pub, $hr_priv );
 ok( $b32->($vec_sig) eq $vector{'sig_b32'}, 'sig b32' );
 ok( ( $statement->( 'wire', $vec_st, $vec_sig ) // '' ) eq $vector{'wire'},
     'wire b32' );
-ok( ( $fingerprint->($hr_pub) // '' ) eq $vector{'fingerprint'},
-    'fingerprint [ 77 chars ]' );
-ok( length( $vector{'fingerprint'} ) == 77, '  :.. 77 chars' );
+ok( ( $key_id->($hr_pub) // '' ) eq $vector{'key_id'},
+    'key id [ 77 chars ]' );
+ok( length( $vector{'key_id'} ) == 77, '  :.. 77 chars' );
 {
     my $p = $statement->( 'parse_wire', $vector{'wire'} );
     ok( ref $p eq 'HASH'
@@ -358,7 +358,7 @@ sub dlg {    ## a delegation wire, signed by $issuer [ default host-root ] ##
     $sig = ~$sig if $o{'bad_sig'};
     return $statement->( 'wire', $st, $sig );
 }
-my $hr_fp = $fingerprint->($hr_pub);
+my $hr_fp = $key_id->($hr_pub);
 my $now   = 1701000000;
 
 sub v {
@@ -380,8 +380,8 @@ sub v {
             && $r->{'depth'} == 1,
         'valid : { name, anchor, not_after, depth }'
     );
-    my @r = v( [ dlg() ], anchors => [ $fingerprint->($fr_pub) ] );
-    ok( !defined $r[0] && $r[1] =~ m{no pinned anchor}, 'wrong fingerprint' );
+    my @r = v( [ dlg() ], anchors => [ $key_id->($fr_pub) ] );
+    ok( !defined $r[0] && $r[1] =~ m{no pinned anchor}, 'wrong key id' );
     @r = v( [ dlg( bad_sig => 1 ) ] );
     ok( !defined $r[0] && $r[1] =~ m{signature}, 'bad signature' );
     @r = v( [ dlg() ], now => 1702592001 );
@@ -1095,7 +1095,7 @@ sub read_dlg {
     ## owner chain [ TRUST-CHAIN-STEP2.md ] : <user dir>/host-root.dlg ##
     my ( $ow_pub, $ow_priv )
         = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
-    my $ow_fp      = $fingerprint->($ow_pub);
+    my $ow_fp      = $key_id->($ow_pub);
     my $owner_file = catfile( $user_dir, 'host-root.dlg' );
     my $owner_st   = sub {
         my ( $scope, $not_after ) = @ARG;
@@ -1339,7 +1339,7 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
     my $content = join '', readline($pfh);
     close $pfh;
     ok( $content eq "$hr_fp\ntest-host.cube\n0\n",
-        '  :.. pin = host-root fingerprint + the leaf name + since 0' );
+        '  :.. pin = host-root key id + the leaf name + since 0' );
     ok( $pin->( 'h.example', 7, $x_pub, $d->($x_pub) ),
         'rotated S, same host-root : ACCEPTED'
     );
@@ -1402,13 +1402,12 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
         'host-root rotated, no owner pin : refused' );
 
     mkdir "$keys_dir/owners", 0700;
-    put( "$keys_dir/owners/test.public",
-        0600, $fingerprint->($ow_pub) . "\n" );
+    put( "$keys_dir/owners/test.public", 0600, $key_id->($ow_pub) . "\n" );
     ok( $pin->( 'o.example', 7, $s_pub, $field->( $o2n, $n2s ) ),
         'host-root rotated, owner pinned, same name : accepted'
     );
     my $o2n_since = $statement->( 'parse_wire', $o2n )->{'not_before'};
-    ok( $read->($o_pin) eq $fingerprint->($nr_pub)
+    ok( $read->($o_pin) eq $key_id->($nr_pub)
             . "\ntest-host.cube\n$o2n_since\n",
         '  :.. pin rewritten to the new host-root, since = its certification'
     );
@@ -1450,20 +1449,20 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
 }
 
 ######################################################################
-say ': cube command crypt.C25519.cmd.host-root-fingerprint';
+say ': cube command crypt.C25519.cmd.host-root-id';
 
-compile_module( 'crypt.C25519.cmd.host-root-fingerprint', $cmd_header );
+compile_module( 'crypt.C25519.cmd.host-root-id', $cmd_header );
 {
     local $fake_euid = 0;
     setup_host_root();
     unlink $dlg_file;
     $issue->();
-    my $r = $code{'crypt.C25519.cmd.host-root-fingerprint'}->( {} );
+    my $r = $code{'crypt.C25519.cmd.host-root-id'}->( {} );
     ok( $r->{'mode'} eq 'true' && $r->{'data'} eq $hr_fp,
-        'returns the host-root fingerprint from the .dlg'
+        'returns the host-root key id from the .dlg'
     );
     unlink $dlg_file;
-    $r = $code{'crypt.C25519.cmd.host-root-fingerprint'}->( {} );
+    $r = $code{'crypt.C25519.cmd.host-root-id'}->( {} );
     ok( $r->{'mode'} eq 'false', 'no .dlg : false' );
 }
 
@@ -1475,8 +1474,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,...,,,,,,,.,.,,,.,,,,..,,..,.,.,,.,,..,,..,,...,...,,,.,..,,...,,,.,..,,
-#5XPNS7J26UK67P5BJ4IF7E7ITJX7MTXXANGCS5YUSEY63CUEBPI5PWLX3KJEX6PCOBVKGFB3A2UZ4
-#\\\|IKR4VTUJRZA35ONMNFEGPUUXTO2JKE5RDWPPGPUNFARUA7LD4G3 \ / AMOS7 \ YOURUM ::
-#\[7]TP5LDIDQRLKOQA5WLNOKQ4H7IX3UJR7ECMMGWSIQJAMXXA3J3ICY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,,,,,,..,,,.,.,,,.,,,,..,.,.,..,,...,...,..,,,,,,,..,...,.,.,
+#VMSTDGOJUVY6OSQ6XYXM7P4HN46IBUTWHE24U4HA4F4FNAY4T2OZA4IRSM73OBWAAEBTCQZCWRBWQ
+#\\\|AZG44WTG74XFHADDIKT7CLW7RCZAOKDHKIGG6S6QU2YRTLLBQQA \ / AMOS7 \ YOURUM ::
+#\[7]PXIDDSN4AXYJ2N2DDN4PGFLEQMGRJKEZ55YN7PMCNVRXVWQBJGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

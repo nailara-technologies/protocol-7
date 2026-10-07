@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name   = auth.client.owner_pins
-# descr  = owner pin fingerprints [ <remote-keys>/owners/*.public ]
+# descr  = owner pin key ids [ <remote-keys>/owners/*.public ]
 # param  = <remote-keys dir> [ e.g. ~/.n/remote-keys ]
-# return = [ <77 char fingerprint>, .. ] [ empty when none ]
+# return = [ <77 char key id>, .. ] [ empty when none ]
 #
 # data/md/design/TRUST-CHAIN-STEP2.md [ 'pins' ] : line 1 of each file is
-# the fingerprint. written ONLY by an explicit command, never on contact.
+# the key id. written ONLY by an explicit command, never on contact.
 # symlinks \ malformed \ unreadable entries are skipped -- never trusted.
 # twin : owner_pins in bin/p7-auth-keypair-helper.pl.
 
@@ -31,8 +31,8 @@ closedir $dir_fh;
 
 return \@owner;
 
-#,,,,,.,,,...,.,,,,..,.,,,,,,,...,.,.,,,,,.,,,..,,...,...,,..,.,,,.,.,,..,,,.,
-#IWUSRZZ6ESDL6MUWAHFKT5FEWT6TD52AS3LFQ257JA7OE7TGAE5ELFBMKO6LX2OIZPJSTTNL3MKVA
-#\\\|PQTK2YEDFO5QCLP4MB5QQVVB2BJ3QD4D4FFCQYYMIS6CG33WHZT \ / AMOS7 \ YOURUM ::
-#\[7]FEWJJSH5PFLT7WX32EBASOE4ETL5LTDGAAM4M5KWRYVKTUEQJSBY 7  DATA SIGNATURE ::
+#,,..,...,,,.,...,.,,,,,,,.,.,,.,,.,,,,..,.,.,..,,...,...,...,,,.,,,,,,..,,,.,
+#4ASP7ODPEDYDRGNZKB43XUQ7A4IJ4OCO3TNFTFF2MDJ67T34R3ZVYRJZFIS6WNFW6XBMUAP4PWRM2
+#\\\|YMBCDZ2G5K2DZ5QKPZS2JGIN3GEX3IICQRRM7IUKR6QVJOIKFMG \ / AMOS7 \ YOURUM ::
+#\[7]THDLQAGG4CXD4GEMRJGXYL3M6RFAC2LW5PUTGTJWMR7T5EO344BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

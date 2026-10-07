@@ -340,7 +340,7 @@ static int lu_read_line(int fd, struct encryption_state *st,
 
 #define B32_32_LEN  52   /* b32 [ no padding ] of 32 bytes */
 #define B32_64_LEN 103   /* b32 [ no padding ] of 64 bytes */
-#define B32_FP_LEN  77   /* b32 of a bmw384 host-root fingerprint */
+#define B32_FP_LEN  77   /* b32 of a bmw384 host-root key id */
 /* host-root delegation [ select reply field 4 ] : upper bound on its b32
    length -- the SAME number the helper uses [ DLG_B32_MAX ] */
 #define DLG_B32_MAX 2048
@@ -441,8 +441,8 @@ static int run_helper(char *const argv[], const char *secret_stdin,
     return rc;
 }
 
-/* split a check-pin result line "<WORD> <fingerprint> <name>" ; the
-   fingerprint must be 77 b32 chars and the name a safe token [ it is
+/* split a check-pin result line "<WORD> <key id> <name>" ; the
+   key id must be 77 b32 chars and the name a safe token [ it is
    server supplied and gets printed ]. 1 ok, 0 malformed */
 static int pin_result_fields(const char *line, const char *word,
                              char *fp, char *name, size_t name_max)
@@ -467,7 +467,7 @@ static int pin_result_fields(const char *line, const char *word,
 
 /* host-root pin : the helper verifies the delegation [ sig under the
    issuer pub, validity window, subject == S_pub, name \ scope ] and then
-   compares the host-root FINGERPRINT with
+   compares the host-root KEY ID with
    ~/.n/remote-keys/servers/<host>_<port>.public. a rotated S that the
    pinned host-root delegates passes.
    0 ok [ matched or pinned now ], 5 strict + not pinned, 6 other
@@ -494,14 +494,14 @@ int check_server_pin(const char *remote_host, const char *remote_port,
     }
     if (rc == 0 && pin_result_fields(result_line, "PIN_NEW", fp, name,
                                      sizeof(name))) {
-        /* name \ host:port first, the fingerprint in two halves */
+        /* name \ host:port first, the key id in two halves */
         int fp_half = (int)((strlen(fp) + 1) / 2);
         fprintf(stderr, ": pinned host-root [ %s \\ %s:%s ]\n"
                         " :. %.*s\n :. %s\n",
                 name, remote_host, remote_port, fp_half, fp, fp + fp_half);
         if (verbose)
             fprintf(stderr, ":: pin file for %s:%s -- compare out of band "
-                    "[ p7c host-root-fingerprint ] ::\n",
+                    "[ p7c host-root-id ] ::\n",
                     remote_host, remote_port);
         return 0;
     }
@@ -554,7 +554,7 @@ int check_server_pin(const char *remote_host, const char *remote_port,
                 result_line + 10, remote_host, remote_port);
         if (strcmp(result_line + 10, "old server key pin") == 0)
             fprintf(stderr, ": the pin predates host-root delegation -- verify the host-root\n"
-                    ": out of band [ p7c host-root-fingerprint ], then\n"
+                    ": out of band [ p7c host-root-id ], then\n"
                     ": remove ~/.n/remote-keys/servers/<host>_<port>.public\n");
         return -1;
     }

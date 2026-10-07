@@ -7,8 +7,8 @@
 #            now      => <unix seconds>,
 #            host_pin => undef | { fp => <77 chars>, name => <leaf name>
 #                        | undef [ a step 1 pin ], since => <unix> | 0 },
-#            owners   => [ <owner fingerprint>, .. ],
-#            distrust => [ <fingerprint>, .. ],
+#            owners   => [ <owner key id>, .. ],
+#            distrust => [ <key id>, .. ],
 #            strict   => TRUE | FALSE }
 # return = { verdict, fp, name, since, write, anchor, owner,
 #          name_differs } or undef [ list context : ( undef, reason ) --
@@ -17,7 +17,7 @@
 # data/md/design/TRUST-CHAIN-STEP2.md [ 'pins' ], twin : pin_decide in
 # bin/p7-auth-keypair-helper.pl, shared cases : bin/test-scripts/
 # trust-pin-vectors.pl. fp \ name \ since = what the host pin holds
-# afterwards : the leaf statement's ISSUER fingerprint [ the host-root ],
+# afterwards : the leaf statement's ISSUER key id [ the host-root ],
 # the leaf name and the not_before of the owner-verified statement that
 # certifies that host-root [ 0 : never owner-verified ]. write = 'none' \
 # 'new' \ 'replace' -- the caller does exactly that, nothing else :
@@ -39,7 +39,7 @@
 #   no host pin, strict                                  -> PIN_UNPINNED
 #   no host pin                                          -> PIN_NEW [ tofu ]
 #
-# an owner fingerprint is NEVER returned for pinning : owner pins come
+# an owner key id is NEVER returned for pinning : owner pins come
 # only from an explicit command [ an anchor's implicit scope is '*' ].
 
 my $param = shift;
@@ -88,7 +88,7 @@ my ( $leaf, $leaf_why )
     = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
 return $refuse->( sprintf 'statement %d : %s', scalar $chain->@*, $leaf_why )
     if not defined $leaf;
-my $leaf_fp = <[trust.fingerprint]>->( $leaf->{'issuer_pub'} );
+my $leaf_fp = <[trust.key_id]>->( $leaf->{'issuer_pub'} );
 return $refuse->('leaf issuer not valid') if not defined $leaf_fp;
 
 ## self-consistency [ and distrust ] before any pin is looked at ##
@@ -181,8 +181,8 @@ return $result->(
     write   => qw| new |,
 );
 
-#,,..,.,.,,,.,,.,,,.,,,,,,.,.,...,...,,,.,..,,..,,...,...,...,,.,,,,,,,,.,...,
-#7T6Q7JGYLXUW6K5WQDB4QCST2NDLS5KW6XFXTBBJPPLCL5GXJHPG2QRGBPIQBA2SZPHQBOUHAAFNE
-#\\\|HFIHX5NCEIMFQDX2X3FEBO5WEDYKUEENA7WM6ONFWMNCJHNN6V7 \ / AMOS7 \ YOURUM ::
-#\[7]4SWR6UERTBQRI4SR4GGQJQ3S5X2LA5HIVCFV7F3YNNOKBKIFNGCQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,...,,,,,,,,,,,.,,,,,,,.,...,..,,...,...,...,..,,..,,,.,,.,,,
+#Y2XQUMPNNEURJEGMLPAJZKOJILKZPJLAX5DG4WRJB2MDDNLAAELPCNFGCWI5G6I3KUAXMPB7JUXPS
+#\\\|7WFU63ZKTO43GKO2KADY3WCSU2RMBH4LAXCMF2Z6EIJXR73ALC7 \ / AMOS7 \ YOURUM ::
+#\[7]D6NOT35BJ6MEG7L4RIKKTK3O3CGN6MGIFIFH4MAXRH44WVPMY2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

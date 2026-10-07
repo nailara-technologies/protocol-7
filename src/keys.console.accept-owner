@@ -85,7 +85,7 @@ my $leaf = $current->[-1];
 my $top = <[trust.statement]>->( qw| parse_wire |, $owner_chain->[0] );
 my $owner_fp
     = ref $top eq qw| HASH |
-    ? <[trust.fingerprint]>->( $top->{'issuer_pub'} )
+    ? <[trust.key_id]>->( $top->{'issuer_pub'} )
     : undef;
 my ( $valid, $verify_why ) = ( undef, 'owner statement not parsable' );
 ( $valid, $verify_why ) = <[trust.verify]>->(
@@ -155,8 +155,8 @@ printf " :. owner %s\n :.       %s\n", substr( $owner_fp, 0, $half ),
 say " :\n :. v7-zenki adds it at its next delegation run [ daily ] or now :";
 say " :.   p7c v7-zenki.delegation-issue ::\n";
 
-#,,.,,...,..,,,,.,,..,,,,,.,.,,.,,,..,.,,,.,,,..,,...,..,,.,,,...,,,,,,,.,.,,,
-#VJ34HTSWAL5CGA3GV3C66TOH6LPRJCY6QKF4XEWPECDAD6Q2U43NUBRJ32OH5VVIGW2LY5ZUUVX22
-#\\\|32WLRL5L6Y74PPEWUOWTEBRUKCB6KWVGTY73R35S4EGL4RW23TA \ / AMOS7 \ YOURUM ::
-#\[7]UEX2RRDYIJVDX6FZ4ZXYBBD7VNCHRBE7AJ56AQKZ4TARPV4KVCDI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,...,.,.,,.,,,.,,,,,,..,,,,,,..,,...,...,.,.,,,.,,..,,..,..,,
+#OOAQUQRLKCBMGY5JTE5KJV66J5XCTN2QN4C6TXRUMMK6JRTKPJVBXVAJAOMPRCBTZXZIMP2CFIV7G
+#\\\|2HTADQ5UPQBVGLRJRBPBUHGTVK4IUCCWX5F55ZJQVXQIDGGZTLH \ / AMOS7 \ YOURUM ::
+#\[7]Z2W32DQZY56VZCITV62ZTRLWI3UOZGSHNN37RXXHFJYGOLW5AQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name   = trust.fingerprint
-# descr  = fingerprint of an Ed25519 public key [ the host-root pin ]
+# name   = trust.key_id
+# descr  = key id of an Ed25519 public key [ the host-root pin ]
 # param  = <raw 32 byte public key>
 # return = encode_b32r( bmw_384( key ) ) [ 77 chars ], undef if not valid
 
@@ -15,8 +15,8 @@ require Digest::BMW;
 
 return Crypt::Misc::encode_b32r( Digest::BMW::bmw_384($pub) );
 
-#,,.,,...,.,,,...,.,.,.,,,...,,,,,,..,.,,,...,..,,...,...,...,,.,,.,.,..,,,,.,
-#7HXVYWEFWIXKJQ255TX2X4Y2CQRKLB6A42DDGQVLXEERZWLJLEP3ORKP7ILSV6UW4RUMZP3GCR7HQ
-#\\\|AA7NUXWKDF43MJFYFA5PA75ACTN62G77UWZ23JIPMCLL7D7736Y \ / AMOS7 \ YOURUM ::
-#\[7]ZCPXSOJ6XAZN2IH6WSNLIJEE47ZMIZEQ755MDHJJ3SBH2EKTXICA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,,,,,,,,,.,,,,,.,.,,,,,,,,,.,..,,...,.,.,.,.,,,,,...,,.,,.,,,
+#2USGDQQWFFMGI65YBATUEFSTGHMRNAM56RRQZW47R7DJXHHMFS6E7JZH2RR3O6PUMHY5EOQQ3KYYI
+#\\\|3MSOJ6URZQC4WVXMZPPTDCX7JTQGKH5UEUCODDZCSHPZ5F3ADTO \ / AMOS7 \ YOURUM ::
+#\[7]NYADTWGPW7VNCYSOXY4Z7SF3TXFK2SDTYSO6MNBOLJ3TQZVOREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

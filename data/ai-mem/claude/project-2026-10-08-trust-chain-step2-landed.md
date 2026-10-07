@@ -30,7 +30,7 @@ the gap [ a certified sibling answering on another host's address ].
 
 1. LIVE CHECK part 1 PASSED 2026-10-08 [ v7-zenki restart ] : p-7-r
    recompiled on start, v7-zenki SigCgt bit 16 still set ; `p7c
-   host-root-fingerprint` [ the CUBE command is dotless -- NOT
+   host-root-fingerprint` [ now host-root-id ] [ the CUBE command is dotless -- NOT
    crypt.C25519.cmd.. , that answers 'client not present' ] 77 chars ;
    .dlg unchanged [ one 284 char leaf, no owner file ] ; `p-7-r
    localhost:42 list sessions` authenticated, the step 1 pin gained
@@ -44,6 +44,16 @@ the gap [ a certified sibling answering on another host's address ].
 4. host-edit zenka [ clone of user-edit ] + resilient initial transport
    types -- smooth 'add a host to the network' [ user direction ]
 
+## terms + store [ 2026-10-08, user agreed ]
+
+the 77 char bmw384 value is the KEY ID [ trust.key_id, `p7c
+host-root-id`, keys.key_id_arg, `<id>` ] -- NOT a fingerprint [ longer
+than the key ; kept as the fixed-size identity for future large key
+types ]. label = first 7 chars, recognition only. known/ [ pre host-root
+TOFU, old S keys ] archived as ~/.n/remote-keys/known.retired-2026-10-08,
+p7-tofu-helper.pl removed ; known_hosts_dir = servers/ ; `remove
+known:<host>` moves a pin aside [ was shred ].
+
 ## lessons
 
 - gen-sub-whitelist [ zenka ] regenerates subroutines.load-early -- they
@@ -56,4 +66,14 @@ the gap [ a certified sibling answering on another host's address ].
 #FT4TS4URQYH4B2CX7MP5QXXUNW6OO6H4LEWCNYYYED3YMY73BY3BRQLXAZP3IELRYYJSFGKK2UVUY
 #\\\|GFHWA7RLO3IZEAQLQK2XQCXL452AIXQHDXCJUHBKFIBKZOIFZFO \ / AMOS7 \ YOURUM ::
 #\[7]ZHKYTPILEDALOHSBDN5YTWEGKHII4QXE5ZSQ7QPHONZW7N6DGUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- I ran `p7-keys remove known:127.0.0.1` with output discarded as a
+  'probe' and it shredded a live pin [ restored byte-exact from an
+  earlier cat ] -- never invoke a destructive command to see what it does,
+  even with the output thrown away [ [[tool-probe-empty-args-destructive-default]] ]
+
+#,,.,,,,.,,,,,..,,...,..,,,..,,.,,.,,,,,,,...,..,,...,...,.,.,...,..,,,.,,,.,,
+#IPDDUQTIDBHTMNQWTAL457FOCLDFOCOOGIALB5OMR2FWEK3JXOUKX7JL7RQ6EDCSM3YVERQWVPXZ6
+#\\\|OGF5Z6YGPR5WZB3WI624SXSAXEBMGABJ3BYTWGO3BBNCWSNXOQB \ / AMOS7 \ YOURUM ::
+#\[7]SMMNJRF6QJU5NMNMTONEXAREWOAFWBNCMQLVX6QA2MNYKEQKSOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

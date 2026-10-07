@@ -1,77 +1,68 @@
 ## [:< ##
 
-# name  = keys.list_remote_keys
-# descr = collect and structure remote [hostkey] entries for display
-# return = hash of remote key info organized by hostname:port
+# name   = keys.list_remote_keys
+# descr  = collect the host pins [ servers/ ] for display \ remove
+# return = { <display name> => { hostname port key_id label name since
+#          file_path stem type } }
+#
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'pins' ] : <known_hosts_dir> =
+# ~/.n/remote-keys/servers, '<host>_<port>.public' -- line 1 the 77 char
+# key id of the host-root, line 2 the leaf name, line 3 since [ lines 2 \
+# 3 optional ]. label = the first 7 chars of the key id [ a hash : a
+# recognition label, NOT a verification -- compare the full key id ].
+# malformed \ symlinked files are skipped.
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
 my $known_dir    = $key_vars_ref->{'known_hosts_dir'};
 
-return {} if not -d $known_dir;
+return {} if not defined $known_dir or not -d $known_dir;
 
-##  Scan for known-host *.public files  ##
+my $default_port = 42;    ## hidden in the display name ##
 
 my %remote_keys;
-
 foreach my $file ( <[file.all_files]>->($known_dir)->@* ) {
-    next if $file !~ m|^.*/(.+)\.public$|;
+    next if $file !~ m|^.*/([^/]+)\.public$|;
+    my $stem = $1;
+    next if -l $file or not -f $file or not -r $file;
 
-    my $key_name = $1;    ## e.g., "localhost_42" from "localhost_42.public"
+    open( my $fh, '<', $file ) or next;
+    my @line;
+    foreach ( 1 .. 3 ) {
+        my $line = readline($fh);
+        last if not defined $line;
+        push @line, $line =~ s{\s+\z}{}r;
+    }
+    close($fh);
+    my ( $key_id, $name, $since ) = @line;
+    next if not defined $key_id or $key_id !~ m|\A[A-Z2-7]{77}\z|;
 
-    ##  Read key file  ##
-    next if not -f $file or not -r $file;
+    ## '<host>_<port>' [ ':' was stored as '_' ] ##
+    my ( $safe_hostname, $port ) = $stem =~ m|^(.+)_(\d+)$|;
+    next if not defined $safe_hostname;
+    ( my $hostname = $safe_hostname ) =~ tr|_|:|;
 
-    my $key_content = <[file.slurp]>->($file)->$*;
-    next if not defined $key_content or not length $key_content;
-
-    chomp $key_content;
-
-    ##  Parse format: NTIME_B32:PUBKEY_B32  ##
-    my ( $ntime_b32, $pubkey_b32 ) = split m|:|, $key_content, 2;
-
-    next
-        if not defined $ntime_b32
-        or not defined $pubkey_b32
-        or not length $ntime_b32
-        or not length $pubkey_b32;
-
-    ## Extract hostname and port from key_name  Format: hostname_safe_port ##
-    ## (e.g., "localhost_42", "fe80__1_42" for IPv6) From                  ##
-    ## hostname_port.public, extract hostname_port part                    ##
-
-    my ( $safe_hostname, $port ) = $key_name =~ m|^(.+)_(\d+)$|;
-
-    next if not defined $safe_hostname or not defined $port;
-
-    ##  Restore original hostname (reverse the unsafe char replacement)  ##
-    my $hostname = $safe_hostname;
-    $hostname
-        =~ tr|_|:|;    ## primary restore (colons for IPv6 and unsafe chars)
-
-    ## Store remote key info with smart display name  Hide port if it ##
-    ## matches default (42) to reduce clutter                         ##
-    my $DEFAULT_PORT = 42;
     my $display_name
-        = ( $port == $DEFAULT_PORT )
+        = $port == $default_port
         ? $hostname
         : sprintf( '%s:%d', $hostname, $port );
 
     $remote_keys{$display_name} = {
-        'hostname'   => $hostname,
-        'port'       => $port,
-        'pubkey_b32' => $pubkey_b32,
-        'ntime_b32'  => $ntime_b32,
-        'file_path'  => $file,
-        'stem'       => $key_name,    ## e.g. "localhost_42" [ raw filename ##
-        ## stem, alt. lookup key for remove  ] ##
-        'type' => 'hostkey'
+        'hostname'  => $hostname,
+        'port'      => $port,
+        'key_id'    => $key_id,
+        'label'     => substr( $key_id, 0, 7 ),
+        'name'      => ( defined $name and length $name ) ? $name : undef,
+        'since'     => $since,
+        'file_path' => $file,
+        'stem'      => $stem,        ## alt. lookup key for remove ##
+        'type'      => 'host-root'
     };
 }
 
 return \%remote_keys;
 
-#,,..,,,,,,..,,.,,..,,,,,,,,,,...,.,,,..,,..,,..,,...,...,.,.,.,.,,,.,..,,..,,
-#MOVLJK4ORGHOWYHXLCD4JKDBCPTXUXJSSRL7P4RDJM4JEJXHNPZ7UWZFKFOGK6TMKFEA66K6XYPXM
-#\\\|KPG7BZMWUJEGULQZRUQFXCSG5XHNUWFLP5TRIHV6X76SSFPEIL3 \ / AMOS7 \ YOURUM ::
-#\[7]BZ6KSJFEJQV2SDHX33WDI2WQOOR5FL3GZ6YY54YNJE4LTM35ESBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,,.,,.,.,.,.,.,.,,,.,,.,,..,,..,,...,...,,.,,,.,,..,,,,,,.,,,
+#G4MNTWMHKCQFGKN2BHVRJ7DINDGODSCMKCSYZV6FUSYGNEXHZXYJ6UEUY3PA5RPRANYWTENYZO3XQ
+#\\\|GKNVP3HPRV2J5DYTTWELICW6ILPEEGTOO6QHJHG4EZ3VQJHBNQE \ / AMOS7 \ YOURUM ::
+#\[7]YQ5D7YWLBXDXTSQO55UZSZR6OKLQLKB4GQ3DQOCXYIAWCCZPIABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

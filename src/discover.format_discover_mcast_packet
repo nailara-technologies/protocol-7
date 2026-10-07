@@ -71,7 +71,7 @@ if ( ref $chain eq qw| ARRAY | ) {
         my $st = <[trust.statement]>->( qw| parse_wire |, shift );
         return
             ref $st eq qw| HASH |
-            ? <[trust.fingerprint]>->( $st->{'issuer_pub'} )
+            ? <[trust.key_id]>->( $st->{'issuer_pub'} )
             : undef;
     };
     my $check = sub {
@@ -165,8 +165,8 @@ if ( not defined $signature_str ) {
 return sprintf "%s%s\n", $packet_str,    ## appending packet signature ##
     Crypt::Misc::encode_b32r($signature_str);
 
-#,,,.,..,,...,...,..,,..,,.,.,,.,,,..,.,.,.,.,..,,...,...,...,.,,,.,.,..,,.,,,
-#XSRGZ24WWZRICP3XO5LO5BSSQ2OQHNUQ7K2SPW5OG6D5E73BSJQGH23XNSA6LNZOMBFV6JFMHFCPK
-#\\\|K7F6QZEKGGFWO6QNZVGW3H57JRNMUV6UO5LZ5VZELWY5GICOFHT \ / AMOS7 \ YOURUM ::
-#\[7]DSL4XZUFNKK7MXMUSAVHSHNI44YOTL32RVGXNVFZQYHXPQQP5MAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,..,,.,,..,,..,,.,.,.,.,,..,...,..,,...,...,.,.,,,.,..,,,,,,.,,,
+#4GJ7UEEPZCLI2TLODNUTOXON7ZMTNHSRDZ7XBMKSVZGRONWXY6IUXCFODMUIH5JNG4ICZ7KBNFK3Y
+#\\\|S5B5NNL5I3NMCXRYR45VZQTXUAD5GA77VVCQQRWNAENZ65I7GJK \ / AMOS7 \ YOURUM ::
+#\[7]KKW4QNB3I36S4GE4CM6SRENOCLJMYXJ7HGMYL2AUB4B33A5PUQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
