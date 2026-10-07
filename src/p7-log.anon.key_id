@@ -1,0 +1,25 @@
+## [:< ##
+
+# name   = p7-log.anon.key_id
+# descr  = one-way id of an anon key [ which key wrote a table ]
+# param  = [ <archived key name> ] [ none : the current key ]
+# return = 26 char base32 id, undef [ no usable key ]
+#
+# stored next to a table as <table>.key : store never appends under
+# another key, anon.archive-table checks the named key wrote the table.
+# derived from key32 with its own label -- reveals nothing about it.
+
+my $key32 = <[p7-log.anon.key]>->(@ARG);
+return undef if not defined $key32;
+
+my $id_input = $key32 . qw| .:log.anon.key-id.v1:. |;
+my $id       = AMOS7::13::key_32( \$id_input );
+return undef if not defined $id or length($id) != 32;
+
+return substr( Crypt::Misc::encode_b32r($id), 0, 26 );
+
+#,,,.,,..,,.,,,..,,,.,,,,,...,,.,,...,,,,,,,.,..,,...,...,.,,,,..,...,,,.,,.,,
+#TQPB3XVJPPLXFJ7KWLS5WBY7J552VEUCJT547S7DH4XXEKDFSGZMTKZMFLX72U6KA25VVIHWR62Z6
+#\\\|4XB5O4PL5EZDO7CNE7AQWLFCJOB3RYOSNG2GFMKMXM4AZKCCC7L \ / AMOS7 \ YOURUM ::
+#\[7]XLPFXL6QG22OC36MDQQU525X36AFIOKH62L7Q6OBFOFW4YK22IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

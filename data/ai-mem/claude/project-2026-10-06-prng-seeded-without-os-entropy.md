@@ -101,3 +101,11 @@ related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 #\\\|YMMEAS3F4XZZM5IK3OH5KF4GJ5ZOA7HSDUFQL2I7PJHL4Z5C2WI \ / AMOS7 \ YOURUM ::
 #\[7]MFZQ5E6QNY6MLUJR33FN3XE4O2EZ7WYBYD4QCOPCUNEWNT5FWIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**2026-10-07 regeneration :** `taeki.base` regenerated [ `p7-keys remove taeki.base` + `p7-keys create -U taeki.base`, unencrypted as before -- p-7-r signs non-interactively ] ; cube's pin `remote-keys/incoming/taeki.public` replaced as protocol-7 + cube `reload plugins` [ needed e94d28c39 : authorized keys were load-once ] -> p-7-r login verified. `protocol-7.base` still OPEN : it is now cube's S [ .dlg ], test-auth-keypair [ symlink ] AND the p7-log anon key -> rotate : p7-log reloaded FIRST [ adopts table.bin under the current key id, table.bin.key ], `p7-keys rename protocol-7.base protocol-7.base-anon-<date>`, `p7-keys create -U protocol-7.base`, `p7c p7-log.anon.archive-table protocol-7.base-anon-<date>` [ checks the key id, refuses a wrong name ], restart v7-zenki -> .dlg reissued. store refuses a table written under another key [ no silent mixing ].
+
+#,,.,,,..,,..,,..,.,.,,.,,.,,,,,,,,.,,,..,,..,..,,...,...,...,.,.,,.,,,,,,,.,,
+#UASJDM2D43GE3UE5MZFG7RDR5NDGNTOKYZ3VGFO3YPXAXYJLPXN6B2MH3ZVLY7YYJHEFOHYW7J3AC
+#\\\|IPEJGYRJDCEJJXQOIWGQGCZN2SE5ULOCFMUKGRIABBNSWSFQVS4 \ / AMOS7 \ YOURUM ::
+#\[7]AOBE5P53DRIZ7YNPT3L36EMJTXGX7R7KSBXVESEYNKACCMOEAWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
