@@ -269,6 +269,7 @@ sub reset_receiver {
     delete $data{'discover.host-root'};
     delete $data{'discover.host-root-log'};
     delete $data{'discover.ntime_watermark'};
+    delete $data{'discover.nodes-trust'};
     @logged     = ();
     @complaints = ();
     @nodes_sent = ();
@@ -453,6 +454,39 @@ reset_receiver();
 }
 
 ######################################################################
+say ': nodes gets trust CHANGES of a host that stays online';
+
+clear_pins();
+reset_receiver();
+{
+    my $args = sub { $nodes_sent[ $ARG[0] ]->{'call_args'}{'args'} // '' };
+
+    $code{'discover.process_incoming_packet'}->( make_packet( dlg() ), 2 );
+    ok( @nodes_sent == 1 && $args->(0) eq "online testhost $hr_fp offered",
+        'first packet : nodes told [ offered ]' );
+
+    $code{'discover.process_incoming_packet'}->( make_packet( dlg() ), 2 );
+    ok( @nodes_sent == 1, '  :.. same trust again : nothing sent' );
+
+    write_pin( 'testhost_42', $hr_fp );
+    $code{'discover.process_incoming_packet'}->( make_packet( dlg() ), 2 );
+    ok( @nodes_sent == 2 && $args->(1) eq "online testhost $hr_fp pinned",
+        'root pinned meanwhile : nodes told [ pinned ], no re-appearance'
+    );
+
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( dlg( issuer => [ $fr_pub, $fr_priv ] ) ), 2 );
+    ok( @nodes_sent == 3 && $args->(2) eq "online testhost $hr_fp invalid",
+        'root changed : nodes told [ invalid ] with the OLD root_fp'
+    );
+
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( dlg( issuer => [ $fr_pub, $fr_priv ] ) ), 2 );
+    ok( @nodes_sent == 3, '  :.. repeated changed root : nothing sent' );
+}
+clear_pins();
+
+######################################################################
 say ': the old .sig.* lines are gone from the packet';
 {
     my $packet = make_packet( dlg() );
@@ -501,8 +535,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,..,,,,,,.,,,.,,,,.,,,.,,.,,,.,.,,..,.,.,..,,...,...,.,,,..,,...,,..,.,,,
-#JFPOVVVOZWYFPQCORSQ25UB6TYXZAIZQYUGYFWBMOQIJ66NBQ2EKAFSDHF7NL5ZCM4L67VGBP5LTG
-#\\\|JLR3KDY5OGINMEEGGDWBBY5QOWN3OD2G44ABZTA564QARFKOZBU \ / AMOS7 \ YOURUM ::
-#\[7]TLHJNBHRPTY6TWP3PJWQ2LJKTDI7YYK4RCQYKC6ML4CRUJKN3UCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,.,,,.,,,...,,,,,.,.,...,.,.,..,,...,...,,..,,,,,,,,,,.,,,..,
+#5JXFH3JMN5U7OMSUOFUQO2ESD3JOFP4SJWMVMRGHKFCZXM2DIXLMDXJ2P44MNIRRIF23MIUTL2BJY
+#\\\|VKIMRDSPSL2KKRYVDJDDA7UQZM7VN6SSBR6FR54MVEQHXCEC2YG \ / AMOS7 \ YOURUM ::
+#\[7]UNPG5DB4347IDAIB4JDELPKVKZLGKTY5FQ277PO45QXCMESIS6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
