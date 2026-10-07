@@ -66,17 +66,16 @@ delete <p7-log.anon.token_key>;
 delete <p7-log.anon.seen>;
 delete <p7-log.anon.key_mismatch_logged>;
 
-<[base.logs]>->(
-    0,     'p7-log.anon : table archived under key %s [ %s ]',
-    $name, $archived
-);
-return {
-    'mode' => qw| true |,
-    'data' => "archived under '$name' : $archived"
+## short at level 0 ; the archived table path at level 2 ##
+<[base.logs]>->( 0, 'p7-log.anon : table archived under key %s', $name );
+<[base.logs]>->( 2, ' :. %s',                                    $archived );
+return {    ## two lines : size mode [ as p7-log.cmd.resolve ] ##
+    'mode' => qw| size |,
+    'data' => "archived under '$name'\n :. $archived\n"
 };
 
-#,,..,,,.,..,,..,,.,,,...,.,,,.,,,.,.,.,,,..,,..,,...,..,,.,,,.,,,...,...,.,,,
-#LHOUK3LSB6EEE3Q3IG3DV67EI3SIVVXIN7TEVDA4LRO3K3YX6NRP45RCMX3GAM4CWOZA25R64D5WW
-#\\\|SBCZE63TW677N7DPBPLX2NZJXCUBO55D76UQN4QZTGL2MORRKOJ \ / AMOS7 \ YOURUM ::
-#\[7]UPHAL6VOLMZAIGKE4PTDQETB5GJWZVSLNQNVULYO6DJ6727IYEDI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,...,.,,,..,,.,.,.,.,,,,,,.,,..,,...,..,,.,.,,,.,,,.,,,.,..,,
+#DWDNZW3ZPGA7GLKU5MB7RLE7TTMMWXEAKQNXUNMP2ANOLX3HBUTZ6KRZDD4NQ3DNCRNTJLKF4DXU2
+#\\\|RQYJBYW5SUOD2A5CUYSIWVO4IUCHLPAVSG3IZY53LSFCT5NOHIS \ / AMOS7 \ YOURUM ::
+#\[7]G2INYWGDUUOUBYD7YOUHOULU6SE7GOPP2APJQIN47BIGDZA7U2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
