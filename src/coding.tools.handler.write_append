@@ -41,7 +41,7 @@ return "error: file does not exist [ $path ]" if !-f $abs_path;
 my $chmod_fh = <coding.chmod_child.w_fh>;
 my $mode_restore;
 if ( !-w $abs_path and defined $chmod_fh ) {
-    my $cur_mode = ( stat $abs_path )[2] // 0644;
+    my $cur_mode = ( CORE::stat $abs_path )[2] // 0644;
     $cur_mode &= 07777;
     print {$chmod_fh} "gw $abs_path\n";
     my $gw_reply = <[coding.chmod_child.readline]>;    ## wait for gw ##
@@ -82,8 +82,8 @@ return sprintf "staged append to %s [ %d bytes, "
     . "no write access ]\nstaged at: %s",
     $path, length($content), $stage_rel;
 
-#,,,.,,,,,.,,,,..,...,,.,,,.,,.,.,...,,,.,,.,,.,.,...,..,,,.,,..,,,.,,.,.,,,,,
-#GCBV2DCJXGLPYXB5AVKN63MW3R3HOCFQGAM4T5QLOI6UWKXDY22CYWAQ6KBUNP722SX6PXSYDJC3E
-#\\\|FONS5AT7T7Y53F3NRJFNS7YEYUPRT3SX3G2FCTPRKUILARECLG3 \ / AMOS7 \ YOURUM ::
-#\[7]NYJ5ZPBASV72SNOOODPU4GATHDBIZSLGMSC4EV6BJSMOCQBKHCCI 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,.,.,,,,,,..,...,,,,,.,.,,,.,.,.,...,...,..,,,..,...,,.,,...,
+#V5Y73OVFZDAW7NBQMSGP74U27MRWVQ3XCEYKWSQLIOZ6S24K7MEJFNFOJHCDIXDY6F7Q2V574WUT6
+#\\\|DVN3EA7GMRH6N2WYV2YL6XD3PSQTCYJF6P7UCEJDUXTSFINAF3S \ / AMOS7 \ YOURUM ::
+#\[7]OGPTUP32GEC6SYUHUOKTXXHYXA6YYSF65STCGXXUNMWXXMRQ66DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

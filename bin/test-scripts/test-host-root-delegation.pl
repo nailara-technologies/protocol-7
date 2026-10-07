@@ -88,6 +88,9 @@ sub compile_module {
     ## the running identity is a test variable here ##
     $src =~ s{\$EUID\b}{\$main::fake_euid}g;
     $src =~ s{\$EGID\b}{\$main::fake_egid}g;
+    ## sources call CORE::[l]stat [ production imports File::stat ] : route ##
+    ## them to the faking overrides below                                   ##
+    $src =~ s{\bCORE::(l?stat)\b}{CORE::GLOBAL::$1}g;
     my $translated = p7_syntax__translate($src);
     my $cref
         = eval "sub {\n$prefix\n# line 1 \"$module_name\"\n$translated\n}";
@@ -1213,8 +1216,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,,.,,..,..,,,,.,,.,,,..,.,.,,,,,...,.,,,..,,...,...,,,,,,,.,.,.,,,,,,.,,
-#6MB3FHSHKN5SEJ5FSXF2THSPD33R63ZRUOWBJTJZRB7KPGO72LMMZUAIKU6LLJ26T4NHG4P772RHI
-#\\\|ULXH2KJPWPHCBTMFAU2V5YTGSY5ZTDC3DLSZPBHNINR4BZO3B6J \ / AMOS7 \ YOURUM ::
-#\[7]KCSMPUUQUKB2OON5LFMNNTLIZF4NLKYOPLIPQACPN3CAVTOJPYDQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,,,,,.,,,,,,,,.,...,,..,...,..,,...,...,.,.,.,.,...,.,,,.,,,
+#CQLJUEB6JAWKK6TEOYSHABEHAO25IY5WKK7VR2WV46Q7LP3NSNJX32U2OSCUPLMS2IPJAJLJD2GAY
+#\\\|NREL4UVQ2DLDFEOTO75X2YKHCBQGZGRW2B7XFL3T2PRVKXRBJ6S \ / AMOS7 \ YOURUM ::
+#\[7]KCZ6XYIY3QUI6VG5RHDA7VGXSMZ76S25VVL2FESNS7AKQ4CHN6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,7 +54,7 @@ my $sql
 ## owner -- a WAL mode reader creates missing -shm \ -wal files, and        ##
 ## root-owned ones would lock the owner's own process out                   ##
 my $run_as    = '';
-my $db_owner  = ( stat $db_path )[4] // 0;
+my $db_owner  = ( CORE::stat $db_path )[4] // 0;
 my $owner_str = getpwuid $db_owner;
 $run_as = qq{/usr/sbin/runuser -u "$owner_str" -- }
     if $EUID == 0
@@ -124,8 +124,8 @@ for my $m (@$models) {
 
 return \@filtered;
 
-#,,..,,,.,..,,..,,,.,,,..,.,.,.,.,,,,,,..,.,.,.,.,...,...,...,.,,,,,,,...,...,
-#3DIEQBY5LEG4ODNKABC7VLWF7ZLTBCMKUMXCWFWTUZOI5V7UM54HLM5OPFEATTAHQAB3FROGWJ5RO
-#\\\|6V2P3LBZRMDHSJYMSC3IJDL5YFSGG4NAN5625N2YEWJQJS2J36Y \ / AMOS7 \ YOURUM ::
-#\[7]H7SVWT653QG4MHO6FBYFGHGBJAXCTS3KY2DLYZGSXUQU43AZT2CY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,...,..,,,,,,,..,..,,.,,,,,,,.,.,...,...,.,,,,.,,...,.,.,.,,,
+#WQBFZ7UFLGALT7QLKOEMNB36K4N4WM5RPVGHGAMZ3WQRJ2M6X3WBXWMOFDVRZYDPOJ4HD3GNVLADI
+#\\\|BGAJ6FDCX3S3PXFZHMKVLJVRXGDEOFHMKLFMQ5SKKSD4AIRSCFI \ / AMOS7 \ YOURUM ::
+#\[7]4F3QIAJTHW7OXOYZ3QIJEGHBGTC6TP75LRWDWT33XD7J7BEFTMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

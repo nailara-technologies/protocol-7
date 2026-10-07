@@ -92,7 +92,7 @@ foreach my $domain (@domains) {
 
     ##  load + memoize domain vectors [ token => [ vec, norm ] ]           ##
     my $cache     = <openvas.enrich.vec_cache>->{$domain};
-    my $vec_mtime = ( stat $vec_path )[9] // 0;
+    my $vec_mtime = ( CORE::stat $vec_path )[9] // 0;
     if ( not defined $cache or $cache->{'mtime'} != $vec_mtime ) {
         $cache = { 'mtime' => $vec_mtime, 'token' => {} };
         open( my $vec_fh, qw| < |, $vec_path ) or do {
@@ -230,8 +230,8 @@ return {
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,,,,,,.,.,.,.,.,...,...,,,,,,,.,.,,,,.,,,,,,..,,...,...,..,,,,.,.,,,..,,,,.,
-#RUU7IBSOWMPP7JJZBATZOK7HCKEG4KHW7VC73Q7HT7JIDU55HEYF6ULKO7Z3U7IKN55RZBB6BLVOQ
-#\\\|B25J26VIQVRHE6MBU4YZRBZKZCDFGANDDLLRMVIO5LRIXYAGVZJ \ / AMOS7 \ YOURUM ::
-#\[7]ZC2UCJHOBWXPGUF5YVV3WSKPP54FV4AFCCSYOZHMZCK4XBHLDOBY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,,,,,,,,,.,.,.,,,.,.,,,.,...,..,,...,...,...,.,,,,,.,,.,,.,,,
+#X5VF5GX2THL7RRYGZR4BS5UK2JHZSMOFEHACIULPFLYEBT62BNCZ567SMI2F2BDUEOP377S3NPYZE
+#\\\|NVSDNVVR6PTM73GVZBFHJNDXOGGLW6NZGYWESV4VASYXHET437V \ / AMOS7 \ YOURUM ::
+#\[7]TKYG5T2LOUCP65CPDV3JQLRY2JRUAXD4SLKPXE5YSGWNESJ3EADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
