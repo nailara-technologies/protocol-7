@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [project-2026-10-08-trust-chain-step2-landed](project-2026-10-08-trust-chain-step2-landed.md) — trust chain step 2 LANDED [ 859a69f04, 22bc35644 ] : chains on the wire, name-bound pins + forward rotation, owner \ distrust tools, discover owner trust ; NOT live-checked [ v7-zenki restart ] ; next host-edit zenka + initial transports
 - [project-2026-09-20-model-sweep-crash-bucket-resolved](project-2026-09-20-model-sweep-crash-bucket-resolved.md) — cross-backend sweep lock fix (7003d1345) live-verified; 25 models deleted, 103GB freed; crash bucket classified. New models.cmd.delete-model/trash-list/trash-rescue/trash-prune/protect/unprotect tooling built+live-verified (trash-based, path-escape-protected). Also: switch_model_reply YAML/$1-clobber/fail-fast fixes, libsdl-perl deps fix. Still open: coding.cmd.model-sweep-test <checksum> targeted retest, not built
 - [project-2026-09-20-model-sweep-unresolved-bucket-and-bzpo73q-final](project-2026-09-20-model-sweep-unresolved-bucket-and-bzpo73q-final.md) — follow-up same day: 3 more models deleted (CNTO5UA/ZIZEKAI/XF2GMAI, 18.85GB), BZPO73Q rescued then permanently deleted 2026-09-21 (trash purged) — disk math now reconciles exactly, ~126GB total freed 09-17..21, not the ~180GB first eyeballed. gguf metadata string-array bug + fetch_model_discovery wrong-command bug fixed. mcp-p7-command-async-parity.md / model-batch-test-harness doc's earlier kimi dispatches were design-only, no code landed until 2026-09-21
 - [project-2026-09-21-model-batch-harness-implemented](project-2026-09-21-model-batch-harness-implemented.md) — model batch-test harness implemented (21 new modules, kimi k2.8, checksum-native zero-git capture/revert per owner's option-D design), 49/49 stub tests independently re-verified, in `data/tasks/needs-testing/` (no live-backend exercise yet). 4 open correctness questions logged, nothing committed
@@ -174,8 +175,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,..,,.,,.,,,.,,,.,.,,.,,,..,...,.,.,...,,,,,..,,...,...,,,.,,,.,,,,,,..,.,,,
-#L4BC25NEDSOCU6AYKPFWM2TMMAFASRZQV2WE7RRXL42ICLPHAUCZFZNK7BIOEVRHTZI4Z52LENH4U
-#\\\|U7WJMEUWXXXDB37LJZD75U7Z4A7EE7Y2EXUMCUWPBLPVYZREF57 \ / AMOS7 \ YOURUM ::
-#\[7]G3SHW4TYVNG7BHBDMKR2L6PKT2A4F2LEFFGOQQVJRZQB5JYPOYCI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,..,,.,.,.,,,,,.,...,,,.,.,,,..,,...,...,,,.,.,,,..,,..,,.,.,
+#G3HK25BHTOAFLQQKX7P6CUY5CIXGQBUVIWW3DM6YIL73FBPYNN3AOL7GPYL2NS2JK6FLKREHQVVKK
+#\\\|QF77GXROU6CQVAFGE4B46CXJFRNPG5PYFK2PXBPL77F4MDSXVDI \ / AMOS7 \ YOURUM ::
+#\[7]H2YB6P7PQI3GQFLMZENYKNVUN4JV3SZT2D4G2KUBNACQCWFTWYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
