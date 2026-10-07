@@ -11,7 +11,7 @@ my $key_name = qw| default |;    ## <-- todo [LLL] ##
 
 <discover.received_packet_count> //= 0;
 <discover.buffer.input.mcast>    //= '';
-my $packet_buffer_ref = \$data{'discover'}{'buffer'}{'input'}{'mcast'};
+my $packet_buffer_ref = \<discover.buffer.input.mcast>;
 
 my $packet_buffer   = '';
 my $read_size       = 64512;     ## 63K read size ##
@@ -45,7 +45,7 @@ if ( length $packet_buffer_ref->$* and $discover_packet_start_pos == -1 ) {
 
 while (
     $packet_buffer_ref->$* =~ m{^\[:<\|[A-Z0-9_\-\.]{3,24}\|[A-Z2-7]{52}\n(?#
-        )( {3}dlg:[A-Z2-7]{1,2048}\n)?(?#          host-root delegation field
+        )( {3}dlg:[A-Z2-7.]{1,2048}\n)?(?#     delegation chain field [ . ]
         )( {6}[^\n]+\n)+(?#                        packet payload lines
         )[A-Z2-7]{11,15}:[A-Z2-7]{103}\n}    #  timestamp  :  packet signature
     ) {    ##  valid packet payload [complete]  ##
@@ -74,8 +74,8 @@ if ( length $packet_buffer_ref->$* ) {
     }
 }
 
-#,,..,...,,,,,.,,,,.,,,..,,,,,.,.,,,.,...,,,.,..,,...,...,,..,,,.,,,.,,.,,...,
-#LQI3NBPRZFOYP2DAA6DFNHBIY3A3QRV3CUG7W4H5JD7PMON7YXE3JT5JULU4XEBCEPZ6GWZBL57HK
-#\\\|3S4J2XJOZA6N4RIDKGIPK6FQ2PNCGL52MSXSE3KUQOGSS7POKZN \ / AMOS7 \ YOURUM ::
-#\[7]Z333UAFKLRFJHRPTLTM652MCXODK3AAXCEJCQERU5QNPTLWWECAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,,..,.,,,,..,,.,,,.,,.,.,.,.,..,,...,...,,..,,,,,..,,..,,,,.,
+#INTKD343NCB4JILDV3QFTJZNIDZWDL7C5QVCTL6NK4LBYK7XYTQQK2F36ZHY4TARQOXHI3YTLEDT4
+#\\\|GMFFYS7KX64BPYACL3YI4CQW6WHZ26B2CXJGGHYMCOPXJVOZ2DB \ / AMOS7 \ YOURUM ::
+#\[7]GLW6NHA5FZRWCD5VLYKYUGYGW2L3PB7SUX7IUL7PHLGLIY3EI4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

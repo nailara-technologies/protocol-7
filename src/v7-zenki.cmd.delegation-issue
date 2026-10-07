@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.delegation-issue
+# descr = re-run the host-root delegation now
+# note  = e.g. after keys accept-owner
+
+## v7-zenki.delegation.issue keeps a current leaf and rewrites the .dlg ##
+## only when its content changes [ an owner statement added \ dropped ] ##
+
+my $issued = <[v7-zenki.delegation.issue]>;
+
+return {
+    'mode' => $issued ? qw| true | : qw| false |,
+    'data' => $issued
+    ? 'delegation current [ see the log for the chain state ]'
+    : 'delegation NOT issued [ see the log ]'
+};
+
+#,,..,..,,.,.,.,,,,,.,,,.,...,.,,,,,,,,.,,,.,,..,,...,...,...,,,,,,,.,,,.,..,,
+#TX7VLYHAXU4SMNVQ3WXSGX6LC4UABRRSSFQTXURZK2XO54D2OXQ5GB77MV7JCO2TIRZXNAZC24VJU
+#\\\|PFEZHD5XYZO62KOAH4FXNJKUTXQCLM7DX3PZKZ5QUZJ5SEJSVYQ \ / AMOS7 \ YOURUM ::
+#\[7]ROPAUIKVVPKD4ZPXLWJPG6VX6V6L42YDL7Y4JNJIVE64ULVMJGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

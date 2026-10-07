@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = keys.store_note
+# descr  = print which user's pin store a command used [ + the hint ]
+# param  = <path> [ the store dir \ file the command read or wrote ]
+#
+# the client pin store is PER UNIX USER : p-7-r reads its runner's ~/.n ;
+# zenka links [ external, users, discover ] read the backend user's. a
+# pin \ distrust made as the wrong user protects nothing on the other
+# side -- every write says where it went.
+
+my $path = shift // '?';
+
+my $user = getpwuid($EFFECTIVE_USER_ID) // $EFFECTIVE_USER_ID;
+
+printf " :. store %s [ user %s ]\n", $path, $user;
+say " :. zenka links [ external \\ users \\ "
+    . "discover ] use the backend user's store :";
+say " :.   run this as that user too [ e.g. sudo -u protocol-7 p7-keys .. ]";
+
+return TRUE;
+
+#,,..,,..,,,.,.,,,,.,,,.,,.,.,.,,,.,,,,,,,,..,..,,...,...,.,,,,..,,..,,,,,.,.,
+#UCKOXDA6ZHQ2VRV7SHFJJ633HZ2PQE43Y5MFCMFFHFTJ63TCCXWHXYYBP6QFZVOE35RCLDNSZ3E46
+#\\\|O75OIQJMGKETVVQRDWZX7UIEPHSRGVHTWTKAB4TSQG5ZRZOD4JQ \ / AMOS7 \ YOURUM ::
+#\[7]77VY3PIH6O4DM2RYNMPRGLAKCZJJPYCJ5NPG6NIA5TGSZG52NGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

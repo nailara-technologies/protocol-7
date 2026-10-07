@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = keys.console.owner-pin
+# param = <name> <fp>
+# descr = pin an owner root [ trusts every host it certifies ]
+# note  = <name> a local label , <fp> the owner's 77 char fingerprint
+#         or 52 char public key ; ~/.n/remote-keys/owners/<name>.public
+#         [ data/md/design/TRUST-CHAIN-STEP2.md 'pins' ] -- the ONLY way
+#         an owner pin is made
+
+my ( $name, $key_arg ) = split m|[\t ]+|, shift // '', 2;
+
+if ( not defined $key_arg or not length $key_arg ) {
+    say "\n  << expected '<name> <fingerprint | public key>' >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+if ( $name !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z| ) {
+    printf "\n  << owner name '%s' not valid [ A-Z a-z 0-9 . _ - ] >>\n\n",
+        $name;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my ( $fp, $why ) = <[keys.fingerprint_arg]>->($key_arg);
+if ( not defined $fp ) {
+    printf "\n  << %s >>\n\n", $why;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my ( $owner_dir, $dir_why )
+    = <[keys.remote_keys_dir]>->( qw| owners |, TRUE );
+if ( not defined $owner_dir ) {
+    printf "\n  << %s >>\n\n", $dir_why;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $pin_file = catfile( $owner_dir, "$name.public" );
+
+if ( -e $pin_file or -l $pin_file ) {
+    my $current = '';
+    if ( open( my $cur_fh, '<', $pin_file ) ) {
+        $current = readline($cur_fh) // '';
+        close($cur_fh);
+    }
+    $current =~ s{\s+\z}{};
+    if ( $current eq $fp ) {
+        printf "\n  << owner '%s' is already "
+            . "pinned to this fingerprint >>\n\n", $name;
+        <[base.exit]>->(qw| 0010 |);
+    }
+    printf "\n  << owner '%s' is pinned to another "
+        . "fingerprint -- 'owner-unpin %s' first >>\n\n", $name, $name;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+require Fcntl;
+my $fh;
+if (not sysopen(
+        $fh,
+        $pin_file,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0600
+    )
+) {
+    printf "\n  << cannot write '%s' [ %s ] >>\n\n", $pin_file,
+        <[base.str.os_err]>;
+    <[base.exit]>->(qw| 0110 |);
+}
+if ( not print {$fh} "$fp\n" or not close($fh) ) {
+    my $os_err = <[base.str.os_err]>;
+    unlink($pin_file);
+    printf "\n  << cannot write '%s' [ %s ] >>\n\n", $pin_file, $os_err;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $fp_half = int( ( length($fp) + 1 ) / 2 );
+printf " :\n :: owner '%s' pinned\n :. %s\n :. %s\n :\n", $name,
+    substr( $fp, 0, $fp_half ), substr( $fp, $fp_half );
+say " :. every host this owner certifies is now trusted on first";
+say " :. contact -- compare the fingerprint out of band";
+<[keys.store_note]>->($owner_dir);
+say " :.\n";
+
+#,,,.,..,,,..,.,,,..,,..,,,,.,,,,,..,,.,.,.,,,..,,...,...,.,.,..,,,..,.,,,..,,
+#3JI4DQZ46IKI6NL576GQQJPOVIT6AOSO2C5KSI2DMOO46NQ2E4YJPUVAUCQ5VWG37BLP6B2UJOW2Y
+#\\\|NKB2OTE3PGZRQQOXZBRI57MFH2JW2W3BT5TAHRF4BETD5UWMABW \ / AMOS7 \ YOURUM ::
+#\[7]4TID7BH2QROE2TQFRMIRXLOAJMWYFWHSS7YVE4KDRW36SEWOVWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

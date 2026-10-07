@@ -40,6 +40,16 @@ foreach my $param_key ( <[base.reverse-sort]>->($host_details_ref) ) {
         ## printed verbatim : a case-sensitive delegated name and the ##
         ## lowercase trust vocabulary must not be uppercased          ##
         $param_value = $host_details_ref->{$param_key};
+    } elsif ( $param_key eq qw| owner_fp | ) {
+        ## the owner anchor : verbatim as well, in two halves at the same ##
+        ## column the root_fp line uses                                   ##
+        my $fp_half
+            = int( ( length( $host_details_ref->{$param_key} ) + 1 ) / 2 );
+        $param_value
+            = substr( $host_details_ref->{$param_key}, 0, $fp_half ) . "\n"
+            . sprintf( '%*s   %s',
+            $key_len, '',
+            substr( $host_details_ref->{$param_key}, $fp_half ) );
     } else {
         $param_value = uc $host_details_ref->{$param_key};    ##  display  ##
     }
@@ -48,8 +58,8 @@ foreach my $param_key ( <[base.reverse-sort]>->($host_details_ref) ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_string };
 
-#,,..,,,,,,,,,,,,,,,,,,,.,,,,,..,,..,,,..,...,..,,...,...,...,,,.,...,,,,,..,,
-#N7IJEWDGBP3K7TOMU7ZOQV2UVFOJHA2XTAZMDM55CXIU2D552ZEZUAZAN3F7DPMQDYBHQFMFIGJIQ
-#\\\|RMEOY3BKWR2UVCP2I5WKZL7TWPQNOLARMWAOXQFOGNV3ZWD4BH4 \ / AMOS7 \ YOURUM ::
-#\[7]AYIBRYMK6TWJOXHJAFDAM3L5EBNGWPAYQVZ7JV22PC5KZU3AMMAI 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,.,.,..,,.,,,.,.,,,.,,..,,.,,..,,...,.,.,...,.,.,,.,,.,,,.,,,
+#NYYTSDHE55WMWPUEYFSFPK4P4NNL6JMCIJJBRRVNUZVAWVJM7EH73EFFDMELQMJFCLNMQM3G6XYFI
+#\\\|Q6FIHUJFNT6S6XED3H35RX55CSXPGWJS3DLPLOPMTCZPZJKEZOS \ / AMOS7 \ YOURUM ::
+#\[7]3AKVKVHHHC3STHEEA455CZFWIRBI2WJCXRAVLGINS44QAMEZQ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
