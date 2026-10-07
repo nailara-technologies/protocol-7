@@ -161,6 +161,33 @@ bounded. **[ decided : yes ]** whether step 2 needs an emergency path [ e.g.
 `p7-keys distrust <fingerprint>` writing a local deny file every
 verifier checks ]. proposal : yes, local only, cheap.
 
+## later : self-propagating statements [ user, 2026-10-07 ]
+
+optional propagation of authoritative statements in EITHER direction
+during a connect, so that afterwards a node can prove its trust chain
+STANDALONE -- even when the node that signed it is offline again.
+
+- statements are self-contained [ signed bytes, issuer pub inside, an
+  expiry ] : anyone may store and forward them, nobody can alter them ;
+  verifying needs only the anchor pin, never the signer online
+- **upward** : a node collects the statements ABOVE it [ host-root's
+  owner statement from the owner, a group's statement from the group ]
+  and presents the full chain itself from then on
+- **downward \ sideways** : a peer that verified a chain keeps it [ by
+  statement checksum, until not_after ] and may hand it on -- e.g. B
+  vouches for C's chain to A while C's issuer is unreachable ; A still
+  verifies every signature itself, the forwarder is never trusted
+- store : verified statements under a per-node cache [ keyed by
+  checksum, dropped at not_after, never a pin ] ; presenting = picking
+  the shortest chain from the cache up to any anchor the peer pins
+- OPTIONAL per node and per direction [ a node may refuse to collect \
+  forward ] ; propagation is offered, never required for a connect
+- open : how a peer says which anchors it pins without leaking its pin
+  list [ offer all held chains vs a fingerprint hint ] ; cache bounds ;
+  interaction with a future revocation list [ a forwarded statement
+  outlives a revocation only until its not_after -- short lifetimes
+  keep that window bounded ]
+
 ## not in this step
 
 - node groups, rings, re-keying [ vision steps 3-4 ]
@@ -199,8 +226,8 @@ verifier checks ]. proposal : yes, local only, cheap.
 6. scope is DOWNWARD and immutable : a subject's scope must be strictly
    narrower than its issuer's [ or empty ] -- no equal re-delegation
 
-#,,..,...,...,..,,,,,,,,.,,.,,,,,,.,,,.,.,,.,,..,,...,.,.,,,.,...,.,,,,..,.,,,
-#EJQ2D6JNPABFPJZ7QKTCCRMXE3DDR3F7ROFOKRDXINZZLRBJTC3EZLYXLYTVNHBN3YAPEGJ4EODTE
-#\\\|JD4GD3KATFOCY4OOTDQ3YILLQPFUJAFXO7WRYW52RGBZDWDI2NE \ / AMOS7 \ YOURUM ::
-#\[7]P5K3UURHTY2ZR7WKMQFBPBLZIXMSRBXS2QWOQRAQG47AYH77EGCA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,.,.,...,.,,,..,,.,,,,.,,,..,..,,...,...,,,.,.,,,,..,,..,,..,
+#VY6AWI45PLOZNRPKQFTTGKSLT54HVV5PHXYCYGPTHPLLWLNJOVRWR4WCM57O6CKRMCDMDOMFZAZPI
+#\\\|KOOCA5WNEPXPCEJ6B4PLIMCHKQGML6QDYMVRR6WGC2LXSOX5TAK \ / AMOS7 \ YOURUM ::
+#\[7]XTGLNNHK5DA425TH3FXJ234YKCBUDLTCJL3OGVMYX5MD5HBR66BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,3 +87,11 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 #\\\|U2BRGRQSQK3DK5K5CL53OLKXVBRVCG2LLH66X46RE5AIXR3RSNA \ / AMOS7 \ YOURUM ::
 #\[7]WN6LSFKAQASFFQDPR5TQNLDHPNLSI5SP2A4WMFZHXZKC47WNMABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**added 2026-10-07 [ user ] :** optional self-propagation of statements in either direction [ a node proves its chain standalone after a connect, signer offline ] -- section 'later : self-propagating statements' in TRUST-CHAIN-STEP2.md.
+
+#,,..,,,.,.,,,,.,,...,,,.,,,,,.,.,.,,,,..,,,,,..,,...,..,,...,,,.,.,,,,,,,..,,
+#EPPBT3VK2P76DL5J3IHNPPWAJ2VCLTWJET5NIT6I7UUVQQ5AYPKXJCDTYCHG5ZBLOTCTJGLLHWBIE
+#\\\|H3V6AMRMOECR7LRHNZCHRGVCFWG2Q6BPWCEC7GAT6B6LE2RAFOJ \ / AMOS7 \ YOURUM ::
+#\[7]VQQ2HHROQCO4K4RONOEVYW3ELJMJCB5UIKYK57JBBJAFIZ2JS2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
