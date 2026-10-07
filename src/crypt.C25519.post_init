@@ -59,21 +59,9 @@ if ( index( <system.zenka.name>, qw| source |, 0 ) == -1 ) {
             <crypt.C25519.usr_name> //= $key_usr;    ## write key as user ##
             <[crypt.C25519.write_keys]>->( undef, undef, FALSE );
         }
-        ## <[crypt.C25519.sign_keys]>;  ## <-- rewritten, to be adjusted.., ##
-
     } elsif ( not defined $keys{'C25519'}{$key_name}
         or keys( $keys{'C25519'}{$key_name}->%* ) != 2 ) {
         <[crypt.C25519.load_keypair]>;
-    }
-}
-
-while ( glob sprintf '%s.{spk,sig}.*', $key_basepath ) {
-    if (m{([^\/]+\.(spk|sig)\.(.+))$}) {    ##  key signatures  ##
-        my ( $fname, $type, $rkname ) = @{^CAPTURE};
-        <[base.logs]>->( ": : %s : '%s'", $type, $fname );
-        $type = qw|public| if $type eq qw| spk |;  ## <-- [ root-key-pub ] ###
-        chomp( $keys{'C25519'}{$key_name}{'root'}{$rkname}{$type}
-                = <[file.slurp]>->($ARG)->$* );
     }
 }
 
@@ -89,8 +77,8 @@ if (    exists $keys{'C25519'}{$key_name}
 
 0;
 
-#,,.,,,.,,,,.,,,,,,,,,,..,,,,,,.,,,.,,..,,...,..,,...,...,,,.,..,,.,.,.,,,...,
-#6B2F36AVP4W6IUXRF77SSYNE5DRAHIAOIGEGHRJJZHUV7RIY4MFGUCSUIPYN3XVSOADDWLB4QSJAA
-#\\\|ID32HBISRETKUBY4CQXIZJ3W4C6WSKKI6SMS2KY53TFAW4KC433 \ / AMOS7 \ YOURUM ::
-#\[7]HF5M3KOFJKF6AREMN63OIL2RR6G5DPFGTITN2X5H5AWVWZB6FICA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,,.,,,,.,,,.,,,,,.,,,..,,,.,,..,,...,..,,,..,,,,,.,,,.,.,,,,,
+#SJSIPRRTROK4QRI5DA5TFO2DLMFNBZ5GUCDVXYEYBFGQ3FCFDVNOOMSBQYMCGNIZVKVWNUPFHE7YQ
+#\\\|MJGCKRVEUBAOBM3QWERVKGLZ5JYINNZXTN7MZNAVLMXYZWWYLSV \ / AMOS7 \ YOURUM ::
+#\[7]RTAUSUW5GW5J3A22DT6GSKXKIF4SQVDHOBI4NESKMQXKSGFWEACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

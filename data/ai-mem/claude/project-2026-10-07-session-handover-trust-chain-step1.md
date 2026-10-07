@@ -71,3 +71,11 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 #\\\|RRZJBFQKGQPS4BS6VKENAAOL5SK22JVGBITM5R32SRT2QHPFSQO \ / AMOS7 \ YOURUM ::
 #\[7]GKDHLZOZP23UDNYTFXO7T2FG7BN4VV3CGMKY4SZHUZHUN4DEZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + atom \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : 6e2d170ec ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : open.
+
+#,,..,,..,...,..,,..,,,..,.,,,,.,,.,,,,,.,.,,,..,,...,...,.,,,..,,,..,,..,,,,,
+#RKDOMNFJQ2FJYI47CWKTOFA7EWGA5UJ5E4WPXASXU5H3QS7YG35DHM4ZLLHNTJZSHENKYDMW2I5HI
+#\\\|AEQA33LG23XGXBFFQI6JK5EEMFXWQKI7KWZNCKXHHKDM4VAGF7T \ / AMOS7 \ YOURUM ::
+#\[7]P7P6RJPAC5BKZAYYFQIJYS33I3EEZJ62FX4L5AOG5VLL6VG34UCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
