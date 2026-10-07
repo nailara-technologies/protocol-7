@@ -219,12 +219,67 @@ ok( $code{'p7-log.anon.resolve'}->('TOKENAAAAAAAA') eq FALSE,
 ok( $code{'p7-log.anon.resolve'}->('TOKENBBBBBBBB') eq 'beta secret',
     '  :.. current token still resolves' );
 
+## === keyed tokens [ p7-log.anon.replace ] ============================= ##
+say ':: p7-log.anon.replace : keyed tokens';
+
+## stand-ins : classify marks 'host-a' ; the checksum is any stable hash [ ##
+## the bmw-l13 itself is not under test -- only what goes into it ]        ##
+require Digest::SHA;
+my $sum_undef = FALSE;
+$code{'chk-sum.bmw.L13-str'} = sub {
+    return undef if $sum_undef;
+    return uc substr( Digest::SHA::sha256_hex( $ARG[0] ), 0, 20 );
+};
+$code{'p7-log.anon.classify'} = sub {
+    my $at = index( $ARG[0], 'host-a' );
+    return $at < 0 ? [] : [ [ $at, $at + 6, 'host' ] ];
+};
+compile_module('p7-log.anon.replace');
+my $replace = $code{'p7-log.anon.replace'};
+
+delete $data{'p7-log'}{'anon'}{'token_key'};
+my ( $l1, $p1 ) = $replace->('connect from host-a ok');
+my ($tok1) = $l1 =~ m|\[L:([A-Z0-9]+)\]|;
+ok( defined $tok1 && $l1 !~ m|host-a| && $p1->[0][1] eq 'host-a',
+    'span replaced by a token, fragment in the pair'
+);
+ok( $tok1 ne uc substr( Digest::SHA::sha256_hex('host-a'), 0, 13 ),
+    '  :.. NOT the bare fragment checksum [ keyed ]' );
+my ($l2) = $replace->('again host-a');
+ok( index( $l2, "[L:$tok1]" ) != -1, '  :.. same key, same token' );
+
+## another key : another token ##
+put_key( 'svc.base', 0x77 );
+delete $data{'p7-log'}{'anon'}{$ARG} for qw| key32 token_key |;
+my ($l3)   = $replace->('host-a again');
+my ($tok3) = $l3 =~ m|\[L:([A-Z0-9]+)\]|;
+ok( defined $tok3 && $tok3 ne $tok1, 'another key : another token' );
+
+## no checksum : redacted, never plaintext ##
+$sum_undef = TRUE;
+my ( $l4, $p4 ) = $replace->('x host-a y');
+ok( $l4 eq 'x [L:-] y' && !@$p4, 'no checksum : [L:-], no pair' );
+$sum_undef = FALSE;
+
+## no usable key : redacted, never plaintext ##
+unlink catfile( $key_dir, 'svc.base.secret' );
+delete $data{'p7-log'}{'anon'}{$ARG} for qw| key32 token_key |;
+my ( $l5, $p5 ) = $replace->('x host-a y');
+ok( $l5 eq 'x [L:-] y' && !@$p5, 'no key : [L:-], no pair' );
+
+## transform : a line of only redactions is still replaced ##
+compile_module('p7-log.anon.transform');
+$data{'p7-log'}{'anon'}{'enabled'} = TRUE;
+my $msg = 'x host-a y';
+$code{'p7-log.anon.transform'}->( 'log', \$msg );
+ok( $msg eq 'x [L:-] y', 'transform : redaction-only line replaced' );
+
 say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,,,,,..,,,,,,,,,..,,.,,,.,.,,..,,,.,,,,,..,,...,..,,,,,,.,,,.,,,.,,,..,,
-#6O7VQODMKGNFF4Q4OLMHZHQTNYIZRA5YGEFZ3744V37KHIFOJSOQYAJ6LWBMJBJ3NVPCVIWIRE2LA
-#\\\|6HPXNTKXM4G76XXGUN76LR3YISWXI5HL27GYMXNG6CO6TQ7XNZX \ / AMOS7 \ YOURUM ::
-#\[7]DD2Y2CS6BEWESUEQD2WFPBLQB32RFURF2JH264RH4M27JQKVWQDA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,...,.,.,.,.,..,,,..,,,,,..,,.,.,..,,...,..,,..,,.,,,...,,,,,,,,,
+#AFI5HLJ44Q6XQRJKJSQEFGCEKJIU4XUELOC35HTNJHENCIPTBANSS6NFTZTVNZLPQFVVJIP6KFEXC
+#\\\|ZABMXPW2YCRWJOMGQR5KNU26373ECS4CVCPVT4BYPJGYSUHYI32 \ / AMOS7 \ YOURUM ::
+#\[7]DAK7UOH6Z2SW3QR5FPNWEXYW7MQZUCQKMWPIROAVJPP7CRSEIKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
