@@ -3045,7 +3045,7 @@ my $ms_r1 = $data{'test'}{'cmd_replies'}{'r-ms1'} // {};
 
 ok( ( $ms_r1->{'mode'} // '' ) eq qw| true |
         && $ms_r1->{'data'}
-        =~ m{^fetched ms-pkg_2\.0-1_amd64\.deb 132072 bytes from 2 holders
+        =~ m{^fetched\ ms-pkg_2\.0-1_amd64\.deb\ 132072\ bytes\ from\ 2\ holders
         \s+\[\s+4301\s+4302\s+\]\s+\[\s+3\s+segments,}xo,
     'multi : both holders served [ 3 segments, reply lists both ]'
 );
@@ -3538,8 +3538,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,.,,..,,.,,.,,,,,,,,,.,,..,.,.,,,.,...,.,.,...,...,,,,,,,,,.,,,,,,,,,,,
-#O3KX5JYGFYDM6IOSTO3R3AVV2Y57D7PFTU733LQTUMTF3GJ2B6PMIDUOXQSA4DAIANKMHYE2AE2BG
-#\\\|BUBHW5ZPZ33RZULH2CBH4SMB2FCMAMOGBLXBZ4PDTVRF7WS2VYU \ / AMOS7 \ YOURUM ::
-#\[7]HKRXSB3O64NQ4QXDWN4BLYCMCUBFTTFXZLK3NHGB3FZN47GS6UBI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,,..,.,.,,,,,...,.,,,,,,,..,,.,.,...,...,..,,,,,,.,,,.,,,.,.,
+#6TWOT5MSCCVJ7BZ4KECWRGZVXGXPZJNEWT4LOPI27BWK67PSD3H4GGCFWI7GVYOWSIHWEDSF2RFUK
+#\\\|WANPRKR5N3ZFNBAZGDG7S22A7GDH7KSDVZPUNPGI4HFO53UWJNW \ / AMOS7 \ YOURUM ::
+#\[7]WBAEQPOJYS6OZYMFFVJMFGU2QRVPBR7KPA2GV5GFNNEMKZ6ZEGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
