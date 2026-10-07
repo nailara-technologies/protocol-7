@@ -1,0 +1,188 @@
+## [:< ##
+
+# name   = trust.pin_decide
+# descr  = client pin verdict for a server's delegation chain [ no file io ]
+# param  = { chain    => [ <wire b32>, .. ] [ anchor-most first ],
+#            subject  => <raw 32 byte server key [ the announced S ]>,
+#            now      => <unix seconds>,
+#            host_pin => undef | { fp => <77 chars>, name => <leaf name>
+#                        | undef [ a step 1 pin ], since => <unix> | 0 },
+#            owners   => [ <owner fingerprint>, .. ],
+#            distrust => [ <fingerprint>, .. ],
+#            strict   => TRUE | FALSE }
+# return = { verdict, fp, name, since, write, anchor, owner,
+#          name_differs } or undef [ list context : ( undef, reason ) --
+#          the chain itself is not valid ]
+#
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'pins' ], twin : pin_decide in
+# bin/p7-auth-keypair-helper.pl, shared cases : bin/test-scripts/
+# trust-pin-vectors.pl. fp \ name \ since = what the host pin holds
+# afterwards : the leaf statement's ISSUER fingerprint [ the host-root ],
+# the leaf name and the not_before of the owner-verified statement that
+# certifies that host-root [ 0 : never owner-verified ]. write = 'none' \
+# 'new' \ 'replace' -- the caller does exactly that, nothing else :
+#
+#   - a pinned NAME never changes : a matching host-root presenting
+#     another leaf name is accepted but not written [ name_differs set,
+#     the caller logs it ] ; only a step 1 pin [ no name ] gains one
+#   - rotation is FORWARD only : the new host-root's certifying statement
+#     must be strictly later than the pinned since -- a compromised old
+#     host-root under a still valid owner statement cannot rotate back
+#
+#   the chain must verify under its own leaf issuer [ + distrust ] first
+#   host pin, chain verifies under it                    -> PIN_VALID
+#   host pin, other host-root, an OWNER pin covers the chain AND the
+#     leaf name equals the pinned name AND the certifying statement is
+#     later than the pinned since                        -> PIN_ROTATED
+#   host pin, anything else                              -> PIN_MISMATCH
+#   no host pin, an owner pin covers the chain           -> PIN_NEW [ owner ]
+#   no host pin, strict                                  -> PIN_UNPINNED
+#   no host pin                                          -> PIN_NEW [ tofu ]
+#
+# an owner fingerprint is NEVER returned for pinning : owner pins come
+# only from an explicit command [ an anchor's implicit scope is '*' ].
+
+my $param = shift;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('parameters not a hash') if ref $param ne qw| HASH |;
+
+my ( $chain, $subject, $now, $host_pin, $owners, $distrust, $strict )
+    = @{$param}{qw| chain subject now host_pin owners distrust strict |};
+
+return $refuse->('chain missing')
+    if ref $chain ne qw| ARRAY |
+    or not $chain->@*;
+return $refuse->('host pin not valid')
+    if defined $host_pin
+    and ( ref $host_pin ne qw| HASH |
+    or not defined $host_pin->{'fp'}
+    or $host_pin->{'fp'} !~ m|\A[A-Z2-7]{77}\z| );
+foreach my $list ( $owners, $distrust ) {
+    return $refuse->('owners \ distrust not a list')
+        if defined $list
+        and ref $list ne qw| ARRAY |;
+}
+my @owner
+    = grep { defined $ARG and m|\A[A-Z2-7]{77}\z| } ( $owners // [] )->@*;
+my %is_owner = map { $ARG => TRUE } @owner;
+
+my $verify = sub {
+    my $anchors = shift;
+    return <[trust.verify]>->(
+        {   qw| chain |    => $chain,
+            qw| anchors |  => $anchors,
+            qw| subject |  => $subject,
+            qw| now |      => $now,
+            qw| distrust | => $distrust // [],
+        }
+    );
+};
+
+## the leaf's issuer : the host-root to pin ##
+my ( $leaf, $leaf_why )
+    = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
+return $refuse->( sprintf 'statement %d : %s', scalar $chain->@*, $leaf_why )
+    if not defined $leaf;
+my $leaf_fp = <[trust.fingerprint]>->( $leaf->{'issuer_pub'} );
+return $refuse->('leaf issuer not valid') if not defined $leaf_fp;
+
+## self-consistency [ and distrust ] before any pin is looked at ##
+my ( $self, $self_why ) = $verify->( [$leaf_fp] );
+return $refuse->($self_why) if ref $self ne qw| HASH |;
+
+my $name   = $self->{'name'};
+my $result = sub {
+    my (%r) = @ARG;
+    return {
+        qw| verdict |      => $r{'verdict'},
+        qw| fp |           => $leaf_fp,
+        qw| name |         => $r{'name'}  // $name,
+        qw| since |        => $r{'since'} // 0,
+        qw| write |        => $r{'write'} // qw| none |,
+        qw| anchor |       => $r{'anchor'},
+        qw| owner |        => $r{'owner'}        ? TRUE : FALSE,
+        qw| name_differs | => $r{'name_differs'} ? TRUE : FALSE,
+    };
+};
+
+## an owner pin covers the chain ? -> ( owner anchor, since ) or () ; since ##
+## = not_before of the statement certifying the leaf's issuer [ the one     ##
+## right above the leaf, or the leaf when the owner issued it directly ]    ##
+my $by_owner = sub {
+    return () if not @owner;
+    my $v = $verify->( [@owner] );
+    return () if ref $v ne qw| HASH |;
+    return () if not exists $is_owner{ $v->{'anchor'} };
+    my $cert
+        = $v->{'depth'} >= 2
+        ? <[trust.statement]>->( qw| parse_wire |, $chain->[-2] )
+        : $leaf;
+    return () if ref $cert ne qw| HASH |;
+    return ( $v->{'anchor'}, $cert->{'not_before'} );
+};
+
+if ( defined $host_pin ) {
+    my $pinned_since = $host_pin->{'since'} // 0;
+    my $by_host      = $verify->( [ $host_pin->{'fp'} ] );
+    if ( ref $by_host eq qw| HASH | ) {
+        my $pinned_name = $host_pin->{'name'};
+        return $result->(
+            verdict => qw| PIN_VALID |,
+            anchor  => $host_pin->{'fp'},
+            since   => $pinned_since,
+            write   => qw| replace |,
+        ) if not defined $pinned_name;    ## a step 1 pin gains its name ##
+        return $result->(
+            verdict      => qw| PIN_VALID |,
+            anchor       => $host_pin->{'fp'},
+            name         => $pinned_name,
+            since        => $pinned_since,
+            name_differs => $pinned_name ne $name,
+        );
+    }
+
+    my ( $anchor, $since ) = $by_owner->();
+    return $result->(
+        verdict => qw| PIN_ROTATED |,
+        anchor  => $anchor,
+        since   => $since,
+        write   => qw| replace |,
+        owner   => TRUE,
+        )
+        if defined $anchor
+        and defined $host_pin->{'name'}
+        and $host_pin->{'name'} eq $name
+        and $since > $pinned_since;
+
+    return $result->(
+        verdict => qw| PIN_MISMATCH |,
+        name    => $name,
+        since   => $pinned_since,
+    );
+}
+
+my ( $anchor, $since ) = $by_owner->();
+return $result->(
+    verdict => qw| PIN_NEW |,
+    anchor  => $anchor,
+    since   => $since,
+    write   => qw| new |,
+    owner   => TRUE,
+) if defined $anchor;
+return $result->( verdict => qw| PIN_UNPINNED | ) if $strict;
+return $result->(
+    verdict => qw| PIN_NEW |,
+    anchor  => $leaf_fp,
+    write   => qw| new |,
+);
+
+#,,..,.,.,,,.,,.,,,.,,,,,,.,.,...,...,,,.,..,,..,,...,...,...,,.,,,,,,,,.,...,
+#7T6Q7JGYLXUW6K5WQDB4QCST2NDLS5KW6XFXTBBJPPLCL5GXJHPG2QRGBPIQBA2SZPHQBOUHAAFNE
+#\\\|HFIHX5NCEIMFQDX2X3FEBO5WEDYKUEENA7WM6ONFWMNCJHNN6V7 \ / AMOS7 \ YOURUM ::
+#\[7]4SWR6UERTBQRI4SR4GGQJQ3S5X2LA5HIVCFV7F3YNNOKBKIFNGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

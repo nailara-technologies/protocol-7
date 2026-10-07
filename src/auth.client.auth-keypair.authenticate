@@ -88,10 +88,11 @@ my $select_template = <protocol.protocol-7.connect>->{'select-method'}
 my $select_reply = readline($backend_socket);
 chomp($select_reply) if defined $select_reply;
 
-## 4th field : the host-root delegation of S [ required, <= 2048 ] ##
+## 4th field : the delegation chain of S [ required, <= 2048, leaf first, ##
+## '.' between statements -- trust.chain checks the shape ]               ##
 my ( $server_pub_b32, $server_nonce_b32, $delegation_b32 )
     = ( $select_reply // '' )
-    =~ m|\ATRUE ([A-Z2-7]+) ([A-Z2-7]+) ([A-Z2-7]{1,2048})\z|;
+    =~ m|\ATRUE ([A-Z2-7]+) ([A-Z2-7]+) ([A-Z2-7.]{1,2048})\z|;
 
 if ( not defined $delegation_b32 ) {
     <[base.logs]>->(
@@ -192,8 +193,8 @@ return {
     qw| base_key_name | => $base_key_name,
 };
 
-#,,,,,,,.,..,,,..,...,,.,,.,,,.,.,,,,,,,,,..,,..,,...,...,,..,,,.,.,,,,,.,.,.,
-#PEHL5SXSKEC4SVC6YZVNKRQ2DEIS77ZPMCAEOBFSRQQZE6CENVTWUXWRAA7TNS3WBDGQYN7AWDZI2
-#\\\|33XGNKA5CABATGLNA7TBNSMNE2VUX6SHEPHK5HVVJA6YMM3WAGF \ / AMOS7 \ YOURUM ::
-#\[7]R2DUG6OLLRTEZ4GA24H63MUBOCEDXKVSTZ3P3NYGIYZXCM574OAA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,...,,,,,..,,...,.,.,...,,..,..,,...,...,..,,,..,,.,,.,,,..,,
+#LUEQMXDXCPUQ4OCPGXXFCDAJZEWL22AXT6OT6VKBJTKW57EG5YVQWEZESPMYELMNIMVOPZSYUFSX4
+#\\\|HQSYOAITDPUNTBOTRT2LLSLIWKK4HZJIRHIWQ7DGACXPO4LQCDW \ / AMOS7 \ YOURUM ::
+#\[7]Z5X34OKSQCI2ILV2ASC33AVDNNRKS4CJIMWPJS7DOOJAOD47I2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
