@@ -129,10 +129,10 @@ sub delegation_statement {
     );
 }
 
-## host-root fingerprint : bmw384 of the raw 32 byte public key, b32 [ 77 ]
-sub host_root_fingerprint {
+## host-root key id : bmw384 of the raw 32 byte public key, b32 [ 77 ]
+sub key_id {
     my ($pub) = @_;
-    die "fingerprint : expected a 32 byte public key\n"
+    die "key id : expected a 32 byte public key\n"
         unless defined $pub and length($pub) == 32;
     return encode_b32r( Digest::BMW::bmw_384($pub) );
 }
@@ -201,15 +201,15 @@ sub scope_within {
 }
 
 ## walk a delegation chain [ RAW wires, anchor-most first ] from the first
-## statement whose issuer fingerprint is pinned down to the subject key -- the
-## SAME rules & refusal reasons as src/trust.verify [ TRUST-CHAIN- STEP2.md ]
-## : the statements before the anchor are ignored, every later issuer must be
-## the previous subject, per statement : exact parse -> sig
+## statement whose issuer key id is pinned down to the subject key -- the SAME
+## rules & refusal reasons as src/trust.verify [ TRUST-CHAIN- STEP2.md ] : the
+## statements before the anchor are ignored, every later issuer must be the
+## previous subject, per statement : exact parse -> sig
 ## -> not_before <= now <= not_after -> [ last : subject ] -> name charset
-## -> scope [ a statement carrying scope '*' refuses ]. -> ( { fingerprint,
-## name, anchor, issuer_pub, not_after, depth }, undef ) or ( undef, reason )
-## ; depth = statements actually verified. $distrust [ optional, fingerprints
-## ] : checked first, over every statement -- the SAME rule as trust.verify
+## -> scope [ a statement carrying scope '*' refuses ]. -> ( { key id, name,
+## anchor, issuer_pub, not_after, depth }, undef ) or ( undef, reason ) ;
+## depth = statements actually verified. $distrust [ optional, key ids ] :
+## checked first, over every statement -- the SAME rule as trust.verify
 sub verify_chain {
     my ( $chain, $anchors, $subject, $now, $distrust ) = @_;
 
@@ -255,21 +255,20 @@ sub verify_chain {
                 substr( $wire, $label_len + 32, 32 );
         }
         return $refuse->('distrusted key in chain')
-            if grep { exists $distrusted{ host_root_fingerprint($ARG) } }
-            @key;
+            if grep { exists $distrusted{ key_id($ARG) } } @key;
     }
 
     my %anchor = map { $ARG => 1 }
         grep { defined $ARG and not ref $ARG and length $ARG } $anchors->@*;
 
-    ## verification starts at the first statement whose issuer fingerprint is
+    ## verification starts at the first statement whose issuer key id is
     ## pinned ; the ones before it are ignored [ not checked ]
     my $start;
     my $anchor_fp;
     foreach my $index ( 0 .. $chain->$#* ) {
         my $st = eval { parse_delegation( $chain->[$index] ) };
         next if not defined $st;
-        my $fp = host_root_fingerprint( $st->{'issuer_pub'} );
+        my $fp = key_id( $st->{'issuer_pub'} );
         next if not exists $anchor{$fp};
         $start     = $index;
         $anchor_fp = $fp;
@@ -335,12 +334,12 @@ sub verify_chain {
     }
 
     return (
-        {   'fingerprint' => $anchor_fp,
-            'name'        => $last->{'name'},
-            'anchor'      => $anchor_fp,
-            'issuer_pub'  => $last->{'issuer_pub'},
-            'not_after'   => $last->{'not_after'},
-            'depth'       => $chain->$#* - $start + 1,
+        {   'key_id'     => $anchor_fp,
+            'name'       => $last->{'name'},
+            'anchor'     => $anchor_fp,
+            'issuer_pub' => $last->{'issuer_pub'},
+            'not_after'  => $last->{'not_after'},
+            'depth'      => $chain->$#* - $start + 1,
         },
         undef
     );
@@ -353,7 +352,7 @@ sub verify_chain {
 ## anchor owner name_differs }, undef ) or ( undef, reason ). fp \ name \
 ## since = what the host pin holds afterwards ; write = none \ new \ replace.
 ## a pinned name never changes, rotation is forward only [ since ], an owner
-## fingerprint is never returned for pinning
+## key id is never returned for pinning
 sub pin_decide {
     my ($p) = @_;
     return ( undef, 'parameters not a hash' ) if ref $p ne 'HASH';
@@ -390,7 +389,7 @@ sub pin_decide {
             scalar $chain->@*, $why
         );
     }
-    my $leaf_fp = host_root_fingerprint( $leaf->{'issuer_pub'} );
+    my $leaf_fp = key_id( $leaf->{'issuer_pub'} );
 
     my ( $self, $self_why ) = $verify->( [$leaf_fp] );
     return ( undef, $self_why ) if not defined $self;
@@ -481,9 +480,9 @@ sub pin_decide {
 }
 
 ## one-hop verify [ anchor = the issuer, scope '*' ] of a delegation for the
-## announced S at time now -> ( { fingerprint, name }, undef ) or ( undef,
-## reason ) -- a 1 statement verify_chain with the legacy reason strings.  the
-## pin compare is the CALLER's step, after this
+## announced S at time now -> ( { key id, name }, undef ) or ( undef, reason )
+## -- a 1 statement verify_chain with the legacy reason strings.  the pin
+## compare is the CALLER's step, after this
 sub verify_delegation {
     my ( $wire, $s_pub, $now ) = @_;
 
@@ -493,8 +492,7 @@ sub verify_delegation {
         return ( undef, "statement $why" );
     }
     my ( $verified, $reason )
-        = verify_chain( [$wire],
-        [ host_root_fingerprint( $dlg->{'issuer_pub'} ) ],
+        = verify_chain( [$wire], [ key_id( $dlg->{'issuer_pub'} ) ],
         $s_pub, $now );
     return ( $verified, undef ) if defined $verified;
 
@@ -550,10 +548,10 @@ sub chain_split {
 }
 
 ## host pin file [ TRUST-CHAIN-STEP2.md 'pins' ] : line 1 the 77 char
-## host-root fingerprint, line 2 [ optional, a step 1 pin has none ] the leaf
-## name, line 3 [ optional ] since [ forward-only rotation ] -> undef [ no pin
-## ] or { fp, name, since } ; a file that exists but is  unreadable \ empty \
-## not a fingerprint -> die [ never re-pinned ]
+## host-root key id, line 2 [ optional, a step 1 pin has none ] the leaf name,
+## line 3 [ optional ] since [ forward-only rotation ] -> undef [ no pin ] or
+## { fp, name, since } ; a file that exists but is  unreadable \ empty \ not a
+## key id -> die [ never re-pinned ]
 sub pin_read {
     my ($pin_file) = @_;
     return undef unless -e $pin_file or -l $pin_file;
@@ -565,9 +563,9 @@ sub pin_read {
     close $fh;
     die "pin file empty : $pin_file\n" unless defined $pinned;
     s{\s+\z}{} foreach grep {defined} $pinned, $name, $since;
-    die "pin file holds a server key, not a host-root fingerprint [ pre "
-        . "host-root pin ; verify the host-root out of band, then remove "
-        . "it ] : $pin_file\n"
+    die "pin file holds a server key, not a host-root key id [ pre host-root "
+        . "pin ; verify the host-root out of band, then remove it ] : "
+        . "$pin_file\n"
         if $pinned =~ m|^[A-Z2-7]{52}\z|;
     die "pin file corrupt : $pin_file\n"
         unless $pinned =~ m|^[A-Z2-7]{77}\z|;
@@ -599,9 +597,9 @@ sub pin_store {
     return 1;
 }
 
-## owner pins : <dir>/*.public, line 1 a 77 char fingerprint ; symlinks \
-## malformed entries skipped [ never trusted ]. written only by an explicit
-## command, never by this helper
+## owner pins : <dir>/*.public, line 1 a 77 char key id ; symlinks \ malformed
+## entries skipped [ never trusted ]. written only by an explicit command,
+## never by this helper
 sub owner_pins {
     my ($owner_dir) = @_;
     my @owner;
@@ -620,7 +618,7 @@ sub owner_pins {
     return \@owner;
 }
 
-## local distrust list : one fingerprint per line, '#' comments ; present but
+## local distrust list : one key id per line, '#' comments ; present but
 ## unreadable \ malformed -> die [ fail closed ]
 sub distrust_list {
     my ($path) = @_;
@@ -813,7 +811,7 @@ sub load_client_key {
 
 ## host-root pin [ HOST-ROOT-DELEGATION.md ] :
 ## ~/.n/remote-keys/servers/<host>_<port>.public holds the host-root
-## FINGERPRINT [ 77 b32 chars ]. the delegation [ select reply field 4 ] is
+## KEY ID [ 77 b32 chars ]. the delegation [ select reply field 4 ] is
 ## verified FIRST [ sig under its issuer pub, not_before <= now <=
 ## not_after, subject == s_pub, name \ scope ] -- only then the pin :
 ##   PIN_VALID <fp> <name>     exit 0 [ incl. a rotated S the pinned
@@ -1130,7 +1128,7 @@ sub delegation_self_test {
             . '6553f100657b7e000000',
         'sig' => 'LAL3UIQD4LJVCGNJWXL3TO7DZUD2PCAJ43B2XXPTNWQAQZDDX7G'
             . 'PYH3DYOFIJZUJEUDB2MKQSBZ4HSXBGCQX4GM5LOA4IOSEBMPFQAQ',
-        'fingerprint' => 'ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3A'
+        'key_id' => 'ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3A'
             . 'WUQWVUNEJIYFOXRWF4XUSHAAXSUFOXWG2JGKC7G',
     );
     my ( $nb, $na ) = ( 1700000000, 1702592000 );
@@ -1166,11 +1164,7 @@ sub delegation_self_test {
         ),
         $want{'sig'}
     );
-    $check->(
-        'host-root fingerprint',
-        host_root_fingerprint($root_pub),
-        $want{'fingerprint'}
-    );
+    $check->( 'host-root key id', key_id($root_pub), $want{'key_id'} );
 
     ## the vector through the wire path [ b32 argv check + parse + verify ]
     my $vec_wire
@@ -1180,9 +1174,9 @@ sub delegation_self_test {
     my $verdict = sub {
         my ( $dlg, $subject, $at ) = @_;
         my ( $ok, $why ) = verify_delegation( $dlg, $subject, $at );
-        return $ok ? "ok $ok->{'fingerprint'} $ok->{'name'}" : $why;
+        return $ok ? "ok $ok->{'key_id'} $ok->{'name'}" : $why;
     };
-    my $ok_line = "ok $want{'fingerprint'} test-host.cube";
+    my $ok_line = "ok $want{'key_id'} test-host.cube";
     $check->(
         'delegation ok',
         $verdict->( $vec_wire, $s_pub, $now ), $ok_line
@@ -1406,7 +1400,7 @@ sub delegation_self_test {
     my $tmp      = File::Temp::tempdir( CLEANUP => 1 );
     my $pin_dir  = "$tmp/servers";
     my $pin_file = "$pin_dir/test-host_7.public";
-    my $fp       = $want{'fingerprint'};
+    my $fp       = $want{'key_id'};
     my ($rot_ok)
         = verify_delegation(
         $wire->( $root_pub, $root_priv, $rot_pub, $nb, $na ),
@@ -1450,7 +1444,7 @@ sub delegation_self_test {
     );
     $check->(
         'pin foreign host-root differs',
-        ( $foreign_ok and $foreign_ok->{'fingerprint'} ne $fp ) ? 1 : 0, 1
+        ( $foreign_ok and $foreign_ok->{'key_id'} ne $fp ) ? 1 : 0, 1
     );
 
     my $old_pin = "$pin_dir/old_7.public";
@@ -1583,7 +1577,7 @@ sub delegation_self_test {
     make_path( "$tmp/.n/remote-keys/owners", { mode => 0700 } );
     open my $owfh, '>', "$tmp/.n/remote-keys/owners/test.public"
         or die "cannot write owner pin : $!\n";
-    print {$owfh} host_root_fingerprint($own_pub) . "\n";
+    print {$owfh} key_id($own_pub) . "\n";
     close $owfh;
 
     $check->(
@@ -1598,7 +1592,7 @@ sub delegation_self_test {
             @{  pin_read("$tmp/.n/remote-keys/servers/test-host_11.public")
             }{qw| fp name |}
         ),
-        host_root_fingerprint($root_pub) . ' test-host.cube'
+        key_id($root_pub) . ' test-host.cube'
     );
     $check->(
         'check-pin owner chain, again',
@@ -1617,7 +1611,7 @@ sub delegation_self_test {
             @{  pin_read("$tmp/.n/remote-keys/servers/test-host_11.public")
             }{qw| fp since |}
         ),
-        host_root_fingerprint($new_pub) . ' ' . ( $t - 30 )
+        key_id($new_pub) . ' ' . ( $t - 30 )
     );
     $check->(
         'check-pin rotate BACK to the old host-root : refused',
@@ -1634,7 +1628,7 @@ sub delegation_self_test {
     );
     open my $dfh, '>', "$tmp/.n/remote-keys/distrust"
         or die "cannot write distrust : $!\n";
-    print {$dfh} "# test\n" . host_root_fingerprint($new_pub) . "\n";
+    print {$dfh} "# test\n" . key_id($new_pub) . "\n";
     close $dfh;
     $check->(
         'check-pin distrusted host-root',
@@ -1667,8 +1661,8 @@ sub erase_buffer_secure {
     return $len;
 }
 
-#,,,.,...,.,.,..,,,,,,.,.,.,.,.,.,,..,,..,..,,..,,...,..,,...,,,,,..,,.,,,.,,,
-#UQ752W3ZWCQ7UVQVSEOV5I6735HOFODSU2WSNA5MYT7AX3QID2BSQVB4D6YQGYSPCPGCEV3LYFMNE
-#\\\|GWZJNKESZ2DUSOWGDQIQSBOWVMWHLKMYHXRISXJYGZJEWL2DYGL \ / AMOS7 \ YOURUM ::
-#\[7]2Y37HF7S6H7QGBK55L2YY65I5JW7CFGGIICDMQ3RTNPR5E26SKBQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,,..,,.,,,,.,,,,,,..,,,.,,.,,..,,...,...,..,,..,,.,.,.,,,..,,
+#673LTFGOQ6EGD5D2EKUXBI4KXYIWG6KLSIZQ4Z2C5ANZPJWSBSV3PYMUEYEDGVCS7DOU3HCIZH3IE
+#\\\|D3OIILQWZX57LSOAZV76RKLUPWFFITEFOF6Y3GAPA4XIHL4EP2W \ / AMOS7 \ YOURUM ::
+#\[7]JRTQGDM5XND4PSMPJYP77LGQTRZLZIC7OLJA6DRVTTFIH3C72ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@
 #
 # usage  : my $build = do <path> ; my $cases = $build->() ;
 #          cases : [ { label, chain => [ <raw wire bytes>, .. ] [ anchor-
-#          most first ], anchors => [ <fingerprint>, .. ], subject =>
+#          most first ], anchors => [ <key id>, .. ], subject =>
 #          <raw 32 byte pub>, now => <unix>, distrust => [ <fp>, .. ]
 #          [ optional ], expect => 'ok' | 'refuse' |
 #          <exact reason>, name => <leaf name>, anchor => <fp>, depth =>
@@ -327,8 +327,8 @@ return sub {
     return \@cases;
 };
 
-#,,..,,.,,,,.,,..,...,,,.,..,,...,.,,,,.,,,,,,..,,...,..,,...,.,.,.,.,.,.,,,,,
-#DCNO6XVI52A2JPPEQLXJGGSL243OPCKHVH2DXET5U5KFWHRCMCA7N5WWROCEBNMZOJNGCTNXLASXE
-#\\\|YZXK5OPVTME66DGER2HOMKJ4T4DLC4KEEBE3TRQVTZ73IJ6S4XH \ / AMOS7 \ YOURUM ::
-#\[7]BSFOBBYRFFJQSY4J432TQDKWSCJJDF56P5JGI663T3FNZOSUAIBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,.,,..,,,,.,..,,,,,,,,,,..,,..,,...,...,,.,,.,.,..,,.,,,..,,
+#CAZFDK62PPCCGIC3FUAFYRLLVCIU23CARFBBQ2AZPCADQWTPRSDZRJTQTISBTPASYQ3LPRV6PNHG6
+#\\\|4ETOT2WVXJQUFG5RMTRI4NL7W3BA7WXAVAZSANMNIXM27JIS7E7 \ / AMOS7 \ YOURUM ::
+#\[7]33KVZ7ZUN4BJEU5TDIMKZHOJ4FSP3Q4OZ6JHRSWUU4CY63SS5CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

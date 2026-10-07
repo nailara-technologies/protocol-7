@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = keys.key_id_arg
+# descr  = a key id argument : 77 char key id or 52 char pub key
+# param  = <string>
+# return = <77 char key id> or undef [ list context : ( undef,
+#          reason ) ]
+#
+# owner pins \ distrust entries take either form [ data/md/design/
+# TRUST-CHAIN-STEP2.md ] : a public key is turned into its key id
+# [ trust.key_id ], a key id is taken as is.
+
+my $arg = shift;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('key id missing')
+    if not defined $arg
+    or ref $arg
+    or not length $arg;
+
+$arg =~ s{\A\s+|\s+\z}{}g;
+
+return $arg if $arg =~ m|\A[A-Z2-7]{77}\z|;
+
+if ( $arg =~ m|\A[A-Z2-7]{52}\z| ) {
+    my $pub = eval { Crypt::Misc::decode_b32r($arg) };
+    return $refuse->('public key not valid')
+        if not defined $pub
+        or length($pub) != 32
+        or Crypt::Misc::encode_b32r($pub) ne $arg;
+    my $fp = <[trust.key_id]>->($pub);
+    return $refuse->('key id failed') if not defined $fp;
+    return $fp;
+}
+
+return $refuse->('expected a 77 char key id or a 52 char public key [ b32 ]');
+
+#,,,.,,..,.,,,.,.,.,,,.,.,.,,,,..,.,.,,,.,,,,,..,,...,.,.,.,,,.,,,,..,,,,,,,,,
+#4BJWFAWTLVEG6YUPL3XIQ73VKLOJF7F73WKDAGHMKY3GV4ECNGXF7VZZYHKAB4WKBZL3EAYXQWNIQ
+#\\\|QZ5XAHKOIAGKCYRUCKPKYUG3VTPCT2HEH7ANGGWFWKEXSSPMDPR \ / AMOS7 \ YOURUM ::
+#\[7]7GKJSUBCDVEUTJ6DDXGBXCONETZX3KK4CBOCT2EVOZVVDJRTJEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -763,7 +763,7 @@ my $home
     = tempdir( 'p7-auth-link-binding-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
 $code{'base.get_homedir'} = sub { return $home };
 compile_module('trust.statement');
-compile_module('trust.fingerprint');
+compile_module('trust.key_id');
 compile_module('trust.verify');
 compile_module('trust.chain');
 compile_module('trust.pin_decide');
@@ -827,7 +827,7 @@ sub run_client {
 ## \x04 ] too                                                               ##
 my ( $hr_pub, $hr_priv ) = Crypt::Ed25519::generate_keypair( "\x03" x 32 );
 my ( $fr_pub, $fr_priv ) = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
-my $hr_fp = $code{'trust.fingerprint'}->($hr_pub);
+my $hr_fp = $code{'trust.key_id'}->($hr_pub);
 
 sub delegate {
     my ( $subject, %opt )  = @ARG;
@@ -852,7 +852,7 @@ my $good_reply = sprintf 'TRUE %s %s %s', $b32->($s_pub), $b32->($nonce),
     $s_dlg;
 my $pin_path = "$home/.n/remote-keys/servers/peer.example_4242.public";
 
-sub read_pin {    ## the whole pin file : fingerprint + leaf name ##
+sub read_pin {    ## the whole pin file : key id + leaf name ##
     open( my $pin_fh, '<', $pin_path ) or return '';
     local $INPUT_RECORD_SEPARATOR = undef;
     my $pinned = readline($pin_fh) // '';
@@ -867,7 +867,7 @@ sub read_pin {    ## the whole pin file : fingerprint + leaf name ##
     ok( -f $pin_path,       'first contact : pin file written' );
     ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
     ok( read_pin() eq "$hr_fp\npeer.cube\n0\n",
-        'pin file holds the ' . 'host-root fingerprint'
+        'pin file holds the ' . 'host-root key id'
     );
     ok( length($hr_fp) == 77, '  :.. 77 chars' );
     my $fp_half = int( ( length($hr_fp) + 1 ) / 2 );
@@ -876,7 +876,7 @@ sub read_pin {    ## the whole pin file : fingerprint + leaf name ##
     ok( logged_level0(qr{pinned host-root \[ peer\.cube \\ })
             && logged_level0(qr{ :\. \Q$fp_a\E\z})
             && logged_level0(qr{ :\. \Q$fp_b\E\z}),
-        'pinned : logged at level 0 with name + fingerprint [ two halves ]'
+        'pinned : logged at level 0 with name + key id [ two halves ]'
     );
     ok( $ctx->{'server_nonce'} eq $nonce
             && $ctx->{'server_pub'} eq $s_pub
@@ -1112,8 +1112,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,..,,.,,,,.,,,,.,,,,,.,.,..,,...,.,,,,.,,..,,...,...,,.,,..,,..,,,.,,.,,,
-#CIZD5OYNPTL6A4A7Z4YS5IJC33H7O5I7654DFM6GACNENUYOZGCEJNONYJPFNOHAWVMIGPFDFSKVG
-#\\\|BAAWKUTXGFT7CMWDORHTS7AAGE2PEL62PNQXRTDJKQYL5UQDMWN \ / AMOS7 \ YOURUM ::
-#\[7]PIFN6PNWGGV2VL6GGFR3DLTL5XGPD4VHRHXHA63ZUEGU6SMZT6DA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,...,.,.,.,.,,,,,.,,,..,,.,.,..,,...,...,.,.,...,..,,.,.,.,,,
+#U5IXI6UPZ6526DVRKNTGS6S5LKHACLZM3KC5ABAHKEAYWYEH7AH26NM3P3LDSMTSO7M6BZK564LUM
+#\\\|YIDFCFCCUFTIR5X7XZYZF2PIOV7DTVYAG4CHQZPIAITD4MVO7AN \ / AMOS7 \ YOURUM ::
+#\[7]PQRXM2ZWCHZXMQGKQ4WQYJGTT2HY3JO3AH657KEPQLOBNQENY6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

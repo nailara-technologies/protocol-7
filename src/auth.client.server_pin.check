@@ -11,13 +11,13 @@
 # C client ], this module only does the file io :
 #
 #   ~/.n/remote-keys/servers/<host>_<port>.public : line 1 the 77 char
-#     host-root fingerprint, line 2 [ optional, a step 1 pin has none ]
+#     host-root key id, line 2 [ optional, a step 1 pin has none ]
 #     the leaf name it was pinned for [ <node>.cube ], line 3 [ optional ]
 #     since -- shared with the C client and discover [ discover reads
 #     line 1 only ]
-#   ~/.n/remote-keys/owners/*.public : owner fingerprints [ line 1 ],
+#   ~/.n/remote-keys/owners/*.public : owner key ids [ line 1 ],
 #     written ONLY by an explicit command, never here
-#   ~/.n/remote-keys/distrust : one fingerprint per line, '#' comments ;
+#   ~/.n/remote-keys/distrust : one key id per line, '#' comments ;
 #     present but unreadable -> refused [ fail closed ]
 #
 # the pin is written exactly as the decider's 'write' says : 'new' [
@@ -25,7 +25,7 @@
 # a step 1 pin gaining its name ], 'none'. line 3 of the pin : since [ the
 # not_before of the owner statement certifying the pinned host-root ;
 # rotation is forward only ]. a pinned name never changes. a pin file
-# that cannot be read or does not hold a fingerprint [ an old 52 char S
+# that cannot be read or does not hold a key id [ an old 52 char S
 # pin included ] : refused, never replaced.
 
 my ( $host, $port, $server_pub, $chain_field ) = @ARG;
@@ -54,7 +54,7 @@ return $refuse->('server key is not 32 bytes')
     or length($server_pub) != 32;
 
 foreach my $sub (
-    qw| trust.statement trust.verify trust.fingerprint trust.chain
+    qw| trust.statement trust.verify trust.key_id trust.chain
     trust.pin_decide auth.client.owner_pins auth.client.distrust_list |
 ) {
     return $refuse->("module $sub not loaded")
@@ -182,7 +182,7 @@ if ( $write eq qw| new | ) {
         return $refuse->("cannot write pin $pin_path");
     }
 
-    ## level 0 [ a new pin ] : the fingerprint on its own two lines ##
+    ## level 0 [ a new pin ] : the key id on its own two lines ##
     <[base.logs]>->(
         0, '[*] pinned host-root [ %s \ %s:%d ]%s',
         $name, $host, $port,
@@ -223,8 +223,8 @@ if ( $verdict eq qw| PIN_ROTATED | ) {
 
 return TRUE;
 
-#,,..,.,,,.,.,,.,,,,.,,.,,.,.,..,,.,,,.,,,..,,..,,...,...,..,,,,,,,..,,..,,.,,
-#WQQOPHRJ36SU4U5GYI22IW7CLJ5N6IYWQ22EXAHZHBWGDZOPOD3EUFTOWPZTWGO6KJL4Y7MA6XHQG
-#\\\|SOS3HIHA5YG44XMBQODEDLT4W2NROGOEQROM6UEHBITPETZSJLF \ / AMOS7 \ YOURUM ::
-#\[7]565U3UPVGWKUO54VWRKAMRRMTQUJLUZP36DWRIVHAH7OODKO6ODI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,..,,.,.,...,.,,,.,.,...,,,,,..,,...,..,,.,.,,.,,..,,,,,,..,,
+#STLY2G6SYZW2CM3QQHHV45CD2FSJZ22E6KRK7Y2IIJJGWIWWI2SJLTYWARVKAVU2SALOJMBMMLIYQ
+#\\\|OHAHT43A62FBEJOHHF4JSMTG6P4QF2QZV7D6Z6N6J2GY5ZFJEJC \ / AMOS7 \ YOURUM ::
+#\[7]AFGEIPG7XGJGBDN57H7GW3CYEC2KY2EXQCC5ZDWP5G5ZPZ2CPYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

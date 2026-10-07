@@ -3,10 +3,10 @@
 # name  = keys.console.undistrust
 # param = <fp>
 # descr = remove a key from the local distrust list
-# note  = <fp> : 77 char fingerprint or 52 char public key ;
+# note  = <fp> : 77 char key id or 52 char public key ;
 #         the old list is kept as distrust.<time>.bak
 
-my ( $fp, $why ) = <[keys.fingerprint_arg]>->( shift // '' );
+my ( $fp, $why ) = <[keys.key_id_arg]>->( shift // '' );
 if ( not defined $fp ) {
     printf "\n  << %s >>\n\n", $why;
     <[base.exit]>->(qw| 0010 |);
@@ -38,8 +38,8 @@ say " :\n :: removed from the distrust list";
 <[keys.store_note]>->( $list->{'path'} );
 say " :.\n";
 
-#,,,,,..,,,..,,..,.,.,,.,,,,,,...,.,,,,..,.,.,..,,...,...,...,,.,,..,,.,,,,..,
-#5AOH4ZRKT45FLOSWBP2BP4KWV4OM67U7LKODBIWB46GNNQBCFDBA2I7VMOOZCQC3OS7X7TFMRL42W
-#\\\|UJPJZJ7X5KEHCNVCYNCGGVUCWS6DMAH2BFPKP47XMJDBAETIF74 \ / AMOS7 \ YOURUM ::
-#\[7]MBCXJXGNJY3H54KGPZQZZMHPEEUTOMMTYDCPK5CIVFCFC7LNUYBI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,..,,.,,,,..,..,,.,,,,,.,...,..,,...,.,,,.,.,,..,,.,,...,.,.,
+#2ZKQ5AJBKYG7TO3RBOGPLE36XZDBUETXXZVZFJJBHBDSEPMSHBJ4POYBMCKR5N34G3TDXDR756YVK
+#\\\|EUFJXBXANWKPJKIJZ5MIX5TL2MW5K6YTX5ERXYYZNVWLUSNG3BS \ / AMOS7 \ YOURUM ::
+#\[7]AN67CZ5T3DABHKZG3FMKOEGWISQCA6PGC7ZBSRNUDDKVU4EG44BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

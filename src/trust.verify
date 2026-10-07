@@ -3,17 +3,17 @@
 # name   = trust.verify
 # descr  = walk a delegation chain from a pinned anchor down to a subject
 # param  = { chain   => [ <wire b32 statement>, .. ] [ anchor-most first ],
-#            anchors => [ <77 char fingerprint>, .. ],
+#            anchors => [ <77 char key id>, .. ],
 #            subject => <raw 32 byte public key>,
 #            now     => <unix seconds>,
-#            distrust => [ <77 char fingerprint>, .. ] [ optional ] }
+#            distrust => [ <77 char key id>, .. ] [ optional ] }
 # return = { name, anchor, issuer_pub, not_after, depth } [ of the last
 #          statement ; depth = statements actually verified ] or undef
 #          [ list context : ( undef, reason ) ]
 #
 # data/md/design/TRUST-CHAIN-STEP2.md [ 'scope grammar' ] : the chain is
 # given anchor-most first ; verification STARTS at the first statement
-# whose issuer fingerprint is pinned [ statements before it are ignored :
+# whose issuer key id is pinned [ statements before it are ignored :
 # not parsed, not checked ] -- none pinned : refuse. every later issuer
 # must be the previous subject. per statement, in this order : exact
 # parse -> sig under the issuer pub -> not_before <= now <= not_after ->
@@ -31,7 +31,7 @@
 #
 # distrust [ emergency local deny, TRUST-CHAIN-STEP2.md 'revocation' ] :
 # checked FIRST, over EVERY statement of the chain [ also the ones before
-# the anchor ] -- an issuer or subject key whose fingerprint is listed, or
+# the anchor ] -- an issuer or subject key whose key id is listed, or
 # the subject itself listed : refused 'distrusted key in chain'.
 
 my $param = shift;
@@ -89,8 +89,7 @@ if (%distrusted) {
             substr( $bytes, $label_len + 32, 32 );
     }
     return $refuse->('distrusted key in chain')
-        if grep { exists $distrusted{ <[trust.fingerprint]>->($ARG) // '' } }
-        @key;
+        if grep { exists $distrusted{ <[trust.key_id]>->($ARG) // '' } } @key;
 }
 
 my %anchor = map { $ARG => TRUE }
@@ -121,10 +120,10 @@ my $scope_within = sub {
             and length($s_core) > length($i_pre) + 1 ) ? 1 : 0;
 };
 
-## the first statement whose issuer fingerprint is pinned starts the chain ##
-## ; everything before it is ignored [ not parsed, not checked ].  the     ##
-## issuer pub sits at a fixed offset right after the label -- a b32 decode ##
-## is all the scan needs                                                   ##
+## the first statement whose issuer key id is pinned starts the chain ;     ##
+## everything before it is ignored [ not parsed, not checked ].  the issuer ##
+## pub sits at a fixed offset right after the label -- a b32 decode is all  ##
+## the scan needs                                                           ##
 my $start;
 my $anchor_fp;
 foreach my $index ( 0 .. $chain->$#* ) {
@@ -133,7 +132,7 @@ foreach my $index ( 0 .. $chain->$#* ) {
     next if $wire !~ m|\A[A-Z2-7]+\z|;
     my $bytes = eval { Crypt::Misc::decode_b32r($wire) };
     next if not defined $bytes or bytes::length($bytes) < $label_len + 32;
-    my $fp = <[trust.fingerprint]>->( substr( $bytes, $label_len, 32 ) );
+    my $fp = <[trust.key_id]>->( substr( $bytes, $label_len, 32 ) );
     next if not defined $fp or not exists $anchor{$fp};
     $start     = $index;
     $anchor_fp = $fp;
@@ -205,8 +204,8 @@ return {
     qw| depth |      => $chain->$#* - $start + 1,
 };
 
-#,,,,,,,,,...,.,,,.,,,,,,,,..,...,,,.,..,,,,.,..,,...,...,,.,,..,,.,.,,..,.,.,
-#XTPHSQYU22MKU2WW3ZMUK5G23T62HZFZ4Y3OASY3TRF264XG3UVDLNXRWACC3ZIWRCYBH5C42OVZG
-#\\\|VYG5ZAKD6AOM7TWKDU363O3E2Y4WVVUGZ44EXDGQDXZD62GRFEF \ / AMOS7 \ YOURUM ::
-#\[7]K75UBCKC7W3OD6QB54OZ742DR5S7XKUVPTOHU6M27PQDPO3QGABQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,,,,.,.,,,,,.,,,...,,..,,.,,..,,...,...,..,,.,,,.,.,...,..,,
+#4YMKHH3ABFG4HYEI4D23F4Z24HGOSK54I7GBM7MTCHEPP5XETI7YWWSWSAOOWKA742DRGSEOWKFR6
+#\\\|E3M6DGY5J7HUKXJ6PNQH4LHLRFNFKIATTF5ULAHWI7VCNMILZF3 \ / AMOS7 \ YOURUM ::
+#\[7]QIWCEIMHHUPPNHZNIN5BX6POFNNXHYKXNWIUYDJ6Y3I5JWGPHGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

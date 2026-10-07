@@ -1,14 +1,14 @@
 ## [:< ##
 
 # name  = discover.read_host_root_pins
-# descr = the set of pinned host-root fingerprints from the client pin
+# descr = the set of pinned host-root key ids from the client pin
 #         store -- read only ; discover NEVER writes a pin
-# return = hashref { <77 char fingerprint> => TRUE, .. } [ empty if none ]
+# return = hashref { <77 char key id> => TRUE, .. } [ empty if none ]
 #
 # the pin store <home>/.n/remote-keys/servers/*.public is shared with
 # auth.client.server_pin.check and the C client [ data/md/design/HOST-
 # ROOT-DELEGATION.md, 'acceptance rules' ] : each file holds exactly one
-# 77 char fingerprint. an old 52 char S pin, a symlink, or any malformed
+# 77 char key id. an old 52 char S pin, a symlink, or any malformed
 # \ unreadable file is skipped -- never trusted [ fail closed ].
 
 my %pin;
@@ -37,8 +37,8 @@ closedir $dir_handle;
 
 return \%pin;
 
-#,,,.,..,,,..,,,.,,,.,...,,,,,.,,,.,.,,..,,.,,..,,...,..,,..,,,,,,.,,,.,.,.,.,
-#OZ65TBSOCO7LAIG7PNHRBM52ILIMRVT7PFUQENBEEWFWGBMXCJAHPV74JAIXE6S4AZGJ3FUH4ABKQ
-#\\\|KK3LH3KVIHIHSBC435RIS5SYBE2PJZES4IOZHABQL7FXXLX2JD7 \ / AMOS7 \ YOURUM ::
-#\[7]WPJ66N72CM4VS4CUS6BPCHKKADY7DEQPGDB3VINNHPSKWOXEGIAA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,,,,,...,,,.,.,.,.,.,,.,,...,..,,...,...,,,,,,,.,.,.,,..,.,,,
+#FEZXPA37TLJKLOPU3KQVI7HYUTQMTA2HR46GYCXW4HO2L2UPFLLDZPZURCW34QG5TH2HPQ6JDSVAS
+#\\\|WLOPPVXBMZNUFBTUR74IZP4FWS4QF472Q2BVL3RHMWXOOZ6YC5Z \ / AMOS7 \ YOURUM ::
+#\[7]G7LCJ3ZUB4G5DJ4R3FB5DWFPUJ2GUXOAFBZYFIOSU6Q7DBHWJQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

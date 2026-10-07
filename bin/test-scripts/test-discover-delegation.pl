@@ -176,10 +176,10 @@ sub clear_pins {
     return;
 }
 
-sub write_pin {    ## pin a fingerprint as <name>.public ##
-    my ( $name, $fingerprint ) = @ARG;
+sub write_pin {    ## pin a key id as <name>.public ##
+    my ( $name, $key_id ) = @ARG;
     open( my $fh, '>', "$pin_dir/$name.public" ) or die "pin : $OS_ERROR";
-    print {$fh} "$fingerprint\n";
+    print {$fh} "$key_id\n";
     close($fh);
     return;
 }
@@ -194,11 +194,11 @@ sub clear_owner_pins {
     return;
 }
 
-sub write_owner_pin {    ## pin an owner fingerprint as <name>.public ##
-    my ( $name, $fingerprint ) = @ARG;
+sub write_owner_pin {    ## pin an owner key id as <name>.public ##
+    my ( $name, $key_id ) = @ARG;
     open( my $fh, '>', "$owner_dir/$name.public" )
         or die "owner pin : $OS_ERROR";
-    print {$fh} "$fingerprint\n";
+    print {$fh} "$key_id\n";
     close($fh);
     return;
 }
@@ -208,7 +208,7 @@ sub clear_distrust {
     return;
 }
 
-sub write_distrust {    ## one fingerprint per line ##
+sub write_distrust {    ## one key id per line ##
     my (@fp) = @ARG;
     open( my $fh, '>', $distrust_path ) or die "distrust : $OS_ERROR";
     print {$fh} "$ARG\n" for @fp;
@@ -233,7 +233,7 @@ my ( $ow_pub, $ow_priv ) = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
 my $b32 = sub { Crypt::Misc::encode_b32r(shift) };
 
 compile_module('trust.statement');
-compile_module('trust.fingerprint');
+compile_module('trust.key_id');
 compile_module('trust.verify');
 compile_module('trust.chain');
 compile_module('auth.client.owner_pins');
@@ -244,11 +244,11 @@ compile_module('discover.process_incoming_packet');
 compile_module('discover.process_host_packet');
 compile_module( 'discover.cmd.host_details', $cmd_header );
 
-my $statement   = $code{'trust.statement'};
-my $fingerprint = $code{'trust.fingerprint'};
-my $hr_fp       = $fingerprint->($hr_pub);
-my $fr_fp       = $fingerprint->($fr_pub);
-my $ow_fp       = $fingerprint->($ow_pub);
+my $statement = $code{'trust.statement'};
+my $key_id    = $code{'trust.key_id'};
+my $hr_fp     = $key_id->($hr_pub);
+my $fr_fp     = $key_id->($fr_pub);
+my $ow_fp     = $key_id->($ow_pub);
 
 ## a delegation wire : host-root [ default ] delegates to S [ default ] ##
 sub dlg {
@@ -425,8 +425,7 @@ reset_receiver();
         'offered : valid delegation, root not pinned'
     );
     ok( ref $e eq 'HASH' && ( $e->{'root_fp'} // '' ) eq $hr_fp,
-        '  :.. root_fp is the host-root fingerprint'
-    );
+        '  :.. root_fp is the host-root key id' );
     ok( ref $e eq 'HASH'
             && ( $e->{'delegated_name'} // '' ) eq 'test-host.cube',
         '  :.. delegated_name carried through'
@@ -438,7 +437,7 @@ reset_receiver();
     );
 }
 
-## pinned : the fingerprint is in the pin store ##
+## pinned : the key id is in the pin store ##
 clear_pins();
 write_pin( 'testhost_42', $hr_fp );
 reset_receiver();
@@ -669,8 +668,7 @@ reset_receiver();
         '  :.. root_fp stays the LEAF issuer [ the host-root ]'
     );
     ok( ref $e eq 'HASH' && ( $e->{'owner_fp'} // '' ) eq $ow_fp,
-        '  :.. the owner anchor fingerprint is stored'
-    );
+        '  :.. the owner anchor key id is stored' );
     ok( scalar(@nodes_sent)
             && $nodes_sent[0]->{'call_args'}{'args'} eq
             "online testhost $hr_fp owner",
@@ -749,7 +747,7 @@ reset_receiver();
 reset_receiver();
 {
     open( my $fh, '>', $distrust_path ) or die "distrust : $OS_ERROR";
-    print {$fh} "this is not a fingerprint\n";
+    print {$fh} "this is not a key id\n";
     close($fh);
     my ( $leaf, $owner ) = chain_pair();
     $code{'discover.process_incoming_packet'}
@@ -849,7 +847,7 @@ reset_receiver();
 }
 
 ######################################################################
-say ': discover.cmd.host_details shows owner + the owner fingerprint';
+say ': discover.cmd.host_details shows owner + the owner key id';
 write_owner_pin( 'amos', $ow_fp );
 clear_pins();
 reset_receiver();
@@ -864,7 +862,7 @@ reset_receiver();
     my $fp_second = substr( $ow_fp, $half );
     ok( $out =~ m|trust : owner|, 'owner trust shown' );
     ok( $out =~ m{\Q$fp_first\E\n\s+\Q$fp_second\E},
-        'owner fingerprint shown in two halves at the root_fp column' );
+        'owner key id shown in two halves at the root_fp column' );
 }
 clear_owner_pins();
 
@@ -877,8 +875,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,,,,,,.,,,,,,.,,,.,.,..,,,..,...,...,..,,...,...,..,,,,.,,..,.,.,.,.,
-#QBFDIBU4WUOSLSB2HE5EPTPD67N57T4NHVNMA4CJWIRZ3CTGBAWKOM2BP2E3VZZCIN4BVTJEN3AOI
-#\\\|VEY556LXPEEZ6ABDM37TO5CAUTTB7CPIAB6AMGQ4AEJSME6HMAK \ / AMOS7 \ YOURUM ::
-#\[7]RBQW477RWX72O7TZHTY2XJIRM7A5VVOTY6LWWS5DFEUZK7FHCEBA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,,,.,,,.,.,,,...,.,,,,.,,.,,,..,,...,...,...,.,.,...,,,,,,,.,
+#VGQVWT4HT6DV7WRBFUS45WWL5TML7GRPF5FCGZGUXOUH2MZQHV3VXTSPNIZQE4XF3G2S2PQ3CVNIC
+#\\\|D77MYBOKYVT2VE4NGMKCLSAKIBQ45OHCJHERUFHOBMH6PSXQW3Y \ / AMOS7 \ YOURUM ::
+#\[7]45IB4VHSRBHJTXK46TN5THAYZLU5IVABELKTUUKCMG6HNKWWXYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
