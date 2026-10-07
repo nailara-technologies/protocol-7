@@ -166,7 +166,7 @@ sub resolve_token {
     return $resolve_cache{$token} if exists $resolve_cache{$token};
 
     ##  one p7c call per unique token  ##
-    my $resolved  = qx|p7c p7-log.anon.resolve '[L:$token]' 2>/dev/null|;
+    my $resolved  = qx|p7c p7-log.resolve '[L:$token]' 2>/dev/null|;
     my $exit_code = $CHILD_ERROR >> 8;
     chomp $resolved if defined $resolved;
 
@@ -218,8 +218,8 @@ sub param_to_unix {
     }
 }
 
-#,,.,,..,,,.,,...,.,,,,.,,...,.,,,..,,..,,.,.,.,.,...,...,.,,,.,.,,,.,,,,,,..,
-#KRLSNDQD67DQHPN6JRGQESMVJPC6GY553BPQGRQRI3D2PJFFVUVXPDLDM47WLNNWIQ4U5RJB4CRPU
-#\\\|JUZJLZUKOHAPMPPIFQW7OBCRMMM4DOVHT2ZMLQC46LTKKHIQ3JM \ / AMOS7 \ YOURUM ::
-#\[7]LAVVMPHKJMDRBVGNLLZRNENN6FW45Q5O5M2PS7RRV3WMJYR7Q2BI 7  DATA SIGNATURE ::
+#,,..,...,,,.,...,,.,,,,.,.,.,,.,,...,,,.,,,.,.,.,...,..,,,,.,,,.,.,,,,..,..,,
+#32SKVV7B6F7UXPYP772XUQJWB72VULZFAGKTMP4QYYKHWUG3KRACB7UQNC657SSFSYGWXOTERLNZ6
+#\\\|W53KI346A7QSXXUROOZ42XVDRQTOAFXVXEII4H22IGBNVAT6GTI \ / AMOS7 \ YOURUM ::
+#\[7]5PYAEOXMSCBYM6LFFFKFAEZF3LN2FQD2IWX2LQHIXQ2B6SXD6YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

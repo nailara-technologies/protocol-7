@@ -6,7 +6,7 @@
 # return = 26 char base32 id, undef [ no usable key ]
 #
 # stored next to a table as <table>.key : store never appends under
-# another key, anon.archive-table checks the named key wrote the table.
+# another key, archive-anon-table checks the named key wrote the table.
 # derived from key32 with its own label -- reveals nothing about it.
 
 my $key32 = <[p7-log.anon.key]>->(@ARG);
@@ -18,8 +18,8 @@ return undef if not defined $id or length($id) != 32;
 
 return substr( Crypt::Misc::encode_b32r($id), 0, 26 );
 
-#,,,.,,..,,.,,,..,,,.,,,,,...,,.,,...,,,,,,,.,..,,...,...,.,,,,..,...,,,.,,.,,
-#TQPB3XVJPPLXFJ7KWLS5WBY7J552VEUCJT547S7DH4XXEKDFSGZMTKZMFLX72U6KA25VVIHWR62Z6
-#\\\|4XB5O4PL5EZDO7CNE7AQWLFCJOB3RYOSNG2GFMKMXM4AZKCCC7L \ / AMOS7 \ YOURUM ::
-#\[7]XLPFXL6QG22OC36MDQQU525X36AFIOKH62L7Q6OBFOFW4YK22IBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,.,,,,..,,,.,.,.,,.,,,..,...,..,,...,...,..,,.,.,,..,.,.,..,,
+#WF7MFGPIQ2BTZCP7VBKMFFRSE36BRKUE5PRIALMAC3TIWIIKXON6VBHAG4YNTNG4TZUVIZ6AMIHMK
+#\\\|PWHVHFULIE2PQGW3VMGQAPPL4WVKNOMY7LVWAHL6B3UB54Q6I55 \ / AMOS7 \ YOURUM ::
+#\[7]XXRX4GIAJWOAOTYJXZARH65QXJITOI4XTQQDU5FPCZIROSLZVGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

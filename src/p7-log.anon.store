@@ -33,7 +33,7 @@ if ( not -d $table_dir ) {
 }
 
 ## a table belongs to ONE key [ <table>.key : its key id ] -- never append ##
-## under another key [ a rotated key without anon.archive-table ]. a table ##
+## under another key [ a rotated key without archive-anon-table ]. a table ##
 ## from before key ids is adopted under the current key                    ##
 my $key_id = <[p7-log.anon.key_id]>;
 return FALSE if not defined $key_id;
@@ -45,7 +45,7 @@ if ( -e $id_path ) {
         <[base.logs]>->(
             0,
             'p7-log.anon.store : %s was written under another key, '
-                . 'nothing stored [ anon.archive-table <old key name> ]',
+                . 'nothing stored [ archive-anon-table <old key name> ]',
             $table_path
         ) if not <p7-log.anon.key_mismatch_logged>++;
         return FALSE;
@@ -110,8 +110,8 @@ close($table_fh);
 
 return $stored;
 
-#,,.,,.,.,,.,,..,,.,,,,..,...,.,.,.,,,.,,,,,,,..,,...,...,..,,,..,.,.,.,.,...,
-#XMWBYLPAZQK76O7RAS2JRDZYTW46NC3CLTMDH5FDP53SD3AUAUQGTG2SEUAG2PCTXYPY6CGGVTJ6Q
-#\\\|7AN7OB3NA67WER23PGFYUWY3DQME46DNYYXXT47EMNYQ2JYFXTT \ / AMOS7 \ YOURUM ::
-#\[7]KXUZEEZ7AYTE2NTPGQ7BLHBKAZVDOBHN23DOXM5BTYFNEISME2DI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,.,.,,,...,,.,,.,.,..,,,.,,.,.,..,,...,...,...,..,,,,,,,,.,...,
+#74PME727SHXKDYPJQF5U3SJMC6ABI4C4WLACEMSTAGHCEAHQFAOTRSZIDQATP4WJJBCHFLI6QN44K
+#\\\|KKFCT5RQYKOGIL3EPD7OA7WYWLM5J4KBR2KAH3MW5BPCGT3Q67Z \ / AMOS7 \ YOURUM ::
+#\[7]IZYMS3ODVNR4F2YYPZ3G3DRNFW7Y5S2UM23NSOZEGE6GIHGOC4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
