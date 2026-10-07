@@ -13,10 +13,11 @@
 # client ]. the delegation must verify [ trust.verify : sig, time, the
 # subject == the announced S, name, scope ] under the pinned host-root ;
 # S itself may rotate. first contact verifies under the statement's own
-# issuer and only THEN pins it [ log level 0 'pinned host-root <fp>
-# [ <name> ]' ]. a later different host-root is refused and NEVER
-# re-pinned automatically ; a pin file that cannot be read or does not
-# hold a fingerprint [ an old 52 char S pin included ] : refused.
+# issuer and only THEN pins it [ log level 0 'pinned host-root [ <name>
+# \ <host:port> ]' + the fingerprint in two halves ]. a later different
+# host-root is refused and NEVER re-pinned automatically ; a pin file
+# that cannot be read or does not hold a fingerprint [ an old 52 char S
+# pin included ] : refused.
 
 my ( $host, $port, $server_pub, $delegation ) = @ARG;
 
@@ -138,15 +139,19 @@ if ( not close($pin_fh) or not $written ) {
     return $refuse->("cannot write pin $pin_path");
 }
 
+## level 0 [ a new pin ] : the fingerprint on its own two lines ##
+my $fp_half = int( ( length($issuer_fp) + 1 ) / 2 );
 <[base.logs]>->(
-    0, '[*] pinned host-root %s [ %s ] [ %s:%d ]',
-    $issuer_fp, $valid->{'name'}, $host, $port
+    0, '[*] pinned host-root [ %s \ %s:%d ]',
+    $valid->{'name'}, $host, $port
 );
+<[base.logs]>->( 0, ' :. %s', substr( $issuer_fp, 0, $fp_half ) );
+<[base.logs]>->( 0, ' :. %s', substr( $issuer_fp, $fp_half ) );
 
 return TRUE;
 
-#,,.,,,,.,.,,,.,,,.,,,,,.,,,,,..,,,.,,,..,.,.,..,,...,...,..,,..,,.,.,,..,...,
-#PBWLR3I6PLNPGPADZDTEBDOLKXFJ4C5RGSYF3MERFKGHAW37Z6ZCCDF7BCJKBZKJDB4FYTUY7HR66
-#\\\|LGVA6AFQOXKE67WNUGOG3TW3N3WTS2BXJ5VNUZXJIYYFPS43PF6 \ / AMOS7 \ YOURUM ::
-#\[7]O2HEULH65G3I45OLNNQA246DZCE6URSXGVFUJFWATXGYZXPUWADI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,...,,,.,..,,.,,,,.,,,,,,,,.,..,,...,...,,,,,.,.,..,,,..,,.,,
+#FD7HKMJ7RSXS6EXRC6COHAG3T3JKLBUXHHY2U4AWHJSJWBZIFUZLV4X2CWO4TN5VQ5UOWNCVGXWQS
+#\\\|VLSGED4YVIRRKKH6SALK4XI4IMUSZUIL2DHHUPTYMWGDDK5HOE6 \ / AMOS7 \ YOURUM ::
+#\[7]2ELQJWKW543SGLPTIOB3FBWJWUVH4IF2AJMDHQF5JZNBBZFGRYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
