@@ -59,10 +59,13 @@ close($fh);
 
 ## pull out exactly the statement between the two markers that bound it in ##
 ## the real file -- if this fix is ever rewritten, refactored, or removed, ##
-## this extraction fails loudly instead of silently testing stale logic    ##
+## this extraction fails loudly instead of silently testing stale logic.   ##
+## trailing anchor : the manual fork/exec rewrite [ 2717b5f66 ] replaced   ##
+## the old `my $pid = eval` open3 block with the comment that now follows  ##
+## this statement directly                                                 ##
 my ($stmt) = $src =~ m{
     (local \s+ \$ENV\{'LD_LIBRARY_PATH'\} .*? ;)
-    \s* \n \s* \n \s* my \s+ \$pid \s+ = \s+ eval
+    \s* \n \s* \n \s* ## \s+ manual \s fork/exec
 }xs;
 
 ok( defined $stmt,
@@ -119,8 +122,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,..,,,,,..,,,,.,.,.,,,,,..,,,..,.,.,,,,,.,.,...,..,,...,..,,.,.,,,,,.,,,
-#LRR5LW3V5BR6O4AIXR5QBVC2N25SAMTH2VD5JYZ3IZJLASRDX6N2YYDIX3IXSVQEZAYIKBW4ZETMQ
-#\\\|5XLB5RQUVEDOVLS2FRYNC3QCXYKUGVKCYPOJ3AGJM7GCYYOAWA3 \ / AMOS7 \ YOURUM ::
-#\[7]GDIGCFEAHO3GNRT57Q6PMJXOBNFW63YRGPXVL55B4AHDF4ODOYBA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,.,,,,,,,,..,.,,,,,.,.,,,,.,,.,.,...,...,...,..,,,,,,..,,..,,
+#E3TAABRCVOXPX34LSLXNJBMUQO4LTQXZJMRKSZ4KUWEG4Z2MTLNIUNHAL2IPL7VCEUPHRYCPCLLXI
+#\\\|4NPGCLZQSOL2DKQZ4A67OZU5TS7NBIRQL6ZNM7BDZR3HI5NI4G6 \ / AMOS7 \ YOURUM ::
+#\[7]42LSZ25KX4VNBDTZLLWAHMMCHPQZQXBNSGBZK2GE54Z34EBAF4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

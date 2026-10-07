@@ -3,7 +3,9 @@
 ##
 ## Loads the real module sources from src/, applies the Protocol-7 source
 ## conventions textually ( <[mod]>->(...) => $code{mod}->(...),
-## <plan-9.protocol.constants.X> => P9C('X'), @ARG => @_ ), and runs them
+## <plan-9.protocol.constants.X> => P9C('X'),
+## <a.b.c> data-tree sugar => $data{'a'}{'b'}{'c'} [ repo-wide 87b91fd5f ],
+## @ARG => @_ ), and runs them
 ## against a REAL, deliberately STRICT 9P2000 server (separate process,
 ## real TCP socket) :
 ##   - Twalk from an open fid     => Rerror  (9P2000 forbids it)
@@ -110,10 +112,15 @@ sub load_mod {
     open( my $fh, '<', "$SRC/$name" ) or die "cannot read $name : $!";
     my $src = do { local $/; <$fh> };
     close $fh;
-    $src =~ s/\n#,.*\z//s;    ## strip AMOS7 signature trailer
-    $src =~ s/<plan-9\.protocol\.constants\.(\w+)>/P9C('$1')/g;
-    $src =~ s/<\[([\w.\-]+)\]>/\$code{'$1'}/g;
-    $src =~ s/\@ARG/\@_/g;
+    $src =~ s|\n#,.*\z||s;    ## strip AMOS7 signature trailer
+    $src =~ s|<plan-9\.protocol\.constants\.(\w+)>|P9C('$1')|g;
+    $src =~ s|<\[([\w.\-]+)\]>|\$code{'$1'}|g;
+    ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} -- the repo-wide   ##
+    ## format-code pass 87b91fd5f converted $data{'storage'}{'9p'}{...}     ##
+    ## chains in these modules to <storage.9p....> sugar                   ##
+    $src =~ s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{
+        "\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1 }ge;
+    $src =~ s|@ARG|@_|g;
     my $cref = eval "sub { $src }";
     die "compile error in $name : $@" if $@;
     $code{$name} = $cref;
@@ -454,7 +461,7 @@ ok( @{ $res->{data} } == 1
 ## 8. exclusion scan : reject *.tmp ##
 $res = $code{'storage.9p.scan'}
     ->( { name => 'test', path => '/', exclusion_add => [qr/\.tmp$/] } );
-ok( !grep( { $_->{path} =~ /\.tmp$/ } @{ $res->{data} } ),
+ok( !grep( { $_->{path} =~ m|\.tmp$| } @{ $res->{data} } ),
     'exclusion_add filter ( no tmp files )' );
 
 ## 9. AND filters ##
@@ -533,8 +540,8 @@ kill 9, $pid;
 waitpid( $pid, 0 );
 exit( $fail ? 1 : 0 );
 
-#,,,.,,,,,,..,...,.,,,,.,,,.,,...,,,,,,.,,...,..,,...,...,.,.,,..,...,,.,,...,
-#X5S2S4I22NB5EDWCCUZQHJCTHRC7AAZVUXDVX5IMTQRVJJDKIOTGXFNVCZZSRIMARBBS3MO4I6DPY
-#\\\|FYA3YXGSF4JEG2KNHVPGSUPK2DMAA5VSPSJNADJF6IGFHUYR5UT \ / AMOS7 \ YOURUM ::
-#\[7]VGHR4YTG36LUW2K7FD3ZGKX3FOBY5NLXMAPPIIZVJBIUO4BGGQAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,..,,...,,.,,.,,,,.,,,..,,..,..,,...,...,...,.,.,..,,,,.,..,,
+#4VIU3DHT3UGG3BUNNIHEKS2RG43VL3U6YIIKJ3BQOOCEM3NSCL6OMOW4R6IQDWQLQUBY7S23IHEA2
+#\\\|PT4O72JFGTMPUA2UYWRZ4UDR45GU3WXTFIOF6AHTNTAP63KIWSO \ / AMOS7 \ YOURUM ::
+#\[7]3WFPF5Y23ZQLP3EOVBRASAYKAERCYEVPKE5EIPCVRNIOUQIU7KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
