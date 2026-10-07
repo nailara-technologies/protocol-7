@@ -3,6 +3,10 @@
 # name  = p7-log.anon.resolve
 # descr = resolve [L:<checksum>] token \ bare checksum to plaintext,
 #         returns plaintext, FALSE when not found, undef on error
+#
+# the current table [ current key ] first, then each archived table
+# log-anon/table.<key name>.bin under that retired key [ key rotation :
+# the old key is kept under <key name>, its table renamed to match ]
 
 my $token = shift // '';
 
@@ -11,57 +15,76 @@ $token = uc $token;
 
 return FALSE if $token !~ m|^[A-Z2-7]{8,13}$|;
 
-my $key32 = <[p7-log.anon.key]>;
-return undef if not defined $key32;
-
 ## var_P7 data dir [ /var/protocol-7/<zenka> ] -- NOT the source tree, so ##
 ## the table survives git reset/clean and matches a real deployment path  ##
 <p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
     <[file.zenka_dir.data_path]>;
 my $table_path = <p7-log.anon.table_path>;
 
-return FALSE if not -r $table_path;
+## one table under one key : plaintext, FALSE [ not in it ], undef [ error ##
+## ]                                                                       ##
+my $scan = sub {
+    my ( $path, $key32 ) = @ARG;
+    return FALSE if not -r $path;
+    open( my $table_fh, qw| < |, $path ) or return undef;
+    binmode($table_fh);
+    flock( $table_fh, 1 );    ## LOCK_SH ##
 
-open( my $table_fh, qw| < |, $table_path ) or return undef;
-binmode($table_fh);
-flock( $table_fh, 1 );    ## LOCK_SH ##
+    my $result;
+    while (TRUE) {
+        my $header = '';
+        my $read   = read( $table_fh, $header, 18 );
+        last if not defined $read or $read < 18;
 
-my $result;
-while (TRUE) {
-    my $header = '';
-    my $read   = read( $table_fh, $header, 18 );
-    last if not defined $read or $read < 18;
+        my ( $key, $ct_len ) = unpack( 'a16 n', $header );
+        $key =~ s|\0.*$||;    ## strip key field padding ##
 
-    my ( $key, $ct_len ) = unpack( 'a16 n', $header );
-    $key =~ s|\0.*$||;    ## strip key field padding ##
+        my $ciphertext = '';
+        $read = read( $table_fh, $ciphertext, $ct_len );
+        last if not defined $read or $read < $ct_len;
 
-    my $ciphertext = '';
-    $read = read( $table_fh, $ciphertext, $ct_len );
-    last if not defined $read or $read < $ct_len;
+        next if $key ne $token;
 
-    next if $key ne $token;
+        AMOS7::Twofish::key_init( $key32, qw| decryption log_anon | )
+            or last;
+        my $dec_ref = AMOS7::Twofish::decrypt( qw| log_anon |, \$ciphertext );
+        AMOS7::Twofish::delete_table_entry(qw| decryption log_anon |);
+        last if ref $dec_ref ne qw| SCALAR |;
 
-    AMOS7::Twofish::key_init( $key32, qw| decryption log_anon | ) or last;
-    my $dec_ref = AMOS7::Twofish::decrypt( qw| log_anon |, \$ciphertext );
-    AMOS7::Twofish::delete_table_entry(qw| decryption log_anon |);
-    last if ref $dec_ref ne qw| SCALAR |;
+        ## strip pkcs7 padding ##
+        my $plain   = $dec_ref->$*;
+        my $pad_len = ord( substr( $plain, -1 ) );
+        last if $pad_len < 1 or $pad_len > 16 or $pad_len > length($plain);
 
-    ## strip pkcs7 padding ##
-    my $plain   = $dec_ref->$*;
-    my $pad_len = ord( substr( $plain, -1 ) );
-    last if $pad_len < 1 or $pad_len > 16 or $pad_len > length($plain);
+        $result = substr( $plain, 0, length($plain) - $pad_len );
+        utf8::decode($result);
+        last;
+    }
+    close($table_fh);
+    return defined $result ? $result : FALSE;
+};
 
-    $result = substr( $plain, 0, length($plain) - $pad_len );
-    utf8::decode($result);
-    last;
+## current key, current table ##
+my $key32 = <[p7-log.anon.key]>;
+return undef if not defined $key32;
+my $result = $scan->( $table_path, $key32 );
+return $result if not defined $result or $result ne FALSE;
+
+## archived tables, each under its retired key ##
+( my $table_dir = $table_path ) =~ s|/[^/]+$||;
+foreach my $archived ( sort glob( catfile( $table_dir, 'table.*.bin' ) ) ) {
+    my ($key_name) = $archived =~ m|/table\.([^/]+)\.bin\z|;
+    next if not defined $key_name;
+    my $old_key32 = <[p7-log.anon.key]>->($key_name);
+    next if not defined $old_key32;
+    my $found = $scan->( $archived, $old_key32 );
+    return $found if defined $found and $found ne FALSE;
 }
 
-close($table_fh);
+return FALSE;
 
-return defined $result ? $result : FALSE;
-
-#,,,.,..,,...,...,...,,.,,..,,.,.,,.,,..,,...,..,,...,...,,,.,..,,...,,,,,,.,,
-#OZ6F3PEZLXTIWSXPFZZQOTEP7NSFAMFTRYVXB4JW4HN5IRLETUWP72V4M3UWVML2UKSVK4QAKTPXQ
-#\\\|G2PEVCJTXKORQJIJQC42N2LVMUQD2TRCY4TWRNFJ7VA5Y52VUXQ \ / AMOS7 \ YOURUM ::
-#\[7]T6QNY75O2ARZLIWQFFICX6EV3VBTXEOUOTUAZ6UQGCBAGQ72NSBY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,...,..,,.,.,,.,,..,,...,,.,,..,,...,...,.,,,.,,,.,.,,,.,.,,,
+#4UMXHRUWGGHR3QRXA7MBF3LR2JHEOVFVN3HFMF6A6VFPHAW5HUT2XNNRS242HXUV5DFY3GCQ2HC6W
+#\\\|LRTPHU7ZO7NNQLUTSHTB4CBTZZR7UW33JY4VBRUDNVZICD35CPH \ / AMOS7 \ YOURUM ::
+#\[7]JJBWR2RONUOINA2GWVF4ULCWWPZXFLC6YCFEIU5OOL3TNUKGA4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
