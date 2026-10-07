@@ -9,13 +9,31 @@ return {
     'data' => 'expected <status> and <hostname> parameters'
     }
     if not defined $call->{'args'}
-    or $call->{'args'} !~ m<^(online|offline)[\t ]+(\S+)$>;
+    or $call->{'args'} !~ m<^(online|offline)[\t ]+(\S+)(?#
+        )(?:[\t ]+(-|[A-Z2-7]{77})[\t ]+(?#  host-root fingerprint [ or - ]
+        )(pinned|offered|unverified|invalid))?$>;    ##  trust [ optional ]
 
-( my $status, my $name ) = @{^CAPTURE};
+( my $status, my $name, my $root_fp, my $trust ) = @{^CAPTURE};
 
 my $offline_status_timeout = <nodes.local-network.offline_status_timeout>;
 
 <nodes.local-network.online-hosts> //= {};    ## added in reply handler ##
+
+## host-root trust carried along the discover route [ data/md/design/   ##
+## HOST-ROOT-DELEGATION.md ] : stash it so the node entry built by the  ##
+## details reply carries it ; no trust decisions are taken in nodes yet ##
+if ( $status eq qw| online | and defined $trust ) {
+    $root_fp = undef if defined $root_fp and $root_fp eq qw| - |;
+    <nodes.local-network.host-trust> //= {};
+    <nodes.local-network.host-trust>->{$name}
+        = { qw| root_fp | => $root_fp, qw| trust | => $trust };
+    if ( exists <nodes.local-network.online-hosts>->{$name} ) {
+        ## a known host re-announcing : update its entry in place ##
+        <nodes.local-network.online-hosts>->{$name}->{'trust'}   = $trust;
+        <nodes.local-network.online-hosts>->{$name}->{'root_fp'} = $root_fp
+            if defined $root_fp;
+    }
+}
 
 <[base.logs]>->( 2, "received [%s] status for '%s'", $status, $name );
 
@@ -81,8 +99,8 @@ if ( not exists <nodes.local-network.online-hosts>->{$name} ) {
 
 }
 
-#,,,.,...,,,,,,..,.,,,...,.,.,.,,,...,..,,,.,,..,,...,...,..,,,..,,..,.,.,,,.,
-#45EKRRQDD6UJ644S4N3RJHG6HEMBROXVDGSJL7EZ7OTVNG76LL4QGQZNQEADMWE5TSV6K7MX2UTHG
-#\\\|AEDFRTG5KWB3K67YIVCQMRN5XNCR73ZT2VBR3JXXM2UR3PRJHAU \ / AMOS7 \ YOURUM ::
-#\[7]W6TZSVZLEG2WTKL24SEOWU5XMNLOE2EG6WBY2NVFELQJRTQNJEDY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,.,.,,..,,,,,,.,,,.,,.,,,,.,,..,,...,...,,..,,..,.,.,,,,,.,,,
+#CEVP5CBYXB4GA5MLN744BXWX6D7YNRAGVAEK3DKRKJX5AGBT5FGBKZS22SMNJPKSMPJMI7K5TLU2S
+#\\\|LQO4MTTD3W6OG3Z7GKUB5AYLHOC4XPRPGKOZOAR5ISUNUXCLSHZ \ / AMOS7 \ YOURUM ::
+#\[7]A5N57KQ4HH5UK3BP65S6KFSOVZVNGGYIQSGIIQBCDFVUZQAFPCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

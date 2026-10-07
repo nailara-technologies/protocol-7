@@ -2,9 +2,11 @@
 
 # name  = discover.post_init
 
-<[crypt.C25519.load_all_signatures]>;    ##[  populating %signatures  ]##
+## the '.sig.*' raw-pubkey signature scheme is retired : discover no longer ##
+## reads %signatures, so it is not populated here anymore [ host-root       ##
+## delegation replaces it -- see process_incoming_packet ]                  ##
 
-<discover.announce_msg_header> = undef;  ##[ clear cached packet header ]##
+<discover.announce_msg_header> = undef;    ##[ clear cached packet header ]##
 
 if ( defined <discover.timer.announce_host>
     and <discover.timer.announce_host>->is_active ) {
@@ -19,8 +21,8 @@ if ( defined <discover.timer.announce_host>
 
 0;
 
-#,,,.,,,.,,,,,,..,,,.,.,.,.,.,,..,,..,.,.,...,..,,...,...,...,...,,,.,...,.,,,
-#BEAMYS5OF4SGORSSBWCEZA74JBRTNDJG2CAYMVJ6SIF25C4FL5UZOLNMSRMJSIYMV6V2JK7QZERAO
-#\\\|B5ZP3YP7SBFFFZVZM3IIRE3VWJMXRL6TCSTTTVQPPV5KAVYBUDY \ / AMOS7 \ YOURUM ::
-#\[7]6U2G6UBLTPLHHKFEFXJQR5HVXMADKJ3GIOSP7XAU74HXH3F4JYCI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,.,.,.,,,..,,...,.,.,..,,,..,..,,...,...,,.,,..,,...,.,,,,..,
+#FM3YNP6A5DVJMJPOBNNYLEGMHUNWNZZDPYYLBJQ2CL7BHJUDN7DDZVRXUR4IS6EXASM4HWTPWE35Q
+#\\\|OYBDBY7EJNOJKT5CXAVX43C4CQ5KMQ7QWA3O4O73ZRNWXF7O3AJ \ / AMOS7 \ YOURUM ::
+#\[7]PMK5IBHAEHOMN4FUKIT4P6CXEQYBHWVNK4FP2EQKCEO45GNLKOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
