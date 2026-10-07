@@ -188,7 +188,7 @@ compile_module('coding.helper.trigger_backend_self_test');
     };
 }
 
-sub ok {
+sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
     if ($cond) { say "  ok   : $label"; return }
     $fail_count++;
@@ -250,8 +250,7 @@ sub fire_guard_watcher {
 ## most recently armed, still-active safety timer for a backend ##
 sub safety_timer_for {
     my $backend = shift;
-    my ($found)
-        = reverse
+    my ($found) = reverse
         grep { $ARG->is_active and $ARG->desc =~ m{backend=$backend} }
         @timer_calls;
     return $found;
@@ -646,8 +645,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,,.,,.,,.,,,,,.,...,,.,,,.,,..,,.,,,.,,,..,,...,...,..,,,.,,,,.,,,.,.,.,
-#A33DZBB2ESGSGD5HUYNYQSW4PEMIURUKIQEHKLQLWT5V2Q5XU4NPZO5FYQL2BAR4JOY2JKGUB2TQI
-#\\\|32665QOU6D3JT6DBO3GD5NOODDMONPVCEO26N3TWO6SQXRPWQC3 \ / AMOS7 \ YOURUM ::
-#\[7]VMTBLBV346EURPNRDY7N4XZXNQ7X5T5VQ6OBGLCW2CKUIM2AFCDI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,,,,,,.,...,,..,.,.,...,,..,..,,...,...,,..,.,,,,..,,.,,...,
+#IUF75U54SMFPI7G4RUJ762MNKG6NFRKQSGDRUHUOCVJDPFB7Z7BQMESTVTSQRUTEKWN2LHXDAFRKC
+#\\\|T6M6Y7V2JK3B7IHFCVJV5OQSFVO4FSUOZTOZT6MBISV2VDDZDPZ \ / AMOS7 \ YOURUM ::
+#\[7]CRC4OUQY4ACHLDEOV6RGVIH2IO2GOFOIGUHWGCNVZMBJV2IL26AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
