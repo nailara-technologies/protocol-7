@@ -19,7 +19,7 @@ print "Prompt: $json_prompt\n\n";
 # Step 1: Get raw output from vision model
 print "[Step 1] Calling vision model...\n";
 my $raw_output
-    = qx(p7 llama-server-vision.analyze_image "$image_path" "$json_prompt" 2>&1);
+    = qx(p7c llama-server-vision.analyze_image "$image_path" "$json_prompt" 2>&1);
 print "Raw output:\n$raw_output\n";
 print "Length: " . length($raw_output) . " bytes\n\n";
 
@@ -136,8 +136,8 @@ This approach should work reliably because:
 
 =cut
 
-#,,..,.,.,,,.,...,,,.,.,,,..,,,..,.,.,,,,,,.,,..,,...,...,.,.,,,.,,.,,...,..,,
-#RVAD3BWXHYDDMCPXVQMDMCUMYNAC37RKTYEV3JE6XORRF2KX5P2EE4IMJHPGLNQKROMS5ZXMG5U3M
-#\\\|2EECMZSVYTNZ4P3KX7TGPVLXFCNKAXQQ44PESNKOVWQMELGUF3T \ / AMOS7 \ YOURUM ::
-#\[7]TY6K6SSJNZETOYT5HEZYVFZHOXZPS4ZXPIMTIEFBKXPDLGWH3SBY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,.,,,...,,.,,.,,,,,.,,,.,.,.,..,,...,...,...,.,.,.,.,,,.,,..,
+#SISCEZ5RZNBQBA5XWEYUD4NOZQZQU5ETBH46D4UU77QWVGFCUVCCEXQE3EYDZCOEAHXHCCOCNWBZA
+#\\\|7NJLUIPU6ZKSZEBK4NXEO3VRQZYYHQVFGV7XISQ3D7YLPVHEJBZ \ / AMOS7 \ YOURUM ::
+#\[7]66OSKH3BXVKBD6I47GWR6ADJ5MWKB33LWR3CLTJ56HVNNFQWNGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

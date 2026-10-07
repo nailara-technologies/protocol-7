@@ -57,6 +57,19 @@ my @http_cleanup_calls;
         sub { return { mode => qw| false |, data => 'not reached' } },
 );
 
+## the async pending-switch split [ 8c765db92 ] moved the memory gate into ##
+## coding.helper.complete_pending_switch : keep the harness design -- the  ##
+## huge fixture model below never 'fits', so the spawn stub above is never ##
+## reached -- and record the status the fit failure writes                 ##
+my @status_records;
+$code{'coding.helper.check_resource_fit'} = sub {
+    return { 'fits' => FALSE, 'free_mb' => 1, 'required_mb' => 999_999_999 };
+};
+$code{'coding.model_status.record'} = sub {
+    push @status_records, shift;
+    return TRUE;
+};
+
 ## huge, guaranteeing "insufficient memory" on any real machine's actual ##
 ## free RAM, so a cpu-backend call always returns FALSE right after the  ##
 ## code under test runs, without ever reaching real process-spawn logic  ##
@@ -85,6 +98,14 @@ sub compile_module {
 
 compile_module('coding.async.http_cleanup');
 compile_module('coding.async.backend_release');
+## cold-boot checksum resolution now runs before the cancel block [    ##
+## 8c765db92 ] -- compile the real metadata lookup too ; it only reads ##
+## <coding.model_metadata>, which the fixture below populates          ##
+compile_module('coding.helper.resolve_model_checksum');
+## the module tail returns through complete_pending_switch [ async-pending ##
+## switch split ] ; with no <coding.pending_switch> set it returns FALSE   ##
+## before touching its heavier deps, so the real module compiles clean     ##
+compile_module('coding.helper.complete_pending_switch');
 compile_module('coding.handler.spawn_smart');
 
 sub ok {
@@ -239,8 +260,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,,,,,.,.,,,,..,,..,...,.,.,,..,.,,,,..,..,,...,...,..,,.,.,.,,,.,.,...,
-#RAIVVRBIDTIRHEJKXDBMOP7VNVKGXH3BNHBG237JUMAIPRBXHECO2KHGRZFLDRSHF4KYNWSKDJA5C
-#\\\|LZUWW5HKE3ICCZLDMB5QURVH4ZNAFMBDRGE3IZWHA5LCAS7SNNY \ / AMOS7 \ YOURUM ::
-#\[7]3Q5OZFUOJLRNGQPPHAKZAZNOGKJTDMTU4OZ3BZIU5ZDU4LV24YBI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,.,,,,..,,..,,..,,,.,..,,,.,,..,,...,...,.,,,.,,,.,,,..,,..,,
+#CFOULF3QXLVTDR7VWKCW2Y6G6KN4B5XAGKHPEEFASQF2TA2PPLYCMLWQAXEH6ITAWQYCRUDVIKT3Q
+#\\\|IG5DDN76YXDSUGXFQV3EBOT2Q6YSBOPKRQ2S4WBKF5SQPS4SX5C \ / AMOS7 \ YOURUM ::
+#\[7]OS3AEUW7GBNPGUGFBJQO3W4BISQNWHRVVQPDAJCVA6UW7QJA3YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -97,6 +97,7 @@ compile_module($_) foreach qw|
     base.dependency.add_object
     base.dependency.add
     base.dependency.ok
+    base.dependency.ok_resolve
     base.dependency.install_callbacks
     coding.callback.object.model_path
     coding.resolve.object.model_path
@@ -156,10 +157,15 @@ ok( ( not $code{'coding.callback.object.model_path'}->($obj_cpu) ),
     'cpu callback FALSE when <inference.backend.cpu.path> is unset'
 );
 
-say ': 2. triggering dependency.ok(root_cpu) fires exactly one cpu send';
+say ': 2. triggering ok_resolve(root_cpu) fires exactly one cpu send';
 
 my $ok_cpu_1 = $code{'base.dependency.ok'}->($root_cpu);
 ok( ( not $ok_cpu_1 ), 'dependency.ok(root_cpu) FALSE [ unresolved ]' );
+ok( scalar(@send_calls) == 0,
+    'dependency.ok is pure -- the resolve hook never '
+        . 'fires there [ regression a40e31e96, fixed 2026-09-30 ]'
+);
+$code{'base.dependency.ok_resolve'}->($root_cpu);
 ok( scalar(@send_calls) == 1, 'exactly one send fired' );
 ok( ( $send_calls[0]->{'reply'}->{'params'}->{'backend'} // '' ) eq 'cpu',
     'send carries backend=cpu in reply params' );
@@ -168,10 +174,11 @@ ok( ( $data{'coding'}{'model_path_request_in_flight'}{'cpu'} ? 1 : 0 ) == 1,
 ok( ( $data{'coding'}{'model_path_request_in_flight'}{'gpu'} ? 1 : 0 ) == 0,
     'gpu in-flight guard NOT set by the cpu send' );
 
-say ': 3. triggering dependency.ok(root_gpu) fires its own gpu send';
+say ': 3. triggering ok_resolve(root_gpu) fires its own gpu send';
 
-my $ok_gpu_1 = $code{'base.dependency.ok'}->($root_gpu);
-ok( ( not $ok_gpu_1 ), 'dependency.ok(root_gpu) FALSE [ unresolved ]' );
+my $ok_gpu_1 = $code{'base.dependency.ok_resolve'}->($root_gpu);
+ok( ( not $ok_gpu_1 ),
+    'dependency.ok_resolve(root_gpu) ' . 'FALSE [ unresolved ]' );
 ok( scalar(@send_calls) == 2, 'second send fired [ 2 total ]' );
 ok( ( $send_calls[1]->{'reply'}->{'params'}->{'backend'} // '' ) eq 'gpu',
     'second send carries backend=gpu in reply params' );
@@ -183,8 +190,8 @@ say ': 4. re-checking either backend while in-flight sends nothing new';
 ## defeat the generic debounce deliberately : the per-backend in-flight ##
 ## guard in coding.resolve_model_path must be what blocks these resends ##
 $ntime_delta = 10;
-$code{'base.dependency.ok'}->($root_cpu);
-$code{'base.dependency.ok'}->($root_gpu);
+$code{'base.dependency.ok_resolve'}->($root_cpu);
+$code{'base.dependency.ok_resolve'}->($root_gpu);
 ok( scalar(@send_calls) == 2,
     'still 2 total sends [ per-backend in-flight guards hold ]' );
 $ntime_delta = 0;
@@ -198,14 +205,14 @@ $data{'coding'}{'model_path_request_in_flight'}{'cpu'} = FALSE;
 ok( $code{'coding.callback.object.model_path'}->($obj_cpu),
     'cpu callback TRUE once <inference.backend.cpu.path> is set'
 );
-ok( $code{'base.dependency.ok'}->($root_cpu),
-    'dependency.ok(root_cpu) now TRUE'
+ok( $code{'base.dependency.ok_resolve'}->($root_cpu),
+    'dependency.ok_resolve(root_cpu) now TRUE'
 );
 ok( ( not $code{'coding.callback.object.model_path'}->($obj_gpu) ),
     'gpu callback still FALSE [ cpu reply did not touch gpu state ]'
 );
-ok( ( not $code{'base.dependency.ok'}->($root_gpu) ),
-    'dependency.ok(root_gpu) still FALSE'
+ok( ( not $code{'base.dependency.ok_resolve'}->($root_gpu) ),
+    'dependency.ok_resolve(root_gpu) still FALSE'
 );
 ok( scalar(@send_calls) == 2,
     'no resend [ gpu guard still set, cpu side resolved ]' );
@@ -218,11 +225,11 @@ $data{'coding'}{'model_path_request_in_flight'}{'gpu'} = FALSE;
 ok( $code{'coding.callback.object.model_path'}->($obj_gpu),
     'gpu callback TRUE once <inference.model.path> is set'
 );
-ok( $code{'base.dependency.ok'}->($root_gpu),
-    'dependency.ok(root_gpu) now TRUE'
+ok( $code{'base.dependency.ok_resolve'}->($root_gpu),
+    'dependency.ok_resolve(root_gpu) now TRUE'
 );
-ok( $code{'base.dependency.ok'}->($root_cpu),
-    'dependency.ok(root_cpu) still TRUE [ unaffected ]'
+ok( $code{'base.dependency.ok_resolve'}->($root_cpu),
+    'dependency.ok_resolve(root_cpu) still TRUE [ unaffected ]'
 );
 
 say ': 7. clearing both paths lets both resolve again [ guards not stuck ]';
@@ -271,14 +278,26 @@ $data{'inference'}{'backend'}{'cpu'}{'port'} = 8001;
 $data{'coding'}{'dep'}{'spawn_ready_gpu'}    = $root_gpu;
 $data{'coding'}{'dep'}{'spawn_ready_cpu'}    = $root_cpu;
 $data{'coding'}{'spawn_params'}              = {
-    'gpu_enabled'  => TRUE,
-    'cpu_enabled'  => TRUE,
+    ## src normalizes these with lc() against yes|true|1|auto [ cpu auto =  ##
+    ## fallback-only ] -- the TRUE constant stringifies to '5', which means ##
+    ## 'disabled' : pass the real config strings                            ##
+    'gpu_enabled'  => 'yes',
+    'cpu_enabled'  => 'yes',
     'gpu_model_id' => 'test-gpu-model',
     'gpu_binary'   => '/bin/test-llama-gpu',
     'gpu_layers'   => 33,
     'cpu_binary'   => '/bin/test-llama-cpu',
     'cpu_threads'  => 7,
 };
+## both blocks now resolve the model checksum and read size_gb for the  ##
+## cold-start resource pre-check : a zero-size matched entry keeps that ##
+## pre-check skipped [ its real outcome is covered by the ram-clamp and ##
+## spawn-smart harnesses ] and check_resource_fit untouched here        ##
+$code{'coding.helper.resolve_model_checksum'} = sub {
+    return { 'amos_id' => '', 'matched_entry' => { 'size_gb' => 0 } };
+};
+## respawn detection reads the server registry, not just <inference.*_pid> ##
+$data{'coding'}{'inference_servers'} = {};
 delete $data{'inference'}{'gpu_pid'};
 delete $data{'inference'}{'cpu_pid'};
 delete $data{'coding'}{'spawn_retry_count_gpu'};
@@ -328,7 +347,7 @@ say ': 8b. only cpu enabled : only the cpu call fires';
 @timer_calls = ();
 delete $data{'inference'}{'gpu_pid'};
 delete $data{'inference'}{'cpu_pid'};
-$data{'coding'}{'spawn_params'}{'gpu_enabled'} = FALSE;
+$data{'coding'}{'spawn_params'}{'gpu_enabled'} = 'no';
 
 $code{'coding.async_spawn_inference_servers'}->();
 ok( scalar(@spawn_calls) == 1, 'exactly one spawn call' );
@@ -337,9 +356,10 @@ ok( ( $spawn_calls[0]->{'backend'} // '' ) eq 'cpu', 'it is the cpu call' );
 say ': 8c. only gpu enabled : only the gpu call fires';
 
 @spawn_calls = ();
+## 8b left gpu disabled -- re-enable it here : this section is gpu-only ##
+$data{'coding'}{'spawn_params'}{'gpu_enabled'} = 'yes';
+$data{'coding'}{'spawn_params'}{'cpu_enabled'} = 'no';
 delete $data{'inference'}{'cpu_pid'};
-$data{'coding'}{'spawn_params'}{'gpu_enabled'} = TRUE;
-$data{'coding'}{'spawn_params'}{'cpu_enabled'} = FALSE;
 
 $code{'coding.async_spawn_inference_servers'}->();
 ok( scalar(@spawn_calls) == 1, 'exactly one spawn call' );
@@ -377,8 +397,8 @@ say ': 8e. failed cpu spawn : cpu retry counter, gpu counter untouched';
 
 @spawn_calls                                   = ();
 @timer_calls                                   = ();
-$data{'coding'}{'spawn_params'}{'gpu_enabled'} = FALSE;
-$data{'coding'}{'spawn_params'}{'cpu_enabled'} = TRUE;
+$data{'coding'}{'spawn_params'}{'gpu_enabled'} = 'no';
+$data{'coding'}{'spawn_params'}{'cpu_enabled'} = 'yes';
 delete $data{'inference'}{'cpu_pid'};
 delete $data{'coding'}{'spawn_retry_count_cpu'};
 
@@ -395,7 +415,7 @@ $spawn_should_fail = 0;
 say ': 8f. blocks independent : gpu already up, cpu unresolved';
 
 @spawn_calls = ();
-$data{'coding'}{'spawn_params'}{'gpu_enabled'} = TRUE;
+$data{'coding'}{'spawn_params'}{'gpu_enabled'} = 'yes';
 $data{'inference'}{'gpu_pid'} = 42001;    ## gpu already running ##
 delete $data{'inference'}{'backend'}{'cpu'}{'path'};
 delete $data{'inference'}{'model'}{'path'};
@@ -414,8 +434,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,,.,...,,,,,,,,,,,,,,,.,...,,.,,.,,,.,.,..,,...,..,,,,.,,,,,,.,,,.,,.,,,
-#MAGPX2TEC4BP7X6USMLLFA2ESVFT724POQ7KNXA3ZW3JUBVFUUQIZD6CRDEBEJRFUOAAXIHE44V7Q
-#\\\|UQZBWQVZX3KTWFENHT7LLQDUCFM22NTDRBBXC3NDCYR2TC3SPKU \ / AMOS7 \ YOURUM ::
-#\[7]LRQYD2WJY6WO27PTV2QDZ5KAQUQJWHZ62NZ72TRI2ID2JJ5XPQCA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,.,,,,..,,..,.,,,.,.,,..,,,.,..,,...,...,...,,.,,.,.,,..,,..,
+#5LT5QTB5MHET5EHW36GXX3EUOS7DO2FXX6TTHGNHDEFNUILITAD4GDBJULJQXB5BDYOQHGQLQ2NOI
+#\\\|LPWALCHG2ZNYVKFUZIVV7KLPQDG234HCLSYSJWXQOFDZ5L5EUSI \ / AMOS7 \ YOURUM ::
+#\[7]65Z2Y3RDG6ZRVETEGIWC3LLA3ZP6HVJ34O4M7MYD6HNYOU67MQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

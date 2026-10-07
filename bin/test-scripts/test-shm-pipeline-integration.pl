@@ -1,11 +1,10 @@
 #!/usr/bin/perl
 ## test-shm-pipeline-integration.pl : loads and EXECUTES the real P7 module
-## files (modules/base.shm.{path,write,read}, modules/httpd.handler.shm_write)
-## via AMOS7::Protocol::P7Syntax translation -- unlike test-shm-pipeline.pl
-## (which reimplements the algorithm standalone with raw Crypt::Ed25519 /
-## Digest::BMW / AMOS7::Twofish calls and never touches the real module
-## files), this harness proves the actual deliverable works, not just the
-## design.
+## files (src/base.shm.{path,write,read}, src/httpd.handler.shm_write) via
+## AMOS7::Protocol::P7Syntax translation -- unlike test-shm-pipeline.pl (which
+## reimplements the algorithm standalone with raw Crypt::Ed25519 / Digest::BMW
+## / AMOS7::Twofish calls and never touches the real module files), this
+## harness proves the actual deliverable works, not just the design.
 ##
 ## real dependencies used as-is: Crypt::Ed25519, AMOS7::Twofish, Digest::BMW,
 ## Crypt::Misc encode_b32r/decode_b32r.  stubbed (pure P7-runtime plumbing,
@@ -74,7 +73,8 @@ sub load_p7_module {
 for my $m (
     qw| base.shm.path base.shm.write base.shm.read httpd.handler.shm_write |)
 {
-    load_p7_module( "$RealBin/../../modules/$m", $m );
+    load_p7_module( "$RealBin/../../src/$m", $m )
+        ;    ## modules/ -> src/ [ 5255a50a3 ]
 }
 
 ##[ stub the pure-plumbing dependencies ]#####################################
@@ -103,6 +103,9 @@ $code{'base.file.make_path'} = sub {
     chmod( $mode, $path ) if defined $mode;
     return -d $path ? TRUE : FALSE;
 };
+## legacy alias : src callers use <[file.make_path]>, the live runtime ##
+## resolves it to base.file.make_path via base.swap_subs -- stub both  ##
+$code{'file.make_path'}  = $code{'base.file.make_path'};
 $code{'base.prng.bytes'} = sub {
     my $n = shift;
     return join '', map { chr( int( rand(256) ) ) } 1 .. $n;
@@ -175,7 +178,7 @@ sub build_request {
     my $ntime_b32 = encode_b32r( pack( 'Q>', $ntime_num ) );
 
     my $bytes = $wrong_bytes // length($body);
-    my $lines = $wrong_lines // ( () = $body =~ /\n/g );
+    my $lines = $wrong_lines // ( () = $body =~ m|\n|g );
 
     my $bmw = Digest::BMW->new(384);
     $bmw->add($body);
@@ -335,7 +338,7 @@ package main;
 
     ## no leftover temp files in the shm dir after the rejected transfer ##
     opendir( my $dh, "$test_dir/shm" ) or die $!;
-    my @leftover = grep { !/^\.\.?$/ } readdir($dh);
+    my @leftover = grep { !m|^\.\.?$| } readdir($dh);
     closedir($dh);
     ok( 'no leftover temp file ' . 'after BMW384 rejection',
         scalar(@leftover) == 0 );
@@ -407,8 +410,8 @@ say "passed : $pass   failed : $fail";
 remove_tree($test_dir) if -d $test_dir;
 exit( $fail ? 1 : 0 );
 
-#,,.,,...,,.,,,..,,,,,,.,,,,.,,,.,,,.,,,.,..,,..,,...,...,.,.,,,,,...,,..,.,.,
-#TCDMDDHEIAKIEUWGDJIFEYVLVYOM6T3L6HZFI74YAJWCHWTPBADYAI7K5FGFFKZEBSTAW44H7NMZA
-#\\\|H4HVF3RJVY67JGOFROQEFU5GRKPMHMH4PILU4DSWHNYXQKAUMFT \ / AMOS7 \ YOURUM ::
-#\[7]NKLCX5OAPGJ2ZMGHEP2XTNSUFGYAWYIZ3GNPKST4YO3HEH6ZHWAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,,,,,,,.,.,.,,..,,.,,,,.,,..,..,,...,...,.,,,,..,,,,,,,,,.,.,
+#HZQCWJ4THHRSMRMKEKHWKMKVTTOVRVW7OH62LZIIOSM2UVL3O5642ZXLU2H3CSSAGJ3JCNRDUMUYY
+#\\\|ZSMDHQ7WSKY3WOZDUWYDNWUDF3JXB7PRLWM6OGC2OQ5CHVMMAHM \ / AMOS7 \ YOURUM ::
+#\[7]RIEMLLJTUQSRIN6GR2EKZNQUZJQYYIFQGBV4UL5EAPJKYUQBHIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

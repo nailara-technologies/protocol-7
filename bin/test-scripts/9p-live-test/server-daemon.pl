@@ -31,6 +31,15 @@ my %CONST = (
     Rwrite   => 119,
     Tclunk   => 120,
     Rclunk   => 121,
+    Tcreate  => 114,       ## plan-9.server.* dispatch refs -- full 9P2000  ##
+    Rcreate  => 115,       ## set in src/plan-9.protocol.constants.pre_init ##
+    Tremove  => 122,
+    Rremove  => 123,
+    Twstat   => 126,
+    Rwstat   => 127,
+    OWRITE   => 1,
+    ORDWR    => 2,
+    OTRUNC   => 0x10,
     Tstat    => 124,
     Rstat    => 125,
     DMDIR    => 0x80000000,
@@ -74,10 +83,15 @@ sub load_mod {
     open( my $fh, '<', "$SRC/$name" ) or die "cannot read $name : $!";
     my $src = do { local $/; <$fh> };
     close $fh;
-    $src =~ s/\n#,.*\z//s;
-    $src =~ s/<plan-9\.protocol\.constants\.(\w+)>/P9C('$1')/g;
-    $src =~ s/<\[([\w.\-]+)\]>/\$code{'$1'}/g;
-    $src =~ s/\@ARG/\@_/g;
+    $src =~ s|\n#,.*\z||s;
+    $src =~ s|<plan-9\.protocol\.constants\.(\w+)>|P9C('$1')|g;
+    $src =~ s|<\[([\w.\-]+)\]>|\$code{'$1'}|g;
+    ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} -- the repo-wide   ##
+    ## format-code pass 87b91fd5f converted $data{'storage'}{'9p'}{...}     ##
+    ## chains in these modules to <storage.9p....> sugar                   ##
+    $src =~ s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{
+        "\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1 }ge;
+    $src =~ s|\@ARG|\@_|g;
     my $cref = eval "sub { $src }";
     die "compile error in $name : $@" if $@;
     $code{$name} = $cref;
@@ -191,8 +205,8 @@ if ( $pid == 0 ) {
 }
 print qq[server daemon entering accept loop\n];
 
-#,,,,,.,,,,,,,.,.,,,,,.,,,.,,,...,.,,,,..,,..,..,,...,...,..,,,,,,...,...,.,.,
-#JGWZEKQKSG6O6J2T6FZGZ4IAWP2YSXHYB2HCJTSLRCPJBDMNYE4WKUP5GZYHMFMDAZ4V6X5PWLNGQ
-#\\\|NPIAH7IWPRHERKT45WCKT2EJBSWJHMFB3ISHDM7KQES6SC3GCSL \ / AMOS7 \ YOURUM ::
-#\[7]JBS54FV6IMETGJFBMIE5QSEQRNSJSC3N47EWUFO3MOWJGAATHKBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,,,..,,,,,,,..,,,.,,..,,.,,.,,,..,,...,...,...,...,..,,.,,,,,,,
+#G43INVKEMSXDIHLK3CWRS4SJUHDRLJTQJULLE437C254WIOYETGDLXTRIKM475EQ3HYHHQTW2LM5I
+#\\\|2XIGKBWIX42REYWE6X3PESQA2NCP76DZTCAOHNTFOIPTSFYUTJT \ / AMOS7 \ YOURUM ::
+#\[7]W4NC3A6T4P2RX5OCBD53CBYIHDDXRDSDHNI5FQP77JNGFU2Q4UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
