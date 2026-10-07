@@ -220,9 +220,19 @@ $unload->();
 return $refuse->( '%s', $reason // 'failed' ) if not $issued;
 
 if ( $reason eq qw| issued | ) {
+    ## short at level 1 ; the fingerprint is also on demand ##
+    ## [ host-root-fingerprint command ]                    ##
     <[base.logs]>->(
-        1, ': delegation : %s -> %s [ %s, host-root %s ]',
-        $s_name, $name, $dlg_file, $fingerprint
+        1,       ': delegation : %s -> %s [ issued, %dd ]',
+        $s_name, $name, int( $lifetime / 86400 )
+    );
+    <[base.logs]>->( 2, ': :. file      : %s', $dlg_file );
+    my $fp_half = int( ( length($fingerprint) + 1 ) / 2 );
+    <[base.logs]>->(
+        3, ': :. host-root : %s', substr( $fingerprint, 0, $fp_half )
+    );
+    <[base.logs]>->(
+        3, ': :.             %s', substr( $fingerprint, $fp_half )
     );
 } else {
     <[base.logs]>->( 2, ': delegation : %s current', $dlg_file );
@@ -230,8 +240,8 @@ if ( $reason eq qw| issued | ) {
 
 return TRUE;
 
-#,,.,,,.,,.,.,,,.,.,,,,..,,..,,.,,,,,,.,,,...,..,,...,...,.,.,,,.,,,.,..,,,..,
-#4QAYEZ7KLCMEUABYSEP4ADSV5YYA5ULDTS7QH2EPVYMJJ7777R34YIBBXLQBOAD6A67YAZ7ZVNHMG
-#\\\|SPK3KQ3FKGCUAJDYVCIIEA4IDJPA2SYFY4BKLUEYH37OG3X5KIY \ / AMOS7 \ YOURUM ::
-#\[7]VEHIQ6LXRW4PX6X3KQP6H54XQGPQTO6UEGLGUMSFQCGPATMHCSBQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,..,,,.,,...,.,.,,..,.,.,,.,,.,,,..,,...,.,.,.,,,,,.,,,.,,,,,,..,
+#WZCEKEVAYRZG3DR6P5PSFZ5VIC6PDNDG6X3IC2BQHSEWGOERVRG74HXFZHXML2H6U2CVQ75BAU6XQ
+#\\\|I4DSVNKN6IDRS5YQLG3O66N3JZGHRLXW76A7PW623KSNADQSREO \ / AMOS7 \ YOURUM ::
+#\[7]QSORB76GCWDGSEX3SBPUIJ4ZRQ7NVXNCPTIVVOARU5VTD6SAUWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
