@@ -40,7 +40,7 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
 ## next steps
 
 1. **dispatch stage 3 to kimi** once its 5h window resets :
-   `data/tasks/osf-cache-stage3-segment-fetch.md` [ segment command,
+   `data/tasks/archive/osf-cache-stage3-segment-fetch.md` [ segment command,
    transport decided with the user : one request per segment, B32 in
    args, cube never blocked ; fetch -> .partial -> verify size + anchor
    + bmw384 -> place ]. k3 ran out of the 5h window mid-task in 2c --
@@ -80,7 +80,7 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   inner `\x01` prefixes, odd node promoted ; root trust = all asked
   agree [ own nodes ], `root_quorum` //= 5/7 once n holders exist
   [ variants may follow, rule lives in `osf-cache.merkle.quorum` ]
-- task file `data/tasks/osf-cache-stage4-multi-source.md`, kimi k3
+- task file `data/tasks/archive/osf-cache-stage4-multi-source.md`, kimi k3
 - verified live : main and peer compute the same root for
   igt-gpu-tools, peer fetched libopenexr [ 12 segments, 0.7 s ]
   byte-identical ; trees backfilled into `/var/protocol-7/osf-cache/
@@ -125,8 +125,8 @@ session 2026-10-04, last commit `cb6e0ac8c`. previous handover :
   for out-of-scope files after a kimi job
 - pre-commit hook : `# descr` max 55 chars
 
-#,,..,.,.,,.,,...,...,.,,,,,,,,,.,,,,,,..,...,..,,...,..,,..,,.,,,.,.,,..,.,.,
-#BAZIKJUXGWC57QTAP4MTDPXYXAX445PF2DEELH3X2F3RYRLGDB7FM7Q5WRZYETLSNGVRCXGXNBUX6
-#\\\|TQNS3A34SVGYOSGX7NB2L7KYN5OTNTVIVLE2WRGCPBF7B2JKTER \ / AMOS7 \ YOURUM ::
-#\[7]XPNI5UOWEOSYCI2FD3DUWL5Z3Z7AC7BL25XZ5JUFYUBXO3LWTKDY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,,..,...,,.,,...,.,,,..,,.,.,..,,...,...,.,,,,.,,...,.,,,,.,,
+#4MX3O76FHXXTYCXZTZ275QJEOKWJYSTFDV32JXHMD43OPR3WNJADRB4V4XZOWSN7EQF3HM3YO3XX4
+#\\\|PSVFWR5BYM57FX6YFXCCQXT55CSIE5FICVBZJ27KBPNIMWEQDTO \ / AMOS7 \ YOURUM ::
+#\[7]7AYUT2I2K7AFXL6GCHDFF3HCQ25MRIDXQUCQ664SDZDYHQIOJQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
