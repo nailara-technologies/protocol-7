@@ -2,20 +2,31 @@
 
 # name   = trust.verify
 # descr  = walk a delegation chain from a pinned anchor down to a subject
-# param  = { chain   => [ <wire b32 statement>, .. ] [ anchor first ],
+# param  = { chain   => [ <wire b32 statement>, .. ] [ anchor-most first ],
 #            anchors => [ <77 char fingerprint>, .. ],
 #            subject => <raw 32 byte public key>,
 #            now     => <unix seconds> }
-# return = { name, anchor, issuer_pub, not_after } [ of the last
-#          statement ] or undef [ list context : ( undef, reason ) ]
+# return = { name, anchor, issuer_pub, not_after, depth } [ of the last
+#          statement ; depth = statements actually verified ] or undef
+#          [ list context : ( undef, reason ) ]
 #
-# data/md/design/HOST-ROOT-DELEGATION.md [ 'acceptance rules' ] : per
-# statement, in this order : exact parse -> sig under the issuer pub ->
-# not_before <= now <= not_after -> [ last : subject ] -> name charset ->
-# scope. the first issuer's fingerprint must be an anchor, every later
-# issuer the previous subject. the anchor's scope is '*' ; a statement's
-# scope '' certifies nothing, '*' anything, any other value is not
-# defined yet and refuses. the LAST statement's own scope must be empty.
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'scope grammar' ] : the chain is
+# given anchor-most first ; verification STARTS at the first statement
+# whose issuer fingerprint is pinned [ statements before it are ignored :
+# not parsed, not checked ] -- none pinned : refuse. every later issuer
+# must be the previous subject. per statement, in this order : exact
+# parse -> sig under the issuer pub -> not_before <= now <= not_after ->
+# [ last : subject ] -> name charset -> scope.
+#
+# a scope pattern is '' [ certifies nothing ], <name> [ exactly that
+# name ] or '<prefix>.*' [ any name strictly below <prefix>, any depth ]
+# ; pattern charset : the name rule, optionally followed by '.*'. the
+# anchor's implicit scope is '*' ; a statement CARRYING scope '*' is
+# refused. per hop the name must match the issuer's scope AND the
+# statement's own scope must be strictly narrower [ '' always allowed ;
+# under an exact <name> only '' ; under '<prefix>.*' the equal scope
+# refuses ]. the last statement's own scope must be ''. max chain length
+# 4 [ refused before anything is parsed ].
 
 my $param = shift;
 
@@ -24,8 +35,10 @@ my $refuse = sub {
     return wantarray ? ( undef, $reason ) : undef;
 };
 
-my $max_chain = 8;
+my $max_chain = 4;
 my $re_name   = qr|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+my $re_scope  = qr|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}(?:\.\*)?\z|;
+my $label_len = 17;    ## the literal bytes 'p7 delegation v1' . \0 ##
 
 return $refuse->('parameters not a hash') if ref $param ne qw| HASH |;
 
@@ -53,26 +66,65 @@ return $refuse->('time not valid')
 my %anchor = map { $ARG => TRUE }
     grep { defined $ARG and not ref $ARG and length $ARG } $anchors->@*;
 
-my $issuer_scope = qw| * |;    ## the anchor's scope ##
-my $prev_subject;
+## a name inside a scope pattern ? [ the caller handles '' \ '*' ] ##
+my $name_in_scope = sub {
+    my ( $scope, $name ) = @ARG;
+    return 1 if $scope eq qw| * |;
+    my ($prefix) = $scope =~ m|\A(.+)\.\*\z|;
+    ## strictly below : something must follow "<prefix>." ##
+    return ( index( $name, "$prefix." ) == 0
+            and length($name) > length($prefix) + 1 ) ? 1 : 0
+        if defined $prefix;
+    return $name eq $scope ? 1 : 0;
+};
+
+## $sub STRICTLY within $iss ? [ the caller handles '' : always allowed ; ##
+## both are checked patterns before this runs ]                           ##
+my $scope_within = sub {
+    my ( $iss, $sub ) = @ARG;
+    return 1 if $iss eq qw| * |;
+    return 0 if $iss eq '';
+    my ($i_pre) = $iss =~ m|\A(.+)\.\*\z|;
+    return 0 if not defined $i_pre;    ## an exact name : only '' below ##
+    my ($s_core) = $sub =~ m|\A(.+?)(?:\.\*)?\z|;
+    return ( index( $s_core, "$i_pre." ) == 0
+            and length($s_core) > length($i_pre) + 1 ) ? 1 : 0;
+};
+
+## the first statement whose issuer fingerprint is pinned starts the chain ##
+## ; everything before it is ignored [ not parsed, not checked ].  the     ##
+## issuer pub sits at a fixed offset right after the label -- a b32 decode ##
+## is all the scan needs                                                   ##
+my $start;
 my $anchor_fp;
+foreach my $index ( 0 .. $chain->$#* ) {
+    my $wire = $chain->[$index];
+    next if not defined $wire or ref $wire;
+    next if $wire !~ m|\A[A-Z2-7]+\z|;
+    my $bytes = eval { Crypt::Misc::decode_b32r($wire) };
+    next if not defined $bytes or bytes::length($bytes) < $label_len + 32;
+    my $fp = <[trust.fingerprint]>->( substr( $bytes, $label_len, 32 ) );
+    next if not defined $fp or not exists $anchor{$fp};
+    $start     = $index;
+    $anchor_fp = $fp;
+    last;
+}
+return $refuse->('no pinned anchor in chain') if not defined $start;
+
+my $issuer_scope = qw| * |;    ## the anchor's implicit scope ##
+my $prev_subject;
 my $last;
 
-foreach my $index ( 0 .. $chain->$#* ) {
+foreach my $index ( $start .. $chain->$#* ) {
     my $at = sprintf 'statement %d', $index + 1;
 
     my ( $st, $reason )
         = <[trust.statement]>->( qw| parse_wire |, $chain->[$index] );
     return $refuse->("$at : $reason") if not defined $st;
 
-    if ( $index == 0 ) {
-        $anchor_fp = <[trust.fingerprint]>->( $st->{'issuer_pub'} );
-        return $refuse->("$at : issuer is not a pinned anchor")
-            if not defined $anchor_fp
-            or not exists $anchor{$anchor_fp};
-    } elsif ( $st->{'issuer_pub'} ne $prev_subject ) {
-        return $refuse->("$at : issuer is not the previous subject");
-    }
+    return $refuse->("$at : issuer is not the previous subject")
+        if $index > $start
+        and $st->{'issuer_pub'} ne $prev_subject;
 
     return $refuse->("$at : signature not valid")
         if not Crypt::Ed25519::verify( $st->{'statement'},
@@ -92,20 +144,25 @@ foreach my $index ( 0 .. $chain->$#* ) {
     return $refuse->("$at : name not valid") if $st->{'name'} !~ $re_name;
 
     ## the issuer may certify this name ? ##
-    if ( $issuer_scope eq qw| * | ) {
-        ## everything ##
-    } elsif ( $issuer_scope eq '' ) {
-        return $refuse->("$at : issuer scope is empty");
-    } else {
-        return $refuse->("$at : issuer scope not supported");
+    return $refuse->("$at : issuer scope is empty") if $issuer_scope eq '';
+    return $refuse->("$at : name outside issuer scope")
+        if not $name_in_scope->( $issuer_scope, $st->{'name'} );
+
+    ## the subject's own scope : a valid pattern, strictly narrower ##
+    my $scope = $st->{'scope'};
+    if ( $scope ne '' ) {
+        return $refuse->("$at : scope pattern not valid")
+            if $scope !~ $re_scope;
+        return $refuse->("$at : scope not within issuer scope")
+            if not $scope_within->( $issuer_scope, $scope );
     }
 
-    ## the leaf certifies nothing [ this step ] ##
+    ## the leaf certifies nothing ##
     return $refuse->("$at : leaf scope not empty")
         if $is_last
-        and $st->{'scope'} ne '';
+        and $scope ne '';
 
-    $issuer_scope = $st->{'scope'};
+    $issuer_scope = $scope;
     $prev_subject = $st->{'subject_pub'};
     $last         = $st;
 }
@@ -115,10 +172,11 @@ return {
     qw| anchor |     => $anchor_fp,
     qw| issuer_pub | => $last->{'issuer_pub'},
     qw| not_after |  => $last->{'not_after'},
+    qw| depth |      => $chain->$#* - $start + 1,
 };
 
-#,,,,,..,,...,,,.,.,.,,,,,,,,,,..,,,,,...,,.,,..,,...,..,,,..,,..,.,,,,..,.,.,
-#3VZQ4RCW7CR524N5YWMW66C2JNNAKXA6HHBYZ2SMRBD5ERZWQDKVDPEZJNWDFH27T2CDGMKDMCU7M
-#\\\|LE2TIGUWUY5KY5ERH4GPJ52UZDO3BG53BVFPEOWH7IUG5FLL4YR \ / AMOS7 \ YOURUM ::
-#\[7]NT4YQOZABOG22ZD2J5URJ46OISDLHGOJSNQBOO67LFS2PPLTM6DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,.,,,..,,.,.,..,,,.,,,,,,.,.,..,,...,...,..,,,,.,.,,,.,.,,,.,
+#XZAWLQJVFFODSEJLUGGOIYDWHSQLJJ5IMILFIPTULHYXKVFZSG67BBPUM2CXWP3MVO5K6ETAVR6JC
+#\\\|6TMJLAZHC4YTJTHEM3OD5QANNIYOHMVJWLJHFMWKOKGANBHADER \ / AMOS7 \ YOURUM ::
+#\[7]XFMCGAKH2AN4U5G67IMMDYTRYJ44DAZHQE6427F3SB3B3LASLCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
