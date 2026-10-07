@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-06-auth-keypair-replayable
-description: FIXED 2026-10-06 [ ad31ddd5a, not yet live-checked ] : auth-keypair's client line `auth <user> <session_pub> <sig>` signs ONLY the client's own stable session pubkey -- no server nonce, sent plaintext before link-upgrade -> one observed line replays forever from any IP ; nothing later proves possession ; same raw-pubkey message as sign_keys' .sig files [ no domain separation ]. fix = mutual binding, folded into the link-upgrade server proof
+description: FIXED 2026-10-06 [ ad31ddd5a, LIVE PASSED 2026-10-07 ] : auth-keypair's client line `auth <user> <session_pub> <sig>` signs ONLY the client's own stable session pubkey -- no server nonce, sent plaintext before link-upgrade -> one observed line replays forever from any IP ; nothing later proves possession ; same raw-pubkey message as sign_keys' .sig files [ no domain separation ]. fix = mutual binding, folded into the link-upgrade server proof
 metadata:
   type: project
 ---
@@ -25,6 +25,8 @@ found while designing the link-upgrade server proof [ trust chain step 1,
 - `crypt.C25519.sign_keys` writes `.sig.*` = Ed25519 over a raw 32-byte
   public key -> structurally a valid auth signature too [ cross-protocol ;
   its post_init call is commented out today ]
+
+**LIVE PASSED 2026-10-07** : C client [ `p-7-r 127.0.0.1:42 list sessions`, link-upgrade mandatory ] + Perl client [ `p7c external.connect self 127.0.0.1:42 test-auth-keypair` then `external.self.list users` ] : host-root pinned on both, cube logged `link binding verified`. not live : relay / replay / wrong-host-root refusals [ e2e test only ], kimi wire task.
 
 **exposure today** : TCP links are localhost \ own nodes only [ external
 `self` ] -> low ; it BLOCKS the real second host.
@@ -61,8 +63,8 @@ also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
   bin/p7-auth-keypair-helper.pl, p-7-r, link-upgrade helper -- grep again
   before scoping [ [[feedback-security-fix-verify-both-code-paths-not-just-symptom]] ]
 
-#,,,,,..,,,.,,..,,,,.,...,.,,,.,.,...,,..,..,,..,,...,...,.,,,,,.,...,.,,,,.,,
-#LZOE3BDOLNAI5QYSUIC7O3LOE75DLHL2KS4TOOLXHQFRMJVPOIM4PMUPIVUSN6PUFF56ABLO4U7GO
-#\\\|SISX4Z5NFLWETYCSCC6QTVR52A6DYEW2FPVGFGXVFBR5R3S3FCY \ / AMOS7 \ YOURUM ::
-#\[7]KAHXJX76ZATHLLU2OHK7JJ56SKD45VF2ICPLCV2AHKHJIKTE2KAY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,...,,.,,,..,,,.,,,,,.,,,.,,,...,..,,...,...,..,,..,,,,,,,,.,,..,
+#EAX44TQLTAQH7KKT3ZOHSI2CBHAOSSQSXVBQBAPXRSGCYELCJ7CDU34KURFDMGFANB4LUYAOR3ZSW
+#\\\|D2RJJNUGMRN5WHY7HI5CSXWPOKY7UWVY4IOVSQL3O2JGR4356AP \ / AMOS7 \ YOURUM ::
+#\[7]HIGWCFGJX2AU5PD7PIXNJKZL4YWPFMEQ66TR2HAHGQA6Y6JMEEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

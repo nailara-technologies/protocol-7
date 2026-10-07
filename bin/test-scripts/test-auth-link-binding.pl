@@ -63,7 +63,12 @@ sub ok {
     return;
 }
 
-## $prefix : source prepended inside the compiled sub [ the .cmd. header ] ##
+## $prefix : source prepended inside the compiled sub [ the .cmd. header ]  ##
+## mirrored from bin/Protocol-7 [ use open :encoding(UTF-8), File::stat ] : ##
+## a bare list-context stat or a sysread on a default handle fails here too ##
+my $runtime_pragmas
+    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
+
 sub compile_module {
     my ( $module_name, $prefix ) = @ARG;
     $prefix //= '';
@@ -73,8 +78,10 @@ sub compile_module {
     my $src = join( '', <$fh> );
     close($fh);
     my $translated = p7_syntax__translate($src);
+    ## the runtime : File::stat object stat + :utf8 default open layer ##
     my $cref
-        = eval "sub {\n$prefix\n# line 1 \"$module_name\"\n$translated\n}";
+        = eval "$runtime_pragmas sub {\n$prefix\n# "
+        . "line 1 \"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR"
         if not defined $cref;
     $code{$module_name} = $cref;
@@ -1092,8 +1099,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,...,.,.,,,.,,.,,,,,,,,.,,..,.,.,,.,,...,..,,...,...,,,,,,..,..,,,,,,...,
-#YBO2IWS7ZBSWFMULVC47QR6HJ4BQD4B5RDKWX54KSPOYJ67HSEFLV747Y3VOOW3NYK3Q5CYDV5RZO
-#\\\|P5VRS4WMI3NXVKE6DO55IHQQIV2ZOQVH5WCWFYQB7XLHYXCTHUI \ / AMOS7 \ YOURUM ::
-#\[7]VLPVPOCI5ZK2IIZH5NBVKGX2FR52Q7NAKG7MD6WRRM6GWHYFFUBI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,,.,,,,.,..,,.,,,...,,,,,,..,..,,...,...,..,,.,.,,,,,,..,,,,,
+#JKJYORCDUAF7C3Z25YXYI26YOSMF7EROUAQZPWBM2SEVZOQY7QPTVG3OLXXZ6KAAHBE3ZFL4EY3XQ
+#\\\|BLTXMCQO5ROWGY5YNN5PANQZDPGLAXPASU77FN6JTMYKP7VJKH4 \ / AMOS7 \ YOURUM ::
+#\[7]NUMNVT3HNEM5MN4ROCPED6XFDQEUAZ3KW3HDT4GUQFGY2JJPNACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

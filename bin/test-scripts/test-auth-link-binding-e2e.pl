@@ -72,7 +72,12 @@ sub ok {
     return;
 }
 
-## $prefix : source prepended inside the compiled sub [ the .cmd. header ] ##
+## $prefix : source prepended inside the compiled sub [ the .cmd. header ]  ##
+## mirrored from bin/Protocol-7 [ use open :encoding(UTF-8), File::stat ] : ##
+## a bare list-context stat or a sysread on a default handle fails here too ##
+my $runtime_pragmas
+    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
+
 sub compile_module {
     my ( $module_name, $prefix ) = @ARG;
     $prefix //= '';
@@ -82,8 +87,10 @@ sub compile_module {
     my $src = join( '', <$fh> );
     close($fh);
     my $translated = p7_syntax__translate($src);
+    ## the runtime : File::stat object stat + :utf8 default open layer ##
     my $cref
-        = eval "sub {\n$prefix\n# line 1 \"$module_name\"\n$translated\n}";
+        = eval "$runtime_pragmas sub {\n$prefix\n# "
+        . "line 1 \"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR"
         if not defined $cref;
     $code{$module_name} = $cref;
@@ -381,10 +388,8 @@ sub server_child_main {
         ? ( $h2_pub, $h2_priv )
         : ( $h_pub, $h_priv );
     my $announced_pub = $server_key_name eq qw| evil.base | ? $x_pub : $s_pub;
-    my $dlg_wire      = delegation_wire(
-        $issuer_pub, $issuer_priv, $announced_pub,
-        $opt->{'dlg_expired'} // 0
-    );
+    my $dlg_wire = delegation_wire( $issuer_pub, $issuer_priv, $announced_pub,
+        $opt->{'dlg_expired'} // 0 );
     my $dlg_path = $code{'crypt.C25519.delegation_file'}->($server_key_name);
     ( my $key_dir = $srv_root_key_dir ) =~ s|/root\z||;
     mkdir( $key_dir, 0700 ) if !-d $key_dir;
@@ -576,6 +581,7 @@ alarm(20);
 my ( $ctx, $hs_rc, $hs_data ) = client_auth_and_bind($sock);
 alarm(0);
 my $clean = 1;
+
 if ( !ref $ctx or !$hs_rc ) {
     $clean = 0;
     ok( 0,
@@ -620,8 +626,7 @@ say ': pin file';
 ok( -f $pin_path,                              'pin file exists' );
 ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
 my $pin_is_fp = read_pin() eq $host_root_fp . "\n";
-ok( $pin_is_fp,
-    'pin file : one 77-char line == the host-root fingerprint' );
+ok( $pin_is_fp, 'pin file : one 77-char line == the host-root fingerprint' );
 ok( length $host_root_fp == 77,
     'host-root fingerprint is 77 chars [ bmw384 b32 ]' );
 my ( $pin_mtime, $pin_inode ) = ( stat $pin_path )[ 9, 1 ];
@@ -689,7 +694,7 @@ $result_path = "$home/server-other-root.txt";
     'tag'         => 'other-root'
 );
 alarm(20);
-@auth_replies    = ();
+@auth_replies = ();
 my $signed_count = scalar @client_signed;
 my $bad_ctx      = $authenticate->(
     $sock,
@@ -706,15 +711,13 @@ ok( !defined $bad_ctx,
 my $nothing_signed
     = scalar(@client_signed) == $signed_count && !@auth_replies;
 ok( $nothing_signed,
-    'different host-root : nothing signed, no auth phase entered'
-);
+    'different host-root : nothing signed, no auth phase entered' );
 close($sock);
 waitpid( $srv_pid, 0 );
 shift @child_pids;
 my $R3        = read_results($result_path);
 my $seen_auth = grep {m{\Aauth }} $R3->{'recv'}->@*;
-ok( !$seen_auth,
-    'different host-root : the server child saw no auth line' );
+ok( !$seen_auth, 'different host-root : the server child saw no auth line' );
 my $pin_after_root = read_pin() eq $host_root_fp . "\n";
 ok( $pin_after_root, 'different host-root : pin NOT replaced' );
 
@@ -773,12 +776,11 @@ ok( @auth_replies == 1 && $auth_replies[0] =~ m{\AAUTH_ERROR},
 close($sock);
 waitpid( $srv_pid, 0 );
 shift @child_pids;
-my $R4 = read_results($result_path);
-my $auth_line_seen = grep {m{\Aauth }} $R4->{'recv'}->@*;
+my $R4              = read_results($result_path);
+my $auth_line_seen  = grep {m{\Aauth }} $R4->{'recv'}->@*;
 my $refused_at_auth = $auth_line_seen && $R4->{'link_binding'} eq '-';
 ok( $refused_at_auth,
-    'unknown client key : refused at auth, no binding state'
-);
+    'unknown client key : refused at auth, no binding state' );
 
 ######################################################################
 say ': mitm : one byte of the server eph pub tampered in transit';
@@ -927,12 +929,10 @@ ok( $gate_eof eq '<closed>', 'gate : server disconnected' );
 close($sock);
 waitpid( $srv_pid, 0 );
 shift @child_pids;
-my $R7 = read_results($result_path);
+my $R7             = read_results($result_path);
 my $stayed_pending = $R7->{'link_binding'} eq qw| pending |
     && $R7->{'authenticated'} eq qw| pending |;
-ok( $stayed_pending,
-    'gate : session stayed pending, never authenticated'
-);
+ok( $stayed_pending, 'gate : session stayed pending, never authenticated' );
 
 ######################################################################
 say ': link-complete without the client sig';
@@ -987,8 +987,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,..,.,.,.,,,...,.,,,.,.,.,,,.,,,,,.,.,.,..,,...,...,,.,,.,.,..,,.,.,.,.,
-#UD4JBBN7VYL7TM5ZOB53Q7BUUYMK4TX7BZRUEYJQHGQUOBGU4RGXH7A4IMSOZBN5AKJNO7OJDQIX4
-#\\\|SGS7Z6X26TJLSONBF7422UYLL6VTPVIIB3BSFZQ7IMKBEFAW4TD \ / AMOS7 \ YOURUM ::
-#\[7]CKNUNWBQELK2PUMHFM5CDFAYBZT2MXXFCAO3PYQ5BDWETM3BMECA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,.,,,,.,,.,.,...,.,,,...,,,,,..,,...,...,.,.,.,,,,.,,,,,,.,.,
+#QE5ZRKZNAKDEVDD3V36N6XO2DCKBZ3BDOP43DHKH43OOK4KXH7GH7BQS2GXZGUKAA73SIQEDNMA24
+#\\\|OBDHSRS5KPJFTGLLWPRI4WWBQNSIFVJMEALQDABGAUENUPVTYKV \ / AMOS7 \ YOURUM ::
+#\[7]6NHCQQA73FXFHRWZAQQXZ3447BOSKYCHEYZJAIWWBDFNAQ7B4KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

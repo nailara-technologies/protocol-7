@@ -65,6 +65,11 @@ sub ok {
     return;
 }
 
+## mirrored from bin/Protocol-7 [ use open :encoding(UTF-8), File::stat ] : ##
+## a bare list-context stat or a sysread on a default handle fails here too ##
+my $runtime_pragmas
+    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
+
 sub compile_module {
     my $module_name = shift;
     my $src_path
@@ -73,7 +78,9 @@ sub compile_module {
     my $src = join( '', <$fh> );
     close($fh);
     my $translated = p7_syntax__translate($src);
-    my $cref       = eval "sub {\n# line 1 \"$module_name\"\n$translated\n}";
+    ## the runtime : File::stat object stat + :utf8 default open layer ##
+    my $cref = eval "$runtime_pragmas sub {\n# line 1 "
+        . "\"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR"
         if not defined $cref;
     $code{$module_name} = $cref;
@@ -357,8 +364,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,,,,,,..,..,,.,.,,..,,,.,.,,,,.,,,,.,,,.,..,,...,...,..,,,,.,.,.,.,,,,..,
-#GIAPWGRKSNA6IFFNSFWTKKWGHMDAMFQTG3RIY2LMDP2VKGY4W33V2N3KNTMGTJ2WBNGWZN53T2V7E
-#\\\|6AZQOQWU72QEC3WLHKLUYQRWXCJRWWCXP6HMHEBCRDKCF73D4TT \ / AMOS7 \ YOURUM ::
-#\[7]3XKG6ETJUOKTOW353IF5IFO47EDPEHFN4WD7FSUIXRLHCSI6CMAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,.,,,...,,,.,,,.,,,.,,.,,,,,,..,,...,...,,.,,...,,,,,..,,,,.,
+#5UXDWHAXGX5EKAEVEPI2PAUS2A5EMM7TMCI6YLLDFSUFNYIRLUE6YGO2SVLE6EVF3ZBYV4257ZPEW
+#\\\|YQRRZGWTIHE6KMBZKOYTRIFE5GIDC3XYX6VYWTPEUDZAXWXQSHW \ / AMOS7 \ YOURUM ::
+#\[7]UWMSUUQ5O6GW3VZZRAIYTHIR66WKSPVS7QXLIYT4POAH4VWGH4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
