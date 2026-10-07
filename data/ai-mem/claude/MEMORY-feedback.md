@@ -196,3 +196,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|UMGPZ26JDLF65PBTLRWNSLSQQJRPZFACRNUBXR7JVWRRPHO4RBL \ / AMOS7 \ YOURUM ::
 #\[7]AT4LAICYPOV4SCZJJHSMK47RG4YWGWYIP7QQ4MRPWUUOPGUJLMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 07e19f5a2, 2026-10-07 ] ; check SigCgt bit 16
+
+#,,,.,...,,,,,,,.,,..,...,,..,...,..,,...,,,,,..,,...,...,...,..,,.,,,.,.,.,,,
+#R2W6A65CNQEBTZPCA7CBF7ZQBYPTIBR4B7JNNTX3XWPELUY3A56ZRVYBNHNKJQZQUZWX255GKVBO6
+#\\\|KDOEULU3KVGWTRIYT25MZQ5DGSN77PH26BGJ62SXTC76G7ER6RF \ / AMOS7 \ YOURUM ::
+#\[7]VIP5ZGXK4FSUKP5IAXNCYQF7NVMFZLXXRMQ4YMMMQK24TCQYTGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
