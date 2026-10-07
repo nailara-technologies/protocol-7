@@ -79,3 +79,11 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 #\\\|EFHRAP3G4IGSVWG2ULTPNT7BVWBDV6CQORJMKBKIYLU3ZCLOZND \ / AMOS7 \ YOURUM ::
 #\[7]V54DANWYFE3R5I6LUQL7U6GIUSXBPEFAEBKJVY3MNESUGLMUCYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**step 4 [ trust chain step 2 ] DESIGNED 2026-10-07 :** `data/md/design/TRUST-CHAIN-STEP2.md` -- owner root -> host-root -> service keys, same `p7 delegation v1` statement [ scope field ], chain in the 4th select field \ `dlg:` line, owner pins `~/.n/remote-keys/owners/`. user decisions recorded in the doc ; owner root secret FLEXIBLE [ any keys-zenka key form, special set-ups are wrappers ]. passphrase strength : the existing 13-char minimum stays, beyond it warning only [ decided ]. build order in the doc [ 1 : scope grammar + trust.verify + vectors ].
+
+#,,.,,,,,,...,,..,...,,,.,,..,,,.,,,.,..,,.,,,..,,...,...,.,.,...,,,.,,,,,,..,
+#O65SO6TL2IUFYBPXWA7WNPMHRMPECK4XMEQNITLAZRGVUJ3CP7M6VU7BRCAKUVHPCXTFUKTE4VGCM
+#\\\|U2BRGRQSQK3DK5K5CL53OLKXVBRVCG2LLH66X46RE5AIXR3RSNA \ / AMOS7 \ YOURUM ::
+#\[7]WN6LSFKAQASFFQDPR5TQNLDHPNLSI5SP2A4WMFZHXZKC47WNMABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
