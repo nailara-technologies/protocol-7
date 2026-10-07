@@ -76,7 +76,12 @@ sub ok {
 our $fake_euid = 0;
 our $fake_egid = '0 0';
 
-## $prefix : source prepended inside the compiled sub [ the .cmd. header ] ##
+## $prefix : source prepended inside the compiled sub [ the .cmd. header ]  ##
+## mirrored from bin/Protocol-7 [ use open :encoding(UTF-8), File::stat ] : ##
+## a bare list-context stat or a sysread on a default handle fails here too ##
+my $runtime_pragmas
+    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
+
 sub compile_module {
     my ( $module_name, $prefix ) = @ARG;
     $prefix //= '';
@@ -92,8 +97,10 @@ sub compile_module {
     ## them to the faking overrides below                                   ##
     $src =~ s{\bCORE::(l?stat)\b}{CORE::GLOBAL::$1}g;
     my $translated = p7_syntax__translate($src);
+    ## the runtime : File::stat object stat + :utf8 default open layer ##
     my $cref
-        = eval "sub {\n$prefix\n# line 1 \"$module_name\"\n$translated\n}";
+        = eval "$runtime_pragmas sub {\n$prefix\n# "
+        . "line 1 \"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR"
         if not defined $cref;
     $code{$module_name} = $cref;
@@ -1216,8 +1223,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,,,.,,,,..,,,,,,.,,,,,,,,.,...,,..,...,..,,...,...,.,.,.,.,...,.,,,.,,,
-#CQLJUEB6JAWKK6TEOYSHABEHAO25IY5WKK7VR2WV46Q7LP3NSNJX32U2OSCUPLMS2IPJAJLJD2GAY
-#\\\|NREL4UVQ2DLDFEOTO75X2YKHCBQGZGRW2B7XFL3T2PRVKXRBJ6S \ / AMOS7 \ YOURUM ::
-#\[7]KCZ6XYIY3QUI6VG5RHDA7VGXSMZ76S25VVL2FESNS7AKQ4CHN6AY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,,,.,.,.,...,,,.,..,,..,,..,,..,,...,.,.,.,,,,.,,,,,,.,,,..,,
+#6IYE3CJCNF4RXBSS2XATCW72WAVE3FUWKLY233OIESAKQ6CKMNMTS4YGWF7RLQE2OS5DHIRLIHMUS
+#\\\|PFFCJIV3NRX7XGCRZLMZPGBXFBDMUGOZSOV2TXA5JH2CEOT5HCD \ / AMOS7 \ YOURUM ::
+#\[7]YV7KILQ4EZPTBPWB3YJRAZCQLP32LE53QHBHZBP45UDI7DOW72BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

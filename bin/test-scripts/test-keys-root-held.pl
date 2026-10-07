@@ -72,6 +72,11 @@ sub ok {
     return 0;
 }
 
+## mirrored from bin/Protocol-7 [ use open :encoding(UTF-8), File::stat ] : ##
+## a bare list-context stat or a sysread on a default handle fails here too ##
+my $runtime_pragmas
+    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
+
 sub compile_module {
     my $module_name = shift;
     my $src_path
@@ -82,7 +87,9 @@ sub compile_module {
     my $translated = p7_syntax__translate($src);
     ## test-only : the effective uid is faked, see header ##
     $translated =~ s{\$EFFECTIVE_USER_ID}{\$main::fake_euid}g;
-    my $cref = eval "sub {\n# line 1 \"$module_name\"\n$translated\n}";
+    ## the runtime : File::stat object stat + :utf8 default open layer ##
+    my $cref = eval "$runtime_pragmas sub {\n# line 1 "
+        . "\"$module_name\"\n$translated\n}";
     die "compile failed for $module_name : $EVAL_ERROR" if not defined $cref;
     $code{$module_name} = $cref;
     return $cref;
@@ -635,8 +642,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,...,.,.,.,.,..,,.,,,,..,,..,...,,..,.,,,..,,...,..,,.,.,,,.,,,,,,,.,.,,,
-#3GOQ66BOPQYLLQP4SHKRPTSA2G3I2XGRBPLGSBY5JRCLDAY7ICQMM722NAISPTZPBHJDICEADRTRU
-#\\\|NE6G755X3XDMLTK2F5CM4HXQPJH64LSS66DLH2RRZU5DKHEVITA \ / AMOS7 \ YOURUM ::
-#\[7]AWFBDG3CMI6A6HKSMZCD47ZSFCUFTXQYPHZEK6FB5BNL5L3KHUBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,.,,,.,,,..,...,,..,,.,,,.,,..,,...,...,...,.,.,.,.,.,,,,,,,
+#KHTA3QWL6L7UDJSOG34Y2JHPAJJ6FJD7MYO6CL3I552FK4CVYJT672TZYZFFEDAZ2FLNAPHGNO6VA
+#\\\|FI7TDOJ5UVWPANSA6WQPGRM2UNPCLKJRYY67WEDJZLBQ4IRHN3C \ / AMOS7 \ YOURUM ::
+#\[7]ZSWAR2KSLHBFWZZ4PSX62VM2W5RBPYMWGCKL3GKIDTEFOCUG3UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,3 +33,11 @@ parse files. related : [[use-format-code-not-perl-c]], [[init-code-runs-before-d
 #\\\|PKT2OR7MMCYOBVMOJOWWGWVD5BTZZHYGTTT3X752RPYTEKGED75 \ / AMOS7 \ YOURUM ::
 #\[7]X3U6DDIEPN765274JYLPFVGXIBXZMDYYNQB7Q56V4DUATPXHOKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**2026-10-07 [ host-root live run ] :** two runtime-only bugs passed 6 harnesses [ bare list `lstat` under File::stat ; `sysread` on the default :utf8 layer ]. harnesses now compile modules with `$runtime_pragmas = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;}` in the eval string [ test-host-root-delegation, -keys-root-held, -host-root-keygen, -discover-delegation, -auth-link-binding(-e2e) ] -- mutation-checked : both bugs now FAIL. GOTCHA : a harness's top-level `use bytes` is LEXICAL and leaks into string-eval'd modules ; under it `sysread` on a :utf8 handle silently works -> it masked the bug. the runtime only has bytes.pm LOADED, not in effect. pragmas go inside the eval, so the test file's own stat calls stay CORE.
+
+#,,,.,.,.,,,,,,..,.,,,,,,,,.,,,.,,.,,,,,.,,,.,..,,...,...,.,,,,..,,,,,...,...,
+#DJH3WYBFEJCGFTCOLYGKPRGCR7U7UDZS2MU5A5MZSAGBQIXJWBSLILYCFWIRABOQWBIAA3FMZEMIY
+#\\\|45SPZQP6VMIAMRO46NBRMBEI7L566NZEBGCB37LACJ5P3EKNPC7 \ / AMOS7 \ YOURUM ::
+#\[7]CX3RMZW75RXBNJTFZAMTA5ZNN76PALAXUCTEOSNONH7AEIZ2A4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
