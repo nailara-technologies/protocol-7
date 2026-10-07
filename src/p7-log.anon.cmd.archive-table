@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = p7-log.anon.cmd.archive-table
+# param = <old key name>
+# descr = archive the anon table under the key that wrote it
+#
+# key rotation : `p7-keys rename <key> <old key name>`, `p7-keys create -U
+# <key>`, then this. the table + its key id move to table.<old key
+# name>.bin[.key] -- ONLY when <old key name> is the key that wrote it
+# [ key ids compared ] and is not the current key name. anon.resolve
+# reads archived tables under their key ; new entries go to a fresh
+# table under the current key [ caches dropped ].
+
+my $args   = $call->{'args'} // '';
+my ($name) = grep {length} split m{\s+}, $args;
+
+my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
+
+return $false->('usage : anon.archive-table <old key name>')
+    if not defined $name;
+return $false->("'$name' is not a key name")
+    if $name !~ m|\A[0-9A-Za-z_\-][0-9A-Za-z\.\-_]{0,254}\z|;
+
+my $current_name = <p7-log.anon.key_name>;
+<[p7-log.anon.key]> if not defined $current_name;    ## sets the name ##
+$current_name = <p7-log.anon.key_name> // '';
+return $false->(
+          "'$name' is the current key name -- rename the old key first "
+        . '[ p7-keys rename ]' )
+    if $name eq $current_name;
+
+<p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
+    <[file.zenka_dir.data_path]>;
+my $table_path = <p7-log.anon.table_path>;
+my $id_path    = $table_path . qw| .key |;
+
+return $false->("no table to archive [ $table_path ]") if not -e $table_path;
+return $false->("no key id for $table_path [ nothing to verify against ]")
+    if not -e $id_path;
+
+my $table_id = <[file.slurp]>->($id_path)->$* // '';
+chomp $table_id;
+my $named_id = <[p7-log.anon.key_id]>->($name);
+return $false->("key '$name' not usable [ see log ]")
+    if not defined $named_id;
+return $false->("key '$name' did not write this table [ key ids differ ]")
+    if $named_id ne $table_id;
+
+( my $table_dir = $table_path ) =~ s|/[^/]+$||;
+my $archived    = catfile( $table_dir, "table.$name.bin" );
+my $archived_id = $archived . qw| .key |;
+return $false->("$archived exists already")
+    if -e $archived or -e $archived_id;
+
+return $false->("cannot rename $table_path [ $OS_ERROR ]")
+    if not rename( $table_path, $archived );
+if ( not rename( $id_path, $archived_id ) ) {
+    my $why = "$OS_ERROR";
+    rename( $archived, $table_path );    ## back : table + id stay paired ##
+    return $false->("cannot rename $id_path [ $why ]");
+}
+
+## the next store derives the current key again, into a fresh table ##
+delete <p7-log.anon.key32>;
+delete <p7-log.anon.seen>;
+delete <p7-log.anon.key_mismatch_logged>;
+
+<[base.logs]>->(
+    0,     'p7-log.anon : table archived under key %s [ %s ]',
+    $name, $archived
+);
+return {
+    'mode' => qw| true |,
+    'data' => "archived under '$name' : $archived"
+};
+
+#,,,,,,..,..,,...,...,,,.,...,,..,.,.,,,.,.,.,..,,...,...,.,.,,,.,,,,,...,.,,,
+#EQ36IOEIYBBSOEP6JHXW7P3MX32QUHBGFSQXP5ZRSC7O43VUUNP32Z52P44JVWVHUST2NP755FU2E
+#\\\|Y6WJ4XDXJY7WZDJUIRVGR3ENDX773MEFCDX5665DKA4U7XXJ64K \ / AMOS7 \ YOURUM ::
+#\[7]7JPRFDHJ77PLWVRS5LLHLKMSJZA3I2CRNSR6A4D2XK5WVA6XYSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
