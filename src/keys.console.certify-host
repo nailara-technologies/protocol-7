@@ -1,0 +1,197 @@
+## [:< ##
+
+# name  = keys.console.certify-host
+# param = <owner> <host> <root> [days]
+# descr = owner root certifies a host-root [ scope '<host>.*' ]
+# note  = <owner> owner key name [ any key form ] , <host> the host's
+#         node name [ scope '<host>.*' ] , <root> the host-root public
+#         key [ 52 chars ] or the host's .dlg file , [days] default 365 ;
+#         writes ./<host>.host-root.dlg -- on the host : p7-keys
+#         accept-owner <file> [ as the backend user ]
+
+## data/md/design/TRUST-CHAIN-STEP2.md [ 'the owner root' ] : the owner key ##
+## may be in ANY form the keys zenka holds [ load_keypair prompts,          ##
+## decrypts, derives ] -- plain and passphrase-derived forms are WARNED     ##
+## about, never refused. 365 days unless given. the host-root public key    ##
+## comes from the host's .dlg [ the leaf's issuer ] or out of band ; its    ##
+## fingerprint is shown for the out of band comparison.                     ##
+
+my ( $owner, $host, $root_arg, $days ) = split m|[\t ]+|, shift // '';
+
+if ( not defined $root_arg or not length $root_arg ) {
+    say "\n  << expected '<owner key> <host> <host-root "
+        . "public key | .dlg file> [ days ]' >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+$days //= 365;
+if ( $days !~ m|\A[0-9]{1,4}\z| or $days < 1 or $days > 3650 ) {
+    say "\n  << days : 1 .. 3650 >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+## the name v7-zenki delegates is '<system.node.name lowercased>.cube' ##
+$host = lc $host;
+if ( $host !~ m|\A[a-z0-9][a-z0-9_-]{0,62}(?:\.[a-z0-9][a-z0-9_-]{0,62})*\z|
+    or length($host) > 200 ) {
+    printf "\n  << host name '%s' not valid >>\n\n", $host;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+if ( not <[crypt.C25519.key_exists]>->($owner) ) {
+    printf "\n  << owner key '%s' not found >>\n\n", $owner;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $owner_path = <[crypt.C25519.key_path]>->($owner);
+if ( ref $owner_path ne qw| HASH | ) {
+    printf "\n  << owner key '%s' : key path not resolvable >>\n\n", $owner;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $owner_path->{'holder'} eq qw| root | and $EFFECTIVE_USER_ID != 0 )
+{
+    printf "\n  << owner key '%s' is root-held : run as root >>\n\n", $owner;
+    <[base.exit]>->(qw| 0020 |);
+}
+
+## the host-root public key : a .dlg file [ leaf issuer ] or b32 ##
+my $root_pub;
+if ( -f $root_arg ) {
+    my $content = '';
+    if ( open( my $fh, '<:raw', $root_arg ) ) {
+        read( $fh, $content, 12288 );
+        close($fh);
+    }
+    my ( $chain, $why ) = <[trust.chain]>->( qw| file |, $content );
+    my $leaf
+        = defined $chain
+        ? <[trust.statement]>->( qw| parse_wire |, $chain->[-1] )
+        : undef;
+    if ( ref $leaf ne qw| HASH | ) {
+        printf "\n  << '%s' is not a delegation file [ %s ] >>\n\n",
+            $root_arg, $why // 'leaf not valid';
+        <[base.exit]>->(qw| 0010 |);
+    }
+    $root_pub = $leaf->{'issuer_pub'};
+} elsif ( $root_arg =~ m|\A[A-Z2-7]{52}\z| ) {
+    $root_pub = eval { Crypt::Misc::decode_b32r($root_arg) };
+}
+if ( not defined $root_pub or length($root_pub) != 32 ) {
+    say "\n  << host-root : expected a 52 "
+        . "char public key or a .dlg file >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+## absolute : the keys zenka keeps the caller's cwd [ no drop_privs ], the ##
+## path is printed so the file is found either way                         ##
+my $out_file = File::Spec->rel2abs( sprintf qw| %s.host-root.dlg |, $host );
+if ( -e $out_file or -l $out_file ) {
+    printf "\n  << '%s' exists -- move it away first >>\n\n", $out_file;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+## weak forms : warned, never refused ##
+if ( $owner_path->{'holder'} ne qw| root | ) {
+    my $files = $owner_path->{'key_filename'};
+    my $on_disk
+        = grep { defined $ARG and -f $ARG } @{$files}{qw| secret private |};
+    my $encrypted = <[crypt.C25519.encrypted_key]>->($owner);
+    my $virtual   = <[crypt.C25519.key_is_virtual]>->($owner);
+    if ( $on_disk and not $encrypted ) {
+        say " :\n :: << WARNING : the owner key is stored UNENCRYPTED -- "
+            . "anyone reading it\n :.    can certify hosts for every "
+            . "client pinning this owner >>";
+    } elsif ( not $on_disk and not $virtual and not $encrypted ) {
+        say " :\n :: << WARNING : a passphrase-derived owner key "
+            . "is exactly as strong\n :.    as its passphrase >>";
+    }
+}
+
+if ( not <[crypt.C25519.load_keypair]>->( $owner, undef, TRUE, TRUE ) ) {
+    say "\n  << owner key not loaded >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+my $owner_key = $keys{'C25519'}->{$owner} // {};
+my ( $owner_pub, $owner_priv ) = @{$owner_key}{qw| public private |};
+my $unload = sub { <[crypt.C25519.unload_key]>->( $owner, TRUE ) };
+
+if (   not defined $owner_pub
+    or length($owner_pub) != 32
+    or not defined $owner_priv
+    or length($owner_priv) != 64 ) {
+    $unload->();
+    say "\n  << owner key is not an Ed25519 signing key >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+if ( $owner_pub eq $root_pub ) {
+    $unload->();
+    say "\n  << the owner key IS the host-root -- refused >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $now       = time;
+my $statement = <[trust.statement]>->(
+    qw| build |,
+    {   qw| issuer_pub |  => $owner_pub,
+        qw| subject_pub | => $root_pub,
+        qw| name |        => $host,
+        qw| not_before |  => $now - 300,
+        qw| not_after |   => $now + $days * 86400,
+        qw| scope |       => "$host.*",
+    }
+);
+my $sig
+    = defined $statement
+    ? Crypt::Ed25519::sign( $statement, $owner_pub, $owner_priv )
+    : undef;
+$unload->();
+
+my $wire
+    = defined $sig
+    ? <[trust.statement]>->( qw| wire |, $statement, $sig )
+    : undef;
+if (   not defined $wire
+    or not Crypt::Ed25519::verify( $statement, $owner_pub, $sig ) ) {
+    say "\n  << statement not built or not verifiable >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+require Fcntl;
+my $fh;
+if (not sysopen(
+        $fh,
+        $out_file,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0644
+    )
+    or not print {$fh} "$wire\n"
+    or not close($fh)
+) {
+    printf "\n  << cannot write '%s' [ %s ] >>\n\n", $out_file,
+        <[base.str.os_err]>;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $halves = sub {
+    my $fp   = shift;
+    my $half = int( ( length($fp) + 1 ) / 2 );
+    return ( substr( $fp, 0, $half ), substr( $fp, $half ) );
+};
+printf " :\n :: certified host-root of '%s' [ scope %s.* , %d days ]\n",
+    $host, $host, $days;
+printf " :. host-root %s\n :.           %s\n",
+    $halves->( <[trust.fingerprint]>->($root_pub) );
+printf " :. owner     %s\n :.           %s\n",
+    $halves->( <[trust.fingerprint]>->($owner_pub) );
+printf " :\n :. written   %s\n :\n", $out_file;
+say " :. compare the host-root fingerprint out of band [ on the host :";
+say " :.   p7c crypt.C25519.cmd.host-root-fingerprint ]";
+say " :. copy it to the host ; there, as the backend user :";
+say " :.   p7-keys accept-owner <file>";
+say " :. on clients : p7-keys owner-pin <name> <owner fingerprint> ::\n";
+
+#,,.,,,..,.,,,,,,,,,.,...,...,,..,,,.,...,,,,,..,,...,...,,.,,..,,,,,,.,,,,,,,
+#LRQ4UQ27NUDA5P754MXTLW5RJS363ROCXHCJWHIQUHLWE6RY2JHFB4KYOVSJ755C7FLQ2LYEN2XQ6
+#\\\|MLDBR3W5SDRWSEFT7VDXM3Z54CQQSUTUTCIOXLUR2O42HPOHHSY \ / AMOS7 \ YOURUM ::
+#\[7]5X2WSDJZPP2RVC5D3UFCMSQY7LDBNQ6URPJGZGL6NNYUY3WEIMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,6 +19,7 @@ devmod.dump
 base.s_warn
 base.s_read
 base.gen_id
+trust.verify
 base.waitpid
 base.sig_int
 base.sig_hup
@@ -55,6 +56,7 @@ base.file.open
 base.dump_data
 base.conf-wrap
 trust.statement
+keys.store_note
 devmod.pre_init
 devmod.cmd.true
 devmod.cmd.echo
@@ -69,6 +71,7 @@ base.mod.exists
 base.file.which
 base.file.slurp
 base.event.once
+trust.pin_decide
 keys.backup.list
 jobqueue.add_job
 devmod.post_init
@@ -102,6 +105,7 @@ base.file.content
 base.event.add_io
 base.context.list
 base.chk-sum.amos
+keys.distrust_file
 keys.checksum_href
 keys.backup.remove
 keys.backup.create
@@ -146,6 +150,8 @@ base.file.all_files
 base.extract_values
 base.event.pre_init
 base.diff.hash_keys
+keys.remote_keys_dir
+keys.fingerprint_arg
 keys.console.enc-key
 keys.console.dec-key
 keys.backup.rollback
@@ -173,6 +179,7 @@ keys.read_key_archive
 keys.list_remote_keys
 keys.console.sign-key
 keys.console.incoming
+keys.console.distrust
 jobqueue.get_next_job
 jobqueue.get_job_data
 crypt.C25519.pre_init
@@ -196,6 +203,7 @@ base.event.add_signal
 base.console.describe
 base.console.commands
 base.balanced-average
+keys.console.owner-pin
 keys.console.duplicate
 keys.console.authorize
 devmod.cmd.switch-user
@@ -212,6 +220,8 @@ base.perlmod.init_code
 base.path.resolved_abs
 base.comp-int.is_valid
 keys.list_incoming_keys
+keys.console.undistrust
+keys.console.owner-pins
 keys.console.github-pat
 jobqueue.queue_template
 devmod.cmd.deparse-code
@@ -232,6 +242,7 @@ base.chk-sum.elf.inline
 base.callback.cmd_reply
 keys.select_archive_path
 keys.console.remove-type
+keys.console.owner-unpin
 devmod.cmd.unload-unsafe
 devmod.cmd.unload-devmod
 devmod.cmd.mem-allocated
@@ -250,6 +261,8 @@ base.file.strip_path_str
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 keys.console.list-backups
+keys.console.certify-host
+keys.console.accept-owner
 jobqueue.priorities_table
 devmod.cmd.test-strm-size
 crypt.C25519.root_key_dir
@@ -422,8 +435,8 @@ base.agent_code.handler.sig_warn.end_proc
 base.log.send-buffer.reply-handler.send-reply
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,..,,.,.,..,,,..,,.,,..,,,,.,,..,...,.,,,..,,...,...,...,...,.,,,,.,,,,.,
-#V3AVKMYM3QIPUBHPCEFQXNCAINXLWECL7NH62UZJNLK43P63KKR2L5LYDKJPP2JP3UWET6JPPTV74
-#\\\|ONACR3XON3Q6F4YWMII6P4VSBBERG42LOKBQZ5R4MO3J54SJ2WM \ / AMOS7 \ YOURUM ::
-#\[7]P4IS7JCCLRPZTRP7RJM7RWZJCYXUC5JWK5Q23KQ7GPFL4TBABICI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,.,,,,..,.,.,.,,,,,.,,..,,.,,..,,...,...,.,.,,,.,,,.,,,,,...,
+#BOYETIWCR2MFFI5IW3VLK5RSYAVFVZVRQQFE3DG2DJTU5UKHTF4NJEBQVAYUMSC7GMBJVMAC7ZHMI
+#\\\|ETVGTVJP435E6KVZCJYMFDEJUEA7ORSLR32ALDVWH7XITB32RNS \ / AMOS7 \ YOURUM ::
+#\[7]VF642FPMOQI4BFRS4NMYWFQTNRXGWIDCMW4DQIL2AR4TGGOIU2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

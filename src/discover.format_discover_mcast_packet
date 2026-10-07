@@ -33,25 +33,84 @@ if (   not defined <discover.announce_msg_header>
         Crypt::Misc::encode_b32r( $keys{'C25519'}->{$host_key}->{'public'} );
 }    ## the old '.sig.*' raw-pubkey signature lines are no longer emitted ##
 
-## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the    ##
-## '<S>.dlg' statement sits next to S [ a public artefact outside root/ ] ; ##
-## read it FRESH every packet so renewals \ rotations take effect, and ship ##
-## it as a 3-space 'dlg:' field BEFORE the payload so the packet signature  ##
-## below covers it                                                          ##
+## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md,          ##
+## TRUST-CHAIN-STEP2.md 'wire' ] : the '<S>.dlg' file sits next to S [ a   ##
+## public artefact outside root/ ] and now holds the CHAIN, one statement  ##
+## per line, LEAF FIRST ; read it FRESH every packet so renewals \         ##
+## rotations take effect, and ship it as a 3-space 'dlg:' field BEFORE the ##
+## payload so the packet signature below covers it                         ##
 ##
 my $deleg_line = '';
 my $dlg_wire;
 my $dlg_path = <[crypt.C25519.delegation_file]>->($host_key);
-if ( defined $dlg_path and -f $dlg_path and open my $dlg_fh, '<', $dlg_path )
-{
-    my $line = readline($dlg_fh);
+my $dlg_content;
+if ( defined $dlg_path and -f $dlg_path and open my $dlg_fh,
+    '<:raw', $dlg_path ) {
+    my $got = read( $dlg_fh, $dlg_content, 2060 );    ##  cap 2060 B  ##
     close $dlg_fh;
-    if ( defined $line ) {
-        $line =~ s|\s+\z||;    ##  strip the trailing newline \ space  ##
-        $dlg_wire = $line
-            if length $line
-            and length $line <= 2048
-            and $line =~ m|\A[A-Z2-7]+\z|;
+    $dlg_content = undef
+        if not defined $got
+        or $got > 2052;                               ## refuse larger ##
+}
+
+## the one parser for the file : leaf-first lines -> anchor-most first ##
+my $chain
+    = defined $dlg_content
+    ? <[trust.chain]>->( qw| file |, $dlg_content )
+    : undef;
+
+if ( ref $chain eq qw| ARRAY | ) {
+
+    ## the leaf decides [ under its own issuer, as in step 1 ] ; the chain ##
+    ## above it is sent only while it verifies too -- an owner statement   ##
+    ## that expired between two daily issue runs must not refuse every     ##
+    ## announce : the leaf goes alone [ the send-side rule of              ##
+    ## auth.auth_select ]                                                  ##
+    my $host_pub  = $keys{'C25519'}->{$host_key}->{'public'};
+    my $issuer_of = sub {
+        my $st = <[trust.statement]>->( qw| parse_wire |, shift );
+        return
+            ref $st eq qw| HASH |
+            ? <[trust.fingerprint]>->( $st->{'issuer_pub'} )
+            : undef;
+    };
+    my $check = sub {
+        my ( $list, $anchor ) = @ARG;
+        return ( undef, 'issuer not ' . 'valid' )
+            if not defined $anchor;
+        return <[trust.verify]>->(
+            {   qw| chain |   => $list,
+                qw| anchors | => [$anchor],
+                qw| subject | => $host_pub,
+                qw| now |     => time,
+            }
+        );
+    };
+    my $leaf = $chain->[-1];
+    my ( $valid, $why ) = $check->( [$leaf], $issuer_of->($leaf) );
+    if ( ref $valid eq qw| HASH | ) {
+        my $send = [$leaf];
+        my $note = '';
+        if ( $chain->@* > 1 ) {
+            my ( $full, $full_why )
+                = $check->( $chain, $issuer_of->( $chain->[0] ) );
+            if ( ref $full eq qw| HASH | ) {
+                $send = $chain;
+            } else {
+                $note = $full_why // 'not valid';
+            }
+        }
+        ## one level 0 line per change, not per packet ##
+        if ( ( <discover.dlg_chain_note> // '' ) ne $note ) {
+            <[base.logs]>->(
+                0,
+                'delegation chain above the leaf not '
+                    . 'sent [ %s ] -- the leaf goes alone',
+                $note
+            ) if length $note;
+            <discover.dlg_chain_note> = $note;
+        }
+        $dlg_wire = <[trust.chain]>->( qw| join |, $send );
     }
 }
 if ( defined $dlg_wire ) {
@@ -106,8 +165,8 @@ if ( not defined $signature_str ) {
 return sprintf "%s%s\n", $packet_str,    ## appending packet signature ##
     Crypt::Misc::encode_b32r($signature_str);
 
-#,,,,,,..,.,,,,,,,,,,,,..,.,,,,..,.,,,,..,,.,,..,,...,...,.,,,.,.,.,.,,.,,,,.,
-#RDEIQ5TIKBZ25B46T74ZSC5XIIBZJSUZY6F2MA2KDP3WYII5PZCEOIXY7BZTQSUJ3U2AVGMGMSWAK
-#\\\|NCXMG5XTKAVB4AJMZMH76G5QSHYM5LADXQVBQWS4CCD5D5LBECL \ / AMOS7 \ YOURUM ::
-#\[7]WLOPDOCV2PSGBMENNDRCG2DOZBD5NROTCJRRSQYMFKP2U7YP44DI 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,..,,..,,.,.,,.,,,..,.,.,.,.,..,,...,...,...,.,,,.,.,..,,.,,,
+#XSRGZ24WWZRICP3XO5LO5BSSQ2OQHNUQ7K2SPW5OG6D5E73BSJQGH23XNSA6LNZOMBFV6JFMHFCPK
+#\\\|K7F6QZEKGGFWO6QNZVGW3H57JRNMUV6UO5LZ5VZELWY5GICOFHT \ / AMOS7 \ YOURUM ::
+#\[7]DSL4XZUFNKK7MXMUSAVHSHNI44YOTL32RVGXNVFZQYHXPQQP5MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

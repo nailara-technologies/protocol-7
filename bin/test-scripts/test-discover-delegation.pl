@@ -184,6 +184,38 @@ sub write_pin {    ## pin a fingerprint as <name>.public ##
     return;
 }
 
+## owner pins + the distrust list live beside the server pin store ##
+my $owner_dir     = "$client_home/.n/remote-keys/owners";
+my $distrust_path = "$client_home/.n/remote-keys/distrust";
+system( 'mkdir', '-p', $owner_dir ) == 0 or die 'mkdir owner dir';
+
+sub clear_owner_pins {
+    unlink glob "$owner_dir/*.public";
+    return;
+}
+
+sub write_owner_pin {    ## pin an owner fingerprint as <name>.public ##
+    my ( $name, $fingerprint ) = @ARG;
+    open( my $fh, '>', "$owner_dir/$name.public" )
+        or die "owner pin : $OS_ERROR";
+    print {$fh} "$fingerprint\n";
+    close($fh);
+    return;
+}
+
+sub clear_distrust {
+    unlink $distrust_path;
+    return;
+}
+
+sub write_distrust {    ## one fingerprint per line ##
+    my (@fp) = @ARG;
+    open( my $fh, '>', $distrust_path ) or die "distrust : $OS_ERROR";
+    print {$fh} "$ARG\n" for @fp;
+    close($fh);
+    return;
+}
+
 ## the .dlg file the sender reads [ stubbed delegation_file returns it ] ##
 my $dlg_path = "$client_home/.n/user-keys/protocol-7.base.dlg";
 system( 'mkdir', '-p', "$client_home/.n/user-keys" ) == 0 or die 'mkdir keys';
@@ -196,6 +228,7 @@ my ( $hr_pub, $hr_priv ) = Crypt::Ed25519::generate_keypair( "\x03" x 32 );
 my ( $s_pub,  $s_priv )  = Crypt::Ed25519::generate_keypair( "\x02" x 32 );
 my ( $fr_pub, $fr_priv ) = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
 my ( $x_pub,  $x_priv )  = Crypt::Ed25519::generate_keypair( "\x05" x 32 );
+my ( $ow_pub, $ow_priv ) = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
 
 my $b32 = sub { Crypt::Misc::encode_b32r(shift) };
 
@@ -203,6 +236,8 @@ compile_module('trust.statement');
 compile_module('trust.fingerprint');
 compile_module('trust.verify');
 compile_module('trust.chain');
+compile_module('auth.client.owner_pins');
+compile_module('auth.client.distrust_list');
 compile_module('discover.read_host_root_pins');
 compile_module('discover.format_discover_mcast_packet');
 compile_module('discover.process_incoming_packet');
@@ -213,6 +248,7 @@ my $statement   = $code{'trust.statement'};
 my $fingerprint = $code{'trust.fingerprint'};
 my $hr_fp       = $fingerprint->($hr_pub);
 my $fr_fp       = $fingerprint->($fr_pub);
+my $ow_fp       = $fingerprint->($ow_pub);
 
 ## a delegation wire : host-root [ default ] delegates to S [ default ] ##
 sub dlg {
@@ -234,6 +270,47 @@ sub dlg {
     return $statement->( 'wire', $st, $sig );
 }
 
+## the owner statement above a host-root [ keys.console.certify-host : owner
+## certifies '<host>' , scope '<host>.*' , 365 days ]
+sub owner_dlg {
+    my %o  = @ARG;
+    my $st = $statement->(
+        'build',
+        {   issuer_pub  => $ow_pub,
+            subject_pub => $o{'subject'}    // $hr_pub,
+            name        => $o{'name'}       // 'test-host',
+            not_before  => $o{'not_before'} // ( time - 300 ),
+            not_after   => $o{'not_after'}  // ( time + 365 * 86400 ),
+            scope       => $o{'scope'}      // 'test-host.*',
+        }
+    );
+    die 'owner build' if not defined $st;
+    my $sig = Crypt::Ed25519::sign( $st, $ow_pub, $ow_priv );
+    return $statement->( 'wire', $st, $sig );
+}
+
+## a two-statement CHAIN : [ leaf wire , owner wire ] [ leaf first ] ##
+sub chain_pair {
+    my (%o)    = @ARG;
+    my $issuer = $o{'issuer'} // [ $hr_pub, $hr_priv ];
+    my $leaf   = dlg(
+        issuer => $issuer,
+        defined $o{'leaf_name'} ? ( name => $o{'leaf_name'} ) : ()
+    );
+    my $owner = owner_dlg(
+        subject => $issuer->[0],
+        defined $o{'owner_name'}  ? ( name  => $o{'owner_name'} )  : (),
+        defined $o{'owner_scope'} ? ( scope => $o{'owner_scope'} ) : (),
+        defined $o{'owner_not_before'}
+        ? ( not_before => $o{'owner_not_before'} )
+        : (),
+        defined $o{'owner_not_after'}
+        ? ( not_after => $o{'owner_not_after'} )
+        : (),
+    );
+    return ( $leaf, $owner );
+}
+
 ## ---------------------------------------------------------------------- ##
 ## the sender : crypt.C25519.sign_data stubbed to sign with S             ##
 
@@ -250,10 +327,10 @@ my $host_payload = "HOST[ testhost ] {\n              192.168.0.5 "
 
 ## build a full ANNOUNCE packet with [ or without ] a .dlg in the file ##
 sub make_packet {
-    my ($wire) = @ARG;
-    if ( defined $wire ) {
+    my (@wire) = @ARG;
+    if (@wire) {
         open( my $fh, '>', $dlg_path ) or die "dlg : $OS_ERROR";
-        print {$fh} "$wire\n";
+        print {$fh} "$ARG\n" for @wire;
         close($fh);
     } else {
         unlink $dlg_path;
@@ -264,6 +341,19 @@ sub make_packet {
         ->( 'ANNOUNCE', $host_payload );
 }
 
+## a packet with a RAW dlg field [ bypasses the sender-side parser ] : for ##
+## malformed chain fields the sender would drop the field itself           ##
+sub make_raw_packet {
+    my ($dlg_field) = @ARG;
+    my $packet      = sprintf "[:<|ANNOUNCE|%s\n", $b32->($s_pub);
+    $packet .= sprintf "   dlg:%s\n", $dlg_field if defined $dlg_field;
+    ( my $indented = $host_payload ) =~ s|^|      |mg;
+    $indented =~ s|\n+$||;
+    $packet .= sprintf "%s\n%s:", $indented, 'AAAAAAAAAAAAA';
+    my $sig = Crypt::Ed25519::sign( $packet, $s_pub, $s_priv );
+    return sprintf "%s%s\n", $packet, $b32->($sig);
+}
+
 ## reset the receiver's per-run state ##
 sub reset_receiver {
     delete $data{'hosts'};
@@ -271,6 +361,7 @@ sub reset_receiver {
     delete $data{'discover.host-root-log'};
     delete $data{'discover.ntime_watermark'};
     delete $data{'discover.nodes-trust'};
+    delete $data{'discover'}{'dlg_chain_note'};
     @logged     = ();
     @complaints = ();
     @nodes_sent = ();
@@ -387,10 +478,11 @@ reset_receiver();
         '  :.. no root_fp stored' );
 }
 
-## invalid : a delegation that fails verify -> packet dropped ##
+## invalid : a delegation that fails verify -> packet dropped [ the send ##
+## side would drop the field itself : feed the raw field ]               ##
 reset_receiver();
 {
-    my $packet = make_packet( dlg( bad_sig => 1 ) );
+    my $packet = make_raw_packet( dlg( bad_sig => 1 ) );
     my $ret    = $code{'discover.process_incoming_packet'}->( $packet, 2 );
     ok( !defined host_entry(),
         'invalid [ bad signature ] : packet dropped, no entry' );
@@ -401,7 +493,7 @@ reset_receiver();
 ## invalid : subject is not the announcing host key -> dropped ##
 reset_receiver();
 {
-    my $packet = make_packet( dlg( subject => $x_pub ) );
+    my $packet = make_raw_packet( dlg( subject => $x_pub ) );
     $code{'discover.process_incoming_packet'}->( $packet, 2 );
     ok( !defined host_entry(),
         'invalid [ subject mismatch ] : packet dropped' );
@@ -412,7 +504,7 @@ reset_receiver();
 ## invalid : a parseable-looking but corrupt wire -> dropped ##
 reset_receiver();
 {
-    my $packet = make_packet( $b32->( 'x' x 120 ) );
+    my $packet = make_raw_packet( $b32->( 'x' x 120 ) );
     $code{'discover.process_incoming_packet'}->( $packet, 2 );
     ok( !defined host_entry(), 'invalid [ unparsable ] : packet dropped' );
 }
@@ -527,6 +619,255 @@ reset_receiver();
 }
 clear_pins();
 
+######################################################################
+say ': the CHAIN [ trust chain step 2 ] : sender , trust states , rotation';
+
+## sender : a valid two-statement .dlg ships as one 'dlg:' field ##
+{
+    delete $data{'discover'}{'dlg'};    ## reset the change trackers ##
+    delete $data{'discover'}{'dlg_chain_note'};
+    @logged = ();
+    my ( $leaf, $owner ) = chain_pair();
+    my $packet = make_packet( $leaf, $owner );
+    my ($field) = $packet =~ m|^ {3}dlg:(\S+)$|m;
+    ok( defined $field && $field eq "$leaf.$owner",
+        'sender : the whole verifying chain is joined leaf-first in dlg:' );
+    ok( !logged_at( 0, qr{chain above the leaf not sent} ),
+        '  :.. a verifying chain logs nothing at level 0'
+    );
+
+    ## an EXPIRED owner statement : the leaf goes alone, one level 0 line ##
+    @logged = ();
+    my $expired = owner_dlg( not_after => time - 60 );
+    $packet = make_packet( $leaf, $expired );
+    ($field) = $packet =~ m|^ {3}dlg:(\S+)$|m;
+    ok( defined $field && $field eq $leaf && index( $field, '.' ) == -1,
+        'sender : expired owner statement -> the leaf alone [ no dot ]'
+    );
+    ok( logged_at( 0, qr{chain above the leaf not sent} ),
+        '  :.. one level 0 line per change' );
+    @logged = ();
+    make_packet( $leaf, $expired );
+    ok( !logged_at( 0, qr{chain above the leaf not sent} ),
+        '  :.. unchanged : not logged again' );
+}
+
+## receiver : a two-statement chain field parses + verifies ##
+clear_pins();
+clear_owner_pins();
+write_owner_pin( 'amos', $ow_fp );
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_raw_packet("$leaf.$owner"), 2 );
+    my $e = host_entry();
+    ok( ref $e eq 'HASH' && $e->{'trust'} eq 'owner',
+        'owner : chain verifies under an owner pin'
+    );
+    ok( ref $e eq 'HASH' && ( $e->{'root_fp'} // '' ) eq $hr_fp,
+        '  :.. root_fp stays the LEAF issuer [ the host-root ]'
+    );
+    ok( ref $e eq 'HASH' && ( $e->{'owner_fp'} // '' ) eq $ow_fp,
+        '  :.. the owner anchor fingerprint is stored'
+    );
+    ok( scalar(@nodes_sent)
+            && $nodes_sent[0]->{'call_args'}{'args'} eq
+            "online testhost $hr_fp owner",
+        '  :.. nodes route carries root_fp + owner trust'
+    );
+}
+
+## owner wins nothing over a host pin : pinned stays pinned ##
+write_pin( 'testhost_42', $hr_fp );
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_raw_packet("$leaf.$owner"), 2 );
+    my $e = host_entry();
+    ok( ref $e eq 'HASH' && $e->{'trust'} eq 'pinned',
+        'pinned wins over owner : the host pin decides'
+    );
+}
+clear_pins();
+
+## without any pin the same chain is offered ##
+clear_owner_pins();
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_raw_packet("$leaf.$owner"), 2 );
+    my $e = host_entry();
+    ok( ref $e eq 'HASH' && $e->{'trust'} eq 'offered',
+        'offered : valid chain, no pin at all'
+    );
+    ok( ref $e eq 'HASH' && !exists $e->{'owner_fp'},
+        '  :.. no owner_fp stored without an owner pin'
+    );
+}
+
+## a reversed field [ owner first ] is dropped ##
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_raw_packet("$owner.$leaf"), 2 );
+    ok( !defined host_entry(), 'reversed field [ owner first ] : dropped' );
+    ok( logged_at( 0, qr{invalid host-root delegation} ),
+        '  :.. logged at level 0' );
+}
+
+## malformed chain fields are dropped ##
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    my @bad = (
+        "$leaf..$owner", "..$owner", "$leaf.$owner.",
+        join( '.', $leaf, $owner, $leaf, $owner, $leaf ),
+    );
+    foreach my $field (@bad) {
+        $code{'discover.process_incoming_packet'}
+            ->( make_raw_packet($field), 2 );
+        ok( !defined host_entry(),
+            "malformed field [ ${ \length $field } B ] : dropped" );
+        reset_receiver();
+    }
+}
+
+## distrust : a distrusted host-root drops the packet ; a malformed   ##
+## distrust file fails closed [ data/md/design/TRUST-CHAIN-STEP2.md ] ##
+write_distrust($hr_fp);
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_raw_packet("$leaf.$owner"), 2 );
+    ok( !defined host_entry(), 'distrusted host-root : dropped' );
+}
+reset_receiver();
+{
+    open( my $fh, '>', $distrust_path ) or die "distrust : $OS_ERROR";
+    print {$fh} "this is not a fingerprint\n";
+    close($fh);
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_raw_packet("$leaf.$owner"), 2 );
+    ok( !defined host_entry(),
+        'malformed distrust file : dropped [ fail closed ]' );
+}
+clear_distrust();
+
+## root change : adopted only forward, owner-covered, same name ##
+write_owner_pin( 'amos', $ow_fp );
+reset_receiver();
+{
+    my $since_a = time - 1000;
+    my $since_b = time - 500;
+
+    ## establish the known-good host-root [ leaf alone ] ##
+    $code{'discover.process_incoming_packet'}->( make_packet( dlg() ), 2 );
+    ok( ( host_entry()->{'root_fp'} // '' ) eq $hr_fp,
+        'rotation : first packet establishes the root [ since 0 ]'
+    );
+
+    ## owner-covered + same name + later since -> adopted ##
+    @logged = ();
+    my ( $leaf_b, $owner_b ) = chain_pair(
+        issuer           => [ $fr_pub, $fr_priv ],
+        owner_not_before => $since_a
+    );
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( $leaf_b, $owner_b ), 2 );
+    my $e = host_entry();
+    ok( ref $e eq 'HASH' && ( $e->{'root_fp'} // '' ) eq $fr_fp,
+        'rotation : owner-covered + same name + later since -> adopted'
+    );
+    ok( ref $e eq 'HASH' && $e->{'trust'} eq 'owner',
+        '  :.. the new root is owner-trusted'
+    );
+    ok( logged_at( 0, qr{adopting new root} ),
+        '  :.. one level 0 line on adoption'
+    );
+    ok( scalar(@nodes_sent)
+            && $nodes_sent[-1]->{'call_args'}{'args'} eq
+            "online testhost $fr_fp owner",
+        '  :.. nodes told the new root_fp + owner'
+    );
+
+    ## EQUAL since -> dropped , the old root kept ##
+    @logged = ();
+    my ( $leaf_c, $owner_c ) = chain_pair(
+        issuer           => [ $x_pub, $x_priv ],
+        owner_not_before => $since_a
+    );
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( $leaf_c, $owner_c ), 2 );
+    $e = host_entry();
+    ok( ref $e eq 'HASH' && ( $e->{'root_fp'} // '' ) eq $fr_fp,
+        'rotation : equal since -> dropped, old root kept'
+    );
+    ok( ref $e eq 'HASH' && $e->{'trust'} eq 'invalid',
+        '  :.. the entry is marked invalid' );
+}
+
+## rotation to another leaf name -> dropped ##
+reset_receiver();
+{
+    $code{'discover.process_incoming_packet'}->( make_packet( dlg() ), 2 );
+    my ( $leaf, $owner ) = chain_pair(
+        issuer           => [ $fr_pub, $fr_priv ],
+        leaf_name        => 'other-host.cube',
+        owner_name       => 'other-host',
+        owner_scope      => 'other-host.*',
+        owner_not_before => time - 900,
+    );
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( $leaf, $owner ), 2 );
+    my $e = host_entry();
+    ok( ref $e eq 'HASH' && ( $e->{'root_fp'} // '' ) eq $hr_fp,
+        'rotation : another delegated name -> dropped, old root kept'
+    );
+}
+
+## rotation without an owner pin -> dropped ##
+clear_owner_pins();
+reset_receiver();
+{
+    $code{'discover.process_incoming_packet'}->( make_packet( dlg() ), 2 );
+    my ( $leaf, $owner ) = chain_pair(
+        issuer           => [ $fr_pub, $fr_priv ],
+        owner_not_before => time - 800,
+    );
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( $leaf, $owner ), 2 );
+    my $e = host_entry();
+    ok( ref $e eq 'HASH' && ( $e->{'root_fp'} // '' ) eq $hr_fp,
+        'rotation : no owner pin -> dropped, old root kept'
+    );
+}
+
+######################################################################
+say ': discover.cmd.host_details shows owner + the owner fingerprint';
+write_owner_pin( 'amos', $ow_fp );
+clear_pins();
+reset_receiver();
+{
+    my ( $leaf, $owner ) = chain_pair();
+    $code{'discover.process_incoming_packet'}
+        ->( make_packet( $leaf, $owner ), 2 );
+    my $r = $code{'discover.cmd.host_details'}->( { 'args' => 'testhost' } );
+    my $out       = ref $r eq 'HASH' ? ( $r->{'data'} // '' ) : '';
+    my $half      = int( ( length($ow_fp) + 1 ) / 2 );
+    my $fp_first  = substr( $ow_fp, 0, $half );
+    my $fp_second = substr( $ow_fp, $half );
+    ok( $out =~ m|trust : owner|, 'owner trust shown' );
+    ok( $out =~ m{\Q$fp_first\E\n\s+\Q$fp_second\E},
+        'owner fingerprint shown in two halves at the root_fp column' );
+}
+clear_owner_pins();
+
 my @unexpected
     = grep { !m{Use of uninitialized|no read permissions} } @perl_warnings;
 ok( !@unexpected, 'no unexpected perl warnings' );
@@ -536,8 +877,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,...,.,.,,..,,,,,,..,...,.,,,,,,,,,,,.,,,..,,...,...,..,,,.,,,,,,,,.,.,,,
-#IFOFPMG5DCTZDPYA5MEEEKIVXWJTKHNFIGGHL6Q5YNGY2ZUDDUM2ATUWLQAA25A5EJ572NCX2WC4M
-#\\\|XV5P4WCHTAHU6252XMWYOFSPLV5GEKC24OA5YHTNLY5SFSYQJEE \ / AMOS7 \ YOURUM ::
-#\[7]7IV2VBIBKWH2ZYJRRTL2SPTCQNOPAU7TKYPEJVTB2QN5RFLABWBA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,,,,.,,,.,.,..,,,..,...,...,..,,...,...,..,,,,.,,..,.,.,.,.,
+#QBFDIBU4WUOSLSB2HE5EPTPD67N57T4NHVNMA4CJWIRZ3CTGBAWKOM2BP2E3VZZCIN4BVTJEN3AOI
+#\\\|VEY556LXPEEZ6ABDM37TO5CAUTTB7CPIAB6AMGQ4AEJSME6HMAK \ / AMOS7 \ YOURUM ::
+#\[7]RBQW477RWX72O7TZHTY2XJIRM7A5VVOTY6LWWS5DFEUZK7FHCEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

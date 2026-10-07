@@ -1,0 +1,162 @@
+## [:< ##
+
+# name  = keys.console.accept-owner
+# param = <file|chain>
+# descr = install an owner statement above this host's host-root
+# note  = <file|chain> : the certify-host output file or the chain
+#         field itself [ b32 statements, '.' between, leaf first ] ;
+#         run as the backend user ; writes <backend key dir>/
+#         host-root.dlg, v7-zenki adds it to the .dlg chain [ p7c
+#         v7-zenki.delegation-issue ]
+
+## data/md/design/TRUST-CHAIN-STEP2.md [ 'where the host-root's owner       ##
+## statement lives' ] : accepted only when the WHOLE chain down to the      ##
+## current delegation leaf verifies -- the owner statement's subject is     ##
+## THIS host-root, its scope covers this host's '<node>.cube' name, nothing ##
+## expired. the previous host-root.dlg is kept as .<time>.bak.              ##
+
+my $arg = shift // '';
+$arg =~ s{\A\s+|\s+\z}{}g;
+
+if ( not length $arg ) {
+    say "\n  << expected an owner statement file or chain field >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $fail = sub {
+    my ( $code, $format, @values ) = @ARG;
+    printf "\n  << $format >>\n\n", @values;
+    <[base.exit]>->($code);
+};
+
+## the owner chain [ anchor-most first ] ##
+my ( $owner_chain, $why );
+if ( -f $arg ) {
+    my $content = '';
+    if ( open( my $fh, '<:raw', $arg ) ) {
+        read( $fh, $content, 12288 );
+        close($fh);
+    }
+    ( $owner_chain, $why ) = <[trust.chain]>->( qw| file |, $content );
+} else {
+    ( $owner_chain, $why ) = <[trust.chain]>->( qw| split |, $arg );
+}
+$fail->( qw| 0010 |, 'owner statement not valid [ %s ]', $why // '?' )
+    if not defined $owner_chain;
+
+## this host : the backend key S and its current delegation leaf ##
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $s_name   = ref $key_vars eq qw| HASH | ? $key_vars->{'key_name'} : undef;
+$fail->( qw| 0110 |, 'no backend key name' ) if not defined $s_name;
+
+my $s_path = <[crypt.C25519.key_path]>->($s_name);
+my $s_b32  = '';
+if ( ref $s_path eq qw| HASH |
+    and open( my $fh, '<', $s_path->{'key_filename'}->{'public'} ) ) {
+    $s_b32 = readline($fh) // '';
+    close($fh);
+}
+$s_b32 =~ s{\s+\z}{};
+my $s_pub
+    = $s_b32 =~ m|\A[A-Z2-7]{52}\z|
+    ? Crypt::Misc::decode_b32r($s_b32)
+    : undef;
+$fail->(
+    qw| 0110 |,
+    "public key of '%s' not readable " . "-- run as the backend user",
+    $s_name
+    )
+    if not defined $s_pub
+    or length($s_pub) != 32;
+
+my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
+my $dlg      = '';
+if ( defined $dlg_file and open( my $fh, '<:raw', $dlg_file ) ) {
+    read( $fh, $dlg, 12288 );
+    close($fh);
+}
+my $current = <[trust.chain]>->( qw| file |, $dlg );
+$fail->(
+    qw| 0110 |, 'no delegation for %s yet -- v7-zenki issues it', $s_name
+) if not defined $current;
+my $leaf = $current->[-1];
+
+## the whole chain under the owner : subject = host-root, scope covers ##
+my $top = <[trust.statement]>->( qw| parse_wire |, $owner_chain->[0] );
+my $owner_fp
+    = ref $top eq qw| HASH |
+    ? <[trust.fingerprint]>->( $top->{'issuer_pub'} )
+    : undef;
+my ( $valid, $verify_why ) = ( undef, 'owner statement not parsable' );
+( $valid, $verify_why ) = <[trust.verify]>->(
+    {   qw| chain |   => [ $owner_chain->@*, $leaf ],
+        qw| anchors | => [$owner_fp],
+        qw| subject | => $s_pub,
+        qw| now |     => time,
+    }
+) if defined $owner_fp;
+$fail->(
+    qw| 0010 |,
+    'owner chain refused for this host [ %s ]',
+    $verify_why // '?'
+) if ref $valid ne qw| HASH |;
+
+my $target = <[crypt.C25519.delegation_file]>->(qw| host-root |);
+$fail->( qw| 0110 |, 'no path for host-root.dlg' ) if not defined $target;
+
+my $content = join '', map {"$ARG\n"} reverse $owner_chain->@*;
+
+if ( -e $target ) {
+    my $old = '';
+    if ( open( my $fh, '<:raw', $target ) ) {
+        read( $fh, $old, 12288 );
+        close($fh);
+    }
+    if ( $old eq $content ) {
+        say "\n  << this owner statement is already installed >>\n";
+        <[base.exit]>->(qw| 0010 |);
+    }
+    my $bak = sprintf qw| %s.%d.bak |, $target, time;
+    $fail->( qw| 0110 |, 'backup name taken [ %s ]', $bak )
+        if -e $bak or -l $bak;
+    rename( $target, $bak )
+        or $fail->(
+        qw| 0110 |, 'cannot back up %s [ %s ]',
+        $target,    <[base.str.os_err]>
+        );
+}
+
+require Fcntl;
+my $tmp = sprintf qw| %s.%d.tmp |, $target, $PID;
+my $fh;
+if (not sysopen(
+        $fh,
+        $tmp,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0644
+    )
+    or not print {$fh} $content
+    or not close($fh)
+    or not rename( $tmp, $target )
+) {
+    my $os_err = <[base.str.os_err]>;
+    unlink($tmp);
+    $fail->( qw| 0110 |, 'cannot write %s [ %s ]', $target, $os_err );
+}
+
+my $half = int( ( length($owner_fp) + 1 ) / 2 );
+my $own  = <[trust.statement]>->( qw| parse_wire |, $owner_chain->[-1] );
+printf " :\n :: owner statement installed [ %s, scope %s, until %s ]\n",
+    $own->{'name'}, $own->{'scope'},
+    scalar gmtime( $own->{'not_after'} );
+printf " :. owner %s\n :.       %s\n", substr( $owner_fp, 0, $half ),
+    substr( $owner_fp, $half );
+say " :\n :. v7-zenki adds it at its next delegation run [ daily ] or now :";
+say " :.   p7c v7-zenki.delegation-issue ::\n";
+
+#,,.,,...,..,,,,.,,..,,,,,.,.,,.,,,..,.,,,.,,,..,,...,..,,.,,,...,,,,,,,.,.,,,
+#VJ34HTSWAL5CGA3GV3C66TOH6LPRJCY6QKF4XEWPECDAD6Q2U43NUBRJ32OH5VVIGW2LY5ZUUVX22
+#\\\|32WLRL5L6Y74PPEWUOWTEBRUKCB6KWVGTY73R35S4EGL4RW23TA \ / AMOS7 \ YOURUM ::
+#\[7]UEX2RRDYIJVDX6FZ4ZXYBBD7VNCHRBE7AJ56AQKZ4TARPV4KVCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
