@@ -77,10 +77,10 @@ test 916a35658 ; web session 435ff591b + review 05e79435b ] :
 #\[7]FHDIXZC3O6HSB3ATEQ646HKBXVT3QLV4OBY7C4WXVF4YN3MRUIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**LIVE 2026-10-07 [ ce94fccb0 ] :** first root run of v7-zenki failed twice on runtime-only bugs the harnesses miss [ File::stat object `lstat` -> ownership rule refused a correct root/ ; `sysread` on the runtime's default :utf8 layer in delegation.issue ] + p7-log lacked crypt.C25519 in modules.load. after the fix : host-root written to root/, delegation `protocol-7.base -> desktop-fp4op26.cube` issued by the 1-min retry after `v7-zenki.reload` [ no restart ], `.dlg` 0644 next to S. cube reads .dlg per select [ no cube restart ]. STILL OPEN : a real auth-keypair client login verifying the delegation + host-root pin end to end.
+**LIVE 2026-10-07 [ ce94fccb0 ] :** first root run of v7-zenki failed twice on runtime-only bugs the harnesses miss [ File::stat object `lstat` -> ownership rule refused a correct root/ ; `sysread` on the runtime's default :utf8 layer in delegation.issue ] + p7-log lacked crypt.C25519 in modules.load. after the fix : host-root written to root/, delegation `protocol-7.base -> desktop-fp4op26.cube` issued by the 1-min retry after `v7-zenki.reload` [ no restart ], `.dlg` 0644 next to S. cube reads .dlg per select [ no cube restart ]. LIVE PASSED same day : `p-7-r 127.0.0.1:42 list sessions` as taeki -> delegation verified, host-root pinned [ ~/.n/remote-keys/servers/127.0.0.1_42.public ], ip.tcp session ; re-run against the pin OK. open : wrong-host-root refusal only covered by the e2e test.
 
-#,,..,...,...,.,.,.,.,,..,.,.,..,,..,,.,.,,,.,..,,...,..,,,..,,,,,.,.,.,.,.,.,
-#UY76OF55HV6WGZV5GRBXRZTSL4VZFF2KXJAHM5CQNO7D44L5L7OEQFB4ULALBZZ3F2XP7GM7S6YQI
-#\\\|HKJ4PS65D2D3H5HZGUWH62EAAHO72PYZT3PPRMY2KOK2BNSWNRM \ / AMOS7 \ YOURUM ::
-#\[7]DQ75PBVAQDMYUZSWGZQWAG6JPWYTQKC4XTQQUXFNN2PLZQQ5AODY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,..,.,,,..,,.,,,...,..,,,.,,,.,,..,,...,.,,,,,.,...,..,,..,,,.,,
+#ZOM25ZRXCZMBAU3XE7S4YO3I4QI2T76BUBZVCTUPLOWI46VNGATLDKC6NPKIE3MX7GOJ3ROAYUEMO
+#\\\|NVHVGNHTLR34LDPRFRE6IGUUM3NK4T2KB3YY7VRYNDPPUM5JVTN \ / AMOS7 \ YOURUM ::
+#\[7]KOABM5D4YYOVSOKRMQLVETHU7BVMHMULFGWF7BTIXFFZB4SSBQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
