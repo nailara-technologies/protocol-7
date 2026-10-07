@@ -10,7 +10,7 @@ return {
     }
     if not defined $call->{'args'}
     or $call->{'args'} !~ m<^(online|offline)[\t ]+(\S+)(?#
-        )(?:[\t ]+(-|[A-Z2-7]{77})[\t ]+(?#  host-root fingerprint [ or - ]
+        )(?:[\t ]+(-|[A-Z2-7]{77})[\t ]+(?#  host-root key id [ or - ]
         )(pinned|offered|unverified|invalid))?$>;    ##  trust [ optional ]
 
 ( my $status, my $name, my $root_fp, my $trust ) = @{^CAPTURE};
@@ -99,8 +99,8 @@ if ( not exists <nodes.local-network.online-hosts>->{$name} ) {
 
 }
 
-#,,,.,,..,,..,,..,.,.,,..,,,,,,.,,,.,,.,,,,.,,..,,...,...,,..,,..,.,.,,,,,.,,,
-#CEVP5CBYXB4GA5MLN744BXWX6D7YNRAGVAEK3DKRKJX5AGBT5FGBKZS22SMNJPKSMPJMI7K5TLU2S
-#\\\|LQO4MTTD3W6OG3Z7GKUB5AYLHOC4XPRPGKOZOAR5ISUNUXCLSHZ \ / AMOS7 \ YOURUM ::
-#\[7]A5N57KQ4HH5UK3BP65S6KFSOVZVNGGYIQSGIIQBCDFVUZQAFPCDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,..,.,,,...,..,,,..,,,,,..,,..,,...,...,.,.,,,.,...,...,...,
+#7VU62CD67HHFCLXMQM4FEQ45DY4QVC6IHTOQGHYIWXMH5QDAM4WICUYSKSKYN2JYKS6D4A6O36N3W
+#\\\|AZJFB67XWHFZOQFAMBA6SUDINY4HKC7XF2ZU2NGXFOBOHOUAU6U \ / AMOS7 \ YOURUM ::
+#\[7]FKJSZYFK5KT7FYHDJGV6N3T6BIFNJTOTHOKK6H6OK6BJ7Q7O7UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

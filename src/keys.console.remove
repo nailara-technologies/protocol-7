@@ -141,16 +141,18 @@ if ( defined $known_match ) {
         <[base.exit]>->(qw| 0020 |);
     }
 
-    say "\n::";
-    printf " : purging '%s'\n", $known_file;
-    system( $shred_bin, qw| -fzu |, $known_file )
-        if length $shred_bin
-        and -x $shred_bin;
-    die sprintf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
-        unless unlink($known_file)
-        or not -f $known_file;
+    ## a host pin is public : moved aside [ out of the '*.public' pattern ##
+    ## ], never shredded -- the next connect pins again                   ##
+    my $removed = sprintf qw| %s.%d.removed |, $known_file, time;
+    if ( -e $removed or -l $removed or not rename( $known_file, $removed ) ) {
+        printf "\n  << cannot move '%s' aside [ %s ] >>\n\n", $known_file,
+            <[base.str.os_err]>;
+        <[base.exit]>->(qw| 0110 |);
+    }
 
-    printf " :\n :: [ removed 1 key file ]\n\n";
+    ( my $removed_name = $removed ) =~ s|^.+/||;
+    printf " :\n :: host pin '%s' removed\n :. kept as '%s' ::\n\n",
+        $known_match->{'stem'}, $removed_name;
     return;
 }
 
@@ -180,8 +182,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,,.,..,,.,,,.,.,.,.,,,.,...,,..,..,,,,,,.,,,..,,...,...,.,.,..,,,..,..,,..,,
-#F6CA5D76463X4CZ6ROIZFBTGTDAHXQW774BHENPZ6AYLDTYP7MIKDIRXTKDBQUSAAREAAYRL6B4JY
-#\\\|QZHMH44RDVVSPRSFMW4K6FS7G4766D7BYOQOJDZULTIL4NDUSRQ \ / AMOS7 \ YOURUM ::
-#\[7]HRJDVROT5F2D33X3LEXVFSR4HO5JGC7HC7GH4VCLBXDPJ43CIOCY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,,,,,...,.,.,,,,,,.,,,.,,,,,,..,,...,...,..,,...,,..,.,,,.,.,
+#HMYUEC54HDFBCTNKHP6HXJ3JJALLPGCGWL6SKVURL7WOUFLUKH4NG3S3OP6F3GLGPOAEEL5PCEMB6
+#\\\|IVFIHM2FD4YHG757N4IIHVZIVCFZHJ6OJYZS3RBLADDR3VKF6UY \ / AMOS7 \ YOURUM ::
+#\[7]CU57GFMON3BA4TPP2MGWIC7QDJNTLD7SCNP4PMOGMEANQKSEPEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

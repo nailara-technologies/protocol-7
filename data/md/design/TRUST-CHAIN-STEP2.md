@@ -1,14 +1,14 @@
 # trust chain step 2 : scoped certification, owner root [ draft ]
 
 draft 2026-10-07. builds on `HOST-ROOT-DELEGATION.md` [ step 1, live since
-2026-10-07 : host-root -> cube S, clients pin the host-root fingerprint ]
+2026-10-07 : host-root -> cube S, clients pin the host-root key id ]
 and the vision in `data/ai-mem/claude/vision-2026-10-05-generic-trust-chain.md`.
 DESIGN ONLY -- open decisions are marked **[ decide ]**, each with a
 proposal.
 
 ## what step 1 left open
 
-- every host is its own island : a client pins ONE fingerprint per
+- every host is its own island : a client pins ONE key id per
   `<host>_<port>`, a second host means a second TOFU pin
 - host-root certifies exactly one key [ cube's S, scope '' ] ; other keys
   a host owns [ zenka keys, users' `<user>.base` ] are trusted by TOFU
@@ -16,6 +16,19 @@ proposal.
 - the old cross-signing path [ `keys.console.sign-key`, `.ks \ .sk \ .rq`
   files ] signs a bare public key : no name, no expiry, no domain
   separation -- the last user of the pre-statement format
+
+## terms [ 2026-10-08 ]
+
+- **key id** : `trust.key_id` = b32 of bmw384 over the raw public key [ 77
+  chars ]. what pins, anchors, distrust entries and owner pins hold ; ONE
+  fixed-size identity for any key type [ post-quantum public keys are KB,
+  they cannot be pinned directly ]. compare the FULL key id when it
+  matters [ `p7c host-root-id` ].
+- **label** : the first 7 chars of a key id, shown by `p7-keys list` to
+  RECOGNISE a pin -- never a verification [ 35 bits ].
+- not a 'fingerprint' : a 384 bit hash of a 256 bit key is longer than
+  the key ; 'fingerprint' stays the short AMOS key checksums of `keys
+  list` [ `<:..:..:>` ].
 
 ## shape
 
@@ -30,9 +43,9 @@ service key [ cube S, a zenka key, a user key ]
 - the SAME statement format as step 1 [ `p7 delegation v1`, no v2 ] :
   the `scope` field already exists and is the only thing that changes
   meaning
-- a verifier may anchor at ANY level : pinning the owner fingerprint
+- a verifier may anchor at ANY level : pinning the owner key id
   covers every host the owner certified ; pinning a host-root
-  fingerprint keeps working exactly as today [ step 1 pins stay valid ]
+  key id keeps working exactly as today [ step 1 pins stay valid ]
 - the presenter sends its whole chain [ leaf first ] -- verified
   locally, no lookups, no extra round trip
 
@@ -77,9 +90,9 @@ derive ] ; the secret is wiped after the signature. anything more
 specific [ an air-gapped host, a hardware token, a split secret ] is a
 WRAPPER around the command, never a restriction inside it.
 
-`p7-keys certify-host <owner key> <host> <host-root fingerprint | pub>`
+`p7-keys certify-host <owner key> <host> <host-root key id | pub>`
 [ run wherever the owner key is ; the host-root pub comes from the
-host's `.dlg` or out of band, the fingerprint must match ].
+host's `.dlg` or out of band, the key id must match ].
 
 - the existing floor applies unchanged : the password prompt requires
   13 chars [ `$AMOS7::TERM::pwd_min_len` ], seed data likewise
@@ -118,7 +131,7 @@ names : `<host>.cube`, `<host>.zenka.<zenka>`, `<host>.user.<user>`.
 
 already a chain walker [ step 1 builds it generic ]. changes :
 - scope check per hop [ grammar above, no widening ]
-- anchors may be any number of fingerprints [ owner + host pins mixed ]
+- anchors may be any number of key ids [ owner + host pins mixed ]
 - leaf scope stays '' for every key that authenticates a link
 - chain length limit : 4 [ owner -> host -> service is 2 hops ;
   room for node groups later ]
@@ -143,19 +156,19 @@ already a chain walker [ step 1 builds it generic ]. changes :
 ## pins
 
 - `~/.n/remote-keys/servers/<host>_<port>.public` keeps the host-root
-  fingerprint ; NEW `~/.n/remote-keys/owners/<name>.public` holds owner
-  fingerprints. a chain is accepted when ANY of its issuers matches a
+  key id ; NEW `~/.n/remote-keys/owners/<name>.public` holds owner
+  key ids. a chain is accepted when ANY of its issuers matches a
   pin for that host OR an owner pin.
 - **[ REVISED 2026-10-07 : name-bound host pin ]** the earlier 'no host
   pin' decision left a gap : no client checks the leaf name against the
   host it dialled, so with only an owner pin ANY host the owner certified
   [ a compromised `beta` ] could answer on `atom:port` with its valid
   `beta.cube` chain. now : first owner-verified contact WRITES the host
-  pin, holding the host-root fingerprint AND the leaf name [ `atom.cube` ].
+  pin, holding the host-root key id AND the leaf name [ `atom.cube` ].
   a later host-root change is accepted [ level 0 log, pin rewritten ]
   only when an owner pin covers the new chain AND the leaf name equals
   the pinned name ; otherwise refused as today.
-- an owner fingerprint is NEVER pinned from first contact [ an anchor's
+- an owner key id is NEVER pinned from first contact [ an anchor's
   implicit scope is `*` : one TOFU would grant authority over every
   name ] -- owner pins come only from an explicit command. TOFU without
   an owner pin pins the leaf's issuer [ the host-root ], as in step 1.
@@ -169,7 +182,7 @@ already a chain walker [ step 1 builds it generic ]. changes :
   host-root, 0 when never owner-verified ] ; a rotation needs a strictly
   later certifying statement. a compromised OLD host-root under a still
   valid owner statement [ 365 days, no revocation ] cannot rotate back.
-- pin file : line 1 fingerprint, line 2 leaf name, line 3 since [ lines 2
+- pin file : line 1 key id, line 2 leaf name, line 3 since [ lines 2
   \ 3 optional ; discover and the C client read line 1 only ].
 - the pin decision [ verdict + what to write : none \ new \ replace ] is
   `trust.pin_decide` \ the helper's `pin_decide`, shared test vectors in
@@ -191,7 +204,7 @@ the hosts checked so far -> no data migration.
 still none beyond expiry [ step 1 : 30 days ]. an owner-signed
 revocation list is a later step ; short host statements keep the window
 bounded. **[ decided : yes ]** whether step 2 needs an emergency path [ e.g.
-`p7-keys distrust <fingerprint>` writing a local deny file every
+`p7-keys distrust <key id>` writing a local deny file every
 verifier checks ]. proposal : yes, local only, cheap.
 
 ## later : self-propagating statements [ user, 2026-10-07 ]
@@ -216,7 +229,7 @@ STANDALONE -- even when the node that signed it is offline again.
 - OPTIONAL per node and per direction [ a node may refuse to collect \
   forward ] ; propagation is offered, never required for a connect
 - open : how a peer says which anchors it pins without leaking its pin
-  list [ offer all held chains vs a fingerprint hint ] ; cache bounds ;
+  list [ offer all held chains vs a key id hint ] ; cache bounds ;
   interaction with a future revocation list [ a forwarded statement
   outlives a revocation only until its not_after -- short lifetimes
   keep that window bounded ]
@@ -246,7 +259,7 @@ STANDALONE -- even when the node that signed it is offline again.
    supports ; special set-ups are wrappers, never restrictions
 3. certification order : cube S, zenka keys used across hosts, users'
    `.base` keys
-4. emergency local distrust [ `p7-keys distrust <fingerprint>` ] : yes
+4. emergency local distrust [ `p7-keys distrust <key id>` ] : yes
 5. passphrase-derived \ plain owner keys : the existing 13-char prompt
    minimum stays ; beyond it a WARNING only, never a refusal [ refusing
    gets circumvented or blocks adoption ]
@@ -269,8 +282,8 @@ plus resilient initial transport types, so adding a host to a network
 6. scope is DOWNWARD and immutable : a subject's scope must be strictly
    narrower than its issuer's [ or empty ] -- no equal re-delegation
 
-#,,..,,.,,.,,,..,,,,.,,.,,,..,.,.,...,,.,,,..,..,,...,..,,,.,,,,,,,..,,,,,,..,
-#PGIVZNQFVNE6VYWVCS5CIQ4OLXRYVZT4RWESUC7OYVF55CN3PNDHGZM6OQ7IMZFX3MECELXMQ2RHI
-#\\\|BDYIGCE23IQGPPAGSXTNAE5SD3IQ7CJX5DWQGHBD7NOKCTLQRHF \ / AMOS7 \ YOURUM ::
-#\[7]GHB5T2YHTCM4VM5BYNHTXADBYPXQGBM3WHNUL3VWURDVBIN7EACQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,,,,,.,,,,,,,...,,,.,,..,,..,..,,...,...,..,,,.,,.,.,...,.,.,
+#UXLRYQSMCY5MRIPLXRSFUK7HC4NZCNV37TPKIBXUCOFEZPA2WYZVUTDJLSVD2K3L6NFHUNJB6M2DI
+#\\\|4QNKQUPU6X6TEATKYS4NRGBKFJFOKNYQSWXQE4EIRZIJ2I6LRLY \ / AMOS7 \ YOURUM ::
+#\[7]C352LQUOFT4BK6UTOEZDX7EYPDDCMSQEL47AIBBQL5H6VYKH5GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

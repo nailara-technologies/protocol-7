@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name   = auth.client.distrust_list
-# descr  = local distrust fingerprints [ <remote-keys>/distrust ]
+# descr  = local distrust key ids [ <remote-keys>/distrust ]
 # param  = <remote-keys dir> [ e.g. ~/.n/remote-keys ]
-# return = [ <77 char fingerprint>, .. ] or undef [ list context : ( undef,
+# return = [ <77 char key id>, .. ] or undef [ list context : ( undef,
 #          reason ) -- present but unreadable \ malformed : fail closed ]
 #
-# data/md/design/TRUST-CHAIN-STEP2.md [ 'revocation' ] : one fingerprint
+# data/md/design/TRUST-CHAIN-STEP2.md [ 'revocation' ] : one key id
 # per line, '#' starts a comment, blank lines ignored. no file : empty.
 # twin : distrust_list in bin/p7-auth-keypair-helper.pl.
 
@@ -40,8 +40,8 @@ close($fh);
 
 return \@fp;
 
-#,,,,,,,,,.,.,..,,,,.,,.,,,..,,,,,,,.,,,,,,,,,..,,...,...,..,,,,.,,,.,,..,,,,,
-#VI75WFZKB67GLNOWHBNOLVWVUIOSNMQHJQLRFU7IW2CMCOGLSCFKKKFUSPO3XJLEMHSKZAJYYUS6S
-#\\\|VBNUISHX4JS3TPZN72TNJ7PCOFC6YMC5IXE5LPMPCSSDVAK3YOC \ / AMOS7 \ YOURUM ::
-#\[7]E3I7LCD5FFTYPAKJA7CO7QUKGRQLG2BS6BLPNRCLHVFQURPB4ODA 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,,..,,..,,.,,,,,,,.,,...,,.,,..,,...,..,,...,,.,,,.,,..,,.,,,
+#6T63SUDFWHP5U2RVIRX6BNDE6CXGCO7TGAKHPBP3ZEHN3RSKTNNWVQKT2NP54A6L6VLJZTSBAYXZI
+#\\\|T43ATW6H5IUW4RSIQVVOIJAIPT6G5LC4GRDXU6JSZAGE7YTHTMK \ / AMOS7 \ YOURUM ::
+#\[7]FRSQJ77HFQPQLWXORW5JT2LQP5BNFCTIM5RXDDZ5YKGYUA7GV4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

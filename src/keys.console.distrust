@@ -3,13 +3,13 @@
 # name  = keys.console.distrust
 # param = <fp> [comment]
 # descr = distrust a key locally [ refused anywhere in a chain ]
-# note  = <fp> : 77 char fingerprint or 52 char public key ;
+# note  = <fp> : 77 char key id or 52 char public key ;
 #         ~/.n/remote-keys/distrust [ data/md/design/TRUST-CHAIN-STEP2.md
 #         'revocation' ] -- emergency, local only, checked on every connect
 
 my ( $key_arg, $comment ) = split m|[\t ]+|, shift // '', 2;
 
-my ( $fp, $why ) = <[keys.fingerprint_arg]>->($key_arg);
+my ( $fp, $why ) = <[keys.key_id_arg]>->($key_arg);
 if ( not defined $fp ) {
     printf "\n  << %s >>\n\n", $why;
     <[base.exit]>->(qw| 0010 |);
@@ -45,8 +45,8 @@ printf " :\n :: distrusted\n :. %s\n :. %s\n :. every "
 <[keys.store_note]>->( $list->{'path'} );
 say " :.\n";
 
-#,,..,,.,,,..,.,.,..,,.,.,,,.,,,,,,..,.,.,,.,,..,,...,...,..,,,,.,.,.,.,,,...,
-#PKOGOSEWBP5S72MTDWT3SGEKTOVXCLHQQHNXCQWIDDDUEJ33YXFETJTIHQR7MPRHERLK226DNYC6S
-#\\\|WHBE355AZ3GKKGMU32KPCP2ADJWJBN2ENT6UNOKUU5AOJM63LN7 \ / AMOS7 \ YOURUM ::
-#\[7]X6RA22TVJ6P7CYTHF2QXKUJFUYEFK2NLJIAF36CUTC7BDMJF5GCA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,.,.,..,,,.,,.,.,..,,.,,,.,,,..,,...,..,,..,,.,,,...,.,.,.,.,
+#QEPFMLFMI3HNK7A3U3OX4IYGSK4ESXDRHCWN5BRE65WFUJOKR5BERXDVGWHU3VWOJ6OQLC57SCOEU
+#\\\|5JPJT3CVEUX2XYFFX4OURNWKDVB4UOEPD7ZI42S3BGQIDGJUHHZ \ / AMOS7 \ YOURUM ::
+#\[7]AVLMLLBHYU25C33KKTUOHB4IO6ON35OURMMV5AJVPYRY4RJ4JWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,11 +19,11 @@ use bytes;
 ## tiny read -> handler -> write loop ; the PARENT runs the REAL            ##
 ## auth.client.auth-keypair.authenticate + protocol.protocol-7.link-        ##
 ## upgrade.handshake against it [ incl. the REAL trust.statement \          ##
-## trust.verify \ trust.fingerprint delegation check + the host-root pin    ##
-## store ]. covers : success + pin file, a pinned re-run, a different       ##
-## host-root, a rotated S under the same host-root, an unknown client key,  ##
-## an eph-key tamper relay, a replayed auth line, the pending command gate  ##
-## and a link-complete without client sig. no zenka started, restarted or   ##
+## trust.verify \ trust.key_id delegation check + the host-root pin store   ##
+## ]. covers : success + pin file, a pinned re-run, a different host-root,  ##
+## a rotated S under the same host-root, an unknown client key, an eph-key  ##
+## tamper relay, a replayed auth line, the pending command gate and a       ##
+## link-complete without client sig. no zenka started, restarted or         ##
 ## reloaded, no network, no real key dirs [ throwaway keys + tempdirs ].    ##
 
 use File::Spec;
@@ -299,7 +299,7 @@ compile_module('trust.chain');
 compile_module('trust.pin_decide');
 compile_module('auth.client.owner_pins');
 compile_module('auth.client.distrust_list');
-compile_module('trust.fingerprint');
+compile_module('trust.key_id');
 compile_module('crypt.C25519.delegation_file');
 
 ## client + server share the connect \ regex config data ##
@@ -335,13 +335,13 @@ $keys{'C25519'}{'cli-session'} = { 'public' => $session_pub };
 
 my $pin_path = "$home/.n/remote-keys/servers/test-host_4242.public";
 
-## the pin is the host-root fingerprint [ 77 chars ], not S ##
-my $host_root_fp = $code{'trust.fingerprint'}->($h_pub);
+## the pin is the host-root key id [ 77 chars ], not S ##
+my $host_root_fp = $code{'trust.key_id'}->($h_pub);
 
 ## the owner [ TRUST-CHAIN-STEP2.md ] : certifies the host-root for ##
 ## test-host.* -- valid around now, or expired                      ##
 my ( $o_pub, $o_priv ) = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
-my $owner_fp = $code{'trust.fingerprint'}->($o_pub);
+my $owner_fp = $code{'trust.key_id'}->($o_pub);
 my $owner_nb = time - 200;
 
 sub owner_wire {
@@ -658,9 +658,9 @@ say ': pin file';
 ok( -f $pin_path,                              'pin file exists' );
 ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
 my $pin_is_fp = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
-ok( $pin_is_fp, 'pin file : host-root fingerprint + the leaf name' );
+ok( $pin_is_fp, 'pin file : host-root key id + the leaf name' );
 ok( length $host_root_fp == 77,
-    'host-root fingerprint is 77 chars [ bmw384 b32 ]' );
+    'host-root key id is 77 chars [ bmw384 b32 ]' );
 my ( $pin_mtime, $pin_inode ) = ( stat $pin_path )[ 9, 1 ];
 
 ######################################################################
@@ -1087,8 +1087,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,..,..,,.,.,..,,,..,.,.,,.,,,..,...,,..,..,,...,...,,..,,,.,,,,,.,.,,,.,
-#4WXZGZY2Q3VBRHWCVVIVVLOXEJASLWIAOWVPCGLVUI7TLRTR3UW5E6AKBCNCAMDRB4CHOWDQC6CXY
-#\\\|EJVJFL6NVCSSFGRCGDOERUFGVKRZ5XVRCQY52WZBFED4FWW2YJQ \ / AMOS7 \ YOURUM ::
-#\[7]DSNGX6VMCC5QN6S4SA73SB73GDBHJ3HSDHH7QR3O66VUMQ45IAAQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,.,,,..,,.,,,...,,,,,.,.,,.,,..,,...,...,...,,..,,,,,,,.,..,,
+#ZS4DM6GNQD67WUJT6VQLRRN4AWGVBHSHKEHD4GXPPX6SLY3HJKLB776VJJEPVXPEEWFWS2LN7KER4
+#\\\|6RNWXEOV54NQ66HE5PEOQT3SLSBWISKFQQFW7ISR2GGQLNZGGLQ \ / AMOS7 \ YOURUM ::
+#\[7]SR7FB7PIGOHHZ47LZDZ56FVH4CG46MO7PCZGVYBF3VAACJ6ZLOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

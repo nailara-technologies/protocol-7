@@ -57,7 +57,7 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
         if (   ref $code{'trust.verify'} ne qw| CODE |
             or ref $code{'trust.chain'} ne qw| CODE |
             or ref $code{'trust.statement'} ne qw| CODE |
-            or ref $code{'trust.fingerprint'} ne qw| CODE | ) {
+            or ref $code{'trust.key_id'} ne qw| CODE | ) {
             $dlg_refusal = 'trust modules not loaded';
         } elsif ( not defined $server_pub or length($server_pub) != 32 ) {
             $dlg_refusal = 'no server key';
@@ -95,7 +95,7 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
                     my $st = <[trust.statement]>->( qw| parse_wire |, shift );
                     return
                         ref $st eq qw| HASH |
-                        ? <[trust.fingerprint]>->( $st->{'issuer_pub'} )
+                        ? <[trust.key_id]>->( $st->{'issuer_pub'} )
                         : undef;
                 };
                 my $check = sub {
@@ -210,8 +210,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,.,,,.,,,.,,.,.,,..,.,.,.,,,,..,...,.,,,,,.,..,,...,..,,,,.,,..,,.,,.,.,.,.,
-#CDWE4WRMBHRAUADRLMHZOAVG7JSFVWG7JMI43CJJVELMX4SXH5JG3HL7N5N2KQR57WHVGKQ6ZLTYU
-#\\\|RASUZQMJ7KYTJDAPCNWSTGHOPOSBLV6JWELYL5WR46ZNNR2HXXD \ / AMOS7 \ YOURUM ::
-#\[7]6BYII4ITZQQWJZFYBFJBNCZ6HD3U3WIW2LWP6T5VBQ3BD5XK74CI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,.,,,...,.,,,.,.,,.,,...,,,.,..,,...,...,.,,,,.,,,,.,,.,,,,,,
+#765XQO66ZRAZDNQHXKXGKGTCZFIFJMILAIA2LBES2WW3G46ANLBFPKIGEMTDQIQMH54VSICC6QPJC
+#\\\|BRQNIIF3PZ5NTLHV73COJJWB6WGQKU33DWMXVY3NBWD2VBNLWCL \ / AMOS7 \ YOURUM ::
+#\[7]Z5RTNNTTU2ZBH6RG376MCYG2IZYREDV2XKETHF54B7CYFDE5JAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -86,10 +86,10 @@ if ( not defined $delegation or not length $delegation ) {
                 = <[trust.statement]>->( qw| parse_wire |, $leaf );
             my $issuer_fp
                 = ref $leaf_st eq qw| HASH |
-                ? <[trust.fingerprint]>->( $leaf_st->{'issuer_pub'} )
+                ? <[trust.key_id]>->( $leaf_st->{'issuer_pub'} )
                 : undef;
             if ( not defined $issuer_fp ) {
-                $drop_reason = $leaf_why // 'issuer fingerprint failed';
+                $drop_reason = $leaf_why // 'issuer key id failed';
             } else {
                 ## verify under the LEAF's issuer [ + distrust ] : sig, the ##
                 ## time window, subject eq the announced hostkey, the name  ##
@@ -408,8 +408,8 @@ if ( defined $orbital_p7ref and length $orbital_p7ref ) {
     <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
 }
 
-#,,.,,,..,...,,..,,,.,,..,,..,,,,,,..,,.,,..,,..,,...,..,,...,..,,...,,..,,,.,
-#VBC7BASDIGAJMQA5RKJBDJVLIX3JNRAW4J3CH2GAY76E2QVIYGE3BN4E33EZV2M6WIXFW7T5CQWT6
-#\\\|KY572GLLFFC5WY5YRNVCUZ6Q3WTW5N5SMDPVTMWVRNNOQSJJJ2K \ / AMOS7 \ YOURUM ::
-#\[7]YRSXCJQXEIM4UTRDBRW2BGNFTBHJ7MSHO2PM2DE2CKIOZPLT66CA 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,..,,,..,.,.,..,,,..,..,,,..,..,,...,...,,,.,,,.,,.,,.,,,,,,,
+#32IAAD2QN4D52LVL3II4DA5YOFXBZR2FW4ZUCEYQLEASLKOMKDC3WR5LRPMKRG6BZ5VR74FQZJABG
+#\\\|DBWNGTOOH3TT5X4A56E7MM5RAQR7PJ23K4KIUQLQKKZBPDEQDVE \ / AMOS7 \ YOURUM ::
+#\[7]RU6IOK5HOJH6S2ZW4ASDOUYF3YDAGDWMHF5PPWKJ53DS2VNI2IDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

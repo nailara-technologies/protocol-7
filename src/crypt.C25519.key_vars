@@ -51,8 +51,10 @@ my $key_dir = <crypt.C25519.key_dir>
 my $auth_dir = <crypt.C25519.auth_dir>
     //= sprintf( qw| %s/.n/remote-keys/authorized |, $home_dir );
 
+## the host pins [ data/md/design/TRUST-CHAIN-STEP2.md 'pins' ] -- the pre ##
+## host-root 'known/' TOFU store is retired                                ##
 my $known_hosts_dir = <crypt.C25519.known_hosts_dir>
-    //= sprintf( qw| %s/.n/remote-keys/known |, $home_dir );
+    //= sprintf( qw| %s/.n/remote-keys/servers |, $home_dir );
 
 my $incoming_dir = <crypt.C25519.incoming_dir>
     //= sprintf( qw| %s/.n/remote-keys/incoming |, $home_dir );
@@ -126,8 +128,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,..,,..,..,,,.,,,.,,.,.,,,,,,,,,,,,,,,.,,,.,..,,...,..,,.,.,..,,,,.,,,.,,,.,
-#KOBJIJK36MZHCXF7ZPJD235DCE7WBA23MVXXR3FRFHJGRBNK6GHUFQNWMHZKBPDMPFBVFIXKSQEG2
-#\\\|MJ6FUW3LFAM5PVS3STS6WNMBCGTRDLHDSTUZIVIP5VU2453DBEE \ / AMOS7 \ YOURUM ::
-#\[7]U4EY3PP7R4PHD6CULM6AKSUN645KOK6JUQJR6JT2XFZUR543SOAY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,..,,,,.,.,.,.,.,..,,,.,,.,,,..,,...,...,.,.,,,,,..,,.,,,.,.,
+#HOMXDGJMOMCF6FD7J6UUPED3F7A62AUMHCWCLNRKMPUFROUQPQGW64GDXCB2HAT4Q5OVTMLBFXJYU
+#\\\|SWMOVY7SVXQXTKDSXBWNTB6N2BV3DVGYQEIFW2NH3B4547KY2R4 \ / AMOS7 \ YOURUM ::
+#\[7]FVALGWQILJ2VHLYVRQ3FRCV7AUYMIQC6M2TYSWN2D32MNXBMGYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

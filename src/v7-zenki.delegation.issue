@@ -44,8 +44,7 @@ if ( $EUID != 0 ) {
     return FALSE;
 }
 
-foreach
-    my $sub (qw| trust.statement trust.verify trust.fingerprint trust.chain |)
+foreach my $sub (qw| trust.statement trust.verify trust.key_id trust.chain |)
 {
     return $refuse->( "module '%s' not loaded", $sub )
         if ref $code{$sub} ne qw| CODE |;
@@ -97,8 +96,8 @@ if (   not defined $host_root->{'public'}
     $unload->();
     return $refuse->('host-root not loaded');
 }
-my $issuer_pub  = $host_root->{'public'};
-my $fingerprint = <[trust.fingerprint]>->($issuer_pub);
+my $issuer_pub = $host_root->{'public'};
+my $key_id     = <[trust.key_id]>->($issuer_pub);
 
 ## run $work with the backend user's effective uid \ gid ##
 my $as_backend = sub {
@@ -196,7 +195,7 @@ my ( $issued, $reason ) = $as_backend->(
             my $current_leaf = $current_chain->[-1];
             my $valid        = <[trust.verify]>->(
                 {   qw| chain |   => [$current_leaf],
-                    qw| anchors | => [$fingerprint],
+                    qw| anchors | => [$key_id],
                     qw| subject | => $s_pub,
                     qw| now |     => $now,
                 }
@@ -243,7 +242,7 @@ my ( $issued, $reason ) = $as_backend->(
                 = <[trust.statement]>->( qw| parse_wire |, $owner_chain[0] );
             my $top_fp
                 = defined $top
-                ? <[trust.fingerprint]>->( $top->{'issuer_pub'} )
+                ? <[trust.key_id]>->( $top->{'issuer_pub'} )
                 : undef;
             my ( $valid, $why ) = ( undef, $top_why // 'no issuer' );
             ( $valid, $why ) = <[trust.verify]>->(
@@ -307,24 +306,20 @@ $unload->();
 return $refuse->( '%s', $reason // 'failed' ) if not $issued;
 
 if ( $reason eq qw| issued | ) {
-    ## short at level 1 ; the fingerprint is also on demand  [ ##
-    ## host-root-fingerprint command ]                         ##
+    ## short at level 1 ; the key id is also on demand  [  host-root-id ##
+    ## command ]                                                        ##
     <[base.logs]>->(
         1, ': delegation : %s -> %s [ issued, %dd ]',
         $s_name, $name, int( $lifetime / 86400 )
     );
     <[base.logs]>->( 2, ': :. file      : %s', $dlg_file );
-    my $fp_half = int( ( length($fingerprint) + 1 ) / 2 );
+    my $fp_half = int( ( length($key_id) + 1 ) / 2 );
     <[base.logs]>->(
         3,
         ': :. host-root : %s',
-        substr( $fingerprint, 0, $fp_half )
+        substr( $key_id, 0, $fp_half )
     );
-    <[base.logs]>->(
-        3,
-        ': :.             %s',
-        substr( $fingerprint, $fp_half )
-    );
+    <[base.logs]>->( 3, ': :.             %s', substr( $key_id, $fp_half ) );
 } elsif ( $reason eq qw| chain | ) {
     <[base.logs]>->( 1, ': delegation : %s chain updated', $s_name );
 } else {
@@ -333,8 +328,8 @@ if ( $reason eq qw| issued | ) {
 
 return TRUE;
 
-#,,,,,,,.,..,,,..,,..,,,.,..,,,,,,..,,,,.,,.,,..,,...,...,...,.,.,..,,,.,,..,,
-#NYGLMT3DXY7QSBRQ6C7QI5NKAMKGR2NKQCK5GO3DELZMSUSDFMG3SG4QS73LKMWZVYU7PF3RPT5LO
-#\\\|PPYLR5OPUAESQAHMW5XMTABK7CUTU6VYENGVWJPM65BW5O4G2JW \ / AMOS7 \ YOURUM ::
-#\[7]EKCX2KGEXOAJ4QYX2TORAB6N3YB2FRGLN3HZWFTS57FELQH2EMCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,,,,,,,.,..,,..,,..,,.,.,..,,..,,...,..,,,..,..,,,,,,.,,,..,,
+#3LZMM7KUWQG4Z4PRM357HN74OYV23CS5RMZ46YKWIZ3SVJMIFXGLSZQWH2UYR24KQA4PBXJSVURSC
+#\\\|MV2PYV5VOO3UX5ZC6OM7UG5B3FP5P6KQI3UT4CFLZXDZYY7RJYI \ / AMOS7 \ YOURUM ::
+#\[7]645VML64YQTIH5ZZ43RXBVGWMGLGRJCRYFIK4HLUDRWDU3ESVKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

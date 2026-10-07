@@ -1,9 +1,9 @@
 ## [:< ##
 
-# name  = crypt.C25519.cmd.host-root-fingerprint
-# descr = host-root fingerprint [ 77 chars, from the .dlg leaf ]
+# name  = crypt.C25519.cmd.host-root-id
+# descr = host-root key id [ 77 chars, from the .dlg leaf ]
 #
-# the fingerprint clients pin [ data/md/design/HOST-ROOT-DELEGATION.md ],
+# the key id clients pin [ data/md/design/HOST-ROOT-DELEGATION.md ],
 # for an out of band comparison. read from the delegation statement
 # [ cube cannot read root/ ] ; the statement must parse and carry a valid
 # signature by the host-root it names.
@@ -15,7 +15,7 @@ my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
 
 return $false->('trust modules not loaded')
     if ref $code{'trust.statement'} ne qw| CODE |
-    or ref $code{'trust.fingerprint'} ne qw| CODE |
+    or ref $code{'trust.key_id'} ne qw| CODE |
     or ref $code{'trust.chain'} ne qw| CODE |;
 
 my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
@@ -41,13 +41,13 @@ return $false->('delegation signature not valid')
     if not Crypt::Ed25519::verify( $st->{'statement'}, $st->{'issuer_pub'},
     $st->{'sig'} );
 
-my $fingerprint = <[trust.fingerprint]>->( $st->{'issuer_pub'} );
-return $false->('no fingerprint') if not defined $fingerprint;
+my $key_id = <[trust.key_id]>->( $st->{'issuer_pub'} );
+return $false->('no key id') if not defined $key_id;
 
-return { 'mode' => qw| true |, 'data' => $fingerprint };
+return { 'mode' => qw| true |, 'data' => $key_id };
 
-#,,,,,,,,,,..,.,,,,,.,...,.,.,,.,,,.,,...,,,.,..,,...,...,,..,.,,,..,,,,.,,,,,
-#NNCH7YEBTOSMRANBM2A77HZP2J7U7USOPFATIUQL3ZOBP6NS2EMLR5MULUNWDKJKYN5JQK3K6K4NW
-#\\\|3ZMDPF26NWRSTHUTPWLWIHUUOO2GV6SGAHLWGLNFFK3H37JFDWB \ / AMOS7 \ YOURUM ::
-#\[7]D4URH3VZM2MGIJOR7WB7SKDA6GLEEUCN3LIJCP2HG3LB2H4P3YAA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,..,,.,,,.,,.,,,,..,.,.,.,,,..,,...,.,.,...,,..,.,.,,.,,.,.,
+#64ZO5V7PCNRSNRPAY6QCBYCI3XB22OTN7VF7NCBWJ3TFLQIJIZEGXG4FZGLMZROSV3O4SZMNK2M7W
+#\\\|CH5NBQ42HXXXXJB3XO7FHHZK3FO2A6L4IFVXBYJW7JXS2OCQFMP \ / AMOS7 \ YOURUM ::
+#\[7]FJ3QDJVV45GFDTUFILQPAXQG5NVX474RIYYNX66GBTXTYZNSX4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
