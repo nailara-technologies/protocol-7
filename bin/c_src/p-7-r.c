@@ -480,7 +480,11 @@ int check_server_pin(const char *remote_host, const char *remote_port,
     }
     if (rc == 0 && pin_result_fields(result_line, "PIN_NEW", fp, name,
                                      sizeof(name))) {
-        fprintf(stderr, ": pinned host-root %s [ %s ]\n", fp, name);
+        /* name \ host:port first, the fingerprint in two halves */
+        int fp_half = (int)((strlen(fp) + 1) / 2);
+        fprintf(stderr, ": pinned host-root [ %s \\ %s:%s ]\n"
+                        " :. %.*s\n :. %s\n",
+                name, remote_host, remote_port, fp_half, fp, fp + fp_half);
         if (verbose)
             fprintf(stderr, ":: pin file for %s:%s -- compare out of band "
                     "[ p7c crypt.C25519.host-root-fingerprint ] ::\n",
