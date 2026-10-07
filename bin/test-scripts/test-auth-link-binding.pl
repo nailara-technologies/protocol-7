@@ -864,8 +864,13 @@ sub read_pin {
     ok( read_pin() eq "$hr_fp\n",
         'pin file holds the ' . 'host-root fingerprint' );
     ok( length($hr_fp) == 77, '  :.. 77 chars' );
-    ok( logged_level0(qr{pinned host-root \Q$hr_fp\E \[ peer\.cube \]}),
-        'pinned : logged at level 0 with fingerprint + name'
+    my $fp_half = int( ( length($hr_fp) + 1 ) / 2 );
+    my ( $fp_a, $fp_b )
+        = ( substr( $hr_fp, 0, $fp_half ), substr( $hr_fp, $fp_half ) );
+    ok( logged_level0(qr{pinned host-root \[ peer\.cube \\ })
+            && logged_level0(qr{ :\. \Q$fp_a\E\z})
+            && logged_level0(qr{ :\. \Q$fp_b\E\z}),
+        'pinned : logged at level 0 with name + fingerprint [ two halves ]'
     );
     ok( $ctx->{'server_nonce'} eq $nonce
             && $ctx->{'server_pub'} eq $s_pub
@@ -1099,8 +1104,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,.,,.,,.,.,,.,,,,.,..,,.,,,...,,,,,,..,..,,...,...,..,,.,.,,,,,,..,,,,,
-#JKJYORCDUAF7C3Z25YXYI26YOSMF7EROUAQZPWBM2SEVZOQY7QPTVG3OLXXZ6KAAHBE3ZFL4EY3XQ
-#\\\|BLTXMCQO5ROWGY5YNN5PANQZDPGLAXPASU77FN6JTMYKP7VJKH4 \ / AMOS7 \ YOURUM ::
-#\[7]NUMNVT3HNEM5MN4ROCPED6XFDQEUAZ3KW3HDT4GUQFGY2JJPNACQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,,..,.,,,,,,,.,,,,,.,.,.,,.,,..,,...,...,..,,,.,,...,..,,.,,,
+#RLN27GPOHLGBLJ3ES4VEMOXKXX3MJAQXU47X7CDPIAGUK2M7IEOZNN24DHINHGJ3NP5CCITDR7PSU
+#\\\|FTOWLLL72TXMF4QQ4B4OZK2SGHMCTMQ3ESDQQ65I4U4A255YDRU \ / AMOS7 \ YOURUM ::
+#\[7]YTDRVIY3S6YA6KHVEW7DLO5KZ7RRTSQO4VLPHUCFNNBTNO3XYACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
