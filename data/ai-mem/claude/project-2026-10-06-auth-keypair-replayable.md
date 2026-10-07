@@ -68,3 +68,11 @@ also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
 #\\\|D2RJJNUGMRN5WHY7HI5CSXWPOKY7UWVY4IOVSQL3O2JGR4356AP \ / AMOS7 \ YOURUM ::
 #\[7]HIGWCFGJX2AU5PD7PIXNJKZL4YWPFMEQ66TR2HAHGQA6Y6JMEEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**FOUND + FIXED 2026-10-07 [ taeki.base rotation ] :** `plugin.auth.auth-keypair.load-authorized-users` ran ONCE [ cube zenka.v7 ] and only ever ADDED to `$keys{'authorized-remote'}` -> a rotated client key needed a cube restart, and a key revoked via `keys drop-authorized` stayed VALID until restart. now the table is rebuilt on every call [ unreadable \ missing dir : nobody authorized, level 0 log ] and `plugin.auth.auth-keypair.init_code` reloads it on `$reinit` [ cube `reload plugins` ]. test : bin/test-scripts/test-auth-keypair-authorized-reload.pl [ 11 checks, old loader fails 4 ]. note : cube's client TOFU pin is `remote-keys/incoming/<user>.public`, `authorized/cube/<user>.public` symlinks to it ; test-auth-keypair.public -> user-keys/protocol-7.base.public.
+
+#,,.,,...,,,.,..,,..,,,,.,.,,,,.,,.,.,,,.,..,,..,,...,...,,.,,...,,..,.,.,.,,,
+#JWEQPBJFNQR57HWQPOSKBMXYIOAQLN6QENFP2D5IHV7LOWEUSQP2RWR2456NJUDBRPIOA757VQQSG
+#\\\|CIEYXNBOCW2WZQIKCFKDWVUJKL3ZYAHYTJLDUCAUMOLF2VDH7SY \ / AMOS7 \ YOURUM ::
+#\[7]2ZUSNLKCS5GQECWBC6CGS7KZ5CEX7KKNJQRXJ3KIGOIQZZI67YBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
