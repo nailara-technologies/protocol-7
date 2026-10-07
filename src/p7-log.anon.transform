@@ -14,12 +14,11 @@ return FALSE if ref $log_msg_ref ne qw| SCALAR |;
 ## anonymization failure must never drop \ alter the original line ##
 my $ok = eval {
     my ( $anon_line, $pairs ) = <[p7-log.anon.replace]>->( $log_msg_ref->$* );
-    if (    defined $anon_line
-        and ref $pairs eq qw| ARRAY |
-        and scalar @{$pairs} ) {
-        <[p7-log.anon.store]>->($pairs);
-        $log_msg_ref->$* = $anon_line;
-    }
+    <[p7-log.anon.store]>->($pairs)
+        if ref $pairs eq qw| ARRAY | and scalar @{$pairs};
+    ## a line of only '[L:-]' redactions has no pairs -- still replaced ##
+    $log_msg_ref->$* = $anon_line
+        if defined $anon_line and $anon_line ne $log_msg_ref->$*;
     TRUE;
 };
 
@@ -34,8 +33,8 @@ if ( not $ok ) {
 
 return TRUE;
 
-#,,.,,,.,,,.,,.,.,.,.,,,.,.,,,...,,,.,,..,.,.,..,,...,...,,.,,,.,,.,,,..,,,,,,
-#FJXLMN2FFRW3YYC4S4XOLTUBU55424G2NVDZMR25GEAUHLUWDOUWXMBEB47S5WXC2XIYOLPMXGC2E
-#\\\|LJ5RLE2I2KOSTWU7VK7HUPCIKJ3ASFNM56GECVRI4YQDZLFLYVJ \ / AMOS7 \ YOURUM ::
-#\[7]5GMATCKL5OZ2XRUKKEQZGSZXRC7Y3IQARY767KLYUFBLW73XEGCA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,,..,,,,,..,,.,,,.,,,,,,,,..,..,,...,...,,..,.,,,,,,,,.,,,,.,
+#MSOLQLPPK6FFK32HKTFBPFWWTTECONLIQ44U3TRLMYKT7BGBHDB3YZWY7V2IPNGOZ6HCEHGGXP3X4
+#\\\|XBLTB6IDWDKWGSIX3V5IKQXAVVUFEKISSJQXK6L6EACAVHY3JWK \ / AMOS7 \ YOURUM ::
+#\[7]6UUE7G57IMHZP3XN634GDV3KU6PTZB6KK3NWORZZQUZZXBKAIIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
