@@ -375,12 +375,12 @@ sub v {
     ok( ref $r eq 'HASH'
             && $r->{'name'} eq 'test-host.cube'
             && $r->{'anchor'} eq $hr_fp
-            && $r->{'not_after'} == 1702592000,
-        'valid : { name, anchor, not_after }'
+            && $r->{'not_after'} == 1702592000
+            && $r->{'depth'} == 1,
+        'valid : { name, anchor, not_after, depth }'
     );
     my @r = v( [ dlg() ], anchors => [ $fingerprint->($fr_pub) ] );
-    ok( !defined $r[0] && $r[1] =~ m{not a pinned anchor},
-        'wrong fingerprint' );
+    ok( !defined $r[0] && $r[1] =~ m{no pinned anchor}, 'wrong fingerprint' );
     @r = v( [ dlg( bad_sig => 1 ) ] );
     ok( !defined $r[0] && $r[1] =~ m{signature}, 'bad signature' );
     @r = v( [ dlg() ], now => 1702592001 );
@@ -395,8 +395,11 @@ sub v {
     );
     @r = v( [ dlg() ], subject => $x_pub );
     ok( !defined $r[0] && $r[1] =~ m{subject mismatch}, 'subject mismatch' );
-    @r = v( [ dlg( scope => '*' ) ] );
+    @r = v( [ dlg( scope => 'test-host.*' ) ] );
     ok( !defined $r[0] && $r[1] =~ m{leaf scope}, 'leaf scope not empty' );
+    @r = v( [ dlg( scope => '*' ) ] );
+    ok( !defined $r[0] && $r[1] =~ m{scope pattern not valid},
+        'statement carrying scope * : refused' );
     @r = v( [ dlg( name => '-bad' ) ] );
     ok( !defined $r[0] && $r[1] =~ m{name}, 'name charset [ leading - ]' );
     ## two hops : host-root -> S [ scope '' ] -> X : scope violation ##
@@ -408,29 +411,37 @@ sub v {
     );
     ok( !defined $r[0] && $r[1] =~ m{statement 2 : issuer scope is empty},
         'scope violation [ two hops, issuer scope empty ]' );
-    $r = v(
+    ## scope '*' is never issued : statement 1 refuses at the pattern ##
+    @r = v(
         [   dlg( scope  => '*' ),
             dlg( issuer => [ $s_pub, $s_priv ], subject => $x_pub )
         ],
         subject => $x_pub
     );
-    ok( ref $r eq 'HASH', 'two hops, issuer scope * : valid' );
+    ok( !defined $r[0] && $r[1] =~ m{statement 1 : scope pattern not valid},
+        'two hops, statement carrying scope * : refused' );
+    ## 'cube' is now a valid EXACT scope : the second name is outside it ##
     @r = v(
         [   dlg( scope  => 'cube' ),
             dlg( issuer => [ $s_pub, $s_priv ], subject => $x_pub )
         ],
         subject => $x_pub
     );
-    ok( !defined $r[0] && $r[1] =~ m{scope not supported},
-        'undefined scope grammar : refused' );
+    ok( !defined $r[0] && $r[1] =~ m{statement 2 : name outside issuer scope},
+        'name outside an exact issuer scope : refused'
+    );
+    ## statement 1 valid [ scope 'cube' ] : statement 2's issuer must be ##
+    ## its subject -- a foreign issuer breaks the chain link             ##
     @r = v(
-        [   dlg( scope  => '*' ),
+        [   dlg( scope  => 'cube' ),
             dlg( issuer => [ $fr_pub, $fr_priv ], subject => $x_pub )
         ],
         subject => $x_pub
     );
-    ok( !defined $r[0] && $r[1] =~ m{previous subject},
-        'second issuer != first subject' );
+    ## scalar assignment : a failing =~ in list context would silently ##
+    ## vanish from the ok() argument list [ false positive ]           ##
+    my $mismatch = !defined $r[0] && $r[1] =~ m{previous subject};
+    ok( $mismatch, 'second issuer != first subject' );
     my $scalar = v( [ dlg( bad_sig => 1 ) ] );
     ok( !defined $scalar,
         'scalar context refusal : ' . 'undef [ never a reason ]' );
@@ -438,6 +449,45 @@ sub v {
     ok( !defined v( [ dlg() ], anchors => [] ),     'no anchors' );
     ok( !defined v( [ dlg() ], now     => 'soon' ), 'now not a number' );
     ok( !defined v( [ dlg() ], subject => 'x' ),    'subject not 32 bytes' );
+}
+
+######################################################################
+say ': trust.verify : shared chain vectors [ TRUST-CHAIN-STEP2 ]';
+
+## the SAME cases bin/p7-auth-keypair-helper.pl self-tests verify_chain   ##
+## with [ bin/test-scripts/trust-chain-vectors.pl ] -- both must give the ##
+## same accept \ refuse [ and reason, but the 'refuse' wildcard ]         ##
+{
+    my $build = do(
+        catfile(
+            $main::root_path, 'bin',
+            'test-scripts',   'trust-chain-vectors.pl'
+        )
+    );
+    die "trust-chain-vectors.pl : $EVAL_ERROR $OS_ERROR"
+        if ref $build ne 'CODE';
+    foreach my $case ( $build->()->@* ) {
+        my ( $r, $why ) = $verify->(
+            {   chain   => [ map { $b32->($ARG) } $case->{'chain'}->@* ],
+                anchors => $case->{'anchors'},
+                subject => $case->{'subject'},
+                now     => $case->{'now'},
+            }
+        );
+        if ( $case->{'expect'} eq 'ok' ) {
+            ok( ref $r eq 'HASH'
+                    && $r->{'name'} eq $case->{'name'}
+                    && $r->{'anchor'} eq $case->{'anchor'}
+                    && $r->{'depth'} == $case->{'depth'},
+                "shared : $case->{'label'}"
+            );
+        } elsif ( $case->{'expect'} eq 'refuse' ) {
+            ok( !defined $r, "shared : $case->{'label'}" );
+        } else {
+            ok( !defined $r && defined $why && $why eq $case->{'expect'},
+                "shared : $case->{'label'}" );
+        }
+    }
 }
 
 ######################################################################
@@ -1223,8 +1273,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,,,,,.,,,,,,,.,.,.,...,,,.,..,,..,,..,,..,,...,.,.,.,,,,.,,,,,,.,,,..,,
-#6IYE3CJCNF4RXBSS2XATCW72WAVE3FUWKLY233OIESAKQ6CKMNMTS4YGWF7RLQE2OS5DHIRLIHMUS
-#\\\|PFFCJIV3NRX7XGCRZLMZPGBXFBDMUGOZSOV2TXA5JH2CEOT5HCD \ / AMOS7 \ YOURUM ::
-#\[7]YV7KILQ4EZPTBPWB3YJRAZCQLP32LE53QHBHZBP45UDI7DOW72BI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,...,,,,,,..,..,,.,,,,.,,,,,,..,,...,..,,,,.,,,,,.,,,..,,,..,
+#5NNK7SRCVR5OVPL4I6OPQH7MH2YHL2PKXBS5RFIXUDBUX2LBCUWTCKUMSNBNJIEYVPVEVT7ZSUZ3Y
+#\\\|ANTRLWLKXDVSTAYCFZWKPWM6ZTR4RRLUQCA3LQRZDEC7WDSGIV4 \ / AMOS7 \ YOURUM ::
+#\[7]5L7CCSHUPVYI6LGCY5DOKW3C7NXVFMVJOMLO542GLGVKCXMN7CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

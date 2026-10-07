@@ -45,6 +45,9 @@ use File::Path qw(make_path);
 use constant DLG_LABEL   => "p7 delegation v1\0";
 use constant DLG_B32_MAX => 2048;
 
+## chain verify [ TRUST-CHAIN-STEP2.md ] : refused before anything parses
+use constant DLG_CHAIN_MAX => 4;
+
 ##[ Main Entry Point ]########################################################
 
 my $operation = shift @ARGV // 'help';
@@ -170,9 +173,160 @@ sub parse_delegation {
     return \%dlg;
 }
 
+## a name inside a scope pattern ? [ the caller handles '' \ '*' ] -- the SAME
+## rule as src/trust.verify : '<prefix>.*' is strictly below prefix
+sub name_in_scope {
+    my ( $scope, $name ) = @_;
+    return 1 if $scope eq '*';
+    my ($prefix) = $scope =~ m|\A(.+)\.\*\z|;
+    ## strictly below : something must follow "<prefix>."
+    return ( index( $name, "$prefix." ) == 0
+            and length($name) > length($prefix) + 1 ) ? 1 : 0
+        if defined $prefix;
+    return $name eq $scope ? 1 : 0;
+}
+
+## $sub STRICTLY within $iss ? [ '' handled by the caller : always allowed ;
+## both are checked patterns before this runs ] -- the SAME rule as
+## src/trust.verify : equal scope refuses, an exact name has only '' below
+sub scope_within {
+    my ( $iss, $sub ) = @_;
+    return 1 if $iss eq '*';
+    return 0 if $iss eq '';
+    my ($i_pre) = $iss =~ m|\A(.+)\.\*\z|;
+    return 0 if not defined $i_pre;    ## an exact name : only '' below
+    my ($s_core) = $sub =~ m|\A(.+?)(?:\.\*)?\z|;
+    return ( index( $s_core, "$i_pre." ) == 0
+            and length($s_core) > length($i_pre) + 1 ) ? 1 : 0;
+}
+
+## walk a delegation chain [ RAW wires, anchor-most first ] from the first
+## statement whose issuer fingerprint is pinned down to the subject key -- the
+## SAME rules & refusal reasons as src/trust.verify [ TRUST-CHAIN- STEP2.md ]
+## : the statements before the anchor are ignored, every later issuer must be
+## the previous subject, per statement : exact parse -> sig
+## -> not_before <= now <= not_after -> [ last : subject ] -> name charset
+## -> scope [ a statement carrying scope '*' refuses ]. -> ( { fingerprint,
+## name, anchor, issuer_pub, not_after, depth }, undef ) or ( undef, reason )
+## ; depth = statements actually verified
+sub verify_chain {
+    my ( $chain, $anchors, $subject, $now ) = @_;
+
+    my $refuse = sub {
+        my ($reason) = @_;
+        return ( undef, $reason );
+    };
+
+    my $re_name  = qr|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
+    my $re_scope = qr|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}(?:\.\*)?\z|;
+
+    return $refuse->('chain missing')
+        if ref $chain ne 'ARRAY' or not $chain->@*;
+    return $refuse->('chain too long') if $chain->@* > DLG_CHAIN_MAX;
+    return $refuse->('anchors missing')
+        if ref $anchors ne 'ARRAY'
+        or not grep { defined $ARG and not ref $ARG and length $ARG }
+        $anchors->@*;
+    return $refuse->('subject not 32 bytes')
+        if not defined $subject
+        or ref $subject
+        or length($subject) != 32;
+    return $refuse->('time not valid')
+        if not defined $now
+        or ref $now
+        or $now !~ m|\A[0-9]{1,10}\z|;
+
+    my %anchor = map { $ARG => 1 }
+        grep { defined $ARG and not ref $ARG and length $ARG } $anchors->@*;
+
+    ## verification starts at the first statement whose issuer fingerprint is
+    ## pinned ; the ones before it are ignored [ not checked ]
+    my $start;
+    my $anchor_fp;
+    foreach my $index ( 0 .. $chain->$#* ) {
+        my $st = eval { parse_delegation( $chain->[$index] ) };
+        next if not defined $st;
+        my $fp = host_root_fingerprint( $st->{'issuer_pub'} );
+        next if not exists $anchor{$fp};
+        $start     = $index;
+        $anchor_fp = $fp;
+        last;
+    }
+    return $refuse->('no pinned anchor in chain') if not defined $start;
+
+    my $issuer_scope = '*';    ## the anchor's implicit scope
+    my $prev_subject;
+    my $last;
+
+    foreach my $index ( $start .. $chain->$#* ) {
+        my $at = sprintf 'statement %d', $index + 1;
+
+        my $st = eval { parse_delegation( $chain->[$index] ) };
+        if ( not defined $st ) {
+            ( my $why = $@ || 'unparsable' ) =~ s{\s+\z}{};
+            return $refuse->("$at : $why");
+        }
+
+        return $refuse->("$at : issuer is not the previous subject")
+            if $index > $start and $st->{'issuer_pub'} ne $prev_subject;
+
+        return $refuse->("$at : signature not valid")
+            unless Crypt::Ed25519::verify( $st->{'statement'},
+            $st->{'issuer_pub'}, $st->{'sig'} );
+
+        return $refuse->("$at : not_after before not_before")
+            if $st->{'not_after'} < $st->{'not_before'};
+        return $refuse->("$at : not yet valid")
+            if $now < $st->{'not_before'};
+        return $refuse->("$at : expired") if $now > $st->{'not_after'};
+
+        my $is_last = $index == $chain->$#*;
+
+        return $refuse->("$at : subject mismatch")
+            if $is_last and $st->{'subject_pub'} ne $subject;
+
+        return $refuse->("$at : name not valid") if $st->{'name'} !~ $re_name;
+
+        ## the issuer may certify this name ?
+        return $refuse->("$at : issuer scope is empty")
+            if $issuer_scope eq '';
+        return $refuse->("$at : name outside issuer scope")
+            if not name_in_scope( $issuer_scope, $st->{'name'} );
+
+        ## the subject's own scope : a valid pattern, strictly narrower
+        my $scope = $st->{'scope'};
+        if ( $scope ne '' ) {
+            return $refuse->("$at : scope pattern not valid")
+                if $scope !~ $re_scope;
+            return $refuse->("$at : scope not within issuer scope")
+                if not scope_within( $issuer_scope, $scope );
+        }
+
+        ## the leaf certifies nothing
+        return $refuse->("$at : leaf scope not empty")
+            if $is_last and $scope ne '';
+
+        $issuer_scope = $scope;
+        $prev_subject = $st->{'subject_pub'};
+        $last         = $st;
+    }
+
+    return (
+        {   'fingerprint' => $anchor_fp,
+            'name'        => $last->{'name'},
+            'anchor'      => $anchor_fp,
+            'issuer_pub'  => $last->{'issuer_pub'},
+            'not_after'   => $last->{'not_after'},
+            'depth'       => $chain->$#* - $start + 1,
+        },
+        undef
+    );
+}
+
 ## one-hop verify [ anchor = the issuer, scope '*' ] of a delegation for the
 ## announced S at time now -> ( { fingerprint, name }, undef ) or ( undef,
-## reason ). the pin compare is the CALLER's step, after this
+## reason ) -- a 1 statement verify_chain with the legacy reason strings.  the
+## pin compare is the CALLER's step, after this
 sub verify_delegation {
     my ( $wire, $s_pub, $now ) = @_;
 
@@ -181,30 +335,28 @@ sub verify_delegation {
         ( my $why = $@ || 'unparsable' ) =~ s{\s+\z}{};
         return ( undef, "statement $why" );
     }
-    return ( undef, 'bad signature' )
-        unless Crypt::Ed25519::verify( $dlg->{'statement'},
-        $dlg->{'issuer_pub'}, $dlg->{'sig'} );
-    return ( undef, 'not_before after not_after' )
-        if $dlg->{'not_before'} > $dlg->{'not_after'};
-    return ( undef, 'not yet valid' ) if $now < $dlg->{'not_before'};
-    return ( undef, 'expired' )       if $now > $dlg->{'not_after'};
-    return ( undef, 'subject is not the announced server key' )
-        unless length($s_pub) == 32 and $dlg->{'subject_pub'} eq $s_pub;
+    my ( $verified, $reason )
+        = verify_chain( [$wire],
+        [ host_root_fingerprint( $dlg->{'issuer_pub'} ) ],
+        $s_pub, $now );
+    return ( $verified, undef ) if defined $verified;
 
-    ## name : the anchor's scope is '*' [ this step ] -> any name is within it
-    ## ; the charset only keeps it safe to print \ log
-    return ( undef, 'name not printable' )
-        unless $dlg->{'name'} =~ m|^[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z|;
-    ## scope : S certifies nothing in this step [ leaf scope must be '' ]
-    return ( undef, 'subject scope not empty' )
-        unless $dlg->{'scope'} eq '';
-
-    return (
-        {   'fingerprint' => host_root_fingerprint( $dlg->{'issuer_pub'} ),
-            'name'        => $dlg->{'name'},
-        },
-        undef
+    ## the legacy one-hop wording [ the self-test \ p-7-r see these ]
+    my %legacy = (
+        'subject not 32 bytes' => 'subject is not the announced server key',
+        'signature not valid'  => 'bad signature',
+        'not_after before not_before' => 'not_before after not_after',
+        'not yet valid'               => 'not yet valid',
+        'expired'                     => 'expired',
+        'subject mismatch'     => 'subject is not the announced server key',
+        'name not valid'       => 'name not printable',
+        'leaf scope not empty' => 'subject scope not empty',
+        'scope pattern not valid' => 'subject scope not valid',
     );
+    if ( $reason =~ s{\Astatement 1 : }{} ) {
+        $reason = $legacy{$reason} // "statement $reason";
+    }
+    return ( undef, $reason );
 }
 
 ## pin store compare [ ONE fingerprint per <host>_<port> file ] -> PIN_VALID \
@@ -850,11 +1002,24 @@ sub delegation_self_test {
         'refuse non-empty subject scope',
         $verdict->(
             $wire->(
-                $root_pub, $root_priv, $s_pub, $nb, $na, 'scope' => '*'
+                $root_pub, $root_priv, $s_pub, $nb, $na,
+                'scope' => 'test-host.cube'
             ),
             $s_pub, $now
         ),
         'subject scope not empty'
+    );
+    ## scope '*' is never issued [ TRUST-CHAIN-STEP2.md ] : refused at the
+    ## pattern, before the leaf check
+    $check->(
+        'refuse subject scope *',
+        $verdict->(
+            $wire->(
+                $root_pub, $root_priv, $s_pub, $nb, $na, 'scope' => '*'
+            ),
+            $s_pub, $now
+        ),
+        'subject scope not valid'
     );
     $check->(
         'refuse unprintable name',
@@ -878,6 +1043,49 @@ sub delegation_self_test {
         'refuse delegation b32 bad length',
         $refused->( sub { arg_b32_var( 'AAA', DLG_B32_MAX, 'x' ) } ), 1
     );
+
+    ## the shared chain vectors [ TRUST-CHAIN-STEP2.md ] : the SAME cases
+    ## bin/test-scripts/test-host-root-delegation.pl runs through the
+    ## src/trust.verify module [ wires b32 there, raw here ] -- both
+    ## implementations must give the same accept \ refuse \ reason
+    {
+        my $vec_root
+            = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir ) );
+        my $vec_file = File::Spec->catfile( $vec_root, 'bin',
+            'test-scripts', 'trust-chain-vectors.pl' );
+        my $build = do $vec_file;
+        die "cannot load $vec_file : $@ $!\n" if ref $build ne 'CODE';
+        foreach my $case ( $build->()->@* ) {
+            my ( $r, $why ) = verify_chain(
+                $case->{'chain'},   $case->{'anchors'},
+                $case->{'subject'}, $case->{'now'}
+            );
+            if ( $case->{'expect'} eq 'ok' ) {
+                $check->(
+                    "chain vector : $case->{'label'}",
+                    (           ref $r eq 'HASH'
+                            and $r->{'name'} eq $case->{'name'}
+                            and $r->{'anchor'} eq $case->{'anchor'}
+                            and $r->{'depth'} == $case->{'depth'}
+                        )
+                    ? 'accept'
+                    : ( $why // 'result fields mismatch' ),
+                    'accept'
+                );
+            } elsif ( $case->{'expect'} eq 'refuse' ) {
+                $check->(
+                    "chain vector : $case->{'label'}",
+                    defined $r ? 'accepted' : 'refuse', 'refuse'
+                );
+            } else {
+                $check->(
+                    "chain vector : $case->{'label'}",
+                    defined $r ? 'accepted' : $why,
+                    $case->{'expect'}
+                );
+            }
+        }
+    }
 
     ## pin store [ temp dir, never a real key dir ]
     require File::Temp;
@@ -1042,8 +1250,8 @@ sub erase_buffer_secure {
     return $len;
 }
 
-#,,,,,,..,,,,,...,,,,,...,.,.,...,,,,,...,.,,,..,,...,...,,,,,...,.,,,..,,.,,,
-#IQUNA4TDP5AKAKC5MMIOFOUY2GZQGQ4VBD5XIZLF64SYJME56ZBYXMV6XTG5GRKTOL345XWBQVN6O
-#\\\|VE4PQMFZEE3CKD7EOS6MB2H3UT4NHXTIJCERQAKJJTW73JR7NB6 \ / AMOS7 \ YOURUM ::
-#\[7]XNFLOU6WXUSFUZF6CFGHOTQ5PH6RTE27AP6UPGW4LQX2VJZ6QSAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,,.,,,.,,..,,...,...,..,,...,..,,...,...,,,.,..,,,,,,..,,,.,,
+#MCFQ5AWZ5HERZWMNXR4GRXY6CU7ZDRE6YJW2DJ6Q5E7U4QR6VD5MSDK2BECWX57CBWBOHNPMN2GWQ
+#\\\|5TXFM74LHQKDKUP26HLY2NQAKBR253DYVPQ3GFRHV7PKIUHNHI2 \ / AMOS7 \ YOURUM ::
+#\[7]SXNCCHYOFIYADMOZMHQYLWJTB56BGJLRCJRSEF5V6HNYAQY2LABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
