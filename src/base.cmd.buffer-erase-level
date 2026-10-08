@@ -11,7 +11,7 @@ my $log_level = $param->{'args'};
 return { 'mode' => qw| false |, 'data' => 'expected log level to purge' }
     if not defined $log_level
     or $log_level !~ m|^\d+$|
-    or 1 < $log_level > 3;
+    or not 1 <= $log_level <= 3;
 
 return { 'mode' => qw| false |, 'data' => 'no zenka buffer present' }
     if not defined <buffer.zenka>;
@@ -56,8 +56,8 @@ return {
     $cleaned_lines, $removed_bytes
 };
 
-#,,,.,...,,,,,..,,..,,,,,,,..,,,.,,.,,.,,,...,..,,...,...,,..,,,,,,,.,.,,,..,,
-#MBIXM43HMSH4TYNO3HNBPHM745XXHJZXGMZD6KABANKHKLFHWJGCWSY5B3ELFCT6NXFDPTKCJ7LBY
-#\\\|46XX6RJVUDLWTPUVII7O65MDEC7XFLQVC5LLOXTFJWMN7JZAKW2 \ / AMOS7 \ YOURUM ::
-#\[7]3M65CQMKLHJV56SXSRCHPEFPMHU6H6JE5IFAFU6WHVLD4IR7FWAA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,.,,,,,...,.,,,.,,,,..,,,.,..,,..,,...,...,,.,,.,.,.,,,,,.,..,,
+#3A5CAURIL2U7CGL7XDVVPT3GOKVN4MPQVFBK4SLE5ZN3GC74QE64OJYYPEHLTKW7534ZMLW6LXFBM
+#\\\|J37SAFK5FUW5GNQ45QAL3MRVIBZZBL6OGTMTLJLMVMRK6MBPLJF \ / AMOS7 \ YOURUM ::
+#\[7]GKXAPAUBJBZBF3CJQVZUYU5NGKXJ24YMPFVQVEEYIIZXY7QCSCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

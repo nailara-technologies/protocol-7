@@ -309,6 +309,7 @@ These can be included in llm initialization prompts or used as reminders for lon
 
 ## Important Notes
 
+- Minimum perl is the `use v5.32.0` line of `bin/Protocol-7` -- code must compile there, not only on the local perl [ chained comparisons \ `(*pla:..)` assertions are fine, newer syntax is not ]. `bin/format-code -c` and `bin/dev/ptd -c` also compile with that floor perl when installed [ `perl5.32.*` in `~/.local/perl-5.32.*/bin` or PATH, or `P7_FLOOR_PERL` ] and tag its errors `[ perl 5.32 ]`
 - This system uses a custom module loading mechanism - standard Perl module practices don't apply
 - All modules are UTF-8 by default
 - The system includes extensive cryptographic verification (signatures at end of files)
