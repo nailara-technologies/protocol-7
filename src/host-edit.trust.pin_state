@@ -73,13 +73,20 @@ if ( defined $servers_dir and -d $servers_dir ) {
             my ( $key_id, $leaf_name, $since ) = @line;
             next if not defined $key_id or $key_id !~ m|\A[A-Z2-7]{77}\z|;
 
+            ## 'since' is the not_before of an OWNER statement certifying the
+            ## host-root [ forward-only rotation, p7-auth-keypair-helper.pl
+            ## pin_decide ] -- 0 for a first-contact pin, which has none. it
+            ## is not the pin date : shown as a utc date only when set
+            $since = 0 if not defined $since or $since !~ m|\A[0-9]+\z|;
             $columns{'trust'} = sprintf(
-                q{key %s · %s · since %s},
+                q{key %s · %s%s},
                 substr( $key_id, 0, 7 ),
-                ( defined $leaf_name and length $leaf_name )
-                ? $leaf_name
+                ( defined $leaf_name and length $leaf_name ) ? $leaf_name
                 : qw| - |,
-                ( defined $since and length $since ) ? $since : qw| 0 |
+                $since > 0 ? POSIX::strftime(
+                    q{ · certified %Y-%m-%d}, gmtime $since
+                    )
+                : ''
             );
             last;
         }
@@ -103,8 +110,8 @@ if ( length $owner and defined $owners_dir ) {
 
 return \%columns;
 
-#,,..,...,.,.,.,.,.,,,.,.,.,,,,,,,,,,,,,,,,.,,..,,...,..,,,,,,,..,.,,,,.,,..,,
-#WRZZRXJBPDSMHHJEAFZ242EVLB23XJE63QDQ6PMEQT5NDBT5NHLYQM6SDAMBMAIAZVXRHWZTHO4SA
-#\\\|YGXYPBGDLSLNC433Q4LNEO4EQHBPDOXC6E4MV6YCOKJ2WVYMFBG \ / AMOS7 \ YOURUM ::
-#\[7]RRHWTVC6EL4ZH7FIRWIA7FWANQ2U5XAUG3TTZAEJUHDNJT5F5ABA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,...,..,,,.,,,,,,,.,,,,.,,,,,..,,...,.,.,,,.,,..,...,..,,..,,
+#MY5HMH33TUBHKZ4XBKTZLNYIPGA4K7OP62D2HZ46UNBL6FCPA7LBCR5SVADT6RWPAMZ44EI7HMATW
+#\\\|VUH2VORAXZCSTR5PPAM5Y5AWCPJXHLHGDGFJK7ZZMZOEWJ4ADZZ \ / AMOS7 \ YOURUM ::
+#\[7]4F3M4D5EY6YF4M2YU2XXBKIJZ5EBYKL45M5DRWR36JIDFC5OJQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
