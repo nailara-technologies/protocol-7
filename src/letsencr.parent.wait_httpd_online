@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = letsencr.parent.wait_httpd_online
+# descr = repeat the vhost discovery once httpd is online [ one
+#         v7-zenki.notify_online wait, httpd is not started from here ]
+
+return TRUE if <letsencr.parent.httpd_wait>;    ## already waiting ##
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| v7-zenki.notify_online |,
+        'call_args' => { 'args' => qw| httpd | },
+        'reply'     => {
+            'handler' => qw| letsencr.parent.handler.httpd_online |,
+            'params'  => {}
+        }
+    }
+);
+
+<letsencr.parent.httpd_wait> = TRUE if $sent > 0;
+
+<[base.log]>->( 2, 'vhost discovery waits for httpd to come online' )
+    if $sent > 0;
+
+return TRUE;
+
+#,,,.,,..,..,,.,,,,,.,,.,,,..,.,,,,,.,,..,...,..,,...,...,,..,,.,,.,,,,.,,,.,,
+#2HQ6IFTQ36TZ3S3SWFRVY22OFSY2KVK3V5OW6FCWRJVOYULHBMF5526IGSDM2I5QDZPYPML2F4CBS
+#\\\|Q3L4TK3YWU72DE3JV7VE3N7WMKTTX4T3UDESR2AOTESBF5PGZM3 \ / AMOS7 \ YOURUM ::
+#\[7]Z4Z2SBJNKOOZCZWCUVRDJYTHL2KRN7AZII4TNKBLN5SZFSTWZQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

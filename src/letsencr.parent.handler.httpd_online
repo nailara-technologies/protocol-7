@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = letsencr.parent.handler.httpd_online
+# descr = v7-zenki.notify_online reply for httpd : online -> repeat the
+#         vhost discovery, else wait for the next renewal check
+
+my $reply = shift;
+
+<letsencr.parent.httpd_wait> = FALSE;    ## reply arrived ##
+
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
+    <[base.logs]>->(
+        2,
+        'httpd not online [ %s ] : vhost discovery at next renewal check',
+        $reply->{'call_args'}->{'args'} // ''
+    );
+    return FALSE;
+}
+
+<[base.log]>->( 2, 'httpd online : repeating vhost discovery' );
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| httpd.vhost-list |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| letsencr.parent.handler_renewal_continue |,
+            'params'  => {}
+        }
+    }
+);
+
+return TRUE;
+
+#,,..,...,,.,,.,.,,.,,...,,,,,,,.,..,,.,.,,.,,..,,...,...,.,.,..,,..,,,.,,.,,,
+#5IXEPR44CJWNQDFD67QL4YNXTWFOF53HMZMYKC75PEZUGU7E2AWBDPPLG5W3YOIPUM557WZ4MV6SM
+#\\\|V4J763B7PNF5U24KXGA6ECKT237JMV66BWAJADSFOLUGS46HB4E \ / AMOS7 \ YOURUM ::
+#\[7]RULQCI74IIUVXZO3QKIX7TOH5VYKZGXIU4RQO4DWA2RT3M5ZBEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
