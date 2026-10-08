@@ -1568,6 +1568,67 @@ compile_module( 'v7-zenki.cmd.owner-statement', $cmd_header );
         'not root : refused' );
 }
 
+######################################################################
+say ': cube command crypt.C25519.cmd.host-root-dlg';
+
+compile_module( 'crypt.C25519.cmd.host-root-dlg', $cmd_header );
+{
+    local $fake_euid = 0;
+    setup_host_root();
+    put( $s_file, 0640, $b32->($s_pub) . "\n" );
+    unlink $dlg_file;
+    $issue->();
+    my $leaf  = read_dlg();
+    my $s_key = $code{'crypt.C25519.key_vars'}->()->{'key_name'};
+    local $keys{'C25519'}{$s_key} = { public => $s_pub };
+    my $cmd = $code{'crypt.C25519.cmd.host-root-dlg'};
+
+    my $r = $cmd->( {} );
+    ok( $r->{'mode'} eq 'true' && $r->{'data'} eq $leaf,
+        'leaf only : the field is the leaf [ step 1 bytes ]'
+    );
+
+    my ( $o_pub, $o_priv ) = Crypt::Ed25519::generate_keypair( "\x09" x 32 );
+    my $owner = sub {
+        my ($not_after) = @ARG;
+        my $st = $statement->(
+            'build',
+            {   issuer_pub  => $o_pub,
+                subject_pub => $hr_pub,
+                name        => 'testhost',
+                not_before  => time - 100,
+                not_after   => $not_after,
+                scope       => 'testhost.*'
+            }
+        );
+        return $statement->(
+            'wire', $st, Crypt::Ed25519::sign( $st, $o_pub, $o_priv )
+        );
+    };
+    my $good = $owner->( time + 86400 );
+    put( $dlg_file, 0644, "$leaf\n$good\n" );
+    $r = $cmd->( {} );
+    ok( $r->{'mode'} eq 'true' && $r->{'data'} eq "$leaf.$good",
+        'leaf + owner : the field is leaf.owner [ leaf first ]'
+    );
+
+    put( $dlg_file, 0644, "$leaf\n" . $owner->( time - 10 ) . "\n" );
+    $r = $cmd->( {} );
+    ok( $r->{'mode'} eq 'true' && $r->{'data'} eq $leaf,
+        'expired owner above : the leaf alone'
+    );
+
+    local $keys{'C25519'}{$s_key} = { public => $x_pub };
+    $r = $cmd->( {} );
+    ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m|leaf does not verify|,
+        'leaf for another S : refused' );
+
+    unlink $dlg_file;
+    local $keys{'C25519'}{$s_key} = { public => $s_pub };
+    $r = $cmd->( {} );
+    ok( $r->{'mode'} eq 'false', 'no .dlg : false' );
+}
+
 my @unexpected = grep { !m{no read permissions|non existant} } @perl_warnings;
 ok( !@unexpected, 'no unexpected perl warnings' );
 say "         $ARG" for @unexpected;
@@ -1576,8 +1637,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,...,,,.,,.,,,,.,...,.,.,..,,...,..,,.,.,..,,...,..,,..,,,..,..,,,..,,,,,
-#KRHM66IFYSCNQOTL3LVY5TUCIOQQ474IJFTXAMPAX5OBRSFXQ3RBSF6BJAB22BMKSILULRHLNBPL2
-#\\\|QIWQ2YXVAHDTDR4YNQCOWPPE73R6SLD6IINQ2EEWBOT42KHWWPY \ / AMOS7 \ YOURUM ::
-#\[7]ATWYZS4MH4GXZVKSIH2FG5FGZXEUN65EIZO5MZUFAQC45MXTLGBY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,..,,..,.,.,.,.,,,.,.,,,,,.,..,,...,...,..,,...,..,,...,,,,,
+#CF7L6MTJLEHEFUYFNFWTMTWDRUPM2HKLIA7SMJCDUQNTFNGWWGFITZILGCX5QZRVWQPASXIBDF6EU
+#\\\|Q6BQEVGR347NOVESXXWZUSJQYCSBASZXUJWUUECL72PJDVJ3H2W \ / AMOS7 \ YOURUM ::
+#\[7]TXP2ROMIXSXRJZWABAOSDLOUJZKBSM62RW76GR463XJ6TW76YYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

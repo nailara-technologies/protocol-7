@@ -19,6 +19,8 @@ use Cwd        qw| abs_path |;
 use FindBin    qw| $RealBin |;
 use File::Temp qw| tempdir |;
 use IO::Socket::INET;
+use Crypt::Misc;
+use Digest::BMW;
 
 BEGIN {
     my $up = File::Spec->updir;
@@ -71,7 +73,9 @@ compile_module($ARG)
     for
     qw| host-edit.transport.free_port host-edit.transport.ssh_forward_start
     host-edit.transport.forward_ready host-edit.transport.ssh_forward_stop
-    host-edit.action.probe |;
+    host-edit.action.probe host-edit.action.run_p7r host-edit.action.pin
+    host-edit.action.fetch_chain host-edit.action.install
+    trust.statement trust.key_id trust.chain |;
 
 my $tmp = tempdir( CLEANUP => 1 );
 
@@ -210,6 +214,34 @@ if ( not $cube_up or not $gcc ) {
         'probe as localhost through the forward : the existing pin matches' )
         or say "    got : " . ( ref $p ? join( ' ', %$p ) : $pwhy // '?' );
 
+    ## pin : a non-strict connect -- into a TEMP home, never the real store ##
+    {
+        my $home = File::Spec->catdir( $tmp, 'home' );
+        mkdir $home;
+        local $ENV{'HOME'}                   = $home;
+        local $code{'crypt.C25519.key_vars'} = sub {
+            return { known_hosts_dir => "$home/.n/remote-keys/servers" };
+        };
+        my ( $pin, $pin_why )
+            = $code{'host-edit.action.pin'}
+            ->( 'zz-test', 42, '127.0.0.1', $local, $p->{'key_id'} // '' );
+        ok( ref $pin eq 'HASH' && $pin->{'state'} eq 'pinned',
+            'pin through the forward : pinned, '
+                . 'the pin holds the probed key id'
+            )
+            or say "    got : "
+            . ( ref $pin ? join( ' ', %$pin ) : $pin_why // '?' );
+        ok( -f "$home/.n/remote-keys/servers/zz-test_42.public",
+            '  :.. named after the RECORD [ zz-test_42 ], not the forward'
+        );
+        ( $pin, $pin_why )
+            = $code{'host-edit.action.pin'}
+            ->( 'zz-test', 42, '127.0.0.1', $local, 'A' x 77 );
+        ok( !defined $pin && $pin_why =~ m|another key id|,
+            'pin with a different expected key id : refused'
+        );
+    }
+
     ok( $code{'host-edit.transport.ssh_forward_stop'}->('zz-test') == 1,
         'forward stopped' );
     ok( !IO::Socket::INET->new(
@@ -227,12 +259,89 @@ if ( not $cube_up or not $gcc ) {
     );
 }
 
+######################################################################
+say ': fetch_chain + install [ a fake p-7-r prints the reply ]';
+{
+    my $dlg_path = '/home/protocol-7/.n/user-keys/protocol-7.base.dlg';
+    my $field;
+    if ( open( my $fh, '<', $dlg_path ) ) {
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my @lines = grep {length} split m|\n|, readline($fh);
+        close($fh);
+        $field = join '.', @lines;
+    }
+    my $fake_reply = sub {    ## a p-7-r that prints $text, exits $code ##
+        my ( $text, $code ) = @ARG;
+        my $path = File::Spec->catfile( $tmp, 'fake-p7r' );
+        open( my $fh, '>', $path ) or die;
+        print {$fh} "#!/bin/sh\ncat <<'EOT'\n$text\nEOT\nexit $code\n";
+        close($fh);
+        chmod 0755, $path;
+        $data{'host-edit'}{'cfg'}{'p7r_bin'} = $path;
+    };
+    if ( defined $field ) {
+        my $leaf  = ( split m|\.|, $field )[0];
+        my $st    = $code{'trust.statement'}->( 'parse_wire', $leaf );
+        my $hr_id = $code{'trust.key_id'}->( $st->{'issuer_pub'} );
+        $fake_reply->( " :\n$field\n :", 0 );
+        my ( $c, $cwhy )
+            = $code{'host-edit.action.fetch_chain'}
+            ->( 'zz-test', 42, '127.0.0.1', 4242, $hr_id );
+        ok( ref $c eq 'HASH'
+                && $c->{'field'} eq $field
+                && length( $c->{'root_pub'} ) == 32,
+            'fetch_chain : the chain, its leaf issuer = the pinned key id'
+        ) or say "    got : " . ( $cwhy // '?' );
+        ( $c, $cwhy )
+            = $code{'host-edit.action.fetch_chain'}
+            ->( 'zz-test', 42, '127.0.0.1', 4242, 'A' x 77 );
+        ok( !defined $c && $cwhy =~ m|another host-root|,
+            'fetch_chain : a chain for another host-root is refused'
+        );
+    } else {
+        say '  skip : no readable .dlg on this host';
+    }
+    $fake_reply->( 'nothing useful', 1 );
+    my ( $c, $cwhy )
+        = $code{'host-edit.action.fetch_chain'}
+        ->( 'zz-test', 42, '127.0.0.1', 4242, 'A' x 77 );
+    ok( !defined $c && $cwhy =~ m|no delegation chain|,
+        'fetch_chain : no chain in the reply'
+    );
+
+    my $wire = 'A' x 300;
+    $fake_reply->(
+        'installed [ owner ABCDEFG.. ' . '] ; delegation re-issued', 0
+    );
+    my ( $i, $iwhy )
+        = $code{'host-edit.action.install'}
+        ->( 'zz-test', 42, '127.0.0.1', 4242, $wire );
+    ok( ref $i eq 'HASH' && $i->{'state'} eq 'installed',
+        'install : ' . 'installed' );
+    $fake_reply->( 'this owner statement is already installed', 1 );
+    ( $i, $iwhy )
+        = $code{'host-edit.action.install'}
+        ->( 'zz-test', 42, '127.0.0.1', 4242, $wire );
+    ok( ref $i eq 'HASH' && $i->{'state'} eq 'already', 'install : already' );
+    $fake_reply->( 'owner chain refused [ name outside issuer scope ]', 1 );
+    ( $i, $iwhy )
+        = $code{'host-edit.action.install'}
+        ->( 'zz-test', 42, '127.0.0.1', 4242, $wire );
+    ok( !defined $i && $iwhy =~ m|name outside issuer scope|,
+        'install : a refusal is reported with its reason'
+    );
+    ( $i, $iwhy )
+        = $code{'host-edit.action.install'}
+        ->( 'zz-test', 42, '127.0.0.1', 4242, 'not b32' );
+    ok( !defined $i, 'install : a malformed statement is refused locally' );
+}
+
 say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,,,,..,,,.,,..,...,,,.,.,.,,,.,,,,,..,,..,,...,...,...,...,,,.,,..,.,,,
-#XLVPGW3TLMQSJYSAKTBUI2QCDYJWQKATM7PGEEQW5LMQBMZ2VIVI5RNRZLNWSL6UZ5YZLAEHFKOQC
-#\\\|JYWCV5CDJLAXUKILC3TS4AW4PTZR5EAWL4I3LZY6VAN45YMAVJL \ / AMOS7 \ YOURUM ::
-#\[7]RM3QMONGLRPEWLRMCBNBRZZRLCS5BELH74X4BYQPUDJT4QC3Y6AI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,.,,,,..,.,.,,..,,,.,,,.,,.,,..,,...,...,...,...,,..,..,,..,,
+#JQKX3WYYLHCBRVAND7TWBO2XQKFLCGXCU75NRRRDAVB67MNT4CZARDE4UG3ZDVM5I6BFSNLPLDANK
+#\\\|JFL55JZ3Q53B3PKJ2VFGBAOMEKV6TS5WDV2CIIBGCY3SFD63VSE \ / AMOS7 \ YOURUM ::
+#\[7]ZQRTZXDP2O3XNHBLD7TBP5D52BBYBU3N55AYX2FPXQAORSMXL6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

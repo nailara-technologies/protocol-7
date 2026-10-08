@@ -221,6 +221,44 @@ bounded. **[ decided : yes ]** whether step 2 needs an emergency path [ e.g.
 `p7-keys distrust <key id>` writing a local deny file every
 verifier checks ]. proposal : yes, local only, cheap.
 
+## later : a dns back channel [ user, 2026-10-08 -- design only ]
+
+a signed, read-only query channel at the lowest protocol level : any
+fqdn extended with a NETWORK TIMESTAMP label marks protocol activity
+without colliding with a real subdomain [ no real host is named after an
+ntime ], and dns passes where proxies do not.
+
+- **name** : `[<arg>.]<command>.<ntime-bucket>.<fqdn>` -- TXT. the bucket
+  is the network time [ b32, lowercase on the wire ] rounded to a bucket
+  length ; a client accepts answers for buckets within +- N of its own
+  network time [ the validation range ; also a coarse clock-skew check ].
+  a new name per bucket defeats stale resolver caches past one bucket.
+- **commands** : a fixed allow-list of READ-ONLY, PUBLIC queries --
+  `revoked` [ the owner-signed distrust \ revocation head ], `rotation.
+  <host>` [ host-root rotated, since X -- feeds forward-only rotation ],
+  `head.<log>` [ a key-activity \ transparency head ], `time` [ the
+  answering bucket ]. never anything that changes state.
+- **integrity from signatures, never from dns** [ no DNSSEC assumed ] :
+  the answer is a signed statement over the WHOLE query name [ command,
+  args, bucket ] -- an answer cannot be replayed under another bucket or
+  served for another command \ host. verified against what the client
+  already pins [ owner \ host-root key ids ].
+- **size** : compact form in one 255 char TXT string -- a bmw384 digest
+  [ 77 ] + an Ed25519 signature [ 103 b32 ] ~ 180 chars ; the full content
+  [ the list itself ] over a normal link when the head changes. a 77 char
+  key id exceeds the 63 char label limit : short form in the name, the
+  full key id inside the signed answer.
+- **hygiene** : TTL <= the bucket length ; small answers + per-source rate
+  limiting [ TXT answers are larger than queries : amplification ] ;
+  larger replies over tcp or a link. best effort only -- a resolver that
+  drops answers blocks it, so it is never the only path. no SRV with
+  real ports [ the same exposure kept out of the repo ] -- discovery, if
+  ever, as signed opaque TXT.
+- **where** : the nameserv zenka [ authoritative, Net::DNS ] already routes
+  one query-name prefix to a computed answer [ `_protocol7._tcp.*` ->
+  nameserv.handler.p7ref_lookup ] -- the back channel is a second computed
+  route, keyed on the ntime label.
+
 ## later : self-propagating statements [ user, 2026-10-07 ]
 
 optional propagation of authoritative statements in EITHER direction
@@ -296,8 +334,8 @@ plus resilient initial transport types, so adding a host to a network
 6. scope is DOWNWARD and immutable : a subject's scope must be strictly
    narrower than its issuer's [ or empty ] -- no equal re-delegation
 
-#,,..,..,,.,.,,.,,..,,,,.,,.,,..,,,.,,..,,,,.,..,,...,...,.,.,,.,,.,.,.,.,,.,,
-#Q7PA2JC2XM4HK5Z2TLQZAA62IW72K3RQYOSVJBFYFGAYILMVRIGYEWXTT5S3GJYXUJSLDZTAFL2UI
-#\\\|ODI4IBXX6YIQO6AHV375WXCIV552S2SKFGEJ5LMLGM6ZFYNLNEH \ / AMOS7 \ YOURUM ::
-#\[7]SG4OEFI774EEJOIMZSONL3TULF22PW7FEY3Q4ZTL4C2QC33HUKAY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,..,,...,.,,,.,.,...,,,,,,.,,,,,,..,,...,...,...,.,,,.,,,...,,,.,
+#NS32KX5SCIEUJ6EKEDXWW5YFNCB5HNNUWUUOEO5MYBTRLXBG3MZ3NHLINPBKBPBZCAQ6WDLEF2ANE
+#\\\|SZU223C5Z6RMM4QJUVBW5PVATYUWHOGKWWMO5MPUN5U7LFDF2PV \ / AMOS7 \ YOURUM ::
+#\[7]2675AZYCQ32IBMBMR2SCPG5UC4RIQADSNGH2IDN5KZAGFP4SQ2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

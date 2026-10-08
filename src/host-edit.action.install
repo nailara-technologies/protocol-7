@@ -1,0 +1,40 @@
+## [:< ##
+
+# name   = host-edit.action.install
+# descr  = install an owner statement on a host [ over the link ]
+# param  = <record name> <cube port> <dial host> <dial port> <owner wire>
+# return = { state => 'installed' | 'already' } or ( undef, reason )
+#
+# v7-zenki.owner-statement install on the HOST [ admin only there ] -- it
+# verifies the whole chain down to its own leaf before writing, so a
+# statement for another host-root is refused remotely as well.
+
+my ( $name, $cube_port, $dial_host, $dial_port, $wire ) = @ARG;
+
+return ( undef, 'owner statement missing' )
+    if not defined $wire
+    or $wire !~ m|\A[A-Z2-7]{100,2048}\z|;
+
+my ( $output, $status ) = <[host-edit.action.run_p7r]>->(
+    [   qw| -host |,             "$name:$cube_port",
+        "$dial_host:$dial_port", qw| v7-zenki.owner-statement install |,
+        $wire
+    ],
+    30
+);
+return ( undef, $status ) if not defined $output;
+
+return { qw| state | => qw| installed | }
+    if $output =~ m|installed \[ owner|;
+return { qw| state | => qw| already | }
+    if $output =~ m|already installed|;
+
+my ($last) = grep {length} reverse split m|\n|, $output;
+return ( undef, sprintf 'not installed [ exit %d : %s ]',
+    $status, $last // '?' );
+
+#,,.,,..,,,,,,,,,,.,.,..,,,,,,.,.,..,,,,.,,,.,..,,...,...,,..,.,,,.,.,,,,,..,,
+#HLESL6C3PMBCBBJHKVWK67WEAFFDYK7UDSHCHJWCFUIXJCMTEAZF4JWO3LJUTCWL6UBM7G2TMNYGC
+#\\\|NAGBWLVIJXQSOQ4OXGUNHDSH564KBSNVO7WVZNJEGNQ7WW5TGKC \ / AMOS7 \ YOURUM ::
+#\[7]G6IRA6OMCTTWYMQE7Q5FERLWHNEHMUWUKIUHTAM65VI26V4NI4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -169,7 +169,7 @@ compile_module($ARG)
     keys.console.accept-owner keystore.trash.live_path keystore.trash.stash
     keystore.trash.entries keystore.trash.purge_candidates keystore.trash.restore
     keys.console.undo-remove keys.console.removed keystore.trash.offer_purge
-    keys.console.drop-owner |;
+    keys.console.drop-owner keys.certify_host |;
 
 my $statement = $code{'trust.statement'};
 my $leaf_for  = sub {                       ## host-root seed -> S, name ##
@@ -589,8 +589,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,..,,..,,.,.,,.,,,..,,.,,.,,,.,.,,,,,.,.,..,,...,..,,,,,,,.,,,,.,..,,,.,,
-#6GADP2GB4NWUISWDJ5AD52D6BR7RLXX7K344WLC7K22OAI64S2DBYWOWAF76EWJVCJAMUAG32D3AE
-#\\\|ASZOLK2UXOV6WJIQ3TVKIQO3XAR6IJUQZ4ONAOZDFKYQEYE5L7N \ / AMOS7 \ YOURUM ::
-#\[7]HHP4NYKVANR7MDVWZQWSZ3DMIFI76RH2SXBRKA6WUXY5TFHFY2CY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,.,,,...,.,.,.,.,..,,..,,..,,..,,...,...,.,.,..,,,,.,..,,..,,
+#KZDUCKFZHDWENKAD7VPQLDT5L7ONG5SJBROQMT4Z7B2ODTIR5UQPYMZMBZU7A3MAVROANOLZQC2XM
+#\\\|NW4YPRTWRWSUSB43BOEKZI2D6RXXW6AO3YO3RL4RNZCCD2WMYUM \ / AMOS7 \ YOURUM ::
+#\[7]BU2EGIOHUOZSWGEXPWXYZRLJFDS7WQ73OZBQITJOTVM64LRVH2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
