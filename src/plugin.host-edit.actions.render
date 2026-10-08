@@ -1,27 +1,19 @@
 ## [:< ##
 
 # name  = plugin.host-edit.actions.render
-# descr = host-actions tab display -- flow step/status, pin label, key hint
+# descr = host-actions tab display -- the fixed add-host \ cancel row
 # param = $editor_state, $field
 
 ## fires on EVERY render regardless of mode [ editor.control.
-## get_display_value calls display_override unconditionally ], and reads
-## <host-edit.flow> LIVE each time -- so the row follows the running flow with
-## no machinery of its own : every flow step ends in host-edit.flow.  status
-## -> form.chrome.set_status, which bumps <form.dirty> and repaints the WHOLE
-## frame through form.render, display_override included.  while an in-frame
-## prompt anchored to THIS field is open [ the masked owner-key passphrase
-## stage ], the row IS the prompt : label + live buffer content + cursor,
-## drawn by prompt.render -- same delegation
+## get_display_value calls display_override unconditionally ].  the running
+## flow is shown by the 'action state' row [ render_state ], not here.  while
+## an in-frame  prompt anchored to THIS field is open [ the masked owner-key
+## passphrase stage ], the row IS the prompt : label + live buffer content +
+## cursor, drawn by prompt.render -- same delegation
 ## plugin.user-edit.key-actions.render makes.
 ##
-## the record name comes from <form.username> [ the open record, set by
-## form.console.show-form / form.console.start ] and the record envelope from
-## <form.record> -- both process state, the same way <form.key_actions.
-## last_result> is for user-edit.  ONE composed line, no leading/trailing
-## space : render_form's generic body wrap plus its pad_l/pad_r framing
-## already supply that for every unfocused field [ the padding-stack lesson
-## plugin.user-edit.key-details.render documents ]
+## ONE composed line, no leading/trailing space : render_form's generic body
+## wrap plus its pad_l/pad_r framing already supply that
 
 my ( $editor_state, $field ) = @ARG;
 
@@ -30,55 +22,23 @@ my $prompt_display
 
 return $prompt_display if defined $prompt_display;
 
-my $name = <form.username> // '';
-
-my $flow = ( <host-edit.flow> // {} )->{$name};
-
-my $record = <form.record> // {};
-my $fields = ref $record eq qw| HASH | ? $record->{'fields'} : undef;
-my $pin    = <[host-edit.trust.pin_state]>->( $name, $fields );
-
 my $in_tab_mode
     = (
     ( $editor_state->{'mode'} // '' ) eq sprintf( qw| plugin:%s |, $field ) );
 
-my @parts;
-
-if ( ref $flow eq qw| HASH | ) {
-    push @parts,
-        sprintf( q|flow %s : %s|,
-        $flow->{'step'}   // qw| ? |,
-        $flow->{'status'} // '' );
-
-    ## the key the flow has probed and is about to pin : the 'next key' hint,
-    ## straight from the flow state [ host-edit.flow.start's own header lists
-    ## key_id / leaf_name as its state fields ]
-    push @parts,
-        sprintf(
-        q|next key %s [ %s.. ]|,
-        length( $flow->{'leaf_name'} // '' )
-        ? $flow->{'leaf_name'}
-        : qw| - |,
-        substr( $flow->{'key_id'} // '', 0, 7 )
-        ) if length( $flow->{'key_id'} // '' );
-} else {
-    push @parts,
-        sprintf( q|%s [Enter]|, $in_tab_mode ? q|*add host*| : q|add host| );
-}
-
-## the pinned key id label, verbatim from the client pin store reader ##
-push @parts, sprintf( q|pin : %s|, $pin->{'trust'} // '' );
-
-push @parts, q|[c]ancel|;
-
-my $body = join q| .:. |, @parts;
+## a FIXED row : the flow step \ status and the pin are the 'action state' row
+## below [ plugin.host-edit.actions.render_state ] -- changing text here
+## widened the whole frame on every status [ found live ]
+my $body = join q| .:. |,
+    sprintf( q|%s [Enter]|, $in_tab_mode ? q|*add host*| : q|add host| ),
+    q|[c]ancel|;
 
 return sprintf( q{<<< %s >>>}, $body ) if $in_tab_mode;
 
 return sprintf( q{'->  %s}, $body );
 
-#,,,,,,.,,.,,,..,,..,,,..,,..,,,.,...,,,,,,..,..,,...,...,,,.,.,,,,,.,.,.,,,,,
-#P5VEVY6OH46YCNSUAZJR22GOQBZXX3BDCGXPFEXWJUMNUVKQ4ILH2YGWRI4T75JUPHS3RC6VWIRLY
-#\\\|JBLDDE2BO26YINDAAEJBY235KGD3BFB4YOMYJZK36O7PVHFNR33 \ / AMOS7 \ YOURUM ::
-#\[7]X2KVTNGVV6DT6K7SJSDQ3365GPQCA2OHPAIH4DP2UH6DAGA4NMAI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,,,,,.,...,.,,,,,.,,,,,..,,,..,..,,...,...,...,..,,,.,,.,.,,,.,
+#LOTJTZC4QEXM7OUQH67IUAPMGGMJTZ6LVANF6DV5M7UG7OLDQ3HDVUY2BXYXDC7RAUFZ3DJ75OJHE
+#\\\|U26LXKSTCEAF7W3KLIZALXIM5TSPMTZ6CMFKJ6HAVQHQEGOIBK4 \ / AMOS7 \ YOURUM ::
+#\[7]S2N3ANTMETQ7STLRKXY6AAO57VBKNOCNA3TPQO6OHIKIOHVDWKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

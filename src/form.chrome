@@ -38,14 +38,18 @@ my $gutter = $colors{'p7_fg_0000'} // '';
 my $text   = $colors{'p7_fg_0001'} // '';
 my $done   = $colors{'reset'}      // '';
 
-printf " %s:%s  %s%s\n", $gutter, $text, $line, $done;
+## interactive : no trailing newline -- the status is the last row of a screen
+## form.render filled exactly [ its row is reserved there ], and a newline
+## after it would scroll the top line away
+my $line_end
+    = ( <form.interactive> and not <form.mode.no_tty_debug> ) ? '' : "\n";
+
+printf " %s:%s  %s%s%s", $gutter, $text, $line, $done, $line_end;
 
 return TRUE;
 
-#,,,.,,.,,,,.,,..,,,,,,,,,,,.,,,,,,..,.,.,.,,,..,,...,...,...,,,.,.,.,,..,...,
-
-#,,,,,.,.,.,,,.,.,,..,,,.,,..,,..,...,..,,.,.,..,,...,...,..,,...,...,,.,,,.,,
-#AY5EVAN7QAOIK244DELHFCDXO4ZOECVDLST7GOEJNGTFYKNEFBPMRUCNIBHPJYM5775XHPRTWGJV4
-#\\\|G7B7C22XPR2NBZQL7HH6F35WVRODPTWO2UWEIAACNFPXKTNSTZ6 \ / AMOS7 \ YOURUM ::
-#\[7]THAFJ6DSEVV7LMTO6OZIK4X5H67QABGOS5KIKI4HZ2636PAVHCDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,.,,.,.,.,,,,.,,...,,.,,,,.,..,,...,...,,..,,.,,...,..,,,,.,
+#VDBWVIVU7DSSPYREF4BJLKSW3YZW4UMHNYZA2TU7X5IOJLKUAKGS7QT66WPB4NZIJCEAPHDBQWVSU
+#\\\|SRVOKACBPHS4DE5K4PRT5FXDKX47SOZSVXKOTUSM7AXXSDXALEG \ / AMOS7 \ YOURUM ::
+#\[7]43PKIVHRO5AVHNX4EAG4TGIDA2ZYCJIFNRURJM5EGLQPLWNTJUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

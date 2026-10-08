@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = plugin.host-edit.actions.render_state
+# descr = 'action state' row -- the running add-host flow, capped width
+# param = $editor_state, $field
+
+## its own row below 'host actions' [ plugin.host-edit.actions.build_field ]
+## so the actions row stays FIXED : flow text changes on every step and a long
+## status [ an error ] widened the whole frame past the terminal [ found live
+## ].  this row is capped too, for the same reason -- the full status is in
+## the status line under the frame.
+##
+## reads <host-edit.flow> LIVE on every render : every flow step ends in
+## host-edit.flow.status -> form.chrome.set_status, which repaints the whole
+## frame through form.render, display_override included.  no flow : empty.
+
+my ( $editor_state, $field ) = @ARG;
+
+use constant STATE_MAX => 60;    ## row width cap [ the frame follows it ] ##
+
+my $name = <form.username> // '';
+my $flow = ( <host-edit.flow> // {} )->{$name};
+
+return '' if ref $flow ne qw| HASH |;
+
+my $step   = $flow->{'step'}   // qw| ? |;
+my $status = $flow->{'status'} // '';
+$status = q|see status line| if $step eq qw| error |;
+
+## the key about to be pinned : only while the flow still runs ##
+my $key_hint = '';
+$key_hint = sprintf(
+    q| .:. next key %s [ %s.. ]|,
+    length( $flow->{'leaf_name'} // '' ) ? $flow->{'leaf_name'} : qw| - |,
+    substr( $flow->{'key_id'} // '', 0, 7 )
+    )
+    if length( $flow->{'key_id'} // '' )
+    and $step !~ m{\A(?:done|error)\z};
+
+## the status text gives way first : the key hint is what the user acts on
+my $room = STATE_MAX - length( $step . q| : | . $key_hint );
+$room   = 4                                       if $room < 4;
+$status = substr( $status, 0, $room - 2 ) . q|..| if length($status) > $room;
+
+my $state = sprintf( q|%s : %s%s|, $step, $status, $key_hint );
+
+## a very long leaf name could still overflow : hard cap ##
+$state = substr( $state, 0, STATE_MAX - 2 ) . q|..|
+    if length($state) > STATE_MAX;
+
+return $state;
+
+#,,.,,,,,,,..,,..,.,.,...,.,,,,,,,,..,,.,,...,..,,...,...,,,.,.,.,,.,,..,,.,.,
+#65ILJPJZTLHOTB66XYYN3EJJH45JTLAI3SYIRZOEHPH4KZQ4DSUAPPXJRBTDKOUCLX4XE2EM64MRK
+#\\\|FI3BX7SAYE6RRCYIGPPRLCFZNUKIVBXJSIRBCWPX43C6CHU7P3O \ / AMOS7 \ YOURUM ::
+#\[7]IBLWUOXHB237J6ARITBITMUXBCUKFPTGHJQUGDVAKVBAXXYG3SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

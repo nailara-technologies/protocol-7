@@ -139,7 +139,7 @@ $data{'host-edit'}{'cfg'}{'ssh_bin'} = $fake_ssh;
 
 ## --- the event loop, pumped by the test : add_timer queues the cb ------ ##
 my @queue;
-$code{'base.event.add_timer'} = sub {
+$code{'event.add_timer'} = sub {
     my $p = shift;
     push @queue, [ time + ( $p->{'after'} // 0 ), $p->{'cb'} ];
     return 1;
@@ -379,8 +379,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,...,,.,,,.,,..,,,.,,...,,,,,,.,,..,,,..,..,,...,.,.,..,,,..,...,,,,,,..,
-#FFMWFOBXYWEWMR3XO2IJI2ACT7VX5D2SV377XPSOV6YUGDJQOZWORZCXGAZI2DFMTPJRJSN5O672W
-#\\\|7ENS75P75IIMSHBPX4VHNECZNN2SVQC6RKOTE3QWCKUQXPPKOIS \ / AMOS7 \ YOURUM ::
-#\[7]R3VUEMKPMFBBQPHO4CLLOJU22ODCP2RSY4TUXRT2HY2FCRYCPWBY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,...,.,.,.,.,,.,,.,.,,,,,,,,,..,,...,...,.,,,,,,,,.,,.,.,,,.,
+#V4VKTOSWL5EYQJRSQS7IS6NOZECMLBOW6RKKCP7U4ERDXVG72JNZJONNQ62SUJ3PVNFF7J3FT5LTW
+#\\\|5XEZ2Q33BXD5REJJDKYOYNQML2B5UIYK3VLUVHKTCBM27NVDR5F \ / AMOS7 \ YOURUM ::
+#\[7]VL7B6K3OJSPLM22SFIYXDEBQCMV7M3NZTCHAKMQE37PI5EOJIOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

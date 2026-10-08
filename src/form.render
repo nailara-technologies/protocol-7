@@ -59,7 +59,18 @@ my $bottom_visible = TRUE;
 
 ## interactive mode on a real terminal : vertical viewport so a tall form
 ## never exceeds the screen and the active field always stays visible.
-## one-shot and -no-tty modes render the whole frame unchanged.
+## one-shot and -no-tty modes render the whole frame unchanged.  the footer
+## status line [ form.chrome ] gets a row of its OWN : without one it was
+## printed onto the frame's closing border, which has no trailing newline in
+## interactive mode [ found live : ': pri.v7.ax : pinned' glued to the border
+## ].  same test form.chrome uses to decide it prints at all
+my $chrome_busy  = <form.busy>;
+my $chrome_lines = (
+    length( <form.status> // '' )
+        or ( ref $chrome_busy eq qw| HASH |
+        and length( $chrome_busy->{'label'} // '' ) )
+) ? 1 : 0;
+
 if ( <form.interactive> and not <form.mode.no_tty_debug> ) {
 
     ## lines reserved below the frame for the cmd-list hint block ; 0 when the
@@ -82,7 +93,7 @@ if ( <form.interactive> and not <form.mode.no_tty_debug> ) {
     );
     $term_rows = 10 if $term_rows < 10;
 
-    my $budget = $term_rows - $hint_lines;
+    my $budget = $term_rows - $hint_lines - $chrome_lines;
     $budget = 5 if $budget < 5;
 
     if ( $total_lines > $budget ) {
@@ -378,10 +389,12 @@ print $colors{'clear_screen'} // '' if <form.interactive>;
 ## screen scrolls the top line and produces the one-line flicker/jump.
 ## one-shot mode keeps the original framing newlines.
 if (<form.interactive>) {
+    ## a status line below needs the frame to END its line [ its row is
+    ## reserved in the budget above, so this cannot scroll the screen ]
     print $colors{'reset'}
         . $rendered
         . $colors{'reset'}
-        . ( <form.help_visible> ? "\n" : '' );
+        . ( ( <form.help_visible> or $chrome_lines ) ? "\n" : '' );
 } else {
     print $colors{'reset'} . "\n" . $rendered . $colors{'reset'} . "\n";
 }
@@ -452,8 +465,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,..,,,,,,,.,.,,,,..,..,,,,.,..,,..,,.,,,.,.,..,,...,...,.,.,...,.,,,...,...,
-#GMVTOMVFMFRHSLRFO2ZMZJOLVS6RG2XB3MASUGQK5ZOMPTPB4PT7RHOVY24XXS2FWPIALDJK6BBI4
-#\\\|7EASTFXDTUJJJB7NGMI5W572GIYCO7QXVFSSMKU2CFZUUZLXWYH \ / AMOS7 \ YOURUM ::
-#\[7]2VEN6TZWS3Q7KMTOBHEIVJADCN2OQRP3ENCZRJO5XMVIX2Y2JGBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,..,.,.,,.,,.,,,,,,,,,.,.,.,,.,,..,,...,...,..,,,,.,,,,,,,.,,,,,
+#2TPHJL3MN7IHAV664RP3TPT6EL4YIOIMXRA52HRBRUUVUG5LBW3ZQJLQJRK5TJHETLBV4ATO4TKU4
+#\\\|4UC3FMIEMLIB23NJYDTVAGWK7AEA4JVW3NVJDQHMSLWPI2MDNLA \ / AMOS7 \ YOURUM ::
+#\[7]7N7XMWW4UIL4O2NNIDDZCYRFCNIKIVPDPAUTHKTXR4IKU7WE2YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
