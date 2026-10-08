@@ -111,8 +111,34 @@ twin of `p7-keys accept-owner` \ `drop-owner`, a trust-chain WRITE :
   `<name>_<port>` [ `atom_42` ]. `auth.client.server_pin.check` and the
   helper's `check-pin` already take host + port : the transport layer
   passes the record's name + remote port, never the forward.
+- **discover** [ LAN, user 2026-10-08 ] : the multicast HOST packets
+  hosts on one network already exchange [ signed by the announcing key,
+  carrying the delegation chain ] -- a host appears with its address and
+  offered key id before any record exists ; cross-checked with the nodes
+  zenka [ which keeps what discover reported per host ]. announcing is
+  unauthenticated on a LAN, so it OFFERS, the verify step still confirms
+  [ two hosts side by side : compare the full key id on both screens ].
+  the use case : a second [ fanless ] host installed as backup -- both
+  recognise each other at once, and the owner certifies the new one.
+- **dns** [ later ] : the signed back channel of TRUST-CHAIN-STEP2.md,
+  also as a RELAY -- a host publishes signed statements into a zone the
+  nameserv zenka serves, another queries them : store-and-forward of
+  public statements [ chains, rotations ] where no direct path exists.
 - **relay** [ later ] : through an already linked node [ external links ]
 - **file** [ later ] : statements \ key ids as files [ air-gapped, usb ]
+
+the network AUTHORITY key [ the owner key that adds hosts to the
+namespace ] fits a virtual seed-phrase or passphrase-derived key best
+[ user, 2026-10-08 ] : it never touches disk, it exists only while it
+signs. the flow asks for its phrase in the form's masked prompt
+[ host-edit.flow.needs_passphrase : virtual and derived keys ask ] and
+keys.certify_host derives it from the supplied phrase -- no terminal
+prompt, nothing written.
+
+moving key AUTHORITY is two different things : certifying the new host
+[ the add-host flow with owner_key -- no key material moves ] or moving
+the owner key itself [ secret material : the encrypted keys-backup-archive
+over usb or a verified link, never over discover or dns ].
 
 ## landed [ 2026-10-08 ]
 
@@ -161,8 +187,8 @@ vault-edit can move onto them afterwards [ not part of B2 ].
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,,.,,.,,,.,,,..,..,,,,,,,,,,,..,,..,,.,,,..,..,,...,...,.,,,..,,.,.,..,,...,
-#OML4BZQXEPGWRMGDWYUYWBBLDTG2OCMPCO6YTFKPDDBSJTN2DMIOOPGNEX2L77ELTY3KG3MIA7WHY
-#\\\|RKG2YRDNFG5SUECBN6OSEK47O7DQTS7SDECVM5JL6PT46E2O3OS \ / AMOS7 \ YOURUM ::
-#\[7]FXDMCRGDVB27MCC7YQQCK4Q7GSPDEFOI25PGZNXSYBDG76GCTSAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,..,,.,.,..,,..,,...,,,,,...,..,,...,..,,.,,,..,,,,,,...,..,,
+#I36OM6CYUXTSFKWBCCSXATYXLBKJP4E3AEUIHN6RP37ET4MGKPP2JKN3QEMRBUIJ4TRUGM3L7WKBG
+#\\\|2HQFSPDKP5UOXXL6T6UBAZ4AYJLZ7EADF36L72FHZLY3IKFBEL2 \ / AMOS7 \ YOURUM ::
+#\[7]UB245AGJXZHSZU2IGKKROC6VDA2KQJ6LPFEZVU7PJL5J6I5RKEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
