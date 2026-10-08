@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.host-edit.actions.submit_passphrase
+# descr = masked prompt submit : resume the flow with the owner passphrase
+# param = $editor_state, $value, $prompt
+# return = TRUE resumed, FALSE not waiting
+
+## on_submit for the host-actions masked passphrase prompt [ editor.control.
+## prompt.open ].  runs INSIDE the event loop, synchronously, from
+## prompt.handler.key's Enter branch -- nothing here may block on the
+## terminal, and nothing does : the value goes straight to host-edit.flow.
+## passphrase, which re-schedules the 'certify' step and returns.  the PROMPT
+## is then closed unconditionally [ editor.control.prompt.cancel ] -- the flow
+## resumes on its timer and the row goes back to showing step + status, so an
+## open prompt must never outlive its one submit.  the record name comes out
+## of the prompt's own opaque 'data' slot [ where handler.key put it when
+## opening ], with <form.username> only as a fallback -- the prompt always
+## knows which flow it was opened for.
+
+my ( $editor_state, $value, $prompt ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $name = ref $prompt eq qw| HASH | ? $prompt->{'data'}{'name'} // '' : '';
+$name = <form.username> // '' if not length $name;
+
+my $resumed
+    = length $name
+    ? <[host-edit.flow.passphrase]>->( $name, $value )
+    : FALSE;
+
+<[editor.control.prompt.cancel]>->($editor_state);
+
+return $resumed;
+
+#,,,,,,..,,..,,..,,,.,,.,,,..,,.,,,,.,,,,,,,.,..,,...,...,..,,...,..,,...,..,,
+#XIZ26NQ4UTD22XJOUXIG4ZSDW5JAECZ7PVGYPLUT3TLXKQPPBA7NLNBVI3RYNZZRUWHDEJXHBWCOA
+#\\\|NQI27VRJHST2HDM2M2WIEFXZAKEDCOP6L7E446BTEIXMHOV7TLV \ / AMOS7 \ YOURUM ::
+#\[7]ZNPOJMOPAH5DK2534II5MSK4SS3AVPDQODQGSPA6BDECIMOSISAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

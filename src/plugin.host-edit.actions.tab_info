@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = plugin.host-edit.actions.tab_info
+# descr = host-actions plugin's self-description
+# param = -none-
+
+## the 'host actions' tab : drive the add-host FLOW [ host-edit.flow.* ] from
+## inside the form, on EVERY host record -- connect .. pin .. certify without
+## leaving the frame.  this is host-edit's mirror of
+## plugin.user-edit.key-actions.tab_info's own role : the same pinned
+## SYNTHESISED field, Enter opening an in-frame editor.control.prompt [ masked
+## for the owner-key passphrase ], nothing leaving the event loop.
+##
+## pinned_keys => ['host_actions'], exactly like key-actions' own choice :
+## form.handler.stdin_key's Right-entry trigger requires BOTH plugin => ...
+## on the field def AND the field's name present in the registry's by_key map,
+## and the synthesised 'host_actions' field is pushed by the record source's
+## synth_fields builder [ plugin.host-edit.actions.build_field, reached
+## through form.schema_from_record's generic hook ], never present in a real
+## record's fields -- no collision : 'host_actions' appears nowhere in
+## host-edit.record.default_fields.
+##
+## q|..|, NOT qw|..| : qw splits on WHITESPACE, so qw| host actions | would
+## collapse into label => 'host' plus a stray 'actions' key -- the same trap
+## plugin.user-edit.key-actions.tab_info's own header documents
+return {
+    qw| label |       => q| host actions |,
+    qw| pinned_keys | => [qw| host_actions |],
+};
+
+#,,..,...,...,.,,,,,.,..,,,,,,...,.,,,,,,,..,,..,,...,...,.,.,...,,..,,,.,,.,,
+#NNAEZMLTO5F2LT3QFXNDYRZXVNTRKKFJYEUSQ6MBA7525I7YLFXQSYWQIF557WH45G7BXT75CBDDO
+#\\\|EL6OQ3Q55YOJMGRZ3JJT3BJRTF33UXVHIU2WGP6ANP5IFR4MZUK \ / AMOS7 \ YOURUM ::
+#\[7]6B5ETJLSXR3JO5DU4HVD4VAZA7YQISUZGCQ7DP5YCYK5PWKJEYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

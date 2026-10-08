@@ -5,9 +5,10 @@
 # param  = <owner key name>
 # return = TRUE \ FALSE
 #
-# encrypted keys and passphrase-derived keys [ no secret \ private file
-# on disk, not a seed-phrase stub ] need one ; plain keys on disk and
-# root-held keys [ loaded as root ] do not.
+# encrypted keys, passphrase-derived keys [ no secret \ private file on
+# disk ] and virtual seed-phrase keys [ never on disk, regenerated per use
+# -- the natural form for a network authority key ] need one ; plain keys
+# on disk and root-held keys [ loaded as root ] do not.
 
 my $owner = shift // '';
 
@@ -20,10 +21,10 @@ my $files = $path->{'key_filename'} // {};
 my $on_disk
     = grep { defined $ARG and -f $ARG } @{$files}{qw| secret private |};
 return FALSE if $on_disk;
-return <[crypt.C25519.key_is_virtual]>->($owner) ? FALSE : TRUE;
+return TRUE;    ## passphrase-derived or virtual : never on disk ##
 
-#,,,,,,,,,.,,,,,.,.,.,...,.,,,,..,,..,,,.,,,.,..,,...,..,,..,,...,,,,,,,,,..,,
-#ZQJCTCSTJYATNWOJUBRAZ35TP6UGZBMOLJXXKXD5ALSD7NR3B6IDRLCV47GC4VEEQ7SSYIOCEC4LU
-#\\\|NZO37WGQUQFB5GGR7WEAWDYBA42MRSKNGIEH3X4C4QNCZZ4FK63 \ / AMOS7 \ YOURUM ::
-#\[7]3NIET2RVA2BPZGT52RGZXXJU3HI2PNSBGVXLDYQ43FM3I6OKDGDY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,..,,,,,,..,,,..,,.,,.,,,...,..,,...,...,.,,,...,,,,,.,.,..,,
+#3ZKRVP2AFJYTR4IGFU4N5WO7MBQFEUB3JQEBZEVJDAHWNWY55BNPYRXT5WTWXUCDBKTTTDN6MRJOU
+#\\\|RGLSSS7OUC4BVDAF7QA2UDUSYIFMV2E2ZSHIOTA57IA4J4GEOOA \ / AMOS7 \ YOURUM ::
+#\[7]BYXIZ4CTVOGYHYJJCVF5OR5WOFZXQT77YN3ELPPC2FVVPBZ2IWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

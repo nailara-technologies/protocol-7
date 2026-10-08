@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = plugin.host-edit.actions.build_field
+# descr = build the synthesised 'host_actions' field_def for a host record
+# param = $record
+# return = list of field defs [ exactly one : 'host_actions' ]
+
+## the synth_fields builder host-edit registers on <form.source> [
+## host-edit.init_code ], called by form.schema_from_record's generic hook for
+## EVERY record this zenka opens -- unlike user-edit's self-record-only
+## synthesised fields, a host actions tab belongs on every host record, the
+## record's flow is keyed by its name, not by who is looking.  mirrors the
+## 'key_actions' field_def shape in form.schema_from_record exactly : a plain
+## scalar buffer [ readonly against ORDINARY typing only -- once entered,
+## form.handler.stdin_key routes every key to the plugin's own handler.key ],
+## plugin => ... on its own def, and a display_override closure reaching the
+## plugin's render by NAME through %code, so a code reload never strands a
+## stale ref.  the Enter-ability comes from tab_info's pinned_keys : by_key
+## maps 'host_actions' to this plugin, which is what stdin_key's Right-entry
+## trigger gates on
+
+return [
+    {   qw| name |             => qw| host_actions |,
+        qw| type |             => qw| freeform_line |,
+        qw| default |          => '',
+        qw| readonly |         => TRUE,
+        qw| plugin |           => qw| plugin.host-edit.actions |,
+        qw| separator_before | => TRUE,
+        qw| display_override | => sub {
+            my ( $render_state, $render_field ) = @ARG;
+            return
+                exists $code{'plugin.host-edit.actions.render'}
+                ? $code{'plugin.host-edit.actions.render'}
+                ->( $render_state, $render_field )
+                : '';
+        },
+    }
+];
+
+#,,,,,...,...,,..,,,.,.,,,..,,,..,..,,..,,.,.,..,,...,..,,...,.,,,..,,,.,,.,,,
+#SJZOHKGJOF3AX4GQHVWUP5LDX2CHZ2FIVQITZJDJG6ZN2THM3CZZNQV7Y2DKVCW36A2IO3GKKUDQY
+#\\\|N3WPMTYXXSIKMPZ2WMZREJEWI6YJUE6VBY6QNTYJTIIIPLKRHA4 \ / AMOS7 \ YOURUM ::
+#\[7]H542B2CCRQJMRML5W4T2QZ6Q632LHKNRT4EB6FAY2S2U4MBIT6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
