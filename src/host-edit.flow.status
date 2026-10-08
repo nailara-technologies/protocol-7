@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = host-edit.flow.status
+# descr  = set an add-host flow's status text [ + the form status line ]
+# param  = <record name> <text>
+
+my ( $name, $text ) = @ARG;
+
+my $state = ( <host-edit.flow> // {} )->{ $name // '' };
+$state->{'status'} = $text if ref $state eq qw| HASH |;
+
+<[form.chrome.set_status]>->( sprintf '%s : %s', $name // '?', $text )
+    if ref $code{'form.chrome.set_status'} eq qw| CODE |;
+return TRUE;
+
+#,,..,,.,,.,,,.,,,,..,,,.,,..,.,,,,,.,,..,,,.,..,,...,...,...,.,.,,.,,,..,.,.,
+#3Q7JPE7NFD47IYKFQVMIWQ5OVKLZ776D5SBSPCSOLWHU6JKZPJ6SBXWPAIBOMAMWKMP4PWBLLUKEW
+#\\\|D7PA3OAIBAE5RYN4TDLO6MJKYS7J62KWVTFTYC6IL66HUPWIQW7 \ / AMOS7 \ YOURUM ::
+#\[7]BDRXXGETA6NZHYPPEDZBHT4QQ77IC25OMQPA23PTNPJCCKIWDIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

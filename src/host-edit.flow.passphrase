@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = host-edit.flow.passphrase
+# descr  = resume a waiting add-host flow with the owner key passphrase
+# param  = <record name> <passphrase>
+# return = TRUE resumed, FALSE not waiting
+
+my ( $name, $passphrase ) = @ARG;
+
+my $s = ( <host-edit.flow> // {} )->{ $name // '' };
+return FALSE
+    if ref $s ne qw| HASH |
+    or $s->{'step'} ne qw| need_passphrase |
+    or not defined $passphrase
+    or not length $passphrase;
+
+$s->{'passphrase'} = $passphrase;     ## dropped right after certify ##
+$s->{'step'}       = qw| certify |;
+<[host-edit.flow.schedule]>->( $name, 0 );
+return TRUE;
+
+#,,,.,..,,.,,,..,,,,,,..,,,,.,,,.,.,,,..,,.,.,..,,...,...,..,,.,.,.,,,,,.,.,.,
+#7WUCL7FBOQEO33R7ADWYVA6UKNI5JKLP23O3YEBVSTODDMAF42ZRDYWP5Q7M3VCJ4DDS3NJCMECTS
+#\\\|7OIABGEBOQOUCMLQAHRA5AQGNBAQVUGM4FQQVT4FP7VAZMFOXO6 \ / AMOS7 \ YOURUM ::
+#\[7]EB4VJP4DGIGT2H3BQ5ZN3DWXN7MAFZZCAMD2UNNO4WMUVMEYLQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

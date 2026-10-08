@@ -1,0 +1,19 @@
+## [:< ##
+
+# name   = host-edit.flow.cancel
+# descr  = cancel an add-host flow [ stops its ssh forward ]
+# param  = <record name>
+
+my $name = shift // '';
+
+my $s = delete( ( <host-edit.flow> // {} )->{$name} );
+<[host-edit.transport.ssh_forward_stop]>->($name)
+    if ref $s eq qw| HASH | and $s->{'forwarded'};
+<[host-edit.flow.status]>->( $name, 'cancelled' );
+return TRUE;
+
+#,,,.,,,.,,,,,,..,..,,,.,,..,,,.,,,,,,,.,,,,.,..,,...,...,.,.,,,,,.,.,.,.,,.,,
+#EP6HN7LH3MWYEOGV7C4ULDCMB3UHHWWQ7MZMA5KDAYRMIIIDML75GUAAU47INBEGJSAMBEHLPZ2HM
+#\\\|DE3IVNYYMWUSURGQQASCRYUM3JY7UHZTQR4RRKDYD4BGYUPEEHB \ / AMOS7 \ YOURUM ::
+#\[7]ET3IKWQYUE5QSQAPCSORA25VQOMYME667LSCNOPRJRMBWQZOY2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

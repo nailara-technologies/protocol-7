@@ -1,0 +1,63 @@
+## [:< ##
+
+# name   = host-edit.flow.start
+# descr  = start the add-host flow for a record [ data/md/design/HOST-SETUP ]
+# param  = <record name>
+# return = TRUE started, or ( undef, reason )
+#
+# connect [ ssh forward or a direct address ] -> probe -> pin -> [ when
+# owner_key is set : fetch chain -> certify -> install ] -> done. the
+# state lives in <host-edit.flow>->{<name>} ; every step runs from a timer
+# [ host-edit.flow.step ] so the frame repaints in between ; progress goes
+# to the form's status line. a passphrase-protected owner key stops at
+# 'need_passphrase' until host-edit.flow.passphrase resumes it.
+
+my $name = shift // '';
+
+return ( undef, 'record name not valid' )
+    if not <[host-edit.record.name_valid]>->($name);
+
+my $envelope = <[host-edit.record.read]>->($name);
+return ( undef, "no host record '$name'" ) if ref $envelope ne qw| HASH |;
+my $f = $envelope->{'fields'};
+
+<host-edit.flow> //= {};
+my $running = <host-edit.flow>->{$name};
+return ( undef, "the flow for '$name' is already running" )
+    if ref $running eq qw| HASH |
+    and $running->{'step'} !~ m{\A(?:done|error)\z};
+
+## the cube address : the record's first address [ host[:port], 42 ] ##
+my ($address)
+    = grep { defined and length }
+    ( ref $f->{'addresses'} eq qw| ARRAY | ? $f->{'addresses'}->@* : () );
+return ( undef, 'the record has no address' ) if not defined $address;
+my ( $host, $cube_port ) = split m|:|, $address, 2;
+$cube_port = 42 if not defined $cube_port or not length $cube_port;
+return ( undef, "address '$address' not valid" )
+    if $host !~ m|\A[A-Za-z0-9][A-Za-z0-9.-]{0,252}\z|
+    or $cube_port !~ m|\A[0-9]{1,5}\z|;
+
+my $ssh = $f->{'ssh'} // '';
+my $ssh_port
+    = ( $f->{'ssh_port'} // '' ) =~ m|\A[0-9]{1,5}\z| ? $f->{'ssh_port'} : 22;
+
+<host-edit.flow>->{$name} = {
+    qw| step |      => qw| connect |,
+    qw| host |      => $host,
+    qw| cube_port | => $cube_port,
+    qw| ssh |       => $ssh,
+    qw| ssh_port |  => $ssh_port,
+    qw| owner_key | => $f->{'owner_key'} // '',
+    qw| started |   => time,
+};
+
+<[host-edit.flow.status]>->( $name, 'starting' );
+<[host-edit.flow.schedule]>->( $name, 0 );
+return TRUE;
+
+#,,..,,.,,,,.,...,...,.,.,,,,,..,,...,.,.,.,.,..,,...,...,...,,.,,.,,,.,,,...,
+#5IBMSYZ4RTMRHAWAU6BU74R6N2MMM7HIJBEOE6RLZBVXQSRIQ2UF4ONMY77CS7PN5SJ2KPZDH5YSI
+#\\\|D32M5CLOZ6ZCWIVPQUA3LLFXJTAOZA55VPQEOMYBXFKLKCYL5A4 \ / AMOS7 \ YOURUM ::
+#\[7]7RE4SBRLQMBLUVHSC7YCUVO3T2QNZY4MUQMBWL4PYSJRUCFVHMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

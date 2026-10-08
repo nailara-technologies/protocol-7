@@ -1,0 +1,29 @@
+## [:< ##
+
+# name   = host-edit.flow.needs_passphrase
+# descr  = does an owner key need a passphrase to sign [ form prompt ]
+# param  = <owner key name>
+# return = TRUE \ FALSE
+#
+# encrypted keys and passphrase-derived keys [ no secret \ private file
+# on disk, not a seed-phrase stub ] need one ; plain keys on disk and
+# root-held keys [ loaded as root ] do not.
+
+my $owner = shift // '';
+
+my $path = <[crypt.C25519.key_path]>->($owner);
+return FALSE if ref $path ne qw| HASH |;
+return FALSE if $path->{'holder'} eq qw| root |;
+
+return TRUE if <[crypt.C25519.encrypted_key]>->($owner);
+my $files = $path->{'key_filename'} // {};
+my $on_disk
+    = grep { defined $ARG and -f $ARG } @{$files}{qw| secret private |};
+return FALSE if $on_disk;
+return <[crypt.C25519.key_is_virtual]>->($owner) ? FALSE : TRUE;
+
+#,,,,,,,,,.,,,,,.,.,.,...,.,,,,..,,..,,,.,,,.,..,,...,..,,..,,...,,,,,,,,,..,,
+#ZQJCTCSTJYATNWOJUBRAZ35TP6UGZBMOLJXXKXD5ALSD7NR3B6IDRLCV47GC4VEEQ7SSYIOCEC4LU
+#\\\|NZO37WGQUQFB5GGR7WEAWDYBA42MRSKNGIEH3X4C4QNCZZ4FK63 \ / AMOS7 \ YOURUM ::
+#\[7]3NIET2RVA2BPZGT52RGZXXJU3HI2PNSBGVXLDYQ43FM3I6OKDGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
