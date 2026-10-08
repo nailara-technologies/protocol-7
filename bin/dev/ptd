@@ -28,7 +28,7 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
+use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate p7_syntax__perl_c |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -356,12 +356,21 @@ sub real_syntax_errors {
     ## version bundle enables the full modern feature set WITHOUT the side ##
     ## effect plain '-Mv5.24'/'use v5.24' has of also turning on strict,   ##
     ## which these files were never written to pass                        ##
-    my @perl_c_output = qx{ perl -Mfeature=:5.24 -c "$tmp_path" 2>&1 };
+    ##                                                                     ##
+    ## the floor perl [ bin/Protocol-7 : use v5.NN ] compiles it too when  ##
+    ## installed -- errors only it reports are tagged '[ perl 5.NN ]'      ##
+    my ( $local_out, $floor_out, $floor_version )
+        = p7_syntax__perl_c(qq{-Mfeature=:5.24 -c "$tmp_path"});
     unlink $tmp_path;
+    my @perl_c_output = (
+        ( map { [ $ARG, '' ] } @{$local_out} ),
+        ( map { [ $ARG, "[ perl $floor_version ] " ] } @{$floor_out} )
+    );
     ## errors report the temp path -- swap in the real one for display ##
-    s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
+    $ARG->[0] =~ s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
     my @real_errors;
-    for my $line (@perl_c_output) {
+    for my $entry (@perl_c_output) {
+        my ( $line, $tag ) = @{$entry};
         ## p7 data/module macro syntax [ <data.key>, <[module.name]> ]      ##
         ## triggers glob-modification false positives under perl -c --      ##
         ## should no longer fire now that translation runs first, kept as a ##
@@ -374,15 +383,13 @@ sub real_syntax_errors {
         next if $line =~ m{BEGIN not safe after errors};
         next if $line =~ m{syntax OK\s*$};
         next if $line =~ m{^\s*$};
-        push @real_errors, $line;
+        push @real_errors, $tag . $line;
     }
 
-    ## drop the trailing "had compilation errors" restatement whenever it  ##
-    ## is the last line -- with a detailed error already present it's pure ##
-    ## noise, and on its own it leaves nothing meaningful to report        ##
-    pop @real_errors
-        if @real_errors
-        and $real_errors[-1] =~ m{had compilation errors\.?$};
+    ## drop the "had compilation errors" restatements [ one per perl ] -- ##
+    ## with a detailed error already present they're pure noise, and on   ##
+    ## their own they leave nothing meaningful to report                  ##
+    @real_errors = grep { not m{had compilation errors\.?$} } @real_errors;
 
     return @real_errors;
 }
@@ -471,8 +478,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,..,,,..,,,,,.,.,,,.,,,.,,,.,.,.,.,,,,,.,..,,...,...,...,,,,,,..,,.,,,,,,
-#PLLMNZ2YQMXIG3QGVB4PF25HIK5RSD7VA7KWA7EFFQBBUCGRAADMWMUHKXSG5NUMO3XP5BANZPXEC
-#\\\|542WTRRPSIRVMJE5OWFH3GI6H2RFKPHZ232W45N4LCIDEMMYUW3 \ / AMOS7 \ YOURUM ::
-#\[7]XYPNBALBCIRJBYKBQUOWRM3RDQ7KU47RJXGQA36Y2RNULILG46CI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,,,,,.,,,...,,,,,..,,,,,,,,,,..,,...,...,...,,.,,,,,,,..,.,,,
+#G5GR3IXFGTXNT4XRYM2IZOU42O42DNY67U4RVYSMCWPJGFZ7R2PQXRHZLHXQ376JSPGYQVFZYZIGM
+#\\\|OYEHMOJ47R6VIEC37YCAOK7C7GIKXSKYFF6NB2WYC6N7SBVGKBA \ / AMOS7 \ YOURUM ::
+#\[7]OGJLLXR4U4XEDXPUZT6CLFANKRD2PWYCJCYT3IQBT42TBFWXM2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
