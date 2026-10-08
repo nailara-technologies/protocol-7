@@ -3,7 +3,8 @@
 # name   = keys.certify_host
 # descr  = owner key signs a host-root statement [ the certify core ]
 # param  = { owner, host, root_pub [ 32 raw bytes ], days [ 365 ],
-#            on_warning [ coderef, called BEFORE the key is loaded ] }
+#            on_warning [ coderef, called BEFORE the key is loaded ],
+#            passphrase [ optional : given -> NEVER prompts, never retries ] }
 # return = { wire, owner_pub, host } or ( undef, <exit code>, <reason> )
 #
 # data/md/design/TRUST-CHAIN-STEP2.md 'the owner root' : the owner key in
@@ -20,8 +21,8 @@ my $fail = sub { return ( undef, @ARG ) };
 
 return $fail->( qw| 0110 |, 'parameters not a hash' ) if ref $p ne qw| HASH |;
 
-my ( $owner, $host, $root_pub, $days, $on_warning )
-    = @{$p}{qw| owner host root_pub days on_warning |};
+my ( $owner, $host, $root_pub, $days, $on_warning, $passphrase )
+    = @{$p}{qw| owner host root_pub days on_warning passphrase |};
 $days //= 365;
 $on_warning = sub { }
     if ref $on_warning ne qw| CODE |;
@@ -70,8 +71,19 @@ if ( $owner_path->{'holder'} ne qw| root | ) {
     }
 }
 
-return $fail->( qw| 0110 |, 'owner key not loaded' )
-    if not <[crypt.C25519.load_keypair]>->( $owner, undef, TRUE, TRUE );
+## a supplied passphrase [ the host-edit form's masked prompt, char-add ] : ##
+## no terminal prompt, no retry -- a wrong one fails back to the form.      ##
+## none : the console behaviour, prompt + retry                             ##
+my @load
+    = defined $passphrase
+    ? ( $owner, $passphrase, FALSE, FALSE )
+    : ( $owner, undef, TRUE, TRUE );
+return $fail->(
+    qw| 0110 |,
+    defined $passphrase
+    ? 'owner key not loaded [ passphrase not correct ? ]'
+    : 'owner key not loaded'
+) if not <[crypt.C25519.load_keypair]>->(@load);
 my $owner_key = $keys{'C25519'}->{$owner} // {};
 my ( $owner_pub, $owner_priv ) = @{$owner_key}{qw| public private |};
 my $unload = sub { <[crypt.C25519.unload_key]>->( $owner, TRUE ) };
@@ -119,8 +131,8 @@ return {
     qw| host |      => $host,
 };
 
-#,,,,,,.,,..,,..,,.,,,..,,.,,,,..,.,,,,,,,,,,,..,,...,...,,..,..,,.,.,.,.,.,,,
-#ANMQTCSV2PVGIIHPNBK7AFFEIMFD74ZDA3FXQXO7EAHWEB7OVQDRTZHTN2VU447BXBUJPHJ6EAUM4
-#\\\|WELE64R4EUFGFMZKIATNNEBC2QYISULCKCFICRHMDGNGHH4FMWC \ / AMOS7 \ YOURUM ::
-#\[7]42ZAV6LXNQZSNCFZOPJV3EPL2APRFUVSJLRXFTXWDIXHQ7UMJWCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,,.,,,,,,,,,,,.,,,.,,.,,,.,,,..,,...,...,...,..,,..,,...,...,
+#AB6MXM563GBTFOPZ72ZRPPUGQDIA2O2AZ5DJY56XKU6VHEQX52XFF7NHFOGEEOIGRKYFCCL2BXTWM
+#\\\|F3BOOAKDFSI2FL7ORBGKMQVB7KKIMR27K4WNNJNQ7HGIMAVUZAZ \ / AMOS7 \ YOURUM ::
+#\[7]34CKQFYNSLQTXGRJTCUCXOTKR6WO2YSPAN3PWGQAGWZT7Q6NSUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

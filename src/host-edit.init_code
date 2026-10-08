@@ -35,25 +35,25 @@
 <host-edit.auth_name> = sprintf( qw| %s[host-edit] |, <host-edit.unix_user> );
 
 ##  THE RECORD SOURCE  #######################################################
-##                                                                            ##
-##  one callback table the whole form engine reads : every form.* module     ##
-##  that needs the record store or the secret store calls through            ##
-##  <form.source> instead of building a route itself, which is what keeps    ##
-##  the engine record-independent [ see user-edit.init_code ].  host-edit's  ##
-##  senders do LOCAL file io under [VAR_P7]/hosts/ and defer their replies   ##
-##  one event tick, exactly as the network reply would be.                   ##
-##                                                                            ##
-##    senders      : value_get / value_all / value_set / field_options /     ##
-##                   create_default / secret_hold / secret_release --        ##
+##                                                                          ##
+##  one callback table the whole form engine reads : every form.* module    ##
+##  that needs the record store or the secret store calls through           ##
+##  <form.source> instead of building a route itself, which is what keeps   ##
+##  the engine record-independent [ see user-edit.init_code ].  host-edit's ##
+##  senders do LOCAL file io under [VAR_P7]/hosts/ and defer their replies  ##
+##  one event tick, exactly as the network reply would be.                  ##
+##                                                                          ##
+##    senders      : value_get / value_all / value_set / field_options /    ##
+##                   create_default / secret_hold / secret_release --       ##
 ##                   module names, invoked as <[$sender]> by the engine     ##
-##    default_record : '' -- there is no ambient host; a bare 'show-form'    ##
+##    default_record : '' -- there is no ambient host; a bare 'show-form'   ##
 ##                   asks with an empty name and the create-offer answers   ##
 ##    allow_create : TRUE -- the host store is this host's own record of    ##
-##                   who it talks to ; entering a host IS the workflow       ##
-##    tag_record   : '' -- no :create-...:-style auto-create tag gate        ##
-##    title_fmt / frame_name / menu_fallback / namespace_main /              ##
-##    namespace_keys / not_found_fmt : host-edit's record vocabulary,        ##
-##    keeping every user-facing string out of form.*                         ##
+##                   who it talks to ; entering a host IS the workflow      ##
+##    tag_record   : '' -- no :create-...:-style auto-create tag gate       ##
+##    title_fmt / frame_name / menu_fallback / namespace_main /             ##
+##    namespace_keys / not_found_fmt : host-edit's record vocabulary,       ##
+##    keeping every user-facing string out of form.*                        ##
 <form.source> = {
     qw| default_record |  => '',
     qw| allow_create    | => TRUE,
@@ -102,8 +102,8 @@ mkdir $hosts_dir, 0750
 
 return TRUE;
 
-#,,,.,..,,,,.,,.,,.,.,,,,,...,..,,,,.,..,,,,,,..,,...,..,,..,,,..,.,.,...,,.,,
-#ZB7AD66M3HSTGHQVFTFPU466FA5AYPORAIUZLVDL3BILHNGAKTAX6XEPC6XDQSFKWGS3MQLYV4UYY
-#\\\|23EVXGEJ7UHJEA42MK5GUXARTGBT2O3LBOKOI42L2IBM7MUQBXL \ / AMOS7 \ YOURUM ::
-#\[7]ZTG3N72EQCFPVQBPCSRSNYVEEG7SPB6KGGT3YWJFLTSJGAKNVOCA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,,.,..,,,,,,,,.,,,.,...,.,.,..,,...,...,.,,,.,.,.,,,,.,,.,,,
+#J7DRT6Y5MWDIYJX4M5VJHO3GOCBYMCIASBRI3L24TQQLQJUCKQHVQK5PYB5KMIC7IRKZB75AKQ5KE
+#\\\|7FM7YWUZ6DJJL7QT4PTSH76L5PGYDZIQ6MSKCYHQY3EKTTPCCJU \ / AMOS7 \ YOURUM ::
+#\[7]UIFSFUTFPIJAWSPVGZAAYDM62YUMIOAJOE2AO7DYNHIIAEL3VUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
