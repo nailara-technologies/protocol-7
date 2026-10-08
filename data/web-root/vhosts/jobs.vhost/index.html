@@ -1196,14 +1196,14 @@ function renderCard(j) {
         </div>
         ${filterMode === 'delete' ? `<button class="btn-delete" data-id="${j.id}" style="padding:2px 8px;font-size:0.72rem; color:#c05050; border-color:#602020;">löschen</button>` : ''}
         ${j.stage === 'applied' || j.stage === 'interviewed' || j.stage === 'responded' ? `
-          <input type="date" class="date-applied-input" data-id="${j.id}" value="${j.date_applied||''}"
+          <input type="date" class="date-applied-input" data-id="${j.id}" autocomplete="off" value="${j.date_applied||''}"
             title="Bewerbungsdatum" style="width:130px; padding:2px 6px; font-size:0.75rem;
             background:#0a1825; border:1px solid #1e3040; color:#90c0d0; border-radius:3px;">` : ''}
         ${j.stage === 'applied' || j.stage === 'interviewed' ? `<button class="btn-status" data-id="${j.id}" data-action="review" style="padding:2px 8px;font-size:0.72rem; color:var(--p7-text-dim); background:rgba(0,30,187,0.08); border-color:rgba(68,39,172,0.3);">← review</button>` : ''}
         <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">note</button>
         <span class="card-date">${j.date_added || ''}</span>
       </div>
-      <textarea class="card-note-input" data-id="${j.id}"
+      <textarea class="card-note-input" data-id="${j.id}" autocomplete="off"
         placeholder="note…" rows="2">${escHtml(j.note||'')}</textarea>
       ${j.note ? `<div class="card-note-preview visible">${highlightTerms(j.note, hlTerms)}</div>` : '<div class="card-note-preview"></div>'}
       ${(filterApplySug ? ['review','to_apply','skipped'].includes(j.stage) : j.stage === 'review') ? `
@@ -1447,6 +1447,13 @@ function renderCard(j) {
     /* note save — debounce push to avoid a POST per keystroke */
     let noteDebounce = null;
     el.querySelector('.card-note-input').addEventListener('input', e => {
+        /* only typing syncs : a browser form restore [ reload, session   */
+        /* restore ] refills textareas by position and fires 'input' --   */
+        /* after a scan reordered the cards that pushed other jobs' notes */
+        if (document.activeElement !== e.target) {
+            e.target.value = jobs[j.id].note || '';
+            return;
+        }
         jobs[j.id].note = e.target.value;
         userDecisions[j.id] = { ...(userDecisions[j.id] || {}), notes: e.target.value, ts: Date.now() };
         saveUserDecisions();
