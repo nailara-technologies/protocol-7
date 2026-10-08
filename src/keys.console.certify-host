@@ -164,8 +164,8 @@ if (not sysopen(
             | Fcntl::O_NOFOLLOW(),
         0644
     )
-    or not print {$fh} "$wire\n"
-    or not close($fh)
+    or not chmod( 0644, $fh )    ## public : not narrowed by the umask ##
+    or not print {$fh} "$wire\n" or not close($fh)
 ) {
     printf "\n  << cannot write '%s' [ %s ] >>\n\n", $out_file,
         <[base.str.os_err]>;
@@ -190,8 +190,8 @@ say " :. copy it to the host ; there, as the backend user :";
 say " :.   p7-keys accept-owner <file>";
 say " :. on clients : p7-keys owner-pin <name> <owner key id> ::\n";
 
-#,,.,,,..,..,,,.,,.,.,.,.,,.,,.,,,,,,,,,.,..,,..,,...,.,.,.,.,...,.,,,,,.,..,,
-#U4GUVHKU5TAZSS4LUR2KZ3YDWM7WGVPDERAVUPFHDOXJIWRZMJ2MJUBGLXQL5DHQPZO3UYKVF4K44
-#\\\|D4TZ2JNTVLJLIFYDASMBLJYBB7N3Z3LRTGAROWJDHYB2UTG2Z2F \ / AMOS7 \ YOURUM ::
-#\[7]SC2GBSURRTMYBMSZHK6U6QIMM2VLM5XB7BC2FML6SVO36DWHCSAQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,..,,,.,,..,,,,,,,.,,.,,,.,,,..,,...,..,,,.,,...,...,,.,,.,,,
+#H4XKGWY6MHQFWRQPOI3ESRIQ35MZ4Z35RXAZKMM4UXR4MA4DJIEMLMSGVZNNXYP52XWSHUU4QVKS2
+#\\\|OMSWGYLE42ZI2F5F53ODAZWNDJIJNWWLF3ES4RPFXT777VB23QP \ / AMOS7 \ YOURUM ::
+#\[7]L22AH23TSJVS52R4JRWV7UIMHIUH4SQ5F4SCLKA7ZAALJ4LZSACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
