@@ -45,6 +45,9 @@ my @module_files = qw|
     form.chrome
     form.chrome.set_status
     form.handler.stdin_key
+    editor.buffer.mask_star_count
+    editor.buffer.memory.create
+    editor.buffer.memory.insert
     |;
 
 for my $file (@module_files) {
@@ -301,13 +304,40 @@ ok( $data{'form'}{'dirty'} == $dirty_before + 1,
 $code{'form.chrome.set_status'}->(undef);
 ok( !length( $data{'form'}{'status'} ), 'set_status undef clears the line' );
 
+##[ masked buffers : AMOS7::TERM's random star counts ]#######################
+
+{
+    my $count = $code{'editor.buffer.mask_star_count'};
+    my ( %first, %late );
+    for ( 1 .. 600 ) {
+        $first{ $count->(0) }++;
+        $late{ $count->(20) }++;
+    }
+    ok( !grep( { $ARG < 1 or $ARG > 4 } keys %first ) && exists $first{4},
+        'star count, first character : 1 .. 4 [ short passphrase padding ]' );
+    ok( !grep( { $ARG < 1 or $ARG > 2 } keys %late ),
+        'star count from the tenth character on : 1 .. 2' );
+
+    my $buf = $code{'editor.buffer.memory.create'}
+        ->( { type => 'masked', default => 'secret' } );
+    ok( ref $buf->{'mask_stars'} eq 'ARRAY'
+            && @{ $buf->{'mask_stars'} } == 6
+            && !grep( { $ARG < 1 or $ARG > 4 } @{ $buf->{'mask_stars'} } ),
+        'masked create : one star count per character, in range' );
+    $code{'editor.buffer.memory.insert'}->( $buf, 3, 'XY' );
+    ok( @{ $buf->{'mask_stars'} } == 8 && $buf->{'text'} eq 'secXYret',
+        'masked insert : the star counts stay in step with the text' );
+    my $plain = $code{'editor.buffer.memory.create'}->( { default => 'abc' } );
+    ok( !defined $plain->{'mask_stars'}, 'unmasked buffer : no star counts' );
+}
+
 ##[ summary ]#################################################################
 
 print "\n$pass passed, $fail failed\n";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,..,,,,.,,.,,...,..,,,,,,.,,,,,,,.,.,..,,...,...,,.,,,,.,...,,,.,...,
-#U5NOPQXLG23OUT6LZIRAXEJCX6QMQ62ITF55CMFBH7E6Q3IOU22BUFPNCKQ35ECITBOC7A6J2FVFW
-#\\\|Z62DBK4STK6GECEOON5TEY5L7GQNCYBRFPKYNWEH3WDA3SXGZPF \ / AMOS7 \ YOURUM ::
-#\[7]QXS6NI5QEZN54BVDZW47Q2OI2RFIB7QSEAI35EGDK5MLTMUOAMCY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,...,,,,,,,,,...,,,.,,.,,.,,,..,,...,...,.,.,.,,,.,,,,..,,..,
+#7W3NCK2HW24MRSW47JRWHSYNNUCNPQCQDPVGHIIK6ELEFDSIC4QDY7EKTFZ5CKA76RIOEA3NJOVDW
+#\\\|FU7O6OZAL62JLZPSECBEQX64EQ2DKOITPZW4JVF2TF7RESARHF4 \ / AMOS7 \ YOURUM ::
+#\[7]ZQWU5CM7BOAL5TNV2ITH4QH7Z5F7ZRVIKDXYH5PMUBSDCGAT3GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
