@@ -18,12 +18,13 @@ my $source    = <form.source>        // {};
 
 my $abort = sub {
     my ($msg) = @ARG;
-    print sprintf( "\n  << %s >>\n\n", $msg );
-    ## must exit in BOTH modes : the zenka is already inside zenka.loop by the
-    ## time a reply lands, so simply returning would leave it spinning with no
-    ## watchers and no way out.  form.quit restores the terminal first, which
-    ## matters once interactive mode has gone raw
-    <[form.quit]>;
+    ## the message travels INTO form.quit : it clears the interactive screen
+    ## first, so a line printed before the call was wiped unread must exit in
+    ## BOTH modes : the zenka is already inside zenka.loop by the time a reply
+    ## lands, so simply returning would leave it spinning with no watchers and
+    ## no way out.  form.quit restores the terminal first, which matters once
+    ## interactive mode has gone raw
+    <[form.quit]>->( $msg, qw| fail | );
     return FALSE;
 };
 
@@ -104,8 +105,11 @@ if ( not defined $schema ) {
     ## chain a vocabulary fetch onto, and no return-and-retry path for an
     ## abort either -- bootstrapping is an interactive-only concern
     return $abort->(
-        sprintf( "user '%s' has no editable scalar fields", $username ) )
-        if not <form.interactive>;
+        sprintf(
+            "%s '%s' has no editable scalar fields",
+            $source->{'record_noun'} // qw| user |, $username
+        )
+    ) if not <form.interactive>;
 
     ## raw mode + the stdin/redraw watchers do not depend on any editor state
     ## existing yet -- same setup the populated-record path below does, just
@@ -208,8 +212,8 @@ if ( <form.interactive> and defined <form.cube_sid> ) {
 
 return TRUE;
 
-#,,..,,.,,,,,,,,,,,,.,,,.,,..,.,,,,,.,.,.,...,..,,...,..,,.,,,,,,,,..,..,,...,
-#GS35WPV5BFOUHRXHRBU4GUS4KL7LLKXBDERV5IUDFINMFKNARMYS4NHAA3VOMOKRC4TBFFHMLNEUY
-#\\\|ZUPAYM6T3G6INHK5IOFOQ3WV2GGMR4X4Y6TE7JF7IKKS5EPRDXC \ / AMOS7 \ YOURUM ::
-#\[7]BMBDNRLATR4K7WFKYO3ANPMU7DPPJAJT26CIIJSQYM2RBZ2X6OBY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,,,,,,,.,,,.,,..,.,,,..,,,,.,..,,...,...,,,.,,.,,...,.,,,,.,,
+#ZDK3ACJYSUSNKZIEAITKMVKSVRG6GYZY7UB6TBUPN6CLWHAYXUVGRCYN6JF4PQT3FKZ4XPG5QSTUO
+#\\\|I3QK7QIR6YSH6S2NUB4GPPYXZLFQHTZJ4G4SOR6LTD2AMLXZNPG \ / AMOS7 \ YOURUM ::
+#\[7]VWPKSFCFMMTJSFIFF5X3H5WMK2Z2ENTLRWFFGIPNQ43WXN42UMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

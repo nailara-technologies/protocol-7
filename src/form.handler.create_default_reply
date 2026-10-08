@@ -18,10 +18,14 @@ my $call_args = $info->{'call_args'} // {};
 my $username  = <form.username>      // '?';
 
 if ( $cmd ne qw| TRUE | ) {
-    print sprintf( "\n  << could not create the record [ %s ] : %s >>\n\n",
-        lc($cmd), $call_args->{'args'} // 'no detail' );
-    STDOUT->flush();
-    <[form.quit]>;
+    ## message passed INTO form.quit : it clears the screen first ##
+    <[form.quit]>->(
+        sprintf(
+            'could not create the record [ %s ] : %s',
+            lc($cmd), $call_args->{'args'} // 'no detail'
+        ),
+        qw| fail |
+    );
     return FALSE;
 }
 
@@ -30,10 +34,10 @@ if ( $cmd ne qw| TRUE | ) {
 my $cube_sid = <form.cube_sid>;
 
 if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
-    print "\n  << record created, but the link "
-        . "is gone — run the command again >>\n\n";
-    STDOUT->flush();
-    <[form.quit]>;
+    <[form.quit]>->(
+        'record created, but the link is gone — run the command again',
+        qw| fail |
+    );
     return FALSE;
 }
 
@@ -46,8 +50,8 @@ my $sender = $source->{'value_get'} // return FALSE;
 
 return TRUE;
 
-#,,,.,,,.,,.,,..,,...,..,,,,,,,,.,.,.,.,,,.,.,..,,...,...,..,,,,.,..,,,..,.,.,
-#RAS7QBHK46N7ENI7S3HYLLINBG6NRTOVWPDZNUOLBBUJMJTD2JO53MCCW64GKDUKVQSULGTRHJIRU
-#\\\|QLJU46JR2KIOHMGVWQQSIU6YPXSI7NNDYTSX5MZ7VHZIVIQNOPW \ / AMOS7 \ YOURUM ::
-#\[7]D3457X7HONHH2FBXOZZRVQ3FLC6O2GCNCJY4GLHT3N42RQT6GYBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,,,,,,,.,,..,,,.,,.,,.,,,,,,,..,,...,...,..,,,,.,,,.,...,,.,,
+#O5XTGKSRJZI24NO2IMS6YI5XEEVE6IVJONTW5F6MVWKUQP4ZVALP7DGV4GZGGQ6MNFBINNQVFU4YQ
+#\\\|4EEIIFGLXSTWRT2TGQTARK4CQVUDJS3M34ZQ7SI5W7WGEXILPVG \ / AMOS7 \ YOURUM ::
+#\[7]F6EMPS5HD26THSBCI3TGXFJEPWLVJNJTRQBQGEM3KMJQ35AXS4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

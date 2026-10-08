@@ -328,7 +328,7 @@ my $render_out = $host_actions_def->{'display_override'}
 
 ok( defined $render_out
         && $render_out =~ m|add host \[Enter\]|
-        && $render_out =~ m|pin key YB25FNI · test-leaf · since 0|,
+        && $render_out =~ m|pin : key YB25FNI · test-leaf · since 0|,
     'render with no flow : start hint + pinned key id label'
 );
 ok( $render_out !~ m|flow |, 'render with no flow shows no flow step' );
@@ -533,8 +533,8 @@ if ($fail_count) {
 say "  all $test_count checks passed";
 exit 0;
 
-#,,,,,.,.,..,,..,,,.,,..,,,,.,,..,,..,,.,,,,,,..,,...,...,,..,..,,..,,.,,,.,,,
-#VFYV5JTPTXBCVBWDP5S4XSRUUHZQ7UPFKINQFYS7GMARC7WXXSQPORGG7ZRGURICGDX3K3TGKGMKM
-#\\\|QIP4CA7YW5GUH6YPPTR4ZVDKIM75NXHS56526IVXC4B4GX37DRP \ / AMOS7 \ YOURUM ::
-#\[7]WIIZVMY4E7M6FUTTBOLSOSUGC2PSOKZH2UQHBXEDUI6ZFC6FUWBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,.,.,...,...,,,,,..,,,..,,,.,..,,...,...,.,,,.,,,,.,,,.,,,..,
+#XOO5VGMAUJGVS6AATE4OHRGS6SHSLQZIJ6ASGTVPPDA7AAJ4M7AVREF2I5PKDIYK7OBIEHD2C2BZ4
+#\\\|JZJFSV5MWT67GIIUCOFETDSSCOHRTA235XJHPJJHSQTVJRLA7SF \ / AMOS7 \ YOURUM ::
+#\[7]YJENDZC65S6225HHVVLCIJX7CO2V4DSWPC4STA4SOZXNAGRCEABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
