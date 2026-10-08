@@ -46,8 +46,9 @@
 ##    senders      : value_get / value_all / value_set / field_options /    ##
 ##                   create_default / secret_hold / secret_release --       ##
 ##                   module names, invoked as <[$sender]> by the engine     ##
-##    default_record : '' -- there is no ambient host; a bare 'show-form'   ##
-##                   asks with an empty name and the create-offer answers   ##
+##    default_record : '' -- there is no ambient host ; a bare 'start'      ##
+##                   opens the record list [ form.console.browse ]         ##
+##    record_noun  : 'host' -- the word form.* messages use for a record    ##
 ##    allow_create : TRUE -- the host store is this host's own record of    ##
 ##                   who it talks to ; entering a host IS the workflow      ##
 ##    tag_record   : '' -- no :create-...:-style auto-create tag gate       ##
@@ -67,6 +68,7 @@
     qw| namespace_main  | => qw| hosts |,
     qw| namespace_keys  | => qw| keys |,
     qw| not_found_fmt   | => q{host '%s' not found},
+    qw| record_noun     | => qw| host |,
     qw| synth_fields    | => qw| plugin.host-edit.actions.build_field |,
     qw| value_get       | => qw| host-edit.source.value_get |,
     qw| value_all       | => qw| host-edit.source.value_all |,
@@ -106,8 +108,8 @@ mkdir $hosts_dir, 0750
 
 return TRUE;
 
-#,,.,,,..,,,.,..,,...,.,.,.,,,.,.,,,.,,.,,.,.,..,,...,...,...,.,.,...,,.,,,.,,
-#7UT7BKB2CCJBDMJAFEWSROVMLDFJJFITHQCDVM4VSWIJNW6EPV7ODUCYZGBEKYXWVP63QDU356G3W
-#\\\|LM6ESXCWTX5Q7CLQX55QM3NLGSD63QQW4UH4QVLIGNSYQOVDJ7J \ / AMOS7 \ YOURUM ::
-#\[7]VPPIPVQRBEQVTG7MZEUTHVZO374ILUPNKSOQMXGIJJMQYW23GWAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,..,,..,,.,,,.,.,..,,...,.,.,..,,...,...,...,.,.,,..,..,,,,,,
+#XT5MKLHDPY5XHS7T2LIQCNDXUNYNSN67XSJDCN72V3K2LOB7RIB2PV53SMKUQTVXN76HVIW66SKDK
+#\\\|ACT27CQ6SCS2XH4ML76ATGBASWUWQFL44CP6AD7FJEM4PC3GGTU \ / AMOS7 \ YOURUM ::
+#\[7]EIXKVIVRHTTWAKX4IY3VFYXZA7M7WGXEJVP2EGYDIKFCS4FE3UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

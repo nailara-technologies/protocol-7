@@ -67,7 +67,7 @@ if ( ref $flow eq qw| HASH | ) {
 }
 
 ## the pinned key id label, verbatim from the client pin store reader ##
-push @parts, sprintf( q|pin %s|, $pin->{'trust'} // '' );
+push @parts, sprintf( q|pin : %s|, $pin->{'trust'} // '' );
 
 push @parts, q|[c]ancel|;
 
@@ -77,8 +77,8 @@ return sprintf( q{<<< %s >>>}, $body ) if $in_tab_mode;
 
 return sprintf( q{'->  %s}, $body );
 
-#,,.,,.,,,,,.,...,.,.,...,,.,,,,.,,,.,.,.,.,,,..,,...,...,...,,,,,,,,,.,,,,..,
-#JFVDQGRHEXBJEGCRY3GNLW4QKQMU5PYFDRHT2SPU6KWZGL5TVMEQ6NFPRHM5VXOKDUKIE4742CQVC
-#\\\|HYNZTOQ7AM53L4HACTZRI4CADZXGVIUTWOFQNDPQJ6BWMZ637FT \ / AMOS7 \ YOURUM ::
-#\[7]GW5SF33YRYH5PA5JSYM6OAVAHZS2D64QKCGF42BG5BCBUTSMGSCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,..,,,..,,..,,,.,...,,,,,,..,..,,...,...,,,.,.,,,,,.,.,.,,,,,
+#P5VEVY6OH46YCNSUAZJR22GOQBZXX3BDCGXPFEXWJUMNUVKQ4ILH2YGWRI4T75JUPHS3RC6VWIRLY
+#\\\|JBLDDE2BO26YINDAAEJBY235KGD3BFB4YOMYJZK36O7PVHFNR33 \ / AMOS7 \ YOURUM ::
+#\[7]X2KVTNGVV6DT6K7SJSDQ3365GPQCA2OHPAIH4DP2UH6DAGA4NMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
