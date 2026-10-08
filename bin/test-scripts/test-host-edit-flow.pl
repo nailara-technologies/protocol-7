@@ -22,6 +22,7 @@ use File::Spec;
 use Cwd        qw| abs_path |;
 use FindBin    qw| $RealBin |;
 use File::Temp qw| tempdir |;
+use File::Path;
 use IO::Socket::INET;
 use Crypt::Misc;
 use Digest::BMW;
@@ -82,6 +83,7 @@ compile_module($ARG)
     host-edit.flow.start host-edit.flow.step host-edit.flow.schedule
     host-edit.flow.status host-edit.flow.passphrase host-edit.flow.cancel
     host-edit.flow.needs_passphrase host-edit.record.name_valid
+    keystore.remote_keys_dir
     trust.statement trust.key_id trust.chain |;
 
 my $tmp = tempdir( CLEANUP => 1 );
@@ -251,6 +253,16 @@ say ': flow [ owner path, actions stubbed ]';
         return { state => 'installed' };
     };
 
+    ## the owner pin [ record 'owner' ] names the key id certify expects ##
+    my $own_home = File::Spec->catdir( $tmp, 'own-home' );
+    File::Path::make_path("$own_home/.n/remote-keys/owners");
+    open( my $pfh, '>', "$own_home/.n/remote-k" . "eys/owners/acme.public" )
+        or die;
+    print {$pfh} 'P' x 77, "\n";
+    close($pfh);
+    local $code{'base.get_homedir'} = sub { return $own_home };
+    $record{'owner'} = 'acme';
+
     $code{'host-edit.flow.start'}->('zz-own');
     pump();
     my $s = $flow->('zz-own');
@@ -274,12 +286,30 @@ say ': flow [ owner path, actions stubbed ]';
         'certify : owner key + passphrase + the FETCHED host-root key'
     );
     ok( !exists $s->{'passphrase'}, '  :.. the passphrase is not kept' );
+    ok( $called{'certify'}{'expect_id'} eq 'P' x 77,
+        '  :.. expect_id = the owner pin\'s key id [ a wrong phrase fails ]'
+    );
     ok( $called{'install'}[4] eq 'W' x 300,
         'install : the certified statement'
     );
     ok( $s->{'step'} eq 'done' && $s->{'status'} =~ m|owner-certified|,
         'done : owner-certified' )
         or say "    got : $s->{'step'} : " . ( $s->{'status'} // '?' );
+
+    ## owner set but no such pin : an error before anything is certified ##
+    $record{'owner'} = 'no-such-owner';
+    %called = ();
+    $code{'host-edit.flow.start'}->('zz-own');
+    pump();
+    $code{'host-edit.flow.passphrase'}->( 'zz-own', 'pass-phrase' );
+    pump();
+    $s = $flow->('zz-own');
+    ok( $s->{'step'} eq 'error'
+            && $s->{'status'} =~ m|owner pin 'no-such-owner' not found|
+            && !exists $called{'certify'},
+        'owner pin missing : error, nothing certified'
+    );
+    $record{'owner'} = 'acme';
 
     ## the host-root differs from the pin : an error, never re-pinned ##
     local $code{'host-edit.action.probe'}
@@ -349,8 +379,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,.,,,,,,,..,,,..,.,,,.,.,,,,,,..,,,,,..,,...,...,,..,...,,.,,,..,...,
-#Q366T7IBS6EKRHNKT5HH47OHZLQZ463G72LF6OKILC72CVB2MGF6XURKFD7QVFHHL2G6HNCKERF2K
-#\\\|HHOXKH6KXXMP7YE77N4WJVKDMNLG7WKRL5HUDQ7LIRCLZAIJF5V \ / AMOS7 \ YOURUM ::
-#\[7]5ACKFGSPRW7S5YOFYIYBNKMS23THBTDHO34AJLPEDIQXWDQVMYAY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,..,,,.,,...,,,,,,.,,..,,,..,..,,...,.,.,..,,,..,...,,,,,,..,
+#FFMWFOBXYWEWMR3XO2IJI2ACT7VX5D2SV377XPSOV6YUGDJQOZWORZCXGAZI2DFMTPJRJSN5O672W
+#\\\|7ENS75P75IIMSHBPX4VHNECZNN2SVQC6RKOTE3QWCKUQXPPKOIS \ / AMOS7 \ YOURUM ::
+#\[7]R3VUEMKPMFBBQPHO4CLLOJU22ODCP2RSY4TUXRT2HY2FCRYCPWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
