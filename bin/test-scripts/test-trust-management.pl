@@ -494,6 +494,29 @@ say ': keys.certify_host [ the core : passphrase given or not ]';
             && $load_args[3] == FALSE,
         '  :.. load_keypair NEVER asks, never retries'
     );
+    ## expect_id : the derived owner key must be the expected one ##
+    $r = $core->(
+        {   owner     => 'owner',
+            host      => 'atom',
+            root_pub  => $kp{'03'}[0],
+            expect_id => $fp->('06')
+        }
+    );
+    ok( ref $r eq 'HASH', 'expect_id = the owner key id : certified' );
+    my ( $no, $no_code, $no_why ) = $core->(
+        {   owner     => 'owner',
+            host      => 'atom',
+            root_pub  => $kp{'03'}[0],
+            expect_id => $fp->('07')
+        }
+    );
+    ok( !defined $no
+            && $no_code eq '0010'
+            && $no_why =~ m|does not produce the expected owner key|,
+        'expect_id of ANOTHER key [ a wrong phrase ] : nothing signed'
+    );
+    ok( !exists $keys{'C25519'}{'owner'}, '  :.. the key is unloaded' );
+
     local $code{'crypt.C25519.load_keypair'} = sub { return FALSE };
     my ( $fail, $code_, $why ) = $core->(
         {   owner      => 'owner',
@@ -658,8 +681,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,.,.,,,...,,,,,,.,,,.,,.,.,...,,,.,,,.,..,,...,...,...,.,.,.,.,,.,,,,,,
-#TXVP3SVVIO3UMLWYRWVWH52DI4MEBBL55OX4H7WML4TOB73GIH2GSGTEEFAQGJMELQRHLEDIEHKL2
-#\\\|GZ3SU6FKINLMX5SK3OB24L4T4FBIHTQYE3KRCFBIU2R2ZKIIYYW \ / AMOS7 \ YOURUM ::
-#\[7]FGVQXOF4CDSK3Q4WFZHFEQME2RSFF27UTGMXXGEFXOJTSEKZNKDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,.,.,,,,,.,,,..,,...,.,,,,..,..,,...,...,.,,,.,.,...,.,,,...,
+#TFBNXQYTV64ML66RWERD7S3XTJNQOQ3ZQ77GX3JC76DF5CCVL2PSCOTTZ2SKR457X2TV6YULLMYHM
+#\\\|2HMJBNGW7VIUBQJZTU25CQOOUIPYQSH5D62MDD3VGMFJGN774XG \ / AMOS7 \ YOURUM ::
+#\[7]SG3VJOSKOSCXTW3VXI6LZYNM7CJFIRMDIXIVORKT3TPCDOCZKODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

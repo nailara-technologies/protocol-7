@@ -4,7 +4,8 @@
 # descr  = owner key signs a host-root statement [ the certify core ]
 # param  = { owner, host, root_pub [ 32 raw bytes ], days [ 365 ],
 #            on_warning [ coderef, called BEFORE the key is loaded ],
-#            passphrase [ optional : given -> NEVER prompts, never retries ] }
+#            passphrase [ optional : given -> NEVER prompts, never retries ],
+#            expect_id [ optional : the owner key's 77 char key id ] }
 # return = { wire, owner_pub, host } or ( undef, <exit code>, <reason> )
 #
 # data/md/design/TRUST-CHAIN-STEP2.md 'the owner root' : the owner key in
@@ -21,8 +22,8 @@ my $fail = sub { return ( undef, @ARG ) };
 
 return $fail->( qw| 0110 |, 'parameters not a hash' ) if ref $p ne qw| HASH |;
 
-my ( $owner, $host, $root_pub, $days, $on_warning, $passphrase )
-    = @{$p}{qw| owner host root_pub days on_warning passphrase |};
+my ( $owner, $host, $root_pub, $days, $on_warning, $passphrase, $expect_id )
+    = @{$p}{qw| owner host root_pub days on_warning passphrase expect_id |};
 $days //= 365;
 $on_warning = sub { }
     if ref $on_warning ne qw| CODE |;
@@ -95,6 +96,18 @@ if (   not defined $owner_pub
     $unload->();
     return $fail->( qw| 0110 |, 'owner key is not an Ed25519 signing key' );
 }
+## a virtual \ derived key has nothing on disk to check a phrase against :  ##
+## a wrong phrase is simply ANOTHER key. expect_id [ the owner pin's key id ##
+## ] makes that fail closed instead of signing as a stranger                ##
+if ( defined $expect_id
+    and ( <[trust.key_id]>->($owner_pub) // '' ) ne $expect_id ) {
+    $unload->();
+    return $fail->(
+        qw| 0010 |,
+        'this phrase does not produce the '
+            . 'expected owner key -- nothing signed'
+    );
+}
 if ( $owner_pub eq $root_pub ) {
     $unload->();
     return $fail->( qw| 0010 |, 'the owner key IS the host-root -- refused' );
@@ -131,8 +144,8 @@ return {
     qw| host |      => $host,
 };
 
-#,,,,,,.,,.,.,,..,,.,,,,,,,,,,,.,,,.,,.,,,.,,,..,,...,...,...,..,,..,,...,...,
-#AB6MXM563GBTFOPZ72ZRPPUGQDIA2O2AZ5DJY56XKU6VHEQX52XFF7NHFOGEEOIGRKYFCCL2BXTWM
-#\\\|F3BOOAKDFSI2FL7ORBGKMQVB7KKIMR27K4WNNJNQ7HGIMAVUZAZ \ / AMOS7 \ YOURUM ::
-#\[7]34CKQFYNSLQTXGRJTCUCXOTKR6WO2YSPAN3PWGQAGWZT7Q6NSUDY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,,.,,.,,,,.,,,.,,,,,,.,,,.,.,..,,...,...,...,...,,,,,,..,,,.,
+#6IMGCVNYYLBHNPW2INP3DS3JYQVZ5MP4GKRGAVN2E5UTMZOYB2Z7M62DOOM4426J3LN7DRGOBGCUE
+#\\\|NTUXHIT6RX3H5XHRWLFOMABP3N4SA2FTS7MKG5GO4JJVI4UH4HO \ / AMOS7 \ YOURUM ::
+#\[7]EHYN5FRKZ7ERD2F4XNJHKCJG7L2OJZGT2SPLU4ATIRKTOCTNS6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

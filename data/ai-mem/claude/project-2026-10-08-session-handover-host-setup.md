@@ -37,6 +37,18 @@ designs : `data/md/design/TRUST-CHAIN-STEP2.md`, `data/md/design/HOST-SETUP.md`.
   [ ::yes:: ], base.disable_console_command [ + disable_command listing
   fix ], keys list shows servers\ + owners\ pins, known\ retired
 
+- `:pass-env:` [ 1394aba35 + this commit ] : certify-host \ get-sp-pub-key \
+  gen-pwd-keyfile read PROTOCOL_7_KEY_PASSPHRASE \ PROTOCOL_7_KEY_SEED from
+  the environment ONLY with the tag [ read once, deleted ; key creation
+  keeps the 13 char floor ] -- scripts + tests : bin/test-scripts/
+  test-keys-pass-env-live.pl drives the REAL p7-keys with no prompt
+- a virtual key cannot tell a wrong phrase [ the stub holds only a
+  timestamp -- a wrong phrase is ANOTHER key ] : keys.certify_host
+  expect_id fails closed ; certify-host takes it from an owner pin of the
+  same name or ':expect=<key id>:', the host-edit flow from the record's
+  owner pin [ missing pin = error ]. recommended order : get-sp-pub-key
+  -> owner-pin -> certify
+
 ## user decisions [ 2026-10-08 ]
 
 - ssh is the first-slice TRANSPORT : the remotes expose ssh only, on
@@ -76,8 +88,8 @@ designs : `data/md/design/TRUST-CHAIN-STEP2.md`, `data/md/design/HOST-SETUP.md`.
 - never probe a destructive command [ remove known: shredded a live pin,
   restored byte-exact ] -- the fix [ key trash ] landed the same session
 
-#,,,.,,,.,.,.,.,,,,.,,,..,.,.,.,.,.,,,.,,,,..,..,,...,..,,,..,..,,...,,..,...,
-#6RILP7KV77MPJV46746QY5YEHLFVWKHMBS37V4WPU3ZPDONTAWA7XUCD4MYEBUDQ22LF3CSSF4Z7Y
-#\\\|NLVGG6GUTKYTE5CV7C6E4MVMLDJMUC7FNN35TKS3SOSGFYS5NYB \ / AMOS7 \ YOURUM ::
-#\[7]EHZR6E5XMWCBQQWOQ4F7WVT4WWJHOSVPHPCUWMBAPJONH5PFEACI 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,,,.,,,,.,,..,,..,,,..,,.,,,,,,..,,...,..,,.,,,,,,,...,.,.,...,
+#2PZLLUXQYPZG7PZZC3INWE6MNHLSJBACLMWCZM2UTWSXUAY6MAT6F6TLRU7OXSACKGLJHWMFCGYE2
+#\\\|534BU3VQYEB2JRXUAX2KEGQEZN5IWSTCDJNYAKXKLOXVN2K47NS \ / AMOS7 \ YOURUM ::
+#\[7]MDL6H4DFKHAF6JCDNR5J2RXGK5XDPE56N33AMZT76MQ6VIQ3JOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
