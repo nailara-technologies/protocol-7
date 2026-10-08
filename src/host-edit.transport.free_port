@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = host-edit.transport.free_port
+# descr  = a free local tcp port on 127.0.0.1 [ for an ssh forward ]
+# return = port number or undef
+
+require IO::Socket::INET;
+
+my $sock = IO::Socket::INET->new(
+    qw| LocalAddr | => '127.0.0.1',
+    qw| LocalPort | => 0,
+    qw| Proto |     => 'tcp',
+    qw| Listen |    => 1,
+    qw| ReuseAddr | => 1,
+);
+return undef if not defined $sock;
+
+my $port = $sock->sockport;
+close($sock);
+return $port;
+
+#,,,,,,.,,..,,...,,.,,.,.,..,,.,,,...,..,,.,.,..,,...,...,.,.,..,,...,.,.,,,,,
+#XJWJMGM6H2PKYFNBOQB7LDWFRDSQLELDKOADB42SNRSBL5CYYEDU5WTHBTCDNKBYGTFG4HILC3YOY
+#\\\|YP3PNXEVRJILN56VGFB6FKO7I7Q3UYAR2XHAODKGUBQGYYKVCER \ / AMOS7 \ YOURUM ::
+#\[7]GT2KWXHIG35BQSDCVHVD4FPS6MXPTDTU6SVIVGOBDF7XDVBCRYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

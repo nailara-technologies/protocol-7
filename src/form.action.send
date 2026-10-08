@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = form.action.send
+# descr = send ONE routed command for the form, marking it busy with a
+#         label until the reply lands [ or the call times out ]
+# param = $command [ route after the <form.cube_sid> prefix, e.g.
+#         'users.value-get' ], $args, $on_reply [ module name the reply
+#         is handed to ], $timeout [ seconds, default 30 ]
+
+## the form half of HOST-SETUP.md's reuse section [ lane B2a ] : exactly ONE
+## routed call is ever outstanding, and form.handler.stdin_key refuses to
+## decode further keys while <form.busy> is set, so a second call can never
+## race the first -- the event loop is single-threaded [ callbacks run to
+## completion before the next fires ], so the busy flag alone is sufficient
+## discipline, same as vault-edit.send_action's own note
+
+my ( $command, $args, $on_reply, $timeout ) = @ARG;
+
+## a second send while one call is outstanding is refused, not queued : the
+## caller's $on_reply contract assumes it owns the keyboard in between
+return FALSE if <form.busy>;
+
+my $cube_sid = <form.cube_sid> // return FALSE;
+
+return FALSE
+    if not length( $command  // '' )
+    or not length( $on_reply // '' );
+
+my $timer = <[event.add_timer]>->(
+    {   qw| after |   => $timeout // 30,
+        qw| repeat |  => FALSE,
+        qw| handler | => qw| form.handler.action_timeout |,
+        qw| desc |    => 'form.action.send timeout',
+    }
+);
+
+## the busy slot is a HASHREF so form.chrome can show the label while the
+## reply and timeout handlers can find their way back to the call
+<form.busy> = {
+    qw| label |    => $command,
+    qw| on_reply | => $on_reply,
+    qw| timer |    => $timer,
+};
+
+## the session-id prefix matches the user-edit senders' own shape [
+## user-edit.source.value_get : '%d.users.value-get' ] -- the form engine
+## never builds the full route itself, it only appends $command after the cube
+## sid.  send.local's return is NOT a reply -- it is 1+ [ targets written ], 0
+## [ unknown target ], -1 [ empty session table ] or -2 [ malformed command ]
+## : a non-positive result means no reply will EVER arrive, so busy is cleared
+## HERE rather than left to the timeout, same check vault-edit.send_action
+## already documents
+my $sent = <[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( qw| %d.%s |, $cube_sid, $command ),
+        qw| call_args | => { qw| args | => $args // '' },
+        qw| reply | => { qw| handler | => qw| form.handler.action_reply | }
+    }
+);
+
+if ( not $sent or $sent < 0 ) {
+    $timer->cancel if defined $timer;
+    <form.busy> = FALSE;
+    return FALSE;
+}
+
+return TRUE;
+
+#,,,.,,.,,,,.,,..,,,,,,,,,,,.,,,,,,..,.,.,.,,,..,,...,...,...,,,.,.,.,,..,...,
+
+#,,.,,,.,,,,,,,.,,,,,,,.,,,.,,.,.,.,,,.,.,,,.,..,,...,...,.,,,,..,..,,..,,.,.,
+#FSTWLZPO25UJPWTQM4L5OULHGFX4LJWUV7E2H23MTSIDPH7P6H2MJJUOOQGMQDJRMDB5W2VPHS3YQ
+#\\\|MUBKJXLAYZHGKB7ZDNTXZ7O7RB7AQX4QLMGVV5LWBBGJA56KEPC \ / AMOS7 \ YOURUM ::
+#\[7]6KKUOTT4VHIHX7OBZPULN5MZSNIBRE5SYB43FAZFHRNHG2ZKNMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

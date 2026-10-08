@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = host-edit.transport.forward_ready
+# descr  = is a record's ssh forward accepting connections [ no wait ]
+# param  = <record name>
+# return = TRUE ready, FALSE not yet, undef gone [ list : ( undef, why ) ]
+
+my $name = shift // '';
+
+my $fwd = ( <host-edit.forwards> // {} )->{$name};
+return wantarray ? ( undef, 'no forward' ) : undef if ref $fwd ne qw| HASH |;
+
+## the ssh child already exited : the forward failed ##
+require POSIX;
+my $done = waitpid( $fwd->{'pid'}, POSIX::WNOHANG() );
+if ( $done == $fwd->{'pid'} ) {
+    my $status = $CHILD_ERROR >> 8;
+    delete <host-edit.forwards>->{$name};
+    return wantarray
+        ? ( undef, "ssh exited [ status $status ]" )
+        : undef;
+}
+
+require IO::Socket::INET;
+my $sock = IO::Socket::INET->new(
+    qw| PeerAddr | => '127.0.0.1',
+    qw| PeerPort | => $fwd->{'port'},
+    qw| Proto |    => 'tcp',
+    qw| Timeout |  => 0.2,
+);
+return FALSE if not defined $sock;
+close($sock);
+return TRUE;
+
+#,,..,.,,,...,.,,,,..,,..,.,,,.,,,.,,,..,,.,,,..,,...,...,..,,,,,,,,.,..,,,..,
+#KFI67XTQBYTD7XIHPQPRH4ZLDC7CFLY3FULNBKEGIY7DSJMFPQPJCVRCSZKMHI7ROZ5EYL3QNIGRQ
+#\\\|OC46J64JKVXEJPXGJ5S3OC65KJZM4HWKOPRAFSHRWWXQZYLHCAG \ / AMOS7 \ YOURUM ::
+#\[7]SYLMHLXAS7AXSRFOL6UEQAAVQ6BPXGN3KCGIFLWRNCNNGNQYQMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

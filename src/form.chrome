@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = form.chrome
+# descr = the form's client-owned footer status line, drawn on every
+#         render [ <form.status> text plus the busy label ]
+
+## the chrome half of HOST-SETUP.md's reuse section [ lane B2a ] : the
+## vault-edit.render_chrome pattern generalised into form.* -- a footer the
+## form itself owns, surviving every reply, instead of any one-shot
+## server-side wrapper.  the ':' gutter and tone match the key-hint block's
+## own printf in form.render so the line reads as part of the same card
+
+my $status = <form.status> // '';
+my $busy   = <form.busy>;
+
+## the busy slot is the HASHREF form.action.send builds [ label / on_reply /
+## timer ] ; anything else in the slot is not a labelled call
+my $label
+    = ref $busy eq qw| HASH |
+    ? $busy->{'label'} // ''
+    : '';
+
+## entirely absent -- not even a blank line -- while neither a status nor a
+## busy label exists, so a form that never touches either renders
+## BYTE-IDENTICAL to before this module existed
+return TRUE if not length $status and not length $label;
+
+my $line = $status;
+
+if ( length $label ) {
+    ## spinner-free marker per lane B2a : a static bracketed label, the same
+    ## '[ ... ]' reading the key-hint block already uses
+    $line .= ' ' if length $line;
+    $line .= sprintf( q|[ %s ]|, $label );
+}
+
+my $gutter = $colors{'p7_fg_0000'} // '';
+my $text   = $colors{'p7_fg_0001'} // '';
+my $done   = $colors{'reset'}      // '';
+
+printf " %s:%s  %s%s\n", $gutter, $text, $line, $done;
+
+return TRUE;
+
+#,,,.,,.,,,,.,,..,,,,,,,,,,,.,,,,,,..,.,.,.,,,..,,...,...,...,,,.,.,.,,..,...,
+
+#,,,,,.,.,.,,,.,.,,..,,,.,,..,,..,...,..,,.,.,..,,...,...,..,,...,...,,.,,,.,,
+#AY5EVAN7QAOIK244DELHFCDXO4ZOECVDLST7GOEJNGTFYKNEFBPMRUCNIBHPJYM5775XHPRTWGJV4
+#\\\|G7B7C22XPR2NBZQL7HH6F35WVRODPTWO2UWEIAACNFPXKTNSTZ6 \ / AMOS7 \ YOURUM ::
+#\[7]THAFJ6DSEVV7LMTO6OZIK4X5H67QABGOS5KIKI4HZ2636PAVHCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

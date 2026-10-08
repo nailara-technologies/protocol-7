@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = form.handler.action_reply
+# descr = finish an outstanding form.action.send call when its reply lands
+
+my $reply = shift // return FALSE;
+
+## a late reply to a call that already timed out [ form.handler.action_  ##
+## timeout counts them ] -- in order on one link, so it comes before the ##
+## reply of any newer call : dropped, never handed to the wrong one      ##
+if ( ( <form.stale_replies> // 0 ) > 0 ) {
+    <form.stale_replies>--;
+    return FALSE;
+}
+
+my $busy = <form.busy>;
+
+## not ours to finish : a reply can only arrive for the ONE call
+## form.action.send allows to be outstanding, so a non-HASH busy slot means
+## the state is already consistent and there is nothing to clear
+return FALSE if ref $busy ne qw| HASH |;
+
+$busy->{'timer'}->cancel if defined $busy->{'timer'};
+
+my $on_reply = $busy->{'on_reply'};
+
+## cleared BEFORE $on_reply runs : a reply handler is allowed to send its own
+## follow-up call [ e.g. probe -> certify chains ], and the busy guard in
+## form.action.send would otherwise refuse it
+<form.busy> = FALSE;
+
+$code{$on_reply}->($reply)
+    if defined $on_reply and exists $code{$on_reply};
+
+return TRUE;
+
+#,,,.,,.,,,,.,,..,,,,,,,,,,,.,,,,,,..,.,.,.,,,..,,...,...,...,,,.,.,.,,..,...,
+
+#,,,.,,,.,.,,,...,.,.,,.,,,,.,...,,,.,,,.,,.,,..,,...,...,...,...,,,.,..,,.,,,
+#NUPC7AKME6HG5FYKVA4VNJ5N2FFF55ERHYG7FJIYWUSP2ANWAM6OFKMPIF7XT5PGTVEBVDV5RJUQY
+#\\\|ECZG5R2UGNPL7EOFYUV4ZOWT3R5XTASQNSHFRR2RML6WTMISQHB \ / AMOS7 \ YOURUM ::
+#\[7]5UAS3LKZXJM7SYHHOHYFCTZLRBKTGMNHTUX7IWDCD5ITW6TMZSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
