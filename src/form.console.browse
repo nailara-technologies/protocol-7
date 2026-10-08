@@ -31,13 +31,19 @@ if ( not -t STDIN ) {
 
 <form.cube_sid>    = $cube_sid;
 <form.interactive> = TRUE;
-## q{} NOT qw| | for the values : qw splits on whitespace, so  'qw| user-edit
-## : records |' yields THREE list elements and silently corrupts the hash
+## menu titles carry the zenka name : the fallback word comes from
+## <form.source> so host-edit registers its own [ user-edit.init_code passes
+## the historical 'user-edit' -- keeping the exact ' : ' framing ] q{} NOT qw|
+## | for the sprintf formats : qw splits on whitespace, so 'qw| user-edit :
+## records |' yields THREE list elements and silently corrupts the hash
 ## pairing -- which is why only the single-token entry was resolving
+my $source        = <form.source>              // {};
+my $menu_fallback = $source->{'menu_fallback'} // qw| user-edit |;
+
 <form.menu.title> = {
-    qw| namespace | => q{user-edit},
-    qw| record |    => q{user-edit : records},
-    qw| keydetail | => q{user-edit : key},
+    qw| namespace | => $menu_fallback,
+    qw| record |    => sprintf( q{%s : records}, $menu_fallback ),
+    qw| keydetail | => sprintf( q{%s : key},     $menu_fallback ),
 };
 
 push <callbacks.end_code>->@*, qw| form.term_restore |;
@@ -53,8 +59,8 @@ my $sender = $source->{'value_all'} // return FALSE;
 
 return TRUE;
 
-#,,..,,,,,,,,,,,.,.,.,.,.,.,.,,,.,.,,,..,,,,,,..,,...,...,..,,,,,,...,,..,,,.,
-#QSOMI7UANKYNYSMSM5X6RZ4XAWWY3VFILFAPZKVLD257LFMVW4IJCP5S6OKIUMHQA46ODLPZBJKNQ
-#\\\|DBQVUILO5PV7YR7XZUT4R637NXDWHL7HWYC444IYGQZFNEVJZF7 \ / AMOS7 \ YOURUM ::
-#\[7]QVW6G3L3UDRX46TAO2K5VQXRXZ56YFEX4TRTBB5AE7QFC44YMOAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,..,,,,.,.,.,,,,,.,,,...,,..,,.,,..,,...,...,...,,,.,.,,,.,,,,,,,
+#KOKQW3PNCZU62ID75JKAPW4CXJBWFS75A76RGJPJD4M7NN5LLFMZACKLQDO3B2K23SAOPRZ64LDIA
+#\\\|SQ2WRFVGHJPIW54WSQYFPBUFKDEGJEHFCFB4L4AVHLGATO73KUU \ / AMOS7 \ YOURUM ::
+#\[7]E3HM2YB3PCRRU54UF3252IET37OJ6JXVAA4IF7QO5AOMXMLOTQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

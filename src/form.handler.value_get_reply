@@ -14,6 +14,7 @@ my ($info) = @ARG;
 my $cmd       = uc( $info->{'cmd'} // '' );
 my $call_args = $info->{'call_args'} // {};
 my $username  = <form.username>      // '?';
+my $source    = <form.source>        // {};
 
 my $abort = sub {
     my ($msg) = @ARG;
@@ -34,12 +35,17 @@ if ( $cmd ne qw| SIZE | ) {
 
     ## OFFER TO CREATE : only for a record that genuinely does not exist.
     ##
-    ## 'false' mode is overloaded on the users side -- it also carries "user
-    ## '%s' record invalid: %s" and the usage errors -- so this matches
-    ## users.cmd.value-get's not-found string EXACTLY.  a substring test would
-    ## offer to overwrite a CORRUPT but existing record.  [ the counterpart
-    ## string lives in src/users.cmd.value-get ]
-    my $not_found_msg = sprintf( "user '%s' not found", $username );
+    ## 'false' mode is overloaded on the record-store side -- it also carries
+    ## "user '%s' record invalid: %s" and the usage errors -- so this matches
+    ## the not-found string EXACTLY.  a substring test would offer to
+    ## overwrite a CORRUPT but existing record.  the format itself is
+    ## record-vocabulary, carried by <form.source> [ the users zenka's
+    ## value-get and user-edit.init_code agree on "user '%s' not found" ;
+    ## host-edit passes its own 'host' wording ]
+    my $not_found_msg = sprintf(
+        $source->{'not_found_fmt'} // q{user '%s' not found},
+        $username
+    );
 
     if (<form.offer.create>    ## the caller owns the event loop ##
         and not <form.create.attempted>
@@ -123,7 +129,6 @@ if ( not defined $schema ) {
     ## but routed to the BOOTSTRAP reply handler : that one founds a schema
     ## from nothing [ the add-a-field cycler as its one and only row ] instead
     ## of attaching a row onto a form that is already on screen
-    my $source = <form.source>              // return FALSE;
     my $sender = $source->{'field_options'} // return FALSE;
 
     <[$sender]>->(qw| form.handler.field_options_bootstrap_reply |);
@@ -136,7 +141,8 @@ my $editor_state = <[editor.control.create]>->($schema);
 return $abort->('editor.control.create rejected the derived schema')
     if not defined $editor_state;
 
-my $frame_name = <form.frame_name> //= qw| user-edit-form |;
+my $frame_name = <form.frame_name> //= $source->{'frame_name'}
+    // qw| user-edit-form |;
 
 return $abort->('could not generate a frame for the derived field set')
     if not defined
@@ -189,7 +195,6 @@ if ( <form.interactive> and not <form.mode.no_tty_debug> ) {
 ## the optional fields the record already HAS -- is exactly what says which
 ## present fields may be given back again
 if ( <form.interactive> and defined <form.cube_sid> ) {
-    my $source = <form.source>              // return FALSE;
     my $sender = $source->{'field_options'} // return FALSE;
 
     <[$sender]>->(qw| form.handler.field_options_reply |);
@@ -203,8 +208,8 @@ if ( <form.interactive> and defined <form.cube_sid> ) {
 
 return TRUE;
 
-#,,.,,..,,..,,.,.,.,,,..,,.,.,,,,,...,,.,,..,,..,,...,..,,,,,,.,,,.,.,.,.,,..,
-#QV6N4WQZSSVBCKTLE2VDMFVLGFEP6ORU4M3TP7BFIDSLL5STXIUFYDP5QF7X3BKQL6YKFOVOKJZDS
-#\\\|2M5N5P3GFMTAM3IZRR2F32BEJ7KARH744TLSUI5Y4HTK67R727T \ / AMOS7 \ YOURUM ::
-#\[7]YDGCYI27ZV7W23FW77RSWWFAFSQQAD46LVVROJ67RXWXKTQACGDI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,.,,,.,,..,.,,,,,.,.,.,...,..,,...,..,,.,,,,,,,,..,..,,...,
+#GS35WPV5BFOUHRXHRBU4GUS4KL7LLKXBDERV5IUDFINMFKNARMYS4NHAA3VOMOKRC4TBFFHMLNEUY
+#\\\|ZUPAYM6T3G6INHK5IOFOQ3WV2GGMR4X4Y6TE7JF7IKKS5EPRDXC \ / AMOS7 \ YOURUM ::
+#\[7]BMBDNRLATR4K7WFKYO3ANPMU7DPPJAJT26CIIJSQYM2RBZ2X6OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

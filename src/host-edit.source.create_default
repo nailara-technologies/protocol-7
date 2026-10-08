@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = host-edit.source.create_default
+# descr = local record source : create a record with default fields
+# param = $record_name, $reply_handler
+
+## mirrors users.cmd.create-default's contract through the <form.source> table
+## : REFUSE an existing record [ value-set is create-or-overwrite, this one
+## deliberately is not ], then write host-edit.record.  default_fields.  see
+## host-edit.source.value_get for the deferred-reply shape --
+## form.handler.create_default_reply re-sends value-get on TRUE.
+
+my ( $record_name, $reply_handler ) = @ARG;
+
+$record_name //= '';
+$record_name =~ s|^\s+||;
+$record_name =~ s|\s+$||;
+
+my $info;
+
+if ( not <[host-edit.record.name_valid]>->($record_name) ) {
+    my $msg = sprintf "host name '%s' is invalid", $record_name;
+    $info = {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| FALSE |,
+        qw| call_args | => { qw| args | => $msg },
+        qw| data |      => $msg
+    };
+} elsif ( defined <[host-edit.record.read]>->($record_name) ) {
+    my $msg = sprintf "host '%s' record exists already", $record_name;
+    $info = {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| FALSE |,
+        qw| call_args | => { qw| args | => $msg },
+        qw| data |      => $msg
+    };
+} else {
+    my $envelope = {
+        qw| name |    => $record_name,
+        qw| created | => <[base.ntime]>,
+        qw| updated | => <[base.ntime]>,
+        qw| fields |  => <[host-edit.record.default_fields]>->($record_name)
+    };
+
+    my ( $ok, $err )
+        = <[host-edit.record.write]>->( $record_name, $envelope );
+
+    $info
+        = $ok
+        ? {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| TRUE |,
+        qw| call_args | => { qw| args | => '' },
+        qw| data |      => ''
+        }
+        : {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| FALSE |,
+        qw| call_args | => {
+            qw| args | => sprintf "failed to create host '%s': %s",
+            $record_name, $err // 'unknown error'
+        },
+        qw| data | => sprintf "failed to create host '%s': %s",
+        $record_name,
+        $err // 'unknown error'
+        };
+}
+
+<[event.add_timer]>->(
+    {   qw| after | => 0,
+        qw| desc |  => 'host-edit.source.create_default deferred reply',
+        qw| cb |    => sub { <[$reply_handler]>->($info) },
+    }
+);
+
+return TRUE;
+
+#,,,.,,,,,,.,.,.,,.,,.,,.,,,.,,,,,,..,,,,.,,..,,..,,...,...,..,,,.,,,,.,,.,,
+
+#,,.,,,..,..,,.,,,...,,..,.,.,...,,..,,.,,,,.,..,,...,...,...,.,,,..,,,,.,.,.,
+#EGUIJXXJZZ4A7BF57CNN5LCY66A25RBRNKKC5JB7VC2JMCWTNFJ222VYEFFFCIQYSBVO4REQWC6JG
+#\\\|GIS2LJKU445QAF7POSTKVQBMLJSD422CMBO2FJP5KQNFY4O5OMM \ / AMOS7 \ YOURUM ::
+#\[7]WM4XD6VTV2L74TUYS3XRKRGOKZX7DBKGPFXCARENPGEPEW4T2EAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

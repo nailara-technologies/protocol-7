@@ -16,6 +16,11 @@ my ($info) = @ARG;
 
 my $cmd = uc( $info->{'cmd'} // '' );
 
+## the records namespace key is record-vocabulary, carried by <form.source> [
+## user-edit passes 'host-system' ; host-edit passes 'hosts' ]
+my $namespace = ( <form.source> // {} )->{'namespace_main'}
+    // qw| host-system |;
+
 if ( $cmd ne qw| SIZE | ) {
     <[form.message]>->(
         sprintf( 'could not list records : %s',
@@ -26,11 +31,10 @@ if ( $cmd ne qw| SIZE | ) {
     return FALSE;
 }
 
-my $rows
-    = <[form.menu.records]>->( qw| host-system |, $info->{'data'} // '' );
+my $rows = <[form.menu.records]>->( $namespace, $info->{'data'} // '' );
 
 if ( not $rows->@* ) {
-    <[form.message]>->( 'no records in host-system', 'no-op' );
+    <[form.message]>->( "no records in $namespace", 'no-op' );
     <form.dirty>++;
     return FALSE;
 }
@@ -39,8 +43,8 @@ return
     <[form.menu.open_rows]>
     ->( $rows, qw| record |, <form.menu.return_state> );
 
-#,,..,.,.,,.,,,,.,,,.,..,,,,,,,..,...,,,.,,.,,..,,...,...,.,,,.,.,..,,,..,,.,,
-#UPAWBA5RV4QENPFWFMGA5QFGJFYOMDE3RTV4PMNEEF4OFQ2LE66AINFHH3RAB4FRRBA6OACJT3XIW
-#\\\|BDB6UHJLW5D4HGKXFFP7FVLZKKOKXOQ4VBXRIVJOAPO5CAYL6NK \ / AMOS7 \ YOURUM ::
-#\[7]YLEQQX6CUO4MLVIZAOZOW53EAZFAPBZQABPHREY7T4YCHFPJSUBQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,.,,,.,.,.,.,,..,,,,,,.,,,,.,..,,...,..,,,.,,.,.,,,,,,.,,,.,,
+#DZUPOHM7GJYIW6ZDX7Z7ZMB7SCKONV27GLUSW3NKIWWM5DQEAIWBKWQW2AF3ZUORHBUEGNVYHFBNE
+#\\\|FPWT2QUUNCVGALBFN4UPXPMPE32ZYRPMQXD65CKQN623EU7LWAC \ / AMOS7 \ YOURUM ::
+#\[7]SJGIAZU32KNLVFIQSLUQDVCGS53H5I32ZZJAJKFHM4F3XNS55CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

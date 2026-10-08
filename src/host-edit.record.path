@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = host-edit.record.path
+# descr = keyword path of a host record file within the zenka's data dir
+# param = $name
+
+## THE ONE PLACE that knows how a host record is laid out on disk.  every
+## reader and writer goes through here, so the layout can grow without hunting
+## call sites.
+##
+##   [VAR_P7]/hosts/<name>.json
+##
+## unlike a user record [ users.record.path : a DIRECTORY, designed to grow a
+## log/ subdir ], a host record is ONE json document -- HOST-SETUP.md's host
+## record holds only link/transport metadata, nothing temporal.
+##
+## returns a KEYWORD path -- base.path.resolve_keywords turns it absolute for
+## a read or write.
+
+my ($name) = @ARG;
+
+return undef if not <[host-edit.record.name_valid]>->($name);
+
+return sprintf( qw| [VAR_P7]/hosts/%s.json |, $name );
+
+#,,..,,.,,.,..,,.,.,..,.,,,,,.,.,.,,.,,,.,,..,,..,,...,...,.,,,.,,.,,.,,,,,.,
+
+#,,,,,.,,,..,,.,,,,,,,.,.,...,..,,,.,,,.,,,.,,..,,...,...,...,,,.,,..,,,.,,,,,
+#JDEUQ7CWMTUJROXJ3T4GIRXNUH7VE225KTFOLMCQYG6M5PIL5YRIWYDW3QRLC5V2MRE6MR476JWXM
+#\\\|UGWNODEUTMIWNQBLYL4Q7PUX36MAG54M2RMKOMBX5Y5YGXTWBUN \ / AMOS7 \ YOURUM ::
+#\[7]7GYOCA4KD2DENDVXQDYP6C6ZDGEZY5FSQTIJK6SQUDO5XTMUOWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

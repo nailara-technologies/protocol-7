@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = host-edit.source.value_all
+# descr = local record source : list all host records
+# param = $reply_handler
+
+## the record source behind <form.source> -- see host-edit.source.  value_get
+## for the deferred-reply contract.  the users zenka answers value-all with a
+## NEWLINE-JOINED STRING [ the reply contract forbids a raw arrayref in 'data'
+## ] and an empty string means both "no records" and "the store directory is
+## absent" -- the local source keeps the identical shape so
+## form.handler.value_all_reply cannot tell the difference.
+
+my ($reply_handler) = @ARG;
+
+my $hosts_dir = <[base.path.resolve_keywords]>->(qw| [VAR_P7]/hosts |);
+
+my @names;
+
+if ( defined $hosts_dir and -d $hosts_dir ) {
+    foreach my $file ( <[file.all_files]>->($hosts_dir)->@* ) {
+        next if $file !~ m|/([^/]+)\.json$|;
+        push @names, $1
+            if <[host-edit.record.name_valid]>->($1);
+    }
+}
+
+my $info = {
+    qw| sid |       => <form.cube_sid> // 0,
+    qw| cmd |       => qw| SIZE |,
+    qw| call_args | => { qw| args | => '' },
+    qw| data |      => join( qq|\n|, <[base.sort]>->(@names) )
+};
+
+<[event.add_timer]>->(
+    {   qw| after | => 0,
+        qw| desc |  => 'host-edit.source.value_all deferred reply',
+        qw| cb |    => sub { <[$reply_handler]>->($info) },
+    }
+);
+
+return TRUE;
+
+#,,,,.,,.,,,,.,.,,,,.,,.,,.,,.,,,,..,,,,.,,..,,..,,...,...,..,,.,,,.,.,,.,.,
+
+#,,..,.,.,,..,,.,,...,,.,,...,.,,,...,.,.,.,.,..,,...,..,,,,.,,.,,..,,.,,,,..,
+#32DCJEGX45LA7AGZ4CQCR42EPXI4EE6VXQS5JI7C3YOXMQ7V5FAN6SAX7WHD2HE2HY4TBWW6LXMRQ
+#\\\|MJCIKFCLNXS4COPDVHJDJUXDTDHHINIEJD2T2E5SVROQELFUDJW \ / AMOS7 \ YOURUM ::
+#\[7]2ZBNEGK5CF56A4LUNZXUDF4TOGSD7IRCK74JRVPTVSNF2ONTZABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = host-edit.source.value_set
+# descr = local record source : store one host record's fields
+# param = $record_name, $json_fields, $reply_handler
+
+## the record source behind <form.source> -- see host-edit.source.  value_get
+## for the deferred-reply contract.  form.submit flattens the json before
+## sending [ its own header documents why ], so the decode here sees a
+## single-line object.
+##
+## the write is a full overwrite, and the field set is RE-FILTERED against
+## host-edit.record.field_names : the read-only trust columns value_get
+## injects for display can come back in the submitted payload, and
+## HOST-SETUP.md is unambiguous that they must NEVER be stored.
+
+my ( $record_name, $json_fields, $reply_handler ) = @ARG;
+
+$record_name //= '';
+$record_name =~ s|^\s+||;
+$record_name =~ s|\s+$||;
+
+my $info;
+
+if ( not <[host-edit.record.name_valid]>->($record_name) ) {
+    my $msg = sprintf "host name '%s' is invalid", $record_name;
+    $info = {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| FALSE |,
+        qw| call_args | => { qw| args | => $msg },
+        qw| data |      => $msg
+    };
+} else {
+    my $fields = <[format.json.decode]>->($json_fields);
+
+    if ( ref $fields ne qw| HASH | ) {
+        $info = {
+            qw| sid |       => <form.cube_sid> // 0,
+            qw| cmd |       => qw| FALSE |,
+            qw| call_args | =>
+                { qw| args | => 'fields must be a JSON object' },
+            qw| data | => 'fields must be a JSON object'
+        };
+    } else {
+        my %known = map { $ARG => TRUE } <[host-edit.record.field_names]>;
+        my %kept;
+        foreach my $field ( keys %{$fields} ) {
+            $kept{$field} = $fields->{$field}
+                if $known{$field};
+        }
+        $kept{'name'} = $record_name;    ## the label is authoritative ##
+
+        my $existing = <[host-edit.record.read]>->($record_name);
+
+        my $envelope = {
+            qw| name |    => $record_name,
+            qw| created | => (
+                ref $existing eq qw| HASH | and defined $existing->{'created'}
+                )
+            ? $existing->{'created'}
+            : <[base.ntime]>,
+            qw| updated | => <[base.ntime]>,
+            qw| fields |  => \%kept
+        };
+
+        my ( $ok, $err )
+            = <[host-edit.record.write]>->( $record_name, $envelope );
+
+        $info
+            = $ok
+            ? {
+            qw| sid |       => <form.cube_sid> // 0,
+            qw| cmd |       => qw| TRUE |,
+            qw| call_args | => {
+                qw| args | => sprintf "host '%s' stored",
+                $record_name
+            },
+            qw| data | => sprintf "host '%s' stored",
+            $record_name
+            }
+            : {
+            qw| sid |       => <form.cube_sid> // 0,
+            qw| cmd |       => qw| FALSE |,
+            qw| call_args | => {
+                qw| args | => sprintf "failed to write host '%s': %s",
+                $record_name, $err // 'unknown error'
+            },
+            qw| data | => sprintf "failed to write host '%s': %s",
+            $record_name,
+            $err // 'unknown error'
+            };
+    }
+}
+
+<[event.add_timer]>->(
+    {   qw| after | => 0,
+        qw| desc |  => 'host-edit.source.value_set deferred reply',
+        qw| cb |    => sub { <[$reply_handler]>->($info) },
+    }
+);
+
+return TRUE;
+
+#,,,,,..,,,,,.,.,,,,.,,.,,.,,.,,,,,..,,,,.,,..,,..,,...,...,..,,,,,.,.,,.,,,
+
+#,,..,.,.,..,,..,,.,.,,,.,.,.,,,,,,,.,..,,.,,,..,,...,...,,.,,,.,,,,,,,,,,,.,,
+#4U4QO57NBDEGQ4ONPBQPNIVGDYV65ZCVYPBTMKEKJEVEUM4V4BLDD5FHBBYMAPO45NRGAH3JYJI5A
+#\\\|PPGVGIAUO5O24EIRSLOWVQNNH3SMVLZXALUC7MM5GDVO5VJLKDQ \ / AMOS7 \ YOURUM ::
+#\[7]EJMYZJKFHQ7JMHJOFBK7B7WR3EBVNXGX76HKDBPISZYRLNB2CIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

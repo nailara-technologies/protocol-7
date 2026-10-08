@@ -66,6 +66,21 @@ on a TTY at most daily, `removed purge ::yes::`. host pins, owner pins,
 distrust lists, the owner statement. the shredding incident was a test
 entry [ no damage ] -- the fix landed in the same session.
 
+## host setup [ data/md/design/HOST-SETUP.md ]
+
+landed `b282f8fce` : form.* engine [ kimi, user-edit output byte-
+identical ], v7-zenki.owner-statement install \ drop, v7-zenki.backend.*,
+p-7-r -host, keystore.* [ keys.* sub-namespaces drag keys.init_code into
+any loading zenka -- it resets <system.amos-zenka-user> : never load
+keys.* in v7-zenki ]. decided : ssh is the first-slice TRANSPORT [ the
+remotes expose ssh only, non-default ports -- NEVER write real ports \
+hosts into the repo ], pins name the host [ -host ], records in
+host-edit's own VAR_P7 \ ETC_P7 dirs. next : kimi lane B = host-edit
+zenka on form.* [ records, add-host form, ssh forward + probe + certify +
+owner-statement ] ; its report lists what form.* still names user-edit
+[ display strings, <user-edit.cfg.*>, menu namespace vocabulary ].
+owner-statement + p-7-r -host need a v7-zenki restart to go live.
+
 ## lessons
 
 - gen-sub-whitelist [ zenka ] regenerates subroutines.load-early -- they
@@ -84,8 +99,8 @@ entry [ no damage ] -- the fix landed in the same session.
   earlier cat ] -- never invoke a destructive command to see what it does,
   even with the output thrown away [ [[tool-probe-empty-args-destructive-default]] ]
 
-#,,..,.,.,,,.,,..,,,.,.,.,..,,.,,,.,.,...,..,,..,,...,...,.,,,.,.,...,.,,,,.,,
-#U6W2OCQYHGZHQ7B33GV24WORSJUQLWE3XE5WVIFLP2TJR7BEXDSHHCVFD3HCDRZRCGMW5JHMXCOOU
-#\\\|XJXW2BW2OOGM5VS6UTIMYDINM5I3W6CIEFJ7IM2MW6RXGSDSZ77 \ / AMOS7 \ YOURUM ::
-#\[7]TNOT2TGANQ6F4TKR565KTW6U2HK7B6HQ2E54RTZARPIAOHI7Y2DY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,.,,,..,,...,,,,,,,,,,..,.,.,..,,...,.,.,.,.,,,,,,.,,.,.,...,
+#OGFHTIW5RW2BVZT2BUY3DCX7VONQLK3RKP55SFN7BRYPNIKDJ27FWHSHD66VGRLMDXU4SNU6QCJ3S
+#\\\|EXNEXN5SA6KZ5VT3CW5YZPMFG5KAY7OXE7Z3EOFU63QKYFHFPHH \ / AMOS7 \ YOURUM ::
+#\[7]IVBOJZDJBYA63MJKSYIABVNHC7SNKGDJF2FAN6RGASODQVNPYCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
