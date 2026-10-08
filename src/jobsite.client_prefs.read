@@ -6,16 +6,15 @@
 my $sref = <[file.zenka_dir.load]>->('client-prefs.yaml');
 return {} if not defined $sref;
 
-my $saved;
-eval { $saved = YAML::XS::Load( $sref->$* ) };
-if ($@) {
-    <[base.logs]>->( 0, 'jss.client_prefs.read: parse error: %s', $@ );
+my ( $saved, $yaml_err ) = <[format.yaml.load_str]>->( $sref->$* );
+if ($yaml_err) {
+    <[base.logs]>->( 0, 'jss.client_prefs.read: parse error: %s', $yaml_err );
     return {};
 }
 return ref $saved eq 'HASH' ? $saved : {};
 
-#,,.,,,,,,...,.,.,..,,.,,,..,,,,.,.,,,,.,,,,.,..,,...,...,,,.,,..,,..,,.,,.,,,
-#7SHRN5Q4QPS2TVY567EXGXX47O6EA4HUESNYITXDJRYHO64MRJN64PCSPTHTOVGI7MSK4A5HD2CWC
-#\\\|VWV2JO2G3F2BGKR2ISWHHOM45YULBZ63SXH4MTN6T3LTRI34ONV \ / AMOS7 \ YOURUM ::
-#\[7]MUCEAFVWX6NLH5VJWDXFPXGJJIIWAMTW2WKVXLSRLLHRTMAIFEAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,,..,..,,,,.,.,.,,.,,.,.,,,.,..,,...,..,,,.,,,..,,.,,,,.,,,,,
+#4ZF573QLZUOKX2UNFOOP7WP4BX2HKXEFWGDKPKFLC37GRU36DGVYP2TZIGJDBFGDBEDFATCONO4H4
+#\\\|KPZRNZ66LDJVXMEW57PLZPFGSPBSMUXKH6KE5QMM3VMBTUHI7PM \ / AMOS7 \ YOURUM ::
+#\[7]YMZLCUD5KSPZM4HLIR7AWFCYASQVPSNUAOFLCECGJG6QAMXR64AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

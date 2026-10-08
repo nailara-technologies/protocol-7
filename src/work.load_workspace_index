@@ -9,19 +9,15 @@ if ( <[work.index_needs_regeneration]>->($workspace_index) ) {
     return <[work.generate_workspace_index]>;
 }
 
-my $index_data;
-eval { $index_data = YAML::XS::LoadFile($workspace_index); };
+my $index_data = <[format.yaml.load_file]>->($workspace_index);
 
-if ($EVAL_ERROR) {
-
-    # If load fails, regenerate
-    return <[work.generate_workspace_index]>;
-}
+# If load fails, regenerate
+return <[work.generate_workspace_index]> if not defined $index_data;
 
 return $index_data;
 
-#,,,,,..,,..,,...,,..,,,.,,,,,,,.,,,,,.,.,..,,..,,...,..,,...,...,.,.,...,...,
-#R3D4FYJLAUHM62Y3AFGALXOCNTELM56YWNEZL4N3TOAK2NEXLYNR3KNAT7H4KQLNYWWX2BDP7NRSW
-#\\\|Y6JYRCFDSR2ELUU3T6VCYR5VQQCU5PZQTOYIVHIHQ4WYAR57LXK \ / AMOS7 \ YOURUM ::
-#\[7]LS37BPU62576IB3TI2UXN3SGX47OYYB6DWOBEQIA4C5XLUWFKUCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,,,,,,,.,.,.,..,,,.,,..,,,,,,..,,...,...,,.,,...,,..,,.,,..,,
+#J4TENH3I4KT25UZZS243JTKX22J3YZGVEB24YKGUZNMOVSAJGG2SZPKMNJTZG5HRLMI4EDINN4LBU
+#\\\|FIWEUQWUSWHOIDQPSOMZXFRFIKDFYUACIGID2ZUYCTIZSX3L3W3 \ / AMOS7 \ YOURUM ::
+#\[7]M25NJSMHUNR5AONT44BU4HQYQMAW6SPR3CXPDFSFUADXL3BE7GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

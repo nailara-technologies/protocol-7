@@ -16,21 +16,14 @@ return { 'mode' => qw| false |, 'data' => "file not found: $file" }
     unless -f $file and -r $file;
 
 ## load yaml ##
-my $yaml_fn = $code{'format.yaml.load_file'};
-
-my $data;
-if ( defined $yaml_fn ) {
-    $data = $yaml_fn->($file);
-} else {
-    <[base.perlmod.load]>->('YAML::XS');
-    $data = eval { YAML::XS::LoadFile($file) };
-    if ($@) {
-        <[base.logs]>->(
-            0, ':. base.pattern-registry.load: yaml parse error [ %s ] :.',
-            $@
-        );
-        return { 'mode' => qw| false |, 'data' => 'yaml parse error' };
-    }
+my ( $data, $yaml_err ) = <[format.yaml.load_file]>->($file);
+if ( not defined $data ) {
+    <[base.logs]>->(
+        0,
+        ':. base.pattern-registry.load: yaml parse error [ %s ] :.',
+        $yaml_err // 'unknown'
+    );
+    return { 'mode' => qw| false |, 'data' => 'yaml parse error' };
 }
 
 return { 'mode' => qw| false |, 'data' => 'no data in yaml' }
@@ -121,8 +114,8 @@ return {
     }
 };
 
-#,,,.,.,,,...,...,..,,,,.,...,,..,,.,,,..,,..,..,,...,...,..,,...,...,.,,,,..,
-#P535ZAA6EDQ7UKZLRETTUNAMK3SCGNFOOHQLJD3SSET6CTGS7JN6PQ4LU4RFEWMEXRNNLLRETKWAY
-#\\\|QIAIGOENRCMVZ5UQ52TWRHEVR2QPLUVDGGDKMQXS6JRJUUVVUPE \ / AMOS7 \ YOURUM ::
-#\[7]JTHP6XQECMNV24FNB2RXWWGRI3QO63J2TTRNKMQPPEREL2YRWSCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,..,,.,,,..,,,.,,,,,,..,,...,..,,...,...,...,,,.,,,,,,,,,,.,,
+#2H72PRO4U336NW3G3S535DD6GBLSKKLLSKAIWXFD2PMV37R3TVRBDLHRW3XO3XK5RFVVNIALIHTGM
+#\\\|4PKFQ3YLCU4PQAAR45KWZBMEBQENJBPLJAY4R6BPVOWQHH3N4L7 \ / AMOS7 \ YOURUM ::
+#\[7]SXFYPQJ635ZC65XADT4FSTEAVXWYMN4USLATNJABRTNWSW3KT4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

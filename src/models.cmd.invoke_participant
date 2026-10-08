@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = models.cmd.invoke_participant
-# descr = invoke participant with automatic fallback on rate limit
+# descr = invoke participant, fallback on rate limit
 
 # Extract params - $call is set by code header
 my $params = {};
@@ -13,9 +13,8 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     # Try parsing as JSON first, fall back to YAML
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
     if ( length $EVAL_ERROR ) {
-        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+        $params = <[format.yaml.load_str]>->( $call->{'args'} ) // {};
     }
-    $params = {} if length $EVAL_ERROR;
 }
 
 my $job_id         = $params->{'job_id'}         // '';
@@ -55,8 +54,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,,,,..,,,,,,.,.,,..,.,,,,..,..,,,.,,,.,,...,..,,...,...,,..,.,.,,..,.,.,,,,,
-#WUSBKWPVIWENJQJLB5J3EZAAVPDPRSI7Z3QZ23U7GVDQP3ODUTQKZEZGTGNUOTNCRF7UGNJ6NVET6
-#\\\|IMT3HJQMXJ7PNDAY7PQG4EW72Z3VRXPFT6IEJY4OKDNLPWMUVTW \ / AMOS7 \ YOURUM ::
-#\[7]WFFJY3H643UCFFOSMQWJAYDCZ7Q44MW6KTNU2YYC2TWH3MNVNECQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,,..,.,,,..,,,.,,,..,.,.,..,,..,,...,...,,..,,,,,.,.,.,.,.,.,
+#DIY2GXCBBUFN23PJSTXE5R5ZFUBZ6F3I2KJG6VNFEWHKFMOYXEKGHWDGFY45UGGGUWC6SMUR4LSBE
+#\\\|IEQNCNDAJIPSGCUPJJZQ2EG6ZXXS2W46U4YBR4Y6UUR7AIEJIDF \ / AMOS7 \ YOURUM ::
+#\[7]UZZQRBVHP66A4GQSXRJFJ6B5SPHTCJEVXDXXTVFHPKJMUFGXO2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

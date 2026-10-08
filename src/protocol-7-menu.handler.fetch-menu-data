@@ -16,17 +16,14 @@ my $yaml_string = $params->{'data'};
 return unless defined $yaml_string && length($yaml_string) > 0;
 
 # parse YAML data
-my $provider_data;
-$EVAL_ERROR = '';    ## force reset eval errors ##
-eval {
-    my $prepended_yaml = "---\n" . $yaml_string;
-    $provider_data = YAML::XS::Load($prepended_yaml);
-};
+my $prepended_yaml = "---\n" . $yaml_string;
+my ( $provider_data, $yaml_err )
+    = <[format.yaml.load_str]>->($prepended_yaml);
 
-if ( length $EVAL_ERROR ) {
+if ($yaml_err) {
     <[base.s_warn]>->(
         'cannot parse provider data from %s [%s]',
-        $provider, <[base.str.eval_error]>
+        $provider, $yaml_err
     );
     return;
 }
@@ -52,8 +49,8 @@ $menu_structure->{'last-changed'} = <[base.ntime.b32]>;
     $provider, scalar( keys $provider_data->{'items'}->%* )
 );
 
-#,,,.,.,.,.,.,.,.,,,,,.,.,,.,,.,,,.,,,.,.,,.,,.,.,...,...,...,.,.,.,.,,,.,,..,
-#YXV6VHCOR3BR7USTMOS7JYYNYDP4NQGTBXGVBCB22TIITDJ3HYWZYJ2KYE753FUJV4ZKQK5WAFHOS
-#\\\|QITE5EZVN6IRSVTFZLPIO6KTTXTLVCFF3TL2P73UQNAQU4EDIXO \ / AMOS7 \ YOURUM ::
-#\[7]QTTKDHOUX7PFV6DKMLR5KUGHLK2MG5YT7MXJ3IX2IXHIVZ5N3MBY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,.,,,,,.,,,.,.,.,,,,,.,.,,,.,.,.,...,.,.,..,,...,.,,,,,,,,.,,
+#2ES52GVSGBRVAUMHLMKN3GXPVGWG5FHZUEGCJHFV4BHPO7W357JWVVXZIIKA6JBHCNRDRNOO5RNFE
+#\\\|ZMGCJTYTROFVNM7YYVAVKEPM5P7KUVZDC3LC42YOB2YDKCRSW4D \ / AMOS7 \ YOURUM ::
+#\[7]7DYXPY5H4T2HDEBGY646Y3KEAMXK7KQKXPDVFYWXNQL4TVDGOKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

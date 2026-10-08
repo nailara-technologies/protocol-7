@@ -12,19 +12,19 @@ my $file         = "$session_base/active/$token_hash/session.yaml";
 
 return undef if not -f $file;
 
-my $data = eval { YAML::XS::LoadFile($file) };
-if ($@) {
+my ( $data, $yaml_err ) = <[format.yaml.load_file]>->($file);
+if ( not defined $data ) {
     <[base.s_warn]>->(
         'plugin.web.auth.session.read : yaml error [ %s ] : %s',
-        $token_hash, <[base.str.eval_error]>
+        $token_hash, $yaml_err // 'unknown'
     );
     return undef;
 }
 
 return ref $data eq qw| HASH | ? $data : undef;
 
-#,,,,,,,.,...,,,.,...,,..,.,,,.,.,,,.,.,,,,.,,..,,...,.,.,...,..,,.,.,,,.,.,,,
-#MT2QU652BYFRMMSJZW7BRDQIB63XU6SIVJ5DF5ZLE6HVTGTBYV5ZMR4KAZPLEWB6XUNWSTQT5FAEK
-#\\\|ZYANCUGOKMA5QUESRBYMC56HYSL7TESQM4PQJ3US4FLCFKPJYTU \ / AMOS7 \ YOURUM ::
-#\[7]ZFCFWQGENDXFRPBC76OYT6RLKXXPP4JU2EXSF75QX7TJHFYTL6CI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,.,.,.,.,.,.,..,,.,,,..,,..,,..,,...,.,.,.,.,...,,,.,.,.,,,.,
+#47JU334YLEDWBIOENSVNFFI5BKVIG3KSCOAN7XQUAUDKAIF4EUJBEXDSJUPVGRJ3I6DMLPRKGBIDC
+#\\\|UWBTTT7UPYF4ODAZEPJYGVVEDA7UYC4UW2I5C64T4JHWR2R5XXZ \ / AMOS7 \ YOURUM ::
+#\[7]SDGNYHDEDYVO24HWJFTRQUJMBVJIPIWOJYMYYUXDVA22TNQ7K4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

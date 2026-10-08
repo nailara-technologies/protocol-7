@@ -36,18 +36,15 @@ if ( not -f $file_path ) {
     return { 'mode' => 'false', 'data' => 'snapshot file missing' };
 }
 
-my $yaml = <[file.read]>->($file_path);
-my $snapshot;
-eval {
-    <[base.perlmod.autoload]>->('YAML::XS');
-    $snapshot = YAML::XS::Load($yaml);
-    1;
-} or do {
-    my $err = $@ // 'unknown';
-    <[base.logs]>
-        ->( 0, 'branch.storage.sync: yaml parse error [ %s ]', $err );
+my ( $snapshot, $yaml_err ) = <[format.yaml.load_file]>->($file_path);
+if ( not defined $snapshot ) {
+    <[base.logs]>->(
+        0,
+        'branch.storage.sync: yaml parse error [ %s ]',
+        $yaml_err // 'unknown'
+    );
     return { 'mode' => 'false', 'data' => 'yaml parse failed' };
-};
+}
 
 my $old_nodes    = $snapshot->{'nodes'}    // {};
 my $old_children = $snapshot->{'children'} // {};
@@ -208,8 +205,8 @@ return {
     }
 };
 
-#,,..,...,.,.,,.,,,,.,...,..,,...,...,,,,,..,,.,.,...,...,.,,,...,.,,,,,.,,.,,
-#SGDM3W7LLKPKYPKXWGNODD56JF7Y7FRCDCJLLMHKO4BH4AMH5OMTIIPKM2T5DR33FCPCK5EJ7ZNEE
-#\\\|77LSHNPUZGUDNLLKOF2D7EZN5FWMEFQB4C3VMUGKMIVNNQ4OENL \ / AMOS7 \ YOURUM ::
-#\[7]TWPNYBBWJPGBLS6C3CEJGQTMY7FFSLGYBWFH6Y7ZWHWDELJCBKAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,.,.,,.,,..,,,..,,,.,,,,,.,.,.,.,...,...,..,,,,.,,..,...,..,,
+#D5FOA5Y65W6YXY6KRUA5HRJLATJNKS5LHGV57KFC3ST6WMQHX7OFUQK5HYMLTVVG2MLNL22ZLUHPE
+#\\\|76DJMVPQYRTXJCLGEYEW756XDLU4S2ZA7WB3SMGJGL44O3S5ZOD \ / AMOS7 \ YOURUM ::
+#\[7]6USX5JAM3OBQ5KR3QEXEXDBOABKJ5AU7CCX3H5YP2MRSFJKA7QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

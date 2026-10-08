@@ -205,7 +205,7 @@ my $index_file = join qw| / |, $base_dir, qw| index.yaml |;
 
 my $index = {};
 if ( -f $index_file ) {
-    $index = eval { YAML::XS::LoadFile($index_file) } // {};
+    $index = <[format.yaml.load_file]>->($index_file) // {};
 }
 
 $index->{$enc_id} = {
@@ -226,8 +226,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,,,,,.,,,..,..,,,,.,,.,,...,.,.,,,,,,,.,,,,,..,,...,...,..,,..,,.,.,,,.,,..,
-#3IROIRCKBAYE444QZSCKCFP37S4DMKRNBVMSUFIGDXR3ZQSPM326DN7BREZS4TKH2DOVCNLSGXAS6
-#\\\|IYG6X7ZGBDXGATY57LL5332MDQHW5QATZCTGT2M77S4CZB7YLD2 \ / AMOS7 \ YOURUM ::
-#\[7]BKF3AAII46YKIFSVESRM2CNTYZYAWLGL7PRKTMIIGWREO3YYDMAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,...,.,.,,,,,,,,,.,,,...,...,..,,...,...,.,.,...,.,.,,,.,,..,
+#NSTZ534QSJBWPL2SAKZ2JQ4HNKUKHG5NLQTNB7SZFMKPHRJNZMM5HFPKORLMMBOFQKYIAALBS373M
+#\\\|JCHNBUDPHOY75MT2ARO44WISWS76FVFPZ5KOZPF2AJBMSRYYK5B \ / AMOS7 \ YOURUM ::
+#\[7]2KBYU5WANXZB2A5HRWUZHJHRVOEWYHL4HOZYJ3P3B36KAVRFHGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

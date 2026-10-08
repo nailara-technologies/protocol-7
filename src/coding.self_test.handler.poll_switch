@@ -30,8 +30,8 @@ my $timed_out = $elapsed > $max_wait;
 
 ## cheap status read : no blocking i/o ##
 my $reply  = <[coding.cmd.inference-status]>;
-my $yaml   = $reply->{'data'}               // '';
-my $status = eval { YAML::XS::Load($yaml) } // {};
+my $yaml   = $reply->{'data'}                  // '';
+my $status = <[format.yaml.load_str]>->($yaml) // {};
 
 my $phase   = $state->{'phase'}   // 'switching';
 my $backend = $state->{'backend'} // qw| gpu |;
@@ -466,8 +466,8 @@ return $finish->(
     }
 );
 
-#,,..,,,,,.,.,,,.,,.,,.,.,..,,.,,,.,,,...,,,,,..,,...,...,,.,,,.,,,.,,.,.,...,
-#6ORIMV53JXRK2GDYVHKUAHEA7K627PUTHI532DYZS7BZPUN43M4DODDARZKPS46KHPDD2RV3LNYD6
-#\\\|S5PKIRQCTOS3GOGLZD3KHLJWUI66N6YQURHDORIJQED2YU5EOWP \ / AMOS7 \ YOURUM ::
-#\[7]CBPA43KCAZ4EA5AAWK4VYPB4SLNEQPGVNWDDR337DQFR6I5YVYAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,.,.,..,,,,,,,..,,,.,.,.,.,,,..,,...,..,,...,...,..,,.,.,,.,,
+#RGRI5D4CNHO27EIPUHL5FRQSZTNSMU7LJ5ZE2EPUK5VBW3TBES4PAVMSC6N44GAL7F7OYBSHFMX72
+#\\\|GSDWPSRUDRXIDLIQ6DJWMU6KHG2N6OKXRBH2UIKMDGUVCVTX5MF \ / AMOS7 \ YOURUM ::
+#\[7]LEMFWP2I5FS77WM4VAZZJJZ4M4MI2CW4HA2HTXVGYSRVNZBYOYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

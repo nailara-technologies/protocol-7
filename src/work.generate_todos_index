@@ -44,8 +44,11 @@ unless ( -d $index_dir ) {
 my $todos_index  = <work.index.todos>;
 my $should_write = 1;
 
-if ( -f $todos_index ) {
-    my $existing_data = YAML::XS::LoadFile($todos_index);
+## an unreadable \ empty index is rewritten [ should_write stays set ] ##
+my $existing_data
+    = -f $todos_index ? <[format.yaml.load_file]>->($todos_index) : undef;
+
+if ( ref $existing_data eq qw| HASH | ) {
 
     # Compare content excluding timestamp fields
     my $existing_copy = {%$existing_data};
@@ -67,8 +70,8 @@ YAML::XS::DumpFile( $todos_index, $index_data ) if $should_write;
 
 return $index_data;
 
-#,,,.,.,,,.,.,,..,.,.,..,,...,.,,,...,,..,,,,,..,,...,...,..,,..,,.,,,.,.,..,,
-#4EHC4MQLRYIR3DCIT7FUK7EV32JUI4V4YNK37NCONBPR2QTY4OG5I6DA3KUOW72MAA4V2K42SIWQG
-#\\\|XFHHB7V5T2QXC6JXI2L7JRMQNGGMHHZJ56OCGYY4STZDR5PP773 \ / AMOS7 \ YOURUM ::
-#\[7]JZ6PRSLVIM7XB6RSQS47KM4NY3LHETMW7W55ZAHSAFXWLA4572DI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,,,.,.,.,.,..,,.,.,..,,...,,,,,..,,...,..,,..,,...,.,,,,..,,..,
+#JV24ZQSEPG5UQTEYH4EAHUZIOCEE5Q36VIGVGLP3FN5GGTYFM2CEY56UEDFF2ANQDU56IZ3VOVQLM
+#\\\|65N6W7NGPSZMGGWTGGNCCV67RZPZVZ6F6XK7HA2XZTCCBL7T66L \ / AMOS7 \ YOURUM ::
+#\[7]USREBEBTQMFJ5TYA4LFEVQUPAKAS7JGWM4P6TRTMO7FXCZURG4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
