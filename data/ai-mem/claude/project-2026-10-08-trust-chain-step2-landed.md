@@ -34,9 +34,13 @@ the gap [ a certified sibling answering on another host's address ].
    crypt.C25519.cmd.. , that answers 'client not present' ] 77 chars ;
    .dlg unchanged [ one 284 char leaf, no owner file ] ; `p-7-r
    localhost:42 list sessions` authenticated, the step 1 pin gained
-   '<node>.cube' + since 0. part 2 OPEN : an owner key [ the user's
-   choice of form ] -> certify-host -> accept-owner -> delegation-issue
-   -> owner-pin -> `PIN_OWNER`
+   '<node>.cube' + since 0. part 2 PASSED 2026-10-08 with a THROWAWAY
+   owner key [ certify-host -> accept-owner -> delegation-issue -> 2 line
+   .dlg -> owner-pin -> p-7-r 'owner-certified', since = owner
+   not_before ; backed out with owner-unpin \ undo-remove \ drop-owner,
+   .dlg back to the 284 char leaf ] -- found 0640 under umask, missing
+   drop-owner, trash same-second order [ fixed 691a1d26d ]. the REAL
+   owner key setup waits for the host-edit zenka [ user ]
 2. second host [ atom ] : discover owner trust, rotation, step 1 leftovers
 3. `describe` waits for an inline documentation format [ user ] ; arg
    details live in `# note =` meanwhile ; keep `# param` short [ the
@@ -80,8 +84,8 @@ entry [ no damage ] -- the fix landed in the same session.
   earlier cat ] -- never invoke a destructive command to see what it does,
   even with the output thrown away [ [[tool-probe-empty-args-destructive-default]] ]
 
-#,,..,..,,,,.,...,,,,,.,,,..,,,..,,,,,,,.,...,..,,...,...,..,,..,,...,..,,,,,,
-#HTRKP6VE3BBIX4WXBXOYIRVB7RUE2JPLHPLKBCFDYXBWZ6L4STOZBO5457PUKS2BUNSJPUF2MKTBW
-#\\\|BOQRZVMKQHLDN7KEU6GOHCD7HCFDQE2MPJD6OQ4MC44MKZ4KMMF \ / AMOS7 \ YOURUM ::
-#\[7]PHDBU3DAQXZTH7MZ2HHNERHZ3XXBWNZOZIBRFNRJ7CN33MC4FWAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,,,.,.,.,..,,.,,,.,.,...,..,,..,,...,...,.,,,.,.,...,.,,,,.,,
+#U6W2OCQYHGZHQ7B33GV24WORSJUQLWE3XE5WVIFLP2TJR7BEXDSHHCVFD3HCDRZRCGMW5JHMXCOOU
+#\\\|XJXW2BW2OOGM5VS6UTIMYDINM5I3W6CIEFJ7IM2MW6RXGSDSZ77 \ / AMOS7 \ YOURUM ::
+#\[7]TNOT2TGANQ6F4TKR565KTW6U2HK7B6HQ2E54RTZARPIAOHI7Y2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
