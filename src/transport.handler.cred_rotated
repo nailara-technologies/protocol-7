@@ -9,8 +9,8 @@ my $params = shift              // {};
 my $reply  = $params->{'reply'} // {};
 my $args   = $params->{'args'}  // {};
 
-my $event = eval { YAML::XS::Load( $args->{'data'} // '' ) } // {};
-my $slot  = $event->{'slot'}                                 // '';
+my $event = <[format.yaml.load_str]>->( $args->{'data'} // '' ) // {};
+my $slot  = $event->{'slot'}                                    // '';
 
 return undef unless length $slot;
 
@@ -75,8 +75,8 @@ return {
 
 ## [ end ] ###################################################################
 
-#,,,.,.,,,...,.,.,,.,,..,,,.,,...,.,.,.,.,...,..,,...,.,.,.,.,,..,.,,,,,,,,..,
-#PIMRI4FLP2P4EYWAGYF5SXNVKXIBS2GR3QV5WBRUZFOQEVVJIRVYYLAE3WG2LMA7SUXBXW5FVDGLY
-#\\\|B3DUIEQUG7YGZ4SCCCGYHL7GAACVFYIUU6BISOBDYP3D7WYEBM3 \ / AMOS7 \ YOURUM ::
-#\[7]7CQQFWB2W36TY5LQVGZQPU3XZK6V2632HLNVSYQAQ4ZSYMC4ZIBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,...,,,.,,,,,,..,.,.,,,.,...,..,,...,...,...,.,,,,,,,,,,,,..,
+#3UPPVICHBHYM6VEAITEBFWJ7PAFNZBDL47DOPXL2K5NOSXAUATWBNWPS6JUJ6677AIBCB76M6CTHE
+#\\\|LI2I6VQ6K54JRANDU7KEXELHNW2MBYZFBTZVWKLC6FWOXBL6KUE \ / AMOS7 \ YOURUM ::
+#\[7]SRYXY7BE5JED6MHO75WOPHB6UAUIDI5TCKTSC2NTKDUHRZZJJSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

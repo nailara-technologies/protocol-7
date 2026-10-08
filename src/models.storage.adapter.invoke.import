@@ -20,22 +20,13 @@ eval {
     $yaml = $yp->load_file($snapshot_path);
     1;
 } or do {
-    eval {
-        require YAML::XS;
-        open my $fh, '<:utf8', $snapshot_path
-            or die "cannot open file";
-        local $/;
-        $yaml = YAML::XS::Load(<$fh>);
-        close $fh;
-        1;
-    } or do {
-        <[base.logs]>->(
-            0,
-            "import: failed to parse yaml [ %s ]",
-            $@ // 'unknown'
-        );
+    my ( $yaml_xs, $yaml_err ) = <[format.yaml.load_file]>->($snapshot_path);
+    if ( length $yaml_err ) {
+        <[base.logs]>
+            ->( 0, "import: failed to parse yaml [ %s ]", $yaml_err );
         return { 'have' => 0, 'missing' => 0, 'queued' => 0 };
-    };
+    }
+    $yaml = $yaml_xs;
 };
 
 unless ($yaml) {
@@ -98,8 +89,8 @@ for my $model (@$models) {
 
 return { 'have' => $have, 'missing' => $missing, 'queued' => $queued };
 
-#,,..,,..,..,,,,,,.,,,.,,,...,.,.,,..,,.,,,.,,..,,...,..,,.,,,..,,.,.,,,.,,..,
-#DEOQ6JK3N6E3JM55CB7FPYSAMTKIUKV4X6Q22QKYKEHLQOMHSDTVQMKBNX2WCJZIGOVLJTIBCF72O
-#\\\|XUW4XFELTJ7XNCVLODPULM6FGLPU3UZUMOYMFUGTFMVLC7SJNFR \ / AMOS7 \ YOURUM ::
-#\[7]VXTQH4JOIAWMPEUVV6G5K3YCHK7BQYWNMSYTJ6FCJCZAIWT7BGBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,..,,..,,.,,.,,,..,,.,,,,,.,..,,...,..,,.,.,,..,,,.,,..,,,.,
+#TEKQLFVWPY3VFMQIOXJWDO2QA7O6UV2DWGMSC5QPIPFBKPWAKES7RDCZA32ACJ2KFACUOJ6JNGFNK
+#\\\|OFWTTU6EGPV6UPSR666MHXIZ5XI3I6HGMQN2SDRTXYSTEP3UCDI \ / AMOS7 \ YOURUM ::
+#\[7]HTMPKCPSZQV4ZFJKP27WGS2N6JS5ZK7ZW6N73APLZQI3HLONCMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

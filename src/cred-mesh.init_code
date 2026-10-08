@@ -14,7 +14,6 @@ use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
 ## load crypto modules ##
 map { <[base.perlmod.load]>->($ARG) }
     qw| AMOS7::13 AMOS7::Twofish Crypt::Ed25519 Crypt::Curve25519 |;
-map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS |;
 <[base.perlmod.load]>->('Crypt::Misc')
     if not <[base.perlmod.loaded]>->('Crypt::Misc');
 <[base.perlmod.load]>->('MIME::Base64')
@@ -39,7 +38,7 @@ my $log_ref = <[file.zenka_dir.load]>->('rotation.log');
 if ( defined $log_ref ) {
     my $log_yaml = $log_ref->$* // '';
     if ( length $log_yaml ) {
-        my $log = eval { YAML::XS::Load($log_yaml) };
+        my $log = <[format.yaml.load_str]>->($log_yaml);
         if ( ref $log eq qw| ARRAY | ) {
             <cred-mesh.rotation_log> = $log;
         }
@@ -51,7 +50,7 @@ my $reg_ref = <[file.zenka_dir.load]>->('registry.yaml');
 if ( defined $reg_ref ) {
     my $yaml_str = $reg_ref->$* // '';
     if ( length $yaml_str ) {
-        my $reg = eval { YAML::XS::Load($yaml_str) };
+        my $reg = <[format.yaml.load_str]>->($yaml_str);
         if ( ref $reg eq qw| HASH | ) {
             <cred-mesh.registry> = $reg;
             ## rebuild owners index ##
@@ -89,8 +88,8 @@ while ( my ( $cmd_name, $module_name ) = each %interactive_cmds ) {
 
 return 0;
 
-#,,,,,.,,,.,.,..,,...,..,,,.,,.,,,..,,,..,,.,,..,,...,.,.,.,,,...,.,.,,,,,..,,
-#3ASNNURCETYKOWHMQ3YQFTCOE6FIAZBOI6VLKCBL2YRDUQS2WE3VEZLPC3IDSJXFTLAZKDSMY76QG
-#\\\|RXX36ILBZMFXTDH3RCBLU63N6JTMD3JSFJ3INJMVRNQAEDVMXLB \ / AMOS7 \ YOURUM ::
-#\[7]N4I7JAWHHILEVK2RQ3TSVCAX5KIQQLCJHIYLJ62IPBBS6AIKZCCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,,,.,.,,,.,,,,,,,..,,,.,,..,,..,,...,...,.,,,...,...,,.,,..,,
+#F7VZAH6HDG2XR6HYAFRYNWO7QJBFWBGBH2R4J2SDSG5TVBL5N4IXQNKFNX4RIG6UXTC5MFQIFATT4
+#\\\|23YDJ26TUK23PZS3XZW7TLCNLUAFUQQ3NMVQSCFYNDX4Y7JDFY6 \ / AMOS7 \ YOURUM ::
+#\[7]XP73HQH2SL4NTBASGDI5W2GGJ4V2XBSR7FV4HP6IUSZIXOWR6GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

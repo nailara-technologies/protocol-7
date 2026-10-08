@@ -23,11 +23,11 @@ if ( $status =~ m{^(blocked|deleted):(.+)$} ) {
     $job_file = "$cache_dir/new/$enc_id.yaml";
 }
 
-my $job = eval { YAML::XS::LoadFile($job_file) };
-if ($@) {
+my ( $job, $yaml_err ) = <[format.yaml.load_file]>->($job_file);
+if ( defined $yaml_err ) {
     <[base.logs]>->(
         0,   'plugin.web.jobs.state.save: load error %s: %s',
-        $id, $@
+        $id, $yaml_err
     );
     return FALSE;
 }
@@ -45,8 +45,8 @@ for my $field (qw| stage notes date_applied |) {
 
 return <[plugin.web.jobs.cache.write]>->( $id, $job );
 
-#,,,,,,..,,..,...,...,..,,,,.,.,.,.,.,,.,,,..,..,,...,..,,...,,,.,,,,,.,.,,.,,
-#B33CPL7UKNS6JEV244JW3WCSCEEHKQAF6ALM4U7P4DLAJK7E2CXGMW2GH2X23QYWY34OIZN4XL6IU
-#\\\|4PPELVZDIBJOY4ZJ63PL5H2NA4SLC2V3QYPEO7KHMA5KBTMLWM6 \ / AMOS7 \ YOURUM ::
-#\[7]CVVSM6QS6QK7ZU74YYEEU27GYUUTAUEFXN6FYFTDXA6GAYTTMEDA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,.,,...,...,,,,,,.,,.,.,,,,,.,,,..,,...,...,,,.,,..,,..,..,,,..,
+#GEJKTAQRLAMXOM7GNTKNRN22TI72G4C4BTLZUGKAAW2TRDOR7BJ64RWQL7R56EL6PYUXCREGIBHFO
+#\\\|F5SCZR24TCTUOWKIHJQBVMVM2UWTLOYFFERJAJLMGI2MAWMO7YP \ / AMOS7 \ YOURUM ::
+#\[7]QEKQSRNGLUPE3E3IEGOG5GACDFJNEKHJ5GDRW4BRKZX7ZW7J2QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

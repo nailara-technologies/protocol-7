@@ -24,9 +24,8 @@ my $data_r  = $reply->{'data'};
 my $auth_result;
 
 if ( $mode eq qw| size | and defined $data_r and length $data_r ) {
-    my $resolved = eval { YAML::XS::Load($data_r) };
-    if (    not $@
-        and defined $resolved
+    my $resolved = <[format.yaml.load_str]>->($data_r);
+    if (    defined $resolved
         and ref $resolved eq qw| HASH |
         and ( $resolved->{'mode'} // '' ) eq qw| true | ) {
         my $slot = 'session.' . $domain;
@@ -49,8 +48,8 @@ $client->{'state'} = 'processing';
 
 return;
 
-#,,.,,.,.,,,.,.,.,,,,,.,.,,,.,,,.,,..,...,..,,..,,...,.,.,,.,,,..,...,,.,,,,,,
-#MZZM6RB5VFA3RLH6X6MS3ZE7WD6YWQN27T3X5FKYK267NWUCZTU6JHCW76IOXVVUEO433M3K5PG5U
-#\\\|VB47UELYZ2X64P4WFRDURBU3YY7MKE3QCA3DGLWSY6ADJKMAVSE \ / AMOS7 \ YOURUM ::
-#\[7]AL2B6LNZPJBO7AKURW7LFY2IC7ZZFWETBIGJSXQRLMELFJJJXQBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,.,.,.,.,...,.,.,,.,,...,...,..,,...,.,.,.,,,..,,..,,,.,,.,.,
+#YPZDJSVUX3GHLSWKKEOMR2M7Z7ZJENRFSCYULPNSI5KBCH34UXPNJNNQXLZN44NEPCNOYI5WM5MGA
+#\\\|KGSUCXOQOKYSXT666KVAT7YOGDD5K2KIGWC27FJVMPINAPTBKQU \ / AMOS7 \ YOURUM ::
+#\[7]7H6AUIDBIMNGWLLKK4HXBPY2RS3XQMKKE6OH4PZLEIWICFUSVGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

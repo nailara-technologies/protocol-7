@@ -10,9 +10,8 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
     if ($@) {
-        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+        $params = <[format.yaml.load_str]>->( $call->{'args'} ) // {};
     }
-    $params = {} if $@;
 }
 
 my $result = <[models.test.api_fallback_chain]>->($params);
@@ -23,8 +22,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,,.,,..,,,.,.,,,,..,.,.,.,,,..,,,.,,.,,,,..,.,.,...,...,.,.,,,,,,..,,,,,,,,,
-#SDUB54GKQOSQTT3AAR5DUC57PZFDLCXPMQZ67O2OQXS5ZXOY3TQW3Q5MFX24Y67KN6BBBSMDNTZIE
-#\\\|QBKDVIFBCVXLLIPNJBREO7GOC7HDDIKC5ZBCEBLTA4D63LRDOHO \ / AMOS7 \ YOURUM ::
-#\[7]2CVKANTPZVXJTIZCJGWJ54LCAQ5X4YE6FHNENPG5LK7TXMPPPMBI 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,,,.,.,,,,,.,,,..,,..,,,..,.,.,...,...,,..,,.,,..,,.,.,..,,
+#3PAUMMQ7CB2GG6JMDEKH3DUOB4N36G4TKLLWB42D3QU62QBZAVOCJVSDYKDXBBDLZ7YOQIQ3GOJ3I
+#\\\|HQTDLURV6IY5ZME46TRXXRS7C2QMN5PBYT6Z52IEDRDSRH3RIMU \ / AMOS7 \ YOURUM ::
+#\[7]ZUXQ77EJZ4A5V62AAKBFZPZNF3SDRRVLLJ3FGEUFSUUAWCME2UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

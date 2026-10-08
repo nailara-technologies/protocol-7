@@ -13,8 +13,7 @@ my $old_yaml = catfile( <system.path.zenka-dirs.var_P7>,
 my $migrated_flag = "$store_root/.migrated";
 
 if ( -f $old_yaml and not -f $migrated_flag ) {
-    <[base.perlmod.autoload]>->('YAML::XS');
-    my $old = eval { YAML::XS::LoadFile($old_yaml) } // {};
+    my $old = <[format.yaml.load_file]>->($old_yaml) // {};
     for my $c_sum ( keys %{ $old->{'companies'} // {} } ) {
         my $empty = '';
         <[file.zenka_dir.write]>->(
@@ -190,8 +189,8 @@ if ( $action eq 'persist' ) { return TRUE; }
 
 return { 'mode' => 'false', 'data' => "unknown action: $action" };
 
-#,,.,,,..,,,,,.,,,,,,,...,,.,,,..,...,,,.,..,,..,,...,...,,..,..,,..,,...,...,
-#2Z2IN2UHB672LAMILTDQ2WLITTDYTLCLEVNZE26RJBAXC5ULATFZUUKPZVCOKO4WKM6I76FUUD3YE
-#\\\|CJ6RLE7BSL3GGKCLSBRXZUR46IHE4PYP3P62VENF4TR2OYAIN75 \ / AMOS7 \ YOURUM ::
-#\[7]ZDYFYBCT7IO5WVPJIJJ5NOZQEG7NB5PTJZESWQ4TY2EUFP7V32AQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,,..,...,.,.,,.,,,.,,,..,...,..,,...,...,...,,,.,..,,,..,,,.,
+#6DL6BQ7XRBN5JWXZ5DVK7MIDMSF2YNP6JSEIKIJGLXX5XJGDVADC6CHEVQDLXC232QCA7LXLUOHZ2
+#\\\|X4262HWZXVTYAI2YHG6UY6KDP6AZVFTNLHSB4QULEEBMQ3S3RNU \ / AMOS7 \ YOURUM ::
+#\[7]E3IYLEDRVMS4LN7GZD76PKHP3X7HPXEWOMY7AU7YSUMQLOUPISAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

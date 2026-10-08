@@ -488,8 +488,8 @@ if ( $phase eq qw| waiting_ready | ) {
     my $timed_out = $elapsed > $max_wait;
 
     my $reply  = <[coding.cmd.inference-status]>;
-    my $yaml   = $reply->{'data'}               // '';
-    my $status = eval { YAML::XS::Load($yaml) } // {};
+    my $yaml   = $reply->{'data'}                  // '';
+    my $status = <[format.yaml.load_str]>->($yaml) // {};
 
     my $backend_status = $status->{$backend}{'status'} // 'unknown';
     my $backend_pid    = $status->{$backend}{'pid'}    // 0;
@@ -873,8 +873,8 @@ if ( $phase eq qw| restoring | ) {
     my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
     my $elapsed  = <[base.time]>->(3) - ( $state->{'started'} // 0 );
     my $reply    = <[coding.cmd.inference-status]>;
-    my $yaml     = $reply->{'data'}               // '';
-    my $status   = eval { YAML::XS::Load($yaml) } // {};
+    my $yaml     = $reply->{'data'}                  // '';
+    my $status   = <[format.yaml.load_str]>->($yaml) // {};
 
     my $backend_status = $status->{$backend}{'status'} // 'unknown';
     my $backend_pid    = $status->{$backend}{'pid'}    // 0;
@@ -978,8 +978,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,.,,,,,,..,..,,..,,..,,,,.,.,.,.,.,,..,..,,..,,...,...,.,.,.,.,,,,,,.,,..,,
-#B37LU7B32IW6CJ2YDWDFF77PRTTXSHJT5XTREN6N42A5XWFCSIG6HZ64LM5EBUWEAEQTTQENKFQC6
-#\\\|AUTKKWUMOUO3RIX5AFYWVUU5PKBSUA6ZKSSROEOJB5PFTI24YZF \ / AMOS7 \ YOURUM ::
-#\[7]RZWC3E4NX66SCK6SAJ6K4SLHMPRAAYPF34Z4TRHFJDMS34XQ36CY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,,..,,.,,,,,,,.,,,,.,,.,,,..,..,,...,.,.,.,,,,,,,...,..,,,.,,
+#7JQW24V4QTGZEA2LJTIQU5FRDD73NLQWGINIEH7DBGNART5SJOQUX33KKQNE7NJKWPTXMQXJ4WUHE
+#\\\|M4FS2OD752BMPHLY7GSNUBCVLWUC5ZO73JZR7BXXO6PV52QEWWH \ / AMOS7 \ YOURUM ::
+#\[7]TQZYQ56ZWBBCWSKDFJFK76PLUTBEPLMJ4N5GTLD2PQBOTP3PAUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

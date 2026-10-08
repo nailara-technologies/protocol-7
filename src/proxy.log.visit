@@ -15,7 +15,7 @@ my $log_path = <proxy.cfg.visit_log>
 my $log = {};
 if ( -f $log_path ) {
     my $yaml = <[file.slurp]>->($log_path)->$* // '';
-    $log = eval { YAML::XS::Load($yaml) } // {};
+    $log = <[format.yaml.load_str]>->($yaml) // {};
     $log = {} if ref $log ne 'HASH';
 }
 
@@ -52,7 +52,7 @@ my $candidates_path = join( '/',
 my $candidates = {};
 if ( -f $candidates_path ) {
     my $cyaml = <[file.slurp]>->($candidates_path)->$* // '';
-    $candidates = eval { YAML::XS::Load($cyaml) } // {};
+    $candidates = <[format.yaml.load_str]>->($cyaml) // {};
     $candidates = {} if ref $candidates ne 'HASH';
 }
 
@@ -73,8 +73,8 @@ if ( defined $cyaml_out ) {
 
 return;
 
-#,,,.,.,.,,..,,.,,,..,.,.,,..,,..,...,.,,,..,,..,,...,...,...,,.,,.,,,,..,.,.,
-#NAOQASF2GXH36WNYQJDBBP33LM76RPAOGCIB5SE36XGG65KN5HN5JFNYQ5DKGWYBLEBWOOL3VCRJW
-#\\\|H2I5W4ZV7EWXUZGKX7PCTAORUTPNIQXZ7HXATGN236JJ2QTOBFG \ / AMOS7 \ YOURUM ::
-#\[7]RWCSMGTUBED7XAMTQUVXOAE62PNFIVWJAAHRY4P477P2GAI2JECY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,..,,.,,.,.,...,,.,,...,,..,,,,,..,,...,...,..,,..,,,.,,.,,,.,,,
+#QMSVBO4EIVJUIKLQ56HBAZQMKZVH52SM3IXHSKTMCNZ2VSQE4HLUXM7H3J26DNP5POWHJCLJZI6D6
+#\\\|IQ64SVCLH2775YQWWL7CWJFRGABYDXDHNYLMXON7COVKFMCCWX3 \ / AMOS7 \ YOURUM ::
+#\[7]ZIX6FE5QJ7HY25TWOBPJFQ4GIXURYRATOR55CTICYKUXLG4SHUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

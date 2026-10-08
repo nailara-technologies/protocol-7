@@ -22,8 +22,8 @@ for my $status (qw| blocked deleted |) {
         for my $file ( grep { m|\.yaml$| && !m|^\.| } readdir($edh) ) {
             my $job_id = $file;
             $job_id =~ s|\.yaml$||;
-            my $job = eval { YAML::XS::LoadFile("$dir/$epoch_dir/$file") };
-            next if $@ or ref $job ne 'HASH';
+            my $job = <[format.yaml.load_file]>->("$dir/$epoch_dir/$file");
+            next if ref $job ne 'HASH';
             $index->{$job_id} = {
                 'status' => $job->{'status'} // '',
                 'score'  => $job->{'score'}  // '',
@@ -44,8 +44,8 @@ for my $status (
     for my $file ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $job_id = $file;
         $job_id =~ s|\.yaml$||;
-        my $job = eval { YAML::XS::LoadFile("$dir/$file") };
-        next if $@ or ref $job ne 'HASH';
+        my $job = <[format.yaml.load_file]>->("$dir/$file");
+        next if ref $job ne 'HASH';
         $index->{$job_id} = {
             'status' => $job->{'status'} // '',
             'score'  => $job->{'score'}  // '',
@@ -75,8 +75,8 @@ if ( not rename( $tmp_file, $index_file ) ) {
 
 return TRUE;
 
-#,,,.,,,,,...,,,,,.,,,,..,..,,.,,,...,...,,..,..,,...,...,..,,,.,,,..,,..,,,,,
-#ERSEUFLUTC7NEN4VF2OALKDDLSUJCQIN2QMH5I23CJQXBKGODMCBXBTLYMJNTLGX3OH5PVT4AHCTW
-#\\\|RJZJELBSIFZKC7AHNU5TZG5BV3QG6ODW5CHXANYHZDCOUTQCB2P \ / AMOS7 \ YOURUM ::
-#\[7]AXBD46NLAD3CMEQLH53BJJXXMD4XQCYS3DEWIEQAAZIQ3UDXGUBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,,..,,.,,,,.,.,.,..,,...,,,.,..,,...,...,.,,,...,,,,,,.,,,,.,
+#CQCILRGHPATJRZD4QNU2QPHV5ZUMBRLEUHUQT56BMHYGHSHYOBQ55WKYV34D2ZIH7XLZYYVM3XNVG
+#\\\|NZBBF3W3WDG4UG2RBUTSWB6HSWAIAEAROYKHHUMUYMRWSR42LVT \ / AMOS7 \ YOURUM ::
+#\[7]GTJG2642QOVM2J76G7LFEQ2JSZ2BAKPP6BZVLGEBP52TVCTRREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

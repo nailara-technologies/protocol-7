@@ -23,11 +23,11 @@ for my $status (@active_statuses) {
         my $enc_id = $fn;
         $enc_id =~ s|\.yaml$||;
         my $job_id = <[base.vax-int.decode]>->($enc_id);
-        my $job    = eval { YAML::XS::LoadFile("$dir/$fn") };
-        if ($EVAL_ERROR) {
+        my ( $job, $yaml_err ) = <[format.yaml.load_file]>->("$dir/$fn");
+        if ( defined $yaml_err ) {
             <[base.logs]>->(
                 0, 'web.jobs.cache.read_all: error %s/%s: %s',
-                $status, $fn, <[base.str.eval_error]>
+                $status, $fn, $yaml_err
             );
             next;
         }
@@ -61,8 +61,8 @@ for my $status (@epoch_statuses) {
 
 return <plugin.web.jobs.cache>;
 
-#,,,.,...,.,.,.,.,,,.,.,.,...,,..,,,,,,.,,,,.,..,,...,...,..,,,,,,,,.,,,,,.,,,
-#EWIXQ64U25TTDWBXXJWSYGOWGFXBMLUB5TFIG4LFYK46OHFPCIO4354WH6VFNQLI3UGPDZDUG3R7M
-#\\\|YUTC76AO7QHJ7N35ZSHPDIADJ5NC427AAAPTZMEIHDBINUNHFMT \ / AMOS7 \ YOURUM ::
-#\[7]DBSAZV5L2HMAWBZCT4FDRFY7MB3EQBXEUT3FEY2RGI3LOF5MOUDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,,.,,,..,,.,,...,...,,.,,,.,,..,,...,..,,..,,,,.,.,.,,,.,,,.,
+#YXUDUEGXVQUUDUGTI6K5LDJZ6SBQ24PM7BCPPX2FH26MZQT37BP4MW4SYCKFIXUFLTTO6ARKC7FCG
+#\\\|MVSVNRQAOENUXWDUHQBOJ3SGYRBVGSKIELWTQE76BA6W4BANDNT \ / AMOS7 \ YOURUM ::
+#\[7]XVYNKWB5542VBYFQGV76WPD4WUCCJNPOVBXM73TYTEJ2H7TEIECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

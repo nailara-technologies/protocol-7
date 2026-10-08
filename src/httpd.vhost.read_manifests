@@ -17,8 +17,6 @@ unless ( -d $vhosts_dir ) {
     return [];
 }
 
-<[base.perlmod.autoload]>->('YAML::XS');
-
 my $dir_fh;
 if ( not opendir( $dir_fh, $vhosts_dir ) ) {
     <[base.logs]>->(
@@ -38,28 +36,11 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
     my $manifest_path = "$vhost_path/.vhost-manifest";
     next unless -f $manifest_path;
 
-    my $manifest_yaml = do {
-        local $INPUT_RECORD_SEPARATOR = undef;
-        my $fh;
-        ## raw : YAML::XS::Load decodes UTF-8 bytes itself and dies on ##
-        ## decoded wide characters [ the loader's default layer ]      ##
-        open( $fh, '<:raw', $manifest_path ) or do {
-            <[base.logs]>->(
-                1,              'cannot open manifest %s [ %s ]',
-                $manifest_path, $OS_ERROR
-            );
-            next;
-        };
-        my $content = <$fh>;
-        close $fh;
-        $content;
-    };
-
-    my $manifest = eval { YAML::XS::Load($manifest_yaml) };
-    if ( $EVAL_ERROR or not defined $manifest or ref $manifest ne 'HASH' ) {
+    my ( $manifest, $yaml_err ) = <[format.yaml.load_file]>->($manifest_path);
+    if ( $yaml_err or not defined $manifest or ref $manifest ne 'HASH' ) {
         <[base.logs]>->(
             1,      'failed to parse manifest for %s [ %s ]',
-            $entry, $EVAL_ERROR // qw| unknown error |
+            $entry, $yaml_err // qw| unknown error |
         );
         next;
     }
@@ -121,8 +102,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,,.,,,,,...,.,.,.,,,,,.,,,.,,,.,...,,,,,,..,..,,...,...,,,.,.,.,.,,,,..,,,,,
-#6D5PK6CKU33NZMYJTU3PLURPZIBHOO6AMYXGODHAMG5K2FEGGQZ37C7WLOEQRG7H5HPYLGIZ22AQE
-#\\\|PBOMDZWT2HRVLLP23XTEQ2LVZA4MZGG5AU22OHGYW43EVGISMGT \ / AMOS7 \ YOURUM ::
-#\[7]2SJHRHU4EFZG5DWOXMXBFJLZGTD3VJWCZW4O2ILUEOLXGTCVIEAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,.,,,,,,,.,,,,..,..,,,,,,,.,,..,,...,...,...,,.,,,,.,.,,,,,.,
+#EGWO54NG3VRPLPB46NIFS7PIMQMZ3UZEAXOQ6C4MGSWOD3SB4QJIDEY7JZKN5WR6E34KP4RNVHNGE
+#\\\|YPTIEFNGQABLSDXG5DP2BVVKLPS6E25QFKZWMEGZ3DUC5WAVSLG \ / AMOS7 \ YOURUM ::
+#\[7]UFWWLC34LWQLSV24V3GKK4Q36S3J4MNXZOYIOKMTYJT4F3H6FEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

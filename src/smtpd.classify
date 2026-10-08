@@ -36,7 +36,7 @@ if ($have_llm) {
         and ref $response eq qw| HASH |
         and $response->{'success'} ) {
         my $answer = $response->{'response'}{'answer'} // '';
-        $llm_result = eval { YAML::XS::Load($answer) };
+        $llm_result = <[format.yaml.load_str]>->($answer);
     }
 }
 
@@ -109,8 +109,8 @@ if (    $parsed->{'action_required'}
 
 return $parsed;
 
-#,,.,,,,,,,..,,.,,.,,,.,,,,..,,,,,,,.,...,,,,,.,.,...,...,,.,,...,.,,,,,.,...,
-#SQWUCZHXJG6E6WICH4X2KXRXZ752YMVDLQZWRTZ5OIBHQOIWZRJGVIJE4HGP73LFEYDSVHLASVM2A
-#\\\|FZEWLDQMRWER3YYAHFEK5QE4WNDGDNFNMSYZUTUFMIHOWFWU2FA \ / AMOS7 \ YOURUM ::
-#\[7]7HM3UYORIK7QAWFLY7VBTSLRSDDGZHNQWOCLYGX6J3UBKIHAGSCA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,,,.,,,.,...,,..,,..,,,.,.,.,.,.,...,...,...,,,.,,,.,,,,,.,,,
+#L727FC2AQIT5RP2AYBIAEFOGFPYAUZNHFCDRCLRNH6IJGHQZPBFDI6LO4PACAGQHPBJ5PYIGZMJ4A
+#\\\|ZPBRCDOVOXAXIOAQLDDGUAUR4SMBCNB3HYUUPHTMDJI3M2UKZQV \ / AMOS7 \ YOURUM ::
+#\[7]DSAPY6X53YMRBDCXLEPVCFCWLZUU6A36U4JNCTBN2UEXGMRWYMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

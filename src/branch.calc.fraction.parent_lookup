@@ -13,15 +13,15 @@ return undef
     or not length $period_str;
 
 my $yaml_path = 'data/yaml/harmonic/fraction-period-groups.yaml';
-my $yaml_data = eval { YAML::XS::LoadFile($yaml_path) };
+my $yaml_data = <[format.yaml.load_file]>->($yaml_path);
 
-return undef if $@ or not defined $yaml_data;
+return undef if not defined $yaml_data;
 
 my $periods = $yaml_data->{'periods'} // {};
 return $periods->{$period_str}{'group'} // undef;
 
-#,,,,,...,,.,,,..,..,,,.,,,,.,.,,,..,,.,.,,..,..,,...,.,.,,.,,,,,,...,.,,,...,
-#7RWZWV4TCI5MFEMRWNQNQ6AQE7VB5DGT4OSDLC65WBIEY5N3HJ5UCXJTBLRRBAIIMV4DVEDKHHSSS
-#\\\|YH7DTEK7P7OXWAXTV3HYWBORPIAKARHAKUVNP4YDTEFWEUW7I4T \ / AMOS7 \ YOURUM ::
-#\[7]ELTOFFAEHPFG2FAE2ZRXDGYOVJ527DBN6DGOWAZGGS3KU6OQMODI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,.,,,,,.,,,,,,..,...,,..,,..,..,,...,...,,.,,...,.,,,.,,,,,,,
+#P6TJFF6V56PZXJMLY7UFP3LJXZPPGSXJW7CG72O72VQWBA63OEA33WU7UGT6VP2YDE55QOCXJ6AUQ
+#\\\|XW2GV3CBP6PV6PVJHHKUECZHMBIPP2XUEJNQ57RD6H6R7HSHG6O \ / AMOS7 \ YOURUM ::
+#\[7]6IV3EJ5Z3RIF5MFHWQVL5MJYS7IUIZFRLEIDOVZJYABSAJEFVWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
