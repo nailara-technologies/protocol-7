@@ -15,14 +15,13 @@ if ( -d $coding_tasks_dir ) {
         next unless $file =~ m|\.yaml$|;
         my $absolute_path = "$coding_tasks_dir/$file";
         my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
-        eval {
-            my $task_data = YAML::XS::LoadFile($absolute_path);
-            $tasks{$file} = {
-                path   => $keyword_path,
-                data   => $task_data,
-                type   => 'coding-task',
-                source => 'protocol-7'
-            };
+        my $task_data     = <[format.yaml.load_file]>->($absolute_path);
+        next if not defined $task_data;
+        $tasks{$file} = {
+            path   => $keyword_path,
+            data   => $task_data,
+            type   => 'coding-task',
+            source => 'protocol-7'
         };
     }
     closedir $dh;
@@ -36,14 +35,13 @@ if ( -d $deferred_dir ) {
         next unless $file =~ m|\.yaml$|;
         my $absolute_path = "$deferred_dir/$file";
         my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
-        eval {
-            my $task_data = YAML::XS::LoadFile($absolute_path);
-            $tasks{$file} = {
-                path   => $keyword_path,
-                data   => $task_data,
-                type   => 'deferred-task',
-                source => 'protocol-7'
-            };
+        my $task_data     = <[format.yaml.load_file]>->($absolute_path);
+        next if not defined $task_data;
+        $tasks{$file} = {
+            path   => $keyword_path,
+            data   => $task_data,
+            type   => 'deferred-task',
+            source => 'protocol-7'
         };
     }
     closedir $dh;
@@ -57,14 +55,13 @@ if ( -d $todo_dir ) {
         next unless $file =~ m|\.yaml$|;
         my $absolute_path = "$todo_dir/$file";
         my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
-        eval {
-            my $task_data = YAML::XS::LoadFile($absolute_path);
-            $tasks{"todo-list.$file"} = {
-                path   => $keyword_path,
-                data   => $task_data,
-                type   => 'bin-todo-list',
-                source => 'protocol-7'
-            };
+        my $task_data     = <[format.yaml.load_file]>->($absolute_path);
+        next if not defined $task_data;
+        $tasks{"todo-list.$file"} = {
+            path   => $keyword_path,
+            data   => $task_data,
+            type   => 'bin-todo-list',
+            source => 'protocol-7'
         };
     }
     closedir $dh;
@@ -72,8 +69,8 @@ if ( -d $todo_dir ) {
 
 return \%tasks;
 
-#,,,,,,,.,,,,,,..,,,.,,.,,...,.,.,.,.,,,.,.,.,..,,...,...,.,.,...,.,.,.,.,,,.,
-#BMZME7U5GSXFXNJFVSXBFDFRMQMGFM4VDLIVR55PP6RYJFW6IQ63L42RQJBZHY54JS33KAH4NFHAE
-#\\\|ZZSP6PA62DVNKKAY2R4HERSVAYKT5M6G7VF77B7ED2PT2BNQSAT \ / AMOS7 \ YOURUM ::
-#\[7]PNZL3ZXBDGJ3AE4DJ3I5JY3LW4MZ4ZAEAS7AM3V7TNUJNW2SV6BY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,,.,..,,.,.,,.,,,.,,,..,,..,..,,...,...,.,,,..,,,.,,...,,..,
+#S3KWG74FPIAANSP42QWQ2TSPAIHXZLCL33QF55GXYCENE3NPIVT343TJ7VWQBMMVCIUKSGGG2H2BM
+#\\\|OAGV2AC2MDJXRCLYMKDWIA2XSB25DYHIIMIASW7TSQROVADOOKY \ / AMOS7 \ YOURUM ::
+#\[7]37XMZH4ISVWUUBEK4RNSDBHBF2TTCPWAXHER3MQ2VVWWVDOGWQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

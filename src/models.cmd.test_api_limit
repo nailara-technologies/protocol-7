@@ -10,9 +10,8 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
     if ($@) {
-        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+        $params = <[format.yaml.load_str]>->( $call->{'args'} ) // {};
     }
-    $params = {} if $@;
 }
 
 my $result = <[models.test.api_limit_detection]>->($params);
@@ -23,8 +22,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,..,,,.,.,.,...,..,,.,.,...,.,.,.,,,,,.,,.,,.,.,...,...,,..,,,.,...,,.,,...,
-#ACZG6VDF4RAOFHQHZ4SG6JMSFJCHUPKSLVM77BQ4XBGHBFTWMGUXA2R53MP3ATJBOYK4DM5GTSZUC
-#\\\|K7RKBWORF462HRKGYQWKXL2XSEMGLIF2BIGSQBRTDQI6PLDQSSG \ / AMOS7 \ YOURUM ::
-#\[7]X7J35XDKE67TFR6XBW4LHO4GQG3EHZVB3LJQDLO2WUC4VVZ5YUBI 7  DATA SIGNATURE ::
+#,,..,...,...,...,.,,,.,,,..,,...,,..,,.,,,,,,.,.,...,...,,.,,,,,,,,,,.,,,...,
+#6QLDAECAGZY4V5MAG6JUUVZFASNMSMWGQGVWOKR6VNGO4XRSI3VK5DNCRNDPJ5XOPVO5QBSFWVVQU
+#\\\|QZJM7BDWTM7U554XLBBBDY7ROKVZPGYJTUMEFOA3R4WCDZNT42F \ / AMOS7 \ YOURUM ::
+#\[7]TZZZUW2XB56HVM6ERH3RXT2S5MX2QHHIJL3B7H6OEOBUVZVAJSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

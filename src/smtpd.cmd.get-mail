@@ -17,7 +17,7 @@ for my $e ( @{$index} ) {
         or ( $e->{'yaml_path'} // '' ) eq $query ) {
         my $yaml_path = $e->{'yaml_path'} // '';
         if ( -f $yaml_path ) {
-            my $content = eval { YAML::XS::LoadFile($yaml_path) };
+            my $content = <[format.yaml.load_file]>->($yaml_path);
             if ( defined $content and ref $content eq qw| HASH | ) {
                 my $yaml_str = eval { YAML::XS::Dump($content) } // '';
                 return { 'mode' => qw| size |, 'data' => $yaml_str };
@@ -31,7 +31,7 @@ for my $e ( @{$index} ) {
 
 ## try direct file path ##
 if ( -f $query ) {
-    my $content = eval { YAML::XS::LoadFile($query) };
+    my $content = <[format.yaml.load_file]>->($query);
     if ( defined $content and ref $content eq qw| HASH | ) {
         my $yaml_str = eval { YAML::XS::Dump($content) } // '';
         return { 'mode' => qw| size |, 'data' => $yaml_str };
@@ -46,7 +46,7 @@ my $ymd        = sprintf '%04d/%02d/%02d', $year + 1900, $mon + 1, $mday;
 my $guess_path = join qw| / |, $store_dir, $ymd, "$hash.yaml";
 
 if ( -f $guess_path ) {
-    my $content = eval { YAML::XS::LoadFile($guess_path) };
+    my $content = <[format.yaml.load_file]>->($guess_path);
     if ( defined $content and ref $content eq qw| HASH | ) {
         my $yaml_str = eval { YAML::XS::Dump($content) } // '';
         return { 'mode' => qw| size |, 'data' => $yaml_str };
@@ -55,8 +55,8 @@ if ( -f $guess_path ) {
 
 return { 'mode' => qw| false |, 'data' => 'message not found' };
 
-#,,,.,.,.,.,,,.,.,.,.,,..,,..,,..,..,,,,.,.,,,.,.,...,...,...,..,,,.,,.,.,,..,
-#ETJNHNQBMSEUARSVDN7553HSTIMR6WUO2W2AHUTRKKKBICBPAAB3LOCXKZSX5HXQNZT5UWCOG5QRC
-#\\\|NSBB5ATPAU4IAO4FCSCUF7VNBNIGJFA74T7QUKNYEXX56LSVPU7 \ / AMOS7 \ YOURUM ::
-#\[7]2AGDVBGSXRGFPYD3EWCSCZ3F5W4XXKVQGRIWD5NWECPBFCCN5YBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,..,,,,,,,,.,.,.,,.,,,,.,,,,,.,.,...,..,,,,,,,,.,,.,,.,,,,,,,
+#OUCCRLMNCLNRGDOX2VYVMGJM7POCPBTDKB4BVQJII3PHZY57ALU7NRAZEYT3XG3E7II4EFFQOUWIK
+#\\\|KXSRXN4VABAX36MKGZZCKXLFV2EDETP7RLZL7W2VYIT4SRTCYNU \ / AMOS7 \ YOURUM ::
+#\[7]4NPFWOVVWVIQCZUFBYSHQEV5P55DLAN72TALHDYAXM3LNZIOQWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

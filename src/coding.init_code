@@ -21,7 +21,6 @@ map { <[base.perlmod.autoload]>->($ARG) } qw[
     Cwd
     Fcntl
     Encode
-    YAML::XS
     FreezeThaw
     IPC::Open3
     IO::Compress::Xz
@@ -36,7 +35,7 @@ use Socket qw| SOCK_STREAM |;
 use Errno  qw| EAGAIN EWOULDBLOCK |;
 
 map { <[base.perlmod.autoload]>->($_) }
-    qw| IPC::Open3 YAML::XS FreezeThaw Fcntl Cwd IO::Compress::Xz |;
+    qw| IPC::Open3 FreezeThaw Fcntl Cwd IO::Compress::Xz |;
 
 ## self-test tier1 retry budget : computed once here, at init, so both      ##
 ## coding.self_test.handler.poll_probe [ its own hard watchdog ] and        ##
@@ -189,8 +188,9 @@ if ( length $catalog_corpus_dir and $EFFECTIVE_USER_ID == 0 ) {
 ## load persisted model metadata from disk if available
 my $saved_meta_ref = <[file.zenka_dir.load]>->('state/model_metadata.yaml');
 if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
-    my $loaded = eval { YAML::XS::Load( $saved_meta_ref->$* ) };
-    if ( !$@ && ref $loaded eq qw| HASH | ) {
+    my ( $loaded, $yaml_err )
+        = <[format.yaml.load_str]>->( $saved_meta_ref->$* );
+    if ( !defined $yaml_err && ref $loaded eq qw| HASH | ) {
         <coding.model_metadata> = $loaded;
         <[base.logs]>->(
             2,
@@ -204,8 +204,9 @@ if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
 ## load persisted model-status from disk if available
 my $saved_status_ref = <[file.zenka_dir.load]>->('state/model_status.yaml');
 if ( defined $saved_status_ref && length $saved_status_ref->$* ) {
-    my $loaded = eval { YAML::XS::Load( $saved_status_ref->$* ) };
-    if ( !$@ && ref $loaded eq qw| HASH | ) {
+    my ( $loaded, $yaml_err )
+        = <[format.yaml.load_str]>->( $saved_status_ref->$* );
+    if ( !defined $yaml_err && ref $loaded eq qw| HASH | ) {
         <coding.model_status> = $loaded;
         <[base.logs]>->(
             2,
@@ -729,8 +730,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,.,.,,.,,,.,,.,.,,..,,.,,,,.,,.,,.,,,...,.,.,...,...,...,.,.,.,,,,.,,,.,,
-#UTVG5OMB45VFSGPNIM4PSMFQ6RTLSLAD64G52WEFMADE5GBUVOLXPEBHHZ2EVUCXNZ5CPRAXQWTB2
-#\\\|7BBKQZXMVLBYBWGWQMCSRN5QHOVR3V6IRHHXJ6DOIDSWXRVZLSW \ / AMOS7 \ YOURUM ::
-#\[7]UNLS6HTFGSZS6OSJFJNA3IMEHVHADQBGZ7J5AWWNWWDXQGGNHABI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,.,,,.,.,...,..,,,,,,.,,,,,.,.,.,...,...,,..,,,,,,.,,.,,,.,.,
+#EZJ3UJ4WCEDOPU624SG6K6TLVJDAZ6QBW4I6HOTWFSAU2SUYP3WVWQLXD7YGVFDNFQJG6XTZZWF3Y
+#\\\|PPAKYY2GQSYT3OVNCRGCCAJCPXSNBMQG3J4UCH42AIQOMEMWBFW \ / AMOS7 \ YOURUM ::
+#\[7]EDUMITIMO4HOOLOQURDQLEXKKHJLB5EKDHU5RS5V3HMIFI2AUWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

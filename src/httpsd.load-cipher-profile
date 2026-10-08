@@ -59,15 +59,13 @@ my $config_file = '/etc/protocol-7/httpsd-ciphers.yaml';
 if ( -f $config_file ) {
     my $yaml_profile = undef;
 
-    eval { require YAML::XS; } or do {
+    my ( $yaml, $yaml_err ) = <[format.yaml.load_file]>->($config_file);
+    if ( not defined $yaml ) {
+        <[base.log]>->(
+            1, "cipher-profile: failed to load YAML config: $yaml_err"
+        );
         goto FALLBACK_DEFAULT;
-    };
-
-    my $yaml;
-    eval { $yaml = YAML::XS::LoadFile($config_file); } or do {
-        <[base.log]>->( 1, "cipher-profile: failed to load YAML config: $@" );
-        goto FALLBACK_DEFAULT;
-    };
+    }
 
     my $profile = $yaml->{cipher_profiles}{$profile_name};
     unless ($profile) {
@@ -107,8 +105,8 @@ unless ($default_profile) {
 
 return {%$default_profile};
 
-#,,,.,...,..,,,..,,..,,,.,...,,,.,,,,,.,,,...,.,.,...,...,,,.,.,,,,.,,...,,,,,
-#Y3AIOURSLJCPZWBTCLD76BFK2TBFD7DX34YGPN3MI6ATWSKKR2RZRW5UYCMAOYIVPPHWDR64QVMGY
-#\\\|I3WY2FJZJJYTSLHKCTQGNV47EMN7VERHRFYYVRAZULAFBY7NIZG \ / AMOS7 \ YOURUM ::
-#\[7]PMQ5OUE5B25743BYW2OICYISX7N2TORH6LYBGBNQLOWB5GBWLWCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,...,...,..,,..,,,,,,,,.,,.,,..,,.,.,...,..,,,.,,,..,...,,..,,..,
+#D4JRDPTEFZDFVA6SD5WMTQ5Y3ZXNSGDYIMVYRCEJD5RS6DTSYBDADG3JOMJ7NAABT6YNBFLNHLSHO
+#\\\|P6V46OFHSCFHJIZX267OPXAEDA4R5MV7VH3AURVBV4LYOJJYKE6 \ / AMOS7 \ YOURUM ::
+#\[7]J6DSTL7UKS4IY6Y4SO3GQXYWWTOF7CSHVLQFGZNG5NW32NPM54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

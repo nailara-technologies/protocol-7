@@ -31,11 +31,13 @@ if ( $mode ne 'size' or not defined $data_ref or not length $data_ref ) {
 }
 
 ## parse yaml result ##
-my $extracted = eval { YAML::XS::Load($data_ref) };
-if (   $@
-    or not defined $extracted
-    or ref $extracted ne 'HASH' ) {
-    <[base.logs]>->( 2, 'proxy: yaml parse failed: %s', $@ // 'unknown' );
+my ( $extracted, $yaml_err ) = <[format.yaml.load_str]>->($data_ref);
+if ( not defined $extracted or ref $extracted ne 'HASH' ) {
+    <[base.logs]>->(
+        2,
+        'proxy: yaml parse failed: %s',
+        $yaml_err // 'unknown'
+    );
     return <[proxy.template.passthrough]>->(
         $client_id, $context, 'generic.proxy.passthrough'
     );
@@ -147,8 +149,8 @@ my $response
 
 return;
 
-#,,..,..,,.,,,...,...,..,,,,.,...,.,,,.,,,,,,,..,,...,...,,.,,.,,,,,.,.,,,,.,,
-#RHVC6ORKFKQNWV267TV7AUBDCA2I5GTWO5YKJ3VLLXK6RVOIDUBB774T5J32IJOTRUJYWCIBW22YA
-#\\\|HXIQZ6KLM6WV6ROM5C27R472UI46YZTB6DNUDJKVIQ4YB6VW4VX \ / AMOS7 \ YOURUM ::
-#\[7]X7774AJ54TP4PBNOH6OZ3U6KWEHVCSXMNIGZF2OMQK5V4C5RQSCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,.,,,...,.,.,,.,,,.,,.,.,...,..,,...,.,,,.,.,,,.,,,.,,..,,,.,
+#VKNLXWUGXEHDHLBBED3SPUZRJ6VZZZ6AD4JCSL6P6FEFRXKRAF4TMSZFEQ4BGFRPK7MSSGIRVVXAY
+#\\\|6T7N5PBOS7PD4SIFA6VDTRYDIWXK7BTHY7X5XCISQ435GZVNPI4 \ / AMOS7 \ YOURUM ::
+#\[7]QH3PUWYS5IMRKMEVQTBXW35UWQP77OM32HIERSC7WP3V6AUFTMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
