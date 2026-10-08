@@ -2,7 +2,7 @@
 
 # name  = editor.ui.ascii_frame.render_form
 # descr = render editor state as ascii-art form via ascii.frame backend
-# param = $editor_state, $frame_name [ , $only_field ]
+# param = $editor_state, $frame_name [ , $only_field, $marks, $max_frame_width ]
 
 ## rendering backend for the editor.ui.* contract [ design doc :
 ## editor-namespace-interface-design.yaml ]. builds a FRESH values hash from
@@ -30,7 +30,8 @@
 ## true before the pads and the reserved cell existed, and left behind it a
 ## jump to go looking for that is no longer there. ]
 
-my ( $editor_state, $frame_name, $only_field, $marks ) = @ARG;
+my ( $editor_state, $frame_name, $only_field, $marks, $max_frame_width )
+    = @ARG;
 
 ## the cursor marker is parameterisable so a COLOURED caller can pass a
 ## one-character placeholder [ e.g. "\x01" ], colourise the finished frame,
@@ -72,6 +73,40 @@ if ( exists $entry->{'descriptor'} ) {
     $descriptor = $entry->{'descriptors'}{$mode};
 }
 return undef if not defined $descriptor;
+
+## TERMINAL WIDTH CAP [ the engine-level guarantee form.render passes in
+## interactive mode only ; every other caller leaves it undef and renders
+## byte-identically to before ].  the widest slot prefix plus the fixed
+## margins/borders/padding bounds how long a field's DISPLAY value may be
+## before its row would exceed the caller's frame budget.  worst-prefix, not
+## per-slot : every labelled row shares the label-column prefix, and capping
+## to the widest keeps the single computation below trivial while still
+## bounding EVERY row [ an unlabelled row's own prefix is never wider than the
+## worst ].  -4 is the generic value reservation this module adds itself [
+## pad, cursor cell, two framing cells ]
+my $value_budget;
+if ( defined $max_frame_width and $max_frame_width > 0 ) {
+
+    my $fixed
+        = ( $descriptor->{'margin'}{'left'}  // 0 )
+        + ( $descriptor->{'margin'}{'right'} // 0 )
+        + length( $descriptor->{'border'}{'left'}  // '' )
+        + length( $descriptor->{'border'}{'right'} // '' )
+        + ( $descriptor->{'padding'}{'left'}  // 0 )
+        + ( $descriptor->{'padding'}{'right'} // 0 );
+
+    my $worst_prefix = 0;
+    foreach my $slot ( values %{ $descriptor->{'slots'} // {} } ) {
+        next if ref $slot ne qw| HASH | or $slot->{'type'} ne qw| field |;
+        my $span
+            = length( $slot->{'prefix'} // '' )
+            + length( $slot->{'suffix'} // '' );
+        $worst_prefix = $span if $span > $worst_prefix;
+    }
+
+    $value_budget = $max_frame_width - $fixed - $worst_prefix - 4;
+    $value_budget = 0 if $value_budget < 0;
+}
 
 ## active field NAME [ active_field is an index into schema fields ] ##
 my $active_index = $editor_state->{'active_field'} // 0;
@@ -522,6 +557,39 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## this used to be written to avoid.
         ##
         ## constant length + 4 with the framing, focused or not
+        ##
+        ## TERMINAL WIDTH CAP : an over-long DISPLAY value is cut to the
+        ## budget derived above.  the default is a head-cut with a trailing
+        ## '..' ; when the ACTIVE field's own cursor would land inside the
+        ## cut-off tail, the cut flips to the LEFT so the cursor cell stays
+        ## visible, carrying a leading '..' instead.  $value_cut records how
+        ## many characters a left-cut dropped so the cursor overlay below
+        ## translates its raw-buffer offset into the cut value's own
+        ## coordinates [ a right-cut drops nothing before the cursor ]
+        my $value_cut = 0;
+        if ( defined $value_budget and length($value) > $value_budget ) {
+
+            my $keep = $value_budget - 2;    ## room for the marker ##
+            if ( $keep < 1 ) {
+
+                ## degenerate budget : plain truncation, still bounded ##
+                $value = substr( $value, 0, $value_budget );
+
+            } elsif ( $name eq $active_name and $cursor_bearing ) {
+                my $cursor = <[editor.control.get_display_cursor]>->(
+                    $editor_state, $name
+                ) // 0;
+                if ( $cursor >= $keep ) {
+                    $value_cut = length($value) - $keep;
+                    $value     = q{..} . substr( $value, $value_cut );
+                } else {
+                    $value = substr( $value, 0, $keep ) . q{..};
+                }
+            } else {
+                $value = substr( $value, 0, $keep ) . q{..};
+            }
+        }
+
         $value = q{ } . $value . q{ };
 
         if ( $name eq $active_name and $cursor_bearing ) {
@@ -539,6 +607,10 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
                 $editor_state, $name
             ) // 0;
             $cursor = 0 if $cursor < 0;
+            ## WIDTH CAP left-cut : value_cut characters dropped, the two of
+            ## the leading '..' marker added in front of what remains
+            $cursor += 2 - $value_cut if $value_cut;
+            $cursor = 0               if $cursor < 0;
             $cursor++;
             $cursor = length($value) - 1 if $cursor > length($value) - 1;
 
@@ -613,8 +685,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,.,.,.,,.,,.,.,,..,...,.,,,...,.,,,...,.,.,..,,...,...,.,.,.,,,...,,.,,,.,,
-#VOYGXTXC26ZXZZNTDVDYGSOWMSJ6TTSML2MCUYRKQUTVHLXGCBFNVWCR6ZVMLGSV4KDXFOWTSXXSG
-#\\\|OIHUOFFECCC523HUTBWFBSX2TL4FCJHY567TGFW4O3DN5TIKTF5 \ / AMOS7 \ YOURUM ::
-#\[7]G3QPCUEC7FAA5VMTX5GEPUWZMYJJV5Y7CXXEZZWXJJFBRSOTD4CA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,..,,,,,,...,...,,,,,.,,,..,,..,,...,...,,..,,,,,,,,,...,...,
+#AEIC33PE5SFOH2LWV42H6OQUIZXCUFUEQKADIM2WUVC2JB5LQT2Y5IVBVB6YILXRJ7QV2IQZAGKY2
+#\\\|PZTCRLXMDZRF6I23INEKQ53VA4ICNOGG2HJVIMK7ZTFWO6DGC3L \ / AMOS7 \ YOURUM ::
+#\[7]RYNJ647ZU6332BI4NCUY5GYUQ6HJ6SJ467Z3NCVDS26AJEKACMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
