@@ -23,30 +23,45 @@ my ($record_count) = @ARG;
 
 $record_count //= 0;
 
-## keys enumerate IN-PROCESS and return real data -- unlike the users side,
+## namespace vocabulary is record-specific, carried by <form.source> [
+## user-edit passes 'host-system' + the read-only 'keys' view ; host-edit
+## passes 'hosts' and may blank namespace_keys to drop the keys row ]
+my $source     = <form.source>               // {};
+my $main_ns    = $source->{'namespace_main'} // qw| host-system |;
+my $keys_ns    = $source->{'namespace_keys'} // qw| keys |;
+my $keys_label = length $keys_ns ? $keys_ns : qw| keys |;
+
+## keys enumerate IN-PROCESS and return real data -- unlike the records side,
 ## which crosses the cube and returns newline-joined text.  never call
 ## keys.console.list : it prints, autoflushes progress mid-flight and bakes
 ## ansi colour into its output, which would corrupt a raw-mode screen
 my @key_names = <[crypt.C25519.all_key_names]>;
 
-return [
-    {   qw| key |   => qw| host-system |,
+my @rows = (
+    {   qw| key |   => $main_ns,
         qw| label | => sprintf(
-            'host-system   %d record%s',
-            $record_count, <[base.cnt_s]>->($record_count)
+            '%-13s %d record%s',
+            $main_ns, $record_count, <[base.cnt_s]>->($record_count)
         )
-    },
-    {   qw| key |   => qw| keys |,
-        qw| label | => sprintf(
-            'keys          %d key%s  [ read-only ]',
-            scalar @key_names,
-            <[base.cnt_s]>->( scalar @key_names )
-        )
-    },
-];
+    }
+);
 
-#,,,.,...,,..,.,,,...,..,,...,,.,,.,,,...,...,..,,...,..,,.,.,.,,,.,.,.,,,.,,,
-#YASQCBGPDRNHW5IALOTJBWIMWHUGQW7HPF4VVI3HSESCJWDPISIQDAA2BFWN7DI3PWVIF3YLPROGQ
-#\\\|KVBKVTGFP6UIX3UEPGR2GE55P23G7U3CXZ4P7M3A662HZROUFY5 \ / AMOS7 \ YOURUM ::
-#\[7]NAAQH6BBBSRCZFUPHTLNI5XW2Z7OIYMAZD6M26YA344O4RHI7ADY 7  DATA SIGNATURE ::
+push @rows,
+    {
+    qw| key |   => $keys_ns,
+    qw| label | => sprintf(
+        '%-13s %d key%s  [ read-only ]',
+        $keys_label,
+        scalar @key_names,
+        <[base.cnt_s]>->( scalar @key_names )
+    )
+    }
+    if length $keys_ns;
+
+return \@rows;
+
+#,,,,,,.,,.,.,,,,,...,...,,.,,.,,,,.,,,,.,,,.,..,,...,...,..,,,,,,,,,,,,,,,..,
+#FUSWAJVWCSGLEDI3IZFMJLTTLLAB7HJLO2WCL2F7QTK34SE45RF56EQ4UF2KEZ35VLQK6ER67XZ66
+#\\\|LMSQIJPZXTGA5A7PXENIMBDJ7POP34CAROCSHZD2U2Y3O7QY4ZM \ / AMOS7 \ YOURUM ::
+#\[7]EKFXAHXJPG7BAQDCMOFP5NEAPZOZHEYQGHQ5S2K3CV7T7THYOQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

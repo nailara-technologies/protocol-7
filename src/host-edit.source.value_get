@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = host-edit.source.value_get
+# descr = local record source : fetch one host record
+# param = $record_name, $reply_handler
+
+## one half of the record source the form engine calls through <form.source> [
+## registered by host-edit.init_code ].  unlike user-edit's sender this does
+## LOCAL file io -- there is no hosts zenka -- but the reply still travels the
+## same shape the users zenka gives over the wire : { sid, cmd, call_args,
+## params, data? }, with SIZE mode carrying the yaml payload in 'data' [
+## form.handler.value_get_reply parses it with format.yaml ].  the reply is
+## DEFERRED to the next event tick on a 0 s timer, exactly as a network reply
+## would be : the engine's reply handlers are written for the async wire and
+## must never run inline from a sender.
+
+my ( $record_name, $reply_handler ) = @ARG;
+
+$record_name //= '';
+$record_name =~ s|^\s+||;
+$record_name =~ s|\s+$||;
+
+my $not_found_fmt = ( <form.source> // {} )->{'not_found_fmt'}
+    // q{host '%s' not found};
+
+my $info;
+
+if ( not length $record_name ) {
+    $info = {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| FALSE |,
+        qw| call_args | => { qw| args | => 'usage: value-get <host>' },
+        qw| data |      => 'usage: value-get <host>'
+    };
+} elsif ( not <[host-edit.record.name_valid]>->($record_name) ) {
+    $info = {
+        qw| sid |       => <form.cube_sid> // 0,
+        qw| cmd |       => qw| FALSE |,
+        qw| call_args | => {
+            qw| args | => sprintf "host name '%s' is invalid",
+            $record_name
+        },
+        qw| data | => sprintf "host name '%s' is invalid",
+        $record_name
+    };
+} else {
+    my $envelope = <[host-edit.record.read]>->($record_name);
+
+    if ( not defined $envelope ) {
+        my $msg = sprintf $not_found_fmt, $record_name;
+        $info = {
+            qw| sid |       => <form.cube_sid> // 0,
+            qw| cmd |       => qw| FALSE |,
+            qw| call_args | => { qw| args | => $msg },
+            qw| data |      => $msg
+        };
+    } else {
+        my $fields = $envelope->{'fields'};
+
+        ## READ-ONLY trust columns, injected for display only : computed from
+        ## the client pin store and NEVER written back -- value_set re-filters
+        ## against host-edit.record.field_names, so these keys cannot reach
+        ## disk [ HOST-SETUP.md : the pin is the single source of truth ]
+        my $columns
+            = <[host-edit.trust.pin_state]>->( $record_name, $fields );
+        my %display_fields = ( %{$fields}, %{$columns} );
+
+        my $yaml_str = <[format.yaml.dump_str]>->(
+            {   qw| name |   => $envelope->{'name'} // $record_name,
+                qw| fields | => \%display_fields
+            }
+        );
+
+        $info = {
+            qw| sid |       => <form.cube_sid> // 0,
+            qw| cmd |       => qw| SIZE |,
+            qw| call_args | => { qw| args | => '' },
+            qw| data |      => $yaml_str
+        };
+    }
+}
+
+<[event.add_timer]>->(
+    {   qw| after | => 0,
+        qw| desc |  => 'host-edit.source.value_get deferred reply',
+        qw| cb |    => sub { <[$reply_handler]>->($info) },
+    }
+);
+
+return TRUE;
+
+#,,.,,.,,.,.,.,,,,.,.,,,,.,,.,,,,..,,,,.,,..,,..,,...,...,..,,,.,,.,.,,.,,.,
+
+#,,,.,.,.,.,.,,.,,,,.,...,.,.,,,.,...,,,,,,..,..,,...,...,..,,.,.,,,,,.,.,.,,,
+#WLPERLBA4N2C24MOUQVSX6W4JJOQPZOXHMNCWTYDBNECCXMGVPDUWSXW2QT4OBSEV6CKQ4HZUQPM4
+#\\\|O3TTJ6ACSNW3B7PAFDYBIA3GMTYK46IYYQIDFVKD2EY24MJX2PP \ / AMOS7 \ YOURUM ::
+#\[7]AHIZIZVIMUGJ4SEKEJWPAUGMNI2QL4IB3OHJDZKRUPVXORZOU2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

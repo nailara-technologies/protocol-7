@@ -1,0 +1,63 @@
+
+ .:[ protocol-7 host-edit console zenka ]:.
+
+[load_config_file:'shared-params']
+
+## no plugins.load line : host-edit ships no detail-tab plugins yet [ the
+## plugin.user-edit.* family is user-edit's own -- plugin-prefixed modules
+## go through [load_plugins:...], never [load_modules:...], see
+## cfg/zenki/user-edit/zenka.v7's own header ]
+
+## console commands come from form.* [ start, show-form, browse,
+## test-secret-roundtrip ] -- 'p7-host-edit commands' lists them [ the
+## p7-<zenka> link is installed on this zenka's v7-zenki start ; until
+## then : 'bin/Protocol-7 host-edit <cmd>' ].  same deliberately narrow
+## access list as user-edit : this console's only reason to be reachable
+## is char-add, the no-tty form driver
+access.cmd.usr.cube  =  commands heart verify-instance char-add
+
+modules.load  =  auth.client net protocol io.unix ui terminal editor \
+                                 crypt.C25519 ascii.frame format.yaml \
+                                 format.json keys form host-edit
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## keys is loaded for its CODE [ pins, trust ], not its console commands ##
+## -- they would only clutter 'commands' here                          ##
+[base.disable_console_command:'keys.*','test-secret-roundtrip']
+
+## authenticate as the invoking Unix user, not a zenka credential   ##
+## [ nshell/start + user-edit precedent : personal interactive ]    ##
+## [ console, not a managed zenka session -- system.auth-user set  ] ##
+## [ by host-edit.init_code during init_modules above ]            ##
+## '<unix-user>[host-edit]' — the subname makes this console       ##
+## addressable separately from any other zenka running as the same ##
+## unix user [ e.g. nshell or user-edit ].  built in host-edit.    ##
+## init_code, since '[host-edit]' written literally here would be  ##
+## read as a command invocation by the parser                      ##
+system.auth-user = <host-edit.auth_name>
+
+[base.net.connect:'unix']
+
+## authenticates as Unix user above, not via cube session id --  ##
+## [base.get_session_id] intentionally NOT called [ nshell/start  ##
+## precedent, same reasoning ]                                    ##
+
+[base.call.console_command:<system.args>]
+
+## HYBRID LOOP MODE [ resolved, same as user-edit ] : there is     ##
+## deliberately NO [zenka.loop] here.  console commands that need  ##
+## the event loop -- the local record source defers its replies on ##
+## a 0 s timer, and the reply handler must run inside the loop --  ##
+## call [init-done:TRUE] + [zenka.loop] THEMSELVES as their last   ##
+## step [ see form.console.show-form ].  per-command, not per-     ##
+## zenka, because 'commands' and 'describe' must print and exit    ##
+
+#,,.,,,,,,,.,,,,.,.,,.,,..,,,..,,,,,..,,.,,.,..,,...,...,..,,,,,,,,.,.,,,.,,
+
+#,,.,,.,,,...,..,,..,,.,.,..,,.,,,,..,...,...,..,,...,...,...,,.,,,,,,.,.,,,.,
+#BRBJASFOV7FRKJWI2WTDCM6ZPS5532ND3YCMY4OFLM6Y6AMJDOWYJ7GQ2HJHJXGKDO535TZNUTOPW
+#\\\|G2BIA4GNKTH2IHC7Z56ZK3ALRPBSPWXG3WNEWCYLFAFXHF3OCUV \ / AMOS7 \ YOURUM ::
+#\[7]TI46IWQBD2N2N3QSKTREZLFT7PMLU77XMG2N2PZZ5CQ22OB6DGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

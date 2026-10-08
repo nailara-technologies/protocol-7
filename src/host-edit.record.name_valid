@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = host-edit.record.name_valid
+# descr = the host record name rule
+# param = $name
+
+my ($name) = @ARG;
+
+return FALSE if not defined $name or not length $name;
+
+## like the trust name rule, narrowed to a dns label's length : a host
+## record's name doubles as the external link name, the pin stem [
+## <name>_<port>.public ] and a filesystem entry under hosts/, so it must stay
+## lowercase-alnum-led and free of path surprises [ '/' and '\' are excluded
+## structurally by the character class ]
+return $name =~ m|\A[a-z0-9][a-z0-9._-]{0,62}\z| ? TRUE : FALSE;
+
+#,,.,,.,,..,,.,.,,.,,,,,,..,.,,..,,..,.,.,,,..,,...,...,..,,,.,,,.,,,,.,,,.,
+
+#,,..,.,,,,.,,...,...,,,.,.,,,.,.,,,,,..,,.,,,..,,...,...,...,..,,.,.,..,,,.,,
+#BEJZ3Z3C6MSZUE4HLUK2EFIZ4EP2PLN47VHVRZAP2U7OOYTHPUQZCQHGUYRIK5DUDZOHXU7BOTU36
+#\\\|G3YUX6WFIVCH7SZCICTPFHCDZV64CAG7HPTVIUPELUXWYDL7PST \ / AMOS7 \ YOURUM ::
+#\[7]PKRDF6MPYRD6R6TCLBCVZFTWJWS6LYJVYZS2VHKVB3D4EVHHY6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

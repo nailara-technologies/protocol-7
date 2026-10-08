@@ -31,15 +31,17 @@ foreach my $remove_command ( $data{'disabled_commands'}->@* ) {
     my $delcnt = 0;
     $delcnt++
         if defined delete $code{ sprintf qw| base.cmd.%s |, $remove_command };
-    $delcnt++       if defined delete <base.cmd>->{$remove_command};
-    $delcnt++       if defined delete <base.commands>->{$remove_command};
+    $delcnt++ if defined delete <base.cmd>->{$remove_command};
+    ## the listing is keyed by section first [ {'cmd'}{<name>} ] ##
+    $delcnt++
+        if defined delete <base.commands>->{'cmd'}->{$remove_command};
     $remove_count++ if $delcnt > 0;
 }
 
 return $remove_count;    ##  actually unloaded command counter  ##
 
-#,,,,,,.,,.,.,,,,,..,,,,.,,,.,...,,.,,.,.,.,.,..,,...,...,...,,.,,,,,,...,.,,,
-#BNQHIT4EGN4XL4ZLA7IW4RCYYP5XVXFV6XMYDWDWXDEBQ4AQ5RSBDS53XFWWAPDUXJIBUWPPR23DA
-#\\\|EOTAG7RAJGVYBJB6G3AZ6LNDRZ6MHPJSDUK4HQNFR4BQ6JFPW3J \ / AMOS7 \ YOURUM ::
-#\[7]RJRPSMICJKPAIRTTQO2QANLFVQ5IIJF6GYTPQ3MY62TKALFRGCCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,.,,,.,.,.,.,,,.,.,.,.,,,,,,,..,,...,...,.,.,,,,,..,,..,,.,.,
+#KLPATKQNOPYCA6U3G7XVRFG2JNJVYII6WCYAL446BFGGS4DZGRO3P7BMOZITPZ5CDANZZXJHYX2IA
+#\\\|4CXNGNZLNIMW34DLTDABM4B25VVGSXUGFPMAXMDIS2KQETZ6LLE \ / AMOS7 \ YOURUM ::
+#\[7]FRVMBZLSN2KHE4DL546UIHAV2UYMK3FYPLRY2XXY3K7OH7Y7NWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

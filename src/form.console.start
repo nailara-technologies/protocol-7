@@ -60,7 +60,9 @@ if ( not -t STDIN and not <form.mode.no_tty_debug> ) {
 <form.offer.create> = TRUE;
 <form.username>     = $username;
 <form.interactive>  = TRUE;
-<form.title>        = sprintf( 'user-edit : %s', $username );
+## see form.console.show-form : title format lives in <form.source>
+<form.title>
+    = sprintf( $source->{'title_fmt'} // q{user-edit : %s}, $username );
 
 ## enter submits, matching editor.control.process_key's default ##
 <form.submit_on> = qw| enter |;
@@ -84,8 +86,8 @@ my $sender = $source->{'value_get'} // return FALSE;
 ## resumes here only if the reply handler unlooped to offer a record ##
 return <[form.offer_create]>->( $username, $tags );
 
-#,,,.,.,.,,..,..,,.,.,,..,,,,,,,,,,..,.,,,.,,,..,,...,...,,.,,...,.,.,..,,.,,,
-#36HPW26VVF4X5RUS2TH4Y7BOVSEFSEHSJ7F6XMFEH4UCO3JDQO22WMUHRNMUOQWFQKTCJBYHMPE2S
-#\\\|XB4YDY4IMAJLHGWPAZTP6AQLP7GSVWAILVSYZAJCT7BMDDURTEU \ / AMOS7 \ YOURUM ::
-#\[7]XOOWTRRAAYU7FFRB6A3BWWMU4VGQZNMBM6U2NGFFPGDN5GBQQ2BY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,,,.,,,.,..,,..,,.,,,,,.,,.,,..,,...,...,.,.,,,.,,,.,...,..,,
+#5O56UE6UJ6E4ZXGQO7VRLDOUA4PUCZ46CRML3MUWHB2VZZ2AGUDAQTQXAXBGJKQILDSBBGVFZS4FQ
+#\\\|5774IK77SR6NJYQVMCTX6RJGNMPZCQD36TZOXOV7CYBIU72DWZJ \ / AMOS7 \ YOURUM ::
+#\[7]GZJCO55SHGF6SFVRTCG4RLYFSHGOHLPHDTYSGYBFQO7QBAJL5YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

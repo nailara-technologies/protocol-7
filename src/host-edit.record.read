@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = host-edit.record.read
+# descr = read one host record envelope from local json
+# param = $name
+# return = envelope hashref [ name/created/updated/fields ] or undef
+
+my ($name) = @ARG;
+
+my $path = <[host-edit.record.path]>->($name) // return undef;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path) // return undef;
+
+return undef if not -f $resolved_path or not -r $resolved_path;
+
+open( my $fh, '<', $resolved_path ) or do {
+    <[base.logs]>->(
+        1,              ': cannot read host record [ %s ] : %s',
+        $resolved_path, <[base.str.os_err]>
+    );
+    return undef;
+};
+
+my $json_str = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+close($fh);
+
+my $envelope = <[format.json.decode]>->($json_str);
+
+return undef if ref $envelope ne qw| HASH |;
+return undef if ref $envelope->{'fields'} ne qw| HASH |;
+
+return $envelope;
+
+#,,,.,,,,.,..,,.,,..,,.,,,,,..,.,.,,..,,,,,..,,...,...,.,,,,,.,,.,,,,.,,..,,
+
+#,,,,,...,,,.,,,,,,.,,,,,,,.,,.,.,.,.,,,,,...,..,,...,...,,,,,..,,.,,,,.,,,,,,
+#QVTI2NDW3UR2XCZHIBL43IL7JYC6O7X6TULVI5FVBSHXXW4HA4QUOE4X3FU5HLBATYBJ4TYP7HWJK
+#\\\|VAZ7O6UQEUBUY2XKXXXGO4XYILRAA553SSLYKIOC4X343VUAG6X \ / AMOS7 \ YOURUM ::
+#\[7]ATBVAOZX33RKM3GATUFOSUODYKETC7PXKGI43FFIGERZVDVLUWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

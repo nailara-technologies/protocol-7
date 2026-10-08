@@ -138,14 +138,31 @@ twin of `p7-keys accept-owner` \ `drop-owner`, a trust-chain WRITE :
 - every new namespace into every calling zenka's `modules.load` ;
   whitelists only for the affected zenki while a lane edits
 
+## reuse [ user, 2026-10-08 ]
+
+layering already in place : `editor.*` [ generic controls : fields,
+lists, menus, cursors ] -> `form.*` [ the record form engine, 26 modules
+on editor.* ] -> user-edit \ host-edit [ record sources ]. vault-edit [
+cred-mesh client, on editor.* too ] has the two patterns the add-host
+ACTIONS need -- lane B2 generalises them into form.* instead of copying :
+
+- `vault-edit.send_action` -> `form.action.send` : exactly ONE routed
+  call outstanding, a busy flag stops key decoding until its reply lands
+  [ probe, certify, owner-statement install each wait on a reply ]
+- `vault-edit.render_chrome` -> `form.chrome` : client-owned title bar,
+  footer status line + key hints that survive every reply [ step
+  progress : 'probing atom ..', 'pinned', 'certified', 'installed' ]
+
+vault-edit can move onto them afterwards [ not part of B2 ].
+
 ## later
 
 - relay through a linked node, offline file exchange [ transports ]
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,,.,.,.,.,.,,,.,,,,,,.,,,.,,.,,,.,.,,.,,.,,,..,,...,...,...,.,,,,,,,..,,,..,
-#GBU4YSN5IITFXBVB6XQ5VBUZRDJ7ECECDN6U4XWZUJHZ7N4QOY3ZY2FW55CDKQ662P72XC6GKZU2S
-#\\\|NJJCPTHJP32CNTXRYDDA3I7L7DMF2H5GUNWKPNWASOPWT5RESCX \ / AMOS7 \ YOURUM ::
-#\[7]MMI3LSUEDDPJHNLA4LR5Y476C53CFJD7AU4AWKJ4JL42RKDF6WBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,..,,,,,,,,,,,..,,..,,.,,,..,..,,...,...,.,,,..,,.,.,..,,...,
+#OML4BZQXEPGWRMGDWYUYWBBLDTG2OCMPCO6YTFKPDDBSJTN2DMIOOPGNEX2L77ELTY3KG3MIA7WHY
+#\\\|RKG2YRDNFG5SUECBN6OSEK47O7DQTS7SDECVM5JL6PT46E2O3OS \ / AMOS7 \ YOURUM ::
+#\[7]FXDMCRGDVB27MCC7YQQCK4Q7GSPDEFOI25PGZNXSYBDG76GCTSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

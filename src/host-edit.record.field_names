@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = host-edit.record.field_names
+# descr = the editable host record field vocabulary
+# return = list
+
+## HOST-SETUP.md 'host record' -- what is OURS to decide, nothing a pin
+## already holds.  'ssh' is split into its two scalar halves [ the [user@]host
+## and the port ] because the form engine edits scalars and lists, not nested
+## maps ; 'transports' stays ONE ordered list [ 'transports' : tcp,
+## ssh:<profile>, later relay:<node>, file ].
+##
+## this list is the single authority three places read :
+## host-edit.source.value_set RE-FILTERS submitted fields against it [ the
+## read-only trust columns a display-time value_get injects can therefore
+## never reach disk ], field_options advertises it, and create_default seeds
+## it.
+
+return qw| name addresses link_user ssh ssh_port transports owner roles |;
+
+#,,..,,,.,,..,,,.,.,,,,.,,.,,,,..,,,,.,,..,,..,,...,...,..,,,.,,.,,,,.,,.,,.,
+
+#,,,,,.,,,..,,,,.,,,.,,..,..,,,.,,.,.,...,.,,,..,,...,...,,,,,.,,,,,.,,.,,,,,,
+#LIFYZZZGL2I7R63EWH7UDKMOQ6GEXDRJPXBSVXLXBQOOZ2WWX5QATZO4IBMPOQAQMU5QWWUBI25UW
+#\\\|NCNWGHYW66AFR2WIQLNDZ76W7KPCGI24WG3AHLPHFIJINSAYBWU \ / AMOS7 \ YOURUM ::
+#\[7]CE7GNGLYWWVBJXWCGE55IFFZTIMD5V5TAL3YYBRHS36XW73W5QAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

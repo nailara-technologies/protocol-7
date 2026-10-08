@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = host-edit.init_code
+# descr = initialize host-edit console zenka skeleton
+
+<[base.logs]>->( 2, 'host-edit zenka initialized' );
+
+## raw terminal mode for the interactive form [ form.term_init /
+## form.term_restore ] — linux-native, no XS build issues, and API-compatible
+## with POSIX::Termios [ nshell.init_code / user-edit.init_code precedent ]
+<[base.perlmod.load]>->('Linux::Termios2');
+
+## resolve the invoking Unix user, for the start file's  system.auth-user =
+## <host-edit.unix_user> [ nshell.init_code precedent : authenticate as the
+## Unix user, not a zenka credential ]
+<host-edit.unix_user> //= $ENV{'USER'} // getpwuid($EUID);
+
+## '<user>[<subname>]' routing identity : without the subname this console ##
+## is indistinguishable from any other zenka authenticating as the same    ##
+## unix user [ nshell, notably ], and cube cannot address either one --    ##
+## 'p7c taeki.<cmd>' reaches whichever matched first.  the subname is a    ##
+## routing label only : plugin.auth.unix splits it off before every access ##
+## check, so authorization still sees the bare unix user.                  ##
+##                                                                         ##
+## built here rather than written into the start file, where '[host-edit]' ##
+## would be parsed as a command invocation by the config parser            ##
+##                                                                         ##
+## create-offer flow state, explicitly reset : a mid-session               ##
+## base.cmd.reload must not leave the resume block in form.  offer_create  ##
+## armed from a previous invocation                                        ##
+<form.pending.create>   = FALSE;
+<form.create.attempted> = FALSE;
+<form.offer.create>     = FALSE;
+
+<host-edit.auth_name> = sprintf( qw| %s[host-edit] |, <host-edit.unix_user> );
+
+##  THE RECORD SOURCE  #######################################################
+##                                                                            ##
+##  one callback table the whole form engine reads : every form.* module     ##
+##  that needs the record store or the secret store calls through            ##
+##  <form.source> instead of building a route itself, which is what keeps    ##
+##  the engine record-independent [ see user-edit.init_code ].  host-edit's  ##
+##  senders do LOCAL file io under [VAR_P7]/hosts/ and defer their replies   ##
+##  one event tick, exactly as the network reply would be.                   ##
+##                                                                            ##
+##    senders      : value_get / value_all / value_set / field_options /     ##
+##                   create_default / secret_hold / secret_release --        ##
+##                   module names, invoked as <[$sender]> by the engine     ##
+##    default_record : '' -- there is no ambient host; a bare 'show-form'    ##
+##                   asks with an empty name and the create-offer answers   ##
+##    allow_create : TRUE -- the host store is this host's own record of    ##
+##                   who it talks to ; entering a host IS the workflow       ##
+##    tag_record   : '' -- no :create-...:-style auto-create tag gate        ##
+##    title_fmt / frame_name / menu_fallback / namespace_main /              ##
+##    namespace_keys / not_found_fmt : host-edit's record vocabulary,        ##
+##    keeping every user-facing string out of form.*                         ##
+<form.source> = {
+    qw| default_record |  => '',
+    qw| allow_create    | => TRUE,
+    qw| tag_record      | => '',
+    qw| title_fmt       | => q{host-edit : %s},
+    qw| frame_name      | => qw| host-edit-form |,
+    qw| menu_fallback   | => qw| host-edit |,
+    qw| namespace_main  | => qw| hosts |,
+    qw| namespace_keys  | => qw| keys |,
+    qw| not_found_fmt   | => q{host '%s' not found},
+    qw| value_get       | => qw| host-edit.source.value_get |,
+    qw| value_all       | => qw| host-edit.source.value_all |,
+    qw| value_set       | => qw| host-edit.source.value_set |,
+    qw| field_options   | => qw| host-edit.source.field_options |,
+    qw| create_default  | => qw| host-edit.source.create_default |,
+    qw| secret_hold     | => qw| host-edit.source.secret_hold |,
+    qw| secret_release  | => qw| host-edit.source.secret_release |,
+};
+
+## P7-native home dir resolution [ base.get_homedir ] and the path keywords ##
+## user-edit registers : VAR_P7 resolves to this zenka's data dir [         ##
+## /var/protocol-7/host-edit/ ], HOME_N to ~/.n [ the client pin store root ##
+## host-edit.trust.pin_state reads ]                                        ##
+my $home_dir = <[base.get_homedir]>->(<host-edit.unix_user>);
+
+my $host_edit_path_keywords = {
+    qw| VAR_P7 | => <[file.zenka_dir.data_path]>,
+    qw| ETC_P7 | => <[file.zenka_dir.data_path]>->(TRUE),
+    qw| HOME_N | => join( qw| / |, $home_dir, qw| .n | )
+};
+
+<[base.path.register_keywords]>->($host_edit_path_keywords);
+
+## best-effort data dir creation : a console zenka runs as the invoking   ##
+## unix user [ system.auth-user below ], and /var/protocol-7 is group-    ##
+## protocol-7 writable, so the zenka dir and hosts/ subdir can be made on ##
+## first run -- user-edit's own /var/protocol-7/user-edit exists for the  ##
+## same reason                                                            ##
+my $data_dir = <[base.path.resolve_keywords]>->(qw| [VAR_P7] |);
+mkdir $data_dir, 0750
+    if defined $data_dir and not -d $data_dir;
+
+my $hosts_dir = <[base.path.resolve_keywords]>->(qw| [VAR_P7]/hosts |);
+mkdir $hosts_dir, 0750
+    if defined $hosts_dir and not -d $hosts_dir;
+
+return TRUE;
+
+#,,.,,,..,,.,,.,,,.,,.,,.,,,.,,,,,,..,,,,.,,..,,..,,...,...,..,,,,,,.,,,,,.,
+
+#,,,,,.,.,,..,,.,,,.,,..,,,,,,..,,,,,,,.,,.,,,..,,...,...,...,,,.,,,.,,,.,...,
+#QLXUVJIANN2YAAOM5ZUOEN2IBODNLRNESVPDM5P2V4BY6DHNYNDHHYSBGVGOG7POL5FCXDWNJZXGM
+#\\\|7Q7GYH375JNIUNN3ECQQETUWOPRIRDWQ777CAFDOTQEFLBJCEFF \ / AMOS7 \ YOURUM ::
+#\[7]S4OQECZIRGTXKU2PMB223UD4AIEYL4D2OU3WI2KC3QLQ3QYTPKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

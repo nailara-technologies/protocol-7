@@ -18,11 +18,19 @@
 
 my ( $namespace, $listing ) = @ARG;
 
-$namespace //= qw| host-system |;
+## namespace vocabulary is record-specific, carried by <form.source> -- see
+## form.menu.namespaces.  the read-only keys branch compares against the SAME
+## registered key, so a zenka without a keys view [ namespace_keys blanked ]
+## never collides with it
+my $source  = <form.source>               // {};
+my $main_ns = $source->{'namespace_main'} // qw| host-system |;
+my $keys_ns = $source->{'namespace_keys'} // qw| keys |;
+
+$namespace //= $main_ns;
 
 my @names;
 
-if ( $namespace eq qw| keys | ) {
+if ( length $keys_ns and $namespace eq $keys_ns ) {
     ## never keys.console.list -- it prints, autoflushes progress and bakes
     ## ansi into its output, which would corrupt a raw-mode screen
     @names = <[crypt.C25519.all_key_names]>;
@@ -36,8 +44,8 @@ return [
     } sort @names
 ];
 
-#,,.,,,,,,...,,.,,..,,.,,,,,.,.,,,...,,..,..,,..,,...,.,.,.,.,.,,,.,.,,,,,.,,,
-#FLITNQCDCNATLP7VRA4343Y5VZJO7D3CXFO6RB7EPSO4VLROZUSIQ4IHB7NTGUSWSINW5IPCHDC6A
-#\\\|PKDY2IRS3XJPI2IXF63DXNDPX453Q3MKBGHNTOSAXFEHOCQR3UD \ / AMOS7 \ YOURUM ::
-#\[7]32ZEABFPGBAPBWGRXZZQQUQ7KXWI6TMREZDPTEZCZUYAMQX26QDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,,..,.,.,,,,,.,,,,,,,.,.,,..,..,,...,...,,..,.,.,..,,..,,.,,,
+#AUDMM7UQTGWPHHDPT6FNPPLTK3FHU5XKQVV446UG6QT3PMS2EOCWYIXQICNTM4O5EKNTX5UPTO3DQ
+#\\\|BQ7Y6AJ7JXYCH6I3BQKAUOPXMSU4ODFNLAJTV2NZM5KHMHUMSBT \ / AMOS7 \ YOURUM ::
+#\[7]TODJU76EFZ62WRYXJPAK4AV7J3NKRPS6373YMHJNXYETDKM4TQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

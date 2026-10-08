@@ -1070,6 +1070,7 @@ return [ qw[
         httpd.cmd.add-vhost
         httpd.classify.load
         httpd.classify.init
+        host-edit.init_code
         form.sync_list_mode
         form.menu.open_rows
         form.console.browse
@@ -1585,6 +1586,8 @@ return [ qw[
         httpd.diagnostic.init
         httpd.classify.record
         httpd.classify.expire
+        host-edit.record.read
+        host-edit.record.path
         graphics-3d.init_code
         format.yaml.load_file
         format.json.init_code
@@ -1879,6 +1882,7 @@ return [ qw[
         httpd.process_template
         httpd.cmd.vhost-status
         httpd.benchmark.report
+        host-edit.record.write
         graphics-3d.cfg.cursor
         format.yaml.write_file
         format.kv_block.encode
@@ -2752,6 +2756,7 @@ return [ qw[
         httpsd.cmd.self_terminate
         httpd.system.memory_stats
         httpd.base.size.normalize
+        host-edit.trust.pin_state
         graphics-matrix.init_code
         graphics-matrix.glow.init
         graphics-matrix.cmd.graph
@@ -3019,6 +3024,9 @@ return [ qw[
         httpd.vhost.read_manifests
         httpd.handler.acme_request
         httpd.classify.cmd.history
+        host-edit.source.value_set
+        host-edit.source.value_get
+        host-edit.source.value_all
         graphics-matrix.graph.init
         graphics-matrix.glow.query
         graphics-matrix.cursor.set
@@ -3314,6 +3322,7 @@ return [ qw[
         httpd.path.create_vhost_dir
         httpd.benchmark.end_request
         httpd.base.file.nonblocking
+        host-edit.record.name_valid
         graphics-matrix.cursor.move
         graphics-matrix.cursor.init
         graphics-matrix.cmd.channel
@@ -3613,6 +3622,8 @@ return [ qw[
         httpd.handler.template_reply
         httpd.handler.iris-svg.relay
         httpd.handler.acme_challenge
+        host-edit.source.secret_hold
+        host-edit.record.field_names
         graphics.matrix.visual.phash
         graphics.matrix.visual.color
         graphics-matrix.graph.survey
@@ -3691,6 +3702,7 @@ return [ qw[
         base.file.zenka_dir.run_path
         base.file.cleanup-temp-files
         base.file.callback.chown-all
+        base.disable_console_command
         base.chk-sum.bmw384.pre_init
         base.chk-sum.bmw.str-b32.L13
         base.access.special-user-map
@@ -4160,6 +4172,7 @@ return [ qw[
         httpd.handler.shm_replay_sweep
         httpd.diagnostic.end_operation
         httpd.cmd.setup-acme-challenge
+        host-edit.source.field_options
         graphics.matrix.visual.hamming
         graphics-matrix.guess_bg_color
         graphics-matrix.filter.rep-col
@@ -4389,6 +4402,9 @@ return [ qw[
         httpd.handler.download_transfer
         httpd.cmd.remove-acme-challenge
         httpd.benchmark.collect_metrics
+        host-edit.source.secret_release
+        host-edit.source.create_default
+        host-edit.record.default_fields
         graphics-matrix.harmonic.coords
         graphics-matrix.graph.neighbors
         graphics-matrix.cursor.position
@@ -5917,8 +5933,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,.,,,,.,,...,..,,,..,...,.,,,...,.,.,.,,,.,.,...,...,..,,,..,...,..,,,,.,
-#S2JUYX7V5FE3S2Q4OIONOKMTLPD5WEGIA4OY43AGP7JYTFUF6PB64PZUHTRMTYB236MHT4TO5VKYO
-#\\\|XGWZPJQTXFXZMYEJEJX3XPCP4ZOVJATHFQPOFJZZ6SS56A3AV5J \ / AMOS7 \ YOURUM ::
-#\[7]LTAWFWGNU6GS4QXHVNJZZBEFBC7BYWQB6UDHVVYPOJIGSIFEPYCI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,..,,...,.,,,..,,,..,.,,,,,,,.,.,...,...,,..,.,,,,,,,...,.,.,
+#W24FWNHCOWUZVH4GF4KKTOT4YRR7REZ4LLBRJV2LGJSEZBFHQ64D6LLXSBWNKZ5PPLGJFZHNCD2TM
+#\\\|RMY7NKOLTQGB3LSJRV6VWBIWHMIJPD23W64EDO4ICE45RPFORE5 \ / AMOS7 \ YOURUM ::
+#\[7]BFGMWVJARYO5BMAXQADZ5MVXDWH2TBYX3MOWRFMJZP3AURGLAWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = host-edit.trust.pin_state
+# descr = read-only trust columns for the form, from the CLIENT pin store
+# param = $record_name, $fields_href
+# return = { trust => ..., owner_trust => ... }
+
+## HOST-SETUP.md 'host record' : key id, leaf name and since are NEVER copied
+## into the record -- the host pin in ~/.n/remote-keys/servers/ [
+## <host>_<port>.public ] is the single source of truth.  the form READS it [
+## keys.list_remote_keys-style, three header lines ] and shows trust from it ;
+## a record with no reachable pin shows 'not yet contacted'.  through a tunnel
+## the dialled address is a local forward, so the pin is named after the
+## RECORD [ <name>_<port> ] -- tried first ; the address stem is only a
+## fallback [ the pre-tunnel TOFU layout ].
+
+my ( $record_name, $fields ) = @ARG;
+
+my %columns = (
+    qw| trust |       => q{not yet contacted},
+    qw| owner_trust | => q{no owner configured},
+);
+
+return \%columns if ref $fields ne qw| HASH |;
+
+my $key_vars    = <[crypt.C25519.key_vars]>;
+my $servers_dir = $key_vars->{'known_hosts_dir'};
+my $owners_dir  = $key_vars->{'known_hosts_dir'};
+$owners_dir =~ s|/servers$||;
+$owners_dir = join( qw| / |, $owners_dir, qw| owners | );
+
+if ( defined $servers_dir and -d $servers_dir ) {
+
+    my $default_port = 42;    ## hidden in the pin stem ##
+
+    my @addresses
+        = ref $fields->{'addresses'} eq qw| ARRAY |
+        ? $fields->{'addresses'}->@*
+        : ();
+
+    foreach my $address (@addresses) {
+        next if not defined $address or not length $address;
+        my ( $host, $port ) = split m|:|, $address, 2;
+        $host //= '';
+        $port = ( defined $port and length $port ) ? $port : $default_port;
+        next if not length $host;
+
+        ( my $safe_host = $host ) =~ tr|:|_|;
+
+        ## the RECORD's pin first [ p-7-r -host <name>:<port> names it so  ##
+        ## through a tunnel ] ; the address stem only as a fallback for a  ##
+        ## direct connect made before the record existed -- another host's ##
+        ## pin at a shared address [ localhost ] must never win            ##
+        foreach my $stem (
+            sprintf( qw| %s_%s |, $record_name // '', $port ),
+            sprintf( qw| %s_%s |, $safe_host,         $port )
+        ) {
+            my $pin_path = join( qw| / |, $servers_dir,
+                sprintf qw| %s.public |, $stem );
+            next if not -f $pin_path or not -r $pin_path or -l $pin_path;
+
+            open( my $fh, '<', $pin_path ) or next;
+            my @line;
+            foreach ( 1 .. 3 ) {
+                my $line = readline($fh);
+                last if not defined $line;
+                push @line, $line =~ s{\s+\z}{}r;
+            }
+            close($fh);
+
+            my ( $key_id, $leaf_name, $since ) = @line;
+            next if not defined $key_id or $key_id !~ m|\A[A-Z2-7]{77}\z|;
+
+            $columns{'trust'} = sprintf(
+                q{key %s · %s · since %s},
+                substr( $key_id, 0, 7 ),
+                ( defined $leaf_name and length $leaf_name )
+                ? $leaf_name
+                : qw| - |,
+                ( defined $since and length $since ) ? $since : qw| 0 |
+            );
+            last;
+        }
+
+        last if $columns{'trust'} ne q{not yet contacted};
+    }
+}
+
+my $owner = $fields->{'owner'} // '';
+$owner =~ s|^\s+||;
+$owner =~ s|\s+$||;
+
+if ( length $owner and defined $owners_dir ) {
+    my $owner_pin_path
+        = join( qw| / |, $owners_dir, sprintf qw| %s.public |, $owner );
+    $columns{'owner_trust'}
+        = -f $owner_pin_path
+        ? sprintf( q{owner pin %s present},            $owner )
+        : sprintf( q{owner pin %s not yet contacted }, $owner );
+}
+
+return \%columns;
+
+#,,.,,,..,,.,,.,.,,.,,,.,,.,,,.,,,,,,.,,..,,..,,...,...,..,,,.,,,,,.,,.,,.,
+
+#,,.,,.,.,,,,,,..,,,,,,.,,,,,,...,..,,,,,,.,,,..,,...,...,.,,,.,.,,.,,,.,,,..,
+#B7QWXZ2TEPUTMXASRZ6Y2GYTIQ2ZHRFORB5TZ73Y55HYQPVJQXIA2UTRDMZFH73OHXTVG5DQ2YHVS
+#\\\|HJWZJEDBPTPYL7HISOOSHQDIDQGUS6KWNCE7HPBMHIFB2KC52BQ \ / AMOS7 \ YOURUM ::
+#\[7]2LEHMENHHPZD6L5XKNLL34KQGDSGEXRKNLRYBZWO4W7SFSAKKUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
