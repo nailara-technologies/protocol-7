@@ -27,7 +27,11 @@ if ( not defined $params ) {
     printf "\n  << %s >>\n\n", $env;
     <[base.exit]>->(qw| 0010 |);
 }
-my ( $owner, $host, $root_arg, $days ) = split m|[\t ]+|, $params;
+## ':expect=<key id>:' : the owner key id this phrase must produce ##
+my ($expect_id) = $params =~ m{(?:\A|\s):expect=([A-Z2-7]{77}):(?=\s|\z)};
+$params =~ s{(?:\A|\s):expect=[A-Z2-7]{77}:(?=\s|\z)}{ }g;
+my ( $owner, $host, $root_arg, $days ) = grep {length} split m|[\t ]+|,
+    $params;
 
 if ( not defined $root_arg or not length $root_arg ) {
     say "\n  << expected '<owner key> <host> <host-root "
@@ -74,6 +78,25 @@ if ( -e $out_file or -l $out_file ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
+## no explicit expectation : an owner pin named like the key [ owners/ ] ##
+## gives it -- a virtual \ derived key cannot detect a wrong phrase      ##
+## otherwise                                                             ##
+my $expect_from = defined $expect_id ? qw| tag | : undef;
+if ( not defined $expect_id and defined $owner ) {
+    my $owners = <[keystore.remote_keys_dir]>->( qw| owners |, FALSE );
+    my $pin    = defined $owners ? catfile( $owners, "$owner.public" ) : '';
+    if (    length $pin
+        and -f $pin
+        and not -l $pin
+        and open( my $fh, '<', $pin ) ) {
+        my $line = readline($fh) // '';
+        close($fh);
+        $line =~ s{\s+\z}{};
+        ( $expect_id, $expect_from ) = ( $line, qw| owner pin | )
+            if $line =~ m|\A[A-Z2-7]{77}\z|;
+    }
+}
+
 ## validate, warn [ before any passphrase prompt ], load, sign, unload : ##
 ## keys.certify_host -- the same core host-edit's certify action uses    ##
 my ( $certified, $exit_code, $reason ) = <[keys.certify_host]>->(
@@ -82,11 +105,18 @@ my ( $certified, $exit_code, $reason ) = <[keys.certify_host]>->(
         qw| root_pub |   => $root_pub,
         qw| days |       => $days,
         qw| passphrase | => $env->{'PROTOCOL_7_KEY_PASSPHRASE'},
+        qw| expect_id |  => $expect_id,
         qw| on_warning | => sub {
             say " :\n :: << WARNING : " . shift() . ' >>';
         },
     }
 );
+if ( defined $certified and not defined $expect_id ) {
+    say " :\n :: << NOTE : no expected key id [ no owner pin '"
+        . ( $owner // '' )
+        . "', no :expect=..: ] --\n :.    a virtual or "
+        . "passphrase-derived key cannot tell a wrong phrase >>";
+}
 if ( not defined $certified ) {
     printf "\n  << %s >>\n\n", $reason;
     <[base.exit]>->($exit_code);
@@ -129,8 +159,8 @@ say " :. copy it to the host ; there, as the backend user :";
 say " :.   p7-keys accept-owner <file>";
 say " :. on clients : p7-keys owner-pin <name> <owner key id> ::\n";
 
-#,,..,.,,,,,,,,,,,,,.,...,,,.,,..,,.,,.,,,,.,,..,,...,...,,.,,,,.,..,,.,.,.,.,
-#LUFHHUCHIT5CRHQSIZCEYVKIPBVX5RUL4QUA2QNR7UFSWVJVKSDHZQ5S3OMTN4GJT7AGJ7GV7GECQ
-#\\\|ISRB7ARZVSV2LRBA32JCJTABICPH4HCOFRELD4O6JPALV2X7UUJ \ / AMOS7 \ YOURUM ::
-#\[7]JXRP54RMMCE72RQ2JZU7LQZXG6EE54RJ5JLORN2LA5HPEJWPVGAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,.,,,...,,..,.,,,.,.,,.,,,,.,..,,...,...,.,.,...,,,,,...,,,.,
+#ZPU45LHHQDVFJRSFIAWUG3NUSIIC4FPDJNJVJQWQSQESEY4HU2XOTNSGVLKFJESK3L6EYXCTRSMIC
+#\\\|AP5FOB5LRUNBI5XEALDX2S22SK3UMPVUYF5QUDNGJYIVDPIDOIX \ / AMOS7 \ YOURUM ::
+#\[7]2ODMNI3IUSAPLQ24VSIERW2RCI57RVC6HOZEH4QFKKDCWWWZGOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
