@@ -114,13 +114,36 @@ if ( $step eq qw| certify | ) {
         $status->("passphrase for owner key '$s->{'owner_key'}' ?");
         return TRUE;    ## resumed by host-edit.flow.passphrase ##
     }
-    $status->("certifying with '$s->{'owner_key'}' ..");
+    ## the owner pin names the key id this phrase must produce -- a virtual ##
+    ## \ derived key cannot tell a wrong phrase otherwise [                 ##
+    ## keys.certify_host ]                                                  ##
+    my $expect_id;
+    if ( length $s->{'owner'} ) {
+        my $owners = <[keystore.remote_keys_dir]>->( qw| owners |, FALSE );
+        my $pin    = defined $owners ? "$owners/$s->{'owner'}.public" : '';
+        if (    length $pin
+            and -f $pin
+            and not -l $pin
+            and open( my $fh, '<', $pin ) ) {
+            $expect_id = readline($fh) // '';
+            close($fh);
+            $expect_id =~ s{\s+\z}{};
+        }
+        return $error->("owner pin '$s->{'owner'}' not found -- pin it first")
+            if not defined $expect_id or $expect_id !~ m|\A[A-Z2-7]{77}\z|;
+    }
+    $status->(
+        sprintf "certifying with '%s'%s ..",
+        $s->{'owner_key'},
+        defined $expect_id ? '' : ' [ no owner pin to check the phrase ]'
+    );
     my @warnings;
     my ( $r, $code_, $why ) = <[keys.certify_host]>->(
         {   qw| owner |      => $s->{'owner_key'},
             qw| host |       => $name,
             qw| root_pub |   => $s->{'root_pub'},
             qw| passphrase | => $s->{'passphrase'},
+            qw| expect_id |  => $expect_id,
             qw| on_warning | => sub { push @warnings, shift },
         }
     );
@@ -153,8 +176,8 @@ if ( $step eq qw| done | ) {
 
 return FALSE;    ## need_passphrase \ error : waiting or finished ##
 
-#,,,,,,,.,,,,,,..,,,,,.,.,,..,,..,,..,,,.,,..,..,,...,..,,...,,,,,,,,,...,,.,,
-#5H64XUQ4UJOOGVIEDDR5F3QEHYU27XUUJS2XDTWOQZ3QNN5EAYHVNFTWQMPTC6D64YDU5UAZ2SEZY
-#\\\|PTA7ZVZAGQALUGAXPAHIU36KBYGL2V7LC2ODW2FI2GFHO4IJ6SD \ / AMOS7 \ YOURUM ::
-#\[7]DMQTKCJ3GNB54BGS23O4TXU47OMZTXLCK7HRABBTOQCQKX4KLAAI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,,.,.,.,,.,,,,.,,,.,.,,,,,.,..,,...,...,...,,,.,,,.,,.,,.,,,
+#V23FXRKQLI4E6DUSIB6PAYISUZTZIHZCK2C77PTCZWVC23QM6LBLPHBGKOS4PZOLBNVI7R3EQLGAE
+#\\\|7TKYKPUGDNPAQFOLTCBOEFG5QWIJG3PCDIAFUUQUPEMIXN3IDV2 \ / AMOS7 \ YOURUM ::
+#\[7]35JGYCRYQ7BV7MGWUZYTQZFEWLJFMV55QQKEVFBR3U7VDB4RO6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
