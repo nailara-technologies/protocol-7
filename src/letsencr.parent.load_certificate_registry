@@ -107,10 +107,14 @@ foreach my $meta_file ( sort @meta_files ) {
     <[base.log]>->( 2, "loaded certificate: $domain ($expiry_str)" );
 }
 
-<[base.log]>->(
+## the one log line per load [ callers do not repeat it ] ##
+<[base.logs]>->(
     2,
-    "certificate registry loaded: $loaded_count "
-        . "certificates, $error_count errors"
+    'certificate registry loaded : %d certificate%s, %d error%s',
+    $loaded_count,
+    <[base.cnt_s]>->($loaded_count),
+    $error_count,
+    <[base.cnt_s]>->($error_count)
 );
 
 return {
@@ -120,8 +124,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,.,,.,,,,.,,,,,,,..,,,,,,..,.,,,,,,,.,,,,.,,..,,...,...,..,,,,.,...,..,,,.,,
-#YDD2QIP245F3KSQAV7D4SYJB2TABQBON7NLYEDV5UHCFF7NAQI7WRMSGJOVAIKGDM52RVUV6WQUXA
-#\\\|BJEH2IUALIHB6RAZIROXGOQIJ4CWJCMHARDCW6UBRIISSMBEQTS \ / AMOS7 \ YOURUM ::
-#\[7]SERLJUWZNGAZ4JX54PW4QVPZ3LQ4ANJ3I2NVYXQWSX4ULSSNYKBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,,,,,..,,..,,..,,.,.,,.,,,,.,..,,...,...,...,.,.,,,.,,.,,..,,
+#JUAEAAD4SCHR66XUIMQ4MHKEHJ7KNSFMXORVTEJK5PJLAWZEGVKFWTWMNZIWLJQ7OTV35HFIYGSKC
+#\\\|K3DPBW7EEI6G2ZIJ6G4USO4RRU4JWXEPSKJ7DVDN75K3OLVFQJ3 \ / AMOS7 \ YOURUM ::
+#\[7]ARKERX7ZEWXDF7JHPFLFKHI6SIS7WORJS3GWABNKARTH335PZYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
