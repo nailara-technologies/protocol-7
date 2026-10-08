@@ -48,6 +48,7 @@ sysopen(
     $mode
 ) or return $refuse->("cannot write $tmp [ $OS_ERROR ]");
 binmode($fh);
+chmod( $mode, $fh );    ## the umask must not narrow a public file ##
 my $written = print {$fh} $content;
 
 if ( not close($fh) or not $written or not rename( $tmp, $live ) ) {
@@ -58,8 +59,8 @@ if ( not close($fh) or not $written or not rename( $tmp, $live ) ) {
 unlink( $entry->{'path'} );
 return TRUE;
 
-#,,,,,...,...,,..,,..,..,,,..,.,.,,,.,..,,,..,..,,...,...,...,.,.,.,.,,.,,,,.,
-#ABD34EFUZDUFIPWQMP36JKOUE47G5FOFXXW36QCZCW7AQEVJL6KOGVFYY7ZWS6XXWCMWM5VQSXSZM
-#\\\|MJ6QZTIEXREQADEST4XKVFAMAXEUD33EPKXD2RHP2RT7PUZNNTD \ / AMOS7 \ YOURUM ::
-#\[7]EPFTVIFREYXSH5KX6ZC44XTMCZTE4M6IVW3BZV5VNCOGTBJE6WBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,,,,..,,...,,,.,.,.,..,,,.,,..,,...,...,..,,...,,,.,,,.,...,
+#RGTGNB3MA6FLW2TFRGBBT2MEA7BHDDEP3VJCASB4WHQH5R2EY2JZPCFI35EMJ2CWNMGR3J5XZVDDI
+#\\\|ZDGSJZ6UDY33HQ7G5PIBE3DCDLJ7JCMP2TV63PABIN3ZPYLPTNI \ / AMOS7 \ YOURUM ::
+#\[7]ZO76SIMQDSZTADGMJ7NWOAD65WFSDKTQX3VPQBPVN7XSZBB3TKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
