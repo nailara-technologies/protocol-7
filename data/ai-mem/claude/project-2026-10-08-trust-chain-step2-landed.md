@@ -6,6 +6,7 @@ metadata:
 ---
 
 previous : [[project-2026-10-07-session-handover-trust-chain-step1]].
+**superseded as the entry point by [[project-2026-10-08-session-handover-host-setup]] -- start there.**
 design : `data/md/design/TRUST-CHAIN-STEP2.md` [ decisions + 'direction' ].
 
 ## landed
@@ -114,8 +115,8 @@ init recompiles p-7-r ; SigCgt bit 16 stayed set ] -- no restart needed.
   2026-10-08, af9b21271 ]. kimi lanes hit the 100 step limit mid-task
   [ resume with kimi_continue ] -- size task files small up front
 
-#,,,.,,,.,.,,,...,...,,.,,,,,,,..,,..,.,.,,..,..,,...,...,.,.,.,.,.,.,...,,,.,
-#VLZXKQFK6EEMAD72ZZTA5FAJSSFAI5O2WERK5AZ2BDTGI2KY6QFW3EU3ZC34UOW6FHJ7OLBUOKGFY
-#\\\|FY5MI6PAMSISTLJUUAVQ67IADPUDL6KIKYLDIMQDQCBGDOR5UNY \ / AMOS7 \ YOURUM ::
-#\[7]VHIULWWM6RMENVCWBZB5VIBDV25MWJW2B5X54W4625UTK6QUUGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,,..,...,,.,,,.,,,,.,,.,,,,.,..,,...,..,,..,,,.,,,,.,.,,,.,.,
+#JNMYLM356CFIUNWWDNXJFNGAUGLMRT5KKNTMLW6JUK6BCY2SLU2RFHWHJKSFPGM5CTISJSM75V2PQ
+#\\\|CFIZCM67GHEWGR6OVUU6NAG36ZUQCKYR4RAE6LTPTLGP5ESNEWM \ / AMOS7 \ YOURUM ::
+#\[7]XUBHZ2NTWLF66PHYMYAHD2DGBW7KT7XATQV7RUP4WI4FFCMEY4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
