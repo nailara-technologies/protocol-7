@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = keys.console.drop-owner
+# descr = remove this host's owner statement [ undo-remove ]
+# note  = run as the backend user ; host-root.dlg goes to the trash, then
+#         p7c v7-zenki.delegation-issue writes the .dlg leaf alone again
+
+my $target = <[crypt.C25519.delegation_file]>->(qw| host-root |);
+
+if ( not defined $target or ( not -e $target and not -l $target ) ) {
+    say "\n  << no owner statement installed "
+        . "[ run as the backend user ] >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my ( $stashed, $why )
+    = <[keys.trash.stash]>
+    ->( $target, qw| owner-statement |, qw| host-root | );
+if ( not defined $stashed ) {
+    printf "\n  << '%s' not moved to the trash [ %s ] >>\n\n", $target, $why;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+say " :\n :: owner statement removed";
+say " :. undo : undo-remove owner-statement:host-root";
+say " :. v7-zenki drops it from the .dlg at its next delegation run or now :";
+say " :.   p7c v7-zenki.delegation-issue ::\n";
+
+#,,,,,...,.,,,,..,,,.,..,,,.,,,.,,,.,,,,.,,,.,..,,...,...,.,.,.,.,.,,,.,,,.,,,
+#KVCJ5QKI7QRCPJIBLPCVPPY2KGCZDCN2DY7IVKG6IGZROIM7PKP572K5SMABQMORQYZFHUHKY32SY
+#\\\|CQPQRUMAZNZ3VJPDKBIDLHGCYFVVHGHKUM2QGOU3R65RJAMRGVL \ / AMOS7 \ YOURUM ::
+#\[7]3TC77JSQINO373DHGF7APFPIVBOJQZSRH7LAHTCVVUP72S2OVWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

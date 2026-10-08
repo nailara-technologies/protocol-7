@@ -59,8 +59,22 @@ return $refuse->('trash copy does not decode back') if $check ne $content;
 
 require Fcntl;
 my $now = time;
+
+## within one second the suffix only grows : above every EXISTING entry, ##
+## never a freed lower name [ an undo consumes entries ] -- newest first ##
+## stays true for keys.trash.entries                                     ##
+my $first = 0;
+if ( opendir( my $dh, $dir ) ) {
+    foreach my $file ( readdir $dh ) {
+        next if $file !~ m|\A\Q$name\E\.\Q$now\E(?:-(\d+))?\.mxz\.B32\z|;
+        my $n = $1 // 0;
+        $first = $n + 1 if $n + 1 > $first;
+    }
+    closedir $dh;
+}
+
 my ( $trash_file, $fh );
-foreach my $n ( 0 .. 99 ) {
+foreach my $n ( $first .. $first + 99 ) {
     $trash_file = catfile( $dir,
         sprintf( '%s.%d%s.mxz.B32', $name, $now, $n ? "-$n" : '' ) );
     last
@@ -88,8 +102,8 @@ if ( not $keep and not unlink($path) ) {
 
 return $trash_file;
 
-#,,,.,..,,.,.,...,,,,,.,.,,,.,..,,.,.,.,.,...,..,,...,...,,..,.,.,,..,..,,..,,
-#JVRRNYG54REH5EM7JHS7QXWHMQNPKNAKWCOMHKNH3LMIX7W73IV2Y2C6BMHNUK6GQKRQE3XCNABPE
-#\\\|FF4NN62AAHPGVHPAHTHBMUXKLXDZN362TFY2I5ZGRKITZZAZ6YW \ / AMOS7 \ YOURUM ::
-#\[7]YTRHVWQ7NIHGIKXNABIU375IZXI2UCIMVSHF6FZRENNTLZT5JKCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,..,,,,,,,,,,,.,,..,,..,,,.,,..,,...,...,,,,,..,,.,.,,..,,..,
+#Q373GCTPGAPZZI7455TLLLQ22QFWWOA3URCMGPX32R664BVCX7OIFTXGSMQVMZGIWH6NM7QJJ66UU
+#\\\|Z3FRY4RA2FEQGEU6QJGRE5OUYV4VQQSCIX5PETM5EXKRFVJYYXH \ / AMOS7 \ YOURUM ::
+#\[7]XJHDVWV26DPNN3JRQCQ342RZ24YZHYHJFMJRMDOOGT7YXIVODUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
