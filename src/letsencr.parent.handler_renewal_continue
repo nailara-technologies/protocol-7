@@ -14,9 +14,11 @@ unless ( $reply_data && ref($reply_data) eq qw| HASH | ) {
     return FALSE;
 }
 
-## parse reply based on mode
-my $mode           = $reply_data->{'cmd'}  // $reply_data->{'mode'};
-my $reply_data_str = $reply_data->{'data'} // '';
+## parse reply based on mode  reply text : 'data' for a SIZE reply , ##
+## call_args for a one line reply                                    ##
+my $mode           = $reply_data->{'cmd'} // $reply_data->{'mode'};
+my $reply_data_str = $reply_data->{'data'}
+    // $reply_data->{'call_args'}->{'args'} // '';
 
 unless ($mode) {
     <[base.log]>->( 0, 'httpd vhost-list returned no mode field' );
@@ -33,6 +35,15 @@ if ( $mode eq qw| SIZE | || $mode eq qw| TRUE | ) {
     <[base.logs]>->(
         2, 'httpd vhost-list returned %s : checking known certs only', $mode
     );
+
+    ## httpd not online yet [ startup order ] : repeat the discovery when ##
+    ## it is -- v7-zenki.notify_online, as base.log.send-buffer does      ##
+    my $client_not_present = <[base.sprint_t]>->( qw| IRW7V6A |, '' );
+    $client_not_present =~ s|^FALSE ||;
+    chomp $client_not_present;
+
+    <[letsencr.parent.wait_httpd_online]>
+        if $reply_data_str eq $client_not_present;
 }
 
 ## remove whitespace and filter empty lines
@@ -129,8 +140,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,.,,,..,,.,,,.,,,,,,,,,,.,.,..,,...,...,...,..,,...,...,...,,.,,.,.,,,,,...,
-#AN47PP7ZNAP34XXAEWNC3ZABTRQPVJLMCB3ZKH5LQT2QZ6YVLRUK4B6LPFZOLE42SJ42QWXFAR6XS
-#\\\|XEKP25FU2SHUXIHKJ4GQAVKDFJXJ43T5JRSJWCDPS5LXPRIO5NR \ / AMOS7 \ YOURUM ::
-#\[7]T5JB3E3MQMCLTHV4QOXBZ3DBWBEYPMTCX7M3OVGM3YTR465YDQDI 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,.,.,...,.,,,,,.,.,,,.,.,.,.,..,,...,...,.,.,...,,.,,,..,.,.,
+#ZD3KUT44OHFFEGPWHHTYUAEEJ27VRBHGCZ7BHCVIG5MCXKNWQI2BLXT3IL6OBCWSAKAST4JL7ZRG4
+#\\\|K4ZJWIYGAXG6ZSRN64PQFYJGTSQXKBQMW2DW3633BU44UQRGR4K \ / AMOS7 \ YOURUM ::
+#\[7]D4QIF2VCTJ2K6S5DOTUJ5TLTJH22R7MR5BDG26FRMC2AR32YLCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
