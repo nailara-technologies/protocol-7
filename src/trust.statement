@@ -48,16 +48,20 @@ my $check_fields = sub {
             or bytes::length($value) != 32;
         $field{$key} = $value;
     }
+    ## n/a* : a 16 bit length -- checked apart from the pattern : a ##
+    ## {1,65535} quantifier is refused by perl 5.36 [ max 65534 ]   ##
     my $name = $as_bytes->( $in->{'name'} );
     return ( undef, 'name not valid' )
         if not defined $name
-        or $name !~ m|\A[\x21-\x7e]{1,65535}\z|;
+        or $name !~ m|\A[\x21-\x7e]+\z|
+        or length($name) > 65535;
     $field{'name'} = $name;
 
     my $scope = $as_bytes->( $in->{'scope'} );
     return ( undef, 'scope not valid' )
         if not defined $scope
-        or $scope !~ m|\A[\x21-\x7e]{0,65535}\z|;
+        or $scope !~ m|\A[\x21-\x7e]*\z|
+        or length($scope) > 65535;
     $field{'scope'} = $scope;
 
     foreach my $key (qw| not_before not_after |) {
@@ -174,8 +178,8 @@ if ( $mode eq qw| build | ) {
 
 return $refuse->('mode not known');
 
-#,,.,,,.,,,.,,,,,,,,.,,,.,,.,,,..,,,,,,.,,.,,,..,,...,...,..,,.,.,,.,,..,,,,.,
-#OCFZPICTJMCEKXX4Z4DNFSGQ4J3S6ZSXKFPPS7IXS4Q74T7U5UTPKNDXQYAEJE4INQWTP25C3NSBE
-#\\\|SYNEQ6FD6GC52S6RFZL5YWXWY46FHRBYGWIFWC2T3MHUMKWLS4F \ / AMOS7 \ YOURUM ::
-#\[7]4VH7DBRGM2W3DZANA7KDYWSQNDNMRSFAGE6JXGHIHQOKVCNPEMCI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,.,.,.,,,..,,,..,,.,,,,,,,.,,..,,...,...,,,.,..,,.,.,..,,,.,,
+#PD3QEZLQYGOYWO476A5FEVJ5Z6HJHKWWYTFNTH76RA5RAWNH6JOXXORPU27N7IG6AKCPN2TULM4BC
+#\\\|NX4FMDAICQVYJRBZW5W7NSJX3HBMMCOM6VPUITKCD5NQJZQMNMA \ / AMOS7 \ YOURUM ::
+#\[7]JB4QJYWCZRUWD26W3BQIBJTZBXMXEXR5TABROOHIYTN63QQAXYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

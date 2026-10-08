@@ -43,7 +43,9 @@ my $take_str = sub {
     my $value = $fields->{$name};
     return FALSE if not defined $value or ref $value;
     return FALSE if not utf8::downgrade( $value, 1 );
-    return FALSE if $value !~ m|\A[\x21-\x7e]{1,65535}\z|;
+    ## 16 bit length apart from the pattern [ perl 5.36 : quantifier max ##
+    ## 65534 ]                                                           ##
+    return FALSE if $value !~ m|\A[\x21-\x7e]+\z| or length($value) > 65535;
     $field{$name} = $value;
     return TRUE;
 };
@@ -88,8 +90,8 @@ my $transcript = pack(
 
 return pack( qw| Z* |, $label{$kind} ) . $transcript;
 
-#,,,.,..,,,,.,.,,,,,.,...,,.,,..,,,,,,,,.,.,,,..,,...,...,,,.,.,,,,.,,...,,.,,
-#F6GYGOXDFPOOH7IHNJAYETTWDNY6YNA2NMRU5VBMVUMD4ZO4TXFKDT6K7TSJROEF5ILXT6IL5RN5W
-#\\\|3K7YNVUDL262QLMSEZEBOLC5ZG3CAGEGBHV7RZ4GT3FWGIOQF2E \ / AMOS7 \ YOURUM ::
-#\[7]WNKMBLHETGF6DOL3HHESB33FGXVHMOFOICM3RUKFPZPMGTD7XABQ 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,...,,,.,..,,,.,,,.,,.,.,...,..,,...,..,,,,,,..,,,,,,,.,,.,.,
+#RSKLK24IMZ6ACMU7BZOBUOUA5CRDMOLPZUAHQL3R5WGZXOFFKAUWELI7UJP7VUU3EPXASVSLVQD54
+#\\\|O6TPRTZIE6I6AZ4SDIFT4OEAVKYK3BB6P2EGFM32EW2WOMKMXC6 \ / AMOS7 \ YOURUM ::
+#\[7]5RN27DZYRDWMRWO6B62YLANUAZGHGRW6EOKZS7CEWI4LVEICSACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
