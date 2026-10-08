@@ -13,9 +13,11 @@ if ( not defined $target or ( not -e $target and not -l $target ) ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
-my ( $stashed, $why )
-    = <[keys.trash.stash]>
-    ->( $target, qw| owner-statement |, qw| host-root | );
+my ( $stashed, $why ) = <[keystore.trash.stash]>->(
+    $target,
+    qw| owner-statement |,
+    qw| host-root |
+);
 if ( not defined $stashed ) {
     printf "\n  << '%s' not moved to the trash [ %s ] >>\n\n", $target, $why;
     <[base.exit]>->(qw| 0110 |);
@@ -26,8 +28,8 @@ say " :. undo : undo-remove owner-statement:host-root";
 say " :. v7-zenki drops it from the .dlg at its next delegation run or now :";
 say " :.   p7c v7-zenki.delegation-issue ::\n";
 
-#,,,,,...,.,,,,..,,,.,..,,,.,,,.,,,.,,,,.,,,.,..,,...,...,.,.,.,.,.,,,.,,,.,,,
-#KVCJ5QKI7QRCPJIBLPCVPPY2KGCZDCN2DY7IVKG6IGZROIM7PKP572K5SMABQMORQYZFHUHKY32SY
-#\\\|CQPQRUMAZNZ3VJPDKBIDLHGCYFVVHGHKUM2QGOU3R65RJAMRGVL \ / AMOS7 \ YOURUM ::
-#\[7]3TC77JSQINO373DHGF7APFPIVBOJQZSRH7LAHTCVVUP72S2OVWBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,.,,..,.,,,,,,,..,,,.,,.,,,,.,,..,,...,...,..,,,.,,,,,,...,,,,,
+#LJNUOLIPGQZRHMZMCPCAMKHTBUWRDFROYBOWL32YTSXLRETZL4QU3N62FKBAHYPOUGGOE2HWQJL3O
+#\\\|UWK37TY4WNCHQRHU4C4IBRJ34XBAJVKNQ7ACPINSGY5SFTOHVYO \ / AMOS7 \ YOURUM ::
+#\[7]HZT4CVGNMGH2UI4MNCAFF2TCUD3MLMBUXCJNQ2JTZXF4PWRDKKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = form.handler.field_options_reply
+# descr = attach the add-a-field row once options are known
+
+## PROGRESSIVE ENHANCEMENT : the form is rendered and usable before this
+## arrives.  the optional-field vocabulary lives with the users zenka, so it
+## costs a round trip, and blocking the form on it would trade a visible delay
+## for a row that is only occasionally used.
+##
+## an empty reply would mean the authority declares no optional fields at all
+## ; a record that already carries every one of them still gets the full
+## vocabulary here, and simply has nothing left to offer once
+## form.addable_fields has filtered it -- add_field_row then  declines on its
+## own.
+
+my ($info) = @ARG;
+
+my $cmd = uc( $info->{'cmd'} // '' );
+
+return FALSE if $cmd ne qw| SIZE |;
+
+## parsing lives in form.parse_field_options -- shared with
+## form.handler.field_options_bootstrap_reply, so the wire format has exactly
+## one implementation
+my $vocabulary_href = <[form.parse_field_options]>->( $info->{'data'} // '' );
+my %vocabulary      = %{ $vocabulary_href                             // {} };
+
+return FALSE if not keys %vocabulary;
+
+## REMEMBER them : the row cannot always be added at the moment the answer
+## arrives -- a form whose first field is a list opens EXPANDED, and the row
+## must not be attached to a transient expanded schema [ collapse rebuilds
+## from the schema captured at expand time and would drop it ].  so the
+## vocabulary is stored and the row is re-applied after every collapse, by
+## form.sync_list_mode
+##
+## the WHOLE vocabulary is kept, not the addable part of it : which fields may
+## be REMOVED is the same question read the other way round, and
+## form.addable_fields makes the split on demand
+<form.field_options> = \%vocabulary;
+
+my $editor_state = <form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+## the ROW only ever goes onto a plain form : never over a menu, and never
+## while a list is expanded [ its rows are transient and collapse would drop
+## it ] -- but the FRAME is rebuilt either way.  build_frame reserves this
+## row's width whether or not the row is there yet, and the reservation is
+## only possible once the vocabulary is known, so rebuilding here is what
+## makes the width settle the moment the answer lands instead of at whatever
+## later collapse happens to rebuild next
+my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
+    && <[form.add_field_row]>->(
+    $editor_state, <[form.addable_fields]>->($editor_state)
+    );
+
+<[form.build_frame]>->(
+    $editor_state,
+    <form.frame_name> // qw| user-edit-form |,
+    $editor_state->{'title'} // <form.title>
+);
+
+<form.dirty>++;
+
+return $attached ? TRUE : FALSE;
+
+#,,,,,.,.,.,,,,..,,.,,,..,..,,,,.,.,.,.,,,.,.,..,,...,...,...,...,,,,,.,,,..,,
+#K4PJ5PWGWHQ6WS7HD7BFUYCBOYEQ74S2VBVLJ2LNHFMHYQBMHLU6ZL25M2YSSS3FRBVXVYAHBLJ72
+#\\\|PP6IO5AF64GS24B3ZHUBS56WKXSVWBNO2XIF4OSGLG2UW7PFCGX \ / AMOS7 \ YOURUM ::
+#\[7]NKLW6YKLIOX3AUFFZ2WFMJML3N7KAU7CEXLGYCHYYUAXDPQB5OCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

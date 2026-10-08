@@ -16,6 +16,7 @@ return [ qw[
         note.read
         note.list
         note.init
+        form.quit
         base.sort
         base.open
         base.logt
@@ -44,6 +45,9 @@ return [ qw[
         mpv.cmd.pos
         mpv.cmd.pid
         index.stats
+        form.submit
+        form.render
+        form.escape
         filter.init
         devmod.dump
         branch.list
@@ -82,6 +86,7 @@ return [ qw[
         index.decode
         fs.init_code
         fs.cmd.mount
+        form.message
         context.file
         calc.cmd.val
         base.waitpid
@@ -205,6 +210,8 @@ return [ qw[
         httpd.pre_init
         httpd.http_get
         fs.cmd.unmount
+        form.term_init
+        form.add_field
         devmod.cmd.set
         devmod.cmd.get
         devmod.cmd.del
@@ -317,6 +324,7 @@ return [ qw[
         httpd.http_head
         git.native.open
         fs.cmd.re-mount
+        form.draft.load
         dunst.init_code
         devmod.pre_init
         devmod.cmd.true
@@ -429,7 +437,6 @@ return [ qw[
         kimi.task.status
         kimi.task.intake
         kimi.cmd.approve
-        keys.trash.stash
         keys.backup.list
         keyring.distance
         keyring.cmd.show
@@ -452,6 +459,13 @@ return [ qw[
         httpd.new_header
         httpd.cmd.vhosts
         geoloc.init_code
+        form.scroll_list
+        form.resort_list
+        form.outbox.list
+        form.menu.select
+        form.draft.write
+        form.draft.clear
+        form.build_frame
         filter.init_code
         filter.del_chain
         ffmpeg.init_code
@@ -527,7 +541,6 @@ return [ qw[
         v7-zenki.teardown
         v7-zenki.call_cmd
         users.record.path
-        user-edit.message
         universal.startup
         udev.reload_rules
         transport.promote
@@ -623,6 +636,14 @@ return [ qw[
         httpd.json.encode
         httpd.json.decode
         fs.cmd.is_mounted
+        form.term_restore
+        form.remove_field
+        form.parse_params
+        form.outbox.write
+        form.outbox.clear
+        form.offer_create
+        form.menu.records
+        form.cmd.char-add
         filter.del_filter
         filter.add_filter
         ext-pkg.init_code
@@ -799,8 +820,6 @@ return [ qw[
         kimi.cmd.ask-reply
         kimi.cmd.approvals
         kimi-web.init_code
-        keys.trash.restore
-        keys.trash.entries
         keys.distrust_file
         keys.checksum_href
         keys.backup.remove
@@ -829,6 +848,10 @@ return [ qw[
         fs.get_filesystems
         format.json.encode
         format.json.decode
+        form.menu.show_key
+        form.field_changed
+        form.console.start
+        form.add_field_row
         filter.mount_chain
         ffmpeg.frame_count
         external.link.open
@@ -936,9 +959,7 @@ return [ qw[
         users.cmd.value-set
         users.cmd.value-get
         users.cmd.value-all
-        user-edit.term_init
         user-edit.init_code
-        user-edit.form.quit
         usage.provider_list
         usage.format.report
         universal.init_code
@@ -1049,6 +1070,11 @@ return [ qw[
         httpd.cmd.add-vhost
         httpd.classify.load
         httpd.classify.init
+        form.sync_list_mode
+        form.menu.open_rows
+        form.console.browse
+        form.addable_fields
+        form.add_field_name
         forensics.init_code
         devmod.console-dump
         devmod.cmd.true-int
@@ -1153,8 +1179,8 @@ return [ qw[
         vault-edit.init_code
         v7-zenki.zenka.start
         v7-zenki.start_count
+        v7-zenki.backend.run
         users.cmd.remote-get
-        user-edit.draft.load
         usage.complete_query
         tree.route.page.read
         tile.cmd.sort_layers
@@ -1269,8 +1295,7 @@ return [ qw[
         kimi.cmd.new-session
         kimi.cmd.list-models
         kimi-web.cmd.enqueue
-        keys.trash.live_path
-        keys.remote_keys_dir
+        keystore.trash.stash
         keys.console.removed
         keys.console.enc-key
         keys.console.dec-key
@@ -1301,6 +1326,8 @@ return [ qw[
         format.yaml.pre_init
         format.yaml.load_str
         format.yaml.dump_str
+        form.removable_field
+        form.menu.namespaces
         filter.compile_chain
         filter.cmd.del_chain
         filter.cmd.add_chain
@@ -1438,13 +1465,6 @@ return [ qw[
         v7-zenki.cmd.teardown
         v7-zenki.cmd.pressure
         users.record.validate
-        user-edit.outbox.list
-        user-edit.menu.select
-        user-edit.form.submit
-        user-edit.form.render
-        user-edit.form.escape
-        user-edit.draft.write
-        user-edit.draft.clear
         usage.format.duration
         universal.start_zenka
         universal.hide_except
@@ -1568,6 +1588,8 @@ return [ qw[
         graphics-3d.init_code
         format.yaml.load_file
         format.json.init_code
+        form.scroll_multiline
+        form.menu.open_record
         filter.cmd.del_filter
         filter.cmd.add_filter
         editor.input.next_key
@@ -1720,13 +1742,6 @@ return [ qw[
         valued.node.remove_ref
         users.remote_fetch.run
         users.cmd.remote-fetch
-        user-edit.term_restore
-        user-edit.parse_params
-        user-edit.outbox.write
-        user-edit.outbox.clear
-        user-edit.offer_create
-        user-edit.menu.records
-        user-edit.cmd.char-add
         universal.switch_child
         universal.self_restart
         universal.lower_except
@@ -1826,7 +1841,8 @@ return [ qw[
         kimi.watcher.ws_status
         kimi.task.queue_status
         kimi-web.process_queue
-        keys.trash.offer_purge
+        keystore.trash.restore
+        keystore.trash.entries
         keys.console.owner-pin
         keys.console.duplicate
         keys.console.authorize
@@ -1867,6 +1883,8 @@ return [ qw[
         format.yaml.write_file
         format.kv_block.encode
         format.kv_block.decode
+        form.handler.stdin_key
+        form.console.show-form
         filter.cmd.mount_chain
         ffmpeg.cmd.frame_count
         events.cmd.show-active
@@ -2026,8 +2044,6 @@ return [ qw[
         v7-zenki.find-AMOS-user
         users.record.ensure_dir
         users.cmd.field-options
-        user-edit.menu.show_key
-        user-edit.console.start
         universal.cmd.slow_down
         udev.handler.adm_stdout
         tree.sort.trunk.project
@@ -2169,6 +2185,7 @@ return [ qw[
         httpd.handler.shm_write
         httpd.diagnostic.report
         httpd.cmd.update-vhosts
+        form.schema_from_record
         forensics.cmd.sweep-run
         ffmpeg.frame_count_slow
         fetch-files.cmd.hf-list
@@ -2333,9 +2350,6 @@ return [ qw[
         v7-zenki.available_zenki
         v7-zenki.autostart_zenki
         users.cmd.create-default
-        user-edit.menu.open_rows
-        user-edit.form.add_field
-        user-edit.console.browse
         universal.cmd.dump_state
         ui.caller.security-level
         udev.set-up.import_rules
@@ -2432,6 +2446,8 @@ return [ qw[
         kimi.handler.pre_connect
         kimi-web.cmd.spawn_agent
         kimi-web.cmd.list_agents
+        keystore.trash.live_path
+        keystore.remote_keys_dir
         keys.select_archive_path
         keys.console.undo-remove
         keys.console.remove-type
@@ -2463,6 +2479,11 @@ return [ qw[
         httpd.classify.cmd.stats
         graphics-matrix.cmd.glow
         graphics-matrix.cmd.cell
+        form.submit_maybe_finish
+        form.setup_stdin_watcher
+        form.parse_field_options
+        form.handler.term_resize
+        form.handler.esc_timeout
         ffmpeg.cmd.rescale_video
         events.cmd.trigger_event
         event.anyevent.init_code
@@ -2612,7 +2633,6 @@ return [ qw[
         v7-zenki.delegation.retry
         v7-zenki.delegation.issue
         v7-zenki.check_zenka_deps
-        user-edit.menu.namespaces
         universal.stop_start-anim
         ui.render.tree.invalidate
         tree.sort.trunk.remainder
@@ -2877,10 +2897,9 @@ return [ qw[
         v7-zenki.parser.latency_ms
         v7-zenki.cleanup_pid_files
         users.record.sorted_fields
-        user-edit.menu.open_record
-        user-edit.form.scroll_list
-        user-edit.form.resort_list
-        user-edit.form.build_frame
+        user-edit.source.value_set
+        user-edit.source.value_get
+        user-edit.source.value_all
         universal.reroute_commands
         universal.handler.sig_chld
         universal.cmd.get_geometry
@@ -2972,6 +2991,7 @@ return [ qw[
         kimi.wire.question_respond
         kimi.wire.approval_respond
         kimi-web.cmd.list-sessions
+        keystore.trash.offer_purge
         keys.console.split-keypair
         keys.console.prune-backups
         keys.console.clear-chksums
@@ -3005,6 +3025,9 @@ return [ qw[
         graphics-matrix.cmd.cursor
         graphics-matrix.cell.query
         graphics-matrix.cell.place
+        form.test.secret_send_hold
+        form.multiline_field_names
+        form.build_user_keys_field
         ext-pkg.cmd.package-ensure
         events.set-up.import_rules
         editor.control.prompt.open
@@ -3160,10 +3183,8 @@ return [ qw[
         v7-zenki.cmd.reboot-warning
         v7-zenki.cleanup_temp_paths
         v7-zenki.cleanup_temp_files
+        v7-zenki.backend.read_small
         users.record.default_fields
-        user-edit.handler.stdin_key
-        user-edit.form.remove_field
-        user-edit.console.show-form
         usage.handler.query_timeout
         universal.startup_sub_zenki
         universal.cmd.show_playlist
@@ -3263,7 +3284,6 @@ return [ qw[
         kimi-web.is_auto_approvable
         kimi-web.cmd.resume-session
         keys.write_key_archive_file
-        keys.trash.purge_candidates
         keys.console.restore-backup
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
@@ -3459,13 +3479,13 @@ return [ qw[
         v7-zenki.pressure.start_gate
         v7-zenki.instance_child_pids
         v7-zenki.cmd.system-poweroff
+        v7-zenki.cmd.owner-statement
         v7-zenki.cmd.drop-dependency
         v7-zenki.calc_prefix_lengths
         v7-zenki.bin_p7r_comp_chksum
         v7-zenki.bin_p7c_comp_chksum
         users.record.optional_fields
-        user-edit.form.field_changed
-        user-edit.form.add_field_row
+        user-edit.source.secret_hold
         universal.get_unix_sock_path
         universal.cmd.get_list_types
         tree.sort.trunk.layer_to_col
@@ -3600,6 +3620,10 @@ return [ qw[
         graphics-matrix.filter.alpha
         graphics-matrix.channel.init
         graphics-matrix.address.init
+        form.key_actions.submit_name
+        form.handler.value_set_reply
+        form.handler.value_get_reply
+        form.handler.value_all_reply
         fetch-files.cmd.hf-lan-check
         external.orbital.push_update
         external.cmd.connect-orbital
@@ -3722,12 +3746,6 @@ return [ qw[
         v7-zenki.handler.shutdown_cmd
         v7-zenki.cmd.delegation-issue
         v7-zenki.callback.host-reboot
-        user-edit.setup_stdin_watcher
-        user-edit.handler.term_resize
-        user-edit.handler.esc_timeout
-        user-edit.form.sync_list_mode
-        user-edit.form.addable_fields
-        user-edit.form.add_field_name
         usage.handler.provider_result
         usage.cmd.claude-refresh-test
         universal.handler.switch_fade
@@ -4004,7 +4022,7 @@ return [ qw[
         v7-zenki.handler.children_left
         v7-zenki.cmd.forced-mod-reload
         v7-zenki.callback.object.zenka
-        user-edit.form.removable_field
+        user-edit.source.field_options
         universal.handler.zenka_output
         universal.handler.resume_reply
         universal.collect_video_frames
@@ -4148,6 +4166,8 @@ return [ qw[
         graphics-matrix.cmd.filter-c2a
         graphics-matrix.channel.select
         graphics-matrix.address.encode
+        form.submit_note_secret_result
+        form.handler.secret_hold_reply
         forensics.event.rule-synthesis
         events.handler.event_triggered
         events.cmd.get_playlist_hidden
@@ -4281,8 +4301,8 @@ return [ qw[
         v7-zenki.cancel_instance_timers
         v7-zenki.bin_p7r_chksum_current
         v7-zenki.bin_p7c_chksum_current
-        user-edit.test.secret_send_hold
-        user-edit.form.scroll_multiline
+        user-edit.source.secret_release
+        user-edit.source.create_default
         universal.handler.cur-pid_reply
         tree.sort.trunk.halve_frequency
         tile.handler.root_restart_reply
@@ -4350,6 +4370,7 @@ return [ qw[
         letsencr.child.cmd.repair-chain
         kimi.handler.dispatch_next_task
         kimi-web.internal.http_get_sync
+        keystore.trash.purge_candidates
         jobsite.report.mime_decode_body
         jobsite.report.evidence_collect
         jobsite.handler.pending-changed
@@ -4375,6 +4396,7 @@ return [ qw[
         graphics-matrix.channel.palette
         graphics-matrix.channel.current
         graphics-matrix.address.resolve
+        form.handler.browse_start_reply
         forensics.handler.rule-proposal
         forensics.cmd.report-generalize
         fetch.file.huggingface.pre_init
@@ -4570,6 +4592,7 @@ return [ qw[
         graphics-matrix.cmd.orbital-sync
         graphics-matrix.cmd.cursor-state
         graphics-matrix.address.register
+        form.handler.field_options_reply
         fetch.file.huggingface.lan-check
         editor.control.multiline.summary
         editor.control.menu.selected_key
@@ -4686,11 +4709,6 @@ return [ qw[
         v7-zenki.callback.setup_zenka_key
         v7-zenki.callback.get_x11_display
         v7-zenki.callback.connect_to_cube
-        user-edit.key_actions.submit_name
-        user-edit.handler.value_set_reply
-        user-edit.handler.value_get_reply
-        user-edit.handler.value_all_reply
-        user-edit.form.schema_from_record
         universal.callback.mpv_idle_check
         tile.handler.get-tile-color_reply
         tile.handler.check_playlist_reply
@@ -4766,6 +4784,11 @@ return [ qw[
         graphics.matrix.visual.cubic-sort
         graphics-matrix.cmd.voxel-density
         graphics-matrix.channel.translate
+        form.submit_note_value_set_result
+        form.key_actions.submit_rename_to
+        form.handler.secret_release_reply
+        form.handler.create_default_reply
+        form.collapse_summary_field_names
         forensics.cmd.investigate-finding
         fetch.file.huggingface.hash.fetch
         events.cmd.get_playlist_exclusive
@@ -4854,8 +4877,6 @@ return [ qw[
         v7-zenki.handler.get_display_reply
         v7-zenki.handler.cube_session_auth
         v7-zenki.callback.instance.restart
-        user-edit.form.submit_maybe_finish
-        user-edit.form.parse_field_options
         universal.handler.image2html_reply
         tile.handler.poll_tile_color_reply
         ticker.handler.resend_update_reply
@@ -4950,6 +4971,8 @@ return [ qw[
         httpd.handler.input.body_remainder
         httpd.classify.cmd.reload-patterns
         graphics-matrix.cmd.filter-rep-col
+        form.key_actions.submit_passphrase
+        form.console.test-secret-roundtrip
         fetch.file.huggingface.resume_idle
         external.handler.reset_retry_delay
         editor.ui.ascii_frame.render_field
@@ -5038,7 +5061,6 @@ return [ qw[
         v7-zenki.handler.cube_session_close
         v7-zenki.callback.stdout_log_rotate
         v7-zenki.callback.register_ondemand
-        user-edit.handler.secret_hold_reply
         tile.impressive.increase_light_mode
         terminal.curses_ui.modified.english
         storchencam.subscribe-screen-change
@@ -5126,6 +5148,8 @@ return [ qw[
         graphics.matrix.visual.classify-all
         graphics-matrix.cmd.harmonic-coords
         graphics-3d.handler.cursor_navigate
+        form.key_actions.submit_rename_from
+        form.key_actions.submit_delete_name
         fetch.file.huggingface.verify.start
         external.orbital.sync_grid_fragment
         editor.control.commands.move_cursor
@@ -5182,9 +5206,6 @@ return [ qw[
         v7-zenki.handler.process_output_line
         v7-zenki.handler.output_zenka_stdout
         v7-zenki.callback.xorg-error-handler
-        user-edit.handler.browse_start_reply
-        user-edit.form.multiline_field_names
-        user-edit.form.build_user_keys_field
         universal.handler.start-anim_timeout
         universal.handler.start-anim_started
         tile.tile_activity.change_poll_timer
@@ -5316,7 +5337,6 @@ return [ qw[
         v7-zenki.zenka.cmd.terminate-implicit
         v7-zenki.zenka.cmd.restart_concurrent
         v7-zenki.callback.object.root.session
-        user-edit.handler.field_options_reply
         universal.handler.extract_frame_reply
         transport.handler.credential_resolved
         reasoning.branch.internal.check_stuck
@@ -5364,6 +5384,7 @@ return [ qw[
         graphics-matrix.orbital.build_summary
         graphics-matrix.cmd.assert-similarity
         graphics-matrix.cell.util.cell_output
+        form.handler.submit_secret_hold_reply
         fetch.file.huggingface.start_download
         editor.control.cycler.render_windowed
         discover.format_discover_mcast_packet
@@ -5431,9 +5452,6 @@ return [ qw[
         v7-zenki.handler.stdio_multiplex_demux
         v7-zenki.handler.set_initialized_reply
         v7-zenki.handler.instance_verification
-        user-edit.key_actions.submit_rename_to
-        user-edit.handler.secret_release_reply
-        user-edit.handler.create_default_reply
         ticker.handler.screen-change_strm_open
         storage.protocol.SFTP.open_unix_socket
         select.region.cmd.clear-window-profile
@@ -5486,6 +5504,7 @@ return [ qw[
         httpd.handler.download_transfer.broken
         httpd.benchmark.get_event_loop_metrics
         graphics.matrix.visual.extract-palette
+        form.key_actions.submit_delete_confirm
         external.handler.orbital_connect_reply
         context.provider.frame.bottom_sentinel
         context.investigation.user-me-endpoint
@@ -5522,8 +5541,6 @@ return [ qw[
         v7-zenki.parser.manually_stopped_tstamp
         v7-zenki.handler.stdio_multiplex_listen
         v7-zenki.callback.delete_instance_cache
-        user-edit.key_actions.submit_passphrase
-        user-edit.console.test-secret-roundtrip
         sourcecode.console.verify-p7-signatures
         sourcecode.console.test-sign-and-verify
         sourcecode.console.report-endline-state
@@ -5585,9 +5602,6 @@ return [ qw[
         v7-zenki.sub-process.retrieve_cached_iid
         v7-zenki.handler.verify_instance_timeout
         v7-zenki.callback.cleanup_instance_cache
-        user-edit.key_actions.submit_rename_from
-        user-edit.key_actions.submit_delete_name
-        user-edit.form.submit_note_secret_result
         sourcecode.console.verify-dev-signatures
         sourcecode.console.read-sig-footer-state
         sessions.util.holder.accept_with_timeout
@@ -5691,7 +5705,6 @@ return [ qw[
         web-browser.handler.capture_paged_snapshot
         weather.widget.util.get_weather_widget_css
         weather.current.util.format_current_widget
-        user-edit.handler.submit_secret_hold_reply
         system.process.handler.pid-lookup_response
         sourcecode.console.test-sign-with-temp-key
         sourcecode.console.test-restore-signatures
@@ -5711,6 +5724,7 @@ return [ qw[
         mpv.handler.event.property-change.seekable
         letsencr.parent.handler_httpd_reload_reply
         impressive.handler.screen-change_strm_open
+        form.handler.field_options_bootstrap_reply
         discover.orbital.handler.local_p7ref_reply
         coding.tools.handler.strip_trailing_spaces
         coding.tools.handler.scratchpad_categorize
@@ -5728,9 +5742,6 @@ return [ qw[
         weather.parent.handler.update_current_timer
         weather.parent.handler.update_current_reply
         v7-zenki.handler.heartbeat_response_timeout
-        user-edit.key_actions.submit_delete_confirm
-        user-edit.form.submit_note_value_set_result
-        user-edit.form.collapse_summary_field_names
         storchencam.handler.screen-change_strm_open
         screenshot.handler.powershell_capture_reply
         protocol-7-menu.handler.pointer-stream-path
@@ -5812,7 +5823,6 @@ return [ qw[
         data.topology.interference.map.hash_to_cube_3d
         base.zenki.ondemand.handler.reconcile_starting
         web-browser.callback.capture_paged_query_result
-        user-edit.handler.field_options_bootstrap_reply
         protocol-7-menu.handler.screen-change_strm_open
         plugin.user-edit.address-cluster.serialize_blob
         plugin.auth.auth-keypair.validate-incoming-tofu
@@ -5907,8 +5917,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,..,,..,,,.,,,.,,..,,,,.,...,,,.,.,.,.,.,...,...,.,,,,,.,.,.,..,,...,
-#DWGPR57AD4CUCLVN4VAFW2WEH2COKOGP2XMO7OIJOUN4LGUWG63VHPCUCUEC6KJVEZYR5L7IPWUIY
-#\\\|O2O33P62QKG55HF2F5YNCEED7OTVAURNZKEI2ECLZF4O2F3MMKH \ / AMOS7 \ YOURUM ::
-#\[7]UYXLVHAQ3PP24UY2GU75TTWESWAHCAFFDYJVIUQIXZ34HMI4IKAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,..,,,..,...,.,,,...,.,.,.,,,.,.,...,...,..,,,..,...,..,,,,.,
+#S2JUYX7V5FE3S2Q4OIONOKMTLPD5WEGIA4OY43AGP7JYTFUF6PB64PZUHTRMTYB236MHT4TO5VKYO
+#\\\|XGWZPJQTXFXZMYEJEJX3XPCP4ZOVJATHFQPOFJZZ6SS56A3AV5J \ / AMOS7 \ YOURUM ::
+#\[7]LTAWFWGNU6GS4QXHVNJZZBEFBC7BYWQB6UDHVVYPOJIGSIFEPYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

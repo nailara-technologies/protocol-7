@@ -20,7 +20,7 @@ if ( defined $purge and length $purge ) {
         say "\n  << expected 'purge [::yes::]' or nothing >>\n";
         <[base.exit]>->(qw| 0010 |);
     }
-    my $candidates = <[keys.trash.purge_candidates]>;
+    my $candidates = <[keystore.trash.purge_candidates]>;
     if ( not @{$candidates} ) {
         say " :\n :: nothing past retention [ 90 days, newest 3 kept ] ::\n";
         return;
@@ -36,7 +36,7 @@ if ( defined $purge and length $purge ) {
     return;
 }
 
-my $entries = <[keys.trash.entries]>;
+my $entries = <[keystore.trash.entries]>;
 say " :\n :: removed [ newest first ]";
 if ( not @{$entries} ) {
     say " :. none";
@@ -44,12 +44,12 @@ if ( not @{$entries} ) {
     $show->($ARG) foreach @{$entries};
     say " :\n :. undo-remove <[kind:]name> [stamp]";
 }
-my $trash = <[keys.remote_keys_dir]>->( qw| trash |, FALSE );
+my $trash = <[keystore.remote_keys_dir]>->( qw| trash |, FALSE );
 <[keys.store_note]>->( $trash // '~/.n/remote-keys/trash' );
 say " :.\n";
 
-#,,.,,.,.,,..,..,,,..,,,.,,..,...,..,,.,.,,,.,..,,...,...,,,.,,..,..,,,..,.,,,
-#QYPVITH4OXK3ACMPOUCQ3SGFPBMIPPCFJMULJXFUVYB5FOITRQNJDIX45FD3VSYQFIWYF3UROND6U
-#\\\|7BI2AXMXWILJ2AMJQCLPAC4K3ETOK7BFKSGNYS6HZ6FQFWORQFB \ / AMOS7 \ YOURUM ::
-#\[7]AXQPVEV5YWQPW5HQEZ5IJAWCGMCWKUYX2HXPOPN3XOIOYFA7ZUAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,..,,...,,,.,,.,,,,.,,,,,...,..,,...,...,..,,,,,,,..,,,.,,,.,
+#SQHFUWSVSVXWAAJS2CVQPMWY4RME46IOSUWU3JRD5VEUZIZYM3EAIDVFVUPKS3J3UIJ6C3OSTZIJK
+#\\\|KELVWR6BPQNUSVHSLTSYU4XLPJYYQMIK24VRPMDSHS5263HSBCX \ / AMOS7 \ YOURUM ::
+#\[7]2OWQ5TIUX4TQFSAGMR5OC3CLA3AL2NP7RHEK2G73THCCLMBF74AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

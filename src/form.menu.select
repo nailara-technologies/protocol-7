@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = form.menu.select
+# descr = act on the focused menu row : descend a level
+# param = -none-
+
+## Enter inside a menu DESCENDS : namespace -> record list -> edit form.
+## form.handler.stdin_key routes the submit action here when the mode is a
+## menu, so Enter selects instead of submitting a form.
+##
+## going back UP is Esc, which needs no code of its own --  form.escape's
+## non-base-mode branch already means "leave one  level", and
+## editor.control.menu.close returns the state the menu was opened over.
+
+my $editor_state = <form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $mode = $editor_state->{'mode'} // '';
+my ($what) = $mode =~ m|^menu:(\w+)$|;
+
+return FALSE if not defined $what;
+
+my $key = <[editor.control.menu.selected_key]>->($editor_state);
+
+return FALSE if not defined $key;
+
+if ( $what eq qw| namespace | ) {
+
+    <form.menu.namespace> = $key;
+
+    ## keys enumerate in-process, so that list is available immediately.
+    ## host-system has to ask the users zenka, and the reply handler opens the
+    ## menu when it arrives -- the same async shape the form itself uses
+    if ( $key eq qw| keys | ) {
+        return <[form.menu.open_rows]>->(
+            <[form.menu.records]>->($key),
+            qw| record |, $editor_state
+        );
+    }
+
+    my $cube_sid = <form.cube_sid>;
+
+    return FALSE
+        if not defined $cube_sid
+        or not exists $data{'session'}{$cube_sid};
+
+    <form.menu.return_state> = $editor_state;
+
+    my $source = <form.source>          // return FALSE;
+    my $sender = $source->{'value_all'} // return FALSE;
+
+    <[$sender]>->(qw| form.handler.value_all_reply |);
+
+    return TRUE;
+}
+
+if ( $what eq qw| record | ) {
+
+    ## a key is shown, never edited : the keys namespace is read-only ##
+    return <[form.menu.show_key]>->($key)
+        if ( <form.menu.namespace> // '' ) eq qw| keys |;
+
+    ## a host-system record opens the ordinary edit form, unchanged ##
+    return <[form.menu.open_record]>->($key);
+}
+
+return FALSE;
+
+#,,.,,,,,,..,,...,,..,,,,,.,.,.,,,..,,.,.,...,..,,...,...,,..,..,,,,.,,..,,,.,
+#FZGKA7F3NBBHZFT6RDL4RRK4WVFNXK43U7HJ6EBZEV3OL6SV2RJ6RKLIJX4YROL5NBRWHB7GGD4LY
+#\\\|TFJN46SKFPWHEVMZWYJ7ECUR3GERPIMCU7EKDW64E34OUZ4SWJA \ / AMOS7 \ YOURUM ::
+#\[7]KDHLH3TIVK3PILLLVR6GISTELO6AHGCCQ22TFOZOD5CBTZKZVSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

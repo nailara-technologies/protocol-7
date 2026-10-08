@@ -1,0 +1,564 @@
+## [:< ##
+
+# name  = form.handler.stdin_key
+# descr = event.add_io handler : decode keystrokes and drive the form
+
+## fires whenever STDIN is readable [ registered by  form.setup_stdin_watcher
+## ].  never blocks : STDIN is O_NONBLOCK, one sysread per firing, and a
+## partially-arrived escape sequence is simply left in the buffer for the next
+## one [ editor.input.next_key returns undef and consumes nothing in that case
+## ].
+##
+## this module does NOT render.  every mutation just bumps  <form.dirty>, and
+## the base.event.add_var watcher on that scalar is what repaints — the same
+## path an async out-of-band field update takes, so neither side has to know
+## the other exists.
+
+my $editor_state = <form.state>;
+return FALSE if ref $editor_state ne qw| HASH |;
+
+## kept in %data rather than a state var : a state var would survive a code
+## reload while the watcher and decoder around it are replaced, stranding
+## bytes from a previous generation in a buffer nothing can see or reset NOTE
+## : a reference to a data keyword MUST be written as explicit $data{..} —
+## '\<form.input_buffer>' does NOT take a reference to the slot.  the
+## translator's rule is (?<!\\)<..>, i.e. a leading backslash is the ESCAPE
+## meaning "leave this untranslated", so that form silently yields a reference
+## to the literal NAME STRING instead
+<form.input_buffer> //= '';
+my $input_buffer = \<form.input_buffer>;
+
+## no-tty mode : keys arrive from form.cmd.char-add, which appends to the same
+## buffer and calls this module directly.  STDIN must NOT be read at all here
+## — on a redirected/closed descriptor sysread returns 0, which the EOF branch
+## below would correctly-but-fatally treat as "terminal closed" and quit the
+## form on the first injected key
+my $bytes_read
+    = <form.mode.no_tty_debug>
+    ? undef
+    : sysread( STDIN, my $chunk, 1024 );
+
+if ( defined $bytes_read and $bytes_read > 0 ) {
+    $input_buffer->$* .= $chunk;
+} elsif ( defined $bytes_read and $bytes_read == 0 ) {
+    ## EOF on stdin [ terminal closed / input redirected and exhausted ] ##
+    <[base.logs]>->( 2, ': stdin closed, leaving form' );
+    <[form.quit]>;
+    return TRUE;
+}
+
+## any new input answers the "was that a bare Esc?" question, so the pending
+## one-shot is cancelled before the buffer is drained
+if ( defined <form.esc.timer> ) {
+    <form.esc.timer>->cancel;
+    <form.esc.timer> = undef;
+}
+
+my $repaint = FALSE;
+
+while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
+
+    ## the FIRST key of a freshly opened card retires the one-shot discovery
+    ## hint ['ctrl-? · toggle cmd list'] form.render shows in its place -- any
+    ## key, not just ctrl-?, since the point is "the user has started
+    ## interacting", not "the user found the toggle".  forced here rather than
+    ## left to whatever $repaint this key's own effect sets, because a no-op
+    ## key [ e.g. Left at column 0 ] would otherwise leave the hint on screen
+    ## for one extra, silently stale repaint
+    if ( not <form.hint_seen> ) {
+        <form.hint_seen> = TRUE;
+        $repaint = TRUE;
+    }
+
+    ## Ctrl-? [ sent as Ctrl-/, 0x1f -- see editor.input.parse_key_spec ]
+    ## toggles the cmd-list hint block.  matched directly on the KEY rather
+    ## than through process_key's passthrough : consistent with how Delete and
+    ## Left/Right are claimed elsewhere in this module, and it means the
+    ## toggle works regardless of whether the focused row happens to be
+    ## readonly
+    if ( $key eq "\x1f" ) {
+        <form.help_visible> = <form.help_visible> ? FALSE : TRUE;
+        $repaint = TRUE;
+        next;
+    }
+
+    ## the focused def is resolved BEFORE process_key rather than after, which
+    ## is safe because process_key only ever READS 'active_field' [ line 17,
+    ## never assigned there ] -- no branch of it can move focus under us, so
+    ## the def is the same one either side of the call
+    ##
+    ## SAMPLED BEFORE process_key, and that ordering is the whole point : on a
+    ## field holding one character Delete removes the character, and a check
+    ## made afterwards would see an empty field and remove the FIELD -- one
+    ## keystroke doing two things.  what matters is whether the field was
+    ## already empty when the key arrived
+    my $focus_def
+        = $editor_state->{'schema'}{'fields'}[ $editor_state->{'active_field'}
+        // 0 ];
+
+    my $remove_target
+        = <[form.removable_field]>->( $editor_state, $focus_def );
+
+    ## an EMPTY interior row of a list that still has OTHER content in it :
+    ## $remove_target above only fires when EVERY row of the field is empty [
+    ## the whole-field removal case ], so a list with mixed empty/filled rows
+    ## falls through it entirely today.  sampled BEFORE process_key for the
+    ## same "one keystroke, two effects" reason $remove_target already is --
+    ## see the Delete branch below  '&&'/'!', not 'and'/'not' : both bind
+    ## LOWER than '=', so '$x = A and B and C' assigns only A and evaluates
+    ## B/C for nothing, and 'A && not B' is not the same grouping as 'A && !B'
+    ## either -- see MEMORY-feedback.md's own note on this exact trap
+    my $remove_empty_row
+        = ref $focus_def eq qw| HASH |
+        && length( $focus_def->{'list_row_of'} // '' )
+        && !$focus_def->{'list_info'}
+        && !
+        length(
+        <[editor.control.get_value]>->( $editor_state, $focus_def->{'name'} )
+            // '' );
+
+    ## PRE-KEY cursor position on a plugin-pinned field, same "sample before
+    ## process_key" reasoning as $remove_empty_row above : Right's meaning on
+    ## such a field depends on where the cursor ALREADY was when the key
+    ## arrived, not where process_key's own [ readonly-exempt ] cursor-move
+    ## leaves it afterward -- see the entry-trigger block below for why
+    my $plugin_cursor_before
+        = ref $focus_def eq qw| HASH | && defined $focus_def->{'plugin'}
+        ? <[editor.control.get_cursor]>
+        ->( $editor_state, $focus_def->{'name'} ) // 0
+        : undef;
+
+    ## PLUGIN MODE : once a pinned key's row has been ENTERED [ mode =
+    ## 'plugin:<field>', set by the Tab/Right trigger further below ], EVERY
+    ## key routes DIRECTLY to the plugin's own handler.key, bypassing editor.
+    ## control.process_key entirely : the plugin owns full key handling once
+    ## entered, per design. LeftArrow is not an exception to this any more --
+    ## see its own block just below for why it is still special-cased, but
+    ## only to READ handler.key's return value, never to skip calling it.
+    ## Esc's OWN return path needs no  code HERE : it never reaches this loop
+    ## as a resolved key while ambiguous [ form.handler.esc_timeout's debounce
+    ## ], and once resolved, form.escape's EXISTING generic "leave a sub-mode"
+    ## branch already relabels ANY non-menu:/non-list: mode back to 'insert'
+    ## -- plugin mode never touches the schema, so a bare relabel already IS
+    ## the correct return.  escape.pm DOES need one small addition though --
+    ## see its own note -- for the readonly toggle immediately below
+    my ($active_plugin_field)
+        = ( $editor_state->{'mode'} // '' ) =~ m|^plugin:(\w+)$|;
+
+    if ( defined $active_plugin_field ) {
+
+        my $plugin_name
+            = <form.plugin.registry.by_key>->{$active_plugin_field};
+        my $handler_sub = sprintf( qw| %s.handler.key |, $plugin_name // '' );
+
+        if ( $key eq "\e[D" or $key eq "\x1b[D" ) {    ## Left ##
+
+            ## SYMMETRIC with Right's own two-stage entry trigger, further
+            ## below : Left is offered to the plugin's own handler.key FIRST,
+            ## same as every other key while in plugin mode -- a TRUE return
+            ## means it moved the cursor left within whichever text is
+            ## targeted, same as any other navigation key, and this block is
+            ## done.  only a FALSE return [ the plugin's own contract for "no
+            ## further left to go", see plugin.user-edit.address-cluster.
+            ## handler.key's own Left branch ] falls through to actually leave
+            ## plugin mode, below. REAL BUG in the FIRST version of this,
+            ## found live by the user, not hypothetical : Left exited
+            ## unconditionally regardless of cursor position, so editing
+            ## anything past the very first character made the field feel
+            ## broken -- arrow keys stopping short of where every other editor
+            ## keeps going
+            my $moved
+                = defined $plugin_name
+                && exists $code{$handler_sub}
+                && $code{$handler_sub}
+                ->( $editor_state, $active_plugin_field, $key );
+
+            if ($moved) {
+                $repaint = TRUE;
+                next;
+            }
+
+            <[base.logs]>->(
+                2, ': leaving plugin mode [ %s ]',
+                $active_plugin_field
+            );
+            $editor_state->{'mode'} = qw| insert |;
+            ## restore readonly -- see the matching note on entry below.
+            ## found live : without this, the field stays editable by ORDINARY
+            ## typing after Left leaves plugin mode
+            $editor_state->{'fields'}{$active_plugin_field}{'readonly'}
+                = TRUE
+                if ref $editor_state->{'fields'}{$active_plugin_field} eq
+                qw| HASH |;
+            $repaint = TRUE;
+            next;
+        }
+
+        if ( defined $plugin_name and exists $code{$handler_sub} ) {
+            $code{$handler_sub}
+                ->( $editor_state, $active_plugin_field, $key );
+            $repaint = TRUE;
+        }
+
+        next;
+    }
+
+    my $result = <[editor.control.process_key]>->( $editor_state, $key );
+    next if ref $result ne qw| HASH |;
+
+    my $action = $result->{'action'} // qw| none |;
+
+    ## Delete on an ALREADY EMPTY optional field takes it back off the form --
+    ## the other half of the add-a-field row's vocabulary.  the NAME comes
+    ## from the guard rather than from the focused row : on an expanded list
+    ## the row under the cursor is 'phone_0' and the field to remove is
+    ## 'phone'.  matched on the KEY for the same reason Left / Right are :
+    ## process_key has an explicit Delete branch, so it never arrives as
+    ## passthrough, and its own effect here was a no-op on an empty buffer
+    ## anyway
+    if ( defined $remove_target
+        and ( $key eq "\e[3~" or $key eq "\x1b[3~" ) ) {
+        <[form.remove_field]>->($remove_target);
+        $editor_state = <form.state>;
+        $repaint      = TRUE;
+        next;
+    }
+
+    ## Delete on an empty INTERIOR row -- per user, removes just this row
+    ## rather than requiring a navigation event first.  no separate removal
+    ## primitive : editor.control.list.scroll's harvest-and-merge already
+    ## drops an empty buffer exactly like leaving the row does [ see
+    ## form.resort_list's own note ], so a $direction 0 resort IS the removal.
+    ## NOT gated on 'sort_on_focus' -- unlike  sync_list_mode's resort
+    ## trigger, this is a general list-hygiene move, not a sorting-specific
+    ## one, so it applies to any list field
+    if (    $remove_empty_row
+        and not defined $remove_target
+        and ( $key eq "\e[3~" or $key eq "\x1b[3~" ) ) {
+        $repaint      = TRUE if <[form.resort_list]>;
+        $editor_state = <form.state>;
+        next;
+    }
+
+    ## Left / Right CYCLE on an add-a-field row : the row's value is a choice
+    ## index rather than text, so there is no character position for them to
+    ## move through.  claimed here for the same reason Up / Down are --
+    ## editor.control.process_key returns unclaimed keys as passthrough so
+    ## each host gives them its own meaning
+    if ( ref $focus_def eq qw| HASH | and $focus_def->{'add_field'} ) {
+        ## matched on the KEY, not on passthrough : process_key CLAIMS
+        ## Left/Right for cursor movement, so they never arrive as passthrough
+        ## the way Up/Down do [ which have no branch there ].  the claim is a
+        ## no-op on a cycler row anyway -- its buffer is empty and its value
+        ## is a choice index, not text
+        my $step
+            = $key eq "\e[C" ? 1
+            : $key eq "\e[D" ? -1
+            :                  0;
+        if ($step) {
+            <[editor.control.cycler.set]>->(
+                $editor_state, $focus_def->{'name'}, $step
+            );
+            $repaint = TRUE;
+            next;
+        }
+    }
+
+    ## Left / Right PAGE a windowed list's position row -- same reasoning as
+    ## the add-a-field row's Left/Right above : process_key already claimed
+    ## \e[D/\e[C for cursor movement [ a harmless no-op here, the buffer is
+    ## readonly ], so they never arrive as passthrough.  per user : once focus
+    ## can land on the position row it reads as a selectable thing in its own
+    ## right, so Left/Right page it exactly like PageUp/PageDown do rather
+    ## than doing nothing
+    if ( ref $focus_def eq qw| HASH | and $focus_def->{'list_info'} ) {
+        my $direction
+            = $key eq "\e[C" ? 1
+            : $key eq "\e[D" ? -1
+            :                  0;
+        if ($direction) {
+            $repaint = TRUE
+                if <[form.scroll_list]>->( $direction, TRUE );
+            $editor_state = <form.state>;
+            next;
+        }
+    }
+
+    ## Right ENTERS a pinned key's plugin tab -- TAB DELIBERATELY NOT BOUND
+    ## here, per a real trap found live : Tab is the ONLY forward-navigation
+    ## key this form has, so binding it to "enter" as well means a field
+    ## already visited can never be Tabbed PAST again -- every press just
+    ## re-enters, permanently stuck.  Tab keeps its ordinary field_next
+    ## meaning everywhere, no exceptions.
+    ##
+    ## Right is TWO-STAGE instead, per user : cursor position 0 [ just arrived
+    ## ] lets process_key's own ALREADY-APPLIED cursor move stand [ readonly
+    ## blocks MUTATION only, not cursor movement, so Right at position 0
+    ## already moved the cursor to 1 by the time this runs ] -- nothing
+    ## claimed, key falls through as an ordinary cursor move.  only once the
+    ## cursor was ALREADY past 0 BEFORE this keystroke [
+    ## $plugin_cursor_before, sampled ahead of process_key same as
+    ## $remove_empty_row is ] does Right mean "enter" instead of "move further
+    ## right" -- so landing here takes one Right to move in, a second Right to
+    ## commit, rather than the first Right press immediately hijacking
+    ## navigation
+    ##
+    ## REAL GAP, found live while building the address-cluster plugin, not
+    ## specific to it : on a field with ZERO content [ every brand-new
+    ## optional field a plugin pins to, before its own handler.key has ever
+    ## written anything ], the cursor can never move past 0 no matter how many
+    ## times Right is pressed -- there is nothing to move INTO -- so
+    ## $plugin_cursor_before stays 0 forever and this trigger could never
+    ## fire, leaving an empty pinned field permanently un-enterable. the two-
+    ## stage protection exists to let a first Right's ordinary cursor move
+    ## stand before a second commits to entering ; on empty content there IS
+    ## no ordinary cursor move to protect, so entering on the FIRST Right
+    ## loses nothing there. gated on the field's VALUE length, not on
+    ## $plugin_cursor_before itself -- a non-empty field with the cursor
+    ## merely PARKED at 0 [ e.g. after Home ] must keep the normal two-stage
+    ## behaviour, only truly empty content skips it
+    my $field_is_empty = not length(
+        <[editor.control.get_value]>->(
+            $editor_state, $focus_def->{'name'} // ''
+        ) // ''
+    );
+
+    if (    ref $focus_def eq qw| HASH |
+        and defined $focus_def->{'plugin'}
+        and exists
+        <form.plugin.registry.by_key>->{ $focus_def->{'name'} // '' }
+        and ( $key eq "\e[C" or $key eq "\x1b[C" )
+        and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty ) ) {
+
+        <[base.logs]>->(
+            2, ': entering plugin mode [ %s ]',
+            $focus_def->{'name'}
+        );
+
+        ## a plugin's own transient status keyword [ the 'last_result'
+        ## convention plugin.user-edit.key-actions.render documents -- set by
+        ## a submit_* callback, shown until something newer replaces it ]
+        ## otherwise survives FOREVER once set : nothing else ever clears it,
+        ## so it kept overriding the tab's own active hint on every future
+        ## visit, no matter how many times Left/Esc left the tab and Right
+        ## came back in -- found live, "stuck status string" that only a full
+        ## zenka exit ever cleared.  a FRESH visit to the tab is the right
+        ## boundary for it to expire on -- the entry TRIGGER itself, since a
+        ## plugin's own handler.key is never even called for the keypress that
+        ## sets mode here [ this block 'next's below, it does not fall through
+        ## to dispatch -- see the block's own header note ], so clearing
+        ## inside handler.key instead would miss this exact keystroke's own
+        ## repaint.  namespaced dynamically off the field's own name rather
+        ## than hardcoded to key_actions : a harmless no-op for any plugin
+        ## that never writes the keyword, and covers every current writer [
+        ## create's submit_name/submit_passphrase, rename's
+        ## submit_rename_from/_to ] the same shared way, not just rename's
+        $data{'form'}{ $focus_def->{'name'} }{'last_result'} = undef;
+
+        $editor_state->{'mode'}
+            = sprintf( qw| plugin:%s |, $focus_def->{'name'} );
+        ## readonly is TRUE on every pinned field so ORDINARY typing is
+        ## blocked before entry [ form.schema_from_record ] --  flipped off
+        ## here so the plugin's OWN handler.key can actually write through
+        ## editor.buffer.memory.insert/delete, which enforce readonly
+        ## themselves regardless of process_key.  found live : without this,
+        ## the plugin's own edits were silently no-ops.  restored by the
+        ## Left/Esc return paths above / in  form.escape
+        $editor_state->{'fields'}{ $focus_def->{'name'} }{'readonly'}
+            = FALSE;
+        $repaint = TRUE;
+        next;
+    }
+
+    ## Up / Down MOVE WITHIN a multiline field's buffer when there is
+    ## somewhere to go there -- reported live, per user : the reserved blank
+    ## rows below a short note read as real lines [ they carry the field's own
+    ## label same as any other row -- see form.build_frame's  multiline branch
+    ## ], and a row that LOOKS navigable but only ever answers to
+    ## Left/Right/Enter reads as broken, not as "v1 scope".
+    ##
+    ## falls through to the generic passthrough conversion just below when
+    ## there is nowhere to go [ Down already on the last line, Up already on
+    ## the first ] -- that conversion is what leaves the field via
+    ## field_next/field_prev exactly as any other field's Up/Down already
+    ## does, so this never becomes a dead end the way an earlier version of
+    ## the plugin-tab trigger did before its own Tab-trap fix.
+    ##
+    ## does NOT create a line on Down at the last row : the reserved blank
+    ## rows are CAPACITY, not lines -- editor.control.multiline.lines exists
+    ## specifically so a blank line is never silently reaped, and auto-
+    ## appending one just because the cursor moved would be the same violation
+    ## from the opposite direction.  Enter stays the only way to grow the
+    ## buffer
+    if (    ref $focus_def eq qw| HASH |
+        and $focus_def->{'multiline'}
+        and ( $key eq "\e[B" or $key eq "\e[A" ) ) {
+
+        my $ml_name = $focus_def->{'name'};
+        my $ml_text
+            = <[editor.control.get_value]>->( $editor_state, $ml_name ) // '';
+        my $ml_lines = <[editor.control.multiline.lines]>->($ml_text);
+        my $ml_cursor
+            = <[editor.control.get_cursor]>->( $editor_state, $ml_name ) // 0;
+        my ( $ml_line, $ml_col )
+            = <[editor.control.multiline.cursor_line]>
+            ->( $ml_text, $ml_cursor );
+        my $ml_total = scalar $ml_lines->@*;
+
+        my $ml_target_line = $key eq "\e[B" ? $ml_line + 1 : $ml_line - 1;
+
+        if ( $ml_target_line >= 0 and $ml_target_line < $ml_total ) {
+            my $ml_target_pos
+                = <[editor.control.multiline.line_col_to_offset]>->(
+                $ml_lines, $ml_target_line, $ml_col
+                );
+            <[editor.control.commands.move_cursor]>->(
+                $editor_state, $ml_name, $ml_target_pos - $ml_cursor
+            );
+            $repaint = TRUE;
+            next;
+        }
+        ## else : nowhere to go this direction -- fall through below ##
+    }
+
+    ## Down / Up move between fields as well as Tab / Shift-Tab : in a
+    ## multi-field FORM that is the natural reading, while nshell binds the
+    ## same two keys to history navigation.  editor.control.process_key
+    ## deliberately does NOT decide this centrally -- it returns them as
+    ## 'passthrough' so each host claims them with its own meaning
+    if ( $action eq qw| none | and defined $result->{'passthrough'} ) {
+        my $field_count = scalar $editor_state->{'schema'}{'fields'}->@*;
+        if ( $field_count > 1 ) {
+            $action = qw| field_next |
+                if $result->{'passthrough'} eq "\e[B";
+            $action = qw| field_prev |
+                if $result->{'passthrough'} eq "\e[A";
+        }
+
+        ## PgDn / PgUp : page a windowed list field's window -- unclaimed by
+        ## editor.control.process_key for the same reason Up/Down are [ no
+        ## branch there ], so claimed here the same way.  no field-count guard
+        ## : form.scroll_list is itself the "is there anything to scroll"
+        ## check and no-ops cleanly when there isn't
+        $action = qw| list_scroll_next |
+            if $result->{'passthrough'} eq "\e[6~";
+        $action = qw| list_scroll_prev |
+            if $result->{'passthrough'} eq "\e[5~";
+    }
+
+    if ( $action eq qw| field_next | ) {
+        my $count = scalar $editor_state->{'schema'}{'fields'}->@*;
+        $editor_state->{'active_field'}
+            = ( ( $editor_state->{'active_field'} // 0 ) + 1 ) % $count;
+        ## sync BEFORE the checkpoint : collapsing first means the draft
+        ## records the list under its own name with its entries, instead of
+        ## skipping it entirely because only the expanded rows exist yet
+        <[form.sync_list_mode]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
+        $editor_state = <form.state>;
+
+        ## no draft checkpoint while navigating a MENU : its rows are
+        ## read-only labels, not field values, and checkpointing them would
+        ## write row_0 / row_1 into the draft
+        <[form.field_changed]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
+        $repaint = TRUE;
+
+    } elsif ( $action eq qw| field_prev | ) {
+        my $count = scalar $editor_state->{'schema'}{'fields'}->@*;
+        $editor_state->{'active_field'}
+            = ( ( $editor_state->{'active_field'} // 0 ) - 1 + $count )
+            % $count;
+        ## sync BEFORE the checkpoint : collapsing first means the draft
+        ## records the list under its own name with its entries, instead of
+        ## skipping it entirely because only the expanded rows exist yet
+        <[form.sync_list_mode]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
+        $editor_state = <form.state>;
+
+        ## no draft checkpoint while navigating a MENU : its rows are
+        ## read-only labels, not field values, and checkpointing them would
+        ## write row_0 / row_1 into the draft
+        <[form.field_changed]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
+        $repaint = TRUE;
+
+    } elsif ( $action eq qw| list_scroll_next | ) {
+        ## scroll_list no-ops cleanly when focus isn't inside a windowed list
+        ## [ its own contract ] -- scroll_multiline is tried as a fallback for
+        ## that same "not applicable" case, since a multiline field has no
+        ## mode of its own to check first
+        $repaint = TRUE
+            if <[form.scroll_list]>->(1)
+            || <[form.scroll_multiline]>->(1);
+        $editor_state = <form.state>;
+
+    } elsif ( $action eq qw| list_scroll_prev | ) {
+        $repaint = TRUE
+            if <[form.scroll_list]>->(-1)
+            || <[form.scroll_multiline]>->(-1);
+        $editor_state = <form.state>;
+
+    } elsif ( $action eq qw| submit | ) {
+
+        ## inside a MENU, Enter DESCENDS a level rather than submitting a ##
+        ## form -- there is no form to submit, and the rows are read-only ##
+        ## Enter on the add-a-field row ADDS the current choice           ##
+        if ( ref $focus_def eq qw| HASH | and $focus_def->{'add_field'} ) {
+            <[form.add_field]>;
+            $editor_state = <form.state>;
+            $repaint      = TRUE;
+            next;
+        }
+
+        if ( ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ) {
+            <[form.menu.select]>;
+            $editor_state = <form.state>;
+            $repaint      = TRUE;
+            next;
+        }
+
+        <[form.submit]>;
+        return TRUE;    ## submit owns the flow from here ##
+
+    } elsif ( $action eq qw| signal | ) {
+        ## ADVISORY per editor.control.process_key's contract — the host
+        ## decides.  ctrl-c leaves the form ; the draft is flushed and the
+        ## terminal restored on the way out, which is exactly why ISIG is
+        ## disabled in form.term_init rather than letting the signal kill the
+        ## process outright
+        <[form.quit]>->( 'cancelled', 'no-op' );
+        return TRUE;
+
+    } elsif ( $action ne qw| none | ) {
+        ## echo / delete / backspace / cursor-* / kill-* / yank ##
+        $repaint = TRUE;
+    }
+}
+
+## a lone "\e" left over means editor.input.next_key could not decide between
+## a bare Esc keypress and the first byte of an escape sequence still in
+## flight.  arm a one-shot : if nothing follows, it was Esc
+if ( ( $input_buffer->$* // '' ) eq "\e"
+    and not defined <form.esc.timer> ) {
+
+    <form.esc.timer> = <[event.add_timer]>->(
+        {   qw| after |   => <user-edit.cfg.esc_timeout> // 0.05,
+            qw| repeat |  => FALSE,
+            qw| handler | => qw| form.handler.esc_timeout |,
+            qw| desc |    => 'user-edit bare-Esc timeout',
+        }
+    );
+}
+
+## single write per firing, not per key : a paste arriving as one chunk
+## repaints once instead of once per character
+<form.dirty>++ if $repaint;
+
+return TRUE;
+
+#,,.,,,..,...,.,,,.,,,,,,,,,.,,,.,,.,,,,.,,.,,..,,...,...,...,.,.,...,.,.,.,,,
+#CQV57YO3EMBZQHF66TL7HV7FAJAHPYMV3RRF465SPM6EKP4INSLMXPPYJKUJWGEA6QSCY75YHGJ24
+#\\\|MHGTIE3O3DWMXFOCFAXXZYOS7RT2BG3ZLZPP4BIJ4L5UZ7AUXJZ \ / AMOS7 \ YOURUM ::
+#\[7]LMVJ6DDOK5WS6RAPHWGEL2FNYRVFX7VPNIT4P66LBK3NS7XCZUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

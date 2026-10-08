@@ -977,6 +977,8 @@ sub run_post_init {
 ######################################################################
 say ': v7-zenki.delegation.issue';
 
+compile_module('v7-zenki.backend.run');
+compile_module('v7-zenki.backend.read_small');
 compile_module('v7-zenki.delegation.issue');
 my $issue    = $code{'v7-zenki.delegation.issue'};
 my $s_name   = "$me.base";
@@ -1466,6 +1468,106 @@ compile_module( 'crypt.C25519.cmd.host-root-id', $cmd_header );
     ok( $r->{'mode'} eq 'false', 'no .dlg : false' );
 }
 
+######################################################################
+say ': v7-zenki command owner-statement [ install \ drop ]';
+
+compile_module('keystore.remote_keys_dir');
+compile_module('keystore.trash.stash');
+compile_module( 'v7-zenki.cmd.owner-statement', $cmd_header );
+{
+    local $fake_euid = 0;
+    setup_host_root();
+    put( $s_file, 0640, $b32->($s_pub) . "\n" );
+    unlink $dlg_file;
+    $issue->();
+    my $leaf   = read_dlg();
+    my $target = catfile( $user_dir, 'host-root.dlg' );
+    unlink $target;
+
+    my ( $o_pub, $o_priv ) = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
+    my $owner_wire = sub {
+        my ($scope) = @ARG;
+        my $st = $statement->(
+            'build',
+            {   issuer_pub  => $o_pub,
+                subject_pub => $hr_pub,
+                name        => 'testhost',
+                not_before  => time - 100,
+                not_after   => time + 86400,
+                scope       => $scope
+            }
+        );
+        return $statement->(
+            'wire', $st, Crypt::Ed25519::sign( $st, $o_pub, $o_priv )
+        );
+    };
+    my $cmd   = $code{'v7-zenki.cmd.owner-statement'};
+    my $slurp = sub {
+        open( my $fh, '<', shift ) or return '';
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $all = readline($fh);
+        close($fh);
+        return $all;
+    };
+    my $good = $owner_wire->('testhost.*');
+
+    my $r = $cmd->( { args => "install $good" } );
+    ok( $r->{'mode'} eq 'true' && $slurp->($target) eq "$good\n",
+        'install : host-root.dlg holds the owner statement'
+    );
+    ok( ( ( stat $target )[2] & 07777 ) == 0644, '  :.. mode 0644' );
+    ok( $slurp->($dlg_file) eq "$leaf\n$good\n",
+        '  :.. re-issued at once : the .dlg is leaf + owner' );
+    ok( $fake_euid == 0, '  :.. root regained' );
+
+    $r = $cmd->( { args => "install $good" } );
+    ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m|already installed|,
+        'install again : already installed' );
+
+    $r = $cmd->( { args => 'install ' . $owner_wire->('other.*') } );
+    ok( $r->{'mode'} eq 'false'
+            && $r->{'data'} =~ m|name outside issuer scope|
+            && $slurp->($target) eq "$good\n",
+        'scope not covering this host : refused, file untouched'
+    );
+
+    $r = $cmd->( { args => 'install AAAA..AAAA' } );
+    ok( $r->{'mode'} eq 'false', 'malformed chain field : refused' );
+
+    my $other = $owner_wire->('testhost.*');    ## a later statement ##
+    sleep 1;
+    $other = $owner_wire->('testhost.*');
+    $r     = $cmd->( { args => "install $other" } );
+    ok( $r->{'mode'} eq 'true' && $slurp->($target) eq "$other\n",
+        'a newer statement replaces the installed one'
+    );
+    ok( scalar(
+            () = glob(
+                "$home/.n/remote-keys/trash/" . "owner-statement/host-root.*"
+            )
+        ) == 1,
+        '  :.. the replaced one is in the backend user\'s trash'
+    );
+
+    $r = $cmd->( { args => 'drop' } );
+    ok( $r->{'mode'} eq 'true' && !-e $target,
+        'drop : host-root.dlg into the trash'
+    );
+    ok( $slurp->($dlg_file) eq "$leaf\n",
+        '  :.. re-issued : the .dlg is the leaf alone again' );
+    $r = $cmd->( { args => 'drop' } );
+    ok( $r->{'mode'} eq 'false', 'drop again : nothing installed' );
+
+    $r = $cmd->( { args => 'bogus' } );
+    ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m|usage|,
+        'bad action : ' . 'usage' );
+
+    local $fake_euid = 1000;
+    $r = $cmd->( { args => "install $good" } );
+    ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m|not running as root|,
+        'not root : refused' );
+}
+
 my @unexpected = grep { !m{no read permissions|non existant} } @perl_warnings;
 ok( !@unexpected, 'no unexpected perl warnings' );
 say "         $ARG" for @unexpected;
@@ -1474,8 +1576,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,.,,,..,.,.,,,,,,..,,,.,.,,,.,,,,..,.,.,..,,...,...,..,,,,,,,..,...,.,.,
-#VMSTDGOJUVY6OSQ6XYXM7P4HN46IBUTWHE24U4HA4F4FNAY4T2OZA4IRSM73OBWAAEBTCQZCWRBWQ
-#\\\|AZG44WTG74XFHADDIKT7CLW7RCZAOKDHKIGG6S6QU2YRTLLBQQA \ / AMOS7 \ YOURUM ::
-#\[7]PXIDDSN4AXYJ2N2DDN4PGFLEQMGRJKEZ55YN7PMCNVRXVWQBJGAI 7  DATA SIGNATURE ::
+#,,..,...,,,.,,.,,,,.,...,.,.,..,,...,..,,.,.,..,,...,..,,..,,,..,..,,,..,,,,,
+#KRHM66IFYSCNQOTL3LVY5TUCIOQQ474IJFTXAMPAX5OBRSFXQ3RBSF6BJAB22BMKSILULRHLNBPL2
+#\\\|QIWQ2YXVAHDTDR4YNQCOWPPE73R6SLD6IINQ2EEWBOT42KHWWPY \ / AMOS7 \ YOURUM ::
+#\[7]ATWYZS4MH4GXZVKSIH2FG5FGZXEUN65EIZO5MZUFAQC45MXTLGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -84,9 +84,9 @@ if ( not $in_tab_mode ) {
 ## viewport-bounded view of its body's CURRENT line -- selection/target/
 ## cursor state lives on $editor_state->{'plugin_state'}{$field}, confirmed
 ## live to persist across separate char-add calls [ same object reference
-## <user-edit.form.state> always returns ], NOT the parsed $entries above --
-## that is re-derived from the buffer fresh on every call, never held
-## authoritative between calls, see parse_blob's own note on why
+## <form.state> always returns ], NOT the parsed $entries above -- that is
+## re-derived from the buffer fresh on every call, never held authoritative
+## between calls, see parse_blob's own note on why
 if ( not $entries->@* ) {
     return sprintf(q| [ no addresses -- Insert to add one ] |);
 }
@@ -206,36 +206,35 @@ my $out
 $out = substr( $out, 0, TAB_WIDTH ) if length($out) > TAB_WIDTH;
 
 ## the placeholder is LEFT UNRESOLVED here, deliberately -- an earlier version
-## styled it locally [ inverse-video / coloured, matching user-edit.form.
-## render's own three-case treatment ] and broke row alignment live :
-## ascii.frame.render measures this row's WIDTH via a plain length() on
-## whatever display_override returns, with no way to tell an invisible ANSI
-## byte from a visible one, so a locally-styled cursor containing
-## "\e[7m...\e[27m" [ 7-9 extra bytes, zero visual columns ] made the row
-## measure wider than it actually prints, under-padding it against the frame
-## border. the parent form avoids exactly this by inserting a ONE-BYTE
-## placeholder and substituting the real ansi-laden text only AFTER ascii.
-## frame.render has already finished its width/fill math on the
-## fully-assembled frame string -- CURSOR_PLACEHOLDER, surviving unresolved
-## past this return, is that same substitution point : user-edit.form.
-## render's own \x01 pass [ its 'cursor' marker ] already runs at exactly that
-## later, safe moment, and cursor_bearing already excludes this field from
-## getting a SECOND one there, so this is the only \x01 ever present for this
-## field's row. that pass now sources the character to style from
-## plugin.user-edit.address-cluster.cursor_char instead of its own raw-buffer
-## substr [ meaningless here, see that sub's own header ], giving this field
-## the identical inverse-video/coloured treatment every ordinary field gets,
-## with zero width risk since the byte count here never changes.
+## styled it locally [ inverse-video / coloured, matching form.  render's own
+## three-case treatment ] and broke row alignment live :  ascii.frame.render
+## measures this row's WIDTH via a plain length() on whatever display_override
+## returns, with no way to tell an invisible ANSI byte from a visible one, so
+## a locally-styled cursor containing "\e[7m...\e[27m" [ 7-9 extra bytes, zero
+## visual columns ] made the row measure wider than it actually prints,
+## under-padding it against the frame border. the parent form avoids exactly
+## this by inserting a ONE-BYTE placeholder and substituting the real
+## ansi-laden text only AFTER ascii.  frame.render has already finished its
+## width/fill math on the fully-assembled frame string -- CURSOR_PLACEHOLDER,
+## surviving unresolved past this return, is that same substitution point :
+## form.  render's own \x01 pass [ its 'cursor' marker ] already runs at
+## exactly that later, safe moment, and cursor_bearing already excludes this
+## field from getting a SECOND one there, so this is the only \x01 ever
+## present for this field's row. that pass now sources the character to style
+## from  plugin.user-edit.address-cluster.cursor_char instead of its own
+## raw-buffer substr [ meaningless here, see that sub's own header ], giving
+## this field the identical inverse-video/coloured treatment every ordinary
+## field gets, with zero width risk since the byte count here never changes.
 ##
-## user-edit.cmd.char-add's no-tty capture path has NO such later pass of its
-## own [ it substitutes its 'cursor' marker the same way, but that marker also
-## never reaches a plugin field -- see cursor_bearing's exclusion again ] : it
+## form.cmd.char-add's no-tty capture path has NO such later pass of its own [
+## it substitutes its 'cursor' marker the same way, but that marker also never
+## reaches a plugin field -- see cursor_bearing's exclusion again ] : it
 ## resolves this SAME placeholder itself, explicitly, right after calling
 ## render_form -- see its own note there.
 return $out;
 
-#,,,,,,,.,,.,,...,,..,.,,,,..,.,,,...,,..,,,.,..,,...,...,...,.,,,.,,,.,,,..,,
-#VOVN5XWGEGQJPYE3GCZCA36PTNRVGQOK5OUAEXFFEUBOGDAGR737IE47QOJ35L6LUED2UUSVMCAEW
-#\\\|VIIIUG5DH25RLNGSX4G6ZQX7UY3IEJAB4IHVG4LKE4NHM4QKARE \ / AMOS7 \ YOURUM ::
-#\[7]YQ77KHIEDKRQ22EDWSTFA2OOK77BQDRC5IIZ6MIOGXFC4ULIZEDY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,...,.,.,...,,,,,,.,,,..,,..,..,,...,...,...,,.,,.,.,..,,...,
+#7HI3JBUEDFND2DW7JNUKJIJ6Q6UZISA7KVJIW2M43SZIY36VVZTBU3LGHM5J3GY4PAO4XTDJ3COGG
+#\\\|ZKAV6RCPLHUJAS4CPIWQ3ZBNYR4HAF7OYQQS5HUHRH57H7K553X \ / AMOS7 \ YOURUM ::
+#\[7]ZWTK25XYGV75723PTKPB2BV4Q4LFW34TUJWFRHOE3WT2Z4E7JABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

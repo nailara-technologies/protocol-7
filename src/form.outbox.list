@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = form.outbox.list
+# descr = list staged edit entry ids from the local outbox
+# param = $filter [ optional substring filter ]
+
+my $filter = shift // '';
+
+my $outbox_dir = <[base.path.resolve_keywords]>->(qw| [VAR_P7]/outbox |);
+
+## an outbox that was never written to yet is a normal, expected state, not a
+## warning-worthy one — file.all_files warns on a missing path
+my $files = -d $outbox_dir ? <[file.all_files]>->($outbox_dir) // [] : [];
+
+my @ids;
+
+foreach my $file_path ( $files->@* ) {
+    ( my $entry = $file_path ) =~ s|^.*/||;
+    next unless $entry =~ s|\.yaml$||;
+
+    if ( length $filter ) {
+        next unless $entry =~ m|\Q$filter\E|i;
+    }
+
+    push @ids, $entry;
+}
+
+return \@ids;
+
+#,,,.,.,.,.,.,..,,...,,.,,.,,,.,.,.,.,...,,,.,..,,...,...,...,,,,,..,,..,,,,.,
+#KLS4YGQPNYT3PZJ6RV5UTACX65JT27L76WAK23RBPBFU2AYTWL7QVWVTKCVC4BGLM743SZ67YJMCM
+#\\\|T6WJZOWYN34JVRLLO7S2A7ZC5T4AKKW6VJA5UX2SUTR37E5J2FL \ / AMOS7 \ YOURUM ::
+#\[7]3NLL77NZ2LSLHZ7PTO25HN543XVY22IT3IQ5LEEKOMMBBR4UCSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

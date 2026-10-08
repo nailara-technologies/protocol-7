@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = form.menu.open_record
+# descr = open a chosen host-system record in the edit form
+# param = $username
+
+## the third level : a record picked from the menu opens the ORDINARY edit
+## form.  it reuses form.handler.value_get_reply untouched, so the whole
+## schema / frame / render / raw-mode path is exactly the one a direct
+## 'show-form <user>' takes -- the menu only decided which record.
+##
+## create.attempted is set so a record that vanished between the listing and
+## this fetch cannot trigger the create-admin offer from inside a menu.
+
+my ($username) = @ARG;
+
+return FALSE if not defined $username or not length $username;
+
+my $cube_sid = <form.cube_sid>;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    <[form.message]>->( 'link to cube is gone', qw| fail | );
+    return FALSE;
+}
+
+## remember the menu we came from : the form that opens here is a FRESH state
+## with no menu_source, so without this Esc would leave the zenka instead of
+## stepping back up to the record list
+<form.menu.form_return> = <form.state>;
+
+<form.username> = $username;
+<form.title>    = sprintf( 'user-edit : %s', $username );
+
+## a record listed a moment ago is not a missing record : do not offer to
+## create one from inside a menu
+<form.create.attempted> = TRUE;
+
+my $source = <form.source>          // return FALSE;
+my $sender = $source->{'value_get'} // return FALSE;
+
+<[$sender]>->( $username, qw| form.handler.value_get_reply | );
+
+return TRUE;
+
+#,,,,,.,,,,,.,,..,.,,,.,.,,,.,,.,,..,,.,,,.,,,..,,...,...,.,,,,..,,.,,,,,,,..,
+#IBKNDHUAXK6OG65PJ6RIK55KVFNM2UGZDYAUZVVWBBHFAM74AJNX5HG76CBRJRFZMKQULFDUQXUZG
+#\\\|X2HSG6YGR4ODPPY7ZJBRNDOSG6MJFYHD4IJSYP6PDL2ML75WWNV \ / AMOS7 \ YOURUM ::
+#\[7]E6VGAPDSOLGWNER67XSQRXGPCCY2HBUZI3BNMWRHJ45VZ2DP4KCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
