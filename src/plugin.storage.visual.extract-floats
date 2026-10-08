@@ -17,36 +17,12 @@ return $resolved if $resolved->{'mode'} eq 'false';
 
 my $data = $resolved->{'data'};
 
-for my $layer (@$layers) {
-    given ($layer) {
-        when ('intrinsic') {
-            $result = {
-                %$result,
-                %{  <[plugin.storage.util.visual.extract_intrinsic]>->($data)
-                }
-            };
-        }
-        when ('temporal') {
-            $result = {
-                %$result,
-                %{  <[plugin.storage.util.visual.extract_temporal]>->($data)
-                }
-            };
-        }
-        when ('network') {
-            $result = {
-                %$result,
-                %{  <[plugin.storage.util.visual.extract_network]>->($data)
-                }
-            };
-        }
-        when ('L13') {
-            $result = {
-                %$result,
-                %{ <[plugin.storage.util.visual.extract_L13]>->($data) }
-            };
-        }
-    }
+## extractor per layer [ unknown layer names are skipped ] ##
+my %extract_of = map { $ARG => "plugin.storage.util.visual.extract_$ARG" }
+    qw| intrinsic temporal network L13 |;
+
+for my $layer ( grep { exists $extract_of{$ARG} } @$layers ) {
+    $result = { %$result, %{ $code{ $extract_of{$layer} }->($data) } };
 }
 
 $registry->{'stats'}{'refs_processed'}++;
@@ -56,8 +32,8 @@ return {
     'data' => $result,
 };
 
-#,,,.,.,.,.,,,.,.,,.,,,,.,..,,..,,...,,..,.,.,.,.,...,...,,,.,...,,.,,..,,,..,
-#TNYOOFDEV2C7V6AELT3LBP4JRF5AOYDE3BP2RN4OHFWAIVUMSJKK2VF52QEN7XYRFABJAJY3CWR6W
-#\\\|UJ3C6CFCPXOZ7I7KP6GW75J5JY227FDFGUH3SLY6DZCBOETGT5C \ / AMOS7 \ YOURUM ::
-#\[7]KE3DPYPIQIFXNDRL6AHEUDDU5H45U5ATLFJUSMHO53VFDVTH5WCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,.,,,,.,,,,,,,,,,,,.,,..,,..,.,.,...,..,,..,,.,,,...,,.,,...,
+#7D44BMJHBE4XWT2Z22M2VQNXZNRPZY3GRUDGD5X5BMMIQPTDXOZ6NCPEUO7O7IR3WSNDOE7G75TVG
+#\\\|AJYMZL56Y5XHK6IVIETSS7GA6YWTFMESOOLIAAMWL4QVPNHFPMP \ / AMOS7 \ YOURUM ::
+#\[7]6BEZZMMEEE5BLB6BI6J64JFHVZDBQZUOSAOBEPS2R4SUHHPSRWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

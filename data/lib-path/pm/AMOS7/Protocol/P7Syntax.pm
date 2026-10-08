@@ -14,7 +14,8 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 @EXPORT = qw[ ];
 
-@EXPORT_OK = qw| $VERSION p7_syntax__translate |;
+@EXPORT_OK = qw| $VERSION p7_syntax__translate p7_syntax__perl_c
+    p7_syntax__floor_perl |;
 
 ## deliberately dependency-free : no 'use AMOS7'/'use AMOS7::CHKSUM' --     ##
 ## this sub is also called from bin/Protocol-7's own bootstrap, before base ##
@@ -556,10 +557,119 @@ sub p7_syntax__translate
     return $result;
 }
 
+##[ FLOOR PERL SYNTAX CHECK ]#################################################
+
+##  the oldest perl the project supports is the 'use v5.NN' line of         ##
+##  bin/Protocol-7. the syntax checkers [ bin/format-code -c, bin/dev/ptd ] ##
+##  compile with the local perl AND with that floor perl when installed :   ##
+##  a newer perl accepts code an older one refuses to compile [ {1,65535}  ##
+##  : 5.42 compiles it, 5.36 and 5.28 do not -- 2026-10-08 ]                ##
+##                                                                          ##
+##  floor perl lookup [ first found ] :                                     ##
+##    $P7_FLOOR_PERL       path to the binary [ 'none' : local perl only ] ##
+##    ~/.local/perl-5.NN.*/bin/perl5.NN.*    [ -Dversiononly install ]     ##
+##    perl5.NN.* in PATH                                                   ##
+
+my ( $floor_resolved, $floor_minor, $floor_bin, $floor_noted );
+
+sub floor_perl_minor {    ## minor version from bin/Protocol-7 [ or undef ] ##
+    my $root = __FILE__;
+    $root =~ s{/data/lib-path/pm/AMOS7/Protocol/P7Syntax\.pm\z}{} or return;
+    open( my $fh, qw| < |, "$root/bin/Protocol-7" )               or return;
+    while ( my $line = <$fh> ) {
+        return $1 if $line =~ m{^\s*use\s+v5\.(\d+)};
+        last      if $INPUT_LINE_NUMBER > 42;
+    }
+    return;
+}
+
+sub patch_level { ( $ARG[0] =~ m{perl5\.\d+\.(\d+)\z} )[0] // -1 }
+
+sub local_minor { int( ( $OLD_PERL_VERSION - 5 ) * 1000 + 0.5 ) }
+
+sub p7_syntax__floor_perl {    ## ( binary path or undef, '5.NN' or undef ) ##
+    return ( $floor_bin, $floor_minor ? "5.$floor_minor" : undef )
+        if $floor_resolved++;
+
+    $floor_minor = floor_perl_minor() // return;
+    my $env = $ENV{'P7_FLOOR_PERL'} // '';
+    ## the local perl is the floor perl [ or older ] : nothing to add ##
+    return ( undef, "5.$floor_minor" )
+        if local_minor() <= $floor_minor
+        or $env eq qw| none |;
+
+    if ( length $env ) {
+        $floor_bin = $env if -x $env;
+    } else {
+        my $m = $floor_minor;
+        my @found
+            = grep { -x $ARG and not -d $ARG }
+            glob("$ENV{HOME}/.local/perl-5.$m.*/bin/perl5.$m.*"),
+            map { glob("$ARG/perl5.$m.*") }
+            grep { length and -d } split m{:}, $ENV{'PATH'} // '';
+        ($floor_bin) = sort { patch_level($b) <=> patch_level($a) } @found;
+    }
+    return ( $floor_bin, "5.$floor_minor" );
+}
+
+my %floor_module;
+
+sub floor_has_module {    ## cached : can the floor perl load $module ##
+    my ( $bin, $module ) = @ARG;
+    return $floor_module{$module} //= do {
+        system(qq{"$bin" -M$module -e 1 >/dev/null 2>&1}) == 0 ? 1 : 0;
+    } if $module =~ m{^\w+$};
+    return 1;
+}
+
+## run perl -c [ $args : the quoted argument string ] under the local perl ##
+## and the floor perl. returns ( \@local_lines, \@floor_only_lines, '5.NN' ##
+## when the floor perl ran ). floor lines already in the local output are  ##
+## dropped , so the caller reports only what the floor perl alone refuses  ##
+sub p7_syntax__perl_c {
+    my $args = shift;
+
+    my @local_out = qx{ perl $args 2>&1 };
+    my ( $bin, $version ) = p7_syntax__floor_perl();
+
+    if ( not defined $bin ) {
+        warn ":\n:: floor perl $version not installed -- syntax checked with "
+            . "perl $PERL_VERSION only [ P7_FLOOR_PERL=none : silent "
+            . "]\n:\n"
+            if defined $version
+            and not $floor_noted++
+            and local_minor() > ( $floor_minor // 0 )
+            and ( $ENV{'P7_FLOOR_PERL'} // '' ) ne qw| none |;
+        return ( \@local_out, [], undef );
+    }
+
+    ## the floor perl must not see local::lib paths of the local perl : its ##
+    ## XS modules are built for another perl version                        ##
+    local %ENV = %ENV;
+    delete @ENV{qw| PERL5LIB PERL5OPT PERL_LOCAL_LIB_ROOT |};
+    my @floor_out = qx{ "$bin" $args 2>&1 };
+
+    my %seen_local = map  { $ARG => 1 } @local_out;
+    my @floor_only = grep { not $seen_local{$ARG} } @floor_out;
+
+    ## a module the floor perl lacks [ Gtk3 , .. ] is stubbed -- its        ##
+    ## qualified barewords then fail under strict. not a perl version issue ##
+    ## : dropped when the floor perl cannot load that module                ##
+    @floor_only = grep {
+        not m{^Bareword ["'](\w+)(?:::\w+)+["'] not allowed while}
+            or floor_has_module( $bin, $1 )
+    } @floor_only;
+    ## floor 'syntax OK' or the final restatement alone : nothing to add ##
+    @floor_only = ()
+        if not grep { not m{syntax OK\s*$|had compilation errors\.?$} }
+        @floor_only;
+    return ( \@local_out, \@floor_only, $version );
+}
+
 return 5;  ###################################################################
 
-#,,,.,,.,,,,.,,,.,,,.,.,,,,..,,..,,.,,,..,..,,..,,...,...,.,.,.,.,,..,,,.,,.,,
-#XTOUNOICFPG3RIFFGYAIMO3EDXIL5A2Z6HTRXRA5BGOWGYKTTCUO4Y5QCYMRUQCVUPKQCRGIPZJPE
-#\\\|WOEPBC23HD7J5YIYSRS2IYNYW5ROZKOZ4GFEL2Q4MK4DSVXM7N5 \ / AMOS7 \ YOURUM ::
-#\[7]HKCMNYBIYRIS5MELEIF4AWE4QEWZGYGHEQWE5OT44BLEUTQJRYBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,.,.,.,.,.,.,,,,..,,,.,...,.,,,..,,...,..,,..,,,.,,.,.,..,,.,.,
+#KVCHR6XKMSD3HCTAD4G554CJHJVOF7H4HSTJ6HNYKNHSLQ3VJLFH7SST3TTCWX2FED73L3NVIQSKQ
+#\\\|B4POXIBHOENOLKAL6OUROFHU6BFNIKNWUZY7JBQELENNGW6AMOZ \ / AMOS7 \ YOURUM ::
+#\[7]EKHIELRPIMZETKJK4H7HHYU2XQKK2J3ZLFYSXDME4VOKMXRKIUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
