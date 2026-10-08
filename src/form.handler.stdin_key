@@ -58,6 +58,14 @@ my $repaint = FALSE;
 
 while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
+    ## one routed call outstanding [ form.action.send ] : vault-edit's busy
+    ## discipline -- EVERY key is dropped while <form.busy> is set except the
+    ## unambiguous quit [ ctrl-c ].  a bare Esc never reaches this loop as a
+    ## resolved key [ form.handler.esc_timeout's debounce calls form.escape
+    ## directly ], so an Esc-quit still works while busy without any branch
+    ## for it here
+    next if <form.busy> and $key ne "\x03";
+
     ## the FIRST key of a freshly opened card retires the one-shot discovery
     ## hint ['ctrl-? · toggle cmd list'] form.render shows in its place -- any
     ## key, not just ctrl-?, since the point is "the user has started
@@ -557,8 +565,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,,..,...,.,,,.,,,,,,,,,.,,,.,,.,,,,.,,.,,..,,...,...,...,.,.,...,.,.,.,,,
-#CQV57YO3EMBZQHF66TL7HV7FAJAHPYMV3RRF465SPM6EKP4INSLMXPPYJKUJWGEA6QSCY75YHGJ24
-#\\\|MHGTIE3O3DWMXFOCFAXXZYOS7RT2BG3ZLZPP4BIJ4L5UZ7AUXJZ \ / AMOS7 \ YOURUM ::
-#\[7]LMVJ6DDOK5WS6RAPHWGEL2FNYRVFX7VPNIT4P66LBK3NS7XCZUBY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,,,,,,..,.,.,.,,,.,.,..,,...,..,,...,...,,.,,...,,.,,,..,.,,,
+#M6DICMMT3JSC64HITGZBIWUU4QD5MR62YFUU664FYL7B5SA2SMO2QMELFZLEAZDBCIRVG75Y4YQH4
+#\\\|2GHZ5HPDD7YFRZ45NJFIJZREDB6JC453YJ333FKN6UNRTHV65HN \ / AMOS7 \ YOURUM ::
+#\[7]Q52XZSBNGVAWUA33NXZOMOIUOUPWUT3B5DPTJLCFSH4FLGXTW2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

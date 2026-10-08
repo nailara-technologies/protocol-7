@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = form.handler.action_timeout
+# descr = an outstanding form.action.send call outlived its timeout :
+#         clear busy and hand the caller's $on_reply a timeout marker
+
+my $busy = <form.busy>;
+
+## same guard as form.handler.action_reply : only ONE call can ever be
+## outstanding, so a fired timer with no HASH busy slot is stale state, not a
+## lost call
+return FALSE if ref $busy ne qw| HASH |;
+
+my $on_reply = $busy->{'on_reply'};
+
+<form.busy> = FALSE;
+
+## the reply may still come [ late ] : replies on one link arrive in order, ##
+## so the NEXT reply belongs to this call -- action_reply drops it instead  ##
+## of handing it to whatever action runs by then                            ##
+<form.stale_replies> = ( <form.stale_replies> // 0 ) + 1;
+
+## the timeout marker : a plain HASH with 'timeout' set, so $on_reply can tell
+## a dead call apart from a real reply with one defined check. same "clear
+## busy before the callback" ordering as form.handler.action_reply
+$code{$on_reply}->( { qw| timeout | => TRUE } )
+    if defined $on_reply and exists $code{$on_reply};
+
+return TRUE;
+
+#,,,,,...,...,,,,,,,.,.,.,.,.,,.,,,.,,,,.,.,.,..,,...,...,.,.,.,,,.,.,,,,,...,
+#RUOJUQTWMIQTXK5TU3VQPBXKNR57QQKJBWPR64UITIGHTOW2COGTO53ERVC6RZG4FW5EYU22M5YBY
+#\\\|TB6PEVE5VUDZ2S5J26JY6UF6DIQJI3CALEGHXZMLEXHFUKMQ7VL \ / AMOS7 \ YOURUM ::
+#\[7]LSXS4SKSZNATA5WKKZKDPHGCDEIR2LSMTWNNHOY4V7XJLGI3LUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
