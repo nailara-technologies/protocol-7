@@ -5,11 +5,10 @@
 # param = $editor_state, $field
 
 ## DISPLAY ONLY, self-record-only : the field def carrying this override is
-## synthesised in user-edit.form.schema_from_record ONLY when the open record
-## is the invoking Unix user's own, so whatever key state this zenka process
-## holds [ its OWN session key, loaded by this zenka's bootstrap ] is only
-## ever shown next to that same user's own record -- never beside someone
-## else's fields.
+## synthesised in form.schema_from_record ONLY when the open record is the
+## invoking Unix user's own, so whatever key state this zenka process holds [
+## its OWN session key, loaded by this zenka's bootstrap ] is only ever shown
+## next to that same user's own record -- never beside someone else's fields.
 ##
 ## data comes straight from crypt.C25519's in-process state, NOT from any
 ## keys.console.* module [ those print/say interactively to STDOUT, the wrong
@@ -74,10 +73,9 @@ my $checksum = $checksum_cache{$key_name}
         // qw| [unknown] | );
 
 ## OPT-IN detail display, same shape user_keys' own display type uses --
-## user-edit.form.schema_from_record sets 'identity_detail_mode' once, from a
-## length threshold, since the identity key is immutable for this zenka's own
-## process lifetime [ see the header above ] there is nothing to re-check per
-## render.
+## form.schema_from_record sets 'identity_detail_mode' once, from a length
+## threshold, since the identity key is immutable for this zenka's own process
+## lifetime [ see the header above ] there is nothing to re-check per render.
 ##
 ## $field here is the FIELD NAME STRING [ confirmed live 2026-08-15 --
 ## editor.control.get_display_value:46 calls display_override with
@@ -85,10 +83,10 @@ my $checksum = $checksum_cache{$key_name}
 ## comment previously implied -- a first attempt treating $field as the
 ## hashref terminated with "string as HASH ref" ]. resolve the real field_def
 ## from $editor_state's own schema instead : the SAME hashref
-## user-edit.form.build_frame and editor.ui.ascii_frame.render_form both
-## already hold their own reference to, so mutating it here is visible to
-## both, same hand-data-forward pattern user_keys_names already uses to carry
-## data from schema-build time to render time
+## form.build_frame and editor.ui.ascii_frame.render_form both already hold
+## their own reference to, so mutating it here is visible to both, same
+## hand-data-forward pattern user_keys_names already uses to carry data from
+## schema-build time to render time
 my ($field_def)
     = grep { ( $ARG->{'name'} // '' ) eq $field }
     $editor_state->{'schema'}{'fields'}->@*;
@@ -106,8 +104,8 @@ if ( ref $field_def eq qw| HASH | and $field_def->{'identity_detail_mode'} ) {
 ## not outer framing
 return sprintf( q|%s %s|, $key_name, $checksum );
 
-#,,.,,.,,,.,,,,,.,,,.,,..,,..,..,,,.,,,,,,.,,,..,,...,...,..,,.,,,...,.,.,,.,,
-#TQP7ZEKVD4O7V5BGIMCXGAG6MCCNRBJYO75FJ7C5Z6BZJJKGVE2L6HX2SIA2XHRPMEXAHVJFZOBDC
-#\\\|OK5I46BIS5DXBV52GC2T5FGENMSSJLI6YNGGDP7RVBPHCG3YYQ7 \ / AMOS7 \ YOURUM ::
-#\[7]LGLP5JTML2I4UA4322UYHQ2YHOLRSUKZJJA7LW4MF5PCBQIRMQDQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,.,.,...,,,,,.,.,,..,.,,,,..,..,,...,...,...,,,.,..,,.,,,..,,
+#ENVVYYWB4LPYPFUI33HITJJPIIW3NL5M3UDB2QTURQJNGMGWL5S5F2MCPDCBMCJ2ARUQZIXVZCZIK
+#\\\|EVFLALX3CAJK56P5FCEHSJT6A237KMDNFIBCOYLRG7SLBLM3TQO \ / AMOS7 \ YOURUM ::
+#\[7]HAWY6QQ5FCUTWRS34YEGHTYGZ7A553RYN2XG757YKWCSOMXKZYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@
 ## list reload already trusts.  filtered to exclude 'plugin.user-edit.
 ## registry' itself -- the collector is not its own detail-tab plugin.
 
-<user-edit.plugin.registry> = { qw| by_key | => {}, qw| by_name | => {} };
+<form.plugin.registry> = { qw| by_key | => {}, qw| by_name | => {} };
 
 my @plugin_names = grep {
     m|^plugin\.user-edit\.| and $ARG ne qw| plugin.user-edit.registry |
@@ -63,7 +63,7 @@ foreach my $plugin_name ( <[base.sort]>->( \@plugin_names ) ) {
         next;
     }
 
-    <user-edit.plugin.registry.by_name>->{$plugin_name} = $tab_info;
+    <form.plugin.registry.by_name>->{$plugin_name} = $tab_info;
 
     ## pinned_keys is an ARRAY : per design, a plugin may pin several related
     ## keys and cross-reference between them itself -- the storage layer [
@@ -74,37 +74,35 @@ foreach my $plugin_name ( <[base.sort]>->( \@plugin_names ) ) {
         ## COLLISION : two plugins pinning the same key is a config error, not
         ## a runtime decision -- caught HERE, in the single walk, and logged
         ## loudly rather than silently letting one win
-        if ( exists <user-edit.plugin.registry.by_key>->{$pinned_key} ) {
+        if ( exists <form.plugin.registry.by_key>->{$pinned_key} ) {
             <[base.logs]>->(
                 0,
                 ': pinned key collision [ %s ] : '
                     . 'already claimed by %s, %s ignored',
                 $pinned_key,
-                <user-edit.plugin.registry.by_key>->{$pinned_key},
+                <form.plugin.registry.by_key>->{$pinned_key},
                 $plugin_name
             );
             next;
         }
 
-        <user-edit.plugin.registry.by_key>->{$pinned_key} = $plugin_name;
+        <form.plugin.registry.by_key>->{$pinned_key} = $plugin_name;
     }
 }
 
 <[base.logs]>->(
     2,
     ': plugin detail-tab registry built [ %d plugin%s, %d pinned key%s ]',
-    scalar( keys <user-edit.plugin.registry.by_name>->%* ),
-    <[base.cnt_s]>->(
-        scalar( keys <user-edit.plugin.registry.by_name>->%* )
-    ),
-    scalar( keys <user-edit.plugin.registry.by_key>->%* ),
-    <[base.cnt_s]>->( scalar( keys <user-edit.plugin.registry.by_key>->%* ) )
+    scalar( keys <form.plugin.registry.by_name>->%* ),
+    <[base.cnt_s]>->( scalar( keys <form.plugin.registry.by_name>->%* ) ),
+    scalar( keys <form.plugin.registry.by_key>->%* ),
+    <[base.cnt_s]>->( scalar( keys <form.plugin.registry.by_key>->%* ) )
 );
 
 0;
 
-#,,,,,.,,,,..,.,.,.,,,.,,,,,.,..,,.,.,,..,...,..,,...,...,,,.,.,.,,..,,.,,,,,,
-#YSZK6CCOOA44AUKNY3WARICOXY3ZFXN5ZKWVSZEO2DIFQLJQN74QA3ZHY6CZGNTUDSQO6NA37LJ4K
-#\\\|NY5DEV63NX3GCXPA747RDAYFC6C4K4FIFTYYE2HEIVHUPQGYOXZ \ / AMOS7 \ YOURUM ::
-#\[7]IHOLAG2LJFZ23JUTMTEF6FRMIPYXMTQCLEK7JB3K5QOEP2UF2WDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,.,.,,.,,...,.,,,,..,,,,,.,.,..,,...,..,,..,,...,,,,,...,.,,,
+#IQTSADYCRPGNX7R4O6PM7VIHRIDBOCKWSXSGXDDO6KSFN4EQIZIWOQQUXHGDHEIEXC57LZCITULHW
+#\\\|LQ4Q4R4GSAATNBQ64J4E5GJVFE3WS6DD3MEOY55AZN27BUKIOIR \ / AMOS7 \ YOURUM ::
+#\[7]RQW7EN3N3REHWGPIP4ITQXDNNCTBKKIJ7EYINUNT3KUWCVTZ7WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

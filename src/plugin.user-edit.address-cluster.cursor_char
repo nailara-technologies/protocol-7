@@ -7,8 +7,8 @@
 #          newline
 
 ## OPTIONAL convention a plugin exposes so the generic renderers [ user-edit.
-## form.render's live TTY path, user-edit.cmd.char-add's no-tty capture path ]
-## can style the ONE placeholder byte .render leaves behind at the cursor
+## form.render's live TTY path, form.cmd.char-add's no-tty capture path ] can
+## style the ONE placeholder byte .render leaves behind at the cursor
 ## position, instead of .render resolving it itself. neither generic caller
 ## can compute this on its own : editor.control.get_cursor returns an offset
 ## into the RAW STORED buffer, while a plugin field's displayed text [ via
@@ -49,13 +49,13 @@ my $char = substr( $text, $c, 1 );
 
 ## a MULTILINE body's cursor can legitimately sit right before an embedded
 ## '\n' [ end of any line but the last ] -- same "nothing visible sits here"
-## treatment user-edit.form.render/user-edit.cmd.char-add already apply to
-## their own raw-buffer case
+## treatment form.render/form.cmd.char-add already apply to their own
+## raw-buffer case
 return '' if $char eq "\n";
 return $char;
 
-#,,..,..,,...,.,,,.,.,..,,,..,.,.,.,,,,,,,..,,..,,...,...,..,,,,.,..,,,..,,..,
-#DHBCPVASJUUHCM3LF7V6ITBKQB6M76GU4ECXACRWC4KDBEN2ZXDL7DCMLDMNJ7CDEP7DOCW66QP5I
-#\\\|XKJWIOC4WAVFLE6RYDMCRTU47KWSMDDDWJCRCDY7JCYCEMFW5S7 \ / AMOS7 \ YOURUM ::
-#\[7]3CYFGHHJ2CYBIUXZ3NBJ2EMPNMHSME4FJU3ERYLDQ6EPOWRQV4AA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,..,..,,.,,,,.,,...,.,,,,,,,..,,...,...,...,...,.,,,.,.,,..,
+#GK4S2DWWAKDSLDWZTOAAXTFVTL6NYVIKJ75VHKWKATR5ARFQJ6EVRFLC2R6IJDMGS25BQKBVV5LCI
+#\\\|UBAVKV6AURHFOBTLF5RBBBAGZRV67K4EC5SOAUM7XFFJLAJDBWR \ / AMOS7 \ YOURUM ::
+#\[7]YNHHYEQR3NGLVWY5YDUPC5TLTCSXPYSLIKCIF7FWE5T7FXUBECDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

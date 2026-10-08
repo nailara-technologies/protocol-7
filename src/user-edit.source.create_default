@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = user-edit.source.create_default
+# descr = users-zenka sender : create a record with default fields
+# param = $record_name, $reply_handler
+
+## the record source behind <form.source> -- see user-edit.source.value_get
+## for why the send lives here rather than in the form engine
+
+my ( $record_name, $reply_handler ) = @ARG;
+
+my $cube_sid = <form.cube_sid> // return FALSE;
+
+return <[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.create-default', $cube_sid ),
+        qw| call_args | => { qw| args |    => $record_name // '' },
+        qw| reply |     => { qw| handler | => $reply_handler }
+    }
+);
+
+#,,..,.,.,,,,,.,,,..,,...,,,,,,..,.,.,,..,,.,,..,,...,...,,,.,.,,,.,.,,,,,.,,,
+#ZMAAEPUT74ALJZOSRCBUXNWK6FUORX2GIUTA7WO46OXBEX6634BYNIWJCFHPAYN3IZAYKPDQ5KFMC
+#\\\|EJPIMT7EHQFZJESSXCUZQ3SNTPLPDYPDFNSOWSYBBKEOHA7RSCN \ / AMOS7 \ YOURUM ::
+#\[7]OEJOU6XLI6XFAZWSBITA7S627EMNTEMA7HYAYOHIUAQV452AGICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = form.offer_create
+# descr = ask about creating a missing record, then create
+# param = $username, $tags_href
+
+## the RESUME half of the create-admin flow, called by a console command right
+## after its own <[base.zenka.loop]> returns.
+##
+## why here and not in the reply handler : the "record does not exist" answer
+## is necessarily asynchronous [ user-edit runs as the invoking unix user and
+## cannot even stat USERS_HOST, which is 0770 and owned by
+## <system.amos-zenka-user> ], so it lands in a handler INSIDE the event loop
+## -- where base.term.ask, which blocks on STDIN, must never run.
+## form.handler.value_get_reply therefore sets <form.pending.  create> and
+## calls Event::unloop(), which returns control here.
+##
+## ORDER IS LOAD-BEARING : ask, THEN send, THEN re-enter the loop.  nothing
+## flushes the session output buffer while we are blocked on STDIN, so sending
+## first would leave the command queued behind the prompt.
+
+my ( $username, $tags ) = @ARG;
+
+$tags //= {};
+
+return TRUE if not <form.pending.create>;    ## ordinary loop exit ##
+
+<form.pending.create> = FALSE;
+
+## -t STDIN, deliberately NOT AMOS7::TERM::has_tty : has_tty also accepts a
+## Term::ReadLine->findConsole hit on /dev/tty, so 'show-form | cat' would
+## print the prompt into the pipe and then block on the terminal.  this also
+## covers 'start -no-tty', which must decline rather than prompt
+my $have_stdin_tty = -t STDIN ? TRUE : FALSE;
+
+## the tag is honoured ONLY when the target is the admin user's own record --
+## otherwise ':create-admin:' would silently create records for third parties.
+## in that case it is ignored and the interactive prompt decides '&&' NOT
+## 'and' : 'my $x = A and B' assigns only A [ the documented precedence trap
+## ], which would make the tag apply to any username  the record name a
+## :create-admin:-style tag is allowed to auto-create is source policy,
+## registered by the zenka's init_code -- for user-edit that is
+## <system.admin-user>, exactly as before the extraction
+my $tag_applies = $tags->{'create-admin'}
+    && $username eq ( <form.source>->{'tag_record'} // '' );
+
+my $answer = FALSE;
+
+if ($tag_applies) {
+    $answer = TRUE;    ## given : no prompt, no output ##
+} elsif ($have_stdin_tty) {
+    $answer = <[base.term.ask]>->(
+        {   qw| question | =>
+                sprintf(
+                "no record for user '%s' — create one with default fields?",
+                $username ),
+            qw| default | => FALSE
+        }
+    );
+}
+
+if ( not $answer ) {
+    <[form.message]>->(
+        sprintf( "no record for user '%s'", $username ), 'no-op'
+    );
+    return FALSE;
+}
+
+## the link can be reaped while we were blocked on STDIN ##
+my $cube_sid = <form.cube_sid>;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    <[form.message]>->(
+        'link to cube is gone, run the command again',
+        qw| fail |
+    );
+    return FALSE;
+}
+
+## set BEFORE the send : if create-default reports success but the record
+## still reads back as missing, this is what stops an endless re-offer
+<form.create.attempted> = TRUE;
+
+my $source = <form.source>               // return FALSE;
+my $sender = $source->{'create_default'} // return FALSE;
+
+<[$sender]>->( $username, qw| form.handler.create_default_reply | );
+
+## re-entry is supported : Event.pm sets $TopResult = undef specifically to
+## allow it, and base.zenka.loop's init-done guard is already satisfied so the
+## second call drops straight into event.loop with watchers intact
+<[base.zenka.loop]>;
+
+return TRUE;
+
+#,,.,,,,,,,..,,,.,,,,,.,.,,..,,.,,,,.,.,,,..,,..,,...,...,,..,.,,,..,,,.,,,,,,
+#V3B44P27AMOKFDHSV7ST4QRB66AF4PUVNGQLILBTT6ZRIZTOS5R5LKGHVB25SG33BSYFHWHHGAGTG
+#\\\|V6BNLAEDWAWO2IIXKVZC2D22GJA6RWM6AMITYAFHA77S2OOA4TB \ / AMOS7 \ YOURUM ::
+#\[7]466FOGDRKWG56A2GIQGGKFQWV4WVPXR7Y2754U5MYPPL7G3BI6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

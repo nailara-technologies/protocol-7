@@ -1,0 +1,31 @@
+## [:< ##
+
+# name   = v7-zenki.backend.read_small
+# descr  = read a small regular file, never through a symlink
+# param  = <path> <max bytes>
+# return = ( content [ one final newline removed ] ) or ( undef, reason )
+
+my ( $path, $max ) = @ARG;
+
+require Fcntl;
+my $fh;
+sysopen( $fh, $path, Fcntl::O_RDONLY() | Fcntl::O_NOFOLLOW() )
+    or return ( undef, "$OS_ERROR" );
+binmode( $fh, qw| :raw | );    ## runtime default layer is :utf8 ##
+my @st = CORE::stat($fh);
+return ( undef, 'not a regular file' )
+    if @st < 11
+    or not Fcntl::S_ISREG( $st[2] );
+my $content = '';
+my $got     = sysread( $fh, $content, $max + 1 );
+close($fh);
+return ( undef, "$OS_ERROR" ) if not defined $got;
+return ( undef, 'too large' ) if $got > $max;
+$content =~ s|\n\z||;
+return ($content);
+
+#,,,.,.,,,.,,,,,.,,..,...,...,...,,,,,,,,,,..,..,,...,...,.,.,.,.,,,.,,.,,.,,,
+#IN5XEYL3OD4NI3A7JRHMRY4EPQ5F3HKSKORQ2WTIT6YBHW356ACUQQXQMXCFXVGUNUM6GD52DAVFC
+#\\\|P3W37ZIYDOLGQOCTXIT5QOYENEE5YRK7IQK5NUX2U3RRPODZ64M \ / AMOS7 \ YOURUM ::
+#\[7]CXVZ2WDSAKHNAYQOLI6ZZFYDGV75TBW3RX3UONGLZ3U725RAU2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

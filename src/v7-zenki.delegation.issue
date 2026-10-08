@@ -44,8 +44,10 @@ if ( $EUID != 0 ) {
     return FALSE;
 }
 
-foreach my $sub (qw| trust.statement trust.verify trust.key_id trust.chain |)
-{
+foreach my $sub (
+    qw| trust.statement trust.verify trust.key_id trust.chain
+    v7-zenki.backend.run v7-zenki.backend.read_small |
+) {
     return $refuse->( "module '%s' not loaded", $sub )
         if ref $code{$sub} ne qw| CODE |;
 }
@@ -54,9 +56,8 @@ my $backend_user = <system.amos-zenka-user>;
 return $refuse->('no backend user [ system.amos-zenka-user ]')
     if not defined $backend_user
     or not length $backend_user;
-( my $backend_uid, my $backend_gid ) = ( getpwnam($backend_user) )[ 2, 3 ];
 return $refuse->( "backend user '%s' not known", $backend_user )
-    if not defined $backend_uid;
+    if not defined getpwnam($backend_user);
 
 my $s_name   = sprintf qw| %s.base |, $backend_user;
 my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
@@ -99,47 +100,10 @@ if (   not defined $host_root->{'public'}
 my $issuer_pub = $host_root->{'public'};
 my $key_id     = <[trust.key_id]>->($issuer_pub);
 
-## run $work with the backend user's effective uid \ gid ##
-my $as_backend = sub {
-    my $work       = shift;
-    my $saved_egid = $EGID;
-    $EGID = sprintf '%d %d', $backend_gid, $backend_gid;
-    $EUID = $backend_uid;
-    my @result;
-    if ( $EUID == $backend_uid ) {
-        @result = eval { $work->() };
-        @result = ( undef, "failed : $EVAL_ERROR" ) if length $EVAL_ERROR;
-    } else {
-        @result = ( undef, 'cannot switch to the backend user' );
-    }
-    $EUID = 0;
-    $EGID = $saved_egid;
-    if ( $EUID != 0 ) {    ## [ untested : needs a real root run ] ##
-        <[base.log]>->( 0, ': delegation : CANNOT regain root' );
-        return ( undef, 'root not regained after the backend-user section' );
-    }
-    return @result;
-};
-
-## read a small file : never through a symlink, regular files only ##
-my $read_small = sub {
-    my ( $path, $max ) = @ARG;
-    my $fh;
-    sysopen( $fh, $path, Fcntl::O_RDONLY() | Fcntl::O_NOFOLLOW() )
-        or return ( undef, "$OS_ERROR" );
-    binmode( $fh, qw| :raw | );    ## runtime default layer is :utf8 ##
-    my @st = CORE::stat($fh);
-    return ( undef, 'not a regular file' )
-        if @st < 11
-        or not Fcntl::S_ISREG( $st[2] );
-    my $content = '';
-    my $got     = sysread( $fh, $content, $max + 1 );
-    close($fh);
-    return ( undef, "$OS_ERROR" ) if not defined $got;
-    return ( undef, 'too large' ) if $got > $max;
-    $content =~ s|\n\z||;
-    return ($content);
-};
+## the backend user's key dir is written AS that user, files read without ##
+## following symlinks [ v7-zenki.backend.* ]                              ##
+my $as_backend = $code{'v7-zenki.backend.run'};
+my $read_small = $code{'v7-zenki.backend.read_small'};
 
 my $owner_note;
 my ( $issued, $reason ) = $as_backend->(
@@ -328,8 +292,8 @@ if ( $reason eq qw| issued | ) {
 
 return TRUE;
 
-#,,.,,,,.,,,.,,,.,,,,,,,.,..,,..,,..,,.,.,..,,..,,...,..,,,..,..,,,,,,.,,,..,,
-#3LZMM7KUWQG4Z4PRM357HN74OYV23CS5RMZ46YKWIZ3SVJMIFXGLSZQWH2UYR24KQA4PBXJSVURSC
-#\\\|MV2PYV5VOO3UX5ZC6OM7UG5B3FP5P6KQI3UT4CFLZXDZYY7RJYI \ / AMOS7 \ YOURUM ::
-#\[7]645VML64YQTIH5ZZ43RXBVGWMGLGRJCRYFIK4HLUDRWDU3ESVKBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,,,,,,,.,.,,,,,.,,,.,,.,,,,,,..,,...,...,..,,.,,,.,.,,.,,,.,,
+#D7YGX4SCWQSDIKIZLM3KRA2JVNPDT3ZAV6NTDUOSVM2N6KJ3M4VK3DHC2B3EWTIXOAWY2EKJ3G2AM
+#\\\|YZ5Y6NFEGYWRJJINSMJDWAYIDKFSP2QTV34UN4C6TFRKO7ZRGLL \ / AMOS7 \ YOURUM ::
+#\[7]LIA4DCU7TSLIO4OLVWV3SNK6CHMR4XEBBMWRBVCDSPF7Q3OMQIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

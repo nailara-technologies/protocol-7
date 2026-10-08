@@ -114,6 +114,19 @@ twin of `p7-keys accept-owner` \ `drop-owner`, a trust-chain WRITE :
 - **relay** [ later ] : through an already linked node [ external links ]
 - **file** [ later ] : statements \ key ids as files [ air-gapped, usb ]
 
+## landed [ 2026-10-08 ]
+
+- `v7-zenki.owner-statement install <chain> | drop` [ the section above ]
+  on `v7-zenki.backend.run` \ `.read_small` [ extracted from
+  delegation.issue ]
+- `p-7-r -host <name[:port]>` : the pin is checked under that name while
+  dialling a forward ; with `-strict` it is the probe [ reports the
+  offered key id, writes nothing ]
+- the key trash moved to `keystore.*` [ was keys.trash.* ] : loading any
+  `keys.*` sub-namespace pulls the keys zenka's init hooks, and
+  keys.init_code resets `<system.amos-zenka-user>` from $ENV{USER} \ the
+  euid -- inside v7-zenki [ root ] that would make the backend user root
+
 ## lanes
 
 - **kimi A** : extract `form.*` from user-edit [ task file, user-edit's
@@ -131,8 +144,8 @@ twin of `p7-keys accept-owner` \ `drop-owner`, a trust-chain WRITE :
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,..,,,.,.,.,,,,,..,,.,.,..,,,,.,...,..,,,..,..,,...,...,,.,,,.,,.,,,.,.,,,,,
-#HLBAROYV6KJHQ7XMPO5PL4GMDLCLIHSGZYNJ6VGQ5XQYLSIEQ5RPCMPV5NWOSHNKTAX3OHXPXHRNG
-#\\\|XUIO3FJHIETBQ6UXYSCCQ4VVTHLJMQ2GUSGCEN5VP344VPY3CQU \ / AMOS7 \ YOURUM ::
-#\[7]BKUV7F5TV4MSCQ25NTCXZVLU6RWKQ4SFZQ7IGJNYS6NTYE7DFEDY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,,,,,,.,,,.,,.,,,.,.,,.,,.,,,..,,...,...,...,.,,,,,,,..,,,..,
+#GBU4YSN5IITFXBVB6XQ5VBUZRDJ7ECECDN6U4XWZUJHZ7N4QOY3ZY2FW55CDKQ662P72XC6GKZU2S
+#\\\|NJJCPTHJP32CNTXRYDDA3I7L7DMF2H5GUNWKPNWASOPWT5RESCX \ / AMOS7 \ YOURUM ::
+#\[7]MMI3LSUEDDPJHNLA4LR5Y476C53CFJD7AU4AWKJ4JL42RKDF6WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

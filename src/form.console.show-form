@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = form.console.show-form
+# descr = fetch a users record and render it once as an ascii form
+# param = [ <username> ]
+
+## the non-interactive half of phase 3 : proves the whole data path —
+## users.value-get over the cube link -> record envelope -> derived editor
+## schema -> generated ascii frame -> render_form — with no terminal raw mode
+## and no watchers involved.  form.console.start reuses every one of these
+## steps and only adds the input side on top.
+##
+## this is a HYBRID console command [ user-edit/zenka.v7's own note ] : the
+## reply is asynchronous, so the command marks init done and enters the zenka
+## event loop itself rather than the start file doing it — a [zenka.loop] in
+## the start file would hang plain 'v7-zenki.user-edit commands'.
+
+## tags are partitioned out BEFORE the username fallback -- otherwise
+## 'show-form :create-admin:' would take the tag itself as the username
+my ( $params, $tags ) = <[form.parse_params]>->( shift // '' );
+
+## record source, registered by the zenka's own init_code [ user-edit.
+## init_code for this console ] -- the senders and the default record name
+## both come from here, keeping this module record-independent
+my $source = <form.source> // return FALSE;
+
+my $username = $params;
+$username =~ s|^\s+||;
+$username =~ s|\s+$||;
+$username = $source->{'default_record'} // '' if not length $username;
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << no cube session — cannot reach the users zenka >>\n\n";
+    return FALSE;
+}
+
+<form.cube_sid> = $cube_sid;
+## this console command owns the event loop, so its reply handler is allowed
+## to unloop and hand control back [ form.offer_create ]
+<form.offer.create> = TRUE;
+<form.username>     = $username;
+<form.interactive>  = FALSE;
+<form.title>        = sprintf( 'user-edit : %s', $username );
+
+<[base.logs]>->( 2, ': requesting user record [ %s ]', $username );
+
+## session-id-prefixed route and the non-prefixed swap-family alias live in
+## the source sender [ user-edit.source.value_get ] — see
+## bug-auth-keypair-client-composition-gotchas
+my $sender = $source->{'value_get'} // return FALSE;
+
+<[$sender]>->( $username, qw| form.handler.value_get_reply | );
+
+<[base.init-done]>->(TRUE);    ## standalone zenka : not v7-managed ##
+
+<[base.zenka.loop]>;
+
+## resumes here only if the reply handler unlooped to offer a record ##
+return <[form.offer_create]>->( $username, $tags );
+
+#,,.,,.,,,...,,,,,...,.,,,...,,,,,...,.,.,,,,,..,,...,...,...,..,,.,,,,,,,.,,,
+#66GKBDNESBZHKAFREFG7TGBH77EPSH7LUWMV7YAAOSAHIETBJUGBRNCF3EKN3CVKQSERRLZF3VAEU
+#\\\|XUEW7K3DFE46I6MGGFJ4CVIFCFDTG4G27SGNRBBGSABOJ6BFRGT \ / AMOS7 \ YOURUM ::
+#\[7]KS26M7HWP77F2WIW4OE37T2EPGZMH2YLQOPB7I7432BVHLVNICBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

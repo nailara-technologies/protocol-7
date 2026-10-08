@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = user-edit.source.value_all
+# descr = users-zenka sender : list all records
+# param = $reply_handler
+
+## the record source behind <form.source> -- see user-edit.source.value_get
+## for why the send lives here rather than in the form engine
+
+my ($reply_handler) = @ARG;
+
+my $cube_sid = <form.cube_sid> // return FALSE;
+
+return <[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-all', $cube_sid ),
+        qw| call_args | => { qw| args |    => '' },
+        qw| reply |     => { qw| handler | => $reply_handler }
+    }
+);
+
+#,,,,,.,.,..,,..,,.,.,,..,.,,,..,,,,.,,.,,...,..,,...,...,...,.,.,,..,,.,,.,.,
+#NZWWIYT5BPRPP36HTWVLKVAOB4CZMOVBCMC6ZW3LFUJSYZXGAODYEN7DLVBKUG4JY24K5XFRBOFOU
+#\\\|75THHTRZIBWCJYVUNDAVXCXLTYEEEFKBLQKFHXQPU3M6EHCFJRH \ / AMOS7 \ YOURUM ::
+#\[7]MMK53PT7HHSELEYDFU4QNDBFMG7XDXPJ7K2FQ444VIIT23DJLUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = form.console.browse
+# descr = browse namespaces and records, then edit
+# param = [ :create-admin: ]
+
+## the parent level above 'start' : pick a namespace, then a record, then edit
+## it -- rather than naming the record on the command line.
+##
+## same HYBRID LOOP MODE as the other interactive commands : [init-done] and
+## [zenka.loop] are called HERE, not in the start file, so 'commands' and
+## 'describe' still print and exit.  the namespace menu needs the record
+## COUNT, which crosses the cube, so the listing is requested first and the
+## menu opens in the reply -- the same async shape the form itself uses.
+
+my $params = shift // '';
+
+my ( $rest, $tags ) = <[form.parse_params]>->($params);
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << no cube session — cannot reach the users zenka >>\n\n";
+    return FALSE;
+}
+
+if ( not -t STDIN ) {
+    print "\n  << the browse command needs a terminal >>\n\n";
+    return FALSE;
+}
+
+<form.cube_sid>    = $cube_sid;
+<form.interactive> = TRUE;
+## q{} NOT qw| | for the values : qw splits on whitespace, so  'qw| user-edit
+## : records |' yields THREE list elements and silently corrupts the hash
+## pairing -- which is why only the single-token entry was resolving
+<form.menu.title> = {
+    qw| namespace | => q{user-edit},
+    qw| record |    => q{user-edit : records},
+    qw| keydetail | => q{user-edit : key},
+};
+
+push <callbacks.end_code>->@*, qw| form.term_restore |;
+
+my $source = <form.source>          // return FALSE;
+my $sender = $source->{'value_all'} // return FALSE;
+
+<[$sender]>->(qw| form.handler.browse_start_reply |);
+
+<[base.init-done]>->(TRUE);
+
+<[base.zenka.loop]>;
+
+return TRUE;
+
+#,,..,,,,,,,,,,,.,.,.,.,.,.,.,,,.,.,,,..,,,,,,..,,...,...,..,,,,,,...,,..,,,.,
+#QSOMI7UANKYNYSMSM5X6RZ4XAWWY3VFILFAPZKVLD257LFMVW4IJCP5S6OKIUMHQA46ODLPZBJKNQ
+#\\\|DBQVUILO5PV7YR7XZUT4R637NXDWHL7HWYC444IYGQZFNEVJZF7 \ / AMOS7 \ YOURUM ::
+#\[7]QVW6G3L3UDRX46TAO2K5VQXRXZ56YFEX4TRTBB5AE7QFC44YMOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = form.handler.value_all_reply
+# descr = turn a users.value-all reply into a record menu
+# param = $info
+
+## reply-handler signature is a SINGLE hashref { sid, cmd, call_args, params,
+## data? } ; only SIZE mode carries its payload in 'data'.
+##
+## value-all returns a NEWLINE-JOINED STRING rather than a list -- the reply
+## contract forbids a raw arrayref in 'data' -- and an empty string means both
+## "no records" and "the store directory is absent".  either way an empty menu
+## is the honest rendering.
+
+my ($info) = @ARG;
+
+my $cmd = uc( $info->{'cmd'} // '' );
+
+if ( $cmd ne qw| SIZE | ) {
+    <[form.message]>->(
+        sprintf( 'could not list records : %s',
+            $info->{'call_args'}{'args'} // 'no detail' ),
+        qw| fail |
+    );
+    <form.dirty>++;
+    return FALSE;
+}
+
+my $rows
+    = <[form.menu.records]>->( qw| host-system |, $info->{'data'} // '' );
+
+if ( not $rows->@* ) {
+    <[form.message]>->( 'no records in host-system', 'no-op' );
+    <form.dirty>++;
+    return FALSE;
+}
+
+return
+    <[form.menu.open_rows]>
+    ->( $rows, qw| record |, <form.menu.return_state> );
+
+#,,..,.,.,,.,,,,.,,,.,..,,,,,,,..,...,,,.,,.,,..,,...,...,.,,,.,.,..,,,..,,.,,
+#UPAWBA5RV4QENPFWFMGA5QFGJFYOMDE3RTV4PMNEEF4OFQ2LE66AINFHH3RAB4FRRBA6OACJT3XIW
+#\\\|BDB6UHJLW5D4HGKXFFP7FVLZKKOKXOQ4VBXRIVJOAPO5CAYL6NK \ / AMOS7 \ YOURUM ::
+#\[7]YLEQQX6CUO4MLVIZAOZOW53EAZFAPBZQABPHREY7T4YCHFPJSUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

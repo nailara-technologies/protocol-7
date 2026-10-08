@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = form.setup_stdin_watcher
+# descr = register STDIN and the form-redraw variable watcher
+
+## the two halves of the event-driven form, registered together because they
+## are the same mechanism seen from both ends :
+##
+##   event.add_io   on fd 0        -> keystrokes in
+##   event.add_var  on <..dirty>   -> repaint out
+##
+## keyboard input and network replies must share ONE loop [ a users.* reply
+## can update a field out of band, long after the keystroke that asked for it
+## ], which is why input is a watcher and not a blocking read.  the variable
+## watcher is what connects a write into a field buffer to an actual redraw —
+## with input event-driven there is no natural  "re-render after read()
+## returns" point left in the flow
+
+## the watched scalar must EXIST before its reference is taken — autovivifying
+## it later would leave the watcher on a detached scalar
+<form.dirty> //= 0;
+
+## prime the cache with current terminal dimensions so the very first paint
+## can already apply a vertical viewport. load AMOS7::TERM on demand : it is
+## not loaded by form.init_code, but nshell already uses it for the same query
+<[base.perlmod.load]>->('AMOS7::TERM')
+    if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+
+my @init_size = AMOS7::TERM::terminal_size();
+<form.term_cols> = $init_size[0] // 80;
+<form.term_rows> = $init_size[1] // 24;
+
+<form.watcher.stdin> = <[event.add_io]>->(
+    {   qw| fd |      => 0,
+        qw| poll |    => qw| r |,
+        qw| handler | => qw| form.handler.stdin_key |,
+        qw| prio |    => 2,
+        qw| repeat |  => TRUE,
+        qw| desc |    => 'user-edit STDIN handler',
+    }
+);
+
+## poll => 'w' : fire when the scalar is WRITTEN [ jobqueue.event.
+## register_job_queues' counter-watcher precedent ].  form.render must never
+## write this scalar itself — watchers are reentrant by default
+<form.watcher.dirty> = <[event.add_var]>->(
+    ## explicit $data{..}, NOT '\<form.dirty>' — a leading backslash is the
+    ## translator's ESCAPE ((?<!\\)<..>), so that form silently watches a
+    ## reference to the literal name string and never fires.  this was a real
+    ## bug here, caught by the no-tty driver
+    {   qw| var |     => \<form.dirty>,
+        qw| poll |    => qw| w |,
+        qw| handler | => qw| form.render |,
+        qw| repeat |  => TRUE,
+        qw| desc |    => 'user-edit form redraw',
+    }
+);
+
+## register SIGWINCH handler so terminal resizes update the cached dimensions
+## and force a redraw with a recomputed vertical viewport
+<[event.add_signal]>->(
+    {   qw| signal |  => qw| WINCH |,
+        qw| handler | => qw| form.handler.term_resize |,
+    }
+);
+
+return FALSE
+    if not defined <form.watcher.stdin>
+    or not defined <form.watcher.dirty>;
+
+<[base.logs]>->( 2, ': form watchers registered [ stdin + redraw ]' );
+
+return TRUE;
+
+#,,,,,.,.,.,.,,,.,...,...,,..,,,.,..,,.,,,.,.,..,,...,..,,..,,,,,,..,,...,,..,
+#TIRX6WWJPFUJMQFLTO7JV5VNWHHE4SG7JBOLG2ABMKXUXMHDBAPFBC46H4V555UWKY3ST6COTHIRS
+#\\\|IA6ZOOMMVINII6543L2IDKEEGTQLMGWVLPRHKHSLU5K22FLIY7F \ / AMOS7 \ YOURUM ::
+#\[7]DMQVEKK7UBR2ZEYUURWQJY6CFLH3CUMNLFFXARNA5ZSNFRR5AKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = form.console.start
+# descr = interactive settings form for a user record
+# param = [ <username> ]
+
+## the interactive half of phase 3.  identical setup to
+## form.console.show-form — the record fetch, derived schema and generated
+## frame are the same code — and differs only in setting interactive mode,
+## which makes form.handler.value_get_reply bring up raw terminal input and
+## the redraw watcher instead of printing once and exiting.
+##
+## HYBRID LOOP MODE : [init-done:TRUE] + [zenka.loop] are called HERE rather
+## than in the start file, so 'commands' and 'describe' still print and exit [
+## see cfg/zenki/user-edit/zenka.v7 ].  unlike show-form this never leaves the
+## loop on its own — every exit path funnels through form.quit so the terminal
+## is always restored
+
+my $params = shift // '';
+
+## '-no-tty' opens the form without a terminal : no raw mode, no STDIN
+## watcher.  keys then arrive over the network via form.cmd.char-add, which
+## replies with the rendered form — so the interactive path can be driven and
+## verified headlessly [ nshell's -no-tty-debug precedent ]
+<form.mode.no_tty_debug> = $params =~ s|\s*-no-tty\b|| ? TRUE : FALSE;
+
+## ':tag:' tokens are a separate class from the '-no-tty' flag above, and are
+## partitioned out BEFORE the username fallback -- otherwise 'start
+## :create-admin:' would take the tag itself as the username
+my $tags;
+( $params, $tags ) = <[form.parse_params]>->($params);
+
+## record source, registered by the zenka's own init_code -- see
+## form.console.show-form for the full note
+my $source = <form.source> // return FALSE;
+
+my $username = $params;
+$username =~ s|^\s+||;
+$username =~ s|\s+$||;
+$username = $source->{'default_record'} // '' if not length $username;
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << no cube session — cannot reach the users zenka >>\n\n";
+    return FALSE;
+}
+
+if ( not -t STDIN and not <form.mode.no_tty_debug> ) {
+    ## NOTE : no quoted token directly after '<<' in these messages — "<<
+    ## 'start' .." parses as a heredoc opener and breaks the module
+    print "\n  << the start command needs a terminal "
+        . "[ use show-form when piped ] >>\n\n";
+    return FALSE;
+}
+
+<form.cube_sid> = $cube_sid;
+## this console command owns the event loop, so its reply handler is allowed
+## to unloop and hand control back [ form.offer_create ]
+<form.offer.create> = TRUE;
+<form.username>     = $username;
+<form.interactive>  = TRUE;
+<form.title>        = sprintf( 'user-edit : %s', $username );
+
+## enter submits, matching editor.control.process_key's default ##
+<form.submit_on> = qw| enter |;
+
+## the end_code terminal-restore callback is registered by form.  term_init,
+## on success — NOT here.  registering it up front would leave a restore
+## callback armed on a process that never went raw [ e.g. the record fetch
+## fails ], and its no-saved-state fallback would then clear O_NONBLOCK and
+## force ECHO/ICANON/ISIG on a descriptor nothing had touched
+
+<[base.logs]>->( 2, ': starting interactive form [ %s ]', $username );
+
+my $sender = $source->{'value_get'} // return FALSE;
+
+<[$sender]>->( $username, qw| form.handler.value_get_reply | );
+
+<[base.init-done]>->(TRUE);    ## standalone zenka : not v7-managed ##
+
+<[base.zenka.loop]>;
+
+## resumes here only if the reply handler unlooped to offer a record ##
+return <[form.offer_create]>->( $username, $tags );
+
+#,,,.,.,.,,..,..,,.,.,,..,,,,,,,,,,..,.,,,.,,,..,,...,...,,.,,...,.,.,..,,.,,,
+#36HPW26VVF4X5RUS2TH4Y7BOVSEFSEHSJ7F6XMFEH4UCO3JDQO22WMUHRNMUOQWFQKTCJBYHMPE2S
+#\\\|XB4YDY4IMAJLHGWPAZTP6AQLP7GSVWAILVSYZAJCT7BMDDURTEU \ / AMOS7 \ YOURUM ::
+#\[7]XOOWTRRAAYU7FFRB6A3BWWMU4VGQZNMBM6U2NGFFPGDN5GBQQ2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
