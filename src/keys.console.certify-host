@@ -24,34 +24,8 @@ if ( not defined $root_arg or not length $root_arg ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
-$days //= 365;
-if ( $days !~ m|\A[0-9]{1,4}\z| or $days < 1 or $days > 3650 ) {
-    say "\n  << days : 1 .. 3650 >>\n";
-    <[base.exit]>->(qw| 0010 |);
-}
-
 ## the name v7-zenki delegates is '<system.node.name lowercased>.cube' ##
-$host = lc $host;
-if ( $host !~ m|\A[a-z0-9][a-z0-9_-]{0,62}(?:\.[a-z0-9][a-z0-9_-]{0,62})*\z|
-    or length($host) > 200 ) {
-    printf "\n  << host name '%s' not valid >>\n\n", $host;
-    <[base.exit]>->(qw| 0010 |);
-}
-
-if ( not <[crypt.C25519.key_exists]>->($owner) ) {
-    printf "\n  << owner key '%s' not found >>\n\n", $owner;
-    <[base.exit]>->(qw| 0010 |);
-}
-
-my $owner_path = <[crypt.C25519.key_path]>->($owner);
-if ( ref $owner_path ne qw| HASH | ) {
-    printf "\n  << owner key '%s' : key path not resolvable >>\n\n", $owner;
-    <[base.exit]>->(qw| 0110 |);
-} elsif ( $owner_path->{'holder'} eq qw| root | and $EFFECTIVE_USER_ID != 0 )
-{
-    printf "\n  << owner key '%s' is root-held : run as root >>\n\n", $owner;
-    <[base.exit]>->(qw| 0020 |);
-}
+$host = lc( $host // '' );
 
 ## the host-root public key : a .dlg file [ leaf issuer ] or b32 ##
 my $root_pub;
@@ -89,71 +63,24 @@ if ( -e $out_file or -l $out_file ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
-## weak forms : warned, never refused ##
-if ( $owner_path->{'holder'} ne qw| root | ) {
-    my $files = $owner_path->{'key_filename'};
-    my $on_disk
-        = grep { defined $ARG and -f $ARG } @{$files}{qw| secret private |};
-    my $encrypted = <[crypt.C25519.encrypted_key]>->($owner);
-    my $virtual   = <[crypt.C25519.key_is_virtual]>->($owner);
-    if ( $on_disk and not $encrypted ) {
-        say " :\n :: << WARNING : the owner key is stored UNENCRYPTED -- "
-            . "anyone reading it\n :.    can certify hosts for every "
-            . "client pinning this owner >>";
-    } elsif ( not $on_disk and not $virtual and not $encrypted ) {
-        say " :\n :: << WARNING : a passphrase-derived owner key "
-            . "is exactly as strong\n :.    as its passphrase >>";
-    }
-}
-
-if ( not <[crypt.C25519.load_keypair]>->( $owner, undef, TRUE, TRUE ) ) {
-    say "\n  << owner key not loaded >>\n";
-    <[base.exit]>->(qw| 0110 |);
-}
-my $owner_key = $keys{'C25519'}->{$owner} // {};
-my ( $owner_pub, $owner_priv ) = @{$owner_key}{qw| public private |};
-my $unload = sub { <[crypt.C25519.unload_key]>->( $owner, TRUE ) };
-
-if (   not defined $owner_pub
-    or length($owner_pub) != 32
-    or not defined $owner_priv
-    or length($owner_priv) != 64 ) {
-    $unload->();
-    say "\n  << owner key is not an Ed25519 signing key >>\n";
-    <[base.exit]>->(qw| 0110 |);
-}
-if ( $owner_pub eq $root_pub ) {
-    $unload->();
-    say "\n  << the owner key IS the host-root -- refused >>\n";
-    <[base.exit]>->(qw| 0010 |);
-}
-
-my $now       = time;
-my $statement = <[trust.statement]>->(
-    qw| build |,
-    {   qw| issuer_pub |  => $owner_pub,
-        qw| subject_pub | => $root_pub,
-        qw| name |        => $host,
-        qw| not_before |  => $now - 300,
-        qw| not_after |   => $now + $days * 86400,
-        qw| scope |       => "$host.*",
+## validate, warn [ before any passphrase prompt ], load, sign, unload : ##
+## keys.certify_host -- the same core host-edit's certify action uses    ##
+my ( $certified, $exit_code, $reason ) = <[keys.certify_host]>->(
+    {   qw| owner |      => $owner,
+        qw| host |       => $host,
+        qw| root_pub |   => $root_pub,
+        qw| days |       => $days,
+        qw| on_warning | => sub {
+            say " :\n :: << WARNING : " . shift() . ' >>';
+        },
     }
 );
-my $sig
-    = defined $statement
-    ? Crypt::Ed25519::sign( $statement, $owner_pub, $owner_priv )
-    : undef;
-$unload->();
-
-my $wire
-    = defined $sig
-    ? <[trust.statement]>->( qw| wire |, $statement, $sig )
-    : undef;
-if (   not defined $wire
-    or not Crypt::Ed25519::verify( $statement, $owner_pub, $sig ) ) {
-    say "\n  << statement not built or not verifiable >>\n";
-    <[base.exit]>->(qw| 0110 |);
+if ( not defined $certified ) {
+    printf "\n  << %s >>\n\n", $reason;
+    <[base.exit]>->($exit_code);
 }
+my ( $wire, $owner_pub ) = @{$certified}{qw| wire owner_pub |};
+$days //= 365;
 
 require Fcntl;
 my $fh;
@@ -190,8 +117,8 @@ say " :. copy it to the host ; there, as the backend user :";
 say " :.   p7-keys accept-owner <file>";
 say " :. on clients : p7-keys owner-pin <name> <owner key id> ::\n";
 
-#,,..,...,,.,,.,.,..,,,.,,..,,,,,,,.,,.,,,.,,,..,,...,..,,,.,,...,...,,.,,.,,,
-#H4XKGWY6MHQFWRQPOI3ESRIQ35MZ4Z35RXAZKMM4UXR4MA4DJIEMLMSGVZNNXYP52XWSHUU4QVKS2
-#\\\|OMSWGYLE42ZI2F5F53ODAZWNDJIJNWWLF3ES4RPFXT777VB23QP \ / AMOS7 \ YOURUM ::
-#\[7]L22AH23TSJVS52R4JRWV7UIMHIUH4SQ5F4SCLKA7ZAALJ4LZSACA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,.,.,,,,,...,.,.,,,,,,,.,.,,,..,,...,...,.,.,,.,,,.,,...,...,
+#ISXBLSGJGLCVYK5CSGJS2XJQYPQYQPC2RFL2SKW2BG2YLH64LU23BQSG2U6WTG7ZFZYHMTGYVHRI2
+#\\\|OITAMCKXQGLAN66JHTCJHNLC5C6SWZ3J3PDVGSLL3XPBQU2LWWH \ / AMOS7 \ YOURUM ::
+#\[7]KCQ7UWNMEOOWFNLLR636BHSYG2WNW7PBAI72TQSY2MXY3V7WZYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
