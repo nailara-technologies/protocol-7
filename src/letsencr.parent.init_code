@@ -16,19 +16,17 @@
 
 ## load stored certificates from disk into memory registry
 my $load_result = <[letsencr.parent.load_certificate_registry]>;
-if ( $load_result && $load_result->{status} eq 'success' ) {
-    <[base.logs]>->(
-        2,
-        'loaded %d certificates from disk',
-        $load_result->{loaded}
-    );
-} elsif ( $load_result && $load_result->{status} eq 'partial' ) {
+## success needs no line here : load_certificate_registry logs the count ##
+my $load_status = ref $load_result eq qw| HASH |
+    ? $load_result->{status} // ''
+    : '';
+if ( $load_status eq qw| partial | ) {
     <[base.logs]>->(
         1,
         'warning: partial certificate load - %s',
         $load_result->{error_msg}
     );
-} else {
+} elsif ( $load_status ne qw| success | ) {
     <[base.logs]>->(
         1, 'warning: no stored certificates found on disk (first run)'
     );
@@ -143,8 +141,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,..,.,.,,,,,,.,,.,.,,.,,.,.,.,,,,,.,,,,,,..,..,,...,...,,,.,,,,,.,.,,,.,...,
-#FMZ2UTFOHUHK3QMAEUEUWL2I7U44CXKMGM2C3KS3SHOLV52OGSR5WYVPBHGO6YO4LGILPQ2VMONPC
-#\\\|4CNZMIRBFBD6GYHLZQQVWKLF5523AYBKRXOPX7D4Z3BW6KSP7SX \ / AMOS7 \ YOURUM ::
-#\[7]34QZYZUEIRTYNQPWJYVYGGCWNJLQKU7SUXCP6ZTOPPAN4QIA44CA 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,.,,,,,,,.,,,..,,,.,,...,,,,,..,,...,...,.,.,.,,,...,,.,,...,
+#54H5D2JIOY64K2XIXBBW2LGOJ4ARKFUAU2GT5FFPPOIQINMN43QMVAYDE3HUCHORQ4CZT2BPEE4EK
+#\\\|UKS6FYKC3LOZKBZZVFOAXCOZLMOMKAQTW3L45EQHGJVJEK4IGI2 \ / AMOS7 \ YOURUM ::
+#\[7]O7CMUMJ3IMIBUAUGWXKB3TEKUHT7UIBAF256HXDWQPQKNAAQ2WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
