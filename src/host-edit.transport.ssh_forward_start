@@ -1,0 +1,78 @@
+## [:< ##
+
+# name   = host-edit.transport.ssh_forward_start
+# descr  = start an ssh local forward to a host's cube [ ssh -N -L ]
+# param  = <record name> <ssh target [user@]host> <ssh port> <cube port>
+# return = local port or undef [ list context : ( undef, reason ) ]
+#
+# data/md/design/HOST-SETUP.md 'transports' : the remotes expose ssh only,
+# their cube may stay local-only -- the forward reaches it. argv is a list
+# [ never a shell ], every value checked : a target may not start with
+# '-' [ no option injection ]. BatchMode : no password prompt inside the
+# form ; ExitOnForwardFailure : a taken port fails instead of hanging.
+# the ssh binary is <host-edit.cfg.ssh_bin> // 'ssh' [ tests swap it ].
+# the child is tracked in <host-edit.forwards>->{<name>} ; never a $SIG
+# handler [ reaped by ssh_forward_stop with waitpid WNOHANG ].
+
+my ( $name, $target, $ssh_port, $cube_port ) = @ARG;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('record name not valid')
+    if not defined $name
+    or $name !~ m|\A[a-z0-9][a-z0-9._-]{0,62}\z|;
+return $refuse->('ssh target not valid')
+    if not defined $target
+    or $target !~ m{ \A
+        [A-Za-z0-9_] [A-Za-z0-9._-]{0,63}              ## user or host ##
+        (?: @ [A-Za-z0-9] [A-Za-z0-9.-]{0,252} )?     ## @host        ##
+        \z }x;
+foreach my $port ( $ssh_port, $cube_port ) {
+    return $refuse->('port not valid')
+        if not defined $port
+        or $port !~ m|\A[0-9]{1,5}\z|
+        or $port < 1
+        or $port > 65535;
+}
+
+<host-edit.forwards> //= {};
+return $refuse->("a forward for '$name' is already running")
+    if exists <host-edit.forwards>->{$name};
+
+my $local = <[host-edit.transport.free_port]>;
+return $refuse->('no free local port') if not defined $local;
+
+my $ssh_bin = <host-edit.cfg.ssh_bin> // qw| ssh |;
+my @argv    = (
+    $ssh_bin, qw| -N |,
+    qw| -o |, qw| BatchMode=yes |,
+    qw| -o |, qw| ExitOnForwardFailure=yes |,
+    qw| -p |, $ssh_port,
+    qw| -L |, sprintf( '127.0.0.1:%d:127.0.0.1:%d', $local, $cube_port ),
+    $target
+);
+
+my $pid = fork;
+return $refuse->("fork failed [ $OS_ERROR ]") if not defined $pid;
+if ( $pid == 0 ) {
+    open( STDIN,  '<', '/dev/null' );
+    open( STDOUT, '>', '/dev/null' );
+    exec {$ssh_bin} @argv;
+    CORE::exit(127);
+}
+
+<host-edit.forwards>->{$name} = {
+    qw| pid |     => $pid,
+    qw| port |    => $local,
+    qw| started | => time,
+};
+return $local;
+
+#,,.,,..,,.,.,,..,.,,,,,,,,..,,,,,,.,,..,,,,.,..,,...,...,...,,..,,..,.,.,,..,
+#3QY4HHZUGGVCKP7UIIKTLLUGS7NFI5QBESMK2E3G2A45GDHQ3EKW5CFGFNDCGXVGHMKMA4JZXUZGC
+#\\\|D643BICQFC673KTLF7V252PIIS6ATPBID5AE7FBCYXEGMWNBNTX \ / AMOS7 \ YOURUM ::
+#\[7]GVQ6JVJ7LRMOWKO6AOWS55RXGV2O4DH5UJM2URIY6Y35HFZWKUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

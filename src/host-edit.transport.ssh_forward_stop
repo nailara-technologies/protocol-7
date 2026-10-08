@@ -1,0 +1,33 @@
+## [:< ##
+
+# name   = host-edit.transport.ssh_forward_stop
+# descr  = stop a record's ssh forward [ or all of them ]
+# param  = [ <record name> ]
+# return = number of forwards stopped
+
+my $only = shift;
+
+require POSIX;
+my $forwards = <host-edit.forwards> // {};
+my $stopped  = 0;
+foreach my $name ( sort keys $forwards->%* ) {
+    next if defined $only and $name ne $only;
+    my $pid = $forwards->{$name}->{'pid'};
+    if ( defined $pid and $pid > 1 ) {
+        kill( qw| TERM |, $pid );
+        ## reap without a $SIG handler [ give it a moment, never block ] ##
+        foreach ( 1 .. 20 ) {
+            last if waitpid( $pid, POSIX::WNOHANG() ) != 0;
+            select( undef, undef, undef, 0.05 );
+        }
+    }
+    delete $forwards->{$name};
+    $stopped++;
+}
+return $stopped;
+
+#,,..,,.,,.,.,,.,,.,,,...,.,,,,,,,.,,,..,,.,,,..,,...,...,.,.,...,,.,,,.,,...,
+#VB7KAWBQQXTDOP57CDGCLXL7K3T4QW5QUOGIU3BTPT47ZUQQAN4TUPMRJMGZZ3ALBUE7EPYCJD6WE
+#\\\|NUUCMUK4EMJ5L32IYD4NZNCFW2P4LUVECTHQB6IDA3Z4KIRQL27 \ / AMOS7 \ YOURUM ::
+#\[7]UFZDHO3Z5LR3E37YWPVODLNYM66YKC66IMFM7E2R52NB7QV75CAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

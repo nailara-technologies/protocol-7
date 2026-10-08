@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = form.chrome.set_status
+# descr = set the form's footer status text and repaint
+# param = $text
+
+my $text = shift;
+
+<form.status> = defined $text ? $text : '';
+
+## repaint through the SAME path a keystroke takes -- form.render is the
+## base.event.add_var watcher on <form.dirty> -- rather than calling any
+## render module directly : an async status update and a keystroke then stay
+## indistinguishable to the repaint machinery, exactly the contract
+## form.handler.stdin_key's header already documents
+<form.dirty>++;
+
+return TRUE;
+
+#,,,.,,.,,,,.,,..,,,,,,,,,,,.,,,,,,..,.,.,.,,,..,,...,...,...,,,.,.,.,,..,...,
+
+#,,,,,.,.,,,,,..,,,,,,,.,,,.,,...,,,.,.,.,,,.,..,,...,...,,.,,,,,,.,,,.,.,...,
+#C656IGTBD2QICE4ID32JFKT24JMW3HBWARJDKV5TW32QPGF7EY6TI4GXB5TYVGROTTEC5WBLIXX7K
+#\\\|EHDVIIJTYDU2MJESC7WSIUZHJVAVRV3Z2SR5KCV2NJJ3NFGXTMC \ / AMOS7 \ YOURUM ::
+#\[7]YZFDNRJBG35WTP7DE6HFLWB422C3NV3ZVD3UUUZ3FZ5556LMHGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

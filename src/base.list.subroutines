@@ -48,6 +48,7 @@ return [ qw[
         form.submit
         form.render
         form.escape
+        form.chrome
         filter.init
         devmod.dump
         branch.list
@@ -466,6 +467,7 @@ return [ qw[
         form.draft.write
         form.draft.clear
         form.build_frame
+        form.action.send
         filter.init_code
         filter.del_chain
         ffmpeg.init_code
@@ -1883,12 +1885,14 @@ return [ qw[
         httpd.cmd.vhost-status
         httpd.benchmark.report
         host-edit.record.write
+        host-edit.action.probe
         graphics-3d.cfg.cursor
         format.yaml.write_file
         format.kv_block.encode
         format.kv_block.decode
         form.handler.stdin_key
         form.console.show-form
+        form.chrome.set_status
         filter.cmd.mount_chain
         ffmpeg.cmd.frame_count
         events.cmd.show-active
@@ -2763,6 +2767,7 @@ return [ qw[
         graphics-matrix.cell.list
         graphics-matrix.cell.init
         graphics-3d.render.cursor
+        form.handler.action_reply
         forensics.report.assemble
         fetch-files.cmd.hf-status
         fetch-files.cmd.hf-search
@@ -3329,6 +3334,7 @@ return [ qw[
         graphics-matrix.cmd.address
         graphics-matrix.cell.survey
         graphics-matrix.cell.remove
+        form.handler.action_timeout
         forensics.report.generalize
         fetch.file.huggingface.list
         fetch-files.cmd.hf-download
@@ -3880,6 +3886,7 @@ return [ qw[
         httpd.vhost.dns_matches_local
         httpd.route.handler.web-relay
         httpd.benchmark.start_request
+        host-edit.transport.free_port
         graphics.matrix.visual.sphere
         graphics-matrix.graph.connect
         graphics-matrix.graph.cluster
@@ -4796,6 +4803,7 @@ return [ qw[
         image-quality.vision.select_model
         image-quality.vision.encode_image
         httpd.handler.web-relay.strm_open
+        host-edit.transport.forward_ready
         graphics.matrix.visual.similarity
         graphics.matrix.visual.cubic-sort
         graphics-matrix.cmd.voxel-density
@@ -5282,6 +5290,7 @@ return [ qw[
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
+        host-edit.transport.ssh_forward_stop
         graphics.matrix.visual.group-spheres
         graphics.matrix.visual.find-clusters
         graphics.matrix.visual.extract-color
@@ -5394,6 +5403,7 @@ return [ qw[
         letsencr.child.acme_get_authorization
         kimi.handler.session_liveness_timeout
         kimi-web.cmd.inject-context-to-coding
+        host-edit.transport.ssh_forward_start
         graphics.matrix.visual.vision-batches
         graphics.matrix.visual.group-by-color
         graphics.matrix.visual.cluster-center
@@ -5933,8 +5943,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,..,,,..,,.,,..,,...,.,,,..,,,..,.,,,,,,,.,.,...,...,,..,.,,,,,,,...,.,.,
-#W24FWNHCOWUZVH4GF4KKTOT4YRR7REZ4LLBRJV2LGJSEZBFHQ64D6LLXSBWNKZ5PPLGJFZHNCD2TM
-#\\\|RMY7NKOLTQGB3LSJRV6VWBIWHMIJPD23W64EDO4ICE45RPFORE5 \ / AMOS7 \ YOURUM ::
-#\[7]BFGMWVJARYO5BMAXQADZ5MVXDWH2TBYX3MOWRFMJZP3AURGLAWCY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,.,,,,.,,.,,...,.,.,..,,,,.,.,.,...,...,..,,,..,,..,...,,,.,
+#7WGYKAIMGIB45G7QCYY6NWLAAYKJSURRRYZWEIJIKW52MXZBB6TPTMR7RWEYACJUU7ZH7QHFXZI3M
+#\\\|OB7QNDRSSBOK5HNF524LY546JZNSRG46LEPCZUCMBDX7B7YHD3Y \ / AMOS7 \ YOURUM ::
+#\[7]EOPNLVCEPAUYMAOQ6475FIKTTK6CCCNDUNOOXOTDWNB2W5ADJKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
