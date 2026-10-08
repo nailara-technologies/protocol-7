@@ -51,7 +51,10 @@ if ( $mode eq qw| SIZE | || $mode eq qw| TRUE | ) {
 @vhosts = <[base.sort]>->( grep { length($ARG) > 0 } @vhosts );
 
 if ( @vhosts > 0 ) {
-    <[base.logs]>->( 2, 'found %d vhosts from httpd', scalar(@vhosts) );
+    <[base.logs]>->(
+        2,               'found %d vhost%s from httpd',
+        scalar(@vhosts), <[base.cnt_s]>->( scalar(@vhosts) )
+    );
     foreach my $vh (@vhosts) {
         <[base.logs]>->( 3, '  - %s', $vh );
     }
@@ -66,13 +69,9 @@ my %domains_map;
 if ( @vhosts > 0 ) {
     my $domain_result
         = <[letsencr.parent.determine_certificate_domains]>->( \@vhosts );
+    ## determine_certificate_domains logs the result itself ##
     if ( $domain_result && $domain_result->{status} eq qw| success | ) {
         %domains_map = %{ $domain_result->{'domains'} // {} };
-        <[base.logs]>->(
-            2,
-            'determined %d certificate domains from vhosts',
-            scalar( keys %domains_map )
-        );
     } else {
         <[base.log]>->(
             1, 'cannot determine certificate domains from vhosts'
@@ -107,16 +106,9 @@ if ( @expiring_soon > 0 ) {
     );
 }
 
-## step 5: queue renewal requests for domains needing renewal
-my $queue_result
-    = <[letsencr.parent.queue_renewal_requests]>->( \@needs_renewal );
-if ( $queue_result && $queue_result->{status} eq qw| success | ) {
-    <[base.logs]>->(
-        2,
-        'queued %d renewal requests',
-        $queue_result->{queued}
-    );
-}
+## step 5: queue renewal requests for domains needing renewal [ ##
+## queue_renewal_requests logs the result itself ]              ##
+<[letsencr.parent.queue_renewal_requests]>->( \@needs_renewal );
 
 ## also check for new domains that need certificates  (have vhosts but no
 ## certificate)
@@ -140,8 +132,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,,.,...,...,..,,.,.,...,.,,,,,.,.,,,.,.,.,.,..,,...,...,.,.,...,,.,,,..,.,.,
-#ZD3KUT44OHFFEGPWHHTYUAEEJ27VRBHGCZ7BHCVIG5MCXKNWQI2BLXT3IL6OBCWSAKAST4JL7ZRG4
-#\\\|K4ZJWIYGAXG6ZSRN64PQFYJGTSQXKBQMW2DW3633BU44UQRGR4K \ / AMOS7 \ YOURUM ::
-#\[7]D4QIF2VCTJ2K6S5DOTUJ5TLTJH22R7MR5BDG26FRMC2AR32YLCAI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,,.,,..,,,.,,,.,.,.,,..,.,.,..,,...,...,,.,,,,,,.,.,,.,,,,,,
+#R7YZNXEZEASD2W4QHDI26BIS2TZUT44DWEYRSI522DJDOPV3AFMIPFR64F4H4EIMXV3EKU7YTXH4E
+#\\\|KPT45VFFBW3KTQ3V5EF63RNFUNGYMJCRJG3Z63ELAM3JDIANHL7 \ / AMOS7 \ YOURUM ::
+#\[7]ZVHCUSRV6FQELPJGUNVIXLXULD2LSWWFROAPZXX4K7F5QSQDIACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
