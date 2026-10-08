@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = user-edit.source.field_options
+# descr = users-zenka sender : the optional-field vocabulary
+# param = $reply_handler
+
+## the record source behind <form.source> -- see user-edit.source.value_get
+## for why the send lives here rather than in the form engine.  asked WITHOUT
+## a record name, i.e. for the whole vocabulary rather than only what one
+## record lacks : the addable subset is a local filter [ form.addable_fields ]
+
+my ($reply_handler) = @ARG;
+
+my $cube_sid = <form.cube_sid> // return FALSE;
+
+return <[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.field-options', $cube_sid ),
+        qw| call_args | => { qw| args |    => '' },
+        qw| reply |     => { qw| handler | => $reply_handler }
+    }
+);
+
+#,,,,,,.,,..,,..,,,,.,.,,,.,.,,.,,..,,...,,,.,..,,...,...,.,,,.,,,,.,,,,.,..,,
+#IZ5JZRHZZTQJJA5OYSJWL3HDE6WQO4672I2A7W3OVJA54WPTVAEGRSM4NR3ELWQ5ZTP5ZR54KWT5O
+#\\\|N2JG5ZOQHZ5OU7HBTWSC4BFNO5TRA2DHOIBMGVTQVFWUKDCLGVJ \ / AMOS7 \ YOURUM ::
+#\[7]YXH5PYEI6OCYCMYRO5YMOBKPQOIAZOI54HODJZYUCA72BFH7OSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

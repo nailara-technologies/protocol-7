@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = user-edit.source.value_set
+# descr = users-zenka sender : store one record's fields
+# param = $record_name, $json_fields, $reply_handler
+
+## the record source behind <form.source> -- see user-edit.source.value_get
+## for why the send lives here rather than in the form engine.  users.
+## cmd.value-set splits '<record> <json>' with an /s-flagged (.*) capture, so
+## the pretty-printed multi-line json survives the line-based wire only
+## because form.submit flattens it first -- that flattening stays in the
+## caller, on the engine side of the table
+
+my ( $record_name, $json_fields, $reply_handler ) = @ARG;
+
+my $cube_sid = <form.cube_sid> // return FALSE;
+
+return <[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-set', $cube_sid ),
+        qw| call_args | =>
+            { qw| args | => sprintf( '%s %s', $record_name, $json_fields ) },
+        qw| reply | => { qw| handler | => $reply_handler }
+    }
+);
+
+#,,..,,,,,.,,,.,,,,..,..,,.,,,.,,,.,,,.,,,..,,..,,...,...,..,,..,,.,.,...,,,,,
+#RMQZKYFAJMH3RRY5UFNZPCKLJEFBY24IUFEPS6WBVROQFCAMBPLBXGANTQ3UK3SPIYV426WWLSEXA
+#\\\|ERH4DCFOYM4A4KPOHXZGLS3OGBNVMNFM657MXGLX2MKDC5VZE3Y \ / AMOS7 \ YOURUM ::
+#\[7]BASGSDPUIRFKYAMTSLZCXWQXE375CF464UMFMMFZ5YL632KGEOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

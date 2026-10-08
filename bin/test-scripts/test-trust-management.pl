@@ -162,13 +162,13 @@ $code{'crypt.C25519.unload_key'} = sub { delete $keys{'C25519'}{ $ARG[0] } };
 compile_module($ARG)
     for qw| trust.statement trust.key_id trust.verify trust.chain
     trust.pin_decide auth.client.owner_pins auth.client.distrust_list
-    keys.key_id_arg keys.remote_keys_dir keys.distrust_file
+    keys.key_id_arg keystore.remote_keys_dir keys.distrust_file
     keys.console.owner-pin keys.console.owner-unpin keys.console.owner-pins
     keys.console.distrust keys.console.undistrust keys.console.certify-host
     keys.store_note
-    keys.console.accept-owner keys.trash.live_path keys.trash.stash
-    keys.trash.entries keys.trash.purge_candidates keys.trash.restore
-    keys.console.undo-remove keys.console.removed keys.trash.offer_purge
+    keys.console.accept-owner keystore.trash.live_path keystore.trash.stash
+    keystore.trash.entries keystore.trash.purge_candidates keystore.trash.restore
+    keys.console.undo-remove keys.console.removed keystore.trash.offer_purge
     keys.console.drop-owner |;
 
 my $statement = $code{'trust.statement'};
@@ -320,7 +320,8 @@ say ': undo-remove \ removed \ purge';
         "$keys_dir/servers/atom_42.public",
         $fp->('03') . "\natom.cube\n0\n"
     );
-    my $stashed = $code{'keys.trash.stash'}->( $hp, 'host-pin', 'atom_42' );
+    my $stashed
+        = $code{'keystore.trash.stash'}->( $hp, 'host-pin', 'atom_42' );
     ok( defined $stashed && !-e $hp, 'host pin stashed' );
     $r = run( 'keys.console.undo-remove', 'atom' );
     ok( !$r->{'err'} && slurp($hp) eq $fp->('03') . "\natom.cube\n0\n",
@@ -329,7 +330,7 @@ say ': undo-remove \ removed \ purge';
 
     ## the same name in two kinds : prefix required ##
     put( "$keys_dir/servers/acme.public", "x\n" );
-    $code{'keys.trash.stash'}
+    $code{'keystore.trash.stash'}
         ->( "$keys_dir/servers/acme.public", 'host-pin', 'acme' );
     run( 'keys.console.owner-unpin', 'acme' );
     $r = run( 'keys.console.undo-remove', 'acme' );
@@ -355,7 +356,7 @@ say ': undo-remove \ removed \ purge';
     put( "$old_dir/zz_42.$_.mxz.B32", "AAAA\n" )
         for map { $old - $ARG } 1 .. 5;
     put( "$old_dir/zz_42." . ( time - 86400 ) . ".mxz.B32", "AAAA\n" );
-    my $c = $code{'keys.trash.purge_candidates'}->();
+    my $c = $code{'keystore.trash.purge_candidates'}->();
     ok( @{$c} == 3 && !grep( { $ARG->{'name'} ne 'zz_42' } @{$c} ),
         'purge candidates : 6 entries, newest 3 kept -> 3 old ones'
     );
@@ -370,8 +371,9 @@ say ': undo-remove \ removed \ purge';
     );
 
     ## the interactive offer never runs without a terminal ##
-    ok( !$code{'keys.trash.offer_purge'}->(),
-        'offer_purge without a TTY : no question, no purge' );
+    ok( !$code{'keystore.trash.offer_purge'}->(),
+        'offer_purge without a TTY : no question, no purge'
+    );
 }
 
 ######################################################################
@@ -587,8 +589,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,.,..,,,.,,,,.,.,.,.,.,...,...,..,,,.,,..,,...,...,,,.,,.,,,..,,.,,,,.,
-#KJ675SK32QAXTDHSU62S2SF7UGA2Q2VU7K4UAT2PZBZFM2BOGD6J634PDXVIAROE5MN2FVJPEPYIE
-#\\\|FJJHL7GKNM54GVZHBI4KCHMHQJWFR57TPKOZRFF4PARW3ZUZWZR \ / AMOS7 \ YOURUM ::
-#\[7]HTSSU4NC4IW6RJHYU7QXJARITZLTBSPYC3VBJSACY3GGC6P4M2DY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,.,,,..,,.,,.,,,.,.,,,,,.,.,..,,...,..,,,,,,,.,,,,.,..,,,.,,
+#6GADP2GB4NWUISWDJ5AD52D6BR7RLXX7K344WLC7K22OAI64S2DBYWOWAF76EWJVCJAMUAG32D3AE
+#\\\|ASZOLK2UXOV6WJIQ3TVKIQO3XAR6IJUQZ4ONAOZDFKYQEYE5L7N \ / AMOS7 \ YOURUM ::
+#\[7]HHP4NYKVANR7MDVWZQWSZ3DMIFI76RH2SXBRKA6WUXY5TFHFY2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

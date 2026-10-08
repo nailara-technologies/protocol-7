@@ -5,9 +5,9 @@
 
 <[base.logs]>->( 2, 'user-edit zenka initialized' );
 
-## raw terminal mode for the interactive form [ user-edit.term_init /
-## .term_restore ] — linux-native, no XS build issues, and API-compatible with
-## POSIX::Termios [ nshell.init_code precedent ]
+## raw terminal mode for the interactive form [ form.term_init /
+## form.term_restore ] — linux-native, no XS build issues, and API-compatible
+## with POSIX::Termios [ nshell.init_code precedent ]
 <[base.perlmod.load]>->('Linux::Termios2');
 
 ## resolve the invoking Unix user, for the start file's  system.auth-user =
@@ -25,13 +25,48 @@
 ## built here rather than written into the start file, where '[user-edit]' ##
 ## would be parsed as a command invocation by the config parser            ##
 ## create-admin flow state, explicitly reset : a mid-session               ##
-## base.cmd.reload must not leave the resume block in user-edit.           ##
-## offer_create armed from a previous invocation                           ##
-<user-edit.pending.create>   = FALSE;
-<user-edit.create.attempted> = FALSE;
-<user-edit.offer.create>     = FALSE;
+## base.cmd.reload must not leave the resume block in form.  offer_create  ##
+## armed from a previous invocation                                        ##
+<form.pending.create>   = FALSE;
+<form.create.attempted> = FALSE;
+<form.offer.create>     = FALSE;
 
 <user-edit.auth_name> = sprintf( qw| %s[user-edit] |, <user-edit.unix_user> );
+
+##  THE RECORD SOURCE  #######################################################
+##                                                                            ##
+##  one callback table the whole form engine reads : every form.* module     ##
+##  that needs the record store or the secret store calls through            ##
+##  <form.source> instead of building a users.*/sessions.* route itself,     ##
+##  which is what keeps the engine record-independent -- host-edit will      ##
+##  register its own senders here without touching any form.* module.        ##
+##                                                                            ##
+##    senders      : value_get / value_all / value_set / field_options /     ##
+##                   create_default / secret_hold / secret_release --        ##
+##                   module names, invoked as <[$sender]> by the engine    ##
+##    default_record : the record a bare 'show-form'/'start' opens -- the    ##
+##                   invoking unix user, exactly the fallback the pre-       ##
+##                   extraction code used                                    ##
+##    allow_create : may this session's user create a missing record         ##
+##                   [ the create-offer gate form.handler.value_get_reply    ##
+##                   checks before unlooping into form.offer_create ]        ##
+##    tag_record   : the record name a :create-admin:-style tag may          ##
+##                   auto-create [ <system.admin-user>, as before ]          ##
+<form.source> = {
+    qw| default_record |  => <user-edit.unix_user>,
+    qw| allow_create    | =>
+        ( <user-edit.unix_user> eq ( <system.admin-user> // '' ) )
+    ? TRUE
+    : FALSE,
+    qw| tag_record      | => <system.admin-user> // '',
+    qw| value_get       | => qw| user-edit.source.value_get |,
+    qw| value_all       | => qw| user-edit.source.value_all |,
+    qw| value_set       | => qw| user-edit.source.value_set |,
+    qw| field_options   | => qw| user-edit.source.field_options |,
+    qw| create_default  | => qw| user-edit.source.create_default |,
+    qw| secret_hold     | => qw| user-edit.source.secret_hold |,
+    qw| secret_release  | => qw| user-edit.source.secret_release |,
+};
 
 ## P7-native home dir resolution [ base.get_homedir, NOT AMOS7::FILE:: ##
 ## get_homepath directly — matches crypt.C25519.get_usr_keys_dir's     ##
@@ -48,8 +83,8 @@ my $user_edit_path_keywords = {
 
 return TRUE;
 
-#,,,,,..,,,,.,.,,,.,.,...,,..,,..,.,,,,,.,..,,..,,...,..,,,,.,.,,,.,.,,,.,.,,,
-#34AT67P7DXUVPIFNEHZSUUJW4QA7HP2CHMLCUU23MSTAGDLW2EHNTXOJPA3MXCJVZZL4RGLL5DYMQ
-#\\\|CYYASD3IJLIAOBOP7YDRDIPXYL44U3U5NFZZBPDMDAWWRI2NCVC \ / AMOS7 \ YOURUM ::
-#\[7]6PEKSI3S7SQUBBF7X3F5CJUWMM34KPWYCT3CLWQSJYIUI5YXMSDQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,.,.,.,,,,..,,,.,,..,,..,.,,,..,,...,...,,..,,..,,,.,.,.,,.,,
+#J2FE2DDDZ6SMTXDY6DLVXSBF2EI3KX54Y2TFPKNOVSFLSCM6BZGGUJV6F42W44PSCP3SZFZHY4KHK
+#\\\|CGKCFXYZAPJOG7V6WDYPMNO5JKZGRTOLBRX6JJAAZOI3B4ZCNYJ \ / AMOS7 \ YOURUM ::
+#\[7]AUWSZCL6UVYY3O2L4DLJIQ36JH6HX25D4X2MVMSAQKA4X5USTCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
