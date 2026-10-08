@@ -41,7 +41,9 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
     my $manifest_yaml = do {
         local $INPUT_RECORD_SEPARATOR = undef;
         my $fh;
-        open( $fh, '<', $manifest_path ) or do {
+        ## raw : YAML::XS::Load decodes UTF-8 bytes itself and dies on ##
+        ## decoded wide characters [ the loader's default layer ]      ##
+        open( $fh, '<:raw', $manifest_path ) or do {
             <[base.logs]>->(
                 1,              'cannot open manifest %s [ %s ]',
                 $manifest_path, $OS_ERROR
@@ -119,8 +121,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,,.,.,,,...,,.,,,..,,..,...,.,.,.,.,..,,...,..,,...,...,,..,..,,,,.,,,.,,..,
-#WKVK664R5BAJKSMOL4V2QYH3H2I4ILDUXY4ONRTORYDNWSMBESLCZAZUA6AASEFWAXC65MQVKVCSQ
-#\\\|BCTWVFL5M66T3S3TR6AJ2REXTA34LCXSHABDZOZ73NPWJO7JYXG \ / AMOS7 \ YOURUM ::
-#\[7]6UTW7LJPR7NVDF5E5QZPUVAS6WRZYTGSNQAMFMJWFUEXEJTXQABI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,.,,,,,.,,,.,,,.,...,,,,,,..,..,,...,...,,,.,.,.,.,,,,..,,,,,
+#6D5PK6CKU33NZMYJTU3PLURPZIBHOO6AMYXGODHAMG5K2FEGGQZ37C7WLOEQRG7H5HPYLGIZ22AQE
+#\\\|PBOMDZWT2HRVLLP23XTEQ2LVZA4MZGG5AU22OHGYW43EVGISMGT \ / AMOS7 \ YOURUM ::
+#\[7]2SJHRHU4EFZG5DWOXMXBFJLZGTD3VJWCZW4O2ILUEOLXGTCVIEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
