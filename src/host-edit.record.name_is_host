@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = host-edit.record.name_is_host
+# descr = is a record name also a dialable host name [ dotted, no '_' ]
+# param = $name
+# return = TRUE | FALSE
+
+## a record name is a LABEL [ host-edit.record.name_valid allows '_' and
+## undotted names like 'pri' ] -- only a dotted name made of host-name labels
+## is taken as the address too : record.default_fields prefills it, and
+## flow.start falls back to it for a record that has no address
+
+my ($name) = @ARG;
+
+return FALSE if not defined $name or not length $name;
+
+return $name =~ m{\A(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+
+                  [a-z0-9](?:[a-z0-9-]*[a-z0-9])?\z}x ? TRUE : FALSE;
+
+#,,..,,..,.,,,.,,,,,,,,..,,,.,,,,,,,.,.,,,,,.,..,,...,...,...,...,,.,,..,,...,
+#3TYJ4UYUVJOVZVFCJIHWWEPH7B2DWXRSHYWODCXW2OLWLYTW6D6NS5KLCJ42XX4AOIXOD7IUVKAPC
+#\\\|LPHMHHOUYLJOX7O5IXEUUZZGQPLBOJ2U7TP3LICZWONUQWV7O2H \ / AMOS7 \ YOURUM ::
+#\[7]GAEPHJYLLZQNLYNA5WR6WD4NNHMWE5XVDWL3F3FXNO2R5XPPTUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
