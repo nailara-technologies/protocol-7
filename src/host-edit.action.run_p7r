@@ -1,0 +1,62 @@
+## [:< ##
+
+# name   = host-edit.action.run_p7r
+# descr  = run p-7-r with an argv tail, collect its output [ no shell ]
+# param  = <arrayref of p-7-r arguments> [ , <timeout seconds> [ 20 ] ]
+# return = ( <output, ansi stripped>, <exit status> ) or ( undef, reason )
+#
+# fork + exec [ argv list ], stdout + stderr into one pipe read :raw with
+# an IO::Select deadline -- no alarm, no $SIG handler. the binary is
+# <host-edit.cfg.p7r_bin> // 'p-7-r' [ tests swap it ]. a run past the
+# deadline is terminated and reported.
+
+my ( $args, $timeout ) = @ARG;
+
+return ( undef, 'arguments not a list' ) if ref $args ne qw| ARRAY |;
+$timeout //= 20;
+
+my $p7r  = <host-edit.cfg.p7r_bin> // qw| p-7-r |;
+my @argv = ( $p7r, $args->@* );
+
+pipe( my $read_fh, my $write_fh ) or return ( undef, "pipe [ $OS_ERROR ]" );
+my $pid = fork;
+return ( undef, "fork failed [ $OS_ERROR ]" ) if not defined $pid;
+if ( $pid == 0 ) {
+    close($read_fh);
+    open( STDIN,  '<',  '/dev/null' );
+    open( STDOUT, '>&', $write_fh );
+    open( STDERR, '>&', $write_fh );
+    exec {$p7r} @argv;
+    CORE::exit(127);
+}
+close($write_fh);
+binmode( $read_fh, qw| :raw | );    ## runtime default layer is :utf8 ##
+
+require IO::Select;
+my $select   = IO::Select->new($read_fh);
+my $output   = '';
+my $deadline = time + $timeout;
+while ( time < $deadline ) {
+    last if not $select->can_read( $deadline - time );
+    my $got = sysread( $read_fh, my $chunk, 4096 );
+    last if not $got;
+    $output .= $chunk;
+    last if length $output > 262144;
+}
+close($read_fh);
+
+require POSIX;
+if ( waitpid( $pid, POSIX::WNOHANG() ) == 0 ) {
+    kill( qw| TERM |, $pid );
+    waitpid( $pid, 0 );
+    return ( undef, "p-7-r did not finish in $timeout s" );
+}
+my $status = $CHILD_ERROR >> 8;
+$output =~ s{\e\[[0-9;]*m}{}g;
+return ( $output, $status );
+
+#,,,,,,,.,...,.,.,,,,,,,.,,,,,,.,,,..,,,,,.,.,..,,...,...,,,,,,,.,..,,,.,,..,,
+#NVZGEGXVSRGGRB7YZWXNQ26VR22GP32WT6SUAI5BVHI37HJACCNCVMBXA27ACJIACGXV222TJPL2I
+#\\\|D6U6A2BN7U6342RTAGKCRL6OKH22CPHF4IX6VLEULTIU5U6G6LK \ / AMOS7 \ YOURUM ::
+#\[7]A3SZGLA2YUOK5Y66DYFHP2JLQOJANYE2HDFNFCHPIB6WZINOCKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

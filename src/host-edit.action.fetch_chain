@@ -1,0 +1,47 @@
+## [:< ##
+
+# name   = host-edit.action.fetch_chain
+# descr  = fetch a host's delegation chain [ for certify ] and check it
+# param  = <record name> <cube port> <dial host> <dial port> <key id>
+# return = { field, root_pub } or ( undef, reason )
+#
+# runs the host's cube command host-root-dlg through the link [ needs a
+# login there ]. the chain's LEAF issuer must have exactly the pinned \
+# probed key id -- its public key [ root_pub, 32 raw bytes ] is what
+# keys.certify_host signs. never certify a key that was not verified.
+
+my ( $name, $cube_port, $dial_host, $dial_port, $key_id ) = @ARG;
+
+return ( undef, 'pinned key id missing' )
+    if not defined $key_id
+    or $key_id !~ m|\A[A-Z2-7]{77}\z|;
+
+my ( $output, $status ) = <[host-edit.action.run_p7r]>->(
+    [   qw| -host |,             "$name:$cube_port",
+        "$dial_host:$dial_port", qw| host-root-dlg |
+    ]
+);
+return ( undef, $status ) if not defined $output;
+
+my ($field) = grep {m|\A[A-Z2-7]{100,}(?:\.[A-Z2-7]{100,}){0,3}\z|}
+    map {s{\A\s+|\s+\z}{}gr} split m|\n|, $output;
+return ( undef, "no delegation chain in the reply [ p-7-r exit $status ]" )
+    if not defined $field;
+
+my ( $chain, $why ) = <[trust.chain]>->( qw| split |, $field );
+return ( undef, "chain not valid [ $why ]" ) if not defined $chain;
+my $leaf = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
+return ( undef, 'leaf not parsable' ) if ref $leaf ne qw| HASH |;
+
+my $issuer_id = <[trust.key_id]>->( $leaf->{'issuer_pub'} );
+return ( undef, 'the chain names another host-root than the pin' )
+    if not defined $issuer_id
+    or $issuer_id ne $key_id;
+
+return { qw| field | => $field, qw| root_pub | => $leaf->{'issuer_pub'} };
+
+#,,.,,,..,,,,,..,,,,.,.,,,...,,,.,,.,,,.,,,,.,..,,...,...,.,.,.,.,.,.,.,,,..,,
+#EK53XDKSQVJBBYJVTYUJQJRMG5JGV4PSNWMKTFGFIRZRM6AYBVXQEPRZPBM73U72H6CUT2I652RFA
+#\\\|5MT3SSFBL5BHP7NCGJBLFZBSE42EL3K4C7V7Z4D45WSPA2GANZZ \ / AMOS7 \ YOURUM ::
+#\[7]RRJ5OV27LVEUQSSQYWANZHPWPFP3EAFNJFYTJXUXM4PVP7PL7SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
