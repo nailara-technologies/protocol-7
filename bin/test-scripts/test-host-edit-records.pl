@@ -182,6 +182,7 @@ compile_module('host-edit.record.path');
 compile_module('host-edit.record.read');
 compile_module('host-edit.record.write');
 compile_module('host-edit.record.field_names');
+compile_module('host-edit.record.name_is_host');
 compile_module('host-edit.record.default_fields');
 compile_module('host-edit.trust.pin_state');
 compile_module('base.file.all_files');
@@ -225,6 +226,24 @@ ok( !$name_valid->('x/y'),      'path separator is invalid' );
 ok( !$name_valid->( 'a' x 64 ), '64 chars is invalid' );
 ok( !defined $code{'host-edit.record.path'}->('x/y'),
     'path returns undef for an invalid name'
+);
+
+## a record named after its host : the name is also its default address ##
+my $name_is_host = $code{'host-edit.record.name_is_host'};
+ok( $name_is_host->('pri.v7.ax'), 'dotted host name ' . 'counts as a host' );
+ok( !$name_is_host->('zz-test'),  'undotted label is not a host' );
+ok( !$name_is_host->('a_b.example'), "'_' is not a host-name character" );
+ok( !$name_is_host->('a-.example'),
+    'label ending in a ' . 'dash is not a host' );
+ok( !$name_is_host->('example.'), 'trailing dot is not a host' );
+
+my $default_fields = $code{'host-edit.record.default_fields'};
+ok( join( q{,}, @{ $default_fields->('pri.v7.ax')->{'addresses'} } ) eq
+        'pri.v7.ax',
+    'default_fields prefills a host-named record with its name as address'
+);
+ok( !@{ $default_fields->('zz-test')->{'addresses'} },
+    'default_fields leaves addresses empty for an undotted label'
 );
 
 ##[ create_default : deferred reply + on-disk shape ]#########################
@@ -519,8 +538,8 @@ if ( $fail_count == 0 ) {
 say sprintf '[ done ] %d passed, %d FAILED', $pass_count, $fail_count;
 exit 1;
 
-#,,..,..,,,.,,.,,,.,,,...,..,,.,,,.,.,,,.,..,,..,,...,...,..,,.,.,.,,,,,.,,,.,
-#VJLLEG6TQ772R3D3DHKZLJC3E756EZB6A4OPM5H5DWF2BN73JXFTTRZ4AQUUH7DOQTDRGYBDEP4RS
-#\\\|DCWPKA4P3D2QTM7SGQTXKCS4SAZQ2WA7NRM3SGEVWNY5LRWA3U3 \ / AMOS7 \ YOURUM ::
-#\[7]VUDDSO7QU6SAVK37Z7CN74XYQNKVBJJHDE7HJGOPE6XDADY4AYDA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,,,,...,.,,,.,,,,.,,.,,,...,..,,...,...,,..,,..,.,,,,..,,,.,
+#W2SSL3VZL4TMCLWAG4SXTOTVA5COL35TIXQYZZOUEEWGR4SORHH5WMS4HKGHU4BFQBUET7WWS3NNE
+#\\\|KFC7FR2C7SMEPF5Z42LM4MDY5IMMZ7K6L66KJOSQBEPMLDWEQCT \ / AMOS7 \ YOURUM ::
+#\[7]SHRPIHUUPGHKPDJ7E7BFIFBZFMZGK56A25PUY4LKP24K62CGGYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

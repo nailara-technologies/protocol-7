@@ -31,6 +31,14 @@ return ( undef, "the flow for '$name' is already running" )
 my ($address)
     = grep { defined and length }
     ( ref $f->{'addresses'} eq qw| ARRAY | ? $f->{'addresses'}->@* : () );
+
+## no address, but the record is named after its host : dial the name [
+## host-edit.record.name_is_host ] -- the status below says so
+my $address_from_name = FALSE;
+if ( not defined $address and <[host-edit.record.name_is_host]>->($name) ) {
+    $address           = $name;
+    $address_from_name = TRUE;
+}
 return ( undef, 'the record has no address' ) if not defined $address;
 my ( $host, $cube_port ) = split m|:|, $address, 2;
 $cube_port = 42 if not defined $cube_port or not length $cube_port;
@@ -53,12 +61,17 @@ my $ssh_port
     qw| started |   => time,
 };
 
-<[host-edit.flow.status]>->( $name, 'starting' );
+<[host-edit.flow.status]>->(
+    $name,
+    $address_from_name
+    ? sprintf( q{starting [ no address : dialling %s ]}, $name )
+    : q{starting}
+);
 <[host-edit.flow.schedule]>->( $name, 0 );
 return TRUE;
 
-#,,,,,,,,,,,,,,,,,,,,,,.,,.,,,.,,,...,,,,,,,,,..,,...,...,..,,,.,,,,,,,,.,,,,,
-#RQWOP4ELQBT3C7FWAM5CFSVHRZXQTEC4RCCDDHZ6JVABDXCUL5HLAH5C6NNAP6JXSKBZEPKBMFY6O
-#\\\|BKPO7EO4J2PGWFMM3FZFHH5WQ6WNRCKURVTDTNW3YXBZOLNRSUE \ / AMOS7 \ YOURUM ::
-#\[7]J3RVRRPOJ624TZVJ4MQF5XR3U3V4AU5FQBZXWMHCUDUBNMJGEQCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,.,,,,,,,,.,..,,...,,,.,,,,,..,,...,...,.,,,,,.,,.,,,.,,.,,,
+#MAQFVB4JNO2AKSQZRQH6QRH2BO4KVYZIVMV7HKEFGIHBZBCKIXPHRUN4BCK5SRHERV5AO4VXNAHYO
+#\\\|VP57ETPWCNSTBXSTFGHKNETOO7U4RWECHDS667K7IBZ47XGEDQF \ / AMOS7 \ YOURUM ::
+#\[7]W5NQFBG54OOTQ4IUBOXCC2BEN232HC5V7H4ONOSPDNED6DBPQUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

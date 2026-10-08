@@ -83,6 +83,7 @@ compile_module($ARG)
     host-edit.flow.start host-edit.flow.step host-edit.flow.schedule
     host-edit.flow.status host-edit.flow.passphrase host-edit.flow.cancel
     host-edit.flow.needs_passphrase host-edit.record.name_valid
+    host-edit.record.name_is_host
     keystore.remote_keys_dir
     trust.statement trust.key_id trust.chain |;
 
@@ -221,6 +222,31 @@ if ( not $cube_up or not $gcc ) {
             && grep( {m|already pinned|} @status ),
         'a second run : already pinned -> done'
     );
+}
+
+######################################################################
+say ': flow [ no address : the record name as the address ]';
+{
+    %record = ( addresses => [], ssh => '', owner_key => '' );
+
+    my ( $ok_, $why ) = $code{'host-edit.flow.start'}->('zz-test');
+    ok( !$ok_ && ( $why // '' ) eq 'the record has no address',
+        'undotted record name without address : refused as before'
+    );
+
+    @status = ();
+    ( $ok_, $why ) = $code{'host-edit.flow.start'}->('zz-host.example');
+    my $s = $flow->('zz-host.example') // {};
+    ok( $ok_
+            && ( $s->{'host'}      // '' ) eq 'zz-host.example'
+            && ( $s->{'cube_port'} // '' ) eq '42',
+        'host-named record without address : dials its name, port 42'
+    ) or say "    got : " . ( $why // $s->{'host'} // '?' );
+    ok( scalar( grep {m|no address : dialling zz-host\.example|} @status ),
+        '  :.. the status says the name is dialled' );
+
+    ## not run here : drop the flow, its queued step then finds nothing ##
+    delete $data{'host-edit'}{'flow'}{'zz-host.example'};
 }
 
 ######################################################################
@@ -379,8 +405,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,..,,..,,,.,...,.,.,.,.,,.,,.,.,,,,,,,,,..,,...,...,.,,,,,,,,.,,.,.,,,.,
-#V4VKTOSWL5EYQJRSQS7IS6NOZECMLBOW6RKKCP7U4ERDXVG72JNZJONNQ62SUJ3PVNFF7J3FT5LTW
-#\\\|5XEZ2Q33BXD5REJJDKYOYNQML2B5UIYK3VLUVHKTCBM27NVDR5F \ / AMOS7 \ YOURUM ::
-#\[7]VL7B6K3OJSPLM22SFIYXDEBQCMV7M3NZTCHAKMQE37PI5EOJIOAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,,..,...,..,,,..,.,,,,,.,..,,..,,...,...,,..,,..,,.,,,..,..,,
+#5N24CJU7HYMDZ5Q2ZZKGWWQ5G5W56S4SIENLFW3DZJB6ENEQYKNVNW7PM5A4VN2ENWJBAUYRXWLD2
+#\\\|FMEGEIYVMCVE6R2G7DW7ZCJJL3MRMC7RWGHVXJ6RARTYBJ3L6IP \ / AMOS7 \ YOURUM ::
+#\[7]7OADDBVCTXBIH4LBVOALDD5H43Z5KWHWGVFNDBJQ7W7F45CZP2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
