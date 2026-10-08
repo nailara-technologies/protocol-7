@@ -20,8 +20,8 @@ if ( $check_result && ref($check_result) eq qw| HASH | ) {
 
     if ( @expiring_soon > 0 ) {
         <[base.logs]>->(
-            1, ': warning : %d certificates expiring soon',
-            scalar(@expiring_soon)
+            1, ': warning : %d certificate%s expiring soon',
+            scalar(@expiring_soon), <[base.cnt_s]>->( scalar(@expiring_soon) )
         );
     }
 
@@ -53,8 +53,8 @@ if ( !defined $num_clients || $num_clients == 0 ) {
 
 return TRUE;
 
-#,,.,,,,,,,,.,.,,,.,.,,,,,,..,.,.,,.,,.,.,.,,,..,,...,...,..,,..,,..,,..,,,,.,
-#ZOHM6UYWKCQ2GQ7BCFFRJSNK373MEWELQVLXV5FINMEIK3622MFBIWCUTF2BI5L73IHSVJAXWPFTI
-#\\\|WSQHYEPXSWUJGS6TURZ3725XSEQNZPZR62X6WEVHNFCWPSAQZRT \ / AMOS7 \ YOURUM ::
-#\[7]SD3VOGCDWTQASR23CJPA6Z4LLWTOV6CFGIKEGFOX3LG2YRNRP4DI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,,.,.,.,,.,,,,,,...,,,.,,,,,..,,...,..,,.,.,,,,,,.,,...,,.,,
+#TPYQIS2ALP3BJTZITT3NCPFARGZXTWNMCCAYT4RHGCU2WBQEZYR7CD7QMDSJLAGUR3WWPREYR6JDM
+#\\\|NKBAWH3LBORMJSFOCGSSLDFMI3C5WANCABQSMUKOHS2YQISLVLG \ / AMOS7 \ YOURUM ::
+#\[7]5WNBVVVNUKEQSHBCMM5TP4KTRI4UL7RNP6WA5EIVWVNB42BXFIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

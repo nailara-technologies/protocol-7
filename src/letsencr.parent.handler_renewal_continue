@@ -96,15 +96,9 @@ unless ( $check_result && ref($check_result) eq qw| HASH | ) {
     return FALSE;
 }
 
+## the 'expiring soon' warning is logged once per check, by ##
+## handler_renewal_check [ seconds earlier, same registry ] ##
 my @needs_renewal = @{ $check_result->{'needs_renewal'} // [] };
-my @expiring_soon = @{ $check_result->{'expiring_soon'} // [] };
-
-if ( @expiring_soon > 0 ) {
-    <[base.logs]>->(
-        1, ': warning : %d certificates expiring soon',
-        scalar(@expiring_soon)
-    );
-}
 
 ## step 5: queue renewal requests for domains needing renewal [ ##
 ## queue_renewal_requests logs the result itself ]              ##
@@ -132,8 +126,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,,.,...,.,,,,,,,,,.,,..,,,.,,,.,.,.,,..,.,.,..,,...,...,,.,,,,,,.,.,,.,,,,,,
-#R7YZNXEZEASD2W4QHDI26BIS2TZUT44DWEYRSI522DJDOPV3AFMIPFR64F4H4EIMXV3EKU7YTXH4E
-#\\\|KPT45VFFBW3KTQ3V5EF63RNFUNGYMJCRJG3Z63ELAM3JDIANHL7 \ / AMOS7 \ YOURUM ::
-#\[7]ZVHCUSRV6FQELPJGUNVIXLXULD2LSWWFROAPZXX4K7F5QSQDIACQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,,,.,,..,,.,,.,,,..,,..,,,.,,..,,...,...,..,,.,,,,,,,,..,.,.,
+#NVG35UTGWFYGSGZLJA4EPMVTSCQJXLHDGNHQFOKMGOENBY5Y2TOMFISBUT433MOFVMKASD6PVVZU2
+#\\\|2CUXDCZGQ5CE4ZBZ6YJBCLCTZEILT4ZSK5SH2LLG542VCY2L4FS \ / AMOS7 \ YOURUM ::
+#\[7]3LKG63T57AOJJNUEIAXBSUGRMCXR7TKDQTR4CTV4NGFTMVDR4ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
