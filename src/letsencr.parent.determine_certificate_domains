@@ -12,11 +12,9 @@ return {
     }
     unless $vhosts_list && ref($vhosts_list) eq qw| ARRAY |;
 
-<[base.log]>->(
-    2,
-    "determining certificate domains from "
-        . scalar(@$vhosts_list)
-        . " vhosts"
+<[base.logs]>->(
+    2,                     'determining certificate domains from %d vhost%s',
+    scalar(@$vhosts_list), <[base.cnt_s]>->( scalar(@$vhosts_list) )
 );
 
 my %domains_map;
@@ -81,8 +79,11 @@ foreach my $vhost ( $vhosts_list->@* ) {
 }
 
 ## Log determined domains
-<[base.log]>->(
-    2, ": determined " . scalar( keys %domains_map ) . " certificate domains"
+<[base.logs]>->(
+    2,
+    ': determined %d certificate domain%s',
+    scalar( keys %domains_map ),
+    <[base.cnt_s]>->( scalar( keys %domains_map ) )
 );
 foreach my $domain ( <[base.sort]>->( keys %domains_map ) ) {
     my $info = $domains_map{$domain};
@@ -98,8 +99,8 @@ return {
     domains => \%domains_map,
 };
 
-#,,,,,,,.,,..,.,,,,,,,..,,..,,,,,,.,.,...,...,..,,...,...,.,.,...,...,.,,,,..,
-#TZY2ZRNQ5DHIRWHKFTGPDXZXBKKCG76MUYAFJHRFSIY433UB645RLSB4FW6SQGHEEY4SS4DKTX5H6
-#\\\|D7WN4WB22KMS27RLAC4R7NAAGJPOBSHVT7SEBTEGESAL2OMRHHI \ / AMOS7 \ YOURUM ::
-#\[7]6XX4PL6LPXCLXNXOHVIHQFRJU5PPCQDQT7HCMHRZQGPXBNXJJCCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,.,,,,,,,,.,,...,...,,..,,..,..,,...,...,.,,,,,.,.,,,,.,,.,.,
+#WULGPABQEQBRUME2DW7ZXYIFKJ2G5NZRJ3LMZFPHN3E4LPF53OAICGSUXHB4FSMFRLCGEX5CZFNUU
+#\\\|ZHMCNBTWS5BCJL62D4ZIMLLUJW66RFMGX7TY2KMELZSWJPICYW5 \ / AMOS7 \ YOURUM ::
+#\[7]KWX3WYXFRKJI6ZEPPTJRESXFOVOKLBOPDS3N6O6ZNKY3ZS7ITOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
