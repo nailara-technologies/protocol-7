@@ -143,9 +143,8 @@ if ( not @masked_fields ) {
 my ($cube_sid) = keys <user.cube.session>->%*;
 
 if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
-    print "\n  << offline : edit staged in the outbox, not yet sent >>\n\n";
-    STDOUT->flush();
-    <[form.quit]>;
+    ## message passed INTO form.quit : it clears the screen first ##
+    <[form.quit]>->('offline : edit staged in the outbox, not yet sent');
     return TRUE;
 }
 
@@ -223,8 +222,8 @@ foreach my $field_name (@masked_fields) {
 ## completion, if any masked fields, is reply-driven from here ##
 return TRUE;
 
-#,,,.,,,.,,,.,.,,,...,...,,.,,,..,,..,...,,,.,..,,...,.,.,,..,.,,,,..,,,,,,.,,
-#MBTYO3BUE6FLPUATQKU763WZ3RD4A7EPM2OHTVRGNNSXDFSS7D7ITGSNXNAV25QHJXLCU2GP77362
-#\\\|OJW27ZNTYY6WS2EY7VKI5XT4KBTSIUG6UCCVTI6TNPEE3RZJBCR \ / AMOS7 \ YOURUM ::
-#\[7]45PBIQA734KZAFYJVFZBOX2BFBTBGXKN3PXCOXBQS4AOWHSQUUCQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,,.,,,.,...,..,,...,.,.,..,,..,,...,...,,,.,...,.,,,..,,..,,
+#2I5JLAWSDZVKBWV75NEF3MQGMTUCYUQQA7FGO2WXWJR2C2WGGEHXXPE22DC5P4ETZ27S4NEQDSJOI
+#\\\|T45GGIGPMKZHR76NUGIBMICVH46PZ3PG4DEWXRXOICDGB3BUCWR \ / AMOS7 \ YOURUM ::
+#\[7]5UQSAKLJ5NHONLBQPB7VXMEO3XLHETC7EZMPV5F6LS34H2T36WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

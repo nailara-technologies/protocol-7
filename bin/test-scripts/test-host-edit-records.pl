@@ -307,10 +307,10 @@ ok( ( ref $payload eq qw| HASH | and ref $payload->{'fields'} eq qw| HASH | ),
     'payload is the record envelope the engine parses'
 );
 ok(
-    (           $payload->{'fields'}{'trust'} eq q{not yet contacted}
+    (           $payload->{'fields'}{'trust'} eq q{not contacted yet}
             and $payload->{'fields'}{'owner_trust'} eq q{no owner configured}
     ),
-    'no pin + no owner renders not-yet-contacted columns'
+    'no pin + no owner renders not-contacted-yet columns'
 );
 
 $json = do {
@@ -446,8 +446,8 @@ unlink File::Spec->catfile( $servers_dir, qw| 127.0.0.1_42.public | );
 $code{'host-edit.source.value_get'}->( 'zz-test', $collector );
 deliver_timers();
 $payload = $data{'test'}{'yaml_payload'};
-ok( $payload->{'fields'}{'trust'} eq q{not yet contacted},
-    'pin removed -> not yet contacted again' );
+ok( $payload->{'fields'}{'trust'} eq q{not contacted yet},
+    'pin removed -> not contacted yet again' );
 
 ##[ value_all : newline-joined listing ]######################################
 
@@ -507,8 +507,8 @@ if ( $fail_count == 0 ) {
 say sprintf '[ done ] %d passed, %d FAILED', $pass_count, $fail_count;
 exit 1;
 
-#,,,.,..,,,..,,,.,,.,,,..,.,,,...,...,,,.,...,..,,...,...,.,,,.,.,,,.,.,.,,..,
-#6AT5L3BLTGDNVUMZ2QCTY5QBY4WGE2CMXPN3FL75ZO7AJTSIBHG35CCZBY7HBLIYUUGBLESNLD5RS
-#\\\|PDEDGGDED5XIYTI2B542WUOYOYVQ2Y5UIKFWMKDRT6QTJWZMM64 \ / AMOS7 \ YOURUM ::
-#\[7]6PHUPVVWIHHL5BU7SJRURFFFANADJX7JDCPZCAEOUXG4V4II2IAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,.,,,,,.,..,,.,.,,,,,,.,,.,.,..,,...,..,,..,,...,,,,,...,,..,
+#XJCQIOSPIS6N5HMQYQ5HGD6CPL5FCDCD3MYF7MZ7WFAQOLOO7XLJEBE25L7E6W4M32QJOPXSXEAZI
+#\\\|ZBGJ32KZQSL4OKDZMYWEDBHE2OAX7XNUN27AZPRQ7ATLI7VZI7G \ / AMOS7 \ YOURUM ::
+#\[7]724WLYAW54D25QQPXVGCWFPBEEF6KFLPSV3TCKD344CXDS2MAYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,16 +44,20 @@ my $have_stdin_tty = -t STDIN ? TRUE : FALSE;
 my $tag_applies = $tags->{'create-admin'}
     && $username eq ( <form.source>->{'tag_record'} // '' );
 
+## record vocabulary of the zenka's source [ user-edit : user, host-edit : ##
+## host ] -- form.* itself stays record-neutral                            ##
+my $noun = ( <form.source> // {} )->{'record_noun'} // qw| user |;
+
 my $answer = FALSE;
 
 if ($tag_applies) {
     $answer = TRUE;    ## given : no prompt, no output ##
 } elsif ($have_stdin_tty) {
     $answer = <[base.term.ask]>->(
-        {   qw| question | =>
-                sprintf(
-                "no record for user '%s' — create one with default fields?",
-                $username ),
+        {   qw| question | => sprintf(
+                "no record for %s '%s' — create one with default fields?",
+                $noun, $username
+            ),
             qw| default | => FALSE
         }
     );
@@ -61,7 +65,7 @@ if ($tag_applies) {
 
 if ( not $answer ) {
     <[form.message]>->(
-        sprintf( "no record for user '%s'", $username ), 'no-op'
+        sprintf( "no record for %s '%s'", $noun, $username ), 'no-op'
     );
     return FALSE;
 }
@@ -93,8 +97,8 @@ my $sender = $source->{'create_default'} // return FALSE;
 
 return TRUE;
 
-#,,.,,,,,,,..,,,.,,,,,.,.,,..,,.,,,,.,.,,,..,,..,,...,...,,..,.,,,..,,,.,,,,,,
-#V3B44P27AMOKFDHSV7ST4QRB66AF4PUVNGQLILBTT6ZRIZTOS5R5LKGHVB25SG33BSYFHWHHGAGTG
-#\\\|V6BNLAEDWAWO2IIXKVZC2D22GJA6RWM6AMITYAFHA77S2OOA4TB \ / AMOS7 \ YOURUM ::
-#\[7]466FOGDRKWG56A2GIQGGKFQWV4WVPXR7Y2754U5MYPPL7G3BI6DA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,.,,.,,.,.,.,.,.,,,..,,,,.,,..,..,,...,...,.,.,,..,..,,,,.,,,,,
+#DE5S3EYQ6VUGELVMV7OVUQGMK4HUGXAWH2B4VS2ZHH4W4KPQODHHH5SM7X2IRSXPCVQOBIHK6RW7E
+#\\\|CV3LZX2TIINNF32XDQW667M5MRXBX52JEFQ4W6RC3TM77XT5R62 \ / AMOS7 \ YOURUM ::
+#\[7]YLJFM7POOQ5GYMIAUXYB37YNHINVQPE365QIAKHZ4CCEPTCOGWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

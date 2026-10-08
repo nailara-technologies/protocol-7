@@ -9,15 +9,17 @@
 ## into the record -- the host pin in ~/.n/remote-keys/servers/ [
 ## <host>_<port>.public ] is the single source of truth.  the form READS it [
 ## keys.list_remote_keys-style, three header lines ] and shows trust from it ;
-## a record with no reachable pin shows 'not yet contacted'.  through a tunnel
+## a record with no reachable pin shows 'not contacted yet'.  through a tunnel
 ## the dialled address is a local forward, so the pin is named after the
 ## RECORD [ <name>_<port> ] -- tried first ; the address stem is only a
 ## fallback [ the pre-tunnel TOFU layout ].
 
 my ( $record_name, $fields ) = @ARG;
 
+my $not_contacted = q{not contacted yet};    ## no reachable host pin ##
+
 my %columns = (
-    qw| trust |       => q{not yet contacted},
+    qw| trust |       => $not_contacted,
     qw| owner_trust | => q{no owner configured},
 );
 
@@ -82,7 +84,7 @@ if ( defined $servers_dir and -d $servers_dir ) {
             last;
         }
 
-        last if $columns{'trust'} ne q{not yet contacted};
+        last if $columns{'trust'} ne $not_contacted;
     }
 }
 
@@ -95,14 +97,14 @@ if ( length $owner and defined $owners_dir ) {
         = join( qw| / |, $owners_dir, sprintf qw| %s.public |, $owner );
     $columns{'owner_trust'}
         = -f $owner_pin_path
-        ? sprintf( q{owner pin %s present},            $owner )
-        : sprintf( q{owner pin %s not yet contacted }, $owner );
+        ? sprintf( q{owner pin %s present},           $owner )
+        : sprintf( q{owner pin %s not contacted yet}, $owner );
 }
 
 return \%columns;
 
-#,,,.,,.,,,,,,.,,,.,,,.,.,.,,,,.,,,,,,.,.,,,,,..,,...,...,..,,...,,,.,,.,,.,.,
-#CKBVHU7UEAOP2KJ5EKO2PMBYUNUBXPZGWGSVB4OHOHTI2KLL6QGUN5TR6VU2JNY3NDOOG3ISOC6OG
-#\\\|7JQRW6FXJDJMOW2AO6D2SM6MGR25CICAA25CDPDWJPAKYXG5FVE \ / AMOS7 \ YOURUM ::
-#\[7]WUMFPANEI2JN5RE645BZU5RZUQUU6RXNB4PQ7V6X7ANMMYXYGWCI 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,.,,,.,.,.,,,,,,,,,,,,,,,,.,,..,,...,..,,,,,,,..,.,,,,.,,..,,
+#WRZZRXJBPDSMHHJEAFZ242EVLB23XJE63QDQ6PMEQT5NDBT5NHLYQM6SDAMBMAIAZVXRHWZTHO4SA
+#\\\|YGXYPBGDLSLNC433Q4LNEO4EQHBPDOXC6E4MV6YCOKJ2WVYMFBG \ / AMOS7 \ YOURUM ::
+#\[7]RRHWTVC6EL4ZH7FIRWIA7FWANQ2U5XAUG3TTZAEJUHDNJT5F5ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
