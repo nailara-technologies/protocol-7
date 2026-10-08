@@ -3,10 +3,16 @@
 
 [load_config_file:'shared-params']
 
-## no plugins.load line : host-edit ships no detail-tab plugins yet [ the
-## plugin.user-edit.* family is user-edit's own -- plugin-prefixed modules
-## go through [load_plugins:...], never [load_modules:...], see
-## cfg/zenki/user-edit/zenka.v7's own header ]
+## [load_plugins:...], never [load_modules:...] -- see
+## cfg/zenki/user-edit/zenka.v7's own header.
+## plugin.host-edit.registry is the PERMANENT baseline entry here :         ##
+## 'registry' is itself just a <name> under the plugin.host-edit.<name>.*   ##
+## convention [ not a special exception to it, per user ], always present   ##
+## regardless of which THIRD-PARTY plugin.host-edit.<name> plugins get      ##
+## appended after it -- see src/plugin.host-edit.registry.post_init for     ##
+## what it does                                                             ##
+plugins.load = plugin.host-edit.registry plugin.host-edit.actions
+[load_plugins:<plugins.load>]
 
 ## console commands come from form.* [ start, show-form, browse,
 ## test-secret-roundtrip ] -- 'p7-host-edit commands' lists them [ the
@@ -56,8 +62,8 @@ system.auth-user = <host-edit.auth_name>
 
 #,,.,,,,,,,.,,,,.,.,,.,,..,,,..,,,,,..,,.,,.,..,,...,...,..,,,,,,,,.,.,,,.,,
 
-#,,.,,.,,,...,..,,..,,.,.,..,,.,,,,..,...,...,..,,...,...,...,,.,,,,,,.,.,,,.,
-#BRBJASFOV7FRKJWI2WTDCM6ZPS5532ND3YCMY4OFLM6Y6AMJDOWYJ7GQ2HJHJXGKDO535TZNUTOPW
-#\\\|G2BIA4GNKTH2IHC7Z56ZK3ALRPBSPWXG3WNEWCYLFAFXHF3OCUV \ / AMOS7 \ YOURUM ::
-#\[7]TI46IWQBD2N2N3QSKTREZLFT7PMLU77XMG2N2PZZ5CQ22OB6DGAI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,...,.,,,..,,..,,,,,,.,.,,,.,..,,...,...,...,,..,,,,,.,.,,,.,
+#VJEONDOCLXD4BF4KZTTSZHYSBLZ2KURX2SYRI6GNX7PAW3UODYEH52DFNTZJARVROCA725SV3LWYQ
+#\\\|M4ESJYZM26BJGMH5MSZRQIHJLPANSPLQ4HGZKGTJOI6LYG3P4PX \ / AMOS7 \ YOURUM ::
+#\[7]SZYB7OQMDBKEB5EFZNGKPMTORFH3WQENC3Q75SIZESQLUI7NWYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

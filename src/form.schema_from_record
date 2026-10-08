@@ -158,6 +158,31 @@ foreach my $name ( keys %{$fields} ) {
     };
 }
 
+## SYNTHESISED fields from the record source's own builder : a second zenka on
+## form.* [ host-edit ] registers a <form.source> 'synth_fields' MODULE NAME
+## here, and that module is called with $record to return a LIST of
+## synthesised field defs to merge into the same %field_def_by_name collection
+## -- governed by the same combined sort below, carrying plugin => ... /
+## display_override on their own defs exactly like the self-record block's
+## fields do.  GENERIC parameter, deliberately : this module stays
+## record-vocabulary-agnostic, the builder lives in the OTHER zenka's own
+## plugin [ plugin.host-edit.actions.build_field ].  user-edit registers NO
+## synth_fields -- its synthesised fields are the self-record block below --
+## so its output stays byte-identical by construction
+my $synth_module = <form.source>->{'synth_fields'} // '';
+
+if ( length $synth_module and exists $code{$synth_module} ) {
+    my $synth_list = <[$synth_module]>->($record);
+    if ( ref $synth_list eq qw| ARRAY | ) {
+        foreach my $synth_def ( $synth_list->@* ) {
+            next if ref $synth_def ne qw| HASH |;
+            my $synth_name = $synth_def->{'name'} // '';
+            next if not length $synth_name;
+            $field_def_by_name{$synth_name} = $synth_def;
+        }
+    }
+}
+
 ## SYNTHESISED, self-record-only : the invoking Unix user's OWN C25519
 ## identity [ key name / checksum / public key ] is NOT record data -- it
 ## lives in crypt.C25519's in-process key state, not in users' storage -- so
@@ -295,8 +320,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,,,.,.,..,,..,,.,,,..,,,..,,.,,.,.,,..,,.,,..,,...,...,..,,.,.,,.,,.,,,,,,,
-#PHOKVPSERPVZ7ZE7CWQA3VB5OPBAGD5U34PWKRO3RIEE6CJSA6FDEPIGMHEX7CQTY5K2LR5ZCPTVK
-#\\\|HFLVHF2BXOUJSMI3VOXPUSB44QW5V25J2A4CUO5Y55XGIECEIWX \ / AMOS7 \ YOURUM ::
-#\[7]SIO2KI3KSJ5J3EPGZQSLQN36MJOCXIBITFZVB4MV3A4OZBJLRQAQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,,,,.,,..,,,,.,,.,,.,,,.,,,..,,...,..,,..,,,..,,..,,..,,,,,
+#GVB6QK4LNHRP424UEX3IQ3XXYR2TUQNYSG256OZAG6G3UIADCAPWAPS56AJJ4JHHGQYQUWYBEFMNG
+#\\\|WXG6PMEBDUEONUKNCKMU46UHCIXGCP7O5UL4NWAH6JPU3CYME2N \ / AMOS7 \ YOURUM ::
+#\[7]EBQGMYCUG64D52FSETCTLAVCQF63ZODU3WZLK4DDQ3CX6R7OWYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

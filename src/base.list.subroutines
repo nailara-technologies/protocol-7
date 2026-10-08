@@ -1074,6 +1074,7 @@ return [ qw[
         httpd.classify.load
         httpd.classify.init
         host-edit.init_code
+        host-edit.flow.step
         form.sync_list_mode
         form.menu.open_rows
         form.console.browse
@@ -1326,6 +1327,7 @@ return [ qw[
         httpd.cmd.vhost-list
         httpd.classify.match
         httpd.benchmark.init
+        host-edit.flow.start
         host-edit.action.pin
         git.parent.init_code
         format.yaml.pre_init
@@ -1592,6 +1594,8 @@ return [ qw[
         httpd.classify.expire
         host-edit.record.read
         host-edit.record.path
+        host-edit.flow.status
+        host-edit.flow.cancel
         graphics-3d.init_code
         format.yaml.load_file
         format.json.init_code
@@ -2195,6 +2199,7 @@ return [ qw[
         httpd.handler.shm_write
         httpd.diagnostic.report
         httpd.cmd.update-vhosts
+        host-edit.flow.schedule
         form.schema_from_record
         forensics.cmd.sweep-run
         ffmpeg.frame_count_slow
@@ -2765,6 +2770,7 @@ return [ qw[
         httpd.system.memory_stats
         httpd.base.size.normalize
         host-edit.trust.pin_state
+        host-edit.flow.passphrase
         graphics-matrix.init_code
         graphics-matrix.glow.init
         graphics-matrix.cmd.graph
@@ -3910,6 +3916,7 @@ return [ qw[
         editor.control.scalar.summary
         editor.buffer.memory.get_text
         editor.buffer.memory.get_line
+        editor.buffer.mask_star_count
         discover.orbital.store_remote
         discover.load_resend_requests
         discover.cmd.resend-awareness
@@ -4356,6 +4363,7 @@ return [ qw[
         plugin.usage.kimi.refresh_retry
         plugin.storage.visual.init_code
         plugin.storage.inference.lookup
+        plugin.host-edit.actions.render
         plan-9.server.buffer-read-layer
         pager.util.viewport.format_size
         pager.util.filter.is_true_state
@@ -4418,6 +4426,7 @@ return [ qw[
         host-edit.source.secret_release
         host-edit.source.create_default
         host-edit.record.default_fields
+        host-edit.flow.needs_passphrase
         graphics-matrix.harmonic.coords
         graphics-matrix.graph.neighbors
         graphics-matrix.cursor.position
@@ -4770,6 +4779,7 @@ return [ qw[
         plugin.usage.claude.refresh_token
         plugin.usage.claude.refresh_retry
         plugin.storage.checksum.init_code
+        plugin.host-edit.actions.tab_info
         plugin.auth.zenka.no-keys-defined
         plan-9.protocol.codec.encode-stat
         plan-9.protocol.codec.decode-stat
@@ -4952,6 +4962,7 @@ return [ qw[
         plugin.usage.kimi.handler.response
         plugin.usage.claude.refresh_finish
         plugin.storage.inference.init_code
+        plugin.host-edit.actions.init_code
         plugin.auth.auth-keypair.init_code
         plan-9.server.buffer-read-root-dir
         plan-9.server.buffer-read-metadata
@@ -5124,6 +5135,7 @@ return [ qw[
         plugin.storage.p7ref.nested-resolve
         plugin.storage.checksum.cluster.add
         plugin.httpd.radio.cmd.radio_online
+        plugin.host-edit.registry.post_init
         plan-9.protocol.codec.encode-uint64
         plan-9.protocol.codec.encode-uint32
         plan-9.protocol.codec.encode-uint16
@@ -5264,6 +5276,9 @@ return [ qw[
         plugin.storage.visual.extract-floats
         plugin.nshell.coding-session.on_redo
         plugin.httpd.radio.handler.strm_open
+        plugin.host-edit.actions.handler.key
+        plugin.host-edit.actions.cursor_char
+        plugin.host-edit.actions.build_field
         plan-9.server.buffer-read-buffer-dir
         plan-9.protocol.codec.encode-message
         osf-cache.lookup.format_lookup_reply
@@ -5750,6 +5765,7 @@ return [ qw[
         plugin.user-edit.address-cluster.init_code
         plugin.usage.claude.refresh_watchdog_rearm
         plugin.storage.util.visual.extract_network
+        plugin.host-edit.actions.submit_passphrase
         plugin.auth.auth-keypair.tofu-notification
         pager.util.filter.calculate_harmonic_score
         ncode.transform.wave.util.build_llm_prompt
@@ -5949,8 +5965,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,.,,,,,,.,,,,.,..,,,,.,..,,,,,,...,,.,,.,.,...,...,...,.,,,,,.,,,,,,,,,
-#4NQBPXHH45PSEGY6DCG2U7KY6RURFP2FEVFLK2CQ2WIIRRIOHV4KXDASFV3O77NK6I67GFXY3AACU
-#\\\|PUK27DREZIESX7UJCYNKS24PAGP5KSRUPGZFRT4CX27375M7KJJ \ / AMOS7 \ YOURUM ::
-#\[7]6KFP5X2LYZ7AUHY62ITIRVIWG5YYAAMEJ54JEVCSFHPVRVUS4WAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,..,,..,,,..,,,,,,..,.,,,,.,,.,.,...,..,,,..,.,.,,,,,.,.,..,,
+#2WKKL5JDYJZ5MPHYRZYN77JVELZ54VGM64F763VTG453JCM7ACH27DVZDSZIDCQ2X4AYRX3SMB6Y6
+#\\\|LOC4F3VTLMUJRYPBZD2OOC4VLLNWQSLIXXEAF6ARJZDCM2B2SPG \ / AMOS7 \ YOURUM ::
+#\[7]BZJDQFZLHTT2ERGKNDT4BYNVX6D4XIRWACBQJHNBE522EKG6GOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

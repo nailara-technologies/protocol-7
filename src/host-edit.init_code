@@ -54,6 +54,9 @@
 ##    title_fmt / frame_name / menu_fallback / namespace_main /             ##
 ##    namespace_keys / not_found_fmt : host-edit's record vocabulary,       ##
 ##    keeping every user-facing string out of form.*                        ##
+##    synth_fields : host-edit's SYNTHESISED-field builder module, called   ##
+##    by form.schema_from_record's generic hook for every opened record    ##
+##    [ user-edit registers none, so its own output is untouched ]         ##
 <form.source> = {
     qw| default_record |  => '',
     qw| allow_create    | => TRUE,
@@ -64,6 +67,7 @@
     qw| namespace_main  | => qw| hosts |,
     qw| namespace_keys  | => qw| keys |,
     qw| not_found_fmt   | => q{host '%s' not found},
+    qw| synth_fields    | => qw| plugin.host-edit.actions.build_field |,
     qw| value_get       | => qw| host-edit.source.value_get |,
     qw| value_all       | => qw| host-edit.source.value_all |,
     qw| value_set       | => qw| host-edit.source.value_set |,
@@ -102,8 +106,8 @@ mkdir $hosts_dir, 0750
 
 return TRUE;
 
-#,,,,,,,,,..,,,.,,,,.,..,,,,,,,,.,,,.,...,.,.,..,,...,...,.,,,.,.,.,,,,.,,.,,,
-#J7DRT6Y5MWDIYJX4M5VJHO3GOCBYMCIASBRI3L24TQQLQJUCKQHVQK5PYB5KMIC7IRKZB75AKQ5KE
-#\\\|7FM7YWUZ6DJJL7QT4PTSH76L5PGYDZIQ6MSKCYHQY3EKTTPCCJU \ / AMOS7 \ YOURUM ::
-#\[7]UIFSFUTFPIJAWSPVGZAAYDM62YUMIOAJOE2AO7DYNHIIAEL3VUBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,...,.,.,.,,,.,.,,,.,,.,,.,.,..,,...,...,...,.,.,...,,.,,,.,,
+#7UT7BKB2CCJBDMJAFEWSROVMLDFJJFITHQCDVM4VSWIJNW6EPV7ODUCYZGBEKYXWVP63QDU356G3W
+#\\\|LM6ESXCWTX5Q7CLQX55QM3NLGSD63QQW4UH4QVLIGNSYQOVDJ7J \ / AMOS7 \ YOURUM ::
+#\[7]VPPIPVQRBEQVTG7MZEUTHVZO374ILUPNKSOQMXGIJJMQYW23GWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
