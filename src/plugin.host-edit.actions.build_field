@@ -3,7 +3,7 @@
 # name  = plugin.host-edit.actions.build_field
 # descr = build the synthesised 'host_actions' field_def for a host record
 # param = $record
-# return = list of field defs [ exactly one : 'host_actions' ]
+# return = list of field defs [ host_actions, action_state ]
 
 ## the synth_fields builder host-edit registers on <form.source> [
 ## host-edit.init_code ], called by form.schema_from_record's generic hook for
@@ -34,11 +34,30 @@ return [
                 ->( $render_state, $render_field )
                 : '';
         },
+    },
+
+    ## the running flow on a row of its OWN, so the actions row above stays
+    ## fixed width.  12 characters like 'host_actions' and alphabetically
+    ## below it : form.schema_from_record orders rows by name length
+    ## descending, ties alphabetical descending -- so it sits right under.
+    ## never written : host-edit.source.value_set keeps only record fields
+    {   qw| name |             => qw| action_state |,
+        qw| type |             => qw| freeform_line |,
+        qw| default |          => '',
+        qw| readonly |         => TRUE,
+        qw| display_override | => sub {
+            my ( $render_state, $render_field ) = @ARG;
+            return
+                exists $code{'plugin.host-edit.actions.render_state'}
+                ? $code{'plugin.host-edit.actions.render_state'}
+                ->( $render_state, $render_field )
+                : '';
+        },
     }
 ];
 
-#,,,,,...,...,,..,,,.,.,,,..,,,..,..,,..,,.,.,..,,...,..,,...,.,,,..,,,.,,.,,,
-#SJZOHKGJOF3AX4GQHVWUP5LDX2CHZ2FIVQITZJDJG6ZN2THM3CZZNQV7Y2DKVCW36A2IO3GKKUDQY
-#\\\|N3WPMTYXXSIKMPZ2WMZREJEWI6YJUE6VBY6QNTYJTIIIPLKRHA4 \ / AMOS7 \ YOURUM ::
-#\[7]H542B2CCRQJMRML5W4T2QZ6Q632LHKNRT4EB6FAY2S2U4MBIT6CY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,..,,..,,,,,,.,,.,,,,,,,,.,,..,,...,...,.,,,..,,.,,,,.,,,..,
+#J674BHVERFDS3LISVC6YWKMQGX72M4NM74URLS4R4LQQC3TEPKYJF2YOJLP2EUBILY5WPAHVG7CCU
+#\\\|REFEVLNQNTAS7JHODWBSRFWKQYYHNTIK6QXUQN2J6EKMXVZBLFH \ / AMOS7 \ YOURUM ::
+#\[7]RXSZCTEWTCRVOXJZVTJ7WLH4WBQJMVHZRDXNC6XPN2VNUZ4L2QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

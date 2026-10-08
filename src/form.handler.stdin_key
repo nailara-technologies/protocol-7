@@ -159,6 +159,17 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
             = <form.plugin.registry.by_key>->{$active_plugin_field};
         my $handler_sub = sprintf( qw| %s.handler.key |, $plugin_name // '' );
 
+        ## ctrl-c leaves the form from plugin mode too, as process_key's
+        ## 'signal' does everywhere else : a plugin's own handler.key never
+        ## treats it as an exit, so the host-actions tab ignored it [ found
+        ## live ].  an OPEN in-frame prompt still gets it first -- there
+        ## ctrl-c cancels only the prompt [ editor.control.prompt.handler.key
+        ## ]
+        if ( $key eq "\x03" and not $editor_state->{'prompt'} ) {
+            <[form.quit]>->( 'cancelled', 'no-op' );
+            return TRUE;
+        }
+
         if ( $key eq "\e[D" or $key eq "\x1b[D" ) {    ## Left ##
 
             ## SYMMETRIC with Right's own two-stage entry trigger, further
@@ -565,8 +576,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,..,...,.,.,,.,,,,,,,..,.,.,.,,,.,.,..,,...,..,,...,...,,.,,...,,.,,,..,.,,,
-#M6DICMMT3JSC64HITGZBIWUU4QD5MR62YFUU664FYL7B5SA2SMO2QMELFZLEAZDBCIRVG75Y4YQH4
-#\\\|2GHZ5HPDD7YFRZ45NJFIJZREDB6JC453YJ333FKN6UNRTHV65HN \ / AMOS7 \ YOURUM ::
-#\[7]Q52XZSBNGVAWUA33NXZOMOIUOUPWUT3B5DPTJLCFSH4FLGXTW2AA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,..,,..,,,..,.,.,.,.,...,,,,,..,,...,...,,..,...,...,,..,.,.,
+#GX4GVQNYMLDTD2XJGIM3E5EP5LHIMOH2KMDKYXDHRJRET7CVZSJ3JJI5KISYXKDPDOGGHLQQJVENI
+#\\\|7SN5QWEAQ2TMME32IN7SJ3EDOGGAHPXNGK6CEGXHFHY74VPGAP7 \ / AMOS7 \ YOURUM ::
+#\[7]WDEBOTIM3E5NAAEYKIBXHYHBMQCZ2VR5CBKROYGTRDWECE55FGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

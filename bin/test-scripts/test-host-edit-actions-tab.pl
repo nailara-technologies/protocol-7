@@ -220,6 +220,7 @@ $code{'editor.control.prompt.handler.key'} = sub {
 compile_module($ARG) for qw| plugin.host-edit.actions.tab_info
     plugin.host-edit.actions.build_field
     plugin.host-edit.actions.render
+    plugin.host-edit.actions.render_state
     plugin.host-edit.actions.cursor_char
     plugin.host-edit.actions.handler.key
     plugin.host-edit.actions.submit_passphrase
@@ -303,6 +304,25 @@ ok( ref $host_actions_def->{'display_override'} eq 'CODE',
     'host_actions field def carries a display_override coderef'
 );
 
+## the flow state has a row of its own, directly under host_actions ##
+my @schema_names
+    = map { $ARG->{'name'} // '' } @{ $schema->{'fields'} // [] };
+my ($actions_at)
+    = grep { $schema_names[$ARG] eq qw| host_actions | } 0 .. $#schema_names;
+my ($action_state_def)
+    = grep { ( $ARG->{'name'} // '' ) eq qw| action_state | }
+    @{ $schema->{'fields'} // [] };
+ok( ref $action_state_def eq 'HASH'
+        && $action_state_def->{'readonly'} eq TRUE
+        && !defined $action_state_def->{'plugin'}
+        && ref $action_state_def->{'display_override'} eq 'CODE',
+    'action_state : readonly row with a display_override, no plugin'
+);
+ok( defined $actions_at
+        && ( $schema_names[ $actions_at + 1 ] // '' ) eq qw| action_state |,
+    'action_state sits directly under host_actions'
+);
+
 ## user-edit output stays identical : no synth_fields registered -> no      ##
 ## host_actions, and the self-record synthesised fields are untouched [ the ##
 ## stub record is not the invoking user's own record here ]                 ##
@@ -326,12 +346,17 @@ my $editor_state = editor_stub();
 my $render_out = $host_actions_def->{'display_override'}
     ->( $editor_state, qw| host_actions | );
 
+my $fixed_row = $render_out;
 ok( defined $render_out
-        && $render_out =~ m|add host \[Enter\]|
-        && $render_out =~ m|pin : key YB25FNI · test-leaf · since 0|,
-    'render with no flow : start hint + pinned key id label'
+        && $render_out eq q{'->  add host [Enter] .:. [c]ancel},
+    'actions row is fixed : add host + cancel only, no pin \ flow text'
 );
-ok( $render_out !~ m|flow |, 'render with no flow shows no flow step' );
+
+my $state_out = $action_state_def->{'display_override'}
+    ->( $editor_state, qw| action_state | );
+ok( defined $state_out && $state_out eq '',
+    'action state ' . 'empty with no flow'
+);
 
 ## tab mode wraps and stars the hint ##
 $editor_state->{'mode'} = qw| plugin:host_actions |;
@@ -350,19 +375,39 @@ $flow_state->{qw| zz-test |} = {
 };
 $render_out = $host_actions_def->{'display_override'}
     ->( $editor_state, qw| host_actions | );
-ok( $render_out =~ m|flow probe : probing the host-root \.\.|
-        && $render_out !~ m|add host \[Enter\]|,
-    'render with a running flow : step + status replace the start hint'
+$state_out = $action_state_def->{'display_override'}
+    ->( $editor_state, qw| action_state | );
+ok( $render_out eq $fixed_row
+        && $state_out eq q{probe : probing the host-root ..},
+    'running flow : actions row unchanged, step + status in action state'
 );
 
 ## probed but not yet pinned : the next key hint appears ##
 $flow_state->{qw| zz-test |}{'key_id'}    = 'A' x 77;
 $flow_state->{qw| zz-test |}{'leaf_name'} = qw| zz-test.root |;
-$render_out = $host_actions_def->{'display_override'}
-    ->( $editor_state, qw| host_actions | );
-ok( $render_out =~ m|next key zz-test\.root \[ AAAAAAA\.\. \]|,
-    'render shows the next key hint once the flow probed one'
+$state_out = $action_state_def->{'display_override'}
+    ->( $editor_state, qw| action_state | );
+ok( $state_out =~ m|next key zz-test\.root \[ AAAAAAA\.\. \]|
+        && length($state_out) <= 60,
+    'action state shows the next key hint, capped at 60 characters'
 );
+
+## finished : no next key hint, and an error points at the status line ##
+$flow_state->{qw| zz-test |}{'step'}   = qw| done |;
+$flow_state->{qw| zz-test |}{'status'} = qw| pinned |;
+$state_out = $action_state_def->{'display_override'}
+    ->( $editor_state, qw| action_state | );
+ok( $state_out eq q{done : pinned}, 'flow done : no next key hint' );
+
+$flow_state->{qw| zz-test |}{'step'}   = qw| error |;
+$flow_state->{qw| zz-test |}{'status'} = '<< ' . ( 'x' x 200 ) . ' >>';
+$state_out = $action_state_def->{'display_override'}
+    ->( $editor_state, qw| action_state | );
+ok( $state_out eq q{error : see status line},
+    'flow error : short pointer, not the long message'
+);
+$flow_state->{qw| zz-test |}{'step'}   = qw| probe |;
+$flow_state->{qw| zz-test |}{'status'} = 'probing the host-root ..';
 
 ## === 4 : Enter -> flow.start ========================================== ##
 
@@ -533,8 +578,8 @@ if ($fail_count) {
 say "  all $test_count checks passed";
 exit 0;
 
-#,,..,.,.,,..,,,,,.,.,...,...,,,,,..,,,..,,,.,..,,...,...,.,,,.,,,,.,,,.,,,..,
-#XOO5VGMAUJGVS6AATE4OHRGS6SHSLQZIJ6ASGTVPPDA7AAJ4M7AVREF2I5PKDIYK7OBIEHD2C2BZ4
-#\\\|JZJFSV5MWT67GIIUCOFETDSSCOHRTA235XJHPJJHSQTVJRLA7SF \ / AMOS7 \ YOURUM ::
-#\[7]YJENDZC65S6225HHVVLCIJX7CO2V4DSWPC4STA4SOZXNAGRCEABQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,,..,,.,,..,,...,,..,..,,,.,,..,,...,...,..,,,,,,.,.,..,,.,.,
+#3CKNJ6VIFUK4WDMQ27CYJSJSLYCFAQAYNLELVWH3XZTPJEMSSGGRTY5RDRRYJLHQDVH2LRBQ7PHTG
+#\\\|XBJHLZCB6C75UXQPQEWNJH4NWRRN6Y2OJSOFTC35AGCIIVQ4IEH \ / AMOS7 \ YOURUM ::
+#\[7]B3RHOE3QABFFACGZOHSFF6MOZADB74RMJ2ASQD66H3J27YOV4OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
