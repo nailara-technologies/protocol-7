@@ -24,6 +24,25 @@ if ( not exists <ascii.frame.cache>->{$frame_name} ) {
     <[form.build_frame]>->( $editor_state, $frame_name, <form.title> );
 }
 
+## horizontal counterpart of the vertical viewport further below : in
+## interactive mode the frame must never exceed the terminal's COLUMNS or
+## every line wraps and the card becomes unreadable, so the column count is
+## passed to render_form as a frame-width cap there.  one-shot and
+## -no-tty-debug renders leave it undef and stay byte-identical.  same
+## <form.term_cols> form.handler.term_resize maintains [ form.setup_stdin_
+## watcher seeds it ], with the same on-demand AMOS7::TERM fallback the row
+## budget below already uses -- terminal_size returns ( cols, rows )
+my $frame_max_width;
+if ( <form.interactive> and not <form.mode.no_tty_debug> ) {
+    $frame_max_width = <form.term_cols> // (
+        eval {
+            <[base.perlmod.load]>->('AMOS7::TERM')
+                if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+            ( AMOS7::TERM::terminal_size() )[0];
+        } // 80
+    );
+}
+
 ## SOH placeholder for the cursor : one character wide so render_form's width
 ## and fill maths stay exact, substituted for a coloured '|' after
 ## colourisation below [ an ansi sequence passed in directly would break row
@@ -38,7 +57,8 @@ my $rendered = <[editor.ui.ascii_frame.render_form]>->(
     {   qw| cursor |  => qq|\x01|,
         qw| focus_l | => qq|\x02|,
         qw| focus_r | => qq|\x03|,
-    }
+    },
+    $frame_max_width
 );
 
 if ( not defined $rendered ) {
@@ -465,8 +485,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,..,,.,,,,..,.,.,,.,,.,,,,,,,,,.,.,.,,.,,..,,...,...,..,,,,.,,,,,,,.,,,,,
-#2TPHJL3MN7IHAV664RP3TPT6EL4YIOIMXRA52HRBRUUVUG5LBW3ZQJLQJRK5TJHETLBV4ATO4TKU4
-#\\\|4UC3FMIEMLIB23NJYDTVAGWK7AEA4JVW3NVJDQHMSLWPI2MDNLA \ / AMOS7 \ YOURUM ::
-#\[7]7N7XMWW4UIL4O2NNIDDZCYRFCNIKIVPDPAUTHKTXR4IKU7WE2YCY 7  DATA SIGNATURE ::
+#,,,.,...,,..,...,,..,..,,.,.,,.,,,,,,,.,,.,.,..,,...,...,,..,.,,,.,.,,,,,,.,,
+#4YC4YGRAIVRPHBF656PXZGSVMREQ7X3TQBPOC4PKUTPTXN2QGXO2RYQE3IDJ2KI2RAVZYNDM56A46
+#\\\|UEIBN5OZL7P7BATDHRMPBEYXUNVF2PGVXU6SJ4MIJYRNQMINFHI \ / AMOS7 \ YOURUM ::
+#\[7]MKZIYU542LADJQCZH3K3V6DNNKJBHTS7EXOOJJ5T2TBU2XDVQKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
