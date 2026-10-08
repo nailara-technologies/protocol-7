@@ -171,7 +171,7 @@ compile_module($ARG)
     keys.console.accept-owner keystore.trash.live_path keystore.trash.stash
     keystore.trash.entries keystore.trash.purge_candidates keystore.trash.restore
     keys.console.undo-remove keys.console.removed keystore.trash.offer_purge
-    keys.console.drop-owner keys.certify_host |;
+    keys.console.drop-owner keys.certify_host keys.passphrase_from_env |;
 
 my $statement = $code{'trust.statement'};
 my $leaf_for  = sub {                       ## host-root seed -> S, name ##
@@ -470,12 +470,15 @@ chdir $cwd or die;
 say ': keys.certify_host [ the core : passphrase given or not ]';
 {
     my $core = $code{'keys.certify_host'};
-    my $r = $core->(
+    my $r    = $core->(
         { owner => 'owner', host => 'atom', root_pub => $kp{'03'}[0] } );
     ok( ref $r eq 'HASH' && length $r->{'wire'},
         'no passphrase : certified' );
-    ok( !defined $load_args[1] && $load_args[2] == TRUE && $load_args[3] == TRUE,
-        '  :.. load_keypair asks + retries [ the console behaviour ]' );
+    ok( !defined $load_args[1]
+            && $load_args[2] == TRUE
+            && $load_args[3] == TRUE,
+        '  :.. load_keypair asks + retries [ the console behaviour ]'
+    );
     $r = $core->(
         {   owner      => 'owner',
             host       => 'atom',
@@ -484,10 +487,13 @@ say ': keys.certify_host [ the core : passphrase given or not ]';
         }
     );
     ok( ref $r eq 'HASH' && length $r->{'wire'},
-        'a supplied passphrase : certified' );
+        'a supplied passphrase : certified'
+    );
     ok( $load_args[1] eq 'a-supplied-passphrase'
-            && $load_args[2] == FALSE && $load_args[3] == FALSE,
-        '  :.. load_keypair NEVER asks, never retries' );
+            && $load_args[2] == FALSE
+            && $load_args[3] == FALSE,
+        '  :.. load_keypair NEVER asks, never retries'
+    );
     local $code{'crypt.C25519.load_keypair'} = sub { return FALSE };
     my ( $fail, $code_, $why ) = $core->(
         {   owner      => 'owner',
@@ -497,7 +503,34 @@ say ': keys.certify_host [ the core : passphrase given or not ]';
         }
     );
     ok( !defined $fail && $why =~ m|passphrase not correct|,
-        'a wrong supplied passphrase : refused back to the caller' );
+        'a wrong supplied passphrase : refused back to the caller'
+    );
+}
+
+######################################################################
+say ': keys.passphrase_from_env [ :pass-env: ]';
+{
+    my $f = $code{'keys.passphrase_from_env'};
+    local $ENV{'P7_TEST_PW'} = 'a-long-enough-phrase';
+    my ( $rest, $v ) = $f->( 'owner host root', { vars => ['P7_TEST_PW'] } );
+    ok( $rest eq 'owner host root' && !keys %$v && exists $ENV{'P7_TEST_PW'},
+        'no tag : params unchanged, the environment NOT touched'
+    );
+    ( $rest, $v )
+        = $f->( 'owner :pass-env: ' . 'host', { vars => ['P7_TEST_PW'] } );
+    ok( $rest eq 'owner host' && $v->{'P7_TEST_PW'} eq 'a-long-enough-phrase',
+        ':pass-env: : the tag removed, the value read'
+    );
+    ok( !exists $ENV{'P7_TEST_PW'}, '  :.. and deleted from %ENV at once' );
+    ( $rest, $v ) = $f->( 'x :pass-env:', { vars => ['P7_TEST_PW'] } );
+    ok( !defined $rest && $v =~ m|P7_TEST_PW is not set|,
+        'tag without the variable : refused, named'
+    );
+    local $ENV{'P7_TEST_PW'} = 'short';
+    ( $rest, $v )
+        = $f->( 'x :pass-env:', { vars => ['P7_TEST_PW'], min_len => 13 } );
+    ok( !defined $rest && $v =~ m|shorter than 13|,
+        'min_len : a short value refused [ the prompt floor holds ]' );
 }
 
 ######################################################################
@@ -625,8 +658,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,,,.,.,.,,,...,...,.,.,,.,,..,,,,,,,.,,..,,...,...,,.,,,,,,,,,,..,,.,.,
-#HWCGMO7QWARLA5RCVBVPCWD26NWOEH3SBMLVY4EYD5C2TSVTC6XGBYBAN7XBK3V3RLQY76XN2SMZO
-#\\\|4DBMKBU77ZK3MIK4BN7ZVF5G2U6S7TZ2GFV3IXZ7WOPPDMW5S4U \ / AMOS7 \ YOURUM ::
-#\[7]54NJBNIO56EA6YYT4C665CXATJSIB5VZ3EDDBSID6KRJOMTUPOAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,,,,,,.,,,.,,.,.,...,,,.,,,.,..,,...,...,...,.,.,.,.,,.,,,,,,
+#TXVP3SVVIO3UMLWYRWVWH52DI4MEBBL55OX4H7WML4TOB73GIH2GSGTEEFAQGJMELQRHLEDIEHKL2
+#\\\|GZ3SU6FKINLMX5SK3OB24L4T4FBIHTQYE3KRCFBIU2R2ZKIIYYW \ / AMOS7 \ YOURUM ::
+#\[7]FGVQXOF4CDSK3Q4WFZHFEQME2RSFF27UTGMXXGEFXOJTSEKZNKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
