@@ -1,0 +1,126 @@
+## [:< ##
+
+# name   = keys.certify_host
+# descr  = owner key signs a host-root statement [ the certify core ]
+# param  = { owner, host, root_pub [ 32 raw bytes ], days [ 365 ],
+#            on_warning [ coderef, called BEFORE the key is loaded ] }
+# return = { wire, owner_pub, host } or ( undef, <exit code>, <reason> )
+#
+# data/md/design/TRUST-CHAIN-STEP2.md 'the owner root' : the owner key in
+# ANY form the keys zenka holds [ load_keypair prompts, decrypts, derives
+# ] ; plain \ passphrase-derived forms are WARNED about [ on_warning,
+# before any prompt ], never refused. scope '<host>.*', not_before 5 min
+# back. shared by keys.console.certify-host and host-edit's certify
+# action. exit codes as the console uses them : 0010 input, 0020 not
+# root for a root-held key, 0110 failure.
+
+my $p = shift;
+
+my $fail = sub { return ( undef, @ARG ) };
+
+return $fail->( qw| 0110 |, 'parameters not a hash' ) if ref $p ne qw| HASH |;
+
+my ( $owner, $host, $root_pub, $days, $on_warning )
+    = @{$p}{qw| owner host root_pub days on_warning |};
+$days //= 365;
+$on_warning = sub { }
+    if ref $on_warning ne qw| CODE |;
+
+return $fail->( qw| 0010 |, 'days : 1 .. 3650' )
+    if $days !~ m|\A[0-9]{1,4}\z|
+    or $days < 1
+    or $days > 3650;
+
+## the name v7-zenki delegates is '<system.node.name lowercased>.cube' ##
+$host = lc( $host // '' );
+return $fail->( qw| 0010 |, "host name '$host' not valid" )
+    if $host !~ m{ \A [a-z0-9] [a-z0-9_-]{0,62}
+                   (?: \. [a-z0-9] [a-z0-9_-]{0,62} )* \z }x
+    or length($host) > 200;
+
+return $fail->( qw| 0010 |, "owner key '" . ( $owner // '' ) . "' not found" )
+    if not defined $owner
+    or not <[crypt.C25519.key_exists]>->($owner);
+
+my $owner_path = <[crypt.C25519.key_path]>->($owner);
+return $fail->( qw| 0110 |, "owner key '$owner' : key path not resolvable" )
+    if ref $owner_path ne qw| HASH |;
+return $fail->( qw| 0020 |, "owner key '$owner' is root-held : run as root" )
+    if $owner_path->{'holder'} eq qw| root |
+    and $EFFECTIVE_USER_ID != 0;
+
+return $fail->( qw| 0010 |, 'host-root public key not 32 bytes' )
+    if not defined $root_pub
+    or length($root_pub) != 32;
+
+## weak forms : warned, never refused ##
+if ( $owner_path->{'holder'} ne qw| root | ) {
+    my $files = $owner_path->{'key_filename'};
+    my $on_disk
+        = grep { defined $ARG and -f $ARG } @{$files}{qw| secret private |};
+    my $encrypted = <[crypt.C25519.encrypted_key]>->($owner);
+    my $virtual   = <[crypt.C25519.key_is_virtual]>->($owner);
+    if ( $on_disk and not $encrypted ) {
+        $on_warning->( 'the owner key is stored UNENCRYPTED -- anyone '
+                . 'reading it can certify hosts for every client '
+                . 'pinning this owner' );
+    } elsif ( not $on_disk and not $virtual and not $encrypted ) {
+        $on_warning->( 'a passphrase-derived owner key is '
+                . 'exactly as strong as its passphrase' );
+    }
+}
+
+return $fail->( qw| 0110 |, 'owner key not loaded' )
+    if not <[crypt.C25519.load_keypair]>->( $owner, undef, TRUE, TRUE );
+my $owner_key = $keys{'C25519'}->{$owner} // {};
+my ( $owner_pub, $owner_priv ) = @{$owner_key}{qw| public private |};
+my $unload = sub { <[crypt.C25519.unload_key]>->( $owner, TRUE ) };
+
+if (   not defined $owner_pub
+    or length($owner_pub) != 32
+    or not defined $owner_priv
+    or length($owner_priv) != 64 ) {
+    $unload->();
+    return $fail->( qw| 0110 |, 'owner key is not an Ed25519 signing key' );
+}
+if ( $owner_pub eq $root_pub ) {
+    $unload->();
+    return $fail->( qw| 0010 |, 'the owner key IS the host-root -- refused' );
+}
+
+my $now       = time;
+my $statement = <[trust.statement]>->(
+    qw| build |,
+    {   qw| issuer_pub |  => $owner_pub,
+        qw| subject_pub | => $root_pub,
+        qw| name |        => $host,
+        qw| not_before |  => $now - 300,
+        qw| not_after |   => $now + $days * 86400,
+        qw| scope |       => "$host.*",
+    }
+);
+my $sig
+    = defined $statement
+    ? Crypt::Ed25519::sign( $statement, $owner_pub, $owner_priv )
+    : undef;
+$unload->();
+
+my $wire
+    = defined $sig
+    ? <[trust.statement]>->( qw| wire |, $statement, $sig )
+    : undef;
+return $fail->( qw| 0110 |, 'statement not built or not verifiable' )
+    if not defined $wire
+    or not Crypt::Ed25519::verify( $statement, $owner_pub, $sig );
+
+return {
+    qw| wire |      => $wire,
+    qw| owner_pub | => $owner_pub,
+    qw| host |      => $host,
+};
+
+#,,,,,,.,,..,,..,,.,,,..,,.,,,,..,.,,,,,,,,,,,..,,...,...,,..,..,,.,.,.,.,.,,,
+#ANMQTCSV2PVGIIHPNBK7AFFEIMFD74ZDA3FXQXO7EAHWEB7OVQDRTZHTN2VU447BXBUJPHJ6EAUM4
+#\\\|WELE64R4EUFGFMZKIATNNEBC2QYISULCKCFICRHMDGNGHH4FMWC \ / AMOS7 \ YOURUM ::
+#\[7]42ZAV6LXNQZSNCFZOPJV3EPL2APRFUVSJLRXFTXWDIXHQ7UMJWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

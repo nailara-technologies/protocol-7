@@ -11,8 +11,7 @@
 # nothing. states : 'unpinned' [ key id + leaf name offered ], 'pinned'
 # [ matches the record's pin ], 'mismatch' [ another host-root than the
 # pin -- never accepted here ], 'refused' [ delegation invalid ],
-# 'error'. p-7-r is <host-edit.cfg.p7r_bin> // 'p-7-r' ; read with a
-# select timeout [ no alarm, no $SIG handler ].
+# 'error'. run through host-edit.action.run_p7r.
 
 my ( $name, $cube_port, $dial_host, $dial_port ) = @ARG;
 
@@ -35,47 +34,12 @@ foreach my $port ( $cube_port, $dial_port ) {
         or $port > 65535;
 }
 
-my $p7r  = <host-edit.cfg.p7r_bin> // qw| p-7-r |;
-my @argv = (
-    $p7r, qw| -v -strict -host |,
-    "$name:$cube_port", "$dial_host:$dial_port", qw| commands |
+my ( $output, $status ) = <[host-edit.action.run_p7r]>->(
+    [   qw| -v -strict -host |,  "$name:$cube_port",
+        "$dial_host:$dial_port", qw| commands |
+    ]
 );
-
-pipe( my $read_fh, my $write_fh ) or return $refuse->("pipe [ $OS_ERROR ]");
-my $pid = fork;
-return $refuse->("fork failed [ $OS_ERROR ]") if not defined $pid;
-if ( $pid == 0 ) {
-    close($read_fh);
-    open( STDIN,  '<',  '/dev/null' );
-    open( STDOUT, '>&', $write_fh );
-    open( STDERR, '>&', $write_fh );
-    exec {$p7r} @argv;
-    CORE::exit(127);
-}
-close($write_fh);
-binmode( $read_fh, qw| :raw | );    ## runtime default layer is :utf8 ##
-
-## read everything p-7-r prints, at most 20 s ##
-require IO::Select;
-my $select   = IO::Select->new($read_fh);
-my $output   = '';
-my $deadline = time + 20;
-while ( time < $deadline ) {
-    last if not $select->can_read( $deadline - time );
-    my $got = sysread( $read_fh, my $chunk, 4096 );
-    last if not $got;
-    $output .= $chunk;
-    last if length $output > 65536;
-}
-close($read_fh);
-require POSIX;
-if ( waitpid( $pid, POSIX::WNOHANG() ) == 0 ) {
-    kill( qw| TERM |, $pid );
-    waitpid( $pid, 0 );
-    return $refuse->('p-7-r did not finish in 20 s');
-}
-my $status = $CHILD_ERROR >> 8;
-$output =~ s{\e\[[0-9;]*m}{}g;
+return $refuse->($status) if not defined $output;
 
 my $re_id = qr|([A-Z2-7]{77})|;
 my $re_nm = qr|([A-Za-z0-9][A-Za-z0-9._-]{0,254})|;
@@ -110,8 +74,8 @@ return {
 my ($last) = grep {length} reverse split m|\n|, $output;
 return $refuse->( sprintf 'p-7-r exit %d [ %s ]', $status, $last // '?' );
 
-#,,,,,...,...,.,,,,,,,,,,,,..,,.,,.,,,,.,,,..,..,,...,...,...,,.,,,,.,,,.,.,,,
-#XWTWCQGTJ4DV7KYNW5QENVBEAAW5J7MK4OHQWSNNMLXKA5V4KHMLPHSJMOGP45XVONG5HEDXHTL5I
-#\\\|4DEMSFQND7JO365PJPEHOA6SYEYSS6FPFWBYQNBJAXHYQPJDF3Q \ / AMOS7 \ YOURUM ::
-#\[7]EVRIQWMEIYXQRG3SEHF3XTDJFADXYG66YOBBAACA5Q3EJBVUSOBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,.,,,,,,,.,,,.,...,,,.,,..,,,.,..,,...,..,,.,.,.,,,...,,,.,,.,,
+#KD65M64PLZG7B64FDCUOOVBV42UO2DNHAW4BPWZCAACNSQV3Q2FJHS2723VWSPCGIWTUONTN3Z7YQ
+#\\\|464AME2XWM6NXZLB5F4AKDYACUMQ5FZPPBSCNH32QQ223YMSECT \ / AMOS7 \ YOURUM ::
+#\[7]CUCF3DIW4T62XOGQPTK4RLPGOLRKE5GVCBRPEKA5VA5F2HBEYYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

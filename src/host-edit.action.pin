@@ -1,0 +1,53 @@
+## [:< ##
+
+# name   = host-edit.action.pin
+# descr  = pin a host [ non-strict connect through the dial address ]
+# param  = <record name> <cube port> <dial host> <dial port> <key id>
+# return = { state => 'pinned' | 'mismatch' } or ( undef, reason )
+#
+# data/md/design/HOST-SETUP.md 'add-host flow' step 4. the pin is named
+# after the RECORD [ -host ]. afterwards the pin file must hold EXACTLY
+# the key id the probe saw [ <key id> ] -- anything else fails the action
+# [ the host-root changed between probe and pin ].
+
+my ( $name, $cube_port, $dial_host, $dial_port, $key_id ) = @ARG;
+
+return ( undef, 'probed key id missing' )
+    if not defined $key_id
+    or $key_id !~ m|\A[A-Z2-7]{77}\z|;
+return ( undef, 'record name not valid' )
+    if not defined $name
+    or $name !~ m|\A[a-z0-9][a-z0-9._-]{0,62}\z|;
+
+my ( $output, $status ) = <[host-edit.action.run_p7r]>->(
+    [   qw| -v -host |,          "$name:$cube_port",
+        "$dial_host:$dial_port", qw| commands |
+    ]
+);
+return ( undef, $status ) if not defined $output;
+
+return { qw| state | => qw| mismatch | }
+    if $status == 6 or $output =~ m|pin mismatch|;
+
+## the pin as written \ found : named after the record ##
+my $servers  = <[crypt.C25519.key_vars]>->{'known_hosts_dir'};
+my $pin_file = sprintf qw| %s/%s_%d.public |, $servers // '', $name,
+    $cube_port;
+my $line = '';
+if ( open( my $fh, '<', $pin_file ) ) {
+    $line = readline($fh) // '';
+    close($fh);
+}
+$line =~ s{\s+\z}{};
+return ( undef, "no pin written [ p-7-r exit $status ]" )
+    if not length $line;
+return ( undef, 'the pin holds another key id than the probe saw' )
+    if $line ne $key_id;
+
+return { qw| state | => qw| pinned |, qw| login | => $status == 0 };
+
+#,,.,,.,,,,,.,,..,,.,,,.,,.,.,..,,,,.,...,.,,,..,,...,...,...,,.,,...,,.,,...,
+#P25LZ5CL2X3YPSXATWMEX57RB7MOWPGEG2M5SS5NPWTTHOZ74K3YE23RJA7IVHS4NVAO7DD4E73MQ
+#\\\|4QXCRDLZHTDRDGTFNDF7ZDCBSVYFHI3CY2BEBYDQ5CJNCJBHUFF \ / AMOS7 \ YOURUM ::
+#\[7]GS5NQAPP5C4GYUJN4A3KV7NJ3ACQ2VHFR7MHGEXR5OAUWAL54SDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

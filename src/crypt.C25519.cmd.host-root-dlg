@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = crypt.C25519.cmd.host-root-dlg
+# descr = this host's delegation chain [ public, leaf first ]
+#
+# the chain field the select reply carries [ data/md/design/TRUST-CHAIN-
+# STEP2.md 'wire' ] -- public. host-edit fetches it to certify a host :
+# the leaf's ISSUER is the host-root public key certify-host needs [ a
+# key id alone cannot be certified ]. the leaf must verify under its own
+# issuer ; the chain above it is returned only while it verifies too
+# [ auth.auth_select's rule ], else the leaf alone.
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $s_name   = ref $key_vars eq qw| HASH | ? $key_vars->{'key_name'} : undef;
+
+my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
+
+foreach my $sub (qw| trust.statement trust.verify trust.key_id trust.chain |)
+{
+    return $false->('trust modules not loaded')
+        if ref $code{$sub} ne qw| CODE |;
+}
+
+my $s_pub = $keys{'C25519'}{$s_name}{'public'}
+    if defined $s_name
+    and ref $keys{'C25519'}{$s_name} eq qw| HASH |;
+return $false->( 'no server ' . 'key' )
+    if not defined $s_pub
+    or length($s_pub) != 32;
+
+my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
+return $false->('no delegation file path') if not defined $dlg_file;
+
+open( my $dlg_fh, '<:raw', $dlg_file )
+    or return $false->("no delegation [ $OS_ERROR ]");
+my $got = read( $dlg_fh, my $dlg_content, 2060 );
+close($dlg_fh);
+return $false->('delegation not readable') if not defined $got or $got > 2052;
+
+my ( $chain, $why ) = <[trust.chain]>->( qw| file |, $dlg_content );
+return $false->("delegation not valid [ $why ]") if not defined $chain;
+
+my $verify = sub {
+    my $list = shift;
+    my $top  = <[trust.statement]>->( qw| parse_wire |, $list->[0] );
+    return undef if ref $top ne qw| HASH |;
+    return <[trust.verify]>->(
+        {   qw| chain |   => $list,
+            qw| anchors | => [ <[trust.key_id]>->( $top->{'issuer_pub'} ) ],
+            qw| subject | => $s_pub,
+            qw| now |     => time,
+        }
+    );
+};
+
+my $leaf = $chain->[-1];
+return $false->('delegation leaf does not verify')
+    if ref $verify->( [$leaf] ) ne qw| HASH |;
+my $send
+    = ( @{$chain} > 1 and ref $verify->($chain) eq qw| HASH | )
+    ? $chain
+    : [$leaf];
+
+my $field = <[trust.chain]>->( qw| join |, $send );
+return $false->('delegation chain not joined') if not defined $field;
+
+return { 'mode' => qw| true |, 'data' => $field };
+
+#,,.,,.,.,,,,,.,,,.,,,.,,,..,,..,,,.,,,.,,,,,,..,,...,.,.,...,...,.,,,,.,,...,
+#XF63QPDXKJFCGUATRLFL2FWUZPXVX3KKDHYJ23ADPUOVHGCPRDVGPUR2QBNAI7YUWQZPZ6C34TQRW
+#\\\|YXPRZQK3NNR7CCHZH5K7LQUYJCPCSAYW2BYCQ2JISS72PUIHNQC \ / AMOS7 \ YOURUM ::
+#\[7]DKGTV4TTDDKKRZSOLMDF3KV4Q2KEHZ2KAC47AVIPHYTZWG2CX6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
