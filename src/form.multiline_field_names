@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = form.multiline_field_names
+# descr = which scalar record fields edit as windowed multi-line rows
+# param = -none-
+
+## the single list, alongside users.record.optional_fields' own vocabulary --
+## see user-edit-multiline-note.yaml.  TWO call sites need this, both inside
+## user-edit's own process so ONE shared module is correct here [ unlike
+## users.record.sorted_fields, which user-edit duplicates BY HAND because that
+## list lives in a different zenka's %code entirely ] :
+## form.schema_from_record [ a field already present on a loaded record ] and
+## form.add_field [ a field being added for the FIRST time via the add-a-field
+## cycler ].
+##
+## MISSING FROM add_field WAS THE ACTUAL BUG, found live : schema_from_record
+## alone made a freshly-added 'address' render single-line with no way to
+## expand it until the form was saved and reopened, because add_field builds
+## its OWN field def from the wire vocabulary's 'list'/'line' shape and had no
+## way to know 'address' was one of the multiline ones -- a second independent
+## name list would have drifted exactly as this file's header warns against
+## generally. same lesson users.record.sorted_fields already documents for a
+## different flag : a POLICY name list needs every entry point that can
+## ORIGINATE a field def to read it, not just the one that happened to be
+## built first.
+##
+## EXTEND HERE alongside users.record.optional_fields -- adding a new
+## multiline field costs one line there and one word here.
+
+return qw| address note |;
+
+#,,..,,,,,,.,,.,.,.,.,,,.,...,..,,,.,,.,.,...,..,,...,...,...,..,,..,,,..,..,,
+#ZIRDNEHCVTSHVDUKXG7NIQO74MWLIMYHLYRXO4KUROXC6BWQMTI2RZBVSHB35UQPD6BHKOEREZGNS
+#\\\|EXILH6TZ7RMZLZI4VNA3EJKX55U7ADAHDIYI7VEBFBCAKYXFVN3 \ / AMOS7 \ YOURUM ::
+#\[7]ACEXFDG5XV4P3ZLRTS6ZZEQBARD27TWKW2N6HKCSMZJTIGW6KKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

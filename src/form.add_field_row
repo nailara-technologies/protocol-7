@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = form.add_field_row
+# descr = append the inline add-a-field cycler to a schema
+# param = $editor_state, $options_aref
+
+## the ADD-A-FIELD row : an inline cycler of optional fields the record does
+## not carry yet, rendered as '[ full_name ]  phone   shell'.  Left/Right move
+## through the options in place, Enter adds the current one.
+##
+## inline rather than a row list because the option set is few and known --
+## the two selection styles are chosen by CARDINALITY, see
+## editor-namespace-interface-design.yaml's selection_styles amendment.
+##
+## the row is READ-ONLY [ its value is a choice index, not text ] and named
+## with a leading underscore so it cannot collide with a real field name from
+## the record, while still matching ^\w+$ for the slot token.  the name itself
+## comes from form.add_field_name -- deliberately padded, not the plain
+## 'add_field' it would otherwise be, so the mockup placeholder it becomes is
+## close in size to what this row actually renders.  see that module for why.
+##
+## no options left means every optional field is already present, so the row
+## is simply not added -- it disappears rather than offering nothing.
+
+## takes the STATE, not just the schema : a field needs BOTH a schema def and
+## a buffer, and editor.control.create only builds buffers for the fields
+## present when it runs.  appending a def afterwards leaves the field with no
+## buffer, so editor.control.get_value returns undef and the row renders empty
+## -- which is exactly what happened before this took the state
+my ( $editor_state, $options_aref ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $schema = $editor_state->{'schema'};
+
+return FALSE if ref $schema ne qw| HASH |;
+return FALSE if ref $schema->{'fields'} ne qw| ARRAY |;
+
+my @options
+    = grep { defined $ARG and length $ARG } ( $options_aref // [] )->@*;
+
+return FALSE if not @options;
+
+my $name = <[form.add_field_name]>;
+
+## never twice ##
+return FALSE
+    if grep { ( $ARG->{'name'} // '' ) eq $name } $schema->{'fields'}->@*;
+
+my $field_def = {
+    qw| name |      => $name,
+    qw| type |      => qw| freeform_line |,
+    qw| default |   => '',
+    qw| readonly |  => TRUE,
+    qw| add_field | => TRUE,
+    qw| choices |   => \@options,
+    qw| choice |    => 0,
+};
+
+push $schema->{'fields'}->@*, $field_def;
+
+$editor_state->{'fields'}{$name}
+    = <[editor.buffer.memory.create]>->($field_def);
+
+return TRUE;
+
+#,,,,,.,.,,.,,,.,,,..,,,.,.,.,.,,,,,,,,,,,,,.,..,,...,...,.,,,,.,,..,,...,...,
+#TCO3D4ZHBZOCYNSS6BSIDW3EBQLQNUVE6AYPVWE7YC5GT652Z7QM7UIACJC2K3CJIRYFY5VKTZNME
+#\\\|CPQGVMNZSNAIK4A7JOGCGDLJ3FR3ZJKEUYH7OQ4IKNFUJFEEXPG \ / AMOS7 \ YOURUM ::
+#\[7]2RHA7XTRP6RGEME7US47P7MZPXW5CSWVSKI6N5VATAV7UDSNPEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

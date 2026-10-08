@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = form.handler.esc_timeout
+# descr = a lone Esc that stayed lone is a real Esc keypress
+
+## editor.input.next_key deliberately emits NOTHING for a lone "\e" -- it
+## cannot yet tell a bare Esc from the first byte of an arrow key, and
+## guessing would corrupt every escape sequence that arrives split across two
+## reads.  so form.handler.stdin_key arms this one-shot timer whenever a lone
+## "\e" is left pending, and cancels it as soon as more input shows up.
+##
+## if it fires with that "\e" still alone, nothing followed within the timeout
+## and it really was an Esc keypress.
+##
+## the timeout is a genuine trade-off, not a magic number : too short and a
+## slow link [ ssh, serial ] delivers an arrow key's bytes far enough apart to
+## be misread as Esc, quitting the form instead of moving a field.  hence
+## user-edit.cfg.esc_timeout, and hence ctrl-c staying the unambiguous exit.
+
+<form.esc.timer> = undef;    ## one-shot : it has fired ##
+
+my $buffer = <form.input_buffer> // '';
+
+## more arrived, or it was consumed : not a bare Esc after all ##
+return FALSE if $buffer ne "\e";
+
+<form.input_buffer> = '';    ## consume it ##
+
+return <[form.escape]>;
+
+#,,,,,,..,,..,,,.,...,..,,,..,...,,,.,..,,,,,,..,,...,...,.,,,,.,,,.,,,,.,,.,,
+#WZZEIF4TUMFIGYWS2WDIU4N6BK2M6BWM53ASBBKD5EVDZTT26LFPODOESGXBSJC2BFSV2J75J4ET2
+#\\\|MXTMDV5AH4RT5GRPO75MTO5OG3LZ22BKFP2U4CHHQC7YZQK6YNQ \ / AMOS7 \ YOURUM ::
+#\[7]5PO5HX2HAVGH5TZOZGDQBI5JGE6DBFACPUETA5N2VO33C6RBPQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

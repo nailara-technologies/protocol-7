@@ -35,7 +35,7 @@ access.cmd.usr.cube  =  commands heart verify-instance char-add
 ## ellipse_center before its checksum, so a long name plus a long checksum
 ## [ e.g. an encrypted key's '<::[enc-key]::CCCCCCC:>' ] does not force the
 ## row wider than editor.ui.ascii_frame.render_form's multiline viewport
-## floor accommodates -- see user-edit.form.schema_from_record. defaults to
+## floor accommodates -- see form.schema_from_record. defaults to
 ## 20 [ //= in the code ] when unset here
 # user-edit.cfg.user_keys_name_width = 20
 
@@ -53,7 +53,7 @@ access.cmd.usr.cube  =  commands heart verify-instance char-add
 ## real pagination info rather than replacing it -- pagination text renders
 ## flush-left, the checksum starts at a fixed column well right of it, so
 ## they never overlap even if user_keys holds more than one window's worth
-## of entries -- see user-edit.form.build_frame and editor.ui.ascii_frame.
+## of entries -- see form.build_frame and editor.ui.ascii_frame.
 ## render_form's multiline block
 user-edit.cfg.user_keys_display_type = detail
 
@@ -63,7 +63,7 @@ user-edit.cfg.user_keys_display_type = detail
 ## but AUTOMATIC rather than a manually toggled mode, since the identity
 ## key's name doesn't change mid-session. below the threshold [ e.g.
 ## 'taeki.base', 10 chars ] renders unchanged from always -- see
-## user-edit.form.schema_from_record, user-edit.form.build_frame, and
+## form.schema_from_record, form.build_frame, and
 ## editor.ui.ascii_frame.render_form. defaults to 20 [ //= in the code ]
 ## when unset here
 # user-edit.cfg.identity_key_name_threshold = 20
@@ -75,7 +75,7 @@ user-edit.cfg.user_keys_display_type = detail
 ## [ nshell/start loads both explicitly for exactly these reasons ]       ##
 modules.load  =  auth.client net protocol io.unix ui terminal editor \
                                  crypt.C25519 ascii.frame format.yaml \
-                                 format.json keys user-edit
+                                 format.json keys form user-edit
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -102,13 +102,13 @@ system.auth-user = <user-edit.auth_name>
 ## here.  console commands that need the event loop -- anything talking  ##
 ## to the users zenka, where the reply arrives asynchronously and needs  ##
 ## command/reply processing -- call [init-done:TRUE] + [zenka.loop]      ##
-## THEMSELVES as their last step [ see user-edit.console.show-form ].    ##
+## THEMSELVES as their last step [ see form.console.show-form ].    ##
 ## per-command, not per-zenka, because 'commands' and 'describe' must    ##
 ## print and exit : a [zenka.loop] at this level would hang them, and    ##
 ## plain 'v7-zenki.user-edit' would never return to the shell                  ##
 
-#,,,.,,,,,,,,,.,.,.,,,...,,.,,..,,,,.,,,.,,.,,..,,...,...,...,,,,,,..,..,,,,,,
-#ISJZES47SAGYQV7L2STUMOXNE23T3ARAESLPGYTKMN2GVYQX3A72VVVRGR2KDOXJ6UJD34JWTWLDK
-#\\\|S5RLM3CI4AT5D6OL4JR4K75MITQYB3ACLNYKCMMZBEGUOA3GNHY \ / AMOS7 \ YOURUM ::
-#\[7]PNJ5MCLVKWKQI5LKX2OVJZMSOTSZ3BF3TGQ6EEXXARIKLKIEIUDY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,...,...,,.,,,..,.,,,,.,,.,.,..,,...,...,..,,,,,,,,.,..,,..,,
+#5E7LEZWXLSYDQ6NEXLLYFJY36XPVSUJAZ44EP7XDI7XMQAJCOUOPBY5RLVRHLEWEKA67GWTUD5PKG
+#\\\|KZCKEAQD4REWCCADN4CLM6CXADNGEPFB4QI47BFNTETNSRLSFKS \ / AMOS7 \ YOURUM ::
+#\[7]A2UJ4UD4ZU624POIYZWKHFBDR3IYS7IQJC2U7VPJYZC5SR7UHICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

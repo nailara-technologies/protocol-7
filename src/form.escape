@@ -1,0 +1,161 @@
+## [:< ##
+
+# name  = form.escape
+# descr = handle Esc : leave a sub-mode, or exit the form
+
+## Esc means "back out one level", so what it does depends on where you are --
+## leaving a sub-mode when one is active, and leaving the form when none is.
+## the dispatch point is $editor_state->{'mode'}, which editor.control.create
+## and .reset already SET to 'insert' and which nothing has ever read : the
+## hook was designed in and left waiting for exactly this.
+##
+## [ stale as of the list-mode fix below : editor.control.list.expand DOES set
+## a non-base mode now, 'list:<field>', so it is no longer true that "nothing
+## sets a non-base mode yet" -- corrected in place rather than left standing,
+## per the rule that a comment describing gone-by code is worse than none ]
+##
+## Ctrl-c remains the UNAMBIGUOUS exit : a bare Esc can only be told apart
+## from an arrow-key prefix by a timeout [ form.handler.esc_timeout ], and on
+## a slow link that timeout can misfire.
+
+my $editor_state = <form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $mode = $editor_state->{'mode'} // qw| insert |;
+
+## an open IN-FRAME PROMPT is the shallowest sub-mode there is : Esc backs out
+## of IT first [ editor.control.prompt.* -- e.g. the key-actions key-create
+## chain ].  cancelled here rather than in handler.key because a bare Esc
+## never reaches the key loop as a resolved key [ handler.  esc_timeout's
+## debounce calls THIS module directly ].  no early return afterward : the
+## prompt was opened from plugin mode, so the existing plugin branch below
+## then backs out of THAT too -- one Esc lands back on the focused, un-entered
+## row, exactly like the prompt's own Left/Ctrl-C cancel path in
+## plugin.user-edit.key-actions.handler.key
+if ( ref $editor_state->{'prompt'} eq qw| HASH | ) {
+    <[base.logs]>->( 2, ': cancelling in-frame prompt' );
+    <[editor.control.prompt.cancel]>->($editor_state);
+}
+
+## a MENU ascends one level : editor.control.menu.close returns the state the
+## menu was opened over, and undef means this was the top level -- so Esc
+## there leaves the form, which is the same "back out one level" reading
+if ( $mode =~ m|^menu:| ) {
+
+    my $previous = <[editor.control.menu.close]>->($editor_state);
+
+    if ( ref $previous eq qw| HASH | ) {
+
+        <[base.logs]>->( 2, ': leaving menu [ %s ]', $mode );
+
+        <form.state> = $previous;
+
+        <[form.build_frame]>->(
+            $previous,
+            <form.frame_name> // qw| user-edit-form |,
+            $previous->{'title'} // <form.title>
+        );
+
+        <form.dirty>++;
+
+        return TRUE;
+    }
+
+    ## top level ##
+    <[form.quit]>->( 'closed', 'no-op' );
+    return TRUE;
+}
+
+## a LIST field's own EXPANDED state is a sub-mode too, but it cannot be left
+## by just relabelling 'mode' the way the generic branch below does : the
+## SCHEMA itself still carries '<field>_0', '<field>_1' .. as separate rows [
+## editor.control.list.expand rebuilt it that way ], and nothing else will
+## ever collapse them back on its own -- form.sync_list_mode's own collapse
+## only runs on a field_next / field_prev TRANSITION, which Esc is not.  left
+## uncollapsed : the form silently keeps those rows as permanent fields from
+## here on, mode already reads 'insert' again so the NEXT Esc exits outright
+## instead of leaving the list -- which is exactly what looked like "Esc needs
+## pressing twice".  fixed by collapsing properly here, the same call
+## sync_list_mode itself makes
+if ( $mode =~ m|^list:| ) {
+
+    <[base.logs]>->( 2, ': leaving list mode [ %s ]', $mode );
+
+    my $collapsed = <[editor.control.list.collapse]>->($editor_state);
+
+    <form.state> = $collapsed;
+
+    <[form.build_frame]>->(
+        $collapsed,
+        <form.frame_name> // qw| user-edit-form |,
+        $collapsed->{'title'} // <form.title>
+    );
+
+    <form.dirty>++;
+
+    return TRUE;
+}
+
+## a PLUGIN field's entered state is a sub-mode too, and unlike list mode it
+## really can be left by just relabelling 'mode' below [ it never touches the
+## schema ] -- EXCEPT for one thing that relabelling alone would miss :
+## form.handler.stdin_key's entry trigger flips the field's buffer readonly
+## OFF so the plugin's own handler.key can write through
+## editor.buffer.memory.insert/delete [ both enforce readonly themselves, not
+## just editor.control.process_key's guard -- found live, the plugin's own
+## edits were silently no-ops until this was added ].  that flip has to be
+## undone here too, or the field stays editable by ORDINARY typing after Esc
+## leaves plugin mode, same bug from the other direction.  restored
+## unconditionally rather than only if TRUE : cheap, and future-proof against
+## exactly one plugin field per schema not always holding
+if ( $mode =~ m|^plugin:(\w+)$| ) {
+    my $plugin_field = $LAST_PAREN_MATCH;
+    $editor_state->{'fields'}{$plugin_field}{'readonly'} = TRUE
+        if ref $editor_state->{'fields'}{$plugin_field} eq qw| HASH |;
+}
+
+if ( $mode ne qw| insert | ) {
+
+    ## leave the sub-mode and stay in the form ##
+    <[base.logs]>->( 2, ': leaving sub-mode [ %s ]', $mode );
+    $editor_state->{'mode'} = qw| insert |;
+    <form.dirty>++;    ## repaint without the sub-mode ##
+
+    return TRUE;
+}
+
+## base mode reached from a BROWSE : step back up to the record menu rather
+## than leaving.  Esc means "back out one level" at every depth and the form
+## is simply the deepest -- the menu state was stashed by
+## form.menu.open_record, since the form itself is a FRESH state with no
+## menu_source of its own
+my $browse_return = <form.menu.form_return>;
+
+if ( ref $browse_return eq qw| HASH | ) {
+
+    <form.menu.form_return> = undef;
+    <form.state>            = $browse_return;
+
+    <[form.build_frame]>->(
+        $browse_return,
+        <form.frame_name> // qw| user-edit-form |,
+        $browse_return->{'title'} // qw| user-edit |
+    );
+
+    <form.dirty>++;
+
+    return TRUE;
+}
+
+## base mode with nothing above it : Esc leaves the form.  the draft
+## checkpoint written on the last field transition preserves an in-flight edit
+<[form.quit]>->( 'closed without saving', 'no-op' );
+
+return TRUE;
+
+#,,,,,.,,,,..,.,,,.,,,,..,,.,,,,.,,..,.,,,,,.,..,,...,...,,.,,.,,,,,.,.,,,,..,
+#PW4WWXL7ARNZE3VG5XG3ETHWEPAD6BGRS5ZDGMBZEWPMG24WXEYDGUGIO472SAWR237WMY6NXJ5VK
+#\\\|RZI4VTGTPTKKLU63IHQRLYLZGQR22UHXD55LWNUCTKPTZIE5US3 \ / AMOS7 \ YOURUM ::
+#\[7]4ORVDYHHQSZQRXBN5GOLHFTONW3MQW6YCFLK43QQALGKM6UB3IDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

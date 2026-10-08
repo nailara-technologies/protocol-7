@@ -1,0 +1,49 @@
+## [:< ##
+
+# name   = v7-zenki.backend.run
+# descr  = run code with the backend user's effective uid \ gid [ root ]
+# param  = <coderef>
+# return = the coderef's list, or ( undef, reason )
+#
+# v7-zenki runs as root ; files in the backend user's key dir are written
+# AS that user [ root never follows a planted symlink there ]. the
+# effective uid \ gid are switched for just the call and root is regained
+# afterwards -- failing to regain it is logged at level 0 and reported.
+# shared by v7-zenki.delegation.issue and v7-zenki.cmd.owner-statement.
+
+my $work = shift;
+
+return ( undef, 'no code to run' )      if ref $work ne qw| CODE |;
+return ( undef, 'not running as root' ) if $EUID != 0;
+
+my $backend_user = <system.amos-zenka-user>;
+return ( undef, 'no backend user [ system.amos-zenka-user ]' )
+    if not defined $backend_user
+    or not length $backend_user;
+my ( $backend_uid, $backend_gid ) = ( getpwnam($backend_user) )[ 2, 3 ];
+return ( undef, "backend user '$backend_user' not known" )
+    if not defined $backend_uid;
+
+my $saved_egid = $EGID;
+$EGID = sprintf '%d %d', $backend_gid, $backend_gid;
+$EUID = $backend_uid;
+my @result;
+if ( $EUID == $backend_uid ) {
+    @result = eval { $work->() };
+    @result = ( undef, "failed : $EVAL_ERROR" ) if length $EVAL_ERROR;
+} else {
+    @result = ( undef, 'cannot switch to the backend user' );
+}
+$EUID = 0;
+$EGID = $saved_egid;
+if ( $EUID != 0 ) {    ## [ untested : needs a real root run ] ##
+    <[base.log]>->( 0, ': backend user section : CANNOT regain root' );
+    return ( undef, 'root not regained after the backend-user section' );
+}
+return @result;
+
+#,,,.,,.,,,.,,.,,,,..,,.,,,,.,.,,,.,.,,,.,..,,..,,...,..,,,,.,..,,,,,,,..,,.,,
+#ETYP47FPXNNOOTS7KFSZRP7PYRBURJK4PHSWEPXUIKS3KUV7S3VDKMFXHX4KPFW22LXJVSQFQFV32
+#\\\|2O4HVKF5INOTIDZ37EW56GAWS4EAKQONEH2JJHOJXCI3ESH4KPR \ / AMOS7 \ YOURUM ::
+#\[7]BUZYYR7QKQGJQJLQPDGUPWC3YCKZJYN3N3EQFQ2LN5CI4FTO7KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

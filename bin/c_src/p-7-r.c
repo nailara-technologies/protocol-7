@@ -751,6 +751,12 @@ int main( int argc, char * argv[] ) {
     struct addrinfo hints, *result, *rp;
     char * remote_host = NULL;
     char * remote_port = NULL;
+    /* -host <name[:port]> : the host the pin is checked against when the
+       dialled address is a forward [ an ssh tunnel to 127.0.0.1:<local> ]
+       -- data/md/design/HOST-SETUP.md 'pins name the HOST' */
+    char * pin_arg  = NULL;
+    char * pin_host = NULL;
+    char * pin_port = NULL;
 
     /* a helper that exits early must not kill us via SIGPIPE on its
        stdin pipe : write() then fails and the caller fails closed */
@@ -784,6 +790,13 @@ int main( int argc, char * argv[] ) {
                     argv[j] = argv[j + 1];
                 argc--;
                 i--;  // Recheck this position
+           } else if (strcmp(argv[i], "-host") == 0 && i + 1 < argc) {
+                pin_arg = argv[i + 1];
+                /* Remove -host <name[:port]> from argv by shifting */
+                for (int j = i; j < argc - 2; j++)
+                    argv[j] = argv[j + 2];
+                argc -= 2;
+                i--;
            } else if (strncmp(argv[i], "-strict", 7) == 0 && argv[i][7] == '\0') {
                 strict = 1;
                 /* Remove -strict from argv by shifting */
@@ -799,7 +812,7 @@ int main( int argc, char * argv[] ) {
                 return 0;
            } else {
                 fprintf( stderr,
-                  "\n  << option not valid >>  [ -v for verbose, -strict for strict mode, -d[q] for BMW checksum ]\n\n"
+                  "\n  << option not valid >>  [ -v for verbose, -strict for strict mode, -host <name[:port]> pin name, -d[q] for BMW checksum ]\n\n"
                 );
                 return 2;
            }
@@ -808,7 +821,7 @@ int main( int argc, char * argv[] ) {
 
     /* options removed : hostname[:port] is argv[1] now */
     if ( argc < 3 ) {
-        fprintf( stderr, "\n < usage : %s [-v] [-strict] <hostname[:port]> <command> [args] >\n\n", argv[0] );
+        fprintf( stderr, "\n < usage : %s [-v] [-strict] [-host <name[:port]>] <hostname[:port]> <command> [args] >\n\n", argv[0] );
         exit(2);
     }
 
@@ -838,6 +851,26 @@ int main( int argc, char * argv[] ) {
          atoi(remote_port) > 65535 ) {
         fprintf(stderr, "<< invalid hostname or port >>\n");
         exit(2);
+    }
+    /* the pin host : -host <name[:port]> or the dialled host:port */
+    pin_host = remote_host;
+    pin_port = remote_port;
+    if ( pin_arg != NULL ) {
+        char * pin_sep = strchr(pin_arg, ':');
+        if ( pin_sep != NULL ) {
+            pin_host = strndup(pin_arg, pin_sep - pin_arg);
+            pin_port = pin_sep + 1;
+        } else {
+            pin_host = pin_arg;
+            pin_port = "42";
+        }
+        if ( pin_host == NULL ||
+             ! is_safe_token(pin_host, 253, ".-") || pin_host[0] == '-' ||
+             ! is_safe_token(pin_port, 5, "") || atoi(pin_port) < 1 ||
+             atoi(pin_port) > 65535 ) {
+            fprintf(stderr, "<< invalid -host name or port >>\n");
+            exit(2);
+        }
     }
     if ( ! is_safe_token(p7_unix_user, 64, "._-") ||
          p7_unix_user[0] == '.' || p7_unix_user[0] == '-' ) {
@@ -981,7 +1014,7 @@ int main( int argc, char * argv[] ) {
        sent ; S_pub is used below only because it passed here */
     if (verbose)
         fprintf(stderr, ":: checking server key delegation + host-root pin ::\n");
-    int tofu_result = check_server_pin(remote_host, remote_port, bctx.s_pub,
+    int tofu_result = check_server_pin(pin_host, pin_port, bctx.s_pub,
                                        bctx.delegation, verbose, strict);
     if (tofu_result != 0) {
         close(socket_fd);

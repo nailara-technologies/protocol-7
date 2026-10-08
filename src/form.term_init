@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = form.term_init
+# descr = put the terminal into raw non-blocking mode for form input
+
+## mirrors nshell.term_init : Linux::Termios2 [ linux-native, no XS build
+## issues ], O_NONBLOCK on STDIN so sysread never stalls the event loop, and
+## the original termios saved for form.term_restore.
+##
+## Fcntl comes from bin/Protocol-7, POSIX from base.init, Linux::Termios2 from
+## form.init_code — use CONSTANT() call form, not barewords
+
+my $tty_fd = fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## already raw : re-entering would save the RAW state as the original and make
+## restore a no-op, leaving the user's shell without echo
+return TRUE if defined <form.term.orig_termios>;
+
+## bin/Protocol-7 puts an :encoding(UTF-8) layer on STDIN/STDOUT/STDERR at
+## start-up, and sysread() is FATAL on a :utf8 handle -- "sysread() isn't
+## allowed on :utf8 handles".  drop the layer from STDIN only [ bare binmode()
+## resets to :raw ], exactly as nshell.init_code does for all three.  STDOUT
+## keeps its encoding so console messages still print utf-8 correctly, and
+## editor.input.next_key wants raw BYTES anyway -- it does its own utf-8
+## sequence assembly, and the buffer adapter decodes on insert
+binmode(STDIN);
+
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+return FALSE if not defined $flags;
+fcntl( \*STDIN, F_SETFL, $flags | O_NONBLOCK ) or return FALSE;
+
+my $orig_termios = Linux::Termios2->new();
+$orig_termios->getattr($tty_fd) or return FALSE;
+
+<form.term.orig_termios> = $orig_termios;
+<form.term.tty_fd>       = $tty_fd;
+
+my $raw_termios = Linux::Termios2->new();
+$raw_termios->getattr($tty_fd);
+
+## ISIG off too : ctrl-c must reach editor.control.process_key as a key [ it
+## returns an ADVISORY action=signal ; the host decides ] rather than killing
+## the process before the terminal can be restored
+$raw_termios->setlflag(
+    $orig_termios->getlflag() & ~( ISIG() | ECHO() | ICANON() ) );
+
+$raw_termios->setattr( $tty_fd, TCSAFLUSH() );
+
+## hide the TERMINAL's own cursor : the form draws its own [ inverse video or
+## a phosphor underscore ], and leaving the hardware one visible gives two
+## cursors in different places.  nshell.init_code does the same, and like the
+## termios state it is tied to raw mode so the restore path cannot miss it
+print "\e[?25l";
+STDOUT->flush();
+
+## armed only now that the terminal really is raw, so exit paths that never
+## reach form.quit [ SIGTERM, an uncaught die ] still restore it.
+## local cleanup only, no event loop needed — exactly what end_code is safe
+## for [ feedback-zenka-shutdown-end-code-callback ]
+push <callbacks.end_code>->@*, qw| form.term_restore |;
+
+return TRUE;
+
+#,,.,,...,,,,,...,,,,,..,,,,,,..,,..,,...,..,,..,,...,...,...,,,,,,..,.,,,,..,
+#MP4CBTU55ZDD5IW26QW67I7N73HXI2RYWRWQN2GSJASJV2FBDO2PGY5W7SXNPD2OFCDOSTQCDBPUA
+#\\\|UGEC7EOVK2DIFZRSFI6KZMXAKPST7HUMIKYPY4WDSZ3HP7E3YOA \ / AMOS7 \ YOURUM ::
+#\[7]PGIE2RFTSWFHIHEB2LOKI6P45PDNGK7GLCM73TLSCF6FHV7W3SBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

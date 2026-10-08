@@ -44,7 +44,7 @@ my @k_files = grep {s|^.+/||}
 my $remote_keys_ref = <[keys.list_remote_keys]>;
 my %owner_pins;
 {
-    my $owner_dir = <[keys.remote_keys_dir]>->( qw| owners |, FALSE );
+    my $owner_dir = <[keystore.remote_keys_dir]>->( qw| owners |, FALSE );
     if ( defined $owner_dir and opendir( my $dh, $owner_dir ) ) {
         foreach my $entry ( readdir $dh ) {
             next if $entry !~ m|\A(.+)\.public\z|;
@@ -383,8 +383,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,.,,,,.,,,,,,..,,,.,..,,.,,,.,,,,,.,,,,,,,,,.,.,...,.,,,..,,...,...,.,.,,,.,
-#UK6NOBRCWIGV562BNEZHCUXASCOQIHL7XD3XP4UFNVULQVZS5C432JUF523GC4LE2S3257SYSX236
-#\\\|N5FIJJ4LPLYYEMF4QHDTNDHWYASFQBT7H6B36NASS2JR5YRPFJE \ / AMOS7 \ YOURUM ::
-#\[7]E4JSNAQUKS3IXKBK6IKMLXM5XVF5WJYNKZKBY6A4LDKY3XRKFIAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,,..,,..,,,.,.,.,.,,,.,,,,,.,.,.,...,...,..,,.,,,,.,,.,,,,..,
+#IIWXWYUP7FARCTHBQAQBTKNE2VEZIA7W2BCLRCTSJ22L67LPRGDVRQONFO6C7PJR3DAKR7JGXDPYG
+#\\\|EP5UQYCNCDOXSWDNZMRKZQ2ZLBYIWWZDW6SER3PYVNF5FCH7SEB \ / AMOS7 \ YOURUM ::
+#\[7]7FPOMCID2H7TZAJ2Z4Z7WHAL5PCU3SZC5VLWUAATPUPO2VZIJWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

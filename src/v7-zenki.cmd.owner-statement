@@ -1,0 +1,160 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.owner-statement
+# descr = install \ drop this host's owner statement
+# param = install <chain field> | drop
+# note  = the network twin of p7-keys accept-owner \ drop-owner
+#         [ data/md/design/HOST-SETUP.md ] -- a trust-chain WRITE
+
+## admin only : no zenka holds a v7-zenki.* grant in cube's access.zenki [  ##
+## admin users reach it through '** ..*.**' ]. install verifies the WHOLE   ##
+## chain down to the current .dlg leaf exactly as accept-owner does [       ##
+## subject = this host-root, scope covers '<node>.cube', nothing expired ]  ##
+## ; every write runs AS the backend user [ v7-zenki.backend.  run ] ; a    ##
+## replaced \ dropped statement goes to the backend user's trash [          ##
+## undo-remove owner-statement:host-root ] ; the delegation is re-issued at ##
+## once.                                                                    ##
+
+my ( $action, $field ) = split m{\s+}, $call->{'args'} // '', 2;
+$action //= '';
+
+my $false = sub {
+    my $reason = shift;
+    <[base.logs]>->( 0, ': owner-statement : %s', $reason );
+    return { 'mode' => qw| false |, 'data' => $reason };
+};
+
+return $false->('usage : install <chain field> | drop')
+    if $action ne qw| install | and $action ne qw| drop |;
+
+foreach my $sub (
+    qw| trust.statement trust.verify trust.key_id trust.chain
+    keystore.trash.stash v7-zenki.backend.run v7-zenki.backend.read_small
+    v7-zenki.delegation.issue |
+) {
+    return $false->("module '$sub' not loaded")
+        if ref $code{$sub} ne qw| CODE |;
+}
+
+my $read_small = $code{'v7-zenki.backend.read_small'};
+my $target     = <[crypt.C25519.delegation_file]>->(qw| host-root |);
+return $false->('no path for host-root.dlg') if not defined $target;
+
+my ( $done, $reason ) = <[v7-zenki.backend.run]>->(
+    sub {
+        if ( $action eq qw| drop | ) {
+            return ( undef, 'no owner statement installed' )
+                if not -e $target and not -l $target;
+            my ( $stashed, $why ) = <[keystore.trash.stash]>->(
+                $target,
+                qw| owner-statement |,
+                qw| host-root |
+            );
+            return ( undef, "not moved to the trash [ $why ]" )
+                if not defined $stashed;
+            return ( TRUE, 'dropped' );
+        }
+
+        ## install : the owner chain [ anchor-most first ] ##
+        my ( $owner_chain, $why )
+            = <[trust.chain]>->( qw| split |, $field // '' );
+        return ( undef, "owner statement not valid [ $why ]" )
+            if not defined $owner_chain;
+
+        ## this host : S and its current delegation leaf ##
+        my $s_name = sprintf qw| %s.base |, <system.amos-zenka-user>;
+        my $s_path = <[crypt.C25519.key_path]>->($s_name);
+        return ( undef, "no key path for '$s_name'" )
+            if ref $s_path ne qw| HASH |;
+        my ($s_b32)
+            = $read_small->( $s_path->{'key_filename'}->{'public'}, 128 );
+        return ( undef, "'$s_name' public key not readable" )
+            if not defined $s_b32
+            or $s_b32 !~ m|\A[A-Z2-7]{52}\z|;
+        my $s_pub = Crypt::Misc::decode_b32r($s_b32);
+
+        my $dlg_file = <[crypt.C25519.delegation_file]>->($s_name);
+        my ($dlg)
+            = defined $dlg_file ? $read_small->( $dlg_file, 12288 ) : ();
+        my $current
+            = defined $dlg ? <[trust.chain]>->( qw| file |, $dlg ) : undef;
+        return ( undef, 'no delegation yet -- nothing to attach to' )
+            if ref $current ne qw| ARRAY |;
+
+        ## the WHOLE chain under the owner ##
+        my $top
+            = <[trust.statement]>->( qw| parse_wire |, $owner_chain->[0] );
+        my $owner_id
+            = ref $top eq qw| HASH |
+            ? <[trust.key_id]>->( $top->{'issuer_pub'} )
+            : undef;
+        return ( undef, 'owner statement not parsable' )
+            if not defined $owner_id;
+        my ( $valid, $verify_why ) = <[trust.verify]>->(
+            {   qw| chain |   => [ $owner_chain->@*, $current->[-1] ],
+                qw| anchors | => [$owner_id],
+                qw| subject | => $s_pub,
+                qw| now |     => time,
+            }
+        );
+        return ( undef, "owner chain refused [ $verify_why ]" )
+            if ref $valid ne qw| HASH |;
+
+        my $content = join '', map {"$ARG\n"} reverse $owner_chain->@*;
+        my ($old)   = $read_small->( $target, 12288 );
+        return ( undef, 'this owner statement is already installed' )
+            if defined $old and "$old\n" eq $content;
+
+        if ( -e $target ) {
+            my ( $stashed, $stash_why ) = <[keystore.trash.stash]>->(
+                $target,
+                qw| owner-statement |,
+                qw| host-root |, TRUE
+            );
+            return ( undef, "previous statement not stashed [ $stash_why ]" )
+                if not defined $stashed;
+        }
+
+        require Fcntl;
+        my $tmp = sprintf qw| %s.%d.tmp |, $target, $PID;
+        my $fh;
+        sysopen(
+            $fh,
+            $tmp,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+                | Fcntl::O_NOFOLLOW(),
+            0644
+        ) or return ( undef, "cannot write $tmp [ $OS_ERROR ]" );
+        chmod( 0644, $fh );    ## public : not narrowed by the umask ##
+        my $written = print {$fh} $content;
+        if ( not close($fh) or not $written or not rename( $tmp, $target ) ) {
+            unlink($tmp);
+            return ( undef, "cannot write $target" );
+        }
+        return (
+            TRUE,
+            sprintf 'installed [ owner %s.. ]',
+            substr( $owner_id, 0, 7 )
+        );
+    }
+);
+
+return $false->( $reason // 'failed' ) if not $done;
+
+<[base.logs]>->( 0, ': owner-statement : %s', $reason );
+
+## re-issue now : the .dlg chain follows the change at once ##
+my $issued = <[v7-zenki.delegation.issue]>;
+return {
+    'mode' => $issued ? qw| true | : qw| false |,
+    'data' => sprintf(
+        '%s ; delegation %s',
+        $reason, $issued ? 're-issued' : 'NOT re-issued [ see the log ]'
+    )
+};
+
+#,,,.,..,,,.,,,,,,...,,.,,,.,,..,,,..,.,.,.,.,..,,...,...,.,,,..,,,,,,.,,,..,,
+#RR5QUWII7UANCOQPAWY6X52GH6PTOGOYQXUJJQYU2UXXVGGWTTOQKV2IHZETFMP7V2SULH6K7PNPE
+#\\\|BOJTDZUNUS2OKDUG5WBNZBYHFTVUGOLB5BC5GRQVSS7VRKLX2LE \ / AMOS7 \ YOURUM ::
+#\[7]J2SYUJUHKOGOMUNKPBQ7GASZOW3DGLLMKT6INCVMJ2DWC54ZT4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

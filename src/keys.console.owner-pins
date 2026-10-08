@@ -11,7 +11,7 @@ my $show_fp = sub {
 };
 
 say " :\n :: owner pins";
-my $owner_dir = <[keys.remote_keys_dir]>->( qw| owners |, FALSE );
+my $owner_dir = <[keystore.remote_keys_dir]>->( qw| owners |, FALSE );
 my $count     = 0;
 if ( defined $owner_dir and opendir( my $dh, $owner_dir ) ) {
     foreach my $entry ( sort readdir $dh ) {
@@ -40,7 +40,7 @@ if ( defined $owner_dir and opendir( my $dh, $owner_dir ) ) {
 say " :. none" if not $count;
 
 say " :\n :: distrust";
-my $keys_dir = <[keys.remote_keys_dir]>->( undef, FALSE );
+my $keys_dir = <[keystore.remote_keys_dir]>->( undef, FALSE );
 my $distrust = defined $keys_dir ? catfile( $keys_dir, qw| distrust | ) : '';
 if ( not length $distrust or ( not -e $distrust and not -l $distrust ) ) {
     say " :. none";
@@ -71,12 +71,12 @@ if ( not length $distrust or ( not -e $distrust and not -l $distrust ) ) {
     }
 }
 say " :";
-<[keys.store_note]>
-    ->( <[keys.remote_keys_dir]>->( undef, FALSE ) // '~/.n/remote-keys' );
+<[keys.store_note]>->( <[keystore.remote_keys_dir]>->( undef, FALSE )
+        // '~/.n/remote-keys' );
 say " :.\n";
 
-#,,,,,,,,,.,.,,..,.,.,.,.,...,,,.,..,,,..,..,,..,,...,...,,,.,.,.,,.,,,,,,,.,,
-#R2Y5H2G6L6J4LY62OYOXLXGDZNHT756EFA7FML3YBZPAOAJTFXC6LPA4ZW2QP3V5VQ5JOBZ7QMI46
-#\\\|WXC2PI3F5TWIYLC7SWNYSHQVHVT6FPDVG4PUWLIMOPK5NCHNGJT \ / AMOS7 \ YOURUM ::
-#\[7]6IEVDNVNHTKAHDFKKPJV2HM6BW5BIUA7SOP425AJBRJHELB5DUAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,...,,,,,,.,,,..,,,.,...,,,,,..,,...,...,.,,,,,.,...,,,.,,.,,
+#VE3ECQEOYYGPSGFOEYVWBFOFEV2FB6WPX3ONIC6R6Z44PDK5PBE22Z2KJ5QREZYDBSM4NF4X5WVG6
+#\\\|NTRITM63N5DTP2ZTOF5UKE77QKILCX5IIGTBRAZSGI4SSGPXPX2 \ / AMOS7 \ YOURUM ::
+#\[7]XPOVNDMYVMM7U65GMSDCVFK4FG7VTVUPL7CSVG4YZRQP7BGP4GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

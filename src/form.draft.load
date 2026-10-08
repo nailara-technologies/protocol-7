@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = form.draft.load
+# descr = load a draft edit record from local storage as yaml
+# param = $id
+
+my $id = shift;
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'draft.load : entry id required' );
+    return undef;
+}
+
+if (   index( $id, qw| / | ) != -1
+    or index( $id, qw| .. | ) != -1 ) {
+    <[base.logs]>->( 0, 'draft.load : invalid entry id [ %s ]', $id );
+    return undef;
+}
+
+my $path = sprintf qw| [VAR_P7]/draft/%s.yaml |, $id;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+return undef unless -f $resolved_path;
+
+return <[format.yaml.load_file]>->($resolved_path);
+
+#,,,.,,,.,,.,,,,.,,..,...,,,.,.,,,..,,,,.,,,.,..,,...,...,,,,,..,,,.,,.,.,,,.,
+#5GAPL6SEBASUNVR47CRZ6FMDI6XKGZ45SVAHOHAW2VWG5MEMQGZEL6WMTGB66RPSCQYHUU3DCOOSC
+#\\\|YSN7LURAQSEQ7R6H7LX47PNLEGGEYKBXXXVCNOR3WHCN6ASLDIJ \ / AMOS7 \ YOURUM ::
+#\[7]KNT4CS2GUPJEJMO6LFENXS4SP77YO26RQ7D5XOPKR43I2ZJSGKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

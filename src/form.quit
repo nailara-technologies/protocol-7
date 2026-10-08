@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = form.quit
+# descr = leave the interactive form, restoring the terminal first
+
+## every exit path from the form funnels through here so terminal restore can
+## never be skipped.  base.exit also fires the registered end_code callback,
+## which calls form.term_restore again — that is deliberate  belt-and-braces
+## for the paths that never reach this module [ SIGTERM ], and term_restore is
+## idempotent [ it clears orig_termios on success ]
+
+my ( $message, $class ) = @ARG;
+
+## CLEAR BEFORE RESTORING, and before printing the outcome : leaving a
+## rendered record on screen after the form exits is an information leak in
+## any observed or shared terminal, and it is why the outcome message is
+## passed IN rather than printed by the caller -- printing first and clearing
+## second would wipe the very line worth keeping
+if (<form.interactive>) {
+
+    print $colors{'clear_screen'} // '';
+
+    ## scrollback is a SEPARATE, opt-in step : '\e[3J' drops the terminal's
+    ## saved lines, which is what actually stops someone scrolling back to
+    ## read the record -- but it discards whatever the user had on screen
+    ## before running this, so it stays off unless explicitly asked for
+    print "\e[3J"
+        if <[base.cfg_bool]>->( <user-edit.cfg.clear_scrollback> // FALSE );
+
+    STDOUT->flush();
+}
+
+<[form.term_restore]>;
+
+<[form.message]>->( $message, $class // qw| info | )
+    if defined $message and length $message;
+
+<[base.exit]>;
+
+return TRUE;
+
+#,,,.,.,.,,,,,..,,.,,,.,,,,,,,...,,,,,..,,,,,,..,,...,...,.,,,,,.,...,.,.,.,,,
+#EF32EEHCETNFR7QR6DLGZ5S4HDUU3YBYCT5ZQEUMZMWAV2Y5NMAUF2PYUQFFVYFW36A5TU55A5QL4
+#\\\|GXOWRV2O5M6FP6KJYQMORAYAK2AGMGB7KRLEKK7HFBKHWFYXN3G \ / AMOS7 \ YOURUM ::
+#\[7]QF5LFAHIKQK6VKCOTAOWUR5DU3V2WEUU6JQ6EPRKD2QKS3FCEADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

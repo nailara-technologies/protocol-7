@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = user-edit.source.value_get
+# descr = users-zenka sender : fetch one record
+# param = $record_name, $reply_handler
+
+## one half of the record source the form engine calls through <form.source> [
+## registered by user-edit.init_code ] -- the form.* modules never build a
+## users.* route themselves, so the engine stays record-independent.  the
+## session-id-prefixed route matches users.remote_fetch.run's own send ; the
+## non-prefixed swap-family alias is required here — see
+## bug-auth-keypair-client-composition-gotchas
+
+my ( $record_name, $reply_handler ) = @ARG;
+
+my $cube_sid = <form.cube_sid> // return FALSE;
+
+return <[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-get', $cube_sid ),
+        qw| call_args | => { qw| args |    => $record_name // '' },
+        qw| reply |     => { qw| handler | => $reply_handler }
+    }
+);
+
+#,,,,,,,.,.,.,...,,,,,...,,..,,,,,,..,...,.,,,..,,...,...,..,,,.,,...,.,,,,,.,
+#2LPSRTEYDQKP4YC7UXVMUSTWETN3YGGF43V4WQWPAJNTVSMUGHHMOLJSPYYJHPYZTWLHOUVKHCZEO
+#\\\|YLJGKLRCKNMGPFN6SLKLCV4FJUWOZSZXUUTWDGGRCXPJRCKXTFK \ / AMOS7 \ YOURUM ::
+#\[7]MMNMHWO73LKZ54K4HMDWWRW2ALYAWPQRTLYXYHRQYYNAGMF4K2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = form.sync_list_mode
+# descr = expand or collapse a list field as focus moves
+
+## called after every field change : if focus has landed ON a collapsed list
+## field it expands, and if focus has LEFT an expanded one it collapses.  that
+## is the whole interaction -- entering a list opens its entries, leaving
+## closes them back into the count.
+##
+## expand/collapse REPLACE the editor state [ editor.control.list.* rebuild it
+## through editor.control.create rather than hand-patching two structures ],
+## so callers must re-read <form.state> afterwards.
+##
+## the frame MUST be regenerated here : form.build_frame assigns
+## <ascii.frame.cache> unconditionally and is itself the invalidation
+## primitive, while ascii.frame.load returns its cached entry blindly -- a
+## stale descriptor renders the new rows nowhere and leaves ghost rows behind
+## for the ones that went away.
+
+my $editor_state = <form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $active_index = $editor_state->{'active_field'} // 0;
+my $active_def   = $editor_state->{'schema'}{'fields'}[$active_index];
+my $active_name  = ref $active_def eq qw| HASH | ? $active_def->{'name'} : '';
+
+my $mode = $editor_state->{'mode'} // qw| insert |;
+my ($expanded_field) = $mode =~ m|^list:(\w+)$|;
+
+my $new_state;
+
+if ( defined $expanded_field ) {
+
+    ## still inside the expanded list ? every row carries list_row_of ##
+    my $still_inside = ref $active_def eq qw| HASH |
+        && ( $active_def->{'list_row_of'} // '' ) eq $expanded_field;
+
+    if ($still_inside) {
+
+        ## sort_on_focus lives on the ORIGINAL [ collapsed-shaped ] field def,
+        ## list_source.schema -- not on any row of the expanded schema, which
+        ## only carries list_row_of.  gated here, not inside  form.resort_list
+        ## itself : per user this resort is a  sorting-specific behaviour [
+        ## contact / phone ], not a general every-list-field one --
+        ## resort_list's OTHER caller [ stdin_key's Delete-on-an-empty-row ]
+        ## deliberately does NOT gate on this flag
+        my ($list_def)
+            = grep { ( $ARG->{'name'} // '' ) eq $expanded_field }
+            ( $editor_state->{'list_source'}{'schema'} // [] )->@*;
+
+        return FALSE
+            if ref $list_def ne qw| HASH |
+            or not $list_def->{'sort_on_focus'};
+
+        ## resort IN PLACE, cursor position kept : per user, the moment focus
+        ## leaves the row it was typed into, not only when the whole list is
+        ## later re-entered or paged.  <form.state> and the frame are already
+        ## handled by resort_list itself, so return its own TRUE/FALSE
+        ## straight through rather than falling into this function's own tail
+        ## [ which would re-read a state that is about to be identical to what
+        ## is already written, wasted work ]
+        return <[form.resort_list]>;
+
+    } else {
+
+        $new_state = <[editor.control.list.collapse]>->($editor_state);
+
+        ## collapse parks the cursor ON the collapsed field, which is right
+        ## when you back OUT of the list [ Esc, or stepping back onto it ] but
+        ## wrong when you tabbed PAST it : that focus belongs to the field you
+        ## moved to.  restore it when that field survived the rebuild
+        if ( ref $new_state eq qw| HASH | and length $active_name ) {
+            my $position = 0;
+            foreach my $field_def (
+                ( $new_state->{'schema'}{'fields'} // [] )->@* ) {
+                $new_state->{'active_field'} = $position, last
+                    if ( $field_def->{'name'} // '' ) eq $active_name;
+                $position++;
+            }
+        }
+    }
+
+} elsif ( ref $active_def eq qw| HASH | and $active_def->{'list'} ) {
+
+    $new_state
+        = <[editor.control.list.expand]>->( $editor_state, $active_name );
+}
+
+return FALSE if not defined $new_state or $new_state == $editor_state;
+
+## re-apply the add-a-field row : a collapse rebuilds the schema from the one
+## captured at expand time, which never carried the row
+<[form.add_field_row]>->( $new_state, <[form.addable_fields]>->($new_state) )
+    if ( $new_state->{'mode'} // qw| insert | ) eq qw| insert |;
+
+<form.state> = $new_state;
+
+## row count changed : the cached descriptor no longer matches the schema ##
+<[form.build_frame]>->(
+    $new_state, <form.frame_name> // qw| user-edit-form |, <form.title>
+);
+
+return TRUE;
+
+#,,.,,,..,.,,,.,.,,..,,,,,...,.,.,,..,,,.,..,,..,,...,...,.,,,,.,,,,.,,,,,,.,,
+#N6MBXEEADOV5G7QZFHZMQ4FV6XONBKKDWXZN6FJCYCSS5D3AMREUW6IB3FEJYBYD2Q3SM72K2JQGS
+#\\\|KAOJQKJHPR7VAZCKZBYHF4BNIQBERDNVWE3DR2UAQWYH4YT2DOB \ / AMOS7 \ YOURUM ::
+#\[7]FX52IZFM27SAVDE3V7OJU4RZA2JSCCUCQIVU4GG6WB52KES75ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@
 
 my ( $mode, $lines ) = @ARG;
 
-my ( $keys_dir, $dir_why ) = <[keys.remote_keys_dir]>->( undef, TRUE );
+my ( $keys_dir, $dir_why ) = <[keystore.remote_keys_dir]>->( undef, TRUE );
 return ( undef, $dir_why ) if not defined $keys_dir;
 my $path = catfile( $keys_dir, qw| distrust | );
 
@@ -42,9 +42,9 @@ return ( undef, 'lines not a list' ) if ref $lines ne qw| ARRAY |;
 
 ## the previous list goes to the trash [ undo-remove distrust ] ##
 if ( -e $path ) {
-    my ( $stashed, $stash_why )
-        = <[keys.trash.stash]>
-        ->( $path, qw| distrust |, qw| distrust |, TRUE );
+    my ( $stashed, $stash_why ) = <[keystore.trash.stash]>->(
+        $path, qw| distrust |, qw| distrust |, TRUE
+    );
     return ( undef, "previous list not stashed [ $stash_why ]" )
         if not defined $stashed;
 }
@@ -66,8 +66,8 @@ if ( not close($fh) or not $written or not rename( $tmp, $path ) ) {
 }
 return TRUE;
 
-#,,.,,,,,,...,.,,,,.,,,,,,,,,,,,,,.,,,,,,,,,.,..,,...,...,,.,,,,,,.,.,..,,..,,
-#MNLQR6DQ5BXI4EFX4GYOG5MCMCKYBHNWNS7QK4XLHFFSGURPFBF47EOKIW3IE2J3VY6UB7XME6DXU
-#\\\|6EONLSYQIHKDDOJHWKJOJINVMXGCDQPLEQXR3MH5DBML3MX3K23 \ / AMOS7 \ YOURUM ::
-#\[7]465Z5H2KHLEH6XDH6VI6HYMNRTQMJS2YDRXKSFDSG7NS2ETVEWCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,,,,,,,,,,,.,,.,,.,,,..,,..,,..,,...,..,,,,.,..,,,,,,.,,,.,.,
+#USASEGHLT6BINOBKN5WJSBB7S5BC6JRZSXNXXBI7TAIZFJO3R6MDRRW6NVSI6ZHP4Q2HKYG2D63NK
+#\\\|CNZ3VGG5SBPRBAPTZHB6HJYOXNAONT5EGMSTCKVIT4JZEQBSDMU \ / AMOS7 \ YOURUM ::
+#\[7]44MJSO5KYV3WQEFCTMV6DKEDTFDX33AZBLFFX6PW3WGTUNCORMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

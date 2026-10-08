@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = form.draft.clear
+# descr = remove a draft edit record from local storage
+# param = $id
+
+my $id = shift;
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'draft.clear : entry id required' );
+    return wantarray ? ( FALSE, 'entry id required' ) : FALSE;
+}
+
+if (   index( $id, qw| / | ) != -1
+    or index( $id, qw| .. | ) != -1 ) {
+    <[base.logs]>->( 0, 'draft.clear : invalid entry id [ %s ]', $id );
+    return wantarray ? ( FALSE, 'invalid entry id' ) : FALSE;
+}
+
+my $path = sprintf qw| [VAR_P7]/draft/%s.yaml |, $id;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+## already gone is SUCCESS, not failure : clearing is about reaching a state,
+## not about performing an unlink.  the draft is written conditionally [
+## draft.write skips an empty form, and a form holding a secret is never
+## staged at all ], so "no such file" is an ORDINARY outcome of a normal save
+## -- reporting it as an error made a clean submit print a spurious failure
+return wantarray ? ( TRUE, undef ) : TRUE if not -e $resolved_path;
+
+if ( unlink($resolved_path) ) {
+    return wantarray ? ( TRUE, undef ) : TRUE;
+}
+
+my $err = sprintf 'cannot remove draft entry [ %s ] : %s',
+    $id, <[base.str.os_err]>;
+
+<[base.logs]>->( 0, $err );
+
+return wantarray ? ( FALSE, $err ) : FALSE;
+
+#,,,.,...,,,.,,,,,,..,,,.,,..,,,.,,.,,,,.,,,.,..,,...,...,,,,,.,.,,.,,...,,.,,
+#O4JWAD5CKBOLFJEIF6FVEMFFFIQNISSGZZ5HUGVEG5UY25EKRKK6QOSINFXKZ3JLOFEMUD6CXB7XA
+#\\\|LFKWJ5R4YCWTVGVGOGG335K7ZSHVP3ZMPQZ5XT3SA6C2ENMJFZA \ / AMOS7 \ YOURUM ::
+#\[7]6MTBSORCQC2PQVOTLQORVMGM5QA5F4FDE3B4XVCFB7ZIZIJXA6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

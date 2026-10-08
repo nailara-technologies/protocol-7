@@ -16,7 +16,7 @@ if ( $name !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z| ) {
 }
 
 my ( $owner_dir, $dir_why )
-    = <[keys.remote_keys_dir]>->( qw| owners |, FALSE );
+    = <[keystore.remote_keys_dir]>->( qw| owners |, FALSE );
 my $pin_file
     = defined $owner_dir ? catfile( $owner_dir, "$name.public" ) : '';
 
@@ -27,7 +27,7 @@ if ( not defined $owner_dir or ( not -e $pin_file and not -l $pin_file ) ) {
 
 ## into the trash [ undo-remove brings it back ] ##
 my ( $stashed, $stash_why )
-    = <[keys.trash.stash]>->( $pin_file, qw| owner-pin |, $name );
+    = <[keystore.trash.stash]>->( $pin_file, qw| owner-pin |, $name );
 if ( not defined $stashed ) {
     printf "\n  << '%s' not moved to the trash [ %s ] >>\n\n", $pin_file,
         $stash_why;
@@ -39,8 +39,8 @@ printf " :\n :: owner '%s' unpinned\n :. undo : undo-remove owner-pin:%s\n",
 <[keys.store_note]>->($owner_dir);
 say " :.\n";
 
-#,,..,...,.,.,,.,,.,,,,..,,,,,..,,.,,,,..,...,..,,...,..,,.,,,,,.,,.,,.,.,...,
-#S3J7QN6X37TTBXE65ZPMD4MZI5IFKURIJGH6COMG5Q5JAMV77NV6UIG4QTW732HIWDFXZ3YTX7YTO
-#\\\|F7NWMWTDNQ42GHSEWPZRDQEEQO7V3G2GM6RDSJYNHDZYLX6ECPP \ / AMOS7 \ YOURUM ::
-#\[7]EVLJDIHALRHVLH2DJM6ZMFBPIMANUMHZFJTEKNZODPVPQQT2ZGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,,,,..,,,,.,.,.,.,.,.,.,,,,,..,,...,...,...,,..,.,,,..,,.,.,
+#DOTKR7U4OYCS5EH7ZELGXXZFNKMDMBHDY4NULFCAPA4UNW3KC2PBGSJORD6N3TVCMWTBKNXIJ45LW
+#\\\|CFU3PRWD4UTJDEG3ODOKKP2NBU4TMJWTF3BDHTYO5FWH3HXIAXV \ / AMOS7 \ YOURUM ::
+#\[7]2RYVKVLXVQVEDEZKIGQRM5EJ5POERRLCKWQTFXCGOBWA64LPHWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

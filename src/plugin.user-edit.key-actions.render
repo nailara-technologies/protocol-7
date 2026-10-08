@@ -10,7 +10,7 @@
 ## the key-create name / passphrase stages ], the row IS the prompt : label +
 ## live buffer content + cursor, drawn by prompt.render.  otherwise shows a
 ## short static hint normally, and the LAST create's outcome once one has run
-## [ <user-edit.key_actions.last_result>, set by user-edit.
+## [ <form.key_actions.last_result>, set by user-edit.
 ## key_actions.submit_name / .submit_passphrase ].  that scalar is transient
 ## UI feedback only, never persisted anywhere -- key data is not record data,
 ## and this is not even key data.
@@ -26,7 +26,7 @@ my $prompt_display
 
 return $prompt_display if defined $prompt_display;
 
-my $last_result = <user-edit.key_actions.last_result>;
+my $last_result = <form.key_actions.last_result>;
 
 return sprintf( q|<<!>> %s|, $last_result ) if length( $last_result // '' );
 
@@ -39,8 +39,8 @@ return q{<<< *create key* .:. [r]ename .:. [d]elete}
 
 return q{'->  create key  .:. [r]ename .:. [d]elete};
 
-#,,,.,...,,..,.,,,,,.,,.,,,,.,,..,.,.,,,.,.,.,..,,...,...,..,,,..,.,,,,.,,,..,
-#C6YF7BO2RQSZR2JNHPBNF7SRZ36Q3HVM7SOKIYUCZNS2MWLDB6GNJNLTFCIAYBAWNMUJPCHQYJOFK
-#\\\|A26BM6CV76YR3OMJCENXJY64CDCX4BBBIL4NZTHXF2RAELC43TX \ / AMOS7 \ YOURUM ::
-#\[7]L6AKMT2ZQL7VKUNXBRVPDRPYICFF4S6E3JCKGTDJJQEOCRNGQMCI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,,,,,.,,,...,,..,...,,,,,,,.,..,,...,...,,..,..,,.,,,.,,,,.,,
+#CE6W56UD2ND7LPOBIOAXBUFUCLFD4LF63OZMNNKKURLEN6VWYIKJ7CRLMOVFG2ITZAONJUUOICYZY
+#\\\|5F57BYRL44J726MM6KTXZHB42NFBKJNMD7G2SPXEXMAGS72G5HB \ / AMOS7 \ YOURUM ::
+#\[7]OJ2GUZ4FNLXS55IUN6THGWL67OBUGFC2YBIIL7A2K6KHIZRMIIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
