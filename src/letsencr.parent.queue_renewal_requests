@@ -12,8 +12,6 @@ return {
     }
     unless $renewal_list && ref($renewal_list) eq qw| ARRAY |;
 
-<[base.logs]>->( 2, "queuing %d renewal requests", scalar(@$renewal_list) );
-
 ## Initialize renewal timers hash if not present
 <letsencr.parent.renewal_timers> = {}
     unless <letsencr.parent.renewal_timers>;
@@ -85,15 +83,20 @@ foreach my $renewal_info (@$renewal_list) {
     }
 }
 
-<[base.logs]>->( 2, "queued %d renewal requests", $queued_count );
+## the one log line per call [ callers do not repeat it ] ##
+<[base.logs]>->(
+    2,             'queued %d of %d renewal request%s',
+    $queued_count, scalar(@$renewal_list),
+    <[base.cnt_s]>->( scalar(@$renewal_list) )
+);
 
 return {
     status => qw| success |,
     queued => $queued_count,
 };
 
-#,,..,..,,.,.,.,.,,..,,,,,.,,,,..,,,,,...,...,..,,...,...,...,.,.,,,,,.,,,,,,,
-#OMZMDLIX5ZUTIPFOFK6K7O2HSC3RGVUDGFYUX3S3FOT2PS6NTN2LS6BF6RNQVH2WPH2JBPABAO7DC
-#\\\|D6D2CKT4XXX6B63X4KZYV5VIHVH2FG72IUK4GG4W5RQI6VMASHP \ / AMOS7 \ YOURUM ::
-#\[7]FPN5T3Q6BEVDDGWWQ3A45CT4UBXDER57HIRZ5VH2HMGMQ5EH4GCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,,..,..,,.,.,,,.,.,.,.,.,,,.,..,,...,...,...,,,,,,.,,,.,,,..,
+#24YM6ZNQFJWLIBH34II4C4XNGVLKMADUHJZ4EMFD33OR74RLH4WTQITWIIHEFPRD5CAQEEJXSPGRC
+#\\\|D7J4IJWTH4KBFSXCWATMLKV6DN43JUH4SAHTXK7TYQGKSECNCJP \ / AMOS7 \ YOURUM ::
+#\[7]BX76UPJHBL6AFEVDHJMKUKPRQQEWWYXJAZ7Q6RZ47VZCVTYNTODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
