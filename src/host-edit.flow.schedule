@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = host-edit.flow.schedule
+# descr  = run the next add-host step from a timer [ repaint in between ]
+# param  = <record name> <delay seconds>
+
+my ( $name, $delay ) = @ARG;
+
+my $timer = <[base.event.add_timer]>->(
+    {   qw| after |  => $delay // 0,
+        qw| repeat | => FALSE,
+        qw| desc |   => "host-edit flow $name",
+        ## by NAME at fire time : a source reload mid-flow reaches the new ##
+        ## code                                                            ##
+        qw| cb | => sub { $code{'host-edit.flow.step'}->($name) },
+    }
+);
+return defined $timer ? TRUE : FALSE;
+
+#,,..,,,.,.,.,,.,,..,,..,,.,.,.,,,...,,.,,,,.,..,,...,...,...,,..,,..,...,,,.,
+#G7QG5KWDBG3CX7ODKP2XFJUSQIV23FMCNPCRCOOHTX5CTLTRHAQ2LZ52P52BKFAKBK33GFOERVBTS
+#\\\|QVIZRM3B432S6O5HJLKNC6V5A2YNDYBCXI7J4DXZRPFSHACDRKJ \ / AMOS7 \ YOURUM ::
+#\[7]RLSNJKNQFNBA3RKV4TERMIPJVM3T3OI7M7ZDBSDTX4ZGFQKMKQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
