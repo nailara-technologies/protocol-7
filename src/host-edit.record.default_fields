@@ -6,9 +6,13 @@
 
 my ($name) = @ARG;
 
+## a record named after its host starts with that name as its address -- shown
+## in the form, editable like any other entry
+my @addresses = <[host-edit.record.name_is_host]>->($name) ? ($name) : ();
+
 return {
     qw| name |       => $name // '',
-    qw| addresses |  => [],
+    qw| addresses |  => \@addresses,
     qw| link_user |  => '',
     qw| ssh |        => '',
     qw| ssh_port |   => '',
@@ -18,8 +22,8 @@ return {
     qw| roles |      => [],
 };
 
-#,,..,,,.,,..,.,.,.,.,...,,,.,.,,,..,,...,...,..,,...,...,..,,,.,,,,.,,,.,,,.,
-#KQWMKKFUR23LDTWFUGMQYPA6FSJEOPD6RA2JYFH6DJ76WX6HJTTEGDXC66DLYOEXECR5EE3W4JNJM
-#\\\|EXO7ZBC2BAWRRWZEPAQZMZKVCRM6HLEZTK5D455FANEHTCFCBIQ \ / AMOS7 \ YOURUM ::
-#\[7]AW7YAMYNROZSJ2WGFV2DODECEW2GWQOR3ILBGCQUUIUUIXHULIDQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,...,.,,,,,.,.,.,,,,,,,,,..,,..,,...,...,...,..,,..,,...,.,,,
+#7I3O6BKTYNS7E2DVAQDKBRHC5NZBAAVPPGFYUGEI4X2NQMQBPVSCWZDPCZC3UFLCSTWJM6KVFPTUO
+#\\\|FCBIF3HN3ETYX744RKIWZQK6GSCQXDID37WGPWIC4MVYKSCLWKX \ / AMOS7 \ YOURUM ::
+#\[7]XKI3D24VHBXLB4N6FUVHRIBKNBQXO4AJIVRJ6FFNPSIS42YAPUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
