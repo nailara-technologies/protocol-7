@@ -45,7 +45,7 @@ if ( defined <debian.apt_child.w_fh> ) {
         last if not defined $job_data;
         last if $job_data->{'status'} eq qw| completed |;
         last if $job_data->{'status'} eq qw| error |;
-        <[base.event.once]>->($poll_step);
+        <[event.once]>->($poll_step);
         $waited += $poll_step;
     }
 
@@ -123,8 +123,8 @@ while ( !$ok and $max_fail-- ) {
 
 return $errors;
 
-#,,,.,...,.,,,...,.,,,,,,,.,.,.,.,..,,,.,,,,,,..,,...,..,,,.,,..,,,,.,,.,,,,.,
-#CAQPMYHWMPBUOGBVJ3FRBNIM4HVDRKINGXHT72F43V7ISAWZLICOWS4THUAGO6ZTJCPFXJQG4YWCW
-#\\\|WUQTMU2GFDIAFQHYP4ZJE3IQUSQBFGSE3XB3OWLDKXWH7J5L762 \ / AMOS7 \ YOURUM ::
-#\[7]WV3GSELIGRY6XMBF4EWJ5XSZWJPRE3DQRSVDM3F3AC66WZTPUOCI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,,,..,,.,,,,.,,..,,,,.,..,,...,..,,...,..,,,,.,..,,,.,,,,,,.,,,
+#6M4VWA56Q42LC3CZ3IDU7WUDD35JR6JBCZXML4JTCJQLWZXR75FFL6BZN3UGBG4JV3F4BGWSX5YTO
+#\\\|PN7HAIMJSNU62K52TPW4FQ6TXKAVVYNS3KJJOQFB7HBHGIFSZM7 \ / AMOS7 \ YOURUM ::
+#\[7]S7PGPXZ5FMWX54CU4EMVB5O7R3EANI6ZS55QYZJFNIPSLMYJNUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

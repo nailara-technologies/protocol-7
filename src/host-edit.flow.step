@@ -67,6 +67,10 @@ if ( $step eq qw| probe | ) {
     my ( $p, $why ) = <[host-edit.action.probe]>->(
         $name, @{$s}{qw| cube_port dial_host dial_port |}
     );
+    ## dialled directly [ no ssh ] : a cube normally listens on localhost
+    ## only, so name the likely fix rather than a bare timeout
+    $why .= ' -- no ssh set : a cube listens on localhost, set ssh'
+        if ref $p ne qw| HASH | and not $s->{'forwarded'};
     return $error->("probe : $why") if ref $p ne qw| HASH |;
     return $error->( 'the host-root DIFFERS from the pin -- not replaced '
             . '[ verify, then remove the pin with remove known:'
@@ -176,8 +180,8 @@ if ( $step eq qw| done | ) {
 
 return FALSE;    ## need_passphrase \ error : waiting or finished ##
 
-#,,.,,,..,,..,.,.,,,.,.,.,,.,,,,.,,,.,.,,,,,.,..,,...,...,...,,,.,,,.,,.,,.,,,
-#V23FXRKQLI4E6DUSIB6PAYISUZTZIHZCK2C77PTCZWVC23QM6LBLPHBGKOS4PZOLBNVI7R3EQLGAE
-#\\\|7TKYKPUGDNPAQFOLTCBOEFG5QWIJG3PCDIAFUUQUPEMIXN3IDV2 \ / AMOS7 \ YOURUM ::
-#\[7]35JGYCRYQ7BV7MGWUZYTQZFEWLJFMV55QQKEVFBR3U7VDB4RO6CY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,,.,,,.,,,,,,,,.,.,,,...,,,,,..,,...,...,,.,,,.,,.,.,.,.,..,,
+#635WBHUTLZEK23Y3VQY4KAO7HPZFOALEWNVIKCMLUZ6WXRWRR7MY6S6CZIWVAI3P47PGWRVMYAIDK
+#\\\|LAPQ6FOVAE4JVZULPEIGYRFH7GDQCWGJAPLQ72INRBDXKQOHQ5C \ / AMOS7 \ YOURUM ::
+#\[7]TB4FWGCMBGJN5VLK6ULJPOCZ6LAYVCPQAQAHH272HQI3APQUUGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
