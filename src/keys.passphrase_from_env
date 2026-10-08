@@ -1,0 +1,48 @@
+## [:< ##
+
+# name   = keys.passphrase_from_env
+# descr  = passphrases from the environment, only with a ':pass-env:' tag
+# param  = <command params> , { vars => [ <names> ], min_len => <n> }
+# return = ( <params without the tag>, { <name> => value } ) or
+#          ( undef, <reason> )
+#
+# for scripts and tests [ user, 2026-10-08 ] : a value in the environment
+# is not in the process list [ /proc/<pid>/environ : same user + root
+# only ], unlike an argument. read ONLY when the command line carries
+# ':pass-env:' [ an exported variable is never picked up by accident ] ;
+# each variable is read ONCE and deleted from %ENV at once [ it never
+# reaches a child process ; the kernel's copy in /proc/<pid>/environ
+# keeps the original for this process's lifetime -- same user + root
+# only, never in ps ]. min_len [ key CREATION ] keeps the prompt's
+# own floor [ $AMOS7::TERM::pwd_min_len, 13 ] -- the environment is no
+# way around it. without the tag the environment is not touched : ( params,
+# {} ) and the command prompts as before.
+
+my ( $params, $opt ) = @ARG;
+$params //= '';
+$opt    //= {};
+
+my @rest = grep { length and $ARG ne qw| :pass-env: | } split m| +|, $params;
+my $tagged = grep { $ARG eq qw| :pass-env: | } split m| +|, $params;
+my $rest   = join q| |, @rest;
+
+return ( $rest, {} ) if not $tagged;
+
+my %value;
+foreach my $var ( @{ $opt->{'vars'} // [] } ) {
+    my $value = delete $ENV{$var};
+    return ( undef, ":pass-env: given but $var is not set" )
+        if not defined $value or not length $value;
+    return ( undef, "$var is shorter than $opt->{'min_len'} characters" )
+        if defined $opt->{'min_len'}
+        and length($value) < $opt->{'min_len'};
+    $value{$var} = $value;
+}
+
+return ( $rest, \%value );
+
+#,,..,.,,,..,,...,,.,,,,,,.,.,...,.,,,,.,,,..,..,,...,...,...,,..,,,,,,,.,,,.,
+#RXYSSJZOWZHLMGKQJT2NN7665LRPTQWZI3M44Q5NK76LVQGPONDTP5DOFNSUEVME4G6PTJZE7UVAS
+#\\\|OLKMIDKWFPIAGLBDDCRJNH2TXUQQEF5SB527UCYPBRBXTCA7GWT \ / AMOS7 \ YOURUM ::
+#\[7]5DA36QPJFBRZ3BKI23SKBC5BA4AS5KHLO2TS64GF4NQXWCPVZMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

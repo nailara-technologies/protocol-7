@@ -1,10 +1,22 @@
 ## [:< ##
 
 # name  = keys.console.get-sp-pub-key
-# param = <name>
+# param = <name> [:pass-env:]
 # descr = create seed-phrase key to show its public key
 
-my $name = shift;
+## ':pass-env:' : the seed phrase from PROTOCOL_7_KEY_SEED [ read once, ##
+## deleted from the environment ; the prompt's minimum length holds ]   ##
+my ( $params, $env ) = <[keys.passphrase_from_env]>->(
+    shift // '',
+    {   qw| vars |    => [qw| PROTOCOL_7_KEY_SEED |],
+        qw| min_len | => $AMOS7::TERM::pwd_min_len // 13,
+    }
+);
+if ( not defined $params ) {
+    printf "\n  << %s >>\n\n", $env;
+    <[base.exit]>->(qw| 0010 |);
+}
+my ($name) = grep {length} split m| +|, $params;
 
 return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $name;
@@ -30,8 +42,8 @@ if ( not defined &Crypt::Mode::CBC::new ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
-my $key_seed_entropy
-    = AMOS7::TERM::read_password_repeated('generation entropy passphrase');
+my $key_seed_entropy = $env->{'PROTOCOL_7_KEY_SEED'}
+    // AMOS7::TERM::read_password_repeated('generation entropy passphrase');
 
 if ( not defined $key_seed_entropy or not length $key_seed_entropy ) {
     <[base.log]>->(
@@ -83,8 +95,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 ##
 return say $key_display_str;
 
-#,,..,.,,,,.,,.,.,,,,,..,,,,,,,,.,,,.,.,.,,..,..,,...,.,.,,,.,,,,,.,.,...,,..,
-#DQ2AHK4XSUSM3YGKBSMYRRTBELFJJF6UHJSN4VSWCGRIUNQK43SOZMPMX2DBFC3CEZQX75NQYDXMY
-#\\\|NJWQFSGO7TYB2LF77HR3LO2L5DP63IJ4SYO7PSQ753SCUQHP4UJ \ / AMOS7 \ YOURUM ::
-#\[7]K4YW6WGDIFIFG6DLQIWLQAEUGCLW3NNTFMDW7UNZHSL7DXMOCYCA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,,..,,..,,,.,.,,,.,.,,.,,..,,..,,...,...,.,,,,,,,..,,,,,,...,
+#KK4LH2E4EPZ7BWLGSEDXOOUQNME3H3QBDQRI57VQIG5WRWS5HDL73YBWAKG352VSTWZH56H6DOM7C
+#\\\|R3YWSA6MTPTNOMPYYWYBARBCUYTQTS7CTI2CPX3EGKIQHD3ZTN7 \ / AMOS7 \ YOURUM ::
+#\[7]CVRYJR5OXRKC2DO6ZPSCPDAVVV23APEEDAKT35XAHRT7WDMM42DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

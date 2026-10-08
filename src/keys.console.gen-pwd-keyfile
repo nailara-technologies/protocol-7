@@ -1,10 +1,23 @@
 ## [:< ##
 
 # name  = keys.console.gen-pwd-keyfile
-# param = <name>
+# param = <name> [:pass-env:]
 # descr = generate key files from passphrase entropy
 
-my $name = shift;
+## ':pass-env:' : PROTOCOL_7_KEY_PASSPHRASE [ encryption ] and             ##
+## PROTOCOL_7_KEY_SEED [ generation entropy ], read once and deleted ; the ##
+## prompt's minimum length holds for both                                  ##
+my ( $params, $env ) = <[keys.passphrase_from_env]>->(
+    shift // '',
+    {   qw| vars | => [qw| PROTOCOL_7_KEY_PASSPHRASE PROTOCOL_7_KEY_SEED |],
+        qw| min_len | => $AMOS7::TERM::pwd_min_len // 13,
+    }
+);
+if ( not defined $params ) {
+    printf "\n  << %s >>\n\n", $env;
+    <[base.exit]>->(qw| 0010 |);
+}
+my ($name) = grep {length} split m| +|, $params;
 
 if ( not defined $name ) {
     say "\n  << expected <key_name> parameter >>\n";
@@ -24,13 +37,14 @@ if ( not defined &Crypt::Mode::CBC::new ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
-my $key_password = AMOS7::TERM::read_password_repeated(
+my $key_password = $env->{'PROTOCOL_7_KEY_PASSPHRASE'}
+    // AMOS7::TERM::read_password_repeated(
     'C25119 key encryption passphrase',
     sprintf( "create C25519 key '%s'", $name )
-);
+    );
 
-my $key_seed_entropy
-    = AMOS7::TERM::read_password_repeated('generation entropy passphrase');
+my $key_seed_entropy = $env->{'PROTOCOL_7_KEY_SEED'}
+    // AMOS7::TERM::read_password_repeated('generation entropy passphrase');
 
 if ( not defined $key_password or length $key_password <= 1 ) {
     <[base.log]>->( 0, 'cannot create encrypted key without password' );
@@ -80,8 +94,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,.,,,,,,,,,.,,,.,,,.,.,,,,,,..,...,,,.,.,.,..,,...,...,,..,,..,,.,,.,,,,,.,
-#HEBGQDMKM3SN6Z6U6MMBV6VEI7W7ETU5O4FHYD2EBGJ2RLEQJ56GE7FCEBEROGAMNHXW4TAHB26XY
-#\\\|EQBLBDNW4E5NXQ5PJJPAABT225XIKDX6QRBHTVYJCD6E4MHQPEY \ / AMOS7 \ YOURUM ::
-#\[7]2HZMXDLTUVZ4MR2G23O4OUU4SMDDJ6LKIEYBY2ZZ4CROGXQP7KBA 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,,,.,..,,,..,...,,,,,,,,,...,..,,...,...,,,,,.,,,,,.,,.,,,.,,
+#7BR5MHLGRMIVDDZOLBFAPXQU67SJRNLYBAGBC27LAF4IEY6YDD3ZIGCTKROV2QRZYYSLYRZQHKZ2S
+#\\\|6USVYDKI2DJC2BLUVUAZYKTFDO6T7ADFRUNKIBGM2ROSRVU55MZ \ / AMOS7 \ YOURUM ::
+#\[7]MJ3GD7HHV5HCTJC4KPXE3TUBP2QGDHWZEVB3A2S37ELSZVUB2QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
