@@ -139,8 +139,8 @@ if ( $phase eq qw| switching | ) {
 
     ## cheap status read : no blocking i/o ##
     my $reply  = <[coding.cmd.inference-status]>;
-    my $yaml   = $reply->{'data'}               // '';
-    my $status = eval { YAML::XS::Load($yaml) } // {};
+    my $yaml   = $reply->{'data'}                  // '';
+    my $status = <[format.yaml.load_str]>->($yaml) // {};
 
     my $gpu_status = $status->{'gpu'}{'status'}   // 'unknown';
     my $gpu_model  = $status->{'gpu'}{'model_id'} // '';
@@ -207,8 +207,8 @@ if ( $phase eq qw| switching | ) {
 );
 return $finish->( { mode => qw| false |, data => qw| internal-error | } );
 
-#,,,.,,..,,,,,.,.,,.,,.,,,,,.,,..,,,,,,,.,,,,,..,,...,...,..,,.,,,..,,,..,..,,
-#DSLRVV6BXYAKAVNLSOK7ZVDKTEQIYB4M4Q7DXWK6SMDFJHTEIPYUNNOVJL235ZQVJZVBSVHQGD6D2
-#\\\|KIMHPKMWJDM2OFJ2L3SLGRUSO36OVDXIRAXSL5FENDPVYPLPU4Q \ / AMOS7 \ YOURUM ::
-#\[7]WL2ZW3K7VCXEEIT7HE2VMFGU3QKXR72Y5C3XGHN5AFAISIM7L4CA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,,.,,,,,,,.,,,,,,.,.,,,,,,..,..,,...,...,...,.,.,,.,,,.,,..,,
+#7KNWVY4HFDMMYSZK43EAP3RGUVL6PBQTRK47M3MUV3NFHJQHHY5LOXQFTY7CAJBBKIRCLO2RI2CMI
+#\\\|PI6GZCFIQPYOQLQ3FFEZGGQYWSZVKSVCNZS67ORVYTGHYUQSX5Q \ / AMOS7 \ YOURUM ::
+#\[7]CADD3R7Q2J54RYGF72AAZPX6WKUDMH6WWV6PKG63DT6CEQSX2IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

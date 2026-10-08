@@ -37,15 +37,9 @@ if ( -d $nodes_dir ) {
             }
             next if $found;
 
-            my $yaml = <[file.read]>->($file_path);
-            next unless defined $yaml and length $yaml;
-
-            my $snapshot;
-            eval {
-                <[base.perlmod.autoload]>->('YAML::XS');
-                $snapshot = YAML::XS::Load($yaml);
-                1;
-            } or next;
+            my ( $snapshot, $yaml_err )
+                = <[format.yaml.load_file]>->($file_path);
+            next if not defined $snapshot;
 
             next
                 if length $id
@@ -70,8 +64,8 @@ if ( -d $nodes_dir ) {
 
 return { 'mode' => 'true', 'data' => \@snapshots };
 
-#,,.,,,,.,,,.,.,.,..,,,..,.,.,.,,,...,,,.,.,,,.,.,...,...,.,.,,,,,,,,,.,,,.,.,
-#2KIYDQNRWUF6KSCRPS4GEH2M4VPFGSWBGRXBOCQ5CJRRU6J6JLQQXYG4V5SZOJ6BDTGFIPNQHL63S
-#\\\|MRJZUBDKF7OOG6J4CWWMSFCYP2RPYXVIZZAKBGZAK5QHQ6BM763 \ / AMOS7 \ YOURUM ::
-#\[7]46RE76TMJ3JMKDHLASFIMRRXSJB2TI4YYQWDS6EVUIQ4H4B5BUDI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,...,,,,,,..,,..,..,,,,.,...,.,.,...,...,,.,,,.,,,..,,,.,...,
+#AOYCN3NC3EKBIX7UBUAKDNJAKHILPLGAS36XGQNB7OMR27YXRENEFIOJOMZQCOWGTIWWQRAO55O2C
+#\\\|34CXHNG2YZSWXP6HRRPJROFRWMSPS3OM6AGDEHAQ7Q2WKS4PGWA \ / AMOS7 \ YOURUM ::
+#\[7]JEH3AIZJOAA3ECMPESGXVXFNVDJKOROKSN3FYF32QVJ7PRYT22AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

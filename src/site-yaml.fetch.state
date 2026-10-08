@@ -11,10 +11,9 @@ if ( $op eq qw| load | ) {
     my $sref = <[file.zenka_dir.load]>->($state_file);
     return if not defined $sref;
 
-    my $loaded;
-    eval { $loaded = YAML::XS::Load( $sref->$* ) };
-    if ($@) {
-        <[base.logs]>->( 0, 'fetch.state: load error: %s', $@ );
+    my ( $loaded, $yaml_err ) = <[format.yaml.load_str]>->( $sref->$* );
+    if ( defined $yaml_err ) {
+        <[base.logs]>->( 0, 'fetch.state: load error: %s', $yaml_err );
         return;
     }
     return if ref $loaded ne 'HASH';
@@ -73,8 +72,8 @@ if ( $op eq qw| save | ) {
 
 return FALSE;
 
-#,,.,,..,,.,.,,.,,,,,,.,,,,.,,,,,,.,,,.,.,.,,,.,.,...,...,,,,,,,.,,..,...,..,,
-#REDTFUMRPGI6NED4J7MKKEAZGJTYSHNS2ZWLAXTWNE4OS5WJD5PD36VXKY6A7GQKDAUSYL6JZ3EAW
-#\\\|LGWQLK3XHUPD2OEDTLGQTEKAVOBENP6DMGVM7HRQ7Y3DA2336SB \ / AMOS7 \ YOURUM ::
-#\[7]7PB6RRSE5PKFWCYUMBEG5FGUBJ4DWY5PRH7565HGPJSKI3Y6AECQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,..,,,,.,..,,...,,,,,.,,,.,,,.,.,...,...,..,,.,.,,,,,.,.,...,
+#UCHP3V3U3IRAVWDZCKDL7JUE473ETXTGFS3ZD3MXXFBMKBTXTPY5WJFUFR2UELRH6YDIX2I6YPK2K
+#\\\|GORADDL7NFNT53XHZOKXQYB3LVNYAS5YN4IAGBKMXLBLHTETY3N \ / AMOS7 \ YOURUM ::
+#\[7]VRYIAABLBCUI52SFPNEVGA62P7CUSYYNYDA7GE2DYMQSM6MYP4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

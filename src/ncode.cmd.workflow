@@ -34,16 +34,7 @@ if ( not defined $frame ) {
     foreach my $yfile (@yaml_files) {
         next unless -f $yfile;
 
-        my $yaml_fn = $code{'format.yaml.load_file'};
-        my $data;
-        if ( defined $yaml_fn ) {
-            $data = $yaml_fn->($yfile);
-        } else {
-            eval {
-                <[base.perlmod.load]>->('YAML::XS');
-                $data = YAML::XS::LoadFile($yfile);
-            };
-        }
+        my $data = <[format.yaml.load_file]>->($yfile);
         next unless ref $data eq qw| HASH |;
 
         my $wfs = $data->{'workflows'} // [];
@@ -158,8 +149,8 @@ $summary .= ", suggest_next: $suggest_next" if length $suggest_next;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,..,,,.,,,,,,...,..,,,,.,..,,,,.,.,.,,,,,.,.,...,...,..,,..,,,,.,.,.,.,,,
-#H3SOHDIUAHFUMIOBRSWT26X6QJB3GXWTYWDXNBWX3MK4J244YMT3TMZAYLAMI7EH3YLEQVAFQTZTO
-#\\\|KMOP7GPXDTNYDKFFSB3LOYVUJ23WEYUB72VFT6ZHGJGSNVW6S5L \ / AMOS7 \ YOURUM ::
-#\[7]BBWPZ4J3UT5W6SGVBEFX4ZQUI7ZUM5ZVQN6GBTCXWSWO3VKSVSDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,,..,,..,.,.,.,.,,,.,.,.,,,,,.,.,...,...,.,.,,,.,...,...,.,.,
+#OFCIECRBMP3BPML3NPUNEQZFSBUII435ADIO7TGTGJBAWFCGKVCEH5J5E3ZQ3EXEUCWRU5F3FOXSQ
+#\\\|YZK7JVOMNZM2YFVXNO3YGV7TKFLRZ5NLFPACOAWTS3XPQYULYFY \ / AMOS7 \ YOURUM ::
+#\[7]33BVJ4Z6JII2Z3QNTQU3I6DA65PTCRXABZDXUUISXEWFU5GNHIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

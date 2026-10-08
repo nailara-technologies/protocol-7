@@ -10,9 +10,8 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
     if ($@) {
-        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+        $params = <[format.yaml.load_str]>->( $call->{'args'} ) // {};
     }
-    $params = {} if $@;
 }
 
 ## Store reply_id for async handlers to use later
@@ -33,8 +32,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,,.,,,,,,.,,,,.,...,.,,,,..,..,,...,...,.,,,.,.,...,..,,,,,,.,.,,,,,...,..,,
-#J5KJMCPYTX2TJM3AJMB6GXAC4HXJRNQMHFJI47CCQST7VFKRZSCQAWNHUM2GZKLAZHKDCM2QMT6PS
-#\\\|K7NEZ662MCVHY4IGQC4LANVVEHYVF4GOAXNOVUDPQVDKI7LTNLX \ / AMOS7 \ YOURUM ::
-#\[7]B4LMP2VJVOTLS5ARJWFUQF4RIWDKW3EGNPTO76TO4YARYQVCF4DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,.,,.,,,,,,,,,,,,,,,...,,,.,.,.,...,...,...,,.,,...,.,.,,.,,
+#HJIZO7U6QG5PDNIPCMGNLP7S3GWWTATZA5PG3LKVSPCXQ4ZEG6WVVGD2ICTYYW2T5YADCCVG6NW2E
+#\\\|C7XUTBTZGA5TC3IYRXAWEDSW73L7WAELU4ET5GISNYTDUN56FWV \ / AMOS7 \ YOURUM ::
+#\[7]LGKRIJDH4SCBQSOXYQZGJJ6T4M6Z2KO6K3JONBHOK23WNV2YWODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

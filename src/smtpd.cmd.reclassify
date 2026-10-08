@@ -27,7 +27,7 @@ my $yaml_path = $entry->{'yaml_path'} // '';
 return { 'mode' => qw| false |, 'data' => 'yaml path missing' }
     if not -f $yaml_path;
 
-my $parsed = eval { YAML::XS::LoadFile($yaml_path) };
+my $parsed = <[format.yaml.load_file]>->($yaml_path);
 return { 'mode' => qw| false |, 'data' => 'yaml load failed' }
     if not defined $parsed
     or ref $parsed ne qw| HASH |;
@@ -55,8 +55,8 @@ return {
     $parsed->{'intent'}
 };
 
-#,,..,,..,.,,,...,...,..,,,.,,,..,,,.,,,.,.,.,.,.,...,...,,.,,,,.,.,,,,,.,.,.,
-#74LZZNILBGWTY7Z4ETJU3P34EGR5N7JPWQ4HCCIT6K77FEFI63HJFPXIOCUPKEYG2RZXVBZI6X2SG
-#\\\|7YGKIQD7UXTKEEU5GNZ76F3KZCX5OOHWFUYDXULJQHRQJWV4U6S \ / AMOS7 \ YOURUM ::
-#\[7]SUN6AKWGFASYFJMWFVGFLPULBU4IRNZHCVMOKBC7K5T7NTUTRQBQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,,,..,,..,,,,,,,..,,..,,,.,.,.,...,...,...,,..,...,,,,,...,
+#GNYWVNFYVRARZV6AKGL5QU7H3WVUQNXUG47ANXQNHS2KP6RGP6BUSVAXA5M3SLAXOKM4PPWVXGWEU
+#\\\|IEXSQA7QTGAFZHYK4CZJNSNZTC3MVG2I66FQ3MO6N7SXIODPNM4 \ / AMOS7 \ YOURUM ::
+#\[7]766NZY7TBAKZNPJUSLQ25VLD2J3EWU7UE65KLGFIAKFC5SJGKIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

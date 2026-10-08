@@ -45,9 +45,12 @@ if ($is_trash) {
     $bytes = $yaml;
 }
 
-my $job = eval { YAML::XS::Load($bytes) };
-if ($@) {
-    <[base.logs]>->( 0, 'jss.job.read: load error for %s: %s', $job_id, $@ );
+my ( $job, $yaml_err ) = <[format.yaml.load_str]>->($bytes);
+if ($yaml_err) {
+    <[base.logs]>->(
+        0,       'jss.job.read: load error for %s: %s',
+        $job_id, $yaml_err
+    );
     return undef;
 }
 return undef if ref $job ne 'HASH';
@@ -60,8 +63,8 @@ for my $v ( values %$job ) {
 
 return $job;
 
-#,,,.,..,,.,,,.,,,,,,,.,.,.,.,.,.,,..,..,,...,..,,...,...,,..,,,,,,.,,,,.,,..,
-#EMONGZSMLICVHT3HGPLXKCVH6SW5KICCGHYS6OYTO2L264ZXP2DMNTMCHKT3EHZWFTVKD7JZYBB5G
-#\\\|DDP7ECAQS2M47SDQQJP5DT7FL42NDFBC4B27DM75JBDVQVMZGCW \ / AMOS7 \ YOURUM ::
-#\[7]YOJAWLQS4XO3PMLU5NR4JYK2VAKGDBECGLJCJS6OT4ORJP7JXSAY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,,,,,.,,,..,...,..,,..,,,..,..,,...,..,,...,.,,,.,.,,..,,,.,
+#475VYPWAIAZ7NUYGILWWJA2ZCMQXDFLHUAQFQKD3SHMJGN64UVS7CGHEP7RMBYQA5GWDU7SWTGZOS
+#\\\|ODWJ6KVPLSGHBILH5RN7SOT4ULI22IWCRVHLSYFHOBMNR5QSCIL \ / AMOS7 \ YOURUM ::
+#\[7]BAEEQBKMSWLTJ5Q7W5QGZGKEK3LK7LVKMUB733LFA4OHAD26XYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

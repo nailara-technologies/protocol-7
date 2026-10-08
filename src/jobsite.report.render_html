@@ -10,11 +10,11 @@ my $report_path = shift // '';
 return { 'mode' => qw| false |, 'data' => 'report path required' }
     if not length $report_path;
 
-my $report = eval { YAML::XS::LoadFile($report_path) };
-if ($EVAL_ERROR) {
+my ( $report, $yaml_err ) = <[format.yaml.load_file]>->($report_path);
+if ($yaml_err) {
     return {
         'mode' => qw| false |,
-        'data' => sprintf( 'report load failed [ %s ]', $EVAL_ERROR )
+        'data' => sprintf( 'report load failed [ %s ]', $yaml_err )
     };
 }
 
@@ -95,8 +95,8 @@ rename( $html_tmp, $html_path )
 
 return { 'mode' => qw| true |, 'html_path' => $html_path };
 
-#,,,.,.,.,,,.,,.,,,,,,,,.,..,,..,,.,,,,.,,..,,..,,...,...,...,,..,.,.,,..,.,.,
-#4FOH6NFUUUDZ2AAVPI7F2UKOOFX36UOBH4BAKTLO2KQMZAI4GKJ3X2SFLWWNZ6BA3UDHO3DWHHPT4
-#\\\|T6W5Y4RB5OBLFVVNOJZJV7HYWIUGAF4S552OROQLHYZFPQBWU7S \ / AMOS7 \ YOURUM ::
-#\[7]LOU4YQXDJLK7LW7HWP72VXS6B3SEOUDIVBN3W7XNAFWHUUNJAICI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,.,.,...,,.,,...,.,.,,..,...,..,,...,...,,.,,...,,,.,,,.,,,.,
+#MGEBNWQ2PY4SQ7JBQ2OYEFJBRXHWYAYQKOOMBOJBS4TTUOS5HMMO44U6M7YIX6VFJSEHUULQCZKTQ
+#\\\|3A7OGUOTCACAUIMY6KOBJI63BKGSBU5YISEE24IV6G5UQSWCA4J \ / AMOS7 \ YOURUM ::
+#\[7]XH3UMNPI4GIUN2RC6IEYOHQYIJAHUHZHGC546IXML73YS4CMZUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

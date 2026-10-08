@@ -15,12 +15,11 @@ my $path = sprintf '%s/%s.yaml', $dir, $name;
 
 return undef if not -f $path;
 
-require YAML::XS;
-my $profile = eval { YAML::XS::LoadFile($path) };
-if ( $@ or not defined $profile ) {
+my ( $profile, $yaml_err ) = <[format.yaml.load_file]>->($path);
+if ( not defined $profile ) {
     <[base.logs]>->(
         0,     'transport.profile.load: failed to load %s: %s',
-        $path, $@ // 'unknown'
+        $path, $yaml_err // 'unknown'
     );
     return undef;
 }
@@ -38,8 +37,8 @@ if ( not exists $profile->{'transports'}
 
 return $profile;
 
-#,,.,,..,,,,,,.,,,..,,.,,,,.,,,.,,.,.,,.,,,.,,..,,...,...,.,,,,..,,,,,...,,,,,
-#LODKCFPL27ANWGFLKVQMERAEIZBETFBWJD2POMUDZ4DC6M2P74OCPUFFF6TX6ZCFCQHBHC3466UPW
-#\\\|D4CPBAHWFITXMQJ2HKURDCT7GLUNLXWL6A2SMPL6YU2DUI55VLN \ / AMOS7 \ YOURUM ::
-#\[7]2ONWMZSVYVH3WFSNXQ5STNAID4NNIDSQKWBWMXPCBPPMF4LYLYDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,,,,..,,,,,,,,,,,..,...,,.,,..,,...,.,.,..,,.,,,.,,,,.,,,.,,
+#PW3BSND6UW6TGGSXJZKK5APCEY3K2KK7AXB4EKWPGX64T6JG6IK4Q2LV5QFM4WMTYCIW2B4UEKDRQ
+#\\\|KBSCPTRH227ZUCA4CNQAYEGKIKS55MJAIURU77U6XH5RX3FDDMU \ / AMOS7 \ YOURUM ::
+#\[7]GVT3E334MARTHA6PAIMIIIDRIJTGM6TF43R4LWEOUIV62UP6XIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,7 +57,7 @@ for my $status ( qw| new review apply applied interviewed rejected skipped |,
 ## (browser delete/reassess actions would otherwise be lost on web reload) ##
 my $reverse_file = "$cache_dir/reverse-pending.yaml";
 if ( -f $reverse_file ) {
-    my $loaded = eval { YAML::XS::LoadFile($reverse_file) };
+    my $loaded = <[format.yaml.load_file]>->($reverse_file);
     if ( ref $loaded eq 'ARRAY' and @{$loaded} ) {
         <plugin.web.jobs.reverse> = $loaded;
         <[base.logs]>->(
@@ -72,7 +72,7 @@ if ( -f $reverse_file ) {
 ## learn about removals that happened before this reload                 ##
 my $removed_log_file = "$cache_dir/removed-log.yaml";
 if ( -f $removed_log_file ) {
-    my $loaded = eval { YAML::XS::LoadFile($removed_log_file) };
+    my $loaded = <[format.yaml.load_file]>->($removed_log_file);
     if ( ref $loaded eq 'ARRAY' ) {
         <plugin.web.jobs.removed_log> = $loaded;
         <[base.logs]>->(
@@ -150,7 +150,7 @@ for my $id ( keys %active_id ) {
     my $js_file = "$jobsite_root/$status/$enc_id.yaml";
     next if not -f $js_file;
 
-    my $js_job = eval { YAML::XS::LoadFile($js_file) };
+    my $js_job = <[format.yaml.load_file]>->($js_file);
     next if ref $js_job ne qw| HASH |;
 
     my $now          = <[base.ntime.b32]>;
@@ -158,7 +158,7 @@ for my $id ( keys %active_id ) {
     my $cache_file   = "$cache_dir/$cache_status/$enc_id.yaml";
     next if not -f $cache_file;
 
-    my $cached = eval { YAML::XS::LoadFile($cache_file) };
+    my $cached = <[format.yaml.load_file]>->($cache_file);
     next if ref $cached ne qw| HASH |;
 
     my $changed = 0;
@@ -239,8 +239,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,,,,,.,,.,.,.,.,,.,,.,,,..,,.,,,,,.,.,,,,..,..,,...,...,.,,,,..,.,,,..,,...,
-#K6MSY2EQIPLLSXPA5MDZVGAW6LVBQ25KJEBYLNIOEOLMVNKCXJLUPKLFF53WWMS7CX7YMMC2NWMFO
-#\\\|XHMCA6KV5WP55OWXW2RHYDYJW6ZTBCEJB46K5IQADRUHOTG7O4H \ / AMOS7 \ YOURUM ::
-#\[7]I2XOZMNQLYVMQMUOFAFKOJFB2CGPNLNTUV4G6PLD5RDMEC2ALODY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,.,,,...,,..,.,,,...,.,.,,.,,..,,...,...,.,.,..,,.,,,...,,,.,
+#7NUZBFFM3ETUJKZUE43GAJHZDE2EW3ONCSYWN6UOD4GWZZMYYS7LYLJGQ3CQKTCXTZZ4H4KK5SOWW
+#\\\|7XY5MKL65JG7DB5YCILY5RZORIIYIE2LO3ASYBJH5D3KDGJ6K6A \ / AMOS7 \ YOURUM ::
+#\[7]74H4K3KXUREWUXDIXEIIAVJUK32R2HAEYJB767HGMJLK2CTFKICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

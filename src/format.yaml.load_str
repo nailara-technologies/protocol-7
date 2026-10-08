@@ -14,7 +14,14 @@ if ( not defined <format.yaml.load_str_fn> ) {
 
 my ( $yaml_data, $err_summary );
 
-eval { $yaml_data = <format.yaml.load_str_fn>->($str) };
+## YAML::XS parses utf-8 BYTES : decoded [ utf8 flagged ] text dies with ##
+## 'Wide character' -- parse an encoded copy [ pure YAML takes text ]    ##
+my $parse_str = $str;
+utf8::encode($parse_str)
+    if utf8::is_utf8($parse_str)
+    and ( <format.yaml.backend> // '' ) eq qw| YAML::XS |;
+
+eval { $yaml_data = <format.yaml.load_str_fn>->($parse_str) };
 
 ## yaml::xs strict parsing failed : attempt pure-yaml fallback ##
 ##
@@ -75,8 +82,8 @@ if ( not defined $yaml_data ) {
 
 return wantarray ? ( $yaml_data, undef ) : $yaml_data;
 
-#,,.,,.,,,..,,,.,,.,.,,.,,...,.,.,,,.,...,,,.,..,,...,...,,,,,..,,,.,,,,.,.,.,
-#MYROSMDEFVPYU77SLOWBM4UBF3T3JUS7VXGSEKXX2XZ5M4GT2M3ARV3NCYF24X65FVUJPWBF2G4ZA
-#\\\|QTIVR3BW5FN7HAIXIJN4LFA7FFUV6PN44OMX242XD3JBJCOTEPV \ / AMOS7 \ YOURUM ::
-#\[7]YCCOBZBYZ4YML4FPTDQKCVSOWDECVXIJYLYLA3G6ZKXY6RGZIWBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,...,,.,,...,..,,..,,,,.,,,.,..,,...,...,..,,..,,,,.,..,,,.,,
+#6UN4NAZYNXP7A4LL64HHLBIH3KI3LCDI2VFLSW3WMSV6IDCAR525FF4N776HE2FMCFPKESV352RP4
+#\\\|I67ZTTOIHI3S7A5WKZL4RHO7XBLK4DEL543X5RQXP6RRIH6OWO4 \ / AMOS7 \ YOURUM ::
+#\[7]SY7K7RVTGR4EB4EZBD3PDT4DRXROR5UMJ4GJ7JNYWOZX7PEU3CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,8 +11,6 @@
     length( $call->{'args'} // '' )
 );
 
-<[base.perlmod.load]>->('YAML::XS');
-
 my $call_args = $call->{'args'} // '';
 my ( $provider, $update_data ) = split( m|\s+|, $call_args, 2 );
 
@@ -59,14 +57,13 @@ if ( defined $update_data ) {
         }
         <[base.log]>->( 2, "parsed provider data as JSON" );
     } else {
-        ## Parse as YAML (native Protocol-7 format)  Expected: key: value
-        ## structure (no document marker)
-        eval {
-            my $prepended_yaml
-                = "---\n" . $update_data;    # Re-add marker for parser
-            $provider_data = YAML::XS::Load($prepended_yaml);
-        };
-        if ( length $EVAL_ERROR ) {
+        ## Parse as YAML (native Protocol-7 format)  Expected: key: value ##
+        ## structure (no document marker)  re-add document marker for     ##
+        ## parser                                                         ##
+        my $prepended_yaml = "---\n" . $update_data;
+        ( $provider_data, my $yaml_err )
+            = <[format.yaml.load_str]>->($prepended_yaml);
+        if ($yaml_err) {
             return {
                 'mode' => qw| false |,
                 'data' => "failed to parse YAML "
@@ -126,8 +123,8 @@ return {
     'data' => "menu updated for provider $provider"
 };
 
-#,,,,,.,,,...,,..,...,.,,,.,.,,..,,.,,..,,,,,,..,,...,...,,,.,...,,,,,,,,,..,,
-#3TW3O42EKTNRG3YGZWSFGYOSZJWPS3AN4XERKC2CB6DUCMXQYU5AZVPGFEZOPT425MOAQG7ZZTIRO
-#\\\|LJKO3EDXGQOHD6TFDOF67KVXICRLYNGXGDRSWWNPPDQBAUEZDRD \ / AMOS7 \ YOURUM ::
-#\[7]HR4FNA3BOO6TMCSDUBPMFR4UD3C27BGH6XSI6RILCIHAFXOUZAAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,.,,,,,,,,.,,,,.,.,,,...,,,,,..,,...,...,.,.,,..,,..,,..,,.,,
+#7EBQ2MLRLYPIVPNE4M3IIBQAHM3DPN23QBUH45DAAYYA4N4VQMBMGJYVN3O6FBHQLF5JY2B327WJA
+#\\\|VSPUUUTOCR7OQIIL4XUKBKQLR4YMYFOHLSOM7VL2MY4FD5IS7XS \ / AMOS7 \ YOURUM ::
+#\[7]LQ52527S5Z2SUAGPCWUCMSG3KISBTBF53VJPQHYADHZTGG5FPEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

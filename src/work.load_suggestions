@@ -10,21 +10,17 @@ my $suggestions_file
 ## Check if suggestions file exists ##
 if ( -f $suggestions_file ) {
     ## Load existing suggestions ##
-    eval {
-        require YAML::XS;
-        my $yaml_content     = <[file.slurp]>->($suggestions_file);
-        my $suggestions_data = YAML::XS::Load($$yaml_content);
+    my ( $suggestions_data, $yaml_err )
+        = <[format.yaml.load_file]>->($suggestions_file);
 
-        <work.suggestions> = $suggestions_data;
-        <[base.log]>->( 3, 'workflow suggestions loaded from yaml' );
-    };
-
-    if ($EVAL_ERROR) {
-        <[base.logs]>->(
-            1, 'failed to load suggestions yaml: %s', $EVAL_ERROR
-        );
+    if ( defined $yaml_err ) {
+        <[base.logs]>
+            ->( 1, 'failed to load suggestions yaml: %s', $yaml_err );
         return undef;
     }
+
+    <work.suggestions> = $suggestions_data;
+    <[base.log]>->( 3, 'workflow suggestions loaded from yaml' );
 } else {
     ## Create default suggestions file ##
     <[base.log]>->( 2, 'creating default workflow-suggestions.yaml' );
@@ -125,10 +121,7 @@ YAML_END
         <[base.log]>->( 2, '  ✓ Created default workflow-suggestions.yaml' );
 
         ## Load the defaults we just created ##
-        eval {
-            require YAML::XS;
-            <work.suggestions> = YAML::XS::Load($default_yaml);
-        };
+        <work.suggestions> = <[format.yaml.load_str]>->($default_yaml);
     } else {
         <[base.log]>->( 1, '  ✗ Failed to create suggestions file' );
         return undef;
@@ -139,8 +132,8 @@ return <work.suggestions>;
 
 0;
 
-#,,,,,,,,,,..,,,.,,.,,,,,,...,,,.,.,,,,.,,,.,,..,,...,...,.,,,...,,..,.,,,,.,,
-#IGMFVKP6CIKPFFF3R52ZA5QTDLFAQGDKSRVRB33H5US26MCUEERRNFAKBYHZ5CLZ57EHH2R325XW6
-#\\\|QRVCPYLLP773JPDQTGB3SZNTIQBBCFYWECNEGLZZAR3PX54KLHU \ / AMOS7 \ YOURUM ::
-#\[7]2EMTTI74GA6XWDIZ6BD7ABV4WPKDFIPHFQH4JNTRLL7EAADSHGDY 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,.,,,.,.,,,.,,.,,.,,,,,.,,,,,..,,...,..,,,..,,,,,,,.,,,.,,.,,
+#RVBBOESCRCHURX6GKOZGY42QOZQFC7MUB5OQTHIWTTCGJM6DMTDNXDWTGSXCY5SXKOIGICZCSTVSE
+#\\\|JTSAMP6PS23KN5ABIDDQ3O2IZYVRD5DJSAJZXXO4APDOFJTLZJF \ / AMOS7 \ YOURUM ::
+#\[7]J7OKXTRAXVCGQXEBZ3B2YM5FP23VON3ZY7NCNK5ASBRYTA66SMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

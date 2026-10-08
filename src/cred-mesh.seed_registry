@@ -12,12 +12,12 @@ return if not defined $seed_ref;
 my $yaml_str = $seed_ref->$* // '';
 return if not length $yaml_str;
 
-my $seed = eval { YAML::XS::Load($yaml_str) };
-if ( $@ or not defined $seed or ref $seed ne qw| HASH | ) {
+my ( $seed, $yaml_err ) = <[format.yaml.load_str]>->($yaml_str);
+if ( $yaml_err or not defined $seed or ref $seed ne qw| HASH | ) {
     <[base.logs]>->(
         0,
         'cred-mesh.seed_registry: failed to parse seed.yaml: %s',
-        $@ // 'unknown'
+        $yaml_err // 'unknown'
     );
     return;
 }
@@ -42,8 +42,8 @@ return;
 
 ## [ end ] ###################################################################
 
-#,,.,,..,,.,.,.,,,..,,,,,,,..,.,,,.,.,..,,,,.,..,,...,...,,,.,,,,,.,.,,.,,.,.,
-#LMDXRGHGF5DPG2HEPVTGTLU2TOB5QETDDZT2RENISJ3D7RO244WBDUTFTGANOKA2VHFYK4E6IYKVQ
-#\\\|B5JGH2OOZN3C2IK63ZB5AMCQ257ZTJB2FIDW4P67JQFNPTMCH62 \ / AMOS7 \ YOURUM ::
-#\[7]YXKUWCB426CUUKZG6UT5MCSPP3KUEMNHWLE65CTRHJUL3DGVOYCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,.,,.,.,..,,.,,,,,,,,,,,..,,.,,,..,,...,...,..,,...,,,.,.,.,...,
+#I4N3IVSJ4LRYHGAMHEGQNCFHTX7LRNQTLOHHUWRA565B7DOOSKXMEWGQKWBVQZLURRQVO6KRQGEG2
+#\\\|TBNUNUTSQZHSRPFHBP7CSMLMHHPI43E5XMPXNE4AR5FPAJCVZEO \ / AMOS7 \ YOURUM ::
+#\[7]FCEQ22H62JBRJRMTYDBZKU54PVOUDWVKDUNUH54CXUMGGUWAVOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

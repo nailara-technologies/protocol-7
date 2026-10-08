@@ -67,11 +67,11 @@ for my $status (@active_statuses) {
         my $job_id = <[base.vax-int.decode]>->($enc_id);
 
         my $job_file = catfile( $dir, $file );
-        my $job      = eval { YAML::XS::LoadFile($job_file) };
-        if ($EVAL_ERROR) {
+        my ( $job, $yaml_err ) = <[format.yaml.load_file]>->($job_file);
+        if ($yaml_err) {
             <[base.logs]>->(
                 0,         'jss.load_all: error loading %s: %s',
-                $job_file, <[base.str.eval_error]>
+                $job_file, $yaml_err
             );
             next;
         }
@@ -146,8 +146,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,,.,.,,,.,.,.,.,.,,,..,,..,,,,,,,,,,.,.,...,..,,...,...,..,,...,,,,,.,.,.,.,
-#MT6GVZQE2M2YMBJ6CVIUMJNRADNEXSVZXCGIGA26YYYQATODNR4IO5NRBKOGPUEEI5SP6NEDYHD22
-#\\\|MSD3VLZBSVQ7ZDVF3T24LA3ELQ52BQTDAM6WLHH3FFYONPDOCOO \ / AMOS7 \ YOURUM ::
-#\[7]WQJ42RZ5E4KHTMDWA2LE7AKNE6DBPVKRDN44OY2DDUO5VJYL5AAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,..,,...,.,.,,.,,,,.,..,,,..,..,,...,..,,.,,,...,,..,,,.,,,,,
+#FTGMLEGRTOY7DBEYZVWOMPISJYMA6LCGUK723HTO53MOL5J2JFVWUJOR43ATCZSVE6RNJI5PPMT5S
+#\\\|PIBEQICSCFKXAHQI2YFQO7WKYGR6S6NUEBMCGBWL6DTLVVKLG7N \ / AMOS7 \ YOURUM ::
+#\[7]XWX4TGEH3J5CP7BJPWLQ5UWNLANHWNSWCV7VM5H2XFI6L2PFOMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

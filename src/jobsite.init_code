@@ -56,9 +56,12 @@ if ( glob("$jobs_root/*.yaml") ) {
         1, 'jobsite: migrating flat layout to status directories'
     );
     for my $f ( glob("$jobs_root/*.yaml") ) {
-        my $job = eval { YAML::XS::LoadFile($f) };
-        if ($@) {
-            <[base.logs]>->( 0, 'migrate: load error for %s: %s', $f, $@ );
+        my ( $job, $yaml_err ) = <[format.yaml.load_file]>->($f);
+        if ($yaml_err) {
+            <[base.logs]>->(
+                0,  'migrate: load error for %s: %s',
+                $f, $yaml_err
+            );
             next;
         }
         my $id     = $job->{'id'}     // ( $f =~ m{/([^/]+?)\.yaml$} )[0];
@@ -126,7 +129,7 @@ if ( glob("$jobs_root/*.yaml") ) {
 my $removed_log_file = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite removed-log.yaml |;
 if ( -f $removed_log_file ) {
-    my $loaded = eval { YAML::XS::LoadFile($removed_log_file) };
+    my $loaded = <[format.yaml.load_file]>->($removed_log_file);
     <jobsite.removed_log> = $loaded if ref $loaded eq 'ARRAY';
 }
 
@@ -169,7 +172,7 @@ for my $id ( keys %{$idx} ) {
 
 ## var watcher on pending_count : fires when all assessments land
 <[event.add_var]>->(
-    {   'var' => \$data{'jobsite'}{'pending_count'},
+    {   'var'     => \$data{'jobsite'}{'pending_count'},
         'poll'    => 'w',
         'handler' => 'jobsite.handler.pending-changed',
         'repeat'  => TRUE,
@@ -280,8 +283,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,.,,,,,,.,.,,.,,,,.,,..,...,.,,,,,.,.,.,.,,,..,,...,...,.,.,,,,,.,,,,,,,,,.,
-#VGYZZCYVQH4RJYVZOLZGJKLV6CNYHWCALFOR5QVTRVRP4RFSWYRVY6BJMQK5HOP3EEO7PWNNMP4DI
-#\\\|HODABKSA6SQ3I7CYCVRALREXQHEZWJKVBF2KNG7ONRKGPOKE35G \ / AMOS7 \ YOURUM ::
-#\[7]N3R7R6QFEM7W5KD7NN33WNRZDZFSGWYDZCB3MWLLVU43DJTOB2AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,,..,,,.,,..,...,,,,,,,.,.,.,..,,...,..,,,,.,,..,,..,.,.,.,.,
+#2F5WWYAV6RVF2RHLEVOID4OHICIO4HHRP7THTCZNAP7H4KHNHCI7URONYO32SHLCZLLGBL2PNQRR6
+#\\\|OE6JEVFHNTQDJUFAOLL6EAE5GCX224M5BDYQOSNQLORQYBWGLHU \ / AMOS7 \ YOURUM ::
+#\[7]BHTQW5UVNZHU5O6VB5FRUG5XEZUUSMBAWYYZVLLHRT5EQ6JDFUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

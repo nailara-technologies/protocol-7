@@ -48,7 +48,7 @@ for my $entry (@entries) {
     my $meta_sref
         = <[file.zenka_dir.load]>->("completed-task-backups/$name/meta.yaml");
     my $meta = {};
-    $meta = eval { YAML::XS::Load( $meta_sref->$* ) } // {}
+    $meta = <[format.yaml.load_str]>->( $meta_sref->$* ) // {}
         if defined $meta_sref;
 
     push @output,
@@ -63,8 +63,8 @@ for my $entry (@entries) {
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @output ) . "\n" };
 
-#,,,.,,.,,.,.,,.,,,..,,,.,..,,,,,,,,,,,.,,..,,..,,...,...,.,.,.,.,..,,,,,,,..,
-#CA3AXMIAHA6QQTFMOFZ32TZ52HQZI7C5AUZB7BP6A5AWK64GC4XIUHDF2T625AP2KX2LX5LQH4QH4
-#\\\|OJZKXLVZL3O4ZKXHLNZBSRVTVMHGR3PY6PGI25OYHDGWF3MFGKY \ / AMOS7 \ YOURUM ::
-#\[7]NRNHGAVFLE5DZFOFAHOB4LZHRQZNH3CJ4JVJXDQK57GRZOVFYSBA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,,,,,..,,,..,.,.,,.,,,,,,..,,..,,...,...,,.,,,,,,.,,,...,,,.,
+#ZBA74F6BVMOPZQ3GPJBG3I6XHJBRQI3G65M6Y5FDGRJCY5M6RW6SHBLWQATFMEK2SJFZBWRBOALVG
+#\\\|XHSVUZTWKDAOVU3KNRZFRENL2B37B444XK2RRTOJKPDZZJIBMTO \ / AMOS7 \ YOURUM ::
+#\[7]D4JQQEOSSIE26EABI5FANOL3KNO55TVKNQVVICK5YYRBNHNWXEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

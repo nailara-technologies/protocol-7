@@ -7,7 +7,6 @@
 #         jobsite confirms it was claimed ; 'size' mode reply
 #         auto-fragments via STRM-SIZE if large, no manual chunking
 
-<[base.perlmod.autoload]>->('YAML::XS');
 <[base.perlmod.autoload]>->('JSON::XS');
 
 my $id = $call->{'args'} // '';
@@ -24,12 +23,12 @@ my $job_file  = "$jobs_root/$entry->{'status'}/$entry->{'name'}.yaml";
 return { 'mode' => 'false', 'data' => 'no such stray job' }
     if not -f $job_file;
 
-my $job = eval { YAML::XS::LoadFile($job_file) };
+my ( $job, $yaml_err ) = <[format.yaml.load_file]>->($job_file);
 return {
     'mode' => 'false',
-    'data' => 'load error: ' . <[base.str.eval_error]>
+    'data' => 'load error: ' . $yaml_err
     }
-    if $EVAL_ERROR;
+    if defined $yaml_err;
 
 my $payload = JSON::XS::encode_json(
     {   'name'   => $entry->{'name'},
@@ -40,8 +39,8 @@ my $payload = JSON::XS::encode_json(
 
 return { 'mode' => 'size', 'data' => $payload };
 
-#,,.,,,..,.,.,.,,,.,,,..,,.,.,...,,,,,...,,,.,..,,...,...,...,,.,,,..,,,.,.,,,
-#J2J3C7L7STDATJERBDVQRDPB3QKYYBIWLO476DQ2TWS3IVRPJQJ6QPN266G33DGW3JIPZP44UYMOI
-#\\\|A3NS52BEHC2ZS2TRI3B4CVPZGJP3IUT2UGSGI7BWPNDN4LNQ7B3 \ / AMOS7 \ YOURUM ::
-#\[7]ZF4Z25BX4C56PC576LWBBL3EB4U2HLGC7ZVNP47ZE6CTRH6UX6BY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,,..,,,,,...,.,.,..,,,,,,,.,,..,,...,...,...,,..,,.,,,..,.,,,
+#L5FGCVSDXYOVR72ADAH6IL4CJVPLO3RGESQUQC4E4ZYCRZ5WIBI3BG7YCPJOOHPBDZPPMNLZNOFYS
+#\\\|UGXSMKNPWLRA7LDXF2GLJ3OPWJ7UVLKSF4IUM5M2AY2RILQRHB3 \ / AMOS7 \ YOURUM ::
+#\[7]LIMPD6OO3DKDIMDM2ZBFZNIJY4FSZNQQLNLMOKNZONG7IIZDXUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

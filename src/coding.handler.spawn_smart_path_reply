@@ -36,10 +36,12 @@ my $dispatch_on_done = sub {
 
 ## Parse YAML reply from models zenka ##
 my $reply_data = $reply->{'data'} // '';
-my $entry      = eval { YAML::XS::Load($reply_data) };
-if ( $@ || !ref $entry ) {
+my ( $entry, $yaml_err ) = <[format.yaml.load_str]>->($reply_data);
+if ( $yaml_err || !ref $entry ) {
     <[base.logs]>->(
-        0, '[spawn_smart_path_reply] failed to parse reply: %s', $@
+        0,
+        '[spawn_smart_path_reply] failed to parse reply: %s',
+        $yaml_err // ''
     );
     $dispatch_on_done->(FALSE);
     return FALSE;
@@ -86,8 +88,8 @@ $dispatch_on_done->( ( $result && $result->{'success'} ) ? TRUE : FALSE );
 
 return $result;
 
-#,,.,,.,,,,..,,,,,.,,,,.,,,,.,.,,,...,,,,,..,,.,.,...,...,..,,,,.,,,.,,,,,,..,
-#FRUPDGN2R24RQKGJ7KJBF3GFNW3MHBM7R46G3KKYBQKQK7567EQMIXJTWNQABAFF7HSCSTPFWYZYA
-#\\\|A2HWEUOF7MMI4LIR5OZQ7IR4W7T65EOWYBS536HT5V2LMA42BDF \ / AMOS7 \ YOURUM ::
-#\[7]X2BACY5KWHHKBW47UUZZNKDYPOI5BPKXJWH57LHPZX4J35PNK6CY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,...,..,,,,,,,.,,,,,,,,.,...,.,.,...,...,.,.,,..,,..,.,.,,..,
+#BW5VJ7UPM3S232D3XWSFIQHH6IEQRGZ5HW54LVVJN5LECCDPNHXLL72N2XWLJV3RXJ2POIGEO2RIQ
+#\\\|CTQUXTWQ4LVK3FV4E5MTCJKUXUFTEOBSL5NCCD7B4YBTZKI3SRS \ / AMOS7 \ YOURUM ::
+#\[7]PR44J6DJY2RLSGSHAOQUW6DJDKMRJ2MUAW6WRZQ62RKNZQO2DGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

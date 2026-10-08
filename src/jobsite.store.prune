@@ -63,7 +63,7 @@ if ( -d $trash_root ) {
                 next;
                 };
 
-            my $job = eval { YAML::XS::Load($yaml) };
+            my $job = <[format.yaml.load_str]>->($yaml);
             next unless ref $job eq 'HASH';
 
             my $enc_id = $stub_fn;
@@ -130,7 +130,7 @@ if ( -d $blocked_root ) {
 
         for my $stub_fn (@stubs) {
             my $stub_path = "$src_dir/$stub_fn";
-            my $stub      = eval { YAML::XS::LoadFile($stub_path) };
+            my $stub      = <[format.yaml.load_file]>->($stub_path);
             next unless ref $stub eq 'HASH';
 
             my $url        = $stub->{'url'}          // '';
@@ -235,8 +235,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,,,,,,,,,..,,..,,,,,..,,..,,,,,,..,,...,,,.,..,,...,...,...,,,.,,,,,,,,,,..,
-#SVNVE6FTCUZ4Z6QP2CLG2MJWYUBAZM2M3HUJUVCIFUNUWU2OY3ZRVJGVXMZ4VAETR6ATWSVL2QSRA
-#\\\|ILQZPDVPHTG7T727G3UGRUKP5JE2OMYRSYPGZSCOM4JJ3SXBOGN \ / AMOS7 \ YOURUM ::
-#\[7]7M27JPDSQWRTDOATVMV2G32WIZQ7CDABXXNID4CM2FN35ANN66DA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,,.,.,,,,.,,,,.,,..,.,.,.,,,..,,...,...,,,.,...,.,.,.,,,,,,,
+#ZKA5CM37CB4SLN7J7KSN7YEVWMTSMMJBLXJLZE6HKADZD4ZBKKSF3ZNOWYASXCNH4QTKPQIPNV6UG
+#\\\|BKETR4R6QOUMYSKN2URY27U5VBSV2CS6PX54ID7YMUA2RO4OGNR \ / AMOS7 \ YOURUM ::
+#\[7]XNAMW2UM46A55YV4R33QSJW4BMG7OQV5CIPNHG4RENLAADTUCCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

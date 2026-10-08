@@ -6,8 +6,8 @@
 my $config_path = <proxy.cfg.selector_config> // join( '/',
     <system.root_path>, 'data/yaml/web-proxy/template-selector.yaml' );
 
-my $yaml_str = <[file.slurp]>->($config_path)->$* // '';
-my $config   = eval { YAML::XS::Load($yaml_str) } // {};
+my $yaml_str = <[file.slurp]>->($config_path)->$*    // '';
+my $config   = <[format.yaml.load_str]>->($yaml_str) // {};
 
 <proxy.selector.rules>    = [];
 <proxy.selector.fallback> = 'generic.proxy';
@@ -28,8 +28,8 @@ if ( -d $domains_dir and opendir my $dh, $domains_dir ) {
         next unless $fn =~ m{^(.+)\.yaml$};
         my $domain        = $1;
         my $domain_path   = "$domains_dir/$fn";
-        my $domain_yaml   = <[file.slurp]>->($domain_path)->$*    // '';
-        my $domain_config = eval { YAML::XS::Load($domain_yaml) } // {};
+        my $domain_yaml   = <[file.slurp]>->($domain_path)->$*       // '';
+        my $domain_config = <[format.yaml.load_str]>->($domain_yaml) // {};
         if ( ref $domain_config eq 'HASH'
             and exists $domain_config->{'rules'} ) {
             my $drules = $domain_config->{'rules'};
@@ -53,8 +53,8 @@ if ( -d $domains_dir and opendir my $dh, $domains_dir ) {
 
 return;
 
-#,,,,,,.,,,..,.,,,...,...,.,.,,,.,,.,,..,,..,,..,,...,...,,.,,...,,.,,.,.,,,,,
-#CTUG4RUPO5QSYWOA2CFVJG5MXFS62UJVY4AOPGFR54XNDONXT2JPJPOOGTJZ2P4CDDI4MGG2IHMHI
-#\\\|VAFI6ZNAAHYQ7DBNLENOFXM33SATSCCLPE4DOEZZ4H7X7PIH2E2 \ / AMOS7 \ YOURUM ::
-#\[7]XVBBIAXL4ALAZ6QS7FVVHCQ7MPRPYCSG3UZG3ITWO6DDRJMCXOAA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,..,,,.,...,...,.,,,...,,..,..,,...,...,.,.,...,.,.,,.,,,,.,
+#JHRN6QYHXGN7XO7DYDPZJ7CQNISETMKFEM4H2XCEJ4RXWYGFMRCBLIWIOH2KUUXHE3HZLAZ7JKXHA
+#\\\|Z76ONBR2W665YH67AFMKUYNI7VBCZFDOU3KQXKS3VR6PCLHDPZ4 \ / AMOS7 \ YOURUM ::
+#\[7]AWWTSBJEWHGJUWVKZAGEPXGMRSZ3MSLR2XH24CO63BZL5LCVBIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

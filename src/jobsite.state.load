@@ -6,10 +6,9 @@
 my $sref = <[file.zenka_dir.load]>->('scan-state.yaml');
 return if not defined $sref;
 
-my $saved;
-eval { $saved = YAML::XS::Load( $sref->$* ) };
-if ($@) {
-    <[base.logs]>->( 0, 'jss.load: parse error: %s', $@ );
+my ( $saved, $yaml_err ) = <[format.yaml.load_str]>->( $sref->$* );
+if ($yaml_err) {
+    <[base.logs]>->( 0, 'jss.load: parse error: %s', $yaml_err );
     return;
 }
 return if ref $saved ne 'HASH';
@@ -72,7 +71,7 @@ if ( -d $jobs_dir ) {
 }
 
 if ( -f $store_file and not $has_jobs ) {
-    my $store = eval { YAML::XS::LoadFile($store_file) } // {};
+    my $store = <[format.yaml.load_file]>->($store_file) // {};
     if ( ref $store eq 'HASH' and %{$store} ) {
         my $migrated = 0;
         my $tasks    = <jobsite.tasks> // {};
@@ -107,8 +106,8 @@ if ( -f $store_file and not $has_jobs ) {
     <jobsite.cycle>, <jobsite.pending_count>
 );
 
-#,,..,.,,,.,,,...,.,,,,..,,..,.,.,,.,,.,,,,..,..,,...,...,..,,,..,,..,,,,,,,,,
-#G3IQCB7YGZDFNH5MPTHPDKB7JXYHWQP6Q767NWE7BV37VSETDECVFOUIAXKKLBDAIHZEH2IUN7BLC
-#\\\|WS7WHIZPVD7ECDMYRG6IJEQNFWCENBIZBG5XGPJWRQ2HPIPNH25 \ / AMOS7 \ YOURUM ::
-#\[7]HPSQBBRQHWQWD2WLI6CBC5H2Q2YSRS5RAWJHCEFYBSGCZHFND4BY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,,.,...,...,,,,,,..,,..,.,,,..,,...,...,,.,,,.,,,,.,.,,,.,.,
+#SRQD2KD2QSSJUJ6XOA5S7YRBZFKAXPVCTRWDZDSIK2TWIPNLOZA7LH34JNINCOQQAUGKBV3HPGULC
+#\\\|VONUJHDHKJ2DMEKWELTS42ZOZ62KUPP5AGSAOJY2OOYJ2EEROYG \ / AMOS7 \ YOURUM ::
+#\[7]PW47PUS2ZBMJ2PGIGGKQTCWH2RHZSBOPOSVPV3IY5FDVYVQZXSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

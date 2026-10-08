@@ -67,10 +67,13 @@ if ( $reply_data =~ m{^error:\s*(.+?)\s*$} ) {
 }
 
 ## Parse YAML reply from models zenka ##
-my $entry = eval { YAML::XS::Load($reply_data) };
-if ( $@ || !ref $entry ) {
-    <[base.logs]>
-        ->( 0, "[switch_model_reply] failed to parse reply: %s", $@ );
+my ( $entry, $yaml_err ) = <[format.yaml.load_str]>->($reply_data);
+if ( $yaml_err || !ref $entry ) {
+    <[base.logs]>->(
+        0,
+        "[switch_model_reply] failed to parse reply: %s",
+        $yaml_err // ''
+    );
     $mark_switch_dead->();
     delete <coding.switch_model_active>;
     return FALSE;
@@ -193,8 +196,8 @@ if ( $backend eq qw| auto | ) {
 
 return TRUE;
 
-#,,..,,..,,,,,.,.,.,,,...,,.,,.,.,,,,,...,..,,.,.,...,...,..,,,..,,..,...,,..,
-#4H6HYDZAIVMFV5EB32BY2UAVGMAIZLWXIKEEPBUGUWDKI2PKUNRZA5UWUQMJZMYR42RET5IEYLHIC
-#\\\|UE4NVXUW5VI3XJEJ2KKECROGW3DYGBSRKVEM7F3CXO4NDQF2SDA \ / AMOS7 \ YOURUM ::
-#\[7]LUETUPS4CH3AOF7GXXUEYTHH2STIPMSGYFMZMTYL5TLHUSHXPSAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,,,,,,,,,.,.,.,,,,,,,,.,,.,.,.,.,...,...,...,.,,,..,,,,,,,,,,
+#LPQLNKCXB4I3TY6QIENYRF5VUN55JKO5JZN4JZKCJBGFQVFL3YAM5S4RDJXMWENX7HOMZA2YOH64K
+#\\\|GYGBHNYJQVPHYPXZ2CEA7QQDVW3BR25AQX7TK4ZR4YBBLIPNU3R \ / AMOS7 \ YOURUM ::
+#\[7]SFDDRW5APKZVEHRLRGR2AIJTVQWRUXOREL5ADMSC2ZCJO3SRUKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

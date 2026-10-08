@@ -14,9 +14,9 @@ return undef
 
 ## [ load yaml registry ] ##
 my $yaml_path = 'data/yaml/harmonic/fraction-period-groups.yaml';
-my $yaml_data = eval { YAML::XS::LoadFile($yaml_path) };
+my $yaml_data = <[format.yaml.load_file]>->($yaml_path);
 
-return undef if $@ or not defined $yaml_data;
+return undef if not defined $yaml_data;
 
 my $periods = $yaml_data->{'periods'} // {};
 
@@ -38,8 +38,8 @@ for my $fam (@families) {
 
 return undef;
 
-#,,,.,...,,..,,.,,,,.,.,,,,,,,..,,.,,,,..,.,.,..,,...,...,...,,,,,..,,,,,,,..,
-#PXP477BQQ5MTIWXQ2BXRRQARLHLKKQNYSHOULYU6OE652ZLTYOYYNT4R2SZ4MMKFMYUZUPJRRYM7I
-#\\\|MECI5N6WQWHENE2U2YGLRDT6VYAGFH3BOMQRMMFDNDUNZSSCREK \ / AMOS7 \ YOURUM ::
-#\[7]NMJIY57OUPUTJZGCBG3FLZ3ZRLZEHEPUM6JAH6UVQMQQUSFVJ4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,.,.,,.,,...,...,.,,,,,,,,.,,..,,...,...,..,,...,..,,,,.,...,
+#KKXX5LZ3KUXCNH73ZD5C7OPHM3UITC3RWVM2XI2MXPQZHCUIOVULKKUVTYG7GOOJS5YBA456UGI3Q
+#\\\|2EY6LIRWBYYG3ZIMEPRV4MBBMRHUORKAGXRT6W4C2QDRTTCXWIV \ / AMOS7 \ YOURUM ::
+#\[7]X5WFKJY6CKLTLDW3FKUFMLRJ35N4LXY2BYFUPMWAIBWH2L7IC4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

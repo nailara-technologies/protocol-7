@@ -7,8 +7,6 @@
 #         transfer id = AMOS checksum over size:ntime, chained on
 #         collision ; caches id -> {name,status} for later lookup by id
 
-<[base.perlmod.autoload]>->('YAML::XS');
-
 my $jobs_root = <[file.zenka_dir.data_path]> . '/jobs';
 
 my @active_statuses
@@ -33,11 +31,11 @@ for my $status (@active_statuses) {
         my $size = -s $job_file;
         next if not defined $size;
 
-        my $job = eval { YAML::XS::LoadFile($job_file) };
-        if ($EVAL_ERROR) {
+        my ( $job, $yaml_err ) = <[format.yaml.load_file]>->($job_file);
+        if ( defined $yaml_err ) {
             <[base.logs]>->(
                 0,         'scan_stray: load error for %s: %s',
-                $job_file, <[base.str.eval_error]>
+                $job_file, $yaml_err
             );
             next;
         }
@@ -72,8 +70,8 @@ for my $status (@active_statuses) {
 
 return \@stray;
 
-#,,..,.,.,,.,,,.,,.,,,,..,,..,.,.,..,,.,,,,,.,..,,...,.,.,.,,,,..,.,.,.,,,,.,,
-#537MKSYR352MNXIYQTI6VRAQG6VSKLLWYHVST2JR4KJ7CK6TVEKX5XAYUMHZ2OSK4OURTKPZFE3HO
-#\\\|4LFCYKNZ65THYSKEYO3TEYXSBPJZS2F6R2AWT6S7YOFUGAYN6AU \ / AMOS7 \ YOURUM ::
-#\[7]YEWPANPODJ2PDOH7V3A3XBFKTFSLPMNRUZGT4WMC53GOQ7UOQIDY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,.,,,...,,.,,,,.,,,.,,..,.,,,..,,...,...,,..,,.,,...,,,.,,,,,
+#2BNB6MURY7WBJA5QZA5HO3MS6FXZJEODKCBJUXA4FKMIBNTDEHB2B7KRTZJ2UZ4YAUMCH2AC64242
+#\\\|XSCECJDOWD7VCIOUHAQUPGKLTECNPTIWJBAUNKAXQOWRC6CSV5S \ / AMOS7 \ YOURUM ::
+#\[7]GFO7CK7NKLFK5CLGGNNNCZOZGTCN7RXWEDTVEWE73YIPYS3TGSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
