@@ -136,6 +136,7 @@ if (not sysopen(
             | Fcntl::O_NOFOLLOW(),
         0644
     )
+    or not chmod( 0644, $fh )    ## public : not narrowed by the umask ##
     or not print {$fh} $content
     or not close($fh)
     or not rename( $tmp, $target )
@@ -155,8 +156,8 @@ printf " :. owner %s\n :.       %s\n", substr( $owner_fp, 0, $half ),
 say " :\n :. v7-zenki adds it at its next delegation run [ daily ] or now :";
 say " :.   p7c v7-zenki.delegation-issue ::\n";
 
-#,,..,...,,..,.,.,,.,,..,,...,,,,,.,.,,,.,..,,..,,...,...,,,.,,.,,,,,,,,,,.,,,
-#4STKOMPARFL5NFT4DVZP363IXORSXZG6SODOUULVMM7VUAT5JTMOIKPZOWXYT3GNBKBOJ3MVSEAVQ
-#\\\|LJJG2SHXG6M4TRYOERG5W7CDBUBK3G2QXJ7IZNTSHJZRGDKFAUA \ / AMOS7 \ YOURUM ::
-#\[7]QRUKNSXWESEB7BI2CMQAATHNGUBZETVCPXESQZSBVDS5BQB34UDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,,,,,.,,,..,,.,,,..,,.,,,,..,..,,...,...,..,,..,,.,.,,..,,,,,
+#NTQZ2IJBDFTF62QKCTXP6TRBYEDSRNX4FW5DNVCIOD4LXSOVI3MRONLKWTZKS7QKYJK7EN2IQODIS
+#\\\|Q4GJLQEICJTR2F3PA5GYQAZ5BMWTSLQUMUGRMNR2WF7LDMQPAY2 \ / AMOS7 \ YOURUM ::
+#\[7]WY54S25XNL3PQSPHGXPZLSYU3TYUW7SQ24K3F5DK42R6XY5YOGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -168,7 +168,8 @@ compile_module($ARG)
     keys.store_note
     keys.console.accept-owner keys.trash.live_path keys.trash.stash
     keys.trash.entries keys.trash.purge_candidates keys.trash.restore
-    keys.console.undo-remove keys.console.removed keys.trash.offer_purge |;
+    keys.console.undo-remove keys.console.removed keys.trash.offer_purge
+    keys.console.drop-owner |;
 
 my $statement = $code{'trust.statement'};
 my $leaf_for  = sub {                       ## host-root seed -> S, name ##
@@ -521,6 +522,34 @@ say ': keys.console.accept-owner';
         '  :.. the replaced second one is in the trash [ undoable ]'
     );
 
+    ## drop-owner : the installed statement into the trash ##
+    my $installed = slurp($target);
+    $r = run('keys.console.drop-owner');
+    ok( !$r->{'err'} && !-e $target, 'drop-owner : host-root.dlg removed' );
+    ok( index( $r->{'out'}, 'v7-zenki.delegation-issue' ) != -1,
+        '  :.. says how to make it act now' );
+    $r = run('keys.console.drop-owner');
+    ok( $r->{'exit'} eq '0010', 'drop-owner again : nothing installed' );
+    run( 'keys.console.undo-remove', 'owner-statement:host-root' );
+    ok( slurp($target) eq $installed, '  :.. undo-remove brings it back' );
+
+    ## a public file keeps 0644 under a narrow umask ##
+    {
+        my $old_umask = umask 027;
+        run('keys.console.drop-owner');
+        run( 'keys.console.undo-remove', 'owner-statement:host-root' );
+        ok( ( ( stat $target )[2] & 07777 ) == 0644,
+            'umask 027 : a restored owner statement is still 0644' );
+        chdir $work_dir or die;
+        unlink "$work_dir/umask.host-root.dlg";
+        run( 'keys.console.certify-host',
+            'owner umask ' . encode_b32r( $kp{'03'}[0] ) );
+        ok( ( ( stat "$work_dir/umask.host-root.dlg" )[2] & 07777 ) == 0644,
+            'umask 027 : certify-host output is 0644' );
+        chdir $cwd or die;
+        umask $old_umask;
+    }
+
     ## end to end : the client pins the owner, then decides via the owner [ ##
     ## its own owner name : the undo tests left 'acme' on another key ]     ##
     run( 'keys.console.owner-pin', 'acme-e2e ' . $fp->('06') );
@@ -558,8 +587,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,,.,,,.,,.,.,,,.,,,,,...,,,.,,,.,.,,,..,,...,..,,,..,,,,,.,.,..,,,,.,
-#CZF2BEEXAKMPBCS4GWWQ6FDJDQWFOXU6O6P7LATQNFSQGXB2U2WUQHDGZ546NFUEL2NNGF2A22JLW
-#\\\|QHMP22L3JQJRMUA7MFUJC7VBCXASVQQQRFHNJH2QP2QT4XHW2JT \ / AMOS7 \ YOURUM ::
-#\[7]QXZ6R5GBXCFKL3GDGCX7ODSDDPHXUQQVOSCIZHQTWLHFGDPDEIAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,,.,.,.,.,.,...,...,..,,,.,,..,,...,...,,,.,,.,,,..,,.,,,,.,
+#KJ675SK32QAXTDHSU62S2SF7UGA2Q2VU7K4UAT2PZBZFM2BOGD6J634PDXVIAROE5MN2FVJPEPYIE
+#\\\|FJJHL7GKNM54GVZHBI4KCHMHQJWFR57TPKOZRFF4PARW3ZUZWZR \ / AMOS7 \ YOURUM ::
+#\[7]HTSSU4NC4IW6RJHYU7QXJARITZLTBSPYC3VBJSACY3GGC6P4M2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
