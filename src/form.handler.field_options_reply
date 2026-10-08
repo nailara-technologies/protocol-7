@@ -58,7 +58,8 @@ my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
 
 <[form.build_frame]>->(
     $editor_state,
-    <form.frame_name> // qw| user-edit-form |,
+    <form.frame_name> // ( <form.source> // {} )->{'frame_name'}
+        // qw| user-edit-form |,
     $editor_state->{'title'} // <form.title>
 );
 
@@ -66,8 +67,8 @@ my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
 
 return $attached ? TRUE : FALSE;
 
-#,,,,,.,.,.,,,,..,,.,,,..,..,,,,.,.,.,.,,,.,.,..,,...,...,...,...,,,,,.,,,..,,
-#K4PJ5PWGWHQ6WS7HD7BFUYCBOYEQ74S2VBVLJ2LNHFMHYQBMHLU6ZL25M2YSSS3FRBVXVYAHBLJ72
-#\\\|PP6IO5AF64GS24B3ZHUBS56WKXSVWBNO2XIF4OSGLG2UW7PFCGX \ / AMOS7 \ YOURUM ::
-#\[7]NKLW6YKLIOX3AUFFZ2WFMJML3N7KAU7CEXLGYCHYYUAXDPQB5OCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,,,.,,,.,,,.,,,.,.,,,,,.,,,..,,..,,...,...,,.,,,,,,.,.,...,,,.,
+#5UQTJL27XDFG7Q2IULSR4Z7WIWVMIBSYHIZHCLVUOBRPW2ZRBKXIJHMJXC6UKUGNSFLGTBZ2R66FU
+#\\\|VE3EQSJ2HXSQRN6JJPYZGHCWBUVMFKA4ZD3LZXF4STIVP4FFDF3 \ / AMOS7 \ YOURUM ::
+#\[7]VO35S3KMLHNNSD2ZPIBY3YTGMSTMCJBA2EKOVF2PFDXNWYFKR2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

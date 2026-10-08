@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = base.disable_console_command
+# descr = unregister console commands [ the code stays loaded ]
+# param = <command name> | '<namespace>.*' [ , .. ]
+# note  = '<namespace>.*' matches by the HANDLER module : 'keys.*' drops
+#         every console command keys.console.* registered [ a zenka that
+#         loads keys for its code, not for its commands -- host-edit ]
+
+## the console twin of base.disable_command : removes the command from     ##
+## <base.console> [ name -> handler, what base.call.console_command        ##
+## dispatches by ] and from <base.commands>->{'console'} [ the 'commands'  ##
+## listing ]. the handler's CODE is kept -- other modules may call it      ##
+## directly [ bin/Protocol-7 keeps disabled cmd subs compiled for the same ##
+## reason ].                                                               ##
+
+my @requested = grep { defined $ARG and length $ARG } @ARG;
+
+if ( not @requested ) {
+    warn 'expected console command names or <namespace>.* patterns';
+    return undef;
+}
+
+my $registry = <base.console>               // {};
+my $listing  = <base.commands>->{'console'} // {};
+
+my $removed = 0;
+foreach my $request (@requested) {
+    my @names;
+    if ( $request =~ m|\A([A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*)\.\*\z| ) {
+        my $prefix = "$1.console.";
+        @names = grep {
+            defined $registry->{$ARG}
+                and index( $registry->{$ARG}, $prefix ) == 0
+        } keys $registry->%*;
+    } else {
+        @names = ($request) if exists $registry->{$request};
+    }
+    foreach my $name (@names) {
+        delete $registry->{$name};
+        delete $listing->{$name};
+        $removed++;
+    }
+}
+
+<[base.logs]>->(
+    2, 'disabled %d console command%s [ %s ]',
+    $removed,
+    $removed == 1 ? '' : 's',
+    join( ', ', @requested )
+);
+
+return $removed;
+
+#,,..,.,,,,,,,,,.,..,,.,,,,,,,.,,,...,,..,,.,,..,,...,...,...,,.,,...,.,.,.,.,
+#CFCSNFE6AESWQVX63IQADXUQVESFBXC5TUFNUKSHO7VRWPIMDX2ZHVFPBKL5WC6YGPQSEHDHNMYDA
+#\\\|DDAUCQ65SCYBSOQDIEN2K525ZNT5QI4K3TXXLDQPT53VY3SZM7M \ / AMOS7 \ YOURUM ::
+#\[7]K6IVCECFTHWWHM5ZM6WZRTNQQL7MBHR4R22KBKW6I2YXENYZAACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

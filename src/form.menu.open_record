@@ -29,21 +29,22 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
 <form.menu.form_return> = <form.state>;
 
 <form.username> = $username;
-<form.title>    = sprintf( 'user-edit : %s', $username );
+my $source = <form.source> // {};
+<form.title>
+    = sprintf( $source->{'title_fmt'} // q{user-edit : %s}, $username );
 
 ## a record listed a moment ago is not a missing record : do not offer to
 ## create one from inside a menu
 <form.create.attempted> = TRUE;
 
-my $source = <form.source>          // return FALSE;
 my $sender = $source->{'value_get'} // return FALSE;
 
 <[$sender]>->( $username, qw| form.handler.value_get_reply | );
 
 return TRUE;
 
-#,,,,,.,,,,,.,,..,.,,,.,.,,,.,,.,,..,,.,,,.,,,..,,...,...,.,,,,..,,.,,,,,,,..,
-#IBKNDHUAXK6OG65PJ6RIK55KVFNM2UGZDYAUZVVWBBHFAM74AJNX5HG76CBRJRFZMKQULFDUQXUZG
-#\\\|X2HSG6YGR4ODPPY7ZJBRNDOSG6MJFYHD4IJSYP6PDL2ML75WWNV \ / AMOS7 \ YOURUM ::
-#\[7]E6VGAPDSOLGWNER67XSQRXGPCCY2HBUZI3BNMWRHJ45VZ2DP4KCI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,.,.,.,,.,,.,.,,,.,,.,,,,.,,..,..,,...,...,...,,,,,..,,...,,,,,
+#YFCTFMRDFHFEIEAOZ275O6ZVAUKEDA6J53MU5NGWV7FR3GPTUQYSRNORZWDB4CVIPJOXL7WIICBJA
+#\\\|XB3NTQTDX7OGD6WNNGUXDXMSFAGGQ26JQ2OBZO4ORSV553IHSPV \ / AMOS7 \ YOURUM ::
+#\[7]B5JBAOTPOY4QORIKC3646COIRXIB6VPQNE3QBLJCVR55EBNBTYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
