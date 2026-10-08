@@ -28,6 +28,7 @@ my $params = shift // '';
 ## partitioned out BEFORE the username fallback -- otherwise 'start
 ## :create-admin:' would take the tag itself as the username
 my $tags;
+my $params_in = $params;    ## browse below re-parses its own tags ##
 ( $params, $tags ) = <[form.parse_params]>->($params);
 
 ## record source, registered by the zenka's own init_code -- see
@@ -38,6 +39,12 @@ my $username = $params;
 $username =~ s|^\s+||;
 $username =~ s|\s+$||;
 $username = $source->{'default_record'} // '' if not length $username;
+
+## no record named and no default record [ host-edit ] : open the record list
+## instead of asking the source for an empty name, which only ended in a usage
+## error.  browse owns the event loop the same way start does
+return <[form.console.browse]>->($params_in)
+    if not length $username and not <form.mode.no_tty_debug>;
 
 my ($cube_sid) = keys <user.cube.session>->%*;
 
@@ -86,8 +93,8 @@ my $sender = $source->{'value_get'} // return FALSE;
 ## resumes here only if the reply handler unlooped to offer a record ##
 return <[form.offer_create]>->( $username, $tags );
 
-#,,..,..,,,,.,.,,,,,.,,,.,..,,..,,.,,,,,.,,.,,..,,...,...,.,.,,,.,,,.,...,..,,
-#5O56UE6UJ6E4ZXGQO7VRLDOUA4PUCZ46CRML3MUWHB2VZZ2AGUDAQTQXAXBGJKQILDSBBGVFZS4FQ
-#\\\|5774IK77SR6NJYQVMCTX6RJGNMPZCQD36TZOXOV7CYBIU72DWZJ \ / AMOS7 \ YOURUM ::
-#\[7]GZJCO55SHGF6SFVRTCG4RLYFSHGOHLPHDTYSGYBFQO7QBAJL5YAA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,.,.,,..,,,,,,..,,,,,,.,,,..,..,,...,...,,.,,,,.,,.,,,..,,,,,
+#6EBHL6LJE5BH6DQYATINBR4W7F4KMIDR7FLZ54AF35TH6XB2Y5QK5HSXTIMZQ6GDAPNAXDPA3USSE
+#\\\|MAYJ3V2IJRPTG5WKR5APHSI35UI7HFQML2TCUDPBJF5R6GCYVAO \ / AMOS7 \ YOURUM ::
+#\[7]LTJ7TJXJDXFJH5SJLV265FMUVRILOFERWQF4ROGYABUZ6MHA3OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

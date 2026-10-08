@@ -51,9 +51,11 @@ if ( not @options ) {
         ': record has no fields and no optional vocabulary [ %s ]',
         <form.username> // '?'
     );
-    print "\n  << record is empty and no "
-        . "optional fields are available >>\n\n";
-    <[form.quit]>;
+    ## message passed INTO form.quit : it clears the screen first ##
+    <[form.quit]>->(
+        'record is empty and no optional fields are available',
+        qw| fail |
+    );
     return FALSE;
 }
 
@@ -82,7 +84,10 @@ if ( not defined $editor_state ) {
     <[base.logs]>->(
         0, ': bootstrap schema rejected ' . 'by editor.control.create'
     );
-    <[form.quit]>;
+    <[form.quit]>->(
+        'could not build the ' . 'form [ schema rejected ]',
+        qw| fail |
+    );
     return FALSE;
 }
 
@@ -94,7 +99,7 @@ if (not defined
     <[base.logs]>->(
         0, ': could not generate a ' . 'frame for the bootstrap row'
     );
-    <[form.quit]>;
+    <[form.quit]>->( 'could not build the form [ no frame ]', qw| fail | );
     return FALSE;
 }
 
@@ -113,8 +118,8 @@ if (not defined
 
 return TRUE;
 
-#,,,.,...,...,,,,,...,,..,,.,,,,,,...,,.,,..,,..,,...,...,.,,,,,.,...,,.,,,,.,
-#XDUGX6V52SG3N45F7ZGUGLIS4SZZMEJTI42PNP3HGXDENF6I5IQKJL6NDWIQQU4XEK5GBM2RHBK44
-#\\\|GPPEPAR3FONYZGSXA5P2U4UCOXTHXI65VVCLUYLIKXRAFGRE46I \ / AMOS7 \ YOURUM ::
-#\[7]MM3X3GAU7OBVPH6BXFF7YGKIWQLUFOMFMDPKKU3FACIUEFCC3GCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,.,,,.,,,,,.,,..,...,,,.,,,,,..,,...,...,...,.,.,,.,,,,,,,,,,
+#EVUP7RHIZVCJI2G2CZFO2HUNDRX5FXQ26MODTW2YYH76WELLMGMYXDUG6JCAKLWEO3AAV4OE6OVXC
+#\\\|LCRKL3RIN2CJJJ2SWD5TGDQFWL3NOVHTDEXQ6HW7QOJYDZAVWGA \ / AMOS7 \ YOURUM ::
+#\[7]QJMKA4AGQGDXYCLJYIFH4MN47TGDCEEMI3LZC26DEOTNOYWODMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
