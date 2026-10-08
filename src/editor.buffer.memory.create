@@ -19,7 +19,9 @@ utf8::decode($text) if length $text and not utf8::is_utf8($text);
 ## parallel to the text [ design: masked field star-count privacy ]   ##
 my $type = $field_def->{'type'} // 'freeform_line';
 my $mask_stars;
-$mask_stars = [ map { int( 1 + rand(3) ) } 1 .. length $text ]
+$mask_stars
+    = [ map { <[editor.buffer.mask_star_count]>->($ARG) }
+        0 .. length($text) - 1 ]
     if $type eq qw| masked |;
 
 return {
@@ -30,8 +32,8 @@ return {
     'mask_stars' => $mask_stars,
 };
 
-#,,..,,.,,..,,,,.,,.,,,.,,,,.,,,,,..,,.,,,...,..,,...,...,...,...,,,.,,.,,...,
-#DYPJA452STNG4SR5OQAJOOYL4IOSHHSKFPNQ2NCX6UMDQ5PU2HOQGD3EJDNR56Z2BPMVMXI6HS46Y
-#\\\|W6RBNHRPXXGNRGLYMO4TNLVJLOTC7XUHMMVMLIS37L5RTNCYGIW \ / AMOS7 \ YOURUM ::
-#\[7]7VQRPMXLP7YANLM7BXUNIQPB4WHXLNKNREKODA2TOZMBUOOCMWCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,..,,.,.,,,.,,,.,,,.,,,.,.,.,..,,...,...,.,,,.,.,,,,,...,...,
+#42XNWRNIBWKR4X7OOUDKMGOX73ZVXZ6AH3URSMOAT4YYYLXOM7YEBPFYXAHNC2RN5NOGHQ7R6MATQ
+#\\\|PHCMWRZZPNLPIQ67TJQHSJ3X2YVS5XJIQ5SVVHCR5VOZK4E43GC \ / AMOS7 \ YOURUM ::
+#\[7]5PZAVMQHW2EUB3JNP5AIRNX4YIBTF6QNGXKYSY6J33I2BHAYUSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

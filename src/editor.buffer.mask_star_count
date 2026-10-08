@@ -1,0 +1,28 @@
+## [:< ##
+
+# name   = editor.buffer.mask_star_count
+# descr  = random star count for one masked character [ AMOS7::TERM's ]
+# param  = <character index in the text [ 0 based ]>
+# return = star count [ 1 .. 4 ]
+#
+# the SAME masking as the terminal password prompt [ AMOS7::TERM::
+# show_rnd_stars ] : int( 1.2 + rand( 1 + max( 0, ( 10 - index ) / 5 ) ) )
+# -- more stars for the first characters, so a short passphrase does not
+# look short, 1 .. 2 from the tenth on. drawn from Crypt::PRNG::Fortuna
+# [ seeded from OS entropy ], not perl's core rand.
+
+my $index = shift // 0;
+$index = 0 if $index !~ m|\A[0-9]+\z|;
+
+require Crypt::PRNG::Fortuna;
+
+my $add_more = ( 10 - $index ) / 5;
+$add_more = 0 if $add_more < 0;
+
+return int( 1.2 + Crypt::PRNG::Fortuna::rand( 1 + $add_more ) );
+
+#,,.,,...,,.,,,,.,.,,,.,,,,,,,.,,,.,.,.,.,.,.,..,,...,...,.,.,.,,,,.,,,,,,..,,
+#WNEXVFEJESUGQXP5H5BZZZJ7Y7GH5OGXRIAOYOHQPJ2272MSR5YEV5WQ245CQAV5LXM33MWTPAQOK
+#\\\|3KPFWFAOABQ5YKJGCIQSGODNVUKJ2EY4WKV2H2CJK2HBT63ZXME \ / AMOS7 \ YOURUM ::
+#\[7]SLI4WNZMDC5R523U7QZDGUWJM2XVIWFACLVC6NJBPGPPJODDN2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
