@@ -1,13 +1,15 @@
 ## [:< ##
 
 # name  = keys.console.certify-host
-# param = <owner> <host> <root> [days]
+# param = <owner> <host> <root> [days] [:pass-env:]
 # descr = owner root certifies a host-root [ scope '<host>.*' ]
 # note  = <owner> owner key name [ any key form ] , <host> the host's
 #         node name [ scope '<host>.*' ] , <root> the host-root public
 #         key [ 52 chars ] or the host's .dlg file , [days] default 365 ;
 #         writes ./<host>.host-root.dlg -- on the host : p7-keys
-#         accept-owner <file> [ as the backend user ]
+#         accept-owner <file> [ as the backend user ] ; :pass-env: the
+#         owner key's passphrase \ seed phrase from PROTOCOL_7_KEY_PASSPHRASE
+#         [ read once, deleted from the environment -- for scripts ]
 
 ## data/md/design/TRUST-CHAIN-STEP2.md [ 'the owner root' ] : the owner key ##
 ## may be in ANY form the keys zenka holds [ load_keypair prompts,          ##
@@ -16,7 +18,16 @@
 ## comes from the host's .dlg [ the leaf's issuer ] or out of band ; its    ##
 ## key id is shown for the out of band comparison.                          ##
 
-my ( $owner, $host, $root_arg, $days ) = split m|[\t ]+|, shift // '';
+## ':pass-env:' : the owner key's passphrase from the environment ##
+my ( $params, $env ) = <[keys.passphrase_from_env]>->(
+    shift // '',
+    { qw| vars | => [qw| PROTOCOL_7_KEY_PASSPHRASE |] }
+);
+if ( not defined $params ) {
+    printf "\n  << %s >>\n\n", $env;
+    <[base.exit]>->(qw| 0010 |);
+}
+my ( $owner, $host, $root_arg, $days ) = split m|[\t ]+|, $params;
 
 if ( not defined $root_arg or not length $root_arg ) {
     say "\n  << expected '<owner key> <host> <host-root "
@@ -70,6 +81,7 @@ my ( $certified, $exit_code, $reason ) = <[keys.certify_host]>->(
         qw| host |       => $host,
         qw| root_pub |   => $root_pub,
         qw| days |       => $days,
+        qw| passphrase | => $env->{'PROTOCOL_7_KEY_PASSPHRASE'},
         qw| on_warning | => sub {
             say " :\n :: << WARNING : " . shift() . ' >>';
         },
@@ -117,8 +129,8 @@ say " :. copy it to the host ; there, as the backend user :";
 say " :.   p7-keys accept-owner <file>";
 say " :. on clients : p7-keys owner-pin <name> <owner key id> ::\n";
 
-#,,,,,,.,,,,.,,..,.,.,,,,,...,.,.,,,,,,,.,.,,,..,,...,...,.,.,,.,,,.,,...,...,
-#ISXBLSGJGLCVYK5CSGJS2XJQYPQYQPC2RFL2SKW2BG2YLH64LU23BQSG2U6WTG7ZFZYHMTGYVHRI2
-#\\\|OITAMCKXQGLAN66JHTCJHNLC5C6SWZ3J3PDVGSLL3XPBQU2LWWH \ / AMOS7 \ YOURUM ::
-#\[7]KCQ7UWNMEOOWFNLLR636BHSYG2WNW7PBAI72TQSY2MXY3V7WZYDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,,,,,.,...,,,.,,..,,.,,.,,,,.,,..,,...,...,,.,,,,.,..,,.,.,.,.,
+#LUFHHUCHIT5CRHQSIZCEYVKIPBVX5RUL4QUA2QNR7UFSWVJVKSDHZQ5S3OMTN4GJT7AGJ7GV7GECQ
+#\\\|ISRB7ARZVSV2LRBA32JCJTABICPH4HCOFRELD4O6JPALV2X7UUJ \ / AMOS7 \ YOURUM ::
+#\[7]JXRP54RMMCE72RQ2JZU7LQZXG6EE54RJ5JLORN2LA5HPEJWPVGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
