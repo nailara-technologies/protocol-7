@@ -19,6 +19,7 @@ use FindBin    qw| $RealBin |;
 use File::Temp qw| tempdir |;
 use File::Path qw| make_path |;
 use JSON::XS;
+use POSIX ();    ## loaded in every zenka : POSIX::strftime in modules ##
 
 use constant TRUE    => 5;
 use constant FALSE   => 0;
@@ -414,10 +415,10 @@ deliver_timers();
 $payload = $data{'test'}{'yaml_payload'};
 
 ok( $payload->{'fields'}{'trust'} eq sprintf(
-        q{key %s · %s · since %s},
-        'AAAAAAA', 'test-leaf.cube', '424242'
+        q{key %s · %s · certified %s},
+        'AAAAAAA', 'test-leaf.cube', '1970-01-05'
     ),
-    'trust column shows label + leaf + since from the pin'
+    'trust column shows label + leaf + the certified date [ since ]'
 );
 ok( $payload->{'fields'}{'owner_trust'} eq 'owner pin test-owner present',
     'owner pin presence detected' );
@@ -434,10 +435,21 @@ ok( $payload->{'fields'}{'owner_trust'} eq 'owner pin test-owner present',
     deliver_timers();
     $payload = $data{'test'}{'yaml_payload'};
     ok( $payload->{'fields'}{'trust'} eq sprintf(
-            q{key %s · %s · since %s},
-            'BBBBBBB', 'zz-test.cube', '7'
+            q{key %s · %s · certified %s},
+            'BBBBBBB', 'zz-test.cube', '1970-01-01'
         ),
         'record pin [ zz-test_42 ] wins over the address pin [ 127.0.0.1_42 ]'
+    );
+
+    ## a first-contact pin has since 0 : no owner statement, no date shown ##
+    open( $fh, '>', $record_pin ) or die $!;
+    print {$fh} join( qq|\n|, 'C' x 77, 'zz-test.cube', '0' );
+    close($fh);
+    $code{'host-edit.source.value_get'}->( 'zz-test', $collector );
+    deliver_timers();
+    $payload = $data{'test'}{'yaml_payload'};
+    ok( $payload->{'fields'}{'trust'} eq q{key CCCCCCC · zz-test.cube},
+        'since 0 [ first contact ] : no date in the trust column'
     );
     unlink $record_pin;
 }
@@ -507,8 +519,8 @@ if ( $fail_count == 0 ) {
 say sprintf '[ done ] %d passed, %d FAILED', $pass_count, $fail_count;
 exit 1;
 
-#,,.,,.,,,,..,...,.,,,,,.,..,,.,.,,,,,,.,,.,.,..,,...,..,,..,,...,,,,,...,,..,
-#XJCQIOSPIS6N5HMQYQ5HGD6CPL5FCDCD3MYF7MZ7WFAQOLOO7XLJEBE25L7E6W4M32QJOPXSXEAZI
-#\\\|ZBGJ32KZQSL4OKDZMYWEDBHE2OAX7XNUN27AZPRQ7ATLI7VZI7G \ / AMOS7 \ YOURUM ::
-#\[7]724WLYAW54D25QQPXVGCWFPBEEF6KFLPSV3TCKD344CXDS2MAYBA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,,,.,,,...,..,,.,,,.,.,,,.,..,,..,,...,...,..,,.,.,.,,,,,.,,,.,
+#VJLLEG6TQ772R3D3DHKZLJC3E756EZB6A4OPM5H5DWF2BN73JXFTTRZ4AQUUH7DOQTDRGYBDEP4RS
+#\\\|DCWPKA4P3D2QTM7SGQTXKCS4SAZQ2WA7NRM3SGEVWNY5LRWA3U3 \ / AMOS7 \ YOURUM ::
+#\[7]VUDDSO7QU6SAVK37Z7CN74XYQNKVBJJHDE7HJGOPE6XDADY4AYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
