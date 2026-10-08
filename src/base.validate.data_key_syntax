@@ -32,12 +32,11 @@ if ( index( $data_keyname, qw| . |, 0 ) >= 0 ) {
     ##
     $data_keyname =~ s,'(([^']|\.)+)', my $k=$1; $k=~s|\.|_|g; $k,ge;
 
-    no warnings 'experimental';    ## variable width lookbehind ##
-
     ## z.<y-x> ## <-- [ at end of key ]##
     ##
-    $data_keyname
-        =~ s,(*plb:(^|\.))(<[^<\.>]+>)$, my $k=$1; $k=~s|\.|_|g; $k ,ge;
+    ## '<..>' -> '_' after a dot, '' at the start [ no variable width ##
+    ## lookbehind : not before perl 5.30 ]                            ##
+    $data_keyname =~ s,(^|\.)<[^<\.>]+>$, length $1 ? '._' : '' ,e;
 }
 
 if ( $data_keyname =~ m|\.+$| ) {
@@ -60,8 +59,8 @@ if ( $data_keyname =~ m|\.+$| ) {
 
 return TRUE;    ## is valid [true] ##
 
-#,,,.,...,,.,,,..,.,,,..,,.,,,.,.,...,,,,,,,,,..,,...,...,..,,,..,.,,,,..,,,.,
-#QXCWLCQ7RPGAU3K6PGJG3DPGC6PZDMQKYM3OTCEWFBBWAIZUQG4VJ2BCEAJSPNMQSP6FZEARIT4XO
-#\\\|K2GNW2QPFBYYAA3BRVYNBPKN3CQT656AB6IQNBT3EEM6D7YNM6S \ / AMOS7 \ YOURUM ::
-#\[7]7FP3T5JJMCJJJVGK72XW72ZWG4TH6FAVRFVEOPORSJKKQX5YLSDI 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,,.,,,,.,.,,,,,.,.,.,,.,,...,..,,...,...,.,,,,.,,.,,,.,,,..,,
+#DHEQDKX6Y3LVDBJA5USWP3QFTMMU4CRTFEQ55DYKSALSI4E3M76DO6GYYIZV2WH72UAMQBH7NGSZM
+#\\\|TWGR6GCXBIC4DHFR64QQCUS57Z7VTDA2DTX76PQ7MHEKBCTKOAV \ / AMOS7 \ YOURUM ::
+#\[7]YLLL3C7TTXM6CI4QCNUXN53SONM72DPN2MRV2MPXFB46S7RA42CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

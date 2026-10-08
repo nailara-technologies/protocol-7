@@ -37,7 +37,7 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
+use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate p7_syntax__perl_c |;
 ## Perl::Tidy required conditionally below [ not -n mode ] : its in-memory ##
 ## API [ source/destination scalar refs ] replaces the old perltidy CLI    ##
 ## subprocess entirely -- no temp files, no Term::ReadKey/ioctl dance      ##
@@ -2743,13 +2743,22 @@ STUB
     ## -I data/lib-path/pm : the checker subprocess has none of THIS        ##
     ## process's own @INC [ set up in the BEGIN block above ] -- without it ##
     ## a real 'use AMOS7::...;' can't locate its module at all              ##
-    my @perl_c_output
-        = qx{ perl -I "$local_lib_path" -Mfeature=:5.24 -Mutf8 -c "$tmp_path" 2>&1 };
+    ##                                                                      ##
+    ## the floor perl [ bin/Protocol-7 : use v5.NN ] compiles it too when   ##
+    ## installed -- errors only it reports are tagged '[ perl 5.NN ]'       ##
+    my ( $local_out, $floor_out, $floor_version )
+        = p7_syntax__perl_c(
+        qq{-I "$local_lib_path" -Mfeature=:5.24 -Mutf8 -c "$tmp_path"});
     unlink $tmp_path;
+    my @perl_c_output = (
+        ( map { [ $ARG, '' ] } @{$local_out} ),
+        ( map { [ $ARG, "[ perl $floor_version ] " ] } @{$floor_out} )
+    );
     ## errors report the temp path -- swap in the real one for display ##
-    s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
+    $ARG->[0] =~ s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
     my ( @real_errors, @benign_once );
-    for my $line (@perl_c_output) {
+    for my $entry (@perl_c_output) {
+        my ( $line, $tag ) = @{$entry};
         ## p7 data/module macro syntax [ <data.key>, <[module.name]> ]      ##
         ## triggers glob-modification false positives under perl -c --      ##
         ## should no longer fire now that translation runs first, kept as a ##
@@ -2806,15 +2815,13 @@ STUB
             next;
         }
 
-        push @real_errors, $line;
+        push @real_errors, $tag . $line;
     }
 
-    ## drop the trailing "had compilation errors" restatement whenever it  ##
-    ## is the last line -- with a detailed error already present it's pure ##
-    ## noise, and on its own it leaves nothing meaningful to report        ##
-    pop @real_errors
-        if @real_errors
-        and $real_errors[-1] =~ m{had compilation errors\.?$};
+    ## drop the "had compilation errors" restatements [ one per perl ] -- ##
+    ## with a detailed error already present they're pure noise, and on   ##
+    ## their own they leave nothing meaningful to report                  ##
+    @real_errors = grep { not m{had compilation errors\.?$} } @real_errors;
 
     return ( \@real_errors, \@benign_once );
 }
@@ -2907,8 +2914,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,,.,,..,..,,.,.,.,,,,..,.,.,,.,,,,.,,..,..,,...,...,...,...,,..,.,,,,,.,
-#A4OQN456OF6KLIXUPR3CITET26PBGCSUUIQLIQIFBGJAETNB5FHVGXXYSXRYGHE63VMHPCKBRJSNC
-#\\\|YCSQI2YYXKJ5MF2Z624ZCOO54Z2TNVKULLYSMSXKLNMUBXSYSOB \ / AMOS7 \ YOURUM ::
-#\[7]7AKBZW76WS3LBYKELDSIXQ4C2YH2Y2YM2TIPWC6HWX6TQM3ATECA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,...,...,,,.,,..,,..,,,.,,,.,..,,...,..,,.,,,.,,,..,,,.,,.,.,
+#HSCYZZ5RIDTO5FVC3PZDCYYTSOZGWTDVP44XZO3YKRMIQSJZDYNVPUJ2HKBVHL7OIKK6P22W7OVCM
+#\\\|ZPE62PFZ3GPFVDUYJRIQDLBFPITW65DGRSNDCN6MMJTN3P27KAL \ / AMOS7 \ YOURUM ::
+#\[7]4OD5FH5WE2PS4EWTYD6GTXSUZ6XOB5D3N2TDPFLG6ITLVVD4SWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
