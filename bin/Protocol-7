@@ -4673,9 +4673,13 @@ sub p7__log__fmt {
             $llvl = shift @ARG;
         }
 
+        ## copy first : @ARG aliases the caller's variables -- a passed ##
+        ## $EVAL_ERROR is cleared by entering the eval [ logged as '' ] ##
+        my ( $template, @values ) = @ARG;
+
         my $lmsg = eval {
             use warnings FATAL => qw| all |;    ##  catches all warnings  ##
-            sprintf( shift @ARG, @ARG );
+            sprintf( $template, @values );
         };
 
         if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
@@ -6652,8 +6656,8 @@ __DATA__
 :
 :.
 
-#,,.,,..,,,,.,.,.,.,.,...,,,,,...,,..,...,,..,..,,...,...,...,.,,,,..,...,..,,
-#67CEQ6BLBFYEM6FOSE4GZXQHSMLHA5I3NYDQ4TTC443RIZJNE6CFX2XEQCFM4S4PL6DULBTGML7O2
-#\\\|WRQAQHOUXJVSCDE7ZL4IK234BGIGWBGXECM4XKAOW6G6J4FO4QH \ / AMOS7 \ YOURUM ::
-#\[7]MRMCTVVS46WDXOEOC4ZYQNH5NONOCXYRWW23YOSKV4H4RCYVAEBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,...,,,.,.,.,.,,,..,,.,,,.,.,..,,...,...,..,,,.,,,.,,,,,,.,,,
+#POSIO4RRPTM3WHTQWW6PYGQBC44UY2H7ON7VXE5O7SKJJAMTW7F3C2CD4E6ZP6VYP66XD75CVRDVQ
+#\\\|JMZNLFDO5YBZRMNRIKZUVYG3J7WDJXU7COMPVKZ53G2XUX7IAZ2 \ / AMOS7 \ YOURUM ::
+#\[7]SS5GPAD5B46O67K7FRWVHA6TWS2NOPXQ5WQWDJ5P5UCZXCK7DOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

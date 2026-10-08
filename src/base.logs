@@ -41,9 +41,13 @@ my $log_level    ## log level 1 when parameter omitted ##
     ? shift @ARG
     : 1;
 
+## copy first : @ARG aliases the caller's variables, a passed $EVAL_ERROR ##
+## would be cleared by entering the eval below [ logged as '' ]           ##
+my ( $template, @values ) = @ARG;
+
 my $log_str = eval {
     use warnings FATAL => qw| all |;    ##  catches all warnings  ##
-    sprintf( shift @ARG, @ARG );
+    sprintf( $template, @values );
 };
 
 if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
@@ -54,8 +58,8 @@ if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
 
 <[base.log]>->( $log_level, $log_str );
 
-#,,,.,..,,.,,,,,.,.,,,.,,,,.,,...,,..,,.,,,.,,..,,...,...,,,.,,,,,...,,..,...,
-#ZPJFFALWAM4RU2455OH6Q26MBU2YBK7YZ4CDWNS2Q3FHUMSBDL5O4FDY7QJSANAREPVS4PJOKSC6A
-#\\\|32UZXMKJIMSBBRGD34ZNKSFZAPBYED43QM4YNC7SOTTLYVZFMEB \ / AMOS7 \ YOURUM ::
-#\[7]CXFIF2L3TCGO2DH5NXWAYG4GPQQF6UK7SLUN33UYDHUYLT4FUYAA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,,,.,,.,,,,.,.,.,...,...,,..,..,,...,...,...,.,,,,,,,.,.,,.,,
+#D553NUBGV2TT3R3RFQ4OHZO6NU7WTPTJJD44UAWJ5TIUPK6F2QV2TM42UUESJATLR7EC2ES5AYD7Y
+#\\\|DI7C5WRRNL5FWWBBIRDXFYANV62G6YA4VBDEDTUEGLINBKEKDDC \ / AMOS7 \ YOURUM ::
+#\[7]T36N7TGJWAMDEJUNHTTIYUYZU5KH4WKYBFT7BGMQZ357HJOPSYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
