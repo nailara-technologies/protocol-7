@@ -34,24 +34,24 @@
 <user-edit.auth_name> = sprintf( qw| %s[user-edit] |, <user-edit.unix_user> );
 
 ##  THE RECORD SOURCE  #######################################################
-##                                                                            ##
-##  one callback table the whole form engine reads : every form.* module     ##
-##  that needs the record store or the secret store calls through            ##
-##  <form.source> instead of building a users.*/sessions.* route itself,     ##
-##  which is what keeps the engine record-independent -- host-edit will      ##
-##  register its own senders here without touching any form.* module.        ##
-##                                                                            ##
-##    senders      : value_get / value_all / value_set / field_options /     ##
-##                   create_default / secret_hold / secret_release --        ##
+##                                                                          ##
+##  one callback table the whole form engine reads : every form.* module    ##
+##  that needs the record store or the secret store calls through           ##
+##  <form.source> instead of building a users.*/sessions.* route itself,    ##
+##  which is what keeps the engine record-independent -- host-edit will     ##
+##  register its own senders here without touching any form.* module.       ##
+##                                                                          ##
+##    senders      : value_get / value_all / value_set / field_options /    ##
+##                   create_default / secret_hold / secret_release --       ##
 ##                   module names, invoked as <[$sender]> by the engine    ##
-##    default_record : the record a bare 'show-form'/'start' opens -- the    ##
-##                   invoking unix user, exactly the fallback the pre-       ##
-##                   extraction code used                                    ##
-##    allow_create : may this session's user create a missing record         ##
-##                   [ the create-offer gate form.handler.value_get_reply    ##
-##                   checks before unlooping into form.offer_create ]        ##
-##    tag_record   : the record name a :create-admin:-style tag may          ##
-##                   auto-create [ <system.admin-user>, as before ]          ##
+##    default_record : the record a bare 'show-form'/'start' opens -- the   ##
+##                   invoking unix user, exactly the fallback the pre-      ##
+##                   extraction code used                                   ##
+##    allow_create : may this session's user create a missing record        ##
+##                   [ the create-offer gate form.handler.value_get_reply   ##
+##                   checks before unlooping into form.offer_create ]       ##
+##    tag_record   : the record name a :create-admin:-style tag may         ##
+##                   auto-create [ <system.admin-user>, as before ]         ##
 <form.source> = {
     qw| default_record |  => <user-edit.unix_user>,
     qw| allow_create    | =>
@@ -93,8 +93,8 @@ my $user_edit_path_keywords = {
 
 return TRUE;
 
-#,,,,,.,,,,,,,.,.,,,.,,..,,.,,..,,,,.,,,.,,..,..,,...,...,,,,,,..,...,,.,,.,,,
-#TDDWV6CL7UIWIVK66UOLZBIA4ZMEA2FG35IPIYK4XKMKZMU4YCRZHEONPBJRELZEVD7J7EZ4HLWOO
-#\\\|HKHWZRYIMHJ2ZZ2PXHHOD32RUT6RPODQZIFSCMWXT4PCDUD4Z6A \ / AMOS7 \ YOURUM ::
-#\[7]CLXIVFNEVKCVB64NXOC3QL6H4FDHV3NKX4IM5E2KLQE2NEQWWYCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,,..,.,.,.,.,.,.,,,.,...,,.,,..,,...,...,,..,,.,,,.,,.,,,...,
+#IQZQ5IWSLQZS54P5LD5TVEZAKHCPUFRYKKUFARRVJBL7LYT34SS2IMCW2BQJHKMSZQL7NCOSUXVIC
+#\\\|MS2SRQ3JKK2PL2NG4IZA2W7LHI4Y6ARM3HAT4LJNO64XXNWETZO \ / AMOS7 \ YOURUM ::
+#\[7]GJRAWJDOIJFYR6T4MO2MKIM2W7VFNUXSS2N6VZQB2CZSZEJ5ZSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

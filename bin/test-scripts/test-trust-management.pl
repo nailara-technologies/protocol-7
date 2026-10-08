@@ -151,7 +151,9 @@ $code{'crypt.C25519.delegation_file'} = sub { return "$key_dir/$ARG[0].dlg" };
 $code{'crypt.C25519.encrypted_key'}   = sub { $owner_form eq 'encrypted' };
 $code{'crypt.C25519.key_is_virtual'}  = sub {FALSE};
 my $loaded = 0;
+my @load_args;
 $code{'crypt.C25519.load_keypair'} = sub {
+    @load_args = @ARG;
     $keys{'C25519'}{'owner'}
         = { public => $kp{'06'}[0], private => $kp{'06'}[1] };
     $loaded++;
@@ -465,6 +467,40 @@ my $owner_file = "$work_dir/atom.host-root.dlg";    ## printed absolute ##
 chdir $cwd or die;
 
 ######################################################################
+say ': keys.certify_host [ the core : passphrase given or not ]';
+{
+    my $core = $code{'keys.certify_host'};
+    my $r = $core->(
+        { owner => 'owner', host => 'atom', root_pub => $kp{'03'}[0] } );
+    ok( ref $r eq 'HASH' && length $r->{'wire'},
+        'no passphrase : certified' );
+    ok( !defined $load_args[1] && $load_args[2] == TRUE && $load_args[3] == TRUE,
+        '  :.. load_keypair asks + retries [ the console behaviour ]' );
+    $r = $core->(
+        {   owner      => 'owner',
+            host       => 'atom',
+            root_pub   => $kp{'03'}[0],
+            passphrase => 'a-supplied-passphrase'
+        }
+    );
+    ok( ref $r eq 'HASH' && length $r->{'wire'},
+        'a supplied passphrase : certified' );
+    ok( $load_args[1] eq 'a-supplied-passphrase'
+            && $load_args[2] == FALSE && $load_args[3] == FALSE,
+        '  :.. load_keypair NEVER asks, never retries' );
+    local $code{'crypt.C25519.load_keypair'} = sub { return FALSE };
+    my ( $fail, $code_, $why ) = $core->(
+        {   owner      => 'owner',
+            host       => 'atom',
+            root_pub   => $kp{'03'}[0],
+            passphrase => 'wrong'
+        }
+    );
+    ok( !defined $fail && $why =~ m|passphrase not correct|,
+        'a wrong supplied passphrase : refused back to the caller' );
+}
+
+######################################################################
 say ': keys.console.accept-owner';
 {
     ## this host : S public + the current .dlg leaf [ atom.cube ] ##
@@ -589,8 +625,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,..,,,..,...,.,,,...,.,.,.,.,..,,..,,..,,..,,...,...,.,.,..,,,,.,..,,..,,
-#KZDUCKFZHDWENKAD7VPQLDT5L7ONG5SJBROQMT4Z7B2ODTIR5UQPYMZMBZU7A3MAVROANOLZQC2XM
-#\\\|NW4YPRTWRWSUSB43BOEKZI2D6RXXW6AO3YO3RL4RNZCCD2WMYUM \ / AMOS7 \ YOURUM ::
-#\[7]BU2EGIOHUOZSWGEXPWXYZRLJFDS7WQ73OZBQITJOTVM64LRVH2BY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,...,...,.,.,,.,,..,,,,,,,.,,..,,...,...,,.,,,,,,,,,,..,,.,.,
+#HWCGMO7QWARLA5RCVBVPCWD26NWOEH3SBMLVY4EYD5C2TSVTC6XGBYBAN7XBK3V3RLQY76XN2SMZO
+#\\\|4DBMKBU77ZK3MIK4BN7ZVF5G2U6S7TZ2GFV3IXZ7WOPPDMW5S4U \ / AMOS7 \ YOURUM ::
+#\[7]54NJBNIO56EA6YYT4C665CXATJSIB5VZ3EDDBSID6KRJOMTUPOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

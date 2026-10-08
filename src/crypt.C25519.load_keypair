@@ -269,8 +269,14 @@ REENTER_GEN_ENTROPY:
     ##  decrypt private key [ when password provided ]  ##
     ##
     if ( $key_status->{'encrypted'} ) {
+
+        ## the colour reset after a prompt is printed ONLY when this call ##
+        ## actually prompted -- a supplied password [ a form's masked     ##
+        ## prompt, char-add ] must leave no stray ':' in a live frame     ##
+        my $pwd_prompted = FALSE;
     RE_READ_PWD:
         if ( not defined $key_password ) {
+            $pwd_prompted = TRUE;
             <[base.perlmod.load]>->('AMOS7::TERM')
                 if not <[base.perlmod.loaded]>->('AMOS7::TERM');
             say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
@@ -293,7 +299,7 @@ REENTER_GEN_ENTROPY:
                 <[base.log]>->( 2, ':' );
                 return TRUE;
             }
-        } else {
+        } elsif ($pwd_prompted) {
             say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
         }
 
@@ -404,8 +410,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,..,.,.,.,.,..,,,,,,...,...,.,,,,.,,,.,,...,..,,...,...,,.,,..,,,.,,.,.,,..,
-#U7U5IBAXQIGWDWRIUM6V6JZ3U2JGHNGOWWZYCO27JN7YCIEWU2ZIQCTUBEBISXSCPNLSQJ64Y3UOM
-#\\\|PG6LEOQQ6XKO235G6RU7MZ73O6XJHXWPTRMWEKV5CF6PSPIC67F \ / AMOS7 \ YOURUM ::
-#\[7]VYQOHSESTBQWJNE5Q2MU6KT5KOYU57EZRNTOGDGXBRO26ARPZEAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,.,,,,,,,,,,,,.,,...,.,.,,,,,..,,...,..,,,,.,,.,,,.,,.,.,...,
+#YSUMU6KET4YHGKCPDHKW2HXVP2EJKU3PD2P7REE4KNXJG5CYPCVDMMDSOF6TEEEPNKPJCP2ANC4KO
+#\\\|DV3B2G2DSREPNNZHWIRIHWWRPOZDTFC6GFGXSQCWZVKBA4HFUXI \ / AMOS7 \ YOURUM ::
+#\[7]3QN5EDMTF4IIEAA2FPZS25WI4ATSSARW2EE6KFKBCPR34CWIUGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
