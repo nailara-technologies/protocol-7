@@ -39,24 +39,25 @@ foreach my $vhost ( $vhosts_list->@* ) {
     # Skip IPv6 link-local
     next if $vhost =~ m{^fe80:}i;
 
+    ## only fully qualified domain names can get a public certificate : ##
+    ## vhost directory names [ 'skins' ] and ip literals are skipped    ##
+    if ($vhost !~ m{^(?:\*\.)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+
+                    [a-z](?:[a-z0-9-]*[a-z0-9])?$}xi
+    ) {
+        <[base.logs]>->(
+            2, ': skipping vhost %s ' . '[ not a domain name ]', $vhost
+        );
+        next;
+    }
+
     # Valid domain-like vhost - queue for certificate
     # Normalize domain (lowercase)
     my $domain = lc($vhost);
 
-    # Group wildcards and subdomains under base domain
-    # e.g., www.example.com and *.example.com both map to example.com
+    ## a wildcard groups under its base domain [ *.example.com -> ##
+    ## example.com ] ; every other name is its own domain         ##
     my $base_domain = $domain;
-    if ( $domain =~ m|^\*\.(.+)$| ) {
-
-        # Wildcard domain - use base domain
-        $base_domain = $LAST_PAREN_MATCH;
-    } elsif ( $domain =~ m|^www\.(.+)$| ) {
-
-        # www subdomain - check if we should use base or subdomain
-        # For now, keep both as separate domains
-        # This allows certificate for both www.example.com and example.com
-        $base_domain = $domain;    # Use the full domain
-    }
+    $base_domain = $LAST_PAREN_MATCH if $domain =~ m|^\*\.(.+)$|;
 
     # Initialize domain entry if not present
     unless ( exists $domains_map{$base_domain} ) {
@@ -75,14 +76,8 @@ foreach my $vhost ( $vhosts_list->@* ) {
         push $domains_map{$base_domain}{alt_names}->@*, $vhost;
     }
 
-    # Add www variant if not present
-    if ( $vhost !~ m|^\*\.| && $vhost !~ m|^www\.| ) {
-        my $www_variant = sprintf 'www.%s', $vhost;
-        unless ( grep { $ARG eq $www_variant }
-            $domains_map{$base_domain}{alt_names}->@* ) {
-            push $domains_map{$base_domain}{alt_names}->@*, $www_variant;
-        }
-    }
+    ## no implicit 'www.' alt name : certificates cover exactly the ##
+    ## configured vhosts -- a www name is a vhost of its own        ##
 }
 
 ## Log determined domains
@@ -103,8 +98,8 @@ return {
     domains => \%domains_map,
 };
 
-#,,.,,.,.,.,.,..,,.,.,.,,,,.,,..,,,.,,..,,,.,,..,,...,...,...,,.,,.,.,,.,,,,,,
-#CELCOH4R6XTH6L75KGFASVS2OKSRQ2YGBYGR55ECKE2HZIL5Q7EIFCOYGNQRYEKFJQPSQNRJIMTLY
-#\\\|GDFIMXPQXFCRDNYXQEEHZWHQMKY3MASCMIL3UVJ3WXQROJ5YQIH \ / AMOS7 \ YOURUM ::
-#\[7]UNI5BE6EO7IXC726KHIMN773TSRB7ZPLTEXEA4SZEXW5FNVFDICA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,,,,..,,..,,,,,,.,.,...,...,..,,...,...,.,.,...,...,.,,,,..,
+#TZY2ZRNQ5DHIRWHKFTGPDXZXBKKCG76MUYAFJHRFSIY433UB645RLSB4FW6SQGHEEY4SS4DKTX5H6
+#\\\|D7WN4WB22KMS27RLAC4R7NAAGJPOBSHVT7SEBTEGESAL2OMRHHI \ / AMOS7 \ YOURUM ::
+#\[7]6XX4PL6LPXCLXNXOHVIHQFRJU5PPCQDQT7HCMHRZQGPXBNXJJCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
