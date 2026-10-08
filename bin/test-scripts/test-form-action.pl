@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 ## test : form.action.send + form.chrome [ lane B2a, stubs only ]
 ##
-## covers the task contract in data/tasks/form-action-chrome.md : send -> busy
-## set, second send refused, reply -> busy cleared + on_reply called, timeout
-## path, keys ignored while busy except quit, set_status -> footer line
-## present, no status -> chrome prints nothing [ the byte-identical render
-## guarantee itself is proven by the p7-user-edit show-form cmp in the lane,
-## not here ]
+## covers the task contract in data/tasks/archive/form-action-chrome.md : send
+## -> busy set, second send refused, reply -> busy cleared + on_reply called,
+## timeout path, keys ignored while busy except quit, set_status -> footer
+## line present, no status -> chrome prints nothing [ the byte-identical
+## render guarantee itself is proven by the p7-user-edit show-form cmp in the
+## lane, not here ]
 
 use v5.28;
 use strict;
@@ -314,20 +314,25 @@ ok( !length( $data{'form'}{'status'} ), 'set_status undef clears the line' );
         $late{ $count->(20) }++;
     }
     ok( !grep( { $ARG < 1 or $ARG > 4 } keys %first ) && exists $first{4},
-        'star count, first character : 1 .. 4 [ short passphrase padding ]' );
+        'star count, first character : 1 .. 4 [ short passphrase padding ]'
+    );
     ok( !grep( { $ARG < 1 or $ARG > 2 } keys %late ),
-        'star count from the tenth character on : 1 .. 2' );
+        'star count from the tenth character on : 1 .. 2'
+    );
 
     my $buf = $code{'editor.buffer.memory.create'}
         ->( { type => 'masked', default => 'secret' } );
     ok( ref $buf->{'mask_stars'} eq 'ARRAY'
             && @{ $buf->{'mask_stars'} } == 6
             && !grep( { $ARG < 1 or $ARG > 4 } @{ $buf->{'mask_stars'} } ),
-        'masked create : one star count per character, in range' );
+        'masked create : one star count per character, in range'
+    );
     $code{'editor.buffer.memory.insert'}->( $buf, 3, 'XY' );
     ok( @{ $buf->{'mask_stars'} } == 8 && $buf->{'text'} eq 'secXYret',
-        'masked insert : the star counts stay in step with the text' );
-    my $plain = $code{'editor.buffer.memory.create'}->( { default => 'abc' } );
+        'masked insert : the star counts stay in step with the text'
+    );
+    my $plain
+        = $code{'editor.buffer.memory.create'}->( { default => 'abc' } );
     ok( !defined $plain->{'mask_stars'}, 'unmasked buffer : no star counts' );
 }
 
@@ -336,8 +341,8 @@ ok( !length( $data{'form'}{'status'} ), 'set_status undef clears the line' );
 print "\n$pass passed, $fail failed\n";
 exit( $fail ? 1 : 0 );
 
-#,,,.,..,,,.,,,.,,...,,,,,,,,,...,,,.,,.,,.,,,..,,...,...,.,.,.,,,.,,,,..,,..,
-#7W3NCK2HW24MRSW47JRWHSYNNUCNPQCQDPVGHIIK6ELEFDSIC4QDY7EKTFZ5CKA76RIOEA3NJOVDW
-#\\\|FU7O6OZAL62JLZPSECBEQX64EQ2DKOITPZW4JVF2TF7RESARHF4 \ / AMOS7 \ YOURUM ::
-#\[7]ZQWU5CM7BOAL5TNV2ITH4QH7Z5F7ZRVIKDXYH5PMUBSDCGAT3GBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,.,,,..,,,.,,,.,,...,.,.,...,..,,...,..,,...,,.,,..,,,,.,,..,
+#DATGQPOVR252GLEMMT3A3LAUYS2XXCHV4HH5OMX6BMSNVATL5XYCN36STMTHFCYC5KZVY66AP7DAG
+#\\\|MLO5FKWK5KOI63DRH5PQBH56WE5NGDLNNL6U3C5G5FOXNAHALZO \ / AMOS7 \ YOURUM ::
+#\[7]DK2E5VIPFKLQIY2V4CEGEZKUN23AR4RZXLIFEXZXXUYIAYSKOIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
