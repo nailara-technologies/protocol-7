@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = host-edit.record.write
+# descr = write one host record envelope as local json, temp + rename, 0600
+# param = $name, $envelope_href
+# return = TRUE | FALSE [ , $error ]
+
+## overwrite mode is temp-file-then-rename() : atomic replace, no
+## unlink-then-open window where a crash mid-write would leave the path
+## missing instead of intact-old-or-intact-new [ same reasoning as
+## base.file.zenka_dir.write ].  the temp file is created in the SAME
+## directory as the target, so rename() stays on one filesystem, and is chmod
+## 0600 before the rename -- host records hold link metadata [ ssh user@host,
+## ports ], never secrets, but the store is still private.
+
+my ( $name, $envelope ) = @ARG;
+
+my $path = <[host-edit.record.path]>->($name)
+    // return ( FALSE, 'invalid host name' );
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path)
+    // return ( FALSE, 'cannot resolve record path' );
+
+return ( FALSE, 'envelope is not a hashref' )
+    if ref $envelope ne qw| HASH |;
+
+my $hosts_dir = $resolved_path;
+$hosts_dir =~ s|/[^/]+$||;
+
+if ( not -d $hosts_dir ) {
+    mkdir $hosts_dir, 0750    ## best-effort : parent [VAR_P7] dir exists ##
+        or return ( FALSE, sprintf 'cannot create %s : %s',
+        $hosts_dir, <[base.str.os_err]> );
+}
+
+my $json_str = <[format.json.encode]>->($envelope);
+
+my $tmp_path = sprintf qw| %s/.%s.tmp.%s |,
+    $hosts_dir, $name, <[base.prng.chars-anum]>->(8);
+
+open( my $fh, '>', $tmp_path ) or do {
+    return ( FALSE, sprintf 'cannot open %s : %s',
+        $tmp_path, <[base.str.os_err]> );
+};
+
+print {$fh} $json_str;
+
+if ( not close($fh) ) {
+    my $err = <[base.str.os_err]>;
+    unlink $tmp_path;
+    return ( FALSE, sprintf 'close failed : %s', $err );
+}
+
+chmod 0600, $tmp_path
+    or do {
+    my $err = <[base.str.os_err]>;
+    unlink $tmp_path;
+    return ( FALSE, sprintf 'chmod failed : %s', $err );
+    };
+
+if ( not rename $tmp_path, $resolved_path ) {
+    my $err = <[base.str.os_err]>;
+    unlink $tmp_path;
+    return ( FALSE, sprintf 'rename failed : %s', $err );
+}
+
+return ( TRUE, undef );
+
+#,,,.,,.,.,,..,,,.,,.,,,,..,,,,,,.,,,.,,.,..,,...,...,..,,,,,.,.,.,,,..,,.,,
+
+#,,,.,,..,...,,.,,...,..,,,,.,.,,,..,,,..,,..,..,,...,...,,,.,,.,,,..,...,,,,,
+#2NPK2ABIQE6N6KISPDKTT5KKNO374AOB6JWLFKII6HC7RQ3A3N7CEV6OMVUZBSOQIPBC7TPYOQ3TY
+#\\\|PC5NEUZSXTWPFLR7H42YOTASENO3BMQG6UG5G4PKLIDEJOIJIZO \ / AMOS7 \ YOURUM ::
+#\[7]BR3QFMO6JC4FN7WWQIQUMXDAXJ4MLTEWQ5TXQLQZAJJXUE6D2EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

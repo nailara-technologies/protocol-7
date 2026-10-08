@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = host-edit.source.field_options
+# descr = local record source : the optional-field vocabulary
+# param = $reply_handler
+
+## the record source behind <form.source> -- see host-edit.source.  value_get
+## for the deferred-reply contract.  asked WITHOUT a record name, i.e. for the
+## whole vocabulary rather than only what one record lacks : the addable
+## subset is a local filter [ form.addable_fields ].  the wire text is '<name>
+## <shape>' per line, shape 'list' or 'line' [ 'masked' exists in the parser
+## but host records hold no secrets -- see host-edit.source.secret_hold ].
+
+my ($reply_handler) = @ARG;
+
+my %shape = (
+    qw| name |       => qw| line |,
+    qw| addresses |  => qw| list |,
+    qw| link_user |  => qw| line |,
+    qw| ssh |        => qw| line |,
+    qw| ssh_port |   => qw| line |,
+    qw| transports | => qw| list |,
+    qw| owner |      => qw| line |,
+    qw| roles |      => qw| list |,
+);
+
+my $text = join qq|\n|,
+    map { sprintf( q{%s %s}, $ARG, $shape{$ARG} ) }
+    <[host-edit.record.field_names]>;
+
+my $info = {
+    qw| sid |       => <form.cube_sid> // 0,
+    qw| cmd |       => qw| SIZE |,
+    qw| call_args | => { qw| args | => '' },
+    qw| data |      => $text
+};
+
+<[event.add_timer]>->(
+    {   qw| after | => 0,
+        qw| desc |  => 'host-edit.source.field_options deferred reply',
+        qw| cb |    => sub { <[$reply_handler]>->($info) },
+    }
+);
+
+return TRUE;
+
+#,,.,,,.,,,,.,.,,,,,.,,.,,.,,.,,,,,..,,,,.,,..,,..,,...,...,..,,,.,,,.,.,,.,
+
+#,,.,,,,,,,,.,,.,,.,.,.,.,,.,,.,,,.,.,.,.,,,.,..,,...,...,..,,.,,,,.,,,,,,,.,,
+#HYM5H2G6YDDDPBSWR27SKRMNCA3P7AHNFBKTE5BIWXPLU3CFMFGCSICYJQKGNZKRJQLPOFPC5CH4Y
+#\\\|QTNEUYEN3A2ARREXFDP4BK2VT7YV6JFSZX2VKBZAX4F47OAZEAC \ / AMOS7 \ YOURUM ::
+#\[7]DHYFKZR2BS7VNCNKX4SBP64VLW32U32Y76X5NEUNR6JOGZBUBMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

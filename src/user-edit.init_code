@@ -59,6 +59,16 @@
     ? TRUE
     : FALSE,
     qw| tag_record      | => <system.admin-user> // '',
+    ## record vocabulary the engine renders but never defines : a second zenka
+    ## on form.* [ host-edit ] registers its own values here, keeping every
+    ## one of these strings out of form.* -- the defaults below are
+    ## user-edit's historical wording, byte-identical output by construction
+    qw| title_fmt       | => q{user-edit : %s},
+    qw| frame_name      | => qw| user-edit-form |,
+    qw| menu_fallback   | => qw| user-edit |,
+    qw| namespace_main  | => qw| host-system |,
+    qw| namespace_keys  | => qw| keys |,
+    qw| not_found_fmt   | => q{user '%s' not found},
     qw| value_get       | => qw| user-edit.source.value_get |,
     qw| value_all       | => qw| user-edit.source.value_all |,
     qw| value_set       | => qw| user-edit.source.value_set |,
@@ -83,8 +93,8 @@ my $user_edit_path_keywords = {
 
 return TRUE;
 
-#,,..,..,,,,,,.,.,.,.,.,,,,..,,,.,,..,,..,.,,,..,,...,...,,..,,..,,,.,.,.,,.,,
-#J2FE2DDDZ6SMTXDY6DLVXSBF2EI3KX54Y2TFPKNOVSFLSCM6BZGGUJV6F42W44PSCP3SZFZHY4KHK
-#\\\|CGKCFXYZAPJOG7V6WDYPMNO5JKZGRTOLBRX6JJAAZOI3B4ZCNYJ \ / AMOS7 \ YOURUM ::
-#\[7]AUWSZCL6UVYY3O2L4DLJIQ36JH6HX25D4X2MVMSAQKA4X5USTCBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,,,.,,..,,.,,..,,,,.,,,.,,..,..,,...,...,,,,,,..,...,,.,,.,,,
+#TDDWV6CL7UIWIVK66UOLZBIA4ZMEA2FG35IPIYK4XKMKZMU4YCRZHEONPBJRELZEVD7J7EZ4HLWOO
+#\\\|HKHWZRYIMHJ2ZZ2PXHHOD32RUT6RPODQZIFSCMWXT4PCDUD4Z6A \ / AMOS7 \ YOURUM ::
+#\[7]CLXIVFNEVKCVB64NXOC3QL6H4FDHV3NKX4IM5E2KLQE2NEQWWYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

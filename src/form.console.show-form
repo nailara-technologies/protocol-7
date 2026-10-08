@@ -42,7 +42,11 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
 <form.offer.create> = TRUE;
 <form.username>     = $username;
 <form.interactive>  = FALSE;
-<form.title>        = sprintf( 'user-edit : %s', $username );
+## frame title is record-vocabulary : the <form.source> table carries the
+## sprintf format so host-edit can register its own without touching this
+## module [ user-edit.init_code passes the historical 'user-edit : %s' ]
+<form.title>
+    = sprintf( $source->{'title_fmt'} // q{user-edit : %s}, $username );
 
 <[base.logs]>->( 2, ': requesting user record [ %s ]', $username );
 
@@ -60,8 +64,8 @@ my $sender = $source->{'value_get'} // return FALSE;
 ## resumes here only if the reply handler unlooped to offer a record ##
 return <[form.offer_create]>->( $username, $tags );
 
-#,,.,,.,,,...,,,,,...,.,,,...,,,,,...,.,.,,,,,..,,...,...,...,..,,.,,,,,,,.,,,
-#66GKBDNESBZHKAFREFG7TGBH77EPSH7LUWMV7YAAOSAHIETBJUGBRNCF3EKN3CVKQSERRLZF3VAEU
-#\\\|XUEW7K3DFE46I6MGGFJ4CVIFCFDTG4G27SGNRBBGSABOJ6BFRGT \ / AMOS7 \ YOURUM ::
-#\[7]KS26M7HWP77F2WIW4OE37T2EPGZMH2YLQOPB7I7432BVHLVNICBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,,..,...,,,,,...,.,.,,.,,...,..,,...,...,,,,,..,,..,,,..,,,.,
+#G7FM4QSB2U5J7EG54UWZBXXBUB2AVSYDT7ZUYHCOTSCD6MCIRZRTH4EX2LO7RQK7C5C3M6GOQPOCO
+#\\\|BZMD7GTRW6GCOWJB3S3FAMLYCEQTZA7WLBYGANCHWWAFAPTYNNW \ / AMOS7 \ YOURUM ::
+#\[7]TJ4H2DPXNX47ZCSU6NOMMY6L4R7F2XNC57N3YZJSZCOCTJKTSYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
