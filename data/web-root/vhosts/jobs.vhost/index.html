@@ -899,10 +899,14 @@ function mergeJobs(serverJobs) {
         /* the stale local pin must not keep hiding that update forever. entries from  */
         /* before this check existed carry no base_last_modified and keep the old,     */
         /* always-honored behavior rather than being treated as stale on sight         */
-        if (ud && ud.stage && ud.base_last_modified != null
+        /* the same holds for notes and date_applied : a local value that  */
+        /* outlived its server record must not hide a newer one forever    */
+        /* [ e.g. a note edited in another browser ]                       */
+        if (ud && ud.base_last_modified != null
             && sj.last_modified != null && ud.base_last_modified !== sj.last_modified) {
-            delete ud.stage;
-            staleOverlays++;
+            for (const f of ['stage', 'notes', 'date_applied']) {
+                if (ud[f] != null) { delete ud[f]; staleOverlays++; }
+            }
         }
         if (!jobs[id]) {
             jobs[id] = { ...sj, id };
@@ -1422,7 +1426,8 @@ function renderCard(j) {
     const dateInput = el.querySelector('.date-applied-input');
     if (dateInput) dateInput.addEventListener('change', e => {
         jobs[j.id].date_applied = e.target.value;
-        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), date_applied: e.target.value, ts: Date.now() };
+        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), date_applied: e.target.value,
+                                base_last_modified: jobs[j.id].last_modified || '', ts: Date.now() };
         saveUserDecisions();
         saveCache();
         pushChange(j.id, { date_applied: e.target.value });
@@ -1455,15 +1460,19 @@ function renderCard(j) {
             return;
         }
         jobs[j.id].note = e.target.value;
-        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), notes: e.target.value, ts: Date.now() };
+        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), notes: e.target.value,
+                                base_last_modified: jobs[j.id].last_modified || '', ts: Date.now() };
         saveUserDecisions();
         const preview = el.querySelector('.card-note-preview');
         preview.textContent = e.target.value;
         preview.classList.toggle('visible', !!e.target.value);
         saveCache();
+        /* push the typed value itself : a poll inside the debounce window   */
+        /* may drop a stale overlay and reset jobs[id].note to the server's  */
+        const typed = e.target.value;
         clearTimeout(noteDebounce);
         noteDebounce = setTimeout(() => {
-            pushChange(j.id, { notes: jobs[j.id].note });
+            pushChange(j.id, { notes: typed });
         }, 1200);
     });
 
