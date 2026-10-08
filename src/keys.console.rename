@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name  = keys.console.rename
-# param = <from> <to>
+# param = <from> <to> [::yes::]
 # descr = change a user key name [ 'list' cmd for names ]
 
 my $param_str = shift // '';
 
-( my $srckey, my $to_keyname ) = split m| +|, $param_str;
+( my $srckey, my $to_keyname, my $confirm ) = split m| +|, $param_str;
 
 if ( not defined $srckey or not defined $to_keyname ) {
     say "\n  << expected <from> and <to> parameters >>\n";
@@ -64,6 +64,25 @@ return printf "\n  << key with name '%s' not found >>\n\n", $srckey
 return say sprintf "\n  << destination name '%s' exists >>\n", $to_keyname
     if <[crypt.C25519.key_exists]>->($to_keyname);
 
+## a key DERIVED from its passphrase [ or a virtual seed-phrase key ] has ##
+## its NAME in the derivation [ crypt.C25519.gen_keys : AMOS7::13::key_32 ##
+## over passphrase + name ] -- under another name the same phrase makes a ##
+## different key : warned, done only with '::yes::' [ the prune-backups   ##
+## convention ], never refused                                            ##
+my $on_disk = grep { defined $ARG and -f $ARG }
+    @{$key_filename_ref}{qw| secret private |};
+my $derived = <[crypt.C25519.key_is_virtual]>->($srckey)
+    || ( not $on_disk and not <[crypt.C25519.encrypted_key]>->($srckey) );
+
+if ( $derived and ( $confirm // '' ) ne qw| ::yes:: | ) {
+    printf "\n  << WARNING : '%s' is derived from its passphrase AND its "
+        . "name -- under '%s'\n     the same passphrase regenerates a "
+        . "DIFFERENT key ; its public key,\n     pins and "
+        . "certifications of the old key id no longer match >>\n\n  "
+        . "add '::yes::' to rename anyway\n\n", $srckey, $to_keyname;
+    <[base.exit]>->(qw| 0010 |);
+}
+
 map {
     my $k_path = catfile( $key_dir, $ARG );
     return printf "\n << no write access to %s >>\n\n", $k_path
@@ -94,8 +113,8 @@ foreach my $file_name (@k_files) {
 printf " :\n  .: successfully renamed %02d file%s\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,,,,.,.,,,,,...,,.,,.,.,...,,,.,...,.,,,.,,,..,,...,..,,,,,,,..,,..,...,,.,,
-#5ADGQL73GRDDNUAJFYQQJ3KPMQMBATFH5OXGI6KLNO6PX2UFEUNZGIGPWIS3EDVN7TSUGN7YFEBO4
-#\\\|55YU62CW6UGNZR4I3MT7CC6Z7YSDVF4RHT6V36TJ6D4I3E66H7E \ / AMOS7 \ YOURUM ::
-#\[7]4SKYAKY3J53FZTO237I7SS4TVHITE5LXSMSNPIVT2Z5FNW6CUAAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,.,.,,..,..,,..,,,,,,,.,,,.,,..,,...,...,,..,,,,,,..,,,.,,,.,
+#I7TXWJ4RVSEXL47JGEKHI5JSQBYFPF7OX7ZL2XBIJHKKVRQRD4WJ2MPFDMKCK5BEKKCZXUONGITF6
+#\\\|ASJBMTAY3ESHASZZHEC7C4DDM3W3BYTDSIDUTWJBMGSACLTHCEF \ / AMOS7 \ YOURUM ::
+#\[7]NL3ZGK7B57M6K35CTJVKYFDQ3VGVI6QHAQYCNAR7XFKDVAQ6FUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

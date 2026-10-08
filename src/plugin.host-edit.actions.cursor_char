@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = plugin.host-edit.actions.cursor_char
+# descr = the character currently under this field's own cursor
+# param = $editor_state, $field
+# return = the character [ '' when there is nothing to show ], never a
+#          newline
+
+## mirrors plugin.user-edit.key-actions.cursor_char's own role : the form's
+## render calls '<plugin>.cursor_char' [ given the same $editor_state / $field
+## pair it renders with ] so it can style the ONE placeholder byte a plugin's
+## own .render leaves behind -- editor.control.prompt.render draws its own
+## \x01 placeholder for exactly this reason, and this sub is the "what real
+## character sits there" half.  delegates straight to
+## editor.control.prompt.cursor_char, which shares the same prompt-state
+## lookup .render itself uses, so the character returned here can never drift
+## from the position .render is actually showing.  absent an open prompt for
+## this field, it returns '' -- the flow / pin text gets no cursor styling
+
+my ( $editor_state, $field ) = @ARG;
+
+return <[editor.control.prompt.cursor_char]>->( $editor_state, $field );
+
+#,,.,,.,.,..,,.,,,..,,,.,,,,.,..,,..,,,,,,,,,,..,,...,...,...,.,.,..,,...,,.,,
+#EJ4OUAVHC37WZG5LY6MA66XXAYS3FJ4MLX2LQYMN7UJ26ULSSNWERBA25DADEIQL7FV5HGYYCI7PA
+#\\\|ZYLHU2FZAIYOEHKXNHMRHH5T4W4UGC7NLDUZSHPYHJUST6MKXF2 \ / AMOS7 \ YOURUM ::
+#\[7]J5YLEKLX3UAS74SVERSBYMAZP6JYJHOPQPY6ITLSPM3G2HGMYEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

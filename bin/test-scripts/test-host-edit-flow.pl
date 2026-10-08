@@ -7,15 +7,16 @@ use warnings;
 ## the production runtime loads the bytes pragma transitively ##
 use bytes;
 
-## host-edit lane B2c : the add-host FLOW [ host-edit.flow.* ] driven with a ##
-## pumped timer queue -- pin-only live [ fake ssh, compiled p-7-r, temp      ##
-## HOME ], the owner path with the actions stubbed [ tested on their own ].  ##
-## was : host-edit lane B2b : ssh forward + probe [ data/md/design/HOST-SETUP.md ##
-## 'add-host flow' ]. a FAKE ssh [ a local port forwarder ] replaces the   ##
-## real one, p-7-r is compiled from bin/c_src into a temp dir [ the        ##
-## installed one may predate -host ] and the probe runs against the LIVE   ##
-## cube on 127.0.0.1:42 -- strict only : the client pin store must be      ##
-## byte-identical afterwards. skips cleanly without gcc or a cube.         ##
+## host-edit lane B2c : the add-host FLOW [ host-edit.flow.* ] driven with  ##
+## a pumped timer queue -- pin-only live [ fake ssh, compiled p-7-r, temp   ##
+## HOME ], the owner path with the actions stubbed [ tested on their own ]. ##
+## was : host-edit lane B2b : ssh forward + probe [                         ##
+## data/md/design/HOST-SETUP.md 'add-host flow' ]. a FAKE ssh [ a local     ##
+## port forwarder ] replaces the real one, p-7-r is compiled from bin/c_src ##
+## into a temp dir [ the installed one may predate -host ] and the probe    ##
+## runs against the LIVE cube on 127.0.0.1:42 -- strict only : the client   ##
+## pin store must be byte-identical afterwards. skips cleanly without gcc   ##
+## or a cube.                                                               ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -134,7 +135,6 @@ close($sfh);
 chmod 0755, $fake_ssh;
 $data{'host-edit'}{'cfg'}{'ssh_bin'} = $fake_ssh;
 
-
 ## --- the event loop, pumped by the test : add_timer queues the cb ------ ##
 my @queue;
 $code{'base.event.add_timer'} = sub {
@@ -142,10 +142,11 @@ $code{'base.event.add_timer'} = sub {
     push @queue, [ time + ( $p->{'after'} // 0 ), $p->{'cb'} ];
     return 1;
 };
+
 sub pump {    ## run queued steps until none is left [ max 30 s ] ##
     my $deadline = time + 30;
     while ( @queue and time < $deadline ) {
-        my $job = shift @queue;
+        my $job  = shift @queue;
         my $wait = $job->[0] - time;
         select( undef, undef, undef, $wait ) if $wait > 0;
         $job->[1]->();
@@ -157,7 +158,7 @@ $code{'form.chrome.set_status'} = sub { push @status, shift; return 1 };
 
 my %record;
 $code{'host-edit.record.read'} = sub {
-    return { name => $ARG[0], fields => { %record } };
+    return { name => $ARG[0], fields => {%record} };
 };
 my $flow = sub { $data{'host-edit'}{'flow'}{ shift() } };
 
@@ -165,7 +166,10 @@ my $flow = sub { $data{'host-edit'}{'flow'}{ shift() } };
 say ': flow [ pin only, live : fake ssh -> p-7-r -> the live cube ]';
 
 my $cube_up = IO::Socket::INET->new(
-    PeerAddr => '127.0.0.1', PeerPort => 42, Timeout => 1 );
+    PeerAddr => '127.0.0.1',
+    PeerPort => 42,
+    Timeout  => 1
+);
 my $gcc = grep { -x "$ARG/gcc" } split m|:|, $ENV{'PATH'} // '';
 if ( not $cube_up or not $gcc ) {
     say '  skip : no cube on 127.0.0.1:42 or no gcc';
@@ -173,14 +177,15 @@ if ( not $cube_up or not $gcc ) {
     close($cube_up);
     my $p7r = File::Spec->catfile( $tmp, 'p-7-r' );
     system( 'gcc', '-O2', '-o', $p7r,
-        File::Spec->catfile( $main::root_path, qw| bin c_src p-7-r.c | ) ) == 0
+        File::Spec->catfile( $main::root_path, qw| bin c_src p-7-r.c | ) )
+        == 0
         or die 'p-7-r did not compile';
     $data{'host-edit'}{'cfg'}{'p7r_bin'} = $p7r;
     $ENV{'PROTOCOL_7_BIN_P7R_USER'} //= getpwuid($UID);
 
     my $home = File::Spec->catdir( $tmp, 'home' );
     mkdir $home;
-    local $ENV{'HOME'} = $home;
+    local $ENV{'HOME'}                   = $home;
     local $code{'crypt.C25519.key_vars'} = sub {
         return { known_hosts_dir => "$home/.n/remote-keys/servers" };
     };
@@ -195,21 +200,25 @@ if ( not $cube_up or not $gcc ) {
     pump();
     my $s = $flow->('zz-test');
     ok( $s->{'step'} eq 'done' && $s->{'status'} eq 'pinned',
-        'connect -> forward -> probe -> pin -> done' )
-        or say "    got : $s->{'step'} : " . ( $s->{'status'} // '?' );
+        'connect -> forward -> probe -> pin -> done'
+    ) or say "    got : $s->{'step'} : " . ( $s->{'status'} // '?' );
     ok( -f "$home/.n/remote-keys/servers/zz-test_42.public",
-        '  :.. the pin is named after the record' );
+        '  :.. the pin is named after the record'
+    );
     ok( !exists $data{'host-edit'}{'forwards'}{'zz-test'},
-        '  :.. the ssh forward is stopped at the end' );
+        '  :.. the ssh forward is stopped at the end'
+    );
     ok( scalar( grep {m|probing the host-root|} @status )
             && scalar( grep {m|pinning |} @status ),
-        '  :.. every step reported on the status line' );
+        '  :.. every step reported on the status line'
+    );
 
     ( $ok_, $why ) = $code{'host-edit.flow.start'}->('zz-test');
     pump();
     ok( $flow->('zz-test')->{'step'} eq 'done'
             && grep( {m|already pinned|} @status ),
-        'a second run : already pinned -> done' );
+        'a second run : already pinned -> done'
+    );
 }
 
 ######################################################################
@@ -233,7 +242,7 @@ say ': flow [ owner path, actions stubbed ]';
         return { field => 'F' x 120, root_pub => 'R' x 32 };
     };
     local $code{'host-edit.flow.needs_passphrase'} = sub { return 5 };
-    local $code{'keys.certify_host'} = sub {
+    local $code{'keys.certify_host'}               = sub {
         $called{'certify'} = { %{ $ARG[0] } };
         return { wire => 'W' x 300, owner_pub => 'O' x 32 };
     };
@@ -246,7 +255,8 @@ say ': flow [ owner path, actions stubbed ]';
     pump();
     my $s = $flow->('zz-own');
     ok( $s->{'step'} eq 'need_passphrase' && !exists $called{'certify'},
-        'stops at need_passphrase, nothing certified yet' );
+        'stops at need_passphrase, nothing certified yet'
+    );
     ok( $called{'pin'}[4] eq 'K' x 77 && $called{'fetch'}[4] eq 'K' x 77,
         '  :.. pin + fetch got the PROBED key id' );
     ok( $called{'pin'}[2] eq 'zz-host.example' && $called{'pin'}[3] == 42,
@@ -261,10 +271,12 @@ say ': flow [ owner path, actions stubbed ]';
             && $called{'certify'}{'owner'} eq 'test-owner'
             && $called{'certify'}{'host'} eq 'zz-own'
             && $called{'certify'}{'root_pub'} eq 'R' x 32,
-        'certify : owner key + passphrase + the FETCHED host-root key' );
+        'certify : owner key + passphrase + the FETCHED host-root key'
+    );
     ok( !exists $s->{'passphrase'}, '  :.. the passphrase is not kept' );
     ok( $called{'install'}[4] eq 'W' x 300,
-        'install : the certified statement' );
+        'install : the certified statement'
+    );
     ok( $s->{'step'} eq 'done' && $s->{'status'} =~ m|owner-certified|,
         'done : owner-certified' )
         or say "    got : $s->{'step'} : " . ( $s->{'status'} // '?' );
@@ -276,9 +288,43 @@ say ': flow [ owner path, actions stubbed ]';
     $code{'host-edit.flow.start'}->('zz-own');
     pump();
     $s = $flow->('zz-own');
-    ok( $s->{'step'} eq 'error' && $s->{'status'} =~ m|DIFFERS from the pin|
+    ok( $s->{'step'} eq 'error'
+            && $s->{'status'} =~ m|DIFFERS from the pin|
             && !exists $called{'pin'},
-        'a host-root mismatch : error, nothing pinned' );
+        'a host-root mismatch : error, nothing pinned'
+    );
+}
+
+######################################################################
+say ': needs_passphrase [ which owner keys make the form ask ]';
+{
+    my $tdir = File::Spec->catdir( $tmp, 'keys' );
+    mkdir $tdir;
+    my ( $holder, $encrypted, $virtual ) = ( 'user', 0, 0 );
+    local $code{'crypt.C25519.key_path'} = sub {
+        my $b = "$tdir/$ARG[0]";
+        return {
+            holder       => $holder,
+            key_filename => { secret => "$b.secret", private => "$b.private" }
+        };
+    };
+    local $code{'crypt.C25519.encrypted_key'}  = sub {$encrypted};
+    local $code{'crypt.C25519.key_is_virtual'} = sub {$virtual};
+    my $needs = $code{'host-edit.flow.needs_passphrase'};
+    open( my $fh, '>', "$tdir/plain.secret" ) or die;
+    close($fh);
+    ok( !$needs->('plain'), 'a plain key on disk : no passphrase' );
+    $encrypted = 5;
+    ok( $needs->('plain'), 'an encrypted key on disk : passphrase' );
+    $encrypted = 0;
+    ok( $needs->('derived'),
+        'a passphrase-derived key [ ' . 'nothing on disk ] : passphrase' );
+    $virtual = 5;
+    ok( $needs->('seed'),
+              'a VIRTUAL seed-phrase key : passphrase '
+            . '[ the network authority form ]' );
+    $holder = 'root';
+    ok( !$needs->('rooted'), 'a root-held key : no passphrase' );
 }
 
 ######################################################################
@@ -303,8 +349,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,.,,.,,,.,,,..,,.,.,,.,,...,..,,...,,,.,..,,...,...,,..,,,,,,,,,,,.,...,
-#2WBL56BKDQFCF6BIBRWZIRWVU4YNE4J73NN5CDBUDEYUZRWW3AJ5557GWTLJPKKEWT4RZPXPJL5VI
-#\\\|XF3HDKTFLYB3RQOJD3A7GJ4UT5GV7AWFVL53VJPF2IYL4PONKZ4 \ / AMOS7 \ YOURUM ::
-#\[7]BXEFWD43TMHATO3AJ4CNGI7MIH7QDXYM44XBHIPD6UESNMZUUUAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,..,,,..,.,,,.,.,,,,,,..,,,,,..,,...,...,,..,...,,.,,,..,...,
+#Q366T7IBS6EKRHNKT5HH47OHZLQZ463G72LF6OKILC72CVB2MGF6XURKFD7QVFHHL2G6HNCKERF2K
+#\\\|HHOXKH6KXXMP7YE77N4WJVKDMNLG7WKRL5HUDQ7LIRCLZAIJF5V \ / AMOS7 \ YOURUM ::
+#\[7]5ACKFGSPRW7S5YOFYIYBNKMS23THBTDHO34AJLPEDIQXWDQVMYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
