@@ -54,8 +54,8 @@ every SV (scalar value) as code executes, so even a child that only does one
 the parent's resident pages, not just the pages it "logically" needs. on a
 host with ample RAM this is invisible; on a memory-constrained host it is not.
 
-**the specific constraint:** the user runs a host ("atom", reachable via
-`ssh -p 2242 atom.v7.ax` per shell history) with only 1GB RAM, and has
+**the specific constraint:** the user runs a host ("atom", reachable over
+ssh) with only 1GB RAM, and has
 direct prior experience of memory-pressure crashes there — "these are the
 things that make it crash." site-yaml's fork-per-request design is exactly
 that class of thing at scale (many job-detail + search-page fetches during
@@ -196,8 +196,8 @@ note above) and not at a fresh chmod_child-exec build (fallback only).
 
 see [[topic-site-yaml-zenka]] for the broader site-yaml design context.
 
-#,,,,,.,,,...,,,.,.,,,,,,,,,,,,.,,..,,..,,..,,.,.,...,..,,,,.,,.,,.,,,.,.,.,,,
-#F63XBQLY5MPTUVESV4NG7TOHQ2QM3SYD3C4QCB2IDHQNDKYQCYW3Z4Q7NA47J2D7GBFFUCTSVOJDE
-#\\\|BARIED2LY6LTXYC62NK5PYAHGJVFUWSQ2TAYCHQCJYJWUTTZFBI \ / AMOS7 \ YOURUM ::
-#\[7]NUOMMWTZRL636O5QOGF4V4HX3QIRDK3GYMJH75O4CBJ5JK6THGBQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,,..,...,,.,,..,,.,,,.,.,...,.,.,...,...,,.,,,,.,,,.,,,.,,,,,
+#4BMIPVJD26OLMJVVUOXVGBP5CSU6Y77NJ5IUEDIZ3M22JWS3ZERWAEJASUQ5QUMZNXWQCBWH67BKW
+#\\\|WGYVEC2E6FAVK4PQTEGQKFQAZ3MF7DZQVAGQC6NTTSL7XNIPMQ2 \ / AMOS7 \ YOURUM ::
+#\[7]TO723HO7W7XZDUGK2KY4J47MLAC5AZ7M53KAWXDXRT6V4BTSXWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
