@@ -79,7 +79,10 @@ host-edit's own VAR_P7 \ ETC_P7 dirs. next : kimi lane B = host-edit
 zenka on form.* [ records, add-host form, ssh forward + probe + certify +
 owner-statement ] ; its report lists what form.* still names user-edit
 [ display strings, <user-edit.cfg.*>, menu namespace vocabulary ].
-owner-statement + p-7-r -host need a v7-zenki restart to go live.
+owner-statement + p-7-r -host went live with a plain v7-zenki RELOAD
+[ 2026-10-08 : reload config re-reads v7-zenki/zenka.v7, so a namespace
+newly added to modules.load [ keystore ] is loaded by reload source ;
+init recompiles p-7-r ; SigCgt bit 16 stayed set ] -- no restart needed.
 
 ## lessons
 
@@ -103,4 +106,16 @@ owner-statement + p-7-r -host need a v7-zenki restart to go live.
 #OGFHTIW5RW2BVZT2BUY3DCX7VONQLK3RKP55SFN7BRYPNIKDJ27FWHSHD66VGRLMDXU4SNU6QCJ3S
 #\\\|EXNEXN5SA6KZ5VT3CW5YZPMFG5KAY7OXE7Z3EOFU63QKYFHFPHH \ / AMOS7 \ YOURUM ::
 #\[7]IVBOJZDJBYA63MJKSYIABVNHC7SNKGDJF2FAN6RGASODQVNPYCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- kimi-CREATED modules can end with a decorative fake signature first
+  line [ `#,,.,,..` 75-81 chars ] above the real block -- the sign run
+  signs over it, the user's length check flags only the long ones. check
+  every new kimi file : `awk '/^#[,.]+$/ && length($0)!=78'` [ 16 cleaned
+  2026-10-08, af9b21271 ]. kimi lanes hit the 100 step limit mid-task
+  [ resume with kimi_continue ] -- size task files small up front
+
+#,,,.,,,.,.,,,...,...,,.,,,,,,,..,,..,.,.,,..,..,,...,...,.,.,.,.,.,.,...,,,.,
+#VLZXKQFK6EEMAD72ZZTA5FAJSSFAI5O2WERK5AZ2BDTGI2KY6QFW3EU3ZC34UOW6FHJ7OLBUOKGFY
+#\\\|FY5MI6PAMSISTLJUUAVQ67IADPUDL6KIKYLDIMQDQCBGDOR5UNY \ / AMOS7 \ YOURUM ::
+#\[7]VHIULWWM6RMENVCWBZB5VIBDV25MWJW2B5X54W4625UTK6QUUGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
