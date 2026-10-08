@@ -1,0 +1,160 @@
+## [:< ##
+
+# name   = host-edit.flow.step
+# descr  = run one add-host step and schedule the next [ the trust order ]
+# param  = <record name>
+#
+# connect -> [ wait_forward ] -> probe -> pin -> fetch -> certify ->
+# install -> done. every check gates the NEXT step : the pin must hold the
+# probed key id, the fetched chain's leaf issuer must equal it, only then
+# is anything certified. a host-root that differs from an existing pin is
+# an ERROR here -- never re-pinned from a form. any error stops the ssh
+# forward ; so does done.
+
+my $name = shift // '';
+
+my $s = ( <host-edit.flow> // {} )->{$name};
+return FALSE if ref $s ne qw| HASH |;
+
+my $status = sub { <[host-edit.flow.status]>->( $name, shift ) };
+my $next   = sub {
+    my ( $step, $delay ) = @ARG;
+    $s->{'step'} = $step;
+    <[host-edit.flow.schedule]>->( $name, $delay // 0 );
+    return TRUE;
+};
+my $stop = sub {
+    my ( $step, $text ) = @ARG;
+    <[host-edit.transport.ssh_forward_stop]>->($name) if $s->{'forwarded'};
+    $s->{'step'} = $step;
+    $status->($text);
+    return TRUE;
+};
+my $error = sub { return $stop->( qw| error |, '<< ' . shift() . ' >>' ) };
+
+my $step = $s->{'step'};
+
+if ( $step eq qw| connect | ) {
+    if ( length $s->{'ssh'} ) {
+        my ( $local, $why ) = <[host-edit.transport.ssh_forward_start]>->(
+            $name, $s->{'ssh'}, $s->{'ssh_port'}, $s->{'cube_port'}
+        );
+        return $error->("ssh forward : $why") if not defined $local;
+        @{$s}{qw| forwarded dial_host dial_port deadline |}
+            = ( TRUE, '127.0.0.1', $local, time + 20 );
+        $status->("ssh forward to $s->{'ssh'} ..");
+        return $next->( qw| wait_forward |, 0.2 );
+    }
+    @{$s}{qw| dial_host dial_port |} = @{$s}{qw| host cube_port |};
+    return $next->(qw| probe |);
+}
+
+if ( $step eq qw| wait_forward | ) {
+    my ( $ready, $why ) = <[host-edit.transport.forward_ready]>->($name);
+    if ( not defined $ready ) {
+        $s->{'forwarded'} = FALSE;    ## already gone ##
+        return $error->( "ssh : $why -- known_hosts entry "
+                . "? [ ssh to the host once by hand ]" );
+    }
+    return $next->(qw| probe |) if $ready;
+    return $error->('ssh forward not ready in 20 s')
+        if time > $s->{'deadline'};
+    return $next->( qw| wait_forward |, 0.2 );
+}
+
+if ( $step eq qw| probe | ) {
+    $status->('probing the host-root ..');
+    my ( $p, $why ) = <[host-edit.action.probe]>->(
+        $name, @{$s}{qw| cube_port dial_host dial_port |}
+    );
+    return $error->("probe : $why") if ref $p ne qw| HASH |;
+    return $error->( 'the host-root DIFFERS from the pin -- not replaced '
+            . '[ verify, then remove the pin with remove known:'
+            . $name
+            . ' ]' )
+        if $p->{'state'} eq qw| mismatch |;
+    return $error->( 'delegation refused : ' . ( $p->{'reason'} // '?' ) )
+        if $p->{'state'} eq qw| refused |;
+    @{$s}{qw| key_id leaf_name |} = @{$p}{qw| key_id name |};
+    return $next->(qw| pin |) if $p->{'state'} eq qw| unpinned |;
+    $status->( sprintf 'already pinned [ %s ]', $p->{'name'} // '' );
+    return $next->( length $s->{'owner_key'} ? qw| fetch | : qw| done | );
+}
+
+if ( $step eq qw| pin | ) {
+    $status->(
+        sprintf 'pinning %s [ %s.. ]',
+        $s->{'leaf_name'} // '',
+        substr( $s->{'key_id'}, 0, 7 )
+    );
+    my ( $r, $why ) = <[host-edit.action.pin]>->(
+        $name, @{$s}{qw| cube_port dial_host dial_port key_id |}
+    );
+    return $error->("pin : $why") if ref $r ne qw| HASH |;
+    return $error->('pin : the host-root differs from the probe')
+        if $r->{'state'} ne qw| pinned |;
+    return $next->( length $s->{'owner_key'} ? qw| fetch | : qw| done | );
+}
+
+if ( $step eq qw| fetch | ) {
+    $status->('fetching the delegation chain ..');
+    my ( $c, $why ) = <[host-edit.action.fetch_chain]>->(
+        $name, @{$s}{qw| cube_port dial_host dial_port key_id |}
+    );
+    return $error->("fetch : $why") if ref $c ne qw| HASH |;
+    $s->{'root_pub'} = $c->{'root_pub'};
+    return $next->(qw| certify |);
+}
+
+if ( $step eq qw| certify | ) {
+    ## a passphrase-protected owner key : the form asks [ masked prompt ] ##
+    if ( not defined $s->{'passphrase'}
+        and <[host-edit.flow.needs_passphrase]>->( $s->{'owner_key'} ) ) {
+        $s->{'step'} = qw| need_passphrase |;
+        $status->("passphrase for owner key '$s->{'owner_key'}' ?");
+        return TRUE;    ## resumed by host-edit.flow.passphrase ##
+    }
+    $status->("certifying with '$s->{'owner_key'}' ..");
+    my @warnings;
+    my ( $r, $code_, $why ) = <[keys.certify_host]>->(
+        {   qw| owner |      => $s->{'owner_key'},
+            qw| host |       => $name,
+            qw| root_pub |   => $s->{'root_pub'},
+            qw| passphrase | => $s->{'passphrase'},
+            qw| on_warning | => sub { push @warnings, shift },
+        }
+    );
+    delete $s->{'passphrase'};    ## never kept past its one use ##
+    $s->{'warnings'} = \@warnings;
+    return $error->("certify : $why") if ref $r ne qw| HASH |;
+    $s->{'owner_wire'} = $r->{'wire'};
+    return $next->(qw| install |);
+}
+
+if ( $step eq qw| install | ) {
+    $status->('installing the owner statement on the host ..');
+    my ( $r, $why ) = <[host-edit.action.install]>->(
+        $name, @{$s}{qw| cube_port dial_host dial_port owner_wire |}
+    );
+    return $error->("install : $why") if ref $r ne qw| HASH |;
+    $s->{'installed'} = $r->{'state'};
+    return $next->(qw| done |);
+}
+
+if ( $step eq qw| done | ) {
+    return $stop->(
+        qw| done |,
+        length $s->{'owner_key'}
+        ? sprintf( 'owner-certified [ %s ]', $s->{'installed'} // '?' )
+        : 'pinned'
+    ) if $s->{'status'} !~ m{\A(?:pinned|owner-certified)};
+    return TRUE;
+}
+
+return FALSE;    ## need_passphrase \ error : waiting or finished ##
+
+#,,,,,,,.,,,,,,..,,,,,.,.,,..,,..,,..,,,.,,..,..,,...,..,,...,,,,,,,,,...,,.,,
+#5H64XUQ4UJOOGVIEDDR5F3QEHYU27XUUJS2XDTWOQZ3QNN5EAYHVNFTWQMPTC6D64YDU5UAZ2SEZY
+#\\\|PTA7ZVZAGQALUGAXPAHIU36KBYGL2V7LC2ODW2FI2GFHO4IJ6SD \ / AMOS7 \ YOURUM ::
+#\[7]DMQTKCJ3GNB54BGS23O4TXU47OMZTXLCK7HRABBTOQCQKX4KLAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
