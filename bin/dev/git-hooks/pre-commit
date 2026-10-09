@@ -133,6 +133,42 @@ unless ($skip_descr_check) {
     }
 }
 
+## signature fragment directly above a staged file's footer : WARN only -- the
+## rule is AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx [ the sign
+## tool's own check ], removing is the sign tool's explicit :strip: tag
+{
+    my @staged_files = eval { $git->diff( { cached => 1, name_only => 1 } ) };
+    my $fragment_rx  = eval {
+        local @INC = (
+            File::Spec->catdir( $root_path, qw| data lib-path pm | ), @INC
+        );
+        require AMOS7::Protocol::P7Syntax;
+        AMOS7::Protocol::P7Syntax::p7_syntax__sig_fragment_rx();
+    };
+    my @found;
+    if ( defined $fragment_rx ) {
+        for my $file (@staged_files) {
+            my $file_path = File::Spec->catfile( $root_path, $file );
+            next if not -f $file_path or -l $file_path;
+            open my $fh, '<:raw', $file_path or next;
+            my $text = do { local $/; <$fh> };
+            close $fh;
+            next if not defined $text or $text !~ $fragment_rx;
+            my $line = 1 + ( substr( $text, 0, $-[0] ) =~ tr|\n|| );
+            push @found, "$file:$line";
+        }
+    }
+    if (@found) {
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: $bl${rd}signature "
+            . "fragment above the footer$rst\n";
+        print STDERR "${fg}::   $_\n" for @found;
+        print STDERR "${fg}:: ${ng}remove${rst}${fg} : sign again with the "
+            . "${bl}:strip:$rst${fg} tag [ commit not blocked " . "]\n";
+        print STDERR "${fg}::\n$rst";
+    }
+}
+
 ## Exit if version file doesn't exist
 unless ( -f $vers_file ) {
     exit 0;
@@ -389,8 +425,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,.,,,..,.,,,.,,,,,,,.,,,,,,,.,.,,..,,.,,,,.,..,,...,...,,..,.,.,,,.,.,.,.,.,
-#D6XBFPYK2A3X4R4J7UXAT6NE3TOEQC5RTH44Q7TKLPAK7QWSSBBUURJ2UGAJ6ZPPJAVJOZ2NKYF5U
-#\\\|CBMUHVUR5NY6XLRZFVAFCKS4V7PNPUHE2RGMWRUZ6PMWN5RLTIY \ / AMOS7 \ YOURUM ::
-#\[7]LP72ZZE2ZYEOASZJ7Z2BASXFBJIFH6FOTV5CSIVDOPAYT3FGW2CI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,..,,.,,,,,,,..,,.,,,,.,,,,,,..,,...,...,...,..,,.,,,...,,..,
+#35BG35FO4NTLAXN34OQDET7NQFZQLFTK4P45FSRPAQHAPVS7P7GN4G3ZXL4BKTS6NE5QOZOCKIM3M
+#\\\|XCQLNTA7IKE5DH6X5YGECO2OIWKICCGYT3JWKJTNAVGUETFCJHH \ / AMOS7 \ YOURUM ::
+#\[7]IVO4FOE4TGV5R7EULZ2R7R6HWSRYGQXQLFNHQGVAHUM3S3MLFYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
