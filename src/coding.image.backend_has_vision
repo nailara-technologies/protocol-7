@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = coding.image.backend_has_vision
+# descr = true when the routed backend's server is ready with an mmproj
+# param = $routed [ task backend name : cpu, gpu, single-llm .. ]
+
+my $routed  = shift // qw| gpu |;
+my $srv_key = $routed eq qw| cpu | ? qw| cpu | : qw| gpu |;
+my $server  = ( <coding.inference_servers> // {} )->{$srv_key} // {};
+
+## status first : the cpu entry carries an mmproj_path even with no server ##
+## running [ pid 0 ]                                                       ##
+return FALSE unless ( $server->{'status'} // '' ) eq qw| ready |;
+
+## gpu : model resolution is authoritative, the server hash may be stale ##
+## after a module reload [ same order as coding.cmd.vision-model ]       ##
+my $mmproj = $srv_key eq qw| gpu | ? <inference.model.mmproj_path> // '' : '';
+$mmproj = $server->{'mmproj_path'} // '' unless length $mmproj;
+
+return length $mmproj ? TRUE : FALSE;
+
+#,,,,,.,,,,,.,,,.,,,.,..,,,,.,,.,,...,.,.,...,..,,...,...,,,.,,.,,...,..,,,..,
+#OVK22J2ZLZTKYPC6MCOWWB26PIQJIGLKPJVU3ZZURWF4DTN4EHMDZZ3TPWPAF2WUUCOBIF22S6U6K
+#\\\|U7FGDN55BC5XSBMHWOIP2NY57TLYB4GJ6CKLWMEAME7IF7OPICH \ / AMOS7 \ YOURUM ::
+#\[7]DG7QDNNP3OPIVQ62PBZKNPMTPOIG4IUFHVEMKAH5LQSACS5CXCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

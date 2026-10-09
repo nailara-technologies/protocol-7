@@ -47,6 +47,38 @@ if ( $parsed->{'query'} =~ s|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):||i ) {
     );
 }
 
+## :image-embed:<path> keyword : attach a local image                    ##
+## [ repository-relative or absolute path, optional trailing ':' ] as an ##
+## image_ref user message after the prompt -- expanded per request by    ##
+## coding.async.send_request only while the backend is vision-capable    ##
+my @image_msgs;
+$parsed->{'query'} =~ s{:image-embed:(\S+)}{
+    my $img_path = $1;
+    $img_path =~ s|:$||;
+    my $image = <[coding.image.load_for_vision]>->( { 'path' => $img_path } );
+    if ( defined $image->{'error'} ) {
+        <[base.logs]>->(
+            0, ':. prompt.assemble: image-embed failed : %s', $image->{'error'}
+        );
+        "[ image-embed failed : $image->{'error'} ]";
+    } else {
+        push @image_msgs,
+            {
+            'role'    => qw| user |,
+            'content' => sprintf(
+                '[ image : %s, %s, %dx%d ]', $img_path,
+                $image->{'mime'}, $image->{'width'}, $image->{'height'}
+            ),
+            'image_ref' => {
+                'path'   => $image->{'path'},
+                'width'  => $image->{'width'},
+                'height' => $image->{'height'},
+            },
+            };
+        "[ image : $img_path ]";
+    }
+}ge;
+
 ## select best available backend ##
 my $backend_info = <[coding.routing.select_backend]>->(
     {   backend         => $parsed->{'backend'},
@@ -122,8 +154,8 @@ if ( ref $tools eq qw| ARRAY | and $tools->@* ) {
 my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // 'review';
 
 ## dynamic template selection from prompt  check if prompt references a ##
-## known template name  skip for no-tools single-round tasks [ utility  ##
-## inference, summarization ]                                           ##
+## known template name  skip for no-tools single-round tasks            ##
+## [ utility inference, summarization ]                                 ##
 my $selected_template = 'system-default';
 if ( $task->{'no_tools'} and ( $task->{'max_rounds'} // 99 ) <= 1 ) {
     $selected_template = 'system-tools';    ## minimal context, no template ##
@@ -147,8 +179,8 @@ my $root         = <system.root_path>;
 my $template_dir = "$root/"
     . ( <context.cfg.template_dir> // 'data/yaml/context-templates' );
 
-## first: check if task_type itself is a template [ e.g. ##
-## improve-system-prompt ]                               ##
+## first: check if task_type itself is a template ##
+## [ e.g.  improve-system-prompt ]                ##
 if ( $task_type =~ m{^[\w-]+$} ) {
     my $type_template_path = "$template_dir/$task_type.yaml";
     if ( -f $type_template_path && $task_type !~ m{^system-} ) {
@@ -163,8 +195,8 @@ if ( $task_type =~ m{^[\w-]+$} ) {
 ## extract candidate words from prompt ##
 my @words = $prompt =~ m{([\w][\w-]*[\w])}g;
 
-## check each word against template files  longer matches first [     ##
-## self-improve before self ]  skip if already matched from task_type ##
+## check each word against template files  longer matches first         ##
+## [ self-improve before self ]  skip if already matched from task_type ##
 for my $candidate ( sort { length($b) <=> length($a) } @words ) {
     last if $selected_template ne 'system-default';
     next if $candidate =~ m{^system-};             ## skip system templates ##
@@ -284,6 +316,7 @@ if ( !@messages ) {
 }
 
 push @messages, { 'role' => 'user', 'content' => $prompt };
+push @messages, @image_msgs;
 
 <[base.logs]>->(
     2,
@@ -301,8 +334,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,.,,.,.,.,,,.,.,.,,,,,,,..,,.,.,.,,,,,,,,,.,..,,...,...,...,.,,,..,,...,,,,,
-#SAXJ3XZNX2GRSKQHBVJLYDS3BJXQLIN4T7SHMSFVRYT6J4MCU7NMTTQ2EYCM35AZ4M32QLQ7OK66C
-#\\\|K2VRCM2DXRTDNWYLO2GIPCQRVOQ62V3LVEBCADESFWXJAKB6HLE \ / AMOS7 \ YOURUM ::
-#\[7]L5IJPMJVNRHG2AKZAXZC43KWDQ443Q3Q7VYXHX4XDCUAKA3TJCCY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,..,,,,.,..,,,.,,,,,,,.,,,..,...,..,,...,...,...,..,,..,,,.,,.,.,
+#3VSNAPVUBOR7BYW6MK5HN4Z4BJLXLEU6PQC5MIJD7VXO2IQWSMU452NX275ZPEYL3H3WSWG3MGP2S
+#\\\|ZW2MLG6KPNVEJNW627JIY5EFIT3BJHZ54YLX7ORHQUTBR2SIP35 \ / AMOS7 \ YOURUM ::
+#\[7]YWCU4QEBXPDPO5F7OMAVBTZMR7LYJFMZETK2JEA4A3QYZBAED2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

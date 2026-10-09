@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.image.select_refs
+# descr = pick the image_ref messages to attach this round + token estimate
+# param = $messages [ aref ], $routed [ task backend name ]
+# return = { 'indices' => { idx => 1 }, 'tokens' => n, 'total' => n }
+
+my ( $messages, $routed ) = @ARG;
+
+my @ref_idx = grep { ref $messages->[$ARG]->{'image_ref'} eq qw| HASH | }
+    0 .. $#{ $messages // [] };
+
+return { 'indices' => {}, 'tokens' => 0, 'total' => 0 } unless @ref_idx;
+
+## text-only server [ e.g. after a switch back ] : attach nothing ##
+return { 'indices' => {}, 'tokens' => 0, 'total' => scalar @ref_idx }
+    unless <[coding.image.backend_has_vision]>->($routed);
+
+## only the latest n images ride along : older ones stay text placeholders ##
+my $keep = <coding.cfg.view_image_keep> // 2;
+$keep = 0 if $keep < 0;
+## [ never a 0 .. -1 slice : that range is empty, not 'all' ]           ##
+my @attach
+    = !$keep           ? ()
+    : @ref_idx > $keep ? @ref_idx[ -$keep .. -1 ]
+    :                    @ref_idx;
+
+## token cost : one token per patch_px x patch_px tile               ##
+## [ 28 px = 14 px patches merged 2x2, qwen-vl style ] plus framing. ##
+## conservative on purpose : under-estimating overflows the kv cache ##
+my $patch  = <coding.cfg.image_patch_px>    // 28;
+my $max_px = <coding.cfg.view_image_max_px> // 1024;
+my $tokens = 0;
+for my $idx (@attach) {
+    my $ref = $messages->[$idx]->{'image_ref'};
+    my $w   = $ref->{'width'}  || $max_px;
+    my $h   = $ref->{'height'} || $max_px;
+    $tokens += int( ( $w + $patch - 1 ) / $patch ) *
+        int( ( $h + $patch - 1 ) / $patch ) + 16;
+}
+
+return {
+    'indices' => { map { $ARG => TRUE } @attach },
+    'tokens'  => $tokens,
+    'total'   => scalar @ref_idx,
+};
+
+#,,.,,,,,,..,,.,,,.,,,.,.,...,...,.,,,..,,,.,,..,,...,...,...,,,,,,,.,,.,,.,.,
+#I7MQQXEEUBZERZW6MXVR22LY4QHKMDDG6DTYUHMJR5QZKAX43H7SIAWSZLVOXC4EF4L2BV4EQXVAI
+#\\\|HFYHWD3YYU2O7S4IUF2242LBQDI44537L7IEQB34LAGLMXJGG4N \ / AMOS7 \ YOURUM ::
+#\[7]S5OEBNCFJK3NPLOJTCFUBQYFUFEON3FCIUIRTWV3UN5RXBIXIKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

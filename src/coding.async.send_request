@@ -77,11 +77,15 @@ if (    defined $task
     $task->{'injected_messages'} = [];
 
     for my $im (@injected) {
-        push @{ $state->{'messages'} },
-            {
+        push @{ $state->{'messages'} }, {
             'role'    => $im->{'role'}    // qw| user |,
-            'content' => $im->{'content'} // ''
-            };
+            'content' => $im->{'content'} // '',
+            ## view_image : path reference only, expanded per request ##
+            (   ref $im->{'image_ref'} eq qw| HASH |
+                ? ( 'image_ref' => $im->{'image_ref'} )
+                : ()
+            ),
+        };
     }
 
     <[base.logs]>->(
@@ -225,10 +229,10 @@ my $max_tokens_cfg = <inference.model.max_tokens>
     // <inference.model.context_length> // 7777;
 my $temperature = <inference.model.temperature> // 0.7;
 
-## cap max_tokens to avoid KV cache overflow [ context + max_tokens must    ##
-## fit in server n_ctx ] n_ctx is stored in inference_servers when the      ##
-## backend was spawned map routing name to server key [ 'single-llm' routes ##
-## to gpu ]                                                                 ##
+## cap max_tokens to avoid KV cache overflow                            ##
+## [ context + max_tokens must fit in server n_ctx ] n_ctx is stored in ##
+## inference_servers when the backend was spawned map routing name to   ##
+## server key [ 'single-llm' routes to gpu ]                            ##
 my $routed       = $state->{'backend'} // 'gpu';
 my $srv_key      = $routed eq qw| cpu | ? qw| cpu | : qw| gpu |;
 my $backend_info = <coding.inference_servers>->{$srv_key} // {};
@@ -240,7 +244,10 @@ my $body_chars_pre      = length(
         { messages => \@messages, tools => $tools }
     )
 );
-my $est_tokens_pre  = int( $body_chars_pre / $chars_per_token_pre );
+## attached images cost projector tokens, not their placeholder text ##
+my $image_sel = <[coding.image.select_refs]>->( \@messages, $routed );
+my $est_tokens_pre
+    = int( $body_chars_pre / $chars_per_token_pre ) + $image_sel->{'tokens'};
 my $headroom        = 500;    ## tokens reserved for generation overhead ##
 my $max_tokens_safe = $n_ctx - $est_tokens_pre - $headroom;
 
@@ -250,13 +257,13 @@ my $max_tokens_safe = $n_ctx - $est_tokens_pre - $headroom;
 if ( $max_tokens_safe < 1000 ) {
     my $overflow = $est_tokens_pre - $n_ctx;
 
-    ## two distinct failure classes share this gate : a genuine overflow [ ##
-    ## the estimate exceeds n_ctx itself ] and a squeezed-context class [  ##
-    ## the estimate fits but leaves under the 1000-token generation floor  ##
-    ## ]. each must be reported as what it actually is -- the earlier      ##
-    ## single message claimed "exceeds n_ctx by 0" for the squeezed class, ##
-    ## found live 2026-09-21 : est 12713 < n_ctx 13214 logged as an        ##
-    ## overflow by 0 tokens                                                ##
+    ## two distinct failure classes share this gate : a genuine overflow    ##
+    ## [ the estimate exceeds n_ctx itself ] and a squeezed-context class [ ##
+    ## the estimate fits but leaves under the 1000-token generation floor   ##
+    ## ]. each must be reported as what it actually is -- the earlier       ##
+    ## single message claimed "exceeds n_ctx by 0" for the squeezed class,  ##
+    ## found live 2026-09-21 : est 12713 < n_ctx 13214 logged as an         ##
+    ## overflow by 0 tokens                                                 ##
     my $err
         = $overflow > 0
         ? sprintf(
@@ -313,8 +320,8 @@ my $request_body = {
     'model'    => $task->{'execution'}->{'model_used'} // 'default',
     'messages' => \@messages,
     ## use streaming : SSE chunks accumulate content as they arrive if ##
-    ## connection drops mid-generation, we keep partial content [      ##
-    ## non-streaming returns single JSON blob, vulnerable to drops ]   ##
+    ## connection drops mid-generation, we keep partial content        ##
+    ## [ non-streaming returns single JSON blob, vulnerable to drops ] ##
     'stream'      => JSON::PP::true(),
     'max_tokens'  => $max_tokens,
     'temperature' => $temperature,
@@ -350,9 +357,10 @@ if ( defined $task_ref->{'thinking'} ) {
 my $context_limit   = $n_ctx;    ## actual server context window ##
 my $chars_per_token = 3.2;
 my $body_chars      = length( JSON::PP->new->utf8->encode( \@messages ) );
-my $est_tokens      = int( $body_chars / $chars_per_token );
-my $pct_used        = int( $est_tokens * 100 / $context_limit );
-my $tokens_left     = $context_limit - $est_tokens - $max_tokens;
+my $est_tokens
+    = int( $body_chars / $chars_per_token ) + $image_sel->{'tokens'};
+my $pct_used    = int( $est_tokens * 100 / $context_limit );
+my $tokens_left = $context_limit - $est_tokens - $max_tokens;
 
 <[base.logs]>->(
     1,
@@ -391,8 +399,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,..,,.,,,,,.,,,.,...,..,,...,.,.,.,.,.,.,..,,...,...,.,.,,,.,..,,..,,,,.,
-#PXMXB5IPAPCCTHACBJ3KZ6QFRUXCOCIXWMFMVR6IUCZECL2O47CEKV6CZC5YLNZMRV7WAYLRSGJLY
-#\\\|AO7DVMI5ECPG5OJUQYOZAGXGUPDRHIS5OU4KQKMQWETAFUVDJPV \ / AMOS7 \ YOURUM ::
-#\[7]G4YVDNSPUUBO7TYYTLF6NF2ZSRF372S2RKWZRKPXJZZLPPMHBECA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,.,,..,,,..,,.,,..,,..,,...,..,,...,...,...,.,,,.,,,,.,,,,,,
+#4XHQOOZ5EGDZGBJ5D5NHH3X33JFXLYRYVWLZOKT4FJOIDGZ62FX7QJ73FG5NIEP53MOIR4LR66I34
+#\\\|G2YYWVW5PM7YYEWC7A5T3KYVINVMHGBGCUMZMZA6G62UMS6FONY \ / AMOS7 \ YOURUM ::
+#\[7]JMYVEPEG2URJMDJL4FOX5TCX5QMBMPNTNWXEAKFB3LX2NJ4GDYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

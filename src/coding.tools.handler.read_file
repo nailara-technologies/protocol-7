@@ -39,7 +39,15 @@ my $result = $code{'context.file'}->(
 
 ## status comments [ binary, not found, unreadable ] pass through as-is -- ##
 ## no pagination box, and no line count over a binary file                 ##
-return $result if defined $result and $result =~ m|^<!-- |;
+if ( defined $result and $result =~ m|^<!-- | ) {
+    ## images : name the coding tools that can actually read them ##
+    $result
+        .= "\n:: use view_image path=\"$path\" to see it [ vision model "
+        . "loaded ] or analyze_image path=\"$path\" for a text "
+        . "description"
+        if $result =~ m|^<!-- binary image file|;
+    return $result;
+}
 
 ## count total lines in file for pagination display ##
 my $total_lines = 0;
@@ -86,8 +94,8 @@ if ( defined $result && $total_lines > 0 ) {
 
 return $result;
 
-#,,..,,,,,,..,,.,,,.,,,,.,.,.,,,,,,,.,,,,,..,,.,.,...,...,.,,,.,.,..,,...,...,
-#66VDT7B4QI2PRAZUNNU5CKF2KROO27AXO5PE7PVJFDIUGUFVCD2RJJGQILTDEZP5IYFYOAKYEMMYW
-#\\\|CY3VRNEESB476N2NCQBSTWDRWIV7OUGHVLCRTZGYIMAUWR5UBEK \ / AMOS7 \ YOURUM ::
-#\[7]CJHVMGLYDQDS44TRIM4T2O4HQEKOJ3DK7LM33KF3VJELYENDY6CA 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,,..,,..,,..,,,,,.,,,.,.,,..,.,.,...,...,,,,,.,,,...,...,,..,
+#CVLX5VLFF2SRRWZJSUTFNBTVY6CSHPOCYT6HDDNV6RRRNEOBINALDSOKPPRJRS7L52YHXGMP7AIB4
+#\\\|7J422DCJPEVTQRVSJUC5EC333GE2FHCO5ODSMF33BL3XKSGW64F \ / AMOS7 \ YOURUM ::
+#\[7]UJV4IEF5MYWQFMB6THZ6J6L44HTHUI33UGID64CVMIGOW7TUHKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
