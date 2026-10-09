@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = letsencr.child.verify_http_selftest
+# param = { domain, reply_id }
+# descr = HTTP-01 self-test [ asynchronous ] : a random test token is placed
+#         through the same httpd challenge mechanism the real challenge
+#         uses.  route-send only queues the command until the event loop
+#         flushes the session buffer, so the fetch happens in the setup
+#         reply handler.  the token is always cleaned up ; a timeout
+#         answers FALSE when no httpd reply comes.
+# return = { ok => 1 } when queued, { ok => 0, reason } when not
+
+my $args     = shift;
+my $domain   = $args->{'domain'};
+my $reply_id = $args->{'reply_id'};
+
+return { 'ok' => 0, 'reason' => 'domain parameter required' }
+    unless defined $domain && length($domain);
+
+my $token   = <[base.prng.chars-anum]>->(32);
+my $content = sprintf 'letsencr-self-test.%s', <[base.prng.chars-anum]>->(48);
+
+## pending self-tests [ keyed by token ] ##
+<letsencr.child.selftest> //= {};
+<letsencr.child.selftest>->{$token} = {
+    'domain'   => $domain,
+    'token'    => $token,
+    'content'  => $content,
+    'reply_id' => $reply_id,
+    'started'  => time(),
+};
+
+## timeout guard : answer FALSE when no httpd reply ever comes [ the setup ##
+## reply handler and the timer both conclude via selftest_finish --        ##
+## whichever fires first wins, the other is a no-op ]                      ##
+<[event.add_timer]>->(
+    {   'after'   => 30,
+        'desc'    => 'letsencr self-test timeout',
+        'handler' => qw| letsencr.child.handler.selftest_timeout |,
+        'data'    => { 'token' => $token },
+    }
+);
+
+## place the test token through the real challenge mechanism [ the command ##
+## leaves the child when the event loop flushes the buffer -- the reply    ##
+## handler fetches once httpd has processed the setup ]                    ##
+my $setup_result = <[protocol-7.route-send]>->(
+    {   'command'   => qw| httpd.setup-acme-challenge |,
+        'call_args' => { 'args' => join( ' ', $domain, $token, $content ) },
+        'reply'     => {
+            'handler' => qw| letsencr.child.handler.selftest_setup_reply |,
+            'params'  => { 'token' => $token },
+        }
+    }
+);
+
+unless ($setup_result) {
+    delete <letsencr.child.selftest>->{$token};
+    return { 'ok' => 0, 'reason' => 'httpd challenge setup failed' };
+}
+
+<[base.logs]>->( 2, 'self-test : challenge setup queued for %s', $domain );
+
+return { 'ok' => 1 };
+
+#,,,.,,.,,,.,,,,.,..,,,,,,,,,,...,,.,,,..,.,.,..,,...,...,,,.,,,,,,.,,,,.,,,.,
+#GKSQNLJC5JHWXG5VPFJFBXCL43LHCYWFQYSOE6QSON6NC4O32O2ZUEC35XZOY7B5JBBAAQVHRDFLA
+#\\\|6JLZLLUOOXDRDH7BG6XMYABZPTGXHSRCAU7THMPTFEATNTZVWUQ \ / AMOS7 \ YOURUM ::
+#\[7]65WZRNJ2WPEVCT3GABFQI4AMUVDZJL6NVBA6P32SIC2AQ4OGMACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

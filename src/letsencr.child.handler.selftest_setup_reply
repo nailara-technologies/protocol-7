@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = letsencr.child.handler.selftest_setup_reply
+# descr = httpd answered the self-test challenge setup : on TRUE the token
+#         is live -- fetch the url [ a blocking fetch is fine now, the
+#         setup has been processed ], compare the exact content, always
+#         clean the token up and answer the parent [ deferred reply_id ]
+
+my $reply = shift;
+
+my $token = $reply->{'params'}->{'token'}       // '';
+my $st    = <letsencr.child.selftest>->{$token} // undef;
+
+## already concluded [ the timeout fired first ] or unknown : no-op ##
+return FALSE unless $st;
+
+my $mode = uc( $reply->{'cmd'} // '' );
+
+if ( $mode eq qw| TRUE | ) {
+
+    my $domain = $st->{'domain'};
+    my $url    = sprintf 'http://%s/.well-known/acme-challenge/%s',
+        $domain, $token;
+
+    <[base.logs]>->( 2, 'self-test : fetching %s', $url );
+
+    my $fetched = <[letsencr.child.http_get_url]>->($url);
+
+    return <[letsencr.child.selftest_finish]>->(
+        $token, 0, 'self-test fetch failed'
+    ) unless defined $fetched;
+
+    $fetched =~ s{^\s+|\s+$}{}g;
+
+    return <[letsencr.child.selftest_finish]>->(
+        $token, 0, 'self-test content mismatch'
+    ) unless $fetched eq $st->{'content'};
+
+    <[base.logs]>->( 2, 'self-test passed for %s', $domain );
+    return <[letsencr.child.selftest_finish]>->( $token, 1 );
+}
+
+## httpd did not confirm the setup ##
+return <[letsencr.child.selftest_finish]>->(
+    $token, 0,
+    sprintf( 'httpd challenge setup replied %s', $mode || 'nothing' )
+);
+
+#,,.,,,,,,,..,,..,.,,,.,.,,,,,.,.,...,.,,,,,,,..,,...,..,,..,,,.,,...,...,...,
+#RMU7FLAIM3MQSNI6KJ2YDG4LM42H4XH5KC7HJ7DKZVNQXHCGFWOL6CVGNGS5R4WJO7V4VMFIVHL76
+#\\\|TU53NYKUWA3PPCDT35F3FPLTUSWTZCKBV76GONWGUX5E7P2XOT5 \ / AMOS7 \ YOURUM ::
+#\[7]ZATLSX6JALGXF7PFNEUUPWDLEDG63ABDO2D34K4DW35LISK5REBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

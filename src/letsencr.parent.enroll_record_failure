@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = letsencr.parent.enroll_record_failure
+# param = $state, $domain, $reason
+# descr = record a failed enrollment [ checks or order ] in the state :
+#         attempts++, exponential backoff [ 1 h start, 24 h cap ], saved
+# return = the updated state entry
+
+my $state  = shift;
+my $domain = shift;
+my $reason = shift // qw| unknown |;
+
+return undef unless ref($state) eq qw| HASH | && defined $domain;
+
+my $now   = time();
+my $entry = $state->{$domain} //= { 'attempts' => 0 };
+
+$entry->{'attempts'}++;
+$entry->{'status'}       = qw| failed |;
+$entry->{'last_error'}   = $reason;
+$entry->{'last_attempt'} = $now;
+
+my $delay
+    = <[letsencr.parent.enroll_backoff_delay]>->( $entry->{'attempts'} );
+$entry->{'next_attempt_after'} = $now + $delay;
+
+<[letsencr.parent.enroll_state_save]>->($state);
+
+return $entry;
+
+#,,,,,.,.,.,,,,,,,,.,,,..,,.,,.,,,..,,.,.,,..,..,,...,...,,..,,.,,,,,,,..,,..,
+#5FKHUJV3WDHGFRFOXBW4IAIV6HFZIT6A7H4B3JEPEYUFGXYYEB5JBQ2HFOMND643NAEFGYINE77EG
+#\\\|J574ZA2GYXLRWCN22ZLBG2332BLRIQ3I5NQFQHOD25WPEZVLWBB \ / AMOS7 \ YOURUM ::
+#\[7]RGU767Y2IT5SAQURYD3AGBMD2JXARR4SZNVCCOOIPSZRJQMBYYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = letsencr.child.check_domain_dns
+# param = $domain, \@public_addresses
+# descr = enrollment DNS sanity check : the name must resolve to at least
+#         one address that is not loopback \ private \ link-local ; when
+#         public_addresses is configured, at least one resolved address
+#         must be on it [ a host behind NAT never sees its public ip ]
+# return = { ok => 0|1, reason => ..., addresses => [...] }
+
+my $domain     = shift;
+my $public_cfg = shift // [];
+
+return { 'ok' => 0, 'reason' => 'domain parameter required' }
+    unless defined $domain && length($domain);
+
+## an address qualifies when it is not loopback \ private \ link-local \ ##
+## cgnat \ documentation \ multicast \ reserved                          ##
+my $is_public = sub {
+    my $addr = shift;
+    return 0 unless defined $addr;
+    if ( index( $addr, qw| : | ) >= 0 ) {    ## ipv6 ##
+        return 0 if $addr =~ m{^ ::1? $}xi;
+        return 0 if $addr =~ m{^ f [cd] }xi;       ## unique local fc00::/7 ##
+        return 0 if $addr =~ m{^ fe [89ab] }xi;    ## link-local fe80::/10 ##
+        return 1;
+    }
+    return 0
+        if $addr =~ m{^ 0\. | ^ 10\. | ^ 127\. | ^ 169\.254\. }x;
+    return 0 if $addr =~ m{^ 172\. (?: 1[6-9] | 2[0-9] | 3[01] ) \. }x;
+    return 0 if $addr =~ m{^ 192\.168\. }x;
+    return 0
+        if $addr =~ m{^ 100\. (?: 6[4-9] | [789][0-9] | 1[01][0-9]
+                                | 12[0-7] ) \. }x;    ## cgnat 100.64/10 ##
+    return 0 if $addr =~ m{^ 198\. (?: 18 | 19 ) \. }x;
+    return 0
+        if $addr =~ m{^ 192\.0\.2\. | ^ 198\.51\.100\. | ^ 203\.0\.113\. }x;
+    return 0 if $addr =~ m{^ 22[4-9] \. | ^ 2[3-9][0-9] \. }x;
+    return 0 if $addr =~ m{^ 255 \. }x;    ## multicast \ reserved ##
+    return 1;
+};
+
+my @addresses = <[letsencr.child.resolve_addresses]>->($domain);
+
+return { 'ok' => 0, 'reason' => 'name does not resolve', 'addresses' => [] }
+    unless @addresses;
+
+my @public = grep { $is_public->($ARG) } @addresses;
+
+return {
+    'ok'        => 0,
+    'reason'    => 'resolves to loopback/private/link-local only',
+    'addresses' => \@addresses,
+    }
+    unless @public;
+
+## when configured : at least one resolved address must be on the list ##
+if ( $public_cfg && ref($public_cfg) eq qw| ARRAY | && @$public_cfg ) {
+    my %wanted = map { $ARG => 1 } @$public_cfg;
+    return {
+        'ok'        => 0,
+        'reason'    => 'no resolved address on letsencr.cfg.public_addresses',
+        'addresses' => \@addresses,
+        }
+        unless grep { $wanted{$ARG} } @public;
+}
+
+return { 'ok' => 1, 'addresses' => \@public };
+
+#,,,.,.,.,..,,,,.,,,,,.,.,,.,,,,.,,,.,,,,,,.,,..,,...,...,...,.,,,.,.,.,.,,.,,
+#J4PF5PWR2DBHEOBGDKKUT6RBSL5DAICXV3LPQMUAKZVHH3UPLVUPUXV6NKS2WSUXTY5RE26FWASOS
+#\\\|37PQO7SL4LQ66JKM7X3APIDHXV6VOF62M722GODD5BJQNR2E6L6 \ / AMOS7 \ YOURUM ::
+#\[7]AQYSNLY7S4QX6C6XSHRUVJVYTVGQ4GQQEPNTZWPBKBTXZDLGRSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
