@@ -15,6 +15,7 @@ my $params        = $p->{'params'}         // {};
 my $extra_headers = $p->{'headers'}        // {};
 my $ssl_verify    = $p->{'ssl_verify'}     // TRUE;
 my $stream_path   = $p->{'stream_to_file'} // '';
+my $stream_append = $p->{'stream_append'}  // FALSE;
 
 if ( not length $url or not length $on_done ) {
     <[base.logs]>->( 0, 'clients.https.request: url and on_done required' );
@@ -43,14 +44,18 @@ $path = '/' unless defined $path and length $path;
 ## accumulating in $state->{'buffer'} -- a multi-GB binary payload must     ##
 ## never sit whole in RAM before hitting disk. the completion callback then ##
 ## receives status + headers + byte count rather than the full body.        ##
-## clients.https.decode_body is skipped entirely on this path [ raw wire    ##
-## bytes to disk, no content-encoding \/ charset decoding ]. in this mode   ##
-## 'timeout' doubles as a stall detector : clients.https.stall_reset        ##
-## re-arms the watcher per received chunk [ replacing the aria2c            ##
-## --lowest-speed-limit behavior the hf download path used to rely on ]     ##
+## clients.https.decode_body is skipped entirely on this path               ##
+## [ raw wire bytes to disk, no content-encoding \/ charset decoding ]. in  ##
+## this mode 'timeout' doubles as a stall detector :                        ##
+## clients.https.stall_reset re-arms the watcher per received chunk [       ##
+## replacing the aria2c --lowest-speed-limit behavior the hf download path  ##
+## used to rely on ]                                                        ##
 my $stream_fh = undef;
 if ( length $stream_path ) {
-    if ( not open( $stream_fh, '>', $stream_path ) ) {
+    ## stream_append : continue a partial file                        ##
+    ## [ the caller sends the range header ] instead of truncating it ##
+    if (not open( $stream_fh, ( $stream_append ? '>>' : '>' ), $stream_path )
+    ) {
         my $err = sprintf 'stream_to_file open failed: %s', $OS_ERROR;
         <[base.logs]>->( 0, 'clients.https.request: %s', $err );
         <[event.add_idle]>->(
@@ -103,8 +108,8 @@ if ( not $tcp_sock ) {
     return undef;
 }
 
-## proxy connect handshake [ bounded blocking, socket restored to ##
-## non-blocking below ]                                           ##
+## proxy connect handshake                                     ##
+## [ bounded blocking, socket restored to non-blocking below ] ##
 if ( length $proxy ) {
     $tcp_sock->blocking(1);
 
@@ -220,6 +225,7 @@ my $state = {
     'stream_status'  => 0,
     'stream_headers' => undef,
     'stream_discard' => FALSE,
+    'stream_append'  => $stream_append,
     'timeout'        => $timeout,
 };
 
@@ -254,8 +260,8 @@ $state->{'timeout_watcher'} = $timeout_watcher;
 
 return $state;
 
-#,,..,,,.,,..,.,,,..,,,..,,.,,,,.,,,.,..,,.,,,..,,...,...,..,,,,.,..,,,..,.,.,
-#CA3XYHFM3EGXWHOMRX5EXXRZAGVKO4TXE7N4MQDTGGKKWDXYQ24GUIDLTQWHD3TPGZU7YOGQMBRNM
-#\\\|D4OGQTHOYWPVVFOUE4YY65EFE73GNP7KHBRXLYDSLLZHN3UQOOR \ / AMOS7 \ YOURUM ::
-#\[7]MD7OQFQXLKILA5RHZWKR4SVW7INGEQDNEBVTEPXE7R4VTXGFYUDA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,,.,.,,,,.,,,,,,,.,,,..,.,,,..,,...,...,...,,,,,.,.,,..,.,.,
+#CP5ZPJRS3DM5EVMJHL6O3B2JI5ZALEHAH26R2ZWM5LK4E3LGGR2C45JT3TTWRORNYZEOGNIWXRLYG
+#\\\|XPSSYBHQWLBYVGMB63RQYBFBJ3S73JGN23X2UGAOX4XRCYV2IFI \ / AMOS7 \ YOURUM ::
+#\[7]5XVMEGBUPTB7BZ4GPW64RTM545RTUDCZ5EMZ6227VKJNIQFWIGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
