@@ -120,8 +120,18 @@ if ( defined $state->{'stream_fh'} ) {
     };
 }
 
+## receive window : the protocol default of 65535 bytes, re-opened only    ##
+## once below one frame, caps a transfer at ~64 KB per round trip          ##
+## [ ~1 MB/s over the proxy, where curl gets 7-9 MB/s ]. announce a larger ##
+## initial window AND set it on our own decode side -- Protocol::HTTP2     ##
+## never applies announced settings locally, a larger announced window     ##
+## alone would trip its own flow-control check                             ##
+my $h2_window = <clients.https.cfg.h2_window> // 16 * 1024**2;
+my $win_key   = Protocol::HTTP2::Constants::SETTINGS_INITIAL_WINDOW_SIZE();
+
 my $h2 = eval {
     Protocol::HTTP2::Client->new(
+        'settings' => { $win_key => $h2_window },
         ## connection-level protocol errors [ not stream resets ] ##
         'on_error' => sub {
             my $code = shift;
@@ -132,6 +142,7 @@ my $h2 = eval {
         },
     );
 };
+$h2->{'con'}->dec_setting( $win_key, $h2_window ) if defined $h2;
 
 if ( length $EVAL_ERROR or not $h2 ) {
     $fail->(
@@ -236,8 +247,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,.,,.,,,.,.,.,.,.,.,.,,,,.,,,.,,..,,,,.,.,.,..,,...,...,.,,,,,,,.,,,.,.,..,,
-#QFHCPOB2DIKTVLZL7MEBVSRWMSB6VZD5ROAGPMUNSGSUALAERIGACZJRTHBAQ272T35ZNQQ3LMFH4
-#\\\|U6WUIPTXIJXSX35FLFLHSBWBOJHR72W3OAHZRZ65PDXIZ4EVXRT \ / AMOS7 \ YOURUM ::
-#\[7]BDY3O72WXJXT2CY7LHMN5D5MM7A34RPNHLBNT7IYRGG4BRS25KDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,,..,,.,,.,.,,..,.,,,,,,,,.,,..,,...,...,.,.,,..,,..,,,,,,,.,
+#HK2ELOCR6GGYLQQF75RGTZCWOQF4ZVEIR6DGT4Z5Y5R3K4IDOLIEDV7U4QYR5QZEHHKTRESMKV56S
+#\\\|ZXWLHEE4662IB66GS3O4UV3QONMPYKYTAYEQ5FUCOBJPE4ZZXJO \ / AMOS7 \ YOURUM ::
+#\[7]QFCGROFYHLTU2PLK5TJSXCZUDOEKTCJD3PWA5KJUEKNUPOIAYGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

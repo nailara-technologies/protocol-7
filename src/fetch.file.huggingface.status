@@ -15,9 +15,9 @@ if ( !keys %$downloads ) {
     return { 'mode' => qw| true |, 'data' => 'no active downloads' };
 }
 
-my @lines = sprintf( "%-52s %10s %10s %10s %12s",
+my @lines = sprintf( "%-52s %10s %10s %22s %12s",
     'filename', 'downloaded', 'total', 'speed', 'status' );
-push @lines, '-' x 100;
+push @lines, '-' x 112;
 
 for my $dl_id ( sort keys %$downloads ) {
     next if length($dl_id_filter) && $dl_id !~ m|\Q$dl_id_filter\E|;
@@ -52,11 +52,12 @@ for my $dl_id ( sort keys %$downloads ) {
     $total_str = sprintf( '%.1f GB', $total ) if $total > 1;
 
     my $speed_str = $speed > 0 ? "${speed}MB/s" : '-';
-    $speed_str .= " eta=${eta}s" if $eta > 0;
+    $speed_str .= sprintf( ' eta %dm%02ds', int( $eta / 60 ), $eta % 60 )
+        if $eta > 0;
 
     push @lines,
         sprintf(
-        "%-52s %10s %10s %10s %12s",
+        "%-52s %10s %10s %22s %12s",
         $file, $down_mb . ' MB',
         $total_str, $speed_str, $status
         );
@@ -78,8 +79,8 @@ my $output = join( "\n", @lines );
 ## size mode : multi-line data, true mode escapes the newlines ##
 return { 'mode' => qw| size |, 'data' => "$output\n" };
 
-#,,.,,...,,.,,,,,,,..,...,,..,...,,,.,..,,,..,..,,...,...,.,,,...,,.,,,..,...,
-#IXIYSTZVCJ5P25SJMSEUXNXP4WN3SUGX3ZKIUSSVHBEHZGTRD332PUN5JX43FOKY6YHC2UYULY5R6
-#\\\|XJ2LBHSDYBIQGJI2YS77NGN6VC3LDFWX6QJ3AZPWXS6OTKQK7NZ \ / AMOS7 \ YOURUM ::
-#\[7]FELWNP6F4GVKZHSQ6NOO7MZRKJTJRGCPRE2L6N6LCIK2WU5WOIBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,.,.,,.,,,..,.,.,.,.,,,,,..,,..,,...,..,,,,,,,,.,,.,,,.,,,..,
+#M6TA7MF5I5VVT3MIOYA2VZM5SO6KT4OEG2A6NM6AVIRXCFVFUODJI26EMKGEYOL66GFH5DRGNTQBO
+#\\\|XF6JY6AA4VIUV5L5IXRQFBNSMON52LMWDNRDML66BCBPCH6CTPX \ / AMOS7 \ YOURUM ::
+#\[7]IKZZ7FWKK7NH4IHETAOE447FCZ6MNMB2WKI4667TCXXGWH3IIECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
