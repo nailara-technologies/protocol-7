@@ -65,14 +65,15 @@ my $output = join( "\n", @lines );
 
 if ( length $reply_id ) {
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => qw| true |, 'data' => $output }
+        ## size mode : multi-line data, true mode escapes the newlines ##
+        $reply_id, { 'mode' => qw| size |, 'data' => "$output\n" }
     );
 } else {
     <[base.logs]>->( 1, "[hf.search]\n%s", $output );
 }
 
-#,,.,,.,.,,.,,,,.,..,,,,,,.,.,,..,...,..,,.,,,..,,...,...,.,.,.,,,,,,,.,.,..,,
-#XFAMHG63A3AHCQE3JWY2WA732RZEIF2DZLMCATY5SGIYRYCNCTZEHHDEQWCULILVQFOWPE67OFM5S
-#\\\|4RKSVMCURXHG7NGJC7EMYLJXTDR7NJEYPX75WX7IJ7GU3ANIECX \ / AMOS7 \ YOURUM ::
-#\[7]ZI6G7VT6L5C4TPZV77ZC3BOVHCIPKY7M6FQPME4AQJALSXO3MKDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,,,,.,.,,,,,.,,,..,,,.,,.,,,..,,...,...,,..,.,,,...,.,.,.,.,
+#PUTP2LQI4AG2GVJSJVEIZW4MAOL7OL6BJZPPHSRJ5Y4DEMETSB3KDL5AVVAA7SLK3PHI6ZWTUZ7RG
+#\\\|PJ7QEODD3TLZ3TNCVPFP54JLNWYJAUXTF2G76HBDM5NKT44TSTS \ / AMOS7 \ YOURUM ::
+#\[7]GZE45IH2ZUOZCQERXB7UEAZNYCCR7IFR3CTZWP2S2IOVJUERBYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

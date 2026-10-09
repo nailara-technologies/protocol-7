@@ -24,8 +24,10 @@ my $req_id = <[base.gen_id]>->(<fetch.file.hf_pending>);
     'repo'     => $repo,
 };
 
-## query HuggingFace API (no auth needed for public models) ##
-my $api_url = sprintf( 'https://huggingface.co/api/models/%s', $repo );
+## query HuggingFace API (no auth needed for public models)  blobs=true : ##
+## siblings carry file sizes                                              ##
+my $api_url
+    = sprintf( 'https://huggingface.co/api/models/%s?blobs=true', $repo );
 
 <[clients.https.get]>->(
     {   'url'     => $api_url,
@@ -39,8 +41,8 @@ my $api_url = sprintf( 'https://huggingface.co/api/models/%s', $repo );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,..,,.,,,,..,,,.,,,,,.,.,.,.,...,,..,,,,,..,,...,...,.,,,.,.,.,.,.,.,.,,,
-#HKMLCT7JAXNV2IT4ISHD5PAKDNXDH4XUAIQ7X6ZZRAVRTWUJNGHGI7G7L4SCVYW3DU4AN2JRVEDUC
-#\\\|JHDLATNW43VF42HK6DY2JEFZ36SS5VAECJY45BGYAFGN6W7A42N \ / AMOS7 \ YOURUM ::
-#\[7]T6KG7JZJU6ZPWJKXMCOQU5IX3XUMLPLCVPDOXDTIC5GPAOWLPQBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,,,.,,,,,...,,..,...,,,.,,..,..,,...,...,.,.,,.,,,.,,...,,,.,
+#UO32A4BT5IKCTCY4L6ENCUEBLBXKBKD62V7YAZM4UMBLWVOT7Q7AUQYNWUGKN5QNEUJEN7YTCBZFA
+#\\\|X76S52N5CJWTUKYMIR2SPLD2B7UFICZNYC57W5K3AA7G2VUFMKB \ / AMOS7 \ YOURUM ::
+#\[7]ONEDQXLYJ3MO4Y6ETV2KYJWA4VCNIKJ4K7UGVCPA6FJXHC4RUOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

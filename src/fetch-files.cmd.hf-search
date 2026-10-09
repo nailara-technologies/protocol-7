@@ -12,10 +12,14 @@ return { 'mode' => qw| false |, 'data' => 'args required: {"query":"..."}' }
 my $args = eval { JSON::XS::decode_json($args_str) };
 return { 'mode' => qw| false |, 'data' => "invalid JSON: $@" } if $@;
 
-return <[huggingface.search]>->( { 'args' => $args } );
+## reply_id : the module answers deferred via cmd_reply -- without it the ##
+## reply is dropped and the caller waits until the route collapses        ##
+return
+    <[huggingface.search]>
+    ->( { 'args' => $args, 'reply_id' => $call->{'reply_id'} } );
 
-#,,..,,,,,,.,,...,.,,,,,,,...,.,.,,,.,,..,,,,,..,,...,...,,..,.,.,..,,,,.,,.,,
-#YLQVG6C2HGIT2PNXCRBTG47M6QZR7RNY3JJLUIK44BF76QYYFYWHTTFHTU72YJNUI6KGSN5SLCKQU
-#\\\|K3RIC6FEFLFZ6JQXBMM62AG4R43RUV5WNGQ7MY65G5L3HVAA2M2 \ / AMOS7 \ YOURUM ::
-#\[7]FNXY5EUWLMF4KZVLH25VSKL4U6J2UKTDRY3A74LDWJI4X7HNQ2BI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,,.,,,,.,,,,,..,,,..,,,.,,..,..,,...,...,.,.,,..,,..,,,.,,,.,
+#UL5WHCUGSHGD3ZURGHR5BCLUZDUISBDNKEQRH3JLXURR5VFC6BXJH7EWA3SDFXANKXW3R2S3NLQ2G
+#\\\|72YAVRT72TJYO33CZLDY3NXLUN6HEWZAGHXKWLBANB3R3H5UPAR \ / AMOS7 \ YOURUM ::
+#\[7]GCHXLY64ZSHZAQVZYOCC7ZILZTQ5EFA5VOLXN2QIOTBTSWRN3SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,10 +19,14 @@ return {
     }
     if $EVAL_ERROR;
 
-return <[huggingface.download]>->( { 'args' => $args } );
+## reply_id : the module answers deferred via cmd_reply -- without it the ##
+## reply is dropped and the caller waits until the route collapses        ##
+return
+    <[huggingface.download]>
+    ->( { 'args' => $args, 'reply_id' => $call->{'reply_id'} } );
 
-#,,,.,.,.,.,,,.,.,.,,,.,,,,..,...,...,...,.,.,..,,...,.,.,,..,...,,..,,,.,,,.,
-#HUZLKOZDMIEHWDLA4OCXJRDUIYMN6N2T6S6V3M6PB5IJQMVXBRCF63DI7PVVW7GWOKOZJQ7A6SZKA
-#\\\|TTKVRGS4TNHCM2EBZBX4ITO4OOFQ2HNPZQLOQW3U7LS2OUYSSM3 \ / AMOS7 \ YOURUM ::
-#\[7]XOWEEBZ5JWDTE2FLJYAJORGQXDJN4UALBU7BI3W2NZ2CTO3UEEDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,,.,,,,,,.,.,,,,,,,,,.,.,...,..,,...,...,..,,.,.,.,.,,,.,,.,,
+#MIFZJHHA6PMRMWFIZHJSQKYANYLBVBS7X4MV3F2ZCFFP7XR4MA56YGLR3MCLCVC4SPJXOKL7EG726
+#\\\|4NSJ3WOGP62ZJPYNBRGQPBUNNE2Q32USRQU5QM3Q4SLECAX3IMM \ / AMOS7 \ YOURUM ::
+#\[7]KWSAPWP55TQQLOK652SHRQHCDABP6OXTXBUPICKQC2CICUPWGSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
