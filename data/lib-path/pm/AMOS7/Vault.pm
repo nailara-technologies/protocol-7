@@ -8,7 +8,7 @@ package AMOS7::Vault;    ####################################################
 ##
 ## format : data/md/design/VAULT-FORMAT.md [ keep both in step ]
 ##
-## standard primitives only [ argon2id, hkdf-sha256, twofish-gcm inside
+## standard primitives only [ argon2id, hkdf-blake2b-512, twofish-gcm inside
 ## chacha20-poly1305, rfc 4648 base32 ] -- the blobs travel to usb keys and a
 ## public repo, so a recovery must never depend on a protocol-7 specific
 ## cipher. two ciphers so that a break of either one alone reveals nothing.
@@ -48,6 +48,8 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     archive_open
     archive_records
     archive_restore
+    file_secret
+    git_blob_id
     gen_password
     recovery_code_new
     recovery_code_normalize
@@ -277,9 +279,10 @@ sub _kdf_line {
 sub _layer_keys {
     my ( $root, $salt, $label ) = @ARG;
     my $twofish
-        = hkdf( $root, $salt, qw| SHA256 |, 44, "$label " . "twofish-gcm" );
-    my $chacha
-        = hkdf( $root, $salt, qw| SHA256 |, 32, "$label chacha20-poly1305" );
+        = hkdf( $root, $salt, qw| BLAKE2b_512 |, 44,
+        "$label " . "twofish-gcm" );
+    my $chacha = hkdf( $root, $salt, qw| BLAKE2b_512 |,
+        32, "$label chacha20-poly1305" );
     return ( substr( $twofish, 0, 32 ), substr( $twofish, 32, 12 ), $chacha );
 }
 
@@ -383,6 +386,10 @@ sub vault_exists { return -e _key_path(shift) ? TRUE : FALSE }
 ## name salt:a16 nonce:a12 tag:a16 ciphertext-length:n ciphertext
 ## [ big endian ]
 sub _key_file_text {
+    return _b32_file_text( _key_file_bin(shift), 'p7-vault key' );
+}
+
+sub _key_file_bin {
     my $vault = shift;
     my @names = sort keys %{ $vault->{'wraps'} };
 
@@ -397,7 +404,7 @@ sub _key_file_text {
         $bin .= pack( q{C/a a16 a12 a16 n/a},
             $name, @{ $vault->{'wraps'}{$name} }{qw| salt nonce tag ct |} );
     }
-    return _b32_file_text( $bin, 'p7-vault key' );
+    return $bin;
 }
 
 sub _key_file_parse {
@@ -794,6 +801,61 @@ our $ENTRY_FILE_RE = qr{\A[A-Z2-7]{16}\.\d{14}\.[A-Z2-7]{8}\.vlt\.B32\z};
 
 sub _archive_ad { return "p7-vault-archive $FORMAT " . shift->{'id'} }
 
+## passphrase + key file : the 'passphrase-file' wrap's argon2id input is the
+## file's length [ 4 bytes, big endian ], its bytes, then the passphrase bytes
+## -- no hash before argon2id, it takes any length. any file can be the key
+## file -- one version of a file in a public repository adds about 17 bits
+## [ ~106000 versions in protocol-7's history ], a cost factor of ~100000
+## argon2id runs on every passphrase guess
+sub file_secret {
+    my ( $passphrase, $path ) = @ARG;
+    open( my $fh, '<:raw', $path ) or die "vault : cannot read $path\n";
+    my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    return pack( q{N/a*}, $content ) . $passphrase;
+}
+
+## the git blob id of a file
+## [ sha-1 of 'blob <length>\0<content>', git's own definition ], in base32 :
+## names one version of one file in any git history, for the owner's notes.
+## identification only, never key material
+sub git_blob_id {
+    my $path = shift;
+    open( my $fh, '<:raw', $path ) or return undef;
+    my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    require Crypt::Digest::SHA1;
+    return _b32(
+        Crypt::Digest::SHA1::sha1(
+            sprintf( "blob %d\0", length $content ) . $content
+        )
+    );
+}
+
+## the key file an archive carries : by default ONLY the recovery wrap
+## [ 160 random bits -- a public copy cannot be brute forced through it ].
+## $opt : file_secret [ adds a 'passphrase-file' wrap ], keep_passphrase
+## [ copies the plain 'passphrase' wrap -- weak passphrases stay exposed ]
+sub _archive_key_bin {
+    my ( $vault, $opt ) = @ARG;
+
+    my %copy = ( %{$vault}, wraps => {} );
+    foreach my $name (qw| recovery |) {
+        $copy{'wraps'}{$name} = $vault->{'wraps'}{$name}
+            if exists $vault->{'wraps'}{$name};
+    }
+    $copy{'wraps'}{'passphrase'} = $vault->{'wraps'}{'passphrase'}
+        if $opt->{'keep_passphrase'}
+        and exists $vault->{'wraps'}{'passphrase'};
+    _wrap_key( \%copy, qw| passphrase-file |, $opt->{'file_secret'} )
+        if defined $opt->{'file_secret'};
+
+    die "vault : the archive would have no way to open it [ no recovery code "
+        . "in this vault : give a key file or keep the passphrase ]\n"
+        if not keys %{ $copy{'wraps'} };
+    return ( _key_file_bin( \%copy ), [ sort keys %{ $copy{'wraps'} } ] );
+}
+
 ## every version of every entry : [ [ file name, binary content ] .. ]
 sub _archive_records {
     my $vault    = shift;
@@ -813,7 +875,8 @@ sub _archive_records {
 ## write the archive of an unlocked vault to $path, read it back and compare
 ## every record. returns ( record count, file size )
 sub archive_write {
-    my ( $vault, $path ) = @ARG;
+    my ( $vault, $path, $opt ) = @ARG;
+    $opt //= {};
 
     die "vault : locked\n" if not defined $vault->{'key'};
     my $records = _archive_records($vault);
@@ -824,8 +887,7 @@ sub archive_write {
     $class *= 3 while $class < length $payload;
     $payload .= "\0" x ( $class - length $payload );
 
-    my $key_bin = _b32_file_read( _key_path( $vault->{'dir'} ) )
-        // die "vault : cannot read the key file\n";
+    my ( $key_bin, $wraps ) = _archive_key_bin( $vault, $opt );
     my $salt = _random_bytes(16);
     my ( $nonce, $ct, $tag )
         = _cascade_encrypt( $vault->{'key'}, $salt,
@@ -842,6 +904,13 @@ sub archive_write {
     my ( $archive, $open_err ) = archive_open($path);
     die "vault : archive does not read back : $open_err\n"
         if not defined $archive;
+
+    ## the new passphrase-file wrap must open it, before anyone relies on ##
+    ## it                                                                 ##
+    die "vault : the archive's passphrase-file wrap does not open\n"
+        if defined $opt->{'file_secret'}
+        and not vault_unlock( $archive->{'vault'}, $opt->{'file_secret'},
+        qw| passphrase-file | );
     $archive->{'vault'}{'key'} = $vault->{'key'};
     my ( $back, $back_err ) = archive_records($archive);
     die "vault : archive does not decrypt back : $back_err\n"
@@ -853,7 +922,7 @@ sub archive_write {
             or $back->[$ARG][1] ne $records->[$ARG][1]
         } 0 .. $#{$records};
 
-    return ( scalar @{$records}, -s $path );
+    return ( scalar @{$records}, -s $path, $wraps );
 }
 
 ## read an archive [ no secret needed ]. returns ( archive, undef ) or (
@@ -1017,8 +1086,8 @@ sub gen_password {
 
 1;
 
-#,,..,,.,,,..,..,,,,,,.,.,,..,,,.,.,.,..,,,,.,..,,...,...,.,,,,,,,,,,,,,.,.,.,
-#ZZANE67JF6VYIGWDE6TTIWL57LNPR3AHQ5R6XJZL7E3XGKAHZONO7VSELBAVKEAVR5DDTTLOIWNQA
-#\\\|7RV2AWY5RN4JAV3JXBSYXY5RRNMQU57ZQAYIWCXLV6V3HCXKX3W \ / AMOS7 \ YOURUM ::
-#\[7]CAUA3TWPRVZPHM3VICMU6264SJWSRXMKMJLRFPU5MGFBMZRYK6BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,,,.,,..,,.,,,,,,,.,,.,,,...,..,,...,...,.,,,,.,,.,,,,.,,,..,
+#QAVXZTGRKBORN5I4K5HCYZTMJQY6WEW434QBEUZ3GWLL3IEOE7V2EBTO7HHRT5K3HRPIUBLXKTZZA
+#\\\|OVQCZD2G3GONZR76L6G5WCGMAQFEWNJLKB42T6B525ZEBG2JXAR \ / AMOS7 \ YOURUM ::
+#\[7]4O3DYCOXNQOUKIWMDKYDKYSBVZI253G2LODIYL5JRQHSHCXP4ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
