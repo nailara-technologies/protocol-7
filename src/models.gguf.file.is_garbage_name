@@ -33,14 +33,16 @@ return 1 if $name =~ m|^\s*unsloth\s+model|i;
 return 1 if $name =~ m|^\s*unsloth\s+export|i;
 return 1 if $name =~ m|^\s*llamacpp\s+gguf|i;
 return 1 if $name =~ m|^\s*llamacpp\s+model|i;
+## download-tool default [ 'Hf_Download' : the fable5 sft gguf, 2026-10-10 ] ##
+return 1 if $name =~ m{^\s*(?:hf|huggingface)[\s_-]*download\w*\s*$}i;
 
 ## Contains random-looking hash-like patterns (mixed alphanum without meaning)
 return 1 if $name =~ m|\b[a-f0-9]{8,}\b|i;    # hex-like sequences
 
 return 0;
 
-#,,,,,..,,,.,,.,,,.,,,.,.,.,,,..,,...,,,.,.,,,.,.,...,..,,.,,,,,.,.,.,.,,,,..,
-#GD62AGKQ3SD6LRUGW43MFSOPQPYUOSVLTBQ7KOSZESY2CGFVJNFPUVZ77YTJUQKNPS7KUTYHLUULG
-#\\\|4YSURIIM7LD6ZQ2YQKP5CBHHTCBI4YCDXXBSTY3YAF6SLIS5QUK \ / AMOS7 \ YOURUM ::
-#\[7]2ZAXMR4Z7AOOQ6D57OGGTJ4XWXWYRWQXZJM33IJ7G42NLMSHH6CI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,,,,,,,,,,,,,...,..,,...,...,.,.,...,...,..,,..,,..,,..,,,,.,
+#V2ANEGRDJ5GTXFT75GCKJJGOLSBO3F6GQQ6LXVVVMSFRD3T4MF5HKGUPRB2VSZEUZLHTLSLBXQU2K
+#\\\|3OE2ZVAYZW3BHN2GAAKVE3F7D2CESQII33BSLAGKUT36UKDYGLG \ / AMOS7 \ YOURUM ::
+#\[7]PDAZUY4RUXO35XY6PCGPE3SZ564HIETWUX7ZXKCYGC6BHTJZ6ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
