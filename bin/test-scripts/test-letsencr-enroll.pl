@@ -82,6 +82,7 @@ compile_module($ARG)
     letsencr.parent.enroll_state_load letsencr.parent.enroll_state_save
     letsencr.parent.enroll_record_failure
     letsencr.parent.process_new_domains
+    letsencr.parent.cmd.request-certificate
     letsencr.parent.handler_enroll_verify_reply
     letsencr.parent.handler_enrollment_reply
     letsencr.child.check_domain_dns letsencr.child.verify_http_selftest
@@ -345,6 +346,54 @@ say ': in-flight guard [ pending ]';
     $process->( [qw| fly.example |], {} );
     ok( scalar(@sent) == 1,
         'a pending mark older than an hour counts as lost : queued again' );
+}
+
+######################################################################
+say ': explicit request claims the domain [ no double order ]';
+{
+    my $process = $code{'letsencr.parent.process_new_domains'};
+    my $request = $code{'letsencr.parent.cmd.request-certificate'};
+    my $load    = $code{'letsencr.parent.enroll_state_load'};
+
+    reset_calls();
+    clear_state();
+    local $data{'letsencr'}{'parent'}{'certs'} = {};
+
+    ## install-vhosts 'tls: yes' -> letsencr.request-certificate ##
+    local $call = { 'call_args' => { 'args' => qw| vhost.example | } };
+    $request->();
+    ok( ( $load->()->{'vhost.example'}{'explicit'} // 0 ) > 0,
+        'request-certificate records the domain as explicitly requested'
+    );
+    ok( scalar(
+            grep { $ARG eq qw| child.request-certificate | } sent_commands()
+        ) == 1,
+        '  :.. and still orders it [ production path unchanged ]'
+    );
+
+    reset_calls();
+    $process->( [qw| vhost.example other.example |], {} );
+    my @verified = map { $ARG->{'call_args'}->{'args'} }
+        grep { $ARG->{'command'} eq qw| child.verify-domain | } @sent;
+    ok( join( ' ', @verified ) eq qw| other.example |
+            && grep( {m|vhost\.example : skipped \[ explicitly requested \]|}
+            @logs ),
+        'automatic enrollment skips the claimed domain, takes the other'
+    );
+
+    ## a domain with an active certificate is refused, claims nothing new ##
+    reset_calls();
+    clear_state();
+    local $data{'letsencr'}{'parent'}{'certs'}
+        = {
+        'have.example' => { 'status' => qw| active |, 'expires_at' => 1 } };
+    local $call = { 'call_args' => { 'args' => qw| have.example | } };
+    my $reply = $request->();
+    ok( ( $reply->{'mode'} // '' ) eq qw| true |
+            && ( $reply->{'data'} // '' ) =~ m|already exists|
+            && !sent_commands(),
+        'existing active certificate : refused, nothing ordered'
+    );
 }
 
 ######################################################################
@@ -764,8 +813,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,...,,,.,.,,,,,,,,.,,,,,,.,.,.,.,,,.,.,.,..,,...,...,.,,,..,,...,,.,,...,
-#2355ETIZNDJHWN7KHVV53RTGEN6RXYFYLNHUPKO6GCHX6TKCSSHPL5FARQF3L7GEIZCESOVQYQYRU
-#\\\|PNVGM7EU5IP4VZYCKX6BYANWX7ALYARNWZ6UHZQMNPPGGB5SB3B \ / AMOS7 \ YOURUM ::
-#\[7]KYWOY5UWSDI2ML27PZSTMUIG6ACPYPTRUJ3OXKYMXBETJ3GRQ6AA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,,.,,,.,,,..,,.,,,,.,,,.,.,,,..,,...,..,,,..,,.,,...,.,.,.,.,
+#BFXAWHEXUFV5FOWIYIJDCEIC45DRCSDKXFVVTZ3XUNGREW73CWHOCVERJ7U252XBTSNHBVLYXWBDW
+#\\\|GUJNM43MLFJMRO5ZJXECIC3HMU2MQ7BCYMNWEBY6ULGZM2Z7ZUI \ / AMOS7 \ YOURUM ::
+#\[7]75N64WKZSZGAFD7EQOOQ26ELAGEPNYVBOU3FODKM2GUTUGHHHICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
