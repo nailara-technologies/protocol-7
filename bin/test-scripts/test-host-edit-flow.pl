@@ -83,7 +83,7 @@ compile_module($ARG)
     host-edit.flow.start host-edit.flow.step host-edit.flow.schedule
     host-edit.flow.status host-edit.flow.passphrase host-edit.flow.cancel
     host-edit.flow.needs_passphrase host-edit.record.name_valid
-    host-edit.record.name_is_host
+    host-edit.record.name_is_host host-edit.flow.form_values
     keystore.remote_keys_dir
     trust.statement trust.key_id trust.chain |;
 
@@ -250,6 +250,70 @@ say ': flow [ no address : the record name as the address ]';
 }
 
 ######################################################################
+say ': flow [ unsaved form values ]';
+{
+    ## form_values : the flow fields as the form shows them [ editor stubbed :
+    ## collapse returns the state, get_value reads the field defaults ]
+    local $code{'editor.control.list.collapse'} = sub { return $ARG[0] };
+    local $code{'editor.control.get_value'}     = sub {
+        my ( $state, $name ) = @ARG;
+        my ($def)
+            = grep { $ARG->{'name'} eq $name }
+            @{ $state->{'schema'}{'fields'} };
+        return $def->{'default'};
+    };
+    my $form_state = {
+        'schema' => {
+            'fields' => [
+                { 'name' => 'ssh',      'default' => 'typed@zz-host' },
+                { 'name' => 'ssh_port', 'default' => '2242' },
+                { 'name' => 'roles',    'default' => 'ignored' },
+                {   'name'    => 'addresses',
+                    'list'    => TRUE,
+                    'entries' => [ 'zz-host.example:42', '' ]
+                },
+            ]
+        }
+    };
+    my $fv = $code{'host-edit.flow.form_values'}->($form_state);
+    ok( ( $fv->{'ssh'} // '' ) eq 'typed@zz-host'
+            && ( $fv->{'ssh_port'} // '' ) eq '2242'
+            && join( ',', @{ $fv->{'addresses'} // [] } ) eq
+            'zz-host.example:42'
+            && !exists $fv->{'roles'},
+        'form_values : flow fields only, list entries without empty rows'
+    );
+
+    ## the saved record has no ssh : the form value wins and is noted ##
+    %record
+        = ( addresses => ['zz-host.example:42'], ssh => '', owner_key => '' );
+    @status = ();
+    my ( $ok_, $why ) = $code{'host-edit.flow.start'}->(
+        'zz-host.example', { 'ssh' => 'typed@zz-host', 'ssh_port' => 2242 }
+    );
+    my $s = $flow->('zz-host.example') // {};
+    ok( $ok_
+            && ( $s->{'ssh'}      // '' ) eq 'typed@zz-host'
+            && ( $s->{'ssh_port'} // '' ) eq '2242',
+        'flow.start : unsaved form values win over the saved record'
+    ) or say "    got : " . ( $why // '?' );
+    ok( scalar( grep {m|unsaved form values used|} @status ),
+        '  :.. the status says unsaved values are used'
+    );
+    delete $data{'host-edit'}{'flow'}{'zz-host.example'};
+
+    ## the same values as saved : no note ##
+    @status = ();
+    $code{'host-edit.flow.start'}->(
+        'zz-host.example',
+        { 'addresses' => ['zz-host.example:42'], 'ssh' => '' }
+    );
+    ok( !grep( {m|unsaved|} @status ),
+        '  :.. form values equal to the record : no unsaved note' );
+    delete $data{'host-edit'}{'flow'}{'zz-host.example'};
+}
+
+######################################################################
 say ': flow [ owner path, actions stubbed ]';
 {
     %record = (
@@ -405,8 +469,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,.,.,..,,,..,...,..,,,..,.,,,,,.,..,,..,,...,...,,..,,..,,.,,,..,..,,
-#5N24CJU7HYMDZ5Q2ZZKGWWQ5G5W56S4SIENLFW3DZJB6ENEQYKNVNW7PM5A4VN2ENWJBAUYRXWLD2
-#\\\|FMEGEIYVMCVE6R2G7DW7ZCJJL3MRMC7RWGHVXJ6RARTYBJ3L6IP \ / AMOS7 \ YOURUM ::
-#\[7]7OADDBVCTXBIH4LBVOALDD5H43Z5KWHWGVFNDBJQ7W7F45CZP2BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,,,,,.,.,,..,,..,.,.,.,,,,..,..,,...,...,..,,,.,,.,.,...,...,
+#7POSHPNR3IXNAOAHLUJBZH6PKSC32X7DR6CIWSRBCNB2BB2D6LPVVC6H4EWF7UFG67Y6SQERBKKZA
+#\\\|2EEIPARM5RPAFZMVRCOAFMV2CLOO32BT7EO2LITJQJOYWVVTJI7 \ / AMOS7 \ YOURUM ::
+#\[7]QZMAFMLYQPYFSAYZ6IZ37DFHKFHERQ2NGSQZCQAEL257BI7UQSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
