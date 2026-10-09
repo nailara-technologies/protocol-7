@@ -58,6 +58,12 @@ inwx stays registrar only : ns records + glue, set by hand, once.
   `modules.load` [ missed twice before ].
 - atom has 1G : nameserv goes through the pressure start gate, watch rss.
 
+## beyond acme
+
+once our nameservers answer for the domains : signed dns knocks for dynamic
+incoming addresses, key publication \ discovery records
+[ `data/tasks/dns-knock-dynamic-ingress.md` ].
+
 ## inwx provider [ left as is ]
 
 `letsencr.dns.inwx_*` : untested. no cookie jar on `XMLRPC::Lite->proxy`
@@ -66,8 +72,8 @@ zone = name minus `_acme-challenge.` [ wrong for subdomains ], no
 `account.unlock` for totp accounts. only relevant if a non-delegated domain
 ever needs dns-01.
 
-#,,,,,,,,,,.,,,..,,,,,...,.,,,...,,,,,.,.,..,,..,,...,...,.,.,.,,,,,,,.,,,.,,,
-#S2ZLJL5OXRAMSU3HEVOZ7I7PTFHVDVSCW53RSK6N7IPPYGTYPZOEXTUMCJNZ7HZG2FS4NNNG77Q2O
-#\\\|XXVFJYO32TKKPV45POB3TRBUSC7WZ5AAOMYJKU2PL2SN5V65RDA \ / AMOS7 \ YOURUM ::
-#\[7]ALCOXVFOFWHNYRHY3M4ZQVAPXPEMPN7KXQSJMCBHZTW4ZWFAEQDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,...,,,.,,,,,..,,..,,,,,,.,,,..,,...,...,..,,,,.,.,,,,.,,.,.,
+#WQ4STBVTSARA35NKOYCAO5WJ3OJCEQ37MRH3UZGKPMKR7PPJMONFXD45BIOXOYJAR2J4RDPRKXZ7E
+#\\\|5PZR6M7W24VGGJAONUMQPY3TLXZYZCA3ALK6UEGXAB3G5DUTQVA \ / AMOS7 \ YOURUM ::
+#\[7]V64WDNKKU7HSYIZQJBEGSS37J5PMJY3L522J243I72J2APTBQOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

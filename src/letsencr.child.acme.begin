@@ -7,9 +7,9 @@
 
 my $req = shift // {};
 
-## one order at a time : acme_new \ acme_use_server rewrite the client   ##
-## globals [ acme_client, current_order, current_csr, cert_key ] that an ##
-## active order still uses -- park the request, finish \ fail starts it  ##
+## one order at a time : the client state [ server, account key, nonce, ##
+## account url in <letsencr.child.acme_client> ] belongs to the active  ##
+## order -- park the request, finish \ fail starts it                   ##
 if ( defined <letsencr.child.acme.active> ) {
     push <letsencr.child.acme.queue>->@*, $req;
     <[base.logs]>->(
@@ -21,37 +21,37 @@ if ( defined <letsencr.child.acme.active> ) {
     return { 'mode' => qw| deferred | };
 }
 
-my $result = <[letsencr.child.acme_new]>->(
-    {   'domains' => $req->{'domains'},
-        'email'   => $req->{'email'},
-        'server'  => $req->{'server'},
-    },
-    $req->{'reply_id'}
-);
-
-if ( not ref $result eq qw| HASH | or $result->{'status'} ne qw| deferred | )
-{
-    my $error
-        = ref $result eq qw| HASH |
-        ? $result->{'error'} // 'unknown error'
-        : 'acme_new failed';
-    $error .= sprintf ' [ retry after %s ]', $result->{'retry_after'}
-        if ref $result eq qw| HASH |
-        and length( $result->{'retry_after'} // '' );
-    <[base.logs]>->( 1, ': acme : %s : %s', $req->{'domains'}->[0], $error );
-    return { 'mode' => qw| false |, 'data' => $error };
+if ( not ref $req->{'domains'} eq qw| ARRAY | or not $req->{'domains'}->@* ) {
+    return { 'mode' => qw| false |, 'data' => 'domains required' };
 }
 
-my $order_id = <[letsencr.child.acme.start]>->(<letsencr.child.acme_state>);
-delete <letsencr.child.acme_state>;
+## local + quick : server context [ resets the client state when the server ##
+## changes ] and its account key [ separate per server ]                    ##
+my $server = <[letsencr.child.acme_use_server]>->( $req->{'server'} );
+
+my $key = <[letsencr.child.load_account_key]>->($server)
+    // <[letsencr.child.generate_account_key]>;
+return { 'mode' => qw| false |, 'data' => 'no acme account key' }
+    if not $key;
+
+<letsencr.child.acme_client>->{'contact_email'} = $req->{'email'}
+    // <letsencr.admin.email>;
+
+<[base.logs]>->(
+    2,
+    ': acme : order for %s [ %s ]',
+    join( ' ', $req->{'domains'}->@* ), $server
+);
+
+my $order_id = <[letsencr.child.acme.start]>->($req);
 
 return { 'mode' => qw| false |, 'data' => 'acme order could not start' }
     if not defined $order_id;
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,,,,,.,.,.,.,..,,.,.,,.,,,.,,...,,.,,,,,,..,,...,...,,,.,.,.,,.,,,..,,.,,
-#BJFKHYVEAO4W3WXNZPOD5SMTRUNSQUBGPD5SGLPQHJBP2ZBIYZTD4PIUGTNYED3RLE4KHFSXRHBHA
-#\\\|N5HKUYEZHWOMHISSUDRXWM5PKQZLQ36U4WDPXIUKM6XJNTS6XN4 \ / AMOS7 \ YOURUM ::
-#\[7]FNH64F4STZ2TXKJ2B7HZIJULFSC47BM53F4ZCMCZZ3VZ22OPH6CY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,,,.,,,,,,.,,,..,.,.,,.,,,.,,..,,...,...,,,.,,,,,,..,.,,,..,,
+#26ZEQPCFXD6O5OIVT2NLMW5DICAW4HIP4IKSTTWEJYSONH6OQDBA5J7JLMQHGJKHXVDMFLJHBER4I
+#\\\|AG5Y2PFRTNWCVVJ7JDYWAGJPDCLVGMGXUR77S7JP63RNRSY2MFF \ / AMOS7 \ YOURUM ::
+#\[7]DWY4YQA3BUXBX5GLWISUHJ3UDD7RQJGEUIHOPFQVNX3HZDFRSOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

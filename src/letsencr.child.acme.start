@@ -1,17 +1,10 @@
 ## [:< ##
 
 # name  = letsencr.child.acme.start
-# param = <acme_state>
-# descr = create the order record and fetch its authorizations
+# param = <request hash>
+# descr = create the order record, then fetch the directory
 
-my $state = shift             // {};
-my $order = $state->{'order'} // {};
-
-if (   not ref $order->{'authorizations'} eq qw| ARRAY |
-    or not $order->{'authorizations'}->@* ) {
-    <[base.logs]>->( 0, ': acme : order without authorizations' );
-    return undef;
-}
+my $req = shift // {};
 
 my $order_id = <[base.gen_id]>->( <letsencr.child.orders> //= {} );
 
@@ -19,17 +12,14 @@ my $timeout = <letsencr.cfg.order_timeout> // 900;    ## 15 min ##
 
 <letsencr.child.orders>->{$order_id} = {
     'order_id'       => $order_id,
-    'reply_id'       => $state->{'reply_id'},
-    'domains'        => $state->{'domains'},
-    'primary_domain' => $state->{'primary_domain'},
-    'order_url'      => $order->{'order_url'},
-    'finalize_url'   => $order->{'finalize_url'},
-    'authz'          =>
-        { map { $ARG => { 'url' => $ARG } } $order->{'authorizations'}->@* },
-    'authz_urls' => [ $order->{'authorizations'}->@* ],
-    'deadline'   => time + $timeout,
-    'step'       => qw| authz |,
-    'polls'      => 0,
+    'reply_id'       => $req->{'reply_id'},
+    'domains'        => $req->{'domains'},
+    'primary_domain' => $req->{'domains'}->[0],
+    'authz'          => {},
+    'authz_urls'     => [],
+    'deadline'       => time + $timeout,
+    'step'           => qw| directory |,
+    'polls'          => 0,
 };
 <letsencr.child.acme.active> = $order_id;
 
@@ -42,23 +32,12 @@ my $timeout = <letsencr.cfg.order_timeout> // 900;    ## 15 min ##
     }
     );
 
-<[base.logs]>->(
-    2,
-    ': acme : order %s : %d authorization%s',
-    $order_id,
-    scalar $order->{'authorizations'}->@*,
-    <[base.cnt_s]>->( scalar $order->{'authorizations'}->@* )
-);
-
-## acme requests go one after another : nonces are single use ##
-<letsencr.child.orders>->{$order_id}->{'todo'}
-    = [ $order->{'authorizations'}->@* ];
-<[letsencr.child.acme.step_authz]>->($order_id);
+<[letsencr.child.acme.step_directory]>->($order_id);
 
 return $order_id;
 
-#,,,.,,..,,,.,,.,,..,,.,.,..,,,,,,,..,,..,,,.,..,,...,..,,...,...,,.,,.,,,...,
-#5XIIYJALS32NNNUHDCHBDV5WYJ3CJRGG53UCCQ3IE26ZXVE4T5C3Z5RXDUJK3AB55J4JDSFZFCTWC
-#\\\|EKW6ZBNZFXEHRF2V72JURY3Z2KS6YRSDXPM2IF7XSZUIIHZGQKW \ / AMOS7 \ YOURUM ::
-#\[7]DKRCVZHGORHZGEC7QX25BCLQ4BTI44NPZ4JI2BCQ5MWS4U47Z6AA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,...,...,...,,.,,,.,,...,,,.,..,,...,..,,,..,.,.,..,,.,.,,,.,
+#6I6CHLSOTP4VF6POVJ6L3QI3U3MCUCPDSO25CMOGWULU6CUP3VWZZNDQIDSQETOAOJE6TVFBZ3U2G
+#\\\|BGJNFFDGS5P6RHTMRRII5Y3C3TPBQVEWHDIQ7ELK2567OZFIQBJ \ / AMOS7 \ YOURUM ::
+#\[7]DHV36GTLD6Y2MO4WUGLAGZMRW5AK5CXMO6RN46DC66N2EKZRROCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

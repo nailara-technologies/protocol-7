@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_new_order
+# param = <acme response>
+# descr = order created : fetch its authorizations next
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| new_order | )
+    // return FALSE;
+
+my $body   = ref $res->{'body'} eq qw| HASH | ? $res->{'body'} : {};
+my $detail = $body->{'detail'} // '';
+
+if ( not $res->{'ok'} or not ref $body->{'authorizations'} eq qw| ARRAY | ) {
+
+    ## the parent waits for 'rate limit' + 'retry after <utc time>' in the ##
+    ## reply text [ handler_renewal_reply ] : pass the acme detail on      ##
+    my $limited = ( $res->{'status'} // 0 ) == 429
+        || ( $body->{'type'} // '' ) =~ m|rateLimited|i;
+
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        $limited
+        ? sprintf( 'rate_limited : %s', $detail || 'acme rate limit' )
+        : sprintf(
+            'order creation failed [ http %s%s ]',
+            $res->{'status'} // '?',
+            length $detail ? " : $detail" : ''
+        )
+    );
+}
+
+$order->{'order_url'}    = $res->{'location'};
+$order->{'finalize_url'} = $body->{'finalize'};
+$order->{'authz_urls'}   = [ $body->{'authorizations'}->@* ];
+$order->{'authz'}
+    = { map { $ARG => { 'url' => $ARG } } $body->{'authorizations'}->@* };
+$order->{'todo'} = [ $body->{'authorizations'}->@* ];
+
+<[base.logs]>->(
+    2,
+    ': acme : order %s : %d authorization%s',
+    $order->{'order_id'},
+    scalar $body->{'authorizations'}->@*,
+    <[base.cnt_s]>->( scalar $body->{'authorizations'}->@* )
+);
+
+$order->{'step'} = qw| authz |;
+return <[letsencr.child.acme.step_authz]>->( $order->{'order_id'} );
+
+#,,.,,,,,,,.,,.,,,,.,,,..,...,,..,,,,,.,.,,,,,..,,...,...,..,,,,,,,.,,.,.,,.,,
+#DV7RVOZI6VMTQ7PV22ZUJ6XOO7B7XRMTLZL6C7A2F72M5N2TOJQ3Z7MBZ2AADC52JN6ATEANW57Z2
+#\\\|OV35LZUO63G3G3DHA4A3AMHWLEZAP7ZHIN7F4CSX4QPGNQCXVJN \ / AMOS7 \ YOURUM ::
+#\[7]CP2T4MXRKKNHZNOBGYOQDXT2A7CXETO6Y3IWR5CGIFOQVSJLTGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

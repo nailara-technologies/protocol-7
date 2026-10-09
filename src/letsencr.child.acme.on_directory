@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_directory
+# param = <https result>
+# descr = store the acme directory, then the account
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| directory | )
+    // return FALSE;
+
+my $directory = eval { JSON::XS::decode_json( $res->{'body'} // '' ) };
+
+if (   not $res->{'ok'}
+    or not ref $directory eq qw| HASH |
+    or not $directory->{'newAccount'}
+    or not $directory->{'newOrder'} ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf 'acme directory unusable [ http %s ]',
+        $res->{'status'} // '?'
+    );
+}
+
+<letsencr.child.acme_client>->{'directory'} = $directory;
+
+my $nonce = ( $res->{'headers'} // {} )->{'replay-nonce'};
+<letsencr.child.acme_client>->{'nonce'} = $nonce if length( $nonce // '' );
+
+$order->{'step'} = qw| account |;
+return <[letsencr.child.acme.step_account]>->( $order->{'order_id'} );
+
+#,,.,,,,,,,..,...,,,.,,.,,,,.,..,,,.,,,..,..,,..,,...,...,..,,,,.,,..,,,,,..,,
+#MG4TXXWABER5U3RFKSNBNMTYL4YLFP47E4AREXLZAAU72FRAI5OFDZ5QJ2YPK2N5AXFGME67LOBWC
+#\\\|LLND64LXIQ7POBWQ43GOALSDJNHPQBLBTHQGKX636JHPO5VKH65 \ / AMOS7 \ YOURUM ::
+#\[7]VU37XKC6W6WS57DNSQFRS5TYYED5E5VNCBGLHIQDJJNHXHSTFKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_directory
+# param = <order_id>
+# descr = fetch the acme directory unless it is cached
+
+my $order = <[letsencr.child.acme.order_of]>->( shift, qw| directory | )
+    // return FALSE;
+
+if ( ref <letsencr.child.acme_client>->{'directory'} eq qw| HASH | ) {
+    $order->{'step'} = qw| account |;
+    return <[letsencr.child.acme.step_account]>->( $order->{'order_id'} );
+}
+
+## a plain get : no jws, no nonce [ the directory names newNonce ] ##
+<[clients.https.request]>->(
+    {   'method'  => qw| GET |,
+        'url'     => <letsencr.child.acme_client>->{'server'},
+        'headers' => { 'Accept' => qw| application/json | },
+        'on_done' => qw| letsencr.child.acme.on_directory |,
+        'params'  => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,..,...,,..,.,,,.,.,.,,,..,,,..,,,.,,,,,,,,,..,,...,..,,,,.,,..,.,.,,,,,,..,
+#7RTWBROOLH7EIIOLBP5VLC2OWTJD34ODBDX3VACIMJQONLR6JGJDEH46YP5YCAGVO3NJLZZE2EM4W
+#\\\|XGZPO35TUX6CMFG474H3AY6YUPJR33EA6K6INMMCHNGMHKQEUYW \ / AMOS7 \ YOURUM ::
+#\[7]JG74DEMRBVEQ3PKPGU2P4H2J3BZXVDDV66HDIIC2ATGEYR55UMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
