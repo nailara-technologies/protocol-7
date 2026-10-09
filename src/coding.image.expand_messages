@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = coding.image.expand_messages
+# descr = request copy of messages with image_ref turned into image_url parts
+# param = $messages [ aref ], $selection [ from coding.image.select_refs ]
+# return = new aref [ stored messages are never modified ]
+
+my ( $messages, $selection ) = @ARG;
+my $attach = ( $selection // {} )->{'indices'} // {};
+
+my @out;
+for my $idx ( 0 .. $#{ $messages // [] } ) {
+    my $msg = $messages->[$idx];
+    if ( ref $msg->{'image_ref'} ne qw| HASH | ) {
+        push @out, $msg;
+        next;
+    }
+
+    ## clone without the image_ref key : the server must never see it ##
+    my %copy = %$msg;
+    my $ref  = delete $copy{'image_ref'};
+    my $text = $copy{'content'} // '';
+
+    if ( $attach->{$idx} ) {
+        my $image
+            = <[coding.image.load_for_vision]>
+            ->( { 'path' => $ref->{'path'} } );
+        if ( defined $image->{'error'} ) {
+            $copy{'content'} = "$text -- not attached : $image->{'error'}";
+        } else {
+            $copy{'content'} = [
+                { 'type' => qw| text |, 'text' => $text },
+                {   'type'      => qw| image_url |,
+                    'image_url' => {
+                              'url' => "data:$image->{'mime'};"
+                            . "base64,$image->{'b64'}"
+                    }
+                },
+            ];
+            <[base.logs]>->(
+                1, 'expand_messages: attached %s [ %s, %d b64 chars ]',
+                $ref->{'path'}, $image->{'mime'}, length $image->{'b64'}
+            );
+        }
+    } else {
+        $copy{'content'} = "$text -- not attached this round";
+    }
+    push @out, \%copy;
+}
+
+return \@out;
+
+#,,,,,,,.,...,..,,,..,..,,.,,,,.,,,..,...,...,..,,...,...,...,.,.,,,,,.,,,,,,,
+#OFLGSU7LEVQV7AH4KVR7M5K7OMVR2N36N7VXAIQ5QZKMSFF6DVQYHQDMVWY5ERLWTGPG5S3EKVIJO
+#\\\|2C6MHAVJQUNXXFCJYQLPTAWBQZJJRPEUHTRG6FCLSA2BWOSXY3V \ / AMOS7 \ YOURUM ::
+#\[7]BGIDLZHLSURMPTWAKM6LYBKXSI3KNRZLH5JZ3RVUZF7TEMHB5OAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

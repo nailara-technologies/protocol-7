@@ -8,12 +8,13 @@ use warnings;
 use bytes;
 
 ## async acme building blocks : repeated response headers [ headers_multi ],
-## letsencr.child.acme.request [ nonce store + prefetch, badNonce retry-once,
-## jws post ], schedule_poll \ cancel_poll [ real event timers ], and
-## query_txt_async against real udp stub servers on 127.0.0.1 high ports [ one
-## answers, one nodata, one dead port -> timeout ]. clients.https is stubbed
-## at clients.https.request, replies are delivered explicitly from the event
-## loop.
+## letsencr.child.acme.request
+## [ nonce store + prefetch, badNonce retry-once, jws post ], schedule_poll \
+## cancel_poll [ real event timers ], and query_txt_async against real udp
+## stub servers on 127.0.0.1 high ports
+## [ one answers, one nodata, one dead port -> timeout ]. clients.https is
+## stubbed at clients.https.request, replies are delivered explicitly from the
+## event loop.
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -644,8 +645,8 @@ package Test::FakeIoEvent;
 sub w    { return $_[0] }
 sub data { return $_[0]->{'data'} }
 
-#,,,.,,..,,,.,,,,,...,.,.,...,,.,,,..,..,,..,,..,,...,...,.,.,.,.,,.,,.,.,,,.,
-#4LCL6AUJFM5DKZUKXGC3OWCNCFH6ANHHYXX47JAD3ODL4SY6JTJOQNOA7IBW6LENUZIPSDDHGVJSW
-#\\\|TWDISEGSPYGDKS2HHUW4QWG7RXDAFD4KCF3YJJOFVTUR24RQEPX \ / AMOS7 \ YOURUM ::
-#\[7]AC4KY5JW5AJHQHJB7FJYUKTUA6JVDYQ2QCQ7H4LKYVQY22PYAYCQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,,..,.,.,..,,,,.,...,.,.,...,..,,...,...,,,.,.,.,.,.,..,,,..,
+#XQFUINTBRHPXMJYTBRREMFNNFSGXJIP274WQZBOYOJ4ELFM65KMBT33CN5FNJPAJEAY5PKQMDTYYO
+#\\\|RYB2NNPXWYHTWIFVHQ6NVSBSDUNX7H4U3ZXZ4PUN2LP6DHQLDRR \ / AMOS7 \ YOURUM ::
+#\[7]QJNEHP4A4QJ6QAUZIYV4REIOREC5XIYLGYI5TZCU3VDP6YDTB2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

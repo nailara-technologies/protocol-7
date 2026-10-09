@@ -424,10 +424,34 @@ push @tools,
     },
     };
 
+## view_image : attach an image so a vision-capable model sees it ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'view_image',
+        'description' => 'attach an image file [ png jpeg gif webp tiff bmp '
+            . '] to the conversation so you can see it '
+            . 'yourself : it arrives as the next user '
+            . 'message. works only while the loaded model '
+            . 'is vision-capable, else use analyze_image',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'image path relative to project root'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
 return \@tools;
 
-#,,,,,...,,..,.,,,,,,,.,,,...,.,,,.,.,.,,,,.,,..,,...,...,.,,,.,,,,.,,.,.,,.,,
-#DRUAYII7IANYQYCV2GRN257OWKLPF4GVJZFIQZAKKJFDBQLM4EIA2I3SLEGLMWS7TSUV2J3BZGYHE
-#\\\|TSKGTSYZJAF26EYGRF4B27F53XDBR4M5WCQXEQ4W6TZG5BKPR5N \ / AMOS7 \ YOURUM ::
-#\[7]362XIUTTOMSNFFO2XOZ3NIA2SNG2U4JGDL7FZFG7J3OGCOSNO4BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,...,..,,,..,...,,,.,.,.,...,..,,...,..,,.,.,..,,..,,,,.,,.,,
+#6HQEX27YJ6SYSEJ33T5HXBWG45MYZA2MYU637US4SZE6JILEQWL3STTWAZMJAEQBONIA5EGR5M7QG
+#\\\|BW4EYECA4X4DQZLOESU27PKXUECRME3UZBJSLVJKFM7AHPL2Q5T \ / AMOS7 \ YOURUM ::
+#\[7]INCOHRPG33MMPGUNCJYWMRAT52Q2EFRLL5EMEIH24QXX3GKP26DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

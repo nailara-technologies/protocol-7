@@ -4,8 +4,8 @@ use strict;
 use English;
 use warnings;
 
-## tests for AMOS7::NTIME against values the zenka core produced [
-## base.ntime.b32 log stamps, 2026-10-09 ]
+## tests for AMOS7::NTIME against values the zenka core produced
+## [ base.ntime.b32 log stamps, 2026-10-09 ]
 
 use FindBin;
 use Time::HiRes ();
@@ -92,8 +92,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,..,,.,,...,,,,,,,.,.,.,..,,..,,.,,,.,,,,,,,..,,...,...,.,,,..,,,.,,.,,,,.,,
-#NKNDJIDAMHYTPWQZMPZKE6QRKSWYNGQTH3BNWEKLZJELB3JN7D4NMGIEHACFYI24GU5VSEB73UZFC
-#\\\|EYAUUEEZ2H2PAIUM3KHWEPFIWOW2QWSZDXXQIZFPL7RJONUIKQC \ / AMOS7 \ YOURUM ::
-#\[7]J4IXAMSRCY7KD7QPGOJAFYLG44CX2GXZVEOB62RMKQCWQOWDXWDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,.,.,,.,,,,,,..,,,,.,..,,...,..,,...,...,...,.,,,..,,.,,,.,.,
+#DBEIPYAG5ATJPU7OI4M7TKLIMJIE3WDBN3KLUFJVCVES3ZLIYJ57IE2OQKO5MFMJ4G4ZBVOUFYUCU
+#\\\|A7YUD5R5H3PENSO5DG4NRKAAC7562YN4OGA6EEMDRBYWXDKNEA2 \ / AMOS7 \ YOURUM ::
+#\[7]R3GR4DD4QO4A54IFRX4EUGYZ3CUE73F7PJPTMOJFQMIP42H524CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
