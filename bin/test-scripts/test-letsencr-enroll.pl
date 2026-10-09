@@ -85,6 +85,7 @@ compile_module($ARG)
     letsencr.parent.cmd.request-certificate
     letsencr.parent.handler_enroll_verify_reply
     letsencr.parent.handler_enrollment_reply
+    letsencr.base.address_is_public
     letsencr.child.check_domain_dns letsencr.child.verify_http_selftest
     letsencr.child.handler.selftest_setup_reply
     letsencr.child.handler.selftest_timeout
@@ -125,6 +126,12 @@ $code{'protocol-7.route-send'} = sub {
 };
 
 my @activity;
+## this host's public interface addresses [ no real interfaces read ] : a
+## list, an empty list [ none public ] or ( undef ) [ unreadable ]
+our @local_public = qw| 198.51.100.7 |;
+$code{ 'letsencr.parent.loc' . 'al_public_addresses' }
+    = sub { return @local_public };
+
 $code{'letsencr.parent.activity_logger'} = sub {
     push @activity, [@ARG];
     return TRUE;
@@ -393,6 +400,65 @@ say ': explicit request claims the domain [ no double order ]';
             && ( $reply->{'data'} // '' ) =~ m|already exists|
             && !sent_commands(),
         'existing active certificate : refused, nothing ordered'
+    );
+}
+
+######################################################################
+say ': own interfaces as public_addresses [ no network connection ]';
+{
+    my $process = $code{'letsencr.parent.process_new_domains'};
+    my $pinned  = sub {    ## public_addresses sent with the first verify ##
+        my ($verify)
+            = grep { $ARG->{'command'} eq qw| child.verify-domain | } @sent;
+        return join ' ',
+            @{ ( $verify // {} )->{'call_args'}->{'param'}
+                ->{'public_addresses'} // [] };
+    };
+    local $data{'letsencr'}{'cfg'}{'public_addresses'} = '';
+
+    reset_calls();
+    clear_state();
+    local @local_public = qw| 198.51.100.7 |;
+    $process->( [qw| own.example |], {} );
+    ok( $pinned->() eq '198.51.100.7',
+        'none configured : the own public interface address is pinned' );
+
+    reset_calls();
+    clear_state();
+    local @local_public = ();
+    $process->( [qw| a.example b.example |], {} );
+    ok( !@sent && grep( {m|no public address on any interface|} @logs ),
+        'no public interface address : nothing verified, nothing fetched'
+    );
+
+    reset_calls();
+    clear_state();
+    local @local_public = (undef);
+    $process->( [qw| c.example |], {} );
+    ok( scalar(@sent) == 1
+            && $pinned->() eq ''
+            && grep( {m|interfaces unreadable|} @logs ),
+        'interfaces unreadable : verified without pinning, logged'
+    );
+
+    reset_calls();
+    clear_state();
+    local @local_public = ();
+    local $data{'letsencr'}{'cfg'}{'public_addresses'} = '203.0.113.5';
+    $process->( [qw| nat.example |], {} );
+    ok( $pinned->() eq '203.0.113.5',
+        'configured public_addresses win [ server behind nat ]' );
+
+    ## the shared address rule ##
+    my $is_public = $code{'letsencr.base.address_is_public'};
+    ok( !$is_public->('172.24.33.224')
+            && !$is_public->('10.19.0.5')
+            && !$is_public->('192.168.1.1')
+            && !$is_public->('100.64.0.1')
+            && !$is_public->('fe80::1')
+            && $is_public->('161.97.144.6')
+            && $is_public->('2a01:4f8::1'),
+        'address_is_public : rfc 1918 \ cgnat \ link-local no, public yes'
     );
 }
 
@@ -813,8 +879,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,.,,,.,,,,.,,,.,,,.,,,..,,.,,,,.,,,.,.,,,..,,...,..,,,..,,.,,...,.,.,.,.,
-#BFXAWHEXUFV5FOWIYIJDCEIC45DRCSDKXFVVTZ3XUNGREW73CWHOCVERJ7U252XBTSNHBVLYXWBDW
-#\\\|GUJNM43MLFJMRO5ZJXECIC3HMU2MQ7BCYMNWEBY6ULGZM2Z7ZUI \ / AMOS7 \ YOURUM ::
-#\[7]75N64WKZSZGAFD7EQOOQ26ELAGEPNYVBOU3FODKM2GUTUGHHHICI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,,.,,,.,,,..,,,.,.,.,,.,,,,,,..,,...,.,.,.,.,,..,..,,,,,,,..,
+#QEEOGVNKHXMOYXEIK2JHTUYWDLMTB7ACMYM3XJUXAEPQY2H74S3ZQINUWSIQPOMNJHG5WWJQCMGRK
+#\\\|FC6LBOA5HEIYL6EKYWXFZFCS4BNAHXKSMDJ3P56UNHKZ2RDHIH5 \ / AMOS7 \ YOURUM ::
+#\[7]CKKIGBT6YEOFKJKV4TDJ2BVRHS3YPKS2NK5ZIW5Q4W76KNXYLKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
