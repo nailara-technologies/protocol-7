@@ -6,15 +6,21 @@
 
 my $checksum = shift // '';
 
-return warn 'expected checksum parameter <{C1}>'
-    unless length $checksum;
-return warn sprintf( "invalid checksum '%s' <{C1}>", $checksum )
-    unless $checksum =~ m{^[A-Z2-7]{20,128}$};
+if ( !length $checksum ) {
+    warn 'expected checksum parameter <{C1}>';
+    return undef;
+}
+if ( $checksum !~ m|^[A-Z2-7]{20,128}$| ) {
+    warn sprintf( "invalid checksum '%s' <{C1}>", $checksum );
+    return undef;
+}
 
 my $blob_path = join qw| / |, <[model_batch.blob.path]>, "$checksum.mxz.B32";
 
-return warn sprintf( "blob '%s' not in store <{C1}>", $checksum )
-    unless -f $blob_path;
+if ( !-f $blob_path ) {
+    warn sprintf( "blob '%s' not in store <{C1}>", $checksum );
+    return undef;
+}
 
 my $b32 = <[file.read]>->($blob_path);
 return undef unless defined $b32;
@@ -28,17 +34,13 @@ my $content;
 IO::Uncompress::UnXz::unxz( \$compressed, \$content )
     or return undef;
 
-## content comes back as bytes : decode to characters when it is valid UTF-8
-## so file.write's :encoding(UTF-8) layer re-encodes to the same bytes [ same
-## text-content contract as note.trash.stash / .rescue ]
-utf8::decode($content)
-    if !utf8::is_utf8($content)
-    and utf8::valid($content);
-
+## raw bytes, exactly as packed                                             ##
+## [ binary-safe : latin-1 sources, model adapters ] -- blob.restore writes ##
+## them back raw, diff.text decodes for display itself                      ##
 return $content;
 
-#,,,,,...,...,,,.,...,,.,,,..,,,.,,,.,.,,,,,.,..,,...,..,,,..,..,,...,,,.,,..,
-#OHWMBM3MQRQPYNR6OY7ZWBQQ4YUDVIXROKEYJRA5IP6TJLANJLHYNKJB47TSKZWEXRR5W4WA4UAHI
-#\\\|CYL2TE6HI7REPEZ4OBWCGVEN2TG3QWYUK4KLHSI2NL6D5CAUA36 \ / AMOS7 \ YOURUM ::
-#\[7]TXCABX64E6DEYIWDTWGITYOD6DBY2OABALM3NUCC2IXMEKCBQQAA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,.,.,,..,,,.,,,.,,,.,,,,,,,.,..,,...,...,...,,,.,,.,,...,,,.,
+#VAWGGP2EMKHQIXS42T3NMV4X7BIXSN6SGL7B2AQUCBUVFEJ4PTUNTSQCEYSM5NED43NYZJXRT63F2
+#\\\|7LIUDFUADQNDV2G437LUEUDKUHPNCNYDU3SD4FITKKJYDYC63NA \ / AMOS7 \ YOURUM ::
+#\[7]QQ35YQ5DDP6J5D3BL3LZQ2FR2SAXELJE3NGQHKISTCFZ3IVOQWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
