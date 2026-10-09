@@ -48,6 +48,18 @@ foreach my $vhost ( $vhosts_list->@* ) {
         next;
     }
 
+    ## special-use names never resolve publicly [ rfc 6761 \ 6762 \ 8375, ##
+    ## icann .internal ; .lan by convention ] : pattern-installed local   ##
+    ## vhosts like 'jobs.local' stay served but get no acme order         ##
+    if ($vhost =~ m{\.(?:local|localhost|test|invalid|example|internal|lan
+                       |onion|home\.arpa)$}xi
+    ) {
+        <[base.logs]>->(
+            2, ': skipping vhost %s [ special-use name ]', $vhost
+        );
+        next;
+    }
+
     # Valid domain-like vhost - queue for certificate
     # Normalize domain (lowercase)
     my $domain = lc($vhost);
@@ -99,8 +111,8 @@ return {
     domains => \%domains_map,
 };
 
-#,,.,,.,.,.,,,..,,.,,,,,,,,.,,...,...,,..,,..,..,,...,...,.,,,,,.,.,,,,.,,.,.,
-#WULGPABQEQBRUME2DW7ZXYIFKJ2G5NZRJ3LMZFPHN3E4LPF53OAICGSUXHB4FSMFRLCGEX5CZFNUU
-#\\\|ZHMCNBTWS5BCJL62D4ZIMLLUJW66RFMGX7TY2KMELZSWJPICYW5 \ / AMOS7 \ YOURUM ::
-#\[7]KWX3WYXFRKJI6ZEPPTJRESXFOVOKLBOPDS3N6O6ZNKY3ZS7ITOBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,...,.,.,,,,,.,,,,,.,,,.,.,.,..,,...,..,,,.,,,,.,,,.,..,,,,.,
+#DA53L7IGQD42DZB54XX4ZLUXDULEOV6UNOB4TT4NBEFVJHJBF2NH45QWRBBJ2GLXO3CX75OA7XT7M
+#\\\|QFANMCMPDAZNY7TLCIHMZ45KWWXJAWKW44WNTO37EH73VZP6X7M \ / AMOS7 \ YOURUM ::
+#\[7]2XVLCXGLRMRBGQIYXS2AMZVZ3O42WQNBPC4WJFUUQ2FJNE5NNICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
