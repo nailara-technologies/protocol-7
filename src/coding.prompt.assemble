@@ -47,12 +47,12 @@ if ( $parsed->{'query'} =~ s|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):||i ) {
     );
 }
 
-## :image-embed:<path> keyword : attach a local image                    ##
-## [ repository-relative or absolute path, optional trailing ':' ] as an ##
-## image_ref user message after the prompt -- expanded per request by    ##
-## coding.async.send_request only while the backend is vision-capable    ##
+## :image-embed:<path> keyword [ alias :image-attach: ] : attach a local    ##
+## image [ repository-relative or absolute path, optional trailing ':' ] as ##
+## an image_ref user message after the prompt -- expanded per request by    ##
+## coding.async.request only while the backend is vision-capable            ##
 my @image_msgs;
-$parsed->{'query'} =~ s{:image-embed:(\S+)}{
+$parsed->{'query'} =~ s{:image-(?:embed|attach):(\S+)}{
     my $img_path = $1;
     $img_path =~ s|:$||;
     my $image = <[coding.image.load_for_vision]>->( { 'path' => $img_path } );
@@ -65,10 +65,7 @@ $parsed->{'query'} =~ s{:image-embed:(\S+)}{
         push @image_msgs,
             {
             'role'    => qw| user |,
-            'content' => sprintf(
-                '[ image : %s, %s, %dx%d ]', $img_path,
-                $image->{'mime'}, $image->{'width'}, $image->{'height'}
-            ),
+            'content'   => <[coding.image.label]>->( $img_path, $image ),
             'image_ref' => {
                 'path'   => $image->{'path'},
                 'width'  => $image->{'width'},
@@ -334,8 +331,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,..,,.,,,,.,..,,,,.,..,,,.,,,,,,,.,,,..,...,..,,...,...,...,..,,..,,,.,,.,.,
-#3VSNAPVUBOR7BYW6MK5HN4Z4BJLXLEU6PQC5MIJD7VXO2IQWSMU452NX275ZPEYL3H3WSWG3MGP2S
-#\\\|ZW2MLG6KPNVEJNW627JIY5EFIT3BJHZ54YLX7ORHQUTBR2SIP35 \ / AMOS7 \ YOURUM ::
-#\[7]YWCU4QEBXPDPO5F7OMAVBTZMR7LYJFMZETK2JEA4A3QYZBAED2DA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,.,,,,,,,.,.,.,.,.,...,.,,,,,,,..,,...,...,...,.,,,,,.,,.,,,,.,
+#27RLSAUKR35IUMTMDRMZWWFULJMY4VI6DTEMEOPJTXZZID2YL6U5QJFY33QWEHYUI56EOS6DYXMDO
+#\\\|AQ2BGSUNHDO4LAKFEL2UZ5PLB7TKOUD6WTMH3U7T37HBJMDGLN5 \ / AMOS7 \ YOURUM ::
+#\[7]6Z7CHDY62IWG4OZUA4T4SXEQ5MRJDHXUXEO2ECHFH5A56HJWRUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

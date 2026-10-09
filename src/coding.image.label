@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = coding.image.label
+# descr = placeholder text for an attached image : path, type, original
+#         size and the size the vision model is shown
+# param = $path [ as the caller named it ], $image [ load_for_vision result ]
+
+my ( $path, $image ) = @ARG;
+
+my ( $w, $h, $ow, $oh ) = @$image{qw| width height orig_width orig_height |};
+
+## the scaled size alone reads as the image's own resolution             ##
+## [ a quality question was answered with 1024x465 for a 1408x640 file ] ##
+my $size
+    = !$w ? 'size unknown'
+    : ( $ow and ( $ow != $w or $oh != $h ) )
+    ? sprintf( 'original %dx%d, shown downscaled to %dx%d', $ow, $oh, $w, $h )
+    : sprintf( '%dx%d', $w, $h );
+
+return sprintf '[ image : %s, %s, %s ]', $path, $image->{'mime'}, $size;
+
+#,,,,,...,,,.,,,.,.,,,...,,,.,,,,,,..,.,,,,,.,..,,...,...,...,,..,..,,,..,..,,
+#MMIPJWP7FQG4OIBGNDH2DN2BUC2XCOG6PBVV6TU744QBHPLXG54KBVMJWSTTVG6NXKJHUTNBMC7IW
+#\\\|BGKIUXTCLGLLKJ5PGHYGAVSUSPXFJCFRZBR6HEEDMMC244URDNN \ / AMOS7 \ YOURUM ::
+#\[7]LELDH34CP4ROIIX2Z37FYDGHSM2QQO5ZMESW3LSBSK53JXIG7ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

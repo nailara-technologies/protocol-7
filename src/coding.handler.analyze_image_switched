@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = coding.handler.analyze_image_switched
+# descr = vision model switch for analyze_image :switch: finished : spawn
+#         the analysis child, or report the failure and resume the parent
+# param = { parent_id, path, abs_path, prompt, prior, routed,
+#           reply => { mode, data } }
+
+my $data      = shift                // {};
+my $parent_id = $data->{'parent_id'} // '';
+my $reply     = $data->{'reply'}     // {};
+my $path      = $data->{'path'}      // '';
+
+my $parent_state = <[coding.async.state_manager]>->( qw| get |, $parent_id );
+return FALSE unless defined $parent_state;
+
+## the placeholder goes : subtask_spawn sets the child as pending ##
+$parent_state->{'pending_subtask'} = undef;
+
+if ( ( $reply->{'mode'} // '' ) eq qw| true | ) {
+    ## the vision model now runs on the gpu server ##
+    my $routed = $data->{'routed'} // qw| single-llm |;
+    $routed = qw| single-llm | if $routed eq qw| cpu |;
+
+    my $spawned = <[coding.tools.handler.subtask_spawn]>->(
+        {   'parent_task_id' => $parent_id,
+            'description'    => ( $data->{'prompt'} // '' )
+                . "\n\n:image-embed:"
+                . ( $data->{'abs_path'} // $path ),
+            'system' => 'you analyze the attached image for another model '
+                . 'that cannot see it. answer the request '
+                . 'precisely and only from what is visible ; say '
+                . 'so when something cannot be determined from '
+                . 'the image.',
+            'no_tools'      => TRUE,
+            'max_rounds'    => 1,
+            'route_backend' => $routed,
+            'result_label'  => "IMAGE ANALYSIS: $path",
+            'switch_back'   => $data->{'prior'},
+        }
+    );
+    if ( ref $spawned eq qw| HASH | and $spawned->{'child_task_id'} ) {
+        <[base.logs]>->(
+            1,          'analyze_image: [%s] vision model ready, child %s',
+            $parent_id, $spawned->{'child_task_id'}
+        );
+        return TRUE;
+    }
+    $reply = {
+        'mode' => qw| false |,
+        'data' => 'spawn failed : '
+            . ( ref $spawned eq qw| HASH | ? $spawned->{'content'} : '?' )
+    };
+}
+
+## failure : tell the parent, switch back if the gpu model changed, resume ##
+push @{ $parent_state->{'messages'} },
+    {
+    'role'    => qw| user |,
+    'content' => sprintf(
+        "[IMAGE ANALYSIS: %s : FAILED]\n\nvision model switch failed : %s",
+        $path, $reply->{'data'} // '?'
+    ),
+    };
+
+my $prior = $data->{'prior'} // '';
+if ( length $prior and lc( <inference.model.amos_id> // '' ) ne lc $prior ) {
+    return <[coding.helper.vision_switch_back]>->( $parent_id, '', $prior );
+}
+return <[coding.helper.subtask_advance]>->(
+    $parent_id, '', ' after a failed vision switch'
+);
+
+#,,.,,.,.,,..,,,.,.,,,,.,,.,.,...,,.,,,..,,.,,..,,...,...,,..,...,..,,.,.,..,,
+#2ZSHXKO2MKDHFZNBKFCUBZ4HCNYXFF524ZZ6RTZEPRG427ANM6T4H23I2X5Z76Z6EXETBD6EL7PRU
+#\\\|Z5PWUDAY7XR4B6R2LGO6EXFR5CDZT2SJBDV4Q3JKMJ5ZXTKCWVE \ / AMOS7 \ YOURUM ::
+#\[7]JK7BAI7YND2C5TROSKTSA3GTAMINTKGGSFXKFGN6HBJ3BAZZMYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

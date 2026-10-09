@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.helper.vision_switch_back
+# descr = analyze_image :switch: child ended : switch the gpu back to the
+#         prior model, then advance the parent [ next subtask or resume ]
+# param = $parent_id, $task_id [ finished child ], $prior [ checksum ]
+
+my ( $parent_id, $task_id, $prior ) = @ARG;
+
+my $parent_state = <[coding.async.state_manager]>->( qw| get |, $parent_id );
+return FALSE unless defined $parent_state;
+
+## the prior model may already be back [ e.g. a manual switch meanwhile ] ##
+my $loaded = <inference.model.amos_id> // '';
+if ( lc $loaded eq lc $prior ) {
+    return <[coding.helper.subtask_advance]>->(
+        $parent_id, $task_id, ' [ prior model already loaded ]'
+    );
+}
+
+## parent stays parked in the subtask state until the switch is through ##
+my $switch_id = <[coding.helper.model_switch_start]>->(
+    {   'target'        => $prior,
+        'exclude_tasks' => <[coding.helper.task_chain]>->($parent_id),
+        'callback'      => qw| coding.handler.vision_switch_back_done |,
+        'callback_data' => {
+            'parent_id' => $parent_id,
+            'task_id'   => $task_id,
+            'prior'     => $prior,
+        },
+    }
+);
+$parent_state->{'pending_subtask'} = "model-switch:$switch_id";
+
+<[base.logs]>->(
+    1, 'analyze_image: [%s] child %s done, switching back to %s',
+    $parent_id, $task_id, $prior
+);
+
+return TRUE;
+
+#,,.,,.,.,..,,..,,,,.,..,,.,,,..,,,,.,.,,,...,..,,...,..,,,,.,.,.,.,,,,.,,...,
+#LR4LGXMR4WLW7TD2GZIL3H2G2OGGNI7RUHSHIF7UWPMLNZ5LH2KEMHU2PRSABEFZNG7M3FOQHX7CY
+#\\\|T25ZVMF6QPPG7MKBOJDOUBB7YZR2VJ3MANIDNB7Q3Q4BRGQPYFR \ / AMOS7 \ YOURUM ::
+#\[7]SBYGZYZTMCLORCUFMPT3MEZKASDG5CNVJRLXDVWK6FLDPSAKFCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

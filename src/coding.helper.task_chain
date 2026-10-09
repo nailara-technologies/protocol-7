@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = coding.helper.task_chain
+# descr = a task id followed by its subtask ancestors [ parent, grandparent .. ]
+# param = $task_id
+# return = aref
+
+my $task_id = shift // '';
+my @chain;
+my %seen;
+while ( length $task_id and not $seen{$task_id}++ ) {
+    push @chain, $task_id;
+    $task_id = <coding.task.parent>->{$task_id} // '';
+}
+return \@chain;
+
+#,,,.,.,.,,..,.,,,,,.,,.,,,..,.,.,...,,,.,.,.,..,,...,...,...,.,,,.,.,.,.,,,,,
+#MUQH4WDZTWK4CYYXIJN3HEI774ZPAUFYTTPQ5R2PEO6RLOOSBV4VZA43MZ57DX6DMP3QB5UJ7GX2G
+#\\\|TXQAQLUBZKU3CPHE475RVMED6KXEB4NM7R45I4BZRO5IG5K6TM7 \ / AMOS7 \ YOURUM ::
+#\[7]6DGSFMMEBJBOBQ53NO4B5NJJO5V6TXJJZLJBNJHVM7OCK2NJBQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

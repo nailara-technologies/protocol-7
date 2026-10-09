@@ -77,78 +77,24 @@ if (   $is_ready
 
 ## model selection : explicit caller checksum always wins. without one, ##
 ## auto-select the first vision-capable registry entry locally          ##
-if ( !defined $checksum ) {
-    my $registry = <coding.model_metadata> // {};
-    for my $key ( sort keys %$registry ) {
-        ## projector files are not runnable models ##
-        next if $key =~ m|mmproj|i;
+$checksum //= <[coding.helper.find_vision_model]>;
+return { 'mode' => qw| false |, 'data' => qw| no-vision-model | }
+    if !defined $checksum;
 
-        my $entry = $registry->{$key} // {};
-
-        ## reuse the existing predicate on the entry's vision flag [ local ##
-        ## clone - models.* isn't statically loaded in the coding zenka ]  ##
-        my $vision
-            = <[coding.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 )
-            eq qw| vision |;
-
-        ## fallback : name heuristic, same pattern as models.local_discover ##
-        $vision = 1
-            if !$vision
-            && ( $entry->{'name'} // $key ) =~ m{vl|vision|vlm}i;
-
-        next if !$vision;
-
-        ## metadata amos values can be yaml names with spaces - only a ##
-        ## composite checksum passes switch-model's own validation     ##
-        my $candidate = uc( $entry->{'amos'} // '' );
-        next if $candidate !~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|;
-
-        $checksum = $candidate;
-        last;
+## caller timeout bounds the WAIT-FOR-IDLE phase only                  ##
+## [ see  coding.handler.vision_switch_poll for the phase split ]  the ##
+## reply fires deferred, exactly once, from the poll                   ##
+<[coding.helper.model_switch_start]>->(
+    {   'target'   => $checksum,
+        'timeout'  => $timeout,
+        'reply_id' => $call->{'reply_id'} // '',
     }
-
-    if ( !defined $checksum ) {
-        return { 'mode' => qw| false |, 'data' => qw| no-vision-model | };
-    }
-}
-
-## caller timeout bounds the WAIT-FOR-IDLE phase only [ see ##
-## coding.handler.vision_switch_poll for the phase split ]  ##
-$timeout //= <coding.cfg.vision_switch_idle_timeout> // 300;
-
-## register per-request state and arm the poll timer : the reply fires ##
-## deferred, exactly once, from coding.handler.vision_switch_poll      ##
-<coding.vision_switch_state> //= {};
-my $switch_id = <[base.gen_id]>->(<coding.vision_switch_state>);
-
-<coding.vision_switch_state>->{$switch_id} = {
-    'reply_id'        => $call->{'reply_id'} // '',
-    'target_checksum' => $checksum,
-    'timeout'         => $timeout,
-    'started'         => <[base.time]>->(3),
-    'phase'           => qw| waiting_idle |,
-    'prior_pid'       => 0,
-    'replied'         => FALSE,
-};
-
-<[event.add_timer]>->(
-    {   'interval' => 1.0,
-        'repeat'   => TRUE,
-        'handler'  => qw| coding.handler.vision_switch_poll |,
-        'data'     => { 'switch_id' => $switch_id },
-        'desc'     => "vision-model switch $switch_id",
-    }
-);
-
-<[base.logs]>->(
-    1,         '[vision-model] :switch: queued : %s [idle timeout %ds]',
-    $checksum, $timeout
 );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,.,,,.,.,.,,,.,.,,.,,.,,,,,.,,..,,..,.,,,..,,...,...,,,.,,..,,,.,.,,,..,,
-#T2ZV765BHT62PD22ZVXHJB6BHP3YW6PT4Y5JKANZMMIWA4VL23ZCXUHB34Q7UQDSGJI23HK5D4JEE
-#\\\|XM2YIMKHRKNMMZ5F6T4SHWZXWOCO7BFKVB4WEQLKADKGPZVER26 \ / AMOS7 \ YOURUM ::
-#\[7]ECPGTIVJVBTXKTZGMP4FU7SSPSRFUT7E2QRM54ARNYGZUHZWKADA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,...,,..,,..,..,,.,.,,.,,.,.,..,,...,...,,..,.,.,,.,,,.,,..,,
+#JOGKEJHQVOAEMF7XMZMKFLOIY23AO3RSWKZVLIKENJUHPEDULQ7GAZ5XRMYFRBDBS6EAOWYYQO4YC
+#\\\|MVEV6IXNY7T6I3SC4YE2ZVFKYN74NKNF75JOMTO5QTESFBNUJI6 \ / AMOS7 \ YOURUM ::
+#\[7]KM44EY6MZTN5KLMJ344UEBD4XUPYWVAXL2LI45UOYEIOMGKQGQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
