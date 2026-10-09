@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.helper.model_switch_start
+# descr = queue a gpu model switch : waits for idle, switches, confirms ready
+#         [ timer machine in coding.handler.vision_switch_poll ]
+# param = { target => checksum, timeout => idle-wait seconds,
+#           reply_id => cmd reply [ optional ],
+#           exclude_tasks => [ task ids the idle wait ignores ],
+#           callback => handler name, callback_data => { .. } }
+#         the callback gets { %callback_data, 'reply' => { mode, data } }
+# return = switch id
+
+my $params = shift // {};
+
+<coding.vision_switch_state> //= {};
+my $switch_id = <[base.gen_id]>->(<coding.vision_switch_state>);
+
+<coding.vision_switch_state>->{$switch_id} = {
+    'reply_id'        => $params->{'reply_id'} // '',
+    'target_checksum' => $params->{'target'},
+    'timeout'         => $params->{'timeout'}
+        // <coding.cfg.vision_switch_idle_timeout> // 300,
+    'exclude_tasks' => $params->{'exclude_tasks'} // [],
+    'callback'      => $params->{'callback'}      // '',
+    'callback_data' => $params->{'callback_data'} // {},
+    'started'       => <[base.time]>->(3),
+    'phase'         => qw| waiting_idle |,
+    'prior_pid'     => 0,
+    'replied'       => FALSE,
+};
+
+<[event.add_timer]>->(
+    {   'interval' => 1.0,
+        'repeat'   => TRUE,
+        'handler'  => qw| coding.handler.vision_switch_poll |,
+        'data'     => { 'switch_id' => $switch_id },
+        'desc'     => "model switch $switch_id",
+    }
+);
+
+<[base.logs]>->(
+    1,                   '[model_switch] queued : %s [ idle timeout %ds ]',
+    $params->{'target'}, <coding.vision_switch_state>->{$switch_id}{'timeout'}
+);
+
+return $switch_id;
+
+#,,,,,.,.,...,,.,,..,,,,,,,..,,.,,,..,...,..,,..,,...,...,,.,,.,,,,,,,,.,,,..,
+#446WNWV55RBNQPMJUM77MVEG46EAIWHECHWX5UYNFY7OR6DKIHNZC5EYPSIQBXE5ILIU4LZTQHNEW
+#\\\|M4OYJWMCQDQCPT3K7KXF6FVHUVQFITAOZUYUZJ7SU237XVBKFK6 \ / AMOS7 \ YOURUM ::
+#\[7]6MG4X4KWM6QE3375VKBPASRYIELRXG5K35BORZDHDG2QK6BRCKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,6 +41,23 @@ my $finish = sub {
     $event->w->cancel if defined $event->w and $event->w->is_active;
     delete <coding.vision_switch_state>->{$switch_id};
 
+    ## internal caller [ e.g. analyze_image :switch: ] : after the cleanup ##
+    ## above, so the callback may queue the next switch right away         ##
+    my $callback = $state->{'callback'} // '';
+    if ( length $callback ) {
+        eval {
+            $code{$callback}->(
+                {   %{ $state->{'callback_data'} // {} },
+                    'reply' => $reply_data
+                }
+            );
+        };
+        <[base.logs]>->(
+            0,         '[vision_switch] callback %s died : %s',
+            $callback, <[base.str.eval_error]>
+        ) if length $EVAL_ERROR;
+    }
+
     return TRUE;
 };
 
@@ -64,18 +81,18 @@ if ( $phase eq qw| waiting_idle | ) {
 
     ## shared global idle predicate [ extracted to a helper -- the same ##
     ## check now also gates the model-sweep yield and the deferred-pin  ##
-    ## drain, so exactly one copy exists in the tree ] : zero active [  ##
-    ## non-completed, non-failed ] tasks AND no backend lock held       ##
-    my $idle      = <[coding.helper.backend_idle]>;
+    ## drain, so exactly one copy exists in the tree ] : zero active    ##
+    ## [ non-completed, non-failed ] tasks AND no backend lock held     ##
+    my $idle = <[coding.helper.backend_idle]>->( $state->{'exclude_tasks'} );
     my $active    = $idle->{'active'};
     my $in_flight = $idle->{'in_flight'};
 
     if ( $idle->{'idle'} ) {
-        ## capture the CURRENT pid just before issuing - readiness is    ##
-        ## confirmed by a NEW pid appearing+ready, NOT by the model_id   ##
-        ## label, which switch_model_reply sets before the kill+respawn  ##
-        ## actually completes [ carried over from poll_switch, confirmed ##
-        ## live 2026-06-21 ]                                             ##
+        ## capture the CURRENT pid just before issuing - readiness is   ##
+        ## confirmed by a NEW pid appearing+ready, NOT by the model_id  ##
+        ## label, which switch_model_reply sets before the kill+respawn ##
+        ## actually completes                                           ##
+        ## [ carried over from poll_switch, confirmed live 2026-06-21 ] ##
         $state->{'prior_pid'}
             = ( <coding.inference_servers> // {} )->{'gpu'}{'pid'} // 0;
         $state->{'phase'}   = qw| switching |;
@@ -207,8 +224,8 @@ if ( $phase eq qw| switching | ) {
 );
 return $finish->( { mode => qw| false |, data => qw| internal-error | } );
 
-#,,,,,.,,,.,.,.,.,,.,,,,,,,.,,,,,,.,.,,,,,,..,..,,...,...,...,.,.,,.,,,.,,..,,
-#7KNWVY4HFDMMYSZK43EAP3RGUVL6PBQTRK47M3MUV3NFHJQHHY5LOXQFTY7CAJBBKIRCLO2RI2CMI
-#\\\|PI6GZCFIQPYOQLQ3FFEZGGQYWSZVKSVCNZS67ORVYTGHYUQSX5Q \ / AMOS7 \ YOURUM ::
-#\[7]CADD3R7Q2J54RYGF72AAZPX6WKUDMH6WWV6PKG63DT6CEQSX2IDY 7  DATA SIGNATURE ::
+#,,..,...,,,.,..,,,,,,.,,,.,,,,,.,,..,,..,.,.,..,,...,...,.,,,,,.,,,.,,,.,...,
+#XMQHNNJZGZ7DR2BKUWI5BRVQ4EKDERUKGAWI26MSSYELL2QLAUEMCI74KYTIVXJK5VB5HUS75DHTS
+#\\\|JWCP37TVQ3JMGASQS6EDCKX534SA7UEBSSX3Z27DEGDNUSDJRBT \ / AMOS7 \ YOURUM ::
+#\[7]VROEKCA4KXPW2Q53OLM64KT7FP7VKMAOPD3YPMX2VBU4427XUIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

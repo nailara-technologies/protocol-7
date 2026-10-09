@@ -2,7 +2,7 @@
 
 # name  = coding.tools.handler.analyze_image
 # descr = text description of an image by a vision-capable child task
-# param = { path => ..., prompt => ... }
+# param = { path => ..., prompt => ..., switch => bool }
 
 my $args   = shift             // {};
 my $path   = $args->{'path'}   // '';
@@ -37,11 +37,60 @@ my $child_backend
     : <[coding.image.backend_has_vision]>->($other)  ? $other
     :                                                  '';
 
+## :switch: no vision anywhere : load a vision model on the gpu for the ##
+## analysis, then switch back to the current model [ parent parked ]    ##
+if ( !length $child_backend and <[base.cfg_bool]>->( $args->{'switch'} ) ) {
+    my $prior = uc( <inference.model.amos_id> // '' );
+    return 'error: cannot switch : the current gpu model '
+        . 'id is unknown, so it could not be switched back'
+        if $prior !~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|;
+
+    my $vision = <[coding.helper.find_vision_model]>;
+    return 'error: cannot switch : no vision-capable model in the registry'
+        unless defined $vision;
+
+    ## park the parent like subtask_spawn does : it waits in the subtask ##
+    ## state behind a placeholder, its backend lock released             ##
+    my $switch_id = <[coding.helper.model_switch_start]>->(
+        {   'target'        => $vision,
+            'exclude_tasks' => <[coding.helper.task_chain]>->($task_id),
+            'callback'      => qw| coding.handler.analyze_image_switched |,
+            'callback_data' => {
+                'parent_id' => $task_id,
+                'path'      => $path,
+                'abs_path'  => $image->{'path'},
+                'prompt'    => $prompt,
+                'prior'     => $prior,
+                'routed'    => $routed,
+            },
+        }
+    );
+    $state->{'pending_subtask'} = "model-switch:$switch_id";
+    <[coding.async.backend_release]>->(
+        $task_id, $routed, <[coding.async.lock_token]>->( $task_id, $routed )
+    );
+
+    <[base.logs]>->(
+        1, 'analyze_image: [%s] %s : switching %s -> %s',
+        $task_id, $path, $prior, $vision
+    );
+
+    return
+          sprintf "no vision-capable model loaded : switching to %s for the "
+        . "analysis of %s, then back to %s [ this takes a "
+        . "while, the context is re-processed afterwards ] : "
+        . "the description follows as the next user message, "
+        . "labelled IMAGE ANALYSIS",
+        $vision, $path, $prior;
+}
+
 unless ( length $child_backend ) {
     return
           sprintf "error: no vision-capable model is loaded on any backend "
         . "-- cannot analyze %s [ coding.vision-model shows "
-        . "the loaded model ]", $path;
+        . "the loaded model ] -- call again with switch=true "
+        . "to load a vision model for the analysis and switch "
+        . "back afterwards", $path;
 }
 
 my $spawned = <[coding.tools.handler.subtask_spawn]>->(
@@ -71,13 +120,12 @@ if ( ref $spawned ne qw| HASH | or not $spawned->{'child_task_id'} ) {
 );
 
 return
-      sprintf "image analysis of %s started [ %s ] : the description "
-    . "follows as the next user message, labelled IMAGE "
-    . "ANALYSIS",
+    sprintf "image analysis of %s started [ %s ] : the description follows "
+    . "as the next user message, labelled IMAGE ANALYSIS",
     $path, $spawned->{'child_task_id'};
 
-#,,,,,,.,,,.,,.,,,,.,,.,,,.,,,...,...,,,.,...,..,,...,...,,..,..,,,..,.,.,...,
-#2TF6YHXZPMGW7JBMSUU22XO6OEFKAZCYGE77AOWBWNVNETBAJNZHBTU65IR6B6LVBOSMXO2GTVIS4
-#\\\|GYMCIAIZMXQL6W2DXKMA7ZLL5BR3O2R4WGU7MFSV54SEBFVVPWS \ / AMOS7 \ YOURUM ::
-#\[7]7TEBHXT6FOYU7LZXCMZTNL2KEG4KP3BLPNFDLQ3VYJAVTWKSN6DY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,..,,.,,,,,,,...,,,.,...,..,,..,,...,...,..,,..,,..,,.,.,,,.,
+#TEMKNLMDVZGFTHXM7XLKZWVEOQ7QIRT6MWGDQH3S7C25G3LLKHIOPXHYT3TYVO44HLFMX5T2SKV52
+#\\\|WJHLUJWAZSTNR67IQAKDXT5DVCIHJUJRQJARI5UALGYBGC5KH6Q \ / AMOS7 \ YOURUM ::
+#\[7]VHKUXIGY7YOOHDWBMUKO5ELNM6C5DIGY3QFFLYNH3HVCNCDD7GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
