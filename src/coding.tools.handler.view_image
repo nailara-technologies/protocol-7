@@ -31,26 +31,12 @@ unless ( <[coding.image.backend_has_vision]>->($routed) ) {
 my $image = <[coding.image.load_for_vision]>->( { 'path' => $path } );
 return "error: $image->{'error'}" if defined $image->{'error'};
 
-my $dims
-    = $image->{'width'}
-    ? sprintf( '%dx%d', $image->{'width'}, $image->{'height'} )
-    : 'unknown size';
-my $scaled
-    = $image->{'orig_width'} && $image->{'orig_width'} != $image->{'width'}
-    ? sprintf(
-    ' [ scaled from %dx%d ]',
-    $image->{'orig_width'},
-    $image->{'orig_height'}
-    )
-    : '';
+my $label = <[coding.image.label]>->( $path, $image );
 
 push @{ $task->{'injected_messages'} //= [] },
     {
-    'role'    => qw| user |,
-    'content' => sprintf(
-        '[ image : %s, %s, %s%s ]',
-        $path, $image->{'mime'}, $dims, $scaled
-    ),
+    'role'      => qw| user |,
+    'content'   => $label,
     'image_ref' => {
         'path'   => $image->{'path'},
         'width'  => $image->{'width'},
@@ -59,16 +45,14 @@ push @{ $task->{'injected_messages'} //= [] },
     };
 
 <[base.logs]>->(
-    1, 'view_image: [%s] attached %s [ %s, %d bytes ]',
-    $task_id, $path, $dims, $image->{'bytes'}
+    1, 'view_image: [%s] attached %s [ %d bytes ]',
+    $task_id, $label, $image->{'bytes'}
 );
 
-return
-    sprintf "image %s loaded [ %s, %s%s ] : it follows as the next "
-    . "user message", $path, $image->{'mime'}, $dims, $scaled;
+return "$label loaded : it follows as the next user message";
 
-#,,..,...,,..,..,,.,.,,,.,.,.,,,.,.,.,...,.,,,..,,...,...,.,.,...,,.,,,.,,.,,,
-#LIBFHYXFT56PGQN6AKUPBXTH5ZRQM2RM67GQUJNODAYKJ6B64TRRWYK5JNSETYGRZM3OQHPKMQFZK
-#\\\|WJF6T5SLJSTC7GX2EJYXWXGVU435IHNBVCJVLJB57VHTSTW652L \ / AMOS7 \ YOURUM ::
-#\[7]FMZUEKFN26VLVJNDHMSHW4LGFME2ZJF3PIO74BNIH667MGCGLKAQ 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,..,,,..,.,,,,,,,...,.,,,...,..,,...,...,,,,,..,,...,...,.,.,
+#JWA2K7QRQZIAPTXZLEJNDNDOEGL6M3JF3P62BRY53WPUVHWOYXWW4E7BN6HZ5ELRMDXXUTNAG5BIE
+#\\\|AWFZY357BSTTPVSCLQ5ZX7A3XDJUDGHGC7FDIRU5QIU6TTC23ZC \ / AMOS7 \ YOURUM ::
+#\[7]RDS4BU66MY4T3TCBHO7Z4D2FWSAP2GI4E3AGCPDPAFCNX7MERCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

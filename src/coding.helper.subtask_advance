@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = coding.helper.subtask_advance
+# descr = after a subtask ended : start the parent's next queued subtask or
+#         resume the parent [ shared by async.complete's success and failure
+#         paths and by the analyze_image switch-back callback ]
+# param = $parent_id, $task_id [ the finished subtask ], $after [ log suffix ]
+
+my ( $parent_id, $task_id, $after ) = @ARG;
+$after //= '';
+
+my $parent_state = <[coding.async.state_manager]>->( qw| get |, $parent_id );
+return FALSE unless defined $parent_state;
+
+## check subtask queue for more work ##
+my $queue = <coding.task.subtask_queue>->{$parent_id} // [];
+## remove completed subtask from front of queue ##
+while ( @$queue && $queue->[0] eq $task_id ) {
+    shift @$queue;
+}
+<coding.task.subtask_queue>->{$parent_id} = $queue;
+
+if (@$queue) {
+    ## check if parent was stopped while this subtask ran ##
+    my $parent_task_rec = <coding.task.queue>->{$parent_id};
+    if ( defined $parent_task_rec
+        && $parent_task_rec->{'stop_requested'} ) {
+        <[base.logs]>->(
+            1,
+            "async.complete: parent %s was stopped, "
+                . "clearing %d remaining subtask(s)%s",
+            $parent_id,
+            scalar @$queue,
+            $after
+        );
+        ## clear remaining queue so they don't start later ##
+        for my $orphan_id (@$queue) {
+            my $orphan = delete <coding.task.queue>->{$orphan_id};
+            if ( defined $orphan ) {
+                $orphan->{'execution'}->{'status'} = qw| cancelled |;
+                push @{ <coding.task.completed> //= [] }, $orphan_id;
+            }
+            delete <coding.task.parent>->{$orphan_id};
+        }
+        <coding.task.subtask_queue>->{$parent_id} = [];
+        $parent_state->{'pending_subtask'} = undef;
+        $parent_state->{'state'}           = qw| streaming |;
+        <coding.async.task_state>->{$parent_id} = $parent_state;
+    } else {
+        my $next_subtask = $queue->[0];
+        $parent_state->{'pending_subtask'} = $next_subtask;
+        ## stay in subtask state : next queued task will  run ##
+        <coding.async.task_state>->{$parent_id} = $parent_state;
+        ## enqueue the next subtask so the task queue picks  it up   ##
+        ## [ remove from queue first to avoid  duplicate rejection ] ##
+        my $next_task = delete <coding.task.queue>->{$next_subtask};
+        if ( defined $next_task ) {
+            my $enq = <[coding.task.enqueue]>->($next_task);
+            if ( !$enq->{'success'} ) {
+                ## restore if enqueue failed ##
+                <coding.task.queue>->{$next_subtask} = $next_task;
+                <[base.logs]>->(
+                    0,             "async.complete: enqueue of %s failed: %s",
+                    $next_subtask, $enq->{'error'} // 'unknown'
+                );
+            }
+        } else {
+            <[base.logs]>->(
+                0, "async.complete: next subtask %s not found in queue",
+                $next_subtask
+            );
+        }
+        <[base.logs]>->(
+            1, "async.complete: parent %s starting next queued subtask %s%s",
+            $parent_id, $next_subtask, $after
+        );
+    }
+} else {
+    $parent_state->{'pending_subtask'} = undef;
+    ## transition parent from subtask back to streaming ##
+    $parent_state->{'state'} = qw| streaming |;
+    <coding.async.task_state>->{$parent_id} = $parent_state;
+    <[coding.task.enqueue_round]>->( $parent_id, $parent_state->{'round'} );
+    <[base.logs]>->(
+        1, "async.complete: resumed parent %s from subtask %s%s",
+        $parent_id, $task_id, $after
+    );
+}
+
+return TRUE;
+
+#,,..,,..,,,.,,,,,,,.,,,,,.,.,,,.,,.,,,,.,,,,,..,,...,..,,.,,,...,,.,,...,..,,
+#NWEQEA44ETKITT56ZS5RLNXV3VOCHAM26GDOXD5E7KPY26B37PL5V4PYF5AYH34SMZ6WLOTKPU5HY
+#\\\|CFGBZBQ25DEB5PJZWPKYXJRFSWP24UGE2FBIZVHMBUDIP5P4ZYB \ / AMOS7 \ YOURUM ::
+#\[7]SHTZSL3UEMGMSSTABB2MMJ57DLQNEX2XMV3P63LW5LZBA5OWJUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
