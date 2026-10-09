@@ -17,7 +17,8 @@ swapped [ gpu fan repair ]. the vault is the "better minimum state".
   wraps. CASCADE [ user's call 2026-10-09, still format 1 -- no vault existed
   yet ] : twofish-gcm inside chacha20-poly1305, independent hkdf keys, on the
   key wrap AND every entry version [ wrap-only-chacha would leak the vault
-  key ]. ad binds vault \ id \ version. python's `cryptography` has no
+  key ]. hkdf = BLAKE2b-512 [ no sha-2, see [[feedback-no-sha2-no-hex]] ].
+  ad binds vault \ id \ version. python's `cryptography` has no
   twofish : spec recovery = python kdf + outer layer, CryptX twofish-gcm
 - storage : binary fields [ 'P7VK' \ 'P7VE' + format byte, layouts in the
   spec ] in ONE base32 block per file, framed in the ': ' inline format of
@@ -29,6 +30,10 @@ swapped [ gpu fan repair ]. the vault is the "better minimum state".
   -> BUILT as `p7-vault archive` \ `restore-archive` : key file in the clear +
   cascaded payload of EVERY version, padded to 13312 x 3^n, read back +
   compared after writing ; restore checks names first, refuses another vault,
+  archive wraps : recovery only by default ; -f <file> adds
+  'passphrase-file' [ argon2id over length-prefixed file + passphrase, any
+  file e.g. a protocol-7 blob version ~17 bits ], -p keeps the plain
+  passphrase ; -k <file> unlocks with it. restore hints -R \ -k passwd.
   never replaces. a public repo keeps every pushed archive : a passphrase
   change does not protect old ones [ said in passwd + spec ]
 - bug found by the archive tests : vault_rewrap's last-wrap refusal died with
@@ -66,8 +71,8 @@ format-code -c compiles .pm files inside a sub -- file-level `my` reads as
 "not available", use `our`. pkill -f with a pattern from my own command line
 kills my own shell.
 
-#,,.,,,..,,,,,..,,,,.,,,.,.,.,,,,,,..,.,.,.,.,..,,...,...,...,.,.,.,.,.,,,,,,,
-#M3UQE7QC5LBQFRRD35AMBQFMTHBXSGKZ2QBS4747C5YSVR7W5ZNPGVMLEQBZWTRXS5EVKOXUJDPT6
-#\\\|NZZHC4KF6NXVAFPAVP4FTTYRF5MLVZXAG3SOV2TYMVVQIRQFJHY \ / AMOS7 \ YOURUM ::
-#\[7]3PEBT2DK7Q3N4O355JHG4U7AEZRRNFBTRZM2JO7CUCJ4NR34NEAI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,.,.,,,,..,,,.,,,.,...,,,.,,,.,..,,...,...,...,..,,...,.,.,,..,
+#ULF44FCPMG4VZLCNIQEPY24U25YJMAATDZ64FLMWASP5VWN6QNQST6A5RC7YZH3AAXKPE5KWYMGFG
+#\\\|P4D4XHFKNNIAOSLI4KK27RMIUYVJGPBFAEPWGEBKGN6VDKLGXG6 \ / AMOS7 \ YOURUM ::
+#\[7]PZR4GH6UDPQ2PK4OESNCT2GO5YHVCH6WOLH6NGO2TDSI3VYTSCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

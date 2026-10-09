@@ -32,7 +32,7 @@ BEGIN {
 use AMOS7::Vault qw|
     vault_init vault_open vault_exists vault_unlock vault_rewrap vault_wraps
     entry_save entry_load entry_versions entries_latest vault_verify
-    archive_write archive_open archive_restore
+    archive_write archive_open archive_restore file_secret git_blob_id
     gen_password recovery_code_new recovery_code_normalize
     type_fields secret_field ntime_b32_to_unix version_to_unix
     |;
@@ -90,7 +90,7 @@ my %option;
 {
     local $SIG{'__WARN__'}
         = sub { print STDERR 'p7-vault : ', lcfirst $ARG[0]; exit 2 };
-    getopts( qw| d:Rho: |, \%option );
+    getopts( qw| d:Rho:k: |, \%option );
 }
 if ( $option{'h'} or defined $option{'o'} ) {
     die "p7-vault : unknown option '-o$option{'o'}'\n"
@@ -100,6 +100,7 @@ if ( $option{'h'} or defined $option{'o'} ) {
 }
 $dir = $option{'d'} if defined $option{'d'};
 my $use_recovery = $option{'R'} ? TRUE : FALSE;
+my $key_file     = $option{'k'};    ## -k : passphrase + key file ##
 
 my %COMMANDS = (
     init              => \&cmd_init,
@@ -172,8 +173,12 @@ sub usage {
     gen [ length ] [ classes ]  password [ classes : a A 9 # ]
     passwd [ recovery ]      change the passphrase [ or recovery code ]
     verify                   decrypt every version of every entry
-    archive <file>           one file for untrusted copies [ public repo ] :
-                             entry count and edit times stay hidden
+    archive <file> [ -f <key file> ] [ -p ]
+                             one file for untrusted copies [ public repo ] :
+                             entry count and edit times stay hidden. opens
+                             with the recovery code ; -f adds passphrase +
+                             key file [ any file, e.g. one version of one
+                             file in a git history ], -p the plain passphrase
     restore-archive <file>   into -d : a new vault, or the same one
                              [ adds missing versions, replaces nothing ]
     commands                 this list [ interactive : quit ends ]
@@ -183,6 +188,7 @@ sub usage {
 
     -d  .......  vault directory [ default P7_VAULT_DIR or ~/.n/vault ]
     -R  .......  unlock with the recovery code
+    -k  .......  unlock with passphrase + key file [ -k <file> ]
     -nc ......  no colors [ also with NO_COLOR set, or output not a terminal ]
     -h  .......  this list [ also -options ]
 
@@ -395,13 +401,21 @@ sub unlocked {
 sub unlock_prompt {
     my $handle = shift;
 
-    my $wrap  = $use_recovery ? 'recovery'      : 'passphrase';
-    my $label = $use_recovery ? 'recovery code' : 'vault passphrase';
+    my ( $wrap, $label )
+        = $use_recovery ? ( qw| recovery |, 'recovery code' )
+        : defined $key_file
+        ? ( qw| passphrase-file |, 'passphrase [ ' . '+ key file ]' )
+        : ( qw| passphrase |, 'vault passphrase' );
 
     foreach my $try ( 1 .. 3 ) {
         my $secret = prompt_secret($label) // return undef;
-        return $handle
-            if vault_unlock( $handle, encode( 'UTF-8', $secret ), $wrap );
+        $secret = encode( 'UTF-8', $secret );
+        $secret = eval { file_secret( $secret, $key_file ) } // do {
+            print $C{o} . "  << $EVAL_ERROR" . $C{R};
+            return undef;
+            }
+            if defined $key_file;
+        return $handle if vault_unlock( $handle, $secret, $wrap );
         say "  wrong $label";
     }
     return undef;
@@ -796,13 +810,51 @@ sub cmd_gen {
 ## one file for untrusted copies [ public DATA repo ] : count and edit times
 ## stay hidden. written, then read back and compared before it counts
 sub cmd_archive {
-    my $file = shift // do {
-        say '  archive <file>';
+    my @args = @ARG;
+    my ( $file, %opt, $with_file );
+    while (@args) {
+        my $arg = shift @args;
+        if    ( $arg eq '-f' ) { $with_file = shift @args }
+        elsif ( $arg eq '-p' ) { $opt{'keep_passphrase'} = TRUE }
+        else                   { $file //= $arg }
+    }
+    if ( not defined $file
+        or ( grep { $ARG eq '-f' } @ARG and not defined $with_file ) ) {
+        say '  archive <file> [ -f <key file> ] [ -p ]';
         return FALSE;
-    };
+    }
     my $v = unlocked() // return FALSE;
 
-    my ( $count, $size ) = eval { archive_write( $v, $file ) };
+    ## the archive opens with the recovery code ; -f adds passphrase + key
+    ## file, -p the plain passphrase [ weak passphrases stay exposed ]
+    if ( defined $with_file ) {
+        if ( not -r $with_file ) {
+            say "  cannot read $with_file";
+            return FALSE;
+        }
+        my $phrase = prompt_secret('archive passphrase [ + key file ]')
+            // return FALSE;
+        my $again = prompt_secret('re-enter') // return FALSE;
+        if ( $phrase ne $again ) {
+            say '  passphrases differ -- no archive written';
+            return FALSE;
+        }
+        $opt{'file_secret'}
+            = file_secret( encode( 'UTF-8', $phrase ), $with_file );
+        say "  key file : $with_file";
+        say '  '
+            . $C{0}
+            . '[ git blob '
+            . git_blob_id($with_file)
+            . " -- note which file and version ]$C{R}";
+    }
+    say $C{o}
+        . '  << -p : the plain passphrase opens this archive '
+        . '-- a weak one is exposed in public copies >>'
+        . $C{R}
+        if $opt{'keep_passphrase'};
+
+    my ( $count, $size, $wraps ) = eval { archive_write( $v, $file, \%opt ) };
     if ( not defined $count ) {
         print $C{o} . "  << $EVAL_ERROR" . $C{R};
         return FALSE;
@@ -813,6 +865,7 @@ sub cmd_archive {
         . ", $size bytes"
         . $C{R};
     say "  [ $file ]";
+    say "  opens with : " . join( ' , ', @{$wraps} );
     say $C{o}
         . '  << a public copy keeps every archive in its history '
         . ': a later passphrase change does not protect those >>'
@@ -848,6 +901,13 @@ sub cmd_restore_archive {
         ? 'it may hold a newer passphrase'
         : 'from the archive';
     say "  key file $report->{'key'} [ $key_note ]";
+    say '  no passphrase in it yet -- add one : p7-vault -d '
+        . $dir
+        . ( $use_recovery ? ' -R' : " -k $key_file" )
+        . ' passwd'
+        if $report->{'key'} eq 'created'
+        and not grep { $ARG eq 'passphrase' }
+        vault_wraps( $archive->{'vault'} );
     if ( @{ $report->{'conflict'} } ) {
         say $C{o}
             . '  << conflict : same name, different '
@@ -983,8 +1043,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,,..,,,.,,..,,..,.,,,,,.,.,.,,,.,..,,,,.,..,,...,...,.,,,,..,,,.,..,,..,,
-#7DBBHR3UMKQHWRONWO7YIKPCUDMTXDDCBVZ7SY4OJRW7XJANSC2WS76T5EAVOZB53KTWQZMFEBUR4
-#\\\|TJNH3L4E3HBT5O4LRJFQY72IB4TD6VMJN4AFKUANAEAGPSYAAHL \ / AMOS7 \ YOURUM ::
-#\[7]LP37DOCYWNKMLGWRTFL4AAB6KF6I6KFSX2426OB2IU67O4A42YBY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,...,...,...,,,,,,..,.,,,,,,,..,,...,...,,.,,.,,,..,,...,,..,
+#I4JBERFWWKAOKP463QR3YIBTL4BIKQJ2WLLPN6MERQGOLD4JVWJZWWS6ZDZ33ZTQWMAJ4ATMNNZNC
+#\\\|E77MKXYZRVJX5AQPCRKPIP5OSMJMNXUL2FEKYW5FWAFBOOIJ6KY \ / AMOS7 \ YOURUM ::
+#\[7]EVQ7EDCWLSEP5MBYGMC66HBATCWRMZIWXTGT64XEZETUET3D2UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

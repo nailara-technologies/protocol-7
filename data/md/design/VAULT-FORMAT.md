@@ -3,7 +3,8 @@
 2026-10-09. the personal vault [ logins, notes, contacts ] behind
 `bin/p7-vault` and `data/lib-path/pm/AMOS7/Vault.pm` [ + `AMOS7/NTIME.pm` ].
 this file is the recovery reference : copy it next to every backup of a
-vault, together with those three files [ layout : `p7-vault`, `AMOS7/Vault.pm`,
+vault, together with those three files
+[ layout : `p7-vault`, `AMOS7/Vault.pm`,
 `AMOS7/NTIME.pm` in one directory ]. everything below uses standard
 primitives only, so a vault opens without protocol-7 -- with the script, or
 by hand from this text.
@@ -58,10 +59,11 @@ chacha20 on `vault.key.B32` would yield the vault key and with it both layers.
 
 `cascade( root, salt, label, ad, plaintext )` :
 
-- twofish key \ nonce = hkdf-sha256 [ rfc 5869 ] : key material = root,
-  salt = salt, info = `<label> twofish-gcm`, 44 bytes -> key = bytes 0..31,
-  nonce = bytes 32..43
-- chacha key = hkdf-sha256 : key material = root, salt = salt,
+- twofish key \ nonce = hkdf-blake2b-512 [ rfc 5869 with blake2b, 64 byte
+  output -- the hash argon2id is built on ; no sha-2 anywhere ] : key
+  material = root, salt = salt, info = `<label> twofish-gcm`, 44 bytes ->
+  key = bytes 0..31, nonce = bytes 32..43
+- chacha key = hkdf-blake2b-512 : key material = root, salt = salt,
   info = `<label> chacha20-poly1305`, 32 bytes
 - INNER : twofish-gcm [ twofish, 256 bit key ; gcm as nist sp 800-38d,
   12 byte nonce, 16 byte tag ] of the plaintext, associated data = ad
@@ -78,7 +80,7 @@ salt is fresh random per encryption.
 
 what the cascade does not cover : a weak passphrase [ argon2id slows a
 guess, it cannot make a short passphrase long ], and a break of argon2id or
-hkdf-sha256, which both layers' keys pass through.
+hkdf-blake2b-512, which both layers' keys pass through.
 
 ## key file
 
@@ -102,9 +104,12 @@ binary, inside the base32 block [ offsets in bytes ] :
 - each `wrap` holds the vault key encrypted under one secret. names :
   `passphrase` [ chosen by the owner ], `recovery` [ 32 base32 chars shown
   once at init, `XXXX-XXXX-..` on paper ; dashes, spaces and case are
-  ignored, `0 1 8` read as `O L B` ]
+  ignored, `0 1 8` read as `O L B` ], `passphrase-file` [ a passphrase
+  plus any file the owner picks -- see archive ]
 - root = argon2id [ rfc 9106, version 0x13 ] of the secret [ utf-8 bytes ;
-  the recovery code in its normalized form ], salt = `<salt>` [ 16 bytes ],
+  the recovery code in its normalized form ; for `passphrase-file` : the
+  file's length [ 4 bytes ], the file's bytes, then the passphrase -- no
+  hash before argon2id ], salt = `<salt>` [ 16 bytes ],
   t \ m \ p as stored, 32 byte output
 - vault key = cascade decrypt : root, salt = `<salt>`, label =
   `p7-vault-key 1 wrap`, associated data =
@@ -163,14 +168,21 @@ same base32 block, title `p7-vault archive`. binary inside :
  0   4  'P7VA'
  4   1  format                 1
  5   4  key file length
- 9  ..  key file               the binary key file, IN THE CLEAR : the
-                               passphrase or recovery code alone opens it
+ 9  ..  key file               the binary key file, IN THE CLEAR, with ITS
+                               OWN choice of wraps [ below ]
  ..  16  salt
  ..  12  nonce                 outer layer
  ..  16  tag                   outer layer
  ..  ..  ciphertext            outer layer, to the end
 ```
 
+- the key file in an archive carries, by default, ONLY the `recovery`
+  wrap : 160 random bits, a public copy cannot be brute forced through it.
+  `archive -f <file>` adds a `passphrase-file` wrap [ asked for anew ; the
+  file's git blob id is shown, base32, for the owner's notes ] ; `-p`
+  keeps the plain `passphrase` wrap [ a weak passphrase stays exposed ].
+  one version of one file in protocol-7's history [ ~106000 of them ]
+  adds ~17 bits : every passphrase guess costs ~100000 argon2id runs
 - payload = cascade decrypt : root = vault key, salt, label
   `p7-vault-archive 1`, associated data `p7-vault-archive 1 <vault id>`
 - payload layout : `'P7VP'`, record count [ 4 ], then per record : name
@@ -194,14 +206,15 @@ same base32 block, title `p7-vault archive`. binary inside :
 
 needs perl with CryptX >= 0.088 [ or CryptX + Crypt::Argon2 :
 debian `libcryptx-perl libcrypt-argon2-perl` -- CryptX carries twofish and
-gcm too ], or any argon2id + hkdf-sha256 + chacha20-poly1305 + twofish-gcm
-implementation [ twofish : CryptX \ libtomcrypt, libgcrypt, botan ; NOT
-python's `cryptography` package ] :
+gcm too ], or any argon2id + hkdf-blake2b-512 + chacha20-poly1305 +
+twofish-gcm implementation [ twofish : CryptX \ libtomcrypt, libgcrypt,
+botan ; NOT python's `cryptography` package ] :
 
-1. read `kdf` and the `passphrase` wrap from `vault.key.B32`, derive the root
-   with argon2id, cascade decrypt the vault key [ label, ad as above ]
-2. for each newest `entries/<id>.*.vlt.B32` : cascade decrypt with the vault key
-   as root and the entry's salt, parse the json
+1. read `kdf` and a wrap from `vault.key.B32` [ `passphrase`, or from an
+   archive `recovery` \ `passphrase-file` ], derive the root with argon2id,
+   cascade decrypt the vault key [ label, ad as above ]
+2. for each newest `entries/<id>.*.vlt.B32` : cascade decrypt with the
+   vault key as root and the entry's salt, parse the json
 
 `bin/p7-vault -d <copy> verify` does both for every version. from an
 archive : take the key file out of its header for step 1, cascade decrypt
@@ -212,8 +225,8 @@ the payload with the vault key, then step 2 for each record's data.
 sync between hosts over protocol-7, a session agent [ unlock once per
 login ], the vault-edit form ui, totp code display, purging old versions.
 
-#,,.,,,,.,,..,.,,,...,.,.,,..,,..,.,,,..,,..,,..,,...,...,..,,..,,..,,...,.,.,
-#E65XOJQFXEKSNITIWNCBVFEICIFLHOTX432MEWXM6O2UPOM345D7P7W4LQWZSAKFPP464QGCD4GEC
-#\\\|IIWE6AVGCWJT4BKUUT6FHEECRRNNH6POYXRPOZW7STBFGS4BSJT \ / AMOS7 \ YOURUM ::
-#\[7]5EJ7IFA4RAUE4LV7KIUC2YHDPUDPP43XHFSQOZ6AMS2C7QWSLGBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,.,.,...,.,,,..,,,.,,.,.,.,,,..,,...,...,,,,,,,,,,,.,.,,,...,
+#IBMLQZIMZ2Y5UDWSESMOUZ2Q4V3RDK7ZE2423IBKUHCXVI6IVWK4SQHTNANV4LZAIPKLZIGYUDCNY
+#\\\|76GH5AQJEUYCMUGULK7GDZDMJGL4SF5YNKV5UFTQFLQ2HTCEGU7 \ / AMOS7 \ YOURUM ::
+#\[7]EILFKP5JAGL7AD4TDM532X5IPVLVRLVBZR3SMSXEKCUK45U4LIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
