@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_setup
+# param = <reply> <params>
+# descr = a challenge set-up confirmed [ httpd \ nameserv ]
+
+my $reply  = shift // {};
+my $params = shift // {};
+
+my $order = <[letsencr.child.acme.order_of]>->( $params, qw| setup | )
+    // return FALSE;
+my $authz = $order->{'authz'}->{ $params->{'authz'} // '' } // return FALSE;
+
+my $mode = uc( $reply->{'cmd'} // $reply->{'mode'} // '' );
+
+if ( $mode ne qw| TRUE | ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'}, sprintf '%s : %s set-up failed [ %s ]',
+        $authz->{'domain'},   $params->{'target'}, $reply->{'data'} // $mode
+    );
+}
+
+$authz->{'setup'}->{ $params->{'target'} } = TRUE;
+$order->{'waiting'}--;
+
+<[base.logs]>->(
+    2,                  ': acme : %s : %s ready',
+    $authz->{'domain'}, $params->{'target'}
+);
+
+return <[letsencr.child.acme.step_propagate]>->( $order->{'order_id'} )
+    if $order->{'waiting'} <= 0;
+
+return TRUE;
+
+#,,.,,,,.,..,,,,.,.,.,,.,,,..,..,,...,...,.,.,..,,...,...,.,,,,,.,.,.,...,..,,
+#KZQ6Q44JGSOYY6DE7Z6FQV6HJQ2VXZNJQKH37Y4SB4DXK4S66LOFFT7Z6TOX3EX2TGUYBNMVS4J3W
+#\\\|XLPALP7CWUWH2MQOYIHO4YJ3BD6RWNP5BBDE7R6C7FQNEZ36IM7 \ / AMOS7 \ YOURUM ::
+#\[7]DBLF3Y7EFFDQX7SVR4TQA5YMK45B22J3SQFLOP6EQILEOPSYYODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

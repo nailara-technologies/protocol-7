@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_poll_authz
+# param = <acme response>
+# descr = authorization status : valid, invalid or still pending
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| poll_authz | )
+    // return FALSE;
+my $authz = $order->{'authz'}->{ $res->{'params'}->{'authz'} // '' }
+    // return FALSE;
+
+my $body   = ref $res->{'body'} eq qw| HASH | ? $res->{'body'}          : {};
+my $status = $res->{'ok'}                     ? $body->{'status'} // '' : '';
+
+if ( $status eq qw| valid | ) {
+    $authz->{'status'} = qw| valid |;
+    <[base.logs]>->( 2, ': acme : %s : validated', $authz->{'domain'} );
+} elsif ( $status eq qw| invalid |
+    or $status eq qw| deactivated |
+    or $status eq qw| expired |
+    or $status eq qw| revoked | ) {
+    my ($error)
+        = grep {defined}
+        map { $ARG->{'error'} } ( $body->{'challenges'} // [] )->@*;
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf '%s : validation %s%s',
+        $authz->{'domain'},
+        $status,
+        ref $error eq qw| HASH | ? " : $error->{'detail'}" : ''
+    );
+} elsif ( not $res->{'ok'} ) {    ## transient : next round asks again ##
+    <[base.logs]>->(
+        2,                  ': acme : %s : poll failed [ http %s ]',
+        $authz->{'domain'}, $res->{'status'} // '?'
+    );
+}
+
+return <[letsencr.child.acme.step_poll_authz]>->(
+    $order->{'order_id'}, qw| next |
+);
+
+#,,,.,,.,,,..,,,.,.,.,,,,,,.,,,..,..,,...,,,.,..,,...,...,..,,,,.,,..,,,,,.,.,
+#5KR2M6I3P7I3ZCPD65O3IWN7EFULMTT54HTDEDQ6HVD5UHBML5LKGPCUJN77LAG7VUAHRR5PKF3YE
+#\\\|4H45QO2LXFQ42K3LIEFFBQIZJ3CVXTDLBZK5M74XQRYUUX3VXT2 \ / AMOS7 \ YOURUM ::
+#\[7]HAKTGYRWFE4BLQQXWAC2NVEPZNJ3WAYYMCYSEUE5JMXCD7GAGWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

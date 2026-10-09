@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_finalize
+# param = <order_id>
+# descr = all authorizations valid : send the csr
+
+my $order = <[letsencr.child.acme.order_of]>->(shift) // return FALSE;
+$order->{'step'}  = qw| finalize |;
+$order->{'polls'} = 0;
+
+## key + csr stay with the order [ not the cert_key \ current_csr globals ] ##
+my $csr = <[letsencr.child.generate_csr]>->( $order->{'domains'} );
+return <[letsencr.child.acme.fail]>->(
+    $order->{'order_id'}, 'csr generation failed'
+    )
+    if not ref $csr eq qw| HASH |
+    or not length( $csr->{'csr_b64url'} // '' );
+
+$order->{'key_pem'} = $csr->{'key_pem'};
+
+<[letsencr.child.acme.request]>->(
+    {   'method'   => qw| POST |,
+        'url'      => $order->{'finalize_url'},
+        'payload'  => { 'csr' => $csr->{'csr_b64url'} },
+        'order_id' => $order->{'order_id'},
+        'on_done'  => qw| letsencr.child.acme.on_order |,
+        'params'   => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,,.,,.,,,,,,,,,,,,.,...,.,.,.,.,..,,,..,.,.,..,,...,...,..,,,,.,..,,..,,.,.,
+#SKC7FVSQECPTITKKRBBU5EN7L5EAWOUAEZQQM73ABCF2WSJKJBRTKPH2LTR4Q6GTUGGVLHGXUWMOM
+#\\\|YWCLM3XSWDB7TVDSGUCAKO7NFPGFECIOOWU7GZ2OI72PVT7BBS7 \ / AMOS7 \ YOURUM ::
+#\[7]MYFMUR2FI7H2K4KPJPSSSA3QTGSPAJ7KP3QFPJVJYLNOUMCOVQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

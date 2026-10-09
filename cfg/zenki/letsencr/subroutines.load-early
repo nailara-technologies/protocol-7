@@ -95,6 +95,7 @@ ui.estimate.cost
 trust.pin_decide
 plugin.auth.unix
 jobqueue.add_job
+clients.http.get
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -121,6 +122,8 @@ plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
 jobqueue.exec_job
+clients.https.get
+clients.http.post
 base.stream.close
 base.session.user
 base.session.init
@@ -145,6 +148,7 @@ ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
 letsencr.init_code
+clients.https.post
 base.reload_values
 base.reload_config
 base.parser.config
@@ -181,9 +185,12 @@ base.file.init_code
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
+clients.http.request
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -220,6 +227,9 @@ crypt.C25519.key_vars
 crypt.C25519.key_type
 crypt.C25519.key_path
 crypt.C25519.gen_keys
+clients.https.request
+clients.https.cleanup
+clients.http.pre_init
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -243,6 +253,8 @@ crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
 crypt.C25519.init_code
+clients.https.pre_init
+clients.http.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -266,6 +278,8 @@ crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.sig_fnames
 crypt.C25519.key_exists
+clients.https.init_code
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -290,6 +304,7 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 letsencr.extract_aia_url
 letsencr.child.init_code
+letsencr.child.acme.fail
 letsencr.base.check_dirs
 io.unix.socket.init_code
 crypt.C25519.verify_sign
@@ -297,6 +312,7 @@ crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.get_keyname
 crypt.C25519.chk_key_dir
+clients.https.handler.io
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -314,10 +330,14 @@ ui.render.tree.invalidate
 letsencr.parent.init_code
 letsencr.child.create_jws
 letsencr.child.acme_renew
+letsencr.child.acme.start
+letsencr.child.acme.begin
 jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
+clients.https.stall_reset
+clients.https.decode_body
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -339,6 +359,7 @@ protocol.sftp.read_ssh_env
 letsencr.parent.cmd.status
 letsencr.child.get_rsa_jwk
 letsencr.child.acme_revoke
+letsencr.child.acme.finish
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.key_checksums
@@ -346,6 +367,7 @@ crypt.C25519.encrypted_key
 crypt.C25519.clear_chksums
 crypt.C25519.cached_chksum
 crypt.C25519.all_key_names
+clients.https.stream.chunk
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -362,12 +384,17 @@ base.check_dependency_dirs
 net.read_linewise_estimated
 letsencr.child.http_get_url
 letsencr.child.generate_csr
+letsencr.child.acme.request
+letsencr.child.acme.cleanup
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
 crypt.C25519.get_remote_key
 crypt.C25519.gen_keys_typed
 crypt.C25519.compute_shared
+clients.https.stream.finish
+clients.https.h2.handler.io
+clients.http.parse_response
 base.zenki.report_child_pid
 base.templates.register_add
 base.stream.record_emission
@@ -387,10 +414,15 @@ protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 letsencr.dns.inwx_create_txt
 letsencr.child.sign_rsa_data
+letsencr.child.acme.order_of
+letsencr.child.acme.on_setup
+letsencr.child.acme.on_order
+letsencr.child.acme.on_authz
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
 crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -413,6 +445,8 @@ crypt.C25519.key_name_to_skey
 crypt.C25519.host_root.create
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
+clients.https.handler.timeout
+clients.https.h2.send_request
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.prng.handler.add_entropy
@@ -436,6 +470,9 @@ letsencr.child.selftest_finish
 letsencr.child.get_fresh_nonce
 letsencr.child.cmd.query-algos
 letsencr.child.acme_use_server
+letsencr.child.acme.step_setup
+letsencr.child.acme.step_authz
+letsencr.child.acme.on_respond
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -455,10 +492,14 @@ letsencr.child.load_account_key
 letsencr.child.encode_base64url
 letsencr.child.cmd.repair-chain
 letsencr.child.check_domain_dns
+letsencr.child.acme.on_download
+letsencr.child.acme.next_queued
+letsencr.child.acme.cancel_poll
 letsencr.base.address_is_public
 crypt.C25519.private_key_loaded
 crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
+clients.https.handler.handshake
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -470,6 +511,8 @@ letsencr.child.resolve_addresses
 letsencr.child.cmd.verify-domain
 letsencr.child.acme_http_request
 letsencr.child.acme_create_order
+letsencr.child.acme.step_respond
+letsencr.child.acme.on_propagate
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -490,6 +533,10 @@ letsencr.parent.enroll_state_save
 letsencr.parent.enroll_state_path
 letsencr.parent.enroll_state_load
 letsencr.child.acme_check_account
+letsencr.child.acme.step_finalize
+letsencr.child.acme.schedule_poll
+letsencr.child.acme.on_poll_authz
+letsencr.child.acme.handler.nonce
 letsencr.child.account_file_paths
 letsencr.base.fork_letsencr_child
 base.zenki.pause_ondemand_timeout
@@ -509,7 +556,9 @@ letsencr.parent.query_httpd_vhosts
 letsencr.parent.handler_cert_ready
 letsencr.dns.cloudflare_create_txt
 letsencr.child.extract_rsa_modulus
+letsencr.child.dns.query_txt_async
 letsencr.child.acme_finalize_order
+letsencr.child.acme.step_propagate
 crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
 base.zenki.resume_ondemand_timeout
@@ -536,6 +585,8 @@ letsencr.child.fetch_acme_directory
 letsencr.child.extract_rsa_exponent
 letsencr.child.download_certificate
 letsencr.child.cmd.inst-self-signed
+letsencr.child.acme.step_poll_order
+letsencr.child.acme.step_poll_authz
 base.session.register_authenticated
 base.perlmod.register_loaded_module
 base.handler.strm_size_idle_timeout
@@ -548,10 +599,12 @@ protocol.amos-chksum.command-handler
 letsencr.parent.handler.httpd_online
 letsencr.parent.enroll_backoff_delay
 letsencr.child.poll_challenge_status
+letsencr.child.dns.handler.txt_reply
 letsencr.child.cmd.renew-certificate
 letsencr.child.check_dns_propagation
 letsencr.child.acme_verify_challenge
 letsencr.child.acme_register_account
+letsencr.child.acme.handler.response
 graphics-3d.calc.cursor-translucency
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -575,6 +628,7 @@ letsencr.child.substitute_admin_email
 letsencr.child.create_dns01_challenge
 letsencr.child.cmd.revoke-certificate
 letsencr.child.acme_get_authorization
+letsencr.child.acme.key_authorization
 crypt.C25519.list_key_signature_names
 crypt.C25519.generate_session_keypair
 crypt.C25519.create_signature_request
@@ -591,6 +645,7 @@ letsencr.parent.notify_httpd_challenge
 letsencr.parent.local_public_addresses
 letsencr.parent.handler_renewal_failed
 letsencr.parent.cmd.revoke-certificate
+letsencr.child.dns.handler.txt_timeout
 letsencr.child.create_http01_challenge
 letsencr.child.cmd.request-certificate
 io.unix.socket.handler.report-tmp-path
@@ -641,8 +696,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,...,.,,,,,.,,,.,,,.,.,,,.,.,,..,..,,.,,,..,,...,...,.,,,.,.,,.,,,,.,,..,
-#WHDE5XHG7UJALK4DB2MA3GTKEYEHC56UYUP6JHQD6LQ6AYNFKQ6DBREBEQ6HTASQ4OZYJS5K327VY
-#\\\|6SWZYZVK42WVRJFEFI2ODP3Y6BOLHI7DYQ4GQJG67DKBX5DUM6Q \ / AMOS7 \ YOURUM ::
-#\[7]YKQODITYPLSBPXTBMXZ77NRFCQ5HDYZT4JBDDKEWHHR6O6RIRSDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,.,,,,.,,.,.,.,.,.,.,..,,..,,..,,...,...,..,,.,,,,,,,,..,.,,,
+#GF5LRF2CTMTVADLY546DTOIEARUKKDLQ3YD4ZOMECUM5JUEDDN6CBEP7IJ7M52U4NM4JNO5MYXT5A
+#\\\|KBWBYC2ORWM4SJ7EZUUBFUHHTXZXHKA4UZTEE4CFWPMPPR4EADT \ / AMOS7 \ YOURUM ::
+#\[7]FBTAPWLEV3TXZW5SKLNV56XM5XBSATRWRDC25Q5U5SJSZDXYI4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

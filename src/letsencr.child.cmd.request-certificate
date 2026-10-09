@@ -44,128 +44,34 @@ $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 <[base.log]>->( 2, "  domains : " . join( ', ', @domains ) );
 <[base.log]>->( 2, "  email : $email" );
 
-## Call ACME new certificate workflow
-my $result = <[letsencr.child.acme_new]>->(
-    {   domains => \@domains,
-        email   => $email,
-        server  => $acme_server,
-    },
-    $call->{'reply_id'}    ## pass reply_id for async coordination
+## acme order on the event loop [ letsencr.child.acme.* ] : the reply comes
+## later via reply_id, or now when acme_new refuses the request
+my $result = <[letsencr.child.acme.begin]>->(
+    {   'domains'  => \@domains,
+        'email'    => $email,
+        'server'   => $acme_server,
+        'reply_id' => $call->{'reply_id'},
+        'label'    => $domain,
+    }
 );
 
-## handle result from acme_new (internal status format)
-unless ($result) {
-    <[base.logs]>->( 1, 'acme_new returned undef' );
-    return {
-        'mode' => qw| false |,
-        'data' => 'Internal error: acme_new failed'
-    };
-}
-
-## check for async deferred status
-if ( $result->{status} eq qw| deferred | ) {
-    ## async processing - continue with challenge processing  reply_id was
-    ## passed to acme_new and stored in state for later callback
-    <[base.logs]>->(
-        2, 'certificate request accepted, processing asynchronously'
-    );
-
-    ## log to enrollment activity buffer
-    my $ts = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        qw| enrollment-activity |,
-        join( ' ',
-            $ts,                          2,
-            ': enrollment : acme_new : ', $domain,
-            ' : returned deferred' ),
-        2
-    );
-
-    ## continue challenge processing  (contacts httpd, calls callback with
-    ## certificate)
-    my $challenge_result = <[letsencr.child.continue_challenge_processing]>;
-
-    ## return deferred mode to signal async reply via reply_id callback
-    return { 'mode' => qw| deferred | };
-}
-
-## check for error result
-if ( $result->{status} eq qw| error | ) {
-    my $error = $result->{error}
-        // 'Unknown error during certificate enrollment';
-    <[base.logs]>->( 1, 'certificate enrollment failed: %s', $error );
-    <[base.logs]>->(
-        3,
-        'full error result: %s',
-        JSON::XS::encode_json($result)
-    );
-
-    ## log failure to enrollment activity buffer with full error details
-    my $ts        = <[base.anum_log_time]>->( 5, TRUE );
-    my $error_msg = sprintf( 'FAILED [%s]', $error );
-    <[base.buffer.add_line]>->(
-        qw| enrollment-activity |,
-        sprintf( '%s 1 : acme_new : %s : %s', $ts, $domain, $error_msg ), 1
-    );
-
-    return {
-        'mode' => qw| false |,
-        'data' => $error
-    };
-}
-
-## check for completion result (sync path: status='success')
-unless ( $result->{status} eq qw| success | ) {
-    my $error = $result->{error}
-        // 'Unknown error during certificate enrollment';
-    <[base.logs]>->( 1, 'certificate enrollment failed: %s', $error );
-
-    ## log failure to enrollment activity buffer
-    my $ts        = <[base.anum_log_time]>->( 5, TRUE );
-    my $error_msg = sprintf( 'FAILED [%s]', $error );
+if ( ( $result->{'mode'} // '' ) ne qw| deferred | ) {
     <[base.buffer.add_line]>->(
         qw| enrollment-activity |,
         sprintf(
-            '%s 1 : cmd.request-certificate : %s : %s',
-            $ts, $domain, $error_msg
+            '%s 1 : cmd.request-certificate : %s : FAILED [%s]',
+            <[base.anum_log_time]>->( 5, TRUE ),
+            $domain,
+            $result->{'data'} // '?'
         ),
         1
     );
-
-    return {
-        'mode' => qw| false |,
-        'data' => $error
-    };
 }
 
-<[base.log]>->( 2, "certificate obtained successfully for $domain" );
+return $result;
 
-## Create certificate bundle for parent
-my $cert_bundle = {
-    certificate => $result->{cert},
-    key         => $result->{key},
-    issued_at   => time(),
-    expires_at  => $result->{valid_until},
-    domain      => $domain,
-    domains     => \@domains,
-    cert_url    => $result->{cert_url},
-};
-
-## Encode as JSON then base32r for transmission
-my $bundle_json = JSON::XS::encode_json($cert_bundle);
-my $bundle_b32r = Crypt::Misc::encode_b32r($bundle_json);
-
-<[base.log]>->( 2, "certificate bundle encoded (base32r)" );
-<[base.log]>->( 3, "  bundle size : " . length($bundle_b32r) . " bytes" );
-
-## Return certificate bundle to parent (mode='size' for binary/encoded data)
-return {
-    'mode' => 'size',
-    'data' => $bundle_b32r
-};
-
-#,,,,,.,,,,,,,,,.,..,,,.,,,..,...,.,.,.,,,,..,..,,...,...,...,,,.,.,.,...,,,,,
-#7MYUKWWOU6UOO2O2CYALRPKOHX52SOA4HQXYXCXTJYNDZBAVW436VKVGU4MFSSWR334NNDK2FHWP2
-#\\\|46OLJAGVBXJW4NYOIPL5PS5B264UVF3MZFECHCEOH2AIJ5CIANC \ / AMOS7 \ YOURUM ::
-#\[7]7CUOACXMGNBLX4XCV3KTTOHSOXJNEIH74II7GVZ55L2NFZFJPOAA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,..,,,..,,,.,,..,.,.,.,.,..,,..,,...,...,...,,..,..,,,,,,...,
+#LSIXXWEQ55LCOKQTJ7JKEFINE2Y3JROHVP5J6VPCM36KTZWBFM2C3O6GLY2KBYX3TCZKCP2DWKCGC
+#\\\|YAOWOX5UELMZETIRQ5JN7UZKHSPOYSFS3VNAW5CRDQ4R35ZGU7E \ / AMOS7 \ YOURUM ::
+#\[7]VSYJCGP2ADYNZIJ5A23NPS3PZJEGV6QDOMKGK7UOOR5BFZD734AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

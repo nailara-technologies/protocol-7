@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_propagate
+# param = <order_id | timer event>
+# descr = ask our own nameservers for every dns-01 txt value
+
+my $order    = <[letsencr.child.acme.order_of]>->(shift) // return FALSE;
+my $order_id = $order->{'order_id'};
+$order->{'step'}    = qw| propagate |;
+$order->{'waiting'} = 0;
+
+## authoritative servers to ask directly [ no recursion ] -- unset : the ##
+## set-up replies are the confirmation [ a single local nameserv ]       ##
+my @servers = grep {length}
+    split m|\s+|, <letsencr.dns.nameserv.addresses> // '';
+
+my @pending = grep {
+            $ARG->{'type'} eq qw| dns-01 |
+        and $ARG->{'status'} ne qw| reused |
+        and not $ARG->{'propagated'}
+} map { $order->{'authz'}->{$ARG} } $order->{'authz_urls'}->@*;
+
+if ( not @servers or not @pending ) {
+    $order->{'todo'}
+        = [ grep { $order->{'authz'}->{$ARG}->{'status'} ne qw| reused | }
+            $order->{'authz_urls'}->@* ];
+    $order->{'step'} = qw| respond |;
+    return <[letsencr.child.acme.step_respond]>->($order_id);
+}
+
+foreach my $authz (@pending) {
+    $order->{'waiting'}++;
+    <[letsencr.child.dns.query_txt_async]>->(
+        {   'name'    => "_acme-challenge.$authz->{'base'}",
+            'servers' => [@servers],
+            'on_done' => qw| letsencr.child.acme.on_propagate |,
+            'params'  =>
+                { 'order_id' => $order_id, 'authz' => $authz->{'url'} },
+        }
+    );
+}
+
+return TRUE;
+
+#,,,,,.,,,,..,.,.,.,.,..,,.,,,,,,,,,.,,..,..,,..,,...,...,,.,,,,,,,,.,,,,,..,,
+#U5IUG7QWY235ZDBQI7C2KCAPH7FBNYG55F72NSUWFFJXLSXIF4YARWJ72SH4S444IA3LZDY37EIXQ
+#\\\|BOVYRN5SK4W2OJJZON7GHQBDGHEVCRNHIHNZFVRHHTCIFA7BGQE \ / AMOS7 \ YOURUM ::
+#\[7]CCCFXIIANKOG5F6GVIU3WPMYCCFSWQJTPWNJUXTI3XVKPSOCPGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

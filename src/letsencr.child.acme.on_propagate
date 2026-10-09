@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_propagate
+# param = <dns result>
+# descr = txt value on all servers ? respond, else poll again
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| propagate | )
+    // return FALSE;
+my $authz = $order->{'authz'}->{ $res->{'params'}->{'authz'} // '' }
+    // return FALSE;
+
+my $results = $res->{'results'} // {};
+my @missing = grep {
+    my $r = $results->{$ARG};
+    not( $r->{'ok'}
+        and grep { $ARG eq $authz->{'dns_value'} }
+        ( $r->{'values'} // [] )->@* )
+} sort keys $results->%*;
+
+if ( keys $results->%* and not @missing ) {
+    $authz->{'propagated'} = TRUE;
+    <[base.logs]>->(
+        2,
+        ': acme : %s : txt value on %d server%s',
+        $authz->{'domain'},
+        scalar keys $results->%*,
+        <[base.cnt_s]>->( scalar keys $results->%* )
+    );
+} else {
+    <[base.logs]>->(
+        2,                  ': acme : %s : txt value not yet on %s',
+        $authz->{'domain'}, join( ' ', @missing ) || 'any server'
+    );
+}
+
+return TRUE if --$order->{'waiting'} > 0;
+
+## all answered : next round only for what is still missing ##
+my $max = <letsencr.cfg.propagation_checks> // 30;
+if ( ++$order->{'propagate_rounds'} > $max ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'}, "txt records not visible after $max checks"
+    );
+}
+
+return <[letsencr.child.acme.step_propagate]>->( $order->{'order_id'} )
+    if not grep {
+            $ARG->{'type'} eq qw| dns-01 |
+        and $ARG->{'status'} ne qw| reused |
+        and not $ARG->{'propagated'}
+    } values $order->{'authz'}->%*;
+
+<[letsencr.child.acme.schedule_poll]>->(
+    {   'order_id' => $order->{'order_id'},
+        'delay'    => 2,
+        'handler'  => qw| letsencr.child.acme.step_propagate |,
+        'data'     => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,,,,,.,,..,,,..,,.,,.,,,.,.,,,.,.,.,,..,,..,..,,...,...,..,,,,.,,,.,,..,.,,,
+#37WDS4N7RHAMCT2WMOYD6SWYSYKQEUVXTV4H2EQL3CPQIO5BQY77AK5ZIGK6KHVCNQUEZ6Q4RUWNW
+#\\\|36GSYLGXUGPYXC6NCRAVXMM63MO52ZIELPDUMFTDEAZF4WJ2KM5 \ / AMOS7 \ YOURUM ::
+#\[7]G6PXFAPUJ4735HEFVK5CBFWQ75EW2JNJ2Z5ABY6TGSXUH5JWSACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
