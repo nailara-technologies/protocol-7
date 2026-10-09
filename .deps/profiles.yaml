@@ -75,6 +75,20 @@ profiles:
       - Digest::SHA
       - Digest::Skein
 
+  vault:
+    description: "personal vault [ bin/p7-vault ] -- also all a host needs to open a vault copy"
+    apt:
+      - perl
+      - libcryptx-perl          # chacha20-poly1305, hkdf ; argon2id built in from CryptX 0.088
+      - libcrypt-argon2-perl    # argon2id where CryptX is older [ debian bookworm : 0.077 ] ;
+                                # identical output, verified 2026-10-09 against 0.013
+      - libterm-readkey-perl    # no-echo passphrase input
+    cpan:
+      - CryptX
+      - Crypt::Argon2
+      - JSON::PP
+      - Term::ReadKey
+
   X11-Desktop:
     description: "X11 Desktop environment and GUI frameworks"
     apt:
@@ -226,6 +240,7 @@ profiles:
       - tools
       - zenka-common
       - graphics-matrix    # plugin.web.space.* [ orbital/cursor ] calls graphics-matrix.* cross-zenka
+      - vault              # every host can open a vault backup copy
 
   ai-models:
     description: "AI/LLM model support [local and remote backends]"
