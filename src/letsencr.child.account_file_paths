@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = letsencr.child.account_file_paths
+# param = $server_url [ default : <letsencr.acme.server> ]
+# descr = account key and registration file paths for an ACME server :
+#         the configured server keeps the legacy names, every other
+#         server [ staging ] gets its own suffix -- separate accounts
+# return = { key_rsa, key_ed25519, account_json }
+
+my $server_url = shift // <letsencr.acme.server>;
+
+my $suffix = '';
+if ( $server_url ne <letsencr.acme.server> ) {
+    my ($host) = $server_url =~ m{^https?://([^/:]+)};
+    $host //= qw| alt |;
+    $host =~ s{[^A-Za-z0-9.-]}{-}g;
+    $suffix = q|.| . substr( $host, 0, 48 );
+}
+
+my $cache_dir = <letsencr.cache.dir>;
+
+return {
+    'key_rsa'      => sprintf( '%s/account%s.key.rsa', $cache_dir, $suffix ),
+    'key_ed25519'  => sprintf( '%s/account%s.key',     $cache_dir, $suffix ),
+    'account_json' => sprintf( '%s/account%s.json',    $cache_dir, $suffix ),
+};
+
+#,,..,..,,,,.,,..,,..,,.,,.,,,..,,,..,...,,,.,..,,...,...,...,,.,,.,.,..,,,..,
+#2AW4LFHWLCP4XBT3ZZN4GYZCZG2ODGUK26S56XMXAHQGTZCF6KHXK4KY7JVSFIEAFQUKJ2UWF4ZGW
+#\\\|KMKTPBDXIHYHE2AKOPBANLRF5VCJRLXF7D27YYIJR6AOQFHZ5FA \ / AMOS7 \ YOURUM ::
+#\[7]FIESLEL5QUH6YGZ7NI67YNAOXMTP5RLAFZ5OMNJN74GDYUHVGSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

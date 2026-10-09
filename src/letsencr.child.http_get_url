@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = letsencr.child.http_get_url
+# param = $url
+# descr = plain HTTP GET [ blocking, child-side ] for the self-test fetch :
+#         no redirects [ never off the domain ], plain http, timeout 10
+# return = decoded content or undef
+
+my $url = shift;
+
+return undef unless defined $url && length($url);
+
+my $ua = LWP::UserAgent->new( timeout => 10, max_redirect => 0, );
+
+my $response = $ua->get($url);
+
+return undef unless $response->is_success;
+
+return $response->decoded_content();
+
+#,,,.,.,.,,,.,,.,,...,...,..,,,,,,.,,,,,,,.,.,..,,...,...,,,.,..,,,.,,.,.,..,,
+#IE3F6IWELBSR3OIYDUDUBAC2WO7YPYNK7IVDRBKMBPDKZQNL273QK2FBZ353IOTMXXVY7R234BN66
+#\\\|BOECCTIW27EATTOB37OIJSDCSFXJKLXCS5KEEAR4ZG3HCKT2BAN \ / AMOS7 \ YOURUM ::
+#\[7]UFBPW2Q53CP5LE4UOKLI7VPMSPPPQ6AWLYDNLTNQY7HEFO3ETWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

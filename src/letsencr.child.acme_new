@@ -18,16 +18,21 @@ return {
 
 my $primary_domain = $domains->[0];
 
+## select the ACME server context for this request [ per-request server :   ##
+## staging enrollments ] -- resets the client state when the server changes ##
+## ; default is the zenka-wide configured server [ production ]             ##
+my $server = <[letsencr.child.acme_use_server]>->( $msg->{'server'} );
+
 <[base.logs]>->(
     2,
-    'issuing new certificate for domains: %s',
-    join( ', ', $domains->@* )
+    'issuing new certificate for domains: %s [ %s ]',
+    join( ', ', $domains->@* ), $server
 );
 
 ## STEP 1 : Fetch ACME directory [ if not already cached ]
 unless ( <letsencr.child.acme_client>->{directory} ) {
     <[base.log]>->( 2, ': step 1 : fetching ACME directory' );
-    my $dir_info = <[letsencr.child.fetch_acme_directory]>;
+    my $dir_info = <[letsencr.child.fetch_acme_directory]>->($server);
     unless ($dir_info) {
         return {
             'status' => qw| error |,
@@ -36,9 +41,9 @@ unless ( <letsencr.child.acme_client>->{directory} ) {
     }
 }
 
-## STEP 2 : Load or generate account key
+## STEP 2 : Load or generate account key [ separate account per server ] ##
 <[base.log]>->( 2, ': step 2 : loading or generating account key' );
-my $account_key = <[letsencr.child.load_account_key]>;
+my $account_key = <[letsencr.child.load_account_key]>->($server);
 unless ($account_key) {
     $account_key = <[letsencr.child.generate_account_key]>;
     unless ($account_key) {
@@ -132,8 +137,8 @@ return {
     'primary_domain' => $primary_domain,
 };
 
-#,,..,,,,,..,,,,.,,,,,...,,.,,,.,,.,.,,,,,,.,,..,,...,..,,,..,,,,,.,.,..,,,..,
-#W6EIUUUNIQ6JYBCS7SAABJDN44FHUGDYULABYTJJQ2E2IMYC7RJDPXYAVKX4AYBP7JJU2COWNNA5G
-#\\\|B24DFI4T4YQTZKT43GVKTK5CUBBY3ENXR36OLJFVUFKGAFNLG46 \ / AMOS7 \ YOURUM ::
-#\[7]QLU73NDS3YE5EHMKU7CAAV524UUQTI4SIM53NLOQH4LUVFIT7OBY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,...,,.,,,,,,,,,,,..,.,.,.,.,..,,...,...,.,.,...,...,...,,,,,
+#YI5BFCCRBBG6S5GKPLFNVC7TTRDCZLZ5AUEKETSZVCBF2DWLME3S4Z5FBT7NUT47PAICQWWOBLWUE
+#\\\|2FOGW4UXFGC7DRIL76UWWHRJVIEPLMLFCDGMOHTGOEYDVAWVONZ \ / AMOS7 \ YOURUM ::
+#\[7]74BVDSMSV5ISXM2YW7FRBKLOSV4IDD6Z57W5KPO2YHRGFHJ3RYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
