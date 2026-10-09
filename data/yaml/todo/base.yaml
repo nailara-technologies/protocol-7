@@ -628,9 +628,25 @@ items:
   tags:
   - N7FS
   text: .:. N7FS .:. NAILARA-PROTOCOL-7-FILESYSTEM .:.
+- added: 3X26LVWUFI
+  details: |-
+    seen 2026-10-09 with fetch-files [ 33s on-demand timeout ] : the zenka logged 'zenka idle shutdown' and a p7c fetch-files.hf-download sent right after was never delivered -- no log line in the old instance, no new instance started, p7c hung until killed. the next request [ seconds later ] started a fresh instance normally.
 
-#,,.,,,,.,...,...,.,,,.,.,.,,,..,,.,,,...,..,,..,,...,...,..,,...,,..,,..,..,,
-#4QX7FNTKP3OQPVQEKTYEYZVL5VB3VTUCWLZB25UHQEZHKEN3DECETC34R2D4BGDQZD6R5BUOBMMTK
-#\\\|3FZN3DIS3T2MBI5VPDPNXK2MD2XFFPMUVPRNMYORZRI3M32WM65 \ / AMOS7 \ YOURUM ::
-#\[7]IFQFOPRB3D7XWL53GP2TIXWBEMRUCJVXGPTGO2KUA2TAFF2RMQAQ 7  DATA SIGNATURE ::
+    fix idea [ user ] : treat a target in shutdown like an offline on-demand zenka -- keep the command and its params, restart the zenka at once, deliver when it is online [ same path as a first request to an offline on-demand zenka ]. likely cube \ v7-zenki routing, generic for every on-demand zenka, not fetch-files specific.
+
+    check : where the instance goes online -> terminating, and whether cube still routes to the closing session in that window [ v7-zenki.zenka.instance.stop has a shutdown-flag race-proofing note ].
+  done_at: null
+  id: 2AA
+  priority: normal
+  status: open
+  tags:
+  - v7-zenki
+  - ondemand
+  - race
+  text: keep requests to on-demand zenki in idle shutdown
+
+#,,..,,,,,,,.,,..,..,,,,.,,.,,.,.,.,,,.,.,...,..,,...,...,..,,...,,,.,.,.,.,.,
+#L2YM3S6GXG24TC3FIEYLPM6EMYRKNZWWQLME2BTPNYPOJVIJSIZDE5KDQMAACUE67MIYCTMTTI3YU
+#\\\|VKJVHTBEUPFISNTLZL5A5CUIEYMTG2FUPA3JS65ZAONWPQMQ2FQ \ / AMOS7 \ YOURUM ::
+#\[7]FR6XTEPZHMUVEVGWT5RYFIAOBLE3QJWOH4PZ5PNG6FVMAHZNHQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
