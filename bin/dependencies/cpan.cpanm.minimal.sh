@@ -2,12 +2,12 @@
 
 cpanm Event IO::Handle::Record JSON::XS\
         Crypt::Ed25519 Crypt::Curve25519 Digest::Skein Digest::CRC\
-        Clone Hash::Flatten Hash::Merge::Simple CryptX\
+        Clone Hash::Flatten Hash::Merge::Simple CryptX Crypt::Argon2\
         Date::Parse Proc::ProcessTable Digest::JHash\
         Term::ReadKey Term::ReadPassword Term::ReadLine::Perl
 
-#,,.,,,..,,,.,,,,,.,.,,,,,.,.,.,,,,,,,.,,,.,.,..,,...,..,,...,,,.,,,.,..,,,,.,
-#6VKYTHMYKCGIWBMDSGMZYAXZ7RV76LJ5GDTO2ECV27KXSXK62M3YCY25427R4C4VTKBXSBGNOR4DM
-#\\\|Y42RFO3NYRZ42Q6H3LOPAV3SC5WK3SGB24LCJTZG6K5NMKFI5FR \ / AMOS7 \ YOURUM ::
-#\[7]G2DFL2XQLJJ5DK3JNKXJXFM6HWYBHDGGSVNR72YYW46ENNTJ5KBY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,.,.,,..,.,.,..,,,..,,.,,,..,..,,...,...,.,,,,.,,,,,,..,,..,,
+#HHD362EOQEIUSOVB2F4R52JBXI2X2GS4D7XG2XBXMJU4AWF2SKDGRK3OW3VXKGF7AY7XOWCKBP6HK
+#\\\|4MQJG5NP47WATFOYURLUUGBZT6GSEE3KZIAUUODBZFZM4Y6NE2Y \ / AMOS7 \ YOURUM ::
+#\[7]EPPFNHUXYZBJZGHYIFW4MPCAVDYPEDNTMCYTMTY636RLIQGA5YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
