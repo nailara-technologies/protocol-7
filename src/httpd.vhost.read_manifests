@@ -26,6 +26,17 @@ if ( not opendir( $dir_fh, $vhosts_dir ) ) {
     return [];
 }
 
+## rescan replaces what an earlier scan registered [ entries carry
+## 'source_path' ] -- removed \ renamed vhosts would survive every reinit.
+## add-vhost entries have no 'source_path' and stay
+my $registry = <httpd.vhosts.registry> //= {};
+delete $registry->@{
+    grep {
+        ref $registry->{$ARG} eq qw| HASH |
+            and exists $registry->{$ARG}->{'source_path'}
+    } keys $registry->%*
+};
+
 my @hostnames_found;
 
 foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
@@ -105,8 +116,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,,,,,.,,,.,,,,.,.,.,.,,,...,,.,,.,,,.,,,.,,,..,,...,...,...,...,...,,,,,,,.,
-#5MP6OKASDH4QRAJBOWHRYXW52QUBDH6CHLQF7BPZ5D7UOW35TCYAINCZOE7ZPQM2RRYEZX4VRNWYA
-#\\\|XD4J6Y2FWDHLDLBATBSZIYZQV7WIYVTQRBZNFA6LXUMXRTTVN5R \ / AMOS7 \ YOURUM ::
-#\[7]RK2OMTDO5VHVQILCD3AXPZ56S2CSOGZLNOEBP4H4NF5Q3A2T3YCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,..,,,..,...,...,.,.,...,,,.,..,,...,...,.,,,,,.,,..,..,,,.,,
+#L2KWA24Z7X2HA73IJXNJCZZGNXC3IVUDABELA44SRMOW43N7C6LV64WHX7DAHENUKMYXZ2BEJ3LMC
+#\\\|6J4KJ5QDIIOHWN5JUZMHSSWEHO5UGWIPQEXZGF7GSWUQINXGEDD \ / AMOS7 \ YOURUM ::
+#\[7]5LDRZMKDKW4QLS273BV3XXUDWWM7TDZAS6V5NKXOVNKBSWOYKOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
