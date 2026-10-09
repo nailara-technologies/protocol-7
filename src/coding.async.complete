@@ -67,8 +67,8 @@ if ( not defined $state ) {
 my $job_id = $state->{'job_id'};
 
 ## release backend lock : wakes next queued task if any. force : the task ##
-## is ending, whichever of its requests or callers gets here [ the holder ##
-## check still applies -- only this task's own lock ]                     ##
+## is ending, whichever of its requests or callers gets here              ##
+## [ the holder check still applies -- only this task's own lock ]        ##
 my $backend = $state->{'backend'} // '';
 <[coding.async.backend_release]>->( $task_id, $backend, qw| force | )
     if length $backend;
@@ -87,8 +87,8 @@ if ( defined $task_rec ) {
         if defined $state->{'round'};
     ## keep the request seq monotonic across a resume : a fresh task_state ##
     ## restarting at 1 would let a late callback from a pre-completion     ##
-    ## connection match a new request's seq [ see coding.callback.* stale  ##
-    ## checks ]                                                            ##
+    ## connection match a new request's seq                                ##
+    ## [ see coding.callback.* stale checks ]                              ##
     $task_rec->{'execution'}->{'request_seq'} = $state->{'request_seq'}
         if defined $state->{'request_seq'};
 }
@@ -100,11 +100,11 @@ if ( defined $task_rec ) {
 if ( defined $result && $result->{'success'} ) {
     my $result_text = $result->{'result'} // '';
 
-    ## idiom conformance gate [ config-gated, inert unless                 ##
-    ## coding.cfg.idiom_gate is set -- see data/tasks/coding-idiom-gate-   ##
-    ## p7-idioms.md ]. fenced_only : only the ``` code blocks are scanned, ##
-    ## since prose is not P7 code and scanning it produces noise in every  ##
-    ## rubric category.                                                    ##
+    ## idiom conformance gate [ config-gated, inert unless                  ##
+    ## coding.cfg.idiom_gate is set -- see                                  ##
+    ## data/tasks/coding-idiom-gate-p7-idioms.md ]. fenced_only : only the  ##
+    ## ``` code blocks are scanned, since prose is not P7 code and scanning ##
+    ## it produces noise in every rubric category.                          ##
     my $gated = <[coding.idiom.gate]>->(
         {   'text'        => $result_text,
             'source'      => 'async.complete',
@@ -441,12 +441,15 @@ if ( defined $result && $result->{'success'} ) {
                 }
                 $skip_standard_resume = 1;
             } else {
-                ## regular subtask: append result as user message ##
+                ## regular subtask: append result as user message [ a    ##
+                ## spawner-set label names it, e.g. the analyzed image ] ##
+                my $label
+                    = ( <coding.task.queue>->{$task_id} // {} )->{'metadata'}
+                    ->{'result_label'} // "SUBTASK RESULT: $task_id";
                 push @{ $parent_state->{'messages'} },
                     {
                     'role'    => 'user',
-                    'content' => "[SUBTASK RESULT: $task_id]\n\n"
-                        . $result_text
+                    'content' => "[$label]\n\n" . $result_text
                     };
             }
 
@@ -590,8 +593,8 @@ if ( defined $result && $result->{'success'} ) {
     push $aref_failed_f->@*, $task_id
         unless grep { $ARG eq $task_id } $aref_failed_f->@*;
 
-    ## resolve reasoning branch as failed [ else it stays 'running' forever ##
-    ## ]                                                                    ##
+    ## resolve reasoning branch as failed  ##
+    ## [ else it stays 'running' forever ] ##
     <[reasoning.branch.resolve]>
         ->( { id => $task_id, output => "failed: $error_msg" } );
 
@@ -678,11 +681,17 @@ if ( defined $result && $result->{'success'} ) {
                 }
                 $skip_standard_resume_fail = 1;
             } else {
+                my $label
+                    = ( <coding.task.queue>->{$task_id} // {} )->{'metadata'}
+                    ->{'result_label'};
+                $label
+                    = defined $label
+                    ? "$label : FAILED"
+                    : "SUBTASK FAILED: $task_id";
                 push @{ $parent_state->{'messages'} },
                     {
                     'role'    => 'user',
-                    'content' => "[SUBTASK FAILED: $task_id]\n\n"
-                        . $error_msg
+                    'content' => "[$label]\n\n" . $error_msg
                     };
             }
 
@@ -800,8 +809,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,.,,,,,.,,,,,,.,,,,.,...,,,.,...,,.,,.,,,.,.,...,...,.,.,.,.,.,,,,,.,.,,,
-#BUDPHJGPD2EUTRZHOHZQVJUT4W3E7RUHI3L7UFZ6TYMXTWST5ITQFKCR7OB2Z27K6MPT6SXDEUELC
-#\\\|OWV4CXHBXVDEXBWETKIL4UKCXQCLT425FN667UYYJQXGSQCLNXT \ / AMOS7 \ YOURUM ::
-#\[7]CFB22LS6Z27V5V45XNKHJ6YCFVRYW6YKUXMIRL44RGBXC74O2ADQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,.,.,.,.,,..,,,,,.,,,..,,.,.,.,.,...,...,...,,..,.,.,,..,,,.,
+#KL2WBDAATK4NB245GSLDQDDSSEAFMS6KWSJEHKIUQUGYZRJQLONMGJ2LUA6GXDJ5FBX4SM2YKJYW6
+#\\\|VBDOWWZHDPUL4UUI6RMGQAM7BQSRNRI7TN5O74EPUIIC3HYG6HC \ / AMOS7 \ YOURUM ::
+#\[7]PWKBASGC5T7D642LGHC5DRXTRWU6X5LRT7QTWR23QU3XXI6EQWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
