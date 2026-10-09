@@ -43,11 +43,10 @@ map { <[base.buffer.add_line]>->( qw| terminal-history |, $ARG ) }
 
 if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
     ## append command directly to cube's output buffer [ cube input stream ]
-    ## cube zenka session watcher will automatically process it
-    open( my $df, '>>', '/tmp/nshell-debug.log' ) or warn $!;
-    print $df sprintf( "shell_loop: cmd=[%s] buf_before=[%s]\n",
-        $cmd, $data{'session'}{$cube_sid}{'buffer'}{'output'} // '' );
-    close($df);
+    ## cube zenka session watcher will automatically process it.  [ a leftover
+    ## debug append of every typed command to /tmp/nshell-debug.log was
+    ## removed : it put commands into /tmp and failed for root on a file owned
+    ## by another user ]
     $data{'session'}{$cube_sid}{'buffer'}{'output'} .= $cmd . "\n";
 } else {
     <[base.log]>->( 0, 'nshell.shell_loop: cube session not available' );
@@ -55,8 +54,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,,.,..,,,.,,...,..,,...,.,,,.,.,..,,,.,,,.,,.,.,...,...,...,.,,,,.,,...,...,
-#XGWADGRICP562MLEHIFXNBQK6D32KRJH75NOTISRU4BLMKETGVFPOBK4DZWAPHFH2KCMNQ4KVFRRM
-#\\\|KH7B4QHOZNQZADV7BD7RFUISW32I63KRCUI22DS7FZKIUA7J3VB \ / AMOS7 \ YOURUM ::
-#\[7]Y2ZKHPN7PR4IWFVAZQ7Z7SJD6QJC2SHHO35FYNP7QYZJJXCG3IAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,.,.,.,,,,..,,,,,..,,.,.,,..,.,.,...,...,...,,,.,.,,,.,.,,,,,
+#3RKZJJDEZKTRZIVHRG3PRXFV5XHZAQD7N6SIQ44SDULDN5G46NHREEEVGJR426K7RGXX7PDTUHGLI
+#\\\|RQUSGSQBMR32ELNYRWAUT6EA3JKOSJDUEUJBT3MDOQEW5EAG6FS \ / AMOS7 \ YOURUM ::
+#\[7]J5N4IURZWTM2LLW2NFPVNXLMUFJZXCDR5ITRLHY6IY3YUMOZUAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
