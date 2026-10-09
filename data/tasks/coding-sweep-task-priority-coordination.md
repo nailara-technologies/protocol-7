@@ -280,10 +280,8 @@ task does.
   change from earlier this session and scope #4's `queue_paused` fix
   live in this same file.
 
-#,,,.,,.,,.,,,..,,.,,,...,...,,,,,...,,,.,,,,,..,,...,...,.,.,.,.,,,.,...,..,,
-
-#,,..,.,,,,,.,,..,,..,...,,,,,,,.,.,.,,.,,,..,..,,...,...,,..,,,,,,.,,,..,,,.,
-#HOES6XBYAZWAQRLLTZDAFOPRCGMJEQ2I5L7G6XBUDFDVKWWQH3WH6W6Z2DZ5T6MJ3ZZOV5OHTUZUM
-#\\\|PEMT452YCTAMI36FG57DW52Y57WKCK73FVWNITHDHFXJPZ3NMM3 \ / AMOS7 \ YOURUM ::
-#\[7]WCUPWBFGTYYE4TKGRIBRG4N3W2Q2TZPOAQY5MJQXX4AMN5USIUAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,...,,,.,,.,,...,,..,.,,,,.,,..,,...,...,,..,.,,,,..,.,.,,.,,
+#W3WYYMO655JD2D3YD547SXT4KEZOH7PE5CB4TPLISS7QYIHH4M25HMZ7TNL2XO5HDBUFMZGAD2R4U
+#\\\|UERX5O6X4RCLZUVHK2XUY2P6FQPEI6OP62BJHHGSO7BVDWLDDHN \ / AMOS7 \ YOURUM ::
+#\[7]IQ7BEWNHP2562RA34EJATO2CZNZ55W2HCOLVGIXQOBPGJD5FNECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

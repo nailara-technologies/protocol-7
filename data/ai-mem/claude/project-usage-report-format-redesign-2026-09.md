@@ -80,10 +80,8 @@ those (see `src/base.cmd.reload`, explicit `$ARG !~ m{^plugin\.}` filter).
 Full detail + the corrected general guidance:
 [[feedback-reload-success-doesnt-guarantee-new-file-loaded]].
 
-#,,,.,.,,,...,,.,,...,,.,,.,.,,..,...,,..,.,.,..,,...,...,...,...,..,,...,..,,
-
-#,,,.,.,,,.,,,.,.,,.,,..,,.,.,,..,,,,,,.,,..,,..,,...,..,,.,.,,.,,.,.,.,.,,.,,
-#RQE46SV7JFY2GBDGRH7FOEMFPPDABJDFSR4PTL62XJOJMDDUOENKTM6XCRJ7LMNVDOSDWIIRDANVG
-#\\\|3GQRCBKIA6FAKBHTJVUH3LAUGSMJSGIDZBZVQRHP6IBAEL5OOSK \ / AMOS7 \ YOURUM ::
-#\[7]USSBZ2GR6IPB7ZBLVBKGW4YOQSN2BPQEKK5FTW3DT65N5Y4JQ4AY 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,,,.,,.,,...,,.,,,,.,.,,,,.,,..,,...,...,.,.,..,,...,.,,,..,,
+#LAVN4EKZX76UEUL7UQ23NOPIMFPRDBX6ZLQPZ5WVW2S26HSJFJOTGUNU3KALQQWRKMGOGXUVZHHVS
+#\\\|OFQI32OBFUA4AEGD4IP2OFVP5CATDUCARVJTHVSAJYPQMHPCM7G \ / AMOS7 \ YOURUM ::
+#\[7]MS32NGOWLSBOS27INZQIMAVCUCINI3255X6DH6H2XN4FDA5YDICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

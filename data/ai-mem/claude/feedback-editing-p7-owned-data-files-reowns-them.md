@@ -34,11 +34,8 @@ that the file's ownership will need restoring afterward via `chown`, so it's exp
 than alarming. Check ownership with `ls -la` on the target (or a sibling file in the same
 directory) BEFORE editing, not after something breaks.
 
-#,,,,,,,.,..,,,.,,..,,,..,.,.,...,.,.,,,,,,..,..,,...,.,.,,..,,,,,.,,,,..,,,,,
-#PLACEHOLDER — awaiting sign
-
-#,,..,..,,..,,,..,,,.,,..,..,,,,,,,,,,,..,.,.,..,,...,..,,.,.,...,,..,,.,,,,.,
-#4QSK5EIVFWZMB57XDJARIPMGJXSRIJ53Z5KEM33YXWQLJSCYR7V3AJ4OZT3KIUEMH65LPQ7OLT6UI
-#\\\|V2A2DQLLTRWBGOUHJQQZWDE65MTMEQWRULH3Y7KA5ITGCAC3Z4M \ / AMOS7 \ YOURUM ::
-#\[7]ETD2FDRCGSPVHGUE2TT42YZFAX7CQYGBKLLDHNDQB4M4AFWYGEBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,,,.,,..,,,,,.,,,..,,.,,,...,..,,...,...,,,.,.,.,,,.,.,,,...,
+#H5FX5NSITAZMM7BX3KVT6BNUD5UZUKENLWO4FDJ3GYTCLDTOH57WIENADL4JN3PF3U6LK6COAQ2PE
+#\\\|YGLDILECCHIB4AKXUGLE3HKPM7RPSK6CE33V72UXNNNLUJH4JMV \ / AMOS7 \ YOURUM ::
+#\[7]UF767GDFPZS6K6SVGRG7EXUKDXB3G3FBJPXBCUOCL6LSEAGPX6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

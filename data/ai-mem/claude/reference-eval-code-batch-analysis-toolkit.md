@@ -88,10 +88,8 @@ across the shell-user/zenka-user boundary, (5) for any *-hash-based
 duplicate/similarity work specifically, treat exact hash as ground truth and
 perceptual hash as a candidate filter only.
 
-#,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
-
-#,,.,,...,.,.,.,,,,,,,,..,.,.,,,,,,..,..,,,..,..,,...,...,.,,,,.,,.,.,,..,,.,,
-#CIIMRJAXTIF6NGBQTVBEO3T7LSWV3RKE3JTCVHCD7DBF45L4YH4F3WEG24D6ESLNPJYWLK6NRDEPY
-#\\\|QAH3JUUEXNMF2LUVUIRDMO4BXN4IXIEYMQMMOHSND7VKMKQIP6G \ / AMOS7 \ YOURUM ::
-#\[7]EP2IVFCGIDY74THWE4AUJW6AY2IMBQR7ADSXVGNT3UF2QI3QLWDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,.,,,.,,,.,,,.,,,..,,,,,..,,..,,...,...,...,,..,,.,,.,.,.,.,
+#DZUQFQKABSJARDWS2MONYBHZM6YYHEIDUWV5LPNITRYFPMBS65FH23I7EBI5RQ4KBJ66XZMQL5DNE
+#\\\|64HV5UMXG4P544S3YBFA32FEDLRJZEDDEI2CB7JXQDASOBHQUUF \ / AMOS7 \ YOURUM ::
+#\[7]2IDOJML4EYRDAPSC6JVCDMVK5LCWMXLX3PNGXFA7FK2OXJW4YYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

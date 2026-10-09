@@ -49,10 +49,8 @@ the normal path does — a recovery path that skips ONE state update the
 happy path always performed can look fine in isolation and only misbehave
 cumulatively, after the first time it's actually exercised.
 
-#,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
-
-#,,..,,.,,,,,,,,.,...,...,.,.,,.,,,,.,,,,,,.,,..,,...,...,,,,,,..,,,.,,,,,..,,
-#VG3Y7FSOTB7EVCCPKKM4PNDDWESHY3ZQJM4KIEKYJWR7SBWDRYHZEOWIUOSFLYFG4VIS6X7K67LEO
-#\\\|6IBCLPGI4LTLFOWCGNFBOSPIMRSL7HNM6A7X2GEG7D2NB6VGOMG \ / AMOS7 \ YOURUM ::
-#\[7]TEMNXPITGFQ7NRK5MDAQAAXAW2VI4FPFAVM7Q6EAPRQHJZIQBUBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,..,,..,,.,,,,.,,.,,,.,,,,.,,..,,...,...,.,.,,.,,,.,,,,,,,..,
+#JJGRNCSBDAKSXXKT4ADABIRL4KJ3PS5B4V5CST3L66WYMB4DBOGXFW2TXLVKVI4IXYU3VGTUM4DMQ
+#\\\|5HNQAMPBSFDVSMQNURCTZTKVONVWUIE7T4TB3YWFLJFBR5CLVM6 \ / AMOS7 \ YOURUM ::
+#\[7]QA6GJGM3WWT5XDGCJBYS4OJ4I7ACQ3PPO6NNXLWF4RBLKI5KEADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

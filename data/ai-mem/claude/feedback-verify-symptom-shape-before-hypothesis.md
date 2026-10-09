@@ -42,10 +42,8 @@ user explicitly says the process/window/UI is gone). Cheap to check
 (`ps`/a status command) relative to the cost of a wrong hypothesis eating
 significant investigation time before the user has to correct it.
 
-#,,.,,,,,,...,,,,,,..,...,.,,,,,,,,..,.,,,,,,,..,,...,..,,.,,,,..,.,.,,,.,,.,,
-
-#,,,.,...,...,,,,,,.,,..,,,,,,..,,,..,,,.,.,.,..,,...,...,...,.,,,.,,,...,,,,,
-#5QM65LDB7JUZUPFBGI7GLT4OTXQ7C5ZTQJAAPY3VK2QUF4WEY2MZ4AHBPIUFTN6AQZ7YF6YTFFCQ6
-#\\\|QLZAZDM4MLACIKMNT7EGCV2QFRMCIDBV6KIKKHVY53SJPETW7IA \ / AMOS7 \ YOURUM ::
-#\[7]RKHO6GDFY6ERGLNCT3ZZFUWPPY4FSOCC5HNZCNQLSAQQQMK72OBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,.,.,..,,,,,,.,.,,,,,,.,,,,,,..,,...,...,.,.,,..,,..,..,,...,
+#BGROPF5VHVTKIWUHZP26BVVSW6C77OOE2D7MKVCXWBOTSS4U4FIPCKT24PBZCI7SP5QLYEOYOYSQI
+#\\\|ZVKSAHR77EOCKNTFL4ENDFG57I3MSWNJNUPATY4QFQEJM3C5Y7K \ / AMOS7 \ YOURUM ::
+#\[7]KVLTJ6QNWVHMZJPM4F7EXAJFETO7SDDEJPEGPITIHN7FBM2NO4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
