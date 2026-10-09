@@ -28,19 +28,34 @@ $parent_dir =~ s|/[^/]+$||;
 
 ## raw bytes through a temp file + rename : a failed write never leaves a ##
 ## half-restored destination                                              ##
-my $tmp_path = "$dest_path.restore-$$";
-open( my $out_fh, '>:raw', $tmp_path ) or return undef;
-my $ok = print {$out_fh} $content;
-$ok = close($out_fh) && $ok;
-if ( !$ok or !rename( $tmp_path, $dest_path ) ) {
-    unlink $tmp_path;
-    return undef;
+if ( -w $parent_dir ) {
+    my $tmp_path = "$dest_path.restore-$$";
+    open( my $out_fh, '>:raw', $tmp_path ) or return undef;
+    my $ok = print {$out_fh} $content;
+    $ok = close($out_fh) && $ok;
+    if ( !$ok or !rename( $tmp_path, $dest_path ) ) {
+        unlink $tmp_path;
+        return undef;
+    }
+    return TRUE;
 }
 
-return TRUE;
+## directory not writable [ src/ : group-writable files, read-only dir ] : ##
+## write in place, a missing file is created through the coding zenka's    ##
+## chmod child first [ the way write_new_file creates files there ]        ##
+if ( !-e $dest_path ) {
+    my $chmod_fh = <coding.chmod_child.w_fh>;
+    return undef unless defined $chmod_fh;
+    print {$chmod_fh} "create $dest_path\n";
+    <[coding.chmod_child.readline]>;
+}
+open( my $out_fh, '>:raw', $dest_path ) or return undef;
+my $ok = print {$out_fh} $content;
+$ok = close($out_fh) && $ok;
+return $ok ? TRUE : undef;
 
-#,,.,,..,,.,.,...,...,.,,,...,,..,...,,,.,,.,,..,,...,...,,.,,,,,,,,,,,,.,.,.,
-#VUQGDBSOTB4W4MQLTVTHGLGWJWFX6JSJQK5WCUNLBQ5E4ERFLXM4E3SRPCQZF6WJLLLEI3UCD5UTW
-#\\\|63XX3J2QULLGNF4U2YAICAHD6XEZFGMSAT7W5HQGKJNSDD2ZFS3 \ / AMOS7 \ YOURUM ::
-#\[7]2A7Q6PQD7U7R4I2NOG4SANIA2ZDNYMAR62OA5KEBNFUEDDNZXMBI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,.,,,.,.,..,,,,,,.,.,.,,,,.,,..,,...,...,...,,,,,,,.,,,.,,..,
+#2LMEKIBH7GUJGPSR7HWU6CLUBSJL6AZH5PPVR7KTJX6BYZS33DMAPGJE5B2RJ36UGNPNGP3QLJ3U6
+#\\\|YI3LUPUI3CUIB2TIUJC635ZMCJFTXANRI7CUSIJKF4CHXHFO3HM \ / AMOS7 \ YOURUM ::
+#\[7]RJMO57FZBJDNB2SSYKTXODLDBQU3GDE2PLECMMCYWA6WK2W7IICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
