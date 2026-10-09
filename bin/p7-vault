@@ -22,7 +22,8 @@ use warnings;
 
 use FindBin;
 use Getopt::Std;
-use Encode qw| decode encode |;
+use List::Util ();
+use Encode     qw| decode encode |;
 
 BEGIN {
     ## repo layout first, then a backup copy [ AMOS7/ beside the script ] ##
@@ -83,17 +84,23 @@ our %C = (
     'R' => "\e[0m",
 );
 
-## content color [ values, typed input ] : T by default ; '-color green' is
-## the high contrast option for daylight -- the phosphor green of
-## bin/Protocol-7's table [ p7_fg_0003 ]
+## -nc : blank the palette before any message below can use it ##
+my %COLOR_ON = %C;
+%C = map { $ARG => '' } keys %C if $no_colors;
+
+## content color [ values, typed input ] : T by default ; '-color green' is ##
+## the high contrast option for daylight -- the phosphor green of           ##
+## bin/Protocol-7's table [ p7_fg_0003 ]                                    ##
 my %CONTENT_COLOR = (
-    'blue'  => $C{'T'},
+    'blue'  => $COLOR_ON{'T'},
     'green' => "\e[38;2;9;170;94m",
 );
 my $content_color = qw| blue |;
 if ( @ARGV and $ARGV[-1] eq '-color' ) {
-    say STDERR 'p7-vault : -color needs a name [ '
-        . join( ' ', sort keys %CONTENT_COLOR ) . ' ]';
+    say STDERR $C{o}
+        . 'p7-vault : -color needs a name [ '
+        . join( ' ', sort keys %CONTENT_COLOR ) . ' ]'
+        . $C{R};
     exit 2;
 }
 foreach my $i ( reverse 0 .. $#ARGV - 1 ) {
@@ -102,14 +109,14 @@ foreach my $i ( reverse 0 .. $#ARGV - 1 ) {
     splice @ARGV, $i, 2;
 }
 if ( not exists $CONTENT_COLOR{$content_color} ) {
-    say STDERR "p7-vault : unknown color '$content_color' [ "
+    say STDERR $C{o}
+        . "p7-vault : unknown color '$content_color' [ "
         . join( ' ', sort keys %CONTENT_COLOR )
-        . ' ] -- using blue';
+        . ' ] -- using blue'
+        . $C{R};
     $content_color = qw| blue |;
 }
-$C{'V'} = $CONTENT_COLOR{$content_color};
-
-%C = map { $ARG => '' } keys %C if $no_colors;
+$C{'V'} = $no_colors ? '' : $CONTENT_COLOR{$content_color};
 
 ## options before the command [ getopts stops at the command word, so a   ##
 ## command's own flags like 'show <filter> -r' are left for the command ] ##
@@ -160,7 +167,7 @@ if (@ARGV) {
 ## interactive : one unlock for a whole session ##
 die "p7-vault : no terminal [ give a command ]\n" if not -t STDIN;
 if ( not vault_exists($dir) ) {
-    say "  no vault in $dir yet -- 'init' creates one";
+    say msg( 'info', "no vault in %s yet -- 'init' creates one", $dir );
 } else {
     unlocked() or exit 1;
 }
@@ -171,17 +178,37 @@ while (TRUE) {
     last if $cmd eq 'quit' or $cmd eq 'q' or $cmd eq 'exit';
     my $sub = $COMMANDS{$cmd};
     if ( not $sub ) {
-        say "  unknown command '$cmd' [ commands ]";
+        say msg( 'refuse', "unknown command '%s' [ commands ]", $cmd );
         next;
     }
     $sub->(@args);
 }
 exit 0;
 
+##[ OUTPUT ]##################################################################
+
+## one message line : kind 'info' [ T ], 'refuse' [ amber ], 'done' [ green ].
+## %s values come out in the content color, '[ .. ]' in the frame color
+sub msg {
+    my ( $kind, $format, @values ) = @ARG;
+    my $color = {
+        qw| info |   => $C{T},
+        qw| refuse | => $C{o},
+        qw| done |   => $C{g},
+    }->{$kind} // $C{T};
+
+    $format =~ s|(\[[^\[\]]*\])|$C{0}$1$color|g;
+    my $text
+        = @values
+        ? sprintf( $format, map {"$C{V}$ARG$color"} @values )
+        : $format;
+    return "  $color$text$C{R}";
+}
+
 ##[ USAGE ]###################################################################
 
 sub usage {
-    print <<"EOF";
+    my $text = <<"EOF";
 
   p7-vault [ -d <path> ] [ -R ] [ <command> [ args ] ]
 
@@ -222,6 +249,20 @@ sub usage {
     -h  .......  this list [ also -options ]
 
 EOF
+
+    ## names in T, descriptions and continuation lines in the frame color ##
+    foreach my $line ( split m|\n|, $text ) {
+        if ( $line =~ m{^(  )(p7-vault.*)$} ) {
+            $line = $1 . $C{T} . $2 . $C{R};
+        } elsif ( $line =~ m{^(    )(\S.*?)(\s{2,}|\s+:\s+)(\S.*)$} ) {
+            $line = "$1$C{T}$2$C{0}$3$4$C{R}";
+        } elsif ( $line =~ m|^(\s{10,})(\S.*)$| ) {
+            $line = "$1$C{0}$2$C{R}";
+        } elsif ( $line =~ m{^(    )(\S.*)$} ) {
+            $line = "$1$C{T}$2$C{R}";
+        }
+        say $line;
+    }
     return TRUE;
 }
 
@@ -340,12 +381,15 @@ sub read_secret_raw {
     my $cancelled = FALSE;
     my $visible   = FALSE;
 
-    ## tab toggles the value in view
-    ## [ checking a long password before it is stored ] ; while visible the
-    ## line is redrawn after every key
+    ## feedback without the length : 1 .. 3 random stars per typed character
+    ## [ AMOS7::TERM's idea ], kept per byte so a backspace takes its own
+    ## stars back. tab shows the value itself [ checking a long password ]
+    my @stars;
     my $redraw = sub {
         printf "\r\e[K  $C{T}%s$C{0} :$C{V} %s$C{R}", $label,
-            $visible ? decode( 'UTF-8', $bytes ) : '';
+            $visible
+            ? decode( 'UTF-8', $bytes )
+            : '*' x List::Util::sum0(@stars);
     };
 
     while (TRUE) {
@@ -376,15 +420,22 @@ sub read_secret_raw {
         }
 
         if ( $key eq "\x7f" or $key eq "\x08" ) {    ## one utf-8 char back ##
-            $bytes =~ s{(?:[\xC0-\xFF][\x80-\xBF]*|[\x00-\x7F])$}{};
+            if ( $bytes =~ s{((?:[\xC0-\xFF][\x80-\xBF]*|[\x00-\x7F]))$}{} ) {
+                splice @stars, -length $1;
+            }
         } elsif ( $key eq "\t" ) {                   ## tab : show \ hide ##
             $visible = not $visible;
         } elsif ( $key eq "\x15" ) {                 ## ctrl-u : clear ##
             $bytes = '';
+            @stars = ();
         } elsif ( ord $key >= 32 ) {
             $bytes .= $key;
+            ## continuation bytes of a utf-8 character add no stars ##
+            push @stars, ( ord($key) & 0xC0 ) == 0x80
+                ? 0
+                : 1 + ord( AMOS7::Vault::_random_bytes(1) ) % 3;
         }
-        $redraw->() if $visible or $key eq "\t";
+        $redraw->();
     }
 
     if ($visible) {    ## the value never stays on screen \ in scrollback ##
@@ -400,7 +451,7 @@ sub read_secret_raw {
 ## multi-line, no echo, ends at a line holding a single '.' ##
 sub prompt_secret_lines {
     my $label = shift;
-    say "  $label [ end with a line holding only '.' ] :";
+    say msg( 'info', "$label [ end with a line holding only '.' ] :" );
     my @lines;
     while (TRUE) {
         my $line = prompt_secret('  ');
@@ -423,7 +474,7 @@ sub unlocked {
 
     my ( $handle, $err ) = vault_open($dir);
     if ( not defined $handle ) {
-        say STDERR "  $err";
+        say STDERR msg( 'refuse', '%s', $err );
         return undef;
     }
 
@@ -449,7 +500,7 @@ sub unlock_prompt {
             }
             if defined $key_file;
         return $handle if vault_unlock( $handle, $secret, $wrap );
-        say "  wrong $label";
+        say msg( 'refuse', "wrong $label" );
     }
     return undef;
 }
@@ -470,13 +521,15 @@ sub pick {
         if not @hits;
 
     if ( not @hits ) {
-        say "  no entry matches '$filter'";
+        say msg( 'refuse', "no entry matches '%s'", $filter );
         return undef;
     }
     return $hits[0] if @hits == 1;
 
     if ( not -t STDIN ) {
-        say STDERR "  '$filter' matches $ARG entries -- be more specific"
+        say STDERR msg( 'refuse',
+            "'%s' matches %s entries " . "-- be more specific",
+            $filter, $ARG )
             for scalar @hits;
         return undef;
     }
@@ -518,17 +571,17 @@ sub summary_line {
 
 sub cmd_init {
     if ( vault_exists($dir) ) {
-        say "  $dir already holds a vault";
+        say msg( 'refuse', '%s already holds a vault', $dir );
         return FALSE;
     }
-    say "  new vault in $dir";
+    say msg( 'info', 'new vault in %s', $dir );
 
     my $passphrase;
     while (TRUE) {
         $passphrase = prompt_secret('new vault passphrase') // return FALSE;
         my $again = prompt_secret('re-enter passphrase') // return FALSE;
         if ( $passphrase ne $again ) {
-            say '  passphrases differ, again';
+            say msg( 'refuse', 'passphrases differ, again' );
             next;
         }
         if ( length $passphrase < 12 ) {
@@ -544,10 +597,12 @@ sub cmd_init {
 
     my $recovery = recovery_code_new();
     say '';
-    say '  recovery code -- opens the vault if the passphrase is forgotten.';
-    say '  write it on paper, keep it away from this machine :';
+    say msg( 'info',
+              'recovery code -- opens the vault '
+            . 'if the passphrase is forgotten.' );
+    say msg( 'info', 'write it on paper, keep it away from this machine :' );
     say '';
-    say "      $recovery";
+    say "      $C{B}$C{V}$recovery$C{R}";
     say '';
     my $typed = prompt_line("type it back to confirm [ or 'skip' ]") // '';
 
@@ -561,7 +616,7 @@ sub cmd_init {
     } else {
         while ( recovery_code_normalize($typed) ne
             recovery_code_normalize($recovery) ) {
-            say '  does not match';
+            say msg( 'refuse', 'does not match' );
             $typed = prompt_line('type it back') // return FALSE;
         }
     }
@@ -592,7 +647,8 @@ sub cmd_init {
 sub cmd_add {
     my $type = shift // 'login';
     if ( not type_fields($type) ) {
-        say "  unknown type '$type' [ login note contact ]";
+        say msg( 'refuse', "unknown type '%s' [ " . "login note contact ]",
+            $type );
         return FALSE;
     }
     my $v = unlocked() // return FALSE;
@@ -603,7 +659,7 @@ sub cmd_add {
         $record{$field} = $value if length $value;
     }
     if ( not length( $record{'title'} // '' ) ) {
-        say '  a title is needed';
+        say msg( 'refuse', 'a title is needed' );
         return FALSE;
     }
     entry_save( $v, undef, \%record );
@@ -627,7 +683,7 @@ sub ask_field {
         if ( $choice =~ m|^g|i ) {
             my $length = prompt_line('length [24]') // return undef;
             $length = 24 if $length !~ m|^\d+$| or $length < 4;
-            say '  generated';
+            say msg( 'done', 'generated' );
             return gen_password($length);
         }
         while (TRUE) {
@@ -635,7 +691,7 @@ sub ask_field {
             return $current // '' if not length $new;
             my $again = prompt_secret('re-enter') // return undef;
             return $new if $new eq $again;
-            say '  differs, again';
+            say msg( 'refuse', 'differs, again' );
         }
     }
 
@@ -671,7 +727,7 @@ sub cmd_list {
         my $entry ( grep { matches( $ARG->{'record'}, $filter ) } @{$list} ) {
         say '  ' . summary_line( ++$n, $entry->{'record'} );
     }
-    say '  [ no entries ]' if not $n;
+    say msg( 'info', '[ no entries ]' ) if not $n;
     return TRUE;
 }
 
@@ -705,7 +761,7 @@ sub cmd_get {
     my $entry = pick( join ' ', @ARG ) // return FALSE;
     my $value = $entry->{'record'}{$field};
     if ( not defined $value ) {
-        say STDERR "  no field '$field'";
+        say STDERR msg( 'refuse', "no field '%s'", $field );
         return FALSE;
     }
     print $value;
@@ -718,16 +774,17 @@ sub cmd_copy {
     my $entry = pick( join ' ', @ARG ) // return FALSE;
     my $value = $entry->{'record'}{$field};
     if ( not defined $value or not length $value ) {
-        say "  no field '$field'";
+        say msg( 'refuse', "no field '%s'", $field );
         return FALSE;
     }
 
     my $tool = clipboard_tool() // do {
-        say '  no clipboard tool [ wl-copy, xsel, xclip, clip.exe ]';
+        say msg( 'refuse',
+            'no clipboard tool [ wl-copy, ' . 'xsel, xclip, clip.exe ]' );
         return FALSE;
     };
     clipboard_set( $tool, $value ) or do {
-        say "  $tool->[0] failed";
+        say msg( 'refuse', '%s failed', $tool->[0] );
         return FALSE;
     };
     say $C{g}
@@ -780,11 +837,12 @@ sub cmd_history {
     my $v        = unlocked()                             // return FALSE;
     my $versions = entry_versions($v)->{ $entry->{'id'} } // [];
 
-    say "  entry $entry->{'id'}";
+    say msg( 'info', 'entry %s', $entry->{'id'} );
     foreach my $version ( reverse @{$versions} ) {
         my ( $record, $err ) = entry_load( $v, $entry->{'id'}, $version );
         my $stamp = int( version_to_unix($version) // 0 );
-        say sprintf '  %s  %s  %s', scalar localtime($stamp), $version,
+        say sprintf "  $C{0}%s  %s$C{R} " . " $C{V}%s$C{R}",
+            scalar localtime($stamp), $version,
             $err // (
             $record->{'deleted'}
             ? 'deleted'
@@ -808,7 +866,7 @@ sub cmd_restore {
     my $record;
     if ( defined $back ) {
         my $version = $older[ $back - 1 ] // do {
-            say "  no version $back back";
+            say msg( 'refuse', 'no version %s back', $back );
             return FALSE;
         };
         ($record) = entry_load( $v, $entry->{'id'}, $version );
@@ -821,7 +879,7 @@ sub cmd_restore {
         }
     }
     if ( not $record ) {
-        say '  nothing to restore';
+        say msg( 'refuse', 'nothing to restore' );
         return FALSE;
     }
 
@@ -838,7 +896,7 @@ sub cmd_gen {
     my $length  = shift // 24;
     my $classes = shift;
     $length = 24 if $length !~ m|^\d+$| or $length < 4;
-    say gen_password( $length, $classes );
+    say $C{V} . gen_password( $length, $classes ) . $C{R};
     return TRUE;
 }
 
@@ -855,7 +913,7 @@ sub cmd_archive {
     }
     if ( not defined $file
         or ( grep { $ARG eq '-f' } @ARG and not defined $with_file ) ) {
-        say '  archive <file> [ -f <key file> ] [ -p ]';
+        say msg( 'info', 'archive <file> [ -f <key file> ] [ -p ]' );
         return FALSE;
     }
     my $v = unlocked() // return FALSE;
@@ -864,19 +922,19 @@ sub cmd_archive {
     ## file, -p the plain passphrase [ weak passphrases stay exposed ]
     if ( defined $with_file ) {
         if ( not -r $with_file ) {
-            say "  cannot read $with_file";
+            say msg( 'refuse', 'cannot read %s', $with_file );
             return FALSE;
         }
         my $phrase = prompt_secret('archive passphrase [ + key file ]')
             // return FALSE;
         my $again = prompt_secret('re-enter') // return FALSE;
         if ( $phrase ne $again ) {
-            say '  passphrases differ -- no archive written';
+            say msg( 'refuse', 'passphrases differ -- no archive written' );
             return FALSE;
         }
         $opt{'file_secret'}
             = file_secret( encode( 'UTF-8', $phrase ), $with_file );
-        say "  key file : $with_file";
+        say msg( 'info', 'key file : %s', $with_file );
         say '  '
             . $C{0}
             . '[ git blob '
@@ -899,8 +957,8 @@ sub cmd_archive {
         . ( $count == 1 ? '' : 's' )
         . ", $size bytes"
         . $C{R};
-    say "  [ $file ]";
-    say "  opens with : " . join( ' , ', @{$wraps} );
+    say msg( 'info', '[ %s ]',          $file );
+    say msg( 'info', 'opens with : %s', join( ' , ', @{$wraps} ) );
     say $C{o}
         . '  << a public copy keeps every archive in its history '
         . ': a later passphrase change does not protect those >>'
@@ -912,12 +970,12 @@ sub cmd_archive {
 ## the same vault [ missing versions added, nothing replaced ]
 sub cmd_restore_archive {
     my $file = shift // do {
-        say '  restore-archive <file>';
+        say msg( 'info', 'restore-archive <file>' );
         return FALSE;
     };
     my ( $archive, $err ) = archive_open($file);
     if ( not defined $archive ) {
-        say "  $file : $err";
+        say msg( 'refuse', '%s : %s', $file, $err );
         return FALSE;
     }
     unlock_prompt( $archive->{'vault'} ) // return FALSE;
@@ -935,11 +993,14 @@ sub cmd_restore_archive {
         = $report->{'key'} eq 'kept'
         ? 'it may hold a newer passphrase'
         : 'from the archive';
-    say "  key file $report->{'key'} [ $key_note ]";
-    say '  no passphrase in it yet -- add one : p7-vault -d '
-        . $dir
-        . ( $use_recovery ? ' -R' : " -k $key_file" )
-        . ' passwd'
+    say msg( 'info', "key file %s [ $key_note ]", $report->{'key'} );
+    say msg(
+        'info',
+        'no passphrase in it yet -- add one : %s',
+        "p7-vault -d $dir"
+            . ( $use_recovery ? ' -R' : " -k $key_file" )
+            . ' passwd'
+        )
         if $report->{'key'} eq 'created'
         and not grep { $ARG eq 'passphrase' }
         vault_wraps( $archive->{'vault'} );
@@ -948,7 +1009,7 @@ sub cmd_restore_archive {
             . '  << conflict : same name, different '
             . 'content -- kept the existing file :'
             . $C{R};
-        say "     $ARG" foreach @{ $report->{'conflict'} };
+        say "     $C{V}$ARG$C{R}" foreach @{ $report->{'conflict'} };
         return FALSE;
     }
     return TRUE;
@@ -960,11 +1021,11 @@ sub cmd_passwd {
 
     if ( $which eq 'recovery' ) {
         my $code = recovery_code_new();
-        say "\n      $code\n";
+        say "\n      $C{B}$C{V}$code$C{R}\n";
         my $typed = prompt_line('type it back to confirm') // return FALSE;
         if ( recovery_code_normalize($typed) ne recovery_code_normalize($code)
         ) {
-            say '  does not match -- recovery code unchanged';
+            say msg( 'refuse', 'does not match -- recovery code unchanged' );
             return FALSE;
         }
         print "\e[3J\e[2J\e[H" if -t STDOUT;
@@ -978,7 +1039,7 @@ sub cmd_passwd {
     my $new   = prompt_secret('new vault passphrase') // return FALSE;
     my $again = prompt_secret('re-enter passphrase')  // return FALSE;
     if ( $new ne $again ) {
-        say '  passphrases differ -- unchanged';
+        say msg( 'refuse', 'passphrases differ -- unchanged' );
         return FALSE;
     }
     say $C{o} . '  << short passphrase >>' . $C{R} if length $new < 12;
@@ -1003,8 +1064,13 @@ sub cmd_verify {
     my $v = unlocked() // return FALSE;
     my ( $ok, $errors ) = vault_verify($v);
     say $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
-    say sprintf '  %d version%s decrypted, %d failed', $ok,
-        $ok == 1 ? '' : 's', scalar @{$errors};
+    say msg(
+        @{$errors} ? 'refuse' : 'done',
+        '%s version%s decrypted, ' . '%s failed',
+        $ok,
+        $ok == 1 ? '' : 's',
+        scalar @{$errors}
+    );
     return @{$errors} ? FALSE : TRUE;
 }
 
@@ -1078,8 +1144,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,...,,,,,.,,,.,.,,.,,...,..,,,.,,,.,,...,..,,...,.,,,..,,,,,,..,,..,,,,,,
-#FIKB2XDXJWZ23XRUKRJG6A53DPYZSGRLJ5GK2YUS4SLCWI6WOIWNB7B53ABA2G2EGYMP4JOYERBBK
-#\\\|4NGYKUA7RE3GNFIHGFXSTKBTICRCMYU7L5EBDHSAFWXJDBPJGZU \ / AMOS7 \ YOURUM ::
-#\[7]GHAPGMKX5EZV7D6UJHXIWJ67VFYESB73UYIZ343AOMT6ASRSVADY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,,.,,,.,...,,..,...,,..,...,..,,...,...,,,,,...,,,,,,..,,,,,
+#6BIUD6EIU4IOWTH2C6OJU44GTN54GVJMJRXDBDMOFZQOT7Z5SJXDYV4I62R2QHDRCPTLDBEMN62NM
+#\\\|IQNWR7O7RL7WMKG7HKNRRAWM77WV7MANECC4LJVITL6W7CPZATB \ / AMOS7 \ YOURUM ::
+#\[7]KXUZEODNH4FID6RKDBHZH5B43QMSX4M36L4OXUJBNIHLU4G73WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
