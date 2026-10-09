@@ -37,9 +37,13 @@ for my $idx ( 0 .. $#{ $messages // [] } ) {
                     }
                 },
             ];
+            ## repository paths log relative to the root ##
+            my $log_path = $ref->{'path'};
+            my $root     = <system.root_path> // '';
+            $log_path =~ s|^\Q$root\E/+|| if length $root;
             <[base.logs]>->(
                 1, 'expand_messages: attached %s [ %s, %d b64 chars ]',
-                $ref->{'path'}, $image->{'mime'}, length $image->{'b64'}
+                $log_path, $image->{'mime'}, length $image->{'b64'}
             );
         }
     } else {
@@ -50,8 +54,8 @@ for my $idx ( 0 .. $#{ $messages // [] } ) {
 
 return \@out;
 
-#,,,,,,,.,...,..,,,..,..,,.,,,,.,,,..,...,...,..,,...,...,...,.,.,,,,,.,,,,,,,
-#OFLGSU7LEVQV7AH4KVR7M5K7OMVR2N36N7VXAIQ5QZKMSFF6DVQYHQDMVWY5ERLWTGPG5S3EKVIJO
-#\\\|2C6MHAVJQUNXXFCJYQLPTAWBQZJJRPEUHTRG6FCLSA2BWOSXY3V \ / AMOS7 \ YOURUM ::
-#\[7]BGIDLZHLSURMPTWAKM6LYBKXSI3KNRZLH5JZ3RVUZF7TEMHB5OAQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,...,...,..,,..,,,,.,,..,.,,,..,,...,...,,,,,.,,,,,,,...,.,,,
+#MDMYMHBWZC2XYZ43DBRL4HDKCZFUCGCYQ7C72BU4PJTEICRNY2PZ36IBS5I76CNQIBAHKYHK3HUJ2
+#\\\|VWD7BMK6TFPIMTIUH2O3WCGJGASAOW22OGUHTYK33TOOU33KEZK \ / AMOS7 \ YOURUM ::
+#\[7]R7NBU3PLMDHHOHXL5XK3QTT3L3AEY4A4QQNZM4IKXZ4RYPSTM2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
