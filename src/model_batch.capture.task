@@ -10,8 +10,10 @@
 my $params        = shift                 // {};
 my $baseline_href = $params->{'baseline'} // {};
 
-return warn 'expected baseline manifest parameter <{C1}>'
-    unless ref $baseline_href eq qw| HASH | and %$baseline_href;
+if ( ref $baseline_href ne qw| HASH | or !%$baseline_href ) {
+    warn 'expected baseline manifest parameter <{C1}>';
+    return undef;
+}
 
 my $current_href = <[model_batch.manifest.build]>->();
 my $diff_href
@@ -56,8 +58,8 @@ return {
     },
 };
 
-#,,..,,,,,.,.,.,.,...,.,.,,,.,.,,,.,.,..,,..,,..,,...,..,,..,,,,.,..,,,.,,..,,
-#6X3L6BRID74VLIFFNCHZOHWINQFQOBDJFKWTOLZEBQMEMXLC7FMVGAPMHTEFHEIS3U4IV5B5GV3NO
-#\\\|WIPMLP454Y5UBIJH3ZJ67A4LQZWFH3E5FYPAUWBKMI2VXL4NA5L \ / AMOS7 \ YOURUM ::
-#\[7]KNHLZUDBZZ5LC3TJXPYEKNDWQRIRQVTEGP5WAGM2XFXVMNBCFYAY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,,,.,,.,,.,.,,,,,..,,..,,..,,..,,...,..,,...,...,,,,,.,,,,,,,
+#QBNS6JVIWXWUVN2BZ3VZLO23RWSY2NZIXSR3KQQ2Z6SN46XDUDPV5KYTL2PSHCQLNJNV7JU2YQWR4
+#\\\|IG7ESDI7R4UHIZ366LD2VKI6KZWJ2SNF75BSEILQDJ6WTJ7JQL6 \ / AMOS7 \ YOURUM ::
+#\[7]TGDYJ4PJGUDIRPXNQ3XSKL2OPSJOHCPOHWWEXHNOGWTPTZUGSQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

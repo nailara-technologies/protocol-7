@@ -9,14 +9,23 @@
 my $before_cs = shift // '';
 my $after_cs  = shift // '';
 
-return warn 'expected two checksum parameters <{C1}>'
-    unless length $before_cs and length $after_cs;
+if ( !length $before_cs or !length $after_cs ) {
+    warn 'expected two checksum parameters <{C1}>';
+    return undef;
+}
 
 my $before_content = <[model_batch.blob.read]>->($before_cs);
 my $after_content  = <[model_batch.blob.read]>->($after_cs);
 
-return warn 'blob content unavailable for diff <{C1}>'
-    unless defined $before_content and defined $after_content;
+if ( !defined $before_content or !defined $after_content ) {
+    warn 'blob content unavailable for diff <{C1}>';
+    return undef;
+}
+
+## blobs are raw bytes : decode valid UTF-8 for the text diff ##
+for my $content_ref ( \$before_content, \$after_content ) {
+    utf8::decode($$content_ref) if utf8::valid($$content_ref);
+}
 
 my @before_lines = split m{\n}, $before_content, -1;
 my @after_lines  = split m{\n}, $after_content,  -1;
@@ -35,8 +44,8 @@ push @out, map {"+$ARG"} $added_aref->@*;
 
 return join "\n", @out;
 
-#,,,,,...,.,,,,,,,,..,...,.,,,,.,,..,,,.,,,,.,..,,...,..,,,..,.,,,,,.,.,.,...,
-#2QCJGGFF6ONG7TBS6ESHCBQXKGV75R7U7GYIQGKHGKLOCNAW62JV3TYG52HW7CCQT5RTG53F3ZKT6
-#\\\|5YFH5UVCQMX2OWB5Q2S32UL5Z3BNVXZMOIJOFUO3NFXBDLJYVFB \ / AMOS7 \ YOURUM ::
-#\[7]XHRRHJSNCLZ7IA7VRBVQQDXNXI6JSQZRAETVZCNE6ORXU4OMFOBI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,.,,,.,.,,,.,.,.,,,,,...,,.,,..,,...,...,.,.,.,.,.,,,,..,.,.,
+#IOLYFYIUR3RRUMXU6BRS7TXA3ZPEOFE4NBZUA33GA3JPM2URZJCSXPH3ATQS6XA6OBU5KHOFO2GWW
+#\\\|5T2Q4J5T4EUGMNFE7PH3M7PZVJE54JIJJLST2G7I2GRKQAWE46H \ / AMOS7 \ YOURUM ::
+#\[7]Q5PN2RHCSMZWMVFBWUVQGFKAR6AS2GK6I2KIXFKD7AEZIHRZGCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

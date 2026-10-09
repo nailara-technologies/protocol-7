@@ -9,12 +9,17 @@
 my $batch_id = shift // '';
 $batch_id =~ s|[^a-zA-Z0-9._-]|_|g;
 
-return warn 'expected batch id parameter <{C1}>' unless length $batch_id;
+if ( !length $batch_id ) {
+    warn 'expected batch id parameter <{C1}>';
+    return undef;
+}
 
 my $baseline_href
     = <[model_batch.manifest.persist]>->( qw| load |, $batch_id );
-return warn sprintf( 'no baseline manifest for batch %s <{C1}>', $batch_id )
-    unless ref $baseline_href eq qw| HASH | and %$baseline_href;
+if ( ref $baseline_href ne qw| HASH | or !%$baseline_href ) {
+    warn sprintf( 'no baseline manifest for batch %s <{C1}>', $batch_id );
+    return undef;
+}
 
 my $current_href = <[model_batch.manifest.build]>->();
 my $diff_href
@@ -33,8 +38,8 @@ return {
     qw| diff  | => $diff_href,
 };
 
-#,,,.,,,.,..,,.,.,..,,,..,,.,,.,,,,..,,.,,,,,,..,,...,..,,.,,,.,,,,,.,.,,,.,,,
-#46DTCAF6I6HN5MT7PYYK4AZYSXRQZCWE2CYNYH3H4T36KQSI3M7TASO3OAMGWPM4RNOPDCUL3MKMQ
-#\\\|CAM5BZ46LTI5ECTYAJJHP73ZPBI3PWW37AX3SSCE755OJ2MZ3KU \ / AMOS7 \ YOURUM ::
-#\[7]DSUTYJG2O75CXEFISABW4EIRHAZDXJU35DLARDJANM7XXHFCBCBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,.,,.,,,.,,,..,,,,.,,..,.,.,..,,...,...,.,,,...,...,.,,,..,,
+#YNTL4OPNLQCZBKLA42X7WD45KVCKMOO7DRFDV4QTUG54NRQUMHO7JLN4K5CE4DNINDO2PJT7B7QBI
+#\\\|VZR7R3FC5E53Q55EA5PWZFZSZC77UFJ4IAZY5YLOZYWH2DJB2UG \ / AMOS7 \ YOURUM ::
+#\[7]JL4NIFPQQU64EVQT4FL3JOXQX5XZLCIELYNG46DHFURSYL4TDYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
