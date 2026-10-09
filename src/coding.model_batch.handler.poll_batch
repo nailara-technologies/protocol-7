@@ -183,35 +183,20 @@ my $settle_task = sub {
     };
     $entry->{'finish_reason'} = $state->{'task_finish_reason'} // '';
 
-    ## optional criteria scoring [ iteration.score_result mechanics ] the   ##
-    ## iteration namespace is NOT loaded in the coding zenka [ its          ##
-    ## deps/src-used set has no iteration entry -- the load-early line is a ##
-    ## filter, not a search path ], so the scorer is an OPTIONAL enrichment ##
-    ## here : when it is unavailable the record simply carries no score,    ##
-    ## same as a task without criteria [ found live 2026-09-21 : an         ##
-    ## unguarded call here died inside settle_task, which suspended the     ##
-    ## Event repeat watcher on the uncaught exception and froze the batch   ##
-    ## mid-phase with no visible error ]                                    ##
-    my $criteria = $task_href->{'criteria'};
-    if (    ref $criteria eq qw| ARRAY |
-        and $criteria->@*
-        and defined $code{'iteration.score_result'} ) {
-        my $score_href = <[iteration.score_result]>->(
-            {   qw| result |   => $result_text // '',
-                qw| criteria | => $criteria,
-            }
-        );
-        if ( ref $score_href eq qw| HASH | ) {
-            $entry->{'score'}         = $score_href->{'score'};
-            $entry->{'score_verdict'} = $score_href->{'verdict'};
+    ## criteria hits over the reply and every written file, plus a compile ##
+    ## check of touched src/ modules -- before the revert, while the files  ##
+    ## are still on disk. replaces the iteration.score_result call, which   ##
+    ## is not loaded in the coding zenka : no record ever carried a score   ##
+    my $score_href = <[model_batch.score.task]>->(
+        {   qw| result |   => $result_text // '',
+            qw| criteria | => $task_href->{'criteria'} // [],
+            qw| capture |  => $capture_href,
         }
-    } elsif ( ref $criteria eq qw| ARRAY | and $criteria->@* ) {
-        <[base.logs]>->(
-            2,
-            '[model_batch] %s : criteria present but iteration.score_result '
-                . 'not loaded in this zenka -- recording without score',
-            $batch_id
-        );
+    );
+    if ( ref $score_href eq qw| HASH | ) {
+        $entry->{'score'}   = $score_href->{'score'};
+        $entry->{'misses'}  = $score_href->{'misses'};
+        $entry->{'compile'} = $score_href->{'compile'};
     }
 
     <[coding.model_batch.record]>->(
@@ -1013,8 +998,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,..,...,,..,..,,.,.,..,,..,,,..,...,..,,,.,,..,,...,...,..,,.,.,.,.,,,.,..,,
-#WZFDN6NHEESZMQ3A7VE6XBXR7Q4NQ4SETUC32DNJRTORN34W6XMAYWG752ZCHOZA6FHSEXBQC7XFY
-#\\\|DPSYVJZHS6UUCUCOVXVGJRM37JOQVQZ55WAJVU7KGBXZOAQSF6Q \ / AMOS7 \ YOURUM ::
-#\[7]NCXYNTLGGVDLYIOZWT2QQEIJNDBOLNVSL4I3T34AC56FYCHCP2CA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,...,.,.,..,,,,.,..,,..,,,,.,..,,...,..,,..,,.,.,..,,.,,,,..,
+#DGTS2JA675EWY6J7A4YQHDKLRE3LEW75I77VWSLVMVLZ2GCURNR7RI6KKS6EV3XZDDLFALJN7C2JY
+#\\\|TIPL3G3Z3Q3DC4ODSEFBIQYN2SZMPXSSJ3FQC3E7T4HI2C3S32F \ / AMOS7 \ YOURUM ::
+#\[7]KOPAKACNX6VNKZXMTQTNBIWCJP5QJB6MMEOKAYHZKNU7LKJRHUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
