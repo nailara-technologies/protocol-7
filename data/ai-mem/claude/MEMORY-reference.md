@@ -103,9 +103,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\[7]OIEYRD5AMBCK4QQUUHAMQITFE25YCFBVO7ZJKFAPXDRZ2PBXG2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
+- [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,.,,,,,,.,,,.,.,..,,,,.,,,,,,,.,,,.,...,,.,,..,,...,...,.,,,..,,.,.,,,,,,,.,
-#XNZWTXKLTWJAM6U73YHZYZYPD3EZ43IA5X7HBDL6LYUMVDKIWWKJ6XYH4W3NQFHPZB5SRLZBBTPFQ
-#\\\|EU7GZB4LRTLETEU45JNBV5I5RDPS3PWBRZP7EW5AM4KJHODCAKO \ / AMOS7 \ YOURUM ::
-#\[7]65IOUST2K5XSPBLI5BHF7WAE6LEXJKBXOHIUAHLEYTQH3X53L6AQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,..,,,,,,.,,,,,,,,,,,.,,,,,,,..,,...,...,.,,,.,,,...,..,,,.,,
+#AXVEXLCKQW5BXTH5SWWL73P6SRBZIBF7NZ74T4XFX52N6VPIRBWE447YS6IQEA2NQ65ZU6AHBB4DK
+#\\\|S4JDXDHD7UEUBLPZDYWTLOSOWSHYY3HK7WY3ZOFSHRACSMRQLNQ \ / AMOS7 \ YOURUM ::
+#\[7]YUMCODOZHYGDO64P63ZZBTSUGNHRTLZOQRXBG5CKCTWQ7DNOHCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

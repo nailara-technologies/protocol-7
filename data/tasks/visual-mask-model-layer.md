@@ -257,6 +257,8 @@ any visual domain:
   kittens:      cat mask → face landmarks → normalize
   elves:        person mask → face landmarks → ear topology
   crop circles: aerial mask → ellipse → perspective correct
+  displays:     screen mask → 4-corner quad → pose → povray content
+                [ see data/tasks/image-surface-addressing.md ]
   cosmic:       no mask needed (full frame is the domain)
   
 any future domain:
@@ -276,8 +278,8 @@ the latency:    always minimal
 
 leave new files clean. no stub footer.
 
-#,,.,,,..,...,,..,...,,..,,.,,...,,..,,..,,..,..,,...,...,.,.,.,.,.,.,,.,,..,,
-#G56QIZABQAD4S74WSGQ6RAODY6MUFC2WXRGCBKU5G4OKLP6MQTA5R2ZMLDTKD53ALAG4PELOXABDQ
-#\\\|4TIQM227CTJE5OZVLRVN23VOF76SYPTDPNEWXPSNBIIOPL6YW6B \ / AMOS7 \ YOURUM ::
-#\[7]Q52SKTUTBIXG5M7COGG6HH4WG5Z3AAR35LMEZQVKDGFHC4WMNODI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,,,,,.,.,,,,,,..,,,,,,..,,,.,..,,...,..,,,..,,,,,,..,..,,.,.,
+#GXNQCRUZOEZP4ZKL7E4YSCSEGES2MG66DAQVUQ5HG7EJKIOSWT4DHMX77WC3LLNHJLWZXN6NRV6G2
+#\\\|EW3JEJOBWMS67EXZINZL22OWV2D7PAT6EVBUC4ORORDG4QB62XN \ / AMOS7 \ YOURUM ::
+#\[7]S2U4IHV6XXJKD6LBYLLVVFNVNM5H54ZKXYLVALQZ3BYUABSKD6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

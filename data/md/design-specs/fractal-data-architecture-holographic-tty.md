@@ -770,6 +770,7 @@ Collection Stream
 - **Mask refinement zenki**: Clean edges, consistent style
 - **Layer library database**: Versioned, tagged, searchable
 - **Recomposition engine**: Match lighting, perspective, scale
+  [ flat displays : `data/tasks/image-surface-addressing.md` ]
 - **Drift tracker**: Measure and apply preference gradients
 - **Style consistency validator**: Ensure recombinations harmonize
 
@@ -1029,8 +1030,8 @@ The network-kitten images don't just look beautiful - they're **technically supe
 
 **Status:** Concept captured | **Priority:** High | **Dependencies:** data zenka SHM integration, protocol encoder, consensus engine, XCF serializer
 
-#,,..,...,.,.,...,..,,,,.,..,,.,.,,..,...,.,.,..,,...,...,...,,,,,,,,,,..,.,,,
-#5UXLEX3MTZ7K27RVBDJODBUJNQHDPSBWDGVS7WNRXDXVNODN35DVDMJK6FNJAIN7JYUMX263MNNUE
-#\\\|KDAOW3WXCSKNTKWOBPXJJR22H3YRP2ZLUZITIN7CD3XEBJCGGUH \ / AMOS7 \ YOURUM ::
-#\[7]NRYXI5KE65U7CIYZOCXTF6HOWJKKFN2SLMSZJMVM5M6375AOCSBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,..,.,.,.,.,,..,,..,,..,,..,,..,..,,...,..,,,,.,,,,,.,.,,.,,,.,,
+#KM4XUTQDSVESQ7N7675VNTMR2F55QLZIGQRNEAYDVFVOSWISAKFEUXRMVBLUGWHK3UA2YAE3RH2Y2
+#\\\|PETZM2AKL6VZ32RBO7NOOH5XIS4B6XCDSWMLTRMFVSM5UXH2Q4Z \ / AMOS7 \ YOURUM ::
+#\[7]KEFDWR6TLE5AS7DZEHCY77MCDRMEHJT326LONTVV3J7W4KSKX2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
