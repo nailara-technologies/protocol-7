@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = letsencr.child.acme_use_server
+# param = $server_url [ default : <letsencr.acme.server> ]
+# descr = select the ACME server context for the next request : when the
+#         server changes the client state is reset [ directory, nonce,
+#         account ] -- staging and production use separate accounts
+# return = the selected server url
+
+my $server_url = shift // <letsencr.acme.server>;
+
+my $current = <letsencr.child.acme_client>->{'server'} // '';
+
+if ( $current ne $server_url ) {
+    <[base.logs]>->(
+        2,
+        'switching ACME server context : %s -> %s',
+        $current || qw| none |, $server_url
+    );
+    <letsencr.child.acme_client> = {
+        'server'           => $server_url,
+        'account_key'      => undef,
+        'account_key_name' => undef,
+        'account_key_type' => 'Ed25519',
+        'account_id'       => undef,
+        'account_url'      => undef,
+        'nonce'            => undef,
+        'directory'        => undef,
+    };
+}
+
+return $server_url;
+
+#,,..,,,,,,,,,,.,,,,,,,,,,.,.,,,.,,..,...,,..,..,,...,...,.,.,.,,,.,,,,,.,,.,,
+#XIUZ6O3L2XHXAHXV55474LUQLFTSKA7RDD3C34XXDWEBKDGJFAGPJD4DW5UTZWDM4EWCOM4OUOEIE
+#\\\|42ZNMKH5RLTKPPZ7SPDDS7DDDZC4LEI27CEARHDFMFWFQ7OZEYV \ / AMOS7 \ YOURUM ::
+#\[7]EWJ3ONE3S3MY3Y3B5P37XIMJL3TJHVVUMLDCFDR2HA5KOPB4CMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

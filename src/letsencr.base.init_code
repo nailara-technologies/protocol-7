@@ -35,6 +35,16 @@
 <letsencr.cfg.account_key_algorithm> = <letsencr.cfg.account_key_algorithm>
     // 'RSA';
 
+## Automatic Enrollment Configuration (with defaults)
+<letsencr.cfg.enroll_domains>       = <letsencr.cfg.enroll_domains> // '';
+<letsencr.cfg.enroll_max_per_check> = <letsencr.cfg.enroll_max_per_check>
+    // 2;
+<letsencr.cfg.public_addresses> = <letsencr.cfg.public_addresses> // '';
+<letsencr.cfg.enroll_staging>
+    = <[base.cfg_bool]>->( <letsencr.cfg.enroll_staging> // TRUE );
+<letsencr.cfg.enroll_staging_server> = <letsencr.cfg.enroll_staging_server>
+    // qw| https://acme-staging-v02.api.letsencrypt.org/directory |;
+
 ## Initialize statistics and state
 <letsencr.stats> = {
     certificates_active   => 0,
@@ -100,8 +110,8 @@ foreach my $config (@dir_configs) {
 
 0;
 
-#,,..,..,,,,.,,..,...,...,...,,,,,,.,,,.,,,,.,..,,...,...,...,,.,,,,,,,,.,...,
-#NRYXKK6JMTK5NXC6UA4LGQBB27X7DKKGYIRA2A6QF4B4GCJFMZSPKDPKAVEKV5BMGA5CILS3R63CW
-#\\\|35MZGMBD7JEQA3FNZCUBRP2UUXOPCOYEJNKGPSRR3CFJNPM26RM \ / AMOS7 \ YOURUM ::
-#\[7]X2OJUASKGOFU5VUYEJ5W3DY5NEC656NYYWHX37EN7RYPDR2TSUCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,,.,,.,.,,,,,...,...,...,...,..,,...,...,,,.,,.,,,,,,...,.,,,
+#24GJAXSES2UBSVYQ3PQSJXFUPZZTGGKKSBQNFD2G3JHYAFNSVWJ7J3NMGJLG243WKG6R5FBGOJL5C
+#\\\|LUSH7VHVUA2UDITGW3Z6ZRU5AEO2RJD64VZW33P33PXYC55NHYT \ / AMOS7 \ YOURUM ::
+#\[7]5H53AP7SCU5AZA43R5HA5ONMPO3DVAH3AKS47JMLUEXD4RGRK2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

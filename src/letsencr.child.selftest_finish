@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = letsencr.child.selftest_finish
+# param = $token, $ok, $reason
+# descr = conclude a pending HTTP-01 self-test exactly once : removes the
+#         pending entry [ whichever of setup-reply \ timeout fires first
+#         wins, the other is a no-op ], cleans the token up and answers
+#         the parent's verify-domain call via its deferred reply_id
+
+my $token  = shift;
+my $ok     = shift;
+my $reason = shift // '';
+
+my $pending = <letsencr.child.selftest> // {};
+my $st      = $pending->{$token}        // undef;
+
+return FALSE unless $st;    ## already concluded : no-op ##
+
+delete $pending->{$token};
+
+my $domain   = $st->{'domain'};
+my $reply_id = $st->{'reply_id'};
+
+## always clean the test token up ##
+<[letsencr.child.util.cleanup_challenge]>->( $domain, $token );
+
+my $data = $ok ? 'checks passed' : sprintf( 'self-test : %s', $reason );
+
+<[base.logs]>->( 2, ': enroll : %s : %s', $domain, $data );
+
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => ( $ok ? qw| true | : qw| false | ),
+            'data' => $data,
+        }
+    );
+} else {
+    <[base.log]>->(
+        0, 'CRITICAL : self-test reply_id undefined - route remains open!'
+    );
+}
+
+return TRUE;
+
+#,,,,,,,.,.,.,,..,.,.,,,.,,,,,,,,,..,,.,.,,,,,..,,...,...,...,,.,,,..,,,,,..,,
+#5F64V4NBB6CYTSJCGFUR6K6MDIOK3OLZSHC3FMJNIDHRVDFCKZ47JKXSZMJ5PNPTC67QKPHR5LZZE
+#\\\|WMSLHI4GU6GSESOLT6ZRKQOTHGLEMVCC3UUPVYWZLV7IN2MM2GI \ / AMOS7 \ YOURUM ::
+#\[7]CV22SN6H2MLMZ74UHNWKJNLGHVTBYOEOIDTY4UWWVLPR6HSVJIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = letsencr.child.handler.selftest_timeout
+# descr = no httpd setup reply within the timeout : answer FALSE and clean
+#         the token up [ a late setup reply afterwards is a no-op ]
+
+## Event calls a timer handler with the EVENT, not the data hash : the 'data'
+## given to event.add_timer is $event->w->data [ the src-wide idiom ]
+my $event = shift;
+my $timer_data
+    = ( ref $event and eval { $event->w } ) ? $event->w->data : $event;
+
+my $token
+    = ref($timer_data) eq qw| HASH | ? $timer_data->{'token'} : $timer_data;
+
+return FALSE unless defined $token && length($token);
+
+<[base.logs]>->( 2, 'self-test : setup reply timeout [ token %s ]', $token );
+
+return <[letsencr.child.selftest_finish]>->(
+    $token, 0, 'self-test ' . 'timed out'
+);
+
+#,,..,,,.,.,,,..,,,,.,..,,,,.,,,,,,.,,...,,,,,..,,...,.,.,.,,,.,,,,..,.,,,...,
+#XXD36QZGODYQM2XY3PQYPQ2N6KJADBEMXFREXCLUFVWVPL2NM6TDAEQISCJLQ632ZFUN7UHFCNXWU
+#\\\|TN25RHYOKWV7ZSGRSG4UFHL53C5DETIXVXUC3VYZUGFNHD4USF3 \ / AMOS7 \ YOURUM ::
+#\[7]KHFOFRFRHMODB3UP6C3O5CZNOMDTQKKG4SXBPAHHLNM6KSARDSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

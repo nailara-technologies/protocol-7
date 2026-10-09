@@ -3302,6 +3302,7 @@ return [ qw[
         mod-test.blacklist_perlcode
         lm-vision.cmd.get_debug_log
         lm-vision.cmd.analyze_image
+        letsencr.child.http_get_url
         letsencr.child.generate_csr
         kimi.event.on_task_complete
         kimi.connect.schedule_retry
@@ -3899,6 +3900,7 @@ return [ qw[
         httpd.route.handler.web-relay
         httpd.benchmark.start_request
         host-edit.transport.free_port
+        host-edit.record.name_is_host
         graphics.matrix.visual.sphere
         graphics-matrix.graph.connect
         graphics-matrix.graph.cluster
@@ -4156,8 +4158,10 @@ return [ qw[
         lm-vision.parser.process_chunk
         lm-vision.handler.http_analyze
         llm.service.subprocess_wrapper
+        letsencr.child.selftest_finish
         letsencr.child.get_fresh_nonce
         letsencr.child.cmd.query-algos
+        letsencr.child.acme_use_server
         kimi-web.cmd.get-session-state
         kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
@@ -4403,6 +4407,7 @@ return [ qw[
         letsencr.child.load_account_key
         letsencr.child.encode_base64url
         letsencr.child.cmd.repair-chain
+        letsencr.child.check_domain_dns
         kimi.handler.dispatch_next_task
         kimi-web.internal.http_get_sync
         keystore.trash.purge_candidates
@@ -4609,6 +4614,8 @@ return [ qw[
         letsencr.parent.save_certificate
         letsencr.parent.cmd.query-vhosts
         letsencr.parent.cmd.activity-log
+        letsencr.child.resolve_addresses
+        letsencr.child.cmd.verify-domain
         letsencr.child.acme_http_request
         letsencr.child.acme_create_order
         kimi.session.reset_and_reconnect
@@ -4806,7 +4813,11 @@ return [ qw[
         mod-test.cmd.list-loaded-matching
         menu-commands.cmd.remove-category
         letsencr.parent.wait_httpd_online
+        letsencr.parent.enroll_state_save
+        letsencr.parent.enroll_state_path
+        letsencr.parent.enroll_state_load
         letsencr.child.acme_check_account
+        letsencr.child.account_file_paths
         letsencr.base.fork_letsencr_child
         kimi-web.internal.http_post_async
         kimi-web.cmd.read-session-context
@@ -5167,8 +5178,10 @@ return [ qw[
         memory.source.index.correlate_reply
         lm-vision.handler.read_batch_output
         letsencr.parent.process_pending_ops
+        letsencr.parent.process_new_domains
         letsencr.parent.handler_child_ready
         letsencr.fetch_intermediate_via_aia
+        letsencr.child.verify_http_selftest
         letsencr.child.respond_to_challenge
         letsencr.child.load_rsa_account_key
         letsencr.child.generate_account_key
@@ -5302,6 +5315,7 @@ return [ qw[
         memory.tree.score.focus_matches_stub
         lm-vision.handler.poll_coding_status
         letsencr.parent.handler.httpd_online
+        letsencr.parent.enroll_backoff_delay
         letsencr.child.poll_challenge_status
         letsencr.child.cmd.renew-certificate
         letsencr.child.check_dns_propagation
@@ -5421,6 +5435,7 @@ return [ qw[
         letsencr.parent.handler_renewal_retry
         letsencr.parent.handler_renewal_reply
         letsencr.parent.handler_renewal_check
+        letsencr.parent.enroll_record_failure
         letsencr.child.util.cleanup_challenge
         letsencr.child.substitute_admin_email
         letsencr.child.create_dns01_challenge
@@ -5613,6 +5628,7 @@ return [ qw[
         memory.status.provider.focus_saturation
         letsencr.parent.cmd.request-certificate
         letsencr.parent.cmd.install-certificate
+        letsencr.child.handler.selftest_timeout
         letsencr.child.generate_rsa_account_key
         jobsite.handler.reassess-refetch-queued
         invoke-web.handler.startup_resume_reply
@@ -5809,8 +5825,10 @@ return [ qw[
         mpv.handler.event.property-change.core-idle
         models.storage.check_space.check_tier_space
         mod-test.callback.reload-test.is_registered
+        letsencr.parent.handler_enroll_verify_reply
         letsencr.parent.handler_challenge_validated
         letsencr.parent.handler_challenge_confirmed
+        letsencr.child.handler.selftest_setup_reply
         httpd.handler.download_transfer.test-broken
         editor.control.multiline.line_col_to_offset
         data.topology.interference.map.MAX_RGB_DIST
@@ -5969,8 +5987,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,..,,,,.,...,...,...,...,,..,..,,,,,,,,,,.,.,...,...,,..,,.,,,,,,.,.,,.,,
-#H6OU5K3AMZ3GRS7YGSRWY5JEVRFFZBYVU6CPXASFDRDE7AUECAI4FCQWIXM2J4FESOTKTFKA5NXGI
-#\\\|GT7RNCAOV7P36NF5FAGVRAME33GEEWFEPCG5FASO3CHS56XRC2P \ / AMOS7 \ YOURUM ::
-#\[7]EULTNZ3CNGGUX3VJFWQ4CI7PVD7IDGEVDMRYRHCAY3NNI3K7R4CY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,,..,..,,,,.,.,,,,..,..,,,.,,.,.,...,...,.,,,..,,,..,,.,,.,,,
+#CZDXVFS7QCXC4EDYNXECUWVORMN3EMBRFZAMX7IEYFMLX57QU5D6DKQXH6EGLPMNCMA73MDLRTDR2
+#\\\|552YVZXWKJ2Z2WV6I3M2WJ4J6GZG325EKZLT775YFULRGWPCVOI \ / AMOS7 \ YOURUM ::
+#\[7]W7DY3X3BRYLOWWVYUX5L3PADK5IRNBKFT7MWW5I6A5ZRP3K4BODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

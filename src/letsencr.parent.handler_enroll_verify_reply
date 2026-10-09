@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_enroll_verify_reply
+# descr = handle verify-domain reply from the child : on passed checks the
+#         enrollment order is queued [ staging server when configured ],
+#         on failure the domain gets a persistent exponential backoff
+
+my $reply = shift;
+
+my $domain     = $reply->{'params'}->{'domain'};
+my $alt_names  = $reply->{'params'}->{'alt_names'} // [];
+my $staging    = $reply->{'params'}->{'staging'}   // 0;
+my $mode       = uc( $reply->{'cmd'} // '' );
+my $reply_data = $reply->{'data'} // $reply->{'call_args'}->{'args'} // '';
+
+unless ($domain) {
+    <[base.log]>->(
+        1, 'error : enroll verify reply handler missing domain in params'
+    );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    2,       ': enroll : %s : verification reply, mode : %s',
+    $domain, $mode
+);
+
+if ( $mode eq qw| TRUE | ) {
+
+    ## checks passed : queue the certificate order with the child [ the ##
+    ## server is chosen per request : staging for new enrollments while ##
+    ## letsencr.cfg.enroll_staging is set ]                             ##
+    my @domains = ( $domain, @{$alt_names} );
+
+    <[base.logs]>->(
+        2,       ': enroll : %s : checks passed, requesting certificate%s',
+        $domain, $staging ? ' [ staging ]' : ''
+    );
+
+    my $result = <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| child.request-certificate |,
+            'call_args' => {
+                'args'  => $domain,
+                'param' => {
+                    'domains'     => \@domains,
+                    'email'       => <letsencr.admin.email>,
+                    'attempt'     => 1,
+                    'acme_server' => $staging
+                    ? <letsencr.cfg.enroll_staging_server>
+                    : undef,
+                }
+            },
+            'reply' => {
+                'handler' => qw| letsencr.parent.handler_enrollment_reply |,
+                'params'  => {
+                    'domain'     => $domain,
+                    'attempt'    => 1,
+                    'enrollment' => 1,
+                    'staging'    => $staging,
+                }
+            }
+        }
+    );
+
+    if ($result) {
+        <[base.logs]>->(
+            2, ': enroll : %s : certificate order queued', $domain
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| pending |,
+            'checks passed : certificate order queued'
+        );
+    } else {
+        <[base.logs]>->(
+            1, ': enroll : %s : failed to queue certificate order', $domain
+        );
+        my $state = <[letsencr.parent.enroll_state_load]>;
+        <[letsencr.parent.enroll_record_failure]>->(
+            $state, $domain, 'failed to queue certificate order to child'
+        );
+    }
+
+} else {
+
+    ## checks failed : persistent exponential backoff [ survives restart ] ##
+    my $state = <[letsencr.parent.enroll_state_load]>;
+    my $entry = <[letsencr.parent.enroll_record_failure]>->(
+        $state, $domain, $reply_data
+    );
+
+    <[base.logs]>->(
+        2,
+        ': enroll : %s : checks failed [ %s ], backed off until %s',
+        $domain,
+        $reply_data,
+        scalar( localtime( $entry->{'next_attempt_after'} ) )
+    );
+    <[letsencr.parent.activity_logger]>->(
+        qw| enrollment |,
+        $domain, qw| failed |, "pre-enrollment checks failed : $reply_data"
+    );
+}
+
+return TRUE;
+
+#,,,.,,.,,...,,..,,.,,,,,,,,,,...,..,,,..,.,.,..,,...,...,.,.,..,,,,,,,.,,.,.,
+#EWVF2FBWQ527R7HOAHIPEZPUANLYTRPZHK2IOZJAUC3E276BUX66UOZSLRSFOVHA545GLWCP2O25M
+#\\\|OYR4Z6VJMJCE3GGCFH7CNRPTZZOMRZ5I2RGXCEWO4IWSZKOS3TU \ / AMOS7 \ YOURUM ::
+#\[7]U6JXXEYTNKRM4IFKLZQ5K5YIIKB24BF2F66SMVUYEIJ3H2HGBOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

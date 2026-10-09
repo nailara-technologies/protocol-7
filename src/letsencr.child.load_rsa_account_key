@@ -1,11 +1,14 @@
 ## [:< ##
 
 # name  = letsencr.child.load_rsa_account_key
+# param = $key_path [ default : current server's account key ]
 # descr = load cached RSA account key from PEM format
 
 <[base.log]>->( 2, 'loading RSA account key from cache' );
 
-my $key_cache = sprintf '%s/account.key.rsa', <letsencr.cache.dir>;
+my $key_cache = shift // <[letsencr.child.account_file_paths]>
+    ->( <letsencr.child.acme_client>->{'server'} // <letsencr.acme.server> )
+    ->{'key_rsa'};
 
 ## check if cache file exists
 unless ( -f $key_cache ) {
@@ -91,8 +94,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,,.,..,,,,.,...,..,,,..,,.,,,,,,..,,,,.,.,.,..,,...,...,,,.,..,,..,,...,,..,
-#32L3X3S32ACX4NTRRWGXPFOBATPVJOS73RQC6QTOHKNT2G7S6FCGS3XDFKF346F6WDGH6RPBSFH26
-#\\\|DWO7SB3VQASCOU4MRFB5UACOIV652T6EYOQVG6T4HWJDK4NLP2E \ / AMOS7 \ YOURUM ::
-#\[7]L7KP5OP7T2JR3TM3462X3YLGUJZI6ROGLBT5P5E5N3QZ3UNEMIAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,.,.,.,.,,.,,,..,,,,,,,,,,,.,..,,...,...,,,,,.,.,,.,,.,,,.,.,
+#RXTB2GULLWAYJNZDWAAVEH7UBRD7X2ZCL3E4O2AUQARKASJ5AS7UKMTGXSLCXNLAOLF3MJVLOPET4
+#\\\|5LRUNB2F373DNXUDI6YKPJMH6S4YGUZM7DTEW6LMI72U4VZ5FQR \ / AMOS7 \ YOURUM ::
+#\[7]IC5LORNV5X2JZBBGVW5S73D43XIAF5VNT543HSLUIGZXGWURLIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

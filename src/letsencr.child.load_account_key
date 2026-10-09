@@ -1,19 +1,24 @@
 ## [:< ##
 
 # name  = letsencr.child.load_account_key
+# param = $server_url [ default : current client server ]
 # descr = load existing account key from cache (RSA or Ed25519)
+#         [ separate account key storage per ACME server ]
 
-my $cache_dir = <letsencr.cache.dir>;
+my $server = shift // <letsencr.child.acme_client>->{'server'}
+    // <letsencr.acme.server>;
+
+my $paths = <[letsencr.child.account_file_paths]>->($server);
 
 ## check for RSA account key cache first
-my $rsa_key_path = sprintf '%s/account.key.rsa', $cache_dir;
+my $rsa_key_path = $paths->{'key_rsa'};
 if ( -f $rsa_key_path ) {
     <[base.log]>->( 2, 'loading RSA account key from cache' );
-    return <[letsencr.child.load_rsa_account_key]>;
+    return <[letsencr.child.load_rsa_account_key]>->($rsa_key_path);
 }
 
 ## fallback to Ed25519 account key
-my $key_path = sprintf '%s/account.key', $cache_dir;
+my $key_path = $paths->{'key_ed25519'};
 
 return undef unless -f $key_path;
 
@@ -84,8 +89,8 @@ unless ( $keypair && $key_name ) {
 
 return <letsencr.child.acme_client>->{account_key};
 
-#,,,,,,,.,,..,...,,..,.,.,,..,,.,,...,,,.,,.,,..,,...,...,.,.,,..,.,,,,,.,,,.,
-#JIYVD7Y45ORUFDP2APZYVXR3H5DT4NMWHC4KKNUPRWZXFX7KP7CW7IHQJ3P235YYVMWKCOWPPY2YO
-#\\\|DRFJZZ2NZFHKOLH3JV6E5KIOJDMEJRZ3LPTKH6XFZ6B3Z5DMP23 \ / AMOS7 \ YOURUM ::
-#\[7]GYEZPEOHQAAO6WRLAJN43HHTGFX3Q7P2JDFB34T4KYY7EM37I6CI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,,,.,,,,,,,.,.,.,,,,,,..,,,,,..,,...,...,,.,,,,,,.,,,.,.,,,.,
+#OOO2C5RAJSZQI4CP2LBJT5KSOBV64FR5UGEJM376RVVTI4BKLORUYYRNXJTS5EFNSEVKNBQYLKBGI
+#\\\|UK4B7D3SYS6DGWE7BPMFCB7BLO7AJWS4LATQGVTLL4SWQE7KJPK \ / AMOS7 \ YOURUM ::
+#\[7]CRAO5JNV6NGYL45V5UBNLTHCKD2M4YAY4B3QD6XU7WKXPYOHCCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

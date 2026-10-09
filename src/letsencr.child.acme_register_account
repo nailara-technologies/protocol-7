@@ -122,9 +122,12 @@ unless ($account_url) {
     = $account_url;    # Use full URL as ID
 <letsencr.child.acme_client>->{nonce} = $response->{nonce};  # Get fresh nonce
 
-## Save account info to cache
-my $account_cache = sprintf '%s/account.json', <letsencr.cache.dir>;
-my $account_info  = {
+## Save account info to cache [ separate registration per ACME server ] ##
+my $account_cache
+    = <[letsencr.child.account_file_paths]>
+    ->( <letsencr.child.acme_client>->{'server'} // <letsencr.acme.server> )
+    ->{'account_json'};
+my $account_info = {
     account_url => $account_url,
     created_at  => time(),
     email       => $email,
@@ -143,8 +146,8 @@ return {
     created_at  => time(),
 };
 
-#,,.,,...,,..,,.,,,..,,,.,.,,,,,.,,.,,..,,,..,..,,...,...,..,,...,..,,,..,.,.,
-#S3KO56ZILF326XTAEZTHSFGQYEFOL2MKMEJCRQYUYJIW2HIXLQ66MGZ6UWYW6IQTMJHVLNV7QZ2MM
-#\\\|5EGPBSVEU4RFZWWIRKUI6XAITWWQ5L7RAUZMNLLDRONMFMOC7OM \ / AMOS7 \ YOURUM ::
-#\[7]PYTYGZWTWIJCGX6UF43GVSI37TNHMD5IWSQHRKNXOH6XXJKQXGBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,..,,...,..,,,,.,,,,,..,,,.,,..,,...,...,,.,,,.,,,,.,,.,,.,,,
+#A3WSIQ36JKKOZVWJKTXYMRQ7J3EHIVG7WAHUNTM44HKNMP3CU6DQAQBIYNHNEOPKNK6AO7EX6VMVS
+#\\\|QF5K7JUXBZADC35DQSWR34GTQP6VSSMHXI6E66VHUUJFMKFM7PS \ / AMOS7 \ YOURUM ::
+#\[7]OG6LA7MZBLODIM7Y2JQZJFJAJX4KCBOVVCFWBN5A6T77I3Y4KMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

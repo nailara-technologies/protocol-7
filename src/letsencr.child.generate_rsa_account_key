@@ -64,8 +64,11 @@ $keys{'RSA'}->{$key_name} = {
     'time-loaded' => <[base.ntime]>,
 };
 
-## cache private key to disk
-my $key_cache = sprintf '%s/account.key.rsa', <letsencr.cache.dir>;
+## cache private key to disk [ separate account key per ACME server ] ##
+my $key_cache
+    = <[letsencr.child.account_file_paths]>
+    ->( <letsencr.child.acme_client>->{'server'} // <letsencr.acme.server> )
+    ->{'key_rsa'};
 
 <[file.put_bin]>->( $key_cache, \$pem_private );
 chmod( 0600, $key_cache );
@@ -87,8 +90,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,..,,,,,,,,,..,,.,,,,..,...,,,.,.,.,,.,,,..,..,,...,...,..,,...,,,.,,..,...,
-#G4ITEL55KZE44QDLADQ3PGDIMUGIAAXUI5DZGOK6JIEUOU7YCBBQY53SELDD5TD7IZDC7L3AHDDJA
-#\\\|NU2Z6UFRZUD456CB7SYSHY3BJOQQOMXE7PKFOR7O5O5S3HFVYWN \ / AMOS7 \ YOURUM ::
-#\[7]2BWDT33STEGRMMN3DVCBTIVYLGIMNY6BI47USD52T6HV4WSOGYBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,..,.,,,,.,,,..,,..,,.,,,,.,..,,...,...,..,,,,,,...,,,.,,..,
+#X2RJQRIFLDQYYTYMSRN3V4Q3FS2SD27UETDVGD3M2HIMM7OW5QTW7LEQRRIYIWEU7ZNU5ABGBTPYI
+#\\\|FMU6YCVPFWOE6OTYSPUQ3C7WQ4SCIDDIJ6PXOL5NXQOHH7PDXEY \ / AMOS7 \ YOURUM ::
+#\[7]VCRFGTH5LUD2EJ56D4WU4OPOLIRPWBYHXJFHW4FRLEOTSCJSN2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

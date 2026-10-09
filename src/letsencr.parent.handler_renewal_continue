@@ -118,16 +118,18 @@ if ( @new_domains > 0 ) {
         2,                    'found %d domain%s with no certificate yet',
         scalar(@new_domains), <[base.cnt_s]>->( scalar(@new_domains) )
     );
-    ## TODO: implement automatic enrollment for new domains  for now, just log
-    ## that they need certificates
+
+    ## automatic enrollment : allowlist, backoff, per-check limit, then ##
+    ## verification queued to the child [ blocking checks run there ]   ##
+    <[letsencr.parent.process_new_domains]>->( \@new_domains, \%domains_map );
 }
 
 <[base.log]>->( 2, 'renewal check complete' );
 
 return TRUE;
 
-#,,.,,,,.,.,,,,,,,,,.,,..,,.,,.,,,..,,..,,,.,,..,,...,...,..,,.,,,,,,,,..,.,.,
-#NVG35UTGWFYGSGZLJA4EPMVTSCQJXLHDGNHQFOKMGOENBY5Y2TOMFISBUT433MOFVMKASD6PVVZU2
-#\\\|2CUXDCZGQ5CE4ZBZ6YJBCLCTZEILT4ZSK5SH2LLG542VCY2L4FS \ / AMOS7 \ YOURUM ::
-#\[7]3LKG63T57AOJJNUEIAXBSUGRMCXR7TKDQTR4CTV4NGFTMVDR4ODI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,...,...,,..,,,.,,.,,..,,.,,,..,,...,...,,.,,,,,,,.,,,,,,,,.,
+#CO4LOMXV3SUKJOAXDAVVNYFICUIEHH6J57MJRKNA3NETGC5H6EB5NVB2ZUV5APBB7A5VV6YAHKR54
+#\\\|I3LIL5OG7SOF6ZRDNELMXDELH2S62MME5N37ABIR2XXYSNPNIX6 \ / AMOS7 \ YOURUM ::
+#\[7]VYAYOQ4SBANAHEOYMVZLA6KE2ZO4BXC66CI5Y6GGENEJIXM3IWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

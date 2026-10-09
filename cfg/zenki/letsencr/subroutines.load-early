@@ -360,6 +360,7 @@ base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
 net.read_linewise_estimated
+letsencr.child.http_get_url
 letsencr.child.generate_csr
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -431,8 +432,10 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+letsencr.child.selftest_finish
 letsencr.child.get_fresh_nonce
 letsencr.child.cmd.query-algos
+letsencr.child.acme_use_server
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -451,6 +454,7 @@ letsencr.parent.activity_logger
 letsencr.child.load_account_key
 letsencr.child.encode_base64url
 letsencr.child.cmd.repair-chain
+letsencr.child.check_domain_dns
 crypt.C25519.private_key_loaded
 crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
@@ -461,6 +465,8 @@ base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
 letsencr.parent.save_certificate
 letsencr.parent.cmd.activity-log
+letsencr.child.resolve_addresses
+letsencr.child.cmd.verify-domain
 letsencr.child.acme_http_request
 letsencr.child.acme_create_order
 crypt.C25519.name_from_skey_name
@@ -479,7 +485,11 @@ base.config.load_proto_7_version
 ascii.frame.parse.border_segment
 protocol.amos-chksum.ext-cmd.exit
 letsencr.parent.wait_httpd_online
+letsencr.parent.enroll_state_save
+letsencr.parent.enroll_state_path
+letsencr.parent.enroll_state_load
 letsencr.child.acme_check_account
+letsencr.child.account_file_paths
 letsencr.base.fork_letsencr_child
 base.zenki.pause_ondemand_timeout
 base.sourcecode.in-mem.sub-source
@@ -514,8 +524,10 @@ protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 letsencr.parent.process_pending_ops
+letsencr.parent.process_new_domains
 letsencr.parent.handler_child_ready
 letsencr.fetch_intermediate_via_aia
+letsencr.child.verify_http_selftest
 letsencr.child.respond_to_challenge
 letsencr.child.load_rsa_account_key
 letsencr.child.generate_account_key
@@ -533,6 +545,7 @@ base.callback.report_children_reply
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 letsencr.parent.handler.httpd_online
+letsencr.parent.enroll_backoff_delay
 letsencr.child.poll_challenge_status
 letsencr.child.cmd.renew-certificate
 letsencr.child.check_dns_propagation
@@ -555,6 +568,7 @@ protocol.amos-chksum.connect_callback
 letsencr.parent.handler_renewal_retry
 letsencr.parent.handler_renewal_reply
 letsencr.parent.handler_renewal_check
+letsencr.parent.enroll_record_failure
 letsencr.child.util.cleanup_challenge
 letsencr.child.substitute_admin_email
 letsencr.child.create_dns01_challenge
@@ -580,6 +594,7 @@ letsencr.child.cmd.request-certificate
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
 letsencr.parent.cmd.request-certificate
+letsencr.child.handler.selftest_timeout
 letsencr.child.generate_rsa_account_key
 base.perlmods.blacklist_collision_index
 base.log.send-buffer.send-idle-callback
@@ -604,8 +619,10 @@ base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
 letsencr.parent.handler_httpd_reload_reply
+letsencr.parent.handler_enroll_verify_reply
 letsencr.parent.handler_challenge_validated
 letsencr.parent.handler_challenge_confirmed
+letsencr.child.handler.selftest_setup_reply
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 letsencr.parent.check_certificate_expiration
@@ -622,8 +639,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,,,.,,.,,,.,,,,.,...,,,,,.,,,,,.,...,..,,...,...,.,,,..,,,..,,.,,..,,
-#GL7YJXCBU7WP7QCIVFVEPWM3ID5FLNTPMXZKVWSAFKYVIJOGUUTLAJAUCGJLRWOB2KNVO44UUBZ56
-#\\\|CN5VUYXPHPWXVAKWPFIUBDYTG2CG6POBKQR3LCJZMTK6DFK2B3O \ / AMOS7 \ YOURUM ::
-#\[7]KCAJQIC2Z4EDMLQYV3KYPWLA6ZSUEV6VYHJZWJK457LYFOYQEUCQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,,,,,...,,..,...,,..,...,,,.,..,,...,...,.,.,..,,,.,,...,,..,
+#2FGQQURKAMWF7ABF6YXH34DMKNOAM26WZZDUXMFEGGTLOREU3LBZHMAI6ZZDQIXYINT6C3ACESN6O
+#\\\|J7DXW33Y3D4X2AOCXIEMWIDVNCMKGTYO5BW6CFOBW7HNUTCOX3U \ / AMOS7 \ YOURUM ::
+#\[7]3MW32DMLVCUKF6GHVG3IILKO7CXP5O3CEKQ2IKI7Q542CUFGTOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
