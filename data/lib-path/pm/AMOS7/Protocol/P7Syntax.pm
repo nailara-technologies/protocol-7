@@ -15,7 +15,7 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 @EXPORT = qw[ ];
 
 @EXPORT_OK = qw| $VERSION p7_syntax__translate p7_syntax__perl_c
-    p7_syntax__floor_perl |;
+    p7_syntax__floor_perl p7_syntax__sig_fragment_rx |;
 
 ## deliberately dependency-free : no 'use AMOS7'/'use AMOS7::CHKSUM' --     ##
 ## this sub is also called from bin/Protocol-7's own bootstrap, before base ##
@@ -666,10 +666,32 @@ sub p7_syntax__perl_c {
     return ( \@local_out, \@floor_only, $version );
 }
 
+##[ SIGNATURE FRAGMENT ABOVE THE FOOTER ]#####################################
+
+## a leftover directly ABOVE a file's real signature footer [ found 2026-10-09
+## in 56 files, ed8f5e06d ] : a lone separator line, a separator + an agent's
+## '#PLACEHOLDER ..' line, a whole placeholder block starting
+## '#,,PLACEHOLDER', or a separator + '</content>' -- each followed by a blank
+## line and then the real footer.  the sign tool's own stub passes [
+## source.extract_sig_body ] only remove complete stub shapes, never these.
+##
+## deliberately NARROW : only those line kinds, and only when the real footer
+## [ separator + checksum line ] follows right after the blank line -- an
+## intentional comment or encoding above a footer never matches.  capture 1 =
+## the fragment lines [ without the blank line after them ].  used by
+## sourcecode.console.update-signatures [ warn, or strip with :strip: ] and
+## the pre-commit hook [ warn ]
+
+sub p7_syntax__sig_fragment_rx {
+    return qr{^(\#(?:[,\.]{70,}|,,PLACEHOLDER[,\.]*)\n
+                (?:(?:\#[^\n]*PLACEHOLDER[^\n]*|\#:{70,}|</content>)\n)*)
+              \n(?=\#[,\.]{70,}\n\#[A-Z2-7]{60,}\n)}mx;
+}
+
 return 5;  ###################################################################
 
-#,,,,,,.,,,,.,,,.,.,.,.,.,.,,,,..,,,.,...,.,,,..,,...,..,,..,,,.,,.,.,..,,.,.,
-#KVCHR6XKMSD3HCTAD4G554CJHJVOF7H4HSTJ6HNYKNHSLQ3VJLFH7SST3TTCWX2FED73L3NVIQSKQ
-#\\\|B4POXIBHOENOLKAL6OUROFHU6BFNIKNWUZY7JBQELENNGW6AMOZ \ / AMOS7 \ YOURUM ::
-#\[7]EKHIELRPIMZETKJK4H7HHYU2XQKK2J3ZLFYSXDME4VOKMXRKIUAI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,.,,,,,.,,,,,...,,..,,,,,,.,,..,,...,..,,.,.,,..,...,.,.,,..,
+#V4OPEMPWHL5VRCN5KBYLOOUXF3U2EHZRIVHULEVB4XFOOOCFBD7KXWDB5IY6DIVQEOZRSB6RA2NUG
+#\\\|QRYB4G3K46NMI6ULATK5OUKL5BOEERNAF7P6BPHU2FT2LU3TADU \ / AMOS7 \ YOURUM ::
+#\[7]RH7TXGMGPHLNXRN47B4UNWDEMUSDYOU34GMVHO6FS5KB6N3ST6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

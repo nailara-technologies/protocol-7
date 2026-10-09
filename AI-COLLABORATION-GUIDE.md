@@ -85,7 +85,7 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **Log style**: `:. description .: value` for aesthetic formatting
 - **Module invocation**: `<[module.name]>->($args)` - closing `]>` BEFORE `->`
 - **No emojis**: Unless explicitly requested
-- **No signature stubs**: Don't add `#,,.,,,...` - signing system adds real 4-line footer
+- **No signature stubs**: Don't add `#,,.,,,...` - signing system adds real 4-line footer. That includes ANY placeholder : no `#PLACEHOLDER...` line or block, no lone separator line, no `</content>` or other tags at the end of a file. New files stay unsigned ; in an existing file never touch the footer -- edit above it and leave the blank line before it. Leftovers above the footer are reported by the pre-commit hook and removed by signing with `:strip:` [ 56 files had them, 2026-10-09 ]
 
 ### Log Levels
 - **0**: Error (user-facing problems)

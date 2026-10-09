@@ -57,10 +57,13 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
    `cfg.enroll_staging = no`.
 2. `bin/test-scripts/test-form-stdin-key.pl` [ kimi dispatched, session fa450f04 ] --
    review + sign.
-3. sign tool once left a stray old-signature line [ form.chrome ] -- only if it recurs.
+3. DONE : signature fragments above the footer were agent leftovers [ 56 files, stripped
+   ed8f5e06d ], not a sign-tool bug. rule : AMOS7::Protocol::P7Syntax
+   p7_syntax__sig_fragment_rx ; update-signatures reports them, `:strip:` removes them ;
+   the pre-commit hook warns [ not blocking ] ; AI-COLLABORATION-GUIDE names the variants.
 
-#,,,,,,,.,...,,,,,,..,..,,,.,,,,.,,..,,,,,...,..,,...,.,.,.,,,,,.,,,,,,,,,.,,,
-#7DDH2LJ5NSSJTCSUGOBBIWWZMQFXGP3X5VS245RI7VC7QBU4PEDRDQZGORSOGLZ4IGLBSZML54L2I
-#\\\|U2R6QUVKSVOKHSS5J6APW3YSO57UHHE4PPV7UDWLCCG23D5QL4V \ / AMOS7 \ YOURUM ::
-#\[7]O4UXGFSXZ3RXWGUSPDRQF5PRF2APUFK5LPMQKCN2SJMTZ5JCO4DI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,.,,,.,,,.,.,,,,,.,.,.,,,.,...,..,,...,...,...,,,,,.,,,,..,.,,,
+#5TTCEIN2ZYU7M4JR7LNPVOFVH4B5HSD36F7L56TCQGGKA3OK2QLRLTY2D2Z3NJ3DHCFUMRU7NGSCU
+#\\\|SLR6B6LWZIWCTGNFWDDKLHTZVWL6UQ74OWJOVQACODP2OXKETDW \ / AMOS7 \ YOURUM ::
+#\[7]PFP6I2YDXQ6LY4L4JL2CRBFIBBXCS3WFOMQFOZ2RFJSNK5DXR2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
