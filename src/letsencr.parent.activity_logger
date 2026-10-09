@@ -40,14 +40,19 @@ if ( $status eq 'failed' ) {
     <[base.log]>->( 1, "ACME $operation failed for $domain: $details" );
 } elsif ( $status eq 'pending' ) {
     <[base.log]>->( 3, "ACME $operation pending for $domain" );
+## the detail tells the steps apart [ saved, installed, notified ] ##
 } else {
-    <[base.log]>->( 2, "ACME $operation $status for $domain" );
+    <[base.log]>->(
+        2,
+        "ACME $operation $status for $domain"
+            . ( length( $details // '' ) ? " : $details" : '' )
+    );
 }
 
 return TRUE;
 
-#,,..,...,...,,,.,.,.,,,.,,..,..,,,.,,.,,,.,.,..,,...,..,,,..,,..,,..,.,,,,..,
-#EYAFEKCT3I3C3J3S3GSAUJEL7PJUGJ2WYSKQP2D5EKI4GGH267XRZHNNQFK5V5K3ATSFOO3VEAXK6
-#\\\|VYTEVWLAZIV3QK6HV2IQSD7CTJN2SKVW4KDSDHIC5FI3HMFC7RZ \ / AMOS7 \ YOURUM ::
-#\[7]PURWU74PASEC4E6VRHOTTTMRKHJE2XEVOS2RUO7PWU2DYZM7CCBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,.,,..,,..,,,.,,..,.,.,,..,.,,,..,,...,...,,.,,,..,,,,,,,.,.,.,
+#FOWHH225CCCHSKVQSJHMVLBKRHOVCMH6WWVXLKOOKBD4BLSSU4EWGY6LLDPDBXUNPQNVWWETAO3KA
+#\\\|6EN3GWBCOB5MHBOIA35GVINU3APSIGZQVMSMGZ2WY3CXB43QD2A \ / AMOS7 \ YOURUM ::
+#\[7]AVLSK272JNNDN7BL7JQGQMLNVTXXUJH5HZGV3DIWEHZE5VNLBECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
