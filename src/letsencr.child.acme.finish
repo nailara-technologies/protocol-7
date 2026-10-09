@@ -11,6 +11,8 @@ my $order = delete <letsencr.child.orders>->{ $order_id // '' }
     // return FALSE;
 
 <[letsencr.child.acme.cancel_poll]>->( { 'order_id' => $order_id } );
+my $deadline = $order->{'deadline_timer'};
+$deadline->cancel if ref $deadline and eval { $deadline->can('cancel') };
 <[letsencr.child.acme.cleanup]>->($order);
 
 <[base.logs]>->(
@@ -32,8 +34,8 @@ if ( defined $order->{'reply_id'} ) {
 
 return <[letsencr.child.acme.next_queued]>->($order_id);
 
-#,,,,,,.,,,,.,..,,.,,,,.,,,.,,..,,,,,,...,,.,,..,,...,..,,..,,.,,,...,.,.,,,.,
-#5FWVFMUY5KOOJ2G2DAXRWN4IA4HNRPLJDAVSCMR4IFJMIKQZKM5T4QPR2PKH3AJZ34NE5EQHEIYOI
-#\\\|37K5ITNEDHWOKIAZF77SP3HKXMWWQV6MJKT7H3HTBKKIKTCVH3G \ / AMOS7 \ YOURUM ::
-#\[7]OKS3ZNN7TKLJHDSUAXCHV6PKJT6DSV4MBQNUXRZPC2Q4MKVHMSAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,,,...,.,,,.,,,,..,.,.,,.,,,,,,..,,...,.,.,..,,,,.,,,,,...,.,.,
+#Y35BV3ZTBDVHYWWSS3MQBM2RC3ZNJGCC7TE27VKBICSY7X2OUJUQT7USSHHM3KRLJRRO5QUKOH2XM
+#\\\|GNAIS3Y6DXWWDBCA7X6RYNNXTQVMSVIJJQBSX7QQWNIYFNHA5RA \ / AMOS7 \ YOURUM ::
+#\[7]PTLRA3NAEVM6PXED37HUCS6ML6HNWRKMG3MLPXWPLWS63KTFCGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

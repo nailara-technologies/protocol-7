@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_deadline
+# param = <timer event>
+# descr = order deadline : fail it even when no reply ever came
+
+my $event = shift;
+
+my $data = ref $event ? $event->w->data : {};
+$event->w->cancel if ref $event and $event->w->is_active;
+
+my $order_id = ref $data eq qw| HASH | ? $data->{'order_id'} : $data;
+
+## a lost reply leaves no handler or poll to notice the deadline -- the ##
+## queue behind this order would wait forever. fail is safe to repeat   ##
+return <[letsencr.child.acme.fail]>->(
+    $order_id, 'order deadline passed [ no reply ]'
+) if exists <letsencr.child.orders>->{ $order_id // '' };
+
+return TRUE;
+
+#,,,,,,..,..,,...,.,,,..,,,,.,.,,,,.,,,,.,,,,,..,,...,..,,...,,,.,..,,,,.,.,,,
+#IHNHVA44EFGVGU3ERENUWEYROOKO6DWUVR5OEGYUQ75PULZRATUU6BMYVBHUH4DQXURENOY5LNJH2
+#\\\|NEZR4J4P3NJK7Y662T5TPVXAJZKB3KFVCPBTETKDDSRCIF22VNE \ / AMOS7 \ YOURUM ::
+#\[7]GLJY4TEVNWCYCNUHHQPGTX27PFFHOB2HJZQGZE3EPDOUEUQBCEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

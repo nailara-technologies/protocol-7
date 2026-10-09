@@ -1,11 +1,12 @@
 ## [:< ##
 
 # name  = letsencr.child.acme.on_setup
-# param = <reply> <params>
+# param = <reply> [ { sid, cmd, call_args, data, params } ]
 # descr = a challenge set-up confirmed [ httpd \ nameserv ]
 
-my $reply  = shift // {};
-my $params = shift // {};
+## a route reply handler gets ONE hash : the reply params sit inside it ##
+my $reply  = shift              // {};
+my $params = $reply->{'params'} // {};
 
 my $order = <[letsencr.child.acme.order_of]>->( $params, qw| setup | )
     // return FALSE;
@@ -15,8 +16,11 @@ my $mode = uc( $reply->{'cmd'} // $reply->{'mode'} // '' );
 
 if ( $mode ne qw| TRUE | ) {
     return <[letsencr.child.acme.fail]>->(
-        $order->{'order_id'}, sprintf '%s : %s set-up failed [ %s ]',
-        $authz->{'domain'},   $params->{'target'}, $reply->{'data'} // $mode
+        $order->{'order_id'},
+        sprintf '%s : %s set-up failed [ %s ]',
+        $authz->{'domain'},
+        $params->{'target'},
+        $reply->{'call_args'} // $reply->{'data'} // $mode
     );
 }
 
@@ -33,8 +37,8 @@ return <[letsencr.child.acme.step_propagate]>->( $order->{'order_id'} )
 
 return TRUE;
 
-#,,.,,,,.,..,,,,.,.,.,,.,,,..,..,,...,...,.,.,..,,...,...,.,,,,,.,.,.,...,..,,
-#KZQ6Q44JGSOYY6DE7Z6FQV6HJQ2VXZNJQKH37Y4SB4DXK4S66LOFFT7Z6TOX3EX2TGUYBNMVS4J3W
-#\\\|XLPALP7CWUWH2MQOYIHO4YJ3BD6RWNP5BBDE7R6C7FQNEZ36IM7 \ / AMOS7 \ YOURUM ::
-#\[7]DBLF3Y7EFFDQX7SVR4TQA5YMK45B22J3SQFLOP6EQILEOPSYYODY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,.,.,...,,..,,,.,,,,,.,.,,,,,..,,...,...,..,,.,,,,,,,,..,,..,
+#S6RXKZUA3UZ5UZU5UQMZNW62G3MXSRXHJEJK52TDD46LGE2F2HBKJZS7H2YELQZ4IBUIRUXL6TA4Y
+#\\\|C4DORKLEVXOUJ2YVEXAJQBW7CDFG2NH3YMSVZAX7XGTIHJP3BON \ / AMOS7 \ YOURUM ::
+#\[7]HNVHN6XEVNRVEPJH5WF2CKGMM5PU7UOZQNB6M5OORMFQXDIQNWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
