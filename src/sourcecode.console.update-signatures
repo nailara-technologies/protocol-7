@@ -16,6 +16,13 @@ $sign_verbosity = 0
 ## no others -- leaves other already-staged/unstaged batches untouched     ##
 my $stage_files = $command_params =~ s| *:stage: *| |;
 
+## :strip: removes a signature FRAGMENT left directly above a file's real
+## footer [ a lone separator, an agent's PLACEHOLDER line or block,
+## '</content>' -- AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx ].
+## without it such a fragment is only REPORTED : the narrow rule never
+## guesses, but removing is still the user's explicit choice
+my $strip_fragments = $command_params =~ s| *:strip: *| |;
+
 ## :workers=N: overrides the parallel-worker count [ default : auto, based ##
 ## on cpu count, see below ]. :workers=1: forces the plain sequential path ##
 my $workers_override;
@@ -122,6 +129,52 @@ map {
     <[base.logs]>->( 0, 'file ./%s is not writable', $ARG )
         if not -w catfile( $work_tree, $ARG )
 } @source_paths;
+
+## signature fragments above the footer : reported, or stripped [ :strip: ]
+## BEFORE signing, so the new signature covers the cleaned file
+<[base.perlmod.load]>->(qw| AMOS7::Protocol::P7Syntax |)
+    if not <[base.perlmod.loaded]>->(qw| AMOS7::Protocol::P7Syntax |);
+my $fragment_rx = AMOS7::Protocol::P7Syntax::p7_syntax__sig_fragment_rx();
+my $fragments   = 0;
+foreach my $path_rel (@source_paths) {
+    my $path_abs = catfile( $work_tree, $path_rel );
+    my $text;
+    next if not <[file.slurp]>->( $path_abs, \$text, qw| :raw | );
+    next if $text !~ $fragment_rx;
+    my $line = 1 + ( substr( $text, 0, $LAST_MATCH_START[0] ) =~ tr|\n|| );
+    $fragments++;
+    if ( not $strip_fragments ) {
+        <[base.logs]>->(
+            0, 'signature fragment above the footer : ./%s:%d [ :strip: ]',
+            $path_rel, $line
+        );
+        next;
+    }
+    $text =~ s|$fragment_rx||;
+    my $mode = ( stat $path_abs )->mode & 07777;
+    if ( open( my $fh, qw| > |, $path_abs ) ) {
+        binmode $fh;
+        print {$fh} $text;
+        close $fh;
+        chmod $mode, $path_abs;
+        <[base.logs]>->(
+            1,         'stripped a signature fragment : ./%s:%d',
+            $path_rel, $line
+        );
+    } else {
+        <[base.logs]>->(
+            0,         'cannot strip ' . './%s [ %s ]',
+            $path_rel, $OS_ERROR
+        );
+    }
+}
+<[base.logs]>->(
+    1,
+    '%d file%s with a signature fragment%s',
+    $fragments,
+    <[base.cnt_s]>->($fragments),
+    $strip_fragments ? ' [ stripped ]' : ' -- sign with :strip: to remove'
+) if $fragments;
 
 my $file_count = scalar @source_paths;
 my @staged_paths;
@@ -304,8 +357,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,.,,.,,,,..,,,,,.,.,,.,,..,,.,.,...,...,..,,...,..,,,..,..,,...,,..,..,,
-#5BUEMCZWH3NPUTOCZY6WRXHUF2ES2I76HPNPUYGHKTSCPXS46U6JP4AO7YFKBVMRFZAHLEKF3GARA
-#\\\|CD4RCY7JFRCEKUPUWIAL3KFQBNH6UDR5KMKX73ZAFIXABCZVBBY \ / AMOS7 \ YOURUM ::
-#\[7]3JEB7HOPCPGY5SFQBJXARPYZR5UEI2OEEUZ57IOIMFHDHQW3QIBA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,,.,,,,.,..,,..,,...,...,..,,..,,...,...,...,,,.,...,,,,,,..,
+#4Z5AAMG6WOD3PW7IEULVHOQ42RHR7ZANTHD7GPR6Q3IHB43KRIRFNSEUGRNYXO5WS3CQP2X634ED2
+#\\\|2P6GAYKCYSCBDVHBZGFOW6JJA53NLX623VZUCO3VUFJFPAXJUPV \ / AMOS7 \ YOURUM ::
+#\[7]EYVGOSRQCNRJ7PWH7YPJAKPNJELBTDGZXEEBEHI47D2H6ZDUFUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
