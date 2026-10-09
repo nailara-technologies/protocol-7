@@ -25,10 +25,10 @@ written up 2026-10-09 as `data/tasks/image-surface-addressing.md` [ truncated \ 
 screens are wanted, not filtered -- user ] : the geometry step -- mask -> 4-corner quad -> pose \ scale
 -> povray renders real syntax-highlighted code onto a matching rect -> composite -> back in as a
 reference image [ the user's planned code-rendering feedback loop ]. first test case : the kitten
-background `data/gfx/backgrounds/SDNZSXD2I5BZAMYCNJ5YDSOTW4MHA3TRTOB75KDEGMOOW.png` [ 3 screens ].
+background `data/gfx/backgrounds/EFKDIR72PN2FMO4WTUBLGWYJUHVX2UACHMES47ZJZR4IO.png` [ 3 screens ].
 
-#,,.,,,..,,.,,,..,..,,,.,,...,,,.,.,,,..,,.,.,..,,...,...,,.,,,.,,,,.,.,,,,,.,
-#7ZOYFCDPL3NZANRL4SK3X64AA5CK55UD22HNT2BXB4SACD7CWJ72Z35EWLW7MAJXY74E5SO3JO6YY
-#\\\|FW2RD6VVSJHRKUNMCH4PUKCEWZHGZTWXSRBAFTOZEUMUAVVIC5P \ / AMOS7 \ YOURUM ::
-#\[7]HLCXUR6PIQ5DKQLK6KPTN5FH4DUCRZVGD3WMT6GJWNFFJK4BMSBY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,.,,,.,.,,,,,.,,,,.,,..,,..,,..,,...,...,,.,,.,.,.,.,,..,..,,
+#3LDR74QTQJZNTYQZFAJOQ4FRJW7PMSPU4JQ7L7SHO3DWAVZQU53HCUXPK5QZA7B67YTJ43Q6QDBDK
+#\\\|OIVDMQO7U3QRH42E6RSVIX5L7LU3CQV7N3XN774ELXFSVJVIDWV \ / AMOS7 \ YOURUM ::
+#\[7]6XT25XXCMF5EDRF6AQRC7M47N3YNOZ7SF2UUI37NB4QYDZG2X4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
