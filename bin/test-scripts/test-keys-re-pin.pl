@@ -301,10 +301,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,..,,,.,.,,.,,,,..,.,.,.,..,,.,,,,,.,,..,.,,,,.,,,..,,,.,..,.,,,,.,,,,.,,,
-
-#,,.,,.,.,,.,,..,,.,.,.,.,.,.,.,.,.,,,,.,,,,.,..,,...,...,...,,.,,.,.,,,,,,,.,
-#6MVVTWL3DMNDSSWMHPOGRX7J6UG6O7AYUYI5SWA6DRCPRBU3NTEN7MPNX7TUVTZ5PBOQZRG53EMGG
-#\\\|ALAYGBSKCZZR5RRIPAKBWWVJDQHHY5YUCS6CBOLKJHRIPBVJP52 \ / AMOS7 \ YOURUM ::
-#\[7]RSN3AKQRJCRWGHKWQ63PJ3AGQ6TVTDU7SWCZDTNGUCGLFENT5YDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,.,,,,..,.,,,.,.,,,.,,..,,,,,..,,...,...,,..,,,.,...,,..,,,,,
+#4MTXAO5QAHFPZAQEZEA3NC3373JTRGMQXGNIYJY3246RWF7CHIXLTYTNOH3K7YBQLYEAE4Y4WHA62
+#\\\|HGOHG5PWR5LG5KF2NC6W5NFRNAI5AZXPYEVVYEKQXVYXJEXMTLW \ / AMOS7 \ YOURUM ::
+#\[7]LMY2EKFVYXDKVJCK5COC342VT4AQ7YL3VOCVYLSR4WHR2MFC2MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

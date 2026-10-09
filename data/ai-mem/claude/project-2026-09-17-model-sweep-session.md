@@ -73,10 +73,8 @@ implementation, both caught real bugs in first drafts):
 `data/tasks/coding-sweep-task-priority-coordination.md`. Both fully
 implemented and committed, not open work.
 
-#,,,,,,..,...,.,.,,,,,.,,..,.,,,,.,,.,,,.,.,.,,,,,..,,...,...,.,,,,,.,.,.,.,,,
-
-#,,.,,...,.,,,,..,.,.,,,,,,.,,,.,,,.,,,.,,,.,,..,,...,..,,...,,.,,..,,,,.,,.,,
-#5D2JNXQLPC2XY55C77QQCA6ZURRILTAJ622DKF3XC5RRF54H444RCVXRQ26PK44QOB24NN67SJVSI
-#\\\|LQ7BOUMQLL2LNYCMJFES3GGKGHOHF5GU2H7W3DC5O2NL54HHY5Z \ / AMOS7 \ YOURUM ::
-#\[7]HGUYHPGEK4THGTPF4ABQCAAEXJREXKYUJO5FS6DKECCHI56BAADI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,..,,,,.,,,,,,,,,.,,,,,,,...,..,,...,...,..,,...,,.,,,,.,,,,,
+#NGI5ORZFREB76HO2RLZGU2BATV2MRRGZNXGRNHRFSDVQRY7KYRA33PDIHDMOVWEWYVCRWO3C7MCWG
+#\\\|ORX4MOQLMVIQQAYDY6PT3RPWL5OMWXCH4NH5IZYJXN26DC5TN7C \ / AMOS7 \ YOURUM ::
+#\[7]LGWPAVU3EPMI2HYZOGIM2OZAOT4FUEWXMJBY7VM4X6BKMILRPSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

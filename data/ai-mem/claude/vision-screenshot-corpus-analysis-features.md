@@ -64,10 +64,8 @@ animation-tagging idea in particular pairs directly with a future capture
 run, since it changes what gets written to the manifest at capture time, not
 just post-processing.
 
-#,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
-
-#,,..,..,,,..,.,,,,..,.,,,,..,,..,,,.,,.,,,,,,..,,...,...,...,..,,,,.,...,.,,,
-#C5J3N7V3TP52DRSKX7CDOCGIVCRQNGYJDQX4WFOZMEOPF6GRL27LTCCKSVU4I2QJNAPFEGMYMWYUU
-#\\\|WISX5CNSZJEOXCBLZ7WR6QGFVOXLE5BD6DVJFM5CNP62SPDPDEW \ / AMOS7 \ YOURUM ::
-#\[7]HUB2ZO4UGG4FGU3QDUEGMMAGQIG2ERTDE7C2PUIHFTDMQQRFVEDY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,,.,,,,.,..,,...,,..,.,.,,,.,..,,...,...,...,,.,,,.,,,.,,.,.,
+#4RNCLUXLJRYDXY3FEILTLHAGO4E3YOSAWZDQWS56DE4AXXSGVR7RGGW3EYSXIHG24OOXEVSKAPEEY
+#\\\|GIS452SKAI2YKHX5I723NSLJPIG74QLGVHOZJER7G4AHPWQAMUY \ / AMOS7 \ YOURUM ::
+#\[7]GZBPKKTG2XUI6VAEND6YWR4Z3MILVTTC27YQ6HW6M6UIAJF5NSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

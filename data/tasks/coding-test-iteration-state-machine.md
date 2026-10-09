@@ -333,10 +333,8 @@ as `paused_reason` and surfaced verbatim by `model-sweep-status`
 - `coding-cpu-and-hybrid-offload-path.md` -- prior CPU-spawn work; the
   still-open segfault root cause lives here, not in this task.
 
-#,,.,,,.,,,,.,.,,,,..,.,.,,,.,,,,,...,.,.,,..,..,,...,...,,.,,,.,,..,,..,,.,,,
-
-#,,..,,..,,.,,,.,,.,.,..,,.,.,,,,,.,.,,,.,,,,,..,,...,...,.,,,...,...,,,.,,.,,
-#SWP4T37FBPOM4JQK2XMJX7MW5X7BZHFGRX6XY32V23M53VGD4MDRXGA2PV5N3XCTZ66U2TWO3B6AQ
-#\\\|SYX5P6BQVBVPJ64UCUKZQ4EKKFCSC6WJXZI7WF7SOMA7ND6MZEK \ / AMOS7 \ YOURUM ::
-#\[7]CH5P476QXEACRM3P4RAELNP6J6ALFKBEGXGQC3Y2DX42FLOYOEAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,,.,,.,,,..,,,,,,,..,,.,,,,,,..,,...,...,,..,,,,,..,,.,.,..,,
+#LJN6YPJLOOX32IVGH7OPF56CNMY3OBAB3YYK7MKXPTP6NPHJHAZKSYOATP6AUDA7AVY5P35QJLOVI
+#\\\|2MF5IWDZMM6KAOCD27UP5WIB7AW6DWJEDRCAH333KYE4V7QRI3D \ / AMOS7 \ YOURUM ::
+#\[7]VNECJAW3MWSZO7TOSWA5OUYXPIETGD2ZKOB25RUC2ZXAQSISCICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
