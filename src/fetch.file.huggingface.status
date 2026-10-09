@@ -63,14 +63,16 @@ for my $dl_id ( sort keys %$downloads ) {
         );
 
     if ( $percent > 0 ) {
-        my $bar_width = 30;
+        ## closing bracket under the last character of the speed column ##
+        my $bar_width = 43;
         my $filled    = int( $bar_width * $percent / 100 );
         $filled = $bar_width if $filled > $bar_width;
         my $bar
             = '['
             . ( '=' x $filled )
             . ( ' ' x ( $bar_width - $filled ) ) . ']';
-        push @lines, sprintf( "  %s %d%%", $bar, $percent );
+        ## under the numeric columns [ filename column width + 1 ] ##
+        push @lines, sprintf( "%s%s %d%%", ' ' x 53, $bar, $percent );
     }
 }
 
@@ -79,8 +81,8 @@ my $output = join( "\n", @lines );
 ## size mode : multi-line data, true mode escapes the newlines ##
 return { 'mode' => qw| size |, 'data' => "$output\n" };
 
-#,,,,,,..,.,.,..,,.,.,,.,,,..,.,.,.,.,,,,,..,,..,,...,..,,,,,,,,.,,.,,,.,,,..,
-#M6TA7MF5I5VVT3MIOYA2VZM5SO6KT4OEG2A6NM6AVIRXCFVFUODJI26EMKGEYOL66GFH5DRGNTQBO
-#\\\|XF6JY6AA4VIUV5L5IXRQFBNSMON52LMWDNRDML66BCBPCH6CTPX \ / AMOS7 \ YOURUM ::
-#\[7]IKZZ7FWKK7NH4IHETAOE447FCZ6MNMB2WKI4667TCXXGWH3IIECI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,...,...,...,,,,,.,.,..,,,,.,..,,...,...,,.,,...,,..,...,.,,,
+#GQXONQTDXAAYOGDEVJYZD6JCXEXMNNDKPKRJV2NYYA7F3RNF3BUAY5FK7FFHNNNOJGEMWSYIVHQHE
+#\\\|CCP23KG2LE5GYC4F5KWLUUFEB3USF3ALFUXSA2CRY37TYMXS4EH \ / AMOS7 \ YOURUM ::
+#\[7]ENEOTZ3KO7FPYGP4NGGT5YFJN7HUMFALEJRYASOEK5M4UVSKO6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
