@@ -13,6 +13,8 @@ inwx stays registrar only : ns records + glue, set by hand, once.
    zone files [ kimi, k2.8 ]
 2. letsencr : `nameserv` provider + parent \ child coordination + cleanup
    [ claude -- depends on event loop behaviour ]
+   -> now part of `data/tasks/letsencr-acme-async.md` [ the whole acme
+   flow moves onto the event loop, 2026-10-09 ]
 3. propagation check against our own authoritative servers [ claude ]
 4. two instances [ pri + atom ], challenge records reach both
 5. access : set \ remove only from letsencr
@@ -64,8 +66,8 @@ zone = name minus `_acme-challenge.` [ wrong for subdomains ], no
 `account.unlock` for totp accounts. only relevant if a non-delegated domain
 ever needs dns-01.
 
-#,,.,,,,,,,..,...,,.,,,.,,..,,,..,,..,.,.,,.,,..,,...,...,,..,..,,,,.,,,,,,..,
-#XTMJ4NXEPSCHUXEGZTFMVY43TIKEOI2OWLRL7GQ7VL6GB3ZSINFB3MCBE7TTWTEW54FDI6CYINVEM
-#\\\|PRNKLKVPBQ4U3F2RHX3GQ5IPENK3UHJWLMKCTK2H36Q75VHJ6ER \ / AMOS7 \ YOURUM ::
-#\[7]H52KM44YWNP74KIG7ZAZVPIKGFRLZZIDLDJ5BPBL4EWID6MUBWAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,,,,...,.,,,...,,,,,.,.,..,,..,,...,...,.,.,.,,,,,,,.,,,.,,,
+#S2ZLJL5OXRAMSU3HEVOZ7I7PTFHVDVSCW53RSK6N7IPPYGTYPZOEXTUMCJNZ7HZG2FS4NNNG77Q2O
+#\\\|XXVFJYO32TKKPV45POB3TRBUSC7WZ5AAOMYJKU2PL2SN5V65RDA \ / AMOS7 \ YOURUM ::
+#\[7]ALCOXVFOFWHNYRHY3M4ZQVAPXPEMPN7KXQSJMCBHZTW4ZWFAEQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
