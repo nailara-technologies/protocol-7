@@ -20,6 +20,11 @@ my $headers  = {};
 my $hf_token = <fetch.file.hf_token> // <external.hf.token> // '';
 $headers->{'authorization'} = "Bearer $hf_token" if length($hf_token);
 
+## resume after a transfer error : ask for the rest, append to the partial ##
+## [ set by huggingface.handler.download_response, sent on every hop ]     ##
+my $resume_from = $dl->{'resume_from'} // 0;
+$headers->{'range'} = "bytes=$resume_from-" if $resume_from > 0;
+
 ## thread the proxy explicitly, exactly like the previous aria2c            ##
 ## --all-proxy threading : clients.https does NOT auto-pickup http(s)_proxy ##
 ## env vars, and this host's outbound traffic goes through the configured   ##
@@ -32,12 +37,14 @@ my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
         'headers' => $headers,
         'proxy'   => $proxy,
 
-        ## stall window, re-armed per received chunk [ clients.https.    ##
-        ## stall_reset ] -- a transfer making progress never ages out, a ##
-        ## stalled one dies after this long and restarts from scratch    ##
+        ## stall window, re-armed per received chunk                       ##
+        ## [ clients.https. stall_reset ] -- a transfer making progress    ##
+        ## never ages out, a stalled one dies after this long and restarts ##
+        ## from scratch                                                    ##
         'timeout' => 120,
 
         'stream_to_file' => $dest,
+        'stream_append'  => ( $resume_from > 0 ? TRUE : FALSE ),
         'on_done'        => qw| huggingface.handler.download_response |,
         'params'         => { 'dl_id' => $dl_id },
     }
@@ -45,8 +52,8 @@ my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
 
 return 0;
 
-#,,..,,,,,...,.,.,,.,,,,.,,,.,.,.,,..,..,,.,.,..,,...,...,...,,,.,.,.,...,,.,,
-#TIXMMFJPNTBT3RNC543LJC4GPPAVRQLPLYY6DQH4J3CUHOILZSJGAWN5KYQW356AOT33DTYNEUUDU
-#\\\|RN4UR7C6P5LUQZSAPV2FYE4DLIHBNWRTPDV2BAODKXWB5JCFWHB \ / AMOS7 \ YOURUM ::
-#\[7]F3IZIGMJG4MECESNLYNSOS2AQIOZ3UQDAZCFLLQEEQYC7V66FAAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,.,,,,.,.,,,,,,,.,.,,.,,,.,,..,,...,...,...,.,.,.,,,..,,.,,,
+#BPPVPQE5ZWNSL5W2JZDLIXA57Y5CF2CIL457F533WHSVBSLK7CHXU6R3RZ65VR4LJFFNFSMMDBKFQ
+#\\\|WIQXETU6RGFNOVJJX7JLTJYGPTVBAWNYXZTPG4B5N6NNVBJNDKW \ / AMOS7 \ YOURUM ::
+#\[7]JS33YPTLNKSB3CWJF2WG2FND3XMBRIWCLRB2UDR24VVU4BELM2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

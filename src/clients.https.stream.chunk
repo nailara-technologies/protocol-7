@@ -51,9 +51,9 @@ my $handle_body = sub {
     return $write_body->($data_ref) ? qw| continue | : qw| error |
         if not $state->{'stream_chunked'};
 
-    ## chunked transfer-encoding : incremental de-framing  [ size line -> ##
-    ## payload -> crlf ] -- writing the raw framing bytes to disk would   ##
-    ## corrupt the payload                                                ##
+    ## chunked transfer-encoding : incremental de-framing                   ##
+    ## [ size line -> payload -> crlf ] -- writing the raw framing bytes to ##
+    ## disk would corrupt the payload                                       ##
     $state->{'stream_debuf'} .= $$data_ref;
     my $debuf = \$state->{'stream_debuf'};
 
@@ -110,6 +110,12 @@ if ( not defined $state->{'stream_headers'} ) {
         = (     $state->{'stream_status'} >= 200
             and $state->{'stream_status'} < 300 ) ? FALSE : TRUE;
 
+    ## resumed request [ stream_append + a range header ] answered with the ##
+    ## whole body [ 200, not 206 ] : drop the partial, write from byte 0    ##
+    if ( $state->{'stream_append'} and $state->{'stream_status'} == 200 ) {
+        truncate( $state->{'stream_fh'}, 0 );
+        $state->{'stream_append'} = FALSE;
+    }
     my $te = lc( $state->{'stream_headers'}{'transfer-encoding'} // '' );
     $state->{'stream_chunked'}
         = ( index( $te, qw| chunked | ) >= 0 ) ? TRUE : FALSE;
@@ -120,8 +126,8 @@ if ( not defined $state->{'stream_headers'} ) {
 ## phase 2 : headers known -- pure body bytes ##
 return $handle_body->($chunk_ref);
 
-#,,.,,.,.,,.,,..,,..,,,,,,.,,,,,.,...,...,,.,,..,,...,..,,...,.,.,,,,,,,,,...,
-#B4AXFCQCO3OQBUENLAKG25C7PARKAV6BWVJJNB634BVW3E4JQCX3XWYQIYX3R27KBKVRXVNAGK4FW
-#\\\|BZV3TWZIYSLLM5SPDBMNZGBNYO7EJTEBX4HHWB6T4RIZQFPORZP \ / AMOS7 \ YOURUM ::
-#\[7]GQDDHJPJ7L2KEPUB7U3KM4CKLUM6RFAVDBMRMGKG7QX5XOKSH2DA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,...,,.,,,..,.,.,,,,,..,,,..,..,,...,..,,.,,,,..,,,.,.,.,.,,,
+#HRYWDSPOMHJBANNZJOJXUPD6V7AG2G3ORZDE5EPKR4W6J4UKRCRI65QA5ABBERZJGYFIILBWUZKSQ
+#\\\|G3Z4YZASA5CH2K6737G5RKSB2C3W6RRLZ4EN6CO2B4YV7TTZYAP \ / AMOS7 \ YOURUM ::
+#\[7]UUTJZC4IKPXIM7MGTSOJSQ7YQA2JYHPZPIBV7UEB2RKKKLA3OSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
