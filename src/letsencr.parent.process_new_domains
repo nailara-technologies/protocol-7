@@ -38,6 +38,14 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
 
     my $entry = $state->{$domain} // {};
 
+    ## an explicit request owns it [ letsencr.parent.cmd.request-certificate ]
+    if ( $entry->{'explicit'} ) {
+        <[base.logs]>->(
+            2, ': enroll : %s : skipped [ explicitly requested ]', $domain
+        );
+        next;
+    }
+
     if ( $staging
         and ( $entry->{'status'} // '' ) eq qw| issued-staging | ) {
         <[base.logs]>->(
@@ -64,7 +72,7 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
             ': enroll : %s : backed off until %s [ %s ]',
             $domain,
             scalar( localtime( $entry->{'next_attempt_after'} ) ),
-            $entry->{'last_error'} // qw| previous failure |
+            $entry->{'last_error'} // q|previous failure|
         );
         next;
     }
@@ -133,8 +141,8 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
 
 return { 'status' => qw| success |, 'queued' => $queued };
 
-#,,..,...,...,.,.,...,..,,.,.,,,.,.,.,,,,,.,.,..,,...,...,,..,,..,,..,.,.,,.,,
-#L3YVKQDR46FDVYLXQ6KJ26PEJWNCIA4RNRBZTYZKVM27NSF2C4NLFT6AMHRS42CVVSRDNGJPDG2QO
-#\\\|6WYYM6C7TII5XPD2KJDOGXCWYJKXEQPJQDUTG4Z5DB3FWTPSCYR \ / AMOS7 \ YOURUM ::
-#\[7]NUQ7DNEUQBDDRT7SZA5SE6P56PHOKJZ6ATMCLKL7RQHTKPYL2GCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,,..,,,,,,,.,,..,,..,,.,,,,.,..,,...,...,.,.,.,.,..,,,.,,.,,,
+#SQQB6XMXUKY7QDMDVRFNHBFY2V6JM2UNRQ74HZYK6UAKU377BEIQBLMSUOD42IP433RYQQZIOTL56
+#\\\|WNMB4QLWOS4IFISYKOKBN7KKE5V4CZRQFQHMDSPJR6RYCWZ5IN6 \ / AMOS7 \ YOURUM ::
+#\[7]DWQQX2KVLZJT4G7EVURTU74NZW623IIN3YY7KHAAT3XYXYJDAADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

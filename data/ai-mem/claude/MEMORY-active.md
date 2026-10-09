@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
-- [project-2026-10-08-session-handover-host-setup](project-2026-10-08-session-handover-host-setup.md) — START HERE : session 2026-10-07..08 handover [ last 4bfbbb717 ] -- step 2 live, key id, key trash, host-edit + full add-host flow ; next = first real add-host run [ fanless backup host ]
+- [project-2026-10-09-session-handover-remote-rollout](project-2026-10-09-session-handover-remote-rollout.md) — START HERE : session 2026-10-08..09 handover [ last 07658ef22 ] -- remotes pinned, perl floor 5.32 + floor check, yaml wrappers, letsencr auto-enrollment [ staging ], form \ host-edit ui ; next = first real enrollment, stdin_key test
+- [project-2026-10-08-session-handover-host-setup](project-2026-10-08-session-handover-host-setup.md) — superseded by 2026-10-09 ; was : session 2026-10-07..08 handover [ last 4bfbbb717 ] -- step 2 live, key id, key trash, host-edit + full add-host flow ; next = first real add-host run [ fanless backup host ]
 - [project-2026-10-08-trust-chain-step2-landed](project-2026-10-08-trust-chain-step2-landed.md) — trust chain step 2 LANDED [ 859a69f04, 22bc35644 ] : chains on the wire, name-bound pins + forward rotation, owner \ distrust tools, discover owner trust ; NOT live-checked [ v7-zenki restart ] ; next host-edit zenka + initial transports
 - [project-2026-09-20-model-sweep-crash-bucket-resolved](project-2026-09-20-model-sweep-crash-bucket-resolved.md) — cross-backend sweep lock fix (7003d1345) live-verified; 25 models deleted, 103GB freed; crash bucket classified. New models.cmd.delete-model/trash-list/trash-rescue/trash-prune/protect/unprotect tooling built+live-verified (trash-based, path-escape-protected). Also: switch_model_reply YAML/$1-clobber/fail-fast fixes, libsdl-perl deps fix. Still open: coding.cmd.model-sweep-test <checksum> targeted retest, not built
 - [project-2026-09-20-model-sweep-unresolved-bucket-and-bzpo73q-final](project-2026-09-20-model-sweep-unresolved-bucket-and-bzpo73q-final.md) — follow-up same day: 3 more models deleted (CNTO5UA/ZIZEKAI/XF2GMAI, 18.85GB), BZPO73Q rescued then permanently deleted 2026-09-21 (trash purged) — disk math now reconciles exactly, ~126GB total freed 09-17..21, not the ~180GB first eyeballed. gguf metadata string-array bug + fetch_model_discovery wrong-command bug fixed. mcp-p7-command-async-parity.md / model-batch-test-harness doc's earlier kimi dispatches were design-only, no code landed until 2026-09-21
@@ -176,8 +177,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,..,,,,,,,.,,,.,.,.,.,,,...,...,,..,.,,,,,.,..,,...,...,.,,,...,..,,,,.,,,,,
-#XACGAQSPBNHTUS6UUJ2PXUJEXHFJJM3RY2A4B76ZYIQIXPOO3NG5QRGKDGFMZHJHFX26M5K2UGF6C
-#\\\|HC554WDJ46QPIJ3EAKN5K2XOAEHFARUO43AC7HRFL3YZGN6HXS7 \ / AMOS7 \ YOURUM ::
-#\[7]VERPGZMTGYBMGBVHN2XR5VVUQGJLNIUJNUTYTGEFMUVNUJIDKUAI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,.,.,..,,.,.,...,..,,,,,,,.,,..,,...,...,,.,,.,,,,,,,.,.,...,
+#ENPXSM5R7F76N3ID467FK32YSGXH7ONS7HOGPLT2YQHJYUQEPREQN6LNYNDRPGSTZKNJ3QQSDGG4M
+#\\\|V5K7QZJA7VMKWTEHKIEBSNSGHJYWAK4X2I32ULWLHHZFV6PEEUC \ / AMOS7 \ YOURUM ::
+#\[7]L57DV5VL622PMHC3MGHOR7Z3VA2S6KPVKYFIWJGRELNX7GNGM4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

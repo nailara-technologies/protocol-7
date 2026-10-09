@@ -2,7 +2,9 @@
 
 # name  = httpd.cmd.install-vhosts
 # descr = install vhosts from manifests to httpd docroot
-# param = [hostname]
+# param = [hostname] [ :nocert: ]
+# note  = :nocert: \ :nossl: -- no certificate request, left to
+#         letsencr's automatic enrollment [ dns + self-test, staging ]
 
 my $args_str = $call->{'args'} // '';
 my $target_hostname;
@@ -242,8 +244,8 @@ return {
     'summary' => $result_summary
 };
 
-#,,,,,.,,,.,,,.,,,..,,..,,.,.,,.,,,..,.,,,..,,..,,...,...,...,...,,..,,.,,,.,,
-#BNLG7UMCKXAMIJL6HWLXJQPV5RTN7NCVMICTLGMVVWHAPZL3747QZR75JVIEGDWCTLYFHA4RFC72S
-#\\\|BGKDYBEAXHYA5IQINR2AJ6F6MWLKZYNTKN4OP2UQ34JGQNU4W4W \ / AMOS7 \ YOURUM ::
-#\[7]6PXYNWZBCL5JIACUZEBMGR3GS3TRU24BRBDSLTFMK4EBH2ZKTIBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,..,,..,,..,,,,,,,,,,,.,,..,,..,,...,...,...,...,.,.,,,.,.,,,
+#SXNWRAHNYGYHE7H2ZMH6MOOYKVECXLOC6XREGWTN5FDH2JBLFZTAYLGSOH3UFJASYLYJWJ7EGVLYS
+#\\\|655FP6CUH2IQXHV35YWJH44QYXLU4KFJTBC2AJNRU75JINX3SKD \ / AMOS7 \ YOURUM ::
+#\[7]HJSALOPNBX6DDH35ILUSAW25XFJJ4TIEAMBAXDEC57SKFW3FTECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
