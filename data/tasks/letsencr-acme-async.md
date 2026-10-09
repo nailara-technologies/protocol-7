@@ -74,14 +74,65 @@ new order -> authorizations [ per authz ] -> challenge set-up
 - live test on letsencrypt STAGING with a domain that has no valid authz
   [ a fresh name ] -- otherwise reuse hides the challenge path again
 
+## state record [ piece 2, fixed 2026-10-09 ]
+
+`clients.https.request` calls `on_done` with `{ ok, status, body, headers,
+params }` [ header names lower-cased : `replay-nonce`, `location` ]. ONE
+fix needed there first : `clients.http.parse_response` [ shared by the
+https http/1.1 path ; check the h2 path too ] keeps only the LAST
+value of a repeated header -- acme sends several `Link` headers [ `rel="up"`,
+alternate chains ] : repeated headers become an array ref [ or a joined
+list under a second key ] without changing single-valued callers.
+
+```
+<letsencr.child.orders>->{ $order_id } = {   ## $order_id = base.gen_id
+    order_id      => $order_id,
+    reply_id      => $reply_id,              ## answered exactly once
+    domains       => [ ... ],  primary_domain => $d,  staging => 0 | 1,
+    order_url     => $location,  order => $order_json,
+    step          => 'new' | 'authz' | 'setup' | 'propagate' | 'respond'
+                     | 'poll_authz' | 'finalize' | 'poll_order' | 'download'
+                     | 'cleanup' | 'done' | 'failed',
+    authz         => {                      ## keyed by authz url
+        $url => {
+            domain   => $d,   wildcard => 0 | 1,
+            type     => 'http-01' | 'dns-01',
+            token    => $t,   key_auth => $k,   dns_value => $v,
+            challenge_url => $c,
+            status   => 'pending' | 'set_up' | 'responded' | 'valid'
+                        | 'invalid' | 'reused',   ## reused : authz already valid
+            setup    => { httpd => 0|1 }  or  { $ns_target => 0|1, ... },
+            polls    => $n,
+        },
+    },
+    nonce         => $replay_nonce,          ## from the last response
+    deadline      => $epoch,                 ## whole order, e.g. 15 min
+    timer         => $event,                 ## the one pending poll timer
+    error         => $msg,
+};
+```
+
+- every async call carries `params => { order_id => $order_id, authz =>
+  $url }` ; handlers fetch the record by `order_id`, a missing record = a
+  late reply after cleanup -> log at level 2 and drop
+- one handler per step : `letsencr.child.acme.on_<step>` ; a step function
+  `letsencr.child.acme.step_<step>` starts the next request. the failure
+  path is ONE function [ `letsencr.child.acme.fail` : cleanup, reply false,
+  delete the record ]
+- an authz already `valid` at fetch time is marked `reused` and skips set-up
+  \ respond -- logged at level 1, so a reused authz is visible in the log
+- set-up : `setup` holds one flag per target ; `respond` starts when all
+  flags are 1 ; a set-up reply `false` fails the authz
+- the `deadline` is checked in every handler and by the poll timer
+
 ## split
 
 - kimi [ k3 : concurrency ] : pieces 1 + 4 + 5 with tests, after the
   state record [ 2 ] is fixed in writing
 - claude : 2 + 3 + 6 + 7 [ the flow \ reply wiring ] and the review
 
-#,,,.,.,,,...,...,..,,..,,,,,,,..,...,,.,,..,,..,,...,...,.,,,.,,,.,.,,..,...,
-#SUZDG6FJKCZPSYW52BOD2MKJOBU4XR7TO2THWESSYGK6IIJXBVA7IISJ4VHELJQ6D7UIZGZ573PYG
-#\\\|J5OZSGFXDZKCBXE7CDOAAKMF3PY4J5WD7E262V35OUZRLMCEOKO \ / AMOS7 \ YOURUM ::
-#\[7]RDWW5CSZQKMJN2CKXZMOS5KX7JLNRXAIPGRPA42PVDTKAOHARQCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,..,.,,,.,.,..,,,,,,,.,,...,..,,...,..,,.,.,...,...,.,.,,..,
+#BZYOBTOCVUKABODWXZQMXGPUL2P7ZXO6PBVP4M62FHGXR4AWIGUHJ34LMBFHOPDLGDO6ZDLOU36K6
+#\\\|YOVUKF74VLVK4MC472WIDCHCOTMHGN5KRBSS7VMVXE3S2RCWUGA \ / AMOS7 \ YOURUM ::
+#\[7]U77XWDEG4N4Y2QLTV5DVEZTK5BJ5POPZDI2Y5M2IAXZRCVSYGGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

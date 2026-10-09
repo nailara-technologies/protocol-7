@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = clients.http.parse_response
-# descr = split raw http response into status, headers, body
+# descr = split http response : status, headers, body
 
 my $raw = shift // '';
 
@@ -11,22 +11,31 @@ if ( $raw =~ m|\A(.*?)\r?\n\r?\n(.*)\z|s ) {
     my $status_line = shift @lines;
     my ($status)    = ( $status_line // '' ) =~ m{HTTP/\d\.\d\s+(\d+)};
     my %headers;
+    my %headers_multi;
     for my $line (@lines) {
         if ( $line =~ m|^([^:]+):\s*(.+)| ) {
-            $headers{ lc $1 } = $2;
+            my $name = lc $1;
+            $headers{$name} = $2;    ## last value wins, as before ##
+            push( @{ $headers_multi{$name} }, $2 );    ## all values ##
         }
     }
     return {
-        'status'  => ( $status // 0 ) + 0,
-        'headers' => \%headers,
-        'body'    => $body
+        'status'        => ( $status // 0 ) + 0,
+        'headers'       => \%headers,
+        'headers_multi' => \%headers_multi,        ## repeated headers kept ##
+        'body'          => $body
     };
 }
 
-return { 'status' => 0, 'headers' => {}, 'body' => $raw };
+return {
+    'status'        => 0,
+    'headers'       => {},
+    'headers_multi' => {},
+    'body'          => $raw
+};
 
-#,,,.,,,.,.,.,.,,,.,,,.,,,..,,,,.,.,,,,..,...,..,,...,...,..,,,,,,.,.,..,,...,
-#Z5D7KMT47OHCPTSMQU74PRTKK6G7AD6DCTLE4YY25RNWWUC75OFABKCBKI2STYLHS5PPS6F44344C
-#\\\|UXYYS6QOWBJ5L74SJZZ5PV5PRXO2CSUZ4GAMBNYPKCISBTHTJFW \ / AMOS7 \ YOURUM ::
-#\[7]ZANC2DCP5QVDRK2ANHWCNGHMOHR4ANYCDQXCYLS4RXXJ3MCAKEDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,..,...,.,.,,,,,...,...,,,.,..,,...,...,..,,,,,,.,.,,,.,,,,,
+#3KJL3NUMX5WDKOSVM75YQQZWHJM5BTUSXGDIB4VXYC5P72ZMUYNWA2ESSS4KYBKAKL4HTDU7J7V64
+#\\\|MYCXECV7C2C7IPAWUQA7ARE2DTA2CYBN2Q3FSX63W2K5AJWEB4U \ / AMOS7 \ YOURUM ::
+#\[7]Y74XL7IJT4JPJDX32CWO3BAQP7CHKTUR7RJGOV4FRTBHS54VPQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

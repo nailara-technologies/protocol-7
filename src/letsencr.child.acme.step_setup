@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_setup
+# param = <order_id>
+# descr = send every challenge set-up, each with a reply handler
+
+my $order_id = shift;
+my $order    = <[letsencr.child.acme.order_of]>->($order_id) // return FALSE;
+$order->{'step'}    = qw| setup |;
+$order->{'waiting'} = 0;
+
+my $provider   = <letsencr.dns.provider> // qw| nameserv |;
+my @ns_targets = grep {length}
+    split m|\s+|, <letsencr.dns.nameserv.targets> // qw| nameserv |;
+
+my $send = sub {
+    my ( $authz, $target, $command, $args ) = @ARG;
+    $authz->{'setup'}->{$target} = FALSE;
+    $order->{'waiting'}++;
+    <[protocol-7.route-send]>->(
+        {   'command'   => $command,
+            'call_args' => { 'args' => $args },
+            'reply'     => {
+                'handler' => qw| letsencr.child.acme.on_setup |,
+                'params'  => {
+                    'order_id' => $order_id,
+                    'authz'    => $authz->{'url'},
+                    'target'   => $target,
+                },
+            },
+        }
+    );
+};
+
+foreach
+    my $authz ( map { $order->{'authz'}->{$ARG} } $order->{'authz_urls'}->@* )
+{
+    next if $authz->{'status'} eq qw| reused |;
+
+    if ( $authz->{'type'} eq qw| http-01 | ) {
+        $send->(
+            $authz,   qw| httpd |,      qw| httpd.setup-acme-challenge |,
+            join ' ', $authz->{'base'}, $authz->{'token'},
+            $authz->{'key_auth'}
+        );
+    } elsif ( $provider eq qw| nameserv | ) {
+        $send->(
+            $authz,   $ARG, "$ARG.add-txt",
+            join ' ', "_acme-challenge." . "$authz->{'base'}",
+            $authz->{'dns_value'}
+        ) foreach @ns_targets;
+    } elsif ( $provider eq qw| inwx | or $provider eq qw| cloudflare | ) {
+        ## provider apis : still blocking http calls, done before respond ##
+        my $ok = $code{"letsencr.dns.${provider}_create_txt"}
+            ->( "_acme-challenge.$authz->{'base'}", $authz->{'dns_value'} );
+        return <[letsencr.child.acme.fail]>->(
+            $order_id,
+            "$provider : txt record for " . "$authz->{'domain'} failed"
+        ) if not $ok;
+        $authz->{'setup'}->{$provider} = TRUE;
+    } else {
+        return <[letsencr.child.acme.fail]>->(
+            $order_id, "dns provider '$provider' not supported"
+        );
+    }
+}
+
+<[base.logs]>->(
+    2, ': acme : order %s : %d set-up%s sent',
+    $order_id, $order->{'waiting'}, <[base.cnt_s]>->( $order->{'waiting'} )
+);
+
+return <[letsencr.child.acme.step_propagate]>->($order_id)
+    if not $order->{'waiting'};
+
+return TRUE;
+
+#,,,,,,..,.,,,,,.,.,.,.,.,.,.,,,.,,,,,,,,,.,.,..,,...,...,...,,,.,,.,,...,...,
+#L7HJBZUCTMGPZRTYGVQII5QXIBIOTGDKUA34AQNPRLFD5KKP2JMAOLMR3BXFVG3ZTAUK4J4ST6XQO
+#\\\|D7EFPPKVRDPYCSC36JFWOVE75QCABRYWDP22KAZ3JOIRO5Z6YNR \ / AMOS7 \ YOURUM ::
+#\[7]HA23U2IR4MSHINR3QZFLE5CLFSAYKQUPOREWPDIIZFFFJWG22OAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

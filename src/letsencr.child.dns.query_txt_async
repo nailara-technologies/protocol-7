@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = letsencr.child.dns.query_txt_async
+# descr = async txt query against given servers
+
+## asks each given server DIRECTLY [ recurse => 0, no system resolver ] :   ##
+## one Net::DNS bgsend + io watcher per server, one overall timeout timer.  ##
+## servers are ip addresses with an optional :port suffix [ the suffix is   ##
+## split here : Net::DNS nameservers do not accept ip:port ]. on_done fires ##
+## once ALL servers answered or timed out :  { name, results => { $server   ##
+## => { ok, rcode, values } }, params }                                     ##
+
+my $p = shift // {};
+
+my $name    = $p->{'name'}    // '';
+my $servers = $p->{'servers'} // [];
+my $on_done = $p->{'on_done'} // '';
+my $params  = $p->{'params'}  // {};
+my $timeout = $p->{'timeout'} // 5;
+
+if (   not length $name
+    or not length $on_done
+    or ref $servers ne qw| ARRAY |
+    or not @{$servers} ) {
+    <[base.logs]>->(
+        0,
+        'letsencr.child.dns.query_txt_async: '
+            . 'name, servers and on_done required'
+    );
+    return undef;
+}
+
+if ( not exists $code{$on_done} ) {
+    <[base.logs]>->(
+        0, 'letsencr.child.dns.query_txt_async: on_done %s not found',
+        $on_done
+    );
+    return undef;
+}
+
+my $q = {
+    'name'    => $name,
+    'on_done' => $on_done,
+    'params'  => $params,
+    'pending' => {},         ## $server => per-server query state ##
+    'results' => {},
+};
+
+for my $server ( @{$servers} ) {
+    my ( $ip, $port ) = $server =~ m{^([^:]+)(?::(\d+))?\z};
+    if ( not defined $ip ) {
+        $q->{'results'}->{$server} = {
+            'ok'     => FALSE,
+            'rcode'  => qw| SENDFAIL |,
+            'values' => [],
+        };
+        next;
+    }
+    my $resolver = Net::DNS::Resolver->new(
+        'nameservers' => [$ip],
+        'recurse'     => 0,          ## authoritative servers directly ##
+        'udp_timeout' => $timeout,
+        'tcp_timeout' => $timeout,
+    );
+    $resolver->port($port) if defined $resolver and defined $port;
+    my $sock = defined $resolver ? $resolver->bgsend( $name, 'TXT' ) : undef;
+
+    if ( not defined $sock ) {
+        $q->{'results'}->{$server} = {
+            'ok'     => FALSE,
+            'rcode'  => qw| SENDFAIL |,
+            'values' => [],
+        };
+        next;
+    }
+
+    my $sq = {
+        'resolver' => $resolver,
+        'sock'     => $sock,
+        'server'   => $server,
+        'query'    => $q,
+    };
+    my $watcher = <[event.add_io]>->(
+        {   'fd'      => $sock,
+            'poll'    => 'r',
+            'handler' => qw| letsencr.child.dns.handler.txt_reply |,
+            'data'    => $sq,
+        }
+    );
+    if ( not defined $watcher ) {
+        $q->{'results'}->{$server} = {
+            'ok'     => FALSE,
+            'rcode'  => qw| SENDFAIL |,
+            'values' => [],
+        };
+        next;
+    }
+    $sq->{'watcher'} = $watcher;
+    $q->{'pending'}->{$server} = $sq;
+}
+
+## one overall timeout for the whole query ##
+$q->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $timeout,
+        'handler' => qw| letsencr.child.dns.handler.txt_timeout |,
+        'data'    => $q,
+    }
+);
+
+## nothing pending [ all sends failed ] : finish right away ##
+if ( not keys %{ $q->{'pending'} } ) {
+    eval { $q->{'timer'}->cancel } if defined $q->{'timer'};
+    delete $q->{'timer'};
+    <[event.add_idle]>->(
+        {   'handler' => $on_done,
+            'params'  => {
+                'name'    => $name,
+                'results' => $q->{'results'},
+                'params'  => $params,
+            },
+        }
+    );
+}
+
+return TRUE;
+
+#,,.,,,..,,,,,.,,,,..,,,,,...,,..,,,,,,,.,,.,,..,,...,...,.,,,..,,.,,,,,,,,,.,
+#ZGD6NNYN27KTW2Z2I6ROADKQWCEW7MASEXLICT6M72PXA336PYHZKBSJHY4ZGIGKTCXATSVD6DCRI
+#\\\|OFMMK74HWISSEV563SHPUJNSQKNHGIBCFE4H5NIZFCPGHHFWEV5 \ / AMOS7 \ YOURUM ::
+#\[7]ATAFK4YSRNWKIEC6BTYRE7IILFVCVY6C6UHWW6J6BQCDFEWBV4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

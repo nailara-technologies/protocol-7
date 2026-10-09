@@ -8,10 +8,11 @@
 my $state = shift;
 return undef if ref $state ne qw| HASH |;
 
-my $status  = $state->{'stream_status'}  // 0;
-my $written = $state->{'stream_written'} // 0;
-my $headers = $state->{'stream_headers'};
-my $ok      = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
+my $status        = $state->{'stream_status'}  // 0;
+my $written       = $state->{'stream_written'} // 0;
+my $headers       = $state->{'stream_headers'};
+my $headers_multi = $state->{'stream_headers_multi'};
+my $ok            = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
 
 my $error = '';
 if ( not defined $headers ) {
@@ -27,11 +28,12 @@ my $params  = $state->{'params'};
 
 if ( length $on_done and exists $code{$on_done} ) {
     $code{$on_done}->(
-        {   'ok'      => $ok,
-            'status'  => $status,
-            'headers' => $headers // {},
-            'size'    => $written,
-            'body'    => '',
+        {   'ok'            => $ok,
+            'status'        => $status,
+            'headers'       => $headers       // {},
+            'headers_multi' => $headers_multi // {},
+            'size'          => $written,
+            'body'          => '',
             ( length $error ? ( 'error' => $error ) : () ),
             'params' => $params,
         }
@@ -40,8 +42,8 @@ if ( length $on_done and exists $code{$on_done} ) {
 
 return 0;
 
-#,,.,,,,,,,,.,,.,,...,.,,,...,,.,,.,.,.,,,.,.,..,,...,...,.,.,,,,,.,,,.,,,...,
-#M5QC7L2DBPSPWYGVXFKBNM7XED4M2CSMWCQRLA6SKB2LFXTZBKCKYPS4KNNQSPYLJXKESPENJFROQ
-#\\\|XKBL5NECCEI54UO4UNYHVGBWCSCGX3DMF6OU4JPK7FH3NSSBSSW \ / AMOS7 \ YOURUM ::
-#\[7]MT4SLOGG6S6Z3RDWJTWWHOL34PZRUY4FQ7RFEP63DL72I3RHZ2DI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,.,,,...,,,,,,,,,..,,,,.,.,,,..,,...,...,..,,.,,,.,,,...,..,,
+#YJECNBQMMPYRFE2QOKL6HEBI4G5HHDUH6MW4EAXO4DX5YMBJC3MWEJ6OITQMIYZJPS4KUV7ZDJDIS
+#\\\|QAEKUDRQQR77XSQUGUAZ5TPRBXRNWDP43YCPVU35T4LTZRPV3AJ \ / AMOS7 \ YOURUM ::
+#\[7]QEM3DDKNAJL7CNO7TNGVIAEVLCO3F43CNBHAB7QSPV4SQNCYEIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,11 @@ metadata:
   type: feedback
 ---
 
+**2026-10-09 :** the user has a ONE-TIME weekly reset available from the
+cloud ui -- in a week with real work queued, don't idle while a kimi run is
+out ; work on the non-overlapping part in parallel. pacing still applies,
+but running out early is recoverable that week.
+
 Be more strategic about my own token consumption pacing across a session,
 starting from the beginning of each 7-day usage window, not just reactively
 once `usage.status` already shows it tight.
@@ -46,8 +51,8 @@ confirmation, and got it).
 
 **2026-10-07** : read the numbers myself -- `p7c usage.claude` \ `p7c usage.kimi` -- before stating any usage figure ; quoted a stale pasted 8% when it was 10%. the user prefers I run them [ also when watching kimi's budget during batch dispatches ].
 
-#,,,.,,.,,,,.,,,,,.,.,,.,,...,..,,,,,,,,.,,,,,.,.,...,..,,...,,,.,.,,,,,,,...,
-#23MC6W3Z4X6Z55GF7KK5BXKRHO6VRHNMHHLEBR37B5S6W2HJSIN2NM4NSRAR3YBYACC4EESCS3YEQ
-#\\\|O2MNJXGAQ4MZGAFULKKZQGSEUPRP7N2TJKY3LEUCODWNPRX6FSL \ / AMOS7 \ YOURUM ::
-#\[7]M3C6EQUEK3NJYD5XNKN2GHSCZ37OXTOYIQEODKFUQ5B5BFBC3CAQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,.,.,...,..,,,,.,,..,.,.,...,.,.,...,...,.,.,.,,,.,.,...,,,,,
+#O3LUAPWVGZ6ZCUL6EXOM42DKF5HXYKT7KNSGYUKDEQUUZUMSQHHEERSSITMK64EW3A3LYLN26K3OW
+#\\\|I62XWRUGPFABIIPKPVNBNDC7EOZO2O5FCGG4JJXYOBB7ORJTQWC \ / AMOS7 \ YOURUM ::
+#\[7]IRVCGT5B4QMUW6RQX566473UN234BSMMBJYM5DMOULDC5XJUL2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

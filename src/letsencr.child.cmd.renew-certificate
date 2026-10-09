@@ -35,79 +35,19 @@ my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
 $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 
 <[base.log]>->( 2, "  domains : " . join( ', ', @domains ) );
-<[base.log]>->( 2, "  email : $email" );
 
-## Call ACME new certificate workflow (renewal uses same process as new)
-my $result = <[letsencr.child.acme_new]>->(
-    {   domains => \@domains,
-        email   => $email,
-    },
-    $call->{'reply_id'}    ## pass reply_id for async challenge coordination
+## acme order on the event loop [ letsencr.child.acme.* ] : the bundle comes
+## later via reply_id [ mode size ], a refusal now [ mode false ]
+return <[letsencr.child.acme.begin]>->(
+    {   'domains'  => \@domains,
+        'email'    => $email,
+        'reply_id' => $call->{'reply_id'},
+        'label'    => "$domain [ renewal ]",
+    }
 );
 
-unless ($result) {
-    <[base.logs]>->( 1, 'acme_new returned undef' );
-    return {
-        'mode' => qw| false |,
-        'data' => 'internal error : acme_new failed'
-    };
-}
-
-## handle deferred status [ challenge coordination via parent ]
-if ( $result->{status} eq qw| deferred | ) {
-    <[base.logs]>->(
-        2, 'renewal accepted, processing challenge asynchronously'
-    );
-    <[letsencr.child.continue_challenge_processing]>;    ## contacts httpd ##
-    return { 'mode' => qw| deferred | };
-}
-
-## handle error result
-if ( $result->{status} eq qw| error | ) {
-    my $error = $result->{'error'}
-        // 'unknown error during certificate renewal';
-    <[base.logs]>->( 1, 'certificate renewal failed : %s', $error );
-    return { 'mode' => qw| false |, 'data' => $error };
-}
-
-## expect success at this point
-unless ( $result->{status} eq qw| success | ) {
-    my $error = $result->{error} // 'unexpected status during renewal';
-    <[base.logs]>
-        ->( 1, 'certificate renewal unexpected result : %s', $error );
-    return { 'mode' => qw| false |, 'data' => $error };
-}
-
-<[base.logs]>->( 2, 'certificate renewed successfully for %s', $domain );
-
-## Create certificate bundle for parent
-my $cert_bundle = {
-    certificate => $result->{cert},
-    key         => $result->{key},
-    issued_at   => <[base.time]>->(3),
-    expires_at  => $result->{valid_until},
-    domain      => $domain,
-    domains     => \@domains,
-    cert_url    => $result->{cert_url},
-    renewed     => TRUE,                     # Mark as renewal
-    retry_count => $retry_attempt,
-};
-
-## Encode as JSON then base32r for transmission
-my $bundle_json = JSON::XS::encode_json($cert_bundle);
-my $bundle_b32r = encode_b32r($bundle_json);
-
-<[base.log]>->( 2, "certificate bundle encoded [base32r]" );
-<[base.logs]>->( 3, ':. bundle size : %d bytes', length($bundle_b32r) );
-
-## Return certificate bundle to parent [ mode='size' for binary|encoded data ]
-return {
-    'mode' => qw| size |,
-    'data' => $bundle_b32r
-};
-
-#,,..,.,,,.,.,,..,,.,,,..,..,,,,.,,,.,,,.,,,,,..,,...,..,,.,,,.,.,,.,,...,...,
-#3EOD36V24TLFIZVD3EEOLSPI6H6PJWCQ7A5AI7YZVJX3EETXII45Z3EDQUEZH7XHXX6W4KC55HMLK
-#\\\|O7OYJTROCZTPATBEAZ6JWOVKDALN5T4YUSWP4OAC7542DRRVYNK \ / AMOS7 \ YOURUM ::
-#\[7]OUQGM335Z7VRUH2TZORN6MATUXZM6XC4P7PDQKPBFHCEETPVH2BA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,..,,.,,,.,.,,,,,.,.,...,.,.,..,,...,...,,,,,...,.,,,..,,..,,
+#UH637PKP5TOQMFQFBTZIN4F4NFDYGLSUICX2O2RCJF6IPIXK7B74GWHQ2Z4JQXYD4GUIBE7ZDRT5C
+#\\\|6R2M2GELJEOEKTYSBGGZLNGPA3ZEBLANZ4LWRFA42A2JTW74UNI \ / AMOS7 \ YOURUM ::
+#\[7]TH6ZY7KNSF3KZZTDE37XIGHEQEDXUSMY2BIPHMZQJVCBNLLLNAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

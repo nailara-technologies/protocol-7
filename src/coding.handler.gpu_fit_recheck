@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = coding.handler.gpu_fit_recheck
+# descr = retry the gpu spawn once its model fits in vram again
+# note  = armed by coding.async_spawn_inference_servers when the gpu fit
+#         check fails [ vram held by another process, e.g. invoke ] ;
+#         stops itself once a gpu server runs
+
+my $event = shift;
+
+my $stop = sub {
+    $event->w->cancel if ref $event and defined $event->w;
+    delete <coding.timer.gpu_fit_recheck>;
+    return TRUE;
+};
+
+my $gpu_pid = <inference.gpu_pid> // 0;
+return $stop->() if $gpu_pid and kill( 0, $gpu_pid );
+
+my $need_gb = <coding.gpu_fit_need_gb> // 0;
+my $fit
+    = $need_gb > 0
+    ? <[coding.helper.check_resource_fit]>
+    ->( { 'backend' => 'gpu', 'size_gb' => $need_gb } )
+    : { 'fits' => TRUE };
+
+if ( not $fit->{'fits'} ) {
+    <[base.logs]>->(
+        2,
+        ': gpu recheck : %d MB free, need %d MB - waiting',
+        $fit->{'free_mb'}     // 0,
+        $fit->{'required_mb'} // 0
+    );
+    return TRUE;
+}
+
+<[base.logs]>->(
+    1, ': gpu recheck : model fits ' . 'again - spawning gpu server'
+);
+
+## the fit failure left cpu_fallback_requested set : a call seeing it at ##
+## entry skips the gpu block -- clear it, the model fits now             ##
+$stop->();
+<coding.cpu_fallback_requested> = FALSE;
+<[coding.async_spawn_inference_servers]>;
+<[event.add_timer]>->(
+    {   'after'   => 10.0,
+        'handler' => qw| coding.handler.verify_inference_startup |,
+        'data'    => { 'backend' => qw| gpu | }
+    }
+);
+
+return TRUE;
+
+#,,,,,...,.,.,..,,..,,,,.,..,,,,.,...,.,,,..,,..,,...,...,..,,.,,,,,.,.,,,,,,,
+#5IP47G5JIFE4PGL3ZIABSJUFAZVZKRL7TZVTDRSPSOKTC2645VNYRBF6L32HI4HWC7R2VD7VFO5AO
+#\\\|775ZWZYMP2KRLXC4M5T7MGR3JN3QG2NSPMUE7JPBGF7DN3U67H4 \ / AMOS7 \ YOURUM ::
+#\[7]LAOIJF4DVEZNWVYFC3FN6WQBKXTT5LLXYXED2VGYZDVCDPCDGGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,124 @@
+## [:< ##
+
+# name  = letsencr.child.acme.request
+# descr = async acme request [ jws + nonce ]
+
+my $p = shift // {};
+
+my $method   = uc( $p->{'method'} // qw| GET | );
+my $url      = $p->{'url'} // '';
+my $payload  = $p->{'payload'};                     ## hashref or undef ##
+my $order_id = $p->{'order_id'} // '';
+my $on_done  = $p->{'on_done'}  // '';
+my $params   = $p->{'params'}   // {};
+
+## internal re-entry flag [ nonce prefetch ; badNonce retry is checked in ##
+## letsencr.child.acme.handler.response via $p->{'_retried'} ]            ##
+my $nonce_fetched = $p->{'_nonce_fetched'} // FALSE;
+
+my $fail = sub {
+    my $error = shift // 'acme request failed';
+    <[base.logs]>->( 1, 'letsencr.child.acme.request: %s', $error );
+    if ( length $on_done and exists $code{$on_done} ) {
+        <[event.add_idle]>->(
+            {   'handler' => $on_done,
+                'params'  => {
+                    'ok'     => FALSE,
+                    'status' => 0,
+                    'body'   => undef,
+                    'error'  => $error,
+                    'params' => $params,
+                },
+            }
+        );
+    }
+    return undef;
+};
+
+return $fail->('url and on_done required')
+    if not length $url or not length $on_done;
+return $fail->( sprintf 'on_done handler %s not found', $on_done )
+    if not exists $code{$on_done};
+
+if ( $method eq qw| POST-AS-GET | ) {    ## rfc 8555 6.3 : empty payload ##
+    $method  = qw| POST |;
+    $payload = '';
+}
+return $fail->( sprintf 'unsupported method : %s', $method )
+    if $method ne qw| GET | and $method ne qw| POST |;
+
+## nonce : the order record first, then the cached account nonce ##
+my $order
+    = length $order_id
+    ? <letsencr.child.orders>->{$order_id}
+    : undef;
+my $nonce = ( ref $order eq qw| HASH | ? $order->{'nonce'} : undef )
+    // <letsencr.child.acme_client>->{'nonce'};
+
+if ( not defined $nonce or not length $nonce ) {
+
+    return $fail->('no nonce left after newNonce fetch')
+        if $nonce_fetched;
+
+    ## fetch a fresh nonce first [ async ], then re-enter ##
+    my $nonce_url = <letsencr.child.acme_client>->{'directory'}->{'newNonce'}
+        // '';
+    return $fail->('newNonce endpoint not in directory')
+        if not length $nonce_url;
+
+    <[base.logs]>->(
+        3, 'letsencr.child.acme.request: fetching fresh nonce first'
+    );
+    $p->{'_nonce_fetched'} = TRUE;
+    <[clients.https.request]>->(
+        {   'method'  => qw| GET |,
+            'url'     => $nonce_url,
+            'on_done' => qw| letsencr.child.acme.handler.nonce |,
+            'params'  => { 'acme_args' => $p },
+        }
+    );
+    return TRUE;    ## the request continues from the nonce reply ##
+}
+
+## a nonce is single use : consume it now. a request lost without a reply [ ##
+## no replay-nonce came back ] then fetches a fresh one, instead of         ##
+## resending this one into a certain badNonce                               ##
+delete $order->{'nonce'} if ref $order eq qw| HASH |;
+delete <letsencr.child.acme_client>->{'nonce'};
+
+## build the request [ jws signing as acme_http_request does it ] ##
+my $wire_body = '';
+my %wire_headers;
+if ( $method eq qw| POST | ) {
+    my $kid = <letsencr.child.acme_client>->{'account_url'};
+    my $jws = <[letsencr.child.create_jws]>->( $payload, $nonce, $kid, $url );
+    return $fail->('failed to create JWS') if not defined $jws;
+    $wire_body = JSON::XS::encode_json($jws);
+    $wire_headers{'Content-Type'} = qw| application/jose+json |;
+} else {
+    $wire_headers{'Accept'} = qw| application/json |;
+}
+
+<[base.logs]>->(
+    3,       'letsencr.child.acme.request: %s %s',
+    $method, substr( $url, 0, 60 )
+);
+
+## the reply handler carries the original args for a badNonce retry ##
+<[clients.https.request]>->(
+    {   'method'  => $method,
+        'url'     => $url,
+        'body'    => $wire_body,
+        'headers' => \%wire_headers,
+        'on_done' => qw| letsencr.child.acme.handler.response |,
+        'params'  => { 'acme_args' => $p },
+    }
+);
+
+return TRUE;
+
+#,,,.,...,...,..,,,,.,,.,,,..,..,,.,,,.,.,.,,,..,,...,...,.,,,.,,,.,,,,,.,,,,,
+#EZIYC4UQJMU47B4DVRVCCJ5NVPF7UOLQDCH6XK4ILQIY462SR6URWX5VUPZZXU3GN6ND5CZDVT5MC
+#\\\|GJ2K35KTXJBF3VGNUHJ5WJF6LCLETOO6UPYOQTP7RCPMMH6PAED \ / AMOS7 \ YOURUM ::
+#\[7]BVWGQTZA2OPQKPPWMIGZ2C7XBKXZWJRB37PCFIMXMAXNYBC562DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

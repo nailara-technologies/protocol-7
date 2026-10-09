@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = letsencr.child.acme.begin
+# param = <request hash>
+# descr = start an acme order, or queue it behind the active one
+# note  = request : { domains, email, server, reply_id, label }
+
+my $req = shift // {};
+
+## one order at a time : acme_new \ acme_use_server rewrite the client   ##
+## globals [ acme_client, current_order, current_csr, cert_key ] that an ##
+## active order still uses -- park the request, finish \ fail starts it  ##
+if ( defined <letsencr.child.acme.active> ) {
+    push <letsencr.child.acme.queue>->@*, $req;
+    <[base.logs]>->(
+        2,
+        ': acme : %s queued behind the active order [ %d waiting ]',
+        $req->{'label'} // $req->{'domains'}->[0],
+        scalar <letsencr.child.acme.queue>->@*
+    );
+    return { 'mode' => qw| deferred | };
+}
+
+my $result = <[letsencr.child.acme_new]>->(
+    {   'domains' => $req->{'domains'},
+        'email'   => $req->{'email'},
+        'server'  => $req->{'server'},
+    },
+    $req->{'reply_id'}
+);
+
+if ( not ref $result eq qw| HASH | or $result->{'status'} ne qw| deferred | )
+{
+    my $error
+        = ref $result eq qw| HASH |
+        ? $result->{'error'} // 'unknown error'
+        : 'acme_new failed';
+    $error .= sprintf ' [ retry after %s ]', $result->{'retry_after'}
+        if ref $result eq qw| HASH |
+        and length( $result->{'retry_after'} // '' );
+    <[base.logs]>->( 1, ': acme : %s : %s', $req->{'domains'}->[0], $error );
+    return { 'mode' => qw| false |, 'data' => $error };
+}
+
+my $order_id = <[letsencr.child.acme.start]>->(<letsencr.child.acme_state>);
+delete <letsencr.child.acme_state>;
+
+return { 'mode' => qw| false |, 'data' => 'acme order could not start' }
+    if not defined $order_id;
+
+return { 'mode' => qw| deferred | };
+
+#,,,.,,,,,.,.,.,.,..,,.,.,,.,,,.,,...,,.,,,,,,..,,...,...,,,.,.,.,,.,,,..,,.,,
+#BJFKHYVEAO4W3WXNZPOD5SMTRUNSQUBGPD5SGLPQHJBP2ZBIYZTD4PIUGTNYED3RLE4KHFSXRHBHA
+#\\\|N5HKUYEZHWOMHISSUDRXWM5PKQZLQ36U4WDPXIUKM6XJNTS6XN4 \ / AMOS7 \ YOURUM ::
+#\[7]FNH64F4STZ2TXKJ2B7HZIJULFSC47BM53F4ZCMCZZ3VZ22OPH6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

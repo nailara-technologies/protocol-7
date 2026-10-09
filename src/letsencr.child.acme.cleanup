@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = letsencr.child.acme.cleanup
+# param = <order record>
+# descr = remove every challenge set up for an order
+
+my $order = shift // return FALSE;
+
+my $provider = <letsencr.dns.provider> // qw| nameserv |;
+
+foreach my $authz ( values $order->{'authz'}->%* ) {
+    my $setup = $authz->{'setup'} // next;
+    foreach my $target ( sort keys $setup->%* ) {
+
+        ## a set-up that was sent may have landed even without its reply ##
+        if ( $target eq qw| httpd | ) {
+            <[protocol-7.route-send]>->(
+                {   'command'   => qw| httpd.cleanup-acme-challenge |,
+                    'call_args' =>
+                        { 'args' => "$authz->{'base'} $authz->{'token'}" }
+                }
+            );
+        } elsif ( $target eq $provider
+            and exists $code{"letsencr.dns.${target}_delete_txt"} ) {
+            $code{"letsencr.dns.${target}_delete_txt"}->(
+                "_acme-challenge.$authz->{'base'}",
+                $authz->{'dns_value'}
+            );
+        } else {
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$target.remove-txt",
+                    'call_args' => {
+                        'args' => "_acme-challenge.$authz->{'base'} "
+                            . $authz->{'dns_value'}
+                    }
+                }
+            );
+        }
+    }
+    delete $authz->{'setup'};
+}
+
+return TRUE;
+
+#,,,.,,,.,,.,,,,,,.,,,..,,.,.,...,,.,,,.,,.,.,..,,...,...,.,.,.,,,,.,,.,.,..,,
+#J3W4PWWLOBN6FG2474PUUGIOCHSSQSCOCD5ZGB4NLN7SIPHDFIW5LM73S6FIMREWMDMAP547NFT4A
+#\\\|QU52WJI34PS6NZPSLH7UJ4EYEKCSHCCOQHXBR27YB74HQW3VNH5 \ / AMOS7 \ YOURUM ::
+#\[7]ZXXTFAPCGK2RRA34COA5R6TR55L3CPCVE6D2OS5ER3QNYRH3FYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

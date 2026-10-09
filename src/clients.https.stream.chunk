@@ -1,10 +1,10 @@
 ## [:< ##
 
 # name  = clients.https.stream.chunk
-# descr = process one incoming body chunk for stream_to_file mode :
-#         completes response headers incrementally, de-chunks
-#         transfer-encoded bodies, writes payload bytes to the
-#         destination filehandle
+# descr = one body chunk in stream_to_file mode
+# purpose = completes response headers incrementally, de-chunks
+#           transfer-encoded bodies, writes payload bytes to the
+#           destination filehandle
 # note  = returns qw| continue | [ more data expected ], qw| done |
 #         [ chunked terminal block consumed -- response complete
 #         before socket eof ], or qw| error | [ write failure --
@@ -99,8 +99,9 @@ if ( not defined $state->{'stream_headers'} ) {
     $state->{'stream_buffer'} = '';
 
     my $parsed = <[clients.http.parse_response]>->($head);
-    $state->{'stream_status'}  = $parsed->{'status'}  // 0;
-    $state->{'stream_headers'} = $parsed->{'headers'} // {};
+    $state->{'stream_status'}        = $parsed->{'status'}        // 0;
+    $state->{'stream_headers'}       = $parsed->{'headers'}       // {};
+    $state->{'stream_headers_multi'} = $parsed->{'headers_multi'} // {};
 
     ## non-2xx [ redirect, error ] : keep draining the connection but leave ##
     ## the destination file empty -- the caller decides from status +       ##
@@ -119,8 +120,8 @@ if ( not defined $state->{'stream_headers'} ) {
 ## phase 2 : headers known -- pure body bytes ##
 return $handle_body->($chunk_ref);
 
-#,,.,,.,.,...,..,,,,,,,,,,,,.,...,.,.,,..,.,.,..,,...,...,...,.,,,.,,,,,,,..,,
-#IADBI3BFODPF5UKBOQE7K33L4YNALTXBZ5A4HTPMG3CFTJQQ7HMWLEN5MZEGRRUMXKTJ7MXH2B5BK
-#\\\|LZORSVNZWU3HAFKMXZGS6YUAJI43YEKS3P6FWDUDOLEW7N2HKK2 \ / AMOS7 \ YOURUM ::
-#\[7]HRC6EWDCYAMY3RHPHCGSAR55IGIMYXJSST5HHNTRZYTZ4EL32ADA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,..,,,,,,.,,,,,.,...,...,,.,,..,,...,..,,...,.,.,,,,,,,,,...,
+#B4AXFCQCO3OQBUENLAKG25C7PARKAV6BWVJJNB634BVW3E4JQCX3XWYQIYX3R27KBKVRXVNAGK4FW
+#\\\|BZV3TWZIYSLLM5SPDBMNZGBNYO7EJTEBX4HHWB6T4RIZQFPORZP \ / AMOS7 \ YOURUM ::
+#\[7]GQDDHJPJ7L2KEPUB7U3KM4CKLUM6RFAVDBMRMGKG7QX5XOKSH2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

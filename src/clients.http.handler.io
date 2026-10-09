@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = clients.http.handler.io
-# descr = io watcher handler : reads http response, fires on_done when complete
+# descr = io watcher : read the http response, then on_done
 
 my $state = shift->w->data;
 my $sock  = $state->{'sock'};
@@ -36,15 +36,17 @@ my $status = $parsed->{'status'} // 0;
 my $ok     = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
 
 $code{ $state->{'on_done'} }->(
-    {   'ok'     => $ok,
-        'status' => $status,
-        'body'   => $parsed->{'body'},
-        'params' => $state->{'params'},
+    {   'ok'            => $ok,
+        'status'        => $status,
+        'body'          => $parsed->{'body'},
+        'headers'       => $parsed->{'headers'}       // {},
+        'headers_multi' => $parsed->{'headers_multi'} // {},
+        'params'        => $state->{'params'},
     }
 );
 
-#,,.,,,,.,,,.,,..,...,..,,,,.,,..,,,.,.,,,...,..,,...,...,,,.,,.,,.,.,.,.,,..,
-#L6ULON2GWF5ORXUDWPOXP36XVY2CASSBBCXV3ID2PBKIJLIEECGOESMZ2UZHLBNGVPP6FFXEWD6QO
-#\\\|XMPIXRTMR7TP7ZEKSQKQCBY6SOXBHTMHT5QRFUEALGCVZI2GKJU \ / AMOS7 \ YOURUM ::
-#\[7]VUIJJVSOQAXCEWIN5JIZJB6GB4UMOUX7BJBADNN2OYHOBNQ3A4DY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,,..,,.,,..,,,,,,,..,,,,,,,,,..,,...,...,,..,.,,,.,.,,,.,,..,
+#PSBNHAAG4L3USFK7YWW75YLZN2DHNVPX5UEGTERMNM2TKL3KZHHIGOSMLHKLQ3QCDPMGNYYHQKMUK
+#\\\|5AFG6Z4N4OZJGUYG2HMM4KZHOASUGDWJPLX3T5BSVRXEGCQLGOJ \ / AMOS7 \ YOURUM ::
+#\[7]GHCGGVAYN4YLGBSDRFU7MMVR2ZSMQ7CZ7KNZNF7UJ47EUH62M4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
