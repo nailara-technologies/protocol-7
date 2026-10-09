@@ -106,6 +106,15 @@ twin of `p7-keys accept-owner` \ `drop-owner`, a trust-chain WRITE :
   the ssh zenka becomes the managed transport once its bridge speaks
   auth-keypair [ its own step : the last password-authenticated cube
   link ].
+- **incoming, later** [ user 2026-10-09 ] : cube never listens publicly
+  [ pri \ atom bind `127.0.0.1:42` -- a bare `p-7-r <host>` hangs \ is refused,
+  dial the ssh forward with `-host <name>` ]. incoming links will arrive at
+  an OUTER cube [ the only public listener, a dmz segment ] that connects
+  to the main cube itself as `ext-cube` [ command-relay : optional
+  adapter ; `data/md/design/NESTED-CUBE-NETWORK-SEGMENTATION.md`,
+  `data/tasks/command-relay-zenka.md` ]. tunnelling there can collapse the
+  hops for convenience. until then ssh stays the transport -- `p-7-r` could
+  start the forward itself from the host record.
 - **pins name the HOST, not the dial address** : through a tunnel the
   dialled address is `127.0.0.1:<local>` -- the pin must be the record's
   `<name>_<port>` [ `atom_42` ]. `auth.client.server_pin.check` and the
@@ -187,8 +196,8 @@ vault-edit can move onto them afterwards [ not part of B2 ].
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,,.,..,,.,.,,,,,..,,.,.,..,,..,,...,,,,,...,..,,...,..,,.,,,..,,,,,,...,..,,
-#I36OM6CYUXTSFKWBCCSXATYXLBKJP4E3AEUIHN6RP37ET4MGKPP2JKN3QEMRBUIJ4TRUGM3L7WKBG
-#\\\|2HQFSPDKP5UOXXL6T6UBAZ4AYJLZ7EADF36L72FHZLY3IKFBEL2 \ / AMOS7 \ YOURUM ::
-#\[7]UB245AGJXZHSZU2IGKKROC6VDA2KQJ6LPFEZVU7PJL5J6I5RKEBY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,.,,..,,..,,,,.,..,,..,,,,.,..,,...,...,,..,,,.,,,,,,.,,,.,,
+#VWINVR5R5P4PNQ6LSAHI6EICNWMMZHPV45LJBZNPW6KMZU3PYUYBVBTQ6QGOTUSOA6SM4LRFLUQBM
+#\\\|RFLWJTHAOUSRIO2URG7LKMRH22L6BSN77AN7O2HU7FQ755Q7A25 \ / AMOS7 \ YOURUM ::
+#\[7]YJW6RCZK4XEDMQY3TTKCRJCDFU3UPWFL6WT2PGKSJZWBW6DJZGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -28,6 +28,10 @@ traffic. the gateway zenka is the only connection point between them.
 
 ## gateway zenka identity
 
+decided 2026-10-09 : the gateway is the outer cube itself [ registers as
+`ext-cube` at the core ] ; `command-relay` is an optional separate mapping
+adapter for paranoid set-ups [ `data/tasks/command-relay-zenka.md` ].
+
 the gateway registers at two cubes under complementary names:
 
 ```
@@ -238,8 +242,8 @@ the main cube is the outside world.
   (yes, if the gateway honors the flag — it should, as part of its
   transparent bridging contract)
 
-#,,.,,..,,,..,,..,,..,.,.,...,,.,,,.,,,..,.,.,..,,...,...,...,,,.,,,.,.,,,,,.,
-#FQ3E7ZO57LLETYPDO45BK2DXMAQLJEGEFXMFDEVQXDH2MATKPHCPTPPUGS4652DMZ34QCNMSST6I6
-#\\\|6YJICPGCPYNPJV52ZNZA27DOSDKCTU35ZT44HZKLOQBCTZ36NCN \ / AMOS7 \ YOURUM ::
-#\[7]MG2XO6FQZENGFX6MXYE2G4BESZMADB6Q6WDNS3N4WOQVLMZ4EWDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,...,,,,,.,,,...,..,,.,.,,..,..,,...,,..,,.,,,,,,,.,,,.,,,..,
+#UR4OBM6GQLPFR6OKHBRRHJXCWFDO2PFBJXNNKVNYWQK4HI4IUZS32YQEWQFAUXRIV6GYFQENQXYNI
+#\\\|HOT2XFLQVYSAQRIFMHY7IXF63R6IU4UBD3LCDSM6QFNOCBPZLIR \ / AMOS7 \ YOURUM ::
+#\[7]R44RH7B3ATZMNX2T3K5W3QEUL7QRD33IKIS3UEYOMVPBYD2RISCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
