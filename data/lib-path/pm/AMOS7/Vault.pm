@@ -35,6 +35,7 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
 @EXPORT_OK = qw|
     vault_init
     vault_open
+    vault_exists
     vault_unlock
     vault_rewrap
     vault_wraps
@@ -373,6 +374,9 @@ sub _b32_text_decode {
 sub _b32_file_read { return _b32_text_decode( _read_file(shift) ) }
 
 sub _key_path { return $ARG[0] . '/vault.key.B32' }
+
+## true when $dir holds a vault [ its key file ]
+sub vault_exists { return -e _key_path(shift) ? TRUE : FALSE }
 
 ## key file : 'P7VK' format:C vault-id:a10 created-ntime:Q> kdf:C
 ## [ 1 = argon2id ] t:N m-KiB:N p:N wraps:C , then per wrap : name-length:C
@@ -1013,8 +1017,8 @@ sub gen_password {
 
 1;
 
-#,,,,,..,,,..,...,,..,,,,,,.,,,.,,..,,,,.,,.,,..,,...,...,...,.,,,,.,,,..,,..,
-#AYTQAQQOJPVYNRX4QZ6YZT2AEA3UVLPQLI2DHVXUEUAIG6UFQR7IME54KIFWXIKFZF3GNWE3CUVUW
-#\\\|ZDZP3JZAHATOZ7GGO34TUYFAMIA255C2UMVQQSGLJE2R6RJO6QL \ / AMOS7 \ YOURUM ::
-#\[7]TS7P543HZK7D3W5FKIOJDEJ6QBZVPUOVETUYVK3BXTLY2HTWLSBY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,,,,,.,.,,..,,,.,.,.,..,,,,.,..,,...,...,.,,,,,,,,,,,,,.,.,.,
+#ZZANE67JF6VYIGWDE6TTIWL57LNPR3AHQ5R6XJZL7E3XGKAHZONO7VSELBAVKEAVR5DDTTLOIWNQA
+#\\\|7RV2AWY5RN4JAV3JXBSYXY5RRNMQU57ZQAYIWCXLV6V3HCXKX3W \ / AMOS7 \ YOURUM ::
+#\[7]CAUA3TWPRVZPHM3VICMU6264SJWSRXMKMJLRFPU5MGFBMZRYK6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
