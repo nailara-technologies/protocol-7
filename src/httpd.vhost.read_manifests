@@ -57,6 +57,9 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
             if ( opendir $ph, $parent ) {
                 for my $name ( readdir $ph ) {
                     next if $name =~ m|^\.| or $name =~ m|\.bak-[A-Z2-7]+$|;
+                    ## the manifest's own source name [ 'jobs.vhost' ] is ##
+                    ## the template, not a deployment of it               ##
+                    next if $name eq $entry;
                     my $pat_re = $glob =~ s|\.|\\.|gr =~ s|\*|[^/]*|r;
                     next unless $name =~ m|^$pat_re$|;
                     next unless -d "$parent/$name";
@@ -102,8 +105,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,.,,,,,,,,.,,,.,..,,.,.,.,.,.,.,,..,,.,,,.,,..,,...,..,,.,.,.,,,,.,,..,,,,.,
-#2LPVOE7HUCZGM63HHP52HBRMI5WIEIND2XPG3BLIIWHMRBCNJ2WIVIIYECOZUYXJV6T6UZZ4C3MVM
-#\\\|7MYTMD4DCLEMMIHYTMMW6DGRAFFBVMJB23ZUUQYONX3XYIPWBJW \ / AMOS7 \ YOURUM ::
-#\[7]V2TOTKHVRMN2TWA2KNCPHAUZHOJABE66Y63CTEIJEKN4C4LNRWDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,.,.,.,,,...,,.,,.,,,.,,,.,,,..,,...,...,...,...,...,,,,,,,.,
+#5MP6OKASDH4QRAJBOWHRYXW52QUBDH6CHLQF7BPZ5D7UOW35TCYAINCZOE7ZPQM2RRYEZX4VRNWYA
+#\\\|XD4J6Y2FWDHLDLBATBSZIYZQV7WIYVTQRBZNFA6LXUMXRTTVN5R \ / AMOS7 \ YOURUM ::
+#\[7]RK2OMTDO5VHVQILCD3AXPZ56S2CSOGZLNOEBP4H4NF5Q3A2T3YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

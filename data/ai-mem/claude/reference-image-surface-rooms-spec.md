@@ -18,7 +18,7 @@ the design for using screens / monitors inside generated images as addressable s
 
 related : `rendered_display` category [ conf 0.85, binary mask ] in
 `data/md/design/VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md` ; mask models in
-`data/tasks/visual-mask-model-layer.md` [ screens not yet listed there ] ; povray as conditioning in
+`data/tasks/visual-mask-model-layer.md` [ displays line links the task ] ; povray as conditioning in
 `data/md/design/VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md`.
 
 written up 2026-10-09 as `data/tasks/image-surface-addressing.md` [ truncated \ occluded
@@ -27,8 +27,8 @@ screens are wanted, not filtered -- user ] : the geometry step -- mask -> 4-corn
 reference image [ the user's planned code-rendering feedback loop ]. first test case : the kitten
 background `data/gfx/backgrounds/SDNZSXD2I5BZAMYCNJ5YDSOTW4MHA3TRTOB75KDEGMOOW.png` [ 3 screens ].
 
-#,,..,.,.,,,.,,.,,..,,,,.,,,,,,,,,,..,,,.,.,,,..,,...,...,.,,,.,.,.,,,..,,.,.,
-#3VHDD4KPBA4XM4DIICELL65QBH5E6CLNCK57FLS2FRDDSU6NTSIMA7ZWXEA3Q2UUGLYYPBX66ZLBO
-#\\\|IUAPPRN6QOZO4YUWK5V2N4IX72RVRMAX34JAUSAYTG2ONUAPYNF \ / AMOS7 \ YOURUM ::
-#\[7]KGFZ6AGIY6OF5IWGUSO5ZDXECJPS25YNPEMRFA2O6VWKFRCSWOCI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,..,,,.,,...,,,.,.,,,..,,.,.,..,,...,...,,.,,,.,,,,.,.,,,,,.,
+#7ZOYFCDPL3NZANRL4SK3X64AA5CK55UD22HNT2BXB4SACD7CWJ72Z35EWLW7MAJXY74E5SO3JO6YY
+#\\\|FW2RD6VVSJHRKUNMCH4PUKCEWZHGZTWXSRBAFTOZEUMUAVVIC5P \ / AMOS7 \ YOURUM ::
+#\[7]HLCXUR6PIQ5DKQLK6KPTN5FH4DUCRZVGD3WMT6GJWNFFJK4BMSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
