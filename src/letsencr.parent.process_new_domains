@@ -19,7 +19,7 @@ my %allowlist = map { $ARG => 1 }
     split( m|\s+|, <letsencr.cfg.enroll_domains> // '' );
 
 my $max_per_check = <letsencr.cfg.enroll_max_per_check> // 2;
-my $staging = <[base.cfg_bool]>->( <letsencr.cfg.enroll_staging> // TRUE );
+my $staging = <[base.cfg_bool]>->( <letsencr.cfg.enroll_staging> // FALSE );
 
 my @public_addresses = grep { length($ARG) }
     split( m|\s+|, <letsencr.cfg.public_addresses> // '' );
@@ -141,8 +141,8 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
 
 return { 'status' => qw| success |, 'queued' => $queued };
 
-#,,,,,,..,,,,,.,.,,..,,,,,,,.,,..,,..,,.,,,,.,..,,...,...,.,.,.,.,..,,,.,,.,,,
-#SQQB6XMXUKY7QDMDVRFNHBFY2V6JM2UNRQ74HZYK6UAKU377BEIQBLMSUOD42IP433RYQQZIOTL56
-#\\\|WNMB4QLWOS4IFISYKOKBN7KKE5V4CZRQFQHMDSPJR6RYCWZ5IN6 \ / AMOS7 \ YOURUM ::
-#\[7]DWQQX2KVLZJT4G7EVURTU74NZW623IIN3YY7KHAAT3XYXYJDAADY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,,.,,,..,,,,,,.,,.,,,,..,..,,..,,...,...,...,,,.,,,.,,.,,.,.,
+#3QZ3VIG3AASOROQ52DZ5JZLZ55COMYBQ2XH5VRHOCICMKRQZZRBIRICXZ2YFWO564F2GY3PRBKOU4
+#\\\|ITY6XPWFQS7ONGEEDPUHPXRP6FQG3EOCMEFZAYJ7X3EWQ42FEGO \ / AMOS7 \ YOURUM ::
+#\[7]RXRM3BTF6UN53A3ZPQZHPM44JXDYCZCDWNRERCZCT7N6QRT33EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
