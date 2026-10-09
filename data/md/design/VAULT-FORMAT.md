@@ -26,6 +26,12 @@ by hand from this text.
 - an edit or a delete ADDS a version. the newest version is the entry ;
   a newest version with `"deleted":1` hides it. nothing is overwritten,
   `restore` writes an older version again as the newest
+- harmony : generated values that name files [ vault id, entry ids,
+  version tails ] or that the owner sees [ the recovery code -- grouped AND
+  plain form --, generated passwords ] are drawn again until
+  `AMOS7::Assert::Truth::is_true` accepts them [ ~28 % pass ; < 4 of the
+  recovery code's 160 bits ]. only generating needs that module : reading
+  never checks harmony, so a copy without it opens every vault
 
 ## encodings
 
@@ -225,8 +231,8 @@ the payload with the vault key, then step 2 for each record's data.
 sync between hosts over protocol-7, a session agent [ unlock once per
 login ], the vault-edit form ui, totp code display, purging old versions.
 
-#,,.,,.,.,,.,,...,.,.,...,.,,,..,,,.,,.,.,.,,,..,,...,...,,,,,,,,,,,.,.,,,...,
-#IBMLQZIMZ2Y5UDWSESMOUZ2Q4V3RDK7ZE2423IBKUHCXVI6IVWK4SQHTNANV4LZAIPKLZIGYUDCNY
-#\\\|76GH5AQJEUYCMUGULK7GDZDMJGL4SF5YNKV5UFTQFLQ2HTCEGU7 \ / AMOS7 \ YOURUM ::
-#\[7]EILFKP5JAGL7AD4TDM532X5IPVLVRLVBZR3SMSXEKCUK45U4LIBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,..,,,..,,.,,.,,,,.,,..,,.,,,..,,...,...,...,,,.,,,.,,,.,.,,,
+#ZQHDEI4W74KRPZCH7OGNOKAOGBGGKVL7GZVORY424THMTKH7H6QATMA5DAYKSPRBUEBFJVHKU4ETU
+#\\\|SLPE4IKEXOVQDJSCC4R6BVPQPHSSASVWH64ENXQA5OECVFOL4KT \ / AMOS7 \ YOURUM ::
+#\[7]SPIPMSOSBUR5YMW6KUK6L3QN3KOHP63MMPFZVZ7OHVR66QUL5YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
