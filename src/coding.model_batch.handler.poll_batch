@@ -45,9 +45,9 @@ my $pause_batch = sub {
     ) if length $held_id;
     $state->{'switch_id'} = '';
 
-    ## best-effort restore of the original model : leaves the backend as    ##
-    ## the owner left it while the batch is frozen [ resume re- switches to ##
-    ## the candidate anyway ]                                               ##
+    ## best-effort restore of the original model : leaves the backend as ##
+    ## the owner left it while the batch is frozen                       ##
+    ## [ resume re- switches to the candidate anyway ]                   ##
     my $original = $state->{'original_model'} // '';
     if ( length $original ) {
         eval {
@@ -142,8 +142,8 @@ my $loaded_model_id = sub {
 
 ## helper : record one per-task entry and run the capture -> revert ->      ##
 ## reverify sequence around it. returns TRUE when the tree is verified back ##
-## to baseline, FALSE when the reverify hard-stopped the batch [ cursor     ##
-## frozen by the caller via $pause_batch ]                                  ##
+## to baseline, FALSE when the reverify hard-stopped the batch              ##
+## [ cursor frozen by the caller via $pause_batch ]                         ##
 my $settle_task = sub {
     my ( $task_href, $verdict, $failure_class, $detail, $result_text ) = @_;
 
@@ -371,22 +371,57 @@ if ( $phase eq qw| gate | ) {
     $state->{'baseline'}    = $gate_href->{'baseline'};
     $state->{'baseline_cs'} = $gate_href->{'baseline_cs'};
 
-    ## first gate of a batch : pack the whole baseline into the blob store  ##
-    ## so the per-task capture's "baseline always already stored" invariant ##
-    ## holds [ CAS : repeat gates are near-free ]                           ##
-    if ( $gate_href->{'baseline_new'} ) {
-        my $pack_href = <[model_batch.baseline.pack]>->($batch_id);
-        <[base.logs]>->(
-            1,
-            '[model_batch] %s : baseline packed '
-                . ': %d stored, %d already present',
-            $batch_id,
-            $pack_href->{'stored'}  // 0,
-            $pack_href->{'present'} // 0
-        ) if ref $pack_href eq qw| HASH |;
+    ## pack the baseline into the blob store before the first task, once   ##
+    ## per batch run. the start command's gate is the one that creates the ##
+    ## manifest, so this gate never saw baseline_new and nothing was ever  ##
+    ## packed : every revert after a task that edited an existing file     ##
+    ## failed [ local-overview 2026-09-21, 2026-10-10 ]. chunked in the    ##
+    ## pack phase -- ~26k files at once blocked the event loop long enough ##
+    ## for a watchdog restart                                              ##
+    if ( !$state->{'baseline_packed'} ) {
+        $state->{'pack_queue'} = [ sort keys %{ $gate_href->{'baseline'} } ];
+        $state->{'pack_count'} = { qw| stored | => 0, qw| present | => 0 };
+        $state->{'phase'}      = qw| pack |;
+        return TRUE;
     }
 
     $state->{'phase'} = qw| switch |;
+    return TRUE;
+}
+
+## ........................................................................ ##
+## phase pack : content-addressed baseline pack, a slice per tick           ##
+## ........................................................................ ##
+if ( $phase eq qw| pack | ) {
+    my $queue     = $state->{'pack_queue'} // [];
+    my $count     = $state->{'pack_count'} // {};
+    my $root_path = canonpath(<system.root_path>);
+    my $per_tick  = <model_batch.cfg.pack_per_tick> // 200;
+
+    for my $rel_path ( splice @$queue, 0, $per_tick ) {
+        my $abs_path = catfile( $root_path, split m|/|, $rel_path );
+        next unless -f $abs_path;
+        my $blob_path = join qw| / |, <[model_batch.blob.path]>,
+            ( $state->{'baseline'}{$rel_path} // '' ) . '.mxz.B32';
+        if ( -f $blob_path ) {
+            $count->{'present'}++;
+        } elsif ( defined <[model_batch.blob.store]>->($abs_path) ) {
+            $count->{'stored'}++;
+        }
+    }
+    return TRUE if @$queue;
+
+    <[base.logs]>->(
+        1,
+        '[model_batch] %s : baseline packed '
+            . ': %d stored, %d already present',
+        $batch_id,
+        $count->{'stored'}  // 0,
+        $count->{'present'} // 0
+    );
+    delete @$state{qw| pack_queue pack_count |};
+    $state->{'baseline_packed'} = TRUE;
+    $state->{'phase'}           = qw| switch |;
     return TRUE;
 }
 
@@ -447,8 +482,8 @@ if ( $phase eq qw| switch | ) {
     $state->{'candidate_started'} = <[base.time]>->(3);
 
     ## per-model budget cap : sum of task hints x current tps scale x 1.5 ##
-    ## headroom [ tps-relative policy, backend-aware-timeout- scaling     ##
-    ## philosophy ]                                                       ##
+    ## headroom                                                           ##
+    ## [ tps-relative policy, backend-aware-timeout- scaling philosophy ] ##
     my $scale    = $state->{'tps_scale'} // 1;
     my $hint_sum = 0;
     $hint_sum += $ARG->{'budget_hint'} // 300
@@ -543,8 +578,8 @@ if ( $phase eq qw| task_start | ) {
             sprintf 'expected %s, backend serves %s',
             $candidate, $loaded
         );
-        ## settle_task may already have frozen the batch [ revert / reverify
-        ## hard stop ] : only pause when it has not
+        ## settle_task may already have frozen the batch
+        ## [ revert / reverify hard stop ] : only pause when it has not
         $pause_batch->('model-swapped-mid-batch')
             if ( $state->{'state'} // '' ) ne qw| paused |;
         return TRUE;
@@ -561,14 +596,14 @@ if ( $phase eq qw| task_start | ) {
         $prompt = <[file.read]>->($prompt_path) // '';
     }
 
-    ## submit through the normal queue machinery : the SAME pipeline       ##
-    ## coding.cmd.submit runs [ intake -> analyze -> decide_service ->     ##
-    ## enqueue ], but called as modules -- cmd.submit reads the ambient    ##
-    ## global $call, which in a TIMER context is whatever the last command ##
-    ## dispatch left behind [ found live 2026-09-21 : submits from         ##
-    ## poll_batch carried a stale eval-code string as the work request ].  ##
-    ## driving the pipeline modules directly is equivalent and             ##
-    ## context-independent                                                 ##
+    ## submit through the normal queue machinery : the SAME pipeline     ##
+    ## coding.cmd.submit runs                                            ##
+    ## [ intake -> analyze -> decide_service -> enqueue ], but called as ##
+    ## modules -- cmd.submit reads the ambient global $call, which in a  ##
+    ## TIMER context is whatever the last command dispatch left behind [ ##
+    ## found live 2026-09-21 : submits from poll_batch carried a stale   ##
+    ## eval-code string as the work request ].  driving the pipeline     ##
+    ## modules directly is equivalent and context-independent            ##
     my ( $task_id, $routed, $submit_err ) = ( '', '', '' );
     if (<coding.draining>) {
         $submit_err = 'coding zenka is draining';
@@ -978,8 +1013,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,,,.,,,,,,,.,,,,..,,.,,,,,,,.,,,,.,,.,,,..,..,,...,.,.,.,,,,,,,...,..,,,.,,
-#7JQW24V4QTGZEA2LJTIQU5FRDD73NLQWGINIEH7DBGNART5SJOQUX33KKQNE7NJKWPTXMQXJ4WUHE
-#\\\|M4FS2OD752BMPHLY7GSNUBCVLWUC5ZO73JZR7BXXO6PV52QEWWH \ / AMOS7 \ YOURUM ::
-#\[7]TQZYQ56ZWBBCWSKDFJFK76PLUTBEPLMJ4N5GTLD2PQBOTP3PAUCI 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,.,.,..,,..,,,..,...,..,,,.,,..,,...,...,..,,.,.,.,.,,,.,..,,
+#WZFDN6NHEESZMQ3A7VE6XBXR7Q4NQ4SETUC32DNJRTORN34W6XMAYWG752ZCHOZA6FHSEXBQC7XFY
+#\\\|DPSYVJZHS6UUCUCOVXVGJRM37JOQVQZ55WAJVU7KGBXZOAQSF6Q \ / AMOS7 \ YOURUM ::
+#\[7]NCXYNTLGGVDLYIOZWT2QQEIJNDBOLNVSL4I3T34AC56FYCHCP2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

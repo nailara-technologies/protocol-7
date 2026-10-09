@@ -33,12 +33,18 @@ for my $abs_path ( $files_aref->@* ) {
     ## unreadable paths are out of scope, same as .git/state above --       ##
     ## cleanly caught here [ house policy: every warning is a bug to fix or ##
     ## a condition to catch, never routine noise ] so filesum is never      ##
-    ## called on a path it would have to warn about. a permanently-         ##
-    ## unreadable file [ wrong owner/mode ] would otherwise warn on EVERY   ##
-    ## gate/manifest walk -- batch start and every candidate boundary --    ##
-    ## found live 2026-09-21 against a stray owner-private editor-crash     ##
-    ## file                                                                 ##
+    ## called on a path it would have to warn about. a                      ##
+    ## permanently-unreadable file [ wrong owner/mode ] would otherwise     ##
+    ## warn on EVERY gate/manifest walk -- batch start and every candidate  ##
+    ## boundary -- found live 2026-09-21 against a stray owner-private      ##
+    ## editor-crash file                                                    ##
     next unless -r $abs_path;
+
+    ## large files are out of scope [ model files up to ~1 GB live in the ##
+    ## tree, a task never edits them ] : not hashed at every gate, never  ##
+    ## packed -- same cap as model_batch.blob.store                       ##
+    next
+        if -s $abs_path > ( <model_batch.cfg.blob_max_bytes> // 8 * 1024**2 );
 
     my $checksum = <[chk-sum.bmw.filesum]>->( 384, $abs_path );
     next unless defined $checksum and length $checksum;
@@ -48,8 +54,8 @@ for my $abs_path ( $files_aref->@* ) {
 
 return \%manifest;
 
-#,,..,,,,,,,,,,,.,,,.,.,,,.,.,.,.,.,,,.,,,...,..,,...,...,.,,,,.,,.,.,.,,,,,.,
-#5XHLXR6AWTX5HMRSJVK5AJJPNXA5LLKSUX5CYHEYOODDBD3PC4M4652HKY2A3R3XA7OOAKTVOMRUU
-#\\\|753U7NSFJJGOZ66ZZE27KL3OLBSVYJUTIFYJKW37W5PO4K5LV4B \ / AMOS7 \ YOURUM ::
-#\[7]POLKCJWRMMHHEAME6F2GRFO4PJAS7SGO4ZOSKS33LBDQRSDOPEBA 7  DATA SIGNATURE ::
+#,,..,.,.,...,..,,,..,,..,,..,..,,,,.,,..,,..,..,,...,...,...,.,.,...,,.,,,,,,
+#P4GXKME5HJLYTT3IT7YBXAPSXTJMION7XXJHFUOWGTX7H7V2X4DE5S6HYTYRU3YXDOC42H27MS6YE
+#\\\|BUOVTQOVLKLMAM3SOYCBCOVY6ZWCBVGGBKI5Q5BYNE5LVRWUHQI \ / AMOS7 \ YOURUM ::
+#\[7]HWKKAZGPMTPOTIMTBM6X5IOSNSGRBWAPPSSPHDR6KU7TQZORU6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

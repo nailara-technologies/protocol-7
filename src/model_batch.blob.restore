@@ -7,8 +7,14 @@
 my $checksum  = shift // '';
 my $dest_path = shift // '';
 
-return warn 'expected checksum parameter <{C1}>'  unless length $checksum;
-return warn 'expected dest path parameter <{C1}>' unless length $dest_path;
+if ( !length $checksum ) {
+    warn 'expected checksum parameter <{C1}>';
+    return undef;
+}
+if ( !length $dest_path ) {
+    warn 'expected dest path parameter <{C1}>';
+    return undef;
+}
 
 my $content = <[model_batch.blob.read]>->($checksum);
 return undef unless defined $content;
@@ -20,13 +26,21 @@ $parent_dir =~ s|/[^/]+$||;
 <[file.path.make_dir]>->($parent_dir)
     if length $parent_dir and not -d $parent_dir;
 
-<[file.write]>->( $dest_path, $content )
-    or return undef;
+## raw bytes through a temp file + rename : a failed write never leaves a ##
+## half-restored destination                                              ##
+my $tmp_path = "$dest_path.restore-$$";
+open( my $out_fh, '>:raw', $tmp_path ) or return undef;
+my $ok = print {$out_fh} $content;
+$ok = close($out_fh) && $ok;
+if ( !$ok or !rename( $tmp_path, $dest_path ) ) {
+    unlink $tmp_path;
+    return undef;
+}
 
 return TRUE;
 
-#,,..,,.,,...,.,.,..,,,,,,,..,,..,,,.,,,.,...,..,,...,...,.,.,,..,...,...,,..,
-#AOOVVMMKT4HNKP4FFFLOFIMLDRHGDHTHMZMVB7UTU36EZKBMZYOLOHYHB3VK65AA7SP7SFYZJCV2Y
-#\\\|QBOXCPDITI3WJUBTIUC532HZALYUVL64YOL3JO4C3PG7HSJBW47 \ / AMOS7 \ YOURUM ::
-#\[7]UDOFTFNTIW3PX6KZSMEFDSKNHY2VN3MPIQCMMA4HYOJBD46L4YCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,...,.,,,...,,..,...,,,.,,.,,..,,...,...,,.,,,,,,,,,,,,.,.,.,
+#VUQGDBSOTB4W4MQLTVTHGLGWJWFX6JSJQK5WCUNLBQ5E4ERFLXM4E3SRPCQZF6WJLLLEI3UCD5UTW
+#\\\|63XX3J2QULLGNF4U2YAICAHD6XEZFGMSAT7W5HQGKJNSDD2ZFS3 \ / AMOS7 \ YOURUM ::
+#\[7]2A7Q6PQD7U7R4I2NOG4SANIA2ZDNYMAR62OA5KEBNFUEDDNZXMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

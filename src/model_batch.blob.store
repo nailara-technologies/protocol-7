@@ -10,9 +10,21 @@
 
 my $file_path = shift // '';
 
-return warn 'expected file path parameter <{C1}>' unless length $file_path;
-return warn sprintf( "file '%s' not found <{C1}>", $file_path )
-    unless -f $file_path;
+if ( !length $file_path ) {
+    warn 'expected file path parameter <{C1}>';
+    return undef;
+}
+if ( !-f $file_path ) {
+    warn sprintf( "file '%s' not found <{C1}>", $file_path );
+    return undef;
+}
+
+## large files are out of scope                            ##
+## [ model files up to ~1 GB live in the tree ] :          ##
+## model_batch.manifest.build skips them with the same cap ##
+if ( -s $file_path > ( <model_batch.cfg.blob_max_bytes> // 8 * 1024**2 ) ) {
+    return undef;
+}
 
 ## one addressing scheme across the whole system : the same BMW-384 BASE32
 ## family that addresses models in the <coding.model_metadata> registry
@@ -27,8 +39,12 @@ my $blob_path = join qw| / |, $blob_dir, "$checksum.mxz.B32";
 ## content addressing : already-packed identical content is a no-op ##
 return $checksum if -f $blob_path;
 
-my $content = <[file.read]>->($file_path) // '';
-utf8::encode($content) if utf8::is_utf8($content);
+## raw bytes [ binary-safe : a text read decoded latin-1 sources and model ##
+## adapters wrongly, one warning per file ]                                ##
+my $content = '';
+open( my $in_fh, '<:raw', $file_path ) or return undef;
+{ local $INPUT_RECORD_SEPARATOR = undef; $content = readline($in_fh) // '' }
+close($in_fh);
 
 ## base32 wrapping keeps the payload safe for file.write's UTF-8 text mode ##
 ## [ same reason note.trash.stash base32-wraps its xz trash ]              ##
@@ -44,8 +60,8 @@ my $b32 = <[base32.encode]>->($compressed);
 
 return $checksum;
 
-#,,,,,,..,...,...,,..,,.,,...,.,,,.,,,,,,,...,..,,...,...,,.,,,.,,...,,,.,..,,
-#2UXCHHMDE7NM6QK2Z77C65FI5WYTX74RDAOLY4T36ZUGR22J5RODMGXGCTUU5U7ZWMSDEPRIBQAD2
-#\\\|N65GMB2PSA76DMIHDS5JRNZDBIAO5T3BRX2TPPB66Z4IWJURUKR \ / AMOS7 \ YOURUM ::
-#\[7]5X6DBYRGYAK72SUYK5FLKYTYTDEMX75Z37W5NDPPR67DC2UIZUCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,.,,,.,,,,.,,.,.,.,.,,,,,..,,..,,...,...,,.,,,.,,..,,,,,,,,.,
+#YKVRHLB7UUGPVJSYACCXWXQ4GFUEMVOYG2CWIDA4MX6UAQ2R77C76QCRF6JPXBA3J6EOHMGPMLABK
+#\\\|2XYTJFLADQ4WGWGZGPM7WGWF7QHFQ5G4ZHTYGNH2JT4YOSDYOOQ \ / AMOS7 \ YOURUM ::
+#\[7]5KSESSM62GSVLFPSMOBCHIXJ3CGMMKUH6L7M5CBMR43TMH62R4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,59 @@
+# qwen3.8 9b coding comparison -- 2026-10-10
+# fable5 sft [ new, text ] and the heretic distill with mmproj [ new,
+# vision ] against the default model. the two doc tasks are the ones from
+# qwen38-compare.yaml [ 2026-09-21 baseline ], the third is a real coding
+# task : a module in house style, checked by the mime types it must name.
+# capture/revert between tasks keeps the tree pristine.
+
+batch_spec_version: 1
+backend: gpu
+
+models:
+  - OFSQC4I:QDBKEXY    # Qwen3.8 9B Heretic Uncensored Q4_K_M [default]
+  - YCNHPYI:GYURLQY    # Qwen3.8 9B SFT Fable5 Q4_K_M
+  - SWM37OY:BK6EB2I    # Qwen3.8 9B Distill Uncensored Heretic Q4_K_M + mmproj
+
+reference_tps: 20
+
+tasks:
+  - id: blob-format-doc
+    budget_hint: 600
+    prompt: |
+      work submit "read src/note.trash.stash and src/model_batch.blob.store,
+      then create src/doc/model-batch-blob-format.md : a concise summary
+      [ maximum 40 lines ] of the pack format the two modules share and the
+      one way the batch version differs in how it keys the packed output.
+      write the file, then reply with a single-line confirmation."
+    criteria:
+      - xz
+      - base32
+      - checksum
+
+  - id: sweep-cursor-doc
+    budget_hint: 600
+    prompt: |
+      work submit "read src/coding.model_sweep.handler.poll_sweep, then
+      create src/doc/model-sweep-cursor.md : explain in maximum 30 lines
+      how the sweep cursor survives a zenka restart and under what exact
+      condition the circuit breaker pauses the sweep. write the file, then
+      reply with a single-line confirmation."
+    criteria:
+      - cursor
+      - restart
+
+  - id: mime-from-magic-module
+    budget_hint: 900
+    prompt: |
+      work submit "read src/coding.image.label and src/coding.image.load_for_vision
+      for the module format and house style [ header comments, lowercase
+      ## comments with [ ] annotations, no sub { } wrapper : the file body
+      is the subroutine ]. then create src/coding.image.mime_from_magic : it
+      takes the first bytes of a file as a string and returns the image mime
+      type from the magic bytes for png, jpeg, gif, webp, tiff and bmp, or ''
+      for anything else. write the file, then reply with a single-line
+      confirmation."
+    criteria:
+      - image/png
+      - image/jpeg
+      - image/webp
+      - image/tiff
