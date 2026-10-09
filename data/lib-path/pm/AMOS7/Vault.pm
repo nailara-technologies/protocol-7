@@ -326,9 +326,49 @@ sub _wrap_ad {
 ##[ RECOVERY CODE ]###########################################################
 
 ## 32 base32 chars [ 160 bit ], shown in groups of four for paper storage
+## HARMONY : values people see [ recovery code, generated passwords ] or that
+## define topology [ vault \ entry ids, version tails -- every file name ] are
+## drawn again until AMOS7::Assert::Truth::is_true accepts them, as
+## base.gen_id and crypt.C25519.gen_keys do. the module is loaded only to
+## GENERATE -- unlocking and recovery never need it, so a standalone copy
+## without it still opens every vault [ and generates unfiltered ]
+our $HARMONY_TRIES = 4096;
+
+sub _truth_loaded {
+    state $loaded = eval { require AMOS7::Assert::Truth; 1 } ? TRUE : FALSE;
+    return $loaded;
+}
+
+## draw with $generator until every form
+## [ $forms->( value ) , default the value itself ] is harmonic
+sub _harmonic {
+    my ( $generator, $forms ) = @ARG;
+    $forms //= sub { return @ARG };
+
+    return $generator->() if not _truth_loaded();
+    foreach ( 1 .. $HARMONY_TRIES ) {
+        my $value = $generator->();
+        return $value
+            if not grep { not AMOS7::Assert::Truth::is_true($ARG) }
+            $forms->($value);
+    }
+    die "vault : no harmonic value in $HARMONY_TRIES draws\n";
+}
+
+## the grouped form is what the owner reads and writes down, the plain form
+## goes into argon2id : both harmonic
 sub recovery_code_new {
-    my $code = substr( _b32( _random_bytes(20) ), 0, 32 );
-    return join qw| - |, $code =~ m|(.{4})|g;
+    return _harmonic(
+        sub {
+            my $code = substr( _b32( _random_bytes(20) ), 0, 32 );
+            return join qw| - |, $code =~ m|(.{4})|g;
+        },
+        sub { return ( $ARG[0], recovery_code_normalize( $ARG[0] ) ) }
+    );
+}
+
+sub _new_id {
+    return _harmonic( sub { _b32( _random_bytes(10) ) } );
 }
 
 sub recovery_code_normalize {
@@ -482,7 +522,7 @@ sub vault_init {
 
     my $vault = {
         dir     => $dir,
-        id      => _b32( _random_bytes(10) ),
+        id      => _new_id(),
         created => int( ntime_now() ),
         kdf     => { %KDF_DEFAULT, %kdf },
         key     => _random_bytes(32),
@@ -593,7 +633,7 @@ sub _new_version {
     }
 
     return sprintf qw| %014d.%s |, $stamp,
-        substr( _b32( _random_bytes(5) ), 0, 8 );
+        _harmonic( sub { substr( _b32( _random_bytes(5) ), 0, 8 ) } );
 }
 
 ## write a new version of entry $id [ undef = new entry ]. returns the id
@@ -603,7 +643,7 @@ sub entry_save {
     die "vault : locked\n"               if not defined $vault->{'key'};
     die "vault : record is not a hash\n" if ref $record ne qw| HASH |;
 
-    $id //= _b32( _random_bytes(10) );
+    $id //= _new_id();
     die "vault : invalid entry id\n" if $id !~ m|^[A-Z2-7]{16}$|;
 
     my %plain     = ( %{$record}, updated => ntime_b32( ntime_now() ) );
@@ -1080,14 +1120,17 @@ sub gen_password {
             my $pattern = quotemeta $set{$class};
             $complete = FALSE if $password !~ m|[$pattern]|;
         }
-        return $password if $complete or $length < @used;
+        next if not $complete and $length >= @used;
+        return $password
+            if not _truth_loaded()
+            or AMOS7::Assert::Truth::is_true($password);
     }
 }
 
 1;
 
-#,,,.,,,.,,..,..,,,,.,,..,,.,,,,,,,.,,.,,,...,..,,...,...,.,,,,.,,.,,,,.,,,..,
-#QAVXZTGRKBORN5I4K5HCYZTMJQY6WEW434QBEUZ3GWLL3IEOE7V2EBTO7HHRT5K3HRPIUBLXKTZZA
-#\\\|OVQCZD2G3GONZR76L6G5WCGMAQFEWNJLKB42T6B525ZEBG2JXAR \ / AMOS7 \ YOURUM ::
-#\[7]4O3DYCOXNQOUKIWMDKYDKYSBVZI253G2LODIYL5JRQHSHCXP4ODA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,..,,,,,,,,.,,,.,.,,,,..,,,.,..,,...,...,,..,..,,.,,,.,.,...,
+#OC7UFWSG7CG7DVEO3VLJ4FXN6UJEBE45X2BD6YPNJMJDHCV7KTXUTV3AS5ANOOJA57IFVOGXJDYW4
+#\\\|JBA4HLC5UBQJKO36I5HDZOVZQ5HUKCGTJF6P2AU5KBXPKLKXEZM \ / AMOS7 \ YOURUM ::
+#\[7]LKHT4WVQQJTRQABPPLMM3YIW2H5GGSPS63OI6LGYRAWGU4BAY2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

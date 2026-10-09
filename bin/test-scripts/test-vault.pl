@@ -427,6 +427,28 @@ my $created = unpack( 'x15 Q>', read_bin("$dir/vault.key.B32") );
 ok( abs( AMOS7::NTIME::ntime_to_unix($created) - time ) < 60,
     'created is ntime' );
 
+## harmony : what people see and what names files is_true ##
+{
+    require AMOS7::Assert::Truth;
+    my $true = sub { AMOS7::Assert::Truth::is_true(shift) ? 1 : 0 };
+
+    my @codes = map { recovery_code_new() } 1 .. 20;
+    ok( !grep( { !$true->($ARG) || !$true->( recovery_code_normalize($ARG) ) }
+            @codes ),
+        'harmony : recovery codes, grouped and plain'
+    );
+    ok( !grep( { !$true->($ARG) } map { gen_password(20) } 1 .. 20 ),
+        'harmony : generated passwords' );
+    ok( $true->( $v4->{'id'} ), 'harmony : vault id' );
+
+    my $all = entry_versions($v4);
+    ok( !grep( { !$true->($ARG) } keys %{$all} ), 'harmony : entry ids' );
+    ok( !grep( { !$true->( ( split m|\.|, $ARG )[1] ) }
+            map {@$ARG} values %{$all} ),
+        'harmony : version tails'
+    );
+}
+
 ## generator ##
 my $gen = gen_password(24);
 ok( length $gen == 24, 'generator length' );
@@ -442,8 +464,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,..,..,,,,.,.,.,,,,,,..,...,.,,,,,,,.,.,,.,,..,,...,...,,..,.,,,,,,,,..,...,
-#PAOT7KJRS73KLZ2LUDVOF4QXGTY23NHDJUHMLT6WIBVAASSW7OU4JGURBH7ETCOVTDEOIOPVSFAWI
-#\\\|RJ6CI24FS6Z6MLOA6Q7K3QXAKY6E7NZRJUFDI4Q22IBMXHICWE3 \ / AMOS7 \ YOURUM ::
-#\[7]PMGW2GRUZ2PNEI7KP6NB5DIOLIZMJ4DKEVY6JHT65TW5ACZG5EAI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,...,.,.,...,.,.,...,..,,,.,,..,,...,...,,.,,..,,.,,,,..,,..,
+#VNOKPKJ6GS4RYAVJGSGLX2CAIYYAZGOUKQOBNPVCUCM5A3C3YLMZUVIEJM447GP3BL4VVETGKVK4Q
+#\\\|FOZJ6OE2AMJESYFMWFABDBD5XQPEZQCH5GZCT3NDODTOAWZ74PE \ / AMOS7 \ YOURUM ::
+#\[7]VD3AOR2NPW3IHJZU5MNN7FJYJ5RCF7L3KWV7X34GRRM3V5SEJ2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
