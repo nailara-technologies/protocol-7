@@ -48,8 +48,10 @@ my ( $test_count, $fail_count ) = ( 0, 0 );
 {
 
     package Test::FakeTimerEvent;
-    sub w    { return $_[0] }
-    sub data { return $_[0]->{'data'} }
+    sub w         { return $_[0] }
+    sub data      { return $_[0]->{'data'} }
+    sub cancel    { return 1 }
+    sub is_active { return 0 }
 }
 
 sub ok ($;$) {
@@ -79,7 +81,8 @@ sub compile_module {
 }
 
 compile_module("letsencr.child.acme.$ARG")
-    for qw| begin start order_of step_authz on_authz key_authorization
+    for
+    qw| begin start order_of on_deadline step_authz on_authz key_authorization
     step_setup on_setup step_propagate on_propagate step_respond on_respond
     step_poll_authz on_poll_authz step_finalize on_order step_poll_order
     on_download cleanup finish fail next_queued |;
@@ -131,6 +134,17 @@ $code{'letsencr.child.acme.request'}
 $code{'letsencr.child.acme.schedule_poll'}
     = sub { push @timers, $_[0]; return TRUE };
 $code{'letsencr.child.acme.cancel_poll'} = sub { return TRUE };
+my @deadlines;
+{
+
+    package Test::FakeWatcher;
+    sub cancel { $_[0]->{'cancelled'} = 1 }
+}
+$code{'event.add_timer'} = sub {
+    my $w = bless { 'p' => $_[0] }, 'Test::FakeWatcher';
+    push @deadlines, $w;
+    return $w;
+};
 $code{'letsencr.child.dns.query_txt_async'}
     = sub { push @dns, $_[0]; return TRUE };
 $code{'protocol-7.route-send'} = sub { push @routes, $_[0]; return TRUE };
@@ -163,9 +177,13 @@ sub acme_reply {
 sub route_reply {
     my ( $mode, $data ) = @ARG;
     my $r = shift @routes or die 'no route-send pending';
+    ## the real shape [ base.handler.command.process_reply ] : ONE hash ##
     $code{ $r->{'reply'}->{'handler'} }->(
-        { 'cmd' => $mode, 'data' => $data // '' },
-        $r->{'reply'}->{'params'}
+        {   'sid'       => 1,
+            'cmd'       => $mode,
+            'call_args' => $data // '',
+            'params'    => $r->{'reply'}->{'params'},
+        }
     );
     return $r;
 }
@@ -205,8 +223,8 @@ sub authz_body {
 
 my $pem
     = "-----BEGIN CERTIFICATE-----\nLEAF\n-----END "
-    . "CERTIFICATE-----\n-----BEGIN "
-    . "CERTIFICATE-----\nINTER\n-----END CERTIFICATE-----\n";
+    . "CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nINTER\n-----END "
+    . "CERTIFICATE-----\n";
 
 ## --- 1 : http-01 success path, set-up before respond ------------------- ##
 say ':: http-01 order';
@@ -242,8 +260,7 @@ ok( @acme == 1
 
 acme_reply( {} );
 ok( @timers == 1
-        && $timers[0]{'handler'} eq 'letsencr.child.ac'
-        . 'me.step_poll_authz',
+        && $timers[0]{'handler'} eq 'letsencr.child.acme.step_poll_authz',
     'authorization poll scheduled'
 );
 
@@ -262,8 +279,7 @@ ok( @acme == 1
 
 acme_reply( { 'status' => 'processing' } );
 ok( @timers == 1
-        && $timers[0]{'handler'} eq 'letsencr.child.ac'
-        . 'me.step_poll_order',
+        && $timers[0]{'handler'} eq 'letsencr.child.acme.step_poll_order',
     'order poll scheduled while processing'
 );
 fire_timer();
@@ -413,6 +429,32 @@ ok(
     'txt value removed on failure'
 );
 
+## --- 6 : a lost reply : the deadline fails the order, the queue moves -- ##
+say ':: lost set-up reply';
+reset_all();
+@deadlines = ();
+$orders_by_domain{$ARG} = {
+    'order_url'      => "O-$ARG",
+    'finalize_url'   => "F-$ARG",
+    'authorizations' => ["Z-$ARG"],
+    }
+    for qw| f.test g.test |;
+request_cert( 'f.test', 'R6' );
+request_cert( 'g.test', 'R7' );
+acme_reply( authz_body('f.test') );
+shift @routes;    ## the set-up reply never comes ##
+ok( @deadlines == 1, 'one deadline timer armed for the active order' );
+my $dl = $deadlines[0];
+$code{ $dl->{'p'}{'handler'} }
+    ->( bless( { 'data' => $dl->{'p'}{'data'} }, 'Test::FakeTimerEvent' ) );
+ok( ( grep { $_->[0] eq 'R6' && $_->[1]{'mode'} eq 'false' } @replies ) == 1,
+    'deadline : hung order answered false'
+);
+ok( @acme_new == 2 && $acme_new[1] eq 'g.test',
+    'deadline : queued ' . 'order started'
+);
+ok( @deadlines == 2, 'the next order got its own deadline' );
+
 sub like_args { ok( defined $_[0] && $_[0] =~ $_[1], $_[2] ) }
 
 say '';
@@ -420,8 +462,8 @@ say sprintf 'passed : %d ' . ' failed : %d', $test_count - $fail_count,
     $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,..,...,.,.,..,,,..,,,.,..,,...,,,.,,,,,..,,...,...,..,,,.,,.,.,,..,.,.,
-#SAYPJC4GY7KC2QH4AQY4F63E5GURVXKOTO3J3Z5UNEIXWLRBAM5PG2WSULP5SUQZEUPLZZDWNRSLE
-#\\\|2F2LK2RXZ4G72MO7I5HIII555TSVUJ5VJA53PESXZVDTZ7VXBZU \ / AMOS7 \ YOURUM ::
-#\[7]B2CN4L445P5YAW4WS7DRDXDRRXVVJSAKZND6KLRPIWFMV3GFOKCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,,.,,.,.,..,,,,,,,..,,,.,,.,,..,,...,..,,.,.,...,,..,.,,,...,
+#YEMGRFTNJGI5B37SU6IWDCVLXNREXJ7ZHOFSXIOBHK33BI364MGHVRTXBVL3KASYHL3RPJDFCNS5I
+#\\\|O5TK46NEM7XV4Y2NZSGU5KBRAOSTES64VKMTHJHB3U54S72FTRI \ / AMOS7 \ YOURUM ::
+#\[7]4HXCATPFHFMQ7ITXD4TYQ35U6AT7XA6LZCA5NNO6GUFV3NIW5EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
