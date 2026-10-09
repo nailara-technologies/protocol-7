@@ -71,14 +71,19 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
     'dest' => $dest_path,
     'url'  =>
         sprintf( 'https://huggingface.co/%s/resolve/main/%s', $repo, $file ),
-    'redirects'  => 0,
-    'start_time' => <[base.time]>->(3),
-    'downloaded' => 0,
-    'total'      => 0,
-    'status'     => qw| downloading |,
-    'speed'      => 0,
-    'eta'        => 0,
-    'reply_id'   => $call->{'reply_id'} // '',
+    ## retries restart here [ a fresh, newly signed cdn redirect ] ##
+    'origin_url' =>
+        sprintf( 'https://huggingface.co/%s/resolve/main/%s', $repo, $file ),
+    'retries'     => 0,
+    'resume_from' => 0,
+    'redirects'   => 0,
+    'start_time'  => <[base.time]>->(3),
+    'downloaded'  => 0,
+    'total'       => 0,
+    'status'      => qw| downloading |,
+    'speed'       => 0,
+    'eta'         => 0,
+    'reply_id'    => $call->{'reply_id'} // '',
     ## LFS checksum verification state [ see huggingface.handler.           ##
     ## blob_hash_response + huggingface.verify.* ] : hash_state is pending  ##
     ## -> ok | failed | non-lfs ; a download may only reach status=complete ##
@@ -89,25 +94,26 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
     'hash_attempts'   => 0,
 };
 
-## a large file transfer can easily outlive this on-demand zenka's idle-  ##
-## shutdown window -- suspend it for the duration, matching the exact     ##
-## "long-running background job" use case pause_ondemand_timeout exists   ##
-## for. the resume ALWAYS comes from huggingface.resume_idle once every   ##
-## tracked flow [ download / await-hash / verify ] is terminal -- never a ##
-## bespoke resume [ see fetch.file.huggingface.resume_idle ]              ##
+## a large file transfer can easily outlive this on-demand zenka's         ##
+## idle-shutdown window -- suspend it for the duration, matching the exact ##
+## "long-running background job" use case pause_ondemand_timeout exists    ##
+## for. the resume ALWAYS comes from huggingface.resume_idle once every    ##
+## tracked flow [ download / await-hash / verify ] is terminal -- never a  ##
+## bespoke resume [ see fetch.file.huggingface.resume_idle ]               ##
 <[base.logs]>->( 1, "[hf.fetch] pausing idle-shutdown for %s", $file );
 <[base.zenki.pause_ondemand_timeout]>;
 
-## start the native streaming transfer : redirect-following lives in        ##
-## huggingface.handler.download_response [ huggingface.co answers 302 to    ##
-## the CDN ] -- the same entry is re-requested, the partial file is         ##
-## truncated by the fresh stream_to_file open, so a restart-from-scratch on ##
-## failure is the v1 behavior by construction [ no resumable partials ]     ##
+## start the native streaming transfer : redirect-following lives in       ##
+## huggingface.handler.download_response                                   ##
+## [ huggingface.co answers 302 to the CDN ] -- the same entry is          ##
+## re-requested. a transfer error resumes the partial with a range request ##
+## [ huggingface.handler.download_response ]                               ##
 <[huggingface.start_download]>->($dl_id);
 
-## lightweight repeating progress logger [ size/speed for hf-status and the ##
-## log stream ] -- completion itself arrives through the streaming client's ##
-## own on_done callback, not through this timer                             ##
+## lightweight repeating progress logger                                    ##
+## [ size/speed for hf-status and the log stream ] -- completion itself     ##
+## arrives through the streaming client's own on_done callback, not through ##
+## this timer                                                               ##
 <fetch.file.downloads>->{$dl_id}{'timer'} = <[event.add_timer]>->(
     {   'interval' => 2.0,
         'repeat'   => 1,
@@ -121,18 +127,19 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
     $repo, $file, $dest_path
 );
 
-## fetch the published LFS sha256 for this file up-front, in parallel with  ##
-## the download itself [ async via clients.https.get, proxy- threaded       ##
-## explicitly ]. the result is cached in this tracking entry and consumed   ##
-## by huggingface.handler.download_response / huggingface.verify.* once the ##
-## bytes are on disk -- closing the exit-code-only acceptance hole behind   ##
-## the 2026-09-10 corrupted-shard incident.                                 ##
+## fetch the published LFS sha256 for this file up-front, in parallel with ##
+## the download itself                                                     ##
+## [ async via clients.https.get, proxy- threaded explicitly ]. the result ##
+## is cached in this tracking entry and consumed by                        ##
+## huggingface.handler.download_response / huggingface.verify.* once the   ##
+## bytes are on disk -- closing the exit-code-only acceptance hole behind  ##
+## the 2026-09-10 corrupted-shard incident.                                ##
 <[huggingface.hash.fetch]>->( $dl_id, 1 );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,.,,...,,,,,,..,,..,,.,,.,,,,.,,...,.,,,..,,...,...,..,,,..,...,..,,..,,
-#OS3ZRFF55BRKV6DX3YCGRQZDUX3NQ5D6YYMCBWF3VDB3SVL2XZFNJGPTWVLJDVHGYDKAUD6SLBXTC
-#\\\|7YPE2AHQ3IKBIYYGKMISPFG27MZY3RKTZ6ZGQC2QK7I5ZXHZUTK \ / AMOS7 \ YOURUM ::
-#\[7]SU23VZW7EAFNJO37XPAHA3UVWZ4JQCRDZTAJVIZR46MRCOVUWQDA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,,..,,,.,..,,.,,,,.,,,,.,...,..,,...,...,..,,.,.,..,,,.,,,,,,
+#JOYL7CMDU4TV7RTHM63BYSQW444Q3HT5HFAWMSZ6ES3C5IWLEGBJ7FWSEENOAXJEDS4MZYCMC2EDW
+#\\\|7XHFYLSVZ7WZXQL3FKGV3QZ4GLXPNVA755LSHRYKW2WMARHENMJ \ / AMOS7 \ YOURUM ::
+#\[7]E4UNYGFO5SOKCSMVQR3HHACEJESRP63TYNE3QL7P37EZLRGCZQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.retry_download
+# descr = timer : re-issue a download after a transfer error [ resumes the
+#         partial, see huggingface.handler.download_response ]
+
+my $event = shift;
+my $data  = eval { $event->w->data } // {};
+my $dl_id = $data->{'dl_id'}         // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl or ( $dl->{'status'} // '' ) ne qw| downloading |;
+
+<[base.logs]>->(
+    1,
+    '[hf.fetch] retry %d : %s from %.2f GB',
+    $dl->{'retries'} // 0,
+    $dl->{'file'}    // $dl_id,
+    ( $dl->{'resume_from'} // 0 ) / ( 1024**3 )
+);
+
+<[huggingface.start_download]>->($dl_id);
+
+#,,..,,.,,,..,,.,,..,,,..,,.,,.,.,,.,,,,,,.,,,..,,...,...,.,.,.,,,,,,,.,.,,,.,
+#WJLOVB2CPJ6HVHZBMZL3KJ6CF5YAVQQGNPVLTOTFH67MPUB5HWHNSXIRLZ4ICKQVAH22DRA5H57OW
+#\\\|WSXOHO6WELYASAS7L6BBKHKNUQHLC5LF64BN2YFVVXW2JRMR22A \ / AMOS7 \ YOURUM ::
+#\[7]UXVP725R2C4MEGCQ4YPTOGCIUYHOYEM3JZEWJUJQFBVDSP4QT2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

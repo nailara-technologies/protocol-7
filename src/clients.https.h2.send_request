@@ -84,6 +84,14 @@ if ( defined $state->{'stream_fh'} ) {
         $state->{'stream_discard'}
             = (     $state->{'stream_status'} >= 200
                 and $state->{'stream_status'} < 300 ) ? FALSE : TRUE;
+        ## resumed request [ stream_append + a range header ] answered with ##
+        ## the whole body [ 200, not 206 ] : drop the partial, write from   ##
+        ## byte 0                                                           ##
+        if ( $state->{'stream_append'} and $state->{'stream_status'} == 200 )
+        {
+            truncate( $state->{'stream_fh'}, 0 );
+            $state->{'stream_append'} = FALSE;
+        }
         return 1;
     };
     $stream_cbs{'on_data'} = sub {
@@ -228,8 +236,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,..,,..,,,,,,,.,,,.,.,.,,.,,.,,,.,,,...,..,,..,,...,..,,.,.,.,.,,..,,..,,.,,
-#KTIDJBDTDHWZLLIIZTVNCWVGHLO33AH3TDV4HSUFDI6YJUJWP7G33TA7L5RKW6ZZFFNQNXCKWDYXA
-#\\\|FVUVKZRFT6FALCIAVWYUII3ZUQ4NKAJULCNHOOEUYKNWQZBZ3WR \ / AMOS7 \ YOURUM ::
-#\[7]BKPCDUQA2WUZN4MSIHMSZIVZFCT3TVN6WAFZ5XRJFLDEEKD5MWCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,.,.,.,,,,.,,,.,,..,,,,.,.,.,..,,...,...,.,,,,,,,.,,,.,.,..,,
+#QFHCPOB2DIKTVLZL7MEBVSRWMSB6VZD5ROAGPMUNSGSUALAERIGACZJRTHBAQ272T35ZNQQ3LMFH4
+#\\\|U6WUIPTXIJXSX35FLFLHSBWBOJHR72W3OAHZRZ65PDXIZ4EVXRT \ / AMOS7 \ YOURUM ::
+#\[7]BDY3O72WXJXT2CY7LHMN5D5MM7A34RPNHLBNT7IYRGG4BRS25KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

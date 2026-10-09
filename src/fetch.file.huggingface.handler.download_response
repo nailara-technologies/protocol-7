@@ -18,11 +18,11 @@ my $ok       = $data->{'ok'};
 my $reply_id = $dl->{'reply_id'} // '';
 my $dest     = $dl->{'dest'};
 
-## redirect handling : huggingface.co /<repo>/resolve/... answers 302 to    ##
-## the CDN carrying the real bytes -- the wget/aria2c children followed     ##
-## these transparently, so the native transport must too. same tracking     ##
-## entry, fresh request : the new stream_to_file open truncates the partial ##
-## file, so every hop effectively restarts from scratch [ v1 scope ]        ##
+## redirect handling : huggingface.co /<repo>/resolve/... answers 302 to ##
+## the CDN carrying the real bytes -- the wget/aria2c children followed  ##
+## these transparently, so the native transport must too. same tracking  ##
+## entry, fresh request [ a resumed download keeps its range header and  ##
+## appends on every hop, see huggingface.start_download ]                ##
 if (    $status >= 300
     and $status < 400
     and length( $headers->{'location'} // '' ) ) {
@@ -47,8 +47,9 @@ if (    $status >= 300
             $dl->{'redirects'}, $location
         );
 
-        ## note : progress timer stays running across hops [ status remains ##
-        ## 'downloading' ], only the final response below cancels it        ##
+        ## note : progress timer stays running across hops                 ##
+        ## [ status remains 'downloading' ], only the final response below ##
+        ## cancels it                                                      ##
         <[huggingface.start_download]>->($dl_id);
         return;
     }
@@ -59,6 +60,83 @@ if (    $status >= 300
         $dl->{'redirects'} // 0,
         $dl->{'url'}       // ''
     );
+}
+
+## transfer error [ cdn http/2 stream reset, stall timeout, 5xx ] : keep  ##
+## the partial and resume it with a range request, from the original      ##
+## resolve url [ a freshly signed cdn redirect ]. a reset used to throw   ##
+## away a multi-GB partial [ 2026-10-09 : fable5 q4_k_m at 1.4 GB ].  a   ##
+## definite client error [ 4xx but 408 / 429 ] is not retried. the sha256 ##
+## verify still covers the whole file afterwards  the partial against the ##
+## published size                                                         ##
+## [ lfs size from the hash fetch, else a 416's content-range total ]     ##
+my $partial  = -f $dest ? ( -s $dest ) : 0;
+my $expected = $dl->{'expected_size'} // 0;
+$expected = $1
+    if !$expected
+    and ( $headers->{'content-range'} // '' ) =~ m{ / \s* (\d+) \s* \z}x;
+
+## 416 on a resumed request with every byte already on disk              ##
+## [ the reset came after the last byte ] : complete, go verify -- never ##
+## delete it                                                             ##
+if (    $status == 416
+    and ( $dl->{'resume_from'} // 0 ) > 0
+    and $expected > 0
+    and $partial == $expected ) {
+    ( $ok, $status ) = ( TRUE, 206 );
+}
+
+## a 2xx that ended short of the published size : the connection closed  ##
+## early -- a transfer error to resume, not a file for the size check to ##
+## reject and delete                                                     ##
+if ( $ok and $expected > 0 and $partial < $expected ) {
+    $ok = FALSE;
+    $data->{'error'} //= sprintf 'transfer ended short [ %d of %d bytes ]',
+        $partial, $expected;
+}
+
+my $retryable = (
+            not $ok
+        and not( $status >= 300 and $status < 400 )
+        and not( $status >= 400
+        and $status < 500
+        and $status != 408
+        and $status != 429 )
+) ? TRUE : FALSE;
+my $max_retries = <fetch.file.cfg.download_retries> // 8;
+
+## the limit counts consecutive attempts without progress : a long file on ##
+## a cdn that resets every ~25 minutes must not run out of retries         ##
+$dl->{'retries'} = 0 if $partial > ( $dl->{'resume_from'} // 0 );
+
+if ( $retryable and ( $dl->{'retries'} // 0 ) < $max_retries ) {
+    $dl->{'retries'}++;
+    $dl->{'resume_from'} = $partial;
+    $dl->{'url'}         = $dl->{'origin_url'} // $dl->{'url'};
+    $dl->{'redirects'}   = 0;
+
+    my $wait = 10 * $dl->{'retries'};
+    <[base.logs]>->(
+        0,
+        "[hf.fetch] transfer error [%s] : retry "
+            . "%d/%d in %ds, resuming %s at %.2f GB",
+        ( $data->{'error'} // "http status $status" ),
+        $dl->{'retries'},
+        $max_retries,
+        $wait,
+        $dl->{'file'} // $dest,
+        $dl->{'resume_from'} / ( 1024**3 )
+    );
+
+    ## status stays 'downloading' : idle-shutdown stays paused, the ##
+    ## progress timer keeps running across the retry                ##
+    <[event.add_timer]>->(
+        {   'after'   => $wait,
+            'handler' => qw| huggingface.handler.retry_download |,
+            'data'    => { 'dl_id' => $dl_id },
+        }
+    );
+    return;
 }
 
 ## cancel the progress log timer -- final response reached ##
@@ -91,11 +169,13 @@ if ( not $ok ) {
     return;
 }
 
-## success : bytes are on disk -- now feed the SAME verification state    ##
-## machine the wget-child path used [ hash_state pending -> ok | failed | ##
-## non-lfs ], so download_progress's hash_state branching consumers [     ##
-## huggingface.verify.* ] keep working unchanged                          ##
-my $size = $data->{'size'} // ( -f $dest ? ( -s $dest ) : 0 );
+## success : bytes are on disk -- now feed the SAME verification state     ##
+## machine the wget-child path used                                        ##
+## [ hash_state pending -> ok | failed | non-lfs ], so download_progress's ##
+## hash_state branching consumers [ huggingface.verify.* ] keep working    ##
+## unchanged  the file, not the stream count : a resumed transfer wrote    ##
+## only its tail                                                           ##
+my $size = -f $dest ? ( -s $dest ) : ( $data->{'size'} // 0 );
 $dl->{'downloaded'} = $size;
 
 my $now     = <[base.time]>->(3);
@@ -140,9 +220,9 @@ if ( $succeeded and $hash_state eq qw| ok | ) {
     <[huggingface.resume_idle]>->();
     return;
 } elsif ( $succeeded and $hash_state eq qw| non-lfs | ) {
-    ## small non-LFS file : no published sha256 exists [ git blob SHA1  ##
-    ## scheme deliberately out of scope ] -> complete, with the skipped ##
-    ## verification explicitly noted in the log                         ##
+    ## small non-LFS file : no published sha256 exists                      ##
+    ## [ git blob SHA1 scheme deliberately out of scope ] -> complete, with ##
+    ## the skipped verification explicitly noted in the log                 ##
     my $size_gb = ( -s $dest ) / ( 1024**3 );
     $dl->{'status'} = qw| complete |;
     $dl->{'total'}  = $size_gb;
@@ -169,10 +249,10 @@ if ( $succeeded and $hash_state eq qw| ok | ) {
     <[huggingface.resume_idle]>->();
     return;
 } elsif ($succeeded) {
-    ## hash fetch still in flight -> park in awaiting-hash;                 ##
-    ## huggingface.handler.blob_hash_response continues the flow [          ##
-    ## verify.start / unverified / non-lfs complete ] when the API response ##
-    ## lands. idle-shutdown stays paused meanwhile.                         ##
+    ## hash fetch still in flight -> park in awaiting-hash;          ##
+    ## huggingface.handler.blob_hash_response continues the flow     ##
+    ## [ verify.start / unverified / non-lfs complete ] when the API ##
+    ## response lands. idle-shutdown stays paused meanwhile.         ##
     $dl->{'status'} = qw| awaiting-hash |;
     <[base.logs]>->(
         1,
@@ -200,8 +280,8 @@ if ( $succeeded and $hash_state eq qw| ok | ) {
     return;
 }
 
-#,,,,,,,.,,,.,.,.,,,,,,..,,,,,.,.,..,,,,.,..,,..,,...,...,...,...,...,..,,,..,
-#NLX2Y5W3XEHCHCSA2QAELHSORY6BCADKZHTA7BFMH7LYBPWUVJKPCADV65XLCY2XQRB2NFSRBLN7G
-#\\\|54W3AF6HTOX4JQQKJ4BARRDNWC6LBEEXDLHM7WIGYHDSC2VPGTI \ / AMOS7 \ YOURUM ::
-#\[7]HQ45TGMWRZ6JEPIIZYZF2SNYQFVXIRMT7QK72BLZCEQFJRJWY2CI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,...,,,.,,,.,..,,.,,,,.,,.,,,..,,...,...,...,,,.,,.,,..,,.,,,
+#AI33YTEBG2ZHGKT6BR3LLFBJY5TACU47OZYBFX3EBA3F3IKIWGDW745HV6V5L4DBTMCUJ25XQU6PQ
+#\\\|CBGLYJQSQ5W5AJW5VM4MJI4TEJPP4NFX6JKNXM4AD63GX2DF6XM \ / AMOS7 \ YOURUM ::
+#\[7]3MTWGWGQANBFAYP5DHSX65ZCDMDXYNHUVKVWP5DR4TLC46RHAUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
