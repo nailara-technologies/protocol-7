@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = nameserv.cmd.remove-txt
+# descr = remove one txt value of a dns name [ acme dns-01 ]
+
+my $args_str = $call->{'args'} // '';
+
+## positional args: <fqdn> <value> -- an empty value never matches, it is
+## refused outright [ removal of all values is never implied ]
+my @parts = grep {length} split m|\s+|, $args_str;
+
+if ( scalar(@parts) != 2 ) {
+    return { mode => 'false', data => 'usage: remove-txt <fqdn> <value>' };
+}
+
+my $fqdn  = lc $parts[0];
+my $value = $parts[1];
+
+$fqdn =~ s{\.+$}{};    ## strip optional trailing dot
+
+if ( not $fqdn or not $value ) {
+    return { mode => 'false', data => 'usage: remove-txt <fqdn> <value>' };
+}
+
+## longest loaded zone suffixing the fqdn on a label boundary ##
+my ( $zone, $zone_name ) = <[nameserv.zone.lookup]>->($fqdn);
+
+if ( not defined $zone ) {
+    return { mode => 'false', data => "no matching zone for: $fqdn" };
+}
+
+## remove only records matching name + type + value
+my $orig_count = scalar @{ $zone->{'records'} };
+
+$zone->{'records'} = [
+    grep {
+        my $match = lc( $ARG->{'name'} // '' ) eq $fqdn;
+        $match &&= ( $ARG->{'type'}  // '' ) eq 'TXT';
+        $match &&= ( $ARG->{'value'} // '' ) eq $value;
+        not $match;
+    } @{ $zone->{'records'} }
+];
+
+my $removed = $orig_count - scalar @{ $zone->{'records'} };
+
+if ( $removed == 0 ) {
+    ## idempotent cleanup : the value is gone either way
+    my $msg = sprintf "txt value not present: %s", $fqdn;
+    return { mode => 'true', data => $msg };
+}
+
+$zone->{'serial'} = time();
+
+<[nameserv.zone.save]>->($zone_name);
+
+my $msg = sprintf "txt value removed: %s", $fqdn;
+return { mode => 'true', data => $msg };
+
+#,,,,,.,.,.,.,,,,,,..,,,.,,,,,..,,,..,..,,...,..,,...,..,,..,,...,.,.,...,...,
+#6SOBXRZFUTGCXWO3W37MZQSR7VSRHHKSONRUOVNTYXE2KF7RLAYFYMGVK5CLM3K4AXEU7DKVLD6LK
+#\\\|SQBPCIE6HKH3S7M3YJERQOQ4XNVNPGC4OT4WXJTYVOWK2EPARDF \ / AMOS7 \ YOURUM ::
+#\[7]KUTOSQJAFJNVZGFZZEGGUWI2UBXEN66GP6OFLOD67ZXVSACOAGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

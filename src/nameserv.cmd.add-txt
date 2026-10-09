@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = nameserv.cmd.add-txt
+# descr = add a txt value to a dns name [ acme dns-01 ]
+
+my $args_str = $call->{'args'} // '';
+
+## positional args: <fqdn> <value>
+my @parts = grep {length} split m|\s+|, $args_str;
+
+if ( scalar(@parts) != 2 ) {
+    return { mode => 'false', data => 'usage: add-txt <fqdn> <value>' };
+}
+
+my $fqdn  = lc $parts[0];
+my $value = $parts[1];
+
+$fqdn =~ s{\.+$}{};    ## strip optional trailing dot
+
+if ( not $fqdn or not $value ) {
+    return { mode => 'false', data => 'usage: add-txt <fqdn> <value>' };
+}
+
+## longest loaded zone suffixing the fqdn on a label boundary ##
+my ( $zone, $zone_name ) = <[nameserv.zone.lookup]>->($fqdn);
+
+if ( not defined $zone ) {
+    ## never auto-create zones for challenge records
+    return { mode => 'false', data => "no matching zone for: $fqdn" };
+}
+
+## duplicate value is a no-op [ keeps existing txt values of the name ]
+for my $rec ( @{ $zone->{'records'} } ) {
+    next if lc( $rec->{'name'} // '' ) ne $fqdn;
+    next if ( $rec->{'type'}   // '' ) ne 'TXT';
+    if ( ( $rec->{'value'} // '' ) eq $value ) {
+        my $msg = sprintf "txt value already present: %s", $fqdn;
+        return { mode => 'true', data => $msg };
+    }
+}
+
+push @{ $zone->{'records'} },
+    {
+    name  => $fqdn,
+    type  => 'TXT',
+    value => $value,
+    ttl   => <nameserv.cfg.challenge_ttl> // 60,
+    };
+
+$zone->{'serial'} = time();
+
+<[nameserv.zone.save]>->($zone_name);
+
+my $msg = sprintf "txt record added: %s", $fqdn;
+return { mode => 'true', data => $msg };
+
+#,,,.,.,,,..,,,,,,.,.,...,,,,,,..,,,,,.,.,...,..,,...,...,.,,,,,,,.,.,..,,...,
+#LEAVDNFNN4PY4KV5WCSIB6FWO57CS5ERF4PWNCCX73QQTFRTNO6ZDUJ44XJTKMJQGVP3SXNWCCMHY
+#\\\|42BAIQ5SCFM226PDHSIEFQBRSPJMLMLL4WRPFZDHZEJ3SNNKQ7A \ / AMOS7 \ YOURUM ::
+#\[7]VWF4NZC4ETQ7LT7VAAFGUDWUZ54DK2SH3C4CSAIR375BC6L3IWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

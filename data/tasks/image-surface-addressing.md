@@ -79,11 +79,11 @@ resolves to.
 
 ## first test case
 
-`data/gfx/backgrounds/SDNZSXD2I5BZAMYCNJ5YDSOTW4MHA3TRTOB75KDEGMOOW.png`
+`data/gfx/backgrounds/EFKDIR72PN2FMO4WTUBLGWYJUHVX2UACHMES47ZJZR4IO.png`
 [ network kitten, 1408x640 ] -- several flat screens at different angles,
 one truncated at the frame. covers detect, quad fit, shared focal,
 truncation and occlusion [ the cat in front ] in one image. the elf images
-[ PGTD.., TRKQ.. ] have code *walls* rather than screens : a second case
+[ DRJG.., Z5GQ.. ] have code *walls* rather than screens : a second case
 [ large planar text surfaces, no bezel ].
 
 ## pieces
@@ -95,8 +95,8 @@ truncation and occlusion [ the cat in front ] in one image. the elf images
   [ highlighted source as an image, palette from the generation ], compositor,
   surface records.
 
-#,,,,,,.,,,,.,...,,,,,,..,.,,,.,,,..,,,..,.,,,..,,...,..,,.,,,..,,,.,,,,,,.,.,
-#UOC4JQZEFHECE57E7GBA324DCP6WUOUL5I5VP6IQBD6REZX3GI6DMHLHY4WYMFOVMLS4M3TUEKNQE
-#\\\|HJAAZHCSTRWJWDH7ZCRMRXBA3XOV4MKZ6RS5JIFEDSVL26A2QXG \ / AMOS7 \ YOURUM ::
-#\[7]5ZCLGC2V6W3BWR6BD5O7S5KB25MMUYU6TLHXFOS7WK5TOTNHL4AY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,.,,,,,,,,,,,.,,,,,.,,,.,.,,,..,,...,...,.,.,,,.,.,,,,,.,...,
+#W7MO2WXKOBBP56YWVSFR4OWNT4G2ADQY6DA56UL32N7AWGHV3GEZD52BM6HU5WRQCIDOWUALJ34KC
+#\\\|22JHDU4ADAD6PU35KGEGGRKYEA5JEPTA77IVJM5DRCAVEH3YAXW \ / AMOS7 \ YOURUM ::
+#\[7]2ODTTXXU65MCLWFJCCCSGVE2FACTAVCTPWHUFR5SEUFUSODUXGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

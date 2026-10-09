@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = nameserv.zone.lookup
-# descr = internal zone lookup by query name
+# descr = internal zone lookup by query name [ longest suffix ]
+#         returns the zone, or [ zone, zone name ] in list context
 
 my $qname = shift;
 
@@ -11,25 +12,27 @@ my $zones = <nameserv.zones>;
 
 ## find longest matching zone (most specific)
 my $best_match = undef;
+my $best_name  = undef;
 my $best_len   = 0;
 
 for my $zone_name ( keys %$zones ) {
     my $zone = $zones->{$zone_name};
     my $zlen = length $zone_name;
 
-    ## match exact zone or subdomain
-    if ( $qname eq $zone_name or $qname =~ m|\.$zone_name$|i ) {
+    ## match exact zone or subdomain on a label boundary
+    if ( $qname eq $zone_name or $qname =~ m|\Q.\E\Q$zone_name\E$|i ) {
         if ( $zlen > $best_len ) {
             $best_match = $zone;
+            $best_name  = $zone_name;
             $best_len   = $zlen;
         }
     }
 }
 
-return $best_match;
+return wantarray ? ( $best_match, $best_name ) : $best_match;
 
-#,,,,,,,.,..,,,,,,...,,,.,.,.,.,,,...,..,,,.,,..,,...,...,,,,,,..,,,,,,.,,...,
-#4FVEPKGKMI7BDV3VPJNSP6UF2NX3JBH3A6TB67T645N2ICX6EN3ZF3WEV6CFL2C5ZJJ6WZOO3HNGQ
-#\\\|2MNOS6FEPDFJDCO65DPCAOHB5MLREVE2AEFICTUWIGHUWFDWOF2 \ / AMOS7 \ YOURUM ::
-#\[7]GG43MO3WROOYHYOY7CVWTKVNO52XJA7SDHRNGSKZ3O4TYMS7TODY 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,,,,,.,,,.,,,..,...,...,.,.,..,,...,...,...,.,,,,.,,..,,.,.,
+#YX6TJEU3ODTS4TMWJV3JKQGOEFPGGFIFBBHLY7ELPX5GAKRRQWTFRZKXIAN2XQ2CCXL7YK5OK4DOK
+#\\\|QAC6TZEYGPABOGHZDG4AF5KGWST7Z2EQR7PWQ75LZLPWKHXKT52 \ / AMOS7 \ YOURUM ::
+#\[7]LVCKQ44MBCGCHB4S7RBBTSOJIUPR2524CH6XP653PLIDAW3NKWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
