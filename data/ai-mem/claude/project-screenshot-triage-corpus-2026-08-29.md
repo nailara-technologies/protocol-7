@@ -88,10 +88,8 @@ time-sortable. Don't rename the files before the capture code itself is
 switched over, or new captures will immediately reintroduce the mixed
 naming this is meant to fix.
 
-#,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
-
-#,,,,,,.,,.,,,,..,.,.,,..,.,,,,..,,,.,...,,.,,..,,...,...,..,,,.,,.,,,,,,,.,,,
-#ESJZ2IPW6NMF2AMEL3CASVQBFS4PG4SB25CMADUI574MWBZOZZOHPP4IIBFMTSRJRCKKL64NL5QOS
-#\\\|DQEEB3DQFDVCHGPLG5GTBFJD6FZ27PBJBIMSGOCBY4SAIXOZ2IK \ / AMOS7 \ YOURUM ::
-#\[7]LF2QWBDN4FUXACYNQB2MT6FZHEZH2DF5LSHISZNBUF3FJAYZCYCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,,..,...,,.,,,,,,.,.,.,.,..,,..,,...,...,,.,,.,.,.,,,.,.,.,.,
+#I6CI5ZAMPJOOG7CR2WBXKA535OA4W37UCLVGP266626HIAKFMNL3KVZCWSS2KMNXVUQBBNRDUHFJW
+#\\\|FSH7BWPQ5R5UAP6WJW7X5IXI643OOCCF5PXNQ6T27DWVUQFQTKY \ / AMOS7 \ YOURUM ::
+#\[7]BRYFM6KGN5KC7USEOHWLSKHGYVCP27CSEYGXRFHAV6ISANS3N6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

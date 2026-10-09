@@ -62,10 +62,8 @@ measured problem, not preemptively.
 [[topic-addressing-trinity]]
 [[project-checksum-addressing-implementation-survey]]
 
-#,,.,,,..,.,,.,,,.,,,,.,.,,..,,,,,,,.,,,,,,,,,,..,..,,.,.,...,...,...,..,,,,.,
-
-#,,..,,.,,,,,,...,,..,...,,.,,,,,,,,,,,.,,.,,,..,,...,...,...,..,,,,.,.,.,.,.,
-#T5YAVK2JU7FWU62ZOEKBB25V4X52HDG7ZU254OF4PAQ5QV6VN7XUHI4RB3MWTJ5PLYS667KFTJABK
-#\\\|BRZZWN5CFEBBGOB3T6UZ2HQ3W3KXIH4NSDMKA2XJCMQRWMT4SZ2 \ / AMOS7 \ YOURUM ::
-#\[7]R3NRDZTXE6WU6EP6HYA2RZS6E6RXMLNPCTUR564XJBQW5YGJLICA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,,,,,.,,,,,.,.,.,,,,,...,..,,..,,...,..,,.,.,...,,..,...,..,,
+#RHKGNO5J7R54M7QGG6CU3MG2WMIM532PQBLGGWLMTDS5PAVXJS3WWWXDQZ44YHR4JF5OFP4X4POQW
+#\\\|XT7PFLE7DBJNGEDKBC6VRINKKOWFHUTCIG3CXGRMRC2HTB6M24Q \ / AMOS7 \ YOURUM ::
+#\[7]NLFSW36AVIFR4HK7DHEJ3KH4JHVXLXPH4VLLBHQ7TKNKSDIQF4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
