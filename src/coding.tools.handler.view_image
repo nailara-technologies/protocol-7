@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = coding.tools.handler.view_image
+# descr = attach an image to the task as an image_ref user message
+# param = { path => ... }
+
+my $args = shift           // {};
+my $path = $args->{'path'} // '';
+
+return 'error: path required' unless length $path;
+
+## the executing task [ set by coding.async.tool_executor around dispatch ] ##
+my $task_id = <coding.catalog.active_task> // '';
+my $task    = length $task_id ? <coding.task.queue>->{$task_id} : undef;
+return 'error: view_image needs a running coding task' unless defined $task;
+
+my $state  = <coding.async.task_state>->{$task_id} // {};
+my $routed = $state->{'backend'} // $task->{'analysis'}->{'routed_to'}
+    // qw| gpu |;
+
+unless ( <[coding.image.backend_has_vision]>->($routed) ) {
+    return
+          sprintf "error: the loaded model on backend '%s' is not "
+        . "vision-capable [ no mmproj ] -- use analyze_image "
+        . "to get a text description of %s "
+        . "instead", $routed, $path;
+}
+
+## load once now to validate + measure : send_request re-loads per round so ##
+## the base64 never lives in task state or history                          ##
+my $image = <[coding.image.load_for_vision]>->( { 'path' => $path } );
+return "error: $image->{'error'}" if defined $image->{'error'};
+
+my $dims
+    = $image->{'width'}
+    ? sprintf( '%dx%d', $image->{'width'}, $image->{'height'} )
+    : 'unknown size';
+my $scaled
+    = $image->{'orig_width'} && $image->{'orig_width'} != $image->{'width'}
+    ? sprintf(
+    ' [ scaled from %dx%d ]',
+    $image->{'orig_width'},
+    $image->{'orig_height'}
+    )
+    : '';
+
+push @{ $task->{'injected_messages'} //= [] },
+    {
+    'role'    => qw| user |,
+    'content' => sprintf(
+        '[ image : %s, %s, %s%s ]',
+        $path, $image->{'mime'}, $dims, $scaled
+    ),
+    'image_ref' => {
+        'path'   => $image->{'path'},
+        'width'  => $image->{'width'},
+        'height' => $image->{'height'},
+    },
+    };
+
+<[base.logs]>->(
+    1, 'view_image: [%s] attached %s [ %s, %d bytes ]',
+    $task_id, $path, $dims, $image->{'bytes'}
+);
+
+return
+    sprintf "image %s loaded [ %s, %s%s ] : it follows as the next "
+    . "user message", $path, $image->{'mime'}, $dims, $scaled;
+
+#,,..,...,,..,..,,.,.,,,.,.,.,,,.,.,.,...,.,,,..,,...,...,.,.,...,,.,,,.,,.,,,
+#LIBFHYXFT56PGQN6AKUPBXTH5ZRQM2RM67GQUJNODAYKJ6B64TRRWYK5JNSETYGRZM3OQHPKMQFZK
+#\\\|WJF6T5SLJSTC7GX2EJYXWXGVU435IHNBVCJVLJB57VHTSTW652L \ / AMOS7 \ YOURUM ::
+#\[7]FMZUEKFN26VLVJNDHMSHW4LGFME2ZJF3PIO74BNIH667MGCGLKAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

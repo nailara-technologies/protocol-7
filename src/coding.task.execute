@@ -112,8 +112,8 @@ if ($async_mode) {
     $task->{'execution'}->{'port'}       = $backend_info->{'port'};
     $task->{'execution'}->{'model_used'} = $backend_info->{'model'};
 
-    ## Build request body  cap max_tokens to avoid KV overflow [ full body ##
-    ## includes tools ]                                                    ##
+    ## Build request body  cap max_tokens to avoid KV overflow ##
+    ## [ full body includes tools ]                            ##
     my $max_tokens_cfg = <inference.model.max_tokens>       // 4096;
     my $routed_to_be   = $task->{'analysis'}->{'routed_to'} // 'gpu';
     my $srv_key_be     = $routed_to_be eq qw| cpu | ? qw| cpu | : qw| gpu |;
@@ -126,7 +126,13 @@ if ($async_mode) {
             tools    => $assembled->{'tools'} // []
         }
     );
-    my $est_tokens      = int( bytes::length($body_est_json) / 3.2 );
+    ## attached images cost projector tokens, not their placeholder text ##
+    my $image_sel = <[coding.image.select_refs]>->(
+        $assembled->{'messages'},
+        $task->{'analysis'}->{'routed_to'}
+    );
+    my $est_tokens
+        = int( bytes::length($body_est_json) / 3.2 ) + $image_sel->{'tokens'};
     my $max_tokens_safe = $n_ctx - $est_tokens - 500;
 
     ## fail immediately if initial prompt already overflows context ##
@@ -138,10 +144,10 @@ if ($async_mode) {
         }
         my $overflow = $est_tokens - $n_ctx;
 
-        ## same two-class honesty as coding.async.send_request : the <= 0   ##
-        ## gate can trip with est still under n_ctx [ up to the 500- token  ##
-        ## reserve below it ] -- report that as headroom exhaustion, not an ##
-        ## overflow by 0                                                    ##
+        ## same two-class honesty as coding.async.send_request : the <= 0 ##
+        ## gate can trip with est still under n_ctx                       ##
+        ## [ up to the 500- token reserve below it ] -- report that as    ##
+        ## headroom exhaustion, not an overflow by 0                      ##
         my $err
             = $overflow > 0
             ? sprintf(
@@ -154,16 +160,16 @@ if ($async_mode) {
                 . 'task description or tool output size',
             $est_tokens, $n_ctx );
         <[base.logs]>->( 0, "coding.task.execute: %s [%s]", $err, $task_id );
-        ## route through coding.async.fail_task [ -> coding.async.complete ##
-        ## ] rather than calling coding.task.fail directly : that is the   ##
-        ## only path that notifies a parent waiting via                    ##
-        ## chunked_summary_pending / compaction_pending -- calling         ##
-        ## coding.task.fail alone leaves any such parent permanently hung, ##
-        ## since nothing else ever clears its pending marker.              ##
-        ## coding.async.complete's failure branch already does the         ##
-        ## task.fail-equivalent bookkeeping itself [ see its own           ##
-        ## "coding.task.fail has a P7 data-path bug, so we inline this" ], ##
-        ## so this is not a duplicate of that bookkeeping, it is the fix.  ##
+        ## route through coding.async.fail_task                             ##
+        ## [ -> coding.async.complete ] rather than calling                 ##
+        ## coding.task.fail directly : that is the only path that notifies  ##
+        ## a parent waiting via  chunked_summary_pending /                  ##
+        ## compaction_pending -- calling coding.task.fail alone leaves any  ##
+        ## such parent permanently hung, since nothing else ever clears its ##
+        ## pending marker.  coding.async.complete's failure branch already  ##
+        ## does the task.fail-equivalent bookkeeping itself [ see its own   ##
+        ## "coding.task.fail has a P7 data-path bug, so we inline this" ],  ##
+        ## so this is not a duplicate of that bookkeeping, it is the fix.   ##
         <[coding.async.fail_task]>->( $task_id, $err );
         return { success => FALSE, error => $err };
     }
@@ -249,8 +255,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,.,,,,.,,.,,,..,,,,,,..,...,...,,.,,.,,,,,,,.,.,...,...,...,,,,,,,,,,,.,,..,
-#MOUPWO7LXWHK4TATKBEUTLPNVJ56IG2NRYST4DUTN3YO6TYP54NPKMTBC3BOSGRSQJI5VHHJGSOXW
-#\\\|Q5WXSYUI3JLGZ77EQIC2EYTMRJABBDQM5WSC4JVQWCDHLSHQOLJ \ / AMOS7 \ YOURUM ::
-#\[7]VTDQFFEGXPHM4VWWZT3WIQLM3YQ3DTINKSHZ5Q6PATVQBEHYM4DQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,.,.,,,,..,.,.,..,,..,,.,.,..,,.,.,...,..,,,,.,,,.,,,.,.,,,...,
+#IIVGAJLGNDH47BFUX5COJRMAEVYIVAWNTYS3PODTO5K6ZLMKZ67T2ZX5GZSBQUK6SUSW3W66IYKS6
+#\\\|BRJYGQI4QALWPKSSGNZKWWZ5ZWYDXTDI4RRKBB3QBJ6AY52R42U \ / AMOS7 \ YOURUM ::
+#\[7]NUHZWGJE7BREGZUYNFY4PA2ZUKQDLEP2DWON4BYCMVWVVDADNADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
