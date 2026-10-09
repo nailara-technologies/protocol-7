@@ -111,11 +111,10 @@ if ( !exists <httpd.cfg.hostnames>->{$domain} ) {
 
 ## Step 4: Add to vhost registry list
 my $vhost_id = <[base.list.element.add]>->(
-    {   'key_ref' => \$data{'httpd'}{'vhosts'}{'registry'},
+    {   'key_ref' => \<httpd.vhosts.registry>,
         'val_ref' => \{
             'domain'   => $domain,
             'path'     => $vhost_path,
-            'cert'     => FALSE,
             'status'   => qw| active |,
             'added_at' => <[base.ntime]>
         }
@@ -141,8 +140,8 @@ my $result = {
 
 return $result;
 
-#,,..,,,,,,..,..,,.,.,,.,,,..,...,,.,,,,.,,,.,..,,...,...,,.,,,..,.,.,,..,,..,
-#RLDVESAXQNOOCRZUDAQWYOND47J2W3ARV7HZARO5HFAPRKXEDUVP7ZUF2SPFKAOMCK5TN5GE7JPTA
-#\\\|LG2J2W2OBYAPB7MGJKW3IJ2KHG3URGW7RRETEMSDC4HZRIQXFX4 \ / AMOS7 \ YOURUM ::
-#\[7]UU2JSCS37B6SHRV7GBX5RZ5J4KLBIRKK5CRE2F5HLTIW24OUNUBI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,..,,,..,.,,,,..,.,.,..,,.,,,..,,...,...,.,,,,..,,..,,,.,,..,
+#ASSNH3OG6TDEBP3NESN67644FUGVONPG3DV2Z3BS7A4RSYQIW43I23S2WTISAVY7PKRTTDDWKJ6PO
+#\\\|DCJCUDNSG2QZNVPQC24AKLJDBY6QJAGET3FNAEFGQX23JDGYBXC \ / AMOS7 \ YOURUM ::
+#\[7]RKISSJGLMGUVRDGXGU2MYUQH4SFU7BN24BFR6I65Q6K5K5PU7OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
