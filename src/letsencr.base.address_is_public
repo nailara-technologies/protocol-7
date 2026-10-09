@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = letsencr.base.address_is_public
+# descr = is an ip address publicly routable [ v4 \ v6 ]
+# param = $address
+# return = 1 | 0
+
+## shared by the child's enrollment DNS check [ letsencr.child.check_domain_
+## dns ] and the parent's own-interface scan [ letsencr.parent.local_public_
+## addresses ] -- in letsencr.base so both processes load it before the fork.
+## not public : loopback \ private [ rfc 1918 ] \ link-local \ cgnat \
+## benchmark \ documentation \ multicast \ reserved, v6 loopback \ unique
+## local \ link-local
+
+my $addr = shift;
+return 0 unless defined $addr;
+
+if ( index( $addr, qw| : | ) >= 0 ) {    ## ipv6 ##
+    return 0 if $addr =~ m{^ ::1? $}xi;
+    return 0 if $addr =~ m{^ f [cd] }xi;       ## unique local fc00::/7 ##
+    return 0 if $addr =~ m{^ fe [89ab] }xi;    ## link-local fe80::/10 ##
+    return 1;
+}
+return 0 if $addr =~ m{^ 0\. | ^ 10\. | ^ 127\. | ^ 169\.254\. }x;
+return 0 if $addr =~ m{^ 172\. (?: 1[6-9] | 2[0-9] | 3[01] ) \. }x;
+return 0 if $addr =~ m{^ 192\.168\. }x;
+return 0
+    if $addr =~ m{^ 100\. (?: 6[4-9] | [789][0-9] | 1[01][0-9]
+                            | 12[0-7] ) \. }x;    ## cgnat 100.64/10 ##
+return 0 if $addr =~ m{^ 198\. (?: 18 | 19 ) \. }x;
+return 0
+    if $addr =~ m{^ 192\.0\.2\. | ^ 198\.51\.100\. | ^ 203\.0\.113\. }x;
+return 0 if $addr =~ m{^ 22[4-9] \. | ^ 2[3-9][0-9] \. }x;
+return 0 if $addr =~ m{^ 255 \. }x;               ## multicast \ reserved ##
+return 1;
+
+#,,.,,...,..,,..,,...,,,,,,..,.,,,,..,.,.,,,,,..,,...,...,,,.,..,,,.,,..,,,,.,
+#FNCL76YDB7NEYWIN3LO4GWRL3IAGJBY5WZYBBMXPF2GFXWVQ6UXVDJOU72WCYLDIRBFDU7R5UOHQO
+#\\\|L6UXWXXX6R7C7HYILDMQFPRAQGJVIDRUW7CM7RUY4EJGOAUNMD4 \ / AMOS7 \ YOURUM ::
+#\[7]VK3MMBDCI43OMKSHLN4ADRYQE5YOIJHACOQJS3GHW6YFVXKXZ2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

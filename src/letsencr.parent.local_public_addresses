@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = letsencr.parent.local_public_addresses
+# descr = this host's own public addresses, from its interfaces
+# return = list of addresses, or undef when interfaces are unreadable
+
+## local only, no network connection : the interface list [ the same
+## IO::Interface::Simple discover.handler.anounce_host_addr uses ].  automatic
+## enrollment takes these as public_addresses when none are configured -- the
+## DNS check then accepts only names resolving to THIS host. an empty list
+## means no public address on any interface [ a dev box behind nat, or a
+## server behind port forwarding -- the latter configures
+## letsencr.cfg.public_addresses ]. ipv4 only : the module reports no v6
+
+my $loaded
+    = eval { <[base.perlmod.autoload]>->(qw| IO::Interface::Simple |); 1 }
+    && IO::Interface::Simple->can(qw| interfaces |);
+
+return undef if not $loaded;
+
+my @addresses;
+foreach my $ifobj ( IO::Interface::Simple->interfaces ) {
+    next if $ifobj->is_loopback or not $ifobj->is_running;
+    my $addr = $ifobj->address // next;
+    push @addresses, $addr if <[letsencr.base.address_is_public]>->($addr);
+}
+
+return @addresses;
+
+#,,.,,.,.,,,,,,,.,,..,...,...,.,,,,,,,,..,,.,,..,,...,...,.,,,.,,,.,,,,..,.,.,
+#YXTAY6Q3OSZQS6GECIXKD3HSLR73U2AWW7O6QXSFLLJY2JONEGZYZYYFBJGOJPI6ETROTCAP7GKD6
+#\\\|425H6VHDST3ERAEJUR6DJ4LNDWH3G25OCSA5IARZIQGZNLQVAFJ \ / AMOS7 \ YOURUM ::
+#\[7]AYD75QTLCNITPGNIJADHHHC7KVVHIXCRPSIPXMIVXTOYCGIKKWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
