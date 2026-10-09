@@ -3,9 +3,10 @@
 # name  = coding.handler.models_discover_reply
 # descr = handle async response from models.cmd.discover, populate model metadata cache
 
-my $reply      = shift;
-my $context    = $reply->{'params'} // qw| unknown |;
-my $reply_data = $reply->{'data'}   // '';
+my $reply   = shift;
+my $context = $reply->{'params'} // qw| unknown |;
+my $retry   = ref $context eq qw| HASH | ? $context->{'retry_switch'} : undef;
+my $reply_data = $reply->{'data'} // '';
 
 <[base.logs]>
     ->( 2, 'model discovery reply received :. context=%s', $context );
@@ -24,8 +25,8 @@ for my $line ( split m|\n|, $reply_data ) {
         if ( $line =~ m|^\s+name:\s+(.+)$| ) {
             $metadata{$current_amos}{'name'} = $1;
         } elsif ( $line =~ m|^\s+version:\s+(.+)$| ) {
-            ## skip mmproj entries [ vision projector files, not runnable
-            ## models ]
+            ## skip mmproj entries
+            ## [ vision projector files, not runnable models ]
             if ( $1 eq 'mmproj' ) {
                 delete $metadata{$current_amos};
                 undef $current_amos;
@@ -78,10 +79,25 @@ if ($count) {
     <[base.logs]>->( 1, 'model discovery returned no available models' );
 }
 
+## coding.cmd.switch-model missed the stale cache : retry once with the  ##
+## fresh one and answer the original caller [ refetched flag : no loop ] ##
+if ( ref $retry eq qw| HASH | ) {
+    my $result = <[coding.cmd.switch-model]>->(
+        {   'args'               => $retry->{'args'},
+            'reply_id'           => $retry->{'reply_id'},
+            'registry_refetched' => TRUE,
+        }
+    );
+    <[base.callback.cmd_reply]>->( $retry->{'reply_id'}, $result )
+        if length( $retry->{'reply_id'} // '' )
+        and ref $result eq qw| HASH |
+        and ( $result->{'mode'} // '' ) ne qw| deferred |;
+}
+
 return TRUE;
 
-#,,.,,.,,,,,.,,,,,...,,..,,.,,,,.,,..,,.,,.,.,..,,...,...,...,,..,..,,..,,.,,,
-#YJX6CY6ZBCUB4NWH2W6QR3ZCLI5V42CO6EHXK4FMUM27DVSC3LNRSP2EXMRX2M3IXVW5RHJVMXC5M
-#\\\|JT2GI7VYNZABBSRYO56D73OEKDVEZAXSGKFJBN7LJE7WKNSHEWE \ / AMOS7 \ YOURUM ::
-#\[7]TBASNNFJAFEJZ4CL4HKK4TRZIBAR3U3RSST6NHGMMEWQUUT3SABA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,.,,,..,,.,,,.,,,,,.,..,,,..,..,,...,...,.,.,.,.,,.,,,..,,,.,
+#WWSBSRPPIEAXB5UVUNWSFSORDS6JHEGQFMWE3LKGNQXZTOOIFJUPXBXHFVVDXWTQFWKZE6OJ2MUZ2
+#\\\|ALLV22C5HOWQARZ6PVXKILLHJNIP4JEHMXNGLSXWSJ3DALRAY3L \ / AMOS7 \ YOURUM ::
+#\[7]BTCWN6XGVH5XVXY4MACDHXU6VYLJY6HYTGXPB2IEPQ7QULKHAOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
