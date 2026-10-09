@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use FindBin;
+use Time::HiRes ();
+
+BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
+
+use AMOS7::NTIME qw|
+    ntime_b32_now unix_to_ntime ntime_to_unix ntime_to_b32 b32_to_ntime
+    duration_str relative_str localtime_str
+    |;
+
+###         ###
+##  ntime  ##
+###         ###
+
+## protocol-7 network time conversion without a running backend [ AMOS7::NTIME
+## ; zenki use base.ntime, cube localtime \ delta-time ]
+##
+##   ntime                    now [ harmonic, as base.ntime.b32 ]
+##   ntime <base32>           decode   3X23VOWMAKXJSFI
+##   ntime <ntime>            encode   3226985211394.56885 [ >= 12 digits ]
+##   ntime <unix>             convert  1791557812.25       [ <= 11 digits ;
+##                                     '0+' prefix : unix whatever its size ]
+##   ntime <time> <time>      duration between two times [ any form ]
+##
+##   -q  one value only [ base32, or the ntime for a base32 input ]
+##   -n  -b  -u  -l  -i  -d   with -q : ntime \ base32 \ unix \ local time \
+##                            iso 8601 \ delta to now [ '.. ago', 'in ..' ]
+##   -p <digits>      ntime fraction digits [ default 4 ]
+##   -H               no harmony for 'now'
+
+my $rst = "\e[0m";
+my $bg  = "\e[48;2;9;5;42m";
+my $fg  = "\e[38;2;68;39;172m";
+my $ng  = "\e[38;2;71;195;6m";
+my $ec  = "\e[38;2;197;141;7m";
+
+$SIG{'__WARN__'} = \&error_exit;
+
+getopts( qw| qnbulidHp: |, \my %option );
+
+my $precision = $option{'p'} // 4;
+warn "precision must be 0 .. 8\n"
+    if $precision !~ m|^\d$| or $precision > 8;
+
+warn "at most two times [ a duration between them ]\n" if @ARGV > 2;
+
+if ( @ARGV == 2 ) {    ##[ duration between two times ]##
+    my ($unix_a) = parse_time( $ARGV[0] );
+    my ($unix_b) = parse_time( $ARGV[1] );
+    say duration_str( abs( $unix_b - $unix_a ) );
+    exit;
+}
+
+my $input = shift(@ARGV) // '';
+my ( $unix, $ntime, $b32 ) = parse_time($input);
+
+my $now      = Time::HiRes::time();
+my $relative = relative_str( $unix, $now );
+$relative = 'now' if not length $input;
+
+if ( $option{'q'} ) {
+    my $value
+        = $option{'n'}       ? $ntime
+        : $option{'b'}       ? $b32
+        : $option{'u'}       ? sprintf( q{%.4f}, $unix ) =~ s|\.?0+$||r
+        : $option{'l'}       ? localtime_str($unix)
+        : $option{'i'}       ? iso_str($unix)
+        : $option{'d'}       ? $relative
+        : $input =~ m|[A-Z]| ? $ntime
+        :                      $b32;
+    say $value;
+    exit;
+}
+
+say "$fg:";
+say sprintf "$fg: $bg $ng%s$fg $rst$fg", $b32;
+say sprintf "$fg:   %s",                 $ntime;
+say sprintf "$fg:   %s",                 localtime_str($unix);
+say sprintf "$fg:   %s",                 $relative;
+say "$fg:$rst";
+
+##[ INPUT ]###################################################################
+
+## any input form -> ( unix, ntime, base32 ). empty : now
+sub parse_time {
+    my $in = shift // '';
+    my ( $ntime, $b32 );
+
+    if ( not length $in ) {    ##[ now ]##
+        $b32   = ntime_b32_now( $precision, $option{'H'} ? 0 : 5 );
+        $ntime = b32_to_ntime($b32);
+
+    } elsif ( $in =~ m|^[A-Z2-7]+$| and $in =~ m|[A-Z]| ) {    ##[ base32 ]##
+        $ntime = b32_to_ntime($in)
+            // warn "'$in' is not a network time stamp [ base32 ]\n";
+        $b32 = $in;
+
+    } elsif ( $in =~ m|^(0\+)?(\d+)(\.\d+)?$| ) {
+        my ( $unix_prefix, $whole ) = ( $1, $2 );
+        if ( not $unix_prefix and length $whole >= 12 ) {    ##[ ntime ]##
+            $ntime = $in;
+            $b32   = ntime_to_b32($ntime)
+                // warn "ntime out of range [ 17 digits max ]\n";
+        } else {                                             ##[ unix ]##
+            ( my $unix_in = $in ) =~ s|^0\+||;
+            warn "unix time before 2002-06-05 [ ntime zero ]\n"
+                if $unix_in < AMOS7::NTIME::NTIME_START;
+            $ntime = unix_to_ntime( $unix_in, $precision );
+            $b32   = ntime_to_b32($ntime);
+        }
+    } else {
+        warn "'$in' : expected base32 stamp, ntime or unix time\n";
+    }
+
+    return ( ntime_to_unix($ntime), $ntime, $b32 );
+}
+
+##[ ISO 8601 ]################################################################
+
+sub iso_str {
+    my $time = shift;
+    my $frac = sprintf q{%.4f}, $time - int $time;
+    $frac =~ s|^0||;
+    my @t = localtime( int $time );
+    return sprintf q{%04d-%02d-%02d %02d:%02d:%02d%s}, 1900 + $t[5],
+        1 + $t[4], @t[ 3, 2, 1, 0 ], $frac;
+}
+
+##[ ERROR HANDLER ]###########################################################
+
+sub error_exit {
+    chomp( my $e = shift );
+    say "$fg:\n: $ec$e$fg\n:$rst";
+    exit(110);
+}
+
+#,,,,,,,,,,,.,,,,,,..,...,.,,,,,,,,,,,...,,,.,..,,...,...,,,,,.,,,.,.,,,.,,.,,
+#3WCCASQY4Z2UJNJ57L2LHLOLMFF2D6QGXTETAW7JLSWGWJR5TXRBRXTTVV37LD7HLMB6FHNUZNU2I
+#\\\|HABDRMDODNVPGXZ7CILGOELRXLS4P4N6ZOVXAO2X4TDKNDGYYQZ \ / AMOS7 \ YOURUM ::
+#\[7]VKQYXQNXR6R3ADETZBMVRHUKAVDZFOESMJAO3PJYRQTA3BHRJAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
