@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-09-session-handover-remote-rollout
-description: handover of the 2026-10-08 -> 09 session [ 6a16dfa32 .. 07658ef22, pushed ] -- remotes upgraded + host-root pinned [ both remotes ], perl floor 5.32 with a floor-perl check, yaml wrappers everywhere, letsencr auto-enrollment [ staging first ], form \ host-edit ui fixes ; next = first real enrollment, stdin_key test [ kimi ]
+description: handover of the 2026-10-08 -> 09 session [ 6a16dfa32 .. 30a688058, pushed ] -- remotes upgraded + host-root pinned [ both remotes ], perl floor 5.32 with a floor-perl check, yaml wrappers everywhere, letsencr auto-enrollment [ staging first ], form \ host-edit ui fixes, signature fragment cleanup + :strip: ; next = first real enrollment
 metadata:
   type: project
 ---
@@ -39,6 +39,14 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
   [ autocomplete off + focus guard ] ; local note \ date overlays expire like stage.
 - **remotes** : both upgraded, clean start, each host-root pinned from host-edit through
   the ssh forward ; the pins equal their `p7c host-root-id`.
+- **signatures** : 56 files carried agent leftovers above the real footer [ lone
+  separator, PLACEHOLDER line \ block, '</content>' ] -- stripped with one ncode pattern
+  [ ed8f5e06d ]. the rule lives in `AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx` ;
+  `update-signatures` reports fragments, `:strip:` removes them, the pre-commit hook warns
+  [ not blocking ] ; AI-COLLABORATION-GUIDE names every variant [ 30a688058 ].
+- **tests** : `test-form-stdin-key.pl` [ kimi, 29 : tab-row entry, plugin keys, ctrl-c ],
+  `test-form-width-cap.pl`, `test-letsencr-enroll.pl` [ 74 ], host-edit flow \ records \
+  actions-tab extended.
 
 ## lessons [ see their own memories ]
 
@@ -49,21 +57,20 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
 - kimi reviews : both k2.8 and k3 runs needed real fixes [ cursor offset, async
   self-test, timer data ] -- always review kimi diffs line by line and add the test
   that would have caught it.
+- [[search-existing-paths-and-history-first]] : enrollment was built while three
+  request-certificate callers already existed [ the user found them ] ; a stray line was
+  blamed on the sign tool while the file's own history showed it predated the edit.
 
 ## next
 
 1. first REAL enrollment : a vhost for a domain pointing at a remote -> watch staging
    [ `:: letsencr.show-buffer zenka`, `/var/cache/letsencr/enroll-state.json` ], then
    `cfg.enroll_staging = no`.
-2. `bin/test-scripts/test-form-stdin-key.pl` [ kimi dispatched, session fa450f04 ] --
-   review + sign.
-3. DONE : signature fragments above the footer were agent leftovers [ 56 files, stripped
-   ed8f5e06d ], not a sign-tool bug. rule : AMOS7::Protocol::P7Syntax
-   p7_syntax__sig_fragment_rx ; update-signatures reports them, `:strip:` removes them ;
-   the pre-commit hook warns [ not blocking ] ; AI-COLLABORATION-GUIDE names the variants.
+2. pull on both remotes : they run the version before the enrollment claim, the form
+   key changes and `:strip:` [ check the zenka STDOUT log afterwards ].
 
-#,,,.,,,,,,.,,.,.,,,.,,,.,.,,,,,.,.,.,,,.,...,..,,...,...,...,,,,,.,,,,..,.,,,
-#5TTCEIN2ZYU7M4JR7LNPVOFVH4B5HSD36F7L56TCQGGKA3OK2QLRLTY2D2Z3NJ3DHCFUMRU7NGSCU
-#\\\|SLR6B6LWZIWCTGNFWDDKLHTZVWL6UQ74OWJOVQACODP2OXKETDW \ / AMOS7 \ YOURUM ::
-#\[7]PFP6I2YDXQ6LY4L4JL2CRBFIBBXCS3WFOMQFOZ2RFJSNK5DXR2BA 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,.,,,,.,,.,.,.,.,.,.,,,.,.,,,..,,...,...,.,.,...,,,,,,.,,,..,
+#6QAFO6H2UGXLII4OOMXXVWF7SVMQWZJOIVE5774J7WNTW7QWPPA67MZWIUPGD2SC6CNGT4GSJLPQG
+#\\\|MQZ4BEC5WXFNF4XJMYBODMKQ57YJA72GU7E5TNFHR2LPWGNQZ2N \ / AMOS7 \ YOURUM ::
+#\[7]MO4VZULETC3KVCI3YKSRYYTDMX7QT25VH2JZ5HGD5GQMGJVZ64BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
