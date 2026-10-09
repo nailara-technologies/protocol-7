@@ -24,6 +24,34 @@ my $staging = <[base.cfg_bool]>->( <letsencr.cfg.enroll_staging> // FALSE );
 my @public_addresses = grep { length($ARG) }
     split( m|\s+|, <letsencr.cfg.public_addresses> // '' );
 
+## none configured : this host's own public interface addresses -- the DNS
+## check then accepts only names resolving HERE, with no network connection [
+## a dev box no longer self-tests third-party hosts ].  no public address on
+## any interface : nothing to enroll from here unless configured [ a server
+## behind port forwarding sets letsencr.cfg.public_addresses ]
+if ( not @public_addresses ) {
+    my @local = <[letsencr.parent.local_public_addresses]>;
+    if ( @local == 1 and not defined $local[0] ) {
+        <[base.log]>->(
+            2,
+            ': enroll : interfaces unreadable [ IO::Interface::Simple '
+                . '] -- dns check without address pinning'
+        );
+    } elsif ( not @local ) {
+        <[base.logs]>->(
+            2,
+            ': enroll : no public address on any interface -- %d domain%s '
+                . 'skipped [ behind nat : set letsencr.cfg.public_addresses '
+                . ']',
+            scalar @{$new_domains},
+            <[base.cnt_s]>->( scalar @{$new_domains} )
+        );
+        return { 'status' => qw| success |, 'queued' => 0 };
+    } else {
+        @public_addresses = @local;
+    }
+}
+
 my $now    = time();
 my $queued = 0;
 
@@ -141,8 +169,8 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
 
 return { 'status' => qw| success |, 'queued' => $queued };
 
-#,,,,,...,.,.,,,.,,.,,,..,,,,,,.,,.,,,,..,..,,..,,...,...,...,,,.,,,.,,.,,.,.,
-#3QZ3VIG3AASOROQ52DZ5JZLZ55COMYBQ2XH5VRHOCICMKRQZZRBIRICXZ2YFWO564F2GY3PRBKOU4
-#\\\|ITY6XPWFQS7ONGEEDPUHPXRP6FQG3EOCMEFZAYJ7X3EWQ42FEGO \ / AMOS7 \ YOURUM ::
-#\[7]RXRM3BTF6UN53A3ZPQZHPM44JXDYCZCDWNRERCZCT7N6QRT33EBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,.,,..,,..,,...,.,.,..,,,,.,..,,...,.,.,,,.,..,,..,,,..,,,,,
+#KIDCRPI2GH7SFUJIYQUKMFAMDPJKUT3XOOGYQZY4KJITG2FE6AK4KNBCUEFQLBY54THH7II4HFYE6
+#\\\|O3ISE6SWEBKJW4DNSARX7ZE6YCMHYXTIZWYD45OFLXGX5N4RECV \ / AMOS7 \ YOURUM ::
+#\[7]MEXIWKHWCU4TQR5F6FTJXGDEJGNBFVJHDGOBIA2CPFX7NZEW5CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
