@@ -125,14 +125,35 @@ list under a second key ] without changing single-valued callers.
   flags are 1 ; a set-up reply `false` fails the authz
 - the `deadline` is checked in every handler and by the poll timer
 
+## status [ 2026-10-09 ]
+
+- stage A DONE + live : eb0cf4658, 4f4d1cbda. local staging run [ failure
+  path : httpd ready before respond, one false reply, cleanup ] ; atom
+  production run for the fresh name `ui.data.v7.ax` [ full success path,
+  first real http-01 validation through the new flow, cert installed ]
+- old blocking flow removed [ continue_challenge_processing,
+  poll_challenge_status, acme_get_authorization, acme_finalize_order,
+  download_certificate, respond_to_challenge, create_*_challenge,
+  check_dns_propagation, acme_verify_challenge, acme_renew,
+  parent.handler_challenge_confirmed ] -- unreachable, checked transitively
+- OPEN stage B : acme_new steps 1-4 [ directory, account, order ] still
+  block the child a few seconds ; client globals guarded only by the queue
+- OPEN : dns-01 live needs our nameservers delegated ; the parent logs
+  `ACME enrollment success` three times per certificate
+- unrelated dead modules found on the way [ not removed ] :
+  parent.{query_httpd_vhosts, send_httpd_vhost_query,
+  handler_httpd_vhost_reply, handler_httpd_vhost_error, send_to_child,
+  send_from_child, handler_challenge_validated, handler_httpd_reload_reply},
+  child.extract_rsa_{modulus,exponent}
+
 ## split
 
 - kimi [ k3 : concurrency ] : pieces 1 + 4 + 5 with tests, after the
   state record [ 2 ] is fixed in writing
 - claude : 2 + 3 + 6 + 7 [ the flow \ reply wiring ] and the review
 
-#,,.,,.,,,.,,,,..,,..,.,,,.,.,..,,,,,,,.,,...,..,,...,..,,.,.,...,...,.,.,,..,
-#BZYOBTOCVUKABODWXZQMXGPUL2P7ZXO6PBVP4M62FHGXR4AWIGUHJ34LMBFHOPDLGDO6ZDLOU36K6
-#\\\|YOVUKF74VLVK4MC472WIDCHCOTMHGN5KRBSS7VMVXE3S2RCWUGA \ / AMOS7 \ YOURUM ::
-#\[7]U77XWDEG4N4Y2QLTV5DVEZTK5BJ5POPZDI2Y5M2IAXZRCVSYGGBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,.,,,..,,..,,,,,,,..,..,,.,.,..,,...,..,,,,,,...,,.,,,..,.,,,
+#O4UT4CA7D4VIDXQVX7GPUIGHKDNKP45XVGEF66JNTJ3TOLVCW3BXA25LVKJHBDAGSJY36OOUEVVZ6
+#\\\|KGRF4DOQGQ7HZFSCNUZGDJMVY7DXFQRSDGRFLFRTROZX25NWRP6 \ / AMOS7 \ YOURUM ::
+#\[7]MDAHYGD7FTF5IGOOK6STUEF4G43LBSXQSBJVAUNGYKD7ZJAE4IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

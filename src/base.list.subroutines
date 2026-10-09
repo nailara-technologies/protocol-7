@@ -2743,7 +2743,6 @@ return [ qw[
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
         letsencr.child.create_jws
-        letsencr.child.acme_renew
         letsencr.child.acme.start
         letsencr.child.acme.begin
         kimi.helper.task_priority
@@ -5038,7 +5037,6 @@ return [ qw[
         letsencr.child.extract_rsa_modulus
         letsencr.child.dns.query_txt_async
         letsencr.child.cmd.new-certificate
-        letsencr.child.acme_finalize_order
         letsencr.child.acme.step_propagate
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
@@ -5212,12 +5210,10 @@ return [ qw[
         letsencr.parent.handler_child_ready
         letsencr.fetch_intermediate_via_aia
         letsencr.child.verify_http_selftest
-        letsencr.child.respond_to_challenge
         letsencr.child.load_rsa_account_key
         letsencr.child.generate_account_key
         letsencr.child.fetch_acme_directory
         letsencr.child.extract_rsa_exponent
-        letsencr.child.download_certificate
         letsencr.child.cmd.inst-self-signed
         letsencr.child.acme.step_poll_order
         letsencr.child.acme.step_poll_authz
@@ -5348,11 +5344,8 @@ return [ qw[
         lm-vision.handler.poll_coding_status
         letsencr.parent.handler.httpd_online
         letsencr.parent.enroll_backoff_delay
-        letsencr.child.poll_challenge_status
         letsencr.child.dns.handler.txt_reply
         letsencr.child.cmd.renew-certificate
-        letsencr.child.check_dns_propagation
-        letsencr.child.acme_verify_challenge
         letsencr.child.acme_register_account
         letsencr.child.acme.handler.response
         kimi.handler.reconnect_grace_timeout
@@ -5473,9 +5466,7 @@ return [ qw[
         letsencr.parent.enroll_record_failure
         letsencr.child.util.cleanup_challenge
         letsencr.child.substitute_admin_email
-        letsencr.child.create_dns01_challenge
         letsencr.child.cmd.revoke-certificate
-        letsencr.child.acme_get_authorization
         letsencr.child.acme.key_authorization
         kimi.handler.session_liveness_timeout
         kimi-web.cmd.inject-context-to-coding
@@ -5593,7 +5584,6 @@ return [ qw[
         letsencr.parent.handler_renewal_failed
         letsencr.parent.cmd.revoke-certificate
         letsencr.child.dns.handler.txt_timeout
-        letsencr.child.create_http01_challenge
         letsencr.child.cmd.request-certificate
         kimi-web.handler.dispatch_stream_start
         keys.unpack_format.key_archive_payload
@@ -5865,7 +5855,6 @@ return [ qw[
         mod-test.callback.reload-test.is_registered
         letsencr.parent.handler_enroll_verify_reply
         letsencr.parent.handler_challenge_validated
-        letsencr.parent.handler_challenge_confirmed
         letsencr.child.handler.selftest_setup_reply
         httpd.handler.download_transfer.test-broken
         editor.control.multiline.line_col_to_offset
@@ -5893,7 +5882,6 @@ return [ qw[
         plugin.storage.util.visual.checksum_distance
         plugin.storage.util.visual.calculate_entropy
         letsencr.parent.check_certificate_expiration
-        letsencr.child.continue_challenge_processing
         fetch.file.huggingface.handler.list_response
         data.topology.interference.map.hash_to_phase
         data.topology.interference.map.PROTOCOL_BLUE
@@ -6025,8 +6013,8 @@ return [ qw[
     ]
 ];
 
-#,,..,..,,,,.,.,,,,,,,...,,..,.,,,,,,,...,...,.,.,...,...,...,.,.,,.,,,,,,,..,
-#I6BCMI4J6GV4MSQOMYGKA5GYLMDB22OCMVNJDVTVL2KMD5CTHMTDXPLRKCS5SK2V4ITX6HP37TQ2W
-#\\\|76RTG5VXV4K66LIGKSMJD2IQC2VTRXAX3YHAQPA5DA573U4MNE6 \ / AMOS7 \ YOURUM ::
-#\[7]IDA24TQSMMO4LOSIO5TXNIWJUBPPQUYCRAU5TZKZMSWBKDEKHUCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,.,.,,..,.,,,,,.,,,,,.,.,,,.,.,.,...,...,,..,,..,...,.,.,,,.,
+#HOYDBJIJ4T6G5XVZZVJUKBF256RICIDQTDPNYYDWUZI3FQNL72OTCO3WFDWXXOY4CTX53XQOGXBM6
+#\\\|AY4KYKJ6UR7JAYOB7QJP3CWN674IORTWUJNHYZJTLIECUSADVH3 \ / AMOS7 \ YOURUM ::
+#\[7]E74HFH6WTJ6ZWVS73P5KOFSI7KQCJERNT234DZVISTUNY3HFAMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
