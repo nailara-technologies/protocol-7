@@ -276,14 +276,20 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
     ## only the archive survives : restore, unlock both ways, verify ##
     my $rdir = "$adir/restored";
     my ($a1) = AMOS7::Vault::archive_open($archive);
-    ok( vault_unlock( $a1->{'vault'}, 'new one' ),
-        'archive : ' . 'passphrase opens'
+    ok( join( ',', vault_wraps( $a1->{'vault'} ) ) eq 'recovery',
+        'archive : by default only the recovery code'
     );
+    ok( !vault_unlock( $a1->{'vault'}, 'new one' ),
+        'archive : the plain passphrase does not open it'
+    );
+    ok( vault_unlock( $a1->{'vault'}, $recovery, 'recovery' ),
+        'archive : the recovery code opens it' );
     my $report = AMOS7::Vault::archive_restore( $a1, $rdir );
     ok( $report->{'added'} == $total && $report->{'key'} eq 'created',
         'archive : restored into an empty directory' );
     my ($r1) = vault_open($rdir);
-    ok( vault_unlock( $r1, 'new one' ), 'restored vault : passphrase' );
+    ok( vault_unlock( $r1, $recovery, 'recovery' ),
+        'restored ' . 'vault : opens' );
     my ( $r_ok, $r_err ) = vault_verify($r1);
     ok( $r_ok == $total && !@{$r_err}, 'restored vault : every version' );
     my ($r2) = vault_open($rdir);
@@ -294,7 +300,7 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
     my ($gone) = glob "$rdir/entries/*.vlt.B32";
     unlink $gone;
     my ($a2) = AMOS7::Vault::archive_open($archive);
-    vault_unlock( $a2->{'vault'}, 'new one' );
+    vault_unlock( $a2->{'vault'}, $recovery, 'recovery' );
     $report = AMOS7::Vault::archive_restore( $a2, $rdir );
     ok( $report->{'added'} == 1
             && $report->{'same'} == $total - 1
@@ -302,12 +308,47 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
         'archive : merge adds the missing version only'
     );
 
+    ## passphrase + key file : any file, here this test script ##
+    my $key_file = $PROGRAM_NAME;
+    my $other    = "$FindBin::Bin/test-ntime.pl";
+    my $fsecret  = AMOS7::Vault::file_secret( 'archive phrase', $key_file );
+    my ( undef, undef, $fwraps )
+        = AMOS7::Vault::archive_write( $v4,
+        "$adir/file.B32", { file_secret => $fsecret } );
+    ok( join( ',', @{$fwraps} ) eq 'passphrase-file,recovery',
+        'key file archive : recovery + passphrase-file wraps'
+    );
+    my ($af) = AMOS7::Vault::archive_open("$adir/file.B32");
+    ok( !vault_unlock(
+            $af->{'vault'},
+            AMOS7::Vault::file_secret( 'archive phrase', $other ),
+            'passphrase-file'
+        ),
+        'key file archive : another file does not open it'
+    );
+    ok( !vault_unlock( $af->{'vault'}, 'archive phrase', 'passphrase-file' ),
+        'key file archive : the passphrase alone does not open it'
+    );
+    ok( vault_unlock( $af->{'vault'}, $fsecret, 'passphrase-file' ),
+        'key file archive : passphrase + the file open it'
+    );
+    ok( AMOS7::Vault::git_blob_id($key_file) =~ m|^[A-Z2-7]{32}$|,
+        'key file : git blob id for the notes' );
+
+    ## keeping the plain passphrase : on request ##
+    AMOS7::Vault::archive_write( $v4, "$adir/plain.B32",
+        { keep_passphrase => 1 } );
+    my ($ap) = AMOS7::Vault::archive_open("$adir/plain.B32");
+    ok( vault_unlock( $ap->{'vault'}, 'new one' ),
+        'archive with -p : the passphrase opens it'
+    );
+
     ## tampering ##
     my $a_bin = read_bin($archive);
     substr( $a_bin, -40, 1 ) = chr( ord( substr $a_bin, -40, 1 ) ^ 1 );
     write_bin( "$adir/bent.B32", $a_bin );
     my ($a3) = AMOS7::Vault::archive_open("$adir/bent.B32");
-    vault_unlock( $a3->{'vault'}, 'new one' );
+    vault_unlock( $a3->{'vault'}, $recovery, 'recovery' );
     ok( !defined( ( AMOS7::Vault::archive_records($a3) )[0] ),
         'archive : flipped byte fails' );
 
@@ -331,7 +372,7 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
             . $c_e
     );
     my ($a4) = AMOS7::Vault::archive_open("$adir/evil.B32");
-    vault_unlock( $a4->{'vault'}, 'new one' );
+    vault_unlock( $a4->{'vault'}, $recovery, 'recovery' );
     ok( !eval {
             AMOS7::Vault::archive_restore( $a4, "$adir/evil-target" );
             1;
@@ -349,13 +390,13 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
         entry_save( $sv, undef, { type => 'note', title => "n$ARG" } )
             foreach 1 .. $n;
         my $sfile = "$adir/size-$n.B32";
-        AMOS7::Vault::archive_write( $sv, $sfile );
+        AMOS7::Vault::archive_write( $sv, $sfile, { keep_passphrase => 1 } );
         $sizes{$n} = length read_bin($sfile);
 
         ## a different vault : refused ##
         if ( $n == 1 ) {
             my ($a5) = AMOS7::Vault::archive_open($archive);
-            vault_unlock( $a5->{'vault'}, 'new one' );
+            vault_unlock( $a5->{'vault'}, $recovery, 'recovery' );
             ok( !eval { AMOS7::Vault::archive_restore( $a5, $sdir ); 1 }
                     && $EVAL_ERROR =~ m|different vault|,
                 'archive : a different vault is refused'
@@ -401,8 +442,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,..,,,,,..,,...,.,.,..,,...,.,.,,,.,,,.,.,.,..,,...,..,,...,,..,.,.,,,,,,..,
-#5ESY2WWZYY2622YEZZQCEGAT6JAGHKFSYWL7H3YJUUHHGYZUZ7ER3FTXHAIS2CKVHO2DH4RJX2FBK
-#\\\|W4CWYKIMKBKEHBTWZGBW7A6WCHM5BBUYVCX4GLSMSEKSJ7BXSBJ \ / AMOS7 \ YOURUM ::
-#\[7]QUK7TCL4VMMGHLACZV3GVHSDBDMASBH3T2RQDCTQVUEQCY44TKAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,.,,,,,,..,...,.,,,,,,,.,.,,.,,..,,...,...,,..,.,,,,,,,,..,...,
+#PAOT7KJRS73KLZ2LUDVOF4QXGTY23NHDJUHMLT6WIBVAASSW7OU4JGURBH7ETCOVTDEOIOPVSFAWI
+#\\\|RJ6CI24FS6Z6MLOA6Q7K3QXAKY6E7NZRJUFDI4Q22IBMXHICWE3 \ / AMOS7 \ YOURUM ::
+#\[7]PMGW2GRUZ2PNEI7KP6NB5DIOLIZMJ4DKEVY6JHT65TW5ACZG5EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
