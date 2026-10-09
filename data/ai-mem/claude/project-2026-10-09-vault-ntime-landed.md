@@ -14,8 +14,19 @@ swapped [ gpu fan repair ]. the vault is the "better minimum state".
   purpose, no zenka. store `~/.n/vault` [ `P7_VAULT_DIR` ]
 - argon2id [ CryptX >= 0.088, else Crypt::Argon2 -- debian bookworm 0.013
   verified identical ] wraps a random vault key ; passphrase + recovery code
-  wraps. chacha20-poly1305 per entry version, hkdf per-version key, ad binds
-  vault \ id \ version
+  wraps. CASCADE [ user's call 2026-10-09, still format 1 -- no vault existed
+  yet ] : twofish-gcm inside chacha20-poly1305, independent hkdf keys, on the
+  key wrap AND every entry version [ wrap-only-chacha would leak the vault
+  key ]. ad binds vault \ id \ version. python's `cryptography` has no
+  twofish : spec recovery = python kdf + outer layer, CryptX twofish-gcm
+- storage : binary fields [ 'P7VK' \ 'P7VE' + format byte, layouts in the
+  spec ] in ONE base32 block per file, framed in the ': ' inline format of
+  bin/Protocol-7's __DATA__ subroutines [ '.:[ title ]:.', ': ' + 76 chars,
+  short last line centred with '0' ; readers drop 0 \ 1 ]. names
+  `vault.key.B32`, `<id>.<version>.vlt.B32` [ user's choice over text lines ]
+- considered + declined : the keys archive's bit-splicing [ no gain under an
+  aead, needs base.vec.* ]. ITS size-class padding is the idea worth taking,
+  for an off-site export archive hiding entry count \ edit times [ offered ]
 - one immutable file per version [ `<id>.<ntime 14 digits>.<rand>.vlt` ] :
   sync = union of files, `restore` = undelete. random ids [ public DATA repo ok ]
 - synced writes [ tmp + fsync + link \ rename + dir fsync ] ; damaged newest
@@ -48,8 +59,8 @@ format-code -c compiles .pm files inside a sub -- file-level `my` reads as
 "not available", use `our`. pkill -f with a pattern from my own command line
 kills my own shell.
 
-#,,..,.,.,.,.,..,,,,,,..,,..,,..,,,,.,,.,,.,.,..,,...,..,,,,.,,,,,.,.,,..,..,,
-#T5Z5JY2T3GCPX2AV6TI2KWQ6QF73CYY2RL2NWEH3Y5CWZ22OAQ52GVDIILLIJBL6QUXWOLN4IT2LA
-#\\\|AHPDGZRQ43QITAKXRAEC6GEWYR265TSKDRFQTUDALI5JGBT7YXQ \ / AMOS7 \ YOURUM ::
-#\[7]N7GLEAMPT4RE2SCDDAPZ5PTH45MQUUBEJBOEEPB5H32GAF52B6BI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,..,,.,,.,,,.,,,.,,,,.,,..,,,,,,..,,...,...,.,,,.,.,,..,...,.,.,
+#6YQWFOM2EOL52ZYXNPPM53RCKKEZBFQJF7ETFZXZMLY3LUXURUVBFB7APPMOSYXEQP743MKOORJAM
+#\\\|YPB7M46GXKANX4OYDYV4KRRL2EQVZ3QVLLTJGNE7DGWYJTVOSUC \ / AMOS7 \ YOURUM ::
+#\[7]RZEO4WMA4URSCGELA2IVXUO7JPG4GWS5CFU5UBHWP62E7LQQ3ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

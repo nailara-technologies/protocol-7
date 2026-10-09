@@ -21,6 +21,7 @@ use warnings;
 ## secrets are only ever typed at a prompt, never taken from argv.
 
 use FindBin;
+use Getopt::Std;
 use Encode qw| decode encode |;
 
 BEGIN {
@@ -45,44 +46,59 @@ binmode STDERR, ':encoding(UTF-8)';
 ## prompts must reach a reader before we block on its answer ##
 STDOUT->autoflush(1);
 
+## ctrl-c : a hidden prompt has echo off -- restore the terminal before
+## leaving, '\b\b' takes the echoed '^C' back off the line
+$SIG{'INT'} = sub {
+    ## readline holds the terminal in its own mode : hand it back first ##
+    $main::READLINE->deprep_terminal
+        if defined $main::READLINE
+        and $main::READLINE->ReadLine eq qw| Term::ReadLine::Gnu |;
+    if ( -t STDIN ) {
+        if ( defined &Term::ReadKey::ReadMode ) { Term::ReadKey::ReadMode(0) }
+        else                                    { system qw| stty echo | }
+    }
+    print "\b\b  \n";
+    exit 130;
+};
+
 my $CLIP_CLEAR_SECONDS = $ENV{'P7_VAULT_CLIP_SECONDS'} // 45;
 
 my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7];
 
-my $use_recovery = FALSE;
-
-## options before the command ##
-while ( @ARGV and $ARGV[0] =~ m|^-| ) {
-    my $opt = shift @ARGV;
-    if ( $opt eq '--dir' and @ARGV ) {
-        $dir = shift @ARGV;
-    } elsif ( $opt eq '--recovery' ) {
-        $use_recovery = TRUE;
-    } elsif ( $opt eq '-h' or $opt eq '--help' ) {
-        usage();
-        exit 0;
-    } else {
-        die "p7-vault : unknown option '$opt'\n";
-    }
+## options before the command [ getopts stops at the command word, so a   ##
+## command's own flags like 'show <filter> -r' are left for the command ] ##
+my %option;
+{
+    local $SIG{'__WARN__'}
+        = sub { print STDERR 'p7-vault : ', lcfirst $ARG[0]; exit 2 };
+    getopts( qw| d:Rho: |, \%option );
 }
+if ( $option{'h'} or defined $option{'o'} ) {
+    die "p7-vault : unknown option '-o$option{'o'}'\n"
+        if defined $option{'o'} and $option{'o'} ne qw| ptions |;
+    usage();
+    exit 0;
+}
+$dir = $option{'d'} if defined $option{'d'};
+my $use_recovery = $option{'R'} ? TRUE : FALSE;
 
 my %COMMANDS = (
-    init    => \&cmd_init,
-    add     => \&cmd_add,
-    list    => \&cmd_list,
-    ls      => \&cmd_list,
-    show    => \&cmd_show,
-    copy    => \&cmd_copy,
-    get     => \&cmd_get,
-    edit    => \&cmd_edit,
-    rm      => \&cmd_rm,
-    history => \&cmd_history,
-    restore => \&cmd_restore,
-    gen     => \&cmd_gen,
-    passwd  => \&cmd_passwd,
-    verify  => \&cmd_verify,
-    help    => sub { usage() },
+    init     => \&cmd_init,
+    add      => \&cmd_add,
+    list     => \&cmd_list,
+    ls       => \&cmd_list,
+    show     => \&cmd_show,
+    copy     => \&cmd_copy,
+    get      => \&cmd_get,
+    edit     => \&cmd_edit,
+    rm       => \&cmd_rm,
+    history  => \&cmd_history,
+    restore  => \&cmd_restore,
+    gen      => \&cmd_gen,
+    passwd   => \&cmd_passwd,
+    verify   => \&cmd_verify,
+    commands => sub { usage() },
 );
 
 my $vault;    ## unlocked handle, opened on first need ##
@@ -101,13 +117,13 @@ if ( not -e "$dir/vault.key" ) {
     unlocked() or exit 1;
 }
 while (TRUE) {
-    my $line = prompt_line('vault') // last;
+    my $line = prompt_line( 'vault', TRUE ) // last;
     my ( $cmd, @args ) = split ' ', $line;
     next if not defined $cmd;
     last if $cmd eq 'quit' or $cmd eq 'q' or $cmd eq 'exit';
     my $sub = $COMMANDS{$cmd};
     if ( not $sub ) {
-        say "  unknown command '$cmd' [ help ]";
+        say "  unknown command '$cmd' [ commands ]";
         next;
     }
     $sub->(@args);
@@ -119,7 +135,7 @@ exit 0;
 sub usage {
     print <<"EOF";
 
-  p7-vault [ --dir <path> ] [ --recovery ] [ <command> [ args ] ]
+  p7-vault [ -d <path> ] [ -R ] [ <command> [ args ] ]
 
     init                     create a vault [ $dir ]
     add [ login|note|contact ]  new entry, fields prompted
@@ -136,9 +152,14 @@ sub usage {
     gen [ length ] [ classes ]  password [ classes : a A 9 # ]
     passwd [ recovery ]      change the passphrase [ or recovery code ]
     verify                   decrypt every version of every entry
+    commands                 this list [ interactive : quit ends ]
 
-    --recovery               unlock with the recovery code
-    P7_VAULT_DIR             vault directory [ default ~/.n/vault ]
+    hidden input : tab shows \\ hides the value, ctrl-u clears it,
+                   esc \\ ctrl-c cancels
+
+    -d  .......  vault directory [ default P7_VAULT_DIR or ~/.n/vault ]
+    -R  .......  unlock with the recovery code
+    -h  .......  this list [ also -options ]
 
 EOF
     return TRUE;
@@ -146,13 +167,58 @@ EOF
 
 ##[ TERMINAL INPUT ]##########################################################
 
+## line editing where a real readline backend exists
+## [ gnu : arrows, editing, history ] -- the stub only strips escape
+## sequences. history is in memory only and holds command lines alone
+## [ add_history below ], never field values
+our $READLINE;    ## the readline object, for the ctrl-c handler ##
+
+sub readline_term {
+    return undef     if not -t STDIN;
+    return $READLINE if defined $READLINE;
+    require Term::ReadLine;
+    my $term = Term::ReadLine->new(qw| p7-vault |);
+    $term->ornaments(0);
+    $term->MinLine(undef);    ## no automatic history ##
+
+    ## gnu readline restarts its read after a signal, and perl runs a handler
+    ## only between its own ops -- ctrl-c did nothing until enter.  readline
+    ## calls this hook on every signal it sees during a read : a perl sub
+    ## running there gives the pending handler its turn
+    $term->Attribs->{'signal_event_hook'} = sub { return 0 }
+        if $term->ReadLine eq qw| Term::ReadLine::Gnu |;
+
+    return $READLINE = $term;
+}
+
+## $history : add the line to the in-memory history [ command lines ]
 sub prompt_line {
-    my $label = shift;
-    print "  $label > ";
-    my $line = <STDIN>;
-    return undef if not defined $line;
-    chomp $line;
-    return decode( 'UTF-8', $line );
+    my $label   = shift;
+    my $history = shift // FALSE;
+
+    my $line;
+    my $rl = readline_term();
+    if ( defined $rl and $rl->ReadLine ne qw| Term::ReadLine::Stub | ) {
+        $line = $rl->readline("  $label > ");
+        return undef if not defined $line;
+    } else {
+        print "  $label > ";
+        $line = <STDIN>;
+        return undef if not defined $line;
+        chomp $line;
+    }
+
+    ## terminal escape sequences : arrow keys in both the csi and the
+    ## application cursor form, function keys, a lone escape
+    state $escape_seq_re = qr{\e(?:\[[0-9;?]*[ -/]*[@-~]|O[ -~]|.)?};
+    $line =~ s|$escape_seq_re||g;
+    $line = decode( 'UTF-8', $line );
+    $rl->AddHistory($line)
+        if $history
+        and defined $rl
+        and length $line
+        and $rl->can('AddHistory');
+    return $line;
 }
 
 ## no-echo input, never logged, never on argv ##
@@ -160,12 +226,11 @@ sub prompt_secret {
     my $label = shift;
     print "  $label : ";
 
+    return read_secret_raw($label)
+        if -t STDIN and eval { require Term::ReadKey; 1 };
+
     my $line;
-    if ( -t STDIN and eval { require Term::ReadKey; 1 } ) {
-        Term::ReadKey::ReadMode('noecho');
-        $line = eval {<STDIN>};
-        Term::ReadKey::ReadMode('restore');
-    } elsif ( -t STDIN ) {
+    if ( -t STDIN ) {
         system qw| stty -echo |;
         $line = <STDIN>;
         system qw| stty echo |;
@@ -175,7 +240,87 @@ sub prompt_secret {
     print "\n";
     return undef if not defined $line;
     chomp $line;
+
+    ## a masked value cannot be edited : an arrow key inside it is junk the
+    ## owner never sees. stripping it silently would store a secret that
+    ## differs from the one they think they typed -- ask again instead
+    if ( $line =~ m|\e| ) {
+        say '  << arrow \ escape keys do not edit '
+            . 'a hidden value -- type it again >>';
+        return prompt_secret($label);
+    }
     return decode( 'UTF-8', $line );
+}
+
+## hidden input in raw mode, key handling as AMOS7::TERM's password reader [
+## backspace \ del \ left arrow delete, other escape sequences dropped, ctrl-u
+## clears, ctrl-c \ ctrl-d \ esc cancel ] -- but the value comes back EXACTLY
+## as typed : no length limit, no minimum, no xor folding [ TERM folds 64+
+## chars, which would store a different site password and derive a different
+## vault key than the standalone recovery path ]. returns undef on cancel. raw
+## mode : ctrl-c arrives as a byte, not a signal
+sub read_secret_raw {
+    my $label = shift;
+    my $bytes = '';
+    Term::ReadKey::ReadMode('raw');
+    my $cancelled = FALSE;
+    my $visible   = FALSE;
+
+    ## tab toggles the value in view
+    ## [ checking a long password before it is stored ] ; while visible the
+    ## line is redrawn after every key
+    my $redraw = sub {
+        printf "\r\e[K  %s : %s", $label,
+            $visible ? decode( 'UTF-8', $bytes ) : '';
+    };
+
+    while (TRUE) {
+        my $key = Term::ReadKey::ReadKey(0);
+        if ( not defined $key or $key eq "\x03" or $key eq "\x04" ) {
+            $cancelled = TRUE;
+            last;
+        }
+        last if $key eq "\r" or $key eq "\n";
+
+        if ( $key eq "\e" ) {    ## escape sequence or a lone escape ##
+            my $next = Term::ReadKey::ReadKey(0.05);
+            if ( not defined $next ) {
+                $cancelled = TRUE;
+                last;
+            }
+            my $seq = $next;
+            if ( $next eq '[' ) {
+                while ( defined( my $c = Term::ReadKey::ReadKey(0.05) ) ) {
+                    $seq .= $c;
+                    last if $c =~ m|[@-~]|;
+                }
+            } elsif ( $next eq 'O' ) {
+                $seq .= Term::ReadKey::ReadKey(0.05) // '';
+            }
+            ## left arrow [ csi + application form ] and del act as backspace
+            $key = $seq =~ m{^(?:\[D|OD|\[3~)$} ? "\x7f" : next;
+        }
+
+        if ( $key eq "\x7f" or $key eq "\x08" ) {    ## one utf-8 char back ##
+            $bytes =~ s{(?:[\xC0-\xFF][\x80-\xBF]*|[\x00-\x7F])$}{};
+        } elsif ( $key eq "\t" ) {                   ## tab : show \ hide ##
+            $visible = not $visible;
+        } elsif ( $key eq "\x15" ) {                 ## ctrl-u : clear ##
+            $bytes = '';
+        } elsif ( ord $key >= 32 ) {
+            $bytes .= $key;
+        }
+        $redraw->() if $visible or $key eq "\t";
+    }
+
+    if ($visible) {    ## the value never stays on screen \ in scrollback ##
+        $visible = FALSE;
+        $redraw->();
+    }
+    Term::ReadKey::ReadMode('restore');
+    print "\n";
+    return undef if $cancelled;
+    return decode( 'UTF-8', $bytes );
 }
 
 ## multi-line, no echo, ends at a line holding a single '.' ##
@@ -663,8 +808,8 @@ sub clipboard_set {
     my ( $tool, $value ) = @ARG;
     open( my $pipe, '|-', @{ $tool->[1] } ) or return FALSE;
     ## clip.exe reads the console code page : utf-16le with a bom is the one
-    ## input it takes as unicode [ a typed non-ascii password must paste
-    ## exactly as typed ]
+    ## input it takes as unicode
+    ## [ a typed non-ascii password must paste exactly as typed ]
     print {$pipe} $tool->[0] eq 'clip.exe'
         ? encode( 'UTF-16LE', "\x{FEFF}$value" )
         : encode( 'UTF-8',    $value );
@@ -708,8 +853,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,...,.,,,.,,,,,,,,,,,.,.,.,,,...,,.,,,,,,..,,...,...,.,,,.,,,,.,,..,,,,.,
-#5FVSNFVWZVM7J7XWSJCXN3VGAHE3OGJWALALDDIO4VJPR7QPCXKA6CT62KOZNQMEWBGDEIOXNR7UI
-#\\\|7QYJRFNMXC7CCGQM66J3BZHN4AAP3LA4V65QBDPPW367CWH3TN4 \ / AMOS7 \ YOURUM ::
-#\[7]7FLFUFJVOW3JPGGPWE7EQS6RVFUGCDCEROBNRRZOUYM7ZXEWGCDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,.,,,.,,,,,.,,.,,.,,,.,,,,..,..,,...,..,,...,.,.,..,,..,,.,,,
+#TLJMWXXIIEUIF5ZPD6SW6Q6OMZK3VLKKC6KJWBEJTA4JRVALZ6GN4P2IFSRLRHUS7EXMVMQGV7Z3A
+#\\\|Y24GC7F6WTXTPCLGPOZ5UR7L5ZRUK5SEO5BQFSQ32N6XCA5CO2Q \ / AMOS7 \ YOURUM ::
+#\[7]36OSV2AFA5TRQUGBAKS4OVRF45RKSJTHEMZHM4DS2VZIO4WN5YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
