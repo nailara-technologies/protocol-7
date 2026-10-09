@@ -5,7 +5,7 @@
 my $args = shift // {};
 
 ## offset/length as line numbers (model-friendly pagination) ##
-my $from_line = $args->{'from_line'} // $args->{'offset'} // TRUE;
+my $from_line = $args->{'from_line'} // $args->{'offset'} // 1;
 my $to_line   = $args->{'to_line'}   // 0;
 
 ## if length given, derive to_line from from_line + length ##
@@ -36,6 +36,10 @@ my $result = $code{'context.file'}->(
         'encoding'          => $args->{'encoding'},
     }
 );
+
+## status comments [ binary, not found, unreadable ] pass through as-is -- ##
+## no pagination box, and no line count over a binary file                 ##
+return $result if defined $result and $result =~ m|^<!-- |;
 
 ## count total lines in file for pagination display ##
 my $total_lines = 0;
@@ -82,8 +86,8 @@ if ( defined $result && $total_lines > 0 ) {
 
 return $result;
 
-#,,.,,.,,,...,..,,.,,,...,,.,,.,,,,.,,,.,,,..,.,.,...,..,,,,,,,.,,,..,.,.,.,,,
-#A35ZW4QP3UINNG7JUBLNPHOTE5KPPRNWO3L3X2YQBLP3VF5IFPGMWSHQOLAD5MJPQ33JMJIMOURJE
-#\\\|MBCVHI5D637TBRRKUONEBMXOBL5UGADUWIX4DW6Y72KAEVGL3HT \ / AMOS7 \ YOURUM ::
-#\[7]W64URJI5VG2OSA72LTJ5AFVXX3PGVGKCGJUMTCNR3QIZGFLLVGCY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,,.,,,,.,.,.,,,,,,,.,,,,,..,,.,.,...,...,.,,,.,.,..,,...,...,
+#66VDT7B4QI2PRAZUNNU5CKF2KROO27AXO5PE7PVJFDIUGUFVCD2RJJGQILTDEZP5IYFYOAKYEMMYW
+#\\\|CY3VRNEESB476N2NCQBSTWDRWIV7OUGHVLCRTZGYIMAUWR5UBEK \ / AMOS7 \ YOURUM ::
+#\[7]CJHVMGLYDQDS44TRIM4T2O4HQEKOJ3DK7LM33KF3VJELYENDY6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
