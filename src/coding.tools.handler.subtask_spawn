@@ -135,6 +135,9 @@ $child_task->{'system'} = $args->{'system'}
     if length( $args->{'system'} // '' );
 $child_task->{'metadata'}->{'result_label'} = $args->{'result_label'}
     if length( $args->{'result_label'} // '' );
+## model to switch back to once this child ends [ analyze_image :switch: ] ##
+$child_task->{'metadata'}->{'switch_back'} = $args->{'switch_back'}
+    if length( $args->{'switch_back'} // '' );
 
 ## enqueue child task [ only if first in queue ] ##
 my $queue    = <coding.task.subtask_queue>->{$parent_task_id} // [];
@@ -232,8 +235,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,.,,..,,..,,...,,..,,..,,,.,,,.,,,.,.,,,,,,,..,,...,...,,,,,,,,,.,.,.,,,,..,
-#6XVLG6HGJZD6JSQEHQOO7QZUAVVIP7KZOZCOX2OBC5R3ECGB3EIR4Q6VMXLUUZOP3BOOBMBJQIO4Y
-#\\\|2AOS5NA3RAWGQ673QDZU3Q7J56ARHF3NPMMHUAJG3DBA7EDV5HU \ / AMOS7 \ YOURUM ::
-#\[7]U7NWV77FNVZUO4XJX2WSMCI7GJE244QRJOBZ7UP3STB7CJBPSIAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,.,,,,..,,,.,,,.,,,,,..,,,,,,..,,...,...,,,.,...,.,.,,,.,,,.,
+#EAJKRRYTTLZ7AATEMXEEKLVFONWWPEFEYCEHMVIRW27TVEVEEGLFH7EQKHGDPLSBQG7EFPANICUSO
+#\\\|VU7UO7NE5UW7LXL2EITV3XXDC67Z3YIKKBKWODLM5HB6IZREOO5 \ / AMOS7 \ YOURUM ::
+#\[7]DOAU3NKAAAH45HWWWMCXHLX742E67RQM2JMAHT3SZMHNON252KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

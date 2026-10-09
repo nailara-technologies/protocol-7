@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = coding.helper.find_vision_model
+# descr = composite checksum of the first vision-capable registry model
+# return = checksum or undef
+
+my $registry = <coding.model_metadata> // {};
+
+## configured preference first, when the registry knows it as vision ##
+my $preferred = uc( <coding.cfg.vision_model> // '' );
+if ( $preferred =~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$| ) {
+    for my $entry ( values %$registry ) {
+        next if uc( $entry->{'amos'} // '' ) ne $preferred;
+        next
+            if <[coding.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 )
+            ne qw| vision |;
+        <[base.logs]>->(
+            1, 'find_vision_model: %s [ coding.cfg.vision_model ]', $preferred
+        );
+        return $preferred;
+    }
+    <[base.logs]>->(
+        1, 'find_vision_model: preferred %s is not a known vision model',
+        $preferred
+    );
+}
+
+for my $key ( sort keys %$registry ) {
+    ## projector files are not runnable models ##
+    next if $key =~ m|mmproj|i;
+
+    my $entry = $registry->{$key} // {};
+
+    ## reuse the existing predicate on the entry's vision flag [ local ##
+    ## clone - models.* isn't statically loaded in the coding zenka ]  ##
+    my $vision
+        = <[coding.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 ) eq
+        qw| vision |;
+
+    ## fallback : name heuristic, same pattern as models.local_discover ##
+    $vision = 1
+        if !$vision
+        && ( $entry->{'name'} // $key ) =~ m{vl|vision|vlm}i;
+
+    next if !$vision;
+
+    ## metadata amos values can be yaml names with spaces - only a ##
+    ## composite checksum passes switch-model's own validation     ##
+    my $candidate = uc( $entry->{'amos'} // '' );
+    next if $candidate !~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|;
+
+    <[base.logs]>->(
+        1, 'find_vision_model: %s [ first vision model in the registry ]',
+        $candidate
+    );
+    return $candidate;
+}
+
+return undef;
+
+#,,,.,,,,,..,,.,.,...,,,.,,..,...,.,,,.,,,,,.,..,,...,...,..,,,..,,.,,,,.,,.,,
+#47EDEO22JTTRW6BOTC44CEYX7NUELNAPNXIXB3R6DKCCEKZX66MWNQOKLLFIDXIWZZWSJPMIFUCYO
+#\\\|QUXWBNSTMVGG7LSDBHZ4LG5K3PNZ6NFOUWWSHJZG4E2H53EBUZV \ / AMOS7 \ YOURUM ::
+#\[7]GNGGPKRY3MTSWV74JGK5P2M3G5L2EVHSCABIICH7MVEGZOLQW2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

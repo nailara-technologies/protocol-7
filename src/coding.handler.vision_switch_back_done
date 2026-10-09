@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = coding.handler.vision_switch_back_done
+# descr = switch back to the prior model finished : advance the parent
+# param = { parent_id, task_id, prior, reply => { mode, data } }
+
+my $data      = shift                // {};
+my $parent_id = $data->{'parent_id'} // '';
+my $reply     = $data->{'reply'}     // {};
+
+my $parent_state = <[coding.async.state_manager]>->( qw| get |, $parent_id );
+return FALSE unless defined $parent_state;
+
+## a failed switch back must not strand the parent : it continues on the ##
+## model that is loaded now, and is told so                              ##
+if ( ( $reply->{'mode'} // '' ) ne qw| true | ) {
+    <[base.logs]>->(
+        0, 'analyze_image: [%s] switch back to %s failed : %s',
+        $parent_id,
+        $data->{'prior'} // '?',
+        $reply->{'data'} // '?'
+    );
+    push @{ $parent_state->{'messages'} },
+        {
+        'role'    => qw| user |,
+        'content' => sprintf(
+            '[ model switch back to %s failed : %s -- '
+                . 'continuing on the currently loaded model ]',
+            $data->{'prior'} // '?',
+            $reply->{'data'} // '?'
+        ),
+        };
+}
+
+return <[coding.helper.subtask_advance]>->(
+    $parent_id,
+    $data->{'task_id'} // '',
+    ' after model switch back'
+);
+
+#,,,,,,..,,,,,,,,,,,.,,..,,..,.,.,.,.,..,,.,,,..,,...,...,,,.,,.,,,,.,..,,.,.,
+#TERRORSD4T2Q5A5CMQKPLQ64TRBS3MYCF52V2YGJOSKGHQCQARYUI4E47GACFUYLP44U4YZKIJRGQ
+#\\\|Q7MVQ4TTSBFQKWX6O5OVBT3QJI7GRSBVTHD7PYTCHUAIXISIUDD \ / AMOS7 \ YOURUM ::
+#\[7]UVE43UOCJ2TZWF4TXK6577FXXPRBXMFO65SNFGV5TXPO24JIYMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

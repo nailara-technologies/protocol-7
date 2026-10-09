@@ -454,97 +454,19 @@ if ( defined $result && $result->{'success'} ) {
             }
 
             unless ($skip_standard_resume) {
-                ## check subtask queue for more work ##
-                my $queue = <coding.task.subtask_queue>->{$parent_id} // [];
-                ## remove completed subtask from front of queue ##
-                while ( @$queue && $queue->[0] eq $task_id ) {
-                    shift @$queue;
-                }
-                <coding.task.subtask_queue>->{$parent_id} = $queue;
-
-                if (@$queue) {
-                    ## check if parent was stopped while this subtask ran ##
-                    my $parent_task_rec = <coding.task.queue>->{$parent_id};
-                    if ( defined $parent_task_rec
-                        && $parent_task_rec->{'stop_requested'} ) {
-                        <[base.logs]>->(
-                            1,
-                            "async.complete: parent %s was stopped, "
-                                . "clearing %d remaining subtask(s)",
-                            $parent_id,
-                            scalar @$queue
-                        );
-                        ## clear remaining queue so they don't start later ##
-                        for my $orphan_id (@$queue) {
-                            my $orphan
-                                = delete <coding.task.queue>->{$orphan_id};
-                            if ( defined $orphan ) {
-                                $orphan->{'execution'}->{'status'}
-                                    = qw| cancelled |;
-                                push @{ <coding.task.completed> //= [] },
-                                    $orphan_id;
-                            }
-                            delete <coding.task.parent>->{$orphan_id};
-                        }
-                        <coding.task.subtask_queue>->{$parent_id} = [];
-                        $parent_state->{'pending_subtask'} = undef;
-                        $parent_state->{'state'}           = qw| streaming |;
-                        <coding.async.task_state>->{$parent_id}
-                            = $parent_state;
-                    } else {
-                        my $next_subtask = $queue->[0];
-                        $parent_state->{'pending_subtask'} = $next_subtask;
-                        ## stay in subtask state : next queued task will ##
-                        ## run                                           ##
-                        <coding.async.task_state>->{$parent_id}
-                            = $parent_state;
-                        ## enqueue the next subtask so the task queue picks ##
-                        ## it up [ remove from queue first to avoid         ##
-                        ## duplicate rejection ]                            ##
-                        my $next_task
-                            = delete <coding.task.queue>->{$next_subtask};
-                        if ( defined $next_task ) {
-                            my $enq = <[coding.task.enqueue]>->($next_task);
-                            if ( !$enq->{'success'} ) {
-                                ## restore if enqueue failed ##
-                                <coding.task.queue>->{$next_subtask}
-                                    = $next_task;
-                                <[base.logs]>->(
-                                    0,
-                                    "async.complete: "
-                                        . "enqueue of %s failed: %s",
-                                    $next_subtask,
-                                    $enq->{'error'} // 'unknown'
-                                );
-                            }
-                        } else {
-                            <[base.logs]>->(
-                                0,
-                                "async.complete: next "
-                                    . "subtask %s not found in queue",
-                                $next_subtask
-                            );
-                        }
-                        <[base.logs]>->(
-                            1,
-                            "async.complete: parent %s "
-                                . "starting next queued subtask %s",
-                            $parent_id,
-                            $next_subtask
-                        );
-                    }
-                } else {
-                    $parent_state->{'pending_subtask'} = undef;
-                    ## transition parent from subtask back to streaming ##
-                    $parent_state->{'state'} = qw| streaming |;
-                    <coding.async.task_state>->{$parent_id} = $parent_state;
-                    <[coding.task.enqueue_round]>->(
-                        $parent_id, $parent_state->{'round'}
+                ## analyze_image :switch: child : bring the prior model ##
+                ## back before the parent [ or its next subtask ] runs  ##
+                ## again                                                ##
+                my $switch_back
+                    = ( <coding.task.queue>->{$task_id} // {} )->{'metadata'}
+                    ->{'switch_back'};
+                if ( length( $switch_back // '' ) ) {
+                    <[coding.helper.vision_switch_back]>->(
+                        $parent_id, $task_id, $switch_back
                     );
-                    <[base.logs]>->(
-                        1,
-                        "async.complete: resumed parent %s from subtask %s",
-                        $parent_id, $task_id
+                } else {
+                    <[coding.helper.subtask_advance]>->(
+                        $parent_id, $task_id, ''
                     );
                 }
             }
@@ -696,100 +618,19 @@ if ( defined $result && $result->{'success'} ) {
             }
 
             unless ($skip_standard_resume_fail) {
-                ## check subtask queue for more work ##
-                my $queue = <coding.task.subtask_queue>->{$parent_id_fail}
-                    // [];
-                while ( @$queue && $queue->[0] eq $task_id ) {
-                    shift @$queue;
-                }
-                <coding.task.subtask_queue>->{$parent_id_fail} = $queue;
-
-                if (@$queue) {
-                    ## check if parent was stopped while this subtask ran ##
-                    my $parent_task_rec
-                        = <coding.task.queue>->{$parent_id_fail};
-                    if ( defined $parent_task_rec
-                        && $parent_task_rec->{'stop_requested'} ) {
-                        <[base.logs]>->(
-                            1,
-                            "async.complete: parent %s was stopped, clearing "
-                                . "%d remaining subtask(s) after failure",
-                            $parent_id_fail,
-                            scalar @$queue
-                        );
-                        for my $orphan_id (@$queue) {
-                            my $orphan
-                                = delete <coding.task.queue>->{$orphan_id};
-                            if ( defined $orphan ) {
-                                $orphan->{'execution'}->{'status'}
-                                    = qw| cancelled |;
-                                push @{ <coding.task.completed> //= [] },
-                                    $orphan_id;
-                            }
-                            delete <coding.task.parent>->{$orphan_id};
-                        }
-                        <coding.task.subtask_queue>->{$parent_id_fail} = [];
-                        $parent_state->{'pending_subtask'} = undef;
-                        $parent_state->{'state'}           = qw| streaming |;
-                        <coding.async.task_state>->{$parent_id_fail}
-                            = $parent_state;
-                    } else {
-                        my $next_subtask = $queue->[0];
-                        $parent_state->{'pending_subtask'} = $next_subtask;
-                        ## stay in subtask state : next queued task will ##
-                        ## run                                           ##
-                        <coding.async.task_state>->{$parent_id_fail}
-                            = $parent_state;
-                        ## enqueue the next subtask so the task queue picks ##
-                        ## it up [ remove from queue first to avoid         ##
-                        ## duplicate rejection ]                            ##
-                        my $next_task
-                            = delete <coding.task.queue>->{$next_subtask};
-                        if ( defined $next_task ) {
-                            my $enq = <[coding.task.enqueue]>->($next_task);
-                            if ( !$enq->{'success'} ) {
-                                ## restore if enqueue failed ##
-                                <coding.task.queue>->{$next_subtask}
-                                    = $next_task;
-                                <[base.logs]>->(
-                                    0,
-                                    "async.complete: enqueue "
-                                        . "of %s failed : %s",
-                                    $next_subtask,
-                                    $enq->{'error'} // qw| unknown |
-                                );
-                            }
-                        } else {
-                            <[base.logs]>->(
-                                0,
-                                "async.complete: next "
-                                    . "subtask %s not found in queue",
-                                $next_subtask
-                            );
-                        }
-                        <[base.logs]>->(
-                            1,
-                            "async.complete: parent %s starting "
-                                . "next queued subtask %s after failure",
-                            $parent_id_fail,
-                            $next_subtask
-                        );
-                    }
-                } else {
-                    $parent_state->{'pending_subtask'} = undef;
-                    ## transition parent from subtask back to streaming ##
-                    $parent_state->{'state'} = qw| streaming |;
-                    <coding.async.task_state>->{$parent_id_fail}
-                        = $parent_state;
-                    <[coding.task.enqueue_round]>->(
-                        $parent_id_fail, $parent_state->{'round'}
+                ## analyze_image :switch: child : bring the prior model ##
+                ## back before the parent [ or its next subtask ] runs  ##
+                ## again                                                ##
+                my $switch_back
+                    = ( <coding.task.queue>->{$task_id} // {} )->{'metadata'}
+                    ->{'switch_back'};
+                if ( length( $switch_back // '' ) ) {
+                    <[coding.helper.vision_switch_back]>->(
+                        $parent_id_fail, $task_id, $switch_back
                     );
-                    <[base.logs]>->(
-                        1,
-                        "async.complete: resumed parent "
-                            . "%s after subtask %s failed",
-                        $parent_id_fail,
-                        $task_id
+                } else {
+                    <[coding.helper.subtask_advance]>->(
+                        $parent_id_fail, $task_id, ' after failure'
                     );
                 }
             }
@@ -809,8 +650,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,,,,,.,,,,,.,,,.,.,.,.,,..,,,,,.,,,..,,.,.,.,.,...,...,...,,..,.,.,,..,,,.,
-#KL2WBDAATK4NB245GSLDQDDSSEAFMS6KWSJEHKIUQUGYZRJQLONMGJ2LUA6GXDJ5FBX4SM2YKJYW6
-#\\\|VBDOWWZHDPUL4UUI6RMGQAM7BQSRNRI7TN5O74EPUIIC3HYG6HC \ / AMOS7 \ YOURUM ::
-#\[7]PWKBASGC5T7D642LGHC5DRXTRWU6X5LRT7QTWR23QU3XXI6EQWCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,.,,,,,.,.,.,,,,,,,.,,,.,,.,,.,.,...,...,..,,.,.,,,.,,,.,,.,,
+#5XZ6XIJTBK3JI3AMYBFHSFWOPW2DNBYN4EQNO3EFBN6UY4BJCYWOK43M6RAL2AYJSG22PMKFYK4X4
+#\\\|3P5BH4RWHH2O5PBKZVA4SIWXTNES77ZNILCEZEDGGPVROMJ3QHJ \ / AMOS7 \ YOURUM ::
+#\[7]O5F2ZMFEIMBNSXWP36H7K3XLYY35YU2J6KXGYVEIC5SL3Z3VPQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
