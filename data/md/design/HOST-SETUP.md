@@ -115,6 +115,8 @@ twin of `p7-keys accept-owner` \ `drop-owner`, a trust-chain WRITE :
   `data/tasks/command-relay-zenka.md` ]. tunnelling there can collapse the
   hops for convenience. until then ssh stays the transport -- `p-7-r` could
   start the forward itself from the host record.
+  later still : no fixed incoming address at all -- a signed dns query
+  knocks for a per-session address [ `data/tasks/dns-knock-dynamic-ingress.md` ].
 - **pins name the HOST, not the dial address** : through a tunnel the
   dialled address is `127.0.0.1:<local>` -- the pin must be the record's
   `<name>_<port>` [ `atom_42` ]. `auth.client.server_pin.check` and the
@@ -196,8 +198,8 @@ vault-edit can move onto them afterwards [ not part of B2 ].
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,,.,..,,,.,,.,.,,.,,..,,..,,,,.,..,,..,,,,.,..,,...,...,,..,,,.,,,,,,.,,,.,,
-#VWINVR5R5P4PNQ6LSAHI6EICNWMMZHPV45LJBZNPW6KMZU3PYUYBVBTQ6QGOTUSOA6SM4LRFLUQBM
-#\\\|RFLWJTHAOUSRIO2URG7LKMRH22L6BSN77AN7O2HU7FQ755Q7A25 \ / AMOS7 \ YOURUM ::
-#\[7]YJW6RCZK4XEDMQY3TTKCRJCDFU3UPWFL6WT2PGKSJZWBW6DJZGCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,..,,,..,.,.,,,.,,,.,,,,,,,,,..,,...,...,,,.,...,.,,,,,,,.,,,
+#V5PZHTYHT7THZ5VGOEMNL6LWQXX2O4SOLRJLT2AKPICXWZJQ6DO5WVV2BKAFVAZSUBFSDXQTG5MB4
+#\\\|IWVLPCODCFSWEJQHI372K33LU6CE2NVZSC6BG77CJ6A2QXBRT63 \ / AMOS7 \ YOURUM ::
+#\[7]EFLHLGH6WPMVGLAHGISVBANATPOL32EC7LDXYNMR25IEXY4I2ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

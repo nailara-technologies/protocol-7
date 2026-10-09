@@ -136,10 +136,15 @@ list under a second key ] without changing single-valued callers.
   download_certificate, respond_to_challenge, create_*_challenge,
   check_dns_propagation, acme_verify_challenge, acme_renew,
   parent.handler_challenge_confirmed ] -- unreachable, checked transitively
-- OPEN stage B : acme_new steps 1-4 [ directory, account, order ] still
-  block the child a few seconds ; client globals guarded only by the queue
-- OPEN : dns-01 live needs our nameservers delegated ; the parent logs
-  `ACME enrollment success` three times per certificate
+- stage B DONE [ code + tests, live run pending ] : directory, account and
+  new order are steps too [ acme.step_directory \ _account \ _new_order ] ;
+  begin only selects the server and loads the account key [ local ]. the
+  child no longer blocks on the network. client state stays guarded by the
+  one-order queue. acme_new, acme_create_order and the broken
+  child.cmd.new-certificate removed
+- OPEN : dns-01 live needs our nameservers delegated
+- the parent's repeated `ACME enrollment success` lines now carry their
+  detail [ saved \ installed \ notified ]
 - unrelated dead modules found on the way [ not removed ] :
   parent.{query_httpd_vhosts, send_httpd_vhost_query,
   handler_httpd_vhost_reply, handler_httpd_vhost_error, send_to_child,
@@ -152,8 +157,8 @@ list under a second key ] without changing single-valued callers.
   state record [ 2 ] is fixed in writing
 - claude : 2 + 3 + 6 + 7 [ the flow \ reply wiring ] and the review
 
-#,,,,,.,,,,,,,..,,.,,,..,,..,,,,,,,..,..,,.,.,..,,...,..,,,,,,...,,.,,,..,.,,,
-#O4UT4CA7D4VIDXQVX7GPUIGHKDNKP45XVGEF66JNTJ3TOLVCW3BXA25LVKJHBDAGSJY36OOUEVVZ6
-#\\\|KGRF4DOQGQ7HZFSCNUZGDJMVY7DXFQRSDGRFLFRTROZX25NWRP6 \ / AMOS7 \ YOURUM ::
-#\[7]MDAHYGD7FTF5IGOOK6STUEF4G43LBSXQSBJVAUNGYKD7ZJAE4IDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,..,,...,,,.,,,.,..,,...,...,..,,...,...,.,,,,.,,,.,,..,,,,.,
+#HFWPUMPWGN27QL5CITLRCATP636JPJJLKC5D4KIXSRIPECAG7HRONAOBIAJHQNKWYZDUSLHK6SVXY
+#\\\|ORV6JENOME62X74ARNZJ3L5AX5UJ543YV5LPYVJM67OCH3H772L \ / AMOS7 \ YOURUM ::
+#\[7]ZSMSHPUM5JBKWE7MLDA5FEXDOI2SQVV4JOCEDWETQPJZ7RENRUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

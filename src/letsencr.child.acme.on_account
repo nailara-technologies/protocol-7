@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_account
+# param = <acme response>
+# descr = account url from location, then the new order
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| account | )
+    // return FALSE;
+
+my $body = ref $res->{'body'} eq qw| HASH | ? $res->{'body'} : {};
+my $url  = $res->{'location'} // '';
+
+if ( not $res->{'ok'} or not length $url ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf 'acme account registration failed [ http %s%s ]',
+        $res->{'status'} // '?',
+        length( $body->{'detail'} // '' ) ? " : $body->{'detail'}" : ''
+    );
+}
+
+<letsencr.child.acme_client>->{'account_url'} = $url;
+<letsencr.child.acme_client>->{'account_id'}  = $url;
+
+<[base.logs]>->( 2, ': acme : account %s', $url );
+
+## registration record per acme server [ as before : account.json ] ##
+my $cache = <[letsencr.child.account_file_paths]>
+    ->( <letsencr.child.acme_client>->{'server'} )->{'account_json'};
+<[file.put]>->(
+    $cache,
+    JSON::XS::encode_json(
+        {   'account_url' => $url,
+            'created_at'  => time,
+            'email'       => <letsencr.child.acme_client>->{'contact_email'},
+        }
+    ),
+    qw| :raw |
+) if length( $cache // '' );
+
+$order->{'step'} = qw| new_order |;
+return <[letsencr.child.acme.step_new_order]>->( $order->{'order_id'} );
+
+#,,.,,,..,.,.,.,,,,..,,.,,.,.,,,,,..,,,,.,.,,,..,,...,...,.,,,.,,,,.,,...,.,,,
+#A5HOH36CTHAG2JMSJHPO5V2RLMURC2JYKMUUJFBQRUWFXYZO2MXHTBTITTQ2NM6LB2Z636VFCLNSI
+#\\\|AVCINMLJZICS52PRBFVGAIZJLEGYMULG6ISEI7JJAPGOKV6OJHN \ / AMOS7 \ YOURUM ::
+#\[7]XE7YLBPNUL5JWMMCAADVZJDIPXVHYRQYUNGBUWWA62GSQRGCB2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
