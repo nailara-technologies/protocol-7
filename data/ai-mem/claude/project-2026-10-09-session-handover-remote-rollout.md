@@ -26,6 +26,10 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
   installed ; renewals stay on production. VERIFIED live on staging [ zenki.v7.ax via
   `install-vhosts :nocert:` : discovery -> dns -> async self-test -> staging cert ] ;
   default since then `enroll_staging = no` [ production ].
+  **interface check** [ cbb27bd1b ] : the dns check pins to this host's OWN public
+  interface addresses [ `letsencr.parent.local_public_addresses` ] -- only names resolving
+  HERE qualify, no network fetch ; no public address [ nat \ dev box ] = enrollment skips,
+  unless `letsencr.cfg.public_addresses` is set [ servers behind port forwarding ].
   an EXPLICIT request [ install-vhosts 'tls: yes', api, httpsd -> letsencr.parent.cmd.
   request-certificate ] claims the domain in enroll-state [ 'explicit' ] -> auto skips it,
   no double order ; `install-vhosts :nocert:` leaves a vhost to auto enrollment. auto
@@ -67,14 +71,15 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
 
 1. first PRODUCTION enrollment after the pull : the issued-staging domains become
    candidates again -> watch `:: letsencr.status` for the installed certs.
-   a dev box behind nat also probes every vhost [ self-test protects, but it fetches
-   from third-party hosts like wpad.net ] -- candidates : a `cfg.enroll = no` switch,
-   httpd.vhost-list without pattern vhosts \ *.bak-* dirs.
+   dev box probing third-party hosts : SOLVED by the interface check [ cbb27bd1b ] ;
+   *.bak-* install backups no longer served \ listed, special-use names [ .local etc. ]
+   get no acme order [ 66420497c ] ; staging certs log as `staging`, not `success`.
+   a staging-test host behind nat needs `letsencr.cfg.public_addresses`.
 2. pull on both remotes : they run the version before the enrollment claim, the form
    key changes and `:strip:` [ check the zenka STDOUT log afterwards ].
 
-#,,,.,.,.,,.,,..,,..,,,.,,..,,,..,.,.,,,,,...,..,,...,...,,.,,,,,,,..,,,,,...,
-#WOHTFNJVZCSTCU7PWYQSVFZC2JMIG5DW5NUVWMKQ6CL2YVNTNA4PELF5HQX6N7NNREIMRUQTTJQEI
-#\\\|FASQ4LR4MUNFIOHXMZ45KT7EJ3XR756ZBFP7O5GPV3VLJN6PYAZ \ / AMOS7 \ YOURUM ::
-#\[7]7OHIJ424ZLNA7NFJSUT7QM2WP56XTFB54AWBBYUFYNHOEJO54IAI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,..,,.,.,,.,,.,,,.,,,,..,..,,,,,,..,,...,..,,.,.,.,,,..,,.,.,...,
+#5KP6COD7EZWKOJVJG5FCGDPSDLJ6KDGQNBR44Z5V6NTCUMWTXO6P6B2VORC6OPKE6A6YRDIEHMIEI
+#\\\|OB3L3CSNEQE2UUBCWPCQ7ZJXEIABBO2AJM42O66HBQEC2RRLK2A \ / AMOS7 \ YOURUM ::
+#\[7]QR2M33R6TG2PBOL7J2PJTVQAUE2YU4SKORARAALQ6BYVX5ZSJSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
