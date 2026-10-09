@@ -190,6 +190,15 @@ for my $task_id (@task_rows) {
             if length( $entry->{'failure_class'} // '' );
         $cell .= sprintf ' %ss',     $timing->{'wall'} // 0;
         $cell .= sprintf ' %.1ft/s', $timing->{'tps'}  // 0;
+
+        ## criteria hits and compile results [ model_batch.score.task ] ##
+        $cell .= sprintf ' criteria=%s', $entry->{'score'}
+            if defined $entry->{'score'};
+        my $compile = $entry->{'compile'} // {};
+        if (%$compile) {
+            my $ok = grep { $ARG eq qw| ok | } values %$compile;
+            $cell .= sprintf ' compiles=%d/%d', $ok, scalar keys %$compile;
+        }
         push @cells, $cell;
     }
     push @lines, sprintf '%s : %s', $task_id, join ';', @cells;
@@ -197,8 +206,8 @@ for my $task_id (@task_rows) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,,,.,.,,,.,...,.,,,,..,..,,.,,,..,,,,.,.,,,..,,...,...,.,.,,..,,,.,.,,,,,.,
-#UBCA7T47UGGYTPLRGSD7YDEO7RZ33Y4H6R7PWZTHEIM4CDA3EDLLM2N6AFUCIFLFZTVAXFG3GQ37O
-#\\\|62777SHWGQXBAMJCX5CTVKXVKXKBRL5HN2U7WU3LDESFQP4XWJZ \ / AMOS7 \ YOURUM ::
-#\[7]NXGQ46P3VVG2VWFESW3E7SM6KMY5TA45355ZAO2OD4HXTKPU2EAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,,,,,.,,,.,.,,,.,,,.,.,,,.,.,..,,...,...,..,,..,,.,.,...,,,.,
+#3IW56YEOAEVCUDXFS2WPGI6334YB7QKW5X2OWQKFAZ327AV5WPGVQDQIXKBGKARYKJCLS6MWESRT2
+#\\\|FTLKR4WHVU7SQWGZFSX5JQ3PSLNPZ4ABG4YP43XAVLBOG3XU2EA \ / AMOS7 \ YOURUM ::
+#\[7]OC2EOBIKHX2ZG22CZ2EOR4XRMRZRPMVGKM7HOP635ZEPPFEWM4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,11 +32,18 @@ if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
     $abs_path = catfile( $root, $path );
 }
 
-## validate path stays within project [ resolve symlinks ] ##
-my $real_root = Cwd::abs_path($root)                           // '';
-my $real_dir  = Cwd::abs_path( ( $abs_path =~ s|/[^/]+$||r ) ) // '';
-if (  !length $real_dir
-    or index( $real_dir, "$real_root/" ) != 0
+## validate path stays within project [ resolve symlinks ]. a parent ##
+## directory that does not exist yet is checked through its nearest  ##
+## existing ancestor -- abs_path of a missing directory is undef, and ##
+## every write into a new subdirectory [ e.g. src/doc/ ] was refused  ##
+## as 'path escapes project root'                                     ##
+my $parent_dir = $abs_path =~ s|/[^/]+$||r;
+my $anchor_dir = $parent_dir;
+$anchor_dir =~ s|/[^/]+$|| while length $anchor_dir and !-d $anchor_dir;
+my $real_root = Cwd::abs_path($root)        // '';
+my $real_dir  = Cwd::abs_path($anchor_dir) // '';
+if (   !length $real_dir
+    or ( $real_dir ne $real_root and index( $real_dir, "$real_root/" ) != 0 )
     or $path =~ m|\.\./| ) {
     return ': error : path escapes project root' . $path;
 }
@@ -69,8 +76,22 @@ return
     . '[supported are :raw,:bytes,:encoding(UTF-8)]'
     unless length( $norm_encoding // '' );
 
-## use chmod child to create empty file as admin user if needed ##
+## create missing parent directories : directly when the nearest ##
+## existing ancestor is writable, else through the chmod child    ##
+## [ creates parents as the admin user ]                          ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
+if ( !-d $parent_dir ) {
+    if ( -w $anchor_dir ) {
+        <[file.path.make_dir]>->($parent_dir);
+    } elsif ( defined $chmod_fh ) {
+        print {$chmod_fh} "mkdir $parent_dir\n";
+        <[coding.chmod_child.readline]>;
+    }
+    return sprintf ': error : cannot create directory %s', $parent_dir
+        unless -d $parent_dir;
+}
+
+## use chmod child to create empty file as admin user if needed ##
 my $cur_mode;
 my $created_via_child = 0;
 if ( !-w ( $abs_path =~ s|/[^/]+$||r ) and defined $chmod_fh ) {
@@ -133,8 +154,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access "
     . "]\nstaged at : %s", $path, length($content), $stage_rel;
 
-#,,..,,,,,.,.,...,.,,,.,.,,,,,.,,,...,.,,,..,,.,.,...,...,.,,,...,...,..,,,,.,
-#2NHILGXVNQFDSHHCPTGJRZLAZB5HUMGMWSVW7YBLZGJ4VVG7WQGSO5TUAYQRR25TOVUZID4FAFH7C
-#\\\|BDENJYT25GXNZNPG4T56IGWC22SLUI5JD2NNPBURPAHL7CMPRKA \ / AMOS7 \ YOURUM ::
-#\[7]CA7EVRDAGAQKH2IEE36NVH7TH45TUZHCJF2BEGP3H7I4OTMXTMBY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,.,.,..,,,.,,,.,,,,,,,,,,.,.,.,.,...,...,.,.,..,,,,,,,,,,,,.,
+#Z7LOJJY273MDGSQZFZUDPISYUGJJLKTL2E7XDIAGBCVHNVUTXWWEZ7FF7TG4JYIRXH2ALJCU7DO34
+#\\\|DG6M3RC4YKZJN5J72XKC77BJQ5ACRJDL2VEMHITF4UHGS6MUYA6 \ / AMOS7 \ YOURUM ::
+#\[7]RX2B5BU4BHZSPGOPGTTBJRPOBNEEP7DLD2NND6UUPLJVGB3ZDEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

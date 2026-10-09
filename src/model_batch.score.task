@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = model_batch.score.task
+# descr = score one batch task : criteria hits over the reply and every
+#         file the task wrote, plus a compile check of touched src/ files
+# note  = runs before the revert, while the task's files are still on disk
+# param = { result => text, criteria => aref, capture => capture href }
+#         -> { score => 'n/m', hits => aref, misses => aref,
+#              compile => { relpath => 'ok' | 'error : ..' } }
+
+my $params       = shift                 // {};
+my $result_text  = $params->{'result'}   // '';
+my $criteria     = $params->{'criteria'} // [];
+my $capture_href = $params->{'capture'}  // {};
+
+my $root_path = canonpath(<system.root_path>);
+my @touched   = @{ $capture_href->{'files_touched'} // [] };
+
+## the text the criteria are matched against : reply + written files ##
+my $haystack = $result_text;
+for my $rel_path (@touched) {
+    my $abs_path = catfile( $root_path, split m|/|, $rel_path );
+    next unless -f $abs_path and -s $abs_path < 1024**2;
+    if ( open my $in_fh, '<:raw', $abs_path ) {
+        local $INPUT_RECORD_SEPARATOR = undef;
+        my $content = readline($in_fh) // '';
+        close $in_fh;
+        utf8::decode($content) if utf8::valid($content);
+        $haystack .= "\n" . $content;
+    }
+}
+
+## criteria : case-insensitive substring hits ##
+my ( @hits, @misses );
+for my $criterion ( grep { defined and length } @$criteria ) {
+    if ( index( lc $haystack, lc $criterion ) >= 0 ) {
+        push @hits, $criterion;
+    }
+    else { push @misses, $criterion }
+}
+
+## compile check of touched modules : the same check a human runs first    ##
+## [ bin/format-code -c : strict + loader imports, floor perl when found ] ##
+my %compile;
+for my $rel_path ( grep {m|^src/[^/]+$|} @touched ) {
+    my $abs_path = catfile( $root_path, split m|/|, $rel_path );
+    next unless -f $abs_path;
+    my $output = qx{"$root_path/bin/format-code" -c "$abs_path" 2>&1} // '';
+    $output =~ s|\e\[[0-9;]*m||g;
+    if ( $output =~ m|syntax valid| ) {
+        $compile{$rel_path} = qw| ok |;
+    } else {
+        ## the message line is '::[ <error>' [ the header is ':::[ path ]' ] ##
+        my ($first_error) = $output =~ m{^::\[\s*(.+)$}m;
+        $first_error //= 'no output';
+        $first_error =~ s{^\s+|\s+$}{}g;
+        $compile{$rel_path} = "error : $first_error";
+    }
+}
+
+return {
+    qw| score | =>
+        sprintf( '%d/%d', scalar @hits, scalar( @hits + @misses ) ),
+    qw| hits |    => \@hits,
+    qw| misses |  => \@misses,
+    qw| compile | => \%compile,
+};
+
+#,,.,,.,.,...,,.,,,..,.,.,,,,,,.,,,,,,,.,,.,.,..,,...,...,.,.,,,.,...,,..,...,
+#PF65N4JVCFY26IJ7X2H3B3AQQKEQ73TXJ3MEJ72RCRYF2SGERCUUDXBOZZM2XOL7XSQQHKC6VE3U2
+#\\\|BKHKWAWA244V2LL7TTF5FBABJLCSIH3UNDWZC7W57IKN7SIDWFJ \ / AMOS7 \ YOURUM ::
+#\[7]LJC2VSYLCI6ITXS5OYULS2LSIUO4OWHNVAMWVSQMUAY5AATZPUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
