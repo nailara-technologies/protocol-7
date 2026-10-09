@@ -2,7 +2,7 @@
 
 # name   = host-edit.flow.start
 # descr  = start the add-host flow for a record [ data/md/design/HOST-SETUP ]
-# param  = <record name>
+# param  = <record name> [ , \%form_values ]
 # return = TRUE started, or ( undef, reason )
 #
 # connect [ ssh forward or a direct address ] -> probe -> pin -> [ when
@@ -12,14 +12,31 @@
 # to the form's status line. a passphrase-protected owner key stops at
 # 'need_passphrase' until host-edit.flow.passphrase resumes it.
 
-my $name = shift // '';
+my $name        = shift // '';
+my $form_values = shift // {};
 
 return ( undef, 'record name not valid' )
     if not <[host-edit.record.name_valid]>->($name);
 
 my $envelope = <[host-edit.record.read]>->($name);
 return ( undef, "no host record '$name'" ) if ref $envelope ne qw| HASH |;
-my $f = $envelope->{'fields'};
+
+## the form's current values [ host-edit.flow.form_values ] win over the saved
+## record : the flow runs on what the user sees.  a COPY -- the record itself
+## is only changed by submitting the form
+my $f       = { %{ $envelope->{'fields'} // {} } };
+my $unsaved = FALSE;
+my $as_text = sub {
+    ref $ARG[0] eq qw| ARRAY | ? join( ' ', $ARG[0]->@* ) : $ARG[0] // '';
+};
+if ( ref $form_values eq qw| HASH | ) {
+    foreach my $field ( keys %{$form_values} ) {
+        $unsaved = TRUE
+            if $as_text->( $form_values->{$field} ) ne
+            $as_text->( $f->{$field} );
+        $f->{$field} = $form_values->{$field};
+    }
+}
 
 <host-edit.flow> //= {};
 my $running = <host-edit.flow>->{$name};
@@ -61,17 +78,17 @@ my $ssh_port
     qw| started |   => time,
 };
 
-<[host-edit.flow.status]>->(
-    $name,
-    $address_from_name
-    ? sprintf( q{starting [ no address : dialling %s ]}, $name )
-    : q{starting}
-);
+my $start_note = q{starting};
+$start_note .= sprintf( q{ [ no address : dialling %s ]}, $name )
+    if $address_from_name;
+$start_note .= q{ [ unsaved form values used -- submit to keep them ]}
+    if $unsaved;
+<[host-edit.flow.status]>->( $name, $start_note );
 <[host-edit.flow.schedule]>->( $name, 0 );
 return TRUE;
 
-#,,,.,.,.,.,.,.,.,,.,,,,,,,,.,..,,...,,,.,,,,,..,,...,...,.,,,,,.,,.,,,.,,.,,,
-#MAQFVB4JNO2AKSQZRQH6QRH2BO4KVYZIVMV7HKEFGIHBZBCKIXPHRUN4BCK5SRHERV5AO4VXNAHYO
-#\\\|VP57ETPWCNSTBXSTFGHKNETOO7U4RWECHDS667K7IBZ47XGEDQF \ / AMOS7 \ YOURUM ::
-#\[7]W5NQFBG54OOTQ4IUBOXCC2BEN232HC5V7H4ONOSPDNED6DBPQUBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,.,,..,.,.,...,...,.,,,,..,..,,...,...,...,...,,,.,..,,,,.,
+#WRBCSGAN5G2LY3DYNUKAXOOAOBCFF4OWOXCSOYCEWO2FNUOSBY56A3YBDS3XEFPLFJF7WKYFMSZIA
+#\\\|KYUQYMZ643IPHNFDMVV3YQRZA57E6R7J4QRISYOA4VBORI4SFZ6 \ / AMOS7 \ YOURUM ::
+#\[7]OOHN67UKOTTX5I6UTOVBPJKZ65MOWR4IXA7PF2URELUS6UDSNQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
