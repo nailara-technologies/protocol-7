@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = clients.https.handler.io
-# descr = io watcher handler : reads https response, fires on_done when complete
+# descr = io watcher : read the https response, then on_done
 
 my $state = shift->w->data;
 my $sock  = $state->{'sock'};
@@ -88,18 +88,20 @@ my $body = <[clients.https.decode_body]>->(
 ## response headers travel with the result : keys are lower-cased here [    ##
 ## and on the h2 path ], so callers look them up in lower case -- needed by ##
 ## any api that carries its answer in headers rather than the body [ e.g.   ##
-## the anthropic-ratelimit-* set ]                                          ##
+## the anthropic-ratelimit-* set ]. headers_multi keeps every value of a    ##
+## repeated header in order [ acme sends several 'Link:' headers ]          ##
 $code{ $state->{'on_done'} }->(
-    {   'ok'      => $ok,
-        'status'  => $status,
-        'body'    => $body,
-        'headers' => $parsed->{'headers'} // {},
-        'params'  => $state->{'params'},
+    {   'ok'            => $ok,
+        'status'        => $status,
+        'body'          => $body,
+        'headers'       => $parsed->{'headers'}       // {},
+        'headers_multi' => $parsed->{'headers_multi'} // {},
+        'params'        => $state->{'params'},
     }
 );
 
-#,,..,,..,,..,,,.,,.,,,,.,.,.,...,,,.,,,.,,.,,..,,...,...,.,.,...,..,,,,.,.,,,
-#A53CIGVODDAYY2ZEPNZJ3DMGWSB2A34CWKZPPIJN6FRJMCJ3U4EFU4B4GXFYRG2S6BTDYTSJ4N5GE
-#\\\|IQYGPZPZSJY6LTTLGOBZCCHJAHEGZ22ZW53JACKHYGII43CMEC3 \ / AMOS7 \ YOURUM ::
-#\[7]4QDFBC47A537XLDUHBPCYLL4E7NZWRIXD5TZYBZISNVIXY5PEGCY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,.,,,.,.,.,.,,..,..,,.,.,.,,,..,,...,...,,..,,.,,..,,,,,,,,.,
+#YSLX6TBTKIMFA7TRWBGYRMXO47SJSVVW24DZVTE62TUYTY62MD5DJI4Q33GC6C7UQWBC5HBFGTZQM
+#\\\|3IRHHJH5JXQMBV7QS2M2EOMXIUYYRUVALG7S4TRXQ6ONRGQWPIN \ / AMOS7 \ YOURUM ::
+#\[7]R2GZM2WCNOLS7WRWIOAIQIJUELTR6IWG5XZOSGWAE2PEXZRO6QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

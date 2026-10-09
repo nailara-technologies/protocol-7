@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = letsencr.child.dns.handler.txt_reply
+# descr = read one async txt reply [ bgread ]
+
+## io watcher handler : the event carries the per-server query state ##
+
+my $sq     = shift->w->data;
+my $q      = $sq->{'query'};
+my $server = $sq->{'server'};
+
+## late packet after the timeout already finished the query ##
+return if not exists $q->{'pending'}->{$server};
+
+## stop watching this socket, one answer per server is enough ##
+eval { $sq->{'watcher'}->cancel } if defined $sq->{'watcher'};
+delete $q->{'pending'}->{$server};
+
+my $pkt = $sq->{'resolver'}->bgread( $sq->{'sock'} );
+eval { $sq->{'sock'}->close };
+
+my $result;
+if ( defined $pkt ) {
+    $result = {
+        'ok'     => TRUE,                      ## a response packet arrived ##
+        'rcode'  => $pkt->header->rcode // '',
+        'values' => [
+            map  { join( '', $ARG->txtdata ) }
+            grep { $ARG->type eq qw| TXT | } $pkt->answer
+        ],
+    };
+} else {
+    $result = {
+        'ok'     => FALSE,
+        'rcode'  => $sq->{'resolver'}->errorstring // '',
+        'values' => [],
+    };
+}
+$q->{'results'}->{$server} = $result;
+
+## all servers answered : cancel the timeout, fire on_done ##
+if ( not keys %{ $q->{'pending'} } ) {
+    eval { $q->{'timer'}->cancel } if defined $q->{'timer'};
+    delete $q->{'timer'};
+    $code{ $q->{'on_done'} }->(
+        {   'name'    => $q->{'name'},
+            'results' => $q->{'results'},
+            'params'  => $q->{'params'},
+        }
+    );
+}
+
+return;
+
+#,,,,,...,.,,,,.,,,..,,,,,,,,,,,.,.,,,,.,,.,.,..,,...,...,.,.,,.,,,,,,,,,,.,,,
+#UP6JPHHQXNENJDTI7JRK2VCFUZOUB6EK2AHA32D7PY4GL7GKHR5EZOOXM7AK5JKAHVPWH3A4N7WMQ
+#\\\|RPSEJ4WFAPUOKU2EGY5O4UFMWOTR3CONDGKXL5L3FF7CQXHKNKW \ / AMOS7 \ YOURUM ::
+#\[7]D5QI43A6DKU3DAR4JFQBXNQRZW5EDUMCSOGESBAG6D4EGLGZUYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

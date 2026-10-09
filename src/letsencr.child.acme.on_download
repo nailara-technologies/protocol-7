@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_download
+# param = <acme response>
+# descr = split and check the chain, reply with the bundle
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| download | )
+    // return FALSE;
+
+my $pem = ref $res->{'body'} ? '' : $res->{'body'} // '';
+my @certs
+    = $pem =~ m{(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)}gs;
+
+return <[letsencr.child.acme.fail]>->(
+    $order->{'order_id'},
+    sprintf 'certificate download ' . 'failed [ http %s ]',
+    $res->{'status'} // '?'
+) if not $res->{'ok'} or not @certs;
+
+my $certificate = shift @certs;
+my $chain       = join "\n", @certs;
+
+## a wrong intermediate is replaced via aia ; keep the original otherwise ##
+my $check = <[letsencr.child.validate_chain]>->( $certificate, $chain );
+if ( ref $check eq qw| HASH | and $check->{'valid'} ) {
+    $chain = $check->{'chain_pem'};
+} else {
+    <[base.logs]>->(
+        0,
+        ': acme : chain check failed for %s : %s',
+        $order->{'primary_domain'},
+        ref $check eq qw| HASH | ? $check->{'error'} // '?' : '?'
+    );
+}
+
+return <[letsencr.child.acme.finish]>->(
+    $order->{'order_id'},
+    {   'status'      => qw| success |,
+        'domains'     => $order->{'domains'},
+        'certificate' => $certificate,
+        'key'         => $order->{'key_pem'},
+        'chain'       => $chain,
+        'expires_at'  => time + 90 * 86400,
+        'cert_url'    => $res->{'params'}->{'cert_url'},
+    }
+);
+
+#,,,,,,,.,,,,,..,,,.,,...,,,,,.,.,,,.,,,,,,,.,..,,...,...,,,.,.,,,...,...,,.,,
+#FIWMIELTGSFVIVHSGBVM6EE7LS3ENG55H75XPASP3TBDLZB2NDQKQAUTPNI5ENCSNZQQF4MHXBWWE
+#\\\|7CQNNS63BU63WRANTPOND4QJYZSI3HDQ4HVNEBP2CBAEYBXTSCS \ / AMOS7 \ YOURUM ::
+#\[7]7AOLTFZCJ6PKV64XJ2E5KHB3FEBNB3WDRWMX6RSX4ZJ2PRLC26CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

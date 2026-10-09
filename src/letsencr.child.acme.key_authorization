@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = letsencr.child.acme.key_authorization
+# param = <token>
+# descr = http-01 key authorization and dns-01 txt value
+
+my $token = shift // return undef;
+
+my $jwk = <[letsencr.child.get_jwk]> // return undef;
+
+## rfc 7638 thumbprint : canonical json of the public jwk ##
+my $thumbprint
+    = encode_base64url( sha256( JSON::XS->new->canonical(1)->encode($jwk) ) );
+
+my $key_auth = join qw| . |, $token, $thumbprint;
+
+return {
+    'key_auth'  => $key_auth,
+    'dns_value' => encode_base64url( sha256($key_auth) ),
+};
+
+#,,..,...,.,,,.,,,.,,,,.,,.,.,..,,,.,,,,,,,.,,..,,...,...,.,.,,..,...,.,.,...,
+#SAPSHQGHJ3DYQR7HBG7FYVEOVR3V2MCB7EYXXF5MODA5LZ7KPQMVTMWB4Q24ZPGK6TZMK27ALKNDS
+#\\\|NLAIDZDOKDFGQC3YZG65U5KI674R4GDTD5TGBHLMCN6F7B2W6GQ \ / AMOS7 \ YOURUM ::
+#\[7]RFQ5FK2DU35AHXIZ6G5XM3G5VX2EDQZ3SQNVQDDNZGTKENJUKUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

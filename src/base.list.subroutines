@@ -2458,6 +2458,7 @@ return [ qw[
         lm-vision.select_backend
         letsencr.extract_aia_url
         letsencr.child.init_code
+        letsencr.child.acme.fail
         letsencr.base.check_dirs
         kimi.task.queue_complete
         kimi.handler.pre_connect
@@ -2743,6 +2744,8 @@ return [ qw[
         letsencr.parent.init_code
         letsencr.child.create_jws
         letsencr.child.acme_renew
+        letsencr.child.acme.start
+        letsencr.child.acme.begin
         kimi.helper.task_priority
         kimi.flush_on_acquisition
         kimi-web.cmd.find-session
@@ -3011,6 +3014,7 @@ return [ qw[
         letsencr.parent.cmd.status
         letsencr.child.get_rsa_jwk
         letsencr.child.acme_revoke
+        letsencr.child.acme.finish
         kimi.wire.question_respond
         kimi.wire.approval_respond
         kimi-web.cmd.list-sessions
@@ -3307,6 +3311,8 @@ return [ qw[
         lm-vision.cmd.analyze_image
         letsencr.child.http_get_url
         letsencr.child.generate_csr
+        letsencr.child.acme.request
+        letsencr.child.acme.cleanup
         kimi.event.on_task_complete
         kimi.connect.schedule_retry
         kimi-web.is_auto_approvable
@@ -3613,6 +3619,10 @@ return [ qw[
         letsencr.dns.inwx_delete_txt
         letsencr.dns.inwx_create_txt
         letsencr.child.sign_rsa_data
+        letsencr.child.acme.order_of
+        letsencr.child.acme.on_setup
+        letsencr.child.acme.on_order
+        letsencr.child.acme.on_authz
         kimi.session.start_api_child
         kimi-web.cmd.terminate_agent
         kimi-web.cmd.distill-session
@@ -4165,6 +4175,9 @@ return [ qw[
         letsencr.child.get_fresh_nonce
         letsencr.child.cmd.query-algos
         letsencr.child.acme_use_server
+        letsencr.child.acme.step_setup
+        letsencr.child.acme.step_authz
+        letsencr.child.acme.on_respond
         kimi-web.cmd.get-session-state
         kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
@@ -4263,6 +4276,7 @@ return [ qw[
         coding.helper.query_gpu_memory
         coding.handler.spawn_with_deps
         coding.handler.gpu_temp_update
+        coding.handler.gpu_fit_recheck
         coding.handler.await_resources
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
@@ -4411,6 +4425,9 @@ return [ qw[
         letsencr.child.encode_base64url
         letsencr.child.cmd.repair-chain
         letsencr.child.check_domain_dns
+        letsencr.child.acme.on_download
+        letsencr.child.acme.next_queued
+        letsencr.child.acme.cancel_poll
         letsencr.base.address_is_public
         kimi.handler.dispatch_next_task
         kimi-web.internal.http_get_sync
@@ -4622,6 +4639,8 @@ return [ qw[
         letsencr.child.cmd.verify-domain
         letsencr.child.acme_http_request
         letsencr.child.acme_create_order
+        letsencr.child.acme.step_respond
+        letsencr.child.acme.on_propagate
         kimi.session.reset_and_reconnect
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
@@ -4821,6 +4840,10 @@ return [ qw[
         letsencr.parent.enroll_state_path
         letsencr.parent.enroll_state_load
         letsencr.child.acme_check_account
+        letsencr.child.acme.step_finalize
+        letsencr.child.acme.schedule_poll
+        letsencr.child.acme.on_poll_authz
+        letsencr.child.acme.handler.nonce
         letsencr.child.account_file_paths
         letsencr.base.fork_letsencr_child
         kimi-web.internal.http_post_async
@@ -5012,8 +5035,10 @@ return [ qw[
         letsencr.dns.cloudflare_delete_txt
         letsencr.dns.cloudflare_create_txt
         letsencr.child.extract_rsa_modulus
+        letsencr.child.dns.query_txt_async
         letsencr.child.cmd.new-certificate
         letsencr.child.acme_finalize_order
+        letsencr.child.acme.step_propagate
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
         jobsite.handler.stray-job-exported
@@ -5193,6 +5218,8 @@ return [ qw[
         letsencr.child.extract_rsa_exponent
         letsencr.child.download_certificate
         letsencr.child.cmd.inst-self-signed
+        letsencr.child.acme.step_poll_order
+        letsencr.child.acme.step_poll_authz
         kimi-web.internal.aggregate_results
         kimi-web.handler.agent_health_check
         jobsite.handler.desc-refetch-queued
@@ -5321,10 +5348,12 @@ return [ qw[
         letsencr.parent.handler.httpd_online
         letsencr.parent.enroll_backoff_delay
         letsencr.child.poll_challenge_status
+        letsencr.child.dns.handler.txt_reply
         letsencr.child.cmd.renew-certificate
         letsencr.child.check_dns_propagation
         letsencr.child.acme_verify_challenge
         letsencr.child.acme_register_account
+        letsencr.child.acme.handler.response
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
         jobsite.report.mail_evidence_collect
@@ -5446,6 +5475,7 @@ return [ qw[
         letsencr.child.create_dns01_challenge
         letsencr.child.cmd.revoke-certificate
         letsencr.child.acme_get_authorization
+        letsencr.child.acme.key_authorization
         kimi.handler.session_liveness_timeout
         kimi-web.cmd.inject-context-to-coding
         host-edit.transport.ssh_forward_start
@@ -5561,6 +5591,7 @@ return [ qw[
         letsencr.parent.local_public_addresses
         letsencr.parent.handler_renewal_failed
         letsencr.parent.cmd.revoke-certificate
+        letsencr.child.dns.handler.txt_timeout
         letsencr.child.create_http01_challenge
         letsencr.child.cmd.request-certificate
         kimi-web.handler.dispatch_stream_start
@@ -5993,8 +6024,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,,,.,,,...,,,.,..,,..,,.,.,.,,,.,,,,,.,.,.,...,...,,,.,.,,,.,,,.,.,,.,,
-#DVLGVYY3UI7TVW7ASPAGR2XOZL3BIGDRX7KFISCZZMBWPHG47CAONKGTRTJ6A2W475F5E5Y343F6C
-#\\\|GYBFV3BMIILWYJ64RLRFTPIIQAWHREDWM6CSQXILVEUC6RQEFRI \ / AMOS7 \ YOURUM ::
-#\[7]IQX32TJ4M3R4LXPJRORUPDGLN2ENQA7NZL3MUSGEPIQY2Z6W2QDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,.,.,,..,...,.,.,,,.,,..,.,.,.,.,...,..,,,.,,..,,,.,,,,.,.,,,
+#HVKHCZ7CDOW5BKPMIPPHO34WIRBUYSONEUH6ORX3THKN66HUJWYCRP7JLTF33VULKPYYG66K6TRMM
+#\\\|BNUW4CFV74LM3NB5IJLOHTEUMXC2HIKM7IRMBC4QMPS3VH3EAMD \ / AMOS7 \ YOURUM ::
+#\[7]6QLPY37ZQNH5VLIMMZFB5SFF6FDSNMVWTOMG7DI7FWEUN3G2UKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

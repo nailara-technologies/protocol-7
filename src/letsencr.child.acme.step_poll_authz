@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_poll_authz
+# param = <order_id | timer event> [ 'next' ]
+# descr = poll the answered authorizations, one per request
+
+my $arg  = shift;
+my $next = shift;
+
+my $order = <[letsencr.child.acme.order_of]>->( $arg, qw| poll_authz | )
+    // return FALSE;
+my $order_id = $order->{'order_id'};
+
+## a new round [ timer ] : every authorization still being validated ##
+if ( not defined $next ) {
+    $order->{'todo'}
+        = [ grep { $order->{'authz'}->{$ARG}->{'status'} eq qw| responded | }
+            $order->{'authz_urls'}->@* ];
+    $order->{'polls'}++;
+}
+
+my $url = shift $order->{'todo'}->@*;
+
+if ( not defined $url ) {    ## round complete ##
+    return <[letsencr.child.acme.step_finalize]>->($order_id)
+        if not grep { $ARG->{'status'} eq qw| responded | }
+        values $order->{'authz'}->%*;
+
+    my $delay = 2 * 1.5**( $order->{'polls'} - 1 );
+    $delay = 10 if $delay > 10;
+    return <[letsencr.child.acme.schedule_poll]>->(
+        {   'order_id' => $order_id,
+            'delay'    => $delay,
+            'handler'  => qw| letsencr.child.acme.step_poll_authz |,
+            'data'     => { 'order_id' => $order_id },
+        }
+    );
+}
+
+<[letsencr.child.acme.request]>->(
+    {   'method'   => qw| POST-as-GET |,
+        'url'      => $url,
+        'order_id' => $order_id,
+        'on_done'  => qw| letsencr.child.acme.on_poll_authz |,
+        'params'   => { 'order_id' => $order_id, 'authz' => $url },
+    }
+);
+
+return TRUE;
+
+#,,..,,..,..,,,,,,...,.,.,,,.,.,.,..,,,..,,,,,..,,...,...,,.,,.,.,,,,,...,...,
+#5GVPNK2QPPD2SOQ3LAFMFJWPXTJGZG3O62IXPC3CCCCUVS3CR5RK6ROHKNX2HFSW3HKH7PUM44KJY
+#\\\|MEADMVQKVUTAP7PIYAE2YQ6KRFWD4EWSHGI3CUAXGFM25L6UTI5 \ / AMOS7 \ YOURUM ::
+#\[7]5XOAYAX6V7QGN27WQCKAW5YZLGJEL35XLRTT6RJ2E3Y73G3FYCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

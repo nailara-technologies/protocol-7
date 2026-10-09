@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = letsencr.child.acme.handler.nonce
+# descr = store fresh acme nonce, continue request
+
+my $result   = shift                              // {};
+my $p        = $result->{'params'}->{'acme_args'} // {};
+my $order_id = $p->{'order_id'}                   // '';
+my $on_done  = $p->{'on_done'}                    // '';
+my $params   = $p->{'params'}                     // {};
+
+my $nonce = $result->{'headers'}->{'replay-nonce'} // '';
+
+if ( not length $nonce ) {
+    my $error = sprintf 'newNonce fetch failed : %s',
+        $result->{'error'} // sprintf 'status %d', $result->{'status'} // 0;
+    <[base.logs]>->( 1, 'letsencr.child.acme.handler.nonce: %s', $error );
+    $code{$on_done}->(
+        {   'ok'     => FALSE,
+            'status' => $result->{'status'} // 0,
+            'body'   => undef,
+            'error'  => $error,
+            'params' => $params,
+        }
+    ) if length $on_done and exists $code{$on_done};
+    return undef;
+}
+
+## store the fresh nonce [ account cache + order record ] ##
+<letsencr.child.acme_client>->{'nonce'} = $nonce;
+<letsencr.child.orders>->{$order_id}->{'nonce'} = $nonce
+    if length $order_id
+    and ref <letsencr.child.orders>->{$order_id} eq qw| HASH |;
+
+## continue the original request [ _nonce_fetched flag already set ] ##
+return <[letsencr.child.acme.request]>->($p);
+
+#,,,.,,,,,,.,,,.,,,.,,.,,,,,.,.,.,.,.,,.,,..,,..,,...,...,...,.,,,...,..,,..,,
+#CMRHWQGNQZDJI7W6KIN4VEU5BBKG4N6YYXBWER3ZLFQY7NCCHP3ELPL57Z3YPEN5UGABDZQU5DMYC
+#\\\|NH6APYZ7MVF5NCOVI4BF3HMFNBX5ESXFRVKMJHDHOAJXQM67HXX \ / AMOS7 \ YOURUM ::
+#\[7]O4ZUOPYFCMYRDX3E2GQKKBOKSRQVFFRSMKX6HB43KWJSCKWT4CAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
