@@ -47,6 +47,35 @@ unless ( -f $abs_path and -r $abs_path ) {
 }
 $path = $abs_path;
 
+## refuse binary content before any decode [ also with an explicit encoding ##
+## : a latin1 retry would pour raw bytes into the llm context ] images are  ##
+## named by magic bytes so the caller can point at an image tool instead of ##
+## retrying with another encoding                                           ##
+my $head = '';
+if ( open my $bin_fh, '<:raw', $path ) {
+    read $bin_fh, $head, 16;
+    close $bin_fh;
+}
+my $image_type
+    = $head =~ m|^\x89PNG|                   ? qw| image/png |
+    : $head =~ m|^\xFF\xD8\xFF|              ? qw| image/jpeg |
+    : $head =~ m|^GIF8[79]a|                 ? qw| image/gif |
+    : $head =~ m|^RIFF.{4}WEBP|s             ? qw| image/webp |
+    : $head =~ m{^(?:MM\x00\x2a|II\x2a\x00)} ? qw| image/tiff |
+    : $head =~ m|^BM|                        ? qw| image/bmp |
+    :                                          '';
+if ( length $image_type ) {
+    return
+        sprintf "<!-- binary image file [ %s, %d bytes ] : %s -- not "
+        . "readable as text, it needs a vision-capable tool " . "-->",
+        $image_type, -s $path, $path;
+}
+if ( -s $path and -B $path ) {
+    return
+        sprintf "<!-- binary file [ %d bytes ] "
+        . ": %s -- not readable as text -->", -s $path, $path;
+}
+
 ## read file [ encoding param is additive : no encoding given preserves the ##
 ## exact old single-arg call, unaffected for context.compose.for_           ##
 ## delegation and context.review.page, neither of which passes one ]        ##
@@ -105,8 +134,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,,,,.,,,...,.,,,.,,,,.,,,..,.,,,,,,,,..,,,.,.,.,...,...,.,.,...,,.,,..,,,.,,
-#RAPATLXJTLYLZFBJITIF7J3XPACQKTTTA2SVPBZNMAAQTVNIOSND6BCNK4LW3DQATAGNAO37VFSUY
-#\\\|MU6RGGKSSGTALMKFAWMGXJU7YOEM3YEPG6VETQ5VD5BVI4TIRF3 \ / AMOS7 \ YOURUM ::
-#\[7]L6EGZIBGYATE5TSAHSO7LSXBI4X3M4TDNS4H7USZMO6S2R4SPGCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,..,,,,,,,,.,,,,,,,.,,..,..,,.,.,...,...,...,...,...,,..,,,.,
+#ECNUZLOLPEIWA5NT4KBEIUTZESIET2LVSE7KQQJ7LHNT7WJZ6VOZAWV777P74SWNUKB45D7IKUIBG
+#\\\|74C4MJYGNABZINQD4WD2MGYILMSIJRPC6RJZ3R4ZR4B4FRFAV4M \ / AMOS7 \ YOURUM ::
+#\[7]CUEMO2UHFCYHRWDIHCGUFY4BN6VVSDJAER5AKO4JH3CDGWNIOEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
