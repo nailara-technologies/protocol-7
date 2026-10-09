@@ -20,16 +20,36 @@ my $filename = $file_path;
 $filename =~ s|.*/||;
 $filename =~ s|\.gguf$||i;
 
-## Clean filename (strip quantization suffix)
+## Clean filename (strip quantization suffix) [ '.' separates it too : ##
+## unsloth exports are named 'Qwen3.5-9B.Q8_0.gguf' ]                   ##
 my $clean_filename = $filename;
-$clean_filename =~ s|[-_]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$||i;
-$clean_filename =~ s|[-_]$||;
+$clean_filename =~ s|[-_.]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$||i;
+$clean_filename =~ s|[-_.]$||;
 $clean_filename =~ s|_| |g;
 
 ## Strip mmproj references and trailing precision indicators
 $clean_filename =~ s|\s*\.?mmproj[-_\s]?[a-z0-9]*\s*||gi;
 $clean_filename =~ s|\s+| |g;
 $clean_filename =~ s{^\s+|\s+$}{}g;
+
+## a '<name>-GGUF' repo directory names one model : preferred over the ##
+## file name below once the metadata has no usable name -- export tools ##
+## name files after the base model, three different 9b finetunes were   ##
+## all registered as 'Qwen3.5-9B' from 'Qwen3.5-9B.Q8_0.gguf'           ##
+if ( $file_path =~ m{/([^/]+)-GGUF/[^/]+\.gguf$}i ) {
+    ( my $repo_name = $1 ) =~ s{[-_\s]+}{ }g;
+    $repo_name =~ s{^\s+|\s+$}{}g;
+    $clean_filename = $repo_name if length $repo_name > 5;
+}
+
+## a bare projector file [ 'mmproj.gguf', 'mmproj-BF16.gguf' ] cleans to ##
+## nothing : the repo directory names it instead [ e.g. Jackrong/<model> ##
+## -GGUF/mmproj-BF16.gguf was registered with an empty name ]            ##
+if ( !length $clean_filename
+    and $file_path =~ m{/([^/]+?)(?:-GGUF)?/[^/]+\.gguf$}i ) {
+    ( $clean_filename = $1 ) =~ s{[-_\s]+}{ }g;
+    $clean_filename =~ s{^\s+|\s+$}{}g;
+}
 
 ## Extract metadata using external module
 my $meta = <[models.gguf.file.extract_metadata]>->($file_path);
@@ -106,7 +126,8 @@ if ( $meta && $meta->{'general.basename'} && $meta->{'general.size_label'} ) {
     $base =~ s|\s*\.?mmproj[-_\s]?\w*\s*||gi;    ## Strip mmproj
     $base =~ s|\s+| |g;
 
-    return "$base $size";
+    ## a basename of only 'mmproj' leaves nothing : fall through ##
+    return "$base $size" if $base =~ m|\S|;
 }
 
 ## Strategy 3: Use basename only
@@ -118,13 +139,16 @@ if ( $meta && $meta->{'general.basename'} ) {
     $base =~ s|\s*\.?mmproj[-_\s]?\w*\s*||gi;    ## Strip mmproj
     $base =~ s|\s+| |g;
 
-    ## Include file_type quantization if available
-    if ( defined $meta->{'general.file_type'} ) {
-        my $quant = <[models.gguf.file.file_type_to_quant]>
-            ->( $meta->{'general.file_type'} );
-        return wantarray ? ( $base, $quant ) : $base;
+    ## a basename of only 'mmproj' leaves nothing : fall through ##
+    if ( $base =~ m|\S| ) {
+        ## Include file_type quantization if available
+        if ( defined $meta->{'general.file_type'} ) {
+            my $quant = <[models.gguf.file.file_type_to_quant]>
+                ->( $meta->{'general.file_type'} );
+            return wantarray ? ( $base, $quant ) : $base;
+        }
+        return $base;
     }
-    return $base;
 }
 
 ## Strategy 4: Fallback to cleaned filename with file_type quantization
@@ -156,8 +180,8 @@ if ( $file_path =~ m|/([^/]+)-GGUF/[^/]+\.gguf$|i ) {
 ## Strategy 6: Fallback to cleaned filename only
 return $clean_filename;
 
-#,,,.,...,..,,..,,..,,.,.,.,.,,,,,.,,,..,,,,.,..,,...,...,.,,,..,,,.,,,,,,,..,
-#2U746APS5F7OLXEBCKXPBK7TBEM7SDQOH4V7E6XIKLQ4QLZIKEZCYJJV4AFGUCPY4E5NINYFYM2VM
-#\\\|U5B767C2BE3FJUILLBDNNDGRCHZGMWLAA5I3U3SMRI2PI5VODMX \ / AMOS7 \ YOURUM ::
-#\[7]BQOO2GQMFBSZ6STGYSRLYN6BA3PAKRLHRQCUHFOQ2ZQ7DYO42QCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,,..,,..,,,.,,.,,...,,..,.,,,..,,...,...,.,,,.,,,.,.,,,,,,.,,
+#HIXNYFMAS4XVZH2RAZ4YZYROYOWBCSLYLJBCGPBHSXCT3LB7RKCN6C2VI3FIPUDCZ73WPDRT5YD3K
+#\\\|S4OXXJT7DJKKHHIBCBRKEQH46XCPZ3NPQTF4X4ZIRMSCRSNIYVA \ / AMOS7 \ YOURUM ::
+#\[7]22YQOROND5PVHRRT2HBJXFKVVOZ4HC67YWR2R5MX4EQV66PFE6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
