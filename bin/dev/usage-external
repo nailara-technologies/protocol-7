@@ -5,9 +5,9 @@ use strict;
 use English;
 use warnings;
 
-###                  ###
+###                 ###
 ##  usage-external   ##
-###                  ###
+###                 ###
 
 ## queries account usage / rate-limit state of the locally installed Claude
 ## Code and Kimi CLIs, using each CLI's own already-stored OAuth credentials
@@ -23,11 +23,11 @@ use warnings;
 ## claude channel note :  count_tokens was verified live to carry NO
 ## anthropic-ratelimit-* headers on this API -- kept as a first probe in case
 ## that ever changes, expected to miss silently. max_tokens=0 was then
-## confirmed live as the normal, reliable, genuinely free path [ 200 OK, zero
-## generation, full header set, every time ] -- this is the actual mechanism
-## used in normal operation, not a fallback. A real max_tokens=1 call only
-## happens [ loudly announced on stderr, since it's the one case that actually
-## costs anything ] if max_tokens=0 ever stops working.
+## confirmed live as the normal, reliable, genuinely free path
+## [ 200 OK, zero generation, full header set, every time ] -- this is the
+## actual mechanism used in normal operation, not a fallback. A real
+## max_tokens=1 call only happens [ loudly announced on stderr, since it's the
+## one case that actually costs anything ] if max_tokens=0 ever stops working.
 ##
 ##  credential values are never printed.
 
@@ -274,9 +274,9 @@ sub print_claude_usage {
 
     my $headers = $probe->headers;
 
-    ## count_tokens never carries ratelimit headers on this API [ server-
-    ## verified 2026-09-15 ] -- kept as the first probe in case that ever
-    ## changes, but expected to miss every time, silently
+    ## count_tokens never carries ratelimit headers on this API
+    ## [ server-verified 2026-09-15 ] -- kept as the first probe in case that
+    ## ever changes, but expected to miss every time, silently
     if ( not defined $headers->header('anthropic-ratelimit-unified-status') )
     {
         ## max_tokens=0 : confirmed live 2026-09-15 as the normal, reliable,
@@ -481,8 +481,8 @@ sub seconds_to_dhms {
     return "$sign$out";
 }
 
-#,,.,,,.,,,..,,,,,,..,,..,..,,...,.,,,,,.,,.,,.,.,...,..,,.,,,...,.,,,.,.,.,,,
-#KEJNFB56XM342WI6UHTJLAJK4W4SMQJNFBJXT6VXR6H6OHCHXR3PH346EIWI3HIAX6VLSLQZX4UG4
-#\\\|TVPNLFZJSLHXNABF7ZDVQDTGOEN554ZSTIUCOXYS4C4ORWUBTOF \ / AMOS7 \ YOURUM ::
-#\[7]I5V6SB6FHU4BDZ4I4UJCZMV5DECDYIE7CCSPEFSJL7SMTTU5Q6BQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,,,.,,..,,.,,,,.,,,,,...,,,,,.,.,...,...,.,,,,.,,.,,,,.,,.,.,
+#PZKPFLWJAN4HG745NKC6PMZLMZQUL365OL4Y53AWFDW6RR3KOYCXKFOS22K4XPPAYD3JYAEDG5YCQ
+#\\\|ECNM5CQ4SP2FFO4ANSMNFIKZKF635EEM7QU3E7PHTCSZVX3BM2A \ / AMOS7 \ YOURUM ::
+#\[7]24POB2ZUGS2IGITQVMXVYEWDQQSL43TNE2VP53G7PRIS6QOUVCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

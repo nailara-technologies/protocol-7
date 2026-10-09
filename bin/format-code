@@ -55,17 +55,17 @@ use constant LINE_MAX => 78;
 use constant ERR_WRAP_MAX => 42;
 
 ## perltidy runs AFTER this tool and re-indents continuation lines to its   ##
-## own convention, which can land deeper than the quote's original column [ ##
-## what this tool's own split-width budget assumes ] -- reserve this much   ##
+## own convention, which can land deeper than the quote's original column   ##
+## [ what this tool's own split-width budget assumes ] -- reserve this much ##
 ## headroom on any continuation line's budget so a split that looks         ##
 ## tight-but-fitting here doesn't overflow once perltidy re-indents it      ##
 use constant CONT_MARGIN => 4;
 
-## floor for find_split_positions' last-resort raw-character fallback [ see ##
-## its own comment ] -- below this, forcing a split does more harm than the ##
-## few chars of overage it saves : a short spaceless word left over from an ##
-## earlier split [ e.g. "quitting\n" ] would otherwise get butchered        ##
-## mid-letter instead of just staying a little over LINE_MAX                ##
+## floor for find_split_positions' last-resort raw-character fallback    ##
+## [ see its own comment ] -- below this, forcing a split does more harm ##
+## than the few chars of overage it saves : a short spaceless word left  ##
+## over from an earlier split [ e.g. "quitting\n" ] would otherwise get  ##
+## butchered mid-letter instead of just staying a little over LINE_MAX   ##
 use constant MIN_RAW_SPLIT_LEN => 30;
 
 $OUTPUT_AUTOFLUSH = TRUE;
@@ -119,11 +119,11 @@ my $TRUE_color        = "\e[38;2;6;71;195m";
 my $NEON_orange       = "\e[38;2;197;141;7m";
 my $NEON_green_yellow = "\e[38;2;71;195;6m";
 
-## TERM too, not just INT -- an external stop [ supervisor, timeout       ##
-## wrapper, plain 'kill' with no signal name ] sends TERM by default, not ##
-## INT, and would leave the same orphaned .chk.<name> temp file behind    ##
-## otherwise. perl calls a %SIG handler with the signal name as its first ##
-## arg, so one sub covers both correctly                                  ##
+## TERM too, not just INT -- an external stop                              ##
+## [ supervisor, timeout wrapper, plain 'kill' with no signal name ] sends ##
+## TERM by default, not INT, and would leave the same orphaned .chk.<name> ##
+## temp file behind otherwise. perl calls a %SIG handler with the signal   ##
+## name as its first arg, so one sub covers both correctly                 ##
 $SIG{'INT'}  = \&sig_stop;
 $SIG{'TERM'} = \&sig_stop;
 ## QUIT [ Ctrl-\ ] trades away its default terminate-with-core-dump  ##
@@ -189,8 +189,8 @@ my @files = grep { is_perl_code($ARG) }
 ## one per batch, and a batch landing all-config is just an artifact of     ##
 ## where xargs happened to cut the list -- other batches in the same run    ##
 ## may well have real files, so a per-batch "nothing to format" notice here ##
-## would be noise [ or worse, misread as the whole run finding nothing,     ##
-## when it didn't ]                                                         ##
+## would be noise                                                           ##
+## [ or worse, misread as the whole run finding nothing, when it didn't ]   ##
 if ( not @files ) {
     die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
         . "expected ${NEON_green_yellow}[${NEON_orange}perl"
@@ -205,13 +205,13 @@ my $file_count = scalar @files;
 
 say $blacklight, qw| : |;
 
-## show_progress's line ends with \r, not \n -- deliberately left open so   ##
-## the NEXT file's progress line overwrites it in place [ single animated   ##
-## status line ] when nothing gets printed for this file at all. the first  ##
-## color_msg call for a file needs to close it with a real \n first, but a  ##
-## second call for the same file must NOT re-close an already-\n-terminated ##
-## line -- that's the extra blank line bug ] this flag lets color_msg tell  ##
-## those two cases apart                                                    ##
+## show_progress's line ends with \r, not \n -- deliberately left open so  ##
+## the NEXT file's progress line overwrites it in place                    ##
+## [ single animated status line ] when nothing gets printed for this file ##
+## at all. the first color_msg call for a file needs to close it with a    ##
+## real \n first, but a second call for the same file must NOT re-close an ##
+## already-\n-terminated line -- that's the extra blank line bug ] this    ##
+## flag lets color_msg tell those two cases apart                          ##
 my $progress_line_open = FALSE;
 
 ## tracks the .chk.<name> temp file [ if any ] currently on disk mid-check ##
@@ -220,17 +220,18 @@ my $progress_line_open = FALSE;
 my $current_chk_file;
 
 ##[ external scratch dir for the .chk. copies of P7 modules ]#################
-## the -c check needs one small on-disk copy per file for the real perl -c  ##
-## subprocess [ see real_syntax_errors ] -- written NEXT to the checked     ##
-## file, that copy flickers inside src/ during every check, 'git add -A'    ##
-## picks it up, and a SIGKILL leaves it behind [ 2026-09-29 :               ##
-## src/.chk.download.init_code ]. P7 modules carry no own $0-depth lib-path ##
-## BEGIN block [ their depth does not matter -- real_syntax_ errors only    ##
-## preserves depth for standalone scripts ] , so their copies move here ,   ##
-## outside the source tree entirely [ pid in the name -- a same-file-twice  ##
-## collision is still caught by the -e check below ] ; standalone scripts   ##
-## keep the same-dir sibling copy their depth-based self-location needs.    ##
-## fallback when ~/.7 is unavailable : the old sibling copy for everything  ##
+## the -c check needs one small on-disk copy per file for the real perl -c ##
+## subprocess [ see real_syntax_errors ] -- written NEXT to the checked    ##
+## file, that copy flickers inside src/ during every check, 'git add -A'   ##
+## picks it up, and a SIGKILL leaves it behind                             ##
+## [ 2026-09-29 : src/.chk.download.init_code ]. P7 modules carry no own   ##
+## $0-depth lib-path BEGIN block [ their depth does not matter --          ##
+## real_syntax_ errors only preserves depth for standalone scripts ] , so  ##
+## their copies move here , outside the source tree entirely [ pid in the  ##
+## name -- a same-file-twice collision is still caught by the -e check     ##
+## below ] ; standalone scripts keep the same-dir sibling copy their       ##
+## depth-based self-location needs.  fallback when ~/.7 is unavailable :   ##
+## the old sibling copy for everything                                     ##
 my $chk_scratch_dir;
 if ($check_only) {
     my $home_dir = $ENV{'HOME'} // '';
@@ -244,9 +245,9 @@ if ($check_only) {
         }
     }
 
-    ## sweep stale .chk.<name>.<pid> leftovers [ a SIGKILLed run never     ##
-    ## reaches its own unlink ] -- the pid in the name is dead , so nobody ##
-    ## will ever come back to clean that file                              ##
+    ## sweep stale .chk.<name>.<pid> leftovers                            ##
+    ## [ a SIGKILLed run never reaches its own unlink ] -- the pid in the ##
+    ## name is dead , so nobody will ever come back to clean that file    ##
     if ( defined $chk_scratch_dir and -d $chk_scratch_dir ) {
         for my $stale_file ( glob "$chk_scratch_dir/.chk.*" ) {
             next unless $stale_file =~ m{\.chk\..+\.(\d+)$};
@@ -334,9 +335,10 @@ while ( my $file_path = shift @files ) {
         ## done writing its input -- not theoretical here, this file's own ##
         ## ~57K is already close to a typical 64K buffer                   ##
         my $dir = dirname($file_path) || qw| . |;
-        ## P7 module copies live in the external scratch dir [ never in ##
-        ## src/ ] ; standalone scripts keep the same-dir sibling their  ##
-        ## $0-depth lib-path detection needs [ see real_syntax_errors ] ##
+        ## P7 module copies live in the external scratch dir                ##
+        ## [ never in src/ ] ; standalone scripts keep the same-dir sibling ##
+        ## their $0-depth lib-path detection needs                          ##
+        ## [ see real_syntax_errors ]                                       ##
         my $chk_file
             = ( defined $chk_scratch_dir and is_p7_module_text($orig_text) )
             ? "$chk_scratch_dir/.chk."
@@ -564,6 +566,13 @@ sub preprocess_source {
             }
         }
 
+        ##  step 10 : title box frames sized to their title line  ##
+        if ( my $box = step10_size_title_box( \@lines, $lnum, \%skip ) ) {
+            push @out, @{$box};
+            $lnum += 3;
+            next;
+        }
+
         ## step 4 : realign a contiguous block of '##  text  ##' lines --   ##
         ## also routes a single over-budget '##'-line here instead of step2 ##
         ## : step2's own wrap doesn't know step4's any_close                ##
@@ -573,8 +582,8 @@ sub preprocess_source {
         ## oscillating fixed point instead of a converged one. sending a    ##
         ## lone over-budget line through the same renderer as a real        ##
         ## multi-line block closes that gap at the source ; an              ##
-        ## already-fitting single line is untouched either way [ step4 only ##
-        ## rewraps when the content needs it ]                              ##
+        ## already-fitting single line is untouched either way              ##
+        ## [ step4 only rewraps when the content needs it ]                 ##
         my $block_len = comment_block_length( \@lines, $lnum, \%skip );
         if ( $block_len >= 2
             or ( $block_len == 1 and length_no_nl($line) > LINE_MAX ) ) {
@@ -623,12 +632,12 @@ sub preprocess_source {
     }
 
     my $result = join( '', @out );
-    ## gate on the P7 module header, not just the location of the file --   ##
-    ## bin/Protocol-7 and AMOS7::*.pm use %data/%code themselves but have   ##
-    ## no sugar-expanding pre-parser of their own ; the explicit .pm        ##
-    ## exclusion is a cheap belt-and-suspenders check on top of the header  ##
-    ## check, which .pm files fail anyway [ package ...; not '## [:< ##' as ##
-    ## their first real line ]                                              ##
+    ## gate on the P7 module header, not just the location of the file --  ##
+    ## bin/Protocol-7 and AMOS7::*.pm use %data/%code themselves but have  ##
+    ## no sugar-expanding pre-parser of their own ; the explicit .pm       ##
+    ## exclusion is a cheap belt-and-suspenders check on top of the header ##
+    ## check, which .pm files fail anyway [ package ...; not '##           ##
+    ## [:< ##' as their first real line ]                                  ##
     $result = step6_compact_data_sugar($result)
         if $data_sugar
         and $path !~ m{\.pm$}
@@ -692,13 +701,13 @@ sub comment_block_line_parts {
     ## already consumed any right-padding that sat before a misaligned '##' ##
     ## [ '\s*\#\#\s*$' ] , so nothing but true edge whitespace is left here ##
     ## ; internal whitespace runs must survive untouched now, since a       ##
-    ## double-space can carry real  sentence/paragraph-boundary meaning [   ##
-    ## see step4 ] that a blanket collapse would destroy the moment it      ##
+    ## double-space can carry real  sentence/paragraph-boundary meaning     ##
+    ## [ see step4 ] that a blanket collapse would destroy the moment it    ##
     ## lands mid-line after wrapping, breaking convergence on a second      ##
     ## reformatting pass  capture the padding depth BEFORE stripping --     ##
-    ## needed to preserve a symmetric box style's chosen padding [ e.g. '## ##
-    ## title  ##' ] on reconstruction rather than always collapsing to the  ##
-    ## bare minimum                                                         ##
+    ## needed to preserve a symmetric box style's chosen padding            ##
+    ## [ e.g. '## title  ##' ] on reconstruction rather than always         ##
+    ## collapsing to the bare minimum                                       ##
     my ($lead_pad) = $content =~ m{^(\s*)};
     $content =~ s{^\s+}{};
     $content =~ s{\s+$}{};
@@ -740,6 +749,51 @@ sub comment_block_length {
 }
 
 ##[ step 4 : reflow a comment block as one paragraph , right-align '##' ]##
+##[ bracket glue : a short '[ annotation ]' wraps as one word ]###############
+
+## the spaces inside a '[ ... ]' group that fits the wrap width are replaced
+## by a unit separator
+## [ \x1F , never whitespace to Text::Wrap , never in source ] before wrapping
+## and restored after -- the group then moves to the next line whole instead
+## of breaking mid-annotation
+## [ seen : a continuation line starting '; zenki use ..' ]. a group wider
+## than the line stays breakable, nothing could ever fit it. innermost groups
+## only
+sub glue_brackets {
+    my ( $text, $width ) = @_;
+    $text =~ s{(\[[^\[\]]*\])}{
+        length($1) <= $width ? ( $1 =~ tr/ /\x1F/r ) : $1
+    }ge;
+    return $text;
+}
+
+sub unglue_brackets { return shift =~ tr/\x1F/ /r }
+
+##[ step 10 : title box frames sized to their title ]#########################
+
+## script title boxes :          ###  ##  ntime  ###  a frame line wider or ##
+## narrower than its title is resized to match. the title line itself is    ##
+## never changed. returns the three lines, or undef                         ##
+sub step10_size_title_box {
+    my ( $lines, $lnum, $skip ) = @_;
+
+    return undef if $lnum + 2 > scalar @{$lines};
+    return undef if grep { $skip->{$_} } $lnum .. $lnum + 2;
+
+    my ( $top, $title, $bottom ) = @{$lines}[ $lnum - 1 .. $lnum + 1 ];
+    my $frame_re = qr{^(\s*)\#\#\#\ +\#\#\#(\r?\n)?$};
+
+    return undef if $top !~ $frame_re;
+    my ( $indent, $nl ) = ( $1, $2 // '' );
+    return undef if $bottom !~ $frame_re or $1 ne $indent;
+    return undef
+        if $title !~ m|^\Q$indent\E## {2,}\S.*\S {2,}##\r?\n?$|;
+
+    my $width = length_no_nl($title) - length($indent);
+    my $frame = $indent . '###' . ( ' ' x ( $width - 6 ) ) . '###' . $nl;
+    return [ $frame, $title, $frame ];
+}
+
 sub step4_align_comment_block {
     my ( $lines, $start_lnum, $block_len ) = @_;
 
@@ -751,10 +805,11 @@ sub step4_align_comment_block {
     my @lead_pads;       ## original padding depth , non-blank lines only ##
     my $any_close = 0;
     for my $i ( 0 .. $block_len - 1 ) {
-        ## lines past the first are continuations [ see comment_block_    ##
-        ## length ] -- without this a bracket-wrapped interior line would ##
-        ## return undef here and crash the ->{content} dereference once   ##
-        ## comment_block_length correctly counts it into the block        ##
+        ## lines past the first are continuations                          ##
+        ## [ see comment_block_ length ] -- without this a bracket-wrapped ##
+        ## interior line would return undef here and crash the ->{content} ##
+        ## dereference once comment_block_length correctly counts it into  ##
+        ## the block                                                       ##
         my $parts
             = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ],
             $i > 0 );
@@ -811,23 +866,25 @@ sub step4_align_comment_block {
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $column_line_count >= 2;
 
-    ## a symmetric box [ blank top/bottom '##   ##' border lines framing a ##
-    ## centered title ] gets its author's chosen padding depth preserved   ##
-    ## instead of always collapsing to the bare minimum single space --    ##
-    ## ordinary prose blocks [ no blank framing line present ] keep the    ##
-    ## minimal default                                                     ##
+    ## a symmetric box                                                      ##
+    ## [ blank top/bottom '##   ##' border lines framing a centered title ] ##
+    ## gets its author's chosen padding depth preserved instead of always   ##
+    ## collapsing to the bare minimum single space -- ordinary prose blocks ##
+    ## [ no blank framing line present ] keep the minimal default           ##
     my $is_box = grep { $_ eq '' } @content_parts;
-    ## lead_pad only measures padding BEYOND the one mandatory space the   ##
-    ## '## ' match already consumed [ '\#\#\ ' in comment_block_line_parts ##
-    ## ] , so the true total padding is 1 + that extra                     ##
+    ## lead_pad only measures padding BEYOND the one mandatory space the    ##
+    ## '## ' match already consumed                                         ##
+    ## [ '\#\#\ ' in comment_block_line_parts ] , so the true total padding ##
+    ## is 1 + that extra                                                    ##
     my $box_pad
         = $is_box && @lead_pads
         ? 1 + ( sort { $b <=> $a } @lead_pads )[0]
         : 1;
 
     ## bracketed style [ any original line closed with '##' ] budgets '##' ##
-    ## + $box_pad + text + $box_pad + '##' ; loose style [ no closing      ##
-    ## marker anywhere in the original ] only needs the '## ' prefix       ##
+    ## + $box_pad + text + $box_pad + '##' ; loose style                   ##
+    ## [ no closing marker anywhere in the original ] only needs the '## ' ##
+    ## prefix                                                              ##
     my $overhead = $any_close ? ( 4 + 2 * $box_pad ) : 3;
     my $width    = LINE_MAX - length($indent) - $overhead;
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
@@ -844,8 +901,8 @@ sub step4_align_comment_block {
     ## repeated 'port resolution:' lines ] getting merged into run-on prose ##
     ## because only numeric/bullet markers were recognized -- the colon     ##
     ## must directly follow a word character [ no space before it ] , or    ##
-    ## ordinary prose using ' : ' as punctuation [ "trigger : only true     ##
-    ## stuck retries .." ] false-triggers this too                          ##
+    ## ordinary prose using ' : ' as punctuation                            ##
+    ## [ "trigger : only true stuck retries .." ] false-triggers this too   ##
     my $list_marker_re = qr{
         ^(?: (?:\d+|[a-zA-Z]) [.\)]
            | [-*\x{2022}]
@@ -889,13 +946,13 @@ sub step4_align_comment_block {
     ## canonicalize each segment independently : re-derive structure from   ##
     ## the content itself rather than trusting where the incoming line      ##
     ## breaks happened to sit -- what makes repeated reformatting passes    ##
-    ## converge instead of drift. a break is treated as intentional [       ##
-    ## double-space , like a sentence boundary ] when EITHER the line ends  ##
-    ## in terminal punctuation OR the line ends well short of the width     ##
-    ## budget [ a forced wrap fills close to budget by definition ;         ##
+    ## converge instead of drift. a break is treated as intentional         ##
+    ## [ double-space , like a sentence boundary ] when EITHER the line     ##
+    ## ends in terminal punctuation OR the line ends well short of the      ##
+    ## width budget [ a forced wrap fills close to budget by definition ;   ##
     ## stopping well short of it with no punctuation is still a real signal ##
-    ## the author meant to break there ] ; otherwise single-space [         ##
-    ## ordinary forced wrap ]                                               ##
+    ## the author meant to break there ] ; otherwise single-space           ##
+    ## [ ordinary forced wrap ]                                             ##
     my $short_margin = 15;
     my @wrapped_lines;
     for my $seg (@segments) {
@@ -908,12 +965,27 @@ sub step4_align_comment_block {
             my $i = $seg->[$j];
             $joined .= $content_parts[$i];
             next if $j == $#$seg;
-            my $ends_sentence = $content_parts[$i] =~ m{[.!?]$};
+            ## a word hyphenated across the line break
+            ## [ 'server-' + 'verified' ] rejoins without a space -- glued
+            ## into one bracket group it would otherwise read
+            ## 'server-verified'
+            next
+                if $content_parts[$i] =~ m{[a-z]-$}
+                and $content_parts[ $seg->[ $j + 1 ] ] =~ m{^[a-z]};
+            ## inside an open '[' or '<' a period is an abbreviation or an
+            ## identifier [ 'cf. 494791f15', '<watcher_list.paused>' ], never
+            ## a sentence end -- no double space there
+            my $open = () = $joined =~ m{[\[<]}g;
+            my $shut = () = $joined =~ m{\]|(?<![-=])>}g;    ## not -> => ##
+            my $ends_sentence
+                = $content_parts[$i] =~ m{[.!?]$} && $open <= $shut;
             my $ends_short = ( $width - $content_lens[$i] ) > $short_margin;
             $joined .= ( $ends_sentence or $ends_short ) ? '  ' : ' ';
         }
-        my $wrapped = Text::Wrap::wrap( '', '', $joined );
-        push @wrapped_lines, map { s{\s+$}{}; $_ } split m{\n}, $wrapped;
+        my $wrapped
+            = Text::Wrap::wrap( '', '', glue_brackets( $joined, $width ) );
+        push @wrapped_lines,
+            map { s{\s+$}{}; unglue_brackets($_) } split m{\n}, $wrapped;
     }
 
     my @out;
@@ -1198,9 +1270,9 @@ sub step0_rejoin_concat_chain {
     my $prefix_len          = $start_col - 1;
     my $continuation_indent = ' ' x $prefix_len;
 
-    ## re-derive however many physical lines this actually needs from       ##
-    ## scratch -- covers the already-fits-on-one-line case too [ that comes ##
-    ## back as a single-element result ]                                    ##
+    ## re-derive however many physical lines this actually needs from ##
+    ## scratch -- covers the already-fits-on-one-line case too        ##
+    ## [ that comes back as a single-element result ]                 ##
     return split_into_lines( $flat_value, $quote_ch, $before, $after, $nl,
         $continuation_indent );
 }
@@ -1422,10 +1494,10 @@ sub step2_reflow_comment {
     return undef if $content =~ m{^\[:< \#\#$};    ## module header ##
 
     ## NOTE : no bracket-annotation exclusion here -- this function is only ##
-    ## ever called once the line is ALREADY over LINE_MAX [ see the guard   ##
-    ## at the top ], so an annotation reaching this point is by definition  ##
-    ## too long to leave untouched ; a within-budget one never gets here at ##
-    ## all and stays fully protected as intended                            ##
+    ## ever called once the line is ALREADY over LINE_MAX                   ##
+    ## [ see the guard at the top ], so an annotation reaching this point   ##
+    ## is by definition too long to leave untouched ; a within-budget one   ##
+    ## never gets here at all and stays fully protected as intended         ##
 
     my $width = LINE_MAX - length($indent) - length($prefix);
     return undef if $width < 20;    ##  too narrow , skip  ##
@@ -1447,8 +1519,9 @@ sub step2_reflow_comment {
     local $Text::Wrap::break    = qr/\s/;
     local $Text::Wrap::huge     = 'overflow';
     local $Text::Wrap::unexpand = 0;
-    my $wrapped = Text::Wrap::wrap( '', '', $content );
-    my @parts   = split m{\n}, $wrapped;
+    my $wrapped
+        = Text::Wrap::wrap( '', '', glue_brackets( $content, $wrap_width ) );
+    my @parts = map { unglue_brackets($_) } split m{\n}, $wrapped;
     return undef if @parts <= 1;    ##  did not need wrapping  ##
 
     my @out;
@@ -1615,8 +1688,8 @@ sub step6_compact_data_sugar {
 
 ##[ step 7 : opt-in rewrite of $code{'module.name'}->(...) to <[module.name]>->(...) ]##
 ## keeps the ->(...) part verbatim ; only literal single/double-quoted ##
-## keys, and only when the key is a bareword-shaped module path [ word ##
-## chars , hyphens, dots ]                                             ##
+## keys, and only when the key is a bareword-shaped module path        ##
+## [ word chars , hyphens, dots ]                                      ##
 sub step7_compact_module_call_sugar {
     my $text = shift;
 
@@ -1710,9 +1783,9 @@ sub step7_compact_module_call_sugar {
         my $start_col = $start_loc->[1] - 1;    ## 0-based ##
         my $end_col = $end_loc->[1] - 1 + length( $call->{end_tok}->content );
 
-        ## skip calls that would overlap a previously rewritten call on  ##
-        ## this line [ earlier in the line means processed later in this ##
-        ## loop ]                                                        ##
+        ## skip calls that would overlap a previously rewritten call on ##
+        ## this line                                                    ##
+        ## [ earlier in the line means processed later in this loop ]   ##
         next
             if defined $last_start_for_line{$line_idx}
             and $end_col > $last_start_for_line{$line_idx};
@@ -1720,9 +1793,10 @@ sub step7_compact_module_call_sugar {
         my $line = $lines[$line_idx];
         next if $start_col < 0 or $end_col > length($line);
 
-        ## an empty arg list drops ->(...) entirely -- <[name]> alone      ##
-        ## already means "call with no args" per the sugar's own implicit- ##
-        ## call rule, matching how this is already hand-written elsewhere  ##
+        ## an empty arg list drops ->(...) entirely -- <[name]> alone    ##
+        ## already means "call with no args" per the sugar's own         ##
+        ## implicit-call rule, matching how this is already hand-written ##
+        ## elsewhere                                                     ##
         my $list_content = $call->{list}->content;
         ( my $inner = $list_content ) =~ s{^\(|\)\z}{}g;
         $inner =~ s{^\s+|\s+$}{}g;
@@ -1745,11 +1819,12 @@ sub step7_compact_module_call_sugar {
 
     my $rewritten = join( '', @lines );
 
-    ## second pass, plain text not PPI : strips ->() left over from a file ##
-    ## already converted by an EARLIER run of this step [ before this      ##
-    ## empty-arg-list stripping existed ] -- once a call is already        ##
-    ## <[name]>->(), it's no longer $code{'name'}->(...) for the PPI walk  ##
-    ## above to find at all, so that walk alone can never re-visit it      ##
+    ## second pass, plain text not PPI : strips ->() left over from a file  ##
+    ## already converted by an EARLIER run of this step                     ##
+    ## [ before this empty-arg-list stripping existed ] -- once a call is   ##
+    ## already <[name]>->(), it's no longer $code{'name'}->(...) for the    ##
+    ## PPI walk above to find at all, so that walk alone can never re-visit ##
+    ## it                                                                   ##
     $rewritten =~ s{(<\[[\w\-]+(?:\.[\w\-]+)*\]>)\s*->\s*\(\s*\)}{$1}g;
 
     return $rewritten;
@@ -1896,12 +1971,12 @@ sub extract_postfix_deref_rewrite {
 }
 
 ##[ step 9 : opt-in normalize regex delimiters from / to | or {}         ]##
-## handles m/.../ , s/.../.../ , and bare =~ /.../ / !~ /.../ forms ;       ##
-## escalates to {} only when the pattern or replacement contains a pipe [   ##
-## escaped or not ]. per-character unescaping : true regex metachars and    ##
-## the new delimiter keep their backslash ; alphanumeric regex escapes [ \n ##
-## , \d , \Q .. ] keep theirs ; everything else loses the escape because it ##
-## only existed for the old delimiter's sake.                               ##
+## handles m/.../ , s/.../.../ , and bare =~ /.../ / !~ /.../ forms ;      ##
+## escalates to {} only when the pattern or replacement contains a pipe    ##
+## [ escaped or not ]. per-character unescaping : true regex metachars and ##
+## the new delimiter keep their backslash ; alphanumeric regex escapes     ##
+## [ \n , \d , \Q .. ] keep theirs ; everything else loses the escape      ##
+## because it only existed for the old delimiter's sake.                   ##
 sub step9_normalize_regex_delimiters {
     my $text = shift;
 
@@ -2162,10 +2237,11 @@ sub body_contains_unescaped_delim {
 
 ##[ helper : does a body contain a | that would force escalation to {} ? ]####
 ## a raw '|' inside a [...] character class is just a literal member, not ##
-## alternation, so it can stay under | delimiters [ transform_regex_body  ##
-## backslash-escapes it there ] -- only a raw '|' outside a class is real ##
-## alternation and can't be escaped without changing meaning, and an      ##
-## already-escaped \| keeps its ambiguity regardless of bracket context   ##
+## alternation, so it can stay under | delimiters                         ##
+## [ transform_regex_body backslash-escapes it there ] -- only a raw '|'  ##
+## outside a class is real alternation and can't be escaped without       ##
+## changing meaning, and an already-escaped \| keeps its ambiguity        ##
+## regardless of bracket context                                          ##
 sub body_contains_pipe {
     my $body = shift;
 
@@ -2253,9 +2329,9 @@ sub transform_regex_body {
                 ## escapes in their own right , keep them as-is       ##
                 $out .= '\\' . $next;
             } elsif ( $next eq '@' ) {
-                ## '@' interpolates an array in pattern and replacement   ##
-                ## alike -- '\@ARG' turned into '@ARG' changes the code [ ##
-                ## 2026-10-07 : a 9p harness committed uncompilable ]     ##
+                ## '@' interpolates an array in pattern and replacement ##
+                ## alike -- '\@ARG' turned into '@ARG' changes the code ##
+                ## [ 2026-10-07 : a 9p harness committed uncompilable ] ##
                 $out .= '\\' . $next;
             } elsif ( $in_bracket and $next eq '-' ) {
                 ## '-' inside a [...] class is the range operator ; an      ##
@@ -2317,10 +2393,11 @@ sub slurp_file {
     local $/;
     my $data = <$fh>;
     close $fh;
-    ## decode to characters -- everything downstream [ length() , substr()  ##
-    ## , Text::Wrap column budgets ] must count characters , not bytes , or ##
-    ## a multi-byte utf8 char [ em-dash, arrows, .. ] silently wrecks the   ##
-    ## wrap-width arithmetic on any line that contains one                  ##
+    ## decode to characters -- everything downstream                        ##
+    ## [ length() , substr() , Text::Wrap column budgets ] must count       ##
+    ## characters , not bytes , or a multi-byte utf8 char                   ##
+    ## [ em-dash, arrows, .. ] silently wrecks the wrap-width arithmetic on ##
+    ## any line that contains one                                           ##
     $data = decode_utf8($data) if not $no_utf8;
     return $data;
 }
@@ -2372,9 +2449,9 @@ sub mark_heredoc_regions {
     for my $h (@$heredocs) {
         ##  PPI exposes the heredoc body lines via ->heredoc method  ##
         my @body = $h->heredoc;
-        ## location of heredoc token is at the << on the source line .    ##
-        ## body begins on the line AFTER the line containing << , and the ##
-        ## terminator follows the body                                    ##
+        ## location of heredoc token is at the << on the source line . body ##
+        ## begins on the line AFTER the line containing << , and the        ##
+        ## terminator follows the body                                      ##
         my $loc = $h->location;
         next if not $loc;
         my $start = $loc->[0] + 1;
@@ -2428,8 +2505,8 @@ sub collect_quote_tokens {
 ## error in the input, see real_syntax_errors for the detail                ##
 sub perltidy_fail_reason {
     my $rc = shift;
-    ## same wording as bin/dev/ptd's non-check-only path [ return_code 512 ##
-    ## ]                                                                   ##
+    ## same wording as bin/dev/ptd's non-check-only path ##
+    ## [ return_code 512 ]                               ##
     return 'syntax error in perl code'                if $rc and $rc >= 2;
     return 'perltidy could not complete [ status 1 ]' if $rc and $rc == 1;
     return sprintf( 'perltidy failed [ status %s ]', $rc // 'undef' );
@@ -2445,13 +2522,13 @@ sub perltidy_fail_reason {
 sub join_real_errors {
     my ( $real_path, @raw_lines ) = @_;
 
-    ## first pass : pull the location out of each fragment WITHOUT          ##
-    ## inserting the [file:line] tag yet -- inserted once per MERGED group  ##
-    ## below, not once per raw perl -c line ; not end-anchored : perl -c    ##
-    ## routinely appends more context after "line N" [ ", at end of line" / ##
-    ## ", near ..." ], so a trailing-only match [ like base.format_error's, ##
-    ## which assumes die/warn's plain "at FILE line N." tail ] would never  ##
-    ## fire                                                                 ##
+    ## first pass : pull the location out of each fragment WITHOUT         ##
+    ## inserting the [file:line] tag yet -- inserted once per MERGED group ##
+    ## below, not once per raw perl -c line ; not end-anchored : perl -c   ##
+    ## routinely appends more context after "line N"                       ##
+    ## [ ", at end of line" / ", near ..." ], so a trailing-only match [   ##
+    ## like base.format_error's, which assumes die/warn's plain "at FILE   ##
+    ## line N." tail ] would never fire                                    ##
     my @parsed;
     for my $line (@raw_lines) {
         chomp $line;
@@ -2524,30 +2601,30 @@ sub real_syntax_errors {
     my $src = do { local $RS = undef; <$src_fh> };
     close $src_fh;
 
-    ## only a real P7 module [ is_p7_module_text -- the '## [:< ##' header ##
-    ## ] actually uses this sugar ; the translator is a blind text         ##
-    ## substitute with no awareness of strings/comments/regex bodies, so   ##
-    ## running it on a plain standalone script corrupts anything that      ##
-    ## merely LOOKS like the sugar -- e.g. a CLI usage placeholder         ##
-    ## '<duck.ai_chat_file>' or a git-log replacement string '<[$1]>' both ##
-    ## false-positive as real sugar and get rewritten into undeclared      ##
-    ## %data/%code references                                              ##
+    ## only a real P7 module [ is_p7_module_text -- the '##                 ##
+    ## [:< ##' header ] actually uses this sugar ; the translator is a      ##
+    ## blind text substitute with no awareness of strings/comments/regex    ##
+    ## bodies, so running it on a plain standalone script corrupts anything ##
+    ## that merely LOOKS like the sugar -- e.g. a CLI usage placeholder     ##
+    ## '<duck.ai_chat_file>' or a git-log replacement string '<[$1]>' both  ##
+    ## false-positive as real sugar and get rewritten into undeclared       ##
+    ## %data/%code references                                               ##
     my $translated
         = is_p7_module_text($src) ? p7_syntax__translate($src) : $src;
 
-    ## neutralize a leading '#!...perl...' shebang line [ e.g. bin/nshell's ##
-    ## '#!/usr/bin/env -S perl -C31' ] in the copy being checked -- perl's  ##
-    ## magic switch-reparse of the '#!' line turns out to be keyed to       ##
-    ## whichever physical line its OWN line-number state currently calls    ##
-    ## 'line 1', not the file's true first byte : the '#line 1 "..."' reset ##
-    ## below makes the shebang become that 'line 1' again even though it is ##
-    ## no longer physically first, so it still gets re-parsed for switches  ##
-    ## and a switch like '-C31' is rejected as "too late" [ some switches   ##
-    ## are only valid when perl itself is the one exec'd against the real   ##
-    ## file, which is what actually happens outside this checker ]. blanked ##
-    ## in place -- same line count, so no offset math needed -- since the   ##
-    ## shebang is irrelevant to a syntax-only check on a scratch copy       ##
-    ## anyway                                                               ##
+    ## neutralize a leading '#!...perl...' shebang line                     ##
+    ## [ e.g. bin/nshell's '#!/usr/bin/env -S perl -C31' ] in the copy      ##
+    ## being checked -- perl's magic switch-reparse of the '#!' line turns  ##
+    ## out to be keyed to whichever physical line its OWN line-number state ##
+    ## currently calls 'line 1', not the file's true first byte : the       ##
+    ## '#line 1 "..."' reset below makes the shebang become that 'line 1'   ##
+    ## again even though it is no longer physically first, so it still gets ##
+    ## re-parsed for switches and a switch like '-C31' is rejected as "too  ##
+    ## late" [ some switches are only valid when perl itself is the one     ##
+    ## exec'd against the real file, which is what actually happens outside ##
+    ## this checker ]. blanked in place -- same line count, so no offset    ##
+    ## math needed -- since the shebang is irrelevant to a syntax-only      ##
+    ## check on a scratch copy anyway                                       ##
     $translated =~ s{\A#!.*}{##} if $translated =~ m{\A#!};
 
     my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .p7chk.pl | );
@@ -2561,12 +2638,12 @@ sub real_syntax_errors {
     ## 'use strict' -- see bin/Protocol-7:6-31), List::Util's               ##
     ## uniq/max/min/reduce and Crypt::Misc's [en|de]code_b32r are imported  ##
     ## centrally (bin/Protocol-7:277 and :2966 respectively), Const::Fast,  ##
-    ## strftime, declared_refs, and the string-bitwise operators [ |.= in   ##
-    ## AMOS7::13's entropy mixing ] are used in real modules relying on     ##
-    ## another already-loaded module or a newer feature the fixed :5.24     ##
-    ## bundle predates. kept on ONE line + a '#line' reset right after so   ##
-    ## real error line numbers still match the original file exactly, no    ##
-    ## manual offset math needed                                            ##
+    ## strftime, declared_refs, and the string-bitwise operators            ##
+    ## [ |.= in AMOS7::13's entropy mixing ] are used in real modules       ##
+    ## relying on another already-loaded module or a newer feature the      ##
+    ## fixed :5.24 bundle predates. kept on ONE line + a '#line' reset      ##
+    ## right after so real error line numbers still match the original file ##
+    ## exactly, no manual offset math needed                                ##
     ##                                                                      ##
     ## the %code/%data/etc imports below are only for a real P7 module [    ##
     ## is_p7_module_text -- the '## [:< ##' header ] : bin/Protocol-7       ##
@@ -2574,25 +2651,26 @@ sub real_syntax_errors {
     ## own top level, so injecting it there is not just redundant but       ##
     ## actively wrong -- perl -c reports every 'our' as redeclared          ##
     ##                                                                      ##
-    ## the $0 fix below is unconditional : bin/Protocol-7 [ and             ##
-    ## bin/protocol-7-gtk3 , same pattern ] derive their OWN @INC lib-path  ##
-    ## in a BEGIN block by walking up N directories from $0/$PROGRAM_NAME - ##
-    ## correct when run as the real file, but $file_path here is actually   ##
-    ## $chk_file [ a '.chk.NAME' copy -- same-dir sibling for standalone    ##
-    ## scripts, external scratch-dir path for P7 modules, see the caller    ##
-    ## above ], and this sub then copies THAT into yet another File::Temp   ##
-    ## tempfile under system tmpdir for the actual perl -c run.  left       ##
-    ## alone, $0 inside that subprocess is the tmpdir path, at the wrong    ##
-    ## directory depth entirely, so the checked file's own lib-path         ##
-    ## detection resolves to nonsense [ e.g. bare '/data/lib-path/pm' with  ##
-    ## no repo-root prefix ] and it false-reports 'local lib path not       ##
-    ## found'. $chk_file itself sits at the SAME depth as the original for  ##
-    ## every file that actually does depth-relative self-location [ P7      ##
-    ## module copies only move to the scratch dir because they never do ] , ##
-    ## so pointing $0 at  its absolute path -- via a BEGIN block that runs  ##
-    ## before the checked file's own -- makes any such depth-relative       ##
-    ## self-location logic resolve exactly as it would for the real file,   ##
-    ## regardless of which script does it or how many directories it walks  ##
+    ## the $0 fix below is unconditional : bin/Protocol-7                   ##
+    ## [ and bin/protocol-7-gtk3 , same pattern ] derive their OWN @INC     ##
+    ## lib-path in a BEGIN block by walking up N directories from           ##
+    ## $0/$PROGRAM_NAME - correct when run as the real file, but $file_path ##
+    ## here is actually $chk_file [ a '.chk.NAME' copy -- same-dir sibling  ##
+    ## for standalone scripts, external scratch-dir path for P7 modules,    ##
+    ## see the caller above ], and this sub then copies THAT into yet       ##
+    ## another File::Temp tempfile under system tmpdir for the actual perl  ##
+    ## -c run.  left alone, $0 inside that subprocess is the tmpdir path,   ##
+    ## at the wrong directory depth entirely, so the checked file's own     ##
+    ## lib-path detection resolves to nonsense                              ##
+    ## [ e.g. bare '/data/lib-path/pm' with no repo-root prefix ] and it    ##
+    ## false-reports 'local lib path not found'. $chk_file itself sits at   ##
+    ## the SAME depth as the original for every file that actually does     ##
+    ## depth-relative self-location [ P7 module copies only move to the     ##
+    ## scratch dir because they never do ] , so pointing $0 at  its         ##
+    ## absolute path -- via a BEGIN block that runs before the checked      ##
+    ## file's own -- makes any such depth-relative self-location logic      ##
+    ## resolve exactly as it would for the real file, regardless of which   ##
+    ## script does it or how many directories it walks                      ##
     my $abs_chk_path = abs_path($file_path) // $file_path;
     my $preamble     = qq{BEGIN { \$0 = "$abs_chk_path" }\n};
 
@@ -2601,12 +2679,12 @@ sub real_syntax_errors {
     ## UDT::Simple, Device::PiGlow, .. -- see bin/dev/script-scratchpad/* ] ##
     ## , and a bare 'perl -c' has no way to get past that 'use' line at all ##
     ## : it dies at compile time before checking anything after it .  only  ##
-    ## tried once every real @INC path has already failed [ pushed , not    ##
-    ## unshifted ] , so an ACTUALLY installed module always wins first and  ##
-    ## this never masks a real "wrong module name" typo against anything    ##
-    ## perl itself already knows how to find. the stub's catch-all          ##
-    ## AUTOLOAD/import mean the rest of the file still gets a real syntax   ##
-    ## check instead of the whole thing aborting at the 'use'               ##
+    ## tried once every real @INC path has already failed                   ##
+    ## [ pushed , not unshifted ] , so an ACTUALLY installed module always  ##
+    ## wins first and this never masks a real "wrong module name" typo      ##
+    ## against anything perl itself already knows how to find. the stub's   ##
+    ## catch-all AUTOLOAD/import mean the rest of the file still gets a     ##
+    ## real syntax check instead of the whole thing aborting at the 'use'   ##
     ##                                                                      ##
     ## reporting is scoped to modules the file ITSELF 'use's/'require's at  ##
     ## its own top level -- plenty of ordinary CPAN modules [ Encode , PPI  ##
@@ -2619,10 +2697,11 @@ sub real_syntax_errors {
     ## regardless of this list [ still needed to keep checking past it ] ,  ##
     ## only the informational note is scoped                                ##
     my %own_module = map { $ARG => 1 } extract_own_use_modules($translated);
-    ## no map{} block here on purpose -- one level of braces [ just BEGIN's ##
-    ## own ] is easy to eyeball-balance ; nesting a second pair inside a    ##
-    ## qq{} delimited by the same character is exactly the kind of mistake  ##
-    ## this session spent a while chasing down elsewhere in this file       ##
+    ## no map{} block here on purpose -- one level of braces                ##
+    ## [ just BEGIN's own ] is easy to eyeball-balance ; nesting a second   ##
+    ## pair inside a qq{} delimited by the same character is exactly the    ##
+    ## kind of mistake this session spent a while chasing down elsewhere in ##
+    ## this file                                                            ##
     my $own_module_pairs
         = join( ',', map {qq{'$ARG' => 1}} sort keys %own_module );
     $preamble
@@ -2650,10 +2729,10 @@ STUB
             .= qq{use English; use List::Util qw| min max uniq reduce |; }
             . qq{use POSIX qw| strftime |; use Const::Fast; }
 
-            ## the loader's own imports [ bin/Protocol-7 :              ##
-            ## p7_load_perl_modules ] are in scope for every module --  ##
-            ## File::stat overrides stat \ lstat [ object, not a list ; ##
-            ## 'stat(_)' is a bareword under strict ]                   ##
+            ## the loader's own imports                                    ##
+            ## [ bin/Protocol-7 :  p7_load_perl_modules ] are in scope for ##
+            ## every module -- File::stat overrides stat \ lstat [ object, ##
+            ## not a list ; 'stat(_)' is a bareword under strict ]         ##
             . qq{use File::stat; use Sys::Hostname; }
             . qq{use Text::Wrap qw| wrap |; use File::Spec::Functions; }
             . qq{use Cwd qw| abs_path |; }
@@ -2676,15 +2755,16 @@ STUB
             ## at the zenka's source update                                 ##
             . qq{use strict; }
 
-            ## the loader compiles with 'use warnings' too [ bin/Protocol-7 ##
-            ## top level ] : 'useless use of .. in void context' flagged an ##
-            ## `my $x = A or B` that dropped B [ 2026-09-30 ]               ##
+            ## the loader compiles with 'use warnings' too               ##
+            ## [ bin/Protocol-7 top level ] : 'useless use of .. in void ##
+            ## context' flagged an `my $x = A or B` that dropped B       ##
+            ## [ 2026-09-30 ]                                            ##
             . qq{use warnings; }
             . qq{no warnings qw| experimental::declared_refs }
             . qq{experimental::bitwise |; }
 
-            ## loader file-scope lexical visible to every module [ ##
-            ## bin/Protocol-7 : my $zenkaname ]                    ##
+            ## loader file-scope lexical visible to every module ##
+            ## [ bin/Protocol-7 : my $zenkaname ]                ##
             . qq{my \$zenkaname; }
 
             ## the loader's unicode constant [ tau under its greek name ] ##
@@ -2715,10 +2795,11 @@ STUB
             : ''
             ) . qq{\n};
     }
-    ## a P7 module is compiled as a sub body by the loader [ bin/Protocol-7 :
-    ## eval "sub {\n# line 1 ..\n" . code . "}" ] -- its last value is the
-    ## return value, not a 'useless use .. in void context' ; check the same
-    ## way. the '#line' reset after the opening brace keeps line numbers
+    ## a P7 module is compiled as a sub body by the loader
+    ## [ bin/Protocol-7 : eval "sub {\n# line 1 ..\n" . code . "}" ] -- its
+    ## last value is the return value, not a 'useless use .. in void context'
+    ## ; check the same way. the '#line' reset after the opening brace keeps
+    ## line numbers
     my $wrap_sub = is_p7_module_text($src) ? TRUE : FALSE;
     $preamble .= 'my $p7_check_module_body = sub {' . "\n" if $wrap_sub;
     $preamble .= qq{#line 1 "$file_path"\n};
@@ -2779,19 +2860,20 @@ STUB
             next;
         }
 
-        ## known-benign : any fully-qualified [ Foo::Bar::name -- not just  ##
-        ## plain main:: ] symbol used only once. this check only ever sees  ##
-        ## ONE file at a time [ a standalone temp-file perl -c ], but a     ##
-        ## package-qualified symbol in this codebase routinely gets         ##
-        ## installed / referenced from ELSEWHERE at runtime or from another ##
-        ## file entirely [ main:: symbols like devmod/-vvv-gated features   ##
-        ## or base.init_code's glob-assigned *main::dump_var canary ; a     ##
-        ## cross-file escape hatch like AMOS7::13::allow_high_iterations,   ##
-        ## set only from bin/verify-link-upgrade-fixes.pl ] which this      ##
-        ## check has no visibility into -- so "used only once" on any       ##
-        ## qualified name is structurally almost always a false positive    ##
-        ## here, not the real per-file typo risk this warning targets       ##
-        ## elsewhere -- terse-format all of them rather than alarm on them  ##
+        ## known-benign : any fully-qualified                               ##
+        ## [ Foo::Bar::name -- not just plain main:: ] symbol used only     ##
+        ## once. this check only ever sees ONE file at a time               ##
+        ## [ a standalone temp-file perl -c ], but a package-qualified      ##
+        ## symbol in this codebase routinely gets installed / referenced    ##
+        ## from ELSEWHERE at runtime or from another file entirely [ main:: ##
+        ## symbols like devmod/-vvv-gated features or base.init_code's      ##
+        ## glob-assigned *main::dump_var canary ; a cross-file escape hatch ##
+        ## like AMOS7::13::allow_high_iterations, set only from             ##
+        ## bin/verify-link-upgrade-fixes.pl ] which this check has no       ##
+        ## visibility into -- so "used only once" on any qualified name is  ##
+        ## structurally almost always a false positive here, not the real   ##
+        ## per-file typo risk this warning targets elsewhere --             ##
+        ## terse-format all of them rather than alarm on them               ##
         if ( $line =~ m{Name "\w+(?:::\w+)+" used only once: possible typo} )
         {
             push @benign_once, $line;
@@ -2805,10 +2887,10 @@ STUB
         ## AMOS7::SHM::Page <-> AMOS7::SHM::Feedback, .. ] then re-requires ##
         ## and fully re-parses the same file a second time before the first ##
         ## pass even finishes, defining every sub in it twice. confirmed    ##
-        ## harmless : a real 'use Module;' load of any of these [ the only  ##
-        ## way they are ever actually used ] is clean, zero warnings --     ##
-        ## %INC correctly guards re-entry once the file IS being loaded as  ##
-        ## a real module and not the main program under -c                  ##
+        ## harmless : a real 'use Module;' load of any of these             ##
+        ## [ the only way they are ever actually used ] is clean, zero      ##
+        ## warnings -- %INC correctly guards re-entry once the file IS      ##
+        ## being loaded as a real module and not the main program under -c  ##
         if (    $file_path =~ m{\.pm$}
             and $line =~ m{^Subroutine \S+ redefined at } ) {
             push @benign_once, $line;
@@ -2914,8 +2996,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,.,.,,.,,.,.,...,...,,,.,,..,,..,,,.,,,.,..,,...,..,,.,,,.,,,..,,,.,,.,.,
-#HSCYZZ5RIDTO5FVC3PZDCYYTSOZGWTDVP44XZO3YKRMIQSJZDYNVPUJ2HKBVHL7OIKK6P22W7OVCM
-#\\\|ZPE62PFZ3GPFVDUYJRIQDLBFPITW65DGRSNDCN6MMJTN3P27KAL \ / AMOS7 \ YOURUM ::
-#\[7]4OD5FH5WE2PS4EWTYD6GTXSUZ6XOB5D3N2TDPFLG6ITLVVD4SWDI 7  DATA SIGNATURE ::
+#,,..,..,,...,,..,.,,,,..,,,,,.,.,...,.,.,.,.,..,,...,...,.,.,..,,,.,,...,...,
+#PAPEHGN4OXSI2VYZAVPOOZ6R3AHH2R3VXKX6EDHRK4DUMDRIHSPZPVMVPBQIHHWFXXIBR4S3MNGWG
+#\\\|HEYJ6KZDFXUQKARFX74MNK3MUGZE3XXPNY2DWLJ6WVHATCOUBGA \ / AMOS7 \ YOURUM ::
+#\[7]ZUFSJ4KJRHG47HQ3POKOJCFY7EOYP3UGC3TIA4VUUFSWFF2YAKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
