@@ -3,8 +3,7 @@
 # name  = nameserv.handler.query
 # descr = handle incoming dns query packets
 
-my $sock  = <nameserv.socket>;
-my $zones = <nameserv.zones>;
+my $sock = <nameserv.socket>;
 
 ## receive packet
 my $from_addr = recv $sock, my $packet_data, 512, 0;
@@ -40,18 +39,11 @@ $reply->header->id( $packet->header->id );
 $reply->header->qr(1);    ## set as response
 $reply->header->aa(1);    ## authoritative answer
 
-## find matching zone
-my $zone_match = undef;
-for my $zone_name ( keys %$zones ) {
-    my $zone = $zones->{$zone_name};
-    ## match exact zone or subdomain
-    if ( $qname eq $zone_name or $qname =~ m|\.$zone_name$|i ) {
-        $zone_match = $zone;
-        last;
-    }
-}
+## find matching zone [ longest suffix match ]
+my $zone_match = <[nameserv.zone.lookup]>->($qname);
 
 my $found_answer = 0;
+my $name_exists  = 0;
 
 if ($zone_match) {
     my $ttl = $zone_match->{'ttl'};
@@ -70,15 +62,21 @@ if ($zone_match) {
             my $rec_name = lc( $rec->{'name'} // '' );
             my $rec_type = $rec->{'type'} // '';
 
+            $name_exists = 1 if $rec_name eq $qname;
+
             ## match name and type
             next if $rec_name ne $qname;
             next if $rec_type ne $qtype;
+
+            ## per-record ttl overrides the zone default
+            my $rr_ttl = $rec->{'ttl'} // $ttl;
 
             ## build rr using string-form constructor (phase-1 simple
             ## approach)
             my $value = $rec->{'value'} // '';
             my $rr_str
-                = sprintf( "%s %d IN %s %s", $qname, $ttl, $qtype, $value );
+                = sprintf( "%s %d IN %s %s", $qname, $rr_ttl, $qtype,
+                $value );
 
             my $rr = eval { Net::DNS::RR->new($rr_str) };
             if ( defined $rr ) {
@@ -95,6 +93,8 @@ if ($zone_match) {
 
     if ($found_answer) {
         $reply->header->rcode('NOERROR');
+    } elsif ($name_exists) {
+        $reply->header->rcode('NOERROR');    ## nodata : name without type
     } else {
         $reply->header->rcode('NXDOMAIN');
     }
@@ -111,8 +111,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,,,,,.,,,..,.,,,.,.,...,,,.,,,,,..,,..,,,.,,..,,...,..,,.,.,..,,...,,,,,.,,,
-#Z7ENIX6OB56DGUXOX3KPD5PAIBQHHB4A6R76FQ7LJVZF6EYUVNIHTPFV5ULQT4MBTEO43SFNJINNK
-#\\\|7CNIFLN5TMB2AHGPCYJOJTDRDQW5VUU7AWT2GI53KEFM3ZK3QEF \ / AMOS7 \ YOURUM ::
-#\[7]BSA6YBIIX5TLFEIUGNIAOHEE4GTQHDDD67B5BW4HQH2J7BBSNOBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,..,.,.,,,.,.,,,,,,,,.,,.,.,..,,...,...,,..,...,.,,,..,,.,.,
+#VJK7QRSK42RMLHGUOLKXHXLLF5SBHHJKAJ3PTZ6UUZWU5SK42YKMH2NIEUN4ATKW42OLZUNGR7GJ2
+#\\\|AZ2C5IEPLAKLQOG5FDZAXAPQ3MUDP4LLCLGOQNR32TJGJPBZD4E \ / AMOS7 \ YOURUM ::
+#\[7]Y7V5WKY3OZWEUMMMFMY772JUJLHBNS3V3UTZUJDDWPFSNMQROIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
