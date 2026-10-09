@@ -21,8 +21,11 @@ my @ext_dirs;
 my @ext_names;    ## for max-len calculation ##
 foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
     ( my $dir_path = catfile( $site_dir, $dir_name ) ) =~ s|//|/|g;
+    ## '<name>.bak-<ntime>' : a site dir httpd.cmd.install-vhosts replaced by
+    ## a symlink -- kept on disk, never served as a vhost
     next
         if $dir_name =~ m|^\.|
+        or $dir_name =~ m|\.bak-[A-Z2-7]+$|
         or ( -l $dir_path
         and not -d $dir_path
         and not -d readlink($dir_path)
@@ -92,8 +95,8 @@ foreach my $link_name (@vhosts) {
 
 0;
 
-#,,,,,,,.,.,.,.,.,...,.,.,,.,,,,,,...,,.,,,,.,..,,...,..,,.,.,...,,,.,.,,,.,.,
-#IMQEKKGQDV76DD46OHYDORCBVAAOYQHA4BZGUYHLQSMOLBIGR2BA5SAHQNX44YAXCTZE62OTQEYVU
-#\\\|GASL6UBWZQ3C7KBRTR7UG56DOLQ7GAGV3D3DPAHKL77DKSKVDWT \ / AMOS7 \ YOURUM ::
-#\[7]ZNFULAPSRQKU6WPY3OOCZND2MN6O52BG7N4Q6CK4BK75BRBSBKDI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,,.,,,,,,,.,.,.,.,,,.,.,,,.,..,,...,...,,..,..,,.,,,,.,,,..,
+#VA2EWCSSIELHIQ27G6LYU4RBLATY7DAI4SIXKPHG3E7OHPPOS3G5RKEUMPV7JIMIBPPCHRZLXQUSU
+#\\\|U2GGNI3H2HIOBM4MHUQ5LGIVCCW27V44FXOH7D5ZWPXSHNPF2HF \ / AMOS7 \ YOURUM ::
+#\[7]XK2A5HI7EXCMEYVPPJ5XM6ALLRCAOXX7NVGKD2O2HYOE4FA62UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

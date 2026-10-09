@@ -56,7 +56,7 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
             my $ph;
             if ( opendir $ph, $parent ) {
                 for my $name ( readdir $ph ) {
-                    next if $name =~ m|^\.|;
+                    next if $name =~ m|^\.| or $name =~ m|\.bak-[A-Z2-7]+$|;
                     my $pat_re = $glob =~ s|\.|\\.|gr =~ s|\*|[^/]*|r;
                     next unless $name =~ m|^$pat_re$|;
                     next unless -d "$parent/$name";
@@ -102,8 +102,8 @@ closedir($dir_fh);
 
 return \@hostnames_found;
 
-#,,.,,,.,,,.,,.,,,.,,,,,,,.,,,,..,..,,,,,,,.,,..,,...,...,...,,.,,,,.,.,,,,,.,
-#EGWO54NG3VRPLPB46NIFS7PIMQMZ3UZEAXOQ6C4MGSWOD3SB4QJIDEY7JZKN5WR6E34KP4RNVHNGE
-#\\\|YPTIEFNGQABLSDXG5DP2BVVKLPS6E25QFKZWMEGZ3DUC5WAVSLG \ / AMOS7 \ YOURUM ::
-#\[7]UFWWLC34LWQLSV24V3GKK4Q36S3J4MNXZOYIOKMTYJT4F3H6FEBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,.,..,,.,.,.,.,.,.,,..,,.,,,.,,..,,...,..,,.,.,.,,,,.,,..,,,,.,
+#2LPVOE7HUCZGM63HHP52HBRMI5WIEIND2XPG3BLIIWHMRBCNJ2WIVIIYECOZUYXJV6T6UZZ4C3MVM
+#\\\|7MYTMD4DCLEMMIHYTMMW6DGRAFFBVMJB23ZUUQYONX3XYIPWBJW \ / AMOS7 \ YOURUM ::
+#\[7]V2TOTKHVRMN2TWA2KNCPHAUZHOJABE66Y63CTEIJEKN4C4LNRWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
