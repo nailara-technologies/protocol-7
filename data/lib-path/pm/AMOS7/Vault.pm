@@ -3,14 +3,15 @@
 package AMOS7::Vault;    ####################################################
 
 ## personal secret vault : logins, notes, contacts -- encrypted at rest, one
-## file per entry version, recoverable with plain perl + CryptX [ or
-## Crypt::Argon2 ] and nothing else from protocol-7.
+## file per entry version, recoverable with plain perl + CryptX
+## [ or Crypt::Argon2 ] and nothing else from protocol-7.
 ##
 ## format : data/md/design/VAULT-FORMAT.md [ keep both in step ]
 ##
-## standard primitives only [ argon2id, hkdf-sha256, chacha20-poly1305, rfc
-## 4648 base32 ] -- the blobs travel to usb keys and a public repo, so a
-## recovery must never depend on a protocol-7 specific cipher.
+## standard primitives only [ argon2id, hkdf-sha256, twofish-gcm inside
+## chacha20-poly1305, rfc 4648 base32 ] -- the blobs travel to usb keys and a
+## public repo, so a recovery must never depend on a protocol-7 specific
+## cipher. two ciphers so that a break of either one alone reveals nothing.
 ##
 ## NEVER pass a secret value to warn / die / a log line. errors name the file
 ## or the entry id, never the content.
@@ -66,12 +67,15 @@ use Crypt::AuthEnc::ChaCha20Poly1305 qw|
     chacha20poly1305_encrypt_authenticate
     chacha20poly1305_decrypt_verify
     |;
+use Crypt::AuthEnc::GCM qw| gcm_encrypt_authenticate gcm_decrypt_verify |;
 
 ##[ FORMAT CONSTANTS ]########################################################
 
-our $KEY_MAGIC   = qw| p7-vault-key |;
-our $ENTRY_MAGIC = qw| p7-vault-entry |;
-our $FORMAT      = 1;
+our $KEY_MAGIC       = qw| p7-vault-key |;
+our $ENTRY_MAGIC     = qw| p7-vault-entry |;
+our $KEY_BIN_MAGIC   = qw| P7VK |;  ## first bytes of the binary files ##
+our $ENTRY_BIN_MAGIC = qw| P7VE |;
+our $FORMAT          = 1;           ## twofish-gcm inside chacha20-poly1305 ##
 ## plaintext padded to a multiple [ hides length ] ##
 our $PAD_BLOCK = 512;
 
@@ -147,10 +151,11 @@ sub _random_bytes {
     return $buf;
 }
 
-## crash safety : content goes to a '.tmp.' name [ never matches an entry or
-## the key file ], is synced to disk, THEN gets its final name, and the
-## directory is synced so the name survives a power cut or a pulled usb key [
-## xfs : rename without fsync can leave a zero length file ]
+## crash safety : content goes to a '.tmp.' name
+## [ never matches an entry or the key file ], is synced to disk, THEN gets
+## its final name, and the directory is synced so the name survives a power
+## cut or a pulled usb key
+## [ xfs : rename without fsync can leave a zero length file ]
 
 sub _write_synced_tmp {
     my ( $path, $content ) = @ARG;
@@ -230,8 +235,8 @@ sub _read_file {
 ##[ KEY DERIVATION ]##########################################################
 
 ## argon2id, two interchangeable implementations : CryptX >= 0.088 has it
-## built in, older CryptX [ debian bookworm : 0.077 ] needs Crypt::Argon2 [
-## libcrypt-argon2-perl ]. both are rfc 9106 and give identical output
+## built in, older CryptX [ debian bookworm : 0.077 ] needs Crypt::Argon2
+## [ libcrypt-argon2-perl ]. both are rfc 9106 and give identical output
 sub _argon2id {
     my ( $secret, $salt, $kdf ) = @ARG;
 
@@ -254,6 +259,54 @@ sub _argon2id {
 sub _kdf_line {
     my $kdf = shift;
     return sprintf q{argon2id %d %d %d}, @{$kdf}{qw| t m p |};
+}
+
+##[ CASCADE ]#################################################################
+
+## two ciphers, independent keys from one root : twofish-gcm  inside,
+## chacha20-poly1305 outside. each layer authenticates on its own, so a break
+## of either cipher alone reveals nothing and changes nothing.  the key file
+## is cascaded the same way -- with only the entries cascaded, breaking
+## chacha20 on vault.key would hand over the vault key and with it both entry
+## layers
+sub _layer_keys {
+    my ( $root, $salt, $label ) = @ARG;
+    my $twofish
+        = hkdf( $root, $salt, qw| SHA256 |, 44, "$label " . "twofish-gcm" );
+    my $chacha
+        = hkdf( $root, $salt, qw| SHA256 |, 32, "$label chacha20-poly1305" );
+    return ( substr( $twofish, 0, 32 ), substr( $twofish, 32, 12 ), $chacha );
+}
+
+## returns ( nonce, ciphertext, tag ) of the outer layer
+sub _cascade_encrypt {
+    my ( $root, $salt, $label, $ad, $plaintext ) = @ARG;
+
+    my ( $tf_key, $tf_nonce, $cc_key ) = _layer_keys( $root, $salt, $label );
+    my ( $inner, $inner_tag )
+        = gcm_encrypt_authenticate( qw| Twofish |, $tf_key, $tf_nonce, $ad,
+        $plaintext );
+
+    my $nonce = _random_bytes(12);
+    my ( $ct, $tag )
+        = chacha20poly1305_encrypt_authenticate( $cc_key, $nonce, $ad,
+        $inner . $inner_tag );
+    return ( $nonce, $ct, $tag );
+}
+
+## returns the plaintext, or undef when either layer fails
+sub _cascade_decrypt {
+    my ( $root, $salt, $label, $ad, $nonce, $ct, $tag ) = @ARG;
+
+    my ( $tf_key, $tf_nonce, $cc_key ) = _layer_keys( $root, $salt, $label );
+    my $inner
+        = chacha20poly1305_decrypt_verify( $cc_key, $nonce, $ad, $ct, $tag )
+        // return undef;
+    return undef if length $inner < 16;
+
+    my $inner_tag = substr $inner, -16, 16, '';
+    return gcm_decrypt_verify( qw| Twofish |, $tf_key, $tf_nonce, $ad,
+        $inner, $inner_tag );
 }
 
 sub _wrap_ad {
@@ -279,40 +332,121 @@ sub recovery_code_normalize {
 
 ##[ KEY FILE ]################################################################
 
-sub _key_path { return shift . qw| /vault.key | }
+## every stored file is one base32 block [ rfc 4648, no padding ] in the frame
+## of bin/Protocol-7's inline subroutines : a '.:[ title ]:.' line, ':' lines
+## around, payload lines ': ' + 76 chars [ 78 columns ], a short last line
+## centred with '0' -- outside the base32 alphabet, so a reader drops every
+## '0' \ '1' and joins the ': ' lines. binary fields inside, nothing to align.
+## each write is checked to decode back
+our $B32_LINE = 76;
 
+sub _b32_file_text {
+    my ( $bin, $title ) = @ARG;
+
+    my $b32  = _b32($bin);
+    my @rows = $b32 =~ m|(.{1,$B32_LINE})|g;
+    my $pad  = $B32_LINE - length $rows[-1];
+    $rows[-1]
+        = ( '0' x int( $pad / 2 ) )
+        . $rows[-1]
+        . ( '0' x ( $pad - int( $pad / 2 ) ) );
+
+    my $text = join '', ".:[ $title ]:.\n", ":\n", map( {": $ARG\n"} @rows ),
+        ":\n";
+    die "vault : base32 round trip failed\n"
+        if ( _b32_text_decode($text) // '' ) ne $bin;
+    return $text;
+}
+
+sub _b32_text_decode {
+    my $text = shift // return undef;
+    my $b32  = join '', map { substr $ARG, 2 } grep {m|^: [0-9A-Z]+$|}
+        split m|\n|, $text;
+    $b32 =~ tr|01||d;
+    return _unb32($b32);
+}
+
+sub _b32_file_read { return _b32_text_decode( _read_file(shift) ) }
+
+sub _key_path { return $ARG[0] . '/vault.key.B32' }
+
+## key file : 'P7VK' format:C vault-id:a10 created-ntime:Q> kdf:C
+## [ 1 = argon2id ] t:N m-KiB:N p:N wraps:C , then per wrap : name-length:C
+## name salt:a16 nonce:a12 tag:a16 ciphertext-length:n ciphertext
+## [ big endian ]
 sub _key_file_text {
     my $vault = shift;
-    my @lines = (
-        "$KEY_MAGIC $FORMAT",
-        "vault $vault->{'id'}",
-        "created $vault->{'created'}",
-        'kdf ' . _kdf_line( $vault->{'kdf'} ),
+    my @names = sort keys %{ $vault->{'wraps'} };
+
+    my $bin = pack(
+        q{a4 C a10 Q> C N N N C},
+        $KEY_BIN_MAGIC,      $FORMAT, _unb32( $vault->{'id'} ),
+        $vault->{'created'}, 1,
+        @{ $vault->{'kdf'} }{qw| t m p |},
+        scalar @names
     );
-    foreach my $name ( sort keys %{ $vault->{'wraps'} } ) {
-        push @lines, join ' ', qw| wrap |, $name,
-            @{ $vault->{'wraps'}{$name} }{qw| salt nonce ct tag |};
+    foreach my $name (@names) {
+        $bin .= pack( q{C/a a16 a12 a16 n/a},
+            $name, @{ $vault->{'wraps'}{$name} }{qw| salt nonce tag ct |} );
     }
-    return join( qq|\n|, @lines ) . qq|\n|;
+    return _b32_file_text( $bin, 'p7-vault key' );
+}
+
+sub _key_file_parse {
+    my ( $bin, $dir ) = @ARG;
+
+    return ( undef, 'not a vault key file' )
+        if length $bin < 37
+        or substr( $bin, 0, 4 ) ne $KEY_BIN_MAGIC;
+
+    my ( undef, $format, $vid, $created, $kdf_id, $t, $m, $p, $count, $rest )
+        = unpack( q{a4 C a10 Q> C N N N C a*}, $bin );
+    return ( undef,
+              "vault format $format not supported "
+            . "[ this p7-vault : $FORMAT ]" )
+        if $format != $FORMAT;
+    return ( undef, "unknown kdf $kdf_id" ) if $kdf_id != 1;
+
+    my %wraps;
+    foreach ( 1 .. $count ) {
+        return ( undef, 'key file truncated' ) if length $rest < 1;
+        my ( $name, $salt, $nonce, $tag, $ct, $tail )
+            = unpack( q{C/a a16 a12 a16 n/a a*}, $rest );
+        return ( undef, 'key file truncated' )
+            if not defined $ct
+            or length $salt != 16
+            or length $nonce != 12
+            or length $tag != 16;
+        $wraps{$name}
+            = { salt => $salt, nonce => $nonce, tag => $tag, ct => $ct };
+        $rest = $tail // '';
+    }
+
+    return (
+        {   dir     => $dir,
+            id      => _b32($vid),
+            created => $created,
+            kdf     => { t => $t, m => $m, p => $p },
+            wraps   => \%wraps,
+        },
+        undef
+    );
 }
 
 sub _wrap_key {
     my ( $vault, $wrap_name, $secret ) = @ARG;
 
-    my $salt     = _random_bytes(16);
-    my $nonce    = _random_bytes(12);
-    my $wrap_key = _argon2id( $secret, $salt, $vault->{'kdf'} );
-    my ( $ct, $tag )
-        = chacha20poly1305_encrypt_authenticate( $wrap_key, $nonce,
+    my $salt = _random_bytes(16);
+    my $root = _argon2id( $secret, $salt, $vault->{'kdf'} );
+    my ( $nonce, $ct, $tag ) = _cascade_encrypt(
+        $root, $salt,
+        "$KEY_MAGIC $FORMAT wrap",
         _wrap_ad( $vault, $wrap_name ),
-        $vault->{'key'} );
+        $vault->{'key'}
+    );
 
-    $vault->{'wraps'}{$wrap_name} = {
-        salt  => _b32($salt),
-        nonce => _b32($nonce),
-        ct    => _b32($ct),
-        tag   => _b32($tag),
-    };
+    $vault->{'wraps'}{$wrap_name}
+        = { salt => $salt, nonce => $nonce, ct => $ct, tag => $tag };
     return TRUE;
 }
 
@@ -334,7 +468,7 @@ sub vault_init {
     my $vault = {
         dir     => $dir,
         id      => _b32( _random_bytes(10) ),
-        created => ntime_b32( ntime_now() ),
+        created => int( ntime_now() ),
         kdf     => { %KDF_DEFAULT, %kdf },
         key     => _random_bytes(32),
         wraps   => {},
@@ -356,36 +490,11 @@ sub vault_init {
 sub vault_open {
     my $dir = shift;
 
-    my $text = _read_file( _key_path($dir) )
-        // return ( undef, "no vault in $dir" );
-    my @lines = split m|\n|, $text;
+    return ( undef, "no vault in $dir" ) if not -e _key_path($dir);
+    my $bin = _b32_file_read( _key_path($dir) )
+        // return ( undef, 'key file is not base32' );
 
-    return ( undef, 'not a vault key file' )
-        if ( shift(@lines) // '' ) ne "$KEY_MAGIC $FORMAT";
-
-    my $vault = { dir => $dir, wraps => {} };
-    foreach my $line (@lines) {
-        my ( $word, @rest ) = split m| |, $line;
-        next if not defined $word;
-        if ( $word eq qw| vault | ) {
-            $vault->{'id'} = $rest[0];
-        } elsif ( $word eq qw| created | ) {
-            $vault->{'created'} = $rest[0];
-        } elsif ( $word eq qw| kdf | and ( $rest[0] // '' ) eq 'argon2id' ) {
-            @{ $vault->{'kdf'} }{qw| t m p |} = @rest[ 1 .. 3 ];
-        } elsif ( $word eq qw| wrap | and @rest == 5 ) {
-            my $name = shift @rest;
-            @{ $vault->{'wraps'}{$name} }{qw| salt nonce ct tag |} = @rest;
-        }
-    }
-
-    return ( undef, 'key file lacks vault id' )
-        if ( $vault->{'id'} // '' ) !~ m|^[A-Z2-7]{16}$|;
-    return ( undef, 'key file lacks kdf' )
-        if grep { ( $ARG // '' ) !~ m|^\d+$| }
-        @{ $vault->{'kdf'} // {} }{qw| t m p |};
-
-    return ( $vault, undef );
+    return _key_file_parse( $bin, $dir );
 }
 
 sub vault_wraps { return sort keys %{ shift->{'wraps'} } }
@@ -399,22 +508,24 @@ sub vault_unlock {
     $secret = recovery_code_normalize($secret)
         if $wrap_name eq qw| recovery |;
 
-    my @raw = map { _unb32( $wrap->{$ARG} ) } qw| salt nonce ct tag |;
+    my @raw = @{$wrap}{qw| salt nonce ct tag |};
     return FALSE if grep { not defined } @raw;
 
-    my $wrap_key = _argon2id( $secret, $raw[0], $vault->{'kdf'} );
-    my $key
-        = chacha20poly1305_decrypt_verify( $wrap_key, $raw[1],
+    my $root = _argon2id( $secret, $raw[0], $vault->{'kdf'} );
+    my $key  = _cascade_decrypt(
+        $root, $raw[0],
+        "$KEY_MAGIC $FORMAT wrap",
         _wrap_ad( $vault, $wrap_name ),
-        $raw[2], $raw[3] );
+        @raw[ 1 .. 3 ]
+    );
 
     return FALSE if not defined $key or length $key != 32;
     $vault->{'key'} = $key;
     return TRUE;
 }
 
-## [re]wrap the unlocked key under a new secret [ passphrase change, new
-## recovery code ]. $secret undef removes that wrap
+## [re]wrap the unlocked key under a new secret
+## [ passphrase change, new recovery code ]. $secret undef removes that wrap
 sub vault_rewrap {
     my ( $vault, $wrap_name, $secret ) = @ARG;
 
@@ -447,12 +558,6 @@ sub vault_rewrap {
 sub _entry_ad {
     my ( $vault, $id, $version ) = @ARG;
     return join ' ', $ENTRY_MAGIC, $FORMAT, $vault->{'id'}, $id, $version;
-}
-
-sub _entry_key {
-    my ( $vault, $salt ) = @ARG;
-    return hkdf( $vault->{'key'}, $salt, qw| SHA256 |, 32,
-        "$ENTRY_MAGIC $FORMAT" );
 }
 
 ## version names sort in time order : <decimal ntime, 14 digits>.<8 b32 chars>
@@ -489,24 +594,56 @@ sub entry_save {
 
     my $version = _new_version( $vault, $id );
     my $salt    = _random_bytes(16);
-    my $nonce   = _random_bytes(12);
-    my ( $ct, $tag ) = chacha20poly1305_encrypt_authenticate(
-        _entry_key( $vault, $salt ),        $nonce,
+    my ( $nonce, $ct, $tag ) = _cascade_encrypt(
+        $vault->{'key'}, $salt,
+        "$ENTRY_MAGIC $FORMAT",
         _entry_ad( $vault, $id, $version ), $plaintext
     );
 
-    my $line = join( ' ',
-        $ENTRY_MAGIC, $FORMAT,   $vault->{'id'},
-        $id,          $version,  _b32($salt),
-        _b32($nonce), _b32($ct), _b32($tag) ) . qq|\n|;
+    my ( $stamp, $tail ) = split m|\.|, $version;
+    my $bin = pack(
+        q{a4 C a10 a10 Q> a5 a16 a12 a16},
+        $ENTRY_BIN_MAGIC, $FORMAT, _unb32( $vault->{'id'} ),
+        _unb32($id), $stamp, _unb32($tail), $salt, $nonce, $tag
+    ) . $ct;
 
     my ( $ok, $err ) = _write_new_file(
-        sprintf( qw| %s/entries/%s.%s.vlt |, $vault->{'dir'}, $id, $version ),
-        $line
+        _entry_path( $vault, $id, $version ),
+        _b32_file_text( $bin, 'p7-vault entry' )
     );
     die "vault : $err\n" if not $ok;
 
     return $id;
+}
+
+sub _entry_path {
+    my ( $vault, $id, $version ) = @ARG;
+    return sprintf qw| %s/entries/%s.%s.vlt.B32 |, $vault->{'dir'}, $id,
+        $version;
+}
+
+## entry file : 'P7VE' format:C vault-id:a10 entry-id:a10 version-ntime:Q>
+## version-tail:a5 salt:a16 nonce:a12 tag:a16 , the ciphertext to the end.
+## returns a hash, or an error string
+sub _entry_parse {
+    my $bin = shift;
+
+    return 'not a vault entry'
+        if length $bin < 82
+        or substr( $bin, 0, 4 ) ne $ENTRY_BIN_MAGIC;
+    my ( undef, $format, $vid, $id, $stamp, $tail, $salt, $nonce, $tag, $ct )
+        = unpack( q{a4 C a10 a10 Q> a5 a16 a12 a16 a*}, $bin );
+    return "entry format $format not supported" if $format != $FORMAT;
+
+    return {
+        vault   => _b32($vid),
+        id      => _b32($id),
+        version => sprintf( qw| %014d.%s |, $stamp, _b32($tail) ),
+        salt    => $salt,
+        nonce   => $nonce,
+        tag     => $tag,
+        ct      => $ct,
+    };
 }
 
 ## { id => [ versions, oldest first ] } from the file names alone
@@ -516,7 +653,8 @@ sub entry_versions {
 
     opendir( my $dh, "$vault->{'dir'}/entries" ) or return {};
     foreach my $file ( readdir $dh ) {
-        next if $file !~ m|^([A-Z2-7]{16})\.(\d{14}\.[A-Z2-7]{8})\.vlt$|;
+        next
+            if $file !~ m|^([A-Z2-7]{16})\.(\d{14}\.[A-Z2-7]{8})\.vlt\.B32$|;
         push @{ $versions{$1} }, $2;
     }
     closedir $dh;
@@ -537,33 +675,29 @@ sub entry_load {
         $version = $all->[-1] // return ( undef, "no entry $id" );
     }
 
-    my $file = sprintf qw| %s/entries/%s.%s.vlt |, $vault->{'dir'}, $id,
-        $version;
-    my $text = _read_file($file) // return ( undef, "cannot read $file" );
-    chomp $text;
+    my $file = _entry_path( $vault, $id, $version );
+    return ( undef, "cannot read $file" ) if not -r $file;
+    my $bin = _b32_file_read($file)
+        // return ( undef, "$id.$version : not base32" );
 
-    my @word = split m| |, $text;
-    return ( undef, "$id.$version : malformed" )
-        if @word != 9
-        or $word[0] ne $ENTRY_MAGIC
-        or $word[1] ne $FORMAT;
+    my $entry = _entry_parse($bin);
+    return ( undef, "$id.$version : $entry" ) if not ref $entry;
 
     ## the header must name the same vault, entry and version as the file name
     ## -- and the ad binds all three, so a renamed or swapped blob fails the
     ## tag below even if this check were skipped
     return ( undef, "$id.$version : header does not match file name" )
-        if $word[2] ne $vault->{'id'}
-        or $word[3] ne $id
-        or $word[4] ne $version;
+        if $entry->{'vault'} ne $vault->{'id'}
+        or $entry->{'id'} ne $id
+        or $entry->{'version'} ne $version;
 
-    my ( $salt, $nonce, $ct, $tag ) = map { _unb32($ARG) } @word[ 5 .. 8 ];
-    return ( undef, "$id.$version : bad encoding" )
-        if grep { not defined } $salt, $nonce, $ct, $tag;
+    my ( $salt, $nonce, $ct, $tag ) = @{$entry}{qw| salt nonce ct tag |};
 
-    my $plaintext = chacha20poly1305_decrypt_verify(
-        _entry_key( $vault, $salt ),
-        $nonce, _entry_ad( $vault, $id, $version ),
-        $ct,    $tag
+    my $plaintext = _cascade_decrypt(
+        $vault->{'key'}, $salt,
+        "$ENTRY_MAGIC $FORMAT",
+        _entry_ad( $vault, $id, $version ),
+        $nonce, $ct, $tag
     );
     return ( undef, "$id.$version : authentication failed" )
         if not defined $plaintext;
@@ -626,8 +760,8 @@ sub vault_verify {
 
 ##[ PASSWORD GENERATOR ]######################################################
 
-## uniform draw by rejection sampling. $classes : any of 'a' [ lower ], 'A' [
-## upper ], '9' [ digits ], '#' [ symbols ] -- default all four
+## uniform draw by rejection sampling. $classes : any of 'a' [ lower ], 'A'
+## [ upper ], '9' [ digits ], '#' [ symbols ] -- default all four
 sub gen_password {
     my $length  = shift // 24;
     my $classes = shift // q{aA9#};
@@ -661,8 +795,8 @@ sub gen_password {
 
 1;
 
-#,,..,...,.,,,,..,.,.,,,.,,,,,,,.,,.,,...,.,,,..,,...,...,..,,,,.,.,.,...,,,.,
-#EM7WYIFANK5J332525KRVRPB2T4P73WPSZU3Z4SX7KUB2KMLXYWQUSMMLLRDLIQB5LHAYKJNEKWM2
-#\\\|EWPZMQYLPLDR3PVZDPACETM6LTB777QE3HO2BXXG3AQXKGXKKKC \ / AMOS7 \ YOURUM ::
-#\[7]2E35SO55G5VWROGOSFS46Z5VOC46STBT5DSBWGZD2ZZDWVU7LOAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,..,,,.,,.,.,.,.,,..,,.,,.,.,..,,...,...,.,,,.,.,,..,,,,,..,,
+#WC5ITH35PVTWU4GC3MZFCYGZKRSPXK5XZAGLIMRQTV6CAZJNFHALH5NZXJW4TWZ33WNVHTXCWV3B2
+#\\\|WFZUA5IPJ5DIFTBODBE2VYUBYJPKN32RBFGCHE2BCBWAQS4WM35 \ / AMOS7 \ YOURUM ::
+#\[7]5IXHXXEIDPBYAP7NJK54ULMBYLCLAY3L3VM57UIAUPNNHJ6CNAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
