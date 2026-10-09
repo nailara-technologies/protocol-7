@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
-- [project-2026-10-09-session-handover-remote-rollout](project-2026-10-09-session-handover-remote-rollout.md) — START HERE : session 2026-10-08..09 handover [ last 30a688058 ] -- remotes pinned, perl floor 5.32 + floor check, yaml wrappers, letsencr auto-enrollment [ staging, explicit claim ], form \ host-edit ui, signature fragments + :strip: ; next = first real enrollment, pull on the remotes
+- [project-2026-10-09-session-handover-acme-async](project-2026-10-09-session-handover-acme-async.md) — START HERE : session 2026-10-09 handover [ last a30e66958, both remotes on 9883 ] -- letsencr acme on the event loop [ live ], image metadata stripped from history, nameserv txt, coding gpu recheck, outer cube = ext-cube, dns knock idea ; next = retry off-by-one, pri taeki auth, dns-01 live
+- [project-2026-10-09-session-handover-remote-rollout](project-2026-10-09-session-handover-remote-rollout.md) — previous session : session 2026-10-08..09 handover [ last 30a688058 ] -- remotes pinned, perl floor 5.32 + floor check, yaml wrappers, letsencr auto-enrollment [ staging, explicit claim ], form \ host-edit ui, signature fragments + :strip: ; next = first real enrollment, pull on the remotes
 - [project-2026-10-08-session-handover-host-setup](project-2026-10-08-session-handover-host-setup.md) — superseded by 2026-10-09 ; was : session 2026-10-07..08 handover [ last 4bfbbb717 ] -- step 2 live, key id, key trash, host-edit + full add-host flow ; next = first real add-host run [ fanless backup host ]
 - [project-2026-10-08-trust-chain-step2-landed](project-2026-10-08-trust-chain-step2-landed.md) — trust chain step 2 LANDED [ 859a69f04, 22bc35644 ] : chains on the wire, name-bound pins + forward rotation, owner \ distrust tools, discover owner trust ; NOT live-checked [ v7-zenki restart ] ; next host-edit zenka + initial transports
 - [project-2026-09-20-model-sweep-crash-bucket-resolved](project-2026-09-20-model-sweep-crash-bucket-resolved.md) — cross-backend sweep lock fix (7003d1345) live-verified; 25 models deleted, 103GB freed; crash bucket classified. New models.cmd.delete-model/trash-list/trash-rescue/trash-prune/protect/unprotect tooling built+live-verified (trash-based, path-escape-protected). Also: switch_model_reply YAML/$1-clobber/fail-fast fixes, libsdl-perl deps fix. Still open: coding.cmd.model-sweep-test <checksum> targeted retest, not built
@@ -177,8 +178,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,.,,,,,,,.,,.,.,,.,,.,.,,,.,,,,,,.,,.,.,,,,,..,,...,...,.,.,,,,,,,,,,,.,,,,,
-#CS45K465Q4Z7MDAGRD2GL2HRGBZ5OEVWUABYRHMXQLCNDA6NNTCI44AAT3I3OPJJSAJ2APK6OPJ4Q
-#\\\|NCKFWRA5PJ3BJVGQUZ7XUCY6YHTRXDY4OYDTMJCIOJKMRZVBLP7 \ / AMOS7 \ YOURUM ::
-#\[7]ZC2JWSYKLRFJVYJMEXH72X7SDJ2ERDZIDZOBGHUJFGFDSENPWUBI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,..,,...,.,.,..,,...,.,.,,..,..,,...,...,..,,,..,...,.,,,.,,,
+#JJRHYIALGMDLMNAMFY3AUJRFSHQW5VIHZBBJ75PLTWV6YNCKAT5Z64GRJWWZGJDHC43RCNHKGQHOQ
+#\\\|YRUIEY4NRIHKWZ66IVGLN543X4EX3RYRPD2RW2JATIL6GRGKZH6 \ / AMOS7 \ YOURUM ::
+#\[7]VSB45G72V6YLVU6TYWEP2UBMIIAG54H4JB6G5L6P66BHO6O6BSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
