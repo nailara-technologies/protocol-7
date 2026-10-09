@@ -41,8 +41,17 @@ for my $rel_path ( sort keys $paths_href->%* ) {
         }
     } elsif ( exists $pair_href->{'after'} ) {
         ## baseline-absent path : delete -- recoverable, its content is ##
-        ## already packed under its own checksum                        ##
-        unlink $abs_path if -f $abs_path;
+        ## already packed under its own checksum. a directory the zenka ##
+        ## cannot write [ src/ : files there are created by the chmod   ##
+        ## child, as the admin user ] : remove through the child too, a ##
+        ## plain unlink fails silently and the reverify failed          ##
+        if ( -f $abs_path and !unlink $abs_path ) {
+            my $chmod_fh = <coding.chmod_child.w_fh>;
+            if ( defined $chmod_fh ) {
+                print {$chmod_fh} "remove $abs_path\n";
+                <[coding.chmod_child.readline]>;
+            }
+        }
     }
 }
 
