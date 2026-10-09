@@ -1,0 +1,715 @@
+#!/usr/bin/perl
+use v5.24;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###          ###
+##  p7-vault  ##
+###          ###
+
+## personal vault : logins, notes, contacts. standalone on purpose -- needs
+## perl, CryptX [ + Crypt::Argon2 on CryptX < 0.088 ] and Term::ReadKey,
+## nothing from a running protocol-7. copy this file, AMOS7/Vault.pm +
+## AMOS7/NTIME.pm [ as AMOS7/ beside it ] and data/md/design/VAULT-FORMAT.md
+## next to every backup.
+##
+## p7-vault                    interactive : unlock once, then commands
+## p7-vault <command> [ args ] one command
+##
+## secrets are only ever typed at a prompt, never taken from argv.
+
+use FindBin;
+use Encode qw| decode encode |;
+
+BEGIN {
+    ## repo layout first, then a backup copy [ AMOS7/ beside the script ] ##
+    unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+}
+
+use AMOS7::Vault qw|
+    vault_init vault_open vault_unlock vault_rewrap vault_wraps
+    entry_save entry_load entry_versions entries_latest vault_verify
+    gen_password recovery_code_new recovery_code_normalize
+    type_fields secret_field ntime_b32_to_unix version_to_unix
+    |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+
+## prompts must reach a reader before we block on its answer ##
+STDOUT->autoflush(1);
+
+my $CLIP_CLEAR_SECONDS = $ENV{'P7_VAULT_CLIP_SECONDS'} // 45;
+
+my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
+    $ENV{'HOME'} // ( getpwuid($EUID) )[7];
+
+my $use_recovery = FALSE;
+
+## options before the command ##
+while ( @ARGV and $ARGV[0] =~ m|^-| ) {
+    my $opt = shift @ARGV;
+    if ( $opt eq '--dir' and @ARGV ) {
+        $dir = shift @ARGV;
+    } elsif ( $opt eq '--recovery' ) {
+        $use_recovery = TRUE;
+    } elsif ( $opt eq '-h' or $opt eq '--help' ) {
+        usage();
+        exit 0;
+    } else {
+        die "p7-vault : unknown option '$opt'\n";
+    }
+}
+
+my %COMMANDS = (
+    init    => \&cmd_init,
+    add     => \&cmd_add,
+    list    => \&cmd_list,
+    ls      => \&cmd_list,
+    show    => \&cmd_show,
+    copy    => \&cmd_copy,
+    get     => \&cmd_get,
+    edit    => \&cmd_edit,
+    rm      => \&cmd_rm,
+    history => \&cmd_history,
+    restore => \&cmd_restore,
+    gen     => \&cmd_gen,
+    passwd  => \&cmd_passwd,
+    verify  => \&cmd_verify,
+    help    => sub { usage() },
+);
+
+my $vault;    ## unlocked handle, opened on first need ##
+
+if (@ARGV) {
+    my $cmd = shift @ARGV;
+    my $sub = $COMMANDS{$cmd} // die "p7-vault : unknown command '$cmd'\n";
+    exit( $sub->(@ARGV) ? 0 : 1 );
+}
+
+## interactive : one unlock for a whole session ##
+die "p7-vault : no terminal [ give a command ]\n" if not -t STDIN;
+if ( not -e "$dir/vault.key" ) {
+    say "  no vault in $dir yet -- 'init' creates one";
+} else {
+    unlocked() or exit 1;
+}
+while (TRUE) {
+    my $line = prompt_line('vault') // last;
+    my ( $cmd, @args ) = split ' ', $line;
+    next if not defined $cmd;
+    last if $cmd eq 'quit' or $cmd eq 'q' or $cmd eq 'exit';
+    my $sub = $COMMANDS{$cmd};
+    if ( not $sub ) {
+        say "  unknown command '$cmd' [ help ]";
+        next;
+    }
+    $sub->(@args);
+}
+exit 0;
+
+##[ USAGE ]###################################################################
+
+sub usage {
+    print <<"EOF";
+
+  p7-vault [ --dir <path> ] [ --recovery ] [ <command> [ args ] ]
+
+    init                     create a vault [ $dir ]
+    add [ login|note|contact ]  new entry, fields prompted
+    list [ filter ]          titles, urls, user names
+    show <filter> [ -r ]     one entry, secrets masked [ -r reveals ]
+    copy <filter> [ field ]  to the clipboard [ default password ],
+                             cleared after $CLIP_CLEAR_SECONDS s
+    get <filter> [ field ]   print one value raw [ for pipes ]
+    edit <filter>            change fields [ enter keeps a value ]
+    rm <filter>              delete [ a new deleted version, history stays ]
+    history <filter>         versions of one entry [ deleted ones too ]
+    restore <filter> [ n ]   make an older version current again
+                             [ default : the newest not deleted one ]
+    gen [ length ] [ classes ]  password [ classes : a A 9 # ]
+    passwd [ recovery ]      change the passphrase [ or recovery code ]
+    verify                   decrypt every version of every entry
+
+    --recovery               unlock with the recovery code
+    P7_VAULT_DIR             vault directory [ default ~/.n/vault ]
+
+EOF
+    return TRUE;
+}
+
+##[ TERMINAL INPUT ]##########################################################
+
+sub prompt_line {
+    my $label = shift;
+    print "  $label > ";
+    my $line = <STDIN>;
+    return undef if not defined $line;
+    chomp $line;
+    return decode( 'UTF-8', $line );
+}
+
+## no-echo input, never logged, never on argv ##
+sub prompt_secret {
+    my $label = shift;
+    print "  $label : ";
+
+    my $line;
+    if ( -t STDIN and eval { require Term::ReadKey; 1 } ) {
+        Term::ReadKey::ReadMode('noecho');
+        $line = eval {<STDIN>};
+        Term::ReadKey::ReadMode('restore');
+    } elsif ( -t STDIN ) {
+        system qw| stty -echo |;
+        $line = <STDIN>;
+        system qw| stty echo |;
+    } else {
+        $line = <STDIN>;
+    }
+    print "\n";
+    return undef if not defined $line;
+    chomp $line;
+    return decode( 'UTF-8', $line );
+}
+
+## multi-line, no echo, ends at a line holding a single '.' ##
+sub prompt_secret_lines {
+    my $label = shift;
+    say "  $label [ end with a line holding only '.' ] :";
+    my @lines;
+    while (TRUE) {
+        my $line = prompt_secret('  ');
+        last if not defined $line or $line eq '.';
+        push @lines, $line;
+    }
+    return join qq|\n|, @lines;
+}
+
+sub confirm {
+    my $question = shift;
+    my $answer   = prompt_line("$question [ y/N ]") // '';
+    return $answer =~ m|^y(es)?$|i ? TRUE : FALSE;
+}
+
+##[ VAULT ACCESS ]############################################################
+
+sub unlocked {
+    return $vault if defined $vault;
+
+    my ( $handle, $err ) = vault_open($dir);
+    if ( not defined $handle ) {
+        say STDERR "  $err";
+        return undef;
+    }
+
+    my $wrap  = $use_recovery ? 'recovery'      : 'passphrase';
+    my $label = $use_recovery ? 'recovery code' : 'vault passphrase';
+
+    foreach my $try ( 1 .. 3 ) {
+        my $secret = prompt_secret($label) // return undef;
+        if ( vault_unlock( $handle, encode( 'UTF-8', $secret ), $wrap ) ) {
+            $vault = $handle;
+            return $vault;
+        }
+        say "  wrong $label";
+    }
+    return undef;
+}
+
+## pick one entry by filter : exact title first, then substring over title /
+## url / username / name. several matches : numbered choice
+sub pick {
+    my $filter       = shift      // '';
+    my $with_deleted = shift      // FALSE;
+    my $v            = unlocked() // return undef;
+
+    my ( $list, $errors ) = entries_latest( $v, $with_deleted );
+    say STDERR "  << $ARG >>" foreach @{$errors};
+
+    my @hits = grep { lc( $ARG->{'record'}{'title'} // '' ) eq lc $filter }
+        @{$list};
+    @hits = grep { matches( $ARG->{'record'}, $filter ) } @{$list}
+        if not @hits;
+
+    if ( not @hits ) {
+        say "  no entry matches '$filter'";
+        return undef;
+    }
+    return $hits[0] if @hits == 1;
+
+    if ( not -t STDIN ) {
+        say STDERR "  '$filter' matches $ARG entries -- be more specific"
+            for scalar @hits;
+        return undef;
+    }
+    foreach my $n ( 1 .. @hits ) {
+        say '  ' . summary_line( $n, $hits[ $n - 1 ]{'record'} );
+    }
+    my $choice = prompt_line('number') // '';
+    return undef if $choice !~ m|^\d+$| or $choice < 1 or $choice > @hits;
+    return $hits[ $choice - 1 ];
+}
+
+sub matches {
+    my ( $record, $filter ) = @ARG;
+    return TRUE if not length $filter;
+    foreach my $field (qw| title url username name email phone |) {
+        return TRUE
+            if index( lc( $record->{$field} // '' ), lc $filter ) != -1;
+    }
+    return FALSE;
+}
+
+sub summary_line {
+    my ( $n, $record ) = @ARG;
+    my $type = $record->{'type'} // 'login';
+    my $who
+        = $type eq 'contact'
+        ? join( ' ',
+        grep {length} $record->{'phone'} // '',
+        $record->{'email'} // '' )
+        : join( ' ',
+        grep {length} $record->{'username'} // '',
+        $record->{'url'} // '' );
+    return sprintf '%3s  %-7s %-28s %s', $n, $type,
+        $record->{'title'} // '', $who;
+}
+
+##[ COMMANDS ]################################################################
+
+sub cmd_init {
+    if ( -e "$dir/vault.key" ) {
+        say "  $dir already holds a vault";
+        return FALSE;
+    }
+    say "  new vault in $dir";
+
+    my $passphrase;
+    while (TRUE) {
+        $passphrase = prompt_secret('new vault passphrase') // return FALSE;
+        my $again = prompt_secret('re-enter passphrase') // return FALSE;
+        if ( $passphrase ne $again ) {
+            say '  passphrases differ, again';
+            next;
+        }
+        if ( length $passphrase < 12 ) {
+            say '  << short passphrase : every entry depends on it. several '
+                . 'words are easier to remember and much stronger >>';
+            next if not confirm('keep it anyway');
+        }
+        last;
+    }
+
+    my $recovery = recovery_code_new();
+    say '';
+    say '  recovery code -- opens the vault if the passphrase is forgotten.';
+    say '  write it on paper, keep it away from this machine :';
+    say '';
+    say "      $recovery";
+    say '';
+    my $typed = prompt_line("type it back to confirm [ or 'skip' ]") // '';
+
+    if ( $typed eq 'skip' ) {
+        say '  << no recovery code : a forgotten passphrase '
+            . 'loses every entry, with no way back >>';
+        return FALSE if not confirm('create the vault without one');
+        undef $recovery;
+    } else {
+        while ( recovery_code_normalize($typed) ne
+            recovery_code_normalize($recovery) ) {
+            say '  does not match';
+            $typed = prompt_line('type it back') // return FALSE;
+        }
+    }
+    print "\e[3J\e[2J\e[H" if -t STDOUT;    ## code off screen + scrollback ##
+
+    my $created
+        = vault_init( $dir, encode( 'UTF-8', $passphrase ), $recovery );
+
+    ## prove both wraps open, from the file, before anyone relies on them ##
+    my ($check)  = vault_open($dir);
+    my $ok       = vault_unlock( $check, encode( 'UTF-8', $passphrase ) );
+    my ($check2) = vault_open($dir);
+    $ok = FALSE
+        if defined $recovery
+        and not vault_unlock( $check2, $recovery, 'recovery' );
+    if ( not $ok ) {
+        say '  << the new key file does not open -- do not use it >>';
+        return FALSE;
+    }
+
+    $vault = $created;
+    say "  vault created and test-unlocked [ $dir ]";
+    return TRUE;
+}
+
+sub cmd_add {
+    my $type = shift // 'login';
+    if ( not type_fields($type) ) {
+        say "  unknown type '$type' [ login note contact ]";
+        return FALSE;
+    }
+    my $v = unlocked() // return FALSE;
+
+    my %record = ( type => $type );
+    foreach my $field ( type_fields($type) ) {
+        my $value = ask_field( $field, undef ) // return FALSE;
+        $record{$field} = $value if length $value;
+    }
+    if ( not length( $record{'title'} // '' ) ) {
+        say '  a title is needed';
+        return FALSE;
+    }
+    entry_save( $v, undef, \%record );
+    say "  stored '$record{'title'}'";
+    return TRUE;
+}
+
+## one field. $current undef : new entry. returns the new value [ '' = none ]
+## or undef on cancel [ end of input ]
+sub ask_field {
+    my ( $field, $current ) = @ARG;
+    my $has = defined $current && length $current;
+
+    if ( $field eq 'password' ) {
+        my $default = $has ? 'k' : 'g';
+        my $choice
+            = prompt_line( sprintf 'password : %sn(ew) / g(enerate) [%s]',
+            $has ? 'k(eep) / ' : '', $default ) // return undef;
+        $choice = $default if not length $choice;
+        return $current    if $choice =~ m|^k|i and $has;
+        if ( $choice =~ m|^g|i ) {
+            my $length = prompt_line('length [24]') // return undef;
+            $length = 24 if $length !~ m|^\d+$| or $length < 4;
+            say '  generated';
+            return gen_password($length);
+        }
+        while (TRUE) {
+            my $new = prompt_secret('password') // return undef;
+            return $current // '' if not length $new;
+            my $again = prompt_secret('re-enter') // return undef;
+            return $new if $new eq $again;
+            say '  differs, again';
+        }
+    }
+
+    if ( $field eq 'body' ) {
+        if ($has) {
+            my $choice = prompt_line('body : k(eep) / r(eplace) [k]')
+                // return undef;
+            return $current if $choice !~ m|^r|i;
+        }
+        return prompt_secret_lines('body');
+    }
+
+    if ( secret_field($field) ) {
+        my $new = prompt_secret( $has ? "$field [ enter keeps ]" : $field )
+            // return undef;
+        return $has && !length $new ? $current : $new;
+    }
+
+    my $label = $has ? "$field [$current] [ - clears ]" : $field;
+    my $new   = prompt_line($label) // return undef;
+    return '' if $new eq '-';
+    return $has && !length $new ? $current : $new;
+}
+
+sub cmd_list {
+    my $filter = join ' ', @ARG;
+    my $v      = unlocked() // return FALSE;
+    my ( $list, $errors ) = entries_latest($v);
+    say STDERR "  << $ARG >>" foreach @{$errors};
+
+    my $n = 0;
+    foreach
+        my $entry ( grep { matches( $ARG->{'record'}, $filter ) } @{$list} ) {
+        say '  ' . summary_line( ++$n, $entry->{'record'} );
+    }
+    say '  [ no entries ]' if not $n;
+    return TRUE;
+}
+
+sub cmd_show {
+    my @args   = @ARG;
+    my $reveal = grep { $ARG eq '-r' } @args;
+    my $entry = pick( join ' ', grep { $ARG ne '-r' } @args ) // return FALSE;
+    my $record = $entry->{'record'};
+    my $type   = $record->{'type'} // 'login';
+
+    say '';
+    foreach my $field ( 'type', type_fields($type) ) {
+        my $value = $record->{$field};
+        next if not defined $value or not length $value;
+        if ( secret_field($field) and not $reveal ) {
+            $value = '*' x 8;
+        }
+        $value =~ s|\n|\n               |g;
+        say sprintf '  %-12s %s', $field, $value;
+    }
+    say sprintf '  %-12s %s [ %s ]', 'updated',
+        scalar localtime( ntime_b32_to_unix( $record->{'updated'} ) // 0 ),
+        $record->{'updated'} // '';
+    say '';
+    return TRUE;
+}
+
+sub cmd_get {
+    my $field = @ARG > 1 ? pop @ARG : 'password';
+    my $entry = pick( join ' ', @ARG ) // return FALSE;
+    my $value = $entry->{'record'}{$field};
+    if ( not defined $value ) {
+        say STDERR "  no field '$field'";
+        return FALSE;
+    }
+    print $value;
+    print "\n" if -t STDOUT;
+    return TRUE;
+}
+
+sub cmd_copy {
+    my $field = @ARG > 1 ? pop @ARG : 'password';
+    my $entry = pick( join ' ', @ARG ) // return FALSE;
+    my $value = $entry->{'record'}{$field};
+    if ( not defined $value or not length $value ) {
+        say "  no field '$field'";
+        return FALSE;
+    }
+
+    my $tool = clipboard_tool() // do {
+        say '  no clipboard tool [ wl-copy, xsel, xclip, clip.exe ]';
+        return FALSE;
+    };
+    clipboard_set( $tool, $value ) or do {
+        say "  $tool->[0] failed";
+        return FALSE;
+    };
+    say "  $field copied [ cleared in $CLIP_CLEAR_SECONDS s ]";
+    say '  << windows clipboard history [ win+v ] keeps a copy, if enabled >>'
+        if on_wsl();
+    clipboard_clear_later( $tool, $value );
+    return TRUE;
+}
+
+sub cmd_edit {
+    my $entry  = pick( join ' ', @ARG ) // return FALSE;
+    my $v      = unlocked()             // return FALSE;
+    my %record = %{ $entry->{'record'} };
+    delete $record{'updated'};
+
+    foreach my $field ( type_fields( $record{'type'} // 'login' ) ) {
+        my $value = ask_field( $field, $record{$field} ) // return FALSE;
+        if ( length $value ) { $record{$field} = $value }
+        else                 { delete $record{$field} }
+    }
+    entry_save( $v, $entry->{'id'}, \%record );
+    say "  stored '$record{'title'}' [ the old version stays in history ]";
+    return TRUE;
+}
+
+sub cmd_rm {
+    my $entry = pick( join ' ', @ARG )      // return FALSE;
+    my $v     = unlocked()                  // return FALSE;
+    my $title = $entry->{'record'}{'title'} // '';
+    return FALSE if not confirm("delete '$title'");
+
+    my %record = ( %{ $entry->{'record'} }, deleted => 1 );
+    delete $record{'updated'};
+    entry_save( $v, $entry->{'id'}, \%record );
+    say "  '$title' deleted [ older versions stay readable in history ]";
+    return TRUE;
+}
+
+sub cmd_history {
+    my $entry    = pick( join( ' ', @ARG ), TRUE )        // return FALSE;
+    my $v        = unlocked()                             // return FALSE;
+    my $versions = entry_versions($v)->{ $entry->{'id'} } // [];
+
+    say "  entry $entry->{'id'}";
+    foreach my $version ( reverse @{$versions} ) {
+        my ( $record, $err ) = entry_load( $v, $entry->{'id'}, $version );
+        my $stamp = int( version_to_unix($version) // 0 );
+        say sprintf '  %s  %s  %s', scalar localtime($stamp), $version,
+            $err // (
+            $record->{'deleted'}
+            ? 'deleted'
+            : $record->{'title'} // ''
+            );
+    }
+    return TRUE;
+}
+
+## write an older version again as the newest [ undelete, undo an edit ].  n
+## counts back from the newest [ 1 = the one before ] ; default : the newest
+## version that is not a deletion
+sub cmd_restore {
+    my @args  = @ARG;
+    my $back  = @args > 1 && $args[-1] =~ m|^\d+$| ? pop @args : undef;
+    my $entry = pick( join( ' ', @args ), TRUE ) // return FALSE;
+    my $v     = unlocked()                       // return FALSE;
+    my @older = reverse @{ entry_versions($v)->{ $entry->{'id'} } // [] };
+    shift @older;    ## the current one ##
+
+    my $record;
+    if ( defined $back ) {
+        my $version = $older[ $back - 1 ] // do {
+            say "  no version $back back";
+            return FALSE;
+        };
+        ($record) = entry_load( $v, $entry->{'id'}, $version );
+    } else {
+        foreach my $version (@older) {
+            my ($candidate) = entry_load( $v, $entry->{'id'}, $version );
+            next if not $candidate or $candidate->{'deleted'};
+            $record = $candidate;
+            last;
+        }
+    }
+    if ( not $record ) {
+        say '  nothing to restore';
+        return FALSE;
+    }
+
+    my %restored = %{$record};
+    delete @restored{qw| updated deleted |};
+    entry_save( $v, $entry->{'id'}, \%restored );
+    say "  restored '$restored{'title'}' [ as a new version ]";
+    return TRUE;
+}
+
+sub cmd_gen {
+    my $length  = shift // 24;
+    my $classes = shift;
+    $length = 24 if $length !~ m|^\d+$| or $length < 4;
+    say gen_password( $length, $classes );
+    return TRUE;
+}
+
+sub cmd_passwd {
+    my $which = shift      // 'passphrase';
+    my $v     = unlocked() // return FALSE;
+
+    if ( $which eq 'recovery' ) {
+        my $code = recovery_code_new();
+        say "\n      $code\n";
+        my $typed = prompt_line('type it back to confirm') // return FALSE;
+        if ( recovery_code_normalize($typed) ne recovery_code_normalize($code)
+        ) {
+            say '  does not match -- recovery code unchanged';
+            return FALSE;
+        }
+        print "\e[3J\e[2J\e[H" if -t STDOUT;
+        vault_rewrap( $v, 'recovery', $code );
+        say '  new recovery code active [ the old one no longer opens it ]';
+        return TRUE;
+    }
+
+    my $new   = prompt_secret('new vault passphrase') // return FALSE;
+    my $again = prompt_secret('re-enter passphrase')  // return FALSE;
+    if ( $new ne $again ) {
+        say '  passphrases differ -- unchanged';
+        return FALSE;
+    }
+    say '  << short passphrase >>' if length $new < 12;
+    vault_rewrap( $v, 'passphrase', encode( 'UTF-8', $new ) );
+
+    my ($check) = vault_open($dir);
+    if ( not vault_unlock( $check, encode( 'UTF-8', $new ) ) ) {
+        say '  << the rewritten key file does '
+            . 'not open : use the recovery code >>';
+        return FALSE;
+    }
+    say '  passphrase changed [ copies of the old '
+        . 'vault.key elsewhere still open with the old one ]';
+    return TRUE;
+}
+
+sub cmd_verify {
+    my $v = unlocked() // return FALSE;
+    my ( $ok, $errors ) = vault_verify($v);
+    say "  << $ARG >>" foreach @{$errors};
+    say sprintf '  %d version%s decrypted, %d failed', $ok,
+        $ok == 1 ? '' : 's', scalar @{$errors};
+    return @{$errors} ? FALSE : TRUE;
+}
+
+##[ CLIPBOARD ]###############################################################
+
+sub clipboard_tool {
+    my @candidates = (
+        [ 'wl-copy', [qw| wl-copy |],  [qw| wl-copy --clear |] ],
+        [ 'xsel',    [qw| xsel -bi |], [qw| xsel -bc |], [qw| xsel -bo |] ],
+        [   'xclip', [qw| xclip -selection clipboard |],
+            undef,   [qw| xclip -selection clipboard -o |]
+        ],
+        [ 'clip.exe', [qw| clip.exe |] ],
+    );
+    foreach my $tool (@candidates) {
+        next if $tool->[0] eq 'wl-copy' and not $ENV{'WAYLAND_DISPLAY'};
+        next if $tool->[0] =~ m|^x|     and not $ENV{'DISPLAY'};
+        return $tool
+            if grep { -x "$ARG/$tool->[0]" } split m|:|,
+            $ENV{'PATH'} // '';
+    }
+    return undef;
+}
+
+sub clipboard_set {
+    my ( $tool, $value ) = @ARG;
+    open( my $pipe, '|-', @{ $tool->[1] } ) or return FALSE;
+    ## clip.exe reads the console code page : utf-16le with a bom is the one
+    ## input it takes as unicode [ a typed non-ascii password must paste
+    ## exactly as typed ]
+    print {$pipe} $tool->[0] eq 'clip.exe'
+        ? encode( 'UTF-16LE', "\x{FEFF}$value" )
+        : encode( 'UTF-8',    $value );
+    return close $pipe;
+}
+
+## windows syncs every linux clipboard [ wslg ] into its own, history included
+sub on_wsl {
+    return TRUE if $ENV{'WSL_DISTRO_NAME'};
+    open( my $fh, '<', '/proc/version' ) or return FALSE;
+    my $version = <$fh> // '';
+    return $version =~ m{microsoft}i ? TRUE : FALSE;
+}
+
+## a detached child clears the clipboard later -- only if it still holds our
+## value, when the tool can read it back
+sub clipboard_clear_later {
+    my ( $tool, $value ) = @ARG;
+
+    my $pid = fork // return;
+    return if $pid;
+
+    POSIX::setsid() if eval { require POSIX; 1 };
+    open STDIN,  '<', '/dev/null';
+    open STDOUT, '>', '/dev/null';
+    open STDERR, '>', '/dev/null';
+    sleep $CLIP_CLEAR_SECONDS;
+
+    if ( $tool->[3] ) {
+        open( my $read, '-|', @{ $tool->[3] } ) or exit 0;
+        my $now = do { local $RS; <$read> }
+            // '';
+        close $read;
+        exit 0 if $now ne encode( 'UTF-8', $value );
+    }
+    if ( $tool->[2] ) {
+        system @{ $tool->[2] };
+    } else {
+        clipboard_set( $tool, '' );
+    }
+    exit 0;
+}
+
+#,,.,,...,.,,,.,,,,,,,,,,,.,.,.,,,...,,.,,,,,,..,,...,...,.,,,.,,,,.,,..,,,,.,
+#5FVSNFVWZVM7J7XWSJCXN3VGAHE3OGJWALALDDIO4VJPR7QPCXKA6CT62KOZNQMEWBGDEIOXNR7UI
+#\\\|7QYJRFNMXC7CCGQM66J3BZHN4AAP3LA4V65QBDPPW367CWH3TN4 \ / AMOS7 \ YOURUM ::
+#\[7]7FLFUFJVOW3JPGGPWE7EQS6RVFUGCDCEROBNRRZOUYM7ZXEWGCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
