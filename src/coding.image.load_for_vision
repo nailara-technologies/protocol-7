@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = coding.image.load_for_vision
+# descr = load an image, scale it to fit a max size, return base64 + dims
+# param = { path => ..., max_px => 1024 }
+# return = { mime, b64, width, height, orig_width, orig_height, bytes } or
+#          { error => ... }
+
+my $params = shift               // {};
+my $path   = $params->{'path'}   // '';
+my $max_px = $params->{'max_px'} // <coding.cfg.view_image_max_px> // 1024;
+
+return { 'error' => 'path required' } unless length $path;
+
+## relative paths resolve against the project root, like context.file ##
+$path = catfile( <system.root_path>, $path ) if $path !~ m|^/|;
+
+return { 'error' => "image not found : $path" }
+    unless -f $path and -r $path;
+
+my $max_bytes = <coding.cfg.view_image_max_bytes> // 20_000_000;
+my $size      = -s $path;
+return { 'error' => "image is empty : $path" } unless $size;
+return { 'error' => "image too large [ $size bytes ] : $path" }
+    if $size > $max_bytes;
+
+my $raw = '';
+open my $img_fh, '<:raw', $path
+    or return { 'error' => "cannot open : $path : $OS_ERROR" };
+{ local $INPUT_RECORD_SEPARATOR = undef; $raw = readline $img_fh // '' }
+close $img_fh;
+
+## magic bytes decide the type, never the file name ##
+my $mime
+    = $raw =~ m|^\x89PNG|                   ? qw| image/png |
+    : $raw =~ m|^\xFF\xD8\xFF|              ? qw| image/jpeg |
+    : $raw =~ m|^GIF8[79]a|                 ? qw| image/gif |
+    : $raw =~ m|^RIFF.{4}WEBP|s             ? qw| image/webp |
+    : $raw =~ m{^(?:MM\x00\x2a|II\x2a\x00)} ? qw| image/tiff |
+    : $raw =~ m|^BM|                        ? qw| image/bmp |
+    :                                         '';
+return { 'error' => "not a supported image format : $path" }
+    unless length $mime;
+
+<[base.perlmod.load]>->(qw| MIME::Base64 |);
+<[base.perlmod.load]>->(qw| Imager |);
+
+my $img = Imager->new( 'data' => $raw );
+my ( $orig_w, $orig_h, $out_w, $out_h, $out_mime, $out_data );
+
+if ($img) {
+    ( $orig_w, $orig_h ) = ( $img->getwidth, $img->getheight );
+    ( $out_w, $out_h ) = ( $orig_w, $orig_h );
+} elsif ( $mime eq qw| image/webp | ) {
+    ## no webp codec in this Imager build : send as-is, dims unknown ##
+    ( $orig_w, $orig_h, $out_w, $out_h ) = ( 0, 0, 0, 0 );
+} else {
+    return { 'error' => sprintf 'cannot decode image : %s', Imager->errstr };
+}
+
+my $needs_scale = $orig_w > $max_px || $orig_h > $max_px;
+
+## formats every vision projector accepts pass through unscaled as-is ##
+my $passthrough = $mime =~ m{^image/(?:png|jpeg|gif|webp)$};
+
+if ( $needs_scale or not $passthrough ) {
+    return { 'error' => "webp image larger than $max_px px : $path" }
+        unless $img;
+
+    my $out = $img;
+    if ($needs_scale) {
+        $out = $img->scale(
+            'xpixels' => $max_px,
+            'ypixels' => $max_px,
+            'type'    => qw| min |,
+            'qtype'   => qw| mixing |
+            )
+            or
+            return { 'error' => sprintf 'scale failed : %s', $img->errstr };
+    }
+    ( $out_w, $out_h ) = ( $out->getwidth, $out->getheight );
+
+    ## jpeg keeps photos small, everything else [ alpha, line art ] png ##
+    my $type = $mime eq qw| image/jpeg | ? qw| jpeg | : qw| png |;
+    $out->write( 'data' => \$out_data, 'type' => $type )
+        or return { 'error' => sprintf 'encode failed : %s', $out->errstr };
+    $out_mime = "image/$type";
+} else {
+    $out_data = $raw;
+    $out_mime = $mime;
+}
+
+return {
+    'mime'        => $out_mime,
+    'b64'         => MIME::Base64::encode_base64( $out_data, '' ),
+    'width'       => $out_w,
+    'height'      => $out_h,
+    'orig_width'  => $orig_w,
+    'orig_height' => $orig_h,
+    'bytes'       => length $out_data,
+    'path'        => $path,
+};
+
+#,,,,,.,,,.,,,...,,..,,..,,..,..,,.,.,.,.,...,..,,...,..,,...,...,,.,,,,,,.,.,
+#HMN2BMPWBVEILHF3JFFKNKGQE7PN24B6GGEDN2XKAHDXHIE33JDD53Q4S6JMNYEBKKWO44ANAUN7Q
+#\\\|V7NIX64G6KJ7GKZ6TGC3TD6ILQQS477JZZHBOZQE6R76Z2WW5CY \ / AMOS7 \ YOURUM ::
+#\[7]BQRBP4KTX45ORCD3O7E6GHRXN4WAS37E54A647OMNX73YHH66SAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

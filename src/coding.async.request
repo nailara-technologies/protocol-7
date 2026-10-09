@@ -27,8 +27,8 @@ my $port
 
 my $url = "http://127.0.0.1:${port}/v1/chat/completions";
 
-## ensure state exists before lock check  [ backend_busy_retry calls ##
-## send_request which needs messages ]                               ##
+## ensure state exists before lock check                          ##
+## [ backend_busy_retry calls send_request which needs messages ] ##
 my $existing = <coding.async.task_state>->{$task_id};
 if ( !defined $existing || !defined $existing->{'state'} ) {
     <[coding.async.state_machine]>->(
@@ -155,12 +155,30 @@ my $callbacks = {
     backend => $backend,    ## used for cold-start data-start grace ##
 };
 
+## image_ref placeholders -> image_url parts, in a copy of the body [ the ##
+## one place every request passes : first round and later rounds. after   ##
+## state init and jinja sanitizing, so neither stored history nor the     ##
+## sanitizer ever holds the base64 ]                                      ##
+my $outgoing_body = $request_body;
+if ( grep { ref $ARG->{'image_ref'} eq qw| HASH | }
+    @{ $request_body->{'messages'} // [] } ) {
+    my $image_sel = <[coding.image.select_refs]>->(
+        $request_body->{'messages'}, $backend
+    );
+    $outgoing_body = {
+        %$request_body,
+        'messages' => <[coding.image.expand_messages]>->(
+            $request_body->{'messages'}, $image_sel
+        ),
+    };
+}
+
 <[base.logs]>->( 1, "[ %s ] connecting to local backend ..", $task_id );
 <[base.logs]>->( 2, ":. %s .:",                              $url );
 
 ## start HTTP request [ returns immediately ] ##
 my $http_result
-    = <[coding.async.http_client]>->( $url, $request_body, $callbacks );
+    = <[coding.async.http_client]>->( $url, $outgoing_body, $callbacks );
 
 ## store http_state for duplicate detection and cleanup ##
 if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
@@ -190,8 +208,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,.,,.,.,..,,...,,.,,,..,,,.,,,.,,..,..,,,.,,..,,...,...,,..,,,,,,..,.,,,...,
-#DHRKSBCBWX52XKVVHFQRP6CHIN66DZKYCFKK3SILVEYYUMBRBHUN6NMXMXSSFFJZEFV7B627W2HKC
-#\\\|4PLBL7OCIOTKDFLAGETBXO644GVSKIGPZMF5KKMB3JHC2TRMNQU \ / AMOS7 \ YOURUM ::
-#\[7]XUYARVVM2W46AVTK6L2G7CTNEFX2ARB2HMLQ4GS2K476MN3XL4CA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,...,.,,,,,.,.,.,,..,,,.,.,.,..,,...,...,,..,...,.,,,,.,,...,
+#IFRWBMUD7R6CJTADTFFY6G3YN2WJLDIJOS32USJMMODCQAOGCPAJS72WLVAPTQ6Y6S7F6KU3V3B6I
+#\\\|BIK5RGUXTY5SG4EPACE6DAVHAWKZRH42IDJ7R5DXKGGKO2PIBKL \ / AMOS7 \ YOURUM ::
+#\[7]7M57RENV6ZVKEEUKPARXAUX57C457BPAVVUXTQMYWFMSI2TLD4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
