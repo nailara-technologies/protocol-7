@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = coding.tools.handler.analyze_image
+# descr = text description of an image by a vision-capable child task
+# param = { path => ..., prompt => ... }
+
+my $args   = shift             // {};
+my $path   = $args->{'path'}   // '';
+my $prompt = $args->{'prompt'} // '';
+
+return 'error: path required' unless length $path;
+$prompt
+    = 'describe this image in detail : content, '
+    . 'layout, colors, any visible text verbatim'
+    unless length $prompt =~ s|^\s+||r;
+
+## the executing task [ set by coding.async.tool_executor around dispatch ] ##
+my $task_id = <coding.catalog.active_task> // '';
+my $task    = length $task_id ? <coding.task.queue>->{$task_id} : undef;
+return 'error: analyze_image needs a running coding task'
+    unless defined $task;
+
+## validate early : a bad path is answered now, not after a child round ##
+my $image = <[coding.image.load_for_vision]>->( { 'path' => $path } );
+return "error: $image->{'error'}" if defined $image->{'error'};
+
+## child backend : the parent's own when it is vision-capable, else the ##
+## other server when that one is [ a text model on one backend gets a   ##
+## description from a vision model on the other ]                       ##
+my $state  = <coding.async.task_state>->{$task_id} // {};
+my $routed = $state->{'backend'} // $task->{'analysis'}->{'routed_to'}
+    // qw| gpu |;
+my $other = $routed eq qw| cpu | ? qw| single-llm | : qw| cpu |;
+
+my $child_backend
+    = <[coding.image.backend_has_vision]>->($routed) ? $routed
+    : <[coding.image.backend_has_vision]>->($other)  ? $other
+    :                                                  '';
+
+unless ( length $child_backend ) {
+    return
+          sprintf "error: no vision-capable model is loaded on any backend "
+        . "-- cannot analyze %s [ coding.vision-model shows "
+        . "the loaded model ]", $path;
+}
+
+my $spawned = <[coding.tools.handler.subtask_spawn]>->(
+    {   'parent_task_id' => $task_id,
+        'description'    => "$prompt\n\n:image-embed:$image->{'path'}",
+        'system'         => 'you analyze the attached image for another '
+            . 'model that cannot see it. answer the '
+            . 'request precisely and only from what is '
+            . 'visible ; say so when something cannot be '
+            . 'determined from the image.',
+        'no_tools'      => TRUE,
+        'max_rounds'    => 1,
+        'route_backend' => $child_backend,
+        'result_label'  => "IMAGE ANALYSIS: $path",
+    }
+);
+
+if ( ref $spawned ne qw| HASH | or not $spawned->{'child_task_id'} ) {
+    return sprintf "error: analyze_image could not spawn the analysis : %s",
+        ( ref $spawned eq qw| HASH | ? $spawned->{'content'} : 'unknown' );
+}
+
+<[base.logs]>->(
+    1, 'analyze_image: [%s] %s -> child %s on %s',
+    $task_id, $path, $spawned->{'child_task_id'},
+    $child_backend
+);
+
+return
+      sprintf "image analysis of %s started [ %s ] : the description "
+    . "follows as the next user message, labelled IMAGE "
+    . "ANALYSIS",
+    $path, $spawned->{'child_task_id'};
+
+#,,,,,,.,,,.,,.,,,,.,,.,,,.,,,...,...,,,.,...,..,,...,...,,..,..,,,..,.,.,...,
+#2TF6YHXZPMGW7JBMSUU22XO6OEFKAZCYGE77AOWBWNVNETBAJNZHBTU65IR6B6LVBOSMXO2GTVIS4
+#\\\|GYMCIAIZMXQL6W2DXKMA7ZLL5BR3O2R4WGU7MFSV54SEBFVVPWS \ / AMOS7 \ YOURUM ::
+#\[7]7TEBHXT6FOYU7LZXCMZTNL2KEG4KP3BLPNFDLQ3VYJAVTWKSN6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

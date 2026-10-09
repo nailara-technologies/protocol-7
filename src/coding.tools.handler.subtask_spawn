@@ -22,6 +22,12 @@ return {
 ## get parent task id from args or infer from context ##
 my $parent_task_id = $args->{'parent_task_id'} // '';
 
+## the executing task [ set by coding.async.tool_executor around dispatch ] ##
+## -- exact, unlike the scan below, which can pick a merely queued task     ##
+## under concurrency [ same misattribution coding.catalog.track_write had ] ##
+$parent_task_id = <coding.catalog.active_task> // ''
+    if !length $parent_task_id;
+
 ## if no explicit parent, try to find active task with async state ##
 if ( !length $parent_task_id ) {
     my $aref_active = <coding.task.active> // [];
@@ -90,6 +96,10 @@ if ( length $preferred_model ) {
     }
 }
 
+## internal callers [ e.g. analyze_image ] pin the backend directly ##
+$routed_to = $args->{'route_backend'}
+    if length( $args->{'route_backend'} // '' );
+
 ## get parent state [ for queue check ] ##
 my $parent_state
     = <[coding.async.state_manager]>->( qw| get |, $parent_task_id );
@@ -116,6 +126,16 @@ my $child_task = {
     created_at  => <[base.ntime]>,
 };
 
+## optional child shape for internal callers : single-round no-tools ##
+## utility children, own system prompt, label for the result message ##
+$child_task->{'no_tools'}   = TRUE if $args->{'no_tools'};
+$child_task->{'max_rounds'} = $args->{'max_rounds'}
+    if defined $args->{'max_rounds'};
+$child_task->{'system'} = $args->{'system'}
+    if length( $args->{'system'} // '' );
+$child_task->{'metadata'}->{'result_label'} = $args->{'result_label'}
+    if length( $args->{'result_label'} // '' );
+
 ## enqueue child task [ only if first in queue ] ##
 my $queue    = <coding.task.subtask_queue>->{$parent_task_id} // [];
 my $is_first = @$queue == 0;
@@ -123,8 +143,8 @@ my $enqueue_result;
 if ($is_first) {
     $enqueue_result = <[coding.task.enqueue]>->($child_task);
 } else {
-    ## store task record so async.complete can find & enqueue it later [ ##
-    ## coding.task.enqueue rejects duplicates, so we store directly ]    ##
+    ## store task record so async.complete can find & enqueue it later  ##
+    ## [ coding.task.enqueue rejects duplicates, so we store directly ] ##
     <coding.task.queue> //= {};
     my $queue_href = <coding.task.queue>;
     $queue_href->{$child_task_id} = {
@@ -143,8 +163,8 @@ if ( !$enqueue_result->{'success'} ) {
     };
 }
 
-## add to parent's subtask queue [ done after enqueue so queue reflects ##
-## spawn order ]                                                        ##
+## add to parent's subtask queue                        ##
+## [ done after enqueue so queue reflects spawn order ] ##
 push @{ <coding.task.subtask_queue>->{$parent_task_id} //= [] },
     $child_task_id;
 
@@ -212,8 +232,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,,.,..,,,.,,,,,,,..,,,.,,,.,,.,,..,,,..,,..,..,,...,..,,...,.,.,,,,,,,,,..,,
-#BGLDPN2LDC2NCDCM4536CJPWEDETCQVHBHE4OCL2W3ZRWCXGOY3BQUYA3PQWN5PQQB527RUGMZ4TU
-#\\\|ALV4YH4KHPIUTGEZ7KFFVFNAQ23XSFCLSHC7NRYBRSF5R6XL74H \ / AMOS7 \ YOURUM ::
-#\[7]Y4526UDIGZZILTN4Z63QIA3HCIZTMYRKNKQUSUVDCVEBAIYSMGBI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,,..,,..,,,.,,,.,,,.,.,,,,,,,..,,...,...,,,,,,,,,.,.,.,,,,..,
+#6XVLG6HGJZD6JSQEHQOO7QZUAVVIP7KZOZCOX2OBC5R3ECGB3EIR4Q6VMXLUUZOP3BOOBMBJQIO4Y
+#\\\|2AOS5NA3RAWGQ673QDZU3Q7J56ARHF3NPMMHUAJG3DBA7EDV5HU \ / AMOS7 \ YOURUM ::
+#\[7]U7NWV77FNVZUO4XJX2WSMCI7GJE244QRJOBZ7UP3STB7CJBPSIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
