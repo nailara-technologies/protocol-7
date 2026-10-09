@@ -10,22 +10,10 @@ unless ( defined $hostname and length $hostname ) {
     return qw| error |;
 }
 
-## check if cert already exists and is valid ##
-my $certs = <letsencr.parent.certs>;
-if (    exists $certs->{$hostname}
-    and $certs->{$hostname}{'status'} eq qw| active |
-    and exists $certs->{$hostname}{'expires_at'} ) {
-    my $expires_at     = $certs->{$hostname}{'expires_at'};
-    my $days_remaining = int( ( $expires_at - time() ) / 86400 );
-
-    if ( $days_remaining > 30 ) {
-        <[base.logs]>->(
-            2,         'cert for %s valid (%d days), skipping request',
-            $hostname, $days_remaining
-        );
-        return qw| active |;
-    }
-}
+## no existing-certificate check here : the registry lives in letsencr's OWN
+## memory [ <letsencr.parent.certs> is never set in httpd ], so a check here
+## could never apply -- letsencr.parent.cmd.request-certificate answers
+## "certificate already exists" itself
 
 <[base.logs]>->( 2, 'requesting TLS cert for %s', $hostname );
 
@@ -72,8 +60,8 @@ unless ($sent) {
 
 return qw| pending |;
 
-#,,,,,,.,,,.,,,.,,,.,,,.,,,..,...,,..,,,.,.,,,..,,...,..,,...,,,,,..,,,,.,..,,
-#4J6ZUEA7KW77FDYCBXAT3HHBKIAUQ45TI2P76VNSZFXJKBWQCGP352D2SYBB355HQEX63SOIZJNKM
-#\\\|SXF4UQR44MH6MZM77DAWQ52SIWMBO62XRPREFR2OAKFNJVH3TPN \ / AMOS7 \ YOURUM ::
-#\[7]Q3HTISIAFW32WXDMJDE5UJOSLSBELZATGROCY6G2YJRNR3NRBGBY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,...,.,,,,..,...,,.,,,,,,.,.,..,,...,...,.,.,...,,,,,,,,,,,.,
+#CLZAOFSHEZCQIN4ZXTCLARMSJCD2O3B67GDE7VUBXGNL25TWECUTGULXUM2O26YCKIVH45JWZ73Q2
+#\\\|LNQFSDON2I2TZCDIXY5TQC5E7MSE6CATOIFYS4I4LPMCZRJYJ3F \ / AMOS7 \ YOURUM ::
+#\[7]YM6Q6WKFGDHGWVUFVYOZLHPMQVZKW2YPQE6VZQJJSCOB2GOMYGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
