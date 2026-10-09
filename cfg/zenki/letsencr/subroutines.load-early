@@ -268,7 +268,6 @@ base.cfg.profile.apply
 base.call_online_hooks
 auth.client.owner_pins
 protocol.sftp.init_code
-letsencr.child.acme_new
 letsencr.base.post_init
 letsencr.base.init_code
 jobqueue.queue_template
@@ -471,6 +470,7 @@ letsencr.child.acme_use_server
 letsencr.child.acme.step_setup
 letsencr.child.acme.step_authz
 letsencr.child.acme.on_respond
+letsencr.child.acme.on_account
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -509,9 +509,11 @@ letsencr.parent.cmd.activity-log
 letsencr.child.resolve_addresses
 letsencr.child.cmd.verify-domain
 letsencr.child.acme_http_request
-letsencr.child.acme_create_order
 letsencr.child.acme.step_respond
+letsencr.child.acme.step_account
 letsencr.child.acme.on_propagate
+letsencr.child.acme.on_new_order
+letsencr.child.acme.on_directory
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -556,6 +558,8 @@ letsencr.parent.handler_cert_ready
 letsencr.child.extract_rsa_modulus
 letsencr.child.dns.query_txt_async
 letsencr.child.acme.step_propagate
+letsencr.child.acme.step_new_order
+letsencr.child.acme.step_directory
 crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
 base.zenki.resume_ondemand_timeout
@@ -683,8 +687,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,,.,,..,,,,.,.,,,.,,,.,,,,,.,.,,,,,,,..,,...,...,...,.,,,..,,,.,,.,,,
-#JXGWE2EUJDKH7PDE6IOV5WLHLUMC625LRTWLGLSMY3DPO3IVNLHZQPKNJNXBTMCPRSSCY7JS2MSHG
-#\\\|X7Z6V3YPQ47DD3PBR3FNG3NN5O5XC54DM2AFYDTU63RCPMLHB4N \ / AMOS7 \ YOURUM ::
-#\[7]H52M5MT2WIRXZN7YZXPQSAOTXWBZ5B4SKN6OIPNXSICKORUKC2CY 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,,..,.,.,,..,...,..,,.,,,,.,,..,,...,..,,.,.,..,,..,,,,.,..,,
+#65WNC3VMHWWCDGSBU7NPDW672YCO7CFCTVRYYM42FGNMI3BZBNP3ZWPAMQ3KYS3OK7V4XV3IY57FG
+#\\\|BITSMRWXXG2ZDS5Y4OUJ5YPH4Y7AFVXG3RVWAJE5XQ44HSOLWTI \ / AMOS7 \ YOURUM ::
+#\[7]MM5FX2QH32JNUGWNXNDCT4XKNNVNMTBD5YR5CJSV4EZGXW2U64BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

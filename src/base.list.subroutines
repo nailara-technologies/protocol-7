@@ -2161,7 +2161,6 @@ return [ qw[
         memory.tree.render.node
         memory.tree.node.render
         memory.tree.dedup.exact
-        letsencr.child.acme_new
         letsencr.base.post_init
         letsencr.base.init_code
         kimi.task.queue_enqueue
@@ -4177,6 +4176,7 @@ return [ qw[
         letsencr.child.acme.step_setup
         letsencr.child.acme.step_authz
         letsencr.child.acme.on_respond
+        letsencr.child.acme.on_account
         kimi-web.cmd.get-session-state
         kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
@@ -4638,9 +4638,11 @@ return [ qw[
         letsencr.child.resolve_addresses
         letsencr.child.cmd.verify-domain
         letsencr.child.acme_http_request
-        letsencr.child.acme_create_order
         letsencr.child.acme.step_respond
+        letsencr.child.acme.step_account
         letsencr.child.acme.on_propagate
+        letsencr.child.acme.on_new_order
+        letsencr.child.acme.on_directory
         kimi.session.reset_and_reconnect
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
@@ -5036,8 +5038,9 @@ return [ qw[
         letsencr.dns.cloudflare_create_txt
         letsencr.child.extract_rsa_modulus
         letsencr.child.dns.query_txt_async
-        letsencr.child.cmd.new-certificate
         letsencr.child.acme.step_propagate
+        letsencr.child.acme.step_new_order
+        letsencr.child.acme.step_directory
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
         jobsite.handler.stray-job-exported
@@ -6013,8 +6016,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,.,,,,..,.,.,,..,.,,,,,.,,,,,.,.,,,.,.,.,...,...,,..,,..,...,.,.,,,.,
-#HOYDBJIJ4T6G5XVZZVJUKBF256RICIDQTDPNYYDWUZI3FQNL72OTCO3WFDWXXOY4CTX53XQOGXBM6
-#\\\|AY4KYKJ6UR7JAYOB7QJP3CWN674IORTWUJNHYZJTLIECUSADVH3 \ / AMOS7 \ YOURUM ::
-#\[7]E74HFH6WTJ6ZWVS73P5KOFSI7KQCJERNT234DZVISTUNY3HFAMAQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,,,,,,,,.,,...,..,,...,.,,,.,.,...,...,..,,.,.,.,.,..,,..,,
+#XBYOFER5CK6MDMXPTLHBY53PFSWTQ6DARUIIPCJ4H7TIJRHU3GBSPQBG26JYAY2564FQJRUPZ6NLY
+#\\\|NEITLC6H74L4IRETXIA4EXORT5P3HMGK4BTYSN5PSWA4ETHKTYS \ / AMOS7 \ YOURUM ::
+#\[7]QJPRKFBN2I5BZB36WGONRIQPDLE5WH7DC3A7LR5WZG6NVZRKUMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -91,7 +91,7 @@ compile_module($ARG)
     letsencr.child.handler.selftest_timeout
     letsencr.child.selftest_finish
     letsencr.child.cmd.verify-domain letsencr.child.acme_use_server
-    letsencr.child.account_file_paths letsencr.child.acme_new |;
+    letsencr.child.account_file_paths |;
 
 my $tmp = tempdir( CLEANUP => 1 );
 
@@ -174,34 +174,6 @@ my @cleanups;
 $code{'letsencr.child.util.cleanup_challenge'} = sub {
     push @cleanups, [@ARG];
     return TRUE;
-};
-
-my @fetched_dirs;
-$code{'letsencr.child.fetch_acme_directory'} = sub {
-    my $server = shift;
-    push @fetched_dirs, $server;
-    $data{'letsencr'}{'child'}{'acme_client'}{'directory'}
-        = { 'newAccount' => 'na', 'newOrder' => 'no', 'newNonce' => 'nn' };
-    $data{'letsencr'}{'child'}{'acme_client'}{'nonce'} = qw| test-nonce |;
-    return { 'directory' => {}, 'nonce' => qw| test-nonce | };
-};
-
-my @loaded_key_servers;
-$code{'letsencr.child.load_account_key'} = sub {
-    push @loaded_key_servers, shift;
-    $data{'letsencr'}{'child'}{'acme_client'}{'account_key_name'}
-        = qw| test-key |;
-    return qw| test-key |;
-};
-
-$code{'letsencr.child.acme_register_account'} = sub {
-    $data{'letsencr'}{'child'}{'acme_client'}{'account_url'}
-        = qw| test-account-url |;
-    return { 'account_url' => qw| test-account-url | };
-};
-
-$code{'letsencr.child.acme_create_order'} = sub {
-    return { 'order_url' => qw| test-order |, 'authorizations' => [] };
 };
 
 ## --- shared config ------------------------------------------------------ ##
@@ -832,7 +804,7 @@ say ': enrollment reply [ staging not installed, production installed ]';
 }
 
 ######################################################################
-say ': per-request server + separate accounts [ acme_new ]';
+say ': separate account storage per acme server';
 {
     my $paths = $code{'letsencr.child.account_file_paths'};
 
@@ -847,40 +819,16 @@ say ': per-request server + separate accounts [ acme_new ]';
         'staging : separate account key + registration storage'
     );
 
-    my $new = $code{'letsencr.child.acme_new'};
-
-    @fetched_dirs                             = ();
-    @loaded_key_servers                       = ();
-    $data{'letsencr'}{'child'}{'acme_client'} = { 'server' => $PROD };
-    my $r = $new->(
-        { 'domains' => [qw| s.example |], 'server' => $STAGING }, undef
-    );
-    ok( ( $fetched_dirs[0] // '' ) eq $STAGING,
-        'new enrollment : directory fetched from the staging server' );
-    ok( ( $loaded_key_servers[0] // '' ) eq $STAGING,
-        '  :.. account key loaded for the staging server'
-    );
-    ok( $data{'letsencr'}{'child'}{'acme_client'}->{'server'} eq $STAGING,
-        '  :.. client state switched to staging' );
-
-    ## renewal [ renew-certificate calls acme_new without a server ] : must ##
-    ## switch back to the configured production server + account            ##
-    @fetched_dirs       = ();
-    @loaded_key_servers = ();
-    $r                  = $new->( { 'domains' => [qw| r.example |] }, undef );
-    ok( ( $fetched_dirs[0] // '' ) eq $PROD,
-        'renewal : directory fetched from the production server' );
-    ok( ( $loaded_key_servers[0] // '' ) eq $PROD,
-        '  :.. account key loaded for the production server'
-    );
+    ## the server switch itself is tested in test-letsencr-acme-flow.pl [ ##
+    ## section 7 : acme.begin selects server, directory, account key ]    ##
 }
 
 say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,,..,,,,,,.,,,.,,,..,,,.,.,.,,.,,,,,,..,,...,.,.,.,.,,..,..,,,,,,,..,
-#QEEOGVNKHXMOYXEIK2JHTUYWDLMTB7ACMYM3XJUXAEPQY2H74S3ZQINUWSIQPOMNJHG5WWJQCMGRK
-#\\\|FC6LBOA5HEIYL6EKYWXFZFCS4BNAHXKSMDJ3P56UNHKZ2RDHIH5 \ / AMOS7 \ YOURUM ::
-#\[7]CKKIGBT6YEOFKJKV4TDJ2BVRHS3YPKS2NK5ZIW5Q4W76KNXYLKAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,,,,,.,,,,.,,,,,,.,,,.,.,,,,,..,,...,...,,.,,.,.,,..,,,.,.,,,
+#23VLHO4HRJ373FPYEEOE7XDUHTEUY3IZYLFUGH6GGTSYZVWP7PZHJJLMQSQPGIWJFW7GPM5OT4PRA
+#\\\|WAB3J5BLU22GQDWIGI6NHJVKHZAM5OGJOXBKFFB24LZRMLTROK6 \ / AMOS7 \ YOURUM ::
+#\[7]SJBB6D5TEECLUZ2DVTQ4YFI5YZCNDGPV55TA2ATNPGDE2E5U3GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

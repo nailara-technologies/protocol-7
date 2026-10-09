@@ -81,13 +81,13 @@ sub compile_module {
 }
 
 compile_module("letsencr.child.acme.$ARG")
-    for
-    qw| begin start order_of on_deadline step_authz on_authz key_authorization
+    for qw| begin start order_of on_deadline step_directory on_directory
+    step_account on_account step_new_order on_new_order step_authz on_authz key_authorization
     step_setup on_setup step_propagate on_propagate step_respond on_respond
     step_poll_authz on_poll_authz step_finalize on_order step_poll_order
     on_download cleanup finish fail next_queued |;
 compile_module($ARG) for qw| letsencr.child.cmd.request-certificate
-    letsencr.child.cmd.renew-certificate |;
+    letsencr.child.cmd.renew-certificate letsencr.child.acme_use_server |;
 
 ## --- stubs : every outside effect is recorded, nothing is delivered ---- ##
 
@@ -113,21 +113,17 @@ $code{'letsencr.child.validate_chain'} = sub {
     return { 'valid' => 1, 'chain_pem' => $_[1] };
 };
 
-## acme_new : what the blocking part leaves behind [ acme_state ] ##
+## account key + directory : local stubs, the server choice is real ##
 my %orders_by_domain;
-$code{'letsencr.child.acme_new'} = sub {
-    my ( $msg, $reply_id ) = @ARG;
-    push @acme_new, $msg->{'domains'}->[0];
-    my $o = $orders_by_domain{ $msg->{'domains'}->[0] };
-    return { 'status' => 'error', 'error' => 'no stub order' } if not $o;
-    $data{'letsencr'}{'child'}{'acme_state'} = {
-        'domains'        => $msg->{'domains'},
-        'primary_domain' => $msg->{'domains'}->[0],
-        'order'          => $o,
-        'reply_id'       => $reply_id,
-    };
-    return { 'status' => 'deferred' };
-};
+my ( @https, @key_servers );
+$code{'letsencr.child.load_account_key'}
+    = sub { push @key_servers, $_[0]; return 'KEY' };
+$code{'letsencr.child.generate_account_key'} = sub { return 'KEY' };
+$code{'letsencr.child.account_file_paths'}
+    = sub { return { 'account_json' => '' } };
+$code{'file.put'}                   = sub { return 1 };
+$code{'clients.https.request'}      = sub { push @https, $_[0]; return TRUE };
+$data{'letsencr'}{'acme'}{'server'} = 'https://prod.test/dir';
 
 $code{'letsencr.child.acme.request'}
     = sub { push @acme, $_[0]; return TRUE };
@@ -152,12 +148,71 @@ $code{'base.callback.cmd_reply'}
     = sub { push @replies, [@ARG]; return TRUE };
 
 sub reset_all {
-    @logs = @acme = @routes = @replies = @timers = @dns = @acme_new = ();
+    @logs  = @acme = @routes = @replies = @timers = @dns = @acme_new = ();
+    @https = @key_servers = ();
     %orders_by_domain = ();
-    delete $data{'letsencr'}{'child'}{$ARG} for qw| orders acme acme_state |;
+    delete $data{'letsencr'}{'child'}{$ARG}
+        for qw| orders acme acme_state acme_client |;
     delete $data{'letsencr'}{'dns'};
     delete $data{'letsencr'}{'cfg'};
     $data{'letsencr'}{'admin'}{'email'} = 'admin@example.test';
+}
+
+## answer the order bootstrap : directory -> account -> newOrder ##
+sub bootstrap {
+    while (1) {
+        if ( my $h = shift @https ) {
+            $code{ $h->{'on_done'} }->(
+                {   'ok'     => 1,
+                    'status' => 200,
+                    'body'   => encode_json(
+                        {   'newAccount' => 'NA',
+                            'newOrder'   => 'NO',
+                            'newNonce'   => 'NN'
+                        }
+                    ),
+                    'headers' => { 'replay-nonce' => 'N0' },
+                    'params'  => $h->{'params'},
+                }
+            );
+            next;
+        }
+        last if not @acme or $acme[0]{'url'} !~ m{^N[AO]$};
+        my $r = shift @acme;
+        if ( $r->{'url'} eq 'NA' ) {
+            $code{ $r->{'on_done'} }->(
+                {   'ok'       => 1,
+                    'status'   => 201,
+                    'body'     => {},
+                    'location' => 'ACCT',
+                    'params'   => $r->{'params'}
+                }
+            );
+            next;
+        }
+        my $d = $r->{'payload'}{'identifiers'}[0]{'value'};
+        push @acme_new, $d;
+        my $o = $orders_by_domain{$d};
+        $code{ $r->{'on_done'} }->(
+            $o
+            ? { 'ok'       => 1,
+                'status'   => 201,
+                'location' => $o->{'order_url'},
+                'body'     => {
+                    'status'         => 'pending',
+                    'authorizations' => $o->{'authorizations'},
+                    'finalize'       => $o->{'finalize_url'},
+                },
+                'params' => $r->{'params'}
+                }
+            : { 'ok'     => 0,
+                'status' => 400,
+                'body'   => { 'detail' => 'no stub order' },
+                'params' => $r->{'params'}
+            }
+        );
+    }
+    return;
 }
 
 ## deliver the oldest acme request's reply ##
@@ -199,7 +254,9 @@ sub request_cert {
     my ( $domain, $reply_id ) = @ARG;
     local $call
         = { 'args' => $domain, 'reply_id' => $reply_id, 'param' => {} };
-    return $code{'letsencr.child.cmd.request-certificate'}->();
+    my $r = $code{'letsencr.child.cmd.request-certificate'}->();
+    bootstrap();
+    return $r;
 }
 
 sub authz_body {
@@ -338,7 +395,7 @@ request_cert( 'c.test', 'R3' );
 my ($cid) = keys %{ $data{'letsencr'}{'child'}{'orders'} };
 my $r4 = request_cert( 'd.test', 'R4' );
 ok( $r4->{'mode'} eq 'deferred', 'second request deferred' );
-ok( @acme_new == 1,              'acme_new NOT run for the queued request' );
+ok( @acme_new == 1,              'no order opened for the queued request' );
 
 acme_reply( authz_body('c.test') );
 acme_reply( authz_body('www.c.test') );
@@ -354,6 +411,7 @@ ok( ( grep { $_->{'command'} eq 'httpd.cleanup-acme-challenge' } @routes )
         == 2,
     'both challenges cleaned up on failure'
 );
+bootstrap();
 ok( @acme_new == 2 && $acme_new[1] eq 'd.test',
     'queued request started after the failure'
 );
@@ -450,10 +508,92 @@ $code{ $dl->{'p'}{'handler'} }
 ok( ( grep { $_->[0] eq 'R6' && $_->[1]{'mode'} eq 'false' } @replies ) == 1,
     'deadline : hung order answered false'
 );
+bootstrap();
 ok( @acme_new == 2 && $acme_new[1] eq 'g.test',
     'deadline : queued ' . 'order started'
 );
 ok( @deadlines == 2, 'the next order got its own deadline' );
+
+## --- 7 : bootstrap : server choice, cached directory \ account, limits - ##
+say ':: order bootstrap';
+reset_all();
+$orders_by_domain{$ARG} = {
+    'order_url'      => "O-$ARG",
+    'finalize_url'   => "F-$ARG",
+    'authorizations' => ["Z-$ARG"],
+    }
+    for qw| h.test i.test |;
+{
+    local $call = {
+        'args'     => 'h.test',
+        'reply_id' => 'R8',
+        'param'    => { 'acme_server' => 'https://staging.test/dir' }
+    };
+    $code{'letsencr.child.cmd.request-certificate'}->();
+}
+ok( @https == 1 && $https[0]{'url'} eq 'https://staging.test/dir',
+    'staging request : directory fetched from the staging server'
+);
+ok( $key_servers[0] eq 'https://staging.test/dir',
+    '  :.. account key loaded for the staging server'
+);
+ok( !@acme, '  :.. nothing signed before the directory' );
+bootstrap();
+ok( $data{'letsencr'}{'child'}{'acme_client'}{'account_url'} eq 'ACCT',
+    '  :.. account url from the location header' );
+ok( @acme == 1 && $acme[0]{'url'} eq 'Z-h.test',
+    '  :.. order created, its authorization fetched'
+);
+
+## renewal [ no server ] : back to production, fresh client state ##
+my $staging_order = ( keys %{ $data{'letsencr'}{'child'}{'orders'} } )[0];
+$code{'letsencr.child.acme.fail'}->( $staging_order, 'test end' );
+@https = @acme = ();
+{
+    local $call = { 'args' => 'i.test', 'reply_id' => 'R9', 'param' => {} };
+    $code{'letsencr.child.cmd.renew-certificate'}->();
+}
+ok( @https == 1 && $https[0]{'url'} eq 'https://prod.test/dir',
+    'renewal : directory fetched from the production server'
+);
+ok( $key_servers[-1] eq 'https://prod.test/dir',
+    '  :.. account key loaded for the production server'
+);
+bootstrap();
+
+## same server again : directory + account cached, straight to newOrder ##
+my $prod_order = ( keys %{ $data{'letsencr'}{'child'}{'orders'} } )[0];
+$code{'letsencr.child.acme.fail'}->( $prod_order, 'test end' );
+@https = @acme = ();
+$orders_by_domain{'j.test'} = undef;
+{
+    local $call = { 'args' => 'j.test', 'reply_id' => 'R10', 'param' => {} };
+    $code{'letsencr.child.cmd.request-certificate'}->();
+}
+ok( !@https && @acme == 1 && $acme[0]{'url'} eq 'NO',
+    'cached directory + account : newOrder sent directly'
+);
+
+## rate limited : the detail with its retry time reaches the parent ##
+my $nr = shift @acme;
+$code{ $nr->{'on_done'} }->(
+    {   'ok'     => 0,
+        'status' => 429,
+        'body'   => {
+            'type'   => 'urn:ietf:params:acme:error:rateLimited',
+            'detail' => 'too many certificates : retry '
+                . 'after 2026-10-10 12:00:00 UTC'
+        },
+        'params' => $nr->{'params'}
+    }
+);
+my ($rl) = grep { $_->[0] eq 'R10' } @replies;
+ok( $rl
+        && $rl->[1]{'mode'} eq 'false'
+        && $rl->[1]{'data'} =~ m{rate.?limit}i
+        && $rl->[1]{'data'} =~ m{retry after 2026-10-10 12:00:00 UTC},
+    'rate limit : false reply with the retry time for the parent'
+);
 
 sub like_args { ok( defined $_[0] && $_[0] =~ $_[1], $_[2] ) }
 
@@ -462,8 +602,8 @@ say sprintf 'passed : %d ' . ' failed : %d', $test_count - $fail_count,
     $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,.,,.,,.,,,,.,,.,.,..,,,,,,,..,,,.,,.,,..,,...,..,,.,.,...,,..,.,,,...,
-#YEMGRFTNJGI5B37SU6IWDCVLXNREXJ7ZHOFSXIOBHK33BI364MGHVRTXBVL3KASYHL3RPJDFCNS5I
-#\\\|O5TK46NEM7XV4Y2NZSGU5KBRAOSTES64VKMTHJHB3U54S72FTRI \ / AMOS7 \ YOURUM ::
-#\[7]4HXCATPFHFMQ7ITXD4TYQ35U6AT7XA6LZCA5NNO6GUFV3NIW5EBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,.,,,,,,,..,,...,.,.,,.,,...,..,,...,...,.,,,.,.,..,,.,.,,,,,
+#PTHH7ETM5S4VUJYS5BDNSOOCH6TQRIETLIGZN46A7JGVRYDCICAV7U2ECIBI4QOZMMQYKULAM4DZS
+#\\\|UT432TG4BPCQG3ETK3B7462M6OOLZW4JLJ2PWV7IHBMG5B4IBGS \ / AMOS7 \ YOURUM ::
+#\[7]LLCGOHIYYNF7XLIEPYB6JYCCITANFHQMRWEKB4SCQNAJ6E4R3ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_account
+# param = <order_id>
+# descr = register \ look up the acme account unless known
+
+my $order = <[letsencr.child.acme.order_of]>->( shift, qw| account | )
+    // return FALSE;
+
+if ( length( <letsencr.child.acme_client>->{'account_url'} // '' ) ) {
+    $order->{'step'} = qw| new_order |;
+    return <[letsencr.child.acme.step_new_order]>->( $order->{'order_id'} );
+}
+
+## newAccount with the same key returns the existing account [ 200 ] : no ##
+## separate lookup needed. no kid yet : the jws carries the jwk           ##
+my $email = <letsencr.child.acme_client>->{'contact_email'}
+    // <letsencr.admin.email>;
+
+<[letsencr.child.acme.request]>->(
+    {   'method' => qw| POST |,
+        'url' => <letsencr.child.acme_client>->{'directory'}->{'newAccount'},
+        'payload' => {
+            'termsOfServiceAgreed' => JSON::XS::true(),
+            'contact'              => ["mailto:$email"],
+        },
+        'order_id' => $order->{'order_id'},
+        'on_done'  => qw| letsencr.child.acme.on_account |,
+        'params'   => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,..,,,,,.,,,,,,,.,.,.,,,,,,,,,.,,.,,.,.,,,.,..,,...,...,.,,,,..,...,...,,,,,
+#MHT7OU3IFTUX7LNSYHGREQYGXGPYXYUPH6HIGNJW2LM5V5GBO3U62WUESKLCOWZ7Y4Y5RIOGD3J5U
+#\\\|EA4GR4GNBM5MZQRFNYVCXUY6W2TIX6SPKEG6IR7IZPOJ7ZQGEKW \ / AMOS7 \ YOURUM ::
+#\[7]7WH7L5FETWDARNCBUUY75QIMTKABFW4USG6F2WUFMUOCDOR23QBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

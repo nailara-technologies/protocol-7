@@ -15,15 +15,15 @@ while ( my $req = shift <letsencr.child.acme.queue>->@* ) {
     ## started [ or parked again ] : its reply comes later ##
     last if ( $result->{'mode'} // '' ) eq qw| deferred |;
 
-    ## acme_new refused it : answer that request, try the next one ##
+    ## refused at once [ no key, bad request ] : answer it, try the next ##
     <[base.callback.cmd_reply]>->( $req->{'reply_id'}, $result )
         if defined $req->{'reply_id'};
 }
 
 return TRUE;
 
-#,,,.,,..,,,.,,..,,.,,.,,,.,,,,.,,...,,.,,...,..,,...,...,,,,,,.,,,..,,,.,...,
-#BI5MS6AQQCGBYRT2SUI6GD7PTA2ZAWLCC574TXIOTH7H744KTX3IUKB3C7HAWLT6WMX72A3M2UGUM
-#\\\|IG3YVNL2OHL3Y2DSWMOEF4UZUWJZCENFFNBE73YZREAJNVK6PQH \ / AMOS7 \ YOURUM ::
-#\[7]J3LY4ELDXTLDK7J7USBDAOU6JPNPGDIXO6VXERSMOJZGUXLYIMDI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,..,.,.,,.,,,,,,,,,,,,,,,,,,..,,..,,...,...,,..,,,,,,.,,,.,,...,
+#QUYBNQKJYI6WKLBJGTWPWEPX3SVVDO6ZSBE3HBHPVP5RFBGAGKAJQVBORBL2UHNIOBZMHFKPQQG5U
+#\\\|XWIAHERBX3A5LWDC3YLMZNOPCY55OBP6ICML2NI2KHX5XTGMM7C \ / AMOS7 \ YOURUM ::
+#\[7]F4IE3BSNEB5WZAX4KVDNECTOQX6SNIFJA4KXXT5UXM6T223CY6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

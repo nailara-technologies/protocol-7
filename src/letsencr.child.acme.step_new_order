@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_new_order
+# param = <order_id>
+# descr = create the acme order for the requested domains
+
+my $order = <[letsencr.child.acme.order_of]>->( shift, qw| new_order | )
+    // return FALSE;
+
+<[letsencr.child.acme.request]>->(
+    {   'method' => qw| POST |,
+        'url'    => <letsencr.child.acme_client>->{'directory'}->{'newOrder'},
+        'payload' => {
+            'identifiers' => [
+                map { { 'type' => qw| dns |, 'value' => $ARG } }
+                    $order->{'domains'}->@*
+            ],
+        },
+        'order_id' => $order->{'order_id'},
+        'on_done'  => qw| letsencr.child.acme.on_new_order |,
+        'params'   => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,,,,...,.,.,,,.,,,,,...,.,.,...,.,,,,..,.,.,..,,...,...,,.,,..,,,,,,,,.,,,.,
+#WPMTPCCA36Y3BO45MCUGGFM4R5POH642I2KC7YRXHJMV2WGKMNZZKZEUTQPTKVN24VCLMETGXGKWG
+#\\\|LCR5OC6QDF2HVPAX77VKQRNEJYTMS3634OLPEP22N4HZP57S6MO \ / AMOS7 \ YOURUM ::
+#\[7]QOPPVKTOV53RS2SAXY5LPT6QACQP3UPWXO5MH4OTIEAH2RANPICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
