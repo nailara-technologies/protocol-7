@@ -1,0 +1,40 @@
+## [:< ##
+
+# name   = host-edit.flow.form_values
+# descr  = the flow's fields as the form SHOWS them [ unsaved edits ]
+# param  = $editor_state
+# return = { field => value } for the fields present in the form
+
+## add host runs on what the user sees : a value typed into the form but not
+## yet submitted [ ssh, found live ] must reach the flow, which otherwise
+## reads only the record saved on disk.  read-only : list.collapse builds a
+## NEW state from the current one [ expanded list rows merged back into the
+## field's entries ] and leaves the form's own state untouched
+
+my ($editor_state) = @ARG;
+
+return {} if ref $editor_state ne qw| HASH |;
+
+my %wanted
+    = map { $ARG => TRUE } qw| addresses ssh ssh_port owner owner_key |;
+
+my $view = <[editor.control.list.collapse]>->($editor_state);
+return {} if ref $view ne qw| HASH |;
+
+my %values;
+foreach my $def ( @{ $view->{'schema'}{'fields'} // [] } ) {
+    my $name = $def->{'name'} // next;
+    next if not $wanted{$name};
+    $values{$name}
+        = $def->{'list'}
+        ? [ grep { defined and length } @{ $def->{'entries'} // [] } ]
+        : <[editor.control.get_value]>->( $view, $name ) // '';
+}
+
+return \%values;
+
+#,,,.,,..,..,,.,,,,,,,,,,,..,,,,.,,..,,,.,,,,,..,,...,...,,,,,...,,,.,,.,,,..,
+#CN26W56ONV6D2QJIZCUMVPT7PEKW7MZMS4A2K3AABSGESN7JX4BUS77IX65IU6ZKXUS5CWPXGPEV2
+#\\\|TTQPROUO7CNEDGPPLQGSM66SRCYJAQAIPPDUI7BGHUQE5FA6OS3 \ / AMOS7 \ YOURUM ::
+#\[7]I6P22SFKQEJ3LSEH32B6XQB4LTFD5VEQASJQJKX3ESYAN3CJWGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

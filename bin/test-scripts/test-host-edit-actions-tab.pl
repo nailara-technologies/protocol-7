@@ -70,9 +70,13 @@ sub compile_module {
 my @flow_calls;
 my $flow_state = {};    ## stands in for <host-edit.flow> per record ##
 
+## the form-values reader : its result must travel to flow.start ##
+my $form_values_out = { qw| ssh | => qw| typed@host | };
+$code{'host-edit.flow.form_values'} = sub { return $form_values_out };
+
 $code{'host-edit.flow.start'} = sub {
-    my ($name) = @ARG;
-    push @flow_calls, [ qw| start |, $name ];
+    my ( $name, $form_values ) = @ARG;
+    push @flow_calls, [ qw| start |, $name, $form_values ];
     $flow_state->{$name} = {
         qw| step |   => qw| connect |,
         qw| status | => 'starting',
@@ -423,6 +427,9 @@ my $started = last_call(qw| start |);
 ok( ref $started eq 'ARRAY' && $started->[1] eq qw| zz-test |,
     'Enter with no flow calls host-edit.flow.start(zz-test)'
 );
+ok( ref $started eq 'ARRAY' && ( $started->[2] // '' ) eq $form_values_out,
+    q{  :.. with the form's current values [ unsaved edits count ]}
+);
 
 ## done / error restart the flow ##
 foreach my $done_step (qw| done error |) {
@@ -578,8 +585,8 @@ if ($fail_count) {
 say "  all $test_count checks passed";
 exit 0;
 
-#,,.,,,.,,,,,,.,,,,..,,.,,..,,...,,..,..,,,.,,..,,...,...,..,,,,,,.,.,..,,.,.,
-#3CKNJ6VIFUK4WDMQ27CYJSJSLYCFAQAYNLELVWH3XZTPJEMSSGGRTY5RDRRYJLHQDVH2LRBQ7PHTG
-#\\\|XBJHLZCB6C75UXQPQEWNJH4NWRRN6Y2OJSOFTC35AGCIIVQ4IEH \ / AMOS7 \ YOURUM ::
-#\[7]B3RHOE3QABFFACGZOHSFF6MOZADB74RMJ2ASQD66H3J27YOV4OAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,.,,,,,,.,,.,,,...,..,,.,,,,,,,..,,...,...,,..,.,.,,,.,.,.,,,,,
+#B4AJ34IWXDNPM63Z2EY5XKEPKXLJKNZ3XJJWOFKPU5H2GS46M6TCLDNLUBHIPSGIVB76DYL3PWE7E
+#\\\|55LN7IYOLBX6FZ5BNOWRM3ZZJNPLT5RDYYVJ3APLFOKCLT7KKMK \ / AMOS7 \ YOURUM ::
+#\[7]SPR2EBN4QN46NICWBK4BUINS6RWTQDD6TU5MCB2XV2WBHM25R6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
