@@ -58,7 +58,7 @@ $SIG{'INT'} = sub {
         if ( defined &Term::ReadKey::ReadMode ) { Term::ReadKey::ReadMode(0) }
         else                                    { system qw| stty echo | }
     }
-    print "\b\b  \n";
+    print "\b\b  " . ( $main::C{'R'} // '' ) . "\n";
     exit 130;
 };
 
@@ -82,6 +82,33 @@ our %C = (
     'B' => "\e[1m",
     'R' => "\e[0m",
 );
+
+## content color [ values, typed input ] : T by default ; '-color green' is
+## the high contrast option for daylight -- the phosphor green of
+## bin/Protocol-7's table [ p7_fg_0003 ]
+my %CONTENT_COLOR = (
+    'blue'  => $C{'T'},
+    'green' => "\e[38;2;9;170;94m",
+);
+my $content_color = qw| blue |;
+if ( @ARGV and $ARGV[-1] eq '-color' ) {
+    say STDERR 'p7-vault : -color needs a name [ '
+        . join( ' ', sort keys %CONTENT_COLOR ) . ' ]';
+    exit 2;
+}
+foreach my $i ( reverse 0 .. $#ARGV - 1 ) {
+    next if $ARGV[$i] ne '-color';
+    $content_color = lc $ARGV[ $i + 1 ];
+    splice @ARGV, $i, 2;
+}
+if ( not exists $CONTENT_COLOR{$content_color} ) {
+    say STDERR "p7-vault : unknown color '$content_color' [ "
+        . join( ' ', sort keys %CONTENT_COLOR )
+        . ' ] -- using blue';
+    $content_color = qw| blue |;
+}
+$C{'V'} = $CONTENT_COLOR{$content_color};
+
 %C = map { $ARG => '' } keys %C if $no_colors;
 
 ## options before the command [ getopts stops at the command word, so a   ##
@@ -190,6 +217,8 @@ sub usage {
     -R  .......  unlock with the recovery code
     -k  .......  unlock with passphrase + key file [ -k <file> ]
     -nc ......  no colors [ also with NO_COLOR set, or output not a terminal ]
+    -color green  values and typed text in phosphor green [ daylight,
+                  high contrast ; default : blue ]
     -h  .......  this list [ also -options ]
 
 EOF
@@ -235,14 +264,18 @@ sub prompt_line {
     my $line;
     my $rl = readline_term();
     if ( defined $rl and $rl->ReadLine ne qw| Term::ReadLine::Stub | ) {
-        ## \001 \002 mark the color codes as zero width for readline ##
-        my ( $t, $f, $r )
-            = map { length ? "\001$ARG\002" : '' } @C{qw| T 0 R |};
-        $line = $rl->readline("  $t$label$f >$r ");
+        ## \001 \002 mark the color codes as zero width for readline.  the ##
+        ## prompt ends in the input color [ nshell : p7_fg_0004 = T ], so  ##
+        ## typed text is not left in the default grey                      ##
+        my ( $t, $f, $v )
+            = map { length ? "\001$ARG\002" : '' } @C{qw| T 0 V |};
+        $line = $rl->readline("  $t$label$f >$v ");
+        print $C{R};
         return undef if not defined $line;
     } else {
-        print "  $C{T}$label$C{0} >$C{R} ";
+        print "  $C{T}$label$C{0} >$C{V} ";
         $line = <STDIN>;
+        print $C{R};
         return undef if not defined $line;
         chomp $line;
     }
@@ -311,7 +344,7 @@ sub read_secret_raw {
     ## [ checking a long password before it is stored ] ; while visible the
     ## line is redrawn after every key
     my $redraw = sub {
-        printf "\r\e[K  $C{T}%s$C{0} :$C{R} %s", $label,
+        printf "\r\e[K  $C{T}%s$C{0} :$C{V} %s$C{R}", $label,
             $visible ? decode( 'UTF-8', $bytes ) : '';
     };
 
@@ -476,7 +509,8 @@ sub summary_line {
         : join( ' ',
         grep {length} $record->{'username'} // '',
         $record->{'url'} // '' );
-    return sprintf "$C{0}%3s$C{R}  %-7s $C{T}%-28s$C{R} %s", $n, $type,
+    return sprintf "$C{0}%3s$C{R}  %-7s " . "$C{T}%-28s$C{R} $C{V}%s$C{R}",
+        $n, $type,
         $record->{'title'} // '', $who;
 }
 
@@ -656,9 +690,10 @@ sub cmd_show {
             $value = '*' x 8;
         }
         $value =~ s|\n|\n               |g;
-        say sprintf "  $C{T}%-12s$C{R} %s", $field, $value;
+        say sprintf "  $C{T}%-12s$C{R} $C{V}%s$C{R}", $field, $value;
     }
-    say sprintf "  $C{T}%-12s$C{R} %s " . $C{0} . '[ %s ]' . $C{R}, 'updated',
+    say sprintf "  $C{T}%-12s$C{R} " . "$C{V}%s " . $C{0} . '[ %s ]' . $C{R},
+        'updated',
         scalar localtime( ntime_b32_to_unix( $record->{'updated'} ) // 0 ),
         $record->{'updated'} // '';
     say '';
@@ -1043,8 +1078,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,..,,,.,..,,,,,,...,...,...,,,,,,..,.,,,,,,,..,,...,...,,.,,.,,,..,,...,,..,
-#I4JBERFWWKAOKP463QR3YIBTL4BIKQJ2WLLPN6MERQGOLD4JVWJZWWS6ZDZ33ZTQWMAJ4ATMNNZNC
-#\\\|E77MKXYZRVJX5AQPCRKPIP5OSMJMNXUL2FEKYW5FWAFBOOIJ6KY \ / AMOS7 \ YOURUM ::
-#\[7]EVQ7EDCWLSEP5MBYGMC66HBATCWRMZIWXTGT64XEZETUET3D2UDI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,,,.,.,,.,,...,..,,,.,,,.,,...,..,,...,.,,,..,,,,,,..,,..,,,,,,
+#FIKB2XDXJWZ23XRUKRJG6A53DPYZSGRLJ5GK2YUS4SLCWI6WOIWNB7B53ABA2G2EGYMP4JOYERBBK
+#\\\|4NGYKUA7RE3GNFIHGFXSTKBTICRCMYU7L5EBDHSAFWXJDBPJGZU \ / AMOS7 \ YOURUM ::
+#\[7]GHAPGMKX5EZV7D6UJHXIWJ67VFYESB73UYIZ343AOMT6ASRSVADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
