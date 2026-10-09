@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_authz
+# param = <order_id>
+# descr = fetch the next authorization, then set them all up
+
+my $order = <[letsencr.child.acme.order_of]>->( shift, qw| authz | )
+    // return FALSE;
+
+my $url = shift $order->{'todo'}->@*;
+
+return <[letsencr.child.acme.step_setup]>->( $order->{'order_id'} )
+    if not defined $url;
+
+<[letsencr.child.acme.request]>->(
+    {   'method'   => qw| POST-as-GET |,
+        'url'      => $url,
+        'order_id' => $order->{'order_id'},
+        'on_done'  => qw| letsencr.child.acme.on_authz |,
+        'params'   => { 'order_id' => $order->{'order_id'}, 'authz' => $url },
+    }
+);
+
+return TRUE;
+
+#,,,.,.,,,,..,.,.,,,.,,,.,,,,,,..,,..,.,,,.,.,..,,...,...,.,,,.,.,,,.,,..,,,,,
+#G2Y5WQTOL2FZYZBQD6MWKA2FKKYG3D4S223QP4AMMQ4XNCYBE2V6MSISDGJEDUDSM647M22NL7TVC
+#\\\|GMYRYZMWBRMJGCACAKO5U34MTS35CANNVNY2IQ5C6NQI7DICAYL \ / AMOS7 \ YOURUM ::
+#\[7]Y4XMEU47MKT5P76P4D6LZVOVD7F7FAQLZ7WZET5X23T67256LMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

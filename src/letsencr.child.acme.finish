@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = letsencr.child.acme.finish
+# param = <order_id> <result>
+# descr = order done : cleanup, reply with the bundle, next order
+
+my $order_id = shift;
+my $result   = shift;
+
+my $order = delete <letsencr.child.orders>->{ $order_id // '' }
+    // return FALSE;
+
+<[letsencr.child.acme.cancel_poll]>->( { 'order_id' => $order_id } );
+<[letsencr.child.acme.cleanup]>->($order);
+
+<[base.logs]>->(
+    2,         ': acme : order %s : certificate for %s',
+    $order_id, join( ' ', $order->{'domains'}->@* )
+);
+
+if ( defined $order->{'reply_id'} ) {
+    <[base.callback.cmd_reply]>->(
+        $order->{'reply_id'},
+        {   'mode' => qw| size |,
+            'data' =>
+                Crypt::Misc::encode_b32r( JSON::XS::encode_json($result) )
+        }
+    );
+} else {
+    <[base.logs]>->( 0, ': acme : order %s had no reply_id', $order_id );
+}
+
+return <[letsencr.child.acme.next_queued]>->($order_id);
+
+#,,,,,,.,,,,.,..,,.,,,,.,,,.,,..,,,,,,...,,.,,..,,...,..,,..,,.,,,...,.,.,,,.,
+#5FWVFMUY5KOOJ2G2DAXRWN4IA4HNRPLJDAVSCMR4IFJMIKQZKM5T4QPR2PKH3AJZ34NE5EQHEIYOI
+#\\\|37K5ITNEDHWOKIAZF77SP3HKXMWWQV6MJKT7H3HTBKKIKTCVH3G \ / AMOS7 \ YOURUM ::
+#\[7]OKS3ZNN7TKLJHDSUAXCHV6PKJT6DSV4MBQNUXRZPC2Q4MKVHMSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

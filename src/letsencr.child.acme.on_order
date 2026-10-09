@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_order
+# param = <acme response>
+# descr = order status after finalize \ poll : valid -> fetch
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| finalize | )
+    // return FALSE;
+
+my $body   = ref $res->{'body'} eq qw| HASH | ? $res->{'body'}          : {};
+my $status = $res->{'ok'}                     ? $body->{'status'} // '' : '';
+
+if ( $status eq qw| valid | and length( $body->{'certificate'} // '' ) ) {
+    $order->{'step'} = qw| download |;
+    <[letsencr.child.acme.request]>->(
+        {   'method'   => qw| POST-as-GET |,
+            'url'      => $body->{'certificate'},
+            'order_id' => $order->{'order_id'},
+            'on_done'  => qw| letsencr.child.acme.on_download |,
+            'params'   => {
+                'order_id' => $order->{'order_id'},
+                'cert_url' => $body->{'certificate'}
+            },
+        }
+    );
+    return TRUE;
+}
+
+if ( $status eq qw| invalid | ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf 'order invalid%s',
+        ref $body->{'error'} eq qw| HASH |
+        ? " : $body->{'error'}{'detail'}"
+        : ''
+    );
+}
+
+if ( not $res->{'ok'} and $order->{'polls'} == 0 ) {    ## finalize refused ##
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf 'finalize refused [ http %s%s ]',
+        $res->{'status'} // '?',
+        length( $body->{'detail'} // '' ) ? " : $body->{'detail'}" : ''
+    );
+}
+
+## processing [ or a transient poll error ] : ask again ##
+my $delay = 1.5**$order->{'polls'}++;
+$delay = 10 if $delay > 10;
+<[letsencr.child.acme.schedule_poll]>->(
+    {   'order_id' => $order->{'order_id'},
+        'delay'    => $delay,
+        'handler'  => qw| letsencr.child.acme.step_poll_order |,
+        'data'     => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,,.,,,.,.,,,,,.,..,,.,,,,,,,,,.,,,.,,.,,,,.,..,,...,..,,,,.,,,,,,.,,.,,,,,.,
+#6LLNLYR7ECTY7S6LWSXSUVQ4NCNAICD55Z5T7M64Z7JFNJ2C7ED6BJLDTY5GU6ZTVLKIV5YNDZCCE
+#\\\|CKLCYIEQ7MVXM6F756ODE23GJXFL7VN2NJP7UGKBKZ65OY7OQG2 \ / AMOS7 \ YOURUM ::
+#\[7]PY7F3UZHFZHK47MYLYYWGX6LGOVJZNEBJMBXU3P6BQOKUBGDMICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = letsencr.child.acme.cancel_poll
+# descr = cancel a pending order poll timer
+
+my $p = shift // {};
+
+my $order_id = ref $p eq qw| HASH | ? $p->{'order_id'} // '' : $p;
+
+my $order
+    = length $order_id
+    ? <letsencr.child.orders>->{$order_id}
+    : undef;
+
+return FALSE if ref $order ne qw| HASH |;
+return FALSE if not defined $order->{'timer'};
+
+eval { $order->{'timer'}->cancel };
+delete $order->{'timer'};
+
+return TRUE;
+
+#,,,.,,.,,..,,...,.,.,.,.,.,.,..,,,..,.,,,..,,..,,...,...,,.,,,,,,,,,,..,,,..,
+#ETQKBDKNB5NJ6S4MUQ7AD7NQQZ52QQDBVJFAD4RUKTQUJJNUSOMMRMYCTVRPDOV2ZY3UDZGKYKSLY
+#\\\|S7XXMUZA2IYAQN373P4XPJN2SVYFBO3LIRY4D6OAHRE5EOK5BSJ \ / AMOS7 \ YOURUM ::
+#\[7]4K64GEAU3GQ4GTDANHU2OY2YX5D7CPSQLRIKNSPLSO26DYODDCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

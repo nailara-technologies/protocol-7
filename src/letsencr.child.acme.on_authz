@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_authz
+# param = <acme response>
+# descr = record an authorization and choose its challenge
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| authz | )
+    // return FALSE;
+my $authz = $order->{'authz'}->{ $res->{'params'}->{'authz'} };
+
+my $body = $res->{'body'};
+if ( not $res->{'ok'} or not ref $body eq qw| HASH | ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf 'authorization fetch failed [ http %s ]',
+        $res->{'status'} // '?'
+    );
+}
+
+## the domain comes from the response : rfc 8555 does not keep the ##
+## authorizations in the order of the requested identifiers        ##
+my $value = $body->{'identifier'}->{'value'} // '';
+$authz->{'wildcard'} = $body->{'wildcard'} ? TRUE : FALSE;
+$authz->{'base'}     = $value;
+$authz->{'domain'}   = $authz->{'wildcard'} ? "*.$value" : $value;
+
+if ( ( $body->{'status'} // '' ) eq qw| valid | ) {
+    ## an earlier validation still counts : no challenge is served ##
+    $authz->{'status'} = qw| reused |;
+    <[base.logs]>->(
+        1, ': acme : %s : authorization reused [ already valid ]',
+        $authz->{'domain'}
+    );
+    return <[letsencr.child.acme.step_authz]>->( $order->{'order_id'} );
+}
+
+my %challenge = map { ( $ARG->{'type'} // '' ) => $ARG }
+    ( $body->{'challenges'} // [] )->@*;
+
+my $prefer_dns = <[base.cfg_bool]>->( <letsencr.cfg.prefer_dns01> // FALSE );
+my $type
+    = ( $authz->{'wildcard'} or $prefer_dns and $challenge{'dns-01'} )
+    ? qw| dns-01 |
+    : $challenge{'http-01'} ? qw| http-01 |
+    :                         qw| dns-01 |;
+
+my $challenge = $challenge{$type};
+if ( not defined $challenge or not length( $challenge->{'token'} // '' ) ) {
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'}, sprintf '%s : no %s challenge offered',
+        $authz->{'domain'},   $type
+    );
+}
+
+my $keys
+    = <[letsencr.child.acme.key_authorization]>->( $challenge->{'token'} )
+    // return <[letsencr.child.acme.fail]>->(
+    $order->{'order_id'}, 'account key thumbprint unavailable'
+    );
+
+$authz->{'type'}          = $type;
+$authz->{'token'}         = $challenge->{'token'};
+$authz->{'challenge_url'} = $challenge->{'url'};
+$authz->{'key_auth'}      = $keys->{'key_auth'};
+$authz->{'dns_value'}     = $keys->{'dns_value'};
+$authz->{'status'}        = qw| pending |;
+
+<[base.logs]>->( 2, ': acme : %s : %s challenge', $authz->{'domain'}, $type );
+
+return <[letsencr.child.acme.step_authz]>->( $order->{'order_id'} );
+
+#,,,,,.,.,.,.,..,,,..,..,,...,,..,,,.,...,,..,..,,...,...,.,.,..,,..,,.,,,.,.,
+#437WISYA3HTJH3NE3O2HWYMYBVDXPPD7SDBCCKHTGYKD63SQWTPGVWKPED527UNA6YQIHPM2F7QKS
+#\\\|64VQKTJ7L3UIH6KWQQ5NYZXZHQPAF7543IGX53FALAODZKEYTXW \ / AMOS7 \ YOURUM ::
+#\[7]RSLHG6V3NUKBWTGP5QIXTYDQH3B4CEPO5SUOUOQWH7PWSJ5WMYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

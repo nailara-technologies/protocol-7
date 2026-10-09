@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = letsencr.child.acme.start
+# param = <acme_state>
+# descr = create the order record and fetch its authorizations
+
+my $state = shift             // {};
+my $order = $state->{'order'} // {};
+
+if (   not ref $order->{'authorizations'} eq qw| ARRAY |
+    or not $order->{'authorizations'}->@* ) {
+    <[base.logs]>->( 0, ': acme : order without authorizations' );
+    return undef;
+}
+
+my $order_id = <[base.gen_id]>->( <letsencr.child.orders> //= {} );
+
+my $timeout = <letsencr.cfg.order_timeout> // 900;    ## 15 min ##
+
+<letsencr.child.orders>->{$order_id} = {
+    'order_id'       => $order_id,
+    'reply_id'       => $state->{'reply_id'},
+    'domains'        => $state->{'domains'},
+    'primary_domain' => $state->{'primary_domain'},
+    'order_url'      => $order->{'order_url'},
+    'finalize_url'   => $order->{'finalize_url'},
+    'authz'          =>
+        { map { $ARG => { 'url' => $ARG } } $order->{'authorizations'}->@* },
+    'authz_urls' => [ $order->{'authorizations'}->@* ],
+    'deadline'   => time + $timeout,
+    'step'       => qw| authz |,
+    'polls'      => 0,
+};
+<letsencr.child.acme.active> = $order_id;
+
+<[base.logs]>->(
+    2,
+    ': acme : order %s : %d authorization%s',
+    $order_id,
+    scalar $order->{'authorizations'}->@*,
+    <[base.cnt_s]>->( scalar $order->{'authorizations'}->@* )
+);
+
+## acme requests go one after another : nonces are single use ##
+<letsencr.child.orders>->{$order_id}->{'todo'}
+    = [ $order->{'authorizations'}->@* ];
+<[letsencr.child.acme.step_authz]>->($order_id);
+
+return $order_id;
+
+#,,,.,..,,,..,.,.,,..,,,.,.,.,...,..,,.,.,.,,,..,,...,...,,..,,,,,...,.,.,.,.,
+#II77IZ2C25SH4OK3MAJG46UKSFNLEFPVAOEXO3HXM2JJRUHDTSM2WGZKIULA3SRRMNKJFTQM37FW6
+#\\\|JZWA3DXVEWN2ONUROKGHQRQ6UGIOGRHBJTXLJUKPSMJJX4JS7L5 \ / AMOS7 \ YOURUM ::
+#\[7]MPOE2P2A2OWLWFJR445OY6OFM3GLZ4IN63ELSAUMIYCNWE6372BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

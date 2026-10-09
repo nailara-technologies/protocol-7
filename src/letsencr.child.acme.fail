@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = letsencr.child.acme.fail
+# param = <order_id> <reason>
+# descr = order failed : cleanup, reply false once, next order
+
+my $order_id = shift;
+my $reason   = shift // 'unknown error';
+
+## a second call [ a late reply after the first failure ] finds nothing ##
+my $order = delete <letsencr.child.orders>->{ $order_id // '' }
+    // return FALSE;
+
+<[letsencr.child.acme.cancel_poll]>->( { 'order_id' => $order_id } );
+<[letsencr.child.acme.cleanup]>->($order);
+
+<[base.logs]>->(
+    1, ': acme : order %s [ %s ] failed : %s',
+    $order_id, $order->{'primary_domain'} // '?', $reason
+);
+
+<[base.callback.cmd_reply]>->(
+    $order->{'reply_id'}, { 'mode' => qw| false |, 'data' => $reason }
+) if defined $order->{'reply_id'};
+
+<[letsencr.child.acme.next_queued]>->($order_id);
+
+return FALSE;
+
+#,,,,,,.,,.,.,.,.,.,,,,.,,.,.,,,,,,..,.,,,.,,,..,,...,...,,,.,,..,,,.,,.,,,,.,
+#GHPW67VQN4IRVZPNIHDETOEYKB2TPSCYWCZBVOSPWEB6AGZD6T7W567TKMU2YH2M4BCDWKXNRRLDS
+#\\\|U72SWN4UJXBDKQLA2R3IUS3BR4SL5M2DQGLARSIPSJPWMGARZL6 \ / AMOS7 \ YOURUM ::
+#\[7]OQMPBYCVX7F4IDYRBBUXX4JCZYKAPPMKM7CZM2N6VHEZHASH2UDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

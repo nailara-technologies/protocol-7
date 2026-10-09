@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = letsencr.child.acme.on_respond
+# param = <acme response>
+# descr = challenge accepted by the acme server ? next one
+
+my $res = shift // {};
+my $order
+    = <[letsencr.child.acme.order_of]>->( $res->{'params'}, qw| respond | )
+    // return FALSE;
+my $authz = $order->{'authz'}->{ $res->{'params'}->{'authz'} // '' }
+    // return FALSE;
+
+if ( not $res->{'ok'} ) {
+    my $body = ref $res->{'body'} eq qw| HASH | ? $res->{'body'} : {};
+    return <[letsencr.child.acme.fail]>->(
+        $order->{'order_id'},
+        sprintf '%s : challenge response refused [ http %s%s ]',
+        $authz->{'domain'},
+        $res->{'status'} // '?',
+        length( $body->{'detail'} // '' ) ? " : $body->{'detail'}" : ''
+    );
+}
+
+$authz->{'status'} = qw| responded |;
+<[base.logs]>->( 2, ': acme : %s : challenge answered', $authz->{'domain'} );
+
+return <[letsencr.child.acme.step_respond]>->( $order->{'order_id'} );
+
+#,,,,,...,.,.,..,,..,,,.,,..,,..,,,,,,.,,,,,,,..,,...,..,,,.,,,..,,,.,,,,,...,
+#OK6E66KXWXEG2GSDBG2AMC7YT62ZH33T4OW4Y5MZCSPPSVWJGAHBLWZ4XN6VOY76BHWJLYZJLQO5K
+#\\\|PLUL5B63QXX5LIOCTE5BOK3LZEBMB22FCLLUOEXKGKGZVL7YE3N \ / AMOS7 \ YOURUM ::
+#\[7]BKN6MBLZQZKJGLPWBF7BQHFNMJUTQUCGRWG7QDTK7CPWKTGMU2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

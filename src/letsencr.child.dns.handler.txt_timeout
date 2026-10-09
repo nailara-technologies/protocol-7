@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = letsencr.child.dns.handler.txt_timeout
+# descr = time out pending async txt queries
+
+## timer handler : the event carries the whole query state at ->w->data ##
+
+my $q = shift->w->data;
+
+return if ref $q ne qw| HASH |;
+return if not keys %{ $q->{'pending'} // {} };    ## finished already ##
+
+## every server still pending gets a timeout result ##
+for my $server ( keys %{ $q->{'pending'} } ) {
+    my $sq = $q->{'pending'}->{$server};
+    eval { $sq->{'watcher'}->cancel } if defined $sq->{'watcher'};
+    eval { $sq->{'sock'}->close }     if defined $sq->{'sock'};
+    $q->{'results'}->{$server} = {
+        'ok'     => FALSE,
+        'rcode'  => qw| TIMEOUT |,
+        'values' => [],
+    };
+}
+$q->{'pending'} = {};
+delete $q->{'timer'};    ## this very timer : fired, non-repeating ##
+
+$code{ $q->{'on_done'} }->(
+    {   'name'    => $q->{'name'},
+        'results' => $q->{'results'},
+        'params'  => $q->{'params'},
+    }
+);
+
+return;
+
+#,,,,,,,,,.,,,,,.,,,.,,.,,,.,,..,,..,,,.,,.,.,..,,...,...,,.,,.,,,...,,,.,,..,
+#DPP3GGUOGVMKZE5BG4W56XU7JKQA3GIKAEVOTTRGM4YSACZC5XT6ZKF4BKOFMLHLLMGJMVLX3LPOI
+#\\\|GJ3Z3XMRXATFK6DV45UXEKAIYVKITTFT3YSZ2C77JFVBIPLZU2W \ / AMOS7 \ YOURUM ::
+#\[7]NO6GIS2CCHD67S25RWTVU36NLJCKQN5AFNSPW2JBT4HFXUAZ3CAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

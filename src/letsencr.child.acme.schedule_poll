@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = letsencr.child.acme.schedule_poll
+# descr = arm one non-repeating poll timer per order
+
+my $p = shift // {};
+
+my $order_id = $p->{'order_id'} // '';
+my $delay    = $p->{'delay'}    // 0;
+my $handler  = $p->{'handler'}  // '';
+my $data     = $p->{'data'}     // {};
+
+my $order
+    = length $order_id
+    ? <letsencr.child.orders>->{$order_id}
+    : undef;
+
+if ( ref $order ne qw| HASH | ) {
+    ## a late poll after cleanup : log and drop [ state record rule ] ##
+    <[base.logs]>->(
+        2, 'letsencr.child.acme.schedule_poll: no order record [ %s ]',
+        $order_id
+    );
+    return undef;
+}
+
+if ( not length $handler or not exists $code{$handler} ) {
+    <[base.logs]>->(
+        0, 'letsencr.child.acme.schedule_poll: handler %s not found',
+        $handler
+    );
+    return undef;
+}
+
+## cancel a previous pending poll timer [ one at a time per order ] ##
+if ( defined $order->{'timer'} ) {
+    eval { $order->{'timer'}->cancel };
+    delete $order->{'timer'};
+}
+
+## non-repeating timer : the handler gets the EVENT, data at ->w->data ##
+my $timer = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => $handler,
+        'data'    => $data,
+    }
+);
+
+if ( not defined $timer ) {
+    <[base.logs]>->(
+        0, 'letsencr.child.acme.schedule_poll: add_timer failed [ %s ]',
+        $order_id
+    );
+    return undef;
+}
+
+$order->{'timer'} = $timer;
+return $timer;
+
+#,,..,,.,,.,.,,..,...,,..,...,,,,,..,,.,.,.,.,..,,...,...,..,,.,,,,..,,,.,..,,
+#2OPB3BLNO6RF2D5P3S25LXYKB4FQ7REML7TPHUDMH35F436LHYNFLMZD3QACJ56VC2LQTP4FC6C4W
+#\\\|6ELBRRWTDBDXRNUF6M44SWV3AKUF3TMPOCJH2JRB2PAQAPLOJMN \ / AMOS7 \ YOURUM ::
+#\[7]JSMBSDP5CLNN77ZS4VR42UKK7XYVTBCNSCOONPIH2BZ5YWNECQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

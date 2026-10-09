@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_poll_order
+# param = <timer event>
+# descr = ask the acme server for the order status again
+
+my $order = <[letsencr.child.acme.order_of]>->( shift, qw| finalize | )
+    // return FALSE;
+
+<[letsencr.child.acme.request]>->(
+    {   'method'   => qw| POST-as-GET |,
+        'url'      => $order->{'order_url'},
+        'order_id' => $order->{'order_id'},
+        'on_done'  => qw| letsencr.child.acme.on_order |,
+        'params'   => { 'order_id' => $order->{'order_id'} },
+    }
+);
+
+return TRUE;
+
+#,,,.,...,..,,,..,.,.,...,,,.,...,.,.,...,...,..,,...,...,.,,,,,.,,,.,...,...,
+#L7DHHLOGHKW2FJBSWUHE2UCXUSE52S7S7VWUZYPVQZNNSAPXU7H3VOQOVYV3QZLXRDM4PE63S3GAG
+#\\\|A3RSWL5EGQNDHWQZD35HXGXS2K5DUDUPKNPWPTA5IHRGFUPDQVY \ / AMOS7 \ YOURUM ::
+#\[7]JQDXHRWDNPGW6J3CVFJFHGRZP7IEX3KM2KG5RPNQKJJACIC2WMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = clients.https.h2.send_request
-# descr = build + send http/2 request via Protocol::HTTP2::Client, register read watcher
+# descr = send an http/2 request, register its read watcher
 # note  = called by clients.https.handler.handshake when alpn negotiated 'h2'
 
 my $state = shift // {};
@@ -32,9 +32,12 @@ my $on_response = sub {
     return if not defined $state->{'sock'};    ## already cleaned up ##
 
     my %resp_headers;
+    my %resp_headers_multi;
     my @flat = @{ $h2_headers // [] };
     while ( my ( $k, $v ) = splice( @flat, 0, 2 ) ) {
-        $resp_headers{ lc $k } = $v;
+        my $lk = lc $k;
+        $resp_headers{$lk} = $v;    ## last value wins, as before ##
+        push( @{ $resp_headers_multi{$lk} }, $v );    ## all values ##
     }
     my $status = ( $resp_headers{':status'} // 0 ) + 0;
     my $ok     = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
@@ -52,11 +55,12 @@ my $on_response = sub {
     ## header names are already lower-cased above : same contract as the ##
     ## http/1.1 path in clients.https.handler.io                         ##
     $code{ $state->{'on_done'} }->(
-        {   'ok'      => $ok,
-            'status'  => $status,
-            'body'    => $body,
-            'headers' => \%resp_headers,
-            'params'  => $state->{'params'},
+        {   'ok'            => $ok,
+            'status'        => $status,
+            'body'          => $body,
+            'headers'       => \%resp_headers,
+            'headers_multi' => \%resp_headers_multi,
+            'params'        => $state->{'params'},
         }
     );
     return;
@@ -224,8 +228,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,..,...,..,,,,.,,.,,...,.,.,,,.,..,,..,,...,..,,...,...,.,.,,,.,,.,,,,.,,,.,
-#6FLZRJYZTROLNQ3H6VIAVMQWE5GEQZRYZZV3WJSGZSLGORPXFJ76CEPGBSTPLRGFAAV67NZX4Q6R6
-#\\\|EZT4GUVPYGTX62NVTGZGIK74RJILT5A2NRCSE2D7BK3CBQNXLIO \ / AMOS7 \ YOURUM ::
-#\[7]UIMR62RT36WEG2ETSPDIETZAOTKX3A5Y72FZF2P3JYHZ4N3QGMCY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,.,,,.,.,.,,.,,.,,,.,,,...,..,,..,,...,..,,.,.,.,.,,..,,..,,.,,
+#KTIDJBDTDHWZLLIIZTVNCWVGHLO33AH3TDV4HSUFDI6YJUJWP7G33TA7L5RKW6ZZFFNQNXCKWDYXA
+#\\\|FVUVKZRFT6FALCIAVWYUII3ZUQ4NKAJULCNHOOEUYKNWQZBZ3WR \ / AMOS7 \ YOURUM ::
+#\[7]BKPCDUQA2WUZN4MSIHMSZIVZFCT3TVN6WAFZ5XRJFLDEEKD5MWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

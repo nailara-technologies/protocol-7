@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = letsencr.child.acme.handler.response
+# descr = acme reply : nonce store, badNonce retry
+
+my $result   = shift                              // {};
+my $p        = $result->{'params'}->{'acme_args'} // {};
+my $order_id = $p->{'order_id'}                   // '';
+my $on_done  = $p->{'on_done'}                    // '';
+my $params   = $p->{'params'}                     // {};
+
+my $headers = $result->{'headers'} // {};
+
+## keep the replay-nonce of every response for the next request ##
+my $nonce = $headers->{'replay-nonce'} // '';
+if ( length $nonce ) {
+    <letsencr.child.acme_client>->{'nonce'} = $nonce;
+    <letsencr.child.orders>->{$order_id}->{'nonce'} = $nonce
+        if length $order_id
+        and ref <letsencr.child.orders>->{$order_id} eq qw| HASH |;
+}
+
+## decode a json body [ acme answers application/json or problem+json ] ##
+my $body    = $result->{'body'} // '';
+my $decoded = undef;
+my $ctype   = lc( $headers->{'content-type'} // '' );
+if ( length $body and $ctype =~ m{application/.*json} ) {
+    eval { $decoded = JSON::XS::decode_json($body) };
+    if ( length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            1,
+            'letsencr.child.acme.handler.response: json parse: %s',
+            scalar <[base.str.eval_error]>
+        );
+        $decoded = undef;
+    }
+}
+
+## badNonce : retry ONCE with the fresh nonce stored above ##
+my $err_type = ref $decoded eq qw| HASH | ? $decoded->{'type'} // '' : '';
+if (    $err_type =~ m{urn:ietf:params:acme:error:badNonce$}
+    and not $p->{'_retried'}
+    and length $nonce ) {
+    <[base.logs]>->(
+        2,
+        'letsencr.child.acme.handler.response: '
+            . 'badNonce, retrying once with fresh nonce'
+    );
+    $p->{'_retried'} = TRUE;
+    return <[letsencr.child.acme.request]>->($p);
+}
+
+## hand the result to the caller's on_done ##
+return $code{$on_done}->(
+    {   'ok'            => $result->{'ok'}     // FALSE,
+        'status'        => $result->{'status'} // 0,
+        'body'          => $decoded            // $body,
+        'headers'       => $headers,
+        'headers_multi' => $result->{'headers_multi'} // {},
+        'location'      => $headers->{'location'}     // '',
+        'params'        => $params,
+    }
+);
+
+#,,..,,,.,..,,.,.,..,,..,,.,.,...,,,,,,..,..,,..,,...,...,,.,,,,,,...,.,,,.,,,
+#SNREOD6JLZQMGINMECH64KZJAXCGMOLCYUQTXIURQ2CO2SOWNAN2MQMECYVQ2NSLSHHRLRPTDNBEO
+#\\\|MMXU7ESUI7SDVAIMOPCKHW2B4IIT7EJ2DIDOKKA4I5FEGMQTQFH \ / AMOS7 \ YOURUM ::
+#\[7]B4EOLDPNTFYGERFEEU3WNBZEDKTK5TGAENMPQPMJC2OWQGHCUYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

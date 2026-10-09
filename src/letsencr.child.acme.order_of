@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = letsencr.child.acme.order_of
+# param = <order_id | { order_id } | timer event> [expected step]
+# descr = the active order record, or undef for late replies
+
+my $arg  = shift;
+my $step = shift;
+
+my $order_id;
+if ( ref $arg eq qw| HASH | ) {
+    $order_id = $arg->{'order_id'};
+} elsif ( ref $arg and eval { $arg->can('w') } ) {    ## timer event ##
+    my $data = $arg->w->data;
+    $order_id = ref $data eq qw| HASH | ? $data->{'order_id'} : $data;
+} else {
+    $order_id = $arg;
+}
+
+my $order = <letsencr.child.orders>->{ $order_id // '' };
+
+if ( not defined $order ) {
+    <[base.logs]>->(
+        2,
+        ': acme : reply for finished order %s dropped',
+        $order_id // '?'
+    );
+    return undef;
+}
+
+if ( defined $step and $order->{'step'} ne $step ) {
+    <[base.logs]>->(
+        2, ': acme : order %s : %s reply in step %s dropped',
+        $order_id, $step, $order->{'step'}
+    );
+    return undef;
+}
+
+if ( time > $order->{'deadline'} ) {
+    <[letsencr.child.acme.fail]>->( $order_id, 'order deadline passed' );
+    return undef;
+}
+
+return $order;
+
+#,,,.,.,.,,,.,,..,,,.,,,.,,.,,,..,..,,..,,...,..,,...,...,.,,,..,,..,,,,.,,.,,
+#P25QAZ5Q2T63R6SICX5AYIPAQ2AMGV6FI4BTKDUL7GFT67XGBZJWGNTRZOQI7TX7CSSNR2NXS7ZW6
+#\\\|O5K26SCZFN65LPI7X5V66QVFWW6MTY4GNMKEDGXHKCZLC5PESQV \ / AMOS7 \ YOURUM ::
+#\[7]XSYK73SZWGTWCG2LTXIKMBPIYE4AVWGBZMPEDHAS42INMEIBSIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

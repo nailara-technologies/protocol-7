@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = letsencr.child.acme.step_respond
+# param = <order_id>
+# descr = tell the acme server the next challenge is ready
+
+my $order = <[letsencr.child.acme.order_of]>->( shift, qw| respond | )
+    // return FALSE;
+
+my $url = shift $order->{'todo'}->@*;
+
+if ( not defined $url ) {    ## all responded : validation runs now ##
+    $order->{'step'} = qw| poll_authz |;
+    return <[letsencr.child.acme.schedule_poll]>->(
+        {   'order_id' => $order->{'order_id'},
+            'delay'    => 2,
+            'handler'  => qw| letsencr.child.acme.step_poll_authz |,
+            'data'     => { 'order_id' => $order->{'order_id'} },
+        }
+    );
+}
+
+my $authz = $order->{'authz'}->{$url};
+
+<[letsencr.child.acme.request]>->(
+    {   'method'   => qw| POST |,
+        'url'      => $authz->{'challenge_url'},
+        'payload'  => {},
+        'order_id' => $order->{'order_id'},
+        'on_done'  => qw| letsencr.child.acme.on_respond |,
+        'params'   => { 'order_id' => $order->{'order_id'}, 'authz' => $url },
+    }
+);
+
+return TRUE;
+
+#,,,,,,,.,...,,..,,,,,,..,.,,,.,,,.,.,,,.,,.,,..,,...,...,.,.,.,,,...,,,.,,.,,
+#VZ3WKVD2KOCSWS642EJTQPZBCLH4SGKKEQYYA3ZDWMPFFZUA2XBWSNV5DCVWG257BQMGLF2BQ6PS2
+#\\\|MKDNTWLYNI7I5THXE7ZD442LD4DU6SMPHOPUWZBLRONY5A23Y6A \ / AMOS7 \ YOURUM ::
+#\[7]IS5HT4FKZ7HXEEUPTGXXUVAPCJ6XQIOQOH3P6YUQDU6GKJG4NEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
