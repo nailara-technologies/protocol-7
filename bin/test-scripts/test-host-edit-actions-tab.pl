@@ -101,7 +101,9 @@ $code{'host-edit.flow.cancel'} = sub {
 };
 
 ## the client pin store NEVER gets read here either : fixed columns ##
+my @pin_state_calls;
 $code{'host-edit.trust.pin_state'} = sub {
+    push @pin_state_calls, [@ARG];
     return {
         qw| trust | =>
             sprintf( q|key %s · %s · since %s|, qw| YB25FNI test-leaf 0 | ),
@@ -225,6 +227,7 @@ compile_module($ARG) for qw| plugin.host-edit.actions.tab_info
     plugin.host-edit.actions.build_field
     plugin.host-edit.actions.render
     plugin.host-edit.actions.render_state
+    plugin.host-edit.actions.render_trust
     plugin.host-edit.actions.cursor_char
     plugin.host-edit.actions.handler.key
     plugin.host-edit.actions.submit_passphrase
@@ -326,6 +329,31 @@ ok( defined $actions_at
         && ( $schema_names[ $actions_at + 1 ] // '' ) eq qw| action_state |,
     'action_state sits directly under host_actions'
 );
+
+## the trust columns are LIVE rows : recomputed on every render from the saved
+## record with the form's current values over it
+my ($trust_def)
+    = grep { ( $ARG->{'name'} // '' ) eq qw| trust | }
+    @{ $schema->{'fields'} // [] };
+ok( ref $trust_def eq 'HASH'
+        && $trust_def->{'readonly'} eq TRUE
+        && ref $trust_def->{'display_override'} eq 'CODE',
+    'trust : readonly live row with a display_override'
+);
+{
+    @pin_state_calls = ();
+    local $data{'form'}{'record'}
+        = { 'fields' => { 'ssh' => 'saved@host', 'ssh_port' => '22' } };
+    my $shown
+        = $trust_def->{'display_override'}->( editor_stub(), qw| trust | );
+    ok( $shown =~ m|\Akey YB25FNI|,
+        '  :.. it shows pin_state\'s trust column' );
+    my $fields_seen = ( $pin_state_calls[-1] // [] )->[1] // {};
+    ok( ( $fields_seen->{'ssh'} // '' ) eq 'typed@host'
+            && ( $fields_seen->{'ssh_port'} // '' ) eq '22',
+        '  :.. computed from the saved record with form values over it'
+    );
+}
 
 ## user-edit output stays identical : no synth_fields registered -> no      ##
 ## host_actions, and the self-record synthesised fields are untouched [ the ##
@@ -585,8 +613,8 @@ if ($fail_count) {
 say "  all $test_count checks passed";
 exit 0;
 
-#,,,,,.,.,.,,,,,.,,,,,,.,,.,,,...,..,,.,,,,,,,..,,...,...,,..,.,.,,,.,.,.,,,,,
-#B4AJ34IWXDNPM63Z2EY5XKEPKXLJKNZ3XJJWOFKPU5H2GS46M6TCLDNLUBHIPSGIVB76DYL3PWE7E
-#\\\|55LN7IYOLBX6FZ5BNOWRM3ZZJNPLT5RDYYVJ3APLFOKCLT7KKMK \ / AMOS7 \ YOURUM ::
-#\[7]SPR2EBN4QN46NICWBK4BUINS6RWTQDD6TU5MCB2XV2WBHM25R6AI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,.,.,,,.,..,,...,,,.,.,.,,.,,..,,...,...,..,,.,,,...,,.,,.,,,
+#GFEXLCKACEACHGOWUXLIU5DO3NWR2Q66LVU3JEWW5WT3CVHRHIQWZ7APXO7DYWIFA6V5KPGM775V2
+#\\\|V3P33GLB72MSRUDODRYS7XPYHE3325OYEEWMS7UEZXDOECORDIM \ / AMOS7 \ YOURUM ::
+#\[7]DKSW4LL4I2YTNH5CTVDSLCGEXHAJOYNK23J272KQT3T2EGHYGSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
