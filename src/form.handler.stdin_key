@@ -346,8 +346,19 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         and defined $focus_def->{'plugin'}
         and exists
         <form.plugin.registry.by_key>->{ $focus_def->{'name'} // '' }
-        and ( $key eq "\e[C" or $key eq "\x1b[C" )
-        and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty ) ) {
+        and (
+            (       ( $key eq "\e[C" or $key eq "\x1b[C" )
+                and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty )
+            )
+
+            ## Enter enters too, in ONE press [ per user : more ergonomic than
+            ## Right ] -- it has no cursor meaning to protect, so the
+            ## two-stage rule above is Right's alone.  on a pinned row Enter
+            ## therefore no longer submits the form ; inside, the plugin's own
+            ## handler.key gets the next Enter [ e.g. add host ]
+            or $key eq "\r" or $key eq "\n"
+        )
+    ) {
 
         <[base.logs]>->(
             2, ': entering plugin mode [ %s ]',
@@ -576,8 +587,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,,..,.,,,,..,..,,..,,,..,.,.,.,.,...,,,,,..,,...,...,,..,...,...,,..,.,.,
-#GX4GVQNYMLDTD2XJGIM3E5EP5LHIMOH2KMDKYXDHRJRET7CVZSJ3JJI5KISYXKDPDOGGHLQQJVENI
-#\\\|7SN5QWEAQ2TMME32IN7SJ3EDOGGAHPXNGK6CEGXHFHY74VPGAP7 \ / AMOS7 \ YOURUM ::
-#\[7]WDEBOTIM3E5NAAEYKIBXHYHBMQCZ2VR5CBKROYGTRDWECE55FGAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,...,,,.,..,,.,,,,,,,...,..,,..,,...,..,,.,,,,.,,,.,,...,..,,
+#KEK756WW56BV72ZT5S7KNHL6VVC7USAVOAQMAYUTPCORYEP2422KT5TB7XFVNCOUOOMD5E5MBMYA2
+#\\\|4AITQVLWIJIT72AL6LOIY6YRAP2C4WXAGXFYCIDQNRQFA6NYTFU \ / AMOS7 \ YOURUM ::
+#\[7]WVRYAVUFMC5CEWBOQJY3JEORROMVZ7CQ47VOBPEX27Q3ODGSC4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

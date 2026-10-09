@@ -3,7 +3,7 @@
 # name  = plugin.host-edit.actions.build_field
 # descr = build the synthesised 'host_actions' field_def for a host record
 # param = $record
-# return = list of field defs [ host_actions, action_state ]
+# return = list of field defs [ host_actions, action_state, trust, owner_trust ]
 
 ## the synth_fields builder host-edit registers on <form.source> [
 ## host-edit.init_code ], called by form.schema_from_record's generic hook for
@@ -53,11 +53,33 @@ return [
                 ->( $render_state, $render_field )
                 : '';
         },
-    }
+    },
+
+    ## the trust columns, LIVE : the same names value_get injects at load, so
+    ## these defs replace those [ synthesised defs are merged last in
+    ## form.schema_from_record ] and keep their row positions -- recomputed on
+    ## every render [ render_trust ], never written [ value_set filters ]
+    map {
+        my $trust_field = $ARG;
+        ## + : a hashref, not a block ##
+        +{  qw| name |             => $trust_field,
+            qw| type |             => qw| freeform_line |,
+            qw| default |          => '',
+            qw| readonly |         => TRUE,
+            qw| display_override | => sub {
+                my ( $render_state, $render_field ) = @ARG;
+                return
+                    exists $code{'plugin.host-edit.actions.render_trust'}
+                    ? $code{'plugin.host-edit.actions.render_trust'}
+                    ->( $render_state, $render_field )
+                    : '';
+            },
+        }
+    } qw| trust owner_trust |
 ];
 
-#,,.,,,,,,.,.,...,,..,,..,,,,,,.,,.,,,,,,,,.,,..,,...,...,.,,,..,,.,,,,.,,,..,
-#J674BHVERFDS3LISVC6YWKMQGX72M4NM74URLS4R4LQQC3TEPKYJF2YOJLP2EUBILY5WPAHVG7CCU
-#\\\|REFEVLNQNTAS7JHODWBSRFWKQYYHNTIK6QXUQN2J6EKMXVZBLFH \ / AMOS7 \ YOURUM ::
-#\[7]RXSZCTEWTCRVOXJZVTJ7WLH4WBQJMVHZRDXNC6XPN2VNUZ4L2QDA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,,,.,.,,,,..,.,,,,.,,,,.,.,,,..,,...,...,,.,,,,,,,..,,..,...,
+#24EPDW75ZPHBCFLKPIGD2BBOSM74KPAGTU3XQ2RF3X35TTA3KHTZK54TRNTYWUURYNES5FAUHSS36
+#\\\|5MFN4GQ6QVFTFLE7BDWHNK5HPKY3WZCRDRWFFHJL7CZJHTKDHSK \ / AMOS7 \ YOURUM ::
+#\[7]HAEAIG2WQD7OSUO5BTZ4EVXX5TOZKZ4SRLH3CTL67LUIHDOOAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
