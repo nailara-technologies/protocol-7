@@ -2,7 +2,9 @@
 # fable5 sft [ new, text ] and the heretic distill with mmproj [ new,
 # vision ] against the default model. the two doc tasks are the ones from
 # qwen38-compare.yaml [ 2026-09-21 baseline ], the third is a real coding
-# task : a module in house style, checked by the mime types it must name.
+# task : a module in house style [ first version asked for
+# coding.image.mime_from_magic -- OFSQC4I's answer was kept and committed,
+# so the task moved on to header dimensions ].
 # capture/revert between tasks keeps the tree pristine.
 
 batch_spec_version: 1
@@ -41,19 +43,21 @@ tasks:
       - cursor
       - restart
 
-  - id: mime-from-magic-module
+  - id: dims-from-header-module
     budget_hint: 900
     prompt: |
-      work submit "read src/coding.image.label and src/coding.image.load_for_vision
+      work submit "read src/coding.image.label and src/coding.image.mime_from_magic
       for the module format and house style [ header comments, lowercase
       ## comments with [ ] annotations, no sub { } wrapper : the file body
-      is the subroutine ]. then create src/coding.image.mime_from_magic : it
-      takes the first bytes of a file as a string and returns the image mime
-      type from the magic bytes for png, jpeg, gif, webp, tiff and bmp, or ''
-      for anything else. write the file, then reply with a single-line
-      confirmation."
+      is the subroutine ]. then create src/coding.image.dims_from_header : it
+      takes the first bytes of an image file as a string and returns
+      ( width, height ) read from the header for png [ IHDR chunk ], gif
+      [ logical screen descriptor ] and jpeg [ scan the segments to the first
+      SOF0..SOF15 start-of-frame marker, skipping DHT, DAC and JPG ], or an
+      empty list when the format is unknown or the bytes are too short. write
+      the file, then reply with a single-line confirmation."
     criteria:
-      - image/png
-      - image/jpeg
-      - image/webp
-      - image/tiff
+      - IHDR
+      - SOF
+      - width
+      - height
