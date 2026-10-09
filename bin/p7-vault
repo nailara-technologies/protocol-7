@@ -30,7 +30,7 @@ BEGIN {
 }
 
 use AMOS7::Vault qw|
-    vault_init vault_open vault_unlock vault_rewrap vault_wraps
+    vault_init vault_open vault_exists vault_unlock vault_rewrap vault_wraps
     entry_save entry_load entry_versions entries_latest vault_verify
     archive_write archive_open archive_restore
     gen_password recovery_code_new recovery_code_normalize
@@ -66,6 +66,23 @@ my $CLIP_CLEAR_SECONDS = $ENV{'P7_VAULT_CLIP_SECONDS'} // 45;
 
 my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7];
+
+## colors : on by default, off with -nc [ bin/Protocol-7, ssh.hash-hostkey ]
+## or a set NO_COLOR, and when STDOUT is not a terminal. the palette is
+## %AMOS7::C's, copied -- this script runs without AMOS7.pm [ usb copy ]
+my $no_colors = grep { $ARG eq '-nc' } @ARGV;
+@ARGV = grep { $ARG ne '-nc' } @ARGV;
+$no_colors ||= defined $ENV{'NO_COLOR'} || !-t STDOUT;
+
+our %C = (
+    'T' => "\e[38;2;6;71;195m",     ## labels, field names, titles ##
+    '0' => "\e[38;2;68;39;172m",    ## frame characters ##
+    'g' => "\e[38;2;71;195;6m",     ## done ##
+    'o' => "\e[38;2;197;141;7m",    ## attention ##
+    'B' => "\e[1m",
+    'R' => "\e[0m",
+);
+%C = map { $ARG => '' } keys %C if $no_colors;
 
 ## options before the command [ getopts stops at the command word, so a   ##
 ## command's own flags like 'show <filter> -r' are left for the command ] ##
@@ -114,7 +131,7 @@ if (@ARGV) {
 
 ## interactive : one unlock for a whole session ##
 die "p7-vault : no terminal [ give a command ]\n" if not -t STDIN;
-if ( not -e "$dir/vault.key" ) {
+if ( not vault_exists($dir) ) {
     say "  no vault in $dir yet -- 'init' creates one";
 } else {
     unlocked() or exit 1;
@@ -166,6 +183,7 @@ sub usage {
 
     -d  .......  vault directory [ default P7_VAULT_DIR or ~/.n/vault ]
     -R  .......  unlock with the recovery code
+    -nc ......  no colors [ also with NO_COLOR set, or output not a terminal ]
     -h  .......  this list [ also -options ]
 
 EOF
@@ -192,8 +210,13 @@ sub readline_term {
     ## only between its own ops -- ctrl-c did nothing until enter.  readline
     ## calls this hook on every signal it sees during a read : a perl sub
     ## running there gives the pending handler its turn
-    $term->Attribs->{'signal_event_hook'} = sub { return 0 }
-        if $term->ReadLine eq qw| Term::ReadLine::Gnu |;
+    if ( $term->ReadLine eq qw| Term::ReadLine::Gnu | ) {
+        $term->Attribs->{'signal_event_hook'} = sub { return 0 };
+
+        ## readline echoes '^C' itself and then returns the cursor to column 0
+        ## -- the handler's '\b\b' could no longer reach it
+        $term->parse_and_bind('set echo-control-characters off');
+    }
 
     return $READLINE = $term;
 }
@@ -206,10 +229,13 @@ sub prompt_line {
     my $line;
     my $rl = readline_term();
     if ( defined $rl and $rl->ReadLine ne qw| Term::ReadLine::Stub | ) {
-        $line = $rl->readline("  $label > ");
+        ## \001 \002 mark the color codes as zero width for readline ##
+        my ( $t, $f, $r )
+            = map { length ? "\001$ARG\002" : '' } @C{qw| T 0 R |};
+        $line = $rl->readline("  $t$label$f >$r ");
         return undef if not defined $line;
     } else {
-        print "  $label > ";
+        print "  $C{T}$label$C{0} >$C{R} ";
         $line = <STDIN>;
         return undef if not defined $line;
         chomp $line;
@@ -231,7 +257,7 @@ sub prompt_line {
 ## no-echo input, never logged, never on argv ##
 sub prompt_secret {
     my $label = shift;
-    print "  $label : ";
+    print "  $C{T}$label$C{0} :$C{R} ";
 
     return read_secret_raw($label)
         if -t STDIN and eval { require Term::ReadKey; 1 };
@@ -252,8 +278,10 @@ sub prompt_secret {
     ## owner never sees. stripping it silently would store a secret that
     ## differs from the one they think they typed -- ask again instead
     if ( $line =~ m|\e| ) {
-        say '  << arrow \ escape keys do not edit '
-            . 'a hidden value -- type it again >>';
+        say $C{o}
+            . '  << arrow \ escape keys do not edit '
+            . 'a hidden value -- type it again >>'
+            . $C{R};
         return prompt_secret($label);
     }
     return decode( 'UTF-8', $line );
@@ -277,7 +305,7 @@ sub read_secret_raw {
     ## [ checking a long password before it is stored ] ; while visible the
     ## line is redrawn after every key
     my $redraw = sub {
-        printf "\r\e[K  %s : %s", $label,
+        printf "\r\e[K  $C{T}%s$C{0} :$C{R} %s", $label,
             $visible ? decode( 'UTF-8', $bytes ) : '';
     };
 
@@ -387,7 +415,7 @@ sub pick {
     my $v            = unlocked() // return undef;
 
     my ( $list, $errors ) = entries_latest( $v, $with_deleted );
-    say STDERR "  << $ARG >>" foreach @{$errors};
+    say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
 
     my @hits = grep { lc( $ARG->{'record'}{'title'} // '' ) eq lc $filter }
         @{$list};
@@ -434,14 +462,14 @@ sub summary_line {
         : join( ' ',
         grep {length} $record->{'username'} // '',
         $record->{'url'} // '' );
-    return sprintf '%3s  %-7s %-28s %s', $n, $type,
+    return sprintf "$C{0}%3s$C{R}  %-7s $C{T}%-28s$C{R} %s", $n, $type,
         $record->{'title'} // '', $who;
 }
 
 ##[ COMMANDS ]################################################################
 
 sub cmd_init {
-    if ( -e "$dir/vault.key" ) {
+    if ( vault_exists($dir) ) {
         say "  $dir already holds a vault";
         return FALSE;
     }
@@ -456,8 +484,11 @@ sub cmd_init {
             next;
         }
         if ( length $passphrase < 12 ) {
-            say '  << short passphrase : every entry depends on it. several '
-                . 'words are easier to remember and much stronger >>';
+            say $C{o}
+                . '  << short passphrase : every entry depends on it. '
+                . 'several words are easier to remember and much '
+                . 'stronger >>'
+                . $C{R};
             next if not confirm('keep it anyway');
         }
         last;
@@ -473,8 +504,10 @@ sub cmd_init {
     my $typed = prompt_line("type it back to confirm [ or 'skip' ]") // '';
 
     if ( $typed eq 'skip' ) {
-        say '  << no recovery code : a forgotten passphrase '
-            . 'loses every entry, with no way back >>';
+        say $C{o}
+            . '  << no recovery code : a forgotten passphrase '
+            . 'loses every entry, with no way back >>'
+            . $C{R};
         return FALSE if not confirm('create the vault without one');
         undef $recovery;
     } else {
@@ -497,12 +530,14 @@ sub cmd_init {
         if defined $recovery
         and not vault_unlock( $check2, $recovery, 'recovery' );
     if ( not $ok ) {
-        say '  << the new key file does not open -- do not use it >>';
+        say $C{o}
+            . '  << the new key file does not open -- do not use it >>'
+            . $C{R};
         return FALSE;
     }
 
     $vault = $created;
-    say "  vault created and test-unlocked [ $dir ]";
+    say $C{g} . "  vault created and test-unlocked [ $dir ]" . $C{R};
     return TRUE;
 }
 
@@ -524,7 +559,7 @@ sub cmd_add {
         return FALSE;
     }
     entry_save( $v, undef, \%record );
-    say "  stored '$record{'title'}'";
+    say $C{g} . "  stored '$record{'title'}'" . $C{R};
     return TRUE;
 }
 
@@ -581,7 +616,7 @@ sub cmd_list {
     my $filter = join ' ', @ARG;
     my $v      = unlocked() // return FALSE;
     my ( $list, $errors ) = entries_latest($v);
-    say STDERR "  << $ARG >>" foreach @{$errors};
+    say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
 
     my $n = 0;
     foreach
@@ -607,9 +642,9 @@ sub cmd_show {
             $value = '*' x 8;
         }
         $value =~ s|\n|\n               |g;
-        say sprintf '  %-12s %s', $field, $value;
+        say sprintf "  $C{T}%-12s$C{R} %s", $field, $value;
     }
-    say sprintf '  %-12s %s [ %s ]', 'updated',
+    say sprintf "  $C{T}%-12s$C{R} %s " . $C{0} . '[ %s ]' . $C{R}, 'updated',
         scalar localtime( ntime_b32_to_unix( $record->{'updated'} ) // 0 ),
         $record->{'updated'} // '';
     say '';
@@ -646,8 +681,13 @@ sub cmd_copy {
         say "  $tool->[0] failed";
         return FALSE;
     };
-    say "  $field copied [ cleared in $CLIP_CLEAR_SECONDS s ]";
-    say '  << windows clipboard history [ win+v ] keeps a copy, if enabled >>'
+    say $C{g}
+        . "  $field copied [ cleared in $CLIP_CLEAR_SECONDS s ]"
+        . $C{R};
+    say $C{o}
+        . '  << windows clipboard history [ '
+        . 'win+v ] keeps a copy, if enabled >>'
+        . $C{R}
         if on_wsl();
     clipboard_clear_later( $tool, $value );
     return TRUE;
@@ -665,7 +705,9 @@ sub cmd_edit {
         else                 { delete $record{$field} }
     }
     entry_save( $v, $entry->{'id'}, \%record );
-    say "  stored '$record{'title'}' [ the old version stays in history ]";
+    say $C{g}
+        . "  stored '$record{'title'}' [ the old version stays in history ]"
+        . $C{R};
     return TRUE;
 }
 
@@ -678,7 +720,9 @@ sub cmd_rm {
     my %record = ( %{ $entry->{'record'} }, deleted => 1 );
     delete $record{'updated'};
     entry_save( $v, $entry->{'id'}, \%record );
-    say "  '$title' deleted [ older versions stay readable in history ]";
+    say $C{g}
+        . "  '$title' deleted [ older versions stay readable in history ]"
+        . $C{R};
     return TRUE;
 }
 
@@ -735,7 +779,9 @@ sub cmd_restore {
     my %restored = %{$record};
     delete @restored{qw| updated deleted |};
     entry_save( $v, $entry->{'id'}, \%restored );
-    say "  restored '$restored{'title'}' [ as a new version ]";
+    say $C{g}
+        . "  restored '$restored{'title'}' [ as a new version ]"
+        . $C{R};
     return TRUE;
 }
 
@@ -758,15 +804,19 @@ sub cmd_archive {
 
     my ( $count, $size ) = eval { archive_write( $v, $file ) };
     if ( not defined $count ) {
-        print "  << $EVAL_ERROR";
+        print $C{o} . "  << $EVAL_ERROR" . $C{R};
         return FALSE;
     }
-    say "  archive written and read back : $count version"
+    say $C{g}
+        . "  archive written and read back : $count version"
         . ( $count == 1 ? '' : 's' )
-        . ", $size bytes";
+        . ", $size bytes"
+        . $C{R};
     say "  [ $file ]";
-    say '  << a public copy keeps every archive in its history '
-        . ': a later passphrase change does not protect those >>';
+    say $C{o}
+        . '  << a public copy keeps every archive in its history '
+        . ': a later passphrase change does not protect those >>'
+        . $C{R};
     return TRUE;
 }
 
@@ -786,19 +836,23 @@ sub cmd_restore_archive {
 
     my $report = eval { archive_restore( $archive, $dir ) };
     if ( not defined $report ) {
-        print "  << $EVAL_ERROR";
+        print $C{o} . "  << $EVAL_ERROR" . $C{R};
         return FALSE;
     }
-    say "  restored into $dir : $report->{'added'} "
-        . "added, $report->{'same'} already there";
+    say $C{g}
+        . "  restored into $dir : $report->{'added'} "
+        . "added, $report->{'same'} already there"
+        . $C{R};
     my $key_note
         = $report->{'key'} eq 'kept'
         ? 'it may hold a newer passphrase'
         : 'from the archive';
     say "  key file $report->{'key'} [ $key_note ]";
     if ( @{ $report->{'conflict'} } ) {
-        say '  << conflict : same name, different '
-            . 'content -- kept the existing file :';
+        say $C{o}
+            . '  << conflict : same name, different '
+            . 'content -- kept the existing file :'
+            . $C{R};
         say "     $ARG" foreach @{ $report->{'conflict'} };
         return FALSE;
     }
@@ -820,7 +874,9 @@ sub cmd_passwd {
         }
         print "\e[3J\e[2J\e[H" if -t STDOUT;
         vault_rewrap( $v, 'recovery', $code );
-        say '  new recovery code active [ the old one no longer opens it ]';
+        say $C{g}
+            . '  new recovery code active [ the old one no longer opens it ]'
+            . $C{R};
         return TRUE;
     }
 
@@ -830,24 +886,28 @@ sub cmd_passwd {
         say '  passphrases differ -- unchanged';
         return FALSE;
     }
-    say '  << short passphrase >>' if length $new < 12;
+    say $C{o} . '  << short passphrase >>' . $C{R} if length $new < 12;
     vault_rewrap( $v, 'passphrase', encode( 'UTF-8', $new ) );
 
     my ($check) = vault_open($dir);
     if ( not vault_unlock( $check, encode( 'UTF-8', $new ) ) ) {
-        say '  << the rewritten key file does '
-            . 'not open : use the recovery code >>';
+        say $C{o}
+            . '  << the rewritten key file does '
+            . 'not open : use the recovery code >>'
+            . $C{R};
         return FALSE;
     }
-    say '  passphrase changed [ older copies of vault.key.B32 and '
-        . 'every archive made before still open with the old one ]';
+    say $C{g}
+        . '  passphrase changed [ older copies of vault.key.B32 and '
+        . 'every archive made before still open with the old one ]'
+        . $C{R};
     return TRUE;
 }
 
 sub cmd_verify {
     my $v = unlocked() // return FALSE;
     my ( $ok, $errors ) = vault_verify($v);
-    say "  << $ARG >>" foreach @{$errors};
+    say $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
     say sprintf '  %d version%s decrypted, %d failed', $ok,
         $ok == 1 ? '' : 's', scalar @{$errors};
     return @{$errors} ? FALSE : TRUE;
@@ -923,8 +983,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,..,,,..,..,,,,,,,.,,,..,...,.,.,,,.,,,,,..,,...,...,,,.,,..,...,,.,,,..,
-#G3DFA32OYQTKCGCLIBI2SRY7V6XMCOZRFSPMS65AP6VQB5YYICDHT5RCYNID5ZJMDWT6IJ2LCR23I
-#\\\|ZEXNNDSWBBLAHSHFOB3RJELY6JYJ2RFQTMEHSTO3CROV6M4IZ6J \ / AMOS7 \ YOURUM ::
-#\[7]42OYQT37GJAHUBTW4CDGJHMJXDKXA3GJ2LEWS3ZASCPQZMO37CDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,,..,.,,,,,.,.,.,,,.,..,,,,.,..,,...,...,.,,,,..,,,.,..,,..,,
+#7DBBHR3UMKQHWRONWO7YIKPCUDMTXDDCBVZ7SY4OJRW7XJANSC2WS76T5EAVOZB53KTWQZMFEBUR4
+#\\\|TJNH3L4E3HBT5O4LRJFQY72IB4TD6VMJN4AFKUANAEAGPSYAAHL \ / AMOS7 \ YOURUM ::
+#\[7]LP37DOCYWNKMLGWRTFL4AAB6KF6I6KFSX2426OB2IU67O4A42YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
