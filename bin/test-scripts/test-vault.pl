@@ -250,6 +250,122 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
     unlink $v1_name;
 }
 
+## archive : one file for untrusted copies ##
+{
+    ## the wrap test above removed the passphrase wrap : put it back. the
+    ## refused second removal must have left the recovery wrap in place
+    ok( join( ',', vault_wraps($v4) ) eq 'recovery',
+        'refused wrap removal leaves the handle intact'
+    );
+    vault_rewrap( $v4, 'passphrase', 'new one' );
+
+    my $adir    = tempdir( CLEANUP => 1 );
+    my $archive = "$adir/vault.archive.B32";
+    my $total   = 0;
+    $total += @{$ARG} foreach values %{ entry_versions($v4) };
+
+    my ( $count, $size ) = AMOS7::Vault::archive_write( $v4, $archive );
+    ok( $count == $total, "archive : all $total versions" );
+    ok( framed(
+            scalar do { local ( @ARGV, $RS ) = $archive; <> },
+            'p7-vault archive'
+        ),
+        'archive : framed base32 block'
+    );
+
+    ## only the archive survives : restore, unlock both ways, verify ##
+    my $rdir = "$adir/restored";
+    my ($a1) = AMOS7::Vault::archive_open($archive);
+    ok( vault_unlock( $a1->{'vault'}, 'new one' ),
+        'archive : ' . 'passphrase opens'
+    );
+    my $report = AMOS7::Vault::archive_restore( $a1, $rdir );
+    ok( $report->{'added'} == $total && $report->{'key'} eq 'created',
+        'archive : restored into an empty directory' );
+    my ($r1) = vault_open($rdir);
+    ok( vault_unlock( $r1, 'new one' ), 'restored vault : passphrase' );
+    my ( $r_ok, $r_err ) = vault_verify($r1);
+    ok( $r_ok == $total && !@{$r_err}, 'restored vault : every version' );
+    my ($r2) = vault_open($rdir);
+    ok( vault_unlock( $r2, $recovery, 'recovery' ),
+        'restored vault : recovery code' );
+
+    ## the same vault again : nothing replaced, a missing version added ##
+    my ($gone) = glob "$rdir/entries/*.vlt.B32";
+    unlink $gone;
+    my ($a2) = AMOS7::Vault::archive_open($archive);
+    vault_unlock( $a2->{'vault'}, 'new one' );
+    $report = AMOS7::Vault::archive_restore( $a2, $rdir );
+    ok( $report->{'added'} == 1
+            && $report->{'same'} == $total - 1
+            && $report->{'key'} eq 'kept',
+        'archive : merge adds the missing version only'
+    );
+
+    ## tampering ##
+    my $a_bin = read_bin($archive);
+    substr( $a_bin, -40, 1 ) = chr( ord( substr $a_bin, -40, 1 ) ^ 1 );
+    write_bin( "$adir/bent.B32", $a_bin );
+    my ($a3) = AMOS7::Vault::archive_open("$adir/bent.B32");
+    vault_unlock( $a3->{'vault'}, 'new one' );
+    ok( !defined( ( AMOS7::Vault::archive_records($a3) )[0] ),
+        'archive : flipped byte fails' );
+
+    ## a crafted archive naming '../' : authenticated, still refused ##
+    my $payload
+        = pack( 'a4 N', 'P7VP', 1 ) . pack( 'C/a N/a', '../evil', 'x' );
+    $payload .= "\0" x ( 13312 - length $payload );
+    my $salt_e = "\1" x 16;
+    my ( $n_e, $c_e, $t_e ) = AMOS7::Vault::_cascade_encrypt(
+        $v4->{'key'}, $salt_e,
+        'p7-vault-archive 1',
+        "p7-vault-archive 1 $v4->{'id'}", $payload
+    );
+    write_bin(
+        "$adir/evil.B32",
+        pack(
+            'a4 C N/a a16 a12 a16',
+            'P7VA',  1,    read_bin("$dir/vault.key.B32"),
+            $salt_e, $n_e, $t_e
+            )
+            . $c_e
+    );
+    my ($a4) = AMOS7::Vault::archive_open("$adir/evil.B32");
+    vault_unlock( $a4->{'vault'}, 'new one' );
+    ok( !eval {
+            AMOS7::Vault::archive_restore( $a4, "$adir/evil-target" );
+            1;
+        }
+            && !-e "$adir/evil-target"
+            && !-e "$adir/evil",
+        'archive : a path name is refused, nothing written'
+    );
+
+    ## size classes : 1 and 15 entries look alike, past the class x3 ##
+    my %sizes;
+    foreach my $n ( 1, 15, 30 ) {
+        my $sdir = "$adir/size-$n";
+        my $sv   = vault_init( $sdir, 'size', undef, %kdf );
+        entry_save( $sv, undef, { type => 'note', title => "n$ARG" } )
+            foreach 1 .. $n;
+        my $sfile = "$adir/size-$n.B32";
+        AMOS7::Vault::archive_write( $sv, $sfile );
+        $sizes{$n} = length read_bin($sfile);
+
+        ## a different vault : refused ##
+        if ( $n == 1 ) {
+            my ($a5) = AMOS7::Vault::archive_open($archive);
+            vault_unlock( $a5->{'vault'}, 'new one' );
+            ok( !eval { AMOS7::Vault::archive_restore( $a5, $sdir ); 1 }
+                    && $EVAL_ERROR =~ m|different vault|,
+                'archive : a different vault is refused'
+            );
+        }
+    }
+    ok( $sizes{1} == $sizes{15}, 'archive : 1 and 15 entries, same size' );
+    ok( $sizes{30} > 2 * $sizes{15}, 'archive : past the class, x3' );
+}
+
 ## network time ##
 my $now_ntime = AMOS7::Vault::ntime_now();
 ok( abs(AMOS7::Vault::ntime_b32_to_unix(
@@ -285,8 +401,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,,..,,.,,.,.,,..,.,.,,,,,,,.,.,.,,..,..,,...,...,.,.,..,,.,.,,,,,.,.,
-#ACVCS6FKUMKI72KFJF6224WIX4IGDYTA4FNXVRXNS6MNUZG5QXBUV3BGA35762WAOPKW4PJ6WXSYO
-#\\\|WL7FAQ3FCHWICHURYNT7RZLICU7ANFMQMXKF5GLBT622M7OHR6W \ / AMOS7 \ YOURUM ::
-#\[7]KFPYXHNS5BO5CBRQIRSSEAANNDP64VI5HTCWBQB2JBBVWPUL2YCY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,.,.,..,,...,.,.,,,.,,,.,.,.,..,,...,..,,...,,..,.,.,,,,,,..,
+#5ESY2WWZYY2622YEZZQCEGAT6JAGHKFSYWL7H3YJUUHHGYZUZ7ER3FTXHAIS2CKVHO2DH4RJX2FBK
+#\\\|W4CWYKIMKBKEHBTWZGBW7A6WCHM5BBUYVCX4GLSMSEKSJ7BXSBJ \ / AMOS7 \ YOURUM ::
+#\[7]QUK7TCL4VMMGHLACZV3GVHSDBDMASBH3T2RQDCTQVUEQCY44TKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

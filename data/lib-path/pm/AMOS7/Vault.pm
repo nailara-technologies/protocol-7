@@ -43,6 +43,10 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     entry_versions
     entries_latest
     vault_verify
+    archive_write
+    archive_open
+    archive_records
+    archive_restore
     gen_password
     recovery_code_new
     recovery_code_normalize
@@ -540,8 +544,12 @@ sub vault_rewrap {
         delete $vault->{'wraps'}{$wrap_name};
     }
 
-    die "vault : refusing to remove the last wrap\n"
-        if not keys %{ $vault->{'wraps'} };
+    ## refusing must leave the handle as it was -- a later write from it would
+    ## otherwise drop the wrap from the key file without a word
+    if ( not keys %{ $vault->{'wraps'} } ) {
+        $vault->{'wraps'} = \%before;
+        die "vault : refusing to remove the last wrap\n";
+    }
 
     my ( $ok, $err )
         = _replace_file( _key_path( $vault->{'dir'} ),
@@ -758,6 +766,216 @@ sub vault_verify {
     return ( $ok, \@errors );
 }
 
+##[ ARCHIVE ]#################################################################
+
+## one file for untrusted copies [ the public DATA repo ] : the vault
+## directory itself shows how many entries exist and when each was edited
+## [ file names ] -- an archive shows neither. layout :
+##
+## 'P7VA' format:C key-file-length:N key-file [ the binary key file, in the
+## clear : the passphrase alone must open the archive ] salt:a16 nonce:a12
+## tag:a16 , the cascade ciphertext to the end
+##
+## payload [ cascade, root = vault key, label 'p7-vault-archive 1' ] : 'P7VP'
+## count:N , per record : name-length:C name data-length:N data
+## [ the entry's binary content ] , zero filler up to the size class
+##
+## size classes : 13312 bytes, times 3 while the payload does not fit
+## [ the keys archive's classes ] -- a few entries more or less do not show
+
+our $ARCHIVE_MAGIC = qw| P7VA |;
+our $PAYLOAD_MAGIC = qw| P7VP |;
+our $ARCHIVE_CLASS = 13312;
+our $ENTRY_FILE_RE = qr{\A[A-Z2-7]{16}\.\d{14}\.[A-Z2-7]{8}\.vlt\.B32\z};
+
+sub _archive_ad { return "p7-vault-archive $FORMAT " . shift->{'id'} }
+
+## every version of every entry : [ [ file name, binary content ] .. ]
+sub _archive_records {
+    my $vault    = shift;
+    my $versions = entry_versions($vault);
+    my @records;
+    foreach my $id ( sort keys %{$versions} ) {
+        foreach my $version ( @{ $versions->{$id} } ) {
+            my $path = _entry_path( $vault, $id, $version );
+            my $bin  = _b32_file_read($path)
+                // die "vault : cannot read $path\n";
+            push @records, [ ( split m|/|, $path )[-1], $bin ];
+        }
+    }
+    return \@records;
+}
+
+## write the archive of an unlocked vault to $path, read it back and compare
+## every record. returns ( record count, file size )
+sub archive_write {
+    my ( $vault, $path ) = @ARG;
+
+    die "vault : locked\n" if not defined $vault->{'key'};
+    my $records = _archive_records($vault);
+
+    my $payload = pack( q{a4 N}, $PAYLOAD_MAGIC, scalar @{$records} );
+    $payload .= pack( q{C/a N/a}, @{$ARG} ) foreach @{$records};
+    my $class = $ARCHIVE_CLASS;
+    $class *= 3 while $class < length $payload;
+    $payload .= "\0" x ( $class - length $payload );
+
+    my $key_bin = _b32_file_read( _key_path( $vault->{'dir'} ) )
+        // die "vault : cannot read the key file\n";
+    my $salt = _random_bytes(16);
+    my ( $nonce, $ct, $tag )
+        = _cascade_encrypt( $vault->{'key'}, $salt,
+        "p7-vault-archive " . "$FORMAT",
+        _archive_ad($vault), $payload );
+
+    my $bin = pack( q{a4 C N/a a16 a12 a16},
+        $ARCHIVE_MAGIC, $FORMAT, $key_bin, $salt, $nonce, $tag ) . $ct;
+    my ( $ok, $err )
+        = _replace_file( $path, _b32_file_text( $bin, 'p7-vault archive' ) );
+    die "vault : $err\n" if not $ok;
+
+    ## a backup nobody checked is a hope : read it back, compare all ##
+    my ( $archive, $open_err ) = archive_open($path);
+    die "vault : archive does not read back : $open_err\n"
+        if not defined $archive;
+    $archive->{'vault'}{'key'} = $vault->{'key'};
+    my ( $back, $back_err ) = archive_records($archive);
+    die "vault : archive does not decrypt back : $back_err\n"
+        if not defined $back;
+    die "vault : archive content differs from the vault\n"
+        if @{$back} != @{$records}
+        or grep {
+               $back->[$ARG][0] ne $records->[$ARG][0]
+            or $back->[$ARG][1] ne $records->[$ARG][1]
+        } 0 .. $#{$records};
+
+    return ( scalar @{$records}, -s $path );
+}
+
+## read an archive [ no secret needed ]. returns ( archive, undef ) or (
+## undef, error ). $archive->{'vault'} is a locked handle : unlock it with
+## vault_unlock, as a vault opened from its directory
+sub archive_open {
+    my $path = shift;
+
+    my $bin = _b32_file_read($path) // return ( undef, 'not a base32 file' );
+    return ( undef, 'not a vault archive' )
+        if length $bin < 9
+        or substr( $bin, 0, 4 ) ne $ARCHIVE_MAGIC;
+
+    my ( undef, $format, $key_bin, $salt, $nonce, $tag, $ct )
+        = unpack( q{a4 C N/a a16 a12 a16 a*}, $bin );
+    return ( undef, "archive format $format not supported" )
+        if $format != $FORMAT;
+    return ( undef, 'archive truncated' )
+        if not defined $ct
+        or length $tag != 16;
+
+    my ( $vault, $err ) = _key_file_parse( $key_bin, undef );
+    return ( undef, $err ) if not defined $vault;
+
+    return (
+        {   vault   => $vault,
+            key_bin => $key_bin,
+            salt    => $salt,
+            nonce   => $nonce,
+            tag     => $tag,
+            ct      => $ct,
+        },
+        undef
+    );
+}
+
+## decrypt an archive whose vault handle is unlocked. returns  ( [
+## [ name, content ] .. ], undef ) or ( undef, error )
+sub archive_records {
+    my $archive = shift;
+    my $vault   = $archive->{'vault'};
+    return ( undef, 'locked' ) if not defined $vault->{'key'};
+
+    my $payload = _cascade_decrypt(
+        $vault->{'key'},            $archive->{'salt'},
+        "p7-vault-archive $FORMAT", _archive_ad($vault),
+        @{$archive}{qw| nonce ct tag |}
+    ) // return ( undef, 'authentication failed' );
+
+    return ( undef, 'not an archive payload' )
+        if length $payload < 8
+        or substr( $payload, 0, 4 ) ne $PAYLOAD_MAGIC;
+    my ( undef, $count, $rest ) = unpack( q{a4 N a*}, $payload );
+
+    my @records;
+    foreach ( 1 .. $count ) {
+        return ( undef, 'payload truncated' ) if length $rest < 5;
+        my ( $name, $data, $tail ) = unpack( q{C/a N/a a*}, $rest );
+        return ( undef, 'payload truncated' ) if not defined $data;
+        push @records, [ $name, $data ];
+        $rest = $tail // '';
+    }
+    return ( \@records, undef );
+}
+
+## write an unlocked archive's content into $dir [ new, or the SAME vault ].
+## names are checked although the archive authenticated : only entry file
+## names, only into entries/. existing files are never replaced. returns a
+## report : { added, same, conflict [ names ], key => created | kept }
+sub archive_restore {
+    my ( $archive, $dir ) = @ARG;
+    my $vault = $archive->{'vault'};
+
+    my ( $records, $err ) = archive_records($archive);
+    die "vault : $err\n" if not defined $records;
+
+    if ( -e _key_path($dir) ) {
+        my ( $existing, $open_err ) = vault_open($dir);
+        die "vault : $dir : $open_err\n" if not defined $existing;
+        die "vault : $dir holds a different vault [ "
+            . "$existing->{'id'} , the archive : $vault->{'id'} ]\n"
+            if $existing->{'id'} ne $vault->{'id'};
+    }
+
+    ## all names checked before the first write : a bad archive writes nothing
+    die "vault : archive holds an invalid file name -- nothing written\n"
+        if grep { $ARG->[0] !~ $ENTRY_FILE_RE } @{$records};
+
+    foreach my $sub_dir ( $dir, "$dir/entries" ) {
+        next if -d $sub_dir;
+        mkdir $sub_dir, 0700 or die "vault : cannot create $sub_dir\n";
+    }
+
+    my %report = ( added => 0, same => 0, conflict => [] );
+    foreach my $record ( @{$records} ) {
+        my ( $name, $data ) = @{$record};
+        my $target = "$dir/entries/$name";
+        if ( -e $target ) {
+            my $have = _b32_file_read($target) // '';
+            if   ( $have eq $data ) { $report{'same'}++ }
+            else                    { push @{ $report{'conflict'} }, $name }
+            next;
+        }
+        my ( $ok, $write_err )
+            = _write_new_file( $target,
+            _b32_file_text( $data, 'p7-vault entry' ) );
+        die "vault : $write_err\n" if not $ok;
+        $report{'added'}++;
+    }
+
+    ## the key file : created when missing, an existing one is kept -- it may
+    ## carry a newer passphrase than the archive's copy
+    if ( -e _key_path($dir) ) {
+        $report{'key'} = qw| kept |;
+    } else {
+        my ( $ok, $write_err )
+            = _write_new_file( _key_path($dir),
+            _b32_file_text( $archive->{'key_bin'}, 'p7-vault key' ) );
+        die "vault : $write_err\n" if not $ok;
+        $report{'key'} = qw| created |;
+    }
+    chmod 0700, $dir;
+
+    return \%report;
+}
+
 ##[ PASSWORD GENERATOR ]######################################################
 
 ## uniform draw by rejection sampling. $classes : any of 'a' [ lower ], 'A'
@@ -795,8 +1013,8 @@ sub gen_password {
 
 1;
 
-#,,..,.,,,.,,,,..,..,,,.,,.,.,.,.,,..,,.,,.,.,..,,...,...,.,,,.,.,,..,,,,,..,,
-#WC5ITH35PVTWU4GC3MZFCYGZKRSPXK5XZAGLIMRQTV6CAZJNFHALH5NZXJW4TWZ33WNVHTXCWV3B2
-#\\\|WFZUA5IPJ5DIFTBODBE2VYUBYJPKN32RBFGCHE2BCBWAQS4WM35 \ / AMOS7 \ YOURUM ::
-#\[7]5IXHXXEIDPBYAP7NJK54ULMBYLCLAY3L3VM57UIAUPNNHJ6CNAAY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,,..,,,,,,.,,,.,,..,,,,.,,.,,..,,...,...,...,.,,,,.,,,..,,..,
+#AYTQAQQOJPVYNRX4QZ6YZT2AEA3UVLPQLI2DHVXUEUAIG6UFQR7IME54KIFWXIKFZF3GNWE3CUVUW
+#\\\|ZDZP3JZAHATOZ7GGO34TUYFAMIA255C2UMVQQSGLJE2R6RJO6QL \ / AMOS7 \ YOURUM ::
+#\[7]TS7P543HZK7D3W5FKIOJDEJ6QBZVPUOVETUYVK3BXTLY2HTWLSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

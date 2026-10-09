@@ -32,6 +32,7 @@ BEGIN {
 use AMOS7::Vault qw|
     vault_init vault_open vault_unlock vault_rewrap vault_wraps
     entry_save entry_load entry_versions entries_latest vault_verify
+    archive_write archive_open archive_restore
     gen_password recovery_code_new recovery_code_normalize
     type_fields secret_field ntime_b32_to_unix version_to_unix
     |;
@@ -84,21 +85,23 @@ $dir = $option{'d'} if defined $option{'d'};
 my $use_recovery = $option{'R'} ? TRUE : FALSE;
 
 my %COMMANDS = (
-    init     => \&cmd_init,
-    add      => \&cmd_add,
-    list     => \&cmd_list,
-    ls       => \&cmd_list,
-    show     => \&cmd_show,
-    copy     => \&cmd_copy,
-    get      => \&cmd_get,
-    edit     => \&cmd_edit,
-    rm       => \&cmd_rm,
-    history  => \&cmd_history,
-    restore  => \&cmd_restore,
-    gen      => \&cmd_gen,
-    passwd   => \&cmd_passwd,
-    verify   => \&cmd_verify,
-    commands => sub { usage() },
+    init              => \&cmd_init,
+    add               => \&cmd_add,
+    list              => \&cmd_list,
+    ls                => \&cmd_list,
+    show              => \&cmd_show,
+    copy              => \&cmd_copy,
+    get               => \&cmd_get,
+    edit              => \&cmd_edit,
+    rm                => \&cmd_rm,
+    history           => \&cmd_history,
+    restore           => \&cmd_restore,
+    gen               => \&cmd_gen,
+    passwd            => \&cmd_passwd,
+    verify            => \&cmd_verify,
+    archive           => \&cmd_archive,
+    'restore-archive' => \&cmd_restore_archive,
+    commands          => sub { usage() },
 );
 
 my $vault;    ## unlocked handle, opened on first need ##
@@ -152,6 +155,10 @@ sub usage {
     gen [ length ] [ classes ]  password [ classes : a A 9 # ]
     passwd [ recovery ]      change the passphrase [ or recovery code ]
     verify                   decrypt every version of every entry
+    archive <file>           one file for untrusted copies [ public repo ] :
+                             entry count and edit times stay hidden
+    restore-archive <file>   into -d : a new vault, or the same one
+                             [ adds missing versions, replaces nothing ]
     commands                 this list [ interactive : quit ends ]
 
     hidden input : tab shows \\ hides the value, ctrl-u clears it,
@@ -353,15 +360,20 @@ sub unlocked {
         return undef;
     }
 
+    return $vault = unlock_prompt($handle);
+}
+
+## three tries at the passphrase [ or with -R the recovery code ]
+sub unlock_prompt {
+    my $handle = shift;
+
     my $wrap  = $use_recovery ? 'recovery'      : 'passphrase';
     my $label = $use_recovery ? 'recovery code' : 'vault passphrase';
 
     foreach my $try ( 1 .. 3 ) {
         my $secret = prompt_secret($label) // return undef;
-        if ( vault_unlock( $handle, encode( 'UTF-8', $secret ), $wrap ) ) {
-            $vault = $handle;
-            return $vault;
-        }
+        return $handle
+            if vault_unlock( $handle, encode( 'UTF-8', $secret ), $wrap );
         say "  wrong $label";
     }
     return undef;
@@ -735,6 +747,64 @@ sub cmd_gen {
     return TRUE;
 }
 
+## one file for untrusted copies [ public DATA repo ] : count and edit times
+## stay hidden. written, then read back and compared before it counts
+sub cmd_archive {
+    my $file = shift // do {
+        say '  archive <file>';
+        return FALSE;
+    };
+    my $v = unlocked() // return FALSE;
+
+    my ( $count, $size ) = eval { archive_write( $v, $file ) };
+    if ( not defined $count ) {
+        print "  << $EVAL_ERROR";
+        return FALSE;
+    }
+    say "  archive written and read back : $count version"
+        . ( $count == 1 ? '' : 's' )
+        . ", $size bytes";
+    say "  [ $file ]";
+    say '  << a public copy keeps every archive in its history '
+        . ': a later passphrase change does not protect those >>';
+    return TRUE;
+}
+
+## restore an archive into the vault directory [ -d ] : a new directory, or
+## the same vault [ missing versions added, nothing replaced ]
+sub cmd_restore_archive {
+    my $file = shift // do {
+        say '  restore-archive <file>';
+        return FALSE;
+    };
+    my ( $archive, $err ) = archive_open($file);
+    if ( not defined $archive ) {
+        say "  $file : $err";
+        return FALSE;
+    }
+    unlock_prompt( $archive->{'vault'} ) // return FALSE;
+
+    my $report = eval { archive_restore( $archive, $dir ) };
+    if ( not defined $report ) {
+        print "  << $EVAL_ERROR";
+        return FALSE;
+    }
+    say "  restored into $dir : $report->{'added'} "
+        . "added, $report->{'same'} already there";
+    my $key_note
+        = $report->{'key'} eq 'kept'
+        ? 'it may hold a newer passphrase'
+        : 'from the archive';
+    say "  key file $report->{'key'} [ $key_note ]";
+    if ( @{ $report->{'conflict'} } ) {
+        say '  << conflict : same name, different '
+            . 'content -- kept the existing file :';
+        say "     $ARG" foreach @{ $report->{'conflict'} };
+        return FALSE;
+    }
+    return TRUE;
+}
+
 sub cmd_passwd {
     my $which = shift      // 'passphrase';
     my $v     = unlocked() // return FALSE;
@@ -769,8 +839,8 @@ sub cmd_passwd {
             . 'not open : use the recovery code >>';
         return FALSE;
     }
-    say '  passphrase changed [ copies of the old '
-        . 'vault.key elsewhere still open with the old one ]';
+    say '  passphrase changed [ older copies of vault.key.B32 and '
+        . 'every archive made before still open with the old one ]';
     return TRUE;
 }
 
@@ -853,8 +923,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,,,,,,,,,,,,,.,,,.,,,,,.,,.,,.,,,.,,,,..,..,,...,..,,...,.,.,..,,..,,.,,,
-#TLJMWXXIIEUIF5ZPD6SW6Q6OMZK3VLKKC6KJWBEJTA4JRVALZ6GN4P2IFSRLRHUS7EXMVMQGV7Z3A
-#\\\|Y24GC7F6WTXTPCLGPOZ5UR7L5ZRUK5SEO5BQFSQ32N6XCA5CO2Q \ / AMOS7 \ YOURUM ::
-#\[7]36OSV2AFA5TRQUGBAKS4OVRF45RKSJTHEMZHM4DS2VZIO4WN5YCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,..,,,,,,,.,,,..,...,.,.,,,.,,,,,..,,...,...,,,.,,..,...,,.,,,..,
+#G3DFA32OYQTKCGCLIBI2SRY7V6XMCOZRFSPMS65AP6VQB5YYICDHT5RCYNID5ZJMDWT6IJ2LCR23I
+#\\\|ZEXNNDSWBBLAHSHFOB3RJELY6JYJ2RFQTMEHSTO3CROV6M4IZ6J \ / AMOS7 \ YOURUM ::
+#\[7]42OYQT37GJAHUBTW4CDGJHMJXDKXA3GJ2LEWS3ZASCPQZMO37CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

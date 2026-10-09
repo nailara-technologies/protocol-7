@@ -148,6 +148,48 @@ types and fields : `login` [ title url username password totp notes ],
 `note` [ title body ], `contact` [ title name phone email address notes ].
 absent fields are left out. unknown fields are kept as they are.
 
+## archive : one file for untrusted copies
+
+the vault directory shows how many entries exist and when each was edited
+[ the file names ]. for copies in untrusted places -- the public DATA repo
+above all -- `p7-vault archive <file>` writes ONE file that shows neither.
+`p7-vault -d <dir> restore-archive <file>` makes a working vault of it
+[ a new directory, or the same vault : missing versions added, nothing
+replaced, an existing key file kept ].
+
+same base32 block, title `p7-vault archive`. binary inside :
+
+```
+ 0   4  'P7VA'
+ 4   1  format                 1
+ 5   4  key file length
+ 9  ..  key file               the binary key file, IN THE CLEAR : the
+                               passphrase or recovery code alone opens it
+ ..  16  salt
+ ..  12  nonce                 outer layer
+ ..  16  tag                   outer layer
+ ..  ..  ciphertext            outer layer, to the end
+```
+
+- payload = cascade decrypt : root = vault key, salt, label
+  `p7-vault-archive 1`, associated data `p7-vault-archive 1 <vault id>`
+- payload layout : `'P7VP'`, record count [ 4 ], then per record : name
+  length [ 1 ], name [ the entry file name ], data length [ 4 ], data [ the
+  entry file's binary content ], then zero filler. every version of every
+  entry is in it
+- size classes : the payload is filled to 13312 bytes, times 3 while it
+  does not fit [ the keys archive's classes ]. a few entries more or less
+  do not change the size
+- a restore takes only names of the entry file form, checked before the
+  first write ; a different vault id in the target is refused
+
+**a public copy keeps every archive ever pushed** [ git history ] :
+
+- a later passphrase or recovery code change does NOT protect older
+  archives there -- a weak or exposed passphrase stays exposed for them
+- each archive still shows its size class [ coarse growth ] and, through
+  the commit, when it was made
+
 ## opening a vault by hand
 
 needs perl with CryptX >= 0.088 [ or CryptX + Crypt::Argon2 :
@@ -161,15 +203,17 @@ python's `cryptography` package ] :
 2. for each newest `entries/<id>.*.vlt.B32` : cascade decrypt with the vault key
    as root and the entry's salt, parse the json
 
-`bin/p7-vault -d <copy> verify` does both for every version.
+`bin/p7-vault -d <copy> verify` does both for every version. from an
+archive : take the key file out of its header for step 1, cascade decrypt
+the payload with the vault key, then step 2 for each record's data.
 
 ## not in format 1 [ later ]
 
 sync between hosts over protocol-7, a session agent [ unlock once per
 login ], the vault-edit form ui, totp code display, purging old versions.
 
-#,,,,,.,.,,..,.,,,.,,,.,.,...,..,,.,,,..,,...,..,,...,..,,.,.,..,,,,.,,,.,.,.,
-#2E3PZ3NNJTLMUWSB4ACD32F2MJ6RVBEVE5PF4KYRQWPMMJR4LO5K423I56NZK2DL56CT3TLRS3MOS
-#\\\|E66SNQFBLS7ZXDJMH53ZNFYJIPI2Q3LO4HW4WVLGKFUAK4OZJSY \ / AMOS7 \ YOURUM ::
-#\[7]TEMA6E6V2GZOVKUACZQQ4ZDRE3Q2T3K2GWR4RP7RADLAIKB2IOBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,...,.,.,,..,,..,.,,,..,,..,,..,,...,...,..,,..,,..,,...,.,.,
+#E65XOJQFXEKSNITIWNCBVFEICIFLHOTX432MEWXM6O2UPOM345D7P7W4LQWZSAKFPP464QGCD4GEC
+#\\\|IIWE6AVGCWJT4BKUUT6FHEECRRNNH6POYXRPOZW7STBFGS4BSJT \ / AMOS7 \ YOURUM ::
+#\[7]5EJ7IFA4RAUE4LV7KIUC2YHDPUDPP43XHFSQOZ6AMS2C7QWSLGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
