@@ -15,10 +15,14 @@ return {
 my $args = eval { JSON::XS::decode_json($args_str) };
 return { 'mode' => qw| false |, 'data' => "invalid JSON: $@" } if $@;
 
-return <[huggingface.list]>->( { 'args' => $args } );
+## reply_id : the module answers deferred via cmd_reply -- without it the ##
+## reply is dropped and the caller waits until the route collapses        ##
+return
+    <[huggingface.list]>
+    ->( { 'args' => $args, 'reply_id' => $call->{'reply_id'} } );
 
-#,,.,,,..,...,.,,,.,,,.,.,..,,,,,,,..,.,,,,.,,..,,...,...,.,,,.,.,,,.,...,...,
-#AI7L64OOFSMMEYVMBDPQOVI5UPVZVQOVH7LFEH2H4MBHOJWKGLIUVFIL5ZP5TZ662P2YDVQJBQKZO
-#\\\|WAUTLEE5P3MTNF5WYMHEI6RCTT3TTBK6EO6J7PSSC5IZFXMA5OG \ / AMOS7 \ YOURUM ::
-#\[7]A45NUJDEJWEOWFJB6OMKUY6VZNJBNFP54RNIR7LJWQVVPLFUI4BA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,.,,,..,,..,,.,.,...,...,...,..,,...,...,.,,,,,,,..,,,..,..,,
+#5XWAL5RCYK2XAFBHP3OWWYHSOER4J4JH52MZPQGZ5HN5KLKOJWKKPAEWYFPRPI7EPGTJOBY2AMMCM
+#\\\|OLTP5U3LUOYTBWNND7VRBXNHYNZFFCB334ZY2BBDGRULFJUY7SV \ / AMOS7 \ YOURUM ::
+#\[7]FVT44YOGMR7J7AQKJQFK4TME3JOZG7WID54FBDAHTWTZRTFHTKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
