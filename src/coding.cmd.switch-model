@@ -52,11 +52,42 @@ foreach my $key ( keys %$registry ) {
 }
 
 unless ( defined $model_name ) {
+
+    ## the local metadata cache goes stale after a models re-scan : refresh ##
+    ## it once on the first miss. a network caller [ reply_id ] gets the    ##
+    ## retried switch as its deferred reply ; a direct internal caller      ##
+    ## keeps the immediate error [ they test the reply synchronously ] and  ##
+    ## finds the model on its next attempt                                  ##
+    my $reply_id = $call->{'reply_id'} // '';
+    my $refetch  = FALSE;
+    if ( !$call->{'registry_refetched'} ) {
+        $refetch = <[protocol-7.route-send]>->(
+            {   'command'   => 'models.discover',
+                'call_args' => { 'args' => 'available' },
+                'reply'     => {
+                    'handler' => 'coding.handler.models_discover_reply',
+                    'params'  => {
+                        'retry_switch' => {
+                            'args'     => $call->{'args'},
+                            'reply_id' => $reply_id,
+                        }
+                    }
+                }
+            }
+        ) ? TRUE : FALSE;
+        <[base.logs]>->(
+            1, 'switch-model: %s not in the metadata cache, re-fetching',
+            $model_checksum
+        ) if $refetch;
+        return { 'mode' => qw| deferred | } if $refetch and length $reply_id;
+    }
+
     return {
         'mode' => qw| size |,
         data   => "Error: Model $model_checksum not found in registry\nUse "
             . "'coding.list coding-models' to see available "
             . "models\n"
+            . ( $refetch ? "[ metadata re-fetch requested : retry ]\n" : '' )
     };
 }
 
@@ -99,8 +130,8 @@ return {
         . "This may take a moment.\n"
 };
 
-#,,..,.,.,,,,,,..,...,.,.,.,,,..,,..,,.,,,,,,,.,.,...,...,,,.,,,.,...,..,,..,,
-#4BC3TGLKZN5NIRMZ6BAJIMHN3C4EVX5UKIQLCWY5NH4Z62LU3SXW6T56R3OAE4ULVSF4U5PMNVZBM
-#\\\|67WFDCDYRJWN74WRVRSVSHZU4NSJ4Q4V7IBD55QSQTA4RLNCD2M \ / AMOS7 \ YOURUM ::
-#\[7]IBFN3X3Q4D5TR4BWDBWRSCZTKBEZJF5J2XCVRK2RJMU5HLFX66CQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,,.,,..,,.,.,,,,,,.,,...,,.,,.,.,...,..,,,.,,,,.,,..,.,.,,.,,
+#GQXFGEN46OTBQVOGCQQFNLWNAKTGEI3NNY2V4M4PSVEVLDBMN25IYIORNYJMERFEN6MMBRG6U6XM6
+#\\\|IHN5GIUTYO75U7VC5PVID5OPLP2Y23N2QQZV6PMVGWQOQIGLLKG \ / AMOS7 \ YOURUM ::
+#\[7]723XSYJIIWJVRF2YKJZ7Z3GYJO6QV2ADKN7ZN2DM6WV2BJNYA2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
