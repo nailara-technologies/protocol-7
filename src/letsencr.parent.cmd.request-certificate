@@ -40,6 +40,17 @@ if ( $certs->{$domain} && $certs->{$domain}{status} eq 'active' ) {
     };
 }
 
+## an EXPLICIT request [ httpd install-vhosts 'tls: yes', the api endpoint,
+## httpsd, a manual command ] owns the domain : automatic enrollment [
+## letsencr.parent.process_new_domains ] leaves it alone from now on --
+## otherwise both would order a certificate for the same new vhost.  only a
+## request that reached letsencr claims : a deferred one [ httpsd offline ] is
+## left to discovery, which is the gap automatic enrollment covers
+my $enroll_state = <[letsencr.parent.enroll_state_load]>;
+$enroll_state->{$domain}
+    = { %{ $enroll_state->{$domain} // {} }, 'explicit' => time() };
+<[letsencr.parent.enroll_state_save]>->($enroll_state);
+
 ## Simple implementation: just request for primary domain  The child can
 ## discover SANs if needed via HTTPd queries
 my @domains_to_request = ($domain);
@@ -95,8 +106,8 @@ if ($result) {
     };
 }
 
-#,,,.,.,,,.,,,,,.,.,.,,,,,,..,.,,,,.,,,.,,.,,,..,,...,...,,,.,,.,,.,,,...,,,,,
-#UEO3LILF5I5WAFLBWWIX6BXIRPGUSCJJ635NIXS3USWR6XAPM23RKT7FISZTSOWVETZXWNEE5T4QG
-#\\\|MULQISMSBLBCYW5WTM53OKUKNYHODBEPYKYYUBEXD4LAOBTRVAW \ / AMOS7 \ YOURUM ::
-#\[7]WFILBTVTEOMGP2J4DC6DQ2XBEMAOYTEKE5BSPEYTQ6VXAZK5N4BA 7  DATA SIGNATURE ::
+#,,..,,..,..,,...,..,,.,.,,,.,..,,.,.,.,.,,.,,..,,...,...,.,.,..,,,,,,,,,,.,.,
+#LQ3QDEJLA6UVE5CHGK6CQSIC2E3PUL5RJTY6PD7QGMVYZ5OBQYJIGDDPR6VPLBZNO2T425JYLY7AU
+#\\\|67OM3A4FKMHX27NPJCOQ4UPCDAISH77TIBZM4OB6ILD247Y2JR6 \ / AMOS7 \ YOURUM ::
+#\[7]JIAEGPOZA2QVAHUHMSJUKUUE5OE4RW24VJKZKN6J4WHUVHGD26BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
