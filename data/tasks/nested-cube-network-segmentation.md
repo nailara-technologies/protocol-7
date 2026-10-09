@@ -11,6 +11,10 @@ read `CLAUDE.md` and the design file first.
   access.users, `base.calc_unix_path` ] -- the precedent for "a zenka
   running cube modules as its own network". start from it
 - `ext-cube` : nowhere in src \ cfg yet
+- decided 2026-10-09 : the gateway is the outer cube itself [ `ext-cube` at
+  the core, a dmz segment ] ; `command-relay` [ `data/tasks/command-relay-zenka.md` ]
+  is an optional adapter. first use : incoming links for remote hosts
+  [ `data/md/design/HOST-SETUP.md` ]
 - the access matching the design relies on [ `access.cmd.usr.cube.ext-cube.web`,
   hierarchical source chains ] is `data/tasks/needs-rewrite/base-has-access-source-sid-matching.md`
   -- needs its rewrite first, or the gateway can only filter by its own rules
@@ -23,6 +27,9 @@ read `CLAUDE.md` and the design file first.
 2. identity : can one zenka hold two cube sessions under two names today ?
    [ `base.net.connect`, `<user.*.session>`, `base.get_session_id` takes
    a usr_str -- first hint that more than one cube session was planned ]
+   ANSWERED [ 2026-10-09 ] : yes -- `zulum` connects to `cube-13`
+   [ `base.net.connect:'unix','13','127.0.0.1','cube-13'` ] and to the main cube,
+   with one access list per side [ `access.cmd.usr.cube-13` \ `.cube` ]
 3. source alias propagation : how the route chain [ `usr.cube.ext-cube.web` ]
    is built today, where a gateway would append its inner source
 4. who starts inner zenki : the design says the inner cube or the gateway,
@@ -43,8 +50,8 @@ receiver. then filtering by an allow-list at the gateway.
 - whether cube-13 should become the model for inner cubes or stay separate
 - order vs. `authorization-buffer.md` [ cross-boundary first connections ]
 
-#,,,.,,.,,,,,,...,,,,,..,,...,...,.,.,...,..,,.,.,...,...,...,,..,..,,,..,.,.,
-#PXMKCR3NZRAGD65P5A3KVO6BEDPN2RO2PDD7LIYEVGAWI3Q5UFEDXUYDXRTQ4QDFNDOTXUCKFIIJE
-#\\\|YNTPGKKBBI6RSN5TGSPKHVOPLLGQEAGSPZ3AME2TSPRSVEM772T \ / AMOS7 \ YOURUM ::
-#\[7]VQC5U7NH5RDISH2NXZCGYPN5AD2YQ4FESE5ASMYJ6B6JSJOVGGBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,..,,,.,,,..,.,,,.,.,,,,,.,,,.,.,...,..,,,.,,,.,,,..,,,,,.,,,
+#NEOIVAHGOLBHB2U5IIWLLYDP2GDN25VTJWNBXJ367S6CU7RY7VWDRQNU65F44HINAX2L4LBLXZG74
+#\\\|TKMNSQL5OCDYA7WK6PBNB5KFB3NBSDEBEXWCJTVH374IQ4J4TRA \ / AMOS7 \ YOURUM ::
+#\[7]J62GSKJFRG6Y24NFLIEFLTEP3GP3GHP7H3ERPHQ3NS2OQWITGQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
