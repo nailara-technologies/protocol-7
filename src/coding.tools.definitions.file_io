@@ -448,10 +448,41 @@ push @tools,
     },
     };
 
+## analyze_image : text description by a vision-capable child task ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'analyze_image',
+        'description' => 'get a text description of an image file from a '
+            . 'vision-capable model, for when you cannot '
+            . 'see images yourself [ or want a focused '
+            . 'answer without image tokens in your context '
+            . '] : the answer arrives as the next user '
+            . 'message',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'path' => {
+                    'type'        => 'string',
+                    'description' => 'image path relative to project root'
+                },
+                'prompt' => {
+                    'type'        => 'string',
+                    'description' => 'what to look for or answer about the '
+                        . 'image [ default : detailed '
+                        . 'description ]'
+                },
+            },
+            'required' => ['path'],
+        },
+    },
+    };
+
 return \@tools;
 
-#,,.,,,.,,,.,,,,,,...,..,,,..,...,,,.,.,.,...,..,,...,..,,.,.,..,,..,,,,.,,.,,
-#6HQEX27YJ6SYSEJ33T5HXBWG45MYZA2MYU637US4SZE6JILEQWL3STTWAZMJAEQBONIA5EGR5M7QG
-#\\\|BW4EYECA4X4DQZLOESU27PKXUECRME3UZBJSLVJKFM7AHPL2Q5T \ / AMOS7 \ YOURUM ::
-#\[7]INCOHRPG33MMPGUNCJYWMRAT52Q2EFRLL5EMEIH24QXX3GKP26DY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,.,,,,,.,...,,,,,.,,,,,,,.,,,..,,...,...,,,,,,..,,,,,.,.,,..,
+#AYRC2JIWC7ZF6XU3HETA6BJLG4CTOPTNCL4ZDHZNO7K5QPLERV7RBM6GAL7XUF2ZY74NIVTGGWPCE
+#\\\|2W5KSHOXQ7OYYO2SEU5ZXUFSXO5FJQ6EQ5LKZYRINRXC3OEGEL2 \ / AMOS7 \ YOURUM ::
+#\[7]QMJR7YGJWNOKXRGXUCLGZEMJCTRHTJFE4EEO3EOXICEYHUIGEYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
