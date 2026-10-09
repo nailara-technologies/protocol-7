@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.image.mime_from_magic
+# descr = identify image mime type from magic bytes
+# param = $raw [ first bytes of a file as a string ]
+# return = $mime [ e.g. image/png, image/jpeg, ... ] or '' for unknown
+
+my $raw = shift // '';
+
+my $mime
+    = $raw =~ m|^\x89PNG|                   ? qw| image/png |
+    : $raw =~ m|^\xFF\xD8\xFF|              ? qw| image/jpeg |
+    : $raw =~ m|^GIF8[79]a|                 ? qw| image/gif |
+    : $raw =~ m|^RIFF.{4}WEBP|s             ? qw| image/webp |
+    : $raw =~ m{^(?:MM\x00\x2a|II\x2a\x00)} ? qw| image/tiff |
+    : $raw =~ m|^BM|                        ? qw| image/bmp |
+    :                                         '';
+
+return $mime;
+
+#,,,,,...,,,.,,,.,.,,,...,,,.,,,,,,..,.,,,,,.,..,,...,...,...,,..,..,,,..,..,,
+#MMIPJWP7FQG4OIBGNDH2DN2BUC2XCOG6PBVV6TU744QBHPLXG54KBVMJWSTTVG6NXKJHUTNBMC7IW
+#\\\|BGKIUXTCLGLLKJ5PGHYGAVSUSPXFJCFRZBR6HEEDMMC244URDNN \ / AMOS7 \ YOURUM ::
+#\[7]LELDH34CP4ROIIX2Z37FYDGHSM2QQO5ZMESW3LSBSK53JXIG7ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
