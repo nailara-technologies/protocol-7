@@ -63,10 +63,8 @@ related: [[init-code-return-values]] — a different `base.init_modules`
 gotcha (return-value semantics, not execution timing), same general
 area of the codebase worth knowing together.
 
-#,,,,,,..,...,.,.,,,,,.,,..,.,,,,.,,.,,,.,.,.,,,,,..,,...,...,.,,,,,.,.,.,.,,,
-
-#,,,.,,,,,,,,,.,,,,..,..,,,..,..,,,,,,.,.,,,,,..,,...,...,...,.,,,..,,...,.,.,
-#6KBURIBMVRJNWYNJKDHQIUZLPX5QP5HS2RHNHVICDF3AEHCWDRVQPE4PBHOLQJVXOGJGUQS6UK2K2
-#\\\|57CXWS6HSU5KZ7CRMKZYJX3NSXKXIGOJSEGE5M3HCG7NUDYJ3LU \ / AMOS7 \ YOURUM ::
-#\[7]75HUBMWNTDFB4WSEYPCMNT54NQTZMSEOIEKCZUU3HDEEBCMIHGAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,...,.,,,...,,,,,,..,..,,.,,,,.,,..,,...,..,,,.,,..,,.,,,.,,,,..,
+#SI3QSTP75TXBHAOYWESVQDC6XOMXKJF7LJCKQ3YKBD4OWFMP5N3DX6OROIMVMBBXFQ2SR5FWDO7AQ
+#\\\|WDYSYDYHFYMF6LCZBMHJ4FFABMCAA4BIE636QQADNV2YVOOEPOK \ / AMOS7 \ YOURUM ::
+#\[7]CPELBGXGLQB75GCERP4PSXQJFGH6NYQX7TGBQHJBO46REPWOI4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

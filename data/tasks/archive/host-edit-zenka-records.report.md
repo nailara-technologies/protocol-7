@@ -114,10 +114,8 @@ advertised ], secret senders [ `<<` failure shape ].
    [ pre-existing before this lane ] and `data/md/design/HOST-SETUP.md`
    [ a 'reuse' section appeared mid-session -- a concurrent lane's edit ].
 
-#,,,.,,,,.,,.,,..,,,,,.,.,,..,,..,.,,,,.,..,,...,...,.,,,,.,,,,,.,,.,,,,.,.,
-
-#,,,.,,,.,,,,,,,.,.,.,,..,,,,,,..,..,,...,,.,,..,,...,...,,..,...,,.,,,..,.,.,
-#74G7BIXKHXSNDK3XE6HAOWVX5IURA5U7Y6NLXQRKY54IBB45YDMAQNWPVZQZ4K5XJUFBJ4NZGFIKW
-#\\\|OWM6EZ2FAOAHDTHPJQO2AD6I6WVZVJHW4VLVB22LRM6SPRLWB7E \ / AMOS7 \ YOURUM ::
-#\[7]YB5SACKYTLXWNTZD574XDEYOOYN5JYKJI4C26HIZ2KDYCLMOBMDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,..,,,.,,.,,,,,,,,,,,,.,,,.,..,,..,,...,..,,.,,,...,,,.,,..,,,.,
+#UE7G5IJFPCPEI3435EP7JKICIU35E3CUGVV4YCQQ2FZNI2DXOHFXC3LKRD2NEHKXYBVFOGZRA6Y2O
+#\\\|TXS3LRXGUILE3XDOTF6B3Y6FDFNV6OL725K6CUSA6QKBJOMQTTF \ / AMOS7 \ YOURUM ::
+#\[7]QZUGROIGMLM3UXKQAFNHY3GSLGIEY52MXPFZOKTRCOLTPGGYTYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

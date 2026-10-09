@@ -35,10 +35,8 @@ for read-only curiosity mid-run. This is the same discipline as
 diagnostic/instrumentation code compete with the framework's own event loop
 for the same resource it needs to function correctly.
 
-#,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
-
-#,,..,,.,,,.,,..,,,,,,...,,..,,,,,...,,..,,..,..,,...,..,,...,.,.,,,,,,.,,.,.,
-#EW6KDKJH42LHMO7Y23GFARDME2KNGCTRHNJ7SNTFXIU456R2U4KJ6UOGZG7UKQ5XLIUB2JFQTCNAI
-#\\\|LERHGWHJWNOYTR45TMMHVJW5OXGR52YOYZ3UXVNRZBQHXE3H2P6 \ / AMOS7 \ YOURUM ::
-#\[7]EKLRR2R2JLGLSFNHS5DU5Z7SKZ4UYDDGMAXLHQFLTWW4QWXOLAAI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,,.,,,..,.,,,,,,,.,,,..,,,.,,..,,...,..,,..,,,,.,.,,,.,.,.,.,
+#3KT72J3UEXNVLNXCYGHFZGAYTQE5SIAQ2DUMKEOL2LU6S5P2STK4CDSMV6TQLN7WQMATTZKAPIM2M
+#\\\|SE4A7T2KESCMQQBGYLSRP3NXWFXE4DZQGQAFFNEO2366QPM6LHM \ / AMOS7 \ YOURUM ::
+#\[7]L7BTAG5DTJUOBCJ2QCNTGXUYKNVUSTTI6UNQZPEG76ZQO46WQABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

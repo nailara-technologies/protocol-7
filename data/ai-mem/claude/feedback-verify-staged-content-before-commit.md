@@ -37,10 +37,8 @@ the incomplete commit and its fix back into the staged index, then one
 clean commit replaces both. Never `reset --hard` for this — soft reset
 keeps everything staged, nothing is at risk of being lost.
 
-#,,,.,,,,,.,,,,,,,.,,,,..,,.,,..,,..,,.,,,,.,,,,,..,,...,...,.,,,,,.,.,.,.,,,
-
-#,,,.,.,,,,,.,,.,,,,,,...,.,.,.,,,...,,,.,..,,..,,...,...,,..,,.,,,.,,,,,,...,
-#BYPKJPX6AJEEFQGSNYD5GGUHUCH6S3AMJE2B4SOQ4RJQCVCH37TFOA6VKUHWAXTXXCTD2DSQI467U
-#\\\|CC2K42JX554MNTYUI64SINBSBKXPNT2MGXJ5DTBTRWD4DB6MLOP \ / AMOS7 \ YOURUM ::
-#\[7]6PD4VQVS7AKD6LT372XR7NPFHBLMF36FEXMVSJDAHXIXABH3XCAA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,,.,,,,,,,.,..,,,..,...,,..,..,,...,...,..,,,.,,.,,,,,,,,..,
+#OJBXBFICSCMKMKNLWAHHGYXHLNUXN3NQ7GSFCQQGWI44LQXSLNOMLRRWBWTZ6RZZZH4TI657NQQEM
+#\\\|56IUS7TFPAHT3VFE3TFTDSR4J344BVSRQQTE4JCPKWTALIPI6Z4 \ / AMOS7 \ YOURUM ::
+#\[7]5CWFZ4EJCODU3W7E44OV33A22F5QDHDFXYH36TWSKZ3GWKD3OCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
