@@ -23,7 +23,9 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
   cfg.enroll_domains ], dns + http-01 self-test in the CHILD, async [ deferred reply ],
   2 per check, backoff 1 h .. 24 h, 'pending' guard, state `enroll-state.json` ;
   `cfg.enroll_staging = yes` -> staging server + separate account, staging certs NOT
-  installed ; renewals stay on production. not yet run against the real acme.
+  installed ; renewals stay on production. VERIFIED live on staging [ zenki.v7.ax via
+  `install-vhosts :nocert:` : discovery -> dns -> async self-test -> staging cert ] ;
+  default since then `enroll_staging = no` [ production ].
   an EXPLICIT request [ install-vhosts 'tls: yes', api, httpsd -> letsencr.parent.cmd.
   request-certificate ] claims the domain in enroll-state [ 'explicit' ] -> auto skips it,
   no double order ; `install-vhosts :nocert:` leaves a vhost to auto enrollment. auto
@@ -63,14 +65,16 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
 
 ## next
 
-1. first REAL enrollment : a vhost for a domain pointing at a remote -> watch staging
-   [ `:: letsencr.show-buffer zenka`, `/var/cache/letsencr/enroll-state.json` ], then
-   `cfg.enroll_staging = no`.
+1. first PRODUCTION enrollment after the pull : the issued-staging domains become
+   candidates again -> watch `:: letsencr.status` for the installed certs.
+   a dev box behind nat also probes every vhost [ self-test protects, but it fetches
+   from third-party hosts like wpad.net ] -- candidates : a `cfg.enroll = no` switch,
+   httpd.vhost-list without pattern vhosts \ *.bak-* dirs.
 2. pull on both remotes : they run the version before the enrollment claim, the form
    key changes and `:strip:` [ check the zenka STDOUT log afterwards ].
 
-#,,,,,...,,..,..,,.,,,,.,,.,.,.,.,.,.,,,.,.,,,..,,...,...,.,.,...,,,,,,.,,,..,
-#6QAFO6H2UGXLII4OOMXXVWF7SVMQWZJOIVE5774J7WNTW7QWPPA67MZWIUPGD2SC6CNGT4GSJLPQG
-#\\\|MQZ4BEC5WXFNF4XJMYBODMKQ57YJA72GU7E5TNFHR2LPWGNQZ2N \ / AMOS7 \ YOURUM ::
-#\[7]MO4VZULETC3KVCI3YKSRYYTDMX7QT25VH2JZ5HGD5GQMGJVZ64BI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,..,,,.,,..,,,..,.,.,,,,,...,..,,...,...,,.,,,,,,,..,,,,,...,
+#WOHTFNJVZCSTCU7PWYQSVFZC2JMIG5DW5NUVWMKQ6CL2YVNTNA4PELF5HQX6N7NNREIMRUQTTJQEI
+#\\\|FASQ4LR4MUNFIOHXMZ45KT7EJ3XR756ZBFP7O5GPV3VLJN6PYAZ \ / AMOS7 \ YOURUM ::
+#\[7]7OHIJ424ZLNA7NFJSUT7QM2WP56XTFB54AWBBYUFYNHOEJO54IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
