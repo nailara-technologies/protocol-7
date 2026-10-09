@@ -52,11 +52,12 @@ my $backend = $spec_href->{'backend'};
 
 ## raw checksums, unsanitized [ found live 2026-09-21 : a prior version     ##
 ## mangled the ':' separator into '_' here, which fed switch-model calls an ##
-## invalid checksum format [ coding.cmd.switch-model's regex requires the   ##
-## literal ':' ] and broke poll_batch's loaded-vs-candidate swap- detection ##
-## comparison identically -- every switch silently failed and every         ##
-## candidate looked "swapped" even when correctly loaded. filenames built   ##
-## from a checksum [ coding.model_batch.record ] do their OWN independent,  ##
+## invalid checksum format                                                  ##
+## [ coding.cmd.switch-model's regex requires the literal ':' ] and broke   ##
+## poll_batch's loaded-vs-candidate swap- detection comparison identically  ##
+## -- every switch silently failed and every candidate looked "swapped"     ##
+## even when correctly loaded. filenames built from a checksum              ##
+## [ coding.model_batch.record ] do their OWN independent,                  ##
 ## already-consistent sanitize/match pair with  model-batch-status's        ##
 ## directory scan -- unaffected by this fix                                 ##
 my @candidates = grep {length} map { $ARG // '' } $spec_href->{'models'}->@*;
@@ -112,6 +113,20 @@ if (    $restart
         $batch_id,
         $existing->{'idx'} // 0,
         scalar( @{ $existing->{'candidates'} // [] } );
+}
+
+## :restart: starts from the current tree : a baseline manifest saved by an ##
+## earlier run of this spec refuses every tree change made since then       ##
+## [ the gate would demand :force:, whose revert restores the old tree ]    ##
+if ($restart) {
+    ( my $id_path = $batch_id ) =~ s|[^a-zA-Z0-9._-]|_|g;
+    my $manifest_path = join qw| / |, <[file.zenka_dir.data_path]>,
+        qw| state |, qw| model_batch |, $id_path,
+        qw| baseline-manifest.yaml |;
+    if ( -f $manifest_path and unlink $manifest_path ) {
+        push @lines, sprintf '%s : :restart: discarded the saved baseline',
+            $batch_id;
+    }
 }
 
 ## drain gate [ refuse while foreign tasks are still queued on the batch  ##
@@ -232,8 +247,8 @@ push @lines, sprintf '%s : batch started', $batch_id;
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,,,.,,,...,,.,,...,,.,,.,.,..,,...,,,,,,,,,..,,...,...,.,.,,..,,.,,,..,,,.,
-#AZEII2XI7AYOHRCLPFWJGWXRMSSMECXVRPTIQY6UARM2Z5CAATHOYWZKUXHO7DZXF3GUVPS3DPUZ4
-#\\\|TN4MDZMUYQRK47B6C3SBIREKD5DTKFS5RGG6K3MFECUO6AGLQE2 \ / AMOS7 \ YOURUM ::
-#\[7]MTOOXJFCD7MDVPC656SIB5OOYRQWSOCLCSEDD4YNSLMGHJA66OAY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,..,..,,,.,,.,.,..,,,,.,,..,...,..,,...,..,,...,,..,,,,,..,,.,,,
+#C76UWHK3EK22IDUAWNPPJVIYOPMNI5B3XKM2STWQBSCPTVPPC5STTXALNLYPWSACFYANYPILRBCZA
+#\\\|D5ZKTAKT2WD4QCBBT5PIZ2K6DOUAHRPLKJ2UTQXZM45FAKMQNAV \ / AMOS7 \ YOURUM ::
+#\[7]QBTBIZZUY6SIZXVPVPDG4Z7Q6WQBMHF6OQKRIOV2AOV4FEMIMGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
