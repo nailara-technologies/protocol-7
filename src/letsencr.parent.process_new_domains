@@ -1,0 +1,140 @@
+## [:< ##
+
+# name  = letsencr.parent.process_new_domains
+# param = \@new_domains, \%domains_map
+# descr = automatic enrollment of newly discovered domains : allowlist,
+#         backoff and per-check limit, then verification queued to the child
+#         [ the blocking DNS + HTTP-01 self-test runs in the child ]
+
+my $new_domains = shift;
+my $domains_map = shift // {};
+
+return FALSE unless ref($new_domains) eq qw| ARRAY | && @$new_domains;
+
+my $state = <[letsencr.parent.enroll_state_load]>;
+
+## allowlist : only domains on enroll_domains qualify [ unset = all ] ##
+my %allowlist = map { $ARG => 1 }
+    grep { length($ARG) }
+    split( m|\s+|, <letsencr.cfg.enroll_domains> // '' );
+
+my $max_per_check = <letsencr.cfg.enroll_max_per_check> // 2;
+my $staging = <[base.cfg_bool]>->( <letsencr.cfg.enroll_staging> // TRUE );
+
+my @public_addresses = grep { length($ARG) }
+    split( m|\s+|, <letsencr.cfg.public_addresses> // '' );
+
+my $now    = time();
+my $queued = 0;
+
+foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
+
+    if ( %allowlist and not $allowlist{$domain} ) {
+        <[base.logs]>->(
+            2, ': enroll : %s : skipped [ not on enroll_domains ]', $domain
+        );
+        next;
+    }
+
+    my $entry = $state->{$domain} // {};
+
+    if ( $staging
+        and ( $entry->{'status'} // '' ) eq qw| issued-staging | ) {
+        <[base.logs]>->(
+            2, ': enroll : %s : skipped [ issued-staging ]', $domain
+        );
+        next;
+    }
+
+    ## already in flight [ verification or order queued by an earlier check --
+    ## a restart \ reload or the repeated discovery once httpd is online runs
+    ## another check meanwhile ].  reply handlers replace 'pending' with
+    ## failed \ issued ; an hour-old 'pending' counts as lost [ child gone ]
+    if (    ( $entry->{'status'} // '' ) eq qw| pending |
+        and ( $entry->{'pending_since'} // 0 ) > $now - 3600 ) {
+        <[base.logs]>->(
+            2, ': enroll : %s : skipped [ already in progress ]', $domain
+        );
+        next;
+    }
+
+    if ( ( $entry->{'next_attempt_after'} // 0 ) > $now ) {
+        <[base.logs]>->(
+            2,
+            ': enroll : %s : backed off until %s [ %s ]',
+            $domain,
+            scalar( localtime( $entry->{'next_attempt_after'} ) ),
+            $entry->{'last_error'} // qw| previous failure |
+        );
+        next;
+    }
+
+    if ( $queued >= $max_per_check ) {
+        <[base.logs]>->(
+            2, ': enroll : %s : skipped [ enroll_max_per_check %d reached ]',
+            $domain, $max_per_check
+        );
+        next;
+    }
+
+    ## queue the verification to the child [ blocking checks run there ] ##
+    my $alt_names = $domains_map->{$domain}->{'alt_names'} // [];
+
+    my $result = <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| child.verify-domain |,
+            'call_args' => {
+                'args'  => $domain,
+                'param' => { 'public_addresses' => \@public_addresses, }
+            },
+            'reply' => {
+                'handler' =>
+                    qw| letsencr.parent.handler_enroll_verify_reply |,
+                'params' => {
+                    'domain'    => $domain,
+                    'alt_names' => $alt_names,
+                    'staging'   => $staging,
+                }
+            }
+        }
+    );
+
+    if ($result) {
+        $queued++;
+        ## in flight until a reply handler records the outcome ##
+        $state->{$domain} = {
+            %{$entry},
+            'status'        => qw| pending |,
+            'pending_since' => $now,
+        };
+        <[letsencr.parent.enroll_state_save]>->($state);
+        <[base.logs]>->(
+            2, ': enroll : %s : queued for verification', $domain
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| pending |,
+            'automatic enrollment : queued for verification'
+        );
+    } else {
+        <[base.logs]>->(
+            1, ': enroll : %s : failed to queue verification', $domain
+        );
+        <[letsencr.parent.enroll_record_failure]>->(
+            $state, $domain, 'failed to queue verification to child'
+        );
+    }
+}
+
+<[base.logs]>->(
+    2,       ': enroll : %d domain%s queued this check [ max %d ]',
+    $queued, <[base.cnt_s]>->($queued),
+    $max_per_check
+) if @$new_domains;
+
+return { 'status' => qw| success |, 'queued' => $queued };
+
+#,,..,...,...,.,.,...,..,,.,.,,,.,.,.,,,,,.,.,..,,...,...,,..,,..,,..,.,.,,.,,
+#L3YVKQDR46FDVYLXQ6KJ26PEJWNCIA4RNRBZTYZKVM27NSF2C4NLFT6AMHRS42CVVSRDNGJPDG2QO
+#\\\|6WYYM6C7TII5XPD2KJDOGXCWYJKXEQPJQDUTG4Z5DB3FWTPSCYR \ / AMOS7 \ YOURUM ::
+#\[7]NUQ7DNEUQBDDRT7SZA5SE6P56PHOKJZ6ATMCLKL7RQHTKPYL2GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

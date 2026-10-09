@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = letsencr.child.resolve_addresses
+# param = $domain
+# descr = resolve a name to its A and AAAA addresses [ blocking, child-side ]
+# return = list of address strings [ empty when the name does not resolve ]
+
+my $domain = shift;
+
+return () unless defined $domain && length($domain);
+
+my $resolver = Net::DNS::Resolver->new(
+    recurse     => 1,
+    tcp_timeout => 5,
+    udp_timeout => 5,
+);
+
+my @addresses;
+
+foreach my $type (qw| A AAAA |) {
+    my $query = $resolver->query( $domain, $type );
+    next unless $query;
+    foreach my $rr ( $query->answer ) {
+        next unless $rr->type eq $type;
+        push @addresses, $rr->address;
+    }
+}
+
+<[base.logs]>->(
+    3,       'resolved %s : %s',
+    $domain, @addresses ? join( ' ', @addresses ) : qw| no records |
+);
+
+return @addresses;
+
+#,,,,,.,,,.,.,.,.,...,,,.,,.,,,.,,..,,..,,,,,,..,,...,...,...,..,,.,.,.,.,,.,,
+#4KXWGCLZYYNJAGRGYPRUGUODIZO4R7VDSVDKAVGF4O7A6DWCUZJ2SRFDCLVLMHVLQ7I2WQI7CWUIG
+#\\\|UI5RXHAERX6NWXWGDL6UD5W57HTHABPJNAWKS44EOXI32NRXSNR \ / AMOS7 \ YOURUM ::
+#\[7]3PA5XXXLY6WOHGG4D2AB5VFK6UXDBVKDQV7I3AMT2DV5IAMZFGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

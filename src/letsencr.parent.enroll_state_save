@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = letsencr.parent.enroll_state_save
+# param = $state [ hashref ]
+# descr = persist automatic enrollment state to disk
+#         [ write to temp file, then rename into place ]
+
+my $state = shift;
+
+return FALSE unless ref($state) eq qw| HASH |;
+
+my $state_path = <[letsencr.parent.enroll_state_path]>;
+my $tmp_path   = $state_path . qw| .tmp |;
+
+my $json = JSON::XS->new->canonical(1)->pretty(0)->encode($state);
+
+open( my $fh, '>:raw', $tmp_path ) or do {
+    <[base.logs]>->(
+        1,         'warning : cannot write enrollment state %s : %s',
+        $tmp_path, $OS_ERROR
+    );
+    return FALSE;
+};
+print {$fh} $json;
+close($fh);
+
+rename( $tmp_path, $state_path ) or do {
+    <[base.logs]>->(
+        1, 'warning : cannot rename enrollment state into place : %s',
+        $OS_ERROR
+    );
+    return FALSE;
+};
+
+return TRUE;
+
+#,,,,,,,.,,..,,.,,.,,,.,,,...,,,,,,,,,..,,,.,,..,,...,.,.,...,,,.,.,,,,,,,,..,
+#44YVQZPX5VFRFS3E5LP3P4L4SAIJNYBVAGYHBW55KVJXPF2VBBJEGPJPK6SBQLHK72UCUQDYQCLD6
+#\\\|V6GZUOP64YPGKQ3XLUQNOTOH3MZSVNYMVCL6F3YFFMXSV7VAIIW \ / AMOS7 \ YOURUM ::
+#\[7]CS2WMFWVOAW23TNBEZTHBZMV4XP6K2NVY6W54AZ2WS3I5G4ZF2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = letsencr.child.cmd.verify-domain
+# param = <domain> [ param.public_addresses : arrayref ]
+# descr = pre-enrollment checks : public DNS [ blocking ],
+#         then the HTTP-01 self-test [ asynchronous : the setup command
+#         reaches httpd only once this command returns to the event loop,
+#         so the parent is answered later via the deferred reply_id ]
+
+## $call is provided by compiled-in code header
+my $domain = $call->{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'domain parameter required'
+    }
+    unless defined $domain && length($domain);
+
+<[base.logs]>->( 2, 'child : verifying domain for enrollment : %s', $domain );
+
+my $public_addresses = $call->{'param'}{'public_addresses'} // [];
+
+## check 1 : the name resolves to at least one public address [ blocking ] ##
+my $dns_check
+    = <[letsencr.child.check_domain_dns]>->( $domain, $public_addresses );
+
+unless ( $dns_check->{'ok'} ) {
+    <[base.logs]>->(
+        2,       ': enroll : %s : dns check failed : %s',
+        $domain, $dns_check->{'reason'}
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'dns : %s', $dns_check->{'reason'} )
+    };
+}
+
+## check 2 : HTTP-01 self-test [ asynchronous : answered via reply_id ] ##
+my $selftest = <[letsencr.child.verify_http_selftest]>
+    ->( { 'domain' => $domain, 'reply_id' => $call->{'reply_id'} } );
+
+unless ( $selftest->{'ok'} ) {
+    ## the setup could not even be queued : answer right away ##
+    <[base.logs]>->(
+        2,       ': enroll : %s : self-test failed : %s',
+        $domain, $selftest->{'reason'}
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'self-test : %s', $selftest->{'reason'} )
+    };
+}
+
+<[base.logs]>->(
+    2, ': enroll : %s : dns check passed, self-test queued', $domain
+);
+
+## the setup reply handler \ timeout answers the parent via reply_id ##
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,,,.,.,,,.,...,..,,,,,,.,,,..,,.,,,,,.,..,,...,...,..,,,.,,...,,,,,,.,,
+#LAV35KESRIOXM5VUPZKKZBT62SBC7SNPQ5JL5XQUWIEZNCTMSOB53TXG5YHM6XWATFLCAXLQ624Y4
+#\\\|J4TOFCZZX3ZZCXVRKNTZSUWGHD3AOYIMN2IKZPFI7OSUMKG66CF \ / AMOS7 \ YOURUM ::
+#\[7]43UFTEXDWJHG2LSRD77IJZTEWMOTFBNMRRWSZSHBGZ76WZUMMWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

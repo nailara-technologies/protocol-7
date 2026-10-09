@@ -34,6 +34,10 @@ my @domains   = @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
 ## Get admin email from config or parameters
 my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
 
+## per-request ACME server [ staging enrollments ] : default is the ##
+## zenka-wide configured server [ production ]                      ##
+my $acme_server = $call->{'param'}{'acme_server'} // undef;
+
 ## Substitute :requested-domain: keyword with primary domain
 $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 
@@ -44,6 +48,7 @@ $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 my $result = <[letsencr.child.acme_new]>->(
     {   domains => \@domains,
         email   => $email,
+        server  => $acme_server,
     },
     $call->{'reply_id'}    ## pass reply_id for async coordination
 );
@@ -159,8 +164,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,,.,.,.,.,,,.,,,,,,,,,,,...,..,,,,,,.,,,.,.,..,,...,...,..,,.,,,,,.,,..,..,,
-#DUVOYGRQUXVFSYHCQXSUCJCHXP7CSQXNPGBYXAISJSDM4YR4ZIQZFXEX2FQVW3UJ4ENY7XDGD5SY6
-#\\\|KSCCGAONS23PATRAULHBWZ5QTUOCPZ2MELO57HR2JHZBSIZIN7B \ / AMOS7 \ YOURUM ::
-#\[7]DK4OORMR4JOCMCQC5DK2GJVDPZ234SH2SDNNAJIBQJJ5AXGZ4WCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,..,,,.,,,..,...,.,.,.,,,,..,..,,...,...,...,,,.,.,.,...,,,,,
+#7MYUKWWOU6UOO2O2CYALRPKOHX52SOA4HQXYXCXTJYNDZBAVW436VKVGU4MFSSWR334NNDK2FHWP2
+#\\\|46OLJAGVBXJW4NYOIPL5PS5B264UVF3MZFECHCEOH2AIJ5CIANC \ / AMOS7 \ YOURUM ::
+#\[7]7CUOACXMGNBLX4XCV3KTTOHSOXJNEIH74II7GVZ55L2NFZFJPOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

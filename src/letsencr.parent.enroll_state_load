@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = letsencr.parent.enroll_state_load
+# descr = load automatic enrollment state from disk
+#         [ {} when missing or unreadable -- never fatal ]
+# return = hashref : domain => { status, attempts, last_error,
+#                                last_attempt, next_attempt_after }
+
+my $state_path = <[letsencr.parent.enroll_state_path]>;
+
+return {} unless -f $state_path;
+
+my $content;
+{
+    open( my $fh, '<:raw', $state_path ) or do {
+        <[base.logs]>->(
+            1,           'warning : cannot read enrollment state %s : %s',
+            $state_path, $OS_ERROR
+        );
+        return {};
+    };
+    local $INPUT_RECORD_SEPARATOR = undef;
+    $content = <$fh>;
+    close($fh);
+}
+
+my $state;
+eval { $state = JSON::XS::decode_json($content); };
+
+if ( length $EVAL_ERROR or ref($state) ne qw| HASH | ) {
+    <[base.logs]>->(
+        1, 'warning : invalid enrollment state in %s : starting fresh',
+        $state_path
+    );
+    return {};
+}
+
+return $state;
+
+#,,.,,,..,,,.,,.,,,..,.,.,,,,,..,,,,,,.,,,.,.,..,,...,...,.,.,..,,.,,,,.,,.,.,
+#Y55TL3DC6OY3M3H5BJE5YZLAMJKS6NHLKTK7K4IT7XXFDAH5XN3GBFMXRW3CJ57ULE3DC37RXP5MU
+#\\\|QYCJQTBD52ZGS7SIV74GBOBYGE2DQKSGX4MZXFZIFTRSENN2DZG \ / AMOS7 \ YOURUM ::
+#\[7]4HU274QPQT54N6CHFCRJQOFQOR75N7PM4IU6VTU5KTIKCJNKXKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

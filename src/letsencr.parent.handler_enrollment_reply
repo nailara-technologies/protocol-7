@@ -69,6 +69,28 @@ if ( $mode eq qw| TRUE | ) {
 } elsif ( $mode eq qw| FALSE | ) {
     <[base.logs]>
         ->( 1, 'enrollment failed for %s: %s', $domain, $reply_data );
+
+    ## automatic enrollment : persistent backoff state instead of the short ##
+    ## retry timers [ checks and order failures both back off ]             ##
+    if ( $reply->{'params'}->{'enrollment'} ) {
+        my $state = <[letsencr.parent.enroll_state_load]>;
+        my $entry = <[letsencr.parent.enroll_record_failure]>->(
+            $state, $domain, $reply_data
+        );
+        <[base.logs]>->(
+            2,
+            ': enroll : %s : order failed [ %s ], backed off until %s',
+            $domain,
+            $reply_data,
+            scalar( localtime( $entry->{'next_attempt_after'} ) )
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| failed |, sprintf 'ACME error: %s', $reply_data
+        );
+        return FALSE;
+    }
+
     <[letsencr.parent.activity_logger]>->(
         qw| enrollment |,
         $domain, qw| failed |, sprintf 'ACME error: %s', $reply_data
@@ -165,6 +187,31 @@ if ( $mode eq qw| TRUE | ) {
         return FALSE;
     }
 
+    ## staging enrollment : recorded as issued-staging, never saved to the ##
+    ## production certs dir, never installed, never registered             ##
+    if ( $reply->{'params'}->{'staging'} ) {
+        my $state = <[letsencr.parent.enroll_state_load]>;
+        $state->{$domain} = {
+            'status'     => qw| issued-staging |,
+            'issued_at'  => time(),
+            'expires_at' => $bundle_json->{expires_at},
+            'attempts'   => 0,
+        };
+        <[letsencr.parent.enroll_state_save]>->($state);
+        <[base.logs]>->(
+            2,
+            ': enroll : %s : staging certificate '
+                . 'issued [ not installed, not registered ]',
+            $domain
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| success |,
+            'staging certificate issued [ not installed ]'
+        );
+        return TRUE;
+    }
+
     ## Save certificate using existing infrastructure
     my $save_result = <[letsencr.parent.save_certificate]>->(
         {   domain          => $domain,
@@ -191,6 +238,18 @@ if ( $mode eq qw| TRUE | ) {
         qw| enrollment |,
         $domain, qw| success |, 'certificate saved to disk'
     );
+
+    ## automatic enrollment : mark the state as issued [ clears backoff ] ##
+    if ( $reply->{'params'}->{'enrollment'} ) {
+        my $state = <[letsencr.parent.enroll_state_load]>;
+        $state->{$domain} = {
+            'status'     => qw| issued |,
+            'issued_at'  => time(),
+            'expires_at' => $bundle_json->{expires_at},
+            'attempts'   => 0,
+        };
+        <[letsencr.parent.enroll_state_save]>->($state);
+    }
 
     ## update certificate registry
     <letsencr.parent.certs>->{$domain} = {
@@ -282,8 +341,8 @@ if ( $mode eq qw| TRUE | ) {
 
 return FALSE;
 
-#,,..,...,,.,,.,,,,..,..,,,,.,,,.,,,,,.,,,.,,,..,,...,..,,.,,,.,.,..,,,.,,,,,,
-#DBOCAA2PIXIZSSQ2ESFHG5O4PVLUP3QEZACYQ25YPAUQPIY4BDIAG5XIJFG55QBEM6UN3RGR2IGQA
-#\\\|XRT5WWQJ5Z3WDXZIEWLMA6KUZRYFXSE2A5VDMMRNHHVSBYS2YQ6 \ / AMOS7 \ YOURUM ::
-#\[7]W3VJYYA37FERWB35PSWPTPKPP266LAI7DO3SBVAFXCFI5B2L4GAY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,,.,,,..,,,.,..,,.,.,...,,,.,..,,...,...,.,,,,,.,,,,,,,,,,,,,
+#ID3SFIUEHM3ZCQPZNBCZBVCQ5UWRFL4LIBL55NNERX37QEI4O6TF4H2CXQGZ2M3WO6TK526KHW7ZU
+#\\\|673YT7M55FPK6OH4ENCLZZHGCAVPNJ4OACEYUCDMQQCE5C3VNFK \ / AMOS7 \ YOURUM ::
+#\[7]VYSPCRBRX7GYUWJQSI7ZRBPEX3XSERRUZFSTYZSYVYLLG4IJJADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

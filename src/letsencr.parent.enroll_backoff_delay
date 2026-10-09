@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = letsencr.parent.enroll_backoff_delay
+# param = $attempts
+# descr = exponential backoff delay [ seconds ] for a failed enrollment
+#         attempt count : 1 h start, doubling, capped at 24 h
+
+my $attempts = shift // 1;
+$attempts = 1 if $attempts < 1;
+
+my $delay = 3600 * ( 2**( $attempts - 1 ) );
+$delay = 86400 if $delay > 86400;    ## cap : 24 h ##
+
+return $delay;
+
+#,,,.,..,,...,...,..,,,,,,,,,,,.,,.,.,..,,,.,,..,,...,..,,.,.,.,,,.,.,,,.,,.,,
+#A2UGPJTUOLCZIZAOZXILG377A2TYU42YNZK5UMC3MVTR6X3IHTABNSSPUMPN5J6ZLFCFX5F444PIQ
+#\\\|NQNNON3PPIE4BR65TIGCGIM2LOBKK7U6OT622OG33USGRLJIVCC \ / AMOS7 \ YOURUM ::
+#\[7]CDAHXYHLTFXOIRVKQXHZUYGRFOEZU6SFPPJMICJS4EDYFJ2LRCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
