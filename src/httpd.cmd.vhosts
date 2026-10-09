@@ -26,8 +26,8 @@ if ($domain_filter) {
         $domain_filter, $vhost->{'source_path'} // '?', $age_str );
 
     return {
-        'mode' => qw| true |,
-        'data' => $output
+        'mode' => qw| size |,
+        'data' => "$output\n"
     };
 }
 
@@ -46,18 +46,16 @@ push @output, sprintf( "Configured virtual hosts: %d\n", $count );
 
 ## Use fallback manual display since base.list.formatted.show doesn't exist
 foreach my $id ( sort keys <httpd.vhosts.registry>->%* ) {
-    my $vh   = <httpd.vhosts.registry>->{$id};
-    my $cert = $vh->{cert} ? '✓' : '✗';
-    push @output, sprintf( "  [%s]  (cert: %s)", $id, $cert );
+    push @output, sprintf( "  [%s]", $id );
 }
 
 return {
-    'mode' => qw| true |,
-    'data' => join( "\n", @output )
+    'mode' => qw| size |,
+    'data' => join( '', map {"$ARG\n"} @output )
 };
 
-#,,.,,,,.,,.,,,..,...,,,.,,..,..,,...,,,,,,,,,..,,...,...,.,.,,,,,.,,,..,,.,,,
-#5V3FB35DGFXDSVSPQGVYETCOKWLFWBU6BBB5RMIZE2KIE6BT2XGWGPUKGR5YJFJN3S5BES3NBOMCO
-#\\\|QWULA3CGMVVXKC5E5XHTEYEO43M2VPDBUIPXKJPDSRV5JBCWGFR \ / AMOS7 \ YOURUM ::
-#\[7]YWMZQPRH3F3FRQWBBY5JLY73QEAUITZHWDOPFNL42PEVE4VCXOAA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,..,,.,,,...,..,,..,,..,,,..,..,,...,...,...,.,,,,,.,.,.,..,,
+#7W4Y6JFBBB7XA2ZXYMHQRD66D6TI6QM6UVRPI4AG22QP65UC6O6YJCDMFG6SAZS3ON2IX3EJ3NJYQ
+#\\\|3YTF6MXODVMG2EKHWE6IF7YG2WMXMW2XIY2OQFDP7BF3LNOTFZS \ / AMOS7 \ YOURUM ::
+#\[7]JPWLZYYMXIZMGCBEIVRCGK2Q3DWUCVNWHXQ45QB6VT2IDO43X6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
