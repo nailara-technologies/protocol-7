@@ -45,15 +45,15 @@ for my $sib (@$siblings) {
     my $rfilename = $sib->{'rfilename'} // '';
     next if $rfilename !~ m\.gguf$\i;
 
-    my $size     = $sib->{'size'} // 0;
-    my $gb       = $size / ( 1024**3 );
-    my $dl_count = $sib->{'download_count'} // $sib->{'downloads'} // 0;
+    ## sizes come with ?blobs=true [ huggingface.list ] ; per-file download ##
+    ## counts are not in the api at all                                     ##
+    my $size = $sib->{'size'} // 0;
 
     push @gguf_files,
         {
-        'file'      => $rfilename,
-        'size_gb'   => sprintf( '%.2f', $gb ),
-        'downloads' => $dl_count,
+        'file'    => $rfilename,
+        'size'    => $size,
+        'size_gb' => sprintf( '%.2f', $size / ( 1024**3 ) ),
         };
 }
 
@@ -68,28 +68,27 @@ if ( !@gguf_files ) {
 }
 
 ## format table ##
-my @lines = sprintf( "%-50s %10s %12s", 'file', 'size', 'downloads' );
-push @lines, '-' x 74;
+my @lines = sprintf( "%-58s %10s", 'file', 'size' );
+push @lines, '-' x 69;
 
-for my $f ( sort { $b->{'downloads'} <=> $a->{'downloads'} } @gguf_files ) {
+for my $f ( sort { $a->{'size'} <=> $b->{'size'} } @gguf_files ) {
     push @lines,
-        sprintf( "%-50s %10s %12s",
-        $f->{'file'}, $f->{'size_gb'} . ' GB',
-        $f->{'downloads'} );
+        sprintf( "%-58s %10s", $f->{'file'}, $f->{'size_gb'} . ' GB' );
 }
 
 my $output = join( "\n", @lines );
 
 if ( length $reply_id ) {
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => qw| true |, 'data' => $output }
+        ## size mode : multi-line data, true mode escapes the newlines ##
+        $reply_id, { 'mode' => qw| size |, 'data' => "$output\n" }
     );
 } else {
     <[base.logs]>->( 1, "[hf.list]\n%s", $output );
 }
 
-#,,..,,,.,,.,,.,.,..,,.,.,,..,..,,.,.,.,.,...,..,,...,...,.,,,..,,...,,,.,.,.,
-#IK4QJMSNQP6NCWHHB3TGQAZDKALYS2KBYQJWZQLJRWBDWLQU2PJBXXY6OTZEPBAXAOHLADBLTCPZC
-#\\\|4PTDNC37IX7H7UGHFJ3LSDBV2ZPLYUTZUMXJYSGGIOTG4D3LCQU \ / AMOS7 \ YOURUM ::
-#\[7]BYG2K6ZYSFQ6BLHRZQEW77VK67DXDLI2E2JFXGPSYU3LXTROZAAQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,.,,,,..,,,,,,.,,.,.,...,..,,..,,...,...,..,,..,,.,.,,,.,..,,
+#E6F3GKOIQLB4APTLWIMSZ6DTMRMUKXAMDU7OO5F6FGEQWSF5H5JJTC4ASPBJ6JDNLW3LSVQ33LSCM
+#\\\|QF6YFGWKLOVQM4G226VQ6EFOVKQ76PYPAIHPP6C6ZLFLYNDEUXZ \ / AMOS7 \ YOURUM ::
+#\[7]CTVMRJ4N2WEPZTPLPGGAVPN5YGH55DE44LDWH6GCEKUF7FJ2IOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
