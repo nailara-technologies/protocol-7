@@ -5,7 +5,8 @@
 # param = $file_path
 # return = { architecture, block_count, head_count, head_count_kv [ scalar
 #            or per-layer aref ], key_length, value_length,
-#            embedding_length, full_attention_interval, expert_count }
+#            embedding_length, full_attention_interval, expert_count,
+#            expert_bytes [ per-layer aref, moe only ], expert_bytes_total }
 #          or undef
 
 use Fcntl qw(:seek);
@@ -69,7 +70,10 @@ for ( 1 .. ( $kv_count < 4096 ? $kv_count : 4096 ) ) {
     my $key  = $read->($key_len) // last;
     my $type = unpack 'V', ( $read->(4) // last );
 
-    my $keep = $key eq 'general.architecture' || $key =~ $wanted;
+    my $keep
+        = $key eq 'general.architecture'
+        || $key eq 'general.alignment'
+        || $key =~ $wanted;
 
     if ( $type == $STRING ) {
         my $str_len = unpack 'Q<', ( $read->(8) // last );
@@ -103,7 +107,47 @@ for ( 1 .. ( $kv_count < 4096 ? $kv_count : 4096 ) ) {
         last;
     }
 }
+
+## moe expert weights per layer, from the tensor table that follows the   ##
+## metadata : a tensor's size is the distance to the next data offset, so ##
+## quant block sizes need no table of their own                           ##
+my ( %offset_of, @expert_tensors );
+my $tensors_ok = $kv_count < 4096 ? TRUE : FALSE;
+for ( 1 .. ( $tensors_ok ? $tensor_count : 0 ) ) {
+    my $len_buf  = $read->(8) // do { $tensors_ok = FALSE; last };
+    my $name_len = unpack 'Q<', $len_buf;
+    my $name     = $read->($name_len) // do { $tensors_ok = FALSE; last };
+    my $n_dims   = unpack 'V', (
+        $read->(4)
+            // do { $tensors_ok = FALSE; last }
+    );
+    $read->( 8 * $n_dims ) // do { $tensors_ok = FALSE; last };
+    my $tail = $read->(12) // do { $tensors_ok = FALSE; last };
+    my ( undef, $offset ) = unpack 'VQ<', $tail;
+    $offset_of{$name} = $offset;
+    push @expert_tensors, $name if $name =~ m|^blk\.\d+\.ffn_\w*_exps\b|;
+}
+my %expert_bytes;
+if ( $tensors_ok and @expert_tensors ) {
+    my $alignment  = $meta{'general.alignment'} || 32;
+    my $data_start = tell($fh);
+    $data_start += $alignment - $data_start % $alignment
+        if $data_start % $alignment;
+    my $data_size = ( -s $file_path ) - $data_start;
+    my @offsets   = sort { $a <=> $b } values %offset_of;
+    my %next_of;
+    @next_of{ @offsets[ 0 .. $#offsets - 1 ] } = @offsets[ 1 .. $#offsets ];
+    for my $name (@expert_tensors) {
+        my $offset = $offset_of{$name};
+        my $layer  = ( $name =~ m|^blk\.(\d+)\.| )[0];
+        $expert_bytes{$layer}
+            += ( $next_of{$offset} // $data_size ) - $offset;
+    }
+}
 close $fh;
+
+my $expert_total = 0;
+$expert_total += $ARG for values %expert_bytes;
 
 my $arch = $meta{'general.architecture'} // '';
 return undef unless length $arch and defined $meta{"$arch.block_count"};
@@ -117,10 +161,19 @@ return {
     (   map { $ARG => $meta{"$arch.attention.$ARG"} }
             qw| head_count head_count_kv key_length value_length |
     ),
+    (   %expert_bytes
+        ? ( 'expert_bytes' => [
+                map { $expert_bytes{$ARG} // 0 }
+                    0 .. $meta{"$arch.block_count"} - 1
+            ],
+            'expert_bytes_total' => $expert_total,
+            )
+        : ()
+    ),
 };
 
-#,,,,,,..,,,,,,..,,.,,,.,,..,,,.,,,.,,,.,,..,,..,,...,...,...,...,..,,.,.,,,,,
-#5CXEFKLJUTOK4IONYX2FJFK3P5WIRKDWUIHNVF6TGCWEEUVR5MU63MUT5ZBFEVA2AS75WZLSK37MQ
-#\\\|IJVX573CW6IUJ4YNA3IVRU2ERVU57ELJPHPS3IC6COVSNCVNPFD \ / AMOS7 \ YOURUM ::
-#\[7]CG2NE5S4B3T5JE65OISSWAXDD72FSACSZQOEVTRYND7Y3Y4O4UAQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,,,,,..,..,,..,,,..,,..,..,,..,,...,...,...,,,,,.,,,,,,,...,
+#NL3UY7CCODU7CWDSXJJFR4RHQPNBKJOBTFXFCK2VDU4MRZCJHCBZ4UOHXMSWYQKACE7WRBJM5QJQS
+#\\\|OV3HTVUXFJHMG5YDTSETGCHKA5N5ZGBKT4EVWYR73YRLAXNSO7N \ / AMOS7 \ YOURUM ::
+#\[7]X5LOQBCM7ARECKRWM3EHVNJPZVYQTGZJIHPUWBCFCF3MJLV364BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
