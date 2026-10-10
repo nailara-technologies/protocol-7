@@ -23,11 +23,12 @@ if ( defined $server->{'calculated_ctx'} and $server->{'calculated_ctx'} > 0 )
 ## predating that field -> 0 -> the helper falls back to its full-offload ##
 ## path, exactly the pre-fix behavior ]                                   ##
 my $safe = <[coding.helper.calculate_safe_context]>->(
-    {   model_path  => $server->{'model_path'}  // '',
-        mmproj_path => $server->{'mmproj_path'} // '',
-        backend     => $backend,
-        gpu_layers  => $server->{'gpu_layers'}  // 0,
-        layer_count => $server->{'layer_count'} // 0,
+    {   model_path    => $server->{'model_path'}  // '',
+        mmproj_path   => $server->{'mmproj_path'} // '',
+        backend       => $backend,
+        gpu_layers    => $server->{'gpu_layers'}    // 0,
+        layer_count   => $server->{'layer_count'}   // 0,
+        kv_cache_type => $server->{'kv_cache_type'} // qw| f16 |,
     }
 );
 
@@ -36,8 +37,8 @@ return {
     'data' => $safe->{'calculated'} // $safe->{'context_length'} // 18267
 };
 
-#,,,,,,..,...,.,.,.,,,..,,,..,,..,.,.,..,,..,,..,,...,...,...,,..,,,,,.,,,..,,
-#AZ4DSYCPAFFEP7K7WA47IHPJEZ45NIPLQMTDXJ3HWPXPWG2FL7MJJQDIR2E6PPTXTU2O5BWTNDNG2
-#\\\|TF5MV6OBWMYH573QE67XSZOU656RREBXSPWLEN2VP6E63PHATSM \ / AMOS7 \ YOURUM ::
-#\[7]ZGSBHUQZFI5RVV5MA3EMR2JGVDACZJC2Q5DDVII3PSTEHFQHLKDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,,,,,,,,,...,...,.,,,..,,...,..,,...,...,...,...,,,.,,..,.,.,
+#2A56TDE7H7I5YQT3PUC3UCT6L6KAQ2VZ4LXJIKGHUG6GJYKBOLPE2G7USHYI6OPAXXX6BJZBZFGPS
+#\\\|UOKLVCI5S43S3KDDTZMY34VLIHSVHEBJ7OFWKYIKN32ZL4LE6UD \ / AMOS7 \ YOURUM ::
+#\[7]Z537DZGIKORFQ57ZL3WXCJTHY35IDKVTO5HI4D5ADLZBOQNOFUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
