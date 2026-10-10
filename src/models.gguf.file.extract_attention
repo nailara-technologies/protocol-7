@@ -1,0 +1,126 @@
+## [:< ##
+
+# name  = models.gguf.file.extract_attention
+# descr = attention + moe shape of a gguf model : what the kv cache costs
+# param = $file_path
+# return = { architecture, block_count, head_count, head_count_kv [ scalar
+#            or per-layer aref ], key_length, value_length,
+#            embedding_length, full_attention_interval, expert_count }
+#          or undef
+
+use Fcntl qw(:seek);
+
+my $file_path = shift;
+return undef unless defined $file_path and -f $file_path;
+
+## gguf v3 value types : fixed sizes and unpack templates ##
+my %SIZE = (
+    0  => 1,
+    1  => 1,
+    2  => 2,
+    3  => 2,
+    4  => 4,
+    5  => 4,
+    6  => 4,
+    7  => 1,
+    10 => 8,
+    11 => 8,
+    12 => 8
+);
+my %PACK = (
+    0  => 'C',
+    1  => 'c',
+    2  => 'v',
+    3  => 's<',
+    4  => 'V',
+    5  => 'l<',
+    6  => 'f<',
+    7  => 'C',
+    10 => 'Q<',
+    11 => 'q<',
+    12 => 'd<'
+);
+my ( $STRING, $ARRAY ) = ( 8, 9 );
+
+## the per-architecture keys this reader keeps [ <arch>.<field> ] ##
+my $wanted = qr{^[a-z0-9_]+\.(?:block_count|embedding_length
+    |attention\.(?:head_count|head_count_kv|key_length|value_length)
+    |full_attention_interval|expert_count)$}x;
+
+open my $fh, '<:raw', $file_path or return undef;
+my $read = sub {
+    my ($len) = @ARG;
+    my $buf = '';
+    return ( read( $fh, $buf, $len ) // 0 ) == $len ? $buf : undef;
+};
+
+my $head = $read->(24);
+if ( !defined $head or substr( $head, 0, 4 ) ne 'GGUF' ) {
+    close $fh;
+    return undef;
+}
+my ( $tensor_count, $kv_count ) = unpack 'Q<Q<', substr( $head, 8, 16 );
+
+my %meta;
+for ( 1 .. ( $kv_count < 4096 ? $kv_count : 4096 ) ) {
+    my $len_buf = $read->(8) // last;
+    my $key_len = unpack 'Q<', $len_buf;
+    last if !$key_len or $key_len > 1024;
+    my $key  = $read->($key_len) // last;
+    my $type = unpack 'V', ( $read->(4) // last );
+
+    my $keep = $key eq 'general.architecture' || $key =~ $wanted;
+
+    if ( $type == $STRING ) {
+        my $str_len = unpack 'Q<', ( $read->(8) // last );
+        last if $str_len > 1 << 20;
+        my $str = $str_len ? ( $read->($str_len) // last ) : '';
+        $meta{$key} = $str if $keep;
+    } elsif ( $type == $ARRAY ) {
+        my $elem_type = unpack 'V',  ( $read->(4) // last );
+        my $count     = unpack 'Q<', ( $read->(8) // last );
+        if ( $elem_type == $STRING ) {
+            ## string arrays [ tokenizer vocab ] : skip element by element ##
+            for ( 1 .. $count ) {
+                my $str_len = unpack 'Q<', ( $read->(8) // last );
+                seek( $fh, $str_len, SEEK_CUR );
+            }
+        } elsif ( exists $SIZE{$elem_type} ) {
+            my $bytes = $SIZE{$elem_type} * $count;
+            if ( $keep and $count <= 4096 ) {
+                my $buf = $read->($bytes) // last;
+                $meta{$key} = [ unpack "$PACK{$elem_type}$count", $buf ];
+            } else {
+                seek( $fh, $bytes, SEEK_CUR );
+            }
+        } else {
+            last;    ## nested arrays : not seen in practice ##
+        }
+    } elsif ( exists $SIZE{$type} ) {
+        my $buf = $read->( $SIZE{$type} ) // last;
+        $meta{$key} = unpack $PACK{$type}, $buf if $keep;
+    } else {
+        last;
+    }
+}
+close $fh;
+
+my $arch = $meta{'general.architecture'} // '';
+return undef unless length $arch and defined $meta{"$arch.block_count"};
+
+return {
+    'architecture' => $arch,
+    (   map { $ARG => $meta{"$arch.$ARG"} }
+            qw| block_count embedding_length full_attention_interval
+            expert_count |
+    ),
+    (   map { $ARG => $meta{"$arch.attention.$ARG"} }
+            qw| head_count head_count_kv key_length value_length |
+    ),
+};
+
+#,,,,,,..,,,,,,..,,.,,,.,,..,,,.,,,.,,,.,,..,,..,,...,...,...,...,..,,.,.,,,,,
+#5CXEFKLJUTOK4IONYX2FJFK3P5WIRKDWUIHNVF6TGCWEEUVR5MU63MUT5ZBFEVA2AS75WZLSK37MQ
+#\\\|IJVX573CW6IUJ4YNA3IVRU2ERVU57ELJPHPS3IC6COVSNCVNPFD \ / AMOS7 \ YOURUM ::
+#\[7]CG2NE5S4B3T5JE65OISSWAXDD72FSACSZQOEVTRYND7Y3Y4O4UAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

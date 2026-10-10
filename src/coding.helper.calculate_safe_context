@@ -3,7 +3,8 @@
 # name  = coding.helper.calculate_safe_context
 # descr = calculate safe context length from available VRAM/RAM
 # param = { model_path => ..., mmproj_path => ..., backend => ...,
-#           gpu_layers => N, layer_count => N }   [ gpu offload fraction ]
+#           gpu_layers => N, layer_count => N,    [ gpu offload fraction ]
+#           kv_cache_type => f16 | q8_0 | .. }   [ default f16 ]
 # return = { context_length => N, calculated => N, explanation => "...",
 #            limited_by => "..." }
 
@@ -41,27 +42,75 @@ if ( length($mmproj_path) && -f $mmproj_path ) {
     $mmproj_size_mb = ( -s $mmproj_path ) / ( 1024 * 1024 );
 }
 
-## estimate parameter count from file size [ Q8_0 ≈ 1 byte/param ] ##
-my $est_params_gb = $model_size_mb / 1024;
+## KV-cache bytes per token : exact from the gguf attention shape when      ##
+## readable, size-class estimate otherwise. hybrid models                   ##
+## [ qwen35 : full_attention_interval 4 ] keep a kv cache on every 4th      ##
+## layer only -- the rest are ssm layers with a fixed-size state. bytes per ##
+## cache element follow the kv cache type the server is started with        ##
+my %CACHE_BYTES = (
+    qw| f32 |    => 4,
+    qw| f16 |    => 2,
+    qw| bf16 |   => 2,
+    qw| q8_0 |   => 34 / 32,
+    qw| q6_0 |   => 26 / 32,
+    qw| q5_1 |   => 24 / 32,
+    qw| q5_0 |   => 22 / 32,
+    qw| q4_1 |   => 20 / 32,
+    qw| q4_0 |   => 18 / 32,
+    qw| iq4_nl | => 18 / 32,
+);
+my $cache_type = lc( $params->{'kv_cache_type'} // qw| f16 | );
+my $elem_bytes = $CACHE_BYTES{$cache_type} // 2;
 
-## KV-cache bytes per token  derived from typical transformer             ##
-## architectures: 2 * layers * kv_heads * head_dim * 2 bytes when we know ##
-## layer count, use a more precise estimate  [ shared by both backends -- ##
-## the KV cache cost per token doesn't depend on where it's computed ]    ##
 my $kv_bytes_per_token;
-if ( $est_params_gb < 3 ) {
-    $kv_bytes_per_token = 18 * 1024;    # ~18 KB  (3B class)
-} elsif ( $est_params_gb < 7 ) {
-    $kv_bytes_per_token = 28 * 1024;    # ~28 KB  (7B class)
-} elsif ( $est_params_gb < 12 ) {
-    $kv_bytes_per_token = 42 * 1024;    # ~42 KB  (9-10B class)
-} elsif ( $est_params_gb < 20 ) {
-    $kv_bytes_per_token = 65 * 1024;    # ~65 KB  (14-20B class)
-} elsif ( $est_params_gb < 35 ) {
-    $kv_bytes_per_token = 95 * 1024;    # ~95 KB  (30B class)
-} else {
-    $kv_bytes_per_token = 140 * 1024;    # ~140 KB (70B class)
+my $kv_source = qw| size-class |;
+my $shape
+    = length $model_path
+    ? <[models.gguf.file.extract_attention]>->($model_path)
+    : undef;
+if ( ref $shape eq qw| HASH | and $shape->{'block_count'} ) {
+    my $layers    = $shape->{'block_count'};
+    my $heads     = $shape->{'head_count'}       // 0;
+    my $embedding = $shape->{'embedding_length'} // 0;
+    my $head_dim  = $heads ? $embedding / ( ref $heads ? 1 : $heads ) : 0;
+    my $k_len     = $shape->{'key_length'}    // $head_dim;
+    my $v_len     = $shape->{'value_length'}  // $head_dim;
+    my $kv_heads  = $shape->{'head_count_kv'} // $heads;
+
+    ## kv heads summed over the layers that hold a kv cache : a per-layer ##
+    ## array already carries 0 for the non-attention layers               ##
+    my $kv_head_sum = 0;
+    if ( ref $kv_heads eq qw| ARRAY | ) {
+        $kv_head_sum += $ARG for @$kv_heads;
+    } else {
+        my $interval  = $shape->{'full_attention_interval'} // 0;
+        my $kv_layers = $interval > 1 ? int( $layers / $interval ) : $layers;
+        $kv_head_sum = $kv_layers * $kv_heads;
+    }
+
+    my $bytes = $kv_head_sum * ( $k_len + $v_len ) * $elem_bytes;
+    if ( $bytes > 0 ) {
+        $kv_bytes_per_token = $bytes;
+        $kv_source          = sprintf 'gguf %s', $cache_type;
+    }
 }
+
+if ( !$kv_bytes_per_token ) {
+    ## parameter count from file size [ Q8_0 ≈ 1 byte/param ] ##
+    my $est_params_gb = $model_size_mb / 1024;
+    $kv_bytes_per_token = $est_params_gb < 3
+        ? 18 * 1024                            # ~18 KB  (3B class)
+        : $est_params_gb < 7  ? 28 * 1024      # ~28 KB  (7B class)
+        : $est_params_gb < 12 ? 42 * 1024      # ~42 KB  (9-10B class)
+        : $est_params_gb < 20 ? 65 * 1024      # ~65 KB  (14-20B class)
+        : $est_params_gb < 35 ? 95 * 1024      # ~95 KB  (30B class)
+        :                       140 * 1024;    # ~140 KB (70B class)
+}
+<[base.logs]>->(
+    1,
+    '[calculate_safe_context] kv cache : %.1f KB per token [ %s ]',
+    $kv_bytes_per_token / 1024, $kv_source
+);
 
 ## for CPU backend : RAM-aware clamp, mirrors the GPU/VRAM math below using ##
 ## /proc/meminfo MemAvailable [ same source as                              ##
@@ -69,8 +118,8 @@ if ( $est_params_gb < 3 ) {
 ## 2026-08-26 after a live crash: the prior unconditional MAX_CONTEXT-or-   ##
 ## 131072 default let a 9B model auto-expand to a GPU-tuned                 ##
 ## coding.cfg.context_max [144993] with zero RAM check, crashing the CPU    ##
-## llama-server on every spawn attempt [exit=11, consistent with a KV-cache ##
-## allocation failure]                                                      ##
+## llama-server on every spawn attempt                                      ##
+## [exit=11, consistent with a KV-cache allocation failure]                 ##
 if ( $backend ne qw| gpu | ) {
     my $mem_available_mb = 0;
     my $mem_total_mb     = 0;
@@ -176,13 +225,13 @@ if ( $backend ne qw| gpu | ) {
     $final_context = $MAX_CONTEXT
         if $MAX_CONTEXT && $final_context > $MAX_CONTEXT;
 
-    ## hard backstop, independent of the per-token model above [ which two  ##
-    ## real incidents 2026-09-17 proved unreliable on its own ] : never let ##
-    ## the inference process's OWN predicted footprint exceed a flat        ##
-    ## fraction of TOTAL system ram, regardless of what MemAvailable said   ##
-    ## was free -- protects against the compute-buffer estimate being wrong ##
-    ## in EITHER direction, not just against transient available-ram noise  ##
-    ## the safety_mb margin above already covers                            ##
+    ## hard backstop, independent of the per-token model above              ##
+    ## [ which two real incidents 2026-09-17 proved unreliable on its own ] ##
+    ## : never let the inference process's OWN predicted footprint exceed a ##
+    ## flat fraction of TOTAL system ram, regardless of what MemAvailable   ##
+    ## said was free -- protects against the compute-buffer estimate being  ##
+    ## wrong in EITHER direction, not just against transient available-ram  ##
+    ## noise the safety_mb margin above already covers                      ##
     ##                                                                      ##
     ## deliberately uses its OWN much more pessimistic multiplier, not      ##
     ## $combined_bytes_per_token above : converting this budget through the ##
@@ -275,8 +324,8 @@ if ( !$vram->{'ok'} ) {
 
 my ( $total_mb, $free_mb ) = ( $vram->{'total_mb'}, $vram->{'free_mb'} );
 
-## fixed CUDA context overhead  [ empirical: actual overhead ~1256MB for ##
-## WSL2 + CUDA + FlashAttention ]                                        ##
+## fixed CUDA context overhead                                             ##
+## [ empirical: actual overhead ~1256MB for WSL2 + CUDA + FlashAttention ] ##
 my $cuda_overhead_mb = 1256;
 
 ## partial gpu offload awareness [ added 2026-09-17, gpu-side sibling of    ##
@@ -295,8 +344,8 @@ my $cuda_overhead_mb = 1256;
 ## the cpu-resident weight fraction : the incident mechanism                ##
 ##                                                                          ##
 ## gpu-resident weight share uses the SAME first-order per-layer            ##
-## approximation as coding.helper.calculate_partial_gpu_layers [            ##
-## model_size_mb / layer_count ] -- deliberately not a different one        ##
+## approximation as coding.helper.calculate_partial_gpu_layers              ##
+## [ model_size_mb / layer_count ] -- deliberately not a different one      ##
 my $partial_offload = FALSE;
 my $gpu_model_mb    = $model_size_mb;    ## full vram residency [ default ] ##
 my $cpu_model_mb    = 0;
@@ -360,18 +409,18 @@ my $limited_by
 
 ## ram-side budget for the cpu-resident fraction [ partial offload only ]   ##
 ##                                                                          ##
-## the KV cache is a SINGLE allocation regardless of offload split [        ##
-## llama.cpp/ik_llama.cpp keep it together ] and its actual placement [     ##
-## vram vs ram ] depends on build flags and offload split -- neither pool   ##
+## the KV cache is a SINGLE allocation regardless of offload split          ##
+## [ llama.cpp/ik_llama.cpp keep it together ] and its actual placement     ##
+## [ vram vs ram ] depends on build flags and offload split -- neither pool ##
 ## can be relied upon to hold it here. so the context is constrained by the ##
-## TIGHTER of two budgets : the vram-side one above [ existing math,        ##
-## unchanged ] and this ram-side one, which mirrors the cpu branch's own    ##
-## already-incident-tested pattern [ os overhead reserve, 30%-clamped       ##
-## safety margin, context-scaling compute term at the same                  ##
-## cpu_compute_buffer_multiplier, and the decoupled hard total-ram-         ##
-## fraction backstop with its own much more pessimistic multiplier -- the   ##
-## real safety net while the per-token compute cost stays this uncertain,   ##
-## see bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17 ]. two real  ##
+## TIGHTER of two budgets : the vram-side one above                         ##
+## [ existing math, unchanged ] and this ram-side one, which mirrors the    ##
+## cpu branch's own already-incident-tested pattern [ os overhead reserve,  ##
+## 30%-clamped safety margin, context-scaling compute term at the same      ##
+## cpu_compute_buffer_multiplier, and the decoupled hard total-ram-fraction ##
+## backstop with its own much more pessimistic multiplier -- the real       ##
+## safety net while the per-token compute cost stays this uncertain, see    ##
+## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17 ]. two real      ##
 ## incidents 2026-09-17 proved the kv-only estimate lands several GB under  ##
 ## actual rss at large context -- that error lands in system ram for a      ##
 ## partially-offloaded model, which is precisely the 14.98GB oom-kill this  ##
@@ -449,9 +498,9 @@ if ($partial_offload) {
         if $ram_safety_mb > $ram_safety_max_mb;
 
     ## same context-scaling compute-buffer term as the cpu branch : the ##
-    ## compute graph of the cpu-resident layers [ prompt-processing     ##
-    ## attention/intermediate buffers ] grows with context and lands in ##
-    ## system ram                                                       ##
+    ## compute graph of the cpu-resident layers                         ##
+    ## [ prompt-processing attention/intermediate buffers ] grows with  ##
+    ## context and lands in system ram                                  ##
     my $compute_buffer_multiplier
         = <coding.cfg.cpu_compute_buffer_multiplier> // 6;
     my $combined_bytes_per_token
@@ -462,9 +511,10 @@ if ($partial_offload) {
         / $combined_bytes_per_token );
 
     ## same decoupled hard total-ram-fraction backstop as the cpu branch, ##
-    ## budgeted against the cpu-resident weight fraction only [ the gpu-  ##
-    ## resident fraction lives in vram ] : never let this process's own   ##
-    ## predicted ram footprint exceed a flat fraction of TOTAL system ram ##
+    ## budgeted against the cpu-resident weight fraction only             ##
+    ## [ the gpu-resident fraction lives in vram ] : never let this       ##
+    ## process's own predicted ram footprint exceed a flat fraction of    ##
+    ## TOTAL system ram                                                   ##
     my $hard_backstop_multiplier
         = <coding.cfg.cpu_compute_buffer_hard_multiplier> // 15;
     my $hard_bytes_per_token
@@ -534,8 +584,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,..,.,.,...,,.,,,,.,...,,.,,,.,,..,,,,.,...,.,.,...,...,..,,..,,..,,.,,,,..,
-#HMR7UBGXPAAPYV5DRFDPH6N7E4TAMKR6HWTFW2W5FRW4FGGQ33ZYQTAPOWSDGR4XF22HCKRZZYKDQ
-#\\\|6D2J2SK5QFLXBTKR6BKS6DTESVCRW6R3OMXUQUC2JTT5XLQRJZS \ / AMOS7 \ YOURUM ::
-#\[7]L62KL7OYHKNY7T5LDTODXMLFJBDPGEXB4UFKNOKNZ45ECP7QW2BY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,,..,...,..,,.,.,.,,,.,.,...,.,.,...,...,.,.,,,,,.,,,,.,,,..,
+#ZG3TUDCS7PDDQ4I4KRAUA3B7LPKRA3CH7YVK63U2WACPGYXVXRDUT7GHEDBE4XMW7JAFT53SRFXPO
+#\\\|EFCQO6ODPMBEC4RRBZWK7E7OGXM73REF6X6YBNOBJPMUSZXV43H \ / AMOS7 \ YOURUM ::
+#\[7]XLMG7VWFAHJFEQPAWMZO7Z5BTDIO4EMME7LFEYDBL2FBPA4GU2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
