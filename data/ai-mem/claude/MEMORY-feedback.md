@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [no-tree-edits-while-model-batch-runs](feedback-no-tree-edits-while-model-batch-runs.md) — 2026-10-10 : a running model-batch reverts EVERY tree change after each task, mine included [ src/ of any zenka, data/ai-mem too ] ; stage new work in scratchpad/pending until `batch complete`, or cancel + `:restart:`
 - [no-sha2-no-hex](feedback-no-sha2-no-hex.md) — 2026-10-09 : no sha-256 \ sha-2 where not necessary [ kdf hash : blake2b ; never pre-hash argon2id input ] and NO hex anywhere -- base32 for every id \ digest, even git's sha-1 blob id
 - [check-filesystem-before-large-files-on-windows-drives](feedback-check-filesystem-before-large-files-on-windows-drives.md) — 2026-10-02 : WSL swap on D: [ FAT32 inside C:\DISKS\projects.vhdx ] failed past 4 GiB and killed WSL \ zenki twice ; check Get-Volume + Get-Disk before placing big growing files on a Windows drive
 - [chmod-child-revert-on-failed-grant](feedback-chmod-child-revert-on-failed-grant.md) — a chmod-child grant/create succeeding (`ok`) doesn't mean the caller's write will; readline-consuming the reply (see [[feedback-chmod-child-restore-readline]]) fixes pipe sync but not this — if `-w` is still false after an `ok` grant, or a later step fails after a successful `create`, the side effect must be explicitly reverted/removed or it's abandoned permanently. Swept across `coding.start.chmod_child` + 12 tool handlers + `ncode.cmd.apply` 2026-09-23
@@ -199,8 +200,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 07e19f5a2, 2026-10-07 ] ; check SigCgt bit 16
 
-#,,.,,.,.,,..,,..,.,,,,,.,,..,,.,,,.,,,..,,,.,..,,...,..,,,..,.,,,,,,,,,.,..,,
-#QBN2OFFLH7BDBYHV2QNU5T5PJXT5WGMOYTC6ZA62YU4OWJXH7K723EW4LMSVZTAVG3HVNANU2YCZG
-#\\\|76JQMTCNNIWJ6YS2CEDOVOZQIH2EQD57VZGEAT4HVKBN2G2S67P \ / AMOS7 \ YOURUM ::
-#\[7]BGHBPDPGM3X2LTI6K7ZVJGEYKQXPJIJPLRKHJE6ZGPLLVE4YEAAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,,,.,,..,,,,,,..,..,,.,.,..,,..,,...,...,.,,,..,,,.,,.,.,,,.,
+#ALBZUSU5IPBWK6W7T6KOW6FTMHEGNZZUOY6LQMLSJBHOIQXD6FC5N42BA27H37AVQBYCADJDEHLL2
+#\\\|HVLYAXDOWBKG4FWMBQGWJIX7DGOUPD25TSHW4REVE3CKUTWNQGA \ / AMOS7 \ YOURUM ::
+#\[7]BJ2V6DWYS6V4XR7BOWYYT46XTW6OM65NIP77LIYXIBIOH3NMUGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

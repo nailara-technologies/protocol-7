@@ -179,6 +179,12 @@ coding.cfg.moe_expert_offload = yes
 ## [ coding.tools.groups ] ~3k tokens, all = every schema ~12k tokens       ##
 coding.cfg.tool_set = core
 
+## thinking budget per response in tokens [ -1 = unrestricted ] : at the  ##
+## budget the server ends the thinking block, the message is injected     ##
+## first [ a runaway thought for ~50k tokens without output ]             ##
+coding.cfg.reasoning_budget         = 8192
+coding.cfg.reasoning_budget_message = thinking budget reached : act on what you have now.
+
 ## hybrid/partial gpu+cpu layer offload : when a model doesn't fit fully in ##
 ## free vram, reduce -ngl instead of refusing the spawn outright [ llama    ##
 ## .cpp natively supports any -ngl 0..full layer count -- no binary change  ##
@@ -488,8 +494,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,..,,..,.,.,,..,,..,...,...,.,,,,.,,.,.,.,.,...,...,..,,...,.,,,,,,,,..,
-#7WPM4VZIDLTNUKOPXCZV5XXKYVW4F6VGEXMRVPUTB7MPI2H3NZYGILEG22UZ6U6WYXGXVJS42DRPY
-#\\\|OA3T27QVCVH7V7V3MSK3TRGJAHYKZP46EFVWN5MUQI3UEWJ26UJ \ / AMOS7 \ YOURUM ::
-#\[7]H6A3VV57K2APXUMLQC3LWHKST43KXGCCMCQYQNUEOHBXN7CAU2AQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,,.,,,,.,.,.,,..,,..,.,.,...,.,.,...,..,,.,.,.,.,,,.,..,,.,,,
+#ORPTVTGTOX36Q4TZ7ATEQTE3GIIS5KXC3JQHF6JLJ4W4K7LLFHKMQJSSDGGBQAY7THO2LUKZMNY44
+#\\\|XEGKDZMPTIEP6OVF6223BAOVA6C3RRZL2777TESVUAULG7HOHIC \ / AMOS7 \ YOURUM ::
+#\[7]APYP6ZZKGUOI5RKU2MGZUX7G4W73JY2IR2FWLTXIXM2YJCEP4AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -717,6 +717,20 @@ if ( length $reasoning_effort ) {
         sprintf( '{"reasoning_effort":"%s"}', $reasoning_effort );
 }
 
+## thinking budget per response                                          ##
+## [ coding.cfg.reasoning_budget, tokens ; -1 unrestricted ] : at the    ##
+## budget the server closes the thinking block and the model has to act. ##
+## fablevibes thought for ~50k tokens on one round                       ##
+## [ 777 s, no visible output ], twice in a row ; an abort does not stop ##
+## the server-side generation either                                     ##
+my $reasoning_budget = <coding.cfg.reasoning_budget> // 8192;
+if ( $reasoning_budget =~ m|^-?\d+$| and $reasoning_budget >= 0 ) {
+    push @cmd, '--reasoning-budget', $reasoning_budget;
+    push @cmd, '--reasoning-budget-message',
+        <coding.cfg.reasoning_budget_message>
+        // 'thinking budget reached : act on what you have now.';
+}
+
 ## harmonic seed                                               ##
 ## [ configurable fixed seed or generated from ntime+fortuna ] ##
 my $fixed_seed = <inference.model.seed> // 0;
@@ -1084,8 +1098,8 @@ return {
     'port'    => $port
 };
 
-#,,..,.,,,..,,,,.,,..,.,,,.,,,,..,,,.,..,,..,,..,,...,..,,.,,,,,,,,,,,..,,..,,
-#MNOXAK7YJPBX6W5VVCBSTYDFJLM7C4R5OOHAPBAZPGLKJJ6UKM7UF4MYZA7F7MFAN3INOTUSLCBJM
-#\\\|BOHQBRGFDPMEGSJ5RZLAKXLDDH5D6GBKRMHECUV5TC63AHPGQMA \ / AMOS7 \ YOURUM ::
-#\[7]XI3ZO5MIXEWPQFZPEJTN66OWSKEBXYOVVKJEGM3S5B2NPMEJP2BQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,,,,,,..,,,,,,,.,,.,,.,.,.,,,..,,...,...,...,,,,,,,.,,,,,,,,,
+#AGAWD4JH4PXR7HRQQ42XAHMEZGYWKVAD2AV34ZN74KSDLT4AJYO2KNJE4ZIEPYKJJIIT3XMSOSDWS
+#\\\|ZNSRLETAYBWSE2H553Z6MMU3OOPKHLDFWKGAQKXS54XCAMPKEC6 \ / AMOS7 \ YOURUM ::
+#\[7]XDV3YMYDQTSIN7XGAWNFPJFCWCIKW6WUF4HNMJMQT43WUXWGM4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

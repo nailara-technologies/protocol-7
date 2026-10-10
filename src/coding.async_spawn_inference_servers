@@ -19,8 +19,8 @@ if (<coding.awaiting_resources>) {
 my $mem_pct = <coding.system_mem_pct> // 0;
 <[base.logs]>->( 2, ": system memory usage :. %.2f%% used", $mem_pct );
 
-## abort if memory critically constrained  [ system will kill largest consumer
-## at limit ]
+## abort if memory critically constrained
+## [ system will kill largest consumer at limit ]
 if ( $mem_pct >= 90 ) {
     <[base.logs]>->(
         0, ": system memory at %.2f%% - skipping inference server spawn",
@@ -59,11 +59,12 @@ my $cpu_enabled_str = 'no';
 $cpu_enabled_str = 'yes'  if $cpu_enabled_raw =~ m{^(yes|true|1)$};
 $cpu_enabled_str = 'auto' if $cpu_enabled_raw eq 'auto';
 
-## gpu and cpu blocks below are deliberately independent : neither may    ##
-## short-circuit the other, each re-checks its own <inference.{gpu,cpu}   ##
-## _pid> guard on every call, so re-entry [ deferred timer,               ##
-## model_path_reply retrigger, backoff retry ] is always safe. the cpu    ##
-## block additionally honors the auto/fallback flag set by the gpu block. ##
+## gpu and cpu blocks below are deliberately independent : neither may      ##
+## short-circuit the other, each re-checks its own <inference.{gpu,cpu}     ##
+## _pid> guard on every call, so re-entry                                   ##
+## [ deferred timer,  model_path_reply retrigger, backoff retry ] is always ##
+## safe. the cpu block additionally honors the auto/fallback flag set by    ##
+## the gpu block.                                                           ##
 
 # Spawn GPU server if enabled and not already running
 if (    $gpu_enabled_str eq 'yes'
@@ -75,8 +76,18 @@ if (    $gpu_enabled_str eq 'yes'
         // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
     my $gpu_layers = $spawn_params->{'gpu_layers'} // 33;
 
-    my $gpu_resolve = <[coding.helper.resolve_model_checksum]>
-        ->( { model_name => $gpu_model } );
+    ## the model selected now [ switch-model sets <inference.model.amos_id> ##
+    ## together with <inference.model.path> ] wins over the configured      ##
+    ## start model : a restart after a switch loaded the switched model's   ##
+    ## file under the start model's id [ 2026-10-10 : fablevibes respawned  ##
+    ## as OFSQC4I mid-batch, read as a model swap ]                         ##
+    my $current_id  = uc( <inference.model.amos_id> // '' );
+    my $gpu_resolve = <[coding.helper.resolve_model_checksum]>->(
+        {   model_name => $current_id =~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|
+            ? $current_id
+            : $gpu_model
+        }
+    );
     my $gpu_amos_id = $gpu_resolve->{'amos_id'} // '';
 
     # Get model path (resolved earlier in startup after network connect)
@@ -87,23 +98,23 @@ if (    $gpu_enabled_str eq 'yes'
     ## stopped firing the resolve hook, so a cpu fallback waited forever    ##
     ## for a model path nobody requested ]  gated on the model_path         ##
     ## dependency [ coding.init_dependencies ] rather than just re-checking ##
-    ## the raw flag directly : this is what triggers the resolve hook [     ##
-    ## coding.resolve.object.model_path -> coding.resolve_model_path ] when ##
-    ## unresolved, instead of silently failing and relying entirely on a    ##
-    ## separate, bespoke catch-up check in coding.handler.model_path_reply. ##
-    ## this deferred-timer's own 0.5s delay is a best-effort nudge, not a   ##
-    ## real wait, so hitting this branch is the COMMON path whenever the    ##
-    ## models zenka needs any cold-start time at all - not a failure, hence ##
-    ## level 1 not 0 [ confirmed live 2026-08-26 ]  checking dependency.ok  ##
-    ## on the ROOT [ spawn_ready_gpu ], not model_path_gpu directly --      ##
-    ## dependency.ok(X) only checks X's OWN chain members' callbacks, it    ##
-    ## never invokes X's own type callback. a standalone object with no     ##
-    ## chain of its own would trivially always read "ok" here.              ##
-    ## dependency.ok(undef) also fails OPEN [ returns TRUE, its own "no     ##
-    ## dependency" convention ] -- keep the raw check too so a broken       ##
-    ## init-order edge case [ coding.dep.spawn_ready_gpu never set up ]     ##
-    ## can't let a genuinely-unset $model_path slip through to the spawn    ##
-    ## call below                                                           ##
+    ## the raw flag directly : this is what triggers the resolve hook       ##
+    ## [ coding.resolve.object.model_path -> coding.resolve_model_path ]    ##
+    ## when unresolved, instead of silently failing and relying entirely on ##
+    ## a separate, bespoke catch-up check in                                ##
+    ## coding.handler.model_path_reply.  this deferred-timer's own 0.5s     ##
+    ## delay is a best-effort nudge, not a real wait, so hitting this       ##
+    ## branch is the COMMON path whenever the models zenka needs any        ##
+    ## cold-start time at all - not a failure, hence level 1 not 0          ##
+    ## [ confirmed live 2026-08-26 ]  checking dependency.ok on the ROOT    ##
+    ## [ spawn_ready_gpu ], not model_path_gpu directly -- dependency.ok(X) ##
+    ## only checks X's OWN chain members' callbacks, it never invokes X's   ##
+    ## own type callback. a standalone object with no chain of its own      ##
+    ## would trivially always read "ok" here.  dependency.ok(undef) also    ##
+    ## fails OPEN [ returns TRUE, its own "no dependency" convention ] --   ##
+    ## keep the raw check too so a broken init-order edge case              ##
+    ## [ coding.dep.spawn_ready_gpu never set up ] can't let a              ##
+    ## genuinely-unset $model_path slip through to the spawn call below     ##
     unless (defined $model_path
         and length $model_path
         and <[dependency.ok_resolve]>->(<coding.dep.spawn_ready_gpu>) ) {
@@ -120,15 +131,16 @@ if (    $gpu_enabled_str eq 'yes'
         ## means this is a respawn [ seed-retry / crash-restart ], not a    ##
         ## cold start, and coding.spawn_inference_server already kills +    ##
         ## bounded-reaps that old process and runs its OWN vram sanity      ##
-        ## check strictly AFTER the kill completes [ see its comment at the ##
-        ## kill site ]. running nvidia-smi here, before that kill has ever  ##
-        ## happened, sees the still-alive old process's vram as unavailable ##
-        ## and produces a false "doesn't fit" -- confirmed live 2026-08-30: ##
-        ## a self-test seed-retry respawn hit exactly this, silently        ##
-        ## falling back to cpu with a perfectly healthy gpu available       ##
-        ## underneath. only run this pre-check for a genuine cold start [   ##
-        ## no prior tracked pid at all ], which is what it was actually     ##
-        ## built for [ deciding gpu-vs-cpu on a gpu-poor/absent host ]      ##
+        ## check strictly AFTER the kill completes                          ##
+        ## [ see its comment at the kill site ]. running nvidia-smi here,   ##
+        ## before that kill has ever happened, sees the still-alive old     ##
+        ## process's vram as unavailable and produces a false "doesn't fit" ##
+        ## -- confirmed live 2026-08-30: a self-test seed-retry respawn hit ##
+        ## exactly this, silently falling back to cpu with a perfectly      ##
+        ## healthy gpu available underneath. only run this pre-check for a  ##
+        ## genuine cold start [ no prior tracked pid at all ], which is     ##
+        ## what it was actually built for                                   ##
+        ## [ deciding gpu-vs-cpu on a gpu-poor/absent host ]                ##
         my $gpu_respawn
             = ( <coding.inference_servers>->{'gpu'}{'pid'} // 0 )
             ? TRUE
@@ -233,9 +245,9 @@ if (    $gpu_enabled_str eq 'yes'
 
 ## cpu spawns unconditionally when enabled=yes, or as a gpu fallback when
 ## enabled=auto. enabled=no blocks both cases. checks both the local [ a
-## fallback request from a PRIOR call, eg. verify_inference_startup's retry-
-## exhaustion trigger, consumed above ] and the live global [ the gpu block
-## just above MAY have set this fresh, in this same call, on a fit-check
+## fallback request from a PRIOR call, eg. verify_inference_startup's
+## retry-exhaustion trigger, consumed above ] and the live global [ the gpu
+## block just above MAY have set this fresh, in this same call, on a fit-check
 ## failure -- the local snapshot captured at function entry predates that
 ## write and would silently miss it, which is exactly what happened : gpu fit
 ## failed, cpu fallback was requested and logged, but the cpu block's own
@@ -257,9 +269,9 @@ if ( $spawn_cpu and not <inference.cpu_pid> ) {
         ->( { model_name => $cpu_model } );
     my $cpu_amos_id = $cpu_resolve->{'amos_id'} // '';
 
-    ## cpu-specific resolved path first, falling back to the shared       ##
-    ## <inference.model.path> [ common case : one model file serving both ##
-    ## backends ]                                                         ##
+    ## cpu-specific resolved path first, falling back to the shared ##
+    ## <inference.model.path>                                       ##
+    ## [ common case : one model file serving both backends ]       ##
     my $cpu_model_path = <inference.backend.cpu.path>
         // <inference.model.path> // undef;
 
@@ -362,8 +374,8 @@ if ($spawn_ok) {
 
 return FALSE;
 
-#,,..,,,.,..,,..,,..,,,,,,,.,,.,.,..,,,,,,,..,..,,...,..,,,,,,,,.,,,,,.,.,,..,
-#4FRNMXDHQX5M3QKZUJXL5QQZ6SMQ3F4XL6ZIZT5NKIIXJW23SXPVPD6WBR7L5TKUAPKWG4MPVN5LW
-#\\\|3V7UVAETMUHJUU7IDVAUMNRDWQDPWEWIC5DHERTJZABKN24VFQC \ / AMOS7 \ YOURUM ::
-#\[7]35PD3U5U4DCQONZTVDQW24I5G42XPMYN4ZVBDKX2MYZXZ6I7B2AQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,..,,,..,,,.,.,.,,,.,,..,,,,,..,,...,...,.,,,,,,,,.,,,,,,,..,
+#7CYQDYQQUE4YCYIOIBGTLDX372J5UQHK6P3B2TKEX2KZRDAPT6UBLQI557KW7A7VFNVOX3HH6RKAS
+#\\\|I57T5NWS2QWM6VXWK3Y2T2CYKAJJYU3FSUMAMZBESRQOY5ERJWY \ / AMOS7 \ YOURUM ::
+#\[7]NXHHYL64CDMWNYQOAEOEPSFJQULDHQL44IF3QDQR4V567X6W3OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

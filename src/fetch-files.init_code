@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = fetch-files.init_code
+# descr = start the chmod child [ admin user ] while still root : model
+#         publisher directories belong to the admin user, downloads run
+#         as the zenka user [ huggingface.download mkdir + grant ]
+
+my ($reinit) = @ARG;
+return if $reinit;
+
+<[base.chmod_child.start]>
+    ->( { 'grant_user' => <system.amos-zenka-user> // qw| protocol-7 | } );
+
+#,,,.,.,.,.,.,.,,,,,.,..,,,,.,..,,.,,,,.,,.,,,..,,...,..,,...,,,,,,..,,,,,,.,,
+#3HJ32JRWQ5TDPPMI4RJ2GREZ4RVO4IROMU5WHRNPLT2YM4ZKVPDX3ZPSSERFGEMZ67C4JYHFRJ5SS
+#\\\|VG2Z6FA7UQFDFHSPBXSPND6H7OVBLDXD3NUVHCHYZ3X7SNI572S \ / AMOS7 \ YOURUM ::
+#\[7]PECMKP3A6KGHMYZOZDDJJQNNRJLWMEBK4TKYHSIX5HUTEZZFG2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
