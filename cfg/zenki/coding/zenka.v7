@@ -175,6 +175,11 @@ coding.cfg.kv_cache_type = auto
 ## context floor [ inference.model.context_length ] needs [ --n-cpu-moe ] ##
 coding.cfg.moe_expert_offload = yes
 
+## ram kept free for everything else when weights sit in ram [ moe     ##
+## experts, partial layers ] : 4 GB -- loading an 18.7 GB model with   ##
+## 2 GB left pushed v7-zenki's memory pressure to critical [ swap, psi ] ##
+coding.cfg.cpu_ram_overhead_mb = 4096
+
 ## tools offered per task : core = a core set + load_tools for named groups ##
 ## [ coding.tools.groups ] ~3k tokens, all = every schema ~12k tokens       ##
 coding.cfg.tool_set = core
@@ -494,8 +499,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,.,,,...,.,,,,.,,,,.,.,.,,..,,..,.,.,...,.,.,...,..,,.,.,.,.,,,.,..,,.,,,
-#ORPTVTGTOX36Q4TZ7ATEQTE3GIIS5KXC3JQHF6JLJ4W4K7LLFHKMQJSSDGGBQAY7THO2LUKZMNY44
-#\\\|XEGKDZMPTIEP6OVF6223BAOVA6C3RRZL2777TESVUAULG7HOHIC \ / AMOS7 \ YOURUM ::
-#\[7]APYP6ZZKGUOI5RKU2MGZUX7G4W73JY2IR2FWLTXIXM2YJCEP4AAY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,.,.,,,,,,,.,.,,,,..,.,,,,,.,.,.,...,...,.,,,..,,...,.,.,.,.,
+#W2H2UHFRAPQII4T4KRBK6Z4DHKITMGKM2O5TNUYBGBD2QK5VII3JUEHAIFLRX2BXVDGTJ5HSQR7SY
+#\\\|MDO3FSLALLRU5STQ2VIIAWHUO54JHGOQC7RFZ2DBLTNU4JEHKQE \ / AMOS7 \ YOURUM ::
+#\[7]SICQ3MKEI7YHCXC5XVOTRV7SCA4YAFIME6NBVJMJ5CHRNL5C5CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
