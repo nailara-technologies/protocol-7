@@ -47,6 +47,33 @@ if ( $parsed->{'query'} =~ s|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):||i ) {
     );
 }
 
+## :mode:<path>: keyword : a work mode [ coding.mode.setting, todo WNF ]    ##
+## fills what nothing more specific set -- model                            ##
+## [ the :model: pin, so the existing pin enforcement switches ], tool set, ##
+## template, system prompt, max rounds. an explicit request always wins     ##
+my $mode = '';
+if ( $parsed->{'query'} =~ s|:mode:([\w.-]+):||i ) {
+    $mode = lc $1;
+    $parsed->{'query'} =~ s{^\s+}{};
+    my $mode_model = <[coding.mode.setting]>->( $mode, qw| model | );
+    $parsed->{'model'} //= uc $mode_model
+        if defined $mode_model and length $mode_model;
+    my $mode_rounds = <[coding.mode.setting]>->( $mode, qw| max_rounds | );
+    $task->{'max_rounds'} //= $mode_rounds if defined $mode_rounds;
+    my $mode_system = <[coding.mode.setting]>->( $mode, qw| system | );
+    $task->{'system'} = $mode_system
+        if defined $mode_system
+        and length $mode_system
+        and !length( $task->{'system'} // '' );
+    $task->{'metadata'}{'mode'} = $mode;
+    <[base.logs]>->(
+        1, ':. prompt.assemble: mode %s%s',
+        $mode,
+        defined $parsed->{'model'} ? " [ model $parsed->{'model'} ]" : ''
+    );
+}
+$mode = $task->{'metadata'}{'mode'} // '' if !length $mode;
+
 ## :image-embed:<path> keyword [ alias :image-attach: ] : attach a local    ##
 ## image [ repository-relative or absolute path, optional trailing ':' ] as ##
 ## an image_ref user message after the prompt -- expanded per request by    ##
@@ -138,8 +165,11 @@ if ($prompt =~ m{(?:review|explain|check|analyze)\s+
 my $tools;
 ## tool set [ coding.cfg.tool_set : core = the core list + load_tools for ##
 ## the rest, all = every schema ] -- all 75 cost ~12k tokens              ##
-$tools = <[coding.tools.definitions]>
-    ->( { 'set' => <coding.cfg.tool_set> // qw| core | } );
+$tools = <[coding.tools.definitions]>->(
+    {   'set' => <[coding.mode.setting]>->( $mode, qw| tool_set | )
+            // <coding.cfg.tool_set> // qw| core |
+    }
+);
 if ( ref $tools eq qw| ARRAY | and $tools->@* ) {
     <[base.logs]>->(
         2,
@@ -227,6 +257,19 @@ if ( $selected_template eq 'system-default' ) {
             );
             last;
         }
+    }
+}
+
+## the mode's template, only when nothing above picked one ##
+if ( $selected_template eq 'system-default' and length $mode ) {
+    my $mode_template = <[coding.mode.setting]>->( $mode, qw| template | );
+    if ( defined $mode_template
+        and -f "$template_dir/$mode_template.yaml" ) {
+        $selected_template = $mode_template;
+        <[base.logs]>->(
+            1, ':. prompt.assemble: template [ %s ] from mode %s',
+            $mode_template, $mode
+        );
     }
 }
 
@@ -334,8 +377,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,,,.,,,,,.,,..,...,,,.,..,,.,.,,..,,,.,.,,,..,,...,...,.,,,..,,.,.,,.,,.,,,
-#3YFNBILKU6KH5R22ZIQ6AZQO3D7KQH6G7GQKYF4V5NQW5NWSAJ66FAPGTFCZCEN6I3AD6XH2AUH3M
-#\\\|OGBFFM2DW6CDIFCEF2L2UFLT2YKIBQ5VI4HTH773HBEDHBDDPQX \ / AMOS7 \ YOURUM ::
-#\[7]MER3DSNBBWAVVAUOFEUZPV42GVY2SLABRRWQO7JJR4FM4GL2SADI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,...,,,.,...,..,,..,,...,.,.,..,,...,...,,.,,,..,.,.,,.,,,.,,
+#2KH3P5LX4FTT2ZUAMFO3BOFI5NMNBUZ7FPWQ2AQMOHY3EVBTWAZ7KTXDFHQF3TDEG7DZE4ZVDVHRE
+#\\\|E34D563HK6JEWT25XJE56KSJ762HQBSE7ZISIBQETZFJE5W6YZY \ / AMOS7 \ YOURUM ::
+#\[7]446GBLRHIG7IIWBGY6EAC3I6INYJJ4B3ONMSXR4FGKTFQLFGJCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
