@@ -1,0 +1,189 @@
+## [:< ##
+
+# name  = coding.model_batch.cmd.model-batch-review
+# descr = review batch results : list, show, apply, drop
+# param = <batch> [:task=<id>:] [:model=..:] [:apply:|:drop:]
+# note  = todo XOJ [ overnight work as reviewable patches ]. the records
+#         already hold every touched path's before \ after blob : nothing
+#         is applied during the run, the tree stays at baseline.
+#         list    : <batch-id>                   -- one line per task
+#         show    : + :task=<id>: [:model=..:]  -- reply and file diffs
+#         apply   : + :apply:  -- writes the after-content where a file is
+#                   still unchanged since the run [ :force: overwrites ]
+#         drop    : + :drop:   -- marks the result as reviewed, not applied
+
+my $params = shift             // {};
+my $args   = $params->{'args'} // '';
+
+my $apply = ( $args =~ s| *:apply: *| | );
+my $drop  = ( $args =~ s| *:drop: *| | );
+my $force = ( $args =~ s| *:force: *| | );
+my ( $task_filter, $model_filter );
+$task_filter  = $1 if $args =~ s| *:task=([a-zA-Z0-9._-]+): *| |;
+$model_filter = $1 if $args =~ s| *:model=([A-Za-z0-9_]+): *| |;
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $batch_id = $args;
+
+return {
+    mode => qw| size |,
+    data => "usage : model-batch-review <batch-id> [:task=<id>:] "
+        . "[:model=<prefix>:] [:apply:|:drop:] [:force:]\n"
+    }
+    unless length $batch_id and $batch_id =~ m|^[A-Za-z0-9._-]+$|;
+
+my $root      = canonpath(<system.root_path>);
+my $batch_rel = "state/model_batch/$batch_id";
+my $batch_dir = <[file.zenka_dir.data_path]> . "/$batch_rel";
+return { mode => qw| size |, data => "batch '$batch_id' not found\n" }
+    unless -d $batch_dir;
+
+## every per-model record file ##
+my %records;
+opendir( my $dh, $batch_dir )
+    or return { mode => qw| size |, data => "cannot read $batch_dir\n" };
+for my $entry ( sort readdir $dh ) {
+    next unless $entry =~ m{^([A-Za-z0-9._-]+)\.yaml$};
+    next if $entry eq qw| baseline-manifest.yaml |;
+    my $model = $1;
+    next if length( $model_filter // '' ) and index( $model, $model_filter );
+    my $sref = <[file.zenka_dir.load]>->("$batch_rel/$entry");
+    next unless defined $sref and length $$sref;
+    $records{$model} = <[format.yaml.load_str]>->($$sref) // {};
+}
+closedir $dh;
+
+my @lines;
+
+## list : one line per task ##
+if ( !length( $task_filter // '' ) ) {
+    for my $model ( sort keys %records ) {
+        push @lines, ":: $model";
+        my $rec = $records{$model};
+        for my $task_id ( sort keys %$rec ) {
+            my $e = $rec->{$task_id};
+            next unless ref $e eq qw| HASH |;
+            my ($first) = grep {m|\S|} split m|\n|, $e->{'reply'} // '';
+            push @lines,
+                sprintf '   %-28s %-10s %-5s %d file%s%s%s',
+                $task_id, $e->{'verdict'} // '?', $e->{'score'} // '-',
+                scalar @{ $e->{'files_touched'} // [] },
+                ( @{ $e->{'files_touched'} // [] } == 1 ? ' ' : 's' ),
+                (
+                length( $e->{'review'} // '' )
+                ? " [ $e->{'review'} " . "]"
+                : ''
+                ),
+                ( defined $first ? ' : ' . substr( $first, 0, 60 ) : '' );
+        }
+    }
+    push @lines, '', ':: show : model-batch-review '
+        . "$batch_id :task=<id>: [:model=<prefix>:]";
+    return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+}
+
+## one task [ in every matching model ] ##
+my $found = 0;
+for my $model ( sort keys %records ) {
+    my $e = $records{$model}{$task_filter};
+    next unless ref $e eq qw| HASH |;
+    $found++;
+    my $paths = $e->{'paths'} // {};
+    push @lines,
+        sprintf ':: %s : %s [ %s, score %s ]%s',
+        $model, $task_filter, $e->{'verdict'} // '?', $e->{'score'} // '-',
+        ( length( $e->{'review'} // '' ) ? " [ $e->{'review'} ]" : '' );
+
+    if ( $apply or $drop ) {
+        if ($drop) {
+            $e->{'review'} = qw| dropped |;
+            push @lines, '   dropped';
+        } else {
+            my ( $done, $skipped ) = ( 0, 0 );
+            for my $rel ( sort keys %$paths ) {
+                ## zenka-written data never belongs to a result ##
+                next if $rel =~ m{^data/catalog-corpus/};
+                my $pair = $paths->{$rel};
+                my $abs  = catfile( $root, split m|/|, $rel );
+                my $now
+                    = -f $abs
+                    ? <[chk-sum.bmw.filesum]>->( 384, $abs ) // ''
+                    : '';
+                if ( !$force and $now ne ( $pair->{'before'} // '' ) ) {
+                    push @lines,
+                        "   skipped : $rel [ " . "changed since the run ]";
+                    $skipped++;
+                    next;
+                }
+                if ( defined $pair->{'after'} ) {
+                    if (<[model_batch.blob.restore]>->(
+                            $pair->{'after'}, $abs
+                        )
+                    ) {
+                        push @lines, "   written : $rel";
+                        $done++;
+                    } else {
+                        push @lines, "   failed  : $rel [ blob restore ]";
+                        $skipped++;
+                    }
+                } elsif ( -f $abs ) {
+                    ## the task deleted it ##
+                    if ( !unlink $abs ) {
+                        my $chmod_fh = <coding.chmod_child.w_fh>;
+                        if ( defined $chmod_fh ) {
+                            print {$chmod_fh} "remove $abs\n";
+                            <[coding.chmod_child.readline]>;
+                        }
+                    }
+                    push @lines, -f $abs
+                        ? "   failed  : $rel [ delete ]"
+                        : "   deleted : $rel";
+                    -f $abs ? $skipped++ : $done++;
+                }
+            }
+            $e->{'review'} = $skipped ? qw| partial | : qw| applied |;
+            push @lines, sprintf '   %d applied, %d skipped', $done, $skipped;
+        }
+        my $yaml = <[format.yaml.dump_str]>->( $records{$model} );
+        <[file.zenka_dir.write]>->(
+            "$batch_rel/$model.yaml", \$yaml, qw| > |, 0640
+        ) if length $yaml;
+        next;
+    }
+
+    ## show : reply, then a diff per file ##
+    push @lines, '', '.:[ reply ]:.',
+        $e->{'reply'} // '[ no reply ' . 'recorded ]';
+    for my $rel ( sort keys %$paths ) {
+        next if $rel =~ m{^data/catalog-corpus/};
+        my $pair = $paths->{$rel};
+        push @lines, '', ".:[ $rel ]:.";
+        if ( !defined $pair->{'before'} ) {
+            my $content
+                = <[model_batch.blob.read]>->( $pair->{'after'} // '' );
+            push @lines, '[ new file ]',
+                defined $content
+                ? substr( $content, 0, 6000 )
+                : '[ blob missing ]';
+        } elsif ( !defined $pair->{'after'} ) {
+            push @lines, '[ deleted ]';
+        } else {
+            push @lines,
+                <[model_batch.diff.text]>->(
+                $pair->{'before'}, $pair->{'after'}
+                ) // '[ diff unavailable ]';
+        }
+    }
+    push @lines, '',
+        ":: apply : model-batch-review $batch_id "
+        . ":task=$task_filter: :model=$model: :apply:";
+}
+
+push @lines, "task '$task_filter' not found" unless $found;
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,...,,.,,,.,,,,.,,.,,,.,,.,,,...,.,,,...,..,,...,...,...,...,...,..,,,,,,
+#45F2LZKHMZXK6OIYVY3OYNJERO6J363HXYRDNRBXLU2EZANEJCJEKWTUANQBDXSEBCYZGF3JKHMK6
+#\\\|VXETTQVJ5M7BPT5M46BYOYBW67NJVICQ6NJS4QOFLYYC534MY4C \ / AMOS7 \ YOURUM ::
+#\[7]OKKFB2BNFGFIFBSGKRVHIRVIR6WVKBKKZPOBXGL7IAOEOYPZSKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
