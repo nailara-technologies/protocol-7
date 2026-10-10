@@ -43,19 +43,38 @@ if ( -w $parent_dir ) {
 ## directory not writable [ src/ : group-writable files, read-only dir ] : ##
 ## write in place, a missing file is created through the coding zenka's    ##
 ## chmod child first [ the way write_new_file creates files there ]        ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
 if ( !-e $dest_path ) {
-    my $chmod_fh = <coding.chmod_child.w_fh>;
     return undef unless defined $chmod_fh;
     print {$chmod_fh} "create $dest_path\n";
     <[coding.chmod_child.readline]>;
 }
-open( my $out_fh, '>:raw', $dest_path ) or return undef;
-my $ok = print {$out_fh} $content;
-$ok = close($out_fh) && $ok;
+
+## an existing file the zenka cannot write : edit_file wrote it through a  ##
+## temporary group-write [ chmod child 'gw' ] and put the mode back -- the ##
+## revert does the same [ found live 2026-10-10 : label-size-edit ]        ##
+my $mode_restore;
+if ( -f $dest_path and !-w $dest_path and defined $chmod_fh ) {
+    $mode_restore = ( CORE::stat $dest_path )[2] & 07777;
+    print {$chmod_fh} "gw $dest_path\n";
+    <[coding.chmod_child.readline]>;
+}
+
+my $ok = open( my $out_fh, '>:raw', $dest_path );
+if ($ok) {
+    $ok = print {$out_fh} $content;
+    $ok = close($out_fh) && $ok;
+}
+
+if ( defined $mode_restore ) {
+    printf {$chmod_fh} "restore %04o %s\n", $mode_restore, $dest_path;
+    <[coding.chmod_child.readline]>;
+}
+
 return $ok ? TRUE : undef;
 
-#,,..,,,,,.,.,,.,,.,,,.,.,..,,,,,,.,.,.,,,,.,,..,,...,...,...,,,,,,,.,,,.,,..,
-#2LMEKIBH7GUJGPSR7HWU6CLUBSJL6AZH5PPVR7KTJX6BYZS33DMAPGJE5B2RJ36UGNPNGP3QLJ3U6
-#\\\|YI3LUPUI3CUIB2TIUJC635ZMCJFTXANRI7CUSIJKF4CHXHFO3HM \ / AMOS7 \ YOURUM ::
-#\[7]RJMO57FZBJDNB2SSYKTXODLDBQU3GDE2PLECMMCYWA6WK2W7IICY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,,.,,.,,,..,,.,.,,,.,.,,,..,,..,,...,...,,,.,..,,,,,,...,,.,,
+#YH4N4ERLUHLO33TOFKJOGW5HJBPBKADCWIPQGWTM4MMX2J7DWTDCRAAIQKYVHZ6FNH5YTRKS7MN3K
+#\\\|5TB7MJZO76YKYTMX2BCJAJGALREZXP2UBNNDKP3OHMKYAXSKSWH \ / AMOS7 \ YOURUM ::
+#\[7]QAAP2DB4LRN3UXSTZ6AUV5P4AIEQISFHMX3UDEOVGG32CM3HPABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
