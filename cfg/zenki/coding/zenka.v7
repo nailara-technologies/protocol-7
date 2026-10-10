@@ -199,6 +199,11 @@ coding.cfg.whitespace_abort_retry = yes
 ## state, shown by task-info ] : a round can be replayed exactly           ##
 coding.cfg.request_seed = yes
 
+## before a task fails for a loop, an isolated no-tools child judges it    ##
+## from the task text, its last steps and the files it wrote [ todo X33 ] : ##
+## DONE completes the task, NOT_LOOP continues it, LOOP fails it            ##
+coding.cfg.loop_verdict = yes
+
 ## hybrid/partial gpu+cpu layer offload : when a model doesn't fit fully in ##
 ## free vram, reduce -ngl instead of refusing the spawn outright [ llama    ##
 ## .cpp natively supports any -ngl 0..full layer count -- no binary change  ##
@@ -508,8 +513,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,..,,,.,,..,,.,.,,,.,.,.,,..,.,.,,,.,,,.,.,.,...,..,,.,.,,.,,,..,.,.,..,,
-#HOQOL5M7RNOXUHDUPHBFKK6AUPRWNS5TRH5Z4JUC7PKDMM7MYNZK2KZBQEZ7ZCBBP5UIANSKDQ6EY
-#\\\|BPDLIM5ZYEIQCHX573HC54VMRMKCH7U2IFKGRUZHMOERLC4JNRW \ / AMOS7 \ YOURUM ::
-#\[7]YBQAHRVP5V2AES6ML6NXK3VTVBDOM3HBA73NVDRLWU3ZD65QGCAI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,,,,,..,,,.,,..,.,,,,.,,.,.,.,.,...,...,...,...,.,.,,,,,..,,
+#AACAECFNRUZA2GATNPOBZ7JIGIPFWHWFKRZ7QR23PEBMIOD4XG2GQ3UIXWGH77EUF546EWTLS75ZC
+#\\\|SZXSR6AN6MNSYVBCOMIAM4J2ENUVFAVVNO6LLXHF4SOJ3NVZ4ED \ / AMOS7 \ YOURUM ::
+#\[7]AHV6HU4CJYEZGGE7EZJS4S26GWTEARXCLEKRJRFBPY2IBNRO3ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

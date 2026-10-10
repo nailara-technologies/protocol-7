@@ -1,0 +1,99 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+
+###                ###
+##  apply-colors    ##
+###                ###
+
+## inverse of bin/dev/strip-ansi-colors : colorize stdin or file output ##
+## with the protocol-7 console palette [ %colors in bin/Protocol-7 ]    ##
+
+## usage : one example per block                                       ##
+## [ blank lines keep format-code's comment reflow from joining them ] ##
+
+##  tail -f <logfile> | bin/dev/apply-colors  ##
+
+##  watch -c 'uptime | bin/dev/apply-colors -n'  ##
+
+##  p7c status | bin/dev/apply-colors -c  ##
+
+## default [ no option ] : the base.log look -- purple base, words in the ##
+## brighter $C{T} blue                                                    ##
+
+## -n : numbers [ integer and floating point ] in 'ok' green ##
+
+## -c : base32 checksums in palette colors -- composite model ids ##
+## [A-Z2-7]{7}:[A-Z2-7]{7} and long digests [A-Z2-7]{20,}         ##
+
+## already colored input [ ansi sequences ] passes through unchanged ##
+
+## no color at all when NO_COLOR is set ##
+
+getopts( 'nc', \my %opt );
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+$OUTPUT_AUTOFLUSH = TRUE;   ## line by line, no buffering ##
+
+my $no_color = length $ENV{'NO_COLOR'} ? TRUE : FALSE;
+
+## protocol-7 console palette [ copied from %colors in bin/Protocol-7 ] ##
+my $bg       = "\e[48;2;0;0;17m";       ## B00 ##
+my $fg       = "\e[38;2;68;39;172m";    ## p7_fg_0000 ##
+my $c_cm_id  = "\e[38;2;170;94;2m";     ## p7_fg_0002 ##
+my $c_digest = "\e[38;2;9;170;94m";     ## p7_fg_0003 ##
+my $c_number = "\e[38;2;71;195;6m";     ## 'ok' green of bin/format-code ##
+my $c_word   = "\e[38;2;6;71;195m";     ## $C{T} [ p7_fg_0004 ] : words ##
+my $reset    = "\e[0m";
+
+my $number_re = qr| -? \d+ (?: \.\d+ )? (?: [eE] [+-]? \d+ )? |x;
+
+## highlight pattern assembled from the enabled options ##
+my @highlight_re;
+push @highlight_re, qr{
+    (?<![A-Z2-7:])
+    (?:
+        (?<cm_id>  [A-Z2-7]{7} : [A-Z2-7]{7} )
+      | (?<digest> [A-Z2-7]{20,} )
+    )
+    (?![A-Z2-7:])
+}x if $opt{'c'};
+push @highlight_re, qr|(?<![\w.]) (?<number> $number_re ) (?![\w.])|x
+    if $opt{'n'};
+## lowest priority, every mode : words in the brighter $C{T} over the ##
+## purple base [ numbers \ checksums above win where enabled ]        ##
+push @highlight_re, qr|(?<word> \w+ )|x;
+
+my $highlight_re = qr/@{[ join '|', @highlight_re ]}/x;
+
+while (<>) {
+    ## colors end before the newline : the next line starts clean ##
+    my $eol = $ARG =~ s|(\r?\n)\z|| ? $1 : '';
+    if ( $no_color or $ARG =~ m|\e| ) {
+        print $ARG, $eol;    ## passthrough [ NO_COLOR or already colored ] ##
+    } else {
+        my $line = $ARG;
+        ## one combined pass, inserted escapes are never re-scanned ##
+        $line =~ s{$highlight_re}{
+            defined $+{'word'}
+                ? $c_word . $MATCH . $fg    ## same background ##
+                : (   defined $+{'cm_id'}  ? $c_cm_id
+                    : defined $+{'digest'} ? $c_digest
+                    :                        $c_number )
+                . $MATCH . $reset . $bg . $fg
+        }gex;
+        print $bg, $fg, $line, $reset, $eol;
+    }
+}
+
+#,,,.,,,,,,.,,,..,.,,,,,,,,..,.,,,.,,,,,,,..,,..,,...,...,.,.,,..,,..,.,,,,..,
+#XUBTIT2K3WASS6HXEHAUASKXBKCP5KGNBJCHAVM6BW5A2G4EC5JXPZL3OWIW4WI4I6NRVGFKUIBYK
+#\\\|KQN3BKQQZHEYTRHUKKHD2P4MKBNPIHRNW4KI4WKUT4E3GHDPKNT \ / AMOS7 \ YOURUM ::
+#\[7]2226JGRPG4RRFHOGTGPYSPLI3KRSS3HF2NBFPPOCYHZIUFXXYSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
