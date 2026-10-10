@@ -5,6 +5,9 @@
 # binary parsing [ the hard case, from qwen38-fable5-coding ]. scored by
 # model_batch.score.task : criteria hits + bin/format-code -c of touched
 # src/ files. capture/revert between tasks keeps the tree pristine.
+# 2026-10-10 : the dense security 14b models dropped [ 17k context at
+# 102 KB/token : no task wrote a file ] ; re-run after the -ngl / kv
+# cache fixes [ OFSQC4I back to ~42 t/s ].
 
 batch_spec_version: 1
 backend: gpu
@@ -12,8 +15,6 @@ backend: gpu
 models:
   - OFSQC4I:QDBKEXY    # Qwen3.8 9B Heretic Uncensored Q4_K_M [default]
   - 72T4WFI:TK55OIY    # Qwen3.6 14B A3B FableVibes Q4_K_M [moe, vision]
-  - EBCVWUQ:DTQAPFQ    # Qwen Security Builder 14b Q4_K_M
-  - XFX2XIQ:MWUPQMA    # Qwen Security Auditor 14b Q4_K_M
 
 reference_tps: 20
 
@@ -43,7 +44,7 @@ tasks:
     criteria:
       - bytes
       - KB
-      - '%.1f'
+      - 're:%0?\.1f'
 
   - id: dims-from-header-module
     budget_hint: 900
