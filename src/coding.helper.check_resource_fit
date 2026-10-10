@@ -16,12 +16,12 @@ my $mmproj_path = $params->{'mmproj_path'} // '';
 ## unrelated process holding memory at THAT moment is a real constraint.   ##
 my $pre_filter = $params->{'pre_filter'} // FALSE;
 
-## vision-capable candidates load an additional multimodal projector file  ##
-## alongside the main model -- confirmed live 2026-09-17: a sweep          ##
-## candidate's mmproj was never counted here at all, undercounting real    ##
-## footprint for every vision model, a real contributor to a same-session  ##
-## host OOM incident (see [[project-wsl2-shared-ram-constrains-concurrent- ##
-## inference]])                                                            ##
+## vision-capable candidates load an additional multimodal projector file ##
+## alongside the main model -- confirmed live 2026-09-17: a sweep         ##
+## candidate's mmproj was never counted here at all, undercounting real   ##
+## footprint for every vision model, a real contributor to a same-session ##
+## host OOM incident (see                                                 ##
+## [[project-wsl2-shared-ram-constrains-concurrent-inference]])           ##
 my $mmproj_size_mb = 0;
 if ( length($mmproj_path) && -f $mmproj_path ) {
     $mmproj_size_mb = ( -s $mmproj_path ) / ( 1024 * 1024 );
@@ -47,13 +47,40 @@ if ( $backend eq qw| gpu | ) {
     ## RAM, on top of whatever else is loaded -- exactly the gap this       ##
     ## incident exposed, confirmed absent before partial offload existed.   ##
     ## Back to gating on VRAM until calculate_safe_context is made          ##
-    ## partial-offload-aware too -- see [[project-wsl2-shared-ram-          ##
-    ## constrains-concurrent-inference]] for the incident writeup.          ##
+    ## partial-offload-aware too -- see                                     ##
+    ## [[project-wsl2-shared-ram-constrains-concurrent-inference]] for the  ##
+    ## incident writeup.                                                    ##
     $required_mb = $model_size_mb + 512;    ## model size + 512MB overhead ##
     my $vram = <[coding.helper.query_gpu_memory]>;
     if ( $vram->{'ok'} ) {
         $free_mb = $pre_filter ? $vram->{'total_mb'} : $vram->{'free_mb'};
         $fits    = $free_mb >= $required_mb;
+
+        ## partial offload [ dense layers, moe experts ] : what does not ##
+        ## fit vram may live in ram -- spawn_inference_server plans the  ##
+        ## exact split. without this an 18 GB 35b-a3b on 12 GB vram was  ##
+        ## refused before the moe planner ever ran                       ##
+        if ( !$fits
+            and
+            <[base.cfg_bool]>->( <coding.cfg.partial_offload_enable> // 1 ) )
+        {
+            my $ram_key = $pre_filter ? qw| MemTotal | : qw| MemAvailable |;
+            my $ram_mb  = 0;
+            if ( open my $fh, '<', '/proc/meminfo' ) {
+                while (<$fh>) {
+                    if (m|^\Q$ram_key\E:\s+(\d+)|) {
+                        $ram_mb = int( $1 / 1024 );
+                        last;
+                    }
+                }
+                close $fh;
+            }
+            my $reserve_mb = <coding.cfg.cpu_ram_overhead_mb> // 2048;
+            if ( $free_mb + $ram_mb - $reserve_mb >= $required_mb ) {
+                $fits    = TRUE;
+                $free_mb = $free_mb + $ram_mb - $reserve_mb;
+            }
+        }
     } else {
         ## cannot determine vram : do not block the attempt ##
         $free_mb = 0;
@@ -83,8 +110,8 @@ return {
     required_mb => $required_mb
 };
 
-#,,,.,.,,,.,.,,.,,.,.,,.,,...,..,,..,,,,.,,.,,..,,...,...,,.,,,..,...,...,,.,,
-#X3CLWK7T2MLVWI77NWF5FRX7LI7VXQJKNVXPJCVS2LQUXMD3YM7ELDEOL6EXBGKH3PQFDCLWVYWO2
-#\\\|KAPXH5UBAOEKAGU7GRPPOQMWGJVZ4CQA67DERSXIXXSRAD6WJ5V \ / AMOS7 \ YOURUM ::
-#\[7]W4MJ5YJ2H4ACLNK56JZPIJDFENL572IHVOPEAUD2HF5O6LIW5OBA 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,,,,.,,...,.,,,,,,,,..,..,,..,,...,...,,.,,...,.,,,,.,,,,,,
+#F6HLQS24ZWQIGHN43RBPD3AYIFGOGVZ4BEZLCCIGK5H562OCF54X2LOOKHFTMWD4EFKXPILGGS4GA
+#\\\|JTXWPQDMRIMKPAKDAMTNOHEFZI6IJ2QGAUQS2RL7YTJLEQEQPAD \ / AMOS7 \ YOURUM ::
+#\[7]TKX3HE7QO2D5SR2WQ2FZY4RKL64T5L6H5YOJCU3FB2AKJSK2N4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
