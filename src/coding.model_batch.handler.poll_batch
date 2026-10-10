@@ -945,9 +945,24 @@ if ( $phase eq qw| task_wait | ) {
 ## release the candidate cycle                                              ##
 ## ........................................................................ ##
 if ( $phase eq qw| restore | ) {
-    my $original = $state->{'original_model'} // '';
-    $state->{'prior_pid'}
-        = ( <coding.inference_servers> // {} )->{$backend}{'pid'} // 0;
+    my $original   = $state->{'original_model'}                       // '';
+    my $loaded_srv = ( <coding.inference_servers> // {} )->{$backend} // {};
+    $state->{'prior_pid'} = $loaded_srv->{'pid'} // 0;
+    $state->{'started'}   = <[base.time]>->(3);
+
+    ## original still loaded and ready : no reload                       ##
+    ## [ a candidate that was already loaded is the original itself ] -- ##
+    ## prior_pid 0 lets the restoring phase confirm on the current pid   ##
+    if ( uc( $loaded_srv->{'model'} // '' ) eq uc($original)
+        and ( $loaded_srv->{'status'} // '' ) eq qw| ready | ) {
+        $state->{'prior_pid'} = 0;
+        $state->{'phase'}     = qw| restoring |;
+        <[base.logs]>->(
+            1,         '[model_batch] %s : restore : %s [ already loaded ]',
+            $batch_id, $original
+        );
+        return TRUE;
+    }
     eval {
         <[coding.cmd.switch-model]>->(
             {   args => sprintf '%s backend=%s',
@@ -968,10 +983,15 @@ if ( $phase eq qw| restore | ) {
 
 if ( $phase eq qw| restoring | ) {
     my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
-    my $elapsed  = <[base.time]>->(3) - ( $state->{'started'} // 0 );
-    my $reply    = <[coding.cmd.inference-status]>;
-    my $yaml     = $reply->{'data'}                  // '';
-    my $status   = <[format.yaml.load_str]>->($yaml) // {};
+
+    ## same size scaling as waiting_ready            ##
+    ## [ the original can be a large moe model too ] ##
+    my $model_gb = ( -s ( <inference.model.path> // '' ) // 0 ) / 1024**3;
+    $max_wait = 30 * $model_gb if 30 * $model_gb > $max_wait;
+    my $elapsed = <[base.time]>->(3) - ( $state->{'started'} // 0 );
+    my $reply   = <[coding.cmd.inference-status]>;
+    my $yaml    = $reply->{'data'}                  // '';
+    my $status  = <[format.yaml.load_str]>->($yaml) // {};
 
     my $backend_status = $status->{$backend}{'status'} // 'unknown';
     my $backend_pid    = $status->{$backend}{'pid'}    // 0;
@@ -1075,8 +1095,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,.,...,.,,,,,,,..,,,,,,,..,,,.,..,,,..,...,..,,...,...,,,.,.,.,,,,,.,.,...,
-#IGK5PPWSGLMUPC44MVVWSH3YNLZS2UYC5V4OHPT2LWA5DEPCIBANV4VVFHX2ETIST4SZUHQKCAKJ4
-#\\\|FCKU5F3QXBKAETQG4LXCRLSGQTKAHEIWH46QIXK2ANY7FB7E66K \ / AMOS7 \ YOURUM ::
-#\[7]IMHQTZ46ZOCNOLPP3XJV4C35TLMXXN4NTRJL5HVWMPNKN34J7QAI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,,.,,...,.,.,.,,,.,,,,,,,.,.,..,,...,...,.,,,...,,..,.,,,,.,,
+#AS5ICXH7G3OZM7NFGTXGWTLHU3FV43DVVLR7LT67C5RJZP3CZQA36PU2MEVO35S7JE3B427VIUBPW
+#\\\|X5QJ3P27H7NBDWHX2BUV3NCV2W54DM4WHX2ZJ45MA5ODD5CHN7M \ / AMOS7 \ YOURUM ::
+#\[7]QFUSLBCOPEC6Z3PN2J3A5Z4PUFNDL3XVPCPVXKML4IFHWNDL66BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
