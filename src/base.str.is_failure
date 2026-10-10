@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = base.str.is_failure
+# descr = interprets a reason text as failure or planned [ UNKNOWN if neither ]
+# note  = for shutdown \ stop reasons [ v7-zenki.teardown exit code ] :
+#         maintenance words win over failure words, so 'upgrading, fixes
+#         an error' reads as planned
+
+my $reason = shift // '';
+
+## upgrade | update | maintenance | reboot | planned | fix | install .. ##
+## <--[ 0 ]                                                             ##
+return FALSE
+    if $reason =~ m{ \b (?: upgrad\w* | updat\w* | maintenance | reboot\w*
+                          | planned | fix\w* | install\w* | migrat\w* ) \b }xi;
+
+## error | fail | fatal | crash | abort | timeout | out of memory .. ##
+## <--[ 5 ]                                                          ##
+return TRUE
+    if $reason =~ m{ \b (?: error\w* | fail\w* | fatal | crash\w* | abort\w*
+                          | panic\w* | corrupt\w* | broken | died | dead
+                          | exception\w* | segfault\w* | timeout | timed \s+ out
+                          | oom | out \s+ of \s+ memory | unresponsive
+                          | no \s+ zenki \s+ to \s+ start ) \b }xi;
+
+## otherwise ##
+##
+return UNKNOWN;
+
+#,,,,,,.,,.,.,.,,,,,.,...,.,.,.,.,,,,,..,,..,,..,,...,...,..,,.,,,,,.,,.,,...,
+#ERQBE7ZSAUD5HZCJI2WALWMZMAFBWQGCRRIKZZKRHXG5VKQHUCFSM7KCIBWTSL2Z2CJ7FUI7NYZ34
+#\\\|3DBUKGSP3OSHRL36FDIGT3EGL75VBGAOFVKYRC3XIZGXUCVJX2K \ / AMOS7 \ YOURUM ::
+#\[7]UYTILBIELJYWDYSISO2N5FCROOYT5GXBRANC2HJW2IGOYZTOAMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
