@@ -18,10 +18,16 @@ metadata:
 
 **In flight** 35b-a3b distill [ empero-ai ] : IQ4_XS UQPANRQ:JGOV2GY works [ 23/41 expert layers in ram, 52k ctx, 29-34 t/s ] but loading pushes memory pressure critical ; Q3_K_M UWEPZFQ:TG3Q7PA being tested -> keep the better, hf-remove the other. then batch coding-35b-compare. user decides default model [ fablevibes candidate ].
 
+**Evening 2026-10-10** [ cd24c8e4a, 9219fb10d, 187fd277d + follow-up ] : tool json decode utf8(0) [ 'Wide character' on any en-dash ], edit_file delete:true, per-call tool failure log [ reason line ], manifest skips symlinks [ restore rename had replaced the README.md symlink ] and data/catalog-corpus, batch restore skips reload of an already loaded original, stop-task finalizes in_progress without async state, protocol-7 under systemd [ teardown exit code explicit or base.str.is_failure ], wsl 24 GB + mem.max_used 98, write tools strip a copied signature block, module criteria count in code only.
+
+**Results [ coding-35b-compare + fablevibes-dims-check ]** q3_k_m 35b : 8/9 [ one loop stop on the doc, work done ], all modules compile, ~38 t/s, min avail 9.2 GB. fablevibes : doc + edit 6/6 at 60-73 t/s ; module 0/3 from a literal \n in the edit_file schema text [ blank-line abort at round 2, reworded -> no abort ], then 0/3 compiles + wrong parser + copied signature block. fablevibes for edits \ docs, 35b for new code.
+
+**Gotchas** committing \ signing while a batch runs = those files reverted [ cancel + :restart: after commits, never :force: ] ; Monitor pipelines must not end in cut [ buffers : monitor silent ] ; memory files are repo tree too ; a literal \n in a tool description can make a model emit endless newlines.
+
 **Open** todo 2AA [ ondemand request lost in idle shutdown ], OQC [ whitelist ], RC7 [ difficulty routing ], YLL [ apply-colors, kimi-ready ] ; hf-remove reply ends in literal \n ; dense floor offload not done. rule : [[no-tree-edits-while-model-batch-runs]].
 
-#,,.,,..,,..,,.,.,,..,,.,,,,.,...,,..,,,,,,.,,..,,...,...,...,..,,,.,,,..,.,.,
-#RHWNXSQUY3WDFCC7FTTGOZEYW3Y4VOB3GOENJJ2YZNRDEC6EUHJHUCI4SHE6IEGTR74RFAOYQJF6O
-#\\\|FFOKFTXBUU7BSUWIL55OR37MKVXQBUSELXXDYUYH5L3X67NKIIE \ / AMOS7 \ YOURUM ::
-#\[7]JXAH3EKSLDM5LJPRQQ3S2GUTRMDLFP3WKP25J4QWVXRRKNJJDIAY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,..,,,..,.,.,.,.,,,.,,..,,,.,,..,..,,...,..,,.,,,..,,..,,.,,,,,.,
+#ACGSQZHLYF4HIGZFZGSSNDA46ERTGJJZRDLNZWTBN3XCEK5GPPGY2YIFRMUDYYOO5OOZHFMQOTOEW
+#\\\|FZL63XLPTOPD6JM26BP5BBSDFPDBC56Q2U7EJZOJZQTCU6OS6UX \ / AMOS7 \ YOURUM ::
+#\[7]QG6V2V6VTRPIWE7URV4LL33NYEZG7QHHXIBXOZTLSLHSSCBH42AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

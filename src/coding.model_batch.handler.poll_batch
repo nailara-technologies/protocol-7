@@ -93,6 +93,17 @@ my $pause_batch = sub {
         $batch_id,
         ( $reason =~ m{^(gate-dirty|reverify-failed)$} ? ' :force:' : '' )
     );
+    ## a dirty gate after the operator's own commits : :force: would revert ##
+    ## them to the old baseline after the next task -- name the safe path   ##
+    <[base.logs]>->(
+        0,
+        '[model_batch] %s : dirty paths you changed on purpose [ commits, '
+            . 'signing ] : model-batch-cancel %s, then model-batch %s '
+            . ':restart: [ :force: reverts them after the next task ]',
+        $batch_id,
+        $batch_id,
+        $batch_id
+    ) if $reason eq qw| gate-dirty |;
     $event->w->cancel if defined $event->w and $event->w->is_active;
     return TRUE;
 };
@@ -1095,8 +1106,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,..,,..,,.,,.,.,,.,,...,.,.,.,,,.,,,,,,,.,.,..,,...,...,.,,,...,,..,.,,,,.,,
-#AS5ICXH7G3OZM7NFGTXGWTLHU3FV43DVVLR7LT67C5RJZP3CZQA36PU2MEVO35S7JE3B427VIUBPW
-#\\\|X5QJ3P27H7NBDWHX2BUV3NCV2W54DM4WHX2ZJ45MA5ODD5CHN7M \ / AMOS7 \ YOURUM ::
-#\[7]QFUSLBCOPEC6Z3PN2J3A5Z4PUFNDL3XVPCPVXKML4IFHWNDL66BY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,..,,,,,,...,,..,,..,.,,,,,,,..,,...,...,...,..,,.,.,,.,,..,,
+#P6TY33ZUH6S47MDFFOAKKLVA7FKXWQNTRXKZCEXLTV36NSXADR6ESUCMBH3YMKETZYES3BEXH65IE
+#\\\|4K5UMUPMW2OACWEPLZXAJEE7L5Z2NQ7H7LBAAODXIRC4CXKKVIC \ / AMOS7 \ YOURUM ::
+#\[7]ZAL34XNLZFUDWMXNXXCVSF3AS4AM434NEXCQNJG6TPWVDGMNPMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

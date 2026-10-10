@@ -44,6 +44,11 @@ for my $abs_path ( $files_aref->@* ) {
     ## tree it describes                                                ##
     next if $rel_path =~ m{^state/};
 
+    ## zenka-written data : the catalog harvest appends on every task's     ##
+    ## writes [ coding.catalog.track_write ] -- not the model's work, and a ##
+    ## revert threw the harvested rows away                                 ##
+    next if $rel_path =~ m{^data/catalog-corpus/};
+
     ## unreadable paths are out of scope, same as .git/state above --       ##
     ## cleanly caught here [ house policy: every warning is a bug to fix or ##
     ## a condition to catch, never routine noise ] so filesum is never      ##
@@ -68,8 +73,8 @@ for my $abs_path ( $files_aref->@* ) {
 
 return \%manifest;
 
-#,,..,.,.,.,.,...,.,.,...,,,,,.,.,.,.,..,,,,.,..,,...,...,.,.,,,.,,,.,,.,,,,.,
-#XT75HTGUGJ2C7U3TQZABTSL2NA5TUYVXXLM2CNPVKS3XYWWZRZO2DUPPBUKDYCHWPUWEJURQHOOO4
-#\\\|PU3HZDOFNYO7ABWM5OABCO4Y3MYER6MGL33CEI2LFIO4ET7X3GN \ / AMOS7 \ YOURUM ::
-#\[7]3L6VLHIOYHPBIFR2YVK7LBUYX5462HYFRWTYWMVBU4RIFBQ6IQCA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,...,,..,,,,,,,,,..,,,,.,,..,..,,...,...,...,,,.,,,,,,.,,.,.,
+#AERJ4QCCW732WSBRKL43XTHC4LVDRYUK7D2PIU3XK3MHOECODSUNB3ONWPDKXRJCYYOMS3QZ62FY4
+#\\\|SLYSUFK56FPGZRWI3BB4QRJE2I3A4ED53RPTE3JGV7XFVYFXAMH \ / AMOS7 \ YOURUM ::
+#\[7]TTQATORCWSPZACPTAQFVRBPRSRHCHZMSEXDEAMFGJBAKCPS2PWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

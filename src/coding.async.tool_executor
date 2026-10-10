@@ -233,7 +233,18 @@ foreach my $tc (@$tool_calls) {
     ## failed tool results are otherwise only in the task's memory : one ##
     ## line per failure keeps them traceable after the task is gone      ##
     if ( $result_content =~ m{^\s*:?\s*error\b|\bMISMATCH\b|OUT OF RANGE}i ) {
-        my ($first_line) = grep {m|\S|} split m|\n|, $result_content;
+        ## the reason line, not a '## BLOCKED [..] ##' header ##
+        my @lines = grep {m|\S|} split m|\n|, $result_content;
+        my ($at)  = grep {
+                    $lines[$ARG] !~ m|^\s*##|
+                and $lines[$ARG]
+                =~ m{MISMATCH|OUT OF RANGE|ALREADY DELETED|error}i
+        } 0 .. $#lines;
+        $at //= 0;
+        ## a mismatch is only useful with its expected \ actual lines ##
+        my $last = $lines[$at] =~ m|MISMATCH| ? $at + 2 : $at;
+        $last = $#lines if $last > $#lines;
+        my $first_line = join ' | ', map {s|^\s+||r} @lines[ $at .. $last ];
         <[base.logs]>->(
             1, 'tool_executor: %s : %s failed : %s',
             $task_id, $tool_name, substr( $first_line // '', 0, 160 )
@@ -416,8 +427,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,,,...,..,,...,,,,,,..,,,.,..,,,,.,,..,,,,,.,.,...,...,...,,,.,.,.,,.,,,.,,
-#OIFOM4A5INVIPXJWIBGJ5KEBQJKY5OE5P5RVAUTWP3CENMSIZFDHNEGZ6IP53PR74KCQZILMEN2LO
-#\\\|6L77W4H3RHCCURDY5RPDN3BY3UBNGHQFTSIDT3XOKUJJYN4Z3KN \ / AMOS7 \ YOURUM ::
-#\[7]QQXOE5VWU56DWRW4CXQNJED6ZUAKJRVLDZVBJT4LLZQP5N26H2DY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,..,,,..,..,,..,,,..,...,.,,,.,.,...,...,,..,...,,,,,,,.,.,.,
+#M66GICXJXKE6VD5Y3K3AYMCB7RU45P23HTEIMQP2HVD4WTON53OCIFDZTOQQTUBIRQI7QHTZGXIX2
+#\\\|DGT3EPXYW5XSRCDTYHBTFGXXOBO2CBW7UIC6PXEICLXTOC4FHE6 \ / AMOS7 \ YOURUM ::
+#\[7]EFDYIVXVTH7FICLLJKGFU763RMHWN3J5B2SJJGF7RARJU5SPB2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
