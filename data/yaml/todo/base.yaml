@@ -665,9 +665,56 @@ items:
   - dev-tools
   - whitelist
   text: gen-sub-whitelist misses base.chmod_child.start for fetch-files
+- added: 3X3OVEMFAM
+  details: |-
+    create the inverse of the strip-ansi-colors script that applies colors similar
+    to bin/amos-chksum and src/base.log which can then be used in a pipe to colorize
+    output of for example /usr/bin/watch or other cmd line output benefittinng from
+    colorization.
 
-#,,,.,..,,,.,,,,.,...,,.,,...,,,,,,..,..,,,.,,..,,...,...,,,.,,.,,,.,,..,,,..,
-#HT5QA5UYBAIX3WXXCT5RG4FQVAQPW2L4ZWU6NXVUAY2H3GWHWH5JRENQJ2CSQCRXXB2BQOYBEQSGC
-#\\\|37Z5ID3KNNTH4ZUMOUVZXCZM3B3EUG7HAADJZXYSZD5MGF5P4L2 \ / AMOS7 \ YOURUM ::
-#\[7]NY3D7XBPHIKFMJXKL5L3ZXKUDLYGXI6BXB45APVSWA2V2L4OZIDQ 7  DATA SIGNATURE ::
+    one useful option could be -n for using the phosphor green color on numerical
+    [ innteger and floating point ] values, like syntax highlighting, or an option
+    for highlighting base32 encoded checksums.
+
+    an example for a similar solution for syntax highlighting itself currently used :
+
+     [taeki] /data/projects/protocol-7 :. ph bin/dev/ph
+
+    #!/bin/bash
+
+    highlight -s amos-7.blue --out-format=truecolor --force=perl -- $BASH_ARGV
+
+    Permissions Size User Group Date Modified    Name
+    .rw-r--r--   528 root root  2025-10-12 18:25 /usr/share/highlight/themes/amos-7.blue.theme
+
+    details for dispatch [ claude, 2026-10-10 ] :
+
+    - location : bin/dev/apply-colors, next to bin/dev/strip-ansi-colors [ its inverse ]
+    - palette : the protocol-7 console palette, %colors in bin/Protocol-7 [ ~line 805 ] :
+        foreground p7_fg_0000 .. p7_fg_0004 [ 68;39;172  38;46;153  170;94;2  9;170;94  6;71;195 ]
+        background B00 B01 B02 [ 0;0;17  9;5;24  9;5;42 ]
+      copy the values from there [ one source of truth ], no new colors
+    - -n : numbers [ integer + floating point ] in the 'ok' green 71;195;6 [ the
+      'syntax valid' green of bin/format-code, bin/dev/gen-sub-whitelist ]
+    - -c : base32 checksums [ A-Z2-7 ] : composite model ids [A-Z2-7]{7}:[A-Z2-7]{7}
+      and long digests [A-Z2-7]{20,} -- one palette color each
+    - default with no option : the base.log look [ the p7 blue-violet text, the
+      background for the whole line ]
+    - streaming : line by line, autoflush, no buffering -- must work behind watch,
+      tail -f, p7c output
+    - already colored input [ ansi sequences ] passes through unchanged
+    - no color when NO_COLOR is set
+    - usage example in the header, same style as bin/dev/ph
+  done_at: null
+  id: YLL
+  priority: normal
+  status: open
+  tags:
+  - script
+  text: create apply-colors script
+
+#,,..,,,,,,,.,...,.,,,.,.,,.,,,,.,,,,,.,.,,..,..,,...,...,.,.,,.,,.,.,...,,,,,
+#AOZGODHSULBKSHOVSUMCZBWAE6WL7AEZMLACFKBVCPDUK33FR4NKK26SD2UDCI4BSXY63XBKYR4DW
+#\\\|47ZTXBG6Z7EJSAWQIJP7N62UPVJNU7GGKSNS4DZKGTBX6JAPBGW \ / AMOS7 \ YOURUM ::
+#\[7]HGFNJRHUGQA2ESOBWCYIQRZNM2WWDRTC25XEWH4AIR4564XERQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
