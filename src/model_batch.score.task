@@ -35,8 +35,9 @@ my ( @hits, @misses );
 for my $criterion ( grep { defined and length } @$criteria ) {
     if ( index( lc $haystack, lc $criterion ) >= 0 ) {
         push @hits, $criterion;
+    } else {
+        push @misses, $criterion;
     }
-    else { push @misses, $criterion }
 }
 
 ## compile check of touched modules : the same check a human runs first    ##
@@ -47,12 +48,17 @@ for my $rel_path ( grep {m|^src/[^/]+$|} @touched ) {
     next unless -f $abs_path;
     my $output = qx{"$root_path/bin/format-code" -c "$abs_path" 2>&1} // '';
     $output =~ s|\e\[[0-9;]*m||g;
+    ## 'would reflow' [ formatting only ] comes before the verdict line : ##
+    ## 'syntax valid', else the real errors -- never report the reflow    ##
+    ## notice as the error                                                ##
+    my $reflow = $output =~ m|would reflow| ? ' [ would reflow ]' : '';
     if ( $output =~ m|syntax valid| ) {
-        $compile{$rel_path} = qw| ok |;
+        $compile{$rel_path} = qw| ok | . $reflow;
     } else {
-        ## the message line is '::[ <error>' [ the header is ':::[ path ]' ] ##
-        my ($first_error) = $output =~ m{^::\[\s*(.+)$}m;
-        $first_error //= 'no output';
+        my ($first_error)
+            = grep { !m{^(?:would reflow|syntax valid)} }
+            $output =~ m{^::\[\s*(.+)$}mg;
+        $first_error //= 'no verdict in format-code output';
         $first_error =~ s{^\s+|\s+$}{}g;
         $compile{$rel_path} = "error : $first_error";
     }
@@ -66,8 +72,8 @@ return {
     qw| compile | => \%compile,
 };
 
-#,,.,,.,.,...,,.,,,..,.,.,,,,,,.,,,,,,,.,,.,.,..,,...,...,.,.,,,.,...,,..,...,
-#PF65N4JVCFY26IJ7X2H3B3AQQKEQ73TXJ3MEJ72RCRYF2SGERCUUDXBOZZM2XOL7XSQQHKC6VE3U2
-#\\\|BKHKWAWA244V2LL7TTF5FBABJLCSIH3UNDWZC7W57IKN7SIDWFJ \ / AMOS7 \ YOURUM ::
-#\[7]LJC2VSYLCI6ITXS5OYULS2LSIUO4OWHNVAMWVSQMUAY5AATZPUDA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,..,,,,,..,,,,,,,,,,,.,,...,..,,...,..,,.,.,,.,,,..,,,.,...,
+#JNAPHQDTH25RSIJB5NANDTJNLO44TBFKEH7SPXKOOLS3KY32ZYZMLLKQWN3XKRLCLXI7PBMGBW6OU
+#\\\|KAWQHWFZ6UY7L54W4S2ZUGIDWQLBGEMTNILEWGNQXDSF2O3IUWP \ / AMOS7 \ YOURUM ::
+#\[7]AJ3DYVJWLW4ZG3ERHWI7SSBXG6DVOTOWI5D6F5EB6WNWEAJHRUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
