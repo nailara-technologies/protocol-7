@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = coding.mode.loaded_model_wanted
+# descr = count the open tasks that still want the model loaded on a
+#         backend [ queue grouping, todo WNF ]
+# param = $backend [ gpu | cpu ] -> count
+# note  = a task wants the loaded model when it asks for it, or asks for
+#         none [ coding.mode.task_model undef ]. tasks pinned to another
+#         model, subtasks [ they follow their parent ] and finished tasks
+#         do not count. a pinned switch waits while this is above zero --
+#         the work for the loaded model runs first, a 35b load is minutes
+
+my $backend = shift // qw| gpu |;
+
+my $loaded
+    = uc(
+    ( ( <coding.inference_servers> // {} )->{$backend} // {} )->{'model'}
+        // '' );
+return 0 unless length $loaded;
+
+my $wanted = 0;
+for my $task_id ( keys %{ <coding.task.queue> // {} } ) {
+    my $task = <coding.task.queue>->{$task_id};
+    next unless ref $task eq qw| HASH |;
+    my $st = $task->{'execution'}{'status'} // '';
+    next if $st eq qw| completed | or $st eq qw| failed |;
+    next if defined <coding.task.parent>->{$task_id};
+    ## routed_to may be single-llm etc : only cpu means the cpu server ##
+    my $task_backend
+        = ( $task->{'analysis'}{'routed_to'} // '' ) eq qw| cpu |
+        ? qw| cpu |
+        : qw| gpu |;
+    next if $task_backend ne $backend;
+    my $model = <[coding.mode.task_model]>->($task);
+    $wanted++ if !defined $model or $model eq $loaded;
+}
+
+return $wanted;
+
+#,,,.,,..,..,,,,.,,..,.,.,,,,,.,.,.,.,.,,,.,.,..,,...,..,,...,,,,,,.,,,..,,.,,
+#OVB3RVWMWQKLNIW6V5PHIEXZBZNSGVQ6SM6BWUYJ3GKJ7MNB3IULLXCXNAKMZDB7TPXYZQQPXXNDE
+#\\\|5S3C5NLGST5BMD6QMESWXW5RDTCFB6QOK5A3WZWPYHCMLHCRGOA \ / AMOS7 \ YOURUM ::
+#\[7]BLPJLX5ATVON3AMUJZLHOEHK3DQ3NPKL2G34HSVLUYYM6BLMUKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

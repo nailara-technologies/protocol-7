@@ -816,6 +816,9 @@ items:
       coding.cfg.mode.code.new.template = bug-fix | code-review | .. [ data/yaml/context-templates/ ]
       coding.cfg.mode.doc.system        = <system prompt variant>
     precedence, most specific wins : explicit in the request [ a template name in the prompt -- coding.prompt.assemble's existing dynamic template match -- or a caller's system text ] > the mode's preset [ walked up the mode tree ] > default. a mode only fills what nothing more specific already set.
+
+    first version landed [ 2026-10-10, claude ] : coding.mode.setting [ walk up to default ], :mode:<path>: in coding.prompt.assemble [ model as a :model: pin, tool_set, template, system, max_rounds -- only where nothing more specific set ], queue grouping [ coding.mode.loaded_model_wanted ; ensure_model_pinned defers while open tasks want the loaded model, drain timer fires it, coding.cfg.mode_switch_max_wait 1800 s ], presets edit \ doc \ code [ 35b ] \ review. tested live : review template, grouping [ untagged task ran on fablevibes, then switch to the 35b, then the code task ].
+    still open : mode: field in batch specs and todo items [ XOJ ], automatic mode choice [ RC7 ], reasoning budget per mode [ a server start flag today ].
   done_at: null
   id: WNF
   priority: normal
@@ -827,8 +830,8 @@ items:
   - work-modes
   text: 'work-mode presets : nested modes pick model + settings, queue grouped by model'
 
-#,,,.,,,,,...,,..,,.,,,,,,..,,,.,,.,,,,,.,.,.,..,,...,...,,..,.,,,,,.,..,,.,,,
-#NLGYT3UTRKJKKN5ULXPUXUSJP3YTQCKOZONC3E3LKCBY4VL3M7BWE7RRAC64AV72ML3AAIMQMTSOE
-#\\\|ZVZ5WHY23R2VQJ45GQNETHYIBDCXNX6QKQ66VMYY3XW6V5J3NNL \ / AMOS7 \ YOURUM ::
-#\[7]D36L2S7C6UBCYJ7DTWYBDIBSWMELUCXELH5JD37MWCYW6JCYMQDQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,,.,,..,,,.,,..,,.,,,.,,,,.,.,,,..,,...,...,,..,.,,,..,,,,.,.,,,
+#2YKQIJFYLHZWJPE2KS5GWCXRUK2W6G3SVHE3AUPFIGKXWR33R53XWLWNWEO4E7BSMEKFYF7QXEFNU
+#\\\|5JFA2LXRV5AYV3BENWX64NKCTZIFQ7VNOEBIJHOJ6P5EP33XLZ4 \ / AMOS7 \ YOURUM ::
+#\[7]GUCKMN3OO3S3C47ANQNVEM6XGZFI3TCJ2ADRROLBWPAC5QOHOWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

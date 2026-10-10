@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = coding.mode.task_model
+# descr = the model a task asks for : its ':model:' pin, else its ':mode:'
+#         model setting, else undef [ any loaded model will do ]
+# param = $task [ coding task href ] -> model checksum | undef
+# note  = read from the request text, before prompt.assemble ran -- the
+#         queue grouping needs it for tasks still waiting
+
+my $task = shift // {};
+
+my $text = $task->{'request'}{'description'}
+    // $task->{'metadata'}{'raw_request'}{'description'} // '';
+
+return uc $1 if $text =~ m|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):|i;
+
+if ( $text =~ m|:mode:([\w.-]+):| ) {
+    my $model = <[coding.mode.setting]>->( $1, qw| model | );
+    return uc $model if defined $model and length $model;
+}
+
+return undef;
+
+#,,,.,,..,,..,,.,,.,,,...,,,.,.,.,,,.,,..,,,,,..,,...,...,,,,,.,.,,..,...,.,.,
+#EXIZYKY3FBTBOUOJNJJXPSFGSKYN6YBPYEUO7UBYMSN3E4EKGSXSX7FRBCLPODTHCD2JPRO4TZKLC
+#\\\|WIHPSSNQUVCNGPYQZ3G4QGXKWC6N4GWXRA5EDH45PVLSMY7QCOA \ / AMOS7 \ YOURUM ::
+#\[7]LCIMB4RMIRYS3FX23IH3R4F56IRQBNAT765APQUTGH5HWVWJUSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

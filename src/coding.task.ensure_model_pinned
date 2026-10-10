@@ -39,22 +39,23 @@ unless ( defined $dep_id ) {
 }
 
 ## fire switch-model only if not already in flight for this checksum - ##
-## avoids redundant respawns when multiple tasks pin the same not-yet- ##
-## loaded model concurrently                                           ##
+## avoids redundant respawns when multiple tasks pin the same          ##
+## not-yet-loaded model concurrently                                   ##
 unless ( <coding.model_switch_in_flight>->{$checksum} ) {
 
-    ## a running [ or already yielding ] sweep on this backend wins the     ##
-    ## switch : firing here would kill the sweep's candidate mid-cycle [ or ##
-    ## vice versa ]. defer instead -- the parked task already counts as     ##
-    ## active in the idle predicate, so a yield-aware sweep discovers the   ##
-    ## collision and yields on its own next tick, and its drain [           ##
-    ## coding.helper.drain_model_pin_deferrals ] re-fires this exact        ##
-    ## switch. deferral applies to :no_yield: runs just the same -- there   ##
-    ## the sweep never yields by definition [ that is the token's whole     ##
-    ## point ], so the pin stays deferred for the sweep's full duration and ##
-    ## drains at finish_sweep / model-sweep-cancel.  a paused sweep does    ##
-    ## not block : no candidates fire while paused, and any later resume    ##
-    ## re-arms the yield path as usual.                                     ##
+    ## a running [ or already yielding ] sweep on this backend wins the   ##
+    ## switch : firing here would kill the sweep's candidate mid-cycle    ##
+    ## [ or vice versa ]. defer instead -- the parked task already counts ##
+    ## as active in the idle predicate, so a yield-aware sweep discovers  ##
+    ## the collision and yields on its own next tick, and its drain       ##
+    ## [ coding.helper.drain_model_pin_deferrals ] re-fires this exact    ##
+    ## switch. deferral applies to :no_yield: runs just the same -- there ##
+    ## the sweep never yields by definition                               ##
+    ## [ that is the token's whole point ], so the pin stays deferred for ##
+    ## the sweep's full duration and drains at finish_sweep /             ##
+    ## model-sweep-cancel.  a paused sweep does not block : no candidates ##
+    ## fire while paused, and any later resume re-arms the yield path as  ##
+    ## usual.                                                             ##
     my $sweep = <coding.model_sweep_state>->{$backend};
     my $sweep_blocks
         = defined $sweep
@@ -80,6 +81,28 @@ unless ( <coding.model_switch_in_flight>->{$checksum} ) {
         return $dep_id;
     }
 
+    ## queue grouping [ todo WNF ] : open tasks that still want the loaded  ##
+    ## model run first -- a switch costs minutes for a large model. the pin ##
+    ## parks as a deferral [ stamped : coding.cfg.mode_switch_max_wait lets ##
+    ## a stale task never block it for good ] ; the drain fires it once the ##
+    ## loaded model's work is done                                          ##
+    my $wanted = <[coding.mode.loaded_model_wanted]>->($backend);
+    if ( $wanted > 0 ) {
+        <coding.model_pin_deferred>                        //= {};
+        <coding.model_pin_deferred>->{$backend}            //= {};
+        <coding.model_pin_deferred>->{$backend}{$checksum} //= <[base.time]>;
+        <[base.logs]>->(
+            1,
+            '[model_pin] deferring switch to %s on %s : '
+                . '%d open task(s) still want the loaded model',
+            $checksum,
+            $backend,
+            $wanted
+        );
+        <[coding.helper.mode_drain_schedule]>->($backend);
+        return $dep_id;
+    }
+
     <coding.model_switch_in_flight>->{$checksum} = TRUE;
     <[base.logs]>->(
         1,         '[model_pin] switching to %s on %s for pinned task',
@@ -100,8 +123,8 @@ unless ( <coding.model_switch_in_flight>->{$checksum} ) {
 
 return $dep_id;
 
-#,,..,,,.,,..,,,.,,.,,,..,,..,.,.,..,,.,,,.,,,..,,...,...,...,.,.,,,.,,,.,.,.,
-#P4WLDLEGHXKYCXPFY5ARPIXGHMOP4AAJWGUETVT5E2GGYQX6T342XMYBMNEFYXMLY3M2ZNTXJNRVA
-#\\\|ZYQQTRZLOCPYHLO3ODFGBRB7NUGHBGQM2IWA7ZWNWPYOSAJ7NTY \ / AMOS7 \ YOURUM ::
-#\[7]IF4R2B36XXP6ZOVWJKXIFAGNPBARXLI7RKZG345FUBZJRECNQ6BA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,,,,,.,.,,..,.,.,.,,,.,,,.,,,..,,...,...,,.,,.,.,.,.,.,,,,,,,
+#MFTFYKSGM2XU5JIWVB4PGBLPCWTNCSKVYB6YCSLUWMPB3ME3FOZJPQMDPL3G52HSVBOJPM6MTSVFA
+#\\\|FQODISJ55SW67DL4TJRYRFLIIGUD43B2PIKWGUWY4XCE4Y4MEJI \ / AMOS7 \ YOURUM ::
+#\[7]DT7WWMQ6SBMRBJOCZ445T6TMZD5HKOYU6JRLBOU3LX4DBWUINCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
