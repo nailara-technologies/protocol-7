@@ -33,8 +33,29 @@ if ( !length($dest) ) {
 
 ## ensure destination directory exists ##
 if ( !-d $dest ) {
+
+    ## -w through access(2) : the grant below is an acl, which perl's       ##
+    ## default mode-bit filetest ignores [ 'writable no' on a granted dir ] ##
+    use filetest 'access';
+
     eval { make_path( $dest, { 'mode' => 0755 } ) };
-    if ($EVAL_ERROR) {
+
+    ## a publisher directory of the admin user [ models-lmstudio/<pub> ] : ##
+    ## created through the chmod child, then opened up for this zenka's    ##
+    ## user [ acl ] -- found 2026-10-10 : empero-ai/ is taeki 0755         ##
+    if ( !-d $dest ) {
+        my $made = <[base.chmod_child.request]>->("mkdir $dest");
+        my $granted
+            = -d $dest
+            ? <[base.chmod_child.request]>->("grant $dest")
+            : '-';
+        <[base.logs]>->(
+            1,
+            '[hf.fetch] chmod child : mkdir %s, grant %s, writable %s : %s',
+            $made, $granted, ( -w $dest ? 'yes' : 'no' ), $dest
+        );
+    }
+    if ( !-d $dest or !-w $dest ) {
         return {
             'mode' => qw| false |,
             'data' => "cannot create destination directory: $dest"
@@ -138,8 +159,8 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,.,.,,,..,,,..,,,.,..,,.,,,,.,,,,.,...,..,,...,...,..,,.,.,..,,,.,,,,,,
-#JOYL7CMDU4TV7RTHM63BYSQW444Q3HT5HFAWMSZ6ES3C5IWLEGBJ7FWSEENOAXJEDS4MZYCMC2EDW
-#\\\|7XHFYLSVZ7WZXQL3FKGV3QZ4GLXPNVA755LSHRYKW2WMARHENMJ \ / AMOS7 \ YOURUM ::
-#\[7]E4UNYGFO5SOKCSMVQR3HHACEJESRP63TYNE3QL7P37EZLRGCZQDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,.,,,.,,,.,.,.,,,,,,,.,,,.,,,..,,...,...,..,,.,,,,,,,,,.,.,,,
+#X7L4V73TRGWCZTAIT6LU5KUOGUDRZH7EWT7IMIHFOWY62UG46ASZKCMVZSZJQK45ZN4T7MQ7C44YM
+#\\\|EGY44HU5QRP5OLITXN5NF3IMO2OAUK34AC26JOO6F2U3JWZWKUB \ / AMOS7 \ YOURUM ::
+#\[7]6UKQFDT4NO3EKP7DREWD5B3HXWCVHDFVUHTGZWWLB2LQIGPE4SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
