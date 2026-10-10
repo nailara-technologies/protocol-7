@@ -27,14 +27,26 @@ my $value
 my $node = $tree;
 for my $part ( grep {length} split m|\.|, $mode ) {
     $node = $node->{$part};
-    last unless ref $node eq qw| HASH |;
+    if ( ref $node ne qw| HASH | ) {
+        ## an unknown mode [ a typo : ':mode:cdoe:' ] still runs, on the ##
+        ## nearest known mode or default -- but says so, once per path   ##
+        ## [ found by the overnight-quality tests task, 2026-10-11 ]     ##
+        <[base.logs]>->(
+            0,
+            ':. coding.mode : unknown mode part \'%s\' in '
+                . '\'%s\' -- using the nearest known mode \\ default',
+            $part,
+            $mode
+        ) if !<coding.mode_warned>->{$mode}++;
+        last;
+    }
     $value = $node->{$key} if defined $node->{$key} and !ref $node->{$key};
 }
 
 return $value;
 
-#,,,,,,,.,...,,,,,,.,,,,.,,..,.,,,,.,,..,,..,,..,,...,...,,..,.,.,,,,,,.,,...,
-#Y3LF6GCMJWBZR5X2WACB5ICCIJ5474GOOOLPCTQLR6C6SD2CZUVVENQYCKXMN4SR6A5IEPMK6N4MO
-#\\\|XAAQYA3SVQ4FUZ3E2TL5GJHFNG7RW5U2CN66UOGNTPDXAJNYCPM \ / AMOS7 \ YOURUM ::
-#\[7]P3WDXZ3A63LIXCFLJZU7N6HYWASDUXXD7LDBT4RTWGOP3KWBPYAY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,,,,...,,..,.,,,,,,,..,,,,.,..,,...,...,..,,...,,,.,.,.,,.,,
+#BTWN2YDAIQXG6OPBQ3AITU4EOTF7FKDW537LN5FHV2E4UEO3XELRZJ2ITWTGONHSWZZ66AEDITYJE
+#\\\|ZX5FQOSFBXSHCKJXUOUKVCUKBDKPYRFXL55SGTMWPT4T3LCTF53 \ / AMOS7 \ YOURUM ::
+#\[7]TBO4SYO4JQBGDM2WUN2UDUPQ7EBB4ORTKHCMDC3EDGYTG5JMICAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
