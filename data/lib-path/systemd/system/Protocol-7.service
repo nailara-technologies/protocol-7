@@ -1,13 +1,30 @@
 [Unit]
 Description=[AMOS7] PROTOCOL 7 [ v7-zenki ]
-After=network.target
+After=network-online.target local-fs.target
+Wants=network-online.target
+# repo + model disk [ xfs, /etc/fstab ] must be mounted first
+RequiresMountsFor=/data/projects/protocol-7 /mnt/ext-xfs-data
 
 [Service]
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/local/protocol-7/bin/Protocol-7 v7-zenki -c -v
-Restart=always
+WorkingDirectory=/data/projects/protocol-7
+# wslg session [ X11 \ wayland \ pulse ] -- systemd services start without
+# the login environment ; overrides in /etc/default/protocol-7
+Environment=DISPLAY=:0
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
+Environment=PULSE_SERVER=unix:/mnt/wslg/PulseServer
+EnvironmentFile=-/etc/default/protocol-7
+ExecStart=/data/projects/protocol-7/bin/Protocol-7 v7-zenki -c -v
+# planned shutdown [ v7-zenki.teardown, systemctl stop ] exits 0 : stays down
+Restart=on-failure
+RestartSec=5
+# SIGTERM to v7-zenki only -- its teardown ends the zenki ; anything left
+# after the timeout is killed
+KillMode=mixed
+TimeoutStopSec=30
 
 [Install]
 WantedBy=multi-user.target
