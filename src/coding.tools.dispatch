@@ -451,7 +451,7 @@ my %dispatch = (
                 };
             }
 
-            $edit_list = eval { JSON::PP::decode_json($edits) };
+            $edit_list = eval { JSON::PP->new->utf8(0)->decode($edits) };
             if ($@) {
                 ## check for truncation in error message ##
                 my $json_err = $@;
@@ -571,10 +571,10 @@ my %dispatch = (
                 if ( -w $abs_path ) {
                     $mode_restore = $cur_mode;
                 } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
-                    ## gw changed the mode but we still cannot write [ e.g. ##
-                    ## coding zenka lacks admin group ] : revert so no      ##
-                    ## permission drift is left behind when content falls   ##
-                    ## through to staging                                   ##
+                    ## gw changed the mode but we still cannot write       ##
+                    ## [ e.g. coding zenka lacks admin group ] : revert so ##
+                    ## no permission drift is left behind when content     ##
+                    ## falls through to staging                            ##
                     printf {$chmod_fh} "restore %04o %s\n", $cur_mode,
                         $abs_path;
                     ## consume restore reply ##
@@ -584,11 +584,12 @@ my %dispatch = (
 
             if ( -w $abs_path ) {
                 <[file.put]>->( $abs_path, \$new_content );
-                ## note the write for the catalog-retrieval corpus [ inert  ##
-                ## unless coding.cfg.catalog_harvest is enabled ]. THIS     ##
-                ## inline handler is the live edit_file path -- the hook in ##
-                ## coding.tools.handler.edit_file never fires, dispatch     ##
-                ## prefers this table entry over the handler module         ##
+                ## note the write for the catalog-retrieval corpus         ##
+                ## [ inert unless coding.cfg.catalog_harvest is enabled ]. ##
+                ## THIS inline handler is the live edit_file path -- the   ##
+                ## hook in coding.tools.handler.edit_file never fires,     ##
+                ## dispatch prefers this table entry over the handler      ##
+                ## module                                                  ##
                 <[coding.catalog.track_write]>->( { 'target' => $path } );
                 ## restore original permissions via chmod child ##
                 if ( defined $mode_restore and defined $chmod_fh ) {
@@ -734,8 +735,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,..,,..,,,,,,.,,,,,.,,.,,,..,..,,,,,,,..,..,,...,.,.,,,,,...,.,.,.,,,,,,,
-#V333VQMD3ECUWKFPBB56DXWZI7ID2NF6XUY2F3VTXRIH32IGWIECQK4QWK7PYE2FGL5F4SBMQX5Q4
-#\\\|2SHNBTE4HPWRMJCC7UCTS333BHYL6X2ZECFTTWVFLN44GK3BGF5 \ / AMOS7 \ YOURUM ::
-#\[7]OZQIOCPH5F3S3AKMZ4ULKAF7IHHFINZKOPFQNMNMKIRAEI3LXCAA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,.,,,,,,,..,,..,,.,.,...,..,,..,,...,..,,,,.,..,,.,.,,,.,,,,,
+#DDW4475XQIK2QOD7XPYZ7752W3SA6XBVZPDPBT5C3AW7SDKJ5PDY5WL2TQBD3HBGIYXAJGOA7WLI2
+#\\\|HVIXHPYGE32M6GEVNPNWHD4NX44QXE2QI2SXVXHRRZGVYJPYJXU \ / AMOS7 \ YOURUM ::
+#\[7]TIMGCPS55OU34AHQIUNW2APUJ3F2D6ARMMCAVXK2KVJZ3RUH4GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
