@@ -17,10 +17,24 @@ $root_path = canonpath($root_path);
 my $files_aref = <[file.all_files]>->( $root_path, qw| recursive | ) // [];
 
 my %manifest;
+my %real_dir;    ## dir -> its realpath, cached [ one lookup per dir ] ##
+my $real_root = Cwd::abs_path($root_path) // $root_path;
 
 for my $abs_path ( $files_aref->@* ) {
     my $rel_path = $abs_path;
     $rel_path =~ s|^\Q$root_path\E/||;
+
+    ## symlinks are out of scope : a symlinked file or a path below a     ##
+    ## symlinked dir [ context.yaml -> data/yaml ] hashes its target a    ##
+    ## second time, and a restore through rename replaced the link with a ##
+    ## regular file [ README.md, 2026-10-10 ]. the target is in the       ##
+    ## manifest under its own path                                        ##
+    next if -l $abs_path;
+    my ($dir_path) = $abs_path =~ m|^(.*)/[^/]+$|;
+    $real_dir{$dir_path} //= Cwd::abs_path($dir_path) // '';
+    ## compared below the real root : a symlinked checkout root is fine ##
+    ( my $expect_dir = $dir_path ) =~ s|^\Q$root_path\E|$real_root|;
+    next if $real_dir{$dir_path} ne $expect_dir;
 
     ## exclude .git/ [ and every other dot-dir or dotted file, matching the ##
     ## corpus walker's own filter ] and backup-editor tails                 ##
@@ -54,8 +68,8 @@ for my $abs_path ( $files_aref->@* ) {
 
 return \%manifest;
 
-#,,..,.,.,...,..,,,..,,..,,..,..,,,,.,,..,,..,..,,...,...,...,.,.,...,,.,,,,,,
-#P4GXKME5HJLYTT3IT7YBXAPSXTJMION7XXJHFUOWGTX7H7V2X4DE5S6HYTYRU3YXDOC42H27MS6YE
-#\\\|BUOVTQOVLKLMAM3SOYCBCOVY6ZWCBVGGBKI5Q5BYNE5LVRWUHQI \ / AMOS7 \ YOURUM ::
-#\[7]HWKKAZGPMTPOTIMTBM6X5IOSNSGRBWAPPSSPHDR6KU7TQZORU6DQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,.,.,...,,,,,.,.,.,.,..,,,,.,..,,...,...,.,.,,,.,,,.,,.,,,,.,
+#XT75HTGUGJ2C7U3TQZABTSL2NA5TUYVXXLM2CNPVKS3XYWWZRZO2DUPPBUKDYCHWPUWEJURQHOOO4
+#\\\|PU3HZDOFNYO7ABWM5OABCO4Y3MYER6MGL33CEI2LFIO4ET7X3GN \ / AMOS7 \ YOURUM ::
+#\[7]3L6VLHIOYHPBIFR2YVK7LBUYX5462HYFRWTYWMVBU4RIFBQ6IQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
