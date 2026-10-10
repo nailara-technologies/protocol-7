@@ -36,8 +36,13 @@ my $binary   = $params->{'binary'} // (
     ? ( <inference.backend.gpu.binary> // "$lib_path/llama-server-cuda-fa" )
     : ( <inference.backend.cpu.binary> // "$lib_path/llama-server-cpu" )
 );
-my $threads    = $params->{'threads'}    // 8;
-my $gpu_layers = $params->{'gpu_layers'} // 33;
+my $threads = $params->{'threads'} // 8;
+## live config first : <coding.spawn_params> is filled once by init_code, a ##
+## config reload alone would keep spawning with the old value               ##
+my $gpu_layers
+    = $backend eq qw| gpu |
+    ? ( <inference.backend.gpu.gpu_layers> // $params->{'gpu_layers'} // 33 )
+    : ( $params->{'gpu_layers'} // 33 );
 ## pre partial-offload reduction ##
 my $configured_gpu_layers = $gpu_layers;
 ## model's TRUE total layer count [ gguf block_count ] : the default -ngl   ##
@@ -48,6 +53,82 @@ my $model_layer_count = 0;
 my $model_path        = $params->{'model_path'}  // '';
 my $mmproj_path       = $params->{'mmproj_path'} // '';
 my $amos_id           = $params->{'amos_id'}     // '';
+
+## kv cache type [ coding.cfg.kv_cache_type, default q8_0 : about half the ##
+## memory per context token of f16 ]. a quantized v cache needs flash      ##
+## attention, which a lora run turns off [ see the lora block below ] --   ##
+## f16 then                                                                ##
+my $kv_cache_type = lc( <coding.cfg.kv_cache_type> // qw| q8_0 | );
+$kv_cache_type = qw| f16 | if length( <coding.cfg.lora_adapter> // '' );
+
+## gpu layers : a value above the model's real layer count [ 999 : all ] is ##
+## clamped to it -- the old fixed 33 kept every model with more layers      ##
+## partly on the cpu even when it fit [ fablevibes 14b : 40 ]               ##
+my ( $n_cpu_moe, $moe_offload_mb ) = ( 0, 0 );
+if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
+    my $shape = <[models.gguf.file.extract_attention]>->($model_path) // {};
+    $model_layer_count = $shape->{'block_count'} // 0;
+    $gpu_layers        = $model_layer_count
+        if $model_layer_count and $gpu_layers > $model_layer_count;
+    $configured_gpu_layers = $gpu_layers;
+
+    ## moe : the configured context floor decides how many layers keep     ##
+    ## their expert weights in ram [ --n-cpu-moe ] -- attention and the kv ##
+    ## cache stay on the gpu. smallest n that reaches the floor, by binary ##
+    ## search over calculate_safe_context itself                           ##
+    my $experts = $shape->{'expert_bytes'};
+    my $floor   = <inference.model.context_length> // 0;
+    if (    ref $experts eq qw| ARRAY |
+        and $floor
+        and <[base.cfg_bool]>->( <coding.cfg.moe_expert_offload> // 1 ) ) {
+        my $vram   = <[coding.helper.query_gpu_memory]>;
+        my $ctx_at = sub {
+            my ($n) = @ARG;
+            my $mb = 0;
+            $mb += $experts->[$ARG] // 0 for 0 .. $n - 1;
+            $mb /= 1024**2;
+            my $r = <[coding.helper.calculate_safe_context]>->(
+                {   model_path    => $model_path,
+                    mmproj_path   => $mmproj_path,
+                    backend       => $backend,
+                    kv_cache_type => $kv_cache_type,
+                    gpu_layers    => $gpu_layers,
+                    layer_count   => $model_layer_count,
+                    offload_mb    => $mb,
+                    vram_total_mb => $vram->{'total_mb'},
+                }
+            );
+            return ( $r->{'calculated'} // 0, $mb );
+        };
+        my ($ctx_none) = $vram->{'ok'} ? $ctx_at->(0) : ($floor);
+        if ( $ctx_none < $floor ) {
+            my ( $lo, $hi ) = ( 1, scalar @$experts );
+            my ($ctx_all) = $ctx_at->($hi);
+            if ( $ctx_all >= $floor ) {
+                while ( $lo < $hi ) {
+                    my $mid = int( ( $lo + $hi ) / 2 );
+                    my ($ctx_mid) = $ctx_at->($mid);
+                    if   ( $ctx_mid >= $floor ) { $hi = $mid }
+                    else                        { $lo = $mid + 1 }
+                }
+            }
+            $n_cpu_moe = $hi;
+            ( my $ctx_planned, $moe_offload_mb ) = $ctx_at->($n_cpu_moe);
+            <[base.logs]>->(
+                1,
+                '[spawn_inference_server] moe : experts of %d/%d layers to '
+                    . 'ram [ %.0f MB ] for the context floor %d [ %d '
+                    . 'without, %d planned ]',
+                $n_cpu_moe,
+                $model_layer_count,
+                $moe_offload_mb,
+                $floor,
+                $ctx_none,
+                $ctx_planned
+            );
+        }
+    }
+}
 
 ## cancel watchers, close fds, and kill old server before spawning new one ##
 my $old = <coding.inference_servers>->{$backend} // {};
@@ -300,8 +381,10 @@ if ( $backend eq qw| gpu | ) {
     if ( $vram->{'ok'} ) {
         my ( $total_mb, $free_mb )
             = ( $vram->{'total_mb'}, $vram->{'free_mb'} );
-        my $model_size_mb = ( -s $model_path ) / ( 1024 * 1024 );
-        my $safety_mb     = <coding.cfg.vram_safety_mb> // 1024;
+        ## moe expert weights planned for ram are not gpu-resident ##
+        my $model_size_mb
+            = ( -s $model_path ) / ( 1024 * 1024 ) - $moe_offload_mb;
+        my $safety_mb = <coding.cfg.vram_safety_mb> // 1024;
         if ( $free_mb < $model_size_mb + $safety_mb ) {
             ## full offload doesn't fit -- try hybrid/partial gpu+cpu layer ##
             ## offload before refusing the spawn outright [ llama .cpp's    ##
@@ -407,18 +490,12 @@ my $max_tokens = <inference.model.max_tokens>
 ## floor configured acts as a minimum : smaller models may safely allow ##
 ## more context                                                         ##
 
-## kv cache type [ coding.cfg.kv_cache_type, default q8_0 : about half the ##
-## memory per context token of f16 ]. a quantized v cache needs flash      ##
-## attention, which a lora run turns off [ see the lora block below ] --   ##
-## f16 then                                                                ##
-my $kv_cache_type = lc( <coding.cfg.kv_cache_type> // qw| q8_0 | );
-$kv_cache_type = qw| f16 | if length( <coding.cfg.lora_adapter> // '' );
-
 my $safe = <[coding.helper.calculate_safe_context]>->(
     {   model_path    => $model_path,
         mmproj_path   => $mmproj_path,
         backend       => $backend,
         kv_cache_type => $kv_cache_type,
+        offload_mb    => $moe_offload_mb,       ## moe experts in ram ##
         gpu_layers    => $gpu_layers,           ## actual -ngl value used ##
         layer_count   => $model_layer_count,    ## true total [ gguf ] ##
     }
@@ -481,8 +558,24 @@ if ( defined <inference.model.context_length> ) {
             $configured,
             $safe->{'explanation'}
         );
+    } elsif ( ( $safe->{'kv_source'} // '' ) =~ m|^gguf| ) {
+        ## exact kv size [ gguf attention shape ] : the auto-calc is the    ##
+        ## real vram ceiling, forcing the floor above it is an oom at load  ##
+        ## [ a dense 14b at 42500 tokens needs ~8 GB of f16 kv ]. the floor ##
+        ## decides the offload instead [ see the moe expert offload above ] ##
+        ## ; when even that cannot reach it, start below it                 ##
+        $ctx_size = $auto_ctx;
+        <[base.logs]>->(
+            0,
+            '[spawn_inference_server] context %d BELOW the configured floor '
+                . '%d : exact kv size, the floor does not fit vram [%s]',
+            $ctx_size,
+            $configured,
+            $safe->{'explanation'}
+        );
     } else {
         ## large model : use configured floor  even if above safe auto-calc ##
+        ## [ size-class kv estimate only : the auto-calc is a guess ]       ##
         $ctx_size = $configured;
         if ( $configured > $auto_ctx ) {
             <[base.logs]>->(
@@ -518,7 +611,8 @@ if ( defined $recovery_ceiling and $ctx_size > $recovery_ceiling ) {
 push @cmd, qw| -c |, $ctx_size;
 push @cmd, qw| -ctk |, $kv_cache_type, qw| -ctv |, $kv_cache_type
     if $kv_cache_type ne qw| f16 |;
-push @cmd, qw| -n |, $max_tokens;
+push @cmd, qw| --n-cpu-moe |, $n_cpu_moe if $n_cpu_moe;
+push @cmd, qw| -n |,          $max_tokens;
 
 # Backend-specific settings
 if ( $backend eq qw| cpu | ) {
@@ -846,6 +940,7 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'calculated_ctx' => $safe->{'calculated'}, ## VRAM-safe auto-calc value ##
     ## -ctk / -ctv [ f16 = none ] ##
     'kv_cache_type' => $kv_cache_type,
+    'n_cpu_moe'     => $n_cpu_moe,       ## moe layers with experts in ram ##
     (   $backend eq qw| gpu |
         ? ( 'gpu_layers'   => $gpu_layers,        ## actual -ngl value used ##
             'layer_count'  => $model_layer_count, ## true total [ gguf ] ##
@@ -949,8 +1044,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,...,..,,.,,,,..,.,.,,..,.,,,,,,,,..,.,.,..,,...,..,,..,,,.,,,.,,...,,..,
-#G2CYLXK6HZHQ43HVIBQWXY32VRRK3377GYPQO3R5YUR2FZIW4IKM7IZWQED2C72VVQET6YA7PFQXU
-#\\\|5YJ7EVIJZUL4RYJ55QUB5R7XA3OBVGEWEUO6QSY4KCIOTZ52TIK \ / AMOS7 \ YOURUM ::
-#\[7]IMRSKFFUYV5YT3HBYOD6TBJ6F3FQHPSJGUBEFG5DD7FUM64Q4SCA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,..,,.,,,,,,,,.,,..,,...,,..,..,,...,...,,..,.,.,...,.,.,,.,,
+#3OD74VG4YA6Y6FDTSB4WFDDNGLLURI4IMEF2Z7D57IYWNSU3ARC6ESL6KY3EW7F2QHDTX2KETEQDA
+#\\\|GYTB5KH2YWWWMTWYZY6XOHA7WBSNEK6GJS5VGC42F4XCEZ3DAZC \ / AMOS7 \ YOURUM ::
+#\[7]LDGHVKNLI5ZSST2HFERL3JCQKYXMH6IGTAZQ7TZC4VPS56X3OMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
