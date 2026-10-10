@@ -40,7 +40,7 @@ if ( ref $edits eq qw| ARRAY | ) {
     @all_edits = @$edits;
 } elsif ( !ref $edits && length $edits ) {
     ## try to parse as JSON string ##
-    my $parsed = eval { JSON::PP::decode_json($edits) };
+    my $parsed = eval { JSON::PP->new->utf8(0)->decode($edits) };
     if ($EVAL_ERROR) {
         return ": error : edits JSON parse error : "
             . <[base.str.eval_error]>;
@@ -120,9 +120,9 @@ for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
 if ( $apply && !$errors ) {
     my $new_content = join "\n", @lines;
 
-    ## idiom conformance gate [ config-gated, inert unless                  ##
-    ## coding.cfg.idiom_gate is set ] : may auto-repair the edited body, or ##
-    ## refuse the write entirely                                            ##
+    ## idiom conformance gate                                             ##
+    ## [ config-gated, inert unless  coding.cfg.idiom_gate is set ] : may ##
+    ## auto-repair the edited body, or refuse the write entirely          ##
     my $idiom = <[coding.idiom.check_write]>->(
         {   'path'    => $path,
             'content' => $new_content,
@@ -135,8 +135,8 @@ if ( $apply && !$errors ) {
             if defined $idiom->{'data'}{'content'};
     }
 
-    ## note the write for the catalog-retrieval corpus [ inert unless ##
-    ## coding.cfg.catalog_harvest is enabled ]                        ##
+    ## note the write for the catalog-retrieval corpus        ##
+    ## [ inert unless coding.cfg.catalog_harvest is enabled ] ##
     <[coding.catalog.track_write]>->( { 'target' => $path } );
 
     my $result = <[file.write]>->( $abs_path, \$new_content, $norm_encoding );
@@ -154,8 +154,8 @@ return sprintf "## %s batch %d [ %d/%d edits ] %s ##\n%s",
     ( $has_more ? "\n[ more : continue=$next_continue ]" : "" ),
     join "\n", @preview;
 
-#,,.,,.,,,,..,,,.,,..,,..,.,.,..,,.,,,,,,,..,,.,.,...,...,,..,,,,,,,,,,.,,,,,,
-#NYNE4TZBUPMOAKQ23CXZ3OACOOUQLHWSOY5HQ7MSKP4AV7P2SXF7QREGH7RQ42546WVNBLMV6TWAA
-#\\\|IOP62LIB6YOWCXAVSPRXLMNJJ3M26QCKF6LCADASLA5WNVUMSNQ \ / AMOS7 \ YOURUM ::
-#\[7]O6HE4E4QXWMHCZEOO4TV7ULQRC6HLOAKBJICQOTDY3S3VKXY6KDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,..,,..,,,,,,.,,,..,,,..,...,.,.,...,...,.,,,..,,...,...,...,
+#LB3WHESOEWCNFUWXLMSIKKYJ5PVS6K6JPOYWRNDVCKZLFMSS2CC75W5S25MFE4I3XAZAYRI6KBV54
+#\\\|VN3A6FGM75FRUIAIJJJ5UQKZGFYTDNX3ZVBDPXN5EPQLOONI752 \ / AMOS7 \ YOURUM ::
+#\[7]GR6TMJQB6JZSNMJEK4P3NV2BD6N7WYC7N5A6UCSAMKVO5CTAV4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

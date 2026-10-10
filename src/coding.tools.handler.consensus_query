@@ -101,7 +101,7 @@ for my $perspective_name (@active_perspectives) {
         return "error: inference server returned " . $response->status_line
             unless $response->is_success;
 
-        my $data = JSON::PP::decode_json( $response->decoded_content );
+        my $data = JSON::PP::decode_json( $response->content );
         return $data->{'choices'}[0]{'message'}{'content'} // 'no response';
     };
 
@@ -129,8 +129,8 @@ $output
 
 return $output;
 
-#,,,,,,,,,.,.,.,.,,,,,...,,.,,..,,.,.,,,,,.,,,..,,...,...,...,.,.,,,.,,,.,,..,
-#7CI4TZKHURTIIAOYRPZMIE2WQ6JXN7VQZ5CDMYWPT7GBQSK6WRXRZZMWCPCL3W2ZSIRRN6THBE56Y
-#\\\|AN4J5K6ETZGAW6C4GCJPFB6BV4T34KSTIBGPU2AOX4T23LINY6I \ / AMOS7 \ YOURUM ::
-#\[7]TFOWRMRSSW7SM2TCOHKN6AFIDAYHQRZO52DRODJKF3SKFT6JVYDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,.,.,..,,,..,,..,...,,..,,..,..,,...,...,...,,.,,.,,,...,,.,,
+#SY23WJFLGWWP237BGAXUL36JSNN2SXWUJJQYJUJT66UCERG5WH3YQRPLTIP7B5UKIRG4RT6C32YXM
+#\\\|XY4CQ56L4Q6JH2VVDZVKWVVO44P35S7XSHOW7YN5W6BAPSJ7URV \ / AMOS7 \ YOURUM ::
+#\[7]KNTAEGW445H6JMVF5AXOFFRJ3ECBPFISKUO5JFALUEZY3VP5ZKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
