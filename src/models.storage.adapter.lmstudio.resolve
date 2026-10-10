@@ -6,16 +6,15 @@
 # [ input: $ARG = model record hashref (with 'path' key = relative path from root) ]
 # [ output: absolute path string if exists, undef if not ]
 
-my $root = $data{'models'}{'external.models.lmstudio.path'}
-    // '/mnt/ext-xfs-data/models-lmstudio';
+my $root = <[base.models_root]>;
 
 my $rel = $ARG[0]->{'path'} // return undef;
 my $abs = "$root/$rel";
 
 return -f $abs ? $abs : undef;
 
-#,,,.,,.,,..,,.,,,,..,,,.,...,,.,,.,.,,,,,,.,,..,,...,...,.,.,.,,,,.,,.,.,..,,
-#43MP4YPGTYVOTL5O4A2UNICU6F655W7YZZY3EI2LX4UNRZHGVGQUUBT5REMGSFU4LLPAJA5VCTCJM
-#\\\|TJM6OJFUCAREA7ONOD5NFVJ7ZJQ6WQCDBDCCZUDWMD26SAGXRQM \ / AMOS7 \ YOURUM ::
-#\[7]N35HS4B5KTJHPCJPUWQUVVRX5HQR6OMZVYN5LQOSC7GVUDZV6GCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,.,,,.,,,.,.,.,.,..,,,,.,...,..,,...,...,..,,.,.,.,,,...,,..,
+#MEVJLA7KE3JWUQGQ7WGAZAN2CH2BZSUUPDOJZB74GCLCCYZYHSOQDZB5N7HB6RXADG3YN6EFYTU5W
+#\\\|LMNRY2VXATE5XR5OATXWA64KTHUYD6JYF5DFYU2S227MXX5AK7H \ / AMOS7 \ YOURUM ::
+#\[7]EGWPZE3RG4MW6VQETIIMTSI4GSHXCYUJ7ISMKXW6MXM3CJQS4MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

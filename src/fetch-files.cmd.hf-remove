@@ -9,8 +9,7 @@
 my $path = $call->{'args'} // '';
 $path =~ s{^\s+|\s+$}{}g;
 
-my $root = <external.models.lmstudio.path> // <external.models.path>
-    // '/mnt/ext-xfs-data/models-lmstudio';
+my $root = <[base.models_root]> // '/mnt/ext-xfs-data/models-lmstudio';
 
 return { 'mode' => qw| false |, 'data' => 'usage : hf-remove <path.gguf>' }
     unless length $path;
@@ -52,8 +51,8 @@ return {
     )
 };
 
-#,,,,,,,.,.,.,...,,..,.,.,.,.,.,,,,.,,..,,...,..,,...,..,,,..,,,.,,,,,..,,,..,
-#2AHY6OQTWEC3SO3LPS5XUN2YF4YNQP4RPB4AXYSVUBTY5ZZBKX2VGDM5RWHMFSBEHRXVANO5RGDVW
-#\\\|2QHMZ3M2GI354VXIQWU3QJRTRMC7NHDI5HDRWZKRYE25FJ6NJN4 \ / AMOS7 \ YOURUM ::
-#\[7]FI5TQLT7XMKTNPHFNBKVFTJWOK3Y6RSPJZWDPPABA5O4ST4PHCCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,...,.,.,,..,.,,,.,,,.,,,..,,..,,...,...,...,...,.,,,,,.,...,
+#6VCX74S6YZ2GSV2EJRDXOODAQSESEM5BDNUDF6FAF2YDZH2YIOLNSPPUV27TKNJV4GA75ICXK6MGK
+#\\\|GEHXBBTN53NKMN7YU5XYOMAVD5FP5QSBY5HLYW6VF4MVLUNDZRZ \ / AMOS7 \ YOURUM ::
+#\[7]QBE2Y5TI7N6ALXLR7PD2FHCNF6GVQ7ALFYR7DVZJSPG5ZG74VSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

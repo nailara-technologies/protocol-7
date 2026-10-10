@@ -8,10 +8,8 @@
 
 my $params = $ARG[0] // {};
 
-my $dry_run = $params->{'dry_run'} // 0;
-my $root    = $params->{'root_path'}
-    // $data{'models'}{'external.models.lmstudio.path'}
-    // '/mnt/ext-xfs-data/models-lmstudio';
+my $dry_run = $params->{'dry_run'}   // 0;
+my $root    = $params->{'root_path'} // <[base.models_root]>;
 
 # [ scan for all .gguf files ]
 my @gguf_files;
@@ -79,8 +77,8 @@ return {
     missing => $missing,
 };
 
-#,,.,,..,,.,,,,,.,..,,...,,..,...,,,.,,.,,..,,..,,...,...,..,,..,,,..,...,..,,
-#4VLWOU7PXROPTPL3J7DM3MDWGIM6L53KIXR6SHY5YZVRJJNJIFMQHQRY3LFPUIBZYUFFRICGCPUWS
-#\\\|BD54LIATI3IORU762CMRIVXS7C6TVUNFJLDUPOWUBPWCJO4Q5AZ \ / AMOS7 \ YOURUM ::
-#\[7]THM5SGPQYOY7JP3CJHAI5A25AZV3KLKJGLDQYWOEWZVHNBRFNSCA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,.,,,,,,,.,,,.,..,,...,,..,.,,,..,,...,...,...,.,.,,,.,...,.,,,
+#WJJ2ECPLDMZJIZ2M6DELSNQCF37DQQ2D6ADOE7LFIT7EXPLZPXUZH3UAPLZ36NVAEYZIWLGUVVNYE
+#\\\|KLJ6FZKQULQCW5WWHWNOZJO6GDDNBF7A4FZZJOHNRTK55GEFRBW \ / AMOS7 \ YOURUM ::
+#\[7]VEDEMH7E62G3X5T5B3UXOSAGROF6GPOGMQXPPRNUCLQ5OFJCEUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
