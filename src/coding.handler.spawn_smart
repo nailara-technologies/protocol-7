@@ -35,8 +35,8 @@ my $force   = $params->{'force'}   // 0;
 my $on_done = $params->{'on_done'};
 $on_done = undef unless ref $on_done eq qw| HASH |;
 
-## dispatch helper : fires the caller's on_done with the terminal result [ ##
-## mirrors plugin.usage.kimi.refresh_token's dispatch shape ]              ##
+## dispatch helper : fires the caller's on_done with the terminal result ##
+## [ mirrors plugin.usage.kimi.refresh_token's dispatch shape ]          ##
 my $dispatch_on_done = sub {
     my $result = shift;
     if (    ref $on_done eq qw| HASH |
@@ -217,15 +217,15 @@ if ($force) {
         ## when a live old pid was killed the entry must STAY registered    ##
         ## until the SIGCHLD handler matches the reaped pid to this backend ##
         ## -- the completion helper deletes it. when nothing live was       ##
-        ## killed there is no SIGCHLD to expect, so drop it now [ same      ##
-        ## timing as the old blocking code ]                                ##
+        ## killed there is no SIGCHLD to expect, so drop it now             ##
+        ## [ same timing as the old blocking code ]                         ##
         delete <coding.inference_servers>->{$backend} unless $had_live_pid;
     }
 }
 
-## stash everything the completion helper needs once the old pid is    ##
-## confirmed reaped [ or right away, when there was nothing to kill -- ##
-## forced or not ]                                                     ##
+## stash everything the completion helper needs once the old pid is   ##
+## confirmed reaped                                                   ##
+## [ or right away, when there was nothing to kill -- forced or not ] ##
 <coding.pending_switch>->{$backend} = {
     'model_size_gb'     => $matched_entry->{'size_gb'} // 0,
     'mmproj_path'       => $params->{'mmproj_path'}    // '',
@@ -239,6 +239,8 @@ if ($force) {
     'port'         => $port,
     'on_done'      => $on_done,
     'had_live_pid' => $had_live_pid,
+    'killed_pid'   => $killed_pid,
+    'poll_started' => <[base.time]>->(3),
     'timer_w'      => undef,
 };
 
@@ -251,15 +253,20 @@ if ($had_live_pid) {
     ## fallback-timer path                                                ##
     <coding.switching_backend>->{$backend} = TRUE;
 
-    ## bounded fallback : covers a missed/coalesced SIGCHLD. the old     ##
-    ## blocking code budgeted ~2.3s for the old process to die -- the    ##
-    ## one-shot completion gets the same magnitude [ 3s ] so callers can ##
-    ## never hang forever                                                ##
+    ## bounded fallback : covers a missed/coalesced SIGCHLD. the old        ##
+    ## blocking code budgeted ~2.3s for the old process to die -- the       ##
+    ## one-shot completion gets the same magnitude [ 3s ] so callers can    ##
+    ## never hang forever  reap poll [ every 0.1 s ] : a SIGCHLD is no      ##
+    ## reliable completion signal -- signals coalesce, and the zenka's own  ##
+    ## waitpid(-1) loops [ base.sig_chld, inference_server_sigchld ] may    ##
+    ## collect the old server before the switch path ever sees it. the poll ##
+    ## completes as soon as the killed pid is gone, by whoever reaped it    ##
     <coding.pending_switch>->{$backend}->{'timer_w'} = <[event.add_timer]>->(
-        {   'after'   => 3,
-            'desc'    => "pending switch fallback : $backend",
-            'handler' => qw| coding.handler.pending_switch_timeout |,
-            'data'    => { 'backend' => $backend },
+        {   'interval' => 0.1,
+            'repeat'   => TRUE,
+            'desc'     => "pending switch reap poll : $backend",
+            'handler'  => qw| coding.handler.pending_switch_timeout |,
+            'data'     => { 'backend' => $backend },
         }
     );
 
@@ -276,14 +283,14 @@ if ($had_live_pid) {
     return TRUE;    ## async : completion via sigchld handler / timer     ##
 }
 
-## no live old process : complete immediately [ cold start, or the old    ##
-## server was already gone ] -- on_done fires synchronously, exactly like ##
-## the pre-async code path for this case                                  ##
+## no live old process : complete immediately                          ##
+## [ cold start, or the old server was already gone ] -- on_done fires ##
+## synchronously, exactly like the pre-async code path for this case   ##
 return
     <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
 
-#,,..,,,.,.,,,.,,,..,,,,.,,,,,..,,.,.,..,,,,,,.,.,...,...,,.,,,,.,,,,,,.,,.,,,
-#D5GJEZ34I4G5XDHQLVZC5BO4SWQ2O4NJAQZJCVNU3MIM6ANWPVTG7GENTCTB7XF4MIAEF3R3JL6C6
-#\\\|6IWGJ6MIRXEYTKLAHM52CJT4MGPDLXVKHVHXIFU2JI7CRNU64IC \ / AMOS7 \ YOURUM ::
-#\[7]MLKLBSE76WY5IN7D3N3EJQJB2A4GQV6V6CDABCXN22SISRRGQIBI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,..,,.,,.,,,,,.,,..,,,,,..,,.,.,...,...,.,.,,,,,.,.,.,,,,,,,
+#6OPSXYNILZVBZIEBP2ADRGM47TOVVY363ZU2ZH6TOPWW3PHESMRLEDYXJ7TBNCQ6RCXWX5RUK4DSY
+#\\\|6DBQ6F62MTLHLS5PTB3NE6B55TKSJOCHOWRL6XQPBVVJVHLQ42L \ / AMOS7 \ YOURUM ::
+#\[7]Q7WSQAUHSTUGKDJISRH44KYUMZULUUQLDA6ZLFP5APXJGH34HQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
