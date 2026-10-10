@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.helper.mode_drain_schedule
+# descr = keep a repeating drain timer running while pinned-model switches
+#         wait for the loaded model's work [ queue grouping, todo WNF ]
+# param = $backend [ gpu | cpu ]
+# note  = one timer per backend ; coding.handler.mode_drain stops it once
+#         no deferral is left
+
+my $backend = shift // qw| gpu |;
+
+<coding.mode_drain_timer> //= {};
+return TRUE if <coding.mode_drain_timer>->{$backend};
+
+<coding.mode_drain_timer>->{$backend} = TRUE;
+<[event.add_timer]>->(
+    {   qw| interval | => <coding.cfg.mode_drain_interval> // 5,
+        qw| repeat |   => TRUE,
+        qw| handler |  => qw| coding.handler.mode_drain |,
+        qw| data |     => $backend,
+        qw| desc |     => "mode drain $backend",
+    }
+);
+
+return TRUE;
+
+#,,..,.,,,,.,,,.,,...,,..,,..,,,.,,,.,.,.,..,,..,,...,..,,,.,,..,,,.,,..,,,.,,
+#UAS2KQZ7KMQ4366ERQBYWYPMAZDHLJBW3LWA7ZXW4UBLBCYS3DYRMK7CMGB2EYMPEILZMTOWHTQKI
+#\\\|6ZNBTZG4DNZUHX2WJOGCK5L3EJCYGJKVHKYM2NYSJLAXZFP2GUZ \ / AMOS7 \ YOURUM ::
+#\[7]HR2VQ5IGMHZZKSJT3EKH2GJZFUNEZAHB77WBARWDIWQAFFKKJABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

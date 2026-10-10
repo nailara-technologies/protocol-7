@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = coding.mode.setting
+# descr = look up one setting of a work mode, walking up the mode tree
+# param = $mode [ dotted path, e.g. code.new.parser ], $key [ model,
+#         template, system, tool_set, max_rounds .. ] -> value | undef
+# note  = modes are dotted config keys : coding.cfg.mode.<path>.<key>.
+#         the most specific mode that sets the key wins : code.new.parser
+#         -> code.new -> code -> default. a sub-mode lists only what
+#         differs [ todo WNF ]
+
+my $mode = shift // '';
+my $key  = shift // '';
+
+return undef unless length $key;
+
+my $tree = <coding.cfg.mode>;
+return undef unless ref $tree eq qw| HASH |;
+
+## default first, then each level of the path overrides it ##
+my $value
+    = ( ref $tree->{'default'} eq qw| HASH |
+        and !ref $tree->{'default'}{$key} )
+    ? $tree->{'default'}{$key}
+    : undef;
+
+my $node = $tree;
+for my $part ( grep {length} split m|\.|, $mode ) {
+    $node = $node->{$part};
+    last unless ref $node eq qw| HASH |;
+    $value = $node->{$key} if defined $node->{$key} and !ref $node->{$key};
+}
+
+return $value;
+
+#,,,,,,,.,...,,,,,,.,,,,.,,..,.,,,,.,,..,,..,,..,,...,...,,..,.,.,,,,,,.,,...,
+#Y3LF6GCMJWBZR5X2WACB5ICCIJ5474GOOOLPCTQLR6C6SD2CZUVVENQYCKXMN4SR6A5IEPMK6N4MO
+#\\\|XAAQYA3SVQ4FUZ3E2TL5GJHFNG7RW5U2CN66UOGNTPDXAJNYCPM \ / AMOS7 \ YOURUM ::
+#\[7]P3WDXZ3A63LIXCFLJZU7N6HYWASDUXXD7LDBT4RTWGOP3KWBPYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
