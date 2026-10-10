@@ -130,8 +130,10 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'edit_file',
-        'description' => 'replace specific lines in a file '
-            . '[ applies changes by default ]',
+        'description' => 'replace or delete specific lines in a file [ '
+            . 'applies changes by default ; line numbers '
+            . 'refer to the file as read, for every edit in '
+            . 'one call ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -142,6 +144,8 @@ push @tools,
                 'edits' => {
                     'description' => 'edit instructions as array of objects:'
                         . ' [{"line":N,"old":"text","new":"text"}, ...]'
+                        . ' -- "delete":true removes the line, a "new" with'
+                        . ' \\n becomes several lines'
                         . ' [can be array or JSON string]',
                     'anyOf' => [
                         {   'type'  => 'array',
@@ -488,8 +492,8 @@ push @tools,
 
 return \@tools;
 
-#,,.,,.,.,.,.,...,,,,,,.,,.,,,,..,.,,,,,.,...,..,,...,...,...,...,,,,,,,,,...,
-#B4AU5HXTH676EZQGWASJNRKHRLUHWXWNGW4YDLO4QRMEUZ2JLCYNGDLEBDXPT35SKW3S6FE5FQDLE
-#\\\|IVNJMNLRRIIC72JDECBLGNPYRJF2LBDVSPUIXAIUTBWEVP7GLRQ \ / AMOS7 \ YOURUM ::
-#\[7]MLEDG6KEOXOSEM6X5DN2NDLWZSUSATOK5C2PBYKBWZ7NFXFMIYCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,,.,,...,,.,,,.,,,,.,,,.,,.,,..,,...,...,.,.,,..,.,.,.,.,..,,
+#FBR4FUGCJVU5NVDVIRA67VHPPSLKE22NAFZ4EDGZ4DK6IW2VKLTQZORLTZ4SAUVZSINTC6U7ALFW2
+#\\\|NBXVDX3WIGDYVCIP6EMX4Y2MKLMTNF7FYYXHKXEBSRRAFXLQJHV \ / AMOS7 \ YOURUM ::
+#\[7]4J5376H4W7RULKPDR5263BD6DBD3K3GWQDA45H2IDCMPMXHD2WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
