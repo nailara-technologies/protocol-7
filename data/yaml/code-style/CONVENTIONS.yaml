@@ -4,6 +4,21 @@
 
 conventions:
 
+  # module header [ src/ files ]
+  module_header:
+    description: "a module file starts with the '## [:< ##' line, then single-'#' header fields"
+    rules:
+      - "header fields use ONE '#' : '# name = ..', '# descr = ..', '# param = ..', '# note = ..'"
+      - "header fields are not comments : the '##' comment rules below do not apply to them"
+      - "'# descr' and '# param' stay within 55 characters of text [ the commit hook checks ]"
+      - "the AMOS7 signature block at the end is added at signing, never written by hand"
+    example: |
+      ## [:< ##
+
+      # name  = coding.mode.setting
+      # descr = look up one setting of a work mode
+      # param = $mode, $key -> value | undef
+
   # comment style
   comments:
     description: "maintain lowercase narrative flow in comments"
@@ -148,8 +163,8 @@ code_presence_and_cross_namespace_calls:  # july 2026, commits b674ecd80/ae6b1f7
       [ a rename silently broke nshell cube connect until testing caught it ].
     command: "grep -rn 'sprintf' src/ | grep -i '<name-fragment>'"
 
-#,,..,...,...,..,,.,,,,..,,.,,,,,,...,.,,,..,,..,,...,...,.,,,,,,,.,,,,,.,,.,,
-#3MWJ5QTR2FC2QK7MENVX6HMNRBXPQTWZPSE6BXDE6ABQG2YGZCAIUVXJUVW572LCQ7IOUR5UD5BZK
-#\\\|CJQ3CPG6KFWBCRELXL6OULEOUUKRWVMRLNKBWRS44XQ3WAEBTSH \ / AMOS7 \ YOURUM ::
-#\[7]W4D6KSF4YCBLMLVARNKS7CR7EIWK2O3FVQLUF5C4GMIAAFS6WWAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,...,,,,,.,,,,..,,,.,,.,,,.,,,..,..,,...,..,,.,,,...,.,.,...,..,,
+#LDBHOJZQ2OSW2MJWR2WRCSHHCTWP32HD343KMGDIHVDHBRZFFJAYYVSCB4IRFOAISAZW3F4TQWJFK
+#\\\|WWWEU56DXTANSQSYIZZJ56HBBPQ25G2ABRPZUZ73MIQOUUGDOB6 \ / AMOS7 \ YOURUM ::
+#\[7]UWILNRZAH3NVSP5J7WRZPHVA3CYQJCGYHGC7W5N3H3L2AEMH6EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

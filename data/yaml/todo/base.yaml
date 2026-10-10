@@ -829,9 +829,77 @@ items:
   - models
   - work-modes
   text: 'work-mode presets : nested modes pick model + settings, queue grouped by model'
+- added: 3X3Z32FPC4
+  details: |-
+    the remote vps got more resources [ 2026-10-11 : 23 GiB ram, 441 GB disk after growpart + online resize2fs, 8 vcpu at 2 GHz, no gpu, no swap yet ].
 
-#,,..,..,,...,,,.,,..,,,.,,..,,.,,,.,,,,.,.,,,..,,...,...,,..,.,,,..,,,,.,.,,,
-#2YKQIJFYLHZWJPE2KS5GWCXRUK2W6G3SVHE3AUPFIGKXWR33R53XWLWNWEO4E7BSMEKFYF7QXEFNU
-#\\\|5JFA2LXRV5AYV3BENWX64NKCTZIFQ7VNOEBIJHOJ6P5EP33XLZ4 \ / AMOS7 \ YOURUM ::
-#\[7]GUCKMN3OO3S3C47ANQNVEM6XGZFI3TCJ2ADRROLBWPAC5QOHOWDY 7  DATA SIGNATURE ::
+    - first : add an 8 GB swap file [ no swap = oom killer on the first spike ]
+    - benchmark there : llama-bench -m <fablevibes q4_k_m> -t 8 -p 512 -n 128 , and a 3-4b dense model -- expected roughly 3-6 t/s generation for the 14b-a3b moe, prompt 20-50 t/s ; prompt processing is the real limit [ ~4k tokens of tools + system per round ]
+    - worth it when generation >= ~5 t/s and prompt >= ~50 t/s : then route overnight batches [ XOJ, models: auto ] to a coding zenka there, keep interactive work on the local gpu
+    - the 35b q3 [ 17.7 GB ] only with swap and margin -- likely not worth it on cpu
+  done_at: null
+  id: 6WP
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - remote
+  - overnight
+  - models
+  text: 'second inference host : benchmark + remote overnight batches'
+- added: 3X3Z32FYB4
+  details: |-
+    a small fast model [ 3-4b dense or a small moe ] for jobsite assessments, but one that does not fake [ confident judgements not taken from the ad, invented details ]. two cheap checks that measure it :
+
+    - quote-verified format : every assessment point [ requirement met \ missing, location, contract type .. ] carries a short quote from the ad ; code checks that each quote really appears in the ad text. invented points fail mechanically -- the pass rate is a per-model faking score, deterministic, no second model
+    - known-answer batch : 20-30 ads the user already judged, run as a model batch with repeat: [ harness has spec, repeat, records, review ] -- agreement with the user's verdicts = quality, agreement between repeats = consistency vs guessing
+
+    model choice becomes a measurement ; the same quote check keeps watching quality in production. the jobsite zenka already has a configured assertion model -- start there. candidates : the qwen3 \ qwen3.5 4b distills in the registry. size of model affordable depends on 6WP's benchmark if it runs on the remote host.
+  done_at: null
+  id: QVG
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - models
+  - quality
+  text: 'jobsite assessment by a small model : quote-verified format + known-answer batch'
+- added: 3X3Z32GBAM
+  details: |-
+    the user is away from home, a blocking bug shows up [ e.g. a ui running on the own server ]. over ssh from a phone the user tells the coding model to trace and fix it [ user idea 2026-10-11 ].
+
+    - access : ssh into a terminal, nshell or p7c coding.submit .. -- phone ux = short commands, short replies ; a compact status command to check in from the phone
+    - the model works on its own git branch from the current baseline ; a working fix stays parked there for later review and integration
+      - commits on the branch are unsigned work-in-progress [ the user signs at integration ]
+      - validating needs the system to run the branch code : either the live tree switches to the branch and back [ simple, everything runs the fix meanwhile ] or a separate checkout feeds a test instance of the affected zenka [ cleaner, more work ] -- decide
+    - it may consult other models : consensus_query, kimi \ claude dispatch -- a second opinion before changing anything
+    - authority to reload code and restart zenki [ the fix-and-validate loop ] -- guardrails : validated values in destructive commands [ the restart-cube lesson ], an allowlist per mode [ access.cmd.* ], every action logged
+    - later : the forensics zenka could start the same flow on its own for a known bug class
+
+    testing [ user idea ] : re-introduce an already fixed bug -- the fix commit is the known answer, realistic from detection to fix and validation. revert the WHOLE fix hunk incl. its explanatory comments [ else the answer is given away ], check the injected state carries no hint. e.g. inject a bug into a ui zenka, report it from the phone as a real one. candidates from 2026-10-10 : edit_file decode_json 'Wide character', README.md symlink replaced by a revert, global loop counter, teardown exit code.
+
+    access, better than ssh [ user : ssh only as the fallback that always works ] :
+    - a chat channel to the coding zenka [ the p7 chat system with channels exists ] : report the bug in one message, progress and questions come back as replies -- far better on a phone than a terminal
+    - a small page served by the httpd zenka : task list, a 'describe the bug' field, live status, the branch's diff ; authenticated with the existing keypair mechanism or a passkey, no password
+    - push notifications when the fix is parked or a decision is needed -- no polling
+
+    the chat channel as a web page [ user, 2026-10-11 ] : served by the http[s]d zenka, a browser is available everywhere, it only needs a login gate [ keypair mechanism or passkey ].
+    - project style : the protocol-7 palette [ dark violet \ blue, the console colors ], psychedelic but clean
+    - calm effects only : slow, subtle color drift or glow is fine, no fast cycling or dense flicker [ a real adverse effect for the user, see memory rapid-pattern-visual-disruption-risk ] ; dark theme by default [ screen brightness sensitivity ]
+    - every screen size : on a phone one column, large touch targets, readable without zoom ; on a large or fullscreen display the space is used -- conversation, task status and the branch diff side by side, more than one channel or task visible at once, no stretched phone layout
+    - shows the conversation with the coding zenka, task status, the parked branch and its diff, approve \ drop buttons [ the XOJ review actions ]
+  done_at: null
+  id: CT2
+  priority: normal
+  status: open
+  tags:
+  - forensics
+  - coding
+  - remote
+  text: 'remote bug fixing : model traces + fixes on its own branch, user away [ ssh from a phone ]'
+
+#,,..,.,.,,.,,,,.,..,,,,.,,.,,,.,,,.,,.,.,,,,,..,,...,..,,..,,,..,,..,,,.,,,,,
+#ZLN7KJ3WYWRSHJRW5XDROLR2TZHIOG3T3NCPRHL2OBSAFJLYV7OYTIW7A5XS4ESJF2EIHRY367DNC
+#\\\|LMPOZTMGWGXR2FG3O76D3OZMEEFTWBW2MTLMOM24I3W4B5E47QS \ / AMOS7 \ YOURUM ::
+#\[7]IJXDPG6B2WBGJ2TFW2RW7TCAIO3B5MOET2R3KL5GPKYY6SFCCUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
