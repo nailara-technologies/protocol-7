@@ -196,7 +196,7 @@ for my $task_id (@task_rows) {
             if defined $entry->{'score'};
         my $compile = $entry->{'compile'} // {};
         if (%$compile) {
-            my $ok = grep { $ARG eq qw| ok | } values %$compile;
+            my $ok = grep {m|^ok|} values %$compile;
             $cell .= sprintf ' compiles=%d/%d', $ok, scalar keys %$compile;
         }
         push @cells, $cell;
@@ -206,8 +206,8 @@ for my $task_id (@task_rows) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,..,,,,,,.,,,,,,,.,,,.,.,,,.,,,.,.,,,.,.,..,,...,...,..,,..,,.,.,...,,,.,
-#3IW56YEOAEVCUDXFS2WPGI6334YB7QKW5X2OWQKFAZ327AV5WPGVQDQIXKBGKARYKJCLS6MWESRT2
-#\\\|FTLKR4WHVU7SQWGZFSX5JQ3PSLNPZ4ABG4YP43XAVLBOG3XU2EA \ / AMOS7 \ YOURUM ::
-#\[7]OC2EOBIKHX2ZG22CZ2EOR4XRMRZRPMVGKM7HOP635ZEPPFEWM4CY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,..,,.,.,.,.,,.,,.,.,,,,,...,..,,...,...,,.,,...,,,.,,.,,,.,,
+#D7CP2AGA5CSGE7FXUYEWLTXLGTJBE7UWEYUULGIDPHQIE3GJQR2CKF64ANKRB6FFIQD67URP6JUJK
+#\\\|OCRU6DPUWZWX6UTOY6634QPG2HAQORXK5FE47T72KUIAHY4KDIK \ / AMOS7 \ YOURUM ::
+#\[7]BE54OYWQ6WXMIX4G3YKLXEKZCU4YDUZU6WMV5JI42RVYULP7BYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
