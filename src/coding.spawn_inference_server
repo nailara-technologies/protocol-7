@@ -54,12 +54,16 @@ my $model_path        = $params->{'model_path'}  // '';
 my $mmproj_path       = $params->{'mmproj_path'} // '';
 my $amos_id           = $params->{'amos_id'}     // '';
 
-## kv cache type [ coding.cfg.kv_cache_type, default q8_0 : about half the ##
-## memory per context token of f16 ]. a quantized v cache needs flash      ##
-## attention, which a lora run turns off [ see the lora block below ] --   ##
-## f16 then                                                                ##
-my $kv_cache_type = lc( <coding.cfg.kv_cache_type> // qw| q8_0 | );
+## kv cache type [ coding.cfg.kv_cache_type ] : auto [ default ] is f16,   ##
+## q8_0 only when f16 cannot reach the context floor -- on this build a    ##
+## q8_0 cache cuts prompt processing ~10x                                  ##
+## [ OFSQC4I : 57-91 vs 707-727 t/s, generation unchanged ]. a quantized v ##
+## cache needs flash attention, which a lora run turns off                 ##
+## [ see the lora block below ] : f16 then                                 ##
+my $kv_cache_type = lc( <coding.cfg.kv_cache_type> // qw| auto | );
 $kv_cache_type = qw| f16 | if length( <coding.cfg.lora_adapter> // '' );
+$kv_cache_type = qw| f16 |
+    if $kv_cache_type eq qw| auto | and $backend ne qw| gpu |;
 
 ## gpu layers : a value above the model's real layer count [ 999 : all ] is ##
 ## clamped to it -- the old fixed 33 kept every model with more layers      ##
@@ -71,6 +75,34 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
     $gpu_layers        = $model_layer_count
         if $model_layer_count and $gpu_layers > $model_layer_count;
     $configured_gpu_layers = $gpu_layers;
+
+    ## kv cache auto : f16 when it reaches the floor, else q8_0 ##
+    if ( $kv_cache_type eq qw| auto | ) {
+        $kv_cache_type = qw| f16 |;
+        my $floor_kv = <inference.model.context_length> // 0;
+        my $f16_safe
+            = $floor_kv
+            ? <[coding.helper.calculate_safe_context]>->(
+            {   model_path    => $model_path,
+                mmproj_path   => $mmproj_path,
+                backend       => $backend,
+                kv_cache_type => qw| f16 |,
+                gpu_layers    => $gpu_layers,
+                layer_count   => $model_layer_count,
+            }
+            )
+            : {};
+        if ( $floor_kv and ( $f16_safe->{'calculated'} // 0 ) < $floor_kv ) {
+            $kv_cache_type = qw| q8_0 |;
+            <[base.logs]>->(
+                1,
+                '[spawn_inference_server] kv cache q8_0 : f16 '
+                    . 'reaches %d tokens, below the context floor %d',
+                $f16_safe->{'calculated'} // 0,
+                $floor_kv
+            );
+        }
+    }
 
     ## moe : the configured context floor decides how many layers keep     ##
     ## their expert weights in ram [ --n-cpu-moe ] -- attention and the kv ##
@@ -618,7 +650,15 @@ push @cmd, qw| -n |,          $max_tokens;
 if ( $backend eq qw| cpu | ) {
     push @cmd, '-t', $threads;    # Number of threads
 } elsif ( $backend eq qw| gpu | ) {
-    push @cmd, qw| -ngl |, $gpu_layers;    # GPU layers
+    ## all layers : 999 -- llama.cpp counts the output layer in -ngl, a ##
+    ## bare block_count left it on the cpu [ OFSQC4I 32 : generation    ##
+    ## halved, 45 -> 24 t/s ; the old fixed 33 was its count + 1 ]      ##
+    push @cmd, qw| -ngl |,
+        (
+        $model_layer_count and $gpu_layers >= $model_layer_count
+        ? 999
+        : $gpu_layers
+        );    # GPU layers
 }
 
 # No warmup to start faster
@@ -1044,8 +1084,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,,,,..,,..,,..,,.,,,,,,,,.,,..,,...,,..,..,,...,...,,..,.,.,...,.,.,,.,,
-#3OD74VG4YA6Y6FDTSB4WFDDNGLLURI4IMEF2Z7D57IYWNSU3ARC6ESL6KY3EW7F2QHDTX2KETEQDA
-#\\\|GYTB5KH2YWWWMTWYZY6XOHA7WBSNEK6GJS5VGC42F4XCEZ3DAZC \ / AMOS7 \ YOURUM ::
-#\[7]LDGHVKNLI5ZSST2HFERL3JCQKYXMH6IGTAZQ7TZC4VPS56X3OMAI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,,..,.,,,.,,,,..,,,.,..,,..,,..,,...,..,,.,,,,,,,,,,,..,,..,,
+#MNOXAK7YJPBX6W5VVCBSTYDFJLM7C4R5OOHAPBAZPGLKJJ6UKM7UF4MYZA7F7MFAN3INOTUSLCBJM
+#\\\|BOHQBRGFDPMEGSJ5RZLAKXLDDH5D6GBKRMHECUV5TC63AHPGQMA \ / AMOS7 \ YOURUM ::
+#\[7]XI3ZO5MIXEWPQFZPEJTN66OWSKEBXYOVVKJEGM3S5B2NPMEJP2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
