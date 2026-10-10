@@ -3,9 +3,16 @@
 # name  = coding.tools.handler.write_new_file
 # descr = write new file with validation and staging support
 # param = $args[{path,content,encoding}], encoding defaults to UTF-8
-my $args     = shift               // {};
-my $path     = $args->{'path'}     // return 'path required';
-my $content  = $args->{'content'}  // return 'content required';
+my $args    = shift              // {};
+my $path    = $args->{'path'}    // return 'path required';
+my $content = $args->{'content'} // return 'content required';
+
+## a copied signature block is removed    ##
+## [ added at signing, never by a model ] ##
+my $sig_note
+    = <[coding.helper.strip_signature]>->( \$content )
+    ? ' [ signature block removed : it is added at signing ]'
+    : '';
 my $encoding = $args->{'encoding'} // qw| :encoding(UTF-8) |;
 
 my $content_len = defined $content ? length($content) : 0;
@@ -16,8 +23,9 @@ if ( $content_len == 0 ) {
         1,     ':. write_new_file: created empty file %s [ %d bytes ]\n',
         $path, $content_len
     );
-    return sprintf "created empty file %s [ %d bytes ]\n",
-        $path, $content_len;
+    return
+        sprintf( "created empty file %s [ %d bytes ]\n", $path, $content_len )
+        . $sig_note;
 }
 
 my $root       = <system.root_path>;
@@ -129,13 +137,17 @@ if ( -f $abs_path and -w $abs_path ) {
             ;    ## consume restore reply : keep pipe in sync ##
     }
     $track_write->();
-    return sprintf "created %s [ %d bytes ]", $path, -s $abs_path // 0;
+    return
+        sprintf( "created %s [ %d " . "bytes ]", $path, -s $abs_path // 0 )
+        . $sig_note;
 } elsif ( -d ( $abs_path =~ s|/[^/]+$||r )
     and -w ( $abs_path =~ s|/[^/]+$||r ) ) {
     <[file.write]>->( $abs_path, \$content, $norm_encoding );
     chmod( 0664, $abs_path );
     $track_write->();
-    return sprintf "created %s [ %d bytes ]", $path, -s $abs_path // 0;
+    return
+        sprintf( "created %s [ %d " . "bytes ]", $path, -s $abs_path // 0 )
+        . $sig_note;
 }
 
 ## stage to zenka dir when no write access ##
@@ -153,11 +165,13 @@ if ( $created_via_child and -f $abs_path and not -s $abs_path ) {
     1, ':. write_new_file : staged %s [ no write access ]', $path
 );
 return
-    sprintf "staged new file %s [ %d bytes, no write access "
-    . "]\nstaged at : %s", $path, length($content), $stage_rel;
+    sprintf(
+    "staged new file %s [ %d bytes, no write access " . "]\nstaged at : %s",
+    $path, length($content), $stage_rel )
+    . $sig_note;
 
-#,,.,,...,,..,...,,,,,.,,,..,,,,.,.,.,...,,..,.,.,...,.,.,.,.,,,,,,..,.,,,,.,,
-#7CO6AL3EYYXFOR5AMMFIVYIZDR5W7CF6Y7NRAJ3VB4Q5LQODLBNNHIKSVPYXXDKLJ3JVMLJEF7WUY
-#\\\|QDRFO4SLXUFC42TIAXPRF6366QQ2GPZFJAGZUXKTC6XOAITW33M \ / AMOS7 \ YOURUM ::
-#\[7]IP6UVCP4TL52VMHZWQ4CAQ52ZHPIYCAW4LZPFZP6NY7UIMT2BSBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,.,.,,,.,,,,,.,,,.,,,,..,..,,.,.,...,..,,,,,,,..,,.,,,,.,,,.,
+#BSFDA2I2YXQRXFM75TIHXUA72YNV4KPYUNO5CGYOKMOHUJSICT4TPJYNFNVNWH3MPUOVNP6ND3LSE
+#\\\|RWQM2GQCOGG2GDVY7Z4DASOCKUMJI3PAWIICI5VBHSA7F7H7XPA \ / AMOS7 \ YOURUM ::
+#\[7]7DXCWHOIDKPHLTU5JZRSGNJE3SHIBXVII77LMWWXIKZBUQO3JOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
