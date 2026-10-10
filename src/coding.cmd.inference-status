@@ -9,8 +9,8 @@ my $reply_id = $call->{'reply_id'} // '';
 
 my $servers = <coding.inference_servers> // {};
 
-## authoritative mmproj path from model resolution  [ server hash may be ##
-## stale if module reloaded after spawn ]                                ##
+## authoritative mmproj path from model resolution             ##
+## [ server hash may be stale if module reloaded after spawn ] ##
 my $gpu_mmproj = <inference.model.mmproj_path> // '';
 my $cpu_mmproj = <inference.model.mmproj_path> // '';
 
@@ -25,6 +25,34 @@ $cpu_mmproj = $servers->{'cpu'}{'mmproj_path'}
 my $gpu_status = $servers->{'gpu'}{'status'} // 'unknown';
 my $cpu_status = $servers->{'cpu'}{'status'} // 'unknown';
 
+## load plan of a server [ spawn_inference_server's record ] : context, ##
+## layers on the gpu, moe experts in ram, kv cache type                 ##
+my $plan = sub {
+    my ($srv) = @ARG;
+    $srv //= {};
+    return (
+        'n_ctx'          => $srv->{'n_ctx'}          // 0,
+        'calculated_ctx' => $srv->{'calculated_ctx'} // 0,
+        'kv_cache_type'  => $srv->{'kv_cache_type'}  // '',
+        'gpu_layers'     => $srv->{'gpu_layers'}     // 0,
+        'layer_count'    => $srv->{'layer_count'}    // 0,
+        'offload_mode'   => $srv->{'offload_mode'}   // '',
+        'n_cpu_moe'      => $srv->{'n_cpu_moe'}      // 0,
+    );
+};
+
+## vram used / total, cached 5 s : internal callers poll this command ##
+## [ vision_switch_poll every second ] and nvidia-smi blocks          ##
+my $vram_cache = <coding.vram_status_cache> //= {};
+my $now        = <[base.time]>->(3);
+if ( $now - ( $vram_cache->{'at'} // 0 ) > 5 ) {
+    my $vram = <[coding.helper.query_gpu_memory]>;
+    $vram_cache->{'at'} = $now;
+    $vram_cache->{'used_mb'}
+        = $vram->{'ok'} ? $vram->{'total_mb'} - $vram->{'free_mb'} : -1;
+    $vram_cache->{'total_mb'} = $vram->{'ok'} ? $vram->{'total_mb'} : -1;
+}
+
 my $status = {
     'gpu' => {
         'status'        => $gpu_status,
@@ -35,6 +63,9 @@ my $status = {
         'url'           => $servers->{'gpu'}{'url'}     // '',
         'backend'       => $servers->{'gpu'}{'backend'} // 'gpu',
         'still_loading' => ( $gpu_status eq qw| starting | ) ? 1 : 0,
+        $plan->( $servers->{'gpu'} ),
+        'vram_used_mb'  => $vram_cache->{'used_mb'},
+        'vram_total_mb' => $vram_cache->{'total_mb'},
     },
     'cpu' => {
         'status'        => $cpu_status,
@@ -45,6 +76,7 @@ my $status = {
         'url'           => $servers->{'cpu'}{'url'}     // '',
         'backend'       => $servers->{'cpu'}{'backend'} // 'cpu',
         'still_loading' => ( $cpu_status eq qw| starting | ) ? 1 : 0,
+        $plan->( $servers->{'cpu'} ),
     }
 };
 
@@ -63,8 +95,8 @@ if ( length $reply_id ) {
 
 return { 'mode' => qw| size |, 'data' => $yaml };
 
-#,,.,,,,,,,..,,,,,,..,..,,,,.,..,,,,.,...,,,,,..,,...,...,...,.,.,...,,..,.,.,
-#I6PXJDIW5T5TLDSIASZ74QOQS2OMFQFCSZWGCJNNNOTAOWUOP2LNZ6FESBXA4ZPAF5ZEMZTOQPOXG
-#\\\|SHZE2WODBDEJJDADILV7K6NUMYOVLVDVMZEDMKE5QOJSS72CNJV \ / AMOS7 \ YOURUM ::
-#\[7]EXQW3MVABKPKAMZ35E66WWXC6NXTY6NM5KMVB2LCWGZXDA645WDI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,...,.,.,.,,,.,.,...,,,.,..,,..,,...,...,,,,,,.,,,.,,,..,,,.,
+#CTGDLMVYGBPQWSR24SSGMBWWEOXLKAGO2667S23LEXBWJQTJBAHFKPEFGCKQG6UTAOUNENFMH3NHO
+#\\\|C7SNCOSKLBAOXTKLY2J5ECFHTK6X63GHL4RFMDC3BAHUUGJF7HO \ / AMOS7 \ YOURUM ::
+#\[7]V7YGZDAGQ4IN37ZDUDKD56FSBA3LIOMNGVXY6AI7OC32ZQBQUGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
