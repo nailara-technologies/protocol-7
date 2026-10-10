@@ -72,6 +72,25 @@ if ( $repeat > 1 ) {
     ];
 }
 
+## models: auto [ overnight work, todo XOJ ] : the candidates are the      ##
+## models the tasks ask for -- a task's own model:, else its mode:'s model ##
+## [ coding.mode.setting ], else the start model. each candidate then runs ##
+## only its own tasks : every model loads once, its tasks grouped          ##
+if ( ( $spec_href->{'models'} // '' ) eq qw| auto | ) {
+    my ( @models, %seen );
+    for my $task_href ( $spec_href->{'tasks'}->@* ) {
+        my $model = $task_href->{'model'} // <[coding.mode.setting]>->(
+            $task_href->{'mode'} // '',
+            qw| model |
+        ) // <coding.cfg.start_model> // '';
+        $model =~ s|\s.*$||;    ## a trailing config comment ##
+        $task_href->{'model_auto'} = uc $model;
+        push @models, uc $model if length $model and !$seen{ uc $model }++;
+    }
+    $spec_href->{'models'}      = \@models;
+    $spec_href->{'models_auto'} = TRUE;
+}
+
 ## v1 : an explicit candidate shortlist is required -- this is the deep,
 ## expensive evaluation of a sweep-produced shortlist, not a registry-wide
 ## pass [ the sweep itself owns that shape ]
@@ -84,8 +103,8 @@ $spec_href->{'reference_tps'} //= 20;
 
 return $spec_href;
 
-#,,,,,,.,,,..,,.,,,,.,,..,,.,,...,,,.,,.,,.,.,..,,...,...,...,...,.,,,...,,,.,
-#HPQPIFIT7RBMPZZP6WAEWKQYN7WCV34AKIP6IZ2XFQCJVL5AWNPZMTSRENJL3SLFTWOBGXSVSJAZA
-#\\\|PBDJ7NTWRHWPDTLAKQAHERKDVTSJDDJ4QKHM3EV66R6O3Q7S7L7 \ / AMOS7 \ YOURUM ::
-#\[7]XBVMA47LV6N3AK264WFGTHFSADWCSBWAVNAAMDP5FXZ7QR4SPADI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,..,,,,,,,.,,...,,..,,,.,,,,,..,,...,...,...,.,.,,.,,..,,,.,,
+#GCVEI6KORXK6MWJFUNQLZCTBTINTFKRCWNAGDU7DCIPO4Y2MNKBVB7RVRPIDXTJCAMZC57VGFHHOC
+#\\\|GBM23SAYHN62SKZ6Y37BLID3OKWDQHS63JGB7R4WCYSY3IAUYCD \ / AMOS7 \ YOURUM ::
+#\[7]PUK7TEAUOGPPD2TMC6P7YSN32BXYFVF4YIHOQWXBQTVHW2HMVOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

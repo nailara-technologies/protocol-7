@@ -381,11 +381,12 @@ sub recovery_code_normalize {
 ##[ KEY FILE ]################################################################
 
 ## every stored file is one base32 block [ rfc 4648, no padding ] in the frame
-## of bin/Protocol-7's inline subroutines : a '.:[ title ]:.' line, ':' lines
-## around, payload lines ': ' + 76 chars [ 78 columns ], a short last line
-## centred with '0' -- outside the base32 alphabet, so a reader drops every
-## '0' \ '1' and joins the ': ' lines. binary fields inside, nothing to align.
-## each write is checked to decode back
+## of bin/Protocol-7's inline subroutines : a blank line, a '.:[ title ]:.'
+## line, ':' lines around, a ':.' line and a blank line closing, payload lines
+## ': ' + 76 chars [ 78 columns ], a short last line centred with '0' --
+## outside the base32 alphabet, so a reader drops every '0' \ '1' and joins
+## the ': ' lines. binary fields inside, nothing to align.  each write is
+## checked to decode back
 our $B32_LINE = 76;
 
 sub _b32_file_text {
@@ -399,8 +400,11 @@ sub _b32_file_text {
         . $rows[-1]
         . ( '0' x ( $pad - int( $pad / 2 ) ) );
 
-    my $text = join '', ".:[ $title ]:.\n", ":\n", map( {": $ARG\n"} @rows ),
-        ":\n";
+    ## the frame of bin/Protocol-7's inline blocks : a blank line before ##
+    ## and after, ':.' closing [ readers only take the ': ' payload ]    ##
+    my $text = join '', "\n.:[ $title " . "]:.\n", ":\n",
+        map( {": $ARG\n"} @rows ),
+        ":\n", ":.\n", "\n";
     die "vault : base32 round trip failed\n"
         if ( _b32_text_decode($text) // '' ) ne $bin;
     return $text;
@@ -1129,8 +1133,8 @@ sub gen_password {
 
 1;
 
-#,,.,,.,,,,.,,,.,,..,,,,,,,,.,,,.,.,,,,..,,,.,..,,...,...,,..,..,,.,,,.,.,...,
-#OC7UFWSG7CG7DVEO3VLJ4FXN6UJEBE45X2BD6YPNJMJDHCV7KTXUTV3AS5ANOOJA57IFVOGXJDYW4
-#\\\|JBA4HLC5UBQJKO36I5HDZOVZQ5HUKCGTJF6P2AU5KBXPKLKXEZM \ / AMOS7 \ YOURUM ::
-#\[7]LKHT4WVQQJTRQABPPLMM3YIW2H5GGSPS63OI6LGYRAWGU4BAY2BI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,..,,,.,,,,.,,..,,,.,,.,,,,.,..,,...,...,...,...,.,.,.,.,..,,
+#ABM3HXRO56B3ODNB33XDMUXJ6VGRIGU4H25NFJIHS2GW3GVTYBAPA6MOJEMEKAQNJIURPIR3HLZ6M
+#\\\|KOM7KGMAP3WJFXJDUCCESU67KTZSD2W4RGS4VYC3AOM3BAGN4XX \ / AMOS7 \ YOURUM ::
+#\[7]W2Z2CJQ2HQFHJ2G7HNHNGMJ3QHE7ATJJ2NB2VVVPWAJWXHBGI2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

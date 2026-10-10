@@ -203,6 +203,12 @@ my $settle_task = sub {
         and ref $coding_task->{'execution'}{'round_seeds'} eq qw| HASH |;
     $entry->{'coding_task_id'} = $state->{'current_task_id'} // '';
 
+    ## the reply [ todo XOJ ] : a report task's result is its text, not a ##
+    ## file -- kept for the morning review, capped                        ##
+    $entry->{'reply'} = substr $result_text, 0,
+        <coding.cfg.batch_reply_max> // 8000
+        if defined $result_text and length $result_text;
+
     ## criteria hits over the reply and every written file, plus a compile ##
     ## check of touched src/ modules -- before the revert, while the files ##
     ## are still on disk. replaces the iteration.score_result call, which  ##
@@ -640,7 +646,17 @@ if ( $phase eq qw| task_start | ) {
     }
 
     my $candidate = $candidates->[$idx] // '';
-    my $loaded    = $loaded_model_id->();
+
+    ## models: auto [ todo XOJ ] : a candidate runs only the tasks that ##
+    ## asked for it -- the others belong to another candidate's turn    ##
+    if ( $state->{'spec'}{'models_auto'}
+        and uc( $tasks->[ $state->{'task_idx'} ]{'model_auto'} // '' ) ne
+        uc $candidate ) {
+        $state->{'task_idx'}++;
+        return TRUE;
+    }
+
+    my $loaded = $loaded_model_id->();
     if ( length $loaded and $loaded ne $candidate ) {
         ## model-swapped-mid-batch : record, settle, freeze. the           ##
         ## timeout_restart respawn path can fire from INSIDE our own tasks ##
@@ -677,6 +693,10 @@ if ( $phase eq qw| task_start | ) {
         );
         $prompt = <[file.read]>->($prompt_path) // '';
     }
+
+    ## a task's work mode [ todo WNF \ XOJ ] : model, template, tool set ##
+    $prompt .= " :mode:$task_href->{'mode'}:"
+        if length( $task_href->{'mode'} // '' );
 
     ## submit through the normal queue machinery : the SAME pipeline     ##
     ## coding.cmd.submit runs                                            ##
@@ -1115,8 +1135,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,..,.,,,,,.,,.,,,..,,,,,,,.,,,,,.,.,,,.,,..,..,,...,...,..,,,..,,..,..,,...,
-#ZZ533THFRYOOSZHLMHNOMWXGHUHOWWU2A7MTKFLJFFCMTKVZ4AAESYXH4KKQM6PLULQQ2U6EY5QL6
-#\\\|VDDR6SCB7UR36SKZCS23AALFW5OLNTOJ35ZVZLVOJSCE6IHQMNC \ / AMOS7 \ YOURUM ::
-#\[7]Y2HN4C6WRQKM73GDH5TIBUIBUGL6IZBIMXY5L2ERQI6GD6KODSAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,.,,...,..,,.,.,,..,.,.,...,..,,...,...,.,.,..,,,..,,,,,,.,,
+#FMDACWNSVN3HB5M56B57GLHRBVO2BPJC5WQM3BF2SZKRFSSJAWTBGRHNFAPVXFT33FVQTIDDKV4NM
+#\\\|JZ55W44R6WOGZOPCSP6T3AA2FL5M4YOTM3XBU6BOTFBB3TK25J5 \ / AMOS7 \ YOURUM ::
+#\[7]XTADGCT3TBAQVPP2P5OGXGEZKL4PHAW3JP6VEROI2ETIJ3YJQUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
