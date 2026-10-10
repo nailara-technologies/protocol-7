@@ -163,7 +163,15 @@ inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
 inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 ##                                            [ Gemma3 Glitter is 2.21GB ] ##
-inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
+inference.backend.gpu.gpu_layers = 999  ## all layers : clamped to the model's real count at spawn [ was 33 : every model with more layers ran partly on the cpu ] ##
+
+## kv cache type for -ctk / -ctv : q8_0 is about half the memory per context ##
+## token of f16 [ f16 is used anyway while a lora adapter is set ]          ##
+coding.cfg.kv_cache_type = q8_0
+
+## moe models : keep the expert weights of as many layers in ram as the    ##
+## context floor [ inference.model.context_length ] needs [ --n-cpu-moe ] ##
+coding.cfg.moe_expert_offload = yes
 
 ## hybrid/partial gpu+cpu layer offload : when a model doesn't fit fully in ##
 ## free vram, reduce -ngl instead of refusing the spawn outright [ llama    ##
@@ -474,8 +482,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,..,,...,.,,,..,,.,.,,,,,,,,,..,,...,,.,,.,.,...,...,,..,,.,,..,,.,,,,,.,
-#T7VIJNMUJ76AQM2O2ZNFNMP3QZIRN23LBSQSDLJDDVASTSM5TLLXDSOQCOQYGRYZAYG5SP5RRJH3K
-#\\\|RZI37BEUOKO7LZHAHTJK2TDUCG7SNEQ2PHPLONYA7BWO4DTW76Y \ / AMOS7 \ YOURUM ::
-#\[7]RUO4HEA6XIAKZLF7B2NRDVGOJGSGFHDZ6CB5SDNXYIAC7JH7KCCY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,...,..,,,.,,..,,.,.,.,,,,..,.,.,...,..,,..,,,,.,...,...,.,.,
+#6I5JJDKQZBTCHFPWCFB3BVNGY6Q3UOODHEYF7ABECHCEH3I54R7DH632CGFFHIB5AM72C4KSGAKNO
+#\\\|LIZRRSXBMM7QPONJZHOCPTRSIZCPN7ZBCTW4J6P373W2ET6C7WK \ / AMOS7 \ YOURUM ::
+#\[7]OI53KYUJMV5CLTL5H6QWI4TD6IXSVHDBCN7Y6TODUJZHSTILGACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
