@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = base.chmod_child.start
+# descr = fork a child running as the admin user : creates, removes and
+#         opens up paths the zenka's own user may not touch
+# note  = shared version of coding.start.chmod_child / ncode.start.
+#         chmod_child [ per-zenka data : <chmod_child.*> ]. must run as
+#         root, before [ root.drop_privs ] -- an init_code is the place.
+#         commands [ one per line, one reply line each : ok | skip | err ] :
+#           gw <file>  gwd <dir>   group-write [ admin group only ]
+#           create <file>          empty 0664 file [ parent in admin group ]
+#           remove <file>          plain file
+#           mkdir <dir>            with parents [ ancestor in admin group ]
+#           restore <octal> <path> mode
+#           grant <dir>            rwx + default acl for the grant user
+# param = { admin_group => name [ default : the admin user's group ],
+#           grant_user  => name [ the zenka's drop user, for 'grant' ] }
+
+my $params = shift // {};
+
+return if defined <chmod_child.w_fh>;
+return if not( $EUID == 0 or $UID == 0 );    ## must be root to fork ##
+
+my $admin_user = <system.admin-user> // '';
+return if not length $admin_user;
+my ( undef, undef, $admin_uid, $admin_user_gid ) = getpwnam($admin_user);
+return if not defined $admin_uid;
+
+my $admin_group = $params->{'admin_group'} // getgrgid($admin_user_gid) // '';
+my $admin_gid   = length $admin_group ? ( getgrnam($admin_group) )[2] : undef;
+return if not defined $admin_gid;
+
+my $grant_user = $params->{'grant_user'} // '';
+$grant_user = '' if $grant_user !~ m|^[a-z_][a-z0-9_-]*$|i;
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+( my $zenka_name = <system.zenka.name> // 'zenka' ) =~ s|[^0-9A-Za-z_\-]+||g;
+
+my $child_code = <<~"EOT";
+use v5.24; use strict; use warnings; use English;
+map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
+\$GID = \$EGID = $admin_user_gid;
+\$UID = \$EUID = $admin_uid;
+\$PROGRAM_NAME = q|$zenka_name-<$admin_user>-chmod-child|;
+\$| = 1;
+my ( \$admin_gid, \$admin_uid, \$grant_user ) = ( $admin_gid, $admin_uid, q|$grant_user| );
+my \$in_group = sub { my \$gid = ( stat shift )[5]; defined \$gid and \$gid == \$admin_gid };
+my \$ancestor = sub { my \$p = shift; \$p =~ s|/[^/]+\$|| while length \$p and not -d \$p; \$p };
+while ( my \$line = <STDIN> ) {
+    chomp \$line;
+    exit if not length \$line;
+    if ( \$line =~ m|^gw (.+)\$| and -f \$1 and \$in_group->(\$1) ) {
+        chmod( ( ( stat \$1 )[2] & 07777 ) | 0020, \$1 ); print "ok\\n";
+    } elsif ( \$line =~ m|^gwd (.+)\$| and -d \$1 and \$in_group->(\$1) ) {
+        chmod( ( ( stat \$1 )[2] & 07777 ) | 0020, \$1 ); print "ok\\n";
+    } elsif ( \$line =~ m|^create (.+)\$| and not -e \$1 ) {
+        my \$path = \$1; ( my \$dir = \$path ) =~ s|/[^/]+\$||;
+        do { print "skip\\n"; next } if not -d \$dir or not \$in_group->(\$dir);
+        if ( open my \$fh, '>', \$path ) { close \$fh; chmod( 0664, \$path ); print "ok\\n" }
+        else { print "err\\n" }
+    } elsif ( \$line =~ m|^remove (.+)\$| and -f \$1 ) {
+        print unlink(\$1) ? "ok\\n" : "err\\n";
+    } elsif ( \$line =~ m|^mkdir (.+)\$| and not -e \$1 ) {
+        my \$path = \$1; my \$anc = \$ancestor->(\$path);
+        do { print "skip\\n"; next } if not length \$anc or not \$in_group->(\$anc);
+        require File::Path;
+        File::Path::make_path( \$path, { mode => 0775 } );
+        print -d \$path ? "ok\\n" : "err\\n";
+    } elsif ( \$line =~ m|^restore ([0-7]+) (.+)\$| and -e \$2 ) {
+        chmod( oct(\$1), \$2 ); print "ok\\n";
+    } elsif ( \$line =~ m|^grant (.+)\$| and length \$grant_user and -d \$1
+        and ( stat \$1 )[4] == \$admin_uid ) {
+        my \$acl = "u:\$grant_user:rwx,d:u:\$grant_user:rwx";
+        print system( qw| setfacl -m |, \$acl, \$1 ) == 0 ? "ok\\n" : "err\\n";
+    } else {
+        print "skip\\n";    ## unknown or refused : always reply ##
+    }
+}
+EOT
+
+<[base.perlmod.load]>->('IPC::Open2')
+    if not <[base.perlmod.loaded]>->('IPC::Open2');
+my ( $r_fh, $w_fh );
+my $pid = eval {
+    IPC::Open2::open2( $r_fh, $w_fh, <system.path.perl_bin>, qw| -e |,
+        $child_code );
+};
+if ( !$pid ) {
+    <[base.logs]>->(
+        0, ': cannot start chmod child [ %s ]',
+        <[base.str.eval_error]>
+    );
+    return;
+}
+<chmod_child.pid>  = $pid;
+<chmod_child.r_fh> = $r_fh;
+<chmod_child.w_fh> = $w_fh;
+<[base.logs]>->(
+    2,    ': started chmod child [pid:%d] admin=%s group=%s grant=%s',
+    $pid, $admin_user, $admin_group, $grant_user || '-'
+);
+return $pid;
+
+#,,,.,,..,.,.,.,,,.,,,,,.,...,,,.,,,,,...,,..,..,,...,.,.,..,,.,,,,..,,,,,..,,
+#SCL7RTA7GZJLS3WA3BMDT5MHE7QCXN3KZP7QVRHU257JYEJ4FT2HCTJYMHCLV6LRXMFH4LXU5OQWG
+#\\\|6YTNIBFO3GNJHUFR6U2UWKGFBF5JX6PDC6QPDP7VPMITMGHXNB5 \ / AMOS7 \ YOURUM ::
+#\[7]5JPP2LTFUKY3LQLJ32QQQTF3AC3EEVFLMUCIDJ7P63FTDTLNVWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

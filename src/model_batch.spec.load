@@ -53,6 +53,25 @@ for my $task_href ( $spec_href->{'tasks'}->@* ) {
         and $task_href->{'budget_hint'} > 0;
 }
 
+## repeat : N runs of every task [ results of one run vary a lot ],        ##
+## expanded here into id, id.2 .. id.N so recording, revert and the status ##
+## grid treat each run as its own task                                     ##
+my $repeat = $spec_href->{'repeat'} // 1;
+$repeat = 1 unless $repeat =~ m{^\d+$} and $repeat >= 1;
+$repeat = 9 if $repeat > 9;
+if ( $repeat > 1 ) {
+    $spec_href->{'tasks'} = [
+        map {
+            my $task_href = $ARG;
+            (   $task_href,
+                map {
+                    { %$task_href, 'id' => "$task_href->{'id'}.$ARG" }
+                } 2 .. $repeat
+            )
+        } $spec_href->{'tasks'}->@*
+    ];
+}
+
 ## v1 : an explicit candidate shortlist is required -- this is the deep,
 ## expensive evaluation of a sweep-produced shortlist, not a registry-wide
 ## pass [ the sweep itself owns that shape ]
@@ -65,8 +84,8 @@ $spec_href->{'reference_tps'} //= 20;
 
 return $spec_href;
 
-#,,,,,...,,,.,.,.,,..,...,,,.,,,.,,.,,...,,,,,..,,...,...,..,,,,.,,,.,,..,,.,,
-#ED26DL643QH4O5KACEHA5DRGN7TVFDSY6LBF7MKXRTZVCC6KP3P35G6XKR6GRVG5Q4WTFOOA5KBFS
-#\\\|JM7P5DZBW3GKTMRGIRRVDF4OJX4NAPMZGCRERAYQXPE6GYP4PNJ \ / AMOS7 \ YOURUM ::
-#\[7]LCVHPO632DHSP6SM4WVKYMTILSEXGVSGVEUEMEDKENDBKATNHADQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,,.,,..,,.,,...,,,.,,.,,.,.,..,,...,...,...,...,.,,,...,,,.,
+#HPQPIFIT7RBMPZZP6WAEWKQYN7WCV34AKIP6IZ2XFQCJVL5AWNPZMTSRENJL3SLFTWOBGXSVSJAZA
+#\\\|PBDJ7NTWRHWPDTLAKQAHERKDVTSJDDJ4QKHM3EV66R6O3Q7S7L7 \ / AMOS7 \ YOURUM ::
+#\[7]XBVMA47LV6N3AK264WFGTHFSADWCSBWAVNAAMDP5FXZ7QR4SPADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
