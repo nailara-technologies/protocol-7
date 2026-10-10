@@ -9,9 +9,7 @@
 my $params = $ARG[0] // {};
 
 # determine root path from config, params, or default
-my $root = $params->{'root_path'}
-    // $data{'models'}{'external.models.lmstudio.path'}
-    // '/mnt/ext-xfs-data/models-lmstudio';
+my $root = $params->{'root_path'} // <[base.models_root]>;
 
 # [ scan for all .gguf files ]
 my @gguf_files;
@@ -95,8 +93,8 @@ for my $info (@gguf_files) {
 
 return \@records;
 
-#,,,.,,,.,,,.,,,,,,.,,,.,,.,,,,,,,...,.,.,..,,..,,...,...,.,.,,.,,.,,,,.,,,,,,
-#GTILBUXXSCJWT2EOKOMPDTA24CQGDGM57ODCJI3XFZL52CFGYI74W73A3RTL45D3B7V4T2HFOONZK
-#\\\|TDTJEA6BXCL3LG5YADWL4J647SMNVZSME7PIQG533T56NWXYQOH \ / AMOS7 \ YOURUM ::
-#\[7]O2EVIJJFZFAR6EPOQG26LXG67TXNKZ6P2PDWJQRCJCB3CHJCD4AY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,,,,,,.,,..,,,,,,,.,.,.,.,.,..,,...,..,,..,,,.,,,,,,.,.,,,.,
+#VWLCJGDYAZEWYA5CWT52GIW3VA5RRQJRQJYECFOJQJHB6BEDEMH25NQ5HARJIYFHQEBXQDWTQUHXW
+#\\\|GXL33EUCQXJ4ABCNHYVSIGU6NI7ZMSJPSKJCAJGI2A5GT5IJMTJ \ / AMOS7 \ YOURUM ::
+#\[7]EK35SKY564KII65AC27RUPQWIDL3LLJUGEJIDCVYCSK6LWNRD4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -837,6 +837,10 @@ items:
     - benchmark there : llama-bench -m <fablevibes q4_k_m> -t 8 -p 512 -n 128 , and a 3-4b dense model -- expected roughly 3-6 t/s generation for the 14b-a3b moe, prompt 20-50 t/s ; prompt processing is the real limit [ ~4k tokens of tools + system per round ]
     - worth it when generation >= ~5 t/s and prompt >= ~50 t/s : then route overnight batches [ XOJ, models: auto ] to a coding zenka there, keep interactive work on the local gpu
     - the 35b q3 [ 17.7 GB ] only with swap and margin -- likely not worth it on cpu
+
+    benchmark 2026-10-11 [ new server 1 : 8 vcpu 2 GHz, avx2 \ fma \ f16c, no avx512, ik_llama fe215a8cc cpu build : native, iqk, openmp ] :
+    fablevibes 14b-a3b q4_k_m [ 7.87 GiB ] -t 8 : prompt pp512 56 +- 8 t/s, generation tg128 9.1 +- 1.3 t/s -- above the thresholds [ ~50 \ ~5 ], worth routing overnight batches there. model at /data/models/<author>/<repo>/ [ base.models_root falls back to external.models.local.path there ]. build commands = the cpu build to save as bin/build-scripts/llama-cpp/build-llama-server-cpu.sh.
+    new server 2 [ 6 vcpu, 12 GB, 200 GB ] : a 3-4b dense model fits comfortably [ jobsite, QVG ], fablevibes only tight with swap.
   done_at: null
   id: 6WP
   priority: normal
@@ -897,9 +901,49 @@ items:
   - coding
   - remote
   text: 'remote bug fixing : model traces + fixes on its own branch, user away [ ssh from a phone ]'
+- added: 3X32FAGSEM
+  details: |-
+    move every service off the old low-power host onto the two new servers [ neighbors at the same provider, unlimited traffic between them ], make them resilient and convenient, then retire the old host [ user, 2026-10-11 ]. no host names or addresses in the tree : old host, new server 1 \ 2.
 
-#,,..,.,.,,.,,,,.,..,,,,.,,.,,,.,,,.,,.,.,,,,,..,,...,..,,..,,,..,,..,,,.,,,,,
-#ZLN7KJ3WYWRSHJRW5XDROLR2TZHIOG3T3NCPRHL2OBSAFJLYV7OYTIW7A5XS4ESJF2EIHRY367DNC
-#\\\|LMPOZTMGWGXR2FG3O76D3OZMEEFTWBW2MTLMOM24I3W4B5E47QS \ / AMOS7 \ YOURUM ::
-#\[7]IJXDPG6B2WBGJ2TFW2RW7TCAIO3B5MOET2R3KL5GPKYY6SFCCUAY 7  DATA SIGNATURE ::
+    - services : nameserv, smtpd [ see UZU ], http[s]d, and the rest the old host runs -- list them there first
+    - local proxy : hysteria already runs on new server 1 but no config is migrated yet ; the udt-link zenki are meant to replace hysteria with native links later
+    - protocol-7 itself : not installed as a full node on new server 1 yet [ /usr/local/protocol-7 is there ] -- then known nodes between the hosts instead of plain ssh config
+    - resilience : the two servers back each other up [ nameserv secondary, smtp fallback mx, http failover ] -- decide per service
+    - inference : see 6WP [ new server 1 runs fablevibes on cpu at 56 \ 9 t/s ]
+  done_at: null
+  id: CJ3
+  priority: normal
+  status: open
+  tags:
+  - infra
+  - migration
+  - servers
+  text: migrate the old host's services to the two new servers, then retire it
+- added: 3X32FAG5LQ
+  details: 'p7-vault holds ssh keys and passwords [ e.g. for the new servers ] -- new entry types beside login \ contact, a key entry keeps the private key encrypted like any secret field. later : zenki use them [ a remote link or deploy step asks the vault instead of reading ~/.ssh ] [ user, 2026-10-11 ].'
+  done_at: null
+  id: 5OT
+  priority: normal
+  status: open
+  tags:
+  - vault
+  - ssh
+  - keys
+  text: 'p7-vault : store ssh keys and passwords, later zenki integration'
+- added: 3X32FAHIGQ
+  details: 'the smtpd zenka still misses parts for the move [ CJ3 ] : automatic mail account setup from the contact address data in the users zenka -- in smtpd itself or in a new setup zenka. first : list what smtpd already does and what is missing [ user, 2026-10-11 ].'
+  done_at: null
+  id: UZU
+  priority: normal
+  status: open
+  tags:
+  - smtpd
+  - users
+  - setup
+  text: "smtpd : automatic account setup from the users zenka's contact data"
+
+#,,,,,.,,,...,,.,,,..,...,,..,..,,..,,.,.,..,,..,,...,...,.,.,...,,..,,.,,...,
+#H4WUZN4RBED3MSNGCI7T6CGK4CCYV3NYZWPTKGMPKYCSJPATNCUHMKXNH7Q4MHDOZULEKWTTU5AZM
+#\\\|P5TNSWOTESG3YVSR36CNZGNGISEUJN4KNU2XPN27434NNGEYTOS \ / AMOS7 \ YOURUM ::
+#\[7]YEJVQRC2MYBC3IAYCXHPNV6AI7TQPMCXOJPYWV2SIOKXB2MXYYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
