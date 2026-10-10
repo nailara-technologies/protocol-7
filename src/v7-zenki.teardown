@@ -5,9 +5,15 @@
 
 my $reason  = shift // '';
 my $c_level = shift;      ## modifies caller(<level>) ## [ 'none' for silent ]
-my $exit_code = length($reason) ? 1 : $CHILD_ERROR;
+
+## exit code : explicit when passed, else 1 only for a reason that reads as ##
+## a failure [ base.str.is_failure ] -- under systemd Restart=on-failure a  ##
+## non-zero code restarts protocol-7, a planned end exits 0. never          ##
+## $CHILD_ERROR [ the status of whatever child was reaped last, not ours ]  ##
+my $exit_code = shift
+    // ( <[base.str.is_failure]>->($reason) == TRUE ? 1 : 0 );
 my $log_level = length($reason) ? 0 : 1;
-my $t_res     = 3;        # <-- time delta float resolution
+my $t_res     = 3;                         # <-- time delta float resolution
 
 my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
 my $abort_timeout = 2;
@@ -153,8 +159,8 @@ map {
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,..,..,,.,,,..,,,..,,..,,.,,,,,,...,,..,.,.,..,,...,...,.,,,,,,,,,.,,..,...,
-#TNWKYXROF2K2BZQ53MS4K4GKY4R6XY3DBWKEL7EKCARIWWUN2CAGBCDT2CPKJIEQVQXIGGI23MX6Y
-#\\\|RH6TV7TWUDMJIBPORCXGLYU4DADBM55LOH6GXMAYEZXLL23NLGP \ / AMOS7 \ YOURUM ::
-#\[7]J2TOS7FLTQPFWT4WGREQBDZLCOKOYJOBRULHOT5XB6IFY6RUGADQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,...,...,...,,..,,.,,.,,,,,.,..,,...,...,...,,,,,.,,,.,.,,..,
+#D4MEQZTT6WNEFTW5UMD4ATPERLQJMXNTEVXB3JURXNZ6PWCCDTWXKS7IKIZFYRKK6DVKQS5UYJK2M
+#\\\|DMFNINCFELWJIA44A6M3HXYEQKOC6H6TEISW4IFLBNU7RQPODC2 \ / AMOS7 \ YOURUM ::
+#\[7]DMRI63ZCJVKRIP4XL6TU7GUFW4SRSUW77NDKFPRLSQYRL7SLWKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
