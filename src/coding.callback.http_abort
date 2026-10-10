@@ -29,6 +29,34 @@ my $match = ( $http_state // {} )->{'abort_match'} // {};
     $match->{'matched'}    // ''
 );
 
+## a whitespace run [ endless blank lines ] is a sampling failure, not a    ##
+## wrong approach : retry the round once with a new seed before failing the ##
+## task [ fablevibes 2026-10-10 : 3/3 aborts at round 2 ]. a phrase loop    ##
+## still fails at once. the connection is torn down by the caller           ##
+## [ http_io_parse_line ] right after this returns                          ##
+my $round = $state->{'round'} // 0;
+if (    ( $match->{'pattern_id'} // '' ) eq qw| degenerate_repetition |
+    and ( $match->{'matched'}                // '' ) =~ m|^\s+$|
+    and ( $state->{'whitespace_retry_round'} // -1 ) != $round
+    and <[base.cfg_bool]>->( <coding.cfg.whitespace_abort_retry> // 1 ) ) {
+    $state->{'whitespace_retry_round'} = $round;
+    $state->{'retry_seed'}             = int rand 2**31;
+    <[coding.abort.count]>->( qw| retry |, qw| whitespace |, '' );
+    <[base.logs]>->(
+        1,
+        'http_abort: %s : whitespace run at round '
+            . '%d -- retrying the round once [ seed %d ]',
+        $task_id,
+        $round,
+        $state->{'retry_seed'}
+    );
+    my $restarted = <[coding.async.round_soft_restart]>->(
+        $task_id, undef,
+        ( $http_state // {} )->{'callbacks'}{'lock_token'} // qw| force |
+    );
+    return if $restarted;
+}
+
 ## fail the task so it does not hang waiting for a clean close ##
 <[coding.async.complete]>->(
     $task_id,
@@ -40,8 +68,8 @@ my $match = ( $http_state // {} )->{'abort_match'} // {};
 
 return;
 
-#,,.,,.,,,,,.,...,,,,,..,,,..,..,,..,,,,.,...,..,,...,...,.,,,,,,,.,,,...,,,.,
-#T5PSRGMUPRR56VVCADLW3ETZG4G2YPQOGI5CDDVNRV27S4OATDO5FNRMAEIF4DVTSUUG744HMGIS4
-#\\\|S6JELRXL3TCPCHT4I3ZUMN52L5X6QNYZL6NUXWWAW7DP764FLFB \ / AMOS7 \ YOURUM ::
-#\[7]FIFUPS735J5T5OLG5EGYTX5YLAD2LZNHUEL5WI5FGVBJGXW34EAI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,.,.,,,.,,,,,..,,...,.,.,..,,..,,...,...,...,...,,,.,,..,,..,
+#6TMMHWQ6GIBYSKBGEP27LGVK4BBPNPWEU7CQTSS43M4VHKFCAAXTFE7VFACJHXMZZGKFDZ4MVDZ3E
+#\\\|SBURAHDD43XSMEEVPGDK5HFJWNPHYQIF7HMIH7GMWDOE6Q3MX76 \ / AMOS7 \ YOURUM ::
+#\[7]KXMA4Z7DBP5TJKU2I53RK7QK5QVVURBPSIO67STDBEJOKAJ6XKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

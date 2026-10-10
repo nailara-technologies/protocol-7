@@ -335,6 +335,11 @@ my $request_body = {
     'dry_penalty_last_n' => <inference.model.dry_penalty_last_n> // -1,
 };
 
+## one-shot seed for a retried round [ coding.callback.http_abort ] : the ##
+## server's fixed --seed would replay the same degenerate output          ##
+$request_body->{'seed'} = delete $state->{'retry_seed'}
+    if defined $state->{'retry_seed'};
+
 ## add tools if available [ matches task.execute logic ] ##
 if (@$tools) {
     $request_body->{'tools'}       = $tools;
@@ -399,8 +404,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,...,,,,,.,.,,.,,..,,,..,,.,,..,,..,,...,..,,...,...,...,.,,,.,,,,.,,,,,,
-#4XHQOOZ5EGDZGBJ5D5NHH3X33JFXLYRYVWLZOKT4FJOIDGZ62FX7QJ73FG5NIEP53MOIR4LR66I34
-#\\\|G2YYWVW5PM7YYEWC7A5T3KYVINVMHGBGCUMZMZA6G62UMS6FONY \ / AMOS7 \ YOURUM ::
-#\[7]JMYVEPEG2URJMDJL4FOX5TCX5QMBMPNTNWXEAKFB3LX2NJ4GDYBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,...,...,,,,,.,.,,,,,,,,,...,..,,...,...,,.,,.,.,,.,,.,.,.,,,
+#6UOWCHEHZQE3HNJ6RGHWMH64AZA3DUJFKXKKFNHG5KE7L2HYN24YMIAU2T76PLFZZZBWBIFV2UQ6M
+#\\\|HR5IX47NVV3LJNOFBYAX4GYEGJP4CLXQ3Z6AFT4OE2CC7EB2EL2 \ / AMOS7 \ YOURUM ::
+#\[7]UHUCWLWFAJXPND5G4NFDWAOJ7WAUBMFEEMM57KYJV7E7MROFNYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
