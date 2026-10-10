@@ -204,6 +204,24 @@ coding.cfg.request_seed = yes
 ## DONE completes the task, NOT_LOOP continues it, LOOP fails it            ##
 coding.cfg.loop_verdict = yes
 
+## work modes [ todo WNF ] : a ':mode:<path>:' tag in a request picks the  ##
+## model and settings. dotted paths nest, the most specific mode that sets ##
+## a key wins [ code.new -> code -> default ], an explicit request always  ##
+## wins [ :model: pin, a template name in the prompt, a caller's system ]. ##
+## keys : model, tool_set, template, system, max_rounds. default stays     ##
+## empty : untagged tasks run on whatever is loaded. a mode's model is a   ##
+## pin -- the queue runs the loaded model's work first, then switches      ##
+coding.cfg.mode.edit.tool_set    = core
+coding.cfg.mode.doc.tool_set     = core
+coding.cfg.mode.code.model       = UWEPZFQ:TG3Q7PA  ## 35b q3_k_m : new code ##
+coding.cfg.mode.code.max_rounds  = 40
+coding.cfg.mode.review.template  = code-review
+
+## a deferred mode switch fires anyway after this many seconds [ a stale ##
+## task must never block it for good ] ; drain timer interval            ##
+coding.cfg.mode_switch_max_wait = 1800
+coding.cfg.mode_drain_interval  = 5
+
 ## hybrid/partial gpu+cpu layer offload : when a model doesn't fit fully in ##
 ## free vram, reduce -ngl instead of refusing the spawn outright [ llama    ##
 ## .cpp natively supports any -ngl 0..full layer count -- no binary change  ##
@@ -513,8 +531,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,..,,.,,,,,,,,,,,,..,,,.,,..,.,,,,.,,.,.,.,.,...,...,...,...,.,.,,,,,..,,
-#AACAECFNRUZA2GATNPOBZ7JIGIPFWHWFKRZ7QR23PEBMIOD4XG2GQ3UIXWGH77EUF546EWTLS75ZC
-#\\\|SZXSR6AN6MNSYVBCOMIAM4J2ENUVFAVVNO6LLXHF4SOJ3NVZ4ED \ / AMOS7 \ YOURUM ::
-#\[7]AHV6HU4CJYEZGGE7EZJS4S26GWTEARXCLEKRJRFBPY2IBNRO3ODI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,..,,,.,.,,,.,.,.,.,,.,,,..,.,.,...,...,,..,.,,,,.,,..,,,,,,
+#DCB6A2JG2FXC5DAIHQYPO72R5ZOJMXSB6YIBEICH2AM7OS6YGMOK7YLX23HIWVMKHJNV4SRUAV6QC
+#\\\|DSNPNRLMFR2GQF7THPPKQYLAF3LJJLMWPKWERF6TS5LHYKAY4B7 \ / AMOS7 \ YOURUM ::
+#\[7]7XVNDTRY7DHR5N2BTH2QEPRWFJAVVAJ6FGJ6C4TX627G553ESCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

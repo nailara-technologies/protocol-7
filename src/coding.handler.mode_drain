@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.handler.mode_drain
+# descr = timer : fire deferred pinned-model switches once the loaded
+#         model's open work is done [ queue grouping, todo WNF ]
+
+my $event   = shift;
+my $backend = $event->w->data // qw| gpu |;
+
+<[coding.helper.drain_model_pin_deferrals]>->($backend);
+
+## nothing left to switch : stop until the next deferral re-arms it ##
+if ( !%{ ( <coding.model_pin_deferred> // {} )->{$backend} // {} } ) {
+    delete <coding.mode_drain_timer>->{$backend};
+    $event->w->cancel;
+}
+
+return TRUE;
+
+#,,.,,,.,,,..,...,.,,,...,,,.,,.,,.,,,.,,,...,..,,...,..,,.,,,,.,,..,,...,,..,
+#KW274YLJYTNDL43NYZZQ5C2Q3WTBTVNN3FYUBEQHTN6BWP3YVSP2NXOJUZ7UXDML5SIMZKASIKZJ2
+#\\\|FFXFLKNB44LM223WFILFXH6BWNCSAFF2QEBEP5UQGFLFCVDGOCR \ / AMOS7 \ YOURUM ::
+#\[7]VRT22QVNY2UC3LM5XKHT6FTUQVQB6APWH3E766DDPD6W3VH3H2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

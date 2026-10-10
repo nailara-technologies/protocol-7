@@ -22,8 +22,8 @@ return TRUE if ref $deferred ne qw| HASH | or !%$deferred;
 ## whole mechanism exists to prevent. note the raw 'idle' flag can never be ##
 ## the fire condition here -- the parked 'depending' task that owns the     ##
 ## deferral itself counts as an active [ non-completed ] task, so 'idle' is ##
-## false by construction whenever there is anything to drain. 'in_flight' [ ##
-## no lock held ] is the safe-to-switch condition.                          ##
+## false by construction whenever there is anything to drain. 'in_flight'   ##
+## [ no lock held ] is the safe-to-switch condition.                        ##
 my $idle = <[coding.helper.backend_idle]>;
 if ( $idle->{'in_flight'} ) {
     <[base.logs]>->(
@@ -37,10 +37,27 @@ if ( $idle->{'in_flight'} ) {
     return TRUE;
 }
 
-for my $checksum ( sort keys %$deferred ) {
+## queue grouping [ todo WNF ] : while open tasks still want the loaded ##
+## model, its work runs first -- except for a deferral older than       ##
+## coding.cfg.mode_switch_max_wait [ sweep deferrals carry TRUE, not a  ##
+## stamp : they never age out here, the sweep drains them ]             ##
+my $wanted   = <[coding.mode.loaded_model_wanted]>->($backend);
+my $max_wait = <coding.cfg.mode_switch_max_wait> // 1800;
+my $now      = <[base.time]>;
 
-    ## already loaded and ready : nothing to switch [ mirrors the early ##
-    ## return in coding.task.ensure_model_pinned ]                      ##
+for my $checksum ( sort keys %$deferred ) {
+    my $since = $deferred->{$checksum};
+    if ( $wanted > 0
+        and !( $since > TRUE and $now - $since > $max_wait ) ) {
+        <[base.logs]>->(
+            2, '[model_pin] %s : switch to %s waits for %d open task(s)',
+            $backend, $checksum, $wanted
+        );
+        next;
+    }
+
+    ## already loaded and ready : nothing to switch                    ##
+    ## [ mirrors the early return in coding.task.ensure_model_pinned ] ##
     my $server = ( <coding.inference_servers> // {} )->{$backend} // {};
     if (    ( $server->{'status'} // '' ) eq qw| ready |
         and ( $server->{'model'} // '' ) eq $checksum ) {
@@ -55,9 +72,10 @@ for my $checksum ( sort keys %$deferred ) {
     ## just as well -- do not fire a redundant respawn                      ##
     next if <coding.model_switch_in_flight>->{$checksum};
 
-    ## same fire path as coding.task.ensure_model_pinned : set the        ##
-    ## in-flight guard HERE [ never on the deferred path -- it would      ##
-    ## suppress this very fire ], clear it again if the call itself fails ##
+    ## same fire path as coding.task.ensure_model_pinned : set the         ##
+    ## in-flight guard HERE                                                ##
+    ## [ never on the deferred path -- it would suppress this very fire ], ##
+    ## clear it again if the call itself fails                             ##
     <coding.model_switch_in_flight>->{$checksum} = TRUE;
     <[base.logs]>->(
         1,         '[model_pin] draining deferred switch to %s on %s',
@@ -82,8 +100,8 @@ delete <coding.model_pin_deferred>->{$backend}
 
 return TRUE;
 
-#,,.,,,,,,,,,,...,,,.,.,.,,,.,.,,,,,,,,,.,,,.,..,,...,...,...,...,,..,.,,,,.,,
-#R4YAI7XEBFUGEE5WSISS3Z2HMYG2Y2PA2ZRRP6BADCC2AW7CVDDA5U6LDLB6UF5HRHI3YO6EY3NGY
-#\\\|Y46JWWPQSXUCMUR5XKG6WY6NLK2W62JAR763KXJG2TVGXG55XSK \ / AMOS7 \ YOURUM ::
-#\[7]H3YWMQAFOZEUBMVK2W5L32ETEU3NB3YR6A3G6WBEFIQOVMWZ7ECY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,..,.,.,..,,...,..,,,,,,,,,,..,,...,...,...,,.,,..,,...,..,,
+#EVRV46PUXTHJ5HK762QAFNQDFPNIHPA5MKPT7BH6OHYS7XKV36NN2S43EFIHNFYYFCQUK4SHSVGZ4
+#\\\|7DZEQVVO27K43FBU4AOJV5XHURMV44B3HOZ2U4F2TCFBYVA5CGE \ / AMOS7 \ YOURUM ::
+#\[7]HCSTSEN4Q4P3U7HA7VXDTT2CTUBBVC3TQKGZR2KEKA6OVAYBNMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
