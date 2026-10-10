@@ -155,10 +155,35 @@ my $callbacks = {
     backend => $backend,    ## used for cold-start data-start grace ##
 };
 
-## image_ref placeholders -> image_url parts, in a copy of the body [ the ##
-## one place every request passes : first round and later rounds. after   ##
-## state init and jinja sanitizing, so neither stored history nor the     ##
-## sanitizer ever holds the base64 ]                                      ##
+## image_ref placeholders -> image_url parts, in a copy of the body [ the   ##
+## one place every request passes : first round and later rounds. after     ##
+## state init and jinja sanitizing, so neither stored history nor the       ##
+## sanitizer ever holds the base64 ]  per-request seed [ reproducibility ]  ##
+## : every request carries its own harmonically true seed                   ##
+## [ base.prng.harmonic_seed ], logged and kept per round on the task, so a ##
+## round can be replayed with the same messages + settings + seed even      ##
+## after a server restart picked a new --seed. a retried round              ##
+## [ coding.callback.http_abort ] brings its own one-shot seed. here, not   ##
+## in send_request : the first request of a task never passes send_request  ##
+{
+    my $seed_state = <coding.async.task_state>->{$task_id} // {};
+    my $seed
+        = defined $seed_state->{'retry_seed'}
+        ? delete $seed_state->{'retry_seed'}
+        : <[base.cfg_bool]>->( <coding.cfg.request_seed> // 1 )
+        ? <[base.prng.harmonic_seed]>
+        : undef;
+    if ( defined $seed ) {
+        my $round = $seed_state->{'round'} // 0;
+        $request_body->{'seed'} = $seed;
+        $task->{'execution'}{'round_seeds'}{$round} = $seed;
+        <[base.logs]>->(
+            1, 'async.request: %s round %d seed %s',
+            $task_id, $round, $seed
+        );
+    }
+}
+
 my $outgoing_body = $request_body;
 if ( grep { ref $ARG->{'image_ref'} eq qw| HASH | }
     @{ $request_body->{'messages'} // [] } ) {
@@ -208,8 +233,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,.,,...,,,,,...,...,.,,,,,.,.,.,,..,,,.,.,.,..,,...,...,,..,...,.,,,,.,,...,
-#IFRWBMUD7R6CJTADTFFY6G3YN2WJLDIJOS32USJMMODCQAOGCPAJS72WLVAPTQ6Y6S7F6KU3V3B6I
-#\\\|BIK5RGUXTY5SG4EPACE6DAVHAWKZRH42IDJ7R5DXKGGKO2PIBKL \ / AMOS7 \ YOURUM ::
-#\[7]7M57RENV6ZVKEEUKPARXAUX57C457BPAVVUXTQMYWFMSI2TLD4BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,...,.,,,,..,.,.,.,,,.,,,,..,..,,...,...,,..,...,,,,,,,,,,..,
+#B2YVOIHOGMJK3MBBC4OTQDEV25R6MBGV2CF73VKQQV7QY32E6A67CZXNUXIX2RJXBGBO7XPUKJFIK
+#\\\|3F5ANIV2SVAI6AQEEYSM23YWJDYJSZFLJN7ER36OVBO5OUHO6RR \ / AMOS7 \ YOURUM ::
+#\[7]TMCH6Q2MHWLF7VHG5XX6GSWICRZWM4SXVYEI22IGQPCB4SO75GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
