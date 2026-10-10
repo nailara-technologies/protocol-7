@@ -116,11 +116,12 @@ my $dot_output_path = c_dir( $output_dir, qw| module-dependency-graph.dot | );
 my $txz_output_path = c_dir( $output_dir, qw| module-dependency-graph.txz | );
 
 ## targets seen only as base.code.call_optional/call_expected args : these ##
-## subs are namespace-conditional by contract [ silent-skip if the owning  ##
-## namespace isn't loaded ] rather than hard static edges, so a zenka's    ##
-## reachability must gate them on its own loaded-namespace set same as it  ##
-## already does for zenka-owned namespaces -- see extract_calls and the    ##
-## reachability filter in analyze_zenka_reachability                       ##
+## subs are namespace-conditional by contract                              ##
+## [ silent-skip if the owning namespace isn't loaded ] rather than hard   ##
+## static edges, so a zenka's reachability must gate them on its own       ##
+## loaded-namespace set same as it already does for zenka-owned namespaces ##
+## -- see extract_calls and the reachability filter in                     ##
+## analyze_zenka_reachability                                              ##
 my %conditional_targets;
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
@@ -203,7 +204,7 @@ if ( $opt{text} ) {
         my $text_output
             = graph_to_adjacency( $graph, { 'with-counts' => $opt{count} } );
         write_file( $text_output_path, $text_output );
-        say ":: written to $text_output_path";
+        say written_line($text_output_path);
 
         ##  regenerate fasttext skipgram corpus from updated adjacency  ##
         regenerate_depgraph_corpus();
@@ -216,7 +217,7 @@ if ( $opt{dot} ) {
         say $dot_output;
     } else {
         write_file( $dot_output_path, $dot_output );
-        say ":: written to $dot_output_path";
+        say written_line($dot_output_path);
         my $xz_data;
         xz( \$dot_output, \$xz_data, Preset => 9 )
             or die ":: xz compression failed: $XzError\n";
@@ -227,7 +228,7 @@ if ( $opt{dot} ) {
             say $txz_fh substr( $b32, 0, 78, '' );
         }
         close $txz_fh;
-        say ":: written to $txz_output_path";
+        say written_line($txz_output_path);
     }
 }
 
@@ -307,10 +308,10 @@ sub scan_modules {
 }
 
 sub extract_swap_pairs {
-    ## scan module files for base.swap_subs calls  returns hash :           ##
-    ## short_prefix -> [ base_prefix, ... ]  e.g. 'event' -> [ 'base.event' ##
-    ## ], 'file' -> [ 'base.file' ] multiple sources can swap to the same   ##
-    ## short prefix, store all                                              ##
+    ## scan module files for base.swap_subs calls  returns hash :       ##
+    ## short_prefix -> [ base_prefix, ... ]  e.g. 'event' ->            ##
+    ## [ 'base.event' ], 'file' -> [ 'base.file' ] multiple sources can ##
+    ## swap to the same short prefix, store all                         ##
     my $files_ref = shift;
     my %swap_from;
 
@@ -667,6 +668,17 @@ sub escape_dot_id {
     return $id;
 }
 
+sub written_line {
+    ## ':: written :: <path>' in the palette of the scripts around it       ##
+    ## [ bin/dev/gen-sub-whitelist ] : blacklight prefix, $C{T} path.  only ##
+    ## these lines -- -list-subs header lines stay plain, its caller        ##
+    ## filters them by their leading '::'                                   ##
+    my $path = shift // '';
+    $path =~ s|^\Q$root_path\E/||;    ## repository-relative ##
+    return ":: written :: $path" if length( $ENV{'NO_COLOR'} // '' );
+    return "\e[38;2;68;39;172m:: written :: \e[38;2;6;71;195m$path\e[0m";
+}
+
 sub regenerate_depgraph_corpus {
     ## refresh fasttext training corpus [ data/training/codebase-depgraph ] ##
     ## whenever the full adjacency .asc is rewritten -- keeps the embedding ##
@@ -720,8 +732,8 @@ sub analyze_zenka_reachability {
         . " eager-load namespaces"
         if @{$whitelist_register};
 
-    ## prune traversal through namespace-conditional targets [              ##
-    ## base.code.call_optional / call_expected ] whose owning namespace     ##
+    ## prune traversal through namespace-conditional targets                ##
+    ## [ base.code.call_optional / call_expected ] whose owning namespace   ##
     ## isn't loaded for this zenka -- otherwise walk_reachable would drag   ##
     ## in their whole transitive subtree [ e.g. crypt.C25519.verify_sign    ##
     ## reached only via a gated crypt.C25519.load_from_string call ] even   ##
@@ -1044,11 +1056,11 @@ sub analyze_zenka_reachability {
         for my $sub ( keys %reachable ) {
             my ($ns) = $sub =~ m|^([^.]+)|;
 
-            ## namespace-conditional target [ base.code.call_optional /  ##
-            ## call_expected ] : silent-skip by contract when the owning ##
-            ## namespace isn't loaded, so gate the same as zenka-owned   ##
-            ## below even for otherwise-shared namespaces like crypt.* / ##
-            ## source.*                                                  ##
+            ## namespace-conditional target                                 ##
+            ## [ base.code.call_optional / call_expected ] : silent-skip by ##
+            ## contract when the owning namespace isn't loaded, so gate the ##
+            ## same as zenka-owned below even for otherwise-shared          ##
+            ## namespaces like crypt.* / source.*                           ##
             if ( $conditional_targets{$sub} ) {
                 push @filtered_ns, $sub if exists $loaded_ns{$ns};
                 next;
@@ -1752,8 +1764,8 @@ sub classify_dispatch_confidence {
         }
     }
 
-    ## classify based on findings  probable: strong constraints [ regex + ##
-    ## conditional ]                                                      ##
+    ## classify based on findings  probable: strong constraints ##
+    ## [ regex + conditional ]                                  ##
     if ( $has_regex_check && $has_conditional_guard ) {
         return 'probable';
     }
@@ -1772,8 +1784,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,,,,,,,,,.,,,.,,..,.,.,,.,,...,,..,,,.,,,.,.,.,...,...,.,,,..,,,.,,,.,,,.,,
-#36EA6W5BDEC7IUNVTBSIXA5EYDTVBSGYAR3ELC67CANKJ7TPH3WIGCTOSX7A4TOHMBMEE4UVIP3NW
-#\\\|AHRE4XPPFMW6NCTQXDVHSKFG2CMK3XUZ4MM3KMACIABTBH3YRAW \ / AMOS7 \ YOURUM ::
-#\[7]ACE6EXSUFWNESMAW26U3TGXKLBJ3OSWLQFA7HPZE4VK4DGFW5CBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,,,.,.,.,.,,,.,.,,,.,.,.,..,,.,.,...,...,,..,,.,,.,.,.,,,.,,,
+#5I3AZV7YQLAPHTXGKZCDN7XE6E47OHZEBWW3KDKSO3I7XU6FMZDXVPLIZAIBQCNNR6V6AKE66RKJW
+#\\\|I2ZZMDFFPYTG3DEMS27XEM26O4H5OEQXIVMAN3JUN5CQUJJPILO \ / AMOS7 \ YOURUM ::
+#\[7]AJC6GRLIK5ABHXNQOA4RDEDMTT6L4WQAPNKWLZIZRYKZ3BDKLYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
