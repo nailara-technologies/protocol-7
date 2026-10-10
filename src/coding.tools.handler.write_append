@@ -4,9 +4,16 @@
 # descr = append content to existing file with staging support
 # param = $args[{path,content,encoding}], encoding defaults to UTF-8
 
-my $args     = shift               // {};
-my $path     = $args->{'path'}     // return 'path required';
-my $content  = $args->{'content'}  // return 'content required';
+my $args    = shift              // {};
+my $path    = $args->{'path'}    // return 'path required';
+my $content = $args->{'content'} // return 'content required';
+
+## a copied signature block is removed    ##
+## [ added at signing, never by a model ] ##
+my $sig_note
+    = <[coding.helper.strip_signature]>->( \$content )
+    ? ' [ signature block removed : it is added at signing ]'
+    : '';
 my $encoding = $args->{'encoding'} // qw| :encoding(UTF-8) |;
 
 my $root     = <system.root_path>;
@@ -48,9 +55,10 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     if ( -w $abs_path ) {
         $mode_restore = $cur_mode;
     } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
-        ## gw changed the mode but we still cannot write [ e.g. coding  ##
-        ## zenka lacks admin group ] : revert so no permission drift is ##
-        ## left behind when content falls through to staging            ##
+        ## gw changed the mode but we still cannot write                 ##
+        ## [ e.g. coding zenka lacks admin group ] : revert so no        ##
+        ## permission drift is left behind when content falls through to ##
+        ## staging                                                       ##
         printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
         <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
@@ -65,7 +73,9 @@ if ( -w $abs_path ) {
         <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
     return undef if not $result;
-    return sprintf "appended %s [ %d bytes ]", $path, length($content);
+    return
+        sprintf( "appended %s [ " . "%d bytes ]", $path, length($content) )
+        . $sig_note;
 }
 
 ## stage to zenka dir when no write access ##
@@ -78,12 +88,14 @@ my $stage_rel = "staged/$stage_name";
 <[base.logs]>->(
     1, ':. write_append: staged append %s [ no write access ]', $path
 );
-return sprintf "staged append to %s [ %d bytes, "
-    . "no write access ]\nstaged at: %s",
-    $path, length($content), $stage_rel;
+return
+    sprintf(
+    "staged append to %s [ %d bytes, " . "no write access ]\nstaged at: %s",
+    $path, length($content), $stage_rel )
+    . $sig_note;
 
-#,,..,.,,,...,...,.,.,,,,,,..,...,,,,,.,.,,,.,.,.,...,...,..,,,..,...,,.,,...,
-#V5Y73OVFZDAW7NBQMSGP74U27MRWVQ3XCEYKWSQLIOZ6S24K7MEJFNFOJHCDIXDY6F7Q2V574WUT6
-#\\\|DVN3EA7GMRH6N2WYV2YL6XD3PSQTCYJF6P7UCEJDUXTSFINAF3S \ / AMOS7 \ YOURUM ::
-#\[7]OGPTUP32GEC6SYUHUOKTXXHYXA6YYSF65STCGXXUNMWXXMRQ66DY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,..,,.,.,,,.,,,,,.,.,.,,,,,,,.,.,...,...,...,,,,,,,,,,,,,,,,,
+#42CLF2RFR5DQNRZUOG6E42GA4SLLJN5VHJ2FMLZC6QIZBAXJCYHM3XCSLRY5V2XOBB4H7B4OZDEMW
+#\\\|HQQR435GTRWLMN5CUEXRCDIXSGJQ6XJ5CSQGLMKMWSFADYI7HQX \ / AMOS7 \ YOURUM ::
+#\[7]GQRCI47A46RVK46DD4PPB264QFDJTGORQVPT7HI66Z5KMRRSOUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
