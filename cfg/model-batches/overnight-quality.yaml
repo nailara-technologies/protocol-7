@@ -1,0 +1,73 @@
+# overnight work -- categories that help whatever a model's code quality
+# [ todo XOJ ]. nothing is applied during the run : the tree stays at
+# baseline, every result waits for the morning review :
+#   coding.model-batch-review overnight-quality [ :task=<id>: [ :apply: ] ]
+#
+# categories [ id prefix ] :
+#   audit.  report : convention \ style findings with file:line, no edits
+#   tests.  report : test cases [ input -> expected ] for a module
+#   todo.   report : what a todo item touches and what is still missing
+#   doc.    patch  : header comment lines [ descr \ param \ note ] only
+#
+# models: auto -- each task's mode picks its model [ cfg coding.cfg.mode.* ],
+# every model loads once and runs only its own tasks
+
+batch_spec_version: 1
+backend: gpu
+models: auto
+reference_tps: 20
+
+tasks:
+  - id: audit.coding-mode
+    mode: review
+    budget_hint: 600
+    criteria_from_reply: yes
+    prompt: |
+      work submit "read data/yaml/code-style/CONVENTIONS.yaml, then read
+      src/coding.mode.setting, src/coding.mode.task_model and
+      src/coding.mode.loaded_model_wanted. report every place that breaks
+      a listed convention as 'file:line : rule : what to change'. do not
+      edit any file. if nothing breaks a rule, say so for each file."
+    criteria:
+      - coding.mode.setting
+      - coding.mode.task_model
+
+  - id: todo.x33-done-path
+    mode: doc
+    budget_hint: 600
+    criteria_from_reply: yes
+    prompt: |
+      work submit "todo item X33 [ isolated loop check before a task fails ]
+      is built except that its DONE verdict was never seen live. read
+      src/coding.helper.loop_verdict_spawn, src/coding.helper.loop_verdict_apply
+      and the loop part of src/coding.async.state_machine. report : which
+      steps a DONE verdict takes, what could go wrong on that path, and a
+      task prompt that would likely end in DONE for a live test. no edits."
+    criteria:
+      - DONE
+      - loop_verdict_apply
+
+  - id: doc.coding-mode-headers
+    mode: doc
+    budget_hint: 600
+    prompt: |
+      work submit "read src/coding.mode.setting, src/coding.mode.task_model
+      and src/coding.mode.loaded_model_wanted. improve ONLY their header
+      comment lines [ # descr, # param, # note ] where they are unclear or
+      incomplete -- keep the house style, change no code line."
+    criteria:
+      - descr
+
+  - id: tests.coding-mode-setting
+    mode: code
+    budget_hint: 900
+    criteria_from_reply: yes
+    prompt: |
+      work submit "read src/coding.mode.setting. write test cases for it as
+      a list : a mode tree [ as dotted coding.cfg.mode.* keys ], the call
+      [ mode, key ] and the expected result. cover : default only, a
+      sub-mode override, a missing mode, a missing key, a path deeper than
+      the tree, a mode name that is also a key. no edits."
+    criteria:
+      - default
+      - expected

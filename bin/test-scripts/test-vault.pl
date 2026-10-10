@@ -77,9 +77,11 @@ my $raw = do { local ( @ARGV, $RS ) = $file; <> };
 
 sub framed {    ## the inline subroutine frame of bin/Protocol-7 ##
     my ( $text, $title ) = @ARG;
-    my @line = split m|\n|, $text;
+    ## blank line, title, ':' .. ':', ':.', blank line ##
+    return FALSE if $text !~ m|\A\n| or $text !~ m|\n:\.\n\n\z|;
+    my @line = split m|\n|, substr $text, 1;
     return FALSE if shift(@line) ne ".:[ $title ]:." or shift(@line) ne ':';
-    return FALSE if pop(@line) ne ':'                or not @line;
+    return FALSE if pop(@line) ne ':.' or pop(@line) ne ':' or not @line;
     return FALSE if grep { !m|^: [0A-Z2-7]{76}\z| } @line;
     return FALSE if $line[-1] !~ m{^: 0*[A-Z2-7]+0*\z};
     return TRUE;
@@ -464,8 +466,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,..,,..,,,.,...,.,.,...,.,.,...,..,,,.,,..,,...,...,,.,,..,,.,,,,..,,..,
-#VNOKPKJ6GS4RYAVJGSGLX2CAIYYAZGOUKQOBNPVCUCM5A3C3YLMZUVIEJM447GP3BL4VVETGKVK4Q
-#\\\|FOZJ6OE2AMJESYFMWFABDBD5XQPEZQCH5GZCT3NDODTOAWZ74PE \ / AMOS7 \ YOURUM ::
-#\[7]VD3AOR2NPW3IHJZU5MNN7FJYJ5RCF7L3KWV7X34GRRM3V5SEJ2BY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,,,,,,,,,,,.,,,,,.,,.,,,..,.,,,..,,...,...,.,.,.,,,...,,.,,,,.,
+#3GT6MHETHUW44ELMKTAEVG7UGS3JK3MIUYYXV2DWNBIKCKK7ZCK36IJ3YRQNUFLA7IUYEG2QS4P6U
+#\\\|L3VRGWVZIPGNEHJOUJN6MCTXZRD3KTCKKTBVTKOSATGZTNENPNU \ / AMOS7 \ YOURUM ::
+#\[7]VELE4A5RB27SK7EEMBJFUBPG6TVHBRBQTVVMQUACWACJUJEZKMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
