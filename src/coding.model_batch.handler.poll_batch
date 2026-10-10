@@ -209,6 +209,28 @@ my $settle_task = sub {
         }
     );
 
+    ## one line per finished task : the result at a glance on the console ##
+    my $compile_href = $entry->{'compile'} // {};
+    <[base.logs]>->(
+        1,
+        '[model_batch] %s : task %s done : %s%s, %ss, %s t/s, criteria %s%s',
+        $batch_id,
+        $entry->{'task_id'},
+        $verdict,
+        ( length $failure_class ? "/$failure_class" : '' ),
+        $entry->{'timing'}{'wall'},
+        $entry->{'timing'}{'tps'},
+        $entry->{'score'} // '-',
+        (   %$compile_href
+            ? sprintf(
+                ', compiles %d/%d',
+                scalar( grep {m|^ok|} values %$compile_href ),
+                scalar keys %$compile_href
+                )
+            : ''
+        )
+    );
+
     ## revert + reverify [ steps 2-4 : hard stop on mismatch ] ##
     my $revert_ok = <[model_batch.revert.to_baseline]>->(
         {   qw| baseline | => $state->{'baseline'},
@@ -367,9 +389,15 @@ if ( $phase eq qw| gate | ) {
     ## pack phase -- ~26k files at once blocked the event loop long enough ##
     ## for a watchdog restart                                              ##
     if ( !$state->{'baseline_packed'} ) {
-        $state->{'pack_queue'} = [ sort keys %{ $gate_href->{'baseline'} } ];
-        $state->{'pack_count'} = { qw| stored | => 0, qw| present | => 0 };
-        $state->{'phase'}      = qw| pack |;
+        $state->{'pack_queue'}  = [ sort keys %{ $gate_href->{'baseline'} } ];
+        $state->{'pack_count'}  = { qw| stored | => 0, qw| present | => 0 };
+        $state->{'pack_total'}  = scalar @{ $state->{'pack_queue'} };
+        $state->{'pack_log_at'} = <[base.time]>->(3);
+        $state->{'phase'}       = qw| pack |;
+        <[base.logs]>->(
+            1,         '[model_batch] %s : packing the baseline : %d files',
+            $batch_id, $state->{'pack_total'}
+        );
         return TRUE;
     }
 
@@ -384,9 +412,14 @@ if ( $phase eq qw| pack | ) {
     my $queue     = $state->{'pack_queue'} // [];
     my $count     = $state->{'pack_count'} // {};
     my $root_path = canonpath(<system.root_path>);
-    my $per_tick  = <model_batch.cfg.pack_per_tick> // 200;
+    ## time budget per tick, not a file count : a file already packed is a ##
+    ## stat, a new one an xz pack -- 200 files a tick made a fully packed  ##
+    ## 28k-file baseline take ~2.5 min of mostly idle ticks                ##
+    my $budget   = <model_batch.cfg.pack_tick_seconds> // 0.2;
+    my $deadline = <[base.time]>->(3) + $budget;
 
-    for my $rel_path ( splice @$queue, 0, $per_tick ) {
+    while ( @$queue and <[base.time]>->(3) < $deadline ) {
+        my $rel_path = shift @$queue;
         my $abs_path = catfile( $root_path, split m|/|, $rel_path );
         next unless -f $abs_path;
         my $blob_path = join qw| / |, <[model_batch.blob.path]>,
@@ -396,6 +429,19 @@ if ( $phase eq qw| pack | ) {
         } elsif ( defined <[model_batch.blob.store]>->($abs_path) ) {
             $count->{'stored'}++;
         }
+    }
+    ## progress every 15 s : the pack phase is otherwise silent for minutes ##
+    if ( @$queue
+        and <[base.time]>->(3) - ( $state->{'pack_log_at'} // 0 ) > 15 ) {
+        $state->{'pack_log_at'} = <[base.time]>->(3);
+        <[base.logs]>->(
+            1,
+            '[model_batch] %s : packing : %d of %d files [ %d stored ]',
+            $batch_id,
+            ( $state->{'pack_total'} // 0 ) - @$queue,
+            $state->{'pack_total'} // 0,
+            $count->{'stored'}     // 0
+        );
     }
     return TRUE if @$queue;
 
@@ -477,6 +523,19 @@ if ( $phase eq qw| switch | ) {
         for $state->{'spec'}{'tasks'}->@*;
     $state->{'model_budget_cap'} = $hint_sum * $scale * 1.5;
 
+    ## already loaded and ready : no reload [ an 18 GB moe model takes  ##
+    ## minutes to load, under memory pressure past the switch timeout ] ##
+    my $loaded_srv = ( <coding.inference_servers> // {} )->{$backend} // {};
+    if ( uc( $loaded_srv->{'model'} // '' ) eq uc($candidate)
+        and ( $loaded_srv->{'status'} // '' ) eq qw| ready | ) {
+        $state->{'phase'} = qw| task_start |;
+        <[base.logs]>->(
+            1, '[model_batch] %s : candidate %d/%d : %s [ already loaded ]',
+            $batch_id, $idx + 1, $total, $candidate
+        );
+        return TRUE;
+    }
+
     eval {
         <[coding.cmd.switch-model]>->(
             {   args => sprintf '%s backend=%s',
@@ -505,7 +564,12 @@ if ( $phase eq qw| switch | ) {
 ## ready [ same load-bearing check as poll_switch ]                         ##
 ## ........................................................................ ##
 if ( $phase eq qw| waiting_ready | ) {
-    my $max_wait  = <coding.cfg.switch_model_max_wait> // 300;
+    my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
+
+    ## large models load slower [ ~30 s per GB, an 18.7 GB 35b-a3b under ##
+    ## memory pressure took past 300 s ]                                 ##
+    my $model_gb = ( -s ( <inference.model.path> // '' ) // 0 ) / 1024**3;
+    $max_wait = 30 * $model_gb if 30 * $model_gb > $max_wait;
     my $elapsed   = <[base.time]>->(3) - ( $state->{'started'} // 0 );
     my $timed_out = $elapsed > $max_wait;
 
@@ -529,6 +593,17 @@ if ( $phase eq qw| waiting_ready | ) {
         and $backend_pid
         and $backend_pid != $prior_pid ) {
         $state->{'phase'} = qw| task_start |;
+        my $srv = $status->{$backend} // {};
+        <[base.logs]>->(
+            1,
+            '[model_batch] %s : candidate %d/%d ready : context %s, %s/%s '
+                . 'layers on gpu, moe experts of %s layers in ram, kv %s',
+            $batch_id,
+            $idx + 1,
+            $total,
+            map { $srv->{$ARG} // '?' }
+                qw| n_ctx gpu_layers layer_count n_cpu_moe kv_cache_type |
+        );
     }
     return TRUE;
 }
@@ -711,8 +786,8 @@ if ( $phase eq qw| task_start | ) {
     $state->{'task_finish_reason'} = '';
     $state->{'phase'}              = qw| task_wait |;
     <[base.logs]>->(
-        2, '[model_batch] %s : task %s submitted [task_id=%s]',
-        $batch_id, $task_href->{'id'}, $task_id
+        1, '[model_batch] %s : task %s started on %s [task_id=%s]',
+        $batch_id, $task_href->{'id'}, $candidates->[$idx] // '?', $task_id
     );
     return TRUE;
 }
@@ -1000,8 +1075,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,,,,,..,.,,,..,,.,,,,..,..,,,,.,,,,,.,.,,,.,..,,...,...,..,,,.,,,,,,,..,,.,,
-#4ICF47GJQYLLC2P22SHZJCMYWNKLBKRN5SZX4XANY7ZV4GA44SLEP6YJOGZWOO3PNMUU2OTY6MKVG
-#\\\|LKCYYM2WJBTE4I6UEVTAXAC3QSMBKDOF67DTLPBFLGIZIJIPG52 \ / AMOS7 \ YOURUM ::
-#\[7]HBAYCRQZNRW5CIHCDIJSOK7Q7QWX5UBGOTECLQZRGZO3FP3PY2DI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,..,,,,,,,..,,,.,..,,,..,...,..,,...,...,,,.,.,.,,,,,.,.,...,
+#IGK5PPWSGLMUPC44MVVWSH3YNLZS2UYC5V4OHPT2LWA5DEPCIBANV4VVFHX2ETIST4SZUHQKCAKJ4
+#\\\|FCKU5F3QXBKAETQG4LXCRLSGQTKAHEIWH46QIXK2ANY7FB7E66K \ / AMOS7 \ YOURUM ::
+#\[7]IMHQTZ46ZOCNOLPP3XJV4C35TLMXXN4NTRJL5HVWMPNKN34J7QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

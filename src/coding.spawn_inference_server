@@ -80,8 +80,7 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
     if ( $kv_cache_type eq qw| auto | ) {
         $kv_cache_type = qw| f16 |;
         my $floor_kv = <inference.model.context_length> // 0;
-        my $f16_safe
-            = $floor_kv
+        my $f16_safe = $floor_kv
             ? <[coding.helper.calculate_safe_context]>->(
             {   model_path    => $model_path,
                 mmproj_path   => $mmproj_path,
@@ -89,16 +88,45 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
                 kv_cache_type => qw| f16 |,
                 gpu_layers    => $gpu_layers,
                 layer_count   => $model_layer_count,
+
+                probe => TRUE,
             }
             )
             : {};
-        if ( $floor_kv and ( $f16_safe->{'calculated'} // 0 ) < $floor_kv ) {
+        ## moe : f16 with expert weights in ram counts too -- the planner   ##
+        ## below moves just enough of them. q8_0 halves the kv memory but   ##
+        ## cuts prompt processing ~10x, expert offload costs far less [ the ##
+        ## 35b-a3b went q8_0 on an 'f16 reaches 0 tokens' check that        ##
+        ## assumed every weight on the gpu ]                                ##
+        my $f16_ctx = $f16_safe->{'calculated'} // 0;
+        if (    $floor_kv
+            and $f16_ctx < $floor_kv
+            and ref $shape->{'expert_bytes'} eq qw| ARRAY |
+            and <[base.cfg_bool]>->( <coding.cfg.moe_expert_offload> // 1 ) )
+        {
+            my $all_mb = 0;
+            $all_mb += $ARG for @{ $shape->{'expert_bytes'} };
+            my $f16_moe = <[coding.helper.calculate_safe_context]>->(
+                {   model_path    => $model_path,
+                    mmproj_path   => $mmproj_path,
+                    backend       => $backend,
+                    kv_cache_type => qw| f16 |,
+                    gpu_layers    => $gpu_layers,
+                    layer_count   => $model_layer_count,
+                    offload_mb    => $all_mb / 1024**2,
+
+                    probe => TRUE,
+                }
+            );
+            $f16_ctx = $f16_moe->{'calculated'} // 0;
+        }
+        if ( $floor_kv and $f16_ctx < $floor_kv ) {
             $kv_cache_type = qw| q8_0 |;
             <[base.logs]>->(
                 1,
                 '[spawn_inference_server] kv cache q8_0 : f16 '
                     . 'reaches %d tokens, below the context floor %d',
-                $f16_safe->{'calculated'} // 0,
+                $f16_ctx,
                 $floor_kv
             );
         }
@@ -128,6 +156,8 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
                     layer_count   => $model_layer_count,
                     offload_mb    => $mb,
                     vram_total_mb => $vram->{'total_mb'},
+
+                    probe => TRUE,
                 }
             );
             return ( $r->{'calculated'} // 0, $mb );
@@ -1098,8 +1128,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,.,,,,..,,.,,,,,,,..,,,,,,,.,,.,,.,.,.,,,..,,...,...,...,,,,,,,.,,,,,,,,,
-#AGAWD4JH4PXR7HRQQ42XAHMEZGYWKVAD2AV34ZN74KSDLT4AJYO2KNJE4ZIEPYKJJIIT3XMSOSDWS
-#\\\|ZNSRLETAYBWSE2H553Z6MMU3OOPKHLDFWKGAQKXS54XCAMPKEC6 \ / AMOS7 \ YOURUM ::
-#\[7]XDV3YMYDQTSIN7XGAWNFPJFCWCIKW6WUF4HNMJMQT43WUXWGM4CI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,.,.,,,,,,.,,,,.,,,.,..,,..,,..,,...,...,...,,.,,..,,.,,,..,,
+#TOVRXRQ2FL7IBJTUSQAUDZVHGXNAOGXJRM5CHOOF5CVIB4RY4Z7GKM6L7OFPL2KWK6EL3DARAU73U
+#\\\|IJHS2TIG3EFA5E2SOPVXS75GQ3AA6GZAIILFR4SH77C4LN4ZMHI \ / AMOS7 \ YOURUM ::
+#\[7]3BYDAR5RV7LAJQMNQALDMRICZIPWX5SAETIL2ZAU5HKBC7MOO6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
