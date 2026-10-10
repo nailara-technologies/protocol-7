@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = coding.tools.handler.load_tools
+# descr = add tool groups [ coding.tools.groups ] to the running task
+# param = { group => 'name [ name .. ]' }
+
+my $args  = shift // {};
+my @names = grep {length} split m|[\s,]+|, $args->{'group'} // '';
+return 'error: group required' unless @names;
+
+## the executing task [ set by coding.async.tool_executor around dispatch ] ##
+my $task_id = <coding.catalog.active_task> // '';
+my $state   = length $task_id ? <coding.async.task_state>->{$task_id} : undef;
+return 'error: load_tools needs a running coding task' unless defined $state;
+
+my $groups_href = <[coding.tools.groups]>;
+my $all         = <[coding.tools.definitions]>->( { 'set' => qw| all | } );
+my %have
+    = map { $ARG->{'function'}{'name'} => TRUE } @{ $state->{'tools'} // [] };
+
+## 'other' : every tool in no group [ same rule as the core set ] ##
+my %grouped;
+for my $group ( values %{ $groups_href->{'groups'} } ) {
+    $grouped{$ARG} = TRUE for @{ $group->{'tools'} };
+}
+
+my ( @added, @unknown );
+for my $name (@names) {
+    my @tool_names
+        = $name eq qw| other |
+        ? grep { !$grouped{$ARG} } map { $ARG->{'function'}{'name'} } @$all
+        : @{ $groups_href->{'groups'}{$name}{'tools'} // [] };
+    if ( !@tool_names ) {
+        push @unknown, $name;
+        next;
+    }
+    my %wanted = map { $ARG => TRUE } @tool_names;
+    for my $tool (@$all) {
+        my $tool_name = $tool->{'function'}{'name'};
+        next if !$wanted{$tool_name} or $have{$tool_name}++;
+        push @{ $state->{'tools'} }, $tool;
+        push @added,                 $tool_name;
+    }
+}
+
+<[base.logs]>->(
+    1, 'load_tools: [%s] %s -> %d added',
+    $task_id, "@names", scalar @added
+);
+
+return join "\n",
+    ( @added ? sprintf( 'loaded : %s', "@added" ) : 'nothing new to load' ),
+    (
+    @unknown
+    ? sprintf( 'unknown group : %s [ groups : %s other ]',
+        "@unknown", join ' ', sort keys %{ $groups_href->{'groups'} } )
+    : ()
+    );
+
+#,,.,,..,,,,.,...,,..,,,.,.,.,.,.,,,,,.,,,...,..,,...,..,,.,,,...,,,,,,.,,,,.,
+#5YWVYV3T7QVZ7FO2OOENYUS46KFR4RFKFHF5OUBGIREQ5GAICSTOVF6ALTMACGUUQNADWC4ZSSHA4
+#\\\|5GHVYYL5F3FKS6BZ4LL33W25W6DYYWFNT2NY42ARG6USXIWZNST \ / AMOS7 \ YOURUM ::
+#\[7]IO3OVRUZLZ6NMKBZ7LF6SX3NC4QMGLX53OJMSVETLFSHC7ABF2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

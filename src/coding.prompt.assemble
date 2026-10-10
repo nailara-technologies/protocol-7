@@ -136,7 +136,10 @@ if ($prompt =~ m{(?:review|explain|check|analyze)\s+
 
 ## collect tool definitions early [ needed for template context ] ##
 my $tools;
-$tools = <[coding.tools.definitions]>;
+## tool set [ coding.cfg.tool_set : core = the core list + load_tools for ##
+## the rest, all = every schema ] -- all 75 cost ~12k tokens              ##
+$tools = <[coding.tools.definitions]>
+    ->( { 'set' => <coding.cfg.tool_set> // qw| core | } );
 if ( ref $tools eq qw| ARRAY | and $tools->@* ) {
     <[base.logs]>->(
         2,
@@ -331,8 +334,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,.,,,,,,.,,.,.,,,,,,,.,.,.,.,.,...,.,,,,,,,..,,...,...,...,.,,,,,.,,.,,,,.,
-#27RLSAUKR35IUMTMDRMZWWFULJMY4VI6DTEMEOPJTXZZID2YL6U5QJFY33QWEHYUI56EOS6DYXMDO
-#\\\|AQ2BGSUNHDO4LAKFEL2UZ5PLB7TKOUD6WTMH3U7T37HBJMDGLN5 \ / AMOS7 \ YOURUM ::
-#\[7]6Z7CHDY62IWG4OZUA4T4SXEQ5MRJDHXUXEO2ECHFH5A56HJWRUAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,...,,,.,..,,.,.,,..,,,.,.,,,..,,...,...,.,,,..,,.,.,,.,,.,,,
+#3YFNBILKU6KH5R22ZIQ6AZQO3D7KQH6G7GQKYF4V5NQW5NWSAJ66FAPGTFCZCEN6I3AD6XH2AUH3M
+#\\\|OGBFFM2DW6CDIFCEF2L2UFLT2YKIBQ5VI4HTH773HBEDHBDDPQX \ / AMOS7 \ YOURUM ::
+#\[7]MER3DSNBBWAVVAUOFEUZPV42GVY2SLABRRWQO7JJR4FM4GL2SADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

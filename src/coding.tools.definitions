@@ -15,18 +15,75 @@
 
 my @tools;
 
-push @tools, @{<[coding.tools.definitions.file_io]>};
-push @tools, @{<[coding.tools.definitions.notes]>};
-push @tools, @{<[coding.tools.definitions.module_introspection]>};
-push @tools, @{<[coding.tools.definitions.search]>};
-push @tools, @{<[coding.tools.definitions.git]>};
-push @tools, @{<[coding.tools.definitions.regex_tools]>};
-push @tools, @{<[coding.tools.definitions.format_lint]>};
-push @tools, @{<[coding.tools.definitions.tree]>};
-push @tools, @{<[coding.tools.definitions.user_interaction]>};
-push @tools, @{<[coding.tools.definitions.task_lifecycle]>};
-push @tools, @{<[coding.tools.definitions.utility]>};
-push @tools, @{<[coding.tools.definitions.scratchpad]>};
+push @tools, <[coding.tools.definitions.file_io]>->@*;
+push @tools, <[coding.tools.definitions.notes]>->@*;
+push @tools, <[coding.tools.definitions.module_introspection]>->@*;
+push @tools, <[coding.tools.definitions.search]>->@*;
+push @tools, <[coding.tools.definitions.git]>->@*;
+push @tools, <[coding.tools.definitions.regex_tools]>->@*;
+push @tools, <[coding.tools.definitions.format_lint]>->@*;
+push @tools, <[coding.tools.definitions.tree]>->@*;
+push @tools, <[coding.tools.definitions.user_interaction]>->@*;
+push @tools, <[coding.tools.definitions.task_lifecycle]>->@*;
+push @tools, <[coding.tools.definitions.utility]>->@*;
+push @tools, <[coding.tools.definitions.scratchpad]>->@*;
+
+## tool set [ optional { set => 'all' | 'core', groups => aref } ] : all ##
+## [ default ] is every schema, as before. core is coding.tools.groups'  ##
+## core list + the named groups + load_tools, which adds a group to the  ##
+## running task -- every schema costs ~160 tokens on every request       ##
+my $params = shift // {};
+$params = {} if ref $params ne qw| HASH |;
+my $set = $params->{'set'} // qw| all |;
+
+if ( $set eq qw| core | ) {
+    my $groups_href = <[coding.tools.groups]>;
+    my %grouped;
+    for my $group ( values %{ $groups_href->{'groups'} } ) {
+        $grouped{$ARG} = TRUE for @{ $group->{'tools'} };
+    }
+    my %wanted = map { $ARG => TRUE } @{ $groups_href->{'core'} };
+    for my $name ( @{ $params->{'groups'} // [] } ) {
+        $wanted{$ARG} = TRUE
+            for @{ $groups_href->{'groups'}{$name}{'tools'} // [] };
+    }
+
+    ## tools assigned to no group : offered as 'other', never lost ##
+    my @other = grep { !$grouped{$ARG} and !$wanted{$ARG} }
+        map { $ARG->{'function'}{'name'} } @tools;
+
+    my @group_lines = map {
+        sprintf '%s : %s [ %s ]', $ARG,
+            $groups_href->{'groups'}{$ARG}{'descr'},
+            join( ' ', @{ $groups_href->{'groups'}{$ARG}{'tools'} } )
+    } sort keys %{ $groups_href->{'groups'} };
+    push @group_lines, sprintf 'other : remaining tools [ %s ]', "@other"
+        if @other;
+
+    @tools = grep { $wanted{ $ARG->{'function'}{'name'} } } @tools;
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'load_tools',
+            'description' => 'add a group of tools to this task [ available '
+                . 'from your next step on ] when the ones you have are '
+                . "not enough. groups :\n"
+                . join( "\n", @group_lines ),
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'group' => {
+                        'type'        => 'string',
+                        'description' => 'group name, several '
+                            . 'separated by spaces',
+                    },
+                },
+                'required' => ['group'],
+            },
+        },
+        };
+}
 
 ## moved here from mid-list [ was logging a partial count after            ##
 ## write_append alone, not the real total -- correct position for this log ##
@@ -39,8 +96,8 @@ push @tools, @{<[coding.tools.definitions.scratchpad]>};
 
 return \@tools;
 
-#,,.,,,.,,,.,,,,.,..,,...,.,,,,..,..,,.,.,..,,..,,...,...,,.,,,,.,.,,,,.,,,..,
-#I5FBRWKQVWIGKKTPK3Z4IHQX6KD6VOKIBX4P7PAKQV6ESN5PD6SK77GDITKI2RXSYQ6T6VMQZ3VIW
-#\\\|SGIIFJ4Q7D7PZWIMNZHZ7AEYZY3G2DHD3YVRH6OC6N27J3MFQXI \ / AMOS7 \ YOURUM ::
-#\[7]FRKYCDCL6WVVBAFUTP25HNKWW2RXIHIIS4S46VKJW6VUYFQG4OAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,..,,.,,,,.,,,,,,..,..,,.,.,,,.,..,,...,...,...,..,,...,...,,,,,
+#4CN5HXZAA2QPSRDWLW5ZXLM45TYPUK3M55SJKIOUXF3NVI774LACHKRBD3J5QX3PPJUXEDE3IMAHW
+#\\\|VZZG4OCWB2FA5GV3G53FRUVFJ5VPHLJ3ZYDF32HT7FGD4L4QIUC \ / AMOS7 \ YOURUM ::
+#\[7]GHTXVU6TX3I35TBE2XLZL75EXTK4EX6Q5WMWEMQGZ6TIIC44XAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

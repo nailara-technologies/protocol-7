@@ -165,13 +165,19 @@ inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 ##                                            [ Gemma3 Glitter is 2.21GB ] ##
 inference.backend.gpu.gpu_layers = 999  ## all layers : clamped to the model's real count at spawn [ was 33 : every model with more layers ran partly on the cpu ] ##
 
-## kv cache type for -ctk / -ctv : q8_0 is about half the memory per context ##
-## token of f16 [ f16 is used anyway while a lora adapter is set ]          ##
-coding.cfg.kv_cache_type = q8_0
+## kv cache type for -ctk / -ctv : auto = f16, q8_0 only when f16 cannot ##
+## reach the context floor [ q8_0 halves the memory per token but cuts    ##
+## prompt processing ~10x on this build ]. f16 / q8_0 force a type ; f16 ##
+## is used anyway while a lora adapter is set                            ##
+coding.cfg.kv_cache_type = auto
 
 ## moe models : keep the expert weights of as many layers in ram as the    ##
 ## context floor [ inference.model.context_length ] needs [ --n-cpu-moe ] ##
 coding.cfg.moe_expert_offload = yes
+
+## tools offered per task : core = a core set + load_tools for named groups ##
+## [ coding.tools.groups ] ~3k tokens, all = every schema ~12k tokens       ##
+coding.cfg.tool_set = core
 
 ## hybrid/partial gpu+cpu layer offload : when a model doesn't fit fully in ##
 ## free vram, reduce -ngl instead of refusing the spawn outright [ llama    ##
@@ -482,8 +488,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,,,.,...,,,.,...,..,,,.,,..,,.,.,.,,,,..,.,.,...,..,,..,,,,.,...,...,.,.,
-#6I5JJDKQZBTCHFPWCFB3BVNGY6Q3UOODHEYF7ABECHCEH3I54R7DH632CGFFHIB5AM72C4KSGAKNO
-#\\\|LIZRRSXBMM7QPONJZHOCPTRSIZCPN7ZBCTW4J6P373W2ET6C7WK \ / AMOS7 \ YOURUM ::
-#\[7]OI53KYUJMV5CLTL5H6QWI4TD6IXSVHDBCN7Y6TODUJZHSTILGACA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,..,,..,...,...,.,,,,.,,.,.,.,.,...,...,..,,...,.,,,,,,,,..,
+#7WPM4VZIDLTNUKOPXCZV5XXKYVW4F6VGEXMRVPUTB7MPI2H3NZYGILEG22UZ6U6WYXGXVJS42DRPY
+#\\\|OA3T27QVCVH7V7V3MSK3TRGJAHYKZP46EFVWN5MUQI3UEWJ26UJ \ / AMOS7 \ YOURUM ::
+#\[7]H6A3VV57K2APXUMLQC3LWHKST43KXGCCMCQYQNUEOHBXN7CAU2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
