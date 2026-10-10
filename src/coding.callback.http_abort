@@ -40,7 +40,7 @@ if (    ( $match->{'pattern_id'} // '' ) eq qw| degenerate_repetition |
     and ( $state->{'whitespace_retry_round'} // -1 ) != $round
     and <[base.cfg_bool]>->( <coding.cfg.whitespace_abort_retry> // 1 ) ) {
     $state->{'whitespace_retry_round'} = $round;
-    $state->{'retry_seed'}             = int rand 2**31;
+    $state->{'retry_seed'}             = <[base.prng.harmonic_seed]>;
     <[coding.abort.count]>->( qw| retry |, qw| whitespace |, '' );
     <[base.logs]>->(
         1,
@@ -68,8 +68,8 @@ if (    ( $match->{'pattern_id'} // '' ) eq qw| degenerate_repetition |
 
 return;
 
-#,,..,,,,,.,,,,.,,.,.,,,.,,,,,..,,...,.,.,..,,..,,...,...,...,...,,,.,,..,,..,
-#6TMMHWQ6GIBYSKBGEP27LGVK4BBPNPWEU7CQTSS43M4VHKFCAAXTFE7VFACJHXMZZGKFDZ4MVDZ3E
-#\\\|SBURAHDD43XSMEEVPGDK5HFJWNPHYQIF7HMIH7GMWDOE6Q3MX76 \ / AMOS7 \ YOURUM ::
-#\[7]KXMA4Z7DBP5TJKU2I53RK7QK5QVVURBPSIO67STDBEJOKAJ6XKAI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,.,,,,,,.,,,...,,,,,.,.,,.,,..,,...,...,..,,..,,,,,,,.,,.,.,
+#PNOTA4KKUEIPN3VU5HHFOO4MALPNVCWJTBFN4PHOATEERIU5CWCPEBZM5P2DMQILXRIVJBOPOWFCM
+#\\\|BBVWV7GG34ARJYGJKLTWFY3CNDP3BSLRKMSOOVBTMGZP7UQSSTU \ / AMOS7 \ YOURUM ::
+#\[7]5T3PFGSGJEUCKEUJOM2E3BAU6ECX7HGLWOLBMKJ276BYHDKPIEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
