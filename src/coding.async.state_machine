@@ -85,10 +85,10 @@ elsif ( $action eq 'init' ) {
         'state'   => STATE_STREAMING,
         'round'   => 0,
         ## round_started intentionally NOT stamped here : this fires at    ##
-        ## task creation, before the task has actually been dispatched [   ##
-        ## still waiting on backend_acquire ]. coding.async.request stamps ##
-        ## it at the real dispatch point instead - the only place that     ##
-        ## reflects "time since the current attempt began" correctly.      ##
+        ## task creation, before the task has actually been dispatched     ##
+        ## [ still waiting on backend_acquire ]. coding.async.request      ##
+        ## stamps it at the real dispatch point instead - the only place   ##
+        ## that reflects "time since the current attempt began" correctly. ##
         'messages'      => $data->{'messages'} // [],
         'tools'         => $data->{'tools'}    // [],
         'content'       => '',
@@ -304,9 +304,9 @@ elsif ( $action eq 'transition' ) {
             );
             ## sanitize arguments for jinja safety  server requires: key   ##
             ## present, type string, valid json server parses json string  ##
-            ## to dict for jinja iteration concatenated json [ model error ##
-            ## ] crashes the parser matches blocking version [             ##
-            ## process-queued-task 726-731 ]                               ##
+            ## to dict for jinja iteration concatenated json               ##
+            ## [ model error ] crashes the parser matches blocking version ##
+            ## [ process-queued-task 726-731 ]                             ##
             for my $tc ( @{$tool_calls} ) {
                 my $args = $tc->{'function'}->{'arguments'} // '{}';
                 if ( !ref $args && length $args ) {
@@ -381,30 +381,54 @@ elsif ( $action eq 'transition' ) {
                     $loop_check->{'message'} // 'unknown'
                 );
 
-                <coding.loop_detect_count> //= 0;
-                <coding.loop_detect_count>++;
-                if ( <coding.loop_detect_count> >= 3 ) {
+                ## per task : one global counter let one task's warnings ##
+                ## stop another, and any clean round reset all of them   ##
+                $state->{'loop_warn_count'}++;
+                my $verdict_child = '';
+                if ( $state->{'loop_warn_count'}
+                    >= ( <coding.cfg.loop_warn_limit> // 3 ) ) {
                     <[base.logs]>->(
                         0,
                         "state_machine: loop persisted "
-                            . "after 3 warnings, forcing stop"
+                            . "after %d warnings, forcing stop",
+                        $state->{'loop_warn_count'}
                     );
-                    <coding.async.task_state>->{$task_id} = $state;
-                    <[coding.async.fail_task]>->(
-                        $task_id,
-                        'loop detected: task stopped after repeated warnings'
-                    );
-                    return $state;
+                    ## isolated loop check first [ todo X33 ] : a task can ##
+                    ## look like a loop with its work done. asked once per ##
+                    ## task ; the parent waits in subtask state            ##
+                    if ( !$state->{'loop_verdict_asked'}
+                        and
+                        <[base.cfg_bool]>->( <coding.cfg.loop_verdict> // 1 )
+                    ) {
+                        $state->{'loop_verdict_asked'} = TRUE;
+                        $verdict_child
+                            = <[coding.helper.loop_verdict_spawn]>->(
+                            $task_id, $state, $loop_check
+                            );
+                        $state->{'loop_verdict_pending'} = $verdict_child
+                            if length $verdict_child;
+                    }
+                    if ( !length $verdict_child ) {
+                        <coding.async.task_state>->{$task_id} = $state;
+                        <[coding.async.fail_task]>->(
+                            $task_id,
+                            'loop detected: task stopped '
+                                . 'after repeated warnings'
+                        );
+                        return $state;
+                    }
                 }
 
-                ## inject escalation warning [ user role: system mid-conv ##
-                ## rejected ]                                             ##
+                ## inject escalation warning                                ##
+                ## [ user role: system mid-conv rejected ] -- not while the ##
+                ## isolated check decides                                   ##
                 push @{ $state->{'messages'} },
                     {
                     'role'    => 'user',
                     'content' => $loop_check->{'warning'}
                         // $loop_check->{'message'},
-                    };
+                    }
+                    if !length $verdict_child;
             } elsif ( ref $loop_check eq qw| HASH |
                 and $loop_check->{'request_assertion'} ) {
                 <[base.logs]>->(
@@ -436,8 +460,8 @@ elsif ( $action eq 'transition' ) {
                 ## an assertion answer rather than a task completion        ##
                 $state->{'loop_assertion_pending'} = TRUE;
             } else {
-                ## no loop pattern : reset counter ##
-                <coding.loop_detect_count> = 0;
+                ## no loop pattern : reset this task's counter ##
+                $state->{'loop_warn_count'} = 0;
             }
         }
 
@@ -659,8 +683,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,.,.,,,.,,,.,,,..,,,.,,,,,,,,.,,,,,,,.,...,.,.,...,...,..,,,.,,,.,,..,,,,.,
-#CV5OHNPZ5MPH5ZOFWHV3T5ABS4IMCY3BY5TAMVI23BOQGTEKMKPIF4KVUQFWJGGB3DUPQSRREPGHW
-#\\\|32SPFUHFBYJ45IV6QOUXAJ2XIIXXER7IVDPKLXJ4I7NMNDFQMVX \ / AMOS7 \ YOURUM ::
-#\[7]3P6XOPQS32XPTFO76UOBLS6CJ7YHN6PTMCNLZZ64JFPEPH5WLGBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,...,...,...,,.,,,,.,,..,,,.,.,.,...,...,...,..,,,,.,,,.,.,,,
+#OQDI4KXIH3DGH7AN7H4P6UIMV67HBFQMIOV332EUBPFA4BJG7ESKKSVW3WI53UETU27ZHE5VIMDRE
+#\\\|57CAZO7KARGSLNGQZEUPK7UDTVPUZEZTPE2NRF3653H5BUERHOU \ / AMOS7 \ YOURUM ::
+#\[7]LCWWMSNO3VEETSNEGP46LT3HSDNTNC3JG26CARSFPQAKK4PCBEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = coding.helper.loop_verdict_apply
+# descr = apply an isolated loop check's verdict to the waiting parent task
+# param = $parent_id, $child_id, $text [ child reply or error ], $ok [ child
+#         succeeded ] -> TRUE when handled [ skip the standard subtask
+#         resume ], FALSE when the parent resumes normally [ NOT_LOOP ]
+# note  = DONE : complete the parent with what it wrote. NOT_LOOP : reset the
+#         task's loop counter, add a note, resume. LOOP, an unreadable reply
+#         or a failed child : fail the parent as before, with the reason
+
+my ( $parent_id, $child_id, $text, $ok ) = @ARG;
+
+my $parent_state = <[coding.async.state_manager]>->( qw| get |, $parent_id );
+return FALSE unless ref $parent_state eq qw| HASH |;
+
+delete $parent_state->{'loop_verdict_pending'};
+
+my ( $verdict, $reason ) = ( 'LOOP', 'loop check failed' );
+if ($ok) {
+    ( $verdict, $reason )
+        = ( $text // '' ) =~ m{\b(NOT_LOOP|DONE|LOOP)\b\s*:?\s*([^\n]*)}
+        ? ( $1, $2 )
+        : ( 'LOOP', 'unreadable loop check reply' );
+}
+$reason = substr $reason // '', 0, 300;
+
+<[base.logs]>->(
+    0, 'loop_verdict: %s : %s [ %s ] -- %s',
+    $parent_id, $verdict, $child_id, $reason
+);
+
+if ( $verdict eq qw| NOT_LOOP | ) {
+    $parent_state->{'loop_warn_count'} = 0;
+    push @{ $parent_state->{'messages'} },
+        {
+        'role'    => 'user',
+        'content' => "[ loop check ] an isolated review found "
+            . "no loop : $reason -- continue the task.",
+        };
+    <coding.async.task_state>->{$parent_id} = $parent_state;
+    return FALSE;
+}
+
+## DONE \ LOOP end the parent : its waiting state and queue go first ##
+$parent_state->{'pending_subtask'} = undef;
+<coding.task.subtask_queue>->{$parent_id} = [];
+<coding.async.task_state>->{$parent_id}   = $parent_state;
+
+if ( $verdict eq qw| DONE | ) {
+    <[coding.async.complete]>->(
+        $parent_id,
+        {   success => TRUE,
+            result  => "completed after an isolated loop check : $reason",
+        }
+    );
+} else {
+    <[coding.async.fail_task]>->(
+        $parent_id,
+        "loop detected: task stopped after "
+            . "repeated warnings [ loop check : $reason ]"
+    );
+}
+
+return TRUE;
+
+#,,.,,.,.,,.,,,.,,,..,,,.,.,,,,,,,,..,,..,,..,..,,...,...,...,,,.,.,.,...,..,,
+#A3ZIGQ5AHYHLEAPVZ7YGWZIWYH667VXZX2VNQ7MEMBEZH73HQ6YIFAWBC7AIJ7WBN37TDRPFIIMJC
+#\\\|4Q4URDAMBYCV53EQFDYP7FUHGBMASIAMULISNYR6NGWAK4KLMPF \ / AMOS7 \ YOURUM ::
+#\[7]LOYRDQ4H2UAGLKJK45IRK5QGIEKJ2JO2KFYGNWCBBJ3W5SALQQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
