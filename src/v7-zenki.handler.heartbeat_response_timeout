@@ -12,12 +12,12 @@ return $event->w->cancel    ##  not a valid instance entry  ##
 
 my $instance = <v7-zenki.zenka.instance>->{$instance_id};
 
-## host memory pressure [ v7-zenki.pressure ] : a zenka stalled in direct  ##
-## reclaim is not hung -- restarting it adds memory demand and, for        ##
-## invoke-web, kills invoke.ai with it. while the level is elevated \      ##
-## critical, or the latest sample already crosses the critical avg10 [ the ##
-## level needs 3 samples to follow a spike ], the timeout is extended      ##
-## instead of counted : up to heartbeat_ext.<level> times                  ##
+## host memory pressure [ v7-zenki.pressure ] : a zenka stalled in direct   ##
+## reclaim is not hung -- restarting it adds memory demand and, for         ##
+## invoke-web, kills invoke.ai with it. while the level is elevated \       ##
+## critical, or the latest sample already crosses the critical avg10        ##
+## [ the level needs 3 samples to follow a spike ], the timeout is extended ##
+## instead of counted : up to heartbeat_ext.<level> times                   ##
 my $level  = <v7-zenki.pressure.level>  // qw| calm |;
 my $latest = <v7-zenki.pressure.latest> // {};
 $level = qw| critical |
@@ -85,7 +85,7 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         if ( $zenka_status eq qw| error | ) {    ##  once more not successful
             <callback.session.closing_last> = {
                 'name'   => qw| v7-zenki.teardown |,
-                'params' => ['fatal cube zenka error']
+                'params' => [ 'fatal cube zenka error', undef, 1 ]
             };
             <[base.session.check_remaining]>;
         } else {
@@ -120,8 +120,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         ;    ##  retrying now [0]
 }
 
-#,,,,,,..,.,,,,,.,,..,,,.,..,,,,,,,,.,,.,,..,,..,,...,...,..,,...,,.,,..,,,.,,
-#43DQ3N45EGJPREC47BJHI45ZEDKPGX3JHIDBZHETTLKDL2QUXY4EXOGC5OJW3OKCRTFBPVV7JJIN4
-#\\\|ELVYZMP2ZOPA5EN3D3XMEXO45FG4DRHPFDCUGJCNCASLV7MCVB4 \ / AMOS7 \ YOURUM ::
-#\[7]DYIIMQ5GI3LUUH2WUTYW2R67RLES3SUWT2TB4HMBX72SZMYCAGBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,...,...,.,,,,,,,.,.,,,,,..,,..,,...,...,...,,,.,,,,,,,.,...,
+#2Q25745NRLPIXYNRWFTSRG2BRAB57MHKZEPKFEPJDNAOTPAHXV2A5EQIQH7HNPV3ZZUAKS5EXRLBG
+#\\\|GCRMIJJAPI3KYTFLZRVAEBDC3P45YKFTDO4ZJPKBOKDFAOB4NM4 \ / AMOS7 \ YOURUM ::
+#\[7]DCLZRQ2G5GZR7F3MXYVV6KMSJTDQANN6JZVS232O5MQYTFFF2SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

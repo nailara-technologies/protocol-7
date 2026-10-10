@@ -26,7 +26,7 @@ my $tmp_dir_owner = <system.amos-zenka-user>;
 if ( ref <v7-zenki.start_setup.zenki.startup.start_order> ne qw| ARRAY |
     or <v7-zenki.start_setup.zenki.startup.start_order>->@* == 0 ) {
     <[base.log]>->( 0, ':. no zenki to start found, giving up..,' );
-    <[v7-zenki.teardown]>;    ## abort start-up ##
+    <[v7-zenki.teardown]>->( 'no zenki to start', undef, 1 );    ## abort ##
 }
 
 my $zenka_config = <v7-zenki.start_setup.zenki.config> // {};
@@ -64,8 +64,8 @@ my ( $added_all_ref, $removed_all_ref )
 
 <[v7-zenki.calc_prefix_lengths]>->(qw| v7 cube |);    # <-- running, not start
 
-## every run : objects for the added zenki, chains for all [ a reload must ##
-## apply changed and removed dependencies too ]                            ##
+## every run : objects for the added zenki, chains for all      ##
+## [ a reload must apply changed and removed dependencies too ] ##
 <[v7-zenki.set_up_zenka_dependencies]>->( @{$added_all_ref} );
 
 ## full-state rebuild every run -- set_up_ondemand_zenki resets             ##
@@ -102,8 +102,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,,,..,,.,,,,.,,,..,.,.,.,,,.,.,..,,..,,,,.,..,,...,...,.,.,...,,.,,.,.,.,.,
-#XCBL7KDDNQF2A5EH6COUXUVKD73U6CRE5YLRJ4OISMVDUAY6DEOUUHRZYK3S4QXYZGQE57YSFKWK2
-#\\\|6G3FO5YFE4XMP23NZBNINDMPTYGXIALPYMI73DOICWIIBUDJJXB \ / AMOS7 \ YOURUM ::
-#\[7]WFQTSB3M36ADVJGVPLOQJTRCLA3CNENNRYOHXHSNOLR2WD7B3QDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,...,.,,,,,.,...,,.,,..,,,,.,..,,...,...,..,,,..,,,.,.,.,.,.,
+#4YUYTE4DE56VX733THND3PR2MZIZEK2YOD7BHHS7J6NPL3RRRBU7OLBJAVBMY77UUVSR5XNENOXBU
+#\\\|LBRCVBH3MZ3KTAZZXBPMU6W6L2NZYVRV3PFKJKVG6PQV3RCRRKC \ / AMOS7 \ YOURUM ::
+#\[7]STJSFIJRY5VBIKD7WA7HXIQKO5CP2LEBNXQJKXHS5HSMEAGQX6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
