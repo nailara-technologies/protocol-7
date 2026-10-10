@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = fetch-files.cmd.hf-remove
+# descr = delete a downloaded .gguf below the models root
+# param = <path> [ absolute ; its directory goes too once empty ]
+# note  = downloads belong to this zenka's user in 0750 directories : the
+#         admin user cannot purge them without root, this command can
+
+my $path = $call->{'args'} // '';
+$path =~ s{^\s+|\s+$}{}g;
+
+my $root = <external.models.lmstudio.path> // <external.models.path>
+    // '/mnt/ext-xfs-data/models-lmstudio';
+
+return { 'mode' => qw| false |, 'data' => 'usage : hf-remove <path.gguf>' }
+    unless length $path;
+
+## resolved paths only : no symlink or '..' out of the models root ##
+require Cwd;
+my $real_root = Cwd::realpath($root) // '';
+my $real_path = Cwd::realpath($path) // '';
+return { 'mode' => qw| false |, 'data' => "not found : $path" }
+    unless length $real_path and -f $real_path;
+return {
+    'mode' => qw| false |,
+    'data' => "refused : not a .gguf below $root : $path"
+    }
+    unless length $real_root
+    and index( $real_path, "$real_root/" ) == 0
+    and $real_path =~ m|\.gguf$|i;
+
+my $size_gb = ( -s $real_path ) / 1024**3;
+unlink $real_path
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'cannot remove %s : %s', $real_path, $OS_ERROR )
+    };
+
+## the repo directory goes too once empty [ never the root itself ] ##
+( my $dir = $real_path ) =~ s|/[^/]+$||;
+my $dir_removed = ( $dir ne $real_root and rmdir $dir ) ? ' + empty dir' : '';
+
+<[base.logs]>->(
+    1, '[hf.remove] removed %s [ %.2f GB ]%s',
+    $real_path, $size_gb, $dir_removed
+);
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "removed %s [ %.2f GB ]%s\n",
+        $real_path, $size_gb, $dir_removed
+    )
+};
+
+#,,,.,,,.,...,,..,,..,,,.,,..,.,.,,,,,.,.,,,,,..,,...,...,..,,,,.,...,.,.,...,
+#QOFYXXWET5TAFXBLX4U26NNB4BFFOWE24YY3SRKKKFELGRTIE7MEYDBMFJUEPOZ5HTS54W7GZ2WTY
+#\\\|M27IX3YIPODKU67P4WL2A556NX2S3AUL4JJ46GAMX4YYVLXT6Y5 \ / AMOS7 \ YOURUM ::
+#\[7]CZZDSOXQ5RPKPNWYQMBMXPGJSDT4G5ZRPNMA4ULG4Z6MYFID3YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
