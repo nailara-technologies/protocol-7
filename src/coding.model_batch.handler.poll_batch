@@ -194,6 +194,15 @@ my $settle_task = sub {
     };
     $entry->{'finish_reason'} = $state->{'task_finish_reason'} // '';
 
+    ## per-round request seeds [ coding.async.request ] : with the spec's ##
+    ## prompt, the model and the baseline a run can be replayed           ##
+    my $coding_task
+        = <coding.task.queue>->{ $state->{'current_task_id'} // '' };
+    $entry->{'seeds'} = { %{ $coding_task->{'execution'}{'round_seeds'} } }
+        if ref $coding_task eq qw| HASH |
+        and ref $coding_task->{'execution'}{'round_seeds'} eq qw| HASH |;
+    $entry->{'coding_task_id'} = $state->{'current_task_id'} // '';
+
     ## criteria hits over the reply and every written file, plus a compile ##
     ## check of touched src/ modules -- before the revert, while the files ##
     ## are still on disk. replaces the iteration.score_result call, which  ##
@@ -1106,8 +1115,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,.,,,,,,.,,,.,.,..,,,,,,...,,..,,..,.,,,,,,,..,,...,...,...,..,,.,.,,.,,..,,
-#P6TY33ZUH6S47MDFFOAKKLVA7FKXWQNTRXKZCEXLTV36NSXADR6ESUCMBH3YMKETZYES3BEXH65IE
-#\\\|4K5UMUPMW2OACWEPLZXAJEE7L5Z2NQ7H7LBAAODXIRC4CXKKVIC \ / AMOS7 \ YOURUM ::
-#\[7]ZAL34XNLZFUDWMXNXXCVSF3AS4AM434NEXCQNJG6TPWVDGMNPMBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,..,,,,,,,.,,,,,.,.,,,.,,..,..,,...,...,..,,,..,,..,..,,...,
+#ZZ533THFRYOOSZHLMHNOMWXGHUHOWWU2A7MTKFLJFFCMTKVZ4AAESYXH4KKQM6PLULQQ2U6EY5QL6
+#\\\|VDDR6SCB7UR36SKZCS23AALFW5OLNTOJ35ZVZLVOJSCE6IHQMNC \ / AMOS7 \ YOURUM ::
+#\[7]Y2HN4C6WRQKM73GDH5TIBUIBUGL6IZBIMXY5L2ERQI6GD6KODSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
