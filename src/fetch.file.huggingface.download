@@ -24,8 +24,7 @@ return { 'mode' => qw| false |, 'data' => 'file parameter required' }
 ## auto-detect destination for GGUF files ##
 if ( !length($dest) ) {
     if ( $file =~ m\.gguf$\i ) {
-        $dest = <external.models.lmstudio.path> // <external.models.path>
-            // '/mnt/ext-xfs-data/models-lmstudio';
+        $dest = <[base.models_root]> // '/mnt/ext-xfs-data/models-lmstudio';
     } else {
         $dest = <external.models.download.temp> // '/tmp/model-downloads';
     }
@@ -159,8 +158,8 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,..,,,,,,,.,,.,,,.,,,.,.,.,,,,,,,.,,,.,,,..,,...,...,..,,.,,,,,,,,,.,.,,,
-#X7L4V73TRGWCZTAIT6LU5KUOGUDRZH7EWT7IMIHFOWY62UG46ASZKCMVZSZJQK45ZN4T7MQ7C44YM
-#\\\|EGY44HU5QRP5OLITXN5NF3IMO2OAUK34AC26JOO6F2U3JWZWKUB \ / AMOS7 \ YOURUM ::
-#\[7]6UKQFDT4NO3EKP7DREWD5B3HXWCVHDFVUHTGZWWLB2LQIGPE4SAI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,,,,,.,,,,..,,,.,,..,,,.,...,..,,...,...,..,,,..,,.,,..,,,..,
+#AWZ5EP55KIBR45PLVJGI2GOHSM6Q333YZ37IXLYCZ3QE7OBYHCKAO2QM3Y7DJXW23U72GDT4U6JGE
+#\\\|3VGKXXIQMH5IDZ7SCETN7FIS5UQA43XD7WXHKHTLCSWMQYLGGMY \ / AMOS7 \ YOURUM ::
+#\[7]A27LWDUEWJHLF3ZP3EGORDU22LKILNUW3RJAP5GGESOHIOYCCSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

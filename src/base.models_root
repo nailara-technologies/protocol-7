@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = base.models_root
+# descr = the models root : the first configured model dir that exists
+# note  = a host without the large model disk [ a vps : no
+#         /mnt/ext-xfs-data ] falls through to external.models.local.path
+#         [ /data/models ] -- discovery, downloads, removal and the coding
+#         zenka's model list then work there unchanged, no host name in
+#         the tree. order : lmstudio path, local path, generic path
+
+## config keys load nested [ <..> ] in most zenki, flat under $data{models} ##
+## in the models zenka -- try both forms                                    ##
+my @candidates = grep { defined and length } (
+    <external.models.lmstudio.path>,
+    $data{'models'}{'external.models.lmstudio.path'},
+    <external.models.local.path>,
+    $data{'models'}{'external.models.local.path'},
+    <external.models.path>,
+);
+
+for my $dir (@candidates) {
+    return $dir if -d $dir;
+}
+
+## nothing exists yet : the first configured one [ a later mkdir makes it ] ##
+return $candidates[0] // '/data/models';
+
+#,,.,,...,,.,,...,...,,..,,,,,.,.,,..,.,.,.,.,..,,...,.,,,,..,,,,,.,,,.,,,,.,,
+#BN3CNODI7FELHF23E7CB5FKRT6YZDKESSHU56EEX3BJQABCTTD4CEFNRXCP2GHAI5EK27YURW3FSE
+#\\\|AJ5UMWXYK54Y4QWWPX4M4DJLS4HLQCZYVY6X22JATOQZLDGDGYK \ / AMOS7 \ YOURUM ::
+#\[7]LXO4DZEDGSA7L5PONBTETWFWVUCR2EN6K5INBSQBIT7UWD57A4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
