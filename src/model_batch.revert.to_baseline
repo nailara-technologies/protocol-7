@@ -35,8 +35,10 @@ for my $rel_path ( sort keys $paths_href->%* ) {
             )
         ) {
             warn sprintf(
-                'revert failed [ %s : baseline blob missing ] <{C1}>',
-                $rel_path );
+                'revert failed [ %s : restore failed -- '
+                    . 'blob missing or not writable ] <{C1}>',
+                $rel_path
+            );
             return undef;
         }
     } elsif ( exists $pair_href->{'after'} ) {
@@ -57,8 +59,8 @@ for my $rel_path ( sort keys $paths_href->%* ) {
 
 return TRUE;
 
-#,,..,,.,,..,,,.,,..,,..,,,.,,,..,.,,,.,.,..,,..,,...,...,..,,,,,,,,.,,.,,..,,
-#HOXIRQHLLSVVYXQBUKHDWE4UC5NCHONSTRTGHPQX4S6QWZ4VVJ4LEFVBYLERICTRGWLBN43LXML6G
-#\\\|3ACC3DF756AC26O6UFQZW2SCC4CX6GGE4DFIFCRZLBYKGULIII6 \ / AMOS7 \ YOURUM ::
-#\[7]EHYTJEQQPFIRUZJLNCBSNBH2H5J7WZL7WPPJ7IS5MH3FBOZYT6AY 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,..,,,..,...,,,.,,..,,.,,,,,,..,,...,...,...,.,,,...,,.,,..,,
+#NIAI7M3HDPHBJYRI56LGMK6R7FXRHG2YECGJIQ6EECBMP2RJOCVMHILAZOGDVE6MN5ZWCATVOCRZS
+#\\\|4NWDNIKXHFT5XONSCWIFHK7K33VRCPBLFOI4EFVMNX7VQG3WFXB \ / AMOS7 \ YOURUM ::
+#\[7]WIPRAIFZXOUXHMTUXXPEQFSRZICFEFCP3OSLUNH6RZJFQJMCAYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
