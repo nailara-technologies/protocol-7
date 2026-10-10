@@ -1,0 +1,34 @@
+# fablevibes regression check -- 2026-10-10
+# dims-from-header-module passed 3/3 in coding-14b-compare [ morning ] and
+# failed 3/3 in coding-35b-compare [ evening ] : blank-line run abort at
+# round 2. suspect : the literal \n in the edit_file tool description.
+
+batch_spec_version: 1
+backend: gpu
+
+models:
+  - 72T4WFI:TK55OIY    # Qwen3.6 14B A3B FableVibes Q4_K_M [moe, vision]
+
+reference_tps: 20
+
+repeat: 3
+
+tasks:
+  - id: dims-from-header-module
+    budget_hint: 900
+    prompt: |
+      work submit "read src/coding.image.label and src/coding.image.mime_from_magic
+      for the module format and house style [ header comments, lowercase
+      ## comments with [ ] annotations, no sub { } wrapper : the file body
+      is the subroutine ]. then create src/coding.image.dims_from_header : it
+      takes the first bytes of an image file as a string and returns
+      ( width, height ) read from the header for png [ IHDR chunk ], gif
+      [ logical screen descriptor ] and jpeg [ scan the segments to the first
+      SOF0..SOF15 start-of-frame marker, skipping DHT, DAC and JPG ], or an
+      empty list when the format is unknown or the bytes are too short. write
+      the file, then reply with a single-line confirmation."
+    criteria:
+      - IHDR
+      - SOF
+      - width
+      - height
