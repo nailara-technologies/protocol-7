@@ -1,32 +1,49 @@
 ## [:< ##
 
 # name  = coding.handler.pending_switch_timeout
-# descr = bounded fallback for the async force=1 model-switch completion :
-#         armed by coding.handler.spawn_smart [ after => 3s, mirroring the
-#         old ~2.3s blocking kill-wait budget ] when a pending switch is
-#         stashed, fires coding.helper.complete_pending_switch if the old
-#         server's SIGCHLD has not already driven completion -- covers the
-#         theoretical missed/coalesced SIGCHLD so a caller's on_done can
-#         never hang forever. normally a no-op : the sigchld handler
-#         consumes the pending entry first and this finds nothing.
+# descr = reap poll for the async force=1 model-switch completion :
+#         armed by coding.handler.spawn_smart [ every 0.1 s ] when a
+#         pending switch is stashed. completes the switch as soon as the
+#         killed old server is gone -- reaped here, or already reaped by
+#         any waitpid(-1) loop in the zenka [ a SIGCHLD is no reliable
+#         completion signal : signals coalesce, competing reapers take the
+#         exit status ]. the sigchld handler may still complete it first ;
+#         the poll then finds nothing pending and stops. bounded : 10 s.
 
-my $handler_data = shift->w->data;
+my $event        = shift;
+my $handler_data = $event->w->data;
 my $backend      = $handler_data->{'backend'} // 'gpu';
+my $pending      = <coding.pending_switch>->{$backend};
 
-if ( ref <coding.pending_switch>->{$backend} eq qw| HASH | ) {
-    <[base.logs]>->(
-        0,
-        '[pending_switch_timeout] %s : completing '
-            . 'switch via fallback timer [ missed SIGCHLD ? ]',
-        $backend
-    );
-    <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
+## nothing pending [ completed by the sigchld handler meanwhile ] : stop ##
+if ( ref $pending ne qw| HASH | ) {
+    $event->w->cancel if $event->w->is_active;
+    return TRUE;
 }
 
+## gone : reaped now [ pid ], already reaped elsewhere [ -1, ECHILD ] or no ##
+## longer signalable -- whoever collected it                                ##
+my $pid  = $pending->{'killed_pid'} // 0;
+my $gone = !$pid || <[base.waitpid]>->($pid) != 0 || !kill( 0, $pid );
+
+## bounded : complete after 10 s even when the old server still lingers ##
+my $waited = <[base.time]>->(3) - ( $pending->{'poll_started'} // 0 );
+return TRUE if !$gone and $waited < 10;
+
+$event->w->cancel if $event->w->is_active;
+<[base.logs]>->(
+    ( $gone ? 2 : 0 ),
+    '[pending_switch] %s : old server [ pid %s ] %s after %.1f s, completing',
+    $backend,
+    $pid,
+    ( $gone ? 'gone' : 'STILL RUNNING' ),
+    $waited
+);
+<[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
 return TRUE;
 
-#,,,.,,..,.,,,..,,.,.,..,,.,,,,,,,,,,,,.,,.,.,..,,...,...,,.,,.,,,,.,,..,,..,,
-#VYKYEAKCQMU43FCSSUUH3M266CPFYRE2SDVXG7RDHWJ76A4L65ZMIWD2WQSYUAPSMFDDVE2DCFARU
-#\\\|F6OLC4Z6IQTVKBZCEWLY6JC7YBVXFX555UUCR33SI6WGYGZ5BW6 \ / AMOS7 \ YOURUM ::
-#\[7]JTXYCL4D6XFA2XSMJY3PNJIZS6YWUZQ3OARDJBM6MLFDO2HH34AA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,,.,..,,.,,,,.,,,,,,.,,,,,.,..,,...,...,,.,,,.,,.,,,...,..,,
+#B63EJUKIAHNSJC56ROCVQLLEP6TY6BPFHS7H4JH2QNWU5ARJCQSBJYYZRVC2WO6VS4HVGP3Z5AX2O
+#\\\|WHCS4ZZOKULL7S5ZEXVQ77PF45ZOBJS4AW3DPIB54IT4EKCQTF6 \ / AMOS7 \ YOURUM ::
+#\[7]FBBRL4F2LSIPCOKJLRY74KB5ABIZSO7JH5YTG3KERWE3JKU5I2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
