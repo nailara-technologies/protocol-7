@@ -905,7 +905,10 @@ items:
   details: |-
     move every service off the old low-power host onto the two new servers [ neighbors at the same provider, unlimited traffic between them ], make them resilient and convenient, then retire the old host [ user, 2026-10-11 ]. no host names or addresses in the tree : old host, new server 1 \ 2.
 
-    - services : nameserv, smtpd [ see UZU ], http[s]d, and the rest the old host runs -- list them there first
+    - services : smtpd [ see UZU ], http[s]d, and the rest the old host runs -- list them there first
+    - mail today on the old host : postfix and its mail set-up, read with neomutt directly on the host. all need native protocol-7 replacements : smtpd zenka for receiving \ sending [ instead of postfix ], mailbox storage, and a reading client [ a zenka-served mail view, e.g. in the CT2 web page, or an nshell \ terminal reader ] -- migrate the existing mailboxes before the old host goes
+    - addressing to keep [ generic, no real addresses in the tree ] : a wildcard per user subdomain [ *@<user>.<domain> ] catches everything ; providers each get their own local part there [ <provider>@<user>.<domain> -- shows who leaked or sold an address, easy to filter or shut off ] ; plain accounts on the main domain [ <user>@<domain> ] exist too. the smtpd zenka needs : wildcard subdomains per user, routing \ folders by local part, plain accounts. the vault's login entry for a provider can record which address it uses [ 5OT ]
+    - nameserv is NOT on the old host : a separate goal for the self-contained set-up [ dns is at the registrar's panel today ]. e.g. own authoritative server on a new server, the registrar or the other new server as secondary ; later zenki manage records through the registrar's api, credentials from the vault [ 5OT ]
     - local proxy : hysteria already runs on new server 1 but no config is migrated yet ; the udt-link zenki are meant to replace hysteria with native links later
     - protocol-7 itself : not installed as a full node on new server 1 yet [ /usr/local/protocol-7 is there ] -- then known nodes between the hosts instead of plain ssh config
     - resilience : the two servers back each other up [ nameserv secondary, smtp fallback mx, http failover ] -- decide per service
@@ -920,7 +923,10 @@ items:
   - servers
   text: migrate the old host's services to the two new servers, then retire it
 - added: 3X32FAG5LQ
-  details: 'p7-vault holds ssh keys and passwords [ e.g. for the new servers ] -- new entry types beside login \ contact, a key entry keeps the private key encrypted like any secret field. later : zenki use them [ a remote link or deploy step asks the vault instead of reading ~/.ssh ] [ user, 2026-10-11 ].'
+  details: |-
+    p7-vault holds ssh keys and passwords [ e.g. for the new servers ] -- new entry types beside login \ contact, a key entry keeps the private key encrypted like any secret field. later : zenki use them [ a remote link or deploy step asks the vault instead of reading ~/.ssh ] [ user, 2026-10-11 ].
+
+    a 'server' entry type [ user, 2026-10-11 ] reusing the login fields : plus host, port, ssh user, host key fingerprint, a reference to the stored key [ or the key itself as a secret field ]. provider logins [ registrar, hosting panel ] are already imported as login entries, one by one.
   done_at: null
   id: 5OT
   priority: normal
@@ -942,8 +948,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,,,,.,,,...,,.,,,..,...,,..,..,,..,,.,.,..,,..,,...,...,.,.,...,,..,,.,,...,
-#H4WUZN4RBED3MSNGCI7T6CGK4CCYV3NYZWPTKGMPKYCSJPATNCUHMKXNH7Q4MHDOZULEKWTTU5AZM
-#\\\|P5TNSWOTESG3YVSR36CNZGNGISEUJN4KNU2XPN27434NNGEYTOS \ / AMOS7 \ YOURUM ::
-#\[7]YEJVQRC2MYBC3IAYCXHPNV6AI7TQPMCXOJPYWV2SIOKXB2MXYYCI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,...,,,.,...,,..,.,,,..,,,.,,..,,..,,...,...,.,,,..,,...,,,,,,,,,
+#6ORKPSUWB2NCZOC6RXLLJX5SOFY42N3KDNPFCEKZ6UE3OZ5NAH4BULT22NKUQ4KEZZRSPTOPX3DSI
+#\\\|KYXWZXTNJ5GXCUJWY4BE7Q47JKDVZHAO3NKT3SW2SMCU7K5UVP5 \ / AMOS7 \ YOURUM ::
+#\[7]VF5E4RPBY5EARNDDYFBBFHDKX7FH5ST7FCASHFKFT27DAAGZISAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
