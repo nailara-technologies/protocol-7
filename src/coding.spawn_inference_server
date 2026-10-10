@@ -40,11 +40,10 @@ my $threads    = $params->{'threads'}    // 8;
 my $gpu_layers = $params->{'gpu_layers'} // 33;
 ## pre partial-offload reduction ##
 my $configured_gpu_layers = $gpu_layers;
-## model's TRUE total layer count [ gguf block_count ] : the default -ngl ##
-## 33 is a generic constant, so gpu_layers == configured does NOT imply   ##
-## full offload for models with more than 33 layers -- the offload-       ##
-## fraction check further down compares against this, not the configured  ##
-## value                                                                  ##
+## model's TRUE total layer count [ gguf block_count ] : the default -ngl   ##
+## 33 is a generic constant, so gpu_layers == configured does NOT imply     ##
+## full offload for models with more than 33 layers -- the offload-fraction ##
+## check further down compares against this, not the configured value       ##
 my $model_layer_count = 0;
 my $model_path        = $params->{'model_path'}  // '';
 my $mmproj_path       = $params->{'mmproj_path'} // '';
@@ -136,11 +135,11 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             close $cfh;
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
-            ## $age_s is already an elapsed-seconds delta [ from          ##
-            ## timestamped_delta_s ] -- base.parser.duration expects an   ##
-            ## absolute unix start-time and computes now-start itself, so ##
-            ## reconstruct a start-time rather than passing the delta     ##
-            ## directly [ else it reports age since unix epoch ]          ##
+            ## $age_s is already an elapsed-seconds delta                   ##
+            ## [ from timestamped_delta_s ] -- base.parser.duration expects ##
+            ## an absolute unix start-time and computes now-start itself,   ##
+            ## so reconstruct a start-time rather than passing the delta    ##
+            ## directly [ else it reports age since unix epoch ]            ##
             my $age_str
                 = defined $age_s
                 ? <[base.parser.duration]>->( <[base.time]> - $age_s )
@@ -167,8 +166,9 @@ my @killed_stale_pids;
 ## stderr - the '-|' open only captures stdout, so that header leaked       ##
 ## straight through to the zenka's inherited terminal, unfiltered by        ##
 ## base.logs [ no color, no prefix ] - confirmed live. use the project's    ##
-## own stderr_redir/stderr_restore pair [ same one image2html.child and     ##
-## melt already use ] rather than a hand-rolled dup/restore dance           ##
+## own stderr_redir/stderr_restore pair                                     ##
+## [ same one image2html.child and melt already use ] rather than a         ##
+## hand-rolled dup/restore dance                                            ##
 <[base.stderr_redir]>->(qw| :devnull: |);
 
 if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
@@ -229,12 +229,12 @@ if ( $backend eq qw| gpu | ) {
     my @other_procs = qx{ pgrep -a 'llama-(server|mtmd-cli)' 2>/dev/null };
     my $own_pid     = <coding.inference_servers>->{$backend}{'pid'} // 0;
 
-    ## a running cpu backend never threatens this check's actual concern [ ##
-    ## VRAM/GPU-process collision ] -- it runs on system RAM, not VRAM.    ##
-    ## without this exclusion, ANY gpu respawn [ crash-restart, seed-retry ##
-    ## restart, .. ] is permanently refused for as long as cpu is alive :  ##
-    ## confirmed live 2026-08-26, cpu spawning only just started working   ##
-    ## today so this was never reachable before                            ##
+    ## a running cpu backend never threatens this check's actual concern    ##
+    ## [ VRAM/GPU-process collision ] -- it runs on system RAM, not VRAM.   ##
+    ## without this exclusion, ANY gpu respawn                              ##
+    ## [ crash-restart, seed-retry restart, .. ] is permanently refused for ##
+    ## as long as cpu is alive : confirmed live 2026-08-26, cpu spawning    ##
+    ## only just started working today so this was never reachable before   ##
     my $cpu_pid = <coding.inference_servers>->{'cpu'}{'pid'} // 0;
 
     my @foreign_procs;
@@ -355,9 +355,10 @@ if ( $backend eq qw| gpu | ) {
             }
         }
     } else {
-        ## unparseable nvidia-smi output : the vram check [ full-fit AND ##
-        ## partial-offload alike ] silently never runs -- log it rather  ##
-        ## than let a transient driver hiccup fail open with no trace    ##
+        ## unparseable nvidia-smi output : the vram check                  ##
+        ## [ full-fit AND partial-offload alike ] silently never runs --   ##
+        ## log it rather than let a transient driver hiccup fail open with ##
+        ## no trace                                                        ##
         <[base.logs]>->(
             1,
             '[spawn_inference_server] nvidia-smi query '
@@ -369,11 +370,12 @@ if ( $backend eq qw| gpu | ) {
     }
 }
 
-## extract the true total layer count fresh when the partial-offload     ##
-## reduction branch above never ran [ model fit vram at the configured   ##
-## -ngl, or nvidia-smi was unparseable ] -- a >33-layer model is still a ##
-## genuine partial offload at -ngl 33 even on that 'happy' path, and     ##
-## calculate_safe_context needs the real ratio to budget the ram side    ##
+## extract the true total layer count fresh when the partial-offload        ##
+## reduction branch above never ran                                         ##
+## [ model fit vram at the configured -ngl, or nvidia-smi was unparseable ] ##
+## -- a >33-layer model is still a genuine partial offload at -ngl 33 even  ##
+## on that 'happy' path, and calculate_safe_context needs the real ratio to ##
+## budget the ram side                                                      ##
 if (    $backend eq qw| gpu |
     and not $model_layer_count
     and length($model_path)
@@ -405,12 +407,20 @@ my $max_tokens = <inference.model.max_tokens>
 ## floor configured acts as a minimum : smaller models may safely allow ##
 ## more context                                                         ##
 
+## kv cache type [ coding.cfg.kv_cache_type, default q8_0 : about half the ##
+## memory per context token of f16 ]. a quantized v cache needs flash      ##
+## attention, which a lora run turns off [ see the lora block below ] --   ##
+## f16 then                                                                ##
+my $kv_cache_type = lc( <coding.cfg.kv_cache_type> // qw| q8_0 | );
+$kv_cache_type = qw| f16 | if length( <coding.cfg.lora_adapter> // '' );
+
 my $safe = <[coding.helper.calculate_safe_context]>->(
-    {   model_path  => $model_path,
-        mmproj_path => $mmproj_path,
-        backend     => $backend,
-        gpu_layers  => $gpu_layers,           ## actual -ngl value used ##
-        layer_count => $model_layer_count,    ## true total [ gguf ] ##
+    {   model_path    => $model_path,
+        mmproj_path   => $mmproj_path,
+        backend       => $backend,
+        kv_cache_type => $kv_cache_type,
+        gpu_layers    => $gpu_layers,           ## actual -ngl value used ##
+        layer_count   => $model_layer_count,    ## true total [ gguf ] ##
     }
 );
 my $auto_ctx = $safe->{'context_length'};
@@ -444,14 +454,14 @@ if ( defined <inference.model.context_length> ) {
         );
     } elsif ( $backend eq qw| cpu | or $partial_gpu_offload ) {
         ## CPU, and partial-offload GPU alike : the configured floor is a   ##
-        ## GPU-tuned value shared across backends [ cfg/zenki/coding/       ##
-        ## zenka.v7 ] -- on fully-vram-resident GPU that's fine, VRAM       ##
-        ## headroom is predictable, but whenever part of the footprint      ##
-        ## lives in system RAM [ cpu backend, or gpu with partial offload ] ##
-        ## it means "use the floor even when the RAM-safety calc says       ##
-        ## that's unsafe" reduces to "ignore the RAM-safety calc," which is ##
-        ## exactly the path that OOM-killed the host on 2026-09-17 [ twice  ##
-        ## cpu-side, see                                                    ##
+        ## GPU-tuned value shared across backends                           ##
+        ## [ cfg/zenki/coding/ zenka.v7 ] -- on fully-vram-resident GPU     ##
+        ## that's fine, VRAM headroom is predictable, but whenever part of  ##
+        ## the footprint lives in system RAM                                ##
+        ## [ cpu backend, or gpu with partial offload ] it means "use the   ##
+        ## floor even when the RAM-safety calc says that's unsafe" reduces  ##
+        ## to "ignore the RAM-safety calc," which is exactly the path that  ##
+        ## OOM-killed the host on 2026-09-17 [ twice cpu-side, see          ##
         ## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md, and  ##
         ## gpu-side via the partial-offload gap this branch now also covers ##
         ## ] -- calculate_safe_context's own hard ram-fraction backstop     ##
@@ -506,6 +516,8 @@ if ( defined $recovery_ceiling and $ctx_size > $recovery_ceiling ) {
 }
 
 push @cmd, qw| -c |, $ctx_size;
+push @cmd, qw| -ctk |, $kv_cache_type, qw| -ctv |, $kv_cache_type
+    if $kv_cache_type ne qw| f16 |;
 push @cmd, qw| -n |, $max_tokens;
 
 # Backend-specific settings
@@ -521,8 +533,8 @@ push @cmd, qw| --no-warmup |;
 ## jinja template engine [ disable if new binary crashes on tool calls ] ##
 if ( <[base.cfg_bool]>->( <coding.jinja.enable> // TRUE ) ) {
     push @cmd, qw| --jinja |;
-    ## fixed chat template override [ e.g. froggeric qwen3.5/3.6 bug fixes ##
-    ## ]                                                                   ##
+    ## fixed chat template override             ##
+    ## [ e.g. froggeric qwen3.5/3.6 bug fixes ] ##
     my $tmpl_file = <coding.jinja.template_file> // '';
     if ( length $tmpl_file and -r $tmpl_file ) {
 
@@ -563,16 +575,16 @@ if ( <[base.cfg_bool]>->( <coding.jinja.enable> // TRUE ) ) {
     }
 }
 
-## reasoning effort [ controls <think> budget : varies by model and task ##
-## type ]                                                                ##
+## reasoning effort                                            ##
+## [ controls <think> budget : varies by model and task type ] ##
 my $reasoning_effort = <coding.inference.reasoning_effort> // '';
 if ( length $reasoning_effort ) {
     push @cmd, '--chat-template-kwargs',
         sprintf( '{"reasoning_effort":"%s"}', $reasoning_effort );
 }
 
-## harmonic seed [ configurable fixed seed or generated from ntime+fortuna ##
-## ]                                                                       ##
+## harmonic seed                                               ##
+## [ configurable fixed seed or generated from ntime+fortuna ] ##
 my $fixed_seed = <inference.model.seed> // 0;
 my $seed;
 if ($fixed_seed) {
@@ -594,17 +606,19 @@ if ($fixed_seed) {
 push @cmd, '--seed', $seed;
 <[base.logs]>->( 1, ': %s server seed : %s', $backend, $seed );
 
-## control vector [ inference-time activation steering, cvector-generator   ##
-## .gguf ] : config-gated -- absent/empty <coding.cfg.control_vector> is    ##
-## today's unchanged behavior. deliberately NOT conditioned on $backend eq  ##
-## 'gpu' : unlike -ngl a control vector is backend-agnostic and applies     ##
-## identically on the cpu and hybrid paths -- gating it behind the gpu      ##
-## check would silently disable steering on the very backend most likely to ##
-## be used for a cheap A/B run. a configured-but-missing file fails the     ##
-## spawn loudly [ same treatment as a missing model above ] : the vector is ##
-## model-specific [ regenerate per model, keep the model id in the filename ##
-## ] and the loader only checks n_embd, so silent fallback here would hide  ##
-## exactly the config rot hazard 3 warns about                              ##
+## control vector                                                           ##
+## [ inference-time activation steering, cvector-generator .gguf ] :        ##
+## config-gated -- absent/empty <coding.cfg.control_vector> is today's      ##
+## unchanged behavior. deliberately NOT conditioned on $backend eq 'gpu' :  ##
+## unlike -ngl a control vector is backend-agnostic and applies identically ##
+## on the cpu and hybrid paths -- gating it behind the gpu check would      ##
+## silently disable steering on the very backend most likely to be used for ##
+## a cheap A/B run. a configured-but-missing file fails the spawn loudly    ##
+## [ same treatment as a missing model above ] : the vector is              ##
+## model-specific                                                           ##
+## [ regenerate per model, keep the model id in the filename ] and the      ##
+## loader only checks n_embd, so silent fallback here would hide exactly    ##
+## the config rot hazard 3 warns about                                      ##
 my $cvec_path = <coding.cfg.control_vector> // '';
 if ( length $cvec_path ) {
     if ( !-f $cvec_path ) {
@@ -648,10 +662,11 @@ if ( length $cvec_path ) {
 ## <coding.cfg.lora_adapter> is today's unchanged behavior. deliberately    ##
 ## NOT conditioned on $backend eq 'gpu' : a load-time adapter is            ##
 ## backend-agnostic, same reasoning as the control vector above. a          ##
-## configured-but-missing file fails the spawn loudly [ same treatment as a ##
-## missing model ] : the loader enforces architecture match but not the     ##
-## fine-tune, so a stale adapter would load silently against the wrong      ##
-## weights [ model id stays in the filename for that reason ]               ##
+## configured-but-missing file fails the spawn loudly                       ##
+## [ same treatment as a missing model ] : the loader enforces architecture ##
+## match but not the fine-tune, so a stale adapter would load silently      ##
+## against the wrong weights                                                ##
+## [ model id stays in the filename for that reason ]                       ##
 my $lora_path = <coding.cfg.lora_adapter> // '';
 if ( length $lora_path ) {
     if ( !-f $lora_path ) {
@@ -669,16 +684,17 @@ if ( length $lora_path ) {
     my $lora_scale = <coding.cfg.lora_adapter_scale> // 1.0;
     push @cmd, '--lora-scaled', $lora_path, $lora_scale;
 
-    ## REAL bug, caught live 2026-09-10 on this adapter's first deployment  ##
-    ## test: this fork's lora application silently NO-OPS under flash       ##
-    ## attention -- `llama_lora_adapter_set: flash_attn is not compatible   ##
-    ## with LoRA` (visible only with --verbose; --log-disable above hides   ##
-    ## it entirely). the adapter still loads without error [ tensor count   ##
-    ## logged correctly ], so a byte-identical scale=0 vs scale=1 output is ##
-    ## the only symptom -- confirmed via a differential test against the    ##
-    ## same seed/prompt. `-no-fa`/`--flash-attn off` is a supported runtime ##
-    ## flag on this same binary [ no separate non-fa build needed           ##
-    ## -- confirmed live, adapter has a real, measurable effect once off ]  ##
+    ## REAL bug, caught live 2026-09-10 on this adapter's first deployment ##
+    ## test: this fork's lora application silently NO-OPS under flash      ##
+    ## attention -- `llama_lora_adapter_set: flash_attn is not compatible  ##
+    ## with LoRA` (visible only with --verbose; --log-disable above hides  ##
+    ## it entirely). the adapter still loads without error                 ##
+    ## [ tensor count logged correctly ], so a byte-identical scale=0 vs   ##
+    ## scale=1 output is the only symptom -- confirmed via a differential  ##
+    ## test against the same seed/prompt. `-no-fa`/`--flash-attn off` is a ##
+    ## supported runtime flag on this same binary [ no separate non-fa     ##
+    ## build needed                                                        ##
+    ## -- confirmed live, adapter has a real, measurable effect once off ] ##
     push @cmd, '--flash-attn', 'off';
 
     <[base.logs]>->(
@@ -800,8 +816,8 @@ for my $pipe_fh ( $server_out, $server_err ) {
 ## Report child PID to v7 for lifecycle management
 <[base.zenki.report_child_pid]>->($pid);
 
-## exponential-backoff poll for forked worker  child [ 0.7s × 1.6 each miss ##
-## ]                                                                        ##
+## exponential-backoff poll for forked worker  child ##
+## [ 0.7s × 1.6 each miss ]                          ##
 <[event.add_timer]>->(
     {   'after'   => 0.7,
         'handler' => qw| coding.handler.register_server_children |,
@@ -828,6 +844,8 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'model' => $amos_id,
     'n_ctx' => $ctx_size,    ## actual context window passed to server ##
     'calculated_ctx' => $safe->{'calculated'}, ## VRAM-safe auto-calc value ##
+    ## -ctk / -ctv [ f16 = none ] ##
+    'kv_cache_type' => $kv_cache_type,
     (   $backend eq qw| gpu |
         ? ( 'gpu_layers'   => $gpu_layers,        ## actual -ngl value used ##
             'layer_count'  => $model_layer_count, ## true total [ gguf ] ##
@@ -851,9 +869,9 @@ for my $pipe_fh ( $server_out, $server_err ) {
     'mmproj_path' => $mmproj_path,
     'model_path'  => $model_path,
     ## carry forward across the crash-restart respawn cycle : this whole    ##
-    ## hash is replaced wholesale on every spawn [ including                ##
-    ## crash-triggered ones ], which previously silently dropped            ##
-    ## restart_count back to undef every time --                            ##
+    ## hash is replaced wholesale on every spawn                            ##
+    ## [ including crash-triggered ones ], which previously silently        ##
+    ## dropped restart_count back to undef every time --                    ##
     ## coding.handler.inference_server_sigchld's own restart_count++ then   ##
     ## always read 0, so it always logged "attempt 1/5" and its "max 5      ##
     ## restarts exceeded -> mark failed" cutoff could never fire, looping   ##
@@ -867,11 +885,12 @@ for my $pipe_fh ( $server_out, $server_err ) {
     ## next candidate, or any other switch-model call ] must start its own  ##
     ## count at 0, not inherit whatever the PREVIOUS occupant of this slot  ##
     ## had accumulated. confirmed live 2026-09-17 : a model-sweep run       ##
-    ## against known-bad candidates left restart_count at 8 [ past the "5"  ##
-    ## ceiling entirely ] on the zenka's OWN configured default model,      ##
-    ## which had never actually been attempted 8 times itself -- each       ##
-    ## subsequent sweep candidate was silently inheriting the prior         ##
-    ## candidate's exhausted count instead of getting its own fair attempt  ##
+    ## against known-bad candidates left restart_count at 8                 ##
+    ## [ past the "5" ceiling entirely ] on the zenka's OWN configured      ##
+    ## default model, which had never actually been attempted 8 times       ##
+    ## itself -- each subsequent sweep candidate was silently inheriting    ##
+    ## the prior candidate's exhausted count instead of getting its own     ##
+    ## fair attempt                                                         ##
     'restart_count' => (
         length $amos_id
             and ( $old->{'model'} // '' ) eq $amos_id
@@ -930,8 +949,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,.,.,,.,,.,.,.,.,.,,,.,.,..,,..,,,.,,...,..,,...,...,,..,,,.,,..,.,.,,,,,
-#ZRAIH245JN2T2J57PM5KVHBDOTZFA2RY7MWJWPCMNVCXOQX6OIDXN2EIELBBRTQB6S323N4AZ573S
-#\\\|JBL5UQPHJJNMEVU62NECFCDAIY6N7L4YGXF4WIRYLT6WLZYXJKJ \ / AMOS7 \ YOURUM ::
-#\[7]UCVFPXDL5NS7HRXQBOHF5IDPFU6V5VHON7TBIZ3BMWWS55CKBSCA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,..,.,.,,..,.,,,,,,,,..,.,.,..,,...,..,,..,,,.,,,.,,...,,..,
+#G2CYLXK6HZHQ43HVIBQWXY32VRRK3377GYPQO3R5YUR2FZIW4IKM7IZWQED2C72VVQET6YA7PFQXU
+#\\\|5YJ7EVIJZUL4RYJ55QUB5R7XA3OBVGEWEUO6QSY4KCIOTZ52TIK \ / AMOS7 \ YOURUM ::
+#\[7]IMRSKFFUYV5YT3HBYOD6TBJ6F3FQHPSJGUBEFG5DD7FUM64Q4SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
