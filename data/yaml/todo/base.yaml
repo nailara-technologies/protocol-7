@@ -793,9 +793,42 @@ items:
   - abort
   - recovery
   text: retry a round once after a whitespace degeneration abort
+- added: 3X3YJK6VPU
+  details: |-
+    presets as dotted config keys, nesting from the dots :
+      coding.cfg.mode.default.model = <fablevibes>
+      coding.cfg.mode.code.model    = <35b q3>
+      coding.cfg.mode.code.new.max_rounds = ..
+    lookup walks up : code.new.parser -> code.new -> code -> default. a sub-mode only lists what differs.
+    settings per mode : model, tool set \ groups, reasoning budget, max rounds, budget, result template, later a reviewer model.
 
-#,,..,,..,..,,,.,,..,,,,.,,.,,...,,.,,,.,,,..,..,,...,...,.,,,,.,,.,.,...,,,.,
-#C2F6BJ677QB6OKSPQXBZE5HZQS3E7S2NTCCOWNGCON5QQHB6KQRV3EGWBSPNUH57XUW7PQMNHQT2E
-#\\\|PHZBMTG3GGKE7CAU7URY4WIM4WE7IBWLEXTFOWUVL7FSAI53TPX \ / AMOS7 \ YOURUM ::
-#\[7]NQOJW5JUTLV2BN5PYRTZNZGP6W2KVC7LZ26GJWOHHA7RT6JHJQAA 7  DATA SIGNATURE ::
+    choosing the mode, most explicit first :
+    - prompt tag :mode:code.new: [ like :image-attach: ]
+    - mode: per task in batch specs and todo items [ XOJ overnight runs ]
+    - automatic classification later [ RC7 ], fallback default
+
+    grouping : a 35b load takes ~6 min -- the queue groups tasks by the model their mode resolves to, batch \ overnight runs order by model, a single interactive task may still switch.
+
+    purpose [ user, 2026-10-10 ] : other zenki submit work by mode and never manage models themselves.
+    seen 2026-10-10 : fablevibes 14b fast + reliable on edits \ docs, 35b q3_k_m on new code [ coding-35b-compare ].
+
+    combined selector [ user, 2026-10-10 ] : the mode also picks the context template(s) and the system prompt, not only model + settings.
+      coding.cfg.mode.code.new.template = bug-fix | code-review | .. [ data/yaml/context-templates/ ]
+      coding.cfg.mode.doc.system        = <system prompt variant>
+    precedence, most specific wins : explicit in the request [ a template name in the prompt -- coding.prompt.assemble's existing dynamic template match -- or a caller's system text ] > the mode's preset [ walked up the mode tree ] > default. a mode only fills what nothing more specific already set.
+  done_at: null
+  id: WNF
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - routing
+  - models
+  - work-modes
+  text: 'work-mode presets : nested modes pick model + settings, queue grouped by model'
+
+#,,..,.,.,,,.,,,,,.,,,...,,.,,,,.,.,,,,.,,,,,,..,,...,...,...,.,.,.,.,..,,,..,
+#63PJJ5DZMZIIMEDF2PKOEIG7D34Z7X4MNOOHGPQDYHICCCUAZV4T7W34UQETGUF5VNYIF4FOAHEOW
+#\\\|U42JEH2NC4TDTWTULETNVLD6KJEGX75NXIGZWXZO63MJQ6WEM3Q \ / AMOS7 \ YOURUM ::
+#\[7]CARYFIYQNODDWEN2XQXNFA2T55EYVZ7N5T6OO7AKDVE3WAPFI4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
