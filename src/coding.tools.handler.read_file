@@ -49,6 +49,20 @@ if ( defined $result and $result =~ m|^<!-- | ) {
     return $result;
 }
 
+## the AMOS7 signature block [ 5 lines at a module's end ] shows as one ##
+## marker line : models copied it into new files                        ##
+## [ a signature the signing tool never made ] or looped on its '#::::' ##
+## line until the repetition abort [ fablevibes 2026-10-10 ]. numbering ##
+## stays intact : the block is the file's tail                          ##
+if ( defined $result ) {
+    $result =~ s{
+        ^ ( [ \t]* \d+ \t )? \#[,.]{40,} \n
+        (?: [ \t]* \d* \t? \# [^\n]* \n ){3}
+        [ \t]* \d* \t? \#:{40,} $
+    }{ ( $1 // '' ) . '## [ AMOS7 signature block : added at signing -- '
+        . 'never write one ] ##' }mxe;
+}
+
 ## count total lines in file for pagination display ##
 my $total_lines = 0;
 if ( length $path && -f $path ) {
@@ -94,8 +108,8 @@ if ( defined $result && $total_lines > 0 ) {
 
 return $result;
 
-#,,.,,...,...,..,,,..,,..,,..,,,,,.,,,.,.,,..,.,.,...,...,,,,,.,,,...,...,,..,
-#CVLX5VLFF2SRRWZJSUTFNBTVY6CSHPOCYT6HDDNV6RRRNEOBINALDSOKPPRJRS7L52YHXGMP7AIB4
-#\\\|7J422DCJPEVTQRVSJUC5EC333GE2FHCO5ODSMF33BL3XKSGW64F \ / AMOS7 \ YOURUM ::
-#\[7]UJV4IEF5MYWQFMB6THZ6J6L44HTHUI33UGID64CVMIGOW7TUHKCY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,..,,.,,,..,,,,,,..,,..,,..,,.,.,...,...,.,.,...,,.,,.,,,.,,,
+#2UH5WD6YWTYUGZKS5Q4U6QHHBQ2CYTPVRC4BKJJIYKKT4WCRZGML5IYDQLR67E62ZHLWH7AJULR3K
+#\\\|CBLYG5D4XO77DKDHE52XJLX63XPGIJEDK7USI7AGCPV5AO3QSC2 \ / AMOS7 \ YOURUM ::
+#\[7]O4DWN3RVGUVO4CGBYIFREF62BURMTXGCZEUOOCFWPWUFXM4MGYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
