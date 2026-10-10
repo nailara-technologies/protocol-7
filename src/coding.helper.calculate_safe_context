@@ -6,7 +6,8 @@
 #           gpu_layers => N, layer_count => N,    [ gpu offload fraction ]
 #           kv_cache_type => f16 | q8_0 | .. ,   [ default f16 ]
 #           offload_mb => N,      [ moe expert weights in ram : --n-cpu-moe ]
-#           vram_total_mb => N }  [ skips the nvidia-smi query : planners ]
+#           vram_total_mb => N,   [ skips the nvidia-smi query : planners ]
+#           probe => bool }       [ planner variant : quiet logs ]
 # return = { context_length => N, calculated => N, explanation => "...",
 #            limited_by => "..." }
 
@@ -20,7 +21,15 @@ my $backend     = $params->{'backend'}     // qw| gpu |;
 ## the model's true total layer count [ gguf block_count ] -- both 0/absent ##
 ## means full vram residency is assumed [ exactly the pre-2026-09-17        ##
 ## behavior, kept identical for the full-offload case ]                     ##
-my $gpu_layers  = $params->{'gpu_layers'}  // 0;
+my $gpu_layers = $params->{'gpu_layers'} // 0;
+
+## probe : a planner trying an offload variant                              ##
+## [ spawn_inference_server's kv auto check and moe search ] -- its routine ##
+## lines and an expected 'does not fit' go to level 2, only the real start  ##
+## logs at 1 / 0                                                            ##
+my $probe       = $params->{'probe'} // FALSE;
+my $log_info    = $probe ? 2 : 1;
+my $log_err     = $probe ? 2 : 0;
 my $layer_count = $params->{'layer_count'} // 0;
 
 ## safe operating range ##
@@ -109,7 +118,7 @@ if ( !$kv_bytes_per_token ) {
         :                       140 * 1024;    # ~140 KB (70B class)
 }
 <[base.logs]>->(
-    1,
+    $log_info,
     '[calculate_safe_context] kv cache : %.1f KB per token [ %s ]',
     $kv_bytes_per_token / 1024, $kv_source
 );
@@ -139,7 +148,7 @@ if ( $backend ne qw| gpu | ) {
 
     if ( not $mem_available_mb ) {
         <[base.logs]>->(
-            1,
+            $log_info,
             '[calculate_safe_context] /proc/meminfo '
                 . 'unavailable, falling back to minimum=%d',
             $MIN_CONTEXT
@@ -167,7 +176,7 @@ if ( $backend ne qw| gpu | ) {
     ## cannot fit model at all ##
     if ( $remaining_mb <= 0 ) {
         <[base.logs]>->(
-            0,
+            $log_err,
             '[calculate_safe_context] model does not fit '
                 . 'RAM: available=%dMB model=%.0fMB mmproj=%.0fMB',
             $mem_available_mb,
@@ -272,7 +281,7 @@ if ( $backend ne qw| gpu | ) {
         :                                         qw| maximum |;
 
     <[base.logs]>->(
-        1,
+        $log_info,
         ': RAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token '
             . '%.1f KB ] compute [ token %.1f KB : %dx multiplier ]',
         $mem_available_mb,
@@ -283,7 +292,7 @@ if ( $backend ne qw| gpu | ) {
         $compute_buffer_multiplier,
     );
     <[base.logs]>->(
-        1, ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
+        $log_info,  ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
         $safety_mb, $calculated_context, $final_context, $limited_by
     );
 
@@ -320,7 +329,7 @@ my $vram
     : <[coding.helper.query_gpu_memory]>;
 if ( !$vram->{'ok'} ) {
     <[base.logs]>->(
-        1,
+        $log_info,
         '[calculate_safe_context] nvidia-smi '
             . 'failed, falling back to minimum=%d',
         $MIN_CONTEXT
@@ -411,7 +420,7 @@ my $remaining_mb
 ## cannot fit model at all ##
 if ( $remaining_mb <= 0 ) {
     <[base.logs]>->(
-        0,
+        $log_err,
         '[calculate_safe_context] model does not fit '
             . 'GPU: total=%dMB model=%.0fMB mmproj=%.0fMB',
         $total_mb,
@@ -490,7 +499,7 @@ if ($partial_offload) {
     ## ram unreadable : fail safe, exactly like the cpu branch ##
     if ( not $mem_available_mb ) {
         <[base.logs]>->(
-            1,
+            $log_info,
             '[calculate_safe_context] partial offload but '
                 . '/proc/meminfo unavailable, falling back to minimum=%d',
             $MIN_CONTEXT
@@ -513,7 +522,7 @@ if ($partial_offload) {
     ## cpu-resident weight fraction alone does not fit available ram ##
     if ( $ram_remaining_mb <= 0 ) {
         <[base.logs]>->(
-            0,
+            $log_err,
             '[calculate_safe_context] partial offload : cpu-resident weights '
                 . 'do not fit RAM: available=%dMB cpu_model=%.0fMB [ %d/%d '
                 . 'layers on gpu ]',
@@ -595,7 +604,7 @@ if ($partial_offload) {
     $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
 
     <[base.logs]>->(
-        1,
+        $log_info,
         ': partial offload [ %d/%d layers on gpu ] : cpu-resident '
             . '%.0f MB : RAM=%d MB : safety=%d MB : ram-calc %d [ %s ]',
         $gpu_layers,
@@ -609,11 +618,15 @@ if ($partial_offload) {
 }
 
 <[base.logs]>->(
-    1, ': VRAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token %.1f KB ]',
-    $total_mb, $model_size_mb, $mmproj_size_mb, $kv_bytes_per_token / 1024,
+    $log_info,
+    ': VRAM=%d MB : model %.0f MB ' . 'mmproj %.0f MB KV [ token %.1f KB ]',
+    $total_mb,
+    $model_size_mb,
+    $mmproj_size_mb,
+    $kv_bytes_per_token / 1024,
 );
 <[base.logs]>->(
-    1, ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
+    $log_info,  ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
     $safety_mb, $calculated_context, $final_context, $limited_by
 );
 
@@ -633,8 +646,8 @@ return {
     kv_bytes_per_token => $kv_bytes_per_token,
 };
 
-#,,.,,,.,,.,.,,..,.,.,.,.,,..,.,.,,.,,.,.,,..,.,.,...,..,,.,.,,.,,,,.,,,,,,..,
-#HRGRBVUFUOV2F43FCTCFNM7RXR3ZIFG4MSXHFJ4ZFWTA4JMSDNVEOJ62YJXKJVX6JWQ5Q5WOXMBAO
-#\\\|LBQDTRWKM7GRTVGRUIHCDXPMLXTZ3RJ4DWMQKSCHECSJPXPPL3W \ / AMOS7 \ YOURUM ::
-#\[7]K6SCJHMIDUIUSUYSC2MUKIJ2UJBK2PKGD2IN62JVKSEJO5CTVKCY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,..,,.,.,...,,.,,,,.,,,,,..,,,.,,.,.,...,..,,,,.,,..,,,.,...,,,.,
+#DKHQSFJ5LHLQWIDWVLIP4UHSTTXZSC5ZIJUZVJYHXZFXGJ2NKON6PBSOEXPANCPA7LL2BYC47CUQ2
+#\\\|PQ5V7XIXYFOBINJAOAD33YWPJITE2XIANJJSOOXIS3KVPRAD4O4 \ / AMOS7 \ YOURUM ::
+#\[7]KC3DUFWGM6GHX4YLCKAWWKHFQ3FU3R43FLZPP57DWRRA6LMZ7KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
