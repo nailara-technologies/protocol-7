@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = coding.helper.loop_verdict_spawn
+# descr = ask an isolated no-tools child whether a task flagged as looping
+#         really loops, before the task is failed [ todo X33 ]
+# param = $task_id, $state [ async state ], $loop_check [ detect_loop href ]
+#         -> child task id | ''
+# note  = the child sees only the task description, the last rounds in
+#         short form and the files the task wrote -- not the context that
+#         pulled the model into the loop. verdict handled by
+#         coding.helper.loop_verdict_apply from coding.async.complete
+
+my ( $task_id, $state, $loop_check ) = @ARG;
+
+return '' unless defined $task_id and ref $state eq qw| HASH |;
+
+my $task        = <coding.task.queue>->{$task_id} // {};
+my $description = $task->{'request'}{'description'}
+    // $task->{'metadata'}{'raw_request'}{'description'} // '';
+
+## last rounds in short form : tool calls with their first result line ##
+my @messages = @{ $state->{'messages'} // [] };
+my %result_by_id;
+for my $msg (@messages) {
+    next unless ( $msg->{'role'} // '' ) eq qw| tool |;
+    my ($first) = grep {m|\S|} split m|\n|, $msg->{'content'} // '';
+    $result_by_id{ $msg->{'tool_call_id'} // '' } = substr $first // '', 0,
+        160;
+}
+my ( @steps, %written );
+for my $msg (@messages) {
+    next unless ( $msg->{'role'} // '' ) eq qw| assistant |;
+    for my $call ( @{ $msg->{'tool_calls'} // [] } ) {
+        my $name = $call->{'function'}{'name'}      // '?';
+        my $args = $call->{'function'}{'arguments'} // '';
+        $args = eval { JSON::PP->new->utf8(0)->decode($args) } // {}
+            unless ref $args;
+        my $path   = ref $args eq qw| HASH | ? $args->{'path'} // '' : '';
+        my $result = $result_by_id{ $call->{'id'} // '' }      // '';
+        push @steps, sprintf '%s %s -> %s', $name, $path, $result;
+        $written{$path} = TRUE
+            if length $path
+            and $name =~ m{^(?:write_new_file|write_append|edit_file
+                           |replace_in_file)$}x
+            and $result !~ m{error|BLOCKED|MISMATCH}i;
+    }
+}
+my $max_steps = <coding.cfg.loop_verdict_steps> // 12;
+splice @steps, 0, @steps - $max_steps if @steps > $max_steps;
+
+my $root  = <system.root_path> // '';
+my @files = map {
+    sprintf '%s [ %s ' . ']', $ARG, -e "$root/$ARG" ? 'exists' : 'missing'
+    }
+    sort keys %written;
+
+my $prompt = join "\n",
+    'a coding task was flagged as looping by a repetition detector.',
+    'decide from the facts below whether it really loops.', '',
+    '[ task ]',                                             $description, '',
+    '[ last steps : tool, path -> first result line ]',     @steps,       '',
+    '[ files the task wrote ]', ( @files ? @files : 'none' ), '',
+    sprintf(
+    '[ detector ] pattern %s, score %.1f',
+    $loop_check->{'pattern'} // 'unknown',
+    $loop_check->{'score'}   // 0
+    ),
+    '',
+    'reply with ONE line, starting with exactly one verdict word :',
+    '  DONE : <reason>     -- the task\'s work is complete [ the files it '
+    . 'asked for exist and the steps show it finished ], only the final '
+    . 'reply is missing',
+    '  NOT_LOOP : <reason> -- it is making real progress, let it continue',
+    '  LOOP : <reason>     -- it repeats itself without progress';
+
+my $spawned = <[coding.tools.handler.subtask_spawn]>->(
+    {   'parent_task_id' => $task_id,
+        'description'    => $prompt,
+        'no_tools'       => TRUE,
+        'max_rounds'     => 1,
+        'route_backend'  => $state->{'backend'} // '',
+        'result_label'   => 'LOOP CHECK',
+        'system'         => 'you review a stalled coding task from a short '
+            . 'summary. answer with a single verdict '
+            . 'line, nothing else.',
+    }
+);
+
+my $child_id = ref $spawned eq qw| HASH | ? $spawned->{'child_task_id'} : '';
+<[base.logs]>->(
+    0, 'loop_verdict: %s : %s', $task_id,
+    length( $child_id // '' )
+    ? "isolated loop check in $child_id"
+    : 'loop check spawn failed : '
+        . ( ref $spawned eq qw| HASH | ? $spawned->{'content'} // '' : '' )
+);
+
+return $child_id // '';
+
+#,,.,,,,.,,,,,,..,...,,,.,,,.,,.,,.,,,,.,,,,,,..,,...,...,..,,,,.,,,,,,,.,..,,
+#S43NHBG3LF64Y3VHGPTI7AZ5WZ57GYCSGTAATGQOHLZMR52L2HJ4B23DU6LFZ3ZK6M5DXW53DSPGQ
+#\\\|GH6BNPJQQAEFM45WYS3NQXXQMRUSTC2DXSLCILVHPH44VKXUZNJ \ / AMOS7 \ YOURUM ::
+#\[7]IKFKTNUOE5Z2HWS6G7QNFXFFO6LZ5ZOPKK66GXYBVJERYPP3PUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

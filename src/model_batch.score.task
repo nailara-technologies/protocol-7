@@ -23,7 +23,8 @@ my @touched   = @{ $capture_href->{'files_touched'} // [] };
 ## reply only for tasks scored on it -- a model that only described the    ##
 ## change in its reply wrote nothing                                       ##
 ## [ found 2026-10-10 : a dense 14b scored 4/4 with no file touched ]      ##
-my $haystack = $from_reply ? $result_text : '';
+my $haystack      = $from_reply ? $result_text : '';
+my $code_haystack = '';
 for my $rel_path (@touched) {
     my $abs_path = catfile( $root_path, split m|/|, $rel_path );
     next unless -f $abs_path and -s $abs_path < 1024**2;
@@ -32,31 +33,37 @@ for my $rel_path (@touched) {
         my $content = readline($in_fh) // '';
         close $in_fh;
         utf8::decode($content) if utf8::valid($content);
-        ## modules : criteria count in code only -- a comment naming 'IHDR' ##
-        ## scored 4/4 on a parser that read none of it right                ##
-        ## [ fablevibes 2026-10-10 ]. docs and other files stay whole       ##
+        $haystack .= "\n" . $content;
+        ## code-only text for 'code:' criteria : modules without comments   ##
+        ## -- a comment naming 'IHDR' scored on a parser that read none of  ##
+        ## it right, while code-only by default failed good code writing it ##
+        ## as "\x49\x48\x44\x52" [ fablevibes 2026-10-10 ]                  ##
         if ( $rel_path =~ m|^src/[^/.]+\.[^/]+$| and $rel_path !~ m|\.md$| ) {
             $content =~ s|^\s*#.*$||mg;      ## full-line comments ##
             $content =~ s|\s+##\s.*$||mg;    ## trailing ## .. ## ##
         }
-        $haystack .= "\n" . $content;
+        $code_haystack .= "\n" . $content;
     }
 }
 
 ## criteria : case-insensitive substring hits ##
 my ( @hits, @misses );
-## 're:<pattern>' : a regular expression [ '%.1f' and '%0.1f' alike ] ##
+## 're:<pattern>' : a regular expression [ '%.1f' and '%0.1f' alike ]    ##
+## 'code:<criterion>' : matched in module code only [ comments removed ] ##
 for my $criterion ( grep { defined and length } @$criteria ) {
-    if ( $criterion =~ m|^re:(.+)$| ) {
+    my ( $code_only, $wanted )
+        = $criterion =~ m|^code:(.+)$| ? ( TRUE, $1 ) : ( FALSE, $criterion );
+    my $text = $code_only ? $code_haystack : $haystack;
+    if ( $wanted =~ m|^re:(.+)$| ) {
         my $pattern = eval {qr{$1}i};
-        if ( defined $pattern and $haystack =~ $pattern ) {
+        if ( defined $pattern and $text =~ $pattern ) {
             push @hits, $criterion;
         } else {
             push @misses, $criterion;
         }
         next;
     }
-    if ( index( lc $haystack, lc $criterion ) >= 0 ) {
+    if ( index( lc $text, lc $wanted ) >= 0 ) {
         push @hits, $criterion;
     } else {
         push @misses, $criterion;
@@ -98,8 +105,8 @@ return {
     qw| compile | => \%compile,
 };
 
-#,,,.,...,,.,,,.,,,..,.,,,,,.,.,.,..,,...,.,,,..,,...,...,.,,,.,.,.,.,..,,...,
-#WRP2RZ2FORC3NCJLQIQXIH2DUS6G5SD2KVVMT72A6AN7LVPIEWGTX6EXLDM7KCIM4AMQAEM542KUI
-#\\\|DQFHAKEL6CEV6NSVDGWEDOFIDYYK5VBPEHA7IU3WRCBIB6RIJXV \ / AMOS7 \ YOURUM ::
-#\[7]ZBAMJHZ4ZTPPNKSUVNZVGQOC5CP35H4CKNQEXLHKZOTNFUHM6EBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,,..,..,,..,,.,,,,.,,,..,,..,..,,...,...,..,,,..,.,,,,,.,..,,
+#XFQPHKM7KKHTKAQNIQ3ZJ6W4VCSKI5UF3AA54Q7ECNTBIWBGLOE6U2GEOD2SN2RFC3M64D62KAPR4
+#\\\|3WZJTC6NPEQO6IHCRC5TTUGAWPVX65SZ5OOT6I4SGP6Q7YDD4DN \ / AMOS7 \ YOURUM ::
+#\[7]5NZOAELLYOAIC2ELNBAEXXO2CB6TD5ESULHZ67JDBUETYDRHAOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

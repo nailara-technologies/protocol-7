@@ -244,9 +244,17 @@ if ( defined $result && $result->{'success'} ) {
 
             my $skip_standard_resume = 0;
 
-            ## compaction sub-task: splice summary into messages, no user ##
-            ## msg                                                        ##
-            if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
+            ## compaction sub-task: splice summary into messages, no user  ##
+            ## msg  isolated loop check [ todo X33 ] : its verdict decides ##
+            ## the parent's fate ; NOT_LOOP resumes it the standard way    ##
+            if ( ( $parent_state->{'loop_verdict_pending'} // '' ) eq
+                $task_id ) {
+                $skip_standard_resume
+                    = <[coding.helper.loop_verdict_apply]>->(
+                    $parent_id, $task_id, $result_text, TRUE
+                    ) ? 1 : 0;
+            } elsif (
+                ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
             {
                 my $c_start     = $parent_state->{'compact_start'} // 2;
                 my $c_end       = $parent_state->{'compact_end'}   // 2;
@@ -540,7 +548,15 @@ if ( defined $result && $result->{'success'} ) {
             and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
             my $skip_standard_resume_fail = 0;
 
-            if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
+            ## isolated loop check failed itself : fail the parent ##
+            if ( ( $parent_state->{'loop_verdict_pending'} // '' ) eq
+                $task_id ) {
+                $skip_standard_resume_fail
+                    = <[coding.helper.loop_verdict_apply]>->(
+                    $parent_id_fail, $task_id, $error_msg, FALSE
+                    ) ? 1 : 0;
+            } elsif (
+                ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
             {
                 ## compaction child failed: clear markers, let parent ##
                 ## resume                                             ##
@@ -650,8 +666,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,..,,.,,,..,,.,,,,,.,.,.,,,,,,,.,,,.,,.,,.,.,...,...,..,,.,.,,,.,,,.,,.,,
-#5XZ6XIJTBK3JI3AMYBFHSFWOPW2DNBYN4EQNO3EFBN6UY4BJCYWOK43M6RAL2AYJSG22PMKFYK4X4
-#\\\|3P5BH4RWHH2O5PBKZVA4SIWXTNES77ZNILCEZEDGGPVROMJ3QHJ \ / AMOS7 \ YOURUM ::
-#\[7]O5F2ZMFEIMBNSXWP36H7K3XLYY35YU2J6KXGYVEIC5SL3Z3VPQBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,.,.,,.,,.,.,,,,,...,.,.,.,.,.,.,...,..,,.,,,.,,,.,.,...,.,,,
+#W5SNJH7ITYEYP72ZE5OK2T36VXJKKFPMVIBJNJBPHWFAGZWSNDOGRAETOEVUR4KXI6ZKE3M3D5IFO
+#\\\|WPIF2WB3VZ2SUGYYCFI7PETBPC42DB7FKZLOBAJYDFW5D2PLMJO \ / AMOS7 \ YOURUM ::
+#\[7]BJRAFC4PBQGQ7H37V5L4JNAL7TI7PIB52XXSUWU22BQMLYXLK2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
