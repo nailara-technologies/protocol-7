@@ -32,6 +32,13 @@ for my $rel_path (@touched) {
         my $content = readline($in_fh) // '';
         close $in_fh;
         utf8::decode($content) if utf8::valid($content);
+        ## modules : criteria count in code only -- a comment naming 'IHDR' ##
+        ## scored 4/4 on a parser that read none of it right                ##
+        ## [ fablevibes 2026-10-10 ]. docs and other files stay whole       ##
+        if ( $rel_path =~ m|^src/[^/.]+\.[^/]+$| and $rel_path !~ m|\.md$| ) {
+            $content =~ s|^\s*#.*$||mg;      ## full-line comments ##
+            $content =~ s|\s+##\s.*$||mg;    ## trailing ## .. ## ##
+        }
         $haystack .= "\n" . $content;
     }
 }
@@ -91,8 +98,8 @@ return {
     qw| compile | => \%compile,
 };
 
-#,,,.,...,..,,,,,,.,,,,,.,,..,...,,.,,,..,.,.,..,,...,...,,.,,,..,.,,,.,.,,..,
-#G34FCG6RGBQFBFBFTSCJUBQQALKVAPKL66INM7ITXYKFU4EF3ARMSUZMBTNVYRBHRXMNKJCR7XPP6
-#\\\|43ITDGANZ2I53O34MZBNYSW22LLCVAOOLVDHYQQNFR36ZRJ4KVY \ / AMOS7 \ YOURUM ::
-#\[7]OADZDM2NUGXIODTCAOOY67GI4DBJKKIGJVPQXGUIVSN3VBOC72CQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,,..,.,,,,,.,.,.,..,,...,.,,,..,,...,...,.,,,.,.,.,.,..,,...,
+#WRP2RZ2FORC3NCJLQIQXIH2DUS6G5SD2KVVMT72A6AN7LVPIEWGTX6EXLDM7KCIM4AMQAEM542KUI
+#\\\|DQFHAKEL6CEV6NSVDGWEDOFIDYYK5VBPEHA7IU3WRCBIB6RIJXV \ / AMOS7 \ YOURUM ::
+#\[7]ZBAMJHZ4ZTPPNKSUVNZVGQOC5CP35H4CKNQEXLHKZOTNFUHM6EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

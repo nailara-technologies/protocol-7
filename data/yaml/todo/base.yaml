@@ -738,9 +738,64 @@ items:
   - coding
   - loop-detection
   text: isolated loop assertion before failing a task
+- added: 3X3YHV75P4
+  details: |-
+    the batch harness already captures every task's after-state in the blob store and reverts the tree. an overnight mode keeps that work for review instead of only scoring it.
 
-#,,,.,,,.,,,.,..,,...,.,,,.,,,,..,,,,,..,,.,.,..,,...,...,.,.,...,,,.,.,,,.,.,
-#ABOEIX2XACKLH3HVOHFMWDQBOBIQKYRCYC7F3I3UNQX6VQ726NTOX5RO27NI3A7DGPTMEK6OVUNM2
-#\\\|VLBLJBYHH6D4A5M6TEPK2SVGKCVLDJTGKRA5HGE6PBHM7ZPXZHB \ / AMOS7 \ YOURUM ::
-#\[7]RKI7Z4XAJJOLWEK2WU4IP3BHVOFYGZPTTGHQAFIAA44IVZMHUEDA 7  DATA SIGNATURE ::
+    - per task : a patch [ baseline blob -> after blob, model_batch.diff.text ] stored with score, compile result, tool failures, timing
+    - morning view : one command lists the night's tasks with verdicts, show \ apply \ drop per task
+    - input : todo items with acceptance details [ see BYM ], routed to the model that scored best on that kind of work [ RC7 ]
+    - a task that stops with its work done [ loop stop, budget ] still keeps its patch [ X33 ]
+    - never applied automatically ; the tree stays at baseline overnight
+
+    user idea 2026-10-10 : later a trusted model or model group could also manage project phases, token windows and reset schedules, dispatch work and organize design discussions.
+  done_at: null
+  id: XOJ
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - model-batch
+  - overnight
+  text: 'overnight mode : keep model batch results as reviewable patches'
+- added: 3X3YHWEGOA
+  details: |-
+    - optional tool group 'todo' [ coding.tools.groups ] : todo_add, todo_show, todo_append, todo_done over bin/todo's list
+    - a model logs new work items as they come up mid-task instead of losing them in its final reply
+    - acceptance checklist in an item's details = definition of done : the batch scorer [ model_batch.score.task ] checks the boxes, the item closes only when all are met and touched modules compile
+    - result template for task replies : checklist state, changes made, what is left, new items found -- reviewable in the same shape every time, new items feed the next run
+
+    user idea 2026-10-10.
+  done_at: null
+  id: BYM
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - todo
+  - tools
+  text: todo tools for the coding zenka + checklist as definition of done
+- added: 3X3YHWEQAE
+  details: |-
+    a whitespace run [ blank lines, coding.detect_stream_repetition -> 'whitespace' class ] is a sampling failure, not a wrong approach -- today any pattern abort fails the whole task.
+
+    - on a whitespace-class degenerate_repetition abort : retry the same round once [ another seed or slightly changed sampling ], fail only on the second abort
+    - phrase loops keep failing at once [ or go to the X33 loop assertion ]
+    - count retries in coding.abort.count so a model that degenerates often is visible
+
+    seen 2026-10-10 : fablevibes aborted 3/3 at round 2 on dims-from-header-module [ cause : a literal \n in the edit_file schema text, fixed ], nothing written.
+  done_at: null
+  id: 6VC
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - abort
+  - recovery
+  text: retry a round once after a whitespace degeneration abort
+
+#,,..,,..,..,,,.,,..,,,,.,,.,,...,,.,,,.,,,..,..,,...,...,.,,,,.,,.,.,...,,,.,
+#C2F6BJ677QB6OKSPQXBZE5HZQS3E7S2NTCCOWNGCON5QQHB6KQRV3EGWBSPNUH57XUW7PQMNHQT2E
+#\\\|PHZBMTG3GGKE7CAU7URY4WIM4WE7IBWLEXTFOWUVL7FSAI53TPX \ / AMOS7 \ YOURUM ::
+#\[7]NQOJW5JUTLV2BN5PYRTZNZGP6W2KVC7LZ26GJWOHHA7RT6JHJQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
