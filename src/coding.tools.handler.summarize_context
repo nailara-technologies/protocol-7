@@ -68,7 +68,7 @@ unless ( $response->is_success ) {
     return "inference error: " . $response->status_line;
 }
 
-my $data    = JSON::PP::decode_json( $response->decoded_content );
+my $data    = JSON::PP::decode_json( $response->content );
 my $summary = $data->{'choices'}[0]{'message'}{'content'} // '';
 
 ## valued tree storage [ optional ] ##
@@ -90,8 +90,8 @@ if ( $store and length($node_id) ) {
 
 return $summary;
 
-#,,,,,,,.,,..,.,,,,,,,.,,,.,,,.,.,,..,,.,,.,,,..,,...,...,...,..,,,..,,.,,...,
-#KNL2JIIR2SR5PFWFDAZB3Q7D3FBEF4LUBYHYJI5LRH7KS5MDBSB7ETKEQPKUJRMWJHHALRM2TANGE
-#\\\|AWVMZXB4RZW2CV5IBKV6MKHRIQAKU2QXSNZVWPHS57RSXOLK6ZX \ / AMOS7 \ YOURUM ::
-#\[7]ERB4IJ4SRRSXYIVMDQ4OCAUVCGGQCE2EERVVP67ICEOFYQV5SKCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,,..,.,.,..,,,,.,,,,,...,,,,,..,,...,...,.,,,..,,,,,,...,.,.,
+#V4HJ2XVX2MPXZQPWTYQ3AOF7UTY2U6M7RQH4OISZWUDTQREVDQKDPJK6UXNVB7YARDSNJ36IXVEM4
+#\\\|6YM7UJH7TOAQ6F4HX5RQIO75MCKFAO56WVDRAPAF3VXYTICER2V \ / AMOS7 \ YOURUM ::
+#\[7]KZ4LKISV5BIWYEQQSMTHMXQX4EDM5N6A77UR5N2FD2JCR5IBJSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

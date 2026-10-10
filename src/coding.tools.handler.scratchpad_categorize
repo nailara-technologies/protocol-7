@@ -112,7 +112,7 @@ return "inference error: " . $response->status_line
     if not $response->is_success;
 
 my $reply = eval {
-    my $m = JSON::PP::decode_json( $response->decoded_content )
+    my $m = JSON::PP::decode_json( $response->content )
         ->{'choices'}[0]{'message'};
     ## reasoning models may answer in reasoning_content, content empty ##
     length( $m->{'content'} // '' )
@@ -126,8 +126,8 @@ $verdict //= 'needs-human-review';
 
 return sprintf "verdict: %s\n%s", $verdict, $reply;
 
-#,,..,.,,,,.,,,,,,.,,,,.,,..,,...,.,,,.,.,,.,,..,,...,..,,..,,..,,..,,,..,.,,,
-#3EQUFQWA6FQPJZ3H2AJVD2R6EPOEEGTH3G2AXU3U62L7RA73NFIAXLZDSZK73ATD6GVLFY4KZY3SQ
-#\\\|DAF2D3NUIR7R2BPC64EIWKL4IILS6YOCGQEAOAKU6ASXBSCI544 \ / AMOS7 \ YOURUM ::
-#\[7]JP5V6XGWJ2YPLFJP523GJGTOB5IWT6SPCT6VFCSAHRP642HZS4CA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,...,...,...,,..,,,,,,,.,,..,..,,...,...,.,.,,,.,...,...,,,,,
+#Z5BVAE7WPXUPZ7MI5XVGEPTUS3OTQNQ76LG7ERXHWLSH3W45L6HMIXNAPEHTKTZBLKEGMYT3XBI5C
+#\\\|4D2LD7X6V76EK6W2UVZ75KMDGEDPLTNRJSNMMPHPHWRGQESWEN3 \ / AMOS7 \ YOURUM ::
+#\[7]PKCU4SQ7ZSTIYQNSVDKJF3S2PPMYRSVZLL3MOLJZAC5KGLJMSSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

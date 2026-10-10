@@ -38,7 +38,7 @@ while (
     next unless defined $tool_name && length $tool_name;
 
     ## validate args_json is parseable ##
-    my $parsed = eval { JSON::PP::decode_json($args_json) };
+    my $parsed = eval { JSON::PP->new->utf8(0)->decode($args_json) };
     next unless defined $parsed && ref $parsed eq qw| HASH |;
 
     ## build structured tool call ##
@@ -74,8 +74,8 @@ if (@tool_calls) {
 
 return \@tool_calls;
 
-#,,..,..,,,,,,,..,,,,,.,.,,,,,,,,,..,,,.,,,.,,.,.,...,...,..,,,.,,,,,,,..,...,
-#JKLUTRXHS4QXVBBIGVYU5A3WF74CZOLJUF7EAH4BR5NSI2JIC67GVECPJTZE7NMJDN2RO4IHGSPBQ
-#\\\|VD2RD76T5HJE55AHI5LRT42JOGHD42RGLRFQZWHSA2DMXHYMY5L \ / AMOS7 \ YOURUM ::
-#\[7]KDAHJCZEM6JNHBCVSHJRPZK7WXEJZZZWAYGX6EOP5JQEM6ZSKWAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,,,.,.,.,.,,,,,.,,,,,,,,,.,.,.,.,...,...,,,.,,.,,...,..,,,,,,
+#QK6WHM7PZQXLR33ARJB572GC6PNSMQ5XRBHLV2TW475FRNFC4KGBJFBKULJ4ADVF7XRJPDH7CVXRW
+#\\\|VPJ3PFOJF5F5EBG3K77SS6Z4UWRIVHEQB23ZQZPOKYQOFA4QDKN \ / AMOS7 \ YOURUM ::
+#\[7]DVTC2GLFMRZV4KZOJPRIPBQJOFILDYFCGNFGUXFFNZJ57OPEGYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
