@@ -16,6 +16,13 @@ if ( !length $dest_path ) {
     return undef;
 }
 
+## never through a symlink : the rename below would replace the link itself ##
+## with a regular file                                                      ##
+if ( -l $dest_path ) {
+    warn "refusing to restore over a symlink '$dest_path' <{C1}>";
+    return undef;
+}
+
 my $content = <[model_batch.blob.read]>->($checksum);
 return undef unless defined $content;
 
@@ -73,8 +80,8 @@ if ( defined $mode_restore ) {
 
 return $ok ? TRUE : undef;
 
-#,,,.,...,,,.,...,,.,,.,,,..,,.,.,,,.,.,,,..,,..,,...,...,,,.,..,,,,,,...,,.,,
-#YH4N4ERLUHLO33TOFKJOGW5HJBPBKADCWIPQGWTM4MMX2J7DWTDCRAAIQKYVHZ6FNH5YTRKS7MN3K
-#\\\|5TB7MJZO76YKYTMX2BCJAJGALREZXP2UBNNDKP3OHMKYAXSKSWH \ / AMOS7 \ YOURUM ::
-#\[7]QAAP2DB4LRN3UXSTZ6AUV5P4AIEQISFHMX3UDEOVGG32CM3HPABY 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,.,.,...,..,,,.,,..,,..,,,..,..,,...,...,..,,,,.,,,,,...,.,.,
+#GMAECCGA57TISWKFQH7A5QVHXY4P6VFQF7CTTEFPCFULDX3AKHRTLAOMCD5OP7ZLML7FGTYMR6C7Q
+#\\\|UUUIJMU65REPNNSZXXY36XJMWLMS7S7SWL6ZADHBW3VYULKMRUI \ / AMOS7 \ YOURUM ::
+#\[7]Y3O3NHLAYCBXUGHI52OYS2SHRHPGYD57Z66GGW7KHBMYQ6VQK4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

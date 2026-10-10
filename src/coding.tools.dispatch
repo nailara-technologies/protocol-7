@@ -524,6 +524,12 @@ my %dispatch = (
             my $old = $edit->{'old'}  // '';
             my $new = $edit->{'new'}  // '';
 
+            ## delete : true removes the line [ new:'' would keep an empty ##
+            ## line -- a model trimming a doc to N lines had no way to     ##
+            ## shrink it, delete_lines sits outside the core tool set ]    ##
+            my $delete = $edit->{'delete'};
+            $delete = ( $delete and $delete !~ m{^(?:false|0)$}i );
+
             if ( $ln < 1 or $ln > scalar @lines ) {
                 push @preview,
                     sprintf "line %d: OUT OF RANGE [ 1..%d ]",
@@ -533,6 +539,11 @@ my %dispatch = (
             }
 
             my $actual = $lines[ $ln - 1 ];
+            if ( not defined $actual ) {
+                push @preview, sprintf "line %d: ALREADY DELETED", $ln;
+                $errors++;
+                next;
+            }
             ## trim for comparison ##
             my $actual_trim = $actual;
             my $old_trim    = $old;
@@ -550,10 +561,20 @@ my %dispatch = (
                 next;
             }
 
+            if ($delete) {
+                push @preview, sprintf "line %d: %s\n     --> [ deleted ]",
+                    $ln, $actual;
+                $lines[ $ln - 1 ] = undef if $apply;
+                next;
+            }
+
             push @preview, sprintf "line %d: %s\n     --> %s", $ln, $actual,
                 $new;
             $lines[ $ln - 1 ] = $new if $apply;
         }
+        ## deleted lines are dropped after all edits : line numbers in one ##
+        ## call always refer to the file as it was read                    ##
+        @lines = grep {defined} @lines;
 
         ## write back if applying and no errors ##
         if ( $apply and not $errors ) {
@@ -735,8 +756,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,..,,.,,,..,.,,,,,,,..,,..,,.,.,...,..,,..,,...,..,,,,.,..,,.,.,,,.,,,,,
-#DDW4475XQIK2QOD7XPYZ7752W3SA6XBVZPDPBT5C3AW7SDKJ5PDY5WL2TQBD3HBGIYXAJGOA7WLI2
-#\\\|HVIXHPYGE32M6GEVNPNWHD4NX44QXE2QI2SXVXHRRZGVYJPYJXU \ / AMOS7 \ YOURUM ::
-#\[7]TIMGCPS55OU34AHQIUNW2APUJ3F2D6ARMMCAVXK2KVJZ3RUH4GCY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,,,,,.,.,,,.,..,,.,.,.,.,,..,..,,...,...,.,,,.,,,...,,..,...,
+#X6MBU2AW534OOQI26I4MCVRRJAMVG5QYW2SUPPLHKASCBE3BOQSZIJKRCVUC7EG7DZHMOH3COAAUC
+#\\\|OQBSSDIFUMNITLNMX732NLZLGDVXULSI4EIM3QJUWGB6DY25HT4 \ / AMOS7 \ YOURUM ::
+#\[7]ADAQV2UJT3G52PEFQNE2BD6QCOCGU3SLDRHM6WTXOJJE3NAXPOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

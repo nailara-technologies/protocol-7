@@ -230,6 +230,16 @@ foreach my $tc (@$tool_calls) {
         );
     }
 
+    ## failed tool results are otherwise only in the task's memory : one ##
+    ## line per failure keeps them traceable after the task is gone      ##
+    if ( $result_content =~ m{^\s*:?\s*error\b|\bMISMATCH\b|OUT OF RANGE}i ) {
+        my ($first_line) = grep {m|\S|} split m|\n|, $result_content;
+        <[base.logs]>->(
+            1, 'tool_executor: %s : %s failed : %s',
+            $task_id, $tool_name, substr( $first_line // '', 0, 160 )
+        );
+    }
+
     ## reject-with-instructions instead of appending an oversized tool     ##
     ## result -- never truncate mid-content [ could cut off mid-tag/line ] ##
     ## ; tell the model exactly how to retry narrower, mirroring           ##
@@ -406,8 +416,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,,,.,,,,,.,.,...,,,,,...,,,,,.,,,,.,,,,.,.,.,...,...,...,,..,..,,...,.,.,
-#OPL4NPJBERRSW4MKITZ7DTIRF42PB5JVYM4MPXKJRE4KK2TTA4E3XTCZX6RYHOM5TTPZNMFTIIDL2
-#\\\|KNZ2M74EVNKBOZZYTWUDG5RBSX4A6RVVWU63GZHUU3PNVRU357D \ / AMOS7 \ YOURUM ::
-#\[7]FOFN6VK7NM6PWUJXXQ4YIXKADKR2ER5SEHR35T54ZMQKH3RKZCDQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,,,,,,..,,,.,..,,,,.,,..,,,,,.,.,...,...,...,,,.,.,.,,.,,,.,,
+#OIFOM4A5INVIPXJWIBGJ5KEBQJKY5OE5P5RVAUTWP3CENMSIZFDHNEGZ6IP53PR74KCQZILMEN2LO
+#\\\|6L77W4H3RHCCURDY5RPDN3BY3UBNGHQFTSIDT3XOKUJJYN4Z3KN \ / AMOS7 \ YOURUM ::
+#\[7]QQXOE5VWU56DWRW4CXQNJED6ZUAKJRVLDZVBJT4LLZQP5N26H2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

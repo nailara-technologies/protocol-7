@@ -712,9 +712,35 @@ items:
   tags:
   - script
   text: create apply-colors script
+- added: 3X3PLRGDHU
+  details: |-
+    before the loop detector fails a task [ 'loop detected: task stopped after repeated warnings' ], queue an assertion by the same model in an isolated no-tools child task : fresh context, only the task description and a short history of the last rounds [ tool calls + results, trimmed ]. the existing in-context LOOP ASSERTION REQUEST [ coding.async.state_machine, loop_assertion_pending ] asks the looping model inside the very context that pulls it into the loop.
 
-#,,..,,,,,,,.,...,.,,,.,.,,.,,,,.,,,,,.,.,,..,..,,...,...,.,.,,.,,.,.,...,,,,,
-#AOZGODHSULBKSHOVSUMCZBWAE6WL7AEZMLACFKBVCPDUK33FR4NKK26SD2UDCI4BSXY63XBKYR4DW
-#\\\|47ZTXBG6Z7EJSAWQIJP7N62UPVJNU7GGKSNS4DZKGTBX6JAPBGW \ / AMOS7 \ YOURUM ::
-#\[7]HGFNJRHUGQA2ESOBWCYIQRZNM2WWDRTC25XEWH4AIR4564XERQAI 7  DATA SIGNATURE ::
+    verdicts [ with a reason ] :
+    - loop : fail the task as now, with the assertion's reason in the detail
+    - not a loop : continue, reset the loop score
+    - done but not finished : the work is there [ e.g. the file is written ] and only task_complete is missing -> complete the task with its output
+
+    seen 2026-10-10 : the 35b-a3b q3_k_m wrote src/doc/model-sweep-cursor.md correctly [ criteria 3/3 ], then repeated tool calls until the detector stopped it after 347 s [ score 95.5 ] -- a 'done but not finished' case. user idea.
+
+    advanced version [ user idea ] : a 'not a loop' verdict also proposes a whitelist regex for the content that fooled the detector [ ascii art, tables, box frames, repeated structured lines ]. the loop detector checks the whitelist first and skips the assertion for matching repetition.
+
+    safeguards :
+    - a pattern must match the flagged repetition and must not match a generic case [ test it against a few known real loops before storing ]
+    - anchored and specific [ refuse .* style patterns ], length-limited
+    - stored with origin [ model, task, date ] and a hit counter ; patterns that never match again expire
+    - reviewable list [ e.g. a command to show / drop them ] so a bad pattern cannot silently disable loop detection
+  done_at: null
+  id: X33
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - loop-detection
+  text: isolated loop assertion before failing a task
+
+#,,,.,,,.,,,.,..,,...,.,,,.,,,,..,,,,,..,,.,.,..,,...,...,.,.,...,,,.,.,,,.,.,
+#ABOEIX2XACKLH3HVOHFMWDQBOBIQKYRCYC7F3I3UNQX6VQ726NTOX5RO27NI3A7DGPTMEK6OVUNM2
+#\\\|VLBLJBYHH6D4A5M6TEPK2SVGKCVLDJTGKRA5HGE6PBHM7ZPXZHB \ / AMOS7 \ YOURUM ::
+#\[7]RKI7Z4XAJJOLWEK2WU4IP3BHVOFYGZPTTGHQAFIAA44IVZMHUEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
