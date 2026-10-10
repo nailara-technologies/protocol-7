@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = coding.tools.groups
+# descr = core tool set + named groups loaded on demand [ load_tools ]
+# note  = all 75 tool schemas cost ~12k tokens per request : the core set
+#         is what most tasks use, a group is added when a task needs it.
+#         tools in no group land in 'other' [ see coding.tools.definitions ]
+# return = { core => aref, groups => { name => { descr, tools => aref } } }
+
+return {
+    'core' => [
+        qw|
+            read_file list_files edit_file replace_in_file write_new_file
+            write_append search_code ncode_search read_module list_modules
+            ptd_check recent_errors task_complete escalate
+            |
+    ],
+    'groups' => {
+        'edit' => {
+            'descr' => 'line-number edits, extract, rename and remove files',
+            'tools' => [
+                qw| extract_file replace_line delete_lines insert_line
+                    file_rename remove_file |
+            ],
+        },
+        'image' => {
+            'descr' => 'see an image or get a text description of it',
+            'tools' => [qw| view_image analyze_image |],
+        },
+        'notes' => {
+            'descr' => 'persistent task notes : write, read, search, tag',
+            'tools' => [
+                qw| note_write note_read note_list note_summarize note_search
+                    note_update note_delete note_rescue note_list_trashed
+                    note_prune_trash note_tag note_recent note_filter
+                    note_history note_merge |
+            ],
+        },
+        'modules' => {
+            'descr' => 'module dependencies, inline subs, format validation',
+            'tools' => [
+                qw| module_deps dep_graph list_inline_subs
+                    validate_module_format validate_module
+                    module_convention_check |
+            ],
+        },
+        'search' => {
+            'descr' => 'search with context, embeddings, memory, task files',
+            'tools' => [
+                qw| ncode_search_context embedding_search search_memory
+                    task_file_search |
+            ],
+        },
+        'git' => {
+            'descr' => 'staged / unstaged diffs, recent changes',
+            'tools' =>
+                [qw| git_diff_staged git_diff_unstaged recent_changes |],
+        },
+        'regex' => {
+            'descr' => 'regex replace across files : preview, apply, undo',
+            'tools' => [
+                qw| regex_replace_preview regex_replace_apply
+                    regex_replace_undo |
+            ],
+        },
+        'format' => {
+            'descr' => 'reformat perl code [ ptd_format, perltidy ]',
+            'tools' => [qw| ptd_format perltidy |],
+        },
+        'tree' => {
+            'descr' => 'in-memory zenka data tree : read, write, list',
+            'tools' => [qw| tree_read tree_write tree_list |],
+        },
+        'user' => {
+            'descr' => 'ask the user, record questions and suggestions',
+            'tools' => [
+                qw| record_question record_suggestion ask_user_choice
+                    ask_user_text ask_user_stream suggest_new_topic |
+            ],
+        },
+        'utility' => {
+            'descr' => 'checksums, ntime, base32, account usage, consensus',
+            'tools' => [
+                qw| check_account_usage ntime_convert checksum
+                    vax_int_convert decode_base32 consensus_query
+                    summarize_context |
+            ],
+        },
+        'scratchpad' => {
+            'descr' => 'claude session scratchpads : list, sort, rescue',
+            'tools' => [
+                qw| scratchpad_list_all scratchpad_categorize
+                    scratchpad_rescue |
+            ],
+        },
+        'subtask' => {
+            'descr' => 'spawn a child task for a separate piece of work',
+            'tools' => [qw| subtask_spawn |],
+        },
+    },
+};
+
+#,,,.,,,,,,..,.,.,,,.,.,.,,.,,..,,..,,,,,,.,.,..,,...,.,.,.,,,,,,,,..,.,,,..,,
+#BG7MJEQ7F4YKNTB7D6GEUT5PMGREFV6QZCXVYKC6AYZTAXUXH2KMPKSNVO7YVQOFWI447KUTAAIUC
+#\\\|QZOKLZ733ULISEYF2HCKJQIBYGAHFQ7LVAOEWIBLG6H3HRPTIHC \ / AMOS7 \ YOURUM ::
+#\[7]75HKDMQWZ455VZK35PTGS3Q2PWWJEOQGC6X333TLPL63CYZGISBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

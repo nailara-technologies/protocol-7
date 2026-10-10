@@ -4,20 +4,26 @@
 # descr = score one batch task : criteria hits over the reply and every
 #         file the task wrote, plus a compile check of touched src/ files
 # note  = runs before the revert, while the task's files are still on disk
-# param = { result => text, criteria => aref, capture => capture href }
+# param = { result => text, criteria => aref, capture => capture href,
+#           from_reply => bool [ default : files only when files were
+#           expected -- the reply text counts only with this set ] }
 #         -> { score => 'n/m', hits => aref, misses => aref,
 #              compile => { relpath => 'ok' | 'error : ..' } }
 
-my $params       = shift                 // {};
-my $result_text  = $params->{'result'}   // '';
-my $criteria     = $params->{'criteria'} // [];
-my $capture_href = $params->{'capture'}  // {};
+my $params       = shift                   // {};
+my $result_text  = $params->{'result'}     // '';
+my $criteria     = $params->{'criteria'}   // [];
+my $capture_href = $params->{'capture'}    // {};
+my $from_reply   = $params->{'from_reply'} // FALSE;
 
 my $root_path = canonpath(<system.root_path>);
 my @touched   = @{ $capture_href->{'files_touched'} // [] };
 
-## the text the criteria are matched against : reply + written files ##
-my $haystack = $result_text;
+## the text the criteria are matched against : the written files, plus the ##
+## reply only for tasks scored on it -- a model that only described the    ##
+## change in its reply wrote nothing                                       ##
+## [ found 2026-10-10 : a dense 14b scored 4/4 with no file touched ]      ##
+my $haystack = $from_reply ? $result_text : '';
 for my $rel_path (@touched) {
     my $abs_path = catfile( $root_path, split m|/|, $rel_path );
     next unless -f $abs_path and -s $abs_path < 1024**2;
@@ -32,7 +38,17 @@ for my $rel_path (@touched) {
 
 ## criteria : case-insensitive substring hits ##
 my ( @hits, @misses );
+## 're:<pattern>' : a regular expression [ '%.1f' and '%0.1f' alike ] ##
 for my $criterion ( grep { defined and length } @$criteria ) {
+    if ( $criterion =~ m|^re:(.+)$| ) {
+        my $pattern = eval {qr{$1}i};
+        if ( defined $pattern and $haystack =~ $pattern ) {
+            push @hits, $criterion;
+        } else {
+            push @misses, $criterion;
+        }
+        next;
+    }
     if ( index( lc $haystack, lc $criterion ) >= 0 ) {
         push @hits, $criterion;
     } else {
@@ -64,16 +80,19 @@ for my $rel_path ( grep {m|^src/[^/]+$|} @touched ) {
     }
 }
 
+## nothing written and nothing scored from the reply : say so ##
+my $no_files = ( !@touched and !$from_reply ) ? ' [ no files written ]' : '';
+
 return {
-    qw| score | =>
-        sprintf( '%d/%d', scalar @hits, scalar( @hits + @misses ) ),
+    qw| score | => sprintf( '%d/%d%s',
+        scalar @hits, scalar( @hits + @misses ), $no_files ),
     qw| hits |    => \@hits,
     qw| misses |  => \@misses,
     qw| compile | => \%compile,
 };
 
-#,,.,,,..,..,,...,,..,,,,,..,,,,,,,,,,,.,,...,..,,...,..,,.,.,,.,,,..,,,.,...,
-#JNAPHQDTH25RSIJB5NANDTJNLO44TBFKEH7SPXKOOLS3KY32ZYZMLLKQWN3XKRLCLXI7PBMGBW6OU
-#\\\|KAWQHWFZ6UY7L54W4S2ZUGIDWQLBGEMTNILEWGNQXDSF2O3IUWP \ / AMOS7 \ YOURUM ::
-#\[7]AJ3DYVJWLW4ZG3ERHWI7SSBXG6DVOTOWI5D6F5EB6WNWEAJHRUBA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,.,,,,,.,,..,...,,.,,,..,.,.,..,,...,...,,.,,,..,.,,,.,.,,..,
+#G34FCG6RGBQFBFBFTSCJUBQQALKVAPKL66INM7ITXYKFU4EF3ARMSUZMBTNVYRBHRXMNKJCR7XPP6
+#\\\|43ITDGANZ2I53O34MZBNYSW22LLCVAOOLVDHYQQNFR36ZRJ4KVY \ / AMOS7 \ YOURUM ::
+#\[7]OADZDM2NUGXIODTCAOOY67GI4DBJKKIGJVPQXGUIVSN3VBOC72CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

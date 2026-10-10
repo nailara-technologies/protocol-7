@@ -184,13 +184,16 @@ my $settle_task = sub {
     $entry->{'finish_reason'} = $state->{'task_finish_reason'} // '';
 
     ## criteria hits over the reply and every written file, plus a compile ##
-    ## check of touched src/ modules -- before the revert, while the files  ##
-    ## are still on disk. replaces the iteration.score_result call, which   ##
-    ## is not loaded in the coding zenka : no record ever carried a score   ##
+    ## check of touched src/ modules -- before the revert, while the files ##
+    ## are still on disk. replaces the iteration.score_result call, which  ##
+    ## is not loaded in the coding zenka : no record ever carried a score  ##
     my $score_href = <[model_batch.score.task]>->(
-        {   qw| result |   => $result_text // '',
-            qw| criteria | => $task_href->{'criteria'} // [],
-            qw| capture |  => $capture_href,
+        {   qw| result |     => $result_text             // '',
+            qw| criteria |   => $task_href->{'criteria'} // [],
+            qw| capture |    => $capture_href,
+            qw| from_reply | => <[base.cfg_bool]>->(
+                $task_href->{'criteria_from_reply'} // 0
+            ),
         }
     );
     if ( ref $score_href eq qw| HASH | ) {
@@ -398,8 +401,7 @@ if ( $phase eq qw| pack | ) {
 
     <[base.logs]>->(
         1,
-        '[model_batch] %s : baseline packed '
-            . ': %d stored, %d already present',
+        '[model_batch] %s : baseline packed : %d stored, %d already present',
         $batch_id,
         $count->{'stored'}  // 0,
         $count->{'present'} // 0
@@ -998,8 +1000,8 @@ if ( $phase eq qw| restoring | ) {
 $pause_batch->('unknown-phase');
 return TRUE;
 
-#,,.,,,.,,..,,.,.,...,.,.,..,,,,.,..,,..,,,,.,..,,...,..,,..,,.,.,..,,.,,,,..,
-#DGTS2JA675EWY6J7A4YQHDKLRE3LEW75I77VWSLVMVLZ2GCURNR7RI6KKS6EV3XZDDLFALJN7C2JY
-#\\\|TIPL3G3Z3Q3DC4ODSEFBIQYN2SZMPXSSJ3FQC3E7T4HI2C3S32F \ / AMOS7 \ YOURUM ::
-#\[7]KOPAKACNX6VNKZXMTQTNBIWCJP5QJB6MMEOKAYHZKNU7LKJRHUAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,.,,,,..,..,,,,.,,,,,.,.,,,.,..,,...,...,..,,,.,,,,,,,..,,.,,
+#4ICF47GJQYLLC2P22SHZJCMYWNKLBKRN5SZX4XANY7ZV4GA44SLEP6YJOGZWOO3PNMUU2OTY6MKVG
+#\\\|LKCYYM2WJBTE4I6UEVTAXAC3QSMBKDOF67DTLPBFLGIZIJIPG52 \ / AMOS7 \ YOURUM ::
+#\[7]HBAYCRQZNRW5CIHCDIJSOK7Q7QWX5UBGOTECLQZRGZO3FP3PY2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
