@@ -655,9 +655,19 @@ items:
   - routing
   - models
   text: difficulty detection + automatic model switching for coding tasks
+- added: 3X3JTW45KE
+  details: "fetch-files.init_code calls <[base.chmod_child.start]>, bin/dev/gen-sub-whitelist fetch-files lists base.chmod_child.request [ called from fetch.file.huggingface.download ] but not .start -- also after regenerating the dependency graph. dep-graph's call regex matches the line, so the filter is elsewhere [ init_code entry point ? ]. harmless : the whitelist only sets compile timing, the module compiles on first use [ live-tested 2026-10-10 ]."
+  done_at: null
+  id: OQC
+  priority: normal
+  status: open
+  tags:
+  - dev-tools
+  - whitelist
+  text: gen-sub-whitelist misses base.chmod_child.start for fetch-files
 
-#,,..,,,,,,.,,...,.,.,,.,,..,,,,.,..,,,..,,.,,..,,...,...,.,.,.,,,.,,,,,.,,,,,
-#4BTWEBLRLZ6PFVTDHROUERGEQL3SF5EZP4L2UJDWLO6Z5C6PTQWHTKGMVCF6AN2LL6EOJJCDZNAZE
-#\\\|OSDSCOW56GVVJHTU3ERFYBKP6TXCKOJOZTAZNQPNFLBBJ6TN5LO \ / AMOS7 \ YOURUM ::
-#\[7]OFRNQNWMBWQKE5TMETIN6KM2H7LHE2UN5ZWYHOOLP6QNMHTPTQDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,...,,.,,...,,,,,,..,..,,,.,,..,,...,...,,,.,,.,,,.,,..,,,..,
+#HT5QA5UYBAIX3WXXCT5RG4FQVAQPW2L4ZWU6NXVUAY2H3GWHWH5JRENQJ2CSQCRXXB2BQOYBEQSGC
+#\\\|37Z5ID3KNNTH4ZUMOUVZXCZM3B3EUG7HAADJZXYSZD5MGF5P4L2 \ / AMOS7 \ YOURUM ::
+#\[7]NY3D7XBPHIKFMJXKL5L3ZXKUDLYGXI6BXB45APVSWA2V2L4OZIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

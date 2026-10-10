@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = base.chmod_child.request
+# descr = send one command to the chmod child [ base.chmod_child.start ],
+#         return its reply line [ ok | skip | err ] or 'no-child'
+# param = $command [ e.g. 'mkdir /path/to/dir' ]
+
+my $command = shift // '';
+my ( $w_fh, $r_fh ) = ( <chmod_child.w_fh>, <chmod_child.r_fh> );
+return 'no-child' if !defined $w_fh   or !defined $r_fh;
+return 'err'      if !length $command or $command =~ m|[\r\n]|;
+
+print {$w_fh} "$command\n";
+
+## the child answers every line at once : bounded read keeps a dead child ##
+## from blocking the event loop                                           ##
+my $reply = '';
+eval {
+    local $SIG{'ALRM'} = sub { die "timeout\n" };
+    alarm(5);
+    $reply = readline($r_fh) // '';
+    alarm(0);
+};
+alarm(0);
+chomp $reply;
+return length $reply ? $reply : 'timeout';
+
+#,,,,,,,.,.,,,..,,...,.,.,...,,.,,,..,,,,,.,,,..,,...,...,...,.,,,,.,,,..,,.,,
+#R4PWE2EYHV6MIWCF6YH3V5HUYASK43QSO5ZE2EBE34AMN3UFH53CDIWB4XD7HO2X7BRNLYSCXEHRS
+#\\\|MSW6EZOJUZQHBJ2NTMEBQHHLYT3EAHJK67DBJAZJ6RKXZUKOMZJ \ / AMOS7 \ YOURUM ::
+#\[7]FFTHLBGF2ZNMTY7W2KWBVDNOKCDBCHNITGV5PV2IXEY3C3NYAWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
