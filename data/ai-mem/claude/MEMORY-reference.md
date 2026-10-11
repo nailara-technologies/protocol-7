@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [zenki-status-command](reference-zenki-status-command.md) — `p7c v7-zenki.list zenki` = status of all zenki ; there is no v7-zenki.status [ a poll loop on it spammed the console 2026-10-11 ]
 - [strm-size-write-cap-stall](reference-strm-size-write-cap-stall.md) — `base.handler.write`'s 64-syswrite-per-call cap had an unhandled third exit (cap reached, every write succeeded, no EAGAIN) that left the watcher re-armed-but-scheduled-nowhere, silently stranding remaining buffered output forever; fixed 2026-09-14 to fall through to the existing EAGAIN idle-restart rescue instead. Root cause of a verbosity-dependent nshell STRM-SIZE stall (fast/quiet client never hit real EAGAIN, always hit the cap). Also has proven Event-1.28 C-source facts: `Event::var` write-detection is reliable regardless of mutation method, `->again` on a non-timer watcher is a no-op equivalent to `->start`, and `->now`'s dispatch is priority-dependent/not guaranteed immediate — don't re-derive these from scratch next time this area comes up
 - [plugin-namespace-loading-convention](reference-plugin-namespace-loading-convention.md) — `plugin.<zenka>.*` is a real, established convention (5+ zenki use it): `plugins.load = plugin.foo` + `[load_plugins:<plugins.load>]` right after `[load_modules:...]`, mirrors web's example exactly. `base.load_plugins` only loads+tracks, no hook framework comes with it — design your own dispatch on top
 - [v7-zenki-dependency-resolve-self-heal](reference-v7-zenki-dependency-resolve-self-heal.md) — `v7-zenki.resolve.object.zenka` exists so manually/on-demand-started dependents (not in the boot auto-start list) come back automatically when a restarted base dependency (e.g. X-11) returns; mechanically it's just a `jobqueue` `'depending'` entry (the `'waiting'` status), no spawn/attempt at all until `jobqueue.check_dependencies` fires
@@ -105,8 +106,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,.,,..,,,,,,..,,..,,,,,,.,,,,,,,,,,,.,,,,,,,..,,...,...,.,,,.,,,...,..,,,.,,
-#AXVEXLCKQW5BXTH5SWWL73P6SRBZIBF7NZ74T4XFX52N6VPIRBWE447YS6IQEA2NQ65ZU6AHBB4DK
-#\\\|S4JDXDHD7UEUBLPZDYWTLOSOWSHYY3HK7WY3ZOFSHRACSMRQLNQ \ / AMOS7 \ YOURUM ::
-#\[7]YUMCODOZHYGDO64P63ZZBTSUGNHRTLZOQRXBG5CKCTWQ7DNOHCCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,..,,.,,,,.,,,,,,.,,,...,.,.,..,,...,...,...,.,.,,,,,.,,,.,.,
+#4WGTQUHVP3ZQZPQ7MI4M4PJ6XT3CRGZDYY55SKJJKIY7APPM4FLT2IPVGP3ED44G6ZVCAB2UJ7TMG
+#\\\|Z74RW2G3RP36C2PKCCYSLGS7GIH7PL5FWPYVV7BDHISKUA6DESM \ / AMOS7 \ YOURUM ::
+#\[7]I66AWLJ3TNLMKMXX36LASDBCH5KGXS3ACO22XP6HOZISPRH2EMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
