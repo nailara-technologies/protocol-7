@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.wakeup
+# descr = a held next-data-timestamp returned TRUE : run the pull
+
+my $key   = shift // return;
+my $reply = shift // [];
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+my $head = shift @$reply // '';
+if ( $head !~ m|^TRUE (\S+)$| ) {
+    <[nameserv.sync.peer.fail]>->( $key, "unexpected wait reply : $head" );
+    return;
+}
+
+$peer->{'ts'} = $1;
+<[nameserv.sync.peer.release]>->($key);
+
+my $started = <[nameserv.sync.client.start]>->(
+    {   host    => $peer->{'host'},
+        port    => $peer->{'port'},
+        peer    => $key,
+        on_done => qw| nameserv.sync.peer.sync_done |
+    }
+);
+
+<[nameserv.sync.peer.fail]>->( $key, 'sync pull refused' )
+    if not defined $started;
+
+return TRUE;
+
+#,,.,,,.,,...,...,,..,.,.,,,.,.,.,.,.,...,...,..,,...,...,.,,,..,,,,.,,,.,.,.,
+#QX7SU4HDDVXES3TS2DCM6PNKZHJ6MMGB5B7JTY3ERJACJNKKFYEEBOIUFA7IK2LIFGSAOFSDESJYW
+#\\\|T34ISIWQHTFNV3IHEHIXZYYOPFEZXNK2QOQH77URFRNYG4LASGV \ / AMOS7 \ YOURUM ::
+#\[7]XB3WSF55QBAAVTHGTA54OSJELMHBVWQMF35ELZ5ENH4YLSIGWADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

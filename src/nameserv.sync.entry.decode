@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = nameserv.sync.entry.decode
+# descr = parse a canonical base32 sync entry back into a hash
+# param = $base32 -> { zone name type value ttl ts deleted } | undef
+
+my $b32 = shift // '';
+return undef if not length $b32 or length $b32 > 65536;
+
+my $body = <[base32.decode]>->($b32);
+return undef if not defined $body or not length $body;
+
+my @field = eval { unpack 'Z* n/a* n/a* n/a* n/a* N n/a* n/a*', $body };
+return undef if $EVAL_ERROR or @field != 8;
+return undef if $field[0] ne 'p7 sync-entry v1';    ## label mismatch ##
+
+my ( undef, $zone, $name, $type, $value, $ttl, $ts, $deleted ) = @field;
+
+return {
+    zone    => $zone,
+    name    => $name,
+    type    => $type,
+    value   => $value,
+    ttl     => $ttl,
+    ts      => $ts,
+    deleted => ( $deleted eq qw| 1 | ? TRUE : FALSE ),
+};
+
+#,,,,,,..,,.,,,..,...,,,.,,,.,...,.,,,.,,,.,.,..,,...,...,...,,.,,,.,,.,.,.,,,
+#GJYBEJ2E4Y33E7DLH7ZNS6U4TJZL56YFT6EUYWEINMLDOFP2PBKODFC3S636UJOLNP7PF22CDZYDK
+#\\\|DIEMJPKZXRVQMO4VTDSTGVZXEIVIV5RKFYWYDCACLP3PCZB2RBA \ / AMOS7 \ YOURUM ::
+#\[7]H5VQY5U3WPQ34AEOEQYAJAT6TNI5TQ3RTSORMCRUTTPYNJHF5UCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

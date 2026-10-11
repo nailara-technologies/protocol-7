@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = nameserv.sync.start
+# descr = start stage-2 sync sides enabled by config [ silent otherwise ]
+
+## listener side : only when a sync port is configured ##
+<[nameserv.sync.listen]>->() if defined <nameserv.cfg.sync.port>;
+
+## peer side : one long-poll per configured peer ##
+my $peers = <nameserv.cfg.sync.peers> // '';
+<[nameserv.sync.peers.start]>->($peers) if length $peers;
+
+return TRUE;
+
+#,,..,.,.,...,,,.,..,,...,.,,,..,,.,.,,,,,.,,,..,,...,...,...,...,,,,,,,,,,,,,
+#34DHX74Q4QIVEPWKG25ACC2VSPUKZJFFWEERD46I6XVTMFHSRQYL6EBV5NWKQK3ZBJU2B7Z2GZLQS
+#\\\|TYCH46WZFAHCDANBA6WYA6FQLCLQTEGLMIHB3Z7XEU3DD4NCOF3 \ / AMOS7 \ YOURUM ::
+#\[7]L6CK6VU5CL3HB5YTQWANY3AC4W4HACTYDANLDB4KGM3GQ2HL5SDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

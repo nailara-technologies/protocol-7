@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.handler.read
+# descr = peer long-poll read : a TRUE wakes the pull, a drop re-arms
+
+my $key = shift->w->data;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $peer->{'sock'}, \$chunk, 65536 );
+
+if ( ( $bytes // -1 ) == -1 ) {
+    <[nameserv.sync.peer.fail]>->(
+        $key, sprintf 'read : %s',
+        <[base.str.os_err]>
+    );
+    return;
+}
+
+if ( $bytes == 0 ) {    ## peer closed : reconnect with backoff ##
+    <[nameserv.sync.peer.fail]>->( $key, 'peer closed connection' );
+    return;
+}
+
+$peer->{'buf'} .= $chunk;
+
+my @reply = ();
+while ( $peer->{'buf'} =~ s|^([^\n]*)\n|| ) {
+    my $line = $1;
+    $line =~ s|\r$||;
+    if ( $line eq qw| . | ) {
+        <[nameserv.sync.peer.wakeup]>->( $key, \@reply );
+        @reply = ();
+    } else {
+        push @reply, $line;
+    }
+}
+
+return;
+
+#,,.,,...,,,.,,,,,..,,,..,,..,.,.,.,,,,,.,.,,,..,,...,...,..,,.,.,,,,,..,,,.,,
+#YKKCCNU4CFCAYT3SB3SXTIU2SCY6EIMTX5DIHDNRSSZEK7LF2JH6WGKIOV4GXWSW6O7R5AU7SILFM
+#\\\|YNKVGFCSCLD465FYKRIW6NW7RTHMAJMZDOAUL2VDEJVXJEEEON6 \ / AMOS7 \ YOURUM ::
+#\[7]PWXOLJ2JNFEQWHRZ7QFFUHYLNNJPX6NC5ND2E6CNTDNJNAR7NKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

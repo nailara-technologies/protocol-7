@@ -86,7 +86,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [mcp-server-p7 kimi-dispatch nonblocking](feedback-mcp-server-p7-kimi-dispatch-nonblocking.md) — 2026-09-08: mcp-server-p7 is single-threaded (one blocking STDIN loop); kimi_dispatch/kimi_continue's blocking qx() held the WHOLE server hostage for the entire kimi run, so kimi_check_status queued behind it too — fixed via fork+detach, kimi-only (claude_dispatch has no check_status equivalent, still blocks). does NOT resolve kimi-dispatch-never-parallel — may make that older bug newly testable instead, since true concurrent kimi-legacy execution is now possible for the first time
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [fill-5h-windows-with-prepared-parallel-dispatch](feedback-fill-5h-windows-with-prepared-parallel-dispatch.md) — near a 7d reset the 5h windows are the limit : parent writes task files + reviews, parallel claude_dispatch lanes [ disjoint scopes ] + ONE serial kimi lane implement ; complement of early-week pacing
-- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
+- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md) [ never template kimi-dispatch-workflow : kimi then delegates to a nested session ]
 - [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed; 2026-08-31: a NEW cross-zenka command call also needs a live-tested access.zenki grant, invisible to both static verification and diff review
 - [verify-symptom-shape-before-hypothesis](feedback-verify-symptom-shape-before-hypothesis.md) — "off overnight"/"stops working" is ambiguous between process-death and stuck-alive-state; check ps/status before investing in a process-supervision hypothesis just because it's the memory-documented failure class at hand
 - [stream-repetition-homogeneous-false-positive](feedback-stream-repetition-homogeneous-false-positive.md) — coding.detect_stream_repetition flagged legit homogeneous char runs (ascii.frame borders, AMOS7 sig footers) as degenerate model output; fixed c39873f93, homogeneous units now need 200+ char runs
@@ -203,8 +203,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 07e19f5a2, 2026-10-07 ] ; check SigCgt bit 16
 
-#,,.,,...,.,,,,,,,...,.,.,...,,.,,,.,,,..,..,,..,,...,...,.,.,...,...,,,,,..,,
-#ALO5IFMBNMRUJV7DQTB5KLHEDVMSZ62EGSRA6FU7QZCOJNQWDBPSMDK275Q3PJUY5CFDTDZRHD3MY
-#\\\|TJATFYTVKUCEKHJO2OBC5WSO4FCCNEK5S6U4SGOURDUWPHJGWTL \ / AMOS7 \ YOURUM ::
-#\[7]JCFIHRLFGJKZZLQNFN7EZEX5Q7BVZ75S6O3QZMABNNVRSOXUPIDA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,,,,.,,,.,.,,..,,.,,,..,.,.,..,,...,...,..,,,,,,..,,,,.,,,,,
+#NLC2RMRREXCYSGP7KCAEPH7PHYSAH4O27CDC2I3H4YYIKGJQCUY3BC3NUIXFUJDBUC2NKLPG6ZEAM
+#\\\|N3HPRCT2IG7YCI423IMY6B4TOWNSR5UGFEPM7RPND4E3WKTLGK6 \ / AMOS7 \ YOURUM ::
+#\[7]3K6PDHPVHDGTFZDVQZ3UKYMJCGMJKBHSO6RTQBATOUJP5LVSG2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

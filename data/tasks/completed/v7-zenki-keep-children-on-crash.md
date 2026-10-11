@@ -182,8 +182,14 @@ both, plus the start time -- each covers something the others do not :
   process_zenka_end ] terminates children BEFORE any error status -- that
   path is unchanged by design [ only the status 'error' path keeps ]
 
-#,,,.,..,,.,,,.,,,,,.,,,,,...,..,,,.,,,..,...,..,,...,...,,.,,..,,..,,.,.,,..,
-#PNR3CS5VA6BLUBRMC4NNDD4I57JDSHQLFBB3ECKDBXF32FSZ46KPKS66T36BC7MI7V5TXFDCXXG3W
-#\\\|G7PIOFHYVBVMIZKFNNBLEWS6EWXUYLARFVICAZTUV5HPFNQXCQG \ / AMOS7 \ YOURUM ::
-#\[7]JCFJ6HKNTQYTPNK5WAYPGJWKFBHFSL2TMLLK376QNALIY3R4GOCI 7  DATA SIGNATURE ::
+archived [ 2026-10-11 ] : stage 1 landed as cf4864498, stage 2 as 36a2d8259
+[ register_child, kept table, grace timer, identity re-check ] ; the open
+points above were settled there [ grace default 120 s, claim via
+register_child ]. the further candidate users are follow-ups, not part of
+this task.
+
+#,,.,,.,.,,,,,,,,,,,,,,,,,.,.,..,,.,,,...,.,.,..,,...,...,,.,,.,.,,,,,,.,,.,.,
+#SAI25XVTTVROFL63QSEO3WYY5VDTQGCZQ6CMGRU75RUWTNXZJPHCFYO35X4TEYBP2JKK5MG3FLNY4
+#\\\|6JURVUPAOZHFFYC5SDIVA6LO4LMPIDJ5VPNPO62YF2NK53V3B2D \ / AMOS7 \ YOURUM ::
+#\[7]DIQ55BVHMJQUGRHVVJ2DBUZWLKVM6WXJJABURGX26QVMYDGFBGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

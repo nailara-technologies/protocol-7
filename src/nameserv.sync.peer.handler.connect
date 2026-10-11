@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.handler.connect
+# descr = writability watch for a pending peer long-poll connect
+
+my $key = shift->w->data;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+my $sock = $peer->{'sock'};
+
+## completing an in-progress non-blocking connect needs another connect()   ##
+## call on this io.socket.ip : plain connected() never turns true while its ##
+## internal flag is set                                                     ##
+if ( $sock->connect ) {
+    <[nameserv.sync.peer.connected]>->($key);
+} elsif ( not $OS_ERROR{EINPROGRESS}
+    and not $OS_ERROR{EWOULDBLOCK}
+    and not $OS_ERROR{EALREADY} ) {
+    <[nameserv.sync.peer.fail]>->(
+        $key, sprintf 'connect : %s',
+        <[base.str.os_err]>
+    );
+}
+## still in progress : the watcher fires again on the next event ##
+
+return;
+
+#,,,,,.,,,...,,,.,.,,,,.,,.,,,.,,,,,,,.,,,.,.,..,,...,...,.,.,.,.,,.,,...,...,
+#JUJHSSMW5LQKAKST4HSB4HJRW7NCWY6PERUUSXVPD7LXFR5KLARMK5MS2KXPLIGDU2ETURF2VEGEQ
+#\\\|XSQKVJUBDM4GHY5RLMPSQ7NNKYFY3ZSETER7L5IOUKNXIMBBCW7 \ / AMOS7 \ YOURUM ::
+#\[7]IQDFNU3YFC6OCWULAGBCRXUTD65EJRRSX4RJRFN4MGLXXEE7REBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

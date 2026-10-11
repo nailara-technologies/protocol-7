@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = nameserv.cmd.sync-pull
+# descr = pull zone data from a peer nameserv [ sync protocol ]
+# param = <host> <port> [<zone>]
+
+my $args_str = $call->{'args'}     // '';
+my $reply_id = $call->{'reply_id'} // '';
+
+my @parts = grep {length} split m|\s+|, $args_str;
+
+return {
+    mode => qw| false |,
+    data => 'usage: sync-pull <host> <port> [<zone>]'
+    }
+    if @parts < 2 or @parts > 3;
+
+return { mode => qw| false |, data => 'sync-pull needs a reply route' }
+    if not length $reply_id;
+
+my $host = shift @parts;
+my $port = shift @parts;
+my $zone = lc( shift @parts // '' );
+$zone =~ s{\.+$}{};
+
+return { mode => qw| false |, data => "invalid port: $port" }
+    if $port !~ m|^\d+$|
+    or $port < 1
+    or $port > 65535;
+
+## event driven : the reply arrives via base.callback.cmd_reply ##
+my $id = <[nameserv.sync.client.start]>->(
+    {   host     => $host,
+        port     => $port,
+        zone     => length $zone ? $zone : undef,
+        reply_id => $reply_id
+    }
+);
+
+return { mode => qw| false |, data => 'connect failed' }
+    if not defined $id;
+
+return { mode => qw| deferred | };
+
+#,,,.,,..,,..,..,,.,.,.,,,...,..,,.,.,,,,,.,,,..,,...,...,..,,,,,,,,,,,,.,,,.,
+#J6CMYMNDCCT5N25XPGANGDXWXSBWCT5MMDP2QUTVJ4WQNXG22MAPHWPCS7FYZ2VYGPUDB5N3TF3WS
+#\\\|KZMSHPWBYPKHUQWTUMOWTPPY7725QOBHLPXGCJZNGXNYDMLDEP3 \ / AMOS7 \ YOURUM ::
+#\[7]R2RULIAMUYFDBTMSA4XGPT2W7RYUP2BWCQBERXHGTWMFOHYY6EAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

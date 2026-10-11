@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = nameserv.sync.client.process
+# descr = run one complete sync pull reply through the state machine
+
+my $state = shift // return;
+my $lines = shift // return;
+
+if ( $state->{'phase'} eq qw| last-ts | ) {
+    my $line = shift @$lines;
+    if ( $line =~ m|^FALSE (.+)$| ) {
+        <[nameserv.sync.client.finish]>->(
+            $state, { mode => qw| false |, data => $1 }
+        );
+        return;
+    }
+    return <[nameserv.sync.client.finish]>->(
+        $state, { mode => qw| false |, data => 'unexpected last-ts reply' }
+    ) if $line !~ m|^TRUE (\S+)(?: (\S+))?$|;
+
+    my $peer_ts = $1;
+
+    my $local_ts
+        = <[nameserv.zone.timestamp]>->( $state->{'target'} // undef );
+
+    my $delta
+        = defined $local_ts
+        ? <[base.ntime.delta_seconds]>->( $local_ts, $peer_ts )
+        : undef;
+    if ( defined $local_ts and defined $delta and $delta >= 0 ) {
+        return <[nameserv.sync.client.finish]>->(
+            $state,
+            {   mode => qw| true |,
+                data => 'already current',
+                ts   => $local_ts
+            }
+        );
+    }
+
+    if ( length( $state->{'target'} // '' ) and not defined $local_ts ) {
+        syswrite $state->{'sock'}, "full $state->{'target'}\n";
+        $state->{'phase'} = qw| full |;
+        return TRUE;
+    }
+
+    my $since_ts
+        = defined $local_ts ? $local_ts : <[nameserv.sync.ts-oldest]>->();
+    my $request
+        = length( $state->{'target'} // '' )
+        ? "since $since_ts $state->{'target'}\n"
+        : "since $since_ts\n";
+    syswrite $state->{'sock'}, $request;
+    $state->{'phase'} = qw| since |;
+    return TRUE;
+}
+
+## since / full replies : multi-line, ends with '.' ##
+my $result = <[nameserv.sync.client.apply_reply]>->( $state, $lines );
+
+if ( $result->{'result'} eq qw| ok | ) {
+    my $target
+        = length( $state->{'target'} // '' )
+        ? $state->{'target'}
+        : 'the set';
+    <[nameserv.sync.client.finish]>->(
+        $state,
+        {   mode => qw| true |,
+            data => sprintf 'synced %s [ %d entries ]',
+            $target, $result->{'applied'} // 0
+        }
+    );
+} elsif ( $result->{'result'} eq qw| need-full | ) {
+    my $zone = shift @{ $result->{'mismatched'} };
+    syswrite $state->{'sock'}, "full $zone\n";
+    $state->{'full_zone'} = $zone;
+    $state->{'phase'}     = qw| full |;
+} else {
+    <[nameserv.sync.client.finish]>->(
+        $state,
+        {   mode => qw| false |,
+            data => $result->{'reason'} // 'sync failed'
+        }
+    );
+}
+
+return TRUE;
+
+#,,..,..,,..,,,,,,.,.,.,,,,,.,,..,.,.,,,.,...,..,,...,...,,..,,,,,...,.,,,,,.,
+#UMN65NQFMQUUKZ5J64U2H7QL2GYIOVFJATNNFXCNPNYK7EVPAV53JUOHHNYDDRQW3EY3NUO6CMZUG
+#\\\|KCE64XMNPCA4YXEA7EF2XOWN4T6TK2Q6FJFQ4YRVE42ASK3ECNV \ / AMOS7 \ YOURUM ::
+#\[7]LIB7JX2GIOAMDOD5DYCQRVPZRGUD73SPJK2NH3LCCSJENK2C7YDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
