@@ -4,10 +4,10 @@
 # descr = configures zenka dependency chains
 # param = [zenka_name ..] [ new zenki : setup data + dependency objects ]
 
-## called on every [re-]init : objects only for the zenki passed [ new     ##
-## since the last run -- their ids must stay stable ], chains rebuilt for  ##
-## ALL known zenki from their current config [ a dependency removed from a ##
-## start.cfg survived a reload before, 2026-09-30 ]                        ##
+## called on every [re-]init : objects only for the zenki passed            ##
+## [ new since the last run -- their ids must stay stable ], chains rebuilt ##
+## for ALL known zenki from their current config [ a dependency removed     ##
+## from a start.cfg survived a reload before, 2026-09-30 ]                  ##
 my @zenki = @ARG;
 
 # callbacks for dependency validation
@@ -54,7 +54,7 @@ foreach my $s_id (
 
     foreach my $dep_zenka_name ( split m| +|, $dependencies ) {
         my $object_id;
-        if ( $dep_zenka_name =~ m|^([\w\.]+)\.(\w+)$| ) {
+        if ( $dep_zenka_name =~ m|^([\w\.]+)\.([\w-]+)$| ) {
             my ( $type, $name ) = ( $1, $2 );
             foreach my $id ( keys <dependency.object>->%* ) {
                 next if <dependency.object>->{$id}->{'type'} ne $type;
@@ -62,6 +62,18 @@ foreach my $s_id (
                     $object_id = $id;
                     last;
                 }
+            }
+            ## a condition type with a callback [ unix_user, unix_group ..  ##
+            ## : v7-zenki.callback.object.<type> ] gets its object on first ##
+            ## use -- a start.cfg names the condition, nothing else to set  ##
+            if ( not defined $object_id
+                and exists $code{"v7-zenki.callback.object.$type"} ) {
+                $object_id = <[dependency.add_object]>
+                    ->( { 'type' => $type, 'name' => $name } );
+                <[base.log]>->(
+                    2,     ": condition object : %s.%s",
+                    $type, $name
+                ) if defined $object_id;
             }
             if ( not defined $object_id ) {
                 <[base.log]>->(
@@ -103,8 +115,8 @@ foreach my $s_id (
     }
 }
 
-#,,..,.,.,...,,.,,..,,,,,,,..,..,,,.,,.,.,.,,,..,,...,...,...,,,.,...,.,,,,.,,
-#VHDTUMF47NZMDD7AHAO6Q64LVUVRPE5VVRMHVXKIOXXL2YWXTOVXRWJXFMXMOUKRFKZ2AYKBPQ62I
-#\\\|R6GWQDJUUB4D6NU64KCVJUH4QY5JUK2EKBBMAJQBPNGWSYBEH3T \ / AMOS7 \ YOURUM ::
-#\[7]LJMM4Z7DL4BADWKBTUEQIL6P7NKSBUNZQFU37SQGAC4TI4UZKMCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,.,.,,,,,.,.,,.,,,.,,.,,,,..,..,,...,..,,,..,.,.,..,,.,.,,,.,
+#VOM5QUF3NTEEWZS5X4EKJWGTN3MQ5UYDSCFU2O5V3GKHISFECJ4PPO4J5VNLHA4362M4WCSYAEVKG
+#\\\|DX4LNTCCWJCNPPO5IAIJS5FWUHOAKDUQSMOKWE6O5BBZXRWDC54 \ / AMOS7 \ YOURUM ::
+#\[7]X6IAIV6DB5WZFAXDDQG3BD2S2572NHC667U4IRZNFIUW3EUNK6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

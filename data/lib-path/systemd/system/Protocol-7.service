@@ -1,23 +1,22 @@
 [Unit]
 Description=[AMOS7] PROTOCOL 7 [ v7-zenki ]
-After=network-online.target local-fs.target
-Wants=network-online.target
-# repo + model disk [ xfs, /etc/fstab ] must be mounted first
-RequiresMountsFor=/data/projects/protocol-7 /mnt/ext-xfs-data
+# the same unit on every host : /usr/local/protocol-7 is the install path ;
+# a development checkout elsewhere is linked there [ ln -s <checkout>
+# /usr/local/protocol-7 ]. no network-online.target -- protocol-7 retries
+# its connections itself, and a wait-online service that does not manage
+# the host's network [ ifupdown hosts ] held the start back
+After=network.target local-fs.target
+RequiresMountsFor=/usr/local/protocol-7
 
 [Service]
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/data/projects/protocol-7
-# wslg session [ X11 \ wayland \ pulse ] -- systemd services start without
-# the login environment ; overrides in /etc/default/protocol-7
-Environment=DISPLAY=:0
-Environment=WAYLAND_DISPLAY=wayland-0
-Environment=XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
-Environment=PULSE_SERVER=unix:/mnt/wslg/PulseServer
+WorkingDirectory=/usr/local/protocol-7
+# host-specific environment [ a desktop's wslg session : DISPLAY,
+# WAYLAND_DISPLAY, XDG_RUNTIME_DIR, PULSE_SERVER ] in /etc/default/protocol-7
 EnvironmentFile=-/etc/default/protocol-7
-ExecStart=/data/projects/protocol-7/bin/Protocol-7 v7-zenki -c -v
+ExecStart=/usr/local/protocol-7/bin/Protocol-7 v7-zenki -c -v
 # planned shutdown [ v7-zenki.teardown, systemctl stop ] exits 0 : stays down
 Restart=on-failure
 RestartSec=5
