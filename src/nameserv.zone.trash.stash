@@ -1,0 +1,95 @@
+## [:< ##
+
+# name   = nameserv.zone.trash.stash
+# descr  = pack a zone's files into the zone trash
+# param  = <zone>
+# return = trash file path or undef [ list context : ( undef, reason ) ]
+#
+# <zone_dir>/trash/<zone>.<epoch>[-n].mxz.B32, 0640 : xz + base32 of a
+# yaml map { zone, files => { <file name> => content } } holding the zone
+# yaml and its tombstones yaml [ the keystore.trash.stash format ]. the
+# copy is decoded back and compared BEFORE the caller removes anything.
+
+my $zone_name = lc( shift // '' );
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('zone name not valid')
+    if $zone_name !~ m|\A[a-z0-9][a-z0-9.-]{0,252}\z|;
+
+my $zone_dir = <nameserv.zone_dir>;
+my %files    = ();
+foreach my $file_name ( "$zone_name.yaml", "$zone_name.zone",
+    "$zone_name.tombstones.yaml" ) {
+    my $path = "$zone_dir/$file_name";
+    next if not -f $path or -l $path;
+    my $content_ref = <[file.slurp]>->($path);
+    return $refuse->("cannot read $file_name") if not defined $content_ref;
+    $files{$file_name} = $content_ref->$*;
+}
+return $refuse->("no zone files for $zone_name") if not keys %files;
+
+my $yaml_str = <[format.yaml.dump_str]>
+    ->( { 'zone' => $zone_name, 'files' => \%files } );
+return $refuse->('yaml dump failed') if not defined $yaml_str;
+utf8::encode($yaml_str)              if utf8::is_utf8($yaml_str);
+
+require IO::Compress::Xz;
+require IO::Uncompress::UnXz;
+require Crypt::Misc;
+
+my $packed;
+IO::Compress::Xz::xz( \$yaml_str, \$packed )
+    or return $refuse->('xz failed');
+my $b32 = Crypt::Misc::encode_b32r($packed);
+
+## the copy must decode back to the exact bytes ##
+my $check;
+my $unpacked = Crypt::Misc::decode_b32r($b32);
+IO::Uncompress::UnXz::unxz( \$unpacked, \$check )
+    or return $refuse->('xz check failed');
+return $refuse->('trash copy does not decode back') if $check ne $yaml_str;
+
+my $trash_dir = "$zone_dir/trash";
+if ( not -d $trash_dir ) {
+    return $refuse->("not a directory [ $trash_dir ]") if -l $trash_dir;
+    mkdir( $trash_dir, 0750 )
+        or -d $trash_dir
+        or return $refuse->("cannot create $trash_dir [ $OS_ERROR ]");
+}
+
+require Fcntl;
+my $now = time;
+my ( $trash_file, $fh );
+foreach my $n ( 0 .. 99 ) {
+    $trash_file = sprintf( '%s/%s.%d%s.mxz.B32',
+        $trash_dir, $zone_name, $now, $n ? "-$n" : '' );
+    last
+        if sysopen(
+        $fh,
+        $trash_file,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0640
+        );
+    undef $fh;
+}
+return $refuse->('no free trash file name') if not defined $fh;
+
+my $written = print {$fh} $b32;
+close($fh) or $written = FALSE;
+if ( not $written ) {
+    unlink $trash_file;
+    return $refuse->("cannot write $trash_file");
+}
+
+return $trash_file;
+
+#,,,.,...,...,...,.,,,.,.,,,.,...,..,,...,...,..,,...,..,,...,...,.,.,.,,,.,,,
+#SD3NHF6SMWXB7EPKAC7YALLXBAZEXVPY22S7JTKOKO6EXFAU7LHL72X6Y3DXCANO7MYDVADJLC5P2
+#\\\|ANEEF2RHXQRFO3DMUPX3NILPR4IXSUHNF6XRGBZGX3BGO6M2RGL \ / AMOS7 \ YOURUM ::
+#\[7]VTDWZ3YZ42DITF6XCZQKXEEVD6BJ2KAH7H25FTV3L4UKGMIUJWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,7 +30,7 @@ my $encoded = encode_b32r($json);
 
 ## send to target if it exists and is not the default sink ##
 if ( $target ne qw| mail.store | ) {
-    my $sent = <[base.protocol-7.command.send.local]>->(
+    my $sent = <[protocol-7.command.send.local]>->(
         {   'command'   => "$target.mail_received",
             'call_args' => { 'args' => $encoded },
         }
@@ -54,8 +54,8 @@ if ( ( $parsed->{'action_required'} // 0 )
 
 return $target;
 
-#,,..,,,,,...,,..,..,,,,.,,..,.,.,...,,,,,,..,.,.,...,...,.,.,,..,.,.,,,.,.,.,
-#OTW2MHQIXKHOQSF6QJI35S65JDSKW7UE4M324XVAG47PU6RRZRIWZQGM46KKS6LJEGZI3QND24D5A
-#\\\|NO5RP5CROPU4LJNMREUBBCBLSCM4BE5WGGHVCMKZDP2SL2Z6G5B \ / AMOS7 \ YOURUM ::
-#\[7]YFQNYS6NISIQP7FRNPGL3N7AADFOLEVM3IABZ6NIU2WEVJ67BGCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,...,.,.,.,.,...,.,,,..,,,,.,,,,,.,.,...,...,,,.,,,,,,,.,...,,..,
+#E6WXSDDVN6PZHGOBXFTGUORKGFVOUSKO65TKR6NCVXTGTK23QEWRCOUVX2ZPE4QSJCOHBB6HPEMT4
+#\\\|QAVNUEFMTNXMBW66IU7XVRIXRCQQITUICIMIY7WJF7ZCVVDXFR5 \ / AMOS7 \ YOURUM ::
+#\[7]35NFFOO6FM7HXVLZ4WWF5BHTC7GC7AX7IEK6GNCJZEJXGGYBDYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

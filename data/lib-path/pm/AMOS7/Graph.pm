@@ -33,7 +33,8 @@ sub graph_to_adjacency {
     ## source -> callee callee ...  [ one line per source ] structure only ##
     ## : call counts omitted for stable git diffs                          ##
     ##
-    ##  optional: pass { 'with-counts' => 1 } to append :count per callee  ##
+    ## optional: pass { 'with-counts' => 1 } to append [count] per callee ##
+    ## [ only for counts > 1 : a bare callee reads back as count 1 ]      ##
     ##
     my $graph   = shift;
     my $options = shift // {};
@@ -43,7 +44,7 @@ sub graph_to_adjacency {
     my @lines = (
         '## dep-graph adjacency [ AMOS7::Graph ]',
         $with_counts
-        ? '## format  : source : callee:count ... [ .txz ]'
+        ? '## format  : source : callee[count] ... [ count 1 implicit ]'
         : '## format  : source : callee ...       [ .asc ]',
         '## cycles  : edges only, no expansion, follow transitively',
         '',
@@ -54,10 +55,16 @@ sub graph_to_adjacency {
 
         my @callees = _sort_nodes( keys %{ $graph->{$src} } );
 
-        my $dst_str
-            = $with_counts
-            ? join( ' ',
-            map { sprintf '%s:%d', $ARG, $graph->{$src}{$ARG} } @callees )
+        my $dst_str = $with_counts
+            ? join(
+            ' ',
+            map {
+                ## a single call is implicit : only [N] for N > 1 ##
+                $graph->{$src}{$ARG} > 1
+                    ? sprintf( '%s[%d]', $ARG, $graph->{$src}{$ARG} )
+                    : $ARG
+            } @callees
+            )
             : join( ' ', @callees );
 
         push @lines, sprintf '%s : %s', $src, $dst_str;
@@ -82,10 +89,11 @@ sub adjacency_to_graph {
             my ( $src, $dst_str ) = ( $1, $2 );
 
             for my $token ( split m|\s+|, $dst_str ) {
-                if ( $token =~ m|^(.+):(\d+)$| ) {
-                    $graph{$src}{$1} = $2;    ##  with count  ##
+                ## callee[count] ; callee:count = the older format ##
+                if ( $token =~ m{^(.+?)(?:\[(\d+)\]|:(\d+))\z} ) {
+                    $graph{$src}{$1} = $2 // $3;    ##  with count  ##
                 } else {
-                    $graph{$src}{$token} = 1;    ##  structure only  ##
+                    $graph{$src}{$token} = 1;       ##  structure only  ##
                 }
             }
         }
@@ -104,8 +112,8 @@ sub _sort_nodes {
 
 return TRUE;    ##  truth  ##
 
-#,,.,,.,.,,..,.,,,,.,,..,,,..,.,,,,..,,,.,,.,,.,.,...,...,.,,,,..,.,,,,..,,.,,
-#QPNBVV56JDICEDSNEEC3PMOISZCPIVJVORP5MBSXQDQ3AZBPMUBD36NDPG5C7MJJIZ6X7E7OQKNDK
-#\\\|RQFVVO6RMIWEIRI4OGQG7OOJTXUGRNR3ANWU6XDR7KXCCRI47FF \ / AMOS7 \ YOURUM ::
-#\[7]QS2MDC764CMHUWF2ALPUNSQ3DZU6HGBX4RJXYJMAXLOUAHJKR2DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,,..,,,,,,,.,..,,.,.,.,.,,,.,.,.,...,...,...,..,,,..,...,,.,,
+#A622ZMZXLUDITXDUAB2QRPDZBXZZHEKB6KMBENP77OLGIT45T3RLUE4DWIYBHXJCJZ45XQK7IQOG2
+#\\\|7263NDZODRJTYNINUNEMO6ZZKDRNKTKVP5HO3D4WMAPBWAR4RLY \ / AMOS7 \ YOURUM ::
+#\[7]J7SGVM5YSXXMFJHGFJXB25Z7LSVF3YLFZPHLHR77VJANMZS7U6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

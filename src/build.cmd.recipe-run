@@ -162,7 +162,7 @@ my $finalize = sub {
     my @sums;
     foreach my $path (@artefacts) {
         next if not -f $path;
-        my $sum = <[base.chk-sum.bmw.filesum]>->( 384, $path );
+        my $sum = <[chk-sum.bmw.filesum]>->( 384, $path );
         push( @sums, { 'path' => $path, 'bmw-384' => $sum } )
             if defined $sum and length $sum;
     }
@@ -578,8 +578,8 @@ $reply_text .= $reply_extra;
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,..,..,,.,,,...,,,,,..,,.,.,,..,,,,,,,.,,.,,..,,...,...,.,,,,.,,,..,,,,,.,.,
-#U2I2XCRP2TEKWVG5HDQSB6AZBA4A6AMIUGINEWTXXWR2K423ID26KFBQH5SQWF4GYUFN5763RZKNY
-#\\\|6CP3BQMP5DB5AFBIOTMGQDYBPUDKGFY7OVSDHVUBYH7TQLP7HGY \ / AMOS7 \ YOURUM ::
-#\[7]OR5N3ASEH5BAEANVHVSDNO2UQQHKQYUXCCTIMNZWXSKUTWFGFABI 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,,.,,.,.,,,,,,,,,...,,,.,,.,,..,,...,...,.,,,,,.,,..,,,.,,.,,
+#2ROJ74TDGVSY2H4G4ISEXVNREBYMXXJC7HPYZMUWDPHM7KK6424CPBIRBGQHR74EYBS25OR5ZB5HU
+#\\\|B7K7IRVGZLGIHCPRWOPQT5AYOB5BDJAUR6RYH2TYZRBBVQVGF43 \ / AMOS7 \ YOURUM ::
+#\[7]EM3FDHEV2IWLV6NLECOBPPVMKWCCJ6V6E7IVKIX2FSP5HRHM4YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
