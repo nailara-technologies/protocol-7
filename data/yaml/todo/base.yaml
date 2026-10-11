@@ -1021,6 +1021,7 @@ items:
     - geo-aware answers [ user, 2026-10-11 ] : a us node would serve us users with less latency -- nameserv answers by where a query comes from [ the resolver's ip, or edns client subnet when the resolver passes it ], mapped to a region -> the nearest node's address ; later capacity-aware [ a full node drops out of the answers ]. already planned : the loc= field in DNS_RHIZOME.md's txt records and roadmap phase 4 [ load-aware routing, failover ]. short ttls for entry points [ 60-300 s ] -- answers are cached
     - location order as traffic grows [ 2026-10-11 ] : eu [ the two servers ] -> new york [ shortest link to the eu ~80-90 ms, the east coast, large exchanges ; interserver's data center is in secaucus nj ] -> dallas [ the center, ~30-40 ms to both coasts ; geodns splits east \ west ] or los angeles instead if asia-pacific traffic grows by then. decide by where traffic actually comes from [ node logs, geodns ]
     - short-lived failover nodes [ user, 2026-10-11 ] : keep the digital ocean \ vultr accounts for fully automated, temporary failover -- hourly billing, full apis, many locations. flow : a zenka creates a vm through the api, it fetches its set-up + code version by reference and verifies them [ 4EO reproducible set-up ], joins the network, nameserv adds it to the answers ; when the original is back it drops out of dns and the vm is deleted. limits : no mail role on vultr [ port 25 blocked ] -- mail fails over to the second server ; api tokens can spend money : vault \ zenka secret store, a spending limit at the provider where offered
+    - dns-01 for all three domains LIVE [ 2026-10-11 ] : protocol-7.network, v7.ax and one private domain -- production certificates on new server 1. letsencr host.cfg : challenge_alias_prefix acme, alias_ns ; nameserv ensure-zone created acme.v7.ax and the private domain's acme subzone itself [ 30a0d0665, 48cd3c5d3 ]. a new domain needs only the registrar entries [ acme.<domain> NS, _acme-challenge.<domain> CNAME ], nothing on the server. next : the wildcard [ request-certificate with extra names ]. new node 'delta' [ 3rd provider, 1 vcpu xeon avx-512 \ vnni, 2 GB, kvm, debian 13, ipv4 only ; rdns delta.protocol-7.network, forward in both domains ] -- to do : port 25 check, protocol-7 install, ufw narrowed to its roles
   done_at: null
   id: CJ3
   priority: normal
@@ -1068,8 +1069,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,,,,,,,,,.,,.,.,,,,,,.,,.,,,...,..,,,,,,,,,,..,,...,...,.,.,..,,,,.,,,,,.,,,
-#53GJCHRQFDIQ2UJMQGNPLDT4HYPHPIGISVNWUNGTJEASLTYBLZIQMVE776TI5G2VRGYTR7CVA2C66
-#\\\|MKRPD7MOZZ67MWVKTLFUVVEY3NVJBQU64XE4YAOUAYEVRZBT7PK \ / AMOS7 \ YOURUM ::
-#\[7]Y6V266KOTRHZBJBNQOS2SCJGXQBOFQHEHTIUVOVBXJAHLJOLK2CA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,,,.,,,,,,,.,.,.,,,,,.,.,.,.,..,,...,...,..,,...,.,.,,,.,...,
+#LSOIPGY4GLRUPOX2IH5XXXKBXPFVSA7UKLB7STS2SALVYDID42MUXUZ3OOJL33BJ6ISWEJV4ULLGK
+#\\\|W6GI3AXOSMUZBPIMYVBC6IIXTDC5XN4CI6XGCV5YP2MI3JHMQ4P \ / AMOS7 \ YOURUM ::
+#\[7]XKVOQBYRLAVD36KOXGX4R7LWC3OMZCGN443HF4UX2JUY7QFQG4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
