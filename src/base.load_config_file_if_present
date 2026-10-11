@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = base.load_config_file_if_present
+# descr = load a config file when it exists, else do nothing
+# param = <cfg-dir:path | var-dir:path | /absolute/path>
+# note  = layered host config [ cfg/ defaults < /var detected < /etc
+#         decided ] : files outside the tree are optional -- a host
+#         without them runs on the defaults, git pull never touches them.
+#         cfg-dir: -> /etc/protocol-7, var-dir: -> /var/protocol-7 ;
+#         '<zenka>' in the path is this zenka's name
+
+my $spec = shift // '';
+return TRUE if not length $spec;
+
+my $dirs = <system.path.zenka-dirs> // {};
+my $path = $spec;
+$path =~ s|<zenka>|<system.zenka.name> // ''|ge;
+$path =~ s|^cfg-dir:|( $dirs->{'etc_P7'} // '/etc/protocol-7' ) . '/'|e;
+$path =~ s|^var-dir:|( $dirs->{'var_P7'} // '/var/protocol-7' ) . '/'|e;
+
+return TRUE if index( $path, qw| / | ) != 0 or !-f $path;
+
+<[base.logs]>->( 1, ': config layer : %s', $path );
+
+return <[base.load_config_file]>->($path);
+
+#,,,.,.,.,...,.,,,...,,,.,,..,,,,,...,.,,,,.,,..,,...,...,.,,,.,,,,,.,,..,..,,
+#UMZ33CJRP6RCIXNVQWQPATHJRIMPNRLCM47A7KLTOX3347AH3IQKJB6KZVLYREIWLZIMMTZENQMJC
+#\\\|SMPURT2HTFATLV5NJH5EXHLOCE4JXI7MIDGI534OHMZP3WUQICN \ / AMOS7 \ YOURUM ::
+#\[7]QYOZX7LMX346F6RMJPWKRV3PG3PNV27X2J5NGPTOKPOVTSC3XUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = base.host.detect
+# descr = write the host's detected facts once [ ram, cpus, ipv6 ]
+# note  = /var/protocol-7/host/detected.cfg : written, not recomputed on
+#         every start [ the reason for a choice stays visible and fixable ;
+#         delete the file to detect again ]. read by any zenka through
+#         [load_config_file_if_present:'var-dir:host/detected.cfg'].
+#         keys : host.mem_mb, host.cpus, host.ipv6 [ yes | no ]
+
+my $var_dir = <system.path.zenka-dirs.var_P7> // '/var/protocol-7';
+my $dir     = "$var_dir/host";
+my $file    = "$dir/detected.cfg";
+
+## facts are not secret : readable regardless of the service umask ##
+if ( $EFFECTIVE_USER_ID == 0 and -d $dir ) {
+    chmod 0755, $dir;
+    chmod 0644, $file if -f $file;
+}
+
+return TRUE if -f $file;
+return TRUE if $EFFECTIVE_USER_ID != 0 and !-w $var_dir and !-w $dir;
+
+mkdir $dir, 0755 if !-d $dir;
+
+my $mem_mb = 0;
+if ( open my $fh, '<', '/proc/meminfo' ) {
+    while (<$fh>) { $mem_mb = int( $1 / 1024 ) if m|^MemTotal:\s+(\d+)| }
+    close $fh;
+}
+my $cpus = 0;
+if ( open my $fh, '<', '/proc/cpuinfo' ) {
+    while (<$fh>) { $cpus++ if m|^processor\s*:| }
+    close $fh;
+}
+## a global ipv6 address : scope field 00 in /proc/net/if_inet6 ##
+my $ipv6 = qw| no |;
+if ( open my $fh, '<', '/proc/net/if_inet6' ) {
+    while (<$fh>) {
+        my @f = split;
+        $ipv6 = qw| yes |
+            if ( $f[3] // '' ) eq qw| 00 | and $f[5] ne qw| lo |;
+    }
+    close $fh;
+}
+
+my $text
+    = sprintf "## detected host facts [ base.host.detect, %s ] -- delete "
+    . "this file to detect again ##\n\nhost.mem_mb = "
+    . "%d\nhost.cpus   = %d\nhost.ipv6   = "
+    . "%s\n", scalar localtime, $mem_mb, $cpus, $ipv6;
+
+if ( open my $out, '>', $file ) {
+    print {$out} $text;
+    close $out;
+    chmod 0644, $file;
+    <[base.logs]>->(
+        1, ': host facts detected : %d MB ram, %d cpu%s, ipv6 %s [ %s ]',
+        $mem_mb, $cpus, ( $cpus == 1 ? '' : 's' ),
+        $ipv6,   $file
+    );
+}
+
+return TRUE;
+
+#,,,,,,.,,.,.,,,.,,..,...,,..,.,.,,,.,.,,,,..,..,,...,...,,.,,.,,,,,.,,..,..,,
+#JIAOFTP32ZGRP5G32YVCIM7LWPPOPMAGLXMLOAET3F76FGLUJJYX3TMIBDXR5VBQ5UWCLN7R7KUE4
+#\\\|VBX7U6TDEXEYIOBYIBJLQNHWVZJ6FNRL2IB6CQ2VJFZ3KJDOFSO \ / AMOS7 \ YOURUM ::
+#\[7]G25PG5DQEEWGDVCSQDAYQ45FEXURJW2GHIAKXHFRAFB6OPNHNSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
