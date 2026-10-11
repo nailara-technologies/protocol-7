@@ -620,7 +620,78 @@ items:
   - documentation
   text: implement bin/dev/md-link-tree
 - added: 3XLKLZUNG4
-  details: ''
+  details: |-
+    N7FS -- a checksum-addressed, replicated network filesystem. an import command [ 'assimilate' ] turns local files into network content : verified, redundant, then removed from the old location [ user's design, notes 2026-10-11 ].
+
+    lineage : bin/assimilate in the very first commit [ fbb9a337a, 2012-06-05 ] moved files to /data/files/<sha1>.<ext> with a metadata record [ name, file format, size, mtime, import time, md5 + sha1 ]. same idea : a file loses its location and gains an address from its content, name and metadata survive as description.
+
+    layout [ user ] : checksums are directory levels, never file names ; under them key names as files or directories, categorically, e.g.
+      <epoch>/<amos>/<bmw>/content | chunks/ | meta/ | references/<ntime>/<amos>/<bmw>/addr
+    - an amos collision is no error : two <bmw> siblings under one <amos> directory
+    - epochs and timestamps give categorical grouping [ validity windows, time-sorted history ]
+    - depth must stay open-ended -- needs that cannot be guessed now. every path segment is classifiable by shape alone [ ntime \ epoch b32, 7-char amos, long bmw, lowercase key word ], so a reader walks any depth without a fixed schema and new levels need no migration
+    - free with this : reverse references [ reference counts for cleanup, provenance ], atomic publish [ build under a temp name, one rename ], verify-by-path [ the path is the checksum ]
+    - to weigh : inodes \ 4k blocks per small key file [ chunk size, packing ; xfs copes better than ext4 ], very large <amos> directories [ an optional prefix level ]
+
+    designs it brings together [ data/md/design/ ] :
+    - path structure : BRANCH-NAMESPACE-MASTER.md [ branch.* addressing layer ], P7REF-STORAGE.md
+    - nested checksums + epochs : EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ newest, 2026-10-02 ], CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md
+    - update protocol \ streams : DATA-PROTOCOL-SYNC.md [ DATA reply, DELTA with the state checksum as sync point ; open : DELTA diff module, ACK, backpressure ], DANCING-ZENKI-RHIZOME-STATE.md [ travelling checksum tree ]
+    - substrate : 9P-STORAGE-VISION.md, INDEX-CUBE-STORAGE.md ; the storage zenka [ 9p modules, map-dirs ] and the data zenka
+    - a small working seed : the model batch blob store [ content-addressed blobs, manifests, verify, atomic restore, diff ]
+
+    missing link : the import command -- chunk, address under a branch.* path in an epoch, replicate over DATA \ DELTA to N nodes, remove the source only after the copies are confirmed. order matters most : any failure leaves the source in place.
+
+    one structure for everything [ user, 2026-10-11 ] : storage, precomputed search index, routing \ discovery topology and filesystem overlay the same <epoch>/<amos>/<bmw> tree. the anonymized checksum search [ EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md, section 'cross-epoch exclusion as collision load-balancer', ~line 555 ] : the query is an amos checksum of 'search.type : <pattern>', the reply a BMW-L13 proof matching the BMW384 content checksum, which is also the anonymous, cacheable route to the data [ any cache on the route answers early ]. the index regenerates per epoch ; cross-epoch exclusion keeps a query from epoch E resolvable at E+1. an epoch/chksum level is a fixed 14 characters -- an N-deep path is N * 14 characters, homogeneous lookup latency, only depth varies [ stricter than classifying segments by shape ].
+
+    later : resource accounting on the same structure [ user, 2026-10-11 ] -- read-me/documentation/dev/NRT.NRD.asc [ amos resource tokens : accounts = 7-char amos checksum + c25519 public key, signed ; token value = total connected resources \ user accounts ; resources = disk storage, data traffic, processing ] and data/md/design/NETWORK-RESOURCE-TOKEN-ARCHITECTURE.md [ layer 5 : resource distribution ]. n7fs gives the measurable units : a replicated chunk = an <amos>/<bmw> directory of known size on a known node, the redundancy factor N a visible cost, DATA \ DELTA streams the traffic, remote batches the processing. not needed for the first version.
+
+    P7REF ties in directly [ user, 2026-10-11 ] -- data/md/design/P7REF-STORAGE.md :
+    - the outward syntax : p7://<type>:<address>[@<authority>][|<segment>][?<query>] [ checksum, 9p, path, segment, nested ] -- how a node or user names something in n7fs without knowing where it is stored ; 'storage p7ref resolve' exists as the resolver
+    - typed checksums : base.p7refs.gen_template_chksum builds the reference type [ P7REF CODE REF HASH SCALAR ARRAY GLOB ] into the checksum through truth templates, optionally excluding the other types -- the same mechanism as the cross-epoch exclusion. a checksum carries WHAT it addresses as part of its value
+    - in the layout : references/<ntime>/<amos>/<bmw>/addr holds P7REFs, and a reader tells a reference checksum from a content checksum by its value, not only by the segment's width
+
+    implicitly callable references -> a distributed computing substrate [ user, 2026-10-11 ] :
+    - code is content : every module is a signed file ; a CODE-typed checksum addresses executable code like any data
+    - calling a reference = resolve to code and run it where it is cheapest [ code to the data or data to the code ] -- the address does not say where
+    - results are content too : for deterministic code, ( code checksum, input checksum ) fixes the result ; stored under its own checksum with a reference from that pair, a repeated call anywhere finds it instead of computing -- network-wide memoization through the same dedup as files. ties to the dedup tree [ convergence of independent attempts = confidence ] and to resource accounting [ processing as a measured resource ]
+    - precondition : before running code by reference, verify its signature against a trusted key and check access -- AMOS7 signatures and the C25519 trust identity [ host-root ] exist to build on
+    - the source of every call is accessible by naming convention [ user ] : a fixed key under the code's checksum holds it [ e.g. <epoch>/<amos>/<bmw>/source, beside signature and meta ] ; a result's references lead to ( code, input ) and from there one fixed step to 'source'. no call is a black box -- anyone holding a result can read, verify and reproduce the code that made it. continues how protocol-7 works today : <[module.name]> calls, the same name leads to the readable source in src/ -- n7fs keeps that across the network, with a checksum for the file name
+    - source code and release versions become coordinates as relevant as network timestamps and epochs [ user ] -- the version format already is one : cfg/protocol-7.src-ver = ntime + release counter [ e.g. 3X3YNK45GI-9928.0 ]. a result is located by WHEN [ epoch, ntime ], WITH WHAT CODE [ code checksum, release ] and FROM WHAT INPUT [ input checksum ]. gives : no silent overwrite on a new release [ older results stay addressable under their version, comparable with the new one ], reproducible past states [ the code that ran then is reachable like the data ], release diffs as the set of results that changed for the same input
+
+    version control as the completing element [ user, 2026-10-11 ] : a differential, metadata-carrying filesystem with callable references makes importing the source history and a version-aware network one logical flow.
+    - git is a content-addressed filesystem already : blob -> content under <epoch>/<amos>/<bmw>/, tree -> a directory manifest checksum [ like model_batch.manifest ], commit -> a node with references to its parents, meta, ntime + release counter ; the amos7 signatures in every file arrive with the content
+    - import from a stream : git fast-export gives the whole history in order [ ~10k commits back to fbb9a337a, 2012 ]
+    - keep each git sha1 as a reference : links, commit messages and memory notes stay valid
+    - git stays the gateway for a while [ push, external tools ], n7fs history grows beside it ; two-way sync later
+    - signing becomes native : what the pre-commit hook checks today [ signatures, version counter ] becomes part of creating a version node
+    - result : a code version is a node, results reference it -- the network knows which version produced what
+
+    native branching -> task \ flow \ context integration and entity management [ user, 2026-10-11 ] :
+    - a branch = a new node pointing to its parent state ; cheap, unchanged content is shared
+    - a task branches off a state and works there ; its result reference can be assigned as a dependency to a parallel task
+    - dependency management belongs in the P7REF structure : a dependency is a reference that does not resolve yet, resolution = it now points to content and the waiting side continues. base.dependency.* [ objects + callbacks, used today by the model pin's model_checksum_loaded ] is the runtime of exactly that
+    - parallels the template structure : data/md/design/TEMPLATE-RESOLUTION-ENGINE.md [ a tree of named slots, each resolved through a typed chain ; ui layout, application, zenka, data tree, STRM channel are views of one tree ; part of it used by the web zenka : process-template, execute_template_command ]. an open slot = an unresolved reference, a resolved subtree = a state
+    - entities \ zenki : a zenka can run on a branch of its state [ try something without touching the main line ]
+    - cases of the same thing : coding subtasks, XOJ overnight results, CT2 fix branches -- work on a branch of a state, the result a reference others wait for
+
+    zenki overlap -- each a view onto the one structure [ user + claude, 2026-10-11 ; module counts at that date ] :
+    - branch [ 124 ] : the branch.* addressing layer -> addressing core : paths, branches, sessions
+    - data [ 124 ] : data trees -> nodes and their key files [ meta, references .. ]
+    - context [ 79 ] : task \ conversation context -> context as a branchable state, task flows
+    - index [ 57 ] : index cube -> precomputed search index, amos buckets
+    - storage [ 53 ] : 9p mesh, lookup by checksum, p7ref commands, mapping plugins -> storage + access, p7ref resolver
+    - transport [ 18 ] : profiles, link quality, hysteria, direct tcp -> carries DATA \ DELTA streams between nodes [ udt later ]
+    - fs [ 7 ] : mount state -> the local disk the checksum directories live on
+    - udev [ 7 ] : device events -> new media can trigger an import [ assimilate ]
+    - template [ 1 + web ] : template engine -> slot resolution = dependency resolution
+    - node-transcending [ user ] : nodes [ 21, orbital position from ip + session key, published as a p7ref ] -> a node's place in the address space, which amos buckets it holds ; discover [ 30, orbital p7ref \ grid fragment exchange, announces ] -> the discovery topology ; external [ 12, transport registry, encrypted named links to other hosts' cubes ] -> crossing node boundaries
+    proposal : one shared core [ node format, checksum addressing, resolution ] every zenka uses -- no big merge, each zenka stays a view with its own job, every n7fs step lands in the core.
+
+    working rules [ user ] :
+    1. slight redundancy between zenki is fine as long as they do not break each other
+    2. migrate to better code and structure once all its requirements are met -- without hesitating, not before
+    3. what works stays working, with high priority : a replacement takes over only when it does at least as much [ baseline, test, then switch -- the batch harness way ]
   done_at: null
   id: 4EO
   priority: normal
@@ -948,8 +1019,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,.,,,,.,..,,...,,,.,...,,..,.,,,..,,,.,,..,,..,,...,...,.,,,..,,...,,,,,,,,,
-#6ORKPSUWB2NCZOC6RXLLJX5SOFY42N3KDNPFCEKZ6UE3OZ5NAH4BULT22NKUQ4KEZZRSPTOPX3DSI
-#\\\|KYXWZXTNJ5GXCUJWY4BE7Q47JKDVZHAO3NKT3SW2SMCU7K5UVP5 \ / AMOS7 \ YOURUM ::
-#\[7]VF5E4RPBY5EARNDDYFBBFHDKX7FH5ST7FCASHFKFT27DAAGZISAY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,,..,.,.,...,...,.,.,.,.,..,,..,,...,..,,..,,,,.,...,,,,,,..,
+#YNKYOCV4SKNESWZQBZQ5D5B5UJTWRKBZWUW2KZ6KV6E46DPDAVF3CF6Q37WM7EEUM7KV24LCQVQRE
+#\\\|765OYF5FMZYI2NF2FEAJR3UFJVU7NQ2WGX6JJXRHWO4T6JZ3C3E \ / AMOS7 \ YOURUM ::
+#\[7]JFS2E2XT62Z7TY5CFU3GMFLGLZGYQ63FKXHOUN3YK36BKJL6LYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
