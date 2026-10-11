@@ -1022,6 +1022,7 @@ items:
     - location order as traffic grows [ 2026-10-11 ] : eu [ the two servers ] -> new york [ shortest link to the eu ~80-90 ms, the east coast, large exchanges ; interserver's data center is in secaucus nj ] -> dallas [ the center, ~30-40 ms to both coasts ; geodns splits east \ west ] or los angeles instead if asia-pacific traffic grows by then. decide by where traffic actually comes from [ node logs, geodns ]
     - short-lived failover nodes [ user, 2026-10-11 ] : keep the digital ocean \ vultr accounts for fully automated, temporary failover -- hourly billing, full apis, many locations. flow : a zenka creates a vm through the api, it fetches its set-up + code version by reference and verifies them [ 4EO reproducible set-up ], joins the network, nameserv adds it to the answers ; when the original is back it drops out of dns and the vm is deleted. limits : no mail role on vultr [ port 25 blocked ] -- mail fails over to the second server ; api tokens can spend money : vault \ zenka secret store, a spending limit at the provider where offered
     - dns-01 for all three domains LIVE [ 2026-10-11 ] : protocol-7.network, v7.ax and one private domain -- production certificates on new server 1. letsencr host.cfg : challenge_alias_prefix acme, alias_ns ; nameserv ensure-zone created acme.v7.ax and the private domain's acme subzone itself [ 30a0d0665, 48cd3c5d3 ]. a new domain needs only the registrar entries [ acme.<domain> NS, _acme-challenge.<domain> CNAME ], nothing on the server. next : the wildcard [ request-certificate with extra names ]. new node 'delta' [ 3rd provider, 1 vcpu xeon avx-512 \ vnni, 2 GB, kvm, debian 13, ipv4 only ; rdns delta.protocol-7.network, forward in both domains ] -- to do : port 25 check, protocol-7 install, ufw narrowed to its roles
+    - third name server [ decided 2026-10-11 ] : DN1110.protocol-7.network on delta [ passes harmony in both cases ; chosen over DN0010, which completes the numbering but fails harmony -- the rule wins ; 0000 -> 0110 -> 1110 adds a set bit each step ]. set : DN0000 [ + DN0000.v7.ax ] on new server 1, DN0110 on new server 2, DN1110 on delta -- three name servers at two providers ; the registrar's name servers no longer needed as the third point, may stay as a fourth. glue for DN1110 at the .network registry [ ipv4 only, delta has no ipv6 ]
   done_at: null
   id: CJ3
   priority: normal
@@ -1069,8 +1070,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,,,,...,,,,,...,,,.,,,,,,,.,.,.,,,,,.,.,.,.,..,,...,...,..,,...,.,.,,,.,...,
-#LSOIPGY4GLRUPOX2IH5XXXKBXPFVSA7UKLB7STS2SALVYDID42MUXUZ3OOJL33BJ6ISWEJV4ULLGK
-#\\\|W6GI3AXOSMUZBPIMYVBC6IIXTDC5XN4CI6XGCV5YP2MI3JHMQ4P \ / AMOS7 \ YOURUM ::
-#\[7]XKVOQBYRLAVD36KOXGX4R7LWC3OMZCGN443HF4UX2JUY7QFQG4DA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,...,,.,,.,,,.,,,.,.,,,,,...,..,,...,...,.,,,..,,..,,,,,,.,,,
+#VULZV7DCYIMPB7PVBGBZX3FJKOPYBZWGYHP6NXX5AJ2GUMY7LHLIASQRLW7NTWN7MNP7LSZVBNOSQ
+#\\\|7LFHGCQLI3OQ42ZNBNHWJEXYRZM36KUABLNVI2OVJSIHQGYWCUG \ / AMOS7 \ YOURUM ::
+#\[7]47UPJCNTAM6LBCEMC74FRROO46RFAV6TLLUKONUVQS2LUS5QOAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
