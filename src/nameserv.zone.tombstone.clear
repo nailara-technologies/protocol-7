@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = nameserv.zone.tombstone.clear
+# descr = drop tombstones matching a re-added record identity
+# param = $zone_name, $record -> number of tombstones removed
+
+my $zone_name = shift // '';
+my $record    = shift;
+
+return 0 if not length $zone_name;
+return 0 if ref $record ne qw| HASH |;
+
+my $zones = <nameserv.zones>;
+my $zone  = $zones->{$zone_name} // return 0;
+return 0 if ref $zone->{'tombstones'} ne qw| ARRAY |;
+
+my $identity = <[nameserv.entry.identity]>->( $zone_name, $record );
+return 0 if not defined $identity;
+
+my $cleared = 0;
+
+$zone->{'tombstones'} = [
+    grep {
+        my $tomb_identity = <[nameserv.entry.identity]>->( $zone_name, $ARG );
+        not defined $tomb_identity
+            or $tomb_identity ne $identity
+            or do { $cleared++; FALSE }
+    } @{ $zone->{'tombstones'} }
+];
+
+return $cleared;
+
+#,,,,,.,,,,..,..,,...,...,.,.,...,...,.,.,,.,,..,,...,...,,,.,,,,,.,,,.,.,,,.,
+#FUKW53QSAHQSVUGTTHGRFVR64ORCZXKM3N2XIKIZSXX2JINMAOVIJ3WTMDFIVBBOD6ZBTLQSUDKG4
+#\\\|5OWXIMGW2MOTE3ZX5W7ESWSAHV66OBEA5RCWTZ5CZXXKPKCY7QJ \ / AMOS7 \ YOURUM ::
+#\[7]2V3PZDMRMUWRDEUTZEI2LD3B3QKSSP5SANO6N4Y2VQSK762B3ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

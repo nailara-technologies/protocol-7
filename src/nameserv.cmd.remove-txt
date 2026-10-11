@@ -29,17 +29,22 @@ if ( not defined $zone ) {
     return { mode => 'false', data => "no matching zone for: $fqdn" };
 }
 
-## remove only records matching name + type + value
+## remove only records matching name + type + value, tombstoning each ##
+## removed one                                                        ##
 my $orig_count = scalar @{ $zone->{'records'} };
 
-$zone->{'records'} = [
-    grep {
-        my $match = lc( $ARG->{'name'} // '' ) eq $fqdn;
-        $match &&= ( $ARG->{'type'}  // '' ) eq 'TXT';
-        $match &&= ( $ARG->{'value'} // '' ) eq $value;
-        not $match;
-    } @{ $zone->{'records'} }
-];
+my @kept = ();
+for my $rec ( @{ $zone->{'records'} } ) {
+    my $match = lc( $rec->{'name'} // '' ) eq $fqdn;
+    $match &&= ( $rec->{'type'}  // '' ) eq 'TXT';
+    $match &&= ( $rec->{'value'} // '' ) eq $value;
+    if ($match) {
+        <[nameserv.zone.tombstone.add]>->( $zone_name, $rec );
+    } else {
+        push @kept, $rec;
+    }
+}
+$zone->{'records'} = \@kept;
 
 my $removed = $orig_count - scalar @{ $zone->{'records'} };
 
@@ -56,8 +61,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf "txt value removed: %s", $fqdn;
 return { mode => 'true', data => $msg };
 
-#,,,,,.,.,.,.,,,,,,..,,,.,,,,,..,,,..,..,,...,..,,...,..,,..,,...,.,.,...,...,
-#6SOBXRZFUTGCXWO3W37MZQSR7VSRHHKSONRUOVNTYXE2KF7RLAYFYMGVK5CLM3K4AXEU7DKVLD6LK
-#\\\|SQBPCIE6HKH3S7M3YJERQOQ4XNVNPGC4OT4WXJTYVOWK2EPARDF \ / AMOS7 \ YOURUM ::
-#\[7]KUTOSQJAFJNVZGFZZEGGUWI2UBXEN66GP6OFLOD67ZXVSACOAGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,,,.,...,,,.,...,,,.,,.,,.,,,..,,...,...,..,,..,,..,,.,.,,.,,
+#QOSJFRKZZWAFXX4T7QKN4UKATGN2HZWAPB7XXC3QGE7R46LO5C22Y3WN2HXQNWHZBCLP3N5SNUDIU
+#\\\|7RCMKDIRNXD5KN7L5ZIVVOAJ4Y6AKFGKYYCKJAD6LGNFC5TKFVL \ / AMOS7 \ YOURUM ::
+#\[7]EYRDIEVOOJNJROS7KS5IIPRTFIIVU4Z4S6AX2RJ26OGPHHI7QADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
