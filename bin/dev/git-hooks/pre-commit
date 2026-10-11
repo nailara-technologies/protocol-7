@@ -76,6 +76,42 @@ print ": [ amend mode ]\n:\n" if $is_amend;
 ## Initialize git object
 my $git = Git::Wrapper->new($root_path);
 
+## the permission normalizer, also before the commit                        ##
+## [ dropped by an earlier hook rewrite ] : post-checkout sets what git     ##
+## cannot store, here the one bit git does store -- executable -- is taken  ##
+## over into the index for the staged files, so the commit carries the mode ##
+## the definitions give the path and checkouts find nothing to change       ##
+{
+    my $normalizer
+        = File::Spec->catfile( $root_path,
+        qw| bin admin restore-p7-permissions | );
+    system($normalizer) == 0
+        or die ":\n:: restore-p7-permissions failed\n\n";
+
+    my @staged = eval {
+        $git->diff( { cached => 1, name_only => 1, diff_filter => 'ACMR' } );
+    };
+    for my $file (@staged) {
+        my $path = File::Spec->catfile( $root_path, $file );
+        next if -l $path or not -f $path;
+        my ($index_line)
+            = eval { $git->ls_files( { stage => 1 }, '--', $file ) };
+        next if not defined $index_line;
+        my ($index_mode) = $index_line =~ m|\A(\d{6})\s|;
+        next
+            if not defined $index_mode
+            or $index_mode !~ m|\A100(?:644\|755)\z|;
+        my $want = ( ( stat $path )[2] & 0100 ) ? '100755' : '100644';
+        next if $want eq $index_mode;
+        eval {
+            $git->update_index(
+                ( $want eq '100755' ? '--chmod=+x' : '--chmod=-x' ),
+                '--', $file );
+        };
+        print ": [ mode ] $file -> $want [ normalizer definition ]\n";
+    }
+}
+
 ## Check descr/param lines over 55 chars in staged command modules
 unless ($skip_descr_check) {
     my @staged_files = eval { $git->diff( { cached => 1, name_only => 1 } ) };
@@ -134,8 +170,9 @@ unless ($skip_descr_check) {
 }
 
 ## signature fragment directly above a staged file's footer : WARN only -- the
-## rule is AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx [ the sign
-## tool's own check ], removing is the sign tool's explicit :strip: tag
+## rule is AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx
+## [ the sign tool's own check ], removing is the sign tool's explicit :strip:
+## tag
 {
     my @staged_files = eval { $git->diff( { cached => 1, name_only => 1 } ) };
     my $fragment_rx  = eval {
@@ -339,9 +376,9 @@ unless ($skip_signature_check) {
     ## has nothing to verify -- collect_file_list just logs a harmless "no  ##
     ## matches" for it and moves on, but there's no reason to hand it over  ##
     ## ]. verify-p7-signatures itself intersects this candidate set against ##
-    ## the real signed corpus, so anything staged but outside it [ excluded ##
-    ## paths, non-source files, etc ] is silently skipped rather than       ##
-    ## reported as unsigned -- see idea 1 of ADR 'scope pre-commit          ##
+    ## the real signed corpus, so anything staged but outside it            ##
+    ## [ excluded paths, non-source files, etc ] is silently skipped rather ##
+    ## than reported as unsigned -- see idea 1 of ADR 'scope pre-commit     ##
     ## signature check to staged files'                                     ##
     my @existing_staged_files
         = grep { -f File::Spec->catfile( $root_path, $_ ) } @staged_files;
@@ -350,12 +387,12 @@ unless ($skip_signature_check) {
     ## on spaces -- a filename containing one can't survive that round trip ##
     ## [ it re-splits into unrelated fragments, which collect_file_ list's  ##
     ## loose pattern matching can then silently absorb into unrelated       ##
-    ## directories ]. same problem for a leading '!' [ read as an exclusion ##
-    ## pattern ] or a '*' [ read as a glob ]. none of this repo's tracked   ##
-    ## paths use any of those, so treat one turning up as worth a clear,    ##
-    ## separate notice rather than folding it into a confusing generic      ##
-    ## "signature verification failed" -- and fall back to verifying it via ##
-    ## the unscoped full-corpus path                                        ##
+    ## directories ]. same problem for a leading '!'                        ##
+    ## [ read as an exclusion pattern ] or a '*' [ read as a glob ]. none   ##
+    ## of this repo's tracked paths use any of those, so treat one turning  ##
+    ## up as worth a clear, separate notice rather than folding it into a   ##
+    ## confusing generic "signature verification failed" -- and fall back   ##
+    ## to verifying it via the unscoped full-corpus path                    ##
     my @unrepresentable_files
         = grep { m| | or m|^!| or m|\*| } @existing_staged_files;
     @existing_staged_files
@@ -425,8 +462,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,..,.,.,,.,,,,.,..,,.,,,,,,,..,,.,,,,.,,,,,,..,,...,...,...,..,,.,,,...,,..,
-#35BG35FO4NTLAXN34OQDET7NQFZQLFTK4P45FSRPAQHAPVS7P7GN4G3ZXL4BKTS6NE5QOZOCKIM3M
-#\\\|XCQLNTA7IKE5DH6X5YGECO2OIWKICCGYT3JWKJTNAVGUETFCJHH \ / AMOS7 \ YOURUM ::
-#\[7]IVO4FOE4TGV5R7EULZ2R7R6HWSRYGQXQLFNHQGVAHUM3S3MLFYCQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,,.,,,,,,,,.,.,,,,..,...,,,.,..,,...,...,.,.,..,,.,.,.,,,,.,,
+#3ZIK4CIXKSDKA3PS5PREKSTRUQVMKUIH5J2FRUNRHKVUFXVMU5QKPNCQNUU46QPXPKFQNGT7DCXAC
+#\\\|SMZE75AZF3L5HGDRFJVX3XZ4N5S3MM4XIYNEVBLBCPRBCTDW4ZJ \ / AMOS7 \ YOURUM ::
+#\[7]5OWSPNVTZ7VXWOQPSYEB5IWXTDRSTMXJPRSOECAHN6GW35PMSWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
