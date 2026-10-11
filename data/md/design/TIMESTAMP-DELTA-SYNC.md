@@ -141,7 +141,10 @@ full <zone>
 
 ## transport
 
-- tcp, own port [ `sync.port`, derived like the other protocol-7 ports ].
+- tcp, official port 7753 [ `nameserv.cfg.sync.port`, 2026-10-12 ].
+  listening is opt-in [ `nameserv.cfg.sync.listen = yes` ] : the port
+  takes unauthenticated connections. a peer without ':port' in
+  `nameserv.cfg.sync.peers` means 7753.
   dual-stack `::` with ipv4 fallback, like nameserv's dns socket.
 - no confidentiality needed [ dns data is public ] ; integrity comes from
   the entries. a later version can carry the same lines over a p7 link,
@@ -257,8 +260,8 @@ reviewed line by line ] ; 3b = signing, verifying, grants, accept rules.
 - tombstone_keep vs. peers that are offline for weeks [ full fetch is
   fine for zones ; for larger data a checksum tree like N7FS is needed ].
 
-#,,,,,,,,,,..,.,,,,,,,...,.,.,.,,,,..,..,,,.,,..,,...,...,...,,,,,..,,,,,,,,.,
-#GHOYGERH5G7ZREAUWLWHJE5G5Y6AWBUG7IBABK6XBRN5XDMLRUJNZZHSVVN5RL7GGXOIXO6CZVPW2
-#\\\|NCBKHQGRVEHM2RVK4XX6X2UAFHXNHXMTFF5XNEZ5LKVWIWMF2OM \ / AMOS7 \ YOURUM ::
-#\[7]QIFX4NQ2JW4FNJVTNKHB2SIGAEKC5PKHM2KFAIASNBWDKWBEIUBA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,..,,,..,,,.,.,.,.,.,...,,,.,..,,...,...,,,,,.,.,,.,,.,,,.,.,
+#KYGYOWFFW2A2X4FDBBDNSVASFA7R5ADNGZF65SUWAQFL6ZVFFHPWW6QCFLJJR3C3ERWDZBRDHVBUK
+#\\\|ETX3N7OBXQDOROWVW57E2UAHLLB5EOYGS5M6IVTBT2SY3GRNGBU \ / AMOS7 \ YOURUM ::
+#\[7]3SG2HDE3XRH6XMYHMGCL677MBVLPI4LZ7JWGAPP6HNXGVZTXKUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

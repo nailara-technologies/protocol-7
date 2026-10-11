@@ -15,6 +15,9 @@ for my $token (@tokens) {
         ( $host, $port ) = ( $1, $2 );
     } elsif ( $token =~ m|^([^:]+):(\d+)$| ) {
         ( $host, $port ) = ( $1, $2 );
+    } elsif ( $token =~ m|^\[([^\]]+)\]$| or $token =~ m|^([^:\[\]]+)$| ) {
+        ## no port : the official sync port ##
+        ( $host, $port ) = ( $1, <nameserv.cfg.sync.port> // 7753 );
     } else {
         <[base.logs]>->( 0, ': sync peer not understood : %s', $token );
         next;
@@ -37,8 +40,8 @@ for my $token (@tokens) {
 
 return TRUE;
 
-#,,,,,,.,,,,,,...,,,.,,.,,,,.,...,...,,,,,,..,..,,...,...,...,,,,,,.,,,.,,,.,,
-#5QWCAEGD7F7V5UA5RGL7B4S3GGK5V7L7YCRREHM6AAIJ57LXHAKVK2RQRDRUM26V7R7CET3WDQ4I4
-#\\\|2XXOZ6NPB2STQSFYX6PO5KOV2KRG2YAZB2NILOYKDV6YK5MJJZH \ / AMOS7 \ YOURUM ::
-#\[7]S3NUJSOR4YGX2YQRECEG7OJK7763RCN2VQPSQSK4PVB2MP7UWCDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,,,,.,.,.,,,,..,.,.,.,.,,,.,..,,...,...,,.,,.,.,,,.,,,.,..,,
+#MRWJYSJIN4YHI3EJS65J4SEQP2N377VZHE57DWWHDLK45BHJF6OR4QY7P76PROFTJCTUKENPLIZ6G
+#\\\|L4A6MIIBVCPF67Y4PSMPVKXIPMS5AN3ZC25LCHQVF2TW2XXCBER \ / AMOS7 \ YOURUM ::
+#\[7]IYNEO6LJYRBLOGEA75264HJR4IDKVJTTHOPWS2HIEE45AE5HRUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

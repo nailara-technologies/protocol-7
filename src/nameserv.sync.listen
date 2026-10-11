@@ -1,9 +1,11 @@
 ## [:< ##
 
 # name  = nameserv.sync.listen
-# descr = start the sync tcp listener [ no-op without sync.port ]
+# descr = start the sync tcp listener [ sync.listen = yes ]
 
-my $port = <nameserv.cfg.sync.port> // return TRUE;    ## silent : no cfg ##
+return TRUE
+    if ( <nameserv.cfg.sync.listen> // 'no' ) !~ m{\A(?:yes|1|true)\z}i;
+my $port = <nameserv.cfg.sync.port> // 7753;
 
 ## reinit [ reload ] : the listener, reaper and handler already exist -- ##
 ## io.ip.tcp.input.open sets ReusePort, a second bind would succeed      ##
@@ -50,8 +52,8 @@ push @{ $handlers->{$event} }, qw| nameserv.sync.notify |
 
 return TRUE;
 
-#,,,,,,,.,.,.,..,,..,,,.,,.,.,,,,,..,,...,,..,..,,...,...,..,,..,,,,.,,,,,,,.,
-#O4WHK36SSMS3SRNVDIOBC7JX4YW33E4ZI6HGQPGPFH3XM3ZE6JTZDIPF2SCSOGKK34DFGQV2FFJ4U
-#\\\|NJCQBGSBIDHB3FSJJFVRDI374EIYQ3AED2UH7XWHTRMAA6KFKTP \ / AMOS7 \ YOURUM ::
-#\[7]2UJIXJLDF3QRLC7RW6KXVOJVVAFBFMDLHYJVXCOUAUVGV2D7KIDA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,...,.,,,..,,.,.,..,,,,.,...,..,,...,...,...,,..,,..,..,,..,,
+#BUK7HYXE4RTLQ27OMFV7OTTK5AED2NP6LBXNWJUVKJIZVNO2BPKPCKOP32RNP7U6X2TQUXTA2NX4W
+#\\\|QFFTXRB6XL5WSH5HZCOOMJM3BNEAGGFOW534RZJIW5UGKM55D2U \ / AMOS7 \ YOURUM ::
+#\[7]BL5AYZL3EU25BYO5QWSLJUV5ACVOSTPN5SXOWSUHIHGGUZVLRYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
