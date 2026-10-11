@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = nameserv.sync.entry.body
+# descr = the exact signed bytes of one sync entry
+# param = $entry -> raw body | undef
+#
+# data/md/design/TIMESTAMP-DELTA-SYNC.md [ 'the signed entry' ] : label,
+# zone, name, type, value, ttl, ts, deleted flag. callers normalise first
+# [ nameserv.sync.sign ] ; a relayed entry is never rebuilt from fields,
+# its stored body travels unchanged.
+
+my $entry = shift;
+return undef if ref $entry ne qw| HASH |;
+
+my $ttl = $entry->{'ttl'} // 0;
+$ttl = 0 if $ttl !~ m|^\d+$| or $ttl > 4294967295;
+
+return pack(
+    'Z* n/a* n/a* n/a* n/a* N n/a* n/a*',
+    'p7 sync-entry v1',
+    $entry->{'zone'}  // '',
+    $entry->{'name'}  // '',
+    $entry->{'type'}  // '',
+    $entry->{'value'} // '',
+    $ttl,
+    $entry->{'ts'} // '',
+    ( $entry->{'deleted'} ? qw| 1 | : qw| 0 | )
+);
+
+#,,..,..,,,.,,...,,..,.,,,,..,,..,,,.,,,,,.,,,..,,...,...,...,,,,,,.,,.,.,..,,
+#U5E2Y2FKHLQSG7FY7QJZWQ3LXAWU7SCZ644JDNGSKZSVOAQMPPMOOSPBLHDQ6BDZGVHBNQ4OO62IY
+#\\\|QAMJMP7AT3XA73HRG2IRQPYGVSBQLRQKJJ4Q54UQALHITHUVPZW \ / AMOS7 \ YOURUM ::
+#\[7]UOSD3OO7T6CGGWEKZ4CN6UGCJSVKFPEXXEHJET6H2WCXWPBYJKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,27 +1,69 @@
 ## [:< ##
 
 # name  = nameserv.sync.client.apply_reply
-# descr = process one since/full reply : apply, verify, decide next step
+# descr = process one since \ full reply : verify, apply, compare
 # param = $state, $lines_aref -> { result => ok|need-full|false, .. }
+#
+# WRITER lines are verified first [ nameserv.sync.writer.verify ], every
+# ENTRY goes through nameserv.sync.accept -- a rejected entry is skipped
+# and logged, never applied. a full fetch applies through the same rules
+# and never deletes : a record the peer did not send stays. CHECKSUM
+# lines must be signed by a verified writer. after a full fetch a zone
+# that still differs is logged once per peer checksum, not refetched.
 
 my $state = shift
     // return { 'result' => qw| false |, 'reason' => 'no state' };
 my $lines = shift
     // return { 'result' => qw| false |, 'reason' => 'no reply' };
 
-my @entries   = ();
-my %checksums = ();
-my $applied   = 0;
-my $newest    = undef;
+my ( @entries, %checksums );
+my ( $applied, $rejected, $newest ) = ( 0, 0, undef );
+my $peer = sprintf '%s:%s', $state->{'host'} // '?', $state->{'port'} // '?';
+
+my $log_reject = sub {
+    my $why = shift;
+    $rejected++;
+    <[base.logs]>->( 1, ': sync : %s : entry rejected [ %s ]', $peer, $why )
+        if not <nameserv.sync.rejected_logged>->{"$peer $why"}++;
+};
 
 for my $line (@$lines) {
-    if ( $line =~ m|^ENTRY (\S+)$| ) {
-        my $entry = <[nameserv.sync.entry.decode]>->($1);
-        return { 'result' => qw| false |, 'reason' => 'undecodable entry' }
-            if not defined $entry;
-        push @entries, $entry;
-    } elsif ( $line =~ m|^CHECKSUM (\S+) (\S+) (\S+)$| ) {
-        $checksums{$1} = $2;
+    if ( $line =~ m|^WRITER (\S+) (\S+)$| ) {
+        my ( $ok, $why ) = <[nameserv.sync.writer.verify]>->( $1, $2 );
+        <[base.logs]>->(
+            1, ': sync : %s : writer %s refused [ %s ]',
+            $peer, substr( $1, 0, 13 ), $why
+            )
+            if not $ok
+            and not <nameserv.sync.rejected_logged>->{"$peer $1"}++;
+    } elsif ( $line =~ m|^ENTRY (\S+) (\S+) (\S+)$| ) {
+        my ( $entry, $why ) = <[nameserv.sync.accept]>->( $1, $2, $3 );
+        if ( defined $entry ) { push @entries, $entry }
+        else                  { $log_reject->($why) }
+    } elsif ( $line =~ m|^CHECKSUM (\S+) (\S+) (\S+) (\S+) (\S+)$| ) {
+        my ( $zone, $sum, $ts, $sig_b32, $writer ) = ( $1, $2, $3, $4, $5 );
+        my $info        = <nameserv.sync.writers>->{$writer};
+        my $state_bytes = pack(
+            'Z* n/a* ' . 'n/a* n/a*',
+            'p7 sync-state v1',
+            $zone, $sum, $ts
+        );
+        my $sig = $sig_b32 ne '-' ? <[base32.decode]>->($sig_b32) : undef;
+        if (    ref $info eq qw| HASH |
+            and defined $sig
+            and length $sig == 64
+            and Crypt::Ed25519::verify( $state_bytes, $info->{'pub'}, $sig ) )
+        {
+            $checksums{$zone} = $sum;
+        } else {
+            return {
+                'result' => qw| false |,
+                'reason' => "state line of $zone not "
+                    . "signed by a verified writer"
+            };
+        }
+    } elsif ( $line =~ m|^ENTRY | or $line =~ m|^CHECKSUM | ) {
+        return { 'result' => qw| false |, 'reason' => 'unsigned reply' };
     } elsif ( $line =~ m|^TRUE (\S+)$| ) {
         $newest = $1;
     } elsif ( $line =~ m|^FALSE (.+)$| ) {
@@ -30,52 +72,53 @@ for my $line (@$lines) {
 }
 
 $state->{'checksums'} //= {};
-map { $state->{'checksums'}{$ARG} = $checksums{$ARG} } keys %checksums;
+$state->{'checksums'}{$ARG} = $checksums{$ARG} for keys %checksums;
 
+$applied = <[nameserv.sync.apply]>->( undef, \@entries );
 if ( $state->{'phase'} eq qw| full | ) {
     my $zone = $state->{'full_zone'} // '';
-    return { 'result' => qw| false |, 'reason' => 'no zone for full' }
-        if not length $zone;
-    return {
-        'result' => qw| false |,
-        'reason' => "missing checksum: $zone"
-        }
-        if not exists $state->{'checksums'}{$zone};
-
-    ## replace the zone's live records with the fetched set ##
-    <[nameserv.sync.full.replace]>->( $zone, \@entries );
-    $state->{'full_done'}{$zone} = TRUE;
-    $applied = scalar @entries;
-} else {    ## since reply ##
-    $applied
-        = <[nameserv.sync.apply]>->( $state->{'target'} // undef, \@entries );
+    $state->{'full_done'}{$zone} = TRUE if length $zone;
 }
 
-## the state after applying must checksum against the peer's lines ##
+## the signed state after applying must match the peer's state lines ##
 my @mismatched
     = <[nameserv.sync.checksums.verify]>->( $state->{'checksums'} );
 
-my @failed = grep { $state->{'full_done'}{$ARG} } @mismatched;
-return {
-    'result' => qw| false |,
-    'reason' => 'checksum mismatch after full fetch : '
-        . join( ' ', @failed ),
-    'applied' => $applied,
-    }
-    if @failed;
+## after a full fetch : entries outside our grants keep a zone different -- ##
+## logged once per peer checksum, the pull itself succeeds                  ##
+my $seen = <nameserv.sync.full_seen> //= {};
+for my $zone ( grep { $state->{'full_done'}{$ARG} } @mismatched ) {
+    my $peer_sum = $state->{'checksums'}{$zone};
+    next if ( $seen->{$peer}{$zone} // '' ) eq $peer_sum;
+    $seen->{$peer}{$zone} = $peer_sum;
+    <[base.logs]>->(
+        1,     ': sync : %s : %s still differs after a full fetch',
+        $peer, $zone
+    );
+}
 
-my @pending = grep { not $state->{'full_done'}{$ARG} } @mismatched;
+my @pending = grep {
+    not $state->{'full_done'}{$ARG}
+        and ( $seen->{$peer}{$ARG} // '' ) ne $state->{'checksums'}{$ARG}
+} @mismatched;
+
 return {
     'result'     => qw| need-full |,
     'applied'    => $applied,
+    'rejected'   => $rejected,
     'mismatched' => \@pending,
     }
     if @pending;
 
-return { 'result' => qw| ok |, 'applied' => $applied, 'newest' => $newest };
+return {
+    'result'   => qw| ok |,
+    'applied'  => $applied,
+    'rejected' => $rejected,
+    'newest'   => $newest,
+};
 
-#,,.,,,,.,,,.,..,,,..,.,,,,..,,,,,,,.,,..,,,.,..,,...,...,,.,,,.,,.,.,..,,,,.,
-#CK4OOWMYD3IWV6XKKDIBETKUWY3BR2LVTUXQV53W3SBHJBS2XD7DG72NBXOPNX3X7LDRBE4OZXQ6E
-#\\\|VN4UXJ2JNOWHX2OTDMWXGIFYEBFWMSFTC7QPXPVXOCPHFD76AZX \ / AMOS7 \ YOURUM ::
-#\[7]R5YF3VSURXLDRXMDJSTHWTU6G7LOYSWTJW4GCQ7B4RDZWQ77RGBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,,,...,,.,,.,,,,,.,..,,...,...,..,,...,..,,,..,,..,,..,,..,,.,,
+#LLKNJF6R36QTYQNFKXF5RTAR2UO22FYXMAX5KZ7XLBWNUGR2ZCQ22IWVIXGSJQIL6U52NMGGDZSNM
+#\\\|BX6KBKPS3M6Q2YJVXYQLZDBTYDX2PFPNGY6OPC55BJCPZAESO2H \ / AMOS7 \ YOURUM ::
+#\[7]EOJNT4FPXIDGPNUF54PBYQONRYRPOZPCM5UHHQAR6RGBVPNI2WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

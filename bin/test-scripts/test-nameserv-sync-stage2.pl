@@ -79,6 +79,7 @@ sub ntime_from_b32 {
 
 our %data;
 our %code;
+our %keys;    ## C25519 key store [ crypt.C25519 ] ##
 our $call;    ## cmd modules read the command parameter from here ##
 
 $data{'nameserv'}{'zones'}                         = {};
@@ -208,6 +209,12 @@ sub load_module {
 for my $mod (
     qw|
     nameserv.entry.identity
+    nameserv.sync.key.id
+    nameserv.sync.entry.body
+    nameserv.sync.sign
+    nameserv.sync.writer.own
+    nameserv.sync.writer.verify
+    nameserv.sync.accept
     nameserv.zone.tombstone.add
     nameserv.zone.tombstone.clear
     nameserv.zone.tombstone.purge
@@ -227,7 +234,6 @@ for my $mod (
     nameserv.sync.notify
     nameserv.sync.apply.entry
     nameserv.sync.apply
-    nameserv.sync.full.replace
     nameserv.sync.checksums.verify
     nameserv.sync.client.apply_reply
     nameserv.cmd.sync-pull
@@ -359,30 +365,11 @@ check 'last-data-timestamp zone reply',
 check 'last-data-timestamp unknown zone',
     ( $reply[0] =~ m|^FALSE unknown zone| and $reply[1] eq qw| . | );
 
-## since with an older ts lists the record plus the zone checksum ##
+## signed since \ full replies :                 ##
+## bin/test-scripts/test-nameserv-sync-stage3.pl ##
 
 my $ts_oldest = ntime_b32_at(1);
-@reply = req("since $ts_oldest test.zone");
-my @entries = grep {m|^ENTRY |} @reply;
-check 'since lists newer record', scalar @entries == 1;
-check 'since ends with dot',      $reply[-1] eq qw| . |;
-check 'since carries checksum line',
-    ( grep {m|^CHECKSUM test\.zone \S+ \S+$|} @reply ) == 1;
-my $since_decoded = $code{'nameserv.sync.entry.decode'}
-    ->( ( split m|\s+|, $entries[0] )[1] );
-check 'since entry decodes back',
-    ( ref $since_decoded eq qw| HASH |
-        and $since_decoded->{'name'} eq 'www' );
-
-## full lists every live record ##
-
 cmd( 'set-record', 'test.zone A mail 10.0.0.2' );
-@reply   = req('full test.zone');
-@entries = grep {m|^ENTRY |} @reply;
-check 'full lists all live records', scalar @entries == 2;
-check 'full ends with dot + checksum',
-    ( $reply[-1] eq qw| . |
-        and ( grep {m|^CHECKSUM test\.zone|} @reply ) == 1 );
 
 ## next-data-timestamp holds when nothing is newer ##
 
@@ -466,81 +453,6 @@ check 'next-data-timestamp without since -> FALSE',
 @reply = req('next-data-timestamp since:garbage!');
 check 'next-data-timestamp bad ts -> FALSE',
     $reply[0] =~ m|^FALSE invalid timestamp|;
-
-## --- the since filter : live + tombstones newer than the ts ----------- ##
-
-delete $zones->{'test.zone'};
-delete $zones->{'other.zone'};
-my $t_old  = ntime_b32_at( time() - 300 );
-my $t_mid  = ntime_b32_at( time() - 60 );
-my $t_tomb = ntime_b32_at( time() - 30 );
-
-$zones->{'filter.zone'} = {
-    records => [
-        {   name  => 'a.filter.zone',
-            type  => 'A',
-            value => '10.0.0.1',
-            ts    => $t_old
-        },
-        {   name  => 'b.filter.zone',
-            type  => 'A',
-            value => '10.0.0.2',
-            ts    => $t_mid
-        },
-        {   name  => 'c.filter.zone',
-            type  => 'TXT',
-            value => 'v-x',
-            ts    => $t_old
-        },
-    ],
-    tombstones => [
-        {   name    => 'c.filter.zone',
-            type    => 'TXT',
-            value   => 'v-x',
-            deleted => $t_tomb
-        },
-    ],
-    serial => time(),
-    ttl    => 3900,
-};
-
-my @lines = $code{'nameserv.sync.since'}->( $t_mid, 'filter.zone', FALSE );
-my @filter_entries = map {
-    $code{'nameserv.sync.entry.decode'}->( ( split m|\s+|, $ARG )[1] )
-    }
-    grep {m|^ENTRY |} @lines;
-
-check 'since filter selects newer tombstones only',
-    (       scalar @filter_entries == 1
-        and $filter_entries[0]{'name'} eq 'c.filter.zone'
-        and $filter_entries[0]{'deleted'} == TRUE
-        and $filter_entries[0]{'ts'} eq $t_tomb );
-
-@lines = $code{'nameserv.sync.since'}->( $t_old, 'filter.zone', FALSE );
-@filter_entries = map {
-    $code{'nameserv.sync.entry.decode'}->( ( split m|\s+|, $ARG )[1] )
-    }
-    grep {m|^ENTRY |} @lines;
-
-check 'since filter includes live records and tombstones', (
-            scalar @filter_entries == 2
-        and ( grep { $ARG->{'deleted'} == TRUE } @filter_entries ) == 1
-        and (
-        grep {
-                    $ARG->{'deleted'} == FALSE
-                and $ARG->{'name'} eq 'b.filter.zone'
-        } @filter_entries
-        ) == 1
-);
-
-@lines = $code{'nameserv.sync.since'}->( undef, 'filter.zone', TRUE );
-@filter_entries = map {
-    $code{'nameserv.sync.entry.decode'}->( ( split m|\s+|, $ARG )[1] )
-    }
-    grep {m|^ENTRY |} @lines;
-check 'full filter excludes tombstones',
-    ( scalar @filter_entries == 3
-        and not grep { $ARG->{'deleted'} } @filter_entries );
 
 ## --- applying entries : newer ts wins, tombstones remove --------------- ##
 
@@ -720,143 +632,6 @@ $apply_res = $code{'nameserv.sync.apply'}->(
 check 'whole-set apply creates the zone',
     ( $apply_res == 1 and exists $zones->{'new.zone'} );
 
-## --- checksum mismatch -> full fetch once -> zone replaced ------------ ##
-
-delete $zones->{'apply.zone'};
-delete $zones->{'new.zone'};
-
-my $ta = ntime_b32_at( time() - 300 );
-my $tb = ntime_b32_at( time() - 100 );
-
-## the local zone holds an extra record the peer never had ##
-$zones->{'sync.test'} = {
-    records => [
-        {   name  => 'a.sync.test',
-            type  => 'A',
-            value => '10.0.0.1',
-            ts    => $ta
-        },
-        {   name  => 'z.sync.test',
-            type  => 'A',
-            value => '10.0.0.9',
-            ts    => $ta
-        },
-    ],
-    serial => time(),
-    ttl    => 3900,
-};
-
-## build the peer's since + full replies by pointing the zones hash at the ##
-## peer view for the duration of the read-only reply build                 ##
-
-my $local_view = delete $zones->{'sync.test'};
-$zones->{'sync.test'} = {
-    records => [
-        {   name  => 'a.sync.test',
-            type  => 'A',
-            value => '10.0.0.1',
-            ts    => $ta
-        },
-        {   name  => 'b.sync.test',
-            type  => 'A',
-            value => '10.0.0.2',
-            ts    => $tb
-        },
-    ],
-    serial => time(),
-    ttl    => 3900,
-};
-
-my @peer_since
-    = grep { not m|^CHECKSUM| }    ## checksum line is rebuilt below ##
-    $code{'nameserv.sync.since'}->( $ta, 'sync.test', FALSE );
-
-## replace the auto checksum with the peer's true checksum line ##
-my $peer_sum  = $code{'nameserv.zone.checksum'}->('sync.test');
-my $peer_zts  = $code{'nameserv.zone.timestamp'}->('sync.test');
-my @peer_full = $code{'nameserv.sync.since'}->( undef, 'sync.test', TRUE );
-
-delete $zones->{'sync.test'};
-$zones->{'sync.test'} = $local_view;
-
-my $state = {
-    phase     => 'since',
-    target    => 'sync.test',
-    full_zone => undef,
-    checksums => {},
-    full_done => {},
-};
-
-my $result = $code{'nameserv.sync.client.apply_reply'}->(
-    $state,
-    [ @peer_since, sprintf 'CHECKSUM sync.test %s %s', $peer_sum, $peer_zts ]
-);
-
-check 'since apply detects checksum mismatch',
-    ( $result->{'result'} eq qw| need-full |
-        and ( grep { $ARG eq 'sync.test' } @{ $result->{'mismatched'} } )
-        == 1 );
-
-check 'since entries were applied before the mismatch',
-    ( grep { $ARG->{'name'} eq 'b.sync.test' }
-        @{ $zones->{'sync.test'}{'records'} } ) == 1;
-
-## the client fetches full exactly once : simulate the full reply ##
-
-$state->{'phase'}     = qw| full |;
-$state->{'full_zone'} = 'sync.test';
-
-$result = $code{'nameserv.sync.client.apply_reply'}->( $state, \@peer_full );
-
-check 'full fetch replaces the zone',
-    (
-            $result->{'result'} eq qw| ok |
-        and scalar @{ $zones->{'sync.test'}{'records'} } == 2
-        and ( grep { $ARG->{'name'} eq 'z.sync.test' }
-        @{ $zones->{'sync.test'}{'records'} } ) == 0
-        and $code{'nameserv.zone.checksum'}->('sync.test') eq $peer_sum
-    );
-
-## a full reply that still mismatches is a hard false ##
-
-$zones->{'sync.test'} = {
-    records => [
-        {   name  => 'a.sync.test',
-            type  => 'A',
-            value => '10.0.0.1',
-            ts    => $ta
-        },
-    ],
-    serial => time(),
-    ttl    => 3900,
-};
-
-my $state_bad = {
-    phase     => 'since',
-    target    => 'sync.test',
-    full_zone => undef,
-    checksums => {},
-    full_done => {},
-};
-
-$result = $code{'nameserv.sync.client.apply_reply'}->(
-    $state_bad, [ sprintf 'CHECKSUM sync.test %s %s', $peer_sum, $peer_zts ]
-);
-check 'empty since with foreign checksum -> need-full',
-    $result->{'result'} eq qw| need-full |;
-
-$state_bad->{'phase'}     = qw| full |;
-$state_bad->{'full_zone'} = 'sync.test';
-
-$result = $code{'nameserv.sync.client.apply_reply'}->(
-    $state_bad,
-    [   @peer_full, sprintf 'CHECKSUM sync.test %s-wrong %s',
-        $peer_sum,  $peer_zts
-    ]
-);
-check 'still mismatching after full -> false',
-    $result->{'result'} eq qw| false |;
-
 ## --- the sync-pull command surface ------------------------------------- ##
 
 $call = { 'args' => '', 'reply_id' => 'test-reply-id' };
@@ -866,22 +641,20 @@ check 'sync-pull usage', $res->{'mode'} eq qw| false |
 
 $call = { 'args' => '127.0.0.1 notaport', 'reply_id' => 'test-reply-id' };
 $res  = $code{'nameserv.cmd.sync-pull'}->($call);
-check 'sync-pull invalid port',
-    $res->{'mode'} eq qw| false |
+check 'sync-pull invalid port', $res->{'mode'} eq qw| false |
     and $res->{'data'} =~ m|invalid port|;
 
 $call = { 'args' => '127.0.0.1 5353', 'reply_id' => '' };
 $res  = $code{'nameserv.cmd.sync-pull'}->($call);
-check 'sync-pull needs a reply route',
-    $res->{'mode'} eq qw| false |
+check 'sync-pull needs a reply route', $res->{'mode'} eq qw| false |
     and $res->{'data'} =~ m|reply route|;
 
 say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,,,,.,,.,.,,,.,.,.,..,,.,.,,,,,...,.,.,..,,...,...,.,,,..,,..,,,,.,.,.,
-#ZXZ3QX6Q4MWNAY3CUYEUH7HZJPYN5EXHQ5QUW2HTKDIDCSPGMQAI37LNVDQTNOP2KE6G2ZJE4ZGX2
-#\\\|OZFSWDHEJLBVSX4F6OG4BFBOAULXAPBHRT7G7OU5OE6LNZ7MRG5 \ / AMOS7 \ YOURUM ::
-#\[7]GHMLONRBNISB4DGABFZY2WUTG5T6HBWLCQYGDEXMNCJZXOTA5ODI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,.,,,.,,,.,,,,,.,,,,,.,,,,,,,..,,...,...,,..,.,.,...,,,,,...,
+#G26IFL7UQ464M4TDUWELRVJJR4SGVZ5ESCIZ6MXQFINV6JSHPOED5F3ZS2B345OFT76E63JFNEBJS
+#\\\|UMURNGHQE5YNQCVJ5447YEE354YL4YDRYCS73CJ6RYYSC3DP3O7 \ / AMOS7 \ YOURUM ::
+#\[7]3HCPUKAZWPMFZPEFOKPMCTDBAUJUZKHLY2BHRT6VLDFAFNJ2QMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

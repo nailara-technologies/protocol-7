@@ -20,31 +20,24 @@ if ( $state->{'phase'} eq qw| last-ts | ) {
 
     my $peer_ts = $1;
 
-    my $local_ts
-        = <[nameserv.zone.timestamp]>->( $state->{'target'} // undef );
-
-    my $delta
-        = defined $local_ts
-        ? <[base.ntime.delta_seconds]>->( $local_ts, $peer_ts )
-        : undef;
-    if ( defined $local_ts and defined $delta and $delta >= 0 ) {
+    ## the cursor is the PEER's ts at the last successful pull from it -- ##
+    ## never the local ts                                                 ##
+    ## [ a newer local change would hide the peer's older, unseen ones ]  ##
+    my $cursor_key = sprintf '%s:%s %s', $state->{'host'}, $state->{'port'},
+        $state->{'target'} // '*';
+    my $cursor = <nameserv.sync.cursor>->{$cursor_key};
+    $state->{'peer_ts'}    = $peer_ts;
+    $state->{'cursor_key'} = $cursor_key;
+    if ( defined $cursor and $cursor eq $peer_ts ) {
         return <[nameserv.sync.client.finish]>->(
             $state,
             {   mode => qw| true |,
                 data => 'already current',
-                ts   => $local_ts
+                ts   => $peer_ts
             }
         );
     }
-
-    if ( length( $state->{'target'} // '' ) and not defined $local_ts ) {
-        syswrite $state->{'sock'}, "full $state->{'target'}\n";
-        $state->{'phase'} = qw| full |;
-        return TRUE;
-    }
-
-    my $since_ts
-        = defined $local_ts ? $local_ts : <[nameserv.sync.ts-oldest]>->();
+    my $since_ts = $cursor // <[nameserv.sync.ts-oldest]>->();
     my $request
         = length( $state->{'target'} // '' )
         ? "since $since_ts $state->{'target'}\n"
@@ -58,6 +51,9 @@ if ( $state->{'phase'} eq qw| last-ts | ) {
 my $result = <[nameserv.sync.client.apply_reply]>->( $state, $lines );
 
 if ( $result->{'result'} eq qw| ok | ) {
+    ## the next pull from this peer starts here ##
+    <nameserv.sync.cursor>->{ $state->{'cursor_key'} } = $state->{'peer_ts'}
+        if defined $state->{'cursor_key'} and defined $state->{'peer_ts'};
     my $target
         = length( $state->{'target'} // '' )
         ? $state->{'target'}
@@ -85,8 +81,8 @@ if ( $result->{'result'} eq qw| ok | ) {
 
 return TRUE;
 
-#,,..,..,,..,,,,,,.,.,.,,,,,.,,..,.,.,,,.,...,..,,...,...,,..,,,,,...,.,,,,,.,
-#UMN65NQFMQUUKZ5J64U2H7QL2GYIOVFJATNNFXCNPNYK7EVPAV53JUOHHNYDDRQW3EY3NUO6CMZUG
-#\\\|KCE64XMNPCA4YXEA7EF2XOWN4T6TK2Q6FJFQ4YRVE42ASK3ECNV \ / AMOS7 \ YOURUM ::
-#\[7]LIB7JX2GIOAMDOD5DYCQRVPZRGUD73SPJK2NH3LCCSJENK2C7YDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,..,,,..,,.,,,.,,,..,.,.,,,.,..,,...,...,.,.,.,,,.,.,...,,,.,
+#XUTW25POABCOB4L742CQZTI5GTC437P4ZNYKKXRM2WSSJH7S2BWBVCGH6KONE6FS2YMIS7S7N77Y4
+#\\\|AOS4VJDZ4HFLZOCYT5B3CX5HZAXXJXEGL7B2HXIL5C63RRCK7XM \ / AMOS7 \ YOURUM ::
+#\[7]2VBMTV6A7UZJD3LOXA3CKSAMH23GD6HXAZZN2INPMBETWUZPNMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
