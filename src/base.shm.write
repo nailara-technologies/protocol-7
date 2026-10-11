@@ -20,7 +20,7 @@ my $shm_dir = <[base.shm.path]>;
 return undef if not defined $shm_dir;
 
 ##  content-addressed name : BMW384 of the plaintext payload  ##
-my $bmw_ctx = <[base.chk-sum.bmw.ctx]>->(384);
+my $bmw_ctx = <[chk-sum.bmw.ctx]>->(384);
 $bmw_ctx->add( $data_ref->$* );
 my $sum_b32 = encode_b32r( $bmw_ctx->digest );
 
@@ -100,8 +100,8 @@ chmod( 0440, $dst_path );
 
 return $final_name;
 
-#,,,.,,,.,,,.,,,.,.,,,.,,,,..,...,,..,.,,,,,.,..,,...,...,,,.,,,,,,.,,,,.,.,,,
-#3JDJ4F2PTKCNQPQLPZXC5LTQYLHIFYVJOBCY3YSOFUAJRTCNB2FDHJSPSZ47JZBYBK2WDSALCS3SI
-#\\\|SVI5MD2OMKKUNPHHOY5LWYE2G3U6VX5GQD3VCAR2MOGZXMLWRIV \ / AMOS7 \ YOURUM ::
-#\[7]BZQ2TBGQJW46AZWXIEDU7MOWJIXFSSBAZXGMAZSCAODQTJMQPWBY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,,.,,,.,,...,,,.,,,,,,..,,.,,..,,...,...,,..,,.,,,,,,,,,,,,.,
+#EUQVEGRAV7LIJTJVZWP4UGOHTF6CW6MXGUMUHEA3PTYSRLPYFCG5IWHNBX5YKVTT7O2JEC3HHX2IY
+#\\\|FVNQYAZLHCKEIBSGSTQLGWYWV4ZOQNUKVAWSAYRAI6637P2YHPZ \ / AMOS7 \ YOURUM ::
+#\[7]4WENM3UBGMNFSRY3TMEKWBURTDBAFNU2O5HJ6QYWQ6ZZ4DK3GGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

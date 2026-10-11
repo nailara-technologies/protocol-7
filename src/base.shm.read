@@ -77,7 +77,7 @@ if ( defined $key and length $key ) {
 ##  integrity : content-addressed names are BMW384 of the plaintext  ##
 my $is_valid = TRUE;
 if ( $name =~ m|^[A-Z2-7]{77}$| ) {
-    my $bmw_ctx = <[base.chk-sum.bmw.ctx]>->(384);
+    my $bmw_ctx = <[chk-sum.bmw.ctx]>->(384);
     $bmw_ctx->add($payload);
     if ( encode_b32r( $bmw_ctx->digest ) ne $name ) {
         <[base.logs]>->(
@@ -101,8 +101,8 @@ return undef if not $is_valid;
 
 return \$payload;
 
-#,,,,,.,.,,..,...,..,,,,,,,..,,,.,,,.,,.,,,,.,..,,...,...,..,,,..,.,.,.,,,..,,
-#5JZUKDDQAOB2U3HHR4KE54Y4UJVSGVAZVEON4UC2NAZDJWA6WWSF3WCXHLGZNFGFYVOSESOZRSAKC
-#\\\|4P4HYFDGWIIJ4ZAGPJCDY6X3I2PLWBHELCM23APLDMER3N7QZP3 \ / AMOS7 \ YOURUM ::
-#\[7]KDGLEWSA54XTGVIKHO22SVXV5VQLAXIXJKJ2YUAZHE7WILFTAUCY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,..,,,.,,.,,..,,.,.,,,.,,,,,...,..,,...,...,.,,,,,,,,..,,.,,,,,,
+#QATHCLPLLQJSSK2TXD4CDHUYV7BR6R7AHKJHIB6YHPF6VWSSR4SQRZOXF3NLKC6ZT6VXO5W4CGQIW
+#\\\|LMCA372VLD3NFZPXFVGLQUTR5VK4JGRHFC4P3NPVFKILT7T2HYW \ / AMOS7 \ YOURUM ::
+#\[7]R4BOYDFZRV3EDJME6BTX743H7GVM5YTSUMZGBZP77NKOLE24FMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

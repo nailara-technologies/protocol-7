@@ -9,11 +9,10 @@ use warnings;
 ## [ 2026-10-11, data/md/design/TIMESTAMP- DELTA-SYNC.md stage 1 ] compiles ##
 ## the real src/nameserv.* modules and drives them with stubs :             ##
 ## base.ntime.b32 / delta_seconds / b32_is_shape_valid,                     ##
-## base.chk-sum.bmw.512.B32, format.yaml.*, file.slurp /                    ##
-## file.zenka_dir.write, base.logs and nameserv.event.emit.  a tiny source  ##
-## translator expands <[mod]> and <data.key> syntax the way bin/Protocol-7  ##
-## does. no zenka started, restarted or reloaded, no network, sandbox zone  ##
-## dir only.                                                                ##
+## chk-sum.bmw.512.B32, format.yaml.*, file.slurp /  file.zenka_dir.write,  ##
+## base.logs and nameserv.event.emit.  a tiny source translator expands     ##
+## <[mod]> and <data.key> syntax the way bin/Protocol-7 does. no zenka      ##
+## started, restarted or reloaded, no network, sandbox zone dir only.       ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -119,7 +118,7 @@ $code{'base.ntime.delta_seconds'} = sub {
     return ( $end_val - $start_val ) / 4200;
 };
 
-$code{'base.chk-sum.bmw.512.B32'} = sub {
+$code{'chk-sum.bmw.512.B32'} = sub {
     require Digest::BMW;
     my $input = shift;
     my $bytes = ref $input eq 'SCALAR' ? $input->$* : $input;
@@ -424,8 +423,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,,.,,,,,.,,,..,,,..,,..,..,,,..,.,,,,,,,..,,...,...,.,.,...,,..,,,,,...,
-#6AFDOZCDUKW6DTPGC53RB652L7NUVDJ4BAWOIJAN2YD5QQZZLS6ETMWZNEOYOSTCX3U6UPSUFCNEA
-#\\\|NIP2355OH5BALBON5DKELRJJ3VLNQHEENZO2QDJ657NPTOMBMX2 \ / AMOS7 \ YOURUM ::
-#\[7]EDDKS2H5DMND7GGP4E2LQ7BS22IAORF2FRPUQUO5EZG6SGVJ7AAA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,.,.,.,,,,,.,.,..,,,.,,,.,,..,,..,,...,...,,,,,.,,,,,.,...,.,,,
+#EKHHM7OLNHZQVDWZYH4QINVWHJKBQTVVIGGVDX3V5BNUQAD4HQ2PREC4XMI6D233YVZGSZH2ULRUC
+#\\\|YBYF6RBTRRA37AY7EHRP54MXZFZOQHF3TYDDKZHXMD7RKHSPR52 \ / AMOS7 \ YOURUM ::
+#\[7]B3O7JTJUQJGUSYNWUFBM33HQSZZBDQMNHEFNV5OLK2VKJ7PVT4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

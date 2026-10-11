@@ -15,7 +15,8 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 @EXPORT = qw[ ];
 
 @EXPORT_OK = qw| $VERSION p7_syntax__translate p7_syntax__perl_c
-    p7_syntax__floor_perl p7_syntax__sig_fragment_rx |;
+    p7_syntax__floor_perl p7_syntax__sig_fragment_rx
+    p7_syntax__swap_pairs p7_syntax__swapped_calls |;
 
 ## deliberately dependency-free : no 'use AMOS7'/'use AMOS7::CHKSUM' --     ##
 ## this sub is also called from bin/Protocol-7's own bootstrap, before base ##
@@ -114,14 +115,14 @@ sub consume_body {
         $end );
 }
 
-## second body of s///, tr///, y/// : $pos is right after the first body's  ##
-## close delim. for paired delimiters a fresh open char follows [ maybe     ##
-## after whitespace ]; for same-char delimiters the same delim continues.   ##
-## returns ( $open2, $close2, $inner2, $pos_after, $body2_start,            ##
-## $has_own_open_char ). for paired delimiters body2 carries its own        ##
-## literal opening char in the source [ needs re-emitting ] ; for same-char ##
-## delimiters it does not [ the middle delimiter was already emitted as     ##
-## body1's close ]                                                          ##
+## second body of s///, tr///, y/// : $pos is right after the first body's ##
+## close delim. for paired delimiters a fresh open char follows            ##
+## [ maybe after whitespace ]; for same-char delimiters the same delim     ##
+## continues.  returns ( $open2, $close2, $inner2, $pos_after,             ##
+## $body2_start, $has_own_open_char ). for paired delimiters body2 carries ##
+## its own literal opening char in the source [ needs re-emitting ] ; for  ##
+## same-char delimiters it does not                                        ##
+## [ the middle delimiter was already emitted as body1's close ]           ##
 sub consume_second_body {
     my ( $sref, $pos, $open1, $close1 ) = @ARG;
     if ( $open1 ne $close1 ) {
@@ -142,10 +143,11 @@ sub consume_second_body {
 my %QLIKE = map { $ARG => 1 } qw| q qq qw qr m s tr y |;
 
 ## true when $pos sits on a segment of a '<..>' data key chain : directly ##
-## after '<' or after a key chain character inside it [ both the 'y' and  ##
-## the '-y' remainder of 'qq-y' in <x.qq-y> ]. scans back over key chain  ##
-## characters [ word, '-', '.', ':' ] -- reaching '<' means inside a key. ##
-## any other left context stops the scan before a '<' can be reached      ##
+## after '<' or after a key chain character inside it                     ##
+## [ both the 'y' and the '-y' remainder of 'qq-y' in <x.qq-y> ]. scans   ##
+## back over key chain characters [ word, '-', '.', ':' ] -- reaching '<' ##
+## means inside a key. any other left context stops the scan before a '<' ##
+## can be reached                                                         ##
 sub inside_key_chain {
     my ( $sref, $pos ) = @ARG;
     my $p = $pos - 1;
@@ -177,10 +179,10 @@ sub match_qlike_op {
     return ( $kw, $p );
 }
 
-## interpolation class of one delimited body, mirroring real perl :         ##
-## q()/qw()/tr///y/// never interpolate ; '-delimited bodies never          ##
-## interpolate [ m'..' s'..'..' qr'..' ] ; everything else [ qq m s qr with ##
-## a non-' delim, plain "..." ] interpolates by default                     ##
+## interpolation class of one delimited body, mirroring real perl :      ##
+## q()/qw()/tr///y/// never interpolate ; '-delimited bodies never       ##
+## interpolate [ m'..' s'..'..' qr'..' ] ; everything else               ##
+## [ qq m s qr with a non-' delim, plain "..." ] interpolates by default ##
 sub qlike_class {
     my ( $kw, $delim ) = @ARG;
     return 'NEVER' if $kw eq qw|q|  or $kw eq qw|qw|;
@@ -535,14 +537,16 @@ sub p7_syntax__scan {
     return $out;
 }
 
-## scan in byte mode : every structural character this scanner keys on is   ##
-## ascii, and utf-8 is self-synchronizing [ no ascii byte ever occurs       ##
-## inside a multi-byte sequence ], so byte-level scanning is equivalent --  ##
-## but it avoids perl's character-index arithmetic on utf8-flagged strings, ##
-## which the scanner's substr/pos access pattern makes pathological [       ##
-## measured 42x slower on a 75k module file ]. every module source reaches  ##
-## this translator utf8-flagged [ bin/Protocol-7 opens with                 ##
-## :encoding(UTF-8) ], so this is the common path, not an edge case         ##
+## scan in byte mode : every structural character this scanner keys on is  ##
+## ascii, and utf-8 is self-synchronizing                                  ##
+## [ no ascii byte ever occurs inside a multi-byte sequence ], so          ##
+## byte-level scanning is equivalent -- but it avoids perl's               ##
+## character-index arithmetic on utf8-flagged strings, which the scanner's ##
+## substr/pos access pattern makes pathological                            ##
+## [ measured 42x slower on a 75k module file ]. every module source       ##
+## reaches this translator utf8-flagged                                    ##
+## [ bin/Protocol-7 opens with  :encoding(UTF-8) ], so this is the common  ##
+## path, not an edge case                                                  ##
 sub p7_syntax__translate
 {    ## p7 syntax -> perl [ becomes base.syntax.translate ]
 
@@ -668,12 +672,12 @@ sub p7_syntax__perl_c {
 
 ##[ SIGNATURE FRAGMENT ABOVE THE FOOTER ]#####################################
 
-## a leftover directly ABOVE a file's real signature footer [ found 2026-10-09
-## in 56 files, ed8f5e06d ] : a lone separator line, a separator + an agent's
-## '#PLACEHOLDER ..' line, a whole placeholder block starting
-## '#,,PLACEHOLDER', or a separator + '</content>' -- each followed by a blank
-## line and then the real footer.  the sign tool's own stub passes [
-## source.extract_sig_body ] only remove complete stub shapes, never these.
+## a leftover directly ABOVE a file's real signature footer
+## [ found 2026-10-09 in 56 files, ed8f5e06d ] : a lone separator line, a
+## separator + an agent's '#PLACEHOLDER ..' line, a whole placeholder block
+## starting  '#,,PLACEHOLDER', or a separator + '</content>' -- each followed
+## by a blank line and then the real footer.  the sign tool's own stub passes
+## [ source.extract_sig_body ] only remove complete stub shapes, never these.
 ##
 ## deliberately NARROW : only those line kinds, and only when the real footer
 ## [ separator + checksum line ] follows right after the blank line -- an
@@ -688,10 +692,105 @@ sub p7_syntax__sig_fragment_rx {
               \n(?=\#[,\.]{70,}\n\#[A-Z2-7]{60,}\n)}mx;
 }
 
+##[ SWAPPED MODULE NAMES ]####################################################
+
+## base.swap_subs renames a module family at load time                      ##
+## [ base.chk-sum.bmw.* -> chk-sum.bmw.*, base.event.* -> event.* ] ;       ##
+## afterwards only the target name exists. a call by the FILE name works by ##
+## accident at best -- the most common cause of 'undefined value as         ##
+## subroutine reference'                                                    ##
+
+## source prefix -> target prefix, read from every src/*init_code and     ##
+## src/*pre_init swap_subs statement ; cached per directory. also used by ##
+## bin/dev/dep-graph [ target -> sources there ]                          ##
+
+my %swap_pairs_of_dir;
+
+sub p7_syntax__swap_pairs {
+    my $src_dir = shift // return {};
+    return $swap_pairs_of_dir{$src_dir} if $swap_pairs_of_dir{$src_dir};
+
+    my %pairs;
+    opendir( my $dh, $src_dir ) or return {};
+    my @files = grep {m{(?:init_code|pre_init)\z}} readdir $dh;
+    closedir $dh;
+
+    my $name_rx = qr{[A-Za-z0-9][\w.\-]*};
+    foreach my $file (@files) {
+        open( my $fh, '<', "$src_dir/$file" ) or next;
+        while ( my $line = <$fh> ) {
+            last if $line =~ m{^#,,};    ## signature footer ##
+            next if $line !~ m{swap_subs} or $line =~ m{^\s*#};
+            my ( $from, $to );
+
+            ## two-qw form first : swap_subs( qw| base.X |, qw| X | ) ##
+            if ( $line
+                =~ m{qw(.)\s*($name_rx)\s*\1\s*,\s*qw(.)\s*($name_rx)\s*\3} )
+            {
+                ( $from, $to ) = ( $2, $4 );
+
+                ## quoted form : swap_subs( 'base.X', 'X' ) ##
+            } elsif ( $line =~ m{'($name_rx)'\s*,\s*'($name_rx)'} ) {
+                ( $from, $to ) = ( $1, $2 );
+
+                ## one-qw form : swap_subs(qw| base.X X [ policy ] |) ##
+            } elsif ( $line =~ m{qw(.)\s*($name_rx)\s+($name_rx).*?\1} ) {
+                ( $from, $to ) = ( $2, $3 );
+            }
+            $pairs{$from} = $to
+                if defined $from
+                and defined $to
+                and $from ne $to;
+        }
+        close $fh;
+    }
+
+    return $swap_pairs_of_dir{$src_dir} = \%pairs;
+}
+
+## <[source.prefix...]> calls in a module text : list of hashes { line,   ##
+## call, fix }. a call matches only on a name boundary                    ##
+## [ v7-zenki.zenka-instances is not v7-zenki.zenka ]. comment lines, the ##
+## signature footer, and the swapping family's own pre_init \ init_code   ##
+## [ may run before its swap ] are skipped                                ##
+
+sub p7_syntax__swapped_calls {
+    my ( $text_ref, $pairs, $module_name ) = @ARG;
+    return () if ref $text_ref ne 'SCALAR' or ref $pairs ne 'HASH';
+    return () if not defined $text_ref->$*;
+    return () if not keys $pairs->%*;
+    $module_name //= '';
+
+    my $alt = join '|', map {quotemeta}
+        sort { length $b <=> length $a } keys $pairs->%*;
+    my $call_rx = qr{<\[($alt)((?:\.[^\]\s]*)?)\]>};
+
+    my @found;
+    my $line_no = 0;
+    foreach my $line ( split m{\n}, $text_ref->$* ) {
+        $line_no++;
+        last if $line =~ m{^#,,};
+        next if $line =~ m{^\s*#};
+        while ( $line =~ m{$call_rx}g ) {
+            my ( $prefix, $rest ) = ( $1, $2 );
+            next
+                if $module_name =~ m{(?:init_code|pre_init)\z}
+                and index( $module_name, "$prefix." ) == 0;
+            push @found,
+                {
+                line => $line_no,
+                call => "<[$prefix$rest]>",
+                fix  => "<[$pairs->{$prefix}$rest]>",
+                };
+        }
+    }
+    return @found;
+}
+
 return 5;  ###################################################################
 
-#,,.,,,,.,.,.,...,.,,,,,.,,,,,...,,..,,,,,,.,,..,,...,..,,.,.,,..,...,.,.,,..,
-#V4OPEMPWHL5VRCN5KBYLOOUXF3U2EHZRIVHULEVB4XFOOOCFBD7KXWDB5IY6DIVQEOZRSB6RA2NUG
-#\\\|QRYB4G3K46NMI6ULATK5OUKL5BOEERNAF7P6BPHU2FT2LU3TADU \ / AMOS7 \ YOURUM ::
-#\[7]RH7TXGMGPHLNXRN47B4UNWDEMUSDYOU34GMVHO6FS5KB6N3ST6CI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,,..,..,,,..,,..,...,,.,,.,,,..,,...,...,...,,,,,,.,,.,,,,,,,
+#QXGZL67X6CPWQXG7D5CS47XGHDPLITZMOFGPBEDPTQXN7NVSRMWCTDRQL4ZSM5VXLBK4XM5I6BNAI
+#\\\|B6HIZ4V3W2O5YRLGVKUVM6GWMJEVRKVVADDNEAA3VYE7PIQAYSK \ / AMOS7 \ YOURUM ::
+#\[7]2F2TWDE7NRNORC4JCZ2SWNAJHCL334RWTKNO3S4GIEUTOHLFSOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
