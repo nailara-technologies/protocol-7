@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = letsencr.child.acme.challenge_name
+# descr = the dns-01 record name for a domain, following its alias
+# param = <base domain> -> '_acme-challenge.<base or its alias>'
+# note  = letsencr.dns.challenge_alias : 'domain:alias' pairs, e.g.
+#         'protocol-7.network:acme.protocol-7.network'. the registrar's
+#         zone carries _acme-challenge.<domain> CNAME
+#         _acme-challenge.<alias> and delegates <alias> to our nameserv --
+#         records are written and checked at the alias, no registrar
+#         credentials needed. no pair for a domain : the name itself
+
+my $base = shift // '';
+
+my %alias = map { split m|:|, $ARG, 2 } grep {m|:|}
+    split m|[\s,]+|, <letsencr.dns.challenge_alias> // '';
+
+return '_acme-challenge.' . ( $alias{ lc $base } // $base );
+
+#,,,.,.,,,,,.,...,,,.,,.,,.,.,..,,...,,,,,...,..,,...,...,.,,,,,,,.,.,.,.,..,,
+#3TRN74DRG3IHK5LPRBKVVU3ZCCTNVWZB5E77NLB3KUJ6LGEFUEKZK4YPDV5IAPE4KHFYP2ECBF322
+#\\\|KLQGQTIAVZBIYCZZQNGRONCZWEFX6JQK3D5U6XPYZ3E5P5EOVVC \ / AMOS7 \ YOURUM ::
+#\[7]Q6BYMN2FQT3TKDBUJ63RJP2JAAHA2S4LZUMPSYKNLOWTBBTRYYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

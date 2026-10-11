@@ -3,7 +3,12 @@
 # name  = nameserv.handler.query
 # descr = handle incoming dns query packets
 
-my $sock = <nameserv.socket>;
+## reply on the socket the query arrived on [ ipv4 \ ipv6 listeners ] ##
+my $event = shift;
+my $sock
+    = ( ref $event and $event->can('w') and defined $event->w->fd )
+    ? $event->w->fd
+    : <nameserv.socket>;
 
 ## receive packet
 my $from_addr = recv $sock, my $packet_data, 512, 0;
@@ -111,8 +116,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,.,,,,,,,,.,,..,,..,.,.,,,.,.,,,,,,,,.,,.,.,..,,...,...,,..,...,.,,,..,,.,.,
-#VJK7QRSK42RMLHGUOLKXHXLLF5SBHHJKAJ3PTZ6UUZWU5SK42YKMH2NIEUN4ATKW42OLZUNGR7GJ2
-#\\\|AZ2C5IEPLAKLQOG5FDZAXAPQ3MUDP4LLCLGOQNR32TJGJPBZD4E \ / AMOS7 \ YOURUM ::
-#\[7]Y7V5WKY3OZWEUMMMFMY772JUJLHBNS3V3UTZUJDDWPFSNMQROIAA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,,,,...,..,,,..,,,,,.,,,,.,,..,,...,...,,..,,,.,,..,,,.,,..,
+#PRA6ZKX2KIWH7G3S7NIUOJMR5TWXNG565HOGUZXKON6FU5ZSBO6YLUDOYOI7G6KCH6VO6BVXIMDGU
+#\\\|NHW3WSXKJVW6PC2S3C3VHKZFAGIBPHTMHODHPW7IXO65E4WKN2W \ / AMOS7 \ YOURUM ::
+#\[7]72KTTYBXCQE7RRRSPCBYHZWK7SNAH4WZTJQPCJNIPPWGEENGGKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
