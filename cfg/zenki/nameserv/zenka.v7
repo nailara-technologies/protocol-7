@@ -30,13 +30,20 @@ system.zenka.verbosity.console = 1
 ## per-host overrides [ /etc/protocol-7/<zenka>/host.cfg, optional ] ##
 [load_host_config]
 
-modules.load = auth.client net protocol io.unix io.ip ui format.yaml nameserv
+## crypt.C25519 : the sync key only, never the backend base key ##
+crypt.C25519.auto_load_keys = 0
+
+modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
+               crypt.C25519 nameserv
 
 [load_modules:<modules.load>]
 [init_modules]
 
 ## drop privileges
 [root.drop_privs:<system.amos-zenka-user>]
+
+## the sync key, as the backend user [ created once, never regenerated ] ##
+[nameserv.sync.key.ensure]
 
 ## connect to cube for ipc (receive routed commands)
 [base.net.connect:'unix']
@@ -47,8 +54,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml nameserv
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,,,,,..,...,.,.,.,.,.,.,,..,,..,,,.,,,,,,..,..,,...,...,.,,,...,,,.,..,,..,,
-#7BETP7ZHALSNME4LAYJJIVZIDASCBBHK3OKJOMOZ2QQ57WMRBE2C2H2Q4EFOE4EHWTBFO6MMMRIXG
-#\\\|YNJFZCY2SGACSSITW7GQBS6UCG5E4SFNCLFUHFIHQTHGJ23DRMD \ / AMOS7 \ YOURUM ::
-#\[7]34ONJYZYZ7JE4FMZYMXLEPFHEVSATCOQDNTF6L3ISN32DTZYPYBA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,.,,,,,.,...,.,,,...,.,.,.,,,..,,...,..,,.,,,,.,,.,,,.,.,...,
+#3WK2XMUWIKLDWPMFLSKO2I4SW2CU2SFTMOTQBH2CKHDKNUMRKQT7H4LXOULNVL7SXTSUTW2PCHR5Q
+#\\\|KGOGA3KA3BIWNZJUOZLV5SLJ7UD3WA2V5QSWXGFSUPVFRHQMJHP \ / AMOS7 \ YOURUM ::
+#\[7]KNYX4G6WBSD2VODNEW4PNQWWOLGWPN6ULIPQLNX4XAGAGNOEXECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
