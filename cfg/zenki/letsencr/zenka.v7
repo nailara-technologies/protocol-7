@@ -62,6 +62,13 @@ letsencr.cache.timeout = 86400  # 24 hours
 
 ## Challenge Configuration
 letsencr.challenge.type = http-01   # http-01 or dns-01
+## dns-01 : provider [ nameserv | inwx | cloudflare ] and per-domain alias ##
+## pairs 'domain:alias' -- the registrar's zone carries                  ##
+## _acme-challenge.<domain> CNAME _acme-challenge.<alias>, <alias> is    ##
+## delegated to our nameserv [ no registrar credentials ] -- set both in ##
+## /etc/protocol-7/letsencr/host.cfg on the host that requests the cert  ##
+# letsencr.dns.provider        = nameserv
+# letsencr.dns.challenge_alias = protocol-7.network:acme.protocol-7.network
 letsencr.challenge.timeout = 300     # 5 minutes for challenge completion
 letsencr.challenge.site_dir = /var/httpd/  # document root for challenges
 letsencr.challenge.site_name = default   # default virtual host directory
@@ -69,6 +76,9 @@ letsencr.challenge.site_name = default   # default virtual host directory
 ## Rate Limiting Protection
 letsencr.ratelimit.enabled = 1
 letsencr.ratelimit.max-per-hour = 5
+
+## per-host overrides [ /etc/protocol-7/<zenka>/host.cfg, optional ] ##
+[load_host_config]
 
 modules.load = auth.client net protocol io.unix io.ip ui clients.http \
                clients.https letsencr.base    ## devmod
@@ -83,8 +93,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http \
 
 [zenka.loop]
 
-#,,..,,,.,,,,,,,.,..,,,,,,..,,,.,,,,,,,,.,.,.,..,,...,...,,,,,.,,,..,,,,.,..,,
-#BZGEV6MJEJWCCOR67ES4N36WWXV3HW6IATDYPACIQIHWJNJGUMBLYDH3BXV3CZUTYBRZKDTKRYXQM
-#\\\|QPVXIYPNJ4HXB7RHDPUCSYH4P4VFB34LBXCTFHQPEBCBVDXO2BZ \ / AMOS7 \ YOURUM ::
-#\[7]ERL4YP5DIRBDJYK2V4RPD5PQAWGBCET7C5CCWXIYX5J7FSVMKOCI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,,..,,..,,..,,,.,,.,,.,.,,..,..,,...,...,..,,.,,,.,.,..,,,,,,
+#IOFJWDLUNWHX727S22E4G5CCXNLVWVGO6QXW5S2R6I7AH2S6MWQRMZPSNG2XWRADP4TBEP72SCCOK
+#\\\|GPXX27S2CCYVSBFQ2AR2Y5JKHFETVTKMP43NGD7AAFZFZDQ5JUY \ / AMOS7 \ YOURUM ::
+#\[7]XDTUXCZDU2USXSLGFQAR4L2DROP24VOAHXCHD4EOSTTF4NAPLKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

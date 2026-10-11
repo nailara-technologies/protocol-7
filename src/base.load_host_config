@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = base.load_host_config
+# descr = apply the optional per-host overlay of the zenka config
+# note  = /etc/protocol-7/<zenka>/host.cfg -- 'key = value' lines that
+#         override the tree's config on THIS host only [ a public dns
+#         bind, an acme provider, paths ]. no file : nothing changes.
+#         used as '[load_host_config]' in a zenka.v7, after its own keys
+#         and before [load_modules] ; re-applied on 'reload config'.
+#         creates /etc/protocol-7/<zenka>/ when missing [ as root ]
+
+my $zenka_name = <system.zenka.name> // '';
+return TRUE unless length $zenka_name and $zenka_name =~ m|^[\w.-]+$|;
+
+my $etc_dir = ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
+    // '/etc/protocol-7';
+my $host_cfg = "$etc_dir/$zenka_name/host.cfg";
+
+## the directory exists on every host, the admin only fills in the file : ##
+## created here while still root [ this runs before root.drop_privs ],    ##
+## owned by the zenka user                                                ##
+if ( !-d "$etc_dir/$zenka_name" and $EFFECTIVE_USER_ID == 0 ) {
+    if ( mkdir "$etc_dir/$zenka_name", 0750 ) {
+        my $user = <system.amos-zenka-user> // qw| protocol-7 |;
+        my ( $uid, $gid ) = ( getpwnam $user )[ 2, 3 ];
+        chown $uid, $gid, "$etc_dir/$zenka_name" if defined $uid;
+        <[base.logs]>->(
+            1, ': host overlay dir ' . 'created : %s',
+            "$etc_dir/$zenka_name"
+        );
+    }
+}
+
+return TRUE unless -f $host_cfg;
+
+<[base.logs]>->( 1, ': host overlay : %s', $host_cfg );
+
+return <[base.load_config_file]>->($host_cfg);
+
+#,,,,,...,...,.,.,,,,,.,.,,,,,,.,,,,.,.,,,..,,..,,...,...,...,..,,...,,..,,,.,
+#G2KI2HTIP3VZD3GETHMYHLZ5W3QUC4VRS7DAIK4K2ZH66S53ZR4SGCHLRPO2EZFSUI6HWTEP55YBK
+#\\\|IHRBVZEAPUGOMMUXNE6YJ7EOR563MITUD2JA2Z4SGCFYGSV7NC6 \ / AMOS7 \ YOURUM ::
+#\[7]JD4BFMEAKNIFIBN64DLYTI2OBL3M4CTU6BRMLUGQCUHUZXX3J6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

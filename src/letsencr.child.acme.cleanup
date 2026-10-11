@@ -23,14 +23,17 @@ foreach my $authz ( values $order->{'authz'}->%* ) {
         } elsif ( $target eq $provider
             and exists $code{"letsencr.dns.${target}_delete_txt"} ) {
             $code{"letsencr.dns.${target}_delete_txt"}->(
-                "_acme-challenge.$authz->{'base'}",
+                <[letsencr.child.acme.challenge_name]>->( $authz->{'base'} ),
                 $authz->{'dns_value'}
             );
         } else {
             <[protocol-7.route-send]>->(
                 {   'command'   => "$target.remove-txt",
                     'call_args' => {
-                        'args' => "_acme-challenge.$authz->{'base'} "
+                        'args' => <[letsencr.child.acme.challenge_name]>->(
+                            $authz->{'base'}
+                            )
+                            . ' '
                             . $authz->{'dns_value'}
                     }
                 }
@@ -42,8 +45,8 @@ foreach my $authz ( values $order->{'authz'}->%* ) {
 
 return TRUE;
 
-#,,,.,,,.,,.,,,,,,.,,,..,,.,.,...,,.,,,.,,.,.,..,,...,...,.,.,.,,,,.,,.,.,..,,
-#J3W4PWWLOBN6FG2474PUUGIOCHSSQSCOCD5ZGB4NLN7SIPHDFIW5LM73S6FIMREWMDMAP547NFT4A
-#\\\|QU52WJI34PS6NZPSLH7UJ4EYEKCSHCCOQHXBR27YB74HQW3VNH5 \ / AMOS7 \ YOURUM ::
-#\[7]ZXXTFAPCGK2RRA34COA5R6TR55L3CPCVE6D2OS5ER3QNYRH3FYDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,,,.,..,,..,,.,,,.,,,.,.,,,,,..,,...,...,.,.,.,,,...,,.,,.,.,
+#RXKT4H2WTOGDZUQ4XWCCWUH35PAW2YQVJOZQRDE5TU3UEGEDZQNJWCMSDMIGSVL7N3GFJYCOZWL5Q
+#\\\|PN7554M6IN7DU4SIRRXAKDOACXOJUMNJ35RWG32L6OKP5ZLDVLI \ / AMOS7 \ YOURUM ::
+#\[7]VXFFT7YRRVSGNNP7VID5FZX2RERRFPZIRQY3AEYFCOZ5Z62UZQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
