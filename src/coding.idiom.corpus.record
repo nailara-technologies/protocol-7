@@ -50,7 +50,7 @@ my $path  = sprintf qw| %s/%04d-%02d.jsonl |, $dir, $stamp[5] + 1900,
 my $prompt_id = '';
 if ( length( $params->{'prompt'} // '' ) ) {
     $prompt_id = sprintf qw| %x |,
-        <[base.chk-sum.elf]>->( $params->{'prompt'} ) // 0;
+        <[chk-sum.elf]>->( $params->{'prompt'} ) // 0;
 }
 
 my @lines;
@@ -89,11 +89,12 @@ foreach my $violation ( $gated->@* ) {
 
 return { 'mode' => qw| true |, 'data' => 'nothing encodable' } if not @lines;
 
-## format.json.encode is pretty-printed [ ->pretty(1), shared with other  ##
-## callers, not ours to change ] and a multi-line record would break the  ##
-## one-object-per-line jsonl contract this file depends on. collapsing    ##
-## literal newlines is safe : JSON forbids a raw newline inside a string  ##
-## literal, so every newline here is formatting whitespace between tokens ##
+## format.json.encode is pretty-printed                                     ##
+## [ ->pretty(1), shared with other callers, not ours to change ] and a     ##
+## multi-line record would break the one-object-per-line jsonl contract     ##
+## this file depends on. collapsing literal newlines is safe : JSON forbids ##
+## a raw newline inside a string literal, so every newline here is          ##
+## formatting whitespace between tokens                                     ##
 foreach my $line (@lines) {
     $line =~ s{\s*\n\s*}{ }g;
     $line =~ s{^\s+|\s+$}{}g;
@@ -111,8 +112,8 @@ foreach my $line (@lines) {
 
 return { 'mode' => qw| true |, 'data' => scalar @lines };
 
-#,,,,,,,,,.,.,,,.,...,,.,,,,.,.,.,,..,,,.,,,,,..,,...,..,,,,,,,.,,,..,,,,,..,,
-#UM33U4RJ4K47T5KQ433B2FIWRORLJHQTINKXWVOSWZFUVGQRWFAAEEIJ7GLU7L3TZXBTP6KKF7DLQ
-#\\\|RCIVJUV67C2KABY27NLIQY6D55FDOBTVPEV2AMJFOPRVV4DXZ32 \ / AMOS7 \ YOURUM ::
-#\[7]JZMKIZ3JCOU54G4ASN7RJQ3VD5PXK6HFTLTKZFXIUR4Z7KSVOCDY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,,.,,...,...,.,.,,,.,.,.,,,,,..,,...,...,,..,,,.,,,.,,.,,...,
+#LUI7PEG5XFQA2N3N6K7OBBLWPFT4XHDI4PRKCZWYB4E2QEX6JYNXFC4P4RV3GEIYUEDH7BRNLMSP6
+#\\\|ZGEE43VJ5VOILA6MNMSIRK7KBNXZMHCLN3PTDV65MUE6CU5I2KF \ / AMOS7 \ YOURUM ::
+#\[7]FSZTF5UIFJSPPTGJR5K5V4WOTFWLSRAG2JKCBU5GTHGUWBLJQWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

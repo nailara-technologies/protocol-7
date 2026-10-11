@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = nameserv.cmd.restore-zone
+# descr = restore a trashed zone, or list the zone trash
+# param = [ <zone> | <trash file> ]
+
+my $arg = $call->{'args'} // '';
+$arg =~ s|^\s+||;
+$arg =~ s|\s+$||;
+$arg =~ s|\.+$|| if $arg !~ m|\.mxz\.B32\z|;
+
+my $trash_dir = sprintf '%s/trash', <nameserv.zone_dir>;
+
+## trash entries, newest first ##
+my @entries = ();
+if ( opendir( my $dh, $trash_dir ) ) {
+    @entries = map { $ARG->[0] }
+        sort { $b->[2] <=> $a->[2] or $b->[3] <=> $a->[3] }
+        map {
+        m|\A(.+)\.(\d+)(?:-(\d+))?\.mxz\.B32\z|
+            ? [ $ARG, $1, $2, $3 // 0 ]
+            : ()
+        } readdir $dh;
+    closedir $dh;
+}
+
+## no argument : list ##
+if ( not length $arg ) {
+    return { mode => 'true', data => 'zone trash is empty' }
+        if not @entries;
+    return {
+        mode => 'size',
+        data => join( "\n", 'trashed zones [ newest first ] :', @entries )
+    };
+}
+
+my $entry;
+if ( $arg =~ m|\.mxz\.B32\z| ) {
+    ($entry) = grep { $ARG eq $arg } @entries;
+    return { mode => 'false', data => "no trash entry $arg" }
+        if not defined $entry;
+} else {
+    my $zone_name = lc $arg;
+    ($entry) = grep {m|\A\Q$zone_name\E\.\d+(?:-\d+)?\.mxz\.B32\z|} @entries;
+    return { mode => 'false', data => "no trashed zone $zone_name" }
+        if not defined $entry;
+}
+
+my $content_ref = <[file.slurp]>->("$trash_dir/$entry");
+return { mode => 'false', data => "cannot read $entry" }
+    if not defined $content_ref;
+
+require IO::Uncompress::UnXz;
+require Crypt::Misc;
+
+my $yaml_str;
+my $packed = Crypt::Misc::decode_b32r( $content_ref->$* =~ s|\s+||gr );
+return { mode => 'false', data => "$entry does not decode" }
+    if not defined $packed
+    or not IO::Uncompress::UnXz::unxz( \$packed, \$yaml_str );
+utf8::decode($yaml_str);
+
+my ( $data, $err ) = <[format.yaml.load_str]>->($yaml_str);
+return { mode => 'false', data => "$entry : invalid content" }
+    if ref $data ne qw| HASH |
+    or ref $data->{'files'} ne qw| HASH |
+    or not defined $data->{'zone'};
+
+my $zone_name = lc $data->{'zone'};
+my %files     = $data->{'files'}->%*;
+
+## never overwrite : a live zone of the same name stays ##
+return {
+    mode => 'false',
+    data => "zone $zone_name exists [ remove-zone it first ]"
+    }
+    if exists <nameserv.zones>->{$zone_name}
+    or grep { -e sprintf '%s/%s', <nameserv.zone_dir>, $ARG } keys %files;
+
+## every name checked before anything is written ##
+return { mode => 'false', data => "$entry : file names not valid" }
+    if not keys %files
+    or grep { not m{\A\Q$zone_name\E\.(?:yaml|zone|tombstones\.yaml)\z} }
+    keys %files;
+
+foreach my $file_name ( sort keys %files ) {
+    my $content = $files{$file_name};
+    <[file.zenka_dir.write]>->( "zones/$file_name", \$content )
+        // return { mode => 'false', data => "cannot write $file_name" };
+}
+
+<[nameserv.zones.load]>;
+
+<[base.logs]>->(
+    1,          'zone %s restored ' . 'from trash [ %s ]',
+    $zone_name, $entry
+);
+
+return {
+    mode => 'true',
+    data => sprintf(
+        'zone %s restored [ %s, kept in trash ]',
+        $zone_name, $entry
+    )
+};
+
+#,,.,,,..,.,,,,,.,,.,,,.,,..,,.,,,.,,,..,,...,..,,...,...,..,,,,.,.,.,...,,..,
+#TKGGNRMGLW6M2GCS5MT5PGPGP33HGH63WGTWDLA4AKIQP3RVEWW626JBXSJGAMCR4I7ZOXVFENH2Y
+#\\\|SPMW6DUG7ARHIBA32Q7QPC6YD546XTEBEIF3TCZFL6Q76HFGKEZ \ / AMOS7 \ YOURUM ::
+#\[7]B6ZAU64BE5O3IBEARYPQKA5KZGZUCPFYFWJRS33W2HKSL7IIGSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

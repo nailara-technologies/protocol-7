@@ -14,9 +14,9 @@ use Getopt::Long;
 
 ## fasttext skipgram corpus assembler for the module dependency graph      ##
 ## transforms module-dependency-graph.asc [ source : callee ... ] into one ##
-## training line per module : 'source callee callee ...' reverse edges [   ##
-## callee : caller ... ] are emitted at lower weight [ fewer repetitions ] ##
-## so neighborhoods include calling context                                ##
+## training line per module : 'source callee callee ...' reverse edges     ##
+## [ callee : caller ... ] are emitted at lower weight                     ##
+## [ fewer repetitions ] so neighborhoods include calling context          ##
 
 #:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
 ##[ LOCAL PM LIB PATH ]#######################################################
@@ -119,7 +119,10 @@ sub parse_adjacency {
 
         ##  adjacency line : source : callee callee ...  ##
         next if $line !~ m|^(\S+)\s+:\s+(\S.*)$|;
-        my ( $source, @callees ) = ( $1, split m|\s+|, $2 );
+        ## callee[count] [ or older callee:count ] -- the count is not part ##
+        ## of the name                                                      ##
+        my ( $source, @callees )
+            = ( $1, map {s{(?:\[\d+\]|:\d+)\z}{}r} split m|\s+|, $2 );
 
         $forward{$source} //= [];
         push @{ $forward{$source} }, @callees;
@@ -157,8 +160,8 @@ sub write_file {
     close $fh;
 }
 
-#,,..,,.,,...,...,.,,,.,,,,.,,,,,,...,..,,,.,,..,,...,...,.,,,,..,.,,,,.,,,.,,
-#7OSJEFJPFGHVELULXQVGVXV7P6EBFJQ5WNERHRDOBO2GDZRGAVOLWZ3KZGHXWHRHTUNUCO5OGRLLQ
-#\\\|CBYZHACC3YBCHTA2QUDXOS5XG4WJV23JA5HMY7OY4W25OAFJXC7 \ / AMOS7 \ YOURUM ::
-#\[7]VE63Q7WPVYAOKJ3CEQX5D2F4J4OQ4ZC2TCVKCSHKNBYMSIPASAAI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,.,,,.,,,,.,,,,,,,.,,,,.,,.,,..,,...,...,,,,,.,,,,..,,..,...,
+#DGG7VI7F2ZWMFNKI5TG2TDQUDXUAPDZMDTGIISA3JJKRCSRBY3CVEJW4FSTYXCUQO73GEPDRUNNHI
+#\\\|HDLDNDQJA5RUO2UX4NCXHILQ2VLJMJLR3H2OK327IQNGSFNL3LW \ / AMOS7 \ YOURUM ::
+#\[7]KW64KY4LZPD26LTCCOHIXBROT25NGK6PG5UJDAZZ4ZHBDOZWTQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

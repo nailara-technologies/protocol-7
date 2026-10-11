@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [call-swapped-names-not-file-names](feedback-call-swapped-names-not-file-names.md) — 2026-10-11 : base.chk-sum.{jha,amos,bmw,bmw384,elf,profile} swap to chk-sum.* at load -- call <[chk-sum.*]>, never <[base.chk-sum.*]> [ most common undefined-sub cause ] ; reference \ from_substr stay base.
 - [harmonic-values-not-decimal-round](feedback-harmonic-values-not-decimal-round.md) — 2026-10-11 : intervals \ ttls \ timeouts are 13-based [ 3900 = 13 x 5 min, not 3600 ] ; in an inconsistent set the 13-based value is the intended one -- ask before "fixing" it
 - [no-manual-modifications-on-hosts](feedback-no-manual-modifications-on-hosts.md) — deploy via pull-git, host specifics in host.cfg, automate one-time host steps in code ; private names [ private domain, desktop host name ] never in tree \ commits \ memory
 - [no-tree-edits-while-model-batch-runs](feedback-no-tree-edits-while-model-batch-runs.md) — 2026-10-10 : a running model-batch reverts EVERY tree change after each task, mine included [ src/ of any zenka, data/ai-mem too ] ; stage new work in scratchpad/pending until `batch complete`, or cancel + `:restart:`
@@ -202,8 +203,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 07e19f5a2, 2026-10-07 ] ; check SigCgt bit 16
 
-#,,,.,,,,,,..,,.,,,..,..,,..,,,,,,,..,..,,,.,,..,,...,...,.,.,,..,,,.,,,.,.,.,
-#6JP4HTQUYTPRM6DHL7QSWL3FOS5PYBJBJPQZSQ4RSRHJIYZYCYNZ3QQDAQC2YINGZTQDA2NOEJIUK
-#\\\|DZRM5UEGRFWCSEXD3FC5CLDRXOIINTZZVYIS4DUEI7JHMVJNBCW \ / AMOS7 \ YOURUM ::
-#\[7]MT7GMWX25G6F2EG2ZV7J4QUGVVGJAEHJ6RUR5W2EG36Y2MNBRWBI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,...,.,.,...,,.,,,.,,,..,..,,..,,...,...,.,.,...,...,,,,,..,,
+#ALO5IFMBNMRUJV7DQTB5KLHEDVMSZ62EGSRA6FU7QZCOJNQWDBPSMDK275Q3PJUY5CFDTDZRHD3MY
+#\\\|TJATFYTVKUCEKHJO2OBC5WSO4FCCNEK5S6U4SGOURDUWPHJGWTL \ / AMOS7 \ YOURUM ::
+#\[7]JCFIHRLFGJKZZLQNFN7EZEX5Q7BVZ75S6O3QZMABNNVRSOXUPIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,7 +37,8 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate p7_syntax__perl_c |;
+use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate p7_syntax__perl_c
+    p7_syntax__swap_pairs p7_syntax__swapped_calls |;
 ## Perl::Tidy required conditionally below [ not -n mode ] : its in-memory ##
 ## API [ source/destination scalar refs ] replaces the old perltidy CLI    ##
 ## subprocess entirely -- no temp files, no Term::ReadKey/ioctl dance      ##
@@ -396,6 +397,28 @@ while ( my $file_path = shift @files ) {
                 $file_path );
         } else {
             print color_msg( 'syntax valid', $file_path, $NEON_green_yellow );
+        }
+
+        ## calls by a swapped-away name [ <[base.chk-sum.bmw.ctx]> after   ##
+        ## base.swap_subs moved it to chk-sum.bmw.* ] : compile fine, fail ##
+        ## at runtime as an undefined subroutine                           ##
+        my $src_dir = dirname( abs_path($file_path) // '' );
+        if ( $src_dir =~ m{/src\z} and is_p7_module_text($orig_text) ) {
+            my $pairs = p7_syntax__swap_pairs($src_dir);
+            foreach my $found (
+                p7_syntax__swapped_calls(
+                    \$orig_text, $pairs, basename($file_path)
+                )
+            ) {
+                warn color_msg(
+                    sprintf(
+                        'swapped name [ line %d ] : %s -> %s',
+                        $found->{'line'}, $found->{'call'},
+                        $found->{'fix'}
+                    ),
+                    $file_path
+                );
+            }
         }
 
         ## known-benign [ an English.pm variable referenced once, e.g. in a ##
@@ -2996,8 +3019,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,..,,...,,..,.,,,,..,,,,,.,.,...,.,.,.,.,..,,...,...,.,.,..,,,.,,...,...,
-#PAPEHGN4OXSI2VYZAVPOOZ6R3AHH2R3VXKX6EDHRK4DUMDRIHSPZPVMVPBQIHHWFXXIBR4S3MNGWG
-#\\\|HEYJ6KZDFXUQKARFX74MNK3MUGZE3XXPNY2DWLJ6WVHATCOUBGA \ / AMOS7 \ YOURUM ::
-#\[7]ZUFSJ4KJRHG47HQ3POKOJCFY7EOYP3UGC3TIA4VUUFSWFF2YAKAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,,.,,...,.,,,,.,,,..,.,.,..,,..,,...,...,,.,,.,.,.,.,,,.,,,.,
+#2YJUVXUGGWZFDCWHVV62VWKKH7LIMUP5UVX7JRFLPPBSZZNEQOGIFHGPAISQJYBSWSKJ2N7BUCZ3Q
+#\\\|D2HPFXHYLUIROGHY4HWXGWOD32ZB3D7OHHDV4YGASI5Z5VHTMW7 \ / AMOS7 \ YOURUM ::
+#\[7]TIKWTNX6M4ZCQUKTACXUUI5PM2HECI3AOGWTSKP37HPSV7FNZ6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

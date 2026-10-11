@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = nameserv.cmd.remove-zone
+# descr = move a zone to the trash [ restore-zone undoes ]
+# param = <zone>
+
+my $zone_name = lc( $call->{'args'} // '' );
+$zone_name =~ s|^\s+||;
+$zone_name =~ s|\s+$||;
+$zone_name =~ s|\.+$||;    ## optional trailing dot ##
+
+## an explicit zone name only : never a default ##
+return {
+    mode => 'false',
+    data => 'usage: remove-zone <zone> [ restore with restore-zone ]'
+    }
+    if not length $zone_name
+    or $zone_name =~ m|\s|;
+
+my ( $trash_file, $reason ) = <[nameserv.zone.trash.stash]>->($zone_name);
+return { mode => 'false', data => "zone not removed : $reason" }
+    if not defined $trash_file;
+
+## the trash copy is verified : now remove the live files ##
+my $zone_dir = <nameserv.zone_dir>;
+my @failed   = ();
+foreach my $file_name ( "$zone_name.yaml", "$zone_name.zone",
+    "$zone_name.tombstones.yaml" ) {
+    my $path = "$zone_dir/$file_name";
+    next if not -f $path;
+    unlink $path or push @failed, $file_name;
+}
+
+delete <nameserv.zones>->{$zone_name};
+
+( my $trash_name = $trash_file ) =~ s|^.*/||;
+<[base.logs]>->( 1, 'zone %s -> trash [ %s ]', $zone_name, $trash_name );
+
+return {
+    mode => 'false',
+    data => sprintf(
+        'zone %s unloaded, trashed [ %s ], not removed : %s',
+        $zone_name, $trash_name, join( ' ', @failed )
+    )
+    }
+    if @failed;
+
+return {
+    mode => 'true',
+    data => sprintf(
+        'zone %s removed ' . '[ trash : %s ]',
+        $zone_name, $trash_name
+    )
+};
+
+#,,,,,,..,..,,...,,,,,,,,,.,,,..,,.,.,...,..,,..,,...,...,...,,..,...,,.,,.,.,
+#6SCC3U4D6UWXEXL72QGP6LRQWQMQQJTKEC34TY6QGSKKUSXABQNRMRNSDIBSFFU27A476NJIM2HZK
+#\\\|7VMF34YZSZ3AEGHGHZFI32VRMB4QBUZR6NQZD74K5LDYNU4K4FI \ / AMOS7 \ YOURUM ::
+#\[7]XMYAVITW3ECHQZNS4522UPKUBYPOWQSXF5GTP5SET4SRZX3QOCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

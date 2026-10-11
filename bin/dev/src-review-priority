@@ -125,8 +125,8 @@ exit 0;
 ##[ SUBROUTINES ]#############################################################
 
 sub parse_adjacency {
-    ## parse 'source : callee ...' adjacency lines from .asc file [ adapted ##
-    ## from bin/dev/depgraph-corpus ]                                       ##
+    ## parse 'source : callee ...' adjacency lines from .asc file ##
+    ## [ adapted from bin/dev/depgraph-corpus ]                   ##
     my $path = shift;
 
     open my $fh, qw| < |, $path
@@ -142,7 +142,10 @@ sub parse_adjacency {
 
         ##  adjacency line : source : callee callee ...  ##
         next if $line !~ m|^(\S+)\s+:\s+(\S.*)$|;
-        my ( $source, @callees ) = ( $1, split m|\s+|, $2 );
+        ## callee[count] [ or older callee:count ] -- the count is not part ##
+        ## of the name                                                      ##
+        my ( $source, @callees )
+            = ( $1, map {s{(?:\[\d+\]|:\d+)\z}{}r} split m|\s+|, $2 );
 
         $forward{$source} //= [];
         push @{ $forward{$source} }, @callees;
@@ -184,8 +187,8 @@ sub write_file {
     return;
 }
 
-#,,,.,.,.,..,,,.,,,,.,...,.,.,,..,..,,.,,,.,.,.,.,...,.,.,,,.,,,,,..,,.,.,,,.,
-#ZRYRS3MXLABE6TEHUS6DQU4GYIGOEM7ZLE5AVSHLUQJBIIE4CYVNLKLOZQXJJP3LT2VQMBHM5CMC2
-#\\\|V4ZNDPPLQMVQP75RZV6B7RWQT73ZA7ARB7UZRBXJ6TITXUU7LCQ \ / AMOS7 \ YOURUM ::
-#\[7]K6B5U42AFXU6WW5WX4RVMMOXSSAJ76RPRQAPUDSKNSJVS5J4T6AY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,.,,,,.,,.,.,,.,,,,,,,.,,,,,,.,.,...,...,.,.,..,,...,.,,,.,,,
+#CDH4NEEPSH4WU5WQYW7DOJH5NUI7B46LOUI7DBVVPJ3FRJLWQFW5YOS7GTO7KUXYAHFHN4HSFPU3K
+#\\\|YC2FAVAV3DZOLQQ2ZP4ZEIGB4TW3ESUMFBT4N52FWSI4NENCTNZ \ / AMOS7 \ YOURUM ::
+#\[7]BZIHEBKIAFVPUXSSEH2MKX6SODDJVPOV732JWVUGJFILDHLUAKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

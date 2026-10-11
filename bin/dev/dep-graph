@@ -39,6 +39,8 @@ BEGIN {
 }
 
 use AMOS7::Graph;    ##  graph_to_adjacency, adjacency_to_graph  ##
+use AMOS7::Protocol::P7Syntax qw| p7_syntax__swap_pairs |;
+use File::Basename            qw| |;
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ COMMAND LINE OPTIONS ]####################################################
@@ -308,38 +310,19 @@ sub scan_modules {
 }
 
 sub extract_swap_pairs {
-    ## scan module files for base.swap_subs calls  returns hash :       ##
-    ## short_prefix -> [ base_prefix, ... ]  e.g. 'event' ->            ##
-    ## [ 'base.event' ], 'file' -> [ 'base.file' ] multiple sources can ##
-    ## swap to the same short prefix, store all                         ##
+    ## base.swap_subs pairs, shared with format-code -c                     ##
+    ## [ AMOS7::Protocol::P7Syntax ] -- returns short_prefix -> [ sources ] ##
+    ## e.g. 'event' -> [ 'base.event', 'event.anyevent' ] ; several sources ##
+    ## can swap to the same short prefix                                    ##
     my $files_ref = shift;
     my %swap_from;
 
-    for my $file ( @{$files_ref} ) {
-        open my $fh, qw| < |, $file or next;
-        while ( my $line = <$fh> ) {
-            next if $line !~ m|swap_subs|;
-
-            my ( $from, $to );
-
-            ##  single-quote form : swap_subs( 'base.X', 'X' )  ##
-            if ( $line =~ m{'([^']+)'\s*,\s*'([^']+)'} ) {
-                ( $from, $to ) = ( $1, $2 );
-
-                ##  qw form : swap_subs(qw| base.X X |)  ##
-            } elsif ( $line =~ m{qw.\s*(\S+)\s+(\S+)\s*.} ) {
-                ( $from, $to ) = ( $1, $2 );
-
-                ##  two-qw form : swap_subs( qw| base.X |, qw| X | )  ##
-            } elsif ( $line =~ m{qw.\s*(\S+)\s*.\s*,\s*qw.\s*(\S+)\s*.} ) {
-                ( $from, $to ) = ( $1, $2 );
-            }
-
-            ##  store as arrayref to handle multiple sources -> same short  ##
-            push @{ $swap_from{$to} }, $from
-                if defined $from and defined $to;
+    my %dirs = map { ( File::Basename::dirname($ARG) => 1 ) } @{$files_ref};
+    foreach my $dir ( sort keys %dirs ) {
+        my $pairs = p7_syntax__swap_pairs($dir);
+        foreach my $from ( sort keys $pairs->%* ) {
+            push @{ $swap_from{ $pairs->{$from} } }, $from;
         }
-        close $fh;
     }
 
     return %swap_from;
@@ -1784,8 +1767,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,.,.,,,,,.,,,,,.,.,.,.,,,.,.,,,.,.,.,..,,.,.,...,...,,..,,.,,.,.,.,,,.,,,
-#5I3AZV7YQLAPHTXGKZCDN7XE6E47OHZEBWW3KDKSO3I7XU6FMZDXVPLIZAIBQCNNR6V6AKE66RKJW
-#\\\|I2ZZMDFFPYTG3DEMS27XEM26O4H5OEQXIVMAN3JUN5CQUJJPILO \ / AMOS7 \ YOURUM ::
-#\[7]AJC6GRLIK5ABHXNQOA4RDEDMTT6L4WQAPNKWLZIZRYKZ3BDKLYAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,,,.,,.,,.,.,...,...,.,,,,..,.,.,...,...,..,,.,,,.,.,,,.,.,.,
+#VXEI3ZD72RTFIOSBYSGSGT3RZHYY74L3ZPUBQBTH5A7WIPGCGCYADAHL57BOZQVRSCC5ONWFOGXOW
+#\\\|QZBM3OU2N6CRVA3Z6FJPXMYNJCBJ465WIXAB64LPKU5IKO2KTBT \ / AMOS7 \ YOURUM ::
+#\[7]TSES5XDKILKOKC5UUG73RKYGXCAYVUQTOJUBDAN55SI5OSV6FUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

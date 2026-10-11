@@ -201,10 +201,10 @@ if ( not defined $pkey_bin or length($pkey_bin) != 32 ) {
     <[base.logs]>->( 1, '[%d] shm_write : host key not valid', $id );
     return <[httpd.send_error_page]>->( $id, 403 );
 }
-my $pkey_L13 = <[base.chk-sum.bmw.L13-str]>->($pkey_bin);
+my $pkey_L13 = <[chk-sum.bmw.L13-str]>->($pkey_bin);
 
-## replay cache : exact replay within the window is rejected [ insert only ##
-## after signature gate, no cache pollution ]                              ##
+## replay cache : exact replay within the window is rejected ##
+## [ insert only after signature gate, no cache pollution ]  ##
 if ( exists $data{'shm.seen_ntimes'}{$pkey_L13}{$ntime_b32} ) {
     <[base.logs]>->(
         1,   '[%d] shm_write : replay of seen ntime [ %s ]',
@@ -322,7 +322,7 @@ my $shm_state = {
     'shm_dir'    => $shm_dir,
     'fh'         => $fh,
     'key'        => $key,
-    'bmw_ctx'    => <[base.chk-sum.bmw.ctx]>->(384),
+    'bmw_ctx'    => <[chk-sum.bmw.ctx]>->(384),
     'decl_bytes' => $decl_bytes,
     'decl_lines' => $decl_lines,
     'decl_b32'   => $decl_b32,
@@ -367,8 +367,8 @@ $session->{'watcher'}->{'input_buffer'}->now;
 
 return 1;
 
-#,,,,,.,,,...,,.,,,,.,,..,,,.,.,.,,..,...,...,..,,...,..,,..,,,,,,..,,,.,,.,,,
-#ETL2R3NSPD2KA4WWBN5W7XMTV2ONH4C7FOT7WYHM5WSHT4KK3OR344BW552LVGK7KH654R6JR3Q4M
-#\\\|EW4DAB76MXEW36TU44PESVJ4KJCEUUVYZMWGI3L6EYXMCSL2GAC \ / AMOS7 \ YOURUM ::
-#\[7]WIT5ZC347OJCY7XDFOHVULS54YREBYX5N7ECAHYDSDIQZ7VVPGCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,,,.,...,,.,,,..,.,,,.,.,,,,,..,,...,..,,.,,,,,,,.,,,...,...,
+#EEIDFUWLS3IP326R2ZM7VBZKO277MZBSUB3IDKEY5NDVXFEQYSQ67WKHNFDHQOVMZPBRTIELH4CCC
+#\\\|YCTNAGVLYJ63ZUN6VQZLUZPYW5FCLWWTW6I4S4I4HWS52VVLEF6 \ / AMOS7 \ YOURUM ::
+#\[7]NX7OVOTW7CHT4OSX24I5MM2VDKHR33M2FXZ35VTYRTUDW2UBE4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
