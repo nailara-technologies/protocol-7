@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7-zenki.cmd.teardown
-# param = [reason]
+# param = [:no-restart:] [reason]
 # descr = shut down v7 zenka and all zenka instances
 
 my $params = shift;
@@ -9,26 +9,39 @@ my $reason = $params->{'args'};
 my $user   = $1 if $reason =~ s|^([^\s]+) *||;
 $user =~ s|^[^\.]+\.||;
 
+## ':no-restart:' : protocol-7 stays down -- exit code 76, which the        ##
+## systemd unit names in RestartPreventExitStatus. without it a teardown is ##
+## a restart [ Restart=always : v7-zenki brings the zenki back, systemd     ##
+## brings v7-zenki back ]. powering the machine off : system-poweroff       ##
+my $no_restart = ( $reason =~ s{\s*:no-restart:\s*}{ }g );
+$reason =~ s{^\s+|\s+$}{}g;
+
 <[base.log]>->( 1, "<<!>> specified shutdown reason : $reason <<!>>" )
     if length($reason);
+<[base.log]>->( 1, '<<!>> no restart : protocol-7 stays down <<!>>' )
+    if $no_restart;
 
 <[event.add_timer]>->(
     {   'after'   => 0,
         'repeat'  => 0,
         'prio'    => 5,
         'handler' => qw| v7-zenki.handler.shutdown_cmd |,
-        'data'    => "requested by '$user'"
-            . ( length $reason ? " : $reason" : '' )
+        'data'    => {
+            'reason' => "requested by '$user'"
+                . ( length $reason ? " : $reason" : '' ),
+            'exit' => ( $no_restart ? 76 : 0 ),
+        }
     }
 );
 
 return {
     'mode' => qw| true |,
-    'data' => "shutting down " . "'v7-zenki' zenka ..,"
+    'data' => "shutting down 'v7-zenki' zenka"
+        . ( $no_restart ? ' [ no restart ]' : '' ) . " ..,"
 };
 
-#,,.,,.,,,,.,,,..,,,.,...,..,,,,,,..,,..,,,,,,..,,...,...,,..,.,,,.,.,,.,,.,.,
-#C46BJMOXYXSNM2DAG7FUOWJIVZYL6WMACFTOSUJMVNSIW67RJXQVPRFZ55SEVNOHJ34ZBTZE2Q7MW
-#\\\|3PJOLYQ7GWCIOPHMW7UBEECLTCQMENVANX5SSO5YDTA43BI6NOV \ / AMOS7 \ YOURUM ::
-#\[7]6TIHJUH7LHMCNG2SEJ6O3H7RKJQMUGFA2FQHNFYGQF5ZDUA7G2DI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,,..,..,,,,,,...,...,,..,,,,,..,,...,...,,,,,..,,.,.,..,,.,,,
+#PZT2I7QBWY4IPWJGYODA5JQCZC5NBJDUCYOZS33KVB7AAHE5HDP3VVO4WPT37RWPKDD7TKZHDLL4M
+#\\\|KDZGK3PDM2GPCZBPHFAO5MXFHD7ML56HVH6GFKNTODIDIV2Z3V2 \ / AMOS7 \ YOURUM ::
+#\[7]57VDMLO5OYO3XO5HV56AKI3EIXF5ILHQ2XPEYNYWL4DMO3TZKCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

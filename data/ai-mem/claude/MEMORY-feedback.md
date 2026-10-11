@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [no-manual-modifications-on-hosts](feedback-no-manual-modifications-on-hosts.md) — deploy via pull-git, host specifics in host.cfg, automate one-time host steps in code ; private names [ private domain, desktop host name ] never in tree \ commits \ memory
 - [no-tree-edits-while-model-batch-runs](feedback-no-tree-edits-while-model-batch-runs.md) — 2026-10-10 : a running model-batch reverts EVERY tree change after each task, mine included [ src/ of any zenka, data/ai-mem too ] ; stage new work in scratchpad/pending until `batch complete`, or cancel + `:restart:`
 - [no-sha2-no-hex](feedback-no-sha2-no-hex.md) — 2026-10-09 : no sha-256 \ sha-2 where not necessary [ kdf hash : blake2b ; never pre-hash argon2id input ] and NO hex anywhere -- base32 for every id \ digest, even git's sha-1 blob id
 - [check-filesystem-before-large-files-on-windows-drives](feedback-check-filesystem-before-large-files-on-windows-drives.md) — 2026-10-02 : WSL swap on D: [ FAT32 inside C:\DISKS\projects.vhdx ] failed past 4 GiB and killed WSL \ zenki twice ; check Get-Volume + Get-Disk before placing big growing files on a Windows drive
@@ -200,8 +201,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 07e19f5a2, 2026-10-07 ] ; check SigCgt bit 16
 
-#,,..,.,,,,,,,,..,,,.,,..,,,,,,..,..,,.,.,..,,..,,...,...,.,,,..,,,.,,.,.,,,.,
-#ALBZUSU5IPBWK6W7T6KOW6FTMHEGNZZUOY6LQMLSJBHOIQXD6FC5N42BA27H37AVQBYCADJDEHLL2
-#\\\|HVLYAXDOWBKG4FWMBQGWJIX7DGOUPD25TSHW4REVE3CKUTWNQGA \ / AMOS7 \ YOURUM ::
-#\[7]BJ2V6DWYS6V4XR7BOWYYT46XTW6OM65NIP77LIYXIBIOH3NMUGAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,..,,,,.,,..,..,,.,,,.,,,,..,,.,,..,,...,...,..,,..,,,.,,,,,,,.,,
+#NYB62SSRIS7FDV4FUJO5EBIULS254XV5IH7FY7IUG22ERG4B5DDHQ2MUBKBA33GGTBZUG3EMEQSSE
+#\\\|USWNYYMUI744WLOPAQ22XEB7VV2ETMDQ6RZIMU74TR5QVDRS5YQ \ / AMOS7 \ YOURUM ::
+#\[7]T7FDXXNECOXOFDGW6MHHAHXDZM54KASIOL6ZYRUQ6M3ULLQASCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
