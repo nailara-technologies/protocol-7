@@ -8,15 +8,15 @@ use warnings;
 ## bytes pragma transitively ; keep it so compiled modules resolve it.     ##
 use bytes;
 
-## host-root delegation [ 2026-10-06, data/md/design/HOST-ROOT-             ##
-## DELEGATION.md ] : compiles the REAL modules and drives them with stubs.  ##
-## the resolver [ crypt.C25519.key_path : holder detection, every           ##
-## ownership-rule violation, symlinks, non-root ], key_vars \ key_exists \  ##
-## keyfiles \ load_keypair \ write_keys through it, host_root.create via    ##
-## post_init, trust.statement [ the spec test vector, every field ],        ##
-## trust.verify, v7-zenki.delegation.issue [ renewal, atomic write ],       ##
-## auth.auth_select [ the 4th field ], the client pin and the cube key id   ##
-## command.                                                                 ##
+## host-root delegation                                                     ##
+## [ 2026-10-06, data/md/design/HOST-ROOT- DELEGATION.md ] : compiles the   ##
+## REAL modules and drives them with stubs.  the resolver [                 ##
+## crypt.C25519.key_path : holder detection, every ownership-rule           ##
+## violation, symlinks, non-root ], key_vars \ key_exists \ keyfiles \      ##
+## load_keypair \ write_keys through it, host_root.create via post_init,    ##
+## trust.statement [ the spec test vector, every field ], trust.verify,     ##
+## v7-zenki.delegation.issue [ renewal, atomic write ], auth.auth_select    ##
+## [ the 4th field ], the client pin and the cube key id command.           ##
 ##                                                                          ##
 ## runs as a normal user : uid 0 ownership is FAKED [ lstat \ stat \ chown  ##
 ## overridden for the compiled modules only, inside a File::Temp tree ] ;   ##
@@ -979,6 +979,7 @@ say ': v7-zenki.delegation.issue';
 
 compile_module('v7-zenki.backend.run');
 compile_module('v7-zenki.backend.read_small');
+compile_module('v7-zenki.delegation.issue_key');
 compile_module('v7-zenki.delegation.issue');
 my $issue    = $code{'v7-zenki.delegation.issue'};
 my $s_name   = "$me.base";
@@ -1007,6 +1008,59 @@ sub read_dlg {
     close($fh);
     chomp $l if defined $l;
     return $l;
+}
+
+## nameserv's sync key : optional, skipped while absent, delegated with its ##
+## own name once present [ TIMESTAMP-DELTA-SYNC.md stage 3 ]                ##
+{
+    my $sync_file  = catfile( $user_dir, 'nameserv-sync.public' );
+    my $sync_dlg   = catfile( $user_dir, 'nameserv-sync.dlg' );
+    my ($sync_pub) = Crypt::Ed25519::generate_keypair();
+    setup_host_root();
+    put( $s_file, 0640, $b32->($s_pub) . "\n" );
+    unlink $sync_file, $sync_dlg, $dlg_file;
+    local $fake_euid = 0;
+    ok( $issue->(),         'sync key absent : issue TRUE [ cube decides ]' );
+    ok( !-e $sync_dlg,      '  :.. no nameserv-sync.dlg' );
+    ok( defined read_dlg(), '  :.. cube S still delegated' );
+
+    put( $sync_file, 0640, $b32->($sync_pub) . "\n" );
+    ok( $issue->(), 'sync key present : issue TRUE' );
+    my $wire;
+    if ( open( my $fh, '<', $sync_dlg ) ) {
+        $wire = readline($fh);
+        close($fh);
+        chomp $wire if defined $wire;
+    }
+    my $r
+        = defined $wire
+        ? $verify->(
+        {   chain   => [$wire],
+            anchors => [$hr_fp],
+            subject => $sync_pub,
+            now     => time
+        }
+        )
+        : undef;
+    ok( ref $r eq 'HASH' && $r->{'name'} eq 'testhost.nameserv-sync',
+        '  :.. nameserv-sync.dlg verifies, name <host>.nameserv-sync'
+    );
+    my $p = $statement->( 'parse_wire', $wire // '' );
+    ok( ref $p eq 'HASH' && $p->{'scope'} eq '',
+        '  :.. scope empty [ certifies nothing ]'
+    );
+    ok(
+        (   $verify->(
+                {   chain   => [ $wire // '' ],
+                    anchors => [$hr_fp],
+                    subject => $s_pub,
+                    now     => time
+                }
+            ) // ''
+        ) eq '',
+        '  :.. not valid for cube S'
+    );
+    unlink $sync_file, $sync_dlg;
 }
 {
     setup_host_root();
@@ -1362,8 +1416,8 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
     );
 
     ## owner pins, rotation, distrust [ TRUST-CHAIN-STEP2.md 'pins' ] -- ##
-    ## the file io around trust.pin_decide [ verdicts :                  ##
-    ## trust-pin-vectors.pl ]                                            ##
+    ## the file io around trust.pin_decide                               ##
+    ## [ verdicts :  trust-pin-vectors.pl ]                              ##
     my ( $ow_pub, $ow_priv )
         = Crypt::Ed25519::generate_keypair( "\x06" x 32 );
     my ( $nr_pub, $nr_priv )
@@ -1637,8 +1691,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,..,.,,,,..,,..,,..,.,.,.,.,,,.,.,,,,,.,..,,...,...,..,,...,..,,...,,,,,
-#CF7L6MTJLEHEFUYFNFWTMTWDRUPM2HKLIA7SMJCDUQNTFNGWWGFITZILGCX5QZRVWQPASXIBDF6EU
-#\\\|Q6BQEVGR347NOVESXXWZUSJQYCSBASZXUJWUUECL72PJDVJ3H2W \ / AMOS7 \ YOURUM ::
-#\[7]TXP2ROMIXSXRJZWABAOSDLOUJZKBSM62RW76GR463XJ6TW76YYCQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,.,.,,.,,,.,,,,,,,..,,,,,..,,...,..,,...,...,,,,,..,,,,.,.,,,.,,,
+#O3HXEEXOX5T6P6TK2QJEVV6XYSOLNT7ZRMR7PATZBFPPT3QOEKMSUX3S5QWB3R5AUPVFKKUVASCIK
+#\\\|POHYGMKN6JFZKEC2CD2PAYGXGTFXQRTSMV5VSCRIJTR4WPJSVFM \ / AMOS7 \ YOURUM ::
+#\[7]UR47XZ73LMZWEGLNWRHXFQ3J6QO3QDM63RVN2KT53Z76LUPVUSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
