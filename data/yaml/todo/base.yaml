@@ -1102,9 +1102,19 @@ items:
   tags:
   - vault
   text: 'p7-vault : encrypted, normalised command-line history [ ctrl-r across sessions ]'
+- added: 3X4MFONAGI
+  details: "on a fresh server with no vhost configured, httpsd requests a cert for the host's rdns name and serves it as the default vhost [ any unknown Host \\ SNI ] with the black page pri.v7.ax serves now. conditions : forward-confirmed rdns [ A\\AAAA of the rdns name = this host ] ; public reachable address only [ remote-server profiles or a detected host.public_ip ] ; never desktops [ CT logs tie name and host forever ] ; first start only, never when vhosts exist, host.cfg switch to disable ; wildcard later via dns-01 on our own name servers. own-domain detection [ skip provider domains, shared LE rate limit ] : decisive -- a TXT _protocol-7.<domain> with the owner \\ host-root key id, the owner statement's scope, NS of the domain = DN0000 \\ DN0110 \\ DN1110 ; scored only without a decisive signal -- for : domain configured on the host [ letsencr, vhosts, zones ], other known nodes use it, hostname -f agrees ; against : provider label patterns [ ip digits, vps, static, host-, ip- ], registrable domain on a provider list, shared by many unrelated addresses. state machine unknown -> candidate -> confirmed -> issued, re-evaluated when detected facts change ; scoring can only hold a cert back, never cause a request. lives next to base.host.detect \\ detected.cfg."
+  done_at: null
+  id: DDB
+  priority: normal
+  status: open
+  tags:
+  - httpsd
+  - host
+  text: "httpsd first start : default certificate for the host's own rdns name, black default vhost [ host-domain intelligence ]"
 
-#,,,.,,,,,..,,.,.,...,...,.,.,.,.,,,,,,,.,,.,,..,,...,...,,.,,,,.,...,,,,,,,.,
-#BK4AQYRED5BVS2RZ4BRPGUC54KFI7KMHSWD2B5WDVDVSJUDENUUJZTGDDJE6ZZ4ZJFAD3EF4R534Q
-#\\\|4IZBZ7LCFRTH77CKMLYOZP33FKFGEYP2RYVW3C6NPTWJP32OMPX \ / AMOS7 \ YOURUM ::
-#\[7]EKMQUJT7X6ADTWT7464PW2OSMWYYO76I7RQFITCB5UKXO4DVLICQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,...,.,,,..,,...,..,,...,.,.,..,,...,...,.,.,.,.,,,,,,.,,.,,,
+#ZQP6OH6MXJCIYKO5UGVB2SGCTS4K4DDSTUW3R3QXBXPBQVTBDDUBZY66LWAMTET3UYOAKENGTPA2I
+#\\\|PR3QFSVDUYLHSNTKJH6JD4PPPNAO5PYJ6W2HXK2S34VQW7HRHF3 \ / AMOS7 \ YOURUM ::
+#\[7]IIWSZV7K4X27PYOKWAMTGFPEDEIZQPI7UFYX2MZPQH77A3FUCWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
