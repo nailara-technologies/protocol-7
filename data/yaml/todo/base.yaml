@@ -699,6 +699,15 @@ items:
     - cryptographic : records signed with the node's c25519 key [ txt, or an own scheme next to dnssec ] -- a lookup can verify the answer comes from the responsible node. builds on the dns knock idea [ data/tasks/dns-knock-dynamic-ingress.md : per-session incoming addresses ]
     - the dns side of the servers is CJ3 [ DN0000 \ DN0110, the registrar as third, the dns-01 wildcard test first ]
     - already planned [ user ] : data/asc/what-AI-thinks/markdown-form/protocol7/specs/DNS_RHIZOME.md [ 2025-10-17 : node records in public dns -- TXT 'v=proto7 vm= loc= cost= ram= bw= harmonic=', SRV with priority \ weight, DNSSEC signatures, client discovery through a validating resolver ] and data/md/documentation/DNS_RHIZOME_ROADMAP.md [ phase 1 done : dns, discover, nodes \ tofu ; phase 2 in progress : txt \ srv generation, zone integration, dynamic updates, dnssec ; phase 3 open : cubic positioning, neighbors, rings, 5-of-7 consensus ; phase 4 : load-aware routing, failover, task migration ]. links : phase 3 positioning partly arrived through the nodes zenka's orbital p7refs ; the txt capability fields [ cost, ram, bw ] are the resource declaration NRT accounting needs ; phase 2 dynamic updates = what nameserv's add-txt \ remove-txt began ; checksum names <amos>.n7fs.<domain> = a new record type in the same scheme
+
+    closing the loop : the network stores its own set-up [ user, 2026-10-11 ] -- zones, zenka configs per host, host records \ contracts [ non-secret metadata ], certificates, the vault : versioned, replicated, signed, in n7fs.
+    - rebuild a node : a new or reinstalled server fetches its set-up by reference, verifies checksum + signature -- restored, not hand-configured again [ the safety the move needs ]
+    - every change is a version : a zone edit or config change is a node with ntime, release and author -- visible, revertable
+    - one source for what depends on each other : registry glue, zone records and server ips come from the same data, an ip change is one change
+    - rule : secrets stay encrypted -- vault entries and private keys enter n7fs only as the ciphertext p7-vault already writes ; replication copies ciphertext, only key holders open it
+    - and so : reproducible [ user ] -- setup, code and data all versions in one structure : any past state [ epoch + release ] rebuildable exactly [ retrace a bug as it really happened ] ; test environments by branching the setup [ identical except the change -- where CT2 fix branches can run without touching the live system ] ; verifiable : same setup + code + data versions -> same checksums, divergence shows at once [ the dedup tree's convergence principle ]
+    - and from a few services to a full user desktop or developer laptop [ user ] : the same kinds of parts -- packages [ the debian zenka's install-history is already a reproducible record ], configuration [ dotfiles, /etc, zenka configs : versioned + signed ], keys \ credentials [ p7-vault, encrypted ], working data [ n7fs, replicated ], re-downloadable large files [ models : a reference to checksum + source, no copy ], protocol-7 itself [ git history at a known release ]. hardware-bound edges stay profiles per machine type [ gpu drivers, wsl vs native, screens \ input -- like .wslconfig today ]. a machine restored on new hardware instead of set up anew ; a second desktop starts as a branch of the first
+    - settings inheritance already designed [ user ] : data/md/design/SETTINGS-STATISTICS-ZENKA.md -- layers with local priority : personal [ user.local.settings.*, never leaves the device ] -> branch [ branch.defaults.settings.*, synced from parent branches ] -> network [ dedup.tree.defaults.*, improved by statistics ] -> hardcoded ; minimal diff sync [ only what differs from the branch defaults, 5-10 values instead of 1000+ ]. a reproduced desktop = branch defaults + the personal diff. the hardware profiles fit as a machine \ host layer between personal and branch. the same walk-up lookup as the work modes [ coding.mode.setting : code.new -> code -> default ]. status : 'settings' namespace kept free since set-up was renamed [ memory vision-config-installer-zenka-landscape ] ; set-up + configure exist ; V7-HOT-SELF-RESTART.md names 'a settings zenka that's generic and clean' as a prerequisite
   done_at: null
   id: 4EO
   priority: normal
@@ -1054,8 +1063,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,.,,,.,,,,.,,,.,.,.,...,,..,,,,,.,.,.,,,.,.,..,,...,...,...,,,.,,..,..,,,.,,
-#6ASYGUXBWYLCNWYYSWUUPTZ2C7ZNAA35PN6UIP5QRXGJ463DZC5J637VTFQFEETOWGAJT44ZSPWMW
-#\\\|CE4KKCIXXEQ5AA44PLRXQ3JZCF7ODN5UF4IECAADR7TOQH43EEJ \ / AMOS7 \ YOURUM ::
-#\[7]7M3P2ET3OFPFU6YXMFWG423C6JW3V3BYQWG5UIRFTAB7GEHDNGAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,,,,,..,,..,,,.,,,,.,,,.,,,.,..,,...,...,.,,,..,,,,,,,,,,,,.,
+#JDH3OJXZWUYHD53C7AF2KHUPC5UPAC5VHRLX4SRIC3OSWZXIAT4STT6FIULZ7SRAPGPQQZNACTRXG
+#\\\|2TCU65AWTOIKI7SQ2G2IDF5YD7NUMU4W2FEP2DINEG722NWABQD \ / AMOS7 \ YOURUM ::
+#\[7]SYXCUUXRZ6GVABSQIZR7SNMCJQI3MYCY2VRIEHMPZ565YHYMUYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
