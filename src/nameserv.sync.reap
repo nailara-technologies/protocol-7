@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = nameserv.sync.reap
+# descr = close idle sync connections [ waiting conns exempt ]
+
+my $idle = <nameserv.cfg.sync.idle_timeout> // 390;    ## seconds ##
+
+my $conns = <nameserv.sync.conns> // return TRUE;
+my $now   = time;
+
+for my $conn ( values %$conns ) {
+    ## holding next-data-timestamp ##
+    next if ref $conn->{'wait'} eq qw| HASH |;
+    next if $now - ( $conn->{'last_active'} // $now ) < $idle;
+    <[base.logs]>->(
+        2,
+        ': sync connection idle timeout [ %s ]',
+        $conn->{'peer'} // 'unknown'
+    );
+    <[nameserv.sync.conn.close]>->($conn);
+}
+
+return TRUE;
+
+#,,,,,,.,,..,,...,...,,,.,.,,,,,.,...,.,.,..,,..,,...,...,,,,,..,,,..,,,,,.,,,
+#LWAEED3H7ZOH2URH2LJGJL52K5UDQCSGSLWDG3ACAMK5FFLQYI5IVM7TENL34QKRJX744XNXPWGP6
+#\\\|VNAB5X2U3SVPHC7QCMGB2AXCPE7HAFUL427XL4CHED42TF73TTH \ / AMOS7 \ YOURUM ::
+#\[7]RXF3O3SDOQDLTNZ4UTLDMMG5JQVND573RMKKNGBQ7WP5KYONMSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

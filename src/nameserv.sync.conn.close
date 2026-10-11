@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = nameserv.sync.conn.close
+# descr = close a sync connection and drop its state
+
+my $conn = shift // return;
+
+my $conns = <nameserv.sync.conns> //= {};
+$conn = $conns->{$conn} if not ref $conn and defined $conns->{$conn};
+return if ref $conn ne qw| HASH |;
+
+for my $key (qw| watcher wwatcher |) {
+    if ( ref $conn->{$key} ) {
+        $conn->{$key}->cancel
+            if $conn->{$key}->can('is_active')
+            and $conn->{$key}->is_active;
+        $conn->{$key} = undef;
+    }
+}
+
+close $conn->{'sock'} if defined $conn->{'sock'};
+
+delete $conns->{ $conn->{'id'} } if length( $conn->{'id'} // '' );
+
+return TRUE;
+
+#,,.,,.,.,.,,,,.,,,.,,,.,,.,.,,,.,,,,,,..,.,,,..,,...,.,.,.,.,.,.,..,,,.,,,..,
+#6FWFXHKTLNYTRQXXD47DMZK3P77TBQOJCKHKKV65KRRZXOYFOXA5IW5KLVXZPXUKDEKCPTFWPB2ME
+#\\\|3KMSUGFB3ZC6M7EIDJRBACXGXYXXADTESVVX75NUZRHWUMWDCG7 \ / AMOS7 \ YOURUM ::
+#\[7]XGL63NEZ7WX43NKXMZYWKTME6CCJE5USP2GXWVKHFUB6CHBCYMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

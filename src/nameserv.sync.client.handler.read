@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = nameserv.sync.client.handler.read
+# descr = read and process sync pull replies
+
+my $id = shift->w->data;
+
+my $pending = <nameserv.sync.client.pending> // return;
+my $state   = $pending->{$id}                // return;
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $state->{'sock'}, \$chunk, 65536 );
+
+if ( ( $bytes // -1 ) == -1 ) {
+    <[nameserv.sync.client.finish]>->(
+        $state,
+        {   mode => qw| false |,
+            data => sprintf 'read error : %s',
+            <[base.str.os_err]>
+        }
+    );
+    return;
+}
+
+if ( $bytes == 0 ) {    ## peer closed the connection ##
+    <[nameserv.sync.client.finish]>->(
+        $state, { mode => qw| false |, data => 'connection closed by peer' }
+    );
+    return;
+}
+
+$state->{'buf'} .= $chunk;
+
+while ( $state->{'buf'} =~ s|^([^\n]*)\n|| ) {
+    my $line = $1;
+    $line =~ s|\r$||;
+    push @{ $state->{'lines'} }, $line;
+    next if $line ne qw| . |;
+    <[nameserv.sync.client.process]>->( $state, delete $state->{'lines'} );
+}
+
+return;
+
+#,,.,,...,,,.,...,,..,...,.,,,,,.,.,.,,..,.,,,..,,...,..,,.,.,.,,,,,.,,..,,,.,
+#F4OUNEP4DGQKYKRXX6HGDPFM6F7GOPRRRJKE76GUMSD7F2N6HSJPNHBLKK6M4BRC6NRYP5HOYXJYK
+#\\\|7745QPVCVPAXUCWZRTMECJ5WHVE4NBCZXZKJD5DYARUHFSVON46 \ / AMOS7 \ YOURUM ::
+#\[7]ZGVFQSWCJ7CZS2URKADUTTHCU7SASZ6X57QVVLY7EYQWGCMBIEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

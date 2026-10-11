@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = nameserv.sync.client.start
+# descr = start an outbound sync pull [ non-blocking, event driven ]
+# param = $params -> connection id | undef
+
+my $params = shift // return undef;
+
+my $host = $params->{'host'} // '';
+my $port = $params->{'port'} // 0;
+
+return undef if not length $host;
+return undef if $port !~ m|^\d+$| or $port < 1 or $port > 65535;
+
+my $zone = lc( $params->{'zone'} // '' );
+$zone =~ s{\.+$}{};
+
+require IO::Socket::IP;    ## like nameserv.start_listener ##
+
+my $sock = IO::Socket::IP->new(
+    PeerHost  => $host,
+    PeerPort  => $port,
+    Type      => SOCK_STREAM(),
+    Blocking  => 0,
+    ReuseAddr => 1
+);
+
+if ( not defined $sock ) {
+    <[base.logs]>->(
+        1, ': sync pull connect failed [ %s:%d ] : %s',
+        $host, $port, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+my $pending = <nameserv.sync.client.pending> //= {};
+<nameserv.sync.client.seq> //= 0;
+my $id = sprintf '%s:%d:%d', $host, $port, <nameserv.sync.client.seq>++;
+$id .= '.' while exists $pending->{$id};
+
+$pending->{$id} = {
+    id        => $id,
+    sock      => $sock,
+    host      => $host,
+    port      => $port,
+    target    => length $zone ? $zone : undef,
+    full_zone => undef,
+    reply_id  => $params->{'reply_id'},
+    on_done   => $params->{'on_done'},
+    peer      => $params->{'peer'},
+    buf       => '',
+    phase     => 'connect',
+    checksums => {},
+    full_done => {},
+};
+
+if ( $sock->connected ) {    ## connect already done ##
+    <[nameserv.sync.client.connected]>->( $pending->{$id} );
+} else {
+    $pending->{$id}{'watcher'} = <[event.add_io]>->(
+        {   fd      => $sock,
+            poll    => 'w',
+            handler => qw| nameserv.sync.client.handler.connect |,
+            data    => $id,
+            desc    => "sync pull connect [ $host:$port ]"
+        }
+    );
+}
+
+## nothing may hang forever on an unauthenticated port ##
+$pending->{$id}{'timer'} = <[event.add_timer]>->(
+    {   after   => <nameserv.cfg.sync.idle_timeout> // 390,
+        handler => qw| nameserv.sync.client.timeout |,
+        data    => $id,
+        desc    => "sync pull timeout [ $host:$port ]"
+    }
+);
+
+return $id;
+
+#,,,,,,,,,,..,,.,,.,.,,,.,..,,,..,,,.,.,.,,,,,..,,...,...,...,.,.,..,,,..,...,
+#J44YV6AZ5K5GQUIDOC5QYDXHLLZNGE3ZJEGJLDI7I277XP3HQ7MYEQCINHDD5ULXRG3KC42RT6EO2
+#\\\|ARSMN7ARN2WDTQ3VV6Z34GU6OOB66MF4UCXLRELJR3BY2TGEB4B \ / AMOS7 \ YOURUM ::
+#\[7]BLUN5OJY6NHRMZXAW2ODDWB23JYOFCBG2E3OOHEIROPMI7NRDUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

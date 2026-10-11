@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = nameserv.sync.handler.write
+# descr = continue writing buffered sync protocol output
+
+my $id = shift->w->data;
+
+my $conns = <nameserv.sync.conns> // return;
+my $conn  = $conns->{$id}         // return;
+
+<[nameserv.sync.conn.flush]>->($conn);
+
+return;
+
+#,,..,.,.,.,,,,,,,.,,,.,,,...,,,.,,.,,.,,,.,,,..,,...,..,,,.,,,,.,..,,,..,,,,,
+#HDSTYYFI3NNATSSRFRZRKECK35QNSNENXSYLRTZG4WFWZSSTETJPPRXBNASA5FK6VWXPOKOPVXEOE
+#\\\|PLHW44KLGFBR4IBWJNOSDGAGDOEUL4YQXHA6JQHCWN27CDDPBZW \ / AMOS7 \ YOURUM ::
+#\[7]GPMDPWNFB2TXKMXBG24CIRE25KH6V474YRR3B46IZE5ADGOWNUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,15 +75,16 @@ my ($file) = glob "$dir/entries/$id.*.vlt.B32";
 ok( ( ( stat $file )[2] & 0777 ) == 0600, 'entry file is 0600' );
 my $raw = do { local ( @ARGV, $RS ) = $file; <> };
 
-sub framed {    ## the inline subroutine frame of bin/Protocol-7 ##
+sub framed {    ## the inline subroutine frame, one entry per file ##
     my ( $text, $title ) = @ARG;
-    ## blank line, title, ':' .. ':', ':.', blank line ##
-    return FALSE if $text !~ m|\A\n| or $text !~ m|\n:\.\n\n\z|;
+    ## blank line, ' title', ' :', ' : payload' .., ' :.', blank line ##
+    return FALSE if $text !~ m|\A\n| or $text !~ m|\n :\.\n\n\z|;
     my @line = split m|\n|, substr $text, 1;
-    return FALSE if shift(@line) ne ".:[ $title ]:." or shift(@line) ne ':';
-    return FALSE if pop(@line) ne ':.' or pop(@line) ne ':' or not @line;
-    return FALSE if grep { !m|^: [0A-Z2-7]{76}\z| } @line;
-    return FALSE if $line[-1] !~ m{^: 0*[A-Z2-7]+0*\z};
+    return FALSE if shift(@line) ne " .:[ $title ]:." or shift(@line) ne ' :';
+    return FALSE if pop(@line) ne ' :.'               or not @line;
+    return FALSE if grep { !m|^ : [0A-Z2-7]{75}\z| } @line;
+    return FALSE if $line[-1] !~ m{^ : 0*[A-Z2-7]+0*\z};
+    return FALSE if grep { length > 78 } @line;
     return TRUE;
 }
 ok( framed( $raw, 'p7-vault entry' ), 'entry file : framed base32 block' );
@@ -93,6 +94,22 @@ ok( framed(
     ),
     'key file : framed base32 block'
 );
+## the reader takes the older column-0 frame and reindented copies too ##
+{
+    my $bin  = join '', map { chr( ( $ARG * 37 ) % 256 ) } 0 .. 199;
+    my $text = AMOS7::Vault::_b32_file_text( $bin, 'test' );
+    ( my $old = $text ) =~ s|^ ||mg;
+    $old =~ s|^(:.*\n)(:\.\n)|$1:\n$2|m;    ## old close : ':' then ':.' ##
+    ( my $tabbed = $text ) =~ s|^ |\t  |mg;
+    ( my $crlf = $text )   =~ s|\n|\r\n|g;
+    ok( AMOS7::Vault::_b32_text_decode($old) eq $bin,
+        'reader : older column-0 frame' );
+    ok( AMOS7::Vault::_b32_text_decode($tabbed) eq $bin,
+        'reader : reindented frame' );
+    ok( AMOS7::Vault::_b32_text_decode($crlf) eq $bin,
+        'reader : ' . 'crlf frame' );
+    ok( $old =~ m|\n:\n:\.\n\n\z|, 'older frame built as before' );
+}
 ok( index( $raw, 's3cret' ) == -1 && index( $raw, 'Example' ) == -1,
     'no plaintext in the blob' );
 
@@ -466,8 +483,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,,.,..,,,,.,,,,,,,,,,,,,.,,,,,.,,.,,,..,.,,,..,,...,...,.,.,.,,,...,,.,,,,.,
-#3GT6MHETHUW44ELMKTAEVG7UGS3JK3MIUYYXV2DWNBIKCKK7ZCK36IJ3YRQNUFLA7IUYEG2QS4P6U
-#\\\|L3VRGWVZIPGNEHJOUJN6MCTXZRD3KTCKKTBVTKOSATGZTNENPNU \ / AMOS7 \ YOURUM ::
-#\[7]VELE4A5RB27SK7EEMBJFUBPG6TVHBRBQTVVMQUACWACJUJEZKMAI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,..,,.,,,,..,,,,,,.,,.,.,,..,..,,...,...,.,,,,,,,...,,,.,,.,,
+#5GI4BCDH7KVVDUPJIXDMJMCWJ5R6BCEQEVHQF5BMYXHXBCPBVKRXUTHAGIQN55UJRGMQHMRURV4Q6
+#\\\|AJ5OKRTJJXYVQI3B677SABWQENKVL5CRA57O5J5ZXGXAZ2WHYNJ \ / AMOS7 \ YOURUM ::
+#\[7]HVQBUENV2BR5SFTOAU6W6RSKA65NUBHIZ5GMV2NUKUN4SEFFM4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

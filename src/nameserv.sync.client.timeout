@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = nameserv.sync.client.timeout
+# descr = finish a sync pull that ran too long
+
+my $id = shift->w->data;
+
+my $pending = <nameserv.sync.client.pending> // return;
+my $state   = $pending->{$id}                // return;
+
+<[nameserv.sync.client.finish]>->(
+    $state, { mode => qw| false |, data => 'sync pull timeout' }
+);
+
+return;
+
+#,,..,.,,,,,.,,.,,,,,,,.,,..,,,,.,...,,.,,,.,,..,,...,..,,...,,..,,,,,...,,.,,
+#BXT3XJ764Y4XUM3UIHT2LLVLRKMKWXVHOPKB62G5BCBMOP2CMNWRRFMOUVA7Q3EV5FTY7PHB7OPUO
+#\\\|UOVSUIZZVZSX5ZWCK2QBJ7XPFUJE7T3DXEI6753PI5TOUXUMCLH \ / AMOS7 \ YOURUM ::
+#\[7]PD2M5ZKNNB5QJ6BUV6LWEALERUOCGMOU5ZIZ4RTRVQ4NEZZC2UAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

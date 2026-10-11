@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = nameserv.sync.conn.flush
+# descr = write buffered sync output non-blocking until drained
+
+my $conn = shift // return undef;
+
+return undef if ref $conn ne qw| HASH |;
+
+my $sock = $conn->{'sock'};
+
+if ( defined $sock ) {
+    while ( length $conn->{'out'} ) {
+        my $written = <[base.s_write]>->(
+            $sock, \$conn->{'out'}, length $conn->{'out'}
+        );
+        if ( ( $written // -1 ) == -1 ) {
+            <[nameserv.sync.conn.close]>->($conn);
+            return undef;
+        }
+        last if $written == 0;    ## would block : keep the rest buffered ##
+        substr( $conn->{'out'}, 0, $written ) = '';
+    }
+}
+
+if ( not length $conn->{'out'} ) {
+    if ( ref $conn->{'wwatcher'} ) {
+        $conn->{'wwatcher'}->cancel if $conn->{'wwatcher'}->is_active;
+        $conn->{'wwatcher'} = undef;
+    }
+    <[nameserv.sync.conn.close]>->($conn)
+        if $conn->{'close_after_out'};
+} elsif ( defined $sock and not ref $conn->{'wwatcher'} ) {
+    $conn->{'wwatcher'} = <[event.add_io]>->(
+        {   fd      => $sock,
+            poll    => 'w',
+            handler => qw| nameserv.sync.handler.write |,
+            data    => $conn->{'id'},
+            desc    => 'sync connection write handler'
+        }
+    );
+}
+
+return TRUE;
+
+#,,.,,,.,,.,,,,,.,,.,,,,.,,,.,..,,..,,.,,,.,.,..,,...,...,..,,,,,,.,.,..,,...,
+#ED3ELRKUGWS27XXGVI5WWKFJ7N7FR22YFU2CBAAZIPRFTVUPKWYFGNRS7ASKSCGI2EL2YUR6TI7BW
+#\\\|AWTKEVI2TAM52P7LIOX23O4LXTWZDMG2TYMQ6P6GIVHOSN7KZVN \ / AMOS7 \ YOURUM ::
+#\[7]65SZFTTHVEMJMFPM6JQ4KLMYHGOOC6GCKV7QIL4KHAPUEG3IBGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

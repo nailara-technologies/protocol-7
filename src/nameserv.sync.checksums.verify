@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = nameserv.sync.checksums.verify
+# descr = compare local zone checksums against peer CHECKSUM lines
+# param = $checksums_href -> ( mismatched zone, .. )
+
+my $checksums = shift;
+return () if ref $checksums ne qw| HASH |;
+
+my @mismatched = ();
+
+for my $z_name ( sort keys %$checksums ) {
+    my $local = <[nameserv.zone.checksum]>->($z_name);
+    my $peer  = $checksums->{$z_name} // '';
+    if (   not defined $local
+        or not length $peer
+        or $peer eq qw| - |
+        or $local ne $peer ) {
+        push @mismatched, $z_name;
+    }
+}
+
+return @mismatched;
+
+#,,.,,...,,,,,.,.,,,,,,,,,.,,,.,,,.,.,,,.,,,,,..,,...,...,.,,,,,.,,,,,,.,,,..,
+#DH47734BBG4HFU5ECXMZ4KZDZXIG6NW6IVAH6GKWGS2JGOV4AGMDHXJUQ4PJU7EFAYUUCCERCNCAG
+#\\\|LLZGYA4J3PTDZBGR7PGT7KSE24HGJSV7HZDSFXWIEGYHQXBG7N6 \ / AMOS7 \ YOURUM ::
+#\[7]BZX6WESXDDU7RFNDP4Y7JXYH5OQGNCWTCUI2NASKKXSW3ZSMQKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

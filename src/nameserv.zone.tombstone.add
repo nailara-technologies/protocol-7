@@ -6,6 +6,7 @@
 
 my $zone_name = shift // '';
 my $record    = shift;
+my $deleted   = shift;         ## optional explicit ts [ sync apply ] ##
 
 return FALSE if not length $zone_name;
 return FALSE if ref $record ne qw| HASH |;
@@ -21,13 +22,13 @@ push @{ $zone->{'tombstones'} //= [] },
     name    => lc( $record->{'name'} // '' ),
     type    => uc( $record->{'type'} // '' ),
     value   => $record->{'value'} // '',
-    deleted => <[base.ntime.b32]>,
+    deleted => $deleted           // <[base.ntime.b32]>,
     };
 
 return TRUE;
 
-#,,,.,..,,...,,..,,,,,.,,,..,,...,..,,,.,,,.,,..,,...,...,...,..,,.,.,.,.,.,.,
-#HDXFRAZYJHLMQN76MO4NWQ3CAZZLSPA2SAMDHBOVNXES7FG65MH4NBSQNISDHV2XZ4MQXT4QZA2FM
-#\\\|RBVJBEODVZAWVOS5XHVMKXNGOMXUZW4CV746FMWUFUQ7OI74MPO \ / AMOS7 \ YOURUM ::
-#\[7]BZMERE2X4VRNC3RCHJX54BE4UDFUZCX6E6KLSOG3OI6HNSZOBOCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,...,.,.,...,,,,,...,.,.,,,.,..,,...,..,,,.,,,.,,.,.,,.,,...,
+#WEBITEPMEWERCAREXZHXOB7CBB7H5GYTMGMZ6EGKZK5FKZIE7APUD6ACN6VTTDPOGLEF2BJJH4BQQ
+#\\\|52UNXDGRLIQPM7YVPLRNUFFARDBK4QZZR2WVO4T2ZESY6GEGKPV \ / AMOS7 \ YOURUM ::
+#\[7]OSO4SC7A2HVOZG56GG2BMN3CIYVN6JZ2DOUKQK4KL2ETACMOTKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = nameserv.sync.peers.start
+# descr = start one long-poll loop per configured sync peer
+
+my $peers_str = shift // <nameserv.cfg.sync.peers> // '';
+
+my @tokens = grep {length} split m|\s+|, $peers_str;
+
+my $peers = <nameserv.sync.peers> //= {};
+
+for my $token (@tokens) {
+    my ( $host, $port );
+    if ( $token =~ m|^\[([^\]]+)\]:(\d+)$| ) {    ## [ ipv6 ]:port ##
+        ( $host, $port ) = ( $1, $2 );
+    } elsif ( $token =~ m|^([^:]+):(\d+)$| ) {
+        ( $host, $port ) = ( $1, $2 );
+    } else {
+        <[base.logs]>->( 0, ': sync peer not understood : %s', $token );
+        next;
+    }
+
+    $peers->{$token} //= {
+        host    => $host,
+        port    => $port,
+        ts      => '0',
+        backoff => 13,
+        state   => qw| idle |,
+        sock    => undef,
+        watcher => undef,
+        timer   => undef,
+        buf     => '',
+    };
+
+    <[nameserv.sync.peer.arm]>->($token);
+}
+
+return TRUE;
+
+#,,,,,,.,,,,,,...,,,.,,.,,,,.,...,...,,,,,,..,..,,...,...,...,,,,,,.,,,.,,,.,,
+#5QWCAEGD7F7V5UA5RGL7B4S3GGK5V7L7YCRREHM6AAIJ57LXHAKVK2RQRDRUM26V7R7CET3WDQ4I4
+#\\\|2XXOZ6NPB2STQSFYX6PO5KOV2KRG2YAZB2NILOYKDV6YK5MJJZH \ / AMOS7 \ YOURUM ::
+#\[7]S3NUJSOR4YGX2YQRECEG7OJK7763RCN2VQPSQSK4PVB2MP7UWCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

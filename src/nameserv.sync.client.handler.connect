@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = nameserv.sync.client.handler.connect
+# descr = writability watch for a pending sync pull connect
+
+my $id = shift->w->data;
+
+my $pending = <nameserv.sync.client.pending> // return;
+my $state   = $pending->{$id}                // return;
+
+my $sock = $state->{'sock'};
+
+## completing an in-progress non-blocking connect needs another connect()   ##
+## call on this io.socket.ip : plain connected() never turns true while its ##
+## internal flag is set                                                     ##
+if ( $sock->connect ) {
+    <[nameserv.sync.client.connected]>->($state);
+} elsif ( not $OS_ERROR{EINPROGRESS}
+    and not $OS_ERROR{EWOULDBLOCK}
+    and not $OS_ERROR{EALREADY} ) {
+    <[base.logs]>->(
+        1, ': sync pull connect failed [ %s:%d ] : %s',
+        $state->{'host'}, $state->{'port'}, <[base.str.os_err]>
+    );
+    <[nameserv.sync.client.finish]>->(
+        $state,
+        {   mode => qw| false |,
+            data => sprintf 'connect failed : %s',
+            <[base.str.os_err]>
+        }
+    );
+}
+## still in progress : the watcher fires again on the next event ##
+
+return;
+
+#,,.,,.,,,,..,..,,,..,..,,,,.,.,,,...,..,,,,.,..,,...,..,,.,.,..,,,..,,..,,..,
+#L77ATP46Y5UDAVTRE57RSPPVIZAC5U2NU3ADZTY3UNH4AFVZ6ES5HSQQS2UMNAUE65EC4PYZ4F6UU
+#\\\|7ND55YPPV2WIKNYIPT23S7YGE6UOSFYGSGKB5MQYU3GOQ7PON5C \ / AMOS7 \ YOURUM ::
+#\[7]5CZ5PZGQKVUK7BIC64TVZP44FTPJXBWUC6AAVLPIWWG5O2W6IGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

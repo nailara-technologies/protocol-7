@@ -10,6 +10,16 @@ my $event_data = shift // {};
 
 my $full_event_name = "nameserv.$event_name";
 
+## dispatch registered handlers                                            ##
+## [ e.g. nameserv.sync.notify on data-changed ] ; absent registry stays a ##
+## pure log line                                                           ##
+my $handlers = <nameserv.event.handlers>;
+if (    ref $handlers eq qw| HASH |
+    and ref $handlers->{$full_event_name} eq qw| ARRAY | ) {
+    <[base.code.call_optional]>->( $ARG, $event_name, $event_data )
+        for @{ $handlers->{$full_event_name} };
+}
+
 ## log the event
 if ( ref $event_data eq 'HASH' ) {
     my $data_str = join ', ',
@@ -21,8 +31,8 @@ if ( ref $event_data eq 'HASH' ) {
 
 return TRUE;
 
-#,,,,,.,,,,,,,,.,,,.,,..,,,,.,...,,,.,,.,,,.,,..,,...,...,.,.,.,.,...,..,,,,.,
-#TCREC3DXJXIP4GSG5MXFCBFYUSZI24ZLOID3U2U66DN6MUOBXYC2OPR33O5HWRMGFPJEDYJMN4BJ2
-#\\\|FLRQ6JUL5EMQFUGSAGVU6FDKKGUHOG4F63P5AAXFYMLMMK7GXYO \ / AMOS7 \ YOURUM ::
-#\[7]2ZQMKT3HEQDO26WY7IPDXCR5WS7IA3FC2JVVAHTXG2ZSEFC3IYBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,..,,.,,,,.,,,.,,,,,,,,,.,,,..,,...,.,.,..,,.,.,,,.,..,,.,.,
+#WMEDNO6EWUXI77XDDI6RMFRJAGVRCX62U24VH2YPAAANYSFAV62QMZ2GLVCHL44NKUJRTIHEGEBVW
+#\\\|NJFVRF553TUDYCRIMQGQK4Z574J3MZVFR5NCCZVYW22RCZMFFQA \ / AMOS7 \ YOURUM ::
+#\[7]QTICRF2ENHTIVJZFHPOBK4ACUGAKWCH4S3OZG674JRGQFT4DP4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

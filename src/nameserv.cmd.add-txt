@@ -55,11 +55,14 @@ $zone->{'serial'} = time();
 
 <[nameserv.zone.save]>->($zone_name);
 
+## wake sync waiters holding next-data-timestamp ##
+<[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+
 my $msg = sprintf "txt record added: %s", $fqdn;
 return { mode => 'true', data => $msg };
 
-#,,..,,,,,..,,,,,,...,,..,,.,,,.,,,.,,..,,.,.,..,,...,...,,,,,.,,,,.,,,..,.,.,
-#57XGD63UV7B7DD77J3UYVILQ6QNOGWQDFVH2TIU2PO5CUMA7CFY6Q4DYEU3JM24RW66JOXQBBGX6A
-#\\\|IFZC64P57TE7GDRKCLBZZRH4U6KNNTDJXARD6F4YKEKZG7BQR3W \ / AMOS7 \ YOURUM ::
-#\[7]BILD4ZGOSAZ6HI4C432C7KFVMZRRPHS6D7QQP37MECWN62YFOECA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,...,.,,,,..,.,.,..,,,.,,,,.,..,,...,...,,.,,,..,,,,,.,,,,.,,
+#I5GKR4M7ONKGHDKN45QZQYRVGPCMGT5YA2JBE45EAZ7PEJ6MUJX2SOF7RJPJS7WJI47X7JA7LPUSI
+#\\\|LWDQFQ6NJL4WNNGSRBTDNW2XTSGHU2U7D4AZIM6SP5L4M3WJMTI \ / AMOS7 \ YOURUM ::
+#\[7]PDPMQ72JWXQB3B4M4BKU4LWN5JYX7WRTDM2EHIBBY6EPUB3SM4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,236 @@
+task: nameserv timestamp-delta-sync stage 2 -- tcp line protocol
+status: in_progress
+priority: high
+created: 2026-10-11
+design: data/md/design/TIMESTAMP-DELTA-SYNC.md [ read the WHOLE document first ]
+
+objective: >
+  implement stage 2 of the timestamp delta sync design : the UNSIGNED tcp line
+  protocol between nameservers, plus the sync-pull client command and the peer
+  loop. stage 1 [ timestamps, tombstones, zone checksum, last-data-timestamp ]
+  is committed -- reuse it, never duplicate its logic.
+
+context: |
+  repo root : /data/projects/protocol-7
+  read first, in this order :
+    1. data/md/design/TIMESTAMP-DELTA-SYNC.md   [ whole file ]
+    2. CLAUDE.md
+    3. data/yaml/code-style/CONVENTIONS.yaml
+  stage-1 modules [ COMMITTED, reuse via <[...]> calls, do not reimplement ] :
+    src/nameserv.entry.identity      canonical identity key of a record
+    src/nameserv.zone.timestamp      newest ts in a zone or the whole set
+    src/nameserv.zone.checksum       bmw-512 b32 checksum of live records
+    src/nameserv.zone.tombstone.add  tombstone for a removed record
+    src/nameserv.zone.tombstone.clear
+    src/nameserv.zone.tombstone.purge
+    src/nameserv.cmd.last-data-timestamp   reply logic to reuse / factor
+    src/nameserv.zones.load
+    src/nameserv.zone.save
+  the record mutators that must wake waiters [ read them before hooking ] :
+    src/nameserv.cmd.set-record
+    src/nameserv.cmd.remove-record
+    src/nameserv.cmd.add-txt
+    src/nameserv.cmd.remove-txt
+    src/nameserv.cmd.ensure-zone
+  network / event patterns to follow EXACTLY [ never block the zenka ] :
+    src/io.ip.tcp.input.open           dual-stack listener socket,
+                                       ipv4 fallback for ipv6 wildcard
+    src/plan-9.server                  event.add_io on a listener
+    src/plan-9.server.handler.accept   accept + per-fd read handler shape
+    src/nameserv.handler.query         how an event handler gets its fd
+                                       [ shift->w->fd ]
+    src/nameserv.start_listener        the existing udp listener init
+    src/nameserv.init_code             where start_listener is invoked
+  deferred command reply pattern [ for the async sync-pull command ] :
+    return { 'mode' => qw| deferred | } and later call
+    <[base.callback.cmd_reply]>->( ... ) -- see src/web-browser.cmd.replay-record,
+    src/osf-cache.cmd.fetch, src/mv.cmd.current-ho for working examples.
+    grep src/ for 'deferred' / 'cmd_reply' to find more.
+  base32 helpers : <[base.base32.encode]> / <[base.base32.decode]>
+    [ Crypt::Misc encode_b32r / decode_b32r, reverse byte order ]. use these
+    on BOTH wire encode and decode so the two ends always agree. the stage-1
+    test's lowercase encode_b32 shim is internal to that test only.
+  state layout : <nameserv.cfg.sync.*> lives in $data{'nameserv'}{'cfg'}{'sync'}
+    [ see how nameserv.cfg.sync.tombstone_keep is read in
+    src/nameserv.zone.tombstone.purge ]. cfg keys are read with // defaults.
+  config lives in cfg/zenki/nameserv/zenka.v7 ; command allowlist is the
+    access.cmd.usr.cube line in that file ; the generated whitelist is
+    cfg/zenki/nameserv/subroutines.load-early [ regenerate, see step 8 ].
+  live console tap for verifying reload/live behavior :
+    /dev/shm/.7/STDOUT/NIW7OAQ [ check freshness with ls -la before trusting,
+    socket-id can rotate on v7-zenki restart ].
+
+  STAGE 2 IS UNSIGNED. do NOT implement signatures, writer grants, accept
+  rules, state sigs, or any writer/sig fields -- those are stage 3. entries
+  travel as plain fields this stage.
+
+steps:
+  - step: 1 server listener
+    details: |
+      a tcp listener for the sync protocol inside the nameserv zenka, started
+      from nameserv.init_code [ follow how nameserv.start_listener is called ;
+      factor a sibling module, e.g. src/nameserv.sync.listen ]. port from
+      <nameserv.cfg.sync.port>, default UNDEF = NO listener [ production port
+      decided later ]. bind address <nameserv.cfg.sync.bind>, default
+      '0:0:0:0:0:0:0:0' with the ipv4 fallback EXACTLY like src/io.ip.tcp.input.open.
+      use <[event.add_io]> for accept and per-connection reads, the
+      plan-9.server.handler.accept shape. never block the zenka : no
+      blocking connect/read/write inside event handlers.
+  - step: 2 line protocol requests
+    details: |
+      one request per line ; every reply ends with a line '.'. commands :
+        last-data-timestamp [<zone>]
+          -> 'TRUE <ts>'                       [ whole set ]
+          -> 'TRUE <ts> <checksum>'            [ zone ]
+          reuse the logic of nameserv.cmd.last-data-timestamp ; factor a
+          shared helper module if needed instead of copying code.
+        since <ts> [<zone>]
+          -> one line per live record or tombstone newer than <ts> :
+             'ENTRY <base32 of the canonical length-prefixed field encoding
+             of : zone name type value ttl ts deleted_flag>'
+             [ base32 via <[base.base32.encode]>, NO hex anywhere ;
+             deleted_flag = 1 for tombstones, 0 for live records ;
+             tombstones encode their 'deleted' ts in the ts field ]
+          -> then per zone : 'CHECKSUM <zone> <checksum> <zone ts>'
+          -> '.'
+        full <zone>
+          -> every live record [ same ENTRY form ] + CHECKSUM + '.'
+        next-data-timestamp [<zone>] since:<ts>
+          -> holds the connection until the set [ or zone ] ts is newer than
+             <ts>, then 'TRUE <ts>' + '.'
+          -> waiting connections are woken from the record mutators
+             [ set-record, remove-record, add-txt, remove-txt, ensure-zone ]
+             through ONE notify module [ e.g. src/nameserv.sync.notify ], NOT
+             by polling. the notify module keeps the list of waiting
+             connections and re-checks each waiter's predicate on wake.
+        anything else -> 'FALSE <short reason>' + '.'
+  - step: 3 limits
+    details: |
+      max line length 4096 ; max entries per reply from
+      <nameserv.cfg.sync.max_entries_reply> // 7777 ; max open sync
+      connections from <nameserv.cfg.sync.max_connections> // 77 ;
+      idle timeout for connections NOT waiting in next-data-timestamp from
+      <nameserv.cfg.sync.idle_timeout> // 390 [ seconds ] via an
+      event.add_timer style mechanism used elsewhere in the codebase
+      [ grep src/ for event.add_timer usage and follow it ]. the
+      unauthenticated port must never grow memory without bound : cap
+      buffered input per connection, reap idle and dead connections,
+      bound the waiters list.
+  - step: 4 client command nameserv.cmd.sync-pull
+    details: |
+      usage : nameserv.sync-pull <host> <port> [<zone>]
+      event-driven : non-blocking connect + io handler [ find how the
+      codebase does non-blocking outbound tcp -- grep for IO::Socket::IP
+      with Blocking => 0 and event.add_io patterns ; never LWP, never a
+      blocking connect in the command ]. the command returns
+      { mode => 'deferred' } and sends its reply via
+      <[base.callback.cmd_reply]>->(...) when done [ see the deferred reply
+      examples in context ]. behavior :
+        1. connect, ask 'last-data-timestamp [<zone>]'
+        2. if our local ts for the zone/set is absent or older than the
+           peer's, run 'since <our ts> [<zone>]' [ or 'full <zone>' when we
+           have nothing ]
+        3. apply the entries : newer ts wins per identity [ compare with
+           <[base.ntime.delta_seconds]> ] ; a tombstone removes the live
+           record via the existing tombstone machinery [ keep tombstones ] ;
+           a live entry replaces an older same-identity record
+        4. compute the zone checksum with nameserv.zone.checksum and compare
+           with the peer's CHECKSUM line ; on mismatch fetch 'full <zone>'
+           ONCE, replace the zone's live records with the fetched set, and
+           re-check [ report false if it still mismatches ]
+        5. save via <[nameserv.zone.save]>
+      decode ENTRY lines with <[base.base32.decode]> and the same field
+      decoder as the encoder in step 2 [ factor ONE codec module used by
+      both sides, e.g. src/nameserv.sync.entry.encode / .decode ].
+  - step: 5 peer loop
+    details: |
+      <nameserv.cfg.sync.peers> = space separated host:port entries, ipv6
+      hosts in brackets [ e.g. '[fd00::1]:5353 other.host:5353' ]. for each
+      peer keep ONE connection held in 'next-data-timestamp since:<ts>' ;
+      when it returns TRUE, run the sync-pull logic for that peer, then
+      re-arm the wait with the new ts. a dropped/failed connection
+      reconnects with backoff : start 13 s, doubling, capped at 390 s.
+      no peers configured = nothing runs. run the loop from the same start
+      point as the listener [ init_code path ] and only when a sync port is
+      configured / peers exist as appropriate for each side.
+  - step: 6 config and access
+    details: |
+      add 'sync-pull' to the access.cmd.usr.cube line in
+      cfg/zenki/nameserv/zenka.v7. do NOT add hardcoded ports there --
+      sync.port stays unset [ default undef = no listener ] unless a local
+      live test needs a temporary value [ see acceptance, revert after ].
+  - step: 7 naming and style
+    details: |
+      module format : '## [:< ##', '# name =', '# descr = ' [ <= 55 chars ],
+      '# param = ' for commands. no sub {} wrapper around the module body.
+      lowercase comments, [ ] not ( ) in comments. minimum perl 5.32 --
+      no newer syntax. use $ARG / $ARG[0] in map/grep/for, NEVER $_.
+      no SUPER:: -- there is no class hierarchy in P7. call TARGET module
+      names where families rename themselves at load [ base.swap_subs ] :
+      <[event.add_io]>, <[file.slurp]>, <[chk-sum.bmw.512.B32]>,
+      <[protocol-7.command.send.local]> etc -- never the 'base.' file name.
+      run 'bin/format-code -c' on EVERY new or changed src file and fix
+      everything it reports [ syntax AND 'swapped name [ line N ]' ].
+      no hex, base32 only. no sha-2. no CPAN modules not already used in
+      the codebase [ grep first ]. all new modules under src/nameserv.sync.*
+      or src/nameserv.cmd.sync-pull as appropriate -- do not edit files
+      outside src/nameserv.*, cfg/zenki/nameserv/ and the new test script.
+  - step: 8 regenerate whitelist
+    details: |
+      after all src changes : regenerate cfg/zenki/nameserv/subroutines.load-early
+      with : bin/dev/gen-sub-whitelist nameserv
+  - step: 9 standalone test
+    details: |
+      write bin/test-scripts/test-nameserv-sync-stage2.pl using the SAME
+      shim approach as bin/test-scripts/test-nameserv-entry-stage1.pl
+      [ tiny p7-syntax translator, stubbed dependencies, sandbox zone dir,
+      no zenka started ]. reuse its encode_b32 / ntime shims where they fit.
+      cover at least :
+        - the line protocol request parser [ all five commands + garbage
+          input -> FALSE reason ]
+        - ENTRY encode/decode round trip [ canonical field encoding ]
+        - the since filter [ newer-than ts selection, live + tombstones ]
+        - applying entries : newer ts wins per identity, tombstone removes
+          live record and is kept, older ts ignored
+        - checksum mismatch -> full fetch once -> zone replaced
+      run it : perl bin/test-scripts/test-nameserv-sync-stage2.pl
+  - step: 10 live test on THIS desktop
+    details: |
+      allowed : p7c v7-zenki.start nameserv and p7c v7-zenki.terminate nameserv
+      [ the dns socket failing to bind here is EXPECTED, cube commands work ].
+      do NOT restart/reload any other zenka. you cannot write /etc, so for a
+      listener test either make a TEMPORARY local edit setting
+      nameserv.sync.port in cfg/zenki/nameserv/zenka.v7 [ REVERT it
+      afterwards ] or describe the exact manual test instead. use ONLY zones
+      named *.invalid and remove them afterwards with
+      'p7c nameserv.remove-zone <zone>'. never touch other zones.
+      verify live behavior against the console tap
+      /dev/shm/.7/STDOUT/NIW7OAQ [ ls -la first to confirm freshness ].
+      do NOT commit, do NOT touch git state, do NOT sign any file.
+
+acceptance: |
+  - bin/format-code -c reports syntax valid and no swapped names on every
+    new/changed src file
+  - perl bin/test-scripts/test-nameserv-sync-stage2.pl passes [ 0 exit ]
+  - cfg/zenki/nameserv/subroutines.load-early regenerated and consistent
+  - nameserv starts locally with the sync listener when a port is set and
+    stays silent [ no listener ] when it is not
+  - no changes outside src/nameserv.*, cfg/zenki/nameserv/,
+    bin/test-scripts/test-nameserv-sync-stage2.pl and this task file
+  - final report : every file changed/created [ one line each ], the
+    format-code -c result, the test result, what was tested live and how,
+    and every decision made where the design was not explicit
+
+signatures_note: |
+  do NOT add any '#,,.' / '#,,,..' / signature stub footer at the end of any
+  file. leave new files clean -- the signing system adds the real 4-line
+  footer. never copy a '#,,' footer from an existing file into a new one.
+
+# archived [ 2026-10-11 ] : stage 2 of todo 4CJ implemented [ kimi k2.8,
+# reviewed and fixed by claude ], committed with the stage 2 sync modules.
+
+#,,..,.,,,,.,,..,,,..,,..,.,.,...,.,,,,,,,,,.,..,,...,...,.,,,.,.,,,.,,,.,,,.,
+#RWMX6DTQFEICH5CDEA2NIPM2MMQD4YF6Q6Y6NVZ2ZTS5MK3MBVFSQWUYJAPRAPMKKJ6VUWRRM5Q7W
+#\\\|2EYUZJHW5UZHHJBNMYI3WNJBZAV6PVBMHNC5SRST4UXQOCDKZ2L \ / AMOS7 \ YOURUM ::
+#\[7]C5KBDLBSWPYATU4GCJVU2HNBZ2NKD7GNZCGJQ6NAHGXW2MB2ZWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

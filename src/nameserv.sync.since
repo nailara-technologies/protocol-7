@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = nameserv.sync.since
+# descr = build since/full reply lines for one zone or the set
+# param = $since_ts|undef, $zone_name|undef, $live_only -> ( line, .. )
+
+my $since_ts  = shift;
+my $zone_name = lc( shift // '' );
+my $live_only = shift // FALSE;
+
+my $zones = <nameserv.zones> // {};
+
+my @zone_names = ();
+if ( length $zone_name ) {
+    return () if not exists $zones->{$zone_name};
+    push @zone_names, $zone_name;
+} else {
+    @zone_names = sort keys %$zones;
+}
+
+my $max_entries = <nameserv.cfg.sync.max_entries_reply> // 7777;
+
+my @lines = ();
+my $count = 0;
+my $ts_ok = sub {
+    my $ts = shift // '';
+    return FALSE if not length $ts;
+    return
+          ( $ts =~ m|^\d+(\.\d+)?$| )              ? TRUE
+        : <[base.ntime.b32_is_shape_valid]>->($ts) ? TRUE
+        :                                            FALSE;
+};
+my $newer = sub {
+    my $ts = shift;
+    return TRUE if not defined $since_ts;    ## full : everything qualifies ##
+    my $delta = <[base.ntime.delta_seconds]>->( $since_ts, $ts );
+    return ( defined $delta and $delta > 0 ) ? TRUE : FALSE;
+};
+
+for my $z_name (@zone_names) {
+    my $zone = $zones->{$z_name} // next;
+
+    my @entries = ();
+
+    for my $rec ( @{ $zone->{'records'} // [] } ) {
+        next if ref $rec ne qw| HASH |;
+        my $ts = $rec->{'ts'} // '';
+        next if not $ts_ok->($ts);
+        next if not $newer->($ts);
+        push @entries,
+            {
+            zone    => $z_name,
+            name    => lc( $rec->{'name'} // '' ),
+            type    => uc( $rec->{'type'} // '' ),
+            value   => $rec->{'value'} // '',
+            ttl     => $rec->{'ttl'}   // 0,
+            ts      => $ts,
+            deleted => FALSE,
+            };
+    }
+
+    if ( not $live_only ) {
+        for my $tomb ( @{ $zone->{'tombstones'} // [] } ) {
+            next if ref $tomb ne qw| HASH |;
+            my $ts = $tomb->{'deleted'} // '';
+            next if not $ts_ok->($ts);
+            next if not $newer->($ts);
+            push @entries,
+                {
+                zone    => $z_name,
+                name    => lc( $tomb->{'name'} // '' ),
+                type    => uc( $tomb->{'type'} // '' ),
+                value   => $tomb->{'value'} // '',
+                ttl     => 0,
+                ts      => $ts,
+                deleted => TRUE,
+                };
+        }
+    }
+
+    ## deterministic order : identity sort ##
+    @entries = sort {
+        <[nameserv.entry.identity]>->( $z_name, $a ) cmp
+            <[nameserv.entry.identity]>->( $z_name, $b )
+    } @entries;
+
+    for my $entry (@entries) {
+        last if $count >= $max_entries;
+        my $encoded = <[nameserv.sync.entry.encode]>->($entry);
+        next if not defined $encoded;
+        push @lines, sprintf 'ENTRY %s', $encoded;
+        $count++;
+    }
+
+    ## state after the listed entries : checksum + zone ts ##
+    my $checksum = <[nameserv.zone.checksum]>->($z_name)  // '-';
+    my $zone_ts  = <[nameserv.zone.timestamp]>->($z_name) // '-';
+    push @lines, sprintf 'CHECKSUM %s %s %s', $z_name, $checksum, $zone_ts;
+}
+
+return @lines;
+
+#,,.,,.,,,.,.,...,,,,,...,,,.,,.,,.,,,,..,.,,,..,,...,..,,.,.,,,.,.,.,,..,.,.,
+#SJBDG5UEOPSAHJQ6CNANZA27OSXFDNIDZB5XANDJKKWBOJDFSFGF5SER3GWF24INB6GPMJBZSPV3S
+#\\\|XJRLNMWWEX7FIXLLGXRQUHU44OLHHYSDEWDTFGOAWFL66GOXHO4 \ / AMOS7 \ YOURUM ::
+#\[7]K7CNK44PPPSZJ6BH3WWX4H6V4DYKGKLWMLIQZMBQDQ4VJM7QYQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

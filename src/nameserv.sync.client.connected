@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nameserv.sync.client.connected
+# descr = finish a sync pull connect : watch reads, ask the peer ts
+
+my $state = shift // return;
+
+if ( ref $state->{'watcher'} ) {
+    $state->{'watcher'}->cancel
+        if $state->{'watcher'}->can('is_active')
+        and $state->{'watcher'}->is_active;
+    $state->{'watcher'} = undef;
+}
+
+my $zone_arg = length( $state->{'target'} // '' ) ? $state->{'target'} : '';
+my $request
+    = length $zone_arg
+    ? "last-data-timestamp $zone_arg\n"
+    : "last-data-timestamp\n";
+
+syswrite $state->{'sock'}, $request;
+
+$state->{'phase'} = 'last-ts';
+
+$state->{'watcher'} = <[event.add_io]>->(
+    {   fd      => $state->{'sock'},
+        poll    => 'r',
+        handler => qw| nameserv.sync.client.handler.read |,
+        data    => $state->{'id'},
+        desc    => "sync pull read [ $state->{'host'}:$state->{'port'} ]"
+    }
+);
+
+return TRUE;
+
+#,,,,,...,.,.,,,,,,.,,,.,,..,,,,,,,,,,,,,,,.,,..,,...,...,,,.,...,,.,,.,.,,,,,
+#D5CURA77LJM2XPYDVOJL76JHQYM423ZNMKBWTROXVA75P5O452WSQ2EFOC7O7CTD773XIYGO3STUM
+#\\\|N6FCRWF5VG37BNMG7ECYWZTMHHIVQYHQ65CO4RY472X7OMOIW4Y \ / AMOS7 \ YOURUM ::
+#\[7]FNXHYOUREJU2IORIFV5HG6JMNPQAXFPJPSUA6MAPBKRRFDLOCCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

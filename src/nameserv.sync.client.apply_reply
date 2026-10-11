@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = nameserv.sync.client.apply_reply
+# descr = process one since/full reply : apply, verify, decide next step
+# param = $state, $lines_aref -> { result => ok|need-full|false, .. }
+
+my $state = shift
+    // return { 'result' => qw| false |, 'reason' => 'no state' };
+my $lines = shift
+    // return { 'result' => qw| false |, 'reason' => 'no reply' };
+
+my @entries   = ();
+my %checksums = ();
+my $applied   = 0;
+my $newest    = undef;
+
+for my $line (@$lines) {
+    if ( $line =~ m|^ENTRY (\S+)$| ) {
+        my $entry = <[nameserv.sync.entry.decode]>->($1);
+        return { 'result' => qw| false |, 'reason' => 'undecodable entry' }
+            if not defined $entry;
+        push @entries, $entry;
+    } elsif ( $line =~ m|^CHECKSUM (\S+) (\S+) (\S+)$| ) {
+        $checksums{$1} = $2;
+    } elsif ( $line =~ m|^TRUE (\S+)$| ) {
+        $newest = $1;
+    } elsif ( $line =~ m|^FALSE (.+)$| ) {
+        return { 'result' => qw| false |, 'reason' => $1 };
+    }
+}
+
+$state->{'checksums'} //= {};
+map { $state->{'checksums'}{$ARG} = $checksums{$ARG} } keys %checksums;
+
+if ( $state->{'phase'} eq qw| full | ) {
+    my $zone = $state->{'full_zone'} // '';
+    return { 'result' => qw| false |, 'reason' => 'no zone for full' }
+        if not length $zone;
+    return {
+        'result' => qw| false |,
+        'reason' => "missing checksum: $zone"
+        }
+        if not exists $state->{'checksums'}{$zone};
+
+    ## replace the zone's live records with the fetched set ##
+    <[nameserv.sync.full.replace]>->( $zone, \@entries );
+    $state->{'full_done'}{$zone} = TRUE;
+    $applied = scalar @entries;
+} else {    ## since reply ##
+    $applied
+        = <[nameserv.sync.apply]>->( $state->{'target'} // undef, \@entries );
+}
+
+## the state after applying must checksum against the peer's lines ##
+my @mismatched
+    = <[nameserv.sync.checksums.verify]>->( $state->{'checksums'} );
+
+my @failed = grep { $state->{'full_done'}{$ARG} } @mismatched;
+return {
+    'result' => qw| false |,
+    'reason' => 'checksum mismatch after full fetch : '
+        . join( ' ', @failed ),
+    'applied' => $applied,
+    }
+    if @failed;
+
+my @pending = grep { not $state->{'full_done'}{$ARG} } @mismatched;
+return {
+    'result'     => qw| need-full |,
+    'applied'    => $applied,
+    'mismatched' => \@pending,
+    }
+    if @pending;
+
+return { 'result' => qw| ok |, 'applied' => $applied, 'newest' => $newest };
+
+#,,.,,,,.,,,.,..,,,..,.,,,,..,,,,,,,.,,..,,,.,..,,...,...,,.,,,.,,.,.,..,,,,.,
+#CK4OOWMYD3IWV6XKKDIBETKUWY3BR2LVTUXQV53W3SBHJBS2XD7DG72NBXOPNX3X7LDRBE4OZXQ6E
+#\\\|VN4UXJ2JNOWHX2OTDMWXGIFYEBFWMSFTC7QPXPVXOCPHFD76AZX \ / AMOS7 \ YOURUM ::
+#\[7]R5YF3VSURXLDRXMDJSTHWTU6G7LOYSWTJW4GCQ7B4RDZWQ77RGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       reload-zones status set-record remove-record \
                       get-record show-zone list-zones discover-nodes \
                       add-txt remove-txt ensure-zone last-data-timestamp \
-                      remove-zone restore-zone
+                      remove-zone restore-zone sync-pull
 
 ## logging verbosity
 system.zenka.verbosity.buffer  = 2
@@ -30,7 +30,7 @@ system.zenka.verbosity.console = 1
 ## per-host overrides [ /etc/protocol-7/<zenka>/host.cfg, optional ] ##
 [load_host_config]
 
-modules.load = auth.client net protocol io.unix ui format.yaml nameserv
+modules.load = auth.client net protocol io.unix io.ip ui format.yaml nameserv
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -47,8 +47,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml nameserv
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,.,,,,.,,,.,...,.,.,.,.,...,,..,..,,.,.,,..,..,,...,...,.,,,.,,,.,,,,.,,..,,
-#XRC7TFCBFQFN4FN5YVSYZYJMVP4IGJBMXYJJLCP6FRKDWUWQ57OTIUPNXPTVBUJPGOIV237LRI2JC
-#\\\|RPLBZVCHWL6DRACCKY445M2DKKTIAOLOCHYFAWQKAVEKCNNSWZU \ / AMOS7 \ YOURUM ::
-#\[7]TDZJRGPXJWXROD7WXOHEY5QIXSXZXX6FYDK4IGHIERIWS3OIDIAI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,.,.,.,.,.,,..,,..,,,.,,,,,,..,..,,...,...,.,,,...,,,.,..,,..,,
+#7BETP7ZHALSNME4LAYJJIVZIDASCBBHK3OKJOMOZ2QQ57WMRBE2C2H2Q4EFOE4EHWTBFO6MMMRIXG
+#\\\|YNJFZCY2SGACSSITW7GQBS6UCG5E4SFNCLFUHFIHQTHGJ23DRMD \ / AMOS7 \ YOURUM ::
+#\[7]34ONJYZYZ7JE4FMZYMXLEPFHEVSATCOQDNTF6L3ISN32DTZYPYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

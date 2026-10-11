@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nameserv.sync.client.finish
+# descr = clean up a sync pull and deliver its result
+
+my $state  = shift // return;
+my $result = shift // { mode => qw| false |, data => 'no result' };
+
+for my $key (qw| watcher timer |) {
+    if ( ref $state->{$key} ) {
+        $state->{$key}->cancel
+            if $state->{$key}->can('is_active')
+            and $state->{$key}->is_active;
+        $state->{$key} = undef;
+    }
+}
+
+close $state->{'sock'} if defined $state->{'sock'};
+
+delete <nameserv.sync.client.pending>->{ $state->{'id'} }
+    if length( $state->{'id'} // '' );
+
+## the newest local ts after a successful pull ##
+## [ the peer loop re-arms its wait with it ]  ##
+if ( $result->{'mode'} eq qw| true | and not defined $result->{'ts'} ) {
+    $result->{'ts'}
+        = <[nameserv.zone.timestamp]>->( $state->{'target'} // undef );
+}
+
+<[base.callback.cmd_reply]>->( $state->{'reply_id'}, $result )
+    if length( $state->{'reply_id'} // '' );
+
+<[base.code.call_optional]>->( $state->{'on_done'}, $state, $result )
+    if length( $state->{'on_done'} // '' );
+
+return $result;
+
+#,,,.,,.,,.,,,..,,...,..,,,.,,,,,,,..,.,,,,,.,..,,...,...,.,.,.,,,,,,,,..,,.,,
+#B5DCMJUEQMJWLG5VUJ5VIRQFYDB5SANNMIJGI6MAFIDQIRPLSFIUVZRKB67EP75BLH2PFSZLDUBTY
+#\\\|X3ICZUOVGU6NKMZNGPT36UET56P3YYCEXLLIJ6ETTKJ73EUOG2U \ / AMOS7 \ YOURUM ::
+#\[7]OMMCY2JHNQ3IZB4T4TIETRIUT2T2ZAFPG676HDC7UYEXANKJTODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

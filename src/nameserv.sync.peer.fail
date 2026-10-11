@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.fail
+# descr = drop a peer connection and re-arm with growing backoff
+
+my $key    = shift // return;
+my $reason = shift // 'unknown';
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+<[nameserv.sync.peer.release]>->($key);
+
+<[base.logs]>->(
+    1,    ': sync peer %s failed [ %s ] [ retry in %d s ]',
+    $key, $reason, $peer->{'backoff'}
+);
+
+my $backoff = $peer->{'backoff'} // 13;
+$peer->{'backoff'} = $backoff * 2 > 390 ? 390 : $backoff * 2;
+
+$peer->{'timer'} = <[event.add_timer]>->(
+    {   after   => $backoff,
+        handler => qw| nameserv.sync.peer.arm |,
+        data    => $key,
+        desc    => "sync peer retry [ $key ]"
+    }
+);
+
+return TRUE;
+
+#,,..,,,,,...,...,,.,,,.,,...,,,.,.,.,..,,,.,,..,,...,...,...,,,.,,.,,,..,,..,
+#XHAWX7KD5DBHWMK2KZ5HXCWEGGLQXLZVHUFLCX353YLJ6PMGQEZKGUOT55F7OES7VWO4V3N5YNJVY
+#\\\|RNZ4PK4NOKBOAB6X2WO75KYZYVST7HW2OZ65WWMQ6UO4MOHG44H \ / AMOS7 \ YOURUM ::
+#\[7]EOHALPTBI6ISNFV7ORFQHZV4XXKTRO5THIBSJJI24MRDPZEUMGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

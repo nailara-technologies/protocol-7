@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.release
+# descr = drop a peer's long-poll socket and watchers [ keep state ]
+
+my $key = shift // return;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+if ( ref $peer->{'watcher'} ) {
+    $peer->{'watcher'}->cancel
+        if $peer->{'watcher'}->can('is_active')
+        and $peer->{'watcher'}->is_active;
+    $peer->{'watcher'} = undef;
+}
+
+close $peer->{'sock'} if defined $peer->{'sock'};
+$peer->{'sock'} = undef;
+
+$peer->{'state'} = qw| idle |;
+
+return TRUE;
+
+#,,,,,..,,..,,,.,,,.,,,..,,..,.,,,...,...,,..,..,,...,...,,..,..,,.,.,.,,,,,,,
+#YBFH4J4GPNJOKDWX4J5Q67IIRS2VFISMVWRKTZMWAZAZ4IZMINWPAJNAZT37Q3UGAS2A3R6DLGJNC
+#\\\|BOYKURUCGER2LBZAA7KJRGGFDWGNOEMACPAKKOJQQXE4H67CAMP \ / AMOS7 \ YOURUM ::
+#\[7]XRXFDKPACOAU47WO66EQXJR2VXV63BHL3PWLH42JYZXGHATVKWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,11 +62,14 @@ $zone->{'serial'} = time();
 
 <[nameserv.zone.save]>->($zone_name);
 
+## wake sync waiters holding next-data-timestamp ##
+<[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+
 my $msg = sprintf( "removed %d record(s) from %s", $removed, $zone_name );
 return { mode => 'true', data => $msg };
 
-#,,.,,.,,,,.,,,.,,,.,,...,,..,.,,,,,.,...,,,.,..,,...,...,..,,,.,,,.,,,,,,..,,
-#BRSKFUMM2L6N5IHXGDVQ4JSMWSIFOZ6SO3SLNKHGY6TOHO3W7TJS56SQW7ILFVBHGBFZBJRTMVTNA
-#\\\|VNANQORZ2GJ3MDGNRNERZOWFDMZ4YY5KINT7HS5JMZG2PZNZTRJ \ / AMOS7 \ YOURUM ::
-#\[7]CKF7UK7UK5AY5L7NITRXISHPAXAJUPZMNLGDRTMPQBLZAOJASQDA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,,,.,...,..,,...,,,,,.,,,..,,..,,...,.,.,.,.,...,.,,,...,,..,
+#NNI7N577UTEHAKGOXUUPMWJUWLGOAIC43L72LHGANTGLBAGHOIVJQNNSWEO5DMBC5MPDOABVNM4B6
+#\\\|T67BPHLZNSPSJXVGLZTENEV3F7XFPM33BQ6KTSZK2HMZD3P5DZ6 \ / AMOS7 \ YOURUM ::
+#\[7]WAWRRSLD7XE7ZUSSDUVBGKFAYHUHW4MRDKLT6FM6QTDINO4IHIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

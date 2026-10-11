@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = nameserv.sync.listen
+# descr = start the sync tcp listener [ no-op without sync.port ]
+
+my $port = <nameserv.cfg.sync.port> // return TRUE;    ## silent : no cfg ##
+
+## reinit [ reload ] : the listener, reaper and handler already exist -- ##
+## io.ip.tcp.input.open sets ReusePort, a second bind would succeed      ##
+return TRUE if defined <nameserv.sync.listener>;
+
+my $bind = <nameserv.cfg.sync.bind> // '0:0:0:0:0:0:0:0';
+
+require IO::Socket::IP;    ## ipv4 + ipv6, like nameserv.start_listener ##
+
+## dual-stack wildcard with the ipv4 fallback, exactly like ##
+## io.ip.tcp.input.open                                     ##
+my $lsock = <[io.ip.tcp.input.open]>->( $bind, $port ) // return FALSE;
+
+<nameserv.sync.listener> = $lsock;
+<nameserv.sync.conns> //= {};
+
+<[event.add_io]>->(
+    {   fd      => $lsock,
+        poll    => 'r',
+        handler => qw| nameserv.sync.handler.accept |,
+        data    => $lsock,
+        desc    => 'sync protocol accept handler'
+    }
+);
+
+## reap idle connections [ waiting conns are exempt ] ##
+<[event.add_timer]>->(
+    {   interval => 60,
+        repeat   => TRUE,
+        handler  => qw| nameserv.sync.reap |,
+        desc     => 'sync idle connection reaper'
+    }
+);
+
+## wake channel : record mutators emit data-changed, the notify module ##
+## re-checks every waiting connection                                  ##
+my $handlers = <nameserv.event.handlers> //= {};
+my $event    = 'nameserv.data-changed';
+push @{ $handlers->{$event} }, qw| nameserv.sync.notify |
+    unless grep { $ARG eq qw| nameserv.sync.notify | }
+    @{ $handlers->{$event} // [] };
+
+<[base.logs]>->( 1, ": sync listener started on %s:%d", $bind, $port );
+
+return TRUE;
+
+#,,,,,,,.,.,.,..,,..,,,.,,.,.,,,,,..,,...,,..,..,,...,...,..,,..,,,,.,,,,,,,.,
+#O4WHK36SSMS3SRNVDIOBC7JX4YW33E4ZI6HGQPGPFH3XM3ZE6JTZDIPF2SCSOGKK34DFGQV2FFJ4U
+#\\\|NJCQBGSBIDHB3FSJJFVRDI374EIYQ3AED2UH7XWHTRMAA6KFKTP \ / AMOS7 \ YOURUM ::
+#\[7]2UJIXJLDF3QRLC7RW6KXVOJVVAFBFMDLHYJVXCOUAUVGV2D7KIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

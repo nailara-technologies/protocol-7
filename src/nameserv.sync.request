@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = nameserv.sync.request
+# descr = parse one sync protocol line and queue the reply
+# param = $conn, $line -> TRUE
+
+my $conn = shift // return undef;
+my $line = shift // '';
+
+my $conns = <nameserv.sync.conns> //= {};
+$conn = $conns->{$conn} if not ref $conn and defined $conns->{$conn};
+return undef if ref $conn ne qw| HASH |;
+
+my @tokens  = grep {length} split m|\s+|, $line;
+my $command = shift @tokens // '';
+
+my $false = sub {
+    my $reason = shift // 'unknown';
+    <[nameserv.sync.conn.write]>->( $conn, sprintf "FALSE %s\n.\n", $reason );
+};
+
+if ( $command eq qw| last-data-timestamp | ) {
+    return $false->('usage: last-data-timestamp [zone]') if @tokens > 1;
+    my $zone = lc( shift @tokens // '' );
+    $zone =~ s{\.+$}{};
+    ## cmd modules take their call hash as first argument            ##
+    ## [ the compiled .cmd. header populates $call from it ] -- same ##
+    ## pattern as nameserv.handler.publish_reply                     ##
+    my $result
+        = <[nameserv.cmd.last-data-timestamp]>->( { 'args' => $zone } );
+    if ( $result->{'mode'} eq qw| true | ) {
+        <[nameserv.sync.conn.write]>->(
+            $conn, sprintf "%s\n.\n",
+            $result->{'data'}
+        );
+    } else {
+        $false->( $result->{'data'} // 'no timestamped data' );
+    }
+
+} elsif ( $command eq qw| since | ) {
+    my $ts = shift @tokens // '';
+    return $false->('usage: since <ts> [zone]') if not length $ts;
+    return $false->('invalid timestamp')
+        if not <[base.ntime.b32_is_shape_valid]>->($ts);
+    my $zone = lc( shift @tokens // '' );
+    $zone =~ s{\.+$}{};
+    return $false->('usage: since <ts> [zone]') if @tokens;
+    return $false->("unknown zone: $zone")
+        if length $zone and not exists <nameserv.zones>->{$zone};
+    my @lines = <[nameserv.sync.since]>->( $ts, $zone, FALSE );
+    <[nameserv.sync.conn.write]>->(
+        $conn, join( '', map {"$ARG\n"} @lines, ".\n" )
+    );
+
+} elsif ( $command eq qw| full | ) {
+    my $zone = lc( shift @tokens // '' );
+    $zone =~ s{\.+$}{};
+    return $false->('usage: full <zone>') if not length $zone or @tokens;
+    return $false->("unknown zone: $zone")
+        if not exists <nameserv.zones>->{$zone};
+    my @lines = <[nameserv.sync.since]>->( undef, $zone, TRUE );
+    <[nameserv.sync.conn.write]>->(
+        $conn, join( '', map {"$ARG\n"} @lines, ".\n" )
+    );
+
+} elsif ( $command eq qw| next-data-timestamp | ) {
+    my $since = undef;
+    my $zone  = '';
+    for my $token (@tokens) {
+        if ( $token =~ m|^since:(\S+)$| ) {
+            $since = $1;
+        } elsif ( not length $zone ) {
+            $zone = lc $token;
+        } else {
+            return $false->('usage: next-data-timestamp [zone] since:<ts>');
+        }
+    }
+    $zone =~ s{\.+$}{};
+    return $false->('missing since:<ts>') if not defined $since;
+    return $false->('invalid timestamp')
+        if not <[base.ntime.b32_is_shape_valid]>->($since);
+
+    my $current
+        = <[nameserv.zone.timestamp]>->( length $zone ? $zone : undef );
+    my $delta
+        = defined $current
+        ? <[base.ntime.delta_seconds]>->( $since, $current )
+        : undef;
+    if ( defined $delta and $delta > 0 ) {
+        <[nameserv.sync.conn.write]>->(
+            $conn, sprintf "TRUE %s\n.\n", $current
+        );
+    } else {
+        ## hold the connection : nameserv.sync.notify re-checks the ##
+        ## predicate on every record change and completes the reply ##
+        $conn->{'wait'} = {
+            'zone'  => ( length $zone ? $zone : undef ),
+            'since' => $since
+        };
+    }
+
+} else {
+    $false->("unknown command: $command");
+}
+
+return TRUE;
+
+#,,.,,,..,,,.,,.,,,,,,.,,,.,.,.,,,,.,,..,,,,.,..,,...,...,..,,.,,,..,,,,.,.,.,
+#JVPHRNKZES6DJWBMJX53JYSGHKO5NIRINFTLI5PBI5PDM4FGFPACWCIVS363DXEB537DREVWBJE4K
+#\\\|EYLSVSPSZMDX5XOJ5IZHFQO6ANSVUU7DH7RJXB73VAELDI5DCU6 \ / AMOS7 \ YOURUM ::
+#\[7]G7Q7TCP6M6U3DXFIQE6FLWMF5AAH7KICARJBULA2VYVY7ABHUUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

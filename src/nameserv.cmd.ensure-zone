@@ -56,12 +56,16 @@ $zones->{$zone_name} = {
 };
 
 <[nameserv.zone.save]>->($zone_name);
+
+## wake sync waiters holding next-data-timestamp ##
+<[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+
 <[base.logs]>->( 1, ': zone created : %s [ ns %s ]', $zone_name, "@ns" );
 
 return { mode => 'true', data => "zone created : $zone_name" };
 
-#,,,.,...,.,,,,,,,...,,,.,..,,.,,,.,,,,..,,..,..,,...,...,...,.,,,,,.,,.,,.,.,
-#3YZIRO6NFAEIZGLPID5MX55LITKHDUDBJMKYYGD3H6LACVZSHBAKH2XBG45JSA4IBFZKXELMYRHY4
-#\\\|WETLFOSYVHAA4BSZ5GK3K2RPNDCL7GYR2BYNPB635ETOZV2TDIU \ / AMOS7 \ YOURUM ::
-#\[7]3SRILIDXEIHLRFX2AVO22EP5XQYCZVNHVGCHYO3I3HESKNLXGWBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,.,.,.,.,,,.,.,,,,,.,..,,,..,..,,...,..,,.,.,,,,,...,.,.,.,,,
+#CEO7FNL6MUCCOZ7NBRL7YYF35ZRDI73GFGZDYUVB6Q4UL6VA3772JBVA2AQKOC3GJXRVTIOXSXKEK
+#\\\|3VJSRBCBS3SI34WG5VN4MIZDHXC47JTL2JFMIYBHPMBST46ZRJ3 \ / AMOS7 \ YOURUM ::
+#\[7]UQUSLOQAKX2BKAZTDLAHKN6QOZLWXZ53B7C6CV2L55OE7GXQWGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
