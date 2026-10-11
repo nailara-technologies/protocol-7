@@ -10,6 +10,8 @@ use FindBin    qw| $RealBin |;
 use File::Path qw| make_path |;
 ## SYS_mknod and SYS_lchown ##
 require 'syscall.ph';
+use constant { TRUE => 5, FALSE => 0 };
+
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
@@ -19,17 +21,20 @@ our $Bin    = $RealBin;
 
 print "\n  ::[ normalizing file permissions ]:.\n  :\n";
 
-my $verbose = ( @ARGV and $ARGV[0] eq qw| -v | ) ? 1 : 0;
+## -v : list every change ; -n \ --check : change nothing, list what would ##
+## change, exit 1 when anything differs                                    ##
+my $verbose = ( grep { $ARG eq qw| -v | } @ARGV ) ? 1 : 0;
+my $check
+    = ( grep { $ARG eq qw| -n | or $ARG eq qw| --check | } @ARGV ) ? 1 : 0;
 
 my $work_dir = p7_root_dir();    ## safely determine protocol-7 root path ##
 chdir($work_dir) or die "  :\n  :: \l$OS_ERROR : $work_dir\n\n";
 say "  ::. working on '$work_dir' .,\n  :";
 
-my $changes            = 0;
-my $user_table         = {};
-my $perm_table         = [];
-my $file_initial_state = {};               ## Track initial state of each file
-my $cfg_dir            = "$work_dir/cfg";
+my $changes    = 0;
+my $user_table = {};
+my $perm_table = [];
+my $cfg_dir    = "$work_dir/cfg";
 my $perm_file = "$work_dir/.restore_permissions"; # XXX: traverse paths option
 my $user_files = [ "$cfg_dir/system-user-map", "$cfg_dir/X11-vars" ];
 
@@ -57,58 +62,58 @@ foreach my $perm_line ( split "\n", $file_str ) {
     push $perm_table->@*, { $path_str => \@rules };
 }
 
-## First pass: capture initial state of all files (including recursive)
-foreach my $entry ( @{$perm_table} ) {
-    my ( $path, $action_ref ) = %{$entry};
-    $path =~ s|^/+||;
+## one in-memory pass instead of one tree walk per rule and parameter :   ##
+## [ 1 ] create missing paths \ links in rule order, [ 2 ] walk each tree ##
+## once and apply every rule to a table of wanted modes \ owners -- later ##
+## rules override earlier ones in memory, [ 3 ] chmod \ chown only paths  ##
+## whose current state differs                                            ##
 
-    if ( $path and -e $path ) {
-        my @stat = lstat($path);
-        $file_initial_state->{$path} = {
-            mode => $stat[2] & 07777,
-            uid  => $stat[4],
-            gid  => $stat[5]
-        };
+my %entry;        ## path -> { mode uid gid link file dir } [ lstat once ] ##
+my %walked;       ## recursive roots already walked ##
+my %want_mode;    ## chmod key [ a link : its resolved target ] -> mode ##
+my %want_own;     ## path -> [ uid, gid ] ##
 
-        ## If recursive flag is set, capture initial state of all files in
-        ## directory
-        my $is_recursive = 0;
-        foreach my $rule ( @{$action_ref} ) {
-            if ( $rule =~ m|^[RFLDC]+$| and $rule =~ m|R| ) {
-                $is_recursive = 1;
-                last;
-            }
-        }
-
-        if ( $is_recursive and -d $path ) {
-            my $recursive_count = 0;
-            find(
-                {   no_chdir => 1,
-                    wanted   => sub {
-                        my @stat = lstat($File::Find::name);
-                        if ( defined $stat[2] )
-                        {    ## Check that lstat succeeded
-                            $file_initial_state->{$File::Find::name} = {
-                                mode => $stat[2] & 07777,
-                                uid  => $stat[4],
-                                gid  => $stat[5]
-                            };
-                            $recursive_count++;
-                        }
-                    }
-                },
-                $path
-            );
-        }
-    }
+sub remember {
+    my $path = shift;
+    my @st   = lstat($path);
+    return if not @st;
+    $entry{$path} = {
+        mode => $st[2] & 07777,
+        uid  => $st[4],
+        gid  => $st[5],
+        link => -l _     ? 1 : 0,
+        file => -f $path ? 1 : 0,    ## follows a link, as before ##
+        dir  => -d $path ? 1 : 0,
+    };
 }
 
-## Second pass: apply all changes
-foreach my $entry ( @{$perm_table} ) {
-    my ( $path, $action_ref ) = %{$entry};
+sub tree_paths {    ## every path below \ at $root, walked once ##
+    my $root = shift;
+    my ($ancestor) = grep { $root eq $ARG or index( $root, "$ARG/" ) == 0 }
+        keys %walked;
+    if ( not defined $ancestor ) {
+        find(
+            { no_chdir => 1, wanted => sub { remember($File::Find::name) } },
+            $root
+        );
+        $walked{$root} = 1;
+    }
+    return grep { $ARG eq $root or index( $ARG, "$root/" ) == 0 } keys %entry;
+}
+
+sub chmod_key {    ## chmod follows a link : the key is its target ##
+    my $path = shift;
+    return $path if not $entry{$path}{'link'};
+    my $real = abs_path($path) // return undef;
+    ( my $rel = $real ) =~ s|^\Q$work_dir\E/||;
+    return $rel;
+}
+
+foreach my $entry_ref ( @{$perm_table} ) {
+    my ( $path, $action_ref ) = %{$entry_ref};
     $path =~ s|^/+||;
 
-    printf( "\n < %-33s >\t [ %s ]\n\n",
+    printf( "\n < %-33s " . ">\t [ %s ]\n\n",
         $path, join( ', ', $action_ref->@* ) )
         if $verbose;
 
@@ -122,11 +127,11 @@ foreach my $entry ( @{$perm_table} ) {
         'on_files'    => 0,
         'on_links'    => 0,
         'on_dirs'     => 0,
+        'restricted'  => 0,
         'path'        => $path
     };
 
-    foreach my $param_str ( @{$action_ref} )
-    {    # the above flags 'accumulate'.,
+    foreach my $param_str ( @{$action_ref} ) {    ## the flags 'accumulate' ##
         my $type = qw| unknown |;
         if ( $param_str =~ m|^[RFLDC]+$| ) {
             $params->{'recursive'} = 1 if $param_str =~ m|R|;
@@ -139,7 +144,6 @@ foreach my $entry ( @{$perm_table} ) {
                 + $params->{'on_links'}
                 + $params->{'on_dirs'};
             $type = 'flags';
-
         } elsif ( $param_str =~ m|^link_target:\s*(.+)$|
             and $params->{'restricted'} == 1
             and $params->{'on_links'} ) {
@@ -153,118 +157,146 @@ foreach my $entry ( @{$perm_table} ) {
                 = oct( sprintf qw| %04d |, $LAST_PAREN_MATCH );
             $type = qw| mode |;
         }
+
+        ## [ 1 ] creation : the rule path itself, when missing ##
+        create( $path, $type, $params );
+
+        next
+            if $type ne qw| mode |
+            and $type ne qw| user |
+            and $type ne qw| group |;
+
+        my @targets;
         if ( $params->{'recursive'} and -d $path ) {
-            find( sub { action( $File::Find::name, $ARG, $type, $params ) },
-                $path );
+            @targets = tree_paths($path);
         } else {
-            action( $path, $path, $type, $params );
+            remember($path) if not exists $entry{$path};
+            @targets = exists $entry{$path} ? ($path) : ();
         }
-    }
-}
 
-## Third pass: count only files that actually changed from initial state
-my $files_checked = 0;
-foreach my $filepath ( keys $file_initial_state->%* ) {
-    $files_checked++;
-    if ( -e $filepath ) {
-        my @stat        = lstat($filepath);
-        my $final_state = {
-            mode => $stat[2] & 07777,
-            uid  => $stat[4],
-            gid  => $stat[5]
-        };
-
-        if ($file_initial_state->{$filepath}{'mode'} != $final_state->{'mode'}
-            or $file_initial_state->{$filepath}{'uid'}
-            != $final_state->{'uid'}
-            or $file_initial_state->{$filepath}{'gid'}
-            != $final_state->{'gid'} ) {
-            $changes++;
-            if ($verbose) {
-                printf "  [change detected] %04o->%04o : %s\n  :\n",
-                    $file_initial_state->{$filepath}{'mode'},
-                    $final_state->{'mode'},
-                    $filepath;
+        ## [ 2 ] wanted state, in memory ##
+        foreach my $target (@targets) {
+            my $e = $entry{$target};
+            next
+                if $params->{'restricted'}
+                and not( $params->{'on_files'} and $e->{'file'}
+                or $params->{'on_links'} and $e->{'link'}
+                or $params->{'on_dirs'}  and $e->{'dir'} );
+            if ( $type eq qw| mode | and defined $params->{'file_mode'} ) {
+                my $key = chmod_key($target);
+                $want_mode{$key} = $params->{'file_mode'} if defined $key;
+            } elsif ( defined $params->{'user'}
+                and defined $params->{'group'} ) {
+                my $uid = getpwnam( $params->{'user'} );
+                my $gid = getgrnam( $params->{'group'} );
+                $want_own{$target} = [ $uid, $gid ]
+                    if defined $uid and defined $gid;
             }
         }
     }
 }
 
+## [ 3 ] only what differs -- without root, a path owned by another user ##
+## [ a zenka's own files ] cannot be changed : skipped, counted          ##
+my ( %changed, %skipped );
+my $not_mine = sub {
+    my $uid = shift;
+    return ( $EUID != 0 and $uid != $EUID ) ? TRUE : FALSE;
+};
+foreach my $key ( sort keys %want_mode ) {
+    my @st = stat($key);
+    next if not @st;
+    my $mode = $st[2] & 07777;
+    next if $mode == $want_mode{$key};
+    if ( $not_mine->( $st[4] ) ) {
+        $skipped{$key}++;
+        printf "  [not owner] %04o->%04o : %s\n  :\n", $mode,
+            $want_mode{$key}, $key
+            if $verbose;
+        next;
+    }
+    $changed{$key}++;
+    printf "  [%s] %04o->%04o : %s\n  :\n", ( $check ? 'differs' : 'change' ),
+        $mode, $want_mode{$key}, $key
+        if $verbose or $check;
+    next if $check;
+    chmod( $want_mode{$key}, $key )
+        or warn sprintf "\n:: cannot chmod : %s  [ %s ]\n\n", $key,
+        lcfirst($OS_ERROR);
+}
+foreach my $path ( sort keys %want_own ) {
+    my ( $uid, $gid ) = @{ $want_own{$path} };
+    my @st = lstat($path);
+    next if not @st or ( $st[4] == $uid and $st[5] == $gid );
+    if ( $EUID != 0 ) {    ## chown needs root ##
+        $skipped{$path}++;
+        next;
+    }
+    $changed{$path}++;
+    printf "  [%s] owner %d:%d->%d:%d : %s\n  :\n",
+        ( $check ? 'differs' : 'change' ), $st[4], $st[5], $uid, $gid, $path
+        if $verbose or $check;
+    next if $check;
+    if ( -l $path ) {      ##  chown link, not target  ##
+        syscall( &SYS_lchown, $path, $uid, $gid, $path )
+            && warn sprintf "\n:: cannot chown link : %s  [ %s ]\n\n",
+            $path, lcfirst($OS_ERROR);
+    } else {
+        chown( $uid, $gid, $path )
+            or warn sprintf "\n:: cannot chown path : %s  [ %s ]\n\n",
+            $path, lcfirst($OS_ERROR);
+    }
+}
+$changes = scalar keys %changed;
+my $skips = scalar keys %skipped;
+
 print "\n  :\n" if $verbose;
-my $s = $changes == 1 ? '' : 's';
-$changes = sprintf( qw| %03d |, $changes ) if $changes !~ s|^0$|no|;
-say "  ::[ $changes change$s ]::\n";
-exit(0);
+my $s = $changes == 1 ? ''                              : 's';
+my $n = $changes      ? sprintf( qw| %03d |, $changes ) : qw| no |;
+say $check
+    ? "  ::[ $n difference$s ]::"
+    : "  ::[ $n change$s ]::";
+printf "  ::[ %03d skipped : not owner, not root ]::\n", $skips if $skips;
+print "\n";
+exit( $check && $changes ? 1 : 0 );
 
-sub action {
-    my ( $rel_path, $fname, $type, $params ) = @ARG;
-    ( my $abs_path = join qw| / |, $work_dir, $rel_path ) =~ s|//|/|g;
-
-    if (    $type eq qw| link |
-        and defined $params->{'link_target'}
-        and not -e $fname
-        and not -l $fname ) {
-        printf "  : creating link '%s' --> %s\n  :\n",
-            $rel_path, $params->{'link_target'};
+sub create {    ## missing rule paths \ links [ C \ L rules ] ##
+    my ( $fname, $type, $params ) = @ARG;
+    return if -e $fname or -l $fname;
+    if ( $type eq qw| link |
+        and defined $params->{'link_target'} ) {
+        printf "  : %s link '%s' --> %s\n  :\n",
+            ( $check ? 'missing' : 'creating' ), $fname,
+            $params->{'link_target'};
+        return if $check;
         symlink( $params->{'link_target'}, $fname )
             or warn sprintf
             "\n:: cannot create synlink :  %s --> %s  [ %s ]\n\n",
             $fname, $params->{'link_target'}, lcfirst($OS_ERROR);
     } elsif ( $type eq qw| flags |
         and $params->{'create'}
-        and $params->{'restricted'} == 1
-        and not -e $fname
-        and not -l $fname ) {
+        and $params->{'restricted'} == 1 ) {
         if ( $params->{'on_dirs'} ) {
-            printf "  : creating directory '%s'.,\n  :\n", $rel_path;
+            printf "  : %s directory '%s'.,\n  :\n",
+                ( $check ? 'missing' : 'creating' ), $fname;
+            return if $check;
             make_path($fname)
                 or warn sprintf
                 "\n:: cannot create directory : %s  [ %s ]\n\n",
-                $fname,
-                lcfirst($OS_ERROR);
+                $fname, lcfirst($OS_ERROR);
         } elsif ( $params->{'on_files'} ) {
-            print "  : creating file '$rel_path'.,\n  :\n";
+            printf "  : %s file '%s'.,\n  :\n",
+                ( $check ? 'missing' : 'creating' ), $fname;
+            return if $check;
             if ( open( my $zero_fh, qw| > |, $fname ) ) {
                 close($zero_fh);
             } else {
-                warn sprintf
-                    "\n:: cannot create file : %s  [ %s ]\n\n",
+                warn sprintf "\n:: cannot create file : %s  [ %s ]\n\n",
                     $fname, lcfirst($OS_ERROR);
             }
         }
     }
-    if (   not $params->{'restricted'}
-        or $params->{'on_files'} and -f $fname
-        or $params->{'on_links'} and -l $fname
-        or $params->{'on_dirs'}  and -d $fname ) {
-        if ( $type eq qw| mode | ) {
-            chmod( $params->{'file_mode'}, $fname )
-                if defined $params->{'file_mode'};
-        }
-        if ( $type eq qw| user | or $type eq qw| group | ) {
-            my $uid = undef;
-            my $gid = undef;
-
-            $uid = getpwnam( $params->{'user'} )
-                if defined $params->{'user'};
-            $gid = getgrnam( $params->{'group'} )
-                if defined $params->{'group'};
-
-            if ( defined $uid and defined $gid ) {
-                if ( -l $fname ) {    ##  chown link, not target  ##
-                    syscall( &SYS_lchown, $fname, $uid, $gid, $fname )
-                        && warn sprintf
-                        "\n:: cannot chown link : %s  [ %s ]\n\n",
-                        $fname, lcfirst($OS_ERROR);
-                } else {
-                    chown( $uid, $gid, $fname )
-                        or warn sprintf
-                        "\n:: cannot chown path : %s  [ %s ]\n\n",
-                        $fname, lcfirst($OS_ERROR);
-                }
-            }
-        }
-    }
+    return;
 }
 
 sub c_dir  { File::Spec->catdir(@_) }
@@ -316,8 +348,8 @@ sub read_user_names {
 
 }
 
-#,,,,,,,,,..,,.,,,,.,,,.,,...,...,,,.,,.,,,.,,..,,...,...,.,,,...,...,..,,..,,
-#EVQJZDMBRJADTN5LMX6ILVZOHDBF3QGQ4J3AEB4YBTBA6JEBNJTRSJISBKPXMYZP3GDHAMR6IDPTC
-#\\\|575PZI5HX6BY5DB3BRVZEAKHFA435ERWSYL4EUGBZNX64NES7AR \ / AMOS7 \ YOURUM ::
-#\[7]VX3F2WG4CEUKNM3VSGN6YLLPJKHTIA7SFSOMGSLC2TNX7Q3N4EAQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,,,,.,,,,.,,,,,,..,,.,,...,.,.,..,,...,...,..,,.,.,,.,,..,,...,
+#HPZ4Q5J7F4W2WWFCSHGTTN7AKCDAOZKCWUFJKS4AZ6KYO4KKRWHO5W5CXMCAR7LOYOOJK47IC7Q4E
+#\\\|TM2DKHXKWHC5YC4I56ORBXYPLZHH5OXRQ3B7Y2UM6WNIZ6M7Q6V \ / AMOS7 \ YOURUM ::
+#\[7]IO252APYVL4SO7REBJYWIQW4F7IB2XSXULOWWHL7FLAVIAHCOOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
