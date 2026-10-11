@@ -2,12 +2,18 @@
 
 # name = v7-zenki.handler.shutdown_cmd
 
-my $reason = shift->w->data;
+## timer data : { reason, exit } [ exit 76 = :no-restart: ] -- a plain ##
+## string from an older caller is the reason with exit 0               ##
+my $data = shift->w->data;
+my ( $reason, $exit_code )
+    = ref $data eq qw| HASH |
+    ? ( $data->{'reason'}, $data->{'exit'} // 0 )
+    : ( $data, 0 );
 
-<[v7-zenki.teardown]>->($reason);
+<[v7-zenki.teardown]>->( $reason, undef, $exit_code );
 
-#,,,.,,..,,.,,.,,,,,.,,..,.,,,...,,,,,.,,,.,,,..,,...,...,,,,,..,,,,.,.,,,,.,,
-#BMRVYGKN3UDVQ5IBZJF2BEVGL4JPA4NVKWTAAE4XNBKZB6BY7B7VKMZGQARYWWHFPHAUZH5QTCCWI
-#\\\|BCBRXHOMFYMDXP2P7TURYIJE23K63AK4RI3F2JW3ZBLT6UIBV6N \ / AMOS7 \ YOURUM ::
-#\[7]D3GQRKXVGV5A5HOOFZMCAB25UP2WFFHL6AASVNIBSHXECSLOMQAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,..,,,,,,,.,,.,.,.,,,.,.,..,,..,,...,...,,,.,...,,,.,..,,,,,,
+#KWZEG6S7EJXYH63RSXRXFFCANOMMUH3EICIJSAD6MQUNYYF5O26BPYL5CIR6SFKKQ62X2Z6ZMWIMK
+#\\\|JSMDGLBGWJAERT2372IC5NJ6UWEGL3M3MLFXP5MWPYRF2XAPD4Z \ / AMOS7 \ YOURUM ::
+#\[7]47TXIY3W5KOP6L5HSDCRG6KLURF5OJ5GK5KJPRW7EHCSV5G54KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

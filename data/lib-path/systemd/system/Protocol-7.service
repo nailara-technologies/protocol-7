@@ -17,9 +17,17 @@ WorkingDirectory=/usr/local/protocol-7
 # WAYLAND_DISPLAY, XDG_RUNTIME_DIR, PULSE_SERVER ] in /etc/default/protocol-7
 EnvironmentFile=-/etc/default/protocol-7
 ExecStart=/usr/local/protocol-7/bin/Protocol-7 v7-zenki -c -v
-# planned shutdown [ v7-zenki.teardown, systemctl stop ] exits 0 : stays down
-Restart=on-failure
+# always : v7-zenki.teardown is a restart [ as before 2026-10-11 ] --
+# 'systemctl stop Protocol-7' still stops it for good [ systemd never
+# restarts a unit stopped on purpose ]
+Restart=always
 RestartSec=5
+# 'v7-zenki.teardown :no-restart:' exits 76 : stays down without root
+RestartPreventExitStatus=76
+# a broken start does not loop every 5 s : the delay grows to 2 min
+# [ systemd >= 254 ; older versions warn and keep RestartSec ]
+RestartSteps=5
+RestartMaxDelaySec=120
 # SIGTERM to v7-zenki only -- its teardown ends the zenki ; anything left
 # after the timeout is killed
 KillMode=mixed

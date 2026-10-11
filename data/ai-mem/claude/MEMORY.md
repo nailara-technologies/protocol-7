@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
 - [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 (`38e604b29`, v5.99.1): `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below.
 - [prng-seeded-without-os-entropy](project-2026-10-06-prng-seeded-without-os-entropy.md) — FOUND 2026-10-06: `base.prng.reseed` seeds Fortuna ONLY from PID + ms time + srand-seeded perl rand ; CryptX uses no OS entropy when given a seed [ verified ] -> all `base.prng` draws [ gen_keys secrets, chars-anum incl. cube.key ] bounded by a ~2^20-2^30 seed. draws add no entropy [ replayable ]. FIXED same day : `base.prng.entropy_pool` [ BMW-512 over OS entropy + optional machine data, truth-filtered ], gen_keys mixes /dev/random ; test bin/test-scripts/test-prng-entropy.pl. sourcecode key unaffected [ passphrase + file entropy ] ; .base keys REGENERATED 2026-10-07 [ taeki.base + protocol-7.base, anon table archived, live-checked ] -- CLOSED
 - [auth-keypair-replayable](project-2026-10-06-auth-keypair-replayable.md) — FIXED 2026-10-06 (`ad31ddd5a`): auth-keypair client line was replayable [ sig over its own stable session pubkey only, no nonce, plaintext ] + server never proved its key + a live MITM could relay auth and keep the session. now wire v2 [ data/md/design/AUTH-LINK-BINDING.md ] : nonce, labelled sigs, sessions PENDING until the client signs the link transcript, server proof, client pin `~/.n/remote-keys/servers/`. also : helper secrets off argv, p-7-r shell injection, p7c link-upgrade removed. LIVE PASSED 2026-10-07 [ p-7-r + external.self ]
@@ -78,8 +79,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,,,...,.,.,.,,,,,,,,,.,,..,,.,,.,,,..,,..,,...,...,,,.,..,,.,,,,.,,.,,,
-#G5LKYLBI3ZEZSZX2YVUDWRND3C4QQ7SERSDPSJ4ITAQ5IQBVJGZPP7VPGXRIXEUIY2IG3EVAPYXB2
-#\\\|4IMILMRRHAVWY7JUMPZA2JBOKNSAN7K7DEDA7QXTY3SEUC7BGRF \ / AMOS7 \ YOURUM ::
-#\[7]732XEIJE5YUDQXMHTPSI5XF62RKUWKQCLEGYBUQXMLBI6DJVU4AQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,.,,,,,.,.,..,,,,.,...,,..,..,,..,,...,...,...,...,,,,,,,.,,..,
+#7NEFB2MGCYNWB6UMCIWWMGBWMDLIGAGJ3WOYGC63XMP47WETK7YLG2VMFTJ3KZJ4UKVZAWPD2MJDA
+#\\\|XTE4F5YID446IDXZIFF6REYJXP56LXCH25YIQ66ZDR5QSWJ2XDY \ / AMOS7 \ YOURUM ::
+#\[7]DNF6Y7PAIE7GNVHU3KGVZDM3JMNH24CQLHZ4RBQUI5E4TMURNSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
