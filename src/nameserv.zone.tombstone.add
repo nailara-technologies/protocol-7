@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = nameserv.zone.tombstone.add
+# descr = add tombstone for a removed record
+# param = $zone_name, $record -> TRUE | FALSE
+
+my $zone_name = shift // '';
+my $record    = shift;
+
+return FALSE if not length $zone_name;
+return FALSE if ref $record ne qw| HASH |;
+
+my $zones = <nameserv.zones>;
+my $zone  = $zones->{$zone_name} // return FALSE;
+
+## one tombstone per identity : a newer delete replaces an older one ##
+<[nameserv.zone.tombstone.clear]>->( $zone_name, $record );
+
+push @{ $zone->{'tombstones'} //= [] },
+    {
+    name    => lc( $record->{'name'} // '' ),
+    type    => uc( $record->{'type'} // '' ),
+    value   => $record->{'value'} // '',
+    deleted => <[base.ntime.b32]>,
+    };
+
+return TRUE;
+
+#,,,.,..,,...,,..,,,,,.,,,..,,...,..,,,.,,,.,,..,,...,...,...,..,,.,.,.,.,.,.,
+#HDXFRAZYJHLMQN76MO4NWQ3CAZZLSPA2SAMDHBOVNXES7FG65MH4NBSQNISDHV2XZ4MQXT4QZA2FM
+#\\\|RBVJBEODVZAWVOS5XHVMKXNGOMXUZW4CV746FMWUFUQ7OI74MPO \ / AMOS7 \ YOURUM ::
+#\[7]BZMERE2X4VRNC3RCHJX54BE4UDFUZCX6E6KLSOG3OI6HNSZOBOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

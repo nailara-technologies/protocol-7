@@ -48,21 +48,35 @@ if ( not exists $zones->{$zone_name} ) {
 
 my $zone = $zones->{$zone_name};
 
-## remove existing record with same name/type
-$zone->{'records'} = [
-    grep {
-        not( lc( $ARG->{'name'} ) eq $rec_name
-            and $ARG->{'type'} eq $rec_type )
-    } @{ $zone->{'records'} }
-];
-
-## add new record
-push @{ $zone->{'records'} },
-    {
+my $new_rec = {
     name  => $rec_name,
     type  => $rec_type,
     value => $rec_value,
-    };
+    ts    => <[base.ntime.b32]>,
+};
+my $new_identity = <[nameserv.entry.identity]>->( $zone_name, $new_rec );
+
+## replace existing records with same name/type ; a replaced value of       ##
+## another identity [ a -> other address ] gets a tombstone, or peers would ##
+## keep the old value next to the new one                                   ##
+my @kept = ();
+for my $rec ( @{ $zone->{'records'} } ) {
+    if ( lc( $rec->{'name'} ) eq $rec_name
+        and $rec->{'type'} eq $rec_type ) {
+        <[nameserv.zone.tombstone.add]>->( $zone_name, $rec )
+            if <[nameserv.entry.identity]>->( $zone_name, $rec ) ne
+            $new_identity;
+    } else {
+        push @kept, $rec;
+    }
+}
+$zone->{'records'} = \@kept;
+
+## add new record
+push @{ $zone->{'records'} }, $new_rec;
+
+## a re-add cancels a tombstone of the same identity ##
+<[nameserv.zone.tombstone.clear]>->( $zone_name, $zone->{'records'}[-1] );
 
 $zone->{'serial'} = time();
 
@@ -72,8 +86,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,,.,.,,,,..,...,,..,.,.,,.,,..,,.,.,,..,..,,..,,...,..,,,,.,.,.,.,.,..,,,..,
-#BPT5LU37ENN23CKI25VJGLZMUGNCOGTEN6TV6XEUL43ZCVQS6KM2YTV3EQKNQOBGMIOBFDKPVQGLQ
-#\\\|5LFEW33YCWYINFLFO4RPKATMBZNRNUEWBAXZELL5VACECITRVZC \ / AMOS7 \ YOURUM ::
-#\[7]F5SXGMJ3LYEI4FIT3PQGB7JE5USPJBZQDXV4LQHDZAOTRGJKHSCI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,...,,,.,...,..,,.,.,,.,,.,.,..,,...,...,,,.,...,,,.,.,,,...,
+#6NGBUCCHYZEYX547HCO427OTZHYNX5NDBD4CW5YUKGU2AMWHL6JO66NJBNFUXYCS2D62YK27I72DO
+#\\\|XHB4HJPDDIBYTMHA6BHMUDPBZOWDSO5CXAKRUXSRVQ75NPACE4O \ / AMOS7 \ YOURUM ::
+#\[7]D37544LQVO5GCXHWVGDLVELTKMFQXOOUTVAJSVNYQDFNF3PBCYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

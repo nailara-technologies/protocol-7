@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = nameserv.cmd.last-data-timestamp
+# descr = newest data ts of the set or one zone
+# param = [ <zone> ] -> TRUE <set ts> | TRUE <zone ts> <checksum>
+
+my $args_str = $call->{'args'} // '';
+
+my @parts     = grep {length} split m|\s+|, $args_str;
+my $zone_name = lc( shift @parts // '' );
+$zone_name =~ s{\.+$}{};    ## strip optional trailing dot
+
+my $zones = <nameserv.zones>;
+
+if ( not length $zone_name ) {
+    ## whole set : one value answers anything new at all ##
+    my $set_ts = <[nameserv.zone.timestamp]>->();
+    return { mode => 'true', data => sprintf 'TRUE %s', $set_ts }
+        if defined $set_ts;
+    return {
+        mode => 'false',
+        data => 'no timestamped data in the set'
+    };
+}
+
+return { mode => 'false', data => "unknown zone: $zone_name" }
+    if not exists $zones->{$zone_name};
+
+my $zone_ts = <[nameserv.zone.timestamp]>->($zone_name);
+return {
+    mode => 'false',
+    data => "no timestamped data in zone: $zone_name"
+    }
+    if not defined $zone_ts;
+
+my $checksum = <[nameserv.zone.checksum]>->($zone_name) // '';
+
+return {
+    mode => 'true',
+    data => sprintf 'TRUE %s %s',
+    $zone_ts, $checksum
+};
+
+#,,,.,,..,,.,,,,,,,.,,...,,,.,...,,..,...,..,,..,,...,...,..,,,..,..,,,..,,,.,
+#ASGELQQWRU4M2IQ6F5BIU65HCZPYRHSYZQJPWKLAYZLUD34SMLEJMQPFOR4SJXQBXH3MRIFJCOHIW
+#\\\|TNY63Q6PXFXQXHNWVX7N5IUORPJBJEABRV4ZZJDYRS5MM5ICD3G \ / AMOS7 \ YOURUM ::
+#\[7]AHHPKTM7UBJBA6PEW7ZT7SDUWX2ETANOCQGYDEMGPGV5YZ52IOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,7 +45,11 @@ push @{ $zone->{'records'} },
     type  => 'TXT',
     value => $value,
     ttl   => <nameserv.cfg.challenge_ttl> // 60,
+    ts    => <[base.ntime.b32]>,
     };
+
+## a re-add cancels a tombstone of the same identity ##
+<[nameserv.zone.tombstone.clear]>->( $zone_name, $zone->{'records'}[-1] );
 
 $zone->{'serial'} = time();
 
@@ -54,8 +58,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf "txt record added: %s", $fqdn;
 return { mode => 'true', data => $msg };
 
-#,,,.,.,,,..,,,,,,.,.,...,,,,,,..,,,,,.,.,...,..,,...,...,.,,,,,,,.,.,..,,...,
-#LEAVDNFNN4PY4KV5WCSIB6FWO57CS5ERF4PWNCCX73QQTFRTNO6ZDUJ44XJTKMJQGVP3SXNWCCMHY
-#\\\|42BAIQ5SCFM226PDHSIEFQBRSPJMLMLL4WRPFZDHZEJ3SNNKQ7A \ / AMOS7 \ YOURUM ::
-#\[7]VWF4NZC4ETQ7LT7VAAFGUDWUZ54DK2SH3C4CSAIR375BC6L3IWBY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,...,,..,,.,,,.,,,.,,..,,.,.,..,,...,...,,,,,.,,,,.,,,..,.,.,
+#57XGD63UV7B7DD77J3UYVILQ6QNOGWQDFVH2TIU2PO5CUMA7CFY6Q4DYEU3JM24RW66JOXQBBGX6A
+#\\\|IFZC64P57TE7GDRKCLBZZRH4U6KNNTDJXARD6F4YKEKZG7BQR3W \ / AMOS7 \ YOURUM ::
+#\[7]BILD4ZGOSAZ6HI4C432C7KFVMZRRPHS6D7QQP37MECWN62YFOECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

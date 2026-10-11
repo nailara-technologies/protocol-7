@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = nameserv.zone.timestamp
+# descr = newest ts in a zone, or in the whole set
+# param = [ $zone_name ] -> ntime b32 string | undef
+
+my $zone_name = shift;
+
+my $zones = <nameserv.zones>;
+
+my @zones = ();
+if ( defined $zone_name and length $zone_name ) {
+    push @zones, $zones->{ lc($zone_name) }
+        if ref $zones->{ lc($zone_name) } eq qw| HASH |;
+} else {
+    @zones = grep {ref} values %$zones;
+}
+
+## newest ts wins ; records without ts are oldest ##
+## [ hand-written zone files ] and never qualify  ##
+
+my $newest     = undef;
+my $newest_age = undef;
+
+for my $zone (@zones) {
+    my @candidates = @{ $zone->{'records'} // [] };
+    push @candidates, @{ $zone->{'tombstones'} // [] };
+
+    for my $entry (@candidates) {
+        my $ts
+            = ref $entry eq qw| HASH |
+            ? ( $entry->{'deleted'} // $entry->{'ts'} // '' )
+            : '';
+        next if not length $ts;
+        next
+            if $ts !~ m|^\d+(\.\d+)?$|
+            and not <[base.ntime.b32_is_shape_valid]>->($ts);
+        my $age = <[base.ntime.delta_seconds]>->($ts);
+        next if not defined $age;
+        if ( not defined $newest_age or $age < $newest_age ) {
+            $newest     = $ts;
+            $newest_age = $age;
+        }
+    }
+}
+
+return $newest;
+
+#,,,,,...,,,.,.,,,,,.,,,.,,,.,.,.,,,.,,,.,,,,,..,,...,...,..,,...,,.,,..,,,..,
+#2ZEDSRGFOX5Y7QNQYO77A2F5DI4IQVV2GJVK4ASLGJHCAOXOLPTI4WK3PWFVEXCOKGB4T35RLGMGG
+#\\\|YHXQWCONNQ46KL7FPMXUMRPTTVLGCY6SUSP5K6XNJ3D2RBURRC5 \ / AMOS7 \ YOURUM ::
+#\[7]RGOK2UA54YHPFXFPBT7IVDW5OOQRZ7ENMERBAAQDI2ITIJPZ2WDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
