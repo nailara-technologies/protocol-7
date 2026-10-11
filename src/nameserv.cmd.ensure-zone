@@ -39,8 +39,8 @@ $zones->{$zone_name} = {
         {   name  => $zone_name,
             type  => 'SOA',
             value => sprintf(
-                '%s hostmaster.%s. %d 3600 600 1209600 60',
-                $ns[0], $zone_name, $serial
+                '%s hostmaster.%s. %d %d 600 1209600 60',
+                $ns[0], $zone_name, $serial, <nameserv.cfg.default_ttl>
             ),
         },
         map { { name => $zone_name, type => 'NS', value => $ARG } } @ns,
@@ -52,8 +52,8 @@ $zones->{$zone_name} = {
 
 return { mode => 'true', data => "zone created : $zone_name" };
 
-#,,.,,,.,,,,,,,,,,...,,.,,,..,..,,,.,,,,,,,,,,..,,...,...,..,,,,.,.,,,..,,..,,
-#K7MG7YOUKOALR5ITCJHEFKCWGHP3GMTOUHOBYVCIX4LPD5SQ2IMD5VAL2KM7C5Q6RVLCXXDIOEYRG
-#\\\|3Y4IHWZMCKWCEOPUSGERWIJFRVOC2ZQAATX7U3U6XOTFILZGCND \ / AMOS7 \ YOURUM ::
-#\[7]XYUGJ46S47ZO2W463XYCV447AJZE7YB66OEB6BYB4VYQPGNAZYBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,.,.,,.,,,,.,.,.,.,,,...,,,,,..,,...,...,...,...,,.,,,..,.,,,
+#IARLER5IOT5US7BF74J3D2RDJCG3KMCZ2NHIPVCSJAHGKALRN7RTAIDN2QQA2YXDZ2XAVLYYEAVV2
+#\\\|ERWWB67FQANAQMDHPV57INXV75ACAMXFVEVZ3L574QXDFZI6EEU \ / AMOS7 \ YOURUM ::
+#\[7]IM5SAXGQDYWQRZMQWQF3Z66SVMQYCKCR2KKJTX7BXL32SGUT6GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

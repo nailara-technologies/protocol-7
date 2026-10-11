@@ -42,7 +42,7 @@ if ( not exists $zones->{$zone_name} ) {
     $zones->{$zone_name} = {
         records => [],
         serial  => time(),
-        ttl     => 3600,
+        ttl     => <nameserv.cfg.default_ttl>,
     };
 }
 
@@ -72,8 +72,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,,,,..,,,,.,.,,,.,,,,..,.,,,,,.,,,.,,,,,,,.,..,,...,...,.,.,,..,,..,...,,,,,
-#7IFSV3E3YHVSBQEOFAWMKDZLSXGIS6T2DJQEPKEGXACA2JF5X7AKNQRAC3GJRNH2GEMW6KWMIUH54
-#\\\|ZXN4K2OT5UJAVXQUCWMH3ZXJVDJO6V2D6KFYIKRSBLW3KE3TJFN \ / AMOS7 \ YOURUM ::
-#\[7]2MTYPNRNUJV4FLVVZODYIJM7FOTWWHZ35SOZEEDL6UJCUHUKBMBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,..,.,.,,.,,..,,.,.,,..,..,,..,,...,..,,,,.,.,.,.,.,..,,,..,
+#BPT5LU37ENN23CKI25VJGLZMUGNCOGTEN6TV6XEUL43ZCVQS6KM2YTV3EQKNQOBGMIOBFDKPVQGLQ
+#\\\|5LFEW33YCWYINFLFO4RPKATMBZNRNUEWBAXZELL5VACECITRVZC \ / AMOS7 \ YOURUM ::
+#\[7]F5SXGMJ3LYEI4FIT3PQGB7JE5USPJBZQDXV4LQHDZAOTRGJKHSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
