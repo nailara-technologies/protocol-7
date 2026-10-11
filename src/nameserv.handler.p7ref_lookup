@@ -8,7 +8,7 @@ my $params = shift // {};
 my $reply      = $params->{'reply'};
 my $qname      = $params->{'qname'} // '';
 my $zone_match = $params->{'zone_match'};
-my $ttl        = $params->{'ttl'} // 3600;
+my $ttl        = $params->{'ttl'} // <nameserv.cfg.default_ttl>;
 
 if ( not defined $reply or not defined $zone_match ) {
     <[base.logs]>->( 1, 'p7ref_lookup missing reply or zone_match' );
@@ -39,8 +39,8 @@ foreach my $rec ( @{ $zone_match->{'records'} } ) {
 
 return $found;
 
-#,,,.,..,,,..,.,,,.,.,.,.,.,.,,,.,.,.,.,.,.,,,..,,...,...,...,,.,,,,.,.,,,.,.,
-#2QMGXG3KDVHAANQ5MDB3WXTRLK5APD5I445LBAV5TKJMMMTFLPGQ2PREJRZGE326HASHEITBLM5M4
-#\\\|422VXTYMRKLTJQMVUXRJYQZWUC5YMVLSWAJQ5VV77PEUFF4CTE7 \ / AMOS7 \ YOURUM ::
-#\[7]SWQ5RZLGBMND4ZOUJOAUHCYDBRO3YR6AEVP2CLBXBRKHLLAYSIDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,.,,,,,,,,,.,,,.,,.,,.,.,.,.,..,,...,..,,...,.,.,...,,..,,.,,
+#FX3P3WK7XPFHP6DJUHXIJTM7DKT5UCB3QBU7I4RKR7N2HXNWBY5FGU67KCW2GKVIGXBRWSWLWOHRE
+#\\\|2H3N3EX5D4V3LCOKBJOQ76G3NHB5UFRS7FBGBAI2W5L7GRKFJML \ / AMOS7 \ YOURUM ::
+#\[7]S6VEPEXSWWDY64CKCOHADM2OCMRCRRGU5V6OEIXOGO6JLRUCUGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

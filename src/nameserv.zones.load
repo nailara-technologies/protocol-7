@@ -56,7 +56,7 @@ for my $filename ( sort @zone_files ) {
     $zones->{ lc($zone_name) } = {
         records => $zone_data->{'records'},
         serial  => $serial,
-        ttl     => $zone_data->{'ttl'} // 3600,
+        ttl     => $zone_data->{'ttl'} // <nameserv.cfg.default_ttl>,
     };
 
     my $rec_count = scalar @{ $zone_data->{'records'} };
@@ -74,8 +74,8 @@ my $total_zones = scalar keys %$zones;
 
 0;
 
-#,,..,..,,,..,..,,.,.,,,,,,,,,,.,,,..,.,,,,,,,..,,...,...,,,,,.,,,,,.,...,.,,,
-#6XGVMOUJY3TJS6F23X7C573MERPQI7BQBYV3GFLEYQRAQFFC5ZZNW4A2WDSPND7IYE6CU36HY264Q
-#\\\|RCIZW45IGAJU2CJDRTSBQJIKITTS3B4MAQKKIKQAOJ3UNTHRXZI \ / AMOS7 \ YOURUM ::
-#\[7]E43GWW4RBZPYZO6G55S3AZQLAEV2HKC7TJ5GM5TUVHQ24GMO6MCY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,,.,.,,,.,.,.,.,,..,,,.,,..,..,,...,..,,..,,,..,.,,,,.,,...,
+#TIALUHDKONYCCZ4A5TM6HS3GJO3SDSMG2MF625SEZEXF5ERHWB25TYA7QGQ2U6NCFBG442YHBXYUG
+#\\\|6CJ7EZH4XHVDO2AGAJ6Q4L5WC5QOAHS3XBP6G6SC26MZKF3SBZD \ / AMOS7 \ YOURUM ::
+#\[7]XVSODE7RPQ3OZLL5X27FVRPGZYCNRFL2VGMXMB4ZUH3UFPI6TGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

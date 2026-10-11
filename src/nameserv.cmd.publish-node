@@ -11,7 +11,7 @@ my ( $domain, $port, $ttl ) = split m|\s+|, $args_str, 3;
 
 $domain //= '';
 $port   //= 7777;
-$ttl    //= 3600;
+$ttl    //= <nameserv.cfg.default_ttl>;
 
 if ( not length $domain ) {
     return {
@@ -65,8 +65,8 @@ return {
     'data' => sprintf( qq| publish initiated for %s |, $domain )
 };
 
-#,,,,,,..,,,,,.,,,,,,,,..,.,.,...,,.,,,,.,.,.,..,,...,...,...,...,.,.,,,,,.,,,
-#MNBFBCGDLXJ3SN6BF2L5HT5THURYUGY2U4UTFBZSB3AIGEOVIES3P5XCK2DCEH6LBOGS3CWZBZ6NK
-#\\\|A3P2YK7GVUV2VNSRK55DJB42LUMZMBJKWHJRNQ7WAHMQXT7SK4M \ / AMOS7 \ YOURUM ::
-#\[7]EBDWIG6MWU62SHPC2HTUTGEROL3FIUS4YKZ4BQHZLI3XNF7MRKBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,,,.,,,,,,.,,.,.,,,.,,,,,,,.,..,,...,...,.,.,,.,,,..,,,,,...,
+#X5ISJV35YPDWUNVLBWE6HNYMMJX4KQQ5XPOLWYUJKUSQCEP2N6HU7PB42O6KLXMBDW64MRFOB5C5C
+#\\\|VNX7KBTSL2A24I2IPQZW4EKZXCRP4BMCRU4NWLHVDRCY4NCZKOW \ / AMOS7 \ YOURUM ::
+#\[7]HHMXEDJIBEMAXVVT6PX4QBTSP2XIX6SLETNMCZ5UPZHBJ2XTD4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
