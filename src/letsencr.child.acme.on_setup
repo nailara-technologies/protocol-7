@@ -20,7 +20,11 @@ if ( $mode ne qw| TRUE | ) {
         sprintf '%s : %s set-up failed [ %s ]',
         $authz->{'domain'},
         $params->{'target'},
-        $reply->{'call_args'} // $reply->{'data'} // $mode
+        ## the reason sits in call_args.args [ a hash, not a string ] ##
+        (   ref $reply->{'call_args'} eq qw| HASH |
+            ? $reply->{'call_args'}{'args'}
+            : $reply->{'call_args'}
+        ) // $reply->{'data'} // $mode
     );
 }
 
@@ -37,8 +41,8 @@ return <[letsencr.child.acme.step_propagate]>->( $order->{'order_id'} )
 
 return TRUE;
 
-#,,.,,.,.,,,.,,,,,.,.,...,,..,,,.,,,,,.,.,,,,,..,,...,...,..,,.,,,,,,,,..,,..,
-#S6RXKZUA3UZ5UZU5UQMZNW62G3MXSRXHJEJK52TDD46LGE2F2HBKJZS7H2YELQZ4IBUIRUXL6TA4Y
-#\\\|C4DORKLEVXOUJ2YVEXAJQBW7CDFG2NH3YMSVZAX7XGTIHJP3BON \ / AMOS7 \ YOURUM ::
-#\[7]HNVHN6XEVNRVEPJH5WF2CKGMM5PU7UOZQNB6M5OORMFQXDIQNWBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,...,.,,,..,,.,.,,..,,,,,.,.,..,,...,...,,,.,,,,,,..,.,,,,,,,
+#LSZQTXEFFQHNC3YU4FGTOI5JOC2R7HVOLMXPNKZDU6D6J77A2GCMVYHMMBA6IFGKMU4WZPZEX6YBA
+#\\\|6KF7VRYT56QMUTGYR5PNYOXB2ISTDWP2F6LGGYTYGZ3JA6EST5P \ / AMOS7 \ YOURUM ::
+#\[7]QIMBEGFSGOA6EFUVYGI4MVNLEB5YUV25NRYLEWSM3RRNGDZ5J2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
