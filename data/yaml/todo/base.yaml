@@ -692,6 +692,13 @@ items:
     1. slight redundancy between zenki is fine as long as they do not break each other
     2. migrate to better code and structure once all its requirements are met -- without hesitating, not before
     3. what works stays working, with high priority : a replacement takes over only when it does at least as much [ baseline, test, then switch -- the batch harness way ]
+
+    nameserv as the outer discovery layer [ user, 2026-10-11 ] -- discover exchanges orbital positions inside the network, nameserv makes the same knowledge reachable from anywhere over plain dns :
+    - checksum names : e.g. <amos>.n7fs.<domain> answers with the nodes holding that bucket -- the outward face of the amos bucket structure, no protocol-7 client needed
+    - dynamic, dyndns-like : a node updates its records itself when it joins, moves or replicates a bucket ; nameserv already adds \ removes values per name [ add-txt \ remove-txt from the acme dns-01 work ]
+    - cryptographic : records signed with the node's c25519 key [ txt, or an own scheme next to dnssec ] -- a lookup can verify the answer comes from the responsible node. builds on the dns knock idea [ data/tasks/dns-knock-dynamic-ingress.md : per-session incoming addresses ]
+    - the dns side of the servers is CJ3 [ DN0000 \ DN0110, the registrar as third, the dns-01 wildcard test first ]
+    - already planned [ user ] : data/asc/what-AI-thinks/markdown-form/protocol7/specs/DNS_RHIZOME.md [ 2025-10-17 : node records in public dns -- TXT 'v=proto7 vm= loc= cost= ram= bw= harmonic=', SRV with priority \ weight, DNSSEC signatures, client discovery through a validating resolver ] and data/md/documentation/DNS_RHIZOME_ROADMAP.md [ phase 1 done : dns, discover, nodes \ tofu ; phase 2 in progress : txt \ srv generation, zone integration, dynamic updates, dnssec ; phase 3 open : cubic positioning, neighbors, rings, 5-of-7 consensus ; phase 4 : load-aware routing, failover, task migration ]. links : phase 3 positioning partly arrived through the nodes zenka's orbital p7refs ; the txt capability fields [ cost, ram, bw ] are the resource declaration NRT accounting needs ; phase 2 dynamic updates = what nameserv's add-txt \ remove-txt began ; checksum names <amos>.n7fs.<domain> = a new record type in the same scheme
   done_at: null
   id: 4EO
   priority: normal
@@ -981,9 +988,16 @@ items:
     - addressing to keep [ generic, no real addresses in the tree ] : a wildcard per user subdomain [ *@<user>.<domain> ] catches everything ; providers each get their own local part there [ <provider>@<user>.<domain> -- shows who leaked or sold an address, easy to filter or shut off ] ; plain accounts on the main domain [ <user>@<domain> ] exist too. the smtpd zenka needs : wildcard subdomains per user, routing \ folders by local part, plain accounts. the vault's login entry for a provider can record which address it uses [ 5OT ]
     - nameserv is NOT on the old host : a separate goal for the self-contained set-up [ dns is at the registrar's panel today ]. e.g. own authoritative server on a new server, the registrar or the other new server as secondary ; later zenki manage records through the registrar's api, credentials from the vault [ 5OT ]
     - local proxy : hysteria already runs on new server 1 but no config is migrated yet ; the udt-link zenki are meant to replace hysteria with native links later
-    - protocol-7 itself : not installed as a full node on new server 1 yet [ /usr/local/protocol-7 is there ] -- then known nodes between the hosts instead of plain ssh config
+    - protocol-7 itself : new server 1 and the old host already run it [ 3X2YZXGSNY-9883.0 per the 2026-10-09 handover ] ; the cube binds 127.0.0.1:42 by design, reached through an ssh forward + p-7-r [ handover open item 2 ] -- then known nodes between the hosts instead of plain ssh config
     - resilience : the two servers back each other up [ nameserv secondary, smtp fallback mx, http failover ] -- decide per service
     - inference : see 6WP [ new server 1 runs fablevibes on cpu at 56 \ 9 t/s ]
+
+    dns + mail redundancy [ 2026-10-11 ] -- once there were 3 dns and 3 mail servers, today no secondary :
+    - name servers DN0000 and DN0110 under the project's network domain [ both pass the harmony check, lower and upper case ] on the two new servers : one primary, one secondary [ zone sync via axfr \ ixfr, later the nameserv zenka ]
+    - the registrar's name servers as a third, a secondary of our primary -- the two new servers are neighbors in one data center [ rfc 2182 : avoid a shared point of failure ], the third sits outside it
+    - two name servers usually suffice for delegation ; check the exact .ax \ .network registry rules in the registrar's panel
+    - glue records : the name server names lie inside the delegated domain, the registrar needs their ips as host objects
+    - certificates : dns-01 is already underway [ memory handover 2026-10-09 acme async, open item 5 : zones + nameserv on both servers, the cross-host route to the 2nd nameserv, the registrar delegation, the wildcard test ; data/tasks/letsencr-acme-async.md ]. done : acme flow on the event loop, nameserv add-txt \ remove-txt with longest zone match, dns-01 providers for the registrar's api and cloudflare. one wildcard certificate for the project's network domain would cover the name servers, the mail host names and every service host -- smtpd \ imap need no certificates of their own
   done_at: null
   id: CJ3
   priority: normal
@@ -1008,7 +1022,19 @@ items:
   - keys
   text: 'p7-vault : store ssh keys and passwords, later zenki integration'
 - added: 3X32FAHIGQ
-  details: 'the smtpd zenka still misses parts for the move [ CJ3 ] : automatic mail account setup from the contact address data in the users zenka -- in smtpd itself or in a new setup zenka. first : list what smtpd already does and what is missing [ user, 2026-10-11 ].'
+  details: |-
+    the smtpd zenka still misses parts for the move [ CJ3 ] : automatic mail account setup from the contact address data in the users zenka -- in smtpd itself or in a new setup zenka. first : list what smtpd already does and what is missing [ user, 2026-10-11 ].
+
+    secondary handling \ cross-sync [ 2026-10-11 ] -- soon needed, there is no secondary mail server today :
+    1 first : a backup mx [ lower priority ] that queues and forwards to the primary -- it must check recipients like the primary [ wildcard \ provider scheme, CJ3 ], else it accepts spam for unknown addresses and bounces it to forged senders [ backscatter ]
+    2 later : two equal mx with mailbox sync [ fits n7fs : mailboxes as replicated content ]
+    mailbox sync as a protocol feature [ user ] : messages are immutable, addressed by checksum -- exchange checksum lists ; only the state changes [ read, deleted, moved ], each change stamped with a high-resolution ntime. a side says 'my newest state is T' [ like the httpd zenka's etag, but able to find the newest ], the other sends only what is newer ; the newer stamp wins a conflict, equal stamps decided by a fixed rule [ e.g. node checksum ]. needs the servers' clocks in step [ ntp ]
+
+    own protocol inside, adapters at the edge [ user, 2026-10-11 ] : between our servers only the native protocol [ DATA \ DELTA streams, the mailbox sync above -- expandable with what we really want ] ; towards the world thin adapters that speak exactly what is expected, backed by the same mailboxes :
+    - smtp in : smtpd zenka exists [ 14 modules : receive, parse, classify, archive, route, list, retrieve ] -- missing : STARTTLS, recipient checks for the wildcard \ provider scheme
+    - smtp out : missing -- outgoing queue + retries, dkim signing, spf \ dmarc records in dns
+    - imap \ pop3 : missing -- adapters over the stored mailboxes ; for the user's own reading also the CT2 web page
+    - certificates : letsencr zenka exists with DNS-01 through the registrar's api [ and cloudflare ] -- dns-01 works for any name, so the mail host names join the automated renewal ; missing : mail names in the certificate, smtpd \ imap loading it and reloading after renewal
   done_at: null
   id: UZU
   priority: normal
@@ -1019,8 +1045,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,,,,...,,..,,,.,,..,.,.,...,...,.,.,.,.,..,,..,,...,..,,..,,,,.,...,,,,,,..,
-#YNKYOCV4SKNESWZQBZQ5D5B5UJTWRKBZWUW2KZ6KV6E46DPDAVF3CF6Q37WM7EEUM7KV24LCQVQRE
-#\\\|765OYF5FMZYI2NF2FEAJR3UFJVU7NQ2WGX6JJXRHWO4T6JZ3C3E \ / AMOS7 \ YOURUM ::
-#\[7]JFS2E2XT62Z7TY5CFU3GMFLGLZGYQ63FKXHOUN3YK36BKJL6LYAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,..,,...,.,,,,.,,,..,...,,..,,..,..,,...,...,,.,,.,,,.,,,.,,,.,.,
+#NNYXDM765CDZC5ENV27W2X55F3VNNA3H3GOTC4NV5UPOFVPHDMR2LFRJ5VYG43HN6Y7IOUSXCXZX4
+#\\\|XA7Y4NZDEMULFGAXOA3AQPCYWWZK5RKAMCH3KDVWQRCAXYSPNDO \ / AMOS7 \ YOURUM ::
+#\[7]VM3MEIA7UTDZRMPO2PXWFHS54XHZYRAKEDN2GOK6X5AJP3ZBFECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
