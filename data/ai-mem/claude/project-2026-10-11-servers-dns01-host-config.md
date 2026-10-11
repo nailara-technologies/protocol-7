@@ -17,12 +17,12 @@ metadata:
 
 **Late 2026-10-11** : delta ipv6 [ slaac, AAAA set in both zones, ptr = SERVFAIL -> ask the provider, ask for a static v6 ] ; nameserv on delta answers over v6 [ REFUSED, holds no zones yet ]. TTLs : user wants 3900 [ 13 x 5 min, see [[harmonic-values-not-decimal-round]] ] -> nameserv.cfg.default_ttl [ 12e4b4a3b ]. nameserv console verbosity 2 dumped parsed config on every reload [ e66e320fd ]. crypt.C25519.chk_key_dir never created a non-root user's key dir [ `key_dir/..` does not resolve while key_dir is missing ; 94c112ffa, live on delta ]. REFUSED no longer sets aa [ e88c1499b ].
 
-**Zone sync** : instead of axfr -> todo 4CJ, design data/md/design/TIMESTAMP-DELTA-SYNC.md [ signed entries not a secured channel, writer grants per key, last-data-timestamp \ next-data-timestamp \ since \ full, signed state checksum ]. stage 1 [ timestamps + tombstones + checksum ] and 2 [ tcp lines ] = kimi k2.8 AFTER the user has read the doc ; stage 3 [ signing \ grants \ accept rules ] = claude. delta as DN1110 also needs registrar A\AAAA + glue and the acme NS sets.
+**Zone sync [ 4CJ ]** design data/md/design/TIMESTAMP-DELTA-SYNC.md. LANDED : stage 1 [ ts, tombstones, checksum, 2bef18709 ], stage 2 [ tcp lines, 8d1d1306b ], 3a [ nameserv-sync key + host-root .dlg via v7-zenki.delegation.issue_key, d398ba039, live : key + .dlg created here ], 3b [ signed entries, WRITER chain lines, grants keyed by host-root id, accept rules, per-peer cursor, 6a3628c0b ]. NOT yet tried between two real hosts. to enable on a host [ root, host.cfg ] : `nameserv.cfg.sync.port`, `nameserv.cfg.sync.peers = host:port ..`, `nameserv.cfg.sync.writer.<host-root id> = zone:<zone> ..` [ id : `p7c crypt.C25519.host-root-id` on the writing host ]. next : stage 4 letsencr writes its challenge txt to every nameserv ; production sync port [ open ]. remove-zone \ restore-zone [ xz trash ] exist. delta as DN1110 also needs registrar A\AAAA + glue and the acme NS sets.
 
 **Open** : wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
 
-#,,,.,,..,,,,,...,...,..,,.,.,.,.,,,.,,,.,,.,,..,,...,...,.,.,,.,,,,.,.,,,,..,
-#JZUKOH6VQY4734AHWWGNRABCAILPX4TWY3FWAJ4NIU3LDM72QJSCNFY5RPWZ5UVD36ASRU46LS2PQ
-#\\\|DZCGSCSJO57MF4YBAW7JLQ7H7VVUMHUYEB7NWVU2YFP2HCQ457F \ / AMOS7 \ YOURUM ::
-#\[7]GJDHHNLAOAT5Y5XUIEV2JJGS4KCXDWMMUMFAFPOGUNB7JXOVMACI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,.,.,.,,,.,.,.,.,,,,,.,,,...,..,,...,...,.,.,.,.,,..,,..,..,,
+#YM7F3FMAUR55RWRXJMXLAKDNP2IZGTS3WWOXHBBUPXJMG3PRC2DJU2XVE6EPSSK4GCEU3G3QKKAMM
+#\\\|PMBUDCASFNWQDPT5KQUMI2W77QUVWEH6XXHPLNYKMZJVCYCWA5M \ / AMOS7 \ YOURUM ::
+#\[7]QT4YEWZSEPV3EZFBVUMDF7ZGDSPZVS35U56BJU3NZAAIWYVHXYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
