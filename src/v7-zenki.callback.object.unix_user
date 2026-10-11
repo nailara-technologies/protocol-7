@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = v7-zenki.callback.object.unix_user
+# descr = start condition : a unix user exists [ unix_user.<name> ]
+# note  = in a start.cfg : 'dependencies = cube unix_user.<name>' -- waits
+#         for a condition, not for a whole zenka [ e.g. letsencr needs the
+#         httpsd group, which appears when the httpsd zenka drops privs ;
+#         a hard dependency on httpsd would block a dns-01-only host ]
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+
+my $name = <dependency.object>->{$object_id}->{'name'} // '';
+return FALSE if not length $name;
+
+return TRUE if defined scalar getpwnam($name);
+
+## unmet : look again in a few seconds    ##
+## [ no job move may come to trigger it ] ##
+<[v7-zenki.condition.recheck_later]>;
+return FALSE;
+
+#,,,,,.,,,,,.,,,.,..,,,,.,.,.,,..,..,,,,.,,..,..,,...,...,.,.,,,.,,.,,..,,...,
+#XQRPQSU5EDNK5SU7JRBJKHTFEFEI3FEUWOAYEM7YR7PO5RONQWMTYDHI4F7QRKCLAM4YR7XZPA3NS
+#\\\|YVYEN25MRICUIHI5F45AJEBACG7JK4CTAHUNUCM6WEFWME2CVVZ \ / AMOS7 \ YOURUM ::
+#\[7]GX5HB2OZIF57KDX5VLNAP3UNFFCKJXCZUEUTOEWRVS3EUINXLCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

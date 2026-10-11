@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = v7-zenki.condition.recheck_later
+# descr = re-check waiting zenka starts while a start condition is unmet
+# note  = jobqueue re-checks dependencies when a job moves -- a condition
+#         that turns true between moves [ a group created by another
+#         zenka's drop_privs ] waited for the next unrelated move. a
+#         one-shot timer, armed by an unmet condition callback, re-checks
+#         after <v7-zenki.cfg.condition_recheck> seconds [ 5 ] ; only one
+#         pending at a time, none once every condition holds
+
+return TRUE if <v7-zenki.condition.recheck_pending>;
+<v7-zenki.condition.recheck_pending> = TRUE;
+
+<[event.add_timer]>->(
+    {   'after'   => <v7-zenki.cfg.condition_recheck> // 5,
+        'repeat'  => FALSE,
+        'handler' => qw| v7-zenki.handler.condition_recheck |,
+        'desc'    => 'start condition re-check',
+    }
+);
+
+return TRUE;
+
+#,,..,..,,,,.,..,,,,.,,,.,.,,,,,.,.,.,,..,,,.,..,,...,...,.,.,.,.,.,.,..,,..,,
+#2OCEIRT3J4I2LOYTDKPZ7WBQYLJ3RNHQWAYM3BD6NCVTGL4QRIAZWIVVIJJJX5KLR747ZCRHAEFZ6
+#\\\|NWRMEN75KH5FJ5GHXNMYY4C45KJBPILAQYZ5LLM4ISTJP3GNDEI \ / AMOS7 \ YOURUM ::
+#\[7]Z3EOJKLF43Y5GB3TBVYDTQKAJHQJGIFXPG4R6HLAVDWUQPWDGUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
