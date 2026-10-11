@@ -55,6 +55,10 @@ $zones->{$zone_name} = {
     ],
 };
 
+## soa + ns signed by this host's sync key ##
+<[nameserv.sync.sign]>->( $zone_name, $ARG )
+    for @{ $zones->{$zone_name}{'records'} };
+
 <[nameserv.zone.save]>->($zone_name);
 
 ## wake sync waiters holding next-data-timestamp ##
@@ -64,8 +68,8 @@ $zones->{$zone_name} = {
 
 return { mode => 'true', data => "zone created : $zone_name" };
 
-#,,..,.,.,.,.,,..,.,.,.,.,,,.,.,,,,,.,..,,,..,..,,...,..,,.,.,,,,,...,.,.,.,,,
-#CEO7FNL6MUCCOZ7NBRL7YYF35ZRDI73GFGZDYUVB6Q4UL6VA3772JBVA2AQKOC3GJXRVTIOXSXKEK
-#\\\|3VJSRBCBS3SI34WG5VN4MIZDHXC47JTL2JFMIYBHPMBST46ZRJ3 \ / AMOS7 \ YOURUM ::
-#\[7]UQUSLOQAKX2BKAZTDLAHKN6QOZLWXZ53B7C6CV2L55OE7GXQWGDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,.,,,.,,,,..,,,,,..,,,,.,.,.,..,,...,...,.,.,,..,...,.,.,,,.,
+#HAS5B5IYVODIN2MS6AEB7GDWEWXRQ574O3XVMIGI7JY42WCMZN6PPTICDBFDKQHHZGYK2NZB5FCUG
+#\\\|EZ63GJANOSCHLRZPSWCNSZFBCX7FD6VUVMJZ7CTGURLIC6K6A67 \ / AMOS7 \ YOURUM ::
+#\[7]UYBOGBHSUMP6JWPNWTUHNSVBXDTDPTVIGOX25LCDQHUO2OL5OSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

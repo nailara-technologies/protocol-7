@@ -10,7 +10,7 @@ return () if ref $checksums ne qw| HASH |;
 my @mismatched = ();
 
 for my $z_name ( sort keys %$checksums ) {
-    my $local = <[nameserv.zone.checksum]>->($z_name);
+    my $local = <[nameserv.zone.checksum]>->( $z_name, TRUE );    ## signed ##
     my $peer  = $checksums->{$z_name} // '';
     if (   not defined $local
         or not length $peer
@@ -22,8 +22,8 @@ for my $z_name ( sort keys %$checksums ) {
 
 return @mismatched;
 
-#,,.,,...,,,,,.,.,,,,,,,,,.,,,.,,,.,.,,,.,,,,,..,,...,...,.,,,,,.,,,,,,.,,,..,
-#DH47734BBG4HFU5ECXMZ4KZDZXIG6NW6IVAH6GKWGS2JGOV4AGMDHXJUQ4PJU7EFAYUUCCERCNCAG
-#\\\|LLZGYA4J3PTDZBGR7PGT7KSE24HGJSV7HZDSFXWIEGYHQXBG7N6 \ / AMOS7 \ YOURUM ::
-#\[7]BZX6WESXDDU7RFNDP4Y7JXYH5OQGNCWTCUI2NASKKXSW3ZSMQKCY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,,,.,.,,,...,...,,,.,,,.,,,,,..,,...,..,,.,,,,,,,...,.,.,,,.,
+#WL5Y3GPOXSB4DV2EI676E3ERIIVUASZA2N5HEHNAEISKBXORAHZ4LTVVPUKG5GUCBS4IDLS67S2B4
+#\\\|VF6IP7OHCUR44CSHX46VXE6ELAF7D27YWGRKZAD3ONZXMDUMBBG \ / AMOS7 \ YOURUM ::
+#\[7]WEFSGV6QJDXFDEF24L6Z5GTK6HLKUQXIX7PHPGDM3CWPPB7TOEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

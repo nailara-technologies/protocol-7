@@ -1,0 +1,69 @@
+## [:< ##
+
+# name   = nameserv.sync.writer.verify
+# descr  = verify a peer's WRITER chain against this host's grants
+# param  = <writer key id>, <chain field>
+# return = { pub anchor name not_after } or ( undef, reason )
+#
+# anchors are EXACTLY the host-root ids this host grants
+# [ nameserv.cfg.sync.writer.<host-root id> ] -- never a pin store, never
+# a statement's own scope. the leaf subject must be the key the id names.
+# verified writers are cached until their statement expires.
+
+my $writer = shift // '';
+my $field  = shift // '';
+
+my $refuse = sub { return wantarray ? ( undef, shift ) : undef };
+
+return $refuse->('writer id not valid') if $writer !~ m|\A[A-Z2-7]{77}\z|;
+
+my $cache = <nameserv.sync.writers> //= {};
+my $now   = time;
+if ( ref $cache->{$writer} eq qw| HASH | ) {
+    return $cache->{$writer}
+        if $cache->{$writer}{'not_after'} > $now
+        and $cache->{$writer}{'field'} eq $field;
+    delete $cache->{$writer};
+}
+
+my $grants  = <nameserv.cfg.sync.writer> // {};
+my @anchors = grep {m|\A[A-Z2-7]{77}\z|} keys %{$grants};
+return $refuse->('no writer grants configured') if not @anchors;
+
+my ( $chain, $why ) = <[trust.chain]>->( qw| split |, $field );
+return $refuse->( 'chain not valid [ ' . ( $why // '?' ) . ' ]' )
+    if ref $chain ne qw| ARRAY |;
+
+my $leaf = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
+return $refuse->('leaf not readable') if ref $leaf ne qw| HASH |;
+my $pub = $leaf->{'subject_pub'};
+return $refuse->('leaf is not this writer')
+    if ( <[trust.key_id]>->($pub) // '' ) ne $writer;
+
+my ( $valid, $reason ) = <[trust.verify]>->(
+    {   qw| chain |   => $chain,
+        qw| anchors | => \@anchors,
+        qw| subject | => $pub,
+        qw| now |     => $now,
+    }
+);
+return $refuse->( 'chain does not verify [ ' . ( $reason // '?' ) . ' ]' )
+    if ref $valid ne qw| HASH |;
+
+## only a sync key statement : the same host-root also delegates cube's S ##
+return $refuse->("not a sync key statement [ $valid->{'name'} ]")
+    if $valid->{'name'} !~ m|\A[a-z0-9][a-z0-9_-]*\.nameserv-sync\z|;
+
+return $cache->{$writer} = {
+    qw| pub |       => $pub,
+    qw| anchor |    => $valid->{'anchor'},
+    qw| name |      => $valid->{'name'},
+    qw| not_after | => $valid->{'not_after'},
+    qw| field |     => $field,
+};
+
+#,,,.,.,.,,..,.,,,.,,,,..,.,,,...,.,.,..,,.,.,..,,...,...,...,,.,,...,...,.,.,
+#DD52S6B43CZB4U2UYJFPZ2Y6IBJCHABMJP7O2L5TCOUEXEF2K7QUUND6LVOFJGJEXHHOD2DFCSDDK
+#\\\|SXZY5LJORJ2DMFV23IHPZH3J2HGWMZTBINVHD7Z4BGIAFORUM7V \ / AMOS7 \ YOURUM ::
+#\[7]WLM2UXSFQEBIKZMTG3KFCWPFRMBW2ASKAZV45N6IT3KKZME3X2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

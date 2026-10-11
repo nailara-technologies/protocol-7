@@ -792,6 +792,8 @@ return [ qw[
         ncode.cmd.workflow
         ncode.cmd.graduate
         nameserv.zone.save
+        nameserv.sync.sign
+        nameserv.sync.reap
         nameserv.init_code
         mpv.snapshot.write
         mpv.handler.stdout
@@ -1024,6 +1026,9 @@ return [ qw[
         ncode.cmd.transform
         ncode.cmd.tool_list
         nameserv.zones.load
+        nameserv.sync.start
+        nameserv.sync.since
+        nameserv.sync.apply
         nameserv.event.emit
         nameserv.cmd.status
         mpv.cmd.append-play
@@ -1275,6 +1280,10 @@ return [ qw[
         ncode.transform.wave
         ncode.cmd.sign-batch
         nameserv.zone.lookup
+        nameserv.sync.notify
+        nameserv.sync.listen
+        nameserv.sync.key.id
+        nameserv.sync.accept
         nameserv.cmd.add-txt
         mpv.snapshot.restore
         mpv.loop_plist_param
@@ -1538,6 +1547,7 @@ return [ qw[
         ncode.cmd.widen-scope
         ncode.cmd.format-code
         ncode.cmd.diff-staged
+        nameserv.sync.request
         mpv.init_settings_map
         mpv.cmd.stop-autoskip
         mpv.cmd.snapshot-save
@@ -1827,7 +1837,10 @@ return [ qw[
         nodes.parser.node_pkey
         nodes.orbital.addr_b32
         ncode.util.scope_match
+        nameserv.zone.checksum
+        nameserv.sync.peer.arm
         nameserv.handler.query
+        nameserv.cmd.sync-pull
         nameserv.cmd.show-zone
         mpv.snapshot.send_quit
         mpv.snapshot.cmd_reply
@@ -2145,7 +2158,11 @@ return [ qw[
         nodes.cmd.orbital-p7ref
         ncode.start.chmod_child
         ncode.cmd.parse-headers
+        nameserv.zone.timestamp
+        nameserv.sync.ts-oldest
+        nameserv.sync.peer.fail
         nameserv.start_listener
+        nameserv.entry.identity
         nameserv.cmd.set-record
         nameserv.cmd.remove-txt
         nameserv.cmd.list-zones
@@ -2436,6 +2453,13 @@ return [ qw[
         notify-info.send_message
         nodes.cmd.add-group-user
         ncode.cmd.pattern-review
+        nameserv.sync.writer.own
+        nameserv.sync.key.ensure
+        nameserv.sync.entry.body
+        nameserv.sync.conn.write
+        nameserv.sync.conn.flush
+        nameserv.sync.conn.close
+        nameserv.cmd.remove-zone
         nameserv.cmd.ensure-zone
         mpv.startup.job.finalize
         mpv.handler.pipe.version
@@ -2725,6 +2749,11 @@ return [ qw[
         nshell.history.arrow_down
         nshell.handler.strm_reply
         notify-loves.send_message
+        nameserv.zone.trash.stash
+        nameserv.sync.peers.start
+        nameserv.sync.peer.wakeup
+        nameserv.sync.apply.entry
+        nameserv.cmd.restore-zone
         nameserv.cmd.reload-zones
         nameserv.cmd.publish-node
         mpv.update_resc_timestamp
@@ -3003,6 +3032,11 @@ return [ qw[
         nshell.handler.debug_input
         nodes.cmd.orbital-position
         ncode.chmod_child.readline
+        nameserv.sync.peer.release
+        nameserv.sync.handler.read
+        nameserv.sync.entry.encode
+        nameserv.sync.entry.decode
+        nameserv.sync.client.start
         nameserv.cmd.remove-record
         mpv.snapshot.apply_pending
         mpv.handler.resume_timeout
@@ -3301,6 +3335,10 @@ return [ qw[
         nshell.handler.ctrl_o_cycle
         nshell.execute_cube_command
         net.read_linewise_estimated
+        nameserv.zone.tombstone.add
+        nameserv.sync.writer.verify
+        nameserv.sync.handler.write
+        nameserv.sync.client.finish
         nameserv.cmd.discover-nodes
         mpv.startup.job.fork_player
         mpv.handler.window_id_reply
@@ -3605,6 +3643,11 @@ return [ qw[
         nshell.handler.command_reply
         nshell.editor.default_schema
         ncode.util.file_to_namespace
+        nameserv.sync.peer.sync_done
+        nameserv.sync.peer.connected
+        nameserv.sync.handler.accept
+        nameserv.sync.client.timeout
+        nameserv.sync.client.process
         mpv.startup.resolve_x11_info
         mpv.startup.request_geometry
         mpv.handler.reposition_reply
@@ -3806,6 +3849,7 @@ return [ qw[
         v7-zenki.handler.zenka_status
         v7-zenki.handler.zenka_output
         v7-zenki.handler.shutdown_cmd
+        v7-zenki.delegation.issue_key
         v7-zenki.cmd.delegation-issue
         v7-zenki.callback.host-reboot
         usage.handler.provider_result
@@ -3878,6 +3922,8 @@ return [ qw[
         nshell.hook.input_passthrough
         nodes.orbital.update_position
         nodes.cmd.update-protocol-elf
+        nameserv.zone.tombstone.purge
+        nameserv.zone.tombstone.clear
         nameserv.orbital.auto_publish
         nameserv.handler.p7ref_lookup
         mpv.handler.event.file-loaded
@@ -4165,6 +4211,8 @@ return [ qw[
         nodes.parser.connection_target
         nodes.parser.connection_status
         nodes.orbital.current_position
+        nameserv.sync.client.connected
+        nameserv.sync.checksums.verify
         nameserv.handler.publish_reply
         mpv.pulse.disable_idle_suspend
         mpv.handler.scan_encoded_timer
@@ -4422,6 +4470,7 @@ return [ qw[
         nshell.hook.unknown_reply_route
         nodes.send_host_details_request
         nodes.cmd.orbital-grid-fragment
+        nameserv.sync.peer.handler.read
         mpv.handler.rescale_video_reply
         models.test.api_limit_detection
         models.registry.list_by_context
@@ -4649,6 +4698,8 @@ return [ qw[
         openbox.callback.already_running
         nshell.no-tty-debug.cmd.char-add
         nshell.declare_strm_size_support
+        nameserv.sync.client.apply_reply
+        nameserv.cmd.last-data-timestamp
         mpv.startup.handler.socket_ready
         mpv.startup.handler.coords_reply
         mpv.handler.snapshot_collect_pos
@@ -4857,6 +4908,7 @@ return [ qw[
         osf-cache.lookup.format_has_reply
         osf-cache.holdings.scan_apt_cache
         nodes.orbital.format_strm_payload
+        nameserv.sync.client.handler.read
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
         models.storage.discover_directory
@@ -5055,6 +5107,7 @@ return [ qw[
         nshell.hook.unknown_command_global
         nodes.handler.discover_node_online
         ncode.transform.handler.wave_reply
+        nameserv.sync.peer.handler.connect
         mpv.startup.handler.socket_timeout
         mpv.handler.snapshot_collect_error
         models.registry.populate_from_yaml
@@ -5373,6 +5426,7 @@ return [ qw[
         nshell.history.find_session_boundary
         nshell.handler.ctrl_o_render_preload
         nodes.handler.discover_details_reply
+        nameserv.sync.client.handler.connect
         mpv.startup.handler.placement_online
         models.storage.adapter.invoke.repair
         models.storage.adapter.invoke.import
@@ -6061,8 +6115,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,.,,..,,,,.,.,.,,.,,,,.,,.,,,.,,..,,,..,.,.,...,...,..,,,..,,.,,,..,..,,
-#BJ5UCGSNLALNNVHPWXSUMEDTXOEGSEOX6NPI4F5TKOJWDDOT4QQ2AEAYQEGMKRCCC2CJVZ6LOMKD2
-#\\\|IQGZD527J2SWJCU2SN3TFQMPCV2F7G7GIL4SNVOBLTMIO5MFUUJ \ / AMOS7 \ YOURUM ::
-#\[7]GLZGCYVLJPF7TO5KWMP2GX2N2YYJEPEJC4SF2VBFWQTZE3MQAIDI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,,..,.,,,...,,,,,.,.,,,.,..,,.,.,...,...,,,.,.,.,,..,,..,,..,
+#5CQOSOYISXIMU2EVW22OHL567REPWHDCXH5B23YIOCWZ5AGPUJFYLTGVNLNOTOIRCZAZ77CINZOEI
+#\\\|SEENTSS3LVAXHI4JVUNHJXJVSGKWAIKXWNM6O5PV3UEMKTJ7EZZ \ / AMOS7 \ YOURUM ::
+#\[7]DGSMNDYSICLGNV6OA5GVCQTEKTGGXWXUN3G5LQY3X6DS547RVUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
