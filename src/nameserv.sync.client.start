@@ -16,11 +16,12 @@ my $zone = lc( $params->{'zone'} // '' );
 $zone =~ s{\.+$}{};
 
 require IO::Socket::IP;    ## like nameserv.start_listener ##
+require Socket;            ## SOCK_STREAM : not imported into a zenka ##
 
 my $sock = IO::Socket::IP->new(
     PeerHost  => $host,
     PeerPort  => $port,
-    Type      => SOCK_STREAM(),
+    Type      => Socket::SOCK_STREAM(),
     Blocking  => 0,
     ReuseAddr => 1
 );
@@ -78,8 +79,8 @@ $pending->{$id}{'timer'} = <[event.add_timer]>->(
 
 return $id;
 
-#,,,,,,,,,,..,,.,,.,.,,,.,..,,,..,,,.,.,.,,,,,..,,...,...,...,.,.,..,,,..,...,
-#J44YV6AZ5K5GQUIDOC5QYDXHLLZNGE3ZJEGJLDI7I277XP3HQ7MYEQCINHDD5ULXRG3KC42RT6EO2
-#\\\|ARSMN7ARN2WDTQ3VV6Z34GU6OOB66MF4UCXLRELJR3BY2TGEB4B \ / AMOS7 \ YOURUM ::
-#\[7]BLUN5OJY6NHRMZXAW2ODDWB23JYOFCBG2E3OOHEIROPMI7NRDUBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,,.,,,,,,.,.,...,,.,,,..,..,,..,,...,...,.,.,,..,..,,..,,.,,,
+#X5WAK4EHOVV33HOPBCR7XT54POCUZMG35CZ2LIKLLYR6IJ63546GHUJZX6TB5EK6FLUW64A3VHZDO
+#\\\|63GL3Y2H3EJT7RZJTBKYKRB4UQZH6JKN222NUFN2PEFFEHXFVLA \ / AMOS7 \ YOURUM ::
+#\[7]B4L6N6IKREUUTSWVNASZXFOUCVVXYBG2X4BG3OWBLF6KFRM5WKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
