@@ -47,7 +47,12 @@ $main::LOAD_ZENKA_CFG_NAME = $cfg_name;    ## replace with stack vars ## [LLL]
 my $status = <[base.execute_zenka_code]>->(
     <[base.parser.config]>->(
         <[base.get_file.aref]>->(
-            join( qw| / |, <system.conf_path>, $cfg_name ),
+            ## an absolute path                                           ##
+            ## [ a host overlay outside the tree, base.load_host_config ] ##
+            ## is read as given                                           ##
+            index( $cfg_name, qw| / | ) == 0
+            ? $cfg_name
+            : join( qw| / |, <system.conf_path>, $cfg_name ),
             sub {
                 $cfg_name =~ s|^.+/||g;
                 <[base.logs]>->(
@@ -65,8 +70,8 @@ my $status = <[base.execute_zenka_code]>->(
 return TRUE if <base.parser.config.errors>;
 return $status;
 
-#,,,,,...,,,.,,,,,...,...,,.,,...,,,,,.,.,,,.,..,,...,..,,,.,,...,,.,,,..,,.,,
-#RSNEUAJ4GDZ6RBTYRFJD2NO3PIV4BJQL227SH352QRAI5JE3XGMPL7IZUROY6FKL7R5X4RGSLMOB4
-#\\\|SLDNRO4Z2D324CPYRH4IG5RLXR3SC66NNINVI72T3FLVMHLORLS \ / AMOS7 \ YOURUM ::
-#\[7]JKWRDT2DFWEOILSC5CTHRSX5DYRB4XCDQNF6PIKXFYJFFWF7UOAY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,..,,.,.,,.,,...,,..,,.,,...,,..,..,,...,...,..,,.,.,.,,,.,,,.,,,
+#DXJKZ4WZHVHV2G2XDUHZG77FXZPRQI6JIKVYUFBKP52ARUOL5FKOS5OA6TLMKSW7VMJ5LR6K32UHA
+#\\\|NXRWCNO3BWFNMLDQPVFERM2KJYUPA7SQOITQGCD7SVXCWYRLJVD \ / AMOS7 \ YOURUM ::
+#\[7]5X4OVTJMDRA3P3C2RT72B2SR42A54TFXLV47TIZGP44TF4E3BIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
