@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = nameserv.cmd.ensure-zone
+# descr = create an acme challenge subzone when missing
+# param = <zone> <ns host> [ <ns host> .. ]
+# note  = for letsencr's dns-01 alias [ _acme-challenge.<domain> CNAME
+#         into acme.<domain>, delegated here ]. only zones starting with
+#         nameserv.cfg.ensure_zone_prefix [ 'acme.' ] -- it can never
+#         create or shadow a real zone. an existing zone is left as it is.
+#         add-txt itself still never creates zones
+
+my @parts     = grep {length} split m|\s+|, $call->{'args'} // '';
+my $zone_name = lc( shift @parts // '' );
+$zone_name =~ s{\.+$}{};
+my @ns = map {s{\.*$}{.}r} grep {m|^[\w.-]+$|} @parts;
+
+my $prefix = <nameserv.cfg.ensure_zone_prefix> // 'acme.';
+
+return { mode => 'false', data => 'usage: ensure-zone <zone> <ns host> ..' }
+    unless length $zone_name and @ns;
+return {
+    mode => 'false',
+    data => "refused : '$zone_name' does not start with '$prefix'"
+    }
+    unless index( $zone_name, $prefix ) == 0
+    and $zone_name =~ m|^[a-z0-9.-]+$|
+    and $zone_name =~ m|\.[a-z0-9-]+\.[a-z]{2,}$|;
+
+my $zones = <nameserv.zones> //= {};
+return { mode => 'true', data => "zone exists : $zone_name" }
+    if exists $zones->{$zone_name};
+
+## soa + ns, short ttl : the zone only ever carries challenge records ##
+my $serial = time();
+$zones->{$zone_name} = {
+    serial  => $serial,
+    ttl     => <nameserv.cfg.challenge_ttl> // 60,
+    records => [
+        {   name  => $zone_name,
+            type  => 'SOA',
+            value => sprintf(
+                '%s hostmaster.%s. %d 3600 600 1209600 60',
+                $ns[0], $zone_name, $serial
+            ),
+        },
+        map { { name => $zone_name, type => 'NS', value => $ARG } } @ns,
+    ],
+};
+
+<[nameserv.zone.save]>->($zone_name);
+<[base.logs]>->( 1, ': zone created : %s [ ns %s ]', $zone_name, "@ns" );
+
+return { mode => 'true', data => "zone created : $zone_name" };
+
+#,,.,,,.,,,,,,,,,,...,,.,,,..,..,,,.,,,,,,,,,,..,,...,...,..,,,,.,.,,,..,,..,,
+#K7MG7YOUKOALR5ITCJHEFKCWGHP3GMTOUHOBYVCIX4LPD5SQ2IMD5VAL2KM7C5Q6RVLCXXDIOEYRG
+#\\\|3Y4IHWZMCKWCEOPUSGERWIJFRVOC2ZQAATX7U3U6XOTFILZGCND \ / AMOS7 \ YOURUM ::
+#\[7]XYUGJ46S47ZO2W463XYCV447AJZE7YB66OEB6BYB4VYQPGNAZYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
