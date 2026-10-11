@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [keep-new-server-1](project-2026-10-11-keep-new-server-1.md) — the 8-vcpu primary vps keeps running without break : its 24 GB \ 450 GB upgrade was a one-off grant, never suggest cancel \ pause \ re-order
 - [coding-models-vision-offload-batch-2026-10-10](project-2026-10-10-coding-models-vision-offload-batch.md) — image tools, offload planner [ exact kv, moe experts, kv auto ], model-batch repaired, tool groups ; fablevibes 14b-a3b 9/9 best ; 35b-a3b quant test in flight
 - [project-2026-10-09-vault-ntime-landed](project-2026-10-09-vault-ntime-landed.md) — LANDED a143c2f64 + 58ddba430 : bin/p7-vault [ standalone password \ contact vault, recovery proven from the spec ], AMOS7::NTIME + bin/ntime [ ntime without backend ], format-code box + bracket reflow ; next = user creates the real vault -> backup to usb + pri at once [ pri : libcrypt-argon2-perl ], then sync \ checksum storage layer
 - [project-2026-10-09-session-handover-acme-async](project-2026-10-09-session-handover-acme-async.md) — START HERE : session 2026-10-09 handover [ last a30e66958, both remotes on 9883 ] -- letsencr acme on the event loop [ live ], image metadata stripped from history, nameserv txt, coding gpu recheck, outer cube = ext-cube, dns knock idea ; next = retry off-by-one, pri taeki auth, dns-01 live
@@ -180,8 +181,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching e5a74ce95, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,.,,...,.,,,.,.,,..,,,.,,.,,,.,,,.,,,,.,,..,..,,...,..,,...,...,...,..,,,..,
-#JOAX2LTZIQYRXZMFIKPY2MKOUHW5XZJAXN7SFKNLWKAL635PNRPKCQA4EGOPDOVYLT2SGZMFLJNHC
-#\\\|SJ3FZNZZG4UABQO6Q6KRNGANQHRNMOJ33JRV4RU3OTUK3DKD5LO \ / AMOS7 \ YOURUM ::
-#\[7]HXPDG2AG5PBA6E2NH6TPGHEE2XK4NW2HDLDAOWBNIPIUOXGPOUCQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,.,,.,.,,..,,..,,.,,.,,,,.,,..,,...,...,..,,..,,,.,,..,,,,,,
+#KPLR34DLRRAHTIRNSQADPP6JITLKOF6ALCC2AU3DVMNFYUFODQOZEOAG5YWEFCNOQSRFYOPZ3ALCY
+#\\\|J7CO5O6OQYTLXBWBNGB7TDLXIUZULXG3OEER5LPCRXKK5E2K7OE \ / AMOS7 \ YOURUM ::
+#\[7]OBXACM644LHXWIQJ2CJ4ME2SWZBAS7WTRPFMP5K4ZGXDAHFEHYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
