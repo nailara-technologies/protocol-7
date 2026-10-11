@@ -232,6 +232,7 @@ for my $mod (
     nameserv.cmd.set-record
     nameserv.cmd.add-txt
     nameserv.cmd.remove-txt
+    nameserv.cmd.sign-zone
     nameserv.sync.entry.encode
     nameserv.sync.entry.decode
     nameserv.sync.since
@@ -587,11 +588,45 @@ for my $order ( [ 0, 1 ], [ 1, 0 ] ) {
 check 'equal ts : same winner in either ' . 'order',
     ( defined $winner[0] and $winner[0] eq $winner[1] );
 
+## --- sign-zone : unsigned records of older \ hand-written zones ##
+## ----------                                                     ##
+
+%{$zones} = ();
+$keys{'C25519'}{'nameserv-sync'} = $sync_a;
+$zones->{'old.test'} = {
+    serial  => 1,
+    ttl     => 3900,
+    records => [
+        { name => 'old.test', type => 'NS', value => 'dn0000.example' },
+        {   name  => 'www.old.test',
+            type  => 'A',
+            value => '10.0.0.5',
+            ts    => ntime_b32()
+        },
+    ],
+};
+my $r = cmd( 'sign-zone', '' );
+check 'sign-zone without a zone : ' . 'usage',
+    ( $r->{'mode'} eq 'false' and $r->{'data'} =~ m|usage| );
+$r = cmd( 'sign-zone', ':missing:' );
+check ':missing: signs the unsigned zone',
+    ( $r->{'mode'} eq 'size' and $r->{'data'} =~ m|old\.test : 2 signed| );
+check '  :.. every record signed, missing ts set',
+    ( 2 == grep { defined $ARG->{'sig'} and length $ARG->{'ts'} }
+        @{ $zones->{'old.test'}{'records'} } );
+my $sig_before = $zones->{'old.test'}{'records'}[1]{'sig'};
+$r = cmd( 'sign-zone', ':missing:' );
+check ':missing: with nothing left', $r->{'data'} =~ m|no zone with unsigned|;
+$r = cmd( 'sign-zone', 'old.test' );
+check 'signed records stay untouched',
+    (       $r->{'data'} =~ m|0 signed|
+        and $zones->{'old.test'}{'records'}[1]{'sig'} eq $sig_before );
+
 printf "\npassed : %d  failed : %d\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,.,.,..,,,.,,,.,,,,,,,..,,..,..,,..,,..,,...,...,.,,,,..,..,,..,,,.,,
-#RHG7C437HQLMH4AYDO254MWWB6TQPIAKA2TT4EMX7XVLLK5A2AC7PCH7KGB4BLNKXKCQ6YD6TFW2C
-#\\\|EFAPJG6YY46SZAIY5SP2PDAKUVEWDBM47TCHLVHR74WYRKV4WU4 \ / AMOS7 \ YOURUM ::
-#\[7]PX6KXXAS7QL7OW4QVPHN6BJSIL7PFQI2EV6JAJ2O7UT6I5QELYDA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,..,.,,,,,,,,,,,,,.,...,,..,.,,,..,,...,...,...,.,.,.,,,,,,,,,,,
+#7MZFOXPBLTS2LOOZMU3FH3FN7SVVK6YS3GNJWCI5OV45H43TBIDN3VOTROYYQDYRE2ED35Y4Q7ZOK
+#\\\|WVXJFM5GTZ6OHON2BKYV3TO4K44AHS2F65K2XWZIJY3CF3QICVY \ / AMOS7 \ YOURUM ::
+#\[7]P43UJC6TL5DOZMMQTTI4MEP6MGTPA5OGJTK7DFKRTOXFPMSWIMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       reload-zones status set-record remove-record \
                       get-record show-zone list-zones discover-nodes \
                       add-txt remove-txt ensure-zone last-data-timestamp \
-                      remove-zone restore-zone sync-pull
+                      remove-zone restore-zone sync-pull sign-zone
 
 ## logging verbosity
 system.zenka.verbosity.buffer  = 2
@@ -42,8 +42,6 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## drop privileges
 [root.drop_privs:<system.amos-zenka-user>]
 
-## the sync key, as the backend user [ created once, never regenerated ] ##
-[nameserv.sync.key.ensure]
 
 ## connect to cube for ipc (receive routed commands)
 [base.net.connect:'unix']
@@ -51,11 +49,15 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## register with cube (required for command routing)
 [get_session_id]
 
+## the sync key, as the backend user [ created once, never regenerated ] ##
+## -- after the cube session : a new key asks v7-zenki for its delegation ##
+[nameserv.sync.key.ensure]
+
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,,.,.,,,..,,,.,,..,,,,,,.,,,.,.,.,,,..,,,..,..,,...,...,..,,..,,,..,..,,.,,,
-#TBF5ZJT5DRYKV6ASFM3ARFJRXJBIZUC6N3ZNMLGPY5LXJFPBSQOCB3VAQTXRXWPMZUOGTMX54G7IG
-#\\\|7PIJMBXMRKPPLJBTA7I2NBBSAY7IBTNMMLHPMAPUL52TV4VR4YV \ / AMOS7 \ YOURUM ::
-#\[7]3N3AHZ6GDDCTX2POSPGUSFCAXGKCNP25ISG64AED7WNN5KBDLUBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,..,,,,,,,.,,,..,.,.,.,.,,,.,..,,...,...,...,.,,,...,...,.,,,
+#DSZUZYA4LMBRSIKV7CJDAIRQRXHYBERHZIH3YSWW6PDMMZYLO4TYRMPNQEHKQPEQ4I3PUP42ZGWAI
+#\\\|XLCO744KUGLDWRJMH25DVIWTP25N6MREGL5IZ6GB2REMF5MVO63 \ / AMOS7 \ YOURUM ::
+#\[7]GZGNLIW26JRAIIFXTXI7XNUIXYTIHUODGOTC6STSBJ2DUBXZXCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = nameserv.cmd.sign-zone
+# descr = sign a zone's unsigned records with the sync key
+# param = <zone> | :missing:
+#
+# records written before stage 3 or by hand carry no signature : they
+# answer locally but are never sent to peers. signing makes this host
+# their writer [ peers accept them under its grant ] -- an explicit
+# choice : a zone name, or ':missing:' for every zone with unsigned
+# records, never a default. signed records [ also relayed ones ] stay
+# untouched ; a missing ts is set now. tombstones are not signed here.
+
+my $arg = lc( $call->{'args'} // '' );
+$arg =~ s|^\s+||;
+$arg =~ s|\s+$||;
+$arg =~ s|\.+$|| if $arg ne qw| :missing: |;
+
+return {
+    mode => 'false',
+    data => 'usage: sign-zone <zone> | :missing:'
+    }
+    if not length $arg
+    or $arg =~ m|\s|;
+
+my ($key_id) = <[nameserv.sync.key.id]>;
+return { mode => 'false', data => 'no sync key loaded' }
+    if not defined $key_id;
+
+my $zones = <nameserv.zones>;
+my @names;
+if ( $arg eq qw| :missing: | ) {
+    @names = grep {
+        grep { ref $ARG eq qw| HASH | and not defined $ARG->{'sig'} }
+            @{ $zones->{$ARG}{'records'} // [] }
+    } sort keys %{$zones};
+    return { mode => 'true', data => 'no zone with unsigned records' }
+        if not @names;
+} else {
+    return { mode => 'false', data => "zone not found: $arg" }
+        if not exists $zones->{$arg};
+    @names = ($arg);
+}
+
+my @report;
+foreach my $zone_name (@names) {
+    my ( $signed, $failed ) = ( 0, 0 );
+    foreach my $rec ( @{ $zones->{$zone_name}{'records'} // [] } ) {
+        next if ref $rec ne qw| HASH | or defined $rec->{'sig'};
+        $rec->{'ts'} = <[base.ntime.b32]>
+            if not defined $rec->{'ts'}
+            or not length $rec->{'ts'};
+        if   ( <[nameserv.sync.sign]>->( $zone_name, $rec ) ) { $signed++ }
+        else                                                  { $failed++ }
+    }
+    if ($signed) {
+        $zones->{$zone_name}{'serial'} = time();
+        <[nameserv.zone.save]>->($zone_name);
+        <[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+    }
+    <[base.logs]>->(
+        1,          ': sync : %s : ' . '%d records signed',
+        $zone_name, $signed
+    ) if $signed;
+    push @report, sprintf '%s : %d signed%s', $zone_name, $signed,
+        $failed ? " [ $failed failed ]" : '';
+}
+
+return { mode => 'size', data => join "\n", @report };
+
+#,,,,,,,.,,,.,.,.,...,,,.,,.,,.,,,.,.,...,...,..,,...,...,.,.,.,.,,,,,.,,,,,.,
+#LDGN7THWJGNGEUUI4X3NGKF6AZ5552PNZD6UBM23VP3ASD5VXTBV76SFRCZUMQAIXUVINTWR44K6G
+#\\\|AN4IHAX6O67GP2POD7BHRUQ32EYMQCVDJTJ335WGNIM2LINRFFL \ / AMOS7 \ YOURUM ::
+#\[7]5MTJR7VIFG4KEIYT47N4HNTRMLLPLAC44KNRZ4WJCNQI5OXXCUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
