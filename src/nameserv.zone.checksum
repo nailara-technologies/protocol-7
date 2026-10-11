@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nameserv.zone.checksum
+# descr = bmw 512 checksum of the live zone records
+# param = $zone_name -> base32 checksum | undef
+
+my $zone_name = lc( shift // '' );
+
+my $zones = <nameserv.zones>;
+my $zone  = $zones->{$zone_name} // return undef;
+
+return undef if ref $zone->{'records'} ne qw| ARRAY |;
+
+## canonical form : records sorted by identity, fields name, type, value, ##
+## ttl, ts joined by \0, records joined by \n                             ##
+## [ design : timestamp delta sync ] ; missing ts                         ##
+## [ hand-written zone files ] serializes as '' , tombstones are excluded ##
+
+my @sorted = sort {
+    <[nameserv.entry.identity]>->( $zone_name, $a ) cmp
+        <[nameserv.entry.identity]>->( $zone_name, $b )
+} grep {ref} @{ $zone->{'records'} };
+
+my $canonical_str = join(
+    "\n",
+    map {
+        join( "\0",
+            $ARG->{'name'}  // '',
+            $ARG->{'type'}  // '',
+            $ARG->{'value'} // '',
+            $ARG->{'ttl'}   // '',
+            $ARG->{'ts'}    // '' )
+    } @sorted
+);
+
+return <[base.chk-sum.bmw.512.B32]>->( \$canonical_str );
+
+#,,,.,,,.,.,.,..,,,,.,..,,.,.,.,,,,,,,.,,,.,.,..,,...,...,,..,,.,,...,,.,,,,.,
+#7OW5PDIOVB27UC7STLHHJ7IGDVC5Y75XKD5KEGG7FKO47P7HM6LEDKWTWM3UE4H7BWGFZM7QCSXEM
+#\\\|PBOA62YTOWNUC4W4KI373JQZLTVRC52E55ORRFMAHIQ5XH7HM74 \ / AMOS7 \ YOURUM ::
+#\[7]PYXG7VXGCECJ5J6ZVLNO7YHPKATCIZG2Q6IHZL5VGCS5J3OZUOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

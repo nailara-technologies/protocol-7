@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = nameserv.zone.tombstone.purge
+# descr = drop tombstones past the keep window
+# param = $zone_name -> number of tombstones dropped
+
+my $zone_name = shift // '';
+
+my $zones = <nameserv.zones>;
+my $zone  = $zones->{$zone_name} // return 0;
+return 0 if ref $zone->{'tombstones'} ne qw| ARRAY |;
+
+my $keep = <nameserv.cfg.sync.tombstone_keep> // 1123200;    ## 13 days ##
+
+my $dropped = 0;
+my @kept    = ();
+
+for my $tomb ( @{ $zone->{'tombstones'} } ) {
+    my $deleted = $tomb->{'deleted'} // '';
+    if ( not length $deleted
+        or $deleted !~ m|^\d+(\.\d+)?$|
+        and not <[base.ntime.b32_is_shape_valid]>->($deleted) ) {
+        ## missing or unparsable ts : oldest possible, expired ##
+        $dropped++;
+        next;
+    }
+    my $age = <[base.ntime.delta_seconds]>->($deleted);
+    if ( not defined $age or $age > $keep ) {
+        $dropped++;
+    } else {
+        push @kept, $tomb;
+    }
+}
+
+$zone->{'tombstones'} = \@kept;
+
+return $dropped;
+
+#,,..,.,.,...,.,,,,.,,,,.,.,.,..,,.,.,.,,,,,,,..,,...,..,,,,.,.,.,...,,,.,.,,,
+#43M4CZ4DF2KR52XI4BGUL4JPRCQLWTDGLPTRO2UKR3DCQXS3FY4TJYFLH6FOBYNUWLEL45JMJXM7K
+#\\\|54C6LRWHDEGAPYFPH4WY7GD5BLQIVCZJEEYLE5KRM45L7Q4DP3G \ / AMOS7 \ YOURUM ::
+#\[7]53E4F7KXS7ZIJTVK4PIH3NFJGXTEPLV7NFNEKD76UUIIM67WBUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

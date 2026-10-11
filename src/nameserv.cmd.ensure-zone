@@ -32,6 +32,7 @@ return { mode => 'true', data => "zone exists : $zone_name" }
 
 ## soa + ns, short ttl : the zone only ever carries challenge records ##
 my $serial = time();
+my $rec_ts = <[base.ntime.b32]>;
 $zones->{$zone_name} = {
     serial  => $serial,
     ttl     => <nameserv.cfg.challenge_ttl> // 60,
@@ -42,8 +43,15 @@ $zones->{$zone_name} = {
                 '%s hostmaster.%s. %d %d 600 1209600 60',
                 $ns[0], $zone_name, $serial, <nameserv.cfg.default_ttl>
             ),
+            ts => $rec_ts,
         },
-        map { { name => $zone_name, type => 'NS', value => $ARG } } @ns,
+        map {
+            {   name  => $zone_name,
+                type  => 'NS',
+                value => $ARG,
+                ts    => $rec_ts,
+            }
+        } @ns,
     ],
 };
 
@@ -52,8 +60,8 @@ $zones->{$zone_name} = {
 
 return { mode => 'true', data => "zone created : $zone_name" };
 
-#,,,,,,.,,,,,,.,,,.,.,,.,,,,.,.,.,.,,,...,,,,,..,,...,...,...,...,,.,,,..,.,,,
-#IARLER5IOT5US7BF74J3D2RDJCG3KMCZ2NHIPVCSJAHGKALRN7RTAIDN2QQA2YXDZ2XAVLYYEAVV2
-#\\\|ERWWB67FQANAQMDHPV57INXV75ACAMXFVEVZ3L574QXDFZI6EEU \ / AMOS7 \ YOURUM ::
-#\[7]IM5SAXGQDYWQRZMQWQF3Z66SVMQYCKCR2KKJTX7BXL32SGUT6GCI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,...,,,.,..,,.,,,.,,,,..,,..,..,,...,...,...,.,,,,,.,,.,,.,.,
+#3YZIRO6NFAEIZGLPID5MX55LITKHDUDBJMKYYGD3H6LACVZSHBAKH2XBG45JSA4IBFZKXELMYRHY4
+#\\\|WETLFOSYVHAA4BSZ5GK3K2RPNDCL7GYR2BYNPB635ETOZV2TDIU \ / AMOS7 \ YOURUM ::
+#\[7]3SRILIDXEIHLRFX2AVO22EP5XQYCZVNHVGCHYO3I3HESKNLXGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

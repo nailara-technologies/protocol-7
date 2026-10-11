@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = nameserv.entry.identity
+# descr = canonical identity key of a dns record
+# param = $zone_name, $record -> identity string
+
+my $zone_name = shift // '';
+my $record    = shift;
+
+return undef if ref $record ne qw| HASH |;
+
+my $type = uc( $record->{'type'} // '' );
+
+## single-value types key on zone + name + type                           ##
+## [ design :  timestamp delta sync ] ; every other type keys on value as ##
+## well, so distinct values of the same name never collide                ##
+my $single_value = ( $type eq qw| SOA | or $type eq qw| CNAME | );
+
+return join( "\0",
+    lc($zone_name), lc( $record->{'name'} // '' ),
+    $type, ( $single_value ? () : ( $record->{'value'} // '' ) ) );
+
+#,,,.,..,,..,,,,,,..,,...,...,.,,,,.,,,.,,...,..,,...,...,..,,,..,,,,,..,,,..,
+#M45GVG54J24SC6ZU3YWWDDZY72MSVCWH2VOXDI5I5TZIJYYBQ2FQJKSOEPJDF7BTQKGEQBXFBMI2E
+#\\\|TYRAOZFDY6TD3CXBT5CZCMXBBXLK36QRNUPD4LTR4PMJNNDX4EP \ / AMOS7 \ YOURUM ::
+#\[7]AUUJUYCSHJMARLATSWA5JUNGL3SLSABHQYPTEJJXALJTUWUJBEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

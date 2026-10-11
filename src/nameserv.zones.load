@@ -14,13 +14,14 @@ if ( not -d $zone_dir ) {
     return;
 }
 
-## scan for zone files (*.zone or *.yaml)
+## scan for zone files (*.zone or *.yaml), tombstone files excluded
 my @zone_files;
 opendir my $dh, $zone_dir or do {
     <[base.logs]>->( 0, "cannot open zone dir: %s", <[base.str.os_err]> );
     return;
 };
-@zone_files = grep {m{\.(zone|yaml)$}} readdir $dh;
+@zone_files
+    = grep { m{\.(zone|yaml)$} and not m{\.tombstones\.yaml$} } readdir $dh;
 closedir $dh;
 
 for my $filename ( sort @zone_files ) {
@@ -59,6 +60,30 @@ for my $filename ( sort @zone_files ) {
         ttl     => $zone_data->{'ttl'} // <nameserv.cfg.default_ttl>,
     };
 
+    ## tombstones live next to the zone file ##
+    my $tomb_filepath
+        = sprintf( "%s/%s.tombstones.yaml", $zone_dir, $zone_name );
+    if ( -f $tomb_filepath ) {
+        my $tomb_content_ref = <[file.slurp]>->($tomb_filepath);
+        if ( defined $tomb_content_ref ) {
+            my ( $tomb_data, $tomb_err )
+                = <[format.yaml.load_str]>->( $tomb_content_ref->$* );
+            if (    ref $tomb_data eq qw| HASH |
+                and ref $tomb_data->{'tombstones'} eq qw| ARRAY | ) {
+                $zones->{ lc($zone_name) }{'tombstones'}
+                    = $tomb_data->{'tombstones'};
+            } else {
+                <[base.logs]>->(
+                    0, "invalid tombstone file: %s.tombstones.yaml [ %s ]",
+                    $zone_name, $tomb_err // 'unknown error'
+                );
+            }
+        }
+    }
+
+    ## drop expired tombstones on load as well ##
+    <[nameserv.zone.tombstone.purge]>->( lc($zone_name) );
+
     my $rec_count = scalar @{ $zone_data->{'records'} };
     <[base.logs]>->(
         2, "loaded zone %s (%d records, serial %d)",
@@ -74,8 +99,8 @@ my $total_zones = scalar keys %$zones;
 
 0;
 
-#,,,,,..,,..,,,,,,,,.,.,,,.,.,.,.,,..,,,.,,..,..,,...,..,,..,,,..,.,,,,.,,...,
-#TIALUHDKONYCCZ4A5TM6HS3GJO3SDSMG2MF625SEZEXF5ERHWB25TYA7QGQ2U6NCFBG442YHBXYUG
-#\\\|6CJ7EZH4XHVDO2AGAJ6Q4L5WC5QOAHS3XBP6G6SC26MZKF3SBZD \ / AMOS7 \ YOURUM ::
-#\[7]XVSODE7RPQ3OZLL5X27FVRPGZYCNRFL2VGMXMB4ZUH3UFPI6TGDA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,..,,,,,,...,,.,,.,.,,,.,,.,,..,,...,...,...,,.,,.,.,.,,,.,.,
+#DINIUB7JP7IEEJKQIEESQWBZ3T32HFURVVS5QK4UWA4NAWJQH55IMULHLI6BPDCQDDLODKKQWPDF2
+#\\\|U2ZEDYHEGRSH4MJAXZYW6MY4LX46VMXUJGQP5OL47GISQGDBBIJ \ / AMOS7 \ YOURUM ::
+#\[7]Q5Y4KZWTLPDXXKQGXYCRDHBZW3JF24ASK7BZKVV5QKAHAJQVBGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

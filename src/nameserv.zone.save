@@ -11,6 +11,9 @@ return if not exists $zones->{$zone_name};
 
 my $zone = $zones->{$zone_name};
 
+## drop expired tombstones before writing ##
+<[nameserv.zone.tombstone.purge]>->($zone_name);
+
 my $data = {
     serial  => $zone->{'serial'},
     ttl     => $zone->{'ttl'},
@@ -28,6 +31,22 @@ my $filepath = sprintf( "zones/%s.yaml", $zone_name );
 my $result   = <[file.zenka_dir.write]>->( $filepath, \$yaml_str );
 
 if ( defined $result ) {
+
+    ## tombstones live next to the zone file                               ##
+    ## [ design : timestamp delta sync ] ; the zone yaml itself keeps only ##
+    ## live records                                                        ##
+    my $tomb_data = { tombstones => $zone->{'tombstones'} // [], };
+    my $tomb_yaml = <[format.yaml.dump_str]>->($tomb_data);
+    if ( defined $tomb_yaml ) {
+        <[file.zenka_dir.write]>->(
+            sprintf( "zones/%s.tombstones.yaml", $zone_name ),
+            \$tomb_yaml
+        );
+    } else {
+        <[base.logs]>
+            ->( 0, "failed to serialize tombstones: %s", $zone_name );
+    }
+
     <[base.logs]>->( 2, "saved zone: %s", $zone_name );
 } else {
     <[base.logs]>->( 0, "failed to save zone: %s", $zone_name );
@@ -35,8 +54,8 @@ if ( defined $result ) {
 
 return $result;
 
-#,,,.,.,.,.,,,..,,,..,,.,,,..,,,.,.,.,...,.,.,..,,...,..,,,,,,,,,,..,,...,,..,
-#24TV54DJXSJDNGFGHLAA53A2ALUHMVNWMLKY6JFJSEDZGTLKRWJLQY3D5VIWJS4QFN5K4NQG42JJ4
-#\\\|QGJC25PZIWIJKHSZBBMCWXKO7JOS6ZWNIYUFRAMVLKCRLPAJBCA \ / AMOS7 \ YOURUM ::
-#\[7]UCWK2CJRM4GADJ34TTL42PRAR7AF54LVAYUOLYHSY57QTF4CFODY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,...,,,,,,,.,..,,.,.,..,,.,,,..,,...,.,.,.,,,,.,,,.,,,..,.,.,
+#TF4DXDPEVQ3ISUHGWJ2JYLEVA6GLQLSNJMJU4RY2HO7QS3VK4BJULGERE3PDMGNZNZ2ZSCAP7HESO
+#\\\|W3TLW2K653RDLCJX3I526QTSCNJ2K4R2WQCWGJXEFI5LFNJAO6N \ / AMOS7 \ YOURUM ::
+#\[7]ZGTDTMJVYLKKGPG3Z36O4ABMVGWABYBUJ2DXGQIGOBQWNZIXG2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
