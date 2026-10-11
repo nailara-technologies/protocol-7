@@ -39,7 +39,12 @@ if ( ( $body->{'status'} // '' ) eq qw| valid | ) {
 my %challenge = map { ( $ARG->{'type'} // '' ) => $ARG }
     ( $body->{'challenges'} // [] )->@*;
 
-my $prefer_dns = <[base.cfg_bool]>->( <letsencr.cfg.prefer_dns01> // FALSE );
+## dns-01 when asked for : the documented letsencr.challenge.type or the  ##
+## older letsencr.cfg.prefer_dns01 [ the type key was never read before ] ##
+my $prefer_dns = (
+    <[base.cfg_bool]>->( <letsencr.cfg.prefer_dns01> // FALSE )
+        or lc( <letsencr.challenge.type> // '' ) eq qw| dns-01 |
+) ? TRUE : FALSE;
 my $type
     = ( $authz->{'wildcard'} or $prefer_dns and $challenge{'dns-01'} )
     ? qw| dns-01 |
@@ -71,8 +76,8 @@ $authz->{'status'}        = qw| pending |;
 
 return <[letsencr.child.acme.step_authz]>->( $order->{'order_id'} );
 
-#,,,,,.,.,.,.,..,,,..,..,,...,,..,,,.,...,,..,..,,...,...,.,.,..,,..,,.,,,.,.,
-#437WISYA3HTJH3NE3O2HWYMYBVDXPPD7SDBCCKHTGYKD63SQWTPGVWKPED527UNA6YQIHPM2F7QKS
-#\\\|64VQKTJ7L3UIH6KWQQ5NYZXZHQPAF7543IGX53FALAODZKEYTXW \ / AMOS7 \ YOURUM ::
-#\[7]RSLHG6V3NUKBWTGP5QIXTYDQH3B4CEPO5SUOUOQWH7PWSJ5WMYDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,.,,,,.,,.,,,.,.,.,.,,..,,,,,..,,...,...,.,.,.,.,.,.,...,,..,
+#7B2CKMSSV767WXTJCRDCIFJ3UDUBR3GNCOPZKVX2BZ7MC6PRROWACYDIA3O3NP5SAAUG4INVFZAGQ
+#\\\|LCIOPKC5ZHL2BM7ARHDEBDEZGAZFNRJCE26SXU2BEZMGORTSUXU \ / AMOS7 \ YOURUM ::
+#\[7]MGKNCVVD62MJLR7E2UC7P4IKIR2LIPM3MAS32PX3GKFWFRW7U2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
