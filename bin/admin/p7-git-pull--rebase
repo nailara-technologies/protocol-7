@@ -16,6 +16,24 @@ my $p7_root = p7_root_dir();
 
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
+## an untracked file the incoming commits start tracking with the SAME ##
+## content [ e.g. a deps/.placeholder a zenka created before it was     ##
+## committed ] would make the pull refuse -- it is removed, the pull    ##
+## brings it back tracked. a differing file is left and still refuses   ##
+system(qw| git fetch --quiet |) == 0
+    or die ":\n:: git fetch failed : $OS_ERROR\n\n";
+foreach my $path ( split m|\0|, git_out(qw| ls-files --others --exclude-standard -z |) )
+{
+    next if not length $path or -l $path or not -f $path;
+    my $incoming = git_out( qw| rev-parse --verify --quiet |, "\@{u}:$path" );
+    next if not length $incoming;
+    my $local = git_out( qw| hash-object -- |, $path );
+    next if $local ne $incoming;
+    unlink $path
+        or die ":\n:: cannot remove $path [ $OS_ERROR ]\n\n";
+    print ": removed $path [ identical to the incoming tracked file ]\n";
+}
+
 print ":\n: p7-git-pull--rebase : checking "
     . "for modified or untracked files ..,\n:\n";
 
@@ -64,6 +82,17 @@ exit 0;
 
 #[ SUBROUTINES ]##############################################################
 
+## git output without a shell [ list form ], trailing newline removed ; ##
+## '' when git fails                                                    ##
+sub git_out {
+    open( my $pipe, '-|', qw| git |, @_ ) or return '';
+    local $RS = undef;
+    my $out = <$pipe> // '';
+    close($pipe) or return '';
+    $out =~ s|\n\z||;
+    return $out;
+}
+
 sub c_dir  { File::Spec->catdir(@_) }
 sub r2_abs { File::Spec->rel2abs(@_) }
 
@@ -73,8 +102,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,.,..,,.,,,,,.,..,,..,,.,,,,.,,,.,,,.,,,.,,..,,...,.,.,,..,,,.,.,.,.,,,...,
-#JY3WJT5JW3PM7MPJQMDRG2W3XVIBRFEPM75IJLYFM6XT7SH3YRE2Z5ZSNF4QOP4FRARIO6ECEPNR4
-#\\\|VSIEOIQQ4T25L74LP76KV5B6RBOCJB4D5AD2B4TDQ2JDCGG6SN7 \ / AMOS7 \ YOURUM ::
-#\[7]QDO2QJTK3GBRHE2NQLB2JYQN3QE2PCV3H364QULHZYZOQK2YB6AI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,.,,,,..,,.,,,..,.,.,,..,.,,,..,,...,.,,,,..,,.,,...,,.,,,..,
+#KURNYPXTCN6TDJ2GTYTV5UKKYGVTD2XGL2LSIMJILORR2SZ2VB3UDW6XUWYHOFPU3P4BCMSLB35T6
+#\\\|JI2F6X32UP64XIYVIGSHA3CH5NVWTLYCTAG4JDMY5PF7LVXAESF \ / AMOS7 \ YOURUM ::
+#\[7]NCM5UESC7QDAW4XZCZ44MXTUIO66NBTPOPH56SCD67EQHP5QCGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
