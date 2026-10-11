@@ -34,8 +34,11 @@ return {
 my $recursion = $call_params->{'recursion'} // 0;
 my $once      = $call_params->{'once'}      // 0;
 
+## parenthesized : '//' binds tighter than '?:' [ a passed mode made the  ##
+## whole expression truthy -> always 'implicit' ; harmless today, callers ##
+## only pass 'implicit' ]                                                 ##
 my $start_mode = $call->{'mode'}
-    // $recursion ? qw| implicit | : qw| manual |;
+    // ( $recursion ? qw| implicit | : qw| manual | );
 
 if ( $zenka_param =~ <regex.base.iid> ) {
     $zenka_id   = $zenka_param;
@@ -192,6 +195,28 @@ return {
 delete <v7-zenki.zenka.manually_stopped>->{$zenka_name}
     if $start_mode eq qw| manual |;
 
+## explicitly disabled [ zenki.disabled ] : no AUTOMATIC start -- on-demand ##
+## [ start_once from a session, e.g. a web plugin subscribing ] or as a     ##
+## dependency. 'v7-zenki.start <name>' still starts it by hand. before, a   ##
+## remote server ran discover \ nodes \ external \ graphics-matrix          ##
+## [ ~90 MB each ] because the web space plugin subscribed to them          ##
+if ( $recursion or ( $once and defined $call->{'session_id'} ) ) {
+    my $disabled
+        = ( <v7-zenki.start_setup.globals.zenki> // {} )->{'disabled'} // '';
+    if ( grep { $ARG eq $zenka_name } split m|\s+|, $disabled ) {
+        <[base.logs]>->(
+            1,
+            ": zenka '%s' is disabled here -- no automatic "
+                . "start [ v7-zenki.start starts it by hand ]",
+            $zenka_name
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => "zenka '$zenka_name' is disabled [ zenki.disabled ]"
+        };
+    }
+}
+
 <[base.logs]>->( "starting zenka '%s' .,", $zenka_name ) if not $recursion;
 
 my $a_dep_str = <[zenka.get_dependencies]>->($zenka_name);
@@ -268,12 +293,12 @@ my $job_id = <[jobqueue.add_job]>->(
     }
 );
 
-## start gate flag [ v7-zenki.pressure.start_gate ] : on-demand path =      ##
-## cube's ondemand routing sends 'v7-zenki.start_once' over the network [   ##
-## session_id set ] for a zenka configured start.on-demand. internal calls  ##
-## [ dependency \ resolve cascade, restart, notify_online :start: ] carry   ##
-## no session_id. a user typing 'v7-zenki.start_once <on-demand>' takes the ##
-## same path and is gated too [ 'v7-zenki.start' is not ]                   ##
+## start gate flag [ v7-zenki.pressure.start_gate ] : on-demand path =    ##
+## cube's ondemand routing sends 'v7-zenki.start_once' over the network   ##
+## [ session_id set ] for a zenka configured start.on-demand. internal    ##
+## calls [ dependency \ resolve cascade, restart, notify_online :start: ] ##
+## carry no session_id. a user typing 'v7-zenki.start_once <on-demand>'   ##
+## takes the same path and is gated too [ 'v7-zenki.start' is not ]       ##
 <jobqueue.joblist.by_id>->{$job_id}->{'pressure_gate'}
     = { 'origin' => qw| on-demand | }
     if defined $job_id
@@ -288,8 +313,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,..,.,.,,..,,..,..,,.,.,..,,.,,,.,.,,,,,.,.,..,,...,...,..,,.,,,,,.,.,,,.,,,
-#JMKX36VPHCR7REMYIFOKQWQ7D4SYP3YUBFFVSTD2ME3U746UUF26FVIAJNQC6BUYPOXVG7SXNNIRE
-#\\\|RKGA2EVVSEYOSM4CKPYXIW7CUJXYZHNN7D76ZT5JOYJOVROEO5Q \ / AMOS7 \ YOURUM ::
-#\[7]XXTBZ4NKF47EQG33FITTFRPI7EEOC4YAVXBN5366R2LIQRY37ICY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,,..,.,.,...,,.,,,.,,,,,,.,,,..,,...,...,..,,.,.,..,,,,,,...,
+#SKBU3KAXCNSNWFA42N2M6DP7Z5J2HQZD7QZOW7BGNGGXN76KCGJVRMDBXV6SIFOUDOHDMAO6DJ3CA
+#\\\|D3GYYNPA6SFWTS7PCPL4HBYUQD32CW46TAQO4OJDY47Q3MZTWQP \ / AMOS7 \ YOURUM ::
+#\[7]3KUYM5J6PJWWVUQHXBSK533EGJUT4TFFZNJOVD6MRVYLVN2D2QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.activate
+# descr = start orbital polling and producer subscriptions on first use
+# note  = once per zenka run : the nameserv poll timer [ 13 s ] and the STRM
+#         push subscriptions to discover, external, nodes and graphics-matrix
+#         [ on-demand zenki -- subscribing starts them ]. called by
+#         plugin.web.space.state [ a viewer asks for space data ] or at
+#         start with web.space.orbital.eager
+
+return TRUE if <web.space.orbital.active>;
+<web.space.orbital.active> = TRUE;
+
+<[base.log]>->( 1, ': orbital view in use -- subscribing to its producers' );
+
+## only 'nameserv' is still polled, everything else is STRM push ##
+<[event.add_timer]>->(
+    {   qw| interval | => 13,
+        qw| repeat   | => TRUE,
+        qw| handler  | => qw| plugin.web.space.orbital.fetch |,
+    }
+);
+
+<[$ARG]> foreach qw|
+    plugin.web.space.orbital.subscribe_discover
+    plugin.web.space.orbital.subscribe_external
+    plugin.web.space.orbital.subscribe_nodes
+    plugin.web.space.orbital.subscribe_gm_state |;
+
+return TRUE;
+
+#,,,,,..,,..,,..,,,,.,,..,.,.,,,.,,,.,...,.,,,..,,...,...,,,.,..,,,..,,.,,,,.,
+#755A2HMVLDAGKA3ACKOA6U6X5IWSIYJT5F4N3SXNA6IGIFPHUTOOBOCQRPVDK3QZELX3N5PHGKIK4
+#\\\|MBS6JSZWBMP6Y6AVEXCTD7I2J4D777EKIZE4LMFCX2YSEB6Z2GC \ / AMOS7 \ YOURUM ::
+#\[7]ZOVL4IJZLEKNLI55WIKKUFKHTCDDMSZDH5R6TB4RPWCOS2HGDMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
