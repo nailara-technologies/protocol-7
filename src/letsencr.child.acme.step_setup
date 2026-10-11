@@ -45,14 +45,16 @@ foreach
         );
     } elsif ( $provider eq qw| nameserv | ) {
         $send->(
-            $authz,   $ARG, "$ARG.add-txt",
-            join ' ', "_acme-challenge." . "$authz->{'base'}",
+            $authz, $ARG, "$ARG.add-txt", join ' ',
+            <[letsencr.child.acme.challenge_name]>->( $authz->{'base'} ),
             $authz->{'dns_value'}
         ) foreach @ns_targets;
     } elsif ( $provider eq qw| inwx | or $provider eq qw| cloudflare | ) {
         ## provider apis : still blocking http calls, done before respond ##
-        my $ok = $code{"letsencr.dns.${provider}_create_txt"}
-            ->( "_acme-challenge.$authz->{'base'}", $authz->{'dns_value'} );
+        my $ok = $code{"letsencr.dns.${provider}_create_txt"}->(
+            <[letsencr.child.acme.challenge_name]>->( $authz->{'base'} ),
+            $authz->{'dns_value'}
+        );
         return <[letsencr.child.acme.fail]>->(
             $order_id,
             "$provider : txt record for " . "$authz->{'domain'} failed"
@@ -75,8 +77,8 @@ return <[letsencr.child.acme.step_propagate]>->($order_id)
 
 return TRUE;
 
-#,,,,,,..,.,,,,,.,.,.,.,.,.,.,,,.,,,,,,,,,.,.,..,,...,...,...,,,.,,.,,...,...,
-#L7HJBZUCTMGPZRTYGVQII5QXIBIOTGDKUA34AQNPRLFD5KKP2JMAOLMR3BXFVG3ZTAUK4J4ST6XQO
-#\\\|D7EFPPKVRDPYCSC36JFWOVE75QCABRYWDP22KAZ3JOIRO5Z6YNR \ / AMOS7 \ YOURUM ::
-#\[7]HA23U2IR4MSHINR3QZFLE5CLFSAYKQUPOREWPDIIZFFFJWG22OAQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,..,,,.,,.,,,..,,,,,,.,,,..,,,,,..,,...,.,.,.,,,...,,,.,..,,,.,,
+#6XBBEXLWG73OBVN7DWUPAJP4NS5JUADCRSOBEJ35T7TK7RC6ZSGBXET3IE4DSM5O5OHQWZG3RY7WY
+#\\\|LVBYG6PIYIDTVG2G522XZOXATXUUYUUERUXOIFEMNIMDMKPLNK2 \ / AMOS7 \ YOURUM ::
+#\[7]OVMTWZTYBCLJ5DLGCETFIZUX2S4PAI3TXK3H5NSOXDPAEXVXU6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,8 @@ if ( not @servers or not @pending ) {
 foreach my $authz (@pending) {
     $order->{'waiting'}++;
     <[letsencr.child.dns.query_txt_async]>->(
-        {   'name'    => "_acme-challenge.$authz->{'base'}",
+        {   'name' =>
+                <[letsencr.child.acme.challenge_name]>->( $authz->{'base'} ),
             'servers' => [@servers],
             'on_done' => qw| letsencr.child.acme.on_propagate |,
             'params'  =>
@@ -42,8 +43,8 @@ foreach my $authz (@pending) {
 
 return TRUE;
 
-#,,,,,.,,,,..,.,.,.,.,..,,.,,,,,,,,,.,,..,..,,..,,...,...,,.,,,,,,,,.,,,,,..,,
-#U5IUG7QWY235ZDBQI7C2KCAPH7FBNYG55F72NSUWFFJXLSXIF4YARWJ72SH4S444IA3LZDY37EIXQ
-#\\\|BOVYRN5SK4W2OJJZON7GHQBDGHEVCRNHIHNZFVRHHTCIFA7BGQE \ / AMOS7 \ YOURUM ::
-#\[7]CCCFXIIANKOG5F6GVIU3WPMYCCFSWQJTPWNJUXTI3XVKPSOCPGDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,,.,,,,.,,..,..,,,.,,,.,,,.,,..,,...,...,...,,.,,...,,,,,..,,
+#KNDLBHD63DRSE6FXLS7WOVHFKFDJEZDX3OKIIGVCAONWCFZD3EURPQN3C5FF3VD7DM5HA6DQJTBQM
+#\\\|H33FLPOEAMDQCVTSVCRER6HQ5RFAZPU3442CBC7UPZFAHRWKMYQ \ / AMOS7 \ YOURUM ::
+#\[7]2TN6CPXTN5V4WNTURFJQC4NM2OANGWUOMWM2BO3W262SQI5FPIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
