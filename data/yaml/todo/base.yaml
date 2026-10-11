@@ -999,6 +999,14 @@ items:
     - glue records : the name server names lie inside the delegated domain, the registrar needs their ips as host objects
     - certificates : dns-01 is already underway [ memory handover 2026-10-09 acme async, open item 5 : zones + nameserv on both servers, the cross-host route to the 2nd nameserv, the registrar delegation, the wildcard test ; data/tasks/letsencr-acme-async.md ]. done : acme flow on the event loop, nameserv add-txt \ remove-txt with longest zone match, dns-01 providers for the registrar's api and cloudflare. one wildcard certificate for the project's network domain would cover the name servers, the mail host names and every service host -- smtpd \ imap need no certificates of their own
     - keep new server 1 running without break [ user, 2026-10-11 ] : its ram \ disk upgrade [ 24 GB, 450 GB ] was a one-off grant for an accounting change -- a regular re-order would not get it again. never cancel or pause it to save a month's cost ; its old plan cannot be ordered any more
+
+    name server set-up [ decided 2026-10-11 ; public dns data, discoverable anyway -- naming it is no leak ] :
+    - protocol-7.network : DN0000.protocol-7.network + DN0110.protocol-7.network [ + the registrar's as third ] -- glue for both DN names at the .network registry [ ipv4 + ipv6 ]
+    - v7.ax : DN0000.v7.ax + DN0110.protocol-7.network [ + the registrar's ] -- glue for DN0000.v7.ax at the .ax registry [ ipv4 + ipv6 ]
+    - DN0000.v7.ax and DN0000.protocol-7.network may point to the same server : tld diversity guards the naming \ delegation chain [ registry outage, delegation error, expiry ], hardware redundancy comes from the second server and the registrar's
+    - reverse dns stays on the protocol-7.network names [ one ptr per ip ; the v7.ax name is an additional forward name ]
+    - all names pass the harmony check, lower and upper case
+    - glue at the registry and the a \ aaaa records in our own zone must match -- an ip change needs both updated
   done_at: null
   id: CJ3
   priority: normal
@@ -1046,8 +1054,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,..,.,.,.,,,.,,,,.,,...,..,,,,.,.,.,,.,,,,,,..,,...,...,...,..,,..,,,,,,,,.,
-#IZQK2HM7HL7QF4MFMUQSPJ7JNOSPZQF326YOB5ZP6JLNBJIYADGF2DAEZNJZQXWBECYPB76L3B6U6
-#\\\|OFBRZXILVJTP77QEWB4D7WB23WA6FIQMXTD57C3TEUF2RJ5F36Z \ / AMOS7 \ YOURUM ::
-#\[7]MPLVMU24QVDANUGRN243RSDGVKRB7CT5KZBE5MO47K7DCXIM7GBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,.,.,...,,..,,,,,.,.,.,,,.,.,..,,...,...,...,,,.,,..,..,,,.,,
+#6ASYGUXBWYLCNWYYSWUUPTZ2C7ZNAA35PN6UIP5QRXGJ463DZC5J637VTFQFEETOWGAJT44ZSPWMW
+#\\\|CE4KKCIXXEQ5AA44PLRXQ3JZCF7ODN5UF4IECAADR7TOQH43EEJ \ / AMOS7 \ YOURUM ::
+#\[7]7M3P2ET3OFPFU6YXMFWG423C6JW3V3BYQWG5UIRFTAB7GEHDNGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
