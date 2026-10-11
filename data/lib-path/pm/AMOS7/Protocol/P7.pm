@@ -19,6 +19,8 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7 qw| warn_err $protocol_7_root |;   ##  error handling, root path  ##
+##  abs_path : a symlinked base install is the same install  ##
+use Cwd qw| |;
 use AMOS7::CHKSUM;                           ## amos_chksum ##
 
 ##[ SET-UP \ INIT ]###########################################################
@@ -51,8 +53,19 @@ sub calc_port { ## exclusion ports taken from /etc/services [getservbyport] ##
     my $port_start;
     my $port_range = shift;
 
+    ## the base path linked to this installation [ a dev checkout started ##
+    ## as /usr/local/protocol-7 through a symlink ] is the SAME install : ##
+    ## resolved paths compared -- else the unit's path and the checkout's ##
+    ## path got different ports and socket names [ 2026-10-11 ]           ##
+    my $same_installation
+        = ( -d $base_installation_path
+            and ( Cwd::abs_path($base_installation_path) // '' ) eq
+            ( Cwd::abs_path($installation_path) // "\0" ) );
+
     my $path_checksum_path    ##  is this a concurrent installation ?  ##
-        = ( -d $base_installation_path and $allow_port_recalculation )
+        = (     -d $base_installation_path
+            and $allow_port_recalculation
+            and !$same_installation )
         ? $base_installation_path    ##  /usr/local/protocol-7  ##
         : $installation_path;        ##  other [ development ? ] path  ##
 
@@ -162,8 +175,8 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
 
 return 5;  ###################################################################
 
-#,,,.,,,.,,,,,,.,,.,,,,,.,.,.,,.,,...,,..,...,..,,...,...,...,,.,,,,.,,..,..,,
-#7SNWXBTG4WEHUJNEYNW4JFXHIJOMIYSNYPMCDHTXKLGTSESMVJLPONBM35UWTVMEBZYF7QYQFNGXI
-#\\\|24PES5AND66HCN3NSSCRLOZ5OL6G52ZIWWHZHX5555CVPCWAJ5O \ / AMOS7 \ YOURUM ::
-#\[7]XCHLYWQOQPR54VYNJOIC7XEGDHJBN2S6R2UO4QXVADB3FD2S4EBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,...,,,,,.,.,...,.,.,..,,,,.,..,,...,...,,.,,.,.,.,,,.,.,,.,,
+#4BSUUIDE36WMAHPMCGEXMMOIMTJRA42D2YGTXQ2KKZ3MKBWWRWVOCVPY4DQDZRU5IE3NJTCCKYSI4
+#\\\|6TZXT4DCU3Q2X7KLFUSOJQACVQAY27PB3NEFHZ54IQP66PHGTVF \ / AMOS7 \ YOURUM ::
+#\[7]5KRE77P3ZFZ3FKDDJLSS5MWIQIEDREYQAAG6V5O4QSZTOYMMFSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

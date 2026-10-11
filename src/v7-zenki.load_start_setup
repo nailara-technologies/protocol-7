@@ -10,6 +10,33 @@ my $base_file_name = 'zenki/v7-zenki/start-set-up.';
 die 'load_start_setup: no start setup specified'
     if not defined $config_to_load;
 
+## a lean variant follows from the detected ram [ base.host.detect ] : ##
+## below v7-zenki.cfg.lowram_mb [ 3072, 0 = never ] a host takes       ##
+## '<profile>-lowram' when that profile exists -- the kind of profile  ##
+## [ remote-server, base .. ] stays the host's decision                ##
+{
+    my $mem_mb    = <host.mem_mb>            // 0;
+    my $lowram_mb = <v7-zenki.cfg.lowram_mb> // 3072;
+    if (    $mem_mb
+        and $lowram_mb
+        and $mem_mb < $lowram_mb
+        and $config_to_load !~ m|-lowram$|
+        and -f catfile(
+            $cfg_root_path, $base_file_name . $config_to_load . '-lowram'
+        )
+    ) {
+        <[base.logs]>->(
+            1,
+            ': start profile %s -> %s-lowram [ %d MB ram < %d, host.mem_mb ]',
+            $config_to_load,
+            $config_to_load,
+            $mem_mb,
+            $lowram_mb
+        );
+        $config_to_load .= '-lowram';
+    }
+}
+
 my $start_setup_pattern = join ' ',
     map { $base_file_name . $ARG } split( m|\s+|, $config_to_load );
 
@@ -21,7 +48,8 @@ return <[base.logs]>->(
 <[base.logs]>->( ": loading zenki start-profile : ['%s']", $config_to_load );
 my $start_setup_data;
 {
-    local <system.conf_path> = sprintf qw| %s/zenki/v7-zenki |, $cfg_root_path;
+    local <system.conf_path> = sprintf qw| %s/zenki/v7-zenki |,
+        $cfg_root_path;
     $start_setup_data = <[base.load_section_code]>->($start_setup_pattern);
 }
 
@@ -32,8 +60,8 @@ return <[base.logs]>->(
 
 push <v7-zenki.cfg_data.start_setup>->@*, $start_setup_data;
 
-#,,,,,,,,,...,,,,,,,,,.,,,.,.,.,.,,,.,,..,.,,,..,,...,...,...,.,.,,..,.,.,,,,,
-#UQ4KFQDQWOJ74XW424S2X2UISKIEUWW7RGFRVHVRUKYVY3DSC4UIL4BVDHZESXU7J6S6NL5UULDKI
-#\\\|GYQAMRRXNBK43SH6T4EPBZGZDPIZYDN3VPCHIKI322EMSHOJRHX \ / AMOS7 \ YOURUM ::
-#\[7]TU2A72AAK45AUP7SD7TAXGJKKHK35RGIJEISUWWNRE5DP35OFIDA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,,,.,,,.,,,,,.,,.,,,,,,..,,.,,,..,,...,...,..,,.,,,,.,,,,.,,,,,
+#6UVERF6I77KIEQ26TXXM7YW3SSGQ22ZFU6GTKEW3ZM2BSXZOBJB5UMI5NGEPK5OB2SD2QI4T3HJX2
+#\\\|WMT3TANVRRHJ5OVQEWJBSO3JXOHZY2D6S2ZNYBKM7KU5VCBOV3W \ / AMOS7 \ YOURUM ::
+#\[7]23XOZJJ5V6ZUM772NOXWUNYBI74NXHKZ2LE2HY3F2DK3AMPLGADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
