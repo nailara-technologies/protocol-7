@@ -1,0 +1,59 @@
+
+ .:[  'remote-server-lowram' : lean [v7] start-up cfg for ~2 GB servers  ]:.
+
+.: globals :.
+
+  zenki.enabled  =  cube p7-log  httpd web  letsencr httpsd  nameserv  system  events
+# note : 'letsencr' is configured as 'ondemand' zenka, restarted by 'events'
+
+## a ~2 GB host [ ~90 MB per zenka ] : only the enabled zenki and the ones ##
+## listed here start automatically [ on demand, as a dependency ] -- every ##
+## other one by hand only [ v7-zenki.start <name> ]. remote-server is the  ##
+## permissive profile for larger hosts ; choose per host in                ##
+## /etc/protocol-7/v7-zenki/host.cfg : load.start_setup = <profile>        ##
+  zenki.on-demand =  letsencr debian smtpd users
+  zenki.disabled  =  discover graphics-matrix
+
+.: zenki :.
+
+# specific configuration imported : zenki/<zenka_name>/start.cfg ###
+
+  - dist-upgrade
+
+      max_concurrency  = 1
+      restart.disabled = 1
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = debian_dist_upgrade.sh       # [ ./bin/dependencies/.., ]
+        exec_usr = root
+
+### external program example ###    [ supports '<AMOS-user>' from X11-vars ]
+
+  - namesrv
+
+      max_concurrency = 1
+      dependencies = cube
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = /usr/local/bin/namesrv
+        exec_usr = root
+
+### rudimentary backend update wrapper - used for development acceleration ###
+
+  - pull-git
+
+      max_concurrency = 1
+      dependencies = cube
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = p7-git-pull--rebase
+        exec_usr = root
+
+#,,,.,.,.,,,.,,,.,..,,,..,...,,,,,.,,,,,,,..,,.,.,...,...,..,,.,,,.,,,,..,..,,
+#OLDD3OTVVS5QNQD2RKLTD72TM4TUIUNQUUE7N7CMUBOD3Y3PXRPTWPMZJLW6GEKCD332BJTQG4CRE
+#\\\|IRZLRL5X3A2YS6JXJG632SESX2HYSTSIQWVDU63DI4SYUBAWYXH \ / AMOS7 \ YOURUM ::
+#\[7]TGAY2A22RLTZMZCB76BGKCP7Y3MITOZD2TWWHIIADVZSU5NXBOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
