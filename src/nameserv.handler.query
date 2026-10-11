@@ -104,7 +104,8 @@ if ($zone_match) {
         $reply->header->rcode('NXDOMAIN');
     }
 } else {
-    ## no zone match
+    ## no zone match : not authoritative for it ##
+    $reply->header->aa(0);
     $reply->header->rcode('REFUSED');
 }
 
@@ -116,8 +117,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,,,,,..,,,,,,.,,,,,,...,..,,,..,,,,,.,,,,.,,..,,...,...,,..,,,.,,..,,,.,,..,
-#PRA6ZKX2KIWH7G3S7NIUOJMR5TWXNG565HOGUZXKON6FU5ZSBO6YLUDOYOI7G6KCH6VO6BVXIMDGU
-#\\\|NHW3WSXKJVW6PC2S3C3VHKZFAGIBPHTMHODHPW7IXO65E4WKN2W \ / AMOS7 \ YOURUM ::
-#\[7]72KTTYBXCQE7RRRSPCBYHZWK7SNAH4WZTJQPCJNIPPWGEENGGKAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,,,,,..,,,,.,,.,,.,,,.,.,..,,..,,...,...,..,,,.,,.,.,,..,.,.,
+#DHXC5OQY6C5THYBLD4APQXBLNI7YJE7QKRWVLICWVBM4XAJTCYIWYXTSXMVPARYEQCJSI7DBYZYVW
+#\\\|NPCF2VJPAY7XVOGMRT7C2P77XMAHGR6EZ6OXU6RBFUHME3SUZVU \ / AMOS7 \ YOURUM ::
+#\[7]JIZM6ARLVBUMW4GUJOMJ6OSVDPCGW35GAGN635NHZ4XBN4SOWQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
