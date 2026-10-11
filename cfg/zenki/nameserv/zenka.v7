@@ -4,10 +4,12 @@
 [load_config_file:'shared-params']
 
 ## dns server configuration
-## public v4 + v6 : authoritative only [ REFUSED outside its zones -- no ##
-## open resolver ]. a desktop where systemd-resolved holds :53 sets       ##
-## 'nameserv.bind.addr = 127.0.0.1' in /etc/protocol-7/nameserv/host.cfg  ##
-nameserv.bind.addr = 0.0.0.0 ::
+## public, one dual-stack socket [ v4 through v4-mapped addresses ] ; a ##
+## host without ipv6 falls back to 0.0.0.0 by itself [ like httpd ].     ##
+## authoritative only [ REFUSED outside its zones -- no open resolver ]. ##
+## a desktop where systemd-resolved holds :53 sets                       ##
+## 'nameserv.bind.addr = 127.0.0.1' in /etc/protocol-7/nameserv/host.cfg ##
+nameserv.bind.addr = 0:0:0:0:0:0:0:0
 nameserv.bind.port = 53
 nameserv.zone_dir  = '/var/protocol-7/nameserv/zones'
 
@@ -44,8 +46,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml nameserv
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,,,,,.,,,.,,..,,...,,,,,,.,,,,,,...,,.,,..,,..,,...,...,.,.,...,,,,,,.,,,..,
-#IWBRUO3SF2RNXPHTRSW57NM7M5NZP76BLTMB4TAYVY5W4ZHIV3OYRZA7CT2VBEU52LAOHW4BUYLF4
-#\\\|YBK7R6XYP7JGS2DUD6BT6TEVYOSTEAMJ6SODRYVAJT2IVTKLSXE \ / AMOS7 \ YOURUM ::
-#\[7]HWPXFVKIMUDL6OY5EC6HZ5K4WF2DZ3ZUBCRGNAUE65AV3SU37YCI 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,,,.,,..,,.,,.,.,,,.,,,,,,..,..,,...,...,...,..,,..,,.,,,,,,,
+#PYGNA2KTVKEVEH327K55QIGDKIC5FXO43SHCIYTZRCPSI6ZCFL5RXIT2WC3ANVN3DUUWMNYUI2LQ6
+#\\\|KOYFHJWYIFXCVXXGDRTLIURRWF44FGMIARO5VSXTINW6EWCYIU5 \ / AMOS7 \ YOURUM ::
+#\[7]PCBGE3JT5PLWO3BV6WRTUQPF4VVB4LOLO2P6AISTPUDR2T2LTGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

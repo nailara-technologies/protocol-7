@@ -12,23 +12,42 @@ my @addrs = grep {length} split m|[\s,]+|,
     <nameserv.bind.addr> // '127.0.0.1';
 <nameserv.sockets> = [];
 
+## an ipv4 address beside an ipv6 one : the ipv6 socket must be v6-only ##
+my $has_v4 = grep { index( $ARG, qw| : | ) < 0 } @addrs;
+
 for my $addr (@addrs) {
-    my $sock = IO::Socket::IP->new(
-        LocalHost => $addr,
-        LocalPort => <nameserv.bind.port>,
-        Proto     => 'udp',
-        ReuseAddr => 1,
-        ReusePort => 1,
-        ## '::' only for ipv6, so it never collides with a 0.0.0.0 bind ##
-        ( index( $addr, qw| : | ) >= 0 ? ( V6Only => 1 ) : () ),
-        )
-        or do {
+    my $is_v6 = index( $addr, qw| : | ) >= 0;
+    my $open  = sub {
+        IO::Socket::IP->new(
+            LocalHost => $ARG[0],
+            LocalPort => <nameserv.bind.port>,
+            Proto     => 'udp',
+            ReuseAddr => 1,
+            ReusePort => 1,
+            (   index( $ARG[0], qw| : | ) >= 0
+                ? ( V6Only => $has_v4 ? 1 : 0 )
+                : ()
+            ),
+        );
+    };
+    my $sock = $open->($addr);
+
+    ## like httpd [ io.ip.tcp.input.open ] : no ipv6 on this host -> the ##
+    ## ipv4 wildcard, not an error                                       ##
+    if ( not defined $sock and $is_v6 and $addr =~ m|^[0:]+$| and !$has_v4 ) {
+        <[base.logs]>->(
+            1, 'IPv6 wildcard not available - retrying with 0.0.0.0'
+        );
+        $addr = '0.0.0.0';
+        $sock = $open->($addr);
+    }
+    if ( not defined $sock ) {
         <[base.logs]>->(
             0,     "cannot bind dns socket %s : %s",
             $addr, <[base.str.os_err]>
         );
         next;
-        };
+    }
 
     push <nameserv.sockets>->@*, $sock;
     <[event.add_io]>->(
@@ -49,8 +68,8 @@ for my $addr (@addrs) {
 
 return <nameserv.socket>;
 
-#,,,.,,..,,..,,..,...,.,,,..,,,,.,,,.,,.,,...,..,,...,...,,..,,,.,.,,,.,,,.,.,
-#275UWXVCCS5V54DEKSI2SJEFVAIKUOGYPXL4OUE4BPLYMEQW66IIV3I2MNGEZ3TZM42AVU7YTAPQW
-#\\\|ERQURDTO3EJX7EQHOXEEQQNPOUBFXIHZIRUDS4B3K5OBT6ZGYOX \ / AMOS7 \ YOURUM ::
-#\[7]ONEVMBH7NTNVX26DS2XDAP2TSLROXBU6IOJCEB2Q6TEUJCGVWQDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,..,,..,,,,,,.,,,.,.,,.,,..,,..,,...,...,.,.,.,.,..,,,,.,.,.,
+#Q7NT7OHZWO5SQXF4UJXQS5IGZ3VDYBPSSGUNSMLNZIXX3RZONV7A7SBRM7TBDWWR7ICS7AGML2XOO
+#\\\|WOX2OAHZCO7CIDUP2JZN7OHVILCZ7SEZ2LNJUSAPYBVOODMMA5Z \ / AMOS7 \ YOURUM ::
+#\[7]TBI4KXNHPINVJGEXRBGZ5TT65HTORF5TDCUM6J7EWHLVHCEQ7IDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
