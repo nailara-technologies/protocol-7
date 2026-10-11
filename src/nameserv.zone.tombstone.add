@@ -2,11 +2,12 @@
 
 # name  = nameserv.zone.tombstone.add
 # descr = add tombstone for a removed record
-# param = $zone_name, $record -> TRUE | FALSE
+# param = $zone_name, $record [, $deleted_ts, $signed ] -> TRUE | FALSE
 
 my $zone_name = shift // '';
 my $record    = shift;
-my $deleted   = shift;         ## optional explicit ts [ sync apply ] ##
+my $deleted   = shift;       ## optional explicit ts [ sync apply ] ##
+my $signed    = shift;       ## optional { body sig writer } [ sync apply ] ##
 
 return FALSE if not length $zone_name;
 return FALSE if ref $record ne qw| HASH |;
@@ -17,18 +18,27 @@ my $zone  = $zones->{$zone_name} // return FALSE;
 ## one tombstone per identity : a newer delete replaces an older one ##
 <[nameserv.zone.tombstone.clear]>->( $zone_name, $record );
 
-push @{ $zone->{'tombstones'} //= [] },
-    {
+my $tomb = {
     name    => lc( $record->{'name'} // '' ),
     type    => uc( $record->{'type'} // '' ),
     value   => $record->{'value'} // '',
     deleted => $deleted           // <[base.ntime.b32]>,
-    };
+};
+
+## a relayed tombstone keeps its writer's signed bytes ; a local delete is ##
+## signed by this host's sync key                                          ##
+if ( ref $signed eq qw| HASH | ) {
+    $tomb->{$ARG} = $signed->{$ARG} for qw| body sig writer |;
+} elsif ( not defined $deleted ) {
+    <[nameserv.sync.sign]>->( $zone_name, $tomb, TRUE );
+}
+
+push @{ $zone->{'tombstones'} //= [] }, $tomb;
 
 return TRUE;
 
-#,,,.,,,,,,,,,,,.,...,.,.,...,,,,,...,.,.,,,.,..,,...,..,,,.,,,.,,.,.,,.,,...,
-#WEBITEPMEWERCAREXZHXOB7CBB7H5GYTMGMZ6EGKZK5FKZIE7APUD6ACN6VTTDPOGLEF2BJJH4BQQ
-#\\\|52UNXDGRLIQPM7YVPLRNUFFARDBK4QZZR2WVO4T2ZESY6GEGKPV \ / AMOS7 \ YOURUM ::
-#\[7]OSO4SC7A2HVOZG56GG2BMN3CIYVN6JZ2DOUKQK4KL2ETACMOTKCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,..,,,.,,,.,,.,.,.,,,,.,,,,.,..,,...,...,..,,,..,..,,.,,,.,.,
+#7FPRORYEQNU6PIGY4NOUQZFX3UWNH3RTBDCCB7QXLK2ZDOFV3AN466G6GSLKJYVVAGI5LRZD4IRNS
+#\\\|GRLZQSNBTZZ7L4CERYKQL325MY4JQA752LO7CTTBSAKUKYT5KQV \ / AMOS7 \ YOURUM ::
+#\[7]HI5WBWAZUV354SZIC7VUJ4OGUC6FPDDD4VAWGMOXWONRGGCWV2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

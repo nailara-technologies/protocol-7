@@ -81,6 +81,7 @@ sub ntime_from_b32 {
 
 our %data;
 our %code;
+our %keys;    ## C25519 key store [ crypt.C25519 ] ##
 our $call;    ## cmd modules read the command parameter from here ##
 
 $data{'nameserv'}{'zones'}                         = {};
@@ -205,6 +206,9 @@ sub load_module {
 for my $mod (
     qw|
     nameserv.entry.identity
+    nameserv.sync.key.id
+    nameserv.sync.entry.body
+    nameserv.sync.sign
     nameserv.zone.tombstone.add
     nameserv.zone.tombstone.clear
     nameserv.zone.tombstone.purge
@@ -423,8 +427,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,..,,,..,,,.,.,.,,,,,.,.,..,,,.,,,.,,..,,..,,...,...,,,,,.,,,,,.,...,.,,,
-#EKHHM7OLNHZQVDWZYH4QINVWHJKBQTVVIGGVDX3V5BNUQAD4HQ2PREC4XMI6D233YVZGSZH2ULRUC
-#\\\|YBYF6RBTRRA37AY7EHRP54MXZFZOQHF3TYDDKZHXMD7RKHSPR52 \ / AMOS7 \ YOURUM ::
-#\[7]B3O7JTJUQJGUSYNWUFBM33HQSZZBDQMNHEFNV5OLK2VKJ7PVT4CI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,.,.,...,.,.,,,.,..,,,.,,.,,,..,,...,...,..,,..,,,,,,...,.,,,
+#JC2XJDPO6VH3APCJF42COAH2C4VUSVNZECGY6ILDTTYOH5KAX3RS6MUHODQT7MNAAADQAEMR55O74
+#\\\|YWTI2VJU4GBIS2V7QX2JLIEPKTN3L4NWOG2UHZ6L3QRE4L5IBKW \ / AMOS7 \ YOURUM ::
+#\[7]BOOW6TBARLGP2XN4IDOGRRLM276O7GY6SY7N3KIVT67UUDUTDKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

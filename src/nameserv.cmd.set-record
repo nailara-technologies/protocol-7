@@ -72,7 +72,8 @@ for my $rec ( @{ $zone->{'records'} } ) {
 }
 $zone->{'records'} = \@kept;
 
-## add new record
+## add new record, signed by this host's sync key ##
+<[nameserv.sync.sign]>->( $zone_name, $new_rec );
 push @{ $zone->{'records'} }, $new_rec;
 
 ## a re-add cancels a tombstone of the same identity ##
@@ -89,8 +90,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,..,.,.,,..,,.,,,,.,.,,,...,,.,,.,.,,,,,,..,..,,...,...,.,.,,,.,..,,,,,,..,,
-#7GQWTJT6SL4JMUKACRSQDUMVNGIJYXVRZHJD6DJESKTPGXJCO6WNNR34CCOAHRJP2K5TNXEMBHCK2
-#\\\|WFADVH3NFHQ3VPG2R4JCK5H2R7XDYHCLEFFHVODM5LFT63HJQMN \ / AMOS7 \ YOURUM ::
-#\[7]M2BXIAZHEULYXLKR4MNXV2LXJII4V57NEGC4BA7AFTX22FSPMQAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,,..,,..,.,.,.,,,,,,,.,.,,,,,..,,...,...,..,,..,,..,,.,,,,,.,
+#7UYZFVMGHIYJUNWTVS7GIYRZ7PIVXW2NA3QCLPYSJZFR7GWMI4QQ6MGSO6PRKUTR7SRDN3GMYOYDC
+#\\\|R5XMZXLUVREMTEF6X7XBTAMD2DJB33JFQQLQLPKDKJKECKPLIQE \ / AMOS7 \ YOURUM ::
+#\[7]TM2LBUQ24CMSYCR6OD7DIWUTTUGXPFKQOWCWNAR3HNT4RJDDJYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

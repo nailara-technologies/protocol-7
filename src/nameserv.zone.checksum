@@ -2,9 +2,10 @@
 
 # name  = nameserv.zone.checksum
 # descr = bmw 512 checksum of the live zone records
-# param = $zone_name -> base32 checksum | undef
+# param = $zone_name [, signed only : TRUE ] -> base32 checksum | undef
 
-my $zone_name = lc( shift // '' );
+my $zone_name   = lc( shift // '' );
+my $signed_only = shift // FALSE;      ## sync : what a peer can hold ##
 
 my $zones = <nameserv.zones>;
 my $zone  = $zones->{$zone_name} // return undef;
@@ -19,7 +20,8 @@ return undef if ref $zone->{'records'} ne qw| ARRAY |;
 my @sorted = sort {
     <[nameserv.entry.identity]>->( $zone_name, $a ) cmp
         <[nameserv.entry.identity]>->( $zone_name, $b )
-} grep {ref} @{ $zone->{'records'} };
+} grep { ref and ( not $signed_only or defined $ARG->{'sig'} ) }
+    @{ $zone->{'records'} };
 
 my $canonical_str = join(
     "\n",
@@ -35,8 +37,8 @@ my $canonical_str = join(
 
 return <[chk-sum.bmw.512.B32]>->( \$canonical_str );
 
-#,,.,,.,,,,..,,..,,.,,,..,,,.,..,,.,,,..,,,,,,..,,...,...,..,,.,.,.,,,,,,,...,
-#ZQOSR5OT5YOOCX6MD5XPA3QEZSCACNOXO35V7IRJ26T3PS7IX7NF2URBYBFIZWOJZD4HB3HIOB42O
-#\\\|FD5ETQ4CJ6OHE5RL5XWO7LUMGCX5A4ZXIADB6HSLG6ICMH6ESA7 \ / AMOS7 \ YOURUM ::
-#\[7]NNWBQKVYACN4OK5LKFYYE7ZJJNWJUHXCEUGEXPWLI4ZODGJMOYBI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,,..,,..,,.,,.,.,.,.,...,,.,,..,,...,...,.,,,.,,,,,,,...,,,,,
+#YS44K6C4O43XV5PPJZVAXBC5HZCH6IHCOPDUH67QXMMLGLZOHJKW7W3FFR7CDPZEDGIXSXSGYGMIS
+#\\\|JE37L5BFNPKSGVBIN2SB7FLITHPAJVJFV2DFYHS57WKA4RQG7K7 \ / AMOS7 \ YOURUM ::
+#\[7]G6AQ5P62FTSGTW5A7VAOOUGT3URLPJIRIKLTN3JO3WBZTS5KWQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

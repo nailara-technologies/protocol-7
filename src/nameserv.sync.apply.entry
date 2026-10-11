@@ -36,22 +36,34 @@ my $zone = $zones->{$zone_name} //= {
 
 ## newest ts per identity wins, across the live record, its tombstone and  ##
 ## the incoming entry -- an old tombstone never deletes a newer re-add, an ##
-## old record never resurrects a newer delete                              ##
-my $newer_than = sub {    ## TRUE if $ts is newer than $other ##
-    my $other = shift // '';
-    return TRUE if not length $other;    ## no ts : oldest ##
+## old record never resurrects a newer delete  equal ts : the lower        ##
+## signature bytes win [ the same on every peer ; decoded, base32 text     ##
+## order is not byte order ]                                               ##
+my $sig_bytes = sub {
+    my $b32 = shift // return undef;
+    return <[base32.decode]>->($b32);
+};
+my $in_sig     = $sig_bytes->( $entry->{'sig'} );
+my $newer_than = sub {    ## TRUE if the incoming entry wins ##
+    my ( $other, $other_sig ) = @ARG;
+    return TRUE if not defined $other or not length $other;    ## oldest ##
     my $delta = <[base.ntime.delta_seconds]>->( $other, $ts );
-    return ( defined $delta and $delta > 0 ) ? TRUE : FALSE;
+    return FALSE                     if not defined $delta;
+    return $delta > 0 ? TRUE : FALSE if $delta != 0;
+    my $existing = $sig_bytes->($other_sig);
+    return FALSE if not defined $in_sig or not defined $existing;
+    return ( $in_sig lt $existing ) ? TRUE : FALSE;
 };
 for my $rec ( @{ $zone->{'records'} // [] } ) {
     next
         if <[nameserv.entry.identity]>->( $zone_name, $rec ) ne $identity;
-    return qw| ignored | if not $newer_than->( $rec->{'ts'} );
+    return qw| ignored | if not $newer_than->( $rec->{'ts'}, $rec->{'sig'} );
 }
 for my $tomb ( @{ $zone->{'tombstones'} // [] } ) {
     next
         if <[nameserv.entry.identity]>->( $zone_name, $tomb ) ne $identity;
-    return qw| ignored | if not $newer_than->( $tomb->{'deleted'} );
+    return qw| ignored |
+        if not $newer_than->( $tomb->{'deleted'}, $tomb->{'sig'} );
 }
 
 my $removed = 0;
@@ -73,7 +85,8 @@ if ( $entry->{'deleted'} ) {
             type  => uc( $entry->{'type'} // '' ),
             value => $entry->{'value'} // '',
         },
-        $ts
+        $ts,
+        $entry    ## its body \ sig \ writer, relayed unchanged ##
     );
     return $removed ? qw| removed | : qw| applied |;
 }
@@ -86,6 +99,8 @@ my $new_rec = {
 };
 $new_rec->{'ttl'} = $entry->{'ttl'}
     if ( $entry->{'ttl'} // 0 ) =~ m|^\d+$| and $entry->{'ttl'} > 0;
+$new_rec->{$ARG} = $entry->{$ARG}
+    for grep { defined $entry->{$ARG} } qw| body sig writer |;
 push @{ $zone->{'records'} }, $new_rec;
 
 ## a newer live entry cancels a tombstone of the same identity ##
@@ -93,8 +108,8 @@ push @{ $zone->{'records'} }, $new_rec;
 
 return qw| applied |;
 
-#,,.,,...,,,,,...,,,.,,,,,.,,,,..,.,,,.,.,,.,,..,,...,...,.,,,,.,,,,,,.,,,,,,,
-#GFOUSEABLLCDK4HZKOIKEZS2RMZNAWOKMEFSMOI4TXHMNVXQG2CNKJVAJBKVTTXSY52CL2UD5QYMG
-#\\\|KP65BNF6KTPHOBA4UUZ4WAUJUVSXN5KSS4EOKVCTJVEKTF3N2EK \ / AMOS7 \ YOURUM ::
-#\[7]UV5Q24BBDSK5EFYYNFWHX4HJUOMFOFPE73BBFRQUJROVU2ED36DA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,..,,,..,,..,.,,,.,.,.,,,,.,,..,,...,...,...,,..,..,,,,,,,,.,
+#T6SISXH6NZQ3QDUNMV6IEBFO6HIUJIQ6W3H6JAUHK4UYS7LUFAD2HYQO4425CSA7X6A34KKGATN54
+#\\\|ZMIKJX5QC65QTTFO7ZE3A3NNKJPE56L2SDMXL5LKUYPQZDVW4B5 \ / AMOS7 \ YOURUM ::
+#\[7]CAW7ECSGAXG7ZKHPLE5GDQYYTQBEXKJSY5YAC3MXPLNUEHSSNIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

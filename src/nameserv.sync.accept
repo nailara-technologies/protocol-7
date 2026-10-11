@@ -1,0 +1,77 @@
+## [:< ##
+
+# name   = nameserv.sync.accept
+# descr  = check one received sync entry against the accept rules
+# param  = <body b32>, <sig b32>, <writer key id>
+# return = entry hash [ incl. body sig writer ] or ( undef, reason )
+#
+# data/md/design/TIMESTAMP-DELTA-SYNC.md [ 'accepting an entry' ], each a
+# hard reject : the body parses ; the writer's chain was verified
+# [ WRITER line ] and has not expired ; the signature verifies ; the
+# writer's grant covers zone + name [ tombstones too ] ; ts not too far
+# ahead [ sync.max_future ] nor older than the tombstone window
+# [ sync.max_age ]. newest-wins per identity is nameserv.sync.apply.entry.
+
+my $body_b32 = shift // '';
+my $sig_b32  = shift // '';
+my $writer   = shift // '';
+
+my $refuse = sub { return wantarray ? ( undef, shift ) : undef };
+
+my $entry = <[nameserv.sync.entry.decode]>->($body_b32)
+    // return $refuse->('entry body not valid');
+
+my $info = <nameserv.sync.writers>->{$writer};
+return $refuse->('writer not verified')
+    if ref $info ne qw| HASH |
+    or $info->{'not_after'} <= time;
+
+my $body = <[base32.decode]>->($body_b32);
+my $sig  = <[base32.decode]>->($sig_b32);
+return $refuse->('signature not valid')
+    if not defined $sig
+    or length $sig != 64
+    or not Crypt::Ed25519::verify( $body, $info->{'pub'}, $sig );
+
+## grants : receiver config, keyed by the writer's host-root id ##
+my $zone  = lc $entry->{'zone'};
+my $name  = lc $entry->{'name'};
+my $grant = ( <nameserv.cfg.sync.writer> // {} )->{ $info->{'anchor'} } // '';
+my $allowed = FALSE;
+foreach my $item ( split m|\s+|, $grant ) {
+    if ( $item =~ m|\Azone:(.+)\z| ) {
+        my $granted = lc $1;
+        $allowed = TRUE
+            if $zone eq $granted
+            and ( $name eq $granted or $name =~ m|\.\Q$granted\E\z| );
+    } elsif ( $item =~ m|\Aname:(.+)\z| ) {
+        $allowed = TRUE
+            if $name eq lc $1
+            and uc $entry->{'type'} eq qw| TXT |
+            and $name =~ m|\.\Q$zone\E\z|;
+    }
+    last if $allowed;
+}
+return $refuse->("no grant for $name in $zone") if not $allowed;
+
+## ts window : not ahead of local time beyond the skew, not older than the ##
+## tombstone window [ replay of long-deleted records ]                     ##
+my $age = <[base.ntime.delta_seconds]>->( $entry->{'ts'} )
+    // return $refuse->('ts not valid');
+my $max_future = <nameserv.cfg.sync.max_future> // 300;
+my $max_age    = <nameserv.cfg.sync.max_age>
+    // <nameserv.cfg.sync.tombstone_keep> // 1123200;
+return $refuse->('ts too far ahead') if $age < -$max_future;
+return $refuse->('ts too old')       if $age > $max_age;
+
+$entry->{'body'}   = $body_b32;
+$entry->{'sig'}    = $sig_b32;
+$entry->{'writer'} = $writer;
+
+return $entry;
+
+#,,,,,,.,,.,,,..,,...,.,,,,,.,...,...,,,,,...,..,,...,...,.,.,,.,,,.,,,,.,,,.,
+#URYQ5HDSMR74BR66372EOOM6ZDONUAEEFSAIDK2IC7OVF5A5QVIP5JGOEVIMON3XMY3C2EGMIJRFC
+#\\\|LR3JVAT43MPKXXB4U7MUK5DZVCF25ZJKFES2VBIZNGMVUDV6AGW \ / AMOS7 \ YOURUM ::
+#\[7]T7XQYAL3KCDA3GBBVZJISIHXBGK4537HRQFUTV4EKC4RF66SBKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

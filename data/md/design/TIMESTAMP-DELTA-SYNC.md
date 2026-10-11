@@ -179,9 +179,13 @@ parent of every key it delegates ]. `trust.*` stays unchanged [ shared
 with auth and the C client's test vector ].
 
 **writer** = the sync key's id [ bmw384 b32, 77 chars, like the host-root
-id ]. a peer asks `writer <key id>` once and caches the answer : the
-`.dlg` chain [ leaf = the sync key's statement ]. verified with
-`trust.verify`, anchors = exactly the host-root ids the RECEIVER grants.
+id ]. every `since` \ `full` reply carries one `WRITER <id> <chain>` line
+for each writer in it, ahead of the entries [ no extra round trip ; the
+chain is the `.dlg` field, leaf = the sync key's statement ]. verified
+with `trust.verify`, anchors = exactly the host-root ids the RECEIVER
+grants, and the leaf name must end in `.nameserv-sync` [ the same host-root
+also delegates cube's S ]. verified writers are cached until expiry ; a
+relay only passes on entries of writers it has verified itself.
 
 **grants** : receiver config only, keyed by host-root key id, never by a
 statement's own scope :
@@ -209,7 +213,25 @@ claim, it cannot prove completeness.
   record the peer did not send stays.
 - one `full` per peer timestamp : a lasting checksum mismatch [ entries
   outside our grants ] is logged, not refetched in a loop.
-- equal ts : the lower signature bytes win.
+- equal ts : the lower signature bytes win [ decoded bytes ; base32 text
+  order is not byte order ].
+- the pull cursor is the PEER's ts at the last successful pull from that
+  peer, not the local ts [ a newer local change hid a peer's older, unseen
+  changes ].
+- the sync checksum covers signed live records only [ what a peer can
+  hold ; a host's own unsigned records never make it differ ].
+- a reply over `sync.max_entries_reply` is refused as a whole, never cut.
+
+reply lines [ 3b ] :
+
+```
+WRITER <writer id> <chain field>
+ENTRY <body b32> <sig b32> <writer id>
+CHECKSUM <zone> <checksum> <zone ts> <state sig b32> <writer id>
+```
+
+tests : bin/test-scripts/test-nameserv-sync-stage3.pl [ real Ed25519 and
+host-root statements ; host A signs, host B replays ].
 
 **commits** : 3a = sync key + its delegation [ v7-zenki, root-held code,
 reviewed line by line ] ; 3b = signing, verifying, grants, accept rules.
@@ -235,8 +257,8 @@ reviewed line by line ] ; 3b = signing, verifying, grants, accept rules.
 - tombstone_keep vs. peers that are offline for weeks [ full fetch is
   fine for zones ; for larger data a checksum tree like N7FS is needed ].
 
-#,,,.,...,,,,,.,.,,,.,,.,,...,...,...,...,,.,,..,,...,...,.,.,,,.,,,,,,..,..,,
-#AYS5GYQSKRL3RM6VF35TWOR5HJFNSKMKDZTVZJEODFQMYQLVN5Y2OOJP2GEVMRNWXTZLNLAQYPEOQ
-#\\\|AQA2LKMB2AS5ZT66FZVEGUCMHQ3H5GNQ5O624G6OHNJM6SAQFD5 \ / AMOS7 \ YOURUM ::
-#\[7]FG6CJPWPK22CJYUSHVTCDHPU57KZ5KNL7QGPC6YA6NJEDPZXCKBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,,,,,,,...,.,.,.,,,,..,..,,,.,,..,,...,...,...,,,,,..,,,,,,,,.,
+#GHOYGERH5G7ZREAUWLWHJE5G5Y6AWBUG7IBABK6XBRN5XDMLRUJNZZHSVVN5RL7GGXOIXO6CZVPW2
+#\\\|NCBKHQGRVEHM2RVK4XX6X2UAFHXNHXMTFF5XNEZ5LKVWIWMF2OM \ / AMOS7 \ YOURUM ::
+#\[7]QIFX4NQ2JW4FNJVTNKHB2SIGAEKC5PKHM2KFAIASNBWDKWBEIUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

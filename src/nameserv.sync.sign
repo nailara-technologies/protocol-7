@@ -1,0 +1,58 @@
+## [:< ##
+
+# name   = nameserv.sync.sign
+# descr  = normalise and sign a local record or tombstone
+# param  = $zone_name, $record_href, [ deleted : TRUE ]
+# return = TRUE [ body \ sig \ writer set on the record ], FALSE
+#
+# local changes only [ set-record, add-txt, ensure-zone, tombstones of
+# remove-record \ remove-txt ] : the record keeps 'body' [ b32 of the exact
+# signed bytes ], 'sig' [ b32 ] and 'writer' [ the sync key id ]. without
+# the sync key the record stays unsigned : answered locally, never sent.
+
+my $zone_name = lc( shift // '' );
+my $rec       = shift;
+my $deleted   = shift // FALSE;
+
+return FALSE if not length $zone_name or ref $rec ne qw| HASH |;
+
+my ( $key_id, $pub ) = <[nameserv.sync.key.id]>;
+if ( not defined $key_id ) {
+    <[base.logs]>->( 1, ': sync : no sync key, %s stays local', $zone_name )
+        if not <nameserv.sync.unsigned_logged>->{$zone_name}++;
+    return FALSE;
+}
+
+## normalised before signing : what is signed is what peers compare ##
+$rec->{'name'} = lc( $rec->{'name'} // '' );
+$rec->{'type'} = uc( $rec->{'type'} // '' );
+$rec->{'value'} //= '';
+
+my $ts = $deleted ? $rec->{'deleted'} : $rec->{'ts'};
+return FALSE if not defined $ts or not length $ts;
+
+my $body = <[nameserv.sync.entry.body]>->(
+    {   zone    => $zone_name,
+        name    => $rec->{'name'},
+        type    => $rec->{'type'},
+        value   => $rec->{'value'},
+        ttl     => $rec->{'ttl'} // 0,
+        ts      => $ts,
+        deleted => $deleted,
+    }
+) // return FALSE;
+
+my $sig = <[crypt.C25519.sign_data]>->( \$body, qw| nameserv-sync | );
+return FALSE if not defined $sig or length $sig != 64;
+
+$rec->{'body'}   = <[base32.encode]>->($body);
+$rec->{'sig'}    = <[base32.encode]>->($sig);
+$rec->{'writer'} = $key_id;
+
+return TRUE;
+
+#,,.,,,..,,..,,.,,,.,,...,,,.,...,..,,..,,,,,,..,,...,...,.,.,,.,,.,.,..,,,..,
+#6LMYHS57CKTMU3WZCMBS4LJBBH7GQFM5XQO2AO22LHHI63E6DBA6AWHCHDYL7RCZ24VN27ACJUZMS
+#\\\|ESJ5XS76H6SP4K6WZSXIWP6Z6ZMJTXD2H7YNQUQP3JHBALLK6CO \ / AMOS7 \ YOURUM ::
+#\[7]H5TWBP52MEMMWUHLFXBF3PWIFIRAUYJK3LMVL5TNS2CD27QBMMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

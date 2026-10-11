@@ -48,7 +48,9 @@ push @{ $zone->{'records'} },
     ts    => <[base.ntime.b32]>,
     };
 
-## a re-add cancels a tombstone of the same identity ##
+## signed by this host's sync key ; a re-add cancels a tombstone of the ##
+## same identity                                                        ##
+<[nameserv.sync.sign]>->( $zone_name, $zone->{'records'}[-1] );
 <[nameserv.zone.tombstone.clear]>->( $zone_name, $zone->{'records'}[-1] );
 
 $zone->{'serial'} = time();
@@ -61,8 +63,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf "txt record added: %s", $fqdn;
 return { mode => 'true', data => $msg };
 
-#,,..,,,,,,,,,,..,...,.,,,,..,.,.,..,,,.,,,,.,..,,...,...,,.,,,..,,,,,.,,,,.,,
-#I5GKR4M7ONKGHDKN45QZQYRVGPCMGT5YA2JBE45EAZ7PEJ6MUJX2SOF7RJPJS7WJI47X7JA7LPUSI
-#\\\|LWDQFQ6NJL4WNNGSRBTDNW2XTSGHU2U7D4AZIM6SP5L4M3WJMTI \ / AMOS7 \ YOURUM ::
-#\[7]PDPMQ72JWXQB3B4M4BKU4LWN5JYX7WRTDM2EHIBBY6EPUB3SM4BA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,,..,,,,,,..,...,,,.,..,,...,..,,...,..,,..,,..,,,,.,.,,,,,,,
+#OH5KIIZLOWSMH5ERCQLJILVEDLLXDK2I57KCEBLYENKTZWBN3VOE4XJ6YMG5BYGJO3NFIZOKXO5NK
+#\\\|NOGRMLCCQA3ZDSJ5ELGNIB7RYWJSCAJCHU45VM4VRGF35GLK3XY \ / AMOS7 \ YOURUM ::
+#\[7]LB4CTN4CQH74E2YA6WXBR2NZOCLOP6556LLQAUZECN7FXT4O5SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

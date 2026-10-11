@@ -1,0 +1,49 @@
+## [:< ##
+
+# name   = nameserv.sync.writer.own
+# descr  = this host's WRITER line : sync key id + its .dlg chain
+# return = ( key id, chain field ) or () [ no key \ no valid delegation ]
+#
+# the chain v7-zenki writes to <key dir>/nameserv-sync.dlg [ host-root ->
+# sync key, owner chain above when present ]. re-read when the file
+# changes [ renewal every few weeks ] ; a chain that does not end at this
+# host's sync key is not offered.
+
+my ( $key_id, $pub ) = <[nameserv.sync.key.id]>;
+return () if not defined $key_id;
+
+my $dlg_file = <[crypt.C25519.delegation_file]>->(qw| nameserv-sync |);
+return () if not defined $dlg_file;
+
+my @st = CORE::stat($dlg_file);
+return () if not @st;
+
+my $cache = <nameserv.sync.own_writer> //= {};
+return ( $key_id, $cache->{'field'} )
+    if defined $cache->{'field'}
+    and $cache->{'mtime'} == $st[9]
+    and $cache->{'key_id'} eq $key_id;
+
+open( my $fh, '<:raw', $dlg_file ) or return ();
+my $got = read( $fh, my $content, 8192 );
+close($fh);
+return () if not $got;
+
+my $chain = <[trust.chain]>->( qw| file |, $content );
+return () if ref $chain ne qw| ARRAY |;
+
+## the leaf must delegate THIS key ##
+my $leaf = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
+return () if ref $leaf ne qw| HASH | or $leaf->{'subject_pub'} ne $pub;
+
+my $field = <[trust.chain]>->( qw| join |, $chain ) // return ();
+
+$cache->@{qw| field mtime key_id |} = ( $field, $st[9], $key_id );
+
+return ( $key_id, $field );
+
+#,,,.,..,,..,,.,.,,..,.,.,.,,,.,,,.,.,.,.,..,,..,,...,...,,,.,..,,,..,.,,,.,.,
+#ILFDL3QJUZ22RMQJ5WDBJBAAMAV2IUDIWT7VFSNZMLCS3FCUBQ345PD5ZZWW55CDNOCLRV3MSXWMW
+#\\\|VRQXUC2EFOTVDYC4WH4LGJDMA7MWI2FEHMZUQ7S2AKMYMOS7AFO \ / AMOS7 \ YOURUM ::
+#\[7]O7HNCCNWAP4Y5KYWVZHOQUKRZYOTGHU45EPAWPCYZ525PEF5SIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
