@@ -77,6 +77,7 @@ auth.auth_list
 trust.statement
 plugin.auth.pwd
 net.read_binary
+crypt.init_code
 base.zenka.push
 base.zenka.loop
 base.str.os_err
@@ -226,7 +227,10 @@ jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 format.yaml.load_file
+crypt.C25519.pre_init
+crypt.C25519.keyfiles
 crypt.C25519.key_vars
+crypt.C25519.key_type
 crypt.C25519.key_path
 crypt.C25519.gen_keys
 base.session.shutdown
@@ -253,7 +257,10 @@ nameserv.cmd.sync-pull
 nameserv.cmd.show-zone
 io.ip.tcp.output.close
 format.yaml.write_file
+crypt.C25519.sign_keys
 crypt.C25519.sign_data
+crypt.C25519.post_init
+crypt.C25519.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -280,6 +287,7 @@ io.unix.socket.end_code
 io.ip.tcp.input.connect
 crypt.C25519.write_keys
 crypt.C25519.unload_key
+crypt.C25519.sig_fnames
 crypt.C25519.key_exists
 base.templates.pre_init
 base.strip_chksum_lines
@@ -303,14 +311,17 @@ base.auth.set_zenka_key
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
+nameserv.sync.key.ensure
 nameserv.sync.conn.write
 nameserv.sync.conn.flush
 nameserv.sync.conn.close
 nameserv.cmd.remove-zone
 nameserv.cmd.ensure-zone
 io.unix.socket.init_code
+crypt.C25519.verify_sign
 crypt.C25519.single_file
 crypt.C25519.load_single
+crypt.C25519.get_keyname
 crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
@@ -321,6 +332,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.ntime.delta_seconds
 base.file.zulum_tmp_file
+base.file.strip_path_str
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.chk-sum.bmw.512.B32
@@ -362,7 +374,11 @@ nameserv.sync.client.start
 nameserv.cmd.remove-record
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.key_checksums
 crypt.C25519.encrypted_key
+crypt.C25519.clear_chksums
+crypt.C25519.cached_chksum
+crypt.C25519.all_key_names
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -385,6 +401,9 @@ nameserv.cmd.discover-nodes
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+crypt.C25519.get_remote_key
+crypt.C25519.gen_keys_typed
+crypt.C25519.compute_shared
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -407,6 +426,7 @@ nameserv.sync.handler.accept
 nameserv.sync.client.timeout
 nameserv.sync.client.process
 io.unix.socket.input.connect
+crypt.C25519.keystr_is_valid
 crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
 base.validate.composite_name
@@ -425,7 +445,12 @@ nameserv.zone.tombstone.clear
 nameserv.orbital.auto_publish
 nameserv.handler.p7ref_lookup
 format.yaml.load_keyword_path
+crypt.C25519.validate_keyname
+crypt.C25519.store_remote_key
+crypt.C25519.signature_exists
+crypt.C25519.load_from_string
 crypt.C25519.key_name_to_skey
+crypt.C25519.host_root.create
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
@@ -450,7 +475,9 @@ protocol.amos-chksum.init_code
 nameserv.sync.client.connected
 nameserv.sync.checksums.verify
 nameserv.handler.publish_reply
+crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
+crypt.C25519.key_bin_checksums
 crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
 base.session.send_init_reports
@@ -461,6 +488,8 @@ base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
 nameserv.sync.peer.handler.read
+crypt.C25519.private_key_loaded
+crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -471,6 +500,7 @@ nameserv.cmd.last-data-timestamp
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
+crypt.C25519.decode_request_file
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -535,6 +565,9 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+crypt.C25519.list_key_signature_names
+crypt.C25519.generate_session_keypair
+crypt.C25519.create_signature_request
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
 base.handler.ondemand_idle_term_reply
@@ -551,6 +584,7 @@ base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
 protocol.protocol-7.auth.select-size-mode
+crypt.C25519.validate_remote_key_checksum
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
@@ -566,8 +600,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,.,.,,,,,,,.,,.,,,,,,...,...,,.,,..,,,.,,..,,...,...,..,,,..,...,.,.,,..,
-#QINPFFJOSFCLT4UBW3KBVOKNKFFY6X2S2UAZYN4I6IQWR75Z7ZO5IQBZJ5ES7WPJZOUGAPB6QXT6G
-#\\\|QYMUAOOF2LERT6CI3YCQBFFS6UCMQVCWOTSUWQDG4KMUAFGBYFN \ / AMOS7 \ YOURUM ::
-#\[7]7YPDCH4WPLB6QDQXQIQGEFCUXK5FREXIWNAQGK3WLDY27POOVKBY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,,.,.,.,,..,,,.,,..,...,,..,..,,...,...,,..,.,,,.,,,.,,,..,,
+#KDT3PCUEPSO2KJ45PUMJOWITA5ODJBIII6ESGW2LPMF2D4HCHW62GRQ3PJJPMBI47UA7QW327HE5W
+#\\\|C5WF33TLE4LIEHM3NTEMAL53YBDSITV3DNMNJBTH344KA74IHMB \ / AMOS7 \ YOURUM ::
+#\[7]BEZGITKSALYE5AJDOUEWCJNOY4WPXSKBAIVQFRXW4DPUX55REGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

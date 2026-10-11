@@ -157,6 +157,63 @@ zone file still shows only live records. hand-written zone files without
 signatures load as before but are local-only : they are never sent to
 peers [ a host's unsigned file must not override signed data elsewhere ].
 
+## stage 3 decisions [ 2026-10-11 ]
+
+**sync key** : one long-lived C25519 key per host, `nameserv-sync`, in the
+backend user's key tree [ next to cube's S ; nameserv drops to the same
+user ]. nameserv creates it on first start [ after drop_privs ], never
+regenerates it -- entries are relayed unchanged for as long as they live,
+a new key would orphan every signature. rotation is an explicit command
+that re-signs this host's own entries.
+
+**its delegation** : host-root signs it with the existing statement
+[ data/md/design/HOST-ROOT-DELEGATION.md, `p7 delegation v1` ] :
+name `<host>.nameserv-sync`, scope '', 30 days, renewed below 7 days --
+`v7-zenki.delegation.issue` handles it next to cube's S [ same file
+`<backend key dir>/nameserv-sync.dlg`, same owner-chain handling ]. the
+statement is not a copy of `crypt.C25519.generate_session_keypair` [ that
+one signs with the zenka's own base key and is regenerated on a timer ] :
+the anchor here is host-root, the shape the session key would take once
+host-root signs it [ the root/ key is a child of the host that becomes the
+parent of every key it delegates ]. `trust.*` stays unchanged [ shared
+with auth and the C client's test vector ].
+
+**writer** = the sync key's id [ bmw384 b32, 77 chars, like the host-root
+id ]. a peer asks `writer <key id>` once and caches the answer : the
+`.dlg` chain [ leaf = the sync key's statement ]. verified with
+`trust.verify`, anchors = exactly the host-root ids the RECEIVER grants.
+
+**grants** : receiver config only, keyed by host-root key id, never by a
+statement's own scope :
+
+```
+sync.writer.<host-root key id> = zone:protocol-7.network zone:v7.ax
+sync.writer.<host-root key id> = name:_acme-challenge.acme.protocol-7.network
+```
+
+tombstones are checked like records [ a `name:` grant cannot delete
+anything else ].
+
+**stored bytes** : every record and tombstone written locally is
+normalised, then signed ; the store keeps `body` [ the exact signed bytes,
+b32 ], `sig` and `writer`. `since` \ `full` send the stored bytes, never a
+re-encoding. records without a signature [ hand-written, pre-stage-3 ]
+answer DNS locally but are never sent.
+
+**state line** : `CHECKSUM <zone> <checksum> <ts>` signed with
+`p7 sync-state v1` by the replying host's sync key -- it attributes the
+claim, it cannot prove completeness.
+
+**hardening of stage 2 paths** :
+- `full` never deletes : each entry goes through the accept rules ; a
+  record the peer did not send stays.
+- one `full` per peer timestamp : a lasting checksum mismatch [ entries
+  outside our grants ] is logged, not refetched in a loop.
+- equal ts : the lower signature bytes win.
+
+**commits** : 3a = sync key + its delegation [ v7-zenki, root-held code,
+reviewed line by line ] ; 3b = signing, verifying, grants, accept rules.
+
 ## stages
 
 1. timestamps + tombstones in nameserv's record store, zone checksum,
@@ -172,15 +229,14 @@ peers [ a host's unsigned file must not override signed data elsewhere ].
 
 ## open
 
-- key per writer : host-root [ one key per host, already pinned ] or a
-  dedicated sync key signed by host-root [ revocable alone ]. leaning to
-  the second.
+- [ settled 2026-10-11 : a dedicated sync key delegated by host-root,
+  see 'stage 3 decisions' ]
 - whether `sync.port` should also answer dns-over-tcp, or stay separate.
 - tombstone_keep vs. peers that are offline for weeks [ full fetch is
   fine for zones ; for larger data a checksum tree like N7FS is needed ].
 
-#,,..,.,,,,,.,,,.,,..,..,,,..,.,.,.,,,,,.,,,,,..,,...,...,,..,,,.,...,.,,,...,
-#KR6PZ72MENWTAGSFOE2TQVEATORMJA3PB3SQQJCMZFBIHQHSQBJJ4LSOMRDWZKG64FE5QFZ73QIH2
-#\\\|INOSMHEFRD3PHMV4OUJLIU43364VS626XQMBHTIWWAXXBPFPG5C \ / AMOS7 \ YOURUM ::
-#\[7]OTA577V7VEUTCPDVBLRW3UQ26R6KJEK7YJ2EEV6JVBFQTL6SCQDY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,,.,,.,,...,...,...,...,,.,,..,,...,...,.,.,,,.,,,,,,..,..,,
+#AYS5GYQSKRL3RM6VF35TWOR5HJFNSKMKDZTVZJEODFQMYQLVN5Y2OOJP2GEVMRNWXTZLNLAQYPEOQ
+#\\\|AQA2LKMB2AS5ZT66FZVEGUCMHQ3H5GNQ5O624G6OHNJM6SAQFD5 \ / AMOS7 \ YOURUM ::
+#\[7]FG6CJPWPK22CJYUSHVTCDHPU57KZ5KNL7QGPC6YA6NJEDPZXCKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
