@@ -11,11 +11,12 @@ my $peer  = $peers->{$key}        // return;
 return if $peer->{'state'} ne qw| idle |;
 
 require IO::Socket::IP;
+require Socket;    ## SOCK_STREAM : not imported into a zenka ##
 
 my $sock = IO::Socket::IP->new(
     PeerHost  => $peer->{'host'},
     PeerPort  => $peer->{'port'},
-    Type      => SOCK_STREAM(),
+    Type      => Socket::SOCK_STREAM(),
     Blocking  => 0,
     ReuseAddr => 1
 );
@@ -47,8 +48,8 @@ if ( $sock->connected ) {
 
 return TRUE;
 
-#,,,.,..,,,,,,..,,,..,..,,.,,,,,.,,..,,,,,.,,,..,,...,...,..,,,,,,,..,.,,,,..,
-#PTAB7YUYGE6E5NOWE4M7U3CKZ3I4DTWU6G5NCWF623FYBNK44JALE5L7DBJEHAQI6FWLN5NSODJL4
-#\\\|HEMVOY24UZUIDUF7SJCXEY5ECTIFM7YCSDXTR7ZGB2JCJ4JVBZO \ / AMOS7 \ YOURUM ::
-#\[7]UBPBQQLPESXUJGAEVTBJCISJ7N2B72ENV4BU34CVN4LNJU54GIBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,,.,,.,,,,,.,,,.,..,,...,,,.,..,,...,...,..,,.,.,...,.,.,,.,,
+#A345SG3DQQ3HY252VU4AYT7CTU4L5F3X5CBKFUARDPEIVI4J7T4KQIYL6VZ7IR66FR5CJZ556OFQS
+#\\\|ZQMAQFG42MYZXWMFZ3TIG6KSYKZNVN7QVMICVH6TIWV3CREHNSU \ / AMOS7 \ YOURUM ::
+#\[7]HD7QGQK6NHL7NGXC6KYV3Z2KPYRTVBNYRER6EINPINGPCR5RWOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
