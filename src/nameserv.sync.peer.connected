@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.connected
+# descr = finish a peer long-poll connect and hold next-data-timestamp
+
+my $key = shift // return;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+if ( ref $peer->{'watcher'} ) {
+    $peer->{'watcher'}->cancel
+        if $peer->{'watcher'}->can('is_active')
+        and $peer->{'watcher'}->is_active;
+    $peer->{'watcher'} = undef;
+}
+
+syswrite $peer->{'sock'},
+    sprintf 'next-data-timestamp since:%s', $peer->{'ts'} . "\n";
+
+$peer->{'state'} = qw| waiting |;
+
+$peer->{'watcher'} = <[event.add_io]>->(
+    {   fd      => $peer->{'sock'},
+        poll    => 'r',
+        handler => qw| nameserv.sync.peer.handler.read |,
+        data    => $key,
+        desc    => "sync peer wait [ $key ]"
+    }
+);
+
+return TRUE;
+
+#,,.,,,..,,.,,.,,,,,.,.,,,...,,..,,.,,.,.,,,.,..,,...,...,..,,.,,,,,.,,.,,,,.,
+#V4CQ5MUUR2INJRMWB7FZ5OGWNFGC76RFOZ6B2G57JZ44IRWIJWACIVNVKLAE2UWLMA2KLWXLKSNH4
+#\\\|55BSXMGJ4DZM6OJCQEL3QM2RR2CRUAGVEISLMGXSKFTJNWZE4NI \ / AMOS7 \ YOURUM ::
+#\[7]5NBZDVZJV6XGS4IA46DQR7EWT7SAIGQKPAWFZTERO35Y5SVH6GCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

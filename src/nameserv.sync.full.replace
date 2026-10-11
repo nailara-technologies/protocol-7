@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = nameserv.sync.full.replace
+# descr = replace a zone's live records with a fetched full set
+# param = $zone_name, $entries_aref -> TRUE | FALSE
+
+my $zone_name = shift // '';
+my $entries   = shift;
+
+return FALSE if not length $zone_name;
+return FALSE if ref $entries ne qw| ARRAY |;
+
+my $zones = <nameserv.zones> //= {};
+
+my $zone = $zones->{$zone_name} //= {
+    records => [],
+    serial  => time(),
+    ttl     => <nameserv.cfg.default_ttl>,
+};
+
+my @live = ();
+for my $entry (@$entries) {
+    next if ref $entry ne qw| HASH |;
+    next if lc( $entry->{'zone'} // '' ) ne $zone_name;
+    next if $entry->{'deleted'};
+    my $rec = {
+        name  => lc( $entry->{'name'} // '' ),
+        type  => uc( $entry->{'type'} // '' ),
+        value => $entry->{'value'} // '',
+        ts    => $entry->{'ts'}    // '',
+    };
+    $rec->{'ttl'} = $entry->{'ttl'}
+        if ( $entry->{'ttl'} // 0 ) =~ m|^\d+$| and $entry->{'ttl'} > 0;
+    push @live, $rec;
+}
+
+$zone->{'records'} = \@live;
+$zone->{'serial'}  = time();
+
+## live entries cancel tombstones of the same identity ##
+for my $rec (@live) {
+    <[nameserv.zone.tombstone.clear]>->( $zone_name, $rec );
+}
+
+<[nameserv.zone.save]>->($zone_name);
+<[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+
+return TRUE;
+
+#,,..,.,.,,.,,...,.,,,...,,,,,,..,...,...,,..,..,,...,...,.,,,,.,,..,,,..,.,,,
+#HCUHNHWLXWB3OGNOZ65FN527HCJIXIQ774PVU4DNYSS2LJWOYIMO3QQ73UZBY3TPSQRWYN5WKUXR4
+#\\\|O6YT4PFSALZG2SS67TVR3ON6245Q4WIP4CZW5GWF7EVD7PYRHBW \ / AMOS7 \ YOURUM ::
+#\[7]YHIXB235BGSXR5W4OIMRYOM3FHOWGFPJSZMXC3CONQCCYSLUBABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

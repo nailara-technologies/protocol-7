@@ -302,8 +302,11 @@ shows the gate lines, per-sample release runs without errors ].
 8. autostart : v7 restart with elevated forced -> start-set-up zenki start
    one per sample, `held starts` shows the rest with origin autostart
 
-#,,..,,.,,,,.,,..,...,,.,,...,,,,,,..,..,,...,.,.,...,...,,..,,,,,.,,,...,.,.,
-#2YT4MKAVKOLLPWY4AETI2FBSIDZ64FYPREVRR3OZH2NMQVAAPJPPSBT7U3GURKEPGJMC44ZJGXIRM
-#\\\|EG5XOERPNWXEIYX6THHIMD6LUD7GWCYULZ3II2LRXM3FDLK5WUB \ / AMOS7 \ YOURUM ::
-#\[7]P2M6RA5M7SGQ3GQKF7KP3GXT6H2HSJ2C74HAYGDMTJEZRNGSNMDY 7  DATA SIGNATURE ::
+archived [ 2026-10-11 ] : pieces 1, 2, 3, 6 landed [ 180535263 .. ], pieces
+4 + 5 [ restart gate + start gate ] as 65aa80072.
+
+#,,,.,,..,.,,,...,.,.,..,,,..,.,.,,..,.,,,...,.,.,...,...,...,,,,,..,,.,.,...,
+#4YPYXCDPQ5CCQHWNVDBGLCTLM4IFPWWVGE677LP5AJR6FYOUBTNFMOVSVC2JYBTEE23B76HL7Q5B2
+#\\\|4GPVABEI5BZ3AFCME7EHB7EWHKR6Z3LEG6ZEDO6WX4SLZHR7DZA \ / AMOS7 \ YOURUM ::
+#\[7]ZDZNTR3KVORKAMSC4OLXLP5GXI4K5FJ5OPXYJUPKL4TZZMQL3MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

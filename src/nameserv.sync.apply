@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = nameserv.sync.apply
+# descr = apply decoded sync entries to the local zones
+# param = $zone_name|undef, $entries_aref -> number of changes
+
+my $zone_name = shift // '';
+my $entries   = shift;
+
+return 0 if ref $entries ne qw| ARRAY |;
+
+my $changed = 0;
+my %touched = ();
+
+for my $entry (@$entries) {
+    next if ref $entry ne qw| HASH |;
+    my $target = length $zone_name ? $zone_name : lc $entry->{'zone'} // '';
+    next if not length $target;
+    my $result = <[nameserv.sync.apply.entry]>->( $target, $entry );
+    if ( defined $result and $result ne qw| ignored | ) {
+        $changed++;
+        $touched{$target} = TRUE;
+    }
+}
+
+## persist + wake local waiters [ and thereby our own peers ] ##
+for my $z_name ( sort keys %touched ) {
+    <[nameserv.zone.save]>->($z_name);
+    <[nameserv.event.emit]>->( 'data-changed', { 'zone' => $z_name } );
+}
+
+return $changed;
+
+#,,.,,,..,,.,,,.,,..,,..,,..,,,.,,..,,..,,,,.,..,,...,..,,,..,...,,..,.,,,,,.,
+#FHHS76JC5DKLAVMUGZLVBOW5XIPWK27XRA6D6IXU4J5ZVAXYTYLEI2B6FR2ABINFNYR5VKXDQVYMS
+#\\\|SWX2NTEM4QCHF6GP3AZBL33LYZNL67YB7RFN3KNSQ5MJQGSKD4D \ / AMOS7 \ YOURUM ::
+#\[7]4R25IQMACKTFS5RMIOM3OHP6VROY7XYQJEKG667DAAWD6PZNR6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

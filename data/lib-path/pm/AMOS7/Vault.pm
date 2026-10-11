@@ -387,7 +387,7 @@ sub recovery_code_normalize {
 ## outside the base32 alphabet, so a reader drops every '0' \ '1' and joins
 ## the ': ' lines. binary fields inside, nothing to align.  each write is
 ## checked to decode back
-our $B32_LINE = 76;
+our $B32_LINE = 75;    ## ' : ' + 75 = 78 columns ##
 
 sub _b32_file_text {
     my ( $bin, $title ) = @ARG;
@@ -400,20 +400,25 @@ sub _b32_file_text {
         . $rows[-1]
         . ( '0' x ( $pad - int( $pad / 2 ) ) );
 
-    ## the frame of bin/Protocol-7's inline blocks : a blank line before ##
-    ## and after, ':.' closing [ readers only take the ': ' payload ]    ##
-    my $text = join '', "\n.:[ $title " . "]:.\n", ":\n",
-        map( {": $ARG\n"} @rows ),
-        ":\n", ":.\n", "\n";
+    ## the frame of bin/Protocol-7's inline blocks, one entry per file :   ##
+    ## every frame line space-prefixed, the payload closes directly with   ##
+    ## ':.' [ a bare ':' line would announce more elements or metadata ] ; ##
+    ## a blank line before and after                                       ##
+    my $text = join '', "\n .:[ $title " . "]:.\n", " :\n",
+        map( {" : $ARG\n"} @rows ),
+        " :.\n", "\n";
     die "vault : base32 round trip failed\n"
         if ( _b32_text_decode($text) // '' ) ne $bin;
     return $text;
 }
 
+## payload lines only : ': <base32>' with any indentation [ the            ##
+## space-prefixed frame, the older column-0 one, or a reindented copy ] -- ##
+## the title, ':' and ':.' lines carry no payload                          ##
 sub _b32_text_decode {
     my $text = shift // return undef;
-    my $b32  = join '', map { substr $ARG, 2 } grep {m|^: [0-9A-Z]+$|}
-        split m|\n|, $text;
+    my $b32  = join '',
+        map { m|^\s*: ([0-9A-Z]+)\s*\z| ? $1 : () } split m|\n|, $text;
     $b32 =~ tr|01||d;
     return _unb32($b32);
 }
@@ -1133,8 +1138,8 @@ sub gen_password {
 
 1;
 
-#,,,.,,,.,.,,,.,,,..,,,.,,,,.,,..,,,.,,.,,,,.,..,,...,...,...,...,.,.,.,.,..,,
-#ABM3HXRO56B3ODNB33XDMUXJ6VGRIGU4H25NFJIHS2GW3GVTYBAPA6MOJEMEKAQNJIURPIR3HLZ6M
-#\\\|KOM7KGMAP3WJFXJDUCCESU67KTZSD2W4RGS4VYC3AOM3BAGN4XX \ / AMOS7 \ YOURUM ::
-#\[7]W2Z2CJQ2HQFHJ2G7HNHNGMJ3QHE7ATJJ2NB2VVVPWAJWXHBGI2CQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,.,.,.,.,,,,,...,..,,.,.,...,..,,...,...,.,.,.,.,,..,.,.,..,,
+#2XRCPN55VFJHJ4KJYX3MHANQSC3INTH2NW4W2UA55DD6W25WC4DE7HIIOFSWYA7VMDYTTG4XGSVEE
+#\\\|FPV3AV2UUNLZVYWRAMWBH5X7WL5ZSOUFMFBHLKD4JBMZPDTYQOH \ / AMOS7 \ YOURUM ::
+#\[7]N5PRH6HOZNPPZX2ZGCEUN4VGJJW3GMZVP6VYRY2OOIMWM6PGO2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

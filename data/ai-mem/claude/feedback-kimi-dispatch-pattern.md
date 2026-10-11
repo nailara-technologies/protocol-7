@@ -7,6 +7,8 @@ metadata:
   originSessionId: 3e611ce5-11ac-409b-bf6d-272aa2ab6339
 ---
 
+**NEVER pass `template: kimi-dispatch-workflow` to `kimi_dispatch` (2026-10-11).** that template is guidance for the DISPATCHER [ how to write task files, call kimi_dispatch \ kimi_continue ] ; prepended to kimi's prompt, kimi took the dispatcher role : it wrote data/yaml/coding-tasks/<task>.yaml, dispatched a NESTED kimi session and exited after ~2 min with a 'dispatched' report [ 4CJ stage 2 ; stage 1 with the same template happened to do the work itself ]. the outer kimi_check_status then shows 'completed' while the real work runs in the inner session -- check its report for a nested uuid \ pid and watch that one. put the rules [ signatures, $ARG, swapped names ] into the prompt itself instead.
+
 **Current method (2026-07-14): the MCP tools `kimi_dispatch` + `kimi_continue`**,
 not `bin/kimi-task`. Point `kimi_dispatch`'s prompt at the task file path
 directly (kimi reads it autonomously, same as the network-dispatch pattern
@@ -109,8 +111,8 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   that bar too. Re-check this default periodically; it's about relative
   quota cost, not a claim that k3-256k is literally the same model.
 
-#,,,,,,..,...,.,,,,,.,,..,.,,,,,.,,.,,.,.,.,,,..,,...,...,,.,,,,,,.,,,,.,,,,,,
-#2HW3NOILGTT6FZVMD6PET42NYQMTTKKAWBKOOLII7TJC6NIS5KDW2OIGFYQQBOAS6CJL2CORPYJBI
-#\\\|RZKNS4MWMYLEEJJVSBH6ZYEXITRZBIOMESMA4GD243SK5BSEBQY \ / AMOS7 \ YOURUM ::
-#\[7]WBUPCJKW4TBAG2EADDVMM6JDL36AXQYBZ3SVX3UYEJADRPCRI6AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,,..,,,.,.,.,..,,,,,,,,,,,.,,..,,...,...,,..,.,.,..,,...,.,,,
+#J4BZSMMS3HM7HEXHI44PAZYNMN4Z76OZNEJFTJRHCW7BLOPEH4ATFUYBE7VIIY56A65WP6DFSZDX2
+#\\\|QBUE2GUEHSNC66HC3FBNMFE2M64OK3DLWZIJTABY5G4564MG5ZC \ / AMOS7 \ YOURUM ::
+#\[7]KOFWGQEX6D4U6K7JAIGAVOVH5JSFW74QYSKYFNJCD723QPRKK4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

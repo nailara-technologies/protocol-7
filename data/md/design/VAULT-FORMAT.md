@@ -42,17 +42,27 @@ by hand from this text.
   `pack( 'w', <integer ntime> )` [ ber compressed integer ], the same
   stamps as protocol-7 logs [ `bin/ntime <stamp>`, no backend needed ]
 - every file is ONE base32 block in protocol-7's inline format [ the
-  frame of the inline subroutines in `bin/Protocol-7`'s `__DATA__` ] :
+  frame of the inline subroutines in `bin/Protocol-7`'s `__DATA__` ], in
+  its one-entry-per-file form : every frame line space-prefixed [ 2026-10-11 ]
 
 ```
-.:[ p7-vault entry ]:.                   [ 'p7-vault key' in vault.key.B32 ]
-:
-: <76 base32 chars>                       payload lines : ': ' + 76 = 78
-: 0000<last chars>0000                    short last line centred with '0'
-:
+ .:[ p7-vault entry ]:.                  [ 'p7-vault key' in vault.key.B32 ]
+ :
+ : <75 base32 chars>                      payload lines : ' : ' + 75 = 78
+ : 0000<last chars>0000                   short last line centred with '0'
+ :.
 ```
 
-  reading : take the lines starting `: `, drop those two characters, delete
+  the payload closes directly with ` :.` -- a bare ` :` line after the
+  payload would announce further elements or metadata [ as the size and
+  checksum line of the inline subroutines ], and a vault file has none.
+  files written before 2026-10-11 use the column-0 frame with 76 chars per
+  line and a `:` line before `:.` ; they stay valid. the key file and
+  archives get the new frame on their next write ; entry versions are
+  never rewritten, so older versions keep the older frame.
+
+  reading : take every line matching `^\s*: ([0-9A-Z]+)\s*$` [ any
+  indentation, both frames, crlf ], keep the captured characters, delete
   every `0` and `1` [ outside the base32 alphabet ], join, base32 decode.
   the result is the binary layout below. integers are big endian
 
@@ -231,8 +241,8 @@ the payload with the vault key, then step 2 for each record's data.
 sync between hosts over protocol-7, a session agent [ unlock once per
 login ], the vault-edit form ui, totp code display, purging old versions.
 
-#,,,.,..,,.,.,...,..,,,..,,.,,.,,,,.,,..,,.,,,..,,...,...,...,,,.,,,.,,,.,.,,,
-#ZQHDEI4W74KRPZCH7OGNOKAOGBGGKVL7GZVORY424THMTKH7H6QATMA5DAYKSPRBUEBFJVHKU4ETU
-#\\\|SLPE4IKEXOVQDJSCC4R6BVPQPHSSASVWH64ENXQA5OECVFOL4KT \ / AMOS7 \ YOURUM ::
-#\[7]SPIPMSOSBUR5YMW6KUK6L3QN3KOHP63MMPFZVZ7OHVR66QUL5YDI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,..,,,..,,,,,...,,,,,,.,,..,,..,,...,...,.,.,,,.,,.,,..,,,,.,
+#TLA4UVZPXNQOPQV25YLNA5WPUE5LGJV45FZEPR66TT76S7VC5TDGFRDXJTNVKZJLXU3C64XNWBXD6
+#\\\|UAZ6ZQLCDUMBAHP5OPFFKPQV3I3BHTB6M65FVFTGUSHQA3EMR7K \ / AMOS7 \ YOURUM ::
+#\[7]W7BFCKHKPO53VJF36IKQGRRRF6WAJIQUIURT24A5EKWP5254AYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

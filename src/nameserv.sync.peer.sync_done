@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.sync_done
+# descr = re-arm a peer wait after its sync pull finished
+
+my $state  = shift;
+my $result = shift;
+
+my $key = ref $state eq qw| HASH | ? $state->{'peer'} // '' : '';
+return if not length $key;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+if ( ref $peer->{'timer'} ) {
+    $peer->{'timer'}->cancel
+        if $peer->{'timer'}->can('is_active')
+        and $peer->{'timer'}->is_active;
+    $peer->{'timer'} = undef;
+}
+
+if ( $result->{'mode'} eq qw| true | ) {
+    $peer->{'ts'}      = $result->{'ts'} // $peer->{'ts'};
+    $peer->{'backoff'} = 13;
+    <[nameserv.sync.peer.arm]>->($key);
+} else {
+    <[nameserv.sync.peer.fail]>->(
+        $key, $result->{'data'} // 'sync pull failed'
+    );
+}
+
+return TRUE;
+
+#,,,,,..,,.,.,.,.,...,...,,,.,.,,,...,...,,..,..,,...,...,,,,,,.,,...,,,,,,.,,
+#NOHC7ZNWUEVXF2PKOYNUAQOGZ3NSLXRJ3N3CHINKUBN7MFTQBI2X2AXOLABH4I54UDCEU2S3MYVJA
+#\\\|45JWDEQNC72IAGC4MFO5EBYGN4BLH7HRDGGUN3KVIYHIULFXXAY \ / AMOS7 \ YOURUM ::
+#\[7]MX4DEZJLZJWYRX5BYUQEI4QNZ5OTUSALTQENSEPC72V5ERT6KKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = nameserv.sync.conn.write
+# descr = append output to a sync connection and try to flush it
+
+my $conn = shift // return undef;
+my $str  = shift // '';
+
+my $conns = <nameserv.sync.conns> //= {};
+$conn = $conns->{$conn} if not ref $conn and defined $conns->{$conn};
+return undef if ref $conn ne qw| HASH |;
+
+$conn->{'out'} .= $str;
+
+return <[nameserv.sync.conn.flush]>->($conn);
+
+#,,..,..,,,.,,.,,,..,,...,,..,..,,,..,.,,,.,.,..,,...,...,.,.,...,,..,.,,,..,,
+#4COMZ2KKB2BXM6P33JN6SQ2RLSMVIHB4MM7TSGN5MFKIFBDNJD2RI3KPGR6WJKBPIQVHB3KT6VINE
+#\\\|YJM6ODFIBBZK2QVXNRNZDBPV6IPGF5UY6ML3P6JVBVIJFG2D2L5 \ / AMOS7 \ YOURUM ::
+#\[7]T2NRNDCWP7RUQVRZPCO377RK4NXODKBPV25KHHOJZOT4R6X7ASBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

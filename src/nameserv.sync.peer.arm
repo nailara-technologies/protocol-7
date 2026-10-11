@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.arm
+# descr = open the long-poll connection of one sync peer
+
+my $key = shift // return;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+return if $peer->{'state'} ne qw| idle |;
+
+require IO::Socket::IP;
+
+my $sock = IO::Socket::IP->new(
+    PeerHost  => $peer->{'host'},
+    PeerPort  => $peer->{'port'},
+    Type      => SOCK_STREAM(),
+    Blocking  => 0,
+    ReuseAddr => 1
+);
+
+if ( not defined $sock ) {
+    <[nameserv.sync.peer.fail]>->(
+        $key, sprintf 'connect : %s',
+        <[base.str.os_err]>
+    );
+    return;
+}
+
+$peer->{'sock'}  = $sock;
+$peer->{'state'} = qw| connecting |;
+$peer->{'buf'}   = '';
+
+if ( $sock->connected ) {
+    <[nameserv.sync.peer.connected]>->($key);
+} else {
+    $peer->{'watcher'} = <[event.add_io]>->(
+        {   fd      => $sock,
+            poll    => 'w',
+            handler => qw| nameserv.sync.peer.handler.connect |,
+            data    => $key,
+            desc    => "sync peer connect [ $key ]"
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,..,,,,,,..,,,..,..,,.,,,,,.,,..,,,,,.,,,..,,...,...,..,,,,,,,..,.,,,,..,
+#PTAB7YUYGE6E5NOWE4M7U3CKZ3I4DTWU6G5NCWF623FYBNK44JALE5L7DBJEHAQI6FWLN5NSODJL4
+#\\\|HEMVOY24UZUIDUF7SJCXEY5ECTIFM7YCSDXTR7ZGB2JCJ4JVBZO \ / AMOS7 \ YOURUM ::
+#\[7]UBPBQQLPESXUJGAEVTBJCISJ7N2B72ENV4BU34CVN4LNJU54GIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = nameserv.sync.handler.read
+# descr = read sync protocol lines and dispatch them
+
+my $id = shift->w->data;
+
+my $conns = <nameserv.sync.conns> // return;
+my $conn  = $conns->{$id}         // return;
+
+my $sock = $conn->{'sock'};
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $sock, \$chunk, 65536 );
+
+if ( ( $bytes // -1 ) == -1 ) {
+    <[base.logs]>->(
+        1,               ': sync read error [ %s ] : %s',
+        $conn->{'peer'}, <[base.str.os_err]>
+    );
+    <[nameserv.sync.conn.close]>->($conn);
+    return;
+}
+
+if ( $bytes == 0 ) {    ## peer closed the connection ##
+    <[nameserv.sync.conn.close]>->($conn);
+    return;
+}
+
+$conn->{'last_active'} = time;
+$conn->{'in'} .= $chunk;
+
+## the unauthenticated port never buffers without bound ##
+if ( length $conn->{'in'} > 16384 ) {
+    <[base.logs]>->( 1, ': sync input buffer limit [ %s ]', $conn->{'peer'} );
+    <[nameserv.sync.conn.close]>->($conn);
+    return;
+}
+
+while ( $conn->{'in'} =~ s|^([^\n]*)\n|| ) {
+    my $line = $1;
+    $line =~ s|\r$||;            ## tolerate crlf clients ##
+    next if not length $line;    ## empty lines are not requests ##
+
+    if ( length $line > 4096 ) { ## max line length ##
+        <[nameserv.sync.conn.write]>->( $conn, "FALSE line too long\n.\n" );
+        $conn->{'close_after_out'} = TRUE;
+        next;
+    }
+
+    <[nameserv.sync.request]>->( $conn, $line );
+}
+
+## an overlong line without newline never matches the loop above ##
+if ( index( $conn->{'in'}, "\n" ) < 0 and length $conn->{'in'} > 4096 ) {
+    <[nameserv.sync.conn.write]>->( $conn, "FALSE line too long\n.\n" );
+    $conn->{'close_after_out'} = TRUE;
+}
+
+return;
+
+#,,,,,.,.,.,.,,,.,..,,.,.,.,,,...,.,,,,,.,,,.,..,,...,..,,..,,.,,,,.,,.,,,,..,
+#ECSSZDSJ5QQKGMAJJZDOJ367QSBPZ4H5K5DU7GCJAYH6DHWZX5YQ7QEXHAI4RAPWDWNHMFBUUPNYG
+#\\\|ULGZPTWVZT252TRCRIIAQQ7VWY36M6ZKE5IDSBPI3MLXQ5EJSPG \ / AMOS7 \ YOURUM ::
+#\[7]JQYRGVAHMSCHAASFMRL3ZSNTNOGQBV7OBTUCRMDFW4T4L24FKSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

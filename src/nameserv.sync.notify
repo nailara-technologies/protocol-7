@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = nameserv.sync.notify
+# descr = wake held next-data-timestamp connections on record changes
+
+## one notify module keeps every waiter : the record mutators emit   ##
+## nameserv.data-changed [ via nameserv.event.emit ] and this module ##
+## re-checks each waiting connection's predicate                     ##
+
+my $conns = <nameserv.sync.conns> // return TRUE;
+
+for my $conn ( values %$conns ) {
+    next if ref $conn->{'wait'} ne qw| HASH |;
+    my $wait = $conn->{'wait'};
+
+    my $current = <[nameserv.zone.timestamp]>->( $wait->{'zone'} // undef );
+    next if not defined $current;
+
+    my $delta = <[base.ntime.delta_seconds]>->( $wait->{'since'}, $current );
+    next if not defined $delta or $delta <= 0;
+
+    $conn->{'wait'} = undef;
+    <[nameserv.sync.conn.write]>->( $conn, sprintf "TRUE %s\n.\n", $current );
+}
+
+return TRUE;
+
+#,,.,,,,,,,..,,.,,,..,,,.,,,,,,,.,,,,,,..,,,,,..,,...,...,,,.,,.,,.,.,..,,..,,
+#ZHLO3CFV4F7ZDIEXSRB6HH4KLNIUMDW42QENNJ5PL3SYYNG3MFQYHC3WEQ4YHPVTOJHTKRIZO4S5G
+#\\\|LI3LLU3CURI42VCZOZ2SLFCFISGG7STNEVB26BKD5H2QRYGCREC \ / AMOS7 \ YOURUM ::
+#\[7]KCYLSZL5IPKRFTLVFXY6NSCE25VUH6T7SFWSGYRSR5N2BDDKFKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

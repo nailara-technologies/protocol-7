@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = nameserv.sync.handler.accept
+# descr = accept a sync protocol connection, register its read handler
+
+my $listen_sock = shift->w->data;
+
+my $sock = $listen_sock->accept;
+return if not $sock;
+
+$sock->blocking(0);
+
+my $max = <nameserv.cfg.sync.max_connections> // 77;
+
+my $conns = <nameserv.sync.conns> //= {};
+
+if ( scalar keys %$conns >= $max ) {
+    <[base.logs]>->( 1, ': sync connection refused [ limit %d ]', $max );
+    close $sock;
+    return;
+}
+
+my $peer = $sock->peerhost // 'unknown';
+my $id   = sprintf '%s:%s', $peer, fileno($sock);
+$id .= '..' while exists $conns->{$id};
+
+$conns->{$id} = {
+    id          => $id,
+    sock        => $sock,
+    peer        => $peer,
+    in          => '',
+    out         => '',
+    last_active => time,
+    wait        => undef,
+};
+
+$conns->{$id}{'watcher'} = <[event.add_io]>->(
+    {   fd      => $sock,
+        poll    => 'r',
+        handler => qw| nameserv.sync.handler.read |,
+        data    => $id,
+        desc    => "sync connection read handler [ $peer ]"
+    }
+);
+
+return;
+
+#,,..,..,,.,,,,,.,..,,..,,,.,,,.,,.,.,,..,,..,..,,...,...,.,,,.,,,,,.,...,,,.,
+#W73KA7R4JFZTXPK5XPKP6P4QAXXPWTHAUXV74EGAO2ET4KJLO2DWJALLWKVUIIAGKPUUVU6NLJSJW
+#\\\|DFRXZ226LOE7KHBC62IDDDFKW7R6SHW25OXBVXJ3YJBFOE7GX7M \ / AMOS7 \ YOURUM ::
+#\[7]3WFVSVY3TLE3D4ZMOHLZGPM55WOUR5EQ3OWLVAPI3XNFEPFIO6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

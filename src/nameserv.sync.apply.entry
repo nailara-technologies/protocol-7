@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = nameserv.sync.apply.entry
+# descr = apply one decoded sync entry [ newer ts wins per identity ]
+# param = $zone_name, $entry -> applied | removed | ignored | undef
+
+my $zone_name = lc( shift // '' );
+my $entry     = shift;
+
+return undef if not length $zone_name;
+return undef if ref $entry ne qw| HASH |;
+return undef if lc( $entry->{'zone'} // '' ) ne $zone_name;
+
+my $ts = $entry->{'ts'} // '';
+return undef if not length $ts;
+return undef
+    if $ts !~ m|^\d+(\.\d+)?$|
+    and not <[base.ntime.b32_is_shape_valid]>->($ts);
+
+my $zones = <nameserv.zones> //= {};
+
+my $identity = <[nameserv.entry.identity]>->(
+    $zone_name,
+    {   name  => $entry->{'name'}  // '',
+        type  => $entry->{'type'}  // '',
+        value => $entry->{'value'} // '',
+    }
+);
+return undef if not defined $identity;
+
+my $zone = $zones->{$zone_name} //= {
+    records => [],
+    serial  => time(),
+    ttl     => <nameserv.cfg.default_ttl>,
+};
+
+## newest ts per identity wins, across the live record, its tombstone and  ##
+## the incoming entry -- an old tombstone never deletes a newer re-add, an ##
+## old record never resurrects a newer delete                              ##
+my $newer_than = sub {    ## TRUE if $ts is newer than $other ##
+    my $other = shift // '';
+    return TRUE if not length $other;    ## no ts : oldest ##
+    my $delta = <[base.ntime.delta_seconds]>->( $other, $ts );
+    return ( defined $delta and $delta > 0 ) ? TRUE : FALSE;
+};
+for my $rec ( @{ $zone->{'records'} // [] } ) {
+    next
+        if <[nameserv.entry.identity]>->( $zone_name, $rec ) ne $identity;
+    return qw| ignored | if not $newer_than->( $rec->{'ts'} );
+}
+for my $tomb ( @{ $zone->{'tombstones'} // [] } ) {
+    next
+        if <[nameserv.entry.identity]>->( $zone_name, $tomb ) ne $identity;
+    return qw| ignored | if not $newer_than->( $tomb->{'deleted'} );
+}
+
+my $removed = 0;
+$zone->{'records'} = [
+    grep {
+        my $keep
+            = <[nameserv.entry.identity]>->( $zone_name, $ARG ) ne $identity;
+        $removed++ if not $keep;
+        $keep;
+    } @{ $zone->{'records'} // [] }
+];
+
+## tombstone : keep the delete knowledge with the peer's own ts ##
+## [ not arrival time ]                                         ##
+if ( $entry->{'deleted'} ) {
+    <[nameserv.zone.tombstone.add]>->(
+        $zone_name,
+        {   name  => lc( $entry->{'name'} // '' ),
+            type  => uc( $entry->{'type'} // '' ),
+            value => $entry->{'value'} // '',
+        },
+        $ts
+    );
+    return $removed ? qw| removed | : qw| applied |;
+}
+
+my $new_rec = {
+    name  => lc( $entry->{'name'} // '' ),
+    type  => uc( $entry->{'type'} // '' ),
+    value => $entry->{'value'} // '',
+    ts    => $ts,
+};
+$new_rec->{'ttl'} = $entry->{'ttl'}
+    if ( $entry->{'ttl'} // 0 ) =~ m|^\d+$| and $entry->{'ttl'} > 0;
+push @{ $zone->{'records'} }, $new_rec;
+
+## a newer live entry cancels a tombstone of the same identity ##
+<[nameserv.zone.tombstone.clear]>->( $zone_name, $new_rec );
+
+return qw| applied |;
+
+#,,.,,...,,,,,...,,,.,,,,,.,,,,..,.,,,.,.,,.,,..,,...,...,.,,,,.,,,,,,.,,,,,,,
+#GFOUSEABLLCDK4HZKOIKEZS2RMZNAWOKMEFSMOI4TXHMNVXQG2CNKJVAJBKVTTXSY52CL2UD5QYMG
+#\\\|KP65BNF6KTPHOBA4UUZ4WAUJUVSXN5KSS4EOKVCTJVEKTF3N2EK \ / AMOS7 \ YOURUM ::
+#\[7]UV5Q24BBDSK5EFYYNFWHX4HJUOMFOFPE73BBFRQUJROVU2ED36DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

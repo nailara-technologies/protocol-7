@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = nameserv.sync.entry.encode
+# descr = canonical base32 wire form of one sync entry
+# param = $entry -> base32 string | undef
+
+my $entry = shift;
+return undef if ref $entry ne qw| HASH |;
+
+my $ttl = $entry->{'ttl'} // 0;
+$ttl = 0 if $ttl !~ m|^\d+$| or $ttl > 4294967295;
+
+## canonical length-prefixed field encoding                                ##
+## [ design : timestamp delta sync ] ; the label makes the body the future ##
+## stage-3 signed body                                                     ##
+my $body = pack(
+    'Z* n/a* n/a* n/a* n/a* N n/a* n/a*',
+    'p7 sync-entry v1',
+    $entry->{'zone'}  // '',
+    $entry->{'name'}  // '',
+    $entry->{'type'}  // '',
+    $entry->{'value'} // '',
+    $ttl,
+    $entry->{'ts'} // '',
+    ( $entry->{'deleted'} ? qw| 1 | : qw| 0 | )
+);
+
+return <[base32.encode]>->($body);
+
+#,,,,,...,..,,..,,...,..,,,,,,,,.,,,,,,..,,,,,..,,...,...,.,,,..,,,,,,...,.,.,
+#VFN774QC6FAGX7DWURXHSFPTAQVQX2TN3IWQWVHEFTDX6AYZWUU2SNIPNJLCYBIUETKU3IPI76UDC
+#\\\|B4M3A3GS6PVETBXOS6VOCCJWLZ53SN57GEFQKPCL5CZR7MZA5QH \ / AMOS7 \ YOURUM ::
+#\[7]MPE7RLNV5QLCXMTZFEVB77V4HNLWQKMIJZ6KAC6O5V3M6T2WZYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
