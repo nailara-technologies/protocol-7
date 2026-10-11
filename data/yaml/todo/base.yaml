@@ -1016,6 +1016,7 @@ items:
     - reverse dns stays on the protocol-7.network names [ one ptr per ip ; the v7.ax name is an additional forward name ]
     - all names pass the harmony check, lower and upper case
     - glue at the registry and the a \ aaaa records in our own zone must match -- an ip change needs both updated
+    - dns-01 LIVE [ 2026-10-11 ] : production certificate for protocol-7.network issued on new server 1 through the delegated alias [ registrar zone : acme.protocol-7.network NS dn0000 + _acme-challenge CNAME ; our nameserv answers v4 + v6 ; letsencr host.cfg : challenge.type dns-01, provider nameserv, challenge_alias ]. staging first, then production ; renewal runs the same path, no registrar credentials, no web server. code : 2f656aa2e [ host overlay, nameserv v4+v6, challenge alias ], 41f8c6a6d [ challenge.type honored ], deployed by the pull-git zenka. next : the wildcard [ request-certificate with extra names, or an httpsd vhost '*.protocol-7.network' ]
   done_at: null
   id: CJ3
   priority: normal
@@ -1063,8 +1064,8 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 
-#,,.,,,,.,,,.,,,.,,,,,..,,..,,,.,,,,.,,,.,,,.,..,,...,...,.,,,..,,,,,,,,,,,,.,
-#JDH3OJXZWUYHD53C7AF2KHUPC5UPAC5VHRLX4SRIC3OSWZXIAT4STT6FIULZ7SRAPGPQQZNACTRXG
-#\\\|2TCU65AWTOIKI7SQ2G2IDF5YD7NUMU4W2FEP2DINEG722NWABQD \ / AMOS7 \ YOURUM ::
-#\[7]SYXCUUXRZ6GVABSQIZR7SNMCJQI3MYCY2VRIEHMPZ565YHYMUYCA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,,.,.,.,,.,,,..,,.,,,,.,,,,,..,,...,...,..,,...,..,,...,.,,,
+#GNFCKXYNVMA7UKTFTSNSRPCI7A2RKTXUEGT7DVZVUPSH562AGNNMWU7BWKZK6UIDKT6L7QMMBVOAK
+#\\\|CTH6STKGNPSEBRSSYKPT27XDR3O4O2KKN4FMDRVPKNDZ6WHLUUM \ / AMOS7 \ YOURUM ::
+#\[7]OL6DXECEIVMWP45XG3PMQXKUZEVXWKMSJMXCGM6SGHDB5Q5JEOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

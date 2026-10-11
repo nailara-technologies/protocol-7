@@ -44,6 +44,21 @@ foreach
             $authz->{'key_auth'}
         );
     } elsif ( $provider eq qw| nameserv | ) {
+        ## an alias subzone is created on first use                       ##
+        ## [ nameserv ensure-zone : acme.* only, an existing zone stays ] ##
+        ## -- sent ahead of add-txt on the same route, no reply counted   ##
+        my $alias_zone
+            = <[letsencr.child.acme.challenge_name]>->( $authz->{'base'} )
+            =~ s|^_acme-challenge\.||r;
+        if ( $alias_zone ne lc $authz->{'base'} ) {
+            my $alias_ns = <letsencr.dns.alias_ns>
+                // qw| dn0000.protocol-7.network |;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$ARG.ensure-zone",
+                    'call_args' => { 'args' => "$alias_zone $alias_ns" },
+                }
+            ) foreach @ns_targets;
+        }
         $send->(
             $authz, $ARG, "$ARG.add-txt", join ' ',
             <[letsencr.child.acme.challenge_name]>->( $authz->{'base'} ),
@@ -77,8 +92,8 @@ return <[letsencr.child.acme.step_propagate]>->($order_id)
 
 return TRUE;
 
-#,,,.,...,,,.,,..,,,.,,.,,,..,,,,,,.,,,..,,,,,..,,...,.,.,.,,,...,,,.,..,,,.,,
-#6XBBEXLWG73OBVN7DWUPAJP4NS5JUADCRSOBEJ35T7TK7RC6ZSGBXET3IE4DSM5O5OHQWZG3RY7WY
-#\\\|LVBYG6PIYIDTVG2G522XZOXATXUUYUUERUXOIFEMNIMDMKPLNK2 \ / AMOS7 \ YOURUM ::
-#\[7]OVMTWZTYBCLJ5DLGCETFIZUX2S4PAI3TXK3H5NSOXDPAEXVXU6CA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,..,,,.,,..,,...,,,,,..,,.,,,..,,...,...,..,,..,,,,.,,,,,.,.,
+#VBXJVJGK3KWTPIRNH2I64VRCRNZG3NHOVBLSDEGPQLXZIAINONQKVRHG3L2KZBQ7ILTWJGBFTM6IM
+#\\\|HHA66E6IOLVUMKZ4B42KWEQRMYA26N7RYRMA7G62RGEZXKUY7KD \ / AMOS7 \ YOURUM ::
+#\[7]CK2BIQNKWWXAZHFX5X2SZUX52YYWRGYCBPNYMS3JCY4WVA33OKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

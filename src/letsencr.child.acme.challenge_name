@@ -8,17 +8,25 @@
 #         zone carries _acme-challenge.<domain> CNAME
 #         _acme-challenge.<alias> and delegates <alias> to our nameserv --
 #         records are written and checked at the alias, no registrar
-#         credentials needed. no pair for a domain : the name itself
+#         credentials needed. no pair for a domain : <prefix>.<domain>
+#         with letsencr.dns.challenge_alias_prefix set, else the name itself
 
 my $base = shift // '';
 
 my %alias = map { split m|:|, $ARG, 2 } grep {m|:|}
     split m|[\s,]+|, <letsencr.dns.challenge_alias> // '';
 
-return '_acme-challenge.' . ( $alias{ lc $base } // $base );
+## convention instead of one pair per domain : with a prefix [ 'acme' ] ##
+## every domain without its own pair uses <prefix>.<domain>             ##
+my $prefix = <letsencr.dns.challenge_alias_prefix> // '';
+$prefix =~ s{\.+$}{};
+my $alias = $alias{ lc $base }
+    // ( length $prefix ? sprintf( '%s.%s', $prefix, lc $base ) : $base );
 
-#,,,.,.,,,,,.,...,,,.,,.,,.,.,..,,...,,,,,...,..,,...,...,.,,,,,,,.,.,.,.,..,,
-#3TRN74DRG3IHK5LPRBKVVU3ZCCTNVWZB5E77NLB3KUJ6LGEFUEKZK4YPDV5IAPE4KHFYP2ECBF322
-#\\\|KLQGQTIAVZBIYCZZQNGRONCZWEFX6JQK3D5U6XPYZ3E5P5EOVVC \ / AMOS7 \ YOURUM ::
-#\[7]Q6BYMN2FQT3TKDBUJ63RJP2JAAHA2S4LZUMPSYKNLOWTBBTRYYAY 7  DATA SIGNATURE ::
+return '_acme-challenge.' . $alias;
+
+#,,,.,.,,,,.,,,.,,,,.,.,.,,..,.,,,,.,,.,.,..,,..,,...,...,,,,,,,,,,,.,.,.,.,,,
+#V4M7RVE22YZUFMDSKINQ3DWMR6MOXD6Q36NJAU6VAH6UNL6K53VYDBEPWTS3UCIO6EFW56GY637PS
+#\\\|O6KHP6XCKQUXSSW7ZA7UQETGZ34LPZ4LXICXZKZ4MYPXP6FJCJI \ / AMOS7 \ YOURUM ::
+#\[7]CS5F5RH7ABMHCDMJUIIQSJMKEAFNU6MWNU563HAXD7OSQ4X36ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

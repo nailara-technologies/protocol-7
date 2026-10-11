@@ -35,6 +35,7 @@ access.cmd.usr.child = cube.httpd.setup-acme-challenge \ ## <-- child to cube
                        cube.httpd.remove-acme-challenge \
                        cube.nameserv.add-txt \       ## <-- dns-01 set-up \ cleanup ##
                        cube.nameserv.remove-txt \
+                       cube.nameserv.ensure-zone \
                        cube.v7-zenki.notify_online \           ## <-- log routing ##
                        cube.p7-log.append
 
@@ -69,6 +70,10 @@ letsencr.challenge.type = http-01   # http-01 or dns-01
 ## /etc/protocol-7/letsencr/host.cfg on the host that requests the cert  ##
 # letsencr.dns.provider        = nameserv
 # letsencr.dns.challenge_alias = protocol-7.network:acme.protocol-7.network
+## or one convention for every domain without its own pair : <prefix>.<domain> ##
+# letsencr.dns.challenge_alias_prefix = acme
+## name servers written into a newly created alias subzone [ nameserv ensure-zone ] ##
+# letsencr.dns.alias_ns = dn0000.protocol-7.network dn0000.v7.ax
 letsencr.challenge.timeout = 300     # 5 minutes for challenge completion
 letsencr.challenge.site_dir = /var/httpd/  # document root for challenges
 letsencr.challenge.site_name = default   # default virtual host directory
@@ -93,8 +98,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http \
 
 [zenka.loop]
 
-#,,,.,,.,,.,.,.,,,,..,,..,,..,,,.,,.,,.,.,,..,..,,...,...,..,,.,,,.,.,..,,,,,,
-#IOFJWDLUNWHX727S22E4G5CCXNLVWVGO6QXW5S2R6I7AH2S6MWQRMZPSNG2XWRADP4TBEP72SCCOK
-#\\\|GPXX27S2CCYVSBFQ2AR2Y5JKHFETVTKMP43NGD7AAFZFZDQ5JUY \ / AMOS7 \ YOURUM ::
-#\[7]XDTUXCZDU2USXSLGFQAR4L2DROP24VOAHXCHD4EOSTTF4NAPLKBY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,.,,,.,.,,..,,..,..,,,..,...,..,,...,..,,...,.,.,.,.,..,,.,.,
+#KM2DCXLPMAZJMZHTUZ23H7QMDTJEGFZO6BDWVUT3QYAIT74WPYEGIKDXFDVEEGEIR36K4JNZ4YCPG
+#\\\|NKLPRRK46XMSCBRU4FVHTDVSYHVGNAVFTEY5KTM4MHO5OGV55YI \ / AMOS7 \ YOURUM ::
+#\[7]5Q4N5A3IAYCXKW22MUHJSMQVTQ4HU3UWVINXCNKRFVXNMU5IBUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
