@@ -1163,7 +1163,9 @@ items:
   - sync
   text: 'nameserv sync : try every peer address, fall back past a dead ipv6'
 - added: 3X4OBUPZBE
-  details: "at start-up and every 3900 s ; warns only, never changes anything ; one concise line per finding that says exactly what to do, e.g. 'update glue dn1110.protocol-7.network : AAAA 2604:a00:..:90c6 -> <new address> [ registrar ]' or 'add dn0110.protocol-7.network to the NS set of acme.v7.ax'. checks : [ 1 ] this host's DN name A\\AAAA in public dns vs the addresses it really has [ interfaces \\ detected.cfg host.ipv6 -- catches a changed SLAAC address ] ; [ 2 ] glue : ask the parent zone's servers [ TLD ] for the delegation, compare its glue with the real addresses ; [ 3 ] each served zone's NS set contains every configured DN name, and each answers the zone with the same SOA serial [ sync cross-check ] ; [ 4 ] ptr of each address points back to the host name [ DDB needs it too ]. command nameserv.consistency shows the last result. shares host-domain code with DDB and WW5."
+  details: |-
+    at start-up and every 3900 s ; warns only, never changes anything ; one concise line per finding that says exactly what to do, e.g. 'update glue dn1110.protocol-7.network : AAAA 2604:a00:..:90c6 -> <new address> [ registrar ]' or 'add dn0110.protocol-7.network to the NS set of acme.v7.ax'. checks : [ 1 ] this host's DN name A\AAAA in public dns vs the addresses it really has [ interfaces \ detected.cfg host.ipv6 -- catches a changed SLAAC address ] ; [ 2 ] glue : ask the parent zone's servers [ TLD ] for the delegation, compare its glue with the real addresses ; [ 3 ] each served zone's NS set contains every configured DN name, and each answers the zone with the same SOA serial [ sync cross-check ] ; [ 4 ] ptr of each address points back to the host name [ DDB needs it too ]. command nameserv.consistency shows the last result. shares host-domain code with DDB and WW5.
+    implemented 2026-10-12 [ kimi k2.8 + review : timers re-init safe, ipv4 from the interfaces not the host name, ':run:' ]. KNOWN LIMIT : check 2 compares the public A \ AAAA answers, not the registry's glue -- correct only while no domain is delegated to our dn names [ then it is skipped ]. before protocol-7.network or v7.ax itself moves to DN0000 \ DN0110 \ DN1110 : query the TLD servers for the delegation and compare their additional-section glue.
   done_at: null
   id: VDS
   priority: normal
@@ -1185,8 +1187,8 @@ items:
   - claude
   text: 'cloud session bootstrap : backend + own signing key in one step'
 
-#,,.,,...,..,,.,,,..,,...,..,,...,,,.,...,..,,..,,...,...,.,.,.,.,...,,,,,,.,,
-#PDRF6G42QIUCTCULB2IIMIIULSQZHB2ICGS6G42NK5MZ66XGTJTBN73N4WRRPMQHPWCE5ZVA3LZ24
-#\\\|4KLFRM3U54PQCKVRMO4ELKT5ZOVNV7AU5DAV6GXZ2B5VR2WTD2T \ / AMOS7 \ YOURUM ::
-#\[7]NBVBY63W3G63FBU4RZIOA4XRGSLKCAQOJMTIBI3C75VCIIFQ5WDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,,..,,..,,.,,...,,,,,,..,,..,..,,...,...,..,,..,,,,.,.,.,,.,,
+#YG2EZLIIOLTYYWIWS4FO43F4I3M43KVGJJ4XMLSFSVRKCG4AX4OTQHV7TFKEGEGVRCMDDGYMZL6XM
+#\\\|PU36GHFV77C5Y4NUMYEWTA2Y7EL5YL4ANGSGQCVDK6UONRD5OBG \ / AMOS7 \ YOURUM ::
+#\[7]G4RW5FOBBEVQJBTTXPJARC5MP3CUEEZXJ6UYVNFOAZKM46GNQSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

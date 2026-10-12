@@ -65,7 +65,7 @@ my ( $chain, $chain_err ) = <[trust.chain]>->( qw| split |, $chain_field );
 return $refuse->( 'delegation not valid [ ' . ( $chain_err // '?' ) . ' ]' )
     if not defined $chain;
 
-my $home_dir = <[base.get_homedir]>->();
+my $home_dir = <[base.get_homedir]>;
 return $refuse->('no home directory')
     if not defined $home_dir
     or not length $home_dir
@@ -223,8 +223,8 @@ if ( $verdict eq qw| PIN_ROTATED | ) {
 
 return TRUE;
 
-#,,.,,.,.,...,..,,..,,.,.,...,.,,,.,.,...,,,,,..,,...,..,,.,.,,.,,..,,,,,,..,,
-#STLY2G6SYZW2CM3QQHHV45CD2FSJZ22E6KRK7Y2IIJJGWIWWI2SJLTYWARVKAVU2SALOJMBMMLIYQ
-#\\\|OHAHT43A62FBEJOHHF4JSMTG6P4QF2QZV7D6Z6N6J2GY5ZFJEJC \ / AMOS7 \ YOURUM ::
-#\[7]AFGEIPG7XGJGBDN57H7GW3CYEC2KY2EXQCC5ZDWP5G5ZPZ2CPYBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,.,.,..,,,,,,,,.,...,,,,,,,,,..,,...,..,,..,,...,,.,,.,,,..,,
+#RIMGJPDLZAZ32SS7IMDGKR6FCVEGQZOZERH4GPLJNICR2V4BJPMUALLW5FOEDNU74JYJFV5DBQLIY
+#\\\|RPXTYMU6H5WWE2YCM2YZJSHRL6L7A2XGAFG4377EFJOGXWMXUKA \ / AMOS7 \ YOURUM ::
+#\[7]EP5BPDQBHZOSWFEXKYAMOT6I6G7R2ZI33HXFPB5UZ2LP7J4L7ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

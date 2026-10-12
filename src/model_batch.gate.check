@@ -26,14 +26,14 @@ my $baseline_href
 my $baseline_is_new = FALSE;
 
 if ( ref $baseline_href ne qw| HASH | or !%$baseline_href ) {
-    $baseline_href = <[model_batch.manifest.build]>->();
+    $baseline_href = <[model_batch.manifest.build]>;
     <[model_batch.manifest.persist]>->(
         qw| save |, $batch_id, $baseline_href
     );
     $baseline_is_new = TRUE;
 }
 
-my $current_href = <[model_batch.manifest.build]>->();
+my $current_href = <[model_batch.manifest.build]>;
 
 my $diff_href
     = <[model_batch.manifest.diff]>->( $baseline_href, $current_href );
@@ -79,8 +79,8 @@ return {
     qw| current_cs    | => <[model_batch.manifest.checksum]>->($current_href),
 };
 
-#,,.,,,..,..,,,,.,.,.,...,,,,,,,,,.,,,.,.,.,.,..,,...,...,..,,,..,...,,..,,..,
-#CLBLLPZXHWCPBRSHWU5IGTDBPUWYNBMFGP7CHHEPU4VHYZ6RPEUCX4NYHH5XWEXDF6SXJTAL5EXVO
-#\\\|U4MPPSOP2T6YU3TCXC3NGXXLUYF5DAVJWXOIPRBTOI6PGGTC3YC \ / AMOS7 \ YOURUM ::
-#\[7]XY77PGLNJCZS6JESPHUTTZ43KOJW234VSS6WDSJXGQLMRREAHWCY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,..,,..,,,..,.,.,,,,,,..,,.,,.,.,..,,...,...,,.,,...,...,...,,..,
+#TEP4ASG3ZGCRZ3JWASC65YSUC53ORLPSYIKMBMGHUR72WVRVMRPJUQIVNQECSJ7RYUMZHP4VUV7ZK
+#\\\|BJAESPVDI3WXUD2Q24YCFBNHMDHHTWMHEIZAYZY7WY3PSJSJHBD \ / AMOS7 \ YOURUM ::
+#\[7]IOTAXJYFLJZMMOES5OITUOEJSQH26B5WFX3CAVBX3SLDVQZ22UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

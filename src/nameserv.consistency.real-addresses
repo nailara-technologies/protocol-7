@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = nameserv.consistency.real-addresses
+# descr = this host's real global addresses [ v4 \ v6 ]
+
+## one address read \ one 'ip' call per run is fine. the global ipv6 addresses
+## come from /proc/net/if_inet6 [ scope 00, not loopback ] -- this catches a
+## changed slaac address. the global ipv4 addresses come from the interfaces
+## [ 'ip -4 -o addr show scope global', loopback skipped ].
+
+require Socket;    ## inet_ntop : not imported into a zenka ##
+
+my @v6;
+my %seen_v6;
+if ( open my $fh, '<', '/proc/net/if_inet6' ) {
+    while ( my $line = <$fh> ) {
+        my @fields = split m|\s+|, $line;
+
+        ## fields : address idx prefixlen scope flags ifname ##
+        next if ( $fields[3] // '' ) ne qw| 00 |;    ## global scope ##
+        next if ( $fields[5] // '' ) eq qw| lo |;
+        my $bin  = pack 'H*', $fields[0];
+        my $addr = Socket::inet_ntop( Socket::AF_INET6(), $bin );
+        next if not defined $addr or $seen_v6{$addr}++;
+        push @v6, $addr;
+    }
+    close $fh;
+}
+
+my @v4;
+my %seen_v4;
+## global ipv4 of the interfaces [ not the host name : on debian it often ##
+## resolves to 127.0.1.1 through /etc/hosts ] -- one 'ip' call per run    ##
+if ( open( my $ip_fh, '-|', qw| ip -4 -o addr show scope global | ) ) {
+    while ( my $line = <$ip_fh> ) {
+        next if $line =~ m|^\d+:\s+lo\s|;    ## wsl : 'lo' may hold one ##
+        next if $line !~ m|\sinet\s+(\d{1,3}(?:\.\d{1,3}){3})/|;
+        my $addr = $1;
+        next if $seen_v4{$addr}++;
+        push @v4, $addr;
+    }
+    close $ip_fh;
+}
+return { 'v4' => [ sort @v4 ], 'v6' => [ sort @v6 ] };
+
+#,,,,,...,,,.,,,,,,,,,..,,...,,,.,..,,,..,..,,..,,...,..,,,.,,.,,,,,,,.,,,,..,
+#SWLD2BNB2AVTQHARF37ON2SH3QPWQ7ZEEIZI5ARSH65V6QELJDLOSLKSUIVZ2CYOGQJ74SD6JBPB2
+#\\\|PWRMB4NJ2UU327ZCBQFPW6FYPXEKEPR44Q2YZDWB2JD3JUIL7M6 \ / AMOS7 \ YOURUM ::
+#\[7]ILJLS6IBBXASD3K7OISI2FTNHYWS6LTZ5DY2UEWANUSJBRCDHCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

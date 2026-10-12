@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = nameserv.consistency.handler.timeout
+# descr = time out one async consistency query
+
+## timer handler : the event carries the query id ##
+
+my $id = shift->w->data;
+
+my $state = <nameserv.consistency.state>;
+return if not ref $state;
+return if not exists $state->{'queries'}->{$id};
+
+<[nameserv.consistency.complete]>->( $state, $id, [], TRUE );
+
+return;
+
+#,,,,,.,,,...,.,,,,,,,,..,...,,..,.,,,.,,,,..,..,,...,..,,...,.,.,,,,,,.,,,,.,
+#26ZH47XO7Y2JQIOPGQUNTTEHQPBXK5VR2FYQGJV4BX76R4OTSBDZKWSPVEOKANMLGRN2BPBX4DXFK
+#\\\|ZRUBWKJOIEUH7S7KA3M7F2ZJBHVU5WQT4I2RHOEHGD2I2BIN4KN \ / AMOS7 \ YOURUM ::
+#\[7]XX4KOOFHDJ5JIH5ZRQJJEI63B2ELJL4LJJQHYVBOU2CR6BK4Q4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
