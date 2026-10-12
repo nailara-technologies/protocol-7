@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = nameserv.consistency.zone-serial
+# descr = serial field of a zone's own SOA record
+
+## the third field of the SOA rdata [ mname rname serial ... ] -- not the zone
+## hash's serial field, which add-record \ set-record bump as a timestamp and
+## which the dns answers never echo back.
+
+my $zone      = shift                                  // return undef;
+my $zone_recs = <nameserv.zones>->{$zone}->{'records'} // [];
+for my $rec (@$zone_recs) {
+    next if uc( $rec->{'type'} // '' ) ne qw| SOA |;
+    my @fields = split m|\s+|, $rec->{'value'} // '';
+    return $fields[2] if @fields > 2;
+}
+return undef;
+
+#,,.,,.,.,,,,,..,,,.,,...,..,,,..,...,.,,,,..,..,,...,...,...,..,,,,,,,,,,.,,,
+#E5GBU3O6WKL4S3RH4GNSGIXFEGSYSLDFWAC6KNO7E5MEFSCVAWWMXRG2EE5JE7NGXCGGQ2IIQZWZE
+#\\\|C4J2P4D7KQT3PFL4HJ5MBJNWY2ZP2J35M5DTJ6Q77X7SEYSBWBT \ / AMOS7 \ YOURUM ::
+#\[7]NNEN4OZQIHEHFGUDOOMC2GUUP22CDPF74SXTZIIJDMFREUBSYYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
