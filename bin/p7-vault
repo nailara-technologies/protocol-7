@@ -2147,7 +2147,7 @@ sub _sync_push {
     my $receive    = join ' ',
         'd=$(mktemp -d ' . shq("$remote/.p7-sync.XXXXXXXX") . ')',
         '&& tar -C "$d" -xf -',
-        "&& { [ -d $target_dir ] || mkdir $target_dir; }",
+        "&& { [ -d $target_dir ] || mkdir -m 700 $target_dir; }",
         '&& moved=0; skipped=0;',
         'for f in "$d"/*; do',
         'b=${f##*/};',
@@ -2610,8 +2610,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,,,,,...,...,,,.,,,,,,.,,,,,,,,,,,,.,,,.,..,,...,..,,.,.,.,,,.,.,,..,...,
-#NVHUYUJMLLGZM2663YZ5IM6TOO6YYQCOKDXZLX72RIOMAGNKNIBSK7O6J7ZVWKFLLYTISVFI6VQHY
-#\\\|HGH4ENFKPOOGMBWK22PO7FAWCMROB3KFXCKQUASR7YBDRWFISY6 \ / AMOS7 \ YOURUM ::
-#\[7]O7NIOMHDTIQMAV5ABVYHNLPV3IRZD75ZRYXBQRNTUM2DRRDOZMAI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,,.,,.,,,,.,..,,,,.,,,,,,.,,..,,...,...,..,,.,,,,..,.,.,,,.,
+#VPG22NRCJBG3K7NRTDQFIQ2DWOQ4XG4BUGRRR5S5SORYCUJCQXIS35AWBBMUWI6LMEW4Q2MB55QWI
+#\\\|VHTBD7A75Z3GY67VVBF2ZFCJE4PV5UDMCWPNETRRJ5DVFCHEVBY \ / AMOS7 \ YOURUM ::
+#\[7]PUVNTVHSTJRUETMFWD34CQRZ2KQ52GDWAZ5EJSAGYNJI32M2YUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
