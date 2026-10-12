@@ -1345,16 +1345,15 @@ sub notes_lines {
 }
 
 ## '─' fill with an anchored label, header-style [ label left ] or
-## footer-style [ label right ] ; width 0 [ piped ] gives the bare label
+## footer-style [ label right ] ; width 0 [ piped ] gives the bare label frame
+## line in the frame colour, label in the label colour
+## [ like bin/todo's header \ footer ] -- the fill was left uncoloured before
 sub notes_rule {
     my ( $width, $label, $header ) = @ARG;
-    my $anchor = $C{0} . $label . $C{0};
+    my $anchor = $C{T} . $label;
     return $anchor . $C{R} if not $width or length($label) + 2 >= $width;
-    my $fill = $width - length $label;
-    if ($header) {
-        return $anchor . ( '─' x $fill ) . $C{R};
-    }
-    return ( '─' x $fill ) . $anchor . $C{R};
+    my $fill = $C{0} . ( '─' x ( $width - length $label ) );
+    return ( $header ? $anchor . $fill : $fill . $anchor ) . $C{R};
 }
 
 ## terminal width for the notes list
@@ -2150,8 +2149,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,.,,,.,.,.,,,,.,,.,,,..,,.,,,,,.,,..,,,.,..,,...,...,,.,,,.,,,,.,..,,,,,,
-#5GRAZTOCCAU2XWWKAPA3ZZP72HCBTZWWNCH3Q3UEZHNX4PF3NQRLZLKSBD2XB27J4PMG6TSTT4FCO
-#\\\|KYRSAKQFVMPMG5NWCITOM5EBBSAZQQUAQ4HB7YPLMCI72JCOK6J \ / AMOS7 \ YOURUM ::
-#\[7]RM5QWPTV4LOQRGHLWPMOOPXX4RKBZPHVCMVT2DQ5HUGH64AYWICY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,,..,.,,,..,,..,,,.,,,.,,..,,..,,...,...,...,...,.,,,,.,,,..,
+#J5J3OFCNXYC4SADP7JLXIT53GAPHHW2I2SEC7QJXPAQ356BN5DELQXMDQBFPHJMRY7GD77AS5UN3G
+#\\\|PXQKE43AJHJREZO3ZHXJ3QFJARQ7ZFYSHJGV26LZFEGUG63DIEL \ / AMOS7 \ YOURUM ::
+#\[7]6AQI6D3BYR4IRZVJIKEWUWFHJAX6CKE5UJ7L2SP7YKJ4MCOQXKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
