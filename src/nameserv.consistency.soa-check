@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = nameserv.consistency.soa-check
+# descr = compare a zone's SOA answers once every server reported
+
+## runs when the last pending server of the zone answered or failed.  with a
+## local SOA record its serial is the expectation ; without one the majority
+## of the answering servers is -- only servers that differ from the majority
+## are reported.
+
+my $state = shift;
+my $zone  = shift;
+
+my $soa_state = $state->{'soa'}->{$zone} // return FALSE;
+return FALSE if $soa_state->{'pending'} > 0;
+
+my $answers = $soa_state->{'answers'} // {};
+my $local   = <[nameserv.consistency.zone-serial]>->($zone);
+
+my $expected = $local;
+if ( not defined $expected and keys %$answers ) {
+    ## no local SOA : the majority of the answering servers ##
+    my %count;
+    $count{$ARG}++ for values %$answers;
+    ($expected) = sort { $count{$b} <=> $count{$a} || $a cmp $b }
+        keys %count;
+}
+return FALSE if not defined $expected;
+
+for my $ns ( sort keys %$answers ) {
+    next if "$answers->{$ns}" eq "$expected";
+    $state->{'findings'}->{
+        sprintf '%s serves %s with serial %s, expected %s',
+        $ns, $zone, $answers->{$ns}, $expected
+    } = TRUE;
+}
+
+return TRUE;
+
+#,,,.,,.,,,,.,,,.,,..,,,.,,,,,.,.,,,,,,..,,..,..,,...,...,..,,.,,,...,,,,,,,,,
+#DKFNEZKCCOILAICYERHMYMI5SSE6XDPVTQH6QMRPQX4VXMYNBWO6YFBYCVFVAWJGSPLO6ZSZVKZVY
+#\\\|N3RQHUUMHHNBFMFAW2YI3FLL36CQHCYKDEE2CSW3SQYFKIZATWK \ / AMOS7 \ YOURUM ::
+#\[7]H3FBHBBXW4OA2A4LMXVGBYPC4QG2OIILY2NEK342M64JDTTXUUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

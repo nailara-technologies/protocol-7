@@ -82,8 +82,11 @@ if (@peers) {
 ## check 4 : the ptr of each real address must point back to a dn name or ##
 ## the host name                                                          ##
 if (@dn_names) {
-    $state->{'ptr_expected'}
-        = [ @dn_names, <[nameserv.consistency.host-name]> ];
+    my $host_name = <[nameserv.consistency.host-name]>;
+    $state->{'ptr_expected'} = [ @dn_names, $host_name ];
+
+    ## a ptr whose first label is the short host name is right too ##
+    $state->{'ptr_short_host'} = ( split m|[.]|, $host_name, 2 )[0];
     for my $addr ( @{ $state->{'real'}{'v4'} }, @{ $state->{'real'}{'v6'} } )
     {
         <[nameserv.consistency.query]>->(
@@ -103,8 +106,8 @@ if (@dn_names) {
 
 return TRUE;
 
-#,,..,,,,,,,.,..,,,..,...,..,,,,.,.,.,..,,,.,,..,,...,..,,,,,,,,,,,.,,.,.,,,,,
-#CPI6VN5HTMQK4I7ZBFJTEXTYVJO5RJ34EOGUTWNAI3V4WIV2C6KEYSTOPLNPADZAX3PP7RSUFNJCG
-#\\\|D6RMDFOF7DU4RMVQF26BSVH43PEUAX7Z7AK6ZTEGP5OMGDUC73A \ / AMOS7 \ YOURUM ::
-#\[7]24WBIPISM46YF53OVTXERES66VWLOGB6GOO6UPVQRP5X2A4ZZWAA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,,,,,,,,,,.,,.,,,.,,,,..,,.,,..,,...,...,,..,.,,,,,,,,..,,..,
+#CJ3XM42WFJBMHNZKSHZCHPBBVT3QJHT2IAX6KOV6T7FGJPGCOTQUUD5DRD7NQLKRGSTFWUDWZRB3W
+#\\\|MS2JYU2SIOKO537TEPSOVYQLBQ7G2NT4HB5WCFQGZAG7J47SH5Y \ / AMOS7 \ YOURUM ::
+#\[7]SKHWDDYRO2OGOS5NERCVV2GJ4WZNUZNQYH5UNPELY3HJU4HHFGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

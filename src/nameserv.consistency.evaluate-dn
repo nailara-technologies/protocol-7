@@ -1,57 +1,81 @@
 ## [:< ##
 
 # name  = nameserv.consistency.evaluate-dn
-# descr = compare one dn name's public records with the real addresses
+# descr = compare one dn name with the real addresses
 
 ## runs once the A and AAAA answers and the glue expectation are all in
 ## [ check 1 ] : the public records of this dn name against the real addresses
 ## of this host. [ check 2 ] : the same public values are the glue the parent
 ## zone publishes for a delegated dn name -- compared again when glue is
-## expected, pointing at the registrar this time.
+## expected, pointing at the registrar this time.  addresses compare in binary
+## form [ text forms of the same address differ ] and findings print the
+## compressed form.
 
 my $state = shift;
 my $dn    = shift;
+
+require Socket;    ## inet_pton \ inet_ntop : not imported into a zenka ##
 
 my $d = $state->{'dn'}->{$dn} // return FALSE;
 return FALSE if grep { not defined $d->{$ARG} } qw| a aaaa glue |;
 
 for my $family (
-    [ qw| A |,    'a',    $state->{'real'}->{'v4'} ],
-    [ qw| AAAA |, 'aaaa', $state->{'real'}->{'v6'} ]
+    [ qw| A |,    Socket::AF_INET(),  'a',    $state->{'real'}->{'v4'} ],
+    [ qw| AAAA |, Socket::AF_INET6(), 'aaaa', $state->{'real'}->{'v6'} ]
 ) {
-    my ( $type, $key, $real ) = @$family;
+    my ( $type, $af, $key, $real ) = @$family;
     next unless @$real;
-    my @dns = sort @{ $d->{$key} // [] };
-    next if join( ' ', @dns ) eq join( ' ', sort @$real );
 
-    if (@dns) {
+    my %dns_bin;
+    for my $value ( @{ $d->{$key} // [] } ) {
+        my $bin = Socket::inet_pton( $af, $value );
+        $dns_bin{$bin} = TRUE if defined $bin;
+    }
+    my %real_bin;
+    for my $value (@$real) {
+        my $bin = Socket::inet_pton( $af, $value );
+        $real_bin{$bin} = TRUE if defined $bin;
+    }
+    next unless %real_bin;
+
+    my $same = TRUE;
+    for my $bin ( keys %dns_bin )  { $same = FALSE if not $real_bin{$bin} }
+    for my $bin ( keys %real_bin ) { $same = FALSE if not $dns_bin{$bin} }
+    next if $same;
+
+    my ($old_bin) = sort keys %dns_bin;
+    my ($new_bin) = sort keys %real_bin;
+    my $old_text = defined $old_bin ? Socket::inet_ntop( $af, $old_bin ) : '';
+    my $new_text = Socket::inet_ntop( $af, $new_bin );
+
+    if ( defined $old_bin ) {
         $state->{'findings'}->{
             sprintf 'update %s %s : %s -> %s',
-            $type, $dn, $dns[0], $real->[0]
+            $type, $dn, $old_text, $new_text
         } = TRUE;
     } else {
         $state->{'findings'}
-            ->{ sprintf 'add %s %s : %s', $type, $dn, $real->[0] } = TRUE;
+            ->{ sprintf 'add %s %s : %s', $type, $dn, $new_text } = TRUE;
     }
 
     next if $d->{'glue'} ne qw| expected |;
-    if (@dns) {
+    if ( defined $old_bin ) {
         $state->{'findings'}->{
             sprintf 'update glue %s : %s %s -> %s [ registrar ]',
-            $dn, $type, $dns[0], $real->[0]
+            $dn, $type, $old_text, $new_text
         } = TRUE;
     } else {
         $state->{'findings'}->{
             sprintf 'add glue %s %s : %s [ registrar ]',
-            $type, $dn, $real->[0]
+            $dn, $type, $new_text
         } = TRUE;
     }
 }
 
 return TRUE;
 
-#,,..,,,,,,,.,,.,,,..,..,,..,,,,.,...,..,,..,,..,,...,.,.,..,,.,.,,,,,,.,,,.,,
-#DRGNYN5OVX2L24F6C6XYRLXDPX6KTCZDUT65HK5GQCVMYM3Q6WTKTZVSCGPVSQVOEFP3FYSUREECU
-#\\\|NFM6D7K46REE2XPKSNI72QWOD24XDWFAJ45YYAP47N6RQW2YUZX \ / AMOS7 \ YOURUM ::
-#\[7]YPWCKIVMMRHZSQLBLS6SDQOHKUDSF2HXZYH3LXGZZ4QIWH6C4YDY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,...,,,.,.,,,.,,,..,,.,,,,.,,..,,...,...,.,.,...,.,.,.,,,,.,,
+#UTE6NUV5B2VRCNG4XXPGIX4NBD6CJMZY5GNOAWHM7TWPREQ4VBH3WISRI4RST7DKBNP6V5MBKY4LG
+#\\\|PENMC5PEIPJBA2H6NC7HD66PW65GOEI2VOQAJSVOFUP5QOH7GAZ \ / AMOS7 \ YOURUM ::
+#\[7]HZADUVWMI7J7EQEN64ZMQR7FZFVKRD737RWR43JRAOSAOYGWYKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
