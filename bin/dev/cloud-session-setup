@@ -5,35 +5,36 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
-use Cwd     qw| abs_path |;
-use FindBin qw| $RealBin |;
+use Cwd        qw| abs_path |;
+use FindBin    qw| $RealBin |;
 use File::Temp qw| tempdir |;
 
 ## prepares a fresh debian / ubuntu vm so that 'bin/format-code -c' and the ##
 ## standalone nameserv tests [ entry stage1, sync stage2 ] run. apt first,  ##
-## cpanm only for modules apt has no package for. idempotent : a module    ##
-## that already loads is skipped, a second run installs nothing            ##
+## cpanm only for modules apt has no package for. idempotent : a module     ##
+## that already loads is skipped, a second run installs nothing             ##
 
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
-## module => apt package [ undef = not packaged, comes from cpan ] ##
-## who needs it :                                                   ##
-##   format-code    : PPI, Perl::Tidy, List::MoreUtils              ##
-##   nameserv tests : YAML::XS, Digest::BMW [ chk-sum.bmw stub ],   ##
-##                    Crypt::Ed25519 [ nameserv.sync.accept and     ##
-##                    nameserv.sync.client.apply_reply, stage2 ]    ##
+## module => apt package [ undef = not packaged, comes from cpan ] who     ##
+## needs it :  format-code    : PPI, Perl::Tidy, List::MoreUtils  nameserv ##
+## tests : YAML::XS, Digest::BMW [ chk-sum.bmw stub ], Crypt::Ed25519      ##
+## [ nameserv.sync.accept and  nameserv.sync.client.apply_reply, stage2 ]  ##
 my @modules = (
-    [qw| PPI             libppi-perl            |],
-    [qw| Perl::Tidy      perltidy               |],
-    [qw| List::MoreUtils liblist-moreutils-perl |],
-    [qw| YAML::XS        libyaml-libyaml-perl   |],
-    [ qw| Digest::BMW     |, undef ],
-    [ qw| Crypt::Ed25519  |, undef ],
+    [qw| PPI                  libppi-perl            |],
+    [qw| Perl::Tidy           perltidy               |],
+    [qw| List::MoreUtils      liblist-moreutils-perl |],
+    [qw| YAML::XS             libyaml-libyaml-perl   |],
+    [qw| File::Which          libfile-which-perl     |],
+    [qw| Event                libevent-perl          |],
+    [qw| Crypt::PRNG::Fortuna libcryptx-perl         |],
+    [ qw| Digest::BMW    |, undef ],
+    [ qw| Crypt::Ed25519 |, undef ],
 );
 
 ## local sources of the cpan-only modules, in build order ##
-## [ data/lib-path/pm-src/<dir>, like crypt-curve25519 ]    ##
+## [ data/lib-path/pm-src/<dir>, like crypt-curve25519 ]  ##
 my %pm_src = (
     'Digest::BMW'    => [qw| digest-bmw |],
     'Crypt::Ed25519' => [qw| canary-stability crypt-ed25519 |],
@@ -66,14 +67,14 @@ my ( @apt_needed, @cpan_needed );
 foreach my $entry (@modules) {
     my ( $module, $pkg ) = @{$entry};
     if ( module_loads($module) ) {
-        printf ": ok      %-16s [ present ]\n", $module;
+        printf ": ok      %-20s [ present ]\n", $module;
         next;
     }
     if ( defined $pkg ) {
-        printf ": missing %-16s -> apt %s\n", $module, $pkg;
+        printf ": missing %-20s -> apt %s\n", $module, $pkg;
         push @apt_needed, $pkg;
     } else {
-        printf ": missing %-16s -> cpanm\n", $module;
+        printf ": missing %-20s -> cpanm\n", $module;
         push @cpan_needed, $module;
     }
 }
@@ -82,7 +83,7 @@ foreach my $entry (@modules) {
 if (@cpan_needed) {
     foreach my $pkg (@cpan_build_pkgs) {
         next if apt_installed($pkg);
-        printf ": missing %-16s -> apt %s [ for cpan builds ]\n", $pkg, $pkg;
+        printf ": missing %-20s -> apt %s [ for cpan builds ]\n", $pkg, $pkg;
         push @apt_needed, $pkg;
     }
 }
@@ -91,8 +92,8 @@ if (@cpan_needed) {
 if (@apt_needed) {
     print ":\n: apt-get update ..,\n";
     run( @sudo, qw| apt-get update -qq | )
-        or print ": warning : apt-get update reported errors"
-        . " [ continuing with the lists present ]\n";
+        or print ": warning : apt-get update reported errors "
+        . "[ continuing with the lists present ]\n";
 
     print ":\n: installing [ apt ] : @apt_needed\n:\n";
     run( @sudo, qw| apt-get install -y -qq --no-install-recommends |,
@@ -115,15 +116,15 @@ if (@cpan_needed) {
             my @src_dirs = @{ $pm_src{$module} // [] };
             my $local_ok = @src_dirs ? 1 : 0;
             foreach my $src_dir (@src_dirs) {
-                my $path = File::Spec->catdir( $p7_root, qw| data lib-path pm-src |,
-                    $src_dir );
+                my $path = File::Spec->catdir( $p7_root,
+                    qw| data lib-path pm-src |, $src_dir );
                 if ( not -d $path ) { $local_ok = 0; last }
                 my $tmp = tempdir( CLEANUP => 1 );
                 run( qw| cp -r |, $path, $tmp ) or do { $local_ok = 0; last };
                 print ":\n: installing [ pm-src ] : $src_dir\n:\n";
-                run( qw| cpanm --notest --quiet |,
-                    File::Spec->catdir( $tmp, $src_dir ) )
-                    or do { $local_ok = 0; last };
+                run(qw| cpanm --notest --quiet |,
+                    File::Spec->catdir( $tmp, $src_dir )
+                ) or do { $local_ok = 0; last };
             }
             next if $local_ok and module_loads($module);
             print ":\n: installing [ cpanm ] : $module\n:\n";
@@ -180,8 +181,8 @@ sub module_loads {
     return $CHILD_ERROR == 0;
 }
 
-## true when dpkg reports the package as installed [ stderr silenced : ##
-## 'no packages found' for a never-installed package is expected ]     ##
+## true when dpkg reports the package as installed [ stderr silenced : 'no ##
+## packages found' for a never-installed package is expected ]             ##
 sub apt_installed {
     my $pkg = shift;
     my $pid = open( my $pipe, '-|' ) // return 0;
@@ -214,8 +215,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,.,,,,,.,,,,,,,,,,,,.,,.,.,,,,,.,.,.,.,,,.,..,,...,.,.,...,...,.,.,,,,,..,,
-#VOTASYM2L3PODMH463KFERFBKU32PNEXIRF7W4ULJRFJZGYGTUBILC7IT3E466WYXO2QBOK65FX6A
-#\\\|GMYE75U35TBSTQ3N62MWEAQMO4SQFKGQZGZJE6CDGJZREHMP7XU \ / AMOS7 \ YOURUM ::
-#\[7]IK7XVETUVUUUJHM5VM5RRASPVZI3AFCBX77OSG3M6X7GWR2AGWCI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,...,.,.,,..,,..,.,,,,.,,.,.,.,.,..,,...,...,,..,,.,,...,.,,,.,,,
+#RQ5KWXARIKTS7SVYGFABGPTQNYKSSKCDQPTITUWGB6B2VOOX4ZIMDX6PC4DSWK5RMOUMFCFWQJ526
+#\\\|7D4SFMRWNPW43GRA7XIHFMWNXWQLHLBGJHM3VIZETHY2JIPI2YX \ / AMOS7 \ YOURUM ::
+#\[7]7PQPOXQ3E44D7KYVZ3A4P46KHOWNHIT4NNDG6RPNMCBCSMASZ2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
