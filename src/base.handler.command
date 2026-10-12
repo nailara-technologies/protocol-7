@@ -643,6 +643,78 @@ if ( $cmd eq q|!TRM!| ) {
                 $id, $tgt_sid, $tgt_cmd_id
             );
         }
+
+        ## the cancel ends this stream route : free the source and target   ##
+        ## session route entries and the global route entry exactly once,   ##
+        ## like the reply paths in base.handler.command.process_reply do    ##
+        ## [ todo 7N3 ] ; the producer was notified above, late frames land ##
+        ## on the unknown-route path and are dropped                        ##
+        my $trm_route_id = $session->{'route'}->{$cmd_id};
+        delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id}
+            if defined $src_sid
+            and defined $src_cmd_id
+            and ref $data{'session'}{$src_sid}{'route'} eq qw| HASH |;
+        delete $data{'session'}{$tgt_sid}{'route'}{$tgt_cmd_id}
+            if defined $tgt_sid
+            and $tgt_cmd_id > 0
+            and ref $data{'session'}{$tgt_sid}{'route'} eq qw| HASH |;
+        delete $data{'route'}->{$trm_route_id} if defined $trm_route_id;
+        delete $session->{'route'}->{$cmd_id};
+        for my $route_sid ( $src_sid, $tgt_sid ) {   ## drop emptied hashes ##
+            delete $data{'session'}{$route_sid}{'route'}
+                if defined $route_sid
+                and ref $data{'session'}{$route_sid}{'route'} eq qw| HASH |
+                and not keys $data{'session'}{$route_sid}{'route'}->%*;
+        }
+        delete $session->{'route'}
+            if ref $session->{'route'} eq qw| HASH |
+            and not keys $session->{'route'}->%*;
+
+        ## release target side stream state [ mirrors cancel_route ] : a ##
+        ## producer that honors !TRM! is push-gated and emits no close   ##
+        ## frame, so the cube-side stream entry would otherwise never be ##
+        ## removed                                                       ##
+        if (    defined $tgt_sid
+            and $tgt_cmd_id > 0
+            and exists $data{'session'}{$tgt_sid}
+            and ref $data{'session'}{$tgt_sid}{'streams'} eq qw| HASH |
+            and ref $data{'session'}{$tgt_sid}{'streams'}{$tgt_cmd_id} eq
+            qw| HASH | ) {
+            my $tgt_stream
+                = $data{'session'}{$tgt_sid}{'streams'}{$tgt_cmd_id};
+            for my $timer_key (qw| idle_timeout absolute_timeout |) {
+                $tgt_stream->{'timer'}{$timer_key}->cancel
+                    if defined $tgt_stream->{'timer'}{$timer_key}
+                    and not $tgt_stream->{'timer'}{$timer_key}->is_cancelled;
+            }
+            delete $data{'session'}{$tgt_sid}{'blocked_by_stream'}
+                if ( $data{'session'}{$tgt_sid}{'blocked_by_stream'} // -1 )
+                == $tgt_cmd_id;
+            delete $data{'session'}{$tgt_sid}{'streams'}{$tgt_cmd_id};
+        }
+
+        ## bound the sticky cancel table on the source session [ todo 7N3 ] ##
+        ## : evict entries with neither route nor stream state left once    ##
+        ## the table passes its limit ; a late push for such a cmd_id lands ##
+        ## on the unknown-route path and re-arms the flag                   ##
+        if (    defined $src_sid
+            and exists $data{'session'}{$src_sid}
+            and ref $data{'session'}{$src_sid}{'stream_cancelled'} eq
+            qw| HASH |
+            and keys $data{'session'}{$src_sid}{'stream_cancelled'}->%*
+            > ( <limit.stream_cancelled> // 1024 ) ) {
+            my $sc_r = $data{'session'}{$src_sid}{'route'}   // {};
+            my $sc_s = $data{'session'}{$src_sid}{'streams'} // {};
+            for my $sc_cid (
+                keys $data{'session'}{$src_sid}{'stream_cancelled'}->%* ) {
+                next
+                    if exists $sc_r->{$sc_cid}
+                    or exists $sc_s->{$sc_cid};
+                delete $data{'session'}{$src_sid}{'stream_cancelled'}
+                    {$sc_cid};
+            }
+        }
+
         ##  local producer : active stream registered for this cmd_id  ##
     } elsif ( ref $session->{'streams'} eq qw| HASH |
         && ref $session->{'streams'}->{$cmd_id} eq qw| HASH |
@@ -654,6 +726,23 @@ if ( $cmd eq q|!TRM!| ) {
             1,   '[%d] !TRM! cmd_id=%d local [ %s ]',
             $id, $cmd_id, $reason
         );
+
+        ## bound the sticky cancel table [ todo 7N3 ] : the flag gates push ##
+        ## and close for this cmd_id, so it is kept while stream state      ##
+        ## exists ; entries with neither route nor stream state left are    ##
+        ## evicted once the table passes its limit -- the session-close     ##
+        ## path removes the rest with the session                           ##
+        if (keys $session->{'stream_cancelled'}->%*
+            > ( <limit.stream_cancelled> // 1024 ) ) {
+            my $sc_r = $session->{'route'}   // {};
+            my $sc_s = $session->{'streams'} // {};
+            for my $sc_cid ( keys $session->{'stream_cancelled'}->%* ) {
+                next
+                    if exists $sc_r->{$sc_cid}
+                    or exists $sc_s->{$sc_cid};
+                delete $session->{'stream_cancelled'}->{$sc_cid};
+            }
+        }
 
     } else {
 
@@ -707,6 +796,22 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                 <base.cmd_reply> //= {};
                 my $reply_id
                     = <[base.gen_id]>->( <base.cmd_reply>, undef, undef, 0 );
+
+                ## reply id table exhausted or invalid parameters : log ##
+                ## once at level 0 and answer FALSE instead of using an ##
+                ## undefined reply id [ todo 7N3 ]                      ##
+                if ( not defined $reply_id ) {
+                    <[base.logs]>->(
+                        0,   '[%d] gen_id returned no reply id [ cmd : %s ]',
+                        $id, $cmd
+                    );
+                    $output->$* .= sprintf
+                        "%sFALSE command reply id generation failed\n",
+                        $cmd_id_str;
+                    $event->w->start;
+                    return 0;    ## comand complete ##
+                }
+
                 <base.cmd_reply>->{$reply_id} = {
                     'cmd'        => $cmd,
                     'cmd_id'     => $cmd_id,
@@ -1124,8 +1229,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,.,.,.,,,,..,.,,,.,,,,..,..,,..,,,.,,.,,,..,,...,...,..,,,,.,,,.,..,,,,.,
-#ZRA7BQELI4OL3SIHVN4W4EV2XPSNJ6UDK5UOIQP5BSBV66LEYH5KZNNALR4MDJFNXLMS66LG4FHSA
-#\\\|VSJG7REMZO4BHQTRKGQGEUVLPIPA3TVMEEMC23B43DXZBMA2HZ7 \ / AMOS7 \ YOURUM ::
-#\[7]7QM4YJ27YMGQDTNT4ELY7RIPBUGOICOY3SBPLZHDRZ2VKZ3IBEAI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,...,,.,,...,,.,,..,,,..,,.,,..,,...,...,,,.,,,,,,,.,,..,..,,
+#HBFW4WNAYYWBK3S5HWI6AKR7HUSTJP3775JSRCAH2YFDHONC2SYCJVJQWJV3FYFKRE2IA6SKDBSY6
+#\\\|W6EBBQPCSAC7VGA3IPUWE3VXPYG5CHPQNT534SEQXYCOHRMSCSP \ / AMOS7 \ YOURUM ::
+#\[7]FOTRRWHVBSV72PS4ZAPHWIIZ5KYBDGGIHJLH6EH447XZ5ZG4JSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

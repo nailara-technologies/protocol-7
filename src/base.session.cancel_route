@@ -7,6 +7,8 @@ return warn "expected session id" if not defined $sid or $sid !~ m|^\d+$|;
 return warn "[cancel_route] expected termination message"
     if !length $msg // '';
 
+my %sweep_sid;    ##  peer sessions flagged below [ todo 7N3 sweep ]  ##
+
 foreach my $s_cid (@route_cids) {
     next
         if not exists $data{'session'}->{$sid}
@@ -28,6 +30,7 @@ foreach my $s_cid (@route_cids) {
         ##  set sticky stream cancel so producer's next push returns 0  ##
         $data{'session'}{$s_sid}{'stream_cancelled'}{$s_cid} = TRUE
             if $s_cid > 0;
+        $sweep_sid{$s_sid} = TRUE if $s_cid > 0;
     }
 
     ##  notify STRM producer that its consumer is gone  ##
@@ -40,6 +43,7 @@ foreach my $s_cid (@route_cids) {
         $data{'session'}{$t_sid}{'buffer'}{'output'} .= sprintf "(%d)!TRM!\n",
             $t_cmd_id;
         $data{'session'}{$t_sid}{'stream_cancelled'}{$t_cmd_id} = TRUE;
+        $sweep_sid{$t_sid} = TRUE;
     }
 
     ## clean up stale route entry in target session to prevent crash on ##
@@ -73,8 +77,24 @@ foreach my $s_cid (@route_cids) {
     delete $data{'route'}{$route_id};
 }
 
-#,,,.,..,,,,.,..,,,..,.,.,.,,,,.,,,..,,,,,,.,,..,,...,...,,,,,.,,,,..,,,.,.,.,
-#4E3DJAGVZSICRNXGHNVRXEPOHDEHGPRIPIZEJP6FHPGBG7DYLDMHTYSF6ZF4XSMOFAYHGCOQX5JHS
-#\\\|JFXIYN4CBOTY5MBCU45PA6EBANGDQYIKN4LB4EAJY6GBGBMWWMD \ / AMOS7 \ YOURUM ::
-#\[7]YIBU6KBOZWAPSSEJQBDTFHM52N6JQAJGL52NSECMYJCPL2XGPGBA 7  DATA SIGNATURE ::
+## bound the sticky cancel tables on the peer sessions [ todo 7N3 ] : flags ##
+## set above are dropped when the stream for a cmd_id provably ends         ##
+## [ close frame, new open, session close ] ; evict entries with neither    ##
+## route nor stream state left once a table passes its limit                ##
+for my $peer_sid ( keys %sweep_sid ) {
+    next if not exists $data{'session'}{$peer_sid};
+    my $sc_href = $data{'session'}{$peer_sid}{'stream_cancelled'} // {};
+    next if keys %{$sc_href} <= ( <limit.stream_cancelled> // 1024 );
+    my $sc_r = $data{'session'}{$peer_sid}{'route'}   // {};
+    my $sc_s = $data{'session'}{$peer_sid}{'streams'} // {};
+    for my $sc_cid ( keys %{$sc_href} ) {
+        next if exists $sc_r->{$sc_cid} or exists $sc_s->{$sc_cid};
+        delete $sc_href->{$sc_cid};
+    }
+}
+
+#,,..,,,,,..,,.,.,,,.,.,.,,..,..,,,.,,,,,,,,.,..,,...,...,...,..,,.,,,,,.,,,.,
+#GJNAR7KQDG2ULI5O6W5WA7DOFQUFKDGJAXXHQBXLWHXVAXV5GKXCAJDQJ3Z7YRICICN737BWEM3NE
+#\\\|2FWNC73FJ2BWSDQDVE6Q5R3E75WTDIN2UNPRPSJI7DJH6TNW4TD \ / AMOS7 \ YOURUM ::
+#\[7]JAIZ3XWARPH7IMESY23G24DYT2RVMQQKQW32LGPI26XQLTN7EEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

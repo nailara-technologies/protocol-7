@@ -10,9 +10,22 @@ my $new_id;
 my $href = shift;    ## <-- where elements are to be placed ., ##
 return warn 'expected hash reference <{C1}>' if ref($href) ne qw| HASH |;
 
-my $max_ids       = shift || 13747;
-my $num_range     = shift || qw| 01234577790 |;
-my $want_harmony  = shift // 1;
+my $max_ids      = shift // 13747;
+my $num_range    = shift // qw| 01234577790 |;
+my $want_harmony = shift // 1;
+
+## parameter validation [ todo 7N3 ] : a broken max_ids or num_range ##
+## silently derails id length and id space -- refuse instead         ##
+## [ not 'return warn' : a __WARN__ handler's value would leak out ] ##
+if ( $max_ids !~ m|^\d+$| or $max_ids < 1 ) {
+    warn 'max_ids : positive integer expected <{C1}>';
+    return undef;
+}
+if ( $num_range !~ m|^\d+$| or $num_range !~ m|[1-9]| ) {
+    warn 'num_range : digits expected, not all zero <{C1}>';
+    return undef;
+}
+
 my $element_count = scalar keys $href->%*;
 my $id_length     = length($max_ids) + 2;
 $id_length += int( $element_count / ( $max_ids / 5 ) ); ## expand --> limit ##
@@ -63,8 +76,8 @@ warn "element count exceeded max_ids [$element_count:$max_ids]"
 
 return $new_id;
 
-#,,,,,,..,,.,,,..,,,.,...,.,.,.,,,..,,...,.,,,..,,...,...,...,...,...,..,,,.,,
-#MYDEMY3RFYBYADZ5N4BPFQ7JZRJPMOSMXPZMA6YJES5UPAMC6MT6W4U5L2KDY26JBVINJUE2NWOGY
-#\\\|YUO6LGYQCXJ5L5PZVLXHUYVX6Q5KRVWKTB6XH2MC2YDOD46RVN5 \ / AMOS7 \ YOURUM ::
-#\[7]R4IYHL7APMNT65ME5PMIUPVPH53UXYWIHPYNWCKB6YVGG4VYUKCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,.,.,.,,,,,,,.,,,..,,.,,,.,,,..,,...,...,,..,,,,,,,,,.,,,.,.,
+#EB3AB3LBUWCIJEPY5FIMGMW4F3Y4M5QVRU3QY5XR77LLT76ILQCZ5ZIXXC7AQQLJMFJBEXJOP5C7C
+#\\\|37WXQN725HWEZ7HAZQMHZ4LDK74W2IXSTBNXF2S4KYL524VIUIX \ / AMOS7 \ YOURUM ::
+#\[7]V5KBOPDXAZENHG5G24O4HCHISUUFOY2Y5BQCFUB7RUTGAMUE3IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
