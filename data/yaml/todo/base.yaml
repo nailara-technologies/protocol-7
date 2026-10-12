@@ -1122,9 +1122,39 @@ items:
   - security
   - servers
   text: drop root ssh access for the desktop key once zenki manage host steps natively
+- added: 3X4NBYNBM4
+  details: "FOUND 2026-10-12 on atom [ version 9883, cube up since 2026-10-09 10:44 ; devmod loaded into cube via kill -53, 'p7c dump session.9401704' ]. session 9401704 = v7-zenki : 21107 entries in session.9401704.route.* , 21090 of them also in stream_cancelled [ 22525 stream_cancelled in total, ~1 per 10 s ; forensics restarted 1525 times since cube start -- likely each run subscribes to a v7-zenki stream and dies ]. base.gen_id grows ids past max_ids 13747 [ id_length += count \\ ( max_ids \\ 5 ) ] : first 'exceeded max_ids' Sat 2026-10-10 20:25, ids reached 16-20 digits, base.handler.command:151 rejects them as command ids -> every command routed to v7-zenki unanswered [ p7c v7-zenki.* hangs ; cube-local commands still work ; the negative id in the log is a 20 digit id printed with %d ]. CAUSE : base.handler.command.process_reply ~436 'source gone : notify producer to stop' sends !TRM! and sets stream_cancelled but frees neither the producer session's route entry nor $data{route}{route_id} [ base.session.cancel_route does both ] ; stream_cancelled flags are never removed. FIX : free both there [ or reuse cancel_route ], drop stream_cancelled when the producer acknowledges \\ the stream ends ; base.gen_id : validate max_ids \\ num_range, and callers on the routing path must handle undef ; why forensics restarts every few minutes on atom [ memory pressure, 964 MB ] is a second item. remedy until fixed : restart the backend [ systemctl restart Protocol-7 ]."
+  done_at: null
+  id: 7N3
+  priority: high
+  status: open
+  tags:
+  - cube
+  - bug
+  text: 'cube : cancelled streams leak routes ; full id table blocks v7-zenki'
+- added: 3X4NFMPZNI
+  details: "start profiles stay generic ; a host's own choices [ e.g. atom : no nameserv \\ web \\ system ] go into /etc/protocol-7/v7-zenki/host.cfg as additions \\ removals on top of the selected profile [ incl. an automatic -lowram one ], so no host needs a profile edit in its local-modifications commit. found 2026-10-12 : the auto -lowram profile overrode atom's local edit of start-set-up.remote-server."
+  done_at: null
+  id: DYK
+  priority: normal
+  status: open
+  tags:
+  - v7-zenka
+  - host
+  text: 'v7-zenki : per-host zenki.enabled \ disabled in host.cfg'
+- added: 3X4NRFENDU
+  details: 'the steps a new server gets by hand today [ 2026-10-12, yourum ] : git + clone to /usr/local/protocol-7, netselect-apt for the fastest mirror, switch to unstable [ sid ], bin/dependencies/debian_dist_upgrade.sh, install_minimal_dependencies.debian.sh, bin/p7-deps for the rest, the systemd unit. as debian zenka capabilities, each a command with a check mode : mirror select [ netselect-apt, result kept in host config ], suite switch [ deb822 aware : debian 13 keeps /etc/apt/sources.list.d/debian.sources, netselect-apt writes a classic sources.list -- one of them must be moved aside ], dist-upgrade, dependency profiles [ p7-deps ]. plus the sshd baseline every server got by hand : keys only, ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ]. goal : a reinstalled host comes back to its definition without a manual step [ 4EO, LGC ].'
+  done_at: null
+  id: WW5
+  priority: normal
+  status: open
+  tags:
+  - debian
+  - host
+  text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade, dependencies ]'
 
-#,,.,,,..,.,,,...,.,.,,.,,,,.,,..,,.,,..,,...,..,,...,...,..,,.,.,,,.,.,,,.,.,
-#UMOITUPNKS56SALP6OYB5KP6MOQSUMFKU6UDGPVBTL5CYDIBURH2W4QDTWHAPBR4Q6PKRZDM7GIJW
-#\\\|HBURKTZPC4LSJGRVQZGPNWPYEWGTDASC6VRGE6WFO4ZH5XP4UM4 \ / AMOS7 \ YOURUM ::
-#\[7]DA6KUNZVIUJYZ56GKFBZQVD364MY3MVIOW7UXYDPTCI7GVV6GAAY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,..,,.,,,,.,,...,.,.,.,,,,.,,..,,...,...,,,.,.,,,...,,,,,...,
+#N42WYGHEXQZJ35NBGL3GDRENL7FQ4NJIRALMCT4YRZWAVEBUZ5QIZ5YJELSIUD7QBIQV7ED4TN5SQ
+#\\\|FTR3LQIV7NHMYXKQCITUQ6AOXGEG62UZYLRMUHHLGMZX3RGQYB2 \ / AMOS7 \ YOURUM ::
+#\[7]TSWQJTPNYO72UTSF22BEMJLZ2BSO27ARD2JCO3IDOSNO5UHQLODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
