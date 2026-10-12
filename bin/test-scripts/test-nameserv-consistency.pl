@@ -43,15 +43,27 @@ my $zone_records = [
     {   'name'  => 'acme.v7.ax',
         'type'  => qw| NS |,
         'value' => 'dn1110.protocol-7.network'
+    },
+    {   'name' => 'acme.v7.ax',
+        'type' => qw| SOA |,
+
+        ## the third rdata field is the serial the dns answers echo back ; ##
+        ## the zone hash's serial field is a bumped timestamp and must NOT ##
+        ## be the expectation [ live false positive ]                      ##
+        'value' => 'ns1.acme.v7.ax admin.acme.v7.ax '
+            . '100 7200 3600 1209600 3900'
     }
 ];
 
 $data{'nameserv'}{'zones'} = {
     'acme.v7.ax' => {
         'records' => $zone_records,
-        'serial'  => 100,
+        'serial'  => 777,
         'ttl'     => 3900
     },
+
+    ## no SOA record : the answering servers compare with each other, the ##
+    ## majority serial is the expectation                                 ##
     'test.v7.ax' => { 'records' => [], 'serial' => 200, 'ttl' => 3900 },
 };
 
@@ -219,6 +231,8 @@ for my $mod (
     nameserv.consistency.handler.timeout
     nameserv.consistency.complete
     nameserv.consistency.evaluate-dn
+    nameserv.consistency.zone-serial
+    nameserv.consistency.soa-check
     nameserv.consistency.finish
     nameserv.cmd.consistency
     |
@@ -240,7 +254,20 @@ my $rev_v6 = $code{'nameserv.consistency.reverse-name'}->($real_v6);
     "A $dn" => FakePacket->new(
         FakeRR->new( 'type' => qw| A |, 'value' => '198.51.100.3' )
     ),
-    "AAAA $dn"              => FakePacket->new(),
+    "AAAA $dn" => FakePacket->new(
+
+        ## uncompressed text of the real address                         ##
+        ## [ binary-equal, no finding ] beside a stale value that prints ##
+        ## compressed                                                    ##
+        FakeRR->new(
+            'type'  => qw| AAAA |,
+            'value' => '2001:0db8:0000:0000:0000:0000:0000:90c6'
+        ),
+        FakeRR->new(
+            'type'  => qw| AAAA |,
+            'value' => '2001:0db8:0000:0000:0000:0000:0000:0005'
+        )
+    ),
     "NS protocol-7.network" => FakePacket->new(
         FakeRR->new(
             'type'  => qw| NS |,
@@ -262,7 +289,9 @@ my $rev_v6 = $code{'nameserv.consistency.reverse-name'}->($real_v6);
         ),
         FakeRR->new( 'type' => qw| NS |, 'value' => "$peer." )
     ),
-    "A $peer"           => FakePacket->new(),
+    "A $peer" => FakePacket->new(
+        FakeRR->new( 'type' => qw| A |, 'value' => '192.0.2.77' )
+    ),
     "AAAA $peer"        => FakePacket->new(),
     "A ns2.example.org" => FakePacket->new(
         FakeRR->new( 'type' => qw| A |, 'value' => '192.0.2.53' )
@@ -273,6 +302,8 @@ my $rev_v6 = $code{'nameserv.consistency.reverse-name'}->($real_v6);
     "SOA acme.v7.ax \@192.0.2.53"   => qw| TIMEOUT |,
     "SOA test.v7.ax \@198.51.100.3" =>
         FakePacket->new( FakeRR->new( 'type' => qw| SOA |, 'value' => 150 ) ),
+    "SOA test.v7.ax \@192.0.2.77" =>
+        FakePacket->new( FakeRR->new( 'type' => qw| SOA |, 'value' => 999 ) ),
     "PTR $rev_v4" => FakePacket->new(
         FakeRR->new( 'type' => qw| PTR |, 'value' => 'mail.example.org.' )
     ),
@@ -373,39 +404,39 @@ check 'one io watcher and one 5 s timer per query',
 drain_run();
 
 check 'run finished',                            not $state->{'active'};
-check '18 queries asked after the run finished', scalar @dns_queries == 18;
+check '19 queries asked after the run finished', scalar @dns_queries == 19;
 check 'ptr asked for both real addresses',
     ( scalar( grep {m|^PTR |} @dns_queries ) == 2 );
 
 my @want_findings = (
-    'add AAAA dn1110.protocol-7.network : 2001:db8::90c6',
     'add dn0110.protocol-7.network to the NS set of acme.v7.ax',
-    'add glue AAAA dn1110.protocol-7.network : 2001:db8::90c6 [ registrar ]',
-    'dn0110.protocol-7.network does not answer for test.v7.ax',
-    'dn1110.protocol-7.network serves '
-        . 'test.v7.ax with serial 150, expected 200',
+    'dn0110.protocol-7.network serves '
+        . 'test.v7.ax with serial 999, expected 150',
     'ns2.example.org does not answer for acme.v7.ax',
     'set ptr 203.0.113.7 -> dn1110.protocol-7.network [ hoster ]',
     'update A dn1110.protocol-7.network : 198.51.100.3 -> 203.0.113.7',
+    'update AAAA dn1110.protocol-7.network : 2001:db8::5 -> 2001:db8::90c6',
     'update glue dn1110.protocol-7.network : A '
         . '198.51.100.3 -> 203.0.113.7 [ registrar ]',
+    'update glue dn1110.protocol-7.network : AAAA '
+        . '2001:db8::5 -> 2001:db8::90c6 [ registrar ]',
 );
 
 my @findings = @{ last_findings() };
 check 'run 1 found every expected finding', (
-    scalar @findings == 9
+    scalar @findings == 8
         and scalar(
         grep {
             my $text = $ARG;
             grep { $text eq $ARG } @want_findings
         } @findings
-        ) == 9
+        ) == 8
 );
 
 my @logged = new_log_lines($log_offset);
 check 'every finding logged once at level 1',
-    (       scalar @logged == 9
-        and scalar( grep {m|^: consistency : |} @logged ) == 9
+    (       scalar @logged == 8
+        and scalar( grep {m|^: consistency : |} @logged ) == 8
         and scalar( grep {m|^: consistency : resolved|} @logged ) == 0 );
 
 ## --- run 2 : identical, nothing new is logged ------------------------- ##
@@ -416,7 +447,7 @@ $log_offset  = scalar @log_lines;
 $code{'nameserv.consistency.run'}->();
 drain_run();
 
-check 'run 2 found the same findings', scalar @{ last_findings() } == 9;
+check 'run 2 found the same findings', scalar @{ last_findings() } == 8;
 my @run2_logs = new_log_lines($log_offset);
 check 'run 2 logged nothing', scalar @run2_logs == 0;
 
@@ -444,14 +475,15 @@ drain_run();
 check 'changed finding logged, old one resolved', (
     scalar(
         grep {
-            $_ eq ': consistency : add AAAA '
-                . 'dn1110.protocol-7.network : 2001:db8::90c7'
+            $_ eq ': consistency : update AAAA dn1110.protocol-7.network '
+                . ': 2001:db8::5 -> 2001:db8::90c7'
         } @logged
         )
         and scalar(
         grep {
-            $_ eq ': consistency : resolved : add AAAA '
-                . 'dn1110.protocol-7.network : 2001:db8::90c6'
+                  $_ eq ': consistency : resolved : update AAAA '
+                . 'dn1110.protocol-7.network : 2001:db8::5 -> '
+                . '2001:db8::90c6'
         } @logged
         )
         and scalar( grep {m|^: consistency : (?!resolved)|} @logged ) == 2
@@ -510,6 +542,33 @@ check 'command shows the last run with its findings',
         and $result->{'data'} =~ m|: consistency : update A |
         and $result->{'data'} =~ m|update glue | );
 
+## --- a ptr whose first label is the short host name is right ---------- ##
+## [ 'pri' answers as 'pri.v7.ax' : hostname -f fails there ]             ##
+
+$canned{"PTR $rev_v4"} = FakePacket->new(
+    FakeRR->new(
+        'type'  => qw| PTR |,
+        'value' => 'testhost.dyn.example.'
+    )
+);
+
+$log_offset = scalar @log_lines;
+
+$code{'nameserv.consistency.run'}->();
+drain_run();
+
+@logged = new_log_lines($log_offset);
+check 'short host name ptr accepted [ no new finding, old resolved ]', (
+    scalar( grep {m|^: consistency : (?!resolved)|} @logged ) == 0
+        and scalar(
+        grep {
+            $_ eq ': consistency : resolved : set ptr 203.0.113.7 '
+                . '-> dn1110.protocol-7.network [ hoster ]'
+        } @logged
+        )
+        and scalar( grep {m|set ptr|} @{ last_findings() } ) == 0
+);
+
 ## --- no dn names : checks 1, 2 and 4 skip with one line --------------- ##
 
 $data{'nameserv'}{'cfg'}{'dn_names'} = '';
@@ -522,9 +581,9 @@ drain_run();
 
 @logged = new_log_lines($log_offset);
 check 'no dn_names logs exactly one new line [ the skip line ]',
-    (       scalar @logged == 6
+    (       scalar @logged == 5
         and scalar( grep {m|^: consistency : (?!resolved)|} @logged ) == 1
-        and scalar( grep {m|^: consistency : resolved|} @logged ) == 5
+        and scalar( grep {m|^: consistency : resolved|} @logged ) == 4
         and $logged[0] eq ': consistency : dn_names not configured : '
         . 'skipping own record, glue and ptr checks' );
 check 'checks 2 and 4 sent no queries',
@@ -544,8 +603,8 @@ drain_run();
 
 @logged = new_log_lines($log_offset);
 check 'no peers skips check 3 : its findings resolve, the skip line too',
-    (       scalar( grep {m|^: consistency : (?!resolved)|} @logged ) == 5
-        and scalar( grep {m|^: consistency : resolved|} @logged ) == 5
+    (       scalar( grep {m|^: consistency : (?!resolved)|} @logged ) == 4
+        and scalar( grep {m|^: consistency : resolved|} @logged ) == 4
         and scalar( grep {m|NS set of|} @{ last_findings() } ) == 0
         and scalar( grep {m|dn_names not configured|} @{ last_findings() } )
         == 0 );
@@ -557,15 +616,15 @@ $data{'nameserv'}{'cfg'}{'dn_peers_names'} = 'dn0110.protocol-7.network';
 my $zones = $data{'nameserv'}{'zones'};
 check 'zones untouched [ same refs, same serials ]',
     (       $zones->{'acme.v7.ax'}->{'records'} == $zone_records
-        and $zones->{'acme.v7.ax'}->{'serial'} == 100
+        and $zones->{'acme.v7.ax'}->{'serial'} == 777
         and $zones->{'test.v7.ax'}->{'serial'} == 200 );
 
 say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,...,,,.,,,.,,,.,,..,,,.,,,.,.,.,.,.,..,,..,,...,..,,.,.,,..,,.,,,.,,.,,,
-#JNBAN4ORXQXNAR6UYTE3AIUA7NTBDSYUYRTLXVASCHP54DV5SFBSD6J225Y4NW6U3EABRTSPYFVGO
-#\\\|3WE5CY7DKM4RUK4UGB4R6HAGMT4UKLQSW6IWUPITDSWO7RMBRUF \ / AMOS7 \ YOURUM ::
-#\[7]RHDMAGZQR7JKLXY7XDO7PC73KYXFQV45FBLSU5NOGMEMCY6VLCBA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,,,,.,,,.,.,,,.,,,,,,..,...,..,,...,...,.,.,,,,,.,.,,..,..,,
+#ELGXTCMQDDRNZTJQW7PH5TYVMIMF5FKH4WFJGL4JOLLESXBKNCQP5OT65HBPTCLQVHZSSV7TWMDH6
+#\\\|PDQ3ABETSNTESVP6FIQ2R2PVGC2TIFWBL64NNYHFEVKL2BKNJTV \ / AMOS7 \ YOURUM ::
+#\[7]2FAJPQSJUEW73DBHPHLDB5GB5XW6VCO2XPCUDZ53MPSPDLSGREDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

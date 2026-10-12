@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = nameserv.consistency.complete
-# descr = process one finished query, finish the run when none left
+# descr = process one finished query, finish when none left
 
 ## the run ends when every query is answered or timed out ; follow-up queries
 ## [ resolve an ns, then ask it for the soa ] are dispatched from here.
@@ -49,6 +49,8 @@ if ( $kind eq qw| a | or $kind eq qw| aaaa | ) {
         }
         $state->{'ns'}->{$zone}
             = { map { $ARG => { 'a' => undef, 'aaaa' => undef } } @ns };
+        $state->{'soa'}->{$zone}
+            = { 'pending' => scalar @ns, 'answers' => {} };
         for my $ns (@ns) {
             for my $family (qw| a aaaa |) {
                 <[nameserv.consistency.query]>->(
@@ -78,6 +80,9 @@ if ( $kind eq qw| a | or $kind eq qw| aaaa | ) {
             sprintf '%s does not answer for %s',
             $q->{'ns'}, $q->{'zone'}
         } = TRUE;
+        my $soa_state = $state->{'soa'}->{ $q->{'zone'} } // return TRUE;
+        $soa_state->{'pending'}--;
+        <[nameserv.consistency.soa-check]>->( $state, $q->{'zone'} );
     } else {
         <[nameserv.consistency.query]>->(
             $state,
@@ -92,25 +97,30 @@ if ( $kind eq qw| a | or $kind eq qw| aaaa | ) {
     }
 
 } elsif ( $kind eq qw| zone-soa | ) {
+    my $soa_state = $state->{'soa'}->{ $q->{'zone'} } // return TRUE;
     if ( $timed_out or not @$values ) {
         $state->{'findings'}->{
             sprintf '%s does not answer for %s',
             $q->{'ns'}, $q->{'zone'}
         } = TRUE;
     } else {
-        my $expected = <nameserv.zones>->{ $q->{'zone'} }->{'serial'} // '';
-        if ( "$values->[0]" ne "$expected" ) {
-            $state->{'findings'}->{
-                sprintf '%s serves %s with serial %s, expected %s',
-                $q->{'ns'}, $q->{'zone'}, $values->[0], $expected
-            } = TRUE;
-        }
+        $soa_state->{'answers'}->{ $q->{'ns'} } = $values->[0];
     }
+    $soa_state->{'pending'}--;
+    <[nameserv.consistency.soa-check]>->( $state, $q->{'zone'} );
 
 } elsif ( $kind eq qw| ptr | ) {
     my %expected = map { $ARG => TRUE } @{ $state->{'ptr_expected'} // [] };
     my @names    = map { lc $ARG } map {s|\.+$||r} @$values;
-    if ( not grep { $expected{$ARG} } @names ) {
+    my $short    = $state->{'ptr_short_host'} // '';
+
+    ## accepted : a dn name, the host name, or any name whose first label ##
+    ## equals the short host name [ 'pri' -> 'pri.v7.ax' ]                ##
+    my $known = grep { $expected{$ARG} } @names;
+    $known
+        ||= grep { length $short and ( split m|[.]|, $ARG, 2 )[0] eq $short }
+        @names;
+    if ( not $known ) {
         $state->{'findings'}->{
             sprintf 'set ptr %s -> %s [ hoster ]',
             $q->{'addr'},
@@ -124,8 +134,8 @@ if ( $kind eq qw| a | or $kind eq qw| aaaa | ) {
 
 return TRUE;
 
-#,,..,.,,,,,,,,..,..,,..,,,.,,...,...,.,.,,,,,..,,...,...,...,.,,,.,,,...,,,.,
-#IVQUNTPUQNWVSX6D3DRB6Y4OUJ6L7ODAR65P2V7EHL6YALJ4WIW5KS6XL3NBB4XH3O6BTGSUP23GM
-#\\\|VLO32Q5A5KXPQOE23T7JUDEK6H4AZTSRTAY6NQUFZFGUKRMZ4TV \ / AMOS7 \ YOURUM ::
-#\[7]WCBRRJATJEQ6RHHUVUWZK6C4QFQ73RH3427I6AMZFSL3ZMKHO4DA 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,.,,.,,,.,,,..,,,,,,.,,,.,,,,.,..,,...,...,.,,,,..,.,.,,,.,..,,
+#IHCXSIXG66VB3BWVUNZAZFKLLZ3LJIT3QRXTUNRWM47APJWDXYNHNRATKC2OUL7NRXBEP3F2NT6BM
+#\\\|TLOD4PUIZUA63OQIOELOCI4UGEQZDBSTEEDEVE74ZMQUPZGTCID \ / AMOS7 \ YOURUM ::
+#\[7]42PUBMRGMR3PWOPF4ZL2TPLOEP4G7BABY234FGT2UQM7D6ORBEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
