@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use English;
 use utf8;
-use Fcntl qw(F_SETFL O_NONBLOCK);
 
 ###         ###
 ##   todo    ##
@@ -27,9 +26,10 @@ BEGIN {
 }
 
 use AMOS7::TERM qw| frame_border_line |;
+use AMOS7::TERM::Editor qw| edit_text |;
 use AMOS7::CHKSUM;
 use AMOS7::Assert::Truth;
-use Time::Local qw| timelocal_posix |;
+use Time::Local qw| timelocal |;    ## timelocal_posix needs 1.30, floor perl 5.32 has 1.28 ##
 use Time::HiRes ();
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 
@@ -505,16 +505,6 @@ sub list_options {
 
 ##[ commands ]################################################################
 
-sub require_readkey {
-    return if defined $Term::ReadKey::VERSION;
-    eval { require Term::ReadKey; 1 }
-        or die "todo: Term::ReadKey is required "
-        . "for interactive details editor\n";
-    eval { require Time::HiRes; Time::HiRes->import(qw| time sleep |); 1 }
-        or die "todo: Time::HiRes is required "
-        . "for interactive details editor\n";
-}
-
 sub resolve_item {
     my ( $id_str, $items ) = @_;
     return undef unless defined $id_str and length $id_str;
@@ -541,7 +531,8 @@ sub iso_to_epoch {
         unless defined $ts
         and $ts =~ m|^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$|;
     my ( $y, $mon, $d, $h, $min, $s ) = ( $1, $2, $3, $4, $5, $6 );
-    return eval { timelocal_posix( $s, $min, $h, $d, $mon - 1, $y - 1900 ) };
+    ## 4-digit year : unambiguous in the old api ##
+    return eval { timelocal( $s, $min, $h, $d, $mon - 1, $y ) };
 }
 
 sub format_relative_time {
@@ -855,472 +846,6 @@ sub cmd_edit {
     die "item $id_str not found\n";
 }
 
-sub detail_editor_draw_line {
-    my ( $text, $width, $is_cursor, $cur_col ) = @_;
-    $text //= '';
-
-    my $vw = $width - 4;    ## room for ':  ' ... '  :' ##
-    $vw = 4 if $vw < 4;
-
-    my $display;
-    if ( length($text) <= $vw ) {
-        $display = $text;
-    } elsif ( $cur_col < $vw - 1 ) {
-        $display = substr( $text, 0, $vw - 1 ) . '<';
-    } else {
-        my $start = $cur_col - $vw + 3;
-        $display = '<' . substr( $text, $start, $vw - 2 );
-        if ( $start + $vw - 2 < length($text) ) {
-            substr( $display, -1, 1, '>' );
-        }
-    }
-
-    $display .= ' ' x ( $vw - length($display) ) if length($display) < $vw;
-    $display = substr( $display, 0, $vw );
-
-    # Cursor line ':' markers use bold TRUE blue for highlighting; other
-    # lines keep the purple frame color.
-    my $border_color = $is_cursor ? $C{T} . $C{B} : $C{0};
-    return
-          $border_color . ':'
-        . $C{T}
-        . $C{B} . '  '
-        . $display . '  '
-        . $border_color . ':'
-        . $C{R};
-}
-
-sub editor_leave_line {
-    my ( $lines_ref, $line_idx ) = @_;
-    return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
-    my $old = $lines_ref->[$line_idx];
-    $lines_ref->[$line_idx] =~ s| +$||;
-    return $old ne $lines_ref->[$line_idx];
-}
-
-sub editor_pad_line_to_col {
-    my ( $lines_ref, $line_idx, $col ) = @_;
-    return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
-    my $len = length( $lines_ref->[$line_idx] );
-    return 0 if $col <= $len;
-    $lines_ref->[$line_idx] .= ' ' x ( $col - $len );
-    return 1;
-}
-
-sub editor_normalize_details {
-    my @lines = @_;
-    s| +$|| for @lines;
-    pop @lines while @lines and $lines[-1] eq '';
-    return @lines;
-}
-
-sub read_editor_key {
-    my ($aborted_ref) = @_;
-
-    ## read one byte; sysread() is interrupted by signals, so SIGWINCH and ##
-    ## SIGINT return control to the caller.                                ##
-    my $buf;
-    my $n = sysread( STDIN, $buf, 1 );
-    return undef if !defined $n or $n == 0;
-
-    ## plain key or control char ##
-    return $buf if $buf ne "\e";
-
-    ## ESC : collect the rest of the escape sequence with a short timeout ##
-    my $seq      = $buf;
-    my $deadline = Time::HiRes::time() + 0.1;
-    while ( Time::HiRes::time() < $deadline and !$$aborted_ref ) {
-        my $r = '';
-        vec( $r, fileno(STDIN), 1 ) = 1;
-        my $timeout = $deadline - Time::HiRes::time();
-        $timeout = 0.001 if $timeout < 0.001;
-        my $ready = select( $r, undef, undef, $timeout );
-        next if !defined $ready or $ready <= 0;
-
-        my $b;
-        my $m = sysread( STDIN, $b, 1 );
-        next if !defined $m or $m == 0;
-
-        $seq .= $b;
-        last if $b =~ m{[A-Za-z~]};
-    }
-    return $seq;
-}
-
-sub edit_details_interactive {
-    my ($item) = @_;
-
-    require_readkey();
-
-    my @lines = split m|\n|, $item->{details} // '', -1;
-    @lines = ('') if !@lines;
-
-    my ( $cur_line, $cur_col ) = ( 0, 0 );
-    my $first_visible = 0;
-    my $dirty         = 0;
-    my $aborted       = 0;
-    my $resized       = 0;
-
-    ## self-pipe : signal handlers write a byte here so select() wakes up, ##
-    ## giving us event-driven resize/abort handling instead of polling.    ##
-    pipe( my $sig_r, my $sig_w );
-    $sig_w->autoflush(1);
-    fcntl( $sig_w, F_SETFL, O_NONBLOCK )
-        or die "todo: fcntl sig_w: $!";
-    fcntl( $sig_r, F_SETFL, O_NONBLOCK )
-        or die "todo: fcntl sig_r: $!";
-
-    local $SIG{'INT'}
-        = sub { $aborted = 1; syswrite( $sig_w, 'i', 1 ); };
-    local $SIG{'WINCH'}
-        = sub { $resized = 1; syswrite( $sig_w, 'w', 1 ); };
-
-    ## raw mode : ctrl-c is read as the byte \x03, not delivered as SIGINT ##
-    Term::ReadKey::ReadMode(4);
-
-    ## use a steady underscore cursor while editing ##
-    print "\e[4 q";
-
-    ## make sure the drawn frame is visible before blocking for input ##
-    my $old_autoflush = $|;
-    STDOUT->autoflush(1);
-
-    my $last_status = '';
-
-    while ( !$aborted ) {
-        $resized = 0;    ## resize consumed (or no resize) this redraw ##
-
-        ## terminal size may change while editing ##
-        my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
-        $cols //= 80;
-        $rows //= 24;
-        $cols = 40 if $cols < 40;
-        $rows = 10 if $rows < 10;
-
-        ## top border / summary / separator / top padding ##
-        my $header_rows = 4;
-        ## bottom padding / separator / help / bottom border ##
-        my $footer_rows  = 4;
-        my $content_rows = $rows - $header_rows - $footer_rows;
-        $content_rows = 1 if $content_rows < 1;
-
-        my $inner_width = $cols - 2;
-        $inner_width = 20 if $inner_width < 20;
-
-        ## keep cursor inside buffer ##
-        $cur_line = 0       if $cur_line < 0;
-        $cur_line = $#lines if $cur_line > $#lines;
-        $cur_col  = 0       if $cur_col < 0;
-
-        ## free-cursor : current line grows with spaces when cursor is past ##
-        ## its end; trailing spaces are stripped when leaving the line      ##
-        if ( $cur_col > length( $lines[$cur_line] ) ) {
-            $lines[$cur_line]
-                .= ' ' x ( $cur_col - length( $lines[$cur_line] ) );
-            $dirty = 1;
-        }
-
-        ## vertical scroll ##
-        if ( $cur_line < $first_visible ) {
-            $first_visible = $cur_line;
-        } elsif ( $cur_line >= $first_visible + $content_rows ) {
-            $first_visible = $cur_line - $content_rows + 1;
-        }
-
-        ## draw frame : hide cursor during redraw to stop it flickering at ##
-        ## 1,1                                                             ##
-        print "\e[?25l\e[H\e[2J";    ## hide cursor, clear screen ##
-
-        ## top border : .::[ .:. title .:. ]:::::::::::::::::::::::. ##
-        say AMOS7::TERM::frame_border_line(
-            {   width    => $cols,
-                reset    => $C{R},
-                elements => [
-                    { type => 'anchor', value => '.:[ ', color => $C{0} },
-                    {   type  => 'anchor',
-                        value => '.:. ' . $item->{id} . ' .:.',
-                        color => $C{T} . $C{B},
-                    },
-                    { type => 'anchor', value => ' ]', color => $C{0} },
-                    { type => 'fill', char => ':', min => 1, color => $C{0} },
-                    { type => 'anchor', value => ':.', color => $C{0} },
-                ],
-            }
-        );
-
-        ## summary line [ left-aligned, 3-space left pad, 1-space right ##
-        ## pad, :: delimiter ]                                          ##
-        my $summary     = $item->{text} // '';
-        my $max_summary = $inner_width - 4;      ## <-- was '2'  ##
-        if ( length($summary) > $max_summary ) {
-            $summary = substr( $summary, 0, $max_summary - 3 ) . ' .,';
-        }
-        my $sum_pad  = ' ' x ( $inner_width - length($summary) - 3 );
-        my $sum_line = $sum_pad . $summary . ' ';
-        say $C{0} . ': ' . $C{T} . $C{B} . $sum_line . $C{0} . '::' . $C{R};
-
-        ## separator [ :. todo details: .: ] ##
-        say AMOS7::TERM::frame_border_line(
-            {   width    => $cols,
-                reset    => $C{R},
-                elements => [
-                    { type => 'anchor', value => ':.', color => $C{0} },
-                    {   type  => 'anchor',
-                        value => ' todo details: ',
-                        color => $C{T}
-                    },
-                    { type => 'anchor', value => '.::', color => $C{0} },
-                    { type => 'fill', char => ':', min => 1, color => $C{0} },
-                    { type => 'anchor', value => ':', color => $C{0} },
-                ],
-            }
-        );
-
-        ## top padding ##
-        say detail_editor_draw_line( '', $inner_width, 0, 0 );
-
-        ## content area ##
-        for my $i ( 0 .. $content_rows - 1 ) {
-            my $line_idx  = $first_visible + $i;
-            my $line_text = ( $line_idx <= $#lines ) ? $lines[$line_idx] : '';
-            my $is_cursor = ( $line_idx == $cur_line );
-            say detail_editor_draw_line( $line_text, $inner_width,
-                $is_cursor, $cur_col );
-        }
-
-        ## bottom padding ##
-        say detail_editor_draw_line( '', $inner_width, 0, 0 );
-
-        ## footer separator ##
-        say AMOS7::TERM::frame_border_line(
-            {   width    => $cols,
-                reset    => $C{R},
-                elements => [
-                    { type => 'anchor', value => '::.',    color => $C{0} },
-                    { type => 'anchor', value => ' keys ', color => $C{T} },
-                    { type => 'anchor', value => '.::',    color => $C{0} },
-                    { type => 'fill', char => ':', min => 1, color => $C{0} },
-                    { type => 'anchor', value => '::', color => $C{0} },
-                ],
-            }
-        );
-
-        ## help line [ left-aligned, 1-space left pad, :: delimiter ] ##
-        my $help_text
-            = ' · ctrl-x save+quit · ctrl-c abort · ctrl-o save · ctrl-w '
-            . 'del-word · ctrl-l del-line · arrows · enter · del ·';
-        ## show status (e.g. 'saved') on the LEFT so it survives narrow ##
-        ## terminals; truncation keeps the leftmost part                ##
-        $help_text = "· $last_status · $help_text" if length $last_status;
-        $help_text = substr( $help_text, 0, $inner_width - 2 );
-        my $help_pad = ' ' x ( $inner_width - length($help_text) - 1 );
-        my $help     = $help_pad . $help_text . '';
-        say $C{0} . ':' . $C{dim} . $C{3} . $help . $C{0} . '::' . $C{R};
-
-        ## bottom border [ no trailing newline to avoid scrolling ] ##
-        print AMOS7::TERM::frame_border_line(
-            {   width    => $cols,
-                reset    => $C{R},
-                elements => [
-                    { type => 'anchor', value => ':', color => $C{0} },
-                    { type => 'fill', char => ':', min => 1, color => $C{0} },
-                    { type => 'anchor', value => ':', color => $C{0} },
-                ],
-            }
-        );
-
-        ## position hardware cursor on the cursor line ##
-        my $cursor_row = $header_rows + ( $cur_line - $first_visible ) + 1;
-        my $vw         = $inner_width - 6;
-        my $dcol;
-        if ( length( $lines[$cur_line] ) <= $vw ) {
-            $dcol = $cur_col;
-        } elsif ( $cur_col < $vw - 1 ) {
-            $dcol = $cur_col;
-        } else {
-            $dcol = $vw - 2;
-        }
-        my $cursor_col = 4 + $dcol;    ## ':  ' puts text at visible col 4 ##
-        $cursor_col = $cols - 2 if $cursor_col > $cols - 2;
-        ## position and show cursor at the real edit point ##
-        print "\e[$cursor_row;${cursor_col}H\e[?25h";
-
-        ## wait for input or a signal, then read one key ##
-        my $key;
-        while ( !defined $key and !$aborted and !$resized ) {
-            my $rin = '';
-            vec( $rin, fileno(STDIN),  1 ) = 1;
-            vec( $rin, fileno($sig_r), 1 ) = 1;
-
-            my $n = select( my $rout = $rin, undef, undef, undef );
-            next if !defined $n or $n < 0;
-
-            if ( vec( $rout, fileno($sig_r), 1 ) ) {
-                my $sigbuf;
-                1 while sysread( $sig_r, $sigbuf, 256 );    ## drain ##
-            }
-            if ( vec( $rout, fileno(STDIN), 1 ) ) {
-                $key = read_editor_key( \$aborted );
-            }
-        }
-
-        if ( not defined $key ) {
-            last if $aborted;
-            next;    ## terminal resized : redraw with the new dimensions ##
-        }
-
-        $last_status = '';
-
-        ## control keys ##
-        if ( $key eq "\x03" ) {    ## Ctrl-C : abort ##
-            $aborted = 1;
-            last;
-        } elsif ( $key eq "\x0f" ) {    ## Ctrl-O ##
-            $dirty       = 0;
-            $last_status = 'saved';
-        } elsif ( $key eq "\x18" ) {    ## Ctrl-X ##
-            $dirty       = 0;
-            $last_status = 'saved';
-            last;
-        }
-
-        ## navigation [ free cursor: lines grow with spaces as needed ] ##
-        elsif ( $key eq "\e[A" ) {      ## up ##
-            if ( $cur_line > 0 ) {
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                $cur_line--;
-                $dirty = 1
-                    if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
-            }
-        } elsif ( $key eq "\e[B" ) {    ## down ##
-            if ( $cur_line < $#lines ) {
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                $cur_line++;
-                $dirty = 1
-                    if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
-            } else {
-                ## add a new line at EOF, padded to current column ##
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                push @lines, ' ' x $cur_col;
-                $cur_line++;
-                $dirty = 1;
-            }
-        } elsif ( $key eq "\e[C" ) {    ## right ##
-            $cur_col++;
-            if ( $cur_col > length( $lines[$cur_line] ) ) {
-                $lines[$cur_line]
-                    .= ' ' x ( $cur_col - length( $lines[$cur_line] ) );
-                $dirty = 1;
-            }
-        } elsif ( $key eq "\e[D" ) {    ## left ##
-            if ( $cur_col > 0 ) {
-                $cur_col--;
-            } elsif ( $cur_line > 0 ) {
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                $cur_line--;
-                $cur_col = length( $lines[$cur_line] );
-            }
-        } elsif ( $key eq "\e[H" or $key eq "\x01" ) {    ## home ##
-            $cur_col = 0;
-        } elsif ( $key eq "\e[F" or $key eq "\x05" ) {    ## end ##
-            $cur_col = length( $lines[$cur_line] );
-        }
-
-        ## editing ##
-        elsif ( $key eq "\n" or $key eq "\r" ) {          ## enter ##
-            my $rest = substr( $lines[$cur_line], $cur_col );
-            $lines[$cur_line] = substr( $lines[$cur_line], 0, $cur_col );
-            $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-            splice @lines, $cur_line + 1, 0, $rest;
-            $cur_line++;
-            $cur_col = 0;
-            $dirty   = 1;
-        } elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## backspace ##
-            if ( $cur_col > 0 ) {
-                substr( $lines[$cur_line], $cur_col - 1, 1, '' );
-                $cur_col--;
-                $dirty = 1;
-            } elsif ( $cur_line > 0 ) {
-                $dirty   = 1 if editor_leave_line( \@lines, $cur_line );
-                $cur_col = length( $lines[ $cur_line - 1 ] );
-                $lines[ $cur_line - 1 ] .= $lines[$cur_line];
-                splice @lines, $cur_line, 1;
-                $cur_line--;
-                $dirty = 1;
-            }
-        } elsif ( $key eq "\e[3~" ) {    ## delete ##
-            if ( $cur_col < length( $lines[$cur_line] ) ) {
-                substr( $lines[$cur_line], $cur_col, 1, '' );
-                $dirty = 1;
-            } elsif ( $cur_line < $#lines ) {
-                $lines[$cur_line] .= $lines[ $cur_line + 1 ];
-                splice @lines, $cur_line + 1, 1;
-                $dirty = 1;
-            }
-        } elsif ( $key eq "\x0c" ) {     ## Ctrl-L : delete line ##
-            splice @lines, $cur_line, 1;
-            @lines    = ('')    if !@lines;
-            $cur_line = $#lines if $cur_line > $#lines;
-            $cur_col  = 0;
-            $dirty    = 1;
-        } elsif ( $key eq "\x17" ) {     ## Ctrl-W : delete word backward ##
-            if ( $cur_col > 0 ) {
-                my $start = $cur_col;
-                ## skip trailing whitespace ##
-                while ( $start > 0
-                    and substr( $lines[$cur_line], $start - 1, 1 ) =~ m{\s} )
-                {
-                    $start--;
-                }
-                ## skip word characters ##
-                while ( $start > 0
-                    and substr( $lines[$cur_line], $start - 1, 1 ) !~ m{\s} )
-                {
-                    $start--;
-                }
-                if ( $start < $cur_col ) {
-                    substr( $lines[$cur_line], $start, $cur_col - $start,
-                        '' );
-                    $cur_col = $start;
-                    $dirty   = 1;
-                }
-            }
-        }
-
-        ## printable [ single byte, not control, not ESC ] ##
-        elsif ( length($key) == 1 and ord($key) >= 32 and $key ne "\e" ) {
-            substr( $lines[$cur_line], $cur_col, 0, $key );
-            $cur_col++;
-            $dirty = 1;
-        }
-    }
-
-    Term::ReadKey::ReadMode(0);
-    STDOUT->autoflush($old_autoflush);
-
-    my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
-    $rows //= 24;
-
-    if ($aborted) {
-        print "\e[?25l\e[H\e[2J\e[H\e[?25h";
-        STDOUT->flush();
-        print "\e[0 m";
-        return undef; ## abort: return undef so caller knows nothing was saved
-    }
-    if ($aborted) {
-        print "\e[?25l\e[H\e[2J\e[H\e[?25h";
-        STDOUT->flush();
-        print "\e[0 m";
-    }
-
-    ## leave cursor on a fresh line below the frame, always visible, shape ##
-    ## reset                                                               ##
-    print "\e[$rows;1H\e[?25h\e[0 q\n\e[0 m";
-
-    ## strip trailing spaces per line and trailing empty lines on save     ##
-    return join( "\n", editor_normalize_details(@lines) );
-}
-
 sub cmd_details {
     my $id_str = shift // die "\n  :: expected item id ::\n";
 
@@ -1345,7 +870,14 @@ sub cmd_details {
         die "interactive details editor requires a tty\n"
             if not $TTY;
 
-        $new_details = edit_details_interactive($item);
+        $new_details = edit_text(
+            {   text    => $item->{details},
+                title   => $item->{id},
+                summary => $item->{text},
+                label   => 'todo details',
+                colors  => \%C,
+            }
+        );
 
         ## interactive editor returns undef when aborted without saving ##
         return if not defined $new_details;
@@ -1561,8 +1093,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,,,,,,,,,,.,,,,.,.,,,,,.,.,,,,.,,.,,,,.,,..,,...,...,.,,,,,.,,,,,..,,,..,
-#HK7VNF226NT6H4OG3IOPSWLKJKK22WCG2ZF3XW67MRIOHC5XUQFMBMBI6H2EEJ6H2SP2GHNGSQGCM
-#\\\|U2KX7WWDZWSCRTTM7FVCCYMBSVG4THRQA7BG7MMFZJEUKADHLPS \ / AMOS7 \ YOURUM ::
-#\[7]A4BKN65Q6U6GTUAIBFS5MEF4DNRK7FISH2FIA6TCN7J6T4MWSGBQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,.,,,,,,...,.,.,.,,,.,,,...,..,,...,...,.,,,,,.,...,,,,,.,,,
+#F3OVMFJQ6LIGZP2WWI34ZY2ILASRVNUTNK2LQUMRS7ONCXK5N7YR6UYSJJUIODKBMMZAMM6OQAR7U
+#\\\|QJXXBUHGAV77TSATQ7CIA24PE2SIQPTLHPQ4Y5A75XDEBTMGOVD \ / AMOS7 \ YOURUM ::
+#\[7]OUBOCOEKOUDZOHUMVF723ZPSSR53ESMGNTK5YS6KDHHZPH5XNWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
