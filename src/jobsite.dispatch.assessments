@@ -31,8 +31,8 @@ for my $job_id ( keys %{$store} ) {
             $job_id, join( ', ', $chk->{'hits'}->@* )
         );
 
-        ## backfill checksums if missing [ original  assessment may predate ##
-        ## store ]                                                          ##
+        ## backfill checksums if missing              ##
+        ## [ original  assessment may predate store ] ##
         my $need_add   = 0;
         my $store_root = catdir( <system.path.zenka-dirs.var_P7>,
             <system.zenka.name>, 'checksum-store' );
@@ -101,20 +101,21 @@ for my $job_id ( keys %{$store} ) {
                 $job_id,
                 $quality->{'reason'}
             );
-            ## 'review' [ not a dedicated 'error' status, and stage left   ##
-            ## untouched ] : job.load_all's @active_statuses is a fixed    ##
-            ## list that does not include an 'error' bucket -- a job filed ##
-            ## there would vanish from the store [ and every downstream    ##
-            ## view ] entirely. 'review' is already in that list and is    ##
-            ## what jobsite.handler.repair-done routes its own terminal    ##
-            ## failures to. stage is deliberately NOT set to 'review' here ##
-            ## : that's the tab that's active by default, and seeding it   ##
-            ## with a score-less, reason-less card is exactly the kind of  ##
-            ## clutter this whole feature exists to prevent -- the         ##
-            ## desc_check_failed flag [ see plugin.web.jobs.sync's         ##
-            ## @pipeline_fields and the ui's 'fehler' tab filter, which    ##
-            ## bypasses stage entirely ] is what actually surfaces it,     ##
-            ## without touching the primary view                           ##
+            ## 'review'                                                     ##
+            ## [ not a dedicated 'error' status, and stage left untouched ] ##
+            ## : job.load_all's @active_statuses is a fixed list that does  ##
+            ## not include an 'error' bucket -- a job filed there would     ##
+            ## vanish from the store [ and every downstream view ]          ##
+            ## entirely. 'review' is already in that list and is what       ##
+            ## jobsite.handler.repair-done routes its own terminal failures ##
+            ## to. stage is deliberately NOT set to 'review' here : that's  ##
+            ## the tab that's active by default, and seeding it with a      ##
+            ## score-less, reason-less card is exactly the kind of clutter  ##
+            ## this whole feature exists to prevent -- the                  ##
+            ## desc_check_failed flag [ see plugin.web.jobs.sync's          ##
+            ## @pipeline_fields and the ui's 'fehler' tab filter, which     ##
+            ## bypasses stage entirely ] is what actually surfaces it,      ##
+            ## without touching the primary view                            ##
             my $failed_job = {
                 %{$job},
                 'desc_check_failed' => TRUE,
@@ -123,13 +124,14 @@ for my $job_id ( keys %{$store} ) {
             };
             <[jobsite.job.write]>->( $job_id, $failed_job );
 
-            ## also patch the persistent store, not just disk :           ##
-            ## job-upsert's preserve-on-reupsert whitelist reads          ##
-            ## $data{'jobs'}{'store'} [ set once at init, never refreshed ##
-            ## from a re-load ], NOT the fresh-from-disk $store local to  ##
-            ## this loop -- a write that only hits job.write leaves that  ##
-            ## global stale, so a future re-scrape of this same job would ##
-            ## silently lose the flag                                     ##
+            ## also patch the persistent store, not just disk :          ##
+            ## job-upsert's preserve-on-reupsert whitelist reads         ##
+            ## $data{'jobs'}{'store'}                                    ##
+            ## [ set once at init, never refreshed from a re-load ], NOT ##
+            ## the fresh-from-disk $store local to this loop -- a write  ##
+            ## that only hits job.write leaves that global stale, so a   ##
+            ## future re-scrape of this same job would silently lose the ##
+            ## flag                                                      ##
             <jobs.store>->{$job_id} = $failed_job
                 if ref <jobs.store> eq 'HASH';
             next;
@@ -162,7 +164,13 @@ for my $job_id ( keys %{$store} ) {
 }
 
 if ( not @to_assess ) {
-    if ($was_idle) {
+    if ( $was_idle and defined <jobsite.queue_poll_timer> ) {
+        ## site-yaml is still fetching this scan's job details : nothing to ##
+        ## assess YET -- not idle [ was logged as idle mid-drain ]          ##
+        <[base.logs]>->(
+            2, '[waiting] nothing to assess yet, site-yaml still fetching'
+        );
+    } elsif ($was_idle) {
         <[base.logs]>->( 1, '[idle] no new untracked jobs to assess.,' );
         <jobsite.cycle> = qw| idle |;
         <[jobsite.state.persist]>;
@@ -190,11 +198,12 @@ $profile_text = <[file.read]>->($profile_file)
 $profile_text = Encode::decode( 'UTF-8', $profile_text )
     unless utf8::is_utf8($profile_text);
 
-## build queue entries  queue_gen : bumped on every enqueue [ here and in   ##
-## apply_reverse's reassess branch ] so dispatch.next can tell "still the   ##
-## freshest queued instance of this job" from a stale duplicate left behind ##
-## by a re-queue, uniformly for both fresh-new dispatch and reassess -- see ##
-## dispatch.next for the other half of this contract                        ##
+## build queue entries  queue_gen : bumped on every enqueue              ##
+## [ here and in apply_reverse's reassess branch ] so dispatch.next can  ##
+## tell "still the freshest queued instance of this job" from a stale    ##
+## duplicate left behind by a re-queue, uniformly for both fresh-new     ##
+## dispatch and reassess -- see dispatch.next for the other half of this ##
+## contract                                                              ##
 my @queue;
 for my $job_id (@to_assess) {
     my $gen
@@ -222,8 +231,8 @@ push <jobsite.assess_queue>->@*, @queue;
 
 return;
 
-#,,,.,,,,,...,,.,,..,,.,,,,..,..,,,,.,,.,,,,.,..,,...,...,,,,,,.,,,,,,,..,.,.,
-#UVG6CIE6NQINPB6FO3JBHQ3NYTIC2ZGGI2KZ24UGFSLYOO6ERNULL7AZGXUGWCRZDDO6TICOITDDW
-#\\\|ZQMX45ZW7MGJBGYXYPLL32OUXAK2H4CTIBVWNWEXH2TIU5YOF74 \ / AMOS7 \ YOURUM ::
-#\[7]LEWBL2E3JDBTCHADXLYMHVEC53BLCXOOPSIEJOZGOEZC6Y3U46CI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,...,.,.,.,.,,..,,.,,,.,,,,,,..,,...,...,..,,.,.,.,,,..,,,,,,
+#7BHY4QFNGPHGP67TCGDL7EM4VLQ2LWLA4ZM5HZO6WCQ2AE3KBV7C7QN74EL6Q7BBS7U4NKX46K6IW
+#\\\|CT35DO6W4Q53TW74AFGMSKC7GZ7SEXROPONXD3DSLXHEQ3HO5BC \ / AMOS7 \ YOURUM ::
+#\[7]YC5N6YQWDWMPIISJQ4WKZLLMMP6OYDD6KC5ZQPOMNCW7P4QYW6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
