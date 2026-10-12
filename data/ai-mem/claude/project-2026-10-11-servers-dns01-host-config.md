@@ -21,10 +21,10 @@ metadata:
 
 **yourum** [ new server 2, contabo, 6 vcpu 12 GB, debian sid, kernel 7.2.9 ] installed 2026-10-12 : git clone, install_minimal_dependencies, netselect-apt + sid [ debian.sources moved aside ], debian_dist_upgrade.sh, p7-deps install basic-remote-server [ Git::Native fails to build -- coding only ], unit enabled, load.start_setup = remote-server in its v7-zenki host.cfg. sshd keys only + ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ] -- pri \ delta \ atom still allow root passwords [ asked, not yet done ]. no taeki account there [ use root@yourum ]. ~/.ssh/config : short names atom [ port 2242 ], pri, delta, yourum ; root login with the user's key on all [ interim, todo LGC ].
 
-**Open** : yourum.v7.ax -- access not set up yet, the user resets its password first [ 2026-10-12 ; leave it to them ]. atom [ being retired ] runs its own start set via v7-zenki.cfg.lowram_mb = 0 in its host.cfg, no nameserv there ; cube route leak 7N3 [ high ] hit atom after 2.5 days. wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
+**Open** : yourum.v7.ax -- access not set up yet, the user resets its password first [ 2026-10-12 ; leave it to them ]. atom [ being retired ] : generic -lowram profile + `v7-zenki.host.zenki.disable = nameserv web system` in its host.cfg [ DYK, cfcd5c6e9 ; its profile edit left the local commit ], no nameserv there ; cube route leak 7N3 [ high ] hit atom after 2.5 days. wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
 
-#,,,.,..,,..,,,,,,,,,,,,,,.,,,,..,..,,.,,,,,.,..,,...,...,.,.,,,,,,.,,,,.,.,.,
-#OG5HIDBBPP3ISJLSMO42X7DOK2NLHYHGH32VELIT34SJU7CAE6OPYDVOLQNTPJED233YPGLJBN7NO
-#\\\|Q4TZ2MYJBJOCXXEURCI6VV2YJCDOXMKWARZJXDQHH6CRA55UL7V \ / AMOS7 \ YOURUM ::
-#\[7]H2QUXUR6UKSO4VJRHSFA2PQZOM7647OLRCXLYS7DSA6XBA3AUYCY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,.,,,...,,,,,.,,,.,.,.,.,...,..,,...,...,,..,,,.,,,.,...,,.,,
+#SROLKWXGXIHNAIQ7LBPBQMSKKTLQXEN4PKHPBWKYACBRFMUMV6ZJNMBBV5UAXLGLOD5GHZG5U5JR2
+#\\\|UO6OY4WP5U6LQBBXA7ROOUZ3O2KY5JPXTZIBAMMU5LX7AITWBRK \ / AMOS7 \ YOURUM ::
+#\[7]HFN2O4C4WMM4A4SIOQ6GSGY2YJT7CMN24PMITBGQITWCTPPYZWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

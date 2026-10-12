@@ -119,6 +119,26 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
         <events.timetable>->{$ev_id}
             = $config_data->{'timetable'}->{$event_name};
     }
+
+    ## per-host time [ /etc/protocol-7/events/host.cfg :              ##
+    ## 'events.host.at.<event name> = 03:47' ] -- e.g. staggered      ##
+    ## dist-upgrades, so not every server upgrades in the same minute ##
+    my $host_at = ( <events.host.at> // {} )->{$event_name};
+    if ( defined $host_at and not ref $host_at ) {
+        if ( $host_at =~ m{\A(?:\d\d|HH):\d\d(?::\d\d)?\z} ) {
+            <events.timetable>->{$ev_id} //= {};
+            <events.timetable>->{$ev_id}->{'at'} = $host_at;
+            <[base.logs]>->(
+                1,           ': event %s at %s [ host.cfg ]',
+                $event_name, $host_at
+            );
+        } else {
+            <[base.logs]>->(
+                0,           ': host.cfg events.host.at.%s not valid [ %s ]',
+                $event_name, $host_at
+            );
+        }
+    }
 }
 
 ### test event ###
@@ -145,8 +165,8 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 
 0;
 
-#,,,.,.,,,,,,,.,,,.,,,,,,,,,.,...,..,,,..,,..,..,,...,...,...,.,,,,,,,,,.,.,.,
-#E2JZXA7477AJDKXDZT47GC2437BNKG7CB2PCQKPFZ77FYYFJ4BGXWXZOQ656OQQVKLPNA5VSCDQBO
-#\\\|QMKRWLV7CKDN3XA54W34RPSPOPL4KMIYT725YFQJUHRZG26Q6AV \ / AMOS7 \ YOURUM ::
-#\[7]6NDAWT63OBEP6CMIQSJ6AXNIQ7BHDUBDW6NOEWE46FHBMFTOZSCA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,..,,,,,,.,,,.,,,,,,,,.,,,,.,..,,...,...,,,,,...,..,,,,.,.,,,
+#ZPGTHGHDOMIZCC27WH2KUPK6MJANMU4GBVEIWO4EEI37G3FORDUIBVWMMVY3MMS3MUC54HIV3JGE2
+#\\\|K2Q4M4QQJDQHA6FBGZE7EMK5AFXIW5VSEPJZBGRVMAINXDLT4DS \ / AMOS7 \ YOURUM ::
+#\[7]HAZFM5NX3RS57BCJXEUZP2NM4UYENXALCMSCWMULDG3OPZGI7CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
