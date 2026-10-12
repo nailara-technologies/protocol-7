@@ -1143,7 +1143,9 @@ items:
   - host
   text: 'v7-zenki : per-host zenki.enabled \ disabled in host.cfg'
 - added: 3X4NRFENDU
-  details: 'the steps a new server gets by hand today [ 2026-10-12, yourum ] : git + clone to /usr/local/protocol-7, netselect-apt for the fastest mirror, switch to unstable [ sid ], bin/dependencies/debian_dist_upgrade.sh, install_minimal_dependencies.debian.sh, bin/p7-deps for the rest, the systemd unit. as debian zenka capabilities, each a command with a check mode : mirror select [ netselect-apt, result kept in host config ], suite switch [ deb822 aware : debian 13 keeps /etc/apt/sources.list.d/debian.sources, netselect-apt writes a classic sources.list -- one of them must be moved aside ], dist-upgrade, dependency profiles [ p7-deps ]. plus the sshd baseline every server got by hand : keys only, ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ]. goal : a reinstalled host comes back to its definition without a manual step [ 4EO, LGC ].'
+  details: |-
+    the steps a new server gets by hand today [ 2026-10-12, yourum ] : git + clone to /usr/local/protocol-7, netselect-apt for the fastest mirror, switch to unstable [ sid ], bin/dependencies/debian_dist_upgrade.sh, install_minimal_dependencies.debian.sh, bin/p7-deps for the rest, the systemd unit. as debian zenka capabilities, each a command with a check mode : mirror select [ netselect-apt, result kept in host config ], suite switch [ deb822 aware : debian 13 keeps /etc/apt/sources.list.d/debian.sources, netselect-apt writes a classic sources.list -- one of them must be moved aside ], dist-upgrade, dependency profiles [ p7-deps ]. plus the sshd baseline every server got by hand : keys only, ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ]. goal : a reinstalled host comes back to its definition without a manual step [ 4EO, LGC ].
+    also the time zone [ 2026-10-12 : delta came with America/New_York although Europe/Berlin was chosen at install -- the provider image overrode it ; set explicitly : timedatectl set-timezone Europe/Berlin, then restart the backend so every zenka uses it ].
   done_at: null
   id: WW5
   priority: normal
@@ -1166,6 +1168,7 @@ items:
   details: |-
     at start-up and every 3900 s ; warns only, never changes anything ; one concise line per finding that says exactly what to do, e.g. 'update glue dn1110.protocol-7.network : AAAA 2604:a00:..:90c6 -> <new address> [ registrar ]' or 'add dn0110.protocol-7.network to the NS set of acme.v7.ax'. checks : [ 1 ] this host's DN name A\AAAA in public dns vs the addresses it really has [ interfaces \ detected.cfg host.ipv6 -- catches a changed SLAAC address ] ; [ 2 ] glue : ask the parent zone's servers [ TLD ] for the delegation, compare its glue with the real addresses ; [ 3 ] each served zone's NS set contains every configured DN name, and each answers the zone with the same SOA serial [ sync cross-check ] ; [ 4 ] ptr of each address points back to the host name [ DDB needs it too ]. command nameserv.consistency shows the last result. shares host-domain code with DDB and WW5.
     implemented 2026-10-12 [ kimi k2.8 + review : timers re-init safe, ipv4 from the interfaces not the host name, ':run:' ]. KNOWN LIMIT : check 2 compares the public A \ AAAA answers, not the registry's glue -- correct only while no domain is delegated to our dn names [ then it is skipped ]. before protocol-7.network or v7.ax itself moves to DN0000 \ DN0110 \ DN1110 : query the TLD servers for the delegation and compare their additional-section glue.
+    add [ 2026-10-12 ] : compare each served zone's PARENT delegation [ NS at the parent's servers ] with the zone's own NS set, and check that every delegated name resolves -- typos 'dn010.v7.ax' and 'dn1110.protocol-7.nnetwork' at the registrar stayed invisible to the check [ it compared our own NS sets only ] ; finding : 'fix NS <name> in the delegation of <zone> [ registrar \ dns ui ]'.
   done_at: null
   id: VDS
   priority: normal
@@ -1187,8 +1190,8 @@ items:
   - claude
   text: 'cloud session bootstrap : backend + own signing key in one step'
 
-#,,..,.,.,,..,,,,,,..,,..,,.,,...,,,,,,..,,..,..,,...,...,..,,..,,,,.,.,.,,.,,
-#YG2EZLIIOLTYYWIWS4FO43F4I3M43KVGJJ4XMLSFSVRKCG4AX4OTQHV7TFKEGEGVRCMDDGYMZL6XM
-#\\\|PU36GHFV77C5Y4NUMYEWTA2Y7EL5YL4ANGSGQCVDK6UONRD5OBG \ / AMOS7 \ YOURUM ::
-#\[7]G4RW5FOBBEVQJBTTXPJARC5MP3CUEEZXJ6UYVNFOAZKM46GNQSBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,,,,,,.,,,,,.,,,,,.,.,.,,,.,..,,...,...,.,,,,,,,,,,,,,.,,,,,
+#Z6IULF3YSI7A4NNKA4RDQ4Q5WFHPZVDDG5LQFNHIPEX3EMYQW54QJDTNUNJFAWODONL6X5RER3HHA
+#\\\|T4DJLXSYMLQU42HIT45BXJ745C56YTTF3XLT5BQQ6S5HVMH43TM \ / AMOS7 \ YOURUM ::
+#\[7]QM2RK2DRANREWNHLANN7B4LL7WHS6PDNPIWGUQKURBNRDJM5SCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
