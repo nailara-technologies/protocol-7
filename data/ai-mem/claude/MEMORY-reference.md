@@ -82,7 +82,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 - [cube-type eager devmod precompile](reference-cube-type-eager-devmod-precompile.md) — `system.zenka.type = cube` zenki (cube, cube-13) deliberately keep `devmod.*` in `subroutines.load-early`, regenerated that way by `gen-sub-whitelist`/`dep-graph` even after manual removal; appliance filesystem-crash resilience (only already-compiled code survives a vanished filesystem), not cruft — don't hand-prune it like regular client zenki's load-early lists
 - [log ntime timestamp conversion](reference-log-ntime-timestamp-conversion.md) — `p7c localtime <stamp>` / `p7c delta-time <stamp>` convert zenka-log base32 stamps; `::` = p7c
-- [claude-web-promotion-credits-overflow](reference-claude-web-promotion-credits-overflow.md) — cloud-session credits [ until 2026-11-05 ] SHOULD apply first, but on 2026-10-07 the web usage bar showed plan usage [ switch, cause unknown ] -- check the bar after starting a web lane ; the place for backend-independent tasks [ spec-driven code, offline tests ] -- offer task files there [ ask first ] ; live checks stay local
+- [claude-web-promotion-credits-overflow](reference-claude-web-promotion-credits-overflow.md) — cloud-session credits [ until 2026-11-05 ] SHOULD apply first, but on 2026-10-07 the web usage bar showed plan usage [ switch, cause unknown ; confirmed again 2026-10-12 : plan drawn, credit untouched ] -- check the bar after starting a web lane ; the place for backend-independent tasks [ spec-driven code, offline tests ] -- offer task files there [ ask first ] ; live checks stay local
 
 #,,..,...,,,.,,,.,,.,,,,,,,,,,..,,,,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,,..,
 #IDHQBYU4ZPC26MOBGHIZOXCZW46F4C72HTIW4WGXHFEDKBH4WZOLEIWGJE56VFO6LANL2YY3BLOAY
@@ -106,8 +106,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,,,,.,,,,,,,,,.,..,,.,,,,.,,,,,,.,,,...,.,.,..,,...,...,...,.,.,,,,,.,,,.,.,
-#4WGTQUHVP3ZQZPQ7MI4M4PJ6XT3CRGZDYY55SKJJKIY7APPM4FLT2IPVGP3ED44G6ZVCAB2UJ7TMG
-#\\\|Z74RW2G3RP36C2PKCCYSLGS7GIH7PL5FWPYVV7BDHISKUA6DESM \ / AMOS7 \ YOURUM ::
-#\[7]I66AWLJ3TNLMKMXX36LASDBCH5KGXS3ACO22XP6HOZISPRH2EMBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,,,..,,,,,,,,,,,,,,.,,,...,,.,,..,,...,..,,..,,,.,,..,,...,...,
+#D4QBHKGT4RPZP3QNHVVC6HJPN7GGFYKJV7ZUKMRWSJJX5LZVVNRXMTYGTOWZ7HDPGJH7QCJ2VHACS
+#\\\|N3RWE3KST63TUHQXEDFAMP4SJB4PBEKXZGWQULSEJTJ3CIE2QKT \ / AMOS7 \ YOURUM ::
+#\[7]V54572TPYCXZ5OPP7ZPPWKGY4BCTHHC7SYQFH4LKVHRLIB76IYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

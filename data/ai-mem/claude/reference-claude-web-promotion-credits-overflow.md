@@ -22,6 +22,18 @@ than inferring from usage.status [ local lanes ran in the same window ].
 glitch or silent change ; accounting glitches happen [ the weekly reset
 also moved ~6 h that day ].
 
+**2026-10-12 : confirmed again** : a cloud session [ started from the
+claude project, opus 5.5 ] moved the plan's weekly bar 77% -> 78% while
+the credit stayed at $94 of $100 after a page reload. cloud sessions
+currently draw the PLAN, not the credit -- no token advantage over local
+lanes ; use them for what only they give [ a fresh environment : DJ2
+bootstrap tests ].
+
+**plan, user 2026-10-12** : ignore the credit until the weekly limit is
+reached ; THEN test whether it applies [ a small cloud or web task,
+watch the credit amount ]. nothing works -> a case for support, and
+until the reset : strict prioritization of the remaining work.
+
 - CHECK the web usage bar right after starting a web lane : at 0 ->
   credits [ free extra capacity ] ; moving -> plan [ competes with local
   lanes, budget accordingly ]
@@ -40,8 +52,8 @@ also moved ~6 h that day ].
   [[feedback-fill-5h-windows-with-prepared-parallel-dispatch]] ]
 - do not assume it is free : ask before moving work there
 
-#,,,,,,..,..,,..,,...,,,.,,..,...,...,...,,,,,..,,...,...,...,,.,,,,,,,,,,..,,
-#L5KV563YSYIMV2JVN4SDL6DF2OOW4JCJNWOLMY557KFA7UEF2UQQ2KTYB4YPYRMFTZJGCTV2B2RKI
-#\\\|2LL33U37YMHASKT5IHUOJNEURIVGSLADT7JJH3N6IBFHUF37UU6 \ / AMOS7 \ YOURUM ::
-#\[7]PVPUSSSMS5VTHFBDIEZZZZXMBVM5IGOURYKIBK5PW7NOIP6I64DY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,.,.,...,.,.,,..,..,,..,,..,,..,,...,...,,.,,...,..,,,,.,.,,,
+#IA2IZ2TWV7Y6YF5MS7ZRJWD56GSE524VHPLNAR7H7HV3RA2VXL2WC5HTHOVMC54CWYYFQ3GNWPTO6
+#\\\|OYI2LGCVO32SGRBVS3IEGVREZLJK3NOASWJMAP2FSCVBHTT4IN5 \ / AMOS7 \ YOURUM ::
+#\[7]FKA27LF65HQ5ZABTCFZIHI6HC46ABHGPWV4Z6OWA6IFYHMEK3MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
