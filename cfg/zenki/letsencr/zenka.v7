@@ -73,6 +73,8 @@ letsencr.challenge.type = http-01   # http-01 or dns-01
 ## or one convention for every domain without its own pair : <prefix>.<domain> ##
 # letsencr.dns.challenge_alias_prefix = acme
 ## name servers written into a newly created alias subzone [ nameserv ensure-zone ] ##
+## -- also the servers asked for the txt value before the challenge is answered,  ##
+## unless letsencr.dns.nameserv.addresses lists them [ not answering : skipped ]  ##
 # letsencr.dns.alias_ns = dn0000.protocol-7.network dn0000.v7.ax
 letsencr.challenge.timeout = 300     # 5 minutes for challenge completion
 letsencr.challenge.site_dir = /var/httpd/  # document root for challenges
@@ -98,8 +100,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http \
 
 [zenka.loop]
 
-#,,,,,.,,,.,.,...,.,,,.,.,,..,,..,..,,,..,...,..,,...,..,,...,.,.,.,.,..,,.,.,
-#KM2DCXLPMAZJMZHTUZ23H7QMDTJEGFZO6BDWVUT3QYAIT74WPYEGIKDXFDVEEGEIR36K4JNZ4YCPG
-#\\\|NKLPRRK46XMSCBRU4FVHTDVSYHVGNAVFTEY5KTM4MHO5OGV55YI \ / AMOS7 \ YOURUM ::
-#\[7]5Q4N5A3IAYCXKW22MUHJSMQVTQ4HU3UWVINXCNKRFVXNMU5IBUAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,.,.,,.,,.,.,,..,.,,,,,,,,..,..,,...,...,,,.,...,...,.,,,,.,,
+#KJLMRGU4X65GCR5G5A3JSEC2JMEG2R7SPVUQR2P6RIAZSQSKATAABPL36APN43EMQMT5IPVZQEL7W
+#\\\|QPTKTRWZK3BZE77XEUIQN7T7TDZVRQXES27NM47F2CUAVV3PKWA \ / AMOS7 \ YOURUM ::
+#\[7]YREAHTEGNMO6DPRMZKI7OEKQMYX2XUXQDAOOEKVQQAAGENH5NWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
