@@ -81,6 +81,12 @@ ok( @a0 == 1 && @b0 == 2, 'set-up : a holds 1 entry file, b holds 2' );
 my ( $out, $rc ) = sync( $dir_a, $dir_b );
 ok( $rc == 0,                                   'first sync succeeds' );
 ok( $out =~ m|pushed 1, pulled 2, conflicts 0|, '  :.. pushed 1, pulled 2' );
+ok( $out !~ m|invalid file name|,
+    '  :.. no invalid names on a clean '
+        . 'pair [ probe sections parsed apart ]'
+);
+ok( $out !~ m{Odd number|uninitialized|used only once},
+    '  :.. no perl warnings' );
 ok( "@{[ entries($dir_a) ]}" eq "@{[ entries($dir_b) ]}",
     '  :.. both sides hold the union' );
 ok( entries($dir_a) == 3, '  :.. three entry files each' );
@@ -208,8 +214,8 @@ ok( $rc == 0
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,.,,,.,.,,.,,,..,,.,,.,.,.,,,...,.,.,.,,,..,,...,...,...,,,.,,,.,...,..,,
-#R7MBC3TNFIAWN45AJYHDI2YLB7KAOBMN6TQUYZH66VXKY3F7N64WR7IZUNWD4W5TTL46HOFEBTFGK
-#\\\|5EDYFVHZXIWTMK44XSVKRZJ4PLGEWQ433PXFQB7AXZHMXNUK75G \ / AMOS7 \ YOURUM ::
-#\[7]3DEM2ICAN2ELYFBURALMHUB3RLGPNA7HKSOWQM3Z6A6R4W2Z3GBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,.,.,...,,.,,.,.,,..,,.,,...,..,,...,.,,,..,,...,.,,,,,.,,.,,
+#AF26VWTAKKQAUZJZ3AZVB7IU7CIH75HIDJUDWIAGJGIS7XOPNOC7NDSZ4HRW5TTL5VFQUHAANMOKS
+#\\\|3YETXUKIXRQDS5PY7K67JROEIS75OK4H56EABQYB4ROP65BUL2F \ / AMOS7 \ YOURUM ::
+#\[7]5HIW6YOYW5NUB5FD6CGHUDMWYNW7MVEIF552GAGE577QNSADDMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

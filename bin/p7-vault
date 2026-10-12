@@ -1578,7 +1578,7 @@ sub select_import_path {
     ## all its text goes through puts, so puts is wrapped to set the vault's
     ## label colour first [ a colour code keeps reverse \ bold ]
     my $puts = \&Term::Clui::puts;
-    no warnings qw| redefine |;
+    no warnings qw| redefine once |;
     local *Term::Clui::puts = sub {
         print {*Term::Clui::TTY} $C{T} if length $C{T};
         return $puts->(@ARG);
@@ -2075,7 +2075,8 @@ sub cmd_sync {
 sub _sync_local_listing {
     my ( $path, $re, $hash ) = @ARG;
 
-    my ( %sha, $invalid ) = ( (), 0 );
+    my %sha;
+    my $invalid = 0;
     opendir( my $dh, $path ) or return ( \%sha, 0 );
     while ( my $name = readdir $dh ) {
         next if $name =~ m|^\.|;
@@ -2094,19 +2095,22 @@ sub _sync_local_listing {
 sub _sync_remote_listing {
     my ( $out, $kind, $re ) = @ARG;
 
-    ## blobs have no sha1 section : the name IS the content check ##
-    my ( $ls_tag, $sha_tag, $end_tag )
+    ## blobs have no sha1 section : the name IS the content check each    ##
+    ## section ends where the next one starts : entries' names end at the ##
+    ## sha section, the sha section at the blob names                     ##
+    my ( $ls_tag, $ls_end, $sha_tag, $sha_end )
         = $kind eq qw| blobs |
-        ? ( qw| P7VAULT-BLOBS-LS |, undef, qw| P7VAULT-END | )
-        : ( qw| P7VAULT-LS |, qw| P7VAULT-SHA |, qw| P7VAULT-BLOBS-LS | );
+        ? ( qw| P7VAULT-BLOBS-LS P7VAULT-END |, undef, undef )
+        : (qw| P7VAULT-LS P7VAULT-SHA P7VAULT-SHA P7VAULT-BLOBS-LS |);
 
-    my ($ls_text) = $out =~ m|\Q$ls_tag\E\n(.*?)\Q$end_tag\E|s;
+    my ($ls_text) = $out =~ m|\Q$ls_tag\E\n(.*?)\Q$ls_end\E|s;
     my ($sha_text)
         = defined $sha_tag
-        ? $out =~ m|\Q$sha_tag\E\n(.*?)\Q$end_tag\E|s
+        ? $out =~ m|\Q$sha_tag\E\n(.*?)\Q$sha_end\E|s
         : undef;
 
-    my ( %sha, $invalid ) = ( (), 0 );
+    my %sha;
+    my $invalid = 0;
     foreach my $line ( split m|\n|, $ls_text // '' ) {
         $invalid++, next if $line !~ $re;
         $sha{$line} = undef;    ## filled from the sha1 lines ##
@@ -2599,8 +2603,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,..,,.,.,..,,,..,,.,,,..,..,,,.,,,..,,.,,..,,...,.,.,...,..,,.,.,.,,,,,,,
-#FDFYCCSBIBPE2VGNKYIKCGKZZ4B5ABFILWSMNGYTG4OOXUYSOTLF2N7BU5NUMBIFBGC7LK5E5N2S2
-#\\\|HK7KHCUJRLWDZ7DXQTSXVKQB52SGENM3KGA7H2C3A3ZWDJKPQZJ \ / AMOS7 \ YOURUM ::
-#\[7]IWQXWYDFNENNEJZFDVYVKSS3UUS6HYQL46NA6SPAPSL6PDAQUCCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,,.,,,,.,,,,,,,.,,.,,,,.,,..,..,,...,...,.,,,,..,,.,,...,,,,,
+#3CYP4GN2OJBCB75PU2WNGGTLXDXJ4UCGPLYJ7L52E5AYDFJQ23WZJG43PJSLGDX56QXSWYIAVB3ZW
+#\\\|NNJJ3OJ5NNEOFSZCTMVLDFN3JJVOT44FUKD7PRE5UAQM2VCQEZJ \ / AMOS7 \ YOURUM ::
+#\[7]P5KJLHBBTYIOO7WQRO5BHFJHSQOOOJGGSRT2IP7GU2FD23HOAUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
