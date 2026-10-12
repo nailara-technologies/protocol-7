@@ -1182,6 +1182,7 @@ items:
     claude web \ cloud sessions [ promotional credits, reserve when local limits hit ] have repository access ; earlier sessions got the whole backend running in their vm, signing with its own key included -- possible, but too many manual steps. goal : one command [ e.g. bin/dev/cloud-session-setup, or the WW5 debian zenka bootstrap with a 'cloud' profile ] : dependencies [ p7-deps minimal + development ], keys for a separate signing identity of the session [ never the user's ], backend start, a check that format-code -c \ the standalone tests \ a live zenka work. work flow : task briefs in the kimi-prompt form [ scope, rules, standalone test as acceptance ], delivery on a branch cloud/<todo-id>, review + merge into base locally. shares WW5's bootstrap.
     key exchange idea [ 2026-10-12 ] : through the empty DATA repository as relay -- the session's own access channel, no circumvention [ a dns tunnel out of the vm was rejected : it would bypass the provider's network controls ]. vm pushes requests/<session>.req [ temp pubkey, nonce, session id ] ; a zenka here watches the repo [ git-watch ], approval by the user or a rule, pushes grants/<session>.dlg [ short-lived delegation over the nonce, narrow scope e.g. commits on cloud/* only ] ; vm pulls, verifies against the pinned host-root id, signs with that key. public material only, never a secret ; nonce + expiry against replay. the same relay can carry task briefs and results later.
     test 2026-10-12 : a cloud dispatch from this local session [ Agent with isolation remote ] did NOT go to the cloud -- it ran in a local git worktree [ .claude/worktrees/ ], so neither cloning nor the budget pool was tested. the agent kept the rules [ stopped at the version hook, no bypass ]. a real test needs a session started on claude.ai itself ; its usage pool [ promotional credits or weekly ] is still unknown.
+    first REAL cloud session 2026-10-12 [ started on claude.ai, existing project ] : Ubuntu 24.04, perl 5.38.2, repo attached via github ; wrote bin/dev/cloud-session-setup [ apt first, cpanm only where apt has none, idempotent ] on branch cloud/DJ2-setup -> taken into base. reachable : github.com, archive.ubuntu.com, pri.v7.ax:443 ; BLOCKED by the session proxy : every CPAN host [ www.cpan.org, metacpan, cpanmetadb ], deb.debian.org, pri.v7.ax:7753. so Digest::BMW and Crypt::Ed25519 [ CPAN only, no ubuntu package ] cannot install there and the nameserv tests stop. next : the two dist tarballs in the repo [ e.g. data/lib-path/cpan/, perl licence ], the script installs from there when CPAN is unreachable. cloud <-> us : github \ https only, not the sync port.
   done_at: null
   id: DJ2
   priority: normal
@@ -1191,8 +1192,8 @@ items:
   - claude
   text: 'cloud session bootstrap : backend + own signing key in one step'
 
-#,,,.,.,.,...,,,.,,,,,,.,,,,.,..,,,.,,...,.,,,..,,...,...,,,.,,,,,,..,,.,,,..,
-#J2T6ZY5QC3SINTETYWBNM27OEFS533TU4P43Y5NGXJG26O3FWBTNNJTDBIHYYKIQGLSNLVHC3H4EK
-#\\\|DAA3M3WOVFHYIC232P7RI7DNO2CO2P6IZ3GHEIHMCIILKCUSTHA \ / AMOS7 \ YOURUM ::
-#\[7]H6IYCJLKMG7GVHIQYZXYGKYYNYVIKFWHGTKKG4MYHHSJNEP5XUCI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,.,,,..,,,.,,.,,,,,.,...,,,,,..,,...,...,..,,..,,..,,...,...,
+#UPUPLJG5PQK3BRDZVVIG6VMDA3D62CLDOV54BD275V6E7JN4KYCH6WKV6IJ6MX5W7OU73QZIN4JEY
+#\\\|LH3GXFGYY36GRBPAG42XCVOHZI2ZU4V7QBHTWXUXDHVS4XTRBGZ \ / AMOS7 \ YOURUM ::
+#\[7]AEP2WWM4GQM3LW5BC55VFFAK7XIN7UKVSZVHS4YO5IFTCMKR3GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

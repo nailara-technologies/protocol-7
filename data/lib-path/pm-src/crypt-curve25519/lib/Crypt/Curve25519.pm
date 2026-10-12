@@ -262,3 +262,8 @@ encoded basepoint generate 32-byte hex encoded public key or shared secret.
 
 =cut
 
+#,,.,,,.,,,..,,..,..,,.,.,,,.,,,.,...,...,,..,.,.,...,...,,.,,.,.,,,.,..,,...,
+#QJ4VDFIJHZAT2DAVAPDRBQD2IVNQQEPUHPW2WFXIDPNTTTFXSUQ752J6UPL25BMJ2LYU6JXGY67O6
+#\\\|IMZOPKBVKICTNFICNJH7IXH7AP2YQCTLKD4PK4MUDRYMCCJI7TQ \ / AMOS7 \ YOURUM ::
+#\[7]ZZINT4QPM7TQAZ6PKYAQFNTGD7OV46RNIDLWFMUEJCV5LJEHOIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

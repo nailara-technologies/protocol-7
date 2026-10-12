@@ -229,9 +229,23 @@ my @source_paths
     grep { !m{/\.|~$} } @all_files;
 
 ## exclusion patterns [ !..,* ]  supports $ at end for end-of-string anchor ##
+##                                                                       ##
+## !<path>:keep:.pm.pl : exclude what starts with <path> except files    ##
+## ending in one of the listed suffixes [ work of others in pm-src : only ##
+## the perl files are signed ]                                           ##
 
 foreach my $pattern_str ( grep {m|^\!|} $copy_sources->@* ) {
     $pattern_str =~ s|^\!||;
+
+    if ( $pattern_str =~ m|^(.+?):keep:(\..+)$| ) {
+        my ( $prefix, @keep ) = ( $1, split m|(?=\.)|, $2 );
+        @source_paths = grep {
+            my $path = $ARG;
+            index( $path, $prefix ) != 0
+                or grep { $path =~ m|\Q$ARG\E$| } @keep
+        } @source_paths;
+        next;
+    }
 
     ## check for $ anchor at end (literal $ in pattern) ##
     if ( $pattern_str =~ s|\$$|| ) {
@@ -293,8 +307,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,..,,..,...,,,.,..,,,,,,,,,,,.,,,.,,,,.,...,..,,...,..,,..,,..,,,,.,..,,,,.,
-#KSSD5MCSW4Z7NDFX65VKHJTKBDRZPLFJ6EJCIGRZ5DE54IHAPSBFDPDAI4GIRYZJ7EVP6D6MIBUMI
-#\\\|57FEDF7H76HXNFHZLBHLAY5FZBVROT2TSQUC3BVWTVEU2NAUTEL \ / AMOS7 \ YOURUM ::
-#\[7]ZWMKPTCKV7ZTUT7MF5RIM26TLPJPOEYYNCYL5DCFLJPVKVFLOQDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,...,,,,,..,,,,.,.,,,...,..,,..,,...,...,...,..,,.,.,,,.,.,.,
+#DHBGMVXCRL5PTRB2EAUJKH6QPKIZM6MQ3MJKH5BJFMUALAAV4HI5IOZHNQWEYV5RHCWUU5BTFVDKS
+#\\\|NNUJDYHBSBOSQKUES6JQGR3I2YFXHDRCIH2BTPB5EIWOBDXBGJC \ / AMOS7 \ YOURUM ::
+#\[7]COXYMNQHXDOFG6SGT4DRQPZVFKNC5UV3YHXW4NDIG6VD4C3WV6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

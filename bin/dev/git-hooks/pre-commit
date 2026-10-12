@@ -328,7 +328,13 @@ unless ($skip_signature_check) {
         next if $file =~ m{^data/development/chat/};
         next if grep {
             my $e = $_;
-            $e =~ m|\$$| ? $file =~ m{$e} : $file =~ m{^\Q$e\E}
+            if ( $e =~ m|^(.+?):keep:(\..+)$| ) {
+                my ( $prefix, @keep ) = ( $1, split m|(?=\.)|, $2 );
+                index( $file, $prefix ) == 0
+                    and not grep { $file =~ m|\Q$_\E$| } @keep;
+            } else {
+                $e =~ m|\$$| ? $file =~ m{$e} : $file =~ m{^\Q$e\E};
+            }
         } @sig_exclude_paths;
         next
             unless $file =~ m{\.(pl|pm|yaml|sh)$}
@@ -462,8 +468,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,..,,..,,,,,,.,,,.,,,,,,,,.,.,,,,..,...,,,.,..,,...,...,.,.,..,,.,.,.,,,,.,,
-#3ZIK4CIXKSDKA3PS5PREKSTRUQVMKUIH5J2FRUNRHKVUFXVMU5QKPNCQNUU46QPXPKFQNGT7DCXAC
-#\\\|SMZE75AZF3L5HGDRFJVX3XZ4N5S3MM4XIYNEVBLBCPRBCTDW4ZJ \ / AMOS7 \ YOURUM ::
-#\[7]5OWSPNVTZ7VXWOQPSYEB5IWXTDRSTMXJPRSOECAHN6GW35PMSWBI 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,,,,,,.,,..,,.,,,,.,,,,.,..,,..,,...,..,,..,,,..,,..,..,,,.,,
+#MV3YDO4D7GPQFZV2FEU3V7TYZC4JF4U3SSLG7PH3C3WOXNMX7T5E2ECKOPVGOI5RKCGTS3E7PIB56
+#\\\|5FC2RZUC74W6GB6ADMXJOFMPWUEPJA2C2NVMQ3KU7UHTIOIM6RA \ / AMOS7 \ YOURUM ::
+#\[7]5BT3IHEE54HGLJKLQWLTMPHG6QDSZX5WK3PKIARIOQHAG24UXODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
