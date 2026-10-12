@@ -6,7 +6,9 @@ use warnings;
 
 ## p7-vault sync : file union between two copies of one vault. the remote   ##
 ## side is a local dir -- P7_VAULT_SSH points at a wrapper that ignores the ##
-## host and runs the remote command with sh. no real vault touched          ##
+## host and runs the remote command with sh. no real vault touched scaling  ##
+## : thousands of small files -- the name lists travel in a temp file \ on  ##
+## the remote's stdin, never on a command line                              ##
 
 use FindBin;
 use File::Temp qw| tempdir |;
@@ -136,11 +138,78 @@ ok( entries($dir_c) == 0,          '  :.. nothing written there' );
 ( $out, $rc ) = sync( $dir_a, "$tmp/none" );
 ok( $rc != 0, 'missing remote vault refused' );
 
+## scaling : 3000 small entry + blob files. valid names straight on disk,  ##
+## the contents need not decrypt for a transfer test. the name lists go in ##
+## a temp list file \ on the remote's stdin -- never on a command line     ##
+## [ E2BIG 'argument list too long' with 6000 names otherwise ]            ##
+my @b32d = ( 'A' .. 'Z', 2 .. 7 );
+
+sub b32_of {
+    my $n = shift;
+    my $s = '';
+    while ($n) { $s = $b32d[ $n % 32 ] . $s; $n = int( $n / 32 ) }
+    return $s;
+}
+
+sub pad_b32 {
+    my ( $n, $len ) = @ARG;
+    my $s = b32_of($n);
+    return ( 'A' x ( $len - length $s ) ) . $s;
+}
+
+sub write_small {
+    my ( $path, $content ) = @ARG;
+    open( my $fh, '>', $path ) or die "cannot write $path : $OS_ERROR";
+    print {$fh} $content;
+    close $fh;
+}
+
+for my $i ( 1 .. 3000 ) {
+    my $ename = sprintf '%s.%014d.%s.vlt.B32',
+        pad_b32( $i, 16 ), 20000000000000 + $i, pad_b32( $i * 7, 8 );
+    my $bname = pad_b32( $i, 32 ) . '.vlb';
+    write_small( "$dir_a/entries/$ename", "entry $i" );
+    write_small( "$dir_a/blobs/$bname",   "blob $i" );
+}
+
+( $out, $rc ) = sync( $dir_a, $dir_b );
+ok( $rc == 0 && $out !~ m|argument list too long|,
+    'scaling : 3000 entry + blob files sync without E2BIG'
+);
+ok( $out =~ m|pushed 3000, pulled 0, conflicts 0|,
+    'scaling : 3000 entries pushed' );
+ok( $out =~ m|blobs : pushed 3000, pulled 0, conflicts 0|,
+    'scaling : 3000 blobs pushed, none hashed'
+);
+ok( entries($dir_b) == 3003, 'scaling : the remote side holds them all' );
+ok( blobs($dir_b) == 3001,   'scaling : the remote blobs too' );
+
+open(
+    my $vfh,
+    '<',
+    "$dir_b/entries/"
+        . sprintf(
+        '%s.%014d.%s.vlt.B32',
+        pad_b32( 42, 16 ),
+        20000000000042,
+        pad_b32( 42 * 7, 8 )
+        )
+) or die $OS_ERROR;
+ok( <$vfh> eq 'entry 42', 'scaling : a pushed entry arrives intact' );
+close $vfh;
+
+( $out, $rc ) = sync( $dir_a, $dir_b );
+ok( $rc == 0
+        && $out =~ m|pushed 0, pulled 0, conflicts 0|
+        && $out =~ m|blobs : pushed 0, pulled 0, conflicts 0|,
+    'scaling : a second sync transfers nothing'
+);
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,.,,.,,,.,.,...,.,,,..,,,,,,...,,,,,.,,,..,,...,...,...,,..,,.,,,,,,.,,,
-#7AN5LNF5F5GDVM2B3IRQCCER2LISVHKP4IMWN2J4CYICOUD7OER4ZKASV6XX3PLQNHBYHTWZHULXE
-#\\\|QXZU76CWVATBSE63F7QIGXDKOWZJGO5ERB2O5UTFF6B5252AJYS \ / AMOS7 \ YOURUM ::
-#\[7]Z24S277BO4YHHJOPQMC33LO4GV3MYRJP6F6MADCQT4TC7UT4HYCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,.,,,..,,.,,.,.,.,,,...,.,.,.,,,..,,...,...,...,,,.,,,.,...,..,,
+#R7MBC3TNFIAWN45AJYHDI2YLB7KAOBMN6TQUYZH66VXKY3F7N64WR7IZUNWD4W5TTL46HOFEBTFGK
+#\\\|5EDYFVHZXIWTMK44XSVKRZJ4PLGEWQ433PXFQB7AXZHMXNUK75G \ / AMOS7 \ YOURUM ::
+#\[7]3DEM2ICAN2ELYFBURALMHUB3RLGPNA7HKSOWQM3Z6A6R4W2Z3GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

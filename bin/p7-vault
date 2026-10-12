@@ -45,7 +45,7 @@ use AMOS7::Vault qw|
     archive_write archive_open archive_restore file_secret git_blob_id
     gen_password recovery_code_new recovery_code_normalize
     type_fields secret_field ntime_b32 ntime_b32_to_unix version_to_unix
-    blob_import blob_export
+    blob_import blob_import_stream blob_export
     |;
 
 ##[ global constants ]##
@@ -250,8 +250,20 @@ sub usage {
                              'file' entry per file [ directories recurse,
                              symlinks skipped ]. no path : file selector
                              [ -d : select a directory ]
+    import -a <dir> [ -x g ]... [ -t t ]
+                             archive a whole directory : one tar stream, one
+                             blob, one 'file' entry [ -x excludes a glob,
+                             repeatable ; no dedup -- archives are stored
+                             as imported ]
     export <filter> [ dest ] write a stored file back [ mode and mtime
-                             restored, owner as root ]
+                             restored, owner as root ]. an archive entry
+                             extracts its tar into a directory
+    export -d <prefix> [ dest dir ]
+                             every stored file under a path prefix : one
+                             list, one confirm, then each to its recorded
+                             path [ or <dest dir> + the relative path ],
+                             parents created, nothing overwritten
+                             unasked
     files [ filter ]         stored files : code, title, size, origins,
                              last import
     scratchpad               open the 'scratchpad' note in the editor,
@@ -626,8 +638,7 @@ sub summary_line {
         = $type eq 'contact' ? join( ' ',
         grep {length} $record->{'phone'} // '',
         $record->{'email'} // '' )
-        : $type eq 'file'
-        ? ( ( $record->{'origins'} // [] )->[-1] // {} )->{'path'} // ''
+        : $type eq 'file' ? _file_who($record)
         : join( ' ',
         grep {length} $record->{'username'} // '',
         $record->{'url'} // '' );
@@ -637,6 +648,20 @@ sub summary_line {
         $record->{'code'} // '',
         $type,
         $record->{'title'} // '', $who;
+}
+
+## the right column of a file entry in a choice list : its latest recorded
+## path, archives marked [ with the number of excluded patterns ]
+sub _file_who {
+    my $record = shift;
+    my $who = ( ( $record->{'origins'} // [] )->[-1] // {} )->{'path'} // '';
+    if ( ( $record->{'archive'} // '' ) eq qw| tar | ) {
+        my @excludes = @{ $record->{'excludes'} // [] };
+        $who .= ' [ tar archive';
+        $who .= sprintf ' · %d excluded', scalar @excludes if @excludes;
+        $who .= ' ]';
+    }
+    return $who;
 }
 
 ##[ COMMANDS ]################################################################
@@ -972,12 +997,37 @@ sub cmd_rm {
 ## per file. directories recurse, symlinks and non-files are skipped with a
 ## note. -t sets the title and takes a single file
 sub cmd_import {
-    my ( $title_opt, $pick_dir, @paths ) = ( undef, FALSE, () );
+    my ( $title_opt, $pick_dir, $archive_dir, @excludes, @paths )
+        = ( undef, FALSE, undef, (), () );
     while (@ARG) {
         my $arg = shift @ARG;
-        if    ( $arg eq '-t' ) { $title_opt = shift @ARG // '' }
-        elsif ( $arg eq '-d' ) { $pick_dir = TRUE }
+        if    ( $arg eq '-t' ) { $title_opt   = shift @ARG // '' }
+        elsif ( $arg eq '-d' ) { $pick_dir    = TRUE }
+        elsif ( $arg eq '-a' ) { $archive_dir = shift @ARG // '' }
+        elsif ( $arg eq '-x' ) { push @excludes, shift @ARG // '' }
         else                   { push @paths, $arg }
+    }
+
+    ## archive mode : one directory, one tar stream, one blob, one entry ##
+    if ( defined $archive_dir ) {
+        if ( @paths or $pick_dir ) {
+            say msg( 'refuse', '-a takes one directory' );
+            return FALSE;
+        }
+        if ( not length $archive_dir ) {
+            say msg( 'refuse', '-a needs a directory' );
+            return FALSE;
+        }
+        if ( defined $title_opt and not length $title_opt ) {
+            say msg( 'refuse', '-t takes one title' );
+            return FALSE;
+        }
+        my $v = unlocked() // return FALSE;
+        return _import_archive( $v, $archive_dir, \@excludes, $title_opt );
+    }
+    if (@excludes) {
+        say msg( 'refuse', '-x is only valid with -a' );
+        return FALSE;
     }
 
     ## no path : the file selector [ -d : a directory ], one import per pick,
@@ -1136,12 +1186,92 @@ sub _import_one {
     };
 }
 
+## import -a : pipe 'tar -C <parent> -cf - [ --exclude=<glob> ]... -- <base>'
+## [ list form, no shell ] into blob_import_stream : the tar bytes land in one
+## randomly-named blob, one 'file' entry with archive => 'tar' records it. tar
+## exit 1 [ 'file changed as we read it' ] is a warning, the entry stays ;
+## exit >= 2 aborts with NO entry -- the blob may already be written
+## [ an orphan : a later gc collects it ]
+sub _import_archive {
+    my ( $v, $dir, $excludes, $title_opt ) = @ARG;
+
+    if ( not -d $dir ) {
+        say msg( 'refuse', '%s is not a directory', $dir );
+        return FALSE;
+    }
+    $dir =~ s|/+/\z||;
+    my $base   = $dir =~ m|\A.*/([^/]+)\z| ? $1 : $dir;
+    my $parent = $dir =~ m|\A(.*)/[^/]+\z| ? $1 : qw| . |;
+
+    my @tar = ( qw| tar -C |, $parent, qw| -cf - | );
+    push @tar, map {"--exclude=$ARG"} @{$excludes};
+    push @tar, '--', $base;
+    open( my $stream, '-|', @tar ) or do {
+        say msg( 'refuse', 'cannot run tar : %s', $OS_ERROR );
+        return FALSE;
+    };
+    binmode $stream;
+    my ( $name, $size ) = blob_import_stream( $v, $stream );
+    close $stream;
+    my $tar_exit = $? >> 8;
+    if ( $tar_exit >= 2 ) {
+        say msg(
+            'refuse',
+            "tar failed [ exit $tar_exit ] -- no entry saved "
+                . '[ blob %s may remain '
+                . 'in the vault : '
+                . "a later gc collects it ]",
+            $name
+        );
+        return FALSE;
+    }
+    say STDERR msg( 'info',
+              'tar : file changed as we read it [ '
+            . 'the archive holds the older bytes ]' )
+        if $tar_exit == 1;
+
+    my @st     = stat $dir or die "cannot stat $dir : $OS_ERROR\n";
+    my %record = (
+        type    => qw| file |,
+        title   => defined $title_opt ? $title_opt : $base,
+        archive => qw| tar |,
+        blob    => $name,
+        size    => $size,
+        origins => [
+            {   host     => ( POSIX::uname() )[1],
+                path     => File::Spec->rel2abs($dir),
+                mode     => $st[2] & 07777,
+                uid      => $st[4],
+                gid      => $st[5],
+                user     => scalar getpwuid( $st[4] ) // $st[4],
+                mtime    => int $st[9],
+                imported => ntime_b32( AMOS7::Vault::ntime_now() ),
+            }
+        ],
+    );
+    $record{'excludes'} = [ @{$excludes} ] if @{$excludes};
+
+    my $id = entry_save( $v, undef, \%record );
+    my ($saved) = entry_load( $v, $id );
+    say msg(
+        'done',
+        "%s '%s' [ %s bytes ] stored",
+        $saved->{'code'} // '',
+        $record{'title'}, $size
+    );
+    return TRUE;
+}
+
 ## write a stored file back. no dest : the recorded path of this host is the
 ## prompt default [ else the most recent origin of any host ]. never
 ## overwrites without a confirm ; mode and mtime are restored, the owner only
 ## as root [ a note when it differs and we cannot ]
 sub cmd_export {
-    my @args   = @ARG;
+    my @args = @ARG;
+    ## export -d <prefix> [ dest dir ] : every stored file under a prefix ##
+    return cmd_export_prefix( splice( @args, 1 ) )
+        if @args and $args[0] eq '-d';
+
     my $dest   = @args > 1 ? pop @args : undef;
     my $entry  = pick( join ' ', @args ) // return FALSE;
     my $record = $entry->{'record'};
@@ -1155,22 +1285,15 @@ sub cmd_export {
     }
     my $v = unlocked() // return FALSE;
 
-    my $origins = $record->{'origins'} // [];
-    if ( not @{$origins} ) {
+    my $origin = _origin_for_host($record) // do {
         say msg( 'refuse', 'no origin recorded for this file' );
         return FALSE;
-    }
+    };
 
-    ## this host's origin wins [ the last of its records ] ; else the most
-    ## recently imported one of any host
-    my $origin;
-    foreach my $o ( @{$origins} ) {
-        $origin = $o if $o->{'host'} eq ( POSIX::uname() )[1];
-    }
-    ($origin) = sort {
-        ( ntime_b32_to_unix( $b->{'imported'} // '' ) // 0 )
-            <=> ( ntime_b32_to_unix( $a->{'imported'} // '' ) // 0 )
-    } @{$origins} if not defined $origin;
+    ## an archive entry : the blob is a tar stream, extracted into a dir ##
+    return _export_archive( $v, $record, $origin, $dest )
+        if ( $record->{'archive'} // '' ) eq qw| tar |;
+
     my $default = $origin->{'path'} // '';
 
     if ( not defined $dest ) {
@@ -1188,20 +1311,68 @@ sub cmd_export {
         $dest =~ s|/+\z||;
         $dest = "$dest/$base";
     }
-    ## a fresh host often lacks the original directory : created on request
-    my ($parent) = $dest =~ m|\A(.+)/[^/]+\z|;
-    if ( defined $parent and not -d $parent ) {
-        return FALSE if not confirm("create directory '$parent'");
-        require File::Path;
-        File::Path::make_path( $parent, { mode => 0700, error => \my $e } );
-        if ( not -d $parent ) {
-            say msg( 'refuse', 'cannot create %s', $parent );
-            return FALSE;
-        }
-    }
+    return FALSE if not _export_prepare_parent($dest);
     if ( -e $dest or -l $dest ) {
-        return FALSE if not confirm("overwrite '$dest'");
+        my $all = FALSE;
+        return FALSE if not confirm_overwrite( "overwrite '$dest'", \$all );
     }
+    return FALSE if not _export_write_file( $v, $record, $origin, $dest );
+
+    say msg( 'done', "exported '%s' -> %s", $record->{'title'} // '', $dest );
+    return TRUE;
+}
+
+## the origin an export goes to : this host's latest
+## [ the last of its records ], else the most recently imported one of any
+## host
+sub _origin_for_host {
+    my $record  = shift;
+    my $origins = $record->{'origins'} // [];
+    return undef if not @{$origins};
+    my $host = ( POSIX::uname() )[1];
+    my ($origin);
+    foreach my $o ( @{$origins} ) {
+        $origin = $o if $o->{'host'} eq $host;
+    }
+    ($origin) = sort {
+        ( ntime_b32_to_unix( $b->{'imported'} // '' ) // 0 )
+            <=> ( ntime_b32_to_unix( $a->{'imported'} // '' ) // 0 )
+    } @{$origins} if not defined $origin;
+    return $origin;
+}
+
+## the parent of $dest : created on request [ 0700 when new ] -- FALSE when it
+## cannot be made. $quiet : no asking
+## [ the bulk export confirmed once already ]
+sub _export_prepare_parent {
+    my ( $dest, $quiet ) = @ARG;
+    my ($parent) = $dest =~ m|\A(.+)/[^/]+\z|;
+    return TRUE  if not defined $parent or -d $parent;
+    return FALSE if not $quiet and not confirm("create directory '$parent'");
+    require File::Path;
+    File::Path::make_path( $parent, { mode => 0700, error => \my $e } );
+    if ( not -d $parent ) {
+        say msg( 'refuse', 'cannot create %s', $parent );
+        return FALSE;
+    }
+    return TRUE;
+}
+
+## a confirm with an 'all' answer : 'y' this one, 'n' skip it, 'a' this and
+## every later one [ $$all stays set ]
+sub confirm_overwrite {
+    my ( $question, $all ) = @ARG;
+    return TRUE if $$all;
+    my $answer = prompt_line("$question [ y/N/a(ll) ]") // '';
+    if ( $answer =~ m|^a|i ) { $$all = TRUE; return TRUE }
+    return $answer =~ m|^y(es)?$|i ? TRUE : FALSE;
+}
+
+## the actual write : blob -> temp next to $dest -> mode + mtime -> rename
+## over it. the owner is restored as root, a note otherwise. returns TRUE /
+## FALSE [ the message is out ]
+sub _export_write_file {
+    my ( $v, $record, $origin, $dest ) = @ARG;
 
     ## temp file next to the dest, then rename over it ##
     my $tmp = sprintf '%s.p7tmp.%s', $dest, $PID;
@@ -1235,9 +1406,149 @@ sub cmd_export {
             $want_uid, $want_gid )
             if @st and ( $st[4] != $want_uid or $st[5] != $want_gid );
     }
-
-    say msg( 'done', "exported '%s' -> %s", $record->{'title'} // '', $dest );
     return TRUE;
+}
+
+## export of an archive entry [ archive => 'tar' ] : the blob is a tar stream,
+## extracted into a DIRECTORY -- the recorded dir's parent on this host by
+## default [ else asked ]. refused when <dest>/<base> exists, unless confirmed
+sub _export_archive {
+    my ( $v, $record, $origin, $dest_opt ) = @ARG;
+
+    my $dir_path = $origin->{'path'} // '';
+    my $base     = $dir_path =~ m|\A.*/([^/]+)\z| ? $1 : '';
+    if ( not length $base ) {
+        say msg( 'refuse', 'no recorded directory for this archive' );
+        return FALSE;
+    }
+
+    my $dest;
+    if    ( defined $dest_opt ) { $dest = $dest_opt }
+    elsif ( ( $origin->{'host'} // '' ) eq ( POSIX::uname() )[1]
+        and $dir_path =~ m|\A(.*)/[^/]+\z| ) {
+        $dest = $1;
+    } else {
+        $dest = prompt_line('export archive to directory') // return FALSE;
+    }
+    $dest =~ s|/+/\z||;
+    if ( not length $dest ) {
+        say msg( 'refuse', 'no destination' );
+        return FALSE;
+    }
+    if ( -e "$dest/$base" or -l "$dest/$base" ) {
+        my $all = FALSE;
+        return FALSE
+            if not confirm_overwrite( "overwrite '$dest/$base'", \$all );
+    }
+    if ( not -d $dest ) {
+        return FALSE if not confirm("create directory '$dest'");
+        require File::Path;
+        File::Path::make_path( $dest, { mode => 0700, error => \my $e } );
+        if ( not -d $dest ) {
+            say msg( 'refuse', 'cannot create %s', $dest );
+            return FALSE;
+        }
+    }
+
+    my @tar = ( qw| tar -C |, $dest );
+    push @tar, qw| --no-same-owner | if $EUID != 0;
+    push @tar, qw| -xf - |;
+    my $ok = eval {
+        open( my $in, '|-', @tar ) or die "cannot run tar : $OS_ERROR\n";
+        binmode $in;
+        blob_export( $v, $record->{'blob'}, $in );
+        close $in or die 'tar exited ' . ( $? >> 8 ) . " : $OS_ERROR\n";
+        1;
+    };
+    if ( not $ok ) {
+        say STDERR msg( 'refuse', '%s', $EVAL_ERROR );
+        return FALSE;
+    }
+    say msg(
+        'done',
+        "exported '%s' -> %s",
+        $record->{'title'} // '',
+        "$dest/$base"
+    );
+    return TRUE;
+}
+
+## export -d <prefix> [ dest dir ] : every live per-file entry
+## [ not archives ] whose recorded path for this host
+## [ else the latest origin ] starts with the prefix
+## [ normalised : ~ expanded, trailing slashes off ].  ONE list, ONE confirm,
+## then each file to its recorded path
+## [ or <dest> + the path relative to the prefix ], parents created
+## [ 0700 when new ], never overwritten unasked [ 'a' answers for the rest ]
+sub cmd_export_prefix {
+    my ( $prefix, $dest ) = @ARG;
+    if ( not defined $prefix ) {
+        say msg( 'info', 'export -d <path prefix> [ dest dir ]' );
+        return FALSE;
+    }
+    $prefix =~ s{\A~(?=/|\z)}{ $ENV{'HOME'} // '' }e;
+    $prefix =~ s|/+/\z||;
+    if ( not length $prefix ) {
+        say msg( 'refuse', 'no path prefix' );
+        return FALSE;
+    }
+    my $v = unlocked() // return FALSE;
+    my ( $list, $errors ) = entries_latest($v);
+    say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
+
+    my @hits;
+    foreach my $entry ( @{$list} ) {
+        my $record = $entry->{'record'};
+        next if lc( $record->{'type'}  // '' ) ne qw| file |;
+        next if ( $record->{'archive'} // '' ) eq qw| tar |;
+        my $origin = _origin_for_host($record) // next;
+        my $path   = $origin->{'path'}         // '';
+        next if not length $path;
+        next if not( $path eq $prefix or index( $path, "$prefix/" ) == 0 );
+        push @hits, [ $record, $origin, $path ];
+    }
+    if ( not @hits ) {
+        say msg( 'info', 'no stored files under %s', $prefix );
+        return FALSE;
+    }
+
+    my $total = List::Util::sum0( map { $ARG->[0]{'size'} // 0 } @hits );
+    say msg(
+        'info',       '[ %s file%s · %s bytes ] under %s :',
+        scalar @hits, @hits == 1 ? '' : 's',
+        $total,       $prefix
+    );
+    say sprintf "  $C{0}%s$C{R} $C{V}%s$C{R}",
+        $ARG->[0]{'code'} // '', $ARG->[2]
+        foreach @hits;
+    return FALSE if not confirm('export these files');
+
+    my $all = FALSE;
+    my ( $ok, $skipped ) = ( 0, 0 );
+    foreach my $hit (@hits) {
+        my ( $record, $origin, $path ) = @{$hit};
+        my $target = $path;
+        if ( defined $dest ) {
+            my $rel = substr $path, length($prefix) + 1;
+            $dest =~ s|/+/\z||;
+            $target = "$dest/$rel";
+        }
+        next if not _export_prepare_parent( $target, TRUE );
+        if ( -e $target or -l $target ) {
+            if ( not confirm_overwrite( "overwrite '$target'", \$all ) ) {
+                $skipped++;
+                next;
+            }
+        }
+        if ( _export_write_file( $v, $record, $origin, $target ) ) { $ok++ }
+        else { $skipped++ }
+    }
+    say msg(
+        $skipped ? 'refuse' : 'done',
+        'exported %s, skipped %s',
+        $ok, $skipped
+    );
+    return $skipped ? FALSE : TRUE;
 }
 
 ## file \ directory selector for import : Term::Clui::FileSelect
@@ -1329,7 +1640,14 @@ sub files_lines {
             my $u = ntime_b32_to_unix( $o->{'imported'} // '' ) // 0;
             $last = $u if $u > $last;
         }
-        my $info = sprintf '%d bytes · %d origin%s · %s',
+        my $info = '';
+        if ( ( $record->{'archive'} // '' ) eq qw| tar | ) {
+            my @excludes = @{ $record->{'excludes'} // [] };
+            $info = 'tar archive';
+            $info .= sprintf ' · %d excluded', scalar @excludes if @excludes;
+            $info .= ' · ';
+        }
+        $info .= sprintf '%d bytes · %d origin%s · %s',
             $record->{'size'} // 0,
             scalar @origins, @origins == 1 ? '' : 's',
             $last ? ymd_date($last) : '-';
@@ -1542,16 +1860,19 @@ sub cmd_codes {
 ## manual union of the entry files with another host :  p7-vault sync
 ## <ssh-host>[:<remote dir>]
 ## [ remote dir default : .n/vault in the remote home ]  one ssh call reads
-## the remote vault id [ from the key file, which sits in the clear ] and
-## lists the remote entries/ names + sha1 sums. a different vault id is
-## refused, a missing remote vault is refused with a hint. missing files
-## travel as ONE tar stream per direction, into a temp dir inside the vault,
-## and each file lands in entries/ only when absent -- never replaced, never
-## deleted. the key files are never transferred : differing content means a
-## passphrase change on one side, reported with a hint to copy vault.key.B32
-## over by hand once. no unlock needed, the files are opaque. the ssh command
-## comes from P7_VAULT_SSH [ default 'ssh' ] so ControlMaster or a test
-## wrapper can stand in
+## the remote vault id [ from the key file, which sits in the clear ], the
+## remote entries/ names + sha1 sums [ conflict check ] and the blobs/ names
+## alone -- a blob name is a keyed mac or random, the same name IS the same
+## content, so blobs are never hashed. a different vault id is refused, a
+## missing remote vault is refused with a hint. missing files travel as ONE
+## tar stream per direction, the name lists in a temp file \ on the remote's
+## stdin -- never on a command line [ 'argument list too long' ] --, into a
+## temp dir inside the vault, and each file lands in entries/ only when absent
+## -- never replaced, never deleted. the key files are never transferred :
+## differing content means a passphrase change on one side, reported with a
+## hint to copy vault.key.B32 over by hand once. no unlock needed, the files
+## are opaque. the ssh command comes from P7_VAULT_SSH [ default 'ssh' ] so
+## ControlMaster or a test wrapper can stand in
 sub cmd_sync {
     my $target = shift // do {
         say msg( 'info',
@@ -1585,6 +1906,7 @@ sub cmd_sync {
     my %kind = (
         entries => {
             re   => $AMOS7::Vault::ENTRY_FILE_RE,
+            hash => TRUE,
             case => ( '?' x 16 ) . '.'
                 . ( '?' x 14 ) . '.'
                 . ( '?' x 8 )
@@ -1592,18 +1914,25 @@ sub cmd_sync {
         },
         blobs => {
             re   => $AMOS7::Vault::BLOB_FILE_RE,
+            hash => FALSE,                 ## the name IS the content check ##
             case => ( '?' x 32 ) . '.vlb',
         },
     );
     my $invalid = 0;
     foreach my $name ( sort keys %kind ) {
-        my ( $sha, $invalid_local )
-            = _sync_local_listing( "$dir/$name", $kind{$name}{'re'} );
+        my ( $sha, $invalid_local ) = _sync_local_listing(
+            "$dir/$name",
+            $kind{$name}{'re'},
+            $kind{$name}{'hash'}
+        );
         $kind{$name}{'sha'} = $sha;
         $invalid += $invalid_local;
     }
 
-    ## ONE ssh call : key file, entry and blob names, sha1 sums
+    ## ONE ssh call : key file, entry names + sha1 sums, blob names alone.  no
+    ## shell glob over the dirs
+    ## [ 'argument list too long' at some 100k files ] : ls output only, find
+    ## -exec for the entry sha1 sums
     my $probe = join ' ',
         'cd ' . shq($remote),
         '2>/dev/null && {',
@@ -1612,11 +1941,9 @@ sub cmd_sync {
         'echo P7VAULT-LS;',
         'ls entries 2>/dev/null;',
         'echo P7VAULT-SHA;',
-        '( cd entries 2>/dev/null && sha1sum * 2>/dev/null );',
+        'find entries -maxdepth 1 -type f -exec sha1sum {} + 2>/dev/null;',
         'echo P7VAULT-BLOBS-LS;',
         'ls blobs 2>/dev/null;',
-        'echo P7VAULT-BLOBS-SHA;',
-        '( cd blobs 2>/dev/null && sha1sum * 2>/dev/null );',
         'echo P7VAULT-END;',
         '}';
     my ( $out, $probe_ok ) = run_capture( @ssh, $host, $probe );
@@ -1690,8 +2017,8 @@ sub cmd_sync {
 
         my ( $pushed, $push_skipped ) = ( 0, 0 );
         if (@push_names) {
-            my $r = _sync_push( $host, \@ssh, "$dir/$name", $remote, $name,
-                $k->{'case'}, \@push_names );
+            my $r = _sync_push( $host, \@ssh, $dir, "$dir/$name", $remote,
+                $name, $k->{'case'}, \@push_names );
             if ( not defined $r ) {
                 say msg( 'refuse',
                     'push to %s failed [ nothing was replaced ]', $host );
@@ -1743,16 +2070,20 @@ sub cmd_sync {
 
 ## local names + sha1 sums : only names matching the kind's pattern, the
 ## others counted [ never transferred ]. a missing dir
-## [ a vault written before blobs existed ] is an empty side
+## [ a vault written before blobs existed ] is an empty side. $hash FALSE :
+## names only, no content read [ blob names are self-authenticating ]
 sub _sync_local_listing {
-    my ( $path, $re ) = @ARG;
+    my ( $path, $re, $hash ) = @ARG;
 
     my ( %sha, $invalid ) = ( (), 0 );
     opendir( my $dh, $path ) or return ( \%sha, 0 );
     while ( my $name = readdir $dh ) {
         next if $name =~ m|^\.|;
-        if ( $name =~ $re ) { $sha{$name} = file_sha1("$path/$name") }
-        else                { $invalid++ }
+        if ( $name =~ $re ) {
+            $sha{$name} = $hash ? file_sha1("$path/$name") : undef;
+        } else {
+            $invalid++;
+        }
     }
     closedir $dh;
     return ( \%sha, $invalid );
@@ -1763,17 +2094,17 @@ sub _sync_local_listing {
 sub _sync_remote_listing {
     my ( $out, $kind, $re ) = @ARG;
 
+    ## blobs have no sha1 section : the name IS the content check ##
     my ( $ls_tag, $sha_tag, $end_tag )
         = $kind eq qw| blobs |
-        ? (
-        qw| P7VAULT-BLOBS-LS |,
-        qw| P7VAULT-BLOBS-SHA |,
-        qw| P7VAULT-END |
-        )
+        ? ( qw| P7VAULT-BLOBS-LS |, undef, qw| P7VAULT-END | )
         : ( qw| P7VAULT-LS |, qw| P7VAULT-SHA |, qw| P7VAULT-BLOBS-LS | );
 
-    my ($ls_text)  = $out =~ m|\Q$ls_tag\E\n(.*?)\Q$sha_tag\E|s;
-    my ($sha_text) = $out =~ m|\Q$sha_tag\E\n(.*?)\Q$end_tag\E|s;
+    my ($ls_text) = $out =~ m|\Q$ls_tag\E\n(.*?)\Q$end_tag\E|s;
+    my ($sha_text)
+        = defined $sha_tag
+        ? $out =~ m|\Q$sha_tag\E\n(.*?)\Q$end_tag\E|s
+        : undef;
 
     my ( %sha, $invalid ) = ( (), 0 );
     foreach my $line ( split m|\n|, $ls_text // '' ) {
@@ -1781,9 +2112,10 @@ sub _sync_remote_listing {
         $sha{$line} = undef;    ## filled from the sha1 lines ##
     }
     foreach my $line ( split m|\n|, $sha_text // '' ) {
-        my ( $sum, $name ) = $line =~ m|\A([0-9a-f]{40})  (\S+)|;
+        my ( $sum, $path ) = $line =~ m|\A([0-9a-f]{40})  (\S+)|;
         next if not defined $sum;
-        next if $name !~ $re;
+        my ($name) = $path =~ m|\A[^/]+/([^/]+)\z|;    ## 'entries/<name>' ##
+        next if not defined $name or $name !~ $re;
         $sha{$name} = $sum;
     }
     return ( \%sha, $invalid );
@@ -1793,9 +2125,13 @@ sub _sync_remote_listing {
 ## vault [ the target subdir may not exist yet on an older copy ], each file
 ## moved in only when absent. returns [ moved, skipped ] or undef
 sub _sync_push {
-    my ( $host, $ssh, $local_dir, $remote, $sub, $case_pattern, $names )
+    my ( $host, $ssh, $dir, $local_dir, $remote, $sub, $case_pattern, $names )
         = @ARG;
 
+    my $list = _sync_list_file( $dir, $names ) // do {
+        say msg( 'refuse', 'cannot create the name list' );
+        return undef;
+    };
     my $target_dir = shq("$remote/$sub");
     my $receive    = join ' ',
         'd=$(mktemp -d ' . shq("$remote/.p7-sync.XXXXXXXX") . ')',
@@ -1814,14 +2150,28 @@ sub _sync_push {
         'done;',
         'rm -rf "$d";',
         'echo P7SYNC moved=$moved skipped=$skipped';
+    ## the names come out of a temp list file : none on the command line ##
     my $pipeline = sprintf '%s | %s %s %s',
-        join( ' ', 'tar', '-C', shq($local_dir), '-cf', '-', '--',
-        @{$names} ),
+        join( ' ',
+        'tar', '-C', shq($local_dir), '-cf', '-', '-T', shq($list) ),
         join( ' ', @{$ssh} ), shq($host), shq($receive);
     my ( $pout, $pok ) = run_capture($pipeline);
+    unlink $list;
     my ( $moved, $skipped )
         = ( $pout // '' ) =~ m|P7SYNC moved=(\d+) skipped=(\d+)|;
     return ( not $pok or not defined $moved ) ? undef : [ $moved, $skipped ];
+}
+
+## the validated names, one per line, in a temp file next to the vault --
+## never on a command line [ 'argument list too long' at some thousand ]
+sub _sync_list_file {
+    my ( $dir, $names ) = @ARG;
+    my $path = sprintf '%s/.p7-sync.list.%s.%s', $dir, $PID,
+        AMOS7::Vault::_b32( AMOS7::Vault::_random_bytes(4) );
+    open( my $fh, '>', $path ) or return undef;
+    print {$fh} "$ARG\n" foreach @{$names};
+    close $fh or do { unlink $path; return undef };
+    return $path;
 }
 
 ## pull : the same the other way, through a local temp dir inside the vault,
@@ -1837,18 +2187,21 @@ sub _sync_pull {
         say msg( 'refuse', 'cannot create %s', $tmp );
         return undef;
     };
-    ## the local tar extracts only the validated names        ##
-    ## [ a hostile stream cannot add paths or extra members ] ##
-    my $pipeline = sprintf '%s %s %s | tar -C %s -xf - -- %s',
+    my $list = _sync_list_file( $dir, $names ) // do {
+        rmdir $tmp;
+        say msg( 'refuse', 'cannot create the name list' );
+        return undef;
+    };
+    ## the names go to the remote on ITS stdin                              ##
+    ## [ tar -T - reads the list there ], the tar stream comes back on ours ##
+    ## ; the local tar extracts only the listed names                       ##
+    ## [ a hostile stream cannot add members ]                              ##
+    my $pipeline = sprintf '%s %s %s < %s | tar -C %s -xf - -T %s',
         join( ' ', @{$ssh} ), shq($host),
-        shq(
-        join ' ',
-        'cd ' . shq($remote_dir),
-        '&& tar -cf - --',
-        @{$names}
-        ),
-        shq($tmp), join( ' ', @{$names} );
+        shq( join ' ', 'cd ' . shq($remote_dir), '&& tar -cf - -T -' ),
+        shq($list), shq($tmp), shq($list);
     my ( undef, $pok ) = run_capture($pipeline);
+    unlink $list;
     if ( not $pok ) {
         unlink glob "$tmp/*";
         rmdir $tmp;
@@ -1869,17 +2222,30 @@ sub _sync_pull {
         my $target = "$local_dir/$name";
         if ( -e $target ) {
             ## appeared meanwhile : same content is fine, different is a
-            ## conflict -- never replaced
-            $conflicts++ if file_sha1($target) ne file_sha1($src);
+            ## conflict -- never replaced. blobs : the same name is the same
+            ## content [ keyed mac or random ], nothing to hash
+            $conflicts++
+                if $name !~ $AMOS7::Vault::BLOB_FILE_RE
+                and file_sha1($target) ne file_sha1($src);
             next;
         }
-        open( my $fh, '<:raw', $src ) or next;
-        my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
-        close $fh;
-        my ( $ok, $err ) = AMOS7::Vault::_write_new_file( $target, $content );
-        if   ($ok) { $pulled++ }
-        else       { say STDERR msg( 'refuse', '%s', $err ) }
+
+        ## the pulled file sits in a temp dir inside the vault
+        ## [ same filesystem ] : synced, then linked into place -- never read
+        ## into memory [ an archive blob can be 88 GB ]. link is exclusive ;
+        ## no hard links [ vfat ] : the checked rename
+        if ( open( my $fh, '<:raw', $src ) ) { $fh->sync; close $fh }
+        if ( link $src, $target ) {
+            unlink $src;
+            $pulled++;
+        } elsif ( not -e $target and rename $src, $target ) {
+            $pulled++;
+        } else {
+            say STDERR msg( 'refuse', 'cannot place %s : %s', $name,
+                "$OS_ERROR" );
+        }
     }
+    AMOS7::Vault::_sync_dir($local_dir) if $pulled;
     closedir $tdh;
     unlink glob "$tmp/*";
     rmdir $tmp;
@@ -2233,8 +2599,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,,.,,,,.,...,,,,,..,,.,,,,..,.,,,,.,,..,,..,,...,...,,..,,.,,.,,,.,.,,,.,
-#OSF3KR3HFGNJWLII3LBXRGUCCD4L7J4DULS4MYXKLVHPEDCZDHBWWJI3LFLP53QGGKWXNFICHEO2W
-#\\\|MZRIHHGYTRLFVWKHPKXAPOLYJKK36ZTYPZLG3JKRAF7KHBKUDTN \ / AMOS7 \ YOURUM ::
-#\[7]LPY3ABB2EBA7UOS4IQ7DUTP32BOYE2RTEYZUK3WBKV2AZMF762BY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,..,,.,,,..,..,,,.,,,..,,.,,..,,...,.,.,...,..,,.,.,.,,,,,,,
+#FDFYCCSBIBPE2VGNKYIKCGKZZ4B5ABFILWSMNGYTG4OOXUYSOTLF2N7BU5NUMBIFBGC7LK5E5N2S2
+#\\\|HK7KHCUJRLWDZ7DXQTSXVKQB52SGENM3KGA7H2C3A3ZWDJKPQZJ \ / AMOS7 \ YOURUM ::
+#\[7]IWQXWYDFNENNEJZFDVYVKSS3UUS6HYQL46NA6SPAPSL6PDAQUCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
