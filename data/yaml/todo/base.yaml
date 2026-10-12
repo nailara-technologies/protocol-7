@@ -1221,9 +1221,24 @@ items:
   tags:
   - nameserv
   text: 'nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance [ replaces systemd-resolved on desktops and hosts ]'
+- added: 3X42FANRJE
+  details: |-
+    idea 2026-10-12. the desktop browser talks to the local proxy zenka [ 127.0.0.1:8118, selector templates ] ; proxy asks transport for a route [ proxy.transport.select ] ; a new transport handle 'external-link' asks the local external zenka for a tunnel through an external.link.open session [ encrypted, keypair auth, link-upgrade ] to e.g. pri ; two STRM streams [ up \ down ] ; the remote side connects to the target and pumps both ways. external is the first user of transport. not tcp-in-tcp [ proxy ends the client connection, the exit opens a new one ] ; head-of-line between tunnels on one link remains -> UDT under the external link later [ plugin.external.udt, transport.handle.udt-tunnel ], nothing above changes. NEEDED : exit permission [ named link users only ; refuse loopback \ private \ link-local targets and the host's own ports by default -- no open relay ], backpressure over STRM [ a slow reader slows the remote read, bounded buffers ], lifecycle [ either side closes both streams, idle timeouts both ends ], tests with two local cubes. hysteria [ atom + pri, hand-written systemd ] stays until this works ; meanwhile clients use pri [ unlimited traffic ], atom [ 1 TB limit ] as fallback. transport quality probe : traffic-limit as a cost weight per link.
+    session security [ user idea 2026-10-12 ] : C25519 per tunnel session between proxy and exit, cached by the zenka for smooth reconnects. end-to-end : relays on a multi-hop external route only carry. shape : ephemeral X25519 per session signed by the long-term identity [ labelled sig ], keys by HKDF over the handshake transcript [ forward secrecy ], one key per direction + counter nonces [ the 2026-10-05 link-upgrade lesson, fail-closed ]. resumption cache = secret : memory only, minutes, bound to both identities, dropped on key rotation, resume proves possession with fresh nonces from both sides [ no replay ]. after a reconnect each side resends from the last acked byte -> bounded replay buffers, shared limits with the backpressure part. design doc + line-by-line review before code.
+    identity via the existing pinning design [ user 2026-10-12 ] : exit key 'proxy-exit' per host, delegated by host-root [ .dlg, like nameserv-sync \ cube S ], verified with trust.verify against the pinned host-root fingerprint [ ~/.n/remote-keys/servers/, first contact like server pins ]. adjust : leaf name must end in '.proxy-exit' [ host-root also delegates cube S and the sync key ]. client side signs with <user>.base, the exit grants key ids in host.cfg [ like sync writer grants ]. resumption cache keyed by pinned host-root fingerprint + exit key id : a pin change or new delegation drops it.
+    parallelism [ user 2026-10-12 ] : two kinds. PATH : several links to the same exit [ two routes, later tcp + udt side by side ] -- same egress address, invisible to sites, safe : hot standby via resumption, optional striping. EXIT : different exits [ pri \ delta \ yourum ] -- different source addresses, breaks ip-bound sessions [ logins, cookies, rate limits, fraud checks ]. so exits are sticky per site by default [ selector rule state ], racing only for anonymous fetches. automatic pinning with expiry on trouble signals : 401 \ 403 \ 429, login redirects, captcha pages, a session cookie rejected after an exit change -> recorded in the visit log, the selector learns from it. https [ CONNECT ] shows no status codes : only connection-level signals [ resets, tls failures, timing ] -> https starts sticky, content signals only for plain http or sites whose template terminates in the proxy.
+  done_at: null
+  id: HS4
+  priority: normal
+  status: open
+  tags:
+  - proxy
+  - external
+  - transport
+  text: 'proxy -> external link tunnel : native hysteria replacement over STRM'
 
-#,,..,.,,,,,.,..,,,,,,,..,.,.,.,,,,.,,..,,..,,..,,...,..,,..,,,.,,.,.,..,,,,.,
-#3WYBMVOBN4BJ2BWMUOV42PLFQTWQGSXBUZ365DSGMOGW6Z4Y3QKBFPUKXVZX4IHX24PXKAAUVFRE4
-#\\\|G4J4P3QLKQ4VUIOTLJ73OQZJSBVWVYEH2MX723EWANZLOJDJJTY \ / AMOS7 \ YOURUM ::
-#\[7]OTYOVGVHMSQAKRE3HZ5TOS6ZLA36QIR35BWDIWDSRUPPHVWJ2YBY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,.,,,.,,,..,,,,,,,..,,..,,..,..,,...,...,,.,,.,,,,..,...,,..,
+#777TEFVBKT5NIASIEWXAAIQFBXLBOVFWKF6RLSOZPB7Z5P2KAFCMGLTGYUO3TDE3S7FFRKSAAMOHY
+#\\\|5VAC2YUVKZSW3IYNJ5GAQDBNJKBUNM7HCY6VRQVWXXH7W4O4PYI \ / AMOS7 \ YOURUM ::
+#\[7]S7N3MG746ZCIAHYG6GLVDL3YFSJVZRTHFDTCKTMBJH7PE6RFW2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
