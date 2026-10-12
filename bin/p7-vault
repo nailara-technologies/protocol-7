@@ -608,17 +608,26 @@ sub matches {
         return TRUE
             if index( lc( $record->{$field} // '' ), lc $filter ) != -1;
     }
+    ## file entries : the recorded paths too, so one file out of an imported
+    ## directory is found by its path [ titles are base names ]
+    foreach my $origin ( @{ $record->{'origins'} // [] } ) {
+        return TRUE
+            if index( lc( $origin->{'path'} // '' ), lc $filter ) != -1;
+    }
     return FALSE;
 }
 
 sub summary_line {
     my ( $n, $record ) = @ARG;
     my $type = $record->{'type'} // 'login';
+    ## file entries show their latest recorded path : same-named files out of
+    ## different directories stay apart in a choice list
     my $who
-        = $type eq 'contact'
-        ? join( ' ',
+        = $type eq 'contact' ? join( ' ',
         grep {length} $record->{'phone'} // '',
         $record->{'email'} // '' )
+        : $type eq 'file'
+        ? ( ( $record->{'origins'} // [] )->[-1] // {} )->{'path'} // ''
         : join( ' ',
         grep {length} $record->{'username'} // '',
         $record->{'url'} // '' );
@@ -2224,8 +2233,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,..,,,,,,,..,..,,..,,..,,,,,,..,,,,.,,.,,..,,...,...,..,,,..,.,.,.,.,,.,,
-#443AHIJRGKJTOANA2PPH2R7WI6AADTBXYMYGZ6CBRAAIDJ5XH4ML4PTWZUKAZ3YKZ4JQFSZSVDEMG
-#\\\|HX3F7IV5EGCIS3J2HI7SZSRGKVJVYOYLB7FMQNC55M6JNRYLMBA \ / AMOS7 \ YOURUM ::
-#\[7]XS53IPSF7E5ORM3YBJUWMRRBBTJCLRAH2WRSXMA6NV4P27GXT6BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,,,,..,,.,,,,..,.,,,,.,,..,,..,,...,...,,..,,.,,.,,,.,.,,,.,
+#OSF3KR3HFGNJWLII3LBXRGUCCD4L7J4DULS4MYXKLVHPEDCZDHBWWJI3LFLP53QGGKWXNFICHEO2W
+#\\\|MZRIHHGYTRLFVWKHPKXAPOLYJKK36ZTYPZLG3JKRAF7KHBKUDTN \ / AMOS7 \ YOURUM ::
+#\[7]LPY3ABB2EBA7UOS4IQ7DUTP32BOYE2RTEYZUK3WBKV2AZMF762BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
