@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = nameserv.consistency.query
+# descr = send one async dns query of the consistency run
+
+## one Net::DNS bgsend + io watcher + 5 s timeout timer per query, so the
+## zenka never blocks on dns. without a server the system resolver asks public
+## dns ; with a server the query goes to that name server directly
+## [ recurse off ]. a send failure completes right away.
+
+my $state  = shift;
+my $params = shift;
+return FALSE
+    if ref $params ne qw| HASH |
+    or not length( $params->{'kind'} // '' )
+    or not length( $params->{'name'} // '' );
+
+my $kind = $params->{'kind'};
+my $name = lc $params->{'name'};
+my $type = uc( $params->{'type'} // qw| A | );
+my $id   = sprintf '%04d', ++$state->{'qid'};
+
+my $q = {
+    %$params,
+    'id'   => $id,
+    'kind' => $kind,
+    'name' => $name,
+    'type' => $type
+};
+
+my @resolver_params = ( 'udp_timeout' => 5, 'tcp_timeout' => 5 );
+push @resolver_params, 'nameservers' => [ $params->{'server'} ]
+    if defined $params->{'server'};
+
+my $resolver = Net::DNS::Resolver->new(@resolver_params);
+$resolver->recurse( defined $params->{'server'} ? 0 : 1 );
+
+my $sock = $resolver->bgsend( $name, $type );
+$q->{'resolver'}           = $resolver;
+$q->{'sock'}               = $sock;
+$state->{'queries'}->{$id} = $q;
+
+if ( not defined $sock ) {
+    ## send failure : counts as answered-with-nothing ##
+    <[nameserv.consistency.complete]>->( $state, $id, [], FALSE );
+    return TRUE;
+}
+
+$q->{'watcher'} = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => 'r',
+        'handler' => qw| nameserv.consistency.handler.answer |,
+        'data'    => $id,
+        'desc'    => "consistency query [ $type $name ]"
+    }
+);
+$q->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => 5,
+        'handler' => qw| nameserv.consistency.handler.timeout |,
+        'data'    => $id,
+        'desc'    => "consistency timeout [ $type $name ]"
+    }
+);
+
+if ( not defined $q->{'watcher'} or not defined $q->{'timer'} ) {
+    ## cannot watch the answer : treat as timed out ##
+    <[nameserv.consistency.complete]>->( $state, $id, [], TRUE );
+    return TRUE;
+}
+
+return TRUE;
+
+#,,..,..,,.,.,...,,,,,..,,..,,...,.,.,,..,.,,,..,,...,.,.,,..,..,,,..,,..,.,.,
+#HZ4ZKWF2DP4FENEOGFLBP5MC2K2UEDFLS5RKPGDC2ZUXMAGAUWH6MKCPOBPPJBYFYMLOICE7V5DZ6
+#\\\|F7GAOCBJFS32C2EWB6NP5XGW7RVC7IRNCIGDCKHJGGH6FV6666I \ / AMOS7 \ YOURUM ::
+#\[7]ZSUFOAWEAWN4URUENOOFKYF2YMVYTKNMLAKSRPZQMLG5355AEEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

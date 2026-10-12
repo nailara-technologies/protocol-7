@@ -29,6 +29,11 @@
 <nameserv.cfg.sync.port>   //= 7753;
 <nameserv.cfg.sync.listen> //= 'no';
 
+## consistency check configuration [ per host in host.cfg ] ##
+<nameserv.cfg.dn_names>       //= '';    ## own name server names ##
+<nameserv.cfg.dn_peers_names> //= '';    ## optional, every dn name ##
+## expected in each zone  ##
+
 ## 13 steps of 5 minutes [ 3600 / 3900 = 12 / 13 ] ##
 <nameserv.cfg.default_ttl> //= 3900;
 
@@ -58,10 +63,30 @@ if ( not -d <nameserv.zone_dir> ) {
 ## stage 2 : timestamp delta sync [ silent without sync config ] ##
 <[nameserv.sync.start]>;
 
+## consistency check [ warns only, never changes anything ] : first run 77  ##
+## s after start [ the cube session is up by then -- the check itself never ##
+## runs from init, only from the timer ], then every 3900  re-init safe : a ##
+## reload cancels the previous timers instead of adding a second set        ##
+for my $timer ( @{ <nameserv.consistency.timers> // [] } ) {
+    $timer->cancel if ref $timer and eval { $timer->can('cancel') };
+}
+<nameserv.consistency.timers> = [
+    <[event.add_timer]>->(
+        {   'after'   => 77,
+            'handler' => qw| nameserv.consistency.run |
+        }
+    ),
+    <[event.add_timer]>->(
+        {   'interval' => 3900,
+            'handler'  => qw| nameserv.consistency.run |
+        }
+    ),
+];
+
 0;
 
-#,,,,,,..,,..,,..,...,,,,,,,,,,.,,...,.,,,,..,..,,...,...,.,.,,..,.,.,,.,,...,
-#OYHQVQLFGWRHHX6DMUGHARDWF7BQR6GU4LYQ4P5IVU53LGMAAHPOFJPELH33PSJNLNYASSLBOPJWQ
-#\\\|BDJBAZO7ZJWUJMCXDWLIWZ6FXW4GSWHOLIY6KNDZPAHFYND3VUZ \ / AMOS7 \ YOURUM ::
-#\[7]7UUWHKWCRA7BM6MKOVGVQZ4TGE23E2WDY5Q6GMTOYDEOJRZYH2DA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,..,,,.,,.,.,,.,,...,,,,,.,.,..,,...,...,,,.,,,,,...,.,.,,.,,
+#EDKKINMAWXR6XX3JF5MRYY7QXXZE5QDSJKYY2AVABRUUQHJT2UP3FXUBG6MTOH7JKGKKQAKN374CI
+#\\\|GZ3GMF2YSGPYW464LQE53UI7RGP2B2O2PZ55ZQ5RQPDCHYYQQCX \ / AMOS7 \ YOURUM ::
+#\[7]EEUAVD4JKQNQQHUNUPG3VP7AF3AID5PDZAIMFPP3R6EGY7LOKEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = nameserv.consistency.reverse-name
+# descr = ptr query name of an ip address [ in-addr \ ip6 arpa ]
+
+my $addr = shift // return '';
+
+if ( $addr =~ m|^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$| ) {
+    return join( '.', reverse split m|\.|, $addr ) . '.in-addr.arpa';
+}
+
+require Socket;    ## inet_pton : not imported into a zenka ##
+
+my $bin     = Socket::inet_pton( Socket::AF_INET6(), $addr ) // return '';
+my @nibbles = split //, unpack 'H*', $bin;
+return join( '.', reverse @nibbles ) . '.ip6.arpa';
+
+#,,,,,,,,,.,,,,,.,,..,,.,,...,.,.,,.,,.,.,.,,,..,,...,...,..,,,.,,,.,,..,,...,
+#FNLPA4OXIJIVK3Y2P42M6TTXDNRRDA5X5J3UETI2T3JMLHQZKTF2CWTVGFF3HEG7A4NE54MZNRKY4
+#\\\|ZZYNQWJKANO7AW3YGXBYNZ2JUIEFDXC2BVSEBMUUOJUM7M7JDPU \ / AMOS7 \ YOURUM ::
+#\[7]V2VAAW6JXYCFWAS64PYB4OIGQN5L4BYY5GTA7LX5234MUDK574DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

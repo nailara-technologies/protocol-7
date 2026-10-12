@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = nameserv.cmd.consistency
+# descr = show last consistency run or start one now
+# param = [ :run: ]
+
+my $args = $call->{'args'} // '';
+
+if ( $args =~ m|^\s*:?run:?\s*$|i ) {    ## ':run:' [ also 'run' ] ##
+    my $state = <nameserv.consistency.state>;
+    return {
+        mode => qw| false |,
+        data => 'consistency run already in progress'
+        }
+        if ref $state and $state->{'active'};
+    <[nameserv.consistency.run]>;
+    return { mode => qw| true |, data => 'consistency run started' };
+}
+
+my $last = <nameserv.consistency.last_run>;
+if ( not ref $last ) {
+    return { mode => qw| true |, data => 'no consistency run yet' };
+}
+
+my @lines = sprintf ': consistency last run : %s',
+    scalar localtime( $last->{'time'} );
+
+if ( @{ $last->{'findings'} // [] } ) {
+    push @lines,
+        map { sprintf ': consistency : %s', $ARG } @{ $last->{'findings'} };
+} else {
+    push @lines, ': consistency : consistent';
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) };
+
+#,,,.,...,...,..,,.,.,.,.,,,.,,,,,,..,,.,,,,,,..,,...,...,..,,.,.,,..,,,.,,.,,
+#OIIE47ISV4IK7L4GRBLBWNDTLDG2F33EBJPEVH3ZC5GWNGSDKCTAXUYXNW6JZYXER4ZTE4YA72HH2
+#\\\|AAUEKBYSPH6LLOBB537T7L7Q6UFOF43LMVDRLK554574QZA6ODZ \ / AMOS7 \ YOURUM ::
+#\[7]TSLWR7JQI3MU22EBZBDVTOZVYZX37VNYOZL42CJMC4AOKPZXHUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

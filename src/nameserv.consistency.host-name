@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = nameserv.consistency.host-name
+# descr = this host's own name [ for the ptr expectation ]
+
+require Sys::Hostname;    ## not imported into a zenka ##
+
+my $name = lc( Sys::Hostname::hostname() // '' );
+$name =~ s|\.+$||;
+return $name;
+
+#,,.,,.,.,...,,..,.,,,...,.,,,.,,,,..,.,.,,..,..,,...,...,..,,.,.,.,.,.,,,...,
+#LCUVX4YCE34O6HHTU2ETX5KKLVUGFEHKPHXJOQ6Y46IOB5NUU2F7O5B33GSVWRY743CZKPZHCGS36
+#\\\|FII56WYZPESXMZULCJSW33ECESM3F7RH7F5KM36BKTKFQK4XFWE \ / AMOS7 \ YOURUM ::
+#\[7]CTFBM6B5VRDVCG6XZYWO6HGYD6XEIOWVRFFORFS3FRNL76AWGUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

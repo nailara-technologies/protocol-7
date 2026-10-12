@@ -14,7 +14,7 @@ my $zones = <nameserv.zones>;
 
 if ( not length $zone_name ) {
     ## whole set : one value answers anything new at all ##
-    my $set_ts = <[nameserv.zone.timestamp]>->();
+    my $set_ts = <[nameserv.zone.timestamp]>;
     return { mode => 'true', data => sprintf 'TRUE %s', $set_ts }
         if defined $set_ts;
     return {
@@ -41,8 +41,8 @@ return {
     $zone_ts, $checksum
 };
 
-#,,,.,,..,,.,,,,,,,.,,...,,,.,...,,..,...,..,,..,,...,...,..,,,..,..,,,..,,,.,
-#ASGELQQWRU4M2IQ6F5BIU65HCZPYRHSYZQJPWKLAYZLUD34SMLEJMQPFOR4SJXQBXH3MRIFJCOHIW
-#\\\|TNY63Q6PXFXQXHNWVX7N5IUORPJBJEABRV4ZZJDYRS5MM5ICD3G \ / AMOS7 \ YOURUM ::
-#\[7]AHHPKTM7UBJBA6PEW7ZT7SDUWX2ETANOCQGYDEMGPGV5YZ52IOBY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,...,,..,.,.,...,,.,,..,,,..,..,,...,...,,..,,,,,,,.,.,.,...,
+#S4EXQVSZ5VAV7PNEVSN664OBFJ53OMMLDPVAHH5EDHJXQMYWEAFGEQA4ZW4ADJL3ZOXJIDWPVZW2W
+#\\\|RGK3SIF6XNC3PHM5PE3DLANNCFE5XROWZKF3PCKHNFUT33FYO6C \ / AMOS7 \ YOURUM ::
+#\[7]IF3CRIWRXPQSUINGQ3JODF225YAQDEZOXQAZDHDM5SZJLTKYPIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

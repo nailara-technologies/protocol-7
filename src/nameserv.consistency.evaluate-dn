@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = nameserv.consistency.evaluate-dn
+# descr = compare one dn name's public records with the real addresses
+
+## runs once the A and AAAA answers and the glue expectation are all in
+## [ check 1 ] : the public records of this dn name against the real addresses
+## of this host. [ check 2 ] : the same public values are the glue the parent
+## zone publishes for a delegated dn name -- compared again when glue is
+## expected, pointing at the registrar this time.
+
+my $state = shift;
+my $dn    = shift;
+
+my $d = $state->{'dn'}->{$dn} // return FALSE;
+return FALSE if grep { not defined $d->{$ARG} } qw| a aaaa glue |;
+
+for my $family (
+    [ qw| A |,    'a',    $state->{'real'}->{'v4'} ],
+    [ qw| AAAA |, 'aaaa', $state->{'real'}->{'v6'} ]
+) {
+    my ( $type, $key, $real ) = @$family;
+    next unless @$real;
+    my @dns = sort @{ $d->{$key} // [] };
+    next if join( ' ', @dns ) eq join( ' ', sort @$real );
+
+    if (@dns) {
+        $state->{'findings'}->{
+            sprintf 'update %s %s : %s -> %s',
+            $type, $dn, $dns[0], $real->[0]
+        } = TRUE;
+    } else {
+        $state->{'findings'}
+            ->{ sprintf 'add %s %s : %s', $type, $dn, $real->[0] } = TRUE;
+    }
+
+    next if $d->{'glue'} ne qw| expected |;
+    if (@dns) {
+        $state->{'findings'}->{
+            sprintf 'update glue %s : %s %s -> %s [ registrar ]',
+            $dn, $type, $dns[0], $real->[0]
+        } = TRUE;
+    } else {
+        $state->{'findings'}->{
+            sprintf 'add glue %s %s : %s [ registrar ]',
+            $type, $dn, $real->[0]
+        } = TRUE;
+    }
+}
+
+return TRUE;
+
+#,,..,,,,,,,.,,.,,,..,..,,..,,,,.,...,..,,..,,..,,...,.,.,..,,.,.,,,,,,.,,,.,,
+#DRGNYN5OVX2L24F6C6XYRLXDPX6KTCZDUT65HK5GQCVMYM3Q6WTKTZVSCGPVSQVOEFP3FYSUREECU
+#\\\|NFM6D7K46REE2XPKSNI72QWOD24XDWFAJ45YYAP47N6RQW2YUZX \ / AMOS7 \ YOURUM ::
+#\[7]YPWCKIVMMRHZSQLBLS6SDQOHKUDSF2HXZYH3LXGZZ4QIWH6C4YDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

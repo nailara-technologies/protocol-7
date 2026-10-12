@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = nameserv.consistency.run
+# descr = start one consistency check run [ warns only ]
+
+## timer handler : the event carries no data of interest. one run at a time ;
+## every dns query goes through bgsend + io watcher + 5 s timer, the run ends
+## when all queries are answered or timed out. the run state lives in
+## <nameserv.consistency.state> so the io \ timer handlers and the command can
+## reach it.
+
+my $event = shift;
+
+my $state = <nameserv.consistency.state>;
+return TRUE if ref $state and $state->{'active'};
+
+my @dn_names = map { lc $ARG } grep {length} split m|\s+|,
+    <nameserv.cfg.dn_names> // '';
+my @peers = map { lc $ARG } grep {length} split m|\s+|,
+    <nameserv.cfg.dn_peers_names> // '';
+my $zones = <nameserv.zones> // {};
+
+$state = {
+    'active'   => TRUE,
+    'started'  => time(),
+    'qid'      => 0,
+    'real'     => <[nameserv.consistency.real-addresses]>,
+    'dn'       => {},
+    'dn_set'   => { map { $ARG => TRUE } @dn_names },
+    'peers'    => \@peers,
+    'ns'       => {},
+    'queries'  => {},
+    'findings' => {},
+};
+<nameserv.consistency.state> = $state;
+
+if ( not @dn_names ) {
+    ## checks 1, 2 and 4 need this host's own name server names ##
+    $state->{'findings'}->{ 'dn_names not configured : skipping '
+            . 'own record, glue and ptr checks' } = TRUE;
+}
+
+for my $dn (@dn_names) {
+    $state->{'dn'}{$dn} = { 'a' => undef, 'aaaa' => undef, 'glue' => undef };
+    <[nameserv.consistency.query]>->(
+        $state, { 'kind' => qw| a |, 'name' => $dn, 'type' => qw| A | }
+    );
+    <[nameserv.consistency.query]>->(
+        $state, { 'kind' => qw| aaaa |, 'name' => $dn, 'type' => qw| AAAA | }
+    );
+
+    ## check 2 : glue matters only when the parent domain is delegated to ##
+    ## one of our dn names -- ask the parent zone for its NS first        ##
+    my $parent = $dn;
+    if ( $parent =~ s|^[^.]+\.|| and index( $parent, qw| . | ) > 0 ) {
+        <[nameserv.consistency.query]>->(
+            $state,
+            {   'kind' => qw| parent-ns |,
+                'name' => $parent,
+                'type' => qw| NS |,
+                'dn'   => $dn
+            }
+        );
+    } else {
+        $state->{'dn'}{$dn}{'glue'} = qw| skip |;
+    }
+}
+
+## check 3 : NS sets and SOA serials of the served zones [ optional ] ##
+if (@peers) {
+    for my $zone_name ( sort keys %$zones ) {
+        <[nameserv.consistency.query]>->(
+            $state,
+            {   'kind' => qw| zone-ns |,
+                'name' => $zone_name,
+                'type' => qw| NS |
+            }
+        );
+    }
+}
+
+## check 4 : the ptr of each real address must point back to a dn name or ##
+## the host name                                                          ##
+if (@dn_names) {
+    $state->{'ptr_expected'}
+        = [ @dn_names, <[nameserv.consistency.host-name]> ];
+    for my $addr ( @{ $state->{'real'}{'v4'} }, @{ $state->{'real'}{'v6'} } )
+    {
+        <[nameserv.consistency.query]>->(
+            $state,
+            {   'kind' => qw| ptr |,
+                'name' => <[nameserv.consistency.reverse-name]>->($addr),
+                'type' => qw| PTR |,
+                'addr' => $addr
+            }
+        );
+    }
+}
+
+## nothing to ask [ no dn names, no peers ] : finish right away ##
+<[nameserv.consistency.finish]>->($state)
+    if not keys %{ $state->{'queries'} };
+
+return TRUE;
+
+#,,..,,,,,,,.,..,,,..,...,..,,,,.,.,.,..,,,.,,..,,...,..,,,,,,,,,,,.,,.,.,,,,,
+#CPI6VN5HTMQK4I7ZBFJTEXTYVJO5RJ34EOGUTWNAI3V4WIV2C6KEYSTOPLNPADZAX3PP7RSUFNJCG
+#\\\|D6RMDFOF7DU4RMVQF26BSVH43PEUAX7Z7AK6ZTEGP5OMGDUC73A \ / AMOS7 \ YOURUM ::
+#\[7]24WBIPISM46YF53OVTXERES66VWLOGB6GOO6UPVQRP5X2A4ZZWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

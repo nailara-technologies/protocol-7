@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nameserv.consistency.finish
+# descr = log new \ resolved findings, store the run result
+
+## a finding logs at level 1 only when it is new or changed since the previous
+## run ; a finding that disappeared logs ': resolved :' once.  the last run is
+## kept for the nameserv.consistency command.
+
+my $state = shift;
+
+my $new_findings = $state->{'findings'};
+my $previous     = <nameserv.consistency.last_findings> // {};
+
+for my $text ( sort keys %$new_findings ) {
+    next if $previous->{$text};
+    <[base.logs]>->( 1, ': consistency : %s', $text );
+}
+
+for my $text ( sort keys %$previous ) {
+    next if $new_findings->{$text};
+    <[base.logs]>->( 1, ': consistency : resolved : %s', $text );
+}
+
+my @findings = sort keys %$new_findings;
+
+<nameserv.consistency.last_findings> = {%$new_findings};
+<nameserv.consistency.last_run>      = {
+    'time'     => $state->{'started'},
+    'findings' => \@findings,
+};
+$state->{'active'} = FALSE;
+
+return TRUE;
+
+#,,,.,,.,,,.,,,.,,.,.,.,,,...,,,,,,.,,,,.,.,,,..,,...,...,...,,..,,..,..,,..,,
+#4QFMHIDCMY5X3TWSZOVTEE33VDAMLZ3EAX74XEFLTGPAJNDYCYU6UDAVRYDEZUZO4PBPI453MLP5K
+#\\\|ONWEDIHRISKBEP7VUAPJMFTAAQX2LF7CCX7KAOMKJRLSFAMRBP6 \ / AMOS7 \ YOURUM ::
+#\[7]TXQFW3X7EV343VKW6EKI6ZU2APHJHHZAWYEJ5ZBVVMHRW7LX3YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

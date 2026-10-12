@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nameserv.consistency.handler.answer
+# descr = read one async consistency query reply [ bgread ]
+
+## io watcher handler : the event carries the query id ##
+
+my $id = shift->w->data;
+
+my $state = <nameserv.consistency.state>;
+return if not ref $state;
+
+my $q = $state->{'queries'}->{$id};
+return if not defined $q;
+
+my $pkt = $q->{'resolver'}->bgread( $q->{'sock'} );
+
+my @values;
+if ( defined $pkt ) {
+    for my $rr ( $pkt->answer ) {
+        my $rr_type = $rr->type;
+        if ( $rr_type eq qw| A | or $rr_type eq qw| AAAA | ) {
+            push @values, $rr->address;
+        } elsif ( $rr_type eq qw| NS | ) {
+            push @values, $rr->nsdname;
+        } elsif ( $rr_type eq qw| PTR | ) {
+            push @values, $rr->ptrdname;
+        } elsif ( $rr_type eq qw| SOA | ) {
+            push @values, $rr->serial;
+        }
+    }
+}
+
+<[nameserv.consistency.complete]>->( $state, $id, \@values, FALSE );
+
+return;
+
+#,,..,..,,.,.,..,,..,,...,,,.,,,.,,..,...,..,,..,,...,...,,..,,,.,...,.,.,,,,,
+#HN6F2XZN7NQ7ZHJVTP5PBA5OF7YYFYR3RAP77M7EMMXTZWI22KDMZKBMPC2UB43ZCBD23Z4KS23TS
+#\\\|SUIYEN35SWYRGJOLLBHSOK7A2HV7FLLAW7IOPLFAOFPRXUGXUY5 \ / AMOS7 \ YOURUM ::
+#\[7]CVMCKZR72IE3WH6XQ7E5REYJUQC7HFA2SA5USWH4V6S5SO2BD2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

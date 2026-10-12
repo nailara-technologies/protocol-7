@@ -165,7 +165,7 @@ if ( not $ok ) {
     ## resume idle-shutdown tracking, paired with the pause in            ##
     ## fetch.file.huggingface.download -- only once EVERY tracked flow is ##
     ## terminal [ see fetch.file.huggingface.resume_idle ]                ##
-    <[huggingface.resume_idle]>->();
+    <[huggingface.resume_idle]>;
     return;
 }
 
@@ -217,7 +217,7 @@ if ( $succeeded and $hash_state eq qw| ok | ) {
             }
         );
     }
-    <[huggingface.resume_idle]>->();
+    <[huggingface.resume_idle]>;
     return;
 } elsif ( $succeeded and $hash_state eq qw| non-lfs | ) {
     ## small non-LFS file : no published sha256 exists                      ##
@@ -246,7 +246,7 @@ if ( $succeeded and $hash_state eq qw| ok | ) {
             }
         );
     }
-    <[huggingface.resume_idle]>->();
+    <[huggingface.resume_idle]>;
     return;
 } elsif ($succeeded) {
     ## hash fetch still in flight -> park in awaiting-hash;          ##
@@ -276,12 +276,12 @@ if ( $succeeded and $hash_state eq qw| ok | ) {
             }
         );
     }
-    <[huggingface.resume_idle]>->();
+    <[huggingface.resume_idle]>;
     return;
 }
 
-#,,,,,,..,..,,.,,,...,,,.,,,.,..,,.,,,,.,,.,,,..,,...,...,...,,,.,,.,,..,,.,,,
-#AI33YTEBG2ZHGKT6BR3LLFBJY5TACU47OZYBFX3EBA3F3IKIWGDW745HV6V5L4DBTMCUJ25XQU6PQ
-#\\\|CBGLYJQSQ5W5AJW5VM4MJI4TEJPP4NFX6JKNXM4AD63GX2DF6XM \ / AMOS7 \ YOURUM ::
-#\[7]3MTWGWGQANBFAYP5DHSX65ZCDMDXYNHUVKVWP5DR4TLC46RHAUCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,.,,,,.,,...,,,.,,,,,.,.,.,.,..,,...,...,..,,,,,,,,.,..,,.,,,
+#2633I3D3JULBM6S2NB6KHQ7GVVFLY2ZLPSJFKTS65KADYERI44BFCLAZXMQQ4VVNKRCR3OWSZDTXA
+#\\\|2X3GFLIB3OQNVFMTQK2MZFUZUFRWWJWL43WSV4NY23KPRENPLHT \ / AMOS7 \ YOURUM ::
+#\[7]2P34XVD4B4B6EPCW2H542LLPB2CETK3VS3Q3NXEEI365G6KVNGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
