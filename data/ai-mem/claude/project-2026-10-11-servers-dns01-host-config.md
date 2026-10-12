@@ -19,10 +19,10 @@ metadata:
 
 **Zone sync [ 4CJ ]** design data/md/design/TIMESTAMP-DELTA-SYNC.md. LANDED : stage 1 [ ts, tombstones, checksum, 2bef18709 ], stage 2 [ tcp lines, 8d1d1306b ], 3a [ nameserv-sync key + host-root .dlg via v7-zenki.delegation.issue_key, d398ba039, live : key + .dlg created here ], 3b [ signed entries, WRITER chain lines, grants keyed by host-root id, accept rules, per-peer cursor, 6a3628c0b ]. NOT yet tried between two real hosts. to enable on a host [ root, host.cfg ] : `nameserv.cfg.sync.port`, `nameserv.cfg.sync.peers = host:port ..`, `nameserv.cfg.sync.writer.<host-root id> = zone:<zone> ..` [ id : `p7c crypt.C25519.host-root-id` on the writing host ]. next : stage 4 letsencr writes its challenge txt to every nameserv ; production sync port [ open ]. remove-zone \ restore-zone [ xz trash ] exist. delta as DN1110 also needs registrar A\AAAA + glue and the acme NS sets.
 
-**Open** : wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
+**Open** : yourum.v7.ax -- access not set up yet, the user resets its password first [ 2026-10-12 ; leave it to them ]. atom [ being retired ] runs its own start set via v7-zenki.cfg.lowram_mb = 0 in its host.cfg, no nameserv there ; cube route leak 7N3 [ high ] hit atom after 2.5 days. wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
 
-#,,,.,,,,,.,,,.,,,.,.,.,,,.,.,.,.,,,,,.,,,...,..,,...,...,.,.,.,.,,..,,..,..,,
-#YM7F3FMAUR55RWRXJMXLAKDNP2IZGTS3WWOXHBBUPXJMG3PRC2DJU2XVE6EPSSK4GCEU3G3QKKAMM
-#\\\|PMBUDCASFNWQDPT5KQUMI2W77QUVWEH6XXHPLNYKMZJVCYCWA5M \ / AMOS7 \ YOURUM ::
-#\[7]QT4YEWZSEPV3EZFBVUMDF7ZGDSPZVS35U56BJU3NZAAIWYVHXYAA 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,...,...,...,...,,.,,..,,,..,..,,...,...,,..,.,.,,..,,,,,.,,,
+#7YYE2GOW453P76SJGUQHOBG5EM3DCNJFGUT7WYHBBLV2D3YFS45H6URIZ3MB7NCM7KGYLYYAD4GHG
+#\\\|E7RGDTLWYF7YKZ3VMTY7H6KIBPLVNZVQJXXDNF52UBLK2S4GC7W \ / AMOS7 \ YOURUM ::
+#\[7]CPZ2CGQK426PNOZ3IWRBATZY6AFRLGSJNWRSDK4QX7O4RTI7WCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
