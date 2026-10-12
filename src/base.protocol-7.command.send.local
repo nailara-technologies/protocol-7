@@ -32,7 +32,18 @@ if ( 0 == scalar keys $data{'session'}->%* ) {    ##  empty session : -1  ##
 
 if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
 
-    my $cmd_id        = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
+    my $cmd_id = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
+
+    ## route id table exhausted or invalid parameters : log once at level 0 ##
+    ## and drop instead of routing with an undefined id ; the zero return   ##
+    ## count signals failure to the caller [ todo 7N3 ]                     ##
+    if ( not defined $cmd_id ) {
+        <[base.logs]>->(
+            0, "send.local: gen_id returned no route id, dropping '%s'", $cmd
+        );
+        return 0;
+    }
+
     my $reply_handler = $ARG[0]->{'reply'}{'handler'} // qw| dev.null |;
     my $reply_params  = $ARG[0]->{'reply'}{'params'};
 
@@ -175,8 +186,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
     return -2;
 }
 
-#,,.,,.,,,.,.,,.,,...,...,.,.,,,,,..,,,..,...,..,,...,...,..,,,,.,,..,,,,,,,,,
-#7ZPGF5GK64V5YAZPKYHOLKFZZ63V7Y2SAHZ42LGYRW6CZHQWPW3MPBENOPETBT4PTUAPWYWB57N36
-#\\\|IDSMAP53RATJOHLGI7YFJ527DC3FXZ4XYTSVWW7DGUTCCNMFT34 \ / AMOS7 \ YOURUM ::
-#\[7]46DQFU3GCGG2WEFBZQNS4KMYZYK6REIKSS2HO4N576M3WEQXGGCI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,...,..,,...,,..,.,,,..,,.,,,..,,...,..,,...,..,,,..,,.,,,,,,
+#ZITAGYBMJPUGKFCXVVKBUIVGRMEUF24UKANOJD63LBCEB7E3VYHMQFE2HVDAGUJD7FF3I4BG6QGGA
+#\\\|QIPPMWSIHRKEBQ572LS25H5KTIU2Y7BGICCZEOOBVT6HWZWP3XG \ / AMOS7 \ YOURUM ::
+#\[7]VEQOPMUE4DYOPQ4FAZIB3CPTS5YFBTALTTI3ZPSV4APYK23VK4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

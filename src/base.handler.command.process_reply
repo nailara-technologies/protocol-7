@@ -301,6 +301,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 if ( $call_args->{'args'} eq qw| open | ) {
                     ## STRM unbounded open: no declared total ##
 
+                    ## a fresh open supersedes any stale cancel flag left ##
+                    ## from a previous stream with a recycled cmd_id      ##
+                    ## [ todo 7N3 ]                                       ##
+                    if ( ref $session->{'stream_cancelled'} eq qw| HASH | ) {
+                        delete $session->{'stream_cancelled'}->{$cmd_id};
+                        delete $session->{'stream_cancelled'}
+                            if not keys $session->{'stream_cancelled'}->%*;
+                    }
+
                     $session->{'streams'}->{$cmd_id} = {
                         'type'           => qw| STRM |,
                         'total_bytes'    => undef,
@@ -341,6 +350,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     ## STRM open header: forward to source, init stream ##
                     ## state                                            ##
                     my $total_bytes = $1;
+
+                    ## a fresh open supersedes any stale cancel flag left ##
+                    ## from a previous stream with a recycled cmd_id      ##
+                    ## [ todo 7N3 ]                                       ##
+                    if ( ref $session->{'stream_cancelled'} eq qw| HASH | ) {
+                        delete $session->{'stream_cancelled'}->{$cmd_id};
+                        delete $session->{'stream_cancelled'}
+                            if not keys $session->{'stream_cancelled'}->%*;
+                    }
 
                     $session->{'streams'}->{$cmd_id} = {
                         'type'           => qw| STRM |,
@@ -384,6 +402,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 } elsif ( $call_args->{'args'} =~ m|^(\d+)$| ) {
                     ## STRM data packet: chunk_size provided in args ##
                     my $chunk_size = $LAST_PAREN_MATCH;
+
+                    ## set when the consumer session is gone : the route    ##
+                    ## was torn down below and a gated producer emits no    ##
+                    ## close frame, so the cube-side stream state ends here ##
+                    ## [ todo 7N3 ]                                         ##
+                    my $stream_route_collapsed = FALSE;
 
                     if ( $buffer_length >= $chunk_size ) {
 
@@ -452,6 +476,64 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                         $data{'session'}{$id}
                                             {'stream_cancelled'}{$cmd_id}
                                             = TRUE;
+
+                                        ## free the dead stream's route :   ##
+                                        ## the consumer session is gone, so ##
+                                        ## neither this session's route     ##
+                                        ## entry nor the global route entry ##
+                                        ## would ever be removed            ##
+                                        ## [ todo 7N3 ] -- exactly once,    ##
+                                        ## like the normal reply paths ;    ##
+                                        ## the producer was told to stop    ##
+                                        ## above, late frames land on the   ##
+                                        ## unknown-route path and drop      ##
+                                        my $gone_route_id
+                                            = $session->{'route'}->{$cmd_id};
+                                        delete $data{'route'}
+                                            ->{$gone_route_id}
+                                            if defined $gone_route_id;
+                                        delete $session->{'route'}->{$cmd_id};
+                                        delete $session->{'route'}
+                                            if not
+                                            keys $session->{'route'}->%*;
+                                        $stream_route_collapsed = TRUE;
+
+                                        ## bound the sticky cancel table    ##
+                                        ## [ todo 7N3 ] : flags are dropped ##
+                                        ## when the stream for a cmd_id     ##
+                                        ## provably ends [ close frame, new ##
+                                        ## open, session close ] ; a gated  ##
+                                        ## producer emits no close frame,   ##
+                                        ## so once the table passes its     ##
+                                        ## limit, entries that have neither ##
+                                        ## a route nor stream state left    ##
+                                        ## are evicted -- a late push for   ##
+                                        ## such a cmd_id lands on the       ##
+                                        ## unknown-route path and simply    ##
+                                        ## re-arms the flag                 ##
+                                        if (keys $session->{
+                                                'stream_cancelled'}->%* > (
+                                                <limit.stream_cancelled>
+                                                    // 1024
+                                                )
+                                        ) {
+                                            my $sc_r = $session->{'route'}
+                                                // {};
+                                            my $sc_s = $session->{'streams'}
+                                                // {};
+                                            for my $sc_cid (
+                                                keys $session->{
+                                                    'stream_cancelled'}->%*
+                                            ) {
+                                                next
+                                                    if exists $sc_r->{$sc_cid}
+                                                    or
+                                                    exists $sc_s->{$sc_cid};
+                                                delete $session->{
+                                                    'stream_cancelled'}
+                                                    ->{$sc_cid};
+                                            }
+                                        }
                                     }
                                 }
 
@@ -474,6 +556,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                     ->{'total_bytes'}
                                 : ()
                             );
+
+                            ## source gone : the route was torn down above  ##
+                            ## and a gated producer emits no close frame -- ##
+                            ## end the cube-side stream state here so the   ##
+                            ## streams table stays bounded and the cancel   ##
+                            ## flag becomes sweepable [ todo 7N3 ] ; late   ##
+                            ## pushes land on the unknown-route path and    ##
+                            ## are dropped                                  ##
+                            if ($stream_route_collapsed) {
+                                delete $session->{'streams'}->{$cmd_id};
+                                delete $session->{'streams'}
+                                    if not keys $session->{'streams'}->%*;
+                            }
                         } else {
                             <[base.logs]>->(
                                 1,   "[%d] STRM pkt no stream [%d]",
@@ -536,6 +631,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         ## Clean up stream state ##
                         delete $session->{'streams'}->{$cmd_id};
 
+                        ## stream provably ended : release the sticky     ##
+                        ## cancel flag for this cmd_id [ todo 7N3 ] ; a   ##
+                        ## late push now lands on the unknown-route path, ##
+                        ## which re-arms the flag transiently             ##
+                        if (
+                            ref $session->{'stream_cancelled'} eq qw| HASH | )
+                        {
+                            delete $session->{'stream_cancelled'}->{$cmd_id};
+                            delete $session->{'stream_cancelled'}
+                                if not
+                                keys $session->{'stream_cancelled'}->%*;
+                        }
+
                     } else {
                         <[base.logs]>->(
                             1,   "[%d] STRM close no stream [%d]",
@@ -556,6 +664,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
                     ## STRM-SIZE open: initialize stream and block session ##
                     my $total_bytes = ${^CAPTURE}[0];
+
+                    ## a fresh open supersedes any stale cancel flag left ##
+                    ## from a previous stream with a recycled cmd_id      ##
+                    ## [ todo 7N3 ]                                       ##
+                    if ( ref $session->{'stream_cancelled'} eq qw| HASH | ) {
+                        delete $session->{'stream_cancelled'}->{$cmd_id};
+                        delete $session->{'stream_cancelled'}
+                            if not keys $session->{'stream_cancelled'}->%*;
+                    }
 
                     $session->{'streams'}{$cmd_id} = {
                         'type'           => qw| SIZE |,
@@ -853,6 +970,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         ## clean up stream state ##
                         delete $session->{'streams'}->{$cmd_id};
 
+                        ## stream provably ended : release the sticky ##
+                        ## cancel flag for this cmd_id [ todo 7N3 ]   ##
+                        if (
+                            ref $session->{'stream_cancelled'} eq qw| HASH | )
+                        {
+                            delete $session->{'stream_cancelled'}->{$cmd_id};
+                            delete $session->{'stream_cancelled'}
+                                if not
+                                keys $session->{'stream_cancelled'}->%*;
+                        }
+
                     } else {
                         <[base.logs]>->(
                             1,   "[%d] STRM-SIZE close no stream [%d]",
@@ -926,15 +1054,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
             and $call_args->{'args'}
             =~ m{^(?:open(?:\s+\d+)?|close(?:-timeout)?)$} ) {
 
-            ## STRM/STRM-SIZE lifecycle control lines [ open, open N,      ##
-            ## close, close-timeout ] carry no byte payload of their own   ##
-            ## -- same single-line shape as TRUE/FALSE/WAIT/GET/TERM above ##
-            ## -- give a registered consumer first refusal the same way.   ##
-            ## confirmed live 2026-09-14 : these never matched the digit-  ##
-            ## only elsif below, so nshell.handler.strm_reply's open/close ##
-            ## branches [ status line, received-vs-total integrity check ] ##
-            ## never actually fired for nshell's real traffic -- only bare ##
-            ## data chunks [ which DO match \d+ ] ever reached the hook    ##
+            ## STRM/STRM-SIZE lifecycle control lines                       ##
+            ## [ open, open N, close, close-timeout ] carry no byte payload ##
+            ## of their own                                                 ##
+            ## -- same single-line shape as TRUE/FALSE/WAIT/GET/TERM above  ##
+            ## -- give a registered consumer first refusal the same way.    ##
+            ## confirmed live 2026-09-14 : these never matched the          ##
+            ## digit-only elsif below, so nshell.handler.strm_reply's       ##
+            ## open/close branches                                          ##
+            ## [ status line, received-vs-total integrity check ] never     ##
+            ## actually fired for nshell's real traffic -- only bare data   ##
+            ## chunks [ which DO match \d+ ] ever reached the hook          ##
             if (<[base.handler.hooks.has_hooks]>->(
                     $id, qw| unknown-reply-route |
                 )
@@ -949,6 +1079,25 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 );
                 goto UNKNOWN_ROUTE_HANDLED
                     if defined $hook_result and $hook_result == TRUE;
+            }
+
+            ## lifecycle frame without a route : the stream for this cmd_id ##
+            ## is over [ close ] or superseded [ open ] -- drop leftover    ##
+            ## stream state and the sticky cancel flag so the streams and   ##
+            ## stream_cancelled tables stay bounded [ todo 7N3 ] ; a        ##
+            ## still-active producer re-arms the flag via the               ##
+            ## orphaned-chunk path below                                    ##
+            if ( $cmd_id > 0 ) {
+                if ( ref $session->{'streams'} eq qw| HASH | ) {
+                    delete $session->{'streams'}->{$cmd_id};
+                    delete $session->{'streams'}
+                        if not keys $session->{'streams'}->%*;
+                }
+                if ( ref $session->{'stream_cancelled'} eq qw| HASH | ) {
+                    delete $session->{'stream_cancelled'}->{$cmd_id};
+                    delete $session->{'stream_cancelled'}
+                        if not keys $session->{'stream_cancelled'}->%*;
+                }
             }
 
             return 0;    ## command complete ###
@@ -1000,8 +1149,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 ## after -- harmless for a synchronous single-shot reply [ ##
                 ## base.stream.emit's chunking has nothing left for a late ##
                 ## !TRM! to interrupt ], but a real risk of prematurely    ##
-                ## cutting off a live producer [ e.g. coding zenka         ##
-                ## inference streaming ] on its very first chunk           ##
+                ## cutting off a live producer                             ##
+                ## [ e.g. coding zenka inference streaming ] on its very   ##
+                ## first chunk                                             ##
                 if (<[base.handler.hooks.has_hooks]>->(
                         $id, qw| unknown-reply-route |
                     )
@@ -1049,6 +1199,26 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE
                     if $cmd_id > 0;
 
+                ## bound the sticky cancel table [ todo 7N3 ] : flags are  ##
+                ## dropped when the stream for a cmd_id provably ends      ##
+                ## [ close frame, new open, session close ] ; a gated      ##
+                ## producer emits no close frame, so once the table passes ##
+                ## its limit, entries that have neither a route nor stream ##
+                ## state left are evicted -- a late push for such a cmd_id ##
+                ## lands here again and simply re-arms the flag            ##
+                if (keys $session->{'stream_cancelled'}->%*
+                    > ( <limit.stream_cancelled> // 1024 ) ) {
+                    my $sc_r = $session->{'route'}   // {};
+                    my $sc_s = $session->{'streams'} // {};
+                    for my $sc_cid ( keys $session->{'stream_cancelled'}->%* )
+                    {
+                        next
+                            if exists $sc_r->{$sc_cid}
+                            or exists $sc_s->{$sc_cid};
+                        delete $session->{'stream_cancelled'}->{$sc_cid};
+                    }
+                }
+
                 return 0;    ## comand complete ###
 
             } else {
@@ -1077,6 +1247,23 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     );
                 }
                 $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE;
+
+                ## bound the sticky cancel table [ todo 7N3 ] : evict    ##
+                ## entries with neither route nor stream state left once ##
+                ## the table passes its limit                            ##
+                ## [ see complete-payload branch above ]                 ##
+                if (keys $session->{'stream_cancelled'}->%*
+                    > ( <limit.stream_cancelled> // 1024 ) ) {
+                    my $sc_r = $session->{'route'}   // {};
+                    my $sc_s = $session->{'streams'} // {};
+                    for my $sc_cid ( keys $session->{'stream_cancelled'}->%* )
+                    {
+                        next
+                            if exists $sc_r->{$sc_cid}
+                            or exists $sc_s->{$sc_cid};
+                        delete $session->{'stream_cancelled'}->{$sc_cid};
+                    }
+                }
 
                 ## Track incomplete payload: use ignore_chars for CHRSIZE,
                 #                                ignore_bytes for others
@@ -1131,8 +1318,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,.,,,..,.,,,,,.,,,,,,,.,,..,.,.,,..,.,,,,..,..,,...,...,...,...,,.,,.,,,,..,
-#32BW3B42CVEPJK2VDD43MPZSGFFHSGETGXURJILXJASNRXYIILD3TLCYDBQKHAUPPKO62I4OV2K56
-#\\\|QR2JUG3EY4E3W2CYBCB2OG4TDSAJKZJVMU7VESMHT27TKKMWYA3 \ / AMOS7 \ YOURUM ::
-#\[7]IQTM5HF5EWWQNVQSGQXV3VR3CSJNTPLLK3S3RV5MEABGCOJVFKAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,,,,.,,,..,.,.,,,,,,,.,,,,,.,,,..,,...,...,.,,,..,,,,.,...,,,.,
+#OTRRJSZ7VQY2RBR3EXYJHCL6MI7VZ3BE7E2NM3QOVY37EB5RYDC42ZEQNR6J2YBAXOF4GK4BUTVSO
+#\\\|SVQXZA7VAA7DNTQDMPPKBDVJLHZHZTBF5Q45SYKP46YOQS6YK2W \ / AMOS7 \ YOURUM ::
+#\[7]RMS46P7NIMYM3K5RTTWJKPUXO54B2COR6TNGOVYYX3AXYA3PBEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
